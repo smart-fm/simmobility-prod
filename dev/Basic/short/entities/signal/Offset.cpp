@@ -4,11 +4,9 @@
 
 #include "Offset.hpp"
 
-namespace sim_mob
-{
+using namespace sim_mob;
 
-
-//Static doubles technically need to be initialized here (not the header file).
+//Initialisation of static members
 const double Offset::DSmax = 0.9;
 const double Offset::DSmed = 0.5;
 const double Offset::DSmin = 0.3;
@@ -21,26 +19,39 @@ const double Offset::Off_low = 5;
 const double Offset::Off_up = 26;
 const double Offset::fixedCL = 60;
 
-
-//use next cycle length to calculate next Offset
-void Offset::setnextOffset(double nextCL) {
-	if (nextCL <= CL_low) {
-		nextOffset = Off_low;
-	} else if (nextCL > CL_low && nextCL <= CL_up) {
-		nextOffset = Off_low + (nextCL - CL_low) * (Off_up - Off_low) / (CL_up - CL_low);
-	} else {
-		nextOffset = Off_up;
-	}
+double Offset::getcurrOffset() const
+{
+	return currOffset;
 }
 
-void Offset::updateCurrOffset() {
-	currOffset = nextOffset;
+double Offset::getnextOffset() const
+{
+	return nextOffset;
 }
 
-void  Offset::update(double nextCL) {
-
-	setnextOffset(nextCL);
+void Offset::update(double nextCL)
+{
+	calcNextOffset(nextCL);
 	updateCurrOffset();
 }
 
-}//namespace
+void Offset::updateCurrOffset()
+{
+	currOffset = nextOffset;
+}
+
+void Offset::calcNextOffset(double nextCL)
+{
+	if (nextCL <= CL_low)
+	{
+		nextOffset = Off_low;
+	}
+	else if (nextCL > CL_low && nextCL <= CL_up)
+	{
+		nextOffset = Off_low + (nextCL - CL_low) * (Off_up - Off_low) / (CL_up - CL_low);
+	}
+	else
+	{
+		nextOffset = Off_up;
+	}
+}

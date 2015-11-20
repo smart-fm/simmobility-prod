@@ -3,6 +3,7 @@
 #include <boost/lexical_cast.hpp>
 #include <map>
 #include <vector>
+#include "conf/NetworkPrinter.hpp"
 #include "entities/params/PT_NetworkEntities.hpp"
 #include "entities/BusController.hpp"
 #include "entities/BusControllerMT.hpp"
@@ -258,6 +259,6 @@ void ExpandMidTermConfigFile::printSettings()
 
     //Print the network (this will go to a different output file...)
     std::cout << "------------------\n";
-    //PrintNetwork(cfg, cfg.outNetworkFileName);
+    NetworkPrinter(cfg, cfg.outNetworkFileName);
     std::cout << "------------------\n";
 }

@@ -9,289 +9,457 @@
 #include "conf/params/ParameterManager.hpp"
 #include "geospatial/network/Lane.hpp"
 #include "entities/models/Constants.hpp"
+#include "entities/roles/driver/DriverPathMover.hpp"
 #include "entities/roles/driver/DriverUpdateParams.hpp"
 
-namespace sim_mob {
-
-//Forward declaration
+namespace sim_mob
+{
 class DriverUpdateParams;
 class NearestVehicle;
 
-//enum LANE_CHANGE_MODE {	//as a mask
-//	DLC = 0,
-//	MLC = 2,
-//	MLC_C = 4,
-//	MLC_F = 6
-//};
-
-/*
- * \file LaneChangeModel.hpp
- *
- * \author Wang Xinyuan
- * \author Li Zhemin
- * \author Seth N. Hetu
- */
-class LaneChangeModel {
-public:
-	//Allow propagation of delete
-	virtual ~LaneChangeModel() {}
-
-	virtual LANE_CHANGE_SIDE makeLaneChangingDecision(DriverUpdateParams& p) = 0;
-	///to execute the lane changing, meanwhile, check if crash will happen and avoid it
-	///Return new lateral velocity, or <0 to keep the velocity at its previous value.
-//	virtual double executeLaneChanging(sim_mob::DriverUpdateParams& p, double totalLinkDistance, double vehLen, LANE_CHANGE_SIDE currLaneChangeDir, LANE_CHANGE_MODE mode) = 0;
-	virtual double executeLaneChanging(DriverUpdateParams& p)=0;
-	virtual void chooseTargetGap(DriverUpdateParams& p)=0;
-	virtual double executeLaterVel(LANE_CHANGE_SIDE& lcs)=0;
-	/**
-	 *  /brief this function checks for bad events that will override the lookahead,like incident
-	 *  /param vehicle info
-	 *  /return true only if has events
-	 */
-	virtual int checkIfLookAheadEvents(DriverUpdateParams& p) = 0;
-	/**
-	 *  /brief this function determines the lane changing that a lookahead vehicle
-	 *          will try if it is constrained by an event.
-	 *  /param vehicle info
-	 *  /return turn direction
-	 */
-	virtual LANE_CHANGE_SIDE checkMandatoryEventLC(DriverUpdateParams& p) = 0;
-};
-
-
 /**
- *
- * Simple version of the lane changing model
- * The purpose of this model is to demonstrate a very simple (yet reasonably accurate) model
- * which generates somewhat plausible visuals. This model should NOT be considered valid, but
- * it can be used for demonstrations and for learning how to write your own *Model subclasses.
- *
- * \author Seth N. Hetu
+ * Defines a base template for the LaneChangingModel
  */
-class SimpleLaneChangeModel : public LaneChangeModel {
+class LaneChangingModel
+{
+protected:
+	/**The model name in the "parameters" tag of the XML file*/
+	string modelName;
+
+	/**The delimiter to split the parameters specified in the XML file*/
+	string splitDelimiter;
+
+	/**The pointer to the driver path mover object*/
+	DriverPathMover *fwdDriverMovement;
+
 public:
-	virtual double executeLaneChanging(sim_mob::DriverUpdateParams& p, double totalLinkDistance, double vehLen, LANE_CHANGE_SIDE currLaneChangeDir, LANE_CHANGE_MODE mode);
+	LaneChangingModel(DriverPathMover *pathMover) : fwdDriverMovement(pathMover)
+	{
+	}
+	virtual ~LaneChangingModel()
+	{
+	}
+
+	virtual LaneChangeTo makeLaneChangingDecision(DriverUpdateParams &params) = 0;
+
+	virtual double executeLaneChanging(DriverUpdateParams &params) = 0;
+
+	virtual void chooseTargetGap(DriverUpdateParams &params) = 0;
+
+	virtual double calculateLateralVelocity(LaneChangeTo &laneChangeTo) = 0;
+
+	virtual int checkForEventsAhead(DriverUpdateParams &params) = 0;
+
+	virtual LaneChangeTo checkMandatoryEventLC(DriverUpdateParams &params) = 0;
 };
 
-class MITSIM_LC_Model : public LaneChangeModel {
-public:
+class MITSIM_LC_Model : public LaneChangingModel
+{
+private:
 
-    /**
-     * Simple struct to hold mandatory lane changing parameters
+	/**
+	 * Holds the mandatory lane changing parameters
+	 */
+	struct MandatoryLaneChangeParams
+	{
+		//In metre
+		double lowbound;
+
+		//In metre
+		double delta;
+
+		//In sec
+		double lane_mintime;
+	};
+
+	/**Minimum time require in lane before doing a lane change in the same direction as the previous lane change*/
+	double minTimeInLaneSameDir;
+
+	/**Minimum time require in lane before doing a lane change in a direction different to the previous lane change*/
+	double minTimeInLaneDiffDir;
+
+	/**Max distance for nosing*/
+	double lcMaxNosingDis;
+
+	/**This parameter is used to change drivers reaction time when in a nosing behaviour*/
+	double CF_CRITICAL_TIMER_RATIO;
+
+	/**The maximum time a vehicle is stuck while attempting to nose*/
+	double lcMaxStuckTime;
+
+	/**Minimum speed to consider for a moving vehicle*/
+	double minSpeed;
+
+	/**The look ahead distance*/
+	double lookAheadDistance;
+
+	/**Specifies the time horizon (in second) for constant acceleration while nosing*/
+	float lcNosingConstStateTime;
+
+	/**Holds the parameters required to calculate critical gap*/
+	vector<double> criticalGapParams;
+
+	/**Holds the nosing parameters*/
+	vector<double> kaziNosingParams;
+
+	/**Holds the probabilities of yielding to other vehicles*/
+	vector<double> lcYieldingProb;
+
+	/**Holds the lane utility model. This model describes drivers’ choice of lane they would want to travel in*/
+	vector<double> laneUtilityParams;
+
+	/**Holds the parameters the define how a gap is chosen*/
+	std::vector< std::vector<double> > GAP_PARAM;
+
+	/**Holds the mandatory lane changing parameters*/
+	MandatoryLaneChangeParams MLC_PARAMETERS;
+
+	/**
+	 * Reads the lane changing model parameters from the driver parameters XML file
+	 *
+	 * @param params the drivers parameters
+	 */
+	void readDriverParameters(DriverUpdateParams &params);
+
+	/**
+	 * Helper function to parse parameters read in string format and store them
+	 *
+	 * @param str parameters read from driver parameters XML
+	 */
+	void makeCriticalGapParams(std::string &str);
+
+	/**
+	 * Helper function to parse parameters read in string format and store them
+	 *
+	 * @param params driver parameters
+	 * @param str parameters read from driver parameters XML
+	 */
+	void makeNosingParams(DriverUpdateParams &params, string &str);
+
+	/**
+	 * Helper function to parse parameters read in string format and store them
+	 *
+	 * @param str parameters read from driver parameters XML
+	 */
+	void makeLC_YieldingProbabilities(string &str);
+
+	/**
+	 * Helper function to parse parameters read in string format and store them
+	 *
+	 * @param str parameters read from driver parameters XML
+	 */
+	void makeLaneUtilityParams(std::string &str);
+
+	/**
+	 * Helper function to parse parameters read in string format and store them
+	 *
+	 * @param str parameters read from driver parameters XML
+	 */
+	void makeMCLParam(std::string &str);
+
+	/**
+	 * Helper function to parse parameters read in string format and store them
+	 *
+	 * @param params driver parameters
+	 * @param strMatrix parameters read from driver parameters XML
+	 */
+	void makeCriticalGapParams(DriverUpdateParams &params, std::vector<std::string> &strMatrix);
+
+	/**
+	 * Helper function to parse parameters read in string format and store them
+	 *
+	 * @param strMatrix parameters read from driver parameters XML
+	 */
+	void makeTargetGapPram(std::vector<std::string> &strMatrix);
+
+	/**
+	 * Helper function to parse parameters read in string format and store them
+	 *
+	 * @param str parameters read from driver parameters XML
+	 */
+	void makeKaziNosingParams(string &str);
+
+	/**
+	 * Calculates target gap utility
+	 *
+	 * @param params the driver parameters
+	 * @param n
+	 * @param effectiveGap the gap distance
+	 * @param distToGap distance to the gap
+	 * @param gapSpeed relative speed
+	 * @param remainderGap
+	 *
+	 * @return
+	 */
+	double gapExpOfUtility(DriverUpdateParams &params, int n, float effectiveGap, float distToGap, float gapSpeed, float remainderGap);
+
+	/**
+	 * This method determines the lane changing direction that a vehicle will try if it is constrained by an event.
+	 * 
+	 * @param params driver parameters
+	 *
+	 * @return lane change to direction
+	 */
+	virtual LaneChangeTo checkMandatoryEventLC(DriverUpdateParams &params);
+
+	/**
+	 * This function returns the lane change direction constrained by a look-ahead distance
+	 *
+	 * @param params driver parameters
+	 *
+	 * @return lance changing direction
+	 */
+	LaneChangeTo checkForLC_WithLookAhead(DriverUpdateParams &params);
+
+	/**
+	 * This method checks for events that will override the lookahead, like incidents, lane drops
+	 *
+	 * @param params driver parameters
+	 *
+	 * @return non-zero value if an event ahead requires a lane change
+	 */
+	virtual int checkForEventsAhead(DriverUpdateParams &params);
+
+	/**
+	 * Sets the dis2stop value if there is an incident ahead that requires a lane change
+	 * @param params driver parameters
+	 * @return -1 if mandatory lane change required, 0 otherwise
+	 */
+	int isIncidentAhead(DriverUpdateParams &params);
+
+	/**
+	 * Checks if the current lane is connected to the next way-point and sets the dis2stop.
+	 * This method checks for connections to the next segment or the turning group, if the next way-point is a turning group
+	 *
+	 * @param params drivers parameters
+	 * @param targetLanes target lanes, if lane change is required
+	 *
+	 * @return -1 if mandatory lane change, 0 otherwise
+	 */
+	int isLaneConnectedToNextWayPt(DriverUpdateParams &params, set<const Lane *> &targetLanes);
+
+	/**
+	 * Checks if the current lane is connected to the next link and sets the dis2stop.
+	 * This method checks for connections to the turning group at the end of the current link
+	 *
+	 * @param params drivers parameters
+	 * @param targetLanes target lanes, if lane change is required
+	 *
+	 * @return -1 if mandatory lane change, 0 otherwise
+	 */
+	int isLaneConnectedToNextLink(DriverUpdateParams &params, set<const Lane *> &targetLanes);
+
+	/**
+	 * Check if there is a stop point ahead. If so, check if we need to do a lane change towards the road side
+	 * 
+	 * @param params driver parameters
+	 * @param targetLanes the lanes connected to the stop point
+	 *
+	 * @return -1 if lance change is require, 0 otherwise
+	 */
+	int isLaneConnectedToStopPoint(DriverUpdateParams &params, set<const Lane *> &targetLanes);
+	
+	/**
+	 * Gets the lanes connected to the segment within the look ahead distance
+	 * 
+	 * @param params driver parameters
+     * @param lookAheadDist look ahead distance
+     * @param lanePool stores the result
      */
-    struct MandLaneChgParam {
-        double lowbound; // meter
-        double delta;  // meter
-        double lane_mintime; // sec
-    };
+	void getConnectedLanesInLookAheadDistance(DriverUpdateParams &params, double lookAheadDist, std::vector<Lane *> &lanePool);
 
-	MITSIM_LC_Model(DriverUpdateParams& p);
 	/**
-	 *  /brief get parameters from external xml file
+	 * Calculates the utility of the left lane when looking ahead for lane change
+	 *
+	 * @param params driver parameters
+	 * @param noOfChanges number of lane changes
+	 * @param lcDistance distance before which lane change must be done
+	 * 
+	 * @return utility of the left lane
 	 */
-	void initParam(DriverUpdateParams& p);
-	///Use Kazi LC Gap Model to calculate the critical gap
-	///\param type 0=leading 1=lag + 2=mandatory (mask) //TODO: ARGHHHHHHH magic numbers....
-	///\param dis from critical pos
-	///\param spd spd of the follower
-	///\param dv spd difference from the leader));
-	virtual double lcCriticalGap(sim_mob::DriverUpdateParams& p, int type,	double dis, double spd, double dv);
-//	virtual sim_mob::LaneSide gapAcceptance(sim_mob::DriverUpdateParams& p, int type);
-	virtual double calcSideLaneUtility(sim_mob::DriverUpdateParams& p, bool isLeft);  ///<return utility of adjacent gap
-//	virtual sim_mob::LANE_CHANGE_SIDE makeDiscretionaryLaneChangingDecision(sim_mob::DriverUpdateParams& p);  ///<DLC model, vehicles freely decide which lane to move. Returns 1 for Right, -1 for Left, and 0 for neither.
+	double lcUtilityLookAheadLeft(DriverUpdateParams &params, int noOfChanges, float lcDistance);
 
-//	virtual sim_mob::LANE_CHANGE_SIDE makeMandatoryLaneChangingDecision(sim_mob::DriverUpdateParams& p); ///<MLC model, vehicles must change lane, Returns 1 for Right, -1 for Left.
-
-//	virtual sim_mob::LANE_CHANGE_SIDE executeNGSIMModel(sim_mob::DriverUpdateParams& p);
-	virtual bool ifCourtesyMerging(DriverUpdateParams& p);
-//	virtual bool ifForcedMerging(DriverUpdateParams& p);
-//	virtual sim_mob::LANE_CHANGE_SIDE makeCourtesyMerging(sim_mob::DriverUpdateParams& p);
-//	virtual sim_mob::LANE_CHANGE_SIDE makeForcedMerging(sim_mob::DriverUpdateParams& p);
-	virtual void chooseTargetGap(sim_mob::DriverUpdateParams& p,std::vector<TARGET_GAP>& tg);
-	/*
-	 *  /brief when left,right gap is not possible, choose adjacent,forward,backward gap
-	 *         set the status to STATUS_ADJACENT,STATUS_FORWARD,STATUS_BACKWARD
+	/**
+	 * Calculates the utility of the right lane when looking ahead for lane change
+	 *
+	 * @param params driver parameters
+	 * @param noOfChanges number of lane changes
+	 * @param lcDistance distance before which lane change must be done
+	 *
+	 * @return utility of the right lane
 	 */
-	virtual void chooseTargetGap(DriverUpdateParams& p);
-	double gapExpOfUtility(DriverUpdateParams& p,int n, float effGap, float gSpeed, float gapDis, float remDis);
-//	vector<double> targetGapParams;
+	double lcUtilityLookAheadRight(DriverUpdateParams &params, int noOfChanges, float lcDistance);
+
+	/**
+	 * Calculates the utility of the current lane when looking ahead for lane change
+	 *
+	 * @param params driver parameters
+	 * @param noOfChanges number of lane changes
+	 * @param lcDistance distance before which lane change must be done
+	 *
+	 * @return utility of the current lane
+	 */
+	double lcUtilityLookAheadCurrent(DriverUpdateParams &params, int noOfChanges, float lcDistance);
+
+	/**
+	 * Calculates the utility of the left lane for mandatory lane change
+	 *
+	 * @param params driver parameters
+	 *
+	 * @return utility of the left lane
+	 */
+	double lcUtilityLeft(DriverUpdateParams &params);
+
+	/**
+	 * Calculates the utility of the right lane for mandatory lane change
+	 *
+	 * @param params driver parameters
+	 *
+	 * @return utility of the right lane
+	 */
+	double lcUtilityRight(DriverUpdateParams &params);
+
+	/**
+	 * Calculates the utility of the current lane for mandatory lane change
+	 *
+	 * @param params driver parameters
+	 *
+	 * @return utility of the current lane
+	 */
+	double lcUtilityCurrent(DriverUpdateParams &params);
+
+	/**
+	 * Finds the number of lane changes to end of the link.
+	 *
+	 * @param params driver parameters
+	 * @param currLane the current lane
+	 *
+	 * @return number of lane changes required
+	 */
+	int getNumberOfLCToEndOfLink(DriverUpdateParams &params, const Lane *currLane);
+
+	/**
+	 * Calculates the critical gap for the given type of gap and the given differences in the speeds
+	 *
+	 * @param params the driver parameters
+	 * @param type the type of gap. 0: Lead gap, 1: Lag gap
+	 * @param dv difference the in the speeds of the vehicles
+	 *
+	 * @return value of critical gap
+	 */
+	double lcCriticalGap(DriverUpdateParams &params, int type, double dv);
+
+	/**
+	 * Calculates the nosing probability
+	 * @param distance distance before which nosing is to be completed
+	 * @param diffInSpeed the difference in the speeds of the vehicles
+	 * @param gap the gap between the vehicles
+	 * @param num number of lanes
+	 *
+	 * @return nosing probability
+	 */
+	float lcNosingProbability(float distance, float diffInSpeed, float gap, int num);
+
+	/**
+	 *
+	 * @param params
+	 * @param fwdVehicle
+	 * @param rearVehicle
+	 * @param distToStop
+	 * @return 1 if the vehicle can nose in, 0 otherwise
+	 */
+	int checkNosingFeasibility(DriverUpdateParams &params, const NearestVehicle *fwdVehicle, const NearestVehicle *rearVehicle, double distToStop);
+
+	/**
+	 * Checks the connections to the next segment/turning groups and sets or clears the status
+	 * STATUS_LEFT_OK, STATUS_RIGHT_OK, STATUS_CURRENT_OK
+	 *
+	 * @param params driver parameters
+	 */
+	void setLaneConnectionStatus(DriverUpdateParams &params);
+
+	/**
+	 * Calculates the time since the vehicle was tagged
+	 *
+	 * @param params
+	 *
+	 * @return time since tagged (in seconds)
+	 */
+	double timeSinceTagged(DriverUpdateParams &params);
+
+	/**
+	 * Mandatory lane change distance for lookahead vehicles
+	 * @return lookahead distance (metre)
+	 */
+	double mlcDistance();
+
+	/**
+	 * Uses the Kazi LC Gap Model to calculate the critical gap
+	 *
+	 * @param params drivers parameters
+	 * @param type 0=leading 1=lag + 2=mandatory (mask)
+	 * @param distance distance from critical position
+	 * @param diffInSpeed difference in speeds between the follower and the leader
+	 *
+	 * @return the critical gap
+	 */
+	double calcCriticalGapKaziModel(DriverUpdateParams &params, int type, double distance, double diffInSpeed);
 
 public:
+	MITSIM_LC_Model(DriverUpdateParams &params, DriverPathMover *pathMover);
+	virtual ~MITSIM_LC_Model();
+
 	/**
-	 *--------------------------------------------------------------------
 	 * This is the lane changing model.
-	 *
-	 * This function sets bits 4-7 of the variable 'status'.
-	 *
-	 * The fourth and fifth bit indicate current lane change status,
+	 * This function sets bits 4-7 of the variable 'status'. The fourth and fifth bit indicate current lane change status,
 	 * and the bits should be masked by:
-	 *
 	 *  8=STATUS_RIGHT
 	 * 16=STATUS_LEFT
 	 * 24=STATUS_CHANGING
-	 *
 	 * This function is invoked when the countdown clock cfTimer is 0.
-	 * It returns a non-zero value if the vehicle needs a lane change,
-	 * and 0 otherwise.
-	 *--------------------------------------------------------------------
-	 **/
-	LANE_CHANGE_SIDE makeLaneChangingDecision(DriverUpdateParams& p);
-	/**
-	 *  /brief this function check if can perform lane change(set status STATUS_LC_RIGHT,STATUS_LC_LEFT)
-	 *         if can not, check if can do nosing
-	 *         this function not return lateral velocity, it is conduct in executeLaterVel()
+	 *
+	 * @param params the driver parameters
+	 *
+	 * @return a non-zero value if the vehicle needs a lane change,
+	 * and 0 otherwise
 	 */
-	double executeLaneChanging(DriverUpdateParams& p);
-	int isReadyForNextDLC(DriverUpdateParams& p,int mode);
-
-	double minTimeInLaneSameDir;
-	double getDlcMinTimeInLaneSameDir() { return minTimeInLaneSameDir; }
-	double minTimeInLaneDiffDir;
-	double getDlcMinTimeInLaneDiffDir() { return minTimeInLaneDiffDir; }
-//	double executionLC(LANE_CHANGE_SIDE& change);
-	/**
-	 *  /return lateral velocity (m/s)
-	 */
-	virtual double executeLaterVel(LANE_CHANGE_SIDE& change);
-	/**
-	 *  /brief this function gives the LC direction when the driver is
-	 *         constrained by the lookahead
-	 *  /param p vehicle info
-	 *  /return turn direction
-	 */
-
-	std::vector<double> mlcParams;
-	LANE_CHANGE_SIDE checkForLookAheadLC(DriverUpdateParams& p);
-	/**
-	 *  /brief check if has path
-	 *  /param p vehicle info
-	 *  /return true if has path, false if not
-	 */
-	bool path(DriverUpdateParams& p);
-	// TODO: add incident code
-	virtual int checkIfLookAheadEvents(DriverUpdateParams& p);
+	virtual LaneChangeTo makeLaneChangingDecision(DriverUpdateParams &params);
 
 	/**
-	 * 	/brief set dis2stop
-	 * 	 -1 = bad event and requires a mandatory lane change
-	 * 	  0 = nothing serious
-	 * 	  1 = bad event and requires a discretionary lane change
+	 * Chooses the target gap for lane change. When left and right gap is not possible we choose adjacent/forward/backward gap
+	 * and set the status to STATUS_ADJACENT/STATUS_FORWARD/STATUS_BACKWARD
+	 *
+	 * @param params the driver parameters
 	 */
-	int isThereBadEventAhead(DriverUpdateParams& p);
+	virtual void chooseTargetGap(DriverUpdateParams &params);
 
 	/**
-	 *  /brief check lane drop,set dis2stop
-	 *         only check segments in current link,means find lanes of curr segments connect to next segment
-	 *  /targetLanes target lanes, if require mlc or dlc
-	 *  /return
-	 *   0 = nothing serious
-	 * 	 -1 = requires a mandatory lane change
+	 * This method checks whether we can perform lane change (set status STATUS_LC_RIGHT, STATUS_LC_LEFT). If we can't, then
+	 * it checks whether we can perform nosing
+	 *
+	 * @param params driver parameters
+	 *
+	 * @return 0
 	 */
-	int isThereLaneDrop(DriverUpdateParams& p,set<const Lane*>& targetLanes);
+	virtual double executeLaneChanging(DriverUpdateParams &params);
 
 	/**
-	 *  /brief check if lane connect to next link,set dis2stop
-	 *   0 = nothing serious
-	 * 	 -1 = requires a mandatory lane change
+	 * Checks whether we are ready to perform the next discretionary lane change (DLC)
+	 *
+	 * @param params the driver parameters
+	 * @param mode indicates the lane change direction [1: change to right, 2: change to left]
+	 * 
+	 * @return 1 if the lane change is possible, 0 otherwise
 	 */
-	int isLaneConnectToNextLink(DriverUpdateParams& p,set<const Lane*>& targetLanes);
+	int isReadyForNextDLC(DriverUpdateParams &params, int mode);
 
 	/**
-	 *  @brief if has stop point forward, do mandatory lane change to road side left/right base on config
-	 *   0 = nothing serious
-	 * 	 -1 = requires a mandatory lane change
+	 * Calculate the lateral velocity for the lane change
+	 *
+	 * @param change the lane to be changed to
+	 *
+	 * @return the lateral velocity for the lane change
 	 */
-	int isLaneConnectToStopPoint(DriverUpdateParams& p,set<const Lane*>& targetLanes);
-
-	// TODO: add incident code
-	virtual LANE_CHANGE_SIDE checkMandatoryEventLC(DriverUpdateParams& p);
-	double lcUtilityLookAheadLeft(DriverUpdateParams& p,int n, float LCdistance);
-	double LCUtilityLeft(DriverUpdateParams& p);
-	double LCUtilityRight(DriverUpdateParams& p);
-	double LCUtilityCurrent(DriverUpdateParams& p);
-
-	/**
-	 *  /brief find number of lane changes to end of the link
-	 *         current simmobility most right lane always connector to last segment of link
-	 *   -n = number of lane changes to right required
-	 *	 0  = this lane is fine
-	 *	 +n = number of lane changes to left requied
-	 */
-	int isWrongLane(DriverUpdateParams& p,const Lane* lane);
-
-	double lcUtilityLookAheadRight(DriverUpdateParams& p,int n, float LCdistance);
-	double lcUtilityLookAheadCurrent(DriverUpdateParams& p,int n, float LCdistance);
-	double lcCriticalGap(sim_mob::DriverUpdateParams& p, int type,double dv);
-	vector<double> criticalGapParams;
-	void makeCriticalGapParams(std::string& str);
-//	vector<double> nosingParams;
-	double lcMaxNosingDis;
-	void makeNosingParams(DriverUpdateParams& p,string& str);
-	float lcNosingProb(float dis, float lead_rel_spd, float gap,int num);
-	vector<double> kaziNosingParams;
-	void makekaziNosingParams(string& str);
-	float lcProdNoseRejProb;	// used in sampling nosing prob
-	double CF_CRITICAL_TIMER_RATIO;
-	// Returns 1 if the vehicle can nose in or 0 otherwise
-	int checkNosingFeasibility(DriverUpdateParams& p,const NearestVehicle * av,const NearestVehicle * bv,double dis2stop);
-	double lcMaxStuckTime;
-//	double lcMinGap(int type);
-	float lcNosingConstStateTime;
-	vector<double> lcYieldingProb;
-	void makelcYieldingProb(string& str);
-
-	vector<double> laneUtilityParams;
-	void makeLanetilityParams(std::string& str);
-
-
-	/**
-	 *  /brief check lanes connect to next segment,set/unset status STATUS_LEFT_OK,STATUS_RIGHT_OK,STATUS_CURRENT_OK
-	 *  /param p vehicle info
-	 */
-	void checkConnectLanes(DriverUpdateParams& p);
-
-	/// model name in xml file tag "parameters"
-	string modelName;
-	// split delimiter in xml param file
-	string splitDelimiter;
-
-	MandLaneChgParam MLC_PARAMETERS;
-
-	double minSpeed; // minimum speed to consider for a moving vehicle
-//	double mlcMinTimeInLane;  // minimum time in lane , seconds
-//	double lcTimeTag;		// time changed lane , ms
-	double timeSinceTagged(DriverUpdateParams& p);
-
-	double lookAheadDistance;
-
-	/**
-	 *  /brief mlc distance for lookahead vehicles
-	 *  /return lookahead distance (meter)
-	 */
-	double mlcDistance();
-	/**
-	 *  /brief extract mcl paramteter from string, like "1320.0  5280.0 0.5 1.0  1.0"
-	 *  /param text string
-	 */
-	void makeMCLParam(std::string& str);
-
-//	// critical gap param
-//	std::vector< std::vector<double> > LC_GAP_MODELS;
-	/**
-	 *  /brief make double matrix, store the matrix to LC_GAP_MODELS
-	 *  /strMatrix string matrix
-	 */
-	void makeCtriticalGapParam(DriverUpdateParams& p,std::vector< std::string >& strMatrix);
-
-	// choose target gap param
-	std::vector< std::vector<double> > GAP_PARAM;
-	/**
-	 *  /brief make double matrix, store the matrix to GAP_PARAM
-	 *  /strMatrix string matrix
-	 */
-	void makeTargetGapPram(std::vector< std::string >& strMatrix);
-
+	virtual double calculateLateralVelocity(LaneChangeTo &change);
 };
-
-
 }

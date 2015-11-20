@@ -85,6 +85,17 @@ const std::vector<LaneConnector *>& Lane::getLaneConnectors() const
 	return laneConnectors;
 }
 
+void Lane::getPhysicalConnectors(std::vector<const LaneConnector *> &phyConnectors) const
+{
+	for(std::vector<LaneConnector *>::const_iterator it = laneConnectors.begin(); it != laneConnectors.end(); ++it)
+	{
+		if((*it)->isTrueConnector())
+		{
+			phyConnectors.push_back(*it);
+		}
+	}
+}
+
 void Lane::addLaneConnector(LaneConnector *laneConnector)
 {
 	this->laneConnectors.push_back(laneConnector);

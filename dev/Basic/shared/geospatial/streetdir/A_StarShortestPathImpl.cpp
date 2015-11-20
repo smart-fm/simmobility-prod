@@ -276,8 +276,10 @@ void A_StarShortestPathImpl::procAddDrivingSegments(StreetDirectory::Graph& grap
 		return;
 	}
 
-	StreetDirectory::Vertex fromVertex = StreetDirectory::Vertex();
-	StreetDirectory::Vertex toVertex = StreetDirectory::Vertex();
+	std::pair < StreetDirectory::Vertex, bool> fromVertex;
+	std::pair < StreetDirectory::Vertex, bool> toVertex;
+	fromVertex.second = false;
+	toVertex.second = false;
 
 	//Here, we are simply assigning one Edge per RoadSegment in the Link.
 	const vector<RoadSegment*>& roadway = link->getRoadSegments();
@@ -302,7 +304,8 @@ void A_StarShortestPathImpl::procAddDrivingSegments(StreetDirectory::Graph& grap
 						<< std::endl;
 				continue;
 			}
-			fromVertex = from->second.vertices.front().v;
+			fromVertex.first = from->second.vertices.front().v;
+			fromVertex.second = true;
 			if (from->second.vertices.size() > 1)
 			{
 				bool error = true;
@@ -310,7 +313,8 @@ void A_StarShortestPathImpl::procAddDrivingSegments(StreetDirectory::Graph& grap
 				{
 					if (link == it->after)
 					{
-						fromVertex = it->v;
+						fromVertex.first = it->v;
+						fromVertex.second = true;
 						error = false;
 					}
 				}
@@ -333,7 +337,8 @@ void A_StarShortestPathImpl::procAddDrivingSegments(StreetDirectory::Graph& grap
 						<< std::endl;
 				continue;
 			}
-			toVertex = to->second.vertices.front().v;
+			toVertex.first = to->second.vertices.front().v;
+			toVertex.second = true;
 			if (to->second.vertices.size() > 1)
 			{
 				bool error = true;
@@ -341,7 +346,8 @@ void A_StarShortestPathImpl::procAddDrivingSegments(StreetDirectory::Graph& grap
 				{
 					if (link == it->before)
 					{
-						toVertex = it->v;
+						toVertex.first = it->v;
+						toVertex.second = true;
 						error = false;
 					}
 				}
@@ -352,23 +358,25 @@ void A_StarShortestPathImpl::procAddDrivingSegments(StreetDirectory::Graph& grap
 			}
 		}
 
-		PolyPoint sPos = rs->getPolyLine()->getFirstPoint();
-		PolyPoint dPos = rs->getPolyLine()->getLastPoint();
-		if (fromVertex == StreetDirectory::Vertex()) {
-			fromVertex = addSimpleVertex(graph, sPos);
+		if (!fromVertex.second) {
+			PolyPoint sPos = rs->getPolyLine()->getFirstPoint();
+			fromVertex.first = addSimpleVertex(graph, sPos);
+			fromVertex.second = true;
 		}
-		if (toVertex == StreetDirectory::Vertex()) {
-			toVertex = addSimpleVertex(graph, dPos);
+		if (!toVertex.second) {
+			PolyPoint dPos = rs->getPolyLine()->getLastPoint();
+			toVertex.first = addSimpleVertex(graph, dPos);
+			toVertex.second = true;
 		}
 
 		//Create an edge.
-		StreetDirectory::Edge edge = addSimpleEdge(graph, fromVertex, toVertex, WayPoint(rs), rs->getLength());
+		StreetDirectory::Edge edge = addSimpleEdge(graph, fromVertex.first, toVertex.first, WayPoint(rs), rs->getLength());
 		//Save this in our lookup.
 		resSegEdgeLookup[rs].insert(edge);
-		resSegVerLookup[rs] = std::make_pair(fromVertex, toVertex);
+		resSegVerLookup[rs] = std::make_pair(fromVertex.first, toVertex.first);
 
 		fromVertex = toVertex;
-		toVertex = StreetDirectory::Vertex();
+		toVertex.second = false;
 	}
 }
 

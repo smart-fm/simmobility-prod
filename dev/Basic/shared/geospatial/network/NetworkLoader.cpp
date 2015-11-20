@@ -7,6 +7,8 @@
 #include <stdexcept>
 #include "logging/Log.hpp"
 #include "SOCI_Converters.hpp"
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
 
 using namespace sim_mob;
 
@@ -194,8 +196,10 @@ void NetworkLoader::loadTurningPolyLines(const std::string& storedProc)
 
 void NetworkLoader::loadBusStops(const std::string& storedProc)
 {
-	if(storedProc.empty()){
-		sim_mob::Warn() << "WARNING: An empty 'bus_stops' stored-procedure was specified in the config file; " << std::endl;
+	if (storedProc.empty())
+	{
+		Print() << "Stored procedure to load bus stops not specified in the configuration file." 
+				<< "\nBus Stops not loaded..." << std::endl;
 		return;
 	}
 
@@ -204,6 +208,11 @@ void NetworkLoader::loadBusStops(const std::string& storedProc)
 
 	for (soci::rowset<BusStop>::const_iterator itStop = stops.begin(); itStop != stops.end(); ++itStop)
 	{
+		if (!sim_mob::ConfigManager::GetInstance().FullConfig().isGenerateBusRoutes() && itStop->getStopName().find("Virtual Bus Stop") != std::string::npos)
+		{
+			continue;
+		}
+		
 		//Create new bus stop and add it to road network
 		BusStop* stop = new BusStop(*itStop);
 		RoadSegment* parentSegment = const_cast<RoadSegment*>(roadNetwork->getById(roadNetwork->getMapOfIdVsRoadSegments(), stop->getRoadSegmentId()));
@@ -240,7 +249,7 @@ void NetworkLoader::loadBusStops(const std::string& storedProc)
 			}
 			else
 			{
-				throw std::runtime_error("invalid assignment of terminal node for interchange busstop");
+				throw std::runtime_error("Invalid assignment of terminal node for interchange bus stop");
 			}
 			stop->setTwinStop(twinStop);
 			twinStop->setTwinStop(stop);
@@ -283,7 +292,7 @@ void NetworkLoader::loadNetwork(const string& connectionStr, const map<string, s
 
 		loadTurningConflicts(getStoredProcedure(storedProcs, "turning_conflicts"));
 		
-		loadBusStops(getStoredProcedure(storedProcs, "bus_stops"));
+		loadBusStops(getStoredProcedure(storedProcs, "bus_stops", false));
 		
 		//Close the connection
 		sql.close();
@@ -306,8 +315,8 @@ void NetworkLoader::loadNetwork(const string& connectionStr, const map<string, s
 void NetworkLoader::processNetwork()
 {
 	//Calculate the lengths of all the links
-	std::map<unsigned int, Link *> mapOfLinks = roadNetwork->getMapOfIdVsLinks();
-	std::map<unsigned int, Link *>::iterator itLinks = mapOfLinks.begin();
+	const std::map<unsigned int, Link *> &mapOfLinks = roadNetwork->getMapOfIdVsLinks();
+	std::map<unsigned int, Link *>::const_iterator itLinks = mapOfLinks.begin();
 	
 	while(itLinks != mapOfLinks.end())
 	{
@@ -315,6 +324,27 @@ void NetworkLoader::processNetwork()
 		++itLinks;
 	}
 }
+
+//void NetworkLoader::createTrafficSignals(const MutexStrategy &mtxStrat)
+//{
+//	const std::map<unsigned int, Node *> &nodes = roadNetwork->getMapOfIdvsNodes();
+//
+//	for(std::map<unsigned int, Node *>::const_iterator itNodes = nodes.begin(); itNodes != nodes.end(); ++itNodes)
+//	{
+//		const Node *node = itNodes->second;
+//		unsigned int trafficLightId = node->getTrafficLightId();
+//
+//		//Check if a traffic signal exists at this node
+//		if(trafficLightId != 0)
+//		{
+//			//Create a new traffic signal
+//			Signal_SCATS *signal = new Signal_SCATS(node, mtxStrat);
+//
+//			//Add the signal in the map
+//			roadNetwork->addTrafficSignal(trafficLightId, signal);
+//		}
+//	}
+//}
 
 NetworkLoader* NetworkLoader::getInstance()
 {

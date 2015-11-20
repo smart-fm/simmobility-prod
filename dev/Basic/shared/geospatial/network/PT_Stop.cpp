@@ -16,7 +16,7 @@ using namespace sim_mob;
 
 std::map<std::string, BusStop *> BusStop::mapOfCodevsBusStops;
 
-void BusStop::RegisterBusStop(BusStop* stop)
+void BusStop::registerBusStop(BusStop* stop)
 {
 	std::string code = stop->getStopCode();
 	if(mapOfCodevsBusStops.find(code)==mapOfCodevsBusStops.end()){
@@ -120,7 +120,7 @@ const std::string& BusStop::getStopName() const
 	return stopName;
 }
 
-void BusStop::setStopName(std::string name)
+void BusStop::setStopName(const std::string& name)
 {
 	stopName = name;
 }
@@ -129,6 +129,7 @@ unsigned int BusStop::getStopId() const
 {
 	return stopId;
 }
+
 void BusStop::setStopId(unsigned int id)
 {
 	stopId = id;

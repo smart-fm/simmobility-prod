@@ -2,13 +2,39 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
+#include <algorithm>
 #include "TurningPath.hpp"
 
 using namespace sim_mob;
 
+namespace
+{
+
+struct TComparator
+{
+	TurningPath *turningPath;
+
+	TComparator(TurningPath *turning)
+	{
+		turningPath = turning;
+	}
+
+	bool operator()(const TurningConflict *conflict1, const TurningConflict *conflict2)
+	{
+		//Distance to conflict point for the current turning
+		double dstConflict1 = (conflict1->getFirstTurning() == turningPath) ? conflict1->getFirstConflictDistance() : conflict1->getSecondConflictDistance();
+
+		//Distance to conflict point for the current turning
+		double dstConflict2 = (conflict2->getFirstTurning() == turningPath) ? conflict2->getFirstConflictDistance() : conflict2->getSecondConflictDistance();
+
+		return (dstConflict1 < dstConflict2);
+	}
+};
+}
+
 TurningPath::TurningPath() :
 turningPathId(0), fromLaneId(0), maxSpeed(0), polyLine(NULL), toLaneId(0), turningGroupId(0),
-fromLane(NULL),toLane(NULL)
+fromLane(nullptr),toLane(nullptr), turningGroup(nullptr)
 {
 }
 
@@ -17,13 +43,14 @@ TurningPath::~TurningPath()
 	if(polyLine)
 	{
 		delete polyLine;
-		polyLine = NULL;
+		polyLine = nullptr;
 	}
 	
-	//Simply clear the map of conflicts. Conflicts are deleted separately in the 
+	//Simply clear the map and the vector of conflicts. Conflicts are deleted separately in the 
 	//destructor of the road network to avoid double delete (as 2 turning paths share
 	//the same pointer to the conflict)
 	turningConflicts.clear();
+	conflicts.clear();
 }
 
 unsigned int TurningPath::getTurningPathId() const
@@ -96,6 +123,17 @@ void TurningPath::setToLaneId(unsigned int toLaneId)
 	this->toLaneId = toLaneId;
 }
 
+const std::map<const TurningPath *, TurningConflict *>& TurningPath::getTurningConflicts() const
+{
+	return turningConflicts;
+}
+
+const std::vector<TurningConflict*>& TurningPath::getConflictsOnPath() const
+{
+	return conflicts;
+}
+
+
 unsigned int TurningPath::getTurningGroupId() const
 {
 	return turningGroupId;
@@ -106,20 +144,41 @@ void TurningPath::setTurningGroupId(unsigned int turningGroupId)
 	this->turningGroupId = turningGroupId;
 }
 
+void TurningPath::setTurningGroup(TurningGroup* turningGroup)
+{
+	this->turningGroup = turningGroup;
+}
+
+const TurningGroup* TurningPath::getTurningGroup() const
+{
+	return turningGroup;
+}
+
 double TurningPath::getLength() const
 {
 	return polyLine->getLength();
 }
 
-void TurningPath::addTurningConflict(TurningPath *other, TurningConflict *conflict)
+double TurningPath::getWidth() const
 {
-	turningConflicts.insert(std::make_pair(other, conflict));
+	return (fromLane->getWidth() + toLane->getWidth()) / 2;
 }
 
-const TurningConflict* TurningPath::getTurningConflict(TurningPath *turningPath)
+void TurningPath::addTurningConflict(const TurningPath *other, TurningConflict *conflict)
+{
+	//Add the conflict to the map and the vector
+	turningConflicts.insert(std::make_pair(other, conflict));
+	conflicts.push_back(conflict);
+	
+	//Sort the conflicts by distance
+	TComparator comparator(this);
+	std::sort(conflicts.begin(), conflicts.end(), comparator);
+}
+
+const TurningConflict* TurningPath::getTurningConflict(const TurningPath *turningPath) const
 {
 	//Get the conflict on this turning shared with the given turning
-	std::map<TurningPath *, TurningConflict *>::const_iterator itConflicts = turningConflicts.find(turningPath);
+	std::map<const TurningPath *, TurningConflict *>::const_iterator itConflicts = turningConflicts.find(turningPath);
 	
 	if(itConflicts != turningConflicts.end())
 	{

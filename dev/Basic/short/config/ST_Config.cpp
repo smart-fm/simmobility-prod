@@ -32,7 +32,7 @@ ST_Config* ST_Config::instance = nullptr;
 ST_Config::ST_Config() :
     roadNetworkXsdSchemaFile(""), networkXmlOutputFile(""), networkXmlInputFile(""),
     partitioningSolutionId(0), auraManagerImplementation(AuraManager::IMPL_RSTAR),
-    networkSource(NETSRC_XML)
+    getNetworkSource(NETSRC_XML), granSignalsTicks(0), granPersonTicks(0), granCommunicationTicks(0), granIntMgrTicks(0)
 {
 }
 
@@ -86,11 +86,11 @@ const unsigned int& ST_Config::commWorkGroupSize() const
     return workers.communication.count;
 }
 
-NetworkSource& ST_Config::networkSource()
+NetworkSource& ST_Config::getNetworkSource()
 {
     return networkSource;
 }
-const NetworkSource& ST_Config::networkSource() const
+const NetworkSource& ST_Config::getNetworkSource() const
 {
     return networkSource;
 }

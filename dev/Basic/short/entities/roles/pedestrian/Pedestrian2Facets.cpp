@@ -55,14 +55,14 @@ std::string Pedestrian2Behavior::frame_tick_output()
 double Pedestrian2Movement::collisionForce = 20;
 double Pedestrian2Movement::agentRadius = 0.5; //Shoulder width of a person is about 0.5 meter
 
-sim_mob::Pedestrian2Movement::Pedestrian2Movement() 
-: MovementFacet(), parentPedestrian2(nullptr), trafficSignal(nullptr),
-currCrossing(nullptr), isUsingGenPathMover(true)
+sim_mob::Pedestrian2Movement::Pedestrian2Movement():
+	MovementFacet(), parentPedestrian2(nullptr), trafficSignal(nullptr),
+	/*currCrossing(nullptr),*/ isUsingGenPathMover(true)
 {
 	//Check non-null parent. Perhaps references may be of use here?
 
 	//Init
-	sigColor = sim_mob::Green; //Green by default
+	sigColor = sim_mob::TRAFFIC_COLOUR_GREEN; //Green by default
 
 #if 0
 	sigColor = Signal::Green; //Green by default

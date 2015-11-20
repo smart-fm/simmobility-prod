@@ -9,7 +9,7 @@
  */
 
 #pragma once
-
+#include "entities/Person_ST.hpp"
 #include "entities/roles/Role.hpp"
 #include "entities/UpdateParams.hpp"
 #include "entities/BusStopAgent.hpp"

@@ -19,12 +19,6 @@ namespace sim_mob
 class RoadSegment;
 class Worker;
 
-namespace aimsun
-{
-//Forward declaration
-class Loader;
-}
-
 enum
 {
 	MSG_PEDESTRIAN_TRANSFER_REQUEST = 5000000,

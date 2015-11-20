@@ -2,12 +2,14 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
+#include <algorithm>
 #include "Link.hpp"
+#include "util/LangHelpers.hpp"
 
 using namespace sim_mob;
 
 Link::Link() :
-length(0), linkId(0), fromNode(NULL), fromNodeId(0), linkCategory(LINK_CATEGORY_A), linkType(LINK_TYPE_DEFAULT), roadName(""), toNode(NULL),
+length(0), linkId(0), fromNode(NULL), fromNodeId(0), linkCategory(LINK_CATEGORY_A), linkType(LINK_TYPE_DEFAULT), roadName(""), toNode(nullptr),
 toNodeId(0)
 {
 }
@@ -15,11 +17,7 @@ toNodeId(0)
 Link::~Link()
 {
 	//Delete the road segment in the link
-	for (std::vector<RoadSegment *>::iterator itSegments = roadSegments.begin(); itSegments != roadSegments.end(); ++itSegments)
-	{
-		delete *itSegments;
-		*itSegments = NULL;
-	}
+	clear_delete_vector(roadSegments);
 }
 
 unsigned int Link::getLinkId() const
@@ -90,6 +88,16 @@ const std::vector<RoadSegment*>& Link::getRoadSegments() const
 const RoadSegment* Link::getRoadSegment(int index) const
 {
 	return roadSegments.at(index);
+}
+
+int Link::getRoadSegmentIndex(const RoadSegment * seg)const
+{
+	int index = -1;
+	std::vector<RoadSegment *>::const_iterator it = std::find(roadSegments.begin(), roadSegments.end(), seg);
+	if (it != roadSegments.end()) {
+		index = std::distance(roadSegments.begin(), it);
+	}
+	return index;
 }
 
 const Node* Link::getToNode() const

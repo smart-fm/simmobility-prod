@@ -111,6 +111,8 @@ public:
 
 	const std::vector<LaneConnector *>& getLaneConnectors() const;
 
+	void getPhysicalConnectors(std::vector<const LaneConnector *> &phyConnectors) const;
+
 	unsigned int getLaneIndex() const;
 
 	const RoadSegment* getParentSegment() const;
@@ -128,7 +130,7 @@ public:
 	double getLength() const;
 
 	/**
-	 * adds a lane connector to the set of out-going lane connections from this lane
+	 * Adds a lane connector to the set of out-going lane connections from this lane
 	 * @param laneConnector the lane connection to add
 	 */
 	void addLaneConnector(LaneConnector *laneConnector);

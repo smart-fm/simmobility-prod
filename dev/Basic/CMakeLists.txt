@@ -46,8 +46,8 @@ set (Basic_VERSION_MINOR 1)
 #SET(CMAKE_CXX_FLAGS_RELEASE "-O2 -std=c++11 -DSIMMOB_LATEST_STANDARD ")
 #SET(CMAKE_CXX_FLAGS_DEBUG  "-O0 -g -std=c++11 -DSIMMOB_LATEST_STANDARD ")
 #ELSE()
-SET(CMAKE_CXX_FLAGS_RELEASE "-O2  -std=c++11 -DSIMMOB_LATEST_STANDARD ")
-SET(CMAKE_CXX_FLAGS_DEBUG  "-O0 -g  -std=c++11 -DSIMMOB_LATEST_STANDARD ")
+SET(CMAKE_CXX_FLAGS_RELEASE "-O2")
+SET(CMAKE_CXX_FLAGS_DEBUG  "-O0 -g")
 #ENDIF(${BUILD_LONG} MATCHES "ON" OR ${BUILD_TESTS_LONG} MATCHES "ON")
 
 #Function that turns on Unity builds. From:
@@ -231,7 +231,7 @@ option (SIMMOB_DISABLE_OUTPUT  "Disable all mutex-locked output and all addition
 option (SIMMOB_DISABLE_MPI  "Disable all included files, libraries, and code segments that require MPI." ON)
 
 #Option: compile with c++0x. Use the cmake gui to change this on a per-user basis.
-option (SIMMOB_LATEST_STANDARD  "Attempt to compile Sim Mobility with the latest version of C++ (2011). Untested." OFF)
+option (SIMMOB_LATEST_STANDARD  "Attempt to compile Sim Mobility with the latest version of C++ (2011). Untested." ON)
 
 #Option: profiling flags. Use the cmake gui to change this on a per-user basis.
 option(SIMMOB_PROFILE_ON "Turn on profiling. If this flag is off, all SIMMOB_PROFILE_* options will be treated as effectively off." OFF)

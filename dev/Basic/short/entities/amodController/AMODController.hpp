@@ -16,14 +16,13 @@
 #include <string>
 #include "AMODEvent.hpp"
 #include "entities/Agent.hpp"
-#include "entities/Person_ST.hpp"
 #include "event/args/EventArgs.hpp"
 #include "event/EventPublisher.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "path/PathSetManager.hpp"
 
 namespace sim_mob {
-class Person;
+class Person_ST;
 
 namespace AMOD {
 class AMODController : public sim_mob::Agent{

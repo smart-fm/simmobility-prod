@@ -55,8 +55,8 @@
 #include "entities/signal/Signal.hpp"
 #include "entities/TrafficWatch.hpp"
 #include "entities/TravelTimeManager.hpp"
+#include "entities/fmodController/FMOD_Controller.hpp"
 #include "geospatial/network/NetworkLoader.hpp"
-#include "geospatial/Lane.hpp"
 #include "logging/Log.hpp"
 #include "network/CommunicationManager.hpp"
 #include "network/ControlManager.hpp"
@@ -112,7 +112,7 @@ const string SIMMOB_VERSION = string(SIMMOB_VERSION_MAJOR) + ":" + SIMMOB_VERSIO
 bool performMain(const std::string& configFileName, const std::string& shortConfigFile, std::list<std::string>& resLogFiles, const std::string& XML_OutPutFileName)
 {
 	Print() <<"Starting SimMobility, version " <<SIMMOB_VERSION <<endl;
-	sim_mob::DailyTime::initAllTimes();
+	DailyTime::initAllTimes();
 
     ST_Config& stCfg = ST_Config::getInstance();
 
@@ -160,46 +160,28 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 	//Register our Role types.
     if (stCfg.commSimEnabled())
 	{
-		rf->registerRole("driver", new sim_mob::DriverComm(nullptr, mtx));
+		rf->registerRole("driver", new DriverComm(nullptr, mtx));
 	}
 	else 
 	{
-		rf->registerRole("driver", new sim_mob::Driver(nullptr, mtx));
+		rf->registerRole("driver", new Driver(nullptr, mtx));
 	}
 
-	rf->registerRole("pedestrian", new sim_mob::Pedestrian2(nullptr));
-	rf->registerRole("passenger",new sim_mob::Passenger(nullptr, mtx));
-	rf->registerRole("busdriver", new sim_mob::BusDriver(nullptr, mtx));
-	rf->registerRole("activityRole", new sim_mob::ActivityPerformer(nullptr));
-	rf->registerRole("waitBusActivityRole", new sim_mob::WaitBusActivityRoleImpl(nullptr));
-	rf->registerRole("taxidriver", new sim_mob::Driver(nullptr, mtx));
+	rf->registerRole("pedestrian", new Pedestrian2(nullptr));
+	rf->registerRole("passenger",new Passenger(nullptr, mtx));
+	rf->registerRole("busdriver", new BusDriver(nullptr, mtx));
+	rf->registerRole("activityRole", new ActivityPerformer<Person_ST>(nullptr));
+	rf->registerRole("waitBusActivityRole", new WaitBusActivityRoleImpl(nullptr));
+	rf->registerRole("taxidriver", new Driver(nullptr, mtx));
 
 	//Loader params for our Agents
 	WorkGroup::EntityLoadParams entLoader(Agent::pending_agents, Agent::all_agents);
 
 	//Load the configuration file
-	Print() << "Expanding user configuration file..." << std::endl;
-    ExpandShortTermConfigFile expand(stCfg, ConfigManager::GetInstanceRW().FullConfig(), Agent::all_agents, Agent::pending_agents);
-	
-    //Some random stuff with signals??
-    //TODO: Not quite sure how this is supposed to fit into the overall order of things. ~Seth
-    std::vector<Signal*>& all_signals = Signal::all_signals_;
-    
-	for (size_t i=0; i<all_signals.size(); ++i) 
-	{
-    	Signal* signal = all_signals.at(i);
-    	Signal_SCATS* signalScats = dynamic_cast<Signal_SCATS*>(signal);
-    	if(signalScats) 
-		{
-    		LoopDetectorEntity* loopDetector = new LoopDetectorEntity(mtx);
-    		signalScats->setLoopDetector(loopDetector);
-    		loopDetector->init(*signal);			
-    		Agent::all_agents.insert(loopDetector);
-			signalScats->curVehicleCounter.init(signalScats);
-    	}
-    }
+	Print() << "Loading the configuration file..." << std::endl;
+	ExpandShortTermConfigFile expand(stCfg, ConfigManager::GetInstanceRW().FullConfig(), Agent::all_agents, Agent::pending_agents);
 
-	Print() << "User configuration file loaded." << std::endl;
+	Print() << "Configuration file loaded!" << std::endl;
 
     if (config.PathSetMode())
 	{
@@ -216,7 +198,7 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 	}
 
 	//Initialise the control manager and wait for an IDLE state (interactive mode only).
-	sim_mob::ControlManager* ctrlMgr = nullptr;
+	ControlManager* ctrlMgr = nullptr;
 	
 	if (ConfigManager::GetInstance().CMakeConfig().InteractiveMode()) 
 	{
@@ -281,33 +263,50 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 		//      register any buffered properties (except x/y, which Agent registers), and it never updates these.
 		//      I am changing this back to buffered; if this runs smoothly for a while, then you can remove this comment. ~Seth
 		//NOTE: I am also changing the Agent ID; manually specifying it as 0 is dangerous.
-		Broker *broker =  new sim_mob::Broker(MtxStrat_Buffered);
+		Broker *broker =  new Broker(MtxStrat_Buffered);
 		Broker::SetSingleBroker(broker);
 		communicationWorkers->assignAWorker(broker);
-	}
-
-	//Anything in all_agents is starting on time 0, and should be added now.
-	for (std::set<Entity*>::iterator it = Agent::all_agents.begin(); it != Agent::all_agents.end(); ++it) 
-	{
-		personWorkers->assignAWorker(*it);
-	}
+	}	
 
 	//Assign all BusStopAgents
 	BusStopAgent::AssignAllBusStopAgents(*personWorkers);
 
-	//Assign all signals too
-	for (vector<Signal*>::iterator it = Signal::all_signals_.begin(); it != Signal::all_signals_.end(); ++it) 
+	//Assign all signals to the signals worker
+	const RoadNetwork *network = RoadNetwork::getInstance();
+	const std::map<unsigned int, Signal *> &signals = network->getMapOfIdVsSignals();
+	
+	for (std::map<unsigned int, Signal *>::const_iterator it = signals.begin(); it != signals.end(); ++it)
 	{
-		signalStatusWorkers->assignAWorker(*it);
+		Signal_SCATS *signalScats = dynamic_cast<Signal_SCATS *>(it->second);
+		
+		//Create and initialise loop detectors
+		LoopDetectorEntity *loopDetectorEntity = new LoopDetectorEntity(config.mutexStategy());
+		loopDetectorEntity->init(*signalScats);
+		Agent::all_agents.insert(loopDetectorEntity);
+		signalScats->setLoopDetector(loopDetectorEntity);
+		signalStatusWorkers->assignAWorker(it->second);
+	}
+	
+	//Anything in all_agents is starting on time 0, and should be added now.
+	for (std::set<Entity*>::iterator it = Agent::all_agents.begin(); it != Agent::all_agents.end(); ++it) 
+	{
+		personWorkers->assignAWorker(*it);
 	}
 	
 	//Assign all intersection managers to the signal worker
 	for (map<unsigned int, IntersectionManager *>::iterator it = IntersectionManager::intManagers.begin(); it != IntersectionManager::intManagers.end(); ++it)
 	{
 		intMgrWorkers->assignAWorker(it->second);
-	if(sim_mob::AMOD::AMODController::instanceExists())
+	}
+
+	if (AMOD::AMODController::instanceExists())
 	{
-		personWorkers->assignAWorker( sim_mob::AMOD::AMODController::instance() );
+		personWorkers->assignAWorker(AMOD::AMODController::instance());
+	}
+
+	if (FMOD::FMOD_Controller::instanceExists())
+	{
+		personWorkers->assignAWorker(FMOD::FMOD_Controller::instance());
 	}
 
 	Print() << "Initial agents dispatched or pushed to pending." << endl;
@@ -472,21 +471,22 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 		
 		for (std::set<Entity*>::iterator it = Agent::all_agents.begin(); it != Agent::all_agents.end(); ++it) 
 		{
+			Person_ST *person = dynamic_cast<Person_ST *> (*it);
 			if (person) 			
 			{
 				numPerson++;
 				
-				if (p->getRole() && dynamic_cast<Driver*> (p->getRole())) 
+				if (dynamic_cast<Driver*> (person->getRole()))
 				{
 					numDriver++;
 				}
 				
-				if (p->getRole() && dynamic_cast<Pedestrian*> (p->getRole())) 
+				if (dynamic_cast<Pedestrian*> (person->getRole()))
 				{
 					numPedestrian++;
 				}
 				
-				if (p->getRole() && dynamic_cast<Passenger*> (p->getRole())) 
+				if (dynamic_cast<Passenger*> (person->getRole()))
 				{
 					numPassenger++;
 				}
@@ -534,13 +534,11 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 	//      loop should propagate this value down. ~Seth
 	if (ConfigManager::GetInstance().CMakeConfig().InteractiveMode()) 
 	{
-		Signal::all_signals_.clear();
 		Agent::all_agents.clear();
 	} 
 	else 
 	{
 		clear_delete_map(IntersectionManager::intManagers);
-		clear_delete_vector(Signal::all_signals_);
 		clear_delete_vector(Agent::all_agents);
 	}
 
@@ -550,10 +548,15 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 	NetworkLoader::deleteInstance();
 
 	//Delete the AMOD controller instance
-	sim_mob::AMOD::AMODController::deleteInstance();
+	AMOD::AMODController::deleteInstance();
+
+	if(FMOD::FMOD_Controller::instanceExists())
+	{
+		FMOD::FMOD_Controller::instance()->finalizeMessageToFMOD();
+	}
 
 	//Delete the aura manger implementation instance
-	AuraManager::instance().destory();
+	AuraManager::instance().destroy();
 
 	//Delete our profiler, if it exists.
 	safe_delete_item(prof);
@@ -567,7 +570,7 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
  */
 int run_simmob_interactive_loop()
 {
-	sim_mob::ControlManager *ctrlMgr = ConfigManager::GetInstance().FullConfig().getControlMgr();
+	ControlManager *ctrlMgr = ConfigManager::GetInstance().FullConfig().getControlMgr();
 	std::list<std::string> resLogFiles;
 	int retVal = 1;
 	

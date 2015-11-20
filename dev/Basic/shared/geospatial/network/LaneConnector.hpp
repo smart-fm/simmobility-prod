@@ -42,10 +42,11 @@ private:
 	/**Indicates the id of the road segment at which the lane connection terminates*/
 	unsigned int toRoadSegmentId;
 
+	/**Indicates whether this is a true lane connection. If this is true, it means that the poly-lines of the from and to lanes share a common point*/
+	bool isTrueConnection;
+
 public:
-
 	LaneConnector();
-
 	virtual ~LaneConnector();
 
 	unsigned int getLaneConnectionId() const;
@@ -68,5 +69,8 @@ public:
 
 	unsigned int getToRoadSegmentId() const;
 	void setToRoadSegmentId(unsigned int toRoadSectionId);
+    
+	void setIsTrueConnector(bool TrueConnector);
+    bool isTrueConnector() const;
 };
 }

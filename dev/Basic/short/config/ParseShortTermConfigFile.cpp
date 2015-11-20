@@ -46,7 +46,7 @@ sim_mob::AuraManager::AuraManagerImplementation ParseAuraMgrImplEnum(const XMLCh
     return *defValue;
 }
 
-Point2D ParsePoint2D(const XMLCh* srcX, Point2D* defValue) {
+Point ParsePoint(const XMLCh* srcX, Point* defValue) {
 	if (srcX) {
 		std::string src = TranscodeString(srcX);
 		return parse_point(src);
@@ -54,7 +54,7 @@ Point2D ParsePoint2D(const XMLCh* srcX, Point2D* defValue) {
 
     ///Wasn't found.
 	if (!defValue) {
-		throw std::runtime_error("Mandatory Point2D variable; no default available.");
+		throw std::runtime_error("Mandatory Point variable; no default available.");
 	}
 	return *defValue;
 }
@@ -118,11 +118,11 @@ NetworkSource ParseNetSourceEnum(const XMLCh* srcX) {
 	return ParseNetSourceEnum(srcX, nullptr);
 }
 ///How to do defaults
-Point2D ParsePoint2D(const XMLCh* src, Point2D defValue) {
-	return ParsePoint2D(src, &defValue);
+Point ParsePoint(const XMLCh* src, Point defValue) {
+	return ParsePoint(src, &defValue);
 }
-Point2D ParsePoint2D(const XMLCh* src) { ///No default
-	return ParsePoint2D(src, nullptr);
+Point ParsePoint(const XMLCh* src) { ///No default
+	return ParsePoint(src, nullptr);
 }
 
 }
@@ -212,22 +212,39 @@ void ParseShortTermConfigFile::processAmodControllerNode(DOMElement* node)
 
 void ParseShortTermConfigFile::processFmodControllerNode(DOMElement* node)
 {
-    if(node)
-    {
-        ///The fmod tag has an attribute
-        cfg.fmod.enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), false);
+	if (!node)
+	{
+		return;
+	}
 
-        ///Now set the rest.
-        cfg.fmod.ipAddress = ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "ip_address"), "value"), "");
-
-        cfg.fmod.port = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "port"), "value"),
-                                              static_cast<unsigned int>(0));
-
-        cfg.fmod.mapfile = ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "map_file"), "value"), "");
-
-        cfg.fmod.blockingTimeSec = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "blocking_time_Sec"),
-                                                                                "value"), static_cast<unsigned int>(0));
-    }
+	//The fmod tag has an attribute
+	cfg.fmod.enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), false);
+	if (cfg.fmod.enabled)
+	{
+		//Now set the rest.
+		cfg.fmod.ipAddress = ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "ip_address"), "value"), "");
+		cfg.fmod.port = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "port"), "value"), static_cast<unsigned int>(0));
+		cfg.fmod.updateTimeMS = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "update_time_ms"), "value"), static_cast<unsigned int>(0));
+		cfg.fmod.mapfile = ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "map_file"), "value"), "");
+		cfg.fmod.blockingTimeSec = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "blocking_time_sec"), "value"),
+				static_cast<unsigned int>(0));
+		xercesc::DOMElement* resNodes = GetSingleElementByName(node, "requests");
+		for (DOMElement* item = resNodes->getFirstElementChild(); item; item = item->getNextElementSibling())
+		{
+			if (TranscodeString(item->getNodeName()) == "trip")
+			{
+				TripChainItem* trip = new Trip();
+				trip->startTime = DailyTime(ParseString(GetNamedAttributeValue(item, "startTime"), ""));
+				trip->endTime = DailyTime(ParseString(GetNamedAttributeValue(item, "endTime"), ""));
+				trip->requestTime = ParseUnsignedInt(GetNamedAttributeValue(item, "timeWinSec"));
+				trip->sequenceNumber = ParseUnsignedInt(GetNamedAttributeValue(item, "frequency"));
+				trip->startLocationId = ParseString(GetNamedAttributeValue(item, "originNode"), "");
+				trip->endLocationId = ParseString(GetNamedAttributeValue(item, "destNode"), "");
+				std::string startId = ParseString(GetNamedAttributeValue(item, "startId"), "");
+				cfg.fmod.allItems[startId] = trip;
+			}
+		}
+	}
 }
 
 void ParseShortTermConfigFile::processSegmentDensityNode(DOMElement* node)
@@ -427,7 +444,7 @@ void ParseShortTermConfigFile::processNetworkXmlInputNode(DOMElement *node)
 
 void ParseShortTermConfigFile::processNetworkSourceNode(DOMElement *node)
 {
-    cfg.networkSource = ParseNetSourceEnum(GetNamedAttributeValue(node, "value"), NETSRC_XML);
+    cfg.getNetworkSource = ParseNetSourceEnum(GetNamedAttributeValue(node, "value"), NETSRC_XML);
 }
 
 void ParseShortTermConfigFile::processDatabaseNode(DOMElement *node)
@@ -655,8 +672,8 @@ void ParseShortTermTripFile::processTrips(DOMElement *node)
         for(DOMElement* stIter = (*it)->getFirstElementChild(); stIter; stIter = (*it)->getNextElementSibling())
         {
             EntityTemplate ent;
-            ent.originPos = ParsePoint2D(GetNamedAttributeValue(stIter, "originPos", true), Point2D());
-            ent.destPos = ParsePoint2D(GetNamedAttributeValue(stIter, "destPos", true), Point2D());
+            ent.originPos = ParsePoint(GetNamedAttributeValue(stIter, "originPos", true), Point());
+            ent.destPos = ParsePoint(GetNamedAttributeValue(stIter, "destPos", true), Point());
             ent.startTimeMs = ParseUnsignedInt(GetNamedAttributeValue(stIter, "time", true), static_cast<unsigned int>(0));
             ent.laneIndex = ParseUnsignedInt(GetNamedAttributeValue(stIter, "lane"), static_cast<unsigned int>(0));
             ent.agentId = personId;

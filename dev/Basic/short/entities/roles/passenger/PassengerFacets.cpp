@@ -267,21 +267,21 @@ Point sim_mob::PassengerMovement::getDestPosition()
 
 bool sim_mob::PassengerMovement::PassengerAlightBus(Driver* driver)
 {
-	BusDriver* busdriver = dynamic_cast<BusDriver*> (driver);
+	BusDriver* busdriver = dynamic_cast<BusDriver*>(driver);
 	if (busdriver)
 	{
-		Bus* bus = dynamic_cast<Bus*> (busdriver->getVehicle());
-		int xpos_approachingbusstop = busdriver->get_xPosApproachingBusStop();
-		int ypos_approachingbusstop = busdriver->get_yPosApproachingBusStop();
+		Bus* bus = dynamic_cast<Bus*>(busdriver->getVehicle());
+		int xpos_approachingbusstop = 0; //busdriver->get_xPosApproachingBusStop();
+		int ypos_approachingbusstop = 0; //busdriver->get_yPosApproachingBusStop();
 		if (xpos_approachingbusstop - getDestPosition().getX() == 0 && ypos_approachingbusstop - getDestPosition().getY() == 0)
 		{
 			//alight-delete passenger agent from list
 			bus->setPassengerCount(bus->getPassengerCount() - 1);
-			parentPassenger->busdriver.set(nullptr); //driver would be null as passenger has alighted
+			parentPassenger->busdriver.set(nullptr);	//driver would be null as passenger has alighted
 			parentPassenger->AlightedBus.set(true);
 			parentPassenger->BoardedBus.set(false);
-			parentPassenger->parent->xPos.set(xpos_approachingbusstop);
-			parentPassenger->parent->yPos.set(ypos_approachingbusstop);
+			parent->xPos.set(xpos_approachingbusstop);
+			parent->yPos.set(ypos_approachingbusstop);
 			displayX = xpos_approachingbusstop;
 			displayY = ypos_approachingbusstop;
 			return true;
@@ -293,9 +293,9 @@ bool sim_mob::PassengerMovement::PassengerAlightBus(Driver* driver)
 		parentPassenger->BoardedBus.set(false); //to indicate passenger has boarded bus
 		parentPassenger->AlightedBus.set(true); //to indicate whether passenger has alighted bus
 		/*parent->xPos.set(driver->getCurrPosition().x);
-		parentPassenger->parent->yPos.set(driver->getCurrPosition().y);
-		displayX = driver->getCurrPosition().x;
-		displayY = driver->getCurrPosition().y;*/
+		 parentPassenger->parent->yPos.set(driver->getCurrPosition().y);
+		 displayX = driver->getCurrPosition().x;
+		 displayY = driver->getCurrPosition().y;*/
 	}
 
 	return false;

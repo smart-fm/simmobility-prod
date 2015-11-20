@@ -10,6 +10,8 @@
 namespace sim_mob
 {
 
+class TurningPath;
+
 /**Defines the rules vehicles must observe at all the turnings in the same group*/
 enum TurningGroupRule
 {
@@ -64,9 +66,7 @@ public:
 	double length;
 
 public:
-
 	TurningGroup();
-	
 	virtual ~TurningGroup();
 
 	unsigned int getTurningGroupId() const;
@@ -104,11 +104,11 @@ public:
 	/**
 	 * This method looks up the turning paths from the given lane and returns map of with the destination lane as key and
 	 * the turning path as the value.
+	 * 
+	 * @param fromLaneId - the lane id where the turning path begins
 	 *
-     * @param fromLaneId - the lane id where the turning path begins
-	 *
-     * @return the map of "to lane id" vs turning path if found, else NULL
-     */
+	 * @return the map of "to lane id" vs turning path if found, else NULL
+	 */
 	const std::map<unsigned int, TurningPath *>* getTurningPaths(unsigned int fromLaneId) const;
 };
 }

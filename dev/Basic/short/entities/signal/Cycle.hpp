@@ -4,37 +4,59 @@
 
 #pragma once
 
-#include "defaults.hpp"
+namespace sim_mob
+{
 
-namespace sim_mob {
-
-class Cycle {
-
+class Cycle
+{
 private:
-	//previous,current and next cycle length
-	double prevCL,currCL,nextCL;
+	/**Length of the previous cycle*/
+	double previousCycleLength;
+	
+	/**Length of the current cycle*/
+	double currentCycleLength;
+	
+	/**Length of the next cycle*/
+	double nextCycleLength;
 
-	//two previous RL for calculating the current RL0
-	double prevRL1,prevRL2;
+	/**Real length of the previous cycle length*/
+	double previousRealLength1;
+	
+	/**Real length of the cycle before the previous cycle*/
+	double previousRealLength2;
+	
+	/**
+	 * Stores the current cycle length as the previous cycle length when a cycle changes
+	 */
+	void updatePreviousCycleLen();
+	
+	/**
+	 * Stores the next cycle length as the current cycle length when a cycle changes
+	 */
+	void updateCurrentCycleLen();
 
 public:
+	Cycle() : previousCycleLength(0), currentCycleLength(0), nextCycleLength(0), previousRealLength1(0), previousRealLength2(0)
+	{
+	}
 
-	Cycle(): prevCL(0), currCL(0), nextCL(0), prevRL1(0), prevRL2(0) {}
-
-	//get the parameters in SCATS
-	double getprevCL();
-	double getcurrCL();
-	double getnextCL();
-	double getpreRL1();
-	double getpreRL2();
-	double setnextCL(double DS);
-	void Update(double DS);
-	void updateprevCL();
-	void updatecurrCL();
-	void setCurrCL(double length) { currCL = length; }//used for initial feed
+	double getCurrentCycleLen();
+	void setCurrentCycleLen(double length);
+	
+	double getNextCycleLen();
+	
+	/**
+	 * This method determines the next cycle length using the maximum DS across all lanes. 
+	 * @param maxDS maximum DS across all lanes
+	 * @return 
+	 */
+	double calcNextCycleLen(double maxDS);
+	
+	/**
+	 * Updates the cycle using the given DS (which is the max DS across all lanes)
+	 * @param maxDS maximum DS across all lanes
+	 */
+	void update(double maxDS);
 };
 
-
-
 }
-;//namspace

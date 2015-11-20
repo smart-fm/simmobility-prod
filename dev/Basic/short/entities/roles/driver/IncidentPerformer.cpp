@@ -54,10 +54,10 @@ void sim_mob::IncidentPerformer::responseIncidentStatus( DriverUpdateParams& p, 
 		//record approaching speed when it is near to incident position
 		float approachingSpeed = APPROACHING_SPEED;
 		float oldDistToStop = p.perceivedDistToFwdCar;
-		LANE_CHANGE_SIDE oldDirect = p.turningDirection;
+		LaneChangeTo oldDirect = p.turningDirection;
 		double distToIncident = incidentStatus.getDistanceToIncident();
 		p.perceivedDistToFwdCar = std::min(distToIncident, fwdCarDist);
-		p.turningDirection = LCS_LEFT;
+		p.turningDirection = LANE_CHANGE_TO_LEFT;
 		//retrieve speed limit decided by whether or not incident lane or adjacent lane
 		speedLimit = incidentStatus.getSpeedLimit(p.currLaneIndex);
 		if(speedLimit==0 && incidentStatus.getDistanceToIncident()>incidentGap){
@@ -130,7 +130,7 @@ void sim_mob::IncidentPerformer::checkIncidentStatus(DriverUpdateParams& p, time
 	}
 
 	int nextLaneIndex = curLaneIndex;
-	LANE_CHANGE_SIDE laneSide = LCS_SAME;
+	LaneChangeTo laneSide = LANE_CHANGE_TO_NONE;
 	IncidentStatus::IncidentStatusType status = IncidentStatus::INCIDENT_CLEARANCE;
 	incidentStatus.setDistanceToIncident(0);
 

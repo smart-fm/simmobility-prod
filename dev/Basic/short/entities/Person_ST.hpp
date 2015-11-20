@@ -3,8 +3,14 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 #pragma once
-
+#include <map>
+#include <string>
+#include <vector>
 #include "entities/Person.hpp"
+#include "entities/amodController/AMODController.hpp"
+#include "event/args/EventArgs.hpp"
+#include "event/EventListener.hpp"
+#include "event/EventPublisher.hpp"
 
 namespace sim_mob
 {
@@ -80,17 +86,17 @@ protected:
 	virtual void frame_output(timeslice now);
 	
 	/**Inherited from EventListener*/
-	virtual void onEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher *sender, const event::EventArgs &args);
+	virtual void onEvent(event::EventId eventId, event::Context ctxId, event::EventPublisher *sender, const event::EventArgs &args);
 
 	/**Inherited from MessageHandler.*/
 	virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message &message);
 
 public:
 	/**The lane in which the person starts*/
-	int laneID;
+	int startLaneIndex;
 
 	/**The segment in which the person starts*/
-	int initSegId;
+	int startSegmentId;
 
 	/**The offset from the segment at which the person starts*/
 	int initDis;
@@ -198,7 +204,7 @@ public:
 
 	void setPath(std::vector<WayPoint> &path);
 	
-	void handleAMODEvent(sim_mob::event::EventId id, sim_mob::event::Context ctxId, sim_mob::event::EventPublisher *sender, const AMOD::AMODEventArgs &args);
+	void handleAMODEvent(event::EventId id, event::Context ctxId, event::EventPublisher *sender, const AMOD::AMODEventArgs &args);
 
 	double getBoardingCharacteristics() const
 	{

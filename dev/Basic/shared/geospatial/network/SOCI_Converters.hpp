@@ -206,6 +206,7 @@ template<> struct type_conversion<sim_mob::LaneConnector>
 		res.setFromRoadSegmentId(vals.get<unsigned int>("from_segment", 0));
 		res.setToLaneId(vals.get<unsigned int>("to_lane", 0));
 		res.setToRoadSegmentId(vals.get<unsigned int>("to_segment", 0));
+		res.setIsTrueConnector(vals.get<unsigned int>("is_true_connector", 0));
 	}
 };
 
@@ -230,6 +231,7 @@ template<> struct type_conversion<sim_mob::BusStop>
 	static void from_base(const soci::values& vals, soci::indicator& ind, sim_mob::BusStop& res)
 	{
 		res.setStopId(vals.get<unsigned int>("id", 0));
+		res.setRoadItemId(vals.get<unsigned int>("id", 0));
 		res.setStopCode(vals.get<std::string>("code", ""));
 		res.setRoadSegmentId(vals.get<unsigned int>("section_id", 0));
 		res.setStopName(vals.get<std::string>("name", ""));
@@ -238,7 +240,13 @@ template<> struct type_conversion<sim_mob::BusStop>
 		res.setOffset(vals.get<double>("section_offset", 0.0));
 		res.setReverseSectionId(vals.get<unsigned int>("reverse_section", 0));
 		res.setTerminalNodeId(vals.get<unsigned int>("terminal_node", 0));
-		res.setStopLocation(Point(vals.get<double>("x", 0), vals.get<double>("y", 0)));
+
+		//Create and set the bus stop location
+		double x = vals.get<double>("x", 0);
+		double y = vals.get<double>("y", 0);
+		double z = vals.get<double>("z", 0);
+		Point location(x, y, z);
+		res.setStopLocation(location);
 	}
 };
 

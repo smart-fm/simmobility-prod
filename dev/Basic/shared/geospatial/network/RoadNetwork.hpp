@@ -13,11 +13,13 @@
 #include "PolyLine.hpp"
 #include "TurningGroup.hpp"
 #include "TurningPath.hpp"
+#include "NetworkLoader.hpp"
 
 namespace sim_mob
 {
 class NetworkLoader;
 
+class NetworkLoader;
 /**
  * class for holding the network for simulation
  * \author Neeraj D
@@ -54,6 +56,9 @@ private:
 
 	/**This map stores all the bus stops in the network with bus stop id as the key*/
 	std::map<unsigned int, BusStop *> mapOfIdvsBusStops;
+	
+//	/**This map stores all the traffic signals in the network with the traffic light id as the key*/
+//	std::map<unsigned int, Signal *> mapOfIdVsSignals;
 
 	/**Private constructor as the class is a singleton*/
 	RoadNetwork();
@@ -87,6 +92,8 @@ public:
 	const std::map<unsigned int, TurningConflict *>& getMapOfIdvsTurningConflicts() const;
 
 	const std::map<unsigned int, BusStop *>& getMapOfIdvsBusStops() const;
+	
+//	const std::map<unsigned int, Signal *>& getMapOfIdVsSignals() const;
 
 	/**
 	 * Adds a lane to the road network
@@ -158,10 +165,17 @@ public:
 	 * Adds a bus stop to the road network
 	 * @param stop - the pointer to bus stop
 	 */
-	void addBusStop(BusStop* stop);
+	void addBusStop(BusStop *stop);
+	
+//	/**
+//	 * Adds a traffic signal to the road network
+//	 * @param id the traffic light id
+//	 * @param signal the pointer to the traffic signal
+//	 */
+//	void addTrafficSignal(unsigned int id, Signal *signal);
 
 	/**
-	 * templated class to lookup any map with an unsigned int id
+	 * Template class to lookup any map with an unsigned int id
 	 *
 	 * @param lookup the map to look-up id
 	 * @param id the id to look-up in map
@@ -178,9 +192,17 @@ public:
 		}
 		else
 		{
-			return NULL;
+			return nullptr;
 		}
 	}
+	
+	/**
+	 * Locates the node that is closest to the given position
+	 * 
+	 * @param position the location closest to which the node is to be found
+	 * @return nearest node
+	 */
+	Node* locateNearestNode(const Point& position) const;
 };
 }
 

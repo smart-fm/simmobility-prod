@@ -11,7 +11,6 @@
 #include <boost/random.hpp>
 
 #include "util/LangHelpers.hpp"
-#include "entities/Person.hpp"
 #include "entities/vehicle/VehicleBase.hpp"
 #include "entities/UpdateParams.hpp"
 #include "workers/Worker.hpp"
@@ -205,13 +204,13 @@ public:
 	}
 
 	/**
-	 * This method asks the role to re-route its current sub-trip, avoiding the given blacklisted segments.
-	 * This should keep the Role at its current position, but change all Segments after this one.
+	 * This method asks the role to re-route its current sub-trip, avoiding the given blacklisted links.
+	 * This should keep the Role at its current position, but change all Links after this one.
 	 * NOTE: If no alternative route exists, this Role's current route will remain unchanged.
 	 * This function is somewhat experimental; use it with caution. Currently only implemented by the Driver class.
-     * @param blacklisted the list of black listed segments
+     * @param blacklisted the list of black listed links
      */
-	virtual void rerouteWithBlacklist(const std::vector<const RoadSegment*>& blacklisted)
+	virtual void rerouteWithBlacklist(const std::vector<const Link*>& blacklisted)
 	{
 	}
 

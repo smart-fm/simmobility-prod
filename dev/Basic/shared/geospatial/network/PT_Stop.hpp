@@ -26,7 +26,7 @@ enum TerminusType
 class BusStop : public RoadItem
 {
 private:
-	/**bus stop location*/
+	/**Bus stop location*/
 	Point location;
 
 	/**The road segment that contains the bus stop*/
@@ -47,7 +47,7 @@ private:
 	/**indicator to determine whether this stop is virtually created for terminus stops*/
 	bool virtualStop;
 
-	/**offset to its parent segment's obstacle list*/
+	/**Distance from the start of the parent segment*/
 	double offset;
 
 	/**bus stop code*/
@@ -85,7 +85,7 @@ public:
 	void setLength(double len);
 
 	const BusStop* getTwinStop() const;
-	void setTwinStop(const BusStop* stop);
+	void setTwinStop(const BusStop *stop);
 
 	bool isVirtualStop() const;
 	void setVirtualStop();
@@ -94,7 +94,7 @@ public:
 	void setOffset(double val);
 
 	const std::string& getStopName() const;
-	void setStopName(const std::string name);
+	void setStopName(const std::string& name);
 
 	unsigned int getStopId() const;
 	void setStopId(unsigned int id);
@@ -102,7 +102,7 @@ public:
 	const std::string& getStopCode() const;
 	void setStopCode(const std::string& code);
 
-	static void RegisterBusStop(BusStop* stop);
+	static void registerBusStop(BusStop* stop);
 	static BusStop* findBusStop(const std::string& code);
 
 	unsigned int getReverseSectionId() const;

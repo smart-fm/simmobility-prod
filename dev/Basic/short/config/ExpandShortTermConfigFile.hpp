@@ -30,6 +30,7 @@ private:
     void loadNetworkFromDatabase();
 
     void loadAMOD_Controller();
+    void loadFMOD_Controller();
     void loadAgentsInOrder(ConfigParams::AgentConstraints& constraints);
     void generateAgentsFromTripChain(ConfigParams::AgentConstraints& constraints);
     void generateXMLAgents(const std::vector<EntityTemplate>& xmlItems);

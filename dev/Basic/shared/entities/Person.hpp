@@ -68,12 +68,12 @@ private:
 	bool nextPathPlanned;
 	
 	/**
-	 * Ask this person to re-route to the destination with the given set of blacklisted RoadSegments
+	 * Ask this person to re-route to the destination with the given set of blacklisted links
 	 * If the Agent cannot complete this new route, it will fall back onto the old route.
 	 *
-	 * @param blacklisted the black-listed road segments
+	 * @param blacklisted the black-listed links
 	 */
-	virtual void rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment *>& blacklisted);
+	virtual void rerouteWithBlacklist(const std::vector<const sim_mob::Link *>& blacklisted);
 
 protected:
 	/**Holds the person's trip-chain*/

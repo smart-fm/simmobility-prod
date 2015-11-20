@@ -23,6 +23,7 @@
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "entities/misc/TripChain.hpp"
+#include "entities/Person_ST.hpp"
 #include "entities/roles/Role.hpp"
 #include "entities/vehicle/VehicleBase.hpp"
 #include "geospatial/network/Link.hpp"

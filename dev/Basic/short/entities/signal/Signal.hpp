@@ -2,349 +2,346 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
-/*
- * Signal.hpp
- *
- *  Created on: 2011-5-1
- *      Author: xrm
- *      Author: vahid
- */
-
 #pragma once
-
-#include "conf/settings/DisableMPI.h"
 
 #include <map>
 #include <vector>
 #include <stdexcept>
 #include <sstream>
 
+#include "conf/settings/DisableMPI.h"
 #include "Cycle.hpp"
-#include "Offset.hpp"
-#include "Phase.hpp"
-#include "SplitPlan.hpp"
-#include "defaults.hpp"
 #include "entities/Agent.hpp"
 #include "entities/Sensor.hpp"
 #include "metrics/Length.hpp"
-
-//For forward declarations (for friend functions)
-//#include "geospatial/xmlWriter/xmlWriter.hpp"
+#include "Offset.hpp"
+#include "Phase.hpp"
+#include "SplitPlan.hpp"
 
 namespace sim_mob
 {
 
-  namespace xml
-  {
-    class Signal_t_pimpl;
-  }
-  
-  // Forwared declarations.
-  class Node;
-  class Lane;
-  class Link;
-  class LoopDetector;
-  class BasicLogger;
+class Node;
+class Lane;
+class Link;
+class LoopDetector;
+class BasicLogger;
 
 #ifndef SIMMOB_DISABLE_MPI
-  class PackageUtils;
-  class UnPackageUtils;
+class PackageUtils;
+class UnPackageUtils;
 #endif
 
-  //Structure to track the number of vehicles passing over a loop detector 
-  struct VehicleCounter
-  {
-    const sim_mob::Signal_SCATS* signal;
-    std::string nodeName;
-    unsigned int nodeId;
-    const DailyTime & simStartTime;
-    //Accumulation Period length in milliseconds seconds: eg return total count of vehicle in every "600,000" milliseconds
-    const unsigned int frequency; 
-    //Map of lane vs the number of vehicles detected by the loop detector
-    std::map<const sim_mob::Lane*, int> counter;
-    //For file output 
-    sim_mob::BasicLogger & logger;
-    timeslice curTimeSlice;
+/**Structure to track the number of vehicles passing over a loop detector*/
+struct VehicleCounter
+{
+public:
+	/**The associated traffic signal*/
+	const Signal_SCATS *signal;
+	
+	/**Start time of the simulation*/
+	const DailyTime &simStartTime;
+	
+	/**Accumulation Period length in milliseconds seconds: E.g. return total count of vehicle in every "600,000" milliseconds*/
+	const unsigned int frequency;
+	
+	/**Map of lane vs the number of vehicles detected by the loop detector*/
+	std::map<const Lane *, int> counter;
+	
+	/**Instance of the logger*/
+	BasicLogger &logger;
+	
+	/**Current time*/
+	timeslice curTimeSlice;
 
-    VehicleCounter();
-    ~VehicleCounter();
+public:
+	VehicleCounter();
+	~VehicleCounter();
 
-    //Initialises the vehicle counts for the loop detectors at the given signal
-    void init(const Signal_SCATS* signal);
+	/**
+	 * Initialises the vehicle counts for the loop detectors at the given signal 
+	 * @param signal the signal
+	 */
+	void initialise(const Signal_SCATS *signal);
 
-    //Resets the vehicle counts of all loop detectors
-    void resetCounter();
+	/**
+	 * Resets the vehicle counts of all loop detectors
+	 */
+	void resetCounter();
 
-    //Writes the vehicle counts to file
-    void serialize(const uint32_t& time);
+	/**
+	 * Writes the vehicle counts to file
+	 * @param time
+	 */
+	void serialize(const uint32_t &time);
 
-    //Updates the vehicle counts
-    void update();
+	/**
+	 * Updates the vehicle counts
+	 */
+	void update();
 
-    //Aggregates the vehicle counts according to the set frequency
-    void aggregateCounts(const timeslice &tick);
-  } ;
+	/**
+	 * Aggregates the vehicle counts according to the set frequency
+	 * @param tick
+	 */
+	void aggregateCounts(const timeslice &tick);
+};
 
-  enum signalType
-  {
-    SIG_BASIC = 3, SIG_SCATS = 4, SIG_BACKPRESSURE = 5
-  } ;
+/**Defines the supported types of signals*/
+enum SignalType
+{
+	SIGNAL_TYPE_INVALID = 0,
+	SIGNAL_TYPE_FIXED_TIME = 1, 
+	SIGNAL_TYPE_SCATS = 2
+};
 
-  class Signal : public sim_mob::Agent
-  {
-  public:
-    typedef std::vector<sim_mob::Phase> phases;
-    friend class sim_mob::xml::Signal_t_pimpl;
-    Signal(Node const & node, const MutexStrategy& mtxStrat, int id = -1,
-           signalType = SIG_BASIC);
-    signalType getSignalType() const;
-    void setSignalType(signalType sigType);
-    /*void setLinkAndCrossing(LinkAndCrossingC & LinkAndCrossings);
-    LinkAndCrossingC const& getLinkAndCrossing() const;
-    LinkAndCrossingC & getLinkAndCrossing();*/
-    virtual TrafficColor getDriverLight(Lane const & fromLane,
-                                        Lane const & toLane) const;
-    //virtual TrafficColor getPedestrianLight(Crossing const & crossing) const;
-    virtual std::string toString() const;
-    Node const & getNode() const;
-    virtual void outputTrafficLights(timeslice now, std::string newLine) const;
-    virtual unsigned int getSignalId() const;
+/**Defines the abstract class for a traffic signal*/
+class Signal : public Agent
+{
+protected:
+	/**The id of the traffic signal*/
+	unsigned int trafficLightId;
+	
+	/*The node associated with this traffic Signal */
+	const Node *node;
+	
+	/**Indicates the type of the signal*/
+	SignalType signalType;
+	
+	/**Container for the phases of the signal*/
+	std::vector<Phase *> phases;
 
-    //Signals are non-spatial in nature.
-    virtual bool isNonspatial();
+public:
+	Signal(const Node *node, const MutexStrategy &mtxStrat, unsigned int agentId = -1, SignalType = SIGNAL_TYPE_INVALID);
+	virtual ~Signal();
+	
+	const Node* getNode() const;	
+	SignalType getSignalType() const;
+	
+	const std::vector<Phase *>& getPhases();
+	
+	/**
+	 * Indicates whether the agent is non-spatial in nature
+	 * 
+	 * @return true, as signals are non-spatial
+	 */
+	virtual bool isNonspatial();
 
-    virtual void createStringRepresentation(std::string);
-    virtual ~Signal();
-    virtual void load(const std::map<std::string, std::string>&);
-    //virtual Entity::UpdateStatus update(timeslice now){ return Entity::UpdateStatus::Continue; }
-    virtual sim_mob::Signal::phases &getPhases();
-    virtual const sim_mob::Signal::phases &getPhases() const;
-    void addPhase(sim_mob::Phase &phase);
-    //xuyan: no return here
-    bool frame_init(timeslice);
-    sim_mob::Entity::UpdateStatus frame_tick(timeslice);
-    void frame_output(timeslice);
+	/**
+	 * Based on the current phase, gets the traffic light colour shown to the drivers accessing the given turning
+	 * group
+	 * 
+	 * @param fromLink the id of the link the driver is arriving from
+	 * @param toLink the id of the link the driver is moving towards
+	 * 
+	 * @return traffic light colour
+	 */
+	virtual TrafficColor getDriverLight(unsigned int fromLink, unsigned int toLink) const = 0;
 
-    typedef std::vector<Signal *> All_Signals;
-    static All_Signals all_signals_;
-    typedef std::vector<sim_mob::Signal *>::const_iterator all_signals_const_Iterator;
-    typedef std::vector<sim_mob::Signal *>::iterator all_signals_Iterator;
+	/**
+	 * Compulsory override from Agent class (Does nothing for signals)
+	 * @param 
+	 */
+	virtual void load(const std::map<std::string, std::string> &) = 0;
+	
+	/**
+	 * This method is called for the first tick of the traffic signal to perform any initialisation tasks necessary
+	 * (Does nothing for basic signals)
+	 * @param 
+	 * @return false, resulting in the Signal to be removed from the simulation
+	 */
+	virtual bool frame_init(timeslice) = 0;
+	
+	/**
+	 * This method is called for every tick of the traffic signal. This is where the behaviour of the traffic signal is captured
+	 * (Does nothing for basic signals)
+	 * @param 
+	 * @return UpdateStatus::Continue
+	 */
+	virtual Entity::UpdateStatus frame_tick(timeslice) = 0;
+	
+	/**
+	 * This method is called for every tick of the traffic signal. It generates the output from the signals to be 
+	 * written to the output file
+	 * @param 
+	 */
+	virtual void frame_output(timeslice) = 0;
+} ;
 
-    static const sim_mob::Signal* getSignalBasedOnNode(const sim_mob::Point2D* one_point);
+class Signal_SCATS : public Signal
+{
+private:
+	/**The interval on which the frame_tick method is called for the signal*/
+	double updateInterval;
+	
+	/**
+	 * Represents the split plan(s) used in this traffic signal. This has two main tasks:
+	 * 1. Hold the phase information of the plan and the different combinations of phase time shares i.e. the choice set
+	 * 2. Select the next split plan based on the input DS
+	 */
+	SplitPlan *splitPlan;
+	
+	/**The phase which is currently undergoing green*/
+	unsigned int currPhaseAtGreen;
+	
+	/**The amount of time passed since the current cycle started.(in millisecond)*/
+	double currCycleTimer;
 
-  private:
-    /*The node associated with this traffic Signal */
-    sim_mob::Node const & node_;
-    sim_mob::signalType signalType_;
-    //LinkAndCrossingC LinkAndCrossings_;
-    sim_mob::Signal::phases phases_;
-  } ;
+	/**Stores the densities of the phases. Density of phase 'i' is stored at the 'i'th index*/
+	std::vector<double> phaseDensity;
+	
+	/**Indicates whether operations pertaining to a new cycle should be performed*/
+	bool isNewCycle;
+	
+	/**
+	 * Initialises the signal
+	 */
+	void initialise();
+	
+	/**
+	 * Updates the current current cycle timer
+	 * 
+	 * @return true, if we've reached the end of the cycle
+	 */
+	bool updateCurrCycleTimer();
+	
+	/**
+	 * Computes the current phase
+	 * 
+	 * @param currCycleTimer
+	 * @return the current phase
+	 */
+	std::size_t computeCurrPhase(double currCycleTimer);
+	
+	/**
+	 * Calculates the degree of saturation (DS) at the end of each phase considering only the maximum DS of the lane in the LinkFrom(s).
+	 * LinkFrom(s) are the links from which vehicles enter the intersection during the corresponding phase
+	 * 
+	 * @param phaseId the phase for which the DS is to be calculated
+	 * @param now the current time frame
+	 * 
+	 * @return the degree of saturation for the given phase
+	 */
+	double computePhaseDS(int phaseId, const timeslice &now);
+	
+	/**
+	 * This method does the actual DS computation.  It calculates the DS on a specific Lane at the moment 
+	 * totalGreen amounts to totalGreen at each phase. 
+	 * However this function doesn't care the scope (phase/cycle) the totalGreen comes from.
+	 * 
+	 * @param ctPair
+	 * @param totalGreen
+	 * 
+	 * @return the degree of saturation for the given phase
+	 */
+	double computeLaneDS(const Sensor::CountAndTimePair &ctPair, double totalGreen);
+	
+	/**
+	 * Updates the new cycle. This method is called only when we change to a new cycle
+	 */
+	void updateNewCycle();
+	
+	/**
+	 * Resets the the phase densities of all the phases
+	 */
+	void resetCycle();
+	
+	/**
+	 * Creates the split plans
+	 */
+	void createPlans();
+	
+	/**
+	 * Creates the phases
+	 */
+	void createPhases();
+	
+	/**
+	 * Initialises the phases
+	 */
+	void initialisePhases();
 
-  class Signal_SCATS : public sim_mob::Signal
-  {
-    friend class sim_mob::xml::Signal_t_pimpl;
-    //friend  void sim_mob::WriteXMLInput_TrafficSignal(TiXmlElement * Signals,sim_mob::Signal *signal);
-  public:
-    typedef std::vector<sim_mob::Phase>::iterator phases_iterator;
+protected:
+	VehicleCounter curVehicleCounter;
+	Sensor *loopDetectorAgent;
+	
+	/**
+	 * This method is called for the first tick of the traffic signal to perform any initialisation tasks necessary
+	 * (Does nothing for SCATS signals)
+	 * @param 
+	 * @return true
+	 */
+	virtual bool frame_init(timeslice now);
+	
+	/**
+	 * This method is called for every tick of the traffic signal. This method does the following:
+	 * 1. Update the current cycle timer
+	 * 2. Update the current phase
+	 * 3. Update the current phase colour
+	 * 4. If the cycle has ended:
+	 *	4.1 Compute the degree of saturation (DS)
+	 *	4.2 Update cycle length
+	 *	4.3 Update split plan
+	 *	4.4 Update offset
+	 * 5. Reset the loop detector for the next cycle
+	 * @param now
+	 * @return UpdateStatus::Continue
+	 */
+	virtual Entity::UpdateStatus frame_tick(timeslice now);
+	
+	/**
+	 * This method is called for every tick of the traffic signal. It generates the output from the signals to be 
+	 * written to the output file
+	 * @param 
+	 */
+	virtual void frame_output(timeslice now);
+	
+	/**
+	 * Compulsory override from Agent class (Does nothing for signals)
+	 * @param 
+	 */
+	virtual void load(const std::map<std::string, std::string> &)
+	{
+	}
 
-    /*--------Initialization----------*/
-    void initialize();
-    void setSplitPlan(sim_mob::SplitPlan);
-    Signal_SCATS(Node const & node, const MutexStrategy& mtxStrat, int id = -1,
-                 signalType = SIG_SCATS);
-    static Signal_SCATS const & signalAt(Node const & node,
-                                         const MutexStrategy& mtxStrat, bool *isNew = nullptr); //bool isNew : since this function will create and return new signal if already existing signals not found, a switch to indicate what happened in the function would be nice
+public:
+	Signal_SCATS(const Node *node, const MutexStrategy &mtxStrat);
+	virtual ~Signal_SCATS();
 
-    //Note: You need a virtual destructor or else superclass destructors won't be called. ~Seth
-    //created virtual for the immediate parent.
-
-    ~Signal_SCATS()
-    {
-    }
-
-    void addSignalSite(centimeter_t xpos, centimeter_t ypos,
-                       std::string const & typeCode, double bearing);
-
-    void findSignalLinksAndCrossings();
-
-    /**
-     * --------Updation----------
-     */
-    void updateTrafficLights();
-    void updatecurrSplitPlan();
-    void updateOffset();
-    void newCycleUpdate();
-    bool updateCurrCycleTimer();
-
-  protected:
-
-    virtual bool frame_init(timeslice now)
-    {
-      return true;
-    }
-    virtual Entity::UpdateStatus frame_tick(timeslice now);
-    virtual void frame_output(timeslice now);
-
-  private:
-    //Output hack
-    void buffer_output(timeslice now, std::string newLine);
-    std::stringstream buffOut;
-
-  public:
-    /*--------Split Plan----------*/
-    int getcurrSplitPlanID();
-    int getnextSplitPlanID();
-    const sim_mob::SplitPlan & getPlan() const;
-    sim_mob::SplitPlan & getPlan();
-
-    /*--------Degree of Saturation----------*/
-    double computeDS();
-    double computePhaseDS(int phaseId, const timeslice& now);
-    double LaneDS(const Sensor::CountAndTimePair& ctPair,
-                  double total_g);
-
-    /*--------Miscellaneous----------*/
-
-    int fmin_ID(const std::vector<double>& maxproDS);
-    ///	Return the loggable representation of this Signal.
-    std::string toString() const;
-    unsigned int getSignalId();
-    unsigned int getSignalId() const;
-    bool isIntersection();
-    void createStringRepresentation(std::string newLine = "\n");
-    void cycle_reset();
-    //Crossing const * getCrossing(RoadSegment const * road);
-
-    virtual const sim_mob::Link* getCurrLink()
-    {
-      return nullptr;
-    }
-
-    virtual void setCurrLink(const sim_mob::Link*)
-    {
-    }
-
-    virtual const sim_mob::Lane* getCurrLane() const
-    {
-      return nullptr;
-    }
-
-    virtual void setCurrLane(const sim_mob::Lane* lane)
-    {
-    }
-    /**
-     * --------The cause of this Module----------
-     **/
-    TrafficColor getDriverLight(Lane const & fromLane,
-                                Lane const & toLane) const;
-    //TrafficColor getPedestrianLight(Crossing const & crossing) const;
-
-    double getUpdateInterval()
-    {
-      return updateInterval;
-    }
-
-    /* phase
-     *
-     */
-    std::size_t getNOF_Phases() const
-    {
-      return getPhases().size();
-      //    return getNOF_Phases();
-    }
-
-    std::size_t & getCurrPhaseID()
-    {
-      return currPhaseID;
-    }
-    std::size_t computeCurrPhase(double currCycleTimer);
-
-    const sim_mob::Phase & getCurrPhase() const
-    {
-      return getPhases()[currPhaseID];
-    }
-
-    void initializePhases();
-    void printColors(double currCycleTimer);
-    std::vector<std::pair<sim_mob::Phase, double> > predictSignal(double t);
-
-    const Sensor* getLoopDetector() const
-    {
-      return loopDetectorAgent;
-    }
-
-    void setLoopDetector(Sensor* loopDetector)
-    {
-      loopDetectorAgent = loopDetector;
-    }
-
-  private:
-    bool isIntersection_;	//generated
-    ///	this is the interval on which the signal's update is called
-    double updateInterval;    //generated
-    ///	currently is equal to nodeId
-    unsigned int signalID;
-    /*-------------------------------------------------------------------------
-     * -------------------split plan Indicators--------------------------------
-     * ------------------------------------------------------------------------*/
-    /*
-     * the split plan(s) used in this traffic signal are represented using this single variable
-     * This variable has two main tasks
-     * 1-hold plans' phase information and different combinations of phase time shares(choiceSet)
-     * 2-decides/outputs/selects the next split plan(choiceSet combination) based on the the inputted DS
-     */
-    sim_mob::SplitPlan splitPlan;
-    std::size_t NOF_Phases; ///	getNOF_Phases() = number of phases = phases_.size()
-    std::size_t currPhaseID; ///	Better Name is: phaseAtGreen (according to TE terminology)The phase which is currently undergoing green, f green, amber etc..
-    double currCycleTimer; ///	The amount of time passed since the current cycle started.(in millisecond)
-
-    /*-------------------------------------------------------------------------
-     * -------------------Phase_Density Indicators-----------------------------------
-     * ------------------------------------------------------------------------*/
-    std::vector<double> Phase_Density;
-    ///	so far this value is used to store the max value in the above(Phase_Density) vector
-    double DS_all;
-    /*-------------------------------------------------------------------------
-     * -------------------Cycle Length Indicators------------------------------
-     * ------------------------------------------------------------------------*/
-    bool isNewCycle; ///	indicates whether operations pertaining to a new cycle should be performed
-
-    /*-------------------------------------------------------------------------
-     * -------------------Offset Indicators------------------------------
-     * ------------------------------------------------------------------------*/
-    ///	current and next Offset
-    sim_mob::Offset offset_;
-    double currOffset;
-
-    ///	String representation, so that we can retrieve this information at any time.
-    std::string strRepr;
-
-    friend class DatabaseLoader;
-  protected:
-    Sensor* loopDetectorAgent;
+	/**
+	 * Based on the current phase, gets the traffic light colour shown to the drivers accessing the given turning
+	 * group
+	 * 
+	 * @param fromLink the id of the link the driver is arriving from
+	 * @param toLink the id of the link the driver is moving towards
+	 * 
+	 * @return traffic light colour
+	 */
+	TrafficColor getDriverLight(unsigned int fromLink, unsigned int toLink) const;
+	
+	const Sensor* getLoopDetector() const
+	{
+		return loopDetectorAgent;
+	}
+	
+	void setLoopDetector(Sensor *sensor)
+	{
+		loopDetectorAgent = sensor;
+	}
+	
+	unsigned int getNumOfPhases() const
+	{
+		return phases.size();
+	}
 
 #ifndef SIMMOB_DISABLE_MPI
-  public:
-
-    virtual void pack(PackageUtils& packageUtil)
-    {
-    }
-
-    virtual void unpack(UnPackageUtils& unpackageUtil)
-    {
-    }
-
-    virtual void packProxy(PackageUtils& packageUtil)
-    {
-    };
-
-    virtual void unpackProxy(UnPackageUtils& unpackageUtil)
-    {
-    };
+	virtual void pack(PackageUtils& packageUtil);
+	virtual void unpack(UnPackageUtils& unpackageUtil);
+	virtual void packProxy(PackageUtils& packageUtil);
+	virtual void unpackProxy(UnPackageUtils& unpackageUtil);
 #endif
-  public:
-    VehicleCounter curVehicleCounter;
-  } ;
 
-}//namespace sim_mob
+} ;
+
+}
 

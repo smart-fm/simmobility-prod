@@ -9,8 +9,8 @@
 using namespace sim_mob;
 
 TurningGroup::TurningGroup() :
-		turningGroupId(0), fromLinkId(0), nodeId(0), phases(""), groupRule(TURNING_GROUP_RULE_NO_STOP_SIGN), toLinkId(0), visibility(0),
-		numTurningPaths(0), length(0)
+turningGroupId(0), fromLinkId(0), nodeId(0), phases(""), groupRule(TURNING_GROUP_RULE_NO_STOP_SIGN), toLinkId(0), visibility(0),
+numTurningPaths(0), length(0)
 {
 }
 

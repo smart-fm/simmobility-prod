@@ -306,6 +306,8 @@ struct RouteInfo{
 	unsigned int startPosY;
 	unsigned int endPosX;
 	unsigned int endPosY;
+	unsigned int linkId;
+	int segmentIndex;
 };
 
 struct StopInfo
@@ -364,8 +366,8 @@ bool searchBusRoutes(const vector<const BusStop*>& stops, const std::string& bus
 				{
 					if (it->type == WayPoint::ROAD_SEGMENT)
 					{
-						unsigned int id =
-								(*it).roadSegment->getRoadSegmentId();
+						unsigned int id = (*it).roadSegment->getRoadSegmentId();
+						const Link* link = (*it).roadSegment->getParentLink();
 						if (routeIDs.size() == 0 || routeIDs.back().id != id)
 						{
 							RouteInfo route;
@@ -376,6 +378,8 @@ bool searchBusRoutes(const vector<const BusStop*>& stops, const std::string& bus
 							route.startPosY = start->getStopLocation().getY();
 							route.endPosX = end->getStopLocation().getX();
 							route.endPosY = end->getStopLocation().getY();
+							route.linkId = link->getLinkId();
+							route.segmentIndex = (*it).roadSegment->getSequenceNumber();
 							routeIDs.push_back(route);
 						}
 						isFound = true;
@@ -420,6 +424,8 @@ bool searchBusRoutes(const vector<const BusStop*>& stops, const std::string& bus
 				routeInfo.startPosY = it->startPosY;
 				routeInfo.endPosX = it->endPosX;
 				routeInfo.endPosY = it->endPosY;
+				routeInfo.linkId = it->linkId;
+				routeInfo.segmentIndex = it->segmentIndex;
 				routeInfo.index = index;
 				allRoutes.push_back(routeInfo);
 				index++;

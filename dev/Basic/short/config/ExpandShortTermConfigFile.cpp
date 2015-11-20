@@ -1,10 +1,11 @@
 #include "ExpandShortTermConfigFile.hpp"
-#include "conf/PrintNetwork.hpp"
+#include "conf/NetworkPrinter.hpp"
 #include "entities/BusController.hpp"
 #include "entities/BusControllerST.hpp"
 #include "geospatial/aimsun/Loader.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "entities/amodController/AMODController.hpp"
+#include "entities/fmodController/FMOD_Controller.hpp"
 #include "entities/Person_ST.hpp"
 
 namespace
@@ -140,6 +141,7 @@ void ExpandShortTermConfigFile::processConfig()
     }
 
     loadAMOD_Controller();
+    loadFMOD_Controller();
 
     //Load Agents, Pedestrians, and Trip Chains as specified in loadAgentOrder
     loadAgentsInOrder(constraints);
@@ -159,22 +161,28 @@ void ExpandShortTermConfigFile::processConfig()
 
 void ExpandShortTermConfigFile::loadNetworkFromDatabase()
 {
-    //Load from the database or from XML, depending.
-    if (stConfig.networkSource == NETSRC_DATABASE)
-    {
-		std::cout << "Loading Road Network from the database.\n";
-		sim_mob::aimsun::Loader::LoadNetwork(cfg.getDatabaseConnectionString(false),
-							 cfg.getDatabaseProcMappings().procedureMappings,
-							 cfg.getNetworkRW(), cfg.getTripChains(), nullptr);
-    }
-    else
-    {
-        std::cout << "Loading Road Network from XML.\n";
-        if (!sim_mob::xml::InitAndLoadXML(stConfig.getNetworkXmlInputFile(), cfg.getNetworkRW(), cfg.getTripChains()))
-        {
-            throw std::runtime_error("Error loading/parsing XML file (see stderr).");
-        }
-    }
+	//Load from the database or from XML
+	if (ST_Config::getInstance().getNetworkSource() == NetworkSource::NETSRC_DATABASE)
+	{
+		Print() << "Loading Road Network from the database.\n";
+
+		//The instance of the network loader
+		NetworkLoader *loader = NetworkLoader::getInstance();
+
+		//Load the road network
+		loader->loadNetwork(cfg.getDatabaseConnectionString(false), cfg.getDatabaseProcMappings().procedureMappings);
+
+		//Post processing on the network
+		loader->processNetwork();
+
+//		//Create traffic signals
+//		loader->createTrafficSignals(cfg.mutexStategy());
+	}
+	else
+	{
+		Print() << "Loading Road Network from XML not yet implemented\n";
+		exit(-1);
+	}
 }
 
 void ExpandShortTermConfigFile::loadAMOD_Controller()
@@ -183,6 +191,21 @@ void ExpandShortTermConfigFile::loadAMOD_Controller()
     {
     	sim_mob::AMOD::AMODController::registerController(-1, cfg.mutexStategy());
     }
+}
+
+void ExpandShortTermConfigFile::loadFMOD_Controller()
+{
+	if (stConfig.fmod.enabled)
+	{
+		sim_mob::FMOD::FMOD_Controller::registerController(-1, cfg.mutexStategy());
+		sim_mob::FMOD::FMOD_Controller::instance()->settings(stConfig.fmod.ipAddress, stConfig.fmod.port, stConfig.fmod.updateTimeMS, stConfig.fmod.mapfile,
+				stConfig.fmod.blockingTimeSec);
+		std::map<std::string, TripChainItem*>::iterator it;
+		for (it = stConfig.fmod.allItems.begin(); it != stConfig.fmod.allItems.end(); it++)
+		{
+			sim_mob::FMOD::FMOD_Controller::instance()->insertFmodItems(it->first, it->second);
+		}
+	}
 }
 
 void ExpandShortTermConfigFile::loadAgentsInOrder(ConfigParams::AgentConstraints& constraints)
@@ -449,18 +472,18 @@ void ExpandShortTermConfigFile::PrintSettings()
     std::cout << "  Mutex strategy: " << (cfg.mutexStategy() == MtxStrat_Locked ? "Locked" : cfg.mutexStategy() == MtxStrat_Buffered ? "Buffered" : "Unknown") << "\n";
 
     //Output Database details
-    if (stConfig.networkSource == NETSRC_XML)
+    if (stConfig.getNetworkSource == NETSRC_XML)
     {
         std::cout << "Network details loaded from xml file: " << stConfig.networkXmlInputFile << "\n";
     }
-    if (stConfig.networkSource == NETSRC_DATABASE)
+    if (stConfig.getNetworkSource == NETSRC_DATABASE)
     {
         std::cout << "Network details loaded from database connection: " << cfg.getDatabaseConnectionString() << "\n";
     }
 
     //Print the network (this will go to a different output file...)
     std::cout << "------------------\n";
-    PrintNetwork(cfg, cfg.outNetworkFileName);
+    NetworkPrinter(cfg, cfg.outNetworkFileName);
     std::cout << "------------------\n";
 }
 

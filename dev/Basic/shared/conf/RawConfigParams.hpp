@@ -413,6 +413,7 @@ public:
      */
     enum SimMobRunMode
     {
+    	UNKNOWN_RUN_MODE,
         SHORT_TERM,
         MID_TERM,
         LONG_TERM

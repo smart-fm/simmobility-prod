@@ -14,6 +14,8 @@ using namespace std;
 
 namespace sim_mob
 {
+
+class RoadNetwork;
 /**
  * class for loading the network for simulation
  * \author Neeraj D
@@ -140,5 +142,11 @@ public:
 	 * This method does post processing on the road network
      */
 	void processNetwork();
+	
+//	/**
+//	 * This method creates the traffic signals at nodes with traffic signals using the phase information
+//	 * present in the turning groups.
+//	 */
+//	void createTrafficSignals(const MutexStrategy &mtxStrat);
 };
 }

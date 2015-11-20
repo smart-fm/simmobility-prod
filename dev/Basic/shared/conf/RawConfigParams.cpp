@@ -6,7 +6,7 @@
 
 using namespace sim_mob;
 
-sim_mob::RawConfigParams::RawConfigParams() : mergeLogFiles(false), generateBusRoutes(false)
+sim_mob::RawConfigParams::RawConfigParams() : mergeLogFiles(false), generateBusRoutes(false), simMobRunMode(RawConfigParams::UNKNOWN_RUN_MODE)
 {}
 
 sim_mob::SimulationParams::SimulationParams() :

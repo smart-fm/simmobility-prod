@@ -127,6 +127,8 @@ public:
 	const std::vector<RoadSegment *>& getRoadSegments() const;
 	const RoadSegment* getRoadSegment(int index) const;
 
+	int getRoadSegmentIndex(const RoadSegment * seg)const;
+
 	const Node* getToNode() const;
 	void setToNode(Node *toNode);
 

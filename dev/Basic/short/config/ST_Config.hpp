@@ -56,8 +56,8 @@ struct VehicleType
  */
 struct EntityTemplate {
     EntityTemplate();
-    Point2D originPos;
-    Point2D destPos;
+    Point originPos;
+    Point destPos;
     unsigned int startTimeMs;// default is zero
     unsigned int laneIndex;// default is zero
     int agentId;
@@ -164,15 +164,20 @@ struct SegmentDensityMap
 /**
  * Represents the FMOD controller section of the config file.
  */
-struct FMOD_ControllerParams {
-    FMOD_ControllerParams() : enabled(false), port(0), updateTimeMS(0), blockingTimeSec(0) {}
+struct FMOD_ControllerParams
+{
+	FMOD_ControllerParams() :
+			enabled(false), port(0), updateTimeMS(0), blockingTimeSec(0)
+	{
+	}
 
-    bool enabled;
-    std::string ipAddress;
-    unsigned int port;
-    unsigned int updateTimeMS;
-    std::string mapfile;
-    unsigned int blockingTimeSec;
+	bool enabled;
+	std::string ipAddress;
+	unsigned int port;
+	unsigned int updateTimeMS;
+	std::string mapfile;
+	unsigned int blockingTimeSec;
+	std::map<std::string, TripChainItem*> allItems;
 };
 
 /**

@@ -5,11 +5,12 @@
 #include <stdexcept>
 #include <sstream>
 #include "RoadSegment.hpp"
+#include "logging/Log.hpp"
 
 using namespace sim_mob;
 
-RoadSegment::RoadSegment() : roadSegmentId(0), capacity(0), linkId(0), maxSpeed(0), polyLine(NULL), sequenceNumber(0),
-parentLink(NULL)
+RoadSegment::RoadSegment() : roadSegmentId(0), capacity(0), linkId(0), maxSpeed(0), polyLine(nullptr), sequenceNumber(0),
+parentLink(nullptr)
 {
 }
 
@@ -18,13 +19,13 @@ RoadSegment::~RoadSegment()
 	for (std::vector<Lane *>::iterator itLane = lanes.begin(); itLane != lanes.end(); ++itLane)
 	{
 		delete *itLane;
-		*itLane = NULL;
+		*itLane = nullptr;
 	}
 
 	if (polyLine)
 	{
 		delete polyLine;
-		polyLine = NULL;
+		polyLine = nullptr;
 	}
 	
 	for(std::map<double, RoadItem *>::iterator it = obstacles.begin(); it != obstacles.end(); it++)
@@ -133,22 +134,30 @@ void RoadSegment::addLane(Lane *lane)
 	this->lanes.push_back(lane);
 }
 
-void RoadSegment::addObstacle(double offset, RoadItem* item)
+void RoadSegment::addObstacle(double offset, RoadItem *item)
 {
 	if (offset < 0)
 	{
-		throw std::runtime_error("Can't add obstacle; offset is less than zero.");
+		std::stringstream msg;
+		msg << "Could not add obstacle " << item->getRoadItemId() << " to road segment " << this->roadSegmentId
+			<< "\nOffset < 0";
+		throw std::runtime_error(msg.str());
 	}
 
 	if (offset > this->getLength())
 	{
-		//throw std::runtime_error("Can't add obstacle; offset is greater than the segment length.");
+		std::stringstream msg;
+		msg << "Could not add obstacle " << item->getRoadItemId() << " to road segment " << this->roadSegmentId
+			<< "\nOffset " << offset << " > Segment length " << this->getLength();
+		throw std::runtime_error(msg.str());
 	}
 
-	//Already something there
 	if (obstacles.count(offset) > 0)
 	{
-		throw std::runtime_error("Can't add obstacle; something is already at that offset.");
+		std::stringstream msg;
+		msg << "Could not add obstacle " << item->getRoadItemId() << " to road segment " << this->roadSegmentId
+			<< "\nAnother obstacle at the same offset";
+		throw std::runtime_error(msg.str());
 	}
 
 	obstacles[offset] = item;

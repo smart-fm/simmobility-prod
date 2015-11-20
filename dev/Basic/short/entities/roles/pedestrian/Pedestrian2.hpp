@@ -20,7 +20,7 @@
 #include <boost/random.hpp>
 
 #include "conf/settings/DisableMPI.h"
-
+#include "entities/Person_ST.hpp"
 #include "entities/roles/Role.hpp"
 #include "geospatial/network/Point.hpp"
 #include "entities/UpdateParams.hpp"

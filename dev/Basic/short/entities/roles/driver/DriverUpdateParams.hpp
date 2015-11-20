@@ -18,426 +18,511 @@
 #include "util/DynamicVector.hpp"
 #include "util/LangHelpers.hpp"
 
-
 namespace sim_mob
 {
 
-  //Forward declarations
-  class Lane;
-  class Driver;
-  class IncidentPerformer;
-  class IntersectionAccessMessage;
+class Lane;
+class Driver;
+class IncidentPerformer;
+class IntersectionAccessMessage;
 
 #ifndef SIMMOB_DISABLE_MPI
-  class PackageUtils;
-  class UnPackageUtils;
+class PackageUtils;
+class UnPackageUtils;
 #endif
 
-  //Struct for holding data about the "nearest" vehicle.
+/**Holds the the "nearest" vehicle.*/
+struct NearestVehicle
+{
+	/**The nearest driver*/
+	const Driver* driver;
 
-  struct NearestVehicle
-  {
+	/**Distance to to the driver (in metre)*/
+	double distance;
 
-    NearestVehicle() : driver(nullptr), distance(DBL_MAX)
-    {
-    }
+	NearestVehicle() : driver(NULL), distance(DBL_MAX)
+	{
+	}
 
-    NearestVehicle(const NearestVehicle& src) : driver(src.driver), distance(src.distance)
-    {
-    }
-    
-    bool exists() const
-    {
-      return distance < DBL_MAX;
-    }
-    
-    const Driver* driver;
-    double distance;
-  } ;
+	NearestVehicle(const NearestVehicle &src) : driver(src.driver), distance(src.distance)
+	{
+	}
 
-  struct compare_NearestVehicle
-  {
-    bool operator() (const  NearestVehicle& first, const  NearestVehicle& second)
-    {
-      return ( first.distance > second.distance );
-    }
-  } ;
+	bool exists() const
+	{
+		return (driver != NULL);
+	}
 
-  //Similar, but for pedestrians
+	void reset()
+	{
+		driver = NULL;
+		distance = DBL_MAX;
+	}
+};
 
-  struct NearestPedestrian
-  {
-    NearestPedestrian() : distance(DBL_MAX)
-    {
-    }
+/**Comparator for sorting the nearest vehicles in the conflicting vehicles list*/
+struct compare_NearestVehicle
+{
+	bool operator()(const NearestVehicle& first, const NearestVehicle& second)
+	{
+		return ( first.distance > second.distance);
+	}
+};
 
-    bool exists()
-    {
-      return distance < DBL_MAX;
-    }
+/**Holds the nearest pedestrian*/
+struct NearestPedestrian
+{
+	/**Distance to the nearest pedestrian*/
+	double distance;
 
-    double distance;
-  } ;
+	NearestPedestrian() : distance(DBL_MAX)
+	{
+	}
 
-  struct StopPoint
-  {
-    StopPoint()
-    {
-    }
+	bool exists()
+	{
+		return distance < DBL_MAX;
+	}
+};
 
-    StopPoint(std::string& segId, double& dis, double& dwellT) : id(-1), segmentId(segId), distance(dis), isPassed(false), dwellTime(dwellT)
-    {
-    }
+/**Represents the location to stop*/
+struct StopPoint
+{
+	/**The segment at which the stop point is located*/
+	unsigned int segmentId;
 
-    StopPoint(const StopPoint& source) : id(source.id), segmentId(source.segmentId), distance(source.distance), dwellTime(source.dwellTime), isPassed(source.isPassed)
-    {
-    }
-    int id;
-    std::string segmentId;
-    double distance;
-    double dwellTime; //10 sec
-    bool isPassed;
-  } ;
+	/**The offset from the start of the segment*/
+	double distance;
 
+	/**The time for which the vehicle is to stop at the stop point*/
+	double dwellTime;
 
-  ///Simple struct to hold parameters which only exist for a single update tick.
-  /// \author Wang Xinyuan
-  /// \author Li Zhemin
-  /// \author Seth N. Hetu
-  ///NOTE: Constructor is currently implemented in Driver.cpp. Feel free to shuffle this around if you like.
-  class DriverUpdateParams : public UpdateParams
-  {
-  public:
+	/**Indicates whether the we've already crossed the stop point*/
+	bool isPassed;
 
-    DriverUpdateParams();
+	StopPoint() : isPassed(false), distance(0.0), dwellTime(0.0), segmentId(0)
+	{
+	}
 
-    explicit DriverUpdateParams(boost::mt19937 & gen) : UpdateParams(gen) , nextLaneIndex(0), isTargetLane(true),
-    status(0), flags(0), yieldTime(0, 0), lcTimeTag(200), speedOnSign(0), newFwdAcc(0), cftimer(0.0), newLatVelM(0.0), utilityLeft(0),
-    utilityCurrent(0), utilityRight(0), perceivedDistToTrafficSignal(500), rnd(0),
-    disAlongPolyline(0), dorigPosx(0), dorigPosy(0), movementVectx(0), movementVecty(0), headway(999), currLane(NULL),
-    stopPointPerDis(100), stopPointState(NO_FOUND_STOP_POINT), startStopTime(0), disToSP(999),
-    currLaneIndex(0), leftLane(NULL), rightLane(NULL), leftLane2(NULL), rightLane2(NULL), currSpeed(0), desiredSpeed(0), currLaneOffset(0),
-    currLaneLength(0), trafficSignalStopDistance(0), elapsedSeconds(0), perceivedFwdVelocity(0), perceivedLatVelocity(0), perceivedFwdVelocityOfFwdCar(0),
-    perceivedLatVelocityOfFwdCar(0), perceivedAccelerationOfFwdCar(0), perceivedDistToFwdCar(0),
-    laneChangingVelocity(0), isCrossingAhead(false), isApproachingIntersection(false), crossingFwdDistance(0), space(0), a_lead(0),
-    v_lead(0), space_star(0), distanceToNormalStop(0), dis2stop(0), impatienceTimer(0.0), justChangedToNewSegment(false),
-    justMovedIntoIntersection(false), overflowIntoIntersection(0), driver(NULL), emergHeadway(999), acc(0),
-    density(0), initSegId(0), initDis(0), initSpeed(0), parentId(0), FFAccParamsBeta(0), nextStepSize(0), maxAcceleration(0), normalDeceleration(0),
-    lcMaxNosingTime(0), maxLaneSpeed(0), maxDeceleration(0), impatienceTimerStart(0.0), hasStoppedForStopSign(false), accessTime(0.0), isResponseReceived(false),
-    useIntAcc(false)
-    {
-    }
+	StopPoint(unsigned int segId, double dis, double dwellT) : segmentId(segId), distance(dis), isPassed(false), dwellTime(dwellT)
+	{
+	}
 
-    double getNextStepSize()
-    {
-      return nextStepSize;
-    }
+	StopPoint(const StopPoint &source) : segmentId(source.segmentId), distance(source.distance), dwellTime(source.dwellTime), isPassed(source.isPassed)
+	{
+	}
+};
 
-    virtual void reset(timeslice now, const Driver& owner);
+/**
+ * Holds parameters which only exist for a single update tick.
+ * 
+ * \author Wang Xinyuan
+ * \author Li Zhemin
+ * \author Seth N. Hetu
+ */
+class DriverUpdateParams : public UpdateParams
+{
+public:
+	/**Represents the various states in the stopping point behaviour*/
+	enum StopPointState
+	{
+		STOP_POINT_FOUND = 1,
+		ARRIVING_AT_STOP_POINT = 2,
+		ARRIVED_AT_STOP_POINT = 3,
+		WAITING_AT_STOP_POINT = 4,
+		LEAVING_STOP_POINT = 5,
+		STOP_POINT_NOT_FOUND = 6
+	};
 
-    bool willYield(unsigned int reason);
+	/**Indicates whether a vehicle is approaching an unsignalised intersection*/
+	bool isApproachingIntersection;
 
-    const RoadSegment* nextLink();
+	/**Indicates if the driver has already stopped for the stop sign*/
+	bool hasStoppedForStopSign;
 
-    /**
-     *  /brief add one kind of status to the vh
-     *  /param new state
+	/**Indicates if the access time has been received from the intersection manager*/
+	bool isResponseReceived;
+
+	/**Indicates if the car following accelerations are to be over-ridden*/
+	bool useIntAcc;
+
+	/**Indicates if the current lane is the target lane*/
+	bool isTargetLane;
+
+	/**The current lane's index*/
+	unsigned int currLaneIndex;
+
+	/**The next lane's index*/
+	unsigned int nextLaneIndex;
+
+	/**Current status indicator*/
+	unsigned int status;
+
+	/**Additional indicator for internal use*/
+	unsigned int flags;
+
+	/**The initial speed of the vehicle*/
+	int initialSpeed;
+
+	/**The id of the agent*/
+	int parentId;
+
+	/**The current speed of the vehicle (m/s)*/
+	double currSpeed;
+
+	/**The speed desired by the driver (m/s)*/
+	double desiredSpeed;
+
+	/**Time elapsed since the previous tick*/
+	double elapsedSeconds;
+
+	/**Distance to the traffic signal*/
+	double trafficSignalStopDistance;
+
+	/**The perceived forward velocity*/
+	double perceivedFwdVelocity;
+
+	/**The perceived lateral velocity*/
+	double perceivedLatVelocity;
+
+	/**The perceived forward velocity of the car in front*/
+	double perceivedFwdVelocityOfFwdCar;
+
+	/**The perceived lateral velocity of the car in front*/
+	double perceivedLatVelocityOfFwdCar;
+
+	/**The perceived acceleration of the car in front*/
+	double perceivedAccelerationOfFwdCar;
+
+	/**The perceived distance to the car in front*/
+	double perceivedDistToFwdCar;
+
+	/**The perceived distance to the traffic signal*/
+	double perceivedDistToTrafficSignal;
+
+	/**The speed limit on the road sign*/
+	double speedLimit;
+
+	/**Indicates how long a driver has been waiting to go ahead, after a while, the driver is more likely to accept a smaller gap*/
+	double impatienceTimer;
+
+	/**Indicates when the impatience timer was started*/
+	double impatienceTimerStart;
+
+	/**The access time sent by the intersection manager*/
+	double accessTime;
+
+	/**Gap between the vehicles. This is used in the car following model*/
+	double gapBetnVehicles;
+
+	/**Acceleration of the lead vehicle*/
+	double accLeadVehicle;
+
+	/**Velocity of the lead vehicle*/
+	double velocityLeadVehicle;
+
+	/***/
+	double spaceStar;
+
+	/**Distance required to stop in normal circumstances*/
+	double distanceToNormalStop;
+
+	/**Represents the distance beyond which we can't continue. This may be due to lane not being connected to the next segment, an incident ahead, etc*/
+	double distToStop;
+
+	/**The distance by which we have entered the intersection*/
+	double overflowIntoIntersection;
+
+	/**Distance at which a stopping point is visible*/
+	double stopVisibilityDistance;
+
+	/**The distance to the stopping point*/
+	double distanceToStoppingPt;
+
+	/**The time at which the vehicle stopped at the stop point. Used to compare with dwell time in order to decide when to start moving*/
+	double stopTimeTimer;
+
+	/**Utility of the left lane*/
+	double utilityLeft;
+
+	/**Utility of the right lane*/
+	double utilityRight;
+
+	/**Utility of the current lane*/
+	double utilityCurrent;
+
+	/**The headway*/
+	double headway;
+
+	/**The selected acceleration - used for debugging*/
+	double acc;
+
+	/**The density of the current lane*/
+	double density;
+
+	/**The parameters for computing the free flow acceleration*/
+	double FFAccParamsBeta;
+
+	/**The lateral velocity of the vehicle*/
+	double lateralVelocity;
+
+	/**The count down timer for the reaction time expiry*/
+	double reactionTimeCounter;
+
+	/**The next step size*/
+	double nextStepSize;
+
+	/**The maximum value of acceleration (m/s^2)*/
+	double maxAcceleration;
+
+	/**The normal deceleration value (m/s^2)*/
+	double normalDeceleration;
+
+	/**The maximum value of deceleration (m/s^2)*/
+	double maxDeceleration;
+
+	/**The time of making the most recent lane change (milli-seconds)*/
+	double laneChangeTime;
+
+	/**The maximum time for which a driver can yield (seconds)*/
+	double lcMaxYieldingTime;
+
+	/**The maximum driving speed allowed in the lane*/
+	double maxLaneSpeed;
+
+	/**The acceleration of the vehicle*/
+	double acceleration;
+
+	/**Indicates the type of acceleration that was selected*/
+	std::string accSelect;
+
+	/**The lane change decision - used for debugging*/
+	std::string lcd;
+
+	/**Debugging information for car-following model*/
+	std::string cfDebugStr;
+
+	/**Debugging information for lane-changing model*/
+	std::stringstream lcDebugStr;
+
+	/**The debugging information*/
+	std::string debugInfo;
+
+	/**The time when the driver started yielding*/
+	timeslice yieldTime;
+
+	/**The colour on the traffic signal*/
+	TrafficColor trafficColor;
+
+	/**The perceived traffic signal colour*/
+	TrafficColor perceivedTrafficColor;
+
+	/**Indicates which lane the driver is changing to*/
+	LaneChangeTo turningDirection;
+
+	/**The nearest vehicle ahead of us that is in the next link.*/
+	NearestVehicle nvFwdNextLink;
+
+	/**The nearest vehicle ahead of us*/
+	NearestVehicle nvFwd;
+
+	/**The nearest vehicle behind us*/
+	NearestVehicle nvBack;
+
+	/**The nearest vehicle ahead of us, but in the left lane*/
+	NearestVehicle nvLeftFwd;
+
+	/**The nearest vehicle behind us, but in the left lane*/
+	NearestVehicle nvLeftBack;
+
+	/**The nearest vehicle ahead of us, nut in the right lane*/
+	NearestVehicle nvRightFwd;
+
+	/**The nearest vehicle behind us, but in the right lane*/
+	NearestVehicle nvRightBack;
+
+	/**The nearest vehicle ahead of us, but on the lane left of our left lane*/
+	NearestVehicle nvLeftFwd2;
+
+	/**The nearest vehicle behind us, but on the lane left of our left lane*/
+	NearestVehicle nvLeftBack2;
+
+	/**The nearest vehicle ahead of us, but on the lane right of our right lane*/
+	NearestVehicle nvRightFwd2;
+
+	/**The nearest vehicle behind us, but on the lane right of our right lane*/
+	NearestVehicle nvRightBack2;
+
+	/**Lead vehicle on the freeway/expressway. This is used when the subject vehicle is on the ramp*/
+	NearestVehicle nvLeadFreeway;
+
+	/**Lag vehicle on freeway/expressway. This is used when the subject vehicle is on the ramp*/
+	NearestVehicle nvLagFreeway;
+
+	/**The current state in the stopping point state machine*/
+	StopPointState stopPointState;
+
+	/**The current stopping point*/
+	StopPoint currentStopPoint;
+
+	/**The status manager. Used in the lane changing model to keep track of the status*/
+	SMStatusManager statusMgr;
+
+	/**The driver object to which these parameters belong*/
+	Driver* driver;
+
+	/**The lane the driver is currently on*/
+	const Lane* currLane;
+
+	/**The lane to the left of the driver's current lane*/
+	const Lane* leftLane;
+
+	/**The lane to the right of the driver's current lane*/
+	const Lane* rightLane;
+
+	/**The lane to the left of the driver's left lane*/
+	const Lane* leftLane2;
+
+	/**The lane to the right of the driver's right lane*/
+	const Lane* rightLane2;
+
+	/**
+	 * Stores the stopping points for the driver
+	 * Key = segment id, value= vector of stopping points (one segment may have more than one stop point)
+	 */
+	std::map<unsigned int, std::vector<StopPoint> > stopPointPool;
+
+	/**The map of conflicting vehicles in the intersection. Key=Turning conflict, Value=Sorted list of vehicles(nearest vehicle first)*/
+	std::map<const TurningConflict*, std::list<NearestVehicle> > conflictVehicles;
+
+	/**Parameters for calculating the target gap*/
+	std::vector<double> targetGapParams;
+
+	/**The parameters for the nosing model*/
+	std::vector<double> nosingParams;
+
+	/**The critical gap parameters for lane changing*/
+	std::vector< std::vector<double> > LC_GAP_MODELS;
+
+	/**The set of lanes which we can change to*/
+	std::set<const Lane*> targetLanes;
+
+	DriverUpdateParams();
+	virtual ~DriverUpdateParams();
+
+	/**
+	 * Calculates the minimum gap
+     *
+	 * @param type type of model to be used to calculate the gap
+     *
+	 * @return the minimum gap (metre)
      */
-    void setStatus(unsigned int s);
-    /*
-     *  /brief set status to "performing lane change"
+	double lcMinGap(int type);
+
+	/**
+	 * Builds a string with debugging information to be written to the output file
      */
-    void setStatusDoingLC(LANE_CHANGE_SIDE& lcs);
+	void buildDebugInfo();
 
-    /**
-     *  /brief get status of the vh
-     *  /return state
+	/**
+	 * Sets the given status
+     *
+	 * @param name the status name
+     * @param v the status to be set
+     * @param whoSet the method setting the status
      */
-    unsigned int getStatus()
-    {
-      return status;
-    }
+	void setStatus(string name, StatusValue v, string whoSet);
 
-    unsigned int getStatus(unsigned int mask)
-    {
-      return (status & mask);
-    }
-
-    /**
-     *  /brief remove the status from the vh
-     *  /return state
+	/**
+	 * Retrieves the required status
+	 *
+     * @param name the name of the required status
+     *
+	 * @return the status
      */
-    void unsetStatus(unsigned int s);
+	StatusValue getStatus(string name);
 
-    unsigned int status;	// current status indicator
-    unsigned int flags;	// additional indicator for internal use
-
-    void toggleFlag(unsigned int flag)
-    {
-      flags ^= flag;
-    }
-
-    unsigned int flag(unsigned int mask = 0xFFFFFFFF)
-    {
-      return (flags & mask);
-    }
-
-    void setFlag(unsigned int s)
-    {
-      flags |= s;
-    }
-
-    void unsetFlag(unsigned int s)
-    {
-      flags &= ~s;
-    }
-
-    /**
-     *  /brief add target lanes
+	/**
+	 * Adds the given stopping point to the vector of stopping points.
+	 *
+     * @param stopPt the stop point
      */
-    void addTargetLanes(set<const Lane*> tl);
+	void insertStopPoint(StopPoint &stopPt);
 
-    /**
-     *  /brief calculate min gap
-     *  /param type driver type
-     *  /return gap distance
+	/**
+	 * Clears the given status of the vehicle
+	 *
+     * @param status status to be cleared
      */
-    double lcMinGap(int type);
+	void unsetStatus(unsigned int status);
 
-    void buildDebugInfo();
-
-    void setStatus(string name, StatusValue v, string whoSet);
-
-    StatusValue getStatus(string name);
-
-    /**
-     *  @brief insert stop point
-     *  @param sp stop point
+	/**
+	 * Sets the status to "Performing lane change"
+	 *
+     * @param laneChangingTo the lane changing direction
      */
-    void insertStopPoint(StopPoint& sp);
+	void setStatusDoingLC(LaneChangeTo &laneChangingTo);
 
-    double speedOnSign;
+	/**
+	 * Resets the parameters
+	 *
+     * @param now the current time
+     * @param owner the driver to which the parameters belong
+     */
+	virtual void reset(timeslice now, const Driver &owner);
 
-    std::vector<double> targetGapParams;
+	/**
+	 * Adds the driver to the map of conflicting vehicles.
+	 *
+     * @param conflict the conflict towards which the driver is heading
+     * @param distance the driver's distance to the conflict
+     * @param driver the conflicting driver
+     */
+	void insertConflictTurningDriver(const TurningConflict *conflict, double distance, const Driver *driver);
 
-    /// lanes,which are ok to change to
-    set<const Lane*> targetLanes;
+	double getNextStepSize()
+	{
+		return nextStepSize;
+	}
 
-    enum STOP_POINT_STATE
-    {
-      APPROACHING_STOP_POINT = 1,
-      CLOSE_STOP_POINT = 2,
-      JUST_ARRIVE_STOP_POINT = 3,
-      WAITING_AT_STOP_POINT = 4,
-      LEAVING_STOP_POINT = 5,
-      NO_FOUND_STOP_POINT = 6
-    } ;
+	unsigned int getStatus()
+	{
+		return status;
+	}
 
-    const Lane* currLane;
-    size_t currLaneIndex;
-    size_t nextLaneIndex;
-    const Lane* leftLane;
-    const Lane* rightLane;
-    const Lane* leftLane2;
-    const Lane* rightLane2;
+	unsigned int getStatus(unsigned int mask)
+	{
+		return (status & mask);
+	}
 
-    double currSpeed;
-    double desiredSpeed;
+	void setStatus(unsigned int mask)
+	{
+		status |= mask;
+	}
 
-    double currLaneOffset;
-    double currLaneLength;
+	void toggleFlag(unsigned int flag)
+	{
+		flags ^= flag;
+	}
 
-    double elapsedSeconds;
-    double trafficSignalStopDistance;
-    sim_mob::TrafficColor trafficColor;
-    sim_mob::TrafficColor perceivedTrafficColor;
+	unsigned int flag(unsigned int mask = 0xFFFFFFFF)
+	{
+		return (flags & mask);
+	}
 
-    double perceivedFwdVelocity;
-    double perceivedLatVelocity;
-    double perceivedFwdVelocityOfFwdCar;
-    double perceivedLatVelocityOfFwdCar;
-    double perceivedAccelerationOfFwdCar;
-    double perceivedDistToFwdCar;
-    double perceivedDistToTrafficSignal;
+	void setFlag(unsigned int s)
+	{
+		flags |= s;
+	}
 
-    LANE_CHANGE_SIDE turningDirection;
+	void unsetFlag(unsigned int s)
+	{
+		flags &= ~s;
+	}
 
-    /// record last lane change decision
-    /// both lc model and driverfacet can set this value
-    LANE_CHANGE_SIDE lastDecision;
-
-    //Nearest vehicles in the current lane, and left/right (including fwd/back for each).
-    //Nearest vehicles' distances are initialized to threshold values.
-
-    // used to check vh opposite intersection
-    NearestVehicle nvFwdNextLink;
-    NearestVehicle nvFwd;
-    NearestVehicle nvBack;
-    NearestVehicle nvLeftFwd;
-    NearestVehicle nvLeftBack;
-    NearestVehicle nvRightFwd;
-    NearestVehicle nvRightBack;
-    NearestVehicle nvLeftFwd2; //the second adjacent lane
-    NearestVehicle nvLeftBack2;
-    NearestVehicle nvRightFwd2;
-    NearestVehicle nvRightBack2;
-
-    std::map<TurningConflict*, std::list<NearestVehicle> > conflictVehicles;
-    void insertConflictTurningDriver(TurningConflict* tc, double distance, const Driver* driver);
-
-    // used to check vh when do acceleration merging
-    NearestVehicle nvLeadFreeway; // lead vh on freeway segment,used when subject vh on ramp
-    NearestVehicle nvLagFreeway; // lag vh on freeway,used when subject vh on ramp
-
-    NearestPedestrian npedFwd;
-
-    double laneChangingVelocity;
-
-    bool isCrossingAhead;
-
-    //Indicates whether a vehicle is approaching an unsignalised intersection
-    bool isApproachingIntersection;
-    
-    //Indicates how long a driver has been waiting to go ahead, after a while, the driver is more
-    //likely to accept a smaller gap
-    double impatienceTimer;
-    
-    //Indicates when the impatience timer was started
-    double impatienceTimerStart;
-    
-    //Indicates if the driver has already stopped for the stop sign
-    bool hasStoppedForStopSign;
-
-	//The access time sent by the intersection manager
-    double accessTime;
-
-    //Indicates if the access time has been received from the intersection manager
-    bool isResponseReceived;
-
-    //Indicates if the car following accelerations are to be over-ridden
-    bool useIntAcc;
-    
-    //The access time sent by the intersection manager
-    double accessTime;
-    
-    //Indicates if the access time has been received from the intersection manager
-    bool isResponseReceived;
-    
-    //Indicates if the car following accelerations are to be over-ridden
-    bool useIntAcc;
-    
-    int crossingFwdDistance;
-
-    //Related to our car following model.
-    double space;
-    double a_lead;
-    double v_lead;
-    double space_star;
-    double distanceToNormalStop;
-
-    //Related to our lane changing model.
-    double dis2stop; //meter
-
-    //Handles state information
-    bool justChangedToNewSegment;
-    Point TEMP_lastKnownPolypoint;
-    bool justMovedIntoIntersection;
-    double overflowIntoIntersection;
-
-    Driver* driver;
-
-    /// if current lane connect to target segment
-    /// assign in driverfact
-    bool isTargetLane;
-
-    // perception distance to stop point
-    double stopPointPerDis;
-
-    STOP_POINT_STATE stopPointState;
-    double disToSP;
-    StopPoint currentStopPoint;
-    double startStopTime;
-
-    double utilityLeft;
-    double utilityRight;
-    double utilityCurrent;
-    double rnd;
-    std::string lcd; // lc decision
-
-    /// headway value from carFollowingRate()
-    double headway;
-    double emergHeadway;
-
-    //Selected acc (for debugging)
-    double acc;
-
-    double density;
-
-    int initSegId;
-    int initDis;
-    int initSpeed;
-
-    //debug car jump
-    double disAlongPolyline; //cm
-    double movementVectx;
-    double movementVecty;
-    Point lastOrigPos_;
-    double dorigPosx;
-    double dorigPosy;
-    DynamicVector latMv_;
-
-    std::string cfDebugStr;
-    std::stringstream  lcDebugStr;
-
-    std::string accSelect;
-    std::string debugInfo;
-
-    int parentId;
-
-    double FFAccParamsBeta;
-
-    double newLatVelM; //meter/sec
-
-    SMStatusManager statusMgr;
-
-    // key=segment aimsun id, value= stoppoint vector, one segment may has more than one stoppoint
-    std::map<std::string, std::vector<StopPoint> > stopPointPool;
-
-    /// decision timer (second)
-    /// count down in DriverMovement
-    double cftimer;
-
-    double nextStepSize;
-
-    double maxAcceleration;
-
-    double normalDeceleration;
-
-    double maxDeceleration;
-
-    timeslice yieldTime;	// time to start yielding
-
-    double lcTimeTag;		// time changed lane , ms
-
-    vector<double> nosingParams;
-
-    double lcMaxNosingTime;
-
-    double maxLaneSpeed;
-
-    /// fwd acc from car follow model m/s^2
-    double newFwdAcc;
-
-    // critical gap param
-    std::vector< std::vector<double> > LC_GAP_MODELS;
-
-  public:
 #ifndef SIMMOB_DISABLE_MPI
-    static void pack(PackageUtils& package, const DriverUpdateParams* params);
-
-    static void unpack(UnPackageUtils& unpackage, DriverUpdateParams* params);
+	static void pack(PackageUtils& package, const DriverUpdateParams* params);
+	static void unpack(UnPackageUtils& unpackage, DriverUpdateParams* params);
 #endif
-  } ;
-
-
+};
 }

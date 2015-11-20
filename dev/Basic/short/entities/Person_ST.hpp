@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 #include "entities/Person.hpp"
+#include "entities/roles/Role.hpp"
 #include "entities/amodController/AMODController.hpp"
 #include "event/args/EventArgs.hpp"
 #include "event/EventListener.hpp"
@@ -103,6 +104,9 @@ public:
 
 	/**The speed at which the person starts*/
     int initSpeed;
+	
+	/**FMOD client id*/
+	int client_id;
 
 	/**Id of the autonomous vehicle. If it is a normal vehicle, this id is -1*/
 	std::string amodId;
@@ -196,7 +200,7 @@ public:
 	 *
 	 * @param blacklisted the black-listed road segments
 	 */
-	virtual void rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment *> &blacklisted);
+	virtual void rerouteWithBlacklist(const std::vector<const Link *> &blacklisted);
 
 	void handleAMODArrival();
 	

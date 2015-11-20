@@ -10,8 +10,9 @@
 #include "conf/ConfigParams.hpp"
 #include "config/ST_Config.hpp"
 #include "entities/AuraManager.hpp"
-#include "entities/Person.hpp"
+#include "Person_ST.hpp"
 #include "entities/roles/Role.hpp"
+#include "entities/Sensor.hpp"
 #include "entities/signal/Signal.hpp"
 #include "geospatial/network/Node.hpp"
 #include "geospatial/network/Lane.hpp"
@@ -85,7 +86,7 @@ LoopDetector::LoopDetector(Lane const *lane, meter_t innerLength, meter_t outerL
 	dy *= ratio;
 	center_ = Point(p2.getX() - dx, p2.getY() - dy);
 
-	timeStepInMilliSeconds_ = ConfigManager::GetInstance().FullConfig().personTimeStepInMilliSeconds();
+	timeStepInMilliSeconds_ = ST_Config::getInstance().personTimeStepInMilliSeconds();
 }
 
 namespace
@@ -375,11 +376,12 @@ bool LoopDetectorEntity::Impl::check(timeslice now)
 	for (size_t i = 0; i < agents.size(); ++i)
 	{
 		Agent const * agent = agents[i];
-		if (Person const * person = dynamic_cast<Person const *> (agent))
+		if (Person_ST const * person = dynamic_cast<Person_ST const *> (agent))
 		{
 			//Extract the current resource used by this Agent.
 			//TODO: Currently the only resource type is "Vehicle"
 			const Vehicle * vehicle = dynamic_cast<Vehicle*> (person->getRole()->getResource());
+			
 			if (vehicle)
 			{
 				vehicles.insert(vehicle);

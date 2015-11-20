@@ -155,9 +155,8 @@ protected:
 	Point currPos;
 
 public:
-	//Constructor and public member functions
-	Driver(Person_ST *parent, MutexStrategy mtxStrat, DriverBehavior* behavior = nullptr, DriverMovement* movement = nullptr, RoleRole<Person_ST>::Type roleType_ = Role<Person_ST>::RL_DRIVER,
-			std::string roleName_ = "driver");
+	Driver(Person_ST *parent, MutexStrategy mtxStrat, DriverBehavior* behavior = nullptr, DriverMovement* movement = nullptr,
+		Role<Person_ST>::Type roleType_ = Role<Person_ST>::RL_DRIVER, std::string roleName_ = "driver");
 	virtual ~Driver();
 
 	const Driver* getYieldingToDriver() const;
@@ -282,7 +281,7 @@ public:
 
 	const double getVehicleLength() const
 	{
-		return vehicle->getLengthCm() / 100.0;
+		return vehicle->getLengthInM();
 	}
 
 	bool IsVehicleInLoadingQueue() const

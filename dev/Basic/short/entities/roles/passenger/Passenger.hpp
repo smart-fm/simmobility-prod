@@ -29,6 +29,7 @@ class UnPackageUtils;
 
 struct PassengerUpdateParams : public UpdateParams
 {
+
 	PassengerUpdateParams() : UpdateParams()
 	{
 	}
@@ -56,13 +57,12 @@ class Passenger : public Role<Person_ST>, public UpdateWrapper<PassengerUpdatePa
 {
 public:
 	Passenger(Person_ST *parent, MutexStrategy mtxStrat, PassengerBehavior* behavior = nullptr, PassengerMovement* movement = nullptr,
-			 Role::Type roleType_ = RL_PASSENGER, std::string roleName_ = "passenger");
-
+			Role::Type roleType_ = RL_PASSENGER, std::string roleName_ = "passenger");
 	virtual ~Passenger()
 	{
 	}
 
-	virtual Role* clone(sim_mob::Person_ST *parent) const;
+	virtual Role<Person_ST>* clone(Person_ST *parent) const;
 	void make_frame_tick_params(timeslice now);
 	virtual std::vector<BufferedBase*> getSubscriptionParams();
 
@@ -98,9 +98,9 @@ public:
 #endif
 
 public:
-	sim_mob::Shared<Driver*> busdriver; ///passenger should have info about the driver
-	sim_mob::Shared<bool> BoardedBus;
-	sim_mob::Shared<bool> AlightedBus;
+	Shared<Driver*> busdriver; ///passenger should have info about the driver
+	Shared<bool> BoardedBus;
+	Shared<bool> AlightedBus;
 	uint32_t waitingTimeAtStop;
 private:
 	PassengerUpdateParams params;
@@ -108,7 +108,4 @@ private:
 	friend class PassengerBehavior;
 	friend class PassengerMovement;
 };
-
-
-
 }

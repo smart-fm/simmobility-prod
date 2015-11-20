@@ -6,7 +6,8 @@
 
 #include "ConfigParams.hpp"
 
-namespace sim_mob {
+namespace sim_mob
+{
 
 ///Forward declarations
 class RawConfigParams;
@@ -23,120 +24,119 @@ class PathSetConf;
  *
  * \author Seth N. Hetu
  */
-class ConfigManager {
+class ConfigManager
+{
 public:
-    /**
-     * Constructor
-     */
+	/**
+	 * Constructor
+	 */
 	ConfigManager();
 
-    /**
-     * Destructor
-     */
+	/**
+	 * Destructor
+	 */
 	~ConfigManager();
 
-    /**
-     * Retrieves a const reference to the sigleton instance of ConfigManager
-     *
-     * @return const reference to the singleton instance of ConfigManager
-     */
+	/**
+	 * Retrieves a const reference to the sigleton instance of ConfigManager
+	 *
+	 * @return const reference to the singleton instance of ConfigManager
+	 */
 	static const ConfigManager& GetInstance();
 
-    /**
-     * Retrieves a reference to the singleton instance of ConfigManager
-     *
-     * @return reference to the singleton instance of ConfigManager
-     */
+	/**
+	 * Retrieves a reference to the singleton instance of ConfigManager
+	 *
+	 * @return reference to the singleton instance of ConfigManager
+	 */
 	static ConfigManager& GetInstanceRW();
 
-    /**
-     * Deletes the singleton instance ConfigManager
-     */
+	/**
+	 * Deletes the singleton instance ConfigManager
+	 */
 	static void DeleteConfigMgrInstance();
 
-    /**
-     * Retrieves a reference to ConfigParams object
-     *
-     * @return reference to ConfigParams object
-     */
+	/**
+	 * Retrieves a reference to ConfigParams object
+	 *
+	 * @return reference to ConfigParams object
+	 */
 	ConfigParams& FullConfig();
 
-    /**
-     * Retrieves a const reference to ConfigParams object
-     *
-     * @return const reference to ConfigParams object
-     */
+	/**
+	 * Retrieves a const reference to ConfigParams object
+	 *
+	 * @return const reference to ConfigParams object
+	 */
 	const ConfigParams& FullConfig() const;
 
-    /**
-     * Retrieves a const reference to pathset configuration structure
-     *
-     * @return const reference to pathset configuration
-     */
+	/**
+	 * Retrieves a const reference to pathset configuration structure
+	 *
+	 * @return const reference to pathset configuration
+	 */
 	const PathSetConf& PathSetConfig() const;
 
-    /**
-     * Retrieves a reference to pathset configuration structure
-     *
-     * @return reference to pathset configuration
-     */
-    PathSetConf& PathSetConfig();
+	/**
+	 * Retrieves a reference to pathset configuration structure
+	 *
+	 * @return reference to pathset configuration
+	 */
+	PathSetConf& PathSetConfig();
 
-    /**
-     * Retrieves a reference to RawConfigParams object
-     *
-     * @return reference to RawConfigParams object
-     */
-    RawConfigParams& XmlConfig();
+	/**
+	 * Retrieves a reference to RawConfigParams object
+	 *
+	 * @return reference to RawConfigParams object
+	 */
+	RawConfigParams& XmlConfig();
 
-    /**
-     * Retrieves a const reference to RawConfigParams object
-     *
-     * @return const reference to RawConfigParams object
-     */
-    const RawConfigParams& XmlConfig() const;
+	/**
+	 * Retrieves a const reference to RawConfigParams object
+	 *
+	 * @return const reference to RawConfigParams object
+	 */
+	const RawConfigParams& XmlConfig() const;
 
-    /**
-     * Retrieves a reference to CMakeConfigParams object.
-     *
-     * @return reference to CMakeConfigParams object
-     */
+	/**
+	 * Retrieves a reference to CMakeConfigParams object.
+	 *
+	 * @return reference to CMakeConfigParams object
+	 */
 	CMakeConfigParams& CMakeConfig();
 
-    /**
-     * Retrieves a const reference to CMakeConfigParams object.
-     *
-     * @return const reference to CMakeConfigParams object
-     */
-    const CMakeConfigParams& CMakeConfig() const;
+	/**
+	 * Retrieves a const reference to CMakeConfigParams object.
+	 *
+	 * @return const reference to CMakeConfigParams object
+	 */
+	const CMakeConfigParams& CMakeConfig() const;
 
-    /**
-     * Reset this instance of the static ConfigParams instance.
-     * WARNING: This should *only* be used by the interactive loop of Sim Mobility.
-     */
+	/**
+	 * Reset this instance of the static ConfigParams instance.
+	 * WARNING: This should *only* be used by the interactive loop of Sim Mobility.
+	 */
 	void reset();
 
 private:
-    /**
-     * Helper, single point of creation for ConfigParams
-     *
-     * @return reference to ConfigParams object
-     */
-    ConfigParams& get_config() const;
+	/**
+	 * Helper, single point of creation for ConfigParams
+	 *
+	 * @return reference to ConfigParams object
+	 */
+	ConfigParams& get_config() const;
 
-    /**
-     * Helper, single point of creation for ConfigParams and can read write;
-     *
-     * @return reference to ConfigParams object
-     */
-    ConfigParams& get_config_rw();
+	/**
+	 * Helper, single point of creation for ConfigParams and can read write;
+	 *
+	 * @return reference to ConfigParams object
+	 */
+	ConfigParams& get_config_rw();
 
-    /// Singleton instance
+	/**Singleton instance*/
 	static ConfigManager* instance;
 
-    /// ConfigParams object, We create on retrieval, mostly for convenience. Hence, mutable.
-    mutable ConfigParams* config;
+	/**ConfigParams object, We create on retrieval, mostly for convenience. Hence, mutable.*/
+	mutable ConfigParams* config;
 };
-
-
 }

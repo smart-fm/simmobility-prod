@@ -30,9 +30,8 @@ class UnPackageUtils;
 
 //Helper struct
 
-struct WaitBusActivityRoleUpdateParams : public sim_mob::UpdateParams
+struct WaitBusActivityRoleUpdateParams : public UpdateParams
 {
-
 	WaitBusActivityRoleUpdateParams() : UpdateParams()
 	{
 	}
@@ -47,7 +46,7 @@ struct WaitBusActivityRoleUpdateParams : public sim_mob::UpdateParams
 
 	virtual void reset(timeslice now)
 	{
-		sim_mob::UpdateParams::reset(now);
+		UpdateParams::reset(now);
 		skipThisFrame = false;
 	}
 
@@ -60,14 +59,15 @@ struct WaitBusActivityRoleUpdateParams : public sim_mob::UpdateParams
 #endif
 };
 
-class WaitBusActivityRole : public sim_mob::Role<Person_ST>, public UpdateWrapper<WaitBusActivityRoleUpdateParams>
+class WaitBusActivityRole : public Role<Person_ST>, public UpdateWrapper<WaitBusActivityRoleUpdateParams>
 {
 public:
 	WaitBusActivityRole(Person_ST *parent, WaitBusActivityRoleBehavior *behavior = nullptr, WaitBusActivityRoleMovement *movement = nullptr,
-					 Role::Type roleType_ = RL_WAITBUSACTITITY, std::string roleName = "waitBusActivityRole");
+						Role<Person_ST>::Type roleType_ = RL_WAITBUSACTITITY, std::string roleName = "waitBusActivityRole");
 	virtual ~WaitBusActivityRole();
+	
 	virtual void make_frame_tick_params(timeslice now);
-	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
+	virtual std::vector<BufferedBase*> getSubscriptionParams();
 
 	uint32_t getTimeOfReachingBusStop() const
 	{
@@ -91,7 +91,6 @@ private:
 
 struct less_than_TimeOfReachingBusStop
 {
-
 	inline bool operator()(const WaitBusActivityRole* wbaRole1, const WaitBusActivityRole* wbaRole2)
 	{
 		if ((!wbaRole1) || (!wbaRole2))

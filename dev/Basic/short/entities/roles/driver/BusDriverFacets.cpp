@@ -127,7 +127,7 @@ void BusDriverMovement::frame_init()
 
 		//Use the vehicle to build a bus, then delete the old vehicle.
 
-		Vehicle *bus = new Bus(nullRoute, newVehicle, busTrip->getBusline()->getBusLineID());
+		Vehicle *bus = new Bus(nullRoute, newVehicle, busTrip->getBusLine()->getBusLineID());
 		parentBusDriver->setVehicle(bus);
 		delete newVehicle;
 
@@ -156,13 +156,13 @@ void BusDriverMovement::frame_tick()
 	DriverMovement::frame_tick();
 }
 
-void BusDriverMovement::frame_tick_output()
+std::string BusDriverMovement::frame_tick_output()
 {
     DriverUpdateParams &params = parentBusDriver->getParams();
 	
     if (this->getParentDriver()->IsVehicleInLoadingQueue() || fwdDriverMovement.isDoneWithEntireRoute())
     {
-        return;
+        return std::string();
     }
 
     if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled())
@@ -173,7 +173,7 @@ void BusDriverMovement::frame_tick_output()
 		std::stringstream addLine;
 		if (ConfigManager::GetInstance().FullConfig().using_MPI)
 		{
-			addLine << "\",\"fake\":\"" << (this->getParent()->isFake ? "true" : "false");
+			addLine << "\",\"fake\":\"" << (parentBusDriver->getParent()->isFake ? "true" : "false");
 		}
 
 		Bus *bus = dynamic_cast<Bus *> (parentBusDriver->getVehicle());

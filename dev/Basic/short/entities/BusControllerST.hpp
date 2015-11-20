@@ -6,23 +6,23 @@
 
 #include <set>
 #include "entities/Agent.hpp"
-#include "roles/DriverRequestParams.hpp"
+#include "entities/BusController.hpp"
+#include "entities/roles/DriverRequestParams.hpp"
 
 namespace sim_mob
 {
 
-class BusControllerST: public sim_mob::BusController
+class BusControllerST: public BusController
 {
 private:
-	explicit BusControllerST(int id = -1, const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered);
-
+	explicit BusControllerST(int id = -1, const MutexStrategy& mtxStrat = MtxStrat_Buffered);
 	virtual ~BusControllerST();
 
 public:
 	/**
 	 * Initialize a single BusController with the given start time and MutexStrategy.
 	 */
-	static void RegisterBusController(int id = -1, const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered);
+	static void RegisterBusController(int id = -1, const MutexStrategy& mtxStrat = MtxStrat_Buffered);
 
 	/**
 	 * processes requests from all bus drivers
@@ -32,13 +32,13 @@ public:
 	/**
 	 * processes bus driver request
 	 */
-	virtual void handleRequest(sim_mob::DriverRequestParams rParams);
+	virtual void handleRequest(DriverRequestParams rParams);
 
 private:
 	/**
 	 * assign bus trip information to person so as to travel on the road
 	 */
-	virtual void assignBusTripChainWithPerson(std::set<sim_mob::Entity*>& activeAgents);
+	virtual void assignBusTripChainWithPerson(std::set<Entity*>& activeAgents);
 };
 
 }

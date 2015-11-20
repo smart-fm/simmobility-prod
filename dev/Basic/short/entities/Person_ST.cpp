@@ -5,9 +5,13 @@
 #include "Person_ST.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
+#include "config/ST_Config.hpp"
 #include "entities/amodController/AMODController.hpp"
 #include "entities/roles/RoleFactory.hpp"
+#include "entities/roles/activityRole/ActivityPerformer.hpp"
 #include "event/args/ReRouteEventArgs.hpp"
+#include "geospatial/network/RoadNetwork.hpp"
+#include "message/MessageBus.hpp"
 #include "logging/Log.hpp"
 
 using namespace std;
@@ -41,7 +45,7 @@ Trip* MakePseudoTrip(const Person &ag, const std::string &mode)
 	res->travelMode = mode;
 
 	//Make and assign a single sub-trip
-	sim_mob::SubTrip subTrip;
+	SubTrip subTrip;
 	subTrip.setPersonID(-1);
 	subTrip.itemType = TripChainItem::getItemType("Trip");
 	subTrip.sequenceNumber = 1;
@@ -63,16 +67,16 @@ Trip* MakePseudoTrip(const Person &ag, const std::string &mode)
 }
 
 Person_ST::Person_ST(const std::string &src, const MutexStrategy &mtxStrat, int id, std::string databaseID)
-: Person(src, mtxStrat, id, databaseID), laneID(-1), boardingTimeSecs(0), alightingTimeSecs(0), 
+: Person(src, mtxStrat, id, databaseID), startLaneIndex(-1), boardingTimeSecs(0), alightingTimeSecs(0), 
 prevRole(NULL), currRole(NULL), nextRole(NULL), commEventRegistered(false), amodId("-1"),
-amodPickUpSegmentStr("-1"), amodPickUpOffset(0.0), initSegId(0), initDis(0), initSpeed(0), amodDropOffset(0)
+amodPickUpSegmentStr("-1"), amodPickUpOffset(0.0), startSegmentId(-1), initDis(0), initSpeed(0), amodDropOffset(0)
 {
 }
 
 Person_ST::Person_ST(const std::string &src, const MutexStrategy &mtxStrat, const std::vector<TripChainItem *> &tc)
-: Person(src, mtxStrat, tc), laneID(-1), boardingTimeSecs(0), alightingTimeSecs(0), 
+: Person(src, mtxStrat, tc), startLaneIndex(-1), boardingTimeSecs(0), alightingTimeSecs(0), 
 prevRole(NULL), currRole(NULL), nextRole(NULL), commEventRegistered(false), amodId("-1"),
-amodPickUpSegmentStr("-1"), amodPickUpOffset(0.0), initSegId(0), initDis(0), initSpeed(0), amodDropOffset(0)
+amodPickUpSegmentStr("-1"), amodPickUpOffset(0.0), startSegmentId(-1), initDis(0), initSpeed(0), amodDropOffset(0)
 {
 	if (!tripChain.empty())
 	{
@@ -85,7 +89,7 @@ Person_ST::~Person_ST()
 	//Un-register event listeners.
 	if (commEventRegistered)
 	{
-		messaging::MessageBus::UnSubscribeEvent(sim_mob::event::EVT_CORE_COMMSIM_ENABLED_FOR_AGENT, this, this);
+		messaging::MessageBus::UnSubscribeEvent(event::EVT_CORE_COMMSIM_ENABLED_FOR_AGENT, this, this);
 	}
 	
 	safe_delete_item(prevRole);
@@ -126,7 +130,7 @@ void Person_ST::setPersonCharacteristics()
 
 	for (std::map<int, PersonCharacteristics>::const_iterator iter = personCharacteristics.begin(); iter != personCharacteristics.end(); ++iter)
 	{
-		if (age >= iter->second.lowerAge && age < iter->second.upperAge)
+		if (this->getAge() >= iter->second.lowerAge && this->getAge() < iter->second.upperAge)
 		{
 			boost::uniform_int<> BoardingTime(iter->second.lowerSecs, iter->second.upperSecs);
 			boost::variate_generator < boost::mt19937, boost::uniform_int<int> > varBoardingTime(gen, BoardingTime);
@@ -141,7 +145,7 @@ void Person_ST::setPersonCharacteristics()
 
 void Person_ST::setStartTime(unsigned int value)
 {
-	sim_mob::Entity::setStartTime(value);
+	Entity::setStartTime(value);
 	if (currRole)
 	{
 		currRole->setArrivalTime(value + ConfigManager::GetInstance().FullConfig().simStartTime().getValue());
@@ -175,7 +179,7 @@ void Person_ST::load(const map<string, string> &configProps)
 		try
 		{
 			int x = boost::lexical_cast<int>(lanepointer->second);
-			laneID = x;
+			startLaneIndex = x;
 		}
 		catch (boost::bad_lexical_cast const&)
 		{
@@ -189,7 +193,7 @@ void Person_ST::load(const map<string, string> &configProps)
 		try
 		{
 			int x = boost::lexical_cast<int>(itt->second);
-			initSegId = x;
+			startSegmentId = x;
 		}
 		catch (boost::bad_lexical_cast const&)
 		{
@@ -242,13 +246,15 @@ void Person_ST::load(const map<string, string> &configProps)
 		}
 
 		//Otherwise, make a trip chain for this Person.
-		const RoadNetwork* rn = RoadNetwork::getInstance();
-		const Node* originNd = rn->getById(rn->getMapOfIdvsNodes(), originNodeId);
-		const Node* destinNd = rn->getById(rn->getMapOfIdvsNodes(), destNodeid);
+		const RoadNetwork *rn = RoadNetwork::getInstance();
+		const Node *originNd = rn->getById(rn->getMapOfIdvsNodes(), originNodeId);
+		const Node *destinNd = rn->getById(rn->getMapOfIdvsNodes(), destNodeid);
+		
 		if(!originNd || !destinNd)
 		{
 			throw std::runtime_error("invalid OD node ids passed for person");
 		}
+		
 		this->originNode = WayPoint(originNd);
 		this->destNode = WayPoint(destinNd);
 
@@ -283,9 +289,9 @@ void Person_ST::initTripChain()
 		setStartTime((*currTripChainItem)->startTime.getValue());
 	}
 	
-	if ((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP)
+	if ((*currTripChainItem)->itemType == TripChainItem::IT_TRIP)
 	{
-		currSubTrip = ((dynamic_cast<sim_mob::Trip*> (*currTripChainItem))->getSubTripsRW()).begin();
+		currSubTrip = ((dynamic_cast<Trip*> (*currTripChainItem))->getSubTripsRW()).begin();
 		
 		// if the first trip chain item is passenger, create waitBusActivityRole
 		if (currSubTrip->mode == "BusTravel")
@@ -329,7 +335,7 @@ Entity::UpdateStatus Person_ST::checkTripChain()
 	updatePersonRole();
 
 	//Update our origin/destination pair.
-	if ((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP)
+	if ((*currTripChainItem)->itemType == TripChainItem::IT_TRIP)
 	{ 
 		//put if to avoid & evade bus trips, can be removed when everything is ok
 		updateOD(*currTripChainItem, &(*currSubTrip));
@@ -381,9 +387,9 @@ bool Person_ST::findPersonNextRole()
 	safe_delete_item(nextRole);
 	const RoleFactory<Person_ST> *rf = RoleFactory<Person_ST>::getInstance();
 
-	const sim_mob::TripChainItem* tci = *(this->nextTripChainItem);
+	const TripChainItem* tci = *(this->nextTripChainItem);
 	
-	if (tci->itemType == sim_mob::TripChainItem::IT_TRIP)
+	if (tci->itemType == TripChainItem::IT_TRIP)
 	{
 		nextRole = rf->createRole(tci, &(*nextSubTrip), this);
 	}
@@ -497,14 +503,14 @@ bool Person_ST::frame_init(timeslice now)
 
 Entity::UpdateStatus Person_ST::frame_tick(timeslice now)
 {
-    ConfigParams& config = ConfigManager::GetInstance().FullConfig();
+    const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
 
 	currTick = now;
 	//TODO: Here is where it gets risky.
-	if (resetParamsRequired)
+	if (isResetParamsRequired())
 	{
 		currRole->make_frame_tick_params(now);
-		resetParamsRequired = false;
+		setResetParamsRequired(false);
 	}
 
 	Entity::UpdateStatus retVal(UpdateStatus::RS_CONTINUE);
@@ -531,17 +537,17 @@ Entity::UpdateStatus Person_ST::frame_tick(timeslice now)
 
 		if (currTripChainItem != tripChain.end())
 		{
-			sim_mob::TripChainItem* tcItem = *currTripChainItem;
+			TripChainItem* tcItem = *currTripChainItem;
 			if (tcItem) // if currTripChain not end and has value, call frame_init and switching roles
 			{
-				if (tcItem->itemType == sim_mob::TripChainItem::IT_ACTIVITY)
+				if (tcItem->itemType == TripChainItem::IT_ACTIVITY)
 				{
 					//IT_ACTIVITY as of now is just a matter of waiting for a period of time(between its start and end time)
 					//since start time of the activity is usually later than what is configured initially,
 					//we have to make adjustments so that the person waits for exact amount of time
-					sim_mob::ActivityPerformer<Person_ST>* ap = dynamic_cast<sim_mob::ActivityPerformer<Person_ST>* > (currRole);
-                    ap->setActivityStartTime(sim_mob::DailyTime(now.ms() + config.baseGranMS()));
-                    ap->setActivityEndTime(sim_mob::DailyTime(now.ms() + config.baseGranMS() + (tcItem->endTime.getValue() - tcItem->startTime.getValue())));
+					ActivityPerformer<Person_ST> *ap = dynamic_cast<ActivityPerformer<Person_ST>* > (currRole);
+                    ap->setActivityStartTime(DailyTime(now.ms() + config.baseGranMS()));
+                    ap->setActivityEndTime(DailyTime(now.ms() + config.baseGranMS() + (tcItem->endTime.getValue() - tcItem->startTime.getValue())));
 				}
 				if (!isInitialized())
 				{
@@ -563,7 +569,7 @@ void Person_ST::frame_output(timeslice now)
 		LogOut(currRole->Movement()->frame_tick_output());
 	}
 
-	resetParamsRequired = true;
+	setResetParamsRequired(true);
 }
 
 bool Person_ST::advanceCurrentTripChainItem()
@@ -582,7 +588,7 @@ bool Person_ST::advanceCurrentTripChainItem()
 	}
 
 	//first check if you just need to advance the subtrip
-	if ((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP)
+	if ((*currTripChainItem)->itemType == TripChainItem::IT_TRIP)
 	{
 		//don't advance to next tripchainItem immediately, check the subtrip first
 		bool res = advanceCurrentSubTrip();
@@ -595,7 +601,7 @@ bool Person_ST::advanceCurrentTripChainItem()
 	}
 
 	//Trip is about the change, collect the Metrics	
-	//if ((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP)
+	//if ((*currTripChainItem)->itemType == TripChainItem::IT_TRIP)
 	//{
 	//	aggregateSubTripMetrics();
 	//}
@@ -613,7 +619,7 @@ bool Person_ST::advanceCurrentTripChainItem()
 
 	//so far, advancing the tripchainitem has been successful
 	//Also set the currSubTrip to the beginning of trip , just in case
-	if ((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP)
+	if ((*currTripChainItem)->itemType == TripChainItem::IT_TRIP)
 	{
 		currSubTrip = resetCurrSubTrip();
 	}
@@ -634,7 +640,7 @@ void Person_ST::onEvent(event::EventId eventId, event::Context ctxId, event::Eve
 //			enableRegionSupport();
 //
 //			//This requires us to now listen for a new set of events.
-//			messaging::MessageBus::SubscribeEvent(sim_mob::event::EVT_CORE_COMMSIM_REROUTING_REQUEST,
+//			messaging::MessageBus::SubscribeEvent(event::EVT_CORE_COMMSIM_REROUTING_REQUEST,
 //												this, //Only when we are the Agent being requested to re-route..
 //												this //Return this event to us (the agent).
 //												);
@@ -643,11 +649,11 @@ void Person_ST::onEvent(event::EventId eventId, event::Context ctxId, event::Eve
 //		{
 //			//Were we requested to re-route?
 //			const event::ReRouteEventArgs &rrArgs = MSG_CAST(event::ReRouteEventArgs, args);
-//			const std::map<int, sim_mob::RoadRunnerRegion>& regions = ConfigManager::GetInstance().FullConfig().getNetwork().roadRunnerRegions;
-//			std::map<int, sim_mob::RoadRunnerRegion>::const_iterator it = regions.find(boost::lexical_cast<int>(rrArgs.getBlacklistRegion()));
+//			const std::map<int, RoadRunnerRegion>& regions = ConfigManager::GetInstance().FullConfig().getNetwork().roadRunnerRegions;
+//			std::map<int, RoadRunnerRegion>::const_iterator it = regions.find(boost::lexical_cast<int>(rrArgs.getBlacklistRegion()));
 //			if (it != regions.end())
 //			{
-//				std::vector<const sim_mob::RoadSegment*> blacklisted = StreetDirectory::instance().getSegmentsFromRegion(it->second);
+//				std::vector<const RoadSegment*> blacklisted = StreetDirectory::instance().getSegmentsFromRegion(it->second);
 //				rerouteWithBlacklist(blacklisted);
 //			}
 //		}
@@ -659,7 +665,7 @@ void Person_ST::onEvent(event::EventId eventId, event::Context ctxId, event::Eve
 	}
 }
 
-void Person_ST::rerouteWithBlacklist(const std::vector<const RoadSegment *> &blacklisted)
+void Person_ST::rerouteWithBlacklist(const std::vector<const Link *> &blacklisted)
 {
 	//This requires the Role's intervention.
 	if (currRole)

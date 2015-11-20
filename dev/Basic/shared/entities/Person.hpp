@@ -339,6 +339,11 @@ public:
 	{
 		databaseID = databaseId;
 	}
+	
+	unsigned int getAge()
+	{
+		return age;
+	}
 
 	bool isResetParamsRequired() const
 	{

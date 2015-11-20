@@ -13,6 +13,7 @@
 #include "algorithm"
 #include "entities/Agent.hpp"
 #include "entities/Person.hpp"
+#include "entities/Person_ST.hpp"
 
 namespace sim_mob {
 
@@ -88,7 +89,7 @@ const Agent* ParkingCoordinator::remove(const int clientid)
 		ParkingLot& lot = (*it).second;
 		for( std::vector<const Agent*>::iterator itAg = lot.vehicles.begin(); itAg!=lot.vehicles.end(); itAg++ ){
 			const Agent* agent = (*itAg);
-			const sim_mob::Person* person = dynamic_cast<const sim_mob::Person*>( agent );
+			const Person_ST* person = dynamic_cast<const Person_ST*>( agent );
 
 			if( (person!=nullptr) && (person->client_id == clientid) ){
 				lot.vehicles.erase(itAg);

@@ -7,6 +7,7 @@
 #include "Signal.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
+#include "config/ST_Config.hpp"
 #include "entities/models/Constants.hpp"
 #include "GenConfig.h"
 #include "geospatial/network/Lane.hpp"
@@ -62,7 +63,7 @@ bool Signal::isNonspatial()
 Signal_SCATS::Signal_SCATS(const Node *node, const MutexStrategy &mtxStrat)
 : Signal(node, mtxStrat, -1, SignalType::SIGNAL_TYPE_SCATS), currCycleTimer(0), currPhaseAtGreen(0), isNewCycle(false)
 {
-	updateInterval = ConfigManager::GetInstance().FullConfig().granSignalsTicks * ConfigManager::GetInstance().FullConfig().baseGranMS() / 1000;
+	updateInterval = ST_Config::getInstance().granSignalsTicks * ConfigManager::GetInstance().FullConfig().baseGranMS() / 1000;
 	splitPlan = new SplitPlan();
 }
 

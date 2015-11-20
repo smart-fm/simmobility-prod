@@ -1,12 +1,14 @@
 #include "ExpandShortTermConfigFile.hpp"
 #include "conf/NetworkPrinter.hpp"
+#include "entities/amodController/AMODController.hpp"
 #include "entities/BusController.hpp"
 #include "entities/BusControllerST.hpp"
-#include "geospatial/aimsun/Loader.hpp"
-#include "geospatial/streetdir/StreetDirectory.hpp"
-#include "entities/amodController/AMODController.hpp"
 #include "entities/fmodController/FMOD_Controller.hpp"
 #include "entities/Person_ST.hpp"
+#include "geospatial/streetdir/StreetDirectory.hpp"
+#include "partitions/PartitionManager.hpp"
+#include "entities/IntersectionManager.hpp"
+#include "util/Utils.hpp"
 
 namespace
 {
@@ -120,15 +122,11 @@ void ExpandShortTermConfigFile::processConfig()
         std::cout << "partition_solution_id in configuration:" << partId << std::endl;
     }
 
-    //TEMP: Test network output via boost.
-    //todo: enable/disble through cinfig
-    //BoostSaveXML(stConfig.getNetworkXmlOutputFile(), cfg.getNetworkRW());
-
     cfg.sealNetwork();
     std::cout << "Network Sealed" << std::endl;
 
     //Initialize the street directory.
-    StreetDirectory::instance().init(cfg.getNetwork(), true);
+    StreetDirectory::Instance().Init(*(RoadNetwork::getInstance()));
     std::cout << "Street Directory initialized  " << std::endl;
 
     std::map<std::string, std::string>::iterator itIntModel = stConfig.genericProps.find("intersection_driving_model");
@@ -136,9 +134,13 @@ void ExpandShortTermConfigFile::processConfig()
     {
         if (itIntModel->second == "slot-based")
         {
-            sim_mob::aimsun::Loader::CreateIntersectionManagers(cfg.getNetwork());
+			IntersectionManager::CreateIntersectionManagers(cfg.mutexStategy());
         }
     }
+	
+	//Maintain unique/non-colliding IDs
+	ConfigParams::AgentConstraints constraints;
+	constraints.startingAutoAgentID = cfg.simulation.startingAutoAgentID;
 
     loadAMOD_Controller();
     loadFMOD_Controller();
@@ -146,14 +148,11 @@ void ExpandShortTermConfigFile::processConfig()
     //Load Agents, Pedestrians, and Trip Chains as specified in loadAgentOrder
     loadAgentsInOrder(constraints);
 
-    //Load signals, which are currently agents
-    generateXMLSignals();
-
-    //register and initialize BusController
+    //Register and initialize BusController
 	if (cfg.busController.enabled)
 	{
-		sim_mob::BusControllerST::RegisterBusController(-1, cfg.mutexStategy());
-		sim_mob::BusController* busController = sim_mob::BusController::GetInstance();
+		BusControllerST::RegisterBusController(-1, cfg.mutexStategy());
+		BusController* busController = BusController::GetInstance();
 		busController->initializeBusController(active_agents);
 		active_agents.insert(busController);
 	}
@@ -162,7 +161,7 @@ void ExpandShortTermConfigFile::processConfig()
 void ExpandShortTermConfigFile::loadNetworkFromDatabase()
 {
 	//Load from the database or from XML
-	if (ST_Config::getInstance().getNetworkSource() == NetworkSource::NETSRC_DATABASE)
+	if (ST_Config::getInstance().networkSource == NetworkSource::NETSRC_DATABASE)
 	{
 		Print() << "Loading Road Network from the database.\n";
 
@@ -189,7 +188,7 @@ void ExpandShortTermConfigFile::loadAMOD_Controller()
 {
     if (stConfig.amod.enabled)
     {
-    	sim_mob::AMOD::AMODController::registerController(-1, cfg.mutexStategy());
+    	AMOD::AMODController::registerController(-1, cfg.mutexStategy());
     }
 }
 
@@ -197,13 +196,13 @@ void ExpandShortTermConfigFile::loadFMOD_Controller()
 {
 	if (stConfig.fmod.enabled)
 	{
-		sim_mob::FMOD::FMOD_Controller::registerController(-1, cfg.mutexStategy());
-		sim_mob::FMOD::FMOD_Controller::instance()->settings(stConfig.fmod.ipAddress, stConfig.fmod.port, stConfig.fmod.updateTimeMS, stConfig.fmod.mapfile,
+		FMOD::FMOD_Controller::registerController(-1, cfg.mutexStategy());
+		FMOD::FMOD_Controller::instance()->settings(stConfig.fmod.ipAddress, stConfig.fmod.port, stConfig.fmod.updateTimeMS, stConfig.fmod.mapfile,
 				stConfig.fmod.blockingTimeSec);
 		std::map<std::string, TripChainItem*>::iterator it;
 		for (it = stConfig.fmod.allItems.begin(); it != stConfig.fmod.allItems.end(); it++)
 		{
-			sim_mob::FMOD::FMOD_Controller::instance()->insertFmodItems(it->first, it->second);
+			FMOD::FMOD_Controller::instance()->insertFmodItems(it->first, it->second);
 		}
 	}
 }
@@ -308,72 +307,12 @@ void ExpandShortTermConfigFile::generateXMLAgents(const std::vector<EntityTempla
         props["#mode"] = it->mode;
 
         //Create the Person agent with that given ID (or an auto-generated one)
-        Person* agent = new Person_ST("XML_Def", cfg.mutexStategy(), agentId);
+        Person_ST *agent = new Person_ST("XML_Def", cfg.mutexStategy(), agentId);
         agent->setConfigProperties(props);
         agent->setStartTime(it->startTimeMs);
 
         //Add it or stash it
         addOrStashEntity(agent, active_agents, pending_agents);
-    }
-}
-
-void ExpandShortTermConfigFile::generateXMLSignals()
-{
-    if (stConfig.futureAgents["signal"].empty())
-    {
-    	return;
-    }
-    StreetDirectory& streetDirectory = StreetDirectory::instance();
-
-    //Loop through all agents of this type
-    for (std::vector<EntityTemplate>::const_iterator it = stConfig.futureAgents["signal"].begin(); it != stConfig.futureAgents["signal"].end(); ++it)
-    {
-	//Find the nearest Node for this Signal.
-	Node* road_node = cfg.getNetwork().locateNode(it->originPos, true);
-	if (!road_node)
-	{
-	    Warn() << "xpos=\"" << it->originPos.getX() << "\" and ypos=\"" << it->originPos.getY()
-		    << "\" are not suitable attributes for Signal because there is no node there; correct the config file."
-		    << std::endl;
-	    continue;
-	}
-
-	// See the comments in createSignals() in geospatial/aimsun/Loader.cpp.
-	// At some point in the future, this function loadXMLSignals() will be removed
-	// in its entirety, not just the following code fragment.
-	std::set<const Link*> links;
-	if (MultiNode const * multi_node = dynamic_cast<MultiNode const *> (road_node))
-	{
-	    std::set<RoadSegment*> const & roads = multi_node->getRoadSegments();
-	    std::set<RoadSegment*>::const_iterator iter;
-	    for (iter = roads.begin(); iter != roads.end(); ++iter)
-	    {
-		RoadSegment const * road = *iter;
-		links.insert(road->getLink());
-	    }
-	}
-
-	if (links.size() != 4)
-	{
-	    Warn() << "the multi-node at " << it->originPos << " does not have 4 links; "
-		    << "no signal will be created here." << std::endl;
-	    continue;
-	}
-
-	const Signal* signal = streetDirectory.signalAt(*road_node);
-	if (signal)
-	{
-	    Warn() << "signal at node(" << it->originPos << ") already exists; "
-		    << "skipping this config file entry" << std::endl;
-	}
-	else
-	{
-	    Warn() << "signal at node(" << it->originPos << ") was not found; No more action will be taken\n ";
-	    //          // The following call will create and register the signal with the
-	    //          // street-directory.
-	    //          std::cout << "register signal again!" << std::endl;
-	    //          Signal::signalAt(*road_node, ConfigParams::GetInstance().mutexStategy);
-	}
     }
 }
 
@@ -472,11 +411,11 @@ void ExpandShortTermConfigFile::PrintSettings()
     std::cout << "  Mutex strategy: " << (cfg.mutexStategy() == MtxStrat_Locked ? "Locked" : cfg.mutexStategy() == MtxStrat_Buffered ? "Buffered" : "Unknown") << "\n";
 
     //Output Database details
-    if (stConfig.getNetworkSource == NETSRC_XML)
+    if (stConfig.networkSource == NETSRC_XML)
     {
         std::cout << "Network details loaded from xml file: " << stConfig.networkXmlInputFile << "\n";
     }
-    if (stConfig.getNetworkSource == NETSRC_DATABASE)
+    if (stConfig.networkSource == NETSRC_DATABASE)
     {
         std::cout << "Network details loaded from database connection: " << cfg.getDatabaseConnectionString() << "\n";
     }

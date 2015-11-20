@@ -19,8 +19,9 @@ using namespace std;
 using namespace sim_mob;
 
 BusControllerST::BusControllerST(int id, const MutexStrategy& mtxStrat) :
-		BusController(id, mtxStrat), nextTimeTickToStage(0)
+		BusController(id, mtxStrat)
 {
+	nextTimeTickToStage = 0;
 }
 
 sim_mob::BusControllerST::~BusControllerST()
@@ -33,7 +34,8 @@ void sim_mob::BusControllerST::RegisterBusController(int id, const MutexStrategy
 	bool busControllerRegistered = BusController::RegisterBusController(stBusController);
 	if(!busControllerRegistered)
 	{
-		safe_delete_item(stBusController);
+		delete stBusController;
+		stBusController = nullptr;
 		throw std::runtime_error("BusController already registered!");
 	}
 }

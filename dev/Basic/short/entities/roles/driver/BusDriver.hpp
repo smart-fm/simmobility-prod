@@ -30,7 +30,7 @@ private:
 
 public:
 	BusDriver(Person_ST *parent, MutexStrategy mtxStrat, BusDriverBehavior *behavior = nullptr, BusDriverMovement *movement = nullptr,
-			Role<Person_ST>::type roleType_ = Role<Person_ST>::RL_BUSDRIVER);
+			Role<Person_ST>::Type roleType_ = Role<Person_ST>::RL_BUSDRIVER);
 
 	/**
 	 * Creates and initialises the movement and behaviour objects required for the BusDriver role,
@@ -40,7 +40,7 @@ public:
      *
 	 * @return the created role
      */
-	virtual Role* clone(Person *parent) const;
+	virtual Role<Person_ST>* clone(Person_ST *parent) const;
 
 	/**
 	 * Creates a vector of the subscription parameters and returns it

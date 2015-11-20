@@ -50,6 +50,11 @@ IntersectionManager* IntersectionManager::getIntManager(unsigned int id)
 	}
 }
 
+map<unsigned int, IntersectionManager*>& IntersectionManager::getIntManagers()
+{
+	return intManagers;
+}
+
 void IntersectionManager::CreateIntersectionManagers(const MutexStrategy &mtxStrategy)
 {
 	const RoadNetwork *network = RoadNetwork::getInstance();

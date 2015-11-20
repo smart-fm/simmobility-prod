@@ -1,7 +1,11 @@
 #include <boost/algorithm/string.hpp>
+#include <boost/filesystem.hpp>
+
 #include "ParseShortTermConfigFile.hpp"
-#include "util/XmlParseHelper.hpp"
 #include "entities/AuraManager.hpp"
+#include "logging/Log.hpp"
+#include "util/GeomHelpers.hpp"
+#include "util/XmlParseHelper.hpp"
 
 using namespace xercesc;
 
@@ -349,7 +353,7 @@ int ParseShortTermConfigFile::processValueInteger(xercesc::DOMElement* node)
 	return ParseInteger(GetNamedAttributeValue(node, "value"));
 }
 
-bool sim_mob::ParseConfigFile::processValueBoolean(xercesc::DOMElement* node)
+bool ParseShortTermConfigFile::processValueBoolean(xercesc::DOMElement* node)
 {
 	return ParseBoolean(GetNamedAttributeValue(node, "value"));
 }
@@ -444,7 +448,7 @@ void ParseShortTermConfigFile::processNetworkXmlInputNode(DOMElement *node)
 
 void ParseShortTermConfigFile::processNetworkSourceNode(DOMElement *node)
 {
-    cfg.getNetworkSource = ParseNetSourceEnum(GetNamedAttributeValue(node, "value"), NETSRC_XML);
+    cfg.networkSource = ParseNetSourceEnum(GetNamedAttributeValue(node, "value"), NETSRC_XML);
 }
 
 void ParseShortTermConfigFile::processDatabaseNode(DOMElement *node)

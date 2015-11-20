@@ -41,7 +41,7 @@
 #include "entities/BusStopAgent.hpp"
 #include "entities/commsim/broker/Broker.hpp"
 #include "entities/LoopDetectorEntity.hpp"
-#include "entities/Person.hpp"
+#include "entities/IntersectionManager.hpp"
 #include "entities/Person_ST.hpp"
 #include "entities/profile/ProfileBuilder.hpp"
 #include "entities/roles/activityRole/ActivityPerformer.hpp"
@@ -149,12 +149,11 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 	}
 	
     //Save a handle to the shared definition of the configuration.
-    const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
-
-    const MutexStrategy& mtx = config.mutexStategy();
+    const ConfigParams &config = ConfigManager::GetInstance().FullConfig();
+    const MutexStrategy &mtx = config.mutexStategy();
 
 	//Create an instance of role factory
-	RoleFactory<Person_ST> rf = new RoleFactory<Person_ST>;
+	RoleFactory<Person_ST> *rf = new RoleFactory<Person_ST>;
 	RoleFactory<Person_ST>::setInstance(rf);
 
 	//Register our Role types.
@@ -228,24 +227,25 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 		partMgr = &PartitionManager::instance();
 	}
 
-	{ //Begin scope: WorkGroups
+	{ 
+	//Begin scope: WorkGroups
 	//TODO: WorkGroup scope currently does nothing. We need to re-enable WorkGroup deletion at some later point. ~Seth
 	WorkGroupManager wgMgr;
-	wgMgr.setSingleThreadMode(config.singleThreaded());
+	wgMgr.setSingleThreadMode(false);
 
 	//Work Group specifications
-	WorkGroup* personWorkers = wgMgr.newWorkGroup(config.personWorkGroupSize(), config.totalRuntimeTicks, config.granPersonTicks, &AuraManager::instance(), partMgr);
-	WorkGroup* signalStatusWorkers = wgMgr.newWorkGroup(config.signalWorkGroupSize(), config.totalRuntimeTicks, config.granSignalsTicks);
-	WorkGroup* intMgrWorkers = wgMgr.newWorkGroup(config.intMgrWorkGroupSize(), config.totalRuntimeTicks, config.granIntMgrTicks);
+	WorkGroup* personWorkers = wgMgr.newWorkGroup(stCfg.personWorkGroupSize(), config.totalRuntimeTicks, stCfg.granPersonTicks, &AuraManager::instance(), partMgr);
+	WorkGroup* signalStatusWorkers = wgMgr.newWorkGroup(stCfg.signalWorkGroupSize(), config.totalRuntimeTicks, stCfg.granSignalsTicks);
+	WorkGroup* intMgrWorkers = wgMgr.newWorkGroup(stCfg.intMgrWorkGroupSize(), config.totalRuntimeTicks, stCfg.granIntMgrTicks);
 
 	//TODO: Ideally, the Broker would go on the agent Work Group. However, the Broker often has to wait for all Agents to finish.
 	//      If an Agent is "behind" the Broker, we have two options:
 	//        1) Have some way of specifying that the Broker agent goes "last" (Agent priority?)
 	//        2) Have some way of telling the parent Worker to "delay" this Agent (e.g., add it to a temporary list) from *within* update.
-	WorkGroup* communicationWorkers = wgMgr.newWorkGroup(config.commWorkGroupSize(), config.totalRuntimeTicks, config.granCommunicationTicks);
+	WorkGroup* communicationWorkers = wgMgr.newWorkGroup(stCfg.commWorkGroupSize(), config.totalRuntimeTicks, stCfg.granCommunicationTicks);
 
 	//Initialise the aura manager
-	AuraManager::instance().init(config.aura_manager_impl());
+	AuraManager::instance().init(stCfg.aura_manager_impl());
 
 	//Initialise all work groups (this creates barriers, and locks down creation of new groups).
 	wgMgr.initAllGroups();
@@ -273,19 +273,19 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 
 	//Assign all signals to the signals worker
 	const RoadNetwork *network = RoadNetwork::getInstance();
-	const std::map<unsigned int, Signal *> &signals = network->getMapOfIdVsSignals();
+	//const std::map<unsigned int, Signal *> &signals = network->getMapOfIdVsSignals();
 	
-	for (std::map<unsigned int, Signal *>::const_iterator it = signals.begin(); it != signals.end(); ++it)
+	/*for (std::map<unsigned int, Signal *>::const_iterator it = signals.begin(); it != signals.end(); ++it)
 	{
 		Signal_SCATS *signalScats = dynamic_cast<Signal_SCATS *>(it->second);
 		
 		//Create and initialise loop detectors
-		LoopDetectorEntity *loopDetectorEntity = new LoopDetectorEntity(config.mutexStategy());
+		LoopDetectorEntity *loopDetectorEntity = new LoopDetectorEntity(mtx );
 		loopDetectorEntity->init(*signalScats);
 		Agent::all_agents.insert(loopDetectorEntity);
 		signalScats->setLoopDetector(loopDetectorEntity);
 		signalStatusWorkers->assignAWorker(it->second);
-	}
+	}*/
 	
 	//Anything in all_agents is starting on time 0, and should be added now.
 	for (std::set<Entity*>::iterator it = Agent::all_agents.begin(); it != Agent::all_agents.end(); ++it) 
@@ -294,7 +294,8 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 	}
 	
 	//Assign all intersection managers to the signal worker
-	for (map<unsigned int, IntersectionManager *>::iterator it = IntersectionManager::intManagers.begin(); it != IntersectionManager::intManagers.end(); ++it)
+	const map<unsigned int, IntersectionManager *> &intManagers = IntersectionManager::getIntManagers();
+	for (map<unsigned int, IntersectionManager *>::const_iterator it = intManagers.begin(); it != intManagers.end(); ++it)
 	{
 		intMgrWorkers->assignAWorker(it->second);
 	}
@@ -310,9 +311,6 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 	}
 
 	Print() << "Initial agents dispatched or pushed to pending." << endl;
-	
-	//Before starting the groups, initialise the time interval for one of the PathSet manager's helpers
-	TravelTimeManager::initTimeInterval();
 
 	//
 	//  TODO: Do not delete this next line. Please read the comment in TrafficWatch.hpp
@@ -427,9 +425,9 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 		wgMgr.waitAllGroups();
 		
 		unsigned long currTimeMS = currTick * config.baseGranMS();
-		if(config.segDensityMap.outputEnabled && (currTimeMS % config.segDensityMap.updateInterval == 0))
+		if(stCfg.segDensityMap.outputEnabled && (currTimeMS % stCfg.segDensityMap.updateInterval == 0))
 		{
-			DriverMovement::outputDensityMap(currTimeMS/config.segDensityMap.updateInterval);
+			DriverMovement::outputDensityMap(currTimeMS / stCfg.segDensityMap.updateInterval);
 		}
 	}
 
@@ -448,7 +446,7 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 	//Store the segment travel times
 	if (config.PathSetMode()) 
 	{
-		TravelTimeManager::getInstance()->storeRTT2DB();
+		TravelTimeManager::getInstance()->dumpTravelTimesToFile(stCfg.pathset.RTTT_Conf);
 	}
 
 	Print() << "Database lookup took: " <<loop_start_offset <<" ms" <<std::endl;
@@ -481,7 +479,7 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 					numDriver++;
 				}
 				
-				if (dynamic_cast<Pedestrian*> (person->getRole()))
+				if (dynamic_cast<Pedestrian2*> (person->getRole()))
 				{
 					numPedestrian++;
 				}
@@ -538,7 +536,7 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 	} 
 	else 
 	{
-		clear_delete_map(IntersectionManager::intManagers);
+		clear_delete_map(IntersectionManager::getIntManagers());
 		clear_delete_vector(Agent::all_agents);
 	}
 
@@ -607,26 +605,26 @@ int main_impl(int ARGC, char* ARGV[])
 	//      command line, or through Eclipse's "Run Configurations" dialog.
 	std::string configFileName = "data/config.xml";
     std::string shortConfigFile = "data/shortTerm.xml";
-    if (args.size() > 2) {
+	
+    if (args.size() > 2)
 	{
 		configFileName = args[1];
-        shortConfigFile = args[2];
-    }
-    else if (args.size() > 1) {
-        configFileName = args[1];
-        Print() << "No short term config file specified; using default config file" << endl;
-    }
-    else {
+		shortConfigFile = args[2];
 	}
-	else 
-    Print() << "Using Short term config file: " << shortConfigFile << endl;
-		Print() << "Configuration file not specified. Using the default configuration file." << endl;
+	else if (args.size() > 1)
+	{
+		configFileName = args[1];
+		Print() << "No short term configuration file specified; Using default short term configuration file..." << endl;
+	}
+	else
+	{
+		Print() << "No configuration files specified. \nUsing default short term configuration file: " << shortConfigFile << endl;
+		Print() << "Using the default configuration file: " << configFileName << endl;
 	}
 	
-	Print() << "Using configuration file: " << configFileName << endl;
-
 	std::string outputFileName = "out.txt";
-    if(args.size() > 3)
+	
+	if(args.size() > 3)
 	{
 		outputFileName = args[2];
 	}
@@ -689,8 +687,9 @@ int main_impl(int ARGC, char* ARGV[])
 	{
 		returnVal = run_simmob_interactive_loop();
 	}
-        returnVal = performMain(configFileName, shortConfigFile, resLogFiles, "XML_OutPut.xml") ? 0 : 1;
+    else
 	{
+		returnVal = performMain(configFileName, shortConfigFile, resLogFiles, "XML_OutPut.xml") ? 0 : 1;
 	}
 
 	//Concatenate output files?

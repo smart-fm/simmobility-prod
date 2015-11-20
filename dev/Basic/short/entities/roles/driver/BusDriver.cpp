@@ -10,21 +10,20 @@
 #include <cmath>
 
 #include "DriverUpdateParams.hpp"
-#include "entities/Person.hpp"
+#include "entities/Person_ST.hpp"
 #include "entities/vehicle/BusRoute.hpp"
 #include "entities/vehicle/Bus.hpp"
 #include "entities/BusController.hpp"
-#include "logging/Log.hpp"
-
 #include "geospatial/network/Point.hpp"
-#include "geospatial/network/BusStop.hpp"
+#include "geospatial/network/PT_Stop.hpp"
+#include "logging/Log.hpp"
 #include "partitions/PackageUtils.hpp"
 #include "partitions/UnPackageUtils.hpp"
 #include "entities/roles/waitBusActivityRole/WaitBusActivityRole.hpp"
 
 using namespace sim_mob;
 
-BusDriver::BusDriver(Person_ST *parent, MutexStrategy mtxStrat, BusDriverBehavior *behavior, BusDriverMovement *movement, Role<Person_ST>::type roleType_) :
+BusDriver::BusDriver(Person_ST *parent, MutexStrategy mtxStrat, BusDriverBehavior *behavior, BusDriverMovement *movement, Role<Person_ST>::Type roleType_) :
 Driver(parent, mtxStrat, behavior, movement, roleType_)
 {
 }

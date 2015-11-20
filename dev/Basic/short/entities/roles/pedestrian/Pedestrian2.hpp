@@ -43,7 +43,7 @@ class PartitionManager;
 
 //Helper struct
 
-struct PedestrianUpdateParams2 : public sim_mob::UpdateParams
+struct PedestrianUpdateParams2 : public UpdateParams
 {
 	PedestrianUpdateParams2() : UpdateParams(), skipThisFrame(false)
 	{
@@ -59,7 +59,7 @@ struct PedestrianUpdateParams2 : public sim_mob::UpdateParams
 
 	virtual void reset(timeslice now)
 	{
-		sim_mob::UpdateParams::reset(now);
+		UpdateParams::reset(now);
 
 		skipThisFrame = false;
 	}
@@ -77,18 +77,18 @@ struct PedestrianUpdateParams2 : public sim_mob::UpdateParams
 /**
  * A Person in the Pedestrian role is navigating sidewalks and zebra crossings.
  */
-class Pedestrian2 : public sim_mob::Role<Person_ST>, public UpdateWrapper<PedestrianUpdateParams2>
+class Pedestrian2 : public Role<Person_ST>, public UpdateWrapper<PedestrianUpdateParams2>
 {
 public:
-	Pedestrian2(Person_ST *parent, sim_mob::Pedestrian2Behavior* behavior = nullptr, sim_mob::Pedestrian2Movement* movement = nullptr,
-			 Role::Type roleType_ = RL_PEDESTRIAN, std::string roleName = "pedestrian");
+	Pedestrian2(Person_ST *parent, Pedestrian2Behavior* behavior = nullptr, Pedestrian2Movement* movement = nullptr,
+			 Role<Person_ST>::Type roleType_ = Role<Person_ST>::RL_PEDESTRIAN, std::string roleName = "pedestrian");
 	virtual ~Pedestrian2();
 
-	virtual sim_mob::Role* clone(sim_mob::Person_ST *parent) const;
+	virtual Role<Person_ST>* clone(Person_ST *parent) const;
 
 	//Virtual overrides
 	virtual void make_frame_tick_params(timeslice now);
-	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
+	virtual std::vector<BufferedBase*> getSubscriptionParams();
 
 private:
 	//Temporary variable which will be flushed each time tick. We save it

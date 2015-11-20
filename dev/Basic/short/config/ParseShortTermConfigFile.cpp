@@ -668,35 +668,37 @@ void ParseShortTermTripFile::processTrips(DOMElement *node)
 {
     if(node)
     {
-    std::vector<DOMElement*> trips = GetElementsByName(node, "trip");
-    for(std::vector<DOMElement*>::const_iterator it = trips.begin(); it != trips.end(); it++)
-    {
-        unsigned int tripId = ParseInteger(GetNamedAttributeValue(*it, "id"), 0);
-        unsigned int personId = ParseUnsignedInt(GetNamedAttributeValue(*it, "personId", false), static_cast<unsigned int>(0));
-        for(DOMElement* stIter = (*it)->getFirstElementChild(); stIter; stIter = (*it)->getNextElementSibling())
+        typedef std::vector<DOMElement*> DOMList;
+        typedef std::vector<DOMElement*>::const_iterator DOMListIter;
+
+        DOMList trips = GetElementsByName(node, "trip");
+        for(DOMListIter it = trips.begin(); it != trips.end(); it++)
         {
-            EntityTemplate ent;
-            ent.originPos = ParsePoint(GetNamedAttributeValue(stIter, "originPos", true), Point());
-            ent.destPos = ParsePoint(GetNamedAttributeValue(stIter, "destPos", true), Point());
-            ent.startTimeMs = ParseUnsignedInt(GetNamedAttributeValue(stIter, "time", true), static_cast<unsigned int>(0));
-            ent.laneIndex = ParseUnsignedInt(GetNamedAttributeValue(stIter, "lane"), static_cast<unsigned int>(0));
-            ent.agentId = personId;
-            ent.initSegId = ParseUnsignedInt(GetNamedAttributeValue(stIter, "initSegId", false), static_cast<unsigned int>(0));
-            ent.initDis = ParseUnsignedInt(GetNamedAttributeValue(stIter, "initDis", false), static_cast<unsigned int>(0));
-            ent.initSpeed = ParseUnsignedInt(GetNamedAttributeValue(stIter, "initSpeed", false), static_cast<double>(0));
-            ent.originNode = ParseUnsignedInt(GetNamedAttributeValue(stIter, "originNode", false), static_cast<double>(0));
-            ent.destNode = ParseUnsignedInt(GetNamedAttributeValue(stIter, "destNode", false), static_cast<double>(0));
-            unsigned int stId = ParseUnsignedInt(GetNamedAttributeValue(stIter, "id", false), static_cast<unsigned int>(0));
-            ent.tripId = std::make_pair(tripId, stId);
-            ent.mode = ParseString(GetNamedAttributeValue(stIter, "mode"), "");
-            std::vector<VehicleType>::iterator vehTypeIter = std::find(cfg.vehicleTypes.begin(), cfg.vehicleTypes.end(), ent.mode);
-            if(ent.mode.empty() || vehTypeIter == cfg.vehicleTypes.end())
+            unsigned int tripId = ParseInteger(GetNamedAttributeValue(*it, "id"), 0);
+            unsigned int personId = ParseUnsignedInt(GetNamedAttributeValue(*it, "personId", false), static_cast<unsigned int>(0));
+            DOMList subTrips = GetElementsByName(*it, "subTrip");
+            for(DOMListIter stIter = subTrips.begin(); stIter != subTrips.end(); stIter++)
             {
-                throw std::runtime_error("ProcessTrips : Unknown Mode");
+                EntityTemplate ent;
+                ent.startTimeMs = ParseUnsignedInt(GetNamedAttributeValue(*stIter, "time", true), static_cast<unsigned int>(0));
+                ent.laneIndex = ParseUnsignedInt(GetNamedAttributeValue(*stIter, "lane"), static_cast<unsigned int>(0));
+                ent.agentId = personId;
+                ent.initSegId = ParseUnsignedInt(GetNamedAttributeValue(*stIter, "initSegId", false), static_cast<unsigned int>(0));
+                ent.initDis = ParseUnsignedInt(GetNamedAttributeValue(*stIter, "initDis", false), static_cast<unsigned int>(0));
+                ent.initSpeed = ParseUnsignedInt(GetNamedAttributeValue(*stIter, "initSpeed", false), static_cast<double>(0));
+                ent.originNode = ParseUnsignedInt(GetNamedAttributeValue(*stIter, "originNode", true), static_cast<double>(0));
+                ent.destNode = ParseUnsignedInt(GetNamedAttributeValue(*stIter, "destNode", true), static_cast<double>(0));
+                unsigned int stId = ParseUnsignedInt(GetNamedAttributeValue(*stIter, "id", false), static_cast<unsigned int>(0));
+                ent.tripId = std::make_pair(tripId, stId);
+                ent.mode = ParseString(GetNamedAttributeValue(*stIter, "mode"), "");
+                std::vector<VehicleType>::iterator vehTypeIter = std::find(cfg.vehicleTypes.begin(), cfg.vehicleTypes.end(), ent.mode);
+                if(ent.mode.empty() || vehTypeIter == cfg.vehicleTypes.end())
+                {
+                    throw std::runtime_error("ProcessTrips : Unknown Mode");
+                }
+                cfg.futureAgents[tripName].push_back(ent);
             }
-            cfg.futureAgents[tripName].push_back(ent);
         }
-    }
     }
 }
 

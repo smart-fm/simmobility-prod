@@ -41,7 +41,6 @@ BusStop::BusStop() :
 
 BusStop::~BusStop()
 {
-	safe_delete_item(twinStop);
 	//busLines.clear();
 }
 

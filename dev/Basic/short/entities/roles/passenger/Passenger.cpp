@@ -20,7 +20,7 @@ using std::string;
 
 Passenger::Passenger(Person_ST *parent, MutexStrategy mtxStrat, PassengerBehavior* behavior, PassengerMovement* movement, Role<Person_ST>::Type roleType_, std::string roleName) :
 Role(parent, behavior, movement, roleName, roleType_), BoardedBus(mtxStrat, false), AlightedBus(mtxStrat, false), busdriver(mtxStrat, nullptr),
-params(parent->getGenerator()), waitingTimeAtStop(0)
+waitingTimeAtStop(0)
 {
 }
 

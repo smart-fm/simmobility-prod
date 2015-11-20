@@ -13,7 +13,7 @@ using namespace sim_mob;
 
 WaitBusActivityRole::WaitBusActivityRole(Person_ST *parent, WaitBusActivityRoleBehavior *behavior, WaitBusActivityRoleMovement *movement,
 												  Role::Type roleType_, std::string roleName)
-: Role(parent, behavior, movement, roleName, roleType_), params(parent->getGenerator()), TimeOfReachingBusStop(0), waitingTimeAtBusStop(0)
+: Role(parent, behavior, movement, roleName, roleType_), TimeOfReachingBusStop(0), waitingTimeAtBusStop(0)
 {
 }
 

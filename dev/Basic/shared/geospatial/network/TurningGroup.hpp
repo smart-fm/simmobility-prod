@@ -30,8 +30,7 @@ enum TurningGroupRule
  */
 class TurningGroup
 {
-public:
-
+private:
 	/**Unique identifier for the turning group*/
 	unsigned int turningGroupId;
 

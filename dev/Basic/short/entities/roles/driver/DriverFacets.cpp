@@ -1591,7 +1591,7 @@ bool DriverMovement::updateNearbyAgent(const Agent *nearbyAgent, const Driver *n
 		
 		if(nextWayPt && nextWayPt->type == WayPoint::TURNING_GROUP)
 		{
-			nextLink = nextWayPt->turningGroup->toLinkId;
+			nextLink = nextWayPt->turningGroup->getToLinkId();
 		}
 		
 		if (nextLink == otherSegment->getLinkId())

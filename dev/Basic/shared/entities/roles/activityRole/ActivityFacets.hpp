@@ -72,7 +72,6 @@ public:
 		{
 			parentActivity->parent->setToBeRemoved();
 		}
-		parentActivity->parent->setRemainingTimeThisTick(0.0);
 	}
 
 	virtual std::string frame_tick_output()

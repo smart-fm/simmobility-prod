@@ -1166,6 +1166,10 @@ Entity::UpdateStatus Conflux::callMovementFrameTick(timeslice now, Person_MT* pe
 		if (!person->isToBeRemoved())
 		{
 			personRole->Movement()->frame_tick();
+			if (personRole->roleType == Role<Person_MT>::RL_ACTIVITY)
+			{
+				person->setRemainingTimeThisTick(0.0);
+			}
 		}
 
 		if (person->isToBeRemoved())

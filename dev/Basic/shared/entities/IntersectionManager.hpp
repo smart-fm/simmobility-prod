@@ -101,6 +101,7 @@ public:
 	virtual ~IntersectionManager();
 
 	static IntersectionManager* getIntManager(unsigned int id);
+	static map<unsigned int, IntersectionManager*>& getIntManagers();
 
 	/**
 	 * Creates an intersection manager for every node that doesn't have a traffic signal

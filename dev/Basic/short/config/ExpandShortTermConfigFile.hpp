@@ -24,9 +24,9 @@ private:
     void processConfig();
 
     //These functions are called by ProcessConfig()
-    void CheckGranularities();
-    void SetTicks();
-    bool SetTickFromBaseGran(unsigned int& res, unsigned int tickLenMs);
+    void checkGranularities();
+    void setTicks();
+    bool setTickFromBaseGran(unsigned int& res, unsigned int tickLenMs);
     void loadNetworkFromDatabase();
 
     void loadAMOD_Controller();
@@ -34,7 +34,6 @@ private:
     void loadAgentsInOrder(ConfigParams::AgentConstraints& constraints);
     void generateAgentsFromTripChain(ConfigParams::AgentConstraints& constraints);
     void generateXMLAgents(const std::vector<EntityTemplate>& xmlItems);
-    void generateXMLSignals();
 
     void PrintSettings();
 

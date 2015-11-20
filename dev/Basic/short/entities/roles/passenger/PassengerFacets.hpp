@@ -147,7 +147,7 @@ private:
 	BusStop* originBusStop; ///busstop passenger is starting the trip from
 	BusStop* destBusStop; ///busstop passenger is ending the trip
 
-	std::vector<Busline*> buslinesToTake; ///buslines passenger can take;decided by passenger upon reaching busstop
+	std::vector<BusLine*> buslinesToTake; ///buslines passenger can take;decided by passenger upon reaching busstop
 
 	double waitingTime;
 	double timeOfReachingBusStop;

@@ -60,8 +60,7 @@ std::string PassengerBehavior::frame_tick_output()
 }
 
 sim_mob::PassengerMovement::PassengerMovement() :
-MovementFacet(), parentPassenger(nullptr), alightingMS(0),
-waitingTime(-1), timeOfReachingBusStop(0), displayX(0), displayY(0), skip(0),
+MovementFacet(), parentPassenger(nullptr), alightingMS(0), waitingTime(-1), timeOfReachingBusStop(0), displayX(0), displayY(0), skip(0),
 timeOfStartTrip(0), travelTime(0), busTripRunNum(0), buslineId("")
 {
 }
@@ -75,8 +74,8 @@ void sim_mob::PassengerMovement::setParentBufferedData()
 {
 	if (parentPassenger->busdriver.get() != nullptr)
 	{
-		parent->xPos.set(parentPassenger->busdriver.get()->getCurrPosition().getX());
-		parent->yPos.set(parentPassenger->busdriver.get()->getCurrPosition().getY());
+		parentPassenger->getParent()->xPos.set(parentPassenger->busdriver.get()->getCurrPosition().getX());
+		parentPassenger->getParent()->yPos.set(parentPassenger->busdriver.get()->getCurrPosition().getY());
 	}
 }
 
@@ -257,7 +256,7 @@ bool sim_mob::PassengerMovement::isDestBusStopReached()
 
 Point sim_mob::PassengerMovement::getXYPosition()
 {
-	return Point(getParent()->xPos.get(),getParent()->yPos.get());
+	return Point(parentPassenger->getParent()->xPos.get(), parentPassenger->getParent()->yPos.get());
 }
 
 Point sim_mob::PassengerMovement::getDestPosition()
@@ -280,8 +279,8 @@ bool sim_mob::PassengerMovement::PassengerAlightBus(Driver* driver)
 			parentPassenger->busdriver.set(nullptr);	//driver would be null as passenger has alighted
 			parentPassenger->AlightedBus.set(true);
 			parentPassenger->BoardedBus.set(false);
-			parent->xPos.set(xpos_approachingbusstop);
-			parent->yPos.set(ypos_approachingbusstop);
+			parentPassenger->getParent()->xPos.set(xpos_approachingbusstop);
+			parentPassenger->getParent()->yPos.set(ypos_approachingbusstop);
 			displayX = xpos_approachingbusstop;
 			displayY = ypos_approachingbusstop;
 			return true;
@@ -430,7 +429,7 @@ void sim_mob::PassengerMovement::FindBusLines() //find bus lines there and decid
 {
 	if (originBusStop != nullptr && parentPassenger->BoardedBus.get() == false)
 	{
-		 vector<Busline*> buslines;//=originBusStop->BusLines;//list of available buslines at busstop
+		vector<BusLine *> buslines;//=originBusStop->BusLines;//list of available buslines at busstop
 		int prev = 0;
 		for (int i = 0; i < buslines.size(); i++)
 		{

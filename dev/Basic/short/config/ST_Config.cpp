@@ -23,7 +23,7 @@ bool VehicleType::operator!=(const std::string& rhs) const
 }
 
 EntityTemplate::EntityTemplate() : startTimeMs(0), laneIndex(0),originNode(-1),
-    destNode(-1),initSegId(-1),initDis(-1),initSpeed(0),agentId(-1), tripId(-1),
+    destNode(-1),initSegId(-1),initDis(-1),initSpeed(0),agentId(-1), tripId(std::make_pair(-1,-1)),
     mode("")
 {}
 
@@ -32,7 +32,7 @@ ST_Config* ST_Config::instance = nullptr;
 ST_Config::ST_Config() :
     roadNetworkXsdSchemaFile(""), networkXmlOutputFile(""), networkXmlInputFile(""),
     partitioningSolutionId(0), auraManagerImplementation(AuraManager::IMPL_RSTAR),
-    getNetworkSource(NETSRC_XML), granSignalsTicks(0), granPersonTicks(0), granCommunicationTicks(0), granIntMgrTicks(0)
+    networkSource(NETSRC_XML), granSignalsTicks(0), granPersonTicks(0), granCommunicationTicks(0), granIntMgrTicks(0)
 {
 }
 
@@ -84,15 +84,6 @@ unsigned int& ST_Config::commWorkGroupSize()
 const unsigned int& ST_Config::commWorkGroupSize() const
 {
     return workers.communication.count;
-}
-
-NetworkSource& ST_Config::getNetworkSource()
-{
-    return networkSource;
-}
-const NetworkSource& ST_Config::getNetworkSource() const
-{
-    return networkSource;
 }
 
 std::string& ST_Config::getNetworkXmlInputFile()

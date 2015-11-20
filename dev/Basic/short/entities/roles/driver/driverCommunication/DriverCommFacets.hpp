@@ -8,11 +8,13 @@
 #include "entities/roles/driver/DriverFacets.hpp"
 #include "entities/roles/driver/driverCommunication/DriverComm.hpp"
 
-namespace sim_mob {
+namespace sim_mob
+{
 
-class DriverCommMovement: public sim_mob::DriverMovement {
+class DriverCommMovement : public DriverMovement
+{
 public:
-	explicit DriverCommMovement(sim_mob::Person* parentAgent = nullptr);
+	explicit DriverCommMovement();
 	virtual ~DriverCommMovement();
 
 	//Virtual overrides

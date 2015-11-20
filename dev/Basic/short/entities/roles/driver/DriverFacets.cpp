@@ -11,8 +11,9 @@
 #include "BusDriver.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
+#include "config/ST_Config.hpp"
 #include "entities/AuraManager.hpp"
-#include "entities/Person.hpp"
+#include "entities/Person_ST.hpp"
 #include "entities/profile/ProfileBuilder.hpp"
 #include "entities/UpdateParams.hpp"
 #include "geospatial/network/Lane.hpp"
@@ -22,13 +23,13 @@
 #include "geospatial/network/Node.hpp"
 #include "geospatial/network/Point.hpp"
 #include "geospatial/network/TurningPath.hpp"
+#include "geospatial/network/RoadNetwork.hpp"
 #include "geospatial/network/RoadSegment.hpp"
 #include "geospatial/RoadRunnerRegion.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "IncidentPerformer.hpp"
 #include "network/CommunicationDataManager.hpp"
 #include "path/PathSetManager.hpp"
-#include "geospatial/network/RoadNetwork.hpp"
 
 using namespace sim_mob;
 using std::vector;
@@ -325,16 +326,16 @@ std::string DriverMovement::frame_tick_output()
 	double baseAngle = getAngle();
 
 	//Inform the GUI if interactive mode is active.
-	if (ConfigManager::GetInstance().CMakeConfig().InteractiveMode())
-	{
-		std::ostringstream stream;
-		stream << "DriverSegment" << "," << params.now.frame() << ","
-				<< fwdDriverMovement.getCurrSegment() << ","
-				<< fwdDriverMovement.getCurrSegment()->getLength();
-
-		std::string s = stream.str();
-		ConfigManager::GetInstance().FullConfig().getCommDataMgr().sendTrafficData(s);
-	}
+	//if (ConfigManager::GetInstance().CMakeConfig().InteractiveMode())
+	//{
+	//	std::ostringstream stream;
+	//	stream << "DriverSegment" << "," << params.now.frame() << ","
+	//			<< fwdDriverMovement.getCurrSegment() << ","
+	//			<< fwdDriverMovement.getCurrSegment()->getLength();
+	//
+	//	std::string s = stream.str();
+	//	ConfigManager::GetInstance().FullConfig().getCommDataMgr().sendTrafficData(s);
+	//}
 
 	const int wayPtId = fwdDriverMovement.isInIntersection() ?
 			fwdDriverMovement.getCurrTurning()->getTurningGroupId() : fwdDriverMovement.getCurrSegment()->getRoadSegmentId();
@@ -343,21 +344,20 @@ std::string DriverMovement::frame_tick_output()
 	std::stringstream addLine;
 	if (ConfigManager::GetInstance().FullConfig().using_MPI)
 	{
-		addLine << "\",\"fake\":\""
-				<< (this->getParent()->isFake ? "true" : "false");
+		addLine << "\",\"fake\":\"" << (parentDriver->getParent()->isFake ? "true" : "false");
 	}
 
-	std::stringstream res;
-	res << parentDriver->getParent()->getId();
-	std::string id = res.str();
+	std::stringstream id;
 
 	if (parentDriver->getParent()->amodId != "-1")
 	{
-		id = parentDriver->getParent()->amodTripId;
+		id << parentDriver->getParent()->amodTripId;
 		params.debugInfo = params.debugInfo + "<AMOD>";
 	}
 	else
 	{
+		id << parentDriver->getParent()->GetId();
+		
 		//Check if the trip mode is taxi, if so append <Taxi> to debug info,
 		//otherwise it means it is a private vehicle
 		TripChainItem *tripChainItem = *(parentDriver->getParent()->currTripChainItem);
@@ -368,7 +368,7 @@ std::string DriverMovement::frame_tick_output()
 		}
 	}
 
-	output << "(\"Driver\"" << "," << params.now.frame() << "," << id
+	output << "(\"Driver\"" << "," << params.now.frame() << "," << id.str()
 			<< ",{" << "\"xPos\":\"" << parentDriver->getCurrPosition().getX()
 			<< "\",\"yPos\":\"" << parentDriver->getCurrPosition().getY()
 			<< "\",\"angle\":\"" << (360 - (baseAngle * 180 / M_PI))
@@ -1591,7 +1591,7 @@ bool DriverMovement::updateNearbyAgent(const Agent *nearbyAgent, const Driver *n
 		
 		if(nextWayPt && nextWayPt->type == WayPoint::TURNING_GROUP)
 		{
-			nextLink = nextWayPt->turningGroup->toLinkId;
+			nextLink = nextWayPt->turningGroup->getToLinkId();
 		}
 		
 		if (nextLink == otherSegment->getLinkId())
@@ -1790,8 +1790,8 @@ void DriverMovement::syncLaneInfoPostLateralMove(DriverUpdateParams &params)
 	else
 	{
 		std::stringstream msg;
-		msg << "syncInfoLateralMove (" << parent->getId()
-				<< ") is attempting to change lane when no lane changing decision made";
+		msg << "syncInfoLateralMove (" << parentDriver->getParent()->GetId();
+		msg << ") is attempting to change lane when no lane changing decision made";
 		throw std::runtime_error(msg.str().c_str());
 	}
 		

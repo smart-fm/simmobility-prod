@@ -36,14 +36,16 @@
 
 using namespace std;
 
-namespace sim_mob {
+namespace sim_mob
+{
 namespace AMOD
 {
 AMODController* AMODController::pInstance = nullptr;
 
-sim_mob::AMOD::AMODController::~AMODController() {
+AMOD::AMODController::~AMODController()
+{
 	//close open files if necessary
-	if (out_demandStat.is_open() )
+	if (out_demandStat.is_open())
 	{
 		out_demandStat.close();
 	}
@@ -59,53 +61,54 @@ sim_mob::AMOD::AMODController::~AMODController() {
 	}
 }
 
-void sim_mob::AMOD::AMODController::init()
+void AMOD::AMODController::init()
 {
-/*	stdir = &StreetDirectory::Instance();
+	/*	stdir = &StreetDirectory::Instance();
 
-	const sim_mob::RoadNetwork& roadNetwork = ConfigManager::GetInstance().FullConfig().getNetwork();
-	const std::vector<Node*>& multiNodesPool = roadNetwork.getNodes();
-	const std::set<sim_mob::UniNode*>& uniNodesPool = roadNetwork.getUniNodes();
+		const RoadNetwork& roadNetwork = ConfigManager::GetInstance().FullConfig().getNetwork();
+		const std::vector<Node*>& multiNodesPool = roadNetwork.getNodes();
+		const std::set<UniNode*>& uniNodesPool = roadNetwork.getUniNodes();
 
-	for(std::vector<sim_mob::Link *>::const_iterator it = roadNetwork.getLinks().begin(), it_end(roadNetwork.getLinks().end()); it != it_end ; it ++)
-	{
-		for(std::set<sim_mob::RoadSegment *>::iterator seg_it = (*it)->getUniqueSegments().begin(), it_end((*it)->getUniqueSegments().end()); seg_it != it_end; seg_it++)
+		for(std::vector<Link *>::const_iterator it = roadNetwork.getLinks().begin(), it_end(roadNetwork.getLinks().end()); it != it_end ; it ++)
 		{
-			if (!(*seg_it)->originalDB_ID.getLogItem().empty())
+			for(std::set<RoadSegment *>::iterator seg_it = (*it)->getUniqueSegments().begin(), it_end((*it)->getUniqueSegments().end()); seg_it != it_end; seg_it++)
 			{
-				string aimsunId = (*seg_it)->originalDB_ID.getLogItem();
-				string segId = getNumberFromAimsunId(aimsunId);
-				segPool.insert(std::make_pair(segId,*seg_it));
+				if (!(*seg_it)->originalDB_ID.getLogItem().empty())
+				{
+					string aimsunId = (*seg_it)->originalDB_ID.getLogItem();
+					string segId = getNumberFromAimsunId(aimsunId);
+					segPool.insert(std::make_pair(segId,*seg_it));
+				}
 			}
 		}
-	}
 
-	for(std::vector<Node *>::const_iterator itMultiNodes = multiNodesPool.begin(); itMultiNodes != multiNodesPool.end(); ++itMultiNodes)
-	{
-		const sim_mob::Node* n = (*itMultiNodes);
-		if (!n->originalDB_ID.getLogItem().empty())
+		for(std::vector<Node *>::const_iterator itMultiNodes = multiNodesPool.begin(); itMultiNodes != multiNodesPool.end(); ++itMultiNodes)
 		{
-			std::string aimsunId = n->originalDB_ID.getLogItem();
-			std::string id = getNumberFromAimsunId(aimsunId);
-			nodePool.insert(std::make_pair(id,n));
+			const Node* n = (*itMultiNodes);
+			if (!n->originalDB_ID.getLogItem().empty())
+			{
+				std::string aimsunId = n->originalDB_ID.getLogItem();
+				std::string id = getNumberFromAimsunId(aimsunId);
+				nodePool.insert(std::make_pair(id,n));
+			}
 		}
-	}
-	for(std::set<sim_mob::UniNode*>::const_iterator it=uniNodesPool.begin(); it!=uniNodesPool.end(); ++it)
-	{
-		const sim_mob::Node* n = (*it);
-		if (!n->originalDB_ID.getLogItem().empty())
+		for(std::set<UniNode*>::const_iterator it=uniNodesPool.begin(); it!=uniNodesPool.end(); ++it)
 		{
-			std::string aimsunId = n->originalDB_ID.getLogItem();
-			std::string id = getNumberFromAimsunId(aimsunId);
-			nodePool.insert(std::make_pair(id,n));
+			const Node* n = (*it);
+			if (!n->originalDB_ID.getLogItem().empty())
+			{
+				std::string aimsunId = n->originalDB_ID.getLogItem();
+				std::string id = getNumberFromAimsunId(aimsunId);
+				nodePool.insert(std::make_pair(id,n));
+			}
 		}
-	}
-*/
+	 */
 }
 
 void AMODController::registerController(int id, const MutexStrategy& mtxStrat)
 {
-	if(pInstance) {
+	if (pInstance)
+	{
 		delete pInstance;
 	}
 
@@ -115,7 +118,8 @@ void AMODController::registerController(int id, const MutexStrategy& mtxStrat)
 
 AMODController* AMODController::instance()
 {
-	if (!pInstance) {
+	if (!pInstance)
+	{
 		pInstance = new AMODController();
 	}
 
@@ -133,40 +137,43 @@ bool AMODController::instanceExists()
 }
 
 AMODController::AMODController(int id,
-		const MutexStrategy& mtxStrat)
-: Agent(mtxStrat, id),frameTicks(0)
+							   const MutexStrategy& mtxStrat)
+: Agent(mtxStrat, id), frameTicks(0)
 {
 	init();
 }
 
 bool AMODController::frame_init(timeslice now)
 {
-	test=0;
-	nFreeCars= 0; //initially, no free cars (before populate)
+	test = 0;
+	nFreeCars = 0; //initially, no free cars (before populate)
 	return true;
 }
 
 void AMODController::precomputeAllPairsShortestPaths()
 {
-	std::map<std::string,const sim_mob::Node*>::iterator origItr;
-	std::map<std::string,const sim_mob::Node*>::iterator destItr;
+	std::map<std::string, const Node*>::iterator origItr;
+	std::map<std::string, const Node*>::iterator destItr;
 
 	Print() << "Pre-computing shortest paths" << std::endl;
 
-	for (origItr = nodePool.begin(); origItr != nodePool.end(); origItr++) {
+	for (origItr = nodePool.begin(); origItr != nodePool.end(); origItr++)
+	{
 		Print() << "Node: " << origItr->first << std::endl;
-		for (destItr = nodePool.begin(); destItr != nodePool.end(); destItr++) {
+		for (destItr = nodePool.begin(); destItr != nodePool.end(); destItr++)
+		{
 			std::string nodeKey;
 
 			nodeKey = string(origItr->first) + "-" + string(destItr->first);
 			std::vector < WayPoint > wp;
-			if (origItr->second == destItr->second) {
+			if (origItr->second == destItr->second)
+			{
 				shortestPaths.insert(std::make_pair(nodeKey, wp));
 				continue;
 			}
 
 			// compute shortest path
-			std::vector<const sim_mob::RoadSegment*> blacklist; //empty vector -> nothing blacklisted
+			std::vector<const RoadSegment*> blacklist; //empty vector -> nothing blacklisted
 
 			/*std::vector < WayPoint > wp2 = stdir->SearchShortestDrivingPath(stdir->DrivingVertex(*(origItr->second)), stdir->DrivingVertex(*(destItr->second)),blacklist);
 			for (int i=0; i<wp2.size(); i++) {
@@ -229,30 +236,34 @@ vector <WayPoint> AMODController::getShortestPath(std::string origNodeID, std::s
 {
 	std::string nodeKey = origNodeID + "-" + destNodeID;
 	boost::unordered_map<std::string, vector < WayPoint > >::iterator spItr = shortestPaths.find(nodeKey);
-	if (spItr == shortestPaths.end()) {
+	if (spItr == shortestPaths.end())
+	{
 		std::vector < WayPoint > wp;
 
 		const Node* origNode = nodePool.at(origNodeID);
 		const Node* destNode = nodePool.at(destNodeID);
 
 
-		if (origNode == destNode) {
+		if (origNode == destNode)
+		{
 			shortestPaths.insert(std::make_pair(nodeKey, wp));
 			return wp;
 		}
 
 		// compute shortest path
-		std::vector<const sim_mob::RoadSegment*> blacklist;
+		std::vector<const RoadSegment*> blacklist;
 
 		std::vector < WayPoint > wp2 = stdir->SearchShortestDrivingPath(*origNode, *destNode);
 		/*std::vector<WayPoint> wp2 = stdir->SearchShortestDrivingTimePath(
-					stdir->DrivingTimeVertex(*origNode,sim_mob::Default),
-					stdir->DrivingTimeVertex(*destNode,sim_mob::Default),
+					stdir->DrivingTimeVertex(*origNode,Default),
+					stdir->DrivingTimeVertex(*destNode,Default),
 					blacklist,
-					sim_mob::Default);*/
-		for (int i=0; i<wp2.size(); i++) {
+					Default);*/
+		for (int i = 0; i < wp2.size(); i++)
+		{
 
-			if (wp2[i].type == WayPoint::ROAD_SEGMENT ) {
+			if (wp2[i].type == WayPoint::ROAD_SEGMENT)
+			{
 				wp.push_back(wp2[i]);
 			}
 		}
@@ -262,49 +273,52 @@ vector <WayPoint> AMODController::getShortestPath(std::string origNodeID, std::s
 	return spItr->second;
 }
 
-vector <WayPoint> AMODController::getShortestPathWBlacklist(std::string origNodeID, std::string destNodeID, std::vector<const sim_mob::RoadSegment*> blacklist)
+vector <WayPoint> AMODController::getShortestPathWBlacklist(std::string origNodeID, std::string destNodeID, std::vector<const RoadSegment*> blacklist)
 {
 	std::vector < WayPoint > wp;
-/*
-	const Node* origNode = nodePool.at(origNodeID);
-	const Node* destNode = nodePool.at(destNodeID);
+	/*
+		const Node* origNode = nodePool.at(origNodeID);
+		const Node* destNode = nodePool.at(destNodeID);
 
-	if (origNode == destNode) {
-		return wp;
-	}
-	// compute shortest path
-	// std::vector < WayPoint > wp2 = stdir->SearchShortestDrivingPath(stdir->DrivingVertex(*origNode), stdir->DrivingVertex(*destNode), blacklist);
-	std::vector<WayPoint> wp2 = stdir->SearchShortestDrivingTimePath(
-						stdir->DrivingTimeVertex(*origNode,sim_mob::Default),
-						stdir->DrivingTimeVertex(*destNode,sim_mob::Default),
-						blacklist,
-						sim_mob::Default);
-	for (int i=0; i<wp2.size(); i++) {
-		if (wp2[i].type == WayPoint::ROAD_SEGMENT ) {
-			wp.push_back(wp2[i]);
+		if (origNode == destNode) {
+			return wp;
 		}
-	}
-*/
+		// compute shortest path
+		// std::vector < WayPoint > wp2 = stdir->SearchShortestDrivingPath(stdir->DrivingVertex(*origNode), stdir->DrivingVertex(*destNode), blacklist);
+		std::vector<WayPoint> wp2 = stdir->SearchShortestDrivingTimePath(
+							stdir->DrivingTimeVertex(*origNode,Default),
+							stdir->DrivingTimeVertex(*destNode,Default),
+							blacklist,
+							Default);
+		for (int i=0; i<wp2.size(); i++) {
+			if (wp2[i].type == WayPoint::ROAD_SEGMENT ) {
+				wp.push_back(wp2[i]);
+			}
+		}
+	 */
 	return wp;
 }
 
 void AMODController::calculateDistancesBetweenCarparks(std::vector<std::string> carParkIds, std::vector<std::vector < double > >& distancesBetweenCarparks)
 {
-	for (int i =0; i < carParkIds.size(); i++){
+	for (int i = 0; i < carParkIds.size(); i++)
+	{
 		string carParkOrigin = carParkIds[i];
 		vector<double> vect_temp; //stores distances from i to all j
-		for (int j =0; j < carParkIds.size(); j++){
+		for (int j = 0; j < carParkIds.size(); j++)
+		{
 			string carParkDest = carParkIds[j];
-			if(i == j)
+			if (i == j)
 			{
 				vect_temp.push_back(0.0);
-			}else
+			}
+			else
 			{
 				vector<WayPoint> sp = getShortestPath(carParkOrigin, carParkDest);
 				double tripDistance = 0;
 				WayPoint iterWP;
 				const RoadSegment *iterwp;
-				for (int k = 0; k< sp.size(); k++)
+				for (int k = 0; k < sp.size(); k++)
 				{
 					iterWP = sp[k];
 					tripDistance += sp[j].roadSegment->getLength();
@@ -316,13 +330,12 @@ void AMODController::calculateDistancesBetweenCarparks(std::vector<std::string> 
 	}
 }
 
-
 Entity::UpdateStatus AMODController::frame_tick(timeslice now)
 {
 	int current_time = now.ms();
 	currTime = current_time;
 	emptyTripId = "e0"; // id for rebalancing vehicles
-	if(test==0)
+	if (test == 0)
 	{
 		startRunTime = std::time(NULL);
 
@@ -335,13 +348,13 @@ Entity::UpdateStatus AMODController::frame_tick(timeslice now)
 		std::string outTripStatFilename;
 
 		amodConfigFile >> demandFileName
-		>> carParkFileName
-		>> outDemandFileName
-		>> outVhsStatFilename
-		>> outTripStatFilename
-		>> nCarsPerCarPark
-		>> vehStatOutputModulus
-		>> rebalancingModulus;
+				>> carParkFileName
+				>> outDemandFileName
+				>> outVhsStatFilename
+				>> outTripStatFilename
+				>> nCarsPerCarPark
+				>> vehStatOutputModulus
+				>> rebalancingModulus;
 
 		myFile.open(demandFileName.c_str());
 		carParkFile.open(carParkFileName.c_str());
@@ -355,18 +368,21 @@ Entity::UpdateStatus AMODController::frame_tick(timeslice now)
 
 		lastReadLine = "";
 
-		if (out_demandStat.is_open()) {
+		if (out_demandStat.is_open())
+		{
 			out_demandStat << "tripID " <<
 					"origin " << "destination " <<
 					"timeRequested "
 					<< "accepted/rejected " << "reasonRejected "
-					<< "timePickedUp " << "TimeDropped " << "tripDistance\n" ;
+					<< "timePickedUp " << "TimeDropped " << "tripDistance\n";
 		}
-		else {
+		else
+		{
 			Print() << "Unable to open out_demandStat.txt" << std::endl;
 		}
 
-		if (out_vhsStat.is_open()) {
+		if (out_vhsStat.is_open())
+		{
 			out_vhsStat << "vehId " << "time "
 					<< "posX " << "posY "
 					<< "Velocity " << "Acceleration "
@@ -374,25 +390,29 @@ Entity::UpdateStatus AMODController::frame_tick(timeslice now)
 					<< "inCarpark " << "nodeId"
 					<< std::endl;
 		}
-		else {
+		else
+		{
 			Print() << "Unable to open out_vhsStat.txt" << std::endl;
 		}
 
-		if (out_tripStat.is_open()) {
+		if (out_tripStat.is_open())
+		{
 			out_tripStat << "TripID" << " " << "Origin" << " "
-					<< "Destination" << " " << "CarPark" << " "<< "AssignedAMODID" << " "
+					<< "Destination" << " " << "CarPark" << " " << "AssignedAMODID" << " "
 					<< "RequestTime" << " " << "DispatchTime" << " "
 					<< "PickUpTime" << " " << "ArrivalTime" << " "
 					<< "TripDistance"
 					<< std::endl;
-		} else {
+		}
+		else
+		{
 			Print() << "Unable to open out_tripStat.txt" << std::endl;
 		}
 
-		test=1;
+		test = 1;
 	}
 
-	if(test==1)
+	if (test == 1)
 	{
 		//reading the file of time, destination and origin
 		std::vector<string> origin;
@@ -401,24 +421,26 @@ Entity::UpdateStatus AMODController::frame_tick(timeslice now)
 
 		readDemandFile(tripID, current_time, origin, destination);
 		//mtx_.lock();
-		if (currTime % vehStatOutputModulus == 0) {
+		if (currTime % vehStatOutputModulus == 0)
+		{
 			//saveVehStat();
 		}
 		//mtx_.unlock();
 		assignVhsFast(tripID, origin, destination, current_time);
 
-		if (currTime % rebalancingModulus == 0) {
+		if (currTime % rebalancingModulus == 0)
+		{
 			//rebalanceVhs();
 		}
 
 		//output the current running time
 		Print() << "-----------------------------\n";
-		Print() << "Current Simulated Time: " << ((double) currTime)/1000.0 << " s, "
-				<< "[ " << ((double) currTime)/(60000.0) << " mins ]"
+		Print() << "Current Simulated Time: " << ((double) currTime) / 1000.0 << " s, "
+				<< "[ " << ((double) currTime) / (60000.0) << " mins ]"
 				<< std::endl;
-		int elapsedTime = (int) (std::time(NULL) -  startRunTime);
+		int elapsedTime = (int) (std::time(NULL) - startRunTime);
 		Print() << "Elapsed Running Time  : " << elapsedTime << " s, "
-				<< "[ " << ((double) elapsedTime)/(60.0) << " mins ]"
+				<< "[ " << ((double) elapsedTime) / (60.0) << " mins ]"
 				<< std::endl;
 		Print() << "-----------------------------\n";
 		test = 1;
@@ -432,10 +454,10 @@ void AMODController::populateCarParks(int numberOfVhsAtNode = 1000)
 	//carpark population
 	//std::vector<std::string> carParkIds;
 
-	while(!carParkFile.eof())
+	while (!carParkFile.eof())
 	{
 		std::string line;
-		std::getline (carParkFile,line);
+		std::getline(carParkFile, line);
 		if (line == "") break;
 
 		carParkIds.push_back(line);
@@ -443,14 +465,14 @@ void AMODController::populateCarParks(int numberOfVhsAtNode = 1000)
 
 	int k = 0;
 
-	for(int j = 0; j<carParkIds.size(); j++)
+	for (int j = 0; j < carParkIds.size(); j++)
 	{
-		for(int i = 0; i<numberOfVhsAtNode; i++)
+		for (int i = 0; i < numberOfVhsAtNode; i++)
 		{
 			std::string vhId = "";
-			string uId;          // string which will contain the result
-			ostringstream convert;   // stream used for the conversion
-			convert << k;      // insert the textual representation of 'Number' in the characters in the stream
+			string uId; // string which will contain the result
+			ostringstream convert; // stream used for the conversion
+			convert << k; // insert the textual representation of 'Number' in the characters in the stream
 			k++;
 			uId = convert.str(); // set 'Result' to the contents of the stream
 			vhId += uId;
@@ -458,7 +480,7 @@ void AMODController::populateCarParks(int numberOfVhsAtNode = 1000)
 
 			std::string carParkId = carParkIds[j];
 			Print() << "Inserting to the carpark: " << carParkId << std::endl;
-			addNewVh2CarPark(vhId,carParkId);
+			addNewVh2CarPark(vhId, carParkId);
 		}
 	}
 }
@@ -473,13 +495,14 @@ void AMODController::readDemandFile(vector<string>& tripID, int current_time, ve
 
 	if (myFile.is_open())
 	{
-		while(!myFile.eof())
+		while (!myFile.eof())
 		{
-			if(lastReadLine =="")
+			if (lastReadLine == "")
 			{
-				std::getline (myFile,line);
+				std::getline(myFile, line);
 			}
-			else{
+			else
+			{
 				line = lastReadLine;
 				lastReadLine = "";
 			}
@@ -490,83 +513,89 @@ void AMODController::readDemandFile(vector<string>& tripID, int current_time, ve
 			ss >> tripID_ >> time_ >> origin_ >> destination_;
 			int time = atoi(time_.c_str());
 
-			if ((time*1000) <= current_time)
+			if ((time * 1000) <= current_time)
 			{
 				tripID.push_back(tripID_);
 				origin.push_back(origin_);
 				destination.push_back(destination_);
 				lastReadLine = "";
-			} else {
+			}
+			else
+			{
 				lastReadLine = line;
 				break;
 			}
-
 		}
 	}
-	else {
+	else
+	{
 		Print() << "Unable to open file" << endl;
 	}
 }
 
-void AMODController::addNewVh2CarPark(std::string& id,std::string& nodeId)
+void AMODController::addNewVh2CarPark(std::string& id, std::string& nodeId)
 {
 	// find node
 	const Node* node = getNodeFrmPool(nodeId);
 
-	if(node == NULL){ throw std::runtime_error("node not found"); }
+	if (node == NULL)
+	{
+		throw std::runtime_error("node not found");
+	}
 
 	int startTime = currTime;
 
 	// create person
 	DailyTime start(ConfigManager::GetInstance().FullConfig().simStartTime().getValue() + startTime);
-	sim_mob::Trip* tc = new sim_mob::Trip("-1", "Trip", 0, -1, start, DailyTime(), "", node, "node", node, "node");
-	sim_mob::SubTrip subTrip("", "Trip", 0, 1, start, DailyTime(), node, "node", node, "node", "Car");
+	Trip* tc = new Trip("-1", "Trip", 0, -1, start, DailyTime(), "", node, "node", node, "node");
+	SubTrip subTrip("", "Trip", 0, 1, start, DailyTime(), node, "node", node, "node", "Car");
 	tc->addSubTrip(subTrip);
-	std::vector<sim_mob::TripChainItem*>  tcs;
+	std::vector<TripChainItem*> tcs;
 	tcs.push_back(tc);
 
-	sim_mob::Person* person = new sim_mob::Person("AMOD_TripChain", ConfigManager::GetInstance().FullConfig().mutexStategy(), tcs);
-	if (!person) {
+	Person_ST* person = new Person_ST("AMOD_TripChain", ConfigManager::GetInstance().FullConfig().mutexStategy(), tcs);
+	if (!person)
+	{
 		Print() << "Cannot create person!" << std::endl;
 		return;
 	}
 
 	person->parentEntity = this;
 	person->amodId = id;
-	person->parkingNode = nodeId;
+	//person->parkingNode = nodeId;
 
 	// add to virtual car park
 	carParksMutex.lock();
 	AMODVirtualCarParkItor it = virtualCarPark.find(nodeId);
-	if(it!=virtualCarPark.end())
+	if (it != virtualCarPark.end())
 	{
 		// access this car park before
-		boost::unordered_map<std::string,Person*> cars = it->second;
-		cars.insert(std::make_pair(id,person));
+		boost::unordered_map<std::string, Person_ST*> cars = it->second;
+		cars.insert(std::make_pair(id, person));
 
 		it->second = cars;
 	}
 	else
 	{
-		boost::unordered_map<std::string,Person*> cars = boost::unordered_map<std::string,Person*>();
-		cars.insert(std::make_pair(id,person));
-		virtualCarPark.insert(std::make_pair(nodeId,cars));
+		boost::unordered_map<std::string, Person_ST*> cars = boost::unordered_map<std::string, Person_ST*>();
+		cars.insert(std::make_pair(id, person));
+		virtualCarPark.insert(std::make_pair(nodeId, cars));
 	}
 
 	//insert this car into the global map of all cars in car parks
-	vhInCarPark.insert( std::make_pair(id, person) );
+	vhInCarPark.insert(std::make_pair(id, person));
 	carParksMutex.unlock();
 
 	allAMODCarsMutex.lock();
-	allAMODCars[id]= person; //add this car to the global map of all AMOD cars (for bookkeeping)
+	allAMODCars[id] = person; //add this car to the global map of all AMOD cars (for bookkeeping)
 	nFreeCars++;
 	allAMODCarsMutex.unlock();
 
-	person->currStatus = Person::IN_CAR_PARK;
+	//person->currStatus = Person_ST::IN_CAR_PARK;
 }
 
-
-bool AMODController::getBestFreeVehicle(std::string originId, sim_mob::Person **vh, std::string &carParkIdDeparture, std::vector < sim_mob::WayPoint > &leastCostPath, double &bestTravelCost) {
+bool AMODController::getBestFreeVehicle(std::string originId, Person_ST **vh, std::string &carParkIdDeparture, std::vector < WayPoint > &leastCostPath, double &bestTravelCost)
+{
 
 	// initialize our vars
 	AMODVirtualCarParkItor iter;
@@ -578,16 +607,19 @@ bool AMODController::getBestFreeVehicle(std::string originId, sim_mob::Person **
 
 	//find the closest car park
 	carParksMutex.lock();
-	std::vector < std::vector < sim_mob::WayPoint > > carParksToOriginWaypoints;
-	for (iter=virtualCarPark.begin(); iter != virtualCarPark.end(); iter++) {
-		boost::unordered_map<std::string,Person*> cars = iter->second;
-		if (!cars.empty()) {
+	std::vector < std::vector < WayPoint > > carParksToOriginWaypoints;
+	for (iter = virtualCarPark.begin(); iter != virtualCarPark.end(); iter++)
+	{
+		boost::unordered_map<std::string, Person_ST*> cars = iter->second;
+		if (!cars.empty())
+		{
 			//this car park has cars, find distance to node
 			double travelCost;
 
-			vector < sim_mob::WayPoint > wps;
+			vector < WayPoint > wps;
 
-			if (iter->first == originId) {
+			if (iter->first == originId)
+			{
 				travelCost = 0; //we are at the same place
 				bestTravelCost = travelCost;
 				bestCarParkIter = iter;
@@ -596,37 +628,47 @@ bool AMODController::getBestFreeVehicle(std::string originId, sim_mob::Person **
 				continue;
 			}
 
-			travelCost = getTravelTimePath(iter->first , originId, wps);
+			travelCost = getTravelTimePath(iter->first, originId, wps);
 
 			//if the travel cost is less than the best (or no car found yet), assign new best
-			if (wps.size() > 0) { //make sure it is a valid road segment path
-				if (freeCarFound) {
-					if (travelCost < bestTravelCost) {
+			if (wps.size() > 0)
+			{ //make sure it is a valid road segment path
+				if (freeCarFound)
+				{
+					if (travelCost < bestTravelCost)
+					{
 						bestTravelCost = travelCost;
 						bestCarParkIter = iter;
 						leastCostPath = wps;
 					}
-				} else {
+				}
+				else
+				{
 					bestTravelCost = travelCost;
 					bestCarParkIter = iter;
 					leastCostPath = wps;
 					freeCarFound = true;
 				}
 			}
-		} else {
+		}
+		else
+		{
 			//this car park is empty
 			continue;
 		}
 	}
 
 	// grab a vehicle from the car park, set the carParkId, way points and return
-	if (freeCarFound) {
+	if (freeCarFound)
+	{
 		carParkIdDeparture = bestCarParkIter->first;
-		boost::unordered_map<std::string,Person*> cars = bestCarParkIter->second;
-		boost::unordered_map<std::string,Person*>::iterator firstCarIt = cars.begin();
+		boost::unordered_map<std::string, Person_ST*> cars = bestCarParkIter->second;
+		boost::unordered_map<std::string, Person_ST*>::iterator firstCarIt = cars.begin();
 		freeCarFound = false;
-		for (firstCarIt = cars.begin(); firstCarIt != cars.end(); firstCarIt++) {
-			if (! firstCarIt->second->isToBeRemoved()) {
+		for (firstCarIt = cars.begin(); firstCarIt != cars.end(); firstCarIt++)
+		{
+			if (!firstCarIt->second->isToBeRemoved())
+			{
 				*vh = firstCarIt->second;
 				freeCarFound = true;
 				break;
@@ -637,27 +679,30 @@ bool AMODController::getBestFreeVehicle(std::string originId, sim_mob::Person **
 	return freeCarFound;
 }
 
-double AMODController::getTravelTimePath(std::string startNodeId, std::string endNodeId, vector < sim_mob::WayPoint > &leastCostPath) {
+double AMODController::getTravelTimePath(std::string startNodeId, std::string endNodeId, vector < WayPoint > &leastCostPath)
+{
 
-	const sim_mob::Node* startNode = nodePool.at(startNodeId);
-	const sim_mob::Node* endNode = nodePool.at(endNodeId);
+	const Node* startNode = nodePool.at(startNodeId);
+	const Node* endNode = nodePool.at(endNodeId);
 
 	std::vector<WayPoint> wp = getShortestPath(startNodeId, endNodeId);
 
-	for(int i=0;i<wp.size();++i)
+	for (int i = 0; i < wp.size(); ++i)
 	{
-		if(wp[i].type == WayPoint::ROAD_SEGMENT )
+		if (wp[i].type == WayPoint::ROAD_SEGMENT)
 		{
 			leastCostPath.push_back(wp[i]);
 		}
 	}
 
-	return calculateTravelTime( leastCostPath ); //return the travel cost of the path
+	return calculateTravelTime(leastCostPath); //return the travel cost of the path
 }
 
 
 //finds the nearest free vehicle and returns the carParkId where the vehicle was found and a pointer to the vehicle
-bool AMODController::findNearestFreeVehicle(std::string originId, std::map<std::string, sim_mob::Node* > &nodePool, std::string &carParkId, Person **vh) {
+
+bool AMODController::findNearestFreeVehicle(std::string originId, std::map<std::string, Node* > &nodePool, std::string &carParkId, Person_ST **vh)
+{
 	// get the origin node
 	Node *originNode = nodePool[originId];
 
@@ -668,16 +713,17 @@ bool AMODController::findNearestFreeVehicle(std::string originId, std::map<std::
 	std::vector< distPair > nodeDistances;
 
 	// loop through nodePool
-	typedef std::map<std::string, sim_mob::Node*>::iterator it_type;
-	for(it_type iterator = nodePool.begin(); iterator != nodePool.end(); iterator++) {
+	typedef std::map<std::string, Node*>::iterator it_type;
+	for (it_type iterator = nodePool.begin(); iterator != nodePool.end(); iterator++)
+	{
 		std::string nodeId = iterator->first;
 		Node *tempNode = iterator->second;
 
 		double tX = tempNode->getLocation().getX();
 		double tY = tempNode->getLocation().getY();
 
-		double dist = pow( tX - oX,2) + pow( tY - oY, 2);
-		nodeDistances.push_back( distPair(dist, nodeId) );
+		double dist = pow(tX - oX, 2) + pow(tY - oY, 2);
+		nodeDistances.push_back(distPair(dist, nodeId));
 	}
 	// sort the vector
 	std::sort(nodeDistances.begin(), nodeDistances.end(), boost::bind(&AMODController::distPairComparator, this, _1, _2));
@@ -685,12 +731,16 @@ bool AMODController::findNearestFreeVehicle(std::string originId, std::map<std::
 	// loop through the sorted distances and check for a free car in each node
 	*vh = NULL;
 	typedef std::vector< distPair >::iterator dt_type;
-	for (dt_type iterator = nodeDistances.begin(); iterator != nodeDistances.end(); iterator++) {
+	for (dt_type iterator = nodeDistances.begin(); iterator != nodeDistances.end(); iterator++)
+	{
 		carParkId = iterator->second;
 
-		if(!getVhFromCarPark( carParkId, &(*vh) )) {
+		if (!getVhFromCarPark(carParkId, &(*vh)))
+		{
 			continue;
-		} else {
+		}
+		else
+		{
 			return true;
 		}
 	}
@@ -698,25 +748,26 @@ bool AMODController::findNearestFreeVehicle(std::string originId, std::map<std::
 	return false;
 }
 
-bool AMODController::getVhFromCarPark(std::string& carParkId,Person** vh)
+bool AMODController::getVhFromCarPark(std::string& carParkId, Person_ST** vh)
 {
 	carParksMutex.lock();
 	AMODVirtualCarParkItor it = virtualCarPark.find(carParkId);
-	if(it==virtualCarPark.end()){
+	if (it == virtualCarPark.end())
+	{
 		carParksMutex.unlock();
 		return false;
 	}
 
-	boost::unordered_map<std::string,Person*> cars = it->second;
-	if(!cars.empty())
+	boost::unordered_map<std::string, Person_ST*> cars = it->second;
+	if (!cars.empty())
 	{
-		boost::unordered_map<std::string,Person*>::iterator firstCarIt = cars.begin();
+		boost::unordered_map<std::string, Person_ST*>::iterator firstCarIt = cars.begin();
 		*vh = firstCarIt->second;
 		cars.erase(firstCarIt);
 		it->second = cars;
 		Print() << "Cars size: " << cars.size() << std::endl;
-		vhInCarPark.erase( (*vh)->amodId );
-		(*vh)->currStatus = Person::ON_THE_ROAD;
+		vhInCarPark.erase((*vh)->amodId);
+		//(*vh)->currStatus = Person_ST::ON_THE_ROAD;
 		nFreeCars--;
 		carParksMutex.unlock();
 		return true;
@@ -725,29 +776,32 @@ bool AMODController::getVhFromCarPark(std::string& carParkId,Person** vh)
 	return false;
 }
 
-bool AMODController::removeVhFromCarPark(std::string& carParkId,Person** vh)
+bool AMODController::removeVhFromCarPark(std::string& carParkId, Person_ST** vh)
 {
-	if ((*vh)->isToBeRemoved()) {
+	if ((*vh)->isToBeRemoved())
+	{
 		return false;
 	}
 	carParksMutex.lock();
 	AMODVirtualCarParkItor it = virtualCarPark.find(carParkId);
-	if(it==virtualCarPark.end()){
+	if (it == virtualCarPark.end())
+	{
 		carParksMutex.unlock();
 		return false;
 	}
 
-	boost::unordered_map<std::string,Person*> cars = it->second;
-	if(!it->second.empty())
+	boost::unordered_map<std::string, Person_ST*> cars = it->second;
+	if (!it->second.empty())
 	{
-		if (cars.find((*vh)->amodId) == cars.end()) {
+		if (cars.find((*vh)->amodId) == cars.end())
+		{
 			carParksMutex.unlock();
 			return false;
 		}
 		cars.erase((*vh)->amodId);
 		it->second = cars;
-		vhInCarPark.erase( (*vh)->amodId );
-		(*vh)->currStatus = Person::ON_THE_ROAD;
+		vhInCarPark.erase((*vh)->amodId);
+		//(*vh)->currStatus = Person_ST::ON_THE_ROAD;
 		nFreeCars--;
 		carParksMutex.unlock();
 		return true;
@@ -756,32 +810,35 @@ bool AMODController::removeVhFromCarPark(std::string& carParkId,Person** vh)
 	return false;
 }
 
-
-void AMODController::mergeWayPoints(const std::vector<sim_mob::WayPoint>& carparkToOrigin, const std::vector<sim_mob::WayPoint> &originToDestination, std::vector<sim_mob::WayPoint>& mergedWP)
+void AMODController::mergeWayPoints(const std::vector<WayPoint>& carparkToOrigin, const std::vector<WayPoint> &originToDestination, std::vector<WayPoint>& mergedWP)
 {
-	for (int i=0; i<carparkToOrigin.size(); i++) {
-		if (carparkToOrigin[i].type == WayPoint::ROAD_SEGMENT ) {
+	for (int i = 0; i < carparkToOrigin.size(); i++)
+	{
+		if (carparkToOrigin[i].type == WayPoint::ROAD_SEGMENT)
+		{
 			mergedWP.push_back(carparkToOrigin[i]);
 		}
 	}
 
-	for (int i=0; i<originToDestination.size(); i++) {
-		if (originToDestination[i].type == WayPoint::ROAD_SEGMENT )  {
+	for (int i = 0; i < originToDestination.size(); i++)
+	{
+		if (originToDestination[i].type == WayPoint::ROAD_SEGMENT)
+		{
 			mergedWP.push_back(originToDestination[i]);
 		}
 	}
 }
 
-bool AMODController::dispatchVh(Person* vh)
+bool AMODController::dispatchVh(Person_ST* vh)
 {
 	this->currWorkerProvider->scheduleForBred(vh);
 }
 
-
-void AMODController::handleVHDestruction(Person *vh)
+void AMODController::handleVHDestruction(Person_ST *vh)
 {
 	//if a vehicle gets destroyed by Simmobility, we have to make sure we're not still assuming it exists.
-	if (vh->currStatus == Person::REPLACED) {
+	//if (vh->currStatus == Person_ST::REPLACED)
+	{
 		//we have already replaced this guy. don't bother doing anything.
 		return;
 	}
@@ -789,14 +846,18 @@ void AMODController::handleVHDestruction(Person *vh)
 	std::string amodId = vh->amodId;
 	Print() << vh->amodId << " is being destroyed." << std::endl;
 
-	boost::unordered_map<std::string,Person*>::iterator itr;
+	boost::unordered_map<std::string, Person_ST*>::iterator itr;
 	allAMODCarsMutex.lock();
 	itr = allAMODCars.find(amodId);
-	if (itr == allAMODCars.end()) {
+	if (itr == allAMODCars.end())
+	{
 		Print() << "Already removed" << std::endl;
 		return;
-	} else {
-		if (itr->second == vh) {
+	}
+	else
+	{
+		if (itr->second == vh)
+		{
 			//the vehicle is still in the AMODController, we have to remove it and reinsert it into a location
 			AmodTrip atrip = vhTripMap[vh];
 			atrip.arrivalTime = currTime;
@@ -812,16 +873,19 @@ void AMODController::handleVHDestruction(Person *vh)
 			vhTripMap.erase(vh);
 			vhTripMapMutex.unlock();
 
-			vh->currStatus = Person::REPLACED;
-		} else {
+			//vh->currStatus = Person_ST::REPLACED;
+		}
+		else
+		{
 			//all is good, do nothing for now
 		}
 	}
 }
 
-void AMODController::processArrival(Person *vh)
+void AMODController::processArrival(Person_ST *vh)
 {
-	if (vhTripMap.find(vh) == vhTripMap.end()) {
+	if (vhTripMap.find(vh) == vhTripMap.end())
+	{
 		//this is not an AMOD vehicle
 		return;
 	}
@@ -843,56 +907,62 @@ void AMODController::processArrival(Person *vh)
 	vhOnTheRoad.erase(vh->amodId);
 	allAMODCarsMutex.unlock();
 
-	addNewVh2CarPark(vhID,atrip.destination);
+	addNewVh2CarPark(vhID, atrip.destination);
 	//mtx_.unlock();
 }
 
-void AMODController::handleVHPickup(Person *vh) {
+void AMODController::handleVHPickup(Person_ST *vh)
+{
 	TripMapIterator itr = vhTripMap.find(vh);
-	if (itr == vhTripMap.end()) {
+	if (itr == vhTripMap.end())
+	{
 		//this is not an AMOD vehicle
 		return;
 	}
 	//if not already picked up, then set the picked up time
-	if (!(itr->second.pickedUp)) {
+	if (!(itr->second.pickedUp))
+	{
 		itr->second.pickedUp = true;
 		itr->second.pickUpTime = currTime;
 	}
 }
 
-void AMODController::handleVHArrive(Person* vh)
+void AMODController::handleVHArrive(Person_ST* vh)
 {
 	processArrival(vh);
 }
 
-void AMODController::rerouteWithPath(Person* vh,std::vector<sim_mob::WayPoint>& path)
+void AMODController::rerouteWithPath(Person_ST* vh, std::vector<WayPoint>& path)
 {
-	AMODRerouteEventArgs arg(NULL,NULL,path);
-	eventPub.publish(sim_mob::event::EVT_AMOD_REROUTING_REQUEST_WITH_PATH, vh, arg);
+	AMODRerouteEventArgs arg(NULL, NULL, path);
+	eventPub.publish(event::EVT_AMOD_REROUTING_REQUEST_WITH_PATH, vh, arg);
 }
 
-void AMODController::rerouteWithOriDest(Person* vh,Node* snode,Node* enode)
+void AMODController::rerouteWithOriDest(Person_ST* vh, Node* snode, Node* enode)
 {
-	AMODRerouteEventArgs arg(snode,enode,std::vector<WayPoint>());
-	eventPub.publish(sim_mob::event::EVT_AMOD_REROUTING_REQUEST_WITH_ORI_DEST, vh, arg);
+	AMODRerouteEventArgs arg(snode, enode, std::vector<WayPoint>());
+	eventPub.publish(event::EVT_AMOD_REROUTING_REQUEST_WITH_ORI_DEST, vh, arg);
 }
 
-bool AMODController::setPath2Vh(Person* vh,std::vector<WayPoint>& path)
+bool AMODController::setPath2Vh(Person_ST* vh, std::vector<WayPoint>& path)
 {
 	vh->setPath(path);
 }
 
 //TODO: use uniform method for storing and retrieving travel times - Vahid
 #if 0
-void AMODController::setRdSegTravelTimes(Person* ag, double rdSegExitTime) {
 
-	std::map<double, Person::RdSegTravelStat>::const_iterator it =
+void AMODController::setRdSegTravelTimes(Person_ST* ag, double rdSegExitTime)
+{
+
+	std::map<double, Person_ST::RdSegTravelStat>::const_iterator it =
 			ag->getRdSegTravelStatsMap().find(rdSegExitTime);
 
 	ofstream out_TT;
 	out_TT.open("out_TT.txt", fstream::out | fstream::app);
 
-	if (it != ag->getRdSegTravelStatsMap().end()){
+	if (it != ag->getRdSegTravelStatsMap().end())
+	{
 		double travelTime = (it->first) - (it->second).entryTime;
 		std::map<const RoadSegment*, Conflux::RdSegTravelTimes>::iterator itTT = RdSegTravelTimesMap.find((it->second).rs);
 		if (itTT != RdSegTravelTimesMap.end())
@@ -900,7 +970,8 @@ void AMODController::setRdSegTravelTimes(Person* ag, double rdSegExitTime) {
 			itTT->second.agCnt = itTT->second.agCnt + 1;
 			itTT->second.travelTimeSum = itTT->second.travelTimeSum + travelTime;
 		}
-		else{
+		else
+		{
 			Conflux::RdSegTravelTimes tTimes(travelTime, 1);
 			RdSegTravelTimesMap.insert(std::make_pair(ag->getCurrSegment(), tTimes));
 		}
@@ -909,12 +980,14 @@ void AMODController::setRdSegTravelTimes(Person* ag, double rdSegExitTime) {
 		const RoadSegment *rs = w.roadSegment_;
 		std::string segmentID = rs->originalDB_ID.getLogItem();
 
-		Print() << "Segment ID: "<< segmentID << " ,Segment travel time: " << rdSegExitTime << std::endl;
+		Print() << "Segment ID: " << segmentID << " ,Segment travel time: " << rdSegExitTime << std::endl;
 
-		if (out_TT.is_open()) {
+		if (out_TT.is_open())
+		{
 			out_TT << "Segment ID: " << segmentID << "Segment travel time: " << rdSegExitTime << std::endl;
 		}
-		else{
+		else
+		{
 			Print() << "Unable to open file\n";
 		}
 	}
@@ -924,32 +997,37 @@ void AMODController::setRdSegTravelTimes(Person* ag, double rdSegExitTime) {
 void AMODController::updateTravelTimeGraph()
 {
 	const unsigned int msPerFrame = ConfigManager::GetInstance().FullConfig().baseGranMS();
-	timeslice currTime = timeslice(currTick.frame(), currTick.frame()*msPerFrame);
+	timeslice currTime = timeslice(currTick.frame(), currTick.frame() * msPerFrame);
 	insertTravelTime2TmpTable(currTime, RdSegTravelTimesMap);
 }
 
-bool AMODController::insertTravelTime2TmpTable(timeslice frameNumber, std::map<const RoadSegment*, sim_mob::Conflux::RdSegTravelTimes>& rdSegTravelTimesMap)
+bool AMODController::insertTravelTime2TmpTable(timeslice frameNumber, std::map<const RoadSegment*, Conflux::RdSegTravelTimes>& rdSegTravelTimesMap)
 {
-	bool res=false;
-	if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
-		//sim_mob::Link_travel_time& data
-		std::map<const RoadSegment*, sim_mob::Conflux::RdSegTravelTimes>::const_iterator it = rdSegTravelTimesMap.begin();
-		for (; it != rdSegTravelTimesMap.end(); it++){
+	bool res = false;
+	if (ConfigManager::GetInstance().FullConfig().PathSetMode())
+	{
+		//Link_travel_time& data
+		std::map<const RoadSegment*, Conflux::RdSegTravelTimes>::const_iterator it = rdSegTravelTimesMap.begin();
+		for (; it != rdSegTravelTimesMap.end(); it++)
+		{
 			LinkTravelTime tt;
 			DailyTime simStart = ConfigManager::GetInstance().FullConfig().simStartTime();
 			std::string aimsun_id = (*it).first->originalDB_ID.getLogItem();
 			std::string seg_id = getNumberFromAimsunId(aimsun_id);
-			try {
+			try
+			{
 				tt.linkId = boost::lexical_cast<int>(seg_id);
-			} catch( boost::bad_lexical_cast const& ) {
+			}
+			catch (boost::bad_lexical_cast const&)
+			{
 				Print() << "Error: seg_id string was not valid" << std::endl;
 				tt.linkId = -1;
 			}
 
-			tt.startTime = (simStart + sim_mob::DailyTime(frameNumber.ms())).getStrRepr();
+			tt.startTime = (simStart + DailyTime(frameNumber.ms())).getStrRepr();
 			double frameLength = ConfigManager::GetInstance().FullConfig().baseGranMS();
-			tt.endTime = (simStart + sim_mob::DailyTime(frameNumber.ms() + frameLength)).getStrRepr();
-			tt.travelTime = (*it).second.travelTimeSum/(*it).second.agCnt;
+			tt.endTime = (simStart + DailyTime(frameNumber.ms() + frameLength)).getStrRepr();
+			tt.travelTime = (*it).second.travelTimeSum / (*it).second.agCnt;
 
 			PathSetManager::getInstance()->insertTravelTime2TmpTable(tt);
 		}
@@ -958,7 +1036,6 @@ bool AMODController::insertTravelTime2TmpTable(timeslice frameNumber, std::map<c
 }
 #endif
 
-
 void AMODController::testTravelTimePath()
 {/*
 	std::string destNodeId="61688";
@@ -966,13 +1043,13 @@ void AMODController::testTravelTimePath()
 	const Node *startNode = nodePool.at(carParkId);
 	const Node *endNode = nodePool.at(destNodeId);
 
-	std::vector<const sim_mob::RoadSegment*> blacklist = std::vector<const sim_mob::RoadSegment*>();
+	std::vector<const RoadSegment*> blacklist = std::vector<const RoadSegment*>();
 
 	std::vector<WayPoint> wp = stdir->SearchShortestDrivingTimePath(
-			stdir->DrivingTimeVertex(*startNode,sim_mob::Default),
-			stdir->DrivingTimeVertex(*endNode,sim_mob::Default),
+			stdir->DrivingTimeVertex(*startNode,Default),
+			stdir->DrivingTimeVertex(*endNode,Default),
 			blacklist,
-			sim_mob::Default);
+			Default);
 	for(int i=0;i<wp.size();++i)
 	{
 		if(wp[i].type == WayPoint::ROAD_SEGMENT)
@@ -983,34 +1060,38 @@ void AMODController::testTravelTimePath()
 	}*/
 }
 
-void AMODController::handleAMODEvent(sim_mob::event::EventId id,
-		sim_mob::event::Context ctxId,
-		sim_mob::event::EventPublisher* sender,
-		const AMOD::AMODEventArgs& args)
+void AMODController::handleAMODEvent(event::EventId id,
+									 event::Context ctxId,
+									 event::EventPublisher* sender,
+									 const AMOD::AMODEventArgs& args)
 {
-	if(id == event::EVT_AMOD_ARRIVING_TO_DEST)
+	if (id == event::EVT_AMOD_ARRIVING_TO_DEST)
 	{
 		//TODO
 	}
 }
 
-
-double AMODController::calculateTravelTime(std::vector < sim_mob::WayPoint > &wPs ) {
+double AMODController::calculateTravelTime(std::vector < WayPoint > &wPs)
+{
 	// loop through all way points, get time for each segment and add to total
 	double travelTime = 0;
-	std::vector < sim_mob::WayPoint >::iterator wPIter;
-	for (wPIter = wPs.begin(); wPIter != wPs.end(); wPIter++) {
+	std::vector < WayPoint >::iterator wPIter;
+	for (wPIter = wPs.begin(); wPIter != wPs.end(); wPIter++)
+	{
 		// get segment and get travel time
-		if ((*wPIter).type == WayPoint::ROAD_SEGMENT) {
+		if ((*wPIter).type == WayPoint::ROAD_SEGMENT)
+		{
 			const RoadSegment *rs = (*wPIter).roadSegment;
-			travelTime += rs->getLength()/(rs->getMaxSpeed()*27.778);
+			travelTime += rs->getLength() / (rs->getMaxSpeed()*27.778);
 		}
 	}
 	return travelTime;
 }
 
-void AMODController::saveTripStat(AmodTrip &a) {
-	if (out_tripStat) {
+void AMODController::saveTripStat(AmodTrip &a)
+{
+	if (out_tripStat)
+	{
 		if (!(out_tripStat.is_open()))
 			return;
 
@@ -1029,25 +1110,29 @@ void AMODController::saveTripStat(AmodTrip &a) {
 
 void AMODController::unregisteredChild(Entity* child)
 {
-	Person *person = dynamic_cast<Person*>(child);
-	if(person){
+	Person_ST *person = dynamic_cast<Person_ST*> (child);
+	if (person)
+	{
 		TripMapIterator itr = vhTripMap.find(person);
-		if(itr!=vhTripMap.end()){
+		if (itr != vhTripMap.end())
+		{
 			handleVHDestruction(person);
 		}
 	}
 }
 
-const Node* AMODController::getNodeFrmPool(const std::string& nodeId) {
-	std::map<std::string,const sim_mob::Node*>::iterator itNode = nodePool.find(nodeId);
+const Node* AMODController::getNodeFrmPool(const std::string& nodeId)
+{
+	std::map<std::string, const Node*>::iterator itNode = nodePool.find(nodeId);
 	const Node* result = nullptr;
-	if (itNode != nodePool.end()) {
+	if (itNode != nodePool.end())
+	{
 		result = itNode->second;
 	}
 	return result;
 }
 
-void AMODController::blacklistForbiddenSegments(const RoadSegment* lastWPrs, const Node* startNode, std::vector<const sim_mob::RoadSegment*> &blacklist)
+void AMODController::blacklistForbiddenSegments(const RoadSegment* lastWPrs, const Node* startNode, std::vector<const RoadSegment*> &blacklist)
 {
 	/*
 	//check if multi node
@@ -1055,8 +1140,8 @@ void AMODController::blacklistForbiddenSegments(const RoadSegment* lastWPrs, con
 	if(currEndNode) {
 		// it is multi node
 		//find all segments you can go from the node
-		const std::set<sim_mob::RoadSegment*> allSeg = currEndNode->getRoadSegments();
-		std::set<sim_mob::RoadSegment*>::const_iterator it;
+		const std::set<RoadSegment*> allSeg = currEndNode->getRoadSegments();
+		std::set<RoadSegment*>::const_iterator it;
 		for(it = allSeg.begin(); it!= allSeg.end(); ++it){
 			RoadSegment* rs = *it;
 			if(rs != lastWPrs){
@@ -1070,7 +1155,7 @@ void AMODController::blacklistForbiddenSegments(const RoadSegment* lastWPrs, con
 	const UniNode* currEndNodeUni = dynamic_cast<const UniNode*>(startNode);
 	if(currEndNodeUni){
 		//find all segments you can go from the node
-		const std::vector<const sim_mob::RoadSegment*>& allSeg = currEndNodeUni->getRoadSegments();
+		const std::vector<const RoadSegment*>& allSeg = currEndNodeUni->getRoadSegments();
 
 		for(int i=0;i<allSeg.size();++i){
 			const RoadSegment* rs = allSeg[i];
@@ -1085,138 +1170,142 @@ void AMODController::blacklistForbiddenSegments(const RoadSegment* lastWPrs, con
 //			std::cout << std::endl;
 		}
 	}
-	*/
+	 */
 }
 
 // trip from node to carpark
-void AMODController::findNearestCarPark(std::string& destinationNode, const RoadSegment* lastWPrs, std::vector<std::string>& AllCarParks, std::string &carParkIdArrival, vector<const sim_mob::RoadSegment*> &blacklist)
+
+void AMODController::findNearestCarPark(std::string& destinationNode, const RoadSegment* lastWPrs, std::vector<std::string>& AllCarParks, std::string &carParkIdArrival, vector<const RoadSegment*> &blacklist)
 {
-/*
-	// calculate sp to all carParks and choose the nearest carpark
-	string carPark_temp;
-	vector <WayPoint> wp_temp;
-	double shortestDistance=9999999999;
+	/*
+		// calculate sp to all carParks and choose the nearest carpark
+		string carPark_temp;
+		vector <WayPoint> wp_temp;
+		double shortestDistance=9999999999;
 
-	for (int ii = 0; ii < AllCarParks.size(); ii++){
-		carPark_temp = AllCarParks[ii];
-		if(destinationNode==carPark_temp){
-			carParkIdArrival = AllCarParks[ii];
-			shortestDistance = 0.0;
-			break;
-
-		}else{
-			// find shortest path to the destinationNode and calculate the distance
-			//get blacklist
-			//get the second last node as a new start node for the second part of the trip
-			const Node* startNode = lastWPrs->getStart();
-			//blacklist all segments coming from a given node except of one segment which is called StopPointRS, other segments are added to the blacklist
-			blacklistForbiddenSegments(lastWPrs, startNode, blacklist);
-			//calculate sp with blacklist
-			std::string s1 = startNode->originalDB_ID.getLogItem();
-			string startNodeId = getNumberFromAimsunId(s1);
-
-			wp_temp = getShortestPathWBlacklist(startNodeId, carPark_temp, blacklist);
-
-			// distance of the path
-			WayPoint iterWP;
-			double tripDistance = 0;
-			for (int j = 0; j< wp_temp.size(); j++){
-				iterWP = wp_temp[j];
-				const RoadSegment *rs = iterWP.roadSegment_;
-				tripDistance += wp_temp[j].roadSegment_->length;
-			}
-			// if the current distance is shorter than the previous, then carParkIdArrival = AllCarParks[ii];
-			if (tripDistance < shortestDistance){
-				shortestDistance = tripDistance;
+		for (int ii = 0; ii < AllCarParks.size(); ii++){
+			carPark_temp = AllCarParks[ii];
+			if(destinationNode==carPark_temp){
 				carParkIdArrival = AllCarParks[ii];
+				shortestDistance = 0.0;
+				break;
+
+			}else{
+				// find shortest path to the destinationNode and calculate the distance
+				//get blacklist
+				//get the second last node as a new start node for the second part of the trip
+				const Node* startNode = lastWPrs->getStart();
+				//blacklist all segments coming from a given node except of one segment which is called StopPointRS, other segments are added to the blacklist
+				blacklistForbiddenSegments(lastWPrs, startNode, blacklist);
+				//calculate sp with blacklist
+				std::string s1 = startNode->originalDB_ID.getLogItem();
+				string startNodeId = getNumberFromAimsunId(s1);
+
+				wp_temp = getShortestPathWBlacklist(startNodeId, carPark_temp, blacklist);
+
+				// distance of the path
+				WayPoint iterWP;
+				double tripDistance = 0;
+				for (int j = 0; j< wp_temp.size(); j++){
+					iterWP = wp_temp[j];
+					const RoadSegment *rs = iterWP.roadSegment_;
+					tripDistance += wp_temp[j].roadSegment_->length;
+				}
+				// if the current distance is shorter than the previous, then carParkIdArrival = AllCarParks[ii];
+				if (tripDistance < shortestDistance){
+					shortestDistance = tripDistance;
+					carParkIdArrival = AllCarParks[ii];
+				}
 			}
 		}
-	}
-*/
+	 */
 }
 
 // trip from carpark to node
-void AMODController::findNearestCarParkToNode(std::string& originNode, const RoadSegment* firstWPrs, std::vector<std::string>& AllCarParks, std::string &carParkIdArrival,  vector<const sim_mob::RoadSegment*> &blacklist)
+
+void AMODController::findNearestCarParkToNode(std::string& originNode, const RoadSegment* firstWPrs, std::vector<std::string>& AllCarParks, std::string &carParkIdArrival, vector<const RoadSegment*> &blacklist)
 {
-/*	
-	// calculate sp to all carParks and choose the nearest carpark
-	string carPark_temp;
-	vector <WayPoint> wp_temp;
-	double shortestDistance=9999999999;
+	/*	
+		// calculate sp to all carParks and choose the nearest carpark
+		string carPark_temp;
+		vector <WayPoint> wp_temp;
+		double shortestDistance=9999999999;
 
-	for (int ii = 0; ii < AllCarParks.size(); ii++){
-		carPark_temp = AllCarParks[ii];
-		if(originNode==carPark_temp){
-			carParkIdArrival = AllCarParks[ii];
-			shortestDistance = 0.0;
-			break;
-
-		}else{
-
-			const Node* endNode = firstWPrs->getEnd();
-			vector<const sim_mob::RoadSegment*> blacklist;
-			blacklistForbiddenSegments(firstWPrs, endNode, blacklist);
-
-			//calculate sp with blacklist
-			std::string s1 = endNode->originalDB_ID.getLogItem();
-			string endNodeId = getNumberFromAimsunId(s1);
-
-			wp_temp = getShortestPathWBlacklist(carPark_temp, endNodeId, blacklist);
-
-			// distance of the path
-			WayPoint iterWP;
-			double tripDistance = 0;
-			//std::cout << "Length of segments: ";
-			for (int j = 0; j< wp_temp.size(); j++){
-				iterWP = wp_temp[j];
-				const RoadSegment *rs = iterWP.roadSegment;
-				tripDistance += wp_temp[j].roadSegment_->length;
-			}
-			// if the current distance is shorter than the previous, then carParkIdArrival = AllCarParks[ii];
-			if (tripDistance < shortestDistance){
-				shortestDistance = tripDistance;
+		for (int ii = 0; ii < AllCarParks.size(); ii++){
+			carPark_temp = AllCarParks[ii];
+			if(originNode==carPark_temp){
 				carParkIdArrival = AllCarParks[ii];
+				shortestDistance = 0.0;
+				break;
+
+			}else{
+
+				const Node* endNode = firstWPrs->getEnd();
+				vector<const RoadSegment*> blacklist;
+				blacklistForbiddenSegments(firstWPrs, endNode, blacklist);
+
+				//calculate sp with blacklist
+				std::string s1 = endNode->originalDB_ID.getLogItem();
+				string endNodeId = getNumberFromAimsunId(s1);
+
+				wp_temp = getShortestPathWBlacklist(carPark_temp, endNodeId, blacklist);
+
+				// distance of the path
+				WayPoint iterWP;
+				double tripDistance = 0;
+				//std::cout << "Length of segments: ";
+				for (int j = 0; j< wp_temp.size(); j++){
+					iterWP = wp_temp[j];
+					const RoadSegment *rs = iterWP.roadSegment;
+					tripDistance += wp_temp[j].roadSegment_->length;
+				}
+				// if the current distance is shorter than the previous, then carParkIdArrival = AllCarParks[ii];
+				if (tripDistance < shortestDistance){
+					shortestDistance = tripDistance;
+					carParkIdArrival = AllCarParks[ii];
+				}
 			}
 		}
-	}
-*/
+	 */
 }
 
-void AMODController::calculateThePath(std::vector<WayPoint>& wp1, std::string& toNode, vector<const sim_mob::RoadSegment*> blacklist, std::string& pickUpSegmentStr, const RoadSegment* &StopPointRS, std::vector < sim_mob::WayPoint > &routeWP)
+void AMODController::calculateThePath(std::vector<WayPoint>& wp1, std::string& toNode, vector<const RoadSegment*> blacklist, std::string& pickUpSegmentStr, const RoadSegment* &StopPointRS, std::vector < WayPoint > &routeWP)
 {
-/*
-	//get the last WayPoint from the wp1
-	WayPoint lastWP = wp1[wp1.size()-1];
-	const RoadSegment *lastWPrs = lastWP.roadSegment_;
-	pickUpSegmentStr = lastWPrs->originalDB_ID.getLogItem();
-	StopPointRS = lastWPrs; //this is the segment where picking up f the passenger will occur
-	//erase the last WayPoint from the wp1
-	wp1.pop_back();
-	//get the second last node as a new start node for the second part of the trip
-	const Node* startNode = lastWPrs->getStart();
-	//blacklist all segments coming from a given node except of one segment which is called StopPointRS, other segments are added to the blacklist
-	blacklistForbiddenSegments(lastWPrs, startNode, blacklist);
-	//calculate sp with blacklist
-	std::string s1 = startNode->originalDB_ID.getLogItem();
-	string startNodeId = getNumberFromAimsunId(s1);
+	/*
+		//get the last WayPoint from the wp1
+		WayPoint lastWP = wp1[wp1.size()-1];
+		const RoadSegment *lastWPrs = lastWP.roadSegment_;
+		pickUpSegmentStr = lastWPrs->originalDB_ID.getLogItem();
+		StopPointRS = lastWPrs; //this is the segment where picking up f the passenger will occur
+		//erase the last WayPoint from the wp1
+		wp1.pop_back();
+		//get the second last node as a new start node for the second part of the trip
+		const Node* startNode = lastWPrs->getStart();
+		//blacklist all segments coming from a given node except of one segment which is called StopPointRS, other segments are added to the blacklist
+		blacklistForbiddenSegments(lastWPrs, startNode, blacklist);
+		//calculate sp with blacklist
+		std::string s1 = startNode->originalDB_ID.getLogItem();
+		string startNodeId = getNumberFromAimsunId(s1);
 
-	std::vector<WayPoint> wpToOrigin = getShortestPathWBlacklist(startNodeId, toNode, blacklist);
+		std::vector<WayPoint> wpToOrigin = getShortestPathWBlacklist(startNodeId, toNode, blacklist);
 
-	//if(wpToOrigin.size() == 0){
-	//	continue;
-	//}
-	//merge wayPoints temp
-	mergeWayPoints(wp1, wpToOrigin, routeWP);
-*/
+		//if(wpToOrigin.size() == 0){
+		//	continue;
+		//}
+		//merge wayPoints temp
+		mergeWayPoints(wp1, wpToOrigin, routeWP);
+	 */
 }
 
 void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector<std::string>& origin, std::vector<std::string>& destination, int currTime)
 {
-	if (out_demandStat.is_open()) {
-		std::vector < Person * > justDispatched;
+	if (out_demandStat.is_open())
+	{
+		std::vector < Person_ST * > justDispatched;
 
 		//add origin and destination to complete set
-		for (int i = 0; i < origin.size(); i++){
+		for (int i = 0; i < origin.size(); i++)
+		{
 			AmodTrip atrip;
 			atrip.tripID = tripID[i];
 			atrip.origin = origin[i];
@@ -1225,11 +1314,15 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 
 			//check if there is a route from origin to destination
 			std::vector < WayPoint > wp1 = getShortestPath(origin[i],
-					destination[i]);
-			if (wp1.size() == 0) {
-				if (origin[i] == destination[i]) {
+														destination[i]);
+			if (wp1.size() == 0)
+			{
+				if (origin[i] == destination[i])
+				{
 					out_demandStat << tripID[i] << " " << atrip.requestTime << " " << origin[i] << " " << destination[i] << " 0 " << "0\n"; //origin same as destination
-				} else {
+				}
+				else
+				{
 					out_demandStat << tripID[i] << " " << atrip.requestTime << " " << origin[i] << " " << destination[i] << " 0 " << "1\n"; //no path to destination
 				}
 				continue; //not possible to service this trip. no possible route.
@@ -1244,13 +1337,16 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 			// find first WayPoint from (origin to dest)
 			WayPoint firstWP = wp1[0];
 			const RoadSegment *firstWPrs = firstWP.roadSegment;
-			vector<const sim_mob::RoadSegment*> blacklist;
+			vector<const RoadSegment*> blacklist;
 			//find nearest carpark to the second node from the WP1
 			findNearestCarParkToNode(origin[i], firstWPrs, carParkIds, carParkIdDepartureTest, blacklist);
-			if (carParkIdDepartureTest != "") {
+			if (carParkIdDepartureTest != "")
+			{
 				validDemand = true;
 				// break;
-			} else {
+			}
+			else
+			{
 
 				out_demandStat << tripID[i] << " " << atrip.requestTime << " " << origin[i] << " " << destination[i] << " 0 " << "2" << std::endl;
 				continue;
@@ -1263,10 +1359,13 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 			const RoadSegment *lastWPrs = lastWP.roadSegment;
 			//find nearest carpark from the second last node from the WP1
 			findNearestCarPark(destination[i], lastWPrs, carParkIds, carParkIdArrivalTest, blacklist);
-			if (carParkIdArrivalTest != "") {
+			if (carParkIdArrivalTest != "")
+			{
 				validDemand = true;
 				//break;
-			} else {
+			}
+			else
+			{
 				out_demandStat << tripID[i] << " " << atrip.requestTime << " " << origin[i] << " " << destination[i] << " 0 " << "3" << std::endl;
 				continue;
 			}
@@ -1295,7 +1394,7 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 			//					//get the second last node as a new start node for the second part of the trip
 			//					const Node* startNode = lastWPrs->getStart();
 			//					//blacklist all segments coming from a given node except of one segment which is called StopPointRS, other segments are added to the blacklist
-			//					vector<const sim_mob::RoadSegment*> blacklist;
+			//					vector<const RoadSegment*> blacklist;
 			//					blacklistForbiddenSegments(lastWPrs, startNode, blacklist);
 			//					//calculate sp with blacklist
 			//					std::string s1 = startNode->originalDB_ID.getLogItem();
@@ -1324,7 +1423,7 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 			//					//get the second last node as a new start node for the second part of the trip
 			//					const Node* startNode = lastWPrs->getStart();
 			//					//blacklist all segments coming from a given node except of one segment which is called StopPointRS, other segments are added to the blacklist
-			//					vector<const sim_mob::RoadSegment*> blacklist;
+			//					vector<const RoadSegment*> blacklist;
 			//					blacklistForbiddenSegments(lastWPrs, startNode, blacklist);
 			//					//calculate sp with blacklist
 			//					std::string s1 = startNode->originalDB_ID.getLogItem();
@@ -1357,13 +1456,14 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 		std::cout << "AMOD Service Buffer Size: " << serviceBuffer.size() << ", Free Cars: " << nFreeCars << std::endl;
 
 		// work through list using available free cars
-		ServiceIterator itr =serviceBuffer.begin();
+		ServiceIterator itr = serviceBuffer.begin();
 		int startTime = currTime;
 		const RoadSegment *StopPointRS = NULL; //vh will stop at this segment to pick up passenger
 		const RoadSegment *dropOffPointRS = NULL;
 		string pickUpSegmentStr;
 		string dropOffSegmentStr;
-		while (true) {
+		while (true)
+		{
 			if (nFreeCars <= 0) break; //check if the number of free cars is non-zero
 			if (serviceBuffer.empty()) break;
 			if (itr == serviceBuffer.end()) break;
@@ -1379,29 +1479,37 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 			//----------------------------------------------------------------------------------------
 			// Search for the closest free AMOD vehicle
 
-			std::vector < sim_mob::WayPoint > leastCostPath;
+			std::vector < WayPoint > leastCostPath;
 			double bestFreeVehTravelCost;
-			Person* vhAssigned = nullptr;
+			Person_ST* vhAssigned = nullptr;
 			std::string carParkIdDeparture = "";
 			std::string carParkIdArrival = "";
 			bool freeVehFound = getBestFreeVehicle(originNodeId, &vhAssigned, carParkIdDeparture, leastCostPath, bestFreeVehTravelCost);
 			if (!freeVehFound)
 			{
-				if (carParkIdDeparture == originNodeId) {
+				if (carParkIdDeparture == originNodeId)
+				{
 					itr++;
 					continue;
-				} else {
+				}
+				else
+				{
 					bool carParkFound = false;
 					AMODVirtualCarParkItor iter;
-					for (iter=virtualCarPark.begin(); iter != virtualCarPark.end(); iter++) {
-						if (hasShortestPath(iter->first,originNodeId)) {
+					for (iter = virtualCarPark.begin(); iter != virtualCarPark.end(); iter++)
+					{
+						if (hasShortestPath(iter->first, originNodeId))
+						{
 							carParkFound = true;
 							break;
 						}
 					}
-					if (carParkFound) {
+					if (carParkFound)
+					{
 						itr++;
-					} else {
+					}
+					else
+					{
 						//this will never be serviceable
 						out_demandStat << tripId << " " << reqTime << " " << originNodeId << " " << destNodeId << " " << reqTime << " 0 " << "2" << std::endl;
 						itr = serviceBuffer.erase(itr);
@@ -1414,8 +1522,8 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 
 			std::vector<WayPoint> wpC2 = getShortestPath(originNodeId, destNodeId);
 
-			vector<const sim_mob::RoadSegment*> blacklist;
-			WayPoint lastWP = wpC2[wpC2.size()-1];
+			vector<const RoadSegment*> blacklist;
+			WayPoint lastWP = wpC2[wpC2.size() - 1];
 			const RoadSegment *lastWPrs = lastWP.roadSegment;
 
 			findNearestCarPark(destNodeId, lastWPrs, carParkIds, carParkIdArrival, blacklist);
@@ -1425,12 +1533,14 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 
 			const Node *carParkNodeDeparture = getNodeFrmPool(carParkIdDeparture);
 			const Node *carParkNodeArrival = getNodeFrmPool(carParkIdArrival);
-			if(carParkNodeDeparture==nullptr){
-				Print()<<"some error should be happen in AmodController(carParkNode)"<< std::endl;
+			if (carParkNodeDeparture == nullptr)
+			{
+				Print() << "some error should be happen in AmodController(carParkNode)" << std::endl;
 				return;
 			}
-			if(carParkNodeArrival==nullptr){
-				Print()<<"some error should be happen in AmodController(carParkNode)"<< std::endl;
+			if (carParkNodeArrival == nullptr)
+			{
+				Print() << "some error should be happen in AmodController(carParkNode)" << std::endl;
 				return;
 			}
 
@@ -1447,7 +1557,7 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 			//			// find first WayPoint from (origin to dest)
 			//			WayPoint firstWP = wp2[0];
 			//			const RoadSegment *firstWPrs = firstWP.roadSegment_;
-			//			vector<const sim_mob::RoadSegment*> blacklist;
+			//			vector<const RoadSegment*> blacklist;
 			//			//find nearest carpark to the second node from the WP1
 			//			findNearestCarParkToNode(originNodeId, firstWPrs, carParkIds, carParkIdDeparture, blacklist);
 			//			vector<WayPoint> wpToOrigin = getShortestPathWBlacklist(carParkIdDeparture, originNodeId, blacklist);
@@ -1479,75 +1589,88 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 
 
 			//----------------------------------------------------------------------------------------
-			if ((carParkNodeDeparture != originNode) && (carParkNodeArrival == destNode)) {
+			if ((carParkNodeDeparture != originNode) && (carParkNodeArrival == destNode))
+			{
 				//find route from carPark to origin and from origin to destination
 				std::vector<WayPoint> wp1 = getShortestPath(carParkIdDeparture, originNodeId);
-				vector<const sim_mob::RoadSegment*> blacklist;
+				vector<const RoadSegment*> blacklist;
 				calculateThePath(wp1, destNodeId, blacklist, pickUpSegmentStr,
-						StopPointRS, mergedWP);
-//				std::cout << "carPark->origin->destination: WPs after merging:" << std::endl;
-//				for (int i=0; i<mergedWP.size(); i++) {
-//					std::cout << " -> " << mergedWP[i].roadSegment_->originalDB_ID.getLogItem();
-//				}
-//				std::cout << std::endl;
-			} else if ((carParkNodeDeparture == originNode)
-					&& (carParkNodeArrival != destNode)) { //find route from origin to destination and from dest to carPark and merge
+								StopPointRS, mergedWP);
+				//				std::cout << "carPark->origin->destination: WPs after merging:" << std::endl;
+				//				for (int i=0; i<mergedWP.size(); i++) {
+				//					std::cout << " -> " << mergedWP[i].roadSegment_->originalDB_ID.getLogItem();
+				//				}
+				//				std::cout << std::endl;
+			}
+			else if ((carParkNodeDeparture == originNode)
+					&& (carParkNodeArrival != destNode))
+			{ //find route from origin to destination and from dest to carPark and merge
 				std::vector < WayPoint > wp2n = getShortestPath(originNodeId,
-						destNodeId);
-				vector<const sim_mob::RoadSegment*> blacklist;
+																destNodeId);
+				vector<const RoadSegment*> blacklist;
 				calculateThePath(wp2n, carParkIdArrival, blacklist,
-						pickUpSegmentStr, StopPointRS, mergedWP);
-//
-//				std::cout << "origin->destination->carPark: WPs after merging:" << std::endl;
-//				for (int i=0; i<mergedWP.size(); i++) {
-//					std::cout << " -> " << mergedWP[i].roadSegment_->originalDB_ID.getLogItem();
-//				}
-//				std::cout << std::endl;
-			} else if ((carParkNodeDeparture != originNode)
-					&& (carParkNodeArrival != destNode)) { //find route from carPark to origin, origin to dest and from dest to the carPark and merge them
-				std::vector < sim_mob::WayPoint > wp4 = getShortestPath(
-						carParkIdDeparture, originNodeId);
-				std::vector < sim_mob::WayPoint > mergedWP_temp;
-				vector<const sim_mob::RoadSegment*> blacklist;
+								pickUpSegmentStr, StopPointRS, mergedWP);
+				//
+				//				std::cout << "origin->destination->carPark: WPs after merging:" << std::endl;
+				//				for (int i=0; i<mergedWP.size(); i++) {
+				//					std::cout << " -> " << mergedWP[i].roadSegment_->originalDB_ID.getLogItem();
+				//				}
+				//				std::cout << std::endl;
+			}
+			else if ((carParkNodeDeparture != originNode)
+					&& (carParkNodeArrival != destNode))
+			{ //find route from carPark to origin, origin to dest and from dest to the carPark and merge them
+				std::vector < WayPoint > wp4 = getShortestPath(
+																		carParkIdDeparture, originNodeId);
+				std::vector < WayPoint > mergedWP_temp;
+				vector<const RoadSegment*> blacklist;
 
 				calculateThePath(wp4, destNodeId, blacklist, pickUpSegmentStr, StopPointRS, mergedWP_temp);
 
-				if (mergedWP_temp.size() > 0) { // or if StopPointRS->getStart() != originNode
-					vector<const sim_mob::RoadSegment*> blacklist2;
+				if (mergedWP_temp.size() > 0)
+				{ // or if StopPointRS->getStart() != originNode
+					vector<const RoadSegment*> blacklist2;
 					calculateThePath(mergedWP_temp, carParkIdArrival, blacklist2, dropOffSegmentStr, dropOffPointRS, mergedWP);
-				} else {
+				}
+				else
+				{
 					// reject the trip for now. There should be a path from different carPark, what should be fixed
 					itr = serviceBuffer.erase(itr);
 					continue;
 
 				}
 
-//				std::cout << "carpark->origin->destination->carPark: WPs after merging:" << std::endl;
+				//				std::cout << "carpark->origin->destination->carPark: WPs after merging:" << std::endl;
 
-			}else {
+			}
+			else
+			{
 				// find route from origin to destination, as carpark1 = origin, carpark2 = dest
-				for (int i=0; i<wp2.size(); i++) {
-					if (wp2[i].type == WayPoint::ROAD_SEGMENT ) {
+				for (int i = 0; i < wp2.size(); i++)
+				{
+					if (wp2[i].type == WayPoint::ROAD_SEGMENT)
+					{
 						mergedWP.push_back(wp2[i]);
 
 						//add drop off location
-						WayPoint lastWP = mergedWP[mergedWP.size()-1];
+						WayPoint lastWP = mergedWP[mergedWP.size() - 1];
 						const RoadSegment *lastWPrs = lastWP.roadSegment;
 						std::stringstream segmentId("");
 						segmentId << lastWPrs->getRoadSegmentId();
 						pickUpSegmentStr = segmentId.str();
 						StopPointRS = lastWPrs; //this is the segment where picking up f the passenger will occur
-//
-//						std::cout << "origin->destination: WPs after merging:" << std::endl;
-//						for (int i=0; i<mergedWP.size(); i++) {
-//							std::cout << " -> " << mergedWP[i].roadSegment_->originalDB_ID.getLogItem();
-//						}
-//						std::cout << std::endl;
+						//
+						//						std::cout << "origin->destination: WPs after merging:" << std::endl;
+						//						for (int i=0; i<mergedWP.size(); i++) {
+						//							std::cout << " -> " << mergedWP[i].roadSegment_->originalDB_ID.getLogItem();
+						//						}
+						//						std::cout << std::endl;
 					}
 				}
 			}
 
-			if (mergedWP.size() <=0) {
+			if (mergedWP.size() <= 0)
+			{
 				std::cout << "Merged path is of zero size! Not servicing" << std::endl;
 				itr = serviceBuffer.erase(itr);
 				continue;
@@ -1557,7 +1680,8 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 			//Create a AMOD Vehicle
 
 			//remove the vehicle from the car park
-			if (!removeVhFromCarPark(carParkIdDeparture, &vhAssigned)) {
+			if (!removeVhFromCarPark(carParkIdDeparture, &vhAssigned))
+			{
 				Print() << "Error! Cannot remove car from car park!" << std::endl;
 				itr++;
 				continue;
@@ -1566,39 +1690,43 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 			// create trip chain
 			DailyTime start(ConfigManager::GetInstance().FullConfig().simStartTime().getValue() + startTime);
 
-			sim_mob::TripChainItem* tc = new sim_mob::Trip("-1", "Trip", 0, -1, start, DailyTime(), "", carParkNodeDeparture, "node", destNode, "node");
+			TripChainItem* tc = new Trip("-1", "Trip", 0, -1, start, DailyTime(), "", carParkNodeDeparture, "node", destNode, "node");
 			SubTrip subTrip("-1", "Trip", 0, -1, start, DailyTime(), carParkNodeDeparture, "node", destNode, "node", "Car");
-			((Trip*)tc)->addSubTrip(subTrip);
+			((Trip*) tc)->addSubTrip(subTrip);
 
-			std::vector<sim_mob::TripChainItem*>  tcs;
+			std::vector<TripChainItem*> tcs;
 			tcs.push_back(tc);
 			vhAssigned->setTripChain(tcs); //add trip chain
-			vhAssigned->amdoTripId = tripId;
+			vhAssigned->amodTripId = tripId;
 			vhAssigned->setPath(mergedWP);
 
 			//amod pickUpSegment for the dwell time implementation
-			if (StopPointRS != NULL){
-				vhAssigned->amodSegmLength = StopPointRS->getLength();
+			if (StopPointRS != NULL)
+			{
+				//vhAssigned->amodSegmLength = StopPointRS->getLength();
 				vhAssigned->amodPickUpSegmentStr = pickUpSegmentStr;
 			}
-			else {
-				vhAssigned->amodSegmLength = 0.0;
+			else
+			{
+				//vhAssigned->amodSegmLength = 0.0;
 				vhAssigned->amodPickUpSegmentStr = "-1";
 			}
 
-			if (dropOffPointRS != NULL){
-				vhAssigned->amodSegmLength2 = dropOffPointRS->getLength();
+			if (dropOffPointRS != NULL)
+			{
+				//vhAssigned->amodSegmLength2 = dropOffPointRS->getLength();
 				vhAssigned->amodDropOffSegmentStr = dropOffSegmentStr;
 			}
-			else {
-				vhAssigned->amodSegmLength2 = 0.0;
+			else
+			{
+				//vhAssigned->amodSegmLength2 = 0.0;
 				vhAssigned->amodDropOffSegmentStr = "-1";
 			}
 
 
 			// set event
-			eventPub.registerEvent(sim_mob::event::EVT_AMOD_REROUTING_REQUEST_WITH_PATH);
-			eventPub.subscribe(sim_mob::event::EVT_AMOD_REROUTING_REQUEST_WITH_PATH, vhAssigned, &Person::handleAMODEvent, vhAssigned);
+			eventPub.registerEvent(event::EVT_AMOD_REROUTING_REQUEST_WITH_PATH);
+			eventPub.subscribe(event::EVT_AMOD_REROUTING_REQUEST_WITH_PATH, vhAssigned, &Person_ST::handleAMODEvent, vhAssigned);
 
 			//----------------------------------------------------------------------------------------
 			//create a trip map to keep track of vehicles
@@ -1611,13 +1739,16 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 			atrip.pickUpTime = -1;
 			atrip.arrivalTime = -1;
 			atrip.tripError = false;
-			atrip.finalSegment = mergedWP[mergedWP.size()-1].roadSegment->getRoadSegmentId();
+			atrip.finalSegment = mergedWP[mergedWP.size() - 1].roadSegment->getRoadSegmentId();
 
-			if (carParkNodeDeparture == originNode) {
+			if (carParkNodeDeparture == originNode)
+			{
 				atrip.pickedUp = true;
 				atrip.pickUpSegment = mergedWP[0].roadSegment->getRoadSegmentId();
 				atrip.pickUpTime = atrip.dispatchTime;
-			} else {
+			}
+			else
+			{
 				atrip.pickedUp = false;
 				atrip.pickUpSegment = wp2[0].roadSegment->getRoadSegmentId();
 			}
@@ -1627,12 +1758,13 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 			WayPoint iterWP;
 			const RoadSegment *iterwp;
 			//Print() << "Length of segments: ";
-			for (int j = 0; j< mergedWP.size(); j++){
+			for (int j = 0; j < mergedWP.size(); j++)
+			{
 				iterWP = mergedWP[j];
 				const RoadSegment *rs = iterWP.roadSegment;
 				tripDistance += mergedWP[j].roadSegment->getLength();
 			}
-			atrip.tripDistanceInM = tripDistance/100;
+			atrip.tripDistanceInM = tripDistance / 100;
 
 			//----------------------------------------------------------------------------------------
 			// dispatch vehicle
@@ -1653,13 +1785,14 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 		} //end while loop
 
 		//add just dispatched vehicles to the road
-		for (int i=0; i<justDispatched.size(); i++) {
-			vhOnTheRoad.insert(std::make_pair(justDispatched[i]->amodId,justDispatched[i]));
+		for (int i = 0; i < justDispatched.size(); i++)
+		{
+			vhOnTheRoad.insert(std::make_pair(justDispatched[i]->amodId, justDispatched[i]));
 		}
 
-		Print() << " # of AMOD vehicles onroad: " << vhOnTheRoad.size()<< std::endl;
+		Print() << " # of AMOD vehicles onroad: " << vhOnTheRoad.size() << std::endl;
 		Print() << " # of AMOD vehicles parked: " << nFreeCars << std::endl;
-		std::cout << " # of empty vehicles on the road: " << EmptyVhOnTheRoad.size()<< std::endl;
+		std::cout << " # of empty vehicles on the road: " << EmptyVhOnTheRoad.size() << std::endl;
 
 	}
 	else
@@ -1675,16 +1808,19 @@ void AMODController::rebalanceVhs()
 	//check how many vhs at each carpark
 	//interate through all the carparks
 	vector<int> numOfVhsVec; // this vector also stores # of vhs at each node from the carParksIds vector
-	for(int i = 0; i < carParkIds.size(); i++){
+	for (int i = 0; i < carParkIds.size(); i++)
+	{
 		EmptyVhTrip etrip;
 		string carParkId = carParkIds[i];
 		AMODVirtualCarParkItor iter;
 		//	boost::unordered_map<std::string,int> numberOfVhsMap; // to store # of vhs at each node
-		int numOfVhs =0;
+		int numOfVhs = 0;
 		//iterate through all vehicles at the carpark
-		for (iter=virtualCarPark.begin(); iter != virtualCarPark.end(); iter++) {
+		for (iter = virtualCarPark.begin(); iter != virtualCarPark.end(); iter++)
+		{
 			string ids = iter->first; // not sure now how this string looks like, maybe I need to take a number from this string
-			if(ids == carParkId){
+			if (ids == carParkId)
+			{
 				numOfVhs++;
 			}
 		}
@@ -1702,13 +1838,14 @@ void AMODController::rebalanceVhs()
 	// assign vehicles to empty trips
 	// empty trips from each carPark to all other carParks
 
-	for (int k =0; k< numOfVhsToBeRedistributed.size(); k++)
+	for (int k = 0; k < numOfVhsToBeRedistributed.size(); k++)
 	{
 		vector < double > vhsToGo = numOfVhsToBeRedistributed[k];
-		for (int kk = 0; kk< vhsToGo.size(); kk++)
+		for (int kk = 0; kk < vhsToGo.size(); kk++)
 		{
 			double numVhs = vhsToGo[kk];
-			for(int kkk = 0; kkk < numVhs; kkk++){
+			for (int kkk = 0; kkk < numVhs; kkk++)
+			{
 				// generate OD and dispatch the veh, origin-> k element in carParks, destination is kk element
 				string origin = carParkIds[k];
 				string destination = carParkIds[kk];
@@ -1723,7 +1860,7 @@ void AMODController::rebalanceVhs()
 
 void assignVhToEmptyTrip(std::string& origin, std::string& destination, int currTime)
 {
-	//	Person* vhAssigned=nullptr;
+	//	Person_ST* vhAssigned=nullptr;
 	//	int startTime = currTime;
 	//	// calculate sp
 	//	vector<WayPoint> sp = getShortestPath(origin, destination);
@@ -1742,11 +1879,11 @@ void assignVhToEmptyTrip(std::string& origin, std::string& destination, int curr
 	//		// create trip chain
 	//		DailyTime start(ConfigManager::GetInstance().FullConfig().simStartTime().getValue() + startTime);
 	//		//			DailyTime start(ConfigManager::GetInstance().FullConfig().simStartTime().getValue()+ConfigManager::GetInstance().FullConfig().baseGranMS());
-	//		sim_mob::TripChainItem* tc = new sim_mob::Trip("-1", "Trip", 0, -1, start, DailyTime(), "", origin, "node", destination, "node");
+	//		TripChainItem* tc = new Trip("-1", "Trip", 0, -1, start, DailyTime(), "", origin, "node", destination, "node");
 	//		SubTrip subTrip("-1", "Trip", 0, -1, start, DailyTime(), origin, "node", destination, "node", "Car");
 	//		((Trip*)tc)->addSubTrip(subTrip);
 	//
-	//		std::vector<sim_mob::TripChainItem*>  tcs;
+	//		std::vector<TripChainItem*>  tcs;
 	//		tcs.push_back(tc);
 	//		vhAssigned->setTripChain(tcs); //add trip chain
 	//

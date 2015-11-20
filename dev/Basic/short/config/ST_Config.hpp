@@ -345,16 +345,13 @@ public:
     /// Future agents (drivers, pedestrains, passengers.. etc) map
     std::map<std::string, std::vector<EntityTemplate> > futureAgents;
 
-    /// Generic properties map
-    std::map<std::string, std::string> genericProps;
-
     /// Container for storing load agents order
     std::vector<LoadAgentsOrderOption> loadAgentsOrder;
 
     /// CommSim element
     Commsim commsim;
 
-    /// Type of auromanager used
+    /// Type of aura-manager used
     AuraManager::AuraManagerImplementation auraManagerImplementation;
 
     /// Property specific to MPI version; not fully documented.

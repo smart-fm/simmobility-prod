@@ -14,21 +14,25 @@
 #include "entities/roles/RoleFacets.hpp"
 #include "WaitBusActivityRole.hpp"
 
-namespace sim_mob {
+namespace sim_mob
+{
 
 class WaitBusActivityRole;
 class BusDriver;
 
-class WaitBusActivityRoleBehavior: public sim_mob::BehaviorFacet {
+class WaitBusActivityRoleBehavior : public BehaviorFacet
+{
 public:
-	explicit WaitBusActivityRoleBehavior(sim_mob::Person* parentAgent = nullptr);
+	explicit WaitBusActivityRoleBehavior();
 	virtual ~WaitBusActivityRoleBehavior();
 
-	WaitBusActivityRole* getParentWaitBusActivityRole() const {
+	WaitBusActivityRole* getParentWaitBusActivityRole() const
+	{
 		return parentWaitBusActivityRole;
 	}
 
-	void setParentWaitBusActivityRole(WaitBusActivityRole* parentWaitBusActivityRole) {
+	void setParentWaitBusActivityRole(WaitBusActivityRole *parentWaitBusActivityRole)
+	{
 		this->parentWaitBusActivityRole = parentWaitBusActivityRole;
 	}
 
@@ -37,47 +41,71 @@ private:
 
 };
 
-class WaitBusActivityRoleMovement: public sim_mob::MovementFacet {
+class WaitBusActivityRoleMovement : public MovementFacet
+{
 public:
-	explicit WaitBusActivityRoleMovement(sim_mob::Person* parentAgent = nullptr, std::string buslineid = "");
+	explicit WaitBusActivityRoleMovement(std::string buslineid = "");
 	virtual ~WaitBusActivityRoleMovement();
 
-	bool getRegisteredFlag() { return registered; } // get the registered flag
-	void setRegisteredFlag(bool registeredFlag) { registered = registeredFlag; } // set the registered flag
-	sim_mob::BusStopAgent* getBusStopAgent() { return busStopAgent; }
-	BusStop* setBusStopXY(const Node* node);//to find the nearest busstop to a node
-	std::string getBuslineID() { return buslineId; }
+	bool getRegisteredFlag()
+	{
+		return registered;
+	}
 
-	//bool isOnCrossing() const;
-	WaitBusActivityRole* getParentWaitBusActivityRole() const {
+	void setRegisteredFlag(bool registeredFlag)
+	{
+		registered = registeredFlag;
+	}
+
+	BusStopAgent* getBusStopAgent()
+	{
+		return busStopAgent;
+	}
+	
+	BusStop* setBusStopXY(const Node* node); //to find the nearest busstop to a node
+
+	std::string getBuslineID()
+	{
+		return buslineId;
+	}
+
+	WaitBusActivityRole* getParentWaitBusActivityRole() const
+	{
 		return parentWaitBusActivityRole;
 	}
-	void setParentWaitBusActivityRole(WaitBusActivityRole* parentWaitBusActivityRole) {
+
+	void setParentWaitBusActivityRole(WaitBusActivityRole* parentWaitBusActivityRole)
+	{
 		this->parentWaitBusActivityRole = parentWaitBusActivityRole;
 	}
 
-	// mark startTimeand origin
-	virtual TravelMetric & startTravelTimeMetric() {}
+	/**Mark startTimeand origin*/
+	virtual TravelMetric & startTravelTimeMetric()
+	{
+	}
 
-	//	mark the destination and end time and travel time
-	virtual TravelMetric & finalizeTravelTimeMetric() {}
+	/**Mark the destination and end time and travel time*/
+	virtual TravelMetric & finalizeTravelTimeMetric()
+	{
+	}
 
 public:
-    //Set by the BusDriver to the MS this Person should board the bus.
+	//Set by the BusDriver to the MS this Person should board the bus.
 	uint32_t boardingMS;
 	// indicate whether WaitBusActivityRole is already boarded or not, at initialize stage (isBoarded is false)
 	bool isBoarded;
 	// tag to indicate the WaitBusActivityRole already determine which bus to take
 	bool isTagged;
 	//Indicates the BusDriver of the bus we will board when "boarding_Frame" is reached.
-	sim_mob::BusDriver* busDriver;
+	BusDriver* busDriver;
+	
 protected:
 	//Indicates whether or not this Activity has registered with the appropriate BusStopAgent.
 	//An unregistered Activity will not be able to board buses.
 	//BusStopAgents will automatically register every WaitBusActivityRole in their vicinity periodically.
 	bool registered;
 	// indicate at which busStopAgent he is waiting for a bus
-	sim_mob::BusStopAgent* busStopAgent;
+	BusStopAgent* busStopAgent;
 	//uint32_t TimeOfReachingBusStop;
 	std::string buslineId;
 	Point displayOffset;
@@ -87,4 +115,3 @@ public:
 	WaitBusActivityRole* parentWaitBusActivityRole;
 };
 }
-

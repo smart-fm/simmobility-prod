@@ -35,13 +35,12 @@ using std::map;
 using std::string;
 using std::endl;
 
-Driver::Driver(Person* parent, MutexStrategy mtxStrat, DriverBehavior* behavior, DriverMovement* movement, Role::type roleType_, std::string roleName_) :
-Role(behavior, movement, parent, roleName_, roleType_), currLane_(mtxStrat, NULL), currTurning_(mtxStrat, NULL), expectedTurning_(mtxStrat, NULL),
+Driver::Driver(Person_ST* parent, MutexStrategy mtxStrat, DriverBehavior* behavior, DriverMovement* movement, Role<Person_ST>::Type roleType_, std::string roleName_) :
+Role<Person_ST>(parent, behavior, movement, roleName_, roleType_), currLane_(mtxStrat, NULL), currTurning_(mtxStrat, NULL), expectedTurning_(mtxStrat, NULL),
 distCoveredOnCurrWayPt_(mtxStrat, 0), isInIntersection_(mtxStrat, false), latMovement_(mtxStrat, 0), fwdVelocity_(mtxStrat, 0), latVelocity_(mtxStrat, 0),
 fwdAccel_(mtxStrat, 0), turningDirection_(mtxStrat, LANE_CHANGE_TO_NONE), vehicle(NULL), isVehicleInLoadingQueue(true), isVehiclePositionDefined(false),
-distToIntersection_(mtxStrat, -1), perceivedAccOfFwdCar(NULL), perceivedDistToFwdCar(NULL),
-perceivedDistToTrafficSignal(NULL), perceivedFwdAcc(NULL), perceivedFwdVel(NULL), perceivedTrafficColor(NULL), perceivedVelOfFwdCar(NULL),
-yieldingToInIntersection(false)
+distToIntersection_(mtxStrat, -1), perceivedAccOfFwdCar(NULL), perceivedDistToFwdCar(NULL), perceivedDistToTrafficSignal(NULL), perceivedFwdAcc(NULL), 
+perceivedFwdVel(NULL), perceivedTrafficColor(NULL), perceivedVelOfFwdCar(NULL), yieldingToInIntersection(false)
 {
 	getParams().driver = this;
 }

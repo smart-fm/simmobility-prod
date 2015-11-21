@@ -4,10 +4,11 @@
 #include "entities/BusController.hpp"
 #include "entities/BusControllerST.hpp"
 #include "entities/fmodController/FMOD_Controller.hpp"
+#include "entities/IntersectionManager.hpp"
 #include "entities/Person_ST.hpp"
+#include "entities/signal/Signal.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "partitions/PartitionManager.hpp"
-#include "entities/IntersectionManager.hpp"
 #include "util/Utils.hpp"
 
 namespace
@@ -160,6 +161,8 @@ void ExpandShortTermConfigFile::processConfig()
 		busController->initializeBusController(active_agents);
 		active_agents.insert(busController);
 	}
+	
+	printSettings();
 }
 
 void ExpandShortTermConfigFile::loadNetworkFromDatabase()
@@ -178,8 +181,8 @@ void ExpandShortTermConfigFile::loadNetworkFromDatabase()
 		//Post processing on the network
 		loader->processNetwork();
 
-//		//Create traffic signals
-//		loader->createTrafficSignals(cfg.mutexStategy());
+		//Create traffic signals
+		Signal_SCATS::createTrafficSignals(cfg.mutexStategy());
 	}
 	else
 	{
@@ -369,7 +372,7 @@ void ExpandShortTermConfigFile::setTicks()
     }
 }
 
-void ExpandShortTermConfigFile::PrintSettings()
+void ExpandShortTermConfigFile::printSettings()
 {
     std::cout << "Config parameters:\n";
     std::cout << "------------------\n";
@@ -409,8 +412,30 @@ void ExpandShortTermConfigFile::PrintSettings()
 
     //Print the network (this will go to a different output file...)
     std::cout << "------------------\n";
-    NetworkPrinter(cfg, cfg.outNetworkFileName);
+    NetworkPrinter nwPrinter(cfg, cfg.outNetworkFileName);
+	nwPrinter.printSignals(getSignalsInfo(Signal::getMapOfIdVsSignals()));
+	nwPrinter.printNetwork(RoadNetwork::getInstance());	
     std::cout << "------------------\n";
+}
+
+const std::string ExpandShortTermConfigFile::getSignalsInfo(std::map<unsigned int, Signal*>& signals) const
+{
+	std::stringstream out;
+	
+	if(!cfg.OutputDisabled())
+	{
+		out << std::setprecision(8);
+		
+		for (std::map<unsigned int, Signal *>::const_iterator it = signals.begin(); it != signals.end(); ++it)
+		{
+			out << "{\"TrafficSignal\":" << "{";
+			out << "\"id\":\"" << it->second->getNode()->getTrafficLightId() << "\",";
+			out << "\"node\":\"" << it->second->getNode()->getNodeId() << "\",";
+			out << "}}\n";
+		}
+	}
+	
+	return out.str();
 }
 
 }

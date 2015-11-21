@@ -1812,7 +1812,7 @@ void DriverMovement::setTrafficSignal()
 	if(currWayPt.type == WayPoint::ROAD_SEGMENT)
 	{
 		node = currWayPt.roadSegment->getParentLink()->getToNode();
-		//trafficSignal = RoadNetwork::getInstance()->getById(RoadNetwork::getInstance()->getMapOfIdVsSignals(), node->getTrafficLightId());
+		trafficSignal = Signal::getSignal(node->getTrafficLightId());
 	}
 }
 

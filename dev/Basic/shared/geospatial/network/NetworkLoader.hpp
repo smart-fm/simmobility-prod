@@ -142,11 +142,5 @@ public:
 	 * This method does post processing on the road network
      */
 	void processNetwork();
-	
-//	/**
-//	 * This method creates the traffic signals at nodes with traffic signals using the phase information
-//	 * present in the turning groups.
-//	 */
-//	void createTrafficSignals(const MutexStrategy &mtxStrat);
 };
 }

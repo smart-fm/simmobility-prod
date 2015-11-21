@@ -270,6 +270,7 @@ void ExpandMidTermConfigFile::printSettings()
 
     //Print the network (this will go to a different output file...)
     std::cout << "------------------\n";
-    NetworkPrinter(cfg, cfg.outNetworkFileName);
+    NetworkPrinter nwPrinter(cfg, cfg.outNetworkFileName);
+	nwPrinter.printNetwork(RoadNetwork::getInstance());
     std::cout << "------------------\n";
 }

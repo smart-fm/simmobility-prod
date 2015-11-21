@@ -26,7 +26,6 @@ RoadNetwork::~RoadNetwork()
 	clear_delete_map(mapOfIdvsNodes);
 	clear_delete_map(mapOfIdVsLinks);
 	clear_delete_map(mapOfIdVsTurningConflicts);
-//	clear_delete_map(mapOfIdVsSignals);
 
 	//All other maps can simply be cleared as the 'Node' and 'Link' classes contain the others.
 	//So, when they get destroyed, the objects contained within them will be destroyed 
@@ -78,11 +77,6 @@ const std::map<unsigned int, BusStop *>& RoadNetwork::getMapOfIdvsBusStops() con
 {
 	return mapOfIdvsBusStops;
 }
-
-//const std::map<unsigned int, Signal*>& RoadNetwork::getMapOfIdVsSignals() const
-//{
-//	return mapOfIdVsSignals;
-//}
 
 void RoadNetwork::addLane(Lane* lane)
 {
@@ -521,11 +515,6 @@ void RoadNetwork::addBusStop(BusStop* stop)
 		}
 	}
 }
-
-//void RoadNetwork::addTrafficSignal(unsigned int id, Signal *signal)
-//{
-//	mapOfIdVsSignals.insert(std::make_pair(id, signal));
-//}
 
 const RoadNetwork* sim_mob::RoadNetwork::getInstance()
 {

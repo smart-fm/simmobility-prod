@@ -110,6 +110,9 @@ protected:
 	
 	/**Container for the phases of the signal*/
 	std::vector<Phase *> phases;
+	
+	/**This map stores all the traffic signals in the network with the traffic light id as the key*/
+	static std::map<unsigned int, Signal *> mapOfIdVsSignals;
 
 public:
 	Signal(const Node *node, const MutexStrategy &mtxStrat, unsigned int agentId = -1, SignalType = SIGNAL_TYPE_INVALID);
@@ -119,6 +122,9 @@ public:
 	SignalType getSignalType() const;
 	
 	const std::vector<Phase *>& getPhases();
+	
+    static std::map<unsigned int, Signal *>& getMapOfIdVsSignals();
+	static const Signal* getSignal(unsigned int trafficLightId);
 	
 	/**
 	 * Indicates whether the agent is non-spatial in nature
@@ -307,6 +313,12 @@ protected:
 public:
 	Signal_SCATS(const Node *node, const MutexStrategy &mtxStrat);
 	virtual ~Signal_SCATS();
+	
+	/**
+	 * This method creates the traffic signals at nodes with traffic signals using the phase information
+	 * present in the turning groups.
+	 */
+	static void createTrafficSignals(const MutexStrategy &mtxStrat);
 
 	/**
 	 * Based on the current phase, gets the traffic light colour shown to the drivers accessing the given turning

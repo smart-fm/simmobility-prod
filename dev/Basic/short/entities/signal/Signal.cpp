@@ -30,6 +30,8 @@ using namespace std;
 
 typedef Entity::UpdateStatus UpdateStatus;
 
+std::map<unsigned int, Signal *> Signal::mapOfIdVsSignals;
+
 Signal::Signal(const Node *node, const MutexStrategy &mtxStrat, unsigned int id, SignalType)
 : Agent(mtxStrat, id), node(node), trafficLightId(node->getTrafficLightId())
 {
@@ -53,6 +55,24 @@ SignalType Signal::getSignalType() const
 const std::vector<Phase *>& Signal::getPhases()
 {
 	return phases;
+}
+
+std::map<unsigned int, Signal *>& Signal::getMapOfIdVsSignals()
+{
+	return mapOfIdVsSignals;
+}
+
+const Signal* Signal::getSignal(unsigned int trafficLightId)
+{
+	const Signal *signal = nullptr;
+	std::map<unsigned int, Signal *>::const_iterator itSignals = mapOfIdVsSignals.find(trafficLightId);
+	
+	if(itSignals != mapOfIdVsSignals.end())
+	{
+		signal = itSignals->second;
+	}
+	
+	return signal;
 }
 
 bool Signal::isNonspatial()
@@ -418,6 +438,27 @@ void Signal_SCATS::initialisePhases()
 	for (int phase = 0; phase < phases.size(); phase++, i++)
 	{
 		phases[phase]->initialize(splitPlan);
+	}
+}
+
+void Signal_SCATS::createTrafficSignals(const MutexStrategy &mtxStrat)
+{
+	const std::map<unsigned int, Node *> &nodes = RoadNetwork::getInstance()->getMapOfIdvsNodes();
+
+	for(std::map<unsigned int, Node *>::const_iterator itNodes = nodes.begin(); itNodes != nodes.end(); ++itNodes)
+	{
+		const Node *node = itNodes->second;
+		unsigned int trafficLightId = node->getTrafficLightId();
+
+		//Check if a traffic signal exists at this node
+		if(trafficLightId != 0)
+		{
+			//Create a new traffic signal
+			Signal_SCATS *signal = new Signal_SCATS(node, mtxStrat);
+
+			//Add the signal in the map
+			mapOfIdVsSignals.insert(std::make_pair(trafficLightId, signal));
+		}
 	}
 }
 

@@ -28,10 +28,31 @@ enum TRIP_PURPOSE
 	work = 1,
 	leisure = 2
 };
-size_t getLaneIndex2(const sim_mob::Lane* l);
-void calculateRightTurnNumberAndSignalNumberByWaypoints(sim_mob::SinglePath *sp);
+
+/**
+ * counts the number of right turns and signals in path
+ * @param sp pointer to SinglePath object countaining the path
+ */
+void countRightTurnsAndSignals(sim_mob::SinglePath *sp);
+
+/**
+ * Returns total length of highway links in path
+ * @param sp pointer to SinglePath object countaining the path
+ * @return total highway length of the path in meter
+ */
 double calculateHighWayDistance(sim_mob::SinglePath *sp);
-double generateSinglePathLength(const std::vector<sim_mob::WayPoint>& wp);
+
+/**
+ * Returns path length in meter
+ * @param wp collection of links wrapped in waypoint
+ * @return total length of the path in meter
+ */
+double generatePathLength(const std::vector<sim_mob::WayPoint>& wp);
+
+/**
+ * computes the default travel time for path
+ * @param wp collection of links wrapped in waypoint
+ */
 double calculateSinglePathDefaultTT(const std::vector<sim_mob::WayPoint>& wp);
 
 /**
@@ -48,10 +69,6 @@ class SinglePath
 public:
 	/// path representation
 	std::vector<sim_mob::WayPoint> path;
-	///	link representation of path
-	std::vector<const sim_mob::Link*> linkPath;
-	///	segment collection of the path
-	std::set<const sim_mob::RoadSegment*> segSet;
 
 	bool isNeedSave2DB;
 	std::string scenario;
@@ -95,9 +112,9 @@ public:
 	 {
 		 return lhs->id < rhs->id;
 	 }
-	///	returns the raugh size of object in Bytes
-	uint32_t getSize();
+
 	///does these SinglePath include the any of given RoadSegment(s)
+	 bool includesLink(const sim_mob::Link* lnk) const;
 	bool includesLinks(const std::set<const sim_mob::Link*>& lnks) const;
 	static void filterOutNodes(std::vector<sim_mob::WayPoint>& input, std::vector<sim_mob::WayPoint>& output);
 
@@ -112,14 +129,7 @@ class PathSet
 public:
 	PathSet():  logsum(0.0),hasPath(false),bestPath(nullptr),oriPath(nullptr),isNeedSave2DB(false),id(""),nonCDB_OD(false) {pathChoices.clear();}
 	~PathSet();
-	///	returns the rough size of object in Bytes
-	uint32_t getSize();
-	/**
-	 * checks to see if any of the SinglePath s includes a segment from the given container
-	 * returns true if there is any common segments between the two sets.
-	 * Note: This can be a computationally very expensive operation, use it with caution
-	 */
-	bool includesRoadSegment(const std::set<const sim_mob::RoadSegment*> & segs);
+
 	short addOrDeleteSinglePath(sim_mob::SinglePath* s);
 	std::vector<WayPoint> *bestPath;  //best choice
 	SinglePath* oriPath;  // shortest path with all segments

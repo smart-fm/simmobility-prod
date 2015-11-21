@@ -189,7 +189,7 @@ int sim_mob::K_ShortestPathImpl::getKShortestPaths(const sim_mob::Node *from, co
 					fullPath.insert(fullPath.end(), rootPath.begin(),rootPath.end());
 					fullPath.insert(fullPath.end(), spurPath.begin(), spurPath.end());
 					//	Add TotalPath to path list B.
-					B.insert(sim_mob::generateSinglePathLength(fullPath), fullPath);
+					B.insert(sim_mob::generatePathLength(fullPath), fullPath);
 				}
 			}
 			//	For each path Cj in path list C:

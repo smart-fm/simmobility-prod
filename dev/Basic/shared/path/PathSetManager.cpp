@@ -108,45 +108,37 @@ namespace
 	 */
 	sim_mob::SinglePath* findShortestPath_LinkBased(const std::set<sim_mob::SinglePath*, sim_mob::SinglePath> &pathChoices, const sim_mob::Link *ln)
 	{
-		if(pathChoices.begin() == pathChoices.end())
+		if(pathChoices.empty() || !ln)
 		{
 			return nullptr;
 		}
+
 		sim_mob::SinglePath* res = nullptr;
 		double min = std::numeric_limits<double>::max();
 		double tmp = 0.0;
 		BOOST_FOREACH(sim_mob::SinglePath*sp, pathChoices)
 		{
-
-			if(sp->linkPath.empty())
+			if(sp->path.empty())
 			{
-				throw std::runtime_error("linkPath of singlepath object is Empty");
+				throw std::runtime_error("path is Empty");
 			}
 			//filter paths not including the target link
-			if(std::find(sp->linkPath.begin(),sp->linkPath.end(),ln) == sp->linkPath.end())
+			if(!sp->includesLink(ln))
 			{
 				continue;
 			}
+
 			if(sp->length <= 0.0)
 			{
-				throw std::runtime_error("Invalid path length");//todo remove this after enough testing
+				throw std::runtime_error("Invalid path length");
 			}
-			//double tmp = generateSinglePathLength(sp->path);
 			if ((sp->length*1000000 - min*1000000  ) < 0.0) //easy way to check doubles
 			{
-				//min = tmp;
 				min = sp->length;
 				res = sp;
 			}
 		}
 		return res;
-	}
-
-	// Overload
-	sim_mob::SinglePath* findShortestPath_LinkBased(const std::set<sim_mob::SinglePath*, sim_mob::SinglePath> &pathChoices, const sim_mob::RoadSegment *rs)
-	{
-		const sim_mob::Link *ln = rs->getParentLink();
-		return findShortestPath_LinkBased(pathChoices,ln);
 	}
 
 	/**
@@ -177,26 +169,21 @@ namespace
 			// For each link a in the path:
 			for(std::vector<WayPoint>::iterator it1=sp->path.begin(); it1!=sp->path.end(); ++it1)
 			{
-				const sim_mob::RoadSegment* seg = it1->roadSegment;
-				sim_mob::SinglePath* minSp = findShortestPath_LinkBased(ps->pathChoices, seg);
+				const sim_mob::Link* lnk = it1->link;
+				sim_mob::SinglePath* minSp = findShortestPath_LinkBased(ps->pathChoices, lnk);
 				if(minSp == nullptr)
 				{
 					std::stringstream out("");
-					out << "couldn't find a min path for segment " << seg->getRoadSegmentId();
+					out << "couldn't find a min path for segment " << lnk->getLinkId();
 					throw std::runtime_error(out.str());
 				}
 				minL = minSp->length;
-				double l = seg->getLength() / 100.0;
+				double l = lnk->getLength();
 				double sum = 0.0;
 				//For each path j in the path choice set PathSet(O, D):
 				BOOST_FOREACH(sim_mob::SinglePath* spj, ps->pathChoices)
 				{
-					if(spj->segSet.empty())
-					{
-						throw std::runtime_error("segSet of singlepath object is Empty");
-					}
-					std::set<const sim_mob::RoadSegment*>::iterator itt2 = std::find(spj->segSet.begin(), spj->segSet.end(), seg);
-					if(itt2 != spj->segSet.end())
+					if(spj->includesLink(lnk))
 					{
 						sum += minL/(spj->length);
 						if(sp->id != spj->id)

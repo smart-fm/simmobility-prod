@@ -1215,7 +1215,7 @@ void DriverMovement::setOrigin(DriverUpdateParams &params)
 	}
 
 	//Vehicles start at rest (or may be given initial speed in configuration file)
-	parentDriver->vehicle->setVelocity(params.initialSpeed);
+	parentDriver->vehicle->setVelocity(parentDriver->getParent()->initialSpeed);
 	parentDriver->vehicle->setLateralVelocity(0);
 	parentDriver->vehicle->setAcceleration(0);
 

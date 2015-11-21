@@ -681,11 +681,11 @@ void ParseShortTermTripFile::processTrips(DOMElement *node)
             {
                 EntityTemplate ent;
                 ent.startTimeMs = ParseUnsignedInt(GetNamedAttributeValue(*stIter, "time", true), static_cast<unsigned int>(0));
-                ent.laneIndex = ParseUnsignedInt(GetNamedAttributeValue(*stIter, "lane"), static_cast<unsigned int>(0));
+                ent.startLaneIndex = ParseUnsignedInt(GetNamedAttributeValue(*stIter, "startLaneIndex"), static_cast<unsigned int>(0));
                 ent.agentId = personId;
-                ent.initSegId = ParseUnsignedInt(GetNamedAttributeValue(*stIter, "initSegId", false), static_cast<unsigned int>(0));
-                ent.initDis = ParseUnsignedInt(GetNamedAttributeValue(*stIter, "initDis", false), static_cast<unsigned int>(0));
-                ent.initSpeed = ParseUnsignedInt(GetNamedAttributeValue(*stIter, "initSpeed", false), static_cast<double>(0));
+                ent.startSegmentId = ParseUnsignedInt(GetNamedAttributeValue(*stIter, "startSegmentId", false), static_cast<unsigned int>(0));
+                ent.segmentStartOffset = ParseUnsignedInt(GetNamedAttributeValue(*stIter, "segmentStartOffset", false), static_cast<unsigned int>(0));
+                ent.initialSpeed = ParseUnsignedInt(GetNamedAttributeValue(*stIter, "initialSpeed", false), static_cast<double>(0));
                 ent.originNode = ParseUnsignedInt(GetNamedAttributeValue(*stIter, "originNode", true), static_cast<double>(0));
                 ent.destNode = ParseUnsignedInt(GetNamedAttributeValue(*stIter, "destNode", true), static_cast<double>(0));
                 unsigned int stId = ParseUnsignedInt(GetNamedAttributeValue(*stIter, "id", false), static_cast<unsigned int>(0));

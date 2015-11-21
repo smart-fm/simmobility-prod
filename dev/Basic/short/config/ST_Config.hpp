@@ -54,20 +54,39 @@ struct VehicleType
 /**
  * Represents an entity in the "Drivers" or "Pedestrians" section of the config file.
  */
-struct EntityTemplate {
-    EntityTemplate();
-    Point originPos;
-    Point destPos;
-    unsigned int startTimeMs;// default is zero
-    unsigned int laneIndex;// default is zero
-    int agentId;
-    int initSegId;
-    int initDis;
-    double initSpeed;
-    int originNode;
-    int destNode;
-    std::pair<unsigned int, unsigned int> tripId;
-    std::string mode;
+struct EntityTemplate
+{
+	EntityTemplate();
+	
+	/**Starting time of the agent's trip (Default is 0)*/
+	unsigned int startTimeMs;
+	
+	/**Index of the agent's starting lane (Default is 0)*/
+	unsigned int startLaneIndex;
+	
+	/**The user defined id of the agent (This will override the auto-generated agent id)*/
+	int agentId;
+	
+	/**The id of the agent's starting segment*/
+	int startSegmentId;
+	
+	/**The offset from the segment at which the person starts*/
+	int segmentStartOffset;
+	
+	/**Starting speed of the person (m/s) (Default 0)*/
+	double initialSpeed;
+	
+	/**The starting node of the person's trip*/
+	int originNode;
+	
+	/**The destination node of the person's trip*/
+	int destNode;
+	
+	/**The trip id*/
+	std::pair<unsigned int, unsigned int> tripId;
+	
+	/**The mode of travel*/
+	std::string mode;
 };
 
 /**

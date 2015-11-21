@@ -274,50 +274,33 @@ void ExpandShortTermConfigFile::generateXMLAgents(const std::vector<EntityTempla
 
     //Loop through all agents of this type.
     for (std::vector<EntityTemplate>::const_iterator it = xmlItems.begin(); it != xmlItems.end(); ++it)
-    {
-        //Keep track of the properties we have found.
-        std::map<std::string, std::string> props;
-        props["lane"] = Utils::toStr<unsigned int>(it->laneIndex);
-        props["initSegId"] = Utils::toStr<unsigned int>(it->initSegId);
-        props["initDis"] = Utils::toStr<unsigned int>(it->initDis);
-        props["initSpeed"] = Utils::toStr<unsigned int>(it->initSpeed);
+	{
+		//Keep track of the properties we have found.
+		std::map<std::string, std::string> props;
+		props["startLaneIndex"] = Utils::toStr<unsigned int>(it->startLaneIndex);
+		props["startSegmentId"] = Utils::toStr<unsigned int>(it->startSegmentId);
+		props["segmentStartOffset"] = Utils::toStr<unsigned int>(it->segmentStartOffset);
+		props["initialSpeed"] = Utils::toStr<unsigned int>(it->initialSpeed);
+		props["originNode"] = Utils::toStr<unsigned int>(it->originNode);
+		props["destNode"] = Utils::toStr<unsigned int>(it->destNode);
 
-        if (it->originNode > 0 && it->destNode > 0)
-        {
-            props["originNode"] = Utils::toStr<unsigned int>(it->originNode);
-            props["destNode"] = Utils::toStr<unsigned int>(it->destNode);
-        }
-        else
-        {
-            {
-                std::stringstream msg;
-                msg << it->originPos.getX() << "," << it->originPos.getY();
-                props["originPos"] = msg.str();
-            }
-            {
-                std::stringstream msg;
-                msg << it->destPos.getX() << "," << it->destPos.getY();
-                props["destPos"] = msg.str();
-            }
-        }
+		int agentId = -1;
 
-        int agentId = -1;
+		if (it->agentId != 0)
+		{
+			agentId = it->agentId;
+		}
 
-        if (it->agentId != 0)
-        {
-            agentId = it->agentId;
-        }
+		props["#mode"] = it->mode;
 
-        props["#mode"] = it->mode;
+		//Create the Person agent with that given ID (or an auto-generated one)
+		Person_ST *agent = new Person_ST("XML_Def", cfg.mutexStategy(), agentId);
+		agent->setConfigProperties(props);
+		agent->setStartTime(it->startTimeMs);
 
-        //Create the Person agent with that given ID (or an auto-generated one)
-        Person_ST *agent = new Person_ST("XML_Def", cfg.mutexStategy(), agentId);
-        agent->setConfigProperties(props);
-        agent->setStartTime(it->startTimeMs);
-
-        //Add it or stash it
-        addOrStashEntity(agent, active_agents, pending_agents);
-    }
+		//Add it or stash it
+		addOrStashEntity(agent, active_agents, pending_agents);
+	}
 }
 
 void ExpandShortTermConfigFile::checkGranularities()

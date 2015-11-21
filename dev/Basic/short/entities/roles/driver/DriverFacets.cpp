@@ -128,7 +128,9 @@ void DriverMovement::frame_tick()
 
 		parentDriver->getParent()->setToBeRemoved();
 		return;
-	}	
+	}
+	
+	identifyAdjacentLanes(params);
 
 	//If the vehicle is in the loading queue, we need to check if some empty space has opened up.
 	if (parentDriver->isVehicleInLoadingQueue && parentDriver->isVehiclePositionDefined)
@@ -143,9 +145,7 @@ void DriverMovement::frame_tick()
 		{
 			parentDriver->isVehicleInLoadingQueue = false;
 		}
-	}
-
-	identifyAdjacentLanes(params);
+	}	
 
 	//Update the "current" time
 	unsigned int currentTime = params.now.ms();
@@ -1386,15 +1386,17 @@ bool DriverMovement::updateNearbyAgent(const Agent *nearbyAgent, const Driver *n
 		}
 	}
 
+	//The other driver's lane
+	const Lane *otherLane = nearbyDriver->currLane_.get();
+	
 	//Either we or the other driver are in the intersection, we've already done the required updates above so return
-	if (fwdDriverMovement.isInIntersection() || nearbyDriver->isInIntersection_.get())
+	if (otherLane == nullptr || fwdDriverMovement.isInIntersection() || nearbyDriver->isInIntersection_.get())
 	{
 		return true;
 	}
 
-	//Retrieve the other driver's lane, road segment, and distance covered on the segment.
+	//Retrieve the other driver's road segment, and distance covered on the segment.
 	
-	const Lane *otherLane = nearbyDriver->currLane_.get();
 	const RoadSegment* otherSegment = otherLane->getParentSegment();
 	double otherDistCoveredOnCurrWayPt = nearbyDriver->distCoveredOnCurrWayPt_.get();
 

@@ -36,8 +36,8 @@ class UnPackageUtils;
  **/
 class Vehicle : public sim_mob::VehicleBase {
 public:
-	Vehicle(const VehicleType vehType, double lengthCM, double widthCM);
-	Vehicle(const VehicleType vehType, int vehicleId, double lengthCM, double widthCM);
+	Vehicle(const VehicleType vehType, double lengthM, double widthM);
+	Vehicle(const VehicleType vehType, int vehicleId, double lengthM, double widthM);
 	Vehicle(const Vehicle& copy); ///<Copy constructor
 
 	//Enable polymorphism

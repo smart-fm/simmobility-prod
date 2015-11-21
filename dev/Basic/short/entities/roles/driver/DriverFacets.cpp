@@ -1145,8 +1145,8 @@ Vehicle* DriverMovement::initializePath(bool createVehicle)
 			path = stdir.SearchShortestDrivingPath(*(parentDriver->origin), *(parentDriver->destination));
 		}
 
-		const double length = 400;
-		const double width = 200;
+		const double length = 4.0;
+		const double width = 2.0;
 
 		if (createVehicle)
 		{

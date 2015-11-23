@@ -111,8 +111,6 @@ public:
 	static bool InsertSinglePath2DB(soci::session& sql,std::set<sim_mob::SinglePath*,sim_mob::SinglePath>& spPool,const std::string pathSetTableName);
 	static void loadPT_ChoiceSetFrmDB(soci::session& sql, std::string& pathSetId, sim_mob::PT_PathSet& pathSet);
 	static void LoadPT_PathsetFrmDB(soci::session& sql, const std::string& funcName, int originalNode, int destNode, sim_mob::PT_PathSet& pathSet);
-
-    void LoadScreenLineSegmentIDs(const map<string, string>& storedProcs, std::set<unsigned int> &screenLines);
 #ifndef SIMMOB_DISABLE_MPI
 	void TransferBoundaryRoadSegment();
 #endif
@@ -846,22 +844,6 @@ void DatabaseLoader::TransferBoundaryRoadSegment()
 
 }
 #endif
-
-
-void DatabaseLoader::LoadScreenLineSegmentIDs(const map<string, string>& storedProcs, std::set<unsigned int>& screenLines)
-{
-	screenLines.clear();
-
-	string storedProc = getStoredProcedure(storedProcs, "screen_line");
-
-	soci::rowset<unsigned long> rs = (sql_.prepare << "select * from " + storedProc);
-
-	soci::rowset<unsigned long>::const_iterator iter = rs.begin();
-	for(; iter != rs.end(); iter++)
-	{
-        screenLines.insert(*iter);
-	}
-}
 
 void DatabaseLoader::LoadObjectsForShortTerm(map<string, string> const & storedProcs)
 {
@@ -1965,15 +1947,6 @@ void sim_mob::aimsun::Loader::LoadPT_PathsetFrmDB(soci::session& sql, const std:
 void sim_mob::aimsun::Loader::loadSegNodeType(const std::string& connectionStr, const std::map<std::string, std::string>& storedProcs, sim_mob::RoadNetwork& rn)
 {
 	DatabaseLoader loader(connectionStr);
-}
-
-void sim_mob::aimsun::Loader::getScreenLineSegments(const std::string& connectionStr,
-        const std::map<std::string, std::string>& storedProcs,
-        std::set<unsigned int> &screenLineList)
-{
-	DatabaseLoader loader(connectionStr);
-
-	loader.LoadScreenLineSegmentIDs(storedProcs, screenLineList);
 }
 
 void sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map<string, string>& storedProcs)

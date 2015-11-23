@@ -6,6 +6,9 @@
  */
 
 #include <algorithm>
+#include "soci/soci.h"
+#include "soci/postgresql/soci-postgresql.h"
+
 #include "ScreenLineCounter.hpp"
 #include "conf/ConfigManager.hpp"
 #include "config/MT_Config.hpp"
@@ -29,13 +32,10 @@ ScreenLineCounter* ScreenLineCounter::instance = nullptr;
 
 ScreenLineCounter::ScreenLineCounter()
 {
-    const ConfigParams& configParams = ConfigManager::GetInstance().FullConfig();
     const MT_Config& mtCfg = MT_Config::getInstance();
     if(mtCfg.screenLineParams.outputEnabled)
     {
-        screenLineSegments.clear();
-        sim_mob::aimsun::Loader::getScreenLineSegments(configParams.getDatabaseConnectionString(false),
-                configParams.getDatabaseProcMappings().procedureMappings, screenLineSegments);
+        loadScreenLines();
         INTERVAL_MS = mtCfg.screenLineParams.interval * 1000;
     }
 }
@@ -44,6 +44,28 @@ ScreenLineCounter::~ScreenLineCounter()
 {
     screenLineSegments.clear();
     screenlineMap.clear();
+}
+
+void ScreenLineCounter::loadScreenLines()
+{
+    screenLineSegments.clear();
+
+    const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
+    const std::map<std::string, std::string>& storedProcMap = config.getDatabaseProcMappings().procedureMappings;
+    std::map<std::string, std::string>::const_iterator storedProcIter = storedProcMap.find("screen_line");
+    if(storedProcIter == storedProcMap.end())
+    {
+        throw std::runtime_error("ScreenLineCounter: Stored Procedure not specified");
+    }
+
+    soci::session sql_(soci::postgresql, config.getDatabaseConnectionString());
+    soci::rowset<unsigned long> rs = (sql_.prepare << "select * from \"" + storedProcIter->second + "\"");
+
+    soci::rowset<unsigned long>::const_iterator iter = rs.begin();
+    for(; iter != rs.end(); iter++)
+    {
+        screenLineSegments.insert(*iter);
+    }
 }
 
 ScreenLineCounter* ScreenLineCounter::getInstance()

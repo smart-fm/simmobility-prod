@@ -828,7 +828,7 @@ void HouseholdBidderRole::getScreeningProbabilities(int hhId, std::vector<double
 	double log_hhinc_diff	=-1.5749;	//17 absolute difference between logarithm of the zonal median household montly income by housing type and logarithm of the household income	SGD
 	double log_price05tt_med=-0.1473;	//18 logarithm of the zonal median housing price by housing type	in (2005) SGD
 	double DWL600			= 0.3940;	//19 = 1, if household size is 1, living in private condo/apartment
-	double DWL700			= 0.3254;	//20  = 1, if household size is 1, living in landed property
+	double DWL700			= 0.3254;	//20 = 1, if household size is 1, living in landed property
 	double DWL800			= 0.3394; 	//21 = 1, if household size is 1, living in other types of housing units
 
 	HM_Model *model = getParent()->getModel();
@@ -1095,92 +1095,92 @@ void HouseholdBidderRole::getScreeningProbabilities(int hhId, std::vector<double
 		double currentQuarter = day / 365.0 * 4.0;
 
 		DeveloperModel *devModel = model->getDeveloperModel();
-		const TAO*  currentTao = devModel->getTaoByQuarter(68 + currentQuarter); // 68 is first quarter of 2012
+		const TAO*  currentTao = devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter); // 68 is first quarter of 2012
 
 		std::vector<double> lagCoefficient;
 		double finalCoefficient = 0;
 
-		if( unit->getUnitType() < 3 )
+		if( unit->getUnitType() < ID_HDB3 )
 		{
-			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 1)->getHdb12());
-			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 2)->getHdb12());
-			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 3)->getHdb12());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 1)->getHdb12());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 2)->getHdb12());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 3)->getHdb12());
 
 			finalCoefficient = (lagCoefficient[0] * 0) + (lagCoefficient[1] * 0) + (lagCoefficient[2] * 0);
 		}
 
-		else if( unit->getUnitType() == 3 )
+		else if( unit->getUnitType() == ID_HDB3 )
 		{
-			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 1)->getHdb3());
-			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 2)->getHdb3());
-			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 3)->getHdb3());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 1)->getHdb3());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 2)->getHdb3());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 3)->getHdb3());
 
 			finalCoefficient = (lagCoefficient[0] * 0) + (lagCoefficient[1] * 0) + (lagCoefficient[2] * 0);
 		}
-		else if( unit->getUnitType() == 4 )
+		else if( unit->getUnitType() == ID_HDB4 )
 		{
-			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 1)->getHdb4());
-			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 2)->getHdb4());
-			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 3)->getHdb4());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 1)->getHdb4());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 2)->getHdb4());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 3)->getHdb4());
 
 			finalCoefficient = (lagCoefficient[0] * 0) + (lagCoefficient[1] * 0) + (lagCoefficient[2] * 0);
 		}
-		else if( unit->getUnitType() == 5 )
+		else if( unit->getUnitType() == ID_HDB5 )
 		{
-			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 1)->getHdb5());
-			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 2)->getHdb5());
-			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 3)->getHdb5());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 1)->getHdb5());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 2)->getHdb5());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 3)->getHdb5());
 
 			finalCoefficient = (lagCoefficient[0] * 0) + (lagCoefficient[1] * 0) + (lagCoefficient[2] * 0);
 		}
-		else if( unit->getUnitType() >= 32 and unit->getUnitType()  < 36 )  //Executive Condominium
+		else if( unit->getUnitType() >= ID_EC85 and unit->getUnitType()  < ID_EC144 )  //Executive Condominium
 		{
-			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 1)->getEc());
-			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 2)->getEc());
-			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 3)->getEc());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 1)->getEc());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 2)->getEc());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 3)->getEc());
 
 			finalCoefficient = (lagCoefficient[0] * 1.2096032467) + (lagCoefficient[1] * -0.1792877201) + (lagCoefficient[2] * 0);
 
 		}
-		else if( unit->getUnitType() >= 12 && unit->getUnitType()  <= 16 )   //Condominium
+		else if( unit->getUnitType() >= ID_CONDO60 && unit->getUnitType()  <= ID_CONDO134 )   //Condominium
 		{
-			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 1)->getCondo());
-			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 2)->getCondo());
-			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 3)->getCondo());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 1)->getCondo());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 2)->getCondo());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 3)->getCondo());
 
 			finalCoefficient = (lagCoefficient[0] * 1.4844876679) + (lagCoefficient[1] * -0.6052100987) + (lagCoefficient[2] * 0);
 		}
-		else if(unit->getUnitType() >= 7 && unit->getUnitType()  <= 11 ) //"Apartment"
+		else if(unit->getUnitType() >= ID_APARTM70 && unit->getUnitType()  <= ID_APARTM159 ) //"Apartment"
 		{
-			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 1)->getApartment());
-			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 2)->getApartment());
-			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 3)->getApartment());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 1)->getApartment());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 2)->getApartment());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 3)->getApartment());
 
 			finalCoefficient = (lagCoefficient[0] * 0.9871695457) + (lagCoefficient[1] * 0) + (lagCoefficient[2] * -0.2613884519);
 		}
-		else if(unit->getUnitType() >= 17 && unit->getUnitType()  <= 21 )  //"Terrace House"
+		else if(unit->getUnitType() >= ID_TERRACE180 && unit->getUnitType()  <= ID_TERRACE379 )  //"Terrace House"
 		{
-			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 1)->getTerrace());
-			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 2)->getTerrace());
-			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 3)->getTerrace());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 1)->getTerrace());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 2)->getTerrace());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 3)->getTerrace());
 
 			finalCoefficient = (lagCoefficient[0] * 1.3913443465 ) + (lagCoefficient[1] * -0.4404391521 ) + (lagCoefficient[2] * 0);
 
 		}
-		else if( unit->getUnitType() >= 22 && unit->getUnitType()  <= 26 )  //"Semi-Detached House"
+		else if( unit->getUnitType() >= ID_SEMID230 && unit->getUnitType()  <= ID_SEMID499 )  //"Semi-Detached House"
 		{
-			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 1)->getSemi());
-			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 2)->getSemi());
-			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 3)->getSemi());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 1)->getSemi());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 2)->getSemi());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 3)->getSemi());
 
 			finalCoefficient = (lagCoefficient[0] * 1.2548759133) + (lagCoefficient[1] * -0.0393621411 ) + (lagCoefficient[2] * 0);
 
 		}
-		else if( unit->getUnitType() >= 27 && unit->getUnitType()  <= 31 )  //"Detached House"
+		else if( unit->getUnitType() >= ID_DETACHED480 && unit->getUnitType()  <= ID_DETACHED1199 )  //"Detached House"
 		{
-			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 1)->getDetached());
-			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 2)->getDetached());
-			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 3)->getDetached());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 1)->getDetached());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 2)->getDetached());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 3)->getDetached());
 
 			finalCoefficient = (lagCoefficient[0] * 1.1383691158) + (lagCoefficient[1] * 0) + (lagCoefficient[2] * 0);
 		}

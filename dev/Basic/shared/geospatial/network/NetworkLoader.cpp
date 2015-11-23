@@ -325,27 +325,6 @@ void NetworkLoader::processNetwork()
 	}
 }
 
-//void NetworkLoader::createTrafficSignals(const MutexStrategy &mtxStrat)
-//{
-//	const std::map<unsigned int, Node *> &nodes = roadNetwork->getMapOfIdvsNodes();
-//
-//	for(std::map<unsigned int, Node *>::const_iterator itNodes = nodes.begin(); itNodes != nodes.end(); ++itNodes)
-//	{
-//		const Node *node = itNodes->second;
-//		unsigned int trafficLightId = node->getTrafficLightId();
-//
-//		//Check if a traffic signal exists at this node
-//		if(trafficLightId != 0)
-//		{
-//			//Create a new traffic signal
-//			Signal_SCATS *signal = new Signal_SCATS(node, mtxStrat);
-//
-//			//Add the signal in the map
-//			roadNetwork->addTrafficSignal(trafficLightId, signal);
-//		}
-//	}
-//}
-
 NetworkLoader* NetworkLoader::getInstance()
 {
 	if(networkLoader == NULL)

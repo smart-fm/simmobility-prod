@@ -56,9 +56,6 @@ private:
 
 	/**This map stores all the bus stops in the network with bus stop id as the key*/
 	std::map<unsigned int, BusStop *> mapOfIdvsBusStops;
-	
-//	/**This map stores all the traffic signals in the network with the traffic light id as the key*/
-//	std::map<unsigned int, Signal *> mapOfIdVsSignals;
 
 	/**Private constructor as the class is a singleton*/
 	RoadNetwork();

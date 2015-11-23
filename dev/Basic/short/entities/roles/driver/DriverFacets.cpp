@@ -128,7 +128,9 @@ void DriverMovement::frame_tick()
 
 		parentDriver->getParent()->setToBeRemoved();
 		return;
-	}	
+	}
+	
+	identifyAdjacentLanes(params);
 
 	//If the vehicle is in the loading queue, we need to check if some empty space has opened up.
 	if (parentDriver->isVehicleInLoadingQueue && parentDriver->isVehiclePositionDefined)
@@ -143,9 +145,7 @@ void DriverMovement::frame_tick()
 		{
 			parentDriver->isVehicleInLoadingQueue = false;
 		}
-	}
-
-	identifyAdjacentLanes(params);
+	}	
 
 	//Update the "current" time
 	unsigned int currentTime = params.now.ms();
@@ -1145,8 +1145,8 @@ Vehicle* DriverMovement::initializePath(bool createVehicle)
 			path = stdir.SearchShortestDrivingPath(*(parentDriver->origin), *(parentDriver->destination));
 		}
 
-		const double length = 400;
-		const double width = 200;
+		const double length = 4.0;
+		const double width = 2.0;
 
 		if (createVehicle)
 		{
@@ -1215,7 +1215,7 @@ void DriverMovement::setOrigin(DriverUpdateParams &params)
 	}
 
 	//Vehicles start at rest (or may be given initial speed in configuration file)
-	parentDriver->vehicle->setVelocity(params.initialSpeed);
+	parentDriver->vehicle->setVelocity(parentDriver->getParent()->initialSpeed);
 	parentDriver->vehicle->setLateralVelocity(0);
 	parentDriver->vehicle->setAcceleration(0);
 
@@ -1386,15 +1386,17 @@ bool DriverMovement::updateNearbyAgent(const Agent *nearbyAgent, const Driver *n
 		}
 	}
 
+	//The other driver's lane
+	const Lane *otherLane = nearbyDriver->currLane_.get();
+	
 	//Either we or the other driver are in the intersection, we've already done the required updates above so return
-	if (fwdDriverMovement.isInIntersection() || nearbyDriver->isInIntersection_.get())
+	if (otherLane == nullptr || fwdDriverMovement.isInIntersection() || nearbyDriver->isInIntersection_.get())
 	{
 		return true;
 	}
 
-	//Retrieve the other driver's lane, road segment, and distance covered on the segment.
+	//Retrieve the other driver's road segment, and distance covered on the segment.
 	
-	const Lane *otherLane = nearbyDriver->currLane_.get();
 	const RoadSegment* otherSegment = otherLane->getParentSegment();
 	double otherDistCoveredOnCurrWayPt = nearbyDriver->distCoveredOnCurrWayPt_.get();
 
@@ -1810,7 +1812,7 @@ void DriverMovement::setTrafficSignal()
 	if(currWayPt.type == WayPoint::ROAD_SEGMENT)
 	{
 		node = currWayPt.roadSegment->getParentLink()->getToNode();
-		//trafficSignal = RoadNetwork::getInstance()->getById(RoadNetwork::getInstance()->getMapOfIdVsSignals(), node->getTrafficLightId());
+		trafficSignal = Signal::getSignal(node->getTrafficLightId());
 	}
 }
 

@@ -4,10 +4,11 @@
 #include "entities/BusController.hpp"
 #include "entities/BusControllerST.hpp"
 #include "entities/fmodController/FMOD_Controller.hpp"
+#include "entities/IntersectionManager.hpp"
 #include "entities/Person_ST.hpp"
+#include "entities/signal/Signal.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "partitions/PartitionManager.hpp"
-#include "entities/IntersectionManager.hpp"
 #include "util/Utils.hpp"
 
 namespace
@@ -160,6 +161,8 @@ void ExpandShortTermConfigFile::processConfig()
 		busController->initializeBusController(active_agents);
 		active_agents.insert(busController);
 	}
+	
+	printSettings();
 }
 
 void ExpandShortTermConfigFile::loadNetworkFromDatabase()
@@ -178,8 +181,8 @@ void ExpandShortTermConfigFile::loadNetworkFromDatabase()
 		//Post processing on the network
 		loader->processNetwork();
 
-//		//Create traffic signals
-//		loader->createTrafficSignals(cfg.mutexStategy());
+		//Create traffic signals
+		Signal_SCATS::createTrafficSignals(cfg.mutexStategy());
 	}
 	else
 	{
@@ -274,50 +277,33 @@ void ExpandShortTermConfigFile::generateXMLAgents(const std::vector<EntityTempla
 
     //Loop through all agents of this type.
     for (std::vector<EntityTemplate>::const_iterator it = xmlItems.begin(); it != xmlItems.end(); ++it)
-    {
-        //Keep track of the properties we have found.
-        std::map<std::string, std::string> props;
-        props["lane"] = Utils::toStr<unsigned int>(it->laneIndex);
-        props["initSegId"] = Utils::toStr<unsigned int>(it->initSegId);
-        props["initDis"] = Utils::toStr<unsigned int>(it->initDis);
-        props["initSpeed"] = Utils::toStr<unsigned int>(it->initSpeed);
+	{
+		//Keep track of the properties we have found.
+		std::map<std::string, std::string> props;
+		props["startLaneIndex"] = Utils::toStr<unsigned int>(it->startLaneIndex);
+		props["startSegmentId"] = Utils::toStr<unsigned int>(it->startSegmentId);
+		props["segmentStartOffset"] = Utils::toStr<unsigned int>(it->segmentStartOffset);
+		props["initialSpeed"] = Utils::toStr<unsigned int>(it->initialSpeed);
+		props["originNode"] = Utils::toStr<unsigned int>(it->originNode);
+		props["destNode"] = Utils::toStr<unsigned int>(it->destNode);
 
-        if (it->originNode > 0 && it->destNode > 0)
-        {
-            props["originNode"] = Utils::toStr<unsigned int>(it->originNode);
-            props["destNode"] = Utils::toStr<unsigned int>(it->destNode);
-        }
-        else
-        {
-            {
-                std::stringstream msg;
-                msg << it->originPos.getX() << "," << it->originPos.getY();
-                props["originPos"] = msg.str();
-            }
-            {
-                std::stringstream msg;
-                msg << it->destPos.getX() << "," << it->destPos.getY();
-                props["destPos"] = msg.str();
-            }
-        }
+		int agentId = -1;
 
-        int agentId = -1;
+		if (it->agentId != 0)
+		{
+			agentId = it->agentId;
+		}
 
-        if (it->agentId != 0)
-        {
-            agentId = it->agentId;
-        }
+		props["#mode"] = it->mode;
 
-        props["#mode"] = it->mode;
+		//Create the Person agent with that given ID (or an auto-generated one)
+		Person_ST *agent = new Person_ST("XML_Def", cfg.mutexStategy(), agentId);
+		agent->setConfigProperties(props);
+		agent->setStartTime(it->startTimeMs);
 
-        //Create the Person agent with that given ID (or an auto-generated one)
-        Person_ST *agent = new Person_ST("XML_Def", cfg.mutexStategy(), agentId);
-        agent->setConfigProperties(props);
-        agent->setStartTime(it->startTimeMs);
-
-        //Add it or stash it
-        addOrStashEntity(agent, active_agents, pending_agents);
-    }
+		//Add it or stash it
+		addOrStashEntity(agent, active_agents, pending_agents);
+	}
 }
 
 void ExpandShortTermConfigFile::checkGranularities()
@@ -386,7 +372,7 @@ void ExpandShortTermConfigFile::setTicks()
     }
 }
 
-void ExpandShortTermConfigFile::PrintSettings()
+void ExpandShortTermConfigFile::printSettings()
 {
     std::cout << "Config parameters:\n";
     std::cout << "------------------\n";
@@ -426,8 +412,30 @@ void ExpandShortTermConfigFile::PrintSettings()
 
     //Print the network (this will go to a different output file...)
     std::cout << "------------------\n";
-    NetworkPrinter(cfg, cfg.outNetworkFileName);
+    NetworkPrinter nwPrinter(cfg, cfg.outNetworkFileName);
+	nwPrinter.printSignals(getSignalsInfo(Signal::getMapOfIdVsSignals()));
+	nwPrinter.printNetwork(RoadNetwork::getInstance());	
     std::cout << "------------------\n";
+}
+
+const std::string ExpandShortTermConfigFile::getSignalsInfo(std::map<unsigned int, Signal*>& signals) const
+{
+	std::stringstream out;
+	
+	if(!cfg.OutputDisabled())
+	{
+		out << std::setprecision(8);
+		
+		for (std::map<unsigned int, Signal *>::const_iterator it = signals.begin(); it != signals.end(); ++it)
+		{
+			out << "{\"TrafficSignal\":" << "{";
+			out << "\"id\":\"" << it->second->getNode()->getTrafficLightId() << "\",";
+			out << "\"node\":\"" << it->second->getNode()->getNodeId() << "\",";
+			out << "}}\n";
+		}
+	}
+	
+	return out.str();
 }
 
 }

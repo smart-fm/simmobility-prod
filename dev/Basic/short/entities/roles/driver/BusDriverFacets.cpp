@@ -49,8 +49,8 @@ Vehicle* BusDriverMovement::initialiseBusPath(bool createVehicle)
 					<< std::endl;
 		}
 
-		const double length = 1200;
-		const double width = 200;
+		const double length = 12.0;
+		const double width = 2.0;
 
 		if (createVehicle)
 		{

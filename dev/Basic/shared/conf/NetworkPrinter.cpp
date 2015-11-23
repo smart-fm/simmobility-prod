@@ -5,20 +5,20 @@
 #include "NetworkPrinter.hpp"
 
 #include "conf/ConfigParams.hpp"
-#include "logging/Log.hpp"
+#include "geospatial/network/Lane.hpp"
+#include "geospatial/network/LaneConnector.hpp"
+#include "geospatial/network/Link.hpp"
+#include "geospatial/network/NetworkLoader.hpp"
 #include "geospatial/network/Node.hpp"
-#include "geospatial/network/RoadSegment.hpp"
 #include "geospatial/network/PT_Stop.hpp"
 #include "geospatial/network/Point.hpp"
-#include "geospatial/network/LaneConnector.hpp"
-#include "geospatial/network/Lane.hpp"
-#include "geospatial/network/Link.hpp"
+#include "geospatial/network/RoadNetwork.hpp"
+#include "geospatial/network/RoadSegment.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
+#include "logging/Log.hpp"
+#include "metrics/Length.hpp"
 #include "network/CommunicationDataManager.hpp"
 #include "util/DynamicVector.hpp"
-#include "metrics/Length.hpp"
-#include "geospatial/network/RoadNetwork.hpp"
-#include "geospatial/network/NetworkLoader.hpp"
 
 using std::map;
 using std::set;
@@ -30,14 +30,18 @@ using namespace sim_mob;
 NetworkPrinter::NetworkPrinter(ConfigParams& cfg, const std::string& outFileName) : cfg(cfg), out(outFileName.c_str())
 {
 	//Print the header, and simulation-wide properties.
-	PrintSimulationProperties();
-	
-	const RoadNetwork *network = RoadNetwork::getInstance();
-	
-	PrintNetwork(network);
+	printSimulationProperties();
 }
 
-void NetworkPrinter::PrintNetwork(const RoadNetwork *network) const
+void NetworkPrinter::printSignals(const std::string& signalsInfo) const
+{
+	if (!cfg.OutputDisabled())
+	{
+		out << signalsInfo << std::endl;
+	}
+}
+
+void NetworkPrinter::printNetwork(const RoadNetwork *network) const
 {
 	//Avoid any output calculations if output is disabled.
 	if (cfg.OutputDisabled())
@@ -45,29 +49,27 @@ void NetworkPrinter::PrintNetwork(const RoadNetwork *network) const
 		return;
 	}
 
-	PrintNodes(network->getMapOfIdvsNodes());
+	printNodes(network->getMapOfIdvsNodes());
 
-	PrintLinks(network->getMapOfIdVsLinks());
+	printLinks(network->getMapOfIdVsLinks());
 
-	PrintSegments(network->getMapOfIdVsRoadSegments());
+	printSegments(network->getMapOfIdVsRoadSegments());
 	
-	PrintLaneConnectors(network->getMapOfIdVsLanes());
+	printLaneConnectors(network->getMapOfIdVsLanes());
 	
-	PrintTurningGroups(network->getMapOfIdvsTurningGroups());
+	printTurningGroups(network->getMapOfIdvsTurningGroups());
 	
-	PrintTurnings(network->getMapOfIdvsTurningPaths());
+	printTurnings(network->getMapOfIdvsTurningPaths());
 
-	PrintConflicts(network->getMapOfIdvsTurningConflicts());
+	printConflicts(network->getMapOfIdvsTurningConflicts());	
 	
-//	PrintSignals(network->getMapOfIdVsSignals());
-	
-	PrintBusStops(network->getMapOfIdvsBusStops());
+	printBusStops(network->getMapOfIdvsBusStops());
 
 	//Required for the visualiser
 	out << "ROADNETWORK_DONE" << std::endl;
 }
 
-void NetworkPrinter::PrintSimulationProperties() const
+void NetworkPrinter::printSimulationProperties() const
 {
 	//Initial message
 	out << "Printing node network" << std::endl;
@@ -78,7 +80,7 @@ void NetworkPrinter::PrintSimulationProperties() const
 	out << "})\n";
 }
 
-void NetworkPrinter::PrintNodes(const map<unsigned int, Node *> &nodes) const
+void NetworkPrinter::printNodes(const map<unsigned int, Node *> &nodes) const
 {
 	std::stringstream out;
 	out << std::setprecision(8);
@@ -93,10 +95,10 @@ void NetworkPrinter::PrintNodes(const map<unsigned int, Node *> &nodes) const
 		out << "})\n";
 	}
 	
-	PrintToFileAndGui(out);
+	printToFile(out);
 }
 
-void NetworkPrinter::PrintLinks(const map<unsigned int, Link *> &links) const
+void NetworkPrinter::printLinks(const map<unsigned int, Link *> &links) const
 {
 	std::stringstream out;
 	out << std::setprecision(8);
@@ -121,10 +123,10 @@ void NetworkPrinter::PrintLinks(const map<unsigned int, Link *> &links) const
 		out << "})\n";
 	}
 	
-	PrintToFileAndGui(out);
+	printToFile(out);
 }
 
-void NetworkPrinter::PrintSegments(const map<unsigned int, RoadSegment *> &segments) const
+void NetworkPrinter::printSegments(const map<unsigned int, RoadSegment *> &segments) const
 {
 	std::stringstream out;
 	out << std::setprecision(8);
@@ -168,10 +170,10 @@ void NetworkPrinter::PrintSegments(const map<unsigned int, RoadSegment *> &segme
 		}
 	}
 
-	PrintToFileAndGui(out);
+	printToFile(out);
 }
 
-void NetworkPrinter::PrintLaneConnectors(const map<unsigned int, Lane *> &lanes) const
+void NetworkPrinter::printLaneConnectors(const map<unsigned int, Lane *> &lanes) const
 {
 	std::stringstream out;
 	out << std::setprecision(8);
@@ -190,10 +192,10 @@ void NetworkPrinter::PrintLaneConnectors(const map<unsigned int, Lane *> &lanes)
 		}
 	}
 
-	PrintToFileAndGui(out);
+	printToFile(out);
 }
 
-void NetworkPrinter::PrintTurningGroups(const std::map<unsigned int, TurningGroup *>& turningGroups) const
+void NetworkPrinter::printTurningGroups(const std::map<unsigned int, TurningGroup *>& turningGroups) const
 {
 	std::stringstream out;
 	out << std::setprecision(8);
@@ -208,10 +210,10 @@ void NetworkPrinter::PrintTurningGroups(const std::map<unsigned int, TurningGrou
 		out << "})\n";
 	}
 
-	PrintToFileAndGui(out);
+	printToFile(out);
 }
 
-void NetworkPrinter::PrintTurnings(const map<unsigned int, TurningPath*>& turnings) const
+void NetworkPrinter::printTurnings(const map<unsigned int, TurningPath*>& turnings) const
 {
 	std::stringstream out;
 	out << std::setprecision(8);
@@ -235,10 +237,10 @@ void NetworkPrinter::PrintTurnings(const map<unsigned int, TurningPath*>& turnin
 		out << "})\n";
 	}
 
-	PrintToFileAndGui(out);
+	printToFile(out);
 }
 
-void NetworkPrinter::PrintConflicts(const std::map<unsigned int, TurningConflict* >& conflicts) const
+void NetworkPrinter::printConflicts(const std::map<unsigned int, TurningConflict* >& conflicts) const
 {
 	std::stringstream out;
 	out << std::setprecision(8);
@@ -254,26 +256,10 @@ void NetworkPrinter::PrintConflicts(const std::map<unsigned int, TurningConflict
 		out << "})\n";
 	}
 
-	PrintToFileAndGui(out);
+	printToFile(out);
 }
 
-//void NetworkPrinter::PrintSignals(const std::map<unsigned int, Signal *> &signals) const
-//{
-//	std::stringstream out;
-//	out << std::setprecision(8);
-//
-//	for (std::map<unsigned int, Signal *>::const_iterator it = signals.begin(); it != signals.end(); ++it)
-//	{
-//		out << "{\"TrafficSignal\":" << "{";
-//		out << "\"id\":\"" << it->second->getNode()->getTrafficLightId() << "\",";
-//		out << "\"node\":\"" << it->second->getNode()->getNodeId() << "\",";
-//		out << "}}\n";
-//	}
-//
-//	PrintToFileAndGui(out);
-//}
-
-void NetworkPrinter::PrintBusStops(const std::map<unsigned int, BusStop *> &stops) const
+void NetworkPrinter::printBusStops(const std::map<unsigned int, BusStop *> &stops) const
 {
 	std::stringstream out;
 	out << std::setprecision(8);
@@ -292,10 +278,10 @@ void NetworkPrinter::PrintBusStops(const std::map<unsigned int, BusStop *> &stop
 		out << "})\n";
 	}
 	
-	PrintToFileAndGui(out);
+	printToFile(out);
 }
 
-void NetworkPrinter::PrintToFileAndGui(const std::stringstream& str) const
+void NetworkPrinter::printToFile(const std::stringstream& str) const
 {
 	//Print to file.
 	out << str.str() << std::endl;

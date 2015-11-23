@@ -69,14 +69,14 @@ Trip* MakePseudoTrip(const Person &ag, const std::string &mode)
 Person_ST::Person_ST(const std::string &src, const MutexStrategy &mtxStrat, int id, std::string databaseID)
 : Person(src, mtxStrat, id, databaseID), startLaneIndex(-1), boardingTimeSecs(0), alightingTimeSecs(0), 
 prevRole(NULL), currRole(NULL), nextRole(NULL), commEventRegistered(false), amodId("-1"),
-amodPickUpSegmentStr("-1"), amodPickUpOffset(0.0), startSegmentId(-1), initDis(0), initSpeed(0), amodDropOffset(0)
+amodPickUpSegmentStr("-1"), amodPickUpOffset(0.0), startSegmentId(-1), segmentStartOffset(0), initialSpeed(0), amodDropOffset(0)
 {
 }
 
 Person_ST::Person_ST(const std::string &src, const MutexStrategy &mtxStrat, const std::vector<TripChainItem *> &tc)
 : Person(src, mtxStrat, tc), startLaneIndex(-1), boardingTimeSecs(0), alightingTimeSecs(0), 
 prevRole(NULL), currRole(NULL), nextRole(NULL), commEventRegistered(false), amodId("-1"),
-amodPickUpSegmentStr("-1"), amodPickUpOffset(0.0), startSegmentId(-1), initDis(0), initSpeed(0), amodDropOffset(0)
+amodPickUpSegmentStr("-1"), amodPickUpOffset(0.0), startSegmentId(-1), segmentStartOffset(0), initialSpeed(0), amodDropOffset(0)
 {
 	if (!tripChain.empty())
 	{
@@ -167,13 +167,7 @@ void Person_ST::load(const map<string, string> &configProps)
 	}
 	std::string mode = it->second;
 
-	//Consistency check: specify both origin and destination
-	if (configProps.count("originPos") != configProps.count("destPos"))
-	{
-		throw std::runtime_error("Agent must specify both originPos and destPos, or neither.");
-	}
-
-	std::map<std::string, std::string>::const_iterator lanepointer = configProps.find("lane");
+	std::map<std::string, std::string>::const_iterator lanepointer = configProps.find("startLaneIndex");
 	if (lanepointer != configProps.end())
 	{
 		try
@@ -187,7 +181,7 @@ void Person_ST::load(const map<string, string> &configProps)
 		}
 	}
 
-	std::map<std::string, std::string>::const_iterator itt = configProps.find("initSegId");
+	std::map<std::string, std::string>::const_iterator itt = configProps.find("startSegmentId");
 	if (itt != configProps.end())
 	{
 		try
@@ -201,13 +195,13 @@ void Person_ST::load(const map<string, string> &configProps)
 		}
 	}
 
-	itt = configProps.find("initDis");
+	itt = configProps.find("segmentStartOffset");
 	if (itt != configProps.end())
 	{
 		try
 		{
 			int x = boost::lexical_cast<int>(itt->second);
-			initDis = x;
+			segmentStartOffset = x;
 		}
 		catch (boost::bad_lexical_cast const&)
 		{
@@ -221,7 +215,7 @@ void Person_ST::load(const map<string, string> &configProps)
 		try
 		{
 			int x = boost::lexical_cast<int>(itt->second);
-			initSpeed = x;
+			initialSpeed = x;
 		}
 		catch (boost::bad_lexical_cast const&)
 		{
@@ -231,6 +225,7 @@ void Person_ST::load(const map<string, string> &configProps)
 
 	map<string, string>::const_iterator oriNodeIt = configProps.find("originNode");
 	map<string, string>::const_iterator destNodeIt = configProps.find("destNode");
+	
 	if (oriNodeIt != configProps.end() && destNodeIt != configProps.end())
 	{
 		int originNodeId;
@@ -252,7 +247,7 @@ void Person_ST::load(const map<string, string> &configProps)
 		
 		if(!originNd || !destinNd)
 		{
-			throw std::runtime_error("invalid OD node ids passed for person");
+			throw std::runtime_error("Invalid OD node id specified!");
 		}
 		
 		this->originNode = WayPoint(originNd);
@@ -271,7 +266,7 @@ void Person_ST::load(const map<string, string> &configProps)
 	}
 	else
 	{
-		throw std::runtime_error("originNode and destNode specified incorrectly in config xml");
+		throw std::runtime_error("originNode and destNode specified incorrectly in the configuration XML");
 	}
 }
 

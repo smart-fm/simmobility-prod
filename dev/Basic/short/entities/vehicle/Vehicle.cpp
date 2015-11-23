@@ -17,14 +17,14 @@
 using namespace sim_mob;
 using std::vector;
 
-sim_mob::Vehicle::Vehicle(const VehicleType vehType, double lengthCM, double widthCM) :
-	VehicleBase(vehType,lengthCM,widthCM), vehicleId(0), latMovement(0),
+sim_mob::Vehicle::Vehicle(const VehicleType vehType, double lengthM, double widthM) :
+	VehicleBase(vehType,lengthM,widthM), vehicleId(0), latMovement(0),
 	forwardVelocity(0), lateralVelocity(0), forwardAcceleration(0), errorState(false),
 	turningDirection(LANE_CHANGE_TO_NONE)
 {}
 
-sim_mob::Vehicle::Vehicle(const VehicleType vehType, int vehicleId, double lengthCM, double widthCM) :
-		VehicleBase(vehType,lengthCM,widthCM), vehicleId(vehicleId),
+sim_mob::Vehicle::Vehicle(const VehicleType vehType, int vehicleId, double lengthM, double widthM) :
+		VehicleBase(vehType,lengthM,widthM), vehicleId(vehicleId),
 		latMovement(0), forwardVelocity(0), lateralVelocity(0), forwardAcceleration(0),
 		errorState(false), turningDirection(LANE_CHANGE_TO_NONE)
 {}

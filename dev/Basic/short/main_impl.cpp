@@ -272,10 +272,9 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 	BusStopAgent::AssignAllBusStopAgents(*personWorkers);
 
 	//Assign all signals to the signals worker
-	const RoadNetwork *network = RoadNetwork::getInstance();
-	//const std::map<unsigned int, Signal *> &signals = network->getMapOfIdVsSignals();
+	const std::map<unsigned int, Signal *> &signals = Signal::getMapOfIdVsSignals();
 	
-	/*for (std::map<unsigned int, Signal *>::const_iterator it = signals.begin(); it != signals.end(); ++it)
+	for (std::map<unsigned int, Signal *>::const_iterator it = signals.begin(); it != signals.end(); ++it)
 	{
 		Signal_SCATS *signalScats = dynamic_cast<Signal_SCATS *>(it->second);
 		
@@ -285,7 +284,7 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 		Agent::all_agents.insert(loopDetectorEntity);
 		signalScats->setLoopDetector(loopDetectorEntity);
 		signalStatusWorkers->assignAWorker(it->second);
-	}*/
+	}
 	
 	//Anything in all_agents is starting on time 0, and should be added now.
 	for (std::set<Entity*>::iterator it = Agent::all_agents.begin(); it != Agent::all_agents.end(); ++it) 
@@ -537,6 +536,7 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 	else 
 	{
 		clear_delete_map(IntersectionManager::getIntManagers());
+		clear_delete_map(Signal::getMapOfIdVsSignals());
 		clear_delete_vector(Agent::all_agents);
 	}
 

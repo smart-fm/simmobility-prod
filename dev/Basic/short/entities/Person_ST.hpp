@@ -100,10 +100,10 @@ public:
 	int startSegmentId;
 
 	/**The offset from the segment at which the person starts*/
-	int initDis;
+	int segmentStartOffset;
 
-	/**The speed at which the person starts*/
-    int initSpeed;
+	/**The speed at which the person starts (m/s)*/
+    int initialSpeed;
 	
 	/**FMOD client id*/
 	int client_id;

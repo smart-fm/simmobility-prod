@@ -12,6 +12,7 @@
 namespace sim_mob
 {
 
+class Signal;
 class StartTimePriorityQueue;
 
 class ExpandShortTermConfigFile : public boost::noncopyable
@@ -35,7 +36,14 @@ private:
     void generateAgentsFromTripChain(ConfigParams::AgentConstraints& constraints);
     void generateXMLAgents(const std::vector<EntityTemplate>& xmlItems);
 
-    void PrintSettings();
+    void printSettings();
+	
+	/**
+	 * Generates the information to be printed about the traffic signals
+	 * @param signals map of id vs traffic signals
+	 * @return information to be printed
+	 */
+	const std::string getSignalsInfo(std::map<unsigned int, Signal *> &signals) const;
 
     ST_Config& stConfig;
 

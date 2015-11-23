@@ -157,9 +157,11 @@ void ParseShortTermConfigFile::processXmlFile(XercesDOMParser& parser)
     processFmodControllerNode(GetSingleElementByName(rootNode, "fmodcontroller"));
     processVehicleTypesNode(GetSingleElementByName(rootNode, "vehicleTypes"));
     processTripFilesNode(GetSingleElementByName(rootNode, "tripFiles"));
-    processSegmentDensityNode(GetSingleElementByName(rootNode, "short-term_density-map"));
-    processLoopDetectorCountNode(GetSingleElementByName(rootNode, "loop-detector_counts"));
-    processPersonCharacteristicsNode(GetSingleElementByName(rootNode, "personCharacteristics"));
+	processPersonCharacteristicsNode(GetSingleElementByName(rootNode, "person_characteristics"));
+	processBusControllerNode(GetSingleElementByName(rootNode, "busController"));
+	processLoopDetectorCountNode(GetSingleElementByName(rootNode, "loop-detector_counts"));
+	processPathSetFileName(GetSingleElementByName(rootNode, "path-set-config-file"));
+    processSegmentDensityNode(GetSingleElementByName(rootNode, "short-term_density-map"));    
 }
 
 void ParseShortTermConfigFile::processProcMapNode(DOMElement* node)
@@ -638,18 +640,17 @@ void ParseShortTermConfigFile::processBusControllerNode(DOMElement *node)
 
 void ParseShortTermConfigFile::processPathSetFileName(DOMElement* node)
 {
-    if (!node) {
-        return;
-    }
-    ConfigManager::GetInstanceRW().FullConfig().pathsetFile = ParseString(GetNamedAttributeValue(node, "value"));
+	if (!node)
+	{
+		return;
+	}
+	ConfigManager::GetInstanceRW().FullConfig().pathsetFile = ParseString(GetNamedAttributeValue(node, "value"));
 }
 
-ParseShortTermTripFile::ParseShortTermTripFile(const std::string &tripFileName,
-                           const std::string &tripName_,
-                           ST_Config &stConfig) :
-    ParseConfigXmlBase(tripFileName), cfg(stConfig), tripName(tripName_)
+ParseShortTermTripFile::ParseShortTermTripFile(const std::string &tripFileName, const std::string &tripName_, ST_Config &stConfig) :
+ParseConfigXmlBase(tripFileName), cfg(stConfig), tripName(tripName_)
 {
-    parseXmlAndProcess();
+	parseXmlAndProcess();
 }
 
 void ParseShortTermTripFile::processXmlFile(XercesDOMParser &parser)
@@ -681,11 +682,11 @@ void ParseShortTermTripFile::processTrips(DOMElement *node)
             {
                 EntityTemplate ent;
                 ent.startTimeMs = ParseUnsignedInt(GetNamedAttributeValue(*stIter, "time", true), static_cast<unsigned int>(0));
-                ent.laneIndex = ParseUnsignedInt(GetNamedAttributeValue(*stIter, "lane"), static_cast<unsigned int>(0));
+                ent.startLaneIndex = ParseUnsignedInt(GetNamedAttributeValue(*stIter, "startLaneIndex"), static_cast<unsigned int>(0));
                 ent.agentId = personId;
-                ent.initSegId = ParseUnsignedInt(GetNamedAttributeValue(*stIter, "initSegId", false), static_cast<unsigned int>(0));
-                ent.initDis = ParseUnsignedInt(GetNamedAttributeValue(*stIter, "initDis", false), static_cast<unsigned int>(0));
-                ent.initSpeed = ParseUnsignedInt(GetNamedAttributeValue(*stIter, "initSpeed", false), static_cast<double>(0));
+                ent.startSegmentId = ParseUnsignedInt(GetNamedAttributeValue(*stIter, "startSegmentId", false), static_cast<unsigned int>(0));
+                ent.segmentStartOffset = ParseUnsignedInt(GetNamedAttributeValue(*stIter, "segmentStartOffset", false), static_cast<unsigned int>(0));
+                ent.initialSpeed = ParseUnsignedInt(GetNamedAttributeValue(*stIter, "initialSpeed", false), static_cast<double>(0));
                 ent.originNode = ParseUnsignedInt(GetNamedAttributeValue(*stIter, "originNode", true), static_cast<double>(0));
                 ent.destNode = ParseUnsignedInt(GetNamedAttributeValue(*stIter, "destNode", true), static_cast<double>(0));
                 unsigned int stId = ParseUnsignedInt(GetNamedAttributeValue(*stIter, "id", false), static_cast<unsigned int>(0));

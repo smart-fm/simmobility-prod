@@ -36,8 +36,7 @@ double SlotBased_IntDriving_Model::makeAcceleratingDecision(DriverUpdateParams& 
 		
 		if (timeToReachInt >= 0)
 		{
-			double speed = params.driver->getDistToIntersection() / timeToReachInt;
-			speed = speed * 100;
+			double speed = params.driver->getDistToIntersection() / timeToReachInt;			
 			params.driver->getVehicle()->setVelocity(speed);
 			
 			acc = 0;

@@ -144,8 +144,9 @@ void BusDriverMovement::frame_init()
 		parentBusDriver->getParams().initialSpeed = 0;
 	}
 
-	//Add the bus stops to the stop point pool
-	for (int i = 0; i < busStops.size(); ++i)
+	//Add the bus stops to the stop point pool (ignore the starting bus-stop as the bus enters the simulation from this
+	//point and doesn't have to stop here separately)
+	for (int i = 1; i < busStops.size(); ++i)
 	{
 		const BusStop *stop = busStops[i];
 		double dwelltime = 10;

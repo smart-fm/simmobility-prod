@@ -611,12 +611,9 @@ void DriverMovement::checkForStoppingPoints(DriverUpdateParams &params)
 	//Get the distance to stopping point in the current link
 	double distance = getDistanceToStopPoint(params.stopVisibilityDistance);
 
-	if (abs(distance) < 50)
+	if (parentDriver->getParent()->amodId != "-1" && abs(distance) < 50)
 	{
-		if (parentDriver->getParent()->amodId != "-1")
-		{
-			parentDriver->getParent()->handleAMODPickup();
-		}
+		parentDriver->getParent()->handleAMODPickup();
 	}
 
 	params.distanceToStoppingPt = distance;
@@ -658,8 +655,6 @@ void DriverMovement::checkForStoppingPoints(DriverUpdateParams &params)
 	{
 		params.stopPointState = DriverUpdateParams::STOP_POINT_NOT_FOUND;
 	}
-
-	params.stopPointState = DriverUpdateParams::STOP_POINT_NOT_FOUND;
 }
 
 void DriverMovement::applyDrivingModels(DriverUpdateParams &params)
@@ -824,7 +819,7 @@ void DriverMovement::buildPath(std::vector<WayPoint> &wayPoints, int startLaneIn
 		//Create a way point for every segment and insert it into the path
 		for (vector<RoadSegment *>::const_iterator itSegments = segments.begin(); itSegments != segments.end(); ++itSegments)
 		{
-			path.push_back(WayPoint(*itSegments));
+			path.push_back(WayPoint(*itSegments));			
 		}
 
 		if((itWayPts + 1) != pathOfLinks.end())
@@ -901,10 +896,7 @@ double DriverMovement::getDistanceToStopPoint(double perceptionDistance)
 	double distance = -100;
 	
 	//Distance to the end of the current way-point
-	double distToEndOfWayPt = fwdDriverMovement.getDistToEndOfCurrWayPt();
-	
-	//Distance along which we have scanned for the stopping points
-	double scannedDist = 0;
+	double distToEndOfWayPt = fwdDriverMovement.getDistToEndOfCurrWayPt();	
 	
 	bool isStopPointFound = false;
 	
@@ -912,6 +904,38 @@ double DriverMovement::getDistanceToStopPoint(double perceptionDistance)
 	
 	std::vector<WayPoint>::const_iterator wayPtIt = fwdDriverMovement.getCurrWayPointIt();
 	std::vector<WayPoint>::const_iterator endOfPath = fwdDriverMovement.getDrivingPath().end();
+	
+	//Check for stop-point in the current segment
+	
+	//Distance along which we have scanned for the stopping points
+	double scannedDist = distToEndOfWayPt;
+	
+	//Find the stop points in the current segment
+	std::map<unsigned int, std::vector<StopPoint> >::iterator itStopPtPool = params.stopPointPool.find(wayPtIt->roadSegment->getRoadSegmentId());	
+	
+	//Check if the current segment has any stop-points
+	if(itStopPtPool != params.stopPointPool.end())
+	{
+		double distCovered = fwdDriverMovement.getDistCoveredOnCurrWayPt();
+		
+		//Look for the first stop-point in front of us, but within the perception distance
+		std::vector<StopPoint>::const_iterator itStopPts = itStopPtPool->second.begin();
+		while(itStopPts != itStopPtPool->second.end() && (itStopPts->distance - distCovered) <= perceptionDistance)
+		{
+			if(itStopPts->distance >= distCovered)
+			{
+				params.currentStopPoint = *itStopPts;
+				distance = params.currentStopPoint.distance - distCovered;
+				isStopPointFound = true;
+				break;
+			}
+			
+			++itStopPts;
+		}
+	}
+	
+	//The next way-point to be scanned (Note: if the stop-point has already been found, the next loop won't execute)
+	++wayPtIt;
 	
 	//Iterate through the path till the perception distance or the end (whichever is before)
 	while(wayPtIt != endOfPath && scannedDist < perceptionDistance && !isStopPointFound)
@@ -921,7 +945,7 @@ double DriverMovement::getDistanceToStopPoint(double perceptionDistance)
 		if(wayPtIt->type == WayPoint::ROAD_SEGMENT)
 		{			
 			//Look for the stop points in the road segment
-			std::map<unsigned int, std::vector<StopPoint> >::iterator itStopPtPool = params.stopPointPool.find(wayPtIt->roadSegment->getRoadSegmentId());
+			itStopPtPool = params.stopPointPool.find(wayPtIt->roadSegment->getRoadSegmentId());
 			
 			if(itStopPtPool != params.stopPointPool.end())
 			{

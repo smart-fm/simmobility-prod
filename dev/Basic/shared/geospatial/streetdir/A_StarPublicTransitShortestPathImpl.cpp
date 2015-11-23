@@ -237,13 +237,13 @@ vector<sim_mob::PT_NetworkEdge> sim_mob::A_StarPublicTransitShortestPathImpl::se
 	if (vertexMap.find(fromNode) != vertexMap.end()) {
 		from = vertexMap.find(fromNode)->second;
 	} else {
-		std::cout << "From Node not found in the graph";
+		std::cout << "From Node " << fromNode << " not found in the graph\n";
 		return vector<sim_mob::PT_NetworkEdge>();
 	}
 	if (vertexMap.find(toNode) != vertexMap.end()) {
 		to = vertexMap.find(toNode)->second;
 	} else {
-		std::cout << "To Node not found in the graph";
+		std::cout << "To Node " << toNode << " not found in the graph\n";
 		return vector<sim_mob::PT_NetworkEdge>();
 	}
 	StreetDirectory::PublicTransitGraph& graph = publicTransitMap;

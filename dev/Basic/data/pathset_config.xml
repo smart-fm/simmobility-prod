@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Copyright Singapore-MIT Alliance for Research and Technology -->
 <pathset enabled="true"> 
-	<thread_pool size="1"/>
-	<private_pathset enabled="true" mode="generation"> <!-- currently, "normal" and "generation" are supported modes -->
+	<thread_pool size="7"/>
+	<private_pathset enabled="true" mode="normal"> <!--"normal" and "generation" are supported modes -->
 		<od_source table="routechoice.pvt_od"/>
 		<bulk_generation_output_file name="pvt-pathset.csv" />
 		<tables pathset_table="pvt_path" historical_traveltime="supply.link_travel_time" default_traveltime = "supply.link_default_travel_time"/>
@@ -33,9 +33,9 @@
 		</path_generators>
 	</private_pathset>
 	
-	<public_pathset enabled="true" mode="normal"> <!-- Currently mode supports normal generation  -->
-		<od_source table="sample_od"/>  
-		<bulk_generation_output_file name="/home/data1/pt_pathset.csv" />
+	<public_pathset enabled="true" mode="normal"> <!-- "normal" and "generation" modes are supported -->
+		<od_source table="routechoice.pt_od"/>  
+		<bulk_generation_output_file name="pt-pathset.csv" />
 		<pathset_generation_algorithms> 
 			<k_shortest_path level="10" />
 			<simulation_approach iterations="10"/> 

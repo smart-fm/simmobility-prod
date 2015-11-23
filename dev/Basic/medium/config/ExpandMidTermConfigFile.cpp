@@ -71,14 +71,14 @@ void ExpandMidTermConfigFile::processConfig()
         //	to be least intrusive to the rest of the code, we take a safe approach and run this mode from here, although a lot of
         //	unnecessary code will be executed.
         PrivatePathsetGenerator::getInstance()->bulkPathSetGenerator();
-        Print() << "Pathset generation done (in " << profile.tick().first.count()/1000.0 << "s)"<< std::endl;
+        Print() << "Private traffic pathset generation done (in " << (profile.tick().first.count()/1000000.0) << "s)"<< std::endl;
         exit(1);
     }
     if (ConfigManager::GetInstance().FullConfig().getPathSetConf().publicPathSetMode == "generation")
     {
-        Print() << "Public Transit bulk pathSet Generation started: " << std::endl;
+        Profiler profile("bulk profiler start", true);
         PT_PathSetManager::Instance().PT_BulkPathSetGenerator();
-        Print() << "Public Transit bulk pathSet Generation Done: " << std::endl;
+        Print() << "Public transit pathSet generation done (in " << (profile.tick().first.count()/1000000.0) << "s)"<< std::endl;
         exit(1);
     }
 

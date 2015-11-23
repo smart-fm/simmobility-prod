@@ -68,10 +68,6 @@ public:
 	//  (e.g., Node ID reference that doesn't exist).
 	static void LoadNetwork(const std::string& connectionStr, const std::map<std::string, std::string>& storedProcs);
 	static void loadSegNodeType(const std::string& connectionStr, const std::map<std::string, std::string>& storedProcs, sim_mob::RoadNetwork& rn);
-	static void LoadPT_ChoiceSetFrmDB(soci::session& sql, std::string& pathSetId, sim_mob::PT_PathSet& pathSet);
-	static void LoadPT_PathsetFrmDB(soci::session& sql, const std::string& funcName, int originalNode, int destNode, sim_mob::PT_PathSet& pathSet);
-	static bool insertCSV2Table(soci::session& sql, std::string& table_name,const std::string& csvFileName);
-	static bool truncateTable(soci::session& sql, std::string& table_name);
 	static bool excuString(soci::session& sql,std::string& str);
 	///For partial network loading.
 	static std::map<std::string, std::vector<sim_mob::TripChainItem*> > LoadTripChainsFromNetwork(const std::string& connectionStr, const std::map<std::string, std::string>& storedProcs);

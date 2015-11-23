@@ -34,7 +34,6 @@
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "geospatial/aimsun/CrossingLoader.hpp"
 #include "geospatial/aimsun/LaneLoader.hpp"
-#include "geospatial/aimsun/SOCI_Converters.hpp"
 #include "geospatial/network/TurningPath.hpp"
 #include "geospatial/network/TurningConflict.hpp"
 #include "geospatial/network/PolyLine.hpp"
@@ -44,6 +43,7 @@
 
 #include "logging/Log.hpp"
 #include "metrics/Length.hpp"
+#include "SOCI_Converters.hpp"
 #include "util/OutputUtil.hpp"
 #include "util/GeomHelpers.hpp"
 #include "util/DynamicVector.hpp"
@@ -104,13 +104,7 @@ public:
 	 */
 	void LoadTurningSection(map<string, string> const & storedProcs,sim_mob::RoadNetwork& rn);
 	void storeTurningPoints(sim_mob::RoadNetwork& rn);
-	static bool InsertCSV2Table(soci::session& sql,std::string& tableName,const std::string& csvFileName);
-	static bool TruncateTable(soci::session& sql,std::string& tableName);
 	static bool ExcuString(soci::session& sql,std::string& str);
-	// save path set data
-	static bool InsertSinglePath2DB(soci::session& sql,std::set<sim_mob::SinglePath*,sim_mob::SinglePath>& spPool,const std::string pathSetTableName);
-	static void loadPT_ChoiceSetFrmDB(soci::session& sql, std::string& pathSetId, sim_mob::PT_PathSet& pathSet);
-	static void LoadPT_PathsetFrmDB(soci::session& sql, const std::string& funcName, int originalNode, int destNode, sim_mob::PT_PathSet& pathSet);
 
     void LoadScreenLineSegmentIDs(const map<string, string>& storedProcs, std::set<unsigned int> &screenLines);
 #ifndef SIMMOB_DISABLE_MPI
@@ -298,63 +292,8 @@ void DatabaseLoader::getCBD_Nodes(const std::string& cnn, std::map<unsigned int,
 	*/
 }
 
-bool DatabaseLoader::InsertSinglePath2DB(soci::session& sql,std::set<sim_mob::SinglePath*,sim_mob::SinglePath>& spPool,const std::string pathSetTableName)
-{
-	BOOST_FOREACH(sim_mob::SinglePath* sp, spPool)
-	{
-		if(sp->isNeedSave2DB)
-		{
-			sql << "insert into " << pathSetTableName << "(id,pathset_id,partial_utility,path_size,signal_number,right_turn_number,scenario,length,highway_distance, min_distance,min_signal,min_right_turn,max_highway_usage, valid_path, shortest_path) "
-					" values(:id,:pathset_id,:partial_utility,:path_size,:signal_number,:right_turn_number,:scenario,:length,:highway_distance, :min_distance,:min_signal,:min_right_turn,:max_highway_usage, :valid_path, :shortest_path)", soci::use(*sp);
-			//pathsetLogger << "insert into " << pathSetTableName << "\n";
-		}
-	}
-}
-
-void DatabaseLoader::loadPT_ChoiceSetFrmDB(soci::session& sql, std::string& pathSetId, sim_mob::PT_PathSet& pathSet)
-{
-	soci::rowset<sim_mob::PT_Path> rs = (sql.prepare << std::string("select * from get_pt_choiceset") + "(:pathset_id_in)", soci::use(pathSetId) );
-	for (soci::rowset<sim_mob::PT_Path>::const_iterator it = rs.begin();	it != rs.end(); ++it) {
-		pathSet.pathSet.insert(*it);
-	}
-}
-
-void DatabaseLoader::LoadPT_PathsetFrmDB(soci::session& sql, const std::string& funcName, int originalNode, int destNode, sim_mob::PT_PathSet& pathSet)
-{
-	soci::rowset<sim_mob::PT_Path> rs = (sql.prepare << std::string("select * from ")+funcName + "(:o_node,:d_node)", soci::use(originalNode),soci::use(destNode) );
-	for (soci::rowset<sim_mob::PT_Path>::const_iterator it = rs.begin();	it != rs.end(); ++it) {
-		pathSet.pathSet.insert(*it);
-	}
-}
 std::map<std::string, sim_mob::OneTimeFlag> ontimeFlog;
 
-bool DatabaseLoader::InsertCSV2Table(soci::session& sql,std::string& tableName,const std::string& csvFileName)
-{
-	try {
-		sql << ("COPY " + tableName + " FROM '" + csvFileName + "' WITH DELIMITER AS ';'");
-		sql.commit();
-		}
-		catch (soci::soci_error const & err)
-		{
-			std::cout << "InsertCSV2Table: " << err.what() <<std::endl;
-			return false;
-		}
-		return true;
-}
-
-bool DatabaseLoader::TruncateTable(soci::session& sql,std::string& tableName)
-{
-	try {
-		sql << "TRUNCATE TABLE "+ tableName;
-		sql.commit();
-	}
-	catch (soci::soci_error const & err)
-	{
-		std::cout<<"TruncateTable: "<<err.what()<<std::endl;
-		return false;
-	}
-	return true;
-}
 bool DatabaseLoader::ExcuString(soci::session& sql,std::string& str)
 {
 	try {
@@ -1935,31 +1874,10 @@ void sim_mob::aimsun::Loader::getCBD_Nodes(std::map<unsigned int, const sim_mob:
 	DatabaseLoader::getCBD_Nodes(cnn, nodes);
 }
 
-bool sim_mob::aimsun::Loader::insertCSV2Table(soci::session& sql, std::string& tableName, const std::string& csvFileName)
-{
-	bool res = DatabaseLoader::InsertCSV2Table(sql,tableName,csvFileName);
-	return res;
-}
-
-bool sim_mob::aimsun::Loader::truncateTable(soci::session& sql,	std::string& tableName)
-{
-	bool res= DatabaseLoader::TruncateTable(sql, tableName);
-	return res;
-}
 bool sim_mob::aimsun::Loader::excuString(soci::session& sql,std::string& str)
 {
 	bool res= DatabaseLoader::ExcuString(sql,str);
 	return res;
-}
-
-void sim_mob::aimsun::Loader::LoadPT_ChoiceSetFrmDB(soci::session& sql, std::string& pathSetId, sim_mob::PT_PathSet& pathSet)
-{
-	DatabaseLoader::loadPT_ChoiceSetFrmDB(sql, pathSetId, pathSet);
-}
-
-void sim_mob::aimsun::Loader::LoadPT_PathsetFrmDB(soci::session& sql, const std::string& funcName, int originalNode, int destNode, sim_mob::PT_PathSet& pathSet)
-{
-	DatabaseLoader::LoadPT_PathsetFrmDB(sql, funcName, originalNode, destNode, pathSet);
 }
 
 void sim_mob::aimsun::Loader::loadSegNodeType(const std::string& connectionStr, const std::map<std::string, std::string>& storedProcs, sim_mob::RoadNetwork& rn)

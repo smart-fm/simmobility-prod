@@ -116,7 +116,7 @@ class TrainStop
 {
 public:
 	TrainStop();
-	TrainStop(std::string stopId, int roadSegment);
+	TrainStop(std::string stopId, unsigned int roadSegment);
 	~TrainStop();
 
 	std::string getTrainStopId() const
@@ -129,7 +129,7 @@ public:
 	 *
 	 * @param segmentId id of segment to add
 	 */
-	void addAccessRoadSegment(int segmentId);
+	void addAccessRoadSegment(unsigned int segmentId);
 
 	/**
 	 * finds a road segment attached with mrt stop that is closest to a node

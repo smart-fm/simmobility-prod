@@ -62,14 +62,17 @@ PT_PathSetManager::PT_PathSetManager():labelPoolSize(10)
 {
 	ptPathSetWriter.open(ConfigManager::GetInstance().FullConfig().getPathSetConf().publicPathSetOutputFile.c_str());
 }
+
 PT_PathSetManager::~PT_PathSetManager()
 {
 
 }
+
 PT_PathSetManager&  PT_PathSetManager::Instance()
 {
 	return instance;
 }
+
 std::string PT_PathSetManager::getVertexIdFromNode(const sim_mob::Node* node)
 {
 	//As in the PT_Network vertices simMobility nodes are represented as the N_ plus node id
@@ -78,7 +81,6 @@ std::string PT_PathSetManager::getVertexIdFromNode(const sim_mob::Node* node)
 	string stopId = boost::lexical_cast<std::string>("N_" + boost::lexical_cast<std::string>(node_id));
 	return stopId;
 }
-
 
 void PT_PathSetManager::PT_BulkPathSetGenerator()
 {
@@ -110,7 +112,7 @@ void PT_PathSetManager::PT_BulkPathSetGenerator()
 		threadpool.reset(new sim_mob::batched::ThreadPool(sim_mob::ConfigManager::GetInstance().PathSetConfig().threadPoolSize));
 	}
 	int total_count = simpleOD_Set.size();
-	Print() << "Total OD's in Bulk generation is " << total_count;
+	Print() << "OD's for pathset generation: " << total_count << std::endl;
 	const RoadNetwork* rn = RoadNetwork::getInstance();
 	const std::map<unsigned int, Node *>& nodeLookup = rn->getMapOfIdvsNodes();
 	for(std::set<simpleOD>::const_iterator it=simpleOD_Set.begin();it!=simpleOD_Set.end();it++)
@@ -145,21 +147,21 @@ PT_PathSet PT_PathSetManager::makePathset(const sim_mob::Node* from,const sim_mo
 	// Writing the pathSet to the CSV file.
 	writePathSetToFile(ptPathSet, from->getNodeId(), to->getNodeId());
 
+	Print() << ptPathSet.pathSet.size() << " paths generated for [" << from->getNodeId() << "," << to->getNodeId() << "]" <<  std::endl;
 	return ptPathSet;
 }
 
 void PT_PathSetManager::writePathSetFileHeader()
 {
-	this->ptPathSetWriter << "PtPathId," << "ptPathSetId," << "scenario,"
-			<< "PathTravelTime," << "TotalDistanceKms," << "PathSize,"
+	this->ptPathSetWriter << "pathset_origin_node," << "pathset_dest_node," << "scenario,"
+			<< "path," << "PathTravelTime," << "TotalDistanceKms," << "PathSize,"
 			<< "TotalCost," << "Total_In_Vehicle_Travel_Time_Secs,"
 			<< "Total_waiting_time," << "Total_walking_time,"
 			<< "Total_Number_of_transfers," << "isMinDistance,"
 			<< "isValidPath," << "isShortestPath,"
 			<< "isMinInVehicleTravelTimeSecs," << "isMinNumberOfTransfers,"
 			<< "isMinWalkingDistance," << "isMinTravelOnMrt,"
-			<< "isMinTravelOnBus," << "pathset_origin_node,"
-			<< "pathset_dest_node" << std::endl;
+			<< "isMinTravelOnBus" << std::endl;
 }
 
 void PT_PathSetManager::writePathSetToFile(const PT_PathSet &ptPathSet,	unsigned int fromNodeId, unsigned int toNodeId)
@@ -167,22 +169,34 @@ void PT_PathSetManager::writePathSetToFile(const PT_PathSet &ptPathSet,	unsigned
 	fileExclusiveWrite.lock();
 	for (std::set<PT_Path, cmp_path_vector>::const_iterator itPath = ptPathSet.pathSet.begin(); itPath != ptPathSet.pathSet.end();itPath++)
 	{
-		this->ptPathSetWriter << "\"" << itPath->getPtPathId() << "\"" << ","<< "\"" << itPath->getPtPathSetId() << "\"" << ","
-				<< itPath->getScenario() << "," << itPath->getPathTravelTime()<< ","
+		/* required output fields are:
+		 * pathset_origin_node, pathset_dest_node, scenario, path, path_travel_time_secs,
+		 * total_distance_kms, path_size, total_cost, total_in_vehicle_travel_time_secs,
+		 * total_waiting_time, total_walking_time, total_number_of_transfers,
+		 * is_min_distance, is_valid_path, is_shortest_path, is_min_in_vehicle_traveltime,
+		 * is_min_number_of_transfers, is_min_walking_distance, is_min_travel_on_mrt, is_min_travel_on_bus
+		 */
+		this->ptPathSetWriter
+				<< fromNodeId << ","
+				<< toNodeId << ","
+				<< itPath->getScenario() << ","
+				<< "\"" << itPath->getPtPathId() << "\"" << ","
+				<< itPath->getPathTravelTime()<< ","
 				<< itPath->getTotalDistanceKms() << ","
-				<< itPath->getPathSize() << "," << itPath->getTotalCost() << ","
+				<< itPath->getPathSize() << ","
+				<< itPath->getTotalCost() << ","
 				<< itPath->getTotalInVehicleTravelTimeSecs() << ","
 				<< itPath->getTotalWaitingTimeSecs() << ","
 				<< itPath->getTotalWalkingTimeSecs() << ","
 				<< itPath->getTotalNumberOfTransfers() << ","
-				<< itPath->isMinDistance() << "," << itPath->isValidPath()<< ","
+				<< itPath->isMinDistance() << ","
+				<< itPath->isValidPath()<< ","
 				<< itPath->isShortestPath() << ","
 				<< itPath->isMinInVehicleTravelTimeSecs() << ","
 				<< itPath->isMinNumberOfTransfers() << ","
 				<< itPath->isMinWalkingDistance() << ","
 				<< itPath->isMinTravelOnMrt() << ","
-				<< itPath->isMinTravelOnBus() << "," << fromNodeId << ","
-				<< toNodeId << std::endl;
+				<< itPath->isMinTravelOnBus() << "\n";
 	}
 	fileExclusiveWrite.unlock();
 }

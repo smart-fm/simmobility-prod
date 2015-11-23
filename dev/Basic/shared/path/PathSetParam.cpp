@@ -55,13 +55,21 @@ void sim_mob::PathSetParam::storeSinglePath(soci::session& sql, std::set<sim_mob
 		{
 			if(sp->isNeedSave2DB)
 			{
-				pathsetCSV << ("\"" + sp->id + "\"") << ","
-						<< ("\"" + sp->pathSetId + "\"") << ","
+				/* required output fields are:
+				 *
+				 * pathset_origin_node, pathset_dest_node, scenario, path, partial_utility,
+				 * path_size, signal_number, right_turn_number, length, highway_distance,
+				 * min_distance, min_signal, min_right_turn, max_highway_usage,
+				 * valid_path, shortest_path, default_travel_time, min_default_tt
+				 */
+				pathsetCSV
+						<< sp->pathSetId << ","
+						<< ("\"" + sp->scenario  + "\"") << ","
+						<< ("\"" + sp->id + "\"") << ","
 						<< sp->partialUtility << ","
 						<< sp->pathSize << ","
 						<< sp->signalNumber << ","
 						<< sp->rightTurnNumber << ","
-						<< ("\"" + sp->scenario  + "\"") << ","
 						<< sp->length << ","
 						<< sp->highWayDistance << ","
 						<< sp->isMinDistance << ","
@@ -71,8 +79,7 @@ void sim_mob::PathSetParam::storeSinglePath(soci::session& sql, std::set<sim_mob
 						<< sp->valid_path << ","
 						<< sp->isShortestPath << ","
 						<< sp->travelTime << ","
-						<< sp->isMinTravelTime << ","
-						<< sp->pathSetId << "\n";
+						<< sp->isMinTravelTime << "\n";
 			}
 		}
 	}

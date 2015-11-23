@@ -167,7 +167,7 @@ TrainStop::TrainStop(){}
 
 TrainStop::~TrainStop(){}
 
-TrainStop::TrainStop(std::string stopId,int roadSegment){
+TrainStop::TrainStop(std::string stopId,unsigned int roadSegment){
 	this->trainStopId=stopId;
 	this->addAccessRoadSegment(roadSegment);
 }
@@ -199,7 +199,7 @@ const RoadSegment* TrainStop::getRandomStationSegment() const
 	return (*segIt);
 }
 
-void TrainStop::addAccessRoadSegment(int segmentId)
+void TrainStop::addAccessRoadSegment(unsigned int segmentId)
 {
 	const RoadNetwork* rn = RoadNetwork::getInstance();
 	const RoadSegment* accessSegment = rn->getById(rn->getMapOfIdVsRoadSegments(), segmentId);

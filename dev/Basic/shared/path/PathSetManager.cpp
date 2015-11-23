@@ -731,7 +731,7 @@ void sim_mob::PrivatePathsetGenerator::bulkPathSetGenerator()
 		destinationNode = rn->getById(rn->getMapOfIdvsNodes(), r.get<int>(1));
 		odPairs.insert(OD(originNode, destinationNode));
 	}
-	Print() << "[DISTINICT ODs:" <<  odPairs.size() << "]" << std::endl;
+	Print() << "OD's for pathset generation: " << odPairs.size() << std::endl;
 
 	sim_mob::Profiler t("bulk generator details", true);
 	int total = 0, iterCnt1 = 0, iterCnt2 = 0;

@@ -67,17 +67,17 @@ void PT_Network::init()
 	{
 	   soci::row const& row = *it;
 	   std::string mrtstopid = row.get<std::string>(0);
-	   int roadsegmentId = row.get<int>(1);
+	   int roadsegmentId = row.get<unsigned int>(1);
 	   if(MRTStopsMap.find(mrtstopid) == MRTStopsMap.end())
 	   {
-		   TrainStop mrtStopObj(mrtstopid,roadsegmentId);
+		   TrainStop mrtStopObj(mrtstopid, roadsegmentId);
 		   MRTStopsMap[mrtstopid]=mrtStopObj;
 	   }
 	   else{
 		   MRTStopsMap[mrtstopid].addAccessRoadSegment(roadsegmentId);
 	   }
 	}
-	cout<<"Public Transport Network Loaded ";
+	cout << "Public Transport network loaded\n";
 }
 int PT_Network::getVertexTypeFromStopId(std::string stopId)
 {

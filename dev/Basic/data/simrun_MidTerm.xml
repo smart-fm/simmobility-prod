@@ -122,7 +122,7 @@
     <CBD enabled="false"/>
     <generateBusRoutes enabled="false" /> 
     <travel_time_update interval="300" alpha="0.5" />
-    <public_transit enabled="false"/>
+    <public_transit enabled="true"/>
     <screen-line_count interval="900" file-name="screenLineCount.txt" enabled="false" />
 
     <!-- Determines whether to run SimMobility_Medium's demand simulator or the supply simulator -->

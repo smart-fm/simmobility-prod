@@ -37,10 +37,12 @@ Vehicle* BusDriverMovement::initialiseBusPath(bool createVehicle)
 		std::vector<const RoadSegment *> pathOfSegments;
 		unsigned int vehicleId = 0;
 		const BusTrip *bustrip = dynamic_cast<const BusTrip *> (*(parent->currTripChainItem));
+		std::string busRoute;
 
 		if (bustrip && (*(parent->currTripChainItem))->itemType == TripChainItem::IT_BUSTRIP)
 		{
 			pathOfSegments = bustrip->getBusRouteInfo().getRoadSegments();
+			busRoute = bustrip->getBusRouteInfo().getBusRouteId();
 			vehicleId = bustrip->getVehicleID();
 		}
 		else
@@ -55,7 +57,7 @@ Vehicle* BusDriverMovement::initialiseBusPath(bool createVehicle)
 		if (createVehicle)
 		{
 			vehicle = new Vehicle(VehicleBase::BUS, vehicleId, length, width);
-			buildPath(pathOfSegments);
+			buildPath(busRoute, pathOfSegments);
 		}
 
 		//Indicate that the path to next activity is already planned
@@ -65,7 +67,7 @@ Vehicle* BusDriverMovement::initialiseBusPath(bool createVehicle)
 	return vehicle;
 }
 
-void BusDriverMovement::buildPath(const std::vector<const RoadSegment *> &pathOfSegments)
+void BusDriverMovement::buildPath(const std::string &routeId, const std::vector<const RoadSegment *> &pathOfSegments)
 {
 	std::vector<WayPoint> path;
 	std::vector<const RoadSegment *>::const_iterator itSegments = pathOfSegments.begin();
@@ -92,7 +94,8 @@ void BusDriverMovement::buildPath(const std::vector<const RoadSegment *> &pathOf
 			else
 			{
 				stringstream msg;
-				msg << "No turning between the links " << currLink->getLinkId() << " and " << nextLinkId << "!\nInvalid Path!!!";
+				msg << "No turning between the links " << currLink->getLinkId() << " and " << nextLinkId;
+				msg << "\nInvalid Path for Bus route " << routeId;
 				throw std::runtime_error(msg.str());
 			}
 		}

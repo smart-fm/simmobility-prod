@@ -79,9 +79,10 @@ private:
 	/**
 	 * Builds a path of way-points consisting of road segments and turning groups using the given road-segments
 	 * 
+	 * @param routeId the bus route id
 	 * @param pathOfSegments the road segments in the path
 	 */
-	void buildPath(const std::vector<const RoadSegment *> &pathOfSegments);
+	void buildPath(const std::string &routeId, const std::vector<const RoadSegment *> &pathOfSegments);
 	
 protected:
 	/**The bus driver*/

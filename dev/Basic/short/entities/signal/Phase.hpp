@@ -52,9 +52,6 @@ private:
 	/**Name of the phase, for easy identification*/
 	std::string phaseName;
 	
-	/**The traffic signal to which this phase belongs*/
-	Signal *parentSignal;
-	
 	/**The amount of time from the start of the cycle until the start of this phase*/
 	mutable double phaseOffset;
 	
@@ -78,12 +75,12 @@ public:
 	typedef linksMapping::const_iterator linksMappingConstIterator;
 	typedef std::pair<linksMappingConstIterator, linksMappingConstIterator> linksMappingEqualRange;
 
-	Phase() : parentSignal(NULL), phaseOffset(0), phaseLength(0), parentPlan(NULL)
+	Phase() : phaseOffset(0), phaseLength(0), parentPlan(NULL)
 	{
 	}
 
 	Phase(std::string name, SplitPlan *parent = nullptr) : phaseName(name), parentPlan(parent),
-	parentSignal(NULL), phaseOffset(0), phaseLength(0)
+	phaseOffset(0), phaseLength(0)
 	{
 	}
 	

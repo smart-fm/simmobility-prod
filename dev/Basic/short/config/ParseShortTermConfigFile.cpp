@@ -33,9 +33,7 @@ sim_mob::NetworkSource ParseNetSourceEnum(const XMLCh* srcX, NetworkSource* defV
 sim_mob::AuraManager::AuraManagerImplementation ParseAuraMgrImplEnum(const XMLCh* srcX, AuraManager::AuraManagerImplementation* defValue) {
     if (srcX) {
         std::string src = TranscodeString(srcX);
-        if (src=="simtree") {
-            return AuraManager::IMPL_SIMTREE;
-        } else if (src=="rdu") {
+        if (src=="rdu") {
             return AuraManager::IMPL_RDU;
         } else if (src=="rstar") {
             return AuraManager::IMPL_RSTAR;

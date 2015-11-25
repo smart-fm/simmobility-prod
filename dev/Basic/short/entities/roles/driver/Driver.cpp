@@ -158,10 +158,8 @@ vector<BufferedBase*> Driver::getSubscriptionParams()
 	res.push_back(&(currTurning_));
 	res.push_back(&(expectedTurning_));
 	res.push_back(&(distCoveredOnCurrWayPt_));
-	res.push_back(&(distCoveredOnCurrWayPt_));
 	res.push_back(&(distToIntersection_));
 	res.push_back(&(isInIntersection_));
-	res.push_back(&(latMovement_));
 	res.push_back(&(latMovement_));
 	res.push_back(&(fwdVelocity_));
 	res.push_back(&(latVelocity_));

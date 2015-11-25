@@ -1214,7 +1214,7 @@ std::string sim_mob::PathSetManager::logPartialUtility(const sim_mob::SinglePath
 
 	if(utilityLogger[sp].check())
 	{
-		sp->partialUtilityDbg << sp->pathSetId << "#" << sp->scenario << "#" << sp->index << "#" << sp->travelTime << "#" << pathSetParam->bTTVOT <<  "#" << sp->travelTime * pathSetParam->bTTVOT << "#"
+		sp->partialUtilityDbg << sp->pathSetId << "#" << sp->scenario << "#" << sp->travelTime << "#" << pathSetParam->bTTVOT <<  "#" << sp->travelTime * pathSetParam->bTTVOT << "#"
 				<< sp->pathSize << "#" << pathSetParam->bCommonFactor << "#" <<  sp->pathSize * pathSetParam->bCommonFactor << "#"
 				<< sp->length << "#" << pathSetParam->bLength << "#"   <<  sp->length * pathSetParam->bLength << "#"
 				<< sp->highWayDistance << "#"  <<  pathSetParam->bHighway << "#" << sp->highWayDistance * pathSetParam->bHighway << "#"

@@ -41,7 +41,7 @@ void BusControllerMT::processRequests()
 {
 	for (vector<Entity*>::iterator it = busDrivers.begin(); it != busDrivers.end(); it++)
 	{
-		Person_MT* person = dynamic_cast<Person_MT*>(*it);
+		Person_MT* person = dynamic_cast<Person_MT*>((*it));
 		if (person)
 		{
 			Role<Person_MT>* role = person->getRole();

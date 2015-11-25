@@ -70,7 +70,8 @@ BusDriverMovement::BusDriverMovement():
 
 BusDriverMovement::~BusDriverMovement() {}
 
-void BusDriverMovement::frame_init() {
+void BusDriverMovement::frame_init()
+{
 	bool pathInitialized = initializePath();
 	if (pathInitialized)
 	{
@@ -79,7 +80,10 @@ void BusDriverMovement::frame_init() {
 		safe_delete_item(oldBus);
 		parentBusDriver->setResource(newVeh);
 	}
-	else { parentBusDriver->parent->setToBeRemoved(); }
+	else
+	{
+		parentBusDriver->parent->setToBeRemoved();
+	}
 }
 
 void BusDriverMovement::frame_tick() {
@@ -139,28 +143,35 @@ void BusDriverMovement::frame_tick() {
 		setParentData(params);
 	}
 //	std::stringstream logout;
-//	Person* person = parent;
-//	unsigned int segId = (person->getCurrSegStats()? person->getCurrSegStats()->getRoadSegment()->getSegmentAimsunId() : 0 );
-//	uint16_t statsNum = (person->getCurrSegStats()? person->getCurrSegStats()->getStatsNumberInSegment() : 0);
-//	logout << "(BusDriver"
-//			<<","<<person->getId()
-//			<<","<<person->busLine
-//			<<","<<parentBusDriver->getParams().now.frame()
-//			<<",{"
-//			<<"RoadSegment:"<< segId
-//			<<",StatsNum:"<< statsNum
-//			<<",Lane:"<<(person->getCurrLane()? person->getCurrLane()->getLaneID() : 0)
-//			<<",DistanceToEndSeg:"<<person->distanceToEndOfSegment;
+//	Person_MT* person = parentBusDriver->parent;
+//	unsigned int segId = (person->getCurrSegStats() ? person->getCurrSegStats()->getRoadSegment()->getRoadSegmentId() : 0);
+//	uint16_t statsNum = (person->getCurrSegStats() ? person->getCurrSegStats()->getStatsNumberInSegment() : 0);
+//	logout << "(BusDriver" << "," << person->getId() << "," << person->busLine << "," << parentBusDriver->getParams().now.frame() << ",{" << "RoadSegment:"
+//			<< segId << ",StatsNum:" << statsNum << ",Lane:" << (person->getCurrLane() ? person->getCurrLane()->getLaneId() : 0) << ",DistanceToEndSeg:"
+//			<< person->distanceToEndOfSegment;
 //
-//	if(parentBusDriver->getResource()->isMoving()) { logout << ",ServingStop:" << "false"; }
-//	else { logout << ",ServingStop:" << "true"; }
+//	if (parentBusDriver->getResource()->isMoving())
+//	{
+//		logout << ",ServingStop:" << "false";
+//	}
+//	else
+//	{
+//		logout << ",ServingStop:" << "true";
+//	}
 //	const BusStop* nextStop = routeTracker.getNextStop();
-//	logout << ",NextStop:" << (nextStop? nextStop->getBusstopno_() : "0");
+//	logout << ",NextStop:" << (nextStop ? nextStop->getStopCode() : "0");
 //
-//	if (person->isQueuing) { logout << ",queuing:" << "true"; }
-//	else { logout << ",queuing:" << "false";}
+//	if (person->isQueuing)
+//	{
+//		logout << ",queuing:" << "true";
+//	}
+//	else
+//	{
+//		logout << ",queuing:" << "false";
+//	}
 //	logout << "})" << std::endl;
-//	Print()<<logout.str();
+//	Print() << logout.str();
+
 }
 
 std::string BusDriverMovement::frame_tick_output() {

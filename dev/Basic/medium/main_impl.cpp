@@ -29,7 +29,6 @@
 #include "entities/BusStopAgent.hpp"
 #include "entities/incident/IncidentManager.hpp"
 #include "entities/params/PT_NetworkEntities.hpp"
-#include "entities/Person.hpp"
 #include "entities/MT_PersonLoader.hpp"
 #include "entities/Person_MT.hpp"
 #include "entities/profile/ProfileBuilder.hpp"

@@ -9,7 +9,6 @@
 #include <map>
 #include <vector>
 #include "entities/Agent.hpp"
-#include "entities/Person.hpp"
 #include "entities/Person_MT.hpp"
 #include "geospatial/network/Node.hpp"
 #include "SegmentStats.hpp"
@@ -78,6 +77,27 @@ struct GreaterRemainingTimeThisTick: public std::greater<Person_MT*>
  * @param personList list of persons to be sorted
  */
 void sortPersonsDecreasingRemTime(std::deque<Person_MT*>& personList);
+
+/**
+ * simple class to contain role-wise and total count of persons
+ */
+struct PersonCount
+{
+public:
+	unsigned int pedestrians;
+	unsigned int busPassengers;
+	unsigned int trainPassengers;
+	unsigned int carDrivers;
+	unsigned int carSharers;
+	unsigned int motorCyclists;
+	unsigned int busDrivers;
+	unsigned int busWaiters;
+	unsigned int activityPerformers;
+
+	PersonCount();
+	const PersonCount& operator+=(const PersonCount& dailytime);
+	unsigned int getTotal();
+};
 
 /**
  * Class to represent a grouping of an intersection along with the links which
@@ -534,9 +554,9 @@ public:
 
 	/**
 	 * counts the number of persons active in this conflux
-	 * @return number of persons in this conflux
+	 * @return struct containing role-wise and total number of persons in this conflux
 	 */
-	unsigned int countPersons();
+	PersonCount countPersons() const;
 
 	/**
 	 * get an ordered list of all persons in this conflux

@@ -18,7 +18,6 @@
 #include "entities/conflux/SegmentStats.hpp"
 #include "entities/Entity.hpp"
 #include "entities/misc/TripChain.hpp"
-#include "entities/Person.hpp"
 #include "entities/roles/activityRole/ActivityPerformer.hpp"
 #include "entities/roles/driver/BikerFacets.hpp"
 #include "entities/roles/driver/BusDriverFacets.hpp"
@@ -840,6 +839,27 @@ void Conflux::killAgent(Person_MT* person, PersonProps& beforeUpdate)
 		}
 		break;
 	}
+	case Role<Person_MT>::RL_BUSDRIVER:
+	{
+		if(person->parentEntity)
+		{
+			person->parentEntity->unregisterChild(person); //unregister bus driver from busController parent entity
+		}
+		if (prevLane)
+		{
+			bool removed = prevSegStats->removeAgent(prevLane, person, wasQueuing, vehicleLength);
+			//removed can be false only in the case of BusDrivers at the moment.
+			//This is because a BusDriver could have been dequeued from prevLane in the previous tick and be added to his
+			//last bus stop. When he has finished serving the stop, the BusDriver is done. He will be killed here. However,
+			//since he was already dequeued, we can't find him in prevLane now.
+			//It is an error only if removed is false and the role is not BusDriver.
+			if (!removed && personRoleType != Role<Person_MT>::RL_BUSDRIVER)
+			{
+				throw std::runtime_error("Conflux::killAgent(): Attempt to remove non-existent person in Lane");
+			}
+		}
+		break;
+	}
 	default: //applies for any other vehicle in a lane (Biker, Busdriver etc.)
 	{
 		if (prevLane)
@@ -1447,18 +1467,76 @@ std::deque<Person_MT*> Conflux::getAllPersons()
 	return allPersonsInCfx;
 }
 
-unsigned int Conflux::countPersons()
+PersonCount Conflux::countPersons() const
 {
-	unsigned int numPersons = 0;
-	for (UpstreamSegmentStatsMap::iterator upStrmSegMapIt = upstreamSegStatsMap.begin(); upStrmSegMapIt != upstreamSegStatsMap.end(); upStrmSegMapIt++)
+	PersonCount count;
+	count.activityPerformers = activityPerformers.size();
+	count.pedestrians = pedestrianList.size();
+	count.trainPassengers = mrt.size();
+	count.carSharers = carSharing.size();
+
+	PersonList onRoadPersons, tmpAgents;
+	SegmentStats* segStats = nullptr;
+	for (UpstreamSegmentStatsMap::const_iterator upStrmSegMapIt = upstreamSegStatsMap.begin(); upStrmSegMapIt != upstreamSegStatsMap.end(); upStrmSegMapIt++)
 	{
 		const SegmentStatsList& upstreamSegments = upStrmSegMapIt->second;
-		for (SegmentStatsList::const_iterator statsIt = upstreamSegments.begin(); statsIt != upstreamSegments.end(); statsIt++)
+		for (SegmentStatsList::const_iterator rdSegIt = upstreamSegments.begin(); rdSegIt != upstreamSegments.end(); rdSegIt++)
 		{
-			numPersons = numPersons + (*statsIt)->getNumPersons();
+			segStats = (*rdSegIt);
+			segStats->getPersons(tmpAgents);
+			onRoadPersons.insert(onRoadPersons.end(), tmpAgents.begin(), tmpAgents.end());
+
+			count.busWaiters += segStats->getBusWaitersCount();
 		}
 	}
-	return numPersons;
+
+	for (VirtualQueueMap::const_iterator vqMapIt = virtualQueuesMap.begin(); vqMapIt != virtualQueuesMap.end(); vqMapIt++)
+	{
+		tmpAgents = vqMapIt->second;
+		onRoadPersons.insert(onRoadPersons.end(), tmpAgents.begin(), tmpAgents.end());
+	}
+
+	for(PersonList::const_iterator onRoadPersonIt=onRoadPersons.begin(); onRoadPersonIt!=onRoadPersons.end(); onRoadPersonIt++)
+	{
+		const Role<Person_MT>* role = (*onRoadPersonIt)->getRole();
+		if(role)
+		{
+			switch(role->roleType)
+			{
+			case Role<Person_MT>::RL_DRIVER:
+			{
+				count.carDrivers++;
+				break;
+			}
+			case Role<Person_MT>::RL_BIKER:
+			{
+				count.motorCyclists++;
+				break;
+			}
+			case Role<Person_MT>::RL_BUSDRIVER:
+			{
+				count.busDrivers++;
+				const BusDriver* busDriver = dynamic_cast<const BusDriver*>(role);
+				if(busDriver)
+				{
+					count.busPassengers += busDriver->getPassengerCount();
+				}
+				else
+				{
+					throw std::runtime_error("bus driver is NULL");
+				}
+				break;
+			}
+			default: // not an on-road mode. Ideally an error, considering how we obtained onRoadPersons list
+			{
+				std::stringstream err;
+				err << "Invalid mode on road. Role: " << role->roleType << "\n";
+				throw std::runtime_error(err.str());
+			}
+			}
+		}
+	}
+	return count;
 }
 
 void Conflux::getAllPersonsUsingTopCMerge(std::deque<Person_MT*>& mergedPersonDeque)
@@ -2032,7 +2110,7 @@ void Conflux::ProcessConfluxes()
 		linksAt[lnk->getToNode()].insert(lnk);
 	}
 
-	debugMsgs << "Nodes without upstream links: [";
+	debugMsgs << "Nodes without upstream links: [ ";
 	const std::map<unsigned int, Node*>& nodeMap= rdnw->getMapOfIdvsNodes();
 	for (std::map<unsigned int, Node*>::const_iterator i=nodeMap.begin(); i!=nodeMap.end(); i++)
 	{
@@ -2115,7 +2193,6 @@ void Conflux::CreateLaneGroups()
 	}
 
 	typedef std::map<const Lane*, LaneStats*> LaneStatsMap;
-
 	for (std::set<Conflux*>::const_iterator cfxIt = confluxes.begin(); cfxIt != confluxes.end(); cfxIt++)
 	{
 		UpstreamSegmentStatsMap& upSegsMap = (*cfxIt)->upstreamSegStatsMap;
@@ -2123,6 +2200,12 @@ void Conflux::CreateLaneGroups()
 		for (UpstreamSegmentStatsMap::const_iterator upSegsMapIt = upSegsMap.begin(); upSegsMapIt != upSegsMap.end(); upSegsMapIt++)
 		{
 			const Link* lnk = upSegsMapIt->first;
+			const std::map<unsigned int, TurningGroup *>& turningGroupsFromLnk = cfxNode->getTurningGroups(lnk->getLinkId());
+			if(turningGroupsFromLnk.empty())
+			{
+				continue;
+			}
+
 			const SegmentStatsList& segStatsList = upSegsMapIt->second;
 			if (segStatsList.empty())
 			{
@@ -2131,19 +2214,13 @@ void Conflux::CreateLaneGroups()
 
 			//assign downstreamLinks to the last segment stats
 			SegmentStats* lastStats = segStatsList.back();
-			const std::map<unsigned int, TurningGroup *>& turningGroupsFromLnk = cfxNode->getTurningGroups(lnk->getLinkId());
-			if(turningGroupsFromLnk.empty())
-			{
-				throw std::runtime_error("No turngroups found for link");
-			}
-
 			for (std::map<unsigned int, TurningGroup*>::const_iterator tgIt = turningGroupsFromLnk.begin(); tgIt != turningGroupsFromLnk.end(); tgIt++)
 			{
 				const TurningGroup* turnGrp = tgIt->second;
 				const Link* downStreamLink = rdnw->getById(rdnw->getMapOfIdVsLinks(), turnGrp->getToLinkId());
 				if(!downStreamLink)
 				{
-					throw std::runtime_error("to link of turn group does not exist");
+					throw std::runtime_error("to link of turn group is NULL");
 				}
 
 				const std::map<unsigned int, std::map<unsigned int, TurningPath *> >& turnPaths = turnGrp->getTurningPaths();
@@ -2170,9 +2247,9 @@ void Conflux::CreateLaneGroups()
 				{
 					std::stringstream err;
 					err << "no downstream links found for lane " << lnStatsIt->first->getLaneId()
-							<< "in last segment " << lnStatsIt->first->getParentSegment()->getRoadSegmentId()
-							<< "of link " << lnStatsIt->first->getParentSegment()->getParentLink()->getLinkId()
-							<< "\n";
+							<< " in last segment " << lnStatsIt->first->getParentSegment()->getRoadSegmentId()
+							<< " of link " << lnStatsIt->first->getParentSegment()->getParentLink()->getLinkId()
+							<< " \n";
 					throw std::runtime_error(err.str());
 				}
 				for (std::set<const Link*>::const_iterator dnStrmIt = downstreamLnks.begin(); dnStrmIt != downstreamLnks.end(); dnStrmIt++)
@@ -2236,8 +2313,8 @@ void Conflux::CreateLaneGroups()
 					{
 						std::stringstream err;
 						err << "no downstream links found for lane " << lnStatsIt->first->getLaneId()
-								<< "in segment " << lnStatsIt->first->getParentSegment()->getRoadSegmentId()
-								<< "of link " << lnStatsIt->first->getParentSegment()->getParentLink()->getLinkId()
+								<< " in segment " << lnStatsIt->first->getParentSegment()->getRoadSegmentId()
+								<< " of link " << lnStatsIt->first->getParentSegment()->getParentLink()->getLinkId()
 								<< "\n";
 						throw std::runtime_error(err.str());
 					}
@@ -2273,4 +2350,36 @@ void Conflux::CreateLaneGroups()
 //			}
 		}
 	}
+}
+
+PersonCount::PersonCount() : pedestrians(0), busPassengers(0), trainPassengers(0), carDrivers(0), motorCyclists(0),
+		busDrivers(0), busWaiters(0), activityPerformers(0), carSharers(0)
+{
+}
+
+const PersonCount& PersonCount::operator+=(const PersonCount& personCount)
+{
+	pedestrians += personCount.pedestrians;
+	busPassengers += personCount.busPassengers;
+	trainPassengers += personCount.trainPassengers;
+	carDrivers += personCount.carDrivers;
+	carSharers += personCount.carSharers;
+	motorCyclists += personCount.motorCyclists;
+	busDrivers += personCount.busDrivers;
+	busWaiters += personCount.busWaiters;
+	activityPerformers += personCount.activityPerformers;
+    return *this;
+}
+
+unsigned int sim_mob::medium::PersonCount::getTotal()
+{
+	return (pedestrians
+			+ busPassengers
+			+ trainPassengers
+			+ carDrivers
+			+ carSharers
+			+ motorCyclists
+			+ busDrivers
+			+ busWaiters
+			+ activityPerformers);
 }

@@ -402,5 +402,10 @@ const SegmentStats* BusStopAgent::getParentSegmentStats() const
 {
 	return parentSegmentStats;
 }
+
+unsigned int BusStopAgent::getWaitingCount() const
+{
+	return waitingPersons.size();
+}
 }
 }

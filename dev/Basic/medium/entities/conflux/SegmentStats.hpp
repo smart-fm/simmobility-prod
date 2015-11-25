@@ -6,6 +6,8 @@
 
 #include <string>
 #include <set>
+#include <vector>
+#include "entities/BusStopAgent.hpp"
 #include "entities/Person_MT.hpp"
 #include "geospatial/network/RoadSegment.hpp"
 #include "geospatial/network/Lane.hpp"
@@ -371,7 +373,7 @@ protected:
 	typedef std::deque<Person_MT*> PersonList;
 	typedef std::map<const Lane*, LaneStats*> LaneStatsMap;
 	typedef std::vector<const BusStop*> BusStopList;
-	typedef std::vector<Agent*> AgentList;
+	typedef std::vector<BusStopAgent*> BusStopAgentList;
 	typedef std::map<const BusStop*, PersonList> StopBusDriversMap;
 
 	/** road segment which contains this SegmentStats */
@@ -389,7 +391,7 @@ protected:
 	BusStopList busStops;
 
 	/** BusStopAgents for bus stops in this segment stats */
-	AgentList busStopAgents;
+	BusStopAgentList busStopAgents;
 
 	/** stop wise list of bus drivers currently serving the stop */
 	StopBusDriversMap busDrivers;
@@ -542,7 +544,7 @@ public:
 	 * adds bus stop agent
 	 * @param busStopAgent is a pointer to a bus stop agent
 	 */
-	void addBusStopAgent(Agent* busStopAgent);
+	void addBusStopAgent(BusStopAgent* busStopAgent);
 
 	/**
 	 * Initializes all the bus stops in this segment stats.
@@ -847,6 +849,11 @@ public:
 	 * gets the output capacity of segmentStats
 	 */
 	double getCapacity() const;
+
+	/**
+	 * counts the total number of agents waiting in bus stops of this segment stats
+	 */
+	unsigned int getBusWaitersCount() const;
 
 	/**
 	 * laneInfinity is an augmented lane in the roadSegment. laneInfinity will be used only by confluxes and related objects for now.

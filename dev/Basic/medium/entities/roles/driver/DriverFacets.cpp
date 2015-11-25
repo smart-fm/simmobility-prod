@@ -12,7 +12,6 @@
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "config/MT_Config.hpp"
-#include "entities/conflux/Conflux.hpp"
 #include "entities/Person_MT.hpp"
 #include "entities/ScreenLineCounter.hpp"
 #include "entities/UpdateParams.hpp"
@@ -275,6 +274,7 @@ bool DriverMovement::initializePath()
 		}
 
 		//Restricted area logic
+		if(MT_Config::getInstance().isRegionRestrictionEnabled())
 		{
 			bool fromLocationInRestrictedRegion = RestrictedRegion::getInstance().isInRestrictedZone(wp_path.front());
 			bool toLocationInRestrictedRegion = RestrictedRegion::getInstance().isInRestrictedZone(wp_path.back());

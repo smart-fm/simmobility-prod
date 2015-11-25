@@ -85,6 +85,11 @@ bool BusDriver::addPassenger(Passenger* passenger) {
 	return true;
 }
 
+bool BusDriver::getPassengerCount() const
+{
+	return passengerList.size();
+}
+
 DriverRequestParams BusDriver::getDriverRequestParams()
 {
 	DriverRequestParams res;

@@ -8,6 +8,7 @@
 #include "entities/BusController.hpp"
 #include "entities/BusControllerMT.hpp"
 #include "entities/conflux/Conflux.hpp"
+#include "entities/TravelTimeManager.hpp"
 #include "geospatial/Incident.hpp"
 #include "geospatial/network/RoadNetwork.hpp"
 #include "geospatial/network/NetworkLoader.hpp"
@@ -46,6 +47,8 @@ void ExpandMidTermConfigFile::processConfig()
     constraints.startingAutoAgentID = cfg.simulation.startingAutoAgentID;
 
     loadNetworkFromDatabase();
+
+	TravelTimeManager::getInstance()->loadTravelTimes();
 
     if (mtCfg.RunningMidSupply() && mtCfg.isRegionRestrictionEnabled())
     {
@@ -98,7 +101,6 @@ void ExpandMidTermConfigFile::processConfig()
 		BusControllerMT::RegisterBusController(-1, cfg.mutexStategy());
 		BusController* busController = BusController::GetInstance();
 		busController->initializeBusController(active_agents);
-		active_agents.insert(busController);
 	}
 
     /// Enable/Disble restricted region support based on configuration

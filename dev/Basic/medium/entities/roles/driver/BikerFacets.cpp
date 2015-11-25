@@ -46,8 +46,8 @@ void BikerMovement::frame_init()
 	if (pathInitialized)
 	{
 		Vehicle* newVeh = new Vehicle(Vehicle::BIKE, BIKE_LENGTH);
-		VehicleBase* oldBus = parentBiker->getResource();
-		safe_delete_item(oldBus);
+		VehicleBase* oldBike = parentBiker->getResource();
+		safe_delete_item(oldBike);
 		parentBiker->setResource(newVeh);
 	}
 	else { parentBiker->getParent()->setToBeRemoved(); }

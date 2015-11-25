@@ -758,11 +758,13 @@ void BusController::addOrStashBuses(Person* p, std::set<Entity*>& activeAgents)
 	}
 }
 
-void BusController::unregisterChild(Entity* child) {
-	if (child) {
-		std::vector<Entity*>::iterator it = std::find(busDrivers.begin(),
-				busDrivers.end(), child);
-		if (it != busDrivers.end()) {
+void BusController::unregisterChild(Entity* child)
+{
+	if (child)
+	{
+		std::vector<Entity*>::iterator it = std::find(busDrivers.begin(), busDrivers.end(), child);
+		if (it != busDrivers.end())
+		{
 			busDrivers.erase(it);
 		}
 	}
@@ -771,11 +773,11 @@ void BusController::unregisterChild(Entity* child) {
 Entity::UpdateStatus BusController::frame_tick(timeslice now)
 {
 	nextTimeTickToStage++;
-	unsigned int nextTickMS = (nextTimeTickToStage+3)*ConfigManager::GetInstance().FullConfig().baseGranMS();
+	unsigned int nextTickMS = nextTimeTickToStage * ConfigManager::GetInstance().FullConfig().baseGranMS();
 
 	//Stage any pending entities that will start during this time tick.
-	while (!pendingChildren.empty()
-			&& pendingChildren.top()->getStartTime() <= nextTickMS) {
+	while (!pendingChildren.empty() && pendingChildren.top()->getStartTime() <= nextTickMS)
+	{
 		//Ask the current worker's parent WorkGroup to schedule this Entity.
 		Entity* child = pendingChildren.top();
 		pendingChildren.pop();
@@ -783,8 +785,6 @@ Entity::UpdateStatus BusController::frame_tick(timeslice now)
 		currWorkerProvider->scheduleForBred(child);
 		busDrivers.push_back(child);
 	}
-
-	processRequests();
 
 	return Entity::UpdateStatus::Continue;
 }

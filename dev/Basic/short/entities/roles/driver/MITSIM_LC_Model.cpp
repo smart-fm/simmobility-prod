@@ -1276,18 +1276,6 @@ LaneChangeTo MITSIM_LC_Model::makeLaneChangingDecision(DriverUpdateParams &param
 	//Update the lane connectivity status
 	setLaneConnectionStatus(params);
 
-	if (params.perceivedFwdVelocity < minSpeed)
-	{
-		params.lcDebugStr << ";samesm";
-		return LANE_CHANGE_TO_NONE;
-	}
-
-	if (timeSinceTagged(params) < MLC_PARAMETERS.lane_mintime)
-	{
-		params.lcDebugStr << ";samelm" << timeSinceTagged(params);
-		return LANE_CHANGE_TO_NONE;
-	}
-
 	LaneChangeTo change = LANE_CHANGE_TO_NONE; // direction to change	
 
 	if (checkForEventsAhead(params))
@@ -1839,7 +1827,7 @@ int MITSIM_LC_Model::checkForEventsAhead(DriverUpdateParams& params)
 	}
 
 	// 3.0 MLC is required and not enough headway, set STATUS_MANDATORY
-	if (needMLC && params.distToStop < lookAheadDistance)
+	if (needMLC && params.distToStop < lookAheadDistance && timeSinceTagged(params) >= MLC_PARAMETERS.lane_mintime)
 	{
 		params.setStatus(STATUS_MANDATORY);
 	}

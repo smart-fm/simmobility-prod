@@ -1254,7 +1254,7 @@ double MITSIM_CF_Model::calcAdjacentGapRate(DriverUpdateParams& p)
 double MITSIM_CF_Model::calcAccForStoppingPoint(DriverUpdateParams &params)
 {
 	std::stringstream debugStr;
-	debugStr << ";SSPP" << params.distanceToStoppingPt << ";" << params.stopPointState << ";";
+	debugStr << ";SS-Dist" << params.distanceToStoppingPt << ";" << params.stopPointState << ";";
 	
 	double acc = params.maxAcceleration;
 	
@@ -1263,14 +1263,14 @@ double MITSIM_CF_Model::calcAccForStoppingPoint(DriverUpdateParams &params)
 		if (params.stopPointState == DriverUpdateParams::ARRIVING_AT_STOP_POINT)
 		{
 			acc = calcBrakeToStopAcc(params, params.distToStop);
-			debugStr << "SP-Close;";
+			debugStr << "SP-Arriving;";
 			params.cfDebugStr += debugStr.str();
 			return acc;
 		}
 		if (params.stopPointState == DriverUpdateParams::ARRIVED_AT_STOP_POINT || params.stopPointState == DriverUpdateParams::WAITING_AT_STOP_POINT)
 		{
-			debugStr << "SP-Arrive;";
-			acc = -10;
+			debugStr << "SP-Arrived;";
+			acc = params.maxDeceleration;
 		}
 	}
 	
@@ -1288,7 +1288,7 @@ double MITSIM_CF_Model::calcAccForStoppingPoint(DriverUpdateParams &params)
 		double currentTime = params.now.ms();
 		double waitTime = millisecondToSecond(currentTime - params.stopTimeTimer);
 
-		debugStr << "SPt;" << waitTime;
+		debugStr << "SP-wt;" << waitTime;
 
 		if (waitTime > params.currentStopPoint.dwellTime)
 		{

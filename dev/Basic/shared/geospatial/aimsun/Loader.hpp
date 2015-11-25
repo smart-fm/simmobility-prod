@@ -81,10 +81,6 @@ public:
 	///	get all CBD's segments
 	static void getCBD_Segments(std::set<const sim_mob::RoadSegment*> & zoneSegments);
 
-	// get the screen line segments
-	static void getScreenLineSegments(const std::string& connectionStr,
-                const std::map<std::string, std::string>& storedProcs, std::set<unsigned int>& screenLineList);
-
 	//Semi-private functions
 	static void ProcessGeneralNode(sim_mob::RoadNetwork& res, Node& src);
 	static void ProcessUniNode(sim_mob::RoadNetwork& res, Node& src);

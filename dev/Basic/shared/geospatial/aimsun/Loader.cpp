@@ -106,7 +106,6 @@ public:
 	void storeTurningPoints(sim_mob::RoadNetwork& rn);
 	static bool ExcuString(soci::session& sql,std::string& str);
 
-    void LoadScreenLineSegmentIDs(const map<string, string>& storedProcs, std::set<unsigned int> &screenLines);
 #ifndef SIMMOB_DISABLE_MPI
 	void TransferBoundaryRoadSegment();
 #endif
@@ -785,22 +784,6 @@ void DatabaseLoader::TransferBoundaryRoadSegment()
 
 }
 #endif
-
-
-void DatabaseLoader::LoadScreenLineSegmentIDs(const map<string, string>& storedProcs, std::set<unsigned int>& screenLines)
-{
-	screenLines.clear();
-
-	string storedProc = getStoredProcedure(storedProcs, "screen_line");
-
-	soci::rowset<unsigned long> rs = (sql_.prepare << "select * from " + storedProc);
-
-	soci::rowset<unsigned long>::const_iterator iter = rs.begin();
-	for(; iter != rs.end(); iter++)
-	{
-        screenLines.insert(*iter);
-	}
-}
 
 void DatabaseLoader::LoadObjectsForShortTerm(map<string, string> const & storedProcs)
 {
@@ -1883,15 +1866,6 @@ bool sim_mob::aimsun::Loader::excuString(soci::session& sql,std::string& str)
 void sim_mob::aimsun::Loader::loadSegNodeType(const std::string& connectionStr, const std::map<std::string, std::string>& storedProcs, sim_mob::RoadNetwork& rn)
 {
 	DatabaseLoader loader(connectionStr);
-}
-
-void sim_mob::aimsun::Loader::getScreenLineSegments(const std::string& connectionStr,
-        const std::map<std::string, std::string>& storedProcs,
-        std::set<unsigned int> &screenLineList)
-{
-	DatabaseLoader loader(connectionStr);
-
-	loader.LoadScreenLineSegmentIDs(storedProcs, screenLineList);
 }
 
 void sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map<string, string>& storedProcs)

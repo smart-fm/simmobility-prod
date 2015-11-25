@@ -796,7 +796,6 @@ bool BusController::frame_init(timeslice now)
 
 void BusController::frame_output(timeslice now)
 {
-	LogOut("(\"BusController\"" << "," << now.frame() << "," << getId() << "," << std::endl);
 }
 
 void BusController::load(const std::map<std::string, std::string>& configProps)

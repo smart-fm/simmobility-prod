@@ -98,7 +98,7 @@ void RoadNetwork::addLane(Lane* lane)
 	else
 	{
 		std::stringstream msg;
-		msg << "\nLane " << lane->getRoadSegmentId() << " refers to an invalid segment " << lane->getRoadSegmentId();
+		msg << "\nLane " << lane->getLaneId() << " refers to an invalid segment " << lane->getRoadSegmentId();
 		safe_delete_item(lane);
 		throw std::runtime_error(msg.str());
 	}

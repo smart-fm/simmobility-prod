@@ -49,9 +49,6 @@ public:
 		/**R-Star tree*/
 		IMPL_RSTAR,
 
-		/**Sim Tree*/
-		IMPL_SIMTREE,
-
 		/**RDU tree*/
 		IMPL_RDU
 	};

@@ -61,6 +61,11 @@ private:
     virtual ~ScreenLineCounter();
 
     /**
+     * Loads the screenline segments from database
+     */
+    void loadScreenLines();
+
+    /**
      * Get the Time Interval based on user configuration
      */
     unsigned int getTimeInterval(const double time) const;

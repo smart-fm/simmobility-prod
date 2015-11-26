@@ -388,6 +388,7 @@ double DriverPathMover::advance(double distance)
 	{
 		distCoveredFromCurrPtToNextPt -= distBetwCurrAndNxtPt;
 		overflowAmount = advanceToNextPoint();
+		distBetwCurrAndNxtPt = calcDistFromCurrToNextPt();
 	}
 	
 	return overflowAmount;

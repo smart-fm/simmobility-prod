@@ -64,11 +64,11 @@ FMOD_Controller::~FMOD_Controller()
 	stopClientService();
 }
 
-bool FMOD_Controller::frame_init(timeslice now)
+Entity::UpdateStatus FMOD_Controller::frame_init(timeslice now)
 {
 	initialize();
 	bool ret = connectFmodService();
-	return ret;
+	return ret ? Entity::UpdateStatus::Continue : Entity::UpdateStatus::Done;
 }
 
 Entity::UpdateStatus FMOD_Controller::frame_tick(timeslice now)

@@ -98,7 +98,7 @@ protected:
 	/**
 	 * inherited from base class agent to initialize parameters for bus controller
 	 */
-	virtual bool frame_init(timeslice now);
+	virtual Entity::UpdateStatus frame_init(timeslice now);
 
 	/**
 	 * inherited from base class to update this agent

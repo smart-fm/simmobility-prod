@@ -52,8 +52,8 @@ public:
     virtual void reset() = 0;
 
 protected:
-	virtual bool frame_init(timeslice now) { return true; }
-	virtual Entity::UpdateStatus frame_tick(timeslice now) { return UpdateStatus(UpdateStatus::RS_CONTINUE); }
+	virtual Entity::UpdateStatus frame_init(timeslice now) { return Entity::UpdateStatus::Continue; }
+	virtual Entity::UpdateStatus frame_tick(timeslice now) { return Entity::UpdateStatus::Continue; }
 	virtual void frame_output(timeslice now) {}
 	virtual void buildSubscriptionList(std::vector<BufferedBase*>& subsList);
 

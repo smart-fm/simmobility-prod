@@ -438,8 +438,10 @@ vector<BufferedBase *> Person_ST::buildSubscriptionList()
 	return subsList;
 }
 
-bool Person_ST::frame_init(timeslice now)
+Entity::UpdateStatus Person_ST::frame_init(timeslice now)
 {
+	Entity::UpdateStatus result(Entity::UpdateStatus::RS_CONTINUE);
+	
 	//Call its "load" function
 	load(configProperties);
 	clearConfigProperties();
@@ -462,7 +464,7 @@ bool Person_ST::frame_init(timeslice now)
 	{
 		setStartTime(now.ms());
 
-		UpdateStatus res = checkTripChain();
+		result = checkTripChain();
 
 		if (currRole)
 		{
@@ -470,9 +472,9 @@ bool Person_ST::frame_init(timeslice now)
 		}
 
 		//Nothing left to do?
-		if (res.status == UpdateStatus::RS_DONE)
+		if (result.status == Entity::UpdateStatus::RS_DONE)
 		{
-			return false;
+			return result;
 		}
 	}
 
@@ -493,7 +495,7 @@ bool Person_ST::frame_init(timeslice now)
 		currRole->Movement()->frame_init();
 	}
 	
-	return true;
+	return result;
 }
 
 Entity::UpdateStatus Person_ST::frame_tick(timeslice now)

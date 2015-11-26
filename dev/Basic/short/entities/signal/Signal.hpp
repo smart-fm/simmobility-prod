@@ -154,15 +154,15 @@ public:
 	 * This method is called for the first tick of the traffic signal to perform any initialisation tasks necessary
 	 * (Does nothing for basic signals)
 	 * @param 
-	 * @return false, resulting in the Signal to be removed from the simulation
+	 * @return
 	 */
-	virtual bool frame_init(timeslice) = 0;
+	virtual Entity::UpdateStatus frame_init(timeslice) = 0;
 	
 	/**
 	 * This method is called for every tick of the traffic signal. This is where the behaviour of the traffic signal is captured
 	 * (Does nothing for basic signals)
 	 * @param 
-	 * @return UpdateStatus::Continue
+	 * @return 
 	 */
 	virtual Entity::UpdateStatus frame_tick(timeslice) = 0;
 	
@@ -275,9 +275,9 @@ protected:
 	 * This method is called for the first tick of the traffic signal to perform any initialisation tasks necessary
 	 * (Does nothing for SCATS signals)
 	 * @param 
-	 * @return true
+	 * @return UpdateStatus::Continue
 	 */
-	virtual bool frame_init(timeslice now);
+	virtual Entity::UpdateStatus frame_init(timeslice now);
 	
 	/**
 	 * This method is called for every tick of the traffic signal. This method does the following:

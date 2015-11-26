@@ -143,11 +143,11 @@ AMODController::AMODController(int id,
 	init();
 }
 
-bool AMODController::frame_init(timeslice now)
+Entity::UpdateStatus AMODController::frame_init(timeslice now)
 {
 	test = 0;
 	nFreeCars = 0; //initially, no free cars (before populate)
-	return true;
+	return Entity::UpdateStatus::Continue;
 }
 
 void AMODController::precomputeAllPairsShortestPaths()

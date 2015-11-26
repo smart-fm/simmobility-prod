@@ -789,9 +789,9 @@ Entity::UpdateStatus BusController::frame_tick(timeslice now)
 	return Entity::UpdateStatus::Continue;
 }
 
-bool BusController::frame_init(timeslice now)
+Entity::UpdateStatus BusController::frame_init(timeslice now)
 {
-	return true;
+	return Entity::UpdateStatus::Continue;
 }
 
 void BusController::frame_output(timeslice now)

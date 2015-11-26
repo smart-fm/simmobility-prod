@@ -103,10 +103,10 @@ const sim_mob::BusStop* BusStopAgent::getBusStop() const
 	return busStop;
 }
 
-bool BusStopAgent::frame_init(timeslice now)
+Entity::UpdateStatus BusStopAgent::frame_init(timeslice now)
 {
 	if(!GetContext()) { messaging::MessageBus::RegisterHandler(this); }
-	return true;
+	return Entity::UpdateStatus::Continue;
 }
 
 Entity::UpdateStatus BusStopAgent::frame_tick(timeslice now)

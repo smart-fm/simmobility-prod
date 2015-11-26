@@ -343,9 +343,9 @@ protected:
 	 * stats of this conflux.
 	 *
 	 * @param now the frame number in which the function is called
-	 * @return true if initialization was successful; false otherwise.
+	 * @return UpdateStatus::Continue if initialization was successful; throws error otherwise.
 	 */
-	virtual bool frame_init(timeslice now);
+	virtual Entity::UpdateStatus frame_init(timeslice now);
 
 	/**
 	 * frame_tick overridden from agent class to throw error if called

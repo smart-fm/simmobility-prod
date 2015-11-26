@@ -212,7 +212,7 @@ void DriverUpdateParams::buildDebugInfo()
 	s << "++" << cfDebugStr;
 #endif
 
-#if 0
+#if 1
 	int fwdcarid = -1;
 	char fwdnvdis[30] = "\0";
 	if (this->nvFwd.exists())

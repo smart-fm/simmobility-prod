@@ -563,9 +563,9 @@ void sim_mob::Broker::processIncomingData(timeslice now)
 	}
 }
 
-bool sim_mob::Broker::frame_init(timeslice now)
+Entity::UpdateStatus sim_mob::Broker::frame_init(timeslice now)
 {
-	return true;
+	return Entity::UpdateStatus::Continue;
 }
 
 Entity::UpdateStatus sim_mob::Broker::frame_tick(timeslice now)

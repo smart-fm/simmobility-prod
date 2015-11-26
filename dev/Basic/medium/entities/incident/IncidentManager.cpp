@@ -200,8 +200,8 @@ bool IncidentManager::shouldDriverReact(const Person_MT* per){
 	return roll_dice(0,1);
 }
 
-bool IncidentManager::frame_init(timeslice now){
-	return true;
+Entity::UpdateStatus IncidentManager::frame_init(timeslice now){
+	return Entity::UpdateStatus::Continue;
 }
 
 Entity::UpdateStatus IncidentManager::frame_tick(timeslice now){

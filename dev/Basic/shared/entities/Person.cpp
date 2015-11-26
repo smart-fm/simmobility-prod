@@ -101,14 +101,14 @@ void sim_mob::Person::HandleMessage(messaging::Message::MessageType type, const 
 {
 }
 
-bool sim_mob::Person::frame_init(timeslice now)
+UpdateStatus sim_mob::Person::frame_init(timeslice now)
 {
-	return false;
+	return Entity::UpdateStatus::Done;
 }
 
 Entity::UpdateStatus sim_mob::Person::frame_tick(timeslice now)
 {
-	return UpdateStatus::Continue;
+	return UpdateStatus::Done;
 }
 
 void sim_mob::Person::frame_output(timeslice now)

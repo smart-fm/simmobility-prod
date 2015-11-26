@@ -28,8 +28,6 @@
 using namespace sim_mob;
 using namespace std;
 
-typedef Entity::UpdateStatus UpdateStatus;
-
 std::map<unsigned int, Signal *> Signal::mapOfIdVsSignals;
 
 Signal::Signal(const Node *node, const MutexStrategy &mtxStrat, unsigned int id, SignalType)
@@ -92,10 +90,10 @@ Signal_SCATS::~Signal_SCATS()
 	safe_delete_item(splitPlan);	
 }
 
-bool Signal_SCATS::frame_init(timeslice now)
+Entity::UpdateStatus Signal_SCATS::frame_init(timeslice now)
 {
 	initialise();
-	return true;
+	return Entity::UpdateStatus::Continue;
 }
 
 Entity::UpdateStatus Signal_SCATS::frame_tick(timeslice now)
@@ -134,7 +132,7 @@ Entity::UpdateStatus Signal_SCATS::frame_tick(timeslice now)
 		initialisePhases();
 	}
 
-	return UpdateStatus::Continue;
+	return Entity::UpdateStatus::Continue;
 }
 
 void Signal_SCATS::frame_output(timeslice now)

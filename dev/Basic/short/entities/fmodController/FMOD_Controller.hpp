@@ -131,7 +131,7 @@ private:
 
 protected:
 	/**override from the class agent, provide initilization chance to sub class*/
-	virtual bool frame_init(timeslice now);
+	virtual Entity::UpdateStatus frame_init(timeslice now);
 	
 	/**override from the class agent, do frame tick calculation*/
 	virtual Entity::UpdateStatus frame_tick(timeslice now);

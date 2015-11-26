@@ -479,7 +479,7 @@ public:
 public:
 	//Unused, required overrides.
 	void load(const std::map<std::string, std::string>& configProps); ///<Implements pure virtual Agent::load(). Unused.
-	bool frame_init(timeslice now); ///<Implements pure virtual Agent::frame_init(). Unused.
+	Entity::UpdateStatus frame_init(timeslice now); ///<Implements pure virtual Agent::frame_init(). Unused.
 	Entity::UpdateStatus frame_tick(timeslice now); ///<Implements pure virtual Agent::frame_tick(). Unused.
 	void frame_output(timeslice now); ///<Implements pure virtual Agent::frame_output. Unused.
 

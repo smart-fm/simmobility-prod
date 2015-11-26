@@ -136,6 +136,9 @@ void sim_mob::Agent::checkFrameTimes(unsigned int agentId, uint32_t now, unsigne
 
 UpdateStatus sim_mob::Agent::performUpdate(timeslice now)
 {
+	UpdateStatus frameInitRes(UpdateStatus::RS_CONTINUE);
+	UpdateStatus frameTckRes(UpdateStatus::RS_CONTINUE);
+	
 	//We give the Agent the benefit of the doubt here and simply call frame_init().
 	//This allows them to override the start_time if it seems appropriate (e.g., if they
 	// are swapping trip chains). If frame_init() returns false, immediately exit.
@@ -143,9 +146,11 @@ UpdateStatus sim_mob::Agent::performUpdate(timeslice now)
 	if (!initialized)
 	{
 		//Call frame_init() and exit early if requested to.
-		if (!frame_init(now))
+		frameInitRes = frame_init(now);
+		
+		if (frameInitRes.status == UpdateStatus::RS_DONE)
 		{
-			return UpdateStatus::Done;
+			return frameInitRes;
 		}
 
 		//Set call_frame_init to false here; you can only reset frame_init() in frame_tick()
@@ -157,10 +162,10 @@ UpdateStatus sim_mob::Agent::performUpdate(timeslice now)
 	checkFrameTimes(getId(), now.ms(), getStartTime(), calledFrameInit, isToBeRemoved());
 
 	//Perform the main update tick
-	UpdateStatus retVal = frame_tick(now);
+	frameTckRes = frame_tick(now);
 
 	//Save the output
-	if (retVal.status != UpdateStatus::RS_DONE)
+	if (frameTckRes.status != UpdateStatus::RS_DONE)
 	{
 		frame_output(now);
 	}
@@ -170,8 +175,18 @@ UpdateStatus sim_mob::Agent::performUpdate(timeslice now)
 	{
 		LogOut("Person requested removal: " << "(Role Hidden)" << std::endl);
 	}
-
-	return retVal;
+	
+	//The frameInitRes (if the frame_init has been called in this tick) can contain the set of shared variables that
+	//need to be managed by the worker. So, only if the frame_tick method's status is the same as that of the frame_init
+	//method, return frameInitRes, else frameTckRes may contain the set of variables to be managed (after a role change)
+	if(calledFrameInit && frameInitRes.status == frameTckRes.status)
+	{
+		return frameInitRes;
+	}
+	else
+	{
+		return frameTckRes;
+	}	
 }
 
 Entity::UpdateStatus sim_mob::Agent::update(timeslice now)

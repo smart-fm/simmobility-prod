@@ -75,7 +75,7 @@ void IntersectionManager::CreateIntersectionManagers(const MutexStrategy &mtxStr
 	}
 }
 
-bool IntersectionManager::frame_init(timeslice now)
+Entity::UpdateStatus IntersectionManager::frame_init(timeslice now)
 {
 	string modelName = "general_driver_model";
 
@@ -98,7 +98,7 @@ bool IntersectionManager::frame_init(timeslice now)
 		++itTurnings;
 	}
 
-	return true;
+	return Entity::UpdateStatus::Continue;
 }
 
 Entity::UpdateStatus IntersectionManager::frame_tick(timeslice now)

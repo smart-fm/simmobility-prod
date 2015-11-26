@@ -79,7 +79,7 @@ public:
 	 */
 	bool shouldDriverReact(const Person_MT* person);
 
-	bool frame_init(timeslice now);
+	Entity::UpdateStatus frame_init(timeslice now);
 
 	virtual Entity::UpdateStatus frame_tick(timeslice now);
 	virtual void frame_output(timeslice now){}

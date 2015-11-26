@@ -275,7 +275,7 @@ void Conflux::addAgent(Person_MT* person)
 	}
 }
 
-bool Conflux::frame_init(timeslice now)
+Entity::UpdateStatus Conflux::frame_init(timeslice now)
 {
 	messaging::MessageBus::RegisterHandler(this);
 	for (UpstreamSegmentStatsMap::iterator upstreamIt = upstreamSegStatsMap.begin(); upstreamIt != upstreamSegStatsMap.end(); upstreamIt++)
@@ -289,7 +289,7 @@ bool Conflux::frame_init(timeslice now)
 	/**************test code insert incident *********************/
 
 	/*************************************************************/
-	return true;
+	return Entity::UpdateStatus::Continue;
 }
 
 Entity::UpdateStatus sim_mob::medium::Conflux::frame_tick(timeslice now)

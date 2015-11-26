@@ -100,9 +100,9 @@ std::vector<BufferedBase*> BusStopAgent::buildSubscriptionList()
 	return Agent::buildSubscriptionList();
 }
 
-bool BusStopAgent::frame_init(timeslice now)
+Entity::UpdateStatus BusStopAgent::frame_init(timeslice now)
 {
-	return true;
+	return Entity::UpdateStatus::Continue;
 }
 
 void BusStopAgent::frame_output(timeslice now)

@@ -76,9 +76,9 @@ protected:
 	 *
      * @param now
 	 *
-     * @return true, if successful
+     * @return UpdateStatus::Continue, if successful
      */
-	virtual bool frame_init(timeslice now);
+	virtual Entity::UpdateStatus frame_init(timeslice now);
 
 	/**
 	 * Called during every call to update() for a given agent.

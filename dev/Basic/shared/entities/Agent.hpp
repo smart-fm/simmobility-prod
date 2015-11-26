@@ -114,10 +114,10 @@ protected:
 	 *
 	 * @param now The timeslice representing the time frame for which this method is called
 	 *
-	 * @return false to indicate failure; The Agent will be removed from the simulation with no
-	 * further processing.
+	 * @return UpdateStatus with the value of 'status' set to 'RS_CONTINUE', 'RS_CONTINUE_INCOMPLETE' or 'RS_DONE' to indicate the 
+	 * result of the execution.
 	 */
-	virtual bool frame_init(timeslice now) = 0;
+	virtual UpdateStatus frame_init(timeslice now) = 0;
 
 	/**
 	 * Called during every call to update() for a given agent. This is called after frame_tick()

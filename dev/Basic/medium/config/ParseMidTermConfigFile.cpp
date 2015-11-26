@@ -78,11 +78,12 @@ void ParseMidTermConfigFile::processXmlFile(xercesc::XercesDOMParser& parser)
     processWorkersNode(GetSingleElementByName(rootNode, "workers", true));
     processIncidentsNode(GetSingleElementByName(rootNode, "incidentsData", true));
     processBusStopScheduledTimesNode(GetSingleElementByName(rootNode, "scheduledTimes", true));
+    processBusControllerNode(GetSingleElementByName(rootNode, "busController", true));
     processScreenLineNode(GetSingleElementByName(rootNode, "screen-line-count"));
     processGenerateBusRoutesNode(GetSingleElementByName(rootNode, "generateBusRoutes"));
     processTT_Update(GetSingleElementByName(rootNode, "travel_time_update", true));
     processPublicTransit(GetSingleElementByName(rootNode, "public_transit", true));
-    processCBDNode(GetSingleElementByName(rootNode, "cbd"));
+    processCBDNode(GetSingleElementByName(rootNode, "CBD"));
     processPathSetFileName(GetSingleElementByName(rootNode, "path-set-config-file", true));
 
 	processMidTermRunMode(GetSingleElementByName(rootNode, "mid_term_run_mode", true));

@@ -56,6 +56,12 @@ public:
 	bool addPassenger(Passenger* passenger);
 
 	/**
+	 * returns number of passengers on bus
+	 * @return pax count
+	 */
+	unsigned int getPassengerCount() const;
+
+	/**
 	 * store the arrival time at bus stop
 	 *
 	 * @param current is current time represented in string

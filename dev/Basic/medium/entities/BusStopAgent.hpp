@@ -87,6 +87,11 @@ public:
 	void storeWaitingTime(sim_mob::medium::WaitBusActivity* waitingActivity) const;
 
 	/**
+	 * returns number of people waiting for buses in this stop
+	 */
+	unsigned int getWaitingCount() const;
+
+	/**
 	 * finds the BusStopAgent corresponding to a bus stop.
 	 * @param busstop stop under consideration
 	 * @returns pointer to bus stop agent corresponding to busstop

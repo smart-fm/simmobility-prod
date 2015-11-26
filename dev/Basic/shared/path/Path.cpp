@@ -25,8 +25,8 @@ double pathCostArray[] = { 0.77, 0.87, 0.98, 1.08, 1.16, 1.23, 1.29, 1.33, 1.37,
 
 sim_mob::SinglePath::SinglePath() :
 		purpose(work), utility(0.0), pathSize(0.0), travelCost(0.0), partialUtility(0.0), signalNumber(0.0), rightTurnNumber(0.0), length(0.0), travelTime(0.0), highWayDistance(
-				0.0), valid_path(true), isMinTravelTime(0), isMinDistance(0), isMinSignal(0), isMinRightTurn(0), isMaxHighWayUsage(0), isShortestPath(0), index(
-				-1), path(std::vector<sim_mob::WayPoint>()), isNeedSave2DB(false)
+				0.0), valid_path(true), isMinTravelTime(0), isMinDistance(0), isMinSignal(0), isMinRightTurn(0), isMaxHighWayUsage(0), isShortestPath(0),
+				path(std::vector<sim_mob::WayPoint>()), isNeedSave2DB(false)
 {
 }
 
@@ -35,7 +35,7 @@ sim_mob::SinglePath::SinglePath(const SinglePath& source) :
 				source.signalNumber), rightTurnNumber(source.rightTurnNumber), length(source.length), travelTime(source.travelTime), pathSetId(
 				source.pathSetId), highWayDistance(source.highWayDistance), isMinTravelTime(source.isMinTravelTime), isMinDistance(source.isMinDistance), isMinSignal(
 				source.isMinSignal), isMinRightTurn(source.isMinRightTurn), isMaxHighWayUsage(source.isMaxHighWayUsage), isShortestPath(source.isShortestPath), partialUtility(
-				source.partialUtility), index(source.index), scenario(source.scenario)
+				source.partialUtility), scenario(source.scenario)
 {
 	isNeedSave2DB = false;
 

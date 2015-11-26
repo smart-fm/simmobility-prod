@@ -99,8 +99,6 @@ public:
 
 	bool valid_path;
 
-	long long index;//unique serial number assigned by db
-
 	SinglePath(const SinglePath &source);
 	///	extract the segment waypoint from series og node-segments waypoints
 	SinglePath();

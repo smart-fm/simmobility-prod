@@ -43,7 +43,6 @@ void sim_mob::PathSetParam::getDataFromDB()
 	loadERP_Surcharge(dbSession);
 	loadERP_Section(dbSession);
 	loadERP_GantryZone(dbSession);
-	ttMgr->loadTravelTimes();
 }
 
 void sim_mob::PathSetParam::storeSinglePath(soci::session& sql, std::set<sim_mob::SinglePath*, sim_mob::SinglePath>& spPool, const std::string pathSetTableName)

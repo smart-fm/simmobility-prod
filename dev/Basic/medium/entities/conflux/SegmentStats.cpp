@@ -128,7 +128,7 @@ SegmentStats::~SegmentStats()
 	{
 		safe_delete_item(i->second);
 	}
-	for (AgentList::iterator i = busStopAgents.begin(); i != busStopAgents.end(); i++)
+	for (BusStopAgentList::iterator i = busStopAgents.begin(); i != busStopAgents.end(); i++)
 	{
 		(*i)->currWorkerProvider = nullptr;
 		safe_delete_item(*i);
@@ -138,7 +138,7 @@ SegmentStats::~SegmentStats()
 
 void SegmentStats::updateBusStopAgents(timeslice now)
 {
-	for (AgentList::iterator i = busStopAgents.begin(); i != busStopAgents.end(); i++)
+	for (BusStopAgentList::iterator i = busStopAgents.begin(); i != busStopAgents.end(); i++)
 	{
 		(*i)->update(now);
 	}
@@ -192,7 +192,7 @@ std::vector<const BusStop*>& SegmentStats::getBusStops()
 	return busStops;
 }
 
-void SegmentStats::addBusStopAgent(Agent* busStopAgent)
+void SegmentStats::addBusStopAgent(BusStopAgent* busStopAgent)
 {
 	if (!busStopAgent)
 	{
@@ -203,7 +203,7 @@ void SegmentStats::addBusStopAgent(Agent* busStopAgent)
 
 void SegmentStats::initializeBusStops()
 {
-	for (AgentList::iterator stopAgIt = busStopAgents.begin(); stopAgIt != busStopAgents.end(); stopAgIt++)
+	for (BusStopAgentList::iterator stopAgIt = busStopAgents.begin(); stopAgIt != busStopAgents.end(); stopAgIt++)
 	{
 		Agent* stopAgent = *stopAgIt;
 		if (!stopAgent->isInitialized())
@@ -1011,7 +1011,7 @@ void SegmentStats::printBusStops() const
 
 void SegmentStats::registerBusStopAgents()
 {
-	for (AgentList::iterator stopIt = busStopAgents.begin(); stopIt != busStopAgents.end(); stopIt++)
+	for (BusStopAgentList::iterator stopIt = busStopAgents.begin(); stopIt != busStopAgents.end(); stopIt++)
 	{
 		messaging::MessageBus::RegisterHandler(*stopIt);
 	}
@@ -1249,3 +1249,12 @@ double SegmentStats::getCapacity() const
 	return supplyParams.getCapacity();
 }
 
+unsigned int SegmentStats::getBusWaitersCount() const
+{
+	unsigned int totalWaiting = 0;
+	for(const sim_mob::medium::BusStopAgent* stopAg : busStopAgents)
+	{
+		totalWaiting += stopAg->getWaitingCount();
+	}
+	return totalWaiting;
+}

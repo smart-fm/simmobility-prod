@@ -24,6 +24,12 @@
 	            <port value="27017"/>
 	            <dbname value="mydb"/>
 	        </database>
+
+                <database id="fm_local_harish" dbtype="postgres">
+                    <host value="localhost"/>
+                    <port value="5433"/>
+                    <dbname value="simmobility"/>
+                </database>
             </databases>
 	
 		<!-- Login credentials to be used for database connections. These can be plaintext, -->
@@ -56,15 +62,21 @@
 	            <username value="fmstaff"/>
 	            <password value="fm4trans"/>
 	        </plaintext-credential>
+
+                <plaintext-credential id="harish_cred">
+                    <username value="postgres"/>
+                    <password value="secret"/>
+                </plaintext-credential>
+
     	</credentials>
     </constructs>
 
     <simulation>
 	<base_granularity   value="5"   units="seconds" />
-	<total_runtime      value="5"      units="minutes" />
+	<total_runtime      value="1080"      units="minutes" />
 	<total_warmup       value="10"     units="seconds" />
        
-	<start_time         value="07:00:00"/>
+	<start_time         value="06:00:00"/>
 
 	<!-- Strategy for adding new Agents to Workers. -->
 	<!-- "roundrobin" assigns in order. (default) -->

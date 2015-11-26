@@ -5,21 +5,22 @@
  *      Author: zhang
  */
 
-#include "PT_RouteChoiceLuaModel.hpp"
-#include "util/LangHelpers.hpp"
+#include "boost/algorithm/string.hpp"
+#include "boost/filesystem.hpp"
+#include "boost/foreach.hpp"
+#include "boost/regex.hpp"
+#include "boost/thread/mutex.hpp"
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
+#include "entities/params/PT_NetworkEntities.hpp"
+#include "logging/Log.hpp"
 #include "lua/LuaLibrary.hpp"
 #include "lua/third-party/luabridge/LuaBridge.h"
 #include "lua/third-party/luabridge/RefCountedObject.h"
-#include "conf/ConfigManager.hpp"
-#include "conf/ConfigParams.hpp"
-#include "boost/algorithm/string.hpp"
-#include "boost/regex.hpp"
-#include "boost/thread/mutex.hpp"
-#include "boost/foreach.hpp"
-#include "boost/filesystem.hpp"
 #include "PT_PathSetManager.hpp"
-#include "entities/params/PT_NetworkEntities.hpp"
-#include "logging/Log.hpp"
+#include "PT_RouteChoiceLuaModel.hpp"
+#include "SOCI_Converters.hpp"
+#include "util/LangHelpers.hpp"
 
 using namespace luabridge;
 
@@ -230,10 +231,20 @@ void PT_RouteChoiceLuaModel::mapClasses()
 			.endClass();
 }
 
+void loadPT_PathsetFromDB(soci::session& sql, const std::string& funcName, int originNode, int destNode, sim_mob::PT_PathSet& pathSet)
+{
+	soci::rowset<sim_mob::PT_Path> rs =
+			(sql.prepare << std::string("select * from ") + funcName + "(:o_node,:d_node)", soci::use(originNode), soci::use(destNode));
+	for (soci::rowset<sim_mob::PT_Path>::const_iterator it = rs.begin(); it != rs.end(); ++it)
+	{
+		pathSet.pathSet.insert(*it);
+	}
+}
+
 PT_PathSet PT_RouteChoiceLuaModel::loadPT_PathSet(int origin, int dest)
 {
 	PT_PathSet pathSet;
-	aimsun::Loader::LoadPT_PathsetFrmDB(*dbSession, ptPathsetStoredProcName, origin, dest, pathSet);
+	loadPT_PathsetFromDB(*dbSession, ptPathsetStoredProcName, origin, dest, pathSet);
 	return pathSet;
 }
 

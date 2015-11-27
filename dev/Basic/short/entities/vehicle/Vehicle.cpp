@@ -17,91 +17,79 @@
 using namespace sim_mob;
 using std::vector;
 
-sim_mob::Vehicle::Vehicle(const VehicleType vehType, double lengthM, double widthM, const std::string& vehName) :
-	VehicleBase(vehType,lengthM,widthM), vehicleId(0), latMovement(0), vehicleName(vehName),
-	forwardVelocity(0), lateralVelocity(0), forwardAcceleration(0), errorState(false),
-	turningDirection(LANE_CHANGE_TO_NONE)
-{}
-
-sim_mob::Vehicle::Vehicle(const VehicleType vehType, int vehicleId, double lengthM, double widthM, const std::string& vehName) :
-		VehicleBase(vehType,lengthM,widthM), vehicleId(vehicleId), vehicleName(vehName), 
-		latMovement(0), forwardVelocity(0), lateralVelocity(0), forwardAcceleration(0),
-		errorState(false), turningDirection(LANE_CHANGE_TO_NONE)
-{}
-
-sim_mob::Vehicle::Vehicle(const Vehicle& copyFrom) :
-	VehicleBase(copyFrom), vehicleId(copyFrom.vehicleId), vehicleName(copyFrom.vehicleName),latMovement(copyFrom.latMovement),
-	forwardVelocity(copyFrom.forwardVelocity), lateralVelocity(copyFrom.lateralVelocity), forwardAcceleration(copyFrom.forwardAcceleration),
-	posInIntersection(copyFrom.posInIntersection), errorState(copyFrom.errorState),
-	turningDirection(LANE_CHANGE_TO_NONE){
-}
-
-void sim_mob::Vehicle::setPositionInIntersection(double x, double y) {
-	posInIntersection.setX(x);
-	posInIntersection.setY(y);
-}
-
-const Point& sim_mob::Vehicle::getPositionInIntersection()
+Vehicle::Vehicle(const VehicleType vehType, double lengthM, double widthM, const std::string& vehName) :
+VehicleBase(vehType, lengthM, widthM), vehicleId(0), latMovement(0), vehicleName(vehName), forwardVelocity(0), lateralVelocity(0), 
+forwardAcceleration(0), turningDirection(LANE_CHANGE_TO_NONE)
 {
-	return posInIntersection;
 }
 
-double sim_mob::Vehicle::getVelocity() const {
-	throw_if_error();
+Vehicle::Vehicle(const VehicleType vehType, int vehicleId, double lengthM, double widthM, const std::string& vehName) :
+VehicleBase(vehType, lengthM, widthM), vehicleId(vehicleId), vehicleName(vehName), latMovement(0), forwardVelocity(0), 
+lateralVelocity(0), forwardAcceleration(0), turningDirection(LANE_CHANGE_TO_NONE)
+{
+}
+
+Vehicle::~Vehicle()
+{
+}
+
+double Vehicle::getVelocity() const
+{
 	return forwardVelocity;
 }
 
-double sim_mob::Vehicle::getLateralVelocity() const {
-	throw_if_error();
+double Vehicle::getLateralVelocity() const
+{
 	return lateralVelocity;
 }
 
-double sim_mob::Vehicle::getAcceleration() const {
-	throw_if_error();
+double Vehicle::getAcceleration() const
+{
 	return forwardAcceleration;
 }
 
-LaneChangeTo sim_mob::Vehicle::getTurningDirection() const{
+LaneChangeTo Vehicle::getTurningDirection() const
+{
 	return turningDirection;
 }
 
-void sim_mob::Vehicle::setVelocity(double value) {
-	throw_if_error();
+void Vehicle::setVelocity(double value)
+{
 	forwardVelocity = value;
 }
 
-void sim_mob::Vehicle::setLateralVelocity(double value) {
-	throw_if_error();
+void Vehicle::setLateralVelocity(double value)
+{
 	lateralVelocity = value;
 }
 
-void sim_mob::Vehicle::setAcceleration(double value) {
-	throw_if_error();
+void Vehicle::setAcceleration(double value)
+{
 	forwardAcceleration = value;
 }
 
-void sim_mob::Vehicle::setCurrPosition(Point currPosition) {
-	throw_if_error();
+void Vehicle::setCurrPosition(Point currPosition)
+{
 	currPos = currPosition;
 }
 
-const Point& sim_mob::Vehicle::getCurrPosition() const {
-	throw_if_error();
+const Point& Vehicle::getCurrPosition() const
+{
 	return currPos;
 }
 
-void sim_mob::Vehicle::moveLat(double amt) {
-	throw_if_error();
+void Vehicle::moveLat(double amt)
+{
 	latMovement += amt;
 }
 
-void sim_mob::Vehicle::setTurningDirection(LaneChangeTo direction) {
-	throw_if_error();
+void Vehicle::setTurningDirection(LaneChangeTo direction)
+{
 	turningDirection = direction;
 }
 
-void sim_mob::Vehicle::resetLateralMovement() {
-	throw_if_error();
+void Vehicle::resetLateralMovement()
+{
 	latMovement = 0;
 }
 
@@ -110,11 +98,8 @@ const std::string& Vehicle::getVehicleName() const
 	return vehicleName;
 }
 
-double sim_mob::Vehicle::getLateralMovement() const {
-	throw_if_error();
+double Vehicle::getLateralMovement() const
+{
 	return latMovement;
 }
 
-#ifndef SIMMOB_DISABLE_MPI
-
-#endif

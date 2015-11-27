@@ -25,7 +25,8 @@
 #include "util/MovementVector.hpp"
 #include "util/DynamicVector.hpp"
 
-namespace sim_mob {
+namespace sim_mob
+{
 
 class PackageUtils;
 class UnPackageUtils;
@@ -34,87 +35,71 @@ class UnPackageUtils;
  * The Vehicle class has vehicle Id, position, forward velocity, lat velocity and acceleration parameters etc for Driver use
  * Each Driver object has a vehicle to move in the network
  **/
-class Vehicle : public sim_mob::VehicleBase {
+class Vehicle : public VehicleBase
+{
+private:
+	/**Id of the vehicle - currently not used*/
+	int vehicleId;
+	
+	/**
+	 * Lateral movement of the vehicle (in metre). This value represents how far to the LEFT of the current lane 
+	 * the vehicle has moved. Note: This is not the same as lateral position
+	 */
+	double latMovement;
+	
+	/**Forward velocity of the vehicle (m/s)*/
+	double forwardVelocity;
+	
+	/**Lateral velocity of the vehicle (m/s)*/
+	double lateralVelocity;
+	
+	/**The forward acceleration of the vehicle (m/s)*/
+	double forwardAcceleration;
+	
+	/**The lane the vehicle is changing to - left, right or same*/
+	LaneChangeTo turningDirection;
+	
+	/**Current position of the vehicle*/
+	Point currPos;
+
+	/**The name of the vehicle as defined in the configuration file*/
+	std::string vehicleName;
+
 public:
 	Vehicle(const VehicleType vehType, double lengthM, double widthM, const std::string& vehName);
 	Vehicle(const VehicleType vehType, int vehicleId, double lengthM, double widthM, const std::string& vehName);
-	Vehicle(const Vehicle& copy); ///<Copy constructor
+	virtual ~Vehicle();
 
-	//Enable polymorphism
-	virtual ~Vehicle(){}
-
-	double getLateralMovement() const;         ///<Retrieve a value representing how far to the LEFT of the current lane the vehicle has moved.
-	double getVelocity() const;      ///<Retrieve forward velocity.
-	double getLateralVelocity() const;   ///<Retrieve lateral velocity.
-	double getAcceleration() const;  ///<Retrieve forward acceleration.
-
-	//Special
-	LaneChangeTo getTurningDirection() const;
-
-	//More stuff; some might be optional.
-	const sim_mob::RoadSegment* getCurrSegment() const;
-	const sim_mob::RoadSegment* getNextSegment(bool inSameLink=true) const;
-	const sim_mob::RoadSegment* getSecondSegmentAhead();
-	const sim_mob::RoadSegment* getPrevSegment(bool inSameLink=true) const;
-	const sim_mob::RoadSegment* hasNextSegment(bool inSameLink) const;
-
-	std::vector<const sim_mob::RoadSegment*>::iterator getPathIterator();
-	std::vector<const sim_mob::RoadSegment*>::iterator getPathIteratorEnd();
-
-	const sim_mob::Lane* getCurrLane() const;
-	void setPositionInIntersection(double x, double y);
-	const Point& getPositionInIntersection();
-	void setTurningDirection(LaneChangeTo direction);
-	//Modifiers
-	void setVelocity(double value);      ///<Set the forward velocity.
-	void setLateralVelocity(double value);   ///<Set the lateral velocity.
-	void setAcceleration(double value);  ///<Set the forward acceleration.
-	// for path-mover splitting purpose
-	void setCurrPosition(Point currPosition);
-	const Point& getCurrPosition() const;
-
-	void moveLat(double amt);            ///<Move this car laterally. NOTE: This will _add_ the amt to the current value.
-	void resetLateralMovement();         ///<Put this car back in the center of the current lane.
+	double getLateralMovement() const;
+	void moveLat(double amt);
+	void resetLateralMovement();	
 	
-	const std::string& getVehicleName() const;
+	double getVelocity() const;
+	void setVelocity(double value);
+	
+	double getLateralVelocity() const;
+	void setLateralVelocity(double value);
+	
+	double getAcceleration() const;
+	void setAcceleration(double value);
+
+	LaneChangeTo getTurningDirection() const;
+	void setTurningDirection(LaneChangeTo direction);
+	
+	const Point& getCurrPosition() const;
+	void setCurrPosition(Point currPosition);
+
+	const std::string& getVehicleName() const;	
 
 #ifndef SIMMOB_DISABLE_MPI
-public:
-	///Serialization
-	static void pack(PackageUtils& package, Vehicle* one_vehicle);
-
-	static Vehicle* unpack(UnPackageUtils& unpackage);
-#endif
-
-private:
-
-	//Trying a slightly more dynamic moving model.
-	int vehicleId;
-	double latMovement; // latMovement not equal to lateral position
-	double forwardVelocity;
-	double lateralVelocity;
-	double forwardAcceleration;
-	LaneChangeTo turningDirection;
-	//Override for when we're in an intersection.
-	Point posInIntersection;
-	// driver path-mover split purpose, we save the currPos in the Vehicle
-	Point currPos;
-	
-	std::string vehicleName;
-
-	//NOTE: The error state is a temporary sanity check to help me debug this class. There are certainly
-	//      better ways to handle this (e.g., non-default constructor).
-	bool errorState;
-
-	void throw_if_error() const {
-		if (errorState) {
-			throw std::runtime_error("Error: can't perform certain actions on an uninitialized vehicle.");
-		}
-	}
-
-	//Serialization-related friends
+	//Serialisation-related friends
 	friend class PackageUtils;
 	friend class UnPackageUtils;
+	
+	///Serialisation
+	static void pack(PackageUtils& package, Vehicle* one_vehicle);
+	static Vehicle* unpack(UnPackageUtils& unpackage);
+#endif
 };
 
-} // namespace sim_mob
+}

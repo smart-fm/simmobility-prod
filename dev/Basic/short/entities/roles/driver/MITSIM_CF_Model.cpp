@@ -787,13 +787,15 @@ bool MITSIM_CF_Model::isGapAcceptable(DriverUpdateParams &params, NearestVehicle
 	}
 }
 
-double MITSIM_CF_Model::calcTrafficSignalAcc(DriverUpdateParams& p)
+double MITSIM_CF_Model::calcTrafficSignalAcc(DriverUpdateParams &p)
 {
 	double minAcc = p.maxAcceleration;
 	TrafficColor color = p.perceivedTrafficColor;
 	double distanceToTrafficSignal = p.perceivedDistToTrafficSignal;
 
-	if (distanceToTrafficSignal < signalVisibilityDist)
+	//The check for current lane ensures that we pass through the intersection without getting stuck if the driver reacts a little late
+	//for the traffic light causing the vehicle to enter the intersection slightly
+	if (distanceToTrafficSignal < signalVisibilityDist && p.currLane)
 	{
 		if (color == TRAFFIC_COLOUR_RED)
 		{

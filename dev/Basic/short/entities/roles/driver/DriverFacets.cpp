@@ -1421,6 +1421,30 @@ bool DriverMovement::updateNearbyAgent(const Agent *nearbyAgent, const Driver *n
 			}
 		}
 	}
+	else if(currTurning)
+	{
+		//We are in or approaching an intersection, but the other driver may be in a segment after the intersection
+		
+		//The other driver's lane
+		const Lane *otherLane = nearbyDriver->currLane_.get();
+		const RoadSegment *targetSeg = currTurning->getToLane()->getParentSegment();
+		
+		if(otherLane)
+		{
+			//Check if the other driver is in the segment that we're heading into
+			if(otherLane->getParentSegment() == targetSeg)
+			{
+				//Distance between the drivers
+				int distance = (currTurning->getLength() - fwdDriverMovement.getDistCoveredOnCurrWayPt()) + nearbyDriver->getDistCoveredOnCurrWayPt();
+				
+				//Set the other driver as the forward driver is our turning path is connected to the other driver's lane
+				if(otherLane == currTurning->getToLane())
+				{
+					setNearestVehicle(params.nvFwd, distance, nearbyDriver);
+				}
+			}
+		}
+	}
 
 	//The other driver's lane
 	const Lane *otherLane = nearbyDriver->currLane_.get();
@@ -1434,11 +1458,7 @@ bool DriverMovement::updateNearbyAgent(const Agent *nearbyAgent, const Driver *n
 	//Retrieve the other driver's road segment, and distance covered on the segment.
 	
 	const RoadSegment* otherSegment = otherLane->getParentSegment();
-	double otherDistCoveredOnCurrWayPt = nearbyDriver->distCoveredOnCurrWayPt_.get();
-
-	//We need the length of the link while calculating the lane level density
-	//as we will be considering the vehicles on a particular lane of a link.
-	double linkLength = fwdDriverMovement.getCurrLink()->getLength();
+	double otherDistCoveredOnCurrWayPt = nearbyDriver->distCoveredOnCurrWayPt_.get();	
 	
 	//If the vehicle is in the same Road segment
 	if (fwdDriverMovement.getCurrSegment() == otherSegment)
@@ -1455,7 +1475,7 @@ bool DriverMovement::updateNearbyAgent(const Agent *nearbyAgent, const Driver *n
 		if (otherLane == params.currLane)
 		{
 			//Increment the lane level density as the other car is in the same lane
-			params.density = params.density + (1.0f / linkLength);
+			params.density = params.density + (1.0f / fwdDriverMovement.getCurrLink()->getLength());
 
 			setNearestVehicle((fwd ? params.nvFwd : params.nvBack), distance, nearbyDriver);
 		}
@@ -1524,7 +1544,7 @@ bool DriverMovement::updateNearbyAgent(const Agent *nearbyAgent, const Driver *n
 			{		
 				//Increment the lane level density as the other car is in the same lane
 				//as we want to get into
-				params.density = params.density + (1.0f / linkLength);
+				params.density = params.density + (1.0f / fwdDriverMovement.getCurrLink()->getLength());
 
 				setNearestVehicle(params.nvFwd, distance, nearbyDriver);
 			}

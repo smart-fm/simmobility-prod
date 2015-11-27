@@ -374,6 +374,7 @@ std::string DriverMovement::frame_tick_output()
 			<< "\",\"angle\":\"" << (360 - (baseAngle * 180 / M_PI))
 			<< "\",\"length\":\"" << static_cast<int> (parentDriver->vehicle->getLengthInM())
 			<< "\",\"width\":\"" << static_cast<int> (parentDriver->vehicle->getWidthInM())
+			<< "\",\"veh-name\":\"" << parentDriver->vehicle->getVehicleName()
 			<< "\",\"curr-waypoint\":\"" << wayPtId
 			<< "\",\"fwd-speed\":\"" << parentDriver->vehicle->getVelocity()
 			<< "\",\"fwd-accel\":\"" << parentDriver->vehicle->getAcceleration()
@@ -1169,12 +1170,23 @@ Vehicle* DriverMovement::initializePath(bool createVehicle)
 			path = stdir.SearchShortestDrivingPath(*(parentDriver->origin), *(parentDriver->destination));
 		}
 
-		const double length = 4.0;
-		const double width = 2.0;
+		double length = 4.0;
+        double width = 2.0;
+        std::string vehName = "Car";
+
+        ST_Config& stCfg = ST_Config::getInstance();
+        std::vector<VehicleType>::const_iterator vehicleTypeIter = std::find(stCfg.vehicleTypes.begin(), stCfg.vehicleTypes.end(),
+                                                                             (*parentDriver->parent->currTripChainItem)->getMode());
+        if(vehicleTypeIter != stCfg.vehicleTypes.end())
+        {
+            length = vehicleTypeIter->length;
+            width = vehicleTypeIter->width;
+            vehName = vehicleTypeIter->name;
+        }
 
 		if (createVehicle)
 		{
-			vehicle = new Vehicle(VehicleBase::CAR, length, width);
+			vehicle = new Vehicle(VehicleBase::CAR, length, width, vehName);
 			buildPath(path, parentDriver->getParent()->startLaneIndex, parentDriver->getParent()->startSegmentId);
 		}
 	}

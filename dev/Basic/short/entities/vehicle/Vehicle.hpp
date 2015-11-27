@@ -36,8 +36,8 @@ class UnPackageUtils;
  **/
 class Vehicle : public sim_mob::VehicleBase {
 public:
-	Vehicle(const VehicleType vehType, double lengthM, double widthM);
-	Vehicle(const VehicleType vehType, int vehicleId, double lengthM, double widthM);
+	Vehicle(const VehicleType vehType, double lengthM, double widthM, const std::string& vehName);
+	Vehicle(const VehicleType vehType, int vehicleId, double lengthM, double widthM, const std::string& vehName);
 	Vehicle(const Vehicle& copy); ///<Copy constructor
 
 	//Enable polymorphism
@@ -75,6 +75,8 @@ public:
 
 	void moveLat(double amt);            ///<Move this car laterally. NOTE: This will _add_ the amt to the current value.
 	void resetLateralMovement();         ///<Put this car back in the center of the current lane.
+	
+	const std::string& getVehicleName() const;
 
 #ifndef SIMMOB_DISABLE_MPI
 public:
@@ -97,6 +99,8 @@ private:
 	Point posInIntersection;
 	// driver path-mover split purpose, we save the currPos in the Vehicle
 	Point currPos;
+	
+	std::string vehicleName;
 
 	//NOTE: The error state is a temporary sanity check to help me debug this class. There are certainly
 	//      better ways to handle this (e.g., non-default constructor).

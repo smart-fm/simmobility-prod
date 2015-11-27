@@ -133,10 +133,6 @@ public:
 	 */
 	static std::string getRoleName(const std::string mode)
 	{
-		if (mode == "Car" || mode == "Taxi")
-		{
-			return "driver";
-		}
 		if (mode == "Walk")
 		{
 			return "pedestrian";
@@ -160,6 +156,10 @@ public:
 		if (mode == "Activity")
 		{
 			return "activityRole";
+		}
+		if (!mode.empty())
+		{
+			return "driver";
 		}
 
 		throw std::runtime_error("unknown SubTrip mode: " + mode);

@@ -17,20 +17,20 @@
 using namespace sim_mob;
 using std::vector;
 
-sim_mob::Vehicle::Vehicle(const VehicleType vehType, double lengthM, double widthM) :
-	VehicleBase(vehType,lengthM,widthM), vehicleId(0), latMovement(0),
+sim_mob::Vehicle::Vehicle(const VehicleType vehType, double lengthM, double widthM, const std::string& vehName) :
+	VehicleBase(vehType,lengthM,widthM), vehicleId(0), latMovement(0), vehicleName(vehName),
 	forwardVelocity(0), lateralVelocity(0), forwardAcceleration(0), errorState(false),
 	turningDirection(LANE_CHANGE_TO_NONE)
 {}
 
-sim_mob::Vehicle::Vehicle(const VehicleType vehType, int vehicleId, double lengthM, double widthM) :
-		VehicleBase(vehType,lengthM,widthM), vehicleId(vehicleId),
+sim_mob::Vehicle::Vehicle(const VehicleType vehType, int vehicleId, double lengthM, double widthM, const std::string& vehName) :
+		VehicleBase(vehType,lengthM,widthM), vehicleId(vehicleId), vehicleName(vehName), 
 		latMovement(0), forwardVelocity(0), lateralVelocity(0), forwardAcceleration(0),
 		errorState(false), turningDirection(LANE_CHANGE_TO_NONE)
 {}
 
 sim_mob::Vehicle::Vehicle(const Vehicle& copyFrom) :
-	VehicleBase(copyFrom), vehicleId(copyFrom.vehicleId), latMovement(copyFrom.latMovement),
+	VehicleBase(copyFrom), vehicleId(copyFrom.vehicleId), vehicleName(copyFrom.vehicleName),latMovement(copyFrom.latMovement),
 	forwardVelocity(copyFrom.forwardVelocity), lateralVelocity(copyFrom.lateralVelocity), forwardAcceleration(copyFrom.forwardAcceleration),
 	posInIntersection(copyFrom.posInIntersection), errorState(copyFrom.errorState),
 	turningDirection(LANE_CHANGE_TO_NONE){
@@ -103,6 +103,11 @@ void sim_mob::Vehicle::setTurningDirection(LaneChangeTo direction) {
 void sim_mob::Vehicle::resetLateralMovement() {
 	throw_if_error();
 	latMovement = 0;
+}
+
+const std::string& Vehicle::getVehicleName() const
+{
+	return vehicleName;
 }
 
 double sim_mob::Vehicle::getLateralMovement() const {

@@ -56,7 +56,7 @@ Vehicle* BusDriverMovement::initialiseBusPath(bool createVehicle)
 
 		if (createVehicle)
 		{
-			vehicle = new Vehicle(VehicleBase::BUS, vehicleId, length, width);
+			vehicle = new Vehicle(VehicleBase::BUS, vehicleId, length, width, "Bus");
 			buildPath(busRoute, pathOfSegments);
 		}
 

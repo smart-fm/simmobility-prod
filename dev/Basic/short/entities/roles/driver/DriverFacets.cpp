@@ -1875,6 +1875,8 @@ void DriverMovement::setTrafficSignalParams(DriverUpdateParams &params)
 		{
 			colour = TRAFFIC_COLOUR_GREEN;
 		}
+		
+		params.trafficColor = colour;
 
 		if (!parentDriver->perceivedTrafficColor->can_sense())
 		{

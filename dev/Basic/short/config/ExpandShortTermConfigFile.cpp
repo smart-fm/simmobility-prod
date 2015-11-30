@@ -9,6 +9,7 @@
 #include "entities/signal/Signal.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "partitions/PartitionManager.hpp"
+#include "path/PT_PathSetManager.hpp"
 #include "util/Utils.hpp"
 
 namespace
@@ -142,6 +143,29 @@ void ExpandShortTermConfigFile::processConfig()
 			IntersectionManager::CreateIntersectionManagers(cfg.mutexStategy());
         }
     }
+
+	if (cfg.PathSetMode() && cfg.getPathSetConf().privatePathSetMode == "generation")
+	{
+		Profiler profile("bulk profiler start", true);
+		
+		//This mode can be executed in the main function also but we need the street directory to be initialised first
+		//to be least intrusive to the rest of the code, we take a safe approach and run this mode from here, although a lot of
+		//unnecessary code will be executed.
+		PrivatePathsetGenerator::getInstance()->bulkPathSetGenerator();
+		
+		Print() << "Private traffic path-set generation done (in " << (profile.tick().first.count() / 1000000.0) << "s)" << std::endl;
+		exit(1);
+	}
+
+	if (cfg.PathSetMode() && cfg.getPathSetConf().publicPathSetMode == "generation")
+	{
+		Profiler profile("bulk profiler start", true);
+		
+		PT_PathSetManager::Instance().PT_BulkPathSetGenerator();
+		
+		Print() << "Public transit path-set generation done (in " << (profile.tick().first.count() / 1000000.0) << "s)" << std::endl;
+		exit(1);
+	}
 	
 	//Maintain unique/non-colliding IDs
 	ConfigParams::AgentConstraints constraints;

@@ -1426,24 +1426,67 @@ bool DriverMovement::updateNearbyAgent(const Agent *nearbyAgent, const Driver *n
 		//We are in or approaching an intersection, but the other driver may be in a segment after the intersection
 		
 		//The other driver's lane
-		const Lane *otherLane = nearbyDriver->currLane_.get();
+		const Lane *otherLane = nearbyDriver->currLane_.get();		
 		const RoadSegment *targetSeg = currTurning->getToLane()->getParentSegment();
 		
 		if(otherLane)
 		{
+			const RoadSegment *otherSeg = otherLane->getParentSegment();
+			
 			//Check if the other driver is in the segment that we're heading into
-			if(otherLane->getParentSegment() == targetSeg)
+			if(otherSeg == targetSeg)
 			{
 				//Distance between the drivers
 				int distance = (currTurning->getLength() - fwdDriverMovement.getDistCoveredOnCurrWayPt()) + nearbyDriver->getDistCoveredOnCurrWayPt();
-				
-				//Set the other driver as the forward driver is our turning path is connected to the other driver's lane
+									
 				if(otherLane == currTurning->getToLane())
 				{
+					//Set the other driver as the forward driver is our turning path is connected to the other driver's lane
 					setNearestVehicle(params.nvFwd, distance, nearbyDriver);
+				}
+				else if(otherLane->getLaneIndex() > 0 && otherSeg->getLane(otherLane->getLaneIndex() - 1) == currTurning->getToLane())
+				{
+					//Set the other driver as the right forward driver is our turning path is connected to the other driver's left lane
+					setNearestVehicle(params.nvLeftFwd, distance, nearbyDriver);
+				}
+				else if(otherLane->getLaneIndex() + 1 < otherSeg->getNoOfLanes() && otherSeg->getLane(otherLane->getLaneIndex() + 1) == currTurning->getToLane())
+				{
+					//Set the other driver as the left forward driver is our turning path is connected to the other driver's right lane
+					setNearestVehicle(params.nvRightFwd, distance, nearbyDriver);
 				}
 			}
 		}
+	}
+	else if(otherTurning)
+	{
+		//We are on a segment after the intersection, but the other driver is approaching or in an intersection.
+		//We need to know the drivers behind while lane changing
+
+		const Lane *currLane = fwdDriverMovement.getCurrLane();
+		const RoadSegment *currSeg = fwdDriverMovement.getCurrSegment();
+		const Lane *toLane = otherTurning->getToLane();
+		
+		if(otherTurning->getToLane()->getParentSegment() == currSeg)
+		{
+			//Distance between the drivers
+			int distance = (otherTurning->getLength() - nearbyDriver->getDistCoveredOnCurrWayPt()) + fwdDriverMovement.getDistCoveredOnCurrWayPt();
+
+			if (toLane == fwdDriverMovement.getCurrLane())
+			{
+				//Set the other driver as the rear driver as our lane is connected to the other driver's turning path
+				setNearestVehicle(params.nvBack, distance, nearbyDriver);
+			}
+			else if(currLane->getLaneIndex() > 0 && currSeg->getLane(currLane->getLaneIndex() - 1) == toLane)
+			{
+				//Set the other driver as the left rear driver as our left lane is connected to the other driver's turning path
+				setNearestVehicle(params.nvLeftBack, distance, nearbyDriver);
+			}
+			else if(currLane->getLaneIndex() + 1 < currSeg->getNoOfLanes() && currSeg->getLane(currLane->getLaneIndex() + 1) == toLane)
+			{
+				//Set the other driver as the right rear driver as our right lane is connected to the other driver's turning path
+				setNearestVehicle(params.nvRightBack, distance, nearbyDriver);
+			}
+		}		
 	}
 
 	//The other driver's lane

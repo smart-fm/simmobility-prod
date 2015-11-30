@@ -604,12 +604,12 @@ double MITSIM_CF_Model::calcCarFollowingAcc(DriverUpdateParams &params, NearestV
 
 	//Unset status
 	params.unsetStatus(STATUS_REGIME_EMERGENCY);
-	params.gapBetnVehicles = params.perceivedDistToFwdCar;
+	params.gapBetnVehicles = nearestVehicle.distance;
 
 	debugStr << "t" << params.now.frame();
 
 	params.headway = 99;
-	if (params.perceivedDistToFwdCar == DBL_MAX)
+	if (nearestVehicle.distance == DBL_MAX)
 	{
 		res = calcFreeFlowingAcc(params, params.desiredSpeed);
 		debugStr << "DEF;" << res;
@@ -677,6 +677,8 @@ double MITSIM_CF_Model::calcCarFollowingAcc(DriverUpdateParams &params, NearestV
 
 		params.headway = headway;
 	}
+	
+	params.cfDebugStr += debugStr.str();
 
 	return res;
 }
@@ -1265,8 +1267,7 @@ double MITSIM_CF_Model::calcAccForStoppingPoint(DriverUpdateParams &params)
 		if (params.stopPointState == DriverUpdateParams::ARRIVING_AT_STOP_POINT)
 		{
 			acc = calcBrakeToStopAcc(params, params.distToStop);
-			debugStr << "SP-Arriving;";
-			params.cfDebugStr += debugStr.str();
+			debugStr << "SP-Arriving;";			
 			return acc;
 		}
 		if (params.stopPointState == DriverUpdateParams::ARRIVED_AT_STOP_POINT || params.stopPointState == DriverUpdateParams::WAITING_AT_STOP_POINT)

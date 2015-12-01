@@ -51,7 +51,7 @@
 		<aura_manager_impl value="rstar"/>
             
 		<!-- Order in which agents are to be loaded into the simulation -->
-		<!-- Values include: database, drivers, pedestrians, passenger, xml-tripchains -->
+		<!-- Values include: database, drivers, pedestrians, passenger -->
 		<load_agents order="database"/>
 
 		<!--  Commsim (communication) settings -->
@@ -132,13 +132,13 @@
 	</fmodcontroller>   
 
     <vehicleTypes>
-    	<vehicleType name="Car" associated_roles="driver|passenger" length="4.0" width="2.0" capacity="4"/>
-    	<vehicleType name="Truck" associated_roles="driver" length="6.0" width="2.0" capacity="8"/>
+    	<vehicleType name="Car" length="4.0" width="2.0" capacity="4"/>
+    	<vehicleType name="Truck" length="6.0" width="2.0" capacity="8"/>
     </vehicleTypes>
 
     <tripFiles>
-    	<tripFile name="CarTrips" vehicleType="Car" fileName="data/carTrips.xml"/>
-    	<!--<tripFile name="TruckTrips" vehicleType="Truck" fileName="data/truckTrips.xml"/>-->
+    	<tripFile name="CarTrips" fileName="data/carTrips.xml"/>
+    	<!--<tripFile name="TruckTrips" fileName="data/truckTrips.xml"/>-->
     </tripFiles>
 
 	<person_characteristics>

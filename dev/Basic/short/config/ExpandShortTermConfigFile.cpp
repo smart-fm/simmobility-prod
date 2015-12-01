@@ -35,35 +35,35 @@ using namespace sim_mob;
 
 void informLoadOrder(const std::vector<LoadAgentsOrderOption>& order)
 {
-    std::cout << "Agent Load order: ";
-    if (order.empty())
-    {
-	std::cout << "<N/A>";
-    }
-    else
-    {
-	for (std::vector<LoadAgentsOrderOption>::const_iterator it = order.begin(); it != order.end(); ++it)
+	std::cout << "Agent Load order: ";
+	if (order.empty())
 	{
-	    if ((*it) == LoadAg_Drivers)
-	    {
-		std::cout << "drivers";
-	    }
-	    else if ((*it) ==  LoadAg_Database)
-	    {
-		std::cout << "database";
-	    }
-	    else if ((*it) ==  LoadAg_Pedestrians)
-	    {
-		std::cout << "pedestrians";
-	    }
-	    else
-	    {
-		std::cout << "<unknown>";
-	    }
-	    std::cout << "  ";
+		std::cout << "<N/A>";
 	}
-    }
-    std::cout << std::endl;
+	else
+	{
+		for (std::vector<LoadAgentsOrderOption>::const_iterator it = order.begin(); it != order.end(); ++it)
+		{
+			if ((*it) == LoadAg_Drivers)
+			{
+				std::cout << "drivers";
+			}
+			else if ((*it) == LoadAg_Database)
+			{
+				std::cout << "database";
+			}
+			else if ((*it) == LoadAg_Pedestrians)
+			{
+				std::cout << "pedestrians";
+			}
+			else
+			{
+				std::cout << "<unknown>";
+			}
+			std::cout << "  ";
+		}
+	}
+	std::cout << std::endl;
 }
 
 
@@ -93,66 +93,66 @@ namespace sim_mob
 {
 
 ExpandShortTermConfigFile::ExpandShortTermConfigFile(ST_Config &stConfig, ConfigParams &cfg,
-								     std::set<Entity *> &active_agents,
-								     StartTimePriorityQueue &pending_agents) :
-    stConfig(stConfig), cfg(cfg),
-    active_agents(active_agents), pending_agents(pending_agents)
+													 std::set<Entity *> &active_agents,
+													 StartTimePriorityQueue &pending_agents) :
+stConfig(stConfig), cfg(cfg),
+active_agents(active_agents), pending_agents(pending_agents)
 {
-    processConfig();
+	processConfig();
 }
 
 void ExpandShortTermConfigFile::processConfig()
 {
-    cfg.simMobRunMode = ConfigParams::SimMobRunMode::SHORT_TERM;
-    cfg.setWorkerPublisherEnabled(stConfig.commsim.enabled);
+	cfg.simMobRunMode = ConfigParams::SimMobRunMode::SHORT_TERM;
+	cfg.setWorkerPublisherEnabled(stConfig.commsim.enabled);
 
-    //Inform of load order (drivers, database, pedestrians, etc.).
-    informLoadOrder(stConfig.loadAgentsOrder);
-	
+	//Inform of load order (drivers, database, pedestrians, etc.).
+	informLoadOrder(stConfig.loadAgentsOrder);
+
 	//Ensure granularities are multiples of each other. Then set the "ticks" based on each granularity.
-    checkGranularities();
-    setTicks();
+	checkGranularities();
+	setTicks();
 
-    //Print schema file.
-    const std::string schem = stConfig.getRoadNetworkXsdSchemaFile();
-    Print() << "XML (road network) schema file: " << (schem.empty() ? "<default>" : schem) << std::endl;
+	//Print schema file.
+	const std::string schem = stConfig.getRoadNetworkXsdSchemaFile();
+	Print() << "XML (road network) schema file: " << (schem.empty() ? "<default>" : schem) << std::endl;
 
-    //Load from database or XML.
-    loadNetworkFromDatabase();
+	//Load from database or XML.
+	loadNetworkFromDatabase();
 
-    //Set PartitionManager instance (if using MPI and it's enabled).
-    if (cfg.MPI_Enabled() && cfg.using_MPI)
-    {
-        int partId = stConfig.partitioningSolutionId;
-        PartitionManager::instance().partition_config->partition_solution_id = partId;
-        std::cout << "partition_solution_id in configuration:" << partId << std::endl;
-    }
+	//Set PartitionManager instance (if using MPI and it's enabled).
+	if (cfg.MPI_Enabled() && cfg.using_MPI)
+	{
+		int partId = stConfig.partitioningSolutionId;
+		PartitionManager::instance().partition_config->partition_solution_id = partId;
+		std::cout << "partition_solution_id in configuration:" << partId << std::endl;
+	}
 
-    cfg.sealNetwork();
-    std::cout << "Network Sealed" << std::endl;
+	cfg.sealNetwork();
+	std::cout << "Network Sealed" << std::endl;
 
-    //Initialize the street directory.
-    StreetDirectory::Instance().Init(*(RoadNetwork::getInstance()));
-    std::cout << "Street Directory initialized  " << std::endl;
+	//Initialize the street directory.
+	StreetDirectory::Instance().Init(*(RoadNetwork::getInstance()));
+	std::cout << "Street Directory initialized  " << std::endl;
 
-    std::map<std::string, std::string>::iterator itIntModel = stConfig.genericProps.find("intersection_driving_model");
-    if (itIntModel != stConfig.genericProps.end())
-    {
-        if (itIntModel->second == "slot-based")
-        {
+	std::map<std::string, std::string>::iterator itIntModel = stConfig.genericProps.find("intersection_driving_model");
+	if (itIntModel != stConfig.genericProps.end())
+	{
+		if (itIntModel->second == "slot-based")
+		{
 			IntersectionManager::CreateIntersectionManagers(cfg.mutexStategy());
-        }
-    }
+		}
+	}
 
 	if (cfg.PathSetMode() && cfg.getPathSetConf().privatePathSetMode == "generation")
 	{
 		Profiler profile("bulk profiler start", true);
-		
+
 		//This mode can be executed in the main function also but we need the street directory to be initialised first
 		//to be least intrusive to the rest of the code, we take a safe approach and run this mode from here, although a lot of
 		//unnecessary code will be executed.
 		PrivatePathsetGenerator::getInstance()->bulkPathSetGenerator();
-		
+
 		Print() << "Private traffic path-set generation done (in " << (profile.tick().first.count() / 1000000.0) << "s)" << std::endl;
 		exit(1);
 	}
@@ -160,24 +160,24 @@ void ExpandShortTermConfigFile::processConfig()
 	if (cfg.PathSetMode() && cfg.getPathSetConf().publicPathSetMode == "generation")
 	{
 		Profiler profile("bulk profiler start", true);
-		
+
 		PT_PathSetManager::Instance().PT_BulkPathSetGenerator();
-		
+
 		Print() << "Public transit path-set generation done (in " << (profile.tick().first.count() / 1000000.0) << "s)" << std::endl;
 		exit(1);
 	}
-	
+
 	//Maintain unique/non-colliding IDs
 	ConfigParams::AgentConstraints constraints;
 	constraints.startingAutoAgentID = cfg.simulation.startingAutoAgentID;
 
-    loadAMOD_Controller();
-    loadFMOD_Controller();
+	loadAMOD_Controller();
+	loadFMOD_Controller();
 
-    //Load Agents, Pedestrians, and Trip Chains as specified in loadAgentOrder
-    loadAgentsInOrder(constraints);
+	//Load Agents, Pedestrians, and Trip Chains as specified in loadAgentOrder
+	loadAgentsInOrder(constraints);
 
-    //Register and initialize BusController
+	//Register and initialize BusController
 	if (cfg.busController.enabled)
 	{
 		BusControllerST::RegisterBusController(-1, cfg.mutexStategy());
@@ -185,7 +185,7 @@ void ExpandShortTermConfigFile::processConfig()
 		busController->initializeBusController(active_agents);
 		active_agents.insert(busController);
 	}
-	
+
 	printSettings();
 }
 
@@ -217,10 +217,10 @@ void ExpandShortTermConfigFile::loadNetworkFromDatabase()
 
 void ExpandShortTermConfigFile::loadAMOD_Controller()
 {
-    if (stConfig.amod.enabled)
-    {
-    	AMOD::AMODController::registerController(-1, cfg.mutexStategy());
-    }
+	if (stConfig.amod.enabled)
+	{
+		AMOD::AMODController::registerController(-1, cfg.mutexStategy());
+	}
 }
 
 void ExpandShortTermConfigFile::loadFMOD_Controller()
@@ -229,7 +229,7 @@ void ExpandShortTermConfigFile::loadFMOD_Controller()
 	{
 		FMOD::FMOD_Controller::registerController(-1, cfg.mutexStategy());
 		FMOD::FMOD_Controller::instance()->settings(stConfig.fmod.ipAddress, stConfig.fmod.port, stConfig.fmod.updateTimeMS, stConfig.fmod.mapfile,
-				stConfig.fmod.blockingTimeSec);
+													stConfig.fmod.blockingTimeSec);
 		std::map<std::string, TripChainItem*>::iterator it;
 		for (it = stConfig.fmod.allItems.begin(); it != stConfig.fmod.allItems.end(); it++)
 		{
@@ -240,67 +240,69 @@ void ExpandShortTermConfigFile::loadFMOD_Controller()
 
 void ExpandShortTermConfigFile::loadAgentsInOrder(ConfigParams::AgentConstraints& constraints)
 {
-    typedef std::vector<LoadAgentsOrderOption> LoadOrder;
-    const LoadOrder& order = stConfig.loadAgentsOrder;
-    for (LoadOrder::const_iterator it = order.begin(); it != order.end(); ++it)
-    {
-        switch (*it)
-        {
-        case LoadAg_Database: //fall-through
-        case LoadAg_XmlTripChains:
-            //Create an agent for each Trip Chain in the database.
-            generateAgentsFromTripChain(constraints);
-            std::cout << "Loaded Database Agents (from Trip Chains).\n";
-            break;
-        case LoadAg_Drivers:
-            for(std::map<std::string, std::vector<EntityTemplate> >::const_iterator it = stConfig.futureAgents.begin();
-            it != stConfig.futureAgents.end(); it++)
-            {
-                generateXMLAgents(it->second);
-            }
-            std::cout << "Loaded Driver Agents (from config file).\n";
-            break;
-        case LoadAg_Pedestrians:
-            generateXMLAgents(stConfig.futureAgents["pedestrian"]);
-            std::cout << "Loaded Pedestrian Agents (from config file).\n";
-            break;
-        case LoadAg_Passengers:
-            generateXMLAgents(stConfig.futureAgents["passenger"]);
-            std::cout << "Loaded Passenger Agents (from config file).\n";
-            break;
-        default:
-            throw std::runtime_error("Unknown item in load_agents");
-        }
-    }
-    std::cout << "Loading Agents, Pedestrians, and Trip Chains as specified in loadAgentOrder: Success!\n";
+	typedef std::vector<LoadAgentsOrderOption> LoadOrder;
+	const LoadOrder& order = stConfig.loadAgentsOrder;
+	for (LoadOrder::const_iterator it = order.begin(); it != order.end(); ++it)
+	{
+		switch (*it)
+		{
+		case LoadAg_Database:
+			//Create an agent for each Trip Chain in the database.
+			generateAgentsFromTripChain(constraints);
+			std::cout << "Loaded agents from the database (Trip Chains).\n";
+			break;
+		
+		case LoadAg_Drivers:
+			for (std::map<std::string, std::vector<EntityTemplate> >::const_iterator it = stConfig.futureAgents.begin(); it != stConfig.futureAgents.end(); it++)
+			{
+				generateXMLAgents(it->second);
+			}
+			std::cout << "Loaded drivers from the configuration file).\n";
+			break;
+			
+		case LoadAg_Pedestrians:
+			generateXMLAgents(stConfig.futureAgents["pedestrian"]);
+			std::cout << "Loaded pedestrians from the configuration file).\n";
+			break;
+		
+		case LoadAg_Passengers:
+			generateXMLAgents(stConfig.futureAgents["passenger"]);
+			std::cout << "Loaded passengers from the configuration file).\n";
+			break;
+		
+		default:
+			throw std::runtime_error("Unknown item in load_agents");
+		}
+	}
+	std::cout << "Loading Agents, Pedestrians, and Trip Chains as specified in loadAgentOrder: Success!\n";
 }
 
 void ExpandShortTermConfigFile::generateAgentsFromTripChain(ConfigParams::AgentConstraints &constraints)
 {
-    //NOTE: "constraints" are not used here, but they could be (for manual ID specification).
-    typedef std::map<std::string, std::vector<TripChainItem*> > TripChainMap;
-    const TripChainMap& tcs = cfg.getTripChains();
+	//NOTE: "constraints" are not used here, but they could be (for manual ID specification).
+	typedef std::map<std::string, std::vector<TripChainItem*> > TripChainMap;
+	const TripChainMap& tcs = cfg.getTripChains();
 
-    //The current agent we are working on.
-    for (TripChainMap::const_iterator it_map = tcs.begin(); it_map != tcs.end(); ++it_map)
-    {
-        TripChainItem *tc = it_map->second.front();
-        Person *person = new Person_ST("XML_TripChain", cfg.mutexStategy(), it_map->second);
-        person->setPersonCharacteristics();
-        addOrStashEntity(person, active_agents, pending_agents);
-    }
+	//The current agent we are working on.
+	for (TripChainMap::const_iterator it_map = tcs.begin(); it_map != tcs.end(); ++it_map)
+	{
+		TripChainItem *tc = it_map->second.front();
+		Person *person = new Person_ST("XML_TripChain", cfg.mutexStategy(), it_map->second);
+		person->setPersonCharacteristics();
+		addOrStashEntity(person, active_agents, pending_agents);
+	}
 }
 
 void ExpandShortTermConfigFile::generateXMLAgents(const std::vector<EntityTemplate>& xmlItems)
 {
-    //Do nothing for empty roles.
-    if (xmlItems.empty())
-    {
-	    return;
-    }
+	//Do nothing for empty roles.
+	if (xmlItems.empty())
+	{
+		return;
+	}
 
-    //Loop through all agents of this type.
-    for (std::vector<EntityTemplate>::const_iterator it = xmlItems.begin(); it != xmlItems.end(); ++it)
+	//Loop through all agents of this type.
+	for (std::vector<EntityTemplate>::const_iterator it = xmlItems.begin(); it != xmlItems.end(); ++it)
 	{
 		//Keep track of the properties we have found.
 		std::map<std::string, std::string> props;
@@ -333,33 +335,33 @@ void ExpandShortTermConfigFile::generateXMLAgents(const std::vector<EntityTempla
 void ExpandShortTermConfigFile::checkGranularities()
 {
 	//Granularity check
-    const unsigned int baseGranMS = cfg.simulation.baseGranMS;
-    const WorkerParams& workers = stConfig.workers;
+	const unsigned int baseGranMS = cfg.simulation.baseGranMS;
+	const WorkerParams& workers = stConfig.workers;
 
-    if (cfg.simulation.totalRuntimeMS < baseGranMS)
-    {
-	    throw std::runtime_error("Total Runtime cannot be smaller than base granularity.");
-    }
-    if (cfg.simulation.totalWarmupMS != 0 && cfg.simulation.totalWarmupMS < baseGranMS)
-    {
-	    Warn() << "Warning! Total Warmup is smaller than base granularity.\n";
-    }
-    if (workers.person.granularityMs < baseGranMS)
-    {
-	    throw std::runtime_error("Person granularity cannot be smaller than base granularity.");
-    }
-    if (workers.signal.granularityMs < baseGranMS)
-    {
-	    throw std::runtime_error("Signal granularity cannot be smaller than base granularity.");
-    }
-    if (workers.intersectionMgr.granularityMs < baseGranMS)
-    {
-	    throw std::runtime_error("Intersection Manager granularity cannot be smaller than base granularity.");
-    }
-    if (workers.communication.granularityMs < baseGranMS)
-    {
-	    throw std::runtime_error("Communication granularity cannot be smaller than base granularity.");
-    }
+	if (cfg.simulation.totalRuntimeMS < baseGranMS)
+	{
+		throw std::runtime_error("Total Runtime cannot be smaller than base granularity.");
+	}
+	if (cfg.simulation.totalWarmupMS != 0 && cfg.simulation.totalWarmupMS < baseGranMS)
+	{
+		Warn() << "Warning! Total Warmup is smaller than base granularity.\n";
+	}
+	if (workers.person.granularityMs < baseGranMS)
+	{
+		throw std::runtime_error("Person granularity cannot be smaller than base granularity.");
+	}
+	if (workers.signal.granularityMs < baseGranMS)
+	{
+		throw std::runtime_error("Signal granularity cannot be smaller than base granularity.");
+	}
+	if (workers.intersectionMgr.granularityMs < baseGranMS)
+	{
+		throw std::runtime_error("Intersection Manager granularity cannot be smaller than base granularity.");
+	}
+	if (workers.communication.granularityMs < baseGranMS)
+	{
+		throw std::runtime_error("Communication granularity cannot be smaller than base granularity.");
+	}
 }
 
 bool ExpandShortTermConfigFile::setTickFromBaseGran(unsigned int& res, unsigned int tickLenMs)
@@ -370,86 +372,86 @@ bool ExpandShortTermConfigFile::setTickFromBaseGran(unsigned int& res, unsigned 
 
 void ExpandShortTermConfigFile::setTicks()
 {
-    if (!setTickFromBaseGran(cfg.totalRuntimeTicks, cfg.simulation.totalRuntimeMS))
-    {
-	Warn() << "Total runtime will be truncated by the base granularity\n";
-    }
-    if (!setTickFromBaseGran(cfg.totalWarmupTicks, cfg.simulation.totalWarmupMS))
-    {
-	Warn() << "Total warm-up will be truncated by the base granularity\n";
-    }
-    if (!setTickFromBaseGran(stConfig.granPersonTicks, stConfig.workers.person.granularityMs))
-    {
-	throw std::runtime_error("Person granularity not a multiple of base granularity.");
-    }
-    if (!setTickFromBaseGran(stConfig.granSignalsTicks, stConfig.workers.signal.granularityMs))
-    {
-	throw std::runtime_error("Signal granularity not a multiple of base granularity.");
-    }
-    if (!setTickFromBaseGran(stConfig.granIntMgrTicks, stConfig.workers.intersectionMgr.granularityMs))
-    {
-	    throw std::runtime_error("Signal granularity not a multiple of base granularity.");
-    }
-    if (!setTickFromBaseGran(stConfig.granCommunicationTicks, stConfig.workers.communication.granularityMs))
-    {
-	    throw std::runtime_error("Communication granularity not a multiple of base granularity.");
-    }
+	if (!setTickFromBaseGran(cfg.totalRuntimeTicks, cfg.simulation.totalRuntimeMS))
+	{
+		Warn() << "Total runtime will be truncated by the base granularity\n";
+	}
+	if (!setTickFromBaseGran(cfg.totalWarmupTicks, cfg.simulation.totalWarmupMS))
+	{
+		Warn() << "Total warm-up will be truncated by the base granularity\n";
+	}
+	if (!setTickFromBaseGran(stConfig.granPersonTicks, stConfig.workers.person.granularityMs))
+	{
+		throw std::runtime_error("Person granularity not a multiple of base granularity.");
+	}
+	if (!setTickFromBaseGran(stConfig.granSignalsTicks, stConfig.workers.signal.granularityMs))
+	{
+		throw std::runtime_error("Signal granularity not a multiple of base granularity.");
+	}
+	if (!setTickFromBaseGran(stConfig.granIntMgrTicks, stConfig.workers.intersectionMgr.granularityMs))
+	{
+		throw std::runtime_error("Signal granularity not a multiple of base granularity.");
+	}
+	if (!setTickFromBaseGran(stConfig.granCommunicationTicks, stConfig.workers.communication.granularityMs))
+	{
+		throw std::runtime_error("Communication granularity not a multiple of base granularity.");
+	}
 }
 
 void ExpandShortTermConfigFile::printSettings()
 {
-    std::cout << "Config parameters:\n";
-    std::cout << "------------------\n";
+	std::cout << "Config parameters:\n";
+	std::cout << "------------------\n";
 
-    //Print the WorkGroup strategy.
-    std::cout << "WorkGroup assignment: ";
-    switch (cfg.defaultWrkGrpAssignment())
-    {
-        case WorkGroup::ASSIGN_ROUNDROBIN:
-        std::cout << "roundrobin" << std::endl;
-        break;
-        case WorkGroup::ASSIGN_SMALLEST:
-        std::cout << "smallest" << std::endl;
-        break;
-        default:
-        std::cout << "<unknown>" << std::endl;
-        break;
-    }
+	//Print the WorkGroup strategy.
+	std::cout << "WorkGroup assignment: ";
+	switch (cfg.defaultWrkGrpAssignment())
+	{
+	case WorkGroup::ASSIGN_ROUNDROBIN:
+		std::cout << "roundrobin" << std::endl;
+		break;
+	case WorkGroup::ASSIGN_SMALLEST:
+		std::cout << "smallest" << std::endl;
+		break;
+	default:
+		std::cout << "<unknown>" << std::endl;
+		break;
+	}
 
-    //Basic statistics
-    std::cout << "  Base Granularity: " << cfg.baseGranMS() << " " << "ms" << "\n";
-    std::cout << "  Total Runtime: " << cfg.totalRuntimeTicks << " " << "ticks" << "\n";
-    std::cout << "  Total Warmup: " << cfg.totalWarmupTicks << " " << "ticks" << "\n";
-    std::cout << "  Person Granularity: " << stConfig.granPersonTicks << " " << "ticks" << "\n";
-    std::cout << "  Start time: " << cfg.simStartTime().getStrRepr() << "\n";
-    std::cout << "  Mutex strategy: " << (cfg.mutexStategy() == MtxStrat_Locked ? "Locked" : cfg.mutexStategy() == MtxStrat_Buffered ? "Buffered" : "Unknown") << "\n";
+	//Basic statistics
+	std::cout << "  Base Granularity: " << cfg.baseGranMS() << " " << "ms" << "\n";
+	std::cout << "  Total Runtime: " << cfg.totalRuntimeTicks << " " << "ticks" << "\n";
+	std::cout << "  Total Warmup: " << cfg.totalWarmupTicks << " " << "ticks" << "\n";
+	std::cout << "  Person Granularity: " << stConfig.granPersonTicks << " " << "ticks" << "\n";
+	std::cout << "  Start time: " << cfg.simStartTime().getStrRepr() << "\n";
+	std::cout << "  Mutex strategy: " << (cfg.mutexStategy() == MtxStrat_Locked ? "Locked" : cfg.mutexStategy() == MtxStrat_Buffered ? "Buffered" : "Unknown") << "\n";
 
-    //Output Database details
-    if (stConfig.networkSource == NETSRC_XML)
-    {
-        std::cout << "Network details loaded from xml file: " << stConfig.networkXmlInputFile << "\n";
-    }
-    if (stConfig.networkSource == NETSRC_DATABASE)
-    {
-        std::cout << "Network details loaded from database connection: " << cfg.getDatabaseConnectionString() << "\n";
-    }
+	//Output Database details
+	if (stConfig.networkSource == NETSRC_XML)
+	{
+		std::cout << "Network details loaded from xml file: " << stConfig.networkXmlInputFile << "\n";
+	}
+	if (stConfig.networkSource == NETSRC_DATABASE)
+	{
+		std::cout << "Network details loaded from database connection: " << cfg.getDatabaseConnectionString() << "\n";
+	}
 
-    //Print the network (this will go to a different output file...)
-    std::cout << "------------------\n";
-    NetworkPrinter nwPrinter(cfg, cfg.outNetworkFileName);
+	//Print the network (this will go to a different output file...)
+	std::cout << "------------------\n";
+	NetworkPrinter nwPrinter(cfg, cfg.outNetworkFileName);
 	nwPrinter.printSignals(getSignalsInfo(Signal::getMapOfIdVsSignals()));
-	nwPrinter.printNetwork(RoadNetwork::getInstance());	
-    std::cout << "------------------\n";
+	nwPrinter.printNetwork(RoadNetwork::getInstance());
+	std::cout << "------------------\n";
 }
 
 const std::string ExpandShortTermConfigFile::getSignalsInfo(std::map<unsigned int, Signal*>& signals) const
 {
 	std::stringstream out;
-	
-	if(!cfg.OutputDisabled())
+
+	if (!cfg.OutputDisabled())
 	{
 		out << std::setprecision(8);
-		
+
 		for (std::map<unsigned int, Signal *>::const_iterator it = signals.begin(); it != signals.end(); ++it)
 		{
 			out << "{\"TrafficSignal\":" << "{";
@@ -458,7 +460,7 @@ const std::string ExpandShortTermConfigFile::getSignalsInfo(std::map<unsigned in
 			out << "}}\n";
 		}
 	}
-	
+
 	return out.str();
 }
 

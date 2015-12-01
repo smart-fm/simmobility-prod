@@ -1,5 +1,6 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
+#include <stdlib.h>
 
 #include "ParseShortTermConfigFile.hpp"
 #include "entities/AuraManager.hpp"
@@ -712,14 +713,23 @@ void ParseShortTermTripFile::processTrips(DOMElement *node)
 		typedef std::vector<DOMElement*>::const_iterator DOMListIter;
 
 		DOMList trips = GetElementsByName(node, "trip");
-		for (DOMListIter it = trips.begin(); it != trips.end(); it++)
+		unsigned int defaultTripId = 1;
+		
+		for (DOMListIter it = trips.begin(); it != trips.end(); ++it, ++defaultTripId)
 		{
-			unsigned int tripId = ParseInteger(GetNamedAttributeValue(*it, "id"), 0);
+			defaultTripId = ParseInteger(GetNamedAttributeValue(*it, "id"), defaultTripId);
 			unsigned int personId = ParseUnsignedInt(GetNamedAttributeValue(*it, "personId", false), static_cast<unsigned int> (0));
+			std::stringstream tripIdStr;
+			tripIdStr << defaultTripId;
+			
 			DOMList subTrips = GetElementsByName(*it, "subTrip");
-			for (DOMListIter stIter = subTrips.begin(); stIter != subTrips.end(); stIter++)
-			{
+			unsigned int defaultSubTripId = 1;
+			
+			for (DOMListIter stIter = subTrips.begin(); stIter != subTrips.end(); ++stIter, ++defaultSubTripId)
+			{				
+				defaultSubTripId = ParseUnsignedInt(GetNamedAttributeValue(*stIter, "id", false), defaultSubTripId);
 				EntityTemplate ent;
+				
 				ent.startTimeMs = ParseUnsignedInt(GetNamedAttributeValue(*stIter, "time", true), static_cast<unsigned int> (0));
 				ent.startLaneIndex = ParseUnsignedInt(GetNamedAttributeValue(*stIter, "startLaneIndex"), static_cast<unsigned int> (0));
 				ent.agentId = personId;
@@ -727,16 +737,17 @@ void ParseShortTermTripFile::processTrips(DOMElement *node)
 				ent.segmentStartOffset = ParseUnsignedInt(GetNamedAttributeValue(*stIter, "segmentStartOffset", false), static_cast<unsigned int> (0));
 				ent.initialSpeed = ParseUnsignedInt(GetNamedAttributeValue(*stIter, "initialSpeed", false), static_cast<double> (0));
 				ent.originNode = ParseUnsignedInt(GetNamedAttributeValue(*stIter, "originNode", true), static_cast<double> (0));
-				ent.destNode = ParseUnsignedInt(GetNamedAttributeValue(*stIter, "destNode", true), static_cast<double> (0));
-				unsigned int stId = ParseUnsignedInt(GetNamedAttributeValue(*stIter, "id", false), static_cast<unsigned int> (0));
-				ent.tripId = std::make_pair(tripId, stId);
+				ent.destNode = ParseUnsignedInt(GetNamedAttributeValue(*stIter, "destNode", true), static_cast<double> (0));				
+				ent.tripId = std::make_pair(defaultTripId, defaultSubTripId);
 				ent.mode = ParseString(GetNamedAttributeValue(*stIter, "mode"), "");
+				
 				std::vector<VehicleType>::iterator vehTypeIter = std::find(cfg.vehicleTypes.begin(), cfg.vehicleTypes.end(), ent.mode);
 				if (ent.mode.empty() || vehTypeIter == cfg.vehicleTypes.end())
 				{
 					throw std::runtime_error("ProcessTrips : Unknown Mode");
 				}
-				cfg.futureAgents[tripName].push_back(ent);
+				
+				cfg.futureAgents[tripIdStr.str()].push_back(ent);
 			}
 		}
 	}

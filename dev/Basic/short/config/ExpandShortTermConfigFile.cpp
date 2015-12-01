@@ -66,12 +66,10 @@ void informLoadOrder(const std::vector<LoadAgentsOrderOption>& order)
 	std::cout << std::endl;
 }
 
-
 ////
 //// TODO: Eventually, we need to re-write WorkGroup to encapsulate the functionality of "addOrStash()".
 ////       For now, just make sure that if you add something to all_agents manually, you call "load()" before.
 ////
-
 void addOrStashEntity(Agent* p, std::set<Entity*>& active_agents, StartTimePriorityQueue& pending_agents)
 {
 	//Only agents with a start time of zero should start immediately in the all_agents list.
@@ -84,6 +82,51 @@ void addOrStashEntity(Agent* p, std::set<Entity*>& active_agents, StartTimePrior
 		//Start later.
 		pending_agents.push(p);
 	}
+}
+
+Trip* MakePseudoTrip(unsigned int personId, const Node *origin, const Node *destination, unsigned int startTimeMS, const std::string &mode)
+{
+	//Make sure we have something to work with
+	if (!(origin && destination))
+	{
+		std::stringstream msg;
+		msg << "Can't make a pseudo-trip for an Agent with no origin and destination nodes!";
+		throw std::runtime_error(msg.str().c_str());
+	}
+
+	//Make the trip itself
+	Trip *res = new Trip();
+	res->setPersonID(personId);
+	res->itemType = TripChainItem::getItemType("Trip");
+	res->sequenceNumber = 1;
+	res->startTime = DailyTime(startTimeMS);
+	res->endTime = res->startTime; //No estimated end time.
+	res->tripID = "";
+	res->origin = WayPoint(origin);
+	res->originType = TripChainItem::getLocationType("node");
+	res->destination = WayPoint(destination);
+	res->destinationType = res->originType;
+	res->travelMode = mode;
+
+	//Make and assign a single sub-trip
+	SubTrip subTrip;
+	subTrip.setPersonID(-1);
+	subTrip.itemType = TripChainItem::getItemType("Trip");
+	subTrip.sequenceNumber = 1;
+	subTrip.startTime = res->startTime;
+	subTrip.endTime = res->startTime;
+	subTrip.origin = res->origin;
+	subTrip.originType = res->originType;
+	subTrip.destination = res->destination;
+	subTrip.destinationType = res->destinationType;
+	subTrip.tripID = "";
+	subTrip.mode = mode;
+	subTrip.isPrimaryMode = true;
+	subTrip.ptLineId = "";
+
+	//Add it to the Trip; return this value.
+	res->addSubTrip(subTrip);
+	return res;
 }
 
 } //End un-named namespace
@@ -206,7 +249,7 @@ void ExpandShortTermConfigFile::loadNetworkFromDatabase()
 		loader->processNetwork();
 
 		//Create traffic signals
-		Signal_SCATS::createTrafficSignals(cfg.mutexStategy());
+		//Signal_SCATS::createTrafficSignals(cfg.mutexStategy());
 	}
 	else
 	{
@@ -261,13 +304,13 @@ void ExpandShortTermConfigFile::loadAgentsInOrder(ConfigParams::AgentConstraints
 			break;
 			
 		case LoadAg_Pedestrians:
-			generateXMLAgents(stConfig.futureAgents["pedestrian"]);
-			std::cout << "Loaded pedestrians from the configuration file).\n";
+			//generateXMLAgents(stConfig.futureAgents["pedestrian"]);
+			//std::cout << "Loaded pedestrians from the configuration file).\n";
 			break;
 		
 		case LoadAg_Passengers:
-			generateXMLAgents(stConfig.futureAgents["passenger"]);
-			std::cout << "Loaded passengers from the configuration file).\n";
+			//generateXMLAgents(stConfig.futureAgents["passenger"]);
+			//std::cout << "Loaded passengers from the configuration file).\n";
 			break;
 		
 		default:
@@ -300,36 +343,51 @@ void ExpandShortTermConfigFile::generateXMLAgents(const std::vector<EntityTempla
 	{
 		return;
 	}
+	
+	int agentId = -1;
+
+	//All the xml items within the vector have the same person id (if set)
+	if (xmlItems.begin()->agentId != 0)
+	{
+		agentId = xmlItems.begin()->agentId;
+	}
+	
+	//Create the Person agent with that given ID (or an auto-generated one)
+	Person_ST *person = new Person_ST("XML_Def", cfg.mutexStategy(), agentId);	
+	person->setStartTime(xmlItems.begin()->startTimeMs);
+	
+	std::vector<TripChainItem*> tripChain;
+	const RoadNetwork *rn = RoadNetwork::getInstance();
 
 	//Loop through all agents of this type.
 	for (std::vector<EntityTemplate>::const_iterator it = xmlItems.begin(); it != xmlItems.end(); ++it)
 	{
-		//Keep track of the properties we have found.
-		std::map<std::string, std::string> props;
-		props["startLaneIndex"] = Utils::toStr<unsigned int>(it->startLaneIndex);
-		props["startSegmentId"] = Utils::toStr<unsigned int>(it->startSegmentId);
-		props["segmentStartOffset"] = Utils::toStr<unsigned int>(it->segmentStartOffset);
-		props["initialSpeed"] = Utils::toStr<unsigned int>(it->initialSpeed);
-		props["originNode"] = Utils::toStr<unsigned int>(it->originNode);
-		props["destNode"] = Utils::toStr<unsigned int>(it->destNode);
-
-		int agentId = -1;
-
-		if (it->agentId != 0)
+		std::string mode = it->mode;
+		person->startLaneIndex = it->startLaneIndex;
+		person->startSegmentId = it->startSegmentId;
+		person->segmentStartOffset = it->segmentStartOffset;
+		person->initialSpeed = it->initialSpeed;
+		
+		//Set the origin and destination nodes		
+		const Node *originNd = rn->getById(rn->getMapOfIdvsNodes(), it->originNode);
+		const Node *destinNd = rn->getById(rn->getMapOfIdvsNodes(), it->destNode);
+		
+		if(!originNd || !destinNd)
 		{
-			agentId = it->agentId;
+			throw std::runtime_error("Invalid node specified as origin/destination!");
 		}
-
-		props["#mode"] = it->mode;
-
-		//Create the Person agent with that given ID (or an auto-generated one)
-		Person_ST *agent = new Person_ST("XML_Def", cfg.mutexStategy(), agentId);
-		agent->setConfigProperties(props);
-		agent->setStartTime(it->startTimeMs);
-
-		//Add it or stash it
-		addOrStashEntity(agent, active_agents, pending_agents);
+		
+		//Make the trip item
+		Trip *trip = MakePseudoTrip(agentId, originNd, destinNd, it->startTimeMs, mode);
+		tripChain.push_back(trip);
 	}
+	
+	person->setNextPathPlanned(false);
+	person->setTripChain(tripChain);
+	person->initTripChain();
+	
+	//Add it or stash it
+	addOrStashEntity(person, active_agents, pending_agents);
 }
 
 void ExpandShortTermConfigFile::checkGranularities()

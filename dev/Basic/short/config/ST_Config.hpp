@@ -19,8 +19,8 @@
 #include "conf/Constructs.hpp"
 #include "conf/RawConfigParams.hpp"
 #include "database/DB_Connection.hpp"
-#include "util/ProtectedCopyable.hpp"
 #include "entities/AuraManager.hpp"
+#include "util/ProtectedCopyable.hpp"
 
 namespace sim_mob
 {
@@ -381,10 +381,10 @@ public:
 	/// Container to store vehicle types
 	std::vector<VehicleType> vehicleTypes;
 
-	/// Tripfile map
+	/// Trip-file map
 	std::map<std::string, std::string> tripFiles;
 
-	/// Future agents (drivers, pedestrains, passengers.. etc) map
+	/// Future agents (drivers, pedestrians, passengers.. etc) map
 	std::map<std::string, std::vector<EntityTemplate> > futureAgents;
 
 	/// Container for storing load agents order

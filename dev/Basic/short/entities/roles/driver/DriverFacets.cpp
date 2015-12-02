@@ -1185,9 +1185,9 @@ Vehicle* DriverMovement::initializePath(bool createVehicle)
         }
 
 		if (createVehicle)
-		{
-			vehicle = new Vehicle(VehicleBase::CAR, length, width, vehName);
+		{			
 			buildPath(path, parentDriver->getParent()->startLaneIndex, parentDriver->getParent()->startSegmentId);
+			vehicle = new Vehicle(VehicleBase::CAR, length, width, vehName);
 		}
 	}
 

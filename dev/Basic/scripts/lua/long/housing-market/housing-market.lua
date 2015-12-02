@@ -331,9 +331,9 @@ function calculateHDB_HedonicPrice(unit, building, postcode, amenities, logsum, 
 	---------------------------------
 	---------------------------------
 
-	--print("This public lagCoeff is " .. lagCoefficient );
+	--print("This public lagCoeff is " .. lagCoefficient .." hedonic " .. hedonicPrice);
 
-	hedonicPrice = hedonicPrice * lagCoefficient;
+	hedonicPrice = hedonicPrice + lagCoefficient;
 
    
 --print(string.format("HDB Price: %d, dist_job: %s, dist_cdb: %s, pms1KM: %s, dist_mall: %s, mrt_200m: %s, mrt_400m: %s, dist_express_200m: %s, bus_200m: %s"
@@ -616,9 +616,9 @@ function calculatePrivate_HedonicPrice(unit, building, postcode, amenities, logs
 	------------------------------------------
 	------------------------------------------
 
-    --print("This private quarter is " .. lagCoefficient );
+	hedonicPrice = hedonicPrice + lagCoefficient;
 
-	hedonicPrice = hedonicPrice * lagCoefficient;
+	--print("This private quarter is " .. lagCoefficient .. " HP " .. hedonicPrice);
 
 	return hedonicPrice;
 end

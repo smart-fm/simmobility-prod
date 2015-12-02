@@ -34,8 +34,8 @@ namespace
 {
     //bid_timestamp, day_to_apply, seller_id, unit_id, hedonic_price, asking_price, target_price
     const std::string LOG_EXPECTATION = "%1%, %2%, %3%, %4%, %5%, %6%, %7%";
-    //bid_timestamp ,seller_id, bidder_id, unit_id, bidder wp, affordability, hedonicprice, asking_price, floor_area, type_id, target_price, bid_value, bids_counter (daily), status(0 - REJECTED, 1- ACCEPTED),
-    const std::string LOG_BID = "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%, %11%, %12%, %13%, %14%, %15%, %16%";
+    //bid_timestamp ,seller_id, bidder_id, unit_id, bidder wp, affordability, logsum, hedonicprice, asking_price, floor_area, type_id, target_price, bid_value, bids_counter (daily), status(0 - REJECTED, 1- ACCEPTED),
+    const std::string LOG_BID = "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%, %11%, %12%, %13%, %14%, %15%, %16%, %17%";
 
     /**
      * Print the current bid on the unit.
@@ -66,6 +66,7 @@ namespace
 													% bid.getUnitId()
 													% bid.getWillingnessToPay()
 													% thisBidder->getAffordabilityAmount()
+													% thisBidder->getLogsum()
 													% entry.hedonicPrice
 													% entry.askingPrice
 													% floor_area

@@ -227,7 +227,7 @@ void HouseholdBidderRole::computeHouseholdAffordability()
 			Individual * householdIndividual = getParent()->getModel()->getIndividualById( individuals[n] );
 			std::tm dob = householdIndividual->getDateOfBirth();
 
-			int age = HITS_SURVEY_YEAR - dob.tm_year;
+			int age = HITS_SURVEY_YEAR  - 1900 - dob.tm_year;
 
 			if( householdIndividual->getHouseholdHead() )
 			{
@@ -463,7 +463,7 @@ bool HouseholdBidderRole::bidUnit(timeslice now)
 			if (entry->getOwner() && biddingEntry.getBestBid() > 0.0f)
 			{
 				#ifdef VERBOSE
-				PrintOutV("[day " << day << "] Household " << std::dec << household->getId() << " submitted a bid of $" << bidValue << "[wp:$" << biddingEntry.getWP() << ",sp:$" << speculation  << ",bids:"  <<   biddingEntry.getTries() << ",ap:$" << entry->getAskingPrice() << "] on unit " << biddingEntry.getUnitId() << " to seller " <<  entry->getOwner()->getId() << "." << std::endl );
+				PrintOutV("[day " << day << "] Household " << std::dec << household->getId() << " submitted a bid of $" << biddingEntry.getBestBid() << "[wp:$" << biddingEntry.getWP() << ",bids:"  <<   biddingEntry.getTries() << ",ap:$" << entry->getAskingPrice() << "] on unit " << biddingEntry.getUnitId() << " to seller " <<  entry->getOwner()->getId() << "." << std::endl );
 				#endif
 
 				bid(entry->getOwner(), Bid(entry->getUnitId(), household->getId(), getParent(), biddingEntry.getBestBid(), now, biddingEntry.getWP()));
@@ -541,27 +541,29 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 
 	if( unitType == ID_HDB1 || unitType == ID_HDB2 )
 		HDB12 = 1;
-
+	else
 	if( unitType == ID_HDB3 )
 		HDB3 = 1;
-
+	else
 	if( unitType == ID_HDB4 )
 		HDB4 = 1;
-
+	else
 	if( unitType == ID_HDB5 )
 		HDB5 = 1;
-
+	else
 	if( unitType >= ID_APARTM70 && unitType <= ID_APARTM159 )
 		Apartment = 1;
-
+	else
 	if( unitType >= ID_CONDO60 && unitType <= ID_CONDO134 )
 		Condo = 1;
-
+	else
 	if( unitType >= ID_TERRACE180 && unitType <= ID_TERRACE379 )
 		Terrace = 1;
-
+	else
 	if( unitType >= ID_SEMID230 && unitType <= ID_DETACHED1199 )
 		DetachedAndSemidetaced = 1;
+	else
+		return 0.0;
 
 	if( unitType <= ID_HDB5 )
 	{
@@ -608,7 +610,7 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 			Individual * householdIndividual = getParent()->getModel()->getIndividualById( householdOccupants[n] );
 			std::tm dob = householdIndividual->getDateOfBirth();
 
-			int age = HITS_SURVEY_YEAR + ( day / 365 ) - dob.tm_year;
+			int age = HITS_SURVEY_YEAR  - 1900 + ( day / 365 ) - dob.tm_year;
 
 			if( age >  eldestHouseholdMemberAge )
 			{
@@ -618,7 +620,7 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 		}
 	}
 
-	const int ageOfUnitPrivate = HITS_SURVEY_YEAR + ( day / 365 ) - unit->getPhysicalFromDate().tm_year;
+	const int ageOfUnitPrivate = HITS_SURVEY_YEAR  - 1900 + ( day / 365 ) - unit->getPhysicalFromDate().tm_year;
 
 
 	int ZZ_ageOfUnitPrivate	 = ageOfUnitPrivate;
@@ -630,6 +632,8 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 	if( ageOfUnitPrivate > 25 )
 		ZZ_ageOfUnitPrivate = 25;
 
+	ZZ_ageOfUnitPrivate = ZZ_ageOfUnitPrivate / 10;
+
 	if( ageOfUnitPrivate > 25 && ageOfUnitPrivate < 50)
 		ZZ_ageBet25And50 = 1;
 
@@ -637,12 +641,15 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 		ZZ_ageGreater50 = 1;
 
 
-	const int ageOfUnitHDB = HITS_SURVEY_YEAR + ( day / 365 ) - unit->getPhysicalFromDate().tm_year;
-	int ZZ_ageOfUnitHDB	 = ageOfUnitPrivate;
+	const int ageOfUnitHDB = HITS_SURVEY_YEAR - 1900 + ( day / 365 ) - unit->getPhysicalFromDate().tm_year;
+	int ZZ_ageOfUnitHDB	 = ageOfUnitHDB;
 	int ZZ_ageGreater30  = 0;
 
 	if( ageOfUnitHDB > 30 )
 		ZZ_ageOfUnitHDB = 30;
+
+	ZZ_ageOfUnitHDB = ZZ_ageOfUnitHDB / 10;
+
 
 	if( ageOfUnitHDB > 30 )
 		ZZ_ageGreater30 = 1;
@@ -706,7 +713,6 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 		if( ZZ_logsumhh == -1 )
 		{
 			PredayPersonParams personParam = PredayLT_LogsumManager::getInstance().computeLogsum( headOfHousehold->getId(), homeTaz, workTaz );
-
 			ZZ_logsumhh = personParam.getDpbLogsum();
 
 			BigSerial groupId = hitssample->getGroupId();
@@ -715,6 +721,10 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 
 			printHouseholdGroupLogsum( homeTaz, hitssample->getGroupId(), headOfHousehold->getId(), ZZ_logsumhh );
 		}
+
+		Household* householdT = const_cast<Household*>(household);
+		householdT->setLogsum(ZZ_logsumhh);
+
 	}
 
 	const HM_Model::TazStats *tazstats = model->getTazStats( hometazId );
@@ -722,7 +732,7 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 	if( tazstats->getChinesePercentage() > 0.76 ) //chetan TODO: add to xml file
 		ZZ_hhchinese = 1;
 
-	if( tazstats->getChinesePercentage() > 0.10 )
+	if( tazstats->getMalayPercentage() > 0.10 )
 		ZZ_hhmalay 	 = 1;
 
 	double ZZ_highInc = household->getIncome();
@@ -751,13 +761,21 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 	if( household->getChildUnder15() > 0 )
 		ZZ_children = 1;
 
+	int chineseHousehold = 0;
+	int malayHousehold   = 0;
+
+	if( household->getEthnicityId() == 1 )
+		chineseHousehold = 1;
+
+	if( household->getEthnicityId() == 2 )
+		malayHousehold = 1;
 
 
 
 	double Vpriv = 	(barea		*  DD_area 		) +
 					(blogsum	* ZZ_logsumhh 	) +
-					(bchin	  	* ZZ_hhchinese 	) +
-					(bmalay		* ZZ_hhmalay 	) +
+					(bchin	  	* ZZ_hhchinese 	* chineseHousehold ) +
+					(bmalay		* ZZ_hhmalay 	* malayHousehold   ) +
 					(bHighInc   * ZZ_highInc 	) +
 					(bHIncChildApart * ZZ_children * ZZ_highInc	* Apartment 	) +
 					(bHIncChildCondo * ZZ_children * ZZ_highInc	* Condo 		) +
@@ -777,8 +795,8 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 
 	double Vhdb = 	(barea		*  DD_area 		) +
 					(blogsum	* ZZ_logsumhh 	) +
-					(bchin	  	* ZZ_hhchinese 	) +
-					(bmalay		* ZZ_hhmalay 	) +
+					(bchin	  	* ZZ_hhchinese 	* chineseHousehold ) +
+					(bmalay		* ZZ_hhmalay 	* malayHousehold   ) +
 					(bHighInc   * ZZ_highInc 	) +
 					(midIncChildHDB3 * ZZ_children * ZZ_middleInc 	* HDB3	) +
 					(midIncChildHDB4 * ZZ_children * ZZ_middleInc 	* HDB4	) +
@@ -1318,9 +1336,9 @@ bool HouseholdBidderRole::pickEntryToBid()
 
     //We cannot use those probabilities because they are based on HITS2008 ids
     //model->getScreeningProbabilities(hitsId, householdScreeningProbabilities);
-    getScreeningProbabilities(household->getId(), householdScreeningProbabilities);
+    //getScreeningProbabilities(household->getId(), householdScreeningProbabilities);
 
-    printProbabilityList(household->getId(), householdScreeningProbabilities);
+    //printProbabilityList(household->getId(), householdScreeningProbabilities);
 
     std::vector<const HousingMarket::Entry*> screenedEntries;
 
@@ -1476,7 +1494,7 @@ bool HouseholdBidderRole::pickEntryToBid()
     	printChoiceset(household->getId(), temp);
     }
 
-    //PrintOutV("Screening  entries is now: " << screenedEntries.size() << std::endl );
+   //PrintOutV("Screening  entries is now: " << screenedEntries.size() << std::endl );
 
     // Choose the unit to bid with max surplus. However, we are not iterating through the whole list of available units.
     // We choose from a subset of units set by the housingMarketSearchPercentage parameter in the long term XML file.
@@ -1547,8 +1565,8 @@ bool HouseholdBidderRole::pickEntryToBid()
 
             	if( wp > household->getAffordabilityAmount() )
                 {
-                	//PrintOutV("wp is capped at " << householdAffordabilityAmount << " from " << wp << std::endl );
-                	wp = household->getAffordabilityAmount();
+                	//PrintOutV("wp is capped at " <<  household->getAffordabilityAmount() << " from " << wp << std::endl );
+                	//wp = household->getAffordabilityAmount();
                 }
 
             	double currentBid = 0;

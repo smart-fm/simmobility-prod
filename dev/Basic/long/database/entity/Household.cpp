@@ -17,13 +17,14 @@
 using namespace sim_mob::long_term;
 
 Household::Household( BigSerial id, BigSerial lifestyleId, BigSerial unitId, BigSerial ethnicityId, BigSerial vehicleCategoryId,  int size, int childUnder4, int childUnder15, double income,
-					  int housingDuration,int workers, int ageOfHead, bool twoRoomHdbEligibility, bool threeRoomHdbEligibility, bool fourRoomHdbEligibility, int familyType, bool taxiAvailability, int vehicleOwnershipOptionId): id(id),
+					  int housingDuration,int workers, int ageOfHead, bool twoRoomHdbEligibility, bool threeRoomHdbEligibility, bool fourRoomHdbEligibility, int familyType, bool taxiAvailability,
+					  int vehicleOwnershipOptionId, double logusum): id(id),
 					  lifestyleId(lifestyleId), unitId(unitId), ethnicityId(ethnicityId), vehicleCategoryId(vehicleCategoryId),size(size), childUnder4(childUnder4), childUnder15(childUnder15), income(income),
-					  housingDuration(housingDuration), workers(workers), ageOfHead(ageOfHead), twoRoomHdbEligibility(twoRoomHdbEligibility),
-					  threeRoomHdbEligibility(threeRoomHdbEligibility), fourRoomHdbEligibility(fourRoomHdbEligibility),familyType(familyType), taxiAvailability(taxiAvailability), vehicleOwnershipOptionId(vehicleOwnershipOptionId){}
+					  housingDuration(housingDuration), workers(workers), ageOfHead(ageOfHead), twoRoomHdbEligibility(twoRoomHdbEligibility),threeRoomHdbEligibility(threeRoomHdbEligibility),
+					  fourRoomHdbEligibility(fourRoomHdbEligibility),familyType(familyType), taxiAvailability(taxiAvailability), vehicleOwnershipOptionId(vehicleOwnershipOptionId), logsum(logsum){}
 
 Household::Household(): id(0), lifestyleId(0), unitId(0), ethnicityId(0), vehicleCategoryId(0),size(0), childUnder4(0), childUnder15(0), income(0), housingDuration(0), workers(0), ageOfHead(0),
-						twoRoomHdbEligibility(0), threeRoomHdbEligibility(0), fourRoomHdbEligibility(0), familyType(0),taxiAvailability(false), vehicleOwnershipOptionId(0){}
+						twoRoomHdbEligibility(0), threeRoomHdbEligibility(0), fourRoomHdbEligibility(0), familyType(0),taxiAvailability(false), vehicleOwnershipOptionId(0), logsum(0){}
 
 Household::~Household() {}
 
@@ -43,6 +44,7 @@ Household& Household::operator=(const Household& source)
     this->ageOfHead = source.ageOfHead;
     this->taxiAvailability = source.taxiAvailability;
     this->vehicleOwnershipOptionId = source.vehicleOwnershipOptionId;
+    this->logsum = source.logsum;
     return *this;
 }
 
@@ -245,6 +247,16 @@ void Household::setAffordabilityAmount(double value)
 double Household::getAffordabilityAmount() const
 {
 	return householdAffordabilityAmount;
+}
+
+void Household::setLogsum(double value)
+{
+	logsum = value;
+}
+
+double Household::getLogsum() const
+{
+	return logsum;
 }
 
 namespace sim_mob

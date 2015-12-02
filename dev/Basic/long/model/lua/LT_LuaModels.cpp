@@ -254,7 +254,7 @@ void HM_LuaModel::calulateUnitExpectations(const Unit& unit, int timeOnMarket, d
     	const PostcodeAmenities* amen = getAmenities(pcId);
     	std::string buildingName = amen == NULL? "<empty>": amen->getBuildingName();
 
-    	PrintOutV("[ERROR] Unit Expectations is empty for unit " << unit.getId() << " from building ID: "  << build->getFmBuildingId() << " at addressId: " << postcode->getAddressId() << " with building name: " << buildingName << std::endl );
+    	//PrintOutV("[ERROR] Unit Expectations is empty for unit " << unit.getId() << " from building ID: "  << build->getFmBuildingId() << " at addressId: " << postcode->getAddressId() << " with building name: " << buildingName << std::endl );
 
     }
 }

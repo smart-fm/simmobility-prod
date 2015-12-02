@@ -23,10 +23,10 @@ public:
      * Parse a config file into ST_Config, performing all XML parsing and some trivial semantic processing
      *
      * @param configFileName - config file name which needs to be parsed
-     *
+     * @param sharedCfg - the the values extracted from the shared configuration file
      * @param result - Configuration values extracted from config file
      */
-    ParseShortTermConfigFile(const std::string& configFileName, ST_Config& result);
+    ParseShortTermConfigFile(const std::string& configFileName, ConfigParams& sharedCfg, ST_Config& result);
 
 private:
     /**
@@ -39,7 +39,7 @@ private:
     /**
      * Processes the db_proc_groups (stored procedures for network) element in the config file
      *
-     * @param node node correspoding to the db_proc_groups element in the xml file
+     * @param node node corresponding to the db_proc_groups element in the xml file
      */
     void processProcMapNode(xercesc::DOMElement* node);
 
@@ -235,9 +235,19 @@ private:
      * @param node node corresponding to the pathSetFile element in the xml file
      */
     void processPathSetFileName(xercesc::DOMElement* node);
+	
+	/**
+     * processes the travel time element the config xml
+     *
+     * @param node node corresponding to trave_time element inside xml file
+     */
+    void processTT_Update(xercesc::DOMElement* node);
 
     /// Short Term config reference
-    ST_Config& cfg;
+    ST_Config& stCfg;
+	
+	/// Shared configuration
+    ConfigParams& cfg;
 };
 
 class ParseShortTermTripFile : public ParseConfigXmlBase, private boost::noncopyable

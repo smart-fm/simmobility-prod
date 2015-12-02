@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="UTF-8"?>
 
 <!-- Copyright Singapore-MIT Alliance for Research and Technology -->
 
@@ -22,6 +22,10 @@
 			<mapping name="pt_bus_dispatch_freq" procedure="get_pt_bus_frequency()"/>
 			<mapping name="pt_bus_routes" procedure="get_pt_bus_routes()"/>
 			<mapping name="pt_bus_stops" procedure="get_pt_bus_stops()"/>
+			<!--Stored procedures for route-choice-->
+			<mapping name="erp_gantry_zone" procedure="get_erp_gantry_zone()"/>
+			<mapping name="erp_section" procedure="get_erp_section()"/>
+			<mapping name="erp_surcharge" procedure="get_erp_surcharge()"/>			
 		</proc_map>
 
 		<!-- Small CBD network -->
@@ -37,22 +41,26 @@
 			<mapping name="lanes" procedure="get_small_cbd_lanes()"/>
 			<mapping name="lane_polylines" procedure="get_small_cbd_lane_polylines()"/>
 			<mapping name="lane_connectors" procedure="get_small_cbd_lane_connectors()"/>
-			<mapping name="bus_stops" procedure=""/>
-			<mapping name="pt_bus_dispatch_freq" procedure=""/>
-			<mapping name="pt_bus_routes" procedure=""/>
-			<mapping name="pt_bus_stops" procedure=""/>
+			<mapping name="bus_stops" procedure="get_small_cbd_bus_stops()"/>
+			<mapping name="pt_bus_dispatch_freq" procedure="get_pt_bus_frequency()"/>
+			<mapping name="pt_bus_routes" procedure="get_pt_bus_routes()"/>
+			<mapping name="pt_bus_stops" procedure="get_pt_bus_stops()"/>
+			<!--Stored procedures for route-choice-->
+			<mapping name="erp_gantry_zone" procedure="get_erp_gantry_zone()"/>
+			<mapping name="erp_section" procedure="get_erp_section()"/>
+			<mapping name="erp_surcharge" procedure="get_erp_surcharge()"/>
 		</proc_map>  
 	</db_proc_groups>
 
 	<!-- System configuration properties -->
 	<system>
 		<!-- Implementation to use for the Aura Manager. -->
-		<!-- Values include: simtree, rdu, rstar (default) -->
+		<!-- Values include: rdu, rstar (default) -->
 		<aura_manager_impl value="rstar"/>
             
 		<!-- Order in which agents are to be loaded into the simulation -->
 		<!-- Values include: database, drivers, pedestrians, passenger -->
-		<load_agents order="database"/>
+		<load_agents order="drivers"/>
 
 		<!--  Commsim (communication) settings -->
 		<commsim enabled="false"> <!-- If false, the Broker is never added, so no commsim activities take place. -->
@@ -152,16 +160,16 @@
 	<!-- 1. "pt_bus_dispatch_freq" -->
 	<!-- 2. "pt_bus_routes" -->
 	<!-- 3. "pt_bus_stops" -->
-	<!-- With the above three procedures present and valid, enable buses with "<buscontroller time="0" />" in the <buscontrollers> -->
-	<!-- To Disable Buses: user can simply comment the buscontroller in the <buscontrollers> -->
+	<!-- With the above three procedures present and valid, enable buses with "<busController enabled="true" />" in the <busController> -->
 	<!-- The current control strategy for buses. Can be "headway_based", "evenheadway_based", "hybrid_based", or (default) "no_control" -->
-	<busController enabled="true" busline_control_type="headway_based"/>
+	<busController enabled="false" busline_control_type="headway_based"/>
 	
 	<!--If enabled, outputs the vehicles counted by every loop detector, accumulated over the given period length (in milliseconds)
 	i.e. count of vehicles passing a loop detector in every "600,000" milliseconds -->
 	<loop-detector_counts frequency="300000" outputEnabled="false" file-name="private/VehicleCounts.csv"/>
 
     <path-set-config-file value="data/pathset_config.xml" />
+    <travel_time_update interval="300" alpha="0.5" />
 
 	<!--(Short-term only) If enabled, outputs the density at every road segment present at the end of the 
 	update interval (in milliseconds)-->

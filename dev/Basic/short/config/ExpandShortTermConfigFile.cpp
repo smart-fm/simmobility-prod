@@ -135,11 +135,9 @@ Trip* MakePseudoTrip(unsigned int personId, const Node *origin, const Node *dest
 namespace sim_mob
 {
 
-ExpandShortTermConfigFile::ExpandShortTermConfigFile(ST_Config &stConfig, ConfigParams &cfg,
-													 std::set<Entity *> &active_agents,
+ExpandShortTermConfigFile::ExpandShortTermConfigFile(ST_Config &stConfig, ConfigParams &cfg, std::set<Entity *> &active_agents,
 													 StartTimePriorityQueue &pending_agents) :
-stConfig(stConfig), cfg(cfg),
-active_agents(active_agents), pending_agents(pending_agents)
+stConfig(stConfig), cfg(cfg), active_agents(active_agents), pending_agents(pending_agents)
 {
 	processConfig();
 }
@@ -162,6 +160,12 @@ void ExpandShortTermConfigFile::processConfig()
 
 	//Load from database or XML.
 	loadNetworkFromDatabase();
+	
+	//Load travel times if path-set is enabled
+	if (cfg.PathSetMode())
+	{
+		TravelTimeManager::getInstance()->loadTravelTimes();
+	}
 
 	//Set PartitionManager instance (if using MPI and it's enabled).
 	if (cfg.MPI_Enabled() && cfg.using_MPI)
@@ -185,7 +189,7 @@ void ExpandShortTermConfigFile::processConfig()
 		{
 			IntersectionManager::CreateIntersectionManagers(cfg.mutexStategy());
 		}
-	}
+	}	
 
 	if (cfg.PathSetMode() && cfg.getPathSetConf().privatePathSetMode == "generation")
 	{

@@ -119,7 +119,7 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 	//Parse the config file (this *does not* create anything, it just reads it.).
     ParseConfigFile parse(configFileName, ConfigManager::GetInstanceRW().FullConfig());
 
-    ParseShortTermConfigFile stParse(shortConfigFile, stCfg);
+    ParseShortTermConfigFile stParse(shortConfigFile, ConfigManager::GetInstanceRW().FullConfig(), stCfg);
 	
 	//Enable or disable logging (all together, for now).
 	//NOTE: This may seem like an odd place to put this, but it makes sense in context.
@@ -498,9 +498,9 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 				- numDriver - numPedestrian) << " (Other)" << endl;
 	}
 
-    if (config.numAgentsSkipped>0)
+    if (config.numAgentsSkipped > 0)
 	{
-		Print() <<"Agents SKIPPED due to invalid route assignment: " <<ConfigManager::GetInstance().FullConfig().numAgentsSkipped <<endl;
+		Print() <<"Agents SKIPPED due to invalid route assignment: " << config.numAgentsSkipped <<endl;
 	}
 
 	if (!Agent::pending_agents.empty()) 
@@ -695,7 +695,7 @@ int main_impl(int ARGC, char* ARGV[])
 	//Concatenate output files?
 	if (!resLogFiles.empty()) 
 	{
-		resLogFiles.insert(resLogFiles.begin(), ConfigManager::GetInstance().FullConfig().outNetworkFileName);
+		resLogFiles.insert(resLogFiles.begin(), config.outNetworkFileName);
 		Utils::printAndDeleteLogFiles(resLogFiles,outputFileName);
 	}
 

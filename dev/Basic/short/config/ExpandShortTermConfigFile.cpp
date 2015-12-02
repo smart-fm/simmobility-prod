@@ -376,14 +376,18 @@ void ExpandShortTermConfigFile::generateXMLAgents(const std::vector<EntityTempla
 		const Node *originNd = rn->getById(rn->getMapOfIdvsNodes(), it->originNode);
 		const Node *destinNd = rn->getById(rn->getMapOfIdvsNodes(), it->destNode);
 		
-		if(!originNd || !destinNd)
+		if(originNd && destinNd)
 		{
-			throw std::runtime_error("Invalid node specified as origin/destination!");
+			//Make the trip item
+			Trip *trip = MakePseudoTrip(agentId, originNd, destinNd, it->startTimeMs, mode);
+			tripChain.push_back(trip);
 		}
-		
-		//Make the trip item
-		Trip *trip = MakePseudoTrip(agentId, originNd, destinNd, it->startTimeMs, mode);
-		tripChain.push_back(trip);
+		else
+		{
+			std::stringstream msg;
+			msg << "Invalid nodes specified... Origin: " << it->originNode << ", Destination: " << it->destNode;
+			throw std::runtime_error(msg.str());
+		}
 	}
 	
 	person->setNextPathPlanned(false);

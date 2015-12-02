@@ -249,7 +249,7 @@ void ExpandShortTermConfigFile::loadNetworkFromDatabase()
 		loader->processNetwork();
 
 		//Create traffic signals
-		//Signal_SCATS::createTrafficSignals(cfg.mutexStategy());
+		Signal_SCATS::createTrafficSignals(cfg.mutexStategy());
 	}
 	else
 	{

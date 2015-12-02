@@ -1261,12 +1261,13 @@ double MITSIM_LC_Model::mlcDistance()
 
 LaneChangeTo MITSIM_LC_Model::makeLaneChangingDecision(DriverUpdateParams &params)
 {
+	static const std::string makeLCD("makeLaneChangingDecision");
 	params.lcDebugStr << "makeD" << params.now.frame();
 	
 	//Reset status
-	params.setStatus(STATUS_LEFT_SIDE_OK, STATUS_UNKNOWN, string("makeLaneChangingDecision"));
-	params.setStatus(STATUS_RIGHT_SIDE_OK, STATUS_UNKNOWN, string("makeLaneChangingDecision"));
-	params.setStatus(STATUS_CURRENT_LANE_OK, STATUS_UNKNOWN, string("makeLaneChangingDecision"));
+	params.setStatus(STATUS_LEFT_SIDE_OK, STATUS_UNKNOWN, makeLCD);
+	params.setStatus(STATUS_RIGHT_SIDE_OK, STATUS_UNKNOWN, makeLCD);
+	params.setStatus(STATUS_CURRENT_LANE_OK, STATUS_UNKNOWN, makeLCD);
 	
 	//Reset utilities
 	params.utilityCurrent = 0;

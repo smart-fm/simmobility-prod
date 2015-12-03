@@ -11,7 +11,8 @@
 #include "entities/UpdateParams.hpp"
 #include "metrics/Frame.hpp"
 
-namespace sim_mob {
+namespace sim_mob
+{
 class Lane;
 
 /**
@@ -21,69 +22,94 @@ class Lane;
  *
  * \author Harish Loganathan
  */
-class Sensor : public Agent {
+class Sensor : public Agent
+{
 public:
-    Sensor(MutexStrategy const & mutexStrategy) : Agent(mutexStrategy) {}
-    virtual ~Sensor();
+	Sensor(MutexStrategy const & mutexStrategy) : Agent(mutexStrategy)
+	{
+	}
+	virtual ~Sensor();
 
-    // Forward declaration.  Definition below.
-    struct CountAndTimePair;
+	//Forward declaration. Definition below.
+	struct CountAndTimePair;
 
-	virtual bool isNonspatial() { return true; } //Sensors are non-spatial in nature.
+	//Sensors are non-spatial in nature.
+	virtual bool isNonspatial()
+	{
+		return true;
+	}
 
-    /**
-     * Return the CountAndTimePair for the specified \c lane.
-     * @param lane constant reference to lane to get count from
-     * @returns constant reference to CountAndTimePair
-     */
-    CountAndTimePair const& getCountAndTimePair(Lane const& lane) const;
-    
-    /**
-     * Returns the entire map of Lane vs CountAndTimePair
-     */
-    const std::map<Lane const *, Shared<CountAndTimePair> *>& getCountAndTimePairMap() const
-    {
-      return data;
-    }
+	/**
+	 * Return the CountAndTimePair for the specified \c lane.
+	 * @param lane constant reference to lane to get count from
+	 * @returns constant reference to CountAndTimePair
+	 */
+	CountAndTimePair const& getCountAndTimePair(Lane const& lane) const;
 
-    /**
-     * reset the sensor
-     */
-    virtual void reset() = 0;
+	/**
+	 * @return map of Lane vs CountAndTimePair
+	 */
+	const std::map<Lane const *, Shared<CountAndTimePair> *>& getCountAndTimePairMap() const
+	{
+		return data;
+	}
+
+	/**
+	 * Reset the sensor
+	 */
+	virtual void reset() = 0;
 
 protected:
-	virtual Entity::UpdateStatus frame_init(timeslice now) { return Entity::UpdateStatus::Continue; }
-	virtual Entity::UpdateStatus frame_tick(timeslice now) { return Entity::UpdateStatus::Continue; }
-	virtual void frame_output(timeslice now) {}
-	virtual std::vector<BufferedBase *> buildSubscriptionList();
-
-	/** map to store lane-wise counts and time*/
+	/**Stores lane-wise counts and time*/
 	std::map<Lane const *, Shared<CountAndTimePair> *> data;
+	
+	/**
+	 * Builds a subscriptions list to be added to the managed data of the parent worker
+	 *
+	 * @return the list of Buffered<> types this entity subscribes to
+	 */
+	virtual std::vector<BufferedBase *> buildSubscriptionList();
+	
+	virtual Entity::UpdateStatus frame_init(timeslice now)
+	{
+		return Entity::UpdateStatus::Continue;
+	}
+
+	virtual Entity::UpdateStatus frame_tick(timeslice now)
+	{
+		return Entity::UpdateStatus::Continue;
+	}
+
+	virtual void frame_output(timeslice now)
+	{
+	}
 };
 
 /**
- * simple struct for vehicle count and time pair
+ * Simple structure for vehicle count and time pair
  */
 struct Sensor::CountAndTimePair
 {
 public:
-    /**
-     * The number of vehicles that has crossed the sensor
-     * the last call to reset().
-     */
-    size_t vehicleCount;
+	/**
+	 * The number of vehicles that has crossed the sensor
+	 * the last call to reset().
+	 */
+	size_t vehicleCount;
 
-    /**
-     * The total amount of time in milli-seconds during which no vehicle is
-     * hovering over the sensor during the cycle since the last call to reset().
-     *
-     * Note that this is the "space-time" value, and not the "on-time" which is
-     * the total amount of time during which at least one vehicle is hovering
-     * over the sensor
-     */
-    unsigned int spaceTimeInMilliSeconds;
+	/**
+	 * The total amount of time in milli-seconds during which no vehicle is
+	 * hovering over the sensor during the cycle since the last call to reset().
+	 *
+	 * Note that this is the "space-time" value, and not the "on-time" which is
+	 * the total amount of time during which at least one vehicle is hovering
+	 * over the sensor
+	 */
+	unsigned int spaceTimeInMilliSeconds;
 
-    CountAndTimePair() : vehicleCount(0), spaceTimeInMilliSeconds(0) {}
+	CountAndTimePair() : vehicleCount(0), spaceTimeInMilliSeconds(0)
+	{
+	}
 };
 
 }

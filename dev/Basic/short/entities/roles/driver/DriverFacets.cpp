@@ -393,7 +393,7 @@ void DriverMovement::updateDensityMap()
 	{
 		//The density map is a static map, so all threads will want to access it. Lock before accessing.
 		densityUpdateMutex.lock();
-
+		
 		//Find the entry for the road segment corresponding to the current vehicles segment
 		map<const RoadSegment *, unsigned long>::iterator itDensityMap = rdSegDensityMap.find(currSeg);
 
@@ -434,8 +434,8 @@ void DriverMovement::outputDensityMap(unsigned int tick)
 		//Get the average vehicle count
 		double avgVehCount = (double) itDensityMap->second / period;
 
-		//Convert the segment length to km from cm
-		double segLength = itDensityMap->first->getLength() / 100000;
+		//Convert the segment length to km from m
+		double segLength = itDensityMap->first->getLength() / 1000;
 
 		unsigned int noOfLanes = itDensityMap->first->getNoOfLanes();
 

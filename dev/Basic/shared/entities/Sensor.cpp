@@ -16,15 +16,17 @@ Sensor::~Sensor() {
     }
 }
 
-void
-Sensor::buildSubscriptionList(std::vector<BufferedBase*>& subsList)
+std::vector<BufferedBase *>
+Sensor::buildSubscriptionList()
 {
+	std::vector<BufferedBase *> subsList;
     std::map<Lane const *, Shared<CountAndTimePair> *>::iterator iter;
     for (iter = data.begin(); iter != data.end(); ++iter)
     {
         Shared<CountAndTimePair> * pair = iter->second;
         subsList.push_back(pair);
     }
+	return subsList;
 }
 
 Sensor::CountAndTimePair const &

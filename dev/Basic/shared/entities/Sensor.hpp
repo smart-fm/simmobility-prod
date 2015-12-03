@@ -55,7 +55,7 @@ protected:
 	virtual Entity::UpdateStatus frame_init(timeslice now) { return Entity::UpdateStatus::Continue; }
 	virtual Entity::UpdateStatus frame_tick(timeslice now) { return Entity::UpdateStatus::Continue; }
 	virtual void frame_output(timeslice now) {}
-	virtual void buildSubscriptionList(std::vector<BufferedBase*>& subsList);
+	virtual std::vector<BufferedBase *> buildSubscriptionList();
 
 	/** map to store lane-wise counts and time*/
 	std::map<Lane const *, Shared<CountAndTimePair> *> data;

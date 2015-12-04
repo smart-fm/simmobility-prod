@@ -174,7 +174,7 @@ void DriverUpdateParams::buildDebugInfo()
 	s << ":speed:" << perceivedFwdVelocity;
 
 #if 0
-	//debug lane changing
+	//Debug lane changing
 
 	// utility
 	char ul[20] = "\0";
@@ -213,6 +213,8 @@ void DriverUpdateParams::buildDebugInfo()
 #endif
 
 #if 0
+	//Debug car following
+	
 	int fwdcarid = -1;
 	char fwdnvdis[30] = "\0";
 	if (this->nvFwd.exists())
@@ -238,6 +240,11 @@ void DriverUpdateParams::buildDebugInfo()
 	}
 	s << ":fwd:" << fwdcarid << ":" << fwdnvdis;
 	s << ":back:" << backcarid << ":" << backnvdis;
+#endif
+	
+#if 0
+	//Debug intersection driving	
+	s << intDebugStr;
 #endif
 
 	debugInfo = s.str();

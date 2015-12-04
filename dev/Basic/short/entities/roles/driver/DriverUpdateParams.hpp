@@ -304,6 +304,9 @@ public:
 
 	/**Debugging information for lane-changing model*/
 	std::stringstream lcDebugStr;
+	
+	/**Debugging information for intersection driving model*/
+	std::string intDebugStr;
 
 	/**The debugging information*/
 	std::string debugInfo;

@@ -517,6 +517,9 @@ bool DriverMovement::updateMovement()
 		return false;
 	}
 	
+	//Store the current link to check if the link has changed after the movement
+	const Link *prevLink = fwdDriverMovement.getCurrLink();
+	
 	//Store the speed
 	params.currSpeed = parentDriver->vehicle->getVelocity();
 	
@@ -535,6 +538,32 @@ bool DriverMovement::updateMovement()
 	if (ST_Config::getInstance().segDensityMap.outputEnabled)
 	{
 		updateDensityMap();
+	}
+	
+	//Update link travel time, if the link has changed.
+	
+	const Link *currLink = fwdDriverMovement.getCurrLink();
+	
+	if(prevLink && !currLink)
+	{
+		double linkExitTimeSec = params.elapsedSeconds + (params.now.ms() / 1000);
+		
+		if (prevLink == parentDriver->parent->currLinkTravelStats.link)
+		{			
+			parentDriver->parent->currLinkTravelStats.finalize(prevLink, linkExitTimeSec, fwdDriverMovement.getNextLink());
+			
+			if (ConfigManager::GetInstance().FullConfig().PathSetMode())
+			{
+				TravelTimeManager::getInstance()->addTravelTime(parentDriver->parent->currLinkTravelStats);
+			}			
+			
+			parentDriver->parent->currLinkTravelStats.reset();
+		}		
+	}
+	else if(!prevLink && currLink)
+	{
+		double linkEntryTimeSec = params.elapsedSeconds + (params.now.ms() / 1000);
+		parentDriver->parent->currLinkTravelStats.start(currLink, linkEntryTimeSec);
 	}
 
 	//Build debugging information to be displayed on the visualiser
@@ -1256,6 +1285,10 @@ void DriverMovement::setOrigin(DriverUpdateParams &params)
 	parentDriver->vehicle->setAcceleration(0);
 
 	setTrafficSignal();
+	
+	//Initialise the link travel time
+	double currTime = params.elapsedSeconds + (params.now.ms() / 1000);
+	parentDriver->parent->currLinkTravelStats.start(fwdDriverMovement.getCurrLink(), currTime);
 }
 
 double DriverMovement::updatePosition(DriverUpdateParams &params)

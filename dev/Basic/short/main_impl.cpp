@@ -445,7 +445,7 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 	//Store the segment travel times
 	if (config.PathSetMode()) 
 	{
-		TravelTimeManager::getInstance()->dumpTravelTimesToFile(stCfg.pathset.RTTT_Conf);
+		TravelTimeManager::getInstance()->storeCurrentSimulationTT();;
 	}
 
 	Print() << "Database lookup took: " <<loop_start_offset <<" ms" <<std::endl;

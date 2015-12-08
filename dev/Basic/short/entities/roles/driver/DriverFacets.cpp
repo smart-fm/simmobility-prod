@@ -448,7 +448,9 @@ void DriverMovement::outputDensityMap(unsigned int tick)
 	}
 
 	//Clear the map
+	densityUpdateMutex.lock();
 	rdSegDensityMap.clear();
+	densityUpdateMutex.unlock();
 }
 
 TravelMetric& DriverMovement::startTravelTimeMetric()

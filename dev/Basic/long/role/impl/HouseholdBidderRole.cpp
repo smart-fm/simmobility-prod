@@ -563,7 +563,20 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 	if( unitType >= ID_SEMID230 && unitType <= ID_DETACHED1199 )
 		DetachedAndSemidetaced = 1;
 	else
+	if( unitType == 6 )
+		HDB5 = 1;
+	else
+	if( unitType >= 32 && unitType <= 51 )
+		Condo = 1;
+	else
+	if( unitType == 64 )
+		Apartment = 1;
+	else
+	if( unitType == 65 )
+		HDB5 = 1;
+	else
 		return 0.0;
+
 
 	if( unitType <= ID_HDB5 )
 	{

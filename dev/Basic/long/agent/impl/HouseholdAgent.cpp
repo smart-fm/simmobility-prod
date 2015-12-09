@@ -237,8 +237,15 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 	day = now.frame();
 
 	if( day == 0 )
-	{		
+	{
+		TimeCheck awakeningTiming;
 		awakenHousehold();
+
+		double awakeningTime =  awakeningTiming.getClockTime();
+
+		#ifdef VERBOSE_SUBMODEL_TIMING
+			PrintOutV(" awakeningTime for agent " << getId() << " is " << awakeningTime << std::endl);
+		#endif
 
 		ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 		if( config.ltParams.housingModel.outputHouseholdLogsums )

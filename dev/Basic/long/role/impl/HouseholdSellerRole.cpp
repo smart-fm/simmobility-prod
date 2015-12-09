@@ -23,6 +23,7 @@
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "behavioral/PredayLT_Logsum.hpp"
+#include <util/TimeCheck.hpp>
 
 using namespace sim_mob::long_term;
 using namespace sim_mob::messaging;
@@ -257,8 +258,16 @@ void HouseholdSellerRole::update(timeslice now)
 
 
             BigSerial tazId = model->getUnitTazId(unitId);
+
+            TimeCheck hedonicPriceTiming;
+
             calculateUnitExpectations(*unit);
 
+            double hedonicPriceTime = hedonicPriceTiming.getClockTime();
+
+			#ifdef VERBOSE_SUBMODEL_TIMING
+            	PrintOutV(" hedonicPriceTime for agent " << getParent()->getId() << " is " << hedonicPriceTime << std::endl );
+			#endif
             //get first expectation to add the entry on market.
             ExpectationEntry firstExpectation; 
 

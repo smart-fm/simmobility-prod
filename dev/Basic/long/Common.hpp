@@ -172,6 +172,7 @@ namespace sim_mob {
 		//#define VERBOSE
 		//#define VERBOSE_POSTCODE
 		//#define VERBOSE_DEVELOPER
+		#define VERBOSE_SUBMODEL_TIMING
     }
 }
 

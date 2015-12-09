@@ -319,7 +319,16 @@ void HouseholdBidderRole::computeHouseholdAffordability()
 
 void HouseholdBidderRole::init()
 {
+	TimeCheck affordabilityTimeCheck;
+
 	computeHouseholdAffordability();
+
+	double affordabilityTime = affordabilityTimeCheck.getClockTime();
+
+	#ifdef VERBOSE_SUBMODEL_TIMING
+		PrintOutV(" affordabilityTime for agent " << getParent()->getId() << " is " << affordabilityTime << std::endl );
+	#endif
+
 	initBidderRole = false;
 }
 
@@ -354,7 +363,15 @@ void HouseholdBidderRole::update(timeslice now)
 
 		if( vehicleBuyingWaitingTimeInDays == 1)
 		{
+			TimeCheck vehicleOwnershipTiming;
+
 			reconsiderVehicleOwnershipOption();
+
+			double vehicleOwnershipTime = vehicleOwnershipTiming.getClockTime();
+
+			#ifdef VERBOSE_SUBMODEL_TIMING
+				PrintOutV("vehicleOwnership time for agent " << getParent()->getId() << " is " << vehicleOwnershipTime << std::endl );
+			#endif
 		}
 			vehicleBuyingWaitingTimeInDays--;
 	}
@@ -447,10 +464,19 @@ bool HouseholdBidderRole::bidUnit(timeslice now)
     {
         //if unit is not available or entry is not valid then
         //just pick another unit to bid.
+
+    	TimeCheck pickUnitTiming;
+
         if(pickEntryToBid())
         {
             entry = market->getEntryById(biddingEntry.getUnitId());
         }   
+
+        double pickUnitTime = pickUnitTiming.getClockTime();
+
+		#ifdef  VERBOSE_SUBMODEL_TIMING
+        PrintOutV("pickUnit for household " << getParent()->getId() << " is " << pickUnitTime << std::endl );
+		#endif
     }
     
     if (entry && biddingEntry.isValid())

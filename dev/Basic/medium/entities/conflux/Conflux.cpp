@@ -1864,33 +1864,6 @@ void Conflux::addConnectedConflux(Conflux* conflux)
 	connectedConfluxes.insert(conflux);
 }
 
-InsertIncidentMessage::InsertIncidentMessage(const RoadSegment* rs, double newFlowRate) :
-		affectedSegment(rs), newFlowRate(newFlowRate)
-{
-}
-
-InsertIncidentMessage::~InsertIncidentMessage()
-{
-}
-
-PersonMessage::PersonMessage(Person_MT* inPerson) :
-		person(inPerson)
-{
-}
-
-PersonMessage::~PersonMessage()
-{
-}
-
-ArrivalAtStopMessage::ArrivalAtStopMessage(Person_MT* person) :
-		waitingPerson(person)
-{
-}
-
-ArrivalAtStopMessage::~ArrivalAtStopMessage()
-{
-}
-
 void Conflux::CreateSegmentStats(const RoadSegment* rdSeg, Conflux* conflux, std::list<SegmentStats*>& splitSegmentStats)
 {
 	if (!rdSeg)

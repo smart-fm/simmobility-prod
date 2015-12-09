@@ -2,15 +2,8 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
-/*
- * BusDriver.cpp
- *
- *  Created on: May 6, 2013
- *      Author: zhang huai peng
- *      		melani
- */
-
 #include "BusDriver.hpp"
+#include "BusDriverFacets.hpp"
 #include "entities/BusStopAgent.hpp"
 #include "message/MT_Message.hpp"
 #include "entities/PT_Statistics.hpp"
@@ -85,7 +78,7 @@ bool BusDriver::addPassenger(Passenger* passenger) {
 	return true;
 }
 
-bool BusDriver::getPassengerCount() const
+unsigned int BusDriver::getPassengerCount() const
 {
 	return passengerList.size();
 }
@@ -167,15 +160,13 @@ void BusDriver::storeArrivalTime(const std::string& current, const std::string& 
 	}
 }
 
-void BusDriver::calcTravelTime()
+void BusDriver::updatePassengers()
 {
-	std::list<Passenger*>::iterator it=passengerList.begin();
-	for(; it!=passengerList.end(); it++){
-		PassengerMovement* movement = dynamic_cast<PassengerMovement*>((*it)->Movement());
-		movement->frame_tick();
+	for (std::list<Passenger*>::iterator it = passengerList.begin(); it != passengerList.end(); it++)
+	{
+		(*it)->Movement()->frame_tick();
 	}
 }
-
 
 void BusDriver::predictArrivalAtBusStop(double preArrivalTime,
 		BusStopAgent* busStopAgent)

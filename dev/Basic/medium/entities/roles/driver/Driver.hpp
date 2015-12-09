@@ -14,7 +14,6 @@
 #include "geospatial/network/WayPoint.hpp"
 #include "util/DynamicVector.hpp"
 #include "DriverUpdateParams.hpp"
-#include "DriverFacets.hpp"
 
 #ifndef SIMMOB_DISABLE_MPI
 class PackageUtils;

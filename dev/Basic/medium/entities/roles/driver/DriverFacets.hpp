@@ -5,7 +5,6 @@
 #pragma once
 #include "conf/settings/DisableMPI.h"
 #include "entities/conflux/Conflux.hpp"
-#include "Driver.hpp"
 #include "DriverUpdateParams.hpp"
 #include "entities/roles/RoleFacets.hpp"
 #include "entities/conflux/SegmentStats.hpp"

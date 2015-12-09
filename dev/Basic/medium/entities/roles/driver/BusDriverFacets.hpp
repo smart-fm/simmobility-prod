@@ -7,7 +7,6 @@
 #include "DriverFacets.hpp"
 #include "entities/misc/BusTrip.hpp"
 #include "entities/roles/RoleFacets.hpp"
-#include "entities/roles/driver/DriverFacets.hpp"
 #include "DriverUpdateParams.hpp"
 #include "BusDriver.hpp"
 

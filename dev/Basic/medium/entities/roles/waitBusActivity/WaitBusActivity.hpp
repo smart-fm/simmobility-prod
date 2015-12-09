@@ -7,13 +7,14 @@
 #include "entities/roles/Role.hpp"
 #include "geospatial/network/PT_Stop.hpp"
 #include "entities/Person_MT.hpp"
-#include "WaitBusActivityFacets.hpp"
 
 namespace sim_mob
 {
 namespace medium
 {
 class BusDriver;
+class WaitBusActivityBehavior;
+class WaitBusActivityMovement;
 
 /**
  * A medium-term WaitBusActivity.
@@ -23,10 +24,8 @@ class BusDriver;
 class WaitBusActivity: public sim_mob::Role<Person_MT>, public UpdateWrapper<UpdateParams>
 {
 public:
-	explicit WaitBusActivity(Person_MT* parent,
-			sim_mob::medium::WaitBusActivityBehavior* behavior = nullptr,
-			sim_mob::medium::WaitBusActivityMovement* movement = nullptr,
-			std::string roleName = std::string("WaitBusActivity_"),
+	explicit WaitBusActivity(Person_MT* parent, sim_mob::medium::WaitBusActivityBehavior* behavior = nullptr,
+			sim_mob::medium::WaitBusActivityMovement* movement = nullptr, std::string roleName = std::string("WaitBusActivity_"),
 			Role<Person_MT>::Type roleType = Role<Person_MT>::RL_WAITBUSACTITITY);
 
 	virtual ~WaitBusActivity();

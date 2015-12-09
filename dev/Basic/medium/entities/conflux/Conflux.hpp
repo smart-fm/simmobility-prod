@@ -11,6 +11,7 @@
 #include "entities/Agent.hpp"
 #include "entities/Person_MT.hpp"
 #include "geospatial/network/Node.hpp"
+#include "message/MT_Message.hpp"
 #include "SegmentStats.hpp"
 
 namespace sim_mob
@@ -18,54 +19,8 @@ namespace sim_mob
 class RoadSegment;
 class Worker;
 
-enum
-{
-	MSG_PEDESTRIAN_TRANSFER_REQUEST = 5000000,
-	MSG_INSERT_INCIDENT,
-	MSG_WAITING_PERSON_ARRIVAL,
-	MSG_MRT_PASSENGER_TELEPORTATION,
-	MSG_WAKEUP_CAR_PASSENGER_TELEPORTATION,
-	MSG_WAKE_UP,
-	MSG_WARN_INCIDENT,
-	MSG_PERSON_LOAD
-};
-
 namespace medium
 {
-/**
- * Message to wrap a Person
- */
-class PersonMessage: public messaging::Message
-{
-public:
-	PersonMessage(Person_MT* inPerson);
-	virtual ~PersonMessage();
-	Person_MT* person;
-};
-
-/**
- * Message to notify incidents
- */
-class InsertIncidentMessage: public messaging::Message
-{
-public:
-	InsertIncidentMessage(const RoadSegment* rs, double newFlowRate);
-	virtual ~InsertIncidentMessage();
-	const RoadSegment* affectedSegment;
-	double newFlowRate;
-};
-
-/**
- * Subclass wraps a bus stop into message so as to make alighting decision.
- * This is to allow it to function as an message callback parameter.
- */
-class ArrivalAtStopMessage: public messaging::Message
-{
-public:
-	ArrivalAtStopMessage(Person_MT* person);
-	virtual ~ArrivalAtStopMessage();
-	Person_MT* waitingPerson;
-};
 
 struct GreaterRemainingTimeThisTick: public std::greater<Person_MT*>
 {
@@ -380,13 +335,6 @@ protected:
 	 */
 	virtual void frame_output(timeslice now);
 
-	/**
-	 * Handles all possible messages that can be dispatched to this Conflux
-	 * @param type of the message.
-	 * @param message payload received.
-	 */
-	virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
-
 public:
 	Conflux(Node* confluxNode, const MutexStrategy& mtxStrat, int id=-1, bool isLoader=false);
 	virtual ~Conflux() ;
@@ -582,6 +530,13 @@ public:
 	 * collect current person travel time
 	 */
 	void collectTravelTime(Person_MT* person);
+
+	/**
+	 * Handles all possible messages that can be dispatched to this Conflux
+	 * @param type of the message.
+	 * @param message payload received.
+	 */
+	virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
 
 	/**
 	 * given a person with a trip chain, create path for his first trip and

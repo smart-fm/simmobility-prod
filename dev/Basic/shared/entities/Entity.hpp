@@ -36,8 +36,6 @@ class PartitionManager;
  */
 class Entity : public messaging::MessageHandler, public event::EventListener
 {
-private:
-
 protected:
 
 	/** The entity id */
@@ -48,16 +46,6 @@ protected:
 
 	/** indicator for entity which has to update multiple times in a time tick */
 	bool multiUpdate;
-
-	/**
-	 * Handles all messages sent to the MessageHandler implementation.
-	 *
-	 * @param type of the message.
-	 * @param message data received.
-	 */
-	virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message)
-	{
-	}
 
 	/**
 	 * Builds the list of Buffered<> types this entity subscribes to. Any subclass of Entity should
@@ -203,6 +191,16 @@ public:
 	 * this process.
 	 */
 	std::vector<BufferedBase*> getSubscriptionList();
+
+	/**
+	 * Handles all messages sent to the MessageHandler implementation.
+	 *
+	 * @param type of the message.
+	 * @param message data received.
+	 */
+	virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message)
+	{
+	}
 
 	/**
 	 * Only the WorkGroup can retrieve/set the currWorkerProvider flag. I'm doing this through a

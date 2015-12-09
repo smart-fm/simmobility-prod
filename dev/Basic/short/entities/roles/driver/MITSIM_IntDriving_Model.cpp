@@ -221,6 +221,8 @@ double MITSIM_IntDriving_Model::calcArrivalTime(double distance, DriverUpdatePar
 
 double MITSIM_IntDriving_Model::makeAcceleratingDecision(DriverUpdateParams &params)
 {
+	params.intDebugStr.clear();
+	std::stringstream debugStr;
 	double acc = params.maxAcceleration;
 	const double vehicleLength = params.driver->getVehicleLength();
 	const TurningGroup *currTurningGroup = currTurning->getTurningGroup();
@@ -232,15 +234,13 @@ double MITSIM_IntDriving_Model::makeAcceleratingDecision(DriverUpdateParams &par
 	const double safeDist = 1.5 * vehicleLength;
 	double distToStopLine = params.driver->getDistToIntersection() - safeDist;
 
-	//Print() << "\nTime:" << params.now.frame();
-	//Print() << "\nID:" << params.parentId;
-	//Print() << "\nDistToStopLine:" << distToStopLine;
+	debugStr << ";t:" << params.now.ms() << ";dSL:" << distToStopLine;
 
 	//Check if we've stopped close enough to the stop line
 	if (distToStopLine <= 1 && params.perceivedFwdVelocity <= 0.1)
 	{
 		params.hasStoppedForStopSign = true;
-		//Print() << "\nStopped for Stop sign - Done";
+		debugStr << ";StpSgn-Dne";
 	}
 
 	//We have to stop for the stop sign
@@ -254,7 +254,7 @@ double MITSIM_IntDriving_Model::makeAcceleratingDecision(DriverUpdateParams &par
 			params.driver->setYieldingToInIntersection(-1);
 		}
 
-		//Print() << "\nStopping for stop sign";
+		debugStr << ";StpSgn";
 		return acc;
 	}
 
@@ -267,7 +267,8 @@ double MITSIM_IntDriving_Model::makeAcceleratingDecision(DriverUpdateParams &par
 	{
 		const TurningConflict *conflict = *itConflicts;
 		bool isGapRejected = false;
-		//Print() << "\nConflict:" << (*itConflicts)->getDbId();
+
+		debugStr << ";Cfl:" << conflict->getConflictId();
 
 		//The priority of the turnings in the conflict
 		//0 - equal priority, 1 - first turning has priority, 2 - second turning has priority
@@ -312,9 +313,6 @@ double MITSIM_IntDriving_Model::makeAcceleratingDecision(DriverUpdateParams &par
 			cfltDistFrmTurning = conflict->getSecondConflictDistance();
 		}
 
-		//Print() << "\tConfDist:" << cfltDistFrmTurning;
-		//Print() << "\tDistOnTurn:" << params.driver->getDistCoveredOnCurrWayPt();
-
 		//Calculate the distance to conflict point from current position
 
 		//If the vehicle is approaching the intersection rather than already in it, add the distance to the end
@@ -329,7 +327,7 @@ double MITSIM_IntDriving_Model::makeAcceleratingDecision(DriverUpdateParams &par
 			distToConflict = cfltDistFrmTurning - params.driver->getDistCoveredOnCurrWayPt();
 		}
 
-		//Print() << "\tDistToConflict:" << distToConflict;
+		debugStr << ";DstCfl:" << distToConflict;
 
 		//The distance at which the vehicle needs to come to a stand-still when yielding
 		double stoppingDist = 0;
@@ -344,7 +342,7 @@ double MITSIM_IntDriving_Model::makeAcceleratingDecision(DriverUpdateParams &par
 			stoppingDist = distToConflict - safeDist;
 		}
 
-		//Print() << "\tStoppingDist:" << stoppingDist;
+		debugStr << ";StpDis:" << stoppingDist;
 
 		//If we're yet to reach the conflict, calculate the time required for us and the conflict driver
 		//else go to the next conflict
@@ -365,7 +363,7 @@ double MITSIM_IntDriving_Model::makeAcceleratingDecision(DriverUpdateParams &par
 				}
 			}
 
-			//Print() << "\tTimeToConflict:" << timeToConflict;
+			debugStr << ";Time2Cfl:" << timeToConflict;
 
 			//Calculate the critical gap
 			//It is the max of: minimumGap and the difference between the 
@@ -383,7 +381,7 @@ double MITSIM_IntDriving_Model::makeAcceleratingDecision(DriverUpdateParams &par
 
 			criticalGap = max(criticalGap, minimumGap);
 
-			//Print() << "\tCriticalGap:" << criticalGap;			
+			debugStr << ";CGap:" << criticalGap;			
 
 			//The map entry to the conflict and list of NearestVehicles on the it
 			map<const TurningConflict *, list<NearestVehicle> >::iterator itConflictVehicles = params.conflictVehicles.find(conflict);
@@ -391,7 +389,7 @@ double MITSIM_IntDriving_Model::makeAcceleratingDecision(DriverUpdateParams &par
 			//Check if we have found an entry in the map
 			if (itConflictVehicles != params.conflictVehicles.end())
 			{
-				//Print() << "\n#Vehicles spotted:" << itConflictVehicles->second.size();
+				debugStr << ";#veh:" << itConflictVehicles->second.size();
 
 				//Iterator to the list of nearest vehicles on the list
 				list<NearestVehicle>::iterator itNearestVehicles = itConflictVehicles->second.begin();
@@ -403,20 +401,20 @@ double MITSIM_IntDriving_Model::makeAcceleratingDecision(DriverUpdateParams &par
 					Driver *drv = const_cast<Driver *> (itNearestVehicles->driver);
 					DriverUpdateParams &paramsOtherDriver = drv->getParams();
 
-					//Print() << "\nSpottedVeh:" << paramsOtherDriver.parentId;
-					//Print() << "\tDistToCflt:" << itNearestVehicles->distance;
+					debugStr << ";Veh:" << paramsOtherDriver.parentId;					
+					debugStr << ";DisCfl:" << itNearestVehicles->distance;
 
 					//If a driver is already yielding to us, scan the next conflict
 					if (itNearestVehicles->driver->getYieldingToInIntersection() == params.parentId)
 					{
-						//Print() << "\nThe vehicle is yielding to me";
+						debugStr << ";Yldng:";						
 						break;
 					}
 
 					if (itNearestVehicles->distance >= -itNearestVehicles->driver->getVehicleLength() && itNearestVehicles->distance < 0.0)
 					{
 						//Other vehicle is blocking the conflict
-						//Print() << "\nOther vehicle has crossed stopping point.";
+						debugStr << ";StpPtCrsd:";
 						isGapRejected = true;
 					}
 					else if (itNearestVehicles->distance < -itNearestVehicles->driver->getVehicleLength())
@@ -433,21 +431,19 @@ double MITSIM_IntDriving_Model::makeAcceleratingDecision(DriverUpdateParams &par
 						{
 							//Negate the distance while calculating the time
 							timeToConflictOtherDriver = abs(itNearestVehicles->distance) / speed;
-						}
-
-						//Print() << "\tTimeToConflictOther:" << timeToConflictOtherDriver;
+						}						
 
 						//The gap between the drivers
 						double gap = abs(timeToConflictOtherDriver - timeToConflict);
 
-						//Print() << "\tGap:" << gap;
+						debugStr << ";T2Cfl:" << timeToConflictOtherDriver << ";gap:" << gap;
 
 						//The gap was accepted, but we need to check if there's enough space after the conflict
 						//point. A vehicle with higher priority might collide with us if we can't go past 
 						//the conflict point
 						if (gap >= criticalGap && timeToConflictOtherDriver != 0 && timeToConflict != 0)
 						{
-							//Print() << "\tgap >= criticalGap";
+							debugStr << ";gp>=cgap";							
 
 							//Distance of forward vehicle from the conflict point
 							double distAheadOfConflict = DBL_MAX;
@@ -472,14 +468,14 @@ double MITSIM_IntDriving_Model::makeAcceleratingDecision(DriverUpdateParams &par
 						else if (timeToConflict != 0 && timeToConflictOtherDriver == 0)
 						{
 							//Other driver has stopped
-							//Print() << "\tTimeToConflict != 0 && TimeToConflictOtherDriver == 0";
+							debugStr << ";Time2Cfl!=0&&T2Cfl!=0";							
 
 							//Assume the vehicle starts moving with the same speed as us							
 
 							//Assumed time calculated based on our speed
 							double assumedTimeToConflict = abs(itNearestVehicles->distance) / params.currSpeed;
 
-							//Print() << "\tAssumedTimeToConflict:" << assumedTimeToConflict;
+							debugStr << ";AsmdT2Cfl:" << assumedTimeToConflict;						
 
 							//Assumed gap
 							double assumedGap = abs(assumedTimeToConflict - timeToConflict);
@@ -487,37 +483,34 @@ double MITSIM_IntDriving_Model::makeAcceleratingDecision(DriverUpdateParams &par
 							//Check if the gap is accepted
 							if (assumedGap <= criticalGap && itNearestVehicles->driver->getYieldingToInIntersection() == -1)
 							{
-								//Print() << "\tAssumed Gap rejected.";
+								debugStr << ";AsmdGap-Rjct";								
 								isGapRejected = true;
 							}
 							else
 							{
-								//Print() << "\tAssumed Gap accepted.";
+								debugStr << ";AsmdGap-Accpt";
 							}
 						}							
 						else if (timeToConflict == 0 && timeToConflictOtherDriver != 0)
 						{
 							//We have stopped, crawl till we can better judge the gap
-							//Print() << "\tTimeToConflict == 0 && TimeToConflictOtherDriver != 0";
+							debugStr << ";Time2Cfl==0&&T2Cfl!=0";
 
 							if (distToConflict > abs(itNearestVehicles->distance) && itNearestVehicles->driver->getYieldingToInIntersection() == -1)
 							{
 								//If we're stationary, crawl to conflict point
-								double crawlAcc = calcCrawlingAcc(stoppingDist, params);
-
-								//Print() << "\tCrawlAcc:" << crawlAcc << "\tAcc:" << acc;
+								double crawlAcc = calcCrawlingAcc(stoppingDist, params);								
 
 								if (acc > crawlAcc)
 								{
 									acc = crawlAcc;
 									params.driver->setYieldingToInIntersection(paramsOtherDriver.parentId);
 
-									//Print() << "\tYieldVeh:" << paramsOtherDriver.parentId;
-									//Print() << "\tCrawl!";
+									debugStr << ";Crawl:" << crawlAcc << ";YldVeh:" << paramsOtherDriver.parentId;									
 								}
 								else
 								{
-									//Print() << "\nCrawlAcc not small enough";
+									debugStr << ";XCrawl:" << crawlAcc;
 									isGapRejected = true;
 								}
 							}
@@ -525,17 +518,17 @@ double MITSIM_IntDriving_Model::makeAcceleratingDecision(DriverUpdateParams &par
 						else if (timeToConflict == 0 && timeToConflictOtherDriver == 0)
 						{
 							//Both vehicles have stopped, break deadlock
-							//Print() << "\tTimeToConflict == 0 && TimeToConflictOtherDriver == 0";
+							debugStr << ";Time2Cfl==0&&T2Cfl==0";
 
 							//Compare the distances, if the one nearer to the conflict can go through
 							if (distToConflict > abs(itNearestVehicles->distance) && itNearestVehicles->driver->getYieldingToInIntersection() == -1)
 							{
-								//Print() << "Other driver is closer to conflict.";
+								debugStr << ";OthClser";								
 								isGapRejected = true;
 							}
 							else
 							{
-								//Print() << "I'm closer to conflict.";
+								debugStr << ";IClsr";
 							}
 						}							
 						else
@@ -548,11 +541,10 @@ double MITSIM_IntDriving_Model::makeAcceleratingDecision(DriverUpdateParams &par
 					//If the gap has been rejected (slow down and stop)
 					if (isGapRejected)
 					{
-						//Print() << "\tisGapRejected == true";
 						//Calculate the deceleration required to stop before conflict
 						double brakingAcc = calcBrakeToStopAcc(stoppingDist, params);
 
-						//Print() << "\tBrakingAcc:" << brakingAcc << "\tAcc:" << acc;
+						debugStr << ";Gap-Rjct" << ";brake:" << brakingAcc;
 
 						//If this deceleration is smaller than the one we have previously, use this
 						if (acc > brakingAcc)
@@ -560,8 +552,7 @@ double MITSIM_IntDriving_Model::makeAcceleratingDecision(DriverUpdateParams &par
 							acc = brakingAcc;
 							params.driver->setYieldingToInIntersection(paramsOtherDriver.parentId);
 
-							//Print() << "\tYieldVeh:" << paramsOtherDriver.parentId;
-							//Print() << "\tGapReject!";
+							debugStr << ";YldVeh:" << paramsOtherDriver.parentId << "Gap-Rjct";
 						}
 					}
 				}
@@ -569,9 +560,10 @@ double MITSIM_IntDriving_Model::makeAcceleratingDecision(DriverUpdateParams &par
 		}
 		else
 		{
-			//Print() << "\nConflict " << (*itConflicts)->getDbId() << " crossed. Distance: " << distToConflict;
+			debugStr << ";XdCflt" << conflict->getConflictId() << ";dist:" << distToConflict;
 		}
 	}
 
+	params.intDebugStr = debugStr.str();
 	return acc;
 }

@@ -854,7 +854,7 @@ void sim_mob::medium::PredayManager::loadUnavailableODs(db::BackendType dbType)
 		db::MongoDao tcostBusDao(dbConfig, db.dbName, collectionNameMap.at("tcost_bus"));
 
 		int origin = 0, destination = 0;
-		std::auto_ptr<mongo::DBClientCursor> cursorBus, cursorCar;
+		std::unique_ptr<mongo::DBClientCursor> cursorBus, cursorCar;
 		Query unavailabilityQuery = QUERY("info_unavailable" << true);
 		BSONObj originDestinationQuery, tcostBusDocObj;
 

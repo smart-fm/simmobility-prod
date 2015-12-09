@@ -24,7 +24,7 @@ bool sim_mob::medium::ZoneMongoDao::getAllZones(boost::unordered_map<int, ZonePa
 	outList.rehash(ceil(count / outList.max_load_factor()));
 	//boost >= 1.50
 	//outList.reserve(count);
-	std::auto_ptr<mongo::DBClientCursor> cursor = connection.getSession<mongo::DBClientConnection>().query(collectionName, mongo::BSONObj());
+	std::unique_ptr<mongo::DBClientCursor> cursor = connection.getSession<mongo::DBClientConnection>().query(collectionName, mongo::BSONObj());
 	while (cursor->more())
 	{
 		ZoneParams* zoneParams = new ZoneParams();
@@ -68,7 +68,7 @@ sim_mob::medium::CostMongoDao::~CostMongoDao()
 
 bool sim_mob::medium::CostMongoDao::getAll(boost::unordered_map<int, boost::unordered_map<int, CostParams*> >& outList)
 {
-	std::auto_ptr<mongo::DBClientCursor> cursor = connection.getSession<mongo::DBClientConnection>().query(collectionName, mongo::BSONObj());
+	std::unique_ptr<mongo::DBClientCursor> cursor = connection.getSession<mongo::DBClientConnection>().query(collectionName, mongo::BSONObj());
 	while (cursor->more())
 	{
 		CostParams* costParams = new CostParams();
@@ -105,7 +105,7 @@ sim_mob::medium::ZoneNodeMappingDao::~ZoneNodeMappingDao()
 
 bool sim_mob::medium::ZoneNodeMappingDao::getAll(boost::unordered_map<int, std::vector<ZoneNodeParams*> >& outList)
 {
-	std::auto_ptr<mongo::DBClientCursor> cursor = connection.getSession<mongo::DBClientConnection>().query(collectionName, mongo::BSONObj());
+	std::unique_ptr<mongo::DBClientCursor> cursor = connection.getSession<mongo::DBClientConnection>().query(collectionName, mongo::BSONObj());
 	while (cursor->more())
 	{
 		ZoneNodeParams* zoneNodeParams = new ZoneNodeParams();
@@ -151,7 +151,7 @@ sim_mob::medium::MTZ12_MTZ08_MappingDao::~MTZ12_MTZ08_MappingDao()
 
 bool sim_mob::medium::MTZ12_MTZ08_MappingDao::getAll(std::map<int, int>& outList)
 {
-	std::auto_ptr<mongo::DBClientCursor> cursor = connection.getSession<mongo::DBClientConnection>().query(collectionName, mongo::BSONObj());
+	std::unique_ptr<mongo::DBClientCursor> cursor = connection.getSession<mongo::DBClientConnection>().query(collectionName, mongo::BSONObj());
 	while (cursor->more())
 	{
 		mongo::BSONObj document = cursor->next();

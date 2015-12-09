@@ -118,7 +118,7 @@ namespace sim_mob
             		conn.connect();
             		if (conn.isConnected()) {
             			T dao(conn);
-            			dao.insert(object);
+            			//dao.insert(object);
             		}
             	}
             }

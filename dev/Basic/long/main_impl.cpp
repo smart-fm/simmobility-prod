@@ -291,10 +291,10 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
         if(conn.isConnected())
         {
         	SimulationVersionDao simVersionDao(conn);
-        	simVersionDao.insert(*simVersionObj.get());
+        	//simVersionDao.insert(*simVersionObj.get());
 
         	StatusOfWorldDao statusOfWorldDao(conn);
-        	statusOfWorldDao.insert(*(developerModel->getStatusOfWorldObj(simVersionId)).get());
+        	//statusOfWorldDao.insert(*(developerModel->getStatusOfWorldObj(simVersionId)).get());
         }
 
         //stop all models.

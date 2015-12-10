@@ -1,3 +1,7 @@
+//Copyright (c) 2015 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//license.txt   (http://opensource.org/licenses/MIT)
+
 /*
  * TimeCheck.hpp
  *
@@ -25,6 +29,8 @@ namespace sim_mob
 			double getClockTime();
 			double getClockTime_sec();
 			double getProcessTime();
+
+		private:
 
 			time_t  start_clock;
 			clock_t start_process;

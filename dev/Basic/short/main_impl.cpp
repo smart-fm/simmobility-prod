@@ -336,7 +336,6 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 	//       a barrier sync.
 	/////////////////////////////////////////////////////////////////
 	size_t numStartAgents = Agent::all_agents.size();
-	size_t numPendingAgents = Agent::pending_agents.size();
 	size_t maxAgents = Agent::all_agents.size();
 
 	timeval loop_start_time;
@@ -452,7 +451,7 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 	Print() << "Max Agents at any given time: " <<maxAgents <<std::endl;
 	Print() << "Starting Agents: " << numStartAgents;
 	Print() << ",     Pending: ";
-	Print() << numPendingAgents;
+	Print() << Agent::pending_agents.size();
 	Print() << endl;
 
 	if (Agent::all_agents.empty()) 

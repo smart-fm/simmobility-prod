@@ -51,7 +51,8 @@ namespace sim_mob
                 LOG_HOUSEHOLDBIDLIST,
                 LOG_INDIVIDUAL_LOGSUM_VO,
 				LOG_SCREENINGPROBABILITIES,
-				LOG_HHCHOICESET
+				LOG_HHCHOICESET,
+				LOG_ERROR
             };
 
             LoggerAgent();

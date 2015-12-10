@@ -102,8 +102,8 @@ protected:
 	/**The id of the traffic signal*/
 	unsigned int trafficLightId;
 	
-	/*The node associated with this traffic Signal */
-	const Node *node;
+	/*The nodes associated with this traffic Signal */
+	std::vector<const Node *> nodes;
 	
 	/**Indicates the type of the signal*/
 	SignalType signalType;
@@ -118,9 +118,12 @@ public:
 	Signal(const Node *node, const MutexStrategy &mtxStrat, unsigned int agentId = -1, SignalType = SIGNAL_TYPE_INVALID);
 	virtual ~Signal();
 	
-	const Node* getNode() const;	
-	SignalType getSignalType() const;
+	unsigned int getTrafficLightId() const;
 	
+	const std::vector<const Node *>& getNodes() const;
+	void addNode(const Node *node);
+	
+	SignalType getSignalType() const;	
 	const std::vector<Phase *>& getPhases();
 	
     static std::map<unsigned int, Signal *>& getMapOfIdVsSignals();

@@ -13,15 +13,25 @@ TimeCheck::TimeCheck()
 {
 	start_clock   = time(0);
 	start_process = clock();
+	start = boost::chrono::system_clock::now();
 }
 
-double TimeCheck::getClockTime()
+double TimeCheck::getClockTime_sec()
 {
 	time_t end_clock = time(0);
 	double time_clock = difftime( end_clock, start_clock );
 
 	return time_clock;
+}
 
+double TimeCheck::getClockTime()
+{
+	boost::chrono::duration<double> durationStart = start.time_since_epoch();
+	boost::chrono::duration<double> durationEnd = boost::chrono::system_clock::now().time_since_epoch();
+
+	boost::chrono::microseconds d = boost::chrono::duration_cast<boost::chrono::microseconds>(durationEnd - durationStart);
+
+	return d.count();
 }
 
 double TimeCheck::getProcessTime()

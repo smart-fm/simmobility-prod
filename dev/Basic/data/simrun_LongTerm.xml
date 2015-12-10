@@ -200,7 +200,7 @@
 	    <householdBiddingWindow value = "10" />
         </housingModel>
 	<vehicleOwnershipModel enabled='true'>
-		<vehicleBuyingWaitingTimeInDays value= "60"/>
+		<vehicleBuyingWaitingTimeInDays value= "1"/>
 	</vehicleOwnershipModel>
     </longTermParams>
 

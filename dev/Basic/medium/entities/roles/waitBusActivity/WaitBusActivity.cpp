@@ -5,11 +5,12 @@
 #include "WaitBusActivity.hpp"
 
 #include <boost/algorithm/string.hpp>
-#include "entities/Person.hpp"
+#include "entities/Person_MT.hpp"
 #include "entities/PT_Statistics.hpp"
 #include "entities/roles/driver/BusDriver.hpp"
 #include "geospatial/network/PT_Stop.hpp"
 #include "message/MT_Message.hpp"
+#include "WaitBusActivityFacets.hpp"
 
 using std::vector;
 using namespace sim_mob;

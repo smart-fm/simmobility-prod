@@ -7,7 +7,7 @@
 #include <cmath>
 #include <ostream>
 #include <algorithm>
-
+#include "DriverFacets.hpp"
 #include "entities/Person.hpp"
 #include "entities/UpdateParams.hpp"
 #include "entities/misc/TripChain.hpp"

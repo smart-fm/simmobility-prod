@@ -5,7 +5,6 @@
 #pragma once
 
 #include "Driver.hpp"
-#include "BusDriverFacets.hpp"
 #include "buffering/Shared.hpp"
 #include "entities/misc/BusTrip.hpp"
 #include "entities/Person_MT.hpp"
@@ -92,7 +91,7 @@ public:
 
 	const std::string getBusLineID() const;
 
-	void calcTravelTime();
+	void updatePassengers();
 
 	int busSequenceNumber;
 

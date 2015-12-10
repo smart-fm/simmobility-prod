@@ -8,7 +8,6 @@
 #include "entities/roles/Role.hpp"
 #include "entities/roles/waitBusActivity/WaitBusActivity.hpp"
 #include "geospatial/network/Node.hpp"
-#include "PassengerFacets.hpp"
 
 namespace sim_mob
 {

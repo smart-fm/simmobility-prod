@@ -6,7 +6,6 @@
 
 #include "entities/conflux/Conflux.hpp"
 #include "entities/roles/RoleFacets.hpp"
-#include "entities/Person.hpp"
 
 namespace sim_mob
 {

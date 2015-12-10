@@ -26,7 +26,6 @@
 namespace sim_mob
 {
 
-class Agent;
 class Lane;
 class Link;
 class WorkGroup;

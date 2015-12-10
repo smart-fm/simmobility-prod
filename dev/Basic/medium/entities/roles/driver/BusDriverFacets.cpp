@@ -87,7 +87,7 @@ void BusDriverMovement::frame_init()
 }
 
 void BusDriverMovement::frame_tick() {
-	parentBusDriver->calcTravelTime();
+	parentBusDriver->updatePassengers();
 	DriverUpdateParams& params = parentBusDriver->getParams();
 	if(!parentBusDriver->getResource()->isMoving())
 	{

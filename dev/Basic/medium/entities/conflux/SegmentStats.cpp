@@ -10,6 +10,7 @@
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "Conflux.hpp"
+#include "entities/BusStopAgent.hpp"
 #include "entities/roles/Role.hpp"
 #include "entities/vehicle/VehicleBase.hpp"
 #include "logging/Log.hpp"

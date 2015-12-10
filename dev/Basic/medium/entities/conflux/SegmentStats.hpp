@@ -7,7 +7,6 @@
 #include <string>
 #include <set>
 #include <vector>
-#include "entities/BusStopAgent.hpp"
 #include "entities/Person_MT.hpp"
 #include "geospatial/network/RoadSegment.hpp"
 #include "geospatial/network/Lane.hpp"
@@ -19,6 +18,7 @@ namespace sim_mob
 namespace medium
 {
 
+class BusStopAgent;
 class Conflux;
 
 /**

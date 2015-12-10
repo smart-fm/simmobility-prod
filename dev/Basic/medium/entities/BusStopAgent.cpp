@@ -7,6 +7,7 @@
 
 #include "BusStopAgent.hpp"
 #include "message/MT_Message.hpp"
+#include "entities/conflux/Conflux.hpp"
 #include "entities/PT_Statistics.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
@@ -157,7 +158,7 @@ Entity::UpdateStatus BusStopAgent::frame_tick(timeslice now)
 				else if (role->roleType == Role<Person_MT>::RL_PEDESTRIAN && val.status == UpdateStatus::RS_CONTINUE)
 				{
 					Conflux* conflux = parentSegmentStats->getParentConflux();
-					messaging::MessageBus::PostMessage(conflux, MSG_PEDESTRIAN_TRANSFER_REQUEST,
+					messaging::MessageBus::PostMessage(conflux, sim_mob::medium::MSG_PEDESTRIAN_TRANSFER_REQUEST,
 							messaging::MessageBus::MessagePtr(new PersonMessage(person)));
 					ret = true;
 				}

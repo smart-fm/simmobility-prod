@@ -24,7 +24,7 @@ sim_mob::medium::PopulationMongoDao::~PopulationMongoDao()
 bool PopulationMongoDao::getAll(std::vector<PersonParams*>& outList)
 {
 	outList.reserve(connection.getSession<mongo::DBClientConnection>().count(collectionName, mongo::BSONObj()));
-	std::auto_ptr<mongo::DBClientCursor> cursor = connection.getSession<mongo::DBClientConnection>().query(collectionName, mongo::BSONObj());
+	std::unique_ptr<mongo::DBClientCursor> cursor = connection.getSession<mongo::DBClientConnection>().query(collectionName, mongo::BSONObj());
 	while (cursor->more())
 	{
 		PersonParams* personParams = new PersonParams();
@@ -43,7 +43,7 @@ bool PopulationMongoDao::getAllIds(std::vector<std::string>& outList)
 {
 	mongo::BSONObj projection = BSON("_id" << 1);
 	outList.reserve(connection.getSession<mongo::DBClientConnection>().count(collectionName, mongo::BSONObj()));
-	std::auto_ptr<mongo::DBClientCursor> cursor = connection.getSession<mongo::DBClientConnection>().query(collectionName, mongo::BSONObj(), 0, 0, &projection);
+	std::unique_ptr<mongo::DBClientCursor> cursor = connection.getSession<mongo::DBClientConnection>().query(collectionName, mongo::BSONObj(), 0, 0, &projection);
 	while (cursor->more())
 	{
 		outList.push_back(getIdFromRow(cursor->next()));

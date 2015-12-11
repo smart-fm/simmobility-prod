@@ -23,10 +23,10 @@ PostcodeAmenitiesDao::~PostcodeAmenitiesDao() {}
 void PostcodeAmenitiesDao::fromRow(Row& result, PostcodeAmenities& outObj)
 {
     outObj.postcode = result.get<std::string>(DB_FIELD_POSTCODE, EMPTY_STR);
-    outObj.buildingName = result.get<std::string>(DB_FIELD_BUILDING_NAME, EMPTY_STR);
-    outObj.unitBlock = result.get<std::string>(DB_FIELD_UNIT_BLOCK, EMPTY_STR);
-    outObj.roadName = result.get<std::string>(DB_FIELD_ROAD_NAME, EMPTY_STR);
-    outObj.mtzNumber = result.get<std::string>(DB_FIELD_MTZ_NUMBER, EMPTY_STR);
+    //outObj.buildingName = result.get<std::string>(DB_FIELD_BUILDING_NAME, EMPTY_STR);
+    //outObj.unitBlock = result.get<std::string>(DB_FIELD_UNIT_BLOCK, EMPTY_STR);
+    //outObj.roadName = result.get<std::string>(DB_FIELD_ROAD_NAME, EMPTY_STR);
+    //outObj.mtzNumber = result.get<std::string>(DB_FIELD_MTZ_NUMBER, EMPTY_STR);
     outObj.mrtStation = result.get<std::string>(DB_FIELD_MRT_STATION, EMPTY_STR);
     outObj.distanceToMRT = result.get<double>(DB_FIELD_DISTANCE_TO_MRT, 0);
     outObj.distanceToBus = result.get<double>(DB_FIELD_DISTANCE_TO_BUS, 0);

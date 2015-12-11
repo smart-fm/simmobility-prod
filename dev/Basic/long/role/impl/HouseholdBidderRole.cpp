@@ -671,6 +671,9 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 	if( ageOfUnitPrivate > 25 )
 		ZZ_ageOfUnitPrivate = 25;
 
+	if( ageOfUnitPrivate < 0 )
+		ZZ_ageOfUnitPrivate = 0;
+
 	ZZ_ageOfUnitPrivate = ZZ_ageOfUnitPrivate / 10;
 
 	if( ageOfUnitPrivate > 25 && ageOfUnitPrivate < 50)
@@ -687,8 +690,10 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 	if( ageOfUnitHDB > 30 )
 		ZZ_ageOfUnitHDB = 30;
 
-	ZZ_ageOfUnitHDB = ZZ_ageOfUnitHDB / 10;
+	if( ageOfUnitHDB  < 0 )
+		ZZ_ageOfUnitHDB = 0;
 
+	ZZ_ageOfUnitHDB = ZZ_ageOfUnitHDB / 10;
 
 	if( ageOfUnitHDB > 30 )
 		ZZ_ageGreater30 = 1;
@@ -717,13 +722,13 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 
 	if( workTazStr.size() == 0 )
 	{
-		//PrintOutV("workTaz is empty for person: " << headOfHousehold->getId() << std::endl);
+		AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, (boost::format( "workTaz is empty for person:  %1%.") %  headOfHousehold->getId()).str());
 		workTaz = homeTaz;
 	}
 
 	if( homeTazStr.size() == 0 )
 	{
-		//PrintOutV("homeTaz is empty for person: " << headOfHousehold->getId() << std::endl);
+		AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, (boost::format( "homeTaz is empty for person:  %1%.") %  headOfHousehold->getId()).str());
 		homeTaz = -1;
 		workTaz = -1;
 	}

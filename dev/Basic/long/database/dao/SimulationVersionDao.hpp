@@ -27,6 +27,8 @@ namespace sim_mob
         public:
         	SimulationVersionDao(db::DB_Connection& connection);
             virtual ~SimulationVersionDao();
+            void insertSimulationVersion(SimulationVersion& objToInsert,std::string schema);
+            std::vector<SimulationVersion*> getAllSimulationVersions(std::string schema);
 
         private:
             /**

@@ -27,6 +27,9 @@ namespace sim_mob
 
             virtual ~Parcel();
 
+            Parcel( const Parcel &source);
+            Parcel& operator=(const Parcel& source);
+
             /**
              * Getters and Setters
              */
@@ -65,7 +68,7 @@ namespace sim_mob
             /**
              * Operator to print the Parcel data.  
              */
-            friend std::ostream& operator<<(std::ostream& strm, const Parcel& data);
+           // friend std::ostream& operator<<(std::ostream& strm, const Parcel& data);
         private:
             friend class ParcelDao;
 

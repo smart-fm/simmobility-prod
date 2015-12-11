@@ -30,6 +30,70 @@ Parcel::Parcel(BigSerial id,BigSerial tazId, float lot_size, std::string gpr,int
 
 Parcel::~Parcel() {}
 
+Parcel::Parcel( const Parcel& source)
+{
+	this->id = source.id;
+	this->tazId = source.tazId;
+	this->lot_size = source.lot_size;
+	//this->gpr = new std::string(source.gpr);
+	//this->gpr = source.gpr.c_str();
+	this->gpr = source.gpr;
+	this->land_use_type_id = source.land_use_type_id;
+	this->owner_name = source.owner_name;
+	this->owner_category = source.owner_category;
+	this->last_transaction_date = source.last_transaction_date;
+	this->last_transaction_type_total = source.last_transaction_type_total;
+	this->psm_per_gps = source.psm_per_gps;
+	this->lease_type = source.lease_type;
+	this->lease_start_date = source.lease_start_date;
+	this->centroid_x = source.centroid_x;
+	this->centroid_y = source.centroid_y;
+	this->award_date = source.award_date;
+	this->award_status = source.award_status;
+	this->use_restriction = source.use_restriction;
+	this->development_type_code = source.development_type_code;
+	this->successful_tender_id = source.successful_tender_id;
+	this->successful_tender_price = source.successful_tender_price;
+	this->tender_closing_date = source.tender_closing_date;
+	this->lease = source.lease;
+	this->status = source.status;
+	this->developmentAllowed = source.developmentAllowed;
+	this->nextAvailableDate = source.nextAvailableDate;
+	this->lastChangedDate = source.lastChangedDate;
+}
+
+Parcel& Parcel::operator=( const Parcel& source)
+{
+	this->id = source.id;
+	this->tazId = source.tazId;
+	this->lot_size = source.lot_size;
+	this->gpr = source.gpr;
+	this->land_use_type_id = source.land_use_type_id;
+	this->owner_name = source.owner_name;
+	this->owner_category = source.owner_category;
+	this->last_transaction_date = source.last_transaction_date;
+	this->last_transaction_type_total = source.last_transaction_type_total;
+	this->psm_per_gps = source.psm_per_gps;
+	this->lease_type = source.lease_type;
+	this->lease_start_date = source.lease_start_date;
+	this->centroid_x = source.centroid_x;
+	this->centroid_y = source.centroid_y;
+	this->award_date = source.award_date;
+	this->award_status = source.award_status;
+	this->use_restriction = source.use_restriction;
+	this->development_type_code = source.development_type_code;
+	this->successful_tender_id = source.successful_tender_id;
+	this->successful_tender_price = source.successful_tender_price;
+	this->tender_closing_date = source.tender_closing_date;
+	this->lease = source.lease;
+	this->status = source.status;
+	this->developmentAllowed = source.developmentAllowed;
+	this->nextAvailableDate = source.nextAvailableDate;
+	this->lastChangedDate = source.lastChangedDate;
+
+	return *this;
+}
+
 BigSerial Parcel::getId() const
 {
     return id;
@@ -180,39 +244,39 @@ void Parcel::setLastChangedDate(std::tm date)
 	this->lastChangedDate = date;
 }
 
-namespace sim_mob {
-    namespace long_term {
-
-        std::ostream& operator<<(std::ostream& strm, const Parcel& data) {
-            return strm << "{"
-						<< "\"id\":\"" << data.id << "\","
-						<< "\"taz_id\":\"" << data.tazId << "\","
-						<< "\"lot_size\":\"" << data.lot_size << "\","
-						<< "\"actual_gpr\":\"" << data.gpr << "\","
-						<< "\"land_use_type_id\":\"" << data.land_use_type_id << "\","
-						<< "\"owner_name\":\"" << data.owner_name << "\","
-						<< "\"owner_category\":\"" << data.owner_category << "\","
-						<< "\"last_transaction_date\":\"" << data.last_transaction_date.tm_year << data.last_transaction_date.tm_mon << data.last_transaction_date.tm_mday << "\","
-						<< "\"last_transaction_type_total\":\"" << data.last_transaction_type_total << "\","
-						<< "\"psm_per_gps\":\"" << data.psm_per_gps << "\","
-						<< "\"lease_type\":\"" << data.lease_type << "\","
-						<< "\"lease_start_date\":\"" << data.lease_start_date.tm_year << data.lease_start_date.tm_mon << data.lease_start_date.tm_mday << "\","
-						<< "\"centroid_x\":\"" << data.centroid_x << "\","
-						<< "\"centroid_y\":\"" << data.centroid_y << "\","
-						<< "\"award_date\":\"" << data.award_date.tm_year << data.award_date.tm_year << data.award_date.tm_mon << data.award_date.tm_mday << "\","
-						<< "\"award_status\":\"" << data.award_status << "\","
-						<< "\"use_restriction\":\"" << data.use_restriction << "\","
-						<< "\"development_type_code\":\"" << data.development_type_code << "\","
-						<< "\"successful_tender_id\":\"" << data.successful_tender_id << "\","
-						<< "\"successful_tender_price\":\"" << data.successful_tender_price << "\","
-						<< "\"tender_closing_date\":\"" << data.tender_closing_date.tm_year << data.tender_closing_date.tm_mday << "\","
-						<< "\"lease\":\"" << data.lease << "\","
-						<< "\"status\":\"" << data.status << "\","
-						<< "\"development_allowed\":\"" << data.developmentAllowed << "\","
-						<< "\"next_available_date\":\"" << data.nextAvailableDate.tm_year << data.nextAvailableDate.tm_mon << data.nextAvailableDate.tm_mday << "\""
-						<< "\"last_changed_date\":\"" << data.lastChangedDate.tm_year << data.lastChangedDate.tm_mon << data.lastChangedDate.tm_mday << "\""
-						<< "}";
-
-        }
-    }
-}
+//namespace sim_mob {
+//    namespace long_term {
+//
+//        std::ostream& operator<<(std::ostream& strm, const Parcel& data) {
+//            return strm << "{"
+//						<< "\"id\":\"" << data.id << "\","
+//						<< "\"taz_id\":\"" << data.tazId << "\","
+//						<< "\"lot_size\":\"" << data.lot_size << "\","
+//						<< "\"actual_gpr\":\"" << data.gpr << "\","
+//						<< "\"land_use_type_id\":\"" << data.land_use_type_id << "\","
+//						<< "\"owner_name\":\"" << data.owner_name << "\","
+//						<< "\"owner_category\":\"" << data.owner_category << "\","
+//						<< "\"last_transaction_date\":\"" << data.last_transaction_date.tm_year << data.last_transaction_date.tm_mon << data.last_transaction_date.tm_mday << "\","
+//						<< "\"last_transaction_type_total\":\"" << data.last_transaction_type_total << "\","
+//						<< "\"psm_per_gps\":\"" << data.psm_per_gps << "\","
+//						<< "\"lease_type\":\"" << data.lease_type << "\","
+//						<< "\"lease_start_date\":\"" << data.lease_start_date.tm_year << data.lease_start_date.tm_mon << data.lease_start_date.tm_mday << "\","
+//						<< "\"centroid_x\":\"" << data.centroid_x << "\","
+//						<< "\"centroid_y\":\"" << data.centroid_y << "\","
+//						<< "\"award_date\":\"" << data.award_date.tm_year << data.award_date.tm_year << data.award_date.tm_mon << data.award_date.tm_mday << "\","
+//						<< "\"award_status\":\"" << data.award_status << "\","
+//						<< "\"use_restriction\":\"" << data.use_restriction << "\","
+//						<< "\"development_type_code\":\"" << data.development_type_code << "\","
+//						<< "\"successful_tender_id\":\"" << data.successful_tender_id << "\","
+//						<< "\"successful_tender_price\":\"" << data.successful_tender_price << "\","
+//						<< "\"tender_closing_date\":\"" << data.tender_closing_date.tm_year << data.tender_closing_date.tm_mday << "\","
+//						<< "\"lease\":\"" << data.lease << "\","
+//						<< "\"status\":\"" << data.status << "\","
+//						<< "\"development_allowed\":\"" << data.developmentAllowed << "\","
+//						<< "\"next_available_date\":\"" << data.nextAvailableDate.tm_year << data.nextAvailableDate.tm_mon << data.nextAvailableDate.tm_mday << "\""
+//						<< "\"last_changed_date\":\"" << data.lastChangedDate.tm_year << data.lastChangedDate.tm_mon << data.lastChangedDate.tm_mday << "\""
+//						<< "}";
+//
+//        }
+//    }
+//}

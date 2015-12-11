@@ -100,7 +100,8 @@ void RealEstateAgent::changeToDateInToBeDemolishedBuildings(BigSerial buildingId
 	boost::unordered_map<BigSerial,Building*>::const_iterator itr = buildingsById.find(buildingId);
 	    if (itr != buildingsById.end())
 	    {
-	        itr->second->setToDate(toDate);
+	    	(*itr->second).setToDate(toDate);
+
 	    }
 
 	    //change unit statuses to demolished
@@ -109,7 +110,7 @@ void RealEstateAgent::changeToDateInToBeDemolishedBuildings(BigSerial buildingId
 	    {
 	    	if((*unitsItr)->getBuildingId() == buildingId)
 	    	{
-	    		changeUnitStatus((*unitsItr)->getId(),UNIT_DEMOLISHED);
+	    		changeUnitStatus((**unitsItr).getId(),UNIT_DEMOLISHED);
 	    	}
 	    }
 
@@ -121,7 +122,7 @@ void RealEstateAgent::changeBuildingStatus(BigSerial buildingId,BuildingStatus b
 	boost::unordered_map<BigSerial,Building*>::const_iterator itr = buildingsById.find(buildingId);
 	if (itr != buildingsById.end())
 	{
-		itr->second->setBuildingStatus(buildingStatus);
+		(*itr->second).setBuildingStatus(buildingStatus);
 	}
 }
 
@@ -131,7 +132,7 @@ void RealEstateAgent::changeUnitStatus(BigSerial unitId,UnitStatus unitStatus)
 	boost::unordered_map<BigSerial,Unit*>::const_iterator itr = unitsById.find(unitId);
 	if (itr != unitsById.end())
 	{
-		itr->second->setUnitStatus(unitStatus);
+		(*itr->second).setConstructionStatus(unitStatus);
 	}
 }
 
@@ -141,7 +142,7 @@ void RealEstateAgent::changeUnitSaleStatus(BigSerial unitId,UnitSaleStatus unitS
 	boost::unordered_map<BigSerial,Unit*>::const_iterator itr = unitsById.find(unitId);
 	if (itr != unitsById.end())
 	{
-		itr->second->setSaleStatus(unitSaleStatus);
+		(*itr->second).setSaleStatus(unitSaleStatus);
 	}
 }
 
@@ -151,7 +152,7 @@ void RealEstateAgent::changeUnitPhysicalStatus(BigSerial unitId,UnitPhysicalStat
 	boost::unordered_map<BigSerial,Unit*>::const_iterator itr = unitsById.find(unitId);
 	if (itr != unitsById.end())
 	{
-		itr->second->setPhysicalStatus(unitPhysicalStatus);
+		(*itr->second).setOccupancyStatus(unitPhysicalStatus);
 	}
 }
 

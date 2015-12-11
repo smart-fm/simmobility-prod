@@ -34,6 +34,9 @@ namespace sim_mob {
              * @param update tells if operation is an Update or Insert.
              */
             void toRow(Project& data, db::Parameters& outParams, bool update);
+
+        public:
+            void insertProject(Project& project,std::string schema);
         };
     }
 }

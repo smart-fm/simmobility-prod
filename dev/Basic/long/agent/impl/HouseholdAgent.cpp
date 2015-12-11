@@ -37,7 +37,7 @@ HouseholdAgent::HouseholdAgent(BigSerial id, HM_Model* model, const Household* h
     seller = new HouseholdSellerRole(this);
     seller->setActive(marketSeller);
 
-    if (!marketSeller)
+    if ( marketSeller == false )
     {
         bidder = new HouseholdBidderRole(this);
         bidder->setActive(false);
@@ -176,6 +176,7 @@ void HouseholdAgent::awakenHousehold()
 
 			unit->setbiddingMarketEntryDay(day);
 			unit->setTimeOnMarket( config.ltParams.housingModel.timeOnMarket);
+			unit->setTimeOffMarket( config.ltParams.housingModel.timeOffMarket);
 		}
 
 		model->incrementAwakeningCounter();
@@ -200,7 +201,8 @@ void HouseholdAgent::awakenHousehold()
 			Unit* unit = const_cast<Unit*>(model->getUnitById(unitId));
 
 			unit->setbiddingMarketEntryDay(day);
-			unit->setTimeOnMarket( config.ltParams.housingModel.timeOnMarket);
+			unit->setTimeOnMarket( config.ltParams.housingModel.timeOnMarket );
+			unit->setTimeOffMarket( config.ltParams.housingModel.timeOffMarket );
 		}
 
 		model->incrementAwakeningCounter();
@@ -254,8 +256,8 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 
 			if( hh != NULL )
 			{
-				model->getLogsumOfHouseholdVO(hh->getId());
-				//model->getLogsumOfHousehold(hh->getId());
+				//model->getLogsumOfHouseholdVO(hh->getId());
+				model->getLogsumOfHousehold(hh->getId());
 			}
 
 			return Entity::UpdateStatus(UpdateStatus::RS_CONTINUE);
@@ -290,8 +292,11 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 		buySellInterval--;
 	}
 
-	if( bidder && householdBiddingWindow == 0 )
+	if( bidder && bidder->isActive() && householdBiddingWindow == 0 )
+	{
 		bidder->setActive(false);
+		model->decrementBidders();
+	}
 
 
     if (bidder && bidder->isActive() && householdBiddingWindow > 0 )

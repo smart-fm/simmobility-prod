@@ -565,6 +565,10 @@ void HouseholdSellerRole::calculateUnitExpectations(const Unit& unit)
             printExpectation(currentTime, dayToApply, unit.getId(), *getParent(), info.expectations[i]);
         }
     }
+    else
+    {
+    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, (boost::format( "[unit %1%] Expectations is empty.") % unit.getId()).str());
+    }
 }
 
 bool HouseholdSellerRole::getCurrentExpectation(const BigSerial& unitId, ExpectationEntry& outEntry)

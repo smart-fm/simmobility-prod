@@ -48,8 +48,11 @@ struct LongTermParams{
 	unsigned int days;
 	unsigned int tickStep;
 	unsigned int maxIterations;
-	int year;
+	unsigned int year;
 	std::string simulationScenario;
+	bool resume;
+	std::string currentOutputSchema;
+	unsigned int opSchemaloadingInterval;
 
 	struct DeveloperModel{
 		DeveloperModel();

@@ -25,6 +25,9 @@ namespace sim_mob {
 
             virtual ~TemplateUnitType();
 
+            TemplateUnitType( const TemplateUnitType &source);
+            TemplateUnitType& operator=(const TemplateUnitType& source);
+
             /**
              * Getters and Setters
              */

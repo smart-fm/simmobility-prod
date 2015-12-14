@@ -66,14 +66,14 @@ namespace {
         	.addProperty("slaAddressId", &Unit::getSlaAddressId)
         	.addProperty("unitType", &Unit::getUnitType)
         	.addProperty("storeyRange", &Unit::getStoreyRange)
-        	.addProperty("unitStatus", &Unit::getUnitStatus)
+        	.addProperty("unitStatus", &Unit::getConstructionStatus)
         	.addProperty("floorArea", &Unit::getFloorArea)
         	.addProperty("storey", &Unit::getStorey)
-        	.addProperty("rent", &Unit::getRent)
+        	.addProperty("mothlyRent", &Unit::getMonthlyRent)
         	.addProperty("saleFromDate", &Unit::getSaleFromDate)
         	.addProperty("physicalFromYear", &Unit::getPhysicalFromYear)
         	.addProperty("saleStatus", &Unit::getSaleStatus)
-        	.addProperty("physicalStatus", &Unit::getPhysicalStatus)
+        	.addProperty("occupancyStatus", &Unit::getOccupancyStatus)
             .endClass();
     getGlobalNamespace(state)
             .beginClass <Postcode> ("Postcode")
@@ -254,7 +254,7 @@ void HM_LuaModel::calulateUnitExpectations(const Unit& unit, int timeOnMarket, d
     	const PostcodeAmenities* amen = getAmenities(pcId);
     	std::string buildingName = amen == NULL? "<empty>": amen->getBuildingName();
 
-    	PrintOutV("[ERROR] Unit Expectations is empty for unit " << unit.getId() << " from building ID: "  << build->getFmBuildingId() << " at addressId: " << postcode->getAddressId() << " with building name: " << buildingName << std::endl );
+    	//PrintOutV("[ERROR] Unit Expectations is empty for unit " << unit.getId() << " from building ID: "  << build->getFmBuildingId() << " at addressId: " << postcode->getAddressId() << " with building name: " << buildingName << std::endl );
 
     }
 }

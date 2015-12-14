@@ -36,7 +36,8 @@
 #include "database/dao/TAO_Dao.hpp"
 #include "database/dao/UnitPriceSumDao.hpp"
 #include "database/dao/TazLevelLandPriceDao.hpp"
-#include "database/dao/StatusOfWorldDao.hpp"
+#include "database/dao/EncodedParamsBySimulationDao.hpp"
+#include "database/dao/ProjectDao.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 
@@ -80,7 +81,7 @@ void DeveloperModel::startImpl() {
 		for (ParcelList::iterator it = emptyParcels.begin(); it != emptyParcels.end(); it++) {
 			emptyParcelsById.insert(std::make_pair((*it)->getId(), *it));
 		}
-		parcelsWithOngoingProjects = parcelDao.getParcelsWithOngoingProjects();
+		//parcelsWithOngoingProjects = parcelDao.getParcelsWithOngoingProjects();
 		//Index all parcels with ongoing projects.
 		for (ParcelList::iterator it = parcelsWithOngoingProjects.begin(); it != parcelsWithOngoingProjects.end(); it++) {
 			parcelsWithOngoingProjectsById.insert(std::make_pair((*it)->getId(), *it));
@@ -122,15 +123,24 @@ void DeveloperModel::startImpl() {
 
 	}
 	setRealEstateAgentIds(housingMarketModel->getRealEstateAgentIds());
-	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 
-	loadData<StatusOfWorldDao>(conn,statusOfWorld);
-	if(!statusOfWorld.empty())
+
+	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+	bool resume = config.ltParams.resume;
+
+	if(resume)
 	{
-		postcodeForDevAgent = statusOfWorld[statusOfWorld.size()-1]->getPostcode();
-		unitIdForDevAgent = statusOfWorld[statusOfWorld.size()-1]->getUnitId();
-		buildingIdForDevAgent = statusOfWorld[statusOfWorld.size()-1]->getBuildingId();
-		projectIdForDevAgent = statusOfWorld[statusOfWorld.size()-1]->getProjectId();
+		std::string  outputSchema = config.ltParams.currentOutputSchema;
+		EncodedParamsBySimulationDao encodedParamsDao(conn);
+		const std::string getAllEncodedParams = "SELECT * FROM " + outputSchema+ "."+"encoded_params_by_simulation;";
+		encodedParamsDao.getByQuery(getAllEncodedParams,encodedParamsList);
+		if(!encodedParamsList.empty())
+		{
+			postcodeForDevAgent = encodedParamsList[encodedParamsList.size()-1]->getPostcode();
+			unitIdForDevAgent = encodedParamsList[encodedParamsList.size()-1]->getUnitId();
+			buildingIdForDevAgent = encodedParamsList[encodedParamsList.size()-1]->getBuildingId();
+			projectIdForDevAgent = encodedParamsList[encodedParamsList.size()-1]->getProjectId();
+		}
 	}
 	else
 	{
@@ -285,7 +295,8 @@ void DeveloperModel::createDeveloperAgents(ParcelList devCandidateParcelList)
 		{
 			if (devCandidateParcelList[i])
 			{
-				DeveloperAgent* devAgent = new DeveloperAgent(devCandidateParcelList[i], this);
+				boost::shared_ptr<Parcel> parcelToDevelop (new Parcel(*devCandidateParcelList[i]));
+				DeveloperAgent* devAgent = new DeveloperAgent(parcelToDevelop, this);
 				AgentsLookupSingleton::getInstance().addDeveloperAgent(devAgent);
 				RealEstateAgent* realEstateAgent = const_cast<RealEstateAgent*>(getRealEstateAgentForDeveloper());
 				devAgent->setRealEstateAgent(realEstateAgent);
@@ -388,11 +399,11 @@ void DeveloperModel::processProjects()
 	for(projectsItr = projects.begin(); projectsItr != this->projects.end(); projectsItr++)
 	{
 		//check whether the project's last planned date is older than 90 days; current date is assumed to be 01/01/2008.
-		if((*projectsItr)->getPlannedDate().tm_year<2007)
+		if((*projectsItr)->getPlannedDate().tm_year<simYear)
 		{
 
 		}
-		else if((*projectsItr)->getPlannedDate().tm_year==2007)
+		else if((*projectsItr)->getPlannedDate().tm_year==simYear)
 		{
 			if((*projectsItr)->getPlannedDate().tm_mon<10)
 			{
@@ -536,16 +547,6 @@ int DeveloperModel::getSimYearForDevAgent()
 	return this->simYear;
 }
 
-void DeveloperModel::addProjects(boost::shared_ptr<Project> project)
-{
-	newProjects.push_back(project);
-}
-
-void DeveloperModel::addBuildings(boost::shared_ptr<Building> building)
-{
-	newBuildings.push_back(building);
-}
-
 const RealEstateAgent* DeveloperModel::getRealEstateAgentForDeveloper()
 {
 
@@ -638,15 +639,10 @@ const int DeveloperModel::getBuildingAvgAge(const BigSerial fmParcelId) const
 	return avgAge;
 }
 
-void DeveloperModel::setIsRestart(bool restart)
+const boost::shared_ptr<EncodedParamsBySimulation> DeveloperModel::getEncodedParamsObj(BigSerial simVersionId)
 {
-	isRestart = restart;
-}
-
-const boost::shared_ptr<StatusOfWorld> DeveloperModel::getStatusOfWorldObj(BigSerial simVersionId)
-{
-	const boost::shared_ptr<StatusOfWorld> statusOfWorldnObj(new StatusOfWorld(simVersionId,postcodeForDevAgent,buildingIdForDevAgent,unitIdForDevAgent,projectIdForDevAgent));
-	return statusOfWorldnObj;
+	const boost::shared_ptr<EncodedParamsBySimulation> encodedParamsObj(new EncodedParamsBySimulation(simVersionId,postcodeForDevAgent,buildingIdForDevAgent,unitIdForDevAgent,projectIdForDevAgent));
+	return encodedParamsObj;
 }
 
 Parcel* DeveloperModel::getParcelWithOngoingProjectById(BigSerial id) const {
@@ -657,3 +653,52 @@ Parcel* DeveloperModel::getParcelWithOngoingProjectById(BigSerial id) const {
     }
     return nullptr;
 }
+
+void DeveloperModel::addNewBuildings(boost::shared_ptr<Building> &newBuilding)
+{
+	addBuildingLock.lock();
+	newBuildings.push_back(newBuilding);
+	addBuildingLock.unlock();
+}
+
+void DeveloperModel::addNewProjects(boost::shared_ptr<Project> &newProject)
+{
+	addProjectsLock.lock();
+	newProjects.push_back(newProject);
+	addProjectsLock.unlock();
+}
+
+void DeveloperModel::addNewUnits(boost::shared_ptr<Unit> &newUnit)
+{
+	addUnitsLock.lock();
+	newUnits.push_back(newUnit);
+	addUnitsLock.unlock();
+}
+
+void DeveloperModel::addProfitableParcels(boost::shared_ptr<Parcel> &profitableParcel)
+{
+	addParcelLock.lock();
+	profitableParcels.push_back(profitableParcel);
+	addParcelLock.unlock();
+}
+
+std::vector<boost::shared_ptr<Building> > DeveloperModel::getBuildingsVec()
+{
+	return newBuildings;
+}
+
+std::vector<boost::shared_ptr<Unit> > DeveloperModel::getUnitsVec()
+{
+	return newUnits;
+}
+
+std::vector<boost::shared_ptr<Project> > DeveloperModel::getProjectsVec()
+{
+	return newProjects;
+}
+
+std::vector<boost::shared_ptr<Parcel> > DeveloperModel::getProfitableParcelsVec()
+{
+	return profitableParcels;
+}
+

@@ -490,6 +490,9 @@ void sim_mob::ParseConfigFile::ProcessLongTermParamsNode(xercesc::DOMElement* no
 	cfg.ltParams.workers 			 = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "workers"), "value"), static_cast<unsigned int>(0));
 	cfg.ltParams.year 				 = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "year"), "value"), static_cast<unsigned int>(0));
 	cfg.ltParams.simulationScenario  = ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "simulationScenario"), "value"), static_cast<std::string>(""));
+	cfg.ltParams.resume              = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName( node, "resume"), "value"), false );
+	cfg.ltParams.currentOutputSchema = ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "currentOutputSchema"), "value"), static_cast<std::string>(""));
+	cfg.ltParams.opSchemaloadingInterval = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "opSchemaloadingInterval"), "value"), static_cast<unsigned int>(0));
 
 	LongTermParams::DeveloperModel developerModel;
 	developerModel.enabled = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName( node, "developerModel"), "enabled"), false );

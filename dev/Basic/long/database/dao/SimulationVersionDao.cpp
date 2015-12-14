@@ -11,7 +11,7 @@
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
-SimulationVersionDao::SimulationVersionDao(DB_Connection& connection): SqlAbstractDao<SimulationVersion>( connection, DB_TABLE_SIM_VERSION,DB_INSERT_SIM_VERSION,EMPTY_STR, EMPTY_STR,DB_GETALL_SIMVERSION, EMPTY_STR){}
+SimulationVersionDao::SimulationVersionDao(DB_Connection& connection): SqlAbstractDao<SimulationVersion>( connection, EMPTY_STR,EMPTY_STR,EMPTY_STR, EMPTY_STR,DB_GETALL_SIMVERSION, EMPTY_STR){}
 
 SimulationVersionDao::~SimulationVersionDao() {}
 
@@ -33,6 +33,23 @@ void SimulationVersionDao::toRow(SimulationVersion& data, Parameters& outParams,
 	outParams.push_back(data.getSimStoppedTick());
 }
 
+void SimulationVersionDao::insertSimulationVersion(SimulationVersion& objToInsert,std::string schema)
+{
+
+	const std::string DB_INSERT_SIM_VERSION = "INSERT INTO " + APPLY_SCHEMA(schema, ".simulation_version")
+	        		+ " (" + "id" + ", " + "scenario" + ", " + "simulation_start_date" + ", " + "sim_stopped_tick"
+	        		+ ") VALUES (:v1, :v2, :v3, :v4)";
+	insertViaQuery(objToInsert,DB_INSERT_SIM_VERSION);
+
+}
+
+std::vector<SimulationVersion*> SimulationVersionDao::getAllSimulationVersions(std::string schema)
+{
+	const std::string queryStr = "SELECT * FROM " + APPLY_SCHEMA(schema, ".simulation_version") + LIMIT;
+	std::vector<SimulationVersion*> simulationVersionList;
+	getByQuery(queryStr,simulationVersionList);
+	return simulationVersionList;
+}
 
 
 

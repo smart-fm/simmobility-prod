@@ -8,7 +8,7 @@
 #pragma once
 
 #include "database/dao/SqlAbstractDao.hpp"
-#include "database/entity/StatusOfWorld.hpp"
+#include "database/entity/EncodedParamsBySimulation.hpp"
 
 
 namespace sim_mob {
@@ -16,10 +16,10 @@ namespace sim_mob {
         /**
          * Data Access Object to SlaParcel table on data source.
          */
-        class StatusOfWorldDao : public db::SqlAbstractDao<StatusOfWorld> {
+        class EncodedParamsBySimulationDao : public db::SqlAbstractDao<EncodedParamsBySimulation> {
         public:
-        	StatusOfWorldDao(db::DB_Connection& connection);
-            virtual ~StatusOfWorldDao();
+        	EncodedParamsBySimulationDao(db::DB_Connection& connection);
+            virtual ~EncodedParamsBySimulationDao();
 
         private:
             /**
@@ -27,7 +27,7 @@ namespace sim_mob {
              * @param result row with data to fill the out object.
              * @param outObj to fill.
              */
-            void fromRow(db::Row& result, StatusOfWorld& outObj);
+            void fromRow(db::Row& result, EncodedParamsBySimulation& outObj);
 
             /**
              * Fills the outParam with all values to insert or update on datasource.
@@ -35,7 +35,10 @@ namespace sim_mob {
              * @param outParams to put the data parameters.
              * @param update tells if operation is an Update or Insert.
              */
-            void toRow(StatusOfWorld& data, db::Parameters& outParams, bool update);
+            void toRow(EncodedParamsBySimulation& data, db::Parameters& outParams, bool update);
+
+        public:
+            void insertEncodedParams(EncodedParamsBySimulation& encodedParams,std::string schema);
         };
     }
 }

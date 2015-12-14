@@ -10,6 +10,7 @@
  * Created on May 16, 2013, 5:13 PM
  */
 #include <cmath>
+#include <boost/make_shared.hpp>
 #include "HouseholdSellerRole.hpp"
 #include "util/Statistics.hpp"
 #include "util/Math.hpp"
@@ -48,8 +49,8 @@ namespace
      */
     inline void printBid(const HouseholdAgent& agent, const Bid& bid, const ExpectationEntry& entry, unsigned int bidsCounter, bool accepted)
     {
-    	const HM_Model* model = agent.getModel();
-    	const Unit* unit  = model->getUnitById(bid.getUnitId());
+    	HM_Model* model = agent.getModel();
+    	const Unit* unit  = model->getUnitById(bid.getNewUnitId());
         double floor_area = unit->getFloorArea();
         BigSerial type_id = unit->getUnitType();
         int UnitslaId = unit->getSlaAddressId();
@@ -60,10 +61,10 @@ namespace
         const Unit* thisUnit = model->getUnitById(thisBidder->getUnitId());
         Postcode* thisPostcode = model->getPostcodeById( thisUnit->getSlaAddressId() );
 
-        boost::format fmtr = boost::format(LOG_BID) % bid.getTime().ms()
+        boost::format fmtr = boost::format(LOG_BID) % bid.getSimulationDay()
 													% agent.getId()
 													% bid.getBidderId()
-													% bid.getUnitId()
+													% bid.getNewUnitId()
 													% bid.getWillingnessToPay()
 													% thisBidder->getAffordabilityAmount()
 													% entry.hedonicPrice
@@ -71,13 +72,16 @@ namespace
 													% floor_area
 													% type_id
 													% entry.targetPrice
-													% bid.getValue()
+													% bid.getBidValue()
 													% bidsCounter
 													% ((accepted) ? 1 : 0)
 													% thisPostcode->getSlaPostcode()
 													% unitPostcode->getSlaPostcode();
 
         AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::BIDS, fmtr.str());
+
+        boost::shared_ptr<Bid> newBid = boost::make_shared<Bid>(bid);
+        model->addNewBids(newBid);
         //PrintOut(fmtr.str() << endl);
     }
 
@@ -111,7 +115,7 @@ namespace
      */
     inline bool decide(const Bid& bid, const ExpectationEntry& entry)
     {
-        return bid.getValue() > entry.targetPrice;
+        return bid.getBidValue() > entry.targetPrice;
     }
 
     /**
@@ -281,7 +285,7 @@ void HouseholdSellerRole::HandleMessage(Message::MessageType type, const Message
         case LTMID_BID:// Bid received 
         {
             const BidMessage& msg = MSG_CAST(BidMessage, message);
-            BigSerial unitId = msg.getBid().getUnitId();
+            BigSerial unitId = msg.getBid().getNewUnitId();
             bool decision = false;
             ExpectationEntry entry;
 
@@ -308,7 +312,7 @@ void HouseholdSellerRole::HandleMessage(Message::MessageType type, const Message
                     {
                         maxBidsOfDay.insert(std::make_pair(unitId, msg.getBid()));
                     }
-                    else if(maxBidOfDay->getValue() < msg.getBid().getValue())
+                    else if(maxBidOfDay->getBidValue() < msg.getBid().getBidValue())
                     {
                         // bid is higher than the current one of the day.
                         // it is necessary to notify the old max bidder
@@ -400,17 +404,17 @@ void HouseholdSellerRole::notifyWinnerBidders()
     {
         Bid& maxBidOfDay = itr->second;
         ExpectationEntry entry;
-        getCurrentExpectation(maxBidOfDay.getUnitId(), entry);
-        replyBid(*getParent(), maxBidOfDay, entry, ACCEPTED, getCounter(dailyBids, maxBidOfDay.getUnitId()));
+        getCurrentExpectation(maxBidOfDay.getNewUnitId(), entry);
+        replyBid(*getParent(), maxBidOfDay, entry, ACCEPTED, getCounter(dailyBids, maxBidOfDay.getNewUnitId()));
 
         //PrintOut("\033[1;37mSeller " << std::dec << getParent()->GetId() << " accepted the bid of " << maxBidOfDay.getBidderId() << " for unit " << maxBidOfDay.getUnitId() << " at $" << maxBidOfDay.getValue() << " psf. \033[0m\n" );
 		#ifdef VERBOSE
         PrintOutV("[day " << currentTime.ms() << "] Seller " << std::dec << getParent()->getId() << " accepted the bid of " << maxBidOfDay.getBidderId() << " for unit " << maxBidOfDay.getUnitId() << " at $" << maxBidOfDay.getValue() << std::endl );
 		#endif
 
-        market->removeEntry(maxBidOfDay.getUnitId());
-        getParent()->removeUnitId(maxBidOfDay.getUnitId());
-        sellingUnitsMap.erase(maxBidOfDay.getUnitId());
+        market->removeEntry(maxBidOfDay.getNewUnitId());
+        getParent()->removeUnitId(maxBidOfDay.getNewUnitId());
+        sellingUnitsMap.erase(maxBidOfDay.getNewUnitId());
     }
 
     // notify winners.

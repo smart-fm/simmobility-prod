@@ -29,10 +29,13 @@
 #include "database/entity/TAO.hpp"
 #include "database/entity/UnitPriceSum.hpp"
 #include "database/entity/TazLevelLandPrice.hpp"
-#include "database/entity/StatusOfWorld.hpp"
+#include "database/entity/EncodedParamsBySimulation.hpp"
 #include "agent/impl/DeveloperAgent.hpp"
 #include "agent/impl/RealEstateAgent.hpp"
 #include "model/HM_Model.hpp"
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
+
 
 namespace sim_mob {
     namespace long_term {
@@ -56,7 +59,7 @@ namespace sim_mob {
             typedef std::vector<TAO*> TAOList;
             typedef std::vector<UnitPriceSum*> UnitPriceSumList;
             typedef std::vector<TazLevelLandPrice*>TazLevelLandPriceList;
-            typedef std::vector<StatusOfWorld*>StatusOfWorldList;
+            typedef std::vector<EncodedParamsBySimulation*>EncodedParamsList;
 
             //maps
             typedef boost::unordered_map<BigSerial,Parcel*> ParcelMap;
@@ -169,10 +172,6 @@ namespace sim_mob {
              */
             int getSimYearForDevAgent();
 
-            void addProjects(boost::shared_ptr<Project> project);
-
-            void addBuildings(boost::shared_ptr<Building> building);
-
             const RealEstateAgent* getRealEstateAgentForDeveloper();
 
             void setRealEstateAgentIds(std::vector<BigSerial> realEstateAgentIdVec);
@@ -200,17 +199,27 @@ namespace sim_mob {
             const int getBuildingAvgAge(const BigSerial fmParcelId) const;
 
             /*
-             * set whether the simulation is a restart or a new run
-             */
-            void setIsRestart(bool restart);
-
-            /*
              * @return StatusOfWorld object to be inserted to DB at the end of the simulation
              */
-            const boost::shared_ptr<StatusOfWorld> getStatusOfWorldObj(BigSerial simVersionId);
+            const boost::shared_ptr<EncodedParamsBySimulation> getEncodedParamsObj(BigSerial simVersionId);
 
             Parcel* getParcelWithOngoingProjectById(BigSerial parcelId) const;
 
+            void addNewBuildings(boost::shared_ptr<Building> &newBuilding);
+
+            void addNewProjects(boost::shared_ptr<Project> &newProject);
+
+            void addNewUnits(boost::shared_ptr<Unit> &newUnit);
+
+            void addProfitableParcels(boost::shared_ptr<Parcel> &profitableParcel);
+
+            std::vector<boost::shared_ptr<Building> > getBuildingsVec();
+
+            std::vector<boost::shared_ptr<Unit> > getUnitsVec();
+
+            std::vector<boost::shared_ptr<Project> > getProjectsVec();
+
+            std::vector<boost::shared_ptr<Parcel> > getProfitableParcelsVec();
 
         protected:
             /**
@@ -229,7 +238,6 @@ namespace sim_mob {
             ParcelList emptyParcels;
             ParcelList parcelsWithOngoingProjects;
             BuildingList buildings;
-            std::vector<boost::shared_ptr<Building> > newBuildings;
             DevelopmentTypeTemplateList developmentTypeTemplates;
             TemplateUnitTypeList templateUnitTypes;
             BuildingSpaceList buildingSpaces;
@@ -277,10 +285,17 @@ namespace sim_mob {
             TazLevelLandPriceMap tazLevelLandPriceByTazId;
             boost::mutex buildingIdLock;
             mutable boost::mutex mtx1;
+            boost::mutex addParcelLock;
+            boost::mutex addBuildingLock;
+            boost::mutex addUnitsLock;
+            boost::mutex addProjectsLock;
             bool isRestart;
-            StatusOfWorldList statusOfWorld;
+            EncodedParamsList encodedParamsList;
             boost::mutex projectIdLock;
             boost::mutex postcodeLock;
+            std::vector<boost::shared_ptr<Building> > newBuildings;
+            std::vector<boost::shared_ptr<Unit> > newUnits;
+            std::vector<boost::shared_ptr<Parcel> > profitableParcels;
         };
     }
 }

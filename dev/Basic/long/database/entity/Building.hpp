@@ -28,6 +28,15 @@ namespace sim_mob
 
             virtual ~Building();
 
+            Building( const Building &source);
+
+            /**
+             * Assign operator.
+             * @param source to assign.
+             * @return Building instance reference.
+             */
+            Building& operator=(const Building& source);
+
             /**
              * Gets unique identifier of the Building Type.
              * @return id.
@@ -119,12 +128,6 @@ namespace sim_mob
             void setToDate(const std::tm& toDate);
             void setLastChangedDate(const std::tm& lastChangedDate);
 
-            /**
-             * Assign operator.
-             * @param source to assign.
-             * @return Building instance reference.
-             */
-            Building& operator=(const Building& source);
 
             /**
              * Operator to print the Building data.  

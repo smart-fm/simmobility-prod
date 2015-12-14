@@ -30,6 +30,70 @@ Parcel::Parcel(BigSerial id,BigSerial tazId, float lot_size, std::string gpr,int
 
 Parcel::~Parcel() {}
 
+Parcel::Parcel( const Parcel& source)
+{
+	this->id = source.id;
+	this->tazId = source.tazId;
+	this->lot_size = source.lot_size;
+	//this->gpr = new std::string(source.gpr);
+	//this->gpr = source.gpr.c_str();
+	this->gpr = source.gpr;
+	this->land_use_type_id = source.land_use_type_id;
+	this->owner_name = source.owner_name;
+	this->owner_category = source.owner_category;
+	this->last_transaction_date = source.last_transaction_date;
+	this->last_transaction_type_total = source.last_transaction_type_total;
+	this->psm_per_gps = source.psm_per_gps;
+	this->lease_type = source.lease_type;
+	this->lease_start_date = source.lease_start_date;
+	this->centroid_x = source.centroid_x;
+	this->centroid_y = source.centroid_y;
+	this->award_date = source.award_date;
+	this->award_status = source.award_status;
+	this->use_restriction = source.use_restriction;
+	this->development_type_code = source.development_type_code;
+	this->successful_tender_id = source.successful_tender_id;
+	this->successful_tender_price = source.successful_tender_price;
+	this->tender_closing_date = source.tender_closing_date;
+	this->lease = source.lease;
+	this->status = source.status;
+	this->developmentAllowed = source.developmentAllowed;
+	this->nextAvailableDate = source.nextAvailableDate;
+	this->lastChangedDate = source.lastChangedDate;
+}
+
+Parcel& Parcel::operator=( const Parcel& source)
+{
+	this->id = source.id;
+	this->tazId = source.tazId;
+	this->lot_size = source.lot_size;
+	this->gpr = source.gpr;
+	this->land_use_type_id = source.land_use_type_id;
+	this->owner_name = source.owner_name;
+	this->owner_category = source.owner_category;
+	this->last_transaction_date = source.last_transaction_date;
+	this->last_transaction_type_total = source.last_transaction_type_total;
+	this->psm_per_gps = source.psm_per_gps;
+	this->lease_type = source.lease_type;
+	this->lease_start_date = source.lease_start_date;
+	this->centroid_x = source.centroid_x;
+	this->centroid_y = source.centroid_y;
+	this->award_date = source.award_date;
+	this->award_status = source.award_status;
+	this->use_restriction = source.use_restriction;
+	this->development_type_code = source.development_type_code;
+	this->successful_tender_id = source.successful_tender_id;
+	this->successful_tender_price = source.successful_tender_price;
+	this->tender_closing_date = source.tender_closing_date;
+	this->lease = source.lease;
+	this->status = source.status;
+	this->developmentAllowed = source.developmentAllowed;
+	this->nextAvailableDate = source.nextAvailableDate;
+	this->lastChangedDate = source.lastChangedDate;
+
+	return *this;
+}
+
 BigSerial Parcel::getId() const
 {
     return id;

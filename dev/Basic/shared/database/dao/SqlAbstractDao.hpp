@@ -144,6 +144,48 @@ public:
 		return entity;
 	}
 
+	virtual T& insertViaQuery(T& entity, std::string insertQuery, bool returning = false)
+	{
+		if (isConnected())
+		{
+			// Get data to insert.
+			Parameters params;
+			toRow(entity, params, false);
+
+			Transaction tr(connection.getSession<soci::session>());
+			Statement query(connection.getSession<soci::session>());
+			//append returning clause.
+			//Attention: this is only prepared for POSTGRES.
+			std::string upperQuery = boost::to_upper_copy(insertQuery);
+
+			if (returning)
+			{
+				size_t found = upperQuery.rfind(DB_RETURNING_CLAUSE);
+				if (found == std::string::npos)
+				{
+					upperQuery += DB_RETURNING_ALL_CLAUSE;
+				}
+			}
+
+			// prepare statement.
+			prepareStatement(upperQuery, params, query);
+			//TODO: POSTGRES ONLY for now
+			//execute and return data if (RETURNING clause is defined)
+			ResultSet rs(query);
+
+			if (returning)
+			{
+				ResultSet::const_iterator it = rs.begin();
+				if (it != rs.end())
+				{
+					fromRow((*it), entity);
+				}
+			}
+			tr.commit();
+		}
+		return entity;
+	}
+
 	virtual bool update(T& entity)
 	{
 		if (isConnected())
@@ -224,6 +266,22 @@ public:
 	virtual bool getByQueryId(std::string query, const Parameters& ids,std::vector<T*>& outList)
 	{
 		return getByValues(query, ids, outList);
+	}
+
+	bool executeQuery(std::string queryStr)
+	{
+		if (isConnected())
+				{
+					Transaction tr(connection.getSession<soci::session>());
+					Statement query(connection.getSession<soci::session>());
+					// prepare statement.
+					prepareStatement(queryStr, EMPTY_PARAMS, query);
+					//execute query.
+					ResultSet rs(query);
+					tr.commit();
+					return true;
+				}
+				return false;
 	}
 
 protected:

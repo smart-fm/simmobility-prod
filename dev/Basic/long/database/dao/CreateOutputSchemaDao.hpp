@@ -1,31 +1,34 @@
 /*
- * ProjectDao.hpp
+ * CreateOutputSchemaDao.hpp
  *
- *  Created on: Aug 21, 2014
+ *  Created on: Nov 23, 2015
  *      Author: gishara
  */
+
 #pragma once
-
 #include "database/dao/SqlAbstractDao.hpp"
-#include "database/entity/Project.hpp"
+#include "database/entity/CreateOutputSchema.hpp"
 
+using namespace boost;
 namespace sim_mob {
+
     namespace long_term {
         /**
-         * Data Access Object to Project table on data source.
+         * Data Access Object to CreateOutputSchema table on datasource.
          */
-        class ProjectDao : public db::SqlAbstractDao<Project> {
+        class CreateOutputSchemaDao : public db::SqlAbstractDao<CreateOutputSchema> {
         public:
-            ProjectDao(db::DB_Connection& connection);
-            virtual ~ProjectDao();
+        	CreateOutputSchemaDao(db::DB_Connection& connection);
+            virtual ~CreateOutputSchemaDao();
 
         private:
+
             /**
              * Fills the given outObj with all values contained on Row.
              * @param result row with data to fill the out object.
              * @param outObj to fill.
              */
-            void fromRow(db::Row& result, Project& outObj);
+            void fromRow(db::Row& result, CreateOutputSchema& outObj);
 
             /**
              * Fills the outParam with all values to insert or update on datasource.
@@ -33,10 +36,11 @@ namespace sim_mob {
              * @param outParams to put the data parameters.
              * @param update tells if operation is an Update or Insert.
              */
-            void toRow(Project& data, db::Parameters& outParams, bool update);
-
-        public:
-            void insertProject(Project& project,std::string schema);
+            void toRow(CreateOutputSchema& data, db::Parameters& outParams, bool update);
         };
     }
 }
+
+
+
+

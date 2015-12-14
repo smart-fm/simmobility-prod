@@ -56,4 +56,17 @@ void ProjectDao::toRow(Project& data, Parameters& outParams, bool update)
 	outParams.push_back(data.getProjectStatus());
 }
 
+void ProjectDao::insertProject(Project& project,std::string schema)
+{
+
+	const std::string DB_INSERT_PROJECT_OP = "INSERT INTO " + APPLY_SCHEMA(schema, ".fm_project")
+                        		+ " (" + "fm_project_id" + ", " + "fm_parcel_id" + ", " + "developer_id"
+                        		+ ", " + "template_id" + ", " + "project_name" + ", "
+                        		+ "construction_date" + ", " + "completion_date"  + ", "+ "construction_cost" + ", " + "demolition_cost" + ", "
+                        		+ "total_cost" + ", " + "fm_lot_size" + ", " + "gross_ratio"  + ", " + "gross_area"
+                        		+ ", "+ "planned_date"  + ", " + "project_status"
+                        		+ ") VALUES (:v1, :v2, :v3, :v4, :v5, :v6, :v7, :v8, :v9, :v10, :v11, :v12, :v13, :v14, :v15)";
+	insertViaQuery(project,DB_INSERT_PROJECT_OP);
+
+}
 

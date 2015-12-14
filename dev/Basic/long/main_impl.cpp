@@ -31,8 +31,13 @@
 #include "core/AgentsLookup.hpp"
 #include "model/DeveloperModel.hpp"
 #include "database/dao/SimulationVersionDao.hpp"
-#include "database/dao/StatusOfWorldDao.hpp"
+#include "database/dao/EncodedParamsBySimulationDao.hpp"
 #include "database/entity/SimulationVersion.hpp"
+#include "database/dao/CreateOutputSchemaDao.hpp"
+#include "database/dao/BuildingDao.hpp"
+#include "database/dao/ParcelDao.hpp"
+#include "database/dao/UnitDao.hpp"
+#include "database/dao/ProjectDao.hpp"
 #include "util/HelperFunctions.hpp"
 
 using std::cout;
@@ -83,6 +88,86 @@ int printReport(int simulationNumber, vector<Model*>& models, StopWatch& simulat
     return 0;
 }
 
+void createOutputSchema(db::DB_Connection& conn,const std::string& currentOutputSchema)
+{
+	if(conn.isConnected())
+	{
+		CreateOutputSchemaDao createOPDao(conn);
+		std::string createSchemaquery = "CREATE SCHEMA " + currentOutputSchema +";";
+		createOPDao.executeQuery(createSchemaquery);
+		std::string setSearchPathQuery = "SET search_path to " + currentOutputSchema;
+		createOPDao.executeQuery(setSearchPathQuery);
+
+
+		std::vector<CreateOutputSchema*> createOPSchemaList;
+		loadData<CreateOutputSchemaDao>(conn,createOPSchemaList);
+		std::vector<CreateOutputSchema*>::iterator opSchemaTablesItr;
+		for(opSchemaTablesItr = createOPSchemaList.begin(); opSchemaTablesItr != createOPSchemaList.end(); ++opSchemaTablesItr)
+		{
+			std::string createTableQuery = (*opSchemaTablesItr)->getQuery();
+			std::string query = "CREATE TABLE " + currentOutputSchema +"."+ createTableQuery +";";
+			createOPDao.executeQuery(query);
+		}
+	}
+
+}
+
+void loadDataToOutputSchema(db::DB_Connection& conn,std::string &currentOutputSchema,BigSerial simVersionId,int simStoppedTick,DeveloperModel &developerModel)
+{
+	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+	bool resume = config.ltParams.resume;
+	unsigned int year = config.ltParams.year;
+	std::string scenario = config.ltParams.simulationScenario;
+	std::string simScenario = boost::lexical_cast<std::string>(scenario)+"_"+boost::lexical_cast<std::string>(year);
+	time_t rawtime;
+	struct tm * timeinfo;
+	time (&rawtime);
+	timeinfo = localtime (&rawtime);
+	boost::shared_ptr<SimulationVersion>simVersionObj(new SimulationVersion(simVersionId,simScenario,*timeinfo,simStoppedTick));
+	SimulationVersionDao simVersionDao(conn);
+
+	if(conn.isConnected())
+	{
+		simVersionDao.insertSimulationVersion(*simVersionObj.get(),currentOutputSchema);
+		EncodedParamsBySimulationDao encodedParamsDao(conn);
+		encodedParamsDao.insertEncodedParams(*(developerModel.getEncodedParamsObj(simVersionId)).get(),currentOutputSchema);
+
+		std::vector<boost::shared_ptr<Building> > buildings = developerModel.getBuildingsVec();
+		std::vector<boost::shared_ptr<Building> >::iterator buildingsItr;
+		BuildingDao buildingDao(conn);
+		for(buildingsItr = buildings.begin(); buildingsItr != buildings.end(); ++buildingsItr)
+		{
+			buildingDao.insertBuilding(*(*buildingsItr),currentOutputSchema);
+		}
+
+		std::vector<boost::shared_ptr<Parcel> > parcels = developerModel.getProfitableParcelsVec();
+		std::vector<boost::shared_ptr<Parcel> >::iterator parcelsItr;
+		ParcelDao parcelDao(conn);
+		for(parcelsItr = parcels.begin(); parcelsItr != parcels.end(); ++parcelsItr)
+		{
+			parcelDao.insertParcel(*(*parcelsItr),currentOutputSchema);
+		}
+
+		std::vector<boost::shared_ptr<Unit> > units = developerModel.getUnitsVec();
+		std::vector<boost::shared_ptr<Unit> >::iterator unitsItr;
+		UnitDao unitDao(conn);
+		for(unitsItr = units.begin(); unitsItr != units.end(); ++unitsItr)
+		{
+			unitDao.insertUnit(*(*unitsItr),currentOutputSchema);
+		}
+
+		std::vector<boost::shared_ptr<Project> > projects = developerModel.getProjectsVec();
+		std::vector<boost::shared_ptr<Project> >::iterator projectsItr;
+		ProjectDao projectDao(conn);
+		for(projectsItr = projects.begin(); projectsItr != projects.end(); ++projectsItr)
+		{
+			projectDao.insertProject(*(*projectsItr),currentOutputSchema);
+		}
+
+//		developerModel.getBuildingsVec().clear();
+	}
+}
+
 void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
 {
 	time_t timeInSeconds = std::time(0);
@@ -102,10 +187,10 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
 
     const bool enableDeveloperModel = config.ltParams.developerModel.enabled;
     const unsigned int timeIntervalDevModel = config.ltParams.developerModel.timeInterval;
+    unsigned int opSchemaloadingInterval = config.ltParams.opSchemaloadingInterval;
 
     int lastStoppedTick = 0;
     int simStoppedTick = 0;
-    bool restart = false;
 
     //configure time.
     config.baseGranMS() = tickStep;
@@ -133,21 +218,40 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
     // Connect to database.
     DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
     conn.connect();
-    if (conn.isConnected())
-    {
-    	loadData<SimulationVersionDao>(conn,simulationVersionList);
-    }
-    	BigSerial simVersionId = 0;
+    SimulationVersionDao simVersionDao(conn);
+    bool resume = config.ltParams.resume;
+    std::string currentOutputSchema;
 
-    	if(simulationVersionList.empty())
+    unsigned int year = config.ltParams.year;
+    std::string scenario = config.ltParams.simulationScenario;
+    std::string simScenario = boost::lexical_cast<std::string>(scenario)+"_"+boost::lexical_cast<std::string>(year);
+    time_t rawtime;
+    struct tm * timeinfo;
+    time (&rawtime);
+    timeinfo = localtime (&rawtime);
+    BigSerial simVersionId = 1;
+
+    if(resume)
+    {
+    	currentOutputSchema = config.ltParams.currentOutputSchema;
+    	if(conn.isConnected())
     	{
-    		simVersionId = 1;
+    		simulationVersionList = simVersionDao.getAllSimulationVersions(currentOutputSchema);
+    		if(!simulationVersionList.empty())
+    		{
+    			simVersionId = simulationVersionList[simulationVersionList.size()-1]->getId() + 1;
+    			lastStoppedTick = simulationVersionList[simulationVersionList.size()-1]->getSimStoppedTick();
+    		}
     	}
-    	else
-    	{
-    		simVersionId = simulationVersionList[simulationVersionList.size()-1]->getId() + 1;
-    		lastStoppedTick = simulationVersionList[simulationVersionList.size()-1]->getSimStoppedTick();
-    	}
+    }
+    else
+    {
+    	char buffer[80];
+    	strftime(buffer,80,"%Y%m%d%I%M%S",timeinfo);
+    	std::string dateTimeStr(buffer);
+    	currentOutputSchema = simScenario +"_"+ dateTimeStr;
+
+    }
 
 
     vector<Model*> models;
@@ -187,14 +291,14 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
         unsigned int currentTick = 0;
 
         //set the currentTick to the last stopped date if it is a restart run
-        if (lastStoppedTick < days && lastStoppedTick > 0)
+        if (resume )
         {
         	currentTick = lastStoppedTick;
-        	restart = true;
         }
 
         if( enableHousingMarket )
         	 housingMarketModel = new HM_Model(*hmWorkers);//initializing the housing market model
+             housingMarketModel->setStartDay(currentTick);
         	 models.push_back(housingMarketModel);
 
         if( enableDeveloperModel )
@@ -202,8 +306,7 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
         	 //initiate developer model; to be referred later at each time tick (day)
         	 developerModel = new DeveloperModel(*devWorkers, timeIntervalDevModel);
         	 developerModel->setHousingMarketModel(housingMarketModel);
-        	 developerModel->setDays(days);
-        	 developerModel->setIsRestart(restart);
+        	// developerModel->setConfigParams(config);
         	 models.push_back(developerModel);
         }
 
@@ -223,11 +326,17 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
         PrintOutV("Started all workgroups." << endl);
         PrintOutV("Day of Simulation: " << std::endl);
 
-
-
         for (unsigned int currTick = currentTick; currTick < days; currTick++)
         {
         	simStoppedTick = currTick;
+        	if((currTick+1) == opSchemaloadingInterval)
+        	{
+        		createOutputSchema(conn,currentOutputSchema);
+        	}
+        	if((currTick > 0) && ((currTick+1)%opSchemaloadingInterval == 0))
+        	{
+        		loadDataToOutputSchema(conn,currentOutputSchema,simVersionId,simStoppedTick,*developerModel);
+        	}
             if( currTick == 0 )
             {
 				PrintOutV(" Lifestyle1: " << (dynamic_cast<HM_Model*>(models[0]))->getLifestyle1HHs() <<
@@ -278,23 +387,6 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
         if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled() && config.mergeLogFiles())
         {
             resLogFiles = wgMgr.retrieveOutFileNames();
-        }
-        
-        unsigned int year = config.ltParams.year;
-        std::string scenario = config.ltParams.simulationScenario;
-        std::string simScenario = boost::lexical_cast<std::string>(scenario)+"_"+boost::lexical_cast<std::string>(year);
-        time_t rawtime;
-        struct tm * timeinfo;
-        time (&rawtime);
-        timeinfo = localtime (&rawtime);
-        boost::shared_ptr<SimulationVersion>simVersionObj(new SimulationVersion(simVersionId,simScenario,*timeinfo,simStoppedTick));
-        if(conn.isConnected())
-        {
-        	SimulationVersionDao simVersionDao(conn);
-        	simVersionDao.insert(*simVersionObj.get());
-
-        	StatusOfWorldDao statusOfWorldDao(conn);
-        	statusOfWorldDao.insert(*(developerModel->getStatusOfWorldObj(simVersionId)).get());
         }
 
         //stop all models.

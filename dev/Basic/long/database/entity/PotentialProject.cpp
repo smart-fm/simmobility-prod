@@ -123,6 +123,14 @@ PotentialProject::PotentialProject( const PotentialProject &source)
 		unit.setFloorArea(source.units[i].getFloorArea());
 		this->units[i]= unit;
 	}
+
+	this->templateUnitTypes = source.templateUnitTypes;
+		for (int i=0; i < source.templateUnitTypes.size(); i++)
+		{
+			TemplateUnitType templateUnitType;
+			templateUnitType = source.templateUnitTypes[i];
+			this->templateUnitTypes[i] = templateUnitType;
+		}
 }
 
 PotentialProject& PotentialProject::operator=(const PotentialProject& source)
@@ -151,6 +159,14 @@ PotentialProject& PotentialProject::operator=(const PotentialProject& source)
 			unit.setFloorArea(source.units[i].getFloorArea());
 			this->units[i]= unit;
 		}
+
+	this->templateUnitTypes = source.templateUnitTypes;
+			for (int i=0; i < source.templateUnitTypes.size(); i++)
+			{
+				TemplateUnitType templateUnitType;
+				templateUnitType = source.templateUnitTypes[i];
+				this->templateUnitTypes[i] = templateUnitType;
+			}
 	return *this;
 }
 
@@ -161,7 +177,7 @@ void PotentialProject::addUnit(const PotentialUnit& unit) {
     units.push_back(unit);
 }
 
-void PotentialProject::addTemplateUnitType(TemplateUnitType* templateUnitType) {
+void PotentialProject::addTemplateUnitType(const TemplateUnitType& templateUnitType) {
 
 	templateUnitTypes.push_back(templateUnitType);
 }

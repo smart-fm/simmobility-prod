@@ -357,7 +357,7 @@ double HM_Model::TazStats::getAvgHHSize() const
 }
 
 
-HM_Model::HM_Model(WorkGroup& workGroup) :	Model(MODEL_NAME, workGroup),numberOfBidders(0), initialHHAwakeningCounter(0), numLifestyle1HHs(0), numLifestyle2HHs(0), numLifestyle3HHs(0), hasTaxiAccess(false),householdLogsumCounter(0), simulationStopCounter(0){}
+HM_Model::HM_Model(WorkGroup& workGroup) :	Model(MODEL_NAME, workGroup),numberOfBidders(0), initialHHAwakeningCounter(0), numLifestyle1HHs(0), numLifestyle2HHs(0), numLifestyle3HHs(0), hasTaxiAccess(false),householdLogsumCounter(0), simulationStopCounter(0), developerModel(nullptr),startDay(0),bidId(0){}
 
 HM_Model::~HM_Model()
 {
@@ -971,7 +971,15 @@ HM_Model::HitsIndividualLogsumList HM_Model::getHitsIndividualLogsumVec() const
 	return hitsIndividualLogsum;
 }
 
+void HM_Model::setStartDay(int day)
+{
+	startDay = day;
+}
 
+int HM_Model::getStartDay() const
+{
+	return this->startDay;
+}
 void HM_Model::addHouseholdGroupByGroupId(HouseholdGroup* hhGroup)
 {
 	mtx2.lock();
@@ -1389,7 +1397,7 @@ void HM_Model::startImpl()
 
 				if( awakeningProbability < config.ltParams.housingModel.vacantUnitActivationProbability )
 				{
-					(*it)->setbiddingMarketEntryDay( 0 );
+					(*it)->setbiddingMarketEntryDay( startDay );
 					(*it)->setTimeOnMarket( 1 + int((float)rand() / RAND_MAX * ( config.ltParams.housingModel.timeOnMarket )) );
 
 					onMarket++;
@@ -1986,6 +1994,21 @@ void HM_Model::hdbEligibilityTest(int index)
 			households[index]->setThreeRoomHdbEligibility(true);
 			households[index]->setFourRoomHdbEligibility(true);
 		}
+	}
+}
+
+void HM_Model::addNewBids(boost::shared_ptr<Bid> &newBid)
+{
+	addBidsLock.lock();
+	newBids.push_back(newBid);
+	addBidsLock.unlock();
+}
+
+BigSerial HM_Model::getBidId()
+{
+	{
+		boost::mutex::scoped_lock lock(bidIdLock);
+		return ++bidId;
 	}
 }
 

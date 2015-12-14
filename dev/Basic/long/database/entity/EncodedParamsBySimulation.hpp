@@ -15,12 +15,12 @@ namespace sim_mob
 {
     namespace long_term
     {
-        class StatusOfWorld
+        class EncodedParamsBySimulation
         {
         public:
-        	StatusOfWorld(BigSerial simVersionId = INVALID_ID, BigSerial postcode = INVALID_ID, BigSerial buildingId = INVALID_ID, BigSerial unitId = INVALID_ID, BigSerial projectId = INVALID_ID);
+        	EncodedParamsBySimulation(BigSerial simVersionId = INVALID_ID, BigSerial postcode = INVALID_ID, BigSerial buildingId = INVALID_ID, BigSerial unitId = INVALID_ID, BigSerial projectId = INVALID_ID);
 
-            virtual ~StatusOfWorld();
+            virtual ~EncodedParamsBySimulation();
 
             /**
              * Getters and Setters
@@ -40,10 +40,10 @@ namespace sim_mob
             /**
              * Operator to print the Status if the world data.
              */
-            friend std::ostream& operator<<(std::ostream& strm, const StatusOfWorld& data);
+            friend std::ostream& operator<<(std::ostream& strm, const EncodedParamsBySimulation& data);
 
         private:
-            friend class StatusOfWorldDao;
+            friend class EncodedParamsBySimulationDao;
 
         private:
             BigSerial simVersionId;

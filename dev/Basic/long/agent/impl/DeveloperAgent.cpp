@@ -390,13 +390,13 @@ inline void createPotentialUnits(PotentialProject& project,const DeveloperModel*
      */
     inline void addUnitTemplates(PotentialProject& project, const DeveloperModel::TemplateUnitTypeList& unitTemplates)
     {
-    	std::vector<TemplateUnitType>::const_iterator itr;
+    	DeveloperModel::TemplateUnitTypeList::const_iterator itr;
 
         for (itr = unitTemplates.begin(); itr != unitTemplates.end(); itr++)
         {
-            if ((itr)->getTemplateId() == project.getDevTemplate()->getTemplateId())
+            if ((*itr)->getTemplateId() == project.getDevTemplate()->getTemplateId())
             {
-            	project.addTemplateUnitType((*itr));
+            	project.addTemplateUnitType(*(*itr));
 
             }
         }

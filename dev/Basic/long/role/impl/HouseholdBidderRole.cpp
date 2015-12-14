@@ -604,7 +604,7 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 		return 0.0;
 
 
-	if( unitType <= ID_HDB5 )
+	if( unitType <= 6  || unitType == 65 )
 	{
 		sde 	 = 0.4371165786;
 		barea 	 = 0.8095874824;
@@ -853,7 +853,7 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 					(bageOfUnit30Squared * ZZ_ageOfUnitHDB * ZZ_ageOfUnitHDB ) +
 					(bageOfUnitGreater30 * ZZ_ageBet25And50 );
 
-	if( unit->getUnitType() <= ID_HDB5 )
+	if( unit->getUnitType() <= 6 || unitType == 65 )
 		V = Vhdb;
 	else
 		V = Vpriv;

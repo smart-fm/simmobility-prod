@@ -771,7 +771,7 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 
 	}
 
-	const HM_Model::TazStats *tazstats = model->getTazStats( hometazId );
+	const HM_Model::TazStats *tazstats  = getParent()->getModel()->getTazStatsByUnitId(unit->getId());
 
 	if( tazstats->getChinesePercentage() > 0.76 ) //chetan TODO: add to xml file
 		ZZ_hhchinese = 1;
@@ -851,7 +851,7 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 					(bhdb5 	 * HDB5	 ) +
 					(bageOfUnit30 * ZZ_ageOfUnitHDB ) +
 					(bageOfUnit30Squared * ZZ_ageOfUnitHDB * ZZ_ageOfUnitHDB ) +
-					(bageOfUnitGreater30 * ZZ_ageBet25And50 );
+					(bageOfUnitGreater30 * ZZ_ageGreater30 );
 
 	if( unit->getUnitType() <= 6 || unitType == 65 )
 		V = Vhdb;

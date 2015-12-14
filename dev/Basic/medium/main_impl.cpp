@@ -287,6 +287,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	{
 		personWorkers->loadPerson((*it));
 	}
+	Agent::all_agents.clear();
 
 	if(BusController::HasBusController())
 	{
@@ -374,41 +375,13 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	cout << "Starting Agents: " << numStartAgents
 			<< ",     Pending: " << numPendingAgents << endl;
 
-	if (Agent::all_agents.empty())
+	if (Agent::all_agents.empty() && Agent::pending_agents.empty())
 	{
 		cout << "All Agents have left the simulation.\n";
 	}
 	else
 	{
-		size_t numPerson = 0;
-		size_t numDriver = 0;
-		size_t numPedestrian = 0;
-		for (std::set<Entity*>::iterator it = Agent::all_agents.begin(); it != Agent::all_agents.end(); it++)
-		{
-			Person_MT* person = dynamic_cast<Person_MT*> (*it);
-			if (person)
-			{
-				numPerson++;
-				if(person->getRole())
-				{
-					if (dynamic_cast<sim_mob::medium::Driver*>(person->getRole()))
-					{
-						numDriver++;
-					}
-					if (dynamic_cast<sim_mob::medium::Pedestrian*>(person->getRole()))
-					{
-						numPedestrian++;
-					}
-				}
-			}
-		}
-		cout<< "Remaining Agents: " << numPerson << " (Person)   "
-			<< (Agent::all_agents.size() - numPerson) << " (Other)"
-			<< endl;
-		cout<< "   Person Agents: " << numDriver << " (Driver)   "
-			<< numPedestrian << " (Pedestrian)   "
-			<< (numPerson - numDriver - numPedestrian) << " (Other)"
-			<< endl;
+		cout<< "Pending Agents: " << (Agent::all_agents.size() + Agent::pending_agents.size()) << endl;
 	}
 
 	PT_Statistics::getInstance()->storeStatistics();
@@ -419,13 +392,6 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 		cout<<"Agents SKIPPED due to invalid route assignment: "
 			<<config.numAgentsSkipped
 			<<endl;
-	}
-
-	if (!Agent::pending_agents.empty())
-	{
-		cout<< "WARNING! There are still " << Agent::pending_agents.size()
-			<< " Agents waiting to be scheduled; next start time is: "
-			<< Agent::pending_agents.top()->getStartTime() << " ms\n";
 	}
 
 	//Save our output files if we are merging them later.

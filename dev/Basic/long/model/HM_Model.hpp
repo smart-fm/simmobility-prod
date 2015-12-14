@@ -282,6 +282,7 @@ namespace sim_mob
             std::vector<PopulationPerPlanningArea*> getPopulationByPlanningAreaId(BigSerial id)const;
             HitsIndividualLogsumList getHitsIndividualLogsumVec() const;
             void setStartDay(int day);
+            int getStartDay() const;
             void addNewBids(boost::shared_ptr<Bid> &newBid);
             BigSerial getBidId();
 

@@ -976,6 +976,10 @@ void HM_Model::setStartDay(int day)
 	startDay = day;
 }
 
+int HM_Model::getStartDay() const
+{
+	return this->startDay;
+}
 void HM_Model::addHouseholdGroupByGroupId(HouseholdGroup* hhGroup)
 {
 	mtx2.lock();

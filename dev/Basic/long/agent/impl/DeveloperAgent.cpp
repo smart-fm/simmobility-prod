@@ -98,8 +98,8 @@ namespace
         }
 
         BigSerial unitId;
-        Unit* unit;
-        Building* building;
+        Unit *unit;
+        Building *building;
         BigSerial buildingId;
         std::tm buildingFutureDemolitionDate;
     };
@@ -390,13 +390,13 @@ inline void createPotentialUnits(PotentialProject& project,const DeveloperModel*
      */
     inline void addUnitTemplates(PotentialProject& project, const DeveloperModel::TemplateUnitTypeList& unitTemplates)
     {
-        DeveloperModel::TemplateUnitTypeList::const_iterator itr;
+    	std::vector<TemplateUnitType>::const_iterator itr;
 
         for (itr = unitTemplates.begin(); itr != unitTemplates.end(); itr++)
         {
-            if ((*itr)->getTemplateId() == project.getDevTemplate()->getTemplateId())
+            if ((itr)->getTemplateId() == project.getDevTemplate()->getTemplateId())
             {
-            	project.addTemplateUnitType(*(*itr));
+            	project.addTemplateUnitType((*itr));
 
             }
         }
@@ -439,7 +439,7 @@ inline void createPotentialProjects(BigSerial parcelId, const DeveloperModel* mo
                         		newDevelopment = 1;
                         	}
 
-                        const double threshold = 0.01; // temporary : to be determined later
+                        const double threshold = 0.01; // temporary : to be determined later by Mi Diao/Yi Zhu - Gishara(14/12/2015)
                         if(project.getInvestmentReturnRatio()> threshold)
                         {
                         	if(&project != nullptr)

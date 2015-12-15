@@ -38,6 +38,8 @@
 #include "database/dao/ParcelDao.hpp"
 #include "database/dao/UnitDao.hpp"
 #include "database/dao/ProjectDao.hpp"
+#include "database/dao/BidDao.hpp"
+#include "database/dao/UnitSaleDao.hpp"
 #include "util/HelperFunctions.hpp"
 
 using std::cout;
@@ -112,7 +114,7 @@ void createOutputSchema(db::DB_Connection& conn,const std::string& currentOutput
 
 }
 
-void loadDataToOutputSchema(db::DB_Connection& conn,std::string &currentOutputSchema,BigSerial simVersionId,int simStoppedTick,DeveloperModel &developerModel)
+void loadDataToOutputSchema(db::DB_Connection& conn,std::string &currentOutputSchema,BigSerial simVersionId,int simStoppedTick,DeveloperModel &developerModel,HM_Model &housingMarketModel)
 {
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 	bool resume = config.ltParams.resume;
@@ -124,10 +126,10 @@ void loadDataToOutputSchema(db::DB_Connection& conn,std::string &currentOutputSc
 	time (&rawtime);
 	timeinfo = localtime (&rawtime);
 	boost::shared_ptr<SimulationVersion>simVersionObj(new SimulationVersion(simVersionId,simScenario,*timeinfo,simStoppedTick));
-	SimulationVersionDao simVersionDao(conn);
 
 	if(conn.isConnected())
 	{
+		SimulationVersionDao simVersionDao(conn);
 		simVersionDao.insertSimulationVersion(*simVersionObj.get(),currentOutputSchema);
 		EncodedParamsBySimulationDao encodedParamsDao(conn);
 		encodedParamsDao.insertEncodedParams(*(developerModel.getEncodedParamsObj(simVersionId)).get(),currentOutputSchema);
@@ -162,6 +164,22 @@ void loadDataToOutputSchema(db::DB_Connection& conn,std::string &currentOutputSc
 		for(projectsItr = projects.begin(); projectsItr != projects.end(); ++projectsItr)
 		{
 			projectDao.insertProject(*(*projectsItr),currentOutputSchema);
+		}
+
+		std::vector<boost::shared_ptr<Bid> > bids = housingMarketModel.getNewBids();
+		std::vector<boost::shared_ptr<Bid> >::iterator bidsItr;
+		BidDao bidDao(conn);
+		for(bidsItr = bids.begin(); bidsItr != bids.end(); ++bidsItr)
+		{
+			bidDao.insertBid(*(*bidsItr),currentOutputSchema);
+		}
+
+		std::vector<boost::shared_ptr<UnitSale> > unitSales = housingMarketModel.getUnitSales();
+		std::vector<boost::shared_ptr<UnitSale> >::iterator unitSalesItr;
+		UnitSaleDao unitSaleDao(conn);
+		for(unitSalesItr = unitSales.begin(); unitSalesItr != unitSales.end(); ++unitSalesItr)
+		{
+			unitSaleDao.insertUnitSale(*(*unitSalesItr),currentOutputSchema);
 		}
 
 //		developerModel.getBuildingsVec().clear();
@@ -335,7 +353,7 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
         	}
         	if((currTick > 0) && ((currTick+1)%opSchemaloadingInterval == 0))
         	{
-        		loadDataToOutputSchema(conn,currentOutputSchema,simVersionId,simStoppedTick,*developerModel);
+        		loadDataToOutputSchema(conn,currentOutputSchema,simVersionId,simStoppedTick,*developerModel,*housingMarketModel);
         	}
             if( currTick == 0 )
             {

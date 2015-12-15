@@ -485,7 +485,7 @@ double SegmentStats::getTotalVehicleLength() const
 	return totalLength;
 }
 
-//density will be computed in vehicles/meter for the moving part of the segment
+//density will be computed in vehicles/meter-lane for the moving part of the segment
 double SegmentStats::getDensity(bool hasVehicle)
 {
 	double density = 0.0;
@@ -503,18 +503,18 @@ double SegmentStats::getDensity(bool hasVehicle)
 	return density;
 }
 
-//density will be computed in vehicles/lane-km for the moving part of the segment
+//density will be computed in vehicles/lane-km for the full segment
 double SegmentStats::getTotalDensity(bool hasVehicle)
 {
 	double density = 0.0;
 	double totalPCUs = getTotalVehicleLength() / PASSENGER_CAR_UNIT;
 	if (length > PASSENGER_CAR_UNIT)
 	{
-		density = totalPCUs / (numVehicleLanes * (length / 100000.0));
+		density = totalPCUs / (numVehicleLanes * (length / 1000.0));
 	}
 	else
 	{
-		density = 1 / (PASSENGER_CAR_UNIT / 100.0);
+		density = 1 / (PASSENGER_CAR_UNIT / 1000.0);
 	}
 	return density;
 }

@@ -14,6 +14,7 @@
 #include "HouseholdSellerRole.hpp"
 #include "util/Statistics.hpp"
 #include "util/Math.hpp"
+#include "util/SharedFunctions.hpp"
 #include "agent/impl/HouseholdAgent.hpp"
 #include "model/HM_Model.hpp"
 #include "message/MessageBus.hpp"
@@ -24,7 +25,11 @@
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "behavioral/PredayLT_Logsum.hpp"
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
+#include "database/entity/UnitSale.hpp"
 
+using namespace sim_mob;
 using namespace sim_mob::long_term;
 using namespace sim_mob::messaging;
 using std::vector;
@@ -79,9 +84,6 @@ namespace
 													% unitPostcode->getSlaPostcode();
 
         AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::BIDS, fmtr.str());
-
-        boost::shared_ptr<Bid> newBid = boost::make_shared<Bid>(bid);
-        model->addNewBids(newBid);
         //PrintOut(fmtr.str() << endl);
     }
 
@@ -131,6 +133,30 @@ namespace
 
         //print bid.
         printBid(agent, bid, entry, bidsCounter, (response == ACCEPTED));
+
+        //save accepted bids to a vector, to be saved in DB later.
+        if(response == ACCEPTED)
+        {
+        	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+        	int moveInWaitingTimeInDays = config.ltParams.housingModel.housingMoveInDaysInterval;
+        	boost::shared_ptr<Bid> newBid = boost::make_shared<Bid>(bid);
+        	HM_Model* model = agent.getModel();
+        	const Unit* unit  = model->getUnitById(bid.getNewUnitId());
+        	int UnitslaId = unit->getSlaAddressId();
+        	Household *thisBidder = model->getHouseholdById(bid.getBidderId());
+        	const Unit* thisUnit = model->getUnitById(thisBidder->getUnitId());
+        	(*newBid).setAffordabilityAmount(agent.getHousehold()->getAffordabilityAmount());
+        	(*newBid).setHedonicPrice(entry.hedonicPrice);
+        	(*newBid).setAskingPrice(entry.askingPrice);
+        	(*newBid).setTargetPrice(entry.targetPrice);
+        	(*newBid).setCurrentPostcode(thisUnit->getSlaAddressId());
+        	(*newBid).setNewPostcode(UnitslaId);
+        	(*newBid).setMoveInDate(getDateBySimDay(config.ltParams.year,(bid.getSimulationDay()+moveInWaitingTimeInDays)));
+        	model->addNewBids(newBid);
+
+        	boost::shared_ptr<UnitSale> unitSale(new UnitSale(bid.getNewUnitId(),bid.getBidderId(),agent.getId(),bid.getBidValue(),getDateBySimDay(config.ltParams.year,bid.getSimulationDay())));
+        	model->addUnitSales(unitSale);
+        }
     }
 
     /**

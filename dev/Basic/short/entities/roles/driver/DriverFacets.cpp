@@ -706,14 +706,14 @@ void DriverMovement::applyDrivingModels(DriverUpdateParams &params)
 	{
 		//Apply the lane changing model to make the lane changing decision
 		lcModel->makeLaneChangingDecision(params);
-
+		
 		//If we've decided to change the lane, execute the lane change manoeuvre
 		if (params.getStatus() & STATUS_CHANGING)
 		{
 			params.lcDebugStr << ";CHING";
 
 			lcModel->executeLaneChanging(params);
-
+			
 			if (params.flag(FLAG_LC_FAILED))
 			{
 				params.lcDebugStr << ";COG";
@@ -797,11 +797,11 @@ double DriverMovement::drive(DriverUpdateParams &params)
 {
 	LaneChangeTo laneChangeTo;
 
-	if (params.getStatus(STATUS_LC_RIGHT))
+	if (params.getStatus(STATUS_LC_CHANGING) && params.getStatus(STATUS_RIGHT))
 	{
 		laneChangeTo = LANE_CHANGE_TO_RIGHT;
 	}
-	else if (params.getStatus(STATUS_LC_LEFT))
+	else if (params.getStatus(STATUS_LC_CHANGING) && params.getStatus(STATUS_LEFT))
 	{
 		laneChangeTo = LANE_CHANGE_TO_LEFT;
 	}

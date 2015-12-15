@@ -839,7 +839,7 @@ double MITSIM_CF_Model::calcYieldingAcc(DriverUpdateParams &params)
 		params.lcDebugStr << ";dt" << dt_sec;
 		
 		//Make sure a vehicle will not yield infinitely.
-		if (dt_sec > params.lcMaxYieldingTime)
+		if (dt_sec > params.lcMaxYieldingTime || params.getStatus(STATUS_STOPPED))
 		{
 			params.driver->setYieldingToDriver(NULL);
 			params.unsetFlag(FLAG_YIELDING);

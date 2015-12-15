@@ -1300,9 +1300,14 @@ double DriverMovement::updatePosition(DriverUpdateParams &params)
 	//where, s = displacement, u = initial velocity, a = acceleration, t = time
 	double distCovered = (params.currSpeed * params.elapsedSeconds) + (0.5 * params.acceleration *	params.elapsedSeconds * params.elapsedSeconds);
 
-	if (distCovered < 0)
+	if (distCovered > 0)
+	{
+		params.unsetStatus(STATUS_STOPPED);
+	}
+	else
 	{
 		distCovered = 0;
+		params.setStatus(STATUS_STOPPED);
 	}
 
 	//Update the vehicle's velocity based on its acceleration using the equation of motion

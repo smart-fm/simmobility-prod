@@ -327,7 +327,7 @@ std::string sim_mob::makePT_PathSetString(const std::vector<PT_NetworkEdge> &pat
 sim_mob::PT_Path::PT_Path() :
 		totalDistanceKms(0.0), totalCost(0.0), totalInVehicleTravelTimeSecs(0.0), totalWaitingTimeSecs(0.0), totalWalkingTimeSecs(0.0), totalNumberOfTransfers(
 				0), minDistance(false), validPath(false), shortestPath(false), minInVehicleTravelTime(false), minNumberOfTransfers(false), minWalkingDistance(
-				false), minTravelOnMRT(false), minTravelOnBus(false), pathSize(0.0), pathTravelTime(0)
+				false), minTravelOnMRT(false), minTravelOnBus(false), pathSize(0.0), pathTravelTime(0.0)
 {
 
 }
@@ -335,7 +335,7 @@ sim_mob::PT_Path::PT_Path() :
 sim_mob::PT_Path::PT_Path(const std::vector<PT_NetworkEdge> &path) :
 		pathEdges(path), totalDistanceKms(0.0), totalCost(0.0), totalInVehicleTravelTimeSecs(0.0), totalWaitingTimeSecs(0.0), totalWalkingTimeSecs(0.0), totalNumberOfTransfers(
 				0), minDistance(false), validPath(false), shortestPath(false), minInVehicleTravelTime(false), minNumberOfTransfers(false), minWalkingDistance(
-				false), minTravelOnMRT(false), minTravelOnBus(false), pathSize(0.0)
+				false), minTravelOnMRT(false), minTravelOnBus(false), pathSize(0.0), pathTravelTime(0.0)
 
 {
 	double totalBusMRTTravelDistance = 0.0;

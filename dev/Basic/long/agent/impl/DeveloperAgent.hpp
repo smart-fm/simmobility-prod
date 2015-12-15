@@ -119,10 +119,7 @@ namespace sim_mob {
              * set whether there are new units remaining to enter to market
              */
             void setUnitsRemain (bool unitRemain);
-            /*
-             * get the simulation date by frame tick
-             */
-            std::tm getDate(int day);
+
             /*
              * set the real estate agent for this developer agent
              */

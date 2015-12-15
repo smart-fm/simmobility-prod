@@ -133,7 +133,6 @@ void MITSIM_LC_Model::readDriverParameters(DriverUpdateParams &params)
 
 double MITSIM_LC_Model::calcCriticalGapKaziModel(DriverUpdateParams &params, int type, double distance, double diffInSpeed)
 {
-
 	std::vector<double> a = params.LC_GAP_MODELS[type];
 
 	//                    beta0            beta1                  beta2                    beta3                        beta4
@@ -1338,17 +1337,17 @@ double MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams &params)
 
 	// 3.0 get lead, lag vehicles
 	const NearestVehicle *fwdVeh;
-	const NearestVehicle *readVeh;
+	const NearestVehicle *rearVeh;
 
 	if (changeMode == LANE_CHANGE_TO_LEFT)
 	{
 		fwdVeh = &params.nvLeftFwd;
-		readVeh = &params.nvLeftBack;
+		rearVeh = &params.nvLeftBack;
 	}
 	else
 	{
 		fwdVeh = &params.nvRightFwd;
-		readVeh = &params.nvRightBack;
+		rearVeh = &params.nvRightBack;
 	}
 
 	// 4.0 get lead, lag vehicle distance
@@ -1365,9 +1364,9 @@ double MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams &params)
 
 	// LAG HEADWAY
 	float bheadway; // lag headway
-	if (readVeh->exists())
+	if (rearVeh->exists())
 	{
-		bheadway = readVeh->distance;
+		bheadway = rearVeh->distance;
 	}
 	else
 	{
@@ -1395,21 +1394,15 @@ double MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams &params)
 	}
 
 	// 6.0 check if lead, lag gap is OK
-	if (readVeh->exists() && bheadway < lcCriticalGap(params, 1, readVeh->driver->getFwdVelocity() - params.currSpeed))
+	if (rearVeh->exists() && bheadway < lcCriticalGap(params, 1, rearVeh->driver->getFwdVelocity() - params.currSpeed))
 	{
 		params.lcDebugStr << ";FLG";
 		params.setFlag(FLAG_LC_FAILED_LAG); // lag gap
 	}
-	else if (fwdVeh->exists())
+	else if (fwdVeh->exists() && aheadway < lcCriticalGap(params, 0, fwdVeh->driver->getFwdVelocity() - params.currSpeed))
 	{
-		double cg = lcCriticalGap(params, 0, fwdVeh->driver->getFwdVelocity() - params.currSpeed);
-		params.lcDebugStr << ";aheadway" << aheadway;
-		params.lcDebugStr << ";avcg" << cg;
-		if (aheadway < cg)
-		{
-			params.lcDebugStr << ";FLD";
-			params.setFlag(FLAG_LC_FAILED_LEAD); // lead gap
-		}
+		params.lcDebugStr << ";FLD";
+		params.setFlag(FLAG_LC_FAILED_LEAD); // lead gap
 	}
 
 	// 7.0 if gap is OK, then set status as doing lane change
@@ -1463,24 +1456,26 @@ double MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams &params)
 		if (nosing)
 		{
 			params.lcDebugStr << ";nig";
+			
 			// Since I am nosing, updating of acceleration rate sooner
 			params.reactionTimeCounter = CF_CRITICAL_TIMER_RATIO * params.nextStepSize;
+			
 			// Now I am going to nose in provided it is feasible and the
 			// lag vehicle is willing to yield
-
-			// as willYield() always return true, just check if has back vehicle
-			int isnosingFeasi = checkNosingFeasibility(params, fwdVeh, readVeh, params.distToStop);
-			params.lcDebugStr << ";fi" << isnosingFeasi;
-			if (isnosingFeasi && readVeh->exists())
+			
+			int isNosingFeasible = checkNosingFeasibility(params, fwdVeh, rearVeh, params.distToStop);
+			params.lcDebugStr << ";fi" << isNosingFeasible;
+			
+			if (isNosingFeasible && rearVeh->exists())
 			{
-				Driver *bvd = const_cast<Driver *> (readVeh->driver);
+				Driver *bvd = const_cast<Driver *> (rearVeh->driver);
 				DriverUpdateParams &bvp = bvd->getParams();
 				params.lcDebugStr << ";nf";
 
 				params.setFlag(FLAG_NOSING_FEASIBLE);
 
 				// Nosing is feasible
-				if (readVeh->exists())
+				if (rearVeh->exists())
 				{
 					// There is a lag vehicle in the target lane
 					bvd->setYieldingToDriver(params.driver);
@@ -1507,7 +1502,6 @@ double MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams &params)
 				else
 				{
 					// No lag vehicle in the target lane
-
 					if (params.getStatus(STATUS_LEFT))
 					{
 						params.setFlag(FLAG_NOSING_LEFT);
@@ -1517,8 +1511,8 @@ double MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams &params)
 						params.setFlag(FLAG_NOSING_RIGHT);
 					}
 				}
-				// Check if the minimum gaps are available.
-
+				
+				// Check if the minimum gaps are available.				
 				if (bheadway > params.lcMinGap(lctype + 1) && aheadway > params.lcMinGap(lctype))
 				{
 					params.setStatusDoingLC(changeMode);
@@ -1530,7 +1524,6 @@ double MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams &params)
 				params.unsetFlag(FLAG_NOSING_FEASIBLE);
 
 				// Nosing is not feasible, but maintain the nosing state
-
 				if (params.getStatus(STATUS_LEFT))
 				{
 					params.setFlag(FLAG_NOSING_LEFT);

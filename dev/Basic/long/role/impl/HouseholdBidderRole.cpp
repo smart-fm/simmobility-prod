@@ -662,7 +662,7 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 	const int ageOfUnitPrivate = HITS_SURVEY_YEAR  - 1900 + ( day / 365 ) - unit->getPhysicalFromDate().tm_year;
 
 
-	int ZZ_ageOfUnitPrivate	 = ageOfUnitPrivate;
+	double ZZ_ageOfUnitPrivate	 = ageOfUnitPrivate;
 	int ZZ_ageBet25And50 = 0;
 	int ZZ_ageGreater50  = 0;
 	int ZZ_missingAge    = 0;
@@ -674,7 +674,7 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 	if( ageOfUnitPrivate < 0 )
 		ZZ_ageOfUnitPrivate = 0;
 
-	ZZ_ageOfUnitPrivate = ZZ_ageOfUnitPrivate / 10;
+	ZZ_ageOfUnitPrivate = ZZ_ageOfUnitPrivate / 10.0;
 
 	if( ageOfUnitPrivate > 25 && ageOfUnitPrivate < 50)
 		ZZ_ageBet25And50 = 1;
@@ -684,7 +684,7 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 
 
 	const int ageOfUnitHDB = HITS_SURVEY_YEAR - 1900 + ( day / 365 ) - unit->getPhysicalFromDate().tm_year;
-	int ZZ_ageOfUnitHDB	 = ageOfUnitHDB;
+	double ZZ_ageOfUnitHDB	 = ageOfUnitHDB;
 	int ZZ_ageGreater30  = 0;
 
 	if( ageOfUnitHDB > 30 )
@@ -693,7 +693,7 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 	if( ageOfUnitHDB  < 0 )
 		ZZ_ageOfUnitHDB = 0;
 
-	ZZ_ageOfUnitHDB = ZZ_ageOfUnitHDB / 10;
+	ZZ_ageOfUnitHDB = ZZ_ageOfUnitHDB / 10.0;
 
 	if( ageOfUnitHDB > 30 )
 		ZZ_ageGreater30 = 1;

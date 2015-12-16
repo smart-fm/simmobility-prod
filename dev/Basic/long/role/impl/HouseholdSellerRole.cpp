@@ -25,9 +25,11 @@
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "behavioral/PredayLT_Logsum.hpp"
+#include <util/TimeCheck.hpp>
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "database/entity/UnitSale.hpp"
+
 
 using namespace sim_mob;
 using namespace sim_mob::long_term;
@@ -40,8 +42,8 @@ namespace
 {
     //bid_timestamp, day_to_apply, seller_id, unit_id, hedonic_price, asking_price, target_price
     const std::string LOG_EXPECTATION = "%1%, %2%, %3%, %4%, %5%, %6%, %7%";
-    //bid_timestamp ,seller_id, bidder_id, unit_id, bidder wp, affordability, hedonicprice, asking_price, floor_area, type_id, target_price, bid_value, bids_counter (daily), status(0 - REJECTED, 1- ACCEPTED),
-    const std::string LOG_BID = "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%, %11%, %12%, %13%, %14%, %15%, %16%";
+    //bid_timestamp ,seller_id, bidder_id, unit_id, bidder wp, affordability, logsum, hedonicprice, asking_price, floor_area, type_id, target_price, bid_value, bids_counter (daily), bid_status, HHPC, UPC
+    const std::string LOG_BID = "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%, %11%, %12%, %13%, %14%, %15%, %16%, %17%";
 
     /**
      * Print the current bid on the unit.
@@ -72,6 +74,7 @@ namespace
 													% bid.getNewUnitId()
 													% bid.getWillingnessToPay()
 													% thisBidder->getAffordabilityAmount()
+													% thisBidder->getLogsum()
 													% entry.hedonicPrice
 													% entry.askingPrice
 													% floor_area
@@ -286,8 +289,16 @@ void HouseholdSellerRole::update(timeslice now)
 
 
             BigSerial tazId = model->getUnitTazId(unitId);
+
+            TimeCheck hedonicPriceTiming;
+
             calculateUnitExpectations(*unit);
 
+            double hedonicPriceTime = hedonicPriceTiming.getClockTime();
+
+			#ifdef VERBOSE_SUBMODEL_TIMING
+            	PrintOutV(" hedonicPriceTime for agent " << getParent()->getId() << " is " << hedonicPriceTime << std::endl );
+			#endif
             //get first expectation to add the entry on market.
             ExpectationEntry firstExpectation; 
 
@@ -585,6 +596,10 @@ void HouseholdSellerRole::calculateUnitExpectations(const Unit& unit)
             printExpectation(currentTime, dayToApply, unit.getId(), *getParent(), info.expectations[i]);
         }
     }
+    else
+    {
+    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, (boost::format( "[unit %1%] Expectations is empty.") % unit.getId()).str());
+    }
 }
 
 bool HouseholdSellerRole::getCurrentExpectation(const BigSerial& unitId, ExpectationEntry& outEntry)
@@ -608,6 +623,10 @@ bool HouseholdSellerRole::getCurrentExpectation(const BigSerial& unitId, Expecta
                 outEntry.targetPrice = expectation.targetPrice;
                 outEntry.askingPrice = expectation.askingPrice;
                 return true;
+            }
+            else
+            {
+            	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, (boost::format( "[unit %1%] Invalid Asking price.") % unitId).str());
             }
         }
     }

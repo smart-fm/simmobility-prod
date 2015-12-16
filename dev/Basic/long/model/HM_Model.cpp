@@ -1289,7 +1289,7 @@ void HM_Model::startImpl()
 	std::vector<HouseholdAgent*> freelanceAgents;
 	for (int i = 0; i < numWorkers ; i++)
 	{
-		HouseholdAgent* freelanceAgent = new HouseholdAgent((FAKE_IDS_START + i),this, nullptr, &market, true);
+		HouseholdAgent* freelanceAgent = new HouseholdAgent((FAKE_IDS_START + i),this, nullptr, &market, true, 0, config.ltParams.housingModel.householdBiddingWindow);
 		AgentsLookupSingleton::getInstance().addHouseholdAgent(freelanceAgent);
 		agents.push_back(freelanceAgent);
 		workGroup.assignAWorker(freelanceAgent);
@@ -1323,7 +1323,7 @@ void HM_Model::startImpl()
 	for (HouseholdList::const_iterator it = households.begin();	it != households.end(); it++)
 	{
 		const Household* household = *it;
-		HouseholdAgent* hhAgent = new HouseholdAgent(household->getId(), this,	household, &market);
+		HouseholdAgent* hhAgent = new HouseholdAgent(household->getId(), this,	household, &market, false, 0, config.ltParams.housingModel.householdBiddingWindow);
 		const Unit* unit = getUnitById(household->getUnitId());
 
 		if (unit)
@@ -1358,7 +1358,7 @@ void HM_Model::startImpl()
 	int totalPopulation = 0;
 	for ( StatsMap::iterator it = stats.begin(); it != stats.end(); ++it )
 	{
-
+		#ifdef VERBOSE
 		PrintOutV("Taz: " << it->first << std::fixed << std::setprecision(2)
 						  << " \tAvg Income: " << it->second->getHH_AvgIncome()
 						  << " \t%Chinese: " << it->second->getChinesePercentage()
@@ -1368,6 +1368,7 @@ void HM_Model::startImpl()
 						  << " \tTaz Households: " << it->second->getHH_Num()
 		  	  	  	  	  << " \tTaz population: " << it->second->getIndividuals()
 						  << std::endl);
+		#endif
 
 		totalPopulation += it->second->getIndividuals();
 	}

@@ -227,7 +227,7 @@ void HouseholdBidderRole::computeHouseholdAffordability()
 			Individual * householdIndividual = getParent()->getModel()->getIndividualById( individuals[n] );
 			std::tm dob = householdIndividual->getDateOfBirth();
 
-			int age = HITS_SURVEY_YEAR - dob.tm_year;
+			int age = HITS_SURVEY_YEAR  - 1900 - dob.tm_year;
 
 			if( householdIndividual->getHouseholdHead() )
 			{
@@ -319,7 +319,16 @@ void HouseholdBidderRole::computeHouseholdAffordability()
 
 void HouseholdBidderRole::init()
 {
+	TimeCheck affordabilityTimeCheck;
+
 	computeHouseholdAffordability();
+
+	double affordabilityTime = affordabilityTimeCheck.getClockTime();
+
+	#ifdef VERBOSE_SUBMODEL_TIMING
+		PrintOutV(" affordabilityTime for agent " << getParent()->getId() << " is " << affordabilityTime << std::endl );
+	#endif
+
 	initBidderRole = false;
 }
 
@@ -354,7 +363,15 @@ void HouseholdBidderRole::update(timeslice now)
 
 		if( vehicleBuyingWaitingTimeInDays == 1)
 		{
+			TimeCheck vehicleOwnershipTiming;
+
 			reconsiderVehicleOwnershipOption();
+
+			double vehicleOwnershipTime = vehicleOwnershipTiming.getClockTime();
+
+			#ifdef VERBOSE_SUBMODEL_TIMING
+				PrintOutV("vehicleOwnership time for agent " << getParent()->getId() << " is " << vehicleOwnershipTime << std::endl );
+			#endif
 		}
 			vehicleBuyingWaitingTimeInDays--;
 	}
@@ -447,10 +464,19 @@ bool HouseholdBidderRole::bidUnit(timeslice now)
     {
         //if unit is not available or entry is not valid then
         //just pick another unit to bid.
+
+    	TimeCheck pickUnitTiming;
+
         if(pickEntryToBid())
         {
             entry = market->getEntryById(biddingEntry.getUnitId());
         }   
+
+        double pickUnitTime = pickUnitTiming.getClockTime();
+
+		#ifdef  VERBOSE_SUBMODEL_TIMING
+        PrintOutV("pickUnit for household " << getParent()->getId() << " is " << pickUnitTime << std::endl );
+		#endif
     }
     
     if (entry && biddingEntry.isValid())
@@ -463,7 +489,7 @@ bool HouseholdBidderRole::bidUnit(timeslice now)
 			if (entry->getOwner() && biddingEntry.getBestBid() > 0.0f)
 			{
 				#ifdef VERBOSE
-				PrintOutV("[day " << day << "] Household " << std::dec << household->getId() << " submitted a bid of $" << bidValue << "[wp:$" << biddingEntry.getWP() << ",sp:$" << speculation  << ",bids:"  <<   biddingEntry.getTries() << ",ap:$" << entry->getAskingPrice() << "] on unit " << biddingEntry.getUnitId() << " to seller " <<  entry->getOwner()->getId() << "." << std::endl );
+				PrintOutV("[day " << day << "] Household " << std::dec << household->getId() << " submitted a bid of $" << biddingEntry.getBestBid() << "[wp:$" << biddingEntry.getWP() << ",bids:"  <<   biddingEntry.getTries() << ",ap:$" << entry->getAskingPrice() << "] on unit " << biddingEntry.getUnitId() << " to seller " <<  entry->getOwner()->getId() << "." << std::endl );
 				#endif
 
 				bid(entry->getOwner(), Bid(model->getBidId(),household->getUnitId(),entry->getUnitId(), household->getId(), getParent(), biddingEntry.getBestBid(), now.ms(), biddingEntry.getWP()));
@@ -541,29 +567,44 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 
 	if( unitType == ID_HDB1 || unitType == ID_HDB2 )
 		HDB12 = 1;
-
+	else
 	if( unitType == ID_HDB3 )
 		HDB3 = 1;
-
+	else
 	if( unitType == ID_HDB4 )
 		HDB4 = 1;
-
+	else
 	if( unitType == ID_HDB5 )
 		HDB5 = 1;
-
+	else
 	if( unitType >= ID_APARTM70 && unitType <= ID_APARTM159 )
 		Apartment = 1;
-
+	else
 	if( unitType >= ID_CONDO60 && unitType <= ID_CONDO134 )
 		Condo = 1;
-
+	else
 	if( unitType >= ID_TERRACE180 && unitType <= ID_TERRACE379 )
 		Terrace = 1;
-
+	else
 	if( unitType >= ID_SEMID230 && unitType <= ID_DETACHED1199 )
 		DetachedAndSemidetaced = 1;
+	else
+	if( unitType == 6 )
+		HDB5 = 1;
+	else
+	if( unitType >= 32 && unitType <= 51 )
+		Condo = 1;
+	else
+	if( unitType == 64 )
+		Apartment = 1;
+	else
+	if( unitType == 65 )
+		HDB5 = 1;
+	else
+		return 0.0;
 
-	if( unitType <= ID_HDB5 )
+
+	if( unitType <= 6  || unitType == 65 )
 	{
 		sde 	 = 0.4371165786;
 		barea 	 = 0.8095874824;
@@ -608,7 +649,7 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 			Individual * householdIndividual = getParent()->getModel()->getIndividualById( householdOccupants[n] );
 			std::tm dob = householdIndividual->getDateOfBirth();
 
-			int age = HITS_SURVEY_YEAR + ( day / 365 ) - dob.tm_year;
+			int age = HITS_SURVEY_YEAR  - 1900 + ( day / 365 ) - dob.tm_year;
 
 			if( age >  eldestHouseholdMemberAge )
 			{
@@ -618,10 +659,10 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 		}
 	}
 
-	const int ageOfUnitPrivate = HITS_SURVEY_YEAR + ( day / 365 ) - unit->getPhysicalFromDate().tm_year;
+	const int ageOfUnitPrivate = HITS_SURVEY_YEAR  - 1900 + ( day / 365 ) - unit->getPhysicalFromDate().tm_year;
 
 
-	int ZZ_ageOfUnitPrivate	 = ageOfUnitPrivate;
+	double ZZ_ageOfUnitPrivate	 = ageOfUnitPrivate;
 	int ZZ_ageBet25And50 = 0;
 	int ZZ_ageGreater50  = 0;
 	int ZZ_missingAge    = 0;
@@ -630,6 +671,11 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 	if( ageOfUnitPrivate > 25 )
 		ZZ_ageOfUnitPrivate = 25;
 
+	if( ageOfUnitPrivate < 0 )
+		ZZ_ageOfUnitPrivate = 0;
+
+	ZZ_ageOfUnitPrivate = ZZ_ageOfUnitPrivate / 10.0;
+
 	if( ageOfUnitPrivate > 25 && ageOfUnitPrivate < 50)
 		ZZ_ageBet25And50 = 1;
 
@@ -637,12 +683,17 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 		ZZ_ageGreater50 = 1;
 
 
-	const int ageOfUnitHDB = HITS_SURVEY_YEAR + ( day / 365 ) - unit->getPhysicalFromDate().tm_year;
-	int ZZ_ageOfUnitHDB	 = ageOfUnitPrivate;
+	const int ageOfUnitHDB = HITS_SURVEY_YEAR - 1900 + ( day / 365 ) - unit->getPhysicalFromDate().tm_year;
+	double ZZ_ageOfUnitHDB	 = ageOfUnitHDB;
 	int ZZ_ageGreater30  = 0;
 
 	if( ageOfUnitHDB > 30 )
 		ZZ_ageOfUnitHDB = 30;
+
+	if( ageOfUnitHDB  < 0 )
+		ZZ_ageOfUnitHDB = 0;
+
+	ZZ_ageOfUnitHDB = ZZ_ageOfUnitHDB / 10.0;
 
 	if( ageOfUnitHDB > 30 )
 		ZZ_ageGreater30 = 1;
@@ -671,13 +722,13 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 
 	if( workTazStr.size() == 0 )
 	{
-		//PrintOutV("workTaz is empty for person: " << headOfHousehold->getId() << std::endl);
+		AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, (boost::format( "workTaz is empty for person:  %1%.") %  headOfHousehold->getId()).str());
 		workTaz = homeTaz;
 	}
 
 	if( homeTazStr.size() == 0 )
 	{
-		//PrintOutV("homeTaz is empty for person: " << headOfHousehold->getId() << std::endl);
+		AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, (boost::format( "homeTaz is empty for person:  %1%.") %  headOfHousehold->getId()).str());
 		homeTaz = -1;
 		workTaz = -1;
 	}
@@ -706,7 +757,6 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 		if( ZZ_logsumhh == -1 )
 		{
 			PredayPersonParams personParam = PredayLT_LogsumManager::getInstance().computeLogsum( headOfHousehold->getId(), homeTaz, workTaz );
-
 			ZZ_logsumhh = personParam.getDpbLogsum();
 
 			BigSerial groupId = hitssample->getGroupId();
@@ -715,14 +765,18 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 
 			printHouseholdGroupLogsum( homeTaz, hitssample->getGroupId(), headOfHousehold->getId(), ZZ_logsumhh );
 		}
+
+		Household* householdT = const_cast<Household*>(household);
+		householdT->setLogsum(ZZ_logsumhh);
+
 	}
 
-	const HM_Model::TazStats *tazstats = model->getTazStats( hometazId );
+	const HM_Model::TazStats *tazstats  = getParent()->getModel()->getTazStatsByUnitId(unit->getId());
 
 	if( tazstats->getChinesePercentage() > 0.76 ) //chetan TODO: add to xml file
 		ZZ_hhchinese = 1;
 
-	if( tazstats->getChinesePercentage() > 0.10 )
+	if( tazstats->getMalayPercentage() > 0.10 )
 		ZZ_hhmalay 	 = 1;
 
 	double ZZ_highInc = household->getIncome();
@@ -751,13 +805,21 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 	if( household->getChildUnder15() > 0 )
 		ZZ_children = 1;
 
+	int chineseHousehold = 0;
+	int malayHousehold   = 0;
+
+	if( household->getEthnicityId() == 1 )
+		chineseHousehold = 1;
+
+	if( household->getEthnicityId() == 2 )
+		malayHousehold = 1;
 
 
 
 	double Vpriv = 	(barea		*  DD_area 		) +
 					(blogsum	* ZZ_logsumhh 	) +
-					(bchin	  	* ZZ_hhchinese 	) +
-					(bmalay		* ZZ_hhmalay 	) +
+					(bchin	  	* ZZ_hhchinese 	* chineseHousehold ) +
+					(bmalay		* ZZ_hhmalay 	* malayHousehold   ) +
 					(bHighInc   * ZZ_highInc 	) +
 					(bHIncChildApart * ZZ_children * ZZ_highInc	* Apartment 	) +
 					(bHIncChildCondo * ZZ_children * ZZ_highInc	* Condo 		) +
@@ -777,8 +839,8 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 
 	double Vhdb = 	(barea		*  DD_area 		) +
 					(blogsum	* ZZ_logsumhh 	) +
-					(bchin	  	* ZZ_hhchinese 	) +
-					(bmalay		* ZZ_hhmalay 	) +
+					(bchin	  	* ZZ_hhchinese 	* chineseHousehold ) +
+					(bmalay		* ZZ_hhmalay 	* malayHousehold   ) +
 					(bHighInc   * ZZ_highInc 	) +
 					(midIncChildHDB3 * ZZ_children * ZZ_middleInc 	* HDB3	) +
 					(midIncChildHDB4 * ZZ_children * ZZ_middleInc 	* HDB4	) +
@@ -789,9 +851,9 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 					(bhdb5 	 * HDB5	 ) +
 					(bageOfUnit30 * ZZ_ageOfUnitHDB ) +
 					(bageOfUnit30Squared * ZZ_ageOfUnitHDB * ZZ_ageOfUnitHDB ) +
-					(bageOfUnitGreater30 * ZZ_ageBet25And50 );
+					(bageOfUnitGreater30 * ZZ_ageGreater30 );
 
-	if( unit->getUnitType() <= ID_HDB5 )
+	if( unit->getUnitType() <= 6 || unitType == 65 )
 		V = Vhdb;
 	else
 		V = Vpriv;
@@ -828,7 +890,7 @@ void HouseholdBidderRole::getScreeningProbabilities(int hhId, std::vector<double
 	double log_hhinc_diff	=-1.5749;	//17 absolute difference between logarithm of the zonal median household montly income by housing type and logarithm of the household income	SGD
 	double log_price05tt_med=-0.1473;	//18 logarithm of the zonal median housing price by housing type	in (2005) SGD
 	double DWL600			= 0.3940;	//19 = 1, if household size is 1, living in private condo/apartment
-	double DWL700			= 0.3254;	//20  = 1, if household size is 1, living in landed property
+	double DWL700			= 0.3254;	//20 = 1, if household size is 1, living in landed property
 	double DWL800			= 0.3394; 	//21 = 1, if household size is 1, living in other types of housing units
 
 	HM_Model *model = getParent()->getModel();
@@ -1095,92 +1157,92 @@ void HouseholdBidderRole::getScreeningProbabilities(int hhId, std::vector<double
 		double currentQuarter = day / 365.0 * 4.0;
 
 		DeveloperModel *devModel = model->getDeveloperModel();
-		const TAO*  currentTao = devModel->getTaoByQuarter(68 + currentQuarter); // 68 is first quarter of 2012
+		const TAO*  currentTao = devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter); // 68 is first quarter of 2012
 
 		std::vector<double> lagCoefficient;
 		double finalCoefficient = 0;
 
-		if( unit->getUnitType() < 3 )
+		if( unit->getUnitType() < ID_HDB3 )
 		{
-			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 1)->getHdb12());
-			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 2)->getHdb12());
-			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 3)->getHdb12());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 1)->getHdb12());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 2)->getHdb12());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 3)->getHdb12());
 
 			finalCoefficient = (lagCoefficient[0] * 0) + (lagCoefficient[1] * 0) + (lagCoefficient[2] * 0);
 		}
 
-		else if( unit->getUnitType() == 3 )
+		else if( unit->getUnitType() == ID_HDB3 )
 		{
-			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 1)->getHdb3());
-			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 2)->getHdb3());
-			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 3)->getHdb3());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 1)->getHdb3());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 2)->getHdb3());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 3)->getHdb3());
 
 			finalCoefficient = (lagCoefficient[0] * 0) + (lagCoefficient[1] * 0) + (lagCoefficient[2] * 0);
 		}
-		else if( unit->getUnitType() == 4 )
+		else if( unit->getUnitType() == ID_HDB4 )
 		{
-			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 1)->getHdb4());
-			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 2)->getHdb4());
-			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 3)->getHdb4());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 1)->getHdb4());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 2)->getHdb4());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 3)->getHdb4());
 
 			finalCoefficient = (lagCoefficient[0] * 0) + (lagCoefficient[1] * 0) + (lagCoefficient[2] * 0);
 		}
-		else if( unit->getUnitType() == 5 )
+		else if( unit->getUnitType() == ID_HDB5 )
 		{
-			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 1)->getHdb5());
-			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 2)->getHdb5());
-			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 3)->getHdb5());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 1)->getHdb5());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 2)->getHdb5());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 3)->getHdb5());
 
 			finalCoefficient = (lagCoefficient[0] * 0) + (lagCoefficient[1] * 0) + (lagCoefficient[2] * 0);
 		}
-		else if( unit->getUnitType() >= 32 and unit->getUnitType()  < 36 )  //Executive Condominium
+		else if( unit->getUnitType() >= ID_EC85 and unit->getUnitType()  < ID_EC144 )  //Executive Condominium
 		{
-			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 1)->getEc());
-			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 2)->getEc());
-			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 3)->getEc());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 1)->getEc());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 2)->getEc());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 3)->getEc());
 
 			finalCoefficient = (lagCoefficient[0] * 1.2096032467) + (lagCoefficient[1] * -0.1792877201) + (lagCoefficient[2] * 0);
 
 		}
-		else if( unit->getUnitType() >= 12 && unit->getUnitType()  <= 16 )   //Condominium
+		else if( unit->getUnitType() >= ID_CONDO60 && unit->getUnitType()  <= ID_CONDO134 )   //Condominium
 		{
-			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 1)->getCondo());
-			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 2)->getCondo());
-			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 3)->getCondo());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 1)->getCondo());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 2)->getCondo());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 3)->getCondo());
 
 			finalCoefficient = (lagCoefficient[0] * 1.4844876679) + (lagCoefficient[1] * -0.6052100987) + (lagCoefficient[2] * 0);
 		}
-		else if(unit->getUnitType() >= 7 && unit->getUnitType()  <= 11 ) //"Apartment"
+		else if(unit->getUnitType() >= ID_APARTM70 && unit->getUnitType()  <= ID_APARTM159 ) //"Apartment"
 		{
-			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 1)->getApartment());
-			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 2)->getApartment());
-			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 3)->getApartment());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 1)->getApartment());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 2)->getApartment());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 3)->getApartment());
 
 			finalCoefficient = (lagCoefficient[0] * 0.9871695457) + (lagCoefficient[1] * 0) + (lagCoefficient[2] * -0.2613884519);
 		}
-		else if(unit->getUnitType() >= 17 && unit->getUnitType()  <= 21 )  //"Terrace House"
+		else if(unit->getUnitType() >= ID_TERRACE180 && unit->getUnitType()  <= ID_TERRACE379 )  //"Terrace House"
 		{
-			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 1)->getTerrace());
-			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 2)->getTerrace());
-			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 3)->getTerrace());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 1)->getTerrace());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 2)->getTerrace());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 3)->getTerrace());
 
 			finalCoefficient = (lagCoefficient[0] * 1.3913443465 ) + (lagCoefficient[1] * -0.4404391521 ) + (lagCoefficient[2] * 0);
 
 		}
-		else if( unit->getUnitType() >= 22 && unit->getUnitType()  <= 26 )  //"Semi-Detached House"
+		else if( unit->getUnitType() >= ID_SEMID230 && unit->getUnitType()  <= ID_SEMID499 )  //"Semi-Detached House"
 		{
-			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 1)->getSemi());
-			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 2)->getSemi());
-			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 3)->getSemi());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 1)->getSemi());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 2)->getSemi());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 3)->getSemi());
 
 			finalCoefficient = (lagCoefficient[0] * 1.2548759133) + (lagCoefficient[1] * -0.0393621411 ) + (lagCoefficient[2] * 0);
 
 		}
-		else if( unit->getUnitType() >= 27 && unit->getUnitType()  <= 31 )  //"Detached House"
+		else if( unit->getUnitType() >= ID_DETACHED480 && unit->getUnitType()  <= ID_DETACHED1199 )  //"Detached House"
 		{
-			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 1)->getDetached());
-			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 2)->getDetached());
-			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 3)->getDetached());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 1)->getDetached());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 2)->getDetached());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 3)->getDetached());
 
 			finalCoefficient = (lagCoefficient[0] * 1.1383691158) + (lagCoefficient[1] * 0) + (lagCoefficient[2] * 0);
 		}
@@ -1318,8 +1380,10 @@ bool HouseholdBidderRole::pickEntryToBid()
 
     //We cannot use those probabilities because they are based on HITS2008 ids
     //model->getScreeningProbabilities(hitsId, householdScreeningProbabilities);
-    getScreeningProbabilities(household->getId(), householdScreeningProbabilities);
-    printProbabilityList(household->getId(), householdScreeningProbabilities);
+
+    //getScreeningProbabilities(household->getId(), householdScreeningProbabilities);
+    //printProbabilityList(household->getId(), householdScreeningProbabilities);
+
 
     std::vector<const HousingMarket::Entry*> screenedEntries;
 
@@ -1475,7 +1539,7 @@ bool HouseholdBidderRole::pickEntryToBid()
     	printChoiceset(household->getId(), temp);
     }
 
-    //PrintOutV("Screening  entries is now: " << screenedEntries.size() << std::endl );
+   //PrintOutV("Screening  entries is now: " << screenedEntries.size() << std::endl );
 
     // Choose the unit to bid with max surplus. However, we are not iterating through the whole list of available units.
     // We choose from a subset of units set by the housingMarketSearchPercentage parameter in the long term XML file.
@@ -1546,8 +1610,8 @@ bool HouseholdBidderRole::pickEntryToBid()
 
             	if( wp > household->getAffordabilityAmount() )
                 {
-                	//PrintOutV("wp is capped at " << householdAffordabilityAmount << " from " << wp << std::endl );
-                	wp = household->getAffordabilityAmount();
+                	//PrintOutV("wp is capped at " <<  household->getAffordabilityAmount() << " from " << wp << std::endl );
+                	//wp = household->getAffordabilityAmount();
                 }
 
             	double currentBid = 0;

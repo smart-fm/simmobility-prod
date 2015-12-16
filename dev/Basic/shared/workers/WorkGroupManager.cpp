@@ -152,19 +152,27 @@ void sim_mob::WorkGroupManager::waitAllGroups()
 	}
 	waitAllGroups_FrameTick();
 	gettimeofday(&endFT, nullptr);
+	#ifdef GROUP_TIMING
 	timestream << "FT: "<< (ProfileBuilder::diff_ms(endFT, start))/1000.0 << "s|";
+	#endif
 
 	waitAllGroups_FlipBuffers(&removedEntities);
 	gettimeofday(&endFB, nullptr);
+	#ifdef GROUP_TIMING
 	timestream << "FB: "<< (ProfileBuilder::diff_ms(endFB, endFT))/1000.0 << "s|";
+	#endif
 
 	waitAllGroups_DistributeMessages(removedEntities);
 	gettimeofday(&endDM, nullptr);
+	#ifdef GROUP_TIMING
 	timestream << "DM: "<< (ProfileBuilder::diff_ms(endDM, endFB))/1000.0 << "s|";
+	#endif
 
 	waitAllGroups_MacroTimeTick();
 	gettimeofday(&endMT, nullptr);
+	#ifdef GROUP_TIMING
 	timestream << "MT: "<< (ProfileBuilder::diff_ms(endMT, endDM))/1000.0 << "s|";
+	#endif
 
 	//Delete all collected entities:
 	while (!removedEntities.empty()) {

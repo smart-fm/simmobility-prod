@@ -94,9 +94,14 @@ LoggerAgent::LoggerAgent() : Entity(-1)
     //screening probabilities
     std::ofstream* screeningProbabilitiesFile = new std::ofstream("ScreeningProbabilities.csv");
     streams.insert(std::make_pair(LOG_SCREENINGPROBABILITIES, screeningProbabilitiesFile));
-    //screening probabilities
+
+    //HH Choice set
     std::ofstream* hhChoiceSetFile = new std::ofstream("HHChoiceSet.csv");
     streams.insert(std::make_pair(LOG_HHCHOICESET, hhChoiceSetFile));
+
+    //errors
+    std::ofstream* errorFile = new std::ofstream("Errors.csv");
+    streams.insert(std::make_pair(LOG_ERROR, errorFile));
 }
 
 LoggerAgent::~LoggerAgent()

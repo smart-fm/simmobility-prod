@@ -13,6 +13,7 @@
 #include "event/LT_EventArgs.hpp"
 #include "database/entity/Household.hpp"
 #include "core/HousingMarket.hpp"
+#include <util/TimeCheck.hpp>
 
 namespace sim_mob
 {

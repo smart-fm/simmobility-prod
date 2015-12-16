@@ -110,6 +110,7 @@ private:
 	sim_mob::FlexiBarrier* buffFlipBarr;
 	sim_mob::FlexiBarrier* msgBusBarr;
 
+	//#define GROUP_TIMING
 };
 
 }

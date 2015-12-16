@@ -23,7 +23,8 @@ namespace sim_mob
         public:
             Household();
             Household( BigSerial id, BigSerial lifestyleId, BigSerial unitId, BigSerial ethnicityId, BigSerial vehicleCategoryId,  int size, int childUnder4, int childUnder15, double income,
-            		   int housingDuration,int workers, int ageOfHead, bool twoRoomHdbEligibility, bool threeRoomHdbEligibility, bool fourRoomHdbEligibility, int familyType, bool taxiAvailability, int vehicleOwnershipOptionId);
+            		   int housingDuration,int workers, int ageOfHead, bool twoRoomHdbEligibility, bool threeRoomHdbEligibility, bool fourRoomHdbEligibility, int familyType, bool taxiAvailability,
+					   int vehicleOwnershipOptionId, double logsum);
             virtual ~Household();
 
             Household& operator=(const Household& source);
@@ -51,6 +52,9 @@ namespace sim_mob
             BigSerial getLifestyleId() const;
             void setId(BigSerial id);
             BigSerial getId() const;
+
+            void setLogsum(double logsum);
+            double getLogsum() const;
 
             void setIndividual( BigSerial individualId );
             std::vector<BigSerial> getIndividuals() const;
@@ -115,6 +119,7 @@ namespace sim_mob
 			int vehicleOwnershipOptionId;
 
 			double householdAffordabilityAmount;
+			double logsum;
         };
 
 

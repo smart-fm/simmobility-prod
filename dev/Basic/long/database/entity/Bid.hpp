@@ -26,7 +26,7 @@ namespace sim_mob
         {
         public:
             Bid(BigSerial bidId, int simulationDay, BigSerial bidderId, BigSerial currentUnitId, BigSerial newUnitId,double willingnessToPay,double affordabilityAmount,double hedonicPrice,
-            		double askingPrice,double targetPrice, double bidValue, int isAccepted,BigSerial currentPostcode, BigSerial newPostcode,LT_Agent* bidder);
+            		double askingPrice,double targetPrice, double bidValue, int isAccepted,BigSerial currentPostcode, BigSerial newPostcode,LT_Agent* bidder,std::tm moveInDate);
             Bid(BigSerial bidId,BigSerial currentUnitId, BigSerial newUnitId,BigSerial bidderId,LT_Agent* bidder,double bidValue, int simulationDay, double willingnessToPay);
             Bid(const Bid& source);
             Bid();
@@ -82,6 +82,8 @@ namespace sim_mob
             * @return bidder pointer.
             */
            LT_Agent* getBidder() const;
+
+           const std::tm& getMoveInDate() const;
            /*
             * setters
             */
@@ -99,6 +101,7 @@ namespace sim_mob
            void setCurrentUnitId(BigSerial currUnitId);
            void setNewUnitId(BigSerial newUnitId);
            void setWillingnessToPay(double willingnessToPay);
+           void setMoveInDate(const std::tm& moveInDate);
 
            /**
             * Operator to print the Bid data.
@@ -127,6 +130,7 @@ namespace sim_mob
            BigSerial currentPostcode;
            BigSerial newPostcode;
            LT_Agent* bidder;
+           std::tm moveInDate;
         };
     }
 }

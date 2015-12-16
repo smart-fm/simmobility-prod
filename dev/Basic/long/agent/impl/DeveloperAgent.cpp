@@ -28,6 +28,7 @@
 #include "database/dao/ProjectDao.hpp"
 #include "database/dao/ParcelDao.hpp"
 #include "behavioral/PredayLT_Logsum.hpp"
+#include "util/SharedFunctions.hpp"
 
 using namespace sim_mob::long_term;
 using namespace sim_mob::event;
@@ -527,7 +528,7 @@ Entity::UpdateStatus DeveloperAgent::onFrameTick(timeslice now) {
     	currentTick = now.ms();
     	if(this->parcel->getStatus()== 0)
     	{
-    		std::tm currentDate = getDate(now.ms());
+    		std::tm currentDate = getDateBySimDay(simYear,now.ms());
     		int quarter = ((currentDate.tm_mon)/4) + 1; //get the current month of the simulation and divide it by 4 to determine the quarter
     		std::string quarterStr = "Y"+boost::lexical_cast<std::string>(simYear)+"Q"+boost::lexical_cast<std::string>(quarter);
     		const TAO *tao = devModel->getTaoByQuarter(getQuarterIdByQuarterStr(quarterStr));
@@ -556,7 +557,7 @@ Entity::UpdateStatus DeveloperAgent::onFrameTick(timeslice now) {
 
 void DeveloperAgent::createUnitsAndBuildings(PotentialProject &project,BigSerial projectId)
 {
-	std::tm currentDate = getDate(currentTick);
+	std::tm currentDate = getDateBySimDay(simYear,currentTick);
 	int currentMonth = currentDate.tm_mon;
 	int currentYear = currentDate.tm_year;
 
@@ -655,7 +656,7 @@ void DeveloperAgent::createUnitsAndBuildings(PotentialProject &project,BigSerial
 void DeveloperAgent::createProject(PotentialProject &project, BigSerial projectId)
 {
 
-	std::tm constructionDate = getDate(currentTick);
+	std::tm constructionDate = getDateBySimDay(simYear,currentTick);
 	std::tm completionDate = constructionDate;
 	completionDate.tm_year = completionDate.tm_year + 1;
 	double constructionCost = project.getConstructionCost();
@@ -774,17 +775,6 @@ void DeveloperAgent::setUnitsForHM(std::vector<boost::shared_ptr<Unit> >::iterat
 void DeveloperAgent::setUnitsRemain (bool unitRemain)
 {
 	unitsRemain = unitRemain;
-}
-std::tm DeveloperAgent::getDate(int day)
-{
-	int year = simYear-1900;
-	int month = day/30; //divide by 30 to get the month
-	int dayMonth = (day%30)+1; // get the remainder of divide by 30 to roughly calculate the day of the month
-	std::tm currentDate = std::tm();
-	currentDate.tm_mday = dayMonth;
-	currentDate.tm_mon = month;
-	currentDate.tm_year = year;
-	return currentDate;
 }
 
 void DeveloperAgent::onFrameOutput(timeslice now) {

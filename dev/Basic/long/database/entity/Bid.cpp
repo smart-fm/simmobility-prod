@@ -14,14 +14,14 @@
 
 using namespace sim_mob::long_term;
 
-Bid::Bid(BigSerial bidId,int simulationDay, BigSerial bidderId, BigSerial currentUnitId, BigSerial newUnitId,double willingnessToPay,double affordabilityAmount,double hedonicPrice, double askingPrice,double targetPrice,double bidValue, int isAccepted,BigSerial currentPostcode, BigSerial newPostcode,LT_Agent* bidder)
+Bid::Bid(BigSerial bidId,int simulationDay, BigSerial bidderId, BigSerial currentUnitId, BigSerial newUnitId,double willingnessToPay,double affordabilityAmount,double hedonicPrice, double askingPrice,double targetPrice,double bidValue, int isAccepted,BigSerial currentPostcode, BigSerial newPostcode,LT_Agent* bidder,std::tm moveInDate)
 		:bidId(bidId),simulationDay(simulationDay),bidderId(bidderId),currentUnitId(currentUnitId),newUnitId(newUnitId), willingnessToPay(willingnessToPay), affordabilityAmount(affordabilityAmount), hedonicPrice(hedonicPrice), askingPrice(askingPrice),targetPrice(targetPrice),bidValue(bidValue),
-		 isAccepted(isAccepted),currentPostcode(currentPostcode),newPostcode(newPostcode),bidder(bidder){}
+		 isAccepted(isAccepted),currentPostcode(currentPostcode),newPostcode(newPostcode),bidder(bidder),moveInDate(moveInDate){}
 
 Bid::Bid(BigSerial bidId,BigSerial currentUnitId,BigSerial newUnitId, BigSerial bidderId,LT_Agent* bidder,double bidValue, int simulationDay, double willingnessToPay)
 		:bidId(bidId),currentUnitId(currentUnitId), newUnitId(newUnitId),bidderId(bidderId),bidder(bidder),bidValue(bidValue), simulationDay(simulationDay) , willingnessToPay(willingnessToPay)
         , affordabilityAmount(affordabilityAmount), hedonicPrice(hedonicPrice), askingPrice(askingPrice),targetPrice(targetPrice),
-		 isAccepted(isAccepted),currentPostcode(currentPostcode),newPostcode(newPostcode){}
+		 isAccepted(isAccepted),currentPostcode(currentPostcode),newPostcode(newPostcode),moveInDate(moveInDate){}
 
 Bid::Bid(const Bid& source)
 {
@@ -40,10 +40,11 @@ Bid::Bid(const Bid& source)
     this->currentPostcode = source.currentPostcode;
     this->newPostcode = source.newPostcode;
     this->bidder = source.bidder;
+    this->moveInDate = source.moveInDate;
 }
 
 Bid::Bid(): bidId(bidId),simulationDay(simulationDay),bidderId(INVALID_ID),currentUnitId(INVALID_ID),newUnitId(INVALID_ID),willingnessToPay(0.0),affordabilityAmount(0.0),hedonicPrice(0.0),
-		askingPrice(0.0),targetPrice(0.0),bidValue(0.0),isAccepted(0),currentPostcode(INVALID_ID),newPostcode(INVALID_ID),bidder(nullptr){}
+		askingPrice(0.0),targetPrice(0.0),bidValue(0.0),isAccepted(0),currentPostcode(INVALID_ID),newPostcode(INVALID_ID),bidder(nullptr),moveInDate(moveInDate){}
 
 Bid::~Bid() {}
 
@@ -64,6 +65,7 @@ Bid& Bid::operator=(const Bid& source)
 	this->currentPostcode = source.currentPostcode;
 	this->newPostcode = source.newPostcode;
 	this->bidder = source.bidder;
+	this->moveInDate = source.moveInDate;
     return *this;
 }
 
@@ -137,6 +139,11 @@ BigSerial Bid::getNewPostcode() const
 	return this->newPostcode;
 }
 
+const std::tm& Bid::getMoveInDate() const
+{
+		return moveInDate;
+}
+
 void Bid::setAffordabilityAmount(double affordabilityAmount)
 {
 	this->affordabilityAmount = affordabilityAmount;
@@ -204,6 +211,11 @@ void Bid::setNewUnitId(BigSerial unitId)
 void Bid::setWillingnessToPay(double willingnessToPay)
 {
 	this->willingnessToPay = willingnessToPay;
+}
+
+void Bid::setMoveInDate(const std::tm& moveInDate)
+{
+		this->moveInDate = moveInDate;
 }
 
 LT_Agent* Bid::getBidder() const

@@ -331,8 +331,6 @@ function calculateHDB_HedonicPrice(unit, building, postcode, amenities, logsum, 
 	---------------------------------
 	---------------------------------
 
-	print("This public lagCoeff is " .. lagCoefficient );
-
 	hedonicPrice = hedonicPrice * lagCoefficient;
 
    
@@ -615,8 +613,6 @@ function calculatePrivate_HedonicPrice(unit, building, postcode, amenities, logs
 	end
 	------------------------------------------
 	------------------------------------------
-
-    print("This private quarter is " .. lagCoefficient );
 
 	hedonicPrice = hedonicPrice * lagCoefficient;
 

@@ -1196,6 +1196,7 @@ void HM_Model::startImpl()
 	{
 		//Load households
 		loadData<HouseholdDao>(conn, households, householdsById, &Household::getId);
+		households.resize(50000);
 		PrintOutV("Number of households: " << households.size() << ". Households used: " << households.size()  << std::endl);
 
 		//Load units
@@ -2002,6 +2003,23 @@ void HM_Model::addNewBids(boost::shared_ptr<Bid> &newBid)
 	addBidsLock.lock();
 	newBids.push_back(newBid);
 	addBidsLock.unlock();
+}
+
+void HM_Model::addUnitSales(boost::shared_ptr<UnitSale> &unitSale)
+{
+	addUnitSalesLock.lock();
+	unitSales.push_back(unitSale);
+	addUnitSalesLock.unlock();
+}
+
+std::vector<boost::shared_ptr<UnitSale> > HM_Model::getUnitSales()
+{
+	return this->unitSales;
+}
+
+std::vector<boost::shared_ptr<Bid> > HM_Model::getNewBids()
+{
+	return this->newBids;
 }
 
 BigSerial HM_Model::getBidId()

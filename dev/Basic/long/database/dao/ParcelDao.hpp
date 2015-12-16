@@ -53,6 +53,8 @@ namespace sim_mob {
              * Get parcels with ongoing projects
              */
             std::vector<Parcel*> getParcelsWithOngoingProjects();
+
+            void insertParcel(Parcel& parcel,std::string schema);
         };
     }
 }

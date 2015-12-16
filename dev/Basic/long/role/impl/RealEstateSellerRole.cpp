@@ -49,21 +49,21 @@ namespace
     inline void printBid(const RealEstateAgent& agent, const Bid& bid, const ExpectationEntry& entry, unsigned int bidsCounter, bool accepted)
     {
     	const HM_Model* model = agent.getModel();
-    	const Unit* unit  = model->getUnitById(bid.getUnitId());
+    	const Unit* unit  = model->getUnitById(bid.getNewUnitId());
         double floor_area = unit->getFloorArea();
         BigSerial type_id = unit->getUnitType();
 
-        boost::format fmtr = boost::format(LOG_BID) % bid.getTime().ms()
+        boost::format fmtr = boost::format(LOG_BID) % bid.getSimulationDay()
 													% agent.getId()
 													% bid.getBidderId()
-													% bid.getUnitId()
+													% bid.getNewUnitId()
 													% bid.getWillingnessToPay()
 													% entry.hedonicPrice
 													% entry.askingPrice
 													% floor_area
 													% type_id
 													% entry.targetPrice
-													% bid.getValue()
+													% bid.getBidValue()
 													% bidsCounter
 													% ((accepted) ? 1 : 0);
 
@@ -112,7 +112,7 @@ namespace
      */
     inline bool decide(const Bid& bid, const ExpectationEntry& entry)
     {
-        return bid.getValue() > entry.targetPrice;
+        return bid.getBidValue() > entry.targetPrice;
     }
 
     /**
@@ -287,7 +287,7 @@ void RealEstateSellerRole::HandleMessage(Message::MessageType type, const Messag
         case LTMID_BID:// Bid received 
         {
             const BidMessage& msg = MSG_CAST(BidMessage, message);
-            BigSerial unitId = msg.getBid().getUnitId();
+            BigSerial unitId = msg.getBid().getNewUnitId();
             bool decision = false;
             ExpectationEntry entry;
 
@@ -314,7 +314,7 @@ void RealEstateSellerRole::HandleMessage(Message::MessageType type, const Messag
                     {
                         maxBidsOfDay.insert(std::make_pair(unitId, msg.getBid()));
                     }
-                    else if(maxBidOfDay->getValue() < msg.getBid().getValue())
+                    else if(maxBidOfDay->getBidValue() < msg.getBid().getBidValue())
                     {
                         // bid is higher than the current one of the day.
                         // it is necessary to notify the old max bidder
@@ -406,18 +406,18 @@ void RealEstateSellerRole::notifyWinnerBidders()
     {
         Bid& maxBidOfDay = itr->second;
         ExpectationEntry entry;
-        getCurrentExpectation(maxBidOfDay.getUnitId(), entry);
-        replyBid(*dynamic_cast<RealEstateAgent*>(getParent()), maxBidOfDay, entry, ACCEPTED, getCounter(dailyBids, maxBidOfDay.getUnitId()));
+        getCurrentExpectation(maxBidOfDay.getNewUnitId(), entry);
+        replyBid(*dynamic_cast<RealEstateAgent*>(getParent()), maxBidOfDay, entry, ACCEPTED, getCounter(dailyBids, maxBidOfDay.getNewUnitId()));
 
         //PrintOut("\033[1;37mSeller " << std::dec << getParent()->GetId() << " accepted the bid of " << maxBidOfDay.getBidderId() << " for unit " << maxBidOfDay.getUnitId() << " at $" << maxBidOfDay.getValue() << " psf. \033[0m\n" );
 		#ifdef VERBOSE
         PrintOutV("[day " << currentTime.ms() << "] RealEstate Agent. Seller " << std::dec << getParent()->getId() << " accepted the bid of " << maxBidOfDay.getBidderId() << " for unit " << maxBidOfDay.getUnitId() << " at $" << maxBidOfDay.getValue() << std::endl );
 		#endif
 
-        printNewUnitsInMarket(maxBidOfDay.getUnitId());
-        market->removeEntry(maxBidOfDay.getUnitId());
-        dynamic_cast<RealEstateAgent*>(getParent())->removeUnitId(maxBidOfDay.getUnitId());
-        sellingUnitsMap.erase(maxBidOfDay.getUnitId());
+        printNewUnitsInMarket(maxBidOfDay.getNewUnitId());
+        market->removeEntry(maxBidOfDay.getNewUnitId());
+        dynamic_cast<RealEstateAgent*>(getParent())->removeUnitId(maxBidOfDay.getNewUnitId());
+        sellingUnitsMap.erase(maxBidOfDay.getNewUnitId());
     }
 
     // notify winners.

@@ -28,8 +28,9 @@ namespace sim_mob
         {
         public:
             Unit( BigSerial id = INVALID_ID, BigSerial buildingId = INVALID_ID, BigSerial sla_address_id = INVALID_ID, int unit_type = INVALID_ID,
-            	  int story_range = 0, int unit_status = 0, double floor_area = .0f, int storey = 0, double rent = .0f, int ownership = 0, std::tm sale_from_date = std::tm(),
-            	  std::tm physical_from_date = std::tm(), int sale_status = 0, int physical_status = 0, std::tm lastChangedDate = std::tm(), int biddingMarketEntryDay = 0, int timeOnMarket = 0, int timeOffMarket = 0);
+            	  int story_range = 0, int constructionStatus = 0, double floor_area = .0f, int storey = 0, double monthlyRent = .0f, int ownership = 0, std::tm sale_from_date = std::tm(),
+            	  std::tm physical_from_date = std::tm(), int sale_status = 0, int occupancyStatus = 0, std::tm lastChangedDate = std::tm(),double totalPrice = 0,
+            	  std::tm valueDate = std::tm(),int tenureStatus = 0,int biddingMarketEntryDay = 0, int timeOnMarket = 0, int timeOffMarket = 0);
             Unit( const Unit& source );
             virtual ~Unit();
 
@@ -48,17 +49,21 @@ namespace sim_mob
             BigSerial getSlaAddressId() const;
             int getUnitType() const;
             int getStoreyRange() const;
-            int getUnitStatus() const;
+            int getConstructionStatus() const;
             double getFloorArea() const;
             int getStorey() const;
-            double getRent() const;
+            double getMonthlyRent() const;
             int getOwnership() const;
             std::tm getSaleFromDate() const;
             std::tm getPhysicalFromDate() const;
             int getPhysicalFromYear() const;
             int getSaleStatus() const;
-            int getPhysicalStatus() const;
+            int getOccupancyStatus() const;
             std::tm getLastChangedDate() const;
+            int getTenureStatus() const;
+            double getTotalPrice() const;
+            const std::tm& getValueDate() const;
+
             /*
              * setters
              */
@@ -66,17 +71,20 @@ namespace sim_mob
             void setFloorArea(double floorArea);
             void setId(BigSerial id);
             void setPhysicalFromDate(const std::tm& physicalFromDate);
-            void setPhysicalStatus(int physicalStatus);
-            void setRent(double rent);
+            void setOccupancyStatus(int occStatus);
+            void setMonthlyRent(double monthlyRent);
             void setOwnership(int ownership);
             void setSaleFromDate(const std::tm& saleFromDate);
             void setSaleStatus(int saleStatus);
             void setSlaAddressId(BigSerial slaAddressId);
             void setStorey(int storey);
             void setStoreyRange(int storeyRange);
-            void setUnitStatus(int unitStatus);
+            void setConstructionStatus(int unitStatus);
             void setUnitType(int unitType);
             void setLastChangedDate(std::tm date);
+            void setTenureStatus(int tenureStatus);
+            void setTotalPrice(double totalPrice);
+            void setValueDate(const std::tm& valueDate);
 
             int  getbiddingMarketEntryDay() const;
             void setbiddingMarketEntryDay( int day );
@@ -101,17 +109,19 @@ namespace sim_mob
             BigSerial sla_address_id;
             int unit_type;
             int storey_range;
-            int unit_status;
+            int constructionStatus;
             double floor_area;
             int storey; 
-            double rent;
+            double monthlyRent;
             int ownership;
             std::tm sale_from_date;
             std::tm physical_from_date;
             int sale_status;
-            int physical_status;
+            int occupancyStatus;
             std::tm lastChangedDate;
-
+            double totalPrice;
+            std::tm valueDate;
+            int tenureStatus;
             //This variable denotes the day the unit went on sale.
             int biddingMarketEntryDay;
             int timeOnMarket;

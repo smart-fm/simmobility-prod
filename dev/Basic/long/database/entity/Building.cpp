@@ -22,6 +22,23 @@ Building::Building( BigSerial fmBuildingId, BigSerial fmProjectId, BigSerial fmP
 
 Building::~Building() {}
 
+Building::Building( const Building &source)
+{
+	this->fmBuildingId 			= source.fmBuildingId;
+	this->fmProjectId			= source.fmProjectId;
+	this->fmParcelId 			= source.fmParcelId;
+	this->storeysAboveGround	= source.storeysAboveGround;
+	this->storeysBelowGround  	= source.storeysBelowGround;
+	this->fromDate				= source.fromDate;
+	this->toDate				= source.toDate;
+	this->buildingStatus		= source.buildingStatus;
+	this->grossSqMRes			= source.grossSqMRes;
+	this->grossSqMOffice		= source.grossSqMOffice;
+	this->grossSqMRetail		= source.grossSqMRetail;
+	this->grossSqMOther			= source.grossSqMOther;
+	this->lastChangedDate       = source.lastChangedDate;
+}
+
 Building& Building::operator=(const Building& source)
 {
 	this->fmBuildingId 			= source.fmBuildingId;

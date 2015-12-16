@@ -34,6 +34,7 @@
 #include "database/entity/ZonalLanduseVariableValues.hpp"
 #include "database/entity/PopulationPerPlanningArea.hpp"
 #include "database/entity/HitsIndividualLogsum.hpp"
+#include "database/entity/UnitSale.hpp"
 #include "core/HousingMarket.hpp"
 #include "boost/unordered_map.hpp"
 #include "DeveloperModel.hpp"
@@ -281,6 +282,13 @@ namespace sim_mob
             Alternative* getAlternativeByPlanningAreaId(int id) const;
             std::vector<PopulationPerPlanningArea*> getPopulationByPlanningAreaId(BigSerial id)const;
             HitsIndividualLogsumList getHitsIndividualLogsumVec() const;
+            void setStartDay(int day);
+            int getStartDay() const;
+            void addNewBids(boost::shared_ptr<Bid> &newBid);
+            BigSerial getBidId();
+            std::vector<boost::shared_ptr<Bid> > getNewBids();
+            void addUnitSales(boost::shared_ptr<UnitSale> &unitSale);
+            std::vector<boost::shared_ptr<UnitSale> > getUnitSales();
 
         protected:
             /**
@@ -353,6 +361,9 @@ namespace sim_mob
             boost::mutex mtx2;
             boost::mutex mtx3;
             boost::mutex mtx4;
+            boost::mutex addBidsLock;
+            boost::mutex bidIdLock;
+            boost::mutex addUnitSalesLock;
             boost::unordered_map<BigSerial, double>tazLevelLogsum;
             boost::unordered_map<BigSerial, double>vehicleOwnershipLogsum;
 
@@ -388,6 +399,10 @@ namespace sim_mob
             int simulationStopCounter;
 
             DeveloperModel *developerModel;
+            int startDay; //start tick of the simulation
+            std::vector<boost::shared_ptr<Bid> > newBids;
+            std::vector<boost::shared_ptr<UnitSale> > unitSales;
+            BigSerial bidId;
         };
     }
 }

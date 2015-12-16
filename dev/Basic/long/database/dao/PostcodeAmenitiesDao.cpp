@@ -23,10 +23,6 @@ PostcodeAmenitiesDao::~PostcodeAmenitiesDao() {}
 void PostcodeAmenitiesDao::fromRow(Row& result, PostcodeAmenities& outObj)
 {
     outObj.postcode = result.get<std::string>(DB_FIELD_POSTCODE, EMPTY_STR);
-    outObj.buildingName = result.get<std::string>(DB_FIELD_BUILDING_NAME, EMPTY_STR);
-    outObj.unitBlock = result.get<std::string>(DB_FIELD_UNIT_BLOCK, EMPTY_STR);
-    outObj.roadName = result.get<std::string>(DB_FIELD_ROAD_NAME, EMPTY_STR);
-    outObj.mtzNumber = result.get<std::string>(DB_FIELD_MTZ_NUMBER, EMPTY_STR);
     outObj.mrtStation = result.get<std::string>(DB_FIELD_MRT_STATION, EMPTY_STR);
     outObj.distanceToMRT = result.get<double>(DB_FIELD_DISTANCE_TO_MRT, 0);
     outObj.distanceToBus = result.get<double>(DB_FIELD_DISTANCE_TO_BUS, 0);
@@ -34,7 +30,6 @@ void PostcodeAmenitiesDao::fromRow(Row& result, PostcodeAmenities& outObj)
     outObj.distanceToPMS30 = result.get<double>(DB_FIELD_DISTANCE_TO_PMS30, 0);
     outObj.distanceToCBD = result.get<double>(DB_FIELD_DISTANCE_TO_CBD, 0);
     outObj.distanceToMall = result.get<double>(DB_FIELD_DISTANCE_TO_MALL, 0);
-    //outObj.distanceToJob = result.get<double>(DB_FIELD_DISTANCE_TO_JOB, 0);
     outObj.mrt_200m = result.get<int>(DB_FIELD_MRT_200M, false);
     outObj.mrt_400m = result.get<int>(DB_FIELD_MRT_400M, false);
     outObj.express_200m = result.get<int>(DB_FIELD_EXPRESS_200M, false);

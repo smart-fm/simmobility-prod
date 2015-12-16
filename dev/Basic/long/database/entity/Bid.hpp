@@ -25,8 +25,11 @@ namespace sim_mob
         class Bid
         {
         public:
-            Bid(BigSerial id, BigSerial bidderId, LT_Agent* bidder, double value, timeslice& time, double willingnessToPay);
+            Bid(BigSerial bidId, int simulationDay, BigSerial bidderId, BigSerial currentUnitId, BigSerial newUnitId,double willingnessToPay,double affordabilityAmount,double hedonicPrice,
+            		double askingPrice,double targetPrice, double bidValue, int isAccepted,BigSerial currentPostcode, BigSerial newPostcode,LT_Agent* bidder,std::tm moveInDate);
+            Bid(BigSerial bidId,BigSerial currentUnitId, BigSerial newUnitId,BigSerial bidderId,LT_Agent* bidder,double bidValue, int simulationDay, double willingnessToPay);
             Bid(const Bid& source);
+            Bid();
             virtual ~Bid();
 
             /**
@@ -36,70 +39,98 @@ namespace sim_mob
              */
             Bid& operator=(const Bid& source);
 
-            /**
-             * Gets the Unit unique identifier.
-             * @return value with Unit identifier.
-             */
-            BigSerial getUnitId() const;
+            BigSerial getBidId() const;
+            int getSimulationDay() const;
 
             /**
              * Gets the Bidder unique identifier.
              * @return value with Bidder identifier.
              */
             BigSerial getBidderId() const;
-            
-            /**
-             * Gets the Bidder pointer.
-             * @return bidder pointer.
-             */
-            LT_Agent* getBidder() const;
 
             /**
-             * Gets the value of the bid.
-             * @return the value of the bid.
+             * Gets the Unit unique identifier.
+             * @return value with Unit identifier.
              */
-            double getValue() const;
-            
-            /**
-             * Gets the value of the speculation for the current unit.
-             * @return the value of the speculation.
-             */
-            double getSpeculation() const;
-            
+            BigSerial getCurrentUnitId() const;
+
+            BigSerial getNewUnitId() const;
+
             /**
              * Gets the value of the willingness to pay of the bidder to this unit.
              * @return the value of the willingness to pay.
              */
             double getWillingnessToPay() const;
             
+            double getAffordabilityAmount() const;
+            double getHedonicPrice() const;
+            double getAskingPrice() const;
+            double getTargetPrice() const;
+
             /**
-             * Gets the time of the bid.
+             * Gets the value of the bid.
              * @return the value of the bid.
              */
-            const timeslice& getTime() const;
-            
-            /**
-             * Operator to print the Bid data.  
-             */
-            friend std::ostream& operator<<(std::ostream& strm, const Bid& data);
-            
+            double getBidValue() const;
+
+           int getIsAccepted() const;
+           BigSerial getCurrentPostcode() const;
+           BigSerial getNewPostcode() const;
+
+           /**
+            * Gets the Bidder pointer.
+            * @return bidder pointer.
+            */
+           LT_Agent* getBidder() const;
+
+           const std::tm& getMoveInDate() const;
+           /*
+            * setters
+            */
+           void setAffordabilityAmount(double affordabilityAmount);
+           void setAskingPrice(double askingPrice);
+           void setBidderId(BigSerial bidderId);
+           void setBidId(BigSerial bidId);
+           void setBidValue(double bidValue);
+           void setCurrentPostcode(BigSerial currentPostcode);
+           void setHedonicPrice(double hedonicPrice);
+           void setIsAccepted(int isAccepted) ;
+           void setNewPostcode(BigSerial newPostcode);
+           void setSimulationDay(int simulationDay);
+           void setTargetPrice(double targetPrice);
+           void setCurrentUnitId(BigSerial currUnitId);
+           void setNewUnitId(BigSerial newUnitId);
+           void setWillingnessToPay(double willingnessToPay);
+           void setMoveInDate(const std::tm& moveInDate);
+
+           /**
+            * Operator to print the Bid data.
+            */
+           friend std::ostream& operator<<(std::ostream& strm, const Bid& data);
+
         private:
-            //TODO: FUTURE friend class BidDao;
-            /**
-             * Private constructor for DAO use. 
-             */
-            Bid();
+           friend class BidDao;
+           /**
+            * Private constructor for DAO use.
+            */
+           // Bid();
         private:
-            timeslice time;
-            BigSerial unitId;
-            BigSerial bidderId;
-            double value;
-            LT_Agent* bidder;
-            
-            /**
-             * Bidder information. 
-             */ 
-            double willingnessToPay;
+           BigSerial bidId;
+           int simulationDay;
+           BigSerial bidderId;
+           BigSerial currentUnitId;
+           BigSerial newUnitId;
+           double willingnessToPay;
+           double affordabilityAmount;
+           double hedonicPrice;
+           double askingPrice;
+           double targetPrice;
+           double bidValue;
+           int isAccepted;
+           BigSerial currentPostcode;
+           BigSerial newPostcode;
+           LT_Agent* bidder;
+           std::tm moveInDate;
         };
     }
 }

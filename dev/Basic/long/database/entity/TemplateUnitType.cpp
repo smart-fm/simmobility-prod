@@ -18,6 +18,21 @@ TemplateUnitType::TemplateUnitType(BigSerial templateId,BigSerial unitTypeId,int
 : templateId(templateId), unitTypeId(unitTypeId), proportion(proportion){
 }
 
+TemplateUnitType::TemplateUnitType( const TemplateUnitType &source)
+{
+	this->templateId = source.templateId;
+	this->unitTypeId = source.unitTypeId;
+	this->proportion = source.proportion;
+}
+
+TemplateUnitType& TemplateUnitType::operator=(const TemplateUnitType& source)
+{
+	this->templateId = source.templateId;
+	this->unitTypeId = source.unitTypeId;
+	this->proportion = source.proportion;
+	return *this;
+}
+
 TemplateUnitType::~TemplateUnitType() {
 }
 

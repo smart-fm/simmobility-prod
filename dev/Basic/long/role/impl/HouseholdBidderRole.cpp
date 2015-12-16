@@ -419,7 +419,7 @@ void HouseholdBidderRole::HandleMessage(Message::MessageType type, const Message
                 {
                 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
                 	moveInWaitingTimeInDays = config.ltParams.housingModel.housingMoveInDaysInterval;
-                	unitIdToBeOwned = msg.getBid().getUnitId();
+                	unitIdToBeOwned = msg.getBid().getNewUnitId();
                 	vehicleBuyingWaitingTimeInDays = config.ltParams.vehicleOwnershipModel.vehicleBuyingWaitingTimeInDays;
                     break;
                 }
@@ -452,7 +452,7 @@ bool HouseholdBidderRole::bidUnit(timeslice now)
     HousingMarket* market = getParent()->getMarket();
     const Household* household = getParent()->getHousehold();
     const HM_LuaModel& luaModel = LuaProvider::getHM_Model();
-    const HM_Model* model = getParent()->getModel();
+    HM_Model* model = getParent()->getModel();
     
     // Following the new assumptions of the model each household will stick on the 
     // unit where he is bidding until he gets rejected for seller by NOT_AVAILABLE/BETTER_OFFER 
@@ -492,7 +492,7 @@ bool HouseholdBidderRole::bidUnit(timeslice now)
 				PrintOutV("[day " << day << "] Household " << std::dec << household->getId() << " submitted a bid of $" << biddingEntry.getBestBid() << "[wp:$" << biddingEntry.getWP() << ",bids:"  <<   biddingEntry.getTries() << ",ap:$" << entry->getAskingPrice() << "] on unit " << biddingEntry.getUnitId() << " to seller " <<  entry->getOwner()->getId() << "." << std::endl );
 				#endif
 
-				bid(entry->getOwner(), Bid(entry->getUnitId(), household->getId(), getParent(), biddingEntry.getBestBid(), now, biddingEntry.getWP()));
+				bid(entry->getOwner(), Bid(model->getBidId(),household->getUnitId(),entry->getUnitId(), household->getId(), getParent(), biddingEntry.getBestBid(), now.ms(), biddingEntry.getWP()));
 
 				return true;
 			}
@@ -1380,9 +1380,10 @@ bool HouseholdBidderRole::pickEntryToBid()
 
     //We cannot use those probabilities because they are based on HITS2008 ids
     //model->getScreeningProbabilities(hitsId, householdScreeningProbabilities);
-    //getScreeningProbabilities(household->getId(), householdScreeningProbabilities);
 
+    //getScreeningProbabilities(household->getId(), householdScreeningProbabilities);
     //printProbabilityList(household->getId(), householdScreeningProbabilities);
+
 
     std::vector<const HousingMarket::Entry*> screenedEntries;
 

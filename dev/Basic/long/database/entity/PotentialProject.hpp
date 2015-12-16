@@ -83,7 +83,7 @@ namespace sim_mob {
              * Adds relevant template unit types of the given development type template for this project.
              * @param template unit type to add.
              */
-            void addTemplateUnitType(TemplateUnitType* templateUnitType);
+            void addTemplateUnitType(const TemplateUnitType& templateUnitType);
 
             void addUnits(int unitType,int numUnits);
             //Getters
@@ -115,7 +115,7 @@ namespace sim_mob {
             void setAcquisitionCost(double acqCost);
             void setLandValue(double landVal);
 
-            std::vector<TemplateUnitType*> templateUnitTypes;
+            std::vector<TemplateUnitType> templateUnitTypes;
 
         private:
             std::vector<PotentialUnit> units;

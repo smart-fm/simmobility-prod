@@ -80,7 +80,9 @@ namespace sim_mob {
         const std::string DB_TABLE_TAZ_LEVEL_LAND_PRICE = APPLY_SCHEMA(CALIBRATION_SCHEMA, "taz_level_land_price");
 
         const std::string DB_TABLE_SIM_VERSION = APPLY_SCHEMA( OUTPUT_SCHEMA, "simulation_version");
-        const std::string DB_TABLE_STATUS_OF_WORLD = APPLY_SCHEMA( OUTPUT_SCHEMA, "status_of_the_world");
+        const std::string DB_TABLE_ENCODED_PARAMS_BY_SIMULATION = APPLY_SCHEMA( OUTPUT_SCHEMA, "encoded_params_by_simulation");
+
+        const std::string DB_TABLE_CREATE_OP_SCHEMA = APPLY_SCHEMA( MAIN_SCHEMA, "create_output_schema");
 
         /**
          * Views
@@ -294,10 +296,6 @@ namespace sim_mob {
         const std::string DB_INSERT_RESIDENTIAL_STATUS = DB_EMPTY_QUERY;
         const std::string DB_INSERT_AWAKENING = DB_EMPTY_QUERY;
 
-        const std::string DB_INSERT_SIM_VERSION = "INSERT INTO " + DB_TABLE_SIM_VERSION
-        		+ " (" + "id" + ", " + "scenario" + ", " + "simulation_start_date" + ", " + "sim_stopped_tick"
-        		+ ") VALUES (:v1, :v2, :v3, :v4)";
-
         const std::string DB_INSERT_PARCEL = "INSERT INTO " + APPLY_SCHEMA(OUTPUT_SCHEMA, "fm_parcel")
 								+ " (" + "fm_parcel_id" + ", " + "taz_id" + ", " + "lot_size"
 		                		+ ", " + "gpr" + ", " + "land_use_type_id" + ", "
@@ -307,9 +305,6 @@ namespace sim_mob {
 		                		+ ", "+ "successful_tender_price"  + ", " + "tender_closing_date" + ", " + "lease" + ", " + "development_status" + ", " + "development_allowed" + ", " + "next_available_date"  + ", " + "last_changed_date"
 		                		+ ") VALUES (:v1, :v2, :v3, :v4, :v5, :v6, :v7, :v8, :v9, :v10, :v11, :v12, :v13, :v14, :v15, :v16, :v17, :v18, :v19, :v20, :v21, :v22, :v23, :v24, :v25, :v26)";
 
-        const std::string DB_INSERT_STATUS_OF_WORLD = "INSERT INTO " + DB_TABLE_STATUS_OF_WORLD
-        		+ " (" + "sim_version_id" + ", " + "postcode" + ", " + "building_id" + ", " + "unit_id " + ", " + "project_id"
-        		+ ") VALUES (:v1, :v2, :v3, :v4, :v5)";
         /**
          * UPDATE
          */
@@ -400,8 +395,9 @@ namespace sim_mob {
         const std::string DB_GETALL_HITSINDIVIDUALLOGSUM = "SELECT * FROM " + DB_TABLE_HITSINDIVIDUALLOGSUM + LIMIT;
         const std::string DB_GETALL_TAZ_LEVEL_LAND_PRICES = "SELECT * FROM " + DB_TABLE_TAZ_LEVEL_LAND_PRICE + LIMIT;
         const std::string DB_GETALL_SIMVERSION = "SELECT * FROM " + DB_TABLE_SIM_VERSION + LIMIT;
-        const std::string DB_GETALL_STAUS_OF_WORLD = "SELECT * FROM " + DB_TABLE_STATUS_OF_WORLD + LIMIT;
+      //  const std::string DB_GETALL_STAUS_OF_WORLD = "SELECT * FROM " + DB_TABLE_STATUS_OF_WORLD + LIMIT;
         const std::string DB_GETALL_PARCELS_WITH_ONGOING_PROJECTS = "SELECT * FROM " + APPLY_SCHEMA(OUTPUT_SCHEMA, "fm_parcel") + LIMIT;
+        const std::string DB_GETALL_CREATEOPSCHEMA = "SELECT * FROM " + APPLY_SCHEMA(MAIN_SCHEMA, "create_output_schema") + LIMIT;
 
         /**
          * GET BY ID

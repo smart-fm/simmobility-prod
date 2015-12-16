@@ -46,6 +46,8 @@ namespace sim_mob {
              * @return the maximum unit id from the database.
              */
             BigSerial getMaxUnitId();
+
+            void insertUnit(Unit& unit,std::string schema);
         };
     }
 }

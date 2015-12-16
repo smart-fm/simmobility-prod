@@ -27,7 +27,7 @@ namespace sim_mob {
         
         class DeveloperAgent : public LT_Agent {
         public:
-            DeveloperAgent(Parcel* parcel, DeveloperModel* model);
+            DeveloperAgent(boost::shared_ptr<Parcel> parcel, DeveloperModel* model);
             virtual ~DeveloperAgent();
             
             /**
@@ -119,10 +119,7 @@ namespace sim_mob {
              * set whether there are new units remaining to enter to market
              */
             void setUnitsRemain (bool unitRemain);
-            /*
-             * get the simulation date by frame tick
-             */
-            std::tm getDate(int day);
+
             /*
              * set the real estate agent for this developer agent
              */
@@ -147,7 +144,7 @@ namespace sim_mob {
 
         private:
             DeveloperModel* devModel;
-            Parcel *parcel;
+            boost::shared_ptr<Parcel> parcel;
             IdVector parcelsToProcess;
             bool active;
             std::vector<boost::shared_ptr<Building> > newBuildings;

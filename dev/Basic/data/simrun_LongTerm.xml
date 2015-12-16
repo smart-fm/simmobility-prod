@@ -177,7 +177,10 @@
     	<workers value="8"/>
     	<tickStep value="1"/>  
 	<year value = "2012" />  
-	<simulationScenario value="baselline"/>   
+	<simulationScenario value="baselline"/> 
+	<resume value ="false"/> 
+	<currentOutputSchema value = "baselline_2012_20151123052357"/> <!--if resume is true give the current op schema name-->
+        <opSchemaloadingInterval value = "6"/>
     	<developerModel enabled="true">
     		<timeInterval value="30"/>
 		<InitialPostcode value = "1000000"/>

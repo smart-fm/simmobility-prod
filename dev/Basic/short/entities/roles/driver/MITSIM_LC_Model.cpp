@@ -55,7 +55,7 @@ void MITSIM_LC_Model::readDriverParameters(DriverUpdateParams &params)
 
 	//MLC_PARAMETERS
 	parameterMgr->param(modelName, "MLC_PARAMETERS", str, string("1320.0  5280.0 0.5 1.0  1.0"));
-	makeMCLParam(str);
+	makeMLCParam(str);
 
 	//LC_GAP_MODELS
 	std::vector< std::string > strArray;
@@ -437,7 +437,7 @@ double MITSIM_LC_Model::gapExpOfUtility(DriverUpdateParams &params, int n, float
 	return exp(u);
 }
 
-void MITSIM_LC_Model::makeMCLParam(std::string &str)
+void MITSIM_LC_Model::makeMLCParam(std::string &str)
 {
 	std::vector<double> array;
 	Utils::convertStringToArray(str, array);

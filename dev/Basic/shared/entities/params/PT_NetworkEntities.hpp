@@ -256,15 +256,13 @@ private:
 
 class PT_Network{
 public:
-	//PT_Network();
-	//~PT_Network();
+	~PT_Network();
 
 	std::map<int, PT_NetworkEdge> PT_NetworkEdgeMap;
 	std::map<std::string, PT_NetworkVertex> PT_NetworkVertexMap;
-	std::map<std::string, TrainStop> MRTStopsMap;
+	std::map<std::string, TrainStop*> MRTStopsMap;
 
 	void init();
-	PT_NetworkVertex getVertexFromStopId(std::string stopId);
 
 	TrainStop* findMRT_Stop(const std::string& stopId);
 

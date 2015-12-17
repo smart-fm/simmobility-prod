@@ -116,12 +116,12 @@ class TrainStop
 {
 public:
 	TrainStop();
-	TrainStop(std::string stopId, unsigned int roadSegment);
+	TrainStop(std::string stopIds);
 	~TrainStop();
 
-	std::string getTrainStopId() const
+	const std::vector<std::string>& getTrainStopId() const
 	{
-		return this->trainStopId;
+		return this->trainStopIds;
 	}
 
 	/**
@@ -145,7 +145,7 @@ public:
 	const sim_mob::RoadSegment* getRandomStationSegment() const;
 
 private:
-	std::string trainStopId;
+	std::vector<std::string> trainStopIds;
 	std::vector<const RoadSegment*> roadSegments;
 };
 

@@ -407,22 +407,22 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
             resLogFiles = wgMgr.retrieveOutFileNames();
         }
         
-        unsigned int year = config.ltParams.year;
-        std::string scenario = config.ltParams.simulationScenario;
-        std::string simScenario = boost::lexical_cast<std::string>(scenario)+"_"+boost::lexical_cast<std::string>(year);
-        time_t rawtime;
-        struct tm * timeinfo;
-        time (&rawtime);
-        timeinfo = localtime (&rawtime);
-        boost::shared_ptr<SimulationVersion>simVersionObj(new SimulationVersion(simVersionId,simScenario,*timeinfo,simStoppedTick));
-        if(conn.isConnected())
-        {
-        	SimulationVersionDao simVersionDao(conn);
-        	//simVersionDao.insert(*simVersionObj.get());
-
-        	StatusOfWorldDao statusOfWorldDao(conn);
-        	//statusOfWorldDao.insert(*(developerModel->getStatusOfWorldObj(simVersionId)).get());
-        }
+//        unsigned int year = config.ltParams.year;
+//        std::string scenario = config.ltParams.simulationScenario;
+//        std::string simScenario = boost::lexical_cast<std::string>(scenario)+"_"+boost::lexical_cast<std::string>(year);
+//        time_t rawtime;
+//        struct tm * timeinfo;
+//        time (&rawtime);
+//        timeinfo = localtime (&rawtime);
+//        boost::shared_ptr<SimulationVersion>simVersionObj(new SimulationVersion(simVersionId,simScenario,*timeinfo,simStoppedTick));
+//        if(conn.isConnected())
+//        {
+//        	SimulationVersionDao simVersionDao(conn);
+//        	//simVersionDao.insert(*simVersionObj.get());
+//
+//        	StatusOfWorldDao statusOfWorldDao(conn);
+//        	//statusOfWorldDao.insert(*(developerModel->getStatusOfWorldObj(simVersionId)).get());
+//        }
 
         //stop all models.
         for (vector<Model*>::iterator it = models.begin(); it != models.end(); it++)

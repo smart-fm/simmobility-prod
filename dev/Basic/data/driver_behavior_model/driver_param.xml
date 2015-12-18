@@ -19,7 +19,7 @@
 	<!--From mitsim:-->
 	<!--param name="min_response_distance" value="4.6"/-->
 
-	<param name="min_response_distance" value="1.5"/>
+	<param name="min_response_distance" value="3"/>
 	
 	<!-- The SimMobility car-following model describes the
 	acceleration of the following vehicle in a car following regime:

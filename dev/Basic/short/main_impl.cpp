@@ -337,6 +337,7 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 	/////////////////////////////////////////////////////////////////
 	size_t numStartAgents = Agent::all_agents.size();
 	size_t maxAgents = Agent::all_agents.size();
+	size_t numPendingAgents = Agent::pending_agents.size();
 
 	timeval loop_start_time;
 	gettimeofday(&loop_start_time, nullptr);
@@ -450,8 +451,7 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 	Print() << "Database lookup took: " <<loop_start_offset <<" ms" <<std::endl;
 	Print() << "Max Agents at any given time: " <<maxAgents <<std::endl;
 	Print() << "Starting Agents: " << numStartAgents;
-	Print() << ",     Pending: ";
-	Print() << Agent::pending_agents.size();
+	Print() << ",     Pending: " << numPendingAgents;
 	Print() << endl;
 
 	if (Agent::all_agents.empty()) 

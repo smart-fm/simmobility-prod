@@ -1513,10 +1513,10 @@ double MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams &params)
 				}
 				
 				// Check if the minimum gaps are available.				
-				if (bheadway > params.lcMinGap(lctype + 1) && aheadway > params.lcMinGap(lctype))
+				if (abs(bheadway) > params.lcMinGap(lctype + 1) && aheadway > params.lcMinGap(lctype))
 				{
 					params.setStatusDoingLC(changeMode);
-				}
+				}				
 			}
 			else
 			{

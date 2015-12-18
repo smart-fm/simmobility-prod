@@ -124,21 +124,15 @@ function calculateHDB_HedonicPrice(unit, building, postcode, amenities, logsum, 
 	local simulationYear = CONSTANTS.SIMULATION_YEAR;
 	local hedonicPrice = 0; --getStoreyEstimation(unit.storey) + ((building ~= nil) and ((simulationYear - building.builtYear) * -23.26) or 0)
 
-	if amenities == nil then
-		return 100000000;
-	end
-
 	local DD_logarea  = 0;
 	local ZZ_dis_cbd  = 0;
 	local ZZ_pms1km   = 0;
 	local ZZ_dis_mall = 0;
 	local ZZ_mrt_200m = 0;
 	local ZZ_mrt_400m = 0;
-	local ZZ_mrt_800m = 0;
 	local ZZ_express_200m = 0;
 	local ZZ_bus_200m = 0;
 
-	local ZZ_freehold = 0;
 	local ZZ_logsum = logsum;
 	local ZZ_bus_400m = 0;
 
@@ -166,18 +160,9 @@ function calculateHDB_HedonicPrice(unit, building, postcode, amenities, logsum, 
 		age30m = 1;
 	end
 
-
-	if( unit.floorArea ~= nil ) then
-		DD_logarea  = math.log(unit.floorArea);
-	end
-	
-	if( amenities.distanceToCBD ~= nil ) then
-		ZZ_dis_cbd  = amenities.distanceToCBD;
-	end
-
-	if( amenities.distanceToMall ~= nil ) then
-		ZZ_dis_mall = amenities.distanceToMall;
-	end
+	DD_logarea  = math.log(unit.floorArea);
+	ZZ_dis_cbd  = amenities.distanceToCBD;
+	ZZ_dis_mall = amenities.distanceToMall;	
 
 	if( amenities.pms_1km == true ) then
 		ZZ_pms1km = 1;
@@ -199,15 +184,11 @@ function calculateHDB_HedonicPrice(unit, building, postcode, amenities, logsum, 
 		ZZ_bus_200m = 1;
 	end
 
-	if( amenities.bus_400m ) then
+	if( amenities.bus_400m == true) then
 		ZZ_bus_400m = 1;
 	end
 
-	if(amenities.distanceToMRT ~= nil and amenities.distanceToMRT < 0.8) then
-		ZZ_mrt_800m = 1;
-	end
-
-	if( unit.unitType < 3 ) then
+	if( unit.unitType <= 2 ) then
 		ZZ_hdb12 = 1;
 	end
 
@@ -219,7 +200,7 @@ function calculateHDB_HedonicPrice(unit, building, postcode, amenities, logsum, 
 		ZZ_hdb4 = 1;
 	end	
 
-	if( unit.unitType > 4 ) then
+	if( unit.unitType == 5 ) then
 		ZZ_hdb5m = 1;
 	end
 
@@ -291,10 +272,6 @@ function calculateHDB_HedonicPrice(unit, building, postcode, amenities, logsum, 
 				-5.07E-05	*	ageSquared	+ 
 				0.075272042	*	age30m;
 	end
-	
-	--print("hedonic " .. hedonicPrice);
-	---------------------------------
-	---------------------------------
 
 	hedonicPrice = hedonicPrice + lagCoefficient;
 
@@ -317,22 +294,20 @@ end
     @return hedonic price value.
 ]]
 function calculatePrivate_HedonicPrice(unit, building, postcode, amenities, logsum, lagCoefficient)
-	local hedonicPrice = 0
+	local hedonicPrice = 0;
 	local DD_logarea  = 0;
 	local ZZ_dis_cbd  = 0;
 	local ZZ_pms1km   = 0;
 	local ZZ_dis_mall = 0;
 	local ZZ_mrt_200m = 0;
 	local ZZ_mrt_400m = 0;
-	local ZZ_mrt_800m = 0;
 	local ZZ_express_200m = 0;
 	local ZZ_bus_200m = 0;
 
-	local ZZ_freehold = 1; 
+	local ZZ_freehold = 0; 
 	local ZZ_logsum = logsum; 
 	local ZZ_bus_400m = 0;
 	local ZZ_bus_gt400m = 0;
-
 
 	local age = 112 - unit.physicalFromYear;
 
@@ -360,48 +335,29 @@ function calculatePrivate_HedonicPrice(unit, building, postcode, amenities, logs
 
 	local misage = 0;
 
+	DD_logarea  = math.log(unit.floorArea);
+	ZZ_dis_cbd  = amenities.distanceToCBD;
+	ZZ_dis_mall = amenities.distanceToMall;
 
-	if( unit.floorArea ~= nil ) then
-		DD_logarea  = math.log(unit.floorArea);
-	end
-	
-	if( amenities.distanceToCBD ~= nil ) then
-		ZZ_dis_cbd  = amenities.distanceToCBD;
-	end
-
-	if( amenities.distanceToMall ~= nil ) then
-		ZZ_dis_mall = amenities.distanceToMall;
-	end
-
-	if( amenities.pms_1km == true ) then
+	if( amenities.distanceToPMS30 < 1 ) then
 		ZZ_pms1km = 1;
 	end
 
-	if( amenities.mrt_200m == true ) then
+	if( amenities.distanceToMRT < 0.200 ) then
 		ZZ_mrt_200m = 1;
-	end
-
-	if( amenities.mrt_400m == true ) then
+	elseif( amenities.distanceToMRT < 0.400 ) then
 		ZZ_mrt_400m = 1;
 	end
 
-	if( amenities.express_200m == true ) then
+	if( amenities.distanceToExpress < 0.200 ) then
 		ZZ_express_200m = 1;
 	end
 
-	if( amenities.bus_200m == true ) then
+	if( amenities.distanceToBus < 0.200 ) then
 		ZZ_bus_200m = 1;
-	end
-
-	if( amenities.bus_400m ) then
+	elseif( amenities.distanceToBus < 0.400 ) then
 		ZZ_bus_400m = 1;
-	end
-
-	if(amenities.distanceToMRT < 0.8) then
-		ZZ_mrt_800m = 1;
-	end
-
-	if( amenities.distanceToBus > 0.4) then	
+	else
 		ZZ_bus_gt400m = 1;
 	end
 
@@ -530,7 +486,7 @@ end
 function calculateHedonicPrice(unit, building, postcode, amenities, logsum, lagCoefficient )
   
     if unit ~= nil and building ~= nil and postcode ~= nil and amenities ~= nil then
- 	if(unit.unitType < 5) then
+ 	if(unit.unitType <= 6) then
 		return calculateHDB_HedonicPrice(unit, building, postcode, amenities, logsum, lagCoefficient) 
 	 else 
 		return calculatePrivate_HedonicPrice(unit, building, postcode, amenities, logsum, lagCoefficient);

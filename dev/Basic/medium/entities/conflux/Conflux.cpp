@@ -157,7 +157,7 @@ Conflux::PersonProps::PersonProps(const Person_MT* person, const Conflux* cnflx)
 	{
 		segment = currSegStats->getRoadSegment();
 		conflux = currSegStats->getParentConflux();
-		segStats = currSegStats->getParentConflux()->findSegStats(segment, currSegStats->getStatsNumberInSegment()); //person->getCurrSegStats() cannot be used as it returns a const pointer
+		segStats = conflux->findSegStats(segment, currSegStats->getStatsNumberInSegment()); //person->getCurrSegStats() cannot be used as it returns a const pointer
 	}
 	else
 	{
@@ -527,11 +527,15 @@ void Conflux::housekeep(PersonProps& beforeUpdate, PersonProps& afterUpdate, Per
 				return;
 			}
 		}
-		else if (!beforeUpdate.isMoving && !afterUpdate.isMoving && beforeUpdate.segStats != afterUpdate.segStats)
+		else if (!beforeUpdate.isMoving && !afterUpdate.isMoving)
 		{
-			//The bus driver has moved out of one stop and entered another within the same tick
-			//we should not add the bus driver into the new segstats because he is already at the bus stop of that stats
-			//we simply return in this case
+			//There are two possibilities here.
+			//1. The bus driver has been serving the stop through-out this tick
+			//2. The bus driver has moved out of one stop and entered another within the same tick
+
+			//In either case, there is nothing more for us to do here.
+			//In case 2, we need not add the bus driver into the new segstats because he is already at the bus stop of that stats
+			//we can simply return from here
 			return;
 		}
 		break;
@@ -2062,7 +2066,7 @@ void Conflux::CreateSegmentStats(const RoadSegment* rdSeg, Conflux* conflux, std
 /*
  * iterates nodes and creates confluxes for all of them
  */
-void Conflux::ProcessConfluxes()
+void Conflux::CreateConfluxes()
 {
 	const RoadNetwork* rdnw = RoadNetwork::getInstance();
 	std::stringstream debugMsgs(std::stringstream::out);
@@ -2124,6 +2128,7 @@ void Conflux::ProcessConfluxes()
 								<< std::endl;
 						throw std::runtime_error(debugMsgs.str());
 					}
+
 					std::vector<SegmentStats*>& rdSegSatsList = conflux->segmentAgents[rdSeg];
 					rdSegSatsList.insert(rdSegSatsList.end(), splitSegmentStats.begin(), splitSegmentStats.end());
 					upSegStatsList.insert(upSegStatsList.end(), splitSegmentStats.begin(), splitSegmentStats.end());

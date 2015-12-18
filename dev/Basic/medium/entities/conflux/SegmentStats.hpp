@@ -20,6 +20,7 @@ namespace medium
 
 class BusStopAgent;
 class Conflux;
+class SegmentStats;
 
 /**
  * helper to compare two persons by distance to end of segment
@@ -193,12 +194,17 @@ private:
 	/** set of downstream links connected to this lanestats */
 	std::set<const Link*> connectedDownstreamLinks;
 
+	/**
+	 * pointer to parent segment stats owning this lane stats
+	 */
+	const SegmentStats* parentStats;
+
 public:
 	PersonList laneAgents;
 
 	LaneStats(const Lane* laneInSegment, double length, bool isLaneInfinity = false) :
 			queueCount(0), initialQueueLength(0), laneParams(new LaneParams()), positionOfLastUpdatedAgent(-1.0), lane(laneInSegment), length(length),
-			laneInfinity(isLaneInfinity), numPersons(0), queueLength(0), totalLength(0)
+			laneInfinity(isLaneInfinity), numPersons(0), queueLength(0), totalLength(0), parentStats(nullptr)
 	{
 	}
 
@@ -351,6 +357,16 @@ public:
 	unsigned int getNumPersons() const
 	{
 		return numPersons;
+	}
+
+	const SegmentStats* getParentStats() const
+	{
+		return parentStats;
+	}
+
+	void setParentStats(const SegmentStats* parentStats)
+	{
+		this->parentStats = parentStats;
 	}
 
 	/** parameters for this lane */

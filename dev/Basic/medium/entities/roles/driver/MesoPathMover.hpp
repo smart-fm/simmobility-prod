@@ -134,7 +134,7 @@ public:
 
 	//debug
 	///return string of path by aimsun section id
-	static std::string printPath(const MesoPathMover::Path &path, const Node *node = 0);
+	static std::string getPathString(const MesoPathMover::Path &path, const Node *node = 0);
 };
 }
 }

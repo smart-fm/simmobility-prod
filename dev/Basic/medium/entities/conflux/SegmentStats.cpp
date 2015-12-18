@@ -95,13 +95,15 @@ SegmentStats::SegmentStats(const RoadSegment* rdSeg, Conflux* parentConflux, dou
 	std::vector<Lane*>::const_iterator laneIt = rdSeg->getLanes().begin();
 	while (laneIt != rdSeg->getLanes().end())
 	{
-		laneStatsMap.insert(std::make_pair(*laneIt, new LaneStats(*laneIt, length)));
-		laneStatsMap[*laneIt]->initLaneParams(segVehicleSpeed, supplyParams.getCapacity());
+		LaneStats* lnStats = new LaneStats(*laneIt, length);
+		laneStatsMap.insert(std::make_pair(*laneIt, lnStats));
+		lnStats->initLaneParams(segVehicleSpeed, supplyParams.getCapacity());
 		if (!(*laneIt)->isPedestrianLane())
 		{
 			numVehicleLanes++;
 			outermostLane = *laneIt;
 		}
+		lnStats->setParentStats(this);
 		laneIt++;
 	}
 
@@ -120,7 +122,9 @@ SegmentStats::SegmentStats(const RoadSegment* rdSeg, Conflux* parentConflux, dou
 	laneInfinity->setRoadSegmentId(rdSeg->getRoadSegmentId());
 	laneInfinity->setParentSegment(const_cast<RoadSegment*>(rdSeg));
 	laneInfinity->setWidth(0);
-	laneStatsMap.insert(std::make_pair(laneInfinity, new LaneStats(laneInfinity, statslengthInM, true)));
+	LaneStats* lnInfStats = new LaneStats(laneInfinity, statslengthInM, true);
+	laneStatsMap.insert(std::make_pair(laneInfinity, lnInfStats));
+	lnInfStats->setParentStats(this);
 }
 
 SegmentStats::~SegmentStats()
@@ -1129,8 +1133,9 @@ void LaneStats::verifyOrdering()
 		if (distance > (*i)->distanceToEndOfSegment)
 		{
 			std::stringstream debugMsgs;
-			debugMsgs << "Invariant violated: Ordering of laneAgents does not reflect ordering w.r.t. distance to end of segment." << "\nSegment: "
-					<< lane->getParentSegment()->getRoadSegmentId() << " length = " << lane->getParentSegment()->getPolyLine()->getLength() << "\nLane: " << lane->getLaneId()
+			debugMsgs << "Invariant violated: Ordering of laneAgents does not reflect ordering w.r.t. distance to end of segment."
+					<< "\nSegment: " << lane->getParentSegment()->getRoadSegmentId() << "-" << parentStats->getStatsNumberInSegment()
+					<< " length = " << lane->getParentSegment()->getLength() << "\nLane: " << lane->getLaneId()
 					<< "\nCulprit Person: " << (*i)->getId();
 			debugMsgs << "\nAgents ";
 			for (PersonList::const_iterator j = laneAgents.begin(); j != laneAgents.end(); j++)

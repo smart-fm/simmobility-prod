@@ -1632,7 +1632,7 @@ int MITSIM_LC_Model::checkNosingFeasibility(DriverUpdateParams &params, const Ne
 		}
 		else if (bvp.flag(FLAG_NOSING) || (bvp.flag(FLAG_YIELDING) &&
 				rearVehicle->driver->getYieldingToDriver() != params.driver &&
-				rearVehicle->distance < 2.0 * params.lcMinGap(3)))
+				abs(rearVehicle->distance) < 2.0 * params.lcMinGap(3)))
 		{
 			params.lcDebugStr << ";CF11";
 

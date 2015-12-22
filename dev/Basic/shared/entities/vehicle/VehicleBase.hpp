@@ -4,8 +4,6 @@
 
 #pragma once
 
-#include "geospatial/network/RoadSegment.hpp"
-
 namespace sim_mob {
 /**
  * Passenger car units.
@@ -13,6 +11,12 @@ namespace sim_mob {
  * configurable in future.
  */
 const double PASSENGER_CAR_UNIT = 4.0; //m.
+
+/**
+ * length of a bus is hard coded to 3 times the PCU for now.
+ * TODO: this must be made configurable.
+ */
+const double BUS_LENGTH = 3 * sim_mob::PASSENGER_CAR_UNIT; // 3 times PASSENGER_CAR_UNIT
 
 /**
  * A simple base class for all Vehicles
@@ -58,31 +62,6 @@ public:
 	void setMoving(bool moving) {
 		this->moving = moving;
 	}
-
-	/*virtual std::vector<const sim_mob::RoadSegment *>::iterator getPathIterator()
-	{
-		throw std::runtime_error("VehicleBase::getPathIterator is not implemented");
-	}
-
-	virtual std::vector<const sim_mob::RoadSegment *>::iterator getPathIteratorEnd()
-	{
-		throw std::runtime_error("VehicleBase::getPathIteratorEnd is not implemented");
-	}
-
-	virtual const sim_mob::RoadSegment * getCurrSegment() const
-	{
-		throw std::runtime_error("VehicleBase::getCurrSegment is not implemented");
-	}
-
-	virtual double getAcceleration() const
-	{
-		throw std::runtime_error("VehicleBase::getAcceleration is not implemented");
-	}
-
-	virtual double getVelocity() const
-	{
-		throw std::runtime_error("VehicleBase::getVelocity is not implemented");
-	}*/
 
 protected:
 	/**length of the vehicle in m*/

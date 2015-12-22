@@ -9,6 +9,7 @@
 #include "SOCI_Converters.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
+#include "entities/vehicle/VehicleBase.hpp"
 
 using namespace sim_mob;
 
@@ -215,6 +216,13 @@ void NetworkLoader::loadBusStops(const std::string& storedProc)
 		
 		//Create new bus stop and add it to road network
 		BusStop* stop = new BusStop(*itStop);
+
+		//hackish data validation to evade errors
+		if(stop->getLength() < sim_mob::BUS_LENGTH)
+		{
+			stop->setLength(sim_mob::BUS_LENGTH);
+		}
+
 		RoadSegment* parentSegment = const_cast<RoadSegment*>(roadNetwork->getById(roadNetwork->getMapOfIdVsRoadSegments(), stop->getRoadSegmentId()));
 		roadNetwork->addBusStop(stop);
 

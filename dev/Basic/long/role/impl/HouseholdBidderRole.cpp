@@ -104,7 +104,8 @@ namespace
        }
 }
 
-HouseholdBidderRole::CurrentBiddingEntry::CurrentBiddingEntry( const BigSerial unitId, double bestBid, const double wp, double lastSurplus ) : unitId(unitId), bestBid(bestBid), wp(wp), tries(0), lastSurplus(lastSurplus){}
+HouseholdBidderRole::CurrentBiddingEntry::CurrentBiddingEntry( const BigSerial unitId, double bestBid, const double wp, double lastSurplus, double wtp_e ) : unitId(unitId), bestBid(bestBid), wp(wp),
+																tries(0), lastSurplus(lastSurplus), wtp_e(wtp_e){}
 
 HouseholdBidderRole::CurrentBiddingEntry::~CurrentBiddingEntry()
 {
@@ -156,6 +157,16 @@ double HouseholdBidderRole::CurrentBiddingEntry::getLastSurplus() const
 void HouseholdBidderRole::CurrentBiddingEntry::setLastSurplus(double value)
 {
 	lastSurplus = value;
+}
+
+double HouseholdBidderRole::CurrentBiddingEntry::getWtp_e()
+{
+	return wtp_e;
+}
+
+void HouseholdBidderRole::CurrentBiddingEntry::setWtp_e(double value)
+{
+	wtp_e = value;
 }
 
 
@@ -492,7 +503,7 @@ bool HouseholdBidderRole::bidUnit(timeslice now)
 				PrintOutV("[day " << day << "] Household " << std::dec << household->getId() << " submitted a bid of $" << biddingEntry.getBestBid() << "[wp:$" << biddingEntry.getWP() << ",bids:"  <<   biddingEntry.getTries() << ",ap:$" << entry->getAskingPrice() << "] on unit " << biddingEntry.getUnitId() << " to seller " <<  entry->getOwner()->getId() << "." << std::endl );
 				#endif
 
-				bid(entry->getOwner(), Bid(model->getBidId(),household->getUnitId(),entry->getUnitId(), household->getId(), getParent(), biddingEntry.getBestBid(), now.ms(), biddingEntry.getWP()));
+				bid(entry->getOwner(), Bid(model->getBidId(),household->getUnitId(),entry->getUnitId(), household->getId(), getParent(), biddingEntry.getBestBid(), now.ms(), biddingEntry.getWP(), biddingEntry.getWtp_e()));
 
 				return true;
 			}
@@ -1634,7 +1645,7 @@ bool HouseholdBidderRole::pickEntryToBid()
         }
     }
 
-    biddingEntry = CurrentBiddingEntry( (maxEntry) ? maxEntry->getUnitId() : INVALID_ID, finalBid, maxWp, maxSurplus );
+    biddingEntry = CurrentBiddingEntry( (maxEntry) ? maxEntry->getUnitId() : INVALID_ID, finalBid, maxWp, maxSurplus, maxWtpe );
     return biddingEntry.isValid();
 }
 

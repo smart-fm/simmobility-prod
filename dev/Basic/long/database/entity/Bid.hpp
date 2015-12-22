@@ -26,8 +26,9 @@ namespace sim_mob
         {
         public:
             Bid(BigSerial bidId, int simulationDay, BigSerial bidderId, BigSerial currentUnitId, BigSerial newUnitId,double willingnessToPay,double affordabilityAmount,double hedonicPrice,
-            		double askingPrice,double targetPrice, double bidValue, int isAccepted,BigSerial currentPostcode, BigSerial newPostcode,LT_Agent* bidder,std::tm moveInDate);
-            Bid(BigSerial bidId,BigSerial currentUnitId, BigSerial newUnitId,BigSerial bidderId,LT_Agent* bidder,double bidValue, int simulationDay, double willingnessToPay);
+            		double askingPrice,double targetPrice, double bidValue, int isAccepted,BigSerial currentPostcode, BigSerial newPostcode,LT_Agent* bidder,std::tm moveInDate, double wtpErrorTerm);
+
+            Bid(BigSerial bidId,BigSerial currentUnitId, BigSerial newUnitId,BigSerial bidderId,LT_Agent* bidder,double bidValue, int simulationDay, double willingnessToPay, double wtp_e);
             Bid(const Bid& source);
             Bid();
             virtual ~Bid();
@@ -103,6 +104,9 @@ namespace sim_mob
            void setWillingnessToPay(double willingnessToPay);
            void setMoveInDate(const std::tm& moveInDate);
 
+           void setWtpErrorTerm(double error);
+           double getWtpErrorTerm() const;
+
            /**
             * Operator to print the Bid data.
             */
@@ -121,6 +125,7 @@ namespace sim_mob
            BigSerial currentUnitId;
            BigSerial newUnitId;
            double willingnessToPay;
+           double wtpErrorTerm;
            double affordabilityAmount;
            double hedonicPrice;
            double askingPrice;

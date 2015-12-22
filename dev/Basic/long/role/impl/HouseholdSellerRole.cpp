@@ -42,8 +42,8 @@ namespace
 {
     //bid_timestamp, day_to_apply, seller_id, unit_id, hedonic_price, asking_price, target_price
     const std::string LOG_EXPECTATION = "%1%, %2%, %3%, %4%, %5%, %6%, %7%";
-    //bid_timestamp ,seller_id, bidder_id, unit_id, bidder wp, affordability, logsum, hedonicprice, asking_price, floor_area, type_id, target_price, bid_value, bids_counter (daily), bid_status, HHPC, UPC
-    const std::string LOG_BID = "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%, %11%, %12%, %13%, %14%, %15%, %16%, %17%";
+    //bid_timestamp ,seller_id, bidder_id, unit_id, bidder wp, wp_e, affordability, logsum, hedonicprice, lagCoefficient, asking_price, floor_area, type_id, target_price, bid_value, bids_counter (daily), bid_status, HHPC, UPC
+    const std::string LOG_BID = "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%, %11%, %12%, %13%, %14%, %15%, %16%, %17%, %18%, %19%";
 
     /**
      * Print the current bid on the unit.
@@ -68,14 +68,17 @@ namespace
         const Unit* thisUnit = model->getUnitById(thisBidder->getUnitId());
         Postcode* thisPostcode = model->getPostcodeById( thisUnit->getSlaAddressId() );
 
+
         boost::format fmtr = boost::format(LOG_BID) % bid.getSimulationDay()
 													% agent.getId()
 													% bid.getBidderId()
 													% bid.getNewUnitId()
 													% bid.getWillingnessToPay()
+													% bid.getWtpErrorTerm()
 													% thisBidder->getAffordabilityAmount()
 													% thisBidder->getLogsum()
 													% entry.hedonicPrice
+													% unit->getLagCoefficient()
 													% entry.askingPrice
 													% floor_area
 													% type_id
@@ -580,6 +583,9 @@ void HouseholdSellerRole::calculateUnitExpectations(const Unit& unit)
 
 		finalCoefficient = (lagCoefficient[0] * 1.1383691158) + (lagCoefficient[1] * 0) + (lagCoefficient[2] * 0);
 	}
+
+	Unit *castUnit = const_cast<Unit*>(&unit);
+	castUnit->setLagCoefficient(finalCoefficient);
 
     info.numExpectations = (info.interval == 0) ? 0 : ceil((double) info.daysOnMarket / (double) info.interval);
     luaModel.calulateUnitExpectations(unit, info.numExpectations, logsum, finalCoefficient, info.expectations );

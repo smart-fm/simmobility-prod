@@ -36,12 +36,6 @@ inline double converToSeconds(uint32_t timeInMs) {
 inline unsigned int converToMilliseconds(double timeInMs) {
 	return (timeInMs*1000.0);
 }
-
-/**
- * length of a bus is hard coded to 3 times the PCU for now.
- * TODO: this must be made configurable.
- */
-const double BUS_LENGTH = 3 * sim_mob::PASSENGER_CAR_UNIT; // 3 times PASSENGER_CAR_UNIT
 }
 
 namespace sim_mob {
@@ -75,7 +69,7 @@ void BusDriverMovement::frame_init()
 	bool pathInitialized = initializePath();
 	if (pathInitialized)
 	{
-		Vehicle* newVeh = new Vehicle(Vehicle::BUS, BUS_LENGTH);
+		Vehicle* newVeh = new Vehicle(Vehicle::BUS, sim_mob::BUS_LENGTH);
 		VehicleBase* oldBus = parentBusDriver->getResource();
 		safe_delete_item(oldBus);
 		parentBusDriver->setResource(newVeh);
@@ -86,10 +80,42 @@ void BusDriverMovement::frame_init()
 	}
 }
 
-void BusDriverMovement::frame_tick() {
-	parentBusDriver->updatePassengers();
+void BusDriverMovement::frame_tick()
+{
 	DriverUpdateParams& params = parentBusDriver->getParams();
-	if(!parentBusDriver->getResource()->isMoving())
+	if (parentBusDriver->parent->canMoveToNextSegment == Person_MT::GRANTED)
+	{
+		flowIntoNextLinkIfPossible(params);
+	}
+	else if (parentBusDriver->parent->canMoveToNextSegment == Person_MT::DENIED)
+	{
+		if (parentBusDriver->getResource()->isMoving())
+		{
+			if (currLane)
+			{
+				if (parentBusDriver->parent->isQueuing)
+				{
+					moveInQueue();
+				}
+				else
+				{
+					addToQueue(); // adds to queue if not already in queue
+				}
+
+				params.elapsedSeconds = params.secondsInTick;
+				setParentData(params);
+			}
+		}
+		else
+		{
+			params.elapsedSeconds = params.secondsInTick;
+			pathMover.setPositionInSegment(0);
+			setParentData(params);
+		}
+		parentBusDriver->parent->canMoveToNextSegment = Person_MT::NONE;
+	}
+
+	if (params.elapsedSeconds < params.secondsInTick && !parentBusDriver->getResource()->isMoving())
 	{
 		// isMoving()==false implies the bus is serving a stop
 		if (parentBusDriver->waitingTimeAtbusStop > params.secondsInTick)
@@ -100,41 +126,20 @@ void BusDriverMovement::frame_tick() {
 		}
 		else
 		{
-			params.elapsedSeconds = params.elapsedSeconds + parentBusDriver->waitingTimeAtbusStop;
-			parentBusDriver->waitingTimeAtbusStop = 0.0; //the bus has expired its waiting time
+			params.elapsedSeconds += parentBusDriver->waitingTimeAtbusStop;
+			parentBusDriver->waitingTimeAtbusStop = 0; //the bus has expired its waiting time
 
-			const BusStop* stop = routeTracker.getNextStop();
-			BusStopAgent* stopAg = BusStopAgent::getBusStopAgentForStop(stop);
-
-			double output = getOutputCounter(currLane, pathMover.getCurrSegStats());
-			bool isNewLinkNext = (!pathMover.hasNextSegStats(true) && pathMover.hasNextSegStats(false));
-			const SegmentStats* currSegStat = pathMover.getCurrSegStats();
-			const SegmentStats* nxtSegStat = pathMover.getNextSegStats(!isNewLinkNext);
-
-			if (!nxtSegStat)
+			// There is remaining time, try to move to next segment
+			bool movedToNextSegStat = moveToNextSegment(params);
+			if (movedToNextSegStat)
 			{
-				//vehicle is done
-				parentBusDriver->closeBusDoors(stopAg);
-				routeTracker.updateNextStop();
-				moveToNextSegment(params); //the next stop can potentially be in the same segmentStats and moveToNextSegment handles this
-				setParentData(params);
-				return;
+				departFromCurrentStop();
 			}
-
-			if (output > 0 && canGoToNextRdSeg(params, nxtSegStat))
-			{
-				parentBusDriver->closeBusDoors(stopAg);
-				routeTracker.updateNextStop();
-				moveToNextSegment(params);
-			}
-			else
-			{
-				params.elapsedSeconds = params.secondsInTick;
-				pathMover.setPositionInSegment(0);
-			}
+			//else remain in bus stop
 		}
 	}
-	if(!parentBusDriver->parent->requestedNextSegStats && params.elapsedSeconds < params.secondsInTick)
+
+	if (!parentBusDriver->parent->requestedNextSegStats && params.elapsedSeconds < params.secondsInTick)
 	{
 		DriverMovement::frame_tick();
 	}
@@ -142,35 +147,39 @@ void BusDriverMovement::frame_tick() {
 	{
 		setParentData(params);
 	}
-//	std::stringstream logout;
-//	Person_MT* person = parentBusDriver->parent;
-//	unsigned int segId = (person->getCurrSegStats() ? person->getCurrSegStats()->getRoadSegment()->getRoadSegmentId() : 0);
-//	uint16_t statsNum = (person->getCurrSegStats() ? person->getCurrSegStats()->getStatsNumberInSegment() : 0);
-//	logout << "(BusDriver" << "," << person->getId() << "," << person->busLine << "," << parentBusDriver->getParams().now.frame() << ",{" << "RoadSegment:"
-//			<< segId << ",StatsNum:" << statsNum << ",Lane:" << (person->getCurrLane() ? person->getCurrLane()->getLaneId() : 0) << ",DistanceToEndSeg:"
-//			<< person->distanceToEndOfSegment;
-//
-//	if (parentBusDriver->getResource()->isMoving())
-//	{
-//		logout << ",ServingStop:" << "false";
-//	}
-//	else
-//	{
-//		logout << ",ServingStop:" << "true";
-//	}
-//	const BusStop* nextStop = routeTracker.getNextStop();
-//	logout << ",NextStop:" << (nextStop ? nextStop->getStopCode() : "0");
-//
-//	if (person->isQueuing)
-//	{
-//		logout << ",queuing:" << "true";
-//	}
-//	else
-//	{
-//		logout << ",queuing:" << "false";
-//	}
-//	logout << "})" << std::endl;
-//	Print() << logout.str();
+	if (params.elapsedSeconds >= params.secondsInTick)
+	{
+		parentBusDriver->updatePassengers();
+	}
+	std::stringstream logout;
+	Person_MT* person = parentBusDriver->parent;
+	unsigned int segId = (person->getCurrSegStats() ? person->getCurrSegStats()->getRoadSegment()->getRoadSegmentId() : 0);
+	uint16_t statsNum = (person->getCurrSegStats() ? person->getCurrSegStats()->getStatsNumberInSegment() : 0);
+	logout << "(BusDriver" << "," << person->getId() << "," << person->busLine << "," << parentBusDriver->getParams().now.frame() << ",{" << "RoadSegment:"
+			<< segId << ",StatsNum:" << statsNum << ",Lane:" << (person->getCurrLane() ? person->getCurrLane()->getLaneId() : 0) << ",DistanceToEndSeg:"
+			<< person->distanceToEndOfSegment;
+
+	if (parentBusDriver->getResource()->isMoving())
+	{
+		logout << ",ServingStop:" << "false";
+	}
+	else
+	{
+		logout << ",ServingStop:" << "true";
+	}
+	const BusStop* nextStop = routeTracker.getNextStop();
+	logout << ",NextStop:" << (nextStop ? nextStop->getStopCode() : "0");
+
+	if (person->isQueuing)
+	{
+		logout << ",queuing:" << "true";
+	}
+	else
+	{
+		logout << ",queuing:" << "false";
+	}
+	logout << "})" << std::endl;
+	std::cout << logout.str();
 
 }
 
@@ -346,51 +355,292 @@ const Lane* BusDriverMovement::getBestTargetLane(const SegmentStats* nextSegStat
 	}
 }
 
+void BusDriverMovement::departFromCurrentStop()
+{
+	if (!parentBusDriver->getResource()->isMoving())
+	{
+		const BusStop* stop = routeTracker.getCurrentStop();
+		if(!stop)
+		{
+			throw std::runtime_error("Invalid bus driver state. Current stop is NULL while bus is serving stop");
+		}
+		BusStopAgent* stopAg = BusStopAgent::getBusStopAgentForStop(stop);
+		parentBusDriver->closeBusDoors(stopAg);
+		routeTracker.setCurrentStop(nullptr);
+	}
+}
+
+void BusDriverMovement::flowIntoNextLinkIfPossible(DriverUpdateParams& params)
+{
+	//This function gets called for 2 cases.
+	//1. Driver is added to virtual queue
+	//2. Driver is in previous segment trying to add to the next
+	const SegmentStats* nextSegStats = pathMover.getNextSegStats(false);
+	const SegmentStats* nextToNextSegStats = pathMover.getSecondSegStatsAhead();
+	const Lane* laneInNextSegment = getBestTargetLane(nextSegStats, nextToNextSegStats);
+
+	//this will space out the drivers on the same lane, by separating them by the time taken for the previous car to move a car's length
+	//Commenting out the delay from accept rate as per Yang Lu's suggestion (we use this delay only in setOrigin)
+	double departTime = getLastAccept(laneInNextSegment, nextSegStats) /*+ getAcceptRate(laneInNextSegment, nextSegStats)*/; //in seconds
+
+	params.elapsedSeconds = std::max(params.elapsedSeconds, departTime - (params.now.ms()/1000.0)); //in seconds
+
+	const Link* nextLink = getNextLinkForLaneChoice(nextSegStats);
+	if (canGoToNextRdSeg(params, nextSegStats, nextLink))
+	{
+		if (parentBusDriver->getResource()->isMoving())
+		{
+			if (isQueuing)
+			{
+				removeFromQueue();
+			}
+		}
+		else
+		{
+			departFromCurrentStop();
+		}
+
+		currLane = laneInNextSegment;
+		pathMover.advanceInPath();
+		pathMover.setPositionInSegment(nextSegStats->getLength());
+
+		//todo: consider supplying milliseconds to be consistent with short-term
+		double linkExitTimeSec = params.elapsedSeconds + (params.now.ms()/1000.0);
+		//set Link Travel time for previous link
+		const SegmentStats* prevSegStats = pathMover.getPrevSegStats(false);
+		if (prevSegStats)
+		{
+			// update link travel times
+			updateLinkTravelTimes(prevSegStats, linkExitTimeSec);
+
+			// update road segment screenline counts
+			updateScreenlineCounts(prevSegStats, linkExitTimeSec);
+		}
+		setLastAccept(currLane, linkExitTimeSec, nextSegStats);
+
+		if (!parentBusDriver->getResource()->isMoving())
+		{
+			departFromCurrentStop();
+		}
+
+		setParentData(params);
+		parentBusDriver->parent->canMoveToNextSegment = Person_MT::NONE;
+	}
+	else
+	{
+		if (parentBusDriver->getResource()->isMoving())
+		{
+			//Person is in previous segment (should be added to queue if canGoTo failed)
+			if (pathMover.getCurrSegStats() == parentBusDriver->parent->getCurrSegStats())
+			{
+				if (currLane)
+				{
+					if (parentBusDriver->parent->isQueuing)
+					{
+						moveInQueue();
+					}
+					else
+					{
+						addToQueue(); // adds to queue if not already in queue
+					}
+					parentBusDriver->parent->canMoveToNextSegment = Person_MT::NONE; // so that advance() and setParentData() is called subsequently
+				}
+			}
+			else if (pathMover.getNextSegStats(false) == parentBusDriver->parent->getCurrSegStats())
+			{
+				//Person is in virtual queue (should remain in virtual queues if canGoTo failed)
+				//do nothing
+			}
+			else
+			{
+				DebugStream << "Driver " << parentBusDriver->parent->getId() << "was neither in virtual queue nor in previous segment!" << "\ndriver| segment: "
+						<< pathMover.getCurrSegStats()->getRoadSegment()->getRoadSegmentId() << "|id: "
+						<< pathMover.getCurrSegStats()->getRoadSegment()->getRoadSegmentId() << "|lane: " << currLane->getLaneId() << "\nPerson| segment: "
+						<< parentBusDriver->parent->getCurrSegStats()->getRoadSegment()->getRoadSegmentId() << "|id: "
+						<< parentBusDriver->parent->getCurrSegStats()->getRoadSegment()->getRoadSegmentId() << "|lane: "
+						<< (parentBusDriver->parent->getCurrLane() ? parentBusDriver->parent->getCurrLane()->getLaneId() : 0) << std::endl;
+
+				throw ::std::runtime_error(DebugStream.str());
+			}
+			params.elapsedSeconds = params.secondsInTick;
+			parentBusDriver->parent->setRemainingTimeThisTick(0.0); //(elapsed - seconds this tick)
+		}
+		else
+		{
+			//the bus driver is currently serving a stop
+			params.elapsedSeconds = params.secondsInTick; //remain in bus stop
+		}
+	}
+}
+
 bool BusDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 {
 	const SegmentStats* currSegStat = pathMover.getCurrSegStats();
 	const BusStop* nextStop = routeTracker.getNextStop();
-	if(nextStop && currSegStat->hasBusStop(nextStop))
+	if (nextStop && currSegStat->hasBusStop(nextStop))
 	{
 		BusStopAgent* stopAg = BusStopAgent::getBusStopAgentForStop(nextStop);
-		if(stopAg)
+		if (stopAg)
 		{
-			if(stopAg->canAccommodate(parentBusDriver->getResource()->getLengthInM()))
+			if (stopAg->canAccommodate(parentBusDriver->getResource()->getLengthInM()))
 			{
-				if(isQueuing)
+				if (parentBusDriver->getResource()->isMoving())
 				{
-					removeFromQueue();
+					if (isQueuing)
+					{
+						removeFromQueue();
+					}
 				}
+				else
+				{
+					departFromCurrentStop();
+				}
+
 				DailyTime startTm = ConfigManager::GetInstance().FullConfig().simStartTime();
-				DailyTime current(params.now.ms()+converToMilliseconds(params.elapsedSeconds)+startTm.getValue());
+				DailyTime current(params.now.ms() + converToMilliseconds(params.elapsedSeconds) + startTm.getValue());
+				routeTracker.setCurrentStop(nextStop);
+				routeTracker.updateNextStop();
 				parentBusDriver->openBusDoors(current.getStrRepr(), stopAg);
 				double remainingTime = params.secondsInTick - params.elapsedSeconds;
-				if(parentBusDriver->waitingTimeAtbusStop > remainingTime) {
+				if (parentBusDriver->waitingTimeAtbusStop > remainingTime)
+				{
 					parentBusDriver->waitingTimeAtbusStop -= remainingTime;
 					params.elapsedSeconds = params.secondsInTick;
 				}
-				else {
+				else
+				{
 					params.elapsedSeconds += parentBusDriver->waitingTimeAtbusStop;
 					parentBusDriver->waitingTimeAtbusStop = 0;
-					double output = getOutputCounter(currLane, currSegStat);
-					bool isNewLinkNext = (!pathMover.hasNextSegStats(true) && pathMover.hasNextSegStats(false));
-					const SegmentStats* nxtSegStat = pathMover.getNextSegStats(!isNewLinkNext);
-					if(output > 0 && canGoToNextRdSeg(params, nxtSegStat))
+					// There is remaining time, try to move to next segment
+					bool movedToNextSegStat = moveToNextSegment(params);
+					if (movedToNextSegStat)
 					{
 						parentBusDriver->closeBusDoors(stopAg);
-						routeTracker.updateNextStop();
-						// There is remaining time, try to move to next segment
-						return moveToNextSegment(params);
+						routeTracker.setCurrentStop(nullptr);
 					}
-					else
-					{
-						//remain in bus stop
-						params.elapsedSeconds = params.secondsInTick;
-						return false;
-					}
+					//else remain in bus stop
+					return movedToNextSegStat;
 				}
 			}
 			else
+			{
+				if(parentBusDriver->getResource()->isMoving())
+				{
+					if (isQueuing)
+					{
+						moveInQueue();
+					}
+					else
+					{
+						addToQueue();
+					}
+				}
+				params.elapsedSeconds = params.secondsInTick;
+				parentBusDriver->parent->setRemainingTimeThisTick(0.0);
+			}
+		}
+		else
+		{
+			std::stringstream errorStrm;
+			errorStrm << "BusStopAgent not found for stop: " << nextStop->getStopCode() << "|SegmentStats: " << currSegStat << "|position: "
+					<< currSegStat->getStatsNumberInSegment() << "|num. stops: " << currSegStat->getNumStops() << std::endl;
+			throw std::runtime_error(errorStrm.str());
+		}
+		return false;
+	}
+	else
+	{
+		bool res = false;
+		bool isNewLinkNext = (!pathMover.hasNextSegStats(true) && pathMover.hasNextSegStats(false));
+		const SegmentStats* currSegStat = pathMover.getCurrSegStats();
+		const SegmentStats* nxtSegStat = pathMover.getNextSegStats(!isNewLinkNext);
+
+		//currently the best place to call a handler indicating 'Done' with segment.
+		const RoadSegment *curRs = (*(pathMover.getCurrSegStats())).getRoadSegment();
+		//Although the name of the method suggests segment change, it is actually segStat change. so we check again!
+		const RoadSegment *nxtRs = (nxtSegStat ? nxtSegStat->getRoadSegment() : nullptr);
+
+		if (curRs && curRs != nxtRs)
+		{
+			onSegmentCompleted(curRs, nxtRs);
+		}
+
+		if (isNewLinkNext)
+		{
+			onLinkCompleted(curRs->getParentLink(), (nxtRs ? nxtRs->getParentLink() : nullptr));
+		}
+
+		//reset these local variables in case path has been changed in onLinkCompleted
+		isNewLinkNext = (!pathMover.hasNextSegStats(true) && pathMover.hasNextSegStats(false));
+		currSegStat = pathMover.getCurrSegStats();
+		nxtSegStat = pathMover.getNextSegStats(!isNewLinkNext);
+
+		if (!nxtSegStat)
+		{
+			//vehicle is done
+			pathMover.advanceInPath();
+			if (pathMover.isPathCompleted())
+			{
+				setOutputCounter(currLane, (getOutputCounter(currLane, currSegStat) - 1), currSegStat);
+				currLane = nullptr;
+				parentBusDriver->parent->setToBeRemoved();
+			}
+			params.elapsedSeconds = params.secondsInTick;
+			return true;
+		}
+
+		if (isNewLinkNext)
+		{
+			parentBusDriver->parent->requestedNextSegStats = nxtSegStat;
+			parentBusDriver->parent->canMoveToNextSegment = Person_MT::NONE;
+			return false; // return whenever a new link is to be entered. Seek permission from Conflux.
+		}
+
+		const SegmentStats* nextToNextSegStat = pathMover.getSecondSegStatsAhead();
+		const Lane* laneInNextSegment = getBestTargetLane(nxtSegStat, nextToNextSegStat);
+
+		//this will space out the drivers on the same lane, by separating them by the time taken for the previous car to move a car's length
+		//Commenting out the delay from accept rate as per Yang Lu's suggestion (we only use this delay in setOrigin)
+		double departTime = getLastAccept(laneInNextSegment, nxtSegStat)
+				/*+ getAcceptRate(laneInNextSegment, nxtSegStat)*/; //in seconds
+
+		//skip acceptance capacity if there's no queue - this is done in DynaMIT
+		//commenting out - the delay from acceptRate is removed as per Yang Lu's suggestion
+		/*	if(nextRdSeg->getParentConflux()->numQueueingInSegment(nextRdSeg, true) == 0){
+				departTime = getLastAccept(nextLaneInNextSegment)
+								+ (0.01 * vehicle->length) / (nextRdSeg->getParentConflux()->getSegmentSpeed(nextRdSeg) ); // skip input capacity
+			}*/
+
+		params.elapsedSeconds = std::max(params.elapsedSeconds, departTime - (params.now.ms()/1000.0)); //in seconds
+
+		const Link* nextLink = getNextLinkForLaneChoice(nxtSegStat);
+		if (canGoToNextRdSeg(params, nxtSegStat, nextLink))
+		{
+			if (isQueuing)
+			{
+				removeFromQueue();
+			}
+
+			setOutputCounter(currLane, (getOutputCounter(currLane, currSegStat) - 1), currSegStat); // decrement from the currLane before updating it
+			currLane = laneInNextSegment;
+			pathMover.advanceInPath();
+			pathMover.setPositionInSegment(nxtSegStat->getLength());
+			double segExitTimeSec = params.elapsedSeconds + (params.now.ms()/1000.0);
+			setLastAccept(currLane, segExitTimeSec, nxtSegStat);
+
+			const SegmentStats* prevSegStats = pathMover.getPrevSegStats(true); //previous segment is in the same link
+			if (prevSegStats)
+			{
+				// update road segment travel times
+				updateScreenlineCounts(prevSegStats, segExitTimeSec);
+			}
+
+			res = true;
+			advance(params);
+		}
+		else
+		{
+			if(parentBusDriver->getResource()->isMoving())
 			{
 				if (isQueuing)
 				{
@@ -400,37 +650,29 @@ bool BusDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 				{
 					addToQueue();
 				}
-				params.elapsedSeconds = params.secondsInTick;
-				parentBusDriver->parent->setRemainingTimeThisTick(0.0);
 			}
+
+			params.elapsedSeconds = params.secondsInTick;
+			parentBusDriver->parent->setRemainingTimeThisTick(0.0);
 		}
-		else
-		{
-			std::stringstream errorStrm;
-			errorStrm << "BusStopAgent not found for stop: " << nextStop->getStopCode()
-					<< "|SegmentStats: " << currSegStat
-					<< "|position: " << currSegStat->getStatsNumberInSegment()
-					<< "|num. stops: " << currSegStat->getNumStops()
-					<< std::endl;
-			throw std::runtime_error(errorStrm.str());
-		}
-		return false;
-	}
-	else
-	{
-		return DriverMovement::moveToNextSegment(params);
+		return res;
 	}
 }
 
-BusRouteTracker::BusRouteTracker(const BusRouteInfo& routeInfo)
-: BusRouteInfo(routeInfo), nextStopIt(busStopList.begin()) {}
+BusRouteTracker::BusRouteTracker(const BusRouteInfo& routeInfo) :
+		BusRouteInfo(routeInfo), nextStopIt(busStopList.begin()), currentBusStop(nullptr)
+{
+}
 
-BusRouteTracker::BusRouteTracker(const BusRouteTracker& copySource)
-: BusRouteInfo(copySource), nextStopIt(busStopList.begin()) {}
+BusRouteTracker::BusRouteTracker(const BusRouteTracker& copySource) :
+		BusRouteInfo(copySource), nextStopIt(busStopList.begin()), currentBusStop(nullptr)
+{
+}
 
 BusRouteTracker& BusRouteTracker::operator=(const BusRouteTracker& rhsTracker)
 {
-	if(&rhsTracker != this) {
+	if (&rhsTracker != this)
+	{
 		busRouteId = rhsTracker.busRouteId;
 		roadSegmentList = rhsTracker.roadSegmentList;
 		busStopList = rhsTracker.busStopList;
@@ -450,6 +692,16 @@ void BusRouteTracker::updateNextStop()
 {
 	if(nextStopIt==busStopList.end()) { return;	}
 	nextStopIt++;
+}
+
+const BusStop* BusRouteTracker::getCurrentStop() const
+{
+	return currentBusStop;
+}
+
+void BusRouteTracker::setCurrentStop(const BusStop* currStop)
+{
+	currentBusStop = currStop;
 }
 
 void BusRouteTracker::printBusRoute(unsigned int personId)

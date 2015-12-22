@@ -443,7 +443,8 @@ bool DriverMovement::moveToNextSegment(DriverUpdateParams& params)
 			updateScreenlineCounts(prevSegStats, segExitTimeSec);
 		}
 
-		res = advance(params);
+		res = true;
+		advance(params);
 	}
 	else
 	{

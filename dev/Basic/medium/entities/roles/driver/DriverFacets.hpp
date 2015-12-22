@@ -133,6 +133,13 @@ protected:
 	virtual TravelMetric& processCBD_TravelMetrics(const RoadSegment* completedRS, const RoadSegment* nextRS);
 
 	/**
+	 * For moving into a new link after getting permission from the managing conflux
+	 *
+	 * @param params driver update params for current tick
+	 */
+	virtual void flowIntoNextLinkIfPossible(DriverUpdateParams& params);
+
+	/**
 	 * Pointer to the parent Driver role.
 	 */
 	Driver* parentDriver;
@@ -143,13 +150,6 @@ protected:
 	bool laneConnectorOverride;
 
 	mutable std::stringstream DebugStream;
-
-	/**
-	 * For moving into a new link after getting permission from the managing conflux
-	 *
-	 * @param params driver update params for current tick
-	 */
-	void flowIntoNextLinkIfPossible(DriverUpdateParams& params);
 
 	/**
 	 * sets fields in the parent person so that the conflux can manage the person

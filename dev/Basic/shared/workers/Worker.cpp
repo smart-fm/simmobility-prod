@@ -341,6 +341,7 @@ void sim_mob::Worker::threaded_function_loop()
 			// All Confluxes need to be initialized before any conflux can update for the 0th tick.
 			// We therefore add an extra frametick barrier for the 0th tick alone.
 			// TODO: Re-design multi-update logic to gracefully take care of this ~ Harish
+			addPendingEntities();
 			processMultiUpdateEntities(loop_params.currTick);
 			//Zero barrier
 			if (frame_tick_barr)

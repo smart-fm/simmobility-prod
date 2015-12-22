@@ -24,7 +24,7 @@ class BusRouteTracker: public sim_mob::BusRouteInfo
 {
 public:
 	BusRouteTracker() :
-			BusRouteInfo("")
+			BusRouteInfo(""), currentBusStop(nullptr)
 	{
 	}
 	BusRouteTracker(const BusRouteInfo& routeInfo);
@@ -50,12 +50,17 @@ public:
 	 */
 	BusRouteTracker& operator=(const BusRouteTracker& rhsTracker);
 
+	const BusStop* getCurrentStop() const;
+
+	void setCurrentStop(const BusStop* currStop);
+
 	/**
 	 * gets the bus stop pointed by nextStopIt
 	 * @return the bus stop pointed by nextStopIt if nextStopIt points to a
 	 * valid stop; nullptr otherwise.
 	 */
 	const BusStop* getNextStop() const;
+
 	/**
 	 * increments the nextStopIt to point to the next stop along the route
 	 */
@@ -73,6 +78,11 @@ private:
 	 * bus driver to (possibly) serve
 	 */
 	std::vector<const BusStop*>::iterator nextStopIt;
+
+	/**
+	 * current bus stop that is being served (nullptr if the bus is moving)
+	 */
+	const BusStop* currentBusStop;
 };
 
 /**
@@ -137,6 +147,8 @@ public:
 		this->parentBusDriver = parentBusDriver;
 	}
 
+	void departFromCurrentStop();
+
 protected:
 	virtual bool initializePath();
 
@@ -150,6 +162,13 @@ protected:
 	 * @return true if successfully moved to next segment; false otherwise
 	 */
 	virtual bool moveToNextSegment(DriverUpdateParams& params);
+
+	/**
+	 * For moving into a new link after getting permission from the managing conflux
+	 *
+	 * @param params bus driver update params for current tick
+	 */
+	virtual void flowIntoNextLinkIfPossible(DriverUpdateParams& params);
 
 	/**pointer to parent bus driver*/
 	BusDriver* parentBusDriver;

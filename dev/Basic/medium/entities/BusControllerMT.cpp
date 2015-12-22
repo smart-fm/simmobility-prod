@@ -113,6 +113,7 @@ void BusControllerMT::assignBusTripChainWithPerson(std::set<Entity*>& activeAgen
 			if (tripIt->startTime.isAfterEqual(config.simStartTime()))
 			{
 				Person_MT* person = new Person_MT("BusController", config.mutexStategy(), -1, tripIt->getPersonID());
+				person->busLine = busline->getBusLineID();
 				person->setPersonCharacteristics();
 				vector<TripChainItem*> tripChain;
 				tripChain.push_back(const_cast<BusTrip*>(&(*tripIt)));

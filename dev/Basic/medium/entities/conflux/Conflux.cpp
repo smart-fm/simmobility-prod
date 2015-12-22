@@ -9,6 +9,7 @@
 #include <map>
 #include <stdexcept>
 #include <stdint.h>
+#include <string>
 #include <sstream>
 #include <vector>
 #include "conf/ConfigManager.hpp"
@@ -208,7 +209,7 @@ void Conflux::PersonProps::printProps(unsigned int personId, uint32_t frame, std
 		propStrm << "0x0";
 	}
 	propStrm << " roleType:" << roleType << " isQueuing:" << isQueuing << " isMoving:" << isMoving << " }" << std::endl;
-	Print() << propStrm.str();
+	std::cout << propStrm.str();
 }
 
 void Conflux::addAgent(Person_MT* person)
@@ -405,6 +406,10 @@ void Conflux::updateAgent(Person_MT* person)
 	//capture person info after update
 	PersonProps afterUpdate(person, this);
 
+
+	beforeUpdate.printProps(person->getId(), currFrame.frame(), std::to_string(confluxNode->getNodeId()) + " before");
+	afterUpdate.printProps(person->getId(), currFrame.frame(), std::to_string(confluxNode->getNodeId()) + " after");
+
 	//perform house keeping
 	housekeep(beforeUpdate, afterUpdate, person);
 
@@ -516,7 +521,6 @@ void Conflux::housekeep(PersonProps& beforeUpdate, PersonProps& afterUpdate, Per
 			if (afterUpdate.lane)
 			{
 				afterUpdate.segStats->addAgent(afterUpdate.lane, person);
-				return;
 			}
 			else
 			{
@@ -524,13 +528,13 @@ void Conflux::housekeep(PersonProps& beforeUpdate, PersonProps& afterUpdate, Per
 				//we need to add the bus driver to the virtual queue here
 				person->distanceToEndOfSegment = afterUpdate.segStats->getLength();
 				afterUpdate.segStats->getParentConflux()->pushBackOntoVirtualQueue(afterUpdate.segment->getParentLink(), person);
-				return;
 			}
+			return;
 		}
 		else if (!beforeUpdate.isMoving && !afterUpdate.isMoving)
 		{
 			//There are two possibilities here.
-			//1. The bus driver has been serving the stop through-out this tick
+			//1. The bus driver has been serving a stop through-out this tick
 			//2. The bus driver has moved out of one stop and entered another within the same tick
 
 			//In either case, there is nothing more for us to do here.
@@ -636,6 +640,7 @@ void Conflux::processVirtualQueues()
 			{
 				Person_MT* p = i->second.front();
 				i->second.pop_front();
+				std::cout << "Processing " << p->getId() << " from VQ\n";
 				updateAgent(p);
 				counter--;
 			}
@@ -1238,6 +1243,14 @@ Entity::UpdateStatus Conflux::callMovementFrameTick(timeslice now, Person_MT* pe
 					person->setCurrSegStats(person->requestedNextSegStats);
 					person->setCurrLane(nullptr); // so that the updateAgent function will add this agent to the virtual queue
 					person->requestedNextSegStats = nullptr;
+
+					//if the person is trying to move to requestedNextSegStats from a bus stop in current segment, we need to
+					//notify the corresponding bus stop agent and update moving status
+					if (!personRole->getResource()->isMoving())
+					{
+						BusDriverMovement* busDriverMovementFacet = dynamic_cast<BusDriverMovement*>(personRole->Movement());
+						busDriverMovementFacet->departFromCurrentStop();
+					}
 					break; //break off from loop
 				}
 				else

@@ -265,7 +265,7 @@ void sim_mob::WorkGroupManager::waitAllGroups_DistributeMessages(std::set<Entity
 		return;
 	}
 
-	if (!ConfigManager::GetInstance().FullConfig().RunningLongTerm())
+	if (ConfigManager::GetInstance().FullConfig().RunningMidTerm())
 	{
 		for (vector<WorkGroup*>::iterator it = registeredWorkGroups.begin(); it != registeredWorkGroups.end(); it++)
 		{

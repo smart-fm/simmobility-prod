@@ -135,7 +135,8 @@ namespace
         MessageBus::PostMessage(bid.getBidder(), LTMID_BID_RSP, MessageBus::MessagePtr(new BidMessage(bid, response)));
 
         //print bid.
-        printBid(agent, bid, entry, bidsCounter, (response == ACCEPTED));
+        if( entry.askingPrice > 0.0001 )
+        	printBid(agent, bid, entry, bidsCounter, (response == ACCEPTED));
 
         //save accepted bids to a vector, to be saved in DB later.
         if(response == ACCEPTED)

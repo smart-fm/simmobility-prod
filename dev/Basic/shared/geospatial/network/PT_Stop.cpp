@@ -176,9 +176,14 @@ TrainStop::TrainStop(){}
 
 TrainStop::~TrainStop(){}
 
-TrainStop::TrainStop(std::string stopId,unsigned int roadSegment){
-	this->trainStopId=stopId;
-	this->addAccessRoadSegment(roadSegment);
+TrainStop::TrainStop(std::string stopIds)
+{
+	std::stringstream ss(stopIds);
+	std::string singleMrtStopId;
+	while (std::getline(ss, singleMrtStopId, '/'))
+	{
+		trainStopIds.push_back(singleMrtStopId);
+	}
 }
 
 const RoadSegment* TrainStop::getStationSegmentForNode(const Node* nd) const

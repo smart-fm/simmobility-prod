@@ -448,7 +448,9 @@ void DriverMovement::outputDensityMap(unsigned int tick)
 	}
 
 	//Clear the map
+	densityUpdateMutex.lock();
 	rdSegDensityMap.clear();
+	densityUpdateMutex.unlock();
 }
 
 TravelMetric& DriverMovement::startTravelTimeMetric()
@@ -704,14 +706,14 @@ void DriverMovement::applyDrivingModels(DriverUpdateParams &params)
 	{
 		//Apply the lane changing model to make the lane changing decision
 		lcModel->makeLaneChangingDecision(params);
-
+		
 		//If we've decided to change the lane, execute the lane change manoeuvre
 		if (params.getStatus() & STATUS_CHANGING)
 		{
 			params.lcDebugStr << ";CHING";
 
 			lcModel->executeLaneChanging(params);
-
+			
 			if (params.flag(FLAG_LC_FAILED))
 			{
 				params.lcDebugStr << ";COG";
@@ -795,11 +797,11 @@ double DriverMovement::drive(DriverUpdateParams &params)
 {
 	LaneChangeTo laneChangeTo;
 
-	if (params.getStatus(STATUS_LC_RIGHT))
+	if (params.getStatus(STATUS_LC_CHANGING) && params.getStatus(STATUS_RIGHT))
 	{
 		laneChangeTo = LANE_CHANGE_TO_RIGHT;
 	}
-	else if (params.getStatus(STATUS_LC_LEFT))
+	else if (params.getStatus(STATUS_LC_CHANGING) && params.getStatus(STATUS_LEFT))
 	{
 		laneChangeTo = LANE_CHANGE_TO_LEFT;
 	}
@@ -1298,9 +1300,14 @@ double DriverMovement::updatePosition(DriverUpdateParams &params)
 	//where, s = displacement, u = initial velocity, a = acceleration, t = time
 	double distCovered = (params.currSpeed * params.elapsedSeconds) + (0.5 * params.acceleration *	params.elapsedSeconds * params.elapsedSeconds);
 
-	if (distCovered < 0)
+	if (distCovered > 0)
+	{
+		params.unsetStatus(STATUS_STOPPED);
+	}
+	else
 	{
 		distCovered = 0;
+		params.setStatus(STATUS_STOPPED);
 	}
 
 	//Update the vehicle's velocity based on its acceleration using the equation of motion

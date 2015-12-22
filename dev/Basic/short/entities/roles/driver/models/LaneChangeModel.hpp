@@ -155,7 +155,7 @@ private:
 	 *
 	 * @param str parameters read from driver parameters XML
 	 */
-	void makeMCLParam(std::string &str);
+	void makeMLCParam(std::string &str);
 
 	/**
 	 * Helper function to parse parameters read in string format and store them

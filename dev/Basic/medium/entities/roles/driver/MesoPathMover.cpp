@@ -202,21 +202,16 @@ void MesoPathMover::printPath()
 	Print() << pathStream.str();
 }
 
-std::string MesoPathMover::printPath(const Path &path, const Node *node)
+std::string MesoPathMover::getPathString(const Path &path, const Node *node)
 {
 	std::ostringstream out("");
-	unsigned int id = 0;
 	if (node)
 	{
 		out << node->getNodeId() << ": ";
 	}
 	for (Path::const_iterator it = path.begin(); it != path.end(); it++)
 	{
-		if (id != (*it)->getRoadSegment()->getRoadSegmentId())
-		{
-			id = (*it)->getRoadSegment()->getRoadSegmentId();
-			out << id << ",";
-		}
+		out << (*it)->getRoadSegment()->getRoadSegmentId() << "-" << (*it)->getStatsNumberInSegment() << "|";
 	}
 	if (out.str().size())
 	{

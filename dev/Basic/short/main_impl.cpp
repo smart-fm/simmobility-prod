@@ -336,8 +336,8 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 	//       a barrier sync.
 	/////////////////////////////////////////////////////////////////
 	size_t numStartAgents = Agent::all_agents.size();
-	size_t numPendingAgents = Agent::pending_agents.size();
 	size_t maxAgents = Agent::all_agents.size();
+	size_t numPendingAgents = Agent::pending_agents.size();
 
 	timeval loop_start_time;
 	gettimeofday(&loop_start_time, nullptr);
@@ -445,14 +445,13 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 	//Store the segment travel times
 	if (config.PathSetMode()) 
 	{
-		TravelTimeManager::getInstance()->dumpTravelTimesToFile(stCfg.pathset.RTTT_Conf);
+		TravelTimeManager::getInstance()->storeCurrentSimulationTT();;
 	}
 
 	Print() << "Database lookup took: " <<loop_start_offset <<" ms" <<std::endl;
 	Print() << "Max Agents at any given time: " <<maxAgents <<std::endl;
 	Print() << "Starting Agents: " << numStartAgents;
-	Print() << ",     Pending: ";
-	Print() << numPendingAgents;
+	Print() << ",     Pending: " << numPendingAgents;
 	Print() << endl;
 
 	if (Agent::all_agents.empty()) 

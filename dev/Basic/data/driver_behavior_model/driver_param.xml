@@ -19,7 +19,7 @@
 	<!--From mitsim:-->
 	<!--param name="min_response_distance" value="4.6"/-->
 
-	<param name="min_response_distance" value="1.5"/>
+	<param name="min_response_distance" value="3"/>
 	
 	<!-- The SimMobility car-following model describes the
 	acceleration of the following vehicle in a car following regime:
@@ -354,7 +354,7 @@
 	0.1			# coef for time (in minutes) since tagged
 	0.5			# max prob one on ramp lane drop, incident, red LUS, etc
 	1.0			# max prob two in connection to next link
-	300.0		# max yielding time (seconds)
+	30.0		# max yielding time (seconds)
 	100.0		# max stuck time (seconds)
 	600.0		# max distance for nosing	
 	40.0		# min distance for nosing

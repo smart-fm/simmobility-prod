@@ -95,13 +95,15 @@ SegmentStats::SegmentStats(const RoadSegment* rdSeg, Conflux* parentConflux, dou
 	std::vector<Lane*>::const_iterator laneIt = rdSeg->getLanes().begin();
 	while (laneIt != rdSeg->getLanes().end())
 	{
-		laneStatsMap.insert(std::make_pair(*laneIt, new LaneStats(*laneIt, length)));
-		laneStatsMap[*laneIt]->initLaneParams(segVehicleSpeed, supplyParams.getCapacity());
+		LaneStats* lnStats = new LaneStats(*laneIt, length);
+		laneStatsMap.insert(std::make_pair(*laneIt, lnStats));
+		lnStats->initLaneParams(segVehicleSpeed, supplyParams.getCapacity());
 		if (!(*laneIt)->isPedestrianLane())
 		{
 			numVehicleLanes++;
 			outermostLane = *laneIt;
 		}
+		lnStats->setParentStats(this);
 		laneIt++;
 	}
 
@@ -120,7 +122,9 @@ SegmentStats::SegmentStats(const RoadSegment* rdSeg, Conflux* parentConflux, dou
 	laneInfinity->setRoadSegmentId(rdSeg->getRoadSegmentId());
 	laneInfinity->setParentSegment(const_cast<RoadSegment*>(rdSeg));
 	laneInfinity->setWidth(0);
-	laneStatsMap.insert(std::make_pair(laneInfinity, new LaneStats(laneInfinity, statslengthInM, true)));
+	LaneStats* lnInfStats = new LaneStats(laneInfinity, statslengthInM, true);
+	laneStatsMap.insert(std::make_pair(laneInfinity, lnInfStats));
+	lnInfStats->setParentStats(this);
 }
 
 SegmentStats::~SegmentStats()
@@ -485,7 +489,7 @@ double SegmentStats::getTotalVehicleLength() const
 	return totalLength;
 }
 
-//density will be computed in vehicles/meter for the moving part of the segment
+//density will be computed in vehicles/meter-lane for the moving part of the segment
 double SegmentStats::getDensity(bool hasVehicle)
 {
 	double density = 0.0;
@@ -503,18 +507,18 @@ double SegmentStats::getDensity(bool hasVehicle)
 	return density;
 }
 
-//density will be computed in vehicles/lane-km for the moving part of the segment
+//density will be computed in vehicles/lane-km for the full segment
 double SegmentStats::getTotalDensity(bool hasVehicle)
 {
 	double density = 0.0;
 	double totalPCUs = getTotalVehicleLength() / PASSENGER_CAR_UNIT;
 	if (length > PASSENGER_CAR_UNIT)
 	{
-		density = totalPCUs / (numVehicleLanes * (length / 100000.0));
+		density = totalPCUs / (numVehicleLanes * (length / 1000.0));
 	}
 	else
 	{
-		density = 1 / (PASSENGER_CAR_UNIT / 100.0);
+		density = 1 / (PASSENGER_CAR_UNIT / 1000.0);
 	}
 	return density;
 }
@@ -844,12 +848,17 @@ std::string SegmentStats::reportSegmentStats(uint32_t frameNumber)
 	{
 		double density = (numMovingInSegment(true) + numQueuingInSegment(true)) / ((length / 100000.0) * numVehicleLanes); //veh/lane-km
 
-		msg << "(\"segmentState\"" << "," << frameNumber << "," << roadSegment << ",{" << "\"speed\":\"" << segVehicleSpeed << "\",\"flow\":\"" << segFlow
-				<< "\",\"density\":\"" << getTotalDensity(true) << "\",\"total\":\"" << (numPersons - numAgentsInLane(laneInfinity)) << "\",\"totalL\":\""
-				<< getTotalVehicleLength() << "\",\"moving\":\"" << numMovingInSegment(true) << "\",\"movingL\":\"" << getMovingLength() << "\",\"queue\":\""
-				<< numQueuingInSegment(true) << "\",\"queueL\":\"" << getQueueLength() << "\",\"numVehicleLanes\":\"" << numVehicleLanes
-				<< "\",\"segment_length\":\"" << length << "\",\"segment_id\":\"" << roadSegment->getRoadSegmentId() << "\",\"stats_num\":\""
-				<< statsNumberInSegment << "\"})" << "\n";
+		msg << "(\"segmentState\"" << ","
+				<< frameNumber << ","
+				<< roadSegment->getRoadSegmentId()
+				<< ",{" << "\"speed\":\"" << segVehicleSpeed << "\",\"flow\":\"" << segFlow << "\",\"density\":\"" << getTotalDensity(true) << "\",\"total\":\"" << (numPersons - numAgentsInLane(laneInfinity)) << "\",\"totalL\":\""
+				<< getTotalVehicleLength()
+				<< "\",\"moving\":\"" << numMovingInSegment(true) << "\",\"movingL\":\"" << getMovingLength()
+				<< "\",\"queue\":\"" << numQueuingInSegment(true) << "\",\"queueL\":\"" << getQueueLength()
+				<< "\",\"numVehicleLanes\":\"" << numVehicleLanes
+				<< "\",\"segment_length\":\"" << length
+				<< "\",\"segment_id\":\"" << roadSegment->getRoadSegmentId() << "\",\"stats_num\":\"" << statsNumberInSegment << "\"})"
+				<< "\n";
 //		msg << "SegStats-,"
 //				<< frameNumber << ","
 //				<< roadSegment->getSegmentAimsunId() << ","
@@ -1124,8 +1133,9 @@ void LaneStats::verifyOrdering()
 		if (distance > (*i)->distanceToEndOfSegment)
 		{
 			std::stringstream debugMsgs;
-			debugMsgs << "Invariant violated: Ordering of laneAgents does not reflect ordering w.r.t. distance to end of segment." << "\nSegment: "
-					<< lane->getParentSegment()->getRoadSegmentId() << " length = " << lane->getParentSegment()->getPolyLine()->getLength() << "\nLane: " << lane->getLaneId()
+			debugMsgs << "Invariant violated: Ordering of laneAgents does not reflect ordering w.r.t. distance to end of segment."
+					<< "\nSegment: " << lane->getParentSegment()->getRoadSegmentId() << "-" << parentStats->getStatsNumberInSegment()
+					<< " length = " << lane->getParentSegment()->getLength() << "\nLane: " << lane->getLaneId()
 					<< "\nCulprit Person: " << (*i)->getId();
 			debugMsgs << "\nAgents ";
 			for (PersonList::const_iterator j = laneAgents.begin(); j != laneAgents.end(); j++)

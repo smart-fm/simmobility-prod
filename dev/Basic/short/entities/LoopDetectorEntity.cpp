@@ -284,21 +284,31 @@ LoopDetectorEntity::Impl::~Impl()
 
 void LoopDetectorEntity::Impl::createLoopDetectors(Signal const &signal, LoopDetectorEntity &entity)
 {
-	const Node *node = signal.getNode();
-	const std::map<unsigned int, std::map<unsigned int, TurningGroup *> >& turningsFromMap = node->getTurningGroups();
-	std::map<unsigned int, std::map<unsigned int, TurningGroup *> >::const_iterator itTurningsFromMap = turningsFromMap.begin();
+	const std::vector<const Node *> &nodes = signal.getNodes();
+	std::vector<const Node *>::const_iterator itNodes = nodes.begin();
 	
-	//Iterate through the map of turning groups at the node
-	while(itTurningsFromMap != turningsFromMap.end())
+	const RoadNetwork *network = RoadNetwork::getInstance();
+	const std::map<unsigned int, Link *> &links = network->getMapOfIdVsLinks();
+	
+	//Iterate over the nodes that are associated with the signal
+	while(itNodes != nodes.end())
 	{
-		//Get the incoming links		
-		const RoadNetwork *network = RoadNetwork::getInstance();
-		const Link *link = network->getById(network->getMapOfIdVsLinks(), itTurningsFromMap->first);
-		
-		//Create loop detector at the last segment in the link
-		createLoopDetectors(link->getRoadSegments(), entity);
-		
-		++itTurningsFromMap;
+		const std::map<unsigned int, std::map<unsigned int, TurningGroup *> >& turningsFromMap = (*itNodes)->getTurningGroups();
+		std::map<unsigned int, std::map<unsigned int, TurningGroup *> >::const_iterator itTurningsFromMap = turningsFromMap.begin();
+
+		//Iterate through the map of turning groups at the node
+		while (itTurningsFromMap != turningsFromMap.end())
+		{
+			//Get the incoming links
+			const Link *link = network->getById(links, itTurningsFromMap->first);
+
+			//Create loop detector at the last segment in the link
+			createLoopDetectors(link->getRoadSegments(), entity);
+
+			++itTurningsFromMap;
+		}
+
+		++itNodes;
 	}
 }
 

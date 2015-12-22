@@ -521,8 +521,7 @@ const std::string ExpandShortTermConfigFile::getSignalsInfo(std::map<unsigned in
 		for (std::map<unsigned int, Signal *>::const_iterator it = signals.begin(); it != signals.end(); ++it)
 		{
 			out << "{\"TrafficSignal\":" << "{";
-			out << "\"id\":\"" << it->second->getNode()->getTrafficLightId() << "\",";
-			out << "\"node\":\"" << it->second->getNode()->getNodeId() << "\",";
+			out << "\"id\":\"" << it->second->getTrafficLightId() << "\",";			
 			out << "}}\n";
 		}
 	}

@@ -1056,14 +1056,10 @@ double MITSIM_CF_Model::calcWaitForLaneExitAcc(DriverUpdateParams &params)
 	double acceleration = params.maxAcceleration;
 	DriverMovement *driverMvt = dynamic_cast<DriverMovement*> (params.driver->Movement());
 	
-	if(!driverMvt->fwdDriverMovement.isInIntersection())
+	if(!driverMvt->fwdDriverMovement.isInIntersection() && params.flag(FLAG_ESCAPE) 
+			|| (params.flag(FLAG_NOSING) && !params.flag(FLAG_NOSING_FEASIBLE)))
 	{
-		double dx = driverMvt->fwdDriverMovement.getDistToEndOfCurrLink() - params.driver->getVehicleLength();
-
-		if (dx < params.distanceToNormalStop && params.getStatus(STATUS_CURRENT_LANE_OK) != StatusValue::STATUS_YES)
-		{
-			acceleration = calcBrakeToStopAcc(params, dx);
-		}
+		acceleration = calcBrakeToStopAcc(params, params.distToStop / 4);
 	}
 	
 	return acceleration;

@@ -1013,7 +1013,7 @@ const Lane* DriverMovement::getBestTargetLane(const SegmentStats* nextSegStats, 
 	if (!minLane)
 	{
 		Print() << "\nCurrent Path " << pathMover.getPath().size() << std::endl;
-		Print() << MesoPathMover::printPath(pathMover.getPath());
+		Print() << MesoPathMover::getPathString(pathMover.getPath());
 
 		std::ostringstream out("");
 		out << "best target lane was not set!" << "\nCurrent Segment: " << pathMover.getCurrSegStats()->getRoadSegment()->getRoadSegmentId() <<

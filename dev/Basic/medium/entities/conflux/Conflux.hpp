@@ -576,7 +576,7 @@ public:
 	 * constructs confluxes around each multinode
 	 * @param rdnw the road network
 	 */
-	static void ProcessConfluxes();
+	static void CreateConfluxes();
 
 	/**
 	 * creates a list of SegmentStats for a given segment depending on the stops

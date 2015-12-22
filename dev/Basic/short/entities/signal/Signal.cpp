@@ -31,18 +31,33 @@ using namespace std;
 std::map<unsigned int, Signal *> Signal::mapOfIdVsSignals;
 
 Signal::Signal(const Node *node, const MutexStrategy &mtxStrat, unsigned int id, SignalType)
-: Agent(mtxStrat, id), node(node), trafficLightId(node->getTrafficLightId())
+: Agent(mtxStrat, id), trafficLightId(node->getTrafficLightId())
 {
+	nodes.push_back(node);
 }
 
 Signal::~Signal()
 {
+	//Delete the phases
 	clear_delete_vector(phases);
+	
+	//Simply clear the vector of nodes. They will be destroyed along with the road network
+	nodes.clear();;
 }
 
-const Node* Signal::getNode() const
+unsigned int Signal::getTrafficLightId() const
 {
-	return node;
+	return trafficLightId;
+}
+
+const std::vector<const Node *>& Signal::getNodes() const
+{
+	return nodes;
+}
+
+void Signal::addNode(const Node *node)
+{
+	nodes.push_back(node);
 }
 
 SignalType Signal::getSignalType() const
@@ -251,11 +266,6 @@ double Signal_SCATS::computePhaseDS(int phaseId, const timeslice &now)
 		const RoadNetwork *network = RoadNetwork::getInstance();
 		const Link *link = network->getById(network->getMapOfIdVsLinks(), linkIterator->first);
 		
-		if (link->getToNode() != node)
-		{
-			continue;
-		}
-		
 		const std::vector<Lane *> lanes = link->getRoadSegments().back()->getLanes();
 		
 		for (std::size_t i = 0; i < lanes.size(); i++)
@@ -352,55 +362,61 @@ void Signal_SCATS::createPlans()
 
 void Signal_SCATS::createPhases()
 {
-	//Turning groups at the node
-	const std::map<unsigned int, std::map<unsigned int, TurningGroup *> >& turningsOuterMap = node->getTurningGroups();
-	std::map<unsigned int, std::map<unsigned int, TurningGroup *> >::const_iterator itOuterMap = turningsOuterMap.begin();
-	
-	//Iterate through the groups originating at each of the 'from links'
-	while(itOuterMap != turningsOuterMap.end())
+	//Iterate over all the nodes that share the traffic signal (in most cases, there will be only one node per signal)
+	for(std::vector<const Node *>::iterator itNodes = nodes.begin(); itNodes != nodes.end(); ++itNodes)
 	{
-		const std::map<unsigned int, TurningGroup *> &turningsInnerMap = itOuterMap->second;
-		std::map<unsigned int, TurningGroup *>::const_iterator itInnerMap = turningsInnerMap.begin();
+		const Node *node = *itNodes;
 		
-		//Iterate through the groups ending at each of the 'to links' for the selected 'from link'
-		while(itInnerMap != turningsInnerMap.end())
+		//Turning groups at the node
+		const std::map<unsigned int, std::map<unsigned int, TurningGroup *> >& turningsOuterMap = node->getTurningGroups();
+		std::map<unsigned int, std::map<unsigned int, TurningGroup *> >::const_iterator itOuterMap = turningsOuterMap.begin();
+
+		//Iterate through the groups originating at each of the 'from links'
+		while (itOuterMap != turningsOuterMap.end())
 		{
-			//The colour sequence structure for this phase
-			ToLinkColourSequence toLinkClrSeq(itInnerMap->first);
-				
-			//Phase name
-			const std::string &phaseName = itInnerMap->second->getPhases();
-			
-			//Check whether a phase with with the same name is already created for this signal
-			bool phaseExists = false;
-			for(std::vector<Phase *>::const_iterator itPhases = phases.begin(); itPhases != phases.end(); ++itPhases)
+			const std::map<unsigned int, TurningGroup *> &turningsInnerMap = itOuterMap->second;
+			std::map<unsigned int, TurningGroup *>::const_iterator itInnerMap = turningsInnerMap.begin();
+
+			//Iterate through the groups ending at each of the 'to links' for the selected 'from link'
+			while (itInnerMap != turningsInnerMap.end())
 			{
-				if((*itPhases)->getName() == phaseName)
+				//The colour sequence structure for this phase
+				ToLinkColourSequence toLinkClrSeq(itInnerMap->first);
+
+				//Phase name
+				const std::string &phaseName = itInnerMap->second->getPhases();
+
+				//Check whether a phase with with the same name is already created for this signal
+				bool phaseExists = false;
+				for (std::vector<Phase *>::const_iterator itPhases = phases.begin(); itPhases != phases.end(); ++itPhases)
 				{
-					//Associate the colour sequence structure with this phase
-					(*itPhases)->addLinkMapping(itOuterMap->first, toLinkClrSeq);
-					
-					phaseExists = true;
-					
-					break;
+					if ((*itPhases)->getName() == phaseName)
+					{
+						//Associate the colour sequence structure with this phase
+						(*itPhases)->addLinkMapping(itOuterMap->first, toLinkClrSeq);
+
+						phaseExists = true;
+
+						break;
+					}
 				}
-			}
-			
-			if(!phaseExists)
-			{
-				//Create a new phase for this turning group
-				Phase *phase = new Phase(phaseName, splitPlan);				
 
-				//Associate the colour sequence structure with this phase
-				phase->addLinkMapping(itOuterMap->first, toLinkClrSeq);
+				if (!phaseExists)
+				{
+					//Create a new phase for this turning group
+					Phase *phase = new Phase(phaseName, splitPlan);
 
-				//Add the phase to the vector of phases
-				phases.push_back(phase);
+					//Associate the colour sequence structure with this phase
+					phase->addLinkMapping(itOuterMap->first, toLinkClrSeq);
+
+					//Add the phase to the vector of phases
+					phases.push_back(phase);
+				}
+
+				++itInnerMap;
 			}
-			
-			++itInnerMap;
+			++itOuterMap;
 		}
-		++itOuterMap;
 	}
 }
 
@@ -451,11 +467,23 @@ void Signal_SCATS::createTrafficSignals(const MutexStrategy &mtxStrat)
 		//Check if a traffic signal exists at this node
 		if(trafficLightId != 0)
 		{
-			//Create a new traffic signal
-			Signal_SCATS *signal = new Signal_SCATS(node, mtxStrat);
+			//Check if we've already created a traffic signal with this id (some traffic signals are shared between 
+			//nodes)
+			std::map<unsigned int, Signal *>::iterator itSignals = mapOfIdVsSignals.find(trafficLightId);
+			
+			if(itSignals == mapOfIdVsSignals.end())
+			{
+				//Create a new traffic signal
+				Signal_SCATS *signal = new Signal_SCATS(node, mtxStrat);
 
-			//Add the signal in the map
-			mapOfIdVsSignals.insert(std::make_pair(trafficLightId, signal));
+				//Add the signal in the map
+				mapOfIdVsSignals.insert(std::make_pair(trafficLightId, signal));
+			}
+			else
+			{
+				//Signal exists, associate the node with this traffic signal
+				itSignals->second->addNode(node);
+			}
 		}
 	}
 }
@@ -499,7 +527,7 @@ void VehicleCounter::serialize(const uint32_t& time)
 		std::map<const Lane*, int> ::iterator it(counter.begin());
 		for (; it != counter.end(); it++)
 		{
-			logger << time << "," << signal->getNode()->getTrafficLightId() << "," << signal->getNode()->getNodeId() \
+			logger << time << "," << signal->getTrafficLightId() \
 					<< "," << it->first->getRoadSegmentId() \
 					<< "," << it->first->getLaneId() << "," << it->second << "\n";
 		}

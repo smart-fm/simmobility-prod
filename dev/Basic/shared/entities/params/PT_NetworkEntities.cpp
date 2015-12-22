@@ -3,6 +3,8 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 #include "PT_NetworkEntities.hpp"
+
+#include <sstream>
 #include "conf/ConfigManager.hpp"
 #include "conf/Constructs.hpp"
 #include "conf/ConfigParams.hpp"
@@ -68,17 +70,51 @@ void PT_Network::init()
 	   soci::row const& row = *it;
 	   std::string mrtstopid = row.get<std::string>(0);
 	   int roadsegmentId = row.get<unsigned int>(1);
-	   if(MRTStopsMap.find(mrtstopid) == MRTStopsMap.end())
+	   //MRT stop id can be a slash '/' separated list of IDs in case of interchanges. We need to split it into individual stop ids
+	   if(mrtstopid.find('/') == std::string::npos)
 	   {
-		   TrainStop mrtStopObj(mrtstopid, roadsegmentId);
-		   MRTStopsMap[mrtstopid]=mrtStopObj;
+		   if(MRTStopsMap.find(mrtstopid) == MRTStopsMap.end())
+		   {
+			   TrainStop* mrtStopObj = new TrainStop(mrtstopid);
+			   MRTStopsMap[mrtstopid] = mrtStopObj;
+		   }
+		   MRTStopsMap[mrtstopid]->addAccessRoadSegment(roadsegmentId);
 	   }
-	   else{
-		   MRTStopsMap[mrtstopid].addAccessRoadSegment(roadsegmentId);
+	   else
+	   {
+		   TrainStop* mrtStopObj = nullptr;
+		   std::stringstream ss(mrtstopid);
+		   std::string singleMrtStopId;
+		   while (std::getline(ss, singleMrtStopId, '/'))
+		   {
+			   if(!mrtStopObj)
+			   {
+				   if(MRTStopsMap.find(singleMrtStopId) == MRTStopsMap.end())
+				   {
+					   mrtStopObj = new TrainStop(mrtstopid); //note: the original '/' separated string of ids must be passed to constructor; check constructor implementation for details.
+					   MRTStopsMap[singleMrtStopId] = mrtStopObj;
+				   }
+				   else
+				   {
+					   mrtStopObj = MRTStopsMap[singleMrtStopId];
+				   }
+			   }
+			   else if(MRTStopsMap.find(singleMrtStopId) == MRTStopsMap.end())
+			   {
+				   MRTStopsMap[singleMrtStopId] = mrtStopObj;
+			   }
+		   }
+		   mrtStopObj->addAccessRoadSegment(roadsegmentId);
 	   }
 	}
 	cout << "Public Transport network loaded\n";
 }
+
+sim_mob::PT_Network::~PT_Network()
+{
+	clear_delete_map(MRTStopsMap);
+}
+
 int PT_Network::getVertexTypeFromStopId(std::string stopId)
 {
 	if(PT_NetworkVertexMap.find(stopId) != PT_NetworkVertexMap.end())
@@ -88,11 +124,19 @@ int PT_Network::getVertexTypeFromStopId(std::string stopId)
 	return -1;
 }
 
-TrainStop* PT_Network::findMRT_Stop(const std::string& stopId){
-	if(MRTStopsMap.find(stopId) != MRTStopsMap.end()){
-		return &MRTStopsMap[stopId];
+TrainStop* PT_Network::findMRT_Stop(const std::string& stopId)
+{
+	//stop id can be a slash '/' separated list of MRT stop ids.
+	//all MRT stops in the '/' separated list point to the same TrainStop object in MRTStopsMap
+	std::stringstream ss(stopId);
+	std::string singleMrtStopId;
+	std::getline(ss, singleMrtStopId, '/');
+	if (MRTStopsMap.find(singleMrtStopId) != MRTStopsMap.end())
+	{
+		return MRTStopsMap[singleMrtStopId];
 	}
-	else {
+	else
+	{
 		return nullptr;
 	}
 }

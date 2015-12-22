@@ -17,23 +17,29 @@ namespace sim_mob
 /**Defines the various categories of links supported by SimMobility*/
 enum LinkCategory
 {
+	/**Unknown/Default category*/
+	LINK_CATEGORY_UNKNOWN = 0,
+	
 	/**Category A*/
-	LINK_CATEGORY_A = 0,
+	LINK_CATEGORY_A = 1,
 
 	/**Category B*/
-	LINK_CATEGORY_B = 1,
+	LINK_CATEGORY_B = 2,
 
 	/**Category C*/
-	LINK_CATEGORY_C = 2,
+	LINK_CATEGORY_C = 3,
 
 	/**Category D*/
-	LINK_CATEGORY_D = 3,
+	LINK_CATEGORY_D = 4,
 
 	/**Category E*/
-	LINK_CATEGORY_E = 4,
+	LINK_CATEGORY_E = 5,	
 
 	/**Slip-road*/
-	LINK_CATEGORY_SLIP_ROAD = 5
+	LINK_CATEGORY_SLIP_ROAD = 6,
+	
+	/**Round-about*/
+	LINK_CATEGORY_ROUND_ABOUT = 7
 };
 
 /**Defines the various types of links supported by SimMobility*/

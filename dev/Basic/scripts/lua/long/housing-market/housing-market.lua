@@ -124,17 +124,14 @@ function calculateHDB_HedonicPrice(unit, building, postcode, amenities, logsum, 
 	local simulationYear = CONSTANTS.SIMULATION_YEAR;
 	local hedonicPrice = 0; --getStoreyEstimation(unit.storey) + ((building ~= nil) and ((simulationYear - building.builtYear) * -23.26) or 0)
 
-	local DD_logarea  = 0;
-	local ZZ_dis_cbd  = 0;
 	local ZZ_pms1km   = 0;
-	local ZZ_dis_mall = 0;
 	local ZZ_mrt_200m = 0;
 	local ZZ_mrt_400m = 0;
-	local ZZ_express_200m = 0;
 	local ZZ_bus_200m = 0;
+	local ZZ_bus_400m = 0;
+	local ZZ_express_200m = 0;
 
 	local ZZ_logsum = logsum;
-	local ZZ_bus_400m = 0;
 
 	local ZZ_hdb12 = 0;
 	local ZZ_hdb3  = 0;
@@ -142,10 +139,11 @@ function calculateHDB_HedonicPrice(unit, building, postcode, amenities, logsum, 
 	local ZZ_hdb5m = 0;
 
 	local age = 112 - unit.physicalFromYear;
-
+	local age30m = 0;
 
 	if( age > 30 ) then
 		age = 30;
+		age30m = 1;
 	end
 
 	if( age < 0 ) then
@@ -154,15 +152,9 @@ function calculateHDB_HedonicPrice(unit, building, postcode, amenities, logsum, 
 
 	local ageSquared = age * age;
 
-	local age30m = 0;
-
-	if( age > 30 ) then
-		age30m = 1;
-	end
-
-	DD_logarea  = math.log(unit.floorArea);
-	ZZ_dis_cbd  = amenities.distanceToCBD;
-	ZZ_dis_mall = amenities.distanceToMall;	
+	local DD_logarea  = math.log(unit.floorArea);
+	local ZZ_dis_cbd  = amenities.distanceToCBD;
+	local ZZ_dis_mall = amenities.distanceToMall;	
 
 	if( amenities.pms_1km == true ) then
 		ZZ_pms1km = 1;
@@ -188,7 +180,7 @@ function calculateHDB_HedonicPrice(unit, building, postcode, amenities, logsum, 
 		ZZ_bus_400m = 1;
 	end
 
-	if( unit.unitType <= 2 ) then
+	if( unit.unitType <= 2 or unit.unitType == 65 ) then
 		ZZ_hdb12 = 1;
 	end
 
@@ -363,7 +355,7 @@ function calculatePrivate_HedonicPrice(unit, building, postcode, amenities, logs
 
 	-----------------------------
 	-----------------------------
-	if( (unit.unitType >= 12 and unit.unitType  <= 16 ) or ( unit.unitType >= 32 and unit.unitType  < 36 ) ) then -- Executive Condominium and Condominium
+	if( (unit.unitType >= 12 and unit.unitType  <= 16 ) or ( unit.unitType >= 32 and unit.unitType  <= 36 ) or ( unit.unitType >= 37 and unit.unitType  <= 51 )) then -- Executive Condominium and Condominium
 		hedonicPrice = -25.54928193 	+ 
 				0.969230027	*	DD_logarea 	+ 
 				0.178603032	*	ZZ_freehold 	+ 
@@ -380,7 +372,7 @@ function calculatePrivate_HedonicPrice(unit, building, postcode, amenities, logs
 				0.134831364	*	agem25_50 	+ 
 				0.474173547	*	agem50 		+ 
 				-0.105709958	*	misage;
-	elseif (unit.unitType >= 7 and unit.unitType  <= 11 ) then --"Apartment"
+	elseif (unit.unitType >= 7 and unit.unitType  <= 11 or unit.unitType == 64) then --"Apartment"
 		hedonicPrice = -23.08166378 	+ 
 				0.838905717	*	DD_logarea 	+ 
 				0.036665412	*	ZZ_freehold 	+ 
@@ -486,7 +478,7 @@ end
 function calculateHedonicPrice(unit, building, postcode, amenities, logsum, lagCoefficient )
   
     if unit ~= nil and building ~= nil and postcode ~= nil and amenities ~= nil then
- 	if(unit.unitType <= 6) then
+ 	if(unit.unitType <= 6 or unit.unitType == 65 ) then
 		return calculateHDB_HedonicPrice(unit, building, postcode, amenities, logsum, lagCoefficient) 
 	 else 
 		return calculatePrivate_HedonicPrice(unit, building, postcode, amenities, logsum, lagCoefficient);

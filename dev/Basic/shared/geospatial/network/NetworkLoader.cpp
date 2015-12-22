@@ -213,6 +213,11 @@ void NetworkLoader::loadBusStops(const std::string& storedProc)
 			continue;
 		}
 		
+		if (!itStop->getStopStatus().compare("NOP"))
+		{
+			continue;
+		}
+
 		//Create new bus stop and add it to road network
 		BusStop* stop = new BusStop(*itStop);
 		RoadSegment* parentSegment = const_cast<RoadSegment*>(roadNetwork->getById(roadNetwork->getMapOfIdVsRoadSegments(), stop->getRoadSegmentId()));

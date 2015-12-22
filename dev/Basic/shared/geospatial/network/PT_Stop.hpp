@@ -53,6 +53,9 @@ private:
 	/**bus stop code*/
 	std::string stopCode;
 
+	/**bus stop status*/
+	std::string stopStatus;
+
 	/**bus stop name*/
 	std::string stopName;
 
@@ -101,6 +104,9 @@ public:
 
 	const std::string& getStopCode() const;
 	void setStopCode(const std::string& code);
+
+	const std::string& getStopStatus() const;
+	void setStopStatus(const std::string& status);
 
 	static void registerBusStop(BusStop* stop);
 	static BusStop* findBusStop(const std::string& code);

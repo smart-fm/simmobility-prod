@@ -782,11 +782,11 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 			PredayPersonParams personParam = PredayLT_LogsumManager::getInstance().computeLogsum( headOfHousehold->getId(), homeTaz, workTaz );
 			ZZ_logsumhh = personParam.getDpbLogsum();
 
-			//BigSerial groupId = hitssample->getGroupId();
-			//const HM_Model::HouseholdGroup thisHHGroup =  HM_Model::HouseholdGroup(groupId, homeTaz, ZZ_logsumhh );
-			//model->householdGroupVec.push_back( thisHHGroup );
+			BigSerial groupId = hitssample->getGroupId();
+			const HM_Model::HouseholdGroup thisHHGroup =  HM_Model::HouseholdGroup(groupId, homeTaz, ZZ_logsumhh );
+			model->householdGroupVec.push_back( thisHHGroup );
 
-			//printHouseholdGroupLogsum( homeTaz, hitssample->getGroupId(), headOfHousehold->getId(), ZZ_logsumhh );
+			printHouseholdGroupLogsum( homeTaz, hitssample->getGroupId(), headOfHousehold->getId(), ZZ_logsumhh );
 		}
 
 		Household* householdT = const_cast<Household*>(household);

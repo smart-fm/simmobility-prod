@@ -212,7 +212,7 @@ inline BigSerial getBuildingTypeFromUnitType(BigSerial unitTypeId)
 	else return 0;
 }
 
-inline void calculateProjectProfit(PotentialProject& project,const DeveloperModel* model,int quarter, const TAO *tao)
+inline void calculateProjectProfit(PotentialProject& project,DeveloperModel* model,int quarter, const TAO *tao, int currTick)
 {
 	std::vector<PotentialUnit>& units = project.getUnits();
 
@@ -307,6 +307,12 @@ inline void calculateProjectProfit(PotentialProject& project,const DeveloperMode
 
 			double constructionCostPerUnitType = constructionCostPerUnit * (*unitsItr).getNumUnits();
 			totalConstructionCost = totalConstructionCost + constructionCostPerUnitType;
+
+			if((currTick+1)%model->getOpSchemaloadingInterval() == 0)
+			{
+				boost::shared_ptr<PotentialProject> potentialPr = boost::make_shared<PotentialProject>(project);
+				model->addPotentialProjects(potentialPr);
+			}
 		}
 
 	}
@@ -410,7 +416,7 @@ inline void createPotentialUnits(PotentialProject& project,const DeveloperModel*
      * @param model Developer model.
      * @param outProjects (out parameter) list to receive all projects;
      */
-inline void createPotentialProjects(BigSerial parcelId, const DeveloperModel* model, PotentialProject& outProject,int quarter, const TAO *tao)
+inline void createPotentialProjects(BigSerial parcelId, DeveloperModel* model, PotentialProject& outProject,int quarter, const TAO *tao, std::tm &currentDate, int currTick)
     {
         const DeveloperModel::DevelopmentTypeTemplateList& devTemplates = model->getDevelopmentTypeTemplates();
         const DeveloperModel::TemplateUnitTypeList& unitTemplates = model->getTemplateUnitType();
@@ -429,10 +435,10 @@ inline void createPotentialProjects(BigSerial parcelId, const DeveloperModel* mo
                 	if ((*it)->getLandUseTypeId() == parcel->getLandUseTypeId())
 
                     {
-                		PotentialProject project((*it), parcel);
+                		PotentialProject project((*it), parcel,parcel->getId(),currentDate);
                 		addUnitTemplates(project, unitTemplates);
                 		createPotentialUnits(project,model);
-                        calculateProjectProfit(project,model,quarter,tao);
+                        calculateProjectProfit(project,model,quarter,tao,currTick);
 
                         int newDevelopment = 0;
                         if(model->isEmptyParcel(parcel->getId()))
@@ -533,9 +539,21 @@ Entity::UpdateStatus DeveloperAgent::onFrameTick(timeslice now) {
     		std::string quarterStr = "Y"+boost::lexical_cast<std::string>(simYear)+"Q"+boost::lexical_cast<std::string>(quarter);
     		const TAO *tao = devModel->getTaoByQuarter(getQuarterIdByQuarterStr(quarterStr));
     		PotentialProject project;
-    		createPotentialProjects(this->parcel->getId(),devModel,project,quarter,tao);
+    		createPotentialProjects(this->parcel->getId(),devModel,project,quarter,tao,currentDate,currentTick);
     		if(project.getUnits().size()>0)
     		{
+    			boost::shared_ptr<Parcel> profitableParcel = boost::make_shared<Parcel>(*parcel);
+    			devModel->addProfitableParcels(profitableParcel);
+    			std::vector<PotentialUnit>::iterator unitsItr;
+    			std::vector<PotentialUnit>& potentialUnits = project.getUnits();
+    			for (unitsItr = potentialUnits.begin(); unitsItr != potentialUnits.end(); ++unitsItr)
+    			{
+    				boost::shared_ptr <DevelopmentPlan> devPlan(new DevelopmentPlan(this->parcel->getId(),(*unitsItr).getUnitTypeId(),
+    						(*unitsItr).getNumUnits(),currentDate));
+    				devModel->addDevelopmentPlans(devPlan);
+    			}
+
+
     			BigSerial projectId = devModel->getProjectIdForDeveloperAgent();
     			createUnitsAndBuildings(project,projectId);
     			createProject(project,projectId);
@@ -583,8 +601,7 @@ void DeveloperAgent::createUnitsAndBuildings(PotentialProject &project,BigSerial
 	}
 	//writeParcelDataToFile(parcel,newDevelopment,project.getProfit());
 	//Parcel *parcel1 = new Parcel(*this->parcel);
-	boost::shared_ptr<Parcel> profitableParcel = boost::make_shared<Parcel>(*parcel);
-	devModel->addProfitableParcels(profitableParcel);
+
 	//check whether the parcel is empty; if not send a message to HM model with building id and future demolition date about the units that are going to be demolished.
 	if (!(devModel->isEmptyParcel(parcel->getId()))) {
 		DeveloperModel::BuildingList buildings = devModel->getBuildings();

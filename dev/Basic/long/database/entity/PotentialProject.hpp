@@ -60,7 +60,7 @@ namespace sim_mob {
          */
         class PotentialProject {
         public:
-            PotentialProject(const DevelopmentTypeTemplate* devTemplate = nullptr,const Parcel* parcel = nullptr,double constructionCost = 0,double grossArea = 0,double tempSelectProbability = 0,double investmentReturnRatio=0,double demolitionCost = 0, double expRatio=0,int totalUnits = 0,double acquisitionCost = 0, double landValue = 0);
+            PotentialProject(const DevelopmentTypeTemplate* devTemplate = nullptr,const Parcel* parcel = nullptr, BigSerial fmParcelId = INVALID_ID, std::tm simulationDate = std::tm(), double constructionCost = 0,double grossArea = 0,double tempSelectProbability = 0,double investmentReturnRatio=0,double demolitionCost = 0, double expRatio=0,int totalUnits = 0,double acquisitionCost = 0, double landValue = 0);
             virtual ~PotentialProject();
             
             PotentialProject( const PotentialProject &source);
@@ -101,6 +101,8 @@ namespace sim_mob {
             int getTotalUnits();
             double getAcquisitionCost() const;
             double getLandValue() const;
+            BigSerial getFmParcelId() const;
+            std::tm getSimulationDate() const;
 
             //Setters
             void setProfit(const double profit);
@@ -114,18 +116,20 @@ namespace sim_mob {
             void setTotalUnits (int totUnits);
             void setAcquisitionCost(double acqCost);
             void setLandValue(double landVal);
+            void setSimulationDate(std::tm simDate);
 
             std::vector<TemplateUnitType> templateUnitTypes;
 
         private:
-            std::vector<PotentialUnit> units;
+            friend class PotentialProjectDao;
 
+            std::vector<PotentialUnit> units;
             const DevelopmentTypeTemplate* devTemplate;
             const Parcel* parcel;
-
             std::vector<int> unitTypes;
             typedef boost::unordered_map<int,int> UnitMap;
             UnitMap unitMap;
+            BigSerial fmParcelId;
             double profit;
             double constructionCost;
             double demolitionCost;
@@ -136,6 +140,7 @@ namespace sim_mob {
             int totalUnits;
             double acquisitionCost;
             double landValue;
+            std::tm simulationDate;
 
         };
     }

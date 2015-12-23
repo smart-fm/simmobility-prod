@@ -129,12 +129,18 @@ void HouseholdAgent::awakenHousehold()
 		return;
 
 	if(household == nullptr)
+	{
+		AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, (boost::format( "household  of agent %1% is null.") %  this->getId()).str());
 		return;
+	}
 
 	Awakening *awakening = model->getAwakeningById( household->getId() );
 
 	if( awakening == nullptr || bidder == nullptr || seller == nullptr )
+	{
+		AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, (boost::format( "The awakening, bidder or seller classes is null.")).str());
 		return;
+	}
 
 	//These 6 variables are the 3 classes that we believe households fall into.
 	//And the 3 probabilities that we believe these 3 classes will have of awakening.
@@ -166,7 +172,7 @@ void HouseholdAgent::awakenHousehold()
 		model->incrementBidders();
 
 		#ifdef VERBOSE
-		PrintOutV("Household " << getId() << " has been awakened."<< std::endl);
+		PrintOutV("[day " << day << "] Lifestyle 1. Household " << getId() << " has been awakened." << model->getNumberOfBidders()  << std::endl);
 		#endif
 
 		for (vector<BigSerial>::const_iterator itr = unitIds.begin(); itr != unitIds.end(); itr++)
@@ -191,7 +197,7 @@ void HouseholdAgent::awakenHousehold()
 		model->incrementBidders();
 
 		#ifdef VERBOSE
-		PrintOutV("[day " << day << "] Household " << getId() << " has been awakened."<< std::endl);
+		PrintOutV("[day " << day << "] Lifestyle 2. Household " << getId() << " has been awakened. "  << model->getNumberOfBidders() << std::endl);
 		#endif
 
 
@@ -217,7 +223,7 @@ void HouseholdAgent::awakenHousehold()
 		model->incrementBidders();
 
 		#ifdef VERBOSE
-		PrintOutV("[day " << day << "] Household " << getId() << " has been awakened."<< std::endl);
+		PrintOutV("[day " << day << "] Lifestyle 3. Household " << getId() << " has been awakened. " << model->getNumberOfBidders() << std::endl);
 		#endif
 
 		for (vector<BigSerial>::const_iterator itr = unitIds.begin(); itr != unitIds.end(); itr++)

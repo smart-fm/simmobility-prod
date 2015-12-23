@@ -40,6 +40,8 @@
 #include "database/dao/ProjectDao.hpp"
 #include "database/dao/BidDao.hpp"
 #include "database/dao/UnitSaleDao.hpp"
+#include "database/dao/DevelopmentPlanDao.hpp"
+#include "database/dao/VehicleOwnershipChangesDao.hpp"
 #include "util/HelperFunctions.hpp"
 
 using std::cout;
@@ -130,7 +132,13 @@ void loadDataToOutputSchema(db::DB_Connection& conn,std::string &currentOutputSc
 	if(conn.isConnected())
 	{
 		SimulationVersionDao simVersionDao(conn);
-		simVersionDao.insertSimulationVersion(*simVersionObj.get(),currentOutputSchema);
+		std::vector<SimulationVersion> simVersionList;
+		loadData<SimulationVersionDao>(conn, simVersionList);
+		if(simVersionList.empty())
+		{
+			simVersionDao.insertSimulationVersion(*simVersionObj.get(),currentOutputSchema);
+		}
+
 		EncodedParamsBySimulationDao encodedParamsDao(conn);
 		encodedParamsDao.insertEncodedParams(*(developerModel.getEncodedParamsObj(simVersionId)).get(),currentOutputSchema);
 
@@ -182,6 +190,21 @@ void loadDataToOutputSchema(db::DB_Connection& conn,std::string &currentOutputSc
 			unitSaleDao.insertUnitSale(*(*unitSalesItr),currentOutputSchema);
 		}
 
+		std::vector<boost::shared_ptr<DevelopmentPlan> > devPlans = developerModel.getDevelopmentPlansVec();
+		std::vector<boost::shared_ptr<DevelopmentPlan> >::iterator devPlansItr;
+		DevelopmentPlanDao devPlanDao(conn);
+		for(devPlansItr = devPlans.begin(); devPlansItr != devPlans.end(); ++devPlansItr)
+		{
+			devPlanDao.insertDevelopmentPlan(*(*devPlansItr),currentOutputSchema);
+		}
+
+		std::vector<boost::shared_ptr<VehicleOwnershipChanges> > vehicleOwnershipChanges = housingMarketModel.getVehicleOwnershipChanges();
+		std::vector<boost::shared_ptr<VehicleOwnershipChanges> >::iterator vehOwnChangeItr;
+		VehicleOwnershipChangesDao vehOwnChangeDao(conn);
+		for(vehOwnChangeItr = vehicleOwnershipChanges.begin(); vehOwnChangeItr != vehicleOwnershipChanges.end(); ++vehOwnChangeItr)
+		{
+			vehOwnChangeDao.insertVehicleOwnershipChanges(*(*vehOwnChangeItr),currentOutputSchema);
+		}
 //		developerModel.getBuildingsVec().clear();
 	}
 }
@@ -324,7 +347,7 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
         	 //initiate developer model; to be referred later at each time tick (day)
         	 developerModel = new DeveloperModel(*devWorkers, timeIntervalDevModel);
         	 developerModel->setHousingMarketModel(housingMarketModel);
-        	// developerModel->setConfigParams(config);
+        	 developerModel->setOpSchemaloadingInterval(opSchemaloadingInterval);
         	 models.push_back(developerModel);
         }
 
@@ -406,23 +429,6 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
         {
             resLogFiles = wgMgr.retrieveOutFileNames();
         }
-        
-//        unsigned int year = config.ltParams.year;
-//        std::string scenario = config.ltParams.simulationScenario;
-//        std::string simScenario = boost::lexical_cast<std::string>(scenario)+"_"+boost::lexical_cast<std::string>(year);
-//        time_t rawtime;
-//        struct tm * timeinfo;
-//        time (&rawtime);
-//        timeinfo = localtime (&rawtime);
-//        boost::shared_ptr<SimulationVersion>simVersionObj(new SimulationVersion(simVersionId,simScenario,*timeinfo,simStoppedTick));
-//        if(conn.isConnected())
-//        {
-//        	SimulationVersionDao simVersionDao(conn);
-//        	//simVersionDao.insert(*simVersionObj.get());
-//
-//        	StatusOfWorldDao statusOfWorldDao(conn);
-//        	//statusOfWorldDao.insert(*(developerModel->getStatusOfWorldObj(simVersionId)).get());
-//        }
 
         //stop all models.
         for (vector<Model*>::iterator it = models.begin(); it != models.end(); it++)

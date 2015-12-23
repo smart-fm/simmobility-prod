@@ -299,9 +299,9 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 		intMgrWorkers->assignAWorker(it->second);
 	}
 
-	if (AMOD::AMODController::instanceExists())
+	if (stCfg.amod.enabled && amod::AMODController::instanceExists())
 	{
-		personWorkers->assignAWorker(AMOD::AMODController::instance());
+		personWorkers->assignAWorker(amod::AMODController::getInstance());
 	}
 
 	if (FMOD::FMOD_Controller::instanceExists())
@@ -545,7 +545,7 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 	NetworkLoader::deleteInstance();
 
 	//Delete the AMOD controller instance
-	AMOD::AMODController::deleteInstance();
+	amod::AMODController::deleteInstance();
 
 	if(FMOD::FMOD_Controller::instanceExists())
 	{

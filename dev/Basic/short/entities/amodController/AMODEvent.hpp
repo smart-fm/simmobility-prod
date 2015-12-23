@@ -5,8 +5,8 @@
  *      Author: Max
  */
 
-#ifndef AMODEVENT_HPP_
-#define AMODEVENT_HPP_
+#pragma once
+
 #include "event/args/EventArgs.hpp"
 #include "event/EventPublisher.hpp"
 #include "geospatial/network/Node.hpp"
@@ -14,7 +14,7 @@
 #include <vector>
 namespace sim_mob {
 
-namespace AMOD {
+namespace amod {
 
 class AMODEventPublisher: public sim_mob::event::EventPublisher
 {
@@ -60,5 +60,4 @@ public:
 
 
 }
-} /* namespace sim_mob */
-#endif /* AMODEVENT_HPP_ */
+}

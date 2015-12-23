@@ -9,7 +9,7 @@
 
 namespace sim_mob {
 
-namespace AMOD {
+namespace amod {
 
 AMODObj::AMODObj() : value(10), data("Obj")
 {

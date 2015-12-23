@@ -266,7 +266,7 @@ void ExpandShortTermConfigFile::loadAMOD_Controller()
 {
 	if (stConfig.amod.enabled)
 	{
-		AMOD::AMODController::registerController(-1, cfg.mutexStategy());
+		amod::AMODController::registerController(-1, cfg.mutexStategy());
 	}
 }
 
@@ -505,7 +505,7 @@ void ExpandShortTermConfigFile::printSettings()
 	//Print the network (this will go to a different output file...)
 	std::cout << "------------------\n";
 	NetworkPrinter nwPrinter(cfg, cfg.outNetworkFileName);
-	nwPrinter.printSignals(getSignalsInfo(Signal::getMapOfIdVsSignals()));
+	//nwPrinter.printSignals(getSignalsInfo(Signal::getMapOfIdVsSignals()));
 	nwPrinter.printNetwork(RoadNetwork::getInstance());
 	std::cout << "------------------\n";
 }

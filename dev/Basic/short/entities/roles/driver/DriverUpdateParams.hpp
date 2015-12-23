@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <cfloat>
 #include <boost/random.hpp>
 
 #include "conf/settings/DisableMPI.h"

@@ -8,13 +8,15 @@
 #include <vector>
 #include "entities/Person.hpp"
 #include "entities/roles/Role.hpp"
-#include "entities/amodController/AMODController.hpp"
+#include "entities/amodController/AMODEvent.hpp"
 #include "event/args/EventArgs.hpp"
 #include "event/EventListener.hpp"
 #include "event/EventPublisher.hpp"
 
 namespace sim_mob
 {
+
+class AMODController;
 
 class Person_ST : public Person
 {
@@ -120,14 +122,20 @@ public:
 	/**The segment at which an autonomous vehicle is to drop-off the passenger*/
 	std::string amodDropOffSegmentStr;
 
-	/**The offset distance from the start of a segment where an autonomous vehicle has been requested for a pick-up*/
-	double amodPickUpOffset;
-
-	/**The offset distance from the start of a segment where an autonomous vehicle is to drop off the person*/
-	double amodDropOffset;
+	std::string parkingNode;
 
 	/**The trip id of the AMOD system*/
 	std::string amodTripId;
+
+	double amodSegmLength;
+
+	double amodSegmLength2;
+
+	amod::AMODEventPublisher eventPub;
+
+	bool isPositionValid;
+
+    bool isVehicleInLoadingQueue; // to test stuck vehicles
 
 	Person_ST(const std::string &src, const MutexStrategy &mtxStrat, int id = -1, std::string databaseID = "");
 	Person_ST(const std::string &src, const MutexStrategy &mtxStrat, const std::vector<sim_mob::TripChainItem *> &tc);
@@ -208,7 +216,7 @@ public:
 
 	void setPath(std::vector<WayPoint> &path);
 	
-	void handleAMODEvent(event::EventId id, event::Context ctxId, event::EventPublisher *sender, const AMOD::AMODEventArgs &args);
+	void handleAMODEvent(event::EventId id, event::Context ctxId, event::EventPublisher *sender, const amod::AMODEventArgs& args);
 
 	double getBoardingCharacteristics() const
 	{

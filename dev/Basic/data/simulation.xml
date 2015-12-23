@@ -67,13 +67,18 @@
                     <username value="postgres"/>
                     <password value="secret"/>
                 </plaintext-credential>
+		
+		<plaintext-credential id="fm_remote_plain">
+                    <username value="postgres"/>
+                    <password value="5M_S1mM0bility"/>
+                </plaintext-credential>
 
     	</credentials>
     </constructs>
 
     <simulation>
-	<base_granularity   value="5"   units="seconds" />
-	<total_runtime      value="1080"      units="minutes" />
+	<base_granularity   value="100"   units="ms" />
+	<total_runtime      value="180"      units="minutes" />
 	<total_warmup       value="10"     units="seconds" />
        
 	<start_time         value="06:00:00"/>

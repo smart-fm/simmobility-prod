@@ -23,7 +23,12 @@ namespace sim_mob
 	{
 		int year = simYear-1900;
 		int month = day/30; //divide by 30 to get the month
-		int dayMonth = (day%30)+1; // get the remainder of divide by 30 to roughly calculate the day of the month
+		if(month > 11)
+		{
+			month = month - 12;
+			year = year + 1;
+		}
+		int dayMonth = ((day+1)%30); // get the remainder of divide by 30 to roughly calculate the day of the month
 		if((month == 1) && (dayMonth >= 29)) //reset the date for month of February
 		{
 			dayMonth = 28;

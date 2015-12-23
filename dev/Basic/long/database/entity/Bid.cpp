@@ -20,8 +20,8 @@ Bid::Bid(BigSerial bidId,int simulationDay, BigSerial bidderId, BigSerial curren
 
 Bid::Bid(BigSerial bidId,BigSerial currentUnitId,BigSerial newUnitId, BigSerial bidderId,LT_Agent* bidder,double bidValue, int simulationDay, double willingnessToPay)
 		:bidId(bidId),currentUnitId(currentUnitId), newUnitId(newUnitId),bidderId(bidderId),bidder(bidder),bidValue(bidValue), simulationDay(simulationDay) , willingnessToPay(willingnessToPay)
-        , affordabilityAmount(affordabilityAmount), hedonicPrice(hedonicPrice), askingPrice(askingPrice),targetPrice(targetPrice),
-		 isAccepted(isAccepted),currentPostcode(currentPostcode),newPostcode(newPostcode),moveInDate(moveInDate){}
+        , affordabilityAmount(0), hedonicPrice(0), askingPrice(0),targetPrice(0),
+		 isAccepted(0),currentPostcode(INVALID_ID),newPostcode(INVALID_ID),moveInDate(std::tm()){}
 
 Bid::Bid(const Bid& source)
 {

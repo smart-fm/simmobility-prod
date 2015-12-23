@@ -148,13 +148,16 @@ namespace
         	int UnitslaId = unit->getSlaAddressId();
         	Household *thisBidder = model->getHouseholdById(bid.getBidderId());
         	const Unit* thisUnit = model->getUnitById(thisBidder->getUnitId());
-        	(*newBid).setAffordabilityAmount(agent.getHousehold()->getAffordabilityAmount());
-        	(*newBid).setHedonicPrice(entry.hedonicPrice);
-        	(*newBid).setAskingPrice(entry.askingPrice);
-        	(*newBid).setTargetPrice(entry.targetPrice);
-        	(*newBid).setCurrentPostcode(thisUnit->getSlaAddressId());
-        	(*newBid).setNewPostcode(UnitslaId);
-        	(*newBid).setMoveInDate(getDateBySimDay(config.ltParams.year,(bid.getSimulationDay()+moveInWaitingTimeInDays)));
+        	if( agent.getHousehold() )
+        	{
+        		newBid->setAffordabilityAmount(agent.getHousehold()->getAffordabilityAmount());
+        	}
+        	newBid->setHedonicPrice(entry.hedonicPrice);
+        	newBid->setAskingPrice(entry.askingPrice);
+        	newBid->setTargetPrice(entry.targetPrice);
+        	newBid->setCurrentPostcode(thisUnit->getSlaAddressId());
+        	newBid->setNewPostcode(UnitslaId);
+        	newBid->setMoveInDate(getDateBySimDay(config.ltParams.year,(bid.getSimulationDay()+moveInWaitingTimeInDays)));
         	model->addNewBids(newBid);
 
         	boost::shared_ptr<UnitSale> unitSale(new UnitSale(bid.getNewUnitId(),bid.getBidderId(),agent.getId(),bid.getBidValue(),getDateBySimDay(config.ltParams.year,bid.getSimulationDay())));

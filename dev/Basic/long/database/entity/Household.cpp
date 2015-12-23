@@ -16,15 +16,17 @@
 
 using namespace sim_mob::long_term;
 
-Household::Household( BigSerial id, BigSerial lifestyleId, BigSerial unitId, BigSerial ethnicityId, BigSerial vehicleCategoryId,  int size, int childUnder4, int childUnder15, double income,
-					  int housingDuration,int workers, int ageOfHead, bool twoRoomHdbEligibility, bool threeRoomHdbEligibility, bool fourRoomHdbEligibility, int familyType, bool taxiAvailability,
-					  int vehicleOwnershipOptionId, double logusum): id(id),
-					  lifestyleId(lifestyleId), unitId(unitId), ethnicityId(ethnicityId), vehicleCategoryId(vehicleCategoryId),size(size), childUnder4(childUnder4), childUnder15(childUnder15), income(income),
-					  housingDuration(housingDuration), workers(workers), ageOfHead(ageOfHead), twoRoomHdbEligibility(twoRoomHdbEligibility),threeRoomHdbEligibility(threeRoomHdbEligibility),
-					  fourRoomHdbEligibility(fourRoomHdbEligibility),familyType(familyType), taxiAvailability(taxiAvailability), vehicleOwnershipOptionId(vehicleOwnershipOptionId), logsum(logsum){}
+Household::Household( BigSerial id, BigSerial lifestyleId, BigSerial unitId, BigSerial ethnicityId, BigSerial vehicleCategoryId,  int size, int childUnder4, int childUnder15, int adult, double income,
+					  int housingDuration,int workers, int ageOfHead, int pendingStatusId,std::tm pendingFromDate,int unitPending,bool twoRoomHdbEligibility, bool threeRoomHdbEligibility, bool fourRoomHdbEligibility, int familyType, bool taxiAvailability,
+					  int vehicleOwnershipOptionId, double logsum, double householdAffordabilityAmount, int buySellInterval, std::tm moveInDate,int timeOnMarket,int timeOffMarket,int isBidder,int isSeller,int hasMoved): id(id),
+					  lifestyleId(lifestyleId), unitId(unitId), ethnicityId(ethnicityId), vehicleCategoryId(vehicleCategoryId),size(size), childUnder4(childUnder4), childUnder15(childUnder15), adult(adult),income(income),
+					  housingDuration(housingDuration), workers(workers), ageOfHead(ageOfHead), pendingStatusId(pendingStatusId),pendingFromDate(pendingFromDate),unitPending(unitPending),twoRoomHdbEligibility(twoRoomHdbEligibility),threeRoomHdbEligibility(threeRoomHdbEligibility),
+					  fourRoomHdbEligibility(fourRoomHdbEligibility),familyType(familyType), taxiAvailability(taxiAvailability), vehicleOwnershipOptionId(vehicleOwnershipOptionId), logsum(logsum),householdAffordabilityAmount(householdAffordabilityAmount),buySellInterval(buySellInterval), moveInDate(moveInDate),
+					  timeOnMarket(timeOnMarket),timeOffMarket(timeOffMarket),isBidder(isBidder),isSeller(isSeller),hasMoved(hasMoved){}
 
-Household::Household(): id(0), lifestyleId(0), unitId(0), ethnicityId(0), vehicleCategoryId(0),size(0), childUnder4(0), childUnder15(0), income(0), housingDuration(0), workers(0), ageOfHead(0),
-						twoRoomHdbEligibility(0), threeRoomHdbEligibility(0), fourRoomHdbEligibility(0), familyType(0),taxiAvailability(false), vehicleOwnershipOptionId(0), logsum(0){}
+Household::Household(): id(0), lifestyleId(0), unitId(0), ethnicityId(0), vehicleCategoryId(0),size(0), childUnder4(0), childUnder15(0), adult(0),income(0), housingDuration(0), workers(0), ageOfHead(0),pendingStatusId(0),pendingFromDate(std::tm()),unitPending(0),
+						twoRoomHdbEligibility(0), threeRoomHdbEligibility(0), fourRoomHdbEligibility(0), familyType(0),taxiAvailability(false), vehicleOwnershipOptionId(0), logsum(0),householdAffordabilityAmount(0),buySellInterval(0),
+						moveInDate(std::tm()),timeOnMarket(0),timeOffMarket(0),isBidder(0),isSeller(0),hasMoved(0){}
 
 Household::~Household() {}
 
@@ -39,12 +41,23 @@ Household& Household::operator=(const Household& source)
     this->size = source.size;
     this->childUnder4 = source.childUnder15;
     this->childUnder15 = source.childUnder15;
+    this->adult = source.adult;
     this->housingDuration = source.housingDuration;
     this->workers = source.workers;
     this->ageOfHead = source.ageOfHead;
+    this->pendingStatusId = source.pendingStatusId;
+    this->pendingFromDate = source.pendingFromDate;
+    this->unitPending = source.unitPending;
     this->taxiAvailability = source.taxiAvailability;
     this->vehicleOwnershipOptionId = source.vehicleOwnershipOptionId;
     this->logsum = source.logsum;
+    this->householdAffordabilityAmount = source.householdAffordabilityAmount;
+    this->timeOnMarket = source.timeOnMarket;
+    this->timeOffMarket = source.timeOffMarket;
+    this->isBidder = source.isBidder;
+    this->isSeller = source.isSeller;
+    this->buySellInterval = source.buySellInterval;
+    this->moveInDate = source.moveInDate;
     return *this;
 }
 
@@ -66,6 +79,36 @@ void Household::setWorkers(int workers)
 int Household::getWorkers() const
 {
     return workers;
+}
+
+const std::tm& Household::getPendingFromDate() const
+{
+	return pendingFromDate;
+}
+
+void Household::setPendingFromDate(const std::tm& pendingFromDate)
+{
+	this->pendingFromDate = pendingFromDate;
+}
+
+int Household::getPendingStatusId() const
+{
+	return pendingStatusId;
+}
+
+void Household::setPendingStatusId(int pendingStatusId)
+{
+	this->pendingStatusId = pendingStatusId;
+}
+
+int Household::getUnitPending() const
+{
+	return unitPending;
+}
+
+void Household::setUnitPending(int unitPending)
+{
+	this->unitPending = unitPending;
 }
 
 void Household::setHousingDuration(int housingDuration)
@@ -106,6 +149,16 @@ int Household::getChildUnder4() const
 int Household::getChildUnder15() const
 {
     return childUnder15;
+}
+
+int Household::getAdult() const
+{
+	return adult;
+}
+
+void Household::setAdult(int adult)
+{
+	this->adult = adult;
 }
 
 void Household::setSize(int size)
@@ -257,6 +310,86 @@ void Household::setLogsum(double value)
 double Household::getLogsum() const
 {
 	return logsum;
+}
+
+int Household::getBuySellInterval() const
+{
+	return buySellInterval;
+}
+
+void Household::setBuySellInterval(int buyerSellerInterval)
+{
+	this->buySellInterval = buyerSellerInterval;
+}
+
+int Household::getIsBidder() const
+{
+	return isBidder;
+}
+
+void Household::setIsBidder(int isBidder)
+{
+	this->isBidder = isBidder;
+}
+
+int Household::getIsSeller() const
+{
+	return isSeller;
+}
+
+void Household::setIsSeller(int isSeller)
+{
+	this->isSeller = isSeller;
+}
+
+int Household::getTimeOffMarket() const
+{
+	return timeOffMarket;
+}
+
+void Household::setTimeOffMarket(int timeOffMarket)
+{
+	this->timeOffMarket = timeOffMarket;
+}
+
+int Household::getTimeOnMarket() const
+{
+	return timeOnMarket;
+}
+
+void Household::setTimeOnMarket(int timeOnMarket)
+{
+		this->timeOnMarket = timeOnMarket;
+}
+
+double Household::getHouseholdAffordabilityAmount() const
+{
+	return householdAffordabilityAmount;
+}
+
+void Household::setHouseholdAffordabilityAmount(double householdAffordabilityAmount)
+{
+	this->householdAffordabilityAmount = householdAffordabilityAmount;
+}
+
+const std::tm& Household::getMoveInDate() const
+{
+	return moveInDate;
+}
+
+void Household::setMoveInDate(const std::tm& moveInDate)
+{
+	this->moveInDate = moveInDate;
+}
+
+int Household::getHasMoved() const
+{
+	return this->hasMoved;
+}
+
+void Household::setHasMoved(int hasMove)
+{
+	this->hasMoved = hasMove;
 }
 
 namespace sim_mob

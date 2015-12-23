@@ -1196,7 +1196,6 @@ void HM_Model::startImpl()
 	{
 		//Load households
 		loadData<HouseholdDao>(conn, households, householdsById, &Household::getId);
-		households.resize(50000);
 		PrintOutV("Number of households: " << households.size() << ". Households used: " << households.size()  << std::endl);
 
 		//Load units
@@ -2029,6 +2028,30 @@ BigSerial HM_Model::getBidId()
 		boost::mutex::scoped_lock lock(bidIdLock);
 		return ++bidId;
 	}
+}
+
+void HM_Model::addHouseholdsTo_OPSchema(boost::shared_ptr<Household> &houseHold)
+{
+	addHHLock.lock();
+	hhVector.push_back(houseHold);
+	addHHLock.unlock();
+}
+
+std::vector<boost::shared_ptr<Household> > HM_Model::getHouseholds()
+{
+	return this->hhVector;
+}
+
+void HM_Model::addVehicleOwnershipChanges(boost::shared_ptr<VehicleOwnershipChanges> &vehicleOwnershipChange)
+{
+	addVehicleOwnershipChangesLock.lock();
+	vehicleOwnershipChangesVector.push_back(vehicleOwnershipChange);
+	addVehicleOwnershipChangesLock.unlock();
+}
+
+std::vector<boost::shared_ptr<VehicleOwnershipChanges> > HM_Model::getVehicleOwnershipChanges()
+{
+	return vehicleOwnershipChangesVector;
 }
 
 void HM_Model::stopImpl()

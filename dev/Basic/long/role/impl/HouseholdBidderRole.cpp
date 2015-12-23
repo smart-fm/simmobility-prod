@@ -1799,12 +1799,12 @@ void HouseholdBidderRole::reconsiderVehicleOwnershipOption()
 		const double randomNum = generateRandomNumbers( );
 		double pTemp = 0;
 		boost::shared_ptr <VehicleOwnershipChanges> vehcileOwnershipOptChange(new VehicleOwnershipChanges());
-		(*vehcileOwnershipOptChange).setHouseholdId(getParent()->getHousehold()->getId());
-		(*vehcileOwnershipOptChange).setStartDate(getDateBySimDay(year,day));
+		vehcileOwnershipOptChange->setHouseholdId(getParent()->getHousehold()->getId());
+		vehcileOwnershipOptChange->setStartDate(getDateBySimDay(year,day));
 		if((pTemp < randomNum ) && (randomNum < (probabilityNoCar + pTemp)))
 		{
 			MessageBus::PostMessage(getParent(), LTMID_HH_NO_CAR, MessageBus::MessagePtr(new Message()));
-			(*vehcileOwnershipOptChange).setVehicleOwnershipOptionId(0);
+			vehcileOwnershipOptChange->setVehicleOwnershipOptionId(0);
 			//writeVehicleOwnershipToFile(getParent()->getHousehold()->getId(),0);
 
 		}
@@ -1814,7 +1814,7 @@ void HouseholdBidderRole::reconsiderVehicleOwnershipOption()
 			if((pTemp < randomNum ) && (randomNum < (probabilityOneCar + pTemp)))
 			{
 				MessageBus::PostMessage(getParent(), LTMID_HH_ONE_CAR, MessageBus::MessagePtr(new Message()));
-				(*vehcileOwnershipOptChange).setVehicleOwnershipOptionId(1);
+				vehcileOwnershipOptChange->setVehicleOwnershipOptionId(1);
 				//writeVehicleOwnershipToFile(getParent()->getHousehold()->getId(),1);
 			}
 			else
@@ -1823,7 +1823,7 @@ void HouseholdBidderRole::reconsiderVehicleOwnershipOption()
 				if ((pTemp < randomNum) &&( randomNum < (probabilityTwoPlusCar + pTemp)))
 				{
 					MessageBus::PostMessage(getParent(), LTMID_HH_TWO_PLUS_CAR, MessageBus::MessagePtr(new Message()));
-					(*vehcileOwnershipOptChange).setVehicleOwnershipOptionId(2);
+					vehcileOwnershipOptChange->setVehicleOwnershipOptionId(2);
 					//writeVehicleOwnershipToFile(getParent()->getHousehold()->getId(),2);
 				}
 

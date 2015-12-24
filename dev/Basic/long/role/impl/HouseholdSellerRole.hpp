@@ -82,7 +82,6 @@ namespace sim_mob
         public:
             typedef boost::unordered_map<BigSerial, unsigned int> CounterMap;
 
-        private:
             typedef std::vector<ExpectationEntry> ExpectationList;
 
             struct SellingUnitInfo
@@ -96,13 +95,18 @@ namespace sim_mob
             };
 
             typedef boost::unordered_map<BigSerial, SellingUnitInfo> UnitsInfoMap;
+            UnitsInfoMap sellingUnitsMap;
+
+        private:
+
+
+
             typedef boost::unordered_map<BigSerial, Bid> Bids;
             
             timeslice currentTime;
             volatile bool hasUnitsToSale;
             //Current max bid information.
             Bids maxBidsOfDay;
-            UnitsInfoMap sellingUnitsMap;
             volatile bool selling;
             CounterMap dailyBids;
 

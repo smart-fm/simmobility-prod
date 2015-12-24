@@ -24,7 +24,7 @@ namespace sim_mob
             Household();
             Household( BigSerial id, BigSerial lifestyleId, BigSerial unitId, BigSerial ethnicityId, BigSerial vehicleCategoryId,  int size, int childUnder4, int childUnder15, double income,
             		   int housingDuration,int workers, int ageOfHead, bool twoRoomHdbEligibility, bool threeRoomHdbEligibility, bool fourRoomHdbEligibility, int familyType, bool taxiAvailability,
-					   int vehicleOwnershipOptionId, double logsum);
+					   int vehicleOwnershipOptionId, double logsum, double currentUnitPrice);
             virtual ~Household();
 
             Household& operator=(const Household& source);
@@ -77,6 +77,9 @@ namespace sim_mob
 			void 	setAffordabilityAmount( double value );
 			double	getAffordabilityAmount() const;
 
+			void	setCurrentUnitPrice( double value);
+			double	getCurrentUnitPrice() const;
+
 			enum FAMILY_TYPE
 			{
 				COUPLEANDCHILD = 1,
@@ -120,6 +123,7 @@ namespace sim_mob
 
 			double householdAffordabilityAmount;
 			double logsum;
+			double currentUnitPrice;
         };
 
 

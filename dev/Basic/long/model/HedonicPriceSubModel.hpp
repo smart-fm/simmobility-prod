@@ -27,9 +27,9 @@ namespace sim_mob
 		class HedonicPrice_SubModel
 		{
 		public:
-			HedonicPrice_SubModel(double _hedonicPrice = 0, double _lagCoefficient = 0, double _day = 0, HM_Model *_model = nullptr, DeveloperModel *_devModel = nullptr, Unit _unit = Unit(), double logsum = 0);
+			HedonicPrice_SubModel(double _hedonicPrice = 0, double _lagCoefficient = 0, double _day = 0, HM_Model *_model = nullptr, DeveloperModel *_devModel = nullptr, Unit *_unit = nullptr, double logsum = 0);
 
-			HedonicPrice_SubModel( double _day, HM_Model *_hmModel, Unit &_unit);
+			HedonicPrice_SubModel( double _day, HM_Model *_hmModel, Unit *_unit);
 
 			virtual ~HedonicPrice_SubModel();
 
@@ -43,7 +43,7 @@ namespace sim_mob
 			double day;
 			HM_Model *hmModel;
 			DeveloperModel * devModel;
-			Unit unit;
+			Unit *unit;
 			double logsum;
 		};
 

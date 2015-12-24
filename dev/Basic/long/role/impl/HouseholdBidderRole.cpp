@@ -342,7 +342,7 @@ void HouseholdBidderRole::computeHouseholdAffordability()
 
 	Unit *unit = const_cast<Unit*>(model->getUnitById( household->getUnitId() ));
 
-	HedonicPrice_SubModel hpSubmodel(day, model, *unit);
+	HedonicPrice_SubModel hpSubmodel(day, model, unit);
 
 	std::vector<ExpectationEntry> expectations;
 	hpSubmodel.ComputeExpectation(1, expectations);

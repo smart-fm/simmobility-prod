@@ -42,7 +42,7 @@ using sim_mob::Math;
 namespace
 {
     //bid_timestamp, seller_id, bidder_id, unit_id, bidder wtp, bidder wp+wp_error, wp_error, affordability, currentUnitHP,target_price, hedonicprice, lagCoefficient, asking_price, bid_value, bids_counter (daily), bid_status, logsum, floor_area, type_id, HHPC, UPC
-    const std::string LOG_BID = "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%, %11%, %12%, %13%, %14%, %15%, %16%, %17%, %18%, %19% %20% %21%";
+    const std::string LOG_BID = "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%, %11%, %12%, %13%, %14%, %15%, %16%, %17%, %18%, %19%, %20%, %21%";
 
     /**
      * Print the current bid on the unit.
@@ -465,7 +465,7 @@ void HouseholdSellerRole::calculateUnitExpectations(const Unit& unit)
 
 	Unit *castUnit = const_cast<Unit*>(&unit);
 
-	HedonicPrice_SubModel hpSubmodel( currentTime.ms(), model, *castUnit);
+	HedonicPrice_SubModel hpSubmodel( currentTime.ms(), model, castUnit);
 
     hpSubmodel.ComputeHedonicPrice(info, sellingUnitsMap, parent->getId());
 

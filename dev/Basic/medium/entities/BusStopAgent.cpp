@@ -192,6 +192,19 @@ Entity::UpdateStatus BusStopAgent::frame_tick(timeslice now)
 	waitingCnt.count = waitingPersons.size();
 	messaging::MessageBus::PostMessage(PT_Statistics::getInstance(), STORE_WAITING_PERSON_COUNT,
 											messaging::MessageBus::MessagePtr(new WaitingCountMessage(waitingCnt)));
+
+	for(auto* busDriver : servingDrivers)
+	{
+		if(busDriver->getResource()->isMoving())
+		{
+			std::stringstream err;
+			err << "bus driver " << busDriver->getParent()->getId() << "(" << busDriver->getParent()->busLine << ")"
+					<< "has isMoving true while serving stop\n";
+			throw std::runtime_error(err.str());
+		}
+	}
+
+	std::cout << "BusStopAgent " << busStop->getStopCode() << " updated" << std::endl;
 	return UpdateStatus::Continue;
 }
 

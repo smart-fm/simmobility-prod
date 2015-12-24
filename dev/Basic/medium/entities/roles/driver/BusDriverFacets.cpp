@@ -82,6 +82,10 @@ void BusDriverMovement::frame_init()
 
 void BusDriverMovement::frame_tick()
 {
+	if(parentBusDriver->parent->busLine == "160_2-p" && parentBusDriver->parent->getId() == 20925)
+	{
+		int i = 0;
+	}
 	DriverUpdateParams& params = parentBusDriver->getParams();
 	if (parentBusDriver->parent->canMoveToNextSegment == Person_MT::GRANTED)
 	{
@@ -130,10 +134,30 @@ void BusDriverMovement::frame_tick()
 			parentBusDriver->waitingTimeAtbusStop = 0; //the bus has expired its waiting time
 
 			// There is remaining time, try to move to next segment
+			const BusStop* currBusStop = routeTracker.getCurrentStop(); //locally save current stop before moving to next segment
 			bool movedToNextSegStat = moveToNextSegment(params);
 			if (movedToNextSegStat)
 			{
-				departFromCurrentStop();
+				//moveToNextSegment() calls advance() which inturn may call moveToNextSegment().
+				//It is possible that the above call to moveToNextSegment was successful but the bus driver
+				//has entered another stop in a downstream segment. In this case, currentStop will be a pointer to the
+				//downstream stop that the bus driver entered.
+				BusStopAgent* stopAg = BusStopAgent::getBusStopAgentForStop(currBusStop);
+				parentBusDriver->closeBusDoors(stopAg); //this handles departure and sets isMoving to true
+				if (routeTracker.getCurrentStop())
+				{
+					if (routeTracker.getCurrentStop() == stopAg->getBusStop())
+					{
+						//trivial case. the bus driver has simply moved out of current stop
+						routeTracker.setCurrentStop(nullptr);
+					}
+					else
+					{
+						//the bus driver has moved out of current segment and moved into some other stop in a downstream segment
+						//set isMoving back to false because some other stop is being served
+						parentBusDriver->getResource()->setMoving(false);
+					}
+				}
 			}
 			//else remain in bus stop
 		}
@@ -178,6 +202,7 @@ void BusDriverMovement::frame_tick()
 	{
 		logout << ",queuing:" << "false";
 	}
+	logout << ",elapsedSeconds:" << params.elapsedSeconds;
 	logout << "})" << std::endl;
 	std::cout << logout.str();
 
@@ -515,8 +540,25 @@ bool BusDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 					bool movedToNextSegStat = moveToNextSegment(params);
 					if (movedToNextSegStat)
 					{
-						parentBusDriver->closeBusDoors(stopAg);
-						routeTracker.setCurrentStop(nullptr);
+						//moveToNextSegment() calls advance() which inturn may call moveToNextSegment().
+						//It is possible that the above call to moveToNextSegment was successful but the bus driver
+						//has entered another stop in a downstream segment. In this case, currentStop will be a pointer to the
+						//downstream stop that the bus driver entered.
+						parentBusDriver->closeBusDoors(stopAg); //this handles departure and sets isMoving to true
+						if (routeTracker.getCurrentStop())
+						{
+							if (routeTracker.getCurrentStop() == stopAg->getBusStop())
+							{
+								//trivial case. the bus driver has simply moved out of current stop
+								routeTracker.setCurrentStop(nullptr);
+							}
+							else
+							{
+								//the bus driver has moved out of current segment and moved into some other stop in a downstream segment
+								//set isMoving back to false because some other stop is being served
+								parentBusDriver->getResource()->setMoving(false);
+							}
+						}
 					}
 					//else remain in bus stop
 					return movedToNextSegStat;

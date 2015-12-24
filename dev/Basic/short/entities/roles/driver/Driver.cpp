@@ -173,8 +173,8 @@ void Driver::onParentEvent(event::EventId eventId, event::Context ctxId, event::
 {
 	if (eventId == event::EVT_AMOD_REROUTING_REQUEST_WITH_PATH)
 	{
-		AMOD::AMODEventPublisher* pub = (AMOD::AMODEventPublisher*) sender;
-		const AMOD::AMODRerouteEventArgs& rrArgs = MSG_CAST(AMOD::AMODRerouteEventArgs, args);
+		amod::AMODEventPublisher* pub = (amod::AMODEventPublisher*) sender;
+		const amod::AMODRerouteEventArgs& rrArgs = MSG_CAST(amod::AMODRerouteEventArgs, args);
 		std::cout << "driver get reroute event <" << rrArgs.reRoutePath.size() << "> from <" << pub->id << ">" << std::endl;
 
 		rerouteWithPath(rrArgs.reRoutePath);

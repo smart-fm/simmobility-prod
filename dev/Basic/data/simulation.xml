@@ -67,6 +67,11 @@
                     <username value="postgres"/>
                     <password value="secret"/>
                 </plaintext-credential>
+		
+		<plaintext-credential id="fm_remote_plain">
+                    <username value="postgres"/>
+                    <password value="5M_S1mM0bility"/>
+                </plaintext-credential>
 
     	</credentials>
     </constructs>

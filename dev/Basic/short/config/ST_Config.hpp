@@ -221,10 +221,9 @@ struct FMOD_ControllerParams
  */
 struct AMOD_ControllerParams
 {
+	AMOD_ControllerParams() : enabled(false), fileName("") {}
 
-	AMOD_ControllerParams() : enabled(false)
-	{
-	}
+	std::string fileName;
 
 	bool enabled;
 };

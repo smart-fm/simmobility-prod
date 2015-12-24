@@ -143,6 +143,15 @@ void BusStop::setStopCode(const std::string& code)
 	stopCode = code;
 }
 
+const std::string& BusStop::getStopStatus() const
+{
+	return stopStatus;
+}
+void BusStop::setStopStatus(const std::string& status)
+{
+	stopStatus = status;
+}
+
 unsigned int BusStop::getReverseSectionId() const
 {
 	return reverseSectionId;

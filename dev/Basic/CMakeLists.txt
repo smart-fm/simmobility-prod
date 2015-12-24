@@ -161,6 +161,12 @@ SET(CPACK_DEBIAN_PACKAGE_DEPENDS
   ${COMMA} "cmake"  #We check the version earlier; leave this line last.
 )
 
+IF (${BUILD_SHORT} MATCHES "ON")
+	SET(CPACK_DEBIAN_PACKAGE_DEPENDS
+		"libglpk-dev (>= 4.43-1)"
+	)
+ENDIF (${BUILD_SHORT} MATCHES "ON")
+
 #Make sure to flatten the DEPENDS array before using it.
 string(REPLACE ";" "" CPACK_DEBIAN_PACKAGE_DEPENDS ${CPACK_DEBIAN_PACKAGE_DEPENDS})
 
@@ -399,6 +405,19 @@ LIST(APPEND LibraryList ${LUA_LIBRARIES} -ldl)
 find_package(MongoClient REQUIRED)
 include_directories(${MONGOCLIENT_INCLUDE_DIRS})
 LIST(APPEND LibraryList ${MONGOCLIENT_LIBRARY} -lcrypto -lssl)
+
+IF (${BUILD_SHORT} MATCHES "ON")
+        #Find GLPK
+	FIND_LIBRARY( GLPK_LIB glpk PATHS /usr/lib $ENV{GLPK_DIR}/lib)
+	SET(GLPK_LIBRARIES ${GLPK_LIB} )
+
+	FIND_PATH(GLPK_INCLUDE_DIR
+	  glpk.h
+	  PATHS /usr/include/ /usr/include/glpk $ENV{GLPK_DIR}/include
+	  DOC "Directory where GLPK header files are stored" )
+	include_directories(${GLPK_INCLUDE_DIR})
+	LIST(APPEND LibraryList -lglpk)
+ENDIF (${BUILD_SHORT} MATCHES "ON")
 
 #Find CppUnit and QxCppUnit if we are building unit tests.
 SET(UnitTestLibs "")

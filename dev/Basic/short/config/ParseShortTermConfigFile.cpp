@@ -249,6 +249,7 @@ void ParseShortTermConfigFile::processAmodControllerNode(DOMElement* node)
 	{
 		///Read the attribute value indicating whether AMOD is enabled or disabled
 		stCfg.amod.enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), false);
+		stCfg.amod.fileName = ParseString(GetNamedAttributeValue(node, "config_file"), "amod_config.xml");
 	}
 }
 

@@ -235,6 +235,7 @@ template<> struct type_conversion<sim_mob::BusStop>
 		res.setStopCode(vals.get<std::string>("code", ""));
 		res.setRoadSegmentId(vals.get<unsigned int>("section_id", 0));
 		res.setStopName(vals.get<std::string>("name", ""));
+		res.setStopStatus(vals.get<std::string>("status", ""));
 		res.setTerminusType((sim_mob::TerminusType)vals.get<int>("terminal", 0));
 		res.setLength(vals.get<double>("length", 0.0));
 		res.setOffset(vals.get<double>("section_offset", 0.0));

@@ -20,14 +20,15 @@ using namespace sim_mob;
 Person_ST::Person_ST(const std::string &src, const MutexStrategy &mtxStrat, int id, std::string databaseID)
 : Person(src, mtxStrat, id, databaseID), startLaneIndex(-1), boardingTimeSecs(0), alightingTimeSecs(0), 
 prevRole(NULL), currRole(NULL), nextRole(NULL), commEventRegistered(false), amodId("-1"),
-amodPickUpSegmentStr("-1"), amodPickUpOffset(0.0), startSegmentId(-1), segmentStartOffset(0), initialSpeed(0), amodDropOffset(0)
+amodPickUpSegmentStr("-1"), startSegmentId(-1), segmentStartOffset(0), initialSpeed(0),
+amodSegmLength(0.0), amodSegmLength2(0.0), client_id(0), isPositionValid(false), isVehicleInLoadingQueue(false)
 {
 }
 
 Person_ST::Person_ST(const std::string &src, const MutexStrategy &mtxStrat, const std::vector<TripChainItem *> &tc)
 : Person(src, mtxStrat, tc), startLaneIndex(-1), boardingTimeSecs(0), alightingTimeSecs(0), 
 prevRole(NULL), currRole(NULL), nextRole(NULL), commEventRegistered(false), amodId("-1"),
-amodPickUpSegmentStr("-1"), amodPickUpOffset(0.0), startSegmentId(-1), segmentStartOffset(0), initialSpeed(0), amodDropOffset(0)
+amodPickUpSegmentStr("-1"), startSegmentId(-1), segmentStartOffset(0), initialSpeed(0), amodSegmLength(0.0), amodSegmLength2(0.0)
 {
 	if (!tripChain.empty())
 	{
@@ -517,7 +518,7 @@ void Person_ST::HandleMessage(messaging::Message::MessageType type, const messag
 	}
 }
 
-void Person_ST::handleAMODEvent(event::EventId id, event::Context ctxId, event::EventPublisher *sender, const AMOD::AMODEventArgs &args)
+void Person_ST::handleAMODEvent(event::EventId id, event::Context ctxId, event::EventPublisher *sender, const amod::AMODEventArgs &args)
 {
 	if (id == event::EVT_AMOD_REROUTING_REQUEST_WITH_PATH)
 	{
@@ -532,11 +533,12 @@ void Person_ST::handleAMODEvent(event::EventId id, event::Context ctxId, event::
 void Person_ST::handleAMODArrival()
 {
 	//ask the AMODController to handle the arrival
-	AMOD::AMODController::instance()->handleVHArrive(this);
+	sim_mob::amod::AMODController::getInstance()->handleVHArrive(this);
+
 }
 
 void Person_ST::handleAMODPickup()
 {
 	//ask the AMODController to handle the arrival
-	AMOD::AMODController::instance()->handleVHPickup(this);
+	sim_mob::amod::AMODController::getInstance()->handleVHPickup(this);
 }

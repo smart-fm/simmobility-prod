@@ -136,13 +136,13 @@ void clear_delete_vector(typename std::set<T>& src) {
 //Deletes value part for all the items in a <key,value> map and then clears the map
 //Note: The value part must not be another container!!!
 template <typename K, typename V>
-void clear_delete_map(typename std::map<K,V>& src)
+void clear_delete_map(typename std::map<K,V*>& src)
 {
-	for(typename std::map<K,V>::iterator it = src.begin(); it != src.end(); it++)
+	for(typename std::map<K,V*>::iterator it = src.begin(); it != src.end(); it++)
 	{
 		if(it->second)
 		{
-			safe_delete_item(it->second);
+			delete it->second;
 		}
 	}
 	src.clear();

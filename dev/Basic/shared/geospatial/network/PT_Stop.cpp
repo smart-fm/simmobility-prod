@@ -163,10 +163,6 @@ void BusStop::setTerminalNodeId(unsigned int terminalNodeId)
 	this->terminalNodeId = terminalNodeId;
 }
 
-TrainStop::TrainStop(){}
-
-TrainStop::~TrainStop(){}
-
 TrainStop::TrainStop(std::string stopIds)
 {
 	std::stringstream ss(stopIds);
@@ -175,6 +171,13 @@ TrainStop::TrainStop(std::string stopIds)
 	{
 		trainStopIds.push_back(singleMrtStopId);
 	}
+}
+
+TrainStop::~TrainStop()
+{
+	std::cout << "destroying TrainStop " << trainStopIds.front() << std::endl;
+	trainStopIds.clear();
+	roadSegments.clear();
 }
 
 const RoadSegment* TrainStop::getStationSegmentForNode(const Node* nd) const

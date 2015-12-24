@@ -254,9 +254,10 @@ private:
 	std::string stopDesc;   // Description of stops . Usually street where the stop is located
 };
 
-class PT_Network{
+class PT_Network
+{
 public:
-	~PT_Network();
+	virtual ~PT_Network();
 
 	std::map<int, PT_NetworkEdge> PT_NetworkEdgeMap;
 	std::map<std::string, PT_NetworkVertex> PT_NetworkVertexMap;

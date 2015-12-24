@@ -115,9 +115,8 @@ public:
 class TrainStop
 {
 public:
-	TrainStop();
 	TrainStop(std::string stopIds);
-	~TrainStop();
+	virtual ~TrainStop();
 
 	const std::vector<std::string>& getTrainStopId() const
 	{

@@ -12,7 +12,9 @@
 #include "database/DB_Connection.hpp"
 #include "database/pt_network_dao/PT_NetworkSqlDao.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
+#include "util/LangHelpers.hpp"
 #include "util/Utils.hpp"
+
 
 
 using namespace std;
@@ -112,7 +114,13 @@ void PT_Network::init()
 
 sim_mob::PT_Network::~PT_Network()
 {
-	clear_delete_map(MRTStopsMap);
+	std::cout << "destroying PT_Network " << std::endl;
+	for(std::map<std::string, TrainStop*>::iterator trainStopIt = MRTStopsMap.begin(); trainStopIt!=MRTStopsMap.end(); trainStopIt++)
+	{
+		TrainStop* stop = trainStopIt->second;
+		delete stop;
+	}
+	MRTStopsMap.clear();
 }
 
 int PT_Network::getVertexTypeFromStopId(std::string stopId)

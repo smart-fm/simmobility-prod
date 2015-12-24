@@ -73,10 +73,10 @@
 
     <simulation>
 	<base_granularity   value="5"   units="seconds" />
-	<total_runtime      value="1080"      units="minutes" />
+	<total_runtime      value="2"      units="minutes" />
 	<total_warmup       value="10"     units="seconds" />
        
-	<start_time         value="06:00:00"/>
+	<start_time         value="02:00:00"/>
 
 	<!-- Strategy for adding new Agents to Workers. -->
 	<!-- "roundrobin" assigns in order. (default) -->

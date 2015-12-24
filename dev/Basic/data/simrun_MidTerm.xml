@@ -55,9 +55,9 @@
             <mapping name="erp_gantry_zone" procedure="get_erp_gantry_zone()"/>
             <mapping name="erp_section" procedure="get_erp_section()"/>
             <mapping name="erp_surcharge" procedure="get_erp_surcharge()"/>
-            <!--<mapping name="day_activity_schedule" procedure="get_persons_between"/>-->
-            <!--<mapping name="screen_line" procedure="get_screen_line_segments()"/>
-            <mapping name="restricted_reg_segments" procedure="get_section_banned_area()"/>
+            <mapping name="day_activity_schedule" procedure="get_persons_between"/>
+            <mapping name="screen_line" procedure="get_screen_line_segments()"/>
+            <!--<mapping name="restricted_reg_segments" procedure="get_section_banned_area()"/>
             <mapping name="restricted_reg_in_turning" procedure="get_banned_area_in_turning()"/>
             <mapping name="restricted_reg_out_turning" procedure="get_banned_area_out_turning()"/>
             <mapping name="restricted_reg_nodes" procedure="get_restricted_region_nodes()"/>-->
@@ -83,7 +83,7 @@
     <!-- List of all Worker types and their properties. -->
     <!-- granularity of each component must be a multiple of the "base" granularity -->
     <workers>
-        <person count="6" granularity="5 seconds"/> <!-- Person agents (with Roles) -->
+        <person count="1" granularity="5 seconds"/> <!-- Person agents (with Roles) -->
     </workers>
       
     <incidentsData enabled="false">
@@ -124,7 +124,7 @@
     <generateBusRoutes enabled="false" /> 
     <travel_time_update interval="300" alpha="0.5" />
     <public_transit enabled="true"/>
-    <screen-line_count interval="900" file-name="screenLineCount.txt" enabled="false" />
+    <screen-line_count interval="900" file-name="screenLineCount.txt" enabled="true" />
 
     <!-- Determines whether to run SimMobility_Medium's demand simulator or the supply simulator -->
     <!-- Admissible values are "preday", "withinday" and "supply". Values "withinday" and "supply" runs the same code. Two different values are allowed just for convenience.--> 
@@ -153,7 +153,7 @@
         <output_pt_statistics>                              
             <journey_time file="journeytime.csv"/>
             <waiting_time file="waitingtime.csv"/>
-            <waiting_count file="waitingamount.csv"/>
+            <waiting_count file="waitingcount.csv"/>
             <travel_time file="traveltime.csv"/>
         </output_pt_statistics>  
     </supply>                                      
@@ -164,7 +164,7 @@
         <run_mode value="logsum"/>
         <!-- Number of threads to create for processing the population in-->
         <!-- the preday demand simulator -->
-        <threads value="1"/>
+        <threads value="8"/>
         <!-- outputs the preday predictions as activity schedule in CSV format if enabled with simulation run_mode -->
         <output_activity_schedule enabled="true"/>
         <!-- outputs the preday's predicted tours and stops to mongodb if enabled -->
@@ -178,7 +178,7 @@
          Database and credentials attributes are required only for pgsql source.
          Valid ids from the list constructs list have to be specified -->
         <population source="pgsql" database="fm_remote_lt" credential="lt_cred"/>
-        <logsum source="pgsql" database="fm_remote" credential="fm_remote"/>
+        <logsum source="pgsql" database="fm_local_harish" credential="harish_cred"/>
             
         <model_scripts path="scripts/lua/mid/behavior-models/" format="lua">
             <script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models-->

@@ -20,10 +20,9 @@ Bid::Bid(BigSerial bidId,int simulationDay, BigSerial bidderId, BigSerial curren
 		 affordabilityAmount(affordabilityAmount), hedonicPrice(hedonicPrice), askingPrice(askingPrice),targetPrice(targetPrice),bidValue(bidValue),
 		 isAccepted(isAccepted),currentPostcode(currentPostcode),newPostcode(newPostcode),bidder(bidder),moveInDate(moveInDate), wtpErrorTerm(wtpErrorTerm){}
 
-Bid::Bid(BigSerial bidId,BigSerial currentUnitId,BigSerial newUnitId, BigSerial bidderId,LT_Agent* bidder,double bidValue, int simulationDay, double willingnessToPay, double wtp_e)
+Bid::Bid(BigSerial bidId,BigSerial currentUnitId,BigSerial newUnitId, BigSerial bidderId,LT_Agent* bidder,double bidValue, int simulationDay, double willingnessToPay, double wtp_e, double affordabilityAmount)
 		:bidId(bidId),currentUnitId(currentUnitId), newUnitId(newUnitId),bidderId(bidderId),bidder(bidder),bidValue(bidValue), simulationDay(simulationDay) , willingnessToPay(willingnessToPay)
-        , affordabilityAmount(affordabilityAmount), hedonicPrice(hedonicPrice), askingPrice(askingPrice),targetPrice(targetPrice),
-		 isAccepted(0),currentPostcode(0),newPostcode(0),moveInDate(tm()), wtpErrorTerm(wtp_e){}
+         ,hedonicPrice(0), askingPrice(askingPrice),targetPrice(targetPrice), isAccepted(0),currentPostcode(0),newPostcode(0),moveInDate(tm()), wtpErrorTerm(wtp_e), affordabilityAmount(affordabilityAmount){}
 
 Bid::Bid(const Bid& source)
 {

@@ -3,8 +3,9 @@
 //license.txt   (http://opensource.org/licenses/MIT)
 
 /* 
- * File:   Bid.hpp
- * Author: Pedro Gandola <pedrogandola@smart.mit.edu>
+ * File:   	Bid.hpp
+ * Author: 	Pedro Gandola <pedrogandola@smart.mit.edu>
+ *			Chetan Rogbeer <chetan.rogbeer@smart.mit.edu>
  *
  * Created on April 5, 2013, 5:03 PM
  */
@@ -25,12 +26,12 @@ namespace sim_mob
         class Bid
         {
         public:
-            Bid(BigSerial bidId, int simulationDay, BigSerial bidderId, BigSerial currentUnitId, BigSerial newUnitId,double willingnessToPay,double affordabilityAmount,double hedonicPrice,
-            		double askingPrice,double targetPrice, double bidValue, int isAccepted,BigSerial currentPostcode, BigSerial newPostcode,LT_Agent* bidder,std::tm moveInDate, double wtpErrorTerm);
+            Bid(BigSerial bidId, int simulationDay, BigSerial bidderId, BigSerial currentUnitId, BigSerial newUnitId,double willingnessToPay,double affordabilityAmount,double hedonicPrice, double askingPrice,
+            	double targetPrice, double bidValue, int isAccepted,BigSerial currentPostcode, BigSerial newPostcode,LT_Agent* bidder,std::tm moveInDate, double wtpErrorTerm);
 
-            Bid(BigSerial bidId,BigSerial currentUnitId, BigSerial newUnitId,BigSerial bidderId,LT_Agent* bidder,double bidValue, int simulationDay, double willingnessToPay, double wtp_e);
-            Bid(const Bid& source);
+            Bid(BigSerial bidId,BigSerial currentUnitId, BigSerial newUnitId,BigSerial bidderId,LT_Agent* bidder,double bidValue, int simulationDay, double willingnessToPay, double wtp_e, double affordability );
             Bid();
+            Bid(const Bid& source);
             virtual ~Bid();
 
             /**
@@ -67,7 +68,6 @@ namespace sim_mob
             double getHedonicPrice() const;
             double getAskingPrice() const;
             double getTargetPrice() const;
-
             /**
              * Gets the value of the bid.
              * @return the value of the bid.

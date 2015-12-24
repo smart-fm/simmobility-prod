@@ -104,8 +104,8 @@ namespace
        }
 }
 
-HouseholdBidderRole::CurrentBiddingEntry::CurrentBiddingEntry( const BigSerial unitId, double bestBid, const double wp, double lastSurplus, double wtp_e ) : unitId(unitId), bestBid(bestBid), wp(wp),
-																tries(0), lastSurplus(lastSurplus), wtp_e(wtp_e){}
+HouseholdBidderRole::CurrentBiddingEntry::CurrentBiddingEntry( const BigSerial unitId, double bestBid, const double wp, double lastSurplus, double wtp_e, double affordability )
+															 : unitId(unitId), bestBid(bestBid), wp(wp), tries(0), lastSurplus(lastSurplus), wtp_e(wtp_e), affordability(affordability){}
 
 HouseholdBidderRole::CurrentBiddingEntry::~CurrentBiddingEntry()
 {
@@ -116,6 +116,18 @@ BigSerial HouseholdBidderRole::CurrentBiddingEntry::getUnitId() const
 {
     return unitId;
 }
+
+
+double HouseholdBidderRole::CurrentBiddingEntry::getAffordability() const
+{
+	return affordability;
+}
+
+void HouseholdBidderRole::CurrentBiddingEntry::setAffordability(double value)
+{
+	affordability = value;
+}
+
 
 double HouseholdBidderRole::CurrentBiddingEntry::getWP() const
 {
@@ -503,7 +515,7 @@ bool HouseholdBidderRole::bidUnit(timeslice now)
 				PrintOutV("[day " << day << "] Household " << std::dec << household->getId() << " submitted a bid of $" << biddingEntry.getBestBid() << "[wp:$" << biddingEntry.getWP() << ",bids:"  <<   biddingEntry.getTries() << ",ap:$" << entry->getAskingPrice() << "] on unit " << biddingEntry.getUnitId() << " to seller " <<  entry->getOwner()->getId() << "." << std::endl );
 				#endif
 
-				bid(entry->getOwner(), Bid(model->getBidId(),household->getUnitId(),entry->getUnitId(), household->getId(), getParent(), biddingEntry.getBestBid(), now.ms(), biddingEntry.getWP(), biddingEntry.getWtp_e()));
+				bid(entry->getOwner(), Bid(model->getBidId(),household->getUnitId(),entry->getUnitId(), household->getId(), getParent(), biddingEntry.getBestBid(), now.ms(), biddingEntry.getWP(), biddingEntry.getWtp_e(), biddingEntry.getAffordability()));
 
 				return true;
 			}
@@ -1380,6 +1392,7 @@ bool HouseholdBidderRole::pickEntryToBid()
     double finalBid = 0;
     double maxWp	= 0;
     double maxWtpe  = 0;
+    double maxAffordability = 0;
 
     ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
     float housingMarketSearchPercentage = config.ltParams.housingModel.housingMarketSearchPercentage;
@@ -1619,12 +1632,6 @@ bool HouseholdBidderRole::pickEntryToBid()
 
             	wp = std::max(0.0, wp );
 
-            	if( wp > household->getAffordabilityAmount() )
-                {
-                	//PrintOutV("wp is capped at " <<  household->getAffordabilityAmount() << " from " << wp << std::endl );
-                	//wp = household->getAffordabilityAmount();
-                }
-
             	double currentBid = 0;
             	double currentSurplus = 0;
 
@@ -1640,12 +1647,13 @@ bool HouseholdBidderRole::pickEntryToBid()
             		maxEntry = entry;
             		maxWp = wp;
             		maxWtpe = wtp_e;
+            		maxAffordability = household->getAffordabilityAmount();;
             	}
             }
         }
     }
 
-    biddingEntry = CurrentBiddingEntry( (maxEntry) ? maxEntry->getUnitId() : INVALID_ID, finalBid, maxWp, maxSurplus, maxWtpe );
+    biddingEntry = CurrentBiddingEntry( (maxEntry) ? maxEntry->getUnitId() : INVALID_ID, finalBid, maxWp, maxSurplus, maxWtpe, maxAffordability );
     return biddingEntry.isValid();
 }
 

@@ -42,7 +42,7 @@ namespace sim_mob
             class CurrentBiddingEntry
             {
             public:
-                CurrentBiddingEntry(const BigSerial unitId = INVALID_ID, const double bestBid = 0, const double wp = 0, double lastSurplus = 0, double wtp_e  = 0);
+                CurrentBiddingEntry(const BigSerial unitId = INVALID_ID, const double bestBid = 0, const double wp = 0, double lastSurplus = 0, double wtp_e  = 0, double affordability = 0);
                 ~CurrentBiddingEntry();
 
                 /**
@@ -60,6 +60,9 @@ namespace sim_mob
                 double getWtp_e();
                 void setWtp_e(double value);
 
+                double getAffordability() const;
+                void setAffordability( double value);
+
                 /**
                  * Increments the tries variable with given quantity.
                  * @param quantity to increment.
@@ -73,6 +76,7 @@ namespace sim_mob
                 long int tries; // number of bids sent to the seller.
                 double lastSurplus; // value of the last surplus
                 double wtp_e; //willingToPay error term
+                double affordability;
             };
 
         public:

@@ -123,7 +123,12 @@ namespace
      */
     inline bool decide(const Bid& bid, const ExpectationEntry& entry)
     {
-        return bid.getBidValue() > entry.targetPrice;
+    	double amount = bid.getBidValue();
+
+    	if( amount > bid.getAffordabilityAmount())
+    		amount = bid.getAffordabilityAmount();
+
+        return amount > entry.targetPrice;
     }
 
     /**
@@ -152,7 +157,10 @@ namespace
         	int UnitslaId = unit->getSlaAddressId();
         	Household *thisBidder = model->getHouseholdById(bid.getBidderId());
         	const Unit* thisUnit = model->getUnitById(thisBidder->getUnitId());
-        	(*newBid).setAffordabilityAmount(agent.getHousehold()->getAffordabilityAmount());
+
+        	if( agent.getHousehold() )
+        		(*newBid).setAffordabilityAmount(agent.getHousehold()->getAffordabilityAmount());
+
         	(*newBid).setHedonicPrice(entry.hedonicPrice);
         	(*newBid).setAskingPrice(entry.askingPrice);
         	(*newBid).setTargetPrice(entry.targetPrice);

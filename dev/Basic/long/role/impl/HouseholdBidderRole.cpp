@@ -21,14 +21,12 @@
 #include "message/MessageBus.hpp"
 #include "model/lua/LuaProvider.hpp"
 #include "model/HM_Model.hpp"
-
 #include "core/AgentsLookup.hpp"
 #include "core/DataManager.hpp"
-
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
-
 #include "behavioral/PredayLT_Logsum.hpp"
+#include "model/HedonicPriceSubModel.hpp"
 
 using std::list;
 using std::endl;
@@ -338,6 +336,22 @@ void HouseholdBidderRole::computeHouseholdAffordability()
 	householdAffordabilityAmount = std::max(householdAffordabilityAmount, 0.0);
 
 	bidderHousehold->setAffordabilityAmount( householdAffordabilityAmount );
+
+	//
+	HM_Model *model = getParent()->getModel();
+
+	Unit *unit = const_cast<Unit*>(model->getUnitById( household->getUnitId() ));
+
+	HedonicPrice_SubModel hpSubmodel(day, model, *unit);
+
+	std::vector<ExpectationEntry> expectations;
+	hpSubmodel.ComputeExpectation(1, expectations);
+
+	double price = expectations[0].hedonicPrice;
+
+	Household *castHousehold = const_cast<Household*>(household);
+
+	castHousehold->setCurrentUnitPrice( price );
 }
 
 void HouseholdBidderRole::init()

@@ -1,3 +1,8 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//license.txt   (http://opensource.org/licenses/MIT)
+
+
 /*
  * HedonicPriceSubModel.cpp
  *
@@ -10,11 +15,38 @@
 
 using namespace sim_mob::long_term;
 
-HedonicPrice_SubModel::HedonicPrice_SubModel(double _hedonicPrice, double _lagCoefficient, double _day, Model *_hmModel,DeveloperModel * _devModel, Unit _unit)
-											: hedonicPrice(_hedonicPrice), lagCoefficient(_lagCoefficient), day(_day), hmModel(_hmModel), devModel(_devModel), unit(_unit) {}
+//bid_timestamp, day_to_apply, seller_id, unit_id, hedonic_price, asking_price, target_price
+ const std::string LOG_EXPECTATION = "%1%, %2%, %3%, %4%, %5%, %6%, %7%";
 
-HedonicPrice_SubModel::HedonicPrice_SubModel( double _day, Model *_hmModel,DeveloperModel * _devModel)
-											: hedonicPrice(0), lagCoefficient(0), day(_day), hmModel(_hmModel), devModel(_devModel), unit() {}
+ /**
+  * Print the current expectation on the unit.
+  * @param the current day
+  * @param the day on which the bid was made
+  * @param the unit id
+  * @param agent to received the bid
+  * @param struct containing the hedonic, asking and target price.
+  *
+  */
+ inline void printExpectation(int day, int dayToApply, BigSerial unitId, BigSerial agentId, const ExpectationEntry& exp)
+ {
+     boost::format fmtr = boost::format(LOG_EXPECTATION) 	% day
+															% dayToApply
+															% agentId
+															% unitId
+															% exp.hedonicPrice
+															% exp.askingPrice
+															% exp.targetPrice;
+
+     AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::EXPECTATIONS, fmtr.str());
+     //PrintOut(fmtr.str() << endl);
+ }
+
+
+HedonicPrice_SubModel::HedonicPrice_SubModel(double _hedonicPrice, double _lagCoefficient, double _day, HM_Model *_hmModel,DeveloperModel * _devModel, Unit _unit, double logsum)
+											: hedonicPrice(_hedonicPrice), lagCoefficient(_lagCoefficient), day(_day), hmModel(_hmModel), devModel(_devModel), unit(_unit), logsum(logsum) {}
+
+HedonicPrice_SubModel::HedonicPrice_SubModel( double _day, HM_Model *_hmModel, Unit &_unit)
+											: hedonicPrice(0), lagCoefficient(0), day(_day), hmModel(_hmModel), devModel(_hmModel->getDeveloperModel()), unit(_unit), logsum(0) {}
 
 
 HedonicPrice_SubModel::~HedonicPrice_SubModel() {}
@@ -117,29 +149,54 @@ double HedonicPrice_SubModel::ComputeLagCoefficient()
 	return finalCoefficient;
 }
 
-double HedonicPrice_SubModel::ComputeHedonicPrice( HouseholdSellerRole::SellingUnitInfo &info, double logsum, Unit &unit2, HouseholdSellerRole::UnitsInfoMap &sellingUnitsMap)
+void HedonicPrice_SubModel::ComputeHedonicPrice( HouseholdSellerRole::SellingUnitInfo &info, HouseholdSellerRole::UnitsInfoMap &sellingUnitsMap, BigSerial agentId)
 {
-	const HM_LuaModel& luaModel = LuaProvider::getHM_Model();
+	double finalCoefficient = ComputeLagCoefficient();
 
-    luaModel.calulateUnitExpectations(unit2, info.numExpectations, logsum, lagCoefficient, info.expectations );
+	unit.setLagCoefficient(finalCoefficient);
+
+    info.numExpectations = (info.interval == 0) ? 0 : ceil((double) info.daysOnMarket / (double) info.interval);
+
+    ComputeExpectation(info.numExpectations, info.expectations);
 
     //number of expectations should match
     if (info.expectations.size() == info.numExpectations)
     {
-        sellingUnitsMap.erase(unit2.getId());
-        sellingUnitsMap.insert(std::make_pair(unit2.getId(), info));
+        sellingUnitsMap.erase(unit.getId());
+        sellingUnitsMap.insert(std::make_pair(unit.getId(), info));
 
         //just revert the expectations order.
         for (int i = 0; i < info.expectations.size() ; i++)
         {
             int dayToApply = day + (i * info.interval);
-            //printExpectation(currentTime, dayToApply, unit.getId(), *getParent(), info.expectations[i]);
+            printExpectation( day, dayToApply, unit.getId(), agentId, info.expectations[i]);
         }
     }
     else
     {
-    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, (boost::format( "[unit %1%] Expectations is empty.") % unit2.getId()).str());
+    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, (boost::format( "[unit %1%] Expectations is empty.") % unit.getId()).str());
     }
-
-	return hedonicPrice;
 }
+
+
+void HedonicPrice_SubModel::ComputeExpectation( int numExpectations, std::vector<ExpectationEntry> &expectations )
+{
+	const HM_LuaModel& luaModel = LuaProvider::getHM_Model();
+
+	BigSerial tazId = hmModel->getUnitTazId( unit.getId() );
+	Taz *tazObj = hmModel->getTazById( tazId );
+
+	std::string tazStr;
+	if( tazObj != NULL )
+		tazStr = tazObj->getName();
+
+	BigSerial taz = std::atoi( tazStr.c_str() );
+
+	//double logsum =  model->ComputeHedonicPriceLogsumFromMidterm( taz );
+	double logsum = hmModel->ComputeHedonicPriceLogsumFromDatabase( taz );
+
+
+	luaModel.calulateUnitExpectations(unit, numExpectations, logsum, lagCoefficient, expectations );
+}
+
+

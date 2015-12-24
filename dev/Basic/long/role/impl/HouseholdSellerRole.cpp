@@ -41,8 +41,6 @@ using sim_mob::Math;
 
 namespace
 {
-    //bid_timestamp, day_to_apply, seller_id, unit_id, hedonic_price, asking_price, target_price
-    const std::string LOG_EXPECTATION = "%1%, %2%, %3%, %4%, %5%, %6%, %7%";
     //bid_timestamp, seller_id, bidder_id, unit_id, bidder wtp, bidder wp+wp_error, wp_error, affordability, currentUnitHP,target_price, hedonicprice, lagCoefficient, asking_price, bid_value, bids_counter (daily), bid_status, logsum, floor_area, type_id, HHPC, UPC
     const std::string LOG_BID = "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%, %11%, %12%, %13%, %14%, %15%, %16%, %17%, %18%, %19% %20% %21%";
 
@@ -93,29 +91,6 @@ namespace
 													% unitPostcode->getSlaPostcode();
 
         AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::BIDS, fmtr.str());
-        //PrintOut(fmtr.str() << endl);
-    }
-
-    /**
-     * Print the current expectation on the unit.
-     * @param the current day
-     * @param the day on which the bid was made
-     * @param the unit id
-     * @param agent to received the bid
-     * @param struct containing the hedonic, asking and target price.
-     *
-     */
-    inline void printExpectation(const timeslice& now, int dayToApply, BigSerial unitId, const HouseholdAgent& agent, const ExpectationEntry& exp)
-    {
-        boost::format fmtr = boost::format(LOG_EXPECTATION) % now.ms()
-															% dayToApply
-															% agent.getId()
-															% unitId
-															% exp.hedonicPrice
-															% exp.askingPrice
-															% exp.targetPrice;
-
-        AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::EXPECTATIONS, fmtr.str());
         //PrintOut(fmtr.str() << endl);
     }
 
@@ -487,28 +462,12 @@ void HouseholdSellerRole::calculateUnitExpectations(const Unit& unit)
     info.daysOnMarket = unit.getTimeOnMarket();
 
     HM_Model *model = getParent()->getModel();
-	BigSerial tazId = model->getUnitTazId( unit.getId() );
-	Taz *tazObj = model->getTazById( tazId );
-
-	std::string tazStr;
-	if( tazObj != NULL )
-		tazStr = tazObj->getName();
-
-	BigSerial taz = std::atoi( tazStr.c_str() );
-
-	//double logsum =  model->ComputeHedonicPriceLogsumFromMidterm( taz );
-	double logsum = model->ComputeHedonicPriceLogsumFromDatabase( taz );
-
-	HedonicPrice_SubModel hpSubmodel( currentTime.ms(), model, model->getDeveloperModel());
-
-	double finalCoefficient = hpSubmodel.ComputeLagCoefficient();
 
 	Unit *castUnit = const_cast<Unit*>(&unit);
-	castUnit->setLagCoefficient(finalCoefficient);
 
-    info.numExpectations = (info.interval == 0) ? 0 : ceil((double) info.daysOnMarket / (double) info.interval);
+	HedonicPrice_SubModel hpSubmodel( currentTime.ms(), model, *castUnit);
 
-    hpSubmodel.ComputeHedonicPrice(info, logsum, *castUnit, sellingUnitsMap);
+    hpSubmodel.ComputeHedonicPrice(info, sellingUnitsMap, parent->getId());
 
 }
 

@@ -1,3 +1,8 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//license.txt   (http://opensource.org/licenses/MIT)
+
+
 /*
  * HedonicPriceSubModel.hpp
  *
@@ -7,6 +12,7 @@
 
 #pragma once
 
+#include <Types.hpp>
 #include "HM_Model.hpp"
 #include "DeveloperModel.hpp"
 #include "database/entity/Unit.hpp"
@@ -21,22 +27,24 @@ namespace sim_mob
 		class HedonicPrice_SubModel
 		{
 		public:
-			HedonicPrice_SubModel(double _hedonicPrice = 0, double _lagCoefficient = 0, double _day = 0, Model *_model = nullptr, DeveloperModel *_devModel = nullptr, Unit _unit = Unit());
+			HedonicPrice_SubModel(double _hedonicPrice = 0, double _lagCoefficient = 0, double _day = 0, HM_Model *_model = nullptr, DeveloperModel *_devModel = nullptr, Unit _unit = Unit(), double logsum = 0);
 
-			HedonicPrice_SubModel( double _day, Model *_hmModel,DeveloperModel * _devModel);
+			HedonicPrice_SubModel( double _day, HM_Model *_hmModel, Unit &_unit);
 
 			virtual ~HedonicPrice_SubModel();
 
 			double ComputeLagCoefficient();
-			double ComputeHedonicPrice( HouseholdSellerRole::SellingUnitInfo &info, double logsum, Unit &unit, HouseholdSellerRole::UnitsInfoMap &sellingUnitsMap);
+			void ComputeHedonicPrice( HouseholdSellerRole::SellingUnitInfo &info, HouseholdSellerRole::UnitsInfoMap &sellingUnitsMap, BigSerial agentId);
+			void ComputeExpectation( int numExpectations, std::vector<ExpectationEntry> &expectations);
 
 		private:
 			double hedonicPrice;
 			double lagCoefficient;
 			double day;
-			Model *hmModel;
+			HM_Model *hmModel;
 			DeveloperModel * devModel;
 			Unit unit;
+			double logsum;
 		};
 
 	}

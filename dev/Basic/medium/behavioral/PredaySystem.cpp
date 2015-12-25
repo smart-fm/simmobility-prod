@@ -86,7 +86,7 @@ namespace {
 		std::map<int, std::string> res;
 		res[1] = "BusTravel";
 		res[2] = "MRT";
-		res[3] = "Bus";
+		res[3] = "PrivateBus";
 		res[4] = "Car";
 		res[5] = "Car Sharing 2";
 		res[6] = "Car Sharing 3";

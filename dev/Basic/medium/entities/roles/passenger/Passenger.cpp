@@ -40,6 +40,10 @@ Role<Person_MT>* sim_mob::medium::Passenger::clone(Person_MT *parent) const
 	{
 		roleType = Role<Person_MT>::RL_CARPASSENGER;
 	}
+	else if (parent->currSubTrip->mode == "PrivateBus")
+	{
+		roleType = Role<Person_MT>::RL_PRIVATEBUSPASSENGER;
+	}
 	Passenger* passenger = new Passenger(parent, behavior, movement, "Passenger_", roleType);
 	behavior->setParentPassenger(passenger);
 	movement->setParentPassenger(passenger);

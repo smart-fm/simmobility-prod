@@ -75,7 +75,7 @@ TravelMetric & PassengerMovement::finalizeTravelTimeMetric()
 
 Conflux* PassengerMovement::getStartingConflux() const
 {
-	if (parentPassenger->roleType == Role<Person_MT>::RL_CARPASSENGER)
+	if (parentPassenger->roleType == Role<Person_MT>::RL_CARPASSENGER || parentPassenger->roleType == Role<Person_MT>::RL_PRIVATEBUSPASSENGER)
 	{
 		return MT_Config::getInstance().getConfluxForNode(parentPassenger->parent->currSubTrip->destination.node);
 	}

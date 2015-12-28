@@ -141,7 +141,7 @@ public:
 		{
 			return "busdriver";
 		}
-		if (mode == "BusTravel" || mode == "MRT" || mode == "Sharing")
+		if (mode == "BusTravel" || mode == "MRT" || mode == "Sharing" || mode == "PrivateBus")
 		{
 			return "passenger";
 		}

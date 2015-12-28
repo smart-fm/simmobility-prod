@@ -90,7 +90,7 @@ Conflux::~Conflux()
 	activityPerformers.clear();
 	pedestrianList.clear();
 	mrt.clear();
-	carSharing.clear();
+	stashedPersons.clear();
 }
 
 bool Conflux::isNonspatial()
@@ -256,8 +256,9 @@ void Conflux::addAgent(Person_MT* person)
 			break;
 		}
 		case Role<Person_MT>::RL_CARPASSENGER:
+		case Role<Person_MT>::RL_PRIVATEBUSPASSENGER:
 		{
-			assignPersonToCar(person);
+			stashPerson(person);
 			break;
 		}
 		case Role<Person_MT>::RL_ACTIVITY:
@@ -1047,15 +1048,15 @@ void Conflux::HandleMessage(messaging::Message::MessageType type, const messagin
 		switchTripChainItem(msg.person);
 		break;
 	}
-	case MSG_WAKEUP_CAR_PASSENGER_TELEPORTATION:
+	case MSG_WAKEUP_STASHED_PERSON:
 	{
 		const PersonMessage& msg = MSG_CAST(PersonMessage, message);
-		PersonList::iterator pIt = std::find(carSharing.begin(), carSharing.end(), msg.person);
-		if (pIt == carSharing.end())
+		PersonList::iterator pIt = std::find(stashedPersons.begin(), stashedPersons.end(), msg.person);
+		if (pIt == stashedPersons.end())
 		{
 			throw std::runtime_error("Person not found in Car list");
 		}
-		carSharing.erase(pIt);
+		stashedPersons.erase(pIt);
 		//switch to next trip chain item
 		switchTripChainItem(msg.person);
 		break;
@@ -1112,7 +1113,7 @@ Entity::UpdateStatus Conflux::switchTripChainItem(Person_MT* person)
 
 	if (personRole && personRole->roleType == Role<Person_MT>::RL_CARPASSENGER)
 	{
-		assignPersonToCar(person);
+		stashPerson(person);
 		PersonList::iterator pIt = std::find(pedestrianList.begin(), pedestrianList.end(), person);
 		if (pIt != pedestrianList.end())
 		{
@@ -1396,23 +1397,26 @@ void Conflux::assignPersonToMRT(Person_MT* person)
 	}
 }
 
-void Conflux::assignPersonToCar(Person_MT* person)
+void Conflux::stashPerson(Person_MT* person)
 {
 	Role<Person_MT>* role = person->getRole();
-	if (role && role->roleType == Role<Person_MT>::RL_CARPASSENGER)
+	if (role)
 	{
-		person->currWorkerProvider = currWorkerProvider;
-		PersonList::iterator pIt = std::find(carSharing.begin(), carSharing.end(), person);
-		if (pIt == carSharing.end())
+		if(role->roleType == Role<Person_MT>::RL_CARPASSENGER || role->roleType == Role<Person_MT>::RL_PRIVATEBUSPASSENGER)
 		{
-			carSharing.push_back(person);
+			person->currWorkerProvider = currWorkerProvider;
+			PersonList::iterator pIt = std::find(stashedPersons.begin(), stashedPersons.end(), person);
+			if (pIt == stashedPersons.end())
+			{
+				stashedPersons.push_back(person);
+			}
+			DailyTime time = person->currSubTrip->endTime;
+			person->setStartTime(currFrame.ms());
+			person->getRole()->setTravelTime(time.getValue() - person->getStartTime());
+			unsigned int tick = ConfigManager::GetInstance().FullConfig().baseGranMS();
+			messaging::MessageBus::PostMessage(this, MSG_WAKEUP_STASHED_PERSON, messaging::MessageBus::MessagePtr(new PersonMessage(person)), false,
+					time.getValue() / tick);
 		}
-		DailyTime time = person->currSubTrip->endTime;
-		person->setStartTime(currFrame.ms());
-		person->getRole()->setTravelTime(time.getValue());
-		unsigned int tick = ConfigManager::GetInstance().FullConfig().baseGranMS();
-		messaging::MessageBus::PostMessage(this, MSG_WAKEUP_CAR_PASSENGER_TELEPORTATION, messaging::MessageBus::MessagePtr(new PersonMessage(person)), false,
-				time.getValue() / tick);
 	}
 }
 
@@ -1490,7 +1494,7 @@ PersonCount Conflux::countPersons() const
 	count.activityPerformers = activityPerformers.size();
 	count.pedestrians = pedestrianList.size();
 	count.trainPassengers = mrt.size();
-	count.carSharers = carSharing.size();
+	count.carSharers = stashedPersons.size();
 
 	PersonList onRoadPersons, tmpAgents;
 	SegmentStats* segStats = nullptr;
@@ -1821,6 +1825,7 @@ Conflux* Conflux::findStartingConflux(Person_MT* person, unsigned int now)
 	case Role<Person_MT>::RL_PASSENGER: //Fall through
 	case Role<Person_MT>::RL_TRAINPASSENGER: //Fall through
 	case Role<Person_MT>::RL_CARPASSENGER: //Fall through
+	case Role<Person_MT>::RL_PRIVATEBUSPASSENGER: //Fall through
 	{
 		const medium::PassengerMovement* passengerMvt = dynamic_cast<const medium::PassengerMovement*>(personRole->Movement());
 		if(passengerMvt)

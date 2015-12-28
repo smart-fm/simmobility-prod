@@ -148,8 +148,11 @@ private:
 	/**list of persons currently on MRT train bound to some node in this conflux*/
 	PersonList mrt;
 
-	/**list of persons currently on Car Sharing in this condflux*/
-	PersonList carSharing;
+	/**
+	 * list of persons who are hidden in this conflux awaiting a wake-up call
+	 * All persons whose roles resolve to teleportation (e.g. car sharing and private bus) are kept in this list.
+	 */
+	PersonList stashedPersons;
 
 	/**flag to indicate whether this conflux is a person loading conflux*/
 	bool isLoader;
@@ -212,7 +215,7 @@ private:
 	 * assign person to car
 	 * @param person is going to board car
 	 */
-	void assignPersonToCar(Person_MT* person);
+	void stashPerson(Person_MT* person);
 
 	/**
 	 * calls frame_init of the movement facet for the person's role

@@ -349,9 +349,7 @@ void HouseholdBidderRole::computeHouseholdAffordability()
 
 	double price = expectations[0].hedonicPrice;
 
-	Household *castHousehold = const_cast<Household*>(household);
-
-	castHousehold->setCurrentUnitPrice( price );
+	bidderHousehold->setCurrentUnitPrice( price );
 }
 
 void HouseholdBidderRole::init()
@@ -1654,14 +1652,18 @@ bool HouseholdBidderRole::pickEntryToBid()
             	else
             		PrintOutV("Asking price is zero for unit " << entry->getUnitId() << std::endl );
 
-            	if( currentSurplus > maxSurplus )
+            	if( household->getAffordabilityAmount() > household->getCurrentUnitPrice() )
+            		maxAffordability = household->getAffordabilityAmount();
+            	else
+            		maxAffordability = household->getCurrentUnitPrice();
+
+            	if( currentSurplus > maxSurplus && maxAffordability > entry->getAskingPrice() )
             	{
             		maxSurplus = currentSurplus;
             		finalBid = currentBid;
             		maxEntry = entry;
             		maxWp = wp;
             		maxWtpe = wtp_e;
-            		maxAffordability = household->getAffordabilityAmount();;
             	}
             }
         }

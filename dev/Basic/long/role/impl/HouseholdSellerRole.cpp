@@ -101,12 +101,7 @@ namespace
      */
     inline bool decide(const Bid& bid, const ExpectationEntry& entry)
     {
-    	double amount = bid.getBidValue();
-
-    	if( amount > bid.getAffordabilityAmount())
-    		amount = bid.getAffordabilityAmount();
-
-        return amount > entry.targetPrice;
+        return bid.getBidValue() > entry.targetPrice;
     }
 
     /**

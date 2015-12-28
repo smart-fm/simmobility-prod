@@ -114,13 +114,22 @@ void PT_Network::init()
 
 sim_mob::PT_Network::~PT_Network()
 {
-	std::cout << "destroying PT_Network " << std::endl;
-	for(std::map<std::string, TrainStop*>::iterator trainStopIt = MRTStopsMap.begin(); trainStopIt!=MRTStopsMap.end(); trainStopIt++)
+	while(!MRTStopsMap.empty())
 	{
+		std::map<std::string, TrainStop*>::iterator trainStopIt = MRTStopsMap.begin();
 		TrainStop* stop = trainStopIt->second;
+		std::vector<std::string> otherIdsForSameTrainStop = stop->getTrainStopIds();
 		delete stop;
+		MRTStopsMap.erase(trainStopIt);
+		for(std::string& id : otherIdsForSameTrainStop) //there may be multiple stop_id's pointing to the same stop object (for interchanges)
+		{
+			trainStopIt = MRTStopsMap.find(id);
+			if(trainStopIt!=MRTStopsMap.end())
+			{
+				MRTStopsMap.erase(trainStopIt);
+			}
+		}
 	}
-	MRTStopsMap.clear();
 }
 
 int PT_Network::getVertexTypeFromStopId(std::string stopId)

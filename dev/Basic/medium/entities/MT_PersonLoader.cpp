@@ -168,6 +168,44 @@ std::string getRandomTimeInWindow(double mid, bool firstFifteenMins)
 	return random_time; //HH24:MI:SS format
 }
 
+void setActivityStartEnd(sim_mob::Activity* activity, double startInterval, double endInterval)
+{
+	int hour = int(std::floor(startInterval));
+	int min = 0, max = 29;
+	int minute = Utils::generateInt(min,max) + ((startInterval - hour - 0.25)*60);
+	int second = Utils::generateInt(0,59);
+
+	//construct string representation
+	std::string random_time;
+	random_time.resize(8); //hh:mi:ss - 8 characters
+	char* c = &random_time[0];
+	c = timeDecimalDigitToChar(hour, c);
+	c++; *c=':'; c++;
+	c = timeDecimalDigitToChar(minute, c);
+	c++; *c=':'; c++;
+	c = timeDecimalDigitToChar(second, c);
+	activity->startTime = sim_mob::DailyTime(random_time);
+
+	hour = int(std::floor(endInterval));
+	if(endInterval <= startInterval)
+	{
+		min = minute; //max is still 29
+	}
+	minute = Utils::generateInt(min,max) + ((startInterval - hour - 0.25)*60);
+	second = Utils::generateInt(0,59);
+
+	//construct string representation
+	random_time = std::string();
+	random_time.resize(8); //hh:mi:ss - 8 characters
+	c = &random_time[0];
+	c = timeDecimalDigitToChar(hour, c);
+	c++; *c=':'; c++;
+	c = timeDecimalDigitToChar(minute, c);
+	c++; *c=':'; c++;
+	c = timeDecimalDigitToChar(second, c);
+	activity->endTime = sim_mob::DailyTime(random_time);
+}
+
 }//anon namespace
 
 /**
@@ -278,8 +316,7 @@ Activity* MT_PersonLoader::makeActivity(const soci::row& r, unsigned int seqNo)
 	res->isMandatory = true;
 	res->destination = WayPoint(rn->getById(rn->getMapOfIdvsNodes(), r.get<int>(5)));
 	res->destinationType = TripChainItem::LT_NODE;
-	res->startTime = DailyTime(getRandomTimeInWindow(r.get<double>(8), true));
-	res->endTime = DailyTime(getRandomTimeInWindow(r.get<double>(9), false));
+	setActivityStartEnd(res, r.get<double>(8), r.get<double>(9));
 	return res;
 }
 

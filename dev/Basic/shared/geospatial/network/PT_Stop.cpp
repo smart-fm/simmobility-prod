@@ -184,7 +184,6 @@ TrainStop::TrainStop(std::string stopIds)
 
 TrainStop::~TrainStop()
 {
-	std::cout << "destroying TrainStop " << trainStopIds.front() << std::endl;
 	trainStopIds.clear();
 	roadSegments.clear();
 }

@@ -204,7 +204,6 @@ Entity::UpdateStatus BusStopAgent::frame_tick(timeslice now)
 		}
 	}
 
-	std::cout << "BusStopAgent " << busStop->getStopCode() << " updated" << std::endl;
 	return UpdateStatus::Continue;
 }
 

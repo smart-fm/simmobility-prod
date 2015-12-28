@@ -385,7 +385,7 @@ function calculatePrivate_HedonicPrice(unit, building, postcode, amenities, logs
 				0.096846927	*	ZZ_bus_400m 	+ 
 				0.224145375	*	ZZ_bus_gt400m 	+ 
 				-0.02603531	*	age 		+ 
-				8.67E-05	*	ageSquared	+ 
+				0.0000867	*	ageSquared	+ 
 				0.076709586	*	agem25_50 	+ 
 				0.523295627	*	agem50 		+ 
 				-0.124793173	*	misage;

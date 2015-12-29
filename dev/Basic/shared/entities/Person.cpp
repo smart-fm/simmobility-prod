@@ -150,6 +150,24 @@ bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::S
 			std::string endType;
 			int sType = (*it).sType;
 			int eType = (*it).eType;
+
+			if (it->tType == "Bus" && (sType != 1 || eType != 1))
+			{
+				invalidFlag = true;
+			}
+
+			if (it->tType == "RTS" && (sType != 2 || eType != 2))
+			{
+				invalidFlag = true;
+			}
+
+			if(invalidFlag)
+			{
+				Print() << "[PT pathset] make trip failed:[" << sSrc << "]|[" << sEnd << "] - Invalid start/end stop for PT edge" << std::endl;
+				ret = false;
+				break;
+			}
+
 			switch (eType)
 			{
 			case 0:
@@ -221,16 +239,8 @@ bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::S
 				break;
 			}
 			}
-			if (it->tType == "Bus" && (sType != 1 || eType != 1))
-			{
-				invalidFlag = true;
-			}
-			if (it->tType == "RTS" && (sType != 2 || eType != 2))
-			{
-				invalidFlag = true;
-			}
 
-			if (source.type != WayPoint::INVALID && dest.type != WayPoint::INVALID && !invalidFlag)
+			if (source.type != WayPoint::INVALID && dest.type != WayPoint::INVALID)
 			{
 				subTrip.setPersonID(-1);
 				subTrip.itemType = TripChainItem::getItemType("Trip");
@@ -281,7 +291,7 @@ bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::S
 			}
 			else
 			{
-				Print() << "[PT pathset] make trip failed:[" << sSrc << "]|[" << sEnd << "]" << std::endl;
+				Print() << "[PT pathset] make trip failed:[" << sSrc << "(" << sType << ")" << "]|[" << sEnd << "(" << eType << ")" << "] mode: " << it->tType << std::endl;
 				ret = false;
 				break;
 			}

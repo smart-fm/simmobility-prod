@@ -265,7 +265,7 @@ public:
 
 	void init();
 
-	TrainStop* findMRT_Stop(const std::string& stopId);
+	TrainStop* findMRT_Stop(const std::string& stopId) const;
 
 	int getVertexTypeFromStopId(std::string stopId);
 	static PT_Network instance_;

@@ -141,16 +141,17 @@ int PT_Network::getVertexTypeFromStopId(std::string stopId)
 	return -1;
 }
 
-TrainStop* PT_Network::findMRT_Stop(const std::string& stopId)
+TrainStop* PT_Network::findMRT_Stop(const std::string& stopId) const
 {
 	//stop id can be a slash '/' separated list of MRT stop ids.
 	//all MRT stops in the '/' separated list point to the same TrainStop object in MRTStopsMap
 	std::stringstream ss(stopId);
 	std::string singleMrtStopId;
 	std::getline(ss, singleMrtStopId, '/');
-	if (MRTStopsMap.find(singleMrtStopId) != MRTStopsMap.end())
+	std::map<std::string, TrainStop*>::const_iterator trainStopIt = MRTStopsMap.find(singleMrtStopId);
+	if (trainStopIt != MRTStopsMap.end())
 	{
-		return MRTStopsMap[singleMrtStopId];
+		return trainStopIt->second;
 	}
 	else
 	{

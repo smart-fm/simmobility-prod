@@ -544,7 +544,7 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 	//These constants are extracted from Roberto Ponce's bidding model
 	//
 	/* willingness to pay in million of dollars*/
-	double sde		=  0.7922954584;
+	double sde		=  0.1;
 	double barea	=  0.6922591951;
 	double blogsum	=  0.0184661069;
 	double bchin	= -0.0727597459;
@@ -641,7 +641,7 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 
 	if( unitType <= 6  || unitType == 65 )
 	{
-		sde 	 = 0.4371165786;
+		sde 	 = 0.05;
 		barea 	 = 0.8095874824;
 		blogsum	 = 0.0035517989;
 		bchin 	 = 0.0555546991;

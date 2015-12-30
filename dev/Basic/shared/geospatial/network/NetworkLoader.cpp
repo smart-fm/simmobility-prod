@@ -266,6 +266,11 @@ void NetworkLoader::loadBusStops(const std::string& storedProc)
 			}
 			stop->setTwinStop(twinStop);
 			twinStop->setTwinStop(stop);
+
+			//yet another hackish fix to make up for data errors
+			//All bus interchanges are made long enough to accept at least 10 buses at a time
+			stop->setLength(std::max(stop->getLength(), 10 * sim_mob::BUS_LENGTH));
+			twinStop->setLength(std::max(twinStop->getLength(), 10 * sim_mob::BUS_LENGTH));
 		}
 	}
 }

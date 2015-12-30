@@ -197,12 +197,6 @@ bool HouseholdBidderRole::isActive() const
 
 void HouseholdBidderRole::setActive(bool activeArg)
 {
-	if( activeArg == true )
-	{
-		ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
-		getParent()->setHouseholdBiddingWindow( config.ltParams.housingModel.householdBiddingWindow );
-	}
-
     active = activeArg;
 }
 
@@ -392,7 +386,7 @@ void HouseholdBidderRole::update(timeslice now)
 		return;
 	}
 
-	//wait 60 days after move in to a new unit to reconsider the vehicle ownership option.
+	//wait x days after move in to a new unit to reconsider the vehicle ownership option.
 	if( vehicleBuyingWaitingTimeInDays > 0 && moveInWaitingTimeInDays == 0)
 	{
 
@@ -528,7 +522,7 @@ bool HouseholdBidderRole::bidUnit(timeslice now)
 				#endif
 
 				bid(entry->getOwner(), Bid(model->getBidId(),household->getUnitId(),entry->getUnitId(), household->getId(), getParent(), biddingEntry.getBestBid(), now.ms(), biddingEntry.getWP(), biddingEntry.getWtp_e(), biddingEntry.getAffordability()));
-
+				model->incrementBids();
 				return true;
 			}
 		}
@@ -1843,6 +1837,7 @@ void HouseholdBidderRole::reconsiderVehicleOwnershipOption()
 
 	setActive(false);
 	getParent()->getModel()->decrementBidders();
+	getParent()->getModel()->incrementExits();
 
 }
 

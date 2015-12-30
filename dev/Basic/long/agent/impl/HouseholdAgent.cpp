@@ -31,8 +31,8 @@ using std::string;
 using std::map;
 using std::endl;
 
-HouseholdAgent::HouseholdAgent(BigSerial id, HM_Model* model, const Household* household, HousingMarket* market, bool marketSeller, int day, int householdBiddingWindow)
-: LT_Agent(id), model(model), market(market), household(household), marketSeller(marketSeller), bidder (nullptr), seller(nullptr), day(day),vehicleOwnershipOption(NO_CAR), householdBiddingWindow(householdBiddingWindow)
+HouseholdAgent::HouseholdAgent(BigSerial _id, HM_Model* _model, const Household* _household, HousingMarket* _market, bool _marketSeller, int _day, int _householdBiddingWindow)
+: LT_Agent(_id), model(_model), market(_market), household(_household), marketSeller(_marketSeller), bidder (nullptr), seller(nullptr), day(_day),vehicleOwnershipOption(NO_CAR), householdBiddingWindow(_householdBiddingWindow)
 {
     seller = new HouseholdSellerRole(this);
     seller->setActive(marketSeller);
@@ -45,11 +45,12 @@ HouseholdAgent::HouseholdAgent(BigSerial id, HM_Model* model, const Household* h
 
     ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
     buySellInterval = config.ltParams.housingModel.offsetBetweenUnitBuyingAndSelling;
-    householdBiddingWindow = config.ltParams.housingModel.householdBiddingWindow * (double)rand() / RAND_MAX + 1;
 
     //srand() is thread-specific
 	time_t timeInSeconds = std::time(0);
 	srand(timeInSeconds);
+
+    householdBiddingWindow = config.ltParams.housingModel.householdBiddingWindow * (double)rand() / RAND_MAX + 1;
 }
 
 HouseholdAgent::~HouseholdAgent()
@@ -302,8 +303,8 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 	{
 		bidder->setActive(false);
 		model->decrementBidders();
+		model->incrementExits();
 	}
-
 
     if (bidder && bidder->isActive() && householdBiddingWindow > 0 )
     {
@@ -362,6 +363,7 @@ void HouseholdAgent::processExternalEvent(const ExternalEventArgs& args)
             {
                 bidder->setActive(true);
                 model->incrementBidders();
+                model->incrementAwakeningCounter();
             }
 
 			#ifdef VERBOSE

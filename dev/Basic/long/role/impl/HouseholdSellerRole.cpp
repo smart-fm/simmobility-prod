@@ -434,6 +434,7 @@ void HouseholdSellerRole::notifyWinnerBidders()
         PrintOutV("[day " << currentTime.ms() << "] Seller " << std::dec << getParent()->getId() << " accepted the bid of " << maxBidOfDay.getBidderId() << " for unit " << maxBidOfDay.getUnitId() << " at $" << maxBidOfDay.getValue() << std::endl );
 		#endif
 
+        getParent()->getModel()->incrementSuccessfulBids();
         market->removeEntry(maxBidOfDay.getNewUnitId());
         getParent()->removeUnitId(maxBidOfDay.getNewUnitId());
         sellingUnitsMap.erase(maxBidOfDay.getNewUnitId());

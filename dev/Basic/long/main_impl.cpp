@@ -384,7 +384,7 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
 			 }
 			#endif
 
-            PrintOutV("Day " << currTick << " The housing market has " << std::dec << (dynamic_cast<HM_Model*>(models[0]))->getMarket()->getEntrySize() << " units and \t" << (dynamic_cast<HM_Model*>(models[0]))->getNumberOfBidders() << " bidders on the market" << std::endl );
+            (dynamic_cast<HM_Model*>(models[0]))->resetBAEStatistics();
 
             //start all models.
 		    for (vector<Model*>::iterator it = models.begin(); it != models.end(); it++)
@@ -393,6 +393,14 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
 		    }
 
             wgMgr.waitAllGroups();
+
+            PrintOutV("Day " << currTick << " Housing market. Units: " << std::dec << (dynamic_cast<HM_Model*>(models[0]))->getMarket()->getEntrySize()
+            	   << " Bidders: " 			<< (dynamic_cast<HM_Model*>(models[0]))->getNumberOfBidders() << " "
+				   << " Bids: " 			<< (dynamic_cast<HM_Model*>(models[0]))->getBids()
+            	   << " Successful Bids: " 	<< (dynamic_cast<HM_Model*>(models[0]))->getSuccessfulBids()
+				   << " Exits: " 			<< (dynamic_cast<HM_Model*>(models[0]))->getExits()
+				   << " Awakenings: " 		<< (dynamic_cast<HM_Model*>(models[0]))->getAwakeningCounter()
+				   << " " << std::endl );
 
             DeveloperModel::ParcelList parcels;
             DeveloperModel::DeveloperList developerAgents;

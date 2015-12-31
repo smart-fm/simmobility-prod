@@ -32,8 +32,9 @@ using std::map;
 using std::endl;
 
 HouseholdAgent::HouseholdAgent(BigSerial _id, HM_Model* _model, const Household* _household, HousingMarket* _market, bool _marketSeller, int _day, int _householdBiddingWindow)
-: LT_Agent(_id), model(_model), market(_market), household(_household), marketSeller(_marketSeller), bidder (nullptr), seller(nullptr), day(_day),vehicleOwnershipOption(NO_CAR), householdBiddingWindow(_householdBiddingWindow)
-{
+							 : LT_Agent(_id), model(_model), market(_market), household(_household), marketSeller(_marketSeller), bidder (nullptr), seller(nullptr), day(_day),
+							   vehicleOwnershipOption(NO_CAR), householdBiddingWindow(_householdBiddingWindow)
+							{
     seller = new HouseholdSellerRole(this);
     seller->setActive(marketSeller);
 
@@ -45,10 +46,6 @@ HouseholdAgent::HouseholdAgent(BigSerial _id, HM_Model* _model, const Household*
 
     ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
     buySellInterval = config.ltParams.housingModel.offsetBetweenUnitBuyingAndSelling;
-
-    //srand() is thread-specific
-	time_t timeInSeconds = std::time(0);
-	srand(timeInSeconds);
 
     householdBiddingWindow = config.ltParams.housingModel.householdBiddingWindow * (double)rand() / RAND_MAX + 1;
 }

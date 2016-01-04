@@ -175,7 +175,7 @@ void Conflux::PersonProps::printProps(unsigned int personId, uint32_t frame, std
 	propStrm << " conflux:";
 	if (conflux)
 	{
-		propStrm << conflux->getConfluxNode()->getNodeId();
+		propStrm << conflux->getConfluxNode()->getNodeId() << "(worker: " << conflux->currWorkerProvider << ")";
 	}
 	else
 	{
@@ -209,7 +209,7 @@ void Conflux::PersonProps::printProps(unsigned int personId, uint32_t frame, std
 		propStrm << "0x0";
 	}
 	propStrm << " roleType:" << roleType << " isQueuing:" << isQueuing << " isMoving:" << isMoving << " }" << std::endl;
-	std::cout << propStrm.str();
+	Print() << propStrm.str();
 }
 
 void Conflux::addAgent(Person_MT* person)
@@ -407,9 +407,11 @@ void Conflux::updateAgent(Person_MT* person)
 	//capture person info after update
 	PersonProps afterUpdate(person, this);
 
-
-	beforeUpdate.printProps(person->getId(), currFrame.frame(), std::to_string(confluxNode->getNodeId()) + " before");
-	afterUpdate.printProps(person->getId(), currFrame.frame(), std::to_string(confluxNode->getNodeId()) + " after");
+	if(beforeUpdate.roleType == Role<Person_MT>::RL_BUSDRIVER)
+	{
+		beforeUpdate.printProps(person->getId(), currFrame.frame(), std::to_string(confluxNode->getNodeId()) + " before");
+		afterUpdate.printProps(person->getId(), currFrame.frame(), std::to_string(confluxNode->getNodeId()) + " after");
+	}
 
 	//perform house keeping
 	housekeep(beforeUpdate, afterUpdate, person);
@@ -636,12 +638,13 @@ void Conflux::processVirtualQueues()
 		for (VirtualQueueMap::iterator i = virtualQueuesMap.begin(); i != virtualQueuesMap.end(); i++)
 		{
 			counter = i->second.size();
+			Print() << "Frame: " << currFrame.frame() << "|Link: " << i->first->getLinkId() << "|VQ size: " << counter << "\n";
 			sortPersonsDecreasingRemTime(i->second);
 			while (counter > 0)
 			{
 				Person_MT* p = i->second.front();
 				i->second.pop_front();
-				std::cout << "Processing " << p->getId() << " from VQ\n";
+				Print() << "Processing " << p->getId() << " from VQ\n";
 				updateAgent(p);
 				counter--;
 			}

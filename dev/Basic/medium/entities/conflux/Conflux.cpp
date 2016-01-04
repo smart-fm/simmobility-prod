@@ -223,6 +223,7 @@ void Conflux::addAgent(Person_MT* person)
 		Role<Person_MT>* role = person->getRole(); // at this point, we expect the role to have been initialized already
 		if (!role)
 		{
+			safe_delete_item(person);
 			return;
 		}
 

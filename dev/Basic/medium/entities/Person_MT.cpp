@@ -55,20 +55,9 @@ Person_MT::~Person_MT()
 
 void Person_MT::convertPublicTransitODsToTrips()
 {
-	if (!ConfigManager::GetInstance().FullConfig().isPublicTransitEnabled())
-	{
-		return;
-	}
-
 	std::vector<TripChainItem*>::iterator tripChainItem;
-	bool brokenBusTravel = false;
-	std::vector<TripChainItem*>::iterator brokenBusTravelItem;
 	for (tripChainItem = tripChain.begin(); tripChainItem != tripChain.end(); ++tripChainItem)
 	{
-		if (brokenBusTravel)
-		{
-			break;
-		}
 		if ((*tripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP)
 		{
 			Trip* trip = dynamic_cast<Trip*>(*tripChainItem);
@@ -108,7 +97,7 @@ void Person_MT::convertPublicTransitODsToTrips()
 						itSubTrip->startLocationType = "NODE";
 						itSubTrip->endLocationType = "NODE";
 					}
-					else if (itSubTrip->mode.find("Car Sharing") != std::string::npos)
+					else if (itSubTrip->mode.find("Car Sharing") != std::string::npos || itSubTrip->mode == "PrivateBus")
 					{
 						std::string originId = boost::lexical_cast<std::string>(itSubTrip->origin.node->getNodeId());
 						std::string destId = boost::lexical_cast<std::string>(itSubTrip->destination.node->getNodeId());
@@ -117,7 +106,10 @@ void Person_MT::convertPublicTransitODsToTrips()
 						itSubTrip->endLocationId = destId;
 						itSubTrip->startLocationType = "NODE";
 						itSubTrip->endLocationType = "NODE";
-						itSubTrip->mode = "Sharing";
+						if(itSubTrip->mode != "PrivateBus")
+						{
+							itSubTrip->mode = "Sharing"; // modify mode name for RoleFactory
+						}
 
 						const StreetDirectory& streetDirectory = StreetDirectory::Instance();
 						std::vector<WayPoint> wayPoints = streetDirectory.SearchShortestDrivingPath(*itSubTrip->origin.node, *itSubTrip->destination.node);
@@ -143,42 +135,28 @@ void Person_MT::convertPublicTransitODsToTrips()
 			}
 		}
 	}
-
-	if (brokenBusTravel)
-	{
-		tripChainItem = brokenBusTravelItem;
-		while (tripChainItem != tripChain.end())
-		{
-			delete *tripChainItem;
-			tripChainItem = tripChain.erase(tripChainItem);
-		}
-	}
 }
 
 void Person_MT::insertWaitingActivityToTrip()
 {
 	std::vector<TripChainItem*>::iterator tripChainItem;
-	for (tripChainItem = tripChain.begin(); tripChainItem != tripChain.end();
-			++tripChainItem)
+	for (tripChainItem = tripChain.begin(); tripChainItem != tripChain.end(); ++tripChainItem)
 	{
 		if ((*tripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP)
 		{
 			std::vector<SubTrip>::iterator itSubTrip[2];
-			std::vector<sim_mob::SubTrip>& subTrips =
-					(dynamic_cast<sim_mob::Trip*> (*tripChainItem))->getSubTripsRW();
+			std::vector<sim_mob::SubTrip>& subTrips = (dynamic_cast<sim_mob::Trip*> (*tripChainItem))->getSubTripsRW();
 
 			itSubTrip[1] = subTrips.begin();
 			itSubTrip[0] = subTrips.begin();
 			while (itSubTrip[1] != subTrips.end())
 			{
-				if (itSubTrip[1]->mode == "BusTravel"
-						&& itSubTrip[0]->mode != "WaitingBusActivity")
+				if (itSubTrip[1]->mode == "BusTravel" && itSubTrip[0]->mode != "WaitingBusActivity")
 				{
 					if (itSubTrip[1]->origin.type == WayPoint::BUS_STOP)
 					{
 						sim_mob::SubTrip subTrip;
-						subTrip.itemType = TripChainItem::getItemType(
-																	"WaitingBusActivity");
+						subTrip.itemType = TripChainItem::getItemType("WaitingBusActivity");
 						subTrip.origin = itSubTrip[1]->origin;
 						subTrip.originType = itSubTrip[1]->originType;
 						subTrip.destination = itSubTrip[1]->destination;
@@ -239,15 +217,7 @@ void Person_MT::initTripChain()
 	if ((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP)
 	{
 		currSubTrip = ((dynamic_cast<sim_mob::Trip*> (*currTripChainItem))->getSubTripsRW()).begin();
-		
-		// if the first trip chain item is passenger, create waitBusActivityRole
-		if (currSubTrip->mode == "BusTravel")
-		{
-			const RoleFactory<Person_MT> *rf = RoleFactory<Person_MT>::getInstance();
-			currRole = rf->createRole("waitBusActivity", this);
-			nextRole = rf->createRole("passenger", this);
-		}
-		
+
 		if (!updateOD(*currTripChainItem))
 		{ 
 			//Offer some protection
@@ -424,7 +394,7 @@ Entity::UpdateStatus Person_MT::checkTripChain()
 	
 	isFirstTick = false;
 
-	//Null out our trip chain, remove the "removed" flag, and return
+	//remove the "removed" flag, and return
 	clearToBeRemoved();
 	return UpdateStatus(UpdateStatus::RS_CONTINUE, prevParams, currParams);
 }

@@ -270,7 +270,6 @@ bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::S
 					subTrip.destinationType = TripChainItem::LT_NODE;
 				}
 				subTrip.tripID = "";
-				subTrip.mode = (*it).tType;
 				if ((*it).tType.find("Walk") != std::string::npos)
 				{
 					subTrip.mode = "Walk";

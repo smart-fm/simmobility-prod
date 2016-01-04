@@ -452,6 +452,7 @@ void Conflux::housekeep(PersonProps& beforeUpdate, PersonProps& afterUpdate, Per
 	case Role<Person_MT>::RL_WAITBUSACTITITY:
 	case Role<Person_MT>::RL_TRAINPASSENGER:
 	case Role<Person_MT>::RL_CARPASSENGER:
+	case Role<Person_MT>::RL_PRIVATEBUSPASSENGER:
 	{
 		return; //would have already been handled
 	}
@@ -1092,6 +1093,7 @@ Entity::UpdateStatus Conflux::switchTripChainItem(Person_MT* person)
 	}
 	Role<Person_MT>* personRole = person->getRole();
 	person->setStartTime(currFrame.ms());
+
 	if (personRole && personRole->roleType == Role<Person_MT>::RL_WAITBUSACTITITY)
 	{
 		assignPersonToBusStopAgent(person);
@@ -1114,7 +1116,7 @@ Entity::UpdateStatus Conflux::switchTripChainItem(Person_MT* person)
 		return retVal;
 	}
 
-	if (personRole && personRole->roleType == Role<Person_MT>::RL_CARPASSENGER)
+	if (personRole && (personRole->roleType == Role<Person_MT>::RL_CARPASSENGER || personRole->roleType == Role<Person_MT>::RL_PRIVATEBUSPASSENGER))
 	{
 		stashPerson(person);
 		PersonList::iterator pIt = std::find(pedestrianList.begin(), pedestrianList.end(), person);

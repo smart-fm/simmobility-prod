@@ -76,13 +76,6 @@ public:
 	bool checkIsFull();
 
 	/**
-	 * predict arrival at next bus stop in next frame tick
-	 * @param preArrivalTime is predicted arrival time at next bus stop
-	 * @param bus stop agent is the agent which wrap next bus stop
-	 */
-	void predictArrivalAtBusStop(double preArrivalTime, BusStopAgent* busStopAgent);
-
-	/**
 	 * get current waiting time at bus stop
 	 */
 	double getWaitingTimeAtBusStop() {
@@ -98,24 +91,7 @@ public:
 private:
 	/**passengers list*/
 	std::list<Passenger*> passengerList;
-	/**last visited bus stop*/
-	Shared<const BusStop*> visitedBusStop;
-	/**last visited bus stop sequence number*/
-	Shared<int> visitedBusStopSequenceNo;
-	/**real arrival time set by bus driver*/
-	Shared<double> arrivalTime;
-	/**current bus stop real times including departure and arrival time*/
-	Shared<BusStopRealTimes>* busStopRealTimes;
-	/** dwell time set by bus driver*/
-	Shared<double> dwellTime;
-	/**holding time set by bus controller*/
-	Shared<double> holdingTime;
-	/**get bus line information*/
-	Shared<std::string> visitedBusLine;
-	/**sequence number for current bus trip*/
-	Shared<int> visitedBusTripSequenceNo;
-	/**request mode for holding strategy*/
-	Shared<int> requestMode;
+
 	/**final waiting time at bus stop*/
 	double waitingTimeAtbusStop;
 

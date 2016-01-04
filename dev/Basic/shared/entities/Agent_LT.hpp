@@ -8,11 +8,7 @@
 #include <queue>
 #include <vector>
 #include <functional>
-
-//TODO: Move to cpp file.
 #include <stdexcept>
-//#include "geospatial/RoadRunnerRegion.hpp"
-//END TODO
 
 //These are minimal header file, so please keep includes to a minimum.
 #include "conf/settings/DisableOutput.h"
@@ -32,9 +28,9 @@ namespace sim_mob
 {
 
 class Agent_LT;
-class Link;
+
 class WorkGroup;
-class ShortTermBoundaryProcessor;
+
 class PackageUtils;
 class UnPackageUtils;
 
@@ -85,12 +81,12 @@ public:
 	virtual ~Agent_LT();
 
 	///Load an agent.
-	virtual void load(const std::map<std::string, std::string>& configProps) = 0;
+	//virtual void load(const std::map<std::string, std::string>& configProps);
 
 	///Update agent behavior. This will call frame_init, frame_tick, etc. correctly.
 	///Sub-classes should generally override the frame_* methods, but overriding update()
 	/// is ok too (it just overrides all the safeguards).
-	virtual Entity::UpdateStatus update(timeslice now) = 0;
+	virtual Entity::UpdateStatus update(timeslice now);
 
 
 protected:
@@ -102,7 +98,7 @@ protected:
 	///Called during the first call to update() for a given agent.
 	///Return false to indicate failure; the Agent will be removed from the simulation with no
 	/// further processing.
-	virtual bool frame_init(timeslice now) = 0;
+	virtual bool frame_init(timeslice now);
 
 
 	///Called during every call to update() for a given agent. This is called after frame_tick()
@@ -110,12 +106,34 @@ protected:
 	///NOTE: Returning "UpdateStatus::RS_DONE" will negate the final line of output.
 	//       It is generally better to call "setToBeRemoved()", and return "UpdateStatus::RS_CONTINUE",
 	//       even though conceptually this is slightly confusing. We can clean this up later.
-	virtual Entity::UpdateStatus frame_tick(timeslice now) = 0;
+	virtual Entity::UpdateStatus frame_tick(timeslice now);
 
 
 	///Called after frame_tick() for every call to update() for a given agent.
 	///Use this method to display output for this time tick.
-	virtual void frame_output(timeslice now) = 0;
+	virtual void frame_output(timeslice now);
+
+
+    /**
+     * Handler for frame_init method from agent.
+     * @param now time.
+     * @return true if the init ran well or false otherwise.
+     */
+     virtual bool onFrameInit(timeslice now) = 0;
+
+    /**
+     * Handler for frame_tick method from agent.
+     *
+     * @param now time.
+     * @return update status.
+     */
+    virtual sim_mob::Entity::UpdateStatus onFrameTick(timeslice now) = 0;
+
+    /**
+     * Handler for frame_output method from agent.
+     * @param now time.
+     */
+    virtual void onFrameOutput(timeslice now) = 0;
 
 
 public:
@@ -136,20 +154,10 @@ public:
     	this->configProperties.clear();
     }
 
-	///Subscribe this agent to a data manager.
-	virtual void buildSubscriptionList(std::vector<BufferedBase*>& subsList) = 0;
-
-	//Removal methods
+    //Removal methods
 	bool isToBeRemoved();
 	void setToBeRemoved();
 	void clearToBeRemoved(); ///<Temporary function.
-
-	virtual	void setCurrLink(const sim_mob::Link* link) = 0;
-
-	/**
-	 * Inherited from EventListener.
-	 */
-	virtual void onEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args) = 0;
 
 	/**
 	 * Inherited from MessageHandler.
@@ -160,9 +168,6 @@ protected:
 	///TODO: Temporary; this allows a child class to reset "call_frame_init", but there is
 	///      probably a better way of doing it.
 	void resetFrameInit();
-
-	//Ask this Agent to re-route.
-	virtual void rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment*>& blacklisted) = 0;
 
 private:
 	//For future reference.
@@ -185,6 +190,8 @@ public:
 	///Passing in a negative number will always auto-assign an ID, and is recommended.
 	static unsigned int GetAndIncrementID(int preferredID);
 
+	void buildSubscriptionList(std::vector<sim_mob::BufferedBase*>& subsList);
+
 	///Set the start ID for automatically generated IDs.
 	///\param startID Must be >0
 	///\param failIfAlreadyUsed If true, fails with an exception if the auto ID has already been used or set.
@@ -195,19 +202,12 @@ public:
 		return mutexStrat;
 	}
 
-	void setOnActivity(bool value) { onActivity = value; }
-	bool getOnActivity() { return onActivity; }
-
-	void setNextPathPlanned(bool value) { nextPathPlanned = value; }
-	bool getNextPathPlanned() { return nextPathPlanned; }
-
-
 protected:
 	///Raises an exception if the given Agent was started either too early or too late, or exists past its end time.
 	static void CheckFrameTimes(unsigned int agentId, uint32_t now, unsigned int startTime, bool wasFirstFrame, bool wasRemoved);
 
 private:
-	//unsigned int currMode;
+
 	bool toRemoved;
 	static unsigned int next_agent_id;
 
@@ -219,10 +219,7 @@ private:
     //Unknown until runtime
     std::map<std::string, std::string> configProperties;
 
-	bool nextPathPlanned; //determines if the detailed path for the current subtrip is already planned
-
-	bool onActivity; //Determines if the person is conducting any activity
-	long lastUpdatedFrame; //Frame number in which the previous update of this agent took place
+    long lastUpdatedFrame; //Frame number in which the previous update of this agent took place
 
 protected:
 	int dynamic_seed;
@@ -244,8 +241,7 @@ public:
 
 	void setLastUpdatedFrame(long lastUpdatedFrame);
 
-	friend class BoundaryProcessor;
-	friend class ShortTermBoundaryProcessor;
+	bool isNonspatial();
 
 	/**
 	 * xuyan: All Agents should have the serialization functions implemented for Distributed Version
@@ -265,14 +261,11 @@ public:
 	virtual void unpackProxy(UnPackageUtils& unpackageUtil);
 #endif
 
-
-private:
-	///Have we registered to receive commsim-related messages?
-	bool commEventRegistered;
+;
 
 };
 
-} //End namespace sim_mob
+}
 
 
 

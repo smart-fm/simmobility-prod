@@ -21,54 +21,17 @@ using std::vector;
 using std::string;
 using std::map;
 
-LT_Agent::LT_Agent(int id)
-: Agent_LT(ConfigManager::GetInstance().FullConfig().mutexStategy(), id) {
-}
+LT_Agent::LT_Agent(int id): Agent_LT(ConfigManager::GetInstance().FullConfig().mutexStategy(), id) {}
 
-LT_Agent::~LT_Agent() {
-}
+LT_Agent::~LT_Agent() {}
 
+//Entity::UpdateStatus LT_Agent::update(timeslice now)
+//{
+//	return onFrameTick(now);
+//}
 
-/////////////////////////////////////
-////////////////////////////////////
-Entity::UpdateStatus LT_Agent::update(timeslice now)
-{
-	return onFrameTick(now);
-}
-
-void LT_Agent::buildSubscriptionList(std::vector<sim_mob::BufferedBase*>&){}
-
-void LT_Agent::HandleMessage(messaging::Message::MessageType type, const messaging::Message& message){}
-
-const sim_mob::Link* LT_Agent::getCurrLink() const
-{
-	return NULL;
-}
-
-void LT_Agent::setCurrLink(const sim_mob::Link* link){}
-
-void LT_Agent::rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment*>& blacklisted){}
-
-void LT_Agent::onEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args){}
-//////////////////////////////////////
-/////////////////////////////////////
+//void LT_Agent::load(const map<string, string>& configProps) {}
 
 
-void LT_Agent::load(const map<string, string>& configProps) {
-}
 
-bool LT_Agent::frame_init(timeslice now) {
-    return onFrameInit(now);
-}
 
-Entity::UpdateStatus LT_Agent::frame_tick(timeslice now) {
-    return onFrameTick(now);
-}
-
-void LT_Agent::frame_output(timeslice now) {
-    onFrameOutput(now);
-}
-
-bool LT_Agent::isNonspatial() {
-    return false;
-}

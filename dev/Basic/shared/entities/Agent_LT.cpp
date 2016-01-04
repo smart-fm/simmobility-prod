@@ -15,12 +15,7 @@
 #include "conf/settings/StrictAgentErrors.h"
 #include "entities/profile/ProfileBuilder.hpp"
 #include "event/SystemEvents.hpp"
-#include "event/args/ReRouteEventArgs.hpp"
-#include "geospatial/Node.hpp"
-#include "geospatial/Lane.hpp"
-#include "geospatial/Link.hpp"
-#include "geospatial/RoadSegment.hpp"
-#include "geospatial/streetdir/StreetDirectory.hpp"
+
 #include "logging/Log.hpp"
 #include "message/MessageBus.hpp"
 #include "partitions/PartitionManager.hpp"
@@ -113,18 +108,10 @@ void sim_mob::Agent_LT::SetIncrementIDStartValue(int startID,bool failIfAlreadyU
 }
 
 sim_mob::Agent_LT::Agent_LT(	const MutexStrategy& mtxStrat, int id) : Entity(GetAndIncrementID(id)), mutexStrat(mtxStrat), initialized(false),
-								lastUpdatedFrame(-1),toRemoved(false), nextPathPlanned(false), dynamic_seed(id), currTick(0,0), commEventRegistered(false)
+								lastUpdatedFrame(-1),toRemoved(false), dynamic_seed(id), currTick(0,0)
 {}
 
-sim_mob::Agent_LT::~Agent_LT()
-{
-	//Un-register event listeners.
-	if (commEventRegistered)
-	{
-		messaging::MessageBus::UnSubscribeEvent(sim_mob::event::EVT_CORE_COMMSIM_ENABLED_FOR_AGENT,	this,this);
-	}
-
-}
+sim_mob::Agent_LT::~Agent_LT(){}
 
 void sim_mob::Agent_LT::resetFrameInit()
 {
@@ -140,6 +127,8 @@ void sim_mob::Agent_LT::setLastUpdatedFrame(long lastUpdatedFrame)
 {
 	this->lastUpdatedFrame = lastUpdatedFrame;
 }
+
+void sim_mob::Agent_LT::buildSubscriptionList(std::vector<sim_mob::BufferedBase*>& subsList){}
 
 void sim_mob::Agent_LT::CheckFrameTimes(unsigned int agentId, uint32_t now, unsigned int startTime, bool wasFirstFrame, bool wasRemoved)
 {
@@ -162,7 +151,6 @@ void sim_mob::Agent_LT::CheckFrameTimes(unsigned int agentId, uint32_t now, unsi
 			<< "; this indicates an error, and should be handled automatically.";
 		throw std::runtime_error(msg.str().c_str());
 	}
-
 	//Was frame_init() called at the wrong point in time?
 	if (wasFirstFrame)
 	{
@@ -181,19 +169,6 @@ void sim_mob::Agent_LT::CheckFrameTimes(unsigned int agentId, uint32_t now, unsi
 
 UpdateStatus sim_mob::Agent_LT::perform_update(timeslice now)
 {
-	//Reset the Region tracking data structures, if applicable.
-	//regionAndPathTracker.reset();
-
-	//Register for commsim messages, if applicable.
-	if (!commEventRegistered && ConfigManager::GetInstance().XmlConfig().system.simulation.commsim.enabled)
-	{
-		commEventRegistered = true;
-		messaging::MessageBus::SubscribeEvent( 	sim_mob::event::EVT_CORE_COMMSIM_ENABLED_FOR_AGENT,
-												this, //Only when we are the Agent having commsim enabled.
-												this //Return this event to us (the agent).
-											 );
-	}
-
 	//We give the Agent the benefit of the doubt here and simply call frame_init().
 	//This allows them to override the start_time if it seems appropriate (e.g., if they
 	// are swapping trip chains). If frame_init() returns false, immediately exit.
@@ -232,7 +207,7 @@ UpdateStatus sim_mob::Agent_LT::perform_update(timeslice now)
 
 	return retVal;
 }
-
+/*
 Entity::UpdateStatus sim_mob::Agent_LT::update(timeslice now)
 {
 	PROFILE_LOG_AGENT_UPDATE_BEGIN(currWorkerProvider, this, now);
@@ -285,10 +260,7 @@ Entity::UpdateStatus sim_mob::Agent_LT::update(timeslice now)
 	PROFILE_LOG_AGENT_UPDATE_END(currWorkerProvider, this, now);
 	return retVal;
 }
-
-
-void sim_mob::Agent_LT::buildSubscriptionList(vector<BufferedBase*>& subsList){}
-
+*/
 
 bool sim_mob::Agent_LT::isToBeRemoved()
 {
@@ -308,40 +280,6 @@ void sim_mob::Agent_LT::clearToBeRemoved()
 NullableOutputStream sim_mob::Agent_LT::Log()
 {
 	return NullableOutputStream(currWorkerProvider->getLogFile());
-}
-
-void sim_mob::Agent_LT::onEvent(EventId eventId, Context ctxId, EventPublisher* sender, const EventArgs& args)
-{
-	//Some events only matter if they are for us.
-	if (ctxId == this)
-	{
-		if (eventId==event::EVT_CORE_COMMSIM_ENABLED_FOR_AGENT)
-		{
-			//Was commsim enabled for us? If so, start tracking Regions.
-			Print() <<"Enabling Region support for agent: " <<this <<"\n";
-			//enableRegionSupport();
-
-			//This requires us to now listen for a new set of events.
-			messaging::MessageBus::SubscribeEvent(	sim_mob::event::EVT_CORE_COMMSIM_REROUTING_REQUEST,
-													this, //Only when we are the Agent being requested to re-route..
-													this //Return this event to us (the agent).
-												 );
-
-		}
-		else if (eventId==event::EVT_CORE_COMMSIM_REROUTING_REQUEST)
-		{
-			//Were we requested to re-route?
-			const ReRouteEventArgs& rrArgs = MSG_CAST(ReRouteEventArgs, args);
-			const std::map<int, sim_mob::RoadRunnerRegion>& regions = ConfigManager::GetInstance().FullConfig().getNetwork().roadRunnerRegions;
-			std::map<int, sim_mob::RoadRunnerRegion>::const_iterator it = regions.find(boost::lexical_cast<int>(rrArgs.getBlacklistRegion()));
-
-			if (it != regions.end())
-			{
-				std::vector<const sim_mob::RoadSegment*> blacklisted = StreetDirectory::instance().getSegmentsFromRegion(it->second);
-				rerouteWithBlacklist(blacklisted);
-			}
-		}
-	}
 }
 
 void sim_mob::Agent_LT::HandleMessage(messaging::Message::MessageType type, const messaging::Message& message){}
@@ -370,6 +308,36 @@ int sim_mob::Agent_LT::getOwnRandomNumber()
 	return one_try;
 }
 #endif
+
+
+
+bool Agent_LT::frame_init(timeslice now)
+{
+    return onFrameInit(now);
+}
+
+Entity::UpdateStatus Agent_LT::frame_tick(timeslice now)
+{
+    return onFrameTick(now);
+}
+
+void Agent_LT::frame_output(timeslice now)
+{
+    onFrameOutput(now);
+}
+
+
+
+bool Agent_LT::isNonspatial()
+{
+    return false;
+}
+
+Entity::UpdateStatus Agent_LT::update(timeslice now)
+{
+	return onFrameTick(now);
+}
+
 
 
 

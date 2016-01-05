@@ -38,10 +38,7 @@ inline unsigned int converToMilliseconds(double timeInMs) {
 
 BusDriver::BusDriver(Person_MT* parent, const MutexStrategy& mtxStrat, BusDriverBehavior* behavior,
 		BusDriverMovement* movement, std::string roleName, Role<Person_MT>::Type roleType) :
-		Driver(parent, behavior, movement, roleName, roleType),
-		requestMode(mtxStrat, 0), visitedBusStop(mtxStrat, nullptr), visitedBusStopSequenceNo(mtxStrat, -1),
-		arrivalTime(mtxStrat, 0.0), dwellTime(mtxStrat, 0.0), visitedBusTripSequenceNo(mtxStrat, 0), visitedBusLine(mtxStrat, "0"),
-		holdingTime(mtxStrat, 0.0), waitingTimeAtbusStop(0.0), busSequenceNumber(1)
+		Driver(parent, behavior, movement, roleName, roleType),  waitingTimeAtbusStop(0.0), busSequenceNumber(1)
 {
 }
 
@@ -168,22 +165,6 @@ void BusDriver::updatePassengers()
 	}
 }
 
-void BusDriver::predictArrivalAtBusStop(double preArrivalTime,
-		BusStopAgent* busStopAgent)
-{
-	const BusTrip* busTrip =
-			dynamic_cast<const BusTrip*>(*(parent->currTripChainItem));
-	if (busTrip) {
-		const BusLine* busLine = busTrip->getBusLine();
-		visitedBusLine.set(busLine->getBusLineID());
-		visitedBusTripSequenceNo.set(busTrip->getTotalSequenceNum());
-		requestMode.set(Role<Person_MT>::REQUEST_DECISION_TIME);
-		visitedBusStop.set(busStopAgent->getBusStop());
-		visitedBusStopSequenceNo.set(visitedBusStopSequenceNo.get() + 1);
-		arrivalTime.set(preArrivalTime);
-	}
-}
-
 const std::string BusDriver::getBusLineID() const
 {
 	if (!parent) {
@@ -239,13 +220,6 @@ void BusDriver::openBusDoors(const std::string& current, BusStopAgent* busStopAg
 	DailyTime dwellTime( converToMilliseconds(waitingTimeAtbusStop) );
 	storeArrivalTime(current, dwellTime.getStrRepr(), busStopAgent->getBusStop());
 
-
-	if (requestMode.get() == Role<Person_MT>::REQUEST_DECISION_TIME) {
-		requestMode.set(Role<Person_MT>::REQUEST_NONE);
-		//final waiting time is maximum value between dwelling time and holding time
-		waitingTimeAtbusStop = std::max(waitingTimeAtbusStop, holdingTime.get());
-		holdingTime.set(0.0);
-	}
 	currResource->setMoving(false);
 }
 

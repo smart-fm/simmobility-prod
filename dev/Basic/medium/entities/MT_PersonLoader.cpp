@@ -240,7 +240,6 @@ public:
 				delete person;
 			}
 		}
-		Print() << "Thread " <<  id << " loaded "<< persons.size() << " persons" << std::endl;
 	}
 
 	static int load(std::map<std::string, std::vector<TripChainItem*> >& tripChainMap, std::vector<Person_MT*>& outPersonsLoaded)

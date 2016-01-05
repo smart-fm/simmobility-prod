@@ -139,7 +139,7 @@ void loadDataToOutputSchema(db::DB_Connection& conn,std::string &currentOutputSc
 		BuildingDao buildingDao(conn);
 		for(buildingsItr = buildings.begin(); buildingsItr != buildings.end(); ++buildingsItr)
 		{
-			//buildingDao.insertBuilding(*(*buildingsItr),currentOutputSchema);
+			buildingDao.insertBuilding(*(*buildingsItr),currentOutputSchema);
 		}
 
 		std::vector<boost::shared_ptr<Parcel> > parcels = developerModel.getProfitableParcelsVec();
@@ -147,7 +147,7 @@ void loadDataToOutputSchema(db::DB_Connection& conn,std::string &currentOutputSc
 		ParcelDao parcelDao(conn);
 		for(parcelsItr = parcels.begin(); parcelsItr != parcels.end(); ++parcelsItr)
 		{
-			//parcelDao.insertParcel(*(*parcelsItr),currentOutputSchema);
+			parcelDao.insertParcel(*(*parcelsItr),currentOutputSchema);
 		}
 
 		std::vector<boost::shared_ptr<Unit> > units = developerModel.getUnitsVec();
@@ -155,7 +155,7 @@ void loadDataToOutputSchema(db::DB_Connection& conn,std::string &currentOutputSc
 		UnitDao unitDao(conn);
 		for(unitsItr = units.begin(); unitsItr != units.end(); ++unitsItr)
 		{
-			//unitDao.insertUnit(*(*unitsItr),currentOutputSchema);
+			unitDao.insertUnit(*(*unitsItr),currentOutputSchema);
 		}
 
 		std::vector<boost::shared_ptr<Project> > projects = developerModel.getProjectsVec();
@@ -163,7 +163,7 @@ void loadDataToOutputSchema(db::DB_Connection& conn,std::string &currentOutputSc
 		ProjectDao projectDao(conn);
 		for(projectsItr = projects.begin(); projectsItr != projects.end(); ++projectsItr)
 		{
-			//projectDao.insertProject(*(*projectsItr),currentOutputSchema);
+			projectDao.insertProject(*(*projectsItr),currentOutputSchema);
 		}
 
 		std::vector<boost::shared_ptr<Bid> > bids = housingMarketModel.getNewBids();
@@ -171,7 +171,7 @@ void loadDataToOutputSchema(db::DB_Connection& conn,std::string &currentOutputSc
 		BidDao bidDao(conn);
 		for(bidsItr = bids.begin(); bidsItr != bids.end(); ++bidsItr)
 		{
-			//bidDao.insertBid(*(*bidsItr),currentOutputSchema);
+			bidDao.insertBid(*(*bidsItr),currentOutputSchema);
 		}
 
 		std::vector<boost::shared_ptr<UnitSale> > unitSales = housingMarketModel.getUnitSales();
@@ -179,7 +179,7 @@ void loadDataToOutputSchema(db::DB_Connection& conn,std::string &currentOutputSc
 		UnitSaleDao unitSaleDao(conn);
 		for(unitSalesItr = unitSales.begin(); unitSalesItr != unitSales.end(); ++unitSalesItr)
 		{
-			//unitSaleDao.insertUnitSale(*(*unitSalesItr),currentOutputSchema);
+			unitSaleDao.insertUnitSale(*(*unitSalesItr),currentOutputSchema);
 		}
 
 //		developerModel.getBuildingsVec().clear();

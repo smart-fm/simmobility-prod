@@ -25,11 +25,8 @@
 #include "util/LangHelpers.hpp"
 #include "util/DebugFlags.hpp"
 
-
 using namespace sim_mob;
 using namespace sim_mob::long_term;
-using namespace sim_mob::event;
-using namespace sim_mob::messaging;
 
 typedef Entity::UpdateStatus UpdateStatus;
 
@@ -38,14 +35,10 @@ using std::priority_queue;
 
 StartTimePriorityQueue_lt sim_mob::long_term::Agent_LT::pending_agents;
 std::set<Entity*> sim_mob::long_term::Agent_LT::all_agents;
-//EventTimePriorityQueue sim_mob::Agent::agents_with_pending_event;
-//vector<Entity*> sim_mob::Agent::agents_on_event;
 
 //Implementation of our comparison function for Agents by start time.
-bool sim_mob::long_term::cmp_agent_lt_start::operator()(const sim_mob::long_term::Agent_LT* x, const sim_mob::long_term::Agent_LT* y) const
+bool sim_mob::long_term::cmp_agent_lt_start::operator()(const Agent_LT* x, const Agent_LT* y) const
 {
-
-	//TODO: Not sure what to do in this case...
 	if ((!x) || (!y))
 	{
 		return 0;
@@ -56,7 +49,7 @@ bool sim_mob::long_term::cmp_agent_lt_start::operator()(const sim_mob::long_term
 }
 
 //Implementation of our comparison function for events by start time.
-bool sim_mob::long_term::cmp_event_lt_start::operator()(const PendingEvent& x,	const PendingEvent& y) const
+bool cmp_event_lt_start::operator()(const PendingEvent& x,	const PendingEvent& y) const
 {
 	//We want a lower start time to translate into a higher priority.
 	return x.start > y.start;
@@ -85,8 +78,6 @@ unsigned int sim_mob::long_term::Agent_LT::GetAndIncrementID(int preferredID)
 	//  the value of next_agent_id (if it's <0)
 	unsigned int res = (preferredID >= 0) ? static_cast<unsigned int>(preferredID) : next_agent_id++;
 
-	//std::cout <<"  assigned: " <<res <<std::endl;
-
 	return res;
 }
 
@@ -109,10 +100,26 @@ void sim_mob::long_term::Agent_LT::SetIncrementIDStartValue(int startID,bool fai
 }
 
 sim_mob::long_term::Agent_LT::Agent_LT(	const MutexStrategy& mtxStrat, int id) : Entity(GetAndIncrementID(id)), mutexStrat(mtxStrat), initialized(false),
-								lastUpdatedFrame(-1),toRemoved(false), dynamic_seed(id), currTick(0,0)
-{}
+										lastUpdatedFrame(-1),toRemoved(false), dynamic_seed(id), currTick(0,0){}
 
 sim_mob::long_term::Agent_LT::~Agent_LT(){}
+
+
+///A temporary list of configuration properties used to load an Agent's role from the config file.
+void sim_mob::long_term::Agent_LT::setConfigProperties(const std::map<std::string, std::string>& props)
+{
+	this->configProperties = props;
+}
+
+const std::map<std::string, std::string>& sim_mob::long_term::Agent_LT::getConfigProperties()
+{
+	return this->configProperties;
+}
+
+void sim_mob::long_term::Agent_LT::clearConfigProperties()
+{
+	this->configProperties.clear();
+}
 
 void sim_mob::long_term::Agent_LT::resetFrameInit()
 {
@@ -152,6 +159,7 @@ void sim_mob::long_term::Agent_LT::CheckFrameTimes(unsigned int agentId, uint32_
 			<< "; this indicates an error, and should be handled automatically.";
 		throw std::runtime_error(msg.str().c_str());
 	}
+
 	//Was frame_init() called at the wrong point in time?
 	if (wasFirstFrame)
 	{
@@ -208,60 +216,7 @@ UpdateStatus sim_mob::long_term::Agent_LT::perform_update(timeslice now)
 
 	return retVal;
 }
-/*
-Entity::UpdateStatus sim_mob::Agent_LT::update(timeslice now)
-{
-	PROFILE_LOG_AGENT_UPDATE_BEGIN(currWorkerProvider, this, now);
 
-	//Update within an optional try/catch block.
-	UpdateStatus retVal(UpdateStatus::RS_CONTINUE);
-
-#ifndef SIMMOB_STRICT_AGENT_ERRORS
-	try
-	{
-#endif
-		//Update functionality
-		retVal = perform_update(now);
-
-//Respond to errors only if STRICT is off; otherwise, throw it (so we can catch it in the debugger).
-#ifndef SIMMOB_STRICT_AGENT_ERRORS
-	}
-	catch (std::exception& ex)
-	{
-		//TODO: We can't handle this right now.
-		//PROFILE_LOG_AGENT_EXCEPTION(currWorkerProvider->getProfileBuilder(), *this, now, ex);
-
-		//Add a line to the output file.
-		if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled())
-		{
-			std::stringstream msg;
-			msg <<"Error updating Agent[" <<getId() <<"], will be removed from the simulation.";
-
-			msg <<"\n  " <<ex.what();
-			LogOut(msg.str() <<std::endl);
-		}
-		setToBeRemoved();
-	}
-#endif
-
-	//Ensure that isToBeRemoved() and UpdateStatus::status are in sync
-	if (isToBeRemoved() || retVal.status == UpdateStatus::RS_DONE)
-	{
-		retVal.status = UpdateStatus::RS_DONE;
-		setToBeRemoved();
-
-		//notify subscribers that this agent is done
-		MessageBus::PublishEvent(event::EVT_CORE_AGENT_DIED, this, MessageBus::EventArgsPtr(new AgentLifeCycleEventArgsLT(getId(), this)));
-                
-        //unsubscribes all listeners of this agent to this event.
-        //(it is safe to do this here because the priority between events)
-        MessageBus::UnSubscribeAll(event::EVT_CORE_AGENT_DIED, this);
-	}
-
-	PROFILE_LOG_AGENT_UPDATE_END(currWorkerProvider, this, now);
-	return retVal;
-}
-*/
 
 bool sim_mob::long_term::Agent_LT::isToBeRemoved()
 {
@@ -311,7 +266,6 @@ int sim_mob::Agent_LT::getOwnRandomNumber()
 #endif
 
 
-
 bool sim_mob::long_term::Agent_LT::frame_init(timeslice now)
 {
     return onFrameInit(now);
@@ -326,8 +280,6 @@ void sim_mob::long_term::Agent_LT::frame_output(timeslice now)
 {
     onFrameOutput(now);
 }
-
-
 
 bool sim_mob::long_term::Agent_LT::isNonspatial()
 {

@@ -32,7 +32,7 @@ using std::map;
 using std::endl;
 
 HouseholdAgent::HouseholdAgent(BigSerial _id, HM_Model* _model, const Household* _household, HousingMarket* _market, bool _marketSeller, int _day, int _householdBiddingWindow)
-							 : LT_Agent(_id), model(_model), market(_market), household(_household), marketSeller(_marketSeller), bidder (nullptr), seller(nullptr), day(_day),
+							 : Agent_LT(ConfigManager::GetInstance().FullConfig().mutexStategy(), _id), model(_model), market(_market), household(_household), marketSeller(_marketSeller), bidder (nullptr), seller(nullptr), day(_day),
 							   vehicleOwnershipOption(NO_CAR), householdBiddingWindow(_householdBiddingWindow)
 							{
     seller = new HouseholdSellerRole(this);

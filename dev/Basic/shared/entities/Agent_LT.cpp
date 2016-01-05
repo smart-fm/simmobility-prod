@@ -27,6 +27,7 @@
 
 
 using namespace sim_mob;
+using namespace sim_mob::long_term;
 using namespace sim_mob::event;
 using namespace sim_mob::messaging;
 
@@ -35,13 +36,13 @@ typedef Entity::UpdateStatus UpdateStatus;
 using std::vector;
 using std::priority_queue;
 
-StartTimePriorityQueue_lt sim_mob::Agent_LT::pending_agents;
-std::set<Entity*> sim_mob::Agent_LT::all_agents;
+StartTimePriorityQueue_lt sim_mob::long_term::Agent_LT::pending_agents;
+std::set<Entity*> sim_mob::long_term::Agent_LT::all_agents;
 //EventTimePriorityQueue sim_mob::Agent::agents_with_pending_event;
 //vector<Entity*> sim_mob::Agent::agents_on_event;
 
 //Implementation of our comparison function for Agents by start time.
-bool sim_mob::cmp_agent_lt_start::operator()(const Agent_LT* x, const Agent_LT* y) const
+bool sim_mob::long_term::cmp_agent_lt_start::operator()(const sim_mob::long_term::Agent_LT* x, const sim_mob::long_term::Agent_LT* y) const
 {
 
 	//TODO: Not sure what to do in this case...
@@ -55,14 +56,14 @@ bool sim_mob::cmp_agent_lt_start::operator()(const Agent_LT* x, const Agent_LT* 
 }
 
 //Implementation of our comparison function for events by start time.
-bool sim_mob::cmp_event_lt_start::operator()(const PendingEvent& x,		const PendingEvent& y) const
+bool sim_mob::long_term::cmp_event_lt_start::operator()(const PendingEvent& x,	const PendingEvent& y) const
 {
 	//We want a lower start time to translate into a higher priority.
 	return x.start > y.start;
 }
 
-unsigned int sim_mob::Agent_LT::next_agent_id = 0;
-unsigned int sim_mob::Agent_LT::GetAndIncrementID(int preferredID)
+unsigned int sim_mob::long_term::Agent_LT::next_agent_id = 0;
+unsigned int sim_mob::long_term::Agent_LT::GetAndIncrementID(int preferredID)
 {
 	//If the ID is valid, modify next_agent_id;
 	if (preferredID > static_cast<int>(next_agent_id))
@@ -89,7 +90,7 @@ unsigned int sim_mob::Agent_LT::GetAndIncrementID(int preferredID)
 	return res;
 }
 
-void sim_mob::Agent_LT::SetIncrementIDStartValue(int startID,bool failIfAlreadyUsed)
+void sim_mob::long_term::Agent_LT::SetIncrementIDStartValue(int startID,bool failIfAlreadyUsed)
 {
 	//Check fail condition
 	if (failIfAlreadyUsed && Agent_LT::next_agent_id != 0)
@@ -107,30 +108,30 @@ void sim_mob::Agent_LT::SetIncrementIDStartValue(int startID,bool failIfAlreadyU
 	Agent_LT::next_agent_id = startID;
 }
 
-sim_mob::Agent_LT::Agent_LT(	const MutexStrategy& mtxStrat, int id) : Entity(GetAndIncrementID(id)), mutexStrat(mtxStrat), initialized(false),
+sim_mob::long_term::Agent_LT::Agent_LT(	const MutexStrategy& mtxStrat, int id) : Entity(GetAndIncrementID(id)), mutexStrat(mtxStrat), initialized(false),
 								lastUpdatedFrame(-1),toRemoved(false), dynamic_seed(id), currTick(0,0)
 {}
 
-sim_mob::Agent_LT::~Agent_LT(){}
+sim_mob::long_term::Agent_LT::~Agent_LT(){}
 
-void sim_mob::Agent_LT::resetFrameInit()
+void sim_mob::long_term::Agent_LT::resetFrameInit()
 {
 	initialized = false;
 }
 
-long sim_mob::Agent_LT::getLastUpdatedFrame()
+long sim_mob::long_term::Agent_LT::getLastUpdatedFrame()
 {
 	return lastUpdatedFrame;
 }
 
-void sim_mob::Agent_LT::setLastUpdatedFrame(long lastUpdatedFrame)
+void sim_mob::long_term::Agent_LT::setLastUpdatedFrame(long lastUpdatedFrame)
 {
 	this->lastUpdatedFrame = lastUpdatedFrame;
 }
 
-void sim_mob::Agent_LT::buildSubscriptionList(std::vector<sim_mob::BufferedBase*>& subsList){}
+void sim_mob::long_term::Agent_LT::buildSubscriptionList(std::vector<sim_mob::BufferedBase*>& subsList){}
 
-void sim_mob::Agent_LT::CheckFrameTimes(unsigned int agentId, uint32_t now, unsigned int startTime, bool wasFirstFrame, bool wasRemoved)
+void sim_mob::long_term::Agent_LT::CheckFrameTimes(unsigned int agentId, uint32_t now, unsigned int startTime, bool wasFirstFrame, bool wasRemoved)
 {
 	//Has update() been called early?
 	if (now<startTime)
@@ -167,7 +168,7 @@ void sim_mob::Agent_LT::CheckFrameTimes(unsigned int agentId, uint32_t now, unsi
 
 
 
-UpdateStatus sim_mob::Agent_LT::perform_update(timeslice now)
+UpdateStatus sim_mob::long_term::Agent_LT::perform_update(timeslice now)
 {
 	//We give the Agent the benefit of the doubt here and simply call frame_init().
 	//This allows them to override the start_time if it seems appropriate (e.g., if they
@@ -262,27 +263,27 @@ Entity::UpdateStatus sim_mob::Agent_LT::update(timeslice now)
 }
 */
 
-bool sim_mob::Agent_LT::isToBeRemoved()
+bool sim_mob::long_term::Agent_LT::isToBeRemoved()
 {
 	return toRemoved;
 }
 
-void sim_mob::Agent_LT::setToBeRemoved()
+void sim_mob::long_term::Agent_LT::setToBeRemoved()
 {
 	toRemoved = true;
 }
 
-void sim_mob::Agent_LT::clearToBeRemoved()
+void sim_mob::long_term::Agent_LT::clearToBeRemoved()
 {
 	toRemoved = false;
 }
 
-NullableOutputStream sim_mob::Agent_LT::Log()
+NullableOutputStream sim_mob::long_term::Agent_LT::Log()
 {
 	return NullableOutputStream(currWorkerProvider->getLogFile());
 }
 
-void sim_mob::Agent_LT::HandleMessage(messaging::Message::MessageType type, const messaging::Message& message){}
+void sim_mob::long_term::Agent_LT::HandleMessage(messaging::Message::MessageType type, const messaging::Message& message){}
 
 #ifndef SIMMOB_DISABLE_MPI
 int sim_mob::Agent_LT::getOwnRandomNumber()
@@ -311,29 +312,29 @@ int sim_mob::Agent_LT::getOwnRandomNumber()
 
 
 
-bool Agent_LT::frame_init(timeslice now)
+bool sim_mob::long_term::Agent_LT::frame_init(timeslice now)
 {
     return onFrameInit(now);
 }
 
-Entity::UpdateStatus Agent_LT::frame_tick(timeslice now)
+Entity::UpdateStatus sim_mob::long_term::Agent_LT::frame_tick(timeslice now)
 {
     return onFrameTick(now);
 }
 
-void Agent_LT::frame_output(timeslice now)
+void sim_mob::long_term::Agent_LT::frame_output(timeslice now)
 {
     onFrameOutput(now);
 }
 
 
 
-bool Agent_LT::isNonspatial()
+bool sim_mob::long_term::Agent_LT::isNonspatial()
 {
     return false;
 }
 
-Entity::UpdateStatus Agent_LT::update(timeslice now)
+Entity::UpdateStatus sim_mob::long_term::Agent_LT::update(timeslice now)
 {
 	return onFrameTick(now);
 }

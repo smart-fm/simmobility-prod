@@ -27,10 +27,10 @@
 namespace sim_mob
 {
 
+namespace long_term
+{
+
 class Agent_LT;
-
-class WorkGroup;
-
 class PackageUtils;
 class UnPackageUtils;
 
@@ -40,9 +40,9 @@ class UnPackageUtils;
 struct TreeItem;
 
 //Comparison for our priority queue
-struct cmp_agent_lt_start : public std::less<Agent_LT*>
+struct cmp_agent_lt_start : public std::less<sim_mob::long_term::Agent_LT*>
 {
-  bool operator() (const Agent_LT* x, const Agent_LT* y) const;
+  bool operator() (const sim_mob::long_term::Agent_LT* x, const sim_mob::long_term::Agent_LT* y) const;
 };
 
 struct cmp_event_lt_start : public std::less<PendingEvent>
@@ -261,10 +261,9 @@ public:
 	virtual void unpackProxy(UnPackageUtils& unpackageUtil);
 #endif
 
-;
 
 };
-
+}
 }
 
 

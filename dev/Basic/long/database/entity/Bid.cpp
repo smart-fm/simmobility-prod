@@ -15,12 +15,12 @@
 using namespace sim_mob::long_term;
 
 Bid::Bid(BigSerial bidId,int simulationDay, BigSerial bidderId, BigSerial currentUnitId, BigSerial newUnitId,double willingnessToPay,double affordabilityAmount,double hedonicPrice,
-		double askingPrice,double targetPrice,double bidValue, int isAccepted,BigSerial currentPostcode, BigSerial newPostcode,LT_Agent* bidder,std::tm moveInDate, double wtpErrorTerm)
+		double askingPrice,double targetPrice,double bidValue, int isAccepted,BigSerial currentPostcode, BigSerial newPostcode,Agent_LT* bidder,std::tm moveInDate, double wtpErrorTerm)
 		:bidId(bidId),simulationDay(simulationDay),bidderId(bidderId),currentUnitId(currentUnitId),newUnitId(newUnitId), willingnessToPay(willingnessToPay),
 		 affordabilityAmount(affordabilityAmount), hedonicPrice(hedonicPrice), askingPrice(askingPrice),targetPrice(targetPrice),bidValue(bidValue),
 		 isAccepted(isAccepted),currentPostcode(currentPostcode),newPostcode(newPostcode),bidder(bidder),moveInDate(moveInDate), wtpErrorTerm(wtpErrorTerm){}
 
-Bid::Bid(BigSerial bidId,BigSerial currentUnitId,BigSerial newUnitId, BigSerial bidderId,LT_Agent* bidder,double bidValue, int simulationDay, double willingnessToPay, double wtp_e, double affordabilityAmount)
+Bid::Bid(BigSerial bidId,BigSerial currentUnitId,BigSerial newUnitId, BigSerial bidderId,Agent_LT* bidder,double bidValue, int simulationDay, double willingnessToPay, double wtp_e, double affordabilityAmount)
 		:bidId(bidId),currentUnitId(currentUnitId), newUnitId(newUnitId),bidderId(bidderId),bidder(bidder),bidValue(bidValue), simulationDay(simulationDay) , willingnessToPay(willingnessToPay)
          ,hedonicPrice(0), askingPrice(askingPrice),targetPrice(targetPrice), isAccepted(0),currentPostcode(0),newPostcode(0),moveInDate(tm()), wtpErrorTerm(wtp_e), affordabilityAmount(affordabilityAmount){}
 
@@ -221,7 +221,7 @@ void Bid::setMoveInDate(const std::tm& moveInDate)
 		this->moveInDate = moveInDate;
 }
 
-LT_Agent* Bid::getBidder() const
+Agent_LT* Bid::getBidder() const
 {
     return bidder;
 }

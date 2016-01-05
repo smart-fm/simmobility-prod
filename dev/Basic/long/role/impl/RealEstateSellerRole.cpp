@@ -171,7 +171,7 @@ namespace
 
 RealEstateSellerRole::SellingUnitInfo::SellingUnitInfo() :startedDay(0), interval(0), daysOnMarket(0), numExpectations(0){}
 
-RealEstateSellerRole::RealEstateSellerRole(LT_Agent* parent): parent(parent), currentTime(0, 0), hasUnitsToSale(true), selling(false), active(true)
+RealEstateSellerRole::RealEstateSellerRole(Agent_LT* parent): parent(parent), currentTime(0, 0), hasUnitsToSale(true), selling(false), active(true)
 {
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 	timeOnMarket   = config.ltParams.housingModel.timeOnMarket;
@@ -184,7 +184,7 @@ RealEstateSellerRole::~RealEstateSellerRole()
     sellingUnitsMap.clear();
 }
 
-LT_Agent* RealEstateSellerRole::getParent()
+Agent_LT* RealEstateSellerRole::getParent()
 {
 	return parent;
 }

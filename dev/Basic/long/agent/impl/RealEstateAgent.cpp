@@ -29,7 +29,7 @@ using std::map;
 using std::endl;
 
 RealEstateAgent::RealEstateAgent(BigSerial id, HM_Model* model, const Household* household, HousingMarket* market, bool marketSeller, int day)
-: LT_Agent(id), model(model), market(market), household(household), marketSeller(marketSeller), seller(nullptr), day(day)
+: Agent_LT(ConfigManager::GetInstance().FullConfig().mutexStategy(), id), model(model), market(market), household(household), marketSeller(marketSeller), seller(nullptr), day(day)
 {
     seller = new RealEstateSellerRole(this);
     seller->setActive(marketSeller);

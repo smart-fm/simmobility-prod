@@ -14,7 +14,7 @@
 #include "Common.hpp"
 #include "Types.hpp"
 #include "metrics/Frame.hpp"
-#include "agent/LT_Agent.hpp"
+#include "entities/Agent_LT.hpp"
 
 namespace sim_mob
 {
@@ -27,9 +27,9 @@ namespace sim_mob
         {
         public:
             Bid(BigSerial bidId, int simulationDay, BigSerial bidderId, BigSerial currentUnitId, BigSerial newUnitId,double willingnessToPay,double affordabilityAmount,double hedonicPrice, double askingPrice,
-            	double targetPrice, double bidValue, int isAccepted,BigSerial currentPostcode, BigSerial newPostcode,LT_Agent* bidder,std::tm moveInDate, double wtpErrorTerm);
+            	double targetPrice, double bidValue, int isAccepted,BigSerial currentPostcode, BigSerial newPostcode,Agent_LT* bidder,std::tm moveInDate, double wtpErrorTerm);
 
-            Bid(BigSerial bidId,BigSerial currentUnitId, BigSerial newUnitId,BigSerial bidderId,LT_Agent* bidder,double bidValue, int simulationDay, double willingnessToPay, double wtp_e, double affordability );
+            Bid(BigSerial bidId,BigSerial currentUnitId, BigSerial newUnitId,BigSerial bidderId,Agent_LT* bidder,double bidValue, int simulationDay, double willingnessToPay, double wtp_e, double affordability );
             Bid();
             Bid(const Bid& source);
             virtual ~Bid();
@@ -82,7 +82,7 @@ namespace sim_mob
             * Gets the Bidder pointer.
             * @return bidder pointer.
             */
-           LT_Agent* getBidder() const;
+           Agent_LT* getBidder() const;
 
            const std::tm& getMoveInDate() const;
            /*
@@ -134,7 +134,7 @@ namespace sim_mob
            int isAccepted;
            BigSerial currentPostcode;
            BigSerial newPostcode;
-           LT_Agent* bidder;
+           Agent_LT* bidder;
            std::tm moveInDate;
         };
     }

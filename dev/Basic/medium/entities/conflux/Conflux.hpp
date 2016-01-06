@@ -308,8 +308,9 @@ private:
 	 * @param beforeUpdate person properties before update
 	 * @param afterUpdate person properties after update
 	 * @param person the person being handled
+	 * @return true if there was a role change; false otherwise
 	 */
-	void handleRoleChange(PersonProps& beforeUpdate, PersonProps& afterUpdate, Person_MT* person);
+	bool handleRoleChange(PersonProps& beforeUpdate, PersonProps& afterUpdate, Person_MT* person);
 
 	/**
 	 * Gets the person to switch to the next trip chain item

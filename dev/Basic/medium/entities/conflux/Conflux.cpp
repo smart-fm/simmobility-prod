@@ -418,11 +418,11 @@ void Conflux::updateAgent(Person_MT* person)
 	updateAgentContext(beforeUpdate, afterUpdate, person);
 }
 
-void Conflux::handleRoleChange(PersonProps& beforeUpdate, PersonProps& afterUpdate, Person_MT* person)
+bool Conflux::handleRoleChange(PersonProps& beforeUpdate, PersonProps& afterUpdate, Person_MT* person)
 {
 	if(beforeUpdate.roleType == afterUpdate.roleType)
 	{
-		return; //no role change took place; simply return
+		return false; //no role change took place; simply return
 	}
 
 	//there was a change of role in this tick
@@ -431,11 +431,16 @@ void Conflux::handleRoleChange(PersonProps& beforeUpdate, PersonProps& afterUpda
 	{
 	case Role<Person_MT>::RL_ACTIVITY:
 	{
+		std::deque<Person_MT*>::iterator pIt = std::find(activityPerformers.begin(), activityPerformers.end(), person);
+		if (pIt != activityPerformers.end())
+		{
+			activityPerformers.erase(pIt);
+		}
 		break;
 	}
 	case Role<Person_MT>::RL_BUSDRIVER:
 	{
-		throw std::runtime_error("Bus drivers cannot change role!");
+		throw std::runtime_error("Bus drivers cannot change role");
 		break;
 	}
 	case Role<Person_MT>::RL_DRIVER: //fall through
@@ -448,53 +453,69 @@ void Conflux::handleRoleChange(PersonProps& beforeUpdate, PersonProps& afterUpda
 		break;
 	}
 	}
+
+	switch(afterUpdate.roleType)
+	{
+	case Role<Person_MT>::RL_WAITBUSACTIVITY: //fall through
+	case Role<Person_MT>::RL_TRAINPASSENGER:
+	case Role<Person_MT>::RL_CARPASSENGER:
+	case Role<Person_MT>::RL_PRIVATEBUSPASSENGER:
+	case Role<Person_MT>::RL_PASSENGER:
+	case Role<Person_MT>::RL_PEDESTRIAN:
+	{
+		break; //would have already been handled
+	}
+	case Role<Person_MT>::RL_ACTIVITY:
+	{
+		activityPerformers.push_back(person);
+		break;
+	}
+	case Role<Person_MT>::RL_BUSDRIVER:
+	{
+		throw std::runtime_error("Bus drivers are created and dispatched by bus controller. Cannot change role to Bus driver");
+		break;
+	}
+	case Role<Person_MT>::RL_DRIVER: //fall through
+	case Role<Person_MT>::RL_BIKER:
+	{
+		if(afterUpdate.lane)
+		{
+			afterUpdate.segStats->addAgent(afterUpdate.lane, person);
+			// set the position of the last updated Person in his current lane (after update)
+			if (afterUpdate.lane != afterUpdate.segStats->laneInfinity)
+			{
+				//if the person did not end up in a VQ and his lane is not lane infinity of segAfterUpdate
+				double lengthToVehicleEnd = person->distanceToEndOfSegment + person->getRole()->getResource()->getLengthInM();
+				afterUpdate.segStats->setPositionOfLastUpdatedAgentInLane(lengthToVehicleEnd, afterUpdate.lane);
+			}
+		}
+		else
+		{
+			//the person has changed role and wants to get into VQ right away
+			person->distanceToEndOfSegment = afterUpdate.segStats->getLength();
+			afterUpdate.segStats->getParentConflux()->pushBackOntoVirtualQueue(afterUpdate.segment->getParentLink(), person);
+		}
+		break;
+	}
+	}
+	return true;
 }
 
 void Conflux::housekeep(PersonProps& beforeUpdate, PersonProps& afterUpdate, Person_MT* person)
 {
-	//if the person was in an activity and is in a Trip/SubTrip after update
-	if (beforeUpdate.roleType == Role<Person_MT>::RL_ACTIVITY && afterUpdate.roleType != Role<Person_MT>::RL_ACTIVITY)
+	if(handleRoleChange(beforeUpdate, afterUpdate, person))
 	{
-		// if the person has changed from an Activity to the current Trip/SubTrip during this tick,
-		// remove this person from the activityPerformers list
-		std::deque<Person_MT*>::iterator pIt = std::find(activityPerformers.begin(), activityPerformers.end(), person);
-		if (pIt != activityPerformers.end())
-		{
-			activityPerformers.erase(pIt);
-		}
+		return; //there was a change of role and it was handled
 	}
 
-	//perform person's role related handling
-	//we first handle roles which are off the road
+	//person has not changed role in this tick if code path reaches here...
+	//perform any specific role related handling first
 	switch (afterUpdate.roleType)
 	{
-	case Role<Person_MT>::RL_WAITBUSACTIVITY:
-	case Role<Person_MT>::RL_TRAINPASSENGER:
-	case Role<Person_MT>::RL_CARPASSENGER:
-	case Role<Person_MT>::RL_PRIVATEBUSPASSENGER:
-	{
-		return; //would have already been handled
-	}
 	case Role<Person_MT>::RL_ACTIVITY:
-	{	//activity role specific handling
-		// if role is ActivityPerformer after update
-		if (beforeUpdate.roleType == Role<Person_MT>::RL_ACTIVITY)
-		{
-			// if the role was ActivityPerformer before the update as well, do
-			// nothing. It is also possible that the person has changed from
-			// one activity to another. Do nothing even in this case.
-		}
-		else
-		{
-			if (beforeUpdate.lane)
-			{
-				// the person is currently in an activity, was on a Trip
-				// before this tick and was not in a virtual queue (because beforeUpdate.lane is not null)
-				// Remove this person from the network and add him to the activity performers list.
-				beforeUpdate.segStats->dequeue(person, beforeUpdate.lane, beforeUpdate.isQueuing, beforeUpdate.vehicleLength);
-			}
-			activityPerformers.push_back(person);
-		}
+	{
+		// if the role was ActivityPerformer before the update as well, do nothing.
+		// It is also possible that the person has changed from one activity to another. Do nothing even in this case.
 		return;
 	}
 	case Role<Person_MT>::RL_BUSDRIVER:
@@ -584,7 +605,7 @@ void Conflux::housekeep(PersonProps& beforeUpdate, PersonProps& afterUpdate, Per
 		}
 	}
 	else if ((beforeUpdate.segStats != afterUpdate.segStats) /*if the person has moved to another segment*/
-	|| (beforeUpdate.lane == beforeUpdate.segStats->laneInfinity && beforeUpdate.lane != afterUpdate.lane) /* or if the person has moved out of lane infinity*/)
+				|| (beforeUpdate.lane == beforeUpdate.segStats->laneInfinity && beforeUpdate.lane != afterUpdate.lane) /* or if the person has moved out of lane infinity*/)
 	{
 		if (beforeUpdate.roleType != Role<Person_MT>::RL_ACTIVITY)
 		{

@@ -31,20 +31,28 @@ Role<Person_MT>* sim_mob::medium::Passenger::clone(Person_MT *parent) const
 {
 	PassengerBehavior* behavior = new PassengerBehavior();
 	PassengerMovement* movement = new PassengerMovement();
-	Role<Person_MT>::Type roleType = Role<Person_MT>::RL_PASSENGER;
+	Role<Person_MT>::Type personRoleType = Role<Person_MT>::RL_UNKNOWN;
 	if (parent->currSubTrip->mode == "MRT")
 	{
-		roleType = Role<Person_MT>::RL_TRAINPASSENGER;
+		personRoleType = Role<Person_MT>::RL_TRAINPASSENGER;
 	}
 	else if (parent->currSubTrip->mode == "Sharing")
 	{
-		roleType = Role<Person_MT>::RL_CARPASSENGER;
+		personRoleType = Role<Person_MT>::RL_CARPASSENGER;
 	}
 	else if (parent->currSubTrip->mode == "PrivateBus")
 	{
-		roleType = Role<Person_MT>::RL_PRIVATEBUSPASSENGER;
+		personRoleType = Role<Person_MT>::RL_PRIVATEBUSPASSENGER;
 	}
-	Passenger* passenger = new Passenger(parent, behavior, movement, "Passenger_", roleType);
+	else if (parent->currSubTrip->mode == "BusTravel")
+	{
+		personRoleType = Role<Person_MT>::RL_PASSENGER;
+	}
+	else
+	{
+		throw std::runtime_error("Unknown mode for passenger role");
+	}
+	Passenger* passenger = new Passenger(parent, behavior, movement, "Passenger_", personRoleType);
 	behavior->setParentPassenger(passenger);
 	movement->setParentPassenger(passenger);
 	return passenger;

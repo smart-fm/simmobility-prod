@@ -390,6 +390,12 @@ bool DriverMovement::moveToNextSegment(DriverUpdateParams& params)
 		pathMover.advanceInPath();
 		if (pathMover.isPathCompleted())
 		{
+			const Link* currLink = currSegStat->getRoadSegment()->getParentLink();
+			double linkExitTime = params.elapsedSeconds + (convertToSeconds(params.now.ms()));
+			parentDriver->parent->currLinkTravelStats.finalize(currLink, linkExitTime, nullptr);
+			TravelTimeManager::getInstance()->addTravelTime(parentDriver->parent->currLinkTravelStats); //in seconds
+			currSegStat->getParentConflux()->setLinkTravelTimes(linkExitTime, currLink);
+			parentDriver->parent->currLinkTravelStats.reset();
 			setOutputCounter(currLane, (getOutputCounter(currLane, currSegStat) - 1), currSegStat);
 			currLane = nullptr;
 			parentDriver->parent->setToBeRemoved();

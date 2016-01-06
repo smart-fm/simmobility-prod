@@ -176,34 +176,34 @@ void setActivityStartEnd(sim_mob::Activity* activity, double startInterval, doub
 	int second = Utils::generateInt(0,59);
 
 	//construct string representation
-	std::string random_time;
-	random_time.resize(8); //hh:mi:ss - 8 characters
-	char* c = &random_time[0];
+	std::string randomStartTime;
+	randomStartTime.resize(8); //hh:mi:ss - 8 characters
+	char* c = &randomStartTime[0];
 	c = timeDecimalDigitToChar(hour, c);
 	c++; *c=':'; c++;
 	c = timeDecimalDigitToChar(minute, c);
 	c++; *c=':'; c++;
 	c = timeDecimalDigitToChar(second, c);
-	activity->startTime = sim_mob::DailyTime(random_time);
+	activity->startTime = sim_mob::DailyTime(randomStartTime);
 
-	hour = int(std::floor(endInterval));
 	if(endInterval <= startInterval)
 	{
-		min = minute; //max is still 29
+		min = minute - ((startInterval - hour - 0.25)*60); //max is still 29
 	}
-	minute = Utils::generateInt(min,max) + ((startInterval - hour - 0.25)*60);
+	hour = int(std::floor(endInterval));
+	minute = Utils::generateInt(min,max) + ((endInterval - hour - 0.25)*60);
 	second = Utils::generateInt(0,59);
 
 	//construct string representation
-	random_time = std::string();
-	random_time.resize(8); //hh:mi:ss - 8 characters
-	c = &random_time[0];
+	std::string randomEndTime;
+	randomEndTime.resize(8); //hh:mi:ss - 8 characters
+	c = &randomEndTime[0];
 	c = timeDecimalDigitToChar(hour, c);
 	c++; *c=':'; c++;
 	c = timeDecimalDigitToChar(minute, c);
 	c++; *c=':'; c++;
 	c = timeDecimalDigitToChar(second, c);
-	activity->endTime = sim_mob::DailyTime(random_time);
+	activity->endTime = sim_mob::DailyTime(randomEndTime);
 }
 
 }//anon namespace
@@ -240,7 +240,6 @@ public:
 				delete person;
 			}
 		}
-		Print() << "Thread " <<  id << " loaded "<< persons.size() << " persons" << std::endl;
 	}
 
 	static int load(std::map<std::string, std::vector<TripChainItem*> >& tripChainMap, std::vector<Person_MT*>& outPersonsLoaded)

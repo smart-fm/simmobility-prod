@@ -505,7 +505,7 @@ void ExpandShortTermConfigFile::printSettings()
 	//Print the network (this will go to a different output file...)
 	std::cout << "------------------\n";
 	NetworkPrinter nwPrinter(cfg, cfg.outNetworkFileName);
-	//nwPrinter.printSignals(getSignalsInfo(Signal::getMapOfIdVsSignals()));
+	nwPrinter.printSignals(getSignalsInfo(Signal::getMapOfIdVsSignals()));
 	nwPrinter.printNetwork(RoadNetwork::getInstance());
 	std::cout << "------------------\n";
 }

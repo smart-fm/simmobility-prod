@@ -357,11 +357,6 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 
 		//Agent-based cycle, steps 1,2,3,4
 		wgMgr.waitAllGroups();
-
-		if(config.busController.enabled)
-		{
-			BusController::GetInstance()->processRequests();
-		}
 	}
 
 	BusStopAgent::removeAllBusStopAgents();

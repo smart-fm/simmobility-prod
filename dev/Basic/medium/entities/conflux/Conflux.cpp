@@ -175,7 +175,7 @@ void Conflux::PersonProps::printProps(unsigned int personId, uint32_t frame, std
 	propStrm << " conflux:";
 	if (conflux)
 	{
-		propStrm << conflux->getConfluxNode()->getNodeId();
+		propStrm << conflux->getConfluxNode()->getNodeId() << "(worker: " << conflux->currWorkerProvider << ")";
 	}
 	else
 	{
@@ -209,7 +209,7 @@ void Conflux::PersonProps::printProps(unsigned int personId, uint32_t frame, std
 		propStrm << "0x0";
 	}
 	propStrm << " roleType:" << roleType << " isQueuing:" << isQueuing << " isMoving:" << isMoving << " }" << std::endl;
-	std::cout << propStrm.str();
+	Print() << propStrm.str();
 }
 
 void Conflux::addAgent(Person_MT* person)
@@ -223,6 +223,7 @@ void Conflux::addAgent(Person_MT* person)
 		Role<Person_MT>* role = person->getRole(); // at this point, we expect the role to have been initialized already
 		if (!role)
 		{
+			safe_delete_item(person);
 			return;
 		}
 
@@ -407,9 +408,11 @@ void Conflux::updateAgent(Person_MT* person)
 	//capture person info after update
 	PersonProps afterUpdate(person, this);
 
-
-	beforeUpdate.printProps(person->getId(), currFrame.frame(), std::to_string(confluxNode->getNodeId()) + " before");
-	afterUpdate.printProps(person->getId(), currFrame.frame(), std::to_string(confluxNode->getNodeId()) + " after");
+//	if(beforeUpdate.roleType == Role<Person_MT>::RL_BUSDRIVER)
+//	{
+//		beforeUpdate.printProps(person->getId(), currFrame.frame(), std::to_string(confluxNode->getNodeId()) + " before");
+//		afterUpdate.printProps(person->getId(), currFrame.frame(), std::to_string(confluxNode->getNodeId()) + " after");
+//	}
 
 	//perform house keeping
 	housekeep(beforeUpdate, afterUpdate, person);
@@ -450,6 +453,7 @@ void Conflux::housekeep(PersonProps& beforeUpdate, PersonProps& afterUpdate, Per
 	case Role<Person_MT>::RL_WAITBUSACTITITY:
 	case Role<Person_MT>::RL_TRAINPASSENGER:
 	case Role<Person_MT>::RL_CARPASSENGER:
+	case Role<Person_MT>::RL_PRIVATEBUSPASSENGER:
 	{
 		return; //would have already been handled
 	}
@@ -641,7 +645,6 @@ void Conflux::processVirtualQueues()
 			{
 				Person_MT* p = i->second.front();
 				i->second.pop_front();
-				std::cout << "Processing " << p->getId() << " from VQ\n";
 				updateAgent(p);
 				counter--;
 			}
@@ -794,6 +797,8 @@ void Conflux::updateAndReportSupplyStats(timeslice frameNumber)
 
 void Conflux::killAgent(Person_MT* person, PersonProps& beforeUpdate)
 {
+	std::stringstream killStream;
+	killStream << "Killing " << person->getId() << "(" << person->getDatabaseId() << ") ";
 	SegmentStats* prevSegStats = beforeUpdate.segStats;
 	const Lane* prevLane = beforeUpdate.lane;
 	bool wasQueuing = beforeUpdate.isQueuing;
@@ -812,6 +817,7 @@ void Conflux::killAgent(Person_MT* person, PersonProps& beforeUpdate)
 		{
 			activityPerformers.erase(pIt);
 		}
+		killStream << "Role: ActivityPerformer";
 		break;
 	}
 	case Role<Person_MT>::RL_PEDESTRIAN:
@@ -825,6 +831,7 @@ void Conflux::killAgent(Person_MT* person, PersonProps& beforeUpdate)
 		{
 			return;
 		}
+		killStream << "Role: Pedestrian";
 		break;
 	}
 	case Role<Person_MT>::RL_DRIVER:
@@ -847,6 +854,7 @@ void Conflux::killAgent(Person_MT* person, PersonProps& beforeUpdate)
 				throw std::runtime_error("Conflux::killAgent(): Attempt to remove non-existent person in Lane");
 			}
 		}
+		killStream << "Role: Driver";
 		break;
 	}
 	case Role<Person_MT>::RL_BUSDRIVER:
@@ -868,9 +876,10 @@ void Conflux::killAgent(Person_MT* person, PersonProps& beforeUpdate)
 				throw std::runtime_error("Conflux::killAgent(): Attempt to remove non-existent person in Lane");
 			}
 		}
+		killStream << "Role: BusDriver";
 		break;
 	}
-	default: //applies for any other vehicle in a lane (Biker, Busdriver etc.)
+	default: //applies for any other vehicle in a lane (Biker etc.)
 	{
 		if (prevLane)
 		{
@@ -885,6 +894,7 @@ void Conflux::killAgent(Person_MT* person, PersonProps& beforeUpdate)
 				throw std::runtime_error("Conflux::killAgent(): Attempt to remove non-existent person in Lane");
 			}
 		}
+		killStream << "Role: " << person->getRole()->name;
 		break;
 	}
 	}
@@ -893,6 +903,8 @@ void Conflux::killAgent(Person_MT* person, PersonProps& beforeUpdate)
 	messaging::MessageBus::UnRegisterHandler(person);
 	person->onWorkerExit();
 	safe_delete_item(person);
+	killStream << "\n";
+	Print() << killStream.str();
 }
 
 void Conflux::resetPositionOfLastUpdatedAgentOnLanes()
@@ -1089,6 +1101,7 @@ Entity::UpdateStatus Conflux::switchTripChainItem(Person_MT* person)
 	}
 	Role<Person_MT>* personRole = person->getRole();
 	person->setStartTime(currFrame.ms());
+
 	if (personRole && personRole->roleType == Role<Person_MT>::RL_WAITBUSACTITITY)
 	{
 		assignPersonToBusStopAgent(person);
@@ -1111,7 +1124,7 @@ Entity::UpdateStatus Conflux::switchTripChainItem(Person_MT* person)
 		return retVal;
 	}
 
-	if (personRole && personRole->roleType == Role<Person_MT>::RL_CARPASSENGER)
+	if (personRole && (personRole->roleType == Role<Person_MT>::RL_CARPASSENGER || personRole->roleType == Role<Person_MT>::RL_PRIVATEBUSPASSENGER))
 	{
 		stashPerson(person);
 		PersonList::iterator pIt = std::find(pedestrianList.begin(), pedestrianList.end(), person);

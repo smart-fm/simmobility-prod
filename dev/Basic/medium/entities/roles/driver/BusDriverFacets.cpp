@@ -82,10 +82,6 @@ void BusDriverMovement::frame_init()
 
 void BusDriverMovement::frame_tick()
 {
-	if(parentBusDriver->parent->busLine == "160_2-p" && parentBusDriver->parent->getId() == 20925)
-	{
-		int i = 0;
-	}
 	DriverUpdateParams& params = parentBusDriver->getParams();
 	if (parentBusDriver->parent->canMoveToNextSegment == Person_MT::GRANTED)
 	{
@@ -167,44 +163,56 @@ void BusDriverMovement::frame_tick()
 	{
 		DriverMovement::frame_tick();
 	}
-	else
+	else if(parentBusDriver->parent->canMoveToNextSegment == Person_MT::NONE)
 	{
+		// canMoveToNextSegment is set to Granted or Denied only by the conflux
+		// If canMoveToNextSegment is not NONE at this point, the bus driver must have remained in VQ
+		// Set parent data must not be called if the driver remained in VQ.
 		setParentData(params);
 	}
+
 	if (params.elapsedSeconds >= params.secondsInTick)
 	{
 		parentBusDriver->updatePassengers();
 	}
-	std::stringstream logout;
-	Person_MT* person = parentBusDriver->parent;
-	unsigned int segId = (person->getCurrSegStats() ? person->getCurrSegStats()->getRoadSegment()->getRoadSegmentId() : 0);
-	uint16_t statsNum = (person->getCurrSegStats() ? person->getCurrSegStats()->getStatsNumberInSegment() : 0);
-	logout << "(BusDriver" << "," << person->getId() << "," << person->busLine << "," << parentBusDriver->getParams().now.frame() << ",{" << "RoadSegment:"
-			<< segId << ",StatsNum:" << statsNum << ",Lane:" << (person->getCurrLane() ? person->getCurrLane()->getLaneId() : 0) << ",DistanceToEndSeg:"
-			<< person->distanceToEndOfSegment;
 
-	if (parentBusDriver->getResource()->isMoving())
-	{
-		logout << ",ServingStop:" << "false";
-	}
-	else
-	{
-		logout << ",ServingStop:" << "true";
-	}
-	const BusStop* nextStop = routeTracker.getNextStop();
-	logout << ",NextStop:" << (nextStop ? nextStop->getStopCode() : "0");
-
-	if (person->isQueuing)
-	{
-		logout << ",queuing:" << "true";
-	}
-	else
-	{
-		logout << ",queuing:" << "false";
-	}
-	logout << ",elapsedSeconds:" << params.elapsedSeconds;
-	logout << "})" << std::endl;
-	std::cout << logout.str();
+//	std::stringstream logout;
+//	Person_MT* person = parentBusDriver->parent;
+//	unsigned int segId = (person->getCurrSegStats() ? person->getCurrSegStats()->getRoadSegment()->getRoadSegmentId() : 0);
+//	uint16_t statsNum = (person->getCurrSegStats() ? person->getCurrSegStats()->getStatsNumberInSegment() : 0);
+//	const BusTrip* busTrip = dynamic_cast<const BusTrip*>(*(person->currTripChainItem));
+//	logout << "(BusDriver" << "," << person->getId() << ","
+//			<< person->busLine << ","
+//			<< (busTrip? busTrip->tripID : "NA")
+//			<< parentBusDriver->getParams().now.frame()
+//			<< ",{"
+//			<< "RoadSegment:" << segId
+//			<< ",StatsNum:" << statsNum
+//			<< ",Lane:" << (person->getCurrLane() ? person->getCurrLane()->getLaneId() : 0)
+//			<< ",DistanceToEndSeg:" << person->distanceToEndOfSegment;
+//
+//	if (parentBusDriver->getResource()->isMoving())
+//	{
+//		logout << ",ServingStop:" << "false";
+//	}
+//	else
+//	{
+//		logout << ",ServingStop:" << "true";
+//	}
+//	const BusStop* nextStop = routeTracker.getNextStop();
+//	logout << ",NextStop:" << (nextStop ? nextStop->getStopCode() : "0");
+//
+//	if (person->isQueuing)
+//	{
+//		logout << ",queuing:" << "true";
+//	}
+//	else
+//	{
+//		logout << ",queuing:" << "false";
+//	}
+//	logout << ",elapsedSeconds:" << params.elapsedSeconds;
+//	logout << "})" << std::endl;
+//	Print() << logout.str();
 
 }
 
@@ -494,6 +502,7 @@ void BusDriverMovement::flowIntoNextLinkIfPossible(DriverUpdateParams& params)
 		{
 			//the bus driver is currently serving a stop
 			params.elapsedSeconds = params.secondsInTick; //remain in bus stop
+			parentBusDriver->parent->setRemainingTimeThisTick(0.0); //(elapsed - seconds this tick)
 		}
 	}
 }
@@ -623,6 +632,12 @@ bool BusDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 			pathMover.advanceInPath();
 			if (pathMover.isPathCompleted())
 			{
+				const Link* currLink = currSegStat->getRoadSegment()->getParentLink();
+				double linkExitTime = params.elapsedSeconds + (params.now.ms()/1000.0);
+				parentBusDriver->parent->currLinkTravelStats.finalize(currLink, linkExitTime, nullptr);
+				TravelTimeManager::getInstance()->addTravelTime(parentBusDriver->parent->currLinkTravelStats); //in seconds
+				currSegStat->getParentConflux()->setLinkTravelTimes(linkExitTime, currLink);
+				parentBusDriver->parent->currLinkTravelStats.reset();
 				setOutputCounter(currLane, (getOutputCounter(currLane, currSegStat) - 1), currSegStat);
 				currLane = nullptr;
 				parentBusDriver->parent->setToBeRemoved();

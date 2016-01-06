@@ -103,7 +103,11 @@ void sim_mob::medium::Passenger::collectTravelTime()
 	}
 	else if (roleType == Role<Person_MT>::RL_CARPASSENGER)
 	{
-		personTravelTime.mode = "CARSHARING_TRAVEL";
+		personTravelTime.mode = "CAR_SHARING_TRAVEL";
+	}
+	else if (roleType == Role<Person_MT>::RL_PRIVATEBUSPASSENGER)
+	{
+		personTravelTime.mode = "PRIVATE_BUS_TRAVEL";
 	}
 	else
 	{

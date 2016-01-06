@@ -63,7 +63,7 @@ class WaitBusActivityRole : public Role<Person_ST>, public UpdateWrapper<WaitBus
 {
 public:
 	WaitBusActivityRole(Person_ST *parent, WaitBusActivityRoleBehavior *behavior = nullptr, WaitBusActivityRoleMovement *movement = nullptr,
-						Role<Person_ST>::Type roleType_ = RL_WAITBUSACTITITY, std::string roleName = "waitBusActivityRole");
+						Role<Person_ST>::Type roleType_ = RL_WAITBUSACTIVITY, std::string roleName = "waitBusActivityRole");
 	virtual ~WaitBusActivityRole();
 	
 	virtual void make_frame_tick_params(timeslice now);

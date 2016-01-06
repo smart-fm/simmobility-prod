@@ -44,9 +44,9 @@
             <mapping name="lane_polylines" procedure="get_singapore_lane_polylines()"/>
             <mapping name="lane_connectors" procedure="get_singapore_lane_connectors()"/>
             <mapping name="bus_stops" procedure="get_singapore_bus_stops()"/>
-            <mapping name="pt_bus_dispatch_freq" procedure="get_pt_bus_frequency()"/>
-            <mapping name="pt_bus_routes" procedure="get_pt_bus_routes()"/>
-            <mapping name="pt_bus_stops" procedure="get_pt_bus_stops()"/>
+            <mapping name="pt_bus_dispatch_freq" procedure="get_pt_bus_frequency_extcbd()"/>
+            <mapping name="pt_bus_routes" procedure="get_pt_bus_routes_extcbd()"/>
+            <mapping name="pt_bus_stops" procedure="get_pt_bus_stops_extcbd()"/>
             <!-- MT specific stored procedures -->
             <mapping name="pt_vertices" procedure="get_pt_map_vertices()"/>
             <mapping name="pt_edges" procedure="get_pt_map_edges()"/>
@@ -121,7 +121,7 @@
     <path-set-config-file value="data/pathset_config.xml" />
 
     <CBD enabled="false"/>
-    <generateBusRoutes enabled="false" /> 
+    <generateBusRoutes enabled="true" /> 
     <travel_time_update interval="300" alpha="0.5" />
     <public_transit enabled="true"/>
     <screen-line_count interval="900" file-name="screenLineCount.txt" enabled="true" />

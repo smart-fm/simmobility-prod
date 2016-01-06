@@ -255,8 +255,6 @@ void SegmentStats::getPersons(std::deque<Person_MT*>& segAgents)
 		PersonList& lnAgents = lnStMpIt->second->laneAgents;
 		segAgents.insert(segAgents.end(), lnAgents.begin(), lnAgents.end());
 	}
-	PersonList& lnAgents = laneStatsMap.find(laneInfinity)->second->laneAgents;
-	segAgents.insert(segAgents.end(), lnAgents.begin(), lnAgents.end());
 
 	for (BusStopList::const_reverse_iterator stopIt = busStops.rbegin(); stopIt != busStops.rend(); stopIt++)
 	{
@@ -264,6 +262,12 @@ void SegmentStats::getPersons(std::deque<Person_MT*>& segAgents)
 		PersonList& driversAtStop = busDrivers.at(stop);
 		segAgents.insert(segAgents.end(), driversAtStop.begin(), driversAtStop.end());
 	}
+}
+
+void SegmentStats::getInfinityPersons(std::deque<Person_MT*>& segAgents)
+{
+	PersonList& lnAgents = laneStatsMap.find(laneInfinity)->second->laneAgents;
+	segAgents.insert(segAgents.end(), lnAgents.begin(), lnAgents.end());
 }
 
 void SegmentStats::topCMergeLanesInSegment(PersonList& mergedPersonList)

@@ -1904,6 +1904,71 @@ void Conflux::removeIncident(SegmentStats* segStats)
 	}
 }
 
+void Conflux::driverStatistics(timeslice now)
+{
+	std::map<int, int> statSegs;
+	std::map<int, int> statSegsInfinity;
+	std::map<int, int> statLinks;
+	PersonList allPersonsInCfx, tmpAgents;
+	SegmentStats* segStats = nullptr;
+	for(UpstreamSegmentStatsMap::iterator upStrmSegMapIt = upstreamSegStatsMap.begin();
+			upStrmSegMapIt!=upstreamSegStatsMap.end(); upStrmSegMapIt++) {
+		const SegmentStatsList& upstreamSegments = upStrmSegMapIt->second;
+		for(SegmentStatsList::const_iterator rdSegIt=upstreamSegments.begin();
+				rdSegIt!=upstreamSegments.end(); rdSegIt++) {
+			tmpAgents.clear();
+			segStats = (*rdSegIt);
+			segStats->getPersons(tmpAgents);
+			int segId = segStats->getRoadSegment()->getRoadSegmentId();
+			if(statSegs.find(segId)!=statSegs.end()){
+				statSegs[segId] = statSegs[segId]+tmpAgents.size();
+			} else {
+				statSegs[segId] = tmpAgents.size();
+			}
+			statLinks[segId] = segStats->getRoadSegment()->getLinkId();
+			tmpAgents.clear();
+			segStats->getInfinityPersons(tmpAgents);
+			statSegsInfinity[segId] = tmpAgents.size();
+		}
+	}
+
+	for(VirtualQueueMap::iterator vqMapIt = virtualQueuesMap.begin();
+			vqMapIt != virtualQueuesMap.end(); vqMapIt++) {
+		tmpAgents = vqMapIt->second;
+		int segId = 0;
+		if(vqMapIt->first && vqMapIt->first->getRoadSegments().size()>0){
+			segId = vqMapIt->first->getRoadSegments().back()->getRoadSegmentId();
+		}
+		if(segId!=0){
+			segId = -segId;
+			statSegs[segId] = tmpAgents.size();
+			statLinks[segId] = vqMapIt->first->getLinkId();
+		}
+	}
+
+	std::stringstream logout;
+	std::string filename("driverstats.csv");
+	sim_mob::BasicLogger & movement = sim_mob::Logger::log(filename);
+	std::map<int, int>::iterator it;
+	for (it = statSegs.begin(); it != statSegs.end(); it++) {
+		if (it->second > 0) {
+			if (it->first > 0) {
+				logout << it->first << "," << it->second << ","
+						<< statSegsInfinity[it->first] << ","
+						<< statLinks[it->first] << ","
+						<< DailyTime(now.ms()).getStrRepr() << std::endl;
+			} else {
+				logout << it->first << "," << it->second << "," << 0 << ","
+						<< statLinks[it->first] << ","
+						<< DailyTime(now.ms()).getStrRepr() << std::endl;
+			}
+		}
+	}
+	movement <<logout.str();
+	movement.flush();
+}
+
+
 void Conflux::addConnectedConflux(Conflux* conflux)
 {
 	if(!conflux)

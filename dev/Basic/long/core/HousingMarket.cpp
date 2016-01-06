@@ -13,7 +13,7 @@
 #include "workers/Worker.hpp"
 #include "event/LT_EventArgs.hpp"
 #include "message/MessageBus.hpp"
-#include "agent/LT_Agent.hpp"
+#include "entities/Agent_LT.hpp"
 #include "DataManager.hpp"
 #include "util/HelperFunctions.hpp"
 
@@ -80,7 +80,7 @@ namespace
     }
 }
 
-HousingMarket::Entry::Entry(LT_Agent* owner, BigSerial unitId, BigSerial postcodeId, BigSerial tazId, double askingPrice, double hedonicPrice)
+HousingMarket::Entry::Entry(Agent_LT* owner, BigSerial unitId, BigSerial postcodeId, BigSerial tazId, double askingPrice, double hedonicPrice)
 						  : owner(owner), unitId(unitId), askingPrice(askingPrice), hedonicPrice(hedonicPrice), postcodeId(postcodeId), tazId(tazId) {}
 
 HousingMarket::Entry::Entry(const Entry &source)
@@ -132,7 +132,7 @@ double HousingMarket::Entry::getHedonicPrice() const
     return hedonicPrice;
 }
 
-LT_Agent* HousingMarket::Entry::getOwner() const
+Agent_LT* HousingMarket::Entry::getOwner() const
 {
     return owner;
 }
@@ -147,7 +147,7 @@ void HousingMarket::Entry::setHedonicPrice(double hedonicPrice)
     this->hedonicPrice = hedonicPrice;
 }
 
-void HousingMarket::Entry::setOwner(LT_Agent* owner)
+void HousingMarket::Entry::setOwner(Agent_LT* owner)
 {
     this->owner = owner;
 }

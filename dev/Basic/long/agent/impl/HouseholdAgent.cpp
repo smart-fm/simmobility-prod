@@ -31,9 +31,10 @@ using std::string;
 using std::map;
 using std::endl;
 
-HouseholdAgent::HouseholdAgent(BigSerial id, HM_Model* model, const Household* household, HousingMarket* market, bool marketSeller, int day, int householdBiddingWindow)
-: LT_Agent(id), model(model), market(market), household(household), marketSeller(marketSeller), bidder (nullptr), seller(nullptr), day(day),vehicleOwnershipOption(NO_CAR), householdBiddingWindow(householdBiddingWindow)
-{
+HouseholdAgent::HouseholdAgent(BigSerial _id, HM_Model* _model, const Household* _household, HousingMarket* _market, bool _marketSeller, int _day, int _householdBiddingWindow)
+							 : Agent_LT(ConfigManager::GetInstance().FullConfig().mutexStategy(), _id), model(_model), market(_market), household(_household), marketSeller(_marketSeller), bidder (nullptr), seller(nullptr), day(_day),
+							   vehicleOwnershipOption(NO_CAR), householdBiddingWindow(_householdBiddingWindow)
+							{
     seller = new HouseholdSellerRole(this);
     seller->setActive(marketSeller);
 
@@ -45,11 +46,8 @@ HouseholdAgent::HouseholdAgent(BigSerial id, HM_Model* model, const Household* h
 
     ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
     buySellInterval = config.ltParams.housingModel.offsetBetweenUnitBuyingAndSelling;
-    householdBiddingWindow = config.ltParams.housingModel.householdBiddingWindow;
 
-    //srand() is thread-specific
-	time_t timeInSeconds = std::time(0);
-	srand(timeInSeconds);
+    householdBiddingWindow = config.ltParams.housingModel.householdBiddingWindow * (double)rand() / RAND_MAX + 1;
 }
 
 HouseholdAgent::~HouseholdAgent()
@@ -129,12 +127,18 @@ void HouseholdAgent::awakenHousehold()
 		return;
 
 	if(household == nullptr)
+	{
+		AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, (boost::format( "household  of agent %1% is null.") %  this->getId()).str());
 		return;
+	}
 
 	Awakening *awakening = model->getAwakeningById( household->getId() );
 
 	if( awakening == nullptr || bidder == nullptr || seller == nullptr )
+	{
+		AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, (boost::format( "The awakening, bidder or seller classes is null.")).str());
 		return;
+	}
 
 	//These 6 variables are the 3 classes that we believe households fall into.
 	//And the 3 probabilities that we believe these 3 classes will have of awakening.
@@ -166,7 +170,7 @@ void HouseholdAgent::awakenHousehold()
 		model->incrementBidders();
 
 		#ifdef VERBOSE
-		PrintOutV("Household " << getId() << " has been awakened."<< std::endl);
+		PrintOutV("[day " << day << "] Lifestyle 1. Household " << getId() << " has been awakened." << model->getNumberOfBidders()  << std::endl);
 		#endif
 
 		for (vector<BigSerial>::const_iterator itr = unitIds.begin(); itr != unitIds.end(); itr++)
@@ -191,7 +195,7 @@ void HouseholdAgent::awakenHousehold()
 		model->incrementBidders();
 
 		#ifdef VERBOSE
-		PrintOutV("[day " << day << "] Household " << getId() << " has been awakened."<< std::endl);
+		PrintOutV("[day " << day << "] Lifestyle 2. Household " << getId() << " has been awakened. "  << model->getNumberOfBidders() << std::endl);
 		#endif
 
 
@@ -217,7 +221,7 @@ void HouseholdAgent::awakenHousehold()
 		model->incrementBidders();
 
 		#ifdef VERBOSE
-		PrintOutV("[day " << day << "] Household " << getId() << " has been awakened."<< std::endl);
+		PrintOutV("[day " << day << "] Lifestyle 3. Household " << getId() << " has been awakened. " << model->getNumberOfBidders() << std::endl);
 		#endif
 
 		for (vector<BigSerial>::const_iterator itr = unitIds.begin(); itr != unitIds.end(); itr++)
@@ -296,8 +300,8 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 	{
 		bidder->setActive(false);
 		model->decrementBidders();
+		model->incrementExits();
 	}
-
 
     if (bidder && bidder->isActive() && householdBiddingWindow > 0 )
     {
@@ -356,6 +360,7 @@ void HouseholdAgent::processExternalEvent(const ExternalEventArgs& args)
             {
                 bidder->setActive(true);
                 model->incrementBidders();
+                model->incrementAwakeningCounter();
             }
 
 			#ifdef VERBOSE

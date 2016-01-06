@@ -18,7 +18,7 @@ namespace sim_mob
 {
     namespace long_term
     {
-        class LT_Agent;
+        class Agent_LT;
 
         /**
          * Represents the housing market.
@@ -62,7 +62,7 @@ namespace sim_mob
             class Entry
             {
             public:
-                Entry(LT_Agent* owner, BigSerial unitId, BigSerial postcodeId, BigSerial tazId, double askingPrice, double hedonicPrice);
+                Entry(Agent_LT* owner, BigSerial unitId, BigSerial postcodeId, BigSerial tazId, double askingPrice, double hedonicPrice);
                 Entry( const Entry& source );
 
                 virtual ~Entry();
@@ -74,11 +74,11 @@ namespace sim_mob
                 BigSerial getTazId() const;
                 double getAskingPrice() const;
                 double getHedonicPrice() const;
-                LT_Agent* getOwner() const;
+                Agent_LT* getOwner() const;
 
                 void setAskingPrice(double askingPrice);
                 void setHedonicPrice(double hedonicPrice);
-                void setOwner(LT_Agent* owner);
+                void setOwner(Agent_LT* owner);
 
             private:
                 BigSerial tazId;
@@ -86,7 +86,7 @@ namespace sim_mob
                 BigSerial unitId;
                 double askingPrice;
                 double hedonicPrice;
-                LT_Agent* owner;
+                Agent_LT* owner;
             };
 
             typedef std::vector<Entry*> EntryList;

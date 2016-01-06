@@ -11,7 +11,7 @@
  */
 #pragma once
 #include "core/HousingMarket.hpp"
-#include "agent/LT_Agent.hpp"
+#include "entities/Agent_LT.hpp"
 #include "database/entity/Household.hpp"
 #include "event/LT_EventArgs.hpp"
 
@@ -29,7 +29,7 @@ namespace sim_mob
          * - Sell units.
          * - Bid units. 
          */
-        class HouseholdAgent : public LT_Agent
+        class HouseholdAgent : public Agent_LT
         {
         public:
             HouseholdAgent(BigSerial id, HM_Model* model, const Household* hh, HousingMarket* market, bool marketSeller = false, int day = 0, int householdBiddingWindow = 0);

@@ -53,7 +53,7 @@ namespace sim_mob {
         const std::string DB_TABLE_RESIDENTIAL_STATUS = APPLY_SCHEMA( MAIN_SCHEMA, "residential_status");
         const std::string DB_TABLE_UNIT_TYPE = APPLY_SCHEMA( MAIN_SCHEMA, "unit_type");
         const std::string DB_TABLE_PARCEL_AMENITIES = APPLY_SCHEMA( MAIN_SCHEMA, "parcel_amenities");
-        const std::string DB_TABLE_AWAKENING = APPLY_SCHEMA(MAIN_SCHEMA, "awakening");
+        const std::string DB_TABLE_AWAKENING = APPLY_SCHEMA(CALIBRATION_SCHEMA, "hh_awakening_probability");
         const std::string DB_TABLE_MACRO_ECONOMICS = APPLY_SCHEMA(MAIN_SCHEMA, "macro_economics");
         const std::string DB_TABLE_VEHICLE_OWNERSHIP_COEFFICIENTS = APPLY_SCHEMA(CALIBRATION_SCHEMA, "vehicle_ownership_coefficients");
         const std::string DB_TABLE_TAXI_ACCESS_COEFFICIENTS = APPLY_SCHEMA(CALIBRATION_SCHEMA, "taxi_access_coefficients");
@@ -433,6 +433,7 @@ namespace sim_mob {
         const std::string DB_GETBYID_POPULATION_PER_PLANNING_AREA = "SELECT * FROM " + DB_FUNC_GET_POPULATION_PER_PLANNING_AREA + " WHERE planning_area_id = :v1;";
         const std::string DB_GETBYID_HITSINDIVIDUALLOGSUM = "SELECT * FROM " + DB_TABLE_HITSINDIVIDUALLOGSUM + " WHERE id = :v1;";
         const std::string DB_GETBUILDINGS_BY_PARCELID      = "SELECT * FROM " + DB_TABLE_BUILDING + " WHERE fm_parcel_id = :v1;";
+        //const std::string DB_GETBYID_AWAKENING      = "SELECT * FROM " + DB_TABLE_AWAKENING + " WHERE h1_hhid = :v1;";
     }
 }
 

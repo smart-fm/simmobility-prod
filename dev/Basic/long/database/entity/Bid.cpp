@@ -14,14 +14,15 @@
 
 using namespace sim_mob::long_term;
 
-Bid::Bid(BigSerial bidId,int simulationDay, BigSerial bidderId, BigSerial currentUnitId, BigSerial newUnitId,double willingnessToPay,double affordabilityAmount,double hedonicPrice, double askingPrice,double targetPrice,double bidValue, int isAccepted,BigSerial currentPostcode, BigSerial newPostcode,LT_Agent* bidder,std::tm moveInDate)
-		:bidId(bidId),simulationDay(simulationDay),bidderId(bidderId),currentUnitId(currentUnitId),newUnitId(newUnitId), willingnessToPay(willingnessToPay), affordabilityAmount(affordabilityAmount), hedonicPrice(hedonicPrice), askingPrice(askingPrice),targetPrice(targetPrice),bidValue(bidValue),
-		 isAccepted(isAccepted),currentPostcode(currentPostcode),newPostcode(newPostcode),bidder(bidder),moveInDate(moveInDate){}
+Bid::Bid(BigSerial bidId,int simulationDay, BigSerial bidderId, BigSerial currentUnitId, BigSerial newUnitId,double willingnessToPay,double affordabilityAmount,double hedonicPrice,
+		double askingPrice,double targetPrice,double bidValue, int isAccepted,BigSerial currentPostcode, BigSerial newPostcode,Agent_LT* bidder,std::tm moveInDate, double wtpErrorTerm)
+		:bidId(bidId),simulationDay(simulationDay),bidderId(bidderId),currentUnitId(currentUnitId),newUnitId(newUnitId), willingnessToPay(willingnessToPay),
+		 affordabilityAmount(affordabilityAmount), hedonicPrice(hedonicPrice), askingPrice(askingPrice),targetPrice(targetPrice),bidValue(bidValue),
+		 isAccepted(isAccepted),currentPostcode(currentPostcode),newPostcode(newPostcode),bidder(bidder),moveInDate(moveInDate), wtpErrorTerm(wtpErrorTerm){}
 
-Bid::Bid(BigSerial bidId,BigSerial currentUnitId,BigSerial newUnitId, BigSerial bidderId,LT_Agent* bidder,double bidValue, int simulationDay, double willingnessToPay)
-		:bidId(bidId),currentUnitId(currentUnitId), newUnitId(newUnitId),bidderId(bidderId),bidder(bidder),bidValue(bidValue), simulationDay(simulationDay) , willingnessToPay(willingnessToPay)
-        , affordabilityAmount(0), hedonicPrice(0), askingPrice(0),targetPrice(0),
-		 isAccepted(0),currentPostcode(INVALID_ID),newPostcode(INVALID_ID),moveInDate(std::tm()){}
+Bid::Bid(BigSerial bidId,BigSerial currentUnitId,BigSerial newUnitId, BigSerial bidderId,Agent_LT* bidder,double bidValue, int simulationDay, double willingnessToPay, double wtp_e, double affordabilityAmount)
+		:bidId(bidId),currentUnitId(currentUnitId), newUnitId(newUnitId),bidderId(bidderId),bidder(bidder),bidValue(bidValue), simulationDay(simulationDay) , willingnessToPay(willingnessToPay), hedonicPrice(0),
+		askingPrice(0),targetPrice(0), isAccepted(0),currentPostcode(INVALID_ID),newPostcode(INVALID_ID),moveInDate(tm()), wtpErrorTerm(wtp_e), affordabilityAmount(affordabilityAmount){}
 
 Bid::Bid(const Bid& source)
 {
@@ -41,10 +42,11 @@ Bid::Bid(const Bid& source)
     this->newPostcode = source.newPostcode;
     this->bidder = source.bidder;
     this->moveInDate = source.moveInDate;
+    this->wtpErrorTerm = source.wtpErrorTerm;
 }
 
 Bid::Bid(): bidId(bidId),simulationDay(simulationDay),bidderId(INVALID_ID),currentUnitId(INVALID_ID),newUnitId(INVALID_ID),willingnessToPay(0.0),affordabilityAmount(0.0),hedonicPrice(0.0),
-		askingPrice(0.0),targetPrice(0.0),bidValue(0.0),isAccepted(0),currentPostcode(INVALID_ID),newPostcode(INVALID_ID),bidder(nullptr),moveInDate(moveInDate){}
+		askingPrice(0.0),targetPrice(0.0),bidValue(0.0),isAccepted(0),currentPostcode(INVALID_ID),newPostcode(INVALID_ID),bidder(nullptr),moveInDate(moveInDate), wtpErrorTerm(0){}
 
 Bid::~Bid() {}
 
@@ -66,6 +68,7 @@ Bid& Bid::operator=(const Bid& source)
 	this->newPostcode = source.newPostcode;
 	this->bidder = source.bidder;
 	this->moveInDate = source.moveInDate;
+	this->wtpErrorTerm = source.wtpErrorTerm;
     return *this;
 }
 
@@ -218,10 +221,21 @@ void Bid::setMoveInDate(const std::tm& moveInDate)
 		this->moveInDate = moveInDate;
 }
 
-LT_Agent* Bid::getBidder() const
+Agent_LT* Bid::getBidder() const
 {
     return bidder;
 }
+
+void Bid::setWtpErrorTerm(double error)
+{
+	wtpErrorTerm = error;
+}
+
+double Bid::getWtpErrorTerm() const
+{
+	return wtpErrorTerm;
+}
+
 
 namespace sim_mob {
     namespace long_term {

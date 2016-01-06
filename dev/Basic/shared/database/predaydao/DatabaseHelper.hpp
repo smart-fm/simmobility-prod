@@ -17,7 +17,7 @@ const std::string EMPTY_STRING = "";
  * Schemas
  */
 const std::string MAIN_SCHEMA = "main2012.";
-const std::string PUBLIC_SCHEMA = "demand.";
+const std::string PUBLIC_SCHEMA = "calibration2012."; //demand.
 
 /**
  * Tables

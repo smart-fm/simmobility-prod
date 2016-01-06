@@ -357,7 +357,8 @@ double HM_Model::TazStats::getAvgHHSize() const
 }
 
 
-HM_Model::HM_Model(WorkGroup& workGroup) :	Model(MODEL_NAME, workGroup),numberOfBidders(0), initialHHAwakeningCounter(0), numLifestyle1HHs(0), numLifestyle2HHs(0), numLifestyle3HHs(0), hasTaxiAccess(false),householdLogsumCounter(0), simulationStopCounter(0), developerModel(nullptr),startDay(0),bidId(0){}
+HM_Model::HM_Model(WorkGroup& workGroup) :	Model(MODEL_NAME, workGroup),numberOfBidders(0), initialHHAwakeningCounter(0), numLifestyle1HHs(0), numLifestyle2HHs(0), numLifestyle3HHs(0), hasTaxiAccess(false),
+											householdLogsumCounter(0), simulationStopCounter(0), developerModel(nullptr), startDay(0), bidId(0), numberOfBids(0), numberOfExits(0),	numberOfSuccessfulBids(0){}
 
 HM_Model::~HM_Model()
 {
@@ -377,6 +378,44 @@ void HM_Model::decrementBidders()
 int HM_Model::getNumberOfBidders()
 {
 	return numberOfBidders;
+}
+
+void HM_Model::incrementBids()
+{
+	numberOfBids++;
+}
+
+void HM_Model::incrementExits()
+{
+	numberOfExits++;
+}
+
+void HM_Model::incrementSuccessfulBids()
+{
+	numberOfSuccessfulBids++;
+}
+
+void HM_Model::resetBAEStatistics() //BAE is Bids, Awakenings and Exits
+{
+	initialHHAwakeningCounter = 0;
+	numberOfBids = 0;
+	numberOfExits = 0;
+	numberOfSuccessfulBids = 0;
+}
+
+int HM_Model::getBids()
+{
+	return numberOfBids;
+}
+
+int HM_Model::getExits()
+{
+	return numberOfExits;
+}
+
+int HM_Model::getSuccessfulBids()
+{
+	return numberOfSuccessfulBids;
 }
 
 void HM_Model::setDeveloperModel(DeveloperModel *developerModelPointer)

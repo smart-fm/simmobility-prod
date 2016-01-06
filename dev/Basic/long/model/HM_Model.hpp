@@ -244,6 +244,15 @@ namespace sim_mob
             double ComputeHedonicPriceLogsumFromMidterm(BigSerial taz);
             double ComputeHedonicPriceLogsumFromDatabase(BigSerial taz) const;
 
+            int getBids();
+            int getExits();
+            int getSuccessfulBids();
+
+            void incrementBids();
+            void incrementExits();
+            void incrementSuccessfulBids();
+            void resetBAEStatistics(); //BAE is Bids, Awakenings and Exits
+
             void incrementBidders();
             void decrementBidders();
             int	 getNumberOfBidders();
@@ -404,6 +413,10 @@ namespace sim_mob
             bool hasTaxiAccess;
             int householdLogsumCounter;
             int simulationStopCounter;
+
+            int numberOfBids;
+            int numberOfExits;
+            int numberOfSuccessfulBids;
 
             DeveloperModel *developerModel;
             int startDay; //start tick of the simulation

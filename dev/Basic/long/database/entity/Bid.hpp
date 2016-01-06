@@ -3,8 +3,9 @@
 //license.txt   (http://opensource.org/licenses/MIT)
 
 /* 
- * File:   Bid.hpp
- * Author: Pedro Gandola <pedrogandola@smart.mit.edu>
+ * File:   	Bid.hpp
+ * Author: 	Pedro Gandola <pedrogandola@smart.mit.edu>
+ *			Chetan Rogbeer <chetan.rogbeer@smart.mit.edu>
  *
  * Created on April 5, 2013, 5:03 PM
  */
@@ -13,7 +14,7 @@
 #include "Common.hpp"
 #include "Types.hpp"
 #include "metrics/Frame.hpp"
-#include "agent/LT_Agent.hpp"
+#include "entities/Agent_LT.hpp"
 
 namespace sim_mob
 {
@@ -25,11 +26,12 @@ namespace sim_mob
         class Bid
         {
         public:
-            Bid(BigSerial bidId, int simulationDay, BigSerial bidderId, BigSerial currentUnitId, BigSerial newUnitId,double willingnessToPay,double affordabilityAmount,double hedonicPrice,
-            		double askingPrice,double targetPrice, double bidValue, int isAccepted,BigSerial currentPostcode, BigSerial newPostcode,LT_Agent* bidder,std::tm moveInDate);
-            Bid(BigSerial bidId,BigSerial currentUnitId, BigSerial newUnitId,BigSerial bidderId,LT_Agent* bidder,double bidValue, int simulationDay, double willingnessToPay);
-            Bid(const Bid& source);
+            Bid(BigSerial bidId, int simulationDay, BigSerial bidderId, BigSerial currentUnitId, BigSerial newUnitId,double willingnessToPay,double affordabilityAmount,double hedonicPrice, double askingPrice,
+            	double targetPrice, double bidValue, int isAccepted,BigSerial currentPostcode, BigSerial newPostcode,Agent_LT* bidder,std::tm moveInDate, double wtpErrorTerm);
+
+            Bid(BigSerial bidId,BigSerial currentUnitId, BigSerial newUnitId,BigSerial bidderId,Agent_LT* bidder,double bidValue, int simulationDay, double willingnessToPay, double wtp_e, double affordability );
             Bid();
+            Bid(const Bid& source);
             virtual ~Bid();
 
             /**
@@ -66,7 +68,6 @@ namespace sim_mob
             double getHedonicPrice() const;
             double getAskingPrice() const;
             double getTargetPrice() const;
-
             /**
              * Gets the value of the bid.
              * @return the value of the bid.
@@ -81,7 +82,7 @@ namespace sim_mob
             * Gets the Bidder pointer.
             * @return bidder pointer.
             */
-           LT_Agent* getBidder() const;
+           Agent_LT* getBidder() const;
 
            const std::tm& getMoveInDate() const;
            /*
@@ -103,6 +104,9 @@ namespace sim_mob
            void setWillingnessToPay(double willingnessToPay);
            void setMoveInDate(const std::tm& moveInDate);
 
+           void setWtpErrorTerm(double error);
+           double getWtpErrorTerm() const;
+
            /**
             * Operator to print the Bid data.
             */
@@ -121,6 +125,7 @@ namespace sim_mob
            BigSerial currentUnitId;
            BigSerial newUnitId;
            double willingnessToPay;
+           double wtpErrorTerm;
            double affordabilityAmount;
            double hedonicPrice;
            double askingPrice;
@@ -129,7 +134,7 @@ namespace sim_mob
            int isAccepted;
            BigSerial currentPostcode;
            BigSerial newPostcode;
-           LT_Agent* bidder;
+           Agent_LT* bidder;
            std::tm moveInDate;
         };
     }

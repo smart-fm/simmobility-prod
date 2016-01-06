@@ -24,14 +24,12 @@
 #include "model/lua/LuaProvider.hpp"
 #include "model/HM_Model.hpp"
 #include "database/entity/VehicleOwnershipChanges.hpp"
-
 #include "core/AgentsLookup.hpp"
 #include "core/DataManager.hpp"
-
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
-
 #include "behavioral/PredayLT_Logsum.hpp"
+#include "model/HedonicPriceSubModel.hpp"
 
 using std::list;
 using std::endl;
@@ -107,7 +105,8 @@ namespace
        }
 }
 
-HouseholdBidderRole::CurrentBiddingEntry::CurrentBiddingEntry( const BigSerial unitId, double bestBid, const double wp, double lastSurplus ) : unitId(unitId), bestBid(bestBid), wp(wp), tries(0), lastSurplus(lastSurplus){}
+HouseholdBidderRole::CurrentBiddingEntry::CurrentBiddingEntry( const BigSerial unitId, double bestBid, const double wp, double lastSurplus, double wtp_e, double affordability )
+															 : unitId(unitId), bestBid(bestBid), wp(wp), tries(0), lastSurplus(lastSurplus), wtp_e(wtp_e), affordability(affordability){}
 
 HouseholdBidderRole::CurrentBiddingEntry::~CurrentBiddingEntry()
 {
@@ -118,6 +117,18 @@ BigSerial HouseholdBidderRole::CurrentBiddingEntry::getUnitId() const
 {
     return unitId;
 }
+
+
+double HouseholdBidderRole::CurrentBiddingEntry::getAffordability() const
+{
+	return affordability;
+}
+
+void HouseholdBidderRole::CurrentBiddingEntry::setAffordability(double value)
+{
+	affordability = value;
+}
+
 
 double HouseholdBidderRole::CurrentBiddingEntry::getWP() const
 {
@@ -161,6 +172,16 @@ void HouseholdBidderRole::CurrentBiddingEntry::setLastSurplus(double value)
 	lastSurplus = value;
 }
 
+double HouseholdBidderRole::CurrentBiddingEntry::getWtp_e()
+{
+	return wtp_e;
+}
+
+void HouseholdBidderRole::CurrentBiddingEntry::setWtp_e(double value)
+{
+	wtp_e = value;
+}
+
 
 HouseholdBidderRole::HouseholdBidderRole(HouseholdAgent* parent): parent(parent), waitingForResponse(false), lastTime(0, 0), bidOnCurrentDay(false), active(false), unitIdToBeOwned(0),
 																  moveInWaitingTimeInDays(0),vehicleBuyingWaitingTimeInDays(0), day(day), initBidderRole(true),year(0){}
@@ -179,12 +200,6 @@ bool HouseholdBidderRole::isActive() const
 
 void HouseholdBidderRole::setActive(bool activeArg)
 {
-	if( activeArg == true )
-	{
-		ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
-		getParent()->setHouseholdBiddingWindow( config.ltParams.housingModel.householdBiddingWindow );
-	}
-
     active = activeArg;
 }
 
@@ -318,6 +333,20 @@ void HouseholdBidderRole::computeHouseholdAffordability()
 	householdAffordabilityAmount = std::max(householdAffordabilityAmount, 0.0);
 
 	bidderHousehold->setAffordabilityAmount( householdAffordabilityAmount );
+
+	//
+	HM_Model *model = getParent()->getModel();
+
+	Unit *unit = const_cast<Unit*>(model->getUnitById( household->getUnitId() ));
+
+	HedonicPrice_SubModel hpSubmodel(day, model, unit);
+
+	std::vector<ExpectationEntry> expectations;
+	hpSubmodel.ComputeExpectation(1, expectations);
+
+	double price = expectations[0].hedonicPrice;
+
+	bidderHousehold->setCurrentUnitPrice( price );
 }
 
 void HouseholdBidderRole::init()
@@ -360,7 +389,7 @@ void HouseholdBidderRole::update(timeslice now)
 		return;
 	}
 
-	//wait 60 days after move in to a new unit to reconsider the vehicle ownership option.
+	//wait x days after move in to a new unit to reconsider the vehicle ownership option.
 	if( vehicleBuyingWaitingTimeInDays > 0 && moveInWaitingTimeInDays == 0)
 	{
 
@@ -515,8 +544,8 @@ bool HouseholdBidderRole::bidUnit(timeslice now)
 				PrintOutV("[day " << day << "] Household " << std::dec << household->getId() << " submitted a bid of $" << biddingEntry.getBestBid() << "[wp:$" << biddingEntry.getWP() << ",bids:"  <<   biddingEntry.getTries() << ",ap:$" << entry->getAskingPrice() << "] on unit " << biddingEntry.getUnitId() << " to seller " <<  entry->getOwner()->getId() << "." << std::endl );
 				#endif
 
-				bid(entry->getOwner(), Bid(model->getBidId(),household->getUnitId(),entry->getUnitId(), household->getId(), getParent(), biddingEntry.getBestBid(), now.ms(), biddingEntry.getWP()));
-
+				bid(entry->getOwner(), Bid(model->getBidId(),household->getUnitId(),entry->getUnitId(), household->getId(), getParent(), biddingEntry.getBestBid(), now.ms(), biddingEntry.getWP(), biddingEntry.getWtp_e(), biddingEntry.getAffordability()));
+				model->incrementBids();
 				return true;
 			}
 		}
@@ -532,7 +561,7 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 	//These constants are extracted from Roberto Ponce's bidding model
 	//
 	/* willingness to pay in million of dollars*/
-	double sde		=  0.7922954584;
+	double sde		=  0.1;
 	double barea	=  0.6922591951;
 	double blogsum	=  0.0184661069;
 	double bchin	= -0.0727597459;
@@ -629,7 +658,7 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 
 	if( unitType <= 6  || unitType == 65 )
 	{
-		sde 	 = 0.4371165786;
+		sde 	 = 0.05;
 		barea 	 = 0.8095874824;
 		blogsum	 = 0.0035517989;
 		bchin 	 = 0.0555546991;
@@ -1392,6 +1421,7 @@ bool HouseholdBidderRole::pickEntryToBid()
     double finalBid = 0;
     double maxWp	= 0;
     double maxWtpe  = 0;
+    double maxAffordability = 0;
 
     ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
     float housingMarketSearchPercentage = config.ltParams.housingModel.housingMarketSearchPercentage;
@@ -1631,12 +1661,6 @@ bool HouseholdBidderRole::pickEntryToBid()
 
             	wp = std::max(0.0, wp );
 
-            	if( wp > household->getAffordabilityAmount() )
-                {
-                	//PrintOutV("wp is capped at " <<  household->getAffordabilityAmount() << " from " << wp << std::endl );
-                	//wp = household->getAffordabilityAmount();
-                }
-
             	double currentBid = 0;
             	double currentSurplus = 0;
 
@@ -1645,7 +1669,12 @@ bool HouseholdBidderRole::pickEntryToBid()
             	else
             		PrintOutV("Asking price is zero for unit " << entry->getUnitId() << std::endl );
 
-            	if( currentSurplus > maxSurplus )
+            	if( household->getAffordabilityAmount() > household->getCurrentUnitPrice() )
+            		maxAffordability = household->getAffordabilityAmount();
+            	else
+            		maxAffordability = household->getCurrentUnitPrice();
+
+            	if( currentSurplus > maxSurplus && maxAffordability > entry->getAskingPrice() )
             	{
             		maxSurplus = currentSurplus;
             		finalBid = currentBid;
@@ -1657,7 +1686,7 @@ bool HouseholdBidderRole::pickEntryToBid()
         }
     }
 
-    biddingEntry = CurrentBiddingEntry( (maxEntry) ? maxEntry->getUnitId() : INVALID_ID, finalBid, maxWp, maxSurplus );
+    biddingEntry = CurrentBiddingEntry( (maxEntry) ? maxEntry->getUnitId() : INVALID_ID, finalBid, maxWp, maxSurplus, maxWtpe, maxAffordability );
     return biddingEntry.isValid();
 }
 
@@ -1838,6 +1867,7 @@ void HouseholdBidderRole::reconsiderVehicleOwnershipOption()
 
 	setActive(false);
 	getParent()->getModel()->decrementBidders();
+	getParent()->getModel()->incrementExits();
 
 }
 

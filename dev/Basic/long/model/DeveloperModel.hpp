@@ -30,6 +30,7 @@
 #include "database/entity/UnitPriceSum.hpp"
 #include "database/entity/TazLevelLandPrice.hpp"
 #include "database/entity/EncodedParamsBySimulation.hpp"
+#include "database/entity/DevelopmentPlan.hpp"
 #include "agent/impl/DeveloperAgent.hpp"
 #include "agent/impl/RealEstateAgent.hpp"
 #include "model/HM_Model.hpp"
@@ -213,6 +214,8 @@ namespace sim_mob {
 
             void addProfitableParcels(boost::shared_ptr<Parcel> &profitableParcel);
 
+            void addPotentialProjects(boost::shared_ptr<PotentialProject> &potentialProject);
+
             std::vector<boost::shared_ptr<Building> > getBuildingsVec();
 
             std::vector<boost::shared_ptr<Unit> > getUnitsVec();
@@ -220,6 +223,14 @@ namespace sim_mob {
             std::vector<boost::shared_ptr<Project> > getProjectsVec();
 
             std::vector<boost::shared_ptr<Parcel> > getProfitableParcelsVec();
+
+            const int getOpSchemaloadingInterval();
+
+            void setOpSchemaloadingInterval(int opSchemaLoadingInt);
+
+            void addDevelopmentPlans(boost::shared_ptr<DevelopmentPlan> &devPlan);
+
+            std::vector<boost::shared_ptr<DevelopmentPlan> > getDevelopmentPlansVec();
 
         protected:
             /**
@@ -289,6 +300,8 @@ namespace sim_mob {
             boost::mutex addBuildingLock;
             boost::mutex addUnitsLock;
             boost::mutex addProjectsLock;
+            boost::mutex addPotentialProjectsLock;
+            boost::mutex addDevPlansLock;
             bool isRestart;
             EncodedParamsList encodedParamsList;
             boost::mutex projectIdLock;
@@ -296,6 +309,9 @@ namespace sim_mob {
             std::vector<boost::shared_ptr<Building> > newBuildings;
             std::vector<boost::shared_ptr<Unit> > newUnits;
             std::vector<boost::shared_ptr<Parcel> > profitableParcels;
+            std::vector<boost::shared_ptr<PotentialProject> > potentialProjects;
+            int OpSchemaLoadingInterval;
+            std::vector<boost::shared_ptr<DevelopmentPlan> > developmentPlansVec;
         };
     }
 }

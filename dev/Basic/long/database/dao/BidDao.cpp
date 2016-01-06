@@ -57,11 +57,11 @@ void BidDao::toRow(Bid& data, Parameters& outParams, bool update)
 void BidDao::insertBid(Bid& bid,std::string schema)
 {
 
-	const std::string DB_INSERT_BID = "INSERT INTO " + APPLY_SCHEMA(schema, "bids")
-                		+ " (" + "bid_id" + ", " + "simulation_day" + ", " + "bidder_id" + ", " + "current_unit_id" ", " + "new_unit_id" + ", " + "willingness_to_pay"
-                		+ "affordability_amount" + ", " + "hedonic_price" + ", " + "asking_price" + ", " + "target_price" + ", " + "bid_value"
-                		+ "current_postcode" + ", " + "new_postcode"
-                		+ ") VALUES (:v1, :v2, :v3, :v4, :v5,:v6, :v7, :v8, :v9, :v10, :v11, :v12, :v13)";
+	const std::string DB_INSERT_BID = "INSERT INTO " + APPLY_SCHEMA(schema, ".bids")
+                		+ " (" + "bid_id" + ", " + "simulation_day" + ", " + "bidder_id" + ", " + "current_unit_id" ", " + "new_unit_id" + ", " + "willingness_to_pay"+ ", "
+                		+ "affordability_amount" + ", " + "hedonic_price" + ", " + "asking_price" + ", " + "target_price" + ", " + "bid_value"+ ", "
+                		+ "current_postcode" + ", " + "new_postcode" + + ", " + "move_in_date"
+                		+ ") VALUES (:v1, :v2, :v3, :v4, :v5,:v6, :v7, :v8, :v9, :v10, :v11, :v12, :v13, :v14)";
 	insertViaQuery(bid,DB_INSERT_BID);
 
 }

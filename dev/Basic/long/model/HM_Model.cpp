@@ -2069,6 +2069,30 @@ BigSerial HM_Model::getBidId()
 	}
 }
 
+void HM_Model::addHouseholdsTo_OPSchema(boost::shared_ptr<Household> &houseHold)
+{
+	addHHLock.lock();
+	hhVector.push_back(houseHold);
+	addHHLock.unlock();
+}
+
+std::vector<boost::shared_ptr<Household> > HM_Model::getHouseholds()
+{
+	return this->hhVector;
+}
+
+void HM_Model::addVehicleOwnershipChanges(boost::shared_ptr<VehicleOwnershipChanges> &vehicleOwnershipChange)
+{
+	addVehicleOwnershipChangesLock.lock();
+	vehicleOwnershipChangesVector.push_back(vehicleOwnershipChange);
+	addVehicleOwnershipChangesLock.unlock();
+}
+
+std::vector<boost::shared_ptr<VehicleOwnershipChanges> > HM_Model::getVehicleOwnershipChanges()
+{
+	return vehicleOwnershipChangesVector;
+}
+
 void HM_Model::stopImpl()
 {
 	deleteAll(stats);

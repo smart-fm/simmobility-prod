@@ -51,10 +51,10 @@ namespace {
     const string MODEL_NAME = "Developer Model";
 }
 
-DeveloperModel::DeveloperModel(WorkGroup& workGroup): Model(MODEL_NAME, workGroup), timeInterval( 30 ),dailyParcelCount(0),isParcelRemain(true),numSimulationDays(0),dailyAgentCount(0),isDevAgentsRemain(true),realEstateAgentIdIndex(0),housingMarketModel(nullptr),postcodeForDevAgent(0),initPostcode(false),unitIdForDevAgent(0),buildingIdForDevAgent(0),projectIdForDevAgent(0),devAgentCount(0),simYear(0),minLotSize(0),isRestart(false){ //In days (7 - weekly, 30 - Monthly)
+DeveloperModel::DeveloperModel(WorkGroup& workGroup): Model(MODEL_NAME, workGroup), timeInterval( 30 ),dailyParcelCount(0),isParcelRemain(true),numSimulationDays(0),dailyAgentCount(0),isDevAgentsRemain(true),realEstateAgentIdIndex(0),housingMarketModel(nullptr),postcodeForDevAgent(0),initPostcode(false),unitIdForDevAgent(0),buildingIdForDevAgent(0),projectIdForDevAgent(0),devAgentCount(0),simYear(0),minLotSize(0),isRestart(false),OpSchemaLoadingInterval(0){ //In days (7 - weekly, 30 - Monthly)
 }
 
-DeveloperModel::DeveloperModel(WorkGroup& workGroup, unsigned int timeIntervalDevModel ): Model(MODEL_NAME, workGroup), timeInterval( timeIntervalDevModel ),dailyParcelCount(0),isParcelRemain(true),numSimulationDays(0),dailyAgentCount(0),isDevAgentsRemain(true),realEstateAgentIdIndex(0),housingMarketModel(nullptr),postcodeForDevAgent(0),initPostcode(false), unitIdForDevAgent(0),buildingIdForDevAgent(0),projectIdForDevAgent(0),devAgentCount(0),simYear(0),minLotSize(0),isRestart(false){
+DeveloperModel::DeveloperModel(WorkGroup& workGroup, unsigned int timeIntervalDevModel ): Model(MODEL_NAME, workGroup), timeInterval( timeIntervalDevModel ),dailyParcelCount(0),isParcelRemain(true),numSimulationDays(0),dailyAgentCount(0),isDevAgentsRemain(true),realEstateAgentIdIndex(0),housingMarketModel(nullptr),postcodeForDevAgent(0),initPostcode(false), unitIdForDevAgent(0),buildingIdForDevAgent(0),projectIdForDevAgent(0),devAgentCount(0),simYear(0),minLotSize(0),isRestart(false),OpSchemaLoadingInterval(0){
 }
 
 DeveloperModel::~DeveloperModel() {
@@ -675,11 +675,19 @@ void DeveloperModel::addNewUnits(boost::shared_ptr<Unit> &newUnit)
 	addUnitsLock.unlock();
 }
 
+
 void DeveloperModel::addProfitableParcels(boost::shared_ptr<Parcel> &profitableParcel)
 {
 	addParcelLock.lock();
 	profitableParcels.push_back(profitableParcel);
 	addParcelLock.unlock();
+}
+
+void DeveloperModel::addPotentialProjects(boost::shared_ptr<PotentialProject> &potentialProject)
+{
+	addPotentialProjectsLock.lock();
+	potentialProjects.push_back(potentialProject);
+	addPotentialProjectsLock.unlock();
 }
 
 std::vector<boost::shared_ptr<Building> > DeveloperModel::getBuildingsVec()
@@ -702,3 +710,24 @@ std::vector<boost::shared_ptr<Parcel> > DeveloperModel::getProfitableParcelsVec(
 	return profitableParcels;
 }
 
+const int DeveloperModel::getOpSchemaloadingInterval()
+{
+	return OpSchemaLoadingInterval;
+}
+
+void DeveloperModel::setOpSchemaloadingInterval(int opSchemaLoadingInt)
+{
+	this->OpSchemaLoadingInterval = opSchemaLoadingInt;
+}
+
+void DeveloperModel::addDevelopmentPlans(boost::shared_ptr<DevelopmentPlan> &devPlan)
+{
+	addDevPlansLock.lock();
+	developmentPlansVec.push_back(devPlan);
+	addDevPlansLock.unlock();
+}
+
+std::vector<boost::shared_ptr<DevelopmentPlan> > DeveloperModel::getDevelopmentPlansVec()
+{
+	return developmentPlansVec;
+}

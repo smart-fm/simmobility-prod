@@ -155,6 +155,7 @@ namespace sim_mob
         	int moveInWaitingTimeInDays;
         	int vehicleBuyingWaitingTimeInDays;
         	uint32_t day;
+        	int year;
 
             enum EthnicityId
             {

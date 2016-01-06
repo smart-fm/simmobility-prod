@@ -21,8 +21,8 @@ Bid::Bid(BigSerial bidId,int simulationDay, BigSerial bidderId, BigSerial curren
 		 isAccepted(isAccepted),currentPostcode(currentPostcode),newPostcode(newPostcode),bidder(bidder),moveInDate(moveInDate), wtpErrorTerm(wtpErrorTerm){}
 
 Bid::Bid(BigSerial bidId,BigSerial currentUnitId,BigSerial newUnitId, BigSerial bidderId,Agent_LT* bidder,double bidValue, int simulationDay, double willingnessToPay, double wtp_e, double affordabilityAmount)
-		:bidId(bidId),currentUnitId(currentUnitId), newUnitId(newUnitId),bidderId(bidderId),bidder(bidder),bidValue(bidValue), simulationDay(simulationDay) , willingnessToPay(willingnessToPay)
-         ,hedonicPrice(0), askingPrice(askingPrice),targetPrice(targetPrice), isAccepted(0),currentPostcode(0),newPostcode(0),moveInDate(tm()), wtpErrorTerm(wtp_e), affordabilityAmount(affordabilityAmount){}
+		:bidId(bidId),currentUnitId(currentUnitId), newUnitId(newUnitId),bidderId(bidderId),bidder(bidder),bidValue(bidValue), simulationDay(simulationDay) , willingnessToPay(willingnessToPay), hedonicPrice(0),
+		askingPrice(0),targetPrice(0), isAccepted(0),currentPostcode(INVALID_ID),newPostcode(INVALID_ID),moveInDate(tm()), wtpErrorTerm(wtp_e), affordabilityAmount(affordabilityAmount){}
 
 Bid::Bid(const Bid& source)
 {

@@ -12,15 +12,18 @@
 
 #include <cmath>
 #include <boost/format.hpp>
+#include <boost/make_shared.hpp>
 #include "HouseholdBidderRole.hpp"
 #include "message/LT_Message.hpp"
 #include "event/EventPublisher.hpp"
 #include "event/EventManager.hpp"
 #include "agent/impl/HouseholdAgent.hpp"
 #include "util/Statistics.hpp"
+#include "util/SharedFunctions.hpp"
 #include "message/MessageBus.hpp"
 #include "model/lua/LuaProvider.hpp"
 #include "model/HM_Model.hpp"
+#include "database/entity/VehicleOwnershipChanges.hpp"
 #include "core/AgentsLookup.hpp"
 #include "core/DataManager.hpp"
 #include "conf/ConfigManager.hpp"
@@ -181,7 +184,7 @@ void HouseholdBidderRole::CurrentBiddingEntry::setWtp_e(double value)
 
 
 HouseholdBidderRole::HouseholdBidderRole(HouseholdAgent* parent): parent(parent), waitingForResponse(false), lastTime(0, 0), bidOnCurrentDay(false), active(false), unitIdToBeOwned(0),
-																  moveInWaitingTimeInDays(0),vehicleBuyingWaitingTimeInDays(0), day(day), initBidderRole(true){}
+																  moveInWaitingTimeInDays(0),vehicleBuyingWaitingTimeInDays(0), day(day), initBidderRole(true),year(0){}
 
 HouseholdBidderRole::~HouseholdBidderRole(){}
 
@@ -430,6 +433,14 @@ void HouseholdBidderRole::TakeUnitOwnership()
 	PrintOutV("[day " << day << "] Household " << getParent()->getId() << " is moving into unit " << unitIdToBeOwned << " today." << std::endl);
 	#endif
 	getParent()->addUnitId( unitIdToBeOwned );
+
+	boost::shared_ptr<Household> houseHold = boost::make_shared<Household>( *getParent()->getHousehold());
+	houseHold->setUnitId(unitIdToBeOwned);
+	houseHold->setHasMoved(1);
+	houseHold->setMoveInDate(getDateBySimDay(year,day));
+	HM_Model* model = getParent()->getModel();
+	model->addHouseholdsTo_OPSchema(houseHold);
+
     biddingEntry.invalidate();
     Statistics::increment(Statistics::N_ACCEPTED_BIDS);
 }
@@ -450,6 +461,18 @@ void HouseholdBidderRole::HandleMessage(Message::MessageType type, const Message
                 	moveInWaitingTimeInDays = config.ltParams.housingModel.housingMoveInDaysInterval;
                 	unitIdToBeOwned = msg.getBid().getNewUnitId();
                 	vehicleBuyingWaitingTimeInDays = config.ltParams.vehicleOwnershipModel.vehicleBuyingWaitingTimeInDays;
+                	int simulationEndDay = config.ltParams.days;
+                	year = config.ltParams.year;
+                	if(simulationEndDay < (vehicleBuyingWaitingTimeInDays+day))
+                	{
+                		boost::shared_ptr<Household> houseHold = boost::make_shared<Household>( *getParent()->getHousehold());
+                		houseHold->setUnitId(unitIdToBeOwned);
+                		houseHold->setHasMoved(0);
+                		houseHold->setMoveInDate(getDateBySimDay(year,(day+moveInWaitingTimeInDays)));
+                		HM_Model* model = getParent()->getModel();
+                		model->addHouseholdsTo_OPSchema(houseHold);
+                	}
+
                     break;
                 }
                 case NOT_ACCEPTED:
@@ -1804,10 +1827,14 @@ void HouseholdBidderRole::reconsiderVehicleOwnershipOption()
 		boost::variate_generator< boost::mt19937&, boost::random::uniform_real_distribution < > >generateRandomNumbers( randomNumbergenerator, uniformDistribution );
 		const double randomNum = generateRandomNumbers( );
 		double pTemp = 0;
+		boost::shared_ptr <VehicleOwnershipChanges> vehcileOwnershipOptChange(new VehicleOwnershipChanges());
+		vehcileOwnershipOptChange->setHouseholdId(getParent()->getHousehold()->getId());
+		vehcileOwnershipOptChange->setStartDate(getDateBySimDay(year,day));
 		if((pTemp < randomNum ) && (randomNum < (probabilityNoCar + pTemp)))
 		{
 			MessageBus::PostMessage(getParent(), LTMID_HH_NO_CAR, MessageBus::MessagePtr(new Message()));
-			writeVehicleOwnershipToFile(getParent()->getHousehold()->getId(),0);
+			vehcileOwnershipOptChange->setVehicleOwnershipOptionId(0);
+			//writeVehicleOwnershipToFile(getParent()->getHousehold()->getId(),0);
 
 		}
 		else
@@ -1816,7 +1843,8 @@ void HouseholdBidderRole::reconsiderVehicleOwnershipOption()
 			if((pTemp < randomNum ) && (randomNum < (probabilityOneCar + pTemp)))
 			{
 				MessageBus::PostMessage(getParent(), LTMID_HH_ONE_CAR, MessageBus::MessagePtr(new Message()));
-				writeVehicleOwnershipToFile(getParent()->getHousehold()->getId(),1);
+				vehcileOwnershipOptChange->setVehicleOwnershipOptionId(1);
+				//writeVehicleOwnershipToFile(getParent()->getHousehold()->getId(),1);
 			}
 			else
 			{
@@ -1824,12 +1852,14 @@ void HouseholdBidderRole::reconsiderVehicleOwnershipOption()
 				if ((pTemp < randomNum) &&( randomNum < (probabilityTwoPlusCar + pTemp)))
 				{
 					MessageBus::PostMessage(getParent(), LTMID_HH_TWO_PLUS_CAR, MessageBus::MessagePtr(new Message()));
-					std::vector<BigSerial> individuals = this->getParent()->getHousehold()->getIndividuals();
-					writeVehicleOwnershipToFile(getParent()->getHousehold()->getId(),2);
+					vehcileOwnershipOptChange->setVehicleOwnershipOptionId(2);
+					//writeVehicleOwnershipToFile(getParent()->getHousehold()->getId(),2);
 				}
 
 			}
 		}
+
+		model->addVehicleOwnershipChanges(vehcileOwnershipOptChange);
 	}
 
 	if( getParent()->getBuySellInterval() > 0 )

@@ -35,6 +35,7 @@
 #include "database/entity/PopulationPerPlanningArea.hpp"
 #include "database/entity/HitsIndividualLogsum.hpp"
 #include "database/entity/UnitSale.hpp"
+#include "database/entity/VehicleOwnershipChanges.hpp"
 #include "core/HousingMarket.hpp"
 #include "boost/unordered_map.hpp"
 #include "DeveloperModel.hpp"
@@ -298,6 +299,10 @@ namespace sim_mob
             std::vector<boost::shared_ptr<Bid> > getNewBids();
             void addUnitSales(boost::shared_ptr<UnitSale> &unitSale);
             std::vector<boost::shared_ptr<UnitSale> > getUnitSales();
+            void addHouseholdsTo_OPSchema(boost::shared_ptr<Household> &houseHold);
+            std::vector<boost::shared_ptr<Household> > getHouseholds();
+            void addVehicleOwnershipChanges(boost::shared_ptr<VehicleOwnershipChanges> &vehicleOwnershipChange);
+            std::vector<boost::shared_ptr<VehicleOwnershipChanges> > getVehicleOwnershipChanges();
 
         protected:
             /**
@@ -373,6 +378,8 @@ namespace sim_mob
             boost::mutex addBidsLock;
             boost::mutex bidIdLock;
             boost::mutex addUnitSalesLock;
+            boost::mutex addHHLock;
+            boost::mutex addVehicleOwnershipChangesLock;
             boost::unordered_map<BigSerial, double>tazLevelLogsum;
             boost::unordered_map<BigSerial, double>vehicleOwnershipLogsum;
 
@@ -416,6 +423,8 @@ namespace sim_mob
             std::vector<boost::shared_ptr<Bid> > newBids;
             std::vector<boost::shared_ptr<UnitSale> > unitSales;
             BigSerial bidId;
+            std::vector<boost::shared_ptr<Household> > hhVector;
+            std::vector<boost::shared_ptr<VehicleOwnershipChanges> > vehicleOwnershipChangesVector;
         };
     }
 }

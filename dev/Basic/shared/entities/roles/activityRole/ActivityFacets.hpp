@@ -72,14 +72,6 @@ public:
 		{
 			parentActivity->parent->setToBeRemoved();
 		}
-
-		std::stringstream logout;
-		logout << "("
-				<< parentActivity->parent->getId()
-				<< "," << parentActivity->parent->getDatabaseId()
-				<< ",RemainingTime: " << parentActivity->getRemainingTimeToComplete()
-				<< ")" << std::endl;
-		Print() << logout.str();
 	}
 
 	virtual std::string frame_tick_output()

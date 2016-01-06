@@ -493,7 +493,11 @@ void RoadNetwork::addBusStop(BusStop* stop)
 			if ((offset + stopHalfLength) > itSegments->second->getLength())
 			{
 				offset = itSegments->second->getLength() - stopHalfLength;
-				stop->setOffset(offset);
+				if (offset > 0) {
+					stop->setOffset(offset);
+				} else {
+					offset = stop->getOffset();
+				}
 			}
 
 			//Set the parent segment of the bus stop

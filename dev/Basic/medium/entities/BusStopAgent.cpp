@@ -80,6 +80,7 @@ void BusStopAgent::registerWaitingPerson(sim_mob::medium::WaitBusActivity* waiti
 	}
 	messaging::MessageBus::ReRegisterHandler(waitingPerson->getParent(), GetContext());
 	waitingPersons.push_back(waitingPerson);
+	waitingPerson->setStop(busStop);
 }
 
 void BusStopAgent::removeWaitingPerson(sim_mob::medium::WaitBusActivity* waitingPerson)
@@ -127,7 +128,7 @@ Entity::UpdateStatus BusStopAgent::frame_tick(timeslice now)
 			Role<Person_MT>* role = person->getRole();
 			if (role)
 			{
-				if (role->roleType == Role<Person_MT>::RL_WAITBUSACTITITY && val.status == UpdateStatus::RS_CONTINUE)
+				if (role->roleType == Role<Person_MT>::RL_WAITBUSACTIVITY && val.status == UpdateStatus::RS_CONTINUE)
 				{
 					WaitBusActivity* waitActivity = dynamic_cast<WaitBusActivity*>(role);
 					if (waitActivity)

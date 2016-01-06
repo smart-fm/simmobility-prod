@@ -107,7 +107,7 @@ public:
 		RL_BUSDRIVER,
 		RL_ACTIVITY,
 		RL_PASSENGER,
-		RL_WAITBUSACTITITY,
+		RL_WAITBUSACTIVITY,
 		RL_TRAINPASSENGER,
 		RL_CARPASSENGER,
 		RL_PRIVATEBUSPASSENGER
@@ -184,7 +184,7 @@ public:
 		case RL_BUSDRIVER: return "Bus";
 		case RL_ACTIVITY: return "Activity";
 		case RL_PASSENGER: return "BusTravel";
-		case RL_WAITBUSACTITITY: return "WaitingBusActivity";
+		case RL_WAITBUSACTIVITY: return "WaitingBusActivity";
 		}
 	}
 

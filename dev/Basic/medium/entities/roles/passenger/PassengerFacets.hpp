@@ -58,7 +58,7 @@ public:
 	virtual void frame_init();
 	virtual void frame_tick();
 	virtual std::string frame_tick_output();
-	virtual Conflux* getStartingConflux() const;
+	virtual Conflux* getDestinationConflux() const;
 
 	/**
 	 * set parent reference to passenger role.

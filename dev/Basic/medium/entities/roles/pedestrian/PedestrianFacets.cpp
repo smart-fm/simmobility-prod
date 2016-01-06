@@ -30,7 +30,7 @@ PedestrianBehavior::~PedestrianBehavior()
 }
 
 PedestrianMovement::PedestrianMovement(double speed) :
-		MovementFacet(), parentPedestrian(nullptr), remainingTimeToComplete(0), walkSpeed(speed), destinationNode(nullptr), totalTimeToCompleteSec(10),
+		MovementFacet(), parentPedestrian(nullptr), walkSpeed(speed), destinationNode(nullptr), totalTimeToCompleteSec(10),
 		secondsInTick(ConfigManager::GetInstance().FullConfig().baseGranSecond())
 {
 }
@@ -86,7 +86,6 @@ void PedestrianMovement::frame_init()
 		double distance = distVector.getMagnitude();
 		walkTime = distance / walkSpeed;
 	}
-	remainingTimeToComplete = walkTime;
 	parentPedestrian->setTravelTime(walkTime*1000);
 }
 
@@ -138,15 +137,6 @@ const Node* PedestrianMovement::getDestNode()
 
 void PedestrianMovement::frame_tick()
 {
-	if (remainingTimeToComplete <= secondsInTick)
-	{
-		parentPedestrian->parent->setNextLinkRequired(nullptr);
-		parentPedestrian->parent->setToBeRemoved();
-	}
-	else
-	{
-		remainingTimeToComplete -= secondsInTick;
-	}
 	parentPedestrian->parent->setRemainingTimeThisTick(0);
 }
 
@@ -155,7 +145,7 @@ std::string PedestrianMovement::frame_tick_output()
 	return std::string();
 }
 
-Conflux* PedestrianMovement::getStartingConflux() const
+Conflux* PedestrianMovement::getDestinationConflux() const
 {
 	if (destinationNode)
 	{

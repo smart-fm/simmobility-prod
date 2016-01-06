@@ -26,7 +26,7 @@ class WaitBusActivity: public sim_mob::Role<Person_MT>, public UpdateWrapper<Upd
 public:
 	explicit WaitBusActivity(Person_MT* parent, sim_mob::medium::WaitBusActivityBehavior* behavior = nullptr,
 			sim_mob::medium::WaitBusActivityMovement* movement = nullptr, std::string roleName = std::string("WaitBusActivity_"),
-			Role<Person_MT>::Type roleType = Role<Person_MT>::RL_WAITBUSACTITITY);
+			Role<Person_MT>::Type roleType = Role<Person_MT>::RL_WAITBUSACTIVITY);
 
 	virtual ~WaitBusActivity();
 
@@ -74,7 +74,7 @@ public:
 
 	const std::string getBusLines() const;
 
-	void setStop(sim_mob::BusStop* busStop)
+	void setStop(const sim_mob::BusStop* busStop)
 	{
 		stop = busStop;
 	}
@@ -106,7 +106,7 @@ private:
 	/**record waiting time (in milliseconds) in the bus stop*/
 	unsigned int waitingTime;
 	/**pointer to waiting bus stop*/
-	BusStop* stop;
+	const BusStop* stop;
 	/**flag to indicate whether the waiting person has decided to board or not*/
 	bool boardBus;
 	/**failed boarding times*/

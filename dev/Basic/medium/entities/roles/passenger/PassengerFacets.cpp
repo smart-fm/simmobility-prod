@@ -73,9 +73,11 @@ TravelMetric & PassengerMovement::finalizeTravelTimeMetric()
 	return travelMetric;
 }
 
-Conflux* PassengerMovement::getStartingConflux() const
+Conflux* PassengerMovement::getDestinationConflux() const
 {
-	if (parentPassenger->roleType == Role<Person_MT>::RL_CARPASSENGER || parentPassenger->roleType == Role<Person_MT>::RL_PRIVATEBUSPASSENGER)
+	if (parentPassenger->roleType == Role<Person_MT>::RL_CARPASSENGER
+			|| parentPassenger->roleType == Role<Person_MT>::RL_PRIVATEBUSPASSENGER
+			|| parentPassenger->roleType == Role<Person_MT>::RL_TRAINPASSENGER)
 	{
 		return MT_Config::getInstance().getConfluxForNode(parentPassenger->parent->currSubTrip->destination.node);
 	}

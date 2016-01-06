@@ -63,7 +63,7 @@ public:
 	virtual void frame_init();
 	virtual void frame_tick();
 	virtual std::string frame_tick_output();
-	virtual Conflux* getStartingConflux() const;
+	virtual Conflux* getDestinationConflux() const;
 
 	/**
 	 * set parent reference to pedestrian.
@@ -83,9 +83,6 @@ protected:
 
 	/**parent pedestrian*/
 	medium::Pedestrian* parentPedestrian;
-
-	/**record the current remaining time to the destination*/
-	double remainingTimeToComplete;
 
 	/**pedestrian's walking speed*/
 	const double walkSpeed;

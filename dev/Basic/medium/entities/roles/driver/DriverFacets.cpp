@@ -179,6 +179,35 @@ void DriverMovement::frame_tick()
 		advance(params);
 		setParentData(params);
 	}
+
+
+	if (parentDriver->roleType != Role<Person_MT>::RL_BUSDRIVER)
+	{
+		if(parentDriver->parent->isToBeRemoved())
+		{
+			int i = 0;
+		}
+		else
+		{
+			std::stringstream logout;
+			logout << "(" << parentDriver->parent->getId()
+					<< "," << parentDriver->parent->getDatabaseId()
+					<< "," << params.now.frame()
+					<< ",{" << "RoadSegment:" << (parentDriver->parent->getCurrSegStats()->getRoadSegment()->getRoadSegmentId())
+					<< ",Lane:" << ((parentDriver->parent->getCurrLane()) ? parentDriver->parent->getCurrLane()->getLaneId() : 0)
+					<< ",DistanceToEndSeg:" << parentDriver->parent->distanceToEndOfSegment;
+			if (this->parentDriver->parent->isQueuing)
+			{
+				logout << ",queuing: true";
+			}
+			else
+			{
+				logout << ",queuing: false";
+			}
+			logout << "})" << std::endl;
+			Print() << logout.str();
+		}
+	}
 }
 
 std::string DriverMovement::frame_tick_output()

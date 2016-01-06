@@ -241,18 +241,17 @@ void Conflux::addAgent(Person_MT* person)
 		}
 		case Role<Person_MT>::RL_PEDESTRIAN:
 		{
-			pedestrianList.push_back(person);
+			assignPersonToPedestrianlist(person);
 			break;
 		}
-		case Role<Person_MT>::RL_WAITBUSACTITITY:
+		case Role<Person_MT>::RL_WAITBUSACTIVITY:
 		{
 			assignPersonToBusStopAgent(person);
 			break;
 		}
 		case Role<Person_MT>::RL_TRAINPASSENGER:
 		{
-			mrt.push_back(person);
-			//TODO: subscribe for time based event
+			assignPersonToMRT(person);
 			break;
 		}
 		case Role<Person_MT>::RL_CARPASSENGER:
@@ -373,7 +372,6 @@ void Conflux::processAgents()
 	PersonList orderedPersons;
 	getAllPersonsUsingTopCMerge(orderedPersons); //merge on-road agents of this conflux into a single list
 	orderedPersons.insert(orderedPersons.end(), activityPerformers.begin(), activityPerformers.end()); // append activity performers
-	orderedPersons.insert(orderedPersons.end(), pedestrianList.begin(), pedestrianList.end()); // append pedestrians
 	for (PersonList::iterator personIt = orderedPersons.begin(); personIt != orderedPersons.end(); personIt++) //iterate and update all persons
 	{
 		updateAgent(*personIt);
@@ -420,6 +418,38 @@ void Conflux::updateAgent(Person_MT* person)
 	updateAgentContext(beforeUpdate, afterUpdate, person);
 }
 
+void Conflux::handleRoleChange(PersonProps& beforeUpdate, PersonProps& afterUpdate, Person_MT* person)
+{
+	if(beforeUpdate.roleType == afterUpdate.roleType)
+	{
+		return; //no role change took place; simply return
+	}
+
+	//there was a change of role in this tick
+	//since we update only roles on roads and activity performers, the possible beforeUpdate
+	switch(beforeUpdate.roleType)
+	{
+	case Role<Person_MT>::RL_ACTIVITY:
+	{
+		break;
+	}
+	case Role<Person_MT>::RL_BUSDRIVER:
+	{
+		throw std::runtime_error("Bus drivers cannot change role!");
+		break;
+	}
+	case Role<Person_MT>::RL_DRIVER: //fall through
+	case Role<Person_MT>::RL_BIKER:
+	{
+		if(beforeUpdate.lane) //if person was not from VQ
+		{
+			beforeUpdate.segStats->dequeue(person, beforeUpdate.lane, beforeUpdate.isQueuing, beforeUpdate.vehicleLength);
+		}
+		break;
+	}
+	}
+}
+
 void Conflux::housekeep(PersonProps& beforeUpdate, PersonProps& afterUpdate, Person_MT* person)
 {
 	//if the person was in an activity and is in a Trip/SubTrip after update
@@ -432,24 +462,13 @@ void Conflux::housekeep(PersonProps& beforeUpdate, PersonProps& afterUpdate, Per
 		{
 			activityPerformers.erase(pIt);
 		}
-
-		//if the person has switched to Pedestrian role, put the person in that list
-		if (afterUpdate.roleType == Role<Person_MT>::RL_PEDESTRIAN)
-		{
-			PersonList::iterator pIt = std::find(pedestrianList.begin(), pedestrianList.end(), person);
-			if (pIt == pedestrianList.end())
-			{
-				pedestrianList.push_back(person);
-			}
-			return; //we are done here.
-		}
 	}
 
 	//perform person's role related handling
 	//we first handle roles which are off the road
 	switch (afterUpdate.roleType)
 	{
-	case Role<Person_MT>::RL_WAITBUSACTITITY:
+	case Role<Person_MT>::RL_WAITBUSACTIVITY:
 	case Role<Person_MT>::RL_TRAINPASSENGER:
 	case Role<Person_MT>::RL_CARPASSENGER:
 	case Role<Person_MT>::RL_PRIVATEBUSPASSENGER:
@@ -467,15 +486,7 @@ void Conflux::housekeep(PersonProps& beforeUpdate, PersonProps& afterUpdate, Per
 		}
 		else
 		{
-			if (beforeUpdate.roleType == Role<Person_MT>::RL_PEDESTRIAN)
-			{
-				PersonList::iterator pIt = std::find(pedestrianList.begin(), pedestrianList.end(), person);
-				if (pIt != pedestrianList.end())
-				{
-					pedestrianList.erase(pIt);
-				}
-			}
-			else if (beforeUpdate.lane)
+			if (beforeUpdate.lane)
 			{
 				// the person is currently in an activity, was on a Trip
 				// before this tick and was not in a virtual queue (because beforeUpdate.lane is not null)
@@ -485,14 +496,6 @@ void Conflux::housekeep(PersonProps& beforeUpdate, PersonProps& afterUpdate, Per
 			activityPerformers.push_back(person);
 		}
 		return;
-	}
-	case Role<Person_MT>::RL_PEDESTRIAN:
-	{
-		if (beforeUpdate.roleType == Role<Person_MT>::RL_PEDESTRIAN)
-		{
-			return;
-		}
-		break;
 	}
 	case Role<Person_MT>::RL_BUSDRIVER:
 	{
@@ -585,7 +588,7 @@ void Conflux::housekeep(PersonProps& beforeUpdate, PersonProps& afterUpdate, Per
 	{
 		if (beforeUpdate.roleType != Role<Person_MT>::RL_ACTIVITY)
 		{
-			// the person could have been an activity performer in which case beforeUpdate.segStats would be just null
+			// the person could have been an activity performer in which case beforeUpdate.segStats would be null
 			beforeUpdate.segStats->dequeue(person, beforeUpdate.lane, beforeUpdate.isQueuing, beforeUpdate.vehicleLength);
 		}
 		if (afterUpdate.lane)
@@ -796,27 +799,22 @@ void Conflux::updateAndReportSupplyStats(timeslice frameNumber)
 
 void Conflux::killAgent(Person_MT* person, PersonProps& beforeUpdate)
 {
-	std::stringstream killStream;
-	killStream << "Killing " << person->getId() << "(" << person->getDatabaseId() << ") ";
 	SegmentStats* prevSegStats = beforeUpdate.segStats;
 	const Lane* prevLane = beforeUpdate.lane;
 	bool wasQueuing = beforeUpdate.isQueuing;
+	bool wasMoving = beforeUpdate.isMoving;
 	double vehicleLength = beforeUpdate.vehicleLength;
-	Role<Person_MT>::Type personRoleType = Role<Person_MT>::RL_UNKNOWN;
-	if (person->getRole())
-	{
-		personRoleType = person->getRole()->roleType;
-	}
-	switch (personRoleType)
+	Role<Person_MT>::Type roleType = static_cast<Role<Person_MT>::Type>(beforeUpdate.roleType);
+	switch(roleType)
 	{
 	case Role<Person_MT>::RL_ACTIVITY:
 	{
+		//In this case, the person will have a constructed role other than activity but the prevLane and prevSegStats will be NULL
 		PersonList::iterator pIt = std::find(activityPerformers.begin(), activityPerformers.end(), person);
 		if (pIt != activityPerformers.end())
 		{
-			activityPerformers.erase(pIt);
+			activityPerformers.erase(pIt);  //Check if he was indeed an activity performer and erase him
 		}
-		killStream << "Role: ActivityPerformer";
 		break;
 	}
 	case Role<Person_MT>::RL_PEDESTRIAN:
@@ -826,26 +824,24 @@ void Conflux::killAgent(Person_MT* person, PersonProps& beforeUpdate)
 		{
 			pedestrianList.erase(pIt);
 		}
-		if (person->getNextLinkRequired())
+		break;
+	}
+	case Role<Person_MT>::RL_PASSENGER:
+	case Role<Person_MT>::RL_TRAINPASSENGER:
+	case Role<Person_MT>::RL_CARPASSENGER:
+	case Role<Person_MT>::RL_PRIVATEBUSPASSENGER:
+	{
+		PersonList::iterator pIt = std::find(stashedPersons.begin(), stashedPersons.end(), person);
+		if (pIt != stashedPersons.end())
 		{
-			return;
+			stashedPersons.erase(pIt);
 		}
-		killStream << "Role: Pedestrian";
 		break;
 	}
 	case Role<Person_MT>::RL_DRIVER:
+	case Role<Person_MT>::RL_BIKER:
 	{
-		//It is possible that a driver is getting removed silently because
-		//a path could not be established for his current sub trip.
-		//In this case, the role will be Driver but the prevLane and prevSegStats will be NULL
-		//if the person's previous trip chain item is an Activity.
-		//TODO: There might be other weird scenarios like this, to be taken care of.
-		PersonList::iterator pIt = std::find(activityPerformers.begin(), activityPerformers.end(), person);
-		if (pIt != activityPerformers.end())
-		{
-			activityPerformers.erase(pIt);
-		} //Check if he was indeed an activity performer and erase him
-		else if (prevLane)
+		if (prevLane)
 		{
 			bool removed = prevSegStats->removeAgent(prevLane, person, wasQueuing, vehicleLength);
 			if (!removed)
@@ -853,7 +849,6 @@ void Conflux::killAgent(Person_MT* person, PersonProps& beforeUpdate)
 				throw std::runtime_error("Conflux::killAgent(): Attempt to remove non-existent person in Lane");
 			}
 		}
-		killStream << "Role: Driver";
 		break;
 	}
 	case Role<Person_MT>::RL_BUSDRIVER:
@@ -870,30 +865,26 @@ void Conflux::killAgent(Person_MT* person, PersonProps& beforeUpdate)
 			//last bus stop. When he has finished serving the stop, the BusDriver is done. He will be killed here. However,
 			//since he was already dequeued, we can't find him in prevLane now.
 			//It is an error only if removed is false and the role is not BusDriver.
-			if (!removed && personRoleType != Role<Person_MT>::RL_BUSDRIVER)
+			if (!removed && wasMoving)
 			{
 				throw std::runtime_error("Conflux::killAgent(): Attempt to remove non-existent person in Lane");
 			}
 		}
-		killStream << "Role: BusDriver";
 		break;
 	}
-	default: //applies for any other vehicle in a lane (Biker etc.)
+	case Role<Person_MT>::RL_WAITBUSACTIVITY:
 	{
-		if (prevLane)
+		WaitBusActivity* waitBusRole = dynamic_cast<WaitBusActivity*>(person->getRole());
+		if(waitBusRole)
 		{
-			bool removed = prevSegStats->removeAgent(prevLane, person, wasQueuing, vehicleLength);
-			//removed can be false only in the case of BusDrivers at the moment.
-			//This is because a BusDriver could have been dequeued from prevLane in the previous tick and be added to his
-			//last bus stop. When he has finished serving the stop, the BusDriver is done. He will be killed here. However,
-			//since he was already dequeued, we can't find him in prevLane now.
-			//It is an error only if removed is false and the role is not BusDriver.
-			if (!removed && personRoleType != Role<Person_MT>::RL_BUSDRIVER)
-			{
-				throw std::runtime_error("Conflux::killAgent(): Attempt to remove non-existent person in Lane");
-			}
+			const BusStop* stop = waitBusRole->getStop();
+			BusStopAgent* busStopAgent = BusStopAgent::getBusStopAgentForStop(stop);
+			busStopAgent->removeWaitingPerson(waitBusRole);
 		}
-		killStream << "Role: " << person->getRole()->name;
+		break;
+	}
+	default:
+	{
 		break;
 	}
 	}
@@ -902,8 +893,6 @@ void Conflux::killAgent(Person_MT* person, PersonProps& beforeUpdate)
 	messaging::MessageBus::UnRegisterHandler(person);
 	person->onWorkerExit();
 	safe_delete_item(person);
-	killStream << "\n";
-	Print() << killStream.str();
 }
 
 void Conflux::resetPositionOfLastUpdatedAgentOnLanes()
@@ -1015,9 +1004,7 @@ void Conflux::HandleMessage(messaging::Message::MessageType type, const messagin
 	case MSG_PEDESTRIAN_TRANSFER_REQUEST:
 	{
 		const PersonMessage& msg = MSG_CAST(PersonMessage, message);
-		msg.person->currWorkerProvider = currWorkerProvider;
-		messaging::MessageBus::ReRegisterHandler(msg.person, GetContext());
-		pedestrianList.push_back(msg.person);
+		assignPersonToPedestrianlist(msg.person);
 		break;
 	}
 	case MSG_INSERT_INCIDENT:
@@ -1032,21 +1019,7 @@ void Conflux::HandleMessage(messaging::Message::MessageType type, const messagin
 		}
 		break;
 	}
-	case MSG_MRT_PASSENGER_TELEPORTATION:
-	{
-		const PersonMessage& msg = MSG_CAST(PersonMessage, message);
-		msg.person->currWorkerProvider = currWorkerProvider;
-		messaging::MessageBus::ReRegisterHandler(msg.person, GetContext());
-		mrt.push_back(msg.person);
-		DailyTime time = msg.person->currSubTrip->endTime;
-		msg.person->getRole()->setTravelTime(time.getValue());
-		unsigned int tick = ConfigManager::GetInstance().FullConfig().baseGranMS();
-		unsigned int offset = time.getValue() / tick;
-		//TODO: compute time to be expired and send message to self
-		messaging::MessageBus::PostMessage(this, MSG_WAKE_UP, messaging::MessageBus::MessagePtr(new PersonMessage(msg.person)), false, offset);
-		break;
-	}
-	case MSG_WAKE_UP:
+	case MSG_WAKEUP_MRT_PAX:
 	{
 		const PersonMessage& msg = MSG_CAST(PersonMessage, message);
 		PersonList::iterator pIt = std::find(mrt.begin(), mrt.end(), msg.person);
@@ -1072,10 +1045,24 @@ void Conflux::HandleMessage(messaging::Message::MessageType type, const messagin
 		switchTripChainItem(msg.person);
 		break;
 	}
+	case MSG_WAKEUP_PEDESTRIAN:
+	{
+		const PersonMessage& msg = MSG_CAST(PersonMessage, message);
+		PersonList::iterator pIt = std::find(pedestrianList.begin(), pedestrianList.end(), msg.person);
+		if (pIt == pedestrianList.end())
+		{
+			throw std::runtime_error("Person not found in Car list");
+		}
+		pedestrianList.erase(pIt);
+		//switch to next trip chain item
+		switchTripChainItem(msg.person);
+		break;
+	}
 	case MSG_PERSON_LOAD:
 	{
 		const PersonMessage& msg = MSG_CAST(PersonMessage, message);
 		addAgent(msg.person);
+		break;
 	}
 	default:
 		break;
@@ -1101,47 +1088,15 @@ Entity::UpdateStatus Conflux::switchTripChainItem(Person_MT* person)
 	Role<Person_MT>* personRole = person->getRole();
 	person->setStartTime(currFrame.ms());
 
-	if (personRole && personRole->roleType == Role<Person_MT>::RL_WAITBUSACTITITY)
+	//if person was a pedestrian previously, we need to remove him from the pedestrian list
+	Role<Person_MT>* prevPersonRole = person->getPrevRole();
+	if(prevPersonRole && prevPersonRole->roleType == Role<Person_MT>::RL_PEDESTRIAN)
 	{
-		assignPersonToBusStopAgent(person);
 		PersonList::iterator pIt = std::find(pedestrianList.begin(), pedestrianList.end(), person);
 		if (pIt != pedestrianList.end())
 		{
 			pedestrianList.erase(pIt);
 		}
-		return retVal;
-	}
-
-	if (personRole && personRole->roleType == Role<Person_MT>::RL_TRAINPASSENGER)
-	{
-		assignPersonToMRT(person);
-		PersonList::iterator pIt = std::find(pedestrianList.begin(), pedestrianList.end(), person);
-		if (pIt != pedestrianList.end())
-		{
-			pedestrianList.erase(pIt);
-		}
-		return retVal;
-	}
-
-	if (personRole && (personRole->roleType == Role<Person_MT>::RL_CARPASSENGER || personRole->roleType == Role<Person_MT>::RL_PRIVATEBUSPASSENGER))
-	{
-		stashPerson(person);
-		PersonList::iterator pIt = std::find(pedestrianList.begin(), pedestrianList.end(), person);
-		if (pIt != pedestrianList.end())
-		{
-			pedestrianList.erase(pIt);
-		}
-		return retVal;
-	}
-
-	if (personRole && personRole->roleType == Role<Person_MT>::RL_PEDESTRIAN)
-	{
-		PersonList::iterator pIt = std::find(pedestrianList.begin(), pedestrianList.end(), person);
-		if (pIt == pedestrianList.end())
-		{
-			pedestrianList.push_back(person);
-		}
-		return retVal;
 	}
 
 	if ((*person->currTripChainItem)->itemType == TripChainItem::IT_ACTIVITY)
@@ -1153,8 +1108,7 @@ Entity::UpdateStatus Conflux::switchTripChainItem(Person_MT* person)
 		ActivityPerformer<Person_MT> *ap = dynamic_cast<ActivityPerformer<Person_MT>*>(personRole);
 		ap->setActivityStartTime(DailyTime(currFrame.ms() + ConfigManager::GetInstance().FullConfig().baseGranMS()));
 		ap->setActivityEndTime(
-				DailyTime(
-						currFrame.ms() + ConfigManager::GetInstance().FullConfig().baseGranMS()
+				DailyTime(currFrame.ms() + ConfigManager::GetInstance().FullConfig().baseGranMS()
 								+ ((*person->currTripChainItem)->endTime.getValue() - (*person->currTripChainItem)->startTime.getValue())));
 		ap->setLocation(acItem->destination.node);
 	}
@@ -1166,6 +1120,45 @@ Entity::UpdateStatus Conflux::switchTripChainItem(Person_MT* person)
 	{
 		return UpdateStatus::Done;
 	}
+
+	if (personRole)
+	{
+		switch(personRole->roleType)
+		{
+		case Role<Person_MT>::RL_WAITBUSACTIVITY:
+		{
+			assignPersonToBusStopAgent(person);
+			return retVal;
+		}
+		case Role<Person_MT>::RL_TRAINPASSENGER:
+		{
+			assignPersonToMRT(person);
+			return retVal;
+		}
+		case Role<Person_MT>::RL_CARPASSENGER:
+		case Role<Person_MT>::RL_PRIVATEBUSPASSENGER:
+		{
+			stashPerson(person);
+			return retVal;
+		}
+		case Role<Person_MT>::RL_PEDESTRIAN:
+		{
+			Conflux* destinationConflux = nullptr;
+			const medium::PedestrianMovement* pedestrianMvt = dynamic_cast<const medium::PedestrianMovement*>(personRole->Movement());
+			if(pedestrianMvt)
+			{
+				destinationConflux = pedestrianMvt->getDestinationConflux();
+			}
+			else
+			{
+				throw std::runtime_error("Pedestrian role facets not/incorrectly initialized");
+			}
+			messaging::MessageBus::PostMessage(destinationConflux, MSG_PEDESTRIAN_TRANSFER_REQUEST, messaging::MessageBus::MessagePtr(new PersonMessage(person)));
+			return retVal;
+		}
+		}
+	}
+
 	return retVal;
 }
 
@@ -1222,20 +1215,6 @@ Entity::UpdateStatus Conflux::callMovementFrameTick(timeslice now, Person_MT* pe
 				return retVal;
 			}
 			personRole = person->getRole();
-		}
-
-		if (person->getNextLinkRequired())
-		{
-			Conflux* nextConflux = mtCfg.getConfluxForNode(person->getNextLinkRequired()->getToNode());
-			messaging::MessageBus::PostMessage(nextConflux, MSG_PEDESTRIAN_TRANSFER_REQUEST, messaging::MessageBus::MessagePtr(new PersonMessage(person)));
-			person->setNextLinkRequired(nullptr);
-			PersonList::iterator pIt = std::find(pedestrianList.begin(), pedestrianList.end(), person);
-			if (pIt != pedestrianList.end())
-			{
-				pedestrianList.erase(pIt);
-				person->currWorkerProvider = nullptr;
-			}
-			return UpdateStatus::Continue;
 		}
 
 		if (person->requestedNextSegStats)
@@ -1355,7 +1334,7 @@ void Conflux::updateBusStopAgents()
 void Conflux::assignPersonToBusStopAgent(Person_MT* person)
 {
 	Role<Person_MT>* role = person->getRole();
-	if (role && role->roleType == Role<Person_MT>::RL_WAITBUSACTITITY)
+	if (role && role->roleType == Role<Person_MT>::RL_WAITBUSACTIVITY)
 	{
 		const BusStop* stop = nullptr;
 		if (person->originNode.type == WayPoint::BUS_STOP)
@@ -1394,6 +1373,20 @@ void Conflux::assignPersonToBusStopAgent(Person_MT* person)
 	}
 }
 
+void Conflux::assignPersonToPedestrianlist(Person_MT* person)
+{
+	Role<Person_MT>* role = person->getRole();
+	if(role && role->roleType == Role<Person_MT>::RL_PEDESTRIAN)
+	{
+		person->currWorkerProvider = currWorkerProvider;
+		messaging::MessageBus::ReRegisterHandler(person, GetContext());
+		pedestrianList.push_back(person);
+		uint32_t travelTime = role->getTravelTime();
+		unsigned int tick = ConfigManager::GetInstance().FullConfig().baseGranMS();
+		messaging::MessageBus::PostMessage(this, MSG_WAKEUP_PEDESTRIAN, messaging::MessageBus::MessagePtr(new PersonMessage(person)), false, travelTime / tick);
+	}
+}
+
 void Conflux::assignPersonToMRT(Person_MT* person)
 {
 	Role<Person_MT>* role = person->getRole();
@@ -1402,10 +1395,10 @@ void Conflux::assignPersonToMRT(Person_MT* person)
 		person->currWorkerProvider = currWorkerProvider;
 		messaging::MessageBus::ReRegisterHandler(person, GetContext());
 		mrt.push_back(person);
-		DailyTime time = person->currSubTrip->endTime;
-		person->getRole()->setTravelTime(time.getValue());
+		uint32_t travelTime = (person->currSubTrip->endTime.getValue() - person->currSubTrip->startTime.getValue());
+		person->getRole()->setTravelTime(travelTime);
 		unsigned int tick = ConfigManager::GetInstance().FullConfig().baseGranMS();
-		messaging::MessageBus::PostMessage(this, MSG_WAKE_UP, messaging::MessageBus::MessagePtr(new PersonMessage(person)), false, time.getValue() / tick);
+		messaging::MessageBus::PostMessage(this, MSG_WAKEUP_MRT_PAX, messaging::MessageBus::MessagePtr(new PersonMessage(person)), false, travelTime / tick);
 	}
 }
 
@@ -1422,12 +1415,12 @@ void Conflux::stashPerson(Person_MT* person)
 			{
 				stashedPersons.push_back(person);
 			}
-			DailyTime time = person->currSubTrip->endTime;
+			uint32_t travelTime = person->currSubTrip->endTime.getValue() - person->currSubTrip->startTime.getValue();
 			person->setStartTime(currFrame.ms());
-			person->getRole()->setTravelTime(time.getValue() - person->getStartTime());
+			person->getRole()->setTravelTime(travelTime);
 			unsigned int tick = ConfigManager::GetInstance().FullConfig().baseGranMS();
 			messaging::MessageBus::PostMessage(this, MSG_WAKEUP_STASHED_PERSON, messaging::MessageBus::MessagePtr(new PersonMessage(person)), false,
-					time.getValue() / tick);
+					travelTime / tick);
 		}
 	}
 }
@@ -1808,7 +1801,7 @@ Conflux* Conflux::findStartingConflux(Person_MT* person, unsigned int now)
 		const medium::PedestrianMovement* pedestrianMvt = dynamic_cast<const medium::PedestrianMovement*>(personRole->Movement());
 		if(pedestrianMvt)
 		{
-			return pedestrianMvt->getStartingConflux();
+			return pedestrianMvt->getDestinationConflux();
 		}
 		else
 		{
@@ -1842,15 +1835,15 @@ Conflux* Conflux::findStartingConflux(Person_MT* person, unsigned int now)
 		const medium::PassengerMovement* passengerMvt = dynamic_cast<const medium::PassengerMovement*>(personRole->Movement());
 		if(passengerMvt)
 		{
-			return passengerMvt->getStartingConflux();
+			return passengerMvt->getDestinationConflux();
 		}
 		else
 		{
-			throw std::runtime_error("Bus-Driver role facets not/incorrectly initialized");
+			throw std::runtime_error("Passenger role facets not/incorrectly initialized");
 		}
 		break;
 	}
-	case Role<Person_MT>::RL_WAITBUSACTITITY:
+	case Role<Person_MT>::RL_WAITBUSACTIVITY:
 	{
 		const medium::WaitBusActivityMovement* waitBusMvt = dynamic_cast<const medium::WaitBusActivityMovement*>(personRole->Movement());
 		if(waitBusMvt)

@@ -76,7 +76,7 @@ void sim_mob::medium::Pedestrian::collectTravelTime()
 	personTravelTime.subEndType = parent->currSubTrip->endLocationType;
 	personTravelTime.mode = "WALK";
 	personTravelTime.service = parent->currSubTrip->ptLineId;
-	personTravelTime.travelTime = ((double) parent->getRole()->getTravelTime())/1000.0;
+	personTravelTime.travelTime = totalTravelTimeMS/1000.0;
 	personTravelTime.arrivalTime = DailyTime(parent->getRole()->getArrivalTime()).getStrRepr();
 	messaging::MessageBus::PostMessage(PT_Statistics::getInstance(),
 			STORE_PERSON_TRAVEL_TIME, messaging::MessageBus::MessagePtr(new PersonTravelTimeMessage(personTravelTime)), true);

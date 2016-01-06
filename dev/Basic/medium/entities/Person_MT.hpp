@@ -31,9 +31,6 @@ private:
 	/***/
 	const SegmentStats* currSegStats;
 
-	/***/
-	const Link* nextLinkRequired;
-
 	/**The previous role that was played by the person.*/
 	Role<Person_MT>* prevRole;
 
@@ -150,16 +147,6 @@ public:
 	void setCurrSegStats(const SegmentStats* currSegStats)
 	{
 		this->currSegStats = currSegStats;
-	}
-
-	const Link* getNextLinkRequired() const
-	{
-		return nextLinkRequired;
-	}
-
-	void setNextLinkRequired(Link* nextLink)
-	{
-		nextLinkRequired = nextLink;
 	}
 
 	Role<Person_MT>* getRole() const

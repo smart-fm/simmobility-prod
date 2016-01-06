@@ -26,7 +26,7 @@ using namespace sim_mob::medium;
 Person_MT::Person_MT(const std::string& src, const MutexStrategy& mtxStrat, int id, std::string databaseID)
 : Person(src, mtxStrat, id, databaseID),
 isQueuing(false), distanceToEndOfSegment(0.0), drivingTimeToEndOfLink(0.0), remainingTimeThisTick(0.0),
-requestedNextSegStats(NULL), canMoveToNextSegment(NONE), nextLinkRequired(NULL), currSegStats(NULL), currLane(NULL),
+requestedNextSegStats(NULL), canMoveToNextSegment(NONE), currSegStats(NULL), currLane(NULL),
 prevRole(NULL), currRole(NULL), nextRole(NULL)		
 {
 }
@@ -34,7 +34,7 @@ prevRole(NULL), currRole(NULL), nextRole(NULL)
 Person_MT::Person_MT(const std::string& src, const MutexStrategy& mtxStrat, const std::vector<sim_mob::TripChainItem*>& tc)
 : Person(src, mtxStrat, tc),
 isQueuing(false), distanceToEndOfSegment(0.0), drivingTimeToEndOfLink(0.0), remainingTimeThisTick(0.0),
-requestedNextSegStats(NULL), canMoveToNextSegment(NONE), nextLinkRequired(NULL), currSegStats(NULL), currLane(NULL),
+requestedNextSegStats(NULL), canMoveToNextSegment(NONE), currSegStats(NULL), currLane(NULL),
 prevRole(NULL), currRole(NULL), nextRole(NULL)
 {
 	convertPublicTransitODsToTrips();

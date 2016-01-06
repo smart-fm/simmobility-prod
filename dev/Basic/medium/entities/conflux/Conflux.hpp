@@ -207,9 +207,15 @@ private:
 
 	/**
 	 * assign person to MRT
-	 * @param person is going to board MRT
+	 * @param person who wants to board MRT
 	 */
 	void assignPersonToMRT(Person_MT* person);
+
+	/**
+	 * assign person to pedestrian list
+	 * @param person with pedestrian role
+	 */
+	void assignPersonToPedestrianlist(Person_MT* person);
 
 	/**
 	 * assign person to car
@@ -241,8 +247,7 @@ private:
 	void callMovementFrameOutput(timeslice now, Person_MT* person);
 
 	/**
-	 * removes the agent from the conflux and marks it for removal by the worker.
-	 * The person gets removed from the simulation at the end of the current tick.
+	 * removes agent from conflux and kills the agent.
 	 * @param ag the person to be removed
 	 * @param beforeUpdate person properties before update
 	 */
@@ -297,6 +302,14 @@ private:
 	 * @param person the person being handled
 	 */
 	void housekeep(PersonProps& beforeUpdate, PersonProps& afterUpdate, Person_MT* person);
+
+	/**
+	 * handles change of role related house keeping for person
+	 * @param beforeUpdate person properties before update
+	 * @param afterUpdate person properties after update
+	 * @param person the person being handled
+	 */
+	void handleRoleChange(PersonProps& beforeUpdate, PersonProps& afterUpdate, Person_MT* person);
 
 	/**
 	 * Gets the person to switch to the next trip chain item

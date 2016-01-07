@@ -11,6 +11,7 @@
 #include <set>
 #include <stdexcept>
 #include <vector>
+#include <atomic>
 
 //These are minimal header file, so please keep includes to a minimum.
 #include "conf/settings/DisableOutput.h"
@@ -90,7 +91,7 @@ protected:
 	bool toRemoved;
 
 	/**Stores the frame number in which the previous update of this agent took place*/
-	long lastUpdatedFrame;
+	std::atomic<long> lastUpdatedFrame;
 	
 	/**
 	 * local seed for random number generator (initialized to agent id directly passed into the constructor)

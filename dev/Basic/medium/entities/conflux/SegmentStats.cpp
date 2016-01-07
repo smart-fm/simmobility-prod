@@ -1119,7 +1119,7 @@ void LaneStats::printAgents() const
 	debugMsgs << "Lane: " << lane->getLaneId();
 	for (PersonList::const_iterator i = laneAgents.begin(); i != laneAgents.end(); i++)
 	{
-		debugMsgs << "|" << (*i)->getId() << "(" << (*i)->getRole()->getRoleName() << ")";
+		debugMsgs << "|" << (*i)->getId() << "(" << (*i)->getDatabaseId() << "," << (*i)->getRole()->getRoleName() << ")";
 	}
 	debugMsgs << std::endl;
 	Print() << debugMsgs.str();

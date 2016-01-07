@@ -406,7 +406,7 @@ void Conflux::updateAgent(Person_MT* person)
 	//capture person info after update
 	PersonProps afterUpdate(person, this);
 
-//	if(beforeUpdate.roleType == Role<Person_MT>::RL_BUSDRIVER)
+//	if(beforeUpdate.roleType != Role<Person_MT>::RL_BUSDRIVER)
 //	{
 //		beforeUpdate.printProps(person->getId(), currFrame.frame(), std::to_string(confluxNode->getNodeId()) + " before");
 //		afterUpdate.printProps(person->getId(), currFrame.frame(), std::to_string(confluxNode->getNodeId()) + " after");
@@ -590,7 +590,9 @@ void Conflux::housekeep(PersonProps& beforeUpdate, PersonProps& afterUpdate, Per
 				// the person must've have moved to another virtual queue - which is not possible if the virtual queues are processed
 				// after all conflux updates
 				std::stringstream debugMsgs;
-				debugMsgs << "Error: Person has moved from one virtual queue to another. " << "\n Person " << person->getId() << "|Frame: " << currFrame.frame()
+				debugMsgs << "Error: Person has moved from one virtual queue to another. \n"
+						<< "Person " << person->getId() << "(" << person->getDatabaseId() << ")"
+						<< "|Frame: " << currFrame.frame()
 						<< "|Conflux: " << this->confluxNode->getNodeId()
 						<< "|segBeforeUpdate: " << beforeUpdate.segment->getRoadSegmentId()
 						<< "|segAfterUpdate: "	<< afterUpdate.segment->getRoadSegmentId();
@@ -1280,13 +1282,12 @@ Entity::UpdateStatus Conflux::callMovementFrameTick(timeslice now, Person_MT* pe
 				if (currLnParams->getOutputCounter() > 0)
 				{
 					currLnParams->decrementOutputCounter();
-					person->requestedNextSegStats = nullptr;
 				}
 				else
 				{
 					person->canMoveToNextSegment = Person_MT::DENIED;
-					person->requestedNextSegStats = nullptr;
 				}
+				person->requestedNextSegStats = nullptr;
 			}
 			else
 			{

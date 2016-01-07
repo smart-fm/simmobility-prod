@@ -607,7 +607,7 @@ double HM_Model::ComputeHedonicPriceLogsumFromMidterm(BigSerial taz)
 	printTazLevelLogsum(taz, logsum);
 
 	mtx.lock();
-	tazLevelLogsum.insert( std::make_pair<BigSerial,double>( taz,logsum ));
+	tazLevelLogsum.insert( std::make_pair<BigSerial,double>( BigSerial(taz),double(logsum) ));
 	mtx.unlock();
 
 	return logsum;

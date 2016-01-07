@@ -102,7 +102,7 @@ void DbLoader::loadPTBusRoutes(const std::string& storedProc,
 	for (soci::rowset<sim_mob::PT_BusRoutes>::const_iterator iter = rows.begin(); iter != rows.end(); ++iter)
 	{
 		sim_mob::PT_BusRoutes& pt_bus_routesTemp = *iter;
-		const sim_mob::RoadSegment *seg = rn->getById(rn->getMapOfIdVsRoadSegments(), atoi(pt_bus_routesTemp.linkId.c_str()));
+		const sim_mob::RoadSegment *seg = rn->getById(rn->getMapOfIdVsRoadSegments(), atoi(pt_bus_routesTemp.linkId.c_str()));		
 		if(seg) {
 			routeID_roadSegments[iter->routeId].push_back(seg);
 		}
@@ -200,30 +200,35 @@ void DbLoader::loadPTBusStops(const std::string& storedProc,
 			}
 		}
 
-		const sim_mob::BusStop* lastStop = stopListCopy[stopListCopy.size()-1];
-		if(lastStop->getTerminusType() == sim_mob::SOURCE_TERMINUS)
+		if(stopListCopy.size() > 1)
 		{
-			const sim_mob::BusStop* lastStopTwin = lastStop->getTwinStop();
-			if(!lastStopTwin) { throw std::runtime_error("Source bus stop found without a twin!"); }
-			stopList.pop_back();
-			stopList.push_back(lastStopTwin);
-			if(!segList.empty())
+			const sim_mob::BusStop* lastStop = stopListCopy[stopListCopy.size() - 1];
+			if (lastStop->getTerminusType() == sim_mob::SOURCE_TERMINUS)
 			{
-				std::vector<const sim_mob::RoadSegment*>::iterator itToDelete = --segList.end();
-				while((*itToDelete) != lastStopTwin->getParentSegment())
+				const sim_mob::BusStop* lastStopTwin = lastStop->getTwinStop();
+				if (!lastStopTwin)
 				{
-					itToDelete = segList.erase(itToDelete); //the bus must end at the segment of twin stop
-					itToDelete--; //itToDelete will be segList.end(); so decrement to get last valid iterator
+					throw std::runtime_error("Source bus stop found without a twin!");
 				}
-				if(segList.empty())
+				stopList.push_back(lastStopTwin);
+				if (!segList.empty())
 				{
-					throw std::runtime_error("Bus route violates terminus assumption. Entire route was deleted");
+					std::vector<const sim_mob::RoadSegment*>::iterator itToDelete = --segList.end();
+					while ((*itToDelete) != lastStopTwin->getParentSegment())
+					{
+						itToDelete = segList.erase(itToDelete); //the bus must end at the segment of twin stop
+						itToDelete--; //itToDelete will be segList.end(); so decrement to get last valid iterator
+					}
+					if (segList.empty())
+					{
+						throw std::runtime_error("Bus route violates terminus assumption. Entire route was deleted");
+					}
 				}
 			}
-		}
-		else
-		{
-			stopList.push_back(lastStop);
+			else
+			{
+				stopList.push_back(lastStop);
+			}
 		}
 	}
 }

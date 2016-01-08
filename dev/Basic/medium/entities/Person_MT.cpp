@@ -55,17 +55,17 @@ Person_MT::~Person_MT()
 
 void Person_MT::convertPublicTransitODsToTrips()
 {
-	std::vector<TripChainItem*>::iterator tripChainItem;
-	for (tripChainItem = tripChain.begin(); tripChainItem != tripChain.end(); ++tripChainItem)
+	std::vector<TripChainItem*>::iterator tripChainItemIt;
+	for (tripChainItemIt = tripChain.begin(); tripChainItemIt != tripChain.end(); ++tripChainItemIt)
 	{
-		if ((*tripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP)
+		if ((*tripChainItemIt)->itemType == sim_mob::TripChainItem::IT_TRIP)
 		{
-			Trip* trip = dynamic_cast<Trip*>(*tripChainItem);
+			TripChainItem* trip = (*tripChainItemIt);
 			std::string originId = boost::lexical_cast<std::string>(trip->origin.node->getNodeId());
 			std::string destId = boost::lexical_cast<std::string>(trip->destination.node->getNodeId());
-			(*tripChainItem)->startLocationId = originId;
-			(*tripChainItem)->endLocationId = destId;
-			std::vector<sim_mob::SubTrip>& subTrips = (dynamic_cast<sim_mob::Trip*>(*tripChainItem))->getSubTripsRW();
+			trip->startLocationId = originId;
+			trip->endLocationId = destId;
+			std::vector<sim_mob::SubTrip>& subTrips = (dynamic_cast<sim_mob::Trip*>(*tripChainItemIt))->getSubTripsRW();
 			std::vector<SubTrip>::iterator itSubTrip = subTrips.begin();
 			std::vector<sim_mob::SubTrip> newSubTrips;
 			while (itSubTrip != subTrips.end())

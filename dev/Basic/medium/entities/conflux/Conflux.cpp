@@ -168,7 +168,7 @@ Conflux::PersonProps::PersonProps(const Person_MT* person, const Conflux* cnflx)
 	}
 }
 
-void Conflux::PersonProps::printProps(unsigned int personId, uint32_t frame, std::string prefix) const
+void Conflux::PersonProps::printProps(std::string personId, uint32_t frame, std::string prefix) const
 {
 	std::stringstream propStrm;
 	propStrm << personId << "-" << frame << "-" << prefix << "-{";
@@ -406,11 +406,8 @@ void Conflux::updateAgent(Person_MT* person)
 	//capture person info after update
 	PersonProps afterUpdate(person, this);
 
-//	if(beforeUpdate.roleType != Role<Person_MT>::RL_BUSDRIVER)
-//	{
-//		beforeUpdate.printProps(person->getId(), currFrame.frame(), std::to_string(confluxNode->getNodeId()) + " before");
-//		afterUpdate.printProps(person->getId(), currFrame.frame(), std::to_string(confluxNode->getNodeId()) + " after");
-//	}
+//	beforeUpdate.printProps(person->getDatabaseId(), currFrame.frame(), std::to_string(confluxNode->getNodeId()) + " before");
+//	afterUpdate.printProps(person->getDatabaseId(), currFrame.frame(), std::to_string(confluxNode->getNodeId()) + " after");
 
 	//perform house keeping
 	housekeep(beforeUpdate, afterUpdate, person);
@@ -550,6 +547,14 @@ void Conflux::housekeep(PersonProps& beforeUpdate, PersonProps& afterUpdate, Per
 			if (afterUpdate.lane)
 			{
 				afterUpdate.segStats->addAgent(afterUpdate.lane, person);
+			
+			        // set the position of the last updated Person in his current lane (after update)
+			        if (afterUpdate.lane != afterUpdate.segStats->laneInfinity)
+			        {
+			                //if the person did not end up in a VQ and his lane is not lane infinity of segAfterUpdate
+			                double lengthToVehicleEnd = person->distanceToEndOfSegment + person->getRole()->getResource()->getLengthInM();	
+			                afterUpdate.segStats->setPositionOfLastUpdatedAgentInLane(lengthToVehicleEnd, afterUpdate.lane);
+			        }
 			}
 			else
 			{

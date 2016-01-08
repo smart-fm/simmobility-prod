@@ -86,7 +86,7 @@ private:
 		const Conflux* conflux;
 
 		PersonProps(const Person_MT* person, const Conflux* conflux);
-		void printProps(unsigned int personId, uint32_t frame, std::string prefix) const;
+		void printProps(std::string personId, uint32_t frame, std::string prefix) const;
 	};
 
 	/**

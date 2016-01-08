@@ -86,7 +86,7 @@ private:
 		const Conflux* conflux;
 
 		PersonProps(const Person_MT* person, const Conflux* conflux);
-		void printProps(unsigned int personId, uint32_t frame, std::string prefix) const;
+		void printProps(std::string personId, uint32_t frame, std::string prefix) const;
 	};
 
 	/**
@@ -609,6 +609,12 @@ public:
 	 * Lane groups are elicited based on the lane connections (turnings) of the last segment of the link.
 	 */
 	static void CreateLaneGroups();
+
+	/**
+	 * generate cars statistics on the road for diagnosis
+	 * @param now indicate current time
+	 */
+	void driverStatistics(timeslice now);
 };
 
 } // namespace medium

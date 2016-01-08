@@ -168,7 +168,7 @@ Conflux::PersonProps::PersonProps(const Person_MT* person, const Conflux* cnflx)
 	}
 }
 
-void Conflux::PersonProps::printProps(unsigned int personId, uint32_t frame, std::string prefix) const
+void Conflux::PersonProps::printProps(std::string personId, uint32_t frame, std::string prefix) const
 {
 	std::stringstream propStrm;
 	propStrm << personId << "-" << frame << "-" << prefix << "-{";
@@ -208,7 +208,10 @@ void Conflux::PersonProps::printProps(unsigned int personId, uint32_t frame, std
 	{
 		propStrm << "0x0";
 	}
-	propStrm << " roleType:" << roleType << " isQueuing:" << isQueuing << " isMoving:" << isMoving << " }" << std::endl;
+	propStrm << " roleType:" << roleType
+			<< " isQueuing:" << isQueuing
+			<< " isMoving:" << isMoving
+			<< " }" << std::endl;
 	Print() << propStrm.str();
 }
 
@@ -406,17 +409,14 @@ void Conflux::updateAgent(Person_MT* person)
 	//capture person info after update
 	PersonProps afterUpdate(person, this);
 
-//	if(beforeUpdate.roleType == Role<Person_MT>::RL_BUSDRIVER)
-//	{
-//		beforeUpdate.printProps(person->getId(), currFrame.frame(), std::to_string(confluxNode->getNodeId()) + " before");
-//		afterUpdate.printProps(person->getId(), currFrame.frame(), std::to_string(confluxNode->getNodeId()) + " after");
-//	}
-
 	//perform house keeping
 	housekeep(beforeUpdate, afterUpdate, person);
 
 	//update person's handler registration with MessageBus, if required
 	updateAgentContext(beforeUpdate, afterUpdate, person);
+
+	beforeUpdate.printProps(person->getDatabaseId(), currFrame.frame(), std::to_string(confluxNode->getNodeId()) + " before " + std::to_string(person->distanceToEndOfSegment));
+	afterUpdate.printProps(person->getDatabaseId(), currFrame.frame(), std::to_string(confluxNode->getNodeId()) + " after " + std::to_string(person->distanceToEndOfSegment));
 }
 
 bool Conflux::handleRoleChange(PersonProps& beforeUpdate, PersonProps& afterUpdate, Person_MT* person)
@@ -550,6 +550,14 @@ void Conflux::housekeep(PersonProps& beforeUpdate, PersonProps& afterUpdate, Per
 			if (afterUpdate.lane)
 			{
 				afterUpdate.segStats->addAgent(afterUpdate.lane, person);
+			
+			        // set the position of the last updated Person in his current lane (after update)
+			        if (afterUpdate.lane != afterUpdate.segStats->laneInfinity)
+			        {
+			                //if the person did not end up in a VQ and his lane is not lane infinity of segAfterUpdate
+			                double lengthToVehicleEnd = person->distanceToEndOfSegment + person->getRole()->getResource()->getLengthInM();	
+			                afterUpdate.segStats->setPositionOfLastUpdatedAgentInLane(lengthToVehicleEnd, afterUpdate.lane);
+			        }
 			}
 			else
 			{
@@ -590,7 +598,9 @@ void Conflux::housekeep(PersonProps& beforeUpdate, PersonProps& afterUpdate, Per
 				// the person must've have moved to another virtual queue - which is not possible if the virtual queues are processed
 				// after all conflux updates
 				std::stringstream debugMsgs;
-				debugMsgs << "Error: Person has moved from one virtual queue to another. " << "\n Person " << person->getId() << "|Frame: " << currFrame.frame()
+				debugMsgs << "Error: Person has moved from one virtual queue to another. \n"
+						<< "Person " << person->getId() << "(" << person->getDatabaseId() << ")"
+						<< "|Frame: " << currFrame.frame()
 						<< "|Conflux: " << this->confluxNode->getNodeId()
 						<< "|segBeforeUpdate: " << beforeUpdate.segment->getRoadSegmentId()
 						<< "|segAfterUpdate: "	<< afterUpdate.segment->getRoadSegmentId();
@@ -1280,13 +1290,12 @@ Entity::UpdateStatus Conflux::callMovementFrameTick(timeslice now, Person_MT* pe
 				if (currLnParams->getOutputCounter() > 0)
 				{
 					currLnParams->decrementOutputCounter();
-					person->requestedNextSegStats = nullptr;
 				}
 				else
 				{
 					person->canMoveToNextSegment = Person_MT::DENIED;
-					person->requestedNextSegStats = nullptr;
 				}
+				person->requestedNextSegStats = nullptr;
 			}
 			else
 			{
@@ -1903,6 +1912,71 @@ void Conflux::removeIncident(SegmentStats* segStats)
 		segStats->restoreLaneParams(*it);
 	}
 }
+
+void Conflux::driverStatistics(timeslice now)
+{
+	std::map<int, int> statSegs;
+	std::map<int, int> statSegsInfinity;
+	std::map<int, int> statLinks;
+	PersonList allPersonsInCfx, tmpAgents;
+	SegmentStats* segStats = nullptr;
+	for(UpstreamSegmentStatsMap::iterator upStrmSegMapIt = upstreamSegStatsMap.begin();
+			upStrmSegMapIt!=upstreamSegStatsMap.end(); upStrmSegMapIt++) {
+		const SegmentStatsList& upstreamSegments = upStrmSegMapIt->second;
+		for(SegmentStatsList::const_iterator rdSegIt=upstreamSegments.begin();
+				rdSegIt!=upstreamSegments.end(); rdSegIt++) {
+			tmpAgents.clear();
+			segStats = (*rdSegIt);
+			segStats->getPersons(tmpAgents);
+			int segId = segStats->getRoadSegment()->getRoadSegmentId();
+			if(statSegs.find(segId)!=statSegs.end()){
+				statSegs[segId] = statSegs[segId]+tmpAgents.size();
+			} else {
+				statSegs[segId] = tmpAgents.size();
+			}
+			statLinks[segId] = segStats->getRoadSegment()->getLinkId();
+			tmpAgents.clear();
+			segStats->getInfinityPersons(tmpAgents);
+			statSegsInfinity[segId] = tmpAgents.size();
+		}
+	}
+
+	for(VirtualQueueMap::iterator vqMapIt = virtualQueuesMap.begin();
+			vqMapIt != virtualQueuesMap.end(); vqMapIt++) {
+		tmpAgents = vqMapIt->second;
+		int segId = 0;
+		if(vqMapIt->first && vqMapIt->first->getRoadSegments().size()>0){
+			segId = vqMapIt->first->getRoadSegments().back()->getRoadSegmentId();
+		}
+		if(segId!=0){
+			segId = -segId;
+			statSegs[segId] = tmpAgents.size();
+			statLinks[segId] = vqMapIt->first->getLinkId();
+		}
+	}
+
+	std::stringstream logout;
+	std::string filename("driverstats.csv");
+	sim_mob::BasicLogger & movement = sim_mob::Logger::log(filename);
+	std::map<int, int>::iterator it;
+	for (it = statSegs.begin(); it != statSegs.end(); it++) {
+		if (it->second > 0) {
+			if (it->first > 0) {
+				logout << it->first << "," << it->second << ","
+						<< statSegsInfinity[it->first] << ","
+						<< statLinks[it->first] << ","
+						<< DailyTime(now.ms()).getStrRepr() << std::endl;
+			} else {
+				logout << it->first << "," << it->second << "," << 0 << ","
+						<< statLinks[it->first] << ","
+						<< DailyTime(now.ms()).getStrRepr() << std::endl;
+			}
+		}
+	}
+	movement <<logout.str();
+	movement.flush();
+}
+
 
 void Conflux::addConnectedConflux(Conflux* conflux)
 {

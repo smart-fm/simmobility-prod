@@ -255,8 +255,6 @@ void SegmentStats::getPersons(std::deque<Person_MT*>& segAgents)
 		PersonList& lnAgents = lnStMpIt->second->laneAgents;
 		segAgents.insert(segAgents.end(), lnAgents.begin(), lnAgents.end());
 	}
-	PersonList& lnAgents = laneStatsMap.find(laneInfinity)->second->laneAgents;
-	segAgents.insert(segAgents.end(), lnAgents.begin(), lnAgents.end());
 
 	for (BusStopList::const_reverse_iterator stopIt = busStops.rbegin(); stopIt != busStops.rend(); stopIt++)
 	{
@@ -264,6 +262,12 @@ void SegmentStats::getPersons(std::deque<Person_MT*>& segAgents)
 		PersonList& driversAtStop = busDrivers.at(stop);
 		segAgents.insert(segAgents.end(), driversAtStop.begin(), driversAtStop.end());
 	}
+}
+
+void SegmentStats::getInfinityPersons(std::deque<Person_MT*>& segAgents)
+{
+	PersonList& lnAgents = laneStatsMap.find(laneInfinity)->second->laneAgents;
+	segAgents.insert(segAgents.end(), lnAgents.begin(), lnAgents.end());
 }
 
 void SegmentStats::topCMergeLanesInSegment(PersonList& mergedPersonList)
@@ -1119,7 +1123,7 @@ void LaneStats::printAgents() const
 	debugMsgs << "Lane: " << lane->getLaneId();
 	for (PersonList::const_iterator i = laneAgents.begin(); i != laneAgents.end(); i++)
 	{
-		debugMsgs << "|" << (*i)->getId() << "(" << (*i)->getRole()->getRoleName() << ")";
+		debugMsgs << "|" << (*i)->getId() << "(" << (*i)->getDatabaseId() << "," << (*i)->getRole()->getRoleName() << ")";
 	}
 	debugMsgs << std::endl;
 	Print() << debugMsgs.str();
@@ -1136,11 +1140,11 @@ void LaneStats::verifyOrdering()
 			debugMsgs << "Invariant violated: Ordering of laneAgents does not reflect ordering w.r.t. distance to end of segment."
 					<< "\nSegment: " << lane->getParentSegment()->getRoadSegmentId() << "-" << parentStats->getStatsNumberInSegment()
 					<< " length = " << lane->getParentSegment()->getLength() << "\nLane: " << lane->getLaneId()
-					<< "\nCulprit Person: " << (*i)->getId();
+					<< "\nCulprit Person: " << (*i)->getDatabaseId();
 			debugMsgs << "\nAgents ";
 			for (PersonList::const_iterator j = laneAgents.begin(); j != laneAgents.end(); j++)
 			{
-				debugMsgs << "|" << (*j)->getId() << "--" << (*j)->distanceToEndOfSegment;
+				debugMsgs << "|" << (*j)->getDatabaseId() << "(" << (*j)->getRole()->getRoleName() << ")" << "--" << (*j)->distanceToEndOfSegment;
 			}
 			throw std::runtime_error(debugMsgs.str());
 		}

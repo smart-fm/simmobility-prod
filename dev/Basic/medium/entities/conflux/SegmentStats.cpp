@@ -1144,7 +1144,7 @@ void LaneStats::verifyOrdering()
 			debugMsgs << "\nAgents ";
 			for (PersonList::const_iterator j = laneAgents.begin(); j != laneAgents.end(); j++)
 			{
-				debugMsgs << "|" << (*j)->getId() << "--" << (*j)->distanceToEndOfSegment;
+				debugMsgs << "|" << (*j)->getDatabaseId() << "(" << (*j)->getRole()->getRoleName() << ")" << "--" << (*j)->distanceToEndOfSegment;
 			}
 			throw std::runtime_error(debugMsgs.str());
 		}

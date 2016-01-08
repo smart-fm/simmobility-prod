@@ -84,6 +84,7 @@ private:
 		double vehicleLength;
 		SegmentStats* segStats;
 		const Conflux* conflux;
+		double distanceToSegEnd;
 
 		PersonProps(const Person_MT* person, const Conflux* conflux);
 		void printProps(std::string personId, uint32_t frame, std::string prefix) const;

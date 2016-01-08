@@ -166,6 +166,7 @@ Conflux::PersonProps::PersonProps(const Person_MT* person, const Conflux* cnflx)
 		conflux = cnflx;
 		segStats = nullptr;
 	}
+	distanceToSegEnd = person->distanceToEndOfSegment;
 }
 
 void Conflux::PersonProps::printProps(std::string personId, uint32_t frame, std::string prefix) const
@@ -211,6 +212,7 @@ void Conflux::PersonProps::printProps(std::string personId, uint32_t frame, std:
 	propStrm << " roleType:" << roleType
 			<< " isQueuing:" << isQueuing
 			<< " isMoving:" << isMoving
+			<< " distance:" << distanceToSegEnd
 			<< " }" << std::endl;
 	Print() << propStrm.str();
 }
@@ -415,8 +417,8 @@ void Conflux::updateAgent(Person_MT* person)
 	//update person's handler registration with MessageBus, if required
 	updateAgentContext(beforeUpdate, afterUpdate, person);
 
-	beforeUpdate.printProps(person->getDatabaseId(), currFrame.frame(), std::to_string(confluxNode->getNodeId()) + " before " + std::to_string(person->distanceToEndOfSegment));
-	afterUpdate.printProps(person->getDatabaseId(), currFrame.frame(), std::to_string(confluxNode->getNodeId()) + " after " + std::to_string(person->distanceToEndOfSegment));
+	beforeUpdate.printProps(person->getDatabaseId(), currFrame.frame(), std::to_string(confluxNode->getNodeId()) + " before");
+	afterUpdate.printProps(person->getDatabaseId(), currFrame.frame(), std::to_string(confluxNode->getNodeId()) + " after");
 }
 
 bool Conflux::handleRoleChange(PersonProps& beforeUpdate, PersonProps& afterUpdate, Person_MT* person)

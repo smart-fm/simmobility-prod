@@ -208,7 +208,10 @@ void Conflux::PersonProps::printProps(std::string personId, uint32_t frame, std:
 	{
 		propStrm << "0x0";
 	}
-	propStrm << " roleType:" << roleType << " isQueuing:" << isQueuing << " isMoving:" << isMoving << " }" << std::endl;
+	propStrm << " roleType:" << roleType
+			<< " isQueuing:" << isQueuing
+			<< " isMoving:" << isMoving
+			<< " }" << std::endl;
 	Print() << propStrm.str();
 }
 
@@ -406,14 +409,14 @@ void Conflux::updateAgent(Person_MT* person)
 	//capture person info after update
 	PersonProps afterUpdate(person, this);
 
-//	beforeUpdate.printProps(person->getDatabaseId(), currFrame.frame(), std::to_string(confluxNode->getNodeId()) + " before");
-//	afterUpdate.printProps(person->getDatabaseId(), currFrame.frame(), std::to_string(confluxNode->getNodeId()) + " after");
-
 	//perform house keeping
 	housekeep(beforeUpdate, afterUpdate, person);
 
 	//update person's handler registration with MessageBus, if required
 	updateAgentContext(beforeUpdate, afterUpdate, person);
+
+	beforeUpdate.printProps(person->getDatabaseId(), currFrame.frame(), std::to_string(confluxNode->getNodeId()) + " before " + std::to_string(person->distanceToEndOfSegment));
+	afterUpdate.printProps(person->getDatabaseId(), currFrame.frame(), std::to_string(confluxNode->getNodeId()) + " after " + std::to_string(person->distanceToEndOfSegment));
 }
 
 bool Conflux::handleRoleChange(PersonProps& beforeUpdate, PersonProps& afterUpdate, Person_MT* person)

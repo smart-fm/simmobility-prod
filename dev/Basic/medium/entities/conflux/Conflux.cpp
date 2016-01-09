@@ -552,14 +552,14 @@ void Conflux::housekeep(PersonProps& beforeUpdate, PersonProps& afterUpdate, Per
 			if (afterUpdate.lane)
 			{
 				afterUpdate.segStats->addAgent(afterUpdate.lane, person);
-			
-			        // set the position of the last updated Person in his current lane (after update)
-			        if (afterUpdate.lane != afterUpdate.segStats->laneInfinity)
-			        {
-			                //if the person did not end up in a VQ and his lane is not lane infinity of segAfterUpdate
-			                double lengthToVehicleEnd = person->distanceToEndOfSegment + person->getRole()->getResource()->getLengthInM();	
-			                afterUpdate.segStats->setPositionOfLastUpdatedAgentInLane(lengthToVehicleEnd, afterUpdate.lane);
-			        }
+
+				// set the position of the last updated Person in his current lane (after update)
+				if (afterUpdate.lane != afterUpdate.segStats->laneInfinity)
+				{
+					//if the person did not end up in a VQ and his lane is not lane infinity of segAfterUpdate
+					double lengthToVehicleEnd = person->distanceToEndOfSegment + person->getRole()->getResource()->getLengthInM();
+					afterUpdate.segStats->setPositionOfLastUpdatedAgentInLane(lengthToVehicleEnd, afterUpdate.lane);
+				}
 			}
 			else
 			{

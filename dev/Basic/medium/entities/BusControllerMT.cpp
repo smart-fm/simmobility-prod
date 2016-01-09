@@ -114,6 +114,7 @@ void BusControllerMT::assignBusTripChainWithPerson(std::set<Entity*>& activeAgen
 			{
 				Person_MT* person = new Person_MT("BusController", config.mutexStategy(), -1, tripIt->getPersonID());
 				person->busLine = busline->getBusLineID();
+				person->setDatabaseId(std::to_string(person->getId()));
 				person->setPersonCharacteristics();
 				vector<TripChainItem*> tripChain;
 				tripChain.push_back(const_cast<BusTrip*>(&(*tripIt)));

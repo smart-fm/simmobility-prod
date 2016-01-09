@@ -618,7 +618,17 @@ void Conflux::housekeep(PersonProps& beforeUpdate, PersonProps& afterUpdate, Per
 		}
 	}
 	else if ((beforeUpdate.segStats != afterUpdate.segStats) /*if the person has moved to another segment*/
-				|| (beforeUpdate.lane == beforeUpdate.segStats->laneInfinity && beforeUpdate.lane != afterUpdate.lane) /* or if the person has moved out of lane infinity*/)
+				|| (beforeUpdate.lane == beforeUpdate.segStats->laneInfinity && beforeUpdate.lane != afterUpdate.lane) /* or if the person has moved out of lane infinity*/
+				|| !afterUpdate.lane /*some drivers have small loops in their path. Within 1 tick, it is possible for them to
+				start from a proper lane of a segment in a link, eventually leave the segment and link, traverse the loop in their path and
+				end up wanting to enter the same link from which they started. All of this could happen within the same tick.
+				In this case, the segmentStats before and after update may be the same, but the lane after update will be NULL
+				because the driver couldn't have got permission to enter the same link while its conflux is being processed.
+				NOTE: This is a weird complication observed in the singapore network. There was a loop in the path of a driver near segment id 23881.
+				This was the only segment in its link. The driver started from this segment, looped around and wanted to enter the same segment again.
+				Permission was denied because the current conflux was still processing. I am attempting to handle this case
+				by adding the third condition ~ Harish*/
+				)
 	{
 		if (beforeUpdate.roleType != Role<Person_MT>::RL_ACTIVITY)
 		{

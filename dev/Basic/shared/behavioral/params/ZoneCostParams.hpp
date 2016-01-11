@@ -416,6 +416,16 @@ public:
 		this->zone = zone;
 	}
 
+	bool isBusTerminusNode() const
+	{
+		return busTerminusNode;
+	}
+
+	void setBusTerminusNode(bool busTerminusNode)
+	{
+		this->busTerminusNode = busTerminusNode;
+	}
+
 private:
 	int zone;
 	long aimsunNodeId;
@@ -423,6 +433,8 @@ private:
 	bool sourceNode;
 	/** is this a node with no downstream segments*/
 	bool sinkNode;
+	/** is this node a bus-terminus node*/
+	bool busTerminusNode;
 
 };
 

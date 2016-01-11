@@ -138,6 +138,7 @@ void sim_mob::medium::ZoneNodeMappingDao::fromRow(mongo::BSONObj document, ZoneN
 	}
 	outParam.setSourceNode(document.getField(MONGO_FIELD_SOURCE_NODE).Number());
 	outParam.setSinkNode(document.getField(MONGO_FIELD_SINK_NODE).Number());
+	outParam.setBusTerminusNode(document.getField(MONGO_FIELD_BUS_TERMINUS_NODE).Number());
 }
 
 sim_mob::medium::MTZ12_MTZ08_MappingDao::MTZ12_MTZ08_MappingDao(db::DB_Config& dbConfig, const std::string& database, const std::string& collection) :

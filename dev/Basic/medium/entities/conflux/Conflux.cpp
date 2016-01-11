@@ -166,9 +166,10 @@ Conflux::PersonProps::PersonProps(const Person_MT* person, const Conflux* cnflx)
 		conflux = cnflx;
 		segStats = nullptr;
 	}
+	distanceToSegEnd = person->distanceToEndOfSegment;
 }
 
-void Conflux::PersonProps::printProps(unsigned int personId, uint32_t frame, std::string prefix) const
+void Conflux::PersonProps::printProps(std::string personId, uint32_t frame, std::string prefix) const
 {
 	std::stringstream propStrm;
 	propStrm << personId << "-" << frame << "-" << prefix << "-{";
@@ -208,7 +209,11 @@ void Conflux::PersonProps::printProps(unsigned int personId, uint32_t frame, std
 	{
 		propStrm << "0x0";
 	}
-	propStrm << " roleType:" << roleType << " isQueuing:" << isQueuing << " isMoving:" << isMoving << " }" << std::endl;
+	propStrm << " roleType:" << roleType
+			<< " isQueuing:" << isQueuing
+			<< " isMoving:" << isMoving
+			<< " distance:" << distanceToSegEnd
+			<< " }" << std::endl;
 	Print() << propStrm.str();
 }
 
@@ -429,17 +434,14 @@ void Conflux::updateAgent(Person_MT* person)
 	//capture person info after update
 	PersonProps afterUpdate(person, this);
 
-//	if(beforeUpdate.roleType == Role<Person_MT>::RL_BUSDRIVER)
-//	{
-//		beforeUpdate.printProps(person->getId(), currFrame.frame(), std::to_string(confluxNode->getNodeId()) + " before");
-//		afterUpdate.printProps(person->getId(), currFrame.frame(), std::to_string(confluxNode->getNodeId()) + " after");
-//	}
-
 	//perform house keeping
 	housekeep(beforeUpdate, afterUpdate, person);
 
 	//update person's handler registration with MessageBus, if required
 	updateAgentContext(beforeUpdate, afterUpdate, person);
+
+	beforeUpdate.printProps(person->getDatabaseId(), currFrame.frame(), std::to_string(confluxNode->getNodeId()) + " before");
+	afterUpdate.printProps(person->getDatabaseId(), currFrame.frame(), std::to_string(confluxNode->getNodeId()) + " after");
 }
 
 bool Conflux::handleRoleChange(PersonProps& beforeUpdate, PersonProps& afterUpdate, Person_MT* person)
@@ -573,6 +575,14 @@ void Conflux::housekeep(PersonProps& beforeUpdate, PersonProps& afterUpdate, Per
 			if (afterUpdate.lane)
 			{
 				afterUpdate.segStats->addAgent(afterUpdate.lane, person);
+
+				// set the position of the last updated Person in his current lane (after update)
+				if (afterUpdate.lane != afterUpdate.segStats->laneInfinity)
+				{
+					//if the person did not end up in a VQ and his lane is not lane infinity of segAfterUpdate
+					double lengthToVehicleEnd = person->distanceToEndOfSegment + person->getRole()->getResource()->getLengthInM();
+					afterUpdate.segStats->setPositionOfLastUpdatedAgentInLane(lengthToVehicleEnd, afterUpdate.lane);
+				}
 			}
 			else
 			{
@@ -613,7 +623,9 @@ void Conflux::housekeep(PersonProps& beforeUpdate, PersonProps& afterUpdate, Per
 				// the person must've have moved to another virtual queue - which is not possible if the virtual queues are processed
 				// after all conflux updates
 				std::stringstream debugMsgs;
-				debugMsgs << "Error: Person has moved from one virtual queue to another. " << "\n Person " << person->getId() << "|Frame: " << currFrame.frame()
+				debugMsgs << "Error: Person has moved from one virtual queue to another. \n"
+						<< "Person " << person->getId() << "(" << person->getDatabaseId() << ")"
+						<< "|Frame: " << currFrame.frame()
 						<< "|Conflux: " << this->confluxNode->getNodeId()
 						<< "|segBeforeUpdate: " << beforeUpdate.segment->getRoadSegmentId()
 						<< "|segAfterUpdate: "	<< afterUpdate.segment->getRoadSegmentId();
@@ -629,7 +641,17 @@ void Conflux::housekeep(PersonProps& beforeUpdate, PersonProps& afterUpdate, Per
 		}
 	}
 	else if ((beforeUpdate.segStats != afterUpdate.segStats) /*if the person has moved to another segment*/
-				|| (beforeUpdate.lane == beforeUpdate.segStats->laneInfinity && beforeUpdate.lane != afterUpdate.lane) /* or if the person has moved out of lane infinity*/)
+				|| (beforeUpdate.lane == beforeUpdate.segStats->laneInfinity && beforeUpdate.lane != afterUpdate.lane) /* or if the person has moved out of lane infinity*/
+				|| !afterUpdate.lane /*some drivers have small loops in their path. Within 1 tick, it is possible for them to
+				start from a proper lane of a segment in a link, eventually leave the segment and link, traverse the loop in their path and
+				end up wanting to enter the same link from which they started. All of this could happen within the same tick.
+				In this case, the segmentStats before and after update may be the same, but the lane after update will be NULL
+				because the driver couldn't have got permission to enter the same link while its conflux is being processed.
+				NOTE: This is a weird complication observed in the singapore network. There was a loop in the path of a driver near segment id 23881.
+				This was the only segment in its link. The driver started from this segment, looped around and wanted to enter the same segment again.
+				Permission was denied because the current conflux was still processing. I am attempting to handle this case
+				by adding the third condition ~ Harish*/
+				)
 	{
 		if (beforeUpdate.roleType != Role<Person_MT>::RL_ACTIVITY)
 		{
@@ -1304,13 +1326,12 @@ Entity::UpdateStatus Conflux::callMovementFrameTick(timeslice now, Person_MT* pe
 				if (currLnParams->getOutputCounter() > 0)
 				{
 					currLnParams->decrementOutputCounter();
-					person->requestedNextSegStats = nullptr;
 				}
 				else
 				{
 					person->canMoveToNextSegment = Person_MT::DENIED;
-					person->requestedNextSegStats = nullptr;
 				}
+				person->requestedNextSegStats = nullptr;
 			}
 			else
 			{
@@ -1983,6 +2004,11 @@ void Conflux::driverStatistics(timeslice now)
 			if (it->first > 0) {
 				logout << it->first << "," << it->second << ","
 						<< statSegsInfinity[it->first] << ","
+						<< statLinks[it->first] << ","
+						<< DailyTime(now.ms()).getStrRepr() << std::endl;
+			} else {
+				logout << it->first << "," << it->second << ","
+						<< 0 << ","
 						<< statLinks[it->first] << ","
 						<< DailyTime(now.ms()).getStrRepr() << std::endl;
 			}

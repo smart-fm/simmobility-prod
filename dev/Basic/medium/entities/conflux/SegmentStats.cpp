@@ -1166,11 +1166,11 @@ void LaneStats::verifyOrdering()
 			debugMsgs << "Invariant violated: Ordering of laneAgents does not reflect ordering w.r.t. distance to end of segment."
 					<< "\nSegment: " << lane->getParentSegment()->getRoadSegmentId() << "-" << parentStats->getStatsNumberInSegment()
 					<< " length = " << lane->getParentSegment()->getLength() << "\nLane: " << lane->getLaneId()
-					<< "\nCulprit Person: " << (*i)->getId();
+					<< "\nCulprit Person: " << (*i)->getDatabaseId();
 			debugMsgs << "\nAgents ";
 			for (PersonList::const_iterator j = laneAgents.begin(); j != laneAgents.end(); j++)
 			{
-				debugMsgs << "|" << (*j)->getId() << "--" << (*j)->distanceToEndOfSegment;
+				debugMsgs << "|" << (*j)->getDatabaseId() << "(" << (*j)->getRole()->getRoleName() << ")" << "--" << (*j)->distanceToEndOfSegment;
 			}
 			throw std::runtime_error(debugMsgs.str());
 		}

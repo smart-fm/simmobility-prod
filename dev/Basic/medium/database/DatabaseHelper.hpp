@@ -174,11 +174,12 @@ const std::string MONGO_FIELD_COST_PUB_COST = "pub_cost";
 /**
  * Fields from MongoDB zone_aimsunnode_mapping data
  */
-const std::string MONGO_FIELD_NODE_ID = "_id";
+const std::string MONGO_FIELD_NODE_ID = "node_id";
 const std::string MONGO_FIELD_MTZ_1092 = "MTZ_1092";
 const std::string MONGO_FIELD_MTZ = "MTZ";
 const std::string MONGO_FIELD_SOURCE_NODE = "source";
 const std::string MONGO_FIELD_SINK_NODE = "sink";
+const std::string MONGO_FIELD_BUS_TERMINUS_NODE = "bus_terminus_node";
 
 /**
  * Fields for MTZ1169 to MTZ1092 mapping data

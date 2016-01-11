@@ -264,10 +264,27 @@ void SegmentStats::getPersons(std::deque<Person_MT*>& segAgents)
 	}
 }
 
-void SegmentStats::getInfinityPersons(std::deque<Person_MT*>& segAgents)
+void SegmentStats::getInfinityPersons(std::deque<Person_MT*>& segAgents, std::string& personIds)
 {
 	PersonList& lnAgents = laneStatsMap.find(laneInfinity)->second->laneAgents;
 	segAgents.insert(segAgents.end(), lnAgents.begin(), lnAgents.end());
+	for (PersonList::iterator pIt = lnAgents.begin(); pIt != lnAgents.end(); pIt++)
+	{
+		std::string id = boost::lexical_cast<string>((*pIt)->GetId());
+		personIds += "|";
+		personIds += id;
+		personIds += "(";
+		if((*pIt)->originNode.node){
+				id = boost::lexical_cast<string>((*pIt)->originNode.node->getNodeId());
+				personIds += id;
+		}
+		personIds += "-";
+		if((*pIt)->destNode.node){
+				id = boost::lexical_cast<string>((*pIt)->destNode.node->getNodeId());
+				personIds += id;
+		}
+		personIds += ")";
+	}
 }
 
 void SegmentStats::topCMergeLanesInSegment(PersonList& mergedPersonList)
@@ -1123,7 +1140,16 @@ void LaneStats::printAgents() const
 	debugMsgs << "Lane: " << lane->getLaneId();
 	for (PersonList::const_iterator i = laneAgents.begin(); i != laneAgents.end(); i++)
 	{
-		debugMsgs << "|" << (*i)->getId() << "(" << (*i)->getRole()->getRoleName() << ")";
+		debugMsgs << "|" << (*i)->getId() ;
+		if((*i)->getPrevRole()){
+			debugMsgs << "(" << (*i)->getPrevRole()->getRoleName() << ")";
+		}
+		if((*i)->getRole()){
+			debugMsgs << "(" << (*i)->getRole()->getRoleName() << ")";
+		}
+		if((*i)->getNextRole()){
+			debugMsgs << "(" << (*i)->getNextRole()->getRoleName() << ")";
+		}
 	}
 	debugMsgs << std::endl;
 	Print() << debugMsgs.str();

@@ -177,6 +177,11 @@ private:
 	void processAgents();
 
 	/**
+	 * update agent in infinite lanes
+	 */
+	void processInfiniteAgents();
+
+	/**
 	 * loads newly starting persons and dispatches them to the correct starting conflux.
 	 */
 	void loadPersons();

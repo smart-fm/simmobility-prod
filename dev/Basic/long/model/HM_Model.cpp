@@ -61,7 +61,6 @@ using std::string;
 namespace
 {
 	const string MODEL_NAME = "Housing Market Model";
-	const BigSerial FAKE_IDS_START = 9999900;
 
 	enum RESIDENTIAL_STATUS
 	{
@@ -1462,7 +1461,7 @@ void HM_Model::startImpl()
 	addMetadata("Initial Vacancies", vacancies);
 	addMetadata("Freelance housing agents", numWorkers);
 
-	for (int n = 0; n < individuals.size(); n++)
+	for (size_t n = 0; n < individuals.size(); n++)
 	{
 		BigSerial householdId = individuals[n]->getHouseholdId();
 
@@ -1472,10 +1471,11 @@ void HM_Model::startImpl()
 			tempHH->setIndividual(individuals[n]->getId());
 	}
 
-	for (int n = 0; n < households.size(); n++)
+	for (size_t n = 0; n < households.size(); n++)
 	{
 		hdbEligibilityTest(n);
 		setTaxiAccess(households[n]);
+		//reconsiderVehicleOwnershipOption(households[n]);
 
 	}
 	//PrintOut("taxi access available for "<<count<<" number of hh"<<std::endl);
@@ -2101,4 +2101,3 @@ void HM_Model::stopImpl()
 	householdsById.clear();
 	unitsById.clear();
 }
-

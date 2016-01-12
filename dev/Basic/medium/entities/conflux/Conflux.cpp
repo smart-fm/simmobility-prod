@@ -871,7 +871,6 @@ void Conflux::killAgent(Person_MT* person, PersonProps& beforeUpdate)
 		break;
 	}
 	case Role<Person_MT>::RL_PASSENGER:
-	case Role<Person_MT>::RL_TRAINPASSENGER:
 	case Role<Person_MT>::RL_CARPASSENGER:
 	case Role<Person_MT>::RL_PRIVATEBUSPASSENGER:
 	{
@@ -879,6 +878,15 @@ void Conflux::killAgent(Person_MT* person, PersonProps& beforeUpdate)
 		if (pIt != stashedPersons.end())
 		{
 			stashedPersons.erase(pIt);
+		}
+		break;
+	}
+	case Role<Person_MT>::RL_TRAINPASSENGER:
+	{
+		PersonList::iterator pIt = std::find(mrt.begin(), mrt.end(), person);
+		if (pIt != mrt.end())
+		{
+			mrt.erase(pIt);
 		}
 		break;
 	}

@@ -21,6 +21,7 @@
 #include "core/AgentsLookup.hpp"
 #include "conf/ConfigParams.hpp"
 #include "conf/ConfigManager.hpp"
+#include "model/VehicleOwnershipModel.hpp"
 
 using namespace sim_mob::long_term;
 using namespace sim_mob::event;
@@ -245,7 +246,6 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 	if( day == 0 )
 	{
 		TimeCheck awakeningTiming;
-		awakenHousehold();
 
 		double awakeningTime =  awakeningTiming.getClockTime();
 
@@ -265,6 +265,12 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 			}
 
 			return Entity::UpdateStatus(UpdateStatus::RS_CONTINUE);
+		}
+
+		if( getId() < model->FAKE_IDS_START)
+		{
+			VehicleOwnershipModel vehOwnershipModel(model);
+			vehOwnershipModel.reconsiderVehicleOwnershipOption(this->getHousehold(),this);
 		}
 	}
 

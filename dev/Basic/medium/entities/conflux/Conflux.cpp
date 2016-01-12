@@ -385,6 +385,29 @@ void Conflux::processAgents()
 	updateBusStopAgents(); //finally update bus stop agents in this conflux
 }
 
+void  Conflux::processInfiniteAgents()
+{
+	PersonList infinitePersons, tmpAgents;
+	SegmentStats* segStats = nullptr;
+	string PersonIds;
+	for(UpstreamSegmentStatsMap::iterator upStrmSegMapIt = upstreamSegStatsMap.begin();
+			upStrmSegMapIt!=upstreamSegStatsMap.end(); upStrmSegMapIt++) {
+		const SegmentStatsList& upstreamSegments = upStrmSegMapIt->second;
+		for(SegmentStatsList::const_iterator rdSegIt=upstreamSegments.begin();
+				rdSegIt!=upstreamSegments.end(); rdSegIt++) {
+			segStats = (*rdSegIt);
+			tmpAgents.clear();
+			segStats->getInfinityPersons(tmpAgents, PersonIds);
+			infinitePersons.insert(infinitePersons.end(), tmpAgents.begin(), tmpAgents.end());
+		}
+	}
+	for (PersonList::iterator personIt = infinitePersons.begin(); personIt != infinitePersons.end(); personIt++) //iterate and update all persons
+	{
+		updateAgent(*personIt);
+	}
+}
+
+
 void Conflux::updateAgent(Person_MT* person)
 {
 	if (person->getLastUpdatedFrame() < currFrame.frame())
@@ -1163,6 +1186,7 @@ Entity::UpdateStatus Conflux::switchTripChainItem(Person_MT* person)
 				DailyTime(currFrame.ms() + ConfigManager::GetInstance().FullConfig().baseGranMS()
 								+ ((*person->currTripChainItem)->endTime.getValue() - (*person->currTripChainItem)->startTime.getValue())));
 		ap->setLocation(acItem->destination.node);
+		messaging::MessageBus::ReRegisterHandler(person, GetContext());
 	}
 	if (callMovementFrameInit(currFrame, person))
 	{
@@ -1938,8 +1962,10 @@ void Conflux::driverStatistics(timeslice now)
 	std::map<int, int> statSegs;
 	std::map<int, int> statSegsInfinity;
 	std::map<int, int> statLinks;
+	std::map<int, string> statPersons;
 	PersonList allPersonsInCfx, tmpAgents;
 	SegmentStats* segStats = nullptr;
+	std::string personIds;
 	for(UpstreamSegmentStatsMap::iterator upStrmSegMapIt = upstreamSegStatsMap.begin();
 			upStrmSegMapIt!=upstreamSegStatsMap.end(); upStrmSegMapIt++) {
 		const SegmentStatsList& upstreamSegments = upStrmSegMapIt->second;
@@ -1956,8 +1982,10 @@ void Conflux::driverStatistics(timeslice now)
 			}
 			statLinks[segId] = segStats->getRoadSegment()->getLinkId();
 			tmpAgents.clear();
-			segStats->getInfinityPersons(tmpAgents);
+			personIds.clear();
+			segStats->getInfinityPersons(tmpAgents, personIds);
 			statSegsInfinity[segId] = tmpAgents.size();
+			statPersons[segId] = personIds;
 		}
 	}
 
@@ -1987,7 +2015,8 @@ void Conflux::driverStatistics(timeslice now)
 						<< statLinks[it->first] << ","
 						<< DailyTime(now.ms()).getStrRepr() << std::endl;
 			} else {
-				logout << it->first << "," << it->second << "," << 0 << ","
+				logout << it->first << "," << it->second << ","
+						<< 0 << ","
 						<< statLinks[it->first] << ","
 						<< DailyTime(now.ms()).getStrRepr() << std::endl;
 			}

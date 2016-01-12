@@ -30,7 +30,7 @@ void UnitDao::fromRow(Row& result, Unit& outObj)
     outObj.floor_area  = result.get<double>("floor_area", .0);
     outObj.storey  = result.get<int>("storey", 0);
     outObj.monthlyRent  = result.get<double>("monthly_rent", .0);
-    outObj.ownership = result.get<int>("ownership", 0);
+    //outObj.ownership = result.get<int>("ownership", 0);
     outObj.sale_from_date  = result.get<std::tm>("sale_from_date", std::tm());
     outObj.physical_from_date  = result.get<std::tm>("physical_from_date", std::tm());
     outObj.sale_status  = result.get<int>("sale_status", 0);

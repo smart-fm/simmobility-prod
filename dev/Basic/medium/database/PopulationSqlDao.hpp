@@ -10,6 +10,7 @@
 #include "database/dao/SqlAbstractDao.hpp"
 #include "database/DB_Connection.hpp"
 #include "behavioral/params/PersonParams.hpp"
+#include "behavioral/PredayClasses.hpp"
 
 namespace sim_mob
 {
@@ -55,7 +56,13 @@ public:
 	 * fetches taz code for each address id in LT database
 	 * @param outMap output parameter for storing address_id -> TAZ code map
 	 */
-	void getAddressTAZs(std::map<long, int>& outMap);
+	void getAddresses(std::map<long, sim_mob::medium::Address>& outMap);
+
+	/**
+	 * fetches taz code for each address id in LT database
+	 * @param outMap output parameter for storing address_id -> TAZ code map
+	 */
+	void getPostcodeToNodeMap(std::map<unsigned int, unsigned int>& outMap);
 
 private:
 	/**

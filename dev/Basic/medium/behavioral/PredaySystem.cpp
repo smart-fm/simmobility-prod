@@ -1611,11 +1611,19 @@ void sim_mob::medium::PredaySystem::outputActivityScheduleToStream(const ZoneNod
 	{
 		int homeZone = personParams.getHomeLocation();
 		int homeNode = 0;
-		if(zoneNodeMap.find(homeZone) != zoneNodeMap.end())
+		long homeAddressId = personParams.getHomeAddressId();
+		if(homeAddressId < 0) //home address id is -1 if not explicitly set
 		{
-			homeNode =  getRandomNodeInZone(zoneNodeMap.at(homeZone));
+			if(zoneNodeMap.find(homeZone) != zoneNodeMap.end())
+			{
+				homeNode =  getRandomNodeInZone(zoneNodeMap.at(homeZone));
+			}
+			if(homeNode == 0) { return; } //return if homeless
 		}
-		if(homeNode == 0) { return; } //return if homeless
+		else
+		{
+			homeNode = personParams.getSimMobNodeForAddressId(homeAddressId);
+		}
 
 		std::string pid;
 		{
@@ -1639,17 +1647,31 @@ void sim_mob::medium::PredaySystem::outputActivityScheduleToStream(const ZoneNod
 			double prevStopEndTime = homeActivityEndTime;
 			int currStopZone, currStopNode;
 			double currStopEndTime;
+			long activityAddressId = 0;
 			for(StopList::const_iterator stopIt=stops.begin(); stopIt!=stops.end(); stopIt++)
 			{
 				const Stop* stop = (*stopIt);
 				currStopZone = stop->getStopLocation();
 				currStopNode = 0;
-				ZoneNodeMap::const_iterator zoneNodeMapIt = zoneNodeMap.find(currStopZone);
-				if(zoneNodeMapIt != zoneNodeMap.end())
+				if(stop->isPrimaryActivity() && tour.isUsualLocation() &&
+						((stop->getStopType() == sim_mob::WORK && personParams.getFixedWorkLocation() != 0)
+								|| (stop->getStopType() == sim_mob::EDUCATION && personParams.getFixedSchoolLocation() != 0)))
 				{
-					currStopNode = getRandomNodeInZone(zoneNodeMapIt->second);
+					currStopNode = personParams.getSimMobNodeForAddressId(personParams.getActivityAddressId());
 				}
-				if(currStopNode == 0) { nodeMappingFailed = true; break; } // if there is no next node, cut the trip chain for this tour here
+				else
+				{
+					ZoneNodeMap::const_iterator zoneNodeMapIt = zoneNodeMap.find(currStopZone);
+					if (zoneNodeMapIt != zoneNodeMap.end())
+					{
+						currStopNode = getRandomNodeInZone(zoneNodeMapIt->second);
+					}
+					if (currStopNode == 0)
+					{
+						nodeMappingFailed = true;
+						break; // if there is no next node, cut the trip chain for this tour here
+					}
+				}
 				currStopEndTime = getTimeWindowFromIndex(stop->getDepartureTime());
 				stopNum++;
 				//person_id character,tour_no,tour_type,stop_no integer NOT NULL,stop_type,stop_location,stop_mode,is_primary_stop,arrival_time,departure_time,prev_stop_location,prev_stop_departure_time

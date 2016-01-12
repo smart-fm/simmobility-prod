@@ -5,6 +5,7 @@
 #include "PersonParams.hpp"
 
 #include <sstream>
+#include <string>
 #include "logging/Log.hpp"
 
 using namespace std;
@@ -16,10 +17,10 @@ namespace
 const int NUM_VALID_INCOME_CATEGORIES = 12;
 }
 
-double sim_mob::medium::PersonParams::incomeCategoryLowerLimits[] =
-{ };
+double sim_mob::medium::PersonParams::incomeCategoryLowerLimits[] = {};
 std::map<int, std::bitset<4> > sim_mob::medium::PersonParams::vehicleCategoryLookup = std::map<int, std::bitset<4> >();
-std::map<long, int> sim_mob::medium::PersonParams::addressTazLookup = std::map<long, int>();
+std::map<long, sim_mob::medium::Address> sim_mob::medium::PersonParams::addressLookup = std::map<long, sim_mob::medium::Address>();
+std::map<unsigned int, unsigned int> sim_mob::medium::PersonParams::postCodeToNodeMapping = std::map<unsigned int, unsigned int>();
 
 sim_mob::medium::PersonParams::PersonParams() :
 		personId(""), hhId(""), personTypeId(-1), ageId(-1), isUniversityStudent(-1), studentTypeId(-1), isFemale(-1), incomeId(-1), worksAtHome(-1),
@@ -211,10 +212,26 @@ void sim_mob::medium::PersonParams::fixUpParamsForLtPerson()
 
 int sim_mob::medium::PersonParams::getTAZCodeForAddressId(long addressId)
 {
-	std::map<long, int>::const_iterator addressIdIt = addressTazLookup.find(addressId);
-	if (addressIdIt == addressTazLookup.end())
+	std::map<long, sim_mob::medium::Address>::const_iterator addressIdIt = addressLookup.find(addressId);
+	if (addressIdIt == addressLookup.end())
 	{
 		throw std::runtime_error("invalid address id");
 	}
-	return addressIdIt->second;
+	return addressIdIt->second.getTazCode();
+}
+
+unsigned int sim_mob::medium::PersonParams::getSimMobNodeForAddressId(long addressId)
+{
+	std::map<long, sim_mob::medium::Address>::const_iterator addressIdIt = addressLookup.find(addressId);
+	if (addressIdIt == addressLookup.end())
+	{
+		throw std::runtime_error("invalid address id " + std::to_string(addressId));
+	}
+	unsigned int postcode = addressIdIt->second.getPostcode();
+	std::map<unsigned int, unsigned int>::const_iterator postcodeIt = postCodeToNodeMapping.find(postcode);
+	if(postcodeIt == postCodeToNodeMapping.end())
+	{
+		throw std::runtime_error("invalid postcode " + std::to_string(postcode));
+	}
+	return postcodeIt->second;
 }

@@ -84,17 +84,36 @@ void sim_mob::medium::PopulationSqlDao::getAllIds(std::vector<long>& outList)
 	}
 }
 
-void sim_mob::medium::PopulationSqlDao::getAddressTAZs(std::map<long, int>& addressTazMap)
+void sim_mob::medium::PopulationSqlDao::getAddresses(std::map<long, sim_mob::medium::Address>& addressMap)
 {
 	if (isConnected())
 	{
-		addressTazMap.clear();
+		addressMap.clear();
 		Statement query(connection.getSession<soci::session>());
-		prepareStatement(DB_GET_ADDRESS_TAZ, db::EMPTY_PARAMS, query);
+		prepareStatement(DB_GET_ADDRESSES, db::EMPTY_PARAMS, query);
 		ResultSet rs(query);
 		for (ResultSet::const_iterator it = rs.begin(); it != rs.end(); ++it)
 		{
-			addressTazMap[(*it).get<BigInt>(DB_FIELD_ADDRESS_ID)] = (*it).get<int>(DB_FIELD_TAZ_CODE);
+			long addressId = (*it).get<BigInt>(DB_FIELD_ADDRESS_ID);
+			sim_mob::medium::Address& address = addressMap[addressId];
+			address.setAddressId(addressId);
+			address.setPostcode((*it).get<int>(DB_FIELD_POSTCODE));
+			address.setTazCode((*it).get<int>(DB_FIELD_TAZ_CODE));
+		}
+	}
+}
+
+void sim_mob::medium::PopulationSqlDao::getPostcodeToNodeMap(std::map<unsigned int, unsigned int>& postcodeNodeMap)
+{
+	if (isConnected())
+	{
+		postcodeNodeMap.clear();
+		Statement query(connection.getSession<soci::session>());
+		prepareStatement(DB_GET_POSTCODE_NODE_MAP, db::EMPTY_PARAMS, query);
+		ResultSet rs(query);
+		for (ResultSet::const_iterator it = rs.begin(); it != rs.end(); ++it)
+		{
+			postcodeNodeMap[(*it).get<int>(DB_FIELD_POSTCODE)] = (*it).get<BigInt>(DB_FIELD_NODE_ID);
 		}
 	}
 }

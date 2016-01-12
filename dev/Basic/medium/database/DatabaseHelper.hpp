@@ -34,8 +34,9 @@ const std::string DB_TABLE_LOGSUMS = APPLY_SCHEMA(DEMAND_SCHEMA, "preday_logsum"
  */
 const std::string DB_SP_GET_INDIVIDUAL_IDS = APPLY_SCHEMA(MAIN_SCHEMA, "getindividualids()");
 const std::string DB_SP_GET_INDIVIDUAL_BY_ID_FOR_PREDAY = APPLY_SCHEMA(MAIN_SCHEMA, "getindividualbyidforpreday(:_id)");
-const std::string DB_SP_GET_ADDRESS_TAZ = APPLY_SCHEMA(MAIN_SCHEMA, "getaddresstaz()");
+const std::string DB_SP_GET_ADDRESSES = APPLY_SCHEMA(MAIN_SCHEMA, "getaddresses()");
 const std::string DB_SP_GET_LOGSUMS_BY_ID = APPLY_SCHEMA(PUBLIC_SCHEMA, "get_logsums_for_person(:_id)");
+const std::string DB_SP_GET_POSTCODE_NODE_MAP = APPLY_SCHEMA(PUBLIC_SCHEMA, "get_postcode_node_map()");
 
 /**
  * Fields for long-term population database
@@ -77,6 +78,9 @@ const std::string DB_FIELD_INCOME_CATEGORY_LOWER_LIMIT = "low_limit";
 const std::string DB_FIELD_VEHICLE_CATEGORY_NAME = "name";
 const std::string DB_FIELD_ADDRESS_ID = "address_id";
 const std::string DB_FIELD_TAZ_CODE = "taz_code";
+const std::string DB_FIELD_POSTCODE = "postcode";
+const std::string DB_FIELD_NODE_ID = "node_id";
+
 
 const std::string SEARCH_STRING_CAR_OWN_NORMAL = "car (normal time)";
 const std::string SEARCH_STRING_CAR_OWN_OFF_PEAK = "car (off peak time)";
@@ -89,7 +93,10 @@ const std::string DB_GET_ALL_PERSON_IDS = "SELECT * FROM " + DB_SP_GET_INDIVIDUA
 const std::string DB_GET_PERSON_BY_ID = "SELECT * FROM " + DB_SP_GET_INDIVIDUAL_BY_ID_FOR_PREDAY; //argument to be passed
 
 /** load address taz mapping from LT database */
-const std::string DB_GET_ADDRESS_TAZ = "SELECT * FROM " + DB_SP_GET_ADDRESS_TAZ;
+const std::string DB_GET_ADDRESSES = "SELECT * FROM " + DB_SP_GET_ADDRESSES;
+
+/** load postcode to simmobility node mapping */
+const std::string DB_GET_POSTCODE_NODE_MAP = "SELECT * FROM " + DB_SP_GET_POSTCODE_NODE_MAP;
 
 /** load income categories */
 const std::string DB_GET_INCOME_CATEGORIES = "SELECT * FROM " + DB_TABLE_INCOME_CATEGORIES;

@@ -457,6 +457,49 @@ public:
 	}
 };
 
+class Address
+{
+public:
+	Address() : addressId(0), postcode(0), tazCode(0)
+	{
+	}
+
+	long getAddressId() const
+	{
+		return addressId;
+	}
+
+	void setAddressId(long addressId)
+	{
+		this->addressId = addressId;
+	}
+
+	unsigned int getPostcode() const
+	{
+		return postcode;
+	}
+
+	void setPostcode(unsigned int postcode)
+	{
+		this->postcode = postcode;
+	}
+
+	int getTazCode() const
+	{
+		return tazCode;
+	}
+
+	void setTazCode(int tazCode)
+	{
+		this->tazCode = tazCode;
+	}
+
+private:
+	long addressId;
+	unsigned int postcode;
+	int tazCode;
+};
+
 } // end namespace medium
 } // end namespace sim_mob
 

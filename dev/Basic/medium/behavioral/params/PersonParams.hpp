@@ -486,9 +486,14 @@ public:
 		return vehicleCategoryLookup;
 	}
 
-	static std::map<long, int>& getAddressTazLookup()
+	static std::map<long, sim_mob::medium::Address>& getAddressLookup()
 	{
-		return addressTazLookup;
+		return addressLookup;
+	}
+
+	static std::map<unsigned int, unsigned int>& getPostcodeNodeMap()
+	{
+		return postCodeToNodeMapping;
 	}
 
 	/**
@@ -529,6 +534,15 @@ public:
 	 * @return TAZ code for addressId
 	 */
 	int getTAZCodeForAddressId(long addressId);
+
+	/**
+	 * looks up postcode for a given address ID from LT population data
+	 *
+	 * @param addressId input address id
+	 *
+	 * @return postcode for addressId
+	 */
+	unsigned int getSimMobNodeForAddressId(long addressId);
 
 	/**
 	 * sets income ID by looking up income on a pre loaded map of income ranges.
@@ -620,7 +634,12 @@ private:
 	/**
 	 * address to taz map
 	 */
-	static std::map<long, int> addressTazLookup;
+	static std::map<long, sim_mob::medium::Address> addressLookup;
+
+	/**
+	 * postcode to simmobility node mapping
+	 */
+	static std::map<unsigned int, unsigned int> postCodeToNodeMapping;
 };
 
 /**

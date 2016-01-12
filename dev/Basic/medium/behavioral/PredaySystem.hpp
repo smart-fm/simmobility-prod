@@ -241,7 +241,7 @@ private:
 	void insertStop(const Stop* stop, int stopNumber, int tourNumber);
 
 	/**
-	 * returns a random element from the list of nodes
+	 * returns a random element from the list of nodes subject to some validity criteria
 	 *
 	 * @param nodes the list of nodes
 	 * @returns a random element of the list

@@ -19,7 +19,6 @@
 #include "database/entity/UnitType.hpp"
 #include "model/DeveloperModel.hpp"
 #include "model/lua/LuaProvider.hpp"
-#include "message/MessageBus.hpp"
 #include "message/LT_Message.hpp"
 #include "core/DataManager.hpp"
 #include "core/AgentsLookup.hpp"

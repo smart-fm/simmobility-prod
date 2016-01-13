@@ -396,7 +396,7 @@ namespace sim_mob {
         const std::string DB_GETALL_TAZ_LEVEL_LAND_PRICES = "SELECT * FROM " + DB_TABLE_TAZ_LEVEL_LAND_PRICE + LIMIT;
         const std::string DB_GETALL_SIMVERSION = "SELECT * FROM " + DB_TABLE_SIM_VERSION + LIMIT;
       //  const std::string DB_GETALL_STAUS_OF_WORLD = "SELECT * FROM " + DB_TABLE_STATUS_OF_WORLD + LIMIT;
-        const std::string DB_GETALL_PARCELS_WITH_ONGOING_PROJECTS = "SELECT * FROM " + APPLY_SCHEMA(OUTPUT_SCHEMA, "fm_parcel") + LIMIT;
+      //  const std::string DB_GETALL_PARCELS_WITH_ONGOING_PROJECTS = "SELECT * FROM " + APPLY_SCHEMA(OUTPUT_SCHEMA, "fm_parcel") + LIMIT;
         const std::string DB_GETALL_CREATEOPSCHEMA = "SELECT * FROM " + APPLY_SCHEMA(MAIN_SCHEMA, "create_output_schema") + LIMIT;
 
         /**

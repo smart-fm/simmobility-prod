@@ -26,7 +26,7 @@ namespace sim_mob
 
 			virtual ~VehicleOwnershipModel();
 
-			void reconsiderVehicleOwnershipOption(const Household *household,HouseholdAgent *hhAgent);
+			void reconsiderVehicleOwnershipOption(const Household *household,HouseholdAgent *hhAgent, int day);
 			double getExpOneCar(int unitTypeId,double vehicleOwnershipLogsum,const Household *household);
 			double getExpTwoPlusCar(int unitTypeId, double vehicleOwnershipLogsum,const Household *household);
 			bool isMotorCycle(int vehicleCategoryId);

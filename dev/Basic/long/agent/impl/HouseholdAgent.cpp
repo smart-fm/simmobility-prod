@@ -270,7 +270,7 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 		if( getId() < model->FAKE_IDS_START)
 		{
 			VehicleOwnershipModel vehOwnershipModel(model);
-			vehOwnershipModel.reconsiderVehicleOwnershipOption(this->getHousehold(),this);
+			vehOwnershipModel.reconsiderVehicleOwnershipOption(this->getHousehold(),this, day);
 		}
 	}
 

@@ -73,6 +73,7 @@ namespace sim_mob {
             typedef boost::unordered_map<BigSerial,TAO*> TAOMap;
             typedef boost::unordered_map<BigSerial,UnitPriceSum*> UnitPriceSumMap;
             typedef boost::unordered_map<BigSerial,TazLevelLandPrice*> TazLevelLandPriceMap;
+            typedef boost::unordered_map<BigSerial,Project*> ProjectMap;
 
         public:
             DeveloperModel(WorkGroup& workGroup);
@@ -82,7 +83,7 @@ namespace sim_mob {
             /*
              * create developer agents for each parcel in the given ParcelList
              */
-            void createDeveloperAgents(ParcelList initParcelList);
+            void createDeveloperAgents(ParcelList initParcelList, bool onGoingProject);
 
             void wakeUpDeveloperAgents(DeveloperList devAgentList);
 
@@ -231,6 +232,7 @@ namespace sim_mob {
             void addDevelopmentPlans(boost::shared_ptr<DevelopmentPlan> &devPlan);
 
             std::vector<boost::shared_ptr<DevelopmentPlan> > getDevelopmentPlansVec();
+            Project* getProjectByParcelId(BigSerial parcelId) const;
 
         protected:
             /**
@@ -312,6 +314,7 @@ namespace sim_mob {
             std::vector<boost::shared_ptr<PotentialProject> > potentialProjects;
             int OpSchemaLoadingInterval;
             std::vector<boost::shared_ptr<DevelopmentPlan> > developmentPlansVec;
+            ProjectMap projectByParcelId;
         };
     }
 }

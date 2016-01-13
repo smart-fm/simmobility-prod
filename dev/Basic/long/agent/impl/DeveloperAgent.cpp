@@ -509,7 +509,7 @@ inline void createPotentialProjects(BigSerial parcelId, DeveloperModel* model, P
 }
 
 DeveloperAgent::DeveloperAgent(boost::shared_ptr<Parcel> parcel, DeveloperModel* model)
-: LT_Agent((parcel) ? parcel->getId() : INVALID_ID), devModel(model),parcel(parcel),active(false),monthlyUnitCount(0),unitsRemain(true),realEstateAgent(nullptr),postcode(INVALID_ID),housingMarketModel(housingMarketModel),simYear(simYear),currentTick(currentTick){
+: LT_Agent((parcel) ? parcel->getId() : INVALID_ID), devModel(model),parcel(parcel),active(false),monthlyUnitCount(0),unitsRemain(true),realEstateAgent(nullptr),postcode(INVALID_ID),housingMarketModel(nullptr),simYear(0),currentTick(0),parcelDBStatus(false){
 
 }
 
@@ -542,8 +542,6 @@ Entity::UpdateStatus DeveloperAgent::onFrameTick(timeslice now) {
     		createPotentialProjects(this->parcel->getId(),devModel,project,quarter,tao,currentDate,currentTick);
     		if(project.getUnits().size()>0)
     		{
-    			boost::shared_ptr<Parcel> profitableParcel = boost::make_shared<Parcel>(*parcel);
-    			devModel->addProfitableParcels(profitableParcel);
     			std::vector<PotentialUnit>::iterator unitsItr;
     			std::vector<PotentialUnit>& potentialUnits = project.getUnits();
     			for (unitsItr = potentialUnits.begin(); unitsItr != potentialUnits.end(); ++unitsItr)
@@ -598,6 +596,12 @@ void DeveloperAgent::createUnitsAndBuildings(PotentialProject &project,BigSerial
 	if(devModel->isEmptyParcel(parcel->getId()))
 	{
 		newDevelopment = 1;
+	}
+
+	boost::shared_ptr<Parcel> profitableParcel = boost::make_shared<Parcel>(*parcel);
+	if(!parcelDBStatus)
+	{
+		devModel->addProfitableParcels(profitableParcel);
 	}
 	//writeParcelDataToFile(parcel,newDevelopment,project.getProfit());
 	//Parcel *parcel1 = new Parcel(*this->parcel);
@@ -963,4 +967,24 @@ BigSerial DeveloperAgent::getQuarterIdByQuarterStr(std::string quarterStr)
 void DeveloperAgent::setSimYear(int simulationYear)
 {
 	this->simYear = simulationYear;
+}
+
+void DeveloperAgent::setProject(boost::shared_ptr<Project> project)
+{
+	this->fmProject = project;
+}
+
+boost::shared_ptr<Parcel> DeveloperAgent::getParcel()
+{
+	return this->parcel;
+}
+
+void DeveloperAgent::setParcelDBStatus(bool status)
+{
+	this->parcelDBStatus = status;
+}
+
+bool DeveloperAgent::getParcelDBStatus()
+{
+	return this->parcelDBStatus;
 }

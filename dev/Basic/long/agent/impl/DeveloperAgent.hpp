@@ -141,6 +141,13 @@ namespace sim_mob {
              */
             void setSimYear(int simulationYear);
 
+            void setProject(boost::shared_ptr<Project> project);
+
+            boost::shared_ptr<Parcel> getParcel();
+
+            void setParcelDBStatus(bool status);
+
+            bool getParcelDBStatus();
 
         private:
             DeveloperModel* devModel;
@@ -158,6 +165,7 @@ namespace sim_mob {
             HM_Model *housingMarketModel;
             int simYear;
             int currentTick;
+            bool parcelDBStatus;
 
         };
     }

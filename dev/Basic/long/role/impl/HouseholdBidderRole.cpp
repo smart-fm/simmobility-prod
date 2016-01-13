@@ -1352,7 +1352,7 @@ void HouseholdBidderRole::getScreeningProbabilities(int hhId, std::vector<double
 							 otherHousingHhSizeOne		<< " l " << DWL800  << std::endl);
 		*/
 
-		if( isnan(probability) )
+		if( std::isnan(probability) )
 			probability = 0.0;
 
 		probabilities.push_back(probability);

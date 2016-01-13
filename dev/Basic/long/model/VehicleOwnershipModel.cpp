@@ -8,6 +8,7 @@
 #include "message/LT_Message.hpp"
 #include "message/MessageBus.hpp"
 #include "behavioral/PredayLT_Logsum.hpp"
+#include "util/SharedFunctions.hpp"
 
 using namespace sim_mob;
 using namespace sim_mob::long_term;
@@ -24,7 +25,7 @@ inline void writeVehicleOwnershipToFile(BigSerial hhId,int VehiclOwnershiOptionI
 
 }
 
-void VehicleOwnershipModel::reconsiderVehicleOwnershipOption(const Household *household,HouseholdAgent *hhAgent)
+void VehicleOwnershipModel::reconsiderVehicleOwnershipOption(const Household *household,HouseholdAgent *hhAgent, int day)
 {
 
 
@@ -54,40 +55,39 @@ void VehicleOwnershipModel::reconsiderVehicleOwnershipOption(const Household *ho
 	//		{
 
 
-				HouseHoldHitsSample *hitsSample = model->getHouseHoldHitsById( household->getId() );
+	//			HouseHoldHitsSample *hitsSample = model->getHouseHoldHitsById( household->getId() );
 
-				//int p = 0;
-				int tazIdWork = -1;
-				int tazIdHome = -1;
-
-				HM_Model::HitsIndividualLogsumList hitsIndividualLogsums = model->getHitsIndividualLogsumVec();
-				PrintOutV("getHitsIndividualLogsumVec().size() " << hitsIndividualLogsums.size() << std::endl);
-
-				for(size_t p = 0; p < hitsIndividualLogsums.size(); p++ )
-				{
-					if ( model->getHitsIndividualLogsumVec()[p]->getHitsId().compare( hitsSample->getHouseholdHitsId() ) == 0 )
-					{
-						tazIdWork = model->getHitsIndividualLogsumVec()[p]->getWorkTaz();
-						tazIdHome = model->getHitsIndividualLogsumVec()[p]->getHomeTaz();
-						break;
-					}
-				}
-
-				Taz *tazObjW = model->getTazById( tazIdWork );
-			    std::string tazStrW;
-				if( tazObjW != NULL )
-				{
-					tazStrW = tazObjW->getName();
-				}
-				BigSerial tazW = std::atoi( tazStrW.c_str() );
-
-				Taz *tazObjH = model->getTazById( tazIdHome );
-			    std::string tazStrH;
-				if( tazObjH != NULL )
-				{
-					tazStrH = tazObjH->getName();
-				}
-				BigSerial tazH = std::atoi( tazStrH.c_str() );
+//				//int p = 0;
+//				int tazIdWork = -1;
+//				int tazIdHome = -1;
+//
+//				HM_Model::HitsIndividualLogsumList hitsIndividualLogsums = model->getHitsIndividualLogsumVec();
+//
+//				for(size_t p = 0; p < hitsIndividualLogsums.size(); p++ )
+//				{
+//					if ( model->getHitsIndividualLogsumVec()[p]->getHitsId().compare( hitsSample->getHouseholdHitsId() ) == 0 )
+//					{
+//						tazIdWork = model->getHitsIndividualLogsumVec()[p]->getWorkTaz();
+//						tazIdHome = model->getHitsIndividualLogsumVec()[p]->getHomeTaz();
+//						break;
+//					}
+//				}
+//
+//				Taz *tazObjW = model->getTazById( tazIdWork );
+//			    std::string tazStrW;
+//				if( tazObjW != NULL )
+//				{
+//					tazStrW = tazObjW->getName();
+//				}
+//				BigSerial tazW = std::atoi( tazStrW.c_str() );
+//
+//				Taz *tazObjH = model->getTazById( tazIdHome );
+//			    std::string tazStrH;
+//				if( tazObjH != NULL )
+//				{
+//					tazStrH = tazObjH->getName();
+//				}
+//				BigSerial tazH = std::atoi( tazStrH.c_str() );
 
 				//replace householdHeadId with individualId
 				//PredayPersonParams personParam1 = PredayLT_LogsumManager::getInstance().computeLogsum( individual->getId(), tazH, tazW,1) ;
@@ -105,7 +105,7 @@ void VehicleOwnershipModel::reconsiderVehicleOwnershipOption(const Household *ho
 		}
 
 
-		double expOneCar = getExpOneCar(unitTypeId,SumVehicleOwnershipLogsum,household);
+ 		double expOneCar = getExpOneCar(unitTypeId,SumVehicleOwnershipLogsum,household);
 		double expTwoPlusCar = getExpTwoPlusCar(unitTypeId,SumVehicleOwnershipLogsum,household);
 
 		double probabilityNoCar = (expNoCar) / (expNoCar + expOneCar+ expTwoPlusCar);
@@ -122,7 +122,9 @@ void VehicleOwnershipModel::reconsiderVehicleOwnershipOption(const Household *ho
 		double pTemp = 0;
 		boost::shared_ptr <VehicleOwnershipChanges> vehcileOwnershipOptChange(new VehicleOwnershipChanges());
 		vehcileOwnershipOptChange->setHouseholdId(household->getId());
-		//vehcileOwnershipOptChange->setStartDate(getDateBySimDay(year,day));
+		ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+		int year = config.ltParams.year;
+		vehcileOwnershipOptChange->setStartDate(getDateBySimDay(year,day));
 
 		//const  = AgentsLookupSingleton::getInstance().getHouseholdAgentById(household->getId());
 		if((pTemp < randomNum ) && (randomNum < (probabilityNoCar + pTemp)))
@@ -155,7 +157,7 @@ void VehicleOwnershipModel::reconsiderVehicleOwnershipOption(const Household *ho
 			}
 		}
 
-		//model->addVehicleOwnershipChanges(vehcileOwnershipOptChange);
+		model->addVehicleOwnershipChanges(vehcileOwnershipOptChange);
 
 
 

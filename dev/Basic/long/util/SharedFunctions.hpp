@@ -22,13 +22,21 @@ namespace sim_mob
 	inline std::tm getDateBySimDay(int simYear,int day)
 	{
 		int year = simYear-1900;
-		int month = day/30; //divide by 30 to get the month
+		int month = (day+1)/30; //divide by 30 to get the month
 		if(month > 11)
 		{
 			month = month - 12;
 			year = year + 1;
 		}
-		int dayMonth = ((day+1)%30); // get the remainder of divide by 30 to roughly calculate the day of the month
+		int dayMonth = 0;
+		if(day>30)
+			{
+				dayMonth = ((day+1)%30) + 1; // get the remainder of divide by 30 to roughly calculate the day of the month
+			}
+		else
+		{
+			dayMonth = day+1;
+		}
 		if((month == 1) && (dayMonth >= 29)) //reset the date for month of February
 		{
 			dayMonth = 28;

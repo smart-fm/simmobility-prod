@@ -21,12 +21,12 @@ LogSumVehicleOwnership& LogSumVehicleOwnership::operator=(const LogSumVehicleOwn
     return *this;
 }
 
-double LogSumVehicleOwnership::getHouseholdId() const
+BigSerial LogSumVehicleOwnership::getHouseholdId() const
 {
 		return this->householdId;
 }
 
-BigSerial LogSumVehicleOwnership::getAvgLogsum() const
+double LogSumVehicleOwnership::getAvgLogsum() const
 {
 		return this->avgLogsum;
 }

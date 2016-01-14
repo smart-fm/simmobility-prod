@@ -97,12 +97,6 @@ namespace sim_mob
              */
             virtual void update(timeslice currTime);
 
-            void reconsiderVehicleOwnershipOption();
-
-            double getExpOneCar(int unitTypeId, double vehicleOwnershipLogsum);
-
-            double getExpTwoPlusCar(int unitTypeId, double vehicleOwnershipLogsum);
-
             /*
              * check all the vehicle categories and returns if it includes a motorcycle
              */

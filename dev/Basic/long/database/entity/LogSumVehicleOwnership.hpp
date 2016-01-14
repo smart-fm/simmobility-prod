@@ -21,8 +21,8 @@ namespace sim_mob
     		LogSumVehicleOwnership(BigSerial householdId = INVALID_ID, double avgLogsum = 0);
 			virtual ~LogSumVehicleOwnership();
 
-			double getHouseholdId() const;
-			BigSerial getAvgLogsum() const;
+			 BigSerial getHouseholdId() const;
+			 double getAvgLogsum() const;
 
 			/**
 			* Assign operator.

@@ -304,6 +304,8 @@ namespace sim_mob
             void addVehicleOwnershipChanges(boost::shared_ptr<VehicleOwnershipChanges> &vehicleOwnershipChange);
             std::vector<boost::shared_ptr<VehicleOwnershipChanges> > getVehicleOwnershipChanges();
 
+            static const BigSerial FAKE_IDS_START = 9999900;
+
         protected:
             /**
              * Inherited from Model.

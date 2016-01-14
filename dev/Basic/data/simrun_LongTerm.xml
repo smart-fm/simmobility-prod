@@ -50,7 +50,7 @@
 
 		<!-- longterm localhost server hosting midterm data -->
 	    <database id="fm_remote_mt" dbtype="postgres">
-	        <host value="localhost"/>
+	        <host value="172.25.184.14"/>
 	        <port value="5432"/>
 	        <dbname value="sim_mob_lt"/>
 	    </database>
@@ -181,7 +181,7 @@
               
     <!-- Long Term Configurations parameters -->
     <longTermParams enabled ="true">
-    	<days value="365"/>
+    	<days value="3"/>
     	<maxIterations value="1"/>
     	<workers value="8"/>
     	<tickStep value="1"/>  
@@ -209,7 +209,7 @@
 	    <housingMoveInDaysInterval value="30"/>
 	    <offsetBetweenUnitBuyingAndSelling value ="7"/>
 	    <bidderUnitsChoiceSet value = "100"/>
-	    <householdBiddingWindow value = "30" />
+	    <householdBiddingWindow value = "3" />
         </housingModel>
 	<vehicleOwnershipModel enabled='true'>
 		<vehicleBuyingWaitingTimeInDays value= "1"/>

@@ -172,7 +172,7 @@ Conflux::PersonProps::PersonProps(const Person_MT* person, const Conflux* cnflx)
 void Conflux::PersonProps::printProps(std::string personId, uint32_t frame, std::string prefix) const
 {
 	std::stringstream propStrm;
-	propStrm << personId << "-" << frame << "-" << prefix << "-{";
+	propStrm << personId << "," << frame << "," << prefix << ",{";
 	propStrm << " conflux:";
 	if (conflux)
 	{
@@ -440,8 +440,11 @@ void Conflux::updateAgent(Person_MT* person)
 	//update person's handler registration with MessageBus, if required
 	updateAgentContext(beforeUpdate, afterUpdate, person);
 
-	beforeUpdate.printProps(person->getDatabaseId(), currFrame.frame(), std::to_string(confluxNode->getNodeId()) + " before");
-	afterUpdate.printProps(person->getDatabaseId(), currFrame.frame(), std::to_string(confluxNode->getNodeId()) + " after");
+//	if (beforeUpdate.roleType != 5 && afterUpdate.roleType != 5)
+//	{
+//		beforeUpdate.printProps(person->getDatabaseId(), currFrame.frame(), std::to_string(confluxNode->getNodeId()) + ",before");
+//		afterUpdate.printProps(person->getDatabaseId(), currFrame.frame(), std::to_string(confluxNode->getNodeId()) + ",after");
+//	}
 }
 
 bool Conflux::handleRoleChange(PersonProps& beforeUpdate, PersonProps& afterUpdate, Person_MT* person)

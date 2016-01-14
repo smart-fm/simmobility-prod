@@ -58,8 +58,8 @@ void ScreenLineCounter::loadScreenLines()
         throw std::runtime_error("ScreenLineCounter: Stored Procedure not specified");
     }
 
-    soci::session sql_(soci::postgresql, config.getDatabaseConnectionString());
-    soci::rowset<unsigned long> rs = (sql_.prepare << "select * from \"" + storedProcIter->second + "\"");
+    soci::session sql_(soci::postgresql, config.getDatabaseConnectionString(false));
+    soci::rowset<unsigned long> rs = (sql_.prepare << "select * from " + storedProcIter->second);
 
     soci::rowset<unsigned long>::const_iterator iter = rs.begin();
     for(; iter != rs.end(); iter++)

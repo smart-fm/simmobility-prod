@@ -38,75 +38,13 @@ void VehicleOwnershipModel::reconsiderVehicleOwnershipOption(const Household *ho
 		double valueNoCar =  model->getVehicleOwnershipCoeffsById(ASC_NO_CAR)->getCoefficientEstimate();
 		double expNoCar = exp(valueNoCar);
 		double vehicleOwnershipLogsum = 0;
-		double SumVehicleOwnershipLogsum = 0;
-		std::vector<BigSerial> individuals = household->getIndividuals();
-		std::vector<BigSerial>::iterator individualsItr;
-
-		for(individualsItr = individuals.begin(); individualsItr != individuals.end(); individualsItr++)
+		LogSumVehicleOwnership *logsum = model->getVehicleOwnershipLogsumsById(household->getId());
+		if(logsum != nullptr)
 		{
-			const Individual* individual = model->getIndividualById((*individualsItr));
-	//		HouseHoldHitsSample *hitsSample = model->getHouseHoldHitsById( this->getParent()->getHousehold()->getId() );
-	//		if(model->getHouseholdGroupByGroupId(hitsSample->getGroupId())!= nullptr)
-	//		{
-	//			vehicleOwnershipLogsum = model->getHouseholdGroupByGroupId(hitsSample->getGroupId())->getLogsum();
-	//			SumVehicleOwnershipLogsum = vehicleOwnershipLogsum + SumVehicleOwnershipLogsum;
-	//		}
-	//		else
-	//		{
-
-
-	//			HouseHoldHitsSample *hitsSample = model->getHouseHoldHitsById( household->getId() );
-
-//				//int p = 0;
-//				int tazIdWork = -1;
-//				int tazIdHome = -1;
-//
-//				HM_Model::HitsIndividualLogsumList hitsIndividualLogsums = model->getHitsIndividualLogsumVec();
-//
-//				for(size_t p = 0; p < hitsIndividualLogsums.size(); p++ )
-//				{
-//					if ( model->getHitsIndividualLogsumVec()[p]->getHitsId().compare( hitsSample->getHouseholdHitsId() ) == 0 )
-//					{
-//						tazIdWork = model->getHitsIndividualLogsumVec()[p]->getWorkTaz();
-//						tazIdHome = model->getHitsIndividualLogsumVec()[p]->getHomeTaz();
-//						break;
-//					}
-//				}
-//
-//				Taz *tazObjW = model->getTazById( tazIdWork );
-//			    std::string tazStrW;
-//				if( tazObjW != NULL )
-//				{
-//					tazStrW = tazObjW->getName();
-//				}
-//				BigSerial tazW = std::atoi( tazStrW.c_str() );
-//
-//				Taz *tazObjH = model->getTazById( tazIdHome );
-//			    std::string tazStrH;
-//				if( tazObjH != NULL )
-//				{
-//					tazStrH = tazObjH->getName();
-//				}
-//				BigSerial tazH = std::atoi( tazStrH.c_str() );
-
-				//replace householdHeadId with individualId
-				//PredayPersonParams personParam1 = PredayLT_LogsumManager::getInstance().computeLogsum( individual->getId(), tazH, tazW,1) ;
-
-				double vehicleOwnershipLogsumCar = 2.71;//personParam1.getDpbLogsum();
-
-				//PredayPersonParams personParam2 = PredayLT_LogsumManager::getInstance().computeLogsum( individual->getId(), tazH, tazW,0);
-				double vehicleOwnershipLogsumTransit = 2.71;//personParam2.getDpbLogsum();
-
-				vehicleOwnershipLogsum = (vehicleOwnershipLogsumCar - vehicleOwnershipLogsumTransit);
-				SumVehicleOwnershipLogsum = vehicleOwnershipLogsum + SumVehicleOwnershipLogsum;
-	//			HM_Model::HouseholdGroup *hhGroup = new HM_Model::HouseholdGroup(hitsSample->getGroupId(),0,vehicleOwnershipLogsum);
-	//			model->addHouseholdGroupByGroupId(hhGroup);
-	//		}
+			vehicleOwnershipLogsum = logsum->getAvgLogsum();
 		}
-
-
- 		double expOneCar = getExpOneCar(unitTypeId,SumVehicleOwnershipLogsum,household);
-		double expTwoPlusCar = getExpTwoPlusCar(unitTypeId,SumVehicleOwnershipLogsum,household);
+ 		double expOneCar = getExpOneCar(unitTypeId,vehicleOwnershipLogsum,household);
+		double expTwoPlusCar = getExpTwoPlusCar(unitTypeId,vehicleOwnershipLogsum,household);
 
 		double probabilityNoCar = (expNoCar) / (expNoCar + expOneCar+ expTwoPlusCar);
 		double probabilityOneCar = (expOneCar)/ (expNoCar + expOneCar+ expTwoPlusCar);

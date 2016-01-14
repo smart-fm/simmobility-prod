@@ -267,10 +267,13 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 			return Entity::UpdateStatus(UpdateStatus::RS_CONTINUE);
 		}
 
-		if( getId() < model->FAKE_IDS_START)
+		if(config.ltParams.vehicleOwnershipModel.enabled)
 		{
-			VehicleOwnershipModel vehOwnershipModel(model);
-			vehOwnershipModel.reconsiderVehicleOwnershipOption(this->getHousehold(),this, day);
+			if( getId() < model->FAKE_IDS_START)
+			{
+				VehicleOwnershipModel vehOwnershipModel(model);
+				vehOwnershipModel.reconsiderVehicleOwnershipOption(this->getHousehold(),this, day);
+			}
 		}
 	}
 

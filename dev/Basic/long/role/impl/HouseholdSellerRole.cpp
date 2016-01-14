@@ -457,7 +457,7 @@ void HouseholdSellerRole::calculateUnitExpectations(const Unit& unit)
     SellingUnitInfo info;
     info.startedDay = currentTime.ms();
     info.interval = timeInterval;
-    info.daysOnMarket = 30;//unit.getTimeOnMarket();
+    info.daysOnMarket = unit.getTimeOnMarket();
 
     HM_Model *model = getParent()->getModel();
 

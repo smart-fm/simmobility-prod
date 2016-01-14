@@ -246,6 +246,7 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 	if( day == 0 )
 	{
 		TimeCheck awakeningTiming;
+		awakenHousehold();
 
 		double awakeningTime =  awakeningTiming.getClockTime();
 

@@ -120,8 +120,7 @@ Trip* MakePseudoTrip(unsigned int personId, const Node *origin, const Node *dest
 	subTrip.destination = res->destination;
 	subTrip.destinationType = res->destinationType;
 	subTrip.tripID = "";
-	subTrip.mode = mode;
-	subTrip.isPrimaryMode = true;
+	subTrip.travelMode = mode;
 	subTrip.ptLineId = "";
 
 	//Add it to the Trip; return this value.

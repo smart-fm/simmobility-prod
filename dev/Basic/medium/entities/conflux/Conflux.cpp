@@ -440,11 +440,8 @@ void Conflux::updateAgent(Person_MT* person)
 	//update person's handler registration with MessageBus, if required
 	updateAgentContext(beforeUpdate, afterUpdate, person);
 
-//	if (beforeUpdate.roleType != 5 && afterUpdate.roleType != 5)
-//	{
-//		beforeUpdate.printProps(person->getDatabaseId(), currFrame.frame(), std::to_string(confluxNode->getNodeId()) + ",before");
-//		afterUpdate.printProps(person->getDatabaseId(), currFrame.frame(), std::to_string(confluxNode->getNodeId()) + ",after");
-//	}
+//	beforeUpdate.printProps(person->getDatabaseId(), currFrame.frame(), std::to_string(confluxNode->getNodeId()) + ",before");
+//	afterUpdate.printProps(person->getDatabaseId(), currFrame.frame(), std::to_string(confluxNode->getNodeId()) + ",after");
 }
 
 bool Conflux::handleRoleChange(PersonProps& beforeUpdate, PersonProps& afterUpdate, Person_MT* person)

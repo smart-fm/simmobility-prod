@@ -23,7 +23,6 @@
 #include "geospatial/network/PT_Stop.hpp"
 #include "entities/misc/TripChain.hpp"
 #include "workers/Worker.hpp"
-#include "geospatial/aimsun/Loader.hpp"
 #include "message/MessageBus.hpp"
 #include "path/PT_RouteChoiceLuaModel.hpp"
 #include "path/PT_RouteChoiceLuaProvider.hpp"
@@ -272,19 +271,18 @@ bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::S
 				subTrip.tripID = "";
 				if ((*it).tType.find("Walk") != std::string::npos)
 				{
-					subTrip.mode = "Walk";
+					subTrip.travelMode = "Walk";
 					subTrip.isPT_Walk = true;
 					subTrip.walkTime = (*it).walkTime;
 				}
 				else if ((*it).tType.find("Bus") != std::string::npos)
 				{
-					subTrip.mode = "BusTravel";
+					subTrip.travelMode = "BusTravel";
 				}
 				else
 				{
-					subTrip.mode = "MRT";
+					subTrip.travelMode = "MRT";
 				}
-				subTrip.isPrimaryMode = true;
 				subTrip.ptLineId = it->serviceLines;
 				newSubTrips.push_back(subTrip);
 			}
@@ -501,7 +499,7 @@ void sim_mob::Person::serializeSubTripChainItemTravelTimeMetrics(const TravelMet
 			st.tripID << "," << //	subtrip_id
 			origiNode << "," << //	origin
 			destNode << "," << //	destination
-			st.mode << "," << //	mode
+			st.travelMode << "," << //	mode
 			subtripMetrics.startTime.getStrRepr() << "," << //	start_time
 			subtripMetrics.endTime.getStrRepr() << "," << //	end_time
 			//			 TravelMetric::getTimeDiffHours(subtripMetrics.endTime, subtripMetrics.startTime)  << ","		//	travel_time### commented
@@ -530,7 +528,7 @@ void sim_mob::Person::serializeSubTripChainItemTravelTimeMetrics(const TravelMet
 			<< cbdStartNode << "," << cbdEndNode << ","
 			<< subtripMetrics.cbdStartTime.getStrRepr() << ","
 			<< subtripMetrics.cbdEndTime.getStrRepr() << ","
-			<< st.mode << ","
+			<< st.travelMode << ","
 			<< subtripMetrics.cbdTraverseType << std::endl;
 	sim_mob::BasicLogger& cbd = sim_mob::Logger::log("cdb.csv");
 	cbd << ret.str();
@@ -582,8 +580,7 @@ void sim_mob::Person::serializeCBD_SubTrip(const TravelMetric &metric)
 			"Node" << "," <<
 			metric.cbdDestination.node->getNodeId() << "," <<
 			"Node" << "," <<
-			st.mode << "," <<
-			(st.isPrimaryMode ? "TRUE" : "FALSE") << "," <<
+			st.travelMode << "," <<
 			st.startTime.getStrRepr() << "," <<
 			st.ptLineId;
 

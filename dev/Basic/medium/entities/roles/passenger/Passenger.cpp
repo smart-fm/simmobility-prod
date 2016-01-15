@@ -32,19 +32,19 @@ Role<Person_MT>* sim_mob::medium::Passenger::clone(Person_MT *parent) const
 	PassengerBehavior* behavior = new PassengerBehavior();
 	PassengerMovement* movement = new PassengerMovement();
 	Role<Person_MT>::Type personRoleType = Role<Person_MT>::RL_UNKNOWN;
-	if (parent->currSubTrip->mode == "MRT")
+	if (parent->currSubTrip->getMode() == "MRT")
 	{
 		personRoleType = Role<Person_MT>::RL_TRAINPASSENGER;
 	}
-	else if (parent->currSubTrip->mode == "Sharing")
+	else if (parent->currSubTrip->getMode() == "Sharing")
 	{
 		personRoleType = Role<Person_MT>::RL_CARPASSENGER;
 	}
-	else if (parent->currSubTrip->mode == "PrivateBus")
+	else if (parent->currSubTrip->getMode() == "PrivateBus")
 	{
 		personRoleType = Role<Person_MT>::RL_PRIVATEBUSPASSENGER;
 	}
-	else if (parent->currSubTrip->mode == "BusTravel")
+	else if (parent->currSubTrip->getMode() == "BusTravel")
 	{
 		personRoleType = Role<Person_MT>::RL_PASSENGER;
 	}

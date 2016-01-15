@@ -127,7 +127,7 @@ void Person_ST::initTripChain()
 		currSubTrip = ((dynamic_cast<Trip*> (*currTripChainItem))->getSubTripsRW()).begin();
 		
 		// if the first trip chain item is passenger, create waitBusActivityRole
-		if (currSubTrip->mode == "BusTravel")
+		if (currSubTrip->travelMode == "BusTravel")
 		{
 			const RoleFactory<Person_ST> *rf = RoleFactory<Person_ST>::getInstance();
 			currRole = rf->createRole("waitBusActivity", this);

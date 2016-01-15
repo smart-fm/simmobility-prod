@@ -156,9 +156,9 @@ public:
 	void setPersonID(int val);
 
 	//TripChainItem();
-	TripChainItem(std::string entId = "", std::string type = "Trip",
+	TripChainItem(std::string entId = std::string(), std::string type = "Trip",
 				DailyTime start = DailyTime(), DailyTime end = DailyTime(),
-				unsigned int seqNumber = 0, int requestTime = -1);
+				unsigned int seqNumber = 0, int requestTime = -1, std::string mode = std::string());
 	virtual ~TripChainItem();
 
 	static LocationType getLocationType(std::string locType);
@@ -170,7 +170,7 @@ public:
 	{
 		return false;
 	}
-	virtual const std::string getMode() const; //can't make it pure virtual coz the class will turn to abstract and we will face problem in XML reader
+	const std::string getMode() const;
 
 	//Helper: Convert a location type string to an object of that type.
 	//TODO: This SHOULD NOT be different for the database and for XML.
@@ -195,7 +195,6 @@ public:
 	Activity(std::string locType = "node");
 	virtual ~Activity();
 	bool setPersonOD(sim_mob::Person *person, const sim_mob::SubTrip *);
-	virtual const std::string getMode() const;
 };
 
 /**
@@ -211,7 +210,7 @@ public:
 	Trip(std::string entId = "", std::string type = "Trip", unsigned int seqNumber = 0, int requestTime = -1,
 		DailyTime start = DailyTime(), DailyTime end = DailyTime(),
 		std::string tripId = "", const Node* from = nullptr, std::string fromLocType = "node",
-		const Node* to = nullptr, std::string toLocType = "node");
+		const Node* to = nullptr, std::string toLocType = "node", std::string mode = std::string());
 	virtual ~Trip();
 
 	void addSubTrip(const sim_mob::SubTrip& aSubTrip);
@@ -222,12 +221,6 @@ public:
 
 	void setSubTrips(const std::vector<sim_mob::SubTrip>& subTrips);
 	bool setPersonOD(sim_mob::Person *person, const sim_mob::SubTrip *);
-
-	/**
-	 * get mode of first subtrip of trip
-	 * @return mode of first sub-trip of trip, if it exists; empty string otherwise
-	 */
-	virtual const std::string getMode() const;
 
 private:
 	std::vector<sim_mob::SubTrip> subTrips;
@@ -246,12 +239,9 @@ public:
 			std::string mode = "", bool isPrimary = true, std::string ptLineId = "");
 	virtual ~SubTrip();
 
-	std::string mode;
-	bool isPrimaryMode;
 	std::string ptLineId; //Public transit (bus or train) line identifier.
 
 	mutable sim_mob::TravelMetric::CDB_TraverseType cbdTraverseType;
-	const std::string getMode() const;
 	const std::string getBusLineID() const;
 
 	bool isPT_Walk;

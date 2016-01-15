@@ -3,11 +3,10 @@
 #include <boost/shared_ptr.hpp>
 #include <map>
 #include <vector>
-
 #include "entities/misc/PublicTransit.hpp"
-#include "geospatial/aimsun/Loader.hpp"
 #include "lua/LuaModel.hpp"
 #include "Path.hpp"
+#include "soci/soci.h"
 
 namespace sim_mob
 {

@@ -244,8 +244,7 @@ namespace
 		subTrip.tripID = "1";
 		subTrip.originType = sim_mob::TripChainItem::LT_NODE;
 		subTrip.destinationType = sim_mob::TripChainItem::LT_NODE;
-		subTrip.mode = "Car";
-		subTrip.isPrimaryMode = true;
+		subTrip.travelMode = "Car";
 		subTrip.startTime = sim_mob::DailyTime("00:00:00");
 		return subTrip;
 	}

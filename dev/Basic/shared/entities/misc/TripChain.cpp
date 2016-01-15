@@ -37,8 +37,8 @@ sim_mob::TripChainItem::LocationType sim_mob::TripChainItem::GetLocationTypeXML(
 	throw std::runtime_error("Unknown TripChain location type.");
 }
 
-sim_mob::TripChainItem::TripChainItem(std::string entId, string type, DailyTime start, DailyTime end, unsigned int seqNumber, int requestTm) :
-personID(entId), itemType(getItemType(type)), startTime(start), endTime(end), sequenceNumber(seqNumber), requestTime(requestTm)
+sim_mob::TripChainItem::TripChainItem(std::string entId, string type, DailyTime start, DailyTime end, unsigned int seqNumber, int requestTm, std::string mode) :
+personID(entId), itemType(getItemType(type)), startTime(start), endTime(end), sequenceNumber(seqNumber), requestTime(requestTm), travelMode(mode)
 {
 }
 
@@ -48,7 +48,7 @@ sim_mob::TripChainItem::~TripChainItem()
 
 const std::string sim_mob::TripChainItem::getMode() const
 {
-	return "<ERROR>";
+	return travelMode;
 }
 
 sim_mob::Activity::Activity(string locType) : TripChainItem(), description(""),
@@ -62,8 +62,8 @@ sim_mob::Activity::~Activity()
 }
 
 sim_mob::Trip::Trip(std::string entId, std::string type, unsigned int seqNumber, int requestTime, DailyTime start,
-					DailyTime end, std::string tripId, const Node* from, std::string fromLocType, const Node* to, std::string toLocType) 
-: TripChainItem(entId, type, start, end, seqNumber, requestTime), tripID(tripId)
+					DailyTime end, std::string tripId, const Node* from, std::string fromLocType, const Node* to, std::string toLocType, std::string mode)
+: TripChainItem(entId, type, start, end, seqNumber, requestTime, mode), tripID(tripId)
 {
 	origin = WayPoint(from);
 	destination = WayPoint(to);
@@ -110,18 +110,13 @@ void sim_mob::Trip::setSubTrips(const std::vector<sim_mob::SubTrip>& subTrips)
 
 sim_mob::SubTrip::SubTrip(std::string entId, std::string type, unsigned int seqNumber, int requestTime, DailyTime start, DailyTime end, const Node* from,
 						  std::string fromLocType, const Node* to, std::string toLocType, std::string mode, bool isPrimary, std::string ptLineId) :
-Trip(entId, type, seqNumber, requestTime, start, end, "", from, fromLocType, to, toLocType),
-mode(mode), isPrimaryMode(isPrimary), isPT_Walk(false), walkTime(0.0), ptLineId(ptLineId), cbdTraverseType(sim_mob::TravelMetric::CBD_NONE)
+Trip(entId, type, seqNumber, requestTime, start, end, "", from, fromLocType, to, toLocType, mode),
+isPT_Walk(false), walkTime(0.0), ptLineId(ptLineId), cbdTraverseType(sim_mob::TravelMetric::CBD_NONE)
 {
 }
 
 sim_mob::SubTrip::~SubTrip()
 {
-}
-
-const std::string sim_mob::SubTrip::getMode() const
-{
-	return mode;
 }
 
 std::string sim_mob::TripChainItem::getPersonID() const
@@ -199,11 +194,6 @@ bool sim_mob::Activity::setPersonOD(sim_mob::Person *person, const sim_mob::SubT
 	return true;
 }
 
-const std::string sim_mob::Activity::getMode() const
-{
-	return "Activity";
-}
-
 bool sim_mob::Trip::setPersonOD(sim_mob::Person *person, const sim_mob::SubTrip * subtrip)
 {
 	const sim_mob::SubTrip &subTrip_ = (subtrip ? *subtrip : subTrips.front());
@@ -215,15 +205,6 @@ bool sim_mob::Trip::setPersonOD(sim_mob::Person *person, const sim_mob::SubTrip 
 void sim_mob::Trip::addSubTrip(const sim_mob::SubTrip& subTrip)
 {
 	subTrips.push_back(subTrip);
-}
-
-const std::string sim_mob::Trip::getMode() const
-{
-	if (subTrips.empty())
-	{
-		return "";
-	}
-	return subTrips.front().getMode();
 }
 
 const std::string sim_mob::SubTrip::getBusLineID() const

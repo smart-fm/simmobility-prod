@@ -296,8 +296,7 @@ void MT_PersonLoader::makeSubTrip(const soci::row& r, Trip* parentTrip, unsigned
 	aSubTripInTrip.originType = TripChainItem::LT_NODE;
 	aSubTripInTrip.destination = WayPoint(rn->getById(rn->getMapOfIdvsNodes(), r.get<int>(5)));
 	aSubTripInTrip.destinationType = TripChainItem::LT_NODE;
-	aSubTripInTrip.mode = r.get<string>(6);
-	aSubTripInTrip.isPrimaryMode = r.get<int>(7);
+	aSubTripInTrip.travelMode = r.get<string>(6);
 	aSubTripInTrip.startTime = parentTrip->startTime;
 	parentTrip->addSubTrip(aSubTripInTrip);
 }
@@ -332,6 +331,7 @@ Trip* MT_PersonLoader::makeTrip(const soci::row& r, unsigned int seqNo)
 	tripToSave->destination = WayPoint(rn->getById(rn->getMapOfIdvsNodes(), r.get<int>(5)));
 	tripToSave->destinationType = TripChainItem::LT_NODE;
 	tripToSave->startTime = DailyTime(getRandomTimeInWindow(r.get<double>(11), false));
+	tripToSave->travelMode = r.get<string>(6);
 	//just a sanity check
 	if(tripToSave->origin == tripToSave->destination)
 	{

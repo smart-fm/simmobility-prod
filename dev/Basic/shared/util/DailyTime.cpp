@@ -247,6 +247,10 @@ const DailyTime& sim_mob::DailyTime::operator-=(const DailyTime& dailytime)
 std::string sim_mob::DailyTime::getStrRepr() const
 {
 	uint32_t timeValInSec = time_/1000;
+	if(timeValInSec >= 86400) //86400 seconds in a day
+	{
+		timeValInSec = timeValInSec % 86400;
+	}
 	return timeList[timeValInSec];
 }
 

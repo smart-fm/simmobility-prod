@@ -156,7 +156,7 @@ std::string PersonWaitingTime::getCSV() const
 
 std::string BusArrivalTime::getCSV() const
 {
-	char csvArray[100];
+	char csvArray[200];
 	sprintf(csvArray, "%s,%s,%s,%3.2f,%u,%s,%s\n",
 			busStopNo.c_str(),
 			busLine.c_str(),
@@ -170,7 +170,7 @@ std::string BusArrivalTime::getCSV() const
 
 std::string PersonTravelTime::getCSV() const
 {
-	char csvArray[100];
+	char csvArray[200];
 	sprintf(csvArray, "%u,%s,%s,%s,%s,%s,%s,%s,%s,%.2f\n",
 			personId,
 			tripStartPoint.c_str(),
@@ -187,7 +187,7 @@ std::string PersonTravelTime::getCSV() const
 
 std::string WaitingCount::getCSV() const
 {
-	char csvArray[100];
+	char csvArray[200];
 	sprintf(csvArray, "%s,%s,%u\n",
 			busStopNo.c_str(),
 			currTime.c_str(),

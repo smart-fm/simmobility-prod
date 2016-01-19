@@ -35,7 +35,6 @@ sim_mob::ConfigParams::~ConfigParams()
 	safe_delete_item(controlMgr);
 
     clear_delete_map(busStopNo_busStops);
-    clear_delete_map_with_vector(tripchains);
 }
 
 sim_mob::Factory<sim_mob::Broker>& sim_mob::ConfigParams::getBrokerFactoryRW()
@@ -195,16 +194,6 @@ unsigned int sim_mob::ConfigParams::totalRuntimeInMilliSeconds() const
 unsigned int sim_mob::ConfigParams::warmupTimeInMilliSeconds() const
 {
     return simulation.totalWarmupMS;
-}
-
-std::map<std::string, std::vector<sim_mob::TripChainItem*> >& sim_mob::ConfigParams::getTripChains()
-{
-	return tripchains;
-}
-
-const std::map<std::string, std::vector<sim_mob::TripChainItem*> >& sim_mob::ConfigParams::getTripChains() const
-{
-	return tripchains;
 }
 
 std::map<std::string, sim_mob::BusStop*>& sim_mob::ConfigParams::getBusStopNo_BusStops()

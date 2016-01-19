@@ -108,6 +108,40 @@ Signal_SCATS::~Signal_SCATS()
 Entity::UpdateStatus Signal_SCATS::frame_init(timeslice now)
 {
 	initialise();
+	
+	//Output phase information
+	std::stringstream output;
+	output << "{\"SignalPhases\":";
+	output << "{\"Id\":\"" << trafficLightId << "\",";
+	output << "\"phases\":[";
+
+	for (unsigned int i = 0; i < phases.size(); ++i)
+	{
+		const Phase *phase = phases[i];
+		linksMapping &linksMap = phase->getLinksMap();
+
+		if (!linksMap.empty())
+		{
+			output << "{\"name\": \"" << phase->getName() << "\",";
+			output << "\"links\":[";
+
+			Phase::linksMappingConstIterator itLinksMap = linksMap.begin();
+
+			while (itLinksMap != linksMap.end())
+			{
+				output << "{";
+				output << "\"link_from\":\"" << (*itLinksMap).first << "\",";
+				output << "\"link_to\":\"" << (*itLinksMap).second.toLink << "\",},";
+				++itLinksMap;
+			}
+
+			output << "]},";
+		}
+	}
+
+	output << "]}}\n";
+	LogOut(output.str());
+	
 	return Entity::UpdateStatus::Continue;
 }
 
@@ -160,35 +194,7 @@ void Signal_SCATS::frame_output(timeslice now)
 
 	if (!phases.empty())
 	{
-		output << "\"currPhase\": \"" << phases[currPhaseAtGreen]->getName() << "\",";
-		output << "\"phases\":[";
-		
-		for (unsigned int i = 0; i < phases.size(); ++i)
-		{
-			const Phase *phase = phases[i];
-			linksMapping &linksMap = phase->getLinksMap();
-
-			if (!linksMap.empty())
-			{
-				output << "{\"name\": \"" << phase->getName() << "\",";
-				output << "\"links\":[";
-
-				Phase::linksMappingConstIterator itLinksMap = linksMap.begin();
-
-				while (itLinksMap != linksMap.end())
-				{
-					output << "{";
-					output << "\"link_from\":\"" << (*itLinksMap).first << "\",";
-					output << "\"link_to\":\"" << (*itLinksMap).second.toLink << "\",";
-					output <<"\"current_colour\":" << trafficColorMap.find((*itLinksMap).second.currColor)->second << "},";
-					++itLinksMap;
-				}
-
-				output << "]},";
-			}
-		}
-		
-		output << "]";
+		output << "\"currPhase\": \"" << phases[currPhaseAtGreen]->getName() << "\",";		
 	}
 	
 	output << "}}\n";

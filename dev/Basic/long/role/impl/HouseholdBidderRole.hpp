@@ -104,6 +104,8 @@ namespace sim_mob
 
             int getIncomeCategoryId(double income);
 
+            int getMoveInWaitingTimeInDays();
+
         protected:
 
             /**
@@ -147,6 +149,7 @@ namespace sim_mob
             bool active;
         	BigSerial unitIdToBeOwned;
         	int moveInWaitingTimeInDays;
+        	bool bidComplete;
         	int vehicleBuyingWaitingTimeInDays;
         	uint32_t day;
         	int year;

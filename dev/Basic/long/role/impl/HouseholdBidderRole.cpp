@@ -184,7 +184,7 @@ void HouseholdBidderRole::CurrentBiddingEntry::setWtp_e(double value)
 
 
 HouseholdBidderRole::HouseholdBidderRole(HouseholdAgent* parent): parent(parent), waitingForResponse(false), lastTime(0, 0), bidOnCurrentDay(false), active(false), unitIdToBeOwned(0),
-																  moveInWaitingTimeInDays(0),vehicleBuyingWaitingTimeInDays(0), day(day), initBidderRole(true),year(0){}
+																  moveInWaitingTimeInDays(0),vehicleBuyingWaitingTimeInDays(0), day(day), initBidderRole(true),year(0),bidComplete(true){}
 
 HouseholdBidderRole::~HouseholdBidderRole(){}
 
@@ -379,6 +379,12 @@ void HouseholdBidderRole::update(timeslice now)
 	//The bidder role will do nothing else during this period (hence the return at the end of the if function).
 	if( moveInWaitingTimeInDays > 0 )
 	{
+		if(bidComplete)
+		{
+			bidComplete = false;
+			getParent()->getModel()->decrementBidders();
+		}
+
 		//Just before we set the bidderRole to inactive, we do the unit ownership switch.
 		if( moveInWaitingTimeInDays == 1 )
 		{
@@ -813,8 +819,9 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 			ZZ_logsumhh = personParam.getDpbLogsum();
 
 			BigSerial groupId = hitssample->getGroupId();
-			const HM_Model::HouseholdGroup thisHHGroup =  HM_Model::HouseholdGroup(groupId, homeTaz, ZZ_logsumhh );
-			model->householdGroupVec.push_back( thisHHGroup );
+			boost::shared_ptr<HM_Model::HouseholdGroup> thisHHGroup(new HM_Model::HouseholdGroup(groupId, homeTaz, ZZ_logsumhh ));
+
+			model->householdGroupVec.push_back( *(thisHHGroup.get()));
 
 			printHouseholdGroupLogsum( homeTaz, hitssample->getGroupId(), headOfHousehold->getId(), ZZ_logsumhh );
 		}
@@ -920,6 +927,11 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 	V = exp(V);
 
 	return V;
+}
+
+int HouseholdBidderRole::getMoveInWaitingTimeInDays()
+{
+	return moveInWaitingTimeInDays;
 }
 
 void HouseholdBidderRole::getScreeningProbabilities(int hhId, std::vector<double> &probabilities)

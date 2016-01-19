@@ -66,8 +66,9 @@ class TT_Aggregator:
 		self.client = MongoClient('localhost', 27017)
 		self.db = self.client.preday
 		
-		self.nodeMTZ = self.db.node_mtz
+		self.nodeMTZ = self.db.node_taz_map
 		self.zone = self.db.Zone_2012
+		self.zone2012To2008Map = self.db.map_1169_to_1092_zones
 		self.amCosts = self.db.LearnedAMCosts
 		self.pmCosts = self.db.LearnedPMCosts
 		self.opCosts = self.db.LearnedOPCosts
@@ -138,7 +139,11 @@ class TT_Aggregator:
 	
 	#fetch zone from node
 	def getZone(self, node):
-		return int(self.nodeMTZ.find_one({"_id" : node})["MTZ_1092"])
+		return int(self.nodeMTZ.find_one({"_id" : node})["MTZ"])
+
+	#fetch 2008 zone_code corresponding to 2012 zone_code
+	def get2008Zone(self, zn2012):
+		return int(self.zone2012To2008Map.find_one({"_id" : zn2012})["MTZ1092"])
 	
 	##functions to add items into the data structures defined above
 	def addAMCarIvt(self, origin, destination, value):
@@ -310,8 +315,10 @@ class TT_Aggregator:
 	def updateMongo(self):
 		for i in range(self.NUM_ZONES):
 			orgZ = self.zoneCode[i+1]
+			orgZ08 = self.get2008Zone(orgZ)
 			for j in range(self.NUM_ZONES):
 				desZ = self.zoneCode[j+1]
+				desZ08 = self.get2008Zone(desZ)
 				if orgZ == desZ: continue
 				query = { "origin" : orgZ, "destin" : desZ }
 				
@@ -358,7 +365,8 @@ class TT_Aggregator:
 					self.opCosts.update(query, {"$set" : updates }, upsert=False, multi=False)
 				
 				#time dependent tt updates
-				query = { "origin" : orgZ, "destination" : desZ }
+				if orgZ08 == desZ08: continue
+				query = { "origin" : orgZ08, "destination" : desZ08 }
 				updates = {}
 				for k in range(48):
 					newTTCarArr = self.ttArrivalCar[i][j][k]
@@ -368,7 +376,7 @@ class TT_Aggregator:
 						if newTTCarArr > 0: updates["TT_car_arrival_"+str(k+1)] = (newTTCarArr + toFloat(ttCarDoc["TT_car_arrival_"+str(k+1)]))/2
 						if newTTCarDep > 0: updates["TT_car_departure_"+str(k+1)] = (newTTCarDep + toFloat(ttCarDoc["TT_car_departure_"+str(k+1)]))/2
 				if updates: 
-					print 'OD:[',orgZ,desZ,'] car ',updates
+					print 'OD:[',orgZ08,desZ08,'] car ',updates
 					self.ttCar.update(query, {"$set" : updates }, upsert=False , multi=False)
 				
 				updates = {}
@@ -380,7 +388,7 @@ class TT_Aggregator:
 						if newTTBusArr > 0: updates["TT_bus_arrival_"+str(k+1)] = (newTTBusArr + toFloat(ttBusDoc["TT_bus_arrival_"+str(k+1)]))/2
 						if newTTBusDep > 0: updates["TT_bus_departure_"+str(k+1)] = (newTTBusDep + toFloat(ttBusDoc["TT_bus_departure_"+str(k+1)]))/2
 				if updates: 
-					print 'OD:[',orgZ,desZ,'] bus ',updates
+					print 'OD:[',orgZ08,desZ08,'] bus ',updates
 					self.ttBus.update(query, {"$set" : updates }, upsert=False , multi=False)
 		return
 

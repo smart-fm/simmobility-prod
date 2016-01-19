@@ -344,7 +344,7 @@ UpdateStatus Conflux::update(timeslice frameNumber)
 	case 2:
 	{
 		updateAndReportSupplyStats(currFrame);
-		reportLinkTravelTimes(currFrame);
+		//reportLinkTravelTimes(currFrame);
 		resetLinkTravelTimes(currFrame);
 		resetSegmentFlows();
 		resetOutputBounds();

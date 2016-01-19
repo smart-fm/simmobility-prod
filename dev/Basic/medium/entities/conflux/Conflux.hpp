@@ -11,6 +11,8 @@
 #include "entities/Agent.hpp"
 #include "entities/Person_MT.hpp"
 #include "geospatial/network/Node.hpp"
+#include "geospatial/network/Lane.hpp"
+#include "message/Message.hpp"
 #include "message/MT_Message.hpp"
 #include "SegmentStats.hpp"
 
@@ -621,6 +623,20 @@ public:
 	 * @param now indicate current time
 	 */
 	void driverStatistics(timeslice now);
+};
+
+/**
+ * Message to wrap a Person
+ */
+class PersonTransferMessage : public messaging::Message
+{
+public:
+	PersonTransferMessage(Person_MT* person, SegmentStats* nextSegStats, const Lane* nextLane);
+	virtual ~PersonTransferMessage();
+
+	Person_MT* person;
+	SegmentStats* segStats;
+	const Lane* lane;
 };
 
 } // namespace medium

@@ -170,39 +170,47 @@ std::string getRandomTimeInWindow(double mid, bool firstFifteenMins)
 
 void setActivityStartEnd(sim_mob::Activity* activity, double startInterval, double endInterval)
 {
-	int hour = int(std::floor(startInterval));
+	int startHour = int(std::floor(startInterval));
 	int min = 0, max = 29;
-	int minute = Utils::generateInt(min,max) + ((startInterval - hour - 0.25)*60);
-	int second = Utils::generateInt(0,59);
+	int startMinute = Utils::generateInt(min,max) + ((startInterval - startHour - 0.25)*60);
+	int startSecond = Utils::generateInt(0,59);
 
 	//construct string representation
 	std::string randomStartTime;
 	randomStartTime.resize(8); //hh:mi:ss - 8 characters
 	char* c = &randomStartTime[0];
-	c = timeDecimalDigitToChar(hour, c);
+	c = timeDecimalDigitToChar(startHour, c);
 	c++; *c=':'; c++;
-	c = timeDecimalDigitToChar(minute, c);
+	c = timeDecimalDigitToChar(startMinute, c);
 	c++; *c=':'; c++;
-	c = timeDecimalDigitToChar(second, c);
+	c = timeDecimalDigitToChar(startSecond, c);
 	activity->startTime = sim_mob::DailyTime(randomStartTime);
 
 	if(endInterval <= startInterval)
 	{
-		min = minute - ((startInterval - hour - 0.25)*60); //max is still 29
+		min = startMinute - ((startInterval - startHour - 0.25)*60); //max is still 29
 	}
-	hour = int(std::floor(endInterval));
-	minute = Utils::generateInt(min,max) + ((endInterval - hour - 0.25)*60);
-	second = Utils::generateInt(0,59);
+	int endHour = int(std::floor(endInterval));
+	int endMinute = Utils::generateInt(min,max) + ((endInterval - endHour - 0.25)*60);
+	int endSecond = 0;
+	if(endHour == startHour && endMinute == startMinute)
+	{
+		endSecond = Utils::generateInt(startSecond,59);
+	}
+	else
+	{
+		endSecond = Utils::generateInt(0,59);
+	}
 
 	//construct string representation
 	std::string randomEndTime;
 	randomEndTime.resize(8); //hh:mi:ss - 8 characters
 	c = &randomEndTime[0];
-	c = timeDecimalDigitToChar(hour, c);
+	c = timeDecimalDigitToChar(endHour, c);
 	c++; *c=':'; c++;
-	c = timeDecimalDigitToChar(minute, c);
+	c = timeDecimalDigitToChar(endMinute, c);
 	c++; *c=':'; c++;
-	c = timeDecimalDigitToChar(second, c);
+	c = timeDecimalDigitToChar(endSecond, c);
 	activity->endTime = sim_mob::DailyTime(randomEndTime);
 }
 

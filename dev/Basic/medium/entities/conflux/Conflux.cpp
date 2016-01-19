@@ -440,8 +440,11 @@ void Conflux::updateAgent(Person_MT* person)
 	//update person's handler registration with MessageBus, if required
 	updateAgentContext(beforeUpdate, afterUpdate, person);
 
-//	beforeUpdate.printProps(person->getDatabaseId(), currFrame.frame(), std::to_string(confluxNode->getNodeId()) + ",before");
-//	afterUpdate.printProps(person->getDatabaseId(), currFrame.frame(), std::to_string(confluxNode->getNodeId()) + ",after");
+//	if (beforeUpdate.roleType != 4)
+//	{
+//		beforeUpdate.printProps(person->getDatabaseId(), currFrame.frame(), std::to_string(confluxNode->getNodeId()) + ",before");
+//		afterUpdate.printProps(person->getDatabaseId(), currFrame.frame(), std::to_string(confluxNode->getNodeId()) + ",after");
+//	}
 }
 
 bool Conflux::handleRoleChange(PersonProps& beforeUpdate, PersonProps& afterUpdate, Person_MT* person)
@@ -493,7 +496,6 @@ bool Conflux::handleRoleChange(PersonProps& beforeUpdate, PersonProps& afterUpda
 	}
 	case Role<Person_MT>::RL_ACTIVITY:
 	{
-		activityPerformers.push_back(person);
 		break;
 	}
 	case Role<Person_MT>::RL_BUSDRIVER:
@@ -504,15 +506,23 @@ bool Conflux::handleRoleChange(PersonProps& beforeUpdate, PersonProps& afterUpda
 	case Role<Person_MT>::RL_DRIVER: //fall through
 	case Role<Person_MT>::RL_BIKER:
 	{
-		if(afterUpdate.lane)
+		if (afterUpdate.lane)
 		{
-			afterUpdate.segStats->addAgent(afterUpdate.lane, person);
-			// set the position of the last updated Person in his current lane (after update)
-			if (afterUpdate.lane != afterUpdate.segStats->laneInfinity)
+			if (afterUpdate.conflux == this) // if the next role is in the same conflux, we can safely add person to afterUpdate.segStats
 			{
-				//if the person did not end up in a VQ and his lane is not lane infinity of segAfterUpdate
-				double lengthToVehicleEnd = person->distanceToEndOfSegment + person->getRole()->getResource()->getLengthInM();
-				afterUpdate.segStats->setPositionOfLastUpdatedAgentInLane(lengthToVehicleEnd, afterUpdate.lane);
+				afterUpdate.segStats->addAgent(afterUpdate.lane, person);
+				// set the position of the last updated Person in his current lane (after update)
+				if (afterUpdate.lane != afterUpdate.segStats->laneInfinity)
+				{
+					//if the person did not end up in a VQ and his lane is not lane infinity of segAfterUpdate
+					double lengthToVehicleEnd = person->distanceToEndOfSegment + person->getRole()->getResource()->getLengthInM();
+					afterUpdate.segStats->setPositionOfLastUpdatedAgentInLane(lengthToVehicleEnd, afterUpdate.lane);
+				}
+			}
+			else //post a message to the next conflux to handover this person for thread safety
+			{
+				sim_mob::messaging::MessageBus::PostMessage(afterUpdate.segStats->getParentConflux(), sim_mob::medium::MSG_PERSON_TRANSFER,
+						sim_mob::messaging::MessageBus::MessagePtr(new PersonTransferMessage(person, afterUpdate.segStats, afterUpdate.lane)));
 			}
 		}
 		else
@@ -1076,6 +1086,12 @@ void Conflux::HandleMessage(messaging::Message::MessageType type, const messagin
 {
 	switch (type)
 	{
+	case MSG_PERSON_TRANSFER:
+	{
+		const PersonTransferMessage& msg = MSG_CAST(PersonTransferMessage, message);
+		msg.segStats->addAgent(msg.lane, msg.person);
+		break;
+	}
 	case MSG_PEDESTRIAN_TRANSFER_REQUEST:
 	{
 		const PersonMessage& msg = MSG_CAST(PersonMessage, message);
@@ -1201,6 +1217,11 @@ Entity::UpdateStatus Conflux::switchTripChainItem(Person_MT* person)
 	{
 		switch(personRole->roleType)
 		{
+		case Role<Person_MT>::RL_ACTIVITY:
+		{
+			activityPerformers.push_back(person);
+			break;
+		}
 		case Role<Person_MT>::RL_WAITBUSACTIVITY:
 		{
 			assignPersonToBusStopAgent(person);
@@ -1490,7 +1511,7 @@ void Conflux::stashPerson(Person_MT* person)
 			{
 				stashedPersons.push_back(person);
 			}
-			uint32_t travelTime = person->currSubTrip->endTime.getValue() - person->currSubTrip->startTime.getValue();
+			uint32_t travelTime = person->currSubTrip->endTime.getValue(); //endTime was hacked to set the travel time for car and private bus passengers
 			person->setStartTime(currFrame.ms());
 			person->getRole()->setTravelTime(travelTime);
 			unsigned int tick = ConfigManager::GetInstance().FullConfig().baseGranMS();
@@ -2528,4 +2549,13 @@ unsigned int sim_mob::medium::PersonCount::getTotal()
 			+ busDrivers
 			+ busWaiters
 			+ activityPerformers);
+}
+
+sim_mob::medium::PersonTransferMessage::PersonTransferMessage(Person_MT* person, SegmentStats* nextSegStats, const Lane* nextLane) :
+		person(person), segStats(nextSegStats), lane(nextLane)
+{
+}
+
+sim_mob::medium::PersonTransferMessage::~PersonTransferMessage()
+{
 }

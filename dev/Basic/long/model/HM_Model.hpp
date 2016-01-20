@@ -36,6 +36,8 @@
 #include "database/entity/HitsIndividualLogsum.hpp"
 #include "database/entity/UnitSale.hpp"
 #include "database/entity/VehicleOwnershipChanges.hpp"
+#include "database/entity/AccessibilityFixedPzid.hpp"
+#include "database/entity/ScreeningCostTime.hpp"
 #include "core/HousingMarket.hpp"
 #include "boost/unordered_map.hpp"
 #include "DeveloperModel.hpp"
@@ -125,6 +127,12 @@ namespace sim_mob
             typedef std::vector<HitsIndividualLogsum*> HitsIndividualLogsumList;
             typedef boost::unordered_map<BigSerial, HitsIndividualLogsum*> HitsIndividualLogsumMap;
 
+            typedef std::vector<AccessibilityFixedPzid*> AccessibilityFixedPzidList;
+            typedef boost::unordered_map<BigSerial, AccessibilityFixedPzid*> AccessibilityFixedPzidMap;
+
+            typedef std::vector<ScreeningCostTime*> ScreeningCostTimeList;
+            typedef boost::unordered_map<BigSerial, ScreeningCostTime*> ScreeningCostTimeMap;
+
             /**
              * Taz statistics
              */
@@ -201,7 +209,6 @@ namespace sim_mob
 
             std::vector<HouseholdGroup> householdGroupVec;
             boost::unordered_map<BigSerial, HouseholdGroup*> vehicleOwnerhipHHGroupByGroupId;
-
 
             HM_Model(WorkGroup& workGroup);
             virtual ~HM_Model();
@@ -280,6 +287,7 @@ namespace sim_mob
             HouseholdGroup* getHouseholdGroupByGroupId(BigSerial id)const;
             void addHouseholdGroupByGroupId(HouseholdGroup* hhGroup);
             void getScreeningProbabilities(std::string hitsId, std::vector<double> &householdScreeningProbabilties );
+            AlternativeList getAlternatives();
             Alternative* getAlternativeById(int zoneHousingType);
             PlanningArea* getPlanningAreaById( int id );
             std::vector<PlanningSubzone*> getPlanningSubZoneByPlanningAreaId(int id);
@@ -372,6 +380,12 @@ namespace sim_mob
 
             HitsIndividualLogsumList hitsIndividualLogsum;
             HitsIndividualLogsumMap  hitsIndividualLogsumById;
+
+            AccessibilityFixedPzidList accessibilityFixedPzid;
+            AccessibilityFixedPzidMap accessibilityFixedPzidById;
+
+            ScreeningCostTimeList screeningCostTime;
+            ScreeningCostTimeMap screeningCostTimeById;
 
             boost::mutex mtx;
             boost::mutex mtx2;

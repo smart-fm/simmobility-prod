@@ -37,6 +37,8 @@
 #include "database/dao/ZonalLanduseVariableValuesDao.hpp"
 #include "database/dao/PopulationPerPlanningAreaDao.hpp"
 #include "database/dao/HitsIndividualLogsumDao.hpp"
+#include "database/dao/AccessibilityFixedPzidDao.hpp"
+#include "database/dao/ScreeningCostTimeDao.hpp"
 #include "agent/impl/HouseholdAgent.hpp"
 #include "event/SystemEvents.hpp"
 #include "core/DataManager.hpp"
@@ -837,6 +839,11 @@ void HM_Model::getScreeningProbabilities(std::string hitsId, vector<double> &hou
 	}
 }
 
+std::vector<Alternative*> HM_Model::getAlternatives()
+{
+	return alternative;
+}
+
 Alternative* HM_Model::getAlternativeById(int id)
 {
 	AlternativeMap::const_iterator itr = alternativeById.find(id);
@@ -1311,6 +1318,11 @@ void HM_Model::startImpl()
 		loadData<HitsIndividualLogsumDao>( conn, hitsIndividualLogsum, hitsIndividualLogsumById, &HitsIndividualLogsum::getId );
 		PrintOutV("Number of Hits Individual Logsum rows: " << hitsIndividualLogsum.size() << std::endl );
 
+		loadData<ScreeningCostTimeDao>( conn, screeningCostTime, screeningCostTimeById, &ScreeningCostTime::getId );
+		PrintOutV("Number of Screening Cost Time rows: " << screeningCostTime.size() << std::endl );
+
+		loadData<AccessibilityFixedPzidDao>( conn, accessibilityFixedPzid, accessibilityFixedPzidById, &AccessibilityFixedPzid::getId );
+		PrintOutV("Number of Accessibility fixed pz id rows: " << accessibilityFixedPzid.size() << std::endl );
 	}
 
 

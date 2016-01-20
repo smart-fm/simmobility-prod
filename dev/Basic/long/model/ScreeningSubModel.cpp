@@ -179,7 +179,7 @@ namespace sim_mob
 
 		 	double probabilitySum = 0;
 
-			for( int n = 1; n <= 215; n++ )
+			for( int n = 1; n <= model->getAlternatives().size(); n++ )
 			{
 				ZonalLanduseVariableValues *zonalLanduseVariableValues = model->getZonalLandUseByAlternativeId(n);
 
@@ -215,6 +215,9 @@ namespace sim_mob
 					else
 						otherHousingHhSizeOne = 1.0;
 				}
+
+				double costTime = 0;
+				double accessbility_fixed_pzid = 0;
 
 				if(household->getWorkers() != 0 )
 				{

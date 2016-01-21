@@ -311,6 +311,8 @@ namespace sim_mob
             std::vector<boost::shared_ptr<Household> > getHouseholds();
             void addVehicleOwnershipChanges(boost::shared_ptr<VehicleOwnershipChanges> &vehicleOwnershipChange);
             std::vector<boost::shared_ptr<VehicleOwnershipChanges> > getVehicleOwnershipChanges();
+            ScreeningCostTimeList getScreeningCostTime();
+            AccessibilityFixedPzidList getAccessibilityFixedPzid();
 
             static const BigSerial FAKE_IDS_START = 9999900;
 

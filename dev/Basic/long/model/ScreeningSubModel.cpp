@@ -31,7 +31,11 @@ namespace sim_mob
 			double odi10_loc		= 0.0928;	//6 zonal average local land use mix (opportunity diversity) index: 1-(|lu1/t-1/9|+|lu2/t-1/9|+|lu3/t-1/9|+|lu4/t-1/9|+|lu5/t-1/9|+|lu6/t-1/9|+|lu7/t-1/9|+|lu8/t-1/9|+|lu9/t-1/9|)/(16/9)	(x10)
 			double dis2mrt			=-0.3063;	//7 zonal average distance to the nearest MRT station	in kilometer
 			double dis2exp			= 0.0062;	//8 zonal average distance to the nearest express way	in kilometer
-			double hh_dgp_w_lgsm1	= 0.8204;	//9 average of workers' logsum of a household (at the DGP level) x dummy if household has at least a worker with fixed workplace (=1, yes; =0, otherwise)	utils
+			//double hh_dgp_w_lgsm1	= 0.8204;	//9 average of workers' logsum of a household (at the DGP level) x dummy if household has at least a worker with fixed workplace (=1, yes; =0, otherwise)	utils
+			double accmanufact_jobs = 0;		// manufacturing jobs
+			double accoffice_jobs	= 0;		// office jobs
+			double pt_tt			= 0;		// public transit total time
+			double pt_cost			= 0;		// public transit total cost
 			double f_age4_n4		= 1.5187;	//10 zonal fraction of population younger than 4 years old x dummy if presence of kids younger than 4 years old in the household (=1, yes; =0, no)	percentage point (x10^-1)
 			double f_age19_n19		= 0.3068;	//11 zonal fraction of population between 5 and 19 years old x dummy if presence of children in the household  (=1, yes; =0, no)	percentage point (x10^-1)
 			double f_age65_n65		= 0.7503;	//12 zonal fraction of population older than 65 years old x dummy if presence of seniors in the household  (=1, yes; =0, no)	percentage point (x10^-1)
@@ -45,13 +49,49 @@ namespace sim_mob
 			double DWL700			= 0.3254;	//20 = 1, if household size is 1, living in landed property
 			double DWL800			= 0.3394; 	//21 = 1, if household size is 1, living in other types of housing units
 
-			//HM_Model *model = getParent()->getModel();
+
 			Household* household = model->getHouseholdById(hhId);
 			const Unit* unit = model->getUnitById( household->getUnitId() );
 			int tazId = model->getUnitTazId( household->getUnitId() );
 			Taz *taz  = model->getTazById(tazId);
 			int mtzId = model->getMtzIdByTazId(tazId);
 			Mtz *mtz  = model->getMtzById(mtzId);
+
+
+			std::vector<BigSerial> individuals = household->getIndividuals();
+			boost::shared_ptr<Individual*> headOfHousehold;
+			for(int n = 0; n < individuals.size(); n++)
+			{
+				Individual *tempIndividual = model->getIndividualById(individuals[n]);
+
+				if( tempIndividual->getHouseholdHead() == true )
+				{
+					headOfHousehold = boost::make_shared<Individual*>(tempIndividual);
+					break;
+				}
+			}
+
+			boost::shared_ptr<PlanningArea*>planningAreaWork;
+			{
+				boost::shared_ptr<Job*> headOfHhJob = boost::make_shared<Job*>( model->getJobById((*headOfHousehold)->getJobId()));
+				boost::shared_ptr<Establishment*> headOfHhEstablishment = boost::make_shared<Establishment*>( model->getEstablishmentById((*headOfHhJob)->getEstablishmentId()));
+				boost::shared_ptr<Postcode*>  slaAddressWork = boost::make_shared<Postcode*>( model->getPostcodeById( (*headOfHhEstablishment)->getSlaAddressId()));
+
+				int tazIdWork = (*slaAddressWork)->getTazId();
+				Taz *tazWork  = model->getTazById(tazIdWork);
+				int mtzIdWork = model->getMtzIdByTazId(tazIdWork);
+				Mtz *mtzWork  = model->getMtzById(mtzIdWork);
+
+				PlanningSubzone *planningSubzoneWork = nullptr;
+
+				if(mtzWork)
+					planningSubzoneWork = model->getPlanningSubzoneById( mtzWork->getPlanningSubzoneId() );
+
+				if(planningSubzoneWork)
+					planningAreaWork = boost::make_shared<PlanningArea*>(model->getPlanningAreaById(planningSubzoneWork->getPlanningAreaId() ));
+			}
+
+
 
 			PlanningSubzone *planningSubzone = nullptr;
 			PlanningArea *planningArea = nullptr;
@@ -191,7 +231,7 @@ namespace sim_mob
 				double oppurtunityDiversityIndex	= zonalLanduseVariableValues->getOdi10Loc();	//6 zonal average local land use mix (opportunity diversity) index: 1-(|lu1/t-1/9|+|lu2/t-1/9|+|lu3/t-1/9|+|lu4/t-1/9|+|lu5/t-1/9|+|lu6/t-1/9|+|lu7/t-1/9|+|lu8/t-1/9|+|lu9/t-1/9|)/(16/9)	(x10)
 				double distanceToMrt				= zonalLanduseVariableValues->getDis2mrt();	//7 zonal average distance to the nearest MRT station	in kilometer
 				double distanceToExp				= zonalLanduseVariableValues->getDis2exp();	//8 zonal average distance to the nearest express way	in kilometer
-				double householdWorkerLogsumAverage	= 0.0;	//9 average of workers' logsum of a household (at the DGP level) x dummy if household has at least a worker with fixed workplace (=1, yes; =0, otherwise)	utils
+				//double householdWorkerLogsumAverage	= 0.0;	//9 average of workers' logsum of a household (at the DGP level) x dummy if household has at least a worker with fixed workplace (=1, yes; =0, otherwise)	utils
 				double fractionYoungerThan4			= ( populationYoungerThan4 / populationTotal ) * bHouseholdMemberYoungerThan4;	//10 zonal fraction of population younger than 4 years old x dummy if presence of kids younger than 4 years old in the household (=1, yes; =0, no)	percentage point (x10^-1)
 				double fractionBetween5And19		= ( population5To19 / populationTotal ) * bHouseholdMember5To19;	//11 zonal fraction of population between 5 and 19 years old x dummy if presence of children in the household  (=1, yes; =0, no)	percentage point (x10^-1)
 				double fractionOlderThan65			= ( populationGreaterThan65 / populationTotal ) * bHouseholdMemberGreaterThan65;	//12 zonal fraction of population older than 65 years old x dummy if presence of seniors in the household  (=1, yes; =0, no)	percentage point (x10^-1)
@@ -204,96 +244,40 @@ namespace sim_mob
 				double privateCondoHhSizeOne		= 0.0;	//19 = 1, if household size is 1, living in private condo/apartment
 				double landedPropertyHhSizeOne		= 0.0;	//20 = 1, if household size is 1, living in landed property
 				double otherHousingHhSizeOne		= 0.0; 	//21 = 1, if household size is 1, living in other types of housing units
+				double publicTransitTime 			= 0.0;
+				double publicTransitCost 			= 0.0;
+				double accessbilityManufacturJobs	= 0.0;
+				double accessibilityOfficeJobs 		= 0.0;
 
 				if( household->getSize() == 1 )
 				{
-					if( unit->getUnitType() >= 12 && unit->getUnitType() <= 16 )
+					if( model->getAlternatives()[n]->getDwellingTypeId() == 600 )
 						privateCondoHhSizeOne = 1.0;
 					else
-					if( unit->getUnitType() >= 17 && unit->getUnitType() <= 31 )
+					if( model->getAlternatives()[n]->getDwellingTypeId() == 700 )
 						landedPropertyHhSizeOne = 1.0;
 					else
 						otherHousingHhSizeOne = 1.0;
 				}
 
-				double costTime = 0;
-				double accessbility_fixed_pzid = 0;
+				BigSerial id = (*planningAreaWork)->getId();
 
-				if(household->getWorkers() != 0 )
+				for(int m = 0; m < model->getScreeningCostTime().size(); m++ )
 				{
-					std::vector<double> workerLogsumAtPlanningAreaLevel;
-					std::vector<BigSerial> individuals = household->getIndividuals();
-					int tazPopulation = 0;
-
-					for(int m = 0; m < individuals.size(); m++)
+					if( model->getScreeningCostTime()[m]->getPlanningAreaOrigin() 	   == model->getAlternatives()[n]->getPlanAreaId() &&
+						model->getScreeningCostTime()[m]->getPlanningAreaDestination() == (*planningAreaWork)->getId() )
 					{
-						Individual *individual = model->getIndividualById(individuals[m]);
-						double logsum = 0;
-
-						if( individual->getEmploymentStatusId() <= 3) //1:fulltime. 2:partime 3:self-employed
-						{
-							tazPopulation = 0;
-							int patSize = planningAreaTazs.size();
-							for( int p = 0; p < patSize; p++)
-							{
-								Taz *thisTaz = model->getTazById(planningAreaTazs[n]);
-
-								if( thisTaz )
-								{
-									const HM_Model::TazStats *tazStats = model->getTazStats(thisTaz->getId());
-
-									if( tazStats )
-									{
-										tazPopulation += tazStats->getIndividuals();
-
-										HouseHoldHitsSample *hitsSample = model->getHouseHoldHitsById( household->getId() );
-										int tazH = atoi(thisTaz->getName().c_str());
-
-										int p = 0;
-										int tazIdW = -1;
-										for(p = 0; p < model->getHitsIndividualLogsumVec().size(); p++ )
-										{
-											if ( model->getHitsIndividualLogsumVec()[p]->getHitsId().compare( hitsSample->getHouseholdHitsId() ) == 0 )
-											{
-												tazIdW = model->getHitsIndividualLogsumVec()[p]->getWorkTaz();
-												break;
-											}
-										}
-
-										Taz *tazObjW = model->getTazById( tazIdW );
-									    std::string tazStrW;
-										if( tazObjW != NULL )
-											tazStrW = tazObjW->getName();
-										BigSerial tazW = std::atoi( tazStrW.c_str() );
-
-										double lg =  0;
-										int vehicleOwnership = 0;
-
-										if( individual->getVehicleCategoryId() > 0 )
-											vehicleOwnership = 1;
-
-										PredayPersonParams personParam = PredayLT_LogsumManager::getInstance().computeLogsum( individuals[m] , tazH, tazW, vehicleOwnership );
-										lg = personParam.getDpbLogsum(); //2.71 use this value as an average for testing purposes
-
-
-										logsum = logsum + lg * (double)(tazStats->getIndividuals());
-									}
-								}
-							}
-
-
-							if( tazPopulation && patSize )
-							{
-								logsum = logsum / tazPopulation / patSize; //TODO: check the avg logsum computation. might not need tazpopulation.
-							}
-
-							workerLogsumAtPlanningAreaLevel.push_back(logsum);
-						}
+						publicTransitCost = model->getScreeningCostTime()[m]->getCost();
+						publicTransitTime = model->getScreeningCostTime()[m]->getTime();
 					}
+				}
 
-					for( int m = 0; m < workerLogsumAtPlanningAreaLevel.size(); m++ )
+				for( int m = 0; m < model->getAccessibilityFixedPzid().size(); m++)
+				{
+					if( model->getAlternatives()[n]->getPlanAreaId() == model->getAccessibilityFixedPzid()[m]->getPlanningAreaId() )
 					{
-						householdWorkerLogsumAverage = householdWorkerLogsumAverage + ( workerLogsumAtPlanningAreaLevel[m] / workerLogsumAtPlanningAreaLevel.size() );
+						accessbilityManufacturJobs	= model->getAccessibilityFixedPzid()[m]->getAccTMfg();
+						accessibilityOfficeJobs 	= model->getAccessibilityFixedPzid()[m]->getAccTOff();
 					}
 				}
 
@@ -304,9 +288,6 @@ namespace sim_mob
 
 				logZonalMedianHousingPrice = log(expectations[0].hedonicPrice);
 
-
-
-
 				double probability =( logPopulationByHousingType* ln_popdwl 		) +
 									( populationDensity			* den_respop_ha 	) +
 									( commercialLandFraction	* f_loc_com 		) +
@@ -315,7 +296,11 @@ namespace sim_mob
 									( oppurtunityDiversityIndex	* odi10_loc		 	) +
 									( distanceToMrt				* dis2mrt		 	) +
 									( distanceToExp				* dis2exp		 	) +
-									( householdWorkerLogsumAverage* hh_dgp_w_lgsm1 	) +
+									//( householdWorkerLogsumAverage* hh_dgp_w_lgsm1 	) +
+									( accessbilityManufacturJobs* accmanufact_jobs 	) +
+									( accessibilityOfficeJobs	* accoffice_jobs	) +
+									( publicTransitTime			* pt_tt 			) +
+									( publicTransitCost 		* pt_cost			) +
 									( fractionYoungerThan4		* f_age4_n4		 	) +
 									( fractionBetween5And19		* f_age19_n19	 	) +
 									( fractionOlderThan65		* f_age65_n65	 	) +

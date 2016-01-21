@@ -2104,6 +2104,16 @@ std::vector<boost::shared_ptr<VehicleOwnershipChanges> > HM_Model::getVehicleOwn
 	return vehicleOwnershipChangesVector;
 }
 
+std::vector<ScreeningCostTime*>  HM_Model::getScreeningCostTime()
+{
+	return  screeningCostTime;
+}
+
+std::vector<AccessibilityFixedPzid*> HM_Model::getAccessibilityFixedPzid()
+{
+	return accessibilityFixedPzid;
+}
+
 void HM_Model::stopImpl()
 {
 	deleteAll(stats);

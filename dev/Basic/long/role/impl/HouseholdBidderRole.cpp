@@ -23,6 +23,7 @@
 #include "message/MessageBus.hpp"
 #include "model/lua/LuaProvider.hpp"
 #include "model/HM_Model.hpp"
+#include "model/ScreeningSubModel.hpp"
 #include "database/entity/VehicleOwnershipChanges.hpp"
 #include "core/AgentsLookup.hpp"
 #include "core/DataManager.hpp"
@@ -206,24 +207,14 @@ void HouseholdBidderRole::setActive(bool activeArg)
 void HouseholdBidderRole::computeHouseholdAffordability()
 {
 	double householdAffordabilityAmount = 0;
-	//This is the inflation-adjusted income of individuals thourough the years starting from age 20 (first elemet) based on the 2012 HITS survey.
+	//This is the inflation-adjusted income of individuals through the years starting from age 20 (first element) based on the 2012 HITS survey.
 	//This model was done by Jingsi Shaw [xujs@mit.edu]
 	int incomeProjection[] = { 	13, 15, 16, 18, 21, 23, 26, 28, 31, 34, 37, 41, 44, 48, 51, 55, 59, 63, 66, 70, 74, 77, 81, 84, 87, 90, 92, 94, 96, 98, 99,
 								100, 100, 100, 100, 99, 98, 96, 95, 92, 90, 87, 84, 81, 78, 74, 71, 67, 63, 59, 56, 52, 48, 45, 41, 38, 35, 32, 29, 26, 23 };
 
 	Household *bidderHousehold = const_cast<Household*>(getParent()->getHousehold()); 
-	//Household *bidderHousehold = getParent()->getModel()->getHouseholdById(30);
 
 	std::vector<BigSerial> individuals = bidderHousehold->getIndividuals();
-
-	/*
-	 * For testing purposes
-	 *
-	individuals.push_back(117);
-	individuals.push_back(118);
-	individuals.push_back(119);
-	individuals.push_back(120);
-	 */
 
 	int householdSize = individuals.size();
 
@@ -967,10 +958,10 @@ bool HouseholdBidderRole::pickEntryToBid()
     //getScreeningProbabilities(household->getId(), householdScreeningProbabilities);
     //printProbabilityList(household->getId(), householdScreeningProbabilities);
 
+    ScreeningSubModel screeningSubmodel;
+    screeningSubmodel.getScreeningProbabilities( household->getId(), householdScreeningProbabilities, model, day);
 
     std::vector<const HousingMarket::Entry*> screenedEntries;
-
-    srand( time(NULL) );
 
     for(int n = 0; n < entries.size() /** housingMarketSearchPercentage*/ && screenedEntries.size() < config.ltParams.housingModel.bidderUnitsChoiceSet; n++)
     {

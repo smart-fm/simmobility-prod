@@ -249,21 +249,6 @@ void sim_mob::ParsePathXmlConfig::processPrivatePathsetNode(xercesc::DOMElement*
 	}
 	else { cfg.reroute = ParseBoolean(GetNamedAttributeValue(reroute, "enabled"), false); }
 
-	//subtrip output for preday
-	xercesc::DOMElement* predayOP = GetSingleElementByName(pvtConfNode, "subtrip_travel_metrics_output");
-	if (predayOP) {
-		const XMLCh* enabledSwitch = GetNamedAttributeValue(predayOP, "enabled");
-		if (!enabledSwitch) {
-			throw std::runtime_error("mandatory subtrip_travel_metrics_output \"enabled\" switch is missing");
-		}
-		if (ParseBoolean(enabledSwitch)) {
-			cfg.subTripOP = ParseString(GetNamedAttributeValue(predayOP, "file"), "");
-			if (!cfg.subTripOP.size()) {
-				throw std::runtime_error("mandatory subtrip_travel_metrics_output filename is missing");
-			}
-		}
-	}
-
 	///	path generators configuration
 	xercesc::DOMElement* gen = GetSingleElementByName(pvtConfNode, "path_generators");
 	if (gen) {

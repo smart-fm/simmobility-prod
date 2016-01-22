@@ -195,6 +195,7 @@ void ParseShortTermConfigFile::processXmlFile(XercesDOMParser& parser)
 	processLoopDetectorCountNode(GetSingleElementByName(rootNode, "loop-detector_counts"));
 	processPathSetFileName(GetSingleElementByName(rootNode, "path-set-config-file"));
 	processTT_Update(GetSingleElementByName(rootNode, "travel_time_update", true));
+	processSubtripTravelMetricsOutputNode(GetSingleElementByName(rootNode, "subtrip_travel_metrics_output"));
 	processSegmentDensityNode(GetSingleElementByName(rootNode, "short-term_density-map"));
 	
 	//Take care of path-set manager configuration in here
@@ -698,6 +699,20 @@ void ParseShortTermConfigFile::processTT_Update(xercesc::DOMElement* node)
 	{
 		cfg.getPathSetConf().interval = ParseInteger(GetNamedAttributeValue(node, "interval"), 300);
 		cfg.getPathSetConf().alpha = ParseFloat(GetNamedAttributeValue(node, "alpha"), 0.5);
+	}
+}
+
+void ParseShortTermConfigFile::processSubtripTravelMetricsOutputNode(xercesc::DOMElement* node)
+{
+	//subtrip output for preday
+	if (node)
+	{
+		bool enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"));
+		if (enabled)
+		{
+			cfg.subTripTravelTimeEnabled = true;
+			cfg.subTripLevelTravelTimeOutput = ParseString(GetNamedAttributeValue(node, "file"), "subtrip_travel_times.csv");
+		}
 	}
 }
 

@@ -426,7 +426,7 @@ sim_mob::OneTimeFlag titleSubPredayTT;
 void sim_mob::Person::serializeSubTripChainItemTravelTimeMetrics(const TravelMetric& subtripMetrics, std::vector<TripChainItem*>::iterator currTripChainItem, 
 																 std::vector<SubTrip>::iterator currSubTrip) const
 {
-	sim_mob::BasicLogger& csv = sim_mob::Logger::log(ConfigManager::GetInstance().FullConfig().getPathSetConf().subTripOP);
+	sim_mob::BasicLogger& csv = sim_mob::Logger::log(ConfigManager::GetInstance().FullConfig().subTripLevelTravelTimeOutput);
 	if (!(subtripMetrics.finalized && subtripMetrics.started))
 	{
 		return;

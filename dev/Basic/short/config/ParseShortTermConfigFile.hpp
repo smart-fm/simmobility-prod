@@ -243,6 +243,13 @@ private:
      */
     void processTT_Update(xercesc::DOMElement* node);
 
+    /**
+     * processes the subtrip_travel_metrics_output element in config xml
+     *
+     * @param node node corresponding to generateBusRoutes element inside xml file
+     */
+    void processSubtripTravelMetricsOutputNode(xercesc::DOMElement* node);
+
     /// Short Term config reference
     ST_Config& stCfg;
 	

@@ -6,7 +6,8 @@
 
 using namespace sim_mob;
 
-sim_mob::RawConfigParams::RawConfigParams() : mergeLogFiles(false), generateBusRoutes(false), simMobRunMode(RawConfigParams::UNKNOWN_RUN_MODE)
+sim_mob::RawConfigParams::RawConfigParams() : mergeLogFiles(false), generateBusRoutes(false), simMobRunMode(RawConfigParams::UNKNOWN_RUN_MODE),
+		subTripLevelTravelTimeOutput(std::string()), subTripTravelTimeEnabled(false)
 {}
 
 sim_mob::SimulationParams::SimulationParams() :

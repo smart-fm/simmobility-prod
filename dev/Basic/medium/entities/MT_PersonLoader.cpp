@@ -322,6 +322,7 @@ Activity* MT_PersonLoader::makeActivity(const soci::row& r, unsigned int seqNo)
 	res->isMandatory = true;
 	res->destination = WayPoint(rn->getById(rn->getMapOfIdvsNodes(), r.get<int>(5)));
 	res->destinationType = TripChainItem::LT_NODE;
+	res->destinationZoneCode = r.get<int>(13);
 	setActivityStartEnd(res, r.get<double>(8), r.get<double>(9));
 	return res;
 }
@@ -336,8 +337,10 @@ Trip* MT_PersonLoader::makeTrip(const soci::row& r, unsigned int seqNo)
 	tripToSave->itemType = TripChainItem::IT_TRIP;
 	tripToSave->origin = WayPoint(rn->getById(rn->getMapOfIdvsNodes(), r.get<int>(10)));
 	tripToSave->originType = TripChainItem::LT_NODE;
+	tripToSave->originZoneCode = r.get<int>(12);
 	tripToSave->destination = WayPoint(rn->getById(rn->getMapOfIdvsNodes(), r.get<int>(5)));
 	tripToSave->destinationType = TripChainItem::LT_NODE;
+	tripToSave->destinationZoneCode = r.get<int>(13);
 	tripToSave->startTime = DailyTime(getRandomTimeInWindow(r.get<double>(11), false));
 	tripToSave->travelMode = r.get<string>(6);
 	//just a sanity check

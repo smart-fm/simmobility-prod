@@ -144,6 +144,8 @@ public:
 	WayPoint destination;
 	LocationType originType;
 	LocationType destinationType;
+	int originZoneCode;
+	int destinationZoneCode;
 	std::string travelMode;
 	std::string startLocationId;
 	std::string endLocationId;

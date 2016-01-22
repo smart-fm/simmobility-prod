@@ -435,14 +435,6 @@ bool Person_ST::advanceCurrentTripChainItem()
 		}
 	}
 
-	//Trip is about the change, collect the Metrics	
-	//if ((*currTripChainItem)->itemType == TripChainItem::IT_TRIP)
-	//{
-	//	aggregateSubTripMetrics();
-	//}
-	//
-	//serializeTripChainItem(currTripChainItem); 
-
 	//do the increment
 	++currTripChainItem;
 

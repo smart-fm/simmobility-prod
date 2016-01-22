@@ -1263,6 +1263,12 @@ LaneChangeTo MITSIM_LC_Model::makeLaneChangingDecision(DriverUpdateParams &param
 	static const std::string makeLCD("makeLaneChangingDecision");
 	params.lcDebugStr << "makeD" << params.now.frame();
 	
+	if(params.perceivedFwdVelocity < minSpeed)
+	{
+		params.lcDebugStr << ";samesm";
+		return LANE_CHANGE_TO_NONE;
+	}
+	
 	//Reset status
 	params.setStatus(STATUS_LEFT_SIDE_OK, STATUS_UNKNOWN, makeLCD);
 	params.setStatus(STATUS_RIGHT_SIDE_OK, STATUS_UNKNOWN, makeLCD);

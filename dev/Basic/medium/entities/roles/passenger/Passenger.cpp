@@ -22,8 +22,7 @@ sim_mob::medium::Passenger::Passenger(Person_MT *parent,
 									  sim_mob::medium::PassengerBehavior* behavior,
 									  sim_mob::medium::PassengerMovement* movement,
 									  std::string roleName, Role<Person_MT>::Type roleType) :
-				Role<Person_MT>(parent, behavior, movement, roleName, roleType), driver(nullptr), alightBus(false),
-				startNode(nullptr), endNode(nullptr)
+				Role<Person_MT>(parent, behavior, movement, roleName, roleType), driver(nullptr), alightBus(false)
 {
 }
 

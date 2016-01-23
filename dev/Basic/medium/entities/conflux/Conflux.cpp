@@ -1488,11 +1488,15 @@ void Conflux::assignPersonToMRT(Person_MT* person)
 	Role<Person_MT>* role = person->getRole();
 	if (role && role->roleType == Role<Person_MT>::RL_TRAINPASSENGER)
 	{
+		sim_mob::medium::Passenger* passengerRole = dynamic_cast<sim_mob::medium::Passenger*>(person->getRole());
 		person->currWorkerProvider = currWorkerProvider;
 		messaging::MessageBus::ReRegisterHandler(person, GetContext());
 		mrt.push_back(person);
 		uint32_t travelTime = person->currSubTrip->endTime.getValue(); //endTime was hacked to set the travel time for train passengers
-		person->getRole()->setTravelTime(travelTime);
+		passengerRole->setTravelTime(travelTime);
+		passengerRole->setStartPoint(person->currSubTrip->origin);
+		passengerRole->setEndPoint(person->currSubTrip->destination);
+		passengerRole->Movement()->startTravelTimeMetric();
 		unsigned int tick = ConfigManager::GetInstance().FullConfig().baseGranMS();
 		messaging::MessageBus::PostMessage(this, MSG_WAKEUP_MRT_PAX, messaging::MessageBus::MessagePtr(new PersonMessage(person)), false, travelTime / tick);
 	}

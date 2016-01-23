@@ -477,15 +477,63 @@ void sim_mob::Person::serializeSubTripChainItemTravelTimeMetrics(const TravelMet
 				subtripMetrics.distance; //	non_cbd_distance
 	}
 
-	int origiNode = 0, destNode = 0, cbdStartNode = 0, cbdEndNode = 0;
-	if (subtripMetrics.origin.type == WayPoint::NODE)
+	std::string origin, destination;
+	switch (subtripMetrics.origin.type)
 	{
-		origiNode = subtripMetrics.origin.node->getNodeId();
-	}
-	if (subtripMetrics.destination.type == WayPoint::NODE)
+	case WayPoint::NODE:
 	{
-		destNode = subtripMetrics.destination.node->getNodeId();
+		origin = std::to_string(subtripMetrics.origin.node->getNodeId());
+		break;
 	}
+	case WayPoint::BUS_STOP:
+	{
+		origin = subtripMetrics.origin.busStop->getStopCode();
+		break;
+	}
+	case WayPoint::TRAIN_STOP:
+	{
+		const char* const delimiter = "/";
+		std::ostringstream trainStopIdStrm;
+		const std::vector<std::string>& trainStopIdVect = subtripMetrics.origin.trainStop->getTrainStopIds();
+		std::copy(trainStopIdVect.begin(), trainStopIdVect.end(), std::ostream_iterator<std::string>(trainStopIdStrm, delimiter));
+		origin = trainStopIdStrm.str();
+		break;
+	}
+	default:
+	{
+		origin = std::to_string(subtripMetrics.origin.type);
+		break;
+	}
+	}
+
+	switch (subtripMetrics.destination.type)
+	{
+	case WayPoint::NODE:
+	{
+		origin = std::to_string(subtripMetrics.destination.node->getNodeId());
+		break;
+	}
+	case WayPoint::BUS_STOP:
+	{
+		origin = subtripMetrics.destination.busStop->getStopCode();
+		break;
+	}
+	case WayPoint::TRAIN_STOP:
+	{
+		const char* const delimiter = "/";
+		std::ostringstream trainStopIdStrm;
+		const std::vector<std::string>& trainStopIdVect = subtripMetrics.destination.trainStop->getTrainStopIds();
+		std::copy(trainStopIdVect.begin(), trainStopIdVect.end(), std::ostream_iterator<std::string>(trainStopIdStrm, delimiter));
+		origin = trainStopIdStrm.str();
+		break;
+	}
+	default:
+	{
+		origin = std::to_string(subtripMetrics.destination.type);
+		break;
+	}
+	}
+
 	std::stringstream res("");
 	// actual writing
 	//note: Even though we output the travel time only for the subtrip, preday expects the PT in-vehicle time for the original Trip.
@@ -495,9 +543,9 @@ void sim_mob::Person::serializeSubTripChainItemTravelTimeMetrics(const TravelMet
 			this->getId() << "," << //	person_id
 			(static_cast<Trip*> (*currTripChainItem))->tripID << "," << //	trip_id
 			st.tripID << "," << //	subtrip_id
-			origiNode << "," << //	origin
+			origin << "," << //	origin
 			(*currTripChainItem)->originZoneCode << "," <<
-			destNode << "," << //	destination
+			destination << "," << //	destination
 			(*currTripChainItem)->destinationZoneCode << "," <<
 			st.travelMode << "," << //	mode
 			subtripMetrics.startTime.getStrRepr() << "," << //	start_time
@@ -509,7 +557,7 @@ void sim_mob::Person::serializeSubTripChainItemTravelTimeMetrics(const TravelMet
 			restrictedRegion.str() << "\n"; /* MIXED CBD Information */
 
 	csv << res.str();
-
+	int cbdStartNode = 0, cbdEndNode = 0;
 	if (subtripMetrics.cbdOrigin.type == WayPoint::NODE)
 	{
 		cbdStartNode = subtripMetrics.cbdOrigin.node->getNodeId();
@@ -523,7 +571,7 @@ void sim_mob::Person::serializeSubTripChainItemTravelTimeMetrics(const TravelMet
 		return;
 	}
 	std::stringstream ret("");
-	ret << this->getId() << "," << origiNode << "," << destNode << ","
+	ret << this->getId() << "," << origin << "," << destination << ","
 			<< cbdStartNode << "," << cbdEndNode << ","
 			<< subtripMetrics.cbdStartTime.getStrRepr() << ","
 			<< subtripMetrics.cbdEndTime.getStrRepr() << ","

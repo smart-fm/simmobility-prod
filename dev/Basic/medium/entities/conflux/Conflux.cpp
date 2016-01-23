@@ -1491,7 +1491,7 @@ void Conflux::assignPersonToMRT(Person_MT* person)
 		person->currWorkerProvider = currWorkerProvider;
 		messaging::MessageBus::ReRegisterHandler(person, GetContext());
 		mrt.push_back(person);
-		uint32_t travelTime = (person->currSubTrip->endTime.getValue() - person->currSubTrip->startTime.getValue());
+		uint32_t travelTime = person->currSubTrip->endTime.getValue(); //endTime was hacked to set the travel time for train passengers
 		person->getRole()->setTravelTime(travelTime);
 		unsigned int tick = ConfigManager::GetInstance().FullConfig().baseGranMS();
 		messaging::MessageBus::PostMessage(this, MSG_WAKEUP_MRT_PAX, messaging::MessageBus::MessagePtr(new PersonMessage(person)), false, travelTime / tick);

@@ -242,27 +242,33 @@ bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::S
 				subTrip.startTime = curSubTrip->endTime;
 				subTrip.endTime = DailyTime((*it).travelTime * 1000.0);
 				subTrip.origin = source;
+				subTrip.destination = dest;
 				subTrip.startLocationId = sSrc;
 				subTrip.startLocationType = srcType;
 				subTrip.endLocationId = sEnd;
 				subTrip.endLocationType = endType;
-				if (source.type == WayPoint::BUS_STOP || source.type == WayPoint::TRAIN_STOP)
+				switch(source.type)
 				{
+				case WayPoint::BUS_STOP:
+				case WayPoint::TRAIN_STOP:
 					subTrip.originType = TripChainItem::LT_PUBLIC_TRANSIT_STOP;
-				}
-				else
-				{
+					break;
+				default:
 					subTrip.originType = TripChainItem::LT_NODE;
+					break;
 				}
-				subTrip.destination = dest;
-				if (dest.type == WayPoint::BUS_STOP || dest.type == WayPoint::TRAIN_STOP)
+
+				switch(dest.type)
 				{
+				case WayPoint::BUS_STOP:
+				case WayPoint::TRAIN_STOP:
 					subTrip.destinationType = TripChainItem::LT_PUBLIC_TRANSIT_STOP;
-				}
-				else
-				{
+					break;
+				default:
 					subTrip.destinationType = TripChainItem::LT_NODE;
+					break;
 				}
+
 				subTrip.tripID = "";
 				if ((*it).tType.find("Walk") != std::string::npos)
 				{
@@ -510,12 +516,12 @@ void sim_mob::Person::serializeSubTripChainItemTravelTimeMetrics(const TravelMet
 	{
 	case WayPoint::NODE:
 	{
-		origin = std::to_string(subtripMetrics.destination.node->getNodeId());
+		destination = std::to_string(subtripMetrics.destination.node->getNodeId());
 		break;
 	}
 	case WayPoint::BUS_STOP:
 	{
-		origin = subtripMetrics.destination.busStop->getStopCode();
+		destination = subtripMetrics.destination.busStop->getStopCode();
 		break;
 	}
 	case WayPoint::TRAIN_STOP:
@@ -524,12 +530,12 @@ void sim_mob::Person::serializeSubTripChainItemTravelTimeMetrics(const TravelMet
 		std::ostringstream trainStopIdStrm;
 		const std::vector<std::string>& trainStopIdVect = subtripMetrics.destination.trainStop->getTrainStopIds();
 		std::copy(trainStopIdVect.begin(), trainStopIdVect.end(), std::ostream_iterator<std::string>(trainStopIdStrm, delimiter));
-		origin = trainStopIdStrm.str();
+		destination = trainStopIdStrm.str();
 		break;
 	}
 	default:
 	{
-		origin = std::to_string(subtripMetrics.destination.type);
+		destination = std::to_string(subtripMetrics.destination.type);
 		break;
 	}
 	}

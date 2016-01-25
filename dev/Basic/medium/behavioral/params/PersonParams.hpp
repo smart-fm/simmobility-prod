@@ -496,6 +496,11 @@ public:
 		return postCodeToNodeMapping;
 	}
 
+	static std::map<int, std::vector<long> >& getZoneAddresses()
+	{
+		return zoneAddresses;
+	}
+
 	/**
 	 * makes all time windows to available
 	 */
@@ -527,24 +532,6 @@ public:
 	void print();
 
 	/**
-	 * looks up TAZ code for a given address ID from LT population data
-	 *
-	 * @param addressId input address id
-	 *
-	 * @return TAZ code for addressId
-	 */
-	int getTAZCodeForAddressId(long addressId);
-
-	/**
-	 * looks up postcode for a given address ID from LT population data
-	 *
-	 * @param addressId input address id
-	 *
-	 * @return postcode for addressId
-	 */
-	unsigned int getSimMobNodeForAddressId(long addressId);
-
-	/**
 	 * sets income ID by looking up income on a pre loaded map of income ranges.
 	 * handles incomeId value mismatch between preday and long-term formats. See implementation for details.
 	 *
@@ -563,6 +550,31 @@ public:
 	 * infers params used in preday system of models from params obtained from LT population
 	 */
 	void fixUpParamsForLtPerson();
+
+	/**
+	 * looks up TAZ code for a given address ID from LT population data
+	 *
+	 * @param addressId input address id
+	 *
+	 * @return TAZ code for addressId
+	 */
+	int getTAZCodeForAddressId(long addressId) const;
+
+	/**
+	 * looks up postcode for a given address ID from LT population data
+	 *
+	 * @param addressId input address id
+	 *
+	 * @return postcode for addressId
+	 */
+	unsigned int getSimMobNodeForAddressId(long addressId) const;
+
+	/**
+	 * returns the list of address ids in a zone
+	 * @param zoneCode input zone code
+	 * @return list of address ids in a zone
+	 */
+	const std::vector<long>& getAddressIdsInZone(int zoneCode) const;
 
 private:
 	std::string personId;
@@ -640,6 +652,52 @@ private:
 	 * postcode to simmobility node mapping
 	 */
 	static std::map<unsigned int, unsigned int> postCodeToNodeMapping;
+
+	/**
+	 * zone to number of addresses in zone map
+	 */
+	static std::map<int, std::vector<long> > zoneAddresses;
+};
+
+class ZoneAddressParams
+{
+public:
+	ZoneAddressParams(const std::map<long, sim_mob::medium::Address>& addressLkp, const std::vector<long>& znAddresses);
+	virtual ~ZoneAddressParams();
+
+	/**
+	 * gets number of addresses in a zone
+	 */
+	int getNumAddresses() const;
+
+	/**
+	 * gets distance to mrt for given address
+	 */
+	double getDistanceMRT(int addressIdx) const;
+
+	/**
+	 * gets distance to bus stop for given address
+	 */
+	double getDistanceBus(int addressIdx) const;
+
+	/**
+	 * fetches address for an index
+	 */
+	long getAddressId(int addressIdx) const;
+
+private:
+	/**
+	 * address to taz map
+	 */
+	const std::map<long, sim_mob::medium::Address>& addressLookup;
+
+	/**
+	 * zone to number of addresses in zone map
+	 */
+	const std::vector<long>& zoneAddresses;
+
+	/** number of addresses in zone*/
+	int numAddresses;
 };
 
 /**
@@ -864,6 +922,5 @@ private:
 	int cbdOrgZone;
 	int cbdDestZone;
 };
-
 } //end namespace medium
 } // end namespace sim_mob

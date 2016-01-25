@@ -84,11 +84,12 @@ void sim_mob::medium::PopulationSqlDao::getAllIds(std::vector<long>& outList)
 	}
 }
 
-void sim_mob::medium::PopulationSqlDao::getAddresses(std::map<long, sim_mob::medium::Address>& addressMap)
+void sim_mob::medium::PopulationSqlDao::getAddresses(std::map<long, sim_mob::medium::Address>& addressMap, std::map<int, std::vector<long> >& zoneAddressesMap)
 {
 	if (isConnected())
 	{
 		addressMap.clear();
+		zoneAddressesMap.clear();
 		Statement query(connection.getSession<soci::session>());
 		prepareStatement(DB_GET_ADDRESSES, db::EMPTY_PARAMS, query);
 		ResultSet rs(query);
@@ -101,6 +102,8 @@ void sim_mob::medium::PopulationSqlDao::getAddresses(std::map<long, sim_mob::med
 			address.setTazCode((*it).get<int>(DB_FIELD_TAZ_CODE));
 			address.setDistanceMrt((*it).get<double>(DB_FIELD_DISTANCE_MRT));
 			address.setDistanceBus((*it).get<double>(DB_FIELD_DISTANCE_BUS));
+
+			zoneAddressesMap[address.getTazCode()].push_back(addressId);
 		}
 	}
 }

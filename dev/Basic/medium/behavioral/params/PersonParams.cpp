@@ -15,12 +15,14 @@ using namespace medium;
 namespace
 {
 const int NUM_VALID_INCOME_CATEGORIES = 12;
+const std::vector<long> EMPTY_VECTOR_OF_LONGS = std::vector<long>();
 }
 
 double sim_mob::medium::PersonParams::incomeCategoryLowerLimits[] = {};
 std::map<int, std::bitset<4> > sim_mob::medium::PersonParams::vehicleCategoryLookup = std::map<int, std::bitset<4> >();
 std::map<long, sim_mob::medium::Address> sim_mob::medium::PersonParams::addressLookup = std::map<long, sim_mob::medium::Address>();
 std::map<unsigned int, unsigned int> sim_mob::medium::PersonParams::postCodeToNodeMapping = std::map<unsigned int, unsigned int>();
+std::map<int, std::vector<long> > sim_mob::medium::PersonParams::zoneAddresses = std::map<int, std::vector<long> >();
 
 sim_mob::medium::PersonParams::PersonParams() :
 		personId(""), hhId(""), personTypeId(-1), ageId(-1), isUniversityStudent(-1), studentTypeId(-1), isFemale(-1), incomeId(-1), worksAtHome(-1),
@@ -210,7 +212,7 @@ void sim_mob::medium::PersonParams::fixUpParamsForLtPerson()
 	setHH_HasUnder15(hhNumUnder15 > 0);
 }
 
-int sim_mob::medium::PersonParams::getTAZCodeForAddressId(long addressId)
+int sim_mob::medium::PersonParams::getTAZCodeForAddressId(long addressId) const
 {
 	std::map<long, sim_mob::medium::Address>::const_iterator addressIdIt = addressLookup.find(addressId);
 	if (addressIdIt == addressLookup.end())
@@ -220,7 +222,7 @@ int sim_mob::medium::PersonParams::getTAZCodeForAddressId(long addressId)
 	return addressIdIt->second.getTazCode();
 }
 
-unsigned int sim_mob::medium::PersonParams::getSimMobNodeForAddressId(long addressId)
+unsigned int sim_mob::medium::PersonParams::getSimMobNodeForAddressId(long addressId) const
 {
 	std::map<long, sim_mob::medium::Address>::const_iterator addressIdIt = addressLookup.find(addressId);
 	if (addressIdIt == addressLookup.end())
@@ -234,4 +236,67 @@ unsigned int sim_mob::medium::PersonParams::getSimMobNodeForAddressId(long addre
 		throw std::runtime_error("invalid postcode " + std::to_string(postcode));
 	}
 	return postcodeIt->second;
+}
+
+int sim_mob::medium::ZoneAddressParams::getNumAddresses() const
+{
+	return numAddresses;
+}
+
+double sim_mob::medium::ZoneAddressParams::getDistanceMRT(int addressIdx) const
+{
+	if(addressIdx > numAddresses || addressIdx <= 0)
+	{
+		throw std::runtime_error("Invalid address index passed to getDistanceMRT()");
+	}
+	long addressId = zoneAddresses[addressIdx-1];
+	std::map<long, sim_mob::medium::Address>::const_iterator addressIt = addressLookup.find(addressId);
+	if (addressIt == addressLookup.end())
+	{
+		throw std::runtime_error("invalid address id " + std::to_string(addressId));
+	}
+	return addressIt->second.getDistanceMrt();
+}
+
+double sim_mob::medium::ZoneAddressParams::getDistanceBus(int addressIdx) const
+{
+	if(addressIdx > numAddresses || addressIdx <= 0)
+	{
+		throw std::runtime_error("Invalid address index passed to getDistanceBus()");
+	}
+	long addressId = zoneAddresses[addressIdx-1];
+	std::map<long, sim_mob::medium::Address>::const_iterator addressIt = addressLookup.find(addressId);
+	if (addressIt == addressLookup.end())
+	{
+		throw std::runtime_error("invalid address id " + std::to_string(addressId));
+	}
+	return addressIt->second.getDistanceBus();
+}
+
+sim_mob::medium::ZoneAddressParams::ZoneAddressParams(const std::map<long, sim_mob::medium::Address>& addressLkp, const std::vector<long>& znAddresses)
+	: addressLookup(addressLkp), zoneAddresses(znAddresses), numAddresses(znAddresses.size())
+{
+}
+
+sim_mob::medium::ZoneAddressParams::~ZoneAddressParams()
+{
+}
+
+long sim_mob::medium::ZoneAddressParams::getAddressId(int addressIdx) const
+{
+	if(addressIdx > numAddresses || addressIdx <= 0)
+	{
+		throw std::runtime_error("Invalid address index passed to getAddress()");
+	}
+	return zoneAddresses[addressIdx-1];
+}
+
+const std::vector<long>& sim_mob::medium::PersonParams::getAddressIdsInZone(int zoneCode) const
+{
+	std::map<int, std::vector<long> >::const_iterator znAddressIt = zoneAddresses.find(zoneCode);
+	if(znAddressIt == zoneAddresses.end())
+	{
+		return EMPTY_VECTOR_OF_LONGS;
+	}
+	return znAddressIt->second;
 }

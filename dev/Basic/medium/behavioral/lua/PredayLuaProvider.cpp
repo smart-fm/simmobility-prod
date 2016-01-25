@@ -54,6 +54,7 @@ void ensureContext()
 			modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("isg"));
 			modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("imd"));
 			modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("itd"));
+			modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("zpa"));
 			modelCtx->predayModel.initialize();
 			threadContext.reset(modelCtx);
 		} catch (const std::out_of_range& oorx)

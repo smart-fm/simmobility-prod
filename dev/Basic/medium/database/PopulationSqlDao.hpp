@@ -54,9 +54,10 @@ public:
 
 	/**
 	 * fetches taz code for each address id in LT database
-	 * @param outMap output parameter for storing address_id -> TAZ code map
+	 * @param addressMap output parameter for storing address_id -> TAZ code map
+	 * @param zoneAddressesMap output parameter for storing list of addresses in each TAZ
 	 */
-	void getAddresses(std::map<long, sim_mob::medium::Address>& outMap);
+	void getAddresses(std::map<long, sim_mob::medium::Address>& addressMap, std::map<int, std::vector<long> >& zoneAddressesMap);
 
 	/**
 	 * fetches taz code for each address id in LT database

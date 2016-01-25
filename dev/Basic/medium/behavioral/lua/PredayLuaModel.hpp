@@ -173,6 +173,13 @@ public:
 	 */
 	int predictSubTourTimeOfDay(PersonParams& personParams, SubTourParams& subTourParams) const;
 
+	/**
+	 * predicts an address within the zone
+	 *
+	 * @param znAddressParams parameters pertinent to the zone under consideration
+	 */
+	int predictAddress(ZoneAddressParams& znAddressParams) const;
+
 private:
 	/**
 	 * Inherited from LuaModel

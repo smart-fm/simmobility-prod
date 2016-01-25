@@ -204,7 +204,8 @@
             <script name="sttd" file="sttd.lua"/> <!--Work Based Sub-Tours Time Of Day-->
             <script name="isg" file="isg.lua"/> <!--Intermediate Stop Generation -->
             <script name="imd" file="imd.lua"/> <!--Intermediate Stop Mode/Destination -->
-            <script name="itd" file="itd.lua"/> <!--Intermediate Stop Time Of Day -->                       
+            <script name="itd" file="itd.lua"/> <!--Intermediate Stop Time Of Day -->                      
+            <script name="zpa" file="zpa.lua"/> <!--Zone postcode assignment --> 
         </model_scripts>
             
         <!-- Names of MongoDB database and collections -->

@@ -36,6 +36,8 @@
 #include "database/entity/HitsIndividualLogsum.hpp"
 #include "database/entity/UnitSale.hpp"
 #include "database/entity/VehicleOwnershipChanges.hpp"
+#include "database/entity/IndvidualVehicleOwnershipLogsum.hpp"
+
 #include "core/HousingMarket.hpp"
 #include "boost/unordered_map.hpp"
 #include "DeveloperModel.hpp"
@@ -124,6 +126,9 @@ namespace sim_mob
 
             typedef std::vector<HitsIndividualLogsum*> HitsIndividualLogsumList;
             typedef boost::unordered_map<BigSerial, HitsIndividualLogsum*> HitsIndividualLogsumMap;
+
+            typedef std::vector<IndvidualVehicleOwnershipLogsum*> IndvidualVehicleOwnershipLogsumList;
+            typedef boost::unordered_map<BigSerial, IndvidualVehicleOwnershipLogsum*> IndvidualVehicleOwnershipLogsumMap;
 
             /**
              * Taz statistics
@@ -303,6 +308,8 @@ namespace sim_mob
             std::vector<boost::shared_ptr<Household> > getHouseholds();
             void addVehicleOwnershipChanges(boost::shared_ptr<VehicleOwnershipChanges> &vehicleOwnershipChange);
             std::vector<boost::shared_ptr<VehicleOwnershipChanges> > getVehicleOwnershipChanges();
+           IndvidualVehicleOwnershipLogsumList getIndvidualVehicleOwnershipLogsums() const;
+           IndvidualVehicleOwnershipLogsum* getIndvidualVehicleOwnershipLogsumsByHHId(BigSerial householdId) const;
 
             static const BigSerial FAKE_IDS_START = 9999900;
 
@@ -382,6 +389,7 @@ namespace sim_mob
             boost::mutex addUnitSalesLock;
             boost::mutex addHHLock;
             boost::mutex addVehicleOwnershipChangesLock;
+            boost::mutex DBLock;
             boost::unordered_map<BigSerial, double>tazLevelLogsum;
             boost::unordered_map<BigSerial, double>vehicleOwnershipLogsum;
 
@@ -427,6 +435,8 @@ namespace sim_mob
             BigSerial bidId;
             std::vector<boost::shared_ptr<Household> > hhVector;
             std::vector<boost::shared_ptr<VehicleOwnershipChanges> > vehicleOwnershipChangesVector;
+            IndvidualVehicleOwnershipLogsumList IndvidualVehicleOwnershipLogsums;
+            IndvidualVehicleOwnershipLogsumMap IndvidualVehicleOwnershipLogsumById;
         };
     }
 }

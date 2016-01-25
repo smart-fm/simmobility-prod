@@ -37,6 +37,7 @@
 #include "database/dao/ZonalLanduseVariableValuesDao.hpp"
 #include "database/dao/PopulationPerPlanningAreaDao.hpp"
 #include "database/dao/HitsIndividualLogsumDao.hpp"
+#include "database/dao/IndvidualVehicleOwnershipLogsumDao.hpp"
 #include "agent/impl/HouseholdAgent.hpp"
 #include "event/SystemEvents.hpp"
 #include "core/DataManager.hpp"
@@ -1232,6 +1233,10 @@ void HM_Model::startImpl()
 
 	if (conn.isConnected())
 	{
+		//load individuals
+		loadData<IndividualDao>(conn, individuals, individualsById,	&Individual::getId);
+		PrintOutV("Initial Individuals: " << individuals.size() << std::endl);
+
 		//Load households
 		loadData<HouseholdDao>(conn, households, householdsById, &Household::getId);
 		PrintOutV("Number of households: " << households.size() << ". Households used: " << households.size()  << std::endl);
@@ -1240,9 +1245,7 @@ void HM_Model::startImpl()
 		loadData<UnitDao>(conn, units, unitsById, &Unit::getId);
 		PrintOutV("Number of units: " << units.size() << ". Units Used: " << units.size() << std::endl);
 
-		//load individuals
-		loadData<IndividualDao>(conn, individuals, individualsById,	&Individual::getId);
-		PrintOutV("Initial Individuals: " << individuals.size() << std::endl);
+
 
 		loadData<AwakeningDao>(conn, awakening, awakeningById,	&Awakening::getId);
 		PrintOutV("Awakening probability: " << awakening.size() << std::endl );
@@ -1310,6 +1313,9 @@ void HM_Model::startImpl()
 
 		loadData<HitsIndividualLogsumDao>( conn, hitsIndividualLogsum, hitsIndividualLogsumById, &HitsIndividualLogsum::getId );
 		PrintOutV("Number of Hits Individual Logsum rows: " << hitsIndividualLogsum.size() << std::endl );
+
+		loadData<IndvidualVehicleOwnershipLogsumDao>( conn, IndvidualVehicleOwnershipLogsums, IndvidualVehicleOwnershipLogsumById, &IndvidualVehicleOwnershipLogsum::getHouseholdId );
+		PrintOutV("Number of Hits Individual VehicleOwnership Logsum rows: " << IndvidualVehicleOwnershipLogsums.size() << std::endl );
 
 	}
 
@@ -2090,6 +2096,23 @@ void HM_Model::addVehicleOwnershipChanges(boost::shared_ptr<VehicleOwnershipChan
 std::vector<boost::shared_ptr<VehicleOwnershipChanges> > HM_Model::getVehicleOwnershipChanges()
 {
 	return vehicleOwnershipChangesVector;
+}
+
+IndvidualVehicleOwnershipLogsum* HM_Model::getIndvidualVehicleOwnershipLogsumsByHHId(BigSerial householdId) const
+{
+	IndvidualVehicleOwnershipLogsumMap::const_iterator itr = IndvidualVehicleOwnershipLogsumById.find(householdId);
+
+	if (itr != IndvidualVehicleOwnershipLogsumById.end())
+	{
+		return itr->second;
+	}
+
+	return nullptr;
+}
+
+HM_Model::IndvidualVehicleOwnershipLogsumList HM_Model::getIndvidualVehicleOwnershipLogsums() const
+{
+	return IndvidualVehicleOwnershipLogsums;
 }
 
 void HM_Model::stopImpl()

@@ -460,7 +460,7 @@ public:
 class Address
 {
 public:
-	Address() : addressId(0), postcode(0), tazCode(0)
+	Address() : addressId(0), postcode(0), tazCode(0), distanceMRT(0.0), distanceBus(0.0)
 	{
 	}
 
@@ -494,10 +494,32 @@ public:
 		this->tazCode = tazCode;
 	}
 
+	double getDistanceBus() const
+	{
+		return distanceBus;
+	}
+
+	void setDistanceBus(double distanceBus)
+	{
+		this->distanceBus = distanceBus;
+	}
+
+	double getDistanceMrt() const
+	{
+		return distanceMRT;
+	}
+
+	void setDistanceMrt(double distanceMrt)
+	{
+		distanceMRT = distanceMrt;
+	}
+
 private:
 	long addressId;
 	unsigned int postcode;
 	int tazCode;
+	double distanceBus; //km
+	double distanceMRT; //km
 };
 
 } // end namespace medium

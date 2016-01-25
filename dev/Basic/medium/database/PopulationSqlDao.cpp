@@ -99,6 +99,8 @@ void sim_mob::medium::PopulationSqlDao::getAddresses(std::map<long, sim_mob::med
 			address.setAddressId(addressId);
 			address.setPostcode((*it).get<int>(DB_FIELD_POSTCODE));
 			address.setTazCode((*it).get<int>(DB_FIELD_TAZ_CODE));
+			address.setDistanceMrt((*it).get<double>(DB_FIELD_DISTANCE_MRT));
+			address.setDistanceBus((*it).get<double>(DB_FIELD_DISTANCE_BUS));
 		}
 	}
 }

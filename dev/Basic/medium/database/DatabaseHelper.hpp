@@ -80,6 +80,8 @@ const std::string DB_FIELD_ADDRESS_ID = "address_id";
 const std::string DB_FIELD_TAZ_CODE = "taz_code";
 const std::string DB_FIELD_POSTCODE = "postcode";
 const std::string DB_FIELD_NODE_ID = "node_id";
+const std::string DB_FIELD_DISTANCE_MRT = "distance_mrt";
+const std::string DB_FIELD_DISTANCE_BUS = "distance_bus";
 
 
 const std::string SEARCH_STRING_CAR_OWN_NORMAL = "car (normal time)";

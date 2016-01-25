@@ -34,8 +34,8 @@ namespace sim_mob
 
 				void getScreeningProbabilities(int hhId, std::vector<double> &probabilities, HM_Model *model, int day);
 
-				void ComputeWorkPlanningArea(boost::shared_ptr<PlanningArea*>planningAreaWork);
-				void ComputeHomePlanningArea(PlanningArea* planningAreaWork, Household *household);
+				BigSerial ComputeWorkPlanningArea(PlanningArea *planningAreaWork);
+				BigSerial ComputeHomePlanningArea(PlanningArea *planningAreaWork, Household *household);
 				void ComputeHeadOfHousehold(Household* household);
 
 			private:

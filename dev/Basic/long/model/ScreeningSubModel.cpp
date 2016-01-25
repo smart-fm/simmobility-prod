@@ -10,6 +10,7 @@
  */
 
 #include <model/ScreeningSubModel.hpp>
+#include <util/TimeCheck.hpp>
 
 namespace sim_mob
 {
@@ -18,43 +19,43 @@ namespace sim_mob
 
 		ScreeningSubModel::ScreeningSubModel()
 		{
-			ln_popdwl		= 0.9701;	//1 logarithm of population by housing type in the zone 	persons
-			den_respop_ha	= 0.0257;	//2 population density	persons per hectare (x10^-2)
-			f_loc_com		= 0.0758;	//3 zonal average fraction of commercial land within a 500-meter buffer area from a residential postcode (weighted by no. of residential unit within the buffer)	percentage point (x10^-1)
-			f_loc_res		= 0.0676;	//4 zonal average fraction of residential land within a 500-meter buffer area from a residential postcode  (weighted by no. of residential unit within the buffer)	percentage point (x10^-1)
-			f_loc_open		= 0.0841;	//5 zonal average fraction of open space within a 500-meter buffer area from a residential postcode (weighted by residential unit within the buffer)	percentage point (x10^-1)
-			odi10_loc		= 0.0928;	//6 zonal average local land use mix (opportunity diversity) index: 1-(|lu1/t-1/9|+|lu2/t-1/9|+|lu3/t-1/9|+|lu4/t-1/9|+|lu5/t-1/9|+|lu6/t-1/9|+|lu7/t-1/9|+|lu8/t-1/9|+|lu9/t-1/9|)/(16/9)	(x10)
-			dis2mrt			=-0.3063;	//7 zonal average distance to the nearest MRT station	in kilometer
-			dis2exp			= 0.0062;	//8 zonal average distance to the nearest express way	in kilometer
-			accmanufact_jobs = 0;		// manufacturing jobs
-			accoffice_jobs	= 0;		// office jobs
-			pt_tt			= 0;		// public transit total time
-			pt_cost			= 0;		// public transit total cost
-			f_age4_n4		= 1.5187;	//10 zonal fraction of population younger than 4 years old x dummy if presence of kids younger than 4 years old in the household (=1, yes; =0, no)	percentage point (x10^-1)
-			f_age19_n19		= 0.3068;	//11 zonal fraction of population between 5 and 19 years old x dummy if presence of children in the household  (=1, yes; =0, no)	percentage point (x10^-1)
-			f_age65_n65		= 0.7503;	//12 zonal fraction of population older than 65 years old x dummy if presence of seniors in the household  (=1, yes; =0, no)	percentage point (x10^-1)
-			f_chn_nchn		= 0.1689;	//13 zonal fraction of Chinese population x  dummy if household is Chinese (=1, yes; =0, no)	percentage point (x10^-1)
-			f_mal_nmal		= 0.4890;	//14 zonal fraction of Malay population x  dummy if household is Malay (=1, yes; =0, no)	percentage point (x10^-1)
-			f_indian_nind	= 0.8273;	//15 zonal fraction of Indian population x  dummy if household is Indian (=1, yes; =0, no)	percentage point (x10^-1)
-			hhsize_diff		=-0.5926;	//16 absolute difference between zonal average household size by housing type and household size	persons
-			log_hhinc_diff	=-1.5749;	//17 absolute difference between logarithm of the zonal median household montly income by housing type and logarithm of the household income	SGD
-			log_price05tt_med=-0.1473;	//18 logarithm of the zonal median housing price by housing type	in (2005) SGD
-			DWL600			= 0.3940;	//19 = 1, if household size is 1, living in private condo/apartment
-			DWL700			= 0.3254;	//20 = 1, if household size is 1, living in landed property
-			DWL800			= 0.3394; 	//21 = 1, if household size is 1, living in other types of housing units
+			ln_popdwl		=  0.8455215;	//1 logarithm of population by housing type in the zone 	persons
+			den_respop_ha	=  0.0115146;	//2 population density	persons per hectare (x10^-2)
+			f_loc_com		=  0.1923675;	//3 zonal average fraction of commercial land within a 500-meter buffer area from a residential postcode (weighted by no. of residential unit within the buffer)	percentage point (x10^-1)
+			f_loc_res		= -1.2908764;	//4 zonal average fraction of residential land within a 500-meter buffer area from a residential postcode  (weighted by no. of residential unit within the buffer)	percentage point (x10^-1)
+			f_loc_open		=  0.0183812;	//5 zonal average fraction of open space within a 500-meter buffer area from a residential postcode (weighted by residential unit within the buffer)	percentage point (x10^-1)
+			odi10_loc		= -2.4180224;	//6 zonal average local land use mix (opportunity diversity) index: 1-(|lu1/t-1/9|+|lu2/t-1/9|+|lu3/t-1/9|+|lu4/t-1/9|+|lu5/t-1/9|+|lu6/t-1/9|+|lu7/t-1/9|+|lu8/t-1/9|+|lu9/t-1/9|)/(16/9)	(x10)
+			dis2mrt			= -0.1569961;	//7 zonal average distance to the nearest MRT station	in kilometer
+			dis2exp			=  0.0623541;	//8 zonal average distance to the nearest express way	in kilometer
+			accmanufact_jobs= -0.5423132;	// manufacturing jobs
+			accoffice_jobs	= -0.0438822;	// office jobs
+			pt_tt			= -0.0062194;	// public transit total time
+			pt_cost			= -0.8954747;	// public transit total cost
+			f_age4_n4		= 2.3885324;	//10 zonal fraction of population younger than 4 years old x dummy if presence of kids younger than 4 years old in the household (=1, yes; =0, no)	percentage point (x10^-1)
+			f_age19_n19		= 0.4570936;	//11 zonal fraction of population between 5 and 19 years old x dummy if presence of children in the household  (=1, yes; =0, no)	percentage point (x10^-1)
+			f_age65_n65		= 1.0005127;	//12 zonal fraction of population older than 65 years old x dummy if presence of seniors in the household  (=1, yes; =0, no)	percentage point (x10^-1)
+			f_chn_nchn		= -0.2992827;	//13 zonal fraction of Chinese population x  dummy if household is Chinese (=1, yes; =0, no)	percentage point (x10^-1)
+			f_mal_nmal		= -0.0702382;	//14 zonal fraction of Malay population x  dummy if household is Malay (=1, yes; =0, no)	percentage point (x10^-1)
+			f_indian_nind	= -0.8482557;	//15 zonal fraction of Indian population x  dummy if household is Indian (=1, yes; =0, no)	percentage point (x10^-1)
+			hhsize_diff		= -0.5143233;	//16 absolute difference between zonal average household size by housing type and household size	persons
+			log_hhinc_diff	= -0.2505445;	//17 absolute difference between logarithm of the zonal median household montly income by housing type and logarithm of the household income	SGD
+			log_price05tt_med= 0.1718173;	//18 logarithm of the zonal median housing price by housing type	in (2005) SGD
+			DWL600			= -0.5939059;	//19 = 1, if household size is 1, living in private condo/apartment
+			DWL700			= -0.3587303;	//20 = 1, if household size is 1, living in landed property
+			DWL800			=  1.4437154; 	//21 = 1, if household size is 1, living in other types of housing units
 
 			model 			= nullptr;
 		}
 
 		ScreeningSubModel::~ScreeningSubModel(){}
 
-		void ScreeningSubModel::ComputeWorkPlanningArea(boost::shared_ptr<PlanningArea*>planningAreaWork)
+		BigSerial ScreeningSubModel::ComputeWorkPlanningArea(PlanningArea *planningAreaWork)
 		{
-				boost::shared_ptr<Job*> headOfHhJob = boost::make_shared<Job*>( model->getJobById((*headOfHousehold)->getJobId()));
-				boost::shared_ptr<Establishment*> headOfHhEstablishment = boost::make_shared<Establishment*>( model->getEstablishmentById((*headOfHhJob)->getEstablishmentId()));
-				boost::shared_ptr<Postcode*>  slaAddressWork = boost::make_shared<Postcode*>( model->getPostcodeById( (*headOfHhEstablishment)->getSlaAddressId()));
+				Job  *headOfHhJob = model->getJobById( (*headOfHousehold)->getJobId());
+				Establishment *headOfHhEstablishment = model->getEstablishmentById(headOfHhJob->getEstablishmentId());
+				Postcode *slaAddressWork = model->getPostcodeById( headOfHhEstablishment->getSlaAddressId());
 
-				int tazIdWork = (*slaAddressWork)->getTazId();
+				int tazIdWork = slaAddressWork->getTazId();
 				Taz *tazWork  = model->getTazById(tazIdWork);
 				int mtzIdWork = model->getMtzIdByTazId(tazIdWork);
 				Mtz *mtzWork  = model->getMtzById(mtzIdWork);
@@ -65,16 +66,19 @@ namespace sim_mob
 					planningSubzoneWork = model->getPlanningSubzoneById( mtzWork->getPlanningSubzoneId() );
 
 				if(planningSubzoneWork)
-					planningAreaWork = boost::make_shared<PlanningArea*>(model->getPlanningAreaById(planningSubzoneWork->getPlanningAreaId() ));
+					planningAreaWork = (model->getPlanningAreaById(planningSubzoneWork->getPlanningAreaId()));
 
 				if(!planningAreaWork)
 				{
 					AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, (boost::format( "Planning Area null for Taz id  %1%.") %  tazIdWork).str());
-					return;
+					return 0;
 				}
+
+				return planningSubzoneWork->getPlanningAreaId();
+
 		}
 
-		void ScreeningSubModel::ComputeHomePlanningArea(PlanningArea* planningArea, Household *household)
+		BigSerial ScreeningSubModel::ComputeHomePlanningArea(PlanningArea* planningArea, Household *household)
 		{
 			PlanningSubzone *planningSubzone = nullptr;
 
@@ -87,13 +91,15 @@ namespace sim_mob
 				planningSubzone = model->getPlanningSubzoneById( mtz->getPlanningSubzoneId() );
 
 			if(planningSubzone)
-				planningArea = model->getPlanningAreaById(planningSubzone->getPlanningAreaId() );
+				planningArea = model->getPlanningAreaById(planningSubzone->getPlanningAreaId());
 
 			if(!planningArea)
 			{
 				AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, (boost::format( "Planning Area null for Taz id  %1%.") %  tazId).str());
-				return;
+				return 0;
 			}
+
+			return planningSubzone->getPlanningAreaId();
 		}
 
 		void ScreeningSubModel::ComputeHeadOfHousehold(Household* household)
@@ -113,17 +119,27 @@ namespace sim_mob
 
 		void ScreeningSubModel::getScreeningProbabilities( int hhId, std::vector<double> &probabilities, HM_Model *modelArg, int day )
 		{
+			TimeCheck tc;
+			TimeCheck tc5;
+
 			model = modelArg;
 			Household* household = model->getHouseholdById(hhId);
 			const Unit* unit = model->getUnitById( household->getUnitId() );
 
 			ComputeHeadOfHousehold(household);
 
-			boost::shared_ptr<PlanningArea*>planningAreaWork;
-			ComputeWorkPlanningArea(planningAreaWork );
+			PlanningArea *planningAreaWork = nullptr;
+			BigSerial id1 = ComputeWorkPlanningArea(planningAreaWork );
 
-			PlanningArea *planningArea = nullptr;
-			ComputeHomePlanningArea(planningArea, household);
+			planningAreaWork = model->getPlanningAreaById( id1 );
+
+			PlanningArea* planningArea = nullptr;
+			BigSerial id2 = ComputeHomePlanningArea(planningArea, household);
+
+			planningArea = model->getPlanningAreaById(id2);
+
+			if(!planningArea || !planningAreaWork)
+				return;
 
 			std::vector<PopulationPerPlanningArea*> populationPerPlanningArea = model->getPopulationByPlanningAreaId(planningArea->getId());
 
@@ -176,6 +192,8 @@ namespace sim_mob
 					bHouseholdMemberGreaterThan65 = true;
 			}
 
+			double zero = tc.getClockTime();
+
 			for(int n = 0; n < populationPerPlanningArea.size(); n++)
 			{
 				populationTotal += populationPerPlanningArea[n]->getPopulation();
@@ -200,18 +218,7 @@ namespace sim_mob
 
 				if(populationPerPlanningArea[n]->getAgeCategoryId() > 12 )
 					 populationGreaterThan65 = populationGreaterThan65 + populationPerPlanningArea[n]->getPopulation();
-
-				if( populationPerPlanningArea[n]->getUnitType() == unit->getUnitType() )
-				{
-					avgHouseholdSize += populationPerPlanningArea[n]->getAvgHhSize();
-					avgHouseholdIncome += populationPerPlanningArea[n]->getAvgIncome();
-					unitTypeCounter++;
-					populationByunitType += populationPerPlanningArea[n]->getPopulation();
-				}
 			}
-
-			avgHouseholdSize 	= avgHouseholdSize 	  / unitTypeCounter;
-			avgHouseholdIncome 	= avgHouseholdIncome  / unitTypeCounter;
 
 			std::vector<PlanningSubzone*>  planningSubzones = model->getPlanningSubZoneByPlanningAreaId(planningArea->getId());
 			std::vector<Mtz*> mtzs = model->getMtzBySubzoneVec(planningSubzones);
@@ -230,8 +237,15 @@ namespace sim_mob
 
 		 	double probabilitySum = 0;
 
+		 	double one = tc.getClockTime();
+		 	TimeCheck tc2;
+		 	double two = 0;
+		 	double three = 0;
+
 			for( int n = 0; n < model->getAlternatives().size(); n++ )
 			{
+				TimeCheck tc3;
+				TimeCheck tc4;
 				for(int m = 0; m < populationPerPlanningArea.size(); m++)
 				{
 					int dwellingType = 0;
@@ -267,23 +281,28 @@ namespace sim_mob
 					}
 				}
 
+				two += tc3.getClockTime();
+
+				avgHouseholdSize 	= avgHouseholdSize 	  / unitTypeCounter;
+				avgHouseholdIncome 	= avgHouseholdIncome  / unitTypeCounter;
+
+
 				ZonalLanduseVariableValues *zonalLanduseVariableValues = model->getZonalLandUseByAlternativeId(n + 1);
 
-				double logPopulationByHousingType	= log((double)populationByunitType);	//1 logarithm of population by housing type in the zone 	persons
-				double populationDensity			= (double)populationByunitType / planningArea_size;	//2 population density	persons per hectare (x10^-2)
-				double commercialLandFraction		= zonalLanduseVariableValues->getFLocCom();	//3 zonal average fraction of commercial land within a 500-meter buffer area from a residential postcode (weighted by no. of residential unit within the buffer)	percentage point (x10^-1)
-				double residentialLandFraction		= zonalLanduseVariableValues->getFLocRes();	//4 zonal average fraction of residential land within a 500-meter buffer area from a residential postcode  (weighted by no. of residential unit within the buffer)	percentage point (x10^-1)
-				double openSpaceFraction			= zonalLanduseVariableValues->getFLocOpen();	//5 zonal average fraction of open space within a 500-meter buffer area from a residential postcode (weighted by residential unit within the buffer)	percentage point (x10^-1)
-				double oppurtunityDiversityIndex	= zonalLanduseVariableValues->getOdi10Loc();	//6 zonal average local land use mix (opportunity diversity) index: 1-(|lu1/t-1/9|+|lu2/t-1/9|+|lu3/t-1/9|+|lu4/t-1/9|+|lu5/t-1/9|+|lu6/t-1/9|+|lu7/t-1/9|+|lu8/t-1/9|+|lu9/t-1/9|)/(16/9)	(x10)
+				double logPopulationByHousingType	= log((double)unitTypeCounter);	//1 logarithm of population by housing type in the zone 	persons
+				double populationDensity			= (double)unitTypeCounter / planningArea_size;	//2 population density	persons per hectare
+				double commercialLandFraction		= zonalLanduseVariableValues->getFLocCom();	//3 zonal average fraction of commercial land within a 500-meter buffer area from a residential postcode (weighted by no. of residential unit within the buffer)	percentage point
+				double residentialLandFraction		= zonalLanduseVariableValues->getFLocRes();	//4 zonal average fraction of residential land within a 500-meter buffer area from a residential postcode  (weighted by no. of residential unit within the buffer)	percentage point
+				double openSpaceFraction			= zonalLanduseVariableValues->getFLocOpen();	//5 zonal average fraction of open space within a 500-meter buffer area from a residential postcode (weighted by residential unit within the buffer)	percentage point
+				double oppurtunityDiversityIndex	= zonalLanduseVariableValues->getOdi10Loc();	//6 zonal average local land use mix (opportunity diversity) index: 1-(|lu1/t-1/9|+|lu2/t-1/9|+|lu3/t-1/9|+|lu4/t-1/9|+|lu5/t-1/9|+|lu6/t-1/9|+|lu7/t-1/9|+|lu8/t-1/9|+|lu9/t-1/9|)/(16/9)
 				double distanceToMrt				= zonalLanduseVariableValues->getDis2mrt();	//7 zonal average distance to the nearest MRT station	in kilometer
 				double distanceToExp				= zonalLanduseVariableValues->getDis2exp();	//8 zonal average distance to the nearest express way	in kilometer
-				//double householdWorkerLogsumAverage	= 0.0;	//9 average of workers' logsum of a household (at the DGP level) x dummy if household has at least a worker with fixed workplace (=1, yes; =0, otherwise)	utils
-				double fractionYoungerThan4			= ( populationYoungerThan4 / populationTotal ) * bHouseholdMemberYoungerThan4;	//10 zonal fraction of population younger than 4 years old x dummy if presence of kids younger than 4 years old in the household (=1, yes; =0, no)	percentage point (x10^-1)
-				double fractionBetween5And19		= ( population5To19 / populationTotal ) * bHouseholdMember5To19;	//11 zonal fraction of population between 5 and 19 years old x dummy if presence of children in the household  (=1, yes; =0, no)	percentage point (x10^-1)
-				double fractionOlderThan65			= ( populationGreaterThan65 / populationTotal ) * bHouseholdMemberGreaterThan65;	//12 zonal fraction of population older than 65 years old x dummy if presence of seniors in the household  (=1, yes; =0, no)	percentage point (x10^-1)
-				double fractionOfChinese			= ( populationChinese / populationTotal ) * bHouseholdEthnicityChinese;	//13 zonal fraction of Chinese population x  dummy if household is Chinese (=1, yes; =0, no)	percentage point (x10^-1)
-				double fractionOfMalay				= ( populationChinese / populationTotal ) * bHouseholdEthnicityMalay;	//14 zonal fraction of Malay population x  dummy if household is Malay (=1, yes; =0, no)	percentage point (x10^-1)
-				double fractionOfIndian				= ( populationChinese / populationTotal ) * bHouseholdEthnicityIndian;	//15 zonal fraction of Indian population x  dummy if household is Indian (=1, yes; =0, no)	percentage point (x10^-1)
+				double fractionYoungerThan4			= ( populationYoungerThan4 / populationTotal ) * bHouseholdMemberYoungerThan4;	//10 zonal fraction of population younger than 4 years old x dummy if presence of kids younger than 4 years old in the household (=1, yes; =0, no)	percentage point
+				double fractionBetween5And19		= ( population5To19 / populationTotal ) * bHouseholdMember5To19;	//11 zonal fraction of population between 5 and 19 years old x dummy if presence of children in the household  (=1, yes; =0, no)	percentage point
+				double fractionOlderThan65			= ( populationGreaterThan65 / populationTotal ) * bHouseholdMemberGreaterThan65;	//12 zonal fraction of population older than 65 years old x dummy if presence of seniors in the household  (=1, yes; =0, no)	percentage point
+				double fractionOfChinese			= ( populationChinese / populationTotal ) * bHouseholdEthnicityChinese;	//13 zonal fraction of Chinese population x  dummy if household is Chinese (=1, yes; =0, no)	percentage point
+				double fractionOfMalay				= ( populationChinese / populationTotal ) * bHouseholdEthnicityMalay;	//14 zonal fraction of Malay population x  dummy if household is Malay (=1, yes; =0, no)	percentage point
+				double fractionOfIndian				= ( populationChinese / populationTotal ) * bHouseholdEthnicityIndian;	//15 zonal fraction of Indian population x  dummy if household is Indian (=1, yes; =0, no)	percentage point
 				double householdSizeMinusZoneAvg	= fabs( avgHouseholdSize - household->getSize());	//16 absolute difference between zonal average household size by housing type
 				double logHouseholdInconeMinusZoneAvg= fabs( log(avgHouseholdIncome ) - log(household->getIncome() ) );	//17 absolute difference between logarithm of the zonal median household montly income by housing type and logarithm of the household income	SGD
 				double logZonalMedianHousingPrice	= 0.0;	//18 logarithm of the zonal median housing price by housing type	in (2005) SGD
@@ -306,16 +325,26 @@ namespace sim_mob
 						otherHousingHhSizeOne = 1.0;
 				}
 
-				BigSerial id = (*planningAreaWork)->getId();
+				BigSerial id = 0;
+
+				if( planningAreaWork )
+					(*planningAreaWork).getId();
+
 
 				for(int m = 0; m < model->getScreeningCostTime().size(); m++ )
 				{
 					if( model->getScreeningCostTime()[m]->getPlanningAreaOrigin() 	   == model->getAlternatives()[n]->getPlanAreaId() &&
-						model->getScreeningCostTime()[m]->getPlanningAreaDestination() == (*planningAreaWork)->getId() )
+						model->getScreeningCostTime()[m]->getPlanningAreaDestination() == (*planningAreaWork).getId() )
 					{
 						publicTransitCost = model->getScreeningCostTime()[m]->getCost();
 						publicTransitTime = model->getScreeningCostTime()[m]->getTime();
 					}
+				}
+
+				if( !planningAreaWork )
+				{
+					publicTransitCost = 0;
+					publicTransitTime = 0;
 				}
 
 				for( int m = 0; m < model->getAccessibilityFixedPzid().size(); m++)
@@ -346,9 +375,9 @@ namespace sim_mob
 									( accessibilityOfficeJobs	* accoffice_jobs	) +
 									( publicTransitTime			* pt_tt 			) +
 									( publicTransitCost 		* pt_cost			) +
-									( fractionYoungerThan4		* f_age4_n4		 	) +
-									( fractionBetween5And19		* f_age19_n19	 	) +
-									( fractionOlderThan65		* f_age65_n65	 	) +
+									( fractionYoungerThan4		* f_age4_n4		 	* 10 ) +
+									( fractionBetween5And19		* f_age19_n19	 	* 10 ) +
+									( fractionOlderThan65		* f_age65_n65	 	* 10 ) +
 									( fractionOfChinese			* f_chn_nchn	 	) +
 									( fractionOfMalay			* f_mal_nmal	 	) +
 									( fractionOfIndian			* f_indian_nind	 	) +
@@ -390,6 +419,8 @@ namespace sim_mob
 				probabilities.push_back(probability);
 
 				probabilitySum += exp(probability);
+
+				three += tc4.getClockTime();
 			}
 
 			for( int n = 0; n < probabilities.size(); n++)
@@ -397,7 +428,11 @@ namespace sim_mob
 				probabilities[n] = exp(probabilities[n])/ probabilitySum;
 			}
 
-			//PrintOut(std::endl);
+			two = two / model->getAlternatives().size();
+			three = three / model->getAlternatives().size();
+			double four = tc5.getClockTime();
+
+			//PrintOut("0: " << zero << " 1: " << one << " 2. " << two << " 3. " << three << " 4. " << four << std::endl);
 
 			/*
 			// NOTE: dgp is the planning area

@@ -108,21 +108,6 @@ void sim_mob::medium::PopulationSqlDao::getAddresses(std::map<long, sim_mob::med
 	}
 }
 
-void sim_mob::medium::PopulationSqlDao::getPostcodeToNodeMap(std::map<unsigned int, unsigned int>& postcodeNodeMap)
-{
-	if (isConnected())
-	{
-		postcodeNodeMap.clear();
-		Statement query(connection.getSession<soci::session>());
-		prepareStatement(DB_GET_POSTCODE_NODE_MAP, db::EMPTY_PARAMS, query);
-		ResultSet rs(query);
-		for (ResultSet::const_iterator it = rs.begin(); it != rs.end(); ++it)
-		{
-			postcodeNodeMap[(*it).get<int>(DB_FIELD_POSTCODE)] = (*it).get<BigInt>(DB_FIELD_NODE_ID);
-		}
-	}
-}
-
 void PopulationSqlDao::getIncomeCategories(double incomeLowerLimits[])
 {
 	if (isConnected())
@@ -175,16 +160,16 @@ void PopulationSqlDao::getVehicleCategories(std::map<int, std::bitset<4> >& vehi
 	}
 }
 
-sim_mob::medium::LogsumSqlDao::LogsumSqlDao(db::DB_Connection& connection) :
+sim_mob::medium::SimmobSqlDao::SimmobSqlDao(db::DB_Connection& connection) :
 		SqlAbstractDao<PersonParams>(connection, DB_TABLE_LOGSUMS, DB_INSERT_LOGSUMS, "", DB_TRUNCATE_LOGSUMS, "", DB_GET_LOGSUMS_BY_ID)
 {
 }
 
-sim_mob::medium::LogsumSqlDao::~LogsumSqlDao()
+sim_mob::medium::SimmobSqlDao::~SimmobSqlDao()
 {
 }
 
-void sim_mob::medium::LogsumSqlDao::fromRow(db::Row& result, PersonParams& outObj)
+void sim_mob::medium::SimmobSqlDao::fromRow(db::Row& result, PersonParams& outObj)
 {
 	outObj.setWorkLogSum(result.get<double>(DB_FIELD_WORK_LOGSUM));
 	outObj.setEduLogSum(result.get<double>(DB_FIELD_EDUCATION_LOGSUM));
@@ -194,7 +179,7 @@ void sim_mob::medium::LogsumSqlDao::fromRow(db::Row& result, PersonParams& outOb
 	outObj.setDpsLogsum(result.get<double>(DB_FIELD_DPS_LOGSUM));
 }
 
-void sim_mob::medium::LogsumSqlDao::toRow(PersonParams& data, db::Parameters& outParams, bool update)
+void sim_mob::medium::SimmobSqlDao::toRow(PersonParams& data, db::Parameters& outParams, bool update)
 {
 	outParams.push_back(data.getPersonId());
 	outParams.push_back(data.getWorkLogSum());
@@ -205,9 +190,24 @@ void sim_mob::medium::LogsumSqlDao::toRow(PersonParams& data, db::Parameters& ou
 	outParams.push_back(data.getDpsLogsum());
 }
 
-void sim_mob::medium::LogsumSqlDao::getLogsumById(long long id, PersonParams& outObj)
+void sim_mob::medium::SimmobSqlDao::getLogsumById(long long id, PersonParams& outObj)
 {
 	db::Parameters params;
 	params.push_back(id);
 	getById(params, outObj);
+}
+
+void sim_mob::medium::SimmobSqlDao::getPostcodeToNodeMap(std::map<unsigned int, unsigned int>& postcodeNodeMap)
+{
+	if (isConnected())
+	{
+		postcodeNodeMap.clear();
+		Statement query(connection.getSession<soci::session>());
+		prepareStatement(DB_GET_POSTCODE_NODE_MAP, db::EMPTY_PARAMS, query);
+		ResultSet rs(query);
+		for (ResultSet::const_iterator it = rs.begin(); it != rs.end(); ++it)
+		{
+			postcodeNodeMap[(*it).get<int>(DB_FIELD_POSTCODE)] = (*it).get<BigInt>(DB_FIELD_NODE_ID);
+		}
+	}
 }

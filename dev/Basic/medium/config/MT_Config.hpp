@@ -599,19 +599,19 @@ public:
 	void setPopulationSource(const std::string& src);
 
     /**
-     * Retrieves logsum databse details
+     * Retrieves simmobility database details
      *
-     * @return logsum db details
+     * @return simmobility db details
      */
-	const DB_Details& getLogsumDb() const;
+	const DB_Details& getSimmobDb() const;
 
     /**
      * Sets logsum database details
      *
-     * @param logsumDb logsum database name
-     * @param logsumCred credentials for logsum database
+     * @param simmobDb simmobility database name
+     * @param simmobCred credentials for simmob database
      */
-	void setLogsumDb(const std::string& logsumDb, const std::string& logsumCred);
+	void setSimmobDb(const std::string& simmobDb, const std::string& simmobCred);
 
     /**
      * Retrieves population database details
@@ -830,7 +830,7 @@ private:
 	DB_Details populationDB;
 
     /// logsum database details
-	DB_Details logsumDB;
+	DB_Details simmobDB;
 
     /// worker allocation details
     WorkerParams workers;

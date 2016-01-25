@@ -1661,10 +1661,24 @@ void sim_mob::medium::PredaySystem::outputActivityScheduleToStream(const ZoneNod
 				}
 				else
 				{
-					ZoneNodeMap::const_iterator zoneNodeMapIt = zoneNodeMap.find(currStopZone);
-					if (zoneNodeMapIt != zoneNodeMap.end())
+					const std::vector<long>& addressesInZone = personParams.getAddressIdsInZone(currStopZone);
+					if(addressesInZone.empty())
 					{
-						currStopNode = getRandomNodeInZone(zoneNodeMapIt->second);
+						ZoneNodeMap::const_iterator zoneNodeMapIt = zoneNodeMap.find(currStopZone);
+						if (zoneNodeMapIt != zoneNodeMap.end())
+						{
+							currStopNode = getRandomNodeInZone(zoneNodeMapIt->second);
+						}
+					}
+					else if(addressesInZone.size() == 1) //trivial
+					{
+						currStopNode = personParams.getSimMobNodeForAddressId(addressesInZone.front());
+					}
+					else
+					{
+						ZoneAddressParams znAddrParams = ZoneAddressParams(personParams.getAddressLookup(), addressesInZone);
+						long addressId = PredayLuaProvider::getPredayModel().predictAddress(znAddrParams);
+						currStopNode = personParams.getSimMobNodeForAddressId(addressId);
 					}
 					if (currStopNode == 0)
 					{

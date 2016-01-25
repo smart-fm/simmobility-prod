@@ -137,6 +137,13 @@ public:
 	void loadZoneNodes(db::BackendType dbType);
 
 	/**
+	 * Gets mapping of postcode to nearest node
+	 *
+	 * @param dbType type of backend where the zone node mapping data is available
+	 */
+	void loadPostcodeNodeMapping(db::BackendType dbType);
+
+	/**
 	 * gets the mapping of zones from data for 2012 back to data for 2008
 	 *
 	 * @param dbType type of backend where the zone node mapping data is available

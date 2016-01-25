@@ -151,10 +151,10 @@ void ParseMidTermConfigFile::processPredayNode(xercesc::DOMElement* node)
 		std::string credential = ParseString(GetNamedAttributeValue(childNode, "credential", false), EMPTY_STRING);
 		mtCfg.setPopulationDb(database, credential);
 
-		childNode = GetSingleElementByName(node, "logsum", true);
+		childNode = GetSingleElementByName(node, "simmob_mt", true);
 		database = ParseString(GetNamedAttributeValue(childNode, "database", false), EMPTY_STRING);
 		credential = ParseString(GetNamedAttributeValue(childNode, "credential", false), EMPTY_STRING);
-		mtCfg.setLogsumDb(database, credential);
+		mtCfg.setSimmobDb(database, credential);
 	}
 
 	processModelScriptsNode(GetSingleElementByName(node, "model_scripts", true));

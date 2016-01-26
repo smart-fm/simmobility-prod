@@ -680,8 +680,7 @@ void sim_mob::medium::PredayManager::loadPersonIds(BackendType dbType)
 			PopulationSqlDao populationDao(conn);
 			populationDao.getIncomeCategories(PersonParams::getIncomeCategoryLowerLimits());
 			populationDao.getVehicleCategories(PersonParams::getVehicleCategoryLookup());
-			populationDao.getAddresses(PersonParams::getAddressLookup());
-			populationDao.getPostcodeToNodeMap(PersonParams::getPostcodeNodeMap());
+			populationDao.getAddresses(PersonParams::getAddressLookup(), PersonParams::getZoneAddresses());
 			populationDao.getAllIds(ltPersonIdList);
 		}
 		break;
@@ -753,6 +752,41 @@ void sim_mob::medium::PredayManager::loadZoneNodes(db::BackendType dbType)
 		zoneNodeDao.getAll(zoneNodeMap);
 		Print() << "Zones-Node mapping loaded" << std::endl;
 		break;
+	}
+	default:
+	{
+		throw std::runtime_error("Unsupported backend type. Only PostgreSQL and MongoDB are currently supported.");
+	}
+	}
+}
+
+void sim_mob::medium::PredayManager::loadPostcodeNodeMapping(BackendType dbType)
+{
+	switch (dbType)
+	{
+	case POSTGRES:
+	{
+		// postcode to node mapping data source
+		const std::string& simmobDbId = mtConfig.getSimmobDb().database;
+		Database simmobDatabase = ConfigManager::GetInstance().FullConfig().constructs.databases.at(simmobDbId);
+		std::string cred_id = mtConfig.getSimmobDb().credentials;
+		Credential simmobCredentials = ConfigManager::GetInstance().FullConfig().constructs.credentials.at(cred_id);
+		std::string username = simmobCredentials.getUsername();
+		std::string password = simmobCredentials.getPassword(false);
+		DB_Config simmobDbConfig(simmobDatabase.host, simmobDatabase.port, simmobDatabase.dbName, username, password);
+		DB_Connection simmobConn(sim_mob::db::POSTGRES, simmobDbConfig);
+		simmobConn.connect();
+		if (!simmobConn.isConnected())
+		{
+			throw std::runtime_error("simmob db connection failure!");
+		}
+		SimmobSqlDao simmobSqlDao(simmobConn);
+		simmobSqlDao.getPostcodeToNodeMap(PersonParams::getPostcodeNodeMap());
+		break;
+	}
+	case MONGO_DB:
+	{
+		throw std::runtime_error("postcode to node mapping is not available in MongoDB");
 	}
 	default:
 	{
@@ -988,9 +1022,9 @@ void sim_mob::medium::PredayManager::dispatchLT_Persons()
 	if(mtConfig.runningPredayLogsumComputation())
 	{
 		// logsum data source
-		const std::string& logsumDbId = mtConfig.getLogsumDb().database;
+		const std::string& logsumDbId = mtConfig.getSimmobDb().database;
 		Database logsumDatabase = ConfigManager::GetInstance().FullConfig().constructs.databases.at(logsumDbId);
-		std::string cred_id = mtConfig.getLogsumDb().credentials;
+		std::string cred_id = mtConfig.getSimmobDb().credentials;
 		Credential logsumCredentials = ConfigManager::GetInstance().FullConfig().constructs.credentials.at(cred_id);
 		std::string username = logsumCredentials.getUsername();
 		std::string password = logsumCredentials.getPassword(false);
@@ -1001,7 +1035,7 @@ void sim_mob::medium::PredayManager::dispatchLT_Persons()
 		{
 			throw std::runtime_error("logsum db connection failure!");
 		}
-		LogsumSqlDao logsumSqlDao(logsumConn);
+		SimmobSqlDao logsumSqlDao(logsumConn);
 		bool truncated = logsumSqlDao.erase(db::EMPTY_PARAMS);
 		if(truncated)
 		{
@@ -1530,9 +1564,9 @@ void sim_mob::medium::PredayManager::processPersonsForLT_Population(const LT_Per
 	PopulationSqlDao populationDao(populationConn);
 
 	// logsum data source
-	const std::string& logsumDbId = mtConfig.getLogsumDb().database;
+	const std::string& logsumDbId = mtConfig.getSimmobDb().database;
 	Database logsumDatabase = ConfigManager::GetInstance().FullConfig().constructs.databases.at(logsumDbId);
-	cred_id = mtConfig.getLogsumDb().credentials;
+	cred_id = mtConfig.getSimmobDb().credentials;
 	Credential logsumCredentials = ConfigManager::GetInstance().FullConfig().constructs.credentials.at(cred_id);
 	username = logsumCredentials.getUsername();
 	password = logsumCredentials.getPassword(false);
@@ -1543,7 +1577,7 @@ void sim_mob::medium::PredayManager::processPersonsForLT_Population(const LT_Per
 	{
 		throw std::runtime_error("logsum db connection failure!");
 	}
-	LogsumSqlDao logsumSqlDao(logsumConn);
+	SimmobSqlDao logsumSqlDao(logsumConn);
 
 	// open log file for this thread
 	std::ofstream activityScheduleLogFile(activityScheduleLog.c_str(), std::ios::trunc | std::ios::out);
@@ -1697,9 +1731,9 @@ void sim_mob::medium::PredayManager::computeLogsumsForLT_Population(const LT_Per
 	PopulationSqlDao populationDao(populationConn);
 
 	// logsum data source
-	const std::string& logsumDbId = mtConfig.getLogsumDb().database;
+	const std::string& logsumDbId = mtConfig.getSimmobDb().database;
 	Database logsumDatabase = ConfigManager::GetInstance().FullConfig().constructs.databases.at(logsumDbId);
-	cred_id = mtConfig.getLogsumDb().credentials;
+	cred_id = mtConfig.getSimmobDb().credentials;
 	Credential logsumCredentials = ConfigManager::GetInstance().FullConfig().constructs.credentials.at(cred_id);
 	username = logsumCredentials.getUsername();
 	password = logsumCredentials.getPassword(false);
@@ -1710,7 +1744,7 @@ void sim_mob::medium::PredayManager::computeLogsumsForLT_Population(const LT_Per
 	{
 		throw std::runtime_error("logsum db connection failure!");
 	}
-	LogsumSqlDao logsumSqlDao(logsumConn);
+	SimmobSqlDao logsumSqlDao(logsumConn);
 
 	// loop through all persons within the range and plan their day
 	for (LT_PersonIdList::iterator i = firstPersonIdIt; i != oneAfterLastPersonIdIt; i++)

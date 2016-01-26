@@ -216,6 +216,12 @@ void sim_mob::medium::PredayLuaModel::mapClasses()
 				.addProperty("time_window_first_bound", &StopGenerationParams::getTimeWindowFirstBound)
 				.addProperty("time_window_second_bound", &StopGenerationParams::getTimeWindowSecondBound)
 				.addFunction("availability", &StopGenerationParams::isAvailable)
+			.endClass()
+
+			.beginClass<ZoneAddressParams>("ZoneAddressParams")
+				.addProperty("num_addresses", &ZoneAddressParams::getNumAddresses)
+				.addFunction("distance_mrt", &ZoneAddressParams::getDistanceMRT)
+				.addFunction("distance_bus", &ZoneAddressParams::getDistanceBus)
 			.endClass();
 
 }
@@ -502,4 +508,11 @@ int sim_mob::medium::PredayLuaModel::predictSubTourTimeOfDay(PersonParams& perso
 	LuaRef chooseSTTD = getGlobal(state.get(), "choose_sttd");
 	LuaRef retVal = chooseSTTD(&personParams, &subTourParams);
 	return retVal.cast<int>();
+}
+
+int sim_mob::medium::PredayLuaModel::predictAddress(ZoneAddressParams& znAddressParams) const
+{
+	LuaRef chooseAddress = getGlobal(state.get(), "choose_address");
+	LuaRef retVal = chooseAddress(&znAddressParams);
+	return znAddressParams.getAddressId(retVal.cast<int>());
 }

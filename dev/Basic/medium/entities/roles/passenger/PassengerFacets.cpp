@@ -59,15 +59,15 @@ std::string PassengerMovement::frame_tick_output()
 TravelMetric & PassengerMovement::startTravelTimeMetric()
 {
 	travelMetric.startTime = DailyTime(parentPassenger->getArrivalTime());
-	travelMetric.origin = WayPoint(parentPassenger->getStartNode());
+	travelMetric.origin = parentPassenger->getStartPoint();
 	travelMetric.started = true;
 	return travelMetric;
 }
 
 TravelMetric & PassengerMovement::finalizeTravelTimeMetric()
 {
-	travelMetric.destination = WayPoint(parentPassenger->getEndNode());
-	travelMetric.endTime = DailyTime(parentPassenger->getArrivalTime() + totalTimeToCompleteMS);
+	travelMetric.destination = parentPassenger->getEndPoint();
+	travelMetric.endTime = DailyTime(parentPassenger->getArrivalTime() + parentPassenger->totalTravelTimeMS);
 	travelMetric.travelTime = TravelMetric::getTimeDiffHours(travelMetric.endTime , travelMetric.startTime); // = totalTimeToCompleteMS in hours
 	travelMetric.finalized = true;
 	return travelMetric;

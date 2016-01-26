@@ -82,6 +82,7 @@ void ParseMidTermConfigFile::processXmlFile(xercesc::XercesDOMParser& parser)
     processScreenLineNode(GetSingleElementByName(rootNode, "screen-line-count"));
     processGenerateBusRoutesNode(GetSingleElementByName(rootNode, "generateBusRoutes"));
     processTT_Update(GetSingleElementByName(rootNode, "travel_time_update", true));
+    processSubtripTravelMetricsOutputNode(GetSingleElementByName(rootNode, "subtrip_travel_metrics_output"));
     processPublicTransit(GetSingleElementByName(rootNode, "public_transit", true));
     processCBDNode(GetSingleElementByName(rootNode, "CBD"));
     processPathSetFileName(GetSingleElementByName(rootNode, "path-set-config-file", true));
@@ -150,10 +151,10 @@ void ParseMidTermConfigFile::processPredayNode(xercesc::DOMElement* node)
 		std::string credential = ParseString(GetNamedAttributeValue(childNode, "credential", false), EMPTY_STRING);
 		mtCfg.setPopulationDb(database, credential);
 
-		childNode = GetSingleElementByName(node, "logsum", true);
+		childNode = GetSingleElementByName(node, "simmob_mt", true);
 		database = ParseString(GetNamedAttributeValue(childNode, "database", false), EMPTY_STRING);
 		credential = ParseString(GetNamedAttributeValue(childNode, "credential", false), EMPTY_STRING);
-		mtCfg.setLogsumDb(database, credential);
+		mtCfg.setSimmobDb(database, credential);
 	}
 
 	processModelScriptsNode(GetSingleElementByName(node, "model_scripts", true));
@@ -524,6 +525,20 @@ void ParseMidTermConfigFile::processGenerateBusRoutesNode(xercesc::DOMElement* n
 		return;
 	}
 	cfg.generateBusRoutes = ParseBoolean(GetNamedAttributeValue(node, "enabled"), false);
+}
+
+void ParseMidTermConfigFile::processSubtripTravelMetricsOutputNode(xercesc::DOMElement* node)
+{
+	//subtrip output for preday
+	if (node)
+	{
+		bool enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"));
+		if (enabled)
+		{
+			cfg.subTripTravelTimeEnabled = true;
+			cfg.subTripLevelTravelTimeOutput = ParseString(GetNamedAttributeValue(node, "file"), "subtrip_travel_times.csv");
+		}
+	}
 }
 
 void ParseMidTermConfigFile::processPublicTransit(xercesc::DOMElement* node)

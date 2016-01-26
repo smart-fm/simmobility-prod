@@ -436,6 +436,7 @@ bool performMainDemand()
 	if(mtConfig.runningPredaySimulation() && mtConfig.isFileOutputEnabled())
 	{
 		predayManager.loadZoneNodes(db::MONGO_DB);
+		predayManager.loadPostcodeNodeMapping(db::POSTGRES);
 	}
 
 	if(mtConfig.runningPredayCalibration())

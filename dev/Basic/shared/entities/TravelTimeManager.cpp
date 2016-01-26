@@ -214,7 +214,7 @@ void sim_mob::TravelTimeManager::loadLinkHistoricalTravelTime(soci::session& sql
 
 		//time interval validation
 		DailyTime interval = endTime - startTime;
-		if (interval.getValue() != TT_STORAGE_TIME_INTERVAL_WIDTH)
+		if (interval.getValue() != (TT_STORAGE_TIME_INTERVAL_WIDTH - 1000))
 		{
 			throw std::runtime_error("mismatch between time interval width specified in config and link_travel_time table");
 		}

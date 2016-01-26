@@ -938,7 +938,7 @@ void SegmentStats::setPositionOfLastUpdatedAgentInLane(double positionOfLastUpda
 	laneIt->second->setPositionOfLastUpdatedAgent(positionOfLastUpdatedAgentInLane);
 }
 
-unsigned int SegmentStats::getInitialQueueLength(const Lane* lane) const
+double SegmentStats::getInitialQueueLength(const Lane* lane) const
 {
 	LaneStatsMap::const_iterator laneIt = laneStatsMap.find(lane);
 	if (laneIt == laneStatsMap.end())

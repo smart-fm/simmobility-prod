@@ -193,6 +193,13 @@ private:
     void processGenerateBusRoutesNode(xercesc::DOMElement* node);
 
     /**
+     * processes the subtrip_travel_metrics_output element in config xml
+     *
+     * @param node node corresponding to generateBusRoutes element inside xml file
+     */
+    void processSubtripTravelMetricsOutputNode(xercesc::DOMElement* node);
+
+    /**
      * processes the bus stop schedule times element in config xml
      *
      * @param node node correspoding to scheduledTimes element inside xml file

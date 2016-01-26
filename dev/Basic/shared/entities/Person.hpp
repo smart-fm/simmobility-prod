@@ -158,17 +158,6 @@ public:
 	 */
 	std::string busLine;
 
-	/**Stores all the metrics of the sub-trips
-	 * The implementation inserts information at sub-trip resolution while pre-day will require Trip-level metrics.
-	 * So whenever all sub-trips of a trip are done (subTripTravelMetrics) and it is time to change the trip chain item
-	 * (in Person class) an aggregate function will create a new entry in tripTravelMetrics from subTripTravelMetrics
-	 * items. subTripTravelMetrics items are cleared then.
-	 */
-	std::vector<TravelMetric> tripTravelMetrics;
-
-	/**Sub-trip level travel metrics*/
-	std::vector<TravelMetric> subTripTravelMetrics;	
-
 	/**The "src" variable is used to help flag how this person was created.*/
 	explicit Person(const std::string &src, const MutexStrategy &mtxStrat, int id = -1, std::string databaseID = "");
 	explicit Person(const std::string &src, const MutexStrategy &mtxStrat, const std::vector<sim_mob::TripChainItem *> &tc);
@@ -265,37 +254,6 @@ public:
 	 */
 	void serializeSubTripChainItemTravelTimeMetrics(const TravelMetric &subtripMetrics, std::vector<TripChainItem *>::iterator currTripChainItem,
 													std::vector<SubTrip>::iterator currSubTrip) const;
-
-	/**
-	 * Get the measurements stored in subTripTravelMetrics and add them up into a new entry in tripTravelMetrics.
-	 * This method is to be called whenever a sub-trip is done.
-	 * NOTE: Currently Unused
-	 */
-	void aggregateSubTripMetrics();
-
-	/**
-	 * Add the given TravelMetric to subTripTravelMetrics container
-	 * NOTE: Currently Unused
-	 */
-	void addSubtripTravelMetrics(TravelMetric &value);
-
-	/**
-	 * Serializer for Trip level travel time
-	 * NOTE: Currently Unused
-	 */
-	void serializeTripTravelTimeMetrics();
-
-	/**
-	 * This is called by the destructor of the movement facet of a non-activity role
-	 * NOTE: Currently Unused
-	 */
-	void serializeCBD_SubTrip(const TravelMetric &metric);
-
-	/**
-	 * This is called by the destructor of the movement facet of an activity role
-	 * NOTE: Currently Unused
-	 */
-	void serializeCBD_Activity(const TravelMetric &metric);
 
 	/**
 	 * Replaces the previous trip chain with the provided trip chain. Also initialises the new trip chain.

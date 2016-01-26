@@ -2,6 +2,7 @@ from pymongo import MongoClient
 import argparse
 import datetime
 import csv
+import psycopg2
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ helper functions ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 #identify whether time is in AM peak period
@@ -60,13 +61,27 @@ def getWindowIdx(time):
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~TT_Aggregator class~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 class TT_Aggregator:
 	def __init__(self, csv_name):
-		self.inputCsv = csv.DictReader(open(str(args.csv_name)))
+		conn = psycopg2.connect("dbname='simmobility' user='postgres' host='localhost' port='5433' password='secret'")
+		cur = conn.cursor()
+
+		# truncate existing table
+		cur.execute("""truncate table output.subtrip_tt""")
+		
+		# copy csv data into table 		
+		csvFile = open(str(args.csv_name), 'r')
+		cur.copy_from(csvFile, 'output.subtrip_tt', ',')
+		csvFile.close()
+
+		# load aggregated records
+		cur.execute("""SELECT origin_taz, destination_taz, min(mode) as mode, min(start_time) as start_time, max(end_time) as end_time, sum(travel_time) as travel_time, 
+							sum(ptt_wt) as ptt_wt, sum(pt_walk) as pt_walk FROM output.subtrip_tt GROUP BY person_id, trip_id, origin_taz, destination_taz""")
+		self.inputCsv = cur.fetchall()
+		#self.inputCsv = csv.DictReader(open(str(args.csv_name)))
 		
 		#connect to local mongodb
 		self.client = MongoClient('localhost', 27017)
 		self.db = self.client.preday
 		
-		self.nodeMTZ = self.db.node_taz_map
 		self.zone = self.db.Zone_2012
 		self.zone2012To2008Map = self.db.map_1169_to_1092_zones
 		self.amCosts = self.db.LearnedAMCosts
@@ -136,10 +151,6 @@ class TT_Aggregator:
 		self.ttDepartureCarCount = [[[0 for k in xrange(48)] for j in xrange(self.NUM_ZONES)] for i in xrange(self.NUM_ZONES)]
 		self.ttArrivalBusCount = [[[0 for k in xrange(48)] for j in xrange(self.NUM_ZONES)] for i in xrange(self.NUM_ZONES)]
 		self.ttDepartureBusCount = [[[0 for k in xrange(48)] for j in xrange(self.NUM_ZONES)] for i in xrange(self.NUM_ZONES)]
-	
-	#fetch zone from node
-	def getZone(self, node):
-		return int(self.nodeMTZ.find_one({"_id" : node})["MTZ"])
 
 	#fetch 2008 zone_code corresponding to 2012 zone_code
 	def get2008Zone(self, zn2012):
@@ -256,12 +267,13 @@ class TT_Aggregator:
 	def processInput(self):
 		#process each row of input csv
 		for row in self.inputCsv:
-			orgZ = self.getZone(int(row["origin"]))
-			desZ = self.getZone(int(row["destination"]))
-			tripStartTime = str(row["start_time"])
-			tripEndTime = str(row["end_time"])
-			mode = str(row["mode"])
-			travelTime = float(row["travel_time"])
+			#origin_taz, destination_taz, mode, start_time, end_time, travel_time, ptt_wt, pt_walk
+			orgZ = int(row[0])
+			desZ = int(row[1])
+			mode = str(row[2]).strip()
+			tripStartTime = str(row[3])
+			tripEndTime = str(row[4])
+			travelTime = float(row[5])
 			if mode == "Car" or mode == "Motorcycle" or mode == "Taxi":
 				if isAM(tripStartTime):
 					self.addAMCarIvt(orgZ, desZ, travelTime)
@@ -270,20 +282,22 @@ class TT_Aggregator:
 				else:
 					self.addOPCarIvt(orgZ, desZ, travelTime)
 				self.addTTCar(orgZ, desZ, tripStartTime, tripEndTime, travelTime)
-			elif mode == "Bus":
+			elif mode == "BusTravel" or mode == "MRT":
 				if isAM(tripStartTime):
 					self.addAMPubIvt(orgZ, desZ, travelTime)
-					self.addAMPubWtt(orgZ, desZ, float(row["pt_wtt"]))
-					self.addAMPubWalkt(orgZ, desZ, float(row["pt_walkt"]))
+					self.addAMPubWtt(orgZ, desZ, float(row[6]))
+					self.addAMPubWalkt(orgZ, desZ, float(row[7]))
 				elif isPM(tripStartTime):
 					self.addPMPubIvt(orgZ, desZ, travelTime)
-					self.addPMPubWtt(orgZ, desZ, float(row["pt_wtt"]))
-					self.addPMPubWalkt(orgZ, desZ, float(row["pt_walkt"]))
+					self.addPMPubWtt(orgZ, desZ, float(row[6]))
+					self.addPMPubWalkt(orgZ, desZ, float(row[7]))
 				else:
 					self.addOPPubIvt(orgZ, desZ, travelTime)
-					self.addOPPubWtt(orgZ, desZ, float(row["pt_wtt"]))
-					self.addOPPubWalkt(orgZ, desZ, float(row["pt_walkt"]))
+					self.addOPPubWtt(orgZ, desZ, float(row[6]))
+					self.addOPPubWalkt(orgZ, desZ, float(row[7]))
 				self.addTTBus(orgZ, desZ, tripStartTime, tripEndTime, travelTime)
+			else:
+				print 'ignoring record with mode ' + mode
 		return
 	
 	def computeMeans(self):
@@ -376,7 +390,6 @@ class TT_Aggregator:
 						if newTTCarArr > 0: updates["TT_car_arrival_"+str(k+1)] = (newTTCarArr + toFloat(ttCarDoc["TT_car_arrival_"+str(k+1)]))/2
 						if newTTCarDep > 0: updates["TT_car_departure_"+str(k+1)] = (newTTCarDep + toFloat(ttCarDoc["TT_car_departure_"+str(k+1)]))/2
 				if updates: 
-					print 'OD:[',orgZ08,desZ08,'] car ',updates
 					self.ttCar.update(query, {"$set" : updates }, upsert=False , multi=False)
 				
 				updates = {}
@@ -388,7 +401,6 @@ class TT_Aggregator:
 						if newTTBusArr > 0: updates["TT_bus_arrival_"+str(k+1)] = (newTTBusArr + toFloat(ttBusDoc["TT_bus_arrival_"+str(k+1)]))/2
 						if newTTBusDep > 0: updates["TT_bus_departure_"+str(k+1)] = (newTTBusDep + toFloat(ttBusDoc["TT_bus_departure_"+str(k+1)]))/2
 				if updates: 
-					print 'OD:[',orgZ08,desZ08,'] bus ',updates
 					self.ttBus.update(query, {"$set" : updates }, upsert=False , multi=False)
 		return
 

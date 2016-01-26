@@ -119,7 +119,7 @@ Entity::UpdateStatus BusStopAgent::frame_tick(timeslice now)
 	{
 		bool ret = false;
 		sim_mob::medium::Passenger* alightedPassenger = *personIt;
-		alightedPassenger->setEndNode(busStop->getParentSegment()->getParentLink()->getToNode());
+		alightedPassenger->setEndPoint(WayPoint(busStop));
 		Person_MT* person = alightedPassenger->getParent();
 		if (person)
 		{
@@ -332,7 +332,7 @@ void BusStopAgent::boardWaitingPersons(BusDriver* busDriver)
 				if (passenger)
 				{
 					busDriver->addPassenger(passenger);
-					passenger->setStartNode(busStop->getParentSegment()->getParentLink()->getFromNode());
+					passenger->setStartPoint(WayPoint(busStop));
 					passenger->Movement()->startTravelTimeMetric();
 					ret = true;
 				}

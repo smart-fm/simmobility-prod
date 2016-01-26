@@ -168,7 +168,7 @@
     </vehicleTypes>
 
     <tripFiles>
-    	<!--tripFile name="CarTrips" fileName="data/carTrips.xml"/-->
+    	<!--<tripFile name="CarTrips" fileName="data/carTrips.xml"/>-->
     	<!--<tripFile name="TruckTrips" fileName="data/truckTrips.xml"/>-->
     </tripFiles>
 
@@ -193,6 +193,7 @@
 
     <path-set-config-file value="data/pathset_config.xml" />
     <travel_time_update interval="300" alpha="0.5" />
+    <subtrip_travel_metrics_output enabled="true" file="subtrip_level_travel_metrics.csv" />
 
 	<amodcontroller enabled="true"/>
 

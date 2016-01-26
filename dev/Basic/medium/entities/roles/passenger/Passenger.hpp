@@ -7,7 +7,7 @@
 #include "entities/Person_MT.hpp"
 #include "entities/roles/Role.hpp"
 #include "entities/roles/waitBusActivity/WaitBusActivity.hpp"
-#include "geospatial/network/Node.hpp"
+#include "geospatial/network/WayPoint.hpp"
 
 namespace sim_mob
 {
@@ -78,26 +78,6 @@ public:
 		this->alightBus = alightBus;
 	}
 
-	const sim_mob::Node* getStartNode() const
-	{
-		return startNode;
-	}
-
-	void setStartNode(const sim_mob::Node* startNode)
-	{
-		this->startNode = startNode;
-	}
-
-	const sim_mob::Node* getEndNode() const
-	{
-		return endNode;
-	}
-
-	void setEndNode(const sim_mob::Node* endNode)
-	{
-		this->endNode = endNode;
-	}
-
 	const sim_mob::medium::Driver* getDriver() const
 	{
 		return driver;
@@ -106,6 +86,26 @@ public:
 	void setDriver(const Driver* driver)
 	{
 		this->driver = driver;
+	}
+
+	const sim_mob::WayPoint& getEndPoint() const
+	{
+		return endPoint;
+	}
+
+	void setEndPoint(const sim_mob::WayPoint& endPoint)
+	{
+		this->endPoint = endPoint;
+	}
+
+	const sim_mob::WayPoint& getStartPoint() const
+	{
+		return startPoint;
+	}
+
+	void setStartPoint(const sim_mob::WayPoint& startPoint)
+	{
+		this->startPoint = startPoint;
 	}
 
 private:
@@ -118,11 +118,11 @@ private:
 	/**flag to indicate whether the passenger has decided to alight the bus*/
 	bool alightBus;
 
-	/** starting node of passenger - for travel time storage */
-	const sim_mob::Node* startNode;
+	/** starting point of passenger - for travel time storage */
+	sim_mob::WayPoint startPoint;
 
 	/** ending node of passenger - for travel time storage */
-	const sim_mob::Node* endNode;
+	sim_mob::WayPoint endPoint;
 };
 
 }

@@ -168,7 +168,7 @@ private:
 	unsigned int queueCount;
 
 	/** number of queuing persons at the start of the current tick */
-	unsigned int initialQueueLength;
+	double initialQueueLength;
 
 	/** end position of the last updated person in this lane */
 	double positionOfLastUpdatedAgent;
@@ -319,12 +319,12 @@ public:
 
 	double getMovingLength() const;
 
-	unsigned int getInitialQueueLength() const
+	double getInitialQueueLength() const
 	{
 		return initialQueueLength;
 	}
 
-	void setInitialQueueLength(unsigned int initialQueueLength)
+	void setInitialQueueLength(double initialQueueLength)
 	{
 		this->initialQueueLength = initialQueueLength;
 	}
@@ -541,7 +541,7 @@ public:
 	 * @param lane the lane for which queue length is requested
 	 * @return
 	 */
-	unsigned int getInitialQueueLength(const Lane* lane) const;
+	double getInitialQueueLength(const Lane* lane) const;
 
 	/**
 	 * adds person to lane in segment

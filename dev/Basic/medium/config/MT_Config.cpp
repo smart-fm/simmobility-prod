@@ -27,7 +27,7 @@ MT_Config::MT_Config() :
        regionRestrictionEnabled(false), midTermRunMode(MT_Config::MT_NONE), pedestrianWalkSpeed(0), numPredayThreads(0),
 			configSealed(false), fileOutputEnabled(false), consoleOutput(false), predayRunMode(MT_Config::PREDAY_NONE), calibrationMethodology(MT_Config::WSPSA),
 			logsumComputationFrequency(0), supplyUpdateInterval(0), activityScheduleLoadInterval(0), busCapacity(0), outputPredictions(false),
-            populationSource(db::MONGO_DB), populationDB(), logsumDB()
+            populationSource(db::MONGO_DB), populationDB(), simmobDB()
 {
 }
 
@@ -371,17 +371,17 @@ void MT_Config::setPopulationSource(const std::string& src)
 	}
 }
 
-const DB_Details& MT_Config::getLogsumDb() const
+const DB_Details& MT_Config::getSimmobDb() const
 {
-	return logsumDB;
+	return simmobDB;
 }
 
-void MT_Config::setLogsumDb(const std::string& logsumDb, const std::string& logsumCred)
+void MT_Config::setSimmobDb(const std::string& simmobDb, const std::string& simmobCred)
 {
 	if(!configSealed)
 	{
-		logsumDB.database = logsumDb;
-		logsumDB.credentials = logsumCred;
+		simmobDB.database = simmobDb;
+		simmobDB.credentials = simmobCred;
 	}
 }
 

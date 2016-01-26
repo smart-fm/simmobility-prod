@@ -35,6 +35,7 @@ const std::string DB_TABLE_LOGSUMS = APPLY_SCHEMA(DEMAND_SCHEMA, "preday_logsum"
 const std::string DB_SP_GET_INDIVIDUAL_IDS = APPLY_SCHEMA(MAIN_SCHEMA, "getindividualids()");
 const std::string DB_SP_GET_INDIVIDUAL_BY_ID_FOR_PREDAY = APPLY_SCHEMA(MAIN_SCHEMA, "getindividualbyidforpreday(:_id)");
 const std::string DB_SP_GET_ADDRESSES = APPLY_SCHEMA(MAIN_SCHEMA, "getaddresses()");
+const std::string DB_SP_GET_ZONE_ADDRESS_COUNTS= APPLY_SCHEMA(MAIN_SCHEMA, "getzoneaddresscounts()");
 const std::string DB_SP_GET_LOGSUMS_BY_ID = APPLY_SCHEMA(PUBLIC_SCHEMA, "get_logsums_for_person(:_id)");
 const std::string DB_SP_GET_POSTCODE_NODE_MAP = APPLY_SCHEMA(PUBLIC_SCHEMA, "get_postcode_node_map()");
 
@@ -80,7 +81,9 @@ const std::string DB_FIELD_ADDRESS_ID = "address_id";
 const std::string DB_FIELD_TAZ_CODE = "taz_code";
 const std::string DB_FIELD_POSTCODE = "postcode";
 const std::string DB_FIELD_NODE_ID = "node_id";
-
+const std::string DB_FIELD_DISTANCE_MRT = "distance_mrt";
+const std::string DB_FIELD_DISTANCE_BUS = "distance_bus";
+const std::string DB_FIELD_NUM_ADDRESSES = "num_addresses";
 
 const std::string SEARCH_STRING_CAR_OWN_NORMAL = "car (normal time)";
 const std::string SEARCH_STRING_CAR_OWN_OFF_PEAK = "car (off peak time)";
@@ -94,6 +97,9 @@ const std::string DB_GET_PERSON_BY_ID = "SELECT * FROM " + DB_SP_GET_INDIVIDUAL_
 
 /** load address taz mapping from LT database */
 const std::string DB_GET_ADDRESSES = "SELECT * FROM " + DB_SP_GET_ADDRESSES;
+
+/** load number of addresses in each taz from LT database */
+const std::string DB_GET_ZONE_ADDRESS_COUNTS = "SELECT * FROM " + DB_SP_GET_ZONE_ADDRESS_COUNTS;
 
 /** load postcode to simmobility node mapping */
 const std::string DB_GET_POSTCODE_NODE_MAP = "SELECT * FROM " + DB_SP_GET_POSTCODE_NODE_MAP;

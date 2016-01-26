@@ -245,8 +245,8 @@ bool DriverMovement::initializePath()
 	if (!person->getNextPathPlanned())
 	{
 		//Save local copies of the parent's origin/destination nodes.
-		parentDriver->origin.node = person->originNode.node;
-		parentDriver->goal.node = person->destNode.node;
+		parentDriver->origin = person->originNode;
+		parentDriver->goal = person->destNode;
 
 		if (person->originNode.node == person->destNode.node)
 		{
@@ -277,8 +277,8 @@ bool DriverMovement::initializePath()
 		//Restricted area logic
 		if(MT_Config::getInstance().isRegionRestrictionEnabled())
 		{
-			bool fromLocationInRestrictedRegion = RestrictedRegion::getInstance().isInRestrictedZone(wp_path.front());
-			bool toLocationInRestrictedRegion = RestrictedRegion::getInstance().isInRestrictedZone(wp_path.back());
+			bool fromLocationInRestrictedRegion = RestrictedRegion::getInstance().isInRestrictedZone(parentDriver->origin);
+			bool toLocationInRestrictedRegion = RestrictedRegion::getInstance().isInRestrictedZone(parentDriver->goal);
 			if (!toLocationInRestrictedRegion && !fromLocationInRestrictedRegion)
 			{//both O & D outside
 				if (RestrictedRegion::getInstance().isInRestrictedZone(wp_path))
@@ -479,10 +479,7 @@ void DriverMovement::onSegmentCompleted(const RoadSegment* completedRS, const Ro
 	traversed.push_back(completedRS);
 
 	//2. update travel distance
-	travelMetric.distance += completedRS->getPolyLine()->getLength();
-
-	//3. CBD
-	processCBD_TravelMetrics(completedRS, nextRS);
+	travelMetric.distance += completedRS->getPolyLine()->getLength();	
 }
 
 void DriverMovement::onLinkCompleted(const Link * completedLink, const Link * nextLink)
@@ -492,6 +489,9 @@ void DriverMovement::onLinkCompleted(const Link * completedLink, const Link * ne
 	{
 		reroute();
 	}
+	
+	//3. CBD
+	processCBD_TravelMetrics(completedLink, nextLink);
 }
 
 void DriverMovement::flowIntoNextLinkIfPossible(DriverUpdateParams& params)
@@ -1131,11 +1131,18 @@ TravelMetric& DriverMovement::finalizeTravelTimeMetric()
 	return travelMetric;
 }
 
-TravelMetric& DriverMovement::processCBD_TravelMetrics(const RoadSegment* completedRS, const RoadSegment* nextRS)
+TravelMetric& DriverMovement::processCBD_TravelMetrics(const Link* completedLink, const Link* nextLink)
 {
+	if(parentDriver->roleType == Role<Person_MT>::Type::RL_BUSDRIVER)
+	{
+		travelMetric.cbdTraverseType = TravelMetric::CBD_NONE;
+		return travelMetric;
+	}
+	
 	//	the following conditions should hold in order to process CBD data
-	TravelMetric::CDB_TraverseType type = travelMetric.cbdTraverseType;
-	bool proceed = (nextRS && !pathMover.isPathCompleted());
+	travelMetric.cbdTraverseType = (*(parentDriver->parent->currSubTrip)).cbdTraverseType;
+	bool proceed = (nextLink && !pathMover.isPathCompleted());
+	
 	if (!proceed)
 	{
 		return travelMetric;
@@ -1145,20 +1152,20 @@ TravelMetric& DriverMovement::processCBD_TravelMetrics(const RoadSegment* comple
 	RestrictedRegion &cbd = RestrictedRegion::getInstance();
 
 	//	update travel distance
-	if (cbd.isInRestrictedZone(completedRS))
+	if (cbd.isInRestrictedZone(completedLink))
 	{
-		travelMetric.cbdDistance += completedRS->getPolyLine()->getLength();
+		travelMetric.cbdDistance += completedLink->getLength();
 	}
 
 	//process either enter or exit
-	switch (type)
+	switch (travelMetric.cbdTraverseType)
 	{
 	case TravelMetric::CBD_ENTER:
 	{
 		//search if you are about to enter CBD (we assume the trip started outside cbd and  is going to end inside cbd)
-		if (!cbd.isInRestrictedZone(completedRS) && cbd.isInRestrictedZone(nextRS) && travelMetric.cbdEntered.check())
+		if (!cbd.isInRestrictedZone(completedLink) && cbd.isInRestrictedZone(nextLink) && travelMetric.cbdEntered.check())
 		{
-			travelMetric.cbdOrigin = WayPoint(completedRS->getParentLink()->getToNode());
+			travelMetric.cbdOrigin = WayPoint(completedLink->getToNode());
 			travelMetric.cbdStartTime = DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime();
 		}
 		break;
@@ -1166,9 +1173,9 @@ TravelMetric& DriverMovement::processCBD_TravelMetrics(const RoadSegment* comple
 	case TravelMetric::CBD_EXIT:
 	{
 		//search if you are about to exit CBD(we assume the trip started inside cbd and is going to end outside cbd)
-		if (cbd.isInRestrictedZone(completedRS)&&!cbd.isInRestrictedZone(nextRS) && travelMetric.cbdExitted.check())
+		if (cbd.isInRestrictedZone(completedLink)&&!cbd.isInRestrictedZone(nextLink) && travelMetric.cbdExitted.check())
 		{
-			travelMetric.cbdDestination = WayPoint(completedRS->getParentLink()->getToNode());
+			travelMetric.cbdDestination = WayPoint(completedLink->getToNode());
 			travelMetric.cbdEndTime = DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime();
 			travelMetric.cbdTravelTime = TravelMetric::getTimeDiffHours(travelMetric.cbdEndTime, travelMetric.cbdStartTime);
 		}
@@ -1176,11 +1183,11 @@ TravelMetric& DriverMovement::processCBD_TravelMetrics(const RoadSegment* comple
 	}
 	case TravelMetric::CBD_PASS:
 	{
-		travelMetric.cbdOrigin = WayPoint(completedRS->getParentLink()->getToNode());
+		travelMetric.cbdOrigin = WayPoint(completedLink->getToNode());
 		travelMetric.cbdStartTime = DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime();
-		if(cbd.isInRestrictedZone(completedRS)&&!cbd.isInRestrictedZone(nextRS))
+		if(cbd.isInRestrictedZone(completedLink)&&!cbd.isInRestrictedZone(nextLink))
 		{
-			travelMetric.cbdDestination = WayPoint(completedRS->getParentLink()->getToNode());
+			travelMetric.cbdDestination = WayPoint(completedLink->getToNode());
 			travelMetric.cbdEndTime = DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime();
 			travelMetric.cbdTravelTime = TravelMetric::getTimeDiffHours(travelMetric.cbdEndTime , travelMetric.cbdStartTime);
 		}

@@ -491,11 +491,12 @@ void sim_mob::Person::serializeSubTripChainItemTravelTimeMetrics(const TravelMet
 	{
 		destNode = subtripMetrics.destination.node->getNodeId();
 	}
+	Print() << "\nPerson: " << (static_cast<Trip*> (*currTripChainItem))->getPersonID();
 	std::stringstream res("");
 	// actual writing
 	res <<
-			this->getId() << "," << //	person_id
-			(static_cast<Trip*> (*currTripChainItem))->tripID << "," << //	trip_id
+			(static_cast<Trip*> (*currTripChainItem))->getPersonID() << "," << //	person_id
+			(static_cast<Trip*> (*currTripChainItem))->getPersonID() << "_" << ((static_cast<Trip*> (*currTripChainItem))->sequenceNumber) << "," << //	trip_id
 			st.tripID << "," << //	subtrip_id
 			origiNode << "," << //	origin
 			destNode << "," << //	destination
@@ -530,7 +531,7 @@ void sim_mob::Person::serializeSubTripChainItemTravelTimeMetrics(const TravelMet
 			<< subtripMetrics.cbdEndTime.getStrRepr() << ","
 			<< st.travelMode << ","
 			<< subtripMetrics.cbdTraverseType << std::endl;
-	sim_mob::BasicLogger& cbd = sim_mob::Logger::log("cdb.csv");
+	sim_mob::BasicLogger& cbd = sim_mob::Logger::log("cbd.csv");
 	cbd << ret.str();
 }
 

@@ -126,11 +126,11 @@ protected:
 
 	/**
 	 * Process CBD information where a segment in the path has been traversed
-	 * @param  completedRS the completed Road Segment
-	 * @param  nextRS the next Road Segment to be visited next(if any)
+	 * @param  completedLink the completed Link
+	 * @param  nextLink the next Link to be visited next(if any)
 	 * @return Travel Metrics member object
 	 */
-	virtual TravelMetric& processCBD_TravelMetrics(const RoadSegment* completedRS, const RoadSegment* nextRS);
+	virtual TravelMetric& processCBD_TravelMetrics(const Link* completedLink, const Link* nextLink);
 
 	/**
 	 * For moving into a new link after getting permission from the managing conflux

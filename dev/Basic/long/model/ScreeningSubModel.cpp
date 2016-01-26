@@ -45,6 +45,7 @@ namespace sim_mob
 			DWL800			=  1.4437154; 	//21 = 1, if household size is 1, living in other types of housing units
 
 			model 			= nullptr;
+			headOfHousehold = nullptr;
 		}
 
 		ScreeningSubModel::~ScreeningSubModel(){}
@@ -235,7 +236,7 @@ namespace sim_mob
 
 			for( int n = 0; n < model->getAlternatives().size(); n++ )
 			{
-			 	if( model->getAlternatives()[n]->getAvgHouseholdIncome() < 0.1 )
+			 	if( model->getAlternatives()[n]->getUnitTypeCounter() == 0 )
 			 	{
 					for(int m = 0; m < populationPerPlanningArea.size(); m++)
 					{

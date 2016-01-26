@@ -77,7 +77,7 @@ namespace
 											"%83%, %84%, %85%, %86%, %87%, %88%, %89%, %90%, %91%, %92%, %93%, %94%, %95%, %96%, %97%, %98%, %99%, %100%, %101%, %102%, %103%, %104%, %105%, %106%, %107%, %108%, %109%, %110%, %111%, %112%, %113%, %114%, %115%, %116%, %117%, %118%, "
 											"%119%, %120%, %121%, %122%, %123%, %124%, %125%, %126%, %127%, %128%, %129%, %130%, %131%, %132%, %133%, %134%, %135%, %136%, %137%, %138%, %139%, %140%, %141%, %142%, %143%, %144%, %145%, %146%, %147%, %148%, %149%, %150%, %151%, "
 											"%152%, %153%, %154%, %155%, %156%, %157%, %158%, %159%, %160%, %161%, %162%, %163%, %164%, %165%, %166%, %167%, %168%, %169%, %170%, %171%, %172%, %173%, %174%, %175%, %176%, %177%, %178%, %179%, %180%, %181%, %182%, %183%, %184%, "
-											"%185%, %186%, %187%, %188%, %189%, %190%, %191%, %192%, %193%, %194%, %195%, %196%, %197%, %198%, %199%, %200% %201%"
+											"%185%, %186%, %187%, %188%, %189%, %190%, %191%, %192%, %193%, %194%, %195%, %196%, %197%, %198%, %199%, %200%, %201%"
 											)% householdId % probabilities[0]  % probabilities[1]  % probabilities[2]  % probabilities[3]  % probabilities[4]  % probabilities[5]  % probabilities[6]  % probabilities[7]  % probabilities[8]  % probabilities[9]  % probabilities[10]  % probabilities[11]  % probabilities[12]  % probabilities[13]
 											% probabilities[14]  % probabilities[15]  % probabilities[16]  % probabilities[17]  % probabilities[18]  % probabilities[19]  % probabilities[20]  % probabilities[21]  % probabilities[22]  % probabilities[23]  % probabilities[24]  % probabilities[25]  % probabilities[26]  % probabilities[27]
 											% probabilities[28]  % probabilities[29]  % probabilities[30]  % probabilities[31]  % probabilities[32]  % probabilities[33]  % probabilities[34]  % probabilities[35]  % probabilities[36]  % probabilities[37]  % probabilities[38]  % probabilities[39]  % probabilities[40]  % probabilities[41]
@@ -1098,23 +1098,13 @@ bool HouseholdBidderRole::pickEntryToBid()
     }
     else
     {
-
-    	//PrintOutV("choiceset was successful" << std::endl);
-
-    	char temp[1000];
+    	std::string choiceset;
     	for(int n = 0; n < screenedEntries.size(); n++)
     	{
-    		int strLength = 0;
-
-    		if( n > 0)
-    			strLength = strlen(temp);
-
-    		const Unit *thisUnit = model->getUnitById( screenedEntries[n]->getUnitId());
-
-    		sprintf( temp + strLength, " %i,", (int)screenedEntries[n]->getUnitId() );
+    		choiceset = std::to_string( screenedEntries[n]->getUnitId() )  + ", ";
     	}
 
-    	printChoiceset(household->getId(), temp);
+    	printChoiceset(household->getId(), choiceset);
     }
 
    //PrintOutV("Screening  entries is now: " << screenedEntries.size() << std::endl );

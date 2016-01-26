@@ -1326,6 +1326,13 @@ void HM_Model::startImpl()
 	}
 
 
+	//Create a map that concatanates origin and destination PA for faster lookup.
+	for(int n = 0; n < screeningCostTime.size(); n++ )
+	{
+		std::string costTime = std::to_string(screeningCostTime[n]->getPlanningAreaOrigin() ) + "-" + std::to_string(screeningCostTime[n]->getPlanningAreaDestination());
+		screeningCostTimeSuperMap.insert({costTime, screeningCostTime[n]->getId()});
+	}
+
 	unitsFiltering();
 
 	workGroup.assignAWorker(&market);
@@ -2107,6 +2114,23 @@ std::vector<boost::shared_ptr<VehicleOwnershipChanges> > HM_Model::getVehicleOwn
 std::vector<ScreeningCostTime*>  HM_Model::getScreeningCostTime()
 {
 	return  screeningCostTime;
+}
+
+ScreeningCostTime* HM_Model::getScreeningCostTimeInst(std::string key)
+{
+	ScreeningCostTimeSuperMap::const_iterator itr = screeningCostTimeSuperMap.find(key);
+
+	int size = screeningCostTimeSuperMap.size();
+
+	if (itr != screeningCostTimeSuperMap.end())
+	{
+		ScreeningCostTimeMap::const_iterator itr2 = screeningCostTimeById.find((*itr).second);
+
+		if (itr2 != screeningCostTimeById.end())
+			return (*itr2).second;
+	}
+
+	return nullptr;
 }
 
 std::vector<AccessibilityFixedPzid*> HM_Model::getAccessibilityFixedPzid()

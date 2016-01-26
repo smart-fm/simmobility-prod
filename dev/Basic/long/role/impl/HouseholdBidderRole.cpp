@@ -1099,7 +1099,7 @@ bool HouseholdBidderRole::pickEntryToBid()
     else
     {
 
-    	PrintOutV("choiceset was successful" << std::endl);
+    	//PrintOutV("choiceset was successful" << std::endl);
 
     	char temp[1000];
     	for(int n = 0; n < screenedEntries.size(); n++)

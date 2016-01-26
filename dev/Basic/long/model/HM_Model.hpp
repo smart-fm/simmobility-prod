@@ -132,6 +132,7 @@ namespace sim_mob
 
             typedef std::vector<ScreeningCostTime*> ScreeningCostTimeList;
             typedef boost::unordered_map<BigSerial, ScreeningCostTime*> ScreeningCostTimeMap;
+            typedef boost::unordered_map<std::string, BigSerial> ScreeningCostTimeSuperMap;
 
             /**
              * Taz statistics
@@ -312,6 +313,7 @@ namespace sim_mob
             void addVehicleOwnershipChanges(boost::shared_ptr<VehicleOwnershipChanges> &vehicleOwnershipChange);
             std::vector<boost::shared_ptr<VehicleOwnershipChanges> > getVehicleOwnershipChanges();
             ScreeningCostTimeList getScreeningCostTime();
+            ScreeningCostTime* getScreeningCostTimeInst(std::string key);
             AccessibilityFixedPzidList getAccessibilityFixedPzid();
 
             static const BigSerial FAKE_IDS_START = 9999900;
@@ -388,6 +390,7 @@ namespace sim_mob
 
             ScreeningCostTimeList screeningCostTime;
             ScreeningCostTimeMap screeningCostTimeById;
+            ScreeningCostTimeSuperMap screeningCostTimeSuperMap;
 
             boost::mutex mtx;
             boost::mutex mtx2;

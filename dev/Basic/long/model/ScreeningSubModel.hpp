@@ -66,7 +66,7 @@ namespace sim_mob
 				double DWL800; 	//21 = 1, if household size is 1, living in other types of housing units
 
 				HM_Model *model;
-				boost::shared_ptr<Individual*> headOfHousehold;
+				Individual* headOfHousehold;
 
 		};
 	}

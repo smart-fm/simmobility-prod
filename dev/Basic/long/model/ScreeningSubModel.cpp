@@ -51,7 +51,7 @@ namespace sim_mob
 
 		BigSerial ScreeningSubModel::ComputeWorkPlanningArea(PlanningArea *planningAreaWork)
 		{
-				Job  *headOfHhJob = model->getJobById( (*headOfHousehold)->getJobId());
+				Job  *headOfHhJob = model->getJobById( (headOfHousehold)->getJobId());
 				Establishment *headOfHhEstablishment = model->getEstablishmentById(headOfHhJob->getEstablishmentId());
 				Postcode *slaAddressWork = model->getPostcodeById( headOfHhEstablishment->getSlaAddressId());
 
@@ -111,7 +111,7 @@ namespace sim_mob
 
 				if( tempIndividual->getHouseholdHead() == true )
 				{
-					headOfHousehold = boost::make_shared<Individual*>(tempIndividual);
+					headOfHousehold = tempIndividual;
 					break;
 				}
 			}
@@ -119,9 +119,6 @@ namespace sim_mob
 
 		void ScreeningSubModel::getScreeningProbabilities( int hhId, std::vector<double> &probabilities, HM_Model *modelArg, int day )
 		{
-			TimeCheck tc;
-			TimeCheck tc5;
-
 			model = modelArg;
 			Household* household = model->getHouseholdById(hhId);
 			const Unit* unit = model->getUnitById( household->getUnitId() );
@@ -192,8 +189,6 @@ namespace sim_mob
 					bHouseholdMemberGreaterThan65 = true;
 			}
 
-			double zero = tc.getClockTime();
-
 			for(int n = 0; n < populationPerPlanningArea.size(); n++)
 			{
 				populationTotal += populationPerPlanningArea[n]->getPopulation();
@@ -237,51 +232,57 @@ namespace sim_mob
 
 		 	double probabilitySum = 0;
 
-		 	double one = tc.getClockTime();
-		 	TimeCheck tc2;
-		 	double two = 0;
-		 	double three = 0;
 
 			for( int n = 0; n < model->getAlternatives().size(); n++ )
 			{
-				TimeCheck tc3;
-				TimeCheck tc4;
-				for(int m = 0; m < populationPerPlanningArea.size(); m++)
-				{
-					int dwellingType = 0;
-					int unitType = populationPerPlanningArea[m]->getUnitType();
-
-					if( unitType < 3 )
-						dwellingType = 100;
-					else
-					if( unitType == 3 )
-						dwellingType = 300;
-					else
-					if( unitType == 4 )
-						dwellingType = 400;
-					else
-					if( unitType == 5 || unitType == 6 )
-						dwellingType = 500;
-					else
-					if(( unitType >=7 && unitType <=16 ) || ( unitType >= 32 && unitType <= 36 ) )
-						dwellingType = 600;
-					else
-					if( unitType >= 17 && unitType <= 31 )
-						dwellingType = 700;
-					else
-						dwellingType = 800;
-
-
-					if( dwellingType == model->getAlternatives()[n]->getDwellingTypeId() )
+			 	if( model->getAlternatives()[n]->getAvgHouseholdIncome() < 0.1 )
+			 	{
+					for(int m = 0; m < populationPerPlanningArea.size(); m++)
 					{
-						avgHouseholdSize += populationPerPlanningArea[m]->getAvgHhSize();
-						avgHouseholdIncome += populationPerPlanningArea[m]->getAvgIncome();
-						unitTypeCounter++;
-						populationByunitType += populationPerPlanningArea[m]->getPopulation();
-					}
-				}
+						int dwellingType = 0;
+						int unitType = populationPerPlanningArea[m]->getUnitType();
 
-				two += tc3.getClockTime();
+						if( unitType < 3 )
+							dwellingType = 100;
+						else
+						if( unitType == 3 )
+							dwellingType = 300;
+						else
+						if( unitType == 4 )
+							dwellingType = 400;
+						else
+						if( unitType == 5 || unitType == 6 )
+							dwellingType = 500;
+						else
+						if(( unitType >=7 && unitType <=16 ) || ( unitType >= 32 && unitType <= 36 ) )
+							dwellingType = 600;
+						else
+						if( unitType >= 17 && unitType <= 31 )
+							dwellingType = 700;
+						else
+							dwellingType = 800;
+
+						if( dwellingType == model->getAlternatives()[n]->getDwellingTypeId() )
+						{
+							avgHouseholdSize += populationPerPlanningArea[m]->getAvgHhSize();
+							avgHouseholdIncome += populationPerPlanningArea[m]->getAvgIncome();
+							unitTypeCounter++;
+							populationByunitType += populationPerPlanningArea[m]->getPopulation();
+						}
+					}
+
+			 		model->getAlternatives()[n]->setAvgHouseholdSize(avgHouseholdSize );
+					model->getAlternatives()[n]->setAvgHouseholdIncome(avgHouseholdIncome );
+					model->getAlternatives()[n]->setUnitTypeCounter(unitTypeCounter );
+					model->getAlternatives()[n]->setPopulationByUnitType(populationByunitType );
+			 	}
+			 	else
+			 	{
+			 		avgHouseholdSize  = model->getAlternatives()[n]->getAvgHouseholdSize();
+			 		avgHouseholdIncome = model->getAlternatives()[n]->getAvgHouseholdIncome();
+			 		unitTypeCounter = model->getAlternatives()[n]->getUnitTypeCounter();
+			 		populationByunitType = model->getAlternatives()[n]->getPopulationByUnitType();
+			 	}
 
 				avgHouseholdSize 	= avgHouseholdSize 	  / unitTypeCounter;
 				avgHouseholdIncome 	= avgHouseholdIncome  / unitTypeCounter;
@@ -330,14 +331,24 @@ namespace sim_mob
 				if( planningAreaWork )
 					(*planningAreaWork).getId();
 
+				std::string key = std::to_string( model->getAlternatives()[n]->getPlanAreaId() ) + "-" + std::to_string( (*planningAreaWork).getId());
+				ScreeningCostTime* costTime = model->getScreeningCostTimeInst(key);
 
-				for(int m = 0; m < model->getScreeningCostTime().size(); m++ )
+				if(costTime)
 				{
-					if( model->getScreeningCostTime()[m]->getPlanningAreaOrigin() 	   == model->getAlternatives()[n]->getPlanAreaId() &&
-						model->getScreeningCostTime()[m]->getPlanningAreaDestination() == (*planningAreaWork).getId() )
+					publicTransitCost = costTime->getCost();
+					publicTransitTime = costTime->getTime();
+				}
+				else
+				{
+					for(int m = 0; m < model->getScreeningCostTime().size(); m++ )
 					{
-						publicTransitCost = model->getScreeningCostTime()[m]->getCost();
-						publicTransitTime = model->getScreeningCostTime()[m]->getTime();
+						if( model->getScreeningCostTime()[m]->getPlanningAreaOrigin() 	   == model->getAlternatives()[n]->getPlanAreaId() &&
+							model->getScreeningCostTime()[m]->getPlanningAreaDestination() == (*planningAreaWork).getId() )
+						{
+							publicTransitCost = model->getScreeningCostTime()[m]->getCost();
+							publicTransitTime = model->getScreeningCostTime()[m]->getTime();
+						}
 					}
 				}
 
@@ -419,8 +430,6 @@ namespace sim_mob
 				probabilities.push_back(probability);
 
 				probabilitySum += exp(probability);
-
-				three += tc4.getClockTime();
 			}
 
 			for( int n = 0; n < probabilities.size(); n++)
@@ -428,11 +437,6 @@ namespace sim_mob
 				probabilities[n] = exp(probabilities[n])/ probabilitySum;
 			}
 
-			two = two / model->getAlternatives().size();
-			three = three / model->getAlternatives().size();
-			double four = tc5.getClockTime();
-
-			//PrintOut("0: " << zero << " 1: " << one << " 2. " << two << " 3. " << three << " 4. " << four << std::endl);
 
 			/*
 			// NOTE: dgp is the planning area

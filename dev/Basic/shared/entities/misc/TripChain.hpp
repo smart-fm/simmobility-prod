@@ -151,6 +151,9 @@ public:
 	std::string endLocationId;
 	std::string startLocationType;
 	std::string endLocationType;
+	
+	/**Indicates the number of times the trip is to be loaded [Added for short-term demand calibration]*/
+	unsigned int load_factor;
 
 	//Get/set personID. Please make sure not to set the personID to an Integer!
 	std::string getPersonID() const;

@@ -7,6 +7,7 @@
 #include "entities/IntersectionManager.hpp"
 #include "entities/Person_ST.hpp"
 #include "entities/signal/Signal.hpp"
+#include "geospatial/network/SOCI_Converters.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "partitions/PartitionManager.hpp"
 #include "path/PT_PathSetManager.hpp"
@@ -126,6 +127,142 @@ Trip* MakePseudoTrip(unsigned int personId, const Node *origin, const Node *dest
 	//Add it to the Trip; return this value.
 	res->addSubTrip(subTrip);
 	return res;
+}
+
+Trip* makeTrip(soci::row &r)
+{
+	//Create a new trip
+	Trip *trip = new Trip();
+	trip->itemType = TripChainItem::IT_TRIP;
+	trip->tripID = r.get<string>(0);
+	trip->setPersonID(r.get<string>(1));
+	trip->startTime = DailyTime(r.get<string>(2));
+	trip->originType = (TripChainItem::LocationType)r.get<int>(5);
+	trip->destinationType = (TripChainItem::LocationType)r.get<int>(6);
+	trip->startLocationId = r.get<string>(7);
+	trip->endLocationId = r.get<string>(8);
+	trip->load_factor = r.get<unsigned int>(9);
+	trip->travelMode = r.get<string>(11);
+	
+	if (trip->originType == TripChainItem::LT_NODE)
+	{
+		unsigned int nodeId = atoi(trip->startLocationId.c_str());
+		const RoadNetwork *rdNetwork = RoadNetwork::getInstance();
+
+		trip->origin = WayPoint(rdNetwork->getById(rdNetwork->getMapOfIdvsNodes(), nodeId));
+	}
+	else if (trip->originType == TripChainItem::LT_PUBLIC_TRANSIT_STOP)
+	{
+		trip->origin = WayPoint(BusStop::findBusStop(trip->startLocationId));
+	}
+
+	if (trip->destinationType == TripChainItem::LT_NODE)
+	{
+		unsigned int nodeId = atoi(trip->endLocationId.c_str());
+		const RoadNetwork *rdNetwork = RoadNetwork::getInstance();
+
+		trip->destination = WayPoint(rdNetwork->getById(rdNetwork->getMapOfIdvsNodes(), nodeId));
+	}
+	else if (trip->destinationType == TripChainItem::LT_PUBLIC_TRANSIT_STOP)
+	{
+		trip->destination = WayPoint(BusStop::findBusStop(trip->endLocationId));
+	}
+	
+	//Create the sub-trip with-in the trip
+	SubTrip subtrip;
+	subtrip.itemType = TripChainItem::IT_TRIP;
+	subtrip.tripID = trip->tripID;
+	subtrip.startTime = trip->startTime;
+	subtrip.originType = trip->originType;
+	subtrip.origin = trip->origin;
+	subtrip.sequenceNumber = r.get<unsigned int>(10);
+	subtrip.travelMode = r.get<string>(11);
+	subtrip.ptLineId = r.get<string>(12);
+	subtrip.cbdTraverseType = (TravelMetric::CDB_TraverseType)r.get<int>(13);
+	subtrip.destinationType = (TripChainItem::LocationType)r.get<int>(15);
+	subtrip.endLocationId = r.get<string>(17);
+	
+	if (subtrip.destinationType == TripChainItem::LT_NODE)
+	{
+		unsigned int nodeId = atoi(subtrip.endLocationId.c_str());
+		const RoadNetwork *rdNetwork = RoadNetwork::getInstance();
+
+		subtrip.destination = WayPoint(rdNetwork->getById(rdNetwork->getMapOfIdvsNodes(), nodeId));
+	}
+	else if (subtrip.destinationType == TripChainItem::LT_PUBLIC_TRANSIT_STOP)
+	{
+		subtrip.destination = WayPoint(BusStop::findBusStop(subtrip.endLocationId));
+	}
+	
+	//Add the sub-trip
+	trip->addSubTrip(subtrip);
+	
+	return trip;
+}
+
+Activity* makeActivity(soci::row &r)
+{
+	Activity *activity = new Activity();
+	activity->itemType = TripChainItem::IT_ACTIVITY;
+	activity->setPersonID(r.get<string>(1));
+	activity->startTime = DailyTime(r.get<string>(3));
+	activity->endTime = DailyTime(r.get<string>(4));
+	activity->destinationType = (TripChainItem::LocationType)r.get<int>(6);
+	activity->endLocationId = r.get<string>(8);
+	
+	if (activity->destinationType == TripChainItem::LT_NODE)
+	{
+		unsigned int nodeId = atoi(activity->endLocationId.c_str());
+		const RoadNetwork *rdNetwork = RoadNetwork::getInstance();
+		activity->destination = WayPoint(rdNetwork->getById(rdNetwork->getMapOfIdvsNodes(), nodeId));
+	}
+	else if (activity->destinationType == TripChainItem::LT_PUBLIC_TRANSIT_STOP)
+	{
+		activity->destination = WayPoint(BusStop::findBusStop(activity->endLocationId));
+	}
+	
+	return activity;
+}
+
+SubTrip* makeSubTrip(soci::row &r)
+{
+	SubTrip *subtrip = new SubTrip();
+	subtrip->itemType = TripChainItem::IT_TRIP;
+	subtrip->tripID = r.get<string>(0);	
+	subtrip->sequenceNumber = r.get<unsigned int>(10);
+	subtrip->travelMode = r.get<string>(11);
+	subtrip->ptLineId = r.get<string>(12);
+	subtrip->cbdTraverseType = (TravelMetric::CDB_TraverseType)r.get<int>(13);
+	subtrip->originType = (TripChainItem::LocationType)r.get<int>(14);
+	subtrip->destinationType = (TripChainItem::LocationType)r.get<int>(15);
+	subtrip->startLocationId = r.get<string>(16);
+	subtrip->endLocationId = r.get<string>(17);
+	
+	if (subtrip->originType == TripChainItem::LT_NODE)
+	{
+		unsigned int nodeId = atoi(subtrip->startLocationId.c_str());
+		const RoadNetwork *rdNetwork = RoadNetwork::getInstance();
+
+		subtrip->origin = WayPoint(rdNetwork->getById(rdNetwork->getMapOfIdvsNodes(), nodeId));
+	}
+	else if (subtrip->originType == TripChainItem::LT_PUBLIC_TRANSIT_STOP)
+	{
+		subtrip->origin = WayPoint(BusStop::findBusStop(subtrip->startLocationId));
+	}
+
+	if (subtrip->destinationType == TripChainItem::LT_NODE)
+	{
+		unsigned int nodeId = atoi(subtrip->endLocationId.c_str());
+		const RoadNetwork *rdNetwork = RoadNetwork::getInstance();
+
+		subtrip->destination = WayPoint(rdNetwork->getById(rdNetwork->getMapOfIdvsNodes(), nodeId));
+	}
+	else if (subtrip->destinationType == TripChainItem::LT_PUBLIC_TRANSIT_STOP)
+	{
+		subtrip->destination = WayPoint(BusStop::findBusStop(subtrip->endLocationId));
+	}
+	
+	return subtrip;
 }
 
 } //End un-named namespace
@@ -325,18 +462,77 @@ void ExpandShortTermConfigFile::loadAgentsInOrder(ConfigParams::AgentConstraints
 
 void ExpandShortTermConfigFile::generateAgentsFromTripChain(ConfigParams::AgentConstraints &constraints)
 {
-	//NOTE: "constraints" are not used here, but they could be (for manual ID specification).
-	typedef std::map<std::string, std::vector<TripChainItem*> > TripChainMap;
-	const TripChainMap& tcs = cfg.getTripChains();
-
-	//The current agent we are working on.
-	for (TripChainMap::const_iterator it_map = tcs.begin(); it_map != tcs.end(); ++it_map)
+	soci::session sql;
+	const map<string, string> &storedProcs = cfg.getDatabaseProcMappings().procedureMappings;
+	
+	map<string, string>::const_iterator itProcedure = storedProcs.find("trip_chains");
+	
+	if(itProcedure != storedProcs.end())
 	{
-		TripChainItem *tc = it_map->second.front();
-		Person *person = new Person_ST("XML_TripChain", cfg.mutexStategy(), it_map->second);
-		person->setPersonCharacteristics();
-		addOrStashEntity(person, active_agents, pending_agents);
+		//Mapping between person id, trip id and the trip-chain
+		//map<personId, map<tripId, trip-chain> >
+		map<const string, map<const string, vector<TripChainItem *> > > tripChains;
+		
+		//Mapping between person id and person
+		map<const string, Person_ST *> persons;
+		
+		stringstream query;
+		query << "select * from " << itProcedure->second << "('" << cfg.simulation.simStartTime.getStrRepr() << "','" 
+				<< (DailyTime(cfg.simulation.totalRuntimeMS) + cfg.simulation.simStartTime).getStrRepr() << "')";
+		
+		//Connect to the db and retrieve the trip chains
+		sql.open(soci::postgresql, cfg.getDatabaseConnectionString(false));
+
+		soci::rowset<soci::row> rows = (sql.prepare << query.str());
+
+		for (soci::rowset<soci::row>::const_iterator itRows = rows.begin(); itRows != rows.end(); ++itRows)
+		{
+			//Get the person id and trip id
+			const string &tripId = (*itRows).get<string>(0);
+			const string &personId = (*itRows).get<string>(1);			
+			
+			//The trip belonging to the person
+			vector<TripChainItem *> &personTripChain = tripChains[personId][tripId];			
+			
+			if(personTripChain.empty())
+			{
+				//Create a trip and the corresponding activity				
+				Trip *trip = makeTrip(*itRows);
+				personTripChain.push_back(trip);
+
+				//Create activity if end time is provided
+				if(!(*itRows).get<string>(4).empty())
+				{
+					Activity *activity = makeActivity(*itRows);
+					personTripChain.push_back(activity);
+				}
+			}
+			else
+			{
+				//Create a sub-trip and add it to the trip
+				SubTrip *subTrip = makeSubTrip(*itRows);
+				
+				Trip *trip = dynamic_cast<Trip *>(personTripChain[0]);
+				trip->addSubTrip(*subTrip);
+			}
+			
+			//If the person is not created, create it and add it to the map
+			if(persons.find(personId) == persons.end())
+			{
+				Person_ST *person = new Person_ST("XML_TripChain", cfg.mutexStategy(), -1);
+				persons.insert(make_pair(personId, person));
+			}
+		}
+
+		//Close the connection
+		sql.close();
+		
+		//For every person, consolidate the the trips, set and initialise the trip chain and add/stash the person
 	}
+	else
+	{
+		throw std::runtime_error("Stored-procedure 'trip_chains' not found in the configuration file");
+	}	
 }
 
 void ExpandShortTermConfigFile::generateXMLAgents(const std::vector<EntityTemplate>& xmlItems)

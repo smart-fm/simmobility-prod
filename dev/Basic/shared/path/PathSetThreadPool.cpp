@@ -63,45 +63,94 @@ void sim_mob::PathSetWorkerThread::run()
 
 	if (blacklistEdges.empty())
 	{
-		std::list<StreetDirectory::Vertex> partialRes;
-		//Use A* to search for a path
-		//Taken from: http://www.boost.org/doc/libs/1_38_0/libs/graph/example/astar-cities.cpp
-		vector<StreetDirectory::Vertex> p(boost::num_vertices(*graph)); //Output variable
-		vector<double> d(boost::num_vertices(*graph));  //Output variable
-		try
+		if(timeBased)
 		{
-			boost::astar_search(*graph, fromVertex, sim_mob::A_StarShortestTravelTimePathImpl::DistanceHeuristicGraph(graph, toVertex),
-					boost::predecessor_map(&p[0]).distance_map(&d[0]).visitor(sim_mob::A_StarShortestTravelTimePathImpl::GoalVisitor(toVertex)));
-		} catch (sim_mob::A_StarShortestTravelTimePathImpl::Goal& goal)
-		{
-			//Build backwards.
-			for (StreetDirectory::Vertex v = toVertex;; v = p[v])
+			std::list<StreetDirectory::Vertex> partialRes;
+			//Use A* to search for a path
+			//Taken from: http://www.boost.org/doc/libs/1_38_0/libs/graph/example/astar-cities.cpp
+			vector<StreetDirectory::Vertex> p(boost::num_vertices(*graph)); //Output variable
+			vector<double> d(boost::num_vertices(*graph)); //Output variable
+			try
 			{
-				partialRes.push_front(v);
-				if (p[v] == v)
+				boost::astar_search(*graph, fromVertex, sim_mob::A_StarShortestTravelTimePathImpl::DistanceHeuristicGraph(graph, toVertex),
+									boost::predecessor_map(&p[0]).distance_map(&d[0]).visitor(sim_mob::A_StarShortestTravelTimePathImpl::GoalVisitor(toVertex)));
+			}
+			catch (sim_mob::A_StarShortestTravelTimePathImpl::Goal& goal)
+			{
+				//Build backwards.
+				for (StreetDirectory::Vertex v = toVertex;; v = p[v])
 				{
-					break;
+					partialRes.push_front(v);
+					if (p[v] == v)
+					{
+						break;
+					}
+				}
+				//Now build forwards.
+				std::list<StreetDirectory::Vertex>::const_iterator prev = partialRes.end();
+				for (std::list<StreetDirectory::Vertex>::const_iterator it = partialRes.begin(); it != partialRes.end(); it++)
+				{
+					//Add this edge.
+					if (prev != partialRes.end())
+					{
+						//This shouldn't fail.
+						std::pair < StreetDirectory::Edge, bool> edge = boost::edge(*prev, *it, *graph);
+						if (!edge.second)
+						{
+							Warn() << "ERROR: Boost can't find an edge that it should know about." << std::endl;
+						}
+						//Retrieve, add this edge's WayPoint.
+						WayPoint wp = boost::get(boost::edge_name, *graph, edge.first);
+						wps.push_back(wp);
+					}
+					//Save for later.
+					prev = it;
 				}
 			}
-			//Now build forwards.
-			std::list<StreetDirectory::Vertex>::const_iterator prev = partialRes.end();
-			for (std::list<StreetDirectory::Vertex>::const_iterator it = partialRes.begin(); it != partialRes.end(); it++)
+		}
+		else
+		{
+			std::list<StreetDirectory::Vertex> partialRes;
+			//Use A* to search for a path
+			//Taken from: http://www.boost.org/doc/libs/1_38_0/libs/graph/example/astar-cities.cpp
+			vector<StreetDirectory::Vertex> p(boost::num_vertices(*graph)); //Output variable
+			vector<double> d(boost::num_vertices(*graph)); //Output variable
+			try
 			{
-				//Add this edge.
-				if (prev != partialRes.end())
+				boost::astar_search(*graph, fromVertex, sim_mob::A_StarShortestPathImpl::DistanceHeuristicGraph(graph, toVertex),
+									boost::predecessor_map(&p[0]).distance_map(&d[0]).visitor(sim_mob::A_StarShortestPathImpl::GoalVisitor(toVertex)));
+			}
+			catch (sim_mob::A_StarShortestPathImpl::Goal& goal)
+			{
+				//Build backwards.
+				for (StreetDirectory::Vertex v = toVertex;; v = p[v])
 				{
-					//This shouldn't fail.
-					std::pair<StreetDirectory::Edge, bool> edge = boost::edge(*prev, *it, *graph);
-					if (!edge.second)
+					partialRes.push_front(v);
+					if (p[v] == v)
 					{
-						Warn() << "ERROR: Boost can't find an edge that it should know about." << std::endl;
+						break;
 					}
-					//Retrieve, add this edge's WayPoint.
-					WayPoint wp = boost::get(boost::edge_name, *graph, edge.first);
-					wps.push_back(wp);
 				}
-				//Save for later.
-				prev = it;
+				//Now build forwards.
+				std::list<StreetDirectory::Vertex>::const_iterator prev = partialRes.end();
+				for (std::list<StreetDirectory::Vertex>::const_iterator it = partialRes.begin(); it != partialRes.end(); it++)
+				{
+					//Add this edge.
+					if (prev != partialRes.end())
+					{
+						//This shouldn't fail.
+						std::pair < StreetDirectory::Edge, bool> edge = boost::edge(*prev, *it, *graph);
+						if (!edge.second)
+						{
+							Warn() << "ERROR: Boost can't find an edge that it should know about." << std::endl;
+						}
+						//Retrieve, add this edge's WayPoint.
+						WayPoint wp = boost::get(boost::edge_name, *graph, edge.first);
+						wps.push_back(wp);
+					}
+					//Save for later.
+					prev = it;
+				}
 			}
 		}
 	}
@@ -120,16 +169,20 @@ void sim_mob::PathSetWorkerThread::run()
 			std::list<StreetDirectory::Vertex> partialRes;
 
 			vector<StreetDirectory::Vertex> p(boost::num_vertices(filtered)); //Output variable
-			vector<double> d(boost::num_vertices(filtered));  //Output variable
+			vector<double> d(boost::num_vertices(filtered)); //Output variable
 
 			//Use A* to search for a path
 			//Taken from: http://www.boost.org/doc/libs/1_38_0/libs/graph/example/astar-cities.cpp
 			//...which is available under the terms of the Boost Software License, 1.0
 			try
 			{
-				boost::astar_search(filtered, fromVertex, sim_mob::A_StarShortestTravelTimePathImpl::DistanceHeuristicFiltered(&filtered, toVertex),
-						boost::predecessor_map(&p[0]).distance_map(&d[0]).visitor(sim_mob::A_StarShortestTravelTimePathImpl::GoalVisitor(toVertex)));
-			} catch (sim_mob::A_StarShortestTravelTimePathImpl::Goal& goal)
+				if(!p.empty() && !d.empty())
+				{
+					boost::astar_search(filtered, fromVertex, sim_mob::A_StarShortestTravelTimePathImpl::DistanceHeuristicFiltered(&filtered, toVertex),
+										boost::predecessor_map(&p[0]).distance_map(&d[0]).visitor(sim_mob::A_StarShortestTravelTimePathImpl::GoalVisitor(toVertex)));
+				}
+			}
+			catch (sim_mob::A_StarShortestTravelTimePathImpl::Goal& goal)
 			{
 				//Build backwards.
 				for (StreetDirectory::Vertex v = toVertex;; v = p[v])
@@ -148,7 +201,7 @@ void sim_mob::PathSetWorkerThread::run()
 					if (prev != partialRes.end())
 					{
 						//This shouldn't fail.
-						std::pair<StreetDirectory::Edge, bool> edge = boost::edge(*prev, *it, filtered);
+						std::pair < StreetDirectory::Edge, bool> edge = boost::edge(*prev, *it, filtered);
 						if (!edge.second)
 						{
 							std::cerr << "ERROR: Boost can't find an edge that it should know about." << std::endl;
@@ -161,7 +214,7 @@ void sim_mob::PathSetWorkerThread::run()
 					//Save for later.
 					prev = it;
 				}
-			}				//catch
+			} //catch
 		}
 		else
 		{
@@ -175,16 +228,20 @@ void sim_mob::PathSetWorkerThread::run()
 			std::list<StreetDirectory::Vertex> partialRes;
 
 			vector<StreetDirectory::Vertex> p(boost::num_vertices(filtered)); //Output variable
-			vector<double> d(boost::num_vertices(filtered));  //Output variable
+			vector<double> d(boost::num_vertices(filtered)); //Output variable
 
 			//Use A* to search for a path
 			//Taken from: http://www.boost.org/doc/libs/1_38_0/libs/graph/example/astar-cities.cpp
 			//...which is available under the terms of the Boost Software License, 1.0
 			try
 			{
-				boost::astar_search(filtered, fromVertex, sim_mob::A_StarShortestPathImpl::DistanceHeuristicFiltered(&filtered, toVertex),
-						boost::predecessor_map(&p[0]).distance_map(&d[0]).visitor(sim_mob::A_StarShortestPathImpl::GoalVisitor(toVertex)));
-			} catch (sim_mob::A_StarShortestPathImpl::Goal& goal)
+				if(!p.empty() && !d.empty())
+				{
+					boost::astar_search(filtered, fromVertex, sim_mob::A_StarShortestPathImpl::DistanceHeuristicFiltered(&filtered, toVertex),
+										boost::predecessor_map(&p[0]).distance_map(&d[0]).visitor(sim_mob::A_StarShortestPathImpl::GoalVisitor(toVertex)));
+				}
+			}
+			catch (sim_mob::A_StarShortestPathImpl::Goal& goal)
 			{
 				//Build backwards.
 				for (StreetDirectory::Vertex v = toVertex;; v = p[v])
@@ -203,7 +260,7 @@ void sim_mob::PathSetWorkerThread::run()
 					if (prev != partialRes.end())
 					{
 						//This shouldn't fail.
-						std::pair<StreetDirectory::Edge, bool> edge = boost::edge(*prev, *it, filtered);
+						std::pair < StreetDirectory::Edge, bool> edge = boost::edge(*prev, *it, filtered);
 						if (!edge.second)
 						{
 							std::cerr << "ERROR: Boost can't find an edge that it should know about." << std::endl;

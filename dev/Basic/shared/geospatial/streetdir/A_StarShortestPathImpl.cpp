@@ -560,15 +560,15 @@ void A_StarShortestPathImpl::procAddStartNodesAndEdges(StreetDirectory::Graph& g
 		for (std::vector<NodeDescriptor>::const_iterator it2 =it->second.vertices.begin(); it2 != it->second.vertices.end();it2++) {
 			//From source to "other"
 			StreetDirectory::Vertex v =it2->v;
-			if(!it2->after)
+			if(!it2->before)
 			{
 				addSimpleEdge(graph, source, v, WayPoint(it->first), 1.0);
 			}
 
 			//From "other" to sink
-			if(!it2->before)
+			if(!it2->after)
 			{
-				addSimpleEdge(graph,v, sink, WayPoint(it->first), 1.0);
+				addSimpleEdge(graph, v, sink, WayPoint(it->first), 1.0);
 			}
 
 		}

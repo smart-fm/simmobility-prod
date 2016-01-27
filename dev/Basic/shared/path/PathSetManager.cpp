@@ -475,7 +475,7 @@ vector<WayPoint> sim_mob::PrivateTrafficRouteChoice::getPath(const sim_mob::SubT
 			{
 				str << "[BOTH INSIDE CBD]";
 			}
-			getBestPath(res, subTrip, true,std::set<const sim_mob::Link*>(), false, false,enRoute, approach);
+			getBestPath(res, subTrip, true,std::set<const sim_mob::Link*>(), false, false, enRoute, approach);
 		}
 	}
 	else
@@ -1061,7 +1061,6 @@ int sim_mob::PrivatePathsetGenerator::generateAllPathChoices(boost::shared_ptr<s
 
 	//step-3: SHORTEST TRAVEL TIME LINK ELIMINATION
 	std::vector<PathSetWorkerThread*> STTLE_Storage;
-
 	genSTTLE(ps,STTLE_Storage);
 
 	// TRAVEL TIME HIGHWAY BIAS
@@ -1647,8 +1646,7 @@ void sim_mob::RestrictedRegion::populate()
 {
 	if(!populated.check()) { return; } //skip if already populated
 
-	sim_mob::aimsun::Loader::getCBD_Border(in,out);
-	sim_mob::aimsun::Loader::getCBD_Segments(zoneSegments);
+	sim_mob::aimsun::Loader::getCBD_Links(zoneLinks);
 	sim_mob::aimsun::Loader::getCBD_Nodes(zoneNodes);
 }
 
@@ -1658,10 +1656,10 @@ bool sim_mob::RestrictedRegion::isInRestrictedZone(const sim_mob::Node* target) 
 	return (zoneNodes.end() == it ? false : true);
 }
 
-bool sim_mob::RestrictedRegion::isInRestrictedZone(const sim_mob::RoadSegment * target) const
+bool sim_mob::RestrictedRegion::isInRestrictedZone(const sim_mob::Link * target) const
 {
-	std::set<const sim_mob::RoadSegment*>::iterator itDbg;
-	if ((itDbg = zoneSegments.find(target)) != zoneSegments.end())
+	std::set<const sim_mob::Link*>::iterator itDbg;
+	if ((itDbg = zoneLinks.find(target)) != zoneLinks.end())
 	{
 		return true;
 	}
@@ -1676,9 +1674,9 @@ bool sim_mob::RestrictedRegion::isInRestrictedZone(const sim_mob::WayPoint& targ
 		{
 			return isInRestrictedZone(target.node);
 		}
-		case WayPoint::ROAD_SEGMENT:
+		case WayPoint::LINK:
 		{
-			return isInRestrictedZone(target.roadSegment);
+			return isInRestrictedZone(target.link);
 		}
 		default:
 		{
@@ -1699,12 +1697,3 @@ bool sim_mob::RestrictedRegion::isInRestrictedZone(const std::vector<WayPoint>& 
 	return false;
 }
 
-bool sim_mob::RestrictedRegion::isEnteringRestrictedZone(const sim_mob::RoadSegment* curSeg ,const sim_mob::RoadSegment* nxtSeg)
-{
-	return in.find(std::make_pair(curSeg,nxtSeg)) != in.end();
-}
-
-bool sim_mob::RestrictedRegion::isExitingRestrictedZone(const sim_mob::RoadSegment* curSeg ,const sim_mob::RoadSegment* nxtSeg)
-{
-	return out.find(std::make_pair(curSeg,nxtSeg)) != out.end();
-}

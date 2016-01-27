@@ -22,7 +22,7 @@ namespace sim_mob
 {
 
 //Forward declarations
-class RoadSegment;
+class Link;
 class Node;
 
 namespace aimsun
@@ -31,17 +31,14 @@ namespace aimsun
 /**
  * Class for loading AimSun data and converting it to a format compatible with out network.
  */
-class Loader {
+class Loader 
+{
 public:
-	/// get CBD's border information
-	static void getCBD_Border(
-			std::set< std::pair<const sim_mob::RoadSegment*, const sim_mob::RoadSegment*> > &in,
-			std::set< std::pair<const sim_mob::RoadSegment*, const sim_mob::RoadSegment*> > & out);
-
+	/**Get all CBD nodes*/
 	static void getCBD_Nodes(std::map<unsigned int, const sim_mob::Node*>& nodes);
 
-	///	get all CBD's segments
-	static void getCBD_Segments(std::set<const sim_mob::RoadSegment*> & zoneSegments);
+	/*get all CBD's links*/
+	static void getCBD_Links(std::set<const sim_mob::Link*> & zoneLinks);
 };
 
 }

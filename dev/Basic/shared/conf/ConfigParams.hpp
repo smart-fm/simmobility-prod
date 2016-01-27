@@ -142,20 +142,6 @@ public:
 	sim_mob::ControlManager* getControlMgr() const;
 
     /**
-     * Retrieve a reference to the person id to tripchains mapping
-     *
-     * @return Reference to the person id to tripchains mapping
-     */
-	std::map<std::string, std::vector<sim_mob::TripChainItem*> >& getTripChains();
-
-    /**
-     * Retrieves a const reference to the person id to tripchains mapping
-     *
-     * @return const reference to the person id to tripchains mapping
-     */
-	const std::map<std::string, std::vector<sim_mob::TripChainItem*> >& getTripChains() const;
-
-    /**
      * Retrives a reference to the bus stop num to bus stop map
      *
      * @return reference to the bus stop num to bus stop map
@@ -209,9 +195,6 @@ private:
 
     /// Bus stop number to Bus stop mapping
 	std::map<std::string, sim_mob::BusStop*> busStopNo_busStops;
-
-    /// Person ID to trip chains mapping
-    std::map<std::string, std::vector<sim_mob::TripChainItem*> > tripchains;
 
     /// Mutable because they are set when retrieved.
 	mutable ControlManager* controlMgr;

@@ -3,6 +3,8 @@
 #pragma once
 
 #include "A_StarShortestPathImpl.hpp"
+#include "conf/ConfigManager.hpp"
+#include "util/GeomHelpers.hpp"
 
 namespace sim_mob {
 
@@ -108,6 +110,53 @@ public:
 			sim_mob::TimeRange timeRange = sim_mob::Default, unsigned int randomGraphId = 0) const;
 
 public:
+	/**
+	 * Distance heuristic for our A* search algorithm
+	 */
+	class DistanceHeuristicGraph : public boost::astar_heuristic<StreetDirectory::Graph, double>
+	{
+	private:
+		const StreetDirectory::Graph* graph;
+		StreetDirectory::Vertex goal;
+
+	public:
+
+		DistanceHeuristicGraph(const StreetDirectory::Graph* graph, StreetDirectory::Vertex goal) : graph(graph), goal(goal)
+		{
+		}
+
+		double operator()(StreetDirectory::Vertex v)
+		{
+			const Point atPos = boost::get(boost::vertex_name, *graph, v);
+			const Point goalPos = boost::get(boost::vertex_name, *graph, goal);
+			return sim_mob::dist(atPos, goalPos) / ConfigManager::GetInstance().PathSetConfig().maxSegSpeed;
+		}
+	};
+
+	/**
+	 * Distance heuristic filter for A* search with blacklist.
+	 */
+	class DistanceHeuristicFiltered : public boost::astar_heuristic<boost::filtered_graph<StreetDirectory::Graph, BlackListEdgeConstraint>, double>
+	{
+	private:
+		const boost::filtered_graph<StreetDirectory::Graph, BlackListEdgeConstraint>* graph;
+		StreetDirectory::Vertex goal;
+
+	public:
+
+		DistanceHeuristicFiltered(const boost::filtered_graph<StreetDirectory::Graph, BlackListEdgeConstraint>* graph, StreetDirectory::Vertex goal) :
+		graph(graph), goal(goal)
+		{
+		}
+
+		double operator()(StreetDirectory::Vertex v)
+		{
+			const Point atPos = boost::get(boost::vertex_name, *graph, v);
+			const Point goalPos = boost::get(boost::vertex_name, *graph, goal);
+			return sim_mob::dist(atPos, goalPos) / ConfigManager::GetInstance().PathSetConfig().maxSegSpeed;
+		}
+	};
+	
 //	/**
 //	 * the graph with the travel time based on 06:00:00AM-10:00:00AM
 //	 */

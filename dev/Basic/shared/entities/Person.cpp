@@ -545,9 +545,10 @@ void sim_mob::Person::serializeSubTripChainItemTravelTimeMetrics(const TravelMet
 	//note: Even though we output the travel time only for the subtrip, preday expects the PT in-vehicle time for the original Trip.
 	//      We therefore output the origin and destination Zone loaded from the DAS for the current trip.
 	//      The zones of origiNode and destNode are irrelevant.
+	const Trip *trip = (static_cast<Trip*> (*currTripChainItem));
 	res <<
-			this->getId() << "," << //	person_id
-			(static_cast<Trip*> (*currTripChainItem))->tripID << "," << //	trip_id
+			trip->getPersonID() << "," << //	person_id
+			trip->getPersonID() << "_" << trip->sequenceNumber << "," << //	trip_id
 			st.tripID << "," << //	subtrip_id
 			origin << "," << //	origin
 			(*currTripChainItem)->originZoneCode << "," <<
@@ -583,7 +584,7 @@ void sim_mob::Person::serializeSubTripChainItemTravelTimeMetrics(const TravelMet
 			<< subtripMetrics.cbdEndTime.getStrRepr() << ","
 			<< st.travelMode << ","
 			<< subtripMetrics.cbdTraverseType << std::endl;
-	sim_mob::BasicLogger& cbd = sim_mob::Logger::log("cdb.csv");
+	sim_mob::BasicLogger& cbd = sim_mob::Logger::log("cbd.csv");
 	cbd << ret.str();
 }
 

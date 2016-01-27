@@ -57,26 +57,13 @@ public:
 class RestrictedRegion : private boost::noncopyable
 {
 private:
+	/**<id, node>*/
+	std::map<unsigned int, const Node*> zoneNodes;
+	
 	/**
-	 * restricted area border segments categorized based on in segments and out segments.
-	 * each term in each container is a from/to segment pair:
-	 * for example in 'in' container, the first item in each pair
-	 * demonstrates the segment before getting into the restricted
-	 * area, and the second item is the first segment inside the
-	 * restricted area.
-	 * similarly, in 'out' container, the first item in each pair
-	 * demonstrates the segment before getting out of the restricted
-	 * area, and the second item is the first segment outside the
-	 * restricted area.
+	 * set of all links of the restricted area(aka CBD)
 	 */
-	typedef std::pair<const sim_mob::RoadSegment*, const sim_mob::RoadSegment*> SegPair;
-	std::set<SegPair> in, out;
-
-	std::map<unsigned int, const Node*> zoneNodes; //<id, node>
-	/**
-	 * set of all segments of the restricted area(aka CBD)
-	 */
-	std::set<const sim_mob::RoadSegment*> zoneSegments;//get_ban_section_CBD_aimsun()
+	std::set<const sim_mob::Link *> zoneLinks;
 	sim_mob::OneTimeFlag populated;
 
 public:
@@ -98,13 +85,10 @@ public:
 	bool isInRestrictedZone(const std::vector<WayPoint>& target) const;
 
 	/**
-	 * does the given "RoadSegment" lie in the restricted area,
+	 * does the given "Link" lie in the restricted area,
 	 * returns true if the target is in the restricted zone
 	 */
-	bool isInRestrictedZone(const sim_mob::RoadSegment * target) const;
-
-	bool isEnteringRestrictedZone(const sim_mob::RoadSegment* curSeg ,const sim_mob::RoadSegment* nxtSeg);
-	bool isExitingRestrictedZone(const sim_mob::RoadSegment* curSeg ,const sim_mob::RoadSegment* nxtSeg);
+	bool isInRestrictedZone(const sim_mob::Link * target) const;
 
 	/**
 	 * fill the input data into in,out,zoneSegments

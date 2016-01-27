@@ -1469,6 +1469,93 @@ void HM_Model::startImpl()
 				vacancies++;
 			}
 		}
+
+		{
+			Unit *thisUnit = (*it);
+			int thisDwellingType = 0;
+
+			PostcodeMap::iterator itrPC  =  postcodesById.find((*it)->getSlaAddressId());
+			int tazId = (*itrPC).second->getTazId();
+			int mtzId = -1;
+			int subzoneId = -1;
+			int planningAreaId = -1;
+
+
+			for(int n = 0; n < mtzTaz.size();n++)
+			{
+				if(tazId == mtzTaz[n]->getTazId() )
+				{
+					mtzId = mtzTaz[n]->getMtzId();
+					break;
+				}
+			}
+
+			for(int n = 0; n < mtz.size(); n++)
+			{
+				if( mtzId == mtz[n]->getId())
+				{
+					subzoneId = mtz[n]->getPlanningSubzoneId();
+					break;
+				}
+			}
+
+			for( int n = 0; n < planningSubzone.size(); n++ )
+			{
+				if( subzoneId == planningSubzone[n]->getId() )
+				{
+					planningAreaId = planningSubzone[n]->getPlanningAreaId();
+					break;
+				}
+			}
+
+
+			if( thisUnit->getUnitType()  == 1 || thisUnit->getUnitType() == 2)
+			{
+				thisDwellingType = 100;
+			}
+			else
+			if( thisUnit->getUnitType() == 3)
+			{
+				thisDwellingType = 300;
+			}
+			else
+			if( thisUnit->getUnitType() == 4)
+			{
+				thisDwellingType = 400;
+			}
+			else
+			if( thisUnit->getUnitType() == 5)
+			{
+				thisDwellingType = 500;
+			}
+			else
+			if(( thisUnit->getUnitType() >=7 && thisUnit->getUnitType() <=16 ) || ( thisUnit->getUnitType() >= 32 && thisUnit->getUnitType() <= 36 ) )
+			{
+				thisDwellingType = 600;
+			}
+			else
+			if( thisUnit->getUnitType() >= 17 && thisUnit->getUnitType() <= 31 )
+			{
+				thisDwellingType = 700;
+			}
+			else
+			{
+				thisDwellingType = 800;
+			}
+
+			for( int n = 0; n < alternative.size(); n++)
+			{
+				if( thisDwellingType == alternative[n]->getDwellingTypeId() &&
+					planningAreaId   == alternative[n]->getPlanAreaId() )
+				{
+					thisUnit->setZoneHousingType(alternative[n]->getId());
+
+					//PrintOutV(" " << thisUnit->getId() << " " << alternative[n]->getPlanAreaId() << std::endl );
+					unitsByZoneHousingType.insert( std::pair<BigSerial,Unit*>( alternative[n]->getId(), thisUnit ) );
+					break;
+				}
+			}
+		}
 	}
 
 	PrintOutV("Initial Vacant units: " << vacancies << " onMarket: " << onMarket << " offMarket: " << offMarket << std::endl);
@@ -1511,6 +1598,11 @@ void HM_Model::startImpl()
 	PrintOutV("Orphaned siblings " << household_stats.orphanSiblings << std::endl );
 	PrintOutV("Multigenerational " << household_stats.multigeneration << std::endl );
 
+}
+
+std::multimap<BigSerial, Unit*> HM_Model::getUnitsByZoneHousingType()
+{
+	return unitsByZoneHousingType;
 }
 
 void HM_Model::getLogsumOfIndividuals(BigSerial id)

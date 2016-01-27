@@ -982,112 +982,23 @@ bool HouseholdBidderRole::pickEntryToBid()
         	}
         }
 
-        Alternative *alt = nullptr;
-        PlanningArea *planArea = nullptr;
-        std::vector<PlanningSubzone*> planSubzone;
-        std::vector<Mtz*> mtz;
-        std::vector<BigSerial> taz;
-
-        if( zoneHousingType != -1)
-        {
-        	alt = model->getAlternativeById(zoneHousingType);
-        }
-
-        if( alt != nullptr)
-        {
-        	planArea = model->getPlanningAreaById( alt->getPlanAreaId() );
-        }
-
-        if( planArea != nullptr)
-        {
-        	planSubzone = model->getPlanningSubZoneByPlanningAreaId( planArea->getId() );
-        }
-
-        if( planSubzone.size() != 0)
-        {
-        	mtz = model->getMtzBySubzoneVec( planSubzone );
-        }
-
-        if( mtz.size() != 0)
-        {
-        	taz = model->getTazByMtzVec( mtz );
-        }
-
-        BigSerial housingType = -1;
-
-        if( alt != nullptr)
-        	housingType = alt->getDwellingTypeId();
-
-    	int offset = (float)rand() / RAND_MAX * ( entries.size() - 1 );
+      	int offset = (float)rand() / RAND_MAX * ( entries.size() - 1 );
 
     	HousingMarket::ConstEntryList::const_iterator itr = entries.begin() + offset;
     	const HousingMarket::Entry* entry = *itr;
 
+    	//std::multimap<BigSerial, Unit*>  unitByZHT = model->getUnitsByZoneHousingType();
+
         const Unit* thisUnit = model->getUnitById( entry->getUnitId() );
 
-        int thisDwellingType = 0;
+        if( thisUnit->getZoneHousingType() == zoneHousingType )
+        {
+			std::vector<const HousingMarket::Entry*>::iterator screenedEntriesItr;
+			screenedEntriesItr = std::find(screenedEntries.begin(), screenedEntries.end(), entry );
 
-        /*
-            100	HDB12
-			300	HDB3
-			400	HDB4
-			500	HDB5
-			600	Condo
-			700	Landed
-			800	Other
-        */
-        if( thisUnit->getUnitType()  == 1 || thisUnit->getUnitType() == 2)
-        {
-        	thisDwellingType = 100;
+			if( screenedEntriesItr == screenedEntries.end() )
+				screenedEntries.push_back(entry);
         }
-        else
-        if( thisUnit->getUnitType() == 3)
-        {
-        	thisDwellingType = 300;
-        }
-        else
-        if( thisUnit->getUnitType() == 4)
-        {
-        	thisDwellingType = 400;
-        }
-        else
-        if( thisUnit->getUnitType() == 5)
-        {
-        	thisDwellingType = 500;
-        }
-        else
-        if( thisUnit->getUnitType() >= 12 && thisUnit->getUnitType() <= 16 )
-        {
-        	thisDwellingType = 600;
-        }
-        else
-        if( thisUnit->getUnitType() >= 17 && thisUnit->getUnitType() <= 31 )
-        {
-        	thisDwellingType = 700;
-        }
-        else
-        {
-        	thisDwellingType = 800;
-        }
-
-
-
-    	if( thisDwellingType == housingType )
-    	{
-    		for( int m = 0; m < taz.size(); m++ )
-    		{
-    			//PrintOutV("entry " << entry->getTazId() << " taz " << taz[m]  << std::endl);
-
-    			if( entry->getTazId() == taz[m]  )
-    			{
-    				std::vector<const HousingMarket::Entry*>::iterator screenedEntriesItr;
-    				screenedEntriesItr = std::find(screenedEntries.begin(), screenedEntries.end(), entry );
-
-    				if( screenedEntriesItr == screenedEntries.end() )
-    					screenedEntries.push_back(entry);
-    			}
-    		}
-    	}
     }
 
     bool sucessfulScreening = true;
@@ -1098,10 +1009,10 @@ bool HouseholdBidderRole::pickEntryToBid()
     }
     else
     {
-    	std::string choiceset;
+    	std::string choiceset(" ");
     	for(int n = 0; n < screenedEntries.size(); n++)
     	{
-    		choiceset = std::to_string( screenedEntries[n]->getUnitId() )  + ", ";
+    		choiceset += std::to_string( screenedEntries[n]->getUnitId() )  + ", ";
     	}
 
     	printChoiceset(household->getId(), choiceset);

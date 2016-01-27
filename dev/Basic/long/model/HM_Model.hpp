@@ -318,6 +318,8 @@ namespace sim_mob
 
             static const BigSerial FAKE_IDS_START = 9999900;
 
+            std::multimap<BigSerial, Unit*> getUnitsByZoneHousingType();
+
         protected:
             /**
              * Inherited from Model.
@@ -335,6 +337,7 @@ namespace sim_mob
 
             UnitList units; //residential only.
             UnitMap unitsById;
+            std::multimap<BigSerial, Unit*> unitsByZoneHousingType;
 
             StatsMap stats;
 
@@ -420,7 +423,6 @@ namespace sim_mob
             HouseHoldHitsSampleMap houseHoldHitsById;
 
             std::set<std::string> processedHouseholdHitsLogsum;
-
 
             ZonalLanduseVariableValuesList zonalLanduseVariableValues;
             ZonalLanduseVariableValuesMap zonalLanduseVariableValuesById;

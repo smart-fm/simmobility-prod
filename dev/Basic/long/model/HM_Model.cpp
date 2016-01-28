@@ -1472,14 +1472,12 @@ void HM_Model::startImpl()
 
 		{
 			Unit *thisUnit = (*it);
-			int thisDwellingType = 0;
 
 			PostcodeMap::iterator itrPC  =  postcodesById.find((*it)->getSlaAddressId());
 			int tazId = (*itrPC).second->getTazId();
 			int mtzId = -1;
 			int subzoneId = -1;
 			int planningAreaId = -1;
-
 
 			for(int n = 0; n < mtzTaz.size();n++)
 			{
@@ -1508,44 +1506,43 @@ void HM_Model::startImpl()
 				}
 			}
 
-
 			if( thisUnit->getUnitType()  == 1 || thisUnit->getUnitType() == 2)
 			{
-				thisDwellingType = 100;
+				thisUnit->setDwellingType(100);
 			}
 			else
 			if( thisUnit->getUnitType() == 3)
 			{
-				thisDwellingType = 300;
+				thisUnit->setDwellingType(300);
 			}
 			else
 			if( thisUnit->getUnitType() == 4)
 			{
-				thisDwellingType = 400;
+				thisUnit->setDwellingType(400);
 			}
 			else
 			if( thisUnit->getUnitType() == 5)
 			{
-				thisDwellingType = 500;
+				thisUnit->setDwellingType(500);
 			}
 			else
 			if(( thisUnit->getUnitType() >=7 && thisUnit->getUnitType() <=16 ) || ( thisUnit->getUnitType() >= 32 && thisUnit->getUnitType() <= 36 ) )
 			{
-				thisDwellingType = 600;
+				thisUnit->setDwellingType(600);
 			}
 			else
 			if( thisUnit->getUnitType() >= 17 && thisUnit->getUnitType() <= 31 )
 			{
-				thisDwellingType = 700;
+				thisUnit->setDwellingType(700);
 			}
 			else
 			{
-				thisDwellingType = 800;
+				thisUnit->setDwellingType(800);
 			}
 
 			for( int n = 0; n < alternative.size(); n++)
 			{
-				if( thisDwellingType == alternative[n]->getDwellingTypeId() &&
+				if( thisUnit->getDwellingType() == alternative[n]->getDwellingTypeId() &&
 					planningAreaId   == alternative[n]->getPlanAreaId() )
 				{
 					thisUnit->setZoneHousingType(alternative[n]->getId());

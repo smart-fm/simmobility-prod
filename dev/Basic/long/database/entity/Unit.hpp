@@ -30,8 +30,10 @@ namespace sim_mob
             Unit( BigSerial id = INVALID_ID, BigSerial buildingId = INVALID_ID, BigSerial sla_address_id = INVALID_ID, int unit_type = INVALID_ID,
             	  int story_range = 0, int constructionStatus = 0, double floor_area = .0f, int storey = 0, double monthlyRent = .0f, int ownership = 0, std::tm sale_from_date = std::tm(),
             	  std::tm physical_from_date = std::tm(), int sale_status = 0, int occupancyStatus = 0, std::tm lastChangedDate = std::tm(),double totalPrice = 0,
-            	  std::tm valueDate = std::tm(),int tenureStatus = 0,int biddingMarketEntryDay = 0, int timeOnMarket = 0, int timeOffMarket = 0, double lagCoefficent = 0, int zoneHousingType = 0);
+            	  std::tm valueDate = std::tm(),int tenureStatus = 0,int biddingMarketEntryDay = 0, int timeOnMarket = 0, int timeOffMarket = 0, double lagCoefficent = 0,
+				  int zoneHousingType = 0, int dwellingType = 0);
             Unit( const Unit& source );
+
             virtual ~Unit();
 
             /**
@@ -86,6 +88,7 @@ namespace sim_mob
             void setTotalPrice(double totalPrice);
             void setValueDate(const std::tm& valueDate);
             void setZoneHousingType( int value );
+            void setDwellingType( int value);
 
             int  getbiddingMarketEntryDay() const;
             void setbiddingMarketEntryDay( int day );
@@ -96,6 +99,7 @@ namespace sim_mob
             void setLagCoefficient(double lag);
             double getLagCoefficient() const;
             int  getZoneHousingType() const;
+            int getDwellingType() const;
 
 
             /**
@@ -133,6 +137,7 @@ namespace sim_mob
             int timeOffMarket;
             double lagCoefficient;
             int zoneHousingType;
+            int dwellingType;
         };
     }
 }

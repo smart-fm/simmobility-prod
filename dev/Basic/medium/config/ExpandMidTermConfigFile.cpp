@@ -12,6 +12,7 @@
 #include "geospatial/Incident.hpp"
 #include "geospatial/network/RoadNetwork.hpp"
 #include "geospatial/network/NetworkLoader.hpp"
+#include "geospatial/streetdir/KShortestPathImpl.hpp"
 #include "metrics/Length.hpp"
 #include "path/PathSetManager.hpp"
 #include "path/PT_PathSetManager.hpp"
@@ -65,6 +66,8 @@ void ExpandMidTermConfigFile::processConfig()
 
     //Initialize the street directory.
     StreetDirectory::Instance().Init(*(RoadNetwork::getInstance()));
+	//Instantiating K_ShortestPathImpl before any thread is spawned (in path-set generation)
+	K_ShortestPathImpl::getInstance();
     std::cout << "Street directory initialized" << std::endl;
 
     if (ConfigManager::GetInstance().FullConfig().getPathSetConf().privatePathSetMode == "generation")

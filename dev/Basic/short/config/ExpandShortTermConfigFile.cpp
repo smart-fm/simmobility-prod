@@ -8,10 +8,12 @@
 #include "entities/Person_ST.hpp"
 #include "entities/signal/Signal.hpp"
 #include "geospatial/network/SOCI_Converters.hpp"
+#include "geospatial/streetdir/KShortestPathImpl.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "partitions/PartitionManager.hpp"
 #include "path/PT_PathSetManager.hpp"
 #include "util/Utils.hpp"
+#include "geospatial/streetdir/KShortestPathImpl.hpp"
 
 namespace
 {
@@ -316,6 +318,8 @@ void ExpandShortTermConfigFile::processConfig()
 
 	//Initialize the street directory.
 	StreetDirectory::Instance().Init(*(RoadNetwork::getInstance()));
+	//Instantiating K_ShortestPathImpl before any thread is spawned (in path-set generation)
+	K_ShortestPathImpl::getInstance();
 	std::cout << "Street Directory initialized  " << std::endl;
 
 	std::map<std::string, std::string>::iterator itIntModel = stConfig.genericProps.find("intersection_driving_model");

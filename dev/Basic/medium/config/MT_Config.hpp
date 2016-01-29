@@ -753,6 +753,9 @@ public:
     /// Generic properties, for testing new features.
     std::map<std::string, std::string> genericProps;
 
+    /// pt edge travel time generation
+    bool enabledEdgeTravelTime;
+
 private:
     /**
      * Constructor

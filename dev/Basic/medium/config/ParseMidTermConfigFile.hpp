@@ -179,6 +179,13 @@ private:
     void processScreenLineNode(xercesc::DOMElement* node);
 
     /**
+     * processes pt edge travel time element in config xml
+     *
+     * @param node node corresponding to pt edge travel element inside xml file
+     */
+    void processPT_EdgeTravelTimeNode(xercesc::DOMElement* node);
+
+    /**
      * processes the cbd element in config xml
      *
      * @param node node corresponding to cbd element inside xml file

@@ -145,7 +145,7 @@ void Person_ST::initTripChain()
 	isFirstTick = true;
 }
 
-Entity::UpdateStatus Person_ST::checkTripChain()
+Entity::UpdateStatus Person_ST::checkTripChain(unsigned int currentTime)
 {
 	if (tripChain.empty())
 	{

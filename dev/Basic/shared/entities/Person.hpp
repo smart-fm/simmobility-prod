@@ -124,6 +124,13 @@ protected:
 	bool advanceCurrentSubTrip();
 
 	/**
+	 * check whether current trip is valid or not
+	 *
+	 * @return true, if trip is valid
+	 */
+	bool isTripValid();
+
+	/**
 	 * Sets the current sub-trip to the first sub-trip of the current trip chain
 	 *
      * @return an iterator pointing to the first sub-trip of the current trip chain \
@@ -233,7 +240,7 @@ public:
 
 	 * @return
      */
-	virtual Entity::UpdateStatus checkTripChain() = 0;
+	virtual Entity::UpdateStatus checkTripChain(unsigned int currentTime=0) = 0;
 
 	/**
 	 * Update origin and destination node based on the trip, sub-trip or activity given

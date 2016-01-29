@@ -1045,7 +1045,7 @@ bool Conflux::callMovementFrameInit(timeslice now, Person_MT* person)
 	{
 		//TODO: This UpdateStatus has a "prevParams" and "currParams" that should
 		//      (one would expect) be dealt with. Where does this happen?
-		UpdateStatus res = person->checkTripChain();
+		UpdateStatus res = person->checkTripChain(now.ms());
 
 		//Reset the start time (to the current time tick) so our dispatcher doesn't complain.
 		person->setStartTime(now.ms());
@@ -1171,7 +1171,7 @@ void Conflux::collectTravelTime(Person_MT* person)
 Entity::UpdateStatus Conflux::switchTripChainItem(Person_MT* person)
 {
 	collectTravelTime(person);
-	Entity::UpdateStatus retVal = person->checkTripChain();
+	Entity::UpdateStatus retVal = person->checkTripChain(currFrame.ms());
 	if (retVal.status == UpdateStatus::RS_DONE)
 	{
 		return retVal;
@@ -1837,7 +1837,7 @@ unsigned int Conflux::getNumRemainingInLaneInfinity()
 
 Conflux* Conflux::findStartingConflux(Person_MT* person, unsigned int now)
 {
-	UpdateStatus res = person->checkTripChain();
+	UpdateStatus res = person->checkTripChain(now);
 	if (res.status == UpdateStatus::RS_DONE)
 	{
 		return nullptr;

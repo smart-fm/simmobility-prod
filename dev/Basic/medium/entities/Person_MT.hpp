@@ -96,7 +96,7 @@ public:
 
 	 * @return
      */
-	Entity::UpdateStatus checkTripChain();
+	Entity::UpdateStatus checkTripChain(unsigned int currentTime=0);
 
 	/**
 	 * Sets the simulation start time of the entity

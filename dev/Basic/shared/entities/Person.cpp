@@ -247,6 +247,8 @@ bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::S
 				subTrip.startLocationType = srcType;
 				subTrip.endLocationId = sEnd;
 				subTrip.endLocationType = endType;
+				subTrip.edgeId = (*it).id;
+				subTrip.waitTime = (*it).waitTime;
 				switch(source.type)
 				{
 				case WayPoint::BUS_STOP:
@@ -394,6 +396,34 @@ bool sim_mob::Person::advanceCurrentSubTrip()
 	{
 		return false;
 	}
+	return true;
+}
+
+
+bool sim_mob::Person::isTripValid()
+{
+	if (tripChain.empty())
+	{
+		return false;
+	}
+
+	if (currTripChainItem == tripChain.end())
+	{
+		return false;
+	}
+
+	sim_mob::Trip *trip = dynamic_cast<sim_mob::Trip *> (*currTripChainItem);
+
+	if (!trip)
+	{
+		return false;
+	}
+
+	if (currSubTrip == trip->getSubTrips().end())
+	{
+		return false;
+	}
+
 	return true;
 }
 

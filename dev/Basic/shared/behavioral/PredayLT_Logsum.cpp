@@ -251,7 +251,7 @@ PredayPersonParams sim_mob::PredayLT_LogsumManager::computeLogsum(long individua
 		catch(...)
 		{
 			orgZnParams = new ZoneParams();
-			//std::cout << homeLoc << " taz cannot be found" << std::endl;
+			std::cout << homeLoc << " taz cannot be found" << std::endl;
 		}
 
 		try
@@ -261,7 +261,7 @@ PredayPersonParams sim_mob::PredayLT_LogsumManager::computeLogsum(long individua
 		catch(...)
 		{
 			destZnParams = new ZoneParams();
-			//std::cout << workLoc  << " taz cannot be found" << std::endl;
+			std::cout << workLoc  << " taz cannot be found" << std::endl;
 		}
 
 		if(homeLoc != workLoc)
@@ -273,7 +273,7 @@ PredayPersonParams sim_mob::PredayLT_LogsumManager::computeLogsum(long individua
 			catch(...)
 			{
 				amCostParams = new CostParams();
-				//std::cout << workLoc << " or " << homeLoc << " taz cannot be found" << std::endl;
+				std::cout << workLoc << " or " << homeLoc << " taz cannot be found" << std::endl;
 			}
 
 			try
@@ -283,7 +283,7 @@ PredayPersonParams sim_mob::PredayLT_LogsumManager::computeLogsum(long individua
 			catch(...)
 			{
 				pmCostParams = new CostParams();
-				//std::cout << workLoc << " or " << homeLoc << " taz cannot be found" << std::endl;
+				std::cout << workLoc << " or " << homeLoc << " taz cannot be found" << std::endl;
 			}
 
 		}
@@ -300,7 +300,7 @@ PredayPersonParams sim_mob::PredayLT_LogsumManager::computeLogsum(long individua
 	}
 	catch(...)
 	{
-		//std::cout << zoneLookupItr->second << " taz cannot be found" << std::endl;
+		std::cout << zoneLookupItr->second << " taz cannot be found" << std::endl;
 	}
 
 

@@ -71,14 +71,26 @@ Entity::UpdateStatus EventsInjector::update(timeslice now)
     
     vector<ExternalEvent> events;
     //(now+1) - events for the next day once our events are 1 tick delayed
-    model.getExternalEvents((now.ms() + 1), events);
-    vector<ExternalEvent>::iterator it = events.begin();
+    //model.getExternalEvents((now.ms() + 1), events);
+
+    for( int n = 0; n < 300; n++ )
+    {
+    	ExternalEvent extEv;
+
+    	extEv.setDay(now.ms() + 1 );
+    	extEv.setType( ExternalEvent::NEW_JOB );
+    	extEv.setHouseholdId( (double)rand()/RAND_MAX * 1000000 );
+    	extEv.setDeveloperId(0);
+
+    	events.push_back(extEv);
+    }
+
 
     AgentsLookup& lookup = AgentsLookupSingleton::getInstance();
     const HouseholdAgent* householdAgent = nullptr;
     const DeveloperAgent* developerAgent = nullptr;
     const RealEstateAgent* realEstateAgent = nullptr;
-    for (it; it != events.end(); ++it)
+    for ( vector<ExternalEvent>::iterator it = events.begin(); it != events.end(); ++it)
     {
     	developerAgent = lookup.getDeveloperAgentById(it->getDeveloperId());
     	if(developerAgent)

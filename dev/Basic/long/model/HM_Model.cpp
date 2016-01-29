@@ -37,6 +37,8 @@
 #include "database/dao/ZonalLanduseVariableValuesDao.hpp"
 #include "database/dao/PopulationPerPlanningAreaDao.hpp"
 #include "database/dao/HitsIndividualLogsumDao.hpp"
+#include "database/dao/AccessibilityFixedPzidDao.hpp"
+#include "database/dao/ScreeningCostTimeDao.hpp"
 #include "agent/impl/HouseholdAgent.hpp"
 #include "event/SystemEvents.hpp"
 #include "core/DataManager.hpp"
@@ -837,6 +839,11 @@ void HM_Model::getScreeningProbabilities(std::string hitsId, vector<double> &hou
 	}
 }
 
+std::vector<Alternative*> HM_Model::getAlternatives()
+{
+	return alternative;
+}
+
 Alternative* HM_Model::getAlternativeById(int id)
 {
 	AlternativeMap::const_iterator itr = alternativeById.find(id);
@@ -1311,8 +1318,20 @@ void HM_Model::startImpl()
 		loadData<HitsIndividualLogsumDao>( conn, hitsIndividualLogsum, hitsIndividualLogsumById, &HitsIndividualLogsum::getId );
 		PrintOutV("Number of Hits Individual Logsum rows: " << hitsIndividualLogsum.size() << std::endl );
 
+		loadData<ScreeningCostTimeDao>( conn, screeningCostTime, screeningCostTimeById, &ScreeningCostTime::getId );
+		PrintOutV("Number of Screening Cost Time rows: " << screeningCostTime.size() << std::endl );
+
+		loadData<AccessibilityFixedPzidDao>( conn, accessibilityFixedPzid, accessibilityFixedPzidById, &AccessibilityFixedPzid::getId );
+		PrintOutV("Number of Accessibility fixed pz id rows: " << accessibilityFixedPzid.size() << std::endl );
 	}
 
+
+	//Create a map that concatanates origin and destination PA for faster lookup.
+	for(int n = 0; n < screeningCostTime.size(); n++ )
+	{
+		std::string costTime = std::to_string(screeningCostTime[n]->getPlanningAreaOrigin() ) + "-" + std::to_string(screeningCostTime[n]->getPlanningAreaDestination());
+		screeningCostTimeSuperMap.insert({costTime, screeningCostTime[n]->getId()});
+	}
 
 	unitsFiltering();
 
@@ -1450,6 +1469,90 @@ void HM_Model::startImpl()
 				vacancies++;
 			}
 		}
+
+		{
+			Unit *thisUnit = (*it);
+
+			PostcodeMap::iterator itrPC  =  postcodesById.find((*it)->getSlaAddressId());
+			int tazId = (*itrPC).second->getTazId();
+			int mtzId = -1;
+			int subzoneId = -1;
+			int planningAreaId = -1;
+
+			for(int n = 0; n < mtzTaz.size();n++)
+			{
+				if(tazId == mtzTaz[n]->getTazId() )
+				{
+					mtzId = mtzTaz[n]->getMtzId();
+					break;
+				}
+			}
+
+			for(int n = 0; n < mtz.size(); n++)
+			{
+				if( mtzId == mtz[n]->getId())
+				{
+					subzoneId = mtz[n]->getPlanningSubzoneId();
+					break;
+				}
+			}
+
+			for( int n = 0; n < planningSubzone.size(); n++ )
+			{
+				if( subzoneId == planningSubzone[n]->getId() )
+				{
+					planningAreaId = planningSubzone[n]->getPlanningAreaId();
+					break;
+				}
+			}
+
+			if( thisUnit->getUnitType()  == 1 || thisUnit->getUnitType() == 2)
+			{
+				thisUnit->setDwellingType(100);
+			}
+			else
+			if( thisUnit->getUnitType() == 3)
+			{
+				thisUnit->setDwellingType(300);
+			}
+			else
+			if( thisUnit->getUnitType() == 4)
+			{
+				thisUnit->setDwellingType(400);
+			}
+			else
+			if( thisUnit->getUnitType() == 5)
+			{
+				thisUnit->setDwellingType(500);
+			}
+			else
+			if(( thisUnit->getUnitType() >=7 && thisUnit->getUnitType() <=16 ) || ( thisUnit->getUnitType() >= 32 && thisUnit->getUnitType() <= 36 ) )
+			{
+				thisUnit->setDwellingType(600);
+			}
+			else
+			if( thisUnit->getUnitType() >= 17 && thisUnit->getUnitType() <= 31 )
+			{
+				thisUnit->setDwellingType(700);
+			}
+			else
+			{
+				thisUnit->setDwellingType(800);
+			}
+
+			for( int n = 0; n < alternative.size(); n++)
+			{
+				if( thisUnit->getDwellingType() == alternative[n]->getDwellingTypeId() &&
+					planningAreaId   == alternative[n]->getPlanAreaId() )
+				{
+					thisUnit->setZoneHousingType(alternative[n]->getId());
+
+					//PrintOutV(" " << thisUnit->getId() << " " << alternative[n]->getPlanAreaId() << std::endl );
+					unitsByZoneHousingType.insert( std::pair<BigSerial,Unit*>( alternative[n]->getId(), thisUnit ) );
+					break;
+				}
+			}
+		}
 	}
 
 	PrintOutV("Initial Vacant units: " << vacancies << " onMarket: " << onMarket << " offMarket: " << offMarket << std::endl);
@@ -1492,6 +1595,11 @@ void HM_Model::startImpl()
 	PrintOutV("Orphaned siblings " << household_stats.orphanSiblings << std::endl );
 	PrintOutV("Multigenerational " << household_stats.multigeneration << std::endl );
 
+}
+
+std::multimap<BigSerial, Unit*> HM_Model::getUnitsByZoneHousingType()
+{
+	return unitsByZoneHousingType;
 }
 
 void HM_Model::getLogsumOfIndividuals(BigSerial id)
@@ -2090,6 +2198,33 @@ void HM_Model::addVehicleOwnershipChanges(boost::shared_ptr<VehicleOwnershipChan
 std::vector<boost::shared_ptr<VehicleOwnershipChanges> > HM_Model::getVehicleOwnershipChanges()
 {
 	return vehicleOwnershipChangesVector;
+}
+
+std::vector<ScreeningCostTime*>  HM_Model::getScreeningCostTime()
+{
+	return  screeningCostTime;
+}
+
+ScreeningCostTime* HM_Model::getScreeningCostTimeInst(std::string key)
+{
+	ScreeningCostTimeSuperMap::const_iterator itr = screeningCostTimeSuperMap.find(key);
+
+	int size = screeningCostTimeSuperMap.size();
+
+	if (itr != screeningCostTimeSuperMap.end())
+	{
+		ScreeningCostTimeMap::const_iterator itr2 = screeningCostTimeById.find((*itr).second);
+
+		if (itr2 != screeningCostTimeById.end())
+			return (*itr2).second;
+	}
+
+	return nullptr;
+}
+
+std::vector<AccessibilityFixedPzid*> HM_Model::getAccessibilityFixedPzid()
+{
+	return accessibilityFixedPzid;
 }
 
 void HM_Model::stopImpl()

@@ -1184,8 +1184,11 @@ TravelMetric& DriverMovement::processCBD_TravelMetrics(const Link* completedLink
 	}
 	case TravelMetric::CBD_PASS:
 	{
-		travelMetric.cbdOrigin = WayPoint(completedLink->getToNode());
-		travelMetric.cbdStartTime = DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime();
+		if(!cbd.isInRestrictedZone(completedLink) && cbd.isInRestrictedZone(nextLink))
+		{
+			travelMetric.cbdOrigin = WayPoint(completedLink->getToNode());
+			travelMetric.cbdStartTime = DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime();
+		}
 		if(cbd.isInRestrictedZone(completedLink)&&!cbd.isInRestrictedZone(nextLink))
 		{
 			travelMetric.cbdDestination = WayPoint(completedLink->getToNode());

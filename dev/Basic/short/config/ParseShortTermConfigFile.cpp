@@ -196,6 +196,7 @@ void ParseShortTermConfigFile::processXmlFile(XercesDOMParser& parser)
 	processPathSetFileName(GetSingleElementByName(rootNode, "path-set-config-file"));
 	processTT_Update(GetSingleElementByName(rootNode, "travel_time_update", true));
 	processSubtripTravelMetricsOutputNode(GetSingleElementByName(rootNode, "subtrip_travel_metrics_output"));
+	processAssignmentMatrixNode(GetSingleElementByName(rootNode, "assignment_matrix"));
 	processSegmentDensityNode(GetSingleElementByName(rootNode, "short-term_density-map"));
 	
 	//Take care of path-set manager configuration in here
@@ -712,6 +713,19 @@ void ParseShortTermConfigFile::processSubtripTravelMetricsOutputNode(xercesc::DO
 		{
 			cfg.subTripTravelTimeEnabled = true;
 			cfg.subTripLevelTravelTimeOutput = ParseString(GetNamedAttributeValue(node, "file"), "subtrip_travel_times.csv");
+		}
+	}
+}
+
+void ParseShortTermConfigFile::processAssignmentMatrixNode(xercesc::DOMElement* node)
+{
+	if(node)
+	{
+		bool enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"));
+		if (enabled)
+		{
+			stCfg.assignmentMatrix.enabled = true;
+			stCfg.assignmentMatrix.fileName = ParseString(GetNamedAttributeValue(node, "file-name"), "assignment_matrix.csv");
 		}
 	}
 }

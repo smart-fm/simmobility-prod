@@ -246,9 +246,16 @@ private:
     /**
      * processes the subtrip_travel_metrics_output element in config xml
      *
-     * @param node node corresponding to generateBusRoutes element inside xml file
+     * @param node node corresponding to subtrip_travel_metrics_output element inside xml file
      */
     void processSubtripTravelMetricsOutputNode(xercesc::DOMElement* node);
+
+    /**
+     * processes the assingment_matrix element in config xml
+     *
+     * @param node node corresponding to assingment_matrix element inside xml file
+     */
+    void processAssignmentMatrixNode(xercesc::DOMElement* node);
 
     /// Short Term config reference
     ST_Config& stCfg;

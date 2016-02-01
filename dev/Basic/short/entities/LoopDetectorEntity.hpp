@@ -121,7 +121,7 @@ public:
 	// is no vehicle, then set <vehicle_> to 0 and increment the space-time attribute.  If a
 	// vehicle (or part of) is hovering over the loop detector, set <vehicle_> to it; increment
 	// the vehicle count whenever <vehicle_> changes.
-	bool check(boost::unordered_set<Vehicle const *> &vehicles);
+	bool check(boost::unordered_set<Vehicle const *> &vehicles, std::vector<Vehicle const *>& vehsInLoopDetector);
 
 	/**
 	 * @return the AABB that would contain the monitoring area of this object.

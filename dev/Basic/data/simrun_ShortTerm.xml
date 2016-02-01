@@ -195,10 +195,12 @@
     <travel_time_update interval="300" alpha="0.5" />
     <subtrip_travel_metrics_output enabled="true" file="subtrip_level_travel_metrics.csv" />
 
-	<amodcontroller enabled="true"/>
+	<amodcontroller enabled="false"/>
 
 	<!--(Short-term only) If enabled, outputs the density at every road segment present at the end of the 
 	update interval (in milliseconds)-->
 	<short-term_density-map updateInterval="1000" outputEnabled="false" file-name="private/DensityMap.csv"/>  
+
+	<assignment_matrix enabled="true" file-name="assignment_matrix.csv"/>
 </config>
 

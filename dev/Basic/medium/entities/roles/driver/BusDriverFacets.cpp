@@ -686,7 +686,8 @@ bool BusDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 			setLastAccept(currLane, segExitTimeSec, nxtSegStat);
 
 			const SegmentStats* prevSegStats = pathMover.getPrevSegStats(true); //previous segment is in the same link
-			if (prevSegStats)
+			if (prevSegStats
+					&& prevSegStats->getRoadSegment() != pathMover.getCurrSegStats()->getRoadSegment())
 			{
 				// update road segment travel times
 				updateScreenlineCounts(prevSegStats, segExitTimeSec);

@@ -69,7 +69,7 @@ sim_mob::BusTrip::BusTrip(std::string entId, std::string type,
 		std::string toLocType) :
 		Trip(entId, type, seqNumber, requestTime, start, end,
 				boost::lexical_cast<std::string>(totalSequenceNum), from,
-				fromLocType, to, toLocType), totalSequenceNum(totalSequenceNum), busLine(
+				fromLocType, to, toLocType, "Bus"), totalSequenceNum(totalSequenceNum), busLine(
 				busLine), vehicleId(vehicleId), busRouteInfo(busRouteId) {
 	lastVisitedStopSequenceNumber = -1;
 }

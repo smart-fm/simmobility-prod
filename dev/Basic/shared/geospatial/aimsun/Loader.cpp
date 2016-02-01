@@ -45,7 +45,7 @@ void DatabaseLoader::getCBD_Links(const string &cnn, std::set<const sim_mob::Lin
 {
 	soci::session sql(soci::postgresql, cnn);
 
-	const std::string& restrictedRegSegFunc = sim_mob::ConfigManager::GetInstance().FullConfig().getDatabaseProcMappings().
+	const std::string restrictedRegSegFunc = sim_mob::ConfigManager::GetInstance().FullConfig().getDatabaseProcMappings().
 															procedureMappings["restricted_reg_links"];
 
 	soci::rowset<int> rs = sql.prepare << std::string("select * from ") + restrictedRegSegFunc;
@@ -66,7 +66,7 @@ void DatabaseLoader::getCBD_Nodes(const std::string &cnn, std::map<unsigned int,
 {
 	soci::session sql(soci::postgresql, cnn);
 
-	const std::string& restrictedNodesFunc = sim_mob::ConfigManager::GetInstance().FullConfig().getDatabaseProcMappings().
+	const std::string restrictedNodesFunc = sim_mob::ConfigManager::GetInstance().FullConfig().getDatabaseProcMappings().
 															procedureMappings["restricted_reg_nodes"];
 
 	soci::rowset<int> rs = sql.prepare << std::string("select * from ") + restrictedNodesFunc;

@@ -277,8 +277,8 @@ bool DriverMovement::initializePath()
 		//Restricted area logic
 		if(MT_Config::getInstance().isRegionRestrictionEnabled())
 		{
-			bool fromLocationInRestrictedRegion = RestrictedRegion::getInstance().isInRestrictedZone(parentDriver->origin);
-			bool toLocationInRestrictedRegion = RestrictedRegion::getInstance().isInRestrictedZone(parentDriver->goal);
+			bool fromLocationInRestrictedRegion = RestrictedRegion::getInstance().isInRestrictedZone(wp_path.front());
+			bool toLocationInRestrictedRegion = RestrictedRegion::getInstance().isInRestrictedZone(wp_path.back());
 			if (!toLocationInRestrictedRegion && !fromLocationInRestrictedRegion)
 			{//both O & D outside
 				if (RestrictedRegion::getInstance().isInRestrictedZone(wp_path))
@@ -443,7 +443,8 @@ bool DriverMovement::moveToNextSegment(DriverUpdateParams& params)
 		setLastAccept(currLane, segExitTimeSec, nxtSegStat);
 
 		const SegmentStats* prevSegStats = pathMover.getPrevSegStats(true); //previous segment is in the same link
-		if (prevSegStats)
+		if (prevSegStats
+				&& prevSegStats->getRoadSegment() != pathMover.getCurrSegStats()->getRoadSegment())
 		{
 			// update road segment travel times
 			updateScreenlineCounts(prevSegStats, segExitTimeSec);
@@ -1173,7 +1174,7 @@ TravelMetric& DriverMovement::processCBD_TravelMetrics(const Link* completedLink
 	case TravelMetric::CBD_EXIT:
 	{
 		//search if you are about to exit CBD(we assume the trip started inside cbd and is going to end outside cbd)
-		if (cbd.isInRestrictedZone(completedLink)&&!cbd.isInRestrictedZone(nextLink) && travelMetric.cbdExitted.check())
+		if (cbd.isInRestrictedZone(completedLink) && !cbd.isInRestrictedZone(nextLink) && travelMetric.cbdExitted.check())
 		{
 			travelMetric.cbdDestination = WayPoint(completedLink->getToNode());
 			travelMetric.cbdEndTime = DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime();

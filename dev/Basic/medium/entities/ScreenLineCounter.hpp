@@ -7,8 +7,11 @@
 
 #pragma once
 
-#include <set>
 #include <boost/thread/mutex.hpp>
+#include <set>
+#include <string>
+#include <vector>
+#include "util/DailyTime.hpp"
 
 namespace sim_mob
 {
@@ -82,6 +85,10 @@ private:
 
     static ScreenLineCounter* instance;
     boost::mutex instanceMutex;
+
+    unsigned int timeIntervalMap[86400] = {0};
+    std::vector<std::string> minTimes;
+    const DailyTime& simStartTime;
 };
 
 }

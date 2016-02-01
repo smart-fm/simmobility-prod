@@ -325,7 +325,7 @@ void BusStopAgent::boardWaitingPersons(BusDriver* busDriver)
 			{
 				waitingRole->collectTravelTime();
 				storeWaitingTime(waitingRole);
-				DailyTime current(currentTimeMS);
+				DailyTime current(DailyTime(currentTimeMS).offsetMS_From(ConfigManager::GetInstance().FullConfig().simStartTime()));
 				person->checkTripChain(current.getValue());
 				Role<Person_MT>* curRole = person->getRole();
 				curRole->setArrivalTime(currentTimeMS);

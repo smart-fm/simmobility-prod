@@ -55,13 +55,13 @@ void PT_EdgeTravelTime::updateEdgeTravelTime(const unsigned int edgeId,const uns
 		return;
 	}
 	boost::unique_lock<boost::mutex> lock(instanceMutex);
-	std::map<int, EdgeTimeSlotMap>::iterator it = edgeTimes.find(edgeId);
-	if(it==edgeTimes.end()){
+	std::map<int, EdgeTimeSlotMap>::iterator it = storeEdgeTimes.find(edgeId);
+	if(it==storeEdgeTimes.end()){
 		EdgeTimeSlotMap edgeTime;
-		edgeTimes[edgeId]= edgeTime;
+		storeEdgeTimes[edgeId]= edgeTime;
 	}
 
-	EdgeTimeSlotMap& edgeTime = edgeTimes[edgeId];
+	EdgeTimeSlotMap& edgeTime = storeEdgeTimes[edgeId];
 	unsigned int index = startTime/INTERVAL_MS;
 	EdgeTimeSlotMap::iterator itSlot = edgeTime.find(index);
 	if(itSlot==edgeTime.end()){
@@ -69,10 +69,6 @@ void PT_EdgeTravelTime::updateEdgeTravelTime(const unsigned int edgeId,const uns
 		edgeTime[index]=slot;
 		edgeTime[index].edgeId = edgeId;
 		edgeTime[index].timeInterval = index;
-	}
-
-	if(edgeId==18||edgeId==29||edgeId==286||edgeId==478||edgeId==508||edgeId==689||edgeId==1157||edgeId==1227||edgeId==1564||edgeId==2495||edgeId==3029){
-		int ii=0;
 	}
 
 	EdgeTimeSlot& slot = edgeTime[index];
@@ -96,7 +92,7 @@ void PT_EdgeTravelTime::exportEdgeTravelTime() const
     const std::string& fileName("pt_edge_time.csv");
     sim_mob::BasicLogger& ptEdgeTimeLogger  = sim_mob::Logger::log(fileName);
     std::map<int, EdgeTimeSlotMap>::const_iterator it;
-    for( it = edgeTimes.begin(); it!=edgeTimes.end(); it++){
+    for( it = storeEdgeTimes.begin(); it!=storeEdgeTimes.end(); it++){
     	const EdgeTimeSlotMap& edgeTime=it->second;
     	for(EdgeTimeSlotMap::const_iterator itSlot = edgeTime.begin(); itSlot != edgeTime.end(); itSlot++){
     		const EdgeTimeSlot& slot = itSlot->second;
@@ -113,6 +109,89 @@ void PT_EdgeTravelTime::exportEdgeTravelTime() const
     sim_mob::Logger::log(fileName).flush();
 }
 
+void PT_EdgeTravelTime::loadPT_EdgeTravelTime()
+{
+    const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
+    const std::map<std::string, std::string>& storedProcMap = config.getDatabaseProcMappings().procedureMappings;
+    std::map<std::string, std::string>::const_iterator storedProcIter = storedProcMap.find("pt_edges_time");
+    if(storedProcIter == storedProcMap.end())
+    {
+        Print()<<"PT_EdgeTravelTime: Stored Procedure not specified"<<std::endl;
+        return;
+    }
+
+    soci::session sql_(soci::postgresql, config.getDatabaseConnectionString(false));
+    soci::rowset<soci::row> rs = (sql_.prepare << "select * from " + storedProcIter->second);
+	for (soci::rowset<soci::row>::const_iterator it=rs.begin(); it!=rs.end(); ++it)
+	{
+		const soci::row& r = (*it);
+		unsigned int edgeId = r.get<unsigned int>(0);
+		std::string startTime = r.get<std::string>(1);
+		std::string endTime = r.get<std::string>(2);
+		double waitTime = r.get<double>(3);
+		double walkTime = r.get<double>(4);
+		double dayTransitTime = r.get<double>(5);
+		double linkTravelTime = r.get<double>(6);
+		loadOneEdgeTravelTime(edgeId, startTime, endTime, waitTime, walkTime, dayTransitTime, linkTravelTime);
+	}
+}
+
+void PT_EdgeTravelTime::loadOneEdgeTravelTime(const unsigned int edgeId,
+		const std::string& startTime, const std::string endTime,
+		const double waitTime, const double walkTime,
+		const double dayTransitTime, const double linkTravelTime)
+{
+	std::map<int, EdgeTimeSlotMap>::iterator it = loadEdgeTimes.find(edgeId);
+	if(it==loadEdgeTimes.end()){
+		EdgeTimeSlotMap edgeTime;
+		loadEdgeTimes[edgeId]= edgeTime;
+	}
+
+	EdgeTimeSlotMap& edgeTime = loadEdgeTimes[edgeId];
+	DailyTime start = DailyTime(startTime);
+	unsigned int index = start.getValue()/INTERVAL_MS;
+	EdgeTimeSlotMap::iterator itSlot = edgeTime.find(index);
+	if(itSlot==edgeTime.end()){
+		EdgeTimeSlot slot;
+		edgeTime[index]=slot;
+		edgeTime[index].edgeId = edgeId;
+		edgeTime[index].timeInterval = index;
+	}
+
+	EdgeTimeSlot& slot = edgeTime[index];
+	edgeTime[index].count = 1.0;
+	edgeTime[index].linkTravelTime = linkTravelTime;
+	edgeTime[index].waitTime = waitTime;
+	edgeTime[index].walkTime = walkTime;
+	edgeTime[index].dayTransitTime = dayTransitTime;
+}
+
+bool PT_EdgeTravelTime::getEdgeTravelTime(const unsigned int edgeId,
+		unsigned int currentTime, double& waitTime, double& walkTime,
+		double& dayTransitTime, double& linkTravelTime)
+{
+	bool res = false;
+	std::map<int, EdgeTimeSlotMap>::iterator it = loadEdgeTimes.find(edgeId);
+	if(it==loadEdgeTimes.end()){
+		return res;
+	}
+
+	EdgeTimeSlotMap& edgeTime = loadEdgeTimes[edgeId];
+	DailyTime start = DailyTime(currentTime);
+	unsigned int index = start.getValue()/INTERVAL_MS;
+	EdgeTimeSlotMap::iterator itSlot = edgeTime.find(index);
+	if(itSlot==edgeTime.end()){
+		return res;
+	}
+
+	res = true;
+	EdgeTimeSlot& slot = edgeTime[index];
+	waitTime = slot.waitTime;
+	walkTime = slot.walkTime;
+	dayTransitTime = slot.dayTransitTime;
+	linkTravelTime = slot.linkTravelTime;
+	return res;
+}
 }
 }
 

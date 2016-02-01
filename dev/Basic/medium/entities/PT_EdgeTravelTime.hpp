@@ -42,6 +42,23 @@ public:
      */
     void exportEdgeTravelTime() const;
 
+    /**
+     * load pt edge travel time from DB
+     */
+    void loadPT_EdgeTravelTime();
+    /**
+     * get pt edge travel time
+     * @param edgeId is edge id
+     * @param currentTime is current time
+     * @param waitTime is waiting time for this edge
+     * @param walkTime is walking time for this edge
+     * @param dayTransitTime is day transit time for this edge
+     * @param linkTravelTime is link travel time for this edge
+     * @return true if finding corresponding record
+     */
+    bool getEdgeTravelTime(const unsigned int edgeId, unsigned int currentTime, double& waitTime, double& walkTime,
+			double& dayTransitTime, double& linkTravelTime);
+
 private:
     /**global instance to store the pointer to this class*/
     static PT_EdgeTravelTime* instance;
@@ -63,7 +80,26 @@ private:
     };
     typedef std::map<unsigned int, EdgeTimeSlot> EdgeTimeSlotMap;
     /**store the all travel time on the edge*/
-    std::map<int, EdgeTimeSlotMap> edgeTimes;
+    std::map<int, EdgeTimeSlotMap> storeEdgeTimes;
+    /**load the all travel time on the edge*/
+    std::map<int, EdgeTimeSlotMap> loadEdgeTimes;
+private:
+    /**
+     * add the travel time of vehicles passing through a PT edge
+     *
+     * @param edgeId is edge id
+     * @param startTime time of entry into edge
+     * @param endTime time of exit from edge
+     * @param waitTime waiting time for the edge
+     * @param walkTime walking time for the edge
+     * @param dayTransitTime transit time for the edge
+     * @param linkTravelTime link travel time for the edge
+     */
+	void loadOneEdgeTravelTime(const unsigned int edgeId,
+			const std::string& startTime, const std::string endTime,
+			const double waitTime, const double walkTime,
+			const double dayTransitTime, const double linkTravelTime);
+
 };
 
 }

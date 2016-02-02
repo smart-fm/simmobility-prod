@@ -357,25 +357,28 @@ inline void calculateProjectProfit(PotentialProject& project,DeveloperModel* mod
 inline void createPotentialUnits(PotentialProject& project,const DeveloperModel* model)
     {
 
+	const int checkUnitTypeStart = 17;
+	const int checkUnitTypeEnd = 31;
+
 	std::vector<TemplateUnitType>::const_iterator itr;
 	double weightedAverage = 0.0;
 
 	        for (itr = project.templateUnitTypes.begin(); itr != project.templateUnitTypes.end(); itr++)
 	        	{
-	        		if(itr->getProportion()>0)
+	        	if(itr->getProportion()>0)
+	        	{
+	        		double propotion = (itr->getProportion()/100.0);
+	        		//add the minimum lot size constraint if the unit type is terraced, semi detached or detached
+	        		if((itr->getUnitTypeId()>=checkUnitTypeStart) and (itr->getUnitTypeId() <= checkUnitTypeEnd))
 	        		{
-	        			double propotion = (itr->getProportion()/100.0);
-	        			//add the minimum lot size constraint if the unit type is terraced, semi detached or detached
-	        				        	if((itr->getUnitTypeId()>=17) and (itr->getUnitTypeId() <= 31))
-	        				        	{
-	        				        		weightedAverage = weightedAverage + (model->getUnitTypeById(itr->getUnitTypeId())->getTypicalArea()* model->getUnitTypeById(itr->getUnitTypeId())->getMinLosize() *(propotion));
-	        				        	}
-	        				        	else
-	        				        	{
-	        			weightedAverage = weightedAverage + (model->getUnitTypeById(itr->getUnitTypeId())->getTypicalArea()*(propotion));
-	        				        	}
+	        			weightedAverage = weightedAverage + (model->getUnitTypeById(itr->getUnitTypeId())->getTypicalArea()* model->getUnitTypeById(itr->getUnitTypeId())->getMinLosize() *(propotion));
 	        		}
-	            }
+	        		else
+	        		{
+	        			weightedAverage = weightedAverage + (model->getUnitTypeById(itr->getUnitTypeId())->getTypicalArea()*(propotion));
+	        		}
+	        	}
+	        	}
 
 	        int totalUnits = 0;
 	        if(weightedAverage>0)
@@ -557,9 +560,11 @@ Entity::UpdateStatus DeveloperAgent::onFrameTick(timeslice now) {
     			{
     				std::tm constructionStartDate = currentDate;
     				//TODO:: construction start date and launch date is temporary. gishara
-    				int constructionStartMonth = currentDate.tm_mon + 2;
+    				const int monthsToStartConstruction = 2;
+    				int constructionStartMonth = currentDate.tm_mon + monthsToStartConstruction;
     				int constructionStartYear = currentDate.tm_year;
-    				if(constructionStartMonth >11)
+    				const int monthLimitForYear = 11;
+    				if(constructionStartMonth >monthLimitForYear)
     				{
     					formatDate(constructionStartMonth,constructionStartYear);
     				}
@@ -567,9 +572,10 @@ Entity::UpdateStatus DeveloperAgent::onFrameTick(timeslice now) {
     				constructionStartDate.tm_year = constructionStartYear;
 
     				std::tm launchDate = currentDate;
-    				int launchMonth = currentDate.tm_mon + 6;
+    				const int monthsToLaunch = 6;
+    				int launchMonth = currentDate.tm_mon + monthsToLaunch;
     				int launchYear = currentDate.tm_year;
-    				if(launchMonth > 11)
+    				if(launchMonth > monthLimitForYear)
     				{
     					formatDate(launchMonth,launchYear);
     				}

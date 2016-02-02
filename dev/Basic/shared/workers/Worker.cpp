@@ -66,11 +66,11 @@ bool sim_mob::Worker::MgmtParams::extraActive(uint32_t endTick) const
 
 
 
-sim_mob::Worker::Worker(WorkGroup* parent, std::ostream* logFile,  FlexiBarrier* frame_tick, FlexiBarrier* buff_flip, FlexiBarrier* aura_mgr, boost::barrier* macro_tick, std::vector<Entity*>* entityRemovalList, std::vector<Entity*>* entityBredList, uint32_t endTick, uint32_t tickStep)
-    : logFile(logFile),
-      frame_tick_barr(frame_tick), buff_flip_barr(buff_flip), aura_mgr_barr(aura_mgr), macro_tick_barr(macro_tick),
-      endTick(endTick), tickStep(tickStep), parent(parent), entityRemovalList(entityRemovalList), entityBredList(entityBredList),
-      profile(nullptr),pathSetMgr(nullptr)
+sim_mob::Worker::Worker(WorkGroup* parent, std::ostream* logFile,  FlexiBarrier* frame_tick, FlexiBarrier* buff_flip, FlexiBarrier* aura_mgr, boost::barrier* macro_tick,
+						std::vector<Entity*>* entityRemovalList, std::vector<Entity*>* entityBredList, uint32_t endTick, uint32_t tickStep)
+					   :logFile(logFile), frame_tick_barr(frame_tick), buff_flip_barr(buff_flip), aura_mgr_barr(aura_mgr), macro_tick_barr(macro_tick),
+					    endTick(endTick), tickStep(tickStep), parent(parent), entityRemovalList(entityRemovalList), entityBredList(entityBredList),
+					    profile(nullptr),pathSetMgr(nullptr)
 {
 	//Initialize our profile builder, if applicable.
 	if (ConfigManager::GetInstance().CMakeConfig().ProfileWorkerUpdates()) {
@@ -78,6 +78,7 @@ sim_mob::Worker::Worker(WorkGroup* parent, std::ostream* logFile,  FlexiBarrier*
 	}
 	//thread_id = auto_matical_thread_id;
 	//auto_matical_thread_id++;
+	srand(std::time(0));
 }
 
 

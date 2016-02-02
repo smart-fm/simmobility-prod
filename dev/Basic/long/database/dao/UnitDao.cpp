@@ -31,7 +31,7 @@ void UnitDao::fromRow(Row& result, Unit& outObj)
     outObj.storey  = result.get<int>("storey", 0);
     outObj.monthlyRent  = result.get<double>("monthly_rent", .0);
     outObj.sale_from_date  = result.get<std::tm>("sale_from_date", std::tm());
-    outObj.occupancy_from_date  = result.get<std::tm>("occupancy_from_date", std::tm());
+    outObj.occupancyFromDate  = result.get<std::tm>("occupancy_from_date", std::tm());
     outObj.sale_status  = result.get<int>("sale_status", 0);
     outObj.occupancyStatus  = result.get<int>("occupancy_status", 0);
     outObj.lastChangedDate = result.get<std::tm>("last_changed_date", std::tm());
@@ -52,7 +52,7 @@ void UnitDao::toRow(Unit& data, Parameters& outParams, bool update)
 	outParams.push_back(data.getStorey());
 	outParams.push_back(data.getMonthlyRent());
 	outParams.push_back(data.getSaleFromDate());
-	outParams.push_back(data.getPhysicalFromDate());
+	outParams.push_back(data.getOccupancyFromDate());
 	outParams.push_back(data.getSaleStatus());
 	outParams.push_back(data.getOccupancyStatus());
 	outParams.push_back(data.getLastChangedDate());

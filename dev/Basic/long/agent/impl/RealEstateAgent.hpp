@@ -10,7 +10,7 @@
  */
 #pragma once
 #include "core/HousingMarket.hpp"
-#include "agent/LT_Agent.hpp"
+#include "entities/Agent_LT.hpp"
 #include "database/entity/Household.hpp"
 #include "event/LT_EventArgs.hpp"
 #include "database/entity/Unit.hpp"
@@ -29,7 +29,7 @@ namespace sim_mob
          *    - sell the units built by the developer model
          */
 
-        class RealEstateAgent : public LT_Agent
+        class RealEstateAgent : public Agent_LT
         {
         private:
         	enum BuildingStatus{

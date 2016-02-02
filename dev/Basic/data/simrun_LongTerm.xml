@@ -21,17 +21,17 @@
             </database>
             
 	    <!-- internal ip for remote midterm server -->
-            <database id="fm_remote_mt" dbtype="postgres">
+            <database id="fm_remote_mt1" dbtype="postgres">
                 <host value="172.25.184.48"/>
                 <port value="5432"/>
                 <dbname value="SimMobility_DB_2015"/>
             </database>
 
             <!-- localhost for midterm server -->
-            <database id="fm_remote_mt2" dbtype="postgres">
+            <database id="fm_remote_mt" dbtype="postgres">
                 <host value="localhost"/>
                 <port value="5432"/>
-                <dbname value="SimMobility_DB_2015"/>
+                <dbname value="sim_mob_lt"/>
             </database>
 
 		<!-- public ip for remote midterm server -->
@@ -47,6 +47,14 @@
 	        <port value="5432"/> <!--old port: 15025 -->
 	        <dbname value="SimMobility_DB_2015"/>
 	    </database>
+
+		<!-- longterm localhost server hosting midterm data -->
+	    <database id="fm_remote_mt5" dbtype="postgres">
+	        <host value="172.25.184.14"/>
+	        <port value="5432"/>
+	        <dbname value="sim_mob_lt"/>
+	    </database>
+
 
 
 	 </databases>
@@ -68,9 +76,10 @@
 		            "algorithm" : ["clear","xor23","base64","cipher"]
 		        }
 		        -->
-		        
+
 		        <file-based-credential id="fm_remote_mt">
-		            <file path="private/fm_remote.cred"/>
+		        <!-- <file path="private/fm_remote.cred"/> -->
+			     <file path="private/fm_local.cred"/>
 		        </file-based-credential>
 		        
 		        <plaintext-credential id="LT_cred">
@@ -199,8 +208,8 @@
 	    <housingMarketSearchPercentage value="0.15"/>
 	    <housingMoveInDaysInterval value="30"/>
 	    <offsetBetweenUnitBuyingAndSelling value ="7"/>
-	    <bidderUnitsChoiceSet value = "10"/>
-	    <householdBiddingWindow value = "10" />
+	    <bidderUnitsChoiceSet value = "100"/>
+	    <householdBiddingWindow value = "30" />
         </housingModel>
 	<vehicleOwnershipModel enabled='true'>
 		<vehicleBuyingWaitingTimeInDays value= "1"/>

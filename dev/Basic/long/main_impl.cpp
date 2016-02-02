@@ -338,9 +338,11 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
         }
 
         if( enableHousingMarket )
+        {
         	 housingMarketModel = new HM_Model(*hmWorkers);//initializing the housing market model
              housingMarketModel->setStartDay(currentTick);
         	 models.push_back(housingMarketModel);
+        }
 
         if( enableDeveloperModel )
         {
@@ -407,9 +409,7 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
 			 }
 			#endif
 
-            PrintOutV("Day " << currTick << " The housing market has " << std::dec << (dynamic_cast<HM_Model*>(models[0]))->getMarket()->getEntrySize() << " units and \t" << (dynamic_cast<HM_Model*>(models[0]))->getNumberOfBidders() << " bidders on the market" << std::endl );
-
-            //start all models.
+			//start all models.
 		    for (vector<Model*>::iterator it = models.begin(); it != models.end(); it++)
 		    {
 		 	   (*it)->update(currTick);
@@ -422,6 +422,17 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
             developerAgents = developerModel->getDeveloperAgents();
             developerModel->wakeUpDeveloperAgents(developerAgents);
 
+            sleep(1);
+
+            PrintOutV("Day " << currTick << " Housing market. Units: " << std::dec << (dynamic_cast<HM_Model*>(models[0]))->getMarket()->getEntrySize()
+            	   << " Bidders: " 		<< (dynamic_cast<HM_Model*>(models[0]))->getNumberOfBidders() << " "
+				   << " Bids: " 		<< (dynamic_cast<HM_Model*>(models[0]))->getBids()
+            	   << " Accepted: " 	<< (dynamic_cast<HM_Model*>(models[0]))->getSuccessfulBids()
+				   << " Exits: " 		<< (dynamic_cast<HM_Model*>(models[0]))->getExits()
+				   << " Awakenings: "	<< (dynamic_cast<HM_Model*>(models[0]))->getAwakeningCounter()
+				   << " " << std::endl );
+
+            (dynamic_cast<HM_Model*>(models[0]))->resetBAEStatistics();
         }
 
         //Save our output files if we are merging them later.

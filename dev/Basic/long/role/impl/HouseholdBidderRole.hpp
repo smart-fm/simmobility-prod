@@ -1,6 +1,6 @@
 //Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
 //Licensed under the terms of the MIT License, as described in the file:
-//   license.txt   (http://opensource.org/licenses/MIT)
+//license.txt   (http://opensource.org/licenses/MIT)
 
 /* 
  * File:   HouseholdBidderRole.hpp
@@ -42,7 +42,7 @@ namespace sim_mob
             class CurrentBiddingEntry
             {
             public:
-                CurrentBiddingEntry(const BigSerial unitId = INVALID_ID, const double bestBid = 0, const double wp = 0, double lastSurplus = 0 );
+                CurrentBiddingEntry(const BigSerial unitId = INVALID_ID, const double bestBid = 0, const double wp = 0, double lastSurplus = 0, double wtp_e  = 0, double affordability = 0);
                 ~CurrentBiddingEntry();
 
                 /**
@@ -57,6 +57,12 @@ namespace sim_mob
                 double getLastSurplus() const;
                 void setLastSurplus(double value);
 
+                double getWtp_e();
+                void setWtp_e(double value);
+
+                double getAffordability() const;
+                void setAffordability( double value);
+
                 /**
                  * Increments the tries variable with given quantity.
                  * @param quantity to increment.
@@ -69,6 +75,8 @@ namespace sim_mob
                 double bestBid; //actual final bid
                 long int tries; // number of bids sent to the seller.
                 double lastSurplus; // value of the last surplus
+                double wtp_e; //willingToPay error term
+                double affordability;
             };
 
         public:
@@ -81,7 +89,6 @@ namespace sim_mob
 
             void computeHouseholdAffordability();
             void computeBidValueLogistic( double price, double wp, double &finalBid, double &finalSurplus );
-            void getScreeningProbabilities(int hitsId, std::vector<double> &probabilities);
 
             /**
              * Inherited from LT_Role
@@ -89,18 +96,14 @@ namespace sim_mob
              */
             virtual void update(timeslice currTime);
 
-            void reconsiderVehicleOwnershipOption();
-
-            double getExpOneCar(int unitTypeId, double vehicleOwnershipLogsum);
-
-            double getExpTwoPlusCar(int unitTypeId, double vehicleOwnershipLogsum);
-
             /*
              * check all the vehicle categories and returns if it includes a motorcycle
              */
             bool isMotorCycle(int vehicleCategoryId);
 
             int getIncomeCategoryId(double income);
+
+            int getMoveInWaitingTimeInDays();
 
         protected:
 
@@ -145,6 +148,7 @@ namespace sim_mob
             bool active;
         	BigSerial unitIdToBeOwned;
         	int moveInWaitingTimeInDays;
+        	bool bidComplete;
         	int vehicleBuyingWaitingTimeInDays;
         	uint32_t day;
         	int year;

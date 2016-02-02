@@ -10,7 +10,7 @@
  * Created on Mar 5, 2014, 6:36 PM
  */
 #pragma once
-#include "agent/LT_Agent.hpp"
+#include "entities/Agent_LT.hpp"
 #include "database/entity/Developer.hpp"
 #include "database/entity/Parcel.hpp"
 #include "database/entity/PotentialProject.hpp"
@@ -25,7 +25,7 @@ namespace sim_mob {
 
         class DeveloperModel;
         
-        class DeveloperAgent : public LT_Agent {
+        class DeveloperAgent : public Agent_LT {
         public:
             DeveloperAgent(boost::shared_ptr<Parcel> parcel, DeveloperModel* model);
             virtual ~DeveloperAgent();

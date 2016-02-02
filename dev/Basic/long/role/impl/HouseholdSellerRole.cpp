@@ -17,6 +17,7 @@
 #include "util/SharedFunctions.hpp"
 #include "agent/impl/HouseholdAgent.hpp"
 #include "model/HM_Model.hpp"
+#include "model/HedonicPriceSubModel.hpp"
 #include "message/MessageBus.hpp"
 #include "model/lua/LuaProvider.hpp"
 #include "message/LT_Message.hpp"
@@ -40,10 +41,8 @@ using sim_mob::Math;
 
 namespace
 {
-    //bid_timestamp, day_to_apply, seller_id, unit_id, hedonic_price, asking_price, target_price
-    const std::string LOG_EXPECTATION = "%1%, %2%, %3%, %4%, %5%, %6%, %7%";
-    //bid_timestamp ,seller_id, bidder_id, unit_id, bidder wp, affordability, logsum, hedonicprice, asking_price, floor_area, type_id, target_price, bid_value, bids_counter (daily), bid_status, HHPC, UPC
-    const std::string LOG_BID = "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%, %11%, %12%, %13%, %14%, %15%, %16%, %17%";
+    //bid_timestamp, seller_id, bidder_id, unit_id, bidder wtp, bidder wp+wp_error, wp_error, affordability, currentUnitHP,target_price, hedonicprice, lagCoefficient, asking_price, bid_value, bids_counter (daily), bid_status, logsum, floor_area, type_id, HHPC, UPC
+    const std::string LOG_BID = "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%, %11%, %12%, %13%, %14%, %15%, %16%, %17%, %18%, %19%, %20%, %21%";
 
     /**
      * Print the current bid on the unit.
@@ -68,48 +67,30 @@ namespace
         const Unit* thisUnit = model->getUnitById(thisBidder->getUnitId());
         Postcode* thisPostcode = model->getPostcodeById( thisUnit->getSlaAddressId() );
 
+
         boost::format fmtr = boost::format(LOG_BID) % bid.getSimulationDay()
 													% agent.getId()
 													% bid.getBidderId()
 													% bid.getNewUnitId()
+													% (bid.getWillingnessToPay() - bid.getWtpErrorTerm())
 													% bid.getWillingnessToPay()
+													% bid.getWtpErrorTerm()
 													% thisBidder->getAffordabilityAmount()
-													% thisBidder->getLogsum()
-													% entry.hedonicPrice
-													% entry.askingPrice
-													% floor_area
-													% type_id
+													% thisBidder->getCurrentUnitPrice()
 													% entry.targetPrice
+													% entry.hedonicPrice
+													% unit->getLagCoefficient()
+													% entry.askingPrice
 													% bid.getBidValue()
 													% bidsCounter
 													% ((accepted) ? 1 : 0)
+													% thisBidder->getLogsum()
+													% floor_area
+													% type_id
 													% thisPostcode->getSlaPostcode()
 													% unitPostcode->getSlaPostcode();
 
         AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::BIDS, fmtr.str());
-        //PrintOut(fmtr.str() << endl);
-    }
-
-    /**
-     * Print the current expectation on the unit.
-     * @param the current day
-     * @param the day on which the bid was made
-     * @param the unit id
-     * @param agent to received the bid
-     * @param struct containing the hedonic, asking and target price.
-     *
-     */
-    inline void printExpectation(const timeslice& now, int dayToApply, BigSerial unitId, const HouseholdAgent& agent, const ExpectationEntry& exp)
-    {
-        boost::format fmtr = boost::format(LOG_EXPECTATION) % now.ms()
-															% dayToApply
-															% agent.getId()
-															% unitId
-															% exp.hedonicPrice
-															% exp.askingPrice
-															% exp.targetPrice;
-
-        AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::EXPECTATIONS, fmtr.str());
         //PrintOut(fmtr.str() << endl);
     }
 
@@ -135,7 +116,8 @@ namespace
         MessageBus::PostMessage(bid.getBidder(), LTMID_BID_RSP, MessageBus::MessagePtr(new BidMessage(bid, response)));
 
         //print bid.
-        printBid(agent, bid, entry, bidsCounter, (response == ACCEPTED));
+        if( entry.askingPrice > 0.0001 )
+        	printBid(agent, bid, entry, bidsCounter, (response == ACCEPTED));
 
         //save accepted bids to a vector, to be saved in DB later.
         if(response == ACCEPTED)
@@ -148,16 +130,18 @@ namespace
         	int UnitslaId = unit->getSlaAddressId();
         	Household *thisBidder = model->getHouseholdById(bid.getBidderId());
         	const Unit* thisUnit = model->getUnitById(thisBidder->getUnitId());
+
         	if( agent.getHousehold() )
-        	{
         		newBid->setAffordabilityAmount(agent.getHousehold()->getAffordabilityAmount());
-        	}
+
+
         	newBid->setHedonicPrice(entry.hedonicPrice);
         	newBid->setAskingPrice(entry.askingPrice);
         	newBid->setTargetPrice(entry.targetPrice);
         	newBid->setCurrentPostcode(thisUnit->getSlaAddressId());
         	newBid->setNewPostcode(UnitslaId);
         	newBid->setMoveInDate(getDateBySimDay(config.ltParams.year,(bid.getSimulationDay()+moveInWaitingTimeInDays)));
+
         	model->addNewBids(newBid);
 
         	boost::shared_ptr<UnitSale> unitSale(new UnitSale(bid.getNewUnitId(),bid.getBidderId(),agent.getId(),bid.getBidValue(),getDateBySimDay(config.ltParams.year,bid.getSimulationDay())));
@@ -352,6 +336,26 @@ void HouseholdSellerRole::HandleMessage(Message::MessageType type, const Message
                     {
                         maxBidsOfDay.insert(std::make_pair(unitId, msg.getBid()));
                     }
+                    else if(maxBidOfDay->getBidValue() == msg.getBid().getBidValue())
+				    {
+					   // bids are exactly equal. Randomly choose one.
+
+                    	double randomDraw = (double)rand()/RAND_MAX;
+
+                    	//drop the current bid
+                    	if(randomDraw < 0.5)
+                    	{
+						   replyBid(*getParent(), *maxBidOfDay, entry, BETTER_OFFER, dailyBidCounter);
+						   maxBidsOfDay.erase(unitId);
+
+						   //update the new bid and bidder.
+						   maxBidsOfDay.insert(std::make_pair(unitId, msg.getBid()));
+                    	}
+                    	else //keep the current bid
+                    	{
+                    		 replyBid(*getParent(), msg.getBid(), entry, BETTER_OFFER, dailyBidCounter);
+                    	}
+				    }
                     else if(maxBidOfDay->getBidValue() < msg.getBid().getBidValue())
                     {
                         // bid is higher than the current one of the day.
@@ -452,6 +456,7 @@ void HouseholdSellerRole::notifyWinnerBidders()
         PrintOutV("[day " << currentTime.ms() << "] Seller " << std::dec << getParent()->getId() << " accepted the bid of " << maxBidOfDay.getBidderId() << " for unit " << maxBidOfDay.getUnitId() << " at $" << maxBidOfDay.getValue() << std::endl );
 		#endif
 
+        getParent()->getModel()->incrementSuccessfulBids();
         market->removeEntry(maxBidOfDay.getNewUnitId());
         getParent()->removeUnitId(maxBidOfDay.getNewUnitId());
         sellingUnitsMap.erase(maxBidOfDay.getNewUnitId());
@@ -469,140 +474,19 @@ void HouseholdSellerRole::calculateUnitExpectations(const Unit& unit)
 	unsigned int timeInterval = config.ltParams.housingModel.timeInterval;
 	unsigned int timeOnMarket = config.ltParams.housingModel.timeOnMarket;
 
-    const HM_LuaModel& luaModel = LuaProvider::getHM_Model();
     SellingUnitInfo info;
     info.startedDay = currentTime.ms();
     info.interval = timeInterval;
     info.daysOnMarket = unit.getTimeOnMarket();
 
     HM_Model *model = getParent()->getModel();
-	BigSerial tazId = model->getUnitTazId( unit.getId() );
-	Taz *tazObj = model->getTazById( tazId );
 
-	std::string tazStr;
-	if( tazObj != NULL )
-		tazStr = tazObj->getName();
+	Unit *castUnit = const_cast<Unit*>(&unit);
 
-	BigSerial taz = std::atoi( tazStr.c_str() );
+	HedonicPrice_SubModel hpSubmodel( currentTime.ms(), model, castUnit);
 
-	//double logsum =  model->ComputeHedonicPriceLogsumFromMidterm( taz );
-	double logsum = model->ComputeHedonicPriceLogsumFromDatabase( taz );
+    hpSubmodel.ComputeHedonicPrice(info, sellingUnitsMap, parent->getId());
 
-	//Current Quarter
-	double currentQuarter = currentTime.ms() / 365.0 * 4.0;
-
-
-	DeveloperModel *devModel = model->getDeveloperModel();
-	const TAO*  currentTao = devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter);
-
-	vector<double> lagCoefficient;
-	double finalCoefficient = 0;
-
-	if( unit.getUnitType() < ID_HDB3 )
-	{
-		lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 1)->getHdb12());
-		lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 2)->getHdb12());
-		lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 3)->getHdb12());
-
-		finalCoefficient = (lagCoefficient[0] * 0.8663369041) + (lagCoefficient[1] * 0) + (lagCoefficient[2] * 0);
-	}
-
-	else if( unit.getUnitType() == ID_HDB3 )
-	{
-		lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 1)->getHdb3());
-		lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 2)->getHdb3());
-		lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 3)->getHdb3());
-
-		finalCoefficient = (lagCoefficient[0] * 0.9272176399) + (lagCoefficient[1] * 0) + (lagCoefficient[2] * 0);
-	}
-	else if( unit.getUnitType() == ID_HDB4 )
-	{
-		lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 1)->getHdb4());
-		lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 2)->getHdb4());
-		lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 3)->getHdb4());
-
-		finalCoefficient = (lagCoefficient[0] * 0.9350228728) + (lagCoefficient[1] * 0) + (lagCoefficient[2] * 0);
-	}
-	else if( unit.getUnitType() == ID_HDB5 )
-	{
-		lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 1)->getHdb5());
-		lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 2)->getHdb5());
-		lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 3)->getHdb5());
-
-		finalCoefficient = (lagCoefficient[0] * 0.935234228) + (lagCoefficient[1] * 0) + (lagCoefficient[2] * 0);
-	}
-	else if( unit.getUnitType() >= ID_EC85 and unit.getUnitType()  <= ID_EC144 )  //Executive Condominium
-	{
-		lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 1)->getEc());
-		lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 2)->getEc());
-		lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 3)->getEc());
-
-		finalCoefficient = (lagCoefficient[0] * 1.2096032467) + (lagCoefficient[1] * -0.1792877201) + (lagCoefficient[2] * 0);
-
-	}
-	else if( unit.getUnitType() >= ID_CONDO60 && unit.getUnitType()  <= ID_CONDO134 )   //Condominium
-	{
-		lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 1)->getCondo());
-		lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 2)->getCondo());
-		lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 3)->getCondo());
-
-		finalCoefficient = (lagCoefficient[0] * 1.4844876679) + (lagCoefficient[1] * -0.6052100987) + (lagCoefficient[2] * 0);
-	}
-	else if(unit.getUnitType() >= ID_APARTM70 && unit.getUnitType()  <= ID_APARTM159 ) //"Apartment"
-	{
-		lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 1)->getApartment());
-		lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 2)->getApartment());
-		lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 3)->getApartment());
-
-		finalCoefficient = (lagCoefficient[0] * 0.9871695457) + (lagCoefficient[1] * 0) + (lagCoefficient[2] * -0.2613884519);
-	}
-	else if(unit.getUnitType() >= ID_TERRACE180 && unit.getUnitType()  <= ID_TERRACE379 )  //"Terrace House"
-	{
-		lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 1)->getTerrace());
-		lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 2)->getTerrace());
-		lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 3)->getTerrace());
-
-		finalCoefficient = (lagCoefficient[0] * 1.3913443465 ) + (lagCoefficient[1] * -0.4404391521 ) + (lagCoefficient[2] * 0);
-
-	}
-	else if( unit.getUnitType() >= ID_SEMID230 && unit.getUnitType()  <= ID_SEMID499 )  //"Semi-Detached House"
-	{
-		lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 1)->getSemi());
-		lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 2)->getSemi());
-		lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 3)->getSemi());
-
-		finalCoefficient = (lagCoefficient[0] * 1.2548759133) + (lagCoefficient[1] * -0.0393621411 ) + (lagCoefficient[2] * 0);
-
-	}
-	else if( unit.getUnitType() >= ID_DETACHED480 && unit.getUnitType()  <= ID_DETACHED1199 )  //"Detached House"
-	{
-		lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 1)->getDetached());
-		lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 2)->getDetached());
-		lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 3)->getDetached());
-
-		finalCoefficient = (lagCoefficient[0] * 1.1383691158) + (lagCoefficient[1] * 0) + (lagCoefficient[2] * 0);
-	}
-
-    info.numExpectations = (info.interval == 0) ? 0 : ceil((double) info.daysOnMarket / (double) info.interval);
-    luaModel.calulateUnitExpectations(unit, info.numExpectations, logsum, finalCoefficient, info.expectations );
-
-    //number of expectations should match 
-    if (info.expectations.size() == info.numExpectations)
-    {
-        sellingUnitsMap.erase(unit.getId());
-        sellingUnitsMap.insert(std::make_pair(unit.getId(), info));
-
-        //just revert the expectations order.
-        for (int i = 0; i < info.expectations.size() ; i++)
-        {
-            int dayToApply = currentTime.ms() + (i * info.interval);
-            printExpectation(currentTime, dayToApply, unit.getId(), *getParent(), info.expectations[i]);
-        }
-    }
-    else
-    {
-    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, (boost::format( "[unit %1%] Expectations is empty.") % unit.getId()).str());
-    }
 }
 
 bool HouseholdSellerRole::getCurrentExpectation(const BigSerial& unitId, ExpectationEntry& outEntry)

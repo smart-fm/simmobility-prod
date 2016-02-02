@@ -22,9 +22,11 @@ namespace sim_mob
         {
         public:
             Household();
+
             Household( BigSerial id, BigSerial lifestyleId, BigSerial unitId, BigSerial ethnicityId, BigSerial vehicleCategoryId,  int size, int childUnder4, int childUnder15, int adult, double income,
             		   int housingDuration,int workers, int ageOfHead, int pendingStatusId,std::tm pendingFromDate,int unitPending,bool twoRoomHdbEligibility, bool threeRoomHdbEligibility, bool fourRoomHdbEligibility, int familyType, bool taxiAvailability,
-					   int vehicleOwnershipOptionId, double logsum,double householdAffordabilityAmount, int buySellInterval, std::tm moveInDate,int timeOnMarket,int timeOffMarket,int isBidder,int isSeller,int hasMoved);
+					   int vehicleOwnershipOptionId, double logsum, double currentUnitPrice, double householdAffordabilityAmount, int buySellInterval, std::tm moveInDate,int timeOnMarket,int timeOffMarket,int isBidder,int isSeller,int hasMoved);
+
             virtual ~Household();
 
             Household& operator=(const Household& source);
@@ -77,6 +79,10 @@ namespace sim_mob
 			void 	setAffordabilityAmount( double value );
 			double	getAffordabilityAmount() const;
 
+
+			void	setCurrentUnitPrice( double value);
+			double	getCurrentUnitPrice() const;
+
 			int getBuySellInterval() const;
 			int getTimeOffMarket() const ;
 			int getTimeOnMarket() const;
@@ -102,6 +108,7 @@ namespace sim_mob
 			void setIsBidder(int bidder);
 			void setIsSeller(int seller);
 			void setHasMoved(int hasMove);
+
 
 			enum FAMILY_TYPE
 			{
@@ -150,6 +157,9 @@ namespace sim_mob
 
 			double householdAffordabilityAmount;
 			double logsum;
+
+			double currentUnitPrice;
+
 			int buySellInterval;
 			std::tm moveInDate;
 			int timeOnMarket;
@@ -157,6 +167,7 @@ namespace sim_mob
 			int isBidder;
 			int isSeller;
 			int hasMoved;
+
         };
 
 

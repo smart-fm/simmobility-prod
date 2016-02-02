@@ -5,6 +5,7 @@
 /* 
  * File:   Property.cpp
  * Author: Pedro Gandola <pedrogandola@smart.mit.edu>
+ * 		   Chetan Rogbeer <rogbeer@mit.edu>
  * 
  * Created on March 11, 2013, 3:05 PM
  */
@@ -15,11 +16,14 @@ using namespace sim_mob;
 using namespace sim_mob::long_term;
 
 Unit::Unit( BigSerial id, BigSerial building_id, BigSerial sla_address_id, int unit_type, int storey_range, int constructionStatus, double floor_area, int storey,
-			double monthlyRent, int ownership, std::tm sale_from_date, std::tm occupancy_from_date, int sale_status, int occupancyStatus, std::tm lastChangedDate,
-			double totalPrice,std::tm valueDate,int tenureStatus,int biddingMarketEntryDay, int timeOnMarket, int timeOffMarket)
+
+			double monthlyRent, std::tm sale_from_date, std::tm occupancyFromDate, int sale_status, int occupancyStatus, std::tm lastChangedDate,
+			double totalPrice,std::tm valueDate,int tenureStatus,int biddingMarketEntryDay, int timeOnMarket, int timeOffMarket, double lagCoefficient, int zoneHousingType, int dwellingType)
 		   : id(id), building_id(building_id), sla_address_id(sla_address_id), unit_type(unit_type), storey_range(storey_range), constructionStatus(constructionStatus),
-		     floor_area(floor_area), storey(storey), monthlyRent(monthlyRent), ownership(ownership), sale_from_date(sale_from_date), occupancy_from_date(occupancy_from_date), sale_status(sale_status),
-		     occupancyStatus(occupancyStatus), lastChangedDate(lastChangedDate),totalPrice(totalPrice),valueDate(valueDate),tenureStatus(tenureStatus),biddingMarketEntryDay(biddingMarketEntryDay),timeOnMarket(timeOnMarket), timeOffMarket(timeOffMarket){}
+		     floor_area(floor_area), storey(storey), monthlyRent(monthlyRent), sale_from_date(sale_from_date), occupancyFromDate(occupancyFromDate),
+			 sale_status(sale_status), occupancyStatus(occupancyStatus), lastChangedDate(lastChangedDate),totalPrice(totalPrice),valueDate(valueDate),tenureStatus(tenureStatus),
+			 biddingMarketEntryDay(biddingMarketEntryDay),timeOnMarket(timeOnMarket), timeOffMarket(timeOffMarket), lagCoefficient(lagCoefficient),
+			 zoneHousingType(zoneHousingType), dwellingType(dwellingType){}
 
 
 Unit::Unit(const Unit& source)
@@ -33,9 +37,8 @@ Unit::Unit(const Unit& source)
     this->floor_area  = source.floor_area;
     this->storey  = source.storey;
     this->monthlyRent  = source.monthlyRent;
-    this->ownership = source.ownership;
     this->sale_from_date  = source.sale_from_date;
-    this->occupancy_from_date  = source.occupancy_from_date;
+    this->occupancyFromDate  = source.occupancyFromDate;
     this->sale_status  = source.sale_status;
     this->occupancyStatus = source.occupancyStatus;
     this->lastChangedDate = source.lastChangedDate;
@@ -45,6 +48,10 @@ Unit::Unit(const Unit& source)
     this->biddingMarketEntryDay = source.biddingMarketEntryDay;
     this->timeOnMarket = source.timeOnMarket;
     this->timeOffMarket = source.timeOffMarket;
+    this->lagCoefficient = source.lagCoefficient;
+    this->zoneHousingType = source.zoneHousingType;
+    this->dwellingType = source.dwellingType;
+
 }
 
 Unit::~Unit() {}
@@ -60,9 +67,8 @@ Unit& Unit::operator=(const Unit& source)
     this->floor_area  = source.floor_area;
     this->storey  = source.storey;
     this->monthlyRent  = source.monthlyRent;
-    this->ownership = source.ownership;
     this->sale_from_date  = source.sale_from_date;
-    this->occupancy_from_date  = source.occupancy_from_date;
+    this->occupancyFromDate  = source.occupancyFromDate;
     this->sale_status  = source.sale_status;
     this->occupancyStatus = source.occupancyStatus;
     this->lastChangedDate = source.lastChangedDate;
@@ -72,6 +78,9 @@ Unit& Unit::operator=(const Unit& source)
     this->biddingMarketEntryDay = source.biddingMarketEntryDay;
     this->timeOnMarket = source.timeOnMarket;
     this->timeOffMarket = source.timeOffMarket;
+    this->lagCoefficient = source.lagCoefficient;
+    this->zoneHousingType = source.zoneHousingType;
+    this->dwellingType = source.dwellingType;
 
     return *this;
 }
@@ -121,24 +130,19 @@ double Unit::getMonthlyRent() const
 		return monthlyRent;
 }
 
-int Unit::getOwnership() const
-{
-	return ownership;
-}
-
 std::tm Unit::getSaleFromDate() const
 {
 	return sale_from_date;
 }
 
-std::tm Unit::getPhysicalFromDate() const
+std::tm Unit::getOccupancyFromDate() const
 {
-	return occupancy_from_date;
+	return occupancyFromDate;
 }
 
-int Unit::getPhysicalFromYear() const
+int Unit::getOccupancyFromYear() const
 {
-	return occupancy_from_date.tm_year;
+	return occupancyFromDate.tm_year;
 }
 
 
@@ -150,6 +154,11 @@ int Unit::getSaleStatus() const
 std::tm Unit::getLastChangedDate() const
 {
 	return lastChangedDate;
+}
+
+int Unit::getDwellingType() const
+{
+	return dwellingType;
 }
 
 void Unit::setBuildingId(BigSerial buildingId) {
@@ -164,18 +173,13 @@ void Unit::setId(BigSerial id) {
 	this->id = id;
 }
 
-void Unit::setPhysicalFromDate(const std::tm& physicalFromDate) {
-	this->occupancy_from_date = physicalFromDate;
+void Unit::setOccupancyFromDate(const std::tm& occupancyFromDate) {
+	this->occupancyFromDate = occupancyFromDate;
 }
 
 void Unit::setMonthlyRent(double monthlyRent)
 {
 		this->monthlyRent = monthlyRent;
-}
-
-void Unit::setOwnership(int ownership)
-{
-	this->ownership = ownership;
 }
 
 void Unit::setSaleFromDate(const std::tm& saleFromDate) {
@@ -281,6 +285,31 @@ void Unit::setTimeOffMarket(int day )
 	timeOffMarket = day;
 }
 
+void Unit::setLagCoefficient(double lag)
+{
+	lagCoefficient = lag;
+}
+double Unit::getLagCoefficient() const
+{
+	return lagCoefficient;
+}
+
+int Unit::getZoneHousingType() const
+{
+	return zoneHousingType;
+}
+
+void Unit::setZoneHousingType(int value)
+{
+	zoneHousingType = value;
+}
+
+void Unit::setDwellingType( int value)
+{
+	dwellingType = value;
+}
+
+
 namespace sim_mob
 {
     namespace long_term
@@ -297,15 +326,17 @@ namespace sim_mob
 						<< "\"floor_area \":\"" << data.floor_area << "\","
 						<< "\"storey \":\"" << data.storey << "\","
 						<< "\"monthlyRent \":\"" << data.monthlyRent<< "\","
-						<< "\"ownership \":\"" << data.ownership << "\","
 						<< "\"sale_from_date \":\"" << data.sale_from_date.tm_year << data.sale_from_date.tm_mon << data.sale_from_date.tm_wday << "\","
-						<< "\"physical_from_date \":\"" << data.occupancy_from_date.tm_year << data.occupancy_from_date.tm_mon << data.occupancy_from_date.tm_wday << "\","
+						<< "\"occupancy_from_date \":\"" << data.occupancyFromDate.tm_year << data.occupancyFromDate.tm_mon << data.occupancyFromDate.tm_wday << "\","
 						<< "\"sale_status \":\"" << data.sale_status << "\","
 						<< "\"occupancy_status \":\"" << data.occupancyStatus << "\","
 						<< "\"biddingMarketEntryDay\":\"" << data.biddingMarketEntryDay << "\""
 						<< "\"timeOnMarket\":\"" << data.timeOnMarket << "\""
             			<< "\"timeOffMarket\":\"" << data.timeOffMarket << "\""
 						<< "\"lastChangedDate\":\"" << data.lastChangedDate.tm_year << data.lastChangedDate.tm_mon << data.lastChangedDate.tm_wday << "\","
+						<< "\"lagCoefficient\":\"" << data.lagCoefficient << "\","
+						<< "\"zoneHousingType\":\"" << data.zoneHousingType << "\","
+						<< "\"dwellingType\":\"" << data.dwellingType << "\""
 						<< "}";
         }
     }

@@ -115,7 +115,7 @@ namespace sim_mob
             double monthlyRent;
             int ownership;
             std::tm sale_from_date;
-            std::tm physical_from_date;
+            std::tm occupancy_from_date;
             int sale_status;
             int occupancyStatus;
             std::tm lastChangedDate;

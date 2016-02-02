@@ -17,7 +17,7 @@ namespace sim_mob {
         class UnitType {
         public:
             UnitType(BigSerial id = INVALID_ID,std::string name = EMPTY_STR,
-                     double typicalArea = 0.0, double constructionCostPerUnit = 0.0,double demolitionCostPerUnit = 0.0);
+                     double typicalArea = 0.0, double constructionCostPerUnit = 0.0,double demolitionCostPerUnit = 0.0, double minLosize = 0.0);
 
             virtual ~UnitType();
 
@@ -29,11 +29,14 @@ namespace sim_mob {
             double getTypicalArea() const;
             double getConstructionCostPerUnit() const;
             double getDemolitionCostPerUnit() const;
+            double getMinLosize() const ;
             /**
              * Operator to print the TemplateUnitType data.
              */
             friend std::ostream& operator<<(std::ostream& strm,
                     const UnitType& data);
+
+
         private:
             friend class UnitTypeDao;
         private:
@@ -42,6 +45,7 @@ namespace sim_mob {
             double typicalArea;
             double constructionCostPerUnit;
             double demolitionCostPerUnit;
+            double minLosize;
         };
     }
 }

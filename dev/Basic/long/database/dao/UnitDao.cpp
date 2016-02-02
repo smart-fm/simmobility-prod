@@ -31,7 +31,7 @@ void UnitDao::fromRow(Row& result, Unit& outObj)
     outObj.storey  = result.get<int>("storey", 0);
     outObj.monthlyRent  = result.get<double>("monthly_rent", .0);
     outObj.sale_from_date  = result.get<std::tm>("sale_from_date", std::tm());
-    outObj.physical_from_date  = result.get<std::tm>("physical_from_date", std::tm());
+    outObj.occupancyFromDate  = result.get<std::tm>("occupancy_from_date", std::tm());
     outObj.sale_status  = result.get<int>("sale_status", 0);
     outObj.occupancyStatus  = result.get<int>("occupancy_status", 0);
     outObj.lastChangedDate = result.get<std::tm>("last_changed_date", std::tm());
@@ -52,7 +52,7 @@ void UnitDao::toRow(Unit& data, Parameters& outParams, bool update)
 	outParams.push_back(data.getStorey());
 	outParams.push_back(data.getMonthlyRent());
 	outParams.push_back(data.getSaleFromDate());
-	outParams.push_back(data.getPhysicalFromDate());
+	outParams.push_back(data.getOccupancyFromDate());
 	outParams.push_back(data.getSaleStatus());
 	outParams.push_back(data.getOccupancyStatus());
 	outParams.push_back(data.getLastChangedDate());
@@ -77,7 +77,7 @@ void UnitDao::insertUnit(Unit& unit,std::string schema)
                 		+ " (" + "fm_unit_id" + ", " + "fm_building_id" + ", " + "sla_address_id"
                 		+ ", " + "unit_type" + ", " + "storey_range" + ", "
                 		+ "construction_status" + ", " + "floor_area"  + ", "+ "storey" + ", " + "monthly_rent" + ", "
-                		+ "sale_from_date" + ", " + "physical_from_date"  + ", " + "sale_status"
+                		+ "sale_from_date" + ", " + "occupancy_from_date"  + ", " + "sale_status"
                 		+ ", "+ "occupancy_status"  + ", " + "last_changed_date" + ", " + "total_price"+ ", " + "value_date" + ", " + "tenure_status"
                 		+ ") VALUES (:v1, :v2, :v3, :v4, :v5, :v6, :v7, :v8, :v9, :v10, :v11, :v12, :v13, :v14, :v15, :v16, :v17)";
 	insertViaQuery(unit,DB_INSERT_UNIT_OP);

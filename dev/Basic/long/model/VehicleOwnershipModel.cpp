@@ -18,9 +18,9 @@ VehicleOwnershipModel::VehicleOwnershipModel(HM_Model *model): model(model){}
 
 VehicleOwnershipModel::~VehicleOwnershipModel() {}
 
-inline void writeVehicleOwnershipToFile(BigSerial hhId,int VehiclOwnershiOptionId)
+inline void writeVehicleOwnershipToFile(BigSerial hhId,int vehicleOwnershipId)
 {
-	boost::format fmtr = boost::format("%1%, %2%") % hhId % VehiclOwnershiOptionId;
+	boost::format fmtr = boost::format("%1%, %2%") % hhId % vehicleOwnershipId;
 	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_VEHICLE_OWNERSIP,fmtr.str());
 
 }
@@ -37,12 +37,22 @@ void VehicleOwnershipModel::reconsiderVehicleOwnershipOption(const Household *ho
 
 		double valueNoCar =  model->getVehicleOwnershipCoeffsById(ASC_NO_CAR)->getCoefficientEstimate();
 		double expNoCar = exp(valueNoCar);
+
+		std::vector<BigSerial> individualIds = household->getIndividuals();
+		std::vector<IndvidualVehicleOwnershipLogsum*> logsumVec;
+
+		std::vector<BigSerial>::iterator indItr;
+		double maxIncome = 0;
+		BigSerial individualIdWihMaxIncome = 0;
+		double logsumCar = 0;
 		double vehicleOwnershipLogsum = 0;
-		LogSumVehicleOwnership *logsum = model->getVehicleOwnershipLogsumsById(household->getId());
+		IndvidualVehicleOwnershipLogsum *logsum = model->getIndvidualVehicleOwnershipLogsumsByHHId(household->getId());
 		if(logsum != nullptr)
 		{
-			vehicleOwnershipLogsum = logsum->getAvgLogsum();
+			vehicleOwnershipLogsum = logsum->getLogsumCar()- logsum->getLogsumTransit();
 		}
+
+
  		double expOneCar = getExpOneCar(unitTypeId,vehicleOwnershipLogsum,household);
 		double expTwoPlusCar = getExpTwoPlusCar(unitTypeId,vehicleOwnershipLogsum,household);
 
@@ -284,7 +294,7 @@ double VehicleOwnershipModel::getExpTwoPlusCar(int unitTypeId, double vehicleOwn
 	}
 
 	bool isCEO = false;
-	for(individualsItr = individuals.begin(); individualsItr != individuals.end(); individualsItr++)
+	for(individualsItr = individuals.begin(); individualsItr != individuals.end(); ++individualsItr)
 	{
 		if(model->getIndividualById((*individualsItr))->getOccupationId() == 1)
 		{
@@ -396,29 +406,25 @@ bool VehicleOwnershipModel::isMotorCycle(int vehicleCategoryId)
 int VehicleOwnershipModel::getIncomeCategoryId(double income)
 {
 	int incomeCategoryId = 0;
-	if(income > 0 && income <=1000)
+	if(income > 0 && income <=3000)
 	{
 		incomeCategoryId = 1;
 	}
-	else if(income > 1000 && income <=3000)
+	else if(income > 3000 && income <=5000)
 	{
 		incomeCategoryId = 2;
 	}
-	else if(income > 3000 && income <=5000)
+	else if(income > 5000 && income <=8000)
 	{
 		incomeCategoryId = 3;
 	}
-	else if(income > 5000 && income <=8000)
+	else if(income > 8000 && income <=10000)
 	{
 		incomeCategoryId = 4;
 	}
-	else if(income > 8000 && income <=10000)
-	{
-		incomeCategoryId = 5;
-	}
 	else if(income > 10000)
 	{
-		incomeCategoryId = 6;
+		incomeCategoryId = 5;
 	}
 	return incomeCategoryId;
 }

@@ -139,7 +139,7 @@ namespace sim_mob
 				}
 			}
 
-			const int ageOfUnitPrivate = HITS_SURVEY_YEAR  - 1900 + ( day / 365 ) - unit->getPhysicalFromDate().tm_year;
+			const int ageOfUnitPrivate = HITS_SURVEY_YEAR  - 1900 + ( day / 365 ) - unit->getOccupancyFromDate().tm_year;
 
 
 			double ZZ_ageOfUnitPrivate	 = ageOfUnitPrivate;
@@ -163,7 +163,7 @@ namespace sim_mob
 				ZZ_ageGreater50 = 1;
 
 
-			const int ageOfUnitHDB = HITS_SURVEY_YEAR - 1900 + ( day / 365 ) - unit->getPhysicalFromDate().tm_year;
+			const int ageOfUnitHDB = HITS_SURVEY_YEAR - 1900 + ( day / 365 ) - unit->getOccupancyFromDate().tm_year;
 			double ZZ_ageOfUnitHDB	 = ageOfUnitHDB;
 			int ZZ_ageGreater30  = 0;
 

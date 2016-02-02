@@ -15,8 +15,10 @@ namespace sim_mob
 {
 	namespace long_term
 	{
-		Alternative::Alternative(BigSerial id, BigSerial planAreaId, std::string planAreaName, BigSerial dwellingTypeId, std::string dwellingTypeName)
-								:id(id), planAreaId(planAreaId), planAreaName(planAreaName), dwellingTypeId(dwellingTypeId), dwellingTypeName(dwellingTypeName){}
+		Alternative::Alternative( BigSerial id, BigSerial planAreaId, std::string planAreaName, BigSerial dwellingTypeId, std::string dwellingTypeName,
+								  double avgHouseholdSize, double avgHouseholdIncome, int unitTypeCounter, int populationByUnitType)
+								 :id(id), planAreaId(planAreaId), planAreaName(planAreaName), dwellingTypeId(dwellingTypeId), dwellingTypeName(dwellingTypeName),
+								  avgHouseholdSize(avgHouseholdSize), avgHouseholdIncome(avgHouseholdIncome), unitTypeCounter(unitTypeCounter), populationByUnitType(populationByUnitType){}
 
 		Alternative::~Alternative() {}
 
@@ -27,6 +29,10 @@ namespace sim_mob
 			this->planAreaName = source.planAreaName;
 			this->dwellingTypeId = source.dwellingTypeId;
 			this->dwellingTypeName = source.dwellingTypeName;
+			this->avgHouseholdSize = source.avgHouseholdSize;
+			this->avgHouseholdIncome = source.avgHouseholdIncome;
+			this->unitTypeCounter = source.unitTypeCounter;
+			this->populationByUnitType = source.populationByUnitType;
 		}
 
 		Alternative& Alternative::operator=(const Alternative& source)
@@ -36,6 +42,10 @@ namespace sim_mob
 			this->planAreaName = source.planAreaName;
 			this->dwellingTypeId = source.dwellingTypeId;
 			this->dwellingTypeName = source.dwellingTypeName;
+			this->avgHouseholdSize = source.avgHouseholdSize;
+			this->avgHouseholdIncome = source.avgHouseholdIncome;
+			this->unitTypeCounter = source.unitTypeCounter;
+			this->populationByUnitType = source.populationByUnitType;
 
 			return *this;
 		}
@@ -65,6 +75,46 @@ namespace sim_mob
 			return dwellingTypeName;
 		}
 
+		double Alternative::getAvgHouseholdSize()const
+		{
+			return avgHouseholdSize;
+		}
+
+		double Alternative::getAvgHouseholdIncome()const
+		{
+			return avgHouseholdIncome;
+		}
+
+		int Alternative::getUnitTypeCounter()const
+		{
+			return unitTypeCounter;
+		}
+
+		int Alternative::getPopulationByUnitType()const
+		{
+			return populationByUnitType;
+		}
+
+		void Alternative::setAvgHouseholdSize( double value )
+		{
+				avgHouseholdSize = value;
+		}
+
+		void Alternative::setAvgHouseholdIncome( double value )
+		{
+			avgHouseholdIncome = value;
+		}
+
+		void Alternative::setUnitTypeCounter( int value )
+		{
+			unitTypeCounter = value;
+		}
+
+		void Alternative::setPopulationByUnitType( int value )
+		{
+			populationByUnitType = value;
+		}
+
 
 		std::ostream& operator<<(std::ostream& strm, const Alternative& data) {
 					return strm << "{"
@@ -73,6 +123,10 @@ namespace sim_mob
 							<< "\"planAreaName\":\"" << data.planAreaName << "\","
 							<< "\"dwellingTypeid\":\"" << data.dwellingTypeId << "\","
 							<< "\"dwellingTypeName\":\"" << data.dwellingTypeName << "\","
+							<< "\" avgHouseholdSize \":\"" << data.avgHouseholdSize << "\","
+							<< "\"avgHouseholdIncome \":\"" << data.avgHouseholdIncome << "\","
+							<< "\"unitTypeCounter \":\"" << data.unitTypeCounter << "\","
+							<< "\"populationByUnitType \":\"" << data.populationByUnitType << "\""
 							<< "}";
 		}
 

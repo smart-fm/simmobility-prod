@@ -306,7 +306,7 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 		buySellInterval--;
 	}
 
-	if( bidder && bidder->isActive() && householdBiddingWindow == 0 )
+	if( bidder && bidder->isActive() && householdBiddingWindow == 0 && bidder->getMoveInWaitingTimeInDays() == 0)
 	{
 		bidder->setActive(false);
 		model->decrementBidders();

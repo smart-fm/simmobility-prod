@@ -86,7 +86,7 @@ double HedonicPrice_SubModel::ComputeLagCoefficient()
 
 		finalCoefficient = (lagCoefficient[0] * 0.9350228728) + (lagCoefficient[1] * 0) + (lagCoefficient[2] * 0);
 	}
-	else if( unit->getUnitType() == ID_HDB5 )
+	else if( unit->getUnitType() == ID_HDB5 || unit->getUnitType() == 6 || unit->getUnitType() == 65 )
 	{
 		lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 1)->getHdb5());
 		lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 2)->getHdb5());
@@ -103,7 +103,8 @@ double HedonicPrice_SubModel::ComputeLagCoefficient()
 		finalCoefficient = (lagCoefficient[0] * 1.2096032467) + (lagCoefficient[1] * -0.1792877201) + (lagCoefficient[2] * 0);
 
 	}
-	else if( unit->getUnitType() >= ID_CONDO60 && unit->getUnitType()  <= ID_CONDO134 )   //Condominium
+	else if( ( unit->getUnitType() >= ID_CONDO60 && unit->getUnitType()  <= ID_CONDO134 ) ||
+			 ( unit->getUnitType() >= 37 && unit->getUnitType() <= 51 ) || unit->getUnitType() == 64 ) //Condominium and mixed use
 	{
 		lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 1)->getCondo());
 		lagCoefficient.push_back(  devModel->getTaoByQuarter(TAO_YEAR_INDEX + currentQuarter + 2)->getCondo());

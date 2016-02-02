@@ -28,10 +28,10 @@
             </database>
 
             <!-- localhost for midterm server -->
-            <database id="fm_remote_mt2" dbtype="postgres">
+            <database id="fm_remote_mt" dbtype="postgres">
                 <host value="localhost"/>
                 <port value="5432"/>
-                <dbname value="SimMobility_DB_2015"/>
+                <dbname value="sim_mob_lt"/>
             </database>
 
 		<!-- public ip for remote midterm server -->
@@ -49,7 +49,7 @@
 	    </database>
 
 		<!-- longterm localhost server hosting midterm data -->
-	    <database id="fm_remote_mt" dbtype="postgres">
+	    <database id="fm_remote_mt5" dbtype="postgres">
 	        <host value="172.25.184.14"/>
 	        <port value="5432"/>
 	        <dbname value="sim_mob_lt"/>
@@ -181,7 +181,7 @@
               
     <!-- Long Term Configurations parameters -->
     <longTermParams enabled ="true">
-    	<days value="3"/>
+    	<days value="365"/>
     	<maxIterations value="1"/>
     	<workers value="8"/>
     	<tickStep value="1"/>  
@@ -209,7 +209,7 @@
 	    <housingMoveInDaysInterval value="30"/>
 	    <offsetBetweenUnitBuyingAndSelling value ="7"/>
 	    <bidderUnitsChoiceSet value = "100"/>
-	    <householdBiddingWindow value = "3" />
+	    <householdBiddingWindow value = "30" />
         </housingModel>
 	<vehicleOwnershipModel enabled='true'>
 		<vehicleBuyingWaitingTimeInDays value= "1"/>

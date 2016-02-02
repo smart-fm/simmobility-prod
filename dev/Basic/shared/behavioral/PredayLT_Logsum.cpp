@@ -251,6 +251,7 @@ PredayPersonParams sim_mob::PredayLT_LogsumManager::computeLogsum(long individua
 		catch(...)
 		{
 			orgZnParams = new ZoneParams();
+			std::cout << homeLoc << " taz cannot be found" << std::endl;
 		}
 
 		try
@@ -260,6 +261,7 @@ PredayPersonParams sim_mob::PredayLT_LogsumManager::computeLogsum(long individua
 		catch(...)
 		{
 			destZnParams = new ZoneParams();
+			std::cout << workLoc  << " taz cannot be found" << std::endl;
 		}
 
 		if(homeLoc != workLoc)
@@ -271,6 +273,7 @@ PredayPersonParams sim_mob::PredayLT_LogsumManager::computeLogsum(long individua
 			catch(...)
 			{
 				amCostParams = new CostParams();
+				std::cout << workLoc << " or " << homeLoc << " taz cannot be found" << std::endl;
 			}
 
 			try
@@ -280,6 +283,7 @@ PredayPersonParams sim_mob::PredayLT_LogsumManager::computeLogsum(long individua
 			catch(...)
 			{
 				pmCostParams = new CostParams();
+				std::cout << workLoc << " or " << homeLoc << " taz cannot be found" << std::endl;
 			}
 
 		}
@@ -289,7 +293,16 @@ PredayPersonParams sim_mob::PredayLT_LogsumManager::computeLogsum(long individua
 	}
 
 	LogsumTourModeDestinationParams tmdParams(zoneMap, amCostMap, pmCostMap, personParams, NULL_STOP);
-	tmdParams.setCbdOrgZone(zoneMap.at(zoneLookupItr->second)->getCbdDummy());
+
+	try
+	{
+		tmdParams.setCbdOrgZone(zoneMap.at(zoneLookupItr->second)->getCbdDummy());
+	}
+	catch(...)
+	{
+		std::cout << zoneLookupItr->second << " taz cannot be found" << std::endl;
+	}
+
 
 	PredayLogsumLuaProvider::getPredayModel().computeTourModeDestinationLogsum(personParams, tmdParams);
 	PredayLogsumLuaProvider::getPredayModel().computeDayPatternLogsums(personParams);

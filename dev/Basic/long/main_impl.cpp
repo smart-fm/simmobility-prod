@@ -338,9 +338,11 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
         }
 
         if( enableHousingMarket )
+        {
         	 housingMarketModel = new HM_Model(*hmWorkers);//initializing the housing market model
              housingMarketModel->setStartDay(currentTick);
         	 models.push_back(housingMarketModel);
+        }
 
         if( enableDeveloperModel )
         {

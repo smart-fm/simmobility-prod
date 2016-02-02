@@ -89,7 +89,6 @@ namespace sim_mob
 
             void computeHouseholdAffordability();
             void computeBidValueLogistic( double price, double wp, double &finalBid, double &finalSurplus );
-            void getScreeningProbabilities(int hitsId, std::vector<double> &probabilities);
 
             /**
              * Inherited from LT_Role
@@ -103,6 +102,8 @@ namespace sim_mob
             bool isMotorCycle(int vehicleCategoryId);
 
             int getIncomeCategoryId(double income);
+
+            int getMoveInWaitingTimeInDays();
 
         protected:
 
@@ -147,6 +148,7 @@ namespace sim_mob
             bool active;
         	BigSerial unitIdToBeOwned;
         	int moveInWaitingTimeInDays;
+        	bool bidComplete;
         	int vehicleBuyingWaitingTimeInDays;
         	uint32_t day;
         	int year;

@@ -336,6 +336,26 @@ void HouseholdSellerRole::HandleMessage(Message::MessageType type, const Message
                     {
                         maxBidsOfDay.insert(std::make_pair(unitId, msg.getBid()));
                     }
+                    else if(maxBidOfDay->getBidValue() == msg.getBid().getBidValue())
+				    {
+					   // bids are exactly equal. Randomly choose one.
+
+                    	double randomDraw = (double)rand()/RAND_MAX;
+
+                    	//drop the current bid
+                    	if(randomDraw < 0.5)
+                    	{
+						   replyBid(*getParent(), *maxBidOfDay, entry, BETTER_OFFER, dailyBidCounter);
+						   maxBidsOfDay.erase(unitId);
+
+						   //update the new bid and bidder.
+						   maxBidsOfDay.insert(std::make_pair(unitId, msg.getBid()));
+                    	}
+                    	else //keep the current bid
+                    	{
+                    		 replyBid(*getParent(), msg.getBid(), entry, BETTER_OFFER, dailyBidCounter);
+                    	}
+				    }
                     else if(maxBidOfDay->getBidValue() < msg.getBid().getBidValue())
                     {
                         // bid is higher than the current one of the day.

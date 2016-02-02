@@ -252,7 +252,6 @@ public:
 
 	bool isPT_Walk;
 	double walkTime;
-	double waitTime;
 
 } ;
 

@@ -26,7 +26,6 @@ public:
 	 * @return the unique instance of this class
 	 */
     static PT_EdgeTravelTime* getInstance();
-
     /**
      * Update the travel time of vehicles passing through a PT edge
      *
@@ -35,13 +34,11 @@ public:
      * @param endTime time of exit from edge
      * @param travelMode travel mode
      */
-    void updateEdgeTravelTime(const unsigned int edgeId,const unsigned int startTime,const unsigned int endTime,const double waitTime,const std::string& travelMode);
-
+    void updateEdgeTravelTime(const unsigned int edgeId,const unsigned int startTime,const unsigned int endTime,const std::string& travelMode);
     /**
      * Export the edge travel time to a file.
      */
     void exportEdgeTravelTime() const;
-
     /**
      * load pt edge travel time from DB
      */
@@ -74,9 +71,10 @@ private:
         double walkTime;
         double dayTransitTime;
         double linkTravelTime;
-        double count;
+        double countforLinkTime;
+        double countforWaitTime;
         EdgeTimeSlot() : edgeId(0), timeInterval(0),waitTime(0.0), walkTime(0.0),
-        		dayTransitTime(0.0), linkTravelTime(0.0), count(0.0){}
+        		dayTransitTime(0.0), linkTravelTime(0.0), countforLinkTime(0.0), countforWaitTime(0.0){}
     };
     typedef std::map<unsigned int, EdgeTimeSlot> EdgeTimeSlotMap;
     /**store the all travel time on the edge*/
@@ -84,17 +82,17 @@ private:
     /**load the all travel time on the edge*/
     std::map<int, EdgeTimeSlotMap> loadEdgeTimes;
 private:
-    /**
-     * add the travel time of vehicles passing through a PT edge
-     *
-     * @param edgeId is edge id
-     * @param startTime time of entry into edge
-     * @param endTime time of exit from edge
-     * @param waitTime waiting time for the edge
-     * @param walkTime walking time for the edge
-     * @param dayTransitTime transit time for the edge
-     * @param linkTravelTime link travel time for the edge
-     */
+	/**
+	 * add the travel time of vehicles passing through a PT edge
+	 *
+	 * @param edgeId is edge id
+	 * @param startTime time of entry into edge
+	 * @param endTime time of exit from edge
+	 * @param waitTime waiting time for the edge
+	 * @param walkTime walking time for the edge
+	 * @param dayTransitTime transit time for the edge
+	 * @param linkTravelTime link travel time for the edge
+	 */
 	void loadOneEdgeTravelTime(const unsigned int edgeId,
 			const std::string& startTime, const std::string endTime,
 			const double waitTime, const double walkTime,

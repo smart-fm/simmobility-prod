@@ -169,6 +169,7 @@ void Person_MT::insertWaitingActivityToTrip()
 						subTrip.endLocationType = "BUS_STOP";
 						subTrip.travelMode = "WaitingBusActivity";
 						subTrip.ptLineId = itSubTrip[1]->ptLineId;
+						subTrip.edgeId = itSubTrip[1]->edgeId;
 						itSubTrip[1] = subTrips.insert(itSubTrip[1], subTrip);
 					}
 				}
@@ -350,7 +351,7 @@ Entity::UpdateStatus Person_MT::checkTripChain(unsigned int currentTime)
 			currSubTrip->endTime = DailyTime(currentTime);
 			PT_EdgeTravelTime::getInstance()->updateEdgeTravelTime(
 					currSubTrip->edgeId, currSubTrip->startTime.getValue(),
-					currSubTrip->endTime.getValue(), currSubTrip->waitTime, currSubTrip->travelMode);
+					currSubTrip->endTime.getValue(), currSubTrip->travelMode);
 		}
 		if (!(advanceCurrentTripChainItem()))
 		{

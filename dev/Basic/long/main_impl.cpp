@@ -230,7 +230,7 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
     const unsigned int timeIntervalDevModel = config.ltParams.developerModel.timeInterval;
     unsigned int opSchemaloadingInterval = config.ltParams.opSchemaloadingInterval;
 
-    int lastStoppedTick = 0;
+    int lastStoppedDay = 0;
     int simStoppedTick = 0;
 
     //configure time.
@@ -281,7 +281,7 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
     		if(!simulationVersionList.empty())
     		{
     			simVersionId = simulationVersionList[simulationVersionList.size()-1]->getId() + 1;
-    			lastStoppedTick = simulationVersionList[simulationVersionList.size()-1]->getSimStoppedTick();
+    			lastStoppedDay = simulationVersionList[simulationVersionList.size()-1]->getSimStoppedTick();
     		}
     	}
     }
@@ -334,7 +334,7 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
         //set the currentTick to the last stopped date if it is a restart run
         if (resume )
         {
-        	currentTick = lastStoppedTick;
+        	currentTick = lastStoppedDay;
         }
 
         if( enableHousingMarket )
@@ -372,7 +372,7 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
         for (unsigned int currTick = currentTick; currTick < days; currTick++)
         {
         	simStoppedTick = currTick;
-        	if((currTick+1) == opSchemaloadingInterval)
+        	if(((currTick+1) == opSchemaloadingInterval) && (!resume))
         	{
         		createOutputSchema(conn,currentOutputSchema);
         	}

@@ -16,6 +16,7 @@ using namespace sim_mob;
 using namespace sim_mob::long_term;
 
 Unit::Unit( BigSerial id, BigSerial building_id, BigSerial sla_address_id, int unit_type, int storey_range, int constructionStatus, double floor_area, int storey,
+
 			double monthlyRent, std::tm sale_from_date, std::tm occupancyFromDate, int sale_status, int occupancyStatus, std::tm lastChangedDate,
 			double totalPrice,std::tm valueDate,int tenureStatus,int biddingMarketEntryDay, int timeOnMarket, int timeOffMarket, double lagCoefficient, int zoneHousingType, int dwellingType)
 		   : id(id), building_id(building_id), sla_address_id(sla_address_id), unit_type(unit_type), storey_range(storey_range), constructionStatus(constructionStatus),
@@ -326,7 +327,7 @@ namespace sim_mob
 						<< "\"storey \":\"" << data.storey << "\","
 						<< "\"monthlyRent \":\"" << data.monthlyRent<< "\","
 						<< "\"sale_from_date \":\"" << data.sale_from_date.tm_year << data.sale_from_date.tm_mon << data.sale_from_date.tm_wday << "\","
-						<< "\"physical_from_date \":\"" << data.occupancyFromDate.tm_year << data.occupancyFromDate.tm_mon << data.occupancyFromDate.tm_wday << "\","
+						<< "\"occupancy_from_date \":\"" << data.occupancyFromDate.tm_year << data.occupancyFromDate.tm_mon << data.occupancyFromDate.tm_wday << "\","
 						<< "\"sale_status \":\"" << data.sale_status << "\","
 						<< "\"occupancy_status \":\"" << data.occupancyStatus << "\","
 						<< "\"biddingMarketEntryDay\":\"" << data.biddingMarketEntryDay << "\""

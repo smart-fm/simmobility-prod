@@ -22,6 +22,7 @@ void UnitTypeDao::fromRow(Row& result, UnitType& outObj)
     outObj.typicalArea  = result.get<double>("typical_area", 0.0);
     outObj.constructionCostPerUnit  = result.get<double>("construction_cost_per_unit", INVALID_ID);
     outObj.demolitionCostPerUnit = result.get<double>("demolition_cost_per_unit", INVALID_ID);
+    outObj.minLosize = result.get<double>("min_lot_size", INVALID_ID);
 
 }
 

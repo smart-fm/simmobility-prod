@@ -370,7 +370,7 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
         for (unsigned int currTick = currentTick; currTick < days; currTick++)
         {
         	simStoppedTick = currTick;
-        	if(((currTick) == opSchemaloadingInterval) && (!resume))
+        	if(((currTick+1) == opSchemaloadingInterval) && (!resume))
         	{
         		createOutputSchema(conn,currentOutputSchema);
         	}

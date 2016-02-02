@@ -322,6 +322,11 @@ private:
 	 */
 	std::stringstream logStream;
 
+	/**
+	 * index of first available time window for person
+	 */
+	int firstAvailableTimeIndex;
+
 public:
 	PredaySystem(PersonParams& personParams, const ZoneMap& zoneMap, const boost::unordered_map<int, int>& zoneIdLookup, const CostMap& amCostMap,
 			const CostMap& pmCostMap, const CostMap& opCostMap, const std::map<std::string, db::MongoDao*>& mongoDao,

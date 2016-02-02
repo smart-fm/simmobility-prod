@@ -359,22 +359,31 @@ inline void createPotentialUnits(PotentialProject& project,const DeveloperModel*
 
 	std::vector<TemplateUnitType>::const_iterator itr;
 	double weightedAverage = 0.0;
+
 	        for (itr = project.templateUnitTypes.begin(); itr != project.templateUnitTypes.end(); itr++)
 	        	{
 	        		if(itr->getProportion()>0)
 	        		{
 	        			double propotion = (itr->getProportion()/100.0);
+	        			//add the minimum lot size constraint if the unit type is terraced, semi detached or detached
+	        				        	if((itr->getUnitTypeId()>=17) and (itr->getUnitTypeId() <= 31))
+	        				        	{
+	        				        		weightedAverage = weightedAverage + (model->getUnitTypeById(itr->getUnitTypeId())->getTypicalArea()* model->getUnitTypeById(itr->getUnitTypeId())->getMinLosize() *(propotion));
+	        				        	}
+	        				        	else
+	        				        	{
 	        			weightedAverage = weightedAverage + (model->getUnitTypeById(itr->getUnitTypeId())->getTypicalArea()*(propotion));
+	        				        	}
 	        		}
 	            }
 
 	        int totalUnits = 0;
 	        if(weightedAverage>0)
 	        {
-	        	totalUnits = int((getGpr(project.getParcel()) * project.getParcel()->getLotSize())/(weightedAverage));
+	        		totalUnits = int((getGpr(project.getParcel()) * project.getParcel()->getLotSize())/(weightedAverage));
+
+
 	        	project.setTotalUnits(totalUnits);
-
-
 	        }
 
 	        double grossArea = 0;
@@ -546,8 +555,28 @@ Entity::UpdateStatus DeveloperAgent::onFrameTick(timeslice now) {
     			std::vector<PotentialUnit>& potentialUnits = project.getUnits();
     			for (unitsItr = potentialUnits.begin(); unitsItr != potentialUnits.end(); ++unitsItr)
     			{
-    				boost::shared_ptr <DevelopmentPlan> devPlan(new DevelopmentPlan(this->parcel->getId(),(*unitsItr).getUnitTypeId(),
-    						(*unitsItr).getNumUnits(),currentDate));
+    				std::tm constructionStartDate = currentDate;
+    				//TODO:: construction start date and launch date is temporary. gishara
+    				int constructionStartMonth = currentDate.tm_mon + 2;
+    				int constructionStartYear = currentDate.tm_year;
+    				if(constructionStartMonth >11)
+    				{
+    					formatDate(constructionStartMonth,constructionStartYear);
+    				}
+    				constructionStartDate.tm_mon = constructionStartMonth;
+    				constructionStartDate.tm_year = constructionStartYear;
+
+    				std::tm launchDate = currentDate;
+    				int launchMonth = currentDate.tm_mon + 6;
+    				int launchYear = currentDate.tm_year;
+    				if(launchMonth > 11)
+    				{
+    					formatDate(launchMonth,launchYear);
+    				}
+    				launchDate.tm_mon = launchMonth;
+    				launchDate.tm_year = launchYear;
+    				boost::shared_ptr <DevelopmentPlan> devPlan(new DevelopmentPlan(this->parcel->getId(),project.getDevTemplate()->getTemplateId(),(*unitsItr).getUnitTypeId(),
+    						(*unitsItr).getNumUnits(),currentDate,constructionStartDate,launchDate));
     				devModel->addDevelopmentPlans(devPlan);
     			}
 

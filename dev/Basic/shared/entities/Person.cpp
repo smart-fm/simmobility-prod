@@ -474,7 +474,7 @@ void sim_mob::Person::serializeSubTripChainItemTravelTimeMetrics(const TravelMet
 	sim_mob::SubTrip &st = (*currSubTrip); //easy reading
 	// restricted area which is to be appended at the end of the csv line
 	std::stringstream restrictedRegion("");
-	if (st.cbdTraverseType == sim_mob::TravelMetric::CBD_ENTER || st.cbdTraverseType == sim_mob::TravelMetric::CBD_EXIT)
+	if (st.cbdTraverseType != sim_mob::TravelMetric::CBD_NONE)
 	{
 		//sanity check
 		if (!(subtripMetrics.cbdOrigin.node && subtripMetrics.cbdDestination.node))

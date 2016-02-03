@@ -138,7 +138,7 @@ AABB LoopDetector::getAABB() const
 	return aabb;
 }
 
-bool LoopDetector::check(boost::unordered_set<Vehicle const *> &vehicles)
+bool LoopDetector::check(boost::unordered_set<Vehicle const *> &vehicles, std::vector<Vehicle const *>& vehsInLoopDetector)
 {
 	// In the previous version, LoopDetectorEntity::reset() was allowed to modify countAndTimePair_.
 	// Therefore, countAndTimePair_ could be modified via 2 execution paths -- reset() and this
@@ -167,6 +167,7 @@ bool LoopDetector::check(boost::unordered_set<Vehicle const *> &vehicles)
 			if (vehicle != vehicle_)
 			{
 				vehicle_ = vehicle;
+				vehsInLoopDetector.push_back(vehicle);
 				incrementVehicleCount();
 			}
 
@@ -254,9 +255,14 @@ private:
 
 	void
 	createLoopDetectors(std::vector<RoadSegment *> const &roads, LoopDetectorEntity &entity);
+
+	BasicLogger& assignmentMatrixLogger;
+	ST_Config& stCfg;
 };
 
-LoopDetectorEntity::Impl::Impl(Signal const &signal, LoopDetectorEntity &entity) : parent(&entity)
+LoopDetectorEntity::Impl::Impl(Signal const &signal, LoopDetectorEntity &entity) : parent(&entity),
+		stCfg(ST_Config::getInstance()),
+		assignmentMatrixLogger(Logger::log(ST_Config::getInstance().assignmentMatrix.fileName))
 {
 	// Assume that each loop-detector is 4 meters in length.  This will be the inner monitoring
 	// area.  Any vehicle whose (central) position is within this area will be considered to be
@@ -382,6 +388,7 @@ bool LoopDetectorEntity::Impl::check(timeslice now)
 {
 	// Get all vehicles located within monitorArea_.
 	boost::unordered_set<Vehicle const *> vehicles;
+	boost::unordered_map<Vehicle const *, Person_ST const *> vehicleToPersonMap;
 	std::vector<Agent const *> const agents = AuraManager::instance().agentsInRect(monitorArea_.lowerLeft_, monitorArea_.upperRight_, parent);
 	for (size_t i = 0; i < agents.size(); ++i)
 	{
@@ -395,6 +402,7 @@ bool LoopDetectorEntity::Impl::check(timeslice now)
 			if (vehicle)
 			{
 				vehicles.insert(vehicle);
+				vehicleToPersonMap[vehicle] = person;
 			}
 		}
 	}
@@ -403,7 +411,29 @@ bool LoopDetectorEntity::Impl::check(timeslice now)
 	std::map<Lane const *, LoopDetector *>::const_iterator iter;
 	for (iter = loopDetectors_.begin(); iter != loopDetectors_.end(); ++iter)
 	{
-		iter->second->check(vehicles);
+		std::vector<Vehicle const *> vehsInLoopDetector;
+		iter->second->check(vehicles, vehsInLoopDetector);
+
+		if(stCfg.assignmentMatrix.enabled)
+		{
+			for (std::vector<Vehicle const *>::const_iterator vehIter = vehsInLoopDetector.begin();
+					vehIter != vehsInLoopDetector.end(); vehIter++)
+			{
+				Person_ST const * person = vehicleToPersonMap[(*vehIter)];
+
+				if(person->getRole()->roleType != sim_mob::Role<Person_ST>::RL_DRIVER)
+				{
+					continue;
+				}
+
+				assignmentMatrixLogger << iter->first->getParentSegment()->getParentLink()->getToNode()->getTrafficLightId()
+						<< "," << now.ms()
+						<< "," << (person->getDatabaseId().empty() ? "-1" : person->getDatabaseId())
+						<< "," << (*person->currSubTrip).origin.node->getNodeId()
+						<< "," << (*person->currSubTrip).destination.node->getNodeId()
+						<< "," <<(*person->currSubTrip).startTime.getValue() << "\n" ;
+			}
+		}
 	}
 
 	return true;

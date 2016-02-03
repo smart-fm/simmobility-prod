@@ -6,6 +6,8 @@
  */
 
 #include <algorithm>
+#include <cmath>
+#include <stdlib.h>
 #include "soci/soci.h"
 #include "soci/postgresql/soci-postgresql.h"
 
@@ -30,7 +32,7 @@ namespace medium
 
 ScreenLineCounter* ScreenLineCounter::instance = nullptr;
 
-ScreenLineCounter::ScreenLineCounter()
+ScreenLineCounter::ScreenLineCounter() : simStartTime( ConfigManager::GetInstance().FullConfig().simStartTime())
 {
     const MT_Config& mtCfg = MT_Config::getInstance();
     if(mtCfg.screenLineParams.outputEnabled)
@@ -38,6 +40,21 @@ ScreenLineCounter::ScreenLineCounter()
         loadScreenLines();
         INTERVAL_MS = mtCfg.screenLineParams.interval * 1000;
     }
+
+    int interval = 0;
+    DailyTime minTime = DailyTime(0);
+    const DailyTime intervalWidth = DailyTime(INTERVAL_MS);
+    minTimes.push_back(minTime.getStrRepr());
+	for(int i=0, j=0; i<86400; i++, j=((j+1)%mtCfg.screenLineParams.interval)) //86400 seconds in a day
+	{
+		if(j==0)
+		{
+			interval = interval+1;
+			minTime+=intervalWidth;
+			minTimes.push_back(minTime.getStrRepr());
+		}
+		timeIntervalMap[i] = interval;
+	}
 }
 
 ScreenLineCounter::~ScreenLineCounter()
@@ -83,7 +100,7 @@ void ScreenLineCounter::updateScreenLineCount(unsigned int segId, double entryTi
     {
         return;
     }
-    TimeInterval timeInterval = ScreenLineCounter::getTimeInterval(entryTimeSec * 1000);
+    TimeInterval timeInterval = ScreenLineCounter::getTimeInterval(entryTimeSec + (double)simStartTime.getValue()/1000);
     {
 		boost::unique_lock<boost::mutex> lock(instanceMutex);
 		screenlineMap[timeInterval][segId][travelMode].count++; //increment count for the relevant time interval, segment and mode
@@ -92,23 +109,27 @@ void ScreenLineCounter::updateScreenLineCount(unsigned int segId, double entryTi
 
 unsigned int ScreenLineCounter::getTimeInterval(double time) const
 {
-    return time / INTERVAL_MS;
+	unsigned int timeSec = std::ceil(time);
+	if(timeSec >= 86400)
+	{
+		throw std::runtime_error("invalid time passed to update screen line counts");
+	}
+    return timeIntervalMap[timeSec];
 }
 
 void ScreenLineCounter::exportScreenLineCount() const
 {
     const medium::MT_Config& mtCfg = medium::MT_Config::getInstance();
-    const ConfigParams& configParams = ConfigManager::GetInstance().FullConfig();
     const std::string& fileName = mtCfg.screenLineParams.fileName;
 
     sim_mob::BasicLogger& screenLineLogger  = sim_mob::Logger::log(fileName);
 
     for(ScreenLineCountCollector::const_iterator travelTimeIter = screenlineMap.begin(); travelTimeIter != screenlineMap.end(); travelTimeIter++)
     {
+    	div_t divresult;
         const TimeInterval& timeInterval = travelTimeIter->first;
-        const DailyTime& simStartTime = configParams.simStartTime();
-        DailyTime startTime(simStartTime.getValue() +  (timeInterval * INTERVAL_MS) );
-        DailyTime endTime(simStartTime.getValue() + ((timeInterval + 1) * INTERVAL_MS - 1) );
+        const std::string& startTime = minTimes[timeInterval-1];
+        const std::string& endTime = minTimes[timeInterval];
 
         for(RoadSegmentCountMap::const_iterator segCountIt = travelTimeIter->second.begin();
                 segCountIt != travelTimeIter->second.end(); segCountIt++)
@@ -117,7 +138,7 @@ void ScreenLineCounter::exportScreenLineCount() const
                     countIter != segCountIt->second.end(); countIter++)
             {
                 screenLineLogger << segCountIt->first << "\t" <<
-                    startTime.getStrRepr() << "\t" << endTime.getStrRepr() <<
+                    startTime << "\t" << endTime <<
                     "\t" << countIter->first <<
                     "\t" << countIter->second.count << "\n";
             }

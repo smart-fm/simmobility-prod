@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <cmath>
 #include "A_StarShortestPathImpl.hpp"
 #include "conf/ConfigManager.hpp"
 #include "util/GeomHelpers.hpp"
@@ -118,10 +119,12 @@ public:
 	private:
 		const StreetDirectory::Graph* graph;
 		StreetDirectory::Vertex goal;
+		double maxSegSpeed;
 
 	public:
 
-		DistanceHeuristicGraph(const StreetDirectory::Graph* graph, StreetDirectory::Vertex goal) : graph(graph), goal(goal)
+		DistanceHeuristicGraph(const StreetDirectory::Graph* graph, StreetDirectory::Vertex goal) : graph(graph), goal(goal),
+		maxSegSpeed(ConfigManager::GetInstance().PathSetConfig().maxSegSpeed)
 		{
 		}
 
@@ -129,7 +132,11 @@ public:
 		{
 			const Point atPos = boost::get(boost::vertex_name, *graph, v);
 			const Point goalPos = boost::get(boost::vertex_name, *graph, goal);
-			return sim_mob::dist(atPos, goalPos) / ConfigManager::GetInstance().PathSetConfig().maxSegSpeed;
+			double dx = goalPos.getX() - atPos.getX();
+			double dy = goalPos.getY() - atPos.getY();
+			double dz = goalPos.getZ() - atPos.getZ();
+			
+			return (sqrt(dx * dx + dy * dy + dz * dz) / maxSegSpeed);
 		}
 	};
 
@@ -141,11 +148,12 @@ public:
 	private:
 		const boost::filtered_graph<StreetDirectory::Graph, BlackListEdgeConstraint>* graph;
 		StreetDirectory::Vertex goal;
+		double maxSegSpeed;
 
 	public:
 
 		DistanceHeuristicFiltered(const boost::filtered_graph<StreetDirectory::Graph, BlackListEdgeConstraint>* graph, StreetDirectory::Vertex goal) :
-		graph(graph), goal(goal)
+		graph(graph), goal(goal), maxSegSpeed(ConfigManager::GetInstance().PathSetConfig().maxSegSpeed)
 		{
 		}
 
@@ -153,7 +161,11 @@ public:
 		{
 			const Point atPos = boost::get(boost::vertex_name, *graph, v);
 			const Point goalPos = boost::get(boost::vertex_name, *graph, goal);
-			return sim_mob::dist(atPos, goalPos) / ConfigManager::GetInstance().PathSetConfig().maxSegSpeed;
+			double dx = goalPos.getX() - atPos.getX();
+			double dy = goalPos.getY() - atPos.getY();
+			double dz = goalPos.getZ() - atPos.getZ();
+			
+			return (sqrt(dx * dx + dy * dy + dz * dz) / maxSegSpeed);
 		}
 	};
 	

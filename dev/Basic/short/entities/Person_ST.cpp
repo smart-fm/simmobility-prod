@@ -241,6 +241,7 @@ bool Person_ST::updatePersonRole()
 		if (tci->itemType == TripChainItem::IT_TRIP)
 		{
 			subTrip = &(*currSubTrip);
+			(*currSubTrip).startTime = DailyTime(currTick.ms());
 		}
 		nextRole = rf->createRole(tci, subTrip, this);
 	}

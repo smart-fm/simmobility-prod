@@ -228,6 +228,15 @@ struct AMOD_ControllerParams
 	bool enabled;
 };
 
+struct AssignmentMatrixConfig
+{
+	AssignmentMatrixConfig() : enabled(false), fileName("") {}
+
+	std::string fileName;
+
+	bool enabled;
+};
+
 class ST_Config : public boost::noncopyable
 {
 public:
@@ -427,6 +436,9 @@ public:
 
 	///Settings used for generation/retrieval of paths
 	PathSetConf pathset;
+
+	///Setting for assignment matrix
+	AssignmentMatrixConfig assignmentMatrix;
 
 	/// Generic properties, for testing new features.
 	std::map<std::string, std::string> genericProps;

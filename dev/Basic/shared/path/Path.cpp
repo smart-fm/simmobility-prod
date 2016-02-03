@@ -416,9 +416,9 @@ void sim_mob::PT_PathSet::computeAndSetPathSize()
 		int subN = 0;            // Used to store the number of overlapped edge in choice set
 		std::vector<PT_NetworkEdge> edges;
 		edges = itPath->getPathEdges();
+		double pathTravelTime = itPath->getPathTravelTime();
 		for (std::vector<PT_NetworkEdge>::const_iterator itEdge = edges.begin(); itEdge != edges.end(); itEdge++)
 		{
-			double pathTravelTime = itPath->getPathTravelTime();
 			if (pathTravelTime != 0)
 			{
 				subPathSize = itEdge->getLinkTravelTimeSecs() / pathTravelTime;

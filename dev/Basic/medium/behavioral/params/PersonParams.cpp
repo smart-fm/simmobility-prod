@@ -78,9 +78,18 @@ void sim_mob::medium::PersonParams::blockTime(double startTime, double endTime)
 	}
 }
 
-int PersonParams::getTimeWindowAvailability(size_t timeWnd) const
+int PersonParams::getTimeWindowAvailability(size_t timeWnd, int mode) const
 {
-	return timeWindowAvailability[timeWnd - 1].getAvailability();
+	const sim_mob::medium::TimeWindowAvailability& timeWndwAvail = timeWindowAvailability[timeWnd - 1];
+	//anytime before 6AM cannot is not a valid start time for tour's primary activity with PT modes
+	if((mode == 1 || mode == 2) && timeWndwAvail.getStartTime() <= 6)
+	{
+		return 0;
+	}
+	else
+	{
+		return timeWindowAvailability[timeWnd - 1].getAvailability();
+	}
 }
 
 void sim_mob::medium::PersonParams::setIncomeIdFromIncome(double income)

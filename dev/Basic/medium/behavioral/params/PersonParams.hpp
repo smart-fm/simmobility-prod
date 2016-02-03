@@ -510,13 +510,14 @@ public:
 	 * get the availability for a time window for tour
 	 *
 	 * @param timeWnd time window index to check availability
+	 * @param mode of activity for which time window is being predicted
 	 *
 	 * @return 0 if time window is not available; 1 if available
 	 *
 	 * NOTE: This function is invoked from the Lua layer. The return type is int in order to be compatible with Lua.
 	 *       Lua does not support boolean types.
 	 */
-	int getTimeWindowAvailability(size_t timeWnd) const;
+	int getTimeWindowAvailability(size_t timeWnd, int mode) const;
 
 	/**
 	 * overload function to set availability of times in timeWnd to 0

@@ -169,7 +169,7 @@ public:
 
 	 * @return
      */
-	Entity::UpdateStatus checkTripChain();
+	Entity::UpdateStatus checkTripChain(unsigned int currentTime=0);
 
 	/**
 	 * Finds the person's next role based on the person's trip-chain

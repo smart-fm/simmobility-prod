@@ -18,6 +18,7 @@
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "geospatial/network/WayPoint.hpp"
 #include "path/PT_RouteChoiceLuaProvider.hpp"
+#include "entities/PT_EdgeTravelTime.hpp"
 #include "util/DailyTime.hpp"
 
 using namespace std;
@@ -168,6 +169,7 @@ void Person_MT::insertWaitingActivityToTrip()
 						subTrip.endLocationType = "BUS_STOP";
 						subTrip.travelMode = "WaitingBusActivity";
 						subTrip.ptLineId = itSubTrip[1]->ptLineId;
+						subTrip.edgeId = itSubTrip[1]->edgeId;
 						itSubTrip[1] = subTrips.insert(itSubTrip[1], subTrip);
 					}
 				}
@@ -204,10 +206,11 @@ void Person_MT::assignSubtripIds()
 void Person_MT::initTripChain()
 {
 	currTripChainItem = tripChain.begin();
-	
 	const std::string& src = getAgentSrc();
+	DailyTime startTime = (*currTripChainItem)->startTime;
 	if (src == "XML_TripChain" || src == "DAS_TripChain" || src == "AMOD_TripChain" || src == "BusController")
 	{
+		startTime = DailyTime((*currTripChainItem)->startTime.offsetMS_From(ConfigManager::GetInstance().FullConfig().simStartTime()));
 		setStartTime((*currTripChainItem)->startTime.offsetMS_From(ConfigManager::GetInstance().FullConfig().simStartTime()));
 	}
 	else
@@ -218,6 +221,7 @@ void Person_MT::initTripChain()
 	if ((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP)
 	{
 		currSubTrip = ((dynamic_cast<sim_mob::Trip*> (*currTripChainItem))->getSubTripsRW()).begin();
+		currSubTrip->startTime = startTime;
 
 		if (!updateOD(*currTripChainItem))
 		{ 
@@ -332,7 +336,7 @@ bool Person_MT::advanceCurrentTripChainItem()
 	return true;
 }
 
-Entity::UpdateStatus Person_MT::checkTripChain()
+Entity::UpdateStatus Person_MT::checkTripChain(unsigned int currentTime)
 {
 	if (tripChain.empty())
 	{
@@ -342,9 +346,20 @@ Entity::UpdateStatus Person_MT::checkTripChain()
 	//advance the trip, sub-trip or activity....
 	if (!isFirstTick)
 	{
+		if(isTripValid())
+		{
+			currSubTrip->endTime = DailyTime(currentTime);
+			PT_EdgeTravelTime::getInstance()->updateEdgeTravelTime(
+					currSubTrip->edgeId, currSubTrip->startTime.getValue(),
+					currSubTrip->endTime.getValue(), currSubTrip->travelMode);
+		}
 		if (!(advanceCurrentTripChainItem()))
 		{
 			return UpdateStatus::Done;
+		}
+		if(isTripValid())
+		{
+			currSubTrip->startTime = DailyTime(currentTime);
 		}
 	}
 	

@@ -80,6 +80,7 @@ void ParseMidTermConfigFile::processXmlFile(xercesc::XercesDOMParser& parser)
     processBusStopScheduledTimesNode(GetSingleElementByName(rootNode, "scheduledTimes", true));
     processBusControllerNode(GetSingleElementByName(rootNode, "busController", true));
     processScreenLineNode(GetSingleElementByName(rootNode, "screen-line-count"));
+    processPT_EdgeTravelTimeNode(GetSingleElementByName(rootNode, "pt_edge_time"));
     processGenerateBusRoutesNode(GetSingleElementByName(rootNode, "generateBusRoutes"));
     processTT_Update(GetSingleElementByName(rootNode, "travel_time_update", true));
     processSubtripTravelMetricsOutputNode(GetSingleElementByName(rootNode, "subtrip_travel_metrics_output"));
@@ -515,6 +516,13 @@ void ParseMidTermConfigFile::processScreenLineNode(DOMElement *node)
             }
         }
     }
+}
+
+void ParseMidTermConfigFile::processPT_EdgeTravelTimeNode(DOMElement *node)
+{
+	if(node){
+		mtCfg.enabledEdgeTravelTime = ParseBoolean(GetNamedAttributeValue(node, "enabled"), false);
+	}
 }
 
 void ParseMidTermConfigFile::processGenerateBusRoutesNode(xercesc::DOMElement* node)

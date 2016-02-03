@@ -151,6 +151,7 @@ public:
 	std::string endLocationId;
 	std::string startLocationType;
 	std::string endLocationType;
+	unsigned int edgeId;
 	
 	/**Indicates the number of times the trip is to be loaded [Added for short-term demand calibration]*/
 	unsigned int load_factor;
@@ -163,7 +164,7 @@ public:
 	//TripChainItem();
 	TripChainItem(std::string entId = std::string(), std::string type = "Trip",
 				DailyTime start = DailyTime(), DailyTime end = DailyTime(),
-				unsigned int seqNumber = 0, int requestTime = -1, std::string mode = std::string());
+				unsigned int seqNumber = 0, int requestTime = -1, std::string mode = std::string(),unsigned edgeId=0);
 	virtual ~TripChainItem();
 
 	static LocationType getLocationType(std::string locType);

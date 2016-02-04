@@ -123,7 +123,7 @@ Entity::UpdateStatus BusStopAgent::frame_tick(timeslice now)
 		Person_MT* person = alightedPassenger->getParent();
 		if (person)
 		{
-			UpdateStatus val = person->checkTripChain();
+			UpdateStatus val = person->checkTripChain(now.ms());
 			person->setStartTime(now.ms());
 			Role<Person_MT>* role = person->getRole();
 			if (role)
@@ -325,7 +325,8 @@ void BusStopAgent::boardWaitingPersons(BusDriver* busDriver)
 			{
 				waitingRole->collectTravelTime();
 				storeWaitingTime(waitingRole);
-				person->checkTripChain();
+				DailyTime current(DailyTime(currentTimeMS).offsetMS_From(ConfigManager::GetInstance().FullConfig().simStartTime()));
+				person->checkTripChain(current.getValue());
 				Role<Person_MT>* curRole = person->getRole();
 				curRole->setArrivalTime(currentTimeMS);
 				sim_mob::medium::Passenger* passenger = dynamic_cast<sim_mob::medium::Passenger*>(curRole);

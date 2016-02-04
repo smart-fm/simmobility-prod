@@ -204,8 +204,9 @@ end
 --the logic to determine availability is the same with current implementation
 local availability = {}
 local function computeAvailabilities(params,dbparams)
+	local mode = dbparams.mode
 	for i = 1, 1176 do 
-		availability[i] = params:getTimeWindowAvailabilityTour(i)
+		availability[i] = params:getTimeWindowAvailabilityTour(i, mode)
 	end
 end
 

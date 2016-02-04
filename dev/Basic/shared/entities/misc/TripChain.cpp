@@ -37,8 +37,8 @@ sim_mob::TripChainItem::LocationType sim_mob::TripChainItem::GetLocationTypeXML(
 	throw std::runtime_error("Unknown TripChain location type.");
 }
 
-sim_mob::TripChainItem::TripChainItem(std::string entId, string type, DailyTime start, DailyTime end, unsigned int seqNumber, int requestTm, std::string mode) :
-personID(entId), itemType(getItemType(type)), startTime(start), endTime(end), sequenceNumber(seqNumber), requestTime(requestTm), travelMode(mode)
+sim_mob::TripChainItem::TripChainItem(std::string entId, string type, DailyTime start, DailyTime end, unsigned int seqNumber, int requestTm, std::string mode, unsigned int edge) :
+personID(entId), itemType(getItemType(type)), startTime(start), endTime(end), sequenceNumber(seqNumber), requestTime(requestTm), travelMode(mode),edgeId(edge)
 {
 }
 
@@ -111,7 +111,7 @@ void sim_mob::Trip::setSubTrips(const std::vector<sim_mob::SubTrip>& subTrips)
 sim_mob::SubTrip::SubTrip(std::string entId, std::string type, unsigned int seqNumber, int requestTime, DailyTime start, DailyTime end, const Node* from,
 						  std::string fromLocType, const Node* to, std::string toLocType, std::string mode, bool isPrimary, std::string ptLineId) :
 Trip(entId, type, seqNumber, requestTime, start, end, "", from, fromLocType, to, toLocType, mode),
-isPT_Walk(false), walkTime(0.0), ptLineId(ptLineId), cbdTraverseType(sim_mob::TravelMetric::CBD_NONE)
+isPT_Walk(false),walkTime(0.0), ptLineId(ptLineId), cbdTraverseType(sim_mob::TravelMetric::CBD_NONE)
 {
 }
 

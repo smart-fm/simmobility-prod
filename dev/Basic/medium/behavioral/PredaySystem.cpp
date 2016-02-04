@@ -63,6 +63,8 @@ namespace {
 	const int FIRST_INDEX = 1;
 	const double LAST_WINDOW = 26.75;
 	const int LAST_INDEX = 48;
+	const int FIRST_INDEX_FOR_PUBLIC_TANSIT_MODE = 5;
+	const int LAST_INDEX_FOR_PUBLIC_TANSIT_MODE = 45;
 
 	//Half tours
 	const uint8_t FIRST_HALF_TOUR = 1;
@@ -123,11 +125,11 @@ namespace {
 	 * Given a index i, its choice time window can be determined by (i * 0.5 + 2.75)
 	 */
 	inline double getTimeWindowFromIndex(const double index) {
-		return (index * 0.5 /*half hour windows*/) + 2.75 /*the day starts at 3.25*/;
+		return ((index * 0.5 /*half hour windows*/) + 2.75 /*the day starts at 3.25*/);
 	}
 
 	inline double getIndexFromTimeWindow(const double window) {
-		return (window - 2.75 /*the day starts at 3.25*/) / 0.5;
+		return ((window - 2.75 /*the day starts at 3.25*/) / 0.5);
 	}
 
 	double alignTime(double time, double lowerBound, double upperBound, const std::string& personId, std::string caller) {
@@ -202,7 +204,8 @@ PredaySystem::PredaySystem(PersonParams& personParams,
 		const std::map<int, int>& mtz12_08Map)
 : personParams(personParams), zoneMap(zoneMap), zoneIdLookup(zoneIdLookup),
   amCostMap(amCostMap), pmCostMap(pmCostMap), opCostMap(opCostMap),
-  mongoDao(mongoDao), unavailableODs(unavailableODs), MTZ12_MTZ08_Map(mtz12_08Map), logStream(std::stringstream::out)
+  mongoDao(mongoDao), unavailableODs(unavailableODs), MTZ12_MTZ08_Map(mtz12_08Map),
+  firstAvailableTimeIndex(FIRST_INDEX), logStream(std::stringstream::out)
 {}
 
 PredaySystem::~PredaySystem()
@@ -276,7 +279,7 @@ void PredaySystem::constructTourModeParams(TourModeParams& tmParams, int destina
 		tmParams.setPublicBusAvailable(amObj->getPubIvt() > 0 && pmObj->getPubIvt() > 0);
 		tmParams.setMrtAvailable(amObj->getPubIvt() > 0 && pmObj->getPubIvt() > 0);
 		tmParams.setPrivateBusAvailable(amObj->getPubIvt() > 0 && pmObj->getPubIvt() > 0);
-		tmParams.setWalkAvailable(amObj->getPubIvt() <= WALKABLE_DISTANCE && pmObj->getPubIvt() <= WALKABLE_DISTANCE);
+		tmParams.setWalkAvailable(amObj->getDistance() <= WALKABLE_DISTANCE && pmObj->getDistance() <= WALKABLE_DISTANCE);
 		tmParams.setTaxiAvailable(1);
 		tmParams.setMotorAvailable(1);
 	}
@@ -970,13 +973,7 @@ bool PredaySystem::predictStopTimeOfDay(Stop* stop, int destination_2012, bool i
 	if(isBeforePrimary)
 	{
 		stodParams.setTodHigh(stop->getDepartureTime());
-		if(stop->getParentTour().isFirstTour()) { stodParams.setTodLow(FIRST_INDEX); }
-		else
-		{
-			TourList::iterator currTourIt = std::find(tours.begin(), tours.end(), stop->getParentTour());
-			const Tour& prevTour = *(--currTourIt);
-			stodParams.setTodLow(prevTour.getEndTime());
-		}
+		stodParams.setTodLow(firstAvailableTimeIndex);
 	}
 	else
 	{
@@ -1276,7 +1273,7 @@ void PredaySystem::calculateTourStartTime(Tour& tour, double lowerBoundIdx)
 	Stop* firstStop = tour.stops.front();
 	double firstActivityArrivalIndex = firstStop->getArrivalTime();
 	double timeWindow = getTimeWindowFromIndex(firstActivityArrivalIndex);
-	double travelTime = fetchTravelTime(firstStop->getStopLocation(), personParams.getHomeLocation(), firstStop->getStopMode(), true, firstActivityArrivalIndex);
+	double travelTime = fetchTravelTime(personParams.getHomeLocation(), firstStop->getStopLocation(), firstStop->getStopMode(), true, firstActivityArrivalIndex);
 	double tourStartTime = timeWindow - travelTime;
 	// travel time can be unreasonably high sometimes. E.g. when the travel time is unknown, the default is set to 999
 	tourStartTime = alignTime(tourStartTime, getTimeWindowFromIndex(lowerBoundIdx), timeWindow, personParams.getPersonId(), "calculateTourStartTime()");
@@ -1347,16 +1344,20 @@ void PredaySystem::constructTours() {
 	}
 }
 
-void PredaySystem::planDay() {
+void PredaySystem::planDay()
+{
 	personParams.initTimeWindows();
 
 	//Predict day pattern
 	logStream << "Person: " << personParams.getPersonId() << "| home: " << personParams.getHomeLocation();
-	logStream << "| Day Pattern: " ;
+	logStream << "| Day Pattern: ";
 	PredayLuaProvider::getPredayModel().predictDayPattern(personParams, dayPattern);
-	if(dayPattern.empty()) { throw std::runtime_error("Cannot invoke number of tours model without a day pattern"); }
-	logStream << dayPattern["WorkT"] << dayPattern["EduT"] << dayPattern["ShopT"] << dayPattern["OthersT"]
-	        << dayPattern["WorkI"] << dayPattern["EduI"] << dayPattern["ShopI"] << dayPattern["OthersI"];
+	if (dayPattern.empty())
+	{
+		throw std::runtime_error("Cannot invoke number of tours model without a day pattern");
+	}
+	logStream << dayPattern["WorkT"] << dayPattern["EduT"] << dayPattern["ShopT"] << dayPattern["OthersT"] << dayPattern["WorkI"] << dayPattern["EduI"]
+			<< dayPattern["ShopI"] << dayPattern["OthersI"];
 
 	//Predict number of Tours
 	logStream << "| Num. Tours: ";
@@ -1365,21 +1366,38 @@ void PredaySystem::planDay() {
 
 	//Construct tours.
 	constructTours();
-	if(!tours.empty()) { tours.front().setFirstTour(true); } // make first tour aware that it is the first tour for person
+	if (!tours.empty())
+	{
+		tours.front().setFirstTour(true);
+	} // make first tour aware that it is the first tour for person
 
-	double prevTourEndTime = FIRST_INDEX;
 	//Process each tour
 	size_t remainingTours = tours.size();
-	for(TourList::iterator tourIt=tours.begin(); tourIt!=tours.end(); tourIt++) {
+	TourList::iterator tourIt = tours.begin();
+	for (; tourIt != tours.end(); tourIt++)
+	{
 		Tour& tour = *tourIt;
 		remainingTours = remainingTours - 1; // 1 less tours to be processed after current tour
-		if(tour.isUsualLocation()) {
+		if (tour.isUsualLocation())
+		{
 			// Predict just the mode for tours to usual location
 			predictTourMode(tour);
 		}
-		else {
+		else
+		{
 			// Predict mode and destination for tours to not-usual locations
 			predictTourModeDestination(tour);
+		}
+
+		int tourMode = tour.getTourMode();
+		if(tourMode == 1 || tourMode == 2) //if chosen mode for primary activity was a PT mode
+		{
+			//block early morning and late night hours where PT trips are rare
+			if(firstAvailableTimeIndex < FIRST_INDEX_FOR_PUBLIC_TANSIT_MODE)
+			{
+				personParams.blockTime(firstAvailableTimeIndex, FIRST_INDEX_FOR_PUBLIC_TANSIT_MODE);
+				firstAvailableTimeIndex = FIRST_INDEX_FOR_PUBLIC_TANSIT_MODE;
+			}
 		}
 
 		// Predict time of day for this tour
@@ -1394,17 +1412,20 @@ void PredaySystem::planDay() {
 		personParams.blockTime(timeWindow.getStartTime(), timeWindow.getEndTime());
 
 		//Generate sub tours for work tours
-		if(tour.getTourType() == sim_mob::WORK) { predictSubTours(tour); }
+		if (tour.getTourType() == sim_mob::WORK)
+		{
+			predictSubTours(tour);
+		}
 
 		//Generate stops for this tour
-		constructIntermediateStops(tour, remainingTours, prevTourEndTime);
+		constructIntermediateStops(tour, remainingTours, firstAvailableTimeIndex);
 
-		calculateTourStartTime(tour, prevTourEndTime);
+		calculateTourStartTime(tour, firstAvailableTimeIndex);
 		calculateTourEndTime(tour);
-		personParams.blockTime(prevTourEndTime, tour.getEndTime());
-		prevTourEndTime = tour.getEndTime();
+		personParams.blockTime(firstAvailableTimeIndex, tour.getEndTime());
+		firstAvailableTimeIndex = tour.getEndTime();
 	}
-	logStream << std::endl;
+	logStream << "\n";
 }
 
 void sim_mob::medium::PredaySystem::insertDayPattern()

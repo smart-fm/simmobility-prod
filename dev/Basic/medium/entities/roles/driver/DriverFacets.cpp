@@ -443,7 +443,8 @@ bool DriverMovement::moveToNextSegment(DriverUpdateParams& params)
 		setLastAccept(currLane, segExitTimeSec, nxtSegStat);
 
 		const SegmentStats* prevSegStats = pathMover.getPrevSegStats(true); //previous segment is in the same link
-		if (prevSegStats)
+		if (prevSegStats
+				&& prevSegStats->getRoadSegment() != pathMover.getCurrSegStats()->getRoadSegment())
 		{
 			// update road segment travel times
 			updateScreenlineCounts(prevSegStats, segExitTimeSec);
@@ -1183,8 +1184,11 @@ TravelMetric& DriverMovement::processCBD_TravelMetrics(const Link* completedLink
 	}
 	case TravelMetric::CBD_PASS:
 	{
-		travelMetric.cbdOrigin = WayPoint(completedLink->getToNode());
-		travelMetric.cbdStartTime = DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime();
+		if(!cbd.isInRestrictedZone(completedLink) && cbd.isInRestrictedZone(nextLink))
+		{
+			travelMetric.cbdOrigin = WayPoint(completedLink->getToNode());
+			travelMetric.cbdStartTime = DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime();
+		}
 		if(cbd.isInRestrictedZone(completedLink)&&!cbd.isInRestrictedZone(nextLink))
 		{
 			travelMetric.cbdDestination = WayPoint(completedLink->getToNode());

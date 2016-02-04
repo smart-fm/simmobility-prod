@@ -145,7 +145,7 @@ void Person_ST::initTripChain()
 	isFirstTick = true;
 }
 
-Entity::UpdateStatus Person_ST::checkTripChain()
+Entity::UpdateStatus Person_ST::checkTripChain(unsigned int currentTime)
 {
 	if (tripChain.empty())
 	{
@@ -241,6 +241,7 @@ bool Person_ST::updatePersonRole()
 		if (tci->itemType == TripChainItem::IT_TRIP)
 		{
 			subTrip = &(*currSubTrip);
+			(*currSubTrip).startTime = DailyTime(currTick.ms());
 		}
 		nextRole = rf->createRole(tci, subTrip, this);
 	}

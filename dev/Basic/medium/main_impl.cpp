@@ -27,6 +27,7 @@
 #include "entities/AuraManager.hpp"
 #include "entities/BusController.hpp"
 #include "entities/BusStopAgent.hpp"
+#include "entities/PT_EdgeTravelTime.hpp"
 #include "entities/incident/IncidentManager.hpp"
 #include "entities/params/PT_NetworkEntities.hpp"
 #include "entities/MT_PersonLoader.hpp"
@@ -381,6 +382,11 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 
 	PT_Statistics::getInstance()->storeStatistics();
 	PT_Statistics::resetInstance();
+
+	if(mtConfig.enabledEdgeTravelTime)
+	{
+		PT_EdgeTravelTime::getInstance()->exportEdgeTravelTime();
+	}
 
 	if (config.numAgentsSkipped>0)
 	{

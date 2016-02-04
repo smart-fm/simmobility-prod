@@ -27,7 +27,7 @@ MT_Config::MT_Config() :
        regionRestrictionEnabled(false), midTermRunMode(MT_Config::MT_NONE), pedestrianWalkSpeed(0), numPredayThreads(0),
 			configSealed(false), fileOutputEnabled(false), consoleOutput(false), predayRunMode(MT_Config::PREDAY_NONE), calibrationMethodology(MT_Config::WSPSA),
 			logsumComputationFrequency(0), supplyUpdateInterval(0), activityScheduleLoadInterval(0), busCapacity(0), outputPredictions(false),
-            populationSource(db::MONGO_DB), populationDB(), simmobDB()
+            populationSource(db::MONGO_DB), populationDB(), simmobDB(), enabledEdgeTravelTime(false)
 {
 }
 

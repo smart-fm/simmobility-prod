@@ -77,6 +77,21 @@ namespace sim_mob
 
 			float r2 = (float)rand() / RAND_MAX;
 
+
+			//chetan
+			std::vector<BigSerial> individuals = household->getIndividuals();
+			Individual *householdHead;
+			for(int n = 0; n < individuals.size(); n++ )
+			{
+				Individual *individual = model->getIndividualById( individuals[n] );
+
+				if(individual->getHouseholdHead())
+					householdHead = individual;
+			}
+
+
+
+
 			IdVector unitIds = agent->getUnitIds();
 
 			if( lifestyle == 1 && r2 < awaken_class1)

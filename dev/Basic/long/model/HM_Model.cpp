@@ -39,6 +39,8 @@
 #include "database/dao/HitsIndividualLogsumDao.hpp"
 #include "database/dao/AccessibilityFixedPzidDao.hpp"
 #include "database/dao/ScreeningCostTimeDao.hpp"
+#include "database/dao/TenureTransitionRateDao.hpp"
+#include "database/dao/OwnerTenantMovingRateDao.hpp"
 #include "agent/impl/HouseholdAgent.hpp"
 #include "event/SystemEvents.hpp"
 #include "core/DataManager.hpp"
@@ -1239,6 +1241,12 @@ void HM_Model::startImpl()
 
 	if (conn.isConnected())
 	{
+		loadData<TenureTransitionRateDao>( conn, tenureTransitionRate, tenureTransitionRateById, &TenureTransitionRate::getId );
+		PrintOutV("Number of Tenure Transition rate rows: " << tenureTransitionRate.size() << std::endl );
+
+		loadData<OwnerTenantMovingRateDao>( conn, ownerTenantMovingRate, ownerTenantMovingRateById, &OwnerTenantMovingRate::getId );
+		PrintOutV("Number of Owner Tenant Moving Rate rows: " << ownerTenantMovingRate.size() << std::endl );
+
 		//Load households
 		loadData<HouseholdDao>(conn, households, householdsById, &Household::getId);
 		PrintOutV("Number of households: " << households.size() << ". Households used: " << households.size()  << std::endl);
@@ -1323,6 +1331,8 @@ void HM_Model::startImpl()
 
 		loadData<AccessibilityFixedPzidDao>( conn, accessibilityFixedPzid, accessibilityFixedPzidById, &AccessibilityFixedPzid::getId );
 		PrintOutV("Number of Accessibility fixed pz id rows: " << accessibilityFixedPzid.size() << std::endl );
+
+
 	}
 
 

@@ -43,6 +43,13 @@ Bid::Bid(const Bid& source)
     this->bidder = source.bidder;
     this->moveInDate = source.moveInDate;
     this->wtpErrorTerm = source.wtpErrorTerm;
+    this->bidsCounter = source.bidsCounter;
+    this->logsum = source.logsum;
+    this->unitFloorArea = source.unitFloorArea;
+    this->unitTypeId = source.unitTypeId;
+    this->currentUnitPrice = source.currentUnitPrice;
+    this->lagCoefficient = source.lagCoefficient;
+    this->sellerId = source.sellerId;
 }
 
 Bid::Bid(): bidId(bidId),simulationDay(simulationDay),bidderId(INVALID_ID),currentUnitId(INVALID_ID),newUnitId(INVALID_ID),willingnessToPay(0.0),affordabilityAmount(0.0),hedonicPrice(0.0),
@@ -69,6 +76,13 @@ Bid& Bid::operator=(const Bid& source)
 	this->bidder = source.bidder;
 	this->moveInDate = source.moveInDate;
 	this->wtpErrorTerm = source.wtpErrorTerm;
+	this->bidsCounter = source.bidsCounter;
+	this->logsum = source.logsum;
+	this->unitFloorArea = source.unitFloorArea;
+	this->unitTypeId = source.unitTypeId;
+	this->currentUnitPrice = source.currentUnitPrice;
+	this->lagCoefficient = source.lagCoefficient;
+	this->sellerId = source.sellerId;
     return *this;
 }
 
@@ -235,6 +249,62 @@ double Bid::getWtpErrorTerm() const
 {
 	return wtpErrorTerm;
 }
+
+double Bid::getCurrentUnitPrice() const {
+		return currentUnitPrice;
+	}
+
+void Bid::setCurrentUnitPrice(double currentUnitPrice) {
+		this->currentUnitPrice = currentUnitPrice;
+	}
+
+double Bid::getUnitFloorArea() const {
+		return unitFloorArea;
+	}
+
+	void Bid::setUnitFloorArea(double floorArea) {
+		this->unitFloorArea = floorArea;
+	}
+
+	double Bid::getLagCoefficient() const {
+		return lagCoefficient;
+	}
+
+	void Bid::setLagCoefficient(double lagCoefficient) {
+		this->lagCoefficient = lagCoefficient;
+	}
+
+	double Bid::getLogsum() const {
+		return logsum;
+	}
+
+	void Bid::setLogsum(double logsum) {
+		this->logsum = logsum;
+	}
+
+	BigSerial Bid::getSellerId() const {
+		return sellerId;
+	}
+
+	void Bid::setSellerId(BigSerial sellerId) {
+		this->sellerId = sellerId;
+	}
+
+	BigSerial Bid::getUnitTypeId() const {
+		return unitTypeId;
+	}
+
+	void Bid::setUnitTypeId(BigSerial typeId) {
+		this->unitTypeId = typeId;
+	}
+
+	int Bid::getBidsCounter() const {
+		return bidsCounter;
+	}
+
+	void Bid::setBidsCounter(int bidsCounter) {
+		this->bidsCounter = bidsCounter;
+	}
 
 
 namespace sim_mob {

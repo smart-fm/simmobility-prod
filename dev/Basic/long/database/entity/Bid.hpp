@@ -26,12 +26,12 @@ namespace sim_mob
         class Bid
         {
         public:
-            Bid(BigSerial bidId, int simulationDay, BigSerial bidderId, BigSerial currentUnitId, BigSerial newUnitId,double willingnessToPay,double affordabilityAmount,double hedonicPrice, double askingPrice,
-            	double targetPrice, double bidValue, int isAccepted,BigSerial currentPostcode, BigSerial newPostcode,Agent_LT* bidder,std::tm moveInDate, double wtpErrorTerm);
+        	Bid(BigSerial bidId, int simulationDay, BigSerial bidderId, BigSerial currentUnitId, BigSerial newUnitId,double willingnessToPay,double affordabilityAmount,double hedonicPrice, double askingPrice,
+        	            	double targetPrice, double bidValue, int isAccepted,BigSerial currentPostcode, BigSerial newPostcode,Agent_LT* bidder,std::tm moveInDate, double wtpErrorTerm);
 
-            Bid(BigSerial bidId,BigSerial currentUnitId, BigSerial newUnitId,BigSerial bidderId,Agent_LT* bidder,double bidValue, int simulationDay, double willingnessToPay, double wtp_e, double affordability );
-            Bid();
-            Bid(const Bid& source);
+        	            Bid(BigSerial bidId,BigSerial currentUnitId, BigSerial newUnitId,BigSerial bidderId,Agent_LT* bidder,double bidValue, int simulationDay, double willingnessToPay, double wtp_e, double affordability );
+        	            Bid();
+        	            Bid(const Bid& source);
             virtual ~Bid();
 
             /**
@@ -106,6 +106,20 @@ namespace sim_mob
 
            void setWtpErrorTerm(double error);
            double getWtpErrorTerm() const;
+           double getCurrentUnitPrice() const;
+           void setCurrentUnitPrice(double currentUnitPrice);
+           double getUnitFloorArea() const;
+           void setUnitFloorArea(double floorArea) ;
+           double getLagCoefficient() const;
+           void setLagCoefficient(double lagCoefficient);
+           double getLogsum() const;
+           void setLogsum(double logsum);
+           BigSerial getSellerId() const;
+           void setSellerId(BigSerial sellerId);
+           BigSerial getUnitTypeId() const;
+           void setUnitTypeId(BigSerial typeId) ;
+           int getBidsCounter() const;
+           void setBidsCounter(int bidsCounter);
 
            /**
             * Operator to print the Bid data.
@@ -121,21 +135,28 @@ namespace sim_mob
         private:
            BigSerial bidId;
            int simulationDay;
+           BigSerial sellerId;
            BigSerial bidderId;
            BigSerial currentUnitId;
            BigSerial newUnitId;
            double willingnessToPay;
            double wtpErrorTerm;
+           double currentUnitPrice;
            double affordabilityAmount;
            double hedonicPrice;
            double askingPrice;
            double targetPrice;
            double bidValue;
            int isAccepted;
+           double lagCoefficient;
+           double logsum;
+           double unitFloorArea;
+           BigSerial unitTypeId;
            BigSerial currentPostcode;
            BigSerial newPostcode;
            Agent_LT* bidder;
            std::tm moveInDate;
+           int bidsCounter;
         };
     }
 }

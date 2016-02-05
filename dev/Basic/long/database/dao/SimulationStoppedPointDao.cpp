@@ -4,19 +4,19 @@
  *  Created on: Nov 13, 2015
  *      Author: gishara
  */
-#include "EncodedParamsBySimulationDao.hpp"
+#include "SimulationStoppedPointDao.hpp"
 #include "DatabaseHelper.hpp"
 
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
-EncodedParamsBySimulationDao::EncodedParamsBySimulationDao(DB_Connection& connection): SqlAbstractDao<EncodedParamsBySimulation>(connection, DB_TABLE_ENCODED_PARAMS_BY_SIMULATION, EMPTY_STR,EMPTY_STR, EMPTY_STR, EMPTY_STR, EMPTY_STR) {
+SimulationStoppedPointDao::SimulationStoppedPointDao(DB_Connection& connection): SqlAbstractDao<SimulationStoppedPoint>(connection, DB_TABLE_SIM_STOPPED_POINT, EMPTY_STR,EMPTY_STR, EMPTY_STR, EMPTY_STR, EMPTY_STR) {
 }
 
-EncodedParamsBySimulationDao::~EncodedParamsBySimulationDao() {
+SimulationStoppedPointDao::~SimulationStoppedPointDao() {
 }
 
-void EncodedParamsBySimulationDao::fromRow(Row& result, EncodedParamsBySimulation& outObj)
+void SimulationStoppedPointDao::fromRow(Row& result, SimulationStoppedPoint& outObj)
 {
 	outObj.simVersionId = result.get<BigSerial>("sim_version_id", INVALID_ID);
 	outObj.postcode = result.get<BigSerial>("postcode", INVALID_ID);
@@ -25,7 +25,7 @@ void EncodedParamsBySimulationDao::fromRow(Row& result, EncodedParamsBySimulatio
 	outObj.projectId = result.get<BigSerial>("project_id",INVALID_ID);
 }
 
-void EncodedParamsBySimulationDao::toRow(EncodedParamsBySimulation& data, Parameters& outParams, bool update)
+void SimulationStoppedPointDao::toRow(SimulationStoppedPoint& data, Parameters& outParams, bool update)
 {
 	outParams.push_back(data.getSimVersionId());
 	outParams.push_back(data.getPostcode());
@@ -34,13 +34,13 @@ void EncodedParamsBySimulationDao::toRow(EncodedParamsBySimulation& data, Parame
 	outParams.push_back(data.getProjectId());
 }
 
-void EncodedParamsBySimulationDao::insertEncodedParams(EncodedParamsBySimulation& encodedParams,std::string schema)
+void SimulationStoppedPointDao::insertSimulationStoppedPoints(SimulationStoppedPoint& simulationStoppedPoint,std::string schema)
 {
 
-	const std::string DB_INSERT_ENCODED_PARAMS = "INSERT INTO " + APPLY_SCHEMA(schema, ".encoded_params_by_simulation")
+	const std::string DB_INSERT_SIM_STOPPED_POINT = "INSERT INTO " + APPLY_SCHEMA(schema, ".simulation_stopped_point")
 	        		+ " (" + "sim_version_id" + ", " + "postcode" + ", " + "building_id"+ ", " + "unit_id" + ", " + "project_id"
 	        		+ ") VALUES (:v1, :v2, :v3, :v4, :v5)";
-	insertViaQuery(encodedParams,DB_INSERT_ENCODED_PARAMS);
+	insertViaQuery(simulationStoppedPoint,DB_INSERT_SIM_STOPPED_POINT);
 
 }
 

@@ -132,7 +132,9 @@ namespace
         	const Unit* thisUnit = model->getUnitById(thisBidder->getUnitId());
 
         	if( agent.getHousehold() )
+        	{
         		newBid->setAffordabilityAmount(agent.getHousehold()->getAffordabilityAmount());
+        	}
 
 
         	newBid->setHedonicPrice(entry.hedonicPrice);
@@ -140,11 +142,16 @@ namespace
         	newBid->setTargetPrice(entry.targetPrice);
         	newBid->setCurrentPostcode(thisUnit->getSlaAddressId());
         	newBid->setNewPostcode(UnitslaId);
+        	newBid->setUnitFloorArea(unit->getFloorArea());
+        	newBid->setUnitTypeId(unit->getUnitType());
         	newBid->setMoveInDate(getDateBySimDay(config.ltParams.year,(bid.getSimulationDay()+moveInWaitingTimeInDays)));
-
+        	newBid->setBidsCounter(bidsCounter);
+        	newBid->setLagCoefficient(unit->getLagCoefficient());
+        	newBid->setCurrentUnitPrice(thisBidder->getCurrentUnitPrice());
+        	newBid->setLogsum(thisBidder->getLogsum());
+        	newBid->setSellerId(agent.getId());
         	model->addNewBids(newBid);
-
-        	boost::shared_ptr<UnitSale> unitSale(new UnitSale(bid.getNewUnitId(),bid.getBidderId(),agent.getId(),bid.getBidValue(),getDateBySimDay(config.ltParams.year,bid.getSimulationDay())));
+        	boost::shared_ptr<UnitSale> unitSale(new UnitSale(bid.getNewUnitId(),bid.getBidderId(),agent.getId(),bid.getBidValue(),getDateBySimDay(config.ltParams.year,bid.getSimulationDay()),(unit->getbiddingMarketEntryDay()-bid.getSimulationDay()),(agent.getAwakeningDay()-bid.getSimulationDay())));
         	model->addUnitSales(unitSale);
         }
     }

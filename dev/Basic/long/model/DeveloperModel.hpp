@@ -29,7 +29,7 @@
 #include "database/entity/TAO.hpp"
 #include "database/entity/UnitPriceSum.hpp"
 #include "database/entity/TazLevelLandPrice.hpp"
-#include "database/entity/EncodedParamsBySimulation.hpp"
+#include "database/entity/SimulationStoppedPoint.hpp"
 #include "database/entity/DevelopmentPlan.hpp"
 #include "agent/impl/DeveloperAgent.hpp"
 #include "agent/impl/RealEstateAgent.hpp"
@@ -60,7 +60,7 @@ namespace sim_mob {
             typedef std::vector<TAO*> TAOList;
             typedef std::vector<UnitPriceSum*> UnitPriceSumList;
             typedef std::vector<TazLevelLandPrice*>TazLevelLandPriceList;
-            typedef std::vector<EncodedParamsBySimulation*>EncodedParamsList;
+            typedef std::vector<SimulationStoppedPoint*>SimulationStoppedPointList;
 
             //maps
             typedef boost::unordered_map<BigSerial,Parcel*> ParcelMap;
@@ -203,7 +203,7 @@ namespace sim_mob {
             /*
              * @return StatusOfWorld object to be inserted to DB at the end of the simulation
              */
-            const boost::shared_ptr<EncodedParamsBySimulation> getEncodedParamsObj(BigSerial simVersionId);
+            const boost::shared_ptr<SimulationStoppedPoint> getSimStoppedPointObj(BigSerial simVersionId);
 
             Parcel* getParcelWithOngoingProjectById(BigSerial parcelId) const;
 
@@ -305,7 +305,7 @@ namespace sim_mob {
             boost::mutex addPotentialProjectsLock;
             boost::mutex addDevPlansLock;
             bool isRestart;
-            EncodedParamsList encodedParamsList;
+            SimulationStoppedPointList simStoppedPointList;
             boost::mutex projectIdLock;
             boost::mutex postcodeLock;
             std::vector<boost::shared_ptr<Building> > newBuildings;

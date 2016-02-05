@@ -16,7 +16,7 @@ namespace sim_mob {
 
         class VehicleOwnershipChanges {
         public:
-        	VehicleOwnershipChanges(BigSerial householdId = INVALID_ID, int vehicleOwnershipOptionId = 0,std::tm startDate = std::tm());
+        	VehicleOwnershipChanges(BigSerial householdId = INVALID_ID, int oldehicleOwnershipOptionId = 0,int newVehicleOwnershipOptionId = 0,std::tm startDate = std::tm());
 
             virtual ~VehicleOwnershipChanges();
             VehicleOwnershipChanges( const VehicleOwnershipChanges &source);
@@ -33,17 +33,20 @@ namespace sim_mob {
 
 		BigSerial getHouseholdId() const;
 		const std::tm& getStartDate() const;
-		int getVehicleOwnershipOptionId() const;
+		int getOldVehicleOwnershipOptionId() const;
+		int getNewVehicleOwnershipOptionId() const;
 
 		void setHouseholdId(BigSerial householdId);
 		void setStartDate(const std::tm& startDate);
-		void setVehicleOwnershipOptionId(int vehicleOwnershipOptionId);
+		void setOldVehicleOwnershipOptionId(int oldVehicleOwnershipOptionId);
+		void setNewVehicleOwnershipOptionId(int nwVehicleOwnershipOptionId);
 
         private:
             friend class VehicleOwnershipChangesDao;
         private:
             BigSerial householdId;
-            int vehicleOwnershipOptionId;
+            int oldVehicleOwnershipOptionId;
+            int newVehicleOwnershipOptionId;
             std::tm startDate;
         };
     }

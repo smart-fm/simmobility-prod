@@ -30,9 +30,9 @@
 #include "core/DataManager.hpp"
 #include "core/AgentsLookup.hpp"
 #include "model/DeveloperModel.hpp"
-#include "database/dao/SimulationVersionDao.hpp"
-#include "database/dao/EncodedParamsBySimulationDao.hpp"
-#include "database/entity/SimulationVersion.hpp"
+#include "database/dao/SimulationStartPointDao.hpp"
+#include "database/dao/SimulationStoppedPointDao.hpp"
+#include "database/entity/SimulationStartPoint.hpp"
 #include "database/dao/CreateOutputSchemaDao.hpp"
 #include "database/dao/BuildingDao.hpp"
 #include "database/dao/ParcelDao.hpp"
@@ -122,25 +122,28 @@ void loadDataToOutputSchema(db::DB_Connection& conn,std::string &currentOutputSc
 	bool resume = config.ltParams.resume;
 	unsigned int year = config.ltParams.year;
 	std::string scenario = config.ltParams.simulationScenario;
+	std::string mainSchemaVersion = config.ltParams.mainSchemaVersion;
+	std::string cfgSchemaVersion = config.ltParams.configSchemaVersion;
+	std::string calibrationSchemaVersion = config.ltParams.calibrationSchemaVersion;
+	std::string geometrySchemaVersion = config.ltParams.geometrySchemaVersion;
 	std::string simScenario = boost::lexical_cast<std::string>(scenario)+"_"+boost::lexical_cast<std::string>(year);
 	time_t rawtime;
 	struct tm * timeinfo;
 	time (&rawtime);
 	timeinfo = localtime (&rawtime);
-	boost::shared_ptr<SimulationVersion>simVersionObj(new SimulationVersion(simVersionId,simScenario,*timeinfo,simStoppedTick));
+	boost::shared_ptr<SimulationStartPoint>simStartPointObj(new SimulationStartPoint(simVersionId,simScenario,*timeinfo,mainSchemaVersion,cfgSchemaVersion,calibrationSchemaVersion,geometrySchemaVersion,simStoppedTick));
 
 	if(conn.isConnected())
 	{
-		SimulationVersionDao simVersionDao(conn);
-		std::vector<SimulationVersion> simVersionList;
-		loadData<SimulationVersionDao>(conn, simVersionList);
+		SimulationStartPointDao simStartPointDao(conn);
+		std::vector<SimulationStartPoint*> simVersionList = simStartPointDao.getAllSimulationStartPoints(currentOutputSchema);
 		if(simVersionList.empty())
 		{
-			simVersionDao.insertSimulationVersion(*simVersionObj.get(),currentOutputSchema);
+			simStartPointDao.insertSimulationStartPoint(*simStartPointObj.get(),currentOutputSchema);
 		}
 
-		EncodedParamsBySimulationDao encodedParamsDao(conn);
-		encodedParamsDao.insertEncodedParams(*(developerModel.getEncodedParamsObj(simVersionId)).get(),currentOutputSchema);
+		SimulationStoppedPointDao simStoppedPointDao(conn);
+		simStoppedPointDao.insertSimulationStoppedPoints(*(developerModel.getSimStoppedPointObj(simVersionId)).get(),currentOutputSchema);
 
 		std::vector<boost::shared_ptr<Building> > buildings = developerModel.getBuildingsVec();
 		std::vector<boost::shared_ptr<Building> >::iterator buildingsItr;
@@ -252,14 +255,14 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
     dataManager.load();
 
 
-    std::vector<SimulationVersion*> simulationVersionList;
+    std::vector<SimulationStartPoint*> simulationStartPointList;
     DB_Config dbConfig(LT_DB_CONFIG_FILE);
     dbConfig.load();
 
     // Connect to database.
     DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
     conn.connect();
-    SimulationVersionDao simVersionDao(conn);
+    SimulationStartPointDao simStartPointDao(conn);
     bool resume = config.ltParams.resume;
     std::string currentOutputSchema;
 
@@ -277,11 +280,11 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
     	currentOutputSchema = config.ltParams.currentOutputSchema;
     	if(conn.isConnected())
     	{
-    		simulationVersionList = simVersionDao.getAllSimulationVersions(currentOutputSchema);
-    		if(!simulationVersionList.empty())
+    		simulationStartPointList = simStartPointDao.getAllSimulationStartPoints(currentOutputSchema);
+    		if(!simulationStartPointList.empty())
     		{
-    			simVersionId = simulationVersionList[simulationVersionList.size()-1]->getId() + 1;
-    			lastStoppedDay = simulationVersionList[simulationVersionList.size()-1]->getSimStoppedTick();
+    			simVersionId = simulationStartPointList[simulationStartPointList.size()-1]->getId() + 1;
+    			lastStoppedDay = simulationStartPointList[simulationStartPointList.size()-1]->getSimStoppedTick();
     		}
     	}
     }

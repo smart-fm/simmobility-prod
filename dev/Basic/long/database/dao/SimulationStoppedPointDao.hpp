@@ -8,7 +8,7 @@
 #pragma once
 
 #include "database/dao/SqlAbstractDao.hpp"
-#include "database/entity/EncodedParamsBySimulation.hpp"
+#include "database/entity/SimulationStoppedPoint.hpp"
 
 
 namespace sim_mob {
@@ -16,10 +16,10 @@ namespace sim_mob {
         /**
          * Data Access Object to SlaParcel table on data source.
          */
-        class EncodedParamsBySimulationDao : public db::SqlAbstractDao<EncodedParamsBySimulation> {
+        class SimulationStoppedPointDao : public db::SqlAbstractDao<SimulationStoppedPoint> {
         public:
-        	EncodedParamsBySimulationDao(db::DB_Connection& connection);
-            virtual ~EncodedParamsBySimulationDao();
+        	SimulationStoppedPointDao(db::DB_Connection& connection);
+            virtual ~SimulationStoppedPointDao();
 
         private:
             /**
@@ -27,7 +27,7 @@ namespace sim_mob {
              * @param result row with data to fill the out object.
              * @param outObj to fill.
              */
-            void fromRow(db::Row& result, EncodedParamsBySimulation& outObj);
+            void fromRow(db::Row& result, SimulationStoppedPoint& outObj);
 
             /**
              * Fills the outParam with all values to insert or update on datasource.
@@ -35,10 +35,10 @@ namespace sim_mob {
              * @param outParams to put the data parameters.
              * @param update tells if operation is an Update or Insert.
              */
-            void toRow(EncodedParamsBySimulation& data, db::Parameters& outParams, bool update);
+            void toRow(SimulationStoppedPoint& data, db::Parameters& outParams, bool update);
 
         public:
-            void insertEncodedParams(EncodedParamsBySimulation& encodedParams,std::string schema);
+            void insertSimulationStoppedPoints(SimulationStoppedPoint& encodedParams,std::string schema);
         };
     }
 }

@@ -10,62 +10,62 @@
  *  Created on: Aug 27, 2014
  *      Author: gishara
  */
-#include "EncodedParamsBySimulation.hpp"
+#include "SimulationStoppedPoint.hpp"
 
 using namespace sim_mob::long_term;
 
-EncodedParamsBySimulation::EncodedParamsBySimulation( BigSerial simVersionId,BigSerial postcode, BigSerial buildingId, BigSerial unitId, BigSerial projectId):
+SimulationStoppedPoint::SimulationStoppedPoint( BigSerial simVersionId,BigSerial postcode, BigSerial buildingId, BigSerial unitId, BigSerial projectId):
 				simVersionId(simVersionId),postcode(postcode),buildingId(buildingId),unitId(unitId),projectId(projectId){}
 
 
-EncodedParamsBySimulation::~EncodedParamsBySimulation() {}
+SimulationStoppedPoint::~SimulationStoppedPoint() {}
 
-BigSerial EncodedParamsBySimulation::getPostcode() const
+BigSerial SimulationStoppedPoint::getPostcode() const
 {
 	return this->postcode;
 }
 
-BigSerial EncodedParamsBySimulation::getBuildingId() const
+BigSerial SimulationStoppedPoint::getBuildingId() const
 {
 	return this->buildingId;
 }
 
-BigSerial EncodedParamsBySimulation::getUnitId() const
+BigSerial SimulationStoppedPoint::getUnitId() const
 {
 	return this->unitId;
 }
 
-BigSerial EncodedParamsBySimulation::getProjectId() const
+BigSerial SimulationStoppedPoint::getProjectId() const
 {
 	return this->projectId;
 }
 
-BigSerial EncodedParamsBySimulation::getSimVersionId() const
+BigSerial SimulationStoppedPoint::getSimVersionId() const
 {
 		return simVersionId;
 }
 
-void EncodedParamsBySimulation::setPostcode(BigSerial postcode)
+void SimulationStoppedPoint::setPostcode(BigSerial postcode)
 {
 	this->postcode = postcode;
 }
 
-void EncodedParamsBySimulation::setBuildingId(BigSerial buildingId)
+void SimulationStoppedPoint::setBuildingId(BigSerial buildingId)
 {
 	this->buildingId = buildingId;
 }
 
-void EncodedParamsBySimulation::setUnitId(BigSerial unitId)
+void SimulationStoppedPoint::setUnitId(BigSerial unitId)
 {
 	this->unitId = unitId;
 }
 
-void EncodedParamsBySimulation::setProjectId(BigSerial projectId)
+void SimulationStoppedPoint::setProjectId(BigSerial projectId)
 {
 	this->projectId = projectId;
 }
 
-void EncodedParamsBySimulation::setSimVersionId(BigSerial simVersionId)
+void SimulationStoppedPoint::setSimVersionId(BigSerial simVersionId)
 {
 		this->simVersionId = simVersionId;
 }
@@ -73,7 +73,7 @@ void EncodedParamsBySimulation::setSimVersionId(BigSerial simVersionId)
 namespace sim_mob {
     namespace long_term {
 
-        std::ostream& operator<<(std::ostream& strm, const EncodedParamsBySimulation& data) {
+        std::ostream& operator<<(std::ostream& strm, const SimulationStoppedPoint& data) {
             return strm << "{"
             			<< "\"simVersionId\":\"" << data.simVersionId << "\","
 						<< "\"postcode\":\"" << data.postcode << "\","

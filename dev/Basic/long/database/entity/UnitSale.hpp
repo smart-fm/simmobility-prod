@@ -23,7 +23,7 @@ namespace sim_mob {
 
         class UnitSale {
         public:
-        	UnitSale( BigSerial unitId = INVALID_ID, BigSerial buyerId = INVALID_ID, BigSerial sellerId = INVALID_ID,double unitPrice = 0.0, std::tm transactionDate = std::tm());
+        	UnitSale( BigSerial unitId = INVALID_ID, BigSerial buyerId = INVALID_ID, BigSerial sellerId = INVALID_ID,double unitPrice = 0.0, std::tm transactionDate = std::tm(), int daysOnMarketUnit =0, int daysOnMarketBidder = 0);
         	UnitSale(const UnitSale& source);
         	UnitSale& operator=(const UnitSale& source);
             virtual ~UnitSale();
@@ -36,12 +36,16 @@ namespace sim_mob {
             const std::tm& getTransactionDate() const;
             BigSerial getUnitId() const;
             double getUnitPrice() const;
+            int getDaysOnMarketBidder() const ;
+            int getDaysOnMarketUnit() const;
 
             void setBuyerId(BigSerial buyerId);
             void setSellerId(BigSerial sellerId);
             void setTransactionDate(const std::tm& transactionDate);
             void setUnitId(BigSerial unitId);
             void setUnitPrice(double unitPrice);
+            void setDaysOnMarketBidder(int daysOnMarketBidder);
+            void setDaysOnMarketUnit(int daysOnMarketUnit);
 
         	private:
             friend class UnitSaleDao;
@@ -52,6 +56,8 @@ namespace sim_mob {
             BigSerial sellerId;
             double unitPrice;
             std::tm transactionDate;
+            int daysOnMarketUnit;
+            int daysOnMarketBidder;
         };
     }
 }

@@ -492,8 +492,8 @@ void ExpandShortTermConfigFile::generateAgentsFromTripChain(ConfigParams::AgentC
 		for (soci::rowset<soci::row>::const_iterator itRows = rows.begin(); itRows != rows.end(); ++itRows)
 		{
 			//Get the person id and trip id
-			const string &tripId = (*itRows).get<string>(0);
-			const string &personId = (*itRows).get<string>(1);			
+			const string tripId = (*itRows).get<string>(0);
+			const string personId = (*itRows).get<string>(1);			
 			
 			//The trip belonging to the person
 			vector<TripChainItem *> &personTripChain = tripChains[personId][tripId];			
@@ -529,9 +529,27 @@ void ExpandShortTermConfigFile::generateAgentsFromTripChain(ConfigParams::AgentC
 		}
 
 		//Close the connection
-		sql.close();
+		//sql.close();
 		
 		//For every person, consolidate the the trips, set and initialise the trip chain and add/stash the person
+		for(map<const string, Person_ST *>::iterator itPerson = persons.begin(); itPerson != persons.end(); ++itPerson)
+		{
+			map<const string, vector<TripChainItem *> > &personTripChains = tripChains[itPerson->first];
+			
+			std::vector<TripChainItem *> personTripChain;
+			
+			for(map<const string, vector<TripChainItem *> >::iterator itPersonTripChains = personTripChains.begin(); 
+					itPersonTripChains != personTripChains.end(); ++itPersonTripChains)
+			{
+				personTripChain.insert(personTripChain.end(), itPersonTripChains->second.begin(), itPersonTripChains->second.end());
+			}
+			
+			itPerson->second->setTripChain(personTripChain);
+			itPerson->second->setNextPathPlanned(false);
+			
+			//Add it or stash it
+			addOrStashEntity(itPerson->second, active_agents, pending_agents);
+		}
 	}
 	else
 	{

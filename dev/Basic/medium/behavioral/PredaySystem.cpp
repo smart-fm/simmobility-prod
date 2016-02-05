@@ -125,11 +125,11 @@ namespace {
 	 * Given a index i, its choice time window can be determined by (i * 0.5 + 2.75)
 	 */
 	inline double getTimeWindowFromIndex(const double index) {
-		return (index * 0.5 /*half hour windows*/) + 2.75 /*the day starts at 3.25*/;
+		return ((index * 0.5 /*half hour windows*/) + 2.75 /*the day starts at 3.25*/);
 	}
 
 	inline double getIndexFromTimeWindow(const double window) {
-		return (window - 2.75 /*the day starts at 3.25*/) / 0.5;
+		return ((window - 2.75 /*the day starts at 3.25*/) / 0.5);
 	}
 
 	double alignTime(double time, double lowerBound, double upperBound, const std::string& personId, std::string caller) {
@@ -279,7 +279,7 @@ void PredaySystem::constructTourModeParams(TourModeParams& tmParams, int destina
 		tmParams.setPublicBusAvailable(amObj->getPubIvt() > 0 && pmObj->getPubIvt() > 0);
 		tmParams.setMrtAvailable(amObj->getPubIvt() > 0 && pmObj->getPubIvt() > 0);
 		tmParams.setPrivateBusAvailable(amObj->getPubIvt() > 0 && pmObj->getPubIvt() > 0);
-		tmParams.setWalkAvailable(amObj->getPubIvt() <= WALKABLE_DISTANCE && pmObj->getPubIvt() <= WALKABLE_DISTANCE);
+		tmParams.setWalkAvailable(amObj->getDistance() <= WALKABLE_DISTANCE && pmObj->getDistance() <= WALKABLE_DISTANCE);
 		tmParams.setTaxiAvailable(1);
 		tmParams.setMotorAvailable(1);
 	}
@@ -973,7 +973,7 @@ bool PredaySystem::predictStopTimeOfDay(Stop* stop, int destination_2012, bool i
 	if(isBeforePrimary)
 	{
 		stodParams.setTodHigh(stop->getDepartureTime());
-		stodParams.setTodLow(std::min(firstAvailableTimeIndex, (int)stop->getDepartureTime()));
+		stodParams.setTodLow(firstAvailableTimeIndex);
 	}
 	else
 	{
@@ -1273,7 +1273,7 @@ void PredaySystem::calculateTourStartTime(Tour& tour, double lowerBoundIdx)
 	Stop* firstStop = tour.stops.front();
 	double firstActivityArrivalIndex = firstStop->getArrivalTime();
 	double timeWindow = getTimeWindowFromIndex(firstActivityArrivalIndex);
-	double travelTime = fetchTravelTime(firstStop->getStopLocation(), personParams.getHomeLocation(), firstStop->getStopMode(), true, firstActivityArrivalIndex);
+	double travelTime = fetchTravelTime(personParams.getHomeLocation(), firstStop->getStopLocation(), firstStop->getStopMode(), true, firstActivityArrivalIndex);
 	double tourStartTime = timeWindow - travelTime;
 	// travel time can be unreasonably high sometimes. E.g. when the travel time is unknown, the default is set to 999
 	tourStartTime = alignTime(tourStartTime, getTimeWindowFromIndex(lowerBoundIdx), timeWindow, personParams.getPersonId(), "calculateTourStartTime()");

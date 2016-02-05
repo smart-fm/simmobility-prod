@@ -73,15 +73,6 @@ SupplyParams::SupplyParams(const RoadSegment* rdSeg, double statsLength) :
 		capacity(rdSeg->getCapacity()), /*capacity in vehicles/s*/
 		alpha(3.0), beta(1.5)
 {
-	//update capacity of single and double lane segments to avoid bottle necks. Suggested by Yang Lu on 11-Oct-14
-	if (rdSeg->getLanes().size() == 1)
-	{
-		capacity = std::max(capacity, SINGLE_LANE_SEGMENT_CAPACITY / 3600.0);
-	}
-	else if (rdSeg->getLanes().size() == 2)
-	{
-		capacity = std::max(capacity, DOUBLE_LANE_SEGMENT_CAPACITY / 3600.0);
-	}
 }
 
 SegmentStats::SegmentStats(const RoadSegment* rdSeg, Conflux* parentConflux, double statslengthInM) :

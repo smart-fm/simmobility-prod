@@ -37,14 +37,8 @@ namespace sim_mob
 
 		WillingnessToPaySubModel::~WillingnessToPaySubModel(){}
 
-		double WillingnessToPaySubModel::CalculateWillingnessToPay(const Unit* unit, const Household* household, double& wtp_e, double day, HM_Model *model)
+		void WillingnessToPaySubModel::FindHDBType( int unitType)
 		{
-			double V;
-
-			const PostcodeAmenities *pcAmenities = DataManagerSingleton::getInstance().getAmenitiesById( unit->getSlaAddressId() );
-
-			int unitType = unit->getUnitType();
-
 			if( unitType == ID_HDB1 || unitType == ID_HDB2 )
 				HDB12 = 1;
 			else
@@ -80,20 +74,10 @@ namespace sim_mob
 			else
 			if( unitType == 65 )
 				HDB5 = 1;
-			else
-				return 0.0;
+		}
 
-
-			if( unitType <= 6  || unitType == 65 )
-			{
-				sde 	 = 0.05;
-				barea 	 = 0.8095874824;
-				blogsum	 = 0.0035517989;
-				bchin 	 = 0.0555546991;
-				bmalay 	 = -0.0056135472;
-				bHighInc = 0.0229342784;
-			}
-
+		void WillingnessToPaySubModel::FindHouseholdSize(const Household *household)
+		{
 			if( household->getSize() == 1)
 				HH_size1 = 1;
 			else
@@ -101,9 +85,51 @@ namespace sim_mob
 				HH_size2 = 1;
 			else
 				HH_size3m = 1;
+		}
 
-			DD_area = log( unit->getFloorArea() );
+		void WillingnessToPaySubModel::FindAgeOfUnit(const Unit *unit, int day)
+		{
+			ageOfUnitPrivate = HITS_SURVEY_YEAR  - 1900 + ( day / 365 ) - unit->getOccupancyFromDate().tm_year;
 
+			ZZ_ageOfUnitPrivate	 = ageOfUnitPrivate;
+			ZZ_ageBet25And50 = 0;
+			ZZ_ageGreater50  = 0;
+			ZZ_missingAge    = 0;
+			ZZ_freehold 	 = 0;
+
+			if( ageOfUnitPrivate > 25 )
+				ZZ_ageOfUnitPrivate = 25;
+
+			if( ageOfUnitPrivate < 0 )
+				ZZ_ageOfUnitPrivate = 0;
+
+			ZZ_ageOfUnitPrivate = ZZ_ageOfUnitPrivate / 10.0;
+
+			if( ageOfUnitPrivate > 25 && ageOfUnitPrivate < 50)
+				ZZ_ageBet25And50 = 1;
+
+			if( ageOfUnitPrivate > 50 )
+				ZZ_ageGreater50 = 1;
+
+
+			ageOfUnitHDB = HITS_SURVEY_YEAR - 1900 + ( day / 365 ) - unit->getOccupancyFromDate().tm_year;
+			ZZ_ageOfUnitHDB	 = ageOfUnitHDB;
+			ZZ_ageGreater30  = 0;
+
+			if( ageOfUnitHDB > 30 )
+				ZZ_ageOfUnitHDB = 30;
+
+			if( ageOfUnitHDB  < 0 )
+				ZZ_ageOfUnitHDB = 0;
+
+			ZZ_ageOfUnitHDB = ZZ_ageOfUnitHDB / 10.0;
+
+			if( ageOfUnitHDB > 30 )
+				ZZ_ageGreater30 = 1;
+		}
+
+		void WillingnessToPaySubModel::GetLogsum(HM_Model *model, const Household *household, int day)
+		{
 			BigSerial homeTaz = 0;
 			BigSerial workTaz = 0;
 			Individual* headOfHousehold = NULL;
@@ -138,45 +164,6 @@ namespace sim_mob
 					}
 				}
 			}
-
-			const int ageOfUnitPrivate = HITS_SURVEY_YEAR  - 1900 + ( day / 365 ) - unit->getOccupancyFromDate().tm_year;
-
-
-			double ZZ_ageOfUnitPrivate	 = ageOfUnitPrivate;
-			int ZZ_ageBet25And50 = 0;
-			int ZZ_ageGreater50  = 0;
-			int ZZ_missingAge    = 0;
-			int ZZ_freehold 	 = 0;
-
-			if( ageOfUnitPrivate > 25 )
-				ZZ_ageOfUnitPrivate = 25;
-
-			if( ageOfUnitPrivate < 0 )
-				ZZ_ageOfUnitPrivate = 0;
-
-			ZZ_ageOfUnitPrivate = ZZ_ageOfUnitPrivate / 10.0;
-
-			if( ageOfUnitPrivate > 25 && ageOfUnitPrivate < 50)
-				ZZ_ageBet25And50 = 1;
-
-			if( ageOfUnitPrivate > 50 )
-				ZZ_ageGreater50 = 1;
-
-
-			const int ageOfUnitHDB = HITS_SURVEY_YEAR - 1900 + ( day / 365 ) - unit->getOccupancyFromDate().tm_year;
-			double ZZ_ageOfUnitHDB	 = ageOfUnitHDB;
-			int ZZ_ageGreater30  = 0;
-
-			if( ageOfUnitHDB > 30 )
-				ZZ_ageOfUnitHDB = 30;
-
-			if( ageOfUnitHDB  < 0 )
-				ZZ_ageOfUnitHDB = 0;
-
-			ZZ_ageOfUnitHDB = ZZ_ageOfUnitHDB / 10.0;
-
-			if( ageOfUnitHDB > 30 )
-				ZZ_ageGreater30 = 1;
 
 			Job *job = model->getJobById(headOfHousehold->getJobId());
 
@@ -214,7 +201,6 @@ namespace sim_mob
 			if( homeTaz == -1 || workTaz == -1 )
 			{
 				ZZ_logsumhh = 0;
-				return 0;
 			}
 			else
 			{
@@ -250,6 +236,10 @@ namespace sim_mob
 
 			}
 
+		}
+
+		void WillingnessToPaySubModel::GetIncomeAndEthnicity(HM_Model *model, const Household *household, const Unit *unit)
+		{
 			const HM_Model::TazStats *tazstats  = model->getTazStatsByUnitId(unit->getId());
 
 			if( tazstats->getChinesePercentage() > 0.76 ) //chetan TODO: add to xml file
@@ -258,9 +248,9 @@ namespace sim_mob
 			if( tazstats->getMalayPercentage() > 0.10 )
 				ZZ_hhmalay 	 = 1;
 
-			double ZZ_highInc = household->getIncome();
-			double ZZ_middleInc = household->getIncome();
-			double ZZ_lowInc  =  household->getIncome();
+			ZZ_highInc = household->getIncome();
+			ZZ_middleInc = household->getIncome();
+			ZZ_lowInc  =  household->getIncome();
 
 			if( ZZ_highInc >= 11000 )
 				ZZ_highInc = 1;
@@ -279,20 +269,49 @@ namespace sim_mob
 			else
 				ZZ_lowInc = 0;
 
-			int ZZ_children = 0;
+			ZZ_children = 0;
 
 			if( household->getChildUnder15() > 0 )
 				ZZ_children = 1;
 
-			int chineseHousehold = 0;
-			int malayHousehold   = 0;
 
 			if( household->getEthnicityId() == 1 )
 				chineseHousehold = 1;
 
 			if( household->getEthnicityId() == 2 )
 				malayHousehold = 1;
+		}
 
+
+		double WillingnessToPaySubModel::CalculateWillingnessToPay(const Unit* unit, const Household* household, double& wtp_e, double day, HM_Model *model)
+		{
+			double V;
+
+			const PostcodeAmenities *pcAmenities = DataManagerSingleton::getInstance().getAmenitiesById( unit->getSlaAddressId() );
+
+			int unitType = unit->getUnitType();
+
+			//We use a separate list of coefficients for HDB units.
+			if( unitType <= 6  || unitType == 65 )
+			{
+				sde 	 = 0.05;
+				barea 	 = 0.8095874824;
+				blogsum	 = 0.0035517989;
+				bchin 	 = 0.0555546991;
+				bmalay 	 = -0.0056135472;
+				bHighInc = 0.0229342784;
+			}
+
+			FindHDBType(unitType);
+			FindHouseholdSize(household);
+
+			DD_area = log( unit->getFloorArea() );
+
+			FindAgeOfUnit( unit, day);
+
+			GetLogsum(model, household, day);
+
+			GetIncomeAndEthnicity(model, household, unit);
 
 
 			double Vpriv = 	(barea		*  DD_area 		) +

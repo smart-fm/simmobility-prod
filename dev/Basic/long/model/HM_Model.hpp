@@ -39,6 +39,8 @@
 #include "database/entity/IndvidualVehicleOwnershipLogsum.hpp"
 #include "database/entity/AccessibilityFixedPzid.hpp"
 #include "database/entity/ScreeningCostTime.hpp"
+#include "database/entity/TenureTransitionRate.hpp"
+#include "database/entity/OwnerTenantMovingRate.hpp"
 #include "core/HousingMarket.hpp"
 #include "boost/unordered_map.hpp"
 #include "DeveloperModel.hpp"
@@ -139,6 +141,11 @@ namespace sim_mob
             typedef boost::unordered_map<BigSerial, ScreeningCostTime*> ScreeningCostTimeMap;
             typedef boost::unordered_map<std::string, BigSerial> ScreeningCostTimeSuperMap;
 
+            typedef std::vector<TenureTransitionRate*> TenureTransitionRateList;
+            typedef boost::unordered_map<BigSerial, TenureTransitionRate*> TenureTransitionRateMap;
+
+            typedef std::vector<OwnerTenantMovingRate*>OwnerTenantMovingRateList;
+            typedef boost::unordered_map<BigSerial, OwnerTenantMovingRate*> OwnerTenantMovingRateMap;
 
             /**
              * Taz statistics
@@ -438,6 +445,11 @@ namespace sim_mob
 
             ZonalLanduseVariableValuesList zonalLanduseVariableValues;
             ZonalLanduseVariableValuesMap zonalLanduseVariableValuesById;
+
+            TenureTransitionRateList tenureTransitionRate;
+            TenureTransitionRateMap tenureTransitionRateById;
+            OwnerTenantMovingRateList ownerTenantMovingRate;
+            OwnerTenantMovingRateMap ownerTenantMovingRateById;
 
             int	initialHHAwakeningCounter;
             int numberOfBidders;

@@ -14,6 +14,8 @@
 #include "agent/impl/HouseholdAgent.hpp"
 #include "AgentsLookup.hpp"
 #include "message/LT_Message.hpp"
+#include <model/AwakeningSubModel.hpp>
+
 
 using namespace sim_mob;
 using namespace sim_mob::long_term;
@@ -70,20 +72,9 @@ Entity::UpdateStatus EventsInjector::update(timeslice now)
     const ExternalEventsModel& model = LuaProvider::getExternalEventsModel();
     
     vector<ExternalEvent> events;
-    //(now+1) - events for the next day once our events are 1 tick delayed
-    //model.getExternalEvents((now.ms() + 1), events);
+    AwakeningSubModel awakenings;
 
-    for( int n = 0; n < 300; n++ )
-    {
-    	ExternalEvent extEv;
-
-    	extEv.setDay(now.ms() + 1 );
-    	extEv.setType( ExternalEvent::NEW_JOB );
-    	extEv.setHouseholdId( (double)rand()/RAND_MAX * 1000000 );
-    	extEv.setDeveloperId(0);
-
-    	events.push_back(extEv);
-    }
+    events = awakenings.DailyAwakenings(now.ms());
 
 
     AgentsLookup& lookup = AgentsLookupSingleton::getInstance();

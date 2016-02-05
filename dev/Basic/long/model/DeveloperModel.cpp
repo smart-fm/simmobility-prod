@@ -38,7 +38,7 @@
 #include "database/dao/TAO_Dao.hpp"
 #include "database/dao/UnitPriceSumDao.hpp"
 #include "database/dao/TazLevelLandPriceDao.hpp"
-#include "database/dao/EncodedParamsBySimulationDao.hpp"
+#include "database/dao/SimulationStoppedPointDao.hpp"
 #include "database/dao/ProjectDao.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
@@ -122,15 +122,15 @@ void DeveloperModel::startImpl() {
 		if(resume)
 		{
 			std::string  outputSchema = config.ltParams.currentOutputSchema;
-			EncodedParamsBySimulationDao encodedParamsDao(conn);
-			const std::string getAllEncodedParams = "SELECT * FROM " + outputSchema+ "."+"encoded_params_by_simulation;";
-			encodedParamsDao.getByQuery(getAllEncodedParams,encodedParamsList);
-			if(!encodedParamsList.empty())
+			SimulationStoppedPointDao simStoppedPointDao(conn);
+			const std::string getAllSimStoppedPointParams = "SELECT * FROM " + outputSchema+ "."+"simulation_stopped_point;";
+			simStoppedPointDao.getByQuery(getAllSimStoppedPointParams,simStoppedPointList);
+			if(!simStoppedPointList.empty())
 			{
-				postcodeForDevAgent = encodedParamsList[encodedParamsList.size()-1]->getPostcode();
-				unitIdForDevAgent = encodedParamsList[encodedParamsList.size()-1]->getUnitId();
-				buildingIdForDevAgent = encodedParamsList[encodedParamsList.size()-1]->getBuildingId();
-				projectIdForDevAgent = encodedParamsList[encodedParamsList.size()-1]->getProjectId();
+				postcodeForDevAgent = simStoppedPointList[simStoppedPointList.size()-1]->getPostcode();
+				unitIdForDevAgent = simStoppedPointList[simStoppedPointList.size()-1]->getUnitId();
+				buildingIdForDevAgent = simStoppedPointList[simStoppedPointList.size()-1]->getBuildingId();
+				projectIdForDevAgent = simStoppedPointList[simStoppedPointList.size()-1]->getProjectId();
 			}
 
 			parcelsWithOngoingProjects = parcelDao.getParcelsWithOngoingProjects(outputSchema);
@@ -661,10 +661,10 @@ const int DeveloperModel::getBuildingAvgAge(const BigSerial fmParcelId) const
 	return avgAge;
 }
 
-const boost::shared_ptr<EncodedParamsBySimulation> DeveloperModel::getEncodedParamsObj(BigSerial simVersionId)
+const boost::shared_ptr<SimulationStoppedPoint> DeveloperModel::getSimStoppedPointObj(BigSerial simVersionId)
 {
-	const boost::shared_ptr<EncodedParamsBySimulation> encodedParamsObj(new EncodedParamsBySimulation(simVersionId,postcodeForDevAgent,buildingIdForDevAgent,unitIdForDevAgent,projectIdForDevAgent));
-	return encodedParamsObj;
+	const boost::shared_ptr<SimulationStoppedPoint> simStoppedPointObj(new SimulationStoppedPoint(simVersionId,postcodeForDevAgent,buildingIdForDevAgent,unitIdForDevAgent,projectIdForDevAgent));
+	return simStoppedPointObj;
 }
 
 Parcel* DeveloperModel::getParcelWithOngoingProjectById(BigSerial id) const {

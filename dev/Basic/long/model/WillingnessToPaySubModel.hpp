@@ -29,6 +29,11 @@ namespace sim_mob
 
 			double CalculateWillingnessToPay(const Unit* unit, const Household* household, double& wtp_e, double day, HM_Model *model);
 
+			void FindHDBType( int unitType);
+			void FindHouseholdSize(const Household* household);
+			void FindAgeOfUnit(const Unit *unit, int day);
+			void GetLogsum(HM_Model *model, const Household *household, int day);
+			void GetIncomeAndEthnicity(HM_Model *model, const Household *household, const Unit *unit);
 
 		private:
 
@@ -87,6 +92,26 @@ namespace sim_mob
 			double ZZ_hhindian	= 0;
 			double ZZ_hhinc		= 0;
 			double ZZ_hhsize	= 0;
+			int ageOfUnitPrivate = 0;
+			double ZZ_ageOfUnitPrivate	 = 0;
+			int ZZ_ageBet25And50 = 0;
+			int ZZ_ageGreater50  = 0;
+			int ZZ_missingAge    = 0;
+			int ZZ_freehold 	 = 0;
+
+			int ageOfUnitHDB = 0;
+			double ZZ_ageOfUnitHDB = 0;
+			int ZZ_ageGreater30  = 0;
+
+			double ZZ_highInc = 0;
+			double ZZ_middleInc = 0;
+			double ZZ_lowInc  =  0;
+
+			int ZZ_children = 0;
+
+			int chineseHousehold = 0;
+			int malayHousehold   = 0;
+
 		};
 	}
 }

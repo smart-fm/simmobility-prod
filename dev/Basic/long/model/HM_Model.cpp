@@ -40,6 +40,8 @@
 #include "database/dao/IndvidualVehicleOwnershipLogsumDao.hpp"
 #include "database/dao/AccessibilityFixedPzidDao.hpp"
 #include "database/dao/ScreeningCostTimeDao.hpp"
+#include "database/dao/TenureTransitionRateDao.hpp"
+#include "database/dao/OwnerTenantMovingRateDao.hpp"
 #include "agent/impl/HouseholdAgent.hpp"
 #include "event/SystemEvents.hpp"
 #include "core/DataManager.hpp"
@@ -1252,8 +1254,6 @@ void HM_Model::startImpl()
 		loadData<UnitDao>(conn, units, unitsById, &Unit::getId);
 		PrintOutV("Number of units: " << units.size() << ". Units Used: " << units.size() << std::endl);
 
-
-
 		loadData<AwakeningDao>(conn, awakening, awakeningById,	&Awakening::getId);
 		PrintOutV("Awakening probability: " << awakening.size() << std::endl );
 
@@ -1330,6 +1330,12 @@ void HM_Model::startImpl()
 
 		loadData<AccessibilityFixedPzidDao>( conn, accessibilityFixedPzid, accessibilityFixedPzidById, &AccessibilityFixedPzid::getId );
 		PrintOutV("Number of Accessibility fixed pz id rows: " << accessibilityFixedPzid.size() << std::endl );
+
+		loadData<TenureTransitionRateDao>( conn, tenureTransitionRate, tenureTransitionRateById, &TenureTransitionRate::getId );
+		PrintOutV("Number of Tenure Transition rate rows: " << tenureTransitionRate.size() << std::endl );
+
+		loadData<OwnerTenantMovingRateDao>( conn, ownerTenantMovingRate, ownerTenantMovingRateById, &OwnerTenantMovingRate::getId );
+		PrintOutV("Number of Owner Tenant Moving Rate rows: " << ownerTenantMovingRate.size() << std::endl );
 	}
 
 

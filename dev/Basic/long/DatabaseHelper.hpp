@@ -81,6 +81,8 @@ namespace sim_mob {
         const std::string DB_TABLE_CREATE_OP_SCHEMA = APPLY_SCHEMA( MAIN_SCHEMA, "create_output_schema");
         const std::string DB_TABLE_INDIVIDUAL_LEVEL_VEHICLEOWNERSHIP_LOGSUM = APPLY_SCHEMA(CALIBRATION_SCHEMA, "individual_level_vehicle_ownership_logsum");
         const std::string DB_TABLE_SCREENINGCOSTTIME= APPLY_SCHEMA( CALIBRATION_SCHEMA, "cost_time");
+        const std::string DB_TABLE_OWNERTENANTMOVINGRATE= APPLY_SCHEMA( CALIBRATION_SCHEMA, "owner_tenant_moving_rate");
+        const std::string DB_TABLE_TENURETRANSITIONRATE= APPLY_SCHEMA( CALIBRATION_SCHEMA, "tenure_transition_rate");
 
         /**
          * Views
@@ -399,6 +401,8 @@ namespace sim_mob {
         const std::string DB_GETALL_INDIVIDUAL_VEHICLE_OWNERSHIP_LOGSUMS = "SELECT * FROM " + APPLY_SCHEMA(CALIBRATION_SCHEMA, "individual_level_vehicle_ownership_logsum") + LIMIT;
         const std::string DB_GETALL_ACCESSIBILITYFIXEDPZID = "SELECT * FROM "+ DB_TABLE_ACCESSIBILITYFIXEDPZID + LIMIT;
         const std::string DB_GETALL_SCREENINGCOSTTIME = "SELECT * FROM "+ DB_TABLE_SCREENINGCOSTTIME + LIMIT;
+        const std::string DB_GETALL_OWNERTENANTMOVINGRATE = "SELECT * FROM "+ DB_TABLE_OWNERTENANTMOVINGRATE+ LIMIT;
+        const std::string DB_GETALL_TENURETRANSITIONRATE = "SELECT * FROM "+ DB_TABLE_TENURETRANSITIONRATE+ LIMIT;
 
         /**
          * GET BY ID
@@ -438,6 +442,8 @@ namespace sim_mob {
         //const std::string DB_GETBYID_AWAKENING      = "SELECT * FROM " + DB_TABLE_AWAKENING + " WHERE h1_hhid = :v1;";
         const std::string DB_GETBYID_ACCESSIBILITYFIXEDPZID = "SELECT * FROM "+ DB_TABLE_ACCESSIBILITYFIXEDPZID + " WHERE planning_area_id = :v1;";
         const std::string DB_GETBYID_SCREENINGCOSTTIME = "SELECT * FROM "+ DB_TABLE_SCREENINGCOSTTIME + " WHERE id = :v1;";
+        const std::string DB_GETBYID_OWNERTENANTMOVINGRATE = "SELECT * FROM "+ DB_TABLE_OWNERTENANTMOVINGRATE + " WHERE id = :v1;";
+        const std::string DB_GETBYID_TENURETRANSITIONRATE = "SELECT * FROM "+ DB_TABLE_TENURETRANSITIONRATE + " WHERE id = :v1;";
     }
 }
 

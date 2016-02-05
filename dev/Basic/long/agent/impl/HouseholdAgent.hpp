@@ -32,7 +32,7 @@ namespace sim_mob
         class HouseholdAgent : public Agent_LT
         {
         public:
-            HouseholdAgent(BigSerial id, HM_Model* model, const Household* hh, HousingMarket* market, bool marketSeller = false, int day = 0, int householdBiddingWindow = 0);
+            HouseholdAgent(BigSerial id, HM_Model* model, const Household* hh, HousingMarket* market, bool marketSeller = false, int day = 0, int householdBiddingWindow = 0, int awakeningDay = 0);
             virtual ~HouseholdAgent();
             
             enum VehicleOwnershipOption
@@ -54,7 +54,8 @@ namespace sim_mob
             int getBuySellInterval( ) const;
 
             void setHouseholdBiddingWindow(int value);
-        
+            int getAwakeningDay() const;
+
         protected:
             /**
              * Inherited from LT_Agent.
@@ -113,6 +114,7 @@ namespace sim_mob
 
             bool marketSeller; //tells if the agent is only a fake market seller
             int day;
+            int awakeningDay;
         };
     }
 }

@@ -32,9 +32,9 @@ using std::string;
 using std::map;
 using std::endl;
 
-HouseholdAgent::HouseholdAgent(BigSerial _id, HM_Model* _model, const Household* _household, HousingMarket* _market, bool _marketSeller, int _day, int _householdBiddingWindow)
+HouseholdAgent::HouseholdAgent(BigSerial _id, HM_Model* _model, const Household* _household, HousingMarket* _market, bool _marketSeller, int _day, int _householdBiddingWindow, int awakeningDay)
 							 : Agent_LT(ConfigManager::GetInstance().FullConfig().mutexStategy(), _id), model(_model), market(_market), household(_household), marketSeller(_marketSeller), bidder (nullptr), seller(nullptr), day(_day),
-							   vehicleOwnershipOption(NO_CAR), householdBiddingWindow(_householdBiddingWindow)
+							   vehicleOwnershipOption(NO_CAR), householdBiddingWindow(_householdBiddingWindow),awakeningDay(awakeningDay)
 							{
     seller = new HouseholdSellerRole(this);
     seller->setActive(marketSeller);
@@ -117,6 +117,10 @@ void HouseholdAgent::setHouseholdBiddingWindow(int value)
 	householdBiddingWindow = value;
 }
 
+int HouseholdAgent::getAwakeningDay() const
+{
+	return awakeningDay;
+}
 
 void HouseholdAgent::awakenHousehold()
 {
@@ -187,6 +191,7 @@ void HouseholdAgent::awakenHousehold()
 		model->incrementAwakeningCounter();
 
 		model->incrementLifestyle1HHs();
+		awakeningDay = day;
 	}
 	else
 	if( lifestyle == 2 && r2 < awaken_class2)
@@ -213,6 +218,7 @@ void HouseholdAgent::awakenHousehold()
 		model->incrementAwakeningCounter();
 
 		model->incrementLifestyle2HHs();
+		awakeningDay = day;
 	}
 	else
 	if( lifestyle == 3 && r2 < awaken_class3)
@@ -236,6 +242,7 @@ void HouseholdAgent::awakenHousehold()
 
 		model->incrementAwakeningCounter();
 		model->incrementLifestyle3HHs();
+		awakeningDay = day;
 	}
 }
 
@@ -368,6 +375,7 @@ void HouseholdAgent::processExternalEvent(const ExternalEventArgs& args)
 
             if (bidder)
             {
+            	awakeningDay = day;
                 bidder->setActive(true);
                 model->incrementBidders();
                 model->incrementAwakeningCounter();

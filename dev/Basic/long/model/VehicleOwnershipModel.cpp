@@ -70,6 +70,7 @@ void VehicleOwnershipModel::reconsiderVehicleOwnershipOption(const Household *ho
 		double pTemp = 0;
 		boost::shared_ptr <VehicleOwnershipChanges> vehcileOwnershipOptChange(new VehicleOwnershipChanges());
 		vehcileOwnershipOptChange->setHouseholdId(household->getId());
+		vehcileOwnershipOptChange->setOldVehicleOwnershipOptionId(household->getVehicleCategoryId());
 		ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 		int year = config.ltParams.year;
 		vehcileOwnershipOptChange->setStartDate(getDateBySimDay(year,day));
@@ -79,7 +80,7 @@ void VehicleOwnershipModel::reconsiderVehicleOwnershipOption(const Household *ho
 		{
 
 			MessageBus::PostMessage(hhAgent, LTMID_HH_NO_CAR, MessageBus::MessagePtr(new Message()));
-			vehcileOwnershipOptChange->setVehicleOwnershipOptionId(0);
+			vehcileOwnershipOptChange->setNewVehicleOwnershipOptionId(0);
 			writeVehicleOwnershipToFile(household->getId(),0);
 
 		}
@@ -89,7 +90,7 @@ void VehicleOwnershipModel::reconsiderVehicleOwnershipOption(const Household *ho
 			if((pTemp < randomNum ) && (randomNum < (probabilityOneCar + pTemp)))
 			{
 				MessageBus::PostMessage(hhAgent, LTMID_HH_ONE_CAR, MessageBus::MessagePtr(new Message()));
-				vehcileOwnershipOptChange->setVehicleOwnershipOptionId(1);
+				vehcileOwnershipOptChange->setNewVehicleOwnershipOptionId(1);
 				writeVehicleOwnershipToFile(household->getId(),1);
 			}
 			else
@@ -98,7 +99,7 @@ void VehicleOwnershipModel::reconsiderVehicleOwnershipOption(const Household *ho
 				if ((pTemp < randomNum) &&( randomNum < (probabilityTwoPlusCar + pTemp)))
 				{
 					MessageBus::PostMessage(hhAgent, LTMID_HH_TWO_PLUS_CAR, MessageBus::MessagePtr(new Message()));
-					vehcileOwnershipOptChange->setVehicleOwnershipOptionId(2);
+					vehcileOwnershipOptChange->setNewVehicleOwnershipOptionId(2);
 					writeVehicleOwnershipToFile(household->getId(),2);
 				}
 

@@ -18,7 +18,7 @@ LogSumVehicleOwnershipDao::~LogSumVehicleOwnershipDao() {}
 void LogSumVehicleOwnershipDao::fromRow(Row& result, LogSumVehicleOwnership& outObj)
 {
     outObj.householdId 		= result.get<BigSerial>("id",INVALID_ID);
-    outObj.avgLogsum 		= result.get<double>("avg",0.0);
+    outObj.logsum 		= result.get<double>("avg",0.0);
 }
 
 void LogSumVehicleOwnershipDao::toRow(LogSumVehicleOwnership& data, Parameters& outParams, bool update) {}

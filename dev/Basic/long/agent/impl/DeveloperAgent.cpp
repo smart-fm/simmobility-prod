@@ -142,7 +142,7 @@ inline void writeParcelDataToFile(Parcel &parcel, int newDevelopment,double prof
 inline void writeUnitDataToFile(Unit &unit, double unitProfit,BigSerial parcelId,double demolitionCost) {
 
 	boost::format fmtr = boost::format(LOG_UNIT) % unit.getId() % unit.getBuildingId() % unit.getSlaAddressId() % unit.getUnitType() % unit.getStoreyRange() % unit.getConstructionStatus() % unit.getFloorArea() % unit.getStorey() % unit.getMonthlyRent()
-			% unit.getSaleFromDate().tm_year % unit.getPhysicalFromDate().tm_year % unit.getSaleStatus() % unit.getOccupancyStatus() % unit.getLastChangedDate().tm_year % unitProfit % parcelId % demolitionCost;
+			% unit.getSaleFromDate().tm_year % unit.getOccupancyFromDate().tm_year % unit.getSaleStatus() % unit.getOccupancyStatus() % unit.getLastChangedDate().tm_year % unitProfit % parcelId % demolitionCost;
 	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::UNITS,fmtr.str());
 
 }
@@ -356,24 +356,36 @@ inline void calculateProjectProfit(PotentialProject& project,DeveloperModel* mod
 inline void createPotentialUnits(PotentialProject& project,const DeveloperModel* model)
     {
 
+	const int checkUnitTypeStart = 17;
+	const int checkUnitTypeEnd = 31;
+
 	std::vector<TemplateUnitType>::const_iterator itr;
 	double weightedAverage = 0.0;
+
 	        for (itr = project.templateUnitTypes.begin(); itr != project.templateUnitTypes.end(); itr++)
 	        	{
-	        		if(itr->getProportion()>0)
+	        	if(itr->getProportion()>0)
+	        	{
+	        		double propotion = (itr->getProportion()/100.0);
+	        		//add the minimum lot size constraint if the unit type is terraced, semi detached or detached
+	        		if((itr->getUnitTypeId()>=checkUnitTypeStart) and (itr->getUnitTypeId() <= checkUnitTypeEnd))
 	        		{
-	        			double propotion = (itr->getProportion()/100.0);
+	        			weightedAverage = weightedAverage + (model->getUnitTypeById(itr->getUnitTypeId())->getTypicalArea()* model->getUnitTypeById(itr->getUnitTypeId())->getMinLosize() *(propotion));
+	        		}
+	        		else
+	        		{
 	        			weightedAverage = weightedAverage + (model->getUnitTypeById(itr->getUnitTypeId())->getTypicalArea()*(propotion));
 	        		}
-	            }
+	        	}
+	        	}
 
 	        int totalUnits = 0;
 	        if(weightedAverage>0)
 	        {
-	        	totalUnits = int((getGpr(project.getParcel()) * project.getParcel()->getLotSize())/(weightedAverage));
+	        		totalUnits = int((getGpr(project.getParcel()) * project.getParcel()->getLotSize())/(weightedAverage));
+
+
 	        	project.setTotalUnits(totalUnits);
-
-
 	        }
 
 	        double grossArea = 0;
@@ -508,7 +520,8 @@ inline void createPotentialProjects(BigSerial parcelId, DeveloperModel* model, P
 }
 
 DeveloperAgent::DeveloperAgent(boost::shared_ptr<Parcel> parcel, DeveloperModel* model)
-: Agent_LT(ConfigManager::GetInstance().FullConfig().mutexStategy(), (parcel) ? parcel->getId() : INVALID_ID), devModel(model),parcel(parcel),active(false),monthlyUnitCount(0),unitsRemain(true),realEstateAgent(nullptr),postcode(INVALID_ID),housingMarketModel(housingMarketModel),simYear(simYear),currentTick(currentTick){
+: Agent_LT(ConfigManager::GetInstance().FullConfig().mutexStategy(), (parcel) ? parcel->getId() : INVALID_ID), devModel(model),parcel(parcel),active(false),monthlyUnitCount(0),unitsRemain(true),realEstateAgent(nullptr),postcode(INVALID_ID),housingMarketModel(housingMarketModel),simYear(simYear),currentTick(currentTick),parcelDBStatus(false)
+{
 
 }
 
@@ -541,14 +554,35 @@ Entity::UpdateStatus DeveloperAgent::onFrameTick(timeslice now) {
     		createPotentialProjects(this->parcel->getId(),devModel,project,quarter,tao,currentDate,currentTick);
     		if(project.getUnits().size()>0)
     		{
-    			boost::shared_ptr<Parcel> profitableParcel = boost::make_shared<Parcel>(*parcel);
-    			devModel->addProfitableParcels(profitableParcel);
     			std::vector<PotentialUnit>::iterator unitsItr;
     			std::vector<PotentialUnit>& potentialUnits = project.getUnits();
     			for (unitsItr = potentialUnits.begin(); unitsItr != potentialUnits.end(); ++unitsItr)
     			{
-    				boost::shared_ptr <DevelopmentPlan> devPlan(new DevelopmentPlan(this->parcel->getId(),(*unitsItr).getUnitTypeId(),
-    						(*unitsItr).getNumUnits(),currentDate));
+    				std::tm constructionStartDate = currentDate;
+    				//TODO:: construction start date and launch date is temporary. gishara
+    				const int monthsToStartConstruction = 2;
+    				int constructionStartMonth = currentDate.tm_mon + monthsToStartConstruction;
+    				int constructionStartYear = currentDate.tm_year;
+    				const int monthLimitForYear = 11;
+    				if(constructionStartMonth >monthLimitForYear)
+    				{
+    					formatDate(constructionStartMonth,constructionStartYear);
+    				}
+    				constructionStartDate.tm_mon = constructionStartMonth;
+    				constructionStartDate.tm_year = constructionStartYear;
+
+    				std::tm launchDate = currentDate;
+    				const int monthsToLaunch = 6;
+    				int launchMonth = currentDate.tm_mon + monthsToLaunch;
+    				int launchYear = currentDate.tm_year;
+    				if(launchMonth > monthLimitForYear)
+    				{
+    					formatDate(launchMonth,launchYear);
+    				}
+    				launchDate.tm_mon = launchMonth;
+    				launchDate.tm_year = launchYear;
+    				boost::shared_ptr <DevelopmentPlan> devPlan(new DevelopmentPlan(this->parcel->getId(),project.getDevTemplate()->getTemplateId(),(*unitsItr).getUnitTypeId(),
+    						(*unitsItr).getNumUnits(),currentDate,constructionStartDate,launchDate));
     				devModel->addDevelopmentPlans(devPlan);
     			}
 
@@ -597,6 +631,12 @@ void DeveloperAgent::createUnitsAndBuildings(PotentialProject &project,BigSerial
 	if(devModel->isEmptyParcel(parcel->getId()))
 	{
 		newDevelopment = 1;
+	}
+
+	boost::shared_ptr<Parcel> profitableParcel = boost::make_shared<Parcel>(*parcel);
+	if(!parcelDBStatus)
+	{
+		devModel->addProfitableParcels(profitableParcel);
 	}
 	//writeParcelDataToFile(parcel,newDevelopment,project.getProfit());
 	//Parcel *parcel1 = new Parcel(*this->parcel);
@@ -654,7 +694,7 @@ void DeveloperAgent::createUnitsAndBuildings(PotentialProject &project,BigSerial
 	for (unitsItr = units.begin(); unitsItr != units.end(); ++unitsItr) {
 		for(size_t i=0; i< unitsItr->getNumUnits();i++)
 		{
-			boost::shared_ptr<Unit>unit(new Unit( devModel->getUnitIdForDeveloperAgent(), buildingId, postcode, (*unitsItr).getUnitTypeId(), 0, DeveloperAgent::UNIT_PLANNED, (*unitsItr).getFloorArea(), 0, 0, 0,toDate, currentDate,DeveloperAgent::UNIT_NOT_LAUNCHED, DeveloperAgent::UNIT_NOT_READY_FOR_OCCUPANCY, currentDate, 0, currentDate,0));
+			boost::shared_ptr<Unit>unit(new Unit( devModel->getUnitIdForDeveloperAgent(), buildingId, postcode, (*unitsItr).getUnitTypeId(), 0, DeveloperAgent::UNIT_PLANNED, (*unitsItr).getFloorArea(), 0, 0,toDate, currentDate,DeveloperAgent::UNIT_NOT_LAUNCHED, DeveloperAgent::UNIT_NOT_READY_FOR_OCCUPANCY, currentDate, 0, currentDate,0));
 			newUnits.push_back(unit);
 			//devModel->insertToDB<UnitDao,Unit>(*unit.get());
 			double profit = (*unitsItr).getUnitProfit();
@@ -962,4 +1002,24 @@ BigSerial DeveloperAgent::getQuarterIdByQuarterStr(std::string quarterStr)
 void DeveloperAgent::setSimYear(int simulationYear)
 {
 	this->simYear = simulationYear;
+}
+
+void DeveloperAgent::setProject(boost::shared_ptr<Project> project)
+{
+	this->fmProject = project;
+}
+
+boost::shared_ptr<Parcel> DeveloperAgent::getParcel()
+{
+	return this->parcel;
+}
+
+void DeveloperAgent::setParcelDBStatus(bool status)
+{
+	this->parcelDBStatus = status;
+}
+
+bool DeveloperAgent::getParcelDBStatus()
+{
+	return this->parcelDBStatus;
 }

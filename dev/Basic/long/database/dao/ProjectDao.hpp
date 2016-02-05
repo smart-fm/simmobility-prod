@@ -37,6 +37,7 @@ namespace sim_mob {
 
         public:
             void insertProject(Project& project,std::string schema);
+            std::vector<Project*> loadOngoingProjects(std::string schema);
         };
     }
 }

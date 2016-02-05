@@ -18,11 +18,11 @@ namespace sim_mob
     	class LogSumVehicleOwnership
 		{
 		public:
-    		LogSumVehicleOwnership(BigSerial householdId = INVALID_ID, double avgLogsum = 0);
+    		LogSumVehicleOwnership(BigSerial householdId = INVALID_ID, double logsum = 0);
 			virtual ~LogSumVehicleOwnership();
 
 			 BigSerial getHouseholdId() const;
-			 double getAvgLogsum() const;
+			 double getLogsum() const;
 
 			/**
 			* Assign operator.
@@ -40,7 +40,7 @@ namespace sim_mob
 			friend class LogSumVehicleOwnershipDao;
 
 			BigSerial householdId;
-			double avgLogsum;
+			double logsum;
 		};
 
     }

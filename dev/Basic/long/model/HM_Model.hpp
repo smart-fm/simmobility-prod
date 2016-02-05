@@ -36,6 +36,7 @@
 #include "database/entity/HitsIndividualLogsum.hpp"
 #include "database/entity/UnitSale.hpp"
 #include "database/entity/VehicleOwnershipChanges.hpp"
+#include "database/entity/IndvidualVehicleOwnershipLogsum.hpp"
 #include "database/entity/AccessibilityFixedPzid.hpp"
 #include "database/entity/ScreeningCostTime.hpp"
 #include "database/entity/TenureTransitionRate.hpp"
@@ -129,6 +130,10 @@ namespace sim_mob
             typedef std::vector<HitsIndividualLogsum*> HitsIndividualLogsumList;
             typedef boost::unordered_map<BigSerial, HitsIndividualLogsum*> HitsIndividualLogsumMap;
 
+
+            typedef std::vector<IndvidualVehicleOwnershipLogsum*> IndvidualVehicleOwnershipLogsumList;
+            typedef boost::unordered_map<BigSerial, IndvidualVehicleOwnershipLogsum*> IndvidualVehicleOwnershipLogsumMap;
+
             typedef std::vector<AccessibilityFixedPzid*> AccessibilityFixedPzidList;
             typedef boost::unordered_map<BigSerial, AccessibilityFixedPzid*> AccessibilityFixedPzidMap;
 
@@ -141,7 +146,6 @@ namespace sim_mob
 
             typedef std::vector<OwnerTenantMovingRate*>OwnerTenantMovingRateList;
             typedef boost::unordered_map<BigSerial, OwnerTenantMovingRate*> OwnerTenantMovingRateMap;
-
 
             /**
              * Taz statistics
@@ -321,9 +325,14 @@ namespace sim_mob
             std::vector<boost::shared_ptr<Household> > getHouseholds();
             void addVehicleOwnershipChanges(boost::shared_ptr<VehicleOwnershipChanges> &vehicleOwnershipChange);
             std::vector<boost::shared_ptr<VehicleOwnershipChanges> > getVehicleOwnershipChanges();
+
+           IndvidualVehicleOwnershipLogsumList getIndvidualVehicleOwnershipLogsums() const;
+           IndvidualVehicleOwnershipLogsum* getIndvidualVehicleOwnershipLogsumsByHHId(BigSerial householdId) const;
+
             ScreeningCostTimeList getScreeningCostTime();
             ScreeningCostTime* getScreeningCostTimeInst(std::string key);
             AccessibilityFixedPzidList getAccessibilityFixedPzid();
+
 
             static const BigSerial FAKE_IDS_START = 9999900;
 
@@ -413,6 +422,7 @@ namespace sim_mob
             boost::mutex addUnitSalesLock;
             boost::mutex addHHLock;
             boost::mutex addVehicleOwnershipChangesLock;
+            boost::mutex DBLock;
             boost::unordered_map<BigSerial, double>tazLevelLogsum;
             boost::unordered_map<BigSerial, double>vehicleOwnershipLogsum;
 
@@ -462,6 +472,8 @@ namespace sim_mob
             BigSerial bidId;
             std::vector<boost::shared_ptr<Household> > hhVector;
             std::vector<boost::shared_ptr<VehicleOwnershipChanges> > vehicleOwnershipChangesVector;
+            IndvidualVehicleOwnershipLogsumList IndvidualVehicleOwnershipLogsums;
+            IndvidualVehicleOwnershipLogsumMap IndvidualVehicleOwnershipLogsumById;
         };
     }
 }

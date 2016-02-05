@@ -89,7 +89,7 @@ namespace sim_mob
 
 		void WillingnessToPaySubModel::FindAgeOfUnit(const Unit *unit, int day)
 		{
-			ageOfUnitPrivate = HITS_SURVEY_YEAR  - 1900 + ( day / 365 ) - unit->getPhysicalFromDate().tm_year;
+			ageOfUnitPrivate = HITS_SURVEY_YEAR  - 1900 + ( day / 365 ) - unit->getOccupancyFromDate().tm_year;
 
 			ZZ_ageOfUnitPrivate	 = ageOfUnitPrivate;
 			ZZ_ageBet25And50 = 0;
@@ -112,7 +112,7 @@ namespace sim_mob
 				ZZ_ageGreater50 = 1;
 
 
-			ageOfUnitHDB = HITS_SURVEY_YEAR - 1900 + ( day / 365 ) - unit->getPhysicalFromDate().tm_year;
+			ageOfUnitHDB = HITS_SURVEY_YEAR - 1900 + ( day / 365 ) - unit->getOccupancyFromDate().tm_year;
 			ZZ_ageOfUnitHDB	 = ageOfUnitHDB;
 			ZZ_ageGreater30  = 0;
 
@@ -164,7 +164,6 @@ namespace sim_mob
 					}
 				}
 			}
-
 
 			Job *job = model->getJobById(headOfHousehold->getJobId());
 

@@ -16,7 +16,7 @@ namespace sim_mob {
 
         class DevelopmentPlan {
         public:
-        	DevelopmentPlan(BigSerial fmParcelId = INVALID_ID, int unitTypeId = 0, int numUnits = 0, std::tm simulationDate = std::tm());
+        	DevelopmentPlan(BigSerial fmParcelId = INVALID_ID, BigSerial templateId = INVALID_ID,int unitTypeId = 0, int numUnits = 0, std::tm simulationDate = std::tm(), std::tm constructionStartDate = std::tm(), std::tm launchDate = std::tm());
 
             virtual ~DevelopmentPlan();
             DevelopmentPlan( const DevelopmentPlan &source);
@@ -34,19 +34,28 @@ namespace sim_mob {
             int getNumUnits() const;
             const std::tm& getSimulationDate() const;
             int getUnitTypeId() const;
+            const std::tm& getLaunchDate() const;
+            const std::tm& getConstructionStartDate() const;
+            BigSerial getTemplateId() const;
 
             void setFmParcelId(BigSerial fmParcelId);
             void setNumUnits(int numUnits);
             void setSimulationDate(const std::tm& simulationDate);
             void setUnitTypeId(int unitTypeId);
+            void setLaunchDate(const std::tm& launchDate);
+            void setConstructionStartDate(const std::tm& constructionStartDate) ;
+            void setTemplateId(BigSerial templateId);
 
         private:
             friend class DevelopmentPlanDao;
         private:
             BigSerial fmParcelId;
+            BigSerial templateId;
             int unitTypeId;
             int numUnits;
             std::tm simulationDate;
+            std::tm constructionStartDate;
+            std::tm launchDate;
         };
     }
 }

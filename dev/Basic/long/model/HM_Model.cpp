@@ -37,6 +37,7 @@
 #include "database/dao/ZonalLanduseVariableValuesDao.hpp"
 #include "database/dao/PopulationPerPlanningAreaDao.hpp"
 #include "database/dao/HitsIndividualLogsumDao.hpp"
+#include "database/dao/IndvidualVehicleOwnershipLogsumDao.hpp"
 #include "database/dao/AccessibilityFixedPzidDao.hpp"
 #include "database/dao/ScreeningCostTimeDao.hpp"
 #include "database/dao/TenureTransitionRateDao.hpp"
@@ -1241,11 +1242,9 @@ void HM_Model::startImpl()
 
 	if (conn.isConnected())
 	{
-		loadData<TenureTransitionRateDao>( conn, tenureTransitionRate, tenureTransitionRateById, &TenureTransitionRate::getId );
-		PrintOutV("Number of Tenure Transition rate rows: " << tenureTransitionRate.size() << std::endl );
-
-		loadData<OwnerTenantMovingRateDao>( conn, ownerTenantMovingRate, ownerTenantMovingRateById, &OwnerTenantMovingRate::getId );
-		PrintOutV("Number of Owner Tenant Moving Rate rows: " << ownerTenantMovingRate.size() << std::endl );
+		//load individuals
+		loadData<IndividualDao>(conn, individuals, individualsById,	&Individual::getId);
+		PrintOutV("Initial Individuals: " << individuals.size() << std::endl);
 
 		//Load households
 		loadData<HouseholdDao>(conn, households, householdsById, &Household::getId);
@@ -1254,10 +1253,6 @@ void HM_Model::startImpl()
 		//Load units
 		loadData<UnitDao>(conn, units, unitsById, &Unit::getId);
 		PrintOutV("Number of units: " << units.size() << ". Units Used: " << units.size() << std::endl);
-
-		//load individuals
-		loadData<IndividualDao>(conn, individuals, individualsById,	&Individual::getId);
-		PrintOutV("Initial Individuals: " << individuals.size() << std::endl);
 
 		loadData<AwakeningDao>(conn, awakening, awakeningById,	&Awakening::getId);
 		PrintOutV("Awakening probability: " << awakening.size() << std::endl );
@@ -1326,13 +1321,21 @@ void HM_Model::startImpl()
 		loadData<HitsIndividualLogsumDao>( conn, hitsIndividualLogsum, hitsIndividualLogsumById, &HitsIndividualLogsum::getId );
 		PrintOutV("Number of Hits Individual Logsum rows: " << hitsIndividualLogsum.size() << std::endl );
 
+
+		loadData<IndvidualVehicleOwnershipLogsumDao>( conn, IndvidualVehicleOwnershipLogsums, IndvidualVehicleOwnershipLogsumById, &IndvidualVehicleOwnershipLogsum::getHouseholdId );
+		PrintOutV("Number of Hits Individual VehicleOwnership Logsum rows: " << IndvidualVehicleOwnershipLogsums.size() << std::endl );
+
 		loadData<ScreeningCostTimeDao>( conn, screeningCostTime, screeningCostTimeById, &ScreeningCostTime::getId );
 		PrintOutV("Number of Screening Cost Time rows: " << screeningCostTime.size() << std::endl );
 
 		loadData<AccessibilityFixedPzidDao>( conn, accessibilityFixedPzid, accessibilityFixedPzidById, &AccessibilityFixedPzid::getId );
 		PrintOutV("Number of Accessibility fixed pz id rows: " << accessibilityFixedPzid.size() << std::endl );
 
+		loadData<TenureTransitionRateDao>( conn, tenureTransitionRate, tenureTransitionRateById, &TenureTransitionRate::getId );
+		PrintOutV("Number of Tenure Transition rate rows: " << tenureTransitionRate.size() << std::endl );
 
+		loadData<OwnerTenantMovingRateDao>( conn, ownerTenantMovingRate, ownerTenantMovingRateById, &OwnerTenantMovingRate::getId );
+		PrintOutV("Number of Owner Tenant Moving Rate rows: " << ownerTenantMovingRate.size() << std::endl );
 	}
 
 
@@ -2210,6 +2213,18 @@ std::vector<boost::shared_ptr<VehicleOwnershipChanges> > HM_Model::getVehicleOwn
 	return vehicleOwnershipChangesVector;
 }
 
+
+IndvidualVehicleOwnershipLogsum* HM_Model::getIndvidualVehicleOwnershipLogsumsByHHId(BigSerial householdId) const
+{
+	IndvidualVehicleOwnershipLogsumMap::const_iterator itr = IndvidualVehicleOwnershipLogsumById.find(householdId);
+
+	if (itr != IndvidualVehicleOwnershipLogsumById.end())
+	{
+		return itr->second;
+	}
+	return nullptr;
+}
+
 std::vector<ScreeningCostTime*>  HM_Model::getScreeningCostTime()
 {
 	return  screeningCostTime;
@@ -2232,9 +2247,16 @@ ScreeningCostTime* HM_Model::getScreeningCostTimeInst(std::string key)
 	return nullptr;
 }
 
+
+HM_Model::IndvidualVehicleOwnershipLogsumList HM_Model::getIndvidualVehicleOwnershipLogsums() const
+{
+	return IndvidualVehicleOwnershipLogsums;
+}
+
 std::vector<AccessibilityFixedPzid*> HM_Model::getAccessibilityFixedPzid()
 {
 	return accessibilityFixedPzid;
+
 }
 
 void HM_Model::stopImpl()

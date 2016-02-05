@@ -78,7 +78,7 @@ void Person_MT::convertPublicTransitODsToTrips()
 					{
 						std::vector<sim_mob::OD_Trip> odTrips;
 						bool ret = sim_mob::PT_RouteChoiceLuaProvider::getPTRC_Model().getBestPT_Path(itSubTrip->origin.node->getNodeId(),
-								itSubTrip->destination.node->getNodeId(), odTrips);
+								itSubTrip->destination.node->getNodeId(), itSubTrip->startTime.getValue(), odTrips);
 						if (ret)
 						{
 							ret = makeODsToTrips(&(*itSubTrip), newSubTrips, odTrips);

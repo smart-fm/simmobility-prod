@@ -9,6 +9,7 @@
 #include "entities/BusControllerMT.hpp"
 #include "entities/conflux/Conflux.hpp"
 #include "entities/TravelTimeManager.hpp"
+#include "entities/PT_EdgeTravelTime.hpp"
 #include "geospatial/Incident.hpp"
 #include "geospatial/network/RoadNetwork.hpp"
 #include "geospatial/network/NetworkLoader.hpp"
@@ -59,6 +60,7 @@ void ExpandMidTermConfigFile::processConfig()
     if (cfg.isPublicTransitEnabled())
     {
         loadPublicTransitNetworkFromDatabase();
+        PT_EdgeTravelTime::getInstance()->loadPT_EdgeTravelTime();
     }
 
     cfg.sealNetwork();

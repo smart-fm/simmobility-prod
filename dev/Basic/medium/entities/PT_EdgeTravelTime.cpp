@@ -130,7 +130,7 @@ void PT_EdgeTravelTime::loadPT_EdgeTravelTime()
 	for (soci::rowset<soci::row>::const_iterator it=rs.begin(); it!=rs.end(); ++it)
 	{
 		const soci::row& r = (*it);
-		unsigned int edgeId = r.get<unsigned int>(0);
+		int edgeId = r.get<int>(0);
 		std::string startTime = r.get<std::string>(1);
 		std::string endTime = r.get<std::string>(2);
 		double waitTime = r.get<double>(3);

@@ -169,7 +169,6 @@ std::vector<sim_mob::OD_Trip> PT_RouteChoiceLuaModel::makePT_RouteChoice(const s
 			trip.walkTime = itEdge->getWalkTimeSecs();
 			trip.id = itEdge->getEdgeId();
 			trip.pathset = pathSetId;
-			trip.waitTime = itEdge->getWaitTimeSecs();
 			odTrips.push_back(trip);
 		}
 	}
@@ -177,7 +176,7 @@ std::vector<sim_mob::OD_Trip> PT_RouteChoiceLuaModel::makePT_RouteChoice(const s
 	return odTrips;
 }
 
-bool PT_RouteChoiceLuaModel::getBestPT_Path(int origin, int dest, std::vector<sim_mob::OD_Trip>& odTrips)
+bool PT_RouteChoiceLuaModel::getBestPT_Path(int origin, int dest, unsigned int startTime, std::vector<sim_mob::OD_Trip>& odTrips)
 {
 	bool ret = false;
 	PT_PathSet pathSet;
@@ -192,6 +191,7 @@ bool PT_RouteChoiceLuaModel::getBestPT_Path(int origin, int dest, std::vector<si
 		std::string originId = boost::lexical_cast < std::string > (origin);
 		std::string destId = boost::lexical_cast < std::string > (dest);
 		publicTransitPathSet = &pathSet;
+		curStartTime = startTime;
 		odTrips = makePT_RouteChoice(originId, destId);
 		ret = true;
 	}

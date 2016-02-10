@@ -200,7 +200,15 @@ bool sim_mob::medium::SubTourParams::allWindowsUnavailable()
 
 void sim_mob::medium::PersonParams::fixUpParamsForLtPerson()
 {
-	setMissingIncome(0);
+	if(incomeId >= 12)
+	{
+		//in preday models, income value of 0 (12 - No income categroy) is considered as missing income
+		setMissingIncome(1);
+	}
+	else
+	{
+		setMissingIncome(0);
+	}
 	setHouseholdFactor(1); // no scaling of persons when generating day activity schedule
 	setHomeLocation(getTAZCodeForAddressId(homeAddressId));
 	setFixedSchoolLocation(0);

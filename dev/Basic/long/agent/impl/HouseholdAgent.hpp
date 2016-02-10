@@ -57,6 +57,8 @@ namespace sim_mob
 
             HouseholdBidderRole* getBidder();
             HouseholdSellerRole* getSeller();
+
+            bool getFutureTransitionOwn();
         
         protected:
             /**
@@ -116,6 +118,8 @@ namespace sim_mob
 
             bool marketSeller; //tells if the agent is only a fake market seller
             int day;
+
+            bool futureTransitionOwn; //If awakened, will the household choose to rent or own a unit? If true, this household will choose to own.
         };
     }
 }

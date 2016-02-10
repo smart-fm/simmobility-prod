@@ -26,6 +26,15 @@ namespace sim_mob
 
 			void InitialAwakenings(HM_Model *model, Household *household, HouseholdAgent *agent, int day);
 			std::vector<ExternalEvent> DailyAwakenings(int day);
+
+			double getFutureTransitionOwn();
+
+			double movingProbability(Household* household);
+
+		private:
+
+			HM_Model *model = nullptr;
+			bool futureTransitionOwn = false;
 		};
 	}
 }

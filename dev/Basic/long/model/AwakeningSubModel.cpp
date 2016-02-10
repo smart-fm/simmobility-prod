@@ -28,17 +28,25 @@ namespace sim_mob
 
 		AwakeningSubModel::~AwakeningSubModel() {}
 
-		void AwakeningSubModel::InitialAwakenings(HM_Model *model, Household *household, HouseholdAgent *agent, int day)
+		double AwakeningSubModel::getFutureTransitionOwn()
 		{
+			return futureTransitionOwn;
+		}
+
+		void AwakeningSubModel::InitialAwakenings(HM_Model *_model, Household *household, HouseholdAgent *agent, int day)
+		{
+			model = _model;
+
 			HouseholdBidderRole *bidder = agent->getBidder();
 			HouseholdSellerRole *seller = agent->getSeller();
 
-			ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
-
-			//We will awaken a specific number of households on day 1 as dictated by the long term XML file.
-
-			if( model->getAwakeningCounter() > config.ltParams.housingModel.initialHouseholdsOnMarket)
+			if( bidder == nullptr || seller == nullptr )
+			{
+				AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, (boost::format( "The bidder or seller classes is null.")).str());
 				return;
+			}
+
+			ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 
 			if(household == nullptr)
 			{
@@ -46,11 +54,66 @@ namespace sim_mob
 				return;
 			}
 
+		    std::string tenureTransitionId;
+
+		    if( household->getAgeOfHead() < 35 )
+		    	tenureTransitionId = " <35";
+		    else
+		    if( household->getAgeOfHead()>= 35 && household->getAgeOfHead() <= 49 )
+		    	tenureTransitionId = "35-49";
+		    if( household->getAgeOfHead()>= 50 && household->getAgeOfHead() <= 64 )
+		        tenureTransitionId = "50-64";
+		    if( household->getAgeOfHead()>= 65 )
+		        tenureTransitionId = "65+";
+
+			string tenureStatus;
+
+			if( household->getTenureStatus() == 1 ) //owner
+				tenureStatus = "own";
+			else
+				tenureStatus = "rent";
+
+			std::vector<TenureTransitionRate*> tenureTransitionRates;
+
+			double futureTransitionRate = 0;
+
+			for(int p = 0; p < tenureTransitionRates.size(); p++)
+			{
+				if( tenureTransitionRates[p]->getAgeGroup() == tenureTransitionId &&
+					tenureTransitionRates[p]->getCurrentStatus() == tenureStatus  &&
+					tenureTransitionRates[p]->getFutureStatus() == "own" )
+				{
+					futureTransitionRate = tenureTransitionRates[p]->getRate() / 100.0;
+				}
+			}
+
+			double randomDraw = (double)rand()/RAND_MAX;
+
+			if( randomDraw < futureTransitionRate )
+				futureTransitionOwn = true; //Future transition is to OWN a unit
+
+			//own->own: proceed as normal
+			//own->rent: randomly chooser a rental unit for this unit.
+			//rent->own: proceed as normal
+			//rent->rent: do nothing
+			if( futureTransitionOwn == false )//futureTransition is to RENT
+			{
+				if( household->getTenureStatus() == 2) //renter
+				{
+					return; //rent->rent: do nothing
+					//agent goes inactive
+				}
+			}
+
+			//We will awaken a specific number of households on day 1 as dictated by the long term XML file.
+			if( model->getAwakeningCounter() > config.ltParams.housingModel.initialHouseholdsOnMarket)
+				return;
+
 			Awakening *awakening = model->getAwakeningById( household->getId() );
 
-			if( awakening == nullptr || bidder == nullptr || seller == nullptr )
+			if( awakening == nullptr )
 			{
-				AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, (boost::format( "The awakening, bidder or seller classes is null.")).str());
+				AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, (boost::format( "The awakening is null.")).str());
 				return;
 			}
 
@@ -77,20 +140,7 @@ namespace sim_mob
 
 			float r2 = (float)rand() / RAND_MAX;
 
-
-			//chetan
-			std::vector<BigSerial> individuals = household->getIndividuals();
-			Individual *householdHead;
-			for(int n = 0; n < individuals.size(); n++ )
-			{
-				Individual *individual = model->getIndividualById( individuals[n] );
-
-				if(individual->getHouseholdHead())
-					householdHead = individual;
-			}
-
-
-
+			r2 = r2 * movingProbability(household);
 
 			IdVector unitIds = agent->getUnitIds();
 
@@ -170,6 +220,35 @@ namespace sim_mob
 		}
 
 
+		double AwakeningSubModel::movingProbability(Household* household)
+		{
+			std::vector<BigSerial> individuals = household->getIndividuals();
+			Individual *householdHead;
+			for(int n = 0; n < individuals.size(); n++ )
+			{
+				Individual *individual = model->getIndividualById( individuals[n] );
+
+				if(individual->getHouseholdHead())
+					householdHead = individual;
+			}
+
+			vector<OwnerTenantMovingRate*> ownerTenantMR = model->getOwnerTenantMovingRates();
+
+			double movingRate = 1.0;
+
+			for(int n = 0; n < ownerTenantMR.size(); n++)
+			{
+				if( household->getTenureStatus() == 2 && householdHead->getAgeCategoryId() == ownerTenantMR[n]->getAgeCategory() )
+					movingRate = ownerTenantMR[n]->getTenantMovingPercentage() / 22.0; //22.0 is the weighted average for tenant moving rates
+
+				if( household->getTenureStatus() == 1 && householdHead->getAgeCategoryId() == ownerTenantMR[n]->getAgeCategory() )
+					movingRate = ownerTenantMR[n]->getOwnerMovingPercentage() / 8.5; //8.5 is the weighted average for owner moving rates
+			}
+
+			return movingRate;
+		}
+
+
 		std::vector<ExternalEvent> AwakeningSubModel::DailyAwakenings(int day)
 		{
 			std::vector<ExternalEvent> events;
@@ -178,9 +257,23 @@ namespace sim_mob
 		    {
 		    	ExternalEvent extEv;
 
+		    	Household *potentialAwakening = model->getHouseholdById((double)rand()/RAND_MAX * 1000000);
+
+		    	potentialAwakening->getTenureStatus();
+
+		    	double movingRate = movingProbability(potentialAwakening);
+
+		    	double randomDraw = (double)rand()/RAND_MAX;
+
+		    	if( randomDraw > movingRate )
+				{
+		    		n--;
+					continue;
+				}
+
 		    	extEv.setDay( day + 1 );
 		    	extEv.setType( ExternalEvent::NEW_JOB );
-		    	extEv.setHouseholdId( (double)rand()/RAND_MAX * 1000000 );
+		    	extEv.setHouseholdId( potentialAwakening->getId());
 		    	extEv.setDeveloperId(0);
 
 		    	events.push_back(extEv);

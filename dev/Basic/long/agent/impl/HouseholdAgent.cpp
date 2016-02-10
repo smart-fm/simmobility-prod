@@ -50,6 +50,8 @@ HouseholdAgent::HouseholdAgent(BigSerial _id, HM_Model* _model, const Household*
     buySellInterval = config.ltParams.housingModel.offsetBetweenUnitBuyingAndSelling;
 
     householdBiddingWindow = config.ltParams.housingModel.householdBiddingWindow * (double)rand() / RAND_MAX + 1;
+
+    futureTransitionOwn = false;
 }
 
 HouseholdAgent::~HouseholdAgent()
@@ -237,6 +239,10 @@ void HouseholdAgent::processExternalEvent(const ExternalEventArgs& args)
     }
 }
 
+bool HouseholdAgent::getFutureTransitionOwn()
+{
+	return futureTransitionOwn;
+}
 
 void HouseholdAgent::onWorkerEnter()
 {
@@ -244,6 +250,7 @@ void HouseholdAgent::onWorkerEnter()
 
 	AwakeningSubModel awakenings;
 	awakenings.InitialAwakenings( model, const_cast<Household*>(household), this, day );
+	futureTransitionOwn = awakenings.getFutureTransitionOwn();
 
 	double awakeningTime =  awakeningTiming.getClockTime();
 

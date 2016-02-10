@@ -559,6 +559,7 @@ bool HouseholdBidderRole::pickEntryToBid()
     HousingMarket* market = getParent()->getMarket();
     const HM_LuaModel& luaModel = LuaProvider::getHM_Model();
     HM_Model* model = getParent()->getModel();
+
     //get available entries (for preferable zones if exists)
     HousingMarket::ConstEntryList entries;
 
@@ -581,9 +582,7 @@ bool HouseholdBidderRole::pickEntryToBid()
 
     //We cannot use those probabilities because they are based on HITS2008 ids
     //model->getScreeningProbabilities(hitsId, householdScreeningProbabilities);
-
     //getScreeningProbabilities(household->getId(), householdScreeningProbabilities);
-
 
     ScreeningSubModel screeningSubmodel;
     screeningSubmodel.getScreeningProbabilities( household->getId(), householdScreeningProbabilities, model, day);
@@ -593,7 +592,7 @@ bool HouseholdBidderRole::pickEntryToBid()
     if(householdScreeningProbabilities.size() > 0 )
     	printProbabilityList(household->getId(), householdScreeningProbabilities);
 
-    std::vector<const HousingMarket::Entry*> screenedEntries;
+	std::vector<const HousingMarket::Entry*> screenedEntries;
 
     for(int n = 0; n < entries.size() /** housingMarketSearchPercentage*/ && screenedEntries.size() < config.ltParams.housingModel.bidderUnitsChoiceSet; n++)
     {
@@ -621,11 +620,23 @@ bool HouseholdBidderRole::pickEntryToBid()
 
         if( thisUnit->getZoneHousingType() == zoneHousingType )
         {
-			std::vector<const HousingMarket::Entry*>::iterator screenedEntriesItr;
-			screenedEntriesItr = std::find(screenedEntries.begin(), screenedEntries.end(), entry );
+			if( thisUnit->getTenureStatus() == 2 && getParent()->getFutureTransitionOwn() == false ) //rented
+			{
+				std::vector<const HousingMarket::Entry*>::iterator screenedEntriesItr;
+				screenedEntriesItr = std::find(screenedEntries.begin(), screenedEntries.end(), entry );
 
-			if( screenedEntriesItr == screenedEntries.end() )
-				screenedEntries.push_back(entry);
+				if( screenedEntriesItr == screenedEntries.end() )
+					screenedEntries.push_back(entry);
+			}
+			else
+			if( thisUnit->getTenureStatus() == 1) //owner-occupied
+			{
+				std::vector<const HousingMarket::Entry*>::iterator screenedEntriesItr;
+				screenedEntriesItr = std::find(screenedEntries.begin(), screenedEntries.end(), entry );
+
+				if( screenedEntriesItr == screenedEntries.end() )
+					screenedEntries.push_back(entry);
+			}
         }
     }
 

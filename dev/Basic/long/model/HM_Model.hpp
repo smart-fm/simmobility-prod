@@ -338,6 +338,10 @@ namespace sim_mob
 
             std::multimap<BigSerial, Unit*> getUnitsByZoneHousingType();
 
+
+            std::vector<OwnerTenantMovingRate*> getOwnerTenantMovingRates();
+            std::vector<TenureTransitionRate*> getTenureTransitionRates();
+
         protected:
             /**
              * Inherited from Model.

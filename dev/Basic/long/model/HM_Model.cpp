@@ -2259,6 +2259,17 @@ std::vector<AccessibilityFixedPzid*> HM_Model::getAccessibilityFixedPzid()
 
 }
 
+
+std::vector<OwnerTenantMovingRate*> HM_Model::getOwnerTenantMovingRates()
+{
+	return ownerTenantMovingRate;
+}
+
+std::vector<TenureTransitionRate*> HM_Model::getTenureTransitionRates()
+{
+	return tenureTransitionRate;
+}
+
 void HM_Model::stopImpl()
 {
 	deleteAll(stats);

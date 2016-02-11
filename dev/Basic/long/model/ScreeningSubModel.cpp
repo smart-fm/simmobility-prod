@@ -19,30 +19,30 @@ namespace sim_mob
 
 		ScreeningSubModel::ScreeningSubModel()
 		{
-			ln_popdwl		=  0.8455215;	//1 logarithm of population by housing type in the zone 	persons
-			den_respop_ha	=  0.0115146;	//2 population density	persons per hectare (x10^-2)
-			f_loc_com		=  0.1923675;	//3 zonal average fraction of commercial land within a 500-meter buffer area from a residential postcode (weighted by no. of residential unit within the buffer)	percentage point (x10^-1)
-			f_loc_res		= -1.2908764;	//4 zonal average fraction of residential land within a 500-meter buffer area from a residential postcode  (weighted by no. of residential unit within the buffer)	percentage point (x10^-1)
-			f_loc_open		=  0.0183812;	//5 zonal average fraction of open space within a 500-meter buffer area from a residential postcode (weighted by residential unit within the buffer)	percentage point (x10^-1)
-			odi10_loc		= -2.4180224;	//6 zonal average local land use mix (opportunity diversity) index: 1-(|lu1/t-1/9|+|lu2/t-1/9|+|lu3/t-1/9|+|lu4/t-1/9|+|lu5/t-1/9|+|lu6/t-1/9|+|lu7/t-1/9|+|lu8/t-1/9|+|lu9/t-1/9|)/(16/9)	(x10)
-			dis2mrt			= -0.1569961;	//7 zonal average distance to the nearest MRT station	in kilometer
-			dis2exp			=  0.0623541;	//8 zonal average distance to the nearest express way	in kilometer
-			accmanufact_jobs= -0.5423132;	// manufacturing jobs
-			accoffice_jobs	= -0.0438822;	// office jobs
-			pt_tt			= -0.0062194;	// public transit total time
-			pt_cost			= -0.8954747;	// public transit total cost
-			f_age4_n4		= 2.3885324;	//10 zonal fraction of population younger than 4 years old x dummy if presence of kids younger than 4 years old in the household (=1, yes; =0, no)	percentage point (x10^-1)
-			f_age19_n19		= 0.4570936;	//11 zonal fraction of population between 5 and 19 years old x dummy if presence of children in the household  (=1, yes; =0, no)	percentage point (x10^-1)
-			f_age65_n65		= 1.0005127;	//12 zonal fraction of population older than 65 years old x dummy if presence of seniors in the household  (=1, yes; =0, no)	percentage point (x10^-1)
-			f_chn_nchn		= -0.2992827;	//13 zonal fraction of Chinese population x  dummy if household is Chinese (=1, yes; =0, no)	percentage point (x10^-1)
-			f_mal_nmal		= -0.0702382;	//14 zonal fraction of Malay population x  dummy if household is Malay (=1, yes; =0, no)	percentage point (x10^-1)
-			f_indian_nind	= -0.8482557;	//15 zonal fraction of Indian population x  dummy if household is Indian (=1, yes; =0, no)	percentage point (x10^-1)
-			hhsize_diff		= -0.5143233;	//16 absolute difference between zonal average household size by housing type and household size	persons
-			log_hhinc_diff	= -0.2505445;	//17 absolute difference between logarithm of the zonal median household montly income by housing type and logarithm of the household income	SGD
-			log_price05tt_med= 0.1718173;	//18 logarithm of the zonal median housing price by housing type	in (2005) SGD
-			DWL600			= -0.5939059;	//19 = 1, if household size is 1, living in private condo/apartment
-			DWL700			= -0.3587303;	//20 = 1, if household size is 1, living in landed property
-			DWL800			=  1.4437154; 	//21 = 1, if household size is 1, living in other types of housing units
+			ln_popdwl		=  0.72955000;	//1 logarithm of population by housing type in the zone 	persons
+			den_respop_ha	=  0.00744600;	//2 population density	persons per hectare (x10^-2)
+			f_loc_com		= -1.30940000;	//3 zonal average fraction of commercial land within a 500-meter buffer area from a residential postcode (weighted by no. of residential unit within the buffer)	percentage point (x10^-1)
+			f_loc_res		= -0.16553000;	//4 zonal average fraction of residential land within a 500-meter buffer area from a residential postcode  (weighted by no. of residential unit within the buffer)	percentage point (x10^-1)
+			f_loc_open		=  1.70160000;	//5 zonal average fraction of open space within a 500-meter buffer area from a residential postcode (weighted by residential unit within the buffer)	percentage point (x10^-1)
+			odi10_loc		= -0.47128000;	//6 zonal average local land use mix (opportunity diversity) index: 1-(|lu1/t-1/9|+|lu2/t-1/9|+|lu3/t-1/9|+|lu4/t-1/9|+|lu5/t-1/9|+|lu6/t-1/9|+|lu7/t-1/9|+|lu8/t-1/9|+|lu9/t-1/9|)/(16/9)	(x10)
+			dis2mrt			= -0.10261000;	//7 zonal average distance to the nearest MRT station	in kilometer
+			dis2exp			= -0.02815500;	//8 zonal average distance to the nearest express way	in kilometer
+			accmanufact_jobs= -4.10260000;	// manufacturing jobs
+			accoffice_jobs	= -0.71667000;	// office jobs
+			pt_tt			= -0.83385000;	// public transit total time
+			pt_cost			= -1.19950000;	// public transit total cost
+			f_age4_n4		=  0.00000273;	//10 zonal fraction of population younger than 4 years old x dummy if presence of kids younger than 4 years old in the household (=1, yes; =0, no)	percentage point (x10^-1)
+			f_age19_n19		=  0.00000188;	//11 zonal fraction of population between 5 and 19 years old x dummy if presence of children in the household  (=1, yes; =0, no)	percentage point (x10^-1)
+			f_age65_n65		=  0.00003246;	//12 zonal fraction of population older than 65 years old x dummy if presence of seniors in the household  (=1, yes; =0, no)	percentage point (x10^-1)
+			f_chn_nchn		=  0.00000046;	//13 zonal fraction of Chinese population x  dummy if household is Chinese (=1, yes; =0, no)	percentage point (x10^-1)
+			f_mal_nmal		=  0.00002060;	//14 zonal fraction of Malay population x  dummy if household is Malay (=1, yes; =0, no)	percentage point (x10^-1)
+			f_indian_nind	=  0.00002383;	//15 zonal fraction of Indian population x  dummy if household is Indian (=1, yes; =0, no)	percentage point (x10^-1)
+			hhsize_diff		=  -0.39683000;	//16 absolute difference between zonal average household size by housing type and household size	persons
+			log_hhinc_diff	= -0.52808000;	//17 absolute difference between logarithm of the zonal median household montly income by housing type and logarithm of the household income	SGD
+			log_price05tt_med= -0.73438000;	//18 logarithm of the zonal median housing price by housing type	in (2005) SGD
+			DWL600			= 0.40119000;	//19 = 1, if household size is 1, living in private condo/apartment
+			DWL700			= 1.67560000;	//20 = 1, if household size is 1, living in landed property
+			DWL800			= 0.71458000; 	//21 = 1, if household size is 1, living in other types of housing units
 
 			model 			= nullptr;
 			headOfHousehold = nullptr;
@@ -288,6 +288,12 @@ namespace sim_mob
 				avgHouseholdSize 	= avgHouseholdSize 	  / unitTypeCounter;
 				avgHouseholdIncome 	= avgHouseholdIncome  / unitTypeCounter;
 
+				int bHighInc = 0;
+
+				if(household->getIncome() > 7000 )
+					bHighInc = 1;
+
+
 
 				ZonalLanduseVariableValues *zonalLanduseVariableValues = model->getZonalLandUseByAlternativeId(n + 1);
 
@@ -387,18 +393,18 @@ namespace sim_mob
 									( accessibilityOfficeJobs	* accoffice_jobs	) +
 									( publicTransitTime			* pt_tt 			) +
 									( publicTransitCost 		* pt_cost			) +
-									( fractionYoungerThan4		* f_age4_n4		 	* 10 ) +
-									( fractionBetween5And19		* f_age19_n19	 	* 10 ) +
-									( fractionOlderThan65		* f_age65_n65	 	* 10 ) +
+									( fractionYoungerThan4		* f_age4_n4		 	) +
+									( fractionBetween5And19		* f_age19_n19	 	) +
+									( fractionOlderThan65		* f_age65_n65	 	) +
 									( fractionOfChinese			* f_chn_nchn	 	) +
 									( fractionOfMalay			* f_mal_nmal	 	) +
 									( fractionOfIndian			* f_indian_nind	 	) +
 									( householdSizeMinusZoneAvg	* hhsize_diff	 	) +
 									( logHouseholdInconeMinusZoneAvg * log_hhinc_diff ) +
 									( logZonalMedianHousingPrice* log_price05tt_med ) +
-									( privateCondoHhSizeOne		* DWL600 ) +
-									( landedPropertyHhSizeOne	* DWL700 ) +
-									( otherHousingHhSizeOne		* DWL800 );
+									( privateCondoHhSizeOne		* DWL600 * bHighInc ) +
+									( landedPropertyHhSizeOne	* DWL700 * bHighInc ) +
+									( otherHousingHhSizeOne		* DWL800 * bHighInc );
 
 				/*
 				PrintOut("n: " <<    populationByunitType 		<< " 0 " << planningArea->getId()  << " hhid:  " << hhId << " " <<

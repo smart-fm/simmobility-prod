@@ -3,10 +3,13 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 #pragma once
+#include <map>
+#include <vector>
 #include "behavioral/params/ModeDestinationParams.hpp"
 #include "behavioral/params/ZoneCostParams.hpp"
 #include "behavioral/StopType.hpp"
 #include "behavioral/PredayClasses.hpp"
+#include "behavioral/PredayUtils.hpp"
 #include "PersonParams.hpp"
 
 namespace sim_mob
@@ -23,7 +26,8 @@ namespace medium
 class TourModeDestinationParams: public ModeDestinationParams
 {
 public:
-	TourModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap, const PersonParams& personParams, StopType tourType);
+	TourModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap, const PersonParams& personParams, StopType tourType,
+			const std::vector<OD_Pair>& unavailableODs, const std::map<int, int>& MTZ12_MTZ08_Map);
 	virtual ~TourModeDestinationParams();
 
 	double getCostPublicFirst(int zoneId) const;
@@ -58,6 +62,7 @@ public:
 
 private:
 	bool drive1Available;
+	bool motorAvailable;
 	int modeForParentWorkTour;
 	double costIncrease;
 };
@@ -66,7 +71,7 @@ class StopModeDestinationParams: public ModeDestinationParams
 {
 public:
 	StopModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap, const PersonParams& personParams, const Stop* stop,
-			int originCode, const std::vector<OD_Pair>& unavailableODs);
+			int originCode, const std::vector<OD_Pair>& unavailableODs, const std::map<int, int>& MTZ12_MTZ08_Map);
 	virtual ~StopModeDestinationParams();
 	double getCostCarParking(int zone) const;
 	double getCostCarOP(int zone) const;
@@ -92,10 +97,9 @@ public:
 private:
 	int homeZone;
 	int driveAvailable;
+	int motorAvailable;
 	int tourMode;
 	bool firstBound;
-	const std::vector<OD_Pair>& unavailableODs;
-
 };
 
 } // end namespace medium

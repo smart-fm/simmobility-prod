@@ -10,9 +10,12 @@ using namespace sim_mob;
 using namespace medium;
 
 TourModeDestinationParams::TourModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap,
-		const PersonParams& personParams, StopType tourType) :
-		ModeDestinationParams(zoneMap, amCostsMap, pmCostsMap, tourType, personParams.getHomeLocation()),
-			drive1Available(personParams.hasDrivingLicence() * personParams.getCarOwn()), modeForParentWorkTour(0), costIncrease(0)
+		const PersonParams& personParams, StopType tourType,
+		const std::vector<OD_Pair>& unavailableODs, const std::map<int, int>& MTZ12_MTZ08_Map) :
+		ModeDestinationParams(zoneMap, amCostsMap, pmCostsMap, tourType, personParams.getHomeLocation(), unavailableODs, MTZ12_MTZ08_Map),
+			drive1Available(personParams.hasDrivingLicence() * personParams.getCarOwn()),
+			motorAvailable(personParams.getMotorLicense() * personParams.getMotorOwn()),
+			modeForParentWorkTour(0), costIncrease(0)
 {
 }
 
@@ -246,6 +249,13 @@ int TourModeDestinationParams::isAvailable_TMD(int choiceId) const
 	{
 		return 0;
 	}
+
+	// check if destination is unavailable
+	if(isUnavailable(origin, destination))
+	{
+		return 0; // destination is unavailable due to lack of cost data
+	}
+
 	// bus 1-1092; mrt 1093 - 2184; private bus 2185 - 3276; same result for the three modes
 	if (choiceId <= 3 * numZones)
 	{
@@ -271,8 +281,7 @@ int TourModeDestinationParams::isAvailable_TMD(int choiceId) const
 	// motor 6553 - 7644
 	if (choiceId <= 7 * numZones)
 	{
-		// share3 is available to all
-		return 1;
+		return motorAvailable;
 	}
 	// walk 7645 - 8736
 	if (choiceId <= 8 * numZones)
@@ -305,10 +314,13 @@ int sim_mob::medium::TourModeDestinationParams::isCbdOrgZone() const
 }
 
 StopModeDestinationParams::StopModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap,
-		const PersonParams& personParams, const Stop* stop, int originCode, const std::vector<OD_Pair>& unavailableODs) :
-		ModeDestinationParams(zoneMap, amCostsMap, pmCostsMap, stop->getStopType(), originCode), homeZone(personParams.getHomeLocation()),
-			driveAvailable(personParams.hasDrivingLicence() * personParams.getCarOwn()), tourMode(stop->getParentTour().getTourMode()),
-			firstBound(stop->isInFirstHalfTour()), unavailableODs(unavailableODs)
+		const PersonParams& personParams, const Stop* stop, int originCode,
+		const std::vector<OD_Pair>& unavailableODs, const std::map<int, int>& MTZ12_MTZ08_Map) :
+		ModeDestinationParams(zoneMap, amCostsMap, pmCostsMap, stop->getStopType(), originCode, unavailableODs, MTZ12_MTZ08_Map), homeZone(personParams.getHomeLocation()),
+			driveAvailable(personParams.hasDrivingLicence() * personParams.getCarOwn()),
+			motorAvailable(personParams.getMotorLicense() * personParams.getMotorOwn()),
+			tourMode(stop->getParentTour().getTourMode()),
+			firstBound(stop->isInFirstHalfTour())
 {
 }
 
@@ -456,13 +468,9 @@ int StopModeDestinationParams::isAvailable_IMD(int choiceId) const
 	if (origin == destination) { return 0; } // the destination same as origin is not available
 
 	// check if destination is unavailable
-	OD_Pair orgDest = OD_Pair(origin, destination);
-	OD_Pair orgHome = OD_Pair(origin, homeZone);
-	OD_Pair destHome = OD_Pair(destination, homeZone);
-
-	if(std::binary_search(unavailableODs.begin(), unavailableODs.end(), orgDest) ||
-			std::binary_search(unavailableODs.begin(), unavailableODs.end(), orgHome) ||
-			std::binary_search(unavailableODs.begin(), unavailableODs.end(), destHome))
+	if(isUnavailable(origin, destination)
+			|| isUnavailable(origin, homeZone)
+			|| isUnavailable(destination, homeZone))
 	{ return 0; } // destination is unavailable due to lack of cost data
 
 	// bus 1-1092; mrt 1093 - 2184; private bus 2185 - 3276; same result for the three modes
@@ -472,14 +480,14 @@ int StopModeDestinationParams::isAvailable_IMD(int choiceId) const
 				&& amCostsMap.at(origin).at(destination)->getPubIvt() > 0);
 		switch(tourMode)
 		{
-		case 1:
-		case 2:
+		case 1: return avail;
+		case 2: return avail;
 		case 3: return avail;
-		case 4:
-		case 5:
-		case 6:
-		case 7:
-		case 8:
+		case 4: return 0;
+		case 5: return 0;
+		case 6: return 0;
+		case 7: return 0;
+		case 8: return 0;
 		case 9: return 0;
 		}
 	}
@@ -489,31 +497,31 @@ int StopModeDestinationParams::isAvailable_IMD(int choiceId) const
 	{
 		switch(tourMode)
 		{
-		case 1:
-		case 2:
-		case 3:
-		case 4:
-		case 5:
+		case 1: return driveAvailable;
+		case 2: return driveAvailable;
+		case 3: return driveAvailable;
+		case 4: return driveAvailable;
+		case 5: return driveAvailable;
 		case 6: return driveAvailable;
-		case 7:
-		case 8:
+		case 7: return 0;
+		case 8: return 0;
 		case 9: return 0;
 		}
 	}
+
 	// share2 4369 - 5460
 	if (choiceId <= 6 * numZones)
 	{
-		// share2 is available to all
 		switch(tourMode)
 		{
-		case 1:
-		case 2:
-		case 3:
-		case 5:
+		case 1: return 1;
+		case 2: return 1;
+		case 3: return 1;
+		case 4: return 0;
+		case 5: return 1;
 		case 6: return 1;
-		case 4:
-		case 7:
-		case 8:
+		case 7: return 0;
+		case 8: return 0;
 		case 9: return 0;
 		}
 	}
@@ -521,18 +529,17 @@ int StopModeDestinationParams::isAvailable_IMD(int choiceId) const
 	// motor 6553 - 7644
 	if (choiceId <= 7 * numZones)
 	{
-		// share3 is available to all
 		switch(tourMode)
 		{
-		case 1:
-		case 2:
-		case 3:
-		case 5:
-		case 6:
-		case 4:
-		case 7:
-		case 9: return 1;
+		case 1: return motorAvailable;
+		case 2: return motorAvailable;
+		case 3: return motorAvailable;
+		case 4: return 0;
+		case 5: return motorAvailable;
+		case 6: return motorAvailable;
+		case 7: return motorAvailable;
 		case 8: return 0;
+		case 9: return 0;
 		}
 	}
 	// walk 7645 - 8736
@@ -547,15 +554,15 @@ int StopModeDestinationParams::isAvailable_IMD(int choiceId) const
 		// taxi is available to all
 		switch(tourMode)
 		{
-		case 1:
-		case 2:
-		case 3:
-		case 5:
-		case 6:
-		case 4:
-		case 9: return 1;
-		case 7:
+		case 1: return 1;
+		case 2: return 1;
+		case 3: return 1;
+		case 4: return 0;
+		case 5: return 1;
+		case 6: return 1;
+		case 7: return 0;
 		case 8: return 0;
+		case 9: return 1;
 		}
 	}
 	return 0;

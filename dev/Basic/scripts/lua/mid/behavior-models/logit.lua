@@ -105,6 +105,9 @@ function make_final_choice(probability)
 		cum_prob = cum_prob + p
 		table.insert(choices_prob, cum_prob)
 	end
+	if cum_prob == 0 then
+		return -1
+	end
 	idx = binary_search(choices_prob, math.random()) 
 	return choices[idx]
 end

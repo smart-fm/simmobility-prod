@@ -4,7 +4,10 @@
 
 #pragma once
 #include <boost/unordered_map.hpp>
+#include <map>
+#include <vector>
 #include "behavioral/params/ZoneCostParams.hpp"
+#include "behavioral/PredayUtils.hpp"
 #include "behavioral/StopType.hpp"
 
 namespace sim_mob
@@ -29,9 +32,12 @@ protected:
 	const CostMap& amCostsMap;
 	const CostMap& pmCostsMap;
 	int cbdOrgZone;
+	const std::vector<OD_Pair>& unavailableODs;
+	const std::map<int, int>& MTZ12_MTZ08_Map;
 
 public:
-	ModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap, StopType purpose, int originCode);
+	ModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap, StopType purpose, int originCode,
+			const std::vector<OD_Pair>& unavailableODs, const std::map<int, int>& MTZ12_MTZ08_Map);
 	virtual ~ModeDestinationParams();
 
 	/**
@@ -50,6 +56,15 @@ public:
 	 * @return the destination represented in choice
 	 */
 	int getDestination(int choice) const;
+
+	/**
+	 * tells whether time-dependent travel times data is available for a given OD
+	 *
+	 * @param origin origin zone code from 2012 list of zones
+	 * @param destination destination zone code from 2012 list of zones
+	 * @return true if TT data is unavailable; false otherwise
+	 */
+	bool isUnavailable(int origin, int destination) const;
 
 	void setCbdOrgZone(int cbdOrg)
 	{

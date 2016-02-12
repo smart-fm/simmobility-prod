@@ -126,8 +126,9 @@ private:
 	 *
 	 * @param stop the stop for which mode and destination are to be predicted
 	 * @param origin the zone code for origin MTZ
+	 * @return true if a proper mode-destination was chosen, false otherwise
 	 */
-	void predictStopModeDestination(Stop* stop, int origin);
+	bool predictStopModeDestination(Stop* stop, int origin);
 
 	/**
 	 * Predicts the arrival time for stops before the primary activity.

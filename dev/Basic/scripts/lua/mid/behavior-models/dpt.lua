@@ -13,10 +13,10 @@ UPDATED VERSION - Carlos, Adnan, Harish
 --Estimated values for all betas
 --Note: the betas that not estimated are fixed to zero.
 --Tour constants
-local beta_tour_work = -5.798
-local beta_tour_edu = 10.375
-local beta_tour_shop = -14.376
-local beta_tour_others = -13.206
+local beta_tour_work = -9.2
+local beta_tour_edu = 10
+local beta_tour_shop = -10.5
+local beta_tour_others = -11.23
 
 --Combination constants
 

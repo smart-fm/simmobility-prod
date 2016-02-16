@@ -241,6 +241,13 @@ private:
      */
     void processBusControllerNode(xercesc::DOMElement *node);
 
+    /**
+     * Processes the trainController element in config xml
+     *
+     * @param node node corresponding to the trainController element inside xml file
+     */
+    void processTrainControllerNode(xercesc::DOMElement *node);
+
     void processPathSetFileName(xercesc::DOMElement* node);
 
     /// The config we are currently loading

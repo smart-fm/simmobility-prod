@@ -26,6 +26,7 @@
 #include "entities/Agent.hpp"
 #include "entities/AuraManager.hpp"
 #include "entities/BusController.hpp"
+#include "entities/TrainController.hpp"
 #include "entities/BusStopAgent.hpp"
 #include "entities/PT_EdgeTravelTime.hpp"
 #include "entities/incident/IncidentManager.hpp"
@@ -293,6 +294,10 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	if(BusController::HasBusController())
 	{
 		personWorkers->assignAWorker(BusController::GetInstance());
+	}
+	if(TrainController::HasTrainController())
+	{
+		personWorkers->assignAWorker(TrainController::getInstance());
 	}
 	//incident
 	personWorkers->assignAWorker(IncidentManager::getInstance());

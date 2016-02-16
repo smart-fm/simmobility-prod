@@ -57,6 +57,11 @@
             <mapping name="erp_surcharge" procedure="get_erp_surcharge()"/>
             <mapping name="day_activity_schedule" procedure="get_persons_between"/>
             <mapping name="screen_line" procedure="get_screen_line_segments()"/>
+            <mapping name="pt_mrt_platform" procedure="get_pt_mrt_platform()"/>
+            <mapping name="pt_mrt_dispatch_freq" procedure="get_pt_mrt_dispatch_freq()"/>
+            <mapping name="pt_block" procedure="get_pt_block()"/>
+            <mapping name="pt_mrt_route" procedure="get_pt_mrt_route()"/>
+            <mapping name="pt_block_polyline" procedure="get_pt_block_polyline()"/>
             <!--<mapping name="restricted_reg_segments" procedure="get_section_banned_area()"/>
             <mapping name="restricted_reg_in_turning" procedure="get_banned_area_in_turning()"/>
             <mapping name="restricted_reg_out_turning" procedure="get_banned_area_out_turning()"/>
@@ -117,7 +122,8 @@
     <!-- To Disable Buses: user can simply comment the buscontroller in the <buscontrollers> -->
     <!-- The current control strategy for buses. Can be "headway_based", "evenheadway_based", "hybrid_based", or (default) "no_control" -->
     <busController enabled="true" busline_control_type="headway_based"/>
-    
+    <!-- The current control strategy for train. Can be "fixed_block", "moving_block"-->
+    <trainController enabled="true" train_control_type="fixed_block"/>   
     <path-set-config-file value="data/pathset_config.xml" />
 
     <CBD enabled="false"/>

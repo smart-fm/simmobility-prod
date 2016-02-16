@@ -378,6 +378,24 @@ struct BusControllerParams
 };
 
 /**
+ * Represents train controller parameter section
+ */
+struct TrainControllerParams
+{
+    /**
+     * Constructor
+     */
+	TrainControllerParams() : enabled(false), trainControlType("")
+    {}
+
+    /// Is bus controller enabled?
+    bool enabled;
+
+    /// bus line control type
+    std::string trainControlType;
+};
+
+/**
  * Represents a Bust Stop in the config file. (NOTE: Further documentation needed.)
  */
 struct BusStopScheduledTime {
@@ -436,6 +454,9 @@ public:
 
     /// Bus controller parameters
     BusControllerParams busController;
+
+    /// Train controller parameters
+    TrainControllerParams trainController;
 
     ///Some settings for bus stop arrivals/departures.
     std::map<int, BusStopScheduledTime> busScheduledTimes; //The int is a "bus stop ID", starting from 0.

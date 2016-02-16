@@ -79,6 +79,7 @@ void ParseMidTermConfigFile::processXmlFile(xercesc::XercesDOMParser& parser)
     processIncidentsNode(GetSingleElementByName(rootNode, "incidentsData", true));
     processBusStopScheduledTimesNode(GetSingleElementByName(rootNode, "scheduledTimes", true));
     processBusControllerNode(GetSingleElementByName(rootNode, "busController", true));
+    processTrainControllerNode(GetSingleElementByName(rootNode, "trainController", true));
     processScreenLineNode(GetSingleElementByName(rootNode, "screen-line-count"));
     processPT_EdgeTravelTimeNode(GetSingleElementByName(rootNode, "pt_edge_time"));
     processGenerateBusRoutesNode(GetSingleElementByName(rootNode, "generateBusRoutes"));
@@ -657,6 +658,15 @@ void ParseMidTermConfigFile::processBusControllerNode(DOMElement *node)
     {
         cfg.busController.enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), "false");
         cfg.busController.busLineControlType = ParseString(GetNamedAttributeValue(node, "busline_control_type"), "");
+    }
+}
+
+void ParseMidTermConfigFile::processTrainControllerNode(xercesc::DOMElement *node)
+{
+    if(node)
+    {
+        cfg.trainController.enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), "false");
+        cfg.trainController.trainControlType = ParseString(GetNamedAttributeValue(node, "train_control_type"), "");
     }
 }
 

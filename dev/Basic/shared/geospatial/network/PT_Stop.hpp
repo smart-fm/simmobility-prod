@@ -11,6 +11,7 @@
 #include "RoadItem.hpp"
 #include "RoadSegment.hpp"
 #include "Point.hpp"
+#include "Platform.hpp"
 
 namespace sim_mob
 {
@@ -154,4 +155,17 @@ private:
 	std::vector<const RoadSegment*> roadSegments;
 };
 
+class Station : public TrainStop
+{
+public:
+	/**
+	 * add mrt line to particular station
+	 * @param lineId is line id of MRT
+	 * @param platform is the pointer to the object of platform
+	 */
+	void addPlatform(const std::string& lineId, const Platform* platform);
+
+private:
+	std::map<std::string, Platform*> lineToPlatform;
+};
 }

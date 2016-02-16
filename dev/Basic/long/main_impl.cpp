@@ -308,11 +308,9 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
         DeveloperModel *developerModel = nullptr;
         HM_Model *housingMarketModel = nullptr;
 
-        if( enableHousingMarket )
-        	hmWorkers = wgMgr.newWorkGroup( workers, days, tickStep);
 
-        if( enableDeveloperModel )
-        	devWorkers = wgMgr.newWorkGroup(workers, days, tickStep);
+        hmWorkers = wgMgr.newWorkGroup( workers, days, tickStep);
+        devWorkers = wgMgr.newWorkGroup(workers, days, tickStep);
         
         //init work groups.
         wgMgr.initAllGroups();
@@ -337,21 +335,20 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
         	currentTick = lastStoppedDay;
         }
 
-        if( enableHousingMarket )
-        {
-        	 housingMarketModel = new HM_Model(*hmWorkers);//initializing the housing market model
-             housingMarketModel->setStartDay(currentTick);
-        	 models.push_back(housingMarketModel);
-        }
 
-        if( enableDeveloperModel )
-        {
-        	 //initiate developer model; to be referred later at each time tick (day)
-        	 developerModel = new DeveloperModel(*devWorkers, timeIntervalDevModel);
-        	 developerModel->setHousingMarketModel(housingMarketModel);
-        	 developerModel->setOpSchemaloadingInterval(opSchemaloadingInterval);
-        	 models.push_back(developerModel);
-        }
+		 housingMarketModel = new HM_Model(*hmWorkers);//initializing the housing market model
+		 housingMarketModel->setStartDay(currentTick);
+		 models.push_back(housingMarketModel);
+		 agentsLookup.getEventsInjector().setModel(housingMarketModel);
+
+
+
+		 //initiate developer model; to be referred later at each time tick (day)
+		 developerModel = new DeveloperModel(*devWorkers, timeIntervalDevModel);
+		 developerModel->setHousingMarketModel(housingMarketModel);
+		 developerModel->setOpSchemaloadingInterval(opSchemaloadingInterval);
+		 models.push_back(developerModel);
+
 
 
 		if( enableHousingMarket )

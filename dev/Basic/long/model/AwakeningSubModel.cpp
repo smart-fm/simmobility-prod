@@ -33,10 +33,8 @@ namespace sim_mob
 			return futureTransitionOwn;
 		}
 
-		void AwakeningSubModel::InitialAwakenings(HM_Model *_model, Household *household, HouseholdAgent *agent, int day)
+		void AwakeningSubModel::InitialAwakenings(HM_Model *model, Household *household, HouseholdAgent *agent, int day)
 		{
-			model = _model;
-
 			HouseholdBidderRole *bidder = agent->getBidder();
 			HouseholdSellerRole *seller = agent->getSeller();
 
@@ -140,7 +138,7 @@ namespace sim_mob
 
 			float r2 = (float)rand() / RAND_MAX;
 
-			r2 = r2 * movingProbability(household);
+			r2 = r2 * movingProbability(household, model);
 
 			IdVector unitIds = agent->getUnitIds();
 
@@ -220,7 +218,7 @@ namespace sim_mob
 		}
 
 
-		double AwakeningSubModel::movingProbability(Household* household)
+		double AwakeningSubModel::movingProbability( Household* household, HM_Model *model)
 		{
 			std::vector<BigSerial> individuals = household->getIndividuals();
 			Individual *householdHead;
@@ -249,7 +247,7 @@ namespace sim_mob
 		}
 
 
-		std::vector<ExternalEvent> AwakeningSubModel::DailyAwakenings(int day)
+		std::vector<ExternalEvent> AwakeningSubModel::DailyAwakenings( int day, HM_Model *model)
 		{
 			std::vector<ExternalEvent> events;
 
@@ -261,7 +259,7 @@ namespace sim_mob
 
 		    	potentialAwakening->getTenureStatus();
 
-		    	double movingRate = movingProbability(potentialAwakening);
+		    	double movingRate = movingProbability(potentialAwakening, model );
 
 		    	double randomDraw = (double)rand()/RAND_MAX;
 

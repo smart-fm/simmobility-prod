@@ -259,7 +259,7 @@ namespace sim_mob
 
 		    	potentialAwakening->getTenureStatus();
 
-		    	double movingRate = movingProbability(potentialAwakening, model );
+		    	double movingRate = movingProbability(potentialAwakening, model ) / 100.0;
 
 		    	double randomDraw = (double)rand()/RAND_MAX;
 

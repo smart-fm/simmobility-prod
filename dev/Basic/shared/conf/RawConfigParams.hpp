@@ -388,10 +388,10 @@ struct TrainControllerParams
 	TrainControllerParams() : enabled(false), trainControlType("")
     {}
 
-    /// Is bus controller enabled?
+    /// Is train controller enabled?
     bool enabled;
 
-    /// bus line control type
+    /// train line control type
     std::string trainControlType;
 };
 

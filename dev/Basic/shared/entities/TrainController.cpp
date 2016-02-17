@@ -59,7 +59,7 @@ void TrainController::initTrainController()
 	loadPlatforms();
 	loadSchedules();
 	loadBlocks();
-	loadRoutes();
+	loadTrainRoutes();
 	loadTransferedTimes();
 	loadBlockPolylines();
 	for (std::map<unsigned int, Block*>::iterator it = mapOfIdvsBlocks.begin();it != mapOfIdvsBlocks.end(); it++) {
@@ -68,6 +68,14 @@ void TrainController::initTrainController()
 			it->second->setPloyLine((*itLine).second);
 		} else {
 			Print()<< "Block not find polyline:"<<it->first<<std::endl;
+		}
+	}
+	for(std::map<std::string, Platform*>::iterator it = mapOfIdvsPlatforms.begin(); it!=mapOfIdvsPlatforms.end(); it++){
+		std::map<unsigned int, Block*>::iterator itBlock=mapOfIdvsBlocks.find(it->second->getAttachedBlockId());
+		if(itBlock!=mapOfIdvsBlocks.end()){
+			itBlock->second->setAttachedPlatform(it->second);
+		} else {
+			Print()<< "Platform not find corresponding block:"<<it->first<<std::endl;
 		}
 	}
 }
@@ -88,10 +96,10 @@ void TrainController::loadPlatforms()
 {
 	const ConfigParams& configParams = ConfigManager::GetInstance().FullConfig();
 	const std::map<std::string, std::string>& storedProcs = configParams.getDatabaseProcMappings().procedureMappings;
-	std::map<std::string, std::string>::const_iterator spIt = storedProcs.find("pt_mrt_platform");
+	std::map<std::string, std::string>::const_iterator spIt = storedProcs.find("pt_platform");
 	if(spIt == storedProcs.end())
 	{
-		Print() << "missing stored procedure for pt_mrt_platform" << std::endl;
+		Print() << "missing stored procedure for pt_platform" << std::endl;
 		return;
 	}
     soci::session sql_(soci::postgresql, configParams.getDatabaseConnectionString(false));
@@ -168,7 +176,7 @@ void TrainController::loadBlocks()
 	}
 }
 
-void TrainController::loadRoutes()
+void TrainController::loadTrainRoutes()
 {
 	const ConfigParams& configParams = ConfigManager::GetInstance().FullConfig();
 	const std::map<std::string, std::string>& storedProcs = configParams.getDatabaseProcMappings().procedureMappings;
@@ -192,6 +200,33 @@ void TrainController::loadRoutes()
 			mapOfIdvsRoutes[lineId] = std::vector<TrainRoute>();
 		}
 		mapOfIdvsRoutes[lineId].push_back(route);
+	}
+}
+
+void TrainController::loadTrainPlatform()
+{
+	const ConfigParams& configParams = ConfigManager::GetInstance().FullConfig();
+	const std::map<std::string, std::string>& storedProcs = configParams.getDatabaseProcMappings().procedureMappings;
+	std::map<std::string, std::string>::const_iterator spIt = storedProcs.find("pt_mrt_platform");
+	if(spIt == storedProcs.end())
+	{
+		Print() << "missing stored procedure for pt_mrt_platform" << std::endl;
+		return;
+	}
+    soci::session sql_(soci::postgresql, configParams.getDatabaseConnectionString(false));
+    soci::rowset<soci::row> rs = (sql_.prepare << "select * from " + spIt->second);
+	for (soci::rowset<soci::row>::const_iterator it=rs.begin(); it!=rs.end(); ++it)
+	{
+		const soci::row& r = (*it);
+		std::string lineId = r.get<std::string>(0);
+		TrainRoutePlatform platform;
+		platform.lineId = lineId;
+		platform.platformNo = r.get<std::string>(1);
+		platform.sequenceNo = r.get<int>(2);
+		if(mapOfIdvsTrainPlatforms.find(lineId)==mapOfIdvsTrainPlatforms.end()){
+			mapOfIdvsTrainPlatforms[lineId] = std::vector<TrainRoutePlatform>();
+		}
+		mapOfIdvsTrainPlatforms[lineId].push_back(platform);
 	}
 }
 

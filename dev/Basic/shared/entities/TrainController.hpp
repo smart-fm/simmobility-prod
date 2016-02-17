@@ -21,6 +21,15 @@ struct TrainRoute{
 	int sequenceNo;
 };
 /**
+ * the structure to store the train stops
+ */
+struct TrainRoutePlatform{
+	TrainRoutePlatform():sequenceNo(0){};
+	std::string lineId;
+	std::string platformNo;
+	int sequenceNo;
+};
+/**
  * the structure to store train schedule
  */
 struct TrainSchedule{
@@ -99,7 +108,11 @@ private:
 	/**
 	 * the function to load routes from DB
 	 */
-	void loadRoutes();
+	void loadTrainRoutes();
+	/**
+	 * the function to load train platforms from DB
+	 */
+	void loadTrainPlatform();
 	/**
 	 * the function to load transfered time between platforms from DB
 	 */
@@ -116,6 +129,8 @@ private:
 	std::map<unsigned int, Block*> mapOfIdvsBlocks;
 	/**the map from line id to the train route*/
 	std::map<std::string, std::vector<TrainRoute>> mapOfIdvsRoutes;
+	/**the map from line id to the train platform*/
+	std::map<std::string, std::vector<TrainRoutePlatform>> mapOfIdvsTrainPlatforms;
 	/**the map from id to the schedule table*/
 	std::map<std::string, std::vector<TrainSchedule>> mapOfIdvsSchedules;
 	/**the map from id to polyline object*/

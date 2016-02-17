@@ -6,6 +6,7 @@
  */
 
 #include "PolyLine.hpp"
+#include "Platform.hpp"
 
 namespace sim_mob {
 
@@ -26,6 +27,8 @@ private:
 	double decelerateRate;
 	/**polyline*/
 	PolyLine* polyLine;
+	/**attached platform*/
+	Platform* attachedPlatform;
 public:
 	int getBlockId() const{
 		return blockId;
@@ -62,6 +65,12 @@ public:
 	}
 	void setPloyLine(PolyLine* line){
 		polyLine = line;
+	}
+	const Platform* getAttachedPlatform() const{
+		return attachedPlatform;
+	}
+	void setAttachedPlatform(Platform* platform){
+		attachedPlatform = platform;
 	}
 };
 

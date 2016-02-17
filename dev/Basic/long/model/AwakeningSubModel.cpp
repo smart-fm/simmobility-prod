@@ -54,14 +54,14 @@ namespace sim_mob
 
 		    std::string tenureTransitionId;
 
-		    if( household->getAgeOfHead() < 35 )
-		    	tenureTransitionId = " <35";
+		    if( household->getAgeOfHead() <= 6 )
+		    	tenureTransitionId = "<35";
 		    else
-		    if( household->getAgeOfHead()>= 35 && household->getAgeOfHead() <= 49 )
+		    if( household->getAgeOfHead()>= 7 && household->getAgeOfHead() <= 9 )
 		    	tenureTransitionId = "35-49";
-		    if( household->getAgeOfHead()>= 50 && household->getAgeOfHead() <= 64 )
+		    if( household->getAgeOfHead()>= 10 && household->getAgeOfHead() <= 12 )
 		        tenureTransitionId = "50-64";
-		    if( household->getAgeOfHead()>= 65 )
+		    if( household->getAgeOfHead()>= 13 )
 		        tenureTransitionId = "65+";
 
 			string tenureStatus;
@@ -255,9 +255,13 @@ namespace sim_mob
 		    {
 		    	ExternalEvent extEv;
 
-		    	Household *potentialAwakening = model->getHouseholdById((double)rand()/RAND_MAX * 1000000);
 
-		    	potentialAwakening->getTenureStatus();
+		    	BigSerial householdId = (double)rand()/RAND_MAX * model->getHouseholdList()->size();
+
+		    	Household *potentialAwakening = model->getHouseholdById( householdId );
+
+		    	if( !potentialAwakening)
+		    		continue;
 
 		    	double movingRate = movingProbability(potentialAwakening, model ) / 100.0;
 

@@ -285,7 +285,7 @@ void sim_mob::PathSetWorkerThread::run()
 	{
 		// make sp id
 		std::string id = sim_mob::makePathString(wps);
-		if (!id.size())
+		if (id.empty())
 		{
 			hasPath = false;
 		}

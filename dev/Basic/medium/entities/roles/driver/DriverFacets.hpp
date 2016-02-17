@@ -263,7 +263,7 @@ protected:
 	void setOutputCounter(const Lane* lane, int count, const SegmentStats* segStats);
 
 	double getOutputFlowRate(const Lane* lane);
-	double getAcceptRate(const Lane* lane, const SegmentStats* segStats);
+	virtual double getAcceptRate(const Lane* lane, const SegmentStats* segStats);
 	double getQueueLength(const Lane* lane);
 	double getLastAccept(const Lane* lane, const SegmentStats* segStats);
 	void setLastAccept(const Lane* lane, double lastAccept, const SegmentStats* segStats);

@@ -72,6 +72,11 @@ public:
 protected:
 	/**pointer to parent bus driver*/
 	medium::Biker* parentBiker;
+
+	/**
+	 * accept rate depends on vehicle length.
+	 */
+	virtual double getAcceptRate(const Lane* lane, const SegmentStats* segStats);
 };
 
 }

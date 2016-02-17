@@ -22,7 +22,6 @@ using std::vector;
 using std::endl;
 
 namespace {
-
 /**
  * converts time from milli-seconds to seconds
  */
@@ -412,9 +411,11 @@ void BusDriverMovement::flowIntoNextLinkIfPossible(DriverUpdateParams& params)
 	const SegmentStats* nextToNextSegStats = pathMover.getSecondSegStatsAhead();
 	const Lane* laneInNextSegment = getBestTargetLane(nextSegStats, nextToNextSegStats);
 
-	//this will space out the drivers on the same lane, by separating them by the time taken for the previous car to move a car's length
-	//Commenting out the delay from accept rate as per Yang Lu's suggestion (we use this delay only in setOrigin)
-	double departTime = getLastAccept(laneInNextSegment, nextSegStats) /*+ getAcceptRate(laneInNextSegment, nextSegStats)*/; //in seconds
+	double departTime = getLastAccept(laneInNextSegment, nextSegStats);
+	if(!nextSegStats->isShortSegment())
+	{
+		departTime += getAcceptRate(laneInNextSegment, nextSegStats); //in seconds
+	}
 
 	params.elapsedSeconds = std::max(params.elapsedSeconds, departTime - (params.now.ms()/1000.0)); //in seconds
 
@@ -656,10 +657,11 @@ bool BusDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 		const SegmentStats* nextToNextSegStat = pathMover.getSecondSegStatsAhead();
 		const Lane* laneInNextSegment = getBestTargetLane(nxtSegStat, nextToNextSegStat);
 
-		//this will space out the drivers on the same lane, by separating them by the time taken for the previous car to move a car's length
-		//Commenting out the delay from accept rate as per Yang Lu's suggestion (we only use this delay in setOrigin)
-		double departTime = getLastAccept(laneInNextSegment, nxtSegStat)
-				/*+ getAcceptRate(laneInNextSegment, nxtSegStat)*/; //in seconds
+		double departTime = getLastAccept(laneInNextSegment, nxtSegStat);
+		if(!nxtSegStat->isShortSegment())
+		{
+			departTime += getAcceptRate(laneInNextSegment, nxtSegStat); //in seconds
+		}
 
 		//skip acceptance capacity if there's no queue - this is done in DynaMIT
 		//commenting out - the delay from acceptRate is removed as per Yang Lu's suggestion
@@ -715,6 +717,11 @@ bool BusDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 		}
 		return res;
 	}
+}
+
+double BusDriverMovement::getAcceptRate(const Lane* lane, const SegmentStats* segStats)
+{
+	return segStats->getLaneParams(lane)->getAcceptRate() * sim_mob::BUS_PCU;
 }
 
 BusRouteTracker::BusRouteTracker(const BusRouteInfo& routeInfo) :

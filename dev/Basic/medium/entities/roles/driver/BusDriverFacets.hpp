@@ -170,6 +170,8 @@ protected:
 	 */
 	virtual void flowIntoNextLinkIfPossible(DriverUpdateParams& params);
 
+	virtual double getAcceptRate(const Lane* lane, const SegmentStats* segStats);
+
 	/**pointer to parent bus driver*/
 	BusDriver* parentBusDriver;
 

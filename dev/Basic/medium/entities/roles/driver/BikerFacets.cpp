@@ -13,10 +13,16 @@ using namespace sim_mob::medium;
 namespace
 {
 /**
+ * number of PCUs for bike
+ */
+const double BIKE_PCU = 0.5;
+
+/**
  * length of a bike is hard coded to 0.5 times the PCU for now.
  * TODO: this must be made configurable.
  */
-const double BIKE_LENGTH = 0.5 * PASSENGER_CAR_UNIT; //cm. half of PASSENGER_CAR_UNIT
+const double BIKE_LENGTH = BIKE_PCU * PASSENGER_CAR_UNIT; //m. half of PASSENGER_CAR_UNIT
+
 }
 
 BikerBehavior::BikerBehavior() :
@@ -51,4 +57,9 @@ void BikerMovement::frame_init()
 		parentBiker->setResource(newVeh);
 	}
 	else { parentBiker->getParent()->setToBeRemoved(); }
+}
+
+double BikerMovement::getAcceptRate(const Lane* lane, const SegmentStats* segStats)
+{
+	return segStats->getLaneParams(lane)->getAcceptRate() * sim_mob::BUS_PCU;
 }

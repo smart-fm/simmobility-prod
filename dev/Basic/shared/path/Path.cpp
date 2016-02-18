@@ -3,6 +3,7 @@
 #include <boost/foreach.hpp>
 #include <boost/iterator/filter_iterator.hpp>
 #include <cmath>
+#include <set>
 #include "entities/params/PT_NetworkEntities.hpp"
 #include "geospatial/network/Lane.hpp"
 #include "geospatial/network/Link.hpp"
@@ -280,11 +281,21 @@ double sim_mob::calculateSinglePathDefaultTT(const std::vector<sim_mob::WayPoint
 std::string sim_mob::makePathString(const std::vector<sim_mob::WayPoint>& wp)
 {
 	std::stringstream str("");
+	std::set<unsigned int> pathLinks;
 	for (std::vector<sim_mob::WayPoint>::const_iterator it = wp.begin(); it != wp.end(); it++)
 	{
 		if (it->type == WayPoint::LINK)
 		{
-			str << it->link->getLinkId() << ",";
+			unsigned int linkId = it->link->getLinkId();
+			if(pathLinks.insert(linkId).second)
+			{
+				str << linkId << ",";
+			}
+			else
+			{
+				//there is a link which is traversed twice in the path => loop in path
+				return std::string(); //return empty path
+			}
 		}
 	}
 	return str.str();

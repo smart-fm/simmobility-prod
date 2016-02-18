@@ -1290,3 +1290,8 @@ unsigned int SegmentStats::getBusWaitersCount() const
 	}
 	return totalWaiting;
 }
+
+bool SegmentStats::isShortSegment() const
+{
+	return (length < SHORT_SEGMENT_LENGTH_LIMIT);
+}

@@ -1801,15 +1801,6 @@ void DriverMovement::updateNearbyAgents()
 	}
 
 	//Update each nearby Pedestrian/Driver
-	/*params.nvFwdNextLink.driver = NULL;
-	params.nvFwdNextLink.distance = DBL_MAX;
-	params.nvLeadFreeway.driver = NULL;
-	params.nvLeadFreeway.distance = DBL_MAX;
-	params.nvLagFreeway.driver = NULL;
-	params.nvLagFreeway.distance = DBL_MAX;
-	params.nvFwd.driver = NULL;
-	params.nvFwd.distance = DBL_MAX;*/
-	
 	params.nvFwd.reset();
 	params.nvLeftFwd.reset();
 	params.nvRightFwd.reset();

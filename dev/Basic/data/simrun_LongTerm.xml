@@ -118,7 +118,7 @@
 	    <housingMarketSearchPercentage value="0.15"/>
 	    <housingMoveInDaysInterval value="30"/>
 	    <offsetBetweenUnitBuyingAndSelling value ="7"/>
-	    <bidderUnitsChoiceSet value = "100"/>
+	    <bidderUnitsChoiceSet value = "50"/>
 	    <householdBiddingWindow value = "30" />
         </housingModel>
 	<vehicleOwnershipModel enabled='true'>

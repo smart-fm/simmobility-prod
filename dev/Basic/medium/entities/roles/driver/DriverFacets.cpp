@@ -170,7 +170,7 @@ void DriverMovement::frame_tick()
 			parentDriver->parent->canMoveToNextSegment = Person_MT::NONE;
 			setParentData(params);
 
-			if(parentDriver && parentDriver->roleType == sim_mob::Role::RL_DRIVER)
+			if(parentDriver && parentDriver->roleType == Role<Person_MT>::RL_DRIVER)
 			{
 				std::stringstream logout;
 				Person_MT* person = parentDriver->parent;
@@ -207,7 +207,7 @@ void DriverMovement::frame_tick()
 		setParentData(params);
 	}
 
-	if(parentDriver && parentDriver->roleType == sim_mob::Role::RL_DRIVER)
+	if(parentDriver && parentDriver->roleType == Role<Person_MT>::RL_DRIVER)
 	{
 		std::stringstream logout;
 		Person_MT* person = parentDriver->parent;

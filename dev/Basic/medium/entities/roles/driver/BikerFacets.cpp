@@ -58,8 +58,3 @@ void BikerMovement::frame_init()
 	}
 	else { parentBiker->getParent()->setToBeRemoved(); }
 }
-
-double BikerMovement::getAcceptRate(const Lane* lane, const SegmentStats* segStats)
-{
-	return segStats->getLaneParams(lane)->getAcceptRate() * sim_mob::BUS_PCU;
-}

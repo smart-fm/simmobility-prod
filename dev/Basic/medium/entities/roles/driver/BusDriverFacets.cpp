@@ -192,24 +192,24 @@ void BusDriverMovement::frame_tick()
 
 	if (parentBusDriver->getResource()->isMoving())
 	{
-		logout << ",ServingStop:" << "false";
+		logout << ",Moving";
 	}
 	else
 	{
-		logout << ",ServingStop:" << "true";
+		logout << ",ServingStop";
 	}
 	const BusStop* nextStop = routeTracker.getNextStop();
 	logout << ",NextStop:" << (nextStop ? nextStop->getStopCode() : "0");
 
 	if (person->isQueuing)
 	{
-		logout << ",queuing:" << "true";
+		logout << ",queuing:true";
 	}
 	else
 	{
-		logout << ",queuing:" << "false";
+		logout << ",queuing:false";
 	}
-	logout << ",elapsedSeconds:" << params.elapsedSeconds;
+	logout << ",elapsed:" << params.elapsedSeconds;
 	logout << "})" << std::endl;
 	Print() << logout.str();
 
@@ -717,11 +717,6 @@ bool BusDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 		}
 		return res;
 	}
-}
-
-double BusDriverMovement::getAcceptRate(const Lane* lane, const SegmentStats* segStats)
-{
-	return segStats->getLaneParams(lane)->getAcceptRate() * sim_mob::BUS_PCU;
 }
 
 BusRouteTracker::BusRouteTracker(const BusRouteInfo& routeInfo) :

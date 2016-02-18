@@ -500,8 +500,14 @@ bool DriverMovement::updateSensors()
 		setTrafficSignalParams(params);
 	}
 
-	//Identify the nearby drivers and their positions
-	updateNearbyAgents();
+	//Count down the reaction timer
+	params.reactionTimeCounter -= params.elapsedSeconds;
+	
+	if(params.reactionTimeCounter < params.elapsedSeconds)
+	{
+		//Identify the nearby drivers and their positions
+		updateNearbyAgents();
+	}
 
 	//Get the nearest car, if not making a lane change, the nearest car should be the leading car in current lane.
 	//if making lane changing, adjacent car need to be taken into account.
@@ -523,10 +529,7 @@ bool DriverMovement::updateMovement()
 	const Link *prevLink = fwdDriverMovement.getCurrLink();
 	
 	//Store the speed
-	params.currSpeed = parentDriver->vehicle->getVelocity();
-	
-	//Count down the reaction timer
-	params.reactionTimeCounter -= params.elapsedSeconds;
+	params.currSpeed = parentDriver->vehicle->getVelocity();	
 	
 	//Check if the reaction timer has expired, if so apply the driving models and move forward
 	if(params.reactionTimeCounter < params.elapsedSeconds)
@@ -1798,14 +1801,28 @@ void DriverMovement::updateNearbyAgents()
 	}
 
 	//Update each nearby Pedestrian/Driver
-	params.nvFwdNextLink.driver = NULL;
+	/*params.nvFwdNextLink.driver = NULL;
 	params.nvFwdNextLink.distance = DBL_MAX;
 	params.nvLeadFreeway.driver = NULL;
 	params.nvLeadFreeway.distance = DBL_MAX;
 	params.nvLagFreeway.driver = NULL;
 	params.nvLagFreeway.distance = DBL_MAX;
 	params.nvFwd.driver = NULL;
-	params.nvFwd.distance = DBL_MAX;
+	params.nvFwd.distance = DBL_MAX;*/
+	
+	params.nvFwd.reset();
+	params.nvLeftFwd.reset();
+	params.nvRightFwd.reset();
+	params.nvBack.reset();
+	params.nvLeftBack.reset();
+	params.nvRightBack.reset();
+	params.nvLeftFwd2.reset();
+	params.nvLeftBack2.reset();
+	params.nvRightFwd2.reset();
+	params.nvRightBack2.reset();
+	params.nvFwdNextLink.reset();
+	params.nvLagFreeway.reset();
+	params.nvLeadFreeway.reset();
 
 	for (vector<const Agent *>::iterator it = nearbyAgentsList.begin(); it != nearbyAgentsList.end(); ++it)
 	{

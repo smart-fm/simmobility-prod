@@ -100,7 +100,7 @@ void DriverUpdateParams::reset(timeslice now, const Driver &owner)
 
 	turningDirection = LANE_CHANGE_TO_NONE;
 
-	nvFwd.reset();
+	/*nvFwd.reset();
 	nvLeftFwd.reset();
 	nvRightFwd.reset();
 	nvBack.reset();
@@ -109,7 +109,7 @@ void DriverUpdateParams::reset(timeslice now, const Driver &owner)
 	nvLeftFwd2.reset();
 	nvLeftBack2.reset();
 	nvRightFwd2.reset();
-	nvRightBack2.reset();
+	nvRightBack2.reset();*/
 
 	density = 0;
 }
@@ -212,7 +212,7 @@ void DriverUpdateParams::buildDebugInfo()
 	s << "++" << cfDebugStr;
 #endif
 
-#if 0
+#if 1
 	//Debug car following
 	
 	int fwdcarid = -1;

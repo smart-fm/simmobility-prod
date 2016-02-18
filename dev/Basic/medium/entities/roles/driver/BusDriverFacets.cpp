@@ -175,43 +175,43 @@ void BusDriverMovement::frame_tick()
 		parentBusDriver->updatePassengers();
 	}
 
-//	std::stringstream logout;
-//	Person_MT* person = parentBusDriver->parent;
-//	unsigned int segId = (person->getCurrSegStats() ? person->getCurrSegStats()->getRoadSegment()->getRoadSegmentId() : 0);
-//	uint16_t statsNum = (person->getCurrSegStats() ? person->getCurrSegStats()->getStatsNumberInSegment() : 0);
-//	const BusTrip* busTrip = dynamic_cast<const BusTrip*>(*(person->currTripChainItem));
-//	logout << "(BusDriver" << "," << person->getId() << ","
-//			<< person->busLine << ","
-//			<< (busTrip? busTrip->tripID : "NA")
-//			<< parentBusDriver->getParams().now.frame()
-//			<< ",{"
-//			<< "RoadSegment:" << segId
-//			<< ",StatsNum:" << statsNum
-//			<< ",Lane:" << (person->getCurrLane() ? person->getCurrLane()->getLaneId() : 0)
-//			<< ",DistanceToEndSeg:" << person->distanceToEndOfSegment;
-//
-//	if (parentBusDriver->getResource()->isMoving())
-//	{
-//		logout << ",ServingStop:" << "false";
-//	}
-//	else
-//	{
-//		logout << ",ServingStop:" << "true";
-//	}
-//	const BusStop* nextStop = routeTracker.getNextStop();
-//	logout << ",NextStop:" << (nextStop ? nextStop->getStopCode() : "0");
-//
-//	if (person->isQueuing)
-//	{
-//		logout << ",queuing:" << "true";
-//	}
-//	else
-//	{
-//		logout << ",queuing:" << "false";
-//	}
-//	logout << ",elapsedSeconds:" << params.elapsedSeconds;
-//	logout << "})" << std::endl;
-//	Print() << logout.str();
+	std::stringstream logout;
+	Person_MT* person = parentBusDriver->parent;
+	unsigned int segId = (person->getCurrSegStats() ? person->getCurrSegStats()->getRoadSegment()->getRoadSegmentId() : 0);
+	uint16_t statsNum = (person->getCurrSegStats() ? person->getCurrSegStats()->getStatsNumberInSegment() : 0);
+	const BusTrip* busTrip = dynamic_cast<const BusTrip*>(*(person->currTripChainItem));
+	logout << "(BusDriver" << "," << person->getId() << ","
+			<< person->busLine << ","
+			<< (busTrip? busTrip->tripID : "NA") << ","
+			<< parentBusDriver->getParams().now.frame()
+			<< ",{"
+			<< "RoadSegment:" << segId
+			<< ",StatsNum:" << statsNum
+			<< ",Lane:" << (person->getCurrLane() ? person->getCurrLane()->getLaneId() : 0)
+			<< ",DistanceToEndSeg:" << person->distanceToEndOfSegment;
+
+	if (parentBusDriver->getResource()->isMoving())
+	{
+		logout << ",ServingStop:" << "false";
+	}
+	else
+	{
+		logout << ",ServingStop:" << "true";
+	}
+	const BusStop* nextStop = routeTracker.getNextStop();
+	logout << ",NextStop:" << (nextStop ? nextStop->getStopCode() : "0");
+
+	if (person->isQueuing)
+	{
+		logout << ",queuing:" << "true";
+	}
+	else
+	{
+		logout << ",queuing:" << "false";
+	}
+	logout << ",elapsedSeconds:" << params.elapsedSeconds;
+	logout << "})" << std::endl;
+	Print() << logout.str();
 
 }
 

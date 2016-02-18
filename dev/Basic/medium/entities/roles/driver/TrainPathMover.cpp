@@ -13,7 +13,7 @@
 
 namespace sim_mob {
 
-TrainPathMover::TrainPathMover() {
+TrainPathMover::TrainPathMover():distanceMoveToNextPoint(0),currPolyLine(nullptr),distMovedOnCurrBlock(0) {
 
 }
 
@@ -54,33 +54,66 @@ double TrainPathMover::advance(double distance)
 
 	return distanceMoveToNextPoint;
 }
+double TrainPathMover::getDistanceToNextPlatform(Platform* platform) const
+{
+	double distance = (*currBlockIt)->getLength()-getDistCoveredOnCurrBlock();
+	std::vector<Block*>::const_iterator tempIt = currBlockIt+1;
+	while(tempIt!=drivingPath.end()){
+		if((*tempIt)->getAttachedPlatform()!=platform){
+			distance += (*tempIt)->getLength();
+		} else {
+			distance += (platform->getOffset()+platform->getLength());
+			break;
+		}
+	}
+	return distance;
+}
+double TrainPathMover::getDistanceToNextTrain(const TrainPathMover& other) const
+{
+	std::vector<Block*>::const_iterator tempIt = currBlockIt;
+	std::vector<Block*>::const_iterator tempOtherIt = other.currBlockIt;
+	if(std::distance(tempIt, tempOtherIt)<0){
+		return -1.0;
+	}
+	double distance = (*currBlockIt)->getLength()-getDistCoveredOnCurrBlock();
+	while(tempIt!=tempOtherIt){
+		distance += (*tempIt)->getLength();
+		tempIt++;
+	}
+	distance += other.getDistCoveredOnCurrBlock();
+	return distance;
+}
+double TrainPathMover::getDistCoveredOnCurrBlock() const
+{
+	return distanceMoveToNextPoint+distMovedOnCurrBlock;
+}
+
 bool TrainPathMover::advanceToNextPoint()
 {
 	bool ret = false;
 	if(nextPolyPointIt != currPolyLine->getPoints().end())
 	{
-		//Advance the iterators to the points
+		distMovedOnCurrBlock += calcDistanceBetweenTwoPoints();
 		++currPolyPointIt;
 		++nextPolyPointIt;
-
 		if(nextPolyPointIt == currPolyLine->getPoints().end())
 		{
-			ret = advanceToNextPolyLine();
+			ret = advanceToNextBlock();
 		}
 	}
 	else
 	{
-		ret = advanceToNextPolyLine();
+		ret = advanceToNextBlock();
 	}
 
 	return ret;
 }
 
-bool TrainPathMover::advanceToNextPolyLine()
+bool TrainPathMover::advanceToNextBlock()
 {
 	bool ret = false;
-
 	currBlockIt++;
+	distMovedOnCurrBlock = 0;
 	if(currBlockIt != drivingPath.end())
 	{
 		currPolyLine = (*currBlockIt)->getPolyLine();
@@ -108,6 +141,7 @@ void TrainPathMover::setPath(const std::vector<Block*> &path)
 		currPolyPointIt = currPolyLine->getPoints().begin();
 		nextPolyPointIt = currPolyPointIt + 1;
 		distanceMoveToNextPoint = 0;
+		distMovedOnCurrBlock = 0;
 	}
 }
 

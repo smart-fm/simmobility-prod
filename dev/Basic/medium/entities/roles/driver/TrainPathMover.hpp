@@ -22,18 +22,26 @@ public:
      * @param path is a list of blocks
      */
 	void setPath(const std::vector<Block*> &path);
-
 	/**
 	 * get distance to next platform
-	 * @param next is the pointer to next platform
+	 * @param platform is the pointer to next platform
 	 */
-	double getDistanceToNextPlatform(Platform* next) const;
-
+	double getDistanceToNextPlatform(Platform* platform) const;
+	/**
+	 * get distance to next train
+	 * @param other is the path mover of next train
+	 */
+	double getDistanceToNextTrain(const TrainPathMover& other) const;
 	/**
 	 * check whether the path is completed
 	 * @return true if the path is completed
 	 */
 	bool isCompletePath() const;
+	/**
+	 * Calculates the distance covered on the current block
+     * @return the distance covered on the current block
+     */
+	double getDistCoveredOnCurrBlock() const;
 
 private:
 	/**
@@ -47,10 +55,10 @@ private:
 	 */
 	bool advanceToNextPoint();
 	/**
-	 * Advances the driver's position to the next poly-line
-	 * @return true if successfully move to next polyline
+	 * Advances the driver's position to the next block
+	 * @return true if successfully move to block
 	 */
-	bool advanceToNextPolyLine();
+	bool advanceToNextBlock();
 private:
 	/**The driving path is a vector of blocks*/
 	std::vector<Block*> drivingPath;
@@ -64,6 +72,8 @@ private:
 	std::vector<PolyPoint>::const_iterator nextPolyPointIt;
 	/**Stores the distance moved along the partial poly-line*/
 	double distanceMoveToNextPoint;
+	/**Stores the distance covered by the driver on the current block*/
+	double distMovedOnCurrBlock;
 };
 
 } /* namespace sim_mob */

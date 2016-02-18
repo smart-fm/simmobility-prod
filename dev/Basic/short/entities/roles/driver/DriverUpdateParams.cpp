@@ -100,17 +100,6 @@ void DriverUpdateParams::reset(timeslice now, const Driver &owner)
 
 	turningDirection = LANE_CHANGE_TO_NONE;
 
-	nvFwd.reset();
-	nvLeftFwd.reset();
-	nvRightFwd.reset();
-	nvBack.reset();
-	nvLeftBack.reset();
-	nvRightBack.reset();
-	nvLeftFwd2.reset();
-	nvLeftBack2.reset();
-	nvRightFwd2.reset();
-	nvRightBack2.reset();
-
 	density = 0;
 }
 

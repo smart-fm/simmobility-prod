@@ -182,39 +182,47 @@ void Conflux::PersonProps::printProps(std::string personId, uint32_t frame, std:
 	{
 		propStrm << "0x0";
 	}
-	propStrm << " seg:";
-	if (segment)
+	if(roleType == 5)
 	{
-		propStrm << segment->getRoadSegmentId();
+		propStrm << "activityPerformer}" << std::endl;
+		Print() << propStrm.str();
 	}
 	else
 	{
-		propStrm << "0x0";
+		propStrm << " seg:";
+		if (segment)
+		{
+			propStrm << segment->getRoadSegmentId();
+		}
+		else
+		{
+			propStrm << "0x0";
+		}
+		propStrm << " stats:";
+		if (segStats)
+		{
+			propStrm << segStats->getStatsNumberInSegment();
+		}
+		else
+		{
+			propStrm << "0x0";
+		}
+		propStrm << " lane:";
+		if (lane)
+		{
+			propStrm << lane->getLaneId();
+		}
+		else
+		{
+			propStrm << "0x0";
+		}
+		propStrm << " role:" << roleType
+				<< " isQueuing:" << isQueuing
+				<< " isMoving:" << isMoving
+				<< " dist:" << distanceToSegEnd
+				<< " }" << std::endl;
+		Print() << propStrm.str();
 	}
-	propStrm << " stats:";
-	if (segStats)
-	{
-		propStrm << segStats->getStatsNumberInSegment();
-	}
-	else
-	{
-		propStrm << "0x0";
-	}
-	propStrm << " lane:";
-	if (lane)
-	{
-		propStrm << lane->getLaneId();
-	}
-	else
-	{
-		propStrm << "0x0";
-	}
-	propStrm << " role:" << roleType
-			<< " isQueuing:" << isQueuing
-			<< " isMoving:" << isMoving
-			<< " dist:" << distanceToSegEnd
-			<< " }" << std::endl;
-	Print() << propStrm.str();
 }
 
 void Conflux::addAgent(Person_MT* person)

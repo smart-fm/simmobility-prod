@@ -169,6 +169,33 @@ void DriverMovement::frame_tick()
 			parentDriver->parent->setRemainingTimeThisTick(0.0); //(elapsed - seconds this tick)
 			parentDriver->parent->canMoveToNextSegment = Person_MT::NONE;
 			setParentData(params);
+
+			if(parentDriver && parentDriver->roleType == Role<Person_MT>::RL_DRIVER)
+			{
+				std::stringstream logout;
+				Person_MT* person = parentDriver->parent;
+				unsigned int segId = (person->getCurrSegStats() ? person->getCurrSegStats()->getRoadSegment()->getRoadSegmentId() : 0);
+				uint16_t statsNum = (person->getCurrSegStats() ? person->getCurrSegStats()->getStatsNumberInSegment() : 0);
+				logout << "(Driver" << "," << person->getDatabaseId() << ","
+						<< parentDriver->getParams().now.frame()
+						<< ",{"
+						<< "RoadSegment:" << segId
+						<< ",StatsNum:" << statsNum
+						<< ",Lane:" << (person->getCurrLane() ? person->getCurrLane()->getLaneId() : 0)
+						<< ",DistanceToEndSeg:" << person->distanceToEndOfSegment;
+				if (person->isQueuing)
+				{
+					logout << ",queuing:" << "true";
+				}
+				else
+				{
+					logout << ",queuing:" << "false";
+				}
+				logout << ",elapsedSeconds:" << params.elapsedSeconds;
+				logout << "})" << std::endl;
+				Print() << logout.str();
+			}
+
 			return;
 		}
 	}
@@ -178,6 +205,32 @@ void DriverMovement::frame_tick()
 	{
 		advance(params);
 		setParentData(params);
+	}
+
+	if(parentDriver && parentDriver->roleType == Role<Person_MT>::RL_DRIVER)
+	{
+		std::stringstream logout;
+		Person_MT* person = parentDriver->parent;
+		unsigned int segId = (person->getCurrSegStats() ? person->getCurrSegStats()->getRoadSegment()->getRoadSegmentId() : 0);
+		uint16_t statsNum = (person->getCurrSegStats() ? person->getCurrSegStats()->getStatsNumberInSegment() : 0);
+		logout << "(Driver" << "," << person->getDatabaseId() << ","
+				<< parentDriver->getParams().now.frame()
+				<< ",{"
+				<< "RoadSegment:" << segId
+				<< ",StatsNum:" << statsNum
+				<< ",Lane:" << (person->getCurrLane() ? person->getCurrLane()->getLaneId() : 0)
+				<< ",DistanceToEndSeg:" << person->distanceToEndOfSegment;
+		if (person->isQueuing)
+		{
+			logout << ",queuing:" << "true";
+		}
+		else
+		{
+			logout << ",queuing:" << "false";
+		}
+		logout << ",elapsedSeconds:" << params.elapsedSeconds;
+		logout << "})" << std::endl;
+		Print() << logout.str();
 	}
 }
 

@@ -182,39 +182,47 @@ void Conflux::PersonProps::printProps(std::string personId, uint32_t frame, std:
 	{
 		propStrm << "0x0";
 	}
-	propStrm << " segment:";
-	if (segment)
+	if(roleType == 5)
 	{
-		propStrm << segment->getRoadSegmentId();
+		propStrm << "activityPerformer}" << std::endl;
+		Print() << propStrm.str();
 	}
 	else
 	{
-		propStrm << "0x0";
+		propStrm << " seg:";
+		if (segment)
+		{
+			propStrm << segment->getRoadSegmentId();
+		}
+		else
+		{
+			propStrm << "0x0";
+		}
+		propStrm << " stats:";
+		if (segStats)
+		{
+			propStrm << segStats->getStatsNumberInSegment();
+		}
+		else
+		{
+			propStrm << "0x0";
+		}
+		propStrm << " lane:";
+		if (lane)
+		{
+			propStrm << lane->getLaneId();
+		}
+		else
+		{
+			propStrm << "0x0";
+		}
+		propStrm << " role:" << roleType
+				<< " isQueuing:" << isQueuing
+				<< " isMoving:" << isMoving
+				<< " dist:" << distanceToSegEnd
+				<< " }" << std::endl;
+		Print() << propStrm.str();
 	}
-	propStrm << " segstats:";
-	if (segStats)
-	{
-		propStrm << segStats->getStatsNumberInSegment();
-	}
-	else
-	{
-		propStrm << "0x0";
-	}
-	propStrm << " lane:";
-	if (lane)
-	{
-		propStrm << lane->getLaneId();
-	}
-	else
-	{
-		propStrm << "0x0";
-	}
-	propStrm << " roleType:" << roleType
-			<< " isQueuing:" << isQueuing
-			<< " isMoving:" << isMoving
-			<< " distance:" << distanceToSegEnd
-			<< " }" << std::endl;
-	Print() << propStrm.str();
 }
 
 void Conflux::addAgent(Person_MT* person)
@@ -440,11 +448,8 @@ void Conflux::updateAgent(Person_MT* person)
 	//update person's handler registration with MessageBus, if required
 	updateAgentContext(beforeUpdate, afterUpdate, person);
 
-//	if (beforeUpdate.roleType != 4)
-//	{
-//		beforeUpdate.printProps(person->getDatabaseId(), currFrame.frame(), std::to_string(confluxNode->getNodeId()) + ",before");
-//		afterUpdate.printProps(person->getDatabaseId(), currFrame.frame(), std::to_string(confluxNode->getNodeId()) + ",after");
-//	}
+	beforeUpdate.printProps(person->getDatabaseId(), currFrame.frame(), std::to_string(confluxNode->getNodeId()) + ",before");
+	afterUpdate.printProps(person->getDatabaseId(), currFrame.frame(), std::to_string(confluxNode->getNodeId()) + ",after");
 }
 
 bool Conflux::handleRoleChange(PersonProps& beforeUpdate, PersonProps& afterUpdate, Person_MT* person)

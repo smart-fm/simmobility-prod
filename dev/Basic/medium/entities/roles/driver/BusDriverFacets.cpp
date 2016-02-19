@@ -175,43 +175,43 @@ void BusDriverMovement::frame_tick()
 		parentBusDriver->updatePassengers();
 	}
 
-//	std::stringstream logout;
-//	Person_MT* person = parentBusDriver->parent;
-//	unsigned int segId = (person->getCurrSegStats() ? person->getCurrSegStats()->getRoadSegment()->getRoadSegmentId() : 0);
-//	uint16_t statsNum = (person->getCurrSegStats() ? person->getCurrSegStats()->getStatsNumberInSegment() : 0);
-//	const BusTrip* busTrip = dynamic_cast<const BusTrip*>(*(person->currTripChainItem));
-//	logout << "(BusDriver" << "," << person->getId() << ","
-//			<< person->busLine << ","
-//			<< (busTrip? busTrip->tripID : "NA")
-//			<< parentBusDriver->getParams().now.frame()
-//			<< ",{"
-//			<< "RoadSegment:" << segId
-//			<< ",StatsNum:" << statsNum
-//			<< ",Lane:" << (person->getCurrLane() ? person->getCurrLane()->getLaneId() : 0)
-//			<< ",DistanceToEndSeg:" << person->distanceToEndOfSegment;
-//
-//	if (parentBusDriver->getResource()->isMoving())
-//	{
-//		logout << ",ServingStop:" << "false";
-//	}
-//	else
-//	{
-//		logout << ",ServingStop:" << "true";
-//	}
-//	const BusStop* nextStop = routeTracker.getNextStop();
-//	logout << ",NextStop:" << (nextStop ? nextStop->getStopCode() : "0");
-//
-//	if (person->isQueuing)
-//	{
-//		logout << ",queuing:" << "true";
-//	}
-//	else
-//	{
-//		logout << ",queuing:" << "false";
-//	}
-//	logout << ",elapsedSeconds:" << params.elapsedSeconds;
-//	logout << "})" << std::endl;
-//	Print() << logout.str();
+	std::stringstream logout;
+	Person_MT* person = parentBusDriver->parent;
+	unsigned int segId = (person->getCurrSegStats() ? person->getCurrSegStats()->getRoadSegment()->getRoadSegmentId() : 0);
+	uint16_t statsNum = (person->getCurrSegStats() ? person->getCurrSegStats()->getStatsNumberInSegment() : 0);
+	const BusTrip* busTrip = dynamic_cast<const BusTrip*>(*(person->currTripChainItem));
+	logout << "(BusDriver" << "," << person->getId() << ","
+			<< person->busLine << ","
+			<< (busTrip? busTrip->tripID : "NA") << ","
+			<< parentBusDriver->getParams().now.frame()
+			<< ",{"
+			<< "RoadSegment:" << segId
+			<< ",StatsNum:" << statsNum
+			<< ",Lane:" << (person->getCurrLane() ? person->getCurrLane()->getLaneId() : 0)
+			<< ",DistanceToEndSeg:" << person->distanceToEndOfSegment;
+
+	if (parentBusDriver->getResource()->isMoving())
+	{
+		logout << ",Moving";
+	}
+	else
+	{
+		logout << ",ServingStop";
+	}
+	const BusStop* nextStop = routeTracker.getNextStop();
+	logout << ",NextStop:" << (nextStop ? nextStop->getStopCode() : "0");
+
+	if (person->isQueuing)
+	{
+		logout << ",queuing:true";
+	}
+	else
+	{
+		logout << ",queuing:false";
+	}
+	logout << ",elapsed:" << params.elapsedSeconds;
+	logout << "})" << std::endl;
+	Print() << logout.str();
 
 }
 
@@ -504,6 +504,7 @@ void BusDriverMovement::flowIntoNextLinkIfPossible(DriverUpdateParams& params)
 			//the bus driver is currently serving a stop
 			params.elapsedSeconds = params.secondsInTick; //remain in bus stop
 			parentBusDriver->parent->setRemainingTimeThisTick(0.0); //(elapsed - seconds this tick)
+			parentBusDriver->parent->canMoveToNextSegment = Person_MT::NONE; // so that in the next tick, flowIntoNextLinkIfPossible() is not called in the next tick without requesting for permission again
 		}
 	}
 }
@@ -663,13 +664,6 @@ bool BusDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 			departTime += getAcceptRate(laneInNextSegment, nxtSegStat); //in seconds
 		}
 
-		//skip acceptance capacity if there's no queue - this is done in DynaMIT
-		//commenting out - the delay from acceptRate is removed as per Yang Lu's suggestion
-		/*	if(nextRdSeg->getParentConflux()->numQueueingInSegment(nextRdSeg, true) == 0){
-				departTime = getLastAccept(nextLaneInNextSegment)
-								+ (0.01 * vehicle->length) / (nextRdSeg->getParentConflux()->getSegmentSpeed(nextRdSeg) ); // skip input capacity
-			}*/
-
 		params.elapsedSeconds = std::max(params.elapsedSeconds, departTime - (params.now.ms()/1000.0)); //in seconds
 
 		const Link* nextLink = getNextLinkForLaneChoice(nxtSegStat);
@@ -717,11 +711,6 @@ bool BusDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 		}
 		return res;
 	}
-}
-
-double BusDriverMovement::getAcceptRate(const Lane* lane, const SegmentStats* segStats)
-{
-	return segStats->getLaneParams(lane)->getAcceptRate() * sim_mob::BUS_PCU;
 }
 
 BusRouteTracker::BusRouteTracker(const BusRouteInfo& routeInfo) :

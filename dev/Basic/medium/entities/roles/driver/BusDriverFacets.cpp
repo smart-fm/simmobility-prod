@@ -504,6 +504,7 @@ void BusDriverMovement::flowIntoNextLinkIfPossible(DriverUpdateParams& params)
 			//the bus driver is currently serving a stop
 			params.elapsedSeconds = params.secondsInTick; //remain in bus stop
 			parentBusDriver->parent->setRemainingTimeThisTick(0.0); //(elapsed - seconds this tick)
+			parentBusDriver->parent->canMoveToNextSegment = Person_MT::NONE; // so that in the next tick, flowIntoNextLinkIfPossible() is not called in the next tick without requesting for permission again
 		}
 	}
 }
@@ -662,13 +663,6 @@ bool BusDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 		{
 			departTime += getAcceptRate(laneInNextSegment, nxtSegStat); //in seconds
 		}
-
-		//skip acceptance capacity if there's no queue - this is done in DynaMIT
-		//commenting out - the delay from acceptRate is removed as per Yang Lu's suggestion
-		/*	if(nextRdSeg->getParentConflux()->numQueueingInSegment(nextRdSeg, true) == 0){
-				departTime = getLastAccept(nextLaneInNextSegment)
-								+ (0.01 * vehicle->length) / (nextRdSeg->getParentConflux()->getSegmentSpeed(nextRdSeg) ); // skip input capacity
-			}*/
 
 		params.elapsedSeconds = std::max(params.elapsedSeconds, departTime - (params.now.ms()/1000.0)); //in seconds
 

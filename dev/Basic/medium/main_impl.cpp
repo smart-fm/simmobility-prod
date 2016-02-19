@@ -295,9 +295,9 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	{
 		personWorkers->assignAWorker(BusController::GetInstance());
 	}
-	if(TrainController::HasTrainController())
+	if(TrainController<Person_MT>::HasTrainController())
 	{
-		personWorkers->assignAWorker(TrainController::getInstance());
+		personWorkers->assignAWorker(TrainController<Person_MT>::getInstance());
 	}
 	//incident
 	personWorkers->assignAWorker(IncidentManager::getInstance());

@@ -111,7 +111,7 @@ void ExpandMidTermConfigFile::processConfig()
 
 	if(cfg.trainController.enabled)
 	{
-		TrainController::getInstance()->initTrainController();
+		TrainController<Person_MT>::getInstance()->initTrainController();
 	}
 
     /// Enable/Disble restricted region support based on configuration

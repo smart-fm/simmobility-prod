@@ -4,27 +4,39 @@
  *  Created on: Feb 11, 2016
  *      Author: zhang huai peng
  */
+#ifndef _CLASS_TRAIN_CONTROLLER
+#define _CLASS_TRAIN_CONTROLLER
 #include <string>
 #include <map>
+#include <type_traits>
+#include <boost/type_traits/is_base_of.hpp>
+#include <boost/static_assert.hpp>
 #include "geospatial/network/Block.hpp"
 #include "geospatial/network/Platform.hpp"
 #include "entities/Agent.hpp"
+#include "entities/misc/TrainTrip.hpp"
 
 namespace sim_mob {
 /**
  * the structure to store the train route
  */
-struct TrainRoute{
-	TrainRoute():sequenceNo(0){};
+struct TrainRoute {
+	TrainRoute() :
+			sequenceNo(0), blockId(0) {
+	}
+	;
 	std::string lineId;
-	std::string blockId;
+	int blockId;
 	int sequenceNo;
 };
 /**
  * the structure to store the train stops
  */
-struct TrainRoutePlatform{
-	TrainRoutePlatform():sequenceNo(0){};
+struct TrainPlatform {
+	TrainPlatform() :
+			sequenceNo(0) {
+	}
+	;
 	std::string lineId;
 	std::string platformNo;
 	int sequenceNo;
@@ -32,8 +44,11 @@ struct TrainRoutePlatform{
 /**
  * the structure to store train schedule
  */
-struct TrainSchedule{
-	TrainSchedule():scheduleId(0),headwaySec(0){};
+struct TrainSchedule {
+	TrainSchedule() :
+			scheduleId(0), headwaySec(0) {
+	}
+	;
 	int scheduleId;
 	std::string lineId;
 	std::string startTime;
@@ -43,15 +58,23 @@ struct TrainSchedule{
 /**
  * the structure to store transfered time between platforms
  */
-struct TransferTimeInPlatform{
-	TransferTimeInPlatform():transferedTimeSec(0){};
+struct TransferTimeInPlatform {
+	TransferTimeInPlatform() :
+			transferedTimeSec(0) {
+	}
+	;
 	std::string stationNo;
 	std::string platformFirst;
 	std::string platformSecond;
 	int transferedTimeSec;
 };
 
-class TrainController : public sim_mob::Agent{
+template<typename PERSON>
+class TrainController: public sim_mob::Agent {
+	BOOST_STATIC_ASSERT_MSG(
+			(boost::is_base_of<sim_mob::Person, PERSON>::value),
+			"T must be a descendant of sim_mob::Person"
+	);
 public:
 	explicit TrainController(int id = -1, const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered);
 	virtual ~TrainController();
@@ -73,6 +96,10 @@ public:
 	 * checks if the train controller instance exists
 	 */
 	static bool HasTrainController();
+	/**
+	 * assign train trip to person
+	 */
+	void assignTrainTripToPerson(std::set<Entity*>& activeAgents);
 protected:
 	/**
 	 * inherited from base class agent to initialize parameters for train controller
@@ -92,6 +119,20 @@ protected:
 	 * Signals are non-spatial in nature.
 	 */
 	virtual bool isNonspatial();
+	/**
+	 * get block list for a particular line
+	 * @param lineId is line id
+	 * @param route is the list of blocks
+	 * @return true if successfully get the list of blocks
+	 */
+	bool getTrainRoute(const std::string& lineId, std::vector<Block*>& route);
+	/**
+	 * get platform list for a particular line
+	 * @param lineId is line id
+	 * @param platforms are the list of platforms
+	 * @return true if successfully get the list of platforms
+	 */
+	bool getTrainPlatforms(const std::string& lineId, std::vector<Platform*>& platforms);
 private:
 	/**
 	 * the function to load platforms from DB
@@ -128,9 +169,9 @@ private:
 	/**the map from id to the object of block*/
 	std::map<unsigned int, Block*> mapOfIdvsBlocks;
 	/**the map from line id to the train route*/
-	std::map<std::string, std::vector<TrainRoute>> mapOfIdvsRoutes;
+	std::map<std::string, std::vector<TrainRoute>> mapOfIdvsTrainRoutes;
 	/**the map from line id to the train platform*/
-	std::map<std::string, std::vector<TrainRoutePlatform>> mapOfIdvsTrainPlatforms;
+	std::map<std::string, std::vector<TrainPlatform>> mapOfIdvsTrainPlatforms;
 	/**the map from id to the schedule table*/
 	std::map<std::string, std::vector<TrainSchedule>> mapOfIdvsSchedules;
 	/**the map from id to polyline object*/
@@ -139,6 +180,9 @@ private:
 	static TrainController* pInstance;
 };
 
-} /* namespace sim_mob */
+}
+/* namespace sim_mob */
 
-
+#define _CLASS_TRAIN_CONTROLLER_FUNCTIONS
+#include "TrainController.cpp"
+#endif

@@ -51,6 +51,9 @@ HouseholdAgent::HouseholdAgent(BigSerial _id, HM_Model* _model, const Household*
 
     householdBiddingWindow = config.ltParams.housingModel.householdBiddingWindow * (double)rand() / RAND_MAX + 1;
 
+    if( household )
+    	(const_cast<Household*>(household))->setTimeOnMarket(householdBiddingWindow);
+
     futureTransitionOwn = false;
 }
 

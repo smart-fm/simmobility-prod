@@ -72,7 +72,7 @@ namespace
 											"%83%, %84%, %85%, %86%, %87%, %88%, %89%, %90%, %91%, %92%, %93%, %94%, %95%, %96%, %97%, %98%, %99%, %100%, %101%, %102%, %103%, %104%, %105%, %106%, %107%, %108%, %109%, %110%, %111%, %112%, %113%, %114%, %115%, %116%, %117%, %118%, "
 											"%119%, %120%, %121%, %122%, %123%, %124%, %125%, %126%, %127%, %128%, %129%, %130%, %131%, %132%, %133%, %134%, %135%, %136%, %137%, %138%, %139%, %140%, %141%, %142%, %143%, %144%, %145%, %146%, %147%, %148%, %149%, %150%, %151%, "
 											"%152%, %153%, %154%, %155%, %156%, %157%, %158%, %159%, %160%, %161%, %162%, %163%, %164%, %165%, %166%, %167%, %168%, %169%, %170%, %171%, %172%, %173%, %174%, %175%, %176%, %177%, %178%, %179%, %180%, %181%, %182%, %183%, %184%, "
-											"%185%, %186%, %187%, %188%, %189%, %190%, %191%, %192%, %193%, %194%, %195%, %196%, %197%, %198%, %199%, %200%, %201%"
+											"%185%, %186%, %187%, %188%, %189%, %190%, %191%, %192%, %193%, %194%, %195%, %196%, %197%, %198%, %199%, %200%, %201%, %202%, %203%, %204%, %205%, %206%, %207%, %208%, %209%, %210%, %211%, %212%, %213%, %214%, %215%, %216%, %217%"
 											)% householdId % probabilities[0]  % probabilities[1]  % probabilities[2]  % probabilities[3]  % probabilities[4]  % probabilities[5]  % probabilities[6]  % probabilities[7]  % probabilities[8]  % probabilities[9]  % probabilities[10]  % probabilities[11]  % probabilities[12]  % probabilities[13]
 											% probabilities[14]  % probabilities[15]  % probabilities[16]  % probabilities[17]  % probabilities[18]  % probabilities[19]  % probabilities[20]  % probabilities[21]  % probabilities[22]  % probabilities[23]  % probabilities[24]  % probabilities[25]  % probabilities[26]  % probabilities[27]
 											% probabilities[28]  % probabilities[29]  % probabilities[30]  % probabilities[31]  % probabilities[32]  % probabilities[33]  % probabilities[34]  % probabilities[35]  % probabilities[36]  % probabilities[37]  % probabilities[38]  % probabilities[39]  % probabilities[40]  % probabilities[41]
@@ -87,7 +87,8 @@ namespace
 											% probabilities[150]  % probabilities[151]  % probabilities[152]  % probabilities[153]  % probabilities[154]  % probabilities[155]  % probabilities[156]  % probabilities[157]  % probabilities[158]  % probabilities[159]  % probabilities[160]  % probabilities[161]  % probabilities[162]
 											% probabilities[163]  % probabilities[164]  % probabilities[165]  % probabilities[166]  % probabilities[167]  % probabilities[168]  % probabilities[169]  % probabilities[170]  % probabilities[171]  % probabilities[172]  % probabilities[173]  % probabilities[174]  % probabilities[175]
 											% probabilities[176]  % probabilities[177]  % probabilities[178]  % probabilities[179]  % probabilities[180]  % probabilities[181]  % probabilities[182]  % probabilities[183]  % probabilities[184]  % probabilities[185]  % probabilities[186]  % probabilities[187]  % probabilities[188]
-											% probabilities[189]  % probabilities[190]  % probabilities[191]  % probabilities[192]  % probabilities[193]  % probabilities[194]  % probabilities[195]  % probabilities[196]  % probabilities[197]  % probabilities[198]  % probabilities[199];
+											% probabilities[189]  % probabilities[190]  % probabilities[191]  % probabilities[192]  % probabilities[193]  % probabilities[194]  % probabilities[195]  % probabilities[196]  % probabilities[197]  % probabilities[198]  % probabilities[199]  % probabilities[200]  % probabilities[201]
+											% probabilities[202]  % probabilities[203]  % probabilities[204]  % probabilities[205]  % probabilities[206]  % probabilities[207]  % probabilities[208]  % probabilities[209]  % probabilities[210]  % probabilities[211]  % probabilities[212]  % probabilities[213]  % probabilities[214]  % probabilities[215];
 
     	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_SCREENINGPROBABILITIES,fmtr.str());
    }
@@ -319,7 +320,6 @@ void HouseholdBidderRole::computeHouseholdAffordability()
 
 	bidderHousehold->setAffordabilityAmount( householdAffordabilityAmount );
 
-	//
 	HM_Model *model = getParent()->getModel();
 
 	Unit *unit = const_cast<Unit*>(model->getUnitById( household->getUnitId() ));

@@ -24,6 +24,15 @@ namespace sim_mob
 {
 	namespace long_term
 	{
+
+		void printAwakening(int day, Household *household)
+		{
+			//day household_id timeOnMarket
+			boost::format fmtr = boost::format("%1% %2% %3%") % (day + 1) % household->getId() % household->getTimeOnMarket();
+			AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_AWAKENING, fmtr.str());
+
+		}
+
 		AwakeningSubModel::AwakeningSubModel() {}
 
 		AwakeningSubModel::~AwakeningSubModel() {}
@@ -148,6 +157,8 @@ namespace sim_mob
 				bidder->setActive(true);
 				model->incrementBidders();
 
+			    printAwakening(day, household);
+
 				#ifdef VERBOSE
 				PrintOutV("[day " << day << "] Lifestyle 1. Household " << getId() << " has been awakened." << model->getNumberOfBidders()  << std::endl);
 				#endif
@@ -172,6 +183,8 @@ namespace sim_mob
 				seller->setActive(true);
 				bidder->setActive(true);
 				model->incrementBidders();
+
+				printAwakening(day, household);
 
 				#ifdef VERBOSE
 				PrintOutV("[day " << day << "] Lifestyle 2. Household " << getId() << " has been awakened. "  << model->getNumberOfBidders() << std::endl);
@@ -198,6 +211,8 @@ namespace sim_mob
 				seller->setActive(true);
 				bidder->setActive(true);
 				model->incrementBidders();
+
+				printAwakening(day, household);
 
 				#ifdef VERBOSE
 				PrintOutV("[day " << day << "] Lifestyle 3. Household " << getId() << " has been awakened. " << model->getNumberOfBidders() << std::endl);
@@ -272,6 +287,8 @@ namespace sim_mob
 		    		n--;
 					continue;
 				}
+
+		    	printAwakening(day, potentialAwakening);
 
 		    	extEv.setDay( day + 1 );
 		    	extEv.setType( ExternalEvent::NEW_JOB );

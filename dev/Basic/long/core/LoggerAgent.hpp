@@ -51,7 +51,8 @@ namespace sim_mob
                 LOG_INDIVIDUAL_LOGSUM_VO,
 				LOG_SCREENINGPROBABILITIES,
 				LOG_HHCHOICESET,
-				LOG_ERROR
+				LOG_ERROR,
+				LOG_AWAKENING
             };
 
             LoggerAgent();

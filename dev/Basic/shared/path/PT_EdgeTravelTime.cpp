@@ -16,7 +16,7 @@ namespace
 	/**time interval value used for processing data.*/
 	const unsigned int INTERVAL_MS = 5*60*1000;
 	/** millisecs conversion unit from seconds*/
-	const double MILLISECS_CONVERT_UNIT = 1000.0;
+	const double MS_IN_SECONDS = 1000.0;
 }
 
 namespace sim_mob
@@ -44,43 +44,45 @@ PT_EdgeTravelTime* PT_EdgeTravelTime::getInstance()
 	return instance;
 }
 
-void PT_EdgeTravelTime::updateEdgeTravelTime(const unsigned int edgeId,const unsigned int startTime,const unsigned int endTime,const std::string& travelMode)
+void PT_EdgeTravelTime::updateEdgeTravelTime(const unsigned int edgeId, const unsigned int startTime, const unsigned int endTime, const std::string& travelMode)
 {
 	const sim_mob::ConfigParams& cfg = sim_mob::ConfigManager::GetInstance().FullConfig();
-	if(!cfg.isEnabledEdgeTravelTime()){
+	if (!cfg.isEnabledEdgeTravelTime() || edgeId == 0)
+	{
 		return;
-	}
-	if(edgeId==0){
-		return;
-	}
-	boost::unique_lock<boost::mutex> lock(instanceMutex);
-	std::map<int, EdgeTimeSlotMap>::iterator it = storeEdgeTimes.find(edgeId);
-	if(it==storeEdgeTimes.end()){
-		EdgeTimeSlotMap edgeTime;
-		storeEdgeTimes[edgeId]= edgeTime;
 	}
 
+	boost::unique_lock<boost::mutex> lock(instanceMutex);
+
 	EdgeTimeSlotMap& edgeTime = storeEdgeTimes[edgeId];
-	unsigned int index = startTime/INTERVAL_MS;
+	unsigned int index = startTime / INTERVAL_MS;
 	EdgeTimeSlotMap::iterator itSlot = edgeTime.find(index);
-	if(itSlot==edgeTime.end()){
+	if (itSlot == edgeTime.end())
+	{
 		EdgeTimeSlot slot;
-		edgeTime[index]=slot;
-		edgeTime[index].edgeId = edgeId;
-		edgeTime[index].timeInterval = index;
+		slot.edgeId = edgeId;
+		slot.timeInterval = index;
+		edgeTime[index] = slot;
 	}
 
 	EdgeTimeSlot& slot = edgeTime[index];
-	if (travelMode == "WaitingBusActivity") {
-		edgeTime[index].waitTime += (endTime - startTime) / MILLISECS_CONVERT_UNIT;
-		edgeTime[index].countforWaitTime++;
-	} else {
-		edgeTime[index].countforLinkTime++;
-		edgeTime[index].linkTravelTime += (endTime - startTime) / MILLISECS_CONVERT_UNIT;
-		if (travelMode == "Walk") {
-			edgeTime[index].walkTime += (endTime - startTime) / MILLISECS_CONVERT_UNIT;
-		} else {
-			edgeTime[index].dayTransitTime += (endTime - startTime) / MILLISECS_CONVERT_UNIT;
+	double timeInSecs = ((double)(endTime - startTime)) / MS_IN_SECONDS;
+	if (travelMode == "WaitingBusActivity")
+	{
+		slot.waitTime +=
+		slot.countforWaitTime++;
+	}
+	else
+	{
+		slot.countforLinkTime++;
+		slot.linkTravelTime += timeInSecs;
+		if (travelMode == "Walk")
+		{
+			slot.walkTime += timeInSecs;
+		}
+		else
+		{
+			slot.dayTransitTime += timeInSecs;
 		}
 	}
 }
@@ -103,7 +105,7 @@ void PT_EdgeTravelTime::exportEdgeTravelTime() const
     		DailyTime startTime = ConfigManager::GetInstance().FullConfig().simStartTime();
     		unsigned int start = (startTime.getValue()/INTERVAL_MS)*INTERVAL_MS;
     		ptEdgeTimeLogger << DailyTime(start+slot.timeInterval*INTERVAL_MS).getStrRepr()<<",";
-    		ptEdgeTimeLogger << DailyTime(start+(slot.timeInterval+1)*INTERVAL_MS-MILLISECS_CONVERT_UNIT).getStrRepr() <<",";
+    		ptEdgeTimeLogger << DailyTime(start+(slot.timeInterval+1)*INTERVAL_MS-MS_IN_SECONDS).getStrRepr() <<",";
     		ptEdgeTimeLogger << (slot.waitTime>0.0?slot.waitTime/slot.countforWaitTime:0) << ",";
     		ptEdgeTimeLogger << (slot.walkTime>0.0?slot.walkTime/slot.countforLinkTime:0) << ",";
     		ptEdgeTimeLogger << (slot.dayTransitTime>0.0?slot.dayTransitTime/slot.countforLinkTime:0) <<",";

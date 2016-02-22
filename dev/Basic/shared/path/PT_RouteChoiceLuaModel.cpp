@@ -269,6 +269,7 @@ void PT_RouteChoiceLuaModel::loadPT_PathSet(int origin, int dest, PT_PathSet& pa
 			}
 			startTime = startTime + pathEdge.getLinkTravelTimeSecs()*1000;
 		}
+		path.setPathEdges(pathEdges);
 		pathSet.pathSet.insert(path);
 	}
 }

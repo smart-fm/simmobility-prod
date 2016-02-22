@@ -17,8 +17,8 @@
 #include "entities/TravelTimeManager.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "geospatial/network/WayPoint.hpp"
+#include "path/PT_EdgeTravelTime.hpp"
 #include "path/PT_RouteChoiceLuaProvider.hpp"
-#include "entities/PT_EdgeTravelTime.hpp"
 #include "util/DailyTime.hpp"
 
 using namespace std;

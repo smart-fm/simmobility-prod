@@ -76,6 +76,7 @@ public:
      */
 	struct AgentConstraints {
 		AgentConstraints() : startingAutoAgentID(0) {}
+
 		int startingAutoAgentID;
 		std::set<unsigned int> manualAgentIDs;
 	};
@@ -207,6 +208,9 @@ private:
     /// is public transit enabled
     bool publicTransitEnabled;
 
+    /// pt edge travel time generation
+    bool enabledEdgeTravelTime;
+
 public:
 	/////////////////////////////////////////////////////////////////////////////////////
     /// These are helper functions, to make compatibility between old/new parsing easier.
@@ -328,6 +332,10 @@ public:
     bool isPublicTransitEnabled() const;
 
     void setPublicTransitEnabled(bool value);
+
+    bool isEnabledEdgeTravelTime() const;
+
+    void setEnabledEdgeTravelTime(bool enabledEdgeTravelTime);
 };
 
 

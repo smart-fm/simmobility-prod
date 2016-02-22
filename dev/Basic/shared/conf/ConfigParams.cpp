@@ -25,7 +25,7 @@ sim_mob::ConfigParams::ConfigParams() : RawConfigParams(),
 	publicTransitEnabled(false), totalRuntimeTicks(0), totalWarmupTicks(0), numAgentsSkipped(0),
     using_MPI(false), outNetworkFileName("out.network.txt"),
     is_simulation_repeatable(false), sealedNetwork(false), controlMgr(nullptr),
-    workerPublisherEnabled(false)
+    workerPublisherEnabled(false), enabledEdgeTravelTime(false)
 {}
 
 sim_mob::ConfigParams::~ConfigParams()
@@ -264,4 +264,14 @@ bool ConfigParams::isPublicTransitEnabled() const{
 void ConfigParams::setPublicTransitEnabled(bool value)
 {
 	publicTransitEnabled = value;
+}
+
+bool ConfigParams::isEnabledEdgeTravelTime() const
+{
+	return enabledEdgeTravelTime;
+}
+
+void ConfigParams::setEnabledEdgeTravelTime(bool enabledEdgeTravelTime)
+{
+	this->enabledEdgeTravelTime = enabledEdgeTravelTime;
 }

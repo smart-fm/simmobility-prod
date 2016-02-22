@@ -383,7 +383,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	PT_Statistics::getInstance()->storeStatistics();
 	PT_Statistics::resetInstance();
 
-	if(mtConfig.enabledEdgeTravelTime)
+	if(config.isEnabledEdgeTravelTime())
 	{
 		PT_EdgeTravelTime::getInstance()->exportEdgeTravelTime();
 	}

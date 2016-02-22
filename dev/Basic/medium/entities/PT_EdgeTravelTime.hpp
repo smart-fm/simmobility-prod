@@ -1,10 +1,3 @@
-/*
- * PT_EdgeTravelTime.hpp
- *
- *  Created on: Jan 28, 2016
- *      Author: zhang huai peng
- */
-
 #pragma once
 
 #include <set>
@@ -15,6 +8,11 @@ namespace sim_mob
 namespace medium
 {
 
+/**
+ * Travel time manager for edges in PT graph
+ *
+ * \author Zhang Huai Peng
+ */
 class PT_EdgeTravelTime {
 public:
 	PT_EdgeTravelTime();

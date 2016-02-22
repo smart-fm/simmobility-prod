@@ -7,7 +7,9 @@
 
 #include "entities/PT_EdgeTravelTime.hpp"
 #include "conf/ConfigManager.hpp"
-#include "config/MT_Config.hpp"
+#include "conf/ConfigParams.hpp"
+#include "util/Profiler.hpp"
+#include "logging/Log.hpp"
 
 namespace
 {
@@ -47,8 +49,8 @@ PT_EdgeTravelTime* PT_EdgeTravelTime::getInstance()
 
 void PT_EdgeTravelTime::updateEdgeTravelTime(const unsigned int edgeId,const unsigned int startTime,const unsigned int endTime,const std::string& travelMode)
 {
-	const medium::MT_Config& mtCfg = medium::MT_Config::getInstance();
-	if(!mtCfg.enabledEdgeTravelTime){
+	const sim_mob::ConfigParams& cfg = sim_mob::ConfigManager::GetInstance().FullConfig();
+	if(!cfg.isEnabledEdgeTravelTime()){
 		return;
 	}
 	if(edgeId==0){
@@ -89,8 +91,8 @@ void PT_EdgeTravelTime::updateEdgeTravelTime(const unsigned int edgeId,const uns
 
 void PT_EdgeTravelTime::exportEdgeTravelTime() const
 {
-	const medium::MT_Config& mtCfg = medium::MT_Config::getInstance();
-	if(!mtCfg.enabledEdgeTravelTime){
+	const sim_mob::ConfigParams& cfg = sim_mob::ConfigManager::GetInstance().FullConfig();
+	if(!cfg.isEnabledEdgeTravelTime()){
 		return;
 	}
     const std::string& fileName("pt_edge_time.csv");

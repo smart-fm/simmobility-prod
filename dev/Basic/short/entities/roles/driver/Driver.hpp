@@ -71,10 +71,7 @@ private:
 	int yieldingToInIntersection;
 
 	/**Represents the vehicle this driver is controlling.*/
-	Vehicle *vehicle;
-
-	/**Indicates whether the driver is a bus driver*/
-	bool isBusDriver;
+	Vehicle *vehicle;	
 
 	/**Pointer to the Driver object that is performing 'nosing'. (Current driver is 'yielding')*/
 	const Driver *yieldingToDriver;
@@ -153,6 +150,9 @@ private:
 protected:
 	/**Current position of the Driver*/
 	Point currPos;
+	
+	/**Indicates whether the driver is a bus driver*/
+	bool isBusDriver;
 
 public:
 	Driver(Person_ST *parent, MutexStrategy mtxStrat, DriverBehavior* behavior = nullptr, DriverMovement* movement = nullptr,

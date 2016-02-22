@@ -251,6 +251,7 @@ void PT_RouteChoiceLuaModel::loadPT_PathSet(int origin, int dest, PT_PathSet& pa
 	{
 		std::vector<PT_NetworkEdge> pathEdges = path.getPathEdges();
 		unsigned int startTime = curStartTime;
+		double pathTravelTime = 0;
 		for(auto& pathEdge : pathEdges)
 		{
 			int edgeId = pathEdge.getEdgeId();
@@ -267,10 +268,13 @@ void PT_RouteChoiceLuaModel::loadPT_PathSet(int origin, int dest, PT_PathSet& pa
 				pathEdge.setTransitTimeSecs(dayTransitTime);
 				pathEdge.setLinkTravelTimeSecs(edgeTravelTime);
 			}
+			pathTravelTime = pathTravelTime + pathEdge.getLinkTravelTimeSecs();
 			startTime = startTime + pathEdge.getLinkTravelTimeSecs()*1000;
 		}
 		path.setPathEdges(pathEdges);
+		path.setPathTravelTime(pathTravelTime);
 		pathSet.pathSet.insert(path);
+		pathSet.computeAndSetPathSize();
 	}
 }
 

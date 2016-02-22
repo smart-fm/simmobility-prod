@@ -116,7 +116,7 @@ namespace
 		sim_mob::SinglePath* res = nullptr;
 		double min = std::numeric_limits<double>::max();
 		double tmp = 0.0;
-		BOOST_FOREACH(sim_mob::SinglePath*sp, pathChoices)
+		for(sim_mob::SinglePath* sp : pathChoices)
 		{
 			if(sp->path.empty())
 			{
@@ -157,7 +157,7 @@ namespace
 
 		bool uniquePath;
 		//pathsize
-		BOOST_FOREACH(sim_mob::SinglePath* sp, ps->pathChoices)
+		for(sim_mob::SinglePath* sp : ps->pathChoices)
 		{
 			uniquePath = true; //this variable checks if a path has No common segments with the rest of the pathset
 			double size=0.0;
@@ -181,7 +181,7 @@ namespace
 				double l = lnk->getLength();
 				double sum = 0.0;
 				//For each path j in the path choice set PathSet(O, D):
-				BOOST_FOREACH(sim_mob::SinglePath* spj, ps->pathChoices)
+				for(sim_mob::SinglePath* spj : ps->pathChoices)
 				{
 					if(spj->includesLink(lnk))
 					{
@@ -192,7 +192,7 @@ namespace
 						}
 					}
 				} // for j
-				size += l / sp->length / sum;
+				size += (l / sp->length) / sum;
 			}
 			//is this a unique path ?
 			if(uniquePath)

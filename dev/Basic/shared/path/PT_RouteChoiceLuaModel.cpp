@@ -17,6 +17,7 @@
 #include "lua/LuaLibrary.hpp"
 #include "lua/third-party/luabridge/LuaBridge.h"
 #include "lua/third-party/luabridge/RefCountedObject.h"
+#include "PT_EdgeTravelTime.hpp"
 #include "PT_PathSetManager.hpp"
 #include "PT_RouteChoiceLuaModel.hpp"
 #include "SOCI_Converters.hpp"
@@ -27,7 +28,7 @@ using namespace luabridge;
 namespace sim_mob
 {
 
-PT_RouteChoiceLuaModel::PT_RouteChoiceLuaModel() : publicTransitPathSet(nullptr)
+PT_RouteChoiceLuaModel::PT_RouteChoiceLuaModel() : publicTransitPathSet(nullptr), curStartTime(0)
 {
 	ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
 	ptPathsetStoredProcName = cfg.getDatabaseProcMappings().procedureMappings["pt_pathset"];
@@ -231,23 +232,44 @@ void PT_RouteChoiceLuaModel::mapClasses()
 			.endClass();
 }
 
-void loadPT_PathsetFromDB(soci::session& sql, const std::string& funcName, int originNode, int destNode, sim_mob::PT_PathSet& pathSet)
+void loadPT_PathsetFromDB(soci::session& sql, const std::string& funcName, int originNode, int destNode, std::vector<sim_mob::PT_Path>& paths)
 {
 	soci::rowset<sim_mob::PT_Path> rs =
 			(sql.prepare << std::string("select * from ") + funcName + "(:o_node,:d_node)", soci::use(originNode), soci::use(destNode));
 	for (soci::rowset<sim_mob::PT_Path>::const_iterator it = rs.begin(); it != rs.end(); ++it)
 	{
-		pathSet.pathSet.insert(*it);
+		paths.push_back(*it);
 	}
 }
 
 void PT_RouteChoiceLuaModel::loadPT_PathSet(int origin, int dest, PT_PathSet& pathSet)
 {
-	loadPT_PathsetFromDB(*dbSession, ptPathsetStoredProcName, origin, dest, pathSet);
-	std::set<PT_Path,cmp_path_vector>& paths = pathSet.pathSet;
+	std::vector<sim_mob::PT_Path> paths;
+	loadPT_PathsetFromDB(*dbSession, ptPathsetStoredProcName, origin, dest, paths);
+	const PT_EdgeTravelTime* ptEdgeTT = PT_EdgeTravelTime::getInstance();
 	for(auto& path : paths)
 	{
-
+		std::vector<PT_NetworkEdge> pathEdges = path.getPathEdges();
+		unsigned int startTime = curStartTime;
+		for(auto& pathEdge : pathEdges)
+		{
+			int edgeId = pathEdge.getEdgeId();
+			double waitTime = 0;
+			double walkTime = 0;
+			double dayTransitTime = 0;
+			double edgeTravelTime = 0;
+			bool ttFetched = ptEdgeTT->getEdgeTravelTime(edgeId, startTime, waitTime, walkTime, dayTransitTime, edgeTravelTime);
+			if(ttFetched)
+			{
+				pathEdge.setWaitTimeSecs(waitTime);
+				pathEdge.setWalkTimeSecs(walkTime);
+				pathEdge.setDayTransitTimeSecs(dayTransitTime);
+				pathEdge.setTransitTimeSecs(dayTransitTime);
+				pathEdge.setLinkTravelTimeSecs(edgeTravelTime);
+			}
+			startTime = startTime + pathEdge.getLinkTravelTimeSecs()*1000;
+		}
+		pathSet.pathSet.insert(path);
 	}
 }
 

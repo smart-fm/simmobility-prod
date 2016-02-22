@@ -49,8 +49,8 @@ public:
      * @param linkTravelTime is link travel time for this edge
      * @return true if finding corresponding record
      */
-    bool getEdgeTravelTime(const unsigned int edgeId, unsigned int currentTime, double& waitTime, double& walkTime,
-			double& dayTransitTime, double& linkTravelTime);
+    bool getEdgeTravelTime(int edgeId, unsigned int currentTime, double& waitTime, double& walkTime,
+			double& dayTransitTime, double& linkTravelTime) const;
 
 private:
     /**global instance to store the pointer to this class*/

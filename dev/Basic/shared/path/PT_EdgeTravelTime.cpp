@@ -170,30 +170,35 @@ void PT_EdgeTravelTime::loadOneEdgeTravelTime(const unsigned int edgeId,
 	edgeTime[index].dayTransitTime = dayTransitTime;
 }
 
-bool PT_EdgeTravelTime::getEdgeTravelTime(const unsigned int edgeId,
-		unsigned int currentTime, double& waitTime, double& walkTime,
-		double& dayTransitTime, double& linkTravelTime)
+bool PT_EdgeTravelTime::getEdgeTravelTime(int edgeId,
+		unsigned int currentTime,
+		double& waitTime,
+		double& walkTime,
+		double& dayTransitTime,
+		double& linkTravelTime) const
 {
 	bool res = false;
-	std::map<int, EdgeTimeSlotMap>::iterator it = loadEdgeTimes.find(edgeId);
-	if(it==loadEdgeTimes.end()){
+	std::map<int, EdgeTimeSlotMap>::const_iterator it = loadEdgeTimes.find(edgeId);
+	if (it == loadEdgeTimes.end())
+	{
 		return res;
 	}
 
-	EdgeTimeSlotMap& edgeTime = loadEdgeTimes[edgeId];
+	const EdgeTimeSlotMap& edgeTime = it->second;
 	DailyTime start = DailyTime(currentTime);
-	unsigned int index = start.getValue()/INTERVAL_MS;
-	EdgeTimeSlotMap::iterator itSlot = edgeTime.find(index);
-	if(itSlot==edgeTime.end()){
+	unsigned int index = start.getValue() / INTERVAL_MS;
+	EdgeTimeSlotMap::const_iterator itSlot = edgeTime.find(index);
+	if (itSlot == edgeTime.end())
+	{
 		return res;
 	}
 
-	res = true;
-	EdgeTimeSlot& slot = edgeTime[index];
+	const EdgeTimeSlot& slot = itSlot->second;
 	waitTime = slot.waitTime;
 	walkTime = slot.walkTime;
 	dayTransitTime = slot.dayTransitTime;
 	linkTravelTime = slot.linkTravelTime;
+	res = true;
 	return res;
 }
 }

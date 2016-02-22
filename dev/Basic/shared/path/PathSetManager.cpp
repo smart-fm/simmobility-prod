@@ -1241,8 +1241,11 @@ double sim_mob::PathSetManager::generatePartialUtility(const sim_mob::SinglePath
 	//Obtain the travel distance l and the highway distance w of the path.
 	pUtility += sp->length * pathSetParam->bLength ;
 	pUtility += sp->highWayDistance * pathSetParam->bHighway;
-	//Obtain the travel cost c of the path.
-//	pUtility += sp->travelCost * pathSetParam->bCost;
+
+	if(sp->highWayDistance > 0)
+	{
+		pUtility += pathSetParam->highwayBias;
+	}
 	//Obtain the number of signalized intersections s of the path.
 	pUtility += sp->signalNumber * pathSetParam->bSigInter;
 	//Obtain the number of right turns f of the path.

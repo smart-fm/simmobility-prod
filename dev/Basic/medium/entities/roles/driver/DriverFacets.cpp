@@ -170,7 +170,7 @@ void DriverMovement::frame_tick()
 			parentDriver->parent->canMoveToNextSegment = Person_MT::NONE;
 			setParentData(params);
 
-			if(parentDriver && parentDriver->roleType == Role<Person_MT>::RL_DRIVER)
+			/*if(parentDriver && parentDriver->roleType == Role<Person_MT>::RL_DRIVER)
 			{
 				std::stringstream logout;
 				Person_MT* person = parentDriver->parent;
@@ -194,7 +194,7 @@ void DriverMovement::frame_tick()
 				logout << ",elapsedSeconds:" << params.elapsedSeconds;
 				logout << "})" << std::endl;
 				Print() << logout.str();
-			}
+			}*/
 
 			return;
 		}
@@ -207,7 +207,7 @@ void DriverMovement::frame_tick()
 		setParentData(params);
 	}
 
-	if(parentDriver && parentDriver->roleType == Role<Person_MT>::RL_DRIVER)
+	/*if(parentDriver && parentDriver->roleType == Role<Person_MT>::RL_DRIVER)
 	{
 		std::stringstream logout;
 		Person_MT* person = parentDriver->parent;
@@ -231,7 +231,7 @@ void DriverMovement::frame_tick()
 		logout << ",elapsedSeconds:" << params.elapsedSeconds;
 		logout << "})" << std::endl;
 		Print() << logout.str();
-	}
+	}*/
 }
 
 std::string DriverMovement::frame_tick_output()

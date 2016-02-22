@@ -174,7 +174,7 @@ void BusDriverMovement::frame_tick()
 	{
 		parentBusDriver->updatePassengers();
 	}
-
+/*
 	std::stringstream logout;
 	Person_MT* person = parentBusDriver->parent;
 	unsigned int segId = (person->getCurrSegStats() ? person->getCurrSegStats()->getRoadSegment()->getRoadSegmentId() : 0);
@@ -212,6 +212,7 @@ void BusDriverMovement::frame_tick()
 	logout << ",elapsed:" << params.elapsedSeconds;
 	logout << "})" << std::endl;
 	Print() << logout.str();
+*/
 
 }
 

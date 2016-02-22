@@ -9,13 +9,13 @@
 #include "entities/BusControllerMT.hpp"
 #include "entities/conflux/Conflux.hpp"
 #include "entities/TravelTimeManager.hpp"
-#include "entities/PT_EdgeTravelTime.hpp"
 #include "geospatial/Incident.hpp"
 #include "geospatial/network/RoadNetwork.hpp"
 #include "geospatial/network/NetworkLoader.hpp"
 #include "geospatial/streetdir/KShortestPathImpl.hpp"
 #include "metrics/Length.hpp"
 #include "path/PathSetManager.hpp"
+#include "path/PT_EdgeTravelTime.hpp"
 #include "path/PT_PathSetManager.hpp"
 
 using namespace sim_mob;

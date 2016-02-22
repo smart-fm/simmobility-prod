@@ -5,8 +5,6 @@
 
 namespace sim_mob
 {
-namespace medium
-{
 
 /**
  * Travel time manager for edges in PT graph
@@ -97,8 +95,6 @@ private:
 			const double dayTransitTime, const double linkTravelTime);
 
 };
-
-}
 
 }
 

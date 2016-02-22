@@ -5,7 +5,7 @@
  *      Author: zhang huai peng
  */
 
-#include "entities/PT_EdgeTravelTime.hpp"
+#include "PT_EdgeTravelTime.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "util/Profiler.hpp"
@@ -21,9 +21,6 @@ namespace
 
 namespace sim_mob
 {
-namespace medium
-{
-
 PT_EdgeTravelTime* PT_EdgeTravelTime::instance=nullptr;
 
 PT_EdgeTravelTime::PT_EdgeTravelTime() {
@@ -198,7 +195,6 @@ bool PT_EdgeTravelTime::getEdgeTravelTime(const unsigned int edgeId,
 	dayTransitTime = slot.dayTransitTime;
 	linkTravelTime = slot.linkTravelTime;
 	return res;
-}
 }
 }
 

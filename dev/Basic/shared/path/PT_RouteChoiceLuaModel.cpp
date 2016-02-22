@@ -180,18 +180,17 @@ bool PT_RouteChoiceLuaModel::getBestPT_Path(int origin, int dest, unsigned int s
 {
 	bool ret = false;
 	PT_PathSet pathSet;
-	pathSet = loadPT_PathSet(origin, dest);
-	if (pathSet.pathSet.size() == 0)
+	curStartTime = startTime;
+	loadPT_PathSet(origin, dest, pathSet);
+	if (pathSet.pathSet.empty())
 	{
 		Print() << "[PT pathset]load pathset failed:[" << origin << "]:[" << dest << "]" << std::endl;
 	}
-
-	if (pathSet.pathSet.size() > 0)
+	else
 	{
 		std::string originId = boost::lexical_cast < std::string > (origin);
 		std::string destId = boost::lexical_cast < std::string > (dest);
 		publicTransitPathSet = &pathSet;
-		curStartTime = startTime;
 		odTrips = makePT_RouteChoice(originId, destId);
 		ret = true;
 	}
@@ -242,11 +241,14 @@ void loadPT_PathsetFromDB(soci::session& sql, const std::string& funcName, int o
 	}
 }
 
-PT_PathSet PT_RouteChoiceLuaModel::loadPT_PathSet(int origin, int dest)
+void PT_RouteChoiceLuaModel::loadPT_PathSet(int origin, int dest, PT_PathSet& pathSet)
 {
-	PT_PathSet pathSet;
 	loadPT_PathsetFromDB(*dbSession, ptPathsetStoredProcName, origin, dest, pathSet);
-	return pathSet;
+	std::set<PT_Path,cmp_path_vector>& paths = pathSet.pathSet;
+	for(auto& path : paths)
+	{
+
+	}
 }
 
 }

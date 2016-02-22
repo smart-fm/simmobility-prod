@@ -521,7 +521,7 @@ void ParseMidTermConfigFile::processScreenLineNode(DOMElement *node)
 void ParseMidTermConfigFile::processPT_EdgeTravelTimeNode(DOMElement *node)
 {
 	if(node){
-		mtCfg.enabledEdgeTravelTime = ParseBoolean(GetNamedAttributeValue(node, "enabled"), false);
+		cfg.setEnabledEdgeTravelTime(ParseBoolean(GetNamedAttributeValue(node, "enabled"), false));
 	}
 }
 

@@ -17,6 +17,7 @@
 #include "lua/LuaLibrary.hpp"
 #include "lua/third-party/luabridge/LuaBridge.h"
 #include "lua/third-party/luabridge/RefCountedObject.h"
+#include "PT_EdgeTravelTime.hpp"
 #include "PT_PathSetManager.hpp"
 #include "PT_RouteChoiceLuaModel.hpp"
 #include "SOCI_Converters.hpp"
@@ -27,7 +28,7 @@ using namespace luabridge;
 namespace sim_mob
 {
 
-PT_RouteChoiceLuaModel::PT_RouteChoiceLuaModel() : publicTransitPathSet(nullptr)
+PT_RouteChoiceLuaModel::PT_RouteChoiceLuaModel() : publicTransitPathSet(nullptr), curStartTime(0)
 {
 	ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
 	ptPathsetStoredProcName = cfg.getDatabaseProcMappings().procedureMappings["pt_pathset"];
@@ -180,18 +181,17 @@ bool PT_RouteChoiceLuaModel::getBestPT_Path(int origin, int dest, unsigned int s
 {
 	bool ret = false;
 	PT_PathSet pathSet;
-	pathSet = loadPT_PathSet(origin, dest);
-	if (pathSet.pathSet.size() == 0)
+	curStartTime = startTime;
+	loadPT_PathSet(origin, dest, pathSet);
+	if (pathSet.pathSet.empty())
 	{
 		Print() << "[PT pathset]load pathset failed:[" << origin << "]:[" << dest << "]" << std::endl;
 	}
-
-	if (pathSet.pathSet.size() > 0)
+	else
 	{
 		std::string originId = boost::lexical_cast < std::string > (origin);
 		std::string destId = boost::lexical_cast < std::string > (dest);
 		publicTransitPathSet = &pathSet;
-		curStartTime = startTime;
 		odTrips = makePT_RouteChoice(originId, destId);
 		ret = true;
 	}
@@ -232,21 +232,45 @@ void PT_RouteChoiceLuaModel::mapClasses()
 			.endClass();
 }
 
-void loadPT_PathsetFromDB(soci::session& sql, const std::string& funcName, int originNode, int destNode, sim_mob::PT_PathSet& pathSet)
+void loadPT_PathsetFromDB(soci::session& sql, const std::string& funcName, int originNode, int destNode, std::vector<sim_mob::PT_Path>& paths)
 {
 	soci::rowset<sim_mob::PT_Path> rs =
 			(sql.prepare << std::string("select * from ") + funcName + "(:o_node,:d_node)", soci::use(originNode), soci::use(destNode));
 	for (soci::rowset<sim_mob::PT_Path>::const_iterator it = rs.begin(); it != rs.end(); ++it)
 	{
-		pathSet.pathSet.insert(*it);
+		paths.push_back(*it);
 	}
 }
 
-PT_PathSet PT_RouteChoiceLuaModel::loadPT_PathSet(int origin, int dest)
+void PT_RouteChoiceLuaModel::loadPT_PathSet(int origin, int dest, PT_PathSet& pathSet)
 {
-	PT_PathSet pathSet;
-	loadPT_PathsetFromDB(*dbSession, ptPathsetStoredProcName, origin, dest, pathSet);
-	return pathSet;
+	std::vector<sim_mob::PT_Path> paths;
+	loadPT_PathsetFromDB(*dbSession, ptPathsetStoredProcName, origin, dest, paths);
+	const PT_EdgeTravelTime* ptEdgeTT = PT_EdgeTravelTime::getInstance();
+	for(auto& path : paths)
+	{
+		std::vector<PT_NetworkEdge> pathEdges = path.getPathEdges();
+		unsigned int startTime = curStartTime;
+		for(auto& pathEdge : pathEdges)
+		{
+			int edgeId = pathEdge.getEdgeId();
+			double waitTime = 0;
+			double walkTime = 0;
+			double dayTransitTime = 0;
+			double edgeTravelTime = 0;
+			bool ttFetched = ptEdgeTT->getEdgeTravelTime(edgeId, startTime, waitTime, walkTime, dayTransitTime, edgeTravelTime);
+			if(ttFetched)
+			{
+				pathEdge.setWaitTimeSecs(waitTime);
+				pathEdge.setWalkTimeSecs(walkTime);
+				pathEdge.setDayTransitTimeSecs(dayTransitTime);
+				pathEdge.setTransitTimeSecs(dayTransitTime);
+				pathEdge.setLinkTravelTimeSecs(edgeTravelTime);
+			}
+			startTime = startTime + pathEdge.getLinkTravelTimeSecs()*1000;
+		}
+		pathSet.pathSet.insert(path);
+	}
 }
 
 }

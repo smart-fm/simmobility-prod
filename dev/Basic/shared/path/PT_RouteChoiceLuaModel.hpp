@@ -97,9 +97,9 @@ private:
 	 * load public transit path set from database
 	 * @param origin is trip origin
 	 * @param dest is trip destination
-	 * @return path set retrieved from database
+	 * @param pathSet output parameter for path set retrieved from database
 	 */
-	PT_PathSet loadPT_PathSet(int origin, int dest);
+	void loadPT_PathSet(int origin, int dest, PT_PathSet& pathSet);
 
 	/**
 	 * Inherited from LuaModel

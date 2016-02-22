@@ -5,23 +5,22 @@
  *      Author: zhang huai peng
  */
 
-#include "entities/PT_EdgeTravelTime.hpp"
+#include "PT_EdgeTravelTime.hpp"
 #include "conf/ConfigManager.hpp"
-#include "config/MT_Config.hpp"
+#include "conf/ConfigParams.hpp"
+#include "util/Profiler.hpp"
+#include "logging/Log.hpp"
 
 namespace
 {
 	/**time interval value used for processing data.*/
 	const unsigned int INTERVAL_MS = 5*60*1000;
 	/** millisecs conversion unit from seconds*/
-	const double MILLISECS_CONVERT_UNIT = 1000.0;
+	const double MS_IN_SECONDS = 1000.0;
 }
 
 namespace sim_mob
 {
-namespace medium
-{
-
 PT_EdgeTravelTime* PT_EdgeTravelTime::instance=nullptr;
 
 PT_EdgeTravelTime::PT_EdgeTravelTime() {
@@ -45,43 +44,45 @@ PT_EdgeTravelTime* PT_EdgeTravelTime::getInstance()
 	return instance;
 }
 
-void PT_EdgeTravelTime::updateEdgeTravelTime(const unsigned int edgeId,const unsigned int startTime,const unsigned int endTime,const std::string& travelMode)
+void PT_EdgeTravelTime::updateEdgeTravelTime(const unsigned int edgeId, const unsigned int startTime, const unsigned int endTime, const std::string& travelMode)
 {
-	const medium::MT_Config& mtCfg = medium::MT_Config::getInstance();
-	if(!mtCfg.enabledEdgeTravelTime){
+	const sim_mob::ConfigParams& cfg = sim_mob::ConfigManager::GetInstance().FullConfig();
+	if (!cfg.isEnabledEdgeTravelTime() || edgeId == 0)
+	{
 		return;
-	}
-	if(edgeId==0){
-		return;
-	}
-	boost::unique_lock<boost::mutex> lock(instanceMutex);
-	std::map<int, EdgeTimeSlotMap>::iterator it = storeEdgeTimes.find(edgeId);
-	if(it==storeEdgeTimes.end()){
-		EdgeTimeSlotMap edgeTime;
-		storeEdgeTimes[edgeId]= edgeTime;
 	}
 
+	boost::unique_lock<boost::mutex> lock(instanceMutex);
+
 	EdgeTimeSlotMap& edgeTime = storeEdgeTimes[edgeId];
-	unsigned int index = startTime/INTERVAL_MS;
+	unsigned int index = startTime / INTERVAL_MS;
 	EdgeTimeSlotMap::iterator itSlot = edgeTime.find(index);
-	if(itSlot==edgeTime.end()){
+	if (itSlot == edgeTime.end())
+	{
 		EdgeTimeSlot slot;
-		edgeTime[index]=slot;
-		edgeTime[index].edgeId = edgeId;
-		edgeTime[index].timeInterval = index;
+		slot.edgeId = edgeId;
+		slot.timeInterval = index;
+		edgeTime[index] = slot;
 	}
 
 	EdgeTimeSlot& slot = edgeTime[index];
-	if (travelMode == "WaitingBusActivity") {
-		edgeTime[index].waitTime += (endTime - startTime) / MILLISECS_CONVERT_UNIT;
-		edgeTime[index].countforWaitTime++;
-	} else {
-		edgeTime[index].countforLinkTime++;
-		edgeTime[index].linkTravelTime += (endTime - startTime) / MILLISECS_CONVERT_UNIT;
-		if (travelMode == "Walk") {
-			edgeTime[index].walkTime += (endTime - startTime) / MILLISECS_CONVERT_UNIT;
-		} else {
-			edgeTime[index].dayTransitTime += (endTime - startTime) / MILLISECS_CONVERT_UNIT;
+	double timeInSecs = ((double)(endTime - startTime)) / MS_IN_SECONDS;
+	if (travelMode == "WaitingBusActivity")
+	{
+		slot.waitTime +=
+		slot.countforWaitTime++;
+	}
+	else
+	{
+		slot.countforLinkTime++;
+		slot.linkTravelTime += timeInSecs;
+		if (travelMode == "Walk")
+		{
+			slot.walkTime += timeInSecs;
+		}
+		else
+		{
+			slot.dayTransitTime += timeInSecs;
 		}
 	}
 }
@@ -89,8 +90,8 @@ void PT_EdgeTravelTime::updateEdgeTravelTime(const unsigned int edgeId,const uns
 
 void PT_EdgeTravelTime::exportEdgeTravelTime() const
 {
-	const medium::MT_Config& mtCfg = medium::MT_Config::getInstance();
-	if(!mtCfg.enabledEdgeTravelTime){
+	const sim_mob::ConfigParams& cfg = sim_mob::ConfigManager::GetInstance().FullConfig();
+	if(!cfg.isEnabledEdgeTravelTime()){
 		return;
 	}
     const std::string& fileName("pt_edge_time.csv");
@@ -104,7 +105,7 @@ void PT_EdgeTravelTime::exportEdgeTravelTime() const
     		DailyTime startTime = ConfigManager::GetInstance().FullConfig().simStartTime();
     		unsigned int start = (startTime.getValue()/INTERVAL_MS)*INTERVAL_MS;
     		ptEdgeTimeLogger << DailyTime(start+slot.timeInterval*INTERVAL_MS).getStrRepr()<<",";
-    		ptEdgeTimeLogger << DailyTime(start+(slot.timeInterval+1)*INTERVAL_MS-MILLISECS_CONVERT_UNIT).getStrRepr() <<",";
+    		ptEdgeTimeLogger << DailyTime(start+(slot.timeInterval+1)*INTERVAL_MS-MS_IN_SECONDS).getStrRepr() <<",";
     		ptEdgeTimeLogger << (slot.waitTime>0.0?slot.waitTime/slot.countforWaitTime:0) << ",";
     		ptEdgeTimeLogger << (slot.walkTime>0.0?slot.walkTime/slot.countforLinkTime:0) << ",";
     		ptEdgeTimeLogger << (slot.dayTransitTime>0.0?slot.dayTransitTime/slot.countforLinkTime:0) <<",";
@@ -171,32 +172,36 @@ void PT_EdgeTravelTime::loadOneEdgeTravelTime(const unsigned int edgeId,
 	edgeTime[index].dayTransitTime = dayTransitTime;
 }
 
-bool PT_EdgeTravelTime::getEdgeTravelTime(const unsigned int edgeId,
-		unsigned int currentTime, double& waitTime, double& walkTime,
-		double& dayTransitTime, double& linkTravelTime)
+bool PT_EdgeTravelTime::getEdgeTravelTime(int edgeId,
+		unsigned int currentTime,
+		double& waitTime,
+		double& walkTime,
+		double& dayTransitTime,
+		double& linkTravelTime) const
 {
 	bool res = false;
-	std::map<int, EdgeTimeSlotMap>::iterator it = loadEdgeTimes.find(edgeId);
-	if(it==loadEdgeTimes.end()){
+	std::map<int, EdgeTimeSlotMap>::const_iterator it = loadEdgeTimes.find(edgeId);
+	if (it == loadEdgeTimes.end())
+	{
 		return res;
 	}
 
-	EdgeTimeSlotMap& edgeTime = loadEdgeTimes[edgeId];
+	const EdgeTimeSlotMap& edgeTime = it->second;
 	DailyTime start = DailyTime(currentTime);
-	unsigned int index = start.getValue()/INTERVAL_MS;
-	EdgeTimeSlotMap::iterator itSlot = edgeTime.find(index);
-	if(itSlot==edgeTime.end()){
+	unsigned int index = start.getValue() / INTERVAL_MS;
+	EdgeTimeSlotMap::const_iterator itSlot = edgeTime.find(index);
+	if (itSlot == edgeTime.end())
+	{
 		return res;
 	}
 
-	res = true;
-	EdgeTimeSlot& slot = edgeTime[index];
+	const EdgeTimeSlot& slot = itSlot->second;
 	waitTime = slot.waitTime;
 	walkTime = slot.walkTime;
 	dayTransitTime = slot.dayTransitTime;
 	linkTravelTime = slot.linkTravelTime;
+	res = true;
 	return res;
-}
 }
 }
 

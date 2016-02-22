@@ -1,10 +1,3 @@
-/*
- * PT_EdgeTravelTime.hpp
- *
- *  Created on: Jan 28, 2016
- *      Author: zhang huai peng
- */
-
 #pragma once
 
 #include <set>
@@ -12,9 +5,12 @@
 
 namespace sim_mob
 {
-namespace medium
-{
 
+/**
+ * Travel time manager for edges in PT graph
+ *
+ * \author Zhang Huai Peng
+ */
 class PT_EdgeTravelTime {
 public:
 	PT_EdgeTravelTime();
@@ -53,8 +49,8 @@ public:
      * @param linkTravelTime is link travel time for this edge
      * @return true if finding corresponding record
      */
-    bool getEdgeTravelTime(const unsigned int edgeId, unsigned int currentTime, double& waitTime, double& walkTime,
-			double& dayTransitTime, double& linkTravelTime);
+    bool getEdgeTravelTime(int edgeId, unsigned int currentTime, double& waitTime, double& walkTime,
+			double& dayTransitTime, double& linkTravelTime) const;
 
 private:
     /**global instance to store the pointer to this class*/
@@ -99,8 +95,6 @@ private:
 			const double dayTransitTime, const double linkTravelTime);
 
 };
-
-}
 
 }
 

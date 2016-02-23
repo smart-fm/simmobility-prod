@@ -5,8 +5,13 @@
  *      Author: fm-simmobility
  */
 
-#include <entities/roles/driver/TrainDriverFacets.hpp>
-
+#include "entities/roles/driver/TrainDriverFacets.hpp"
+#include "entities/misc/TrainTrip.hpp"
+#include "entities/Person_MT.hpp"
+#include "entities/roles/driver/TrainDriver.hpp"
+namespace {
+const double safe_distanceInMetres = 100;
+}
 namespace sim_mob {
 namespace medium{
 TrainBehavior::TrainBehavior():BehaviorFacet(),parentDriver(nullptr)
@@ -19,7 +24,6 @@ TrainBehavior::~TrainBehavior()
 }
 void TrainBehavior::frame_init()
 {
-
 }
 void TrainBehavior::frame_tick()
 {
@@ -63,7 +67,14 @@ TravelMetric& TrainMovement::finalizeTravelTimeMetric()
 }
 void TrainMovement::frame_init()
 {
-
+	Person_MT* person = parentDriver->parent;
+	const TrainTrip* trip = dynamic_cast<const TrainTrip*>(*(person->currTripChainItem));
+	if (!trip) {
+		Print()<< "train trip is null"<<std::endl;
+	} else {
+		trainPathMover.setPath(trip->getTrainRoute());
+		trainPlatformMover.setPlatforms(trip->getTrainPlatform());
+	}
 }
 void TrainMovement::frame_tick()
 {

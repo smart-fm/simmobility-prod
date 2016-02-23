@@ -12,8 +12,41 @@
 #include "util/GeomHelpers.hpp"
 
 namespace sim_mob {
+TrainPlatformMover::TrainPlatformMover()
+{
 
-TrainPathMover::TrainPathMover():distanceMoveToNextPoint(0),currPolyLine(nullptr),distMovedOnCurrBlock(0) {
+}
+TrainPlatformMover::~TrainPlatformMover()
+{
+
+}
+void TrainPlatformMover::setPlatforms(const std::vector<Platform*>& plats)
+{
+	platforms = plats;
+	currPlatformIt = platforms.begin();
+}
+
+Platform* TrainPlatformMover::getFirstPlatform() const
+{
+	if(platforms.size()>0){
+		return platforms.front();
+	} else {
+		return nullptr;
+	}
+}
+
+Platform* TrainPlatformMover::getNextPlatform(bool updated)
+{
+	if(updated){
+		currPlatformIt++;
+	}
+	if(currPlatformIt!=platforms.end()){
+		return (*currPlatformIt);
+	} else {
+		return nullptr;
+	}
+}
+TrainPathMover::TrainPathMover():distanceMoveToNextPoint(0),currPolyLine(nullptr),distMovedOnCurrBlock(0),distMovedOnEntirePath(0) {
 
 }
 
@@ -39,6 +72,7 @@ double TrainPathMover::advance(double distance)
 	}
 
 	distanceMoveToNextPoint += distance;
+	distMovedOnEntirePath += distance;
 
 	double distBetwCurrAndNxtPt = calcDistanceBetweenTwoPoints();
 
@@ -83,6 +117,30 @@ double TrainPathMover::getDistanceToNextTrain(const TrainPathMover& other) const
 	distance += other.getDistCoveredOnCurrBlock();
 	return distance;
 }
+double TrainPathMover::getCurrentSpeedLimit()
+{
+	double speedLimit =0.0;
+	if(drivingPath.size()!=0&&currBlockIt!=drivingPath.end()){
+		speedLimit = (*currBlockIt)->getSpeedLimit();
+	}
+	return speedLimit;
+}
+double TrainPathMover::getCurrentDecelerationRate()
+{
+	double decelerate = 0.0;
+	if(drivingPath.size()!=0&&currBlockIt!=drivingPath.end()){
+		decelerate = (*currBlockIt)->getDecelerateRate();
+	}
+	return decelerate;
+}
+double TrainPathMover::getCurrentAccelerationRate()
+{
+	double accelerate = 0.0;
+	if(drivingPath.size()!=0&&currBlockIt!=drivingPath.end()){
+		accelerate = (*currBlockIt)->getAccelerateRate();
+	}
+	return accelerate;
+}
 double TrainPathMover::getDistCoveredOnCurrBlock() const
 {
 	return distanceMoveToNextPoint+distMovedOnCurrBlock;
@@ -124,6 +182,10 @@ bool TrainPathMover::advanceToNextBlock()
 
 	return ret;
 }
+double TrainPathMover::getTotalCoveredDistance()
+{
+	return distMovedOnEntirePath;
+}
 
 bool TrainPathMover::isCompletePath() const
 {
@@ -142,6 +204,7 @@ void TrainPathMover::setPath(const std::vector<Block*> &path)
 		nextPolyPointIt = currPolyPointIt + 1;
 		distanceMoveToNextPoint = 0;
 		distMovedOnCurrBlock = 0;
+		distMovedOnEntirePath = 0;
 	}
 }
 

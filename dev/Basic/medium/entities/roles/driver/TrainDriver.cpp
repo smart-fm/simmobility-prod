@@ -15,7 +15,7 @@ TrainDriver::TrainDriver(Person_MT* parent,
 		sim_mob::medium::TrainBehavior* behavior,
 		sim_mob::medium::TrainMovement* movement,
 		std::string roleName, Role<Person_MT>::Type roleType) :
-	sim_mob::Role<Person_MT>::Role(parent, behavior, movement, roleName, roleType)
+	sim_mob::Role<Person_MT>::Role(parent, behavior, movement, roleName, roleType),nextDriver(nullptr)
 
 {
 
@@ -34,6 +34,15 @@ Role<Person_MT>* TrainDriver::clone(Person_MT *parent) const
 	behavior->setParentDriver(driver);
 	movement->setParentDriver(driver);
 	return driver;
+}
+
+void TrainDriver::setNextDriver(const TrainDriver* driver)
+{
+	nextDriver = driver;
+}
+const TrainDriver* TrainDriver::getNextDriver() const
+{
+	return nextDriver;
 }
 
 void TrainDriver::make_frame_tick_params(timeslice now)

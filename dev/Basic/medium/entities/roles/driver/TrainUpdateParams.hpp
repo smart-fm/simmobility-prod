@@ -15,6 +15,12 @@ class TrainUpdateParams: public UpdateParams {
 public:
 	TrainUpdateParams();
 	virtual ~TrainUpdateParams();
+	/**current speed*/
+	double currentSpeed;
+	/**tickSize in seconds*/
+	double secondsInTick;
+	/**time elapsed in the current tick (in seconds)*/
+	double elapsedSeconds;
 };
 
 } /* namespace sim_mob */

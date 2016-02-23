@@ -10,7 +10,33 @@
 #include "geospatial/network/Platform.hpp"
 
 namespace sim_mob {
+class TrainPlatformMover {
+public:
+	TrainPlatformMover();
+	virtual ~TrainPlatformMover();
+public:
+	/**
+	 * set platform list
+	 * @param platforms are a list of platforms
+	 */
+	void setPlatforms(const std::vector<Platform*>& platform);
+	/**
+	 * get first platform
+	 * @return first platform if have, otherwise return null.
+	 */
+	Platform* getFirstPlatform() const;
+	/**
+	 * get next platform
+	 * @return next platform if have, otherwise return null.
+	 */
+	Platform* getNextPlatform(bool updated=false);
 
+private:
+	/**driving platforms*/
+	std::vector<Platform*> platforms;
+	/**the iterator to current platform*/
+	std::vector<Platform*>::iterator currPlatformIt;
+};
 class TrainPathMover {
 public:
 	TrainPathMover();
@@ -33,6 +59,11 @@ public:
 	 */
 	double getDistanceToNextTrain(const TrainPathMover& other) const;
 	/**
+	 * get distance in total movement
+	 * @return total distance.
+	 */
+	double getTotalCoveredDistance();
+	/**
 	 * check whether the path is completed
 	 * @return true if the path is completed
 	 */
@@ -42,7 +73,21 @@ public:
      * @return the distance covered on the current block
      */
 	double getDistCoveredOnCurrBlock() const;
-
+	/**
+	 * get current speed limit defined in current block
+	 * @return current speed limit
+	 */
+	double getCurrentSpeedLimit();
+	/**
+	 * get current deceleration rate defined in current block
+	 * @return current deceleration rate
+	 */
+	double getCurrentDecelerationRate();
+	/**
+	 * get current acceleration rate defined in current block
+	 * @return current acceleration rate
+	 */
+	double getCurrentAccelerationRate();
 private:
 	/**
 	 * Calculates the distance between the current poly-point and the next poly-point
@@ -74,6 +119,8 @@ private:
 	double distanceMoveToNextPoint;
 	/**Stores the distance covered by the driver on the current block*/
 	double distMovedOnCurrBlock;
+	/**Stores the distance covered by driver on entire path*/
+	double distMovedOnEntirePath;
 };
 
 } /* namespace sim_mob */

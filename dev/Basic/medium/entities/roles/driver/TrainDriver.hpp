@@ -27,7 +27,12 @@ public:
 	virtual Role<Person_MT>* clone(Person_MT *parent) const;
 	virtual void make_frame_tick_params(timeslice now);
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
+	void setNextDriver(const TrainDriver* driver);
+	const TrainDriver* getNextDriver() const;
 
+private:
+	/**get next train driver*/
+	const TrainDriver* nextDriver;
 private:
 	friend class TrainBehavior;
 	friend class TrainMovement;

@@ -56,6 +56,24 @@ private:
 	TrainDriver* parentDriver;
 	/**Train path mover*/
 	TrainPathMover trainPathMover;
+	/**Train platform mover*/
+	TrainPlatformMover trainPlatformMover;
+private:
+	/**
+	 * get current speed limit
+	 * @return current speed limit
+	 */
+	double getCurrentSpeedLimit();
+	/**
+	 * get effective speed
+	 * @return effective speed
+	 */
+	double getEffectiveSpeed();
+	/**
+	 * get effective moving distance
+	 * @return effective distance
+	 */
+	double getEffectiveMovingDistance();
 };
 
 }

@@ -22,12 +22,13 @@ namespace sim_mob
 typedef bg::model::point<float, 2, bg::cs::cartesian> point;
 typedef bg::model::box<point> box;
 typedef std::pair<box, const Agent *> value;
+typedef bgi::rtree<value, bgi::linear<16> > RTree;
 
 class PackingTreeAuraManager : public TreeImpl
 {
 private:
 	/**The r-star tree with packing insert algorithm*/
-	bgi::rtree<value, bgi::rstar<300000> > *tree;
+	RTree *tree;
 
 public:
 	PackingTreeAuraManager();

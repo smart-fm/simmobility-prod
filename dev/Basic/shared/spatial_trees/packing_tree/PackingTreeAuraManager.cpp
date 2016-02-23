@@ -11,7 +11,7 @@ using namespace spatial;
 
 PackingTreeAuraManager::PackingTreeAuraManager()
 {
-	tree = new bgi::rtree<value, bgi::rstar<300000> >();
+	tree = new RTree();
 }
 
 PackingTreeAuraManager::~PackingTreeAuraManager()
@@ -44,7 +44,7 @@ void PackingTreeAuraManager::update(int time_step, const std::set<sim_mob::Entit
 		}
 	}
 	
-	tree = new bgi::rtree<value, bgi::rstar<300000> >(agentsToBeAdded.begin(), agentsToBeAdded.end());
+	tree = new RTree(agentsToBeAdded.begin(), agentsToBeAdded.end());
 }
 
 std::vector<const Agent*> PackingTreeAuraManager::agentsInRect(const Point &lowerLeft, const Point &upperRight, const sim_mob::Agent *refAgent) const

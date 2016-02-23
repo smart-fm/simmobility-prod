@@ -30,7 +30,7 @@
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "database/entity/UnitSale.hpp"
-
+#include "util/PrintLog.hpp"
 
 using namespace sim_mob;
 using namespace sim_mob::long_term;
@@ -41,59 +41,6 @@ using sim_mob::Math;
 
 namespace
 {
-    //bid_timestamp, seller_id, bidder_id, unit_id, bidder wtp, bidder wp+wp_error, wp_error, affordability, currentUnitHP,target_price, hedonicprice, lagCoefficient, asking_price, bid_value, bids_counter (daily), bid_status, logsum, floor_area, type_id, HHPC, UPC
-    const std::string LOG_BID = "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%, %11%, %12%, %13%, %14%, %15%, %16%, %17%, %18%, %19%, %20%, %21%";
-
-    /**
-     * Print the current bid on the unit.
-     * @param agent to received the bid
-     * @param bid to send.
-     * @param struct containing the hedonic, asking and target price.
-     * @param number of bids for this unit
-     * @param boolean indicating if the bid was successful
-     *
-     */
-    inline void printBid(const HouseholdAgent& agent, const Bid& bid, const ExpectationEntry& entry, unsigned int bidsCounter, bool accepted)
-    {
-    	HM_Model* model = agent.getModel();
-    	const Unit* unit  = model->getUnitById(bid.getNewUnitId());
-        double floor_area = unit->getFloorArea();
-        BigSerial type_id = unit->getUnitType();
-        int UnitslaId = unit->getSlaAddressId();
-        Postcode *unitPostcode = model->getPostcodeById(UnitslaId);
-
-
-        Household *thisBidder = model->getHouseholdById(bid.getBidderId());
-        const Unit* thisUnit = model->getUnitById(thisBidder->getUnitId());
-        Postcode* thisPostcode = model->getPostcodeById( thisUnit->getSlaAddressId() );
-
-
-        boost::format fmtr = boost::format(LOG_BID) % bid.getSimulationDay()
-													% agent.getId()
-													% bid.getBidderId()
-													% bid.getNewUnitId()
-													% (bid.getWillingnessToPay() - bid.getWtpErrorTerm())
-													% bid.getWillingnessToPay()
-													% bid.getWtpErrorTerm()
-													% thisBidder->getAffordabilityAmount()
-													% thisBidder->getCurrentUnitPrice()
-													% entry.targetPrice
-													% entry.hedonicPrice
-													% unit->getLagCoefficient()
-													% entry.askingPrice
-													% bid.getBidValue()
-													% bidsCounter
-													% ((accepted) ? 1 : 0)
-													% thisBidder->getLogsum()
-													% floor_area
-													% type_id
-													% thisPostcode->getSlaPostcode()
-													% unitPostcode->getSlaPostcode();
-
-        AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::BIDS, fmtr.str());
-        //PrintOut(fmtr.str() << endl);
-    }
-
     /**
      * Decides over a given bid for a given expectation.
      * @param bid given by the bidder.

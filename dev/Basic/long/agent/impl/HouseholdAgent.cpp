@@ -23,6 +23,7 @@
 #include "conf/ConfigManager.hpp"
 #include "model/VehicleOwnershipModel.hpp"
 #include "model/AwakeningSubModel.hpp"
+#include "util/PrintLog.hpp"
 
 using namespace sim_mob::long_term;
 using namespace sim_mob::event;
@@ -167,6 +168,7 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 
 	if( bidder && bidder->isActive() && householdBiddingWindow == 0 && bidder->getMoveInWaitingTimeInDays() == 0)
 	{
+		PrintExit( day, household, 0);
 		bidder->setActive(false);
 		model->decrementBidders();
 		model->incrementExits();

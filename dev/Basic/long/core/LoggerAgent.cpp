@@ -104,9 +104,12 @@ LoggerAgent::LoggerAgent() : Entity(-1)
     streams.insert(std::make_pair(LOG_ERROR, errorFile));
 
     //awakenings
-    std::ofstream* awakeningFile = new std::ofstream("Awakenings.csv");
-    streams.insert(std::make_pair(LOG_AWAKENING, awakeningFile));
+    std::ofstream* hhawakeningFile = new std::ofstream("HH_Awakenings.csv");
+    streams.insert(std::make_pair(LOG_HH_AWAKENING, hhawakeningFile));
 
+    //Exits
+    std::ofstream* hhexitsFile = new std::ofstream("HH_Exits.csv");
+    streams.insert(std::make_pair(LOG_HH_EXIT, hhexitsFile));
 
 }
 

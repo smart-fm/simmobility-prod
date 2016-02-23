@@ -55,6 +55,10 @@ AuraManager::AuraManagerImplementation ParseAuraMgrImplEnum(const XMLCh* srcX, A
 		{
 			return AuraManager::IMPL_SIMTREE;
 		}
+		else if(src == "packing-tree")
+		{
+			return AuraManager::IMPL_PACKING;
+		}
 		throw std::runtime_error("Expected AuraManager::AuraManagerImplementation value.");
 	}
 

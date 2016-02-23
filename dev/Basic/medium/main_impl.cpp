@@ -52,7 +52,6 @@
 #include "partitions/PartitionManager.hpp"
 #include "path/PathSetManager.hpp"
 #include "path/PathSetParam.hpp"
-#include "path/PT_EdgeTravelTime.hpp"
 #include "path/PT_PathSetManager.hpp"
 #include "path/PT_RouteChoiceLuaModel.hpp"
 #include "util/DailyTime.hpp"
@@ -382,11 +381,6 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 
 	PT_Statistics::getInstance()->storeStatistics();
 	PT_Statistics::resetInstance();
-
-	if(config.isEnabledEdgeTravelTime())
-	{
-		PT_EdgeTravelTime::getInstance()->exportEdgeTravelTime();
-	}
 
 	if (config.numAgentsSkipped>0)
 	{

@@ -15,7 +15,6 @@
 #include "geospatial/streetdir/KShortestPathImpl.hpp"
 #include "metrics/Length.hpp"
 #include "path/PathSetManager.hpp"
-#include "path/PT_EdgeTravelTime.hpp"
 #include "path/PT_PathSetManager.hpp"
 
 using namespace sim_mob;
@@ -60,7 +59,6 @@ void ExpandMidTermConfigFile::processConfig()
     if (cfg.isPublicTransitEnabled())
     {
         loadPublicTransitNetworkFromDatabase();
-        PT_EdgeTravelTime::getInstance()->loadPT_EdgeTravelTime();
     }
 
     cfg.sealNetwork();

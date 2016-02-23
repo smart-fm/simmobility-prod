@@ -17,7 +17,6 @@
 #include "lua/LuaLibrary.hpp"
 #include "lua/third-party/luabridge/LuaBridge.h"
 #include "lua/third-party/luabridge/RefCountedObject.h"
-#include "PT_EdgeTravelTime.hpp"
 #include "PT_PathSetManager.hpp"
 #include "PT_RouteChoiceLuaModel.hpp"
 #include "SOCI_Converters.hpp"
@@ -246,35 +245,9 @@ void PT_RouteChoiceLuaModel::loadPT_PathSet(int origin, int dest, PT_PathSet& pa
 {
 	std::vector<sim_mob::PT_Path> paths;
 	loadPT_PathsetFromDB(*dbSession, ptPathsetStoredProcName, origin, dest, paths);
-	const PT_EdgeTravelTime* ptEdgeTT = PT_EdgeTravelTime::getInstance();
 	for(auto& path : paths)
 	{
-		std::vector<PT_NetworkEdge> pathEdges = path.getPathEdges();
-		unsigned int startTime = curStartTime;
-		double pathTravelTime = 0;
-		for(auto& pathEdge : pathEdges)
-		{
-			int edgeId = pathEdge.getEdgeId();
-			double waitTime = 0;
-			double walkTime = 0;
-			double dayTransitTime = 0;
-			double edgeTravelTime = 0;
-			bool ttFetched = ptEdgeTT->getEdgeTravelTime(edgeId, startTime, waitTime, walkTime, dayTransitTime, edgeTravelTime);
-			if(ttFetched)
-			{
-				pathEdge.setWaitTimeSecs(waitTime);
-				pathEdge.setWalkTimeSecs(walkTime);
-				pathEdge.setDayTransitTimeSecs(dayTransitTime);
-				pathEdge.setTransitTimeSecs(dayTransitTime);
-				pathEdge.setLinkTravelTimeSecs(edgeTravelTime);
-			}
-			pathTravelTime = pathTravelTime + pathEdge.getLinkTravelTimeSecs();
-			startTime = startTime + pathEdge.getLinkTravelTimeSecs()*1000;
-		}
-		path.setPathEdges(pathEdges);
-		path.setPathTravelTime(pathTravelTime);
 		pathSet.pathSet.insert(path);
-		pathSet.computeAndSetPathSize();
 	}
 }
 

@@ -17,7 +17,6 @@
 #include "entities/TravelTimeManager.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "geospatial/network/WayPoint.hpp"
-#include "path/PT_EdgeTravelTime.hpp"
 #include "path/PT_RouteChoiceLuaProvider.hpp"
 #include "util/DailyTime.hpp"
 
@@ -346,13 +345,6 @@ Entity::UpdateStatus Person_MT::checkTripChain(unsigned int currentTime)
 	//advance the trip, sub-trip or activity....
 	if (!isFirstTick)
 	{
-		if(isTripValid())
-		{
-			currSubTrip->endTime = DailyTime(currentTime);
-			PT_EdgeTravelTime::getInstance()->updateEdgeTravelTime(
-					currSubTrip->edgeId, currSubTrip->startTime.getValue(),
-					currSubTrip->endTime.getValue(), currSubTrip->travelMode);
-		}
 		if (!(advanceCurrentTripChainItem()))
 		{
 			return UpdateStatus::Done;

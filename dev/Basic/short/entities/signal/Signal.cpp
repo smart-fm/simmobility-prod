@@ -199,7 +199,7 @@ void Signal_SCATS::frame_output(timeslice now)
 	
 	output << "}}\n";
 
-	LogOut(output.str());
+	//LogOut(output.str());
 }
 
 void Signal_SCATS::initialise()

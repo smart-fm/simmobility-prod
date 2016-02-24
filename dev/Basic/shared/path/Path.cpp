@@ -461,6 +461,7 @@ void sim_mob::PT_PathSet::checkPathFeasibilty()
 	// Check 2 : No two consecutive walking edges along the path
 	// Check 3 : Doesn't walk back to any simMobility node from bus stop/ MRT station in the middle of the path
 	// Check 4 : Total number of bus legs <= 4
+	// Check 5 : The path must not involve more than 1 leg with the same bus line
 
 	std::set<PT_Path>::iterator itPathComp = pathSet.begin();
 	if (itPathComp == pathSet.end())
@@ -487,6 +488,7 @@ void sim_mob::PT_PathSet::checkPathFeasibilty()
 		int busLegCount = 0; // Number of buslegs along the path
 		std::vector<PT_NetworkEdge> edges;
 		edges = itPathComp->getPathEdges();
+		std::vector<std::string> buslinesInPath;
 		for (std::vector<PT_NetworkEdge>::const_iterator itEdge = edges.begin(); itEdge != edges.end(); itEdge++)
 		{
 			// Check 2 : No two consecutive walking edges along the path
@@ -523,6 +525,21 @@ void sim_mob::PT_PathSet::checkPathFeasibilty()
 				busLegCount++;
 				// Check 4 : Total number of bus legs <= 4
 				if (busLegCount > 4)
+				{
+					// Infeasible path
+					itPathComp++;
+					pathSet.erase(tempitPath);
+					incrementFlag = true;
+					break;
+				}
+
+				// Check 5 : The path must not involve more than 1 leg with the same bus line
+				std::vector<std::string>::iterator busLineIt = std::find(buslinesInPath.begin(), buslinesInPath.end(), itEdge->getServiceLines());
+				if(busLineIt == buslinesInPath.end())
+				{
+					buslinesInPath.push_back(itEdge->getServiceLines());
+				}
+				else
 				{
 					// Infeasible path
 					itPathComp++;

@@ -30,7 +30,10 @@ public:
 	 * @return next platform if have, otherwise return null.
 	 */
 	Platform* getNextPlatform(bool updated=false);
-
+	/**
+	 * is arriving at last platform
+	 */
+	bool isLastPlatform();
 private:
 	/**driving platforms*/
 	std::vector<Platform*> platforms;

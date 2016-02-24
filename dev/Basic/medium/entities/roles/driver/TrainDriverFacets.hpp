@@ -46,6 +46,30 @@ public:
 
 	TrainDriver* getParentDriver() const;
 	void setParentDriver(TrainDriver* parentDriver);
+	/**
+	 * get the object of path mover
+	 * @return the reference to the object of path mover
+	 */
+	const TrainPathMover& getPathMover() const;
+	/**
+	 * move train forward
+	 * @return true if train successfully move forward.
+	 */
+	bool moveForward();
+	/**
+	 * Whether the train already arrive at one platform
+	 * @return true if train already move in one platform
+	 */
+	bool isStopAtPlatform();
+	/**
+	 * Whether the train already arrive at last platform
+	 * @return true if train already arrive at terminal platform
+	 */
+	bool isAtLastPlaform();
+	/**
+	 * make train leave from current platform
+	 */
+	void leaveFromPlaform();
 
 protected:
 	virtual TravelMetric& startTravelTimeMetric();
@@ -63,12 +87,12 @@ private:
 	 * get current speed limit
 	 * @return current speed limit
 	 */
-	double getCurrentSpeedLimit();
+	double getRealSpeedLimit();
 	/**
 	 * get effective speed
 	 * @return effective speed
 	 */
-	double getEffectiveSpeed();
+	double getEffectiveAccelerate();
 	/**
 	 * get effective moving distance
 	 * @return effective distance

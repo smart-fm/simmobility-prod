@@ -158,6 +158,7 @@ private:
 class Station : public TrainStop
 {
 public:
+	Station(const std::string& stationNo);
 	/**
 	 * add mrt line to particular station
 	 * @param lineId is line id of MRT

@@ -159,9 +159,10 @@ namespace sim_mob {
 		{
 			const soci::row& r = (*it);
 			std::string platformNo = r.get<std::string>(0);
+			std::string stationNo = r.get<std::string>(1);
 			Platform* platform = new Platform();
 			platform->setPlatformNo(platformNo);
-			platform->setStationNo(r.get<std::string>(1));
+			platform->setStationNo(stationNo);
 			platform->setLineId(r.get<std::string>(2));
 			platform->setCapactiy(r.get<int>(3));
 			platform->setType(r.get<int>(4));
@@ -169,6 +170,11 @@ namespace sim_mob {
 			platform->setOffset(r.get<double>(6));
 			platform->setLength(r.get<double>(7));
 			mapOfIdvsPlatforms[platformNo] = platform;
+			if(mapOfIdvsStations.find(stationNo)==mapOfIdvsStations.end()){
+				mapOfIdvsStations[stationNo] = new Station(stationNo);
+			}
+			Station* station = mapOfIdvsStations[stationNo];
+			station->addPlatform(platform->getLineId(), platform);
 		}
 	}
 	template<typename PERSON>
@@ -334,6 +340,27 @@ namespace sim_mob {
 		tripChain.push_back(trainTrip);
 		person->setTripChain(tripChain);
 		activeAgents.insert(person);
+	}
+	template<typename PERSON>
+	Agent* TrainController<PERSON>::getAgentFromStation(const std::string& nameStation)
+	{
+		std::map<std::string, Station*>& mapOfIdvsStations = getInstance()->mapOfIdvsStations;
+		std::map<std::string, Station*>::const_iterator it = mapOfIdvsStations.find(nameStation);
+		if(it!=mapOfIdvsStations.end()) {
+			if(allStationAgents.find(it->second)!=allStationAgents.end()) {
+				return allStationAgents[it->second];
+			}
+		}
+		return nullptr;
+	}
+	template<typename PERSON>
+	void TrainController<PERSON>::registerStationAgent(const std::string& nameStation, const Agent* stationAgent)
+	{
+		std::map<std::string, Station*>& mapOfIdvsStations = getInstance()->mapOfIdvsStations;
+		std::map<std::string, Station*>::const_iterator it = mapOfIdvsStations.find(nameStation);
+		if(it!=mapOfIdvsStations.end()) {
+			allStationAgents[it->second]=stationAgent;
+		}
 	}
 } /* namespace sim_mob */
 #endif

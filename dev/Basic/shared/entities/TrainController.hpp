@@ -11,6 +11,7 @@
 #include <type_traits>
 #include <boost/type_traits/is_base_of.hpp>
 #include <boost/static_assert.hpp>
+#include <boost/unordered_map.hpp>
 #include "geospatial/network/Block.hpp"
 #include "geospatial/network/Platform.hpp"
 #include "entities/Agent.hpp"
@@ -73,11 +74,12 @@ template<typename PERSON>
 class TrainController: public sim_mob::Agent {
 	BOOST_STATIC_ASSERT_MSG(
 			(boost::is_base_of<sim_mob::Person, PERSON>::value),
-			"T must be a descendant of sim_mob::Person"
+			"PERSON must be a descendant of sim_mob::Person"
 	);
 public:
 	explicit TrainController(int id = -1, const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered);
 	virtual ~TrainController();
+	typedef boost::unordered_map<const Station*, Agent*> StationAgentsMap;
 
 public:
 	/**
@@ -162,8 +164,19 @@ private:
 	 * the function to load polylines from DB
 	 */
 	void loadBlockPolylines();
-
+	/**
+	 * finds the station Agent from station name.
+	 * @param nameStation is the name of station
+	 * @returns pointer to station agent corresponding to station
+	 */
+	static Agent* getAgentFromStation(const std::string& nameStation);
+	/**
+	 * adds station agent to the static allStationAgents
+	 */
+	static void registerStationAgent(const std::string& nameStation, const Agent* stationAgent);
 private:
+	/** global static bus stop agents lookup table*/
+	static StationAgentsMap allStationAgents;
 	/**the map from id to the object of platform*/
 	std::map<std::string, Platform*> mapOfIdvsPlatforms;
 	/**the map from id to the object of block*/
@@ -174,6 +187,8 @@ private:
 	std::map<std::string, std::vector<TrainPlatform>> mapOfIdvsTrainPlatforms;
 	/**the map from id to the schedule table*/
 	std::map<std::string, std::vector<TrainSchedule>> mapOfIdvsSchedules;
+	/**the map from name to the station*/
+	std::map<std::string, Station*> mapOfIdvsStations;
 	/**the map from id to polyline object*/
 	std::map<unsigned int, PolyLine*> mapOfIdvsPolylines;
 private:

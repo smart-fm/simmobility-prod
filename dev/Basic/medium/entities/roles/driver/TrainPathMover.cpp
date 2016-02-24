@@ -2,7 +2,7 @@
  * TrainPathMover.cpp
  *
  *  Created on: Feb 17, 2016
- *      Author: fm-simmobility
+ *      Author: zhang huai peng
  */
 
 #include <entities/roles/driver/TrainPathMover.hpp>
@@ -44,6 +44,14 @@ Platform* TrainPlatformMover::getNextPlatform(bool updated)
 		return (*currPlatformIt);
 	} else {
 		return nullptr;
+	}
+}
+bool TrainPlatformMover::isLastPlatform()
+{
+	if((currPlatformIt+1)==platforms.end()){
+		return true;
+	} else {
+		return false;
 	}
 }
 TrainPathMover::TrainPathMover():distanceMoveToNextPoint(0),currPolyLine(nullptr),distMovedOnCurrBlock(0),distMovedOnEntirePath(0) {

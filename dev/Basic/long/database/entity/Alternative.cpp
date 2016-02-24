@@ -16,9 +16,10 @@ namespace sim_mob
 	namespace long_term
 	{
 		Alternative::Alternative( BigSerial id, BigSerial planAreaId, std::string planAreaName, BigSerial dwellingTypeId, std::string dwellingTypeName,
-								  double avgHouseholdSize, double avgHouseholdIncome, int unitTypeCounter, int populationByUnitType)
+								  double avgHouseholdSize, double avgHouseholdIncome, int unitTypeCounter, int populationByUnitType, double medianHedonicPrice)
 								 :id(id), planAreaId(planAreaId), planAreaName(planAreaName), dwellingTypeId(dwellingTypeId), dwellingTypeName(dwellingTypeName),
-								  avgHouseholdSize(avgHouseholdSize), avgHouseholdIncome(avgHouseholdIncome), unitTypeCounter(unitTypeCounter), populationByUnitType(populationByUnitType){}
+								  avgHouseholdSize(avgHouseholdSize), avgHouseholdIncome(avgHouseholdIncome), unitTypeCounter(unitTypeCounter),
+								  populationByUnitType(populationByUnitType), medianHedonicPrice(medianHedonicPrice){}
 
 		Alternative::~Alternative() {}
 
@@ -33,6 +34,7 @@ namespace sim_mob
 			this->avgHouseholdIncome = source.avgHouseholdIncome;
 			this->unitTypeCounter = source.unitTypeCounter;
 			this->populationByUnitType = source.populationByUnitType;
+			this->medianHedonicPrice = source.medianHedonicPrice;
 		}
 
 		Alternative& Alternative::operator=(const Alternative& source)
@@ -46,6 +48,7 @@ namespace sim_mob
 			this->avgHouseholdIncome = source.avgHouseholdIncome;
 			this->unitTypeCounter = source.unitTypeCounter;
 			this->populationByUnitType = source.populationByUnitType;
+			this->medianHedonicPrice = source.medianHedonicPrice;
 
 			return *this;
 		}
@@ -95,6 +98,11 @@ namespace sim_mob
 			return populationByUnitType;
 		}
 
+		int Alternative::getMedianHedonicPrice() const
+		{
+			return medianHedonicPrice;
+		}
+
 		void Alternative::setAvgHouseholdSize( double value )
 		{
 				avgHouseholdSize = value;
@@ -115,22 +123,20 @@ namespace sim_mob
 			populationByUnitType = value;
 		}
 
-
-		std::ostream& operator<<(std::ostream& strm, const Alternative& data) {
-					return strm << "{"
-							<< "\"id\":\"" << data.id << "\","
-							<< "\"planAreaId\":\"" << data.planAreaId << "\","
-							<< "\"planAreaName\":\"" << data.planAreaName << "\","
-							<< "\"dwellingTypeid\":\"" << data.dwellingTypeId << "\","
-							<< "\"dwellingTypeName\":\"" << data.dwellingTypeName << "\","
-							<< "\" avgHouseholdSize \":\"" << data.avgHouseholdSize << "\","
-							<< "\"avgHouseholdIncome \":\"" << data.avgHouseholdIncome << "\","
-							<< "\"unitTypeCounter \":\"" << data.unitTypeCounter << "\","
-							<< "\"populationByUnitType \":\"" << data.populationByUnitType << "\""
-							<< "}";
+		std::ostream& operator<<(std::ostream& strm, const Alternative& data)
+		{
+			return strm << "{"
+						<< "\"id\":\"" << data.id << "\","
+						<< "\"planAreaId\":\"" << data.planAreaId << "\","
+						<< "\"planAreaName\":\"" << data.planAreaName << "\","
+						<< "\"dwellingTypeid\":\"" << data.dwellingTypeId << "\","
+						<< "\"dwellingTypeName\":\"" << data.dwellingTypeName << "\","
+						<< "\" avgHouseholdSize \":\"" << data.avgHouseholdSize << "\","
+						<< "\"avgHouseholdIncome \":\"" << data.avgHouseholdIncome << "\","
+						<< "\"unitTypeCounter \":\"" << data.unitTypeCounter << "\","
+						<< "\"populationByUnitType \":\"" << data.populationByUnitType << "\""
+						<< "\"medianHedonicPrice \":\"" << data.medianHedonicPrice<< "\""
+						<< "}";
 		}
-
-
-
 	}
 } /* namespace sim_mob */

@@ -64,6 +64,7 @@ namespace sim_mob
 				double DWL600;	//19 = 1, if household size is 1, living in private condo/apartment
 				double DWL700;	//20 = 1, if household size is 1, living in landed property
 				double DWL800; 	//21 = 1, if household size is 1, living in other types of housing units
+				double DWL400_500; //dummy variable if dweeling type is an hdb 4 rooms or 5 rooms (unit_type==400, unit_type==500)
 
 				HM_Model *model;
 				Individual* headOfHousehold;

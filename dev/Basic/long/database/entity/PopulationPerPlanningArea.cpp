@@ -9,9 +9,9 @@
 
 using namespace sim_mob::long_term;
 
-PopulationPerPlanningArea::PopulationPerPlanningArea(int planningAreaId, int population, int ethnicityId, int ageCategoryId, double avgIncome, int avgHhSize, int unitType):
+PopulationPerPlanningArea::PopulationPerPlanningArea(int planningAreaId, int population, int ethnicityId, int ageCategoryId, double avgIncome, int avgHhSize, int unitType, int floorArea):
 													 planningAreaId(planningAreaId), population(population), ethnicityId(ethnicityId), ageCategoryId(ageCategoryId), avgIncome(avgIncome),
-													 avgHhSize(avgHhSize), unitType(unitType){}
+													 avgHhSize(avgHhSize), unitType(unitType), floorArea(floorArea){}
 
 PopulationPerPlanningArea::~PopulationPerPlanningArea() {}
 
@@ -24,6 +24,7 @@ PopulationPerPlanningArea::PopulationPerPlanningArea( const PopulationPerPlannin
 	avgIncome		= source.avgIncome;
 	avgHhSize		= source.avgHhSize;
 	unitType		= source.unitType;
+	floorArea		= source.floorArea;
 }
 
 
@@ -36,6 +37,7 @@ PopulationPerPlanningArea& PopulationPerPlanningArea::operator=( const Populatio
 	avgIncome		= source.avgIncome;
 	avgHhSize		= source.avgHhSize;
 	unitType		= source.unitType;
+	floorArea		= source.floorArea;
 
 	return *this;
 }
@@ -48,6 +50,11 @@ int PopulationPerPlanningArea::getPlanningAreaId() const
 int PopulationPerPlanningArea::getPopulation() const
 {
 	return population;
+}
+
+int PopulationPerPlanningArea::getFloorArea() const
+{
+	return floorArea;
 }
 
 int PopulationPerPlanningArea::getEthnicityId() const

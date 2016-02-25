@@ -141,19 +141,19 @@ double sim_mob::A_StarPublicTransitShortestPathImpl::getLabelingApproachWeights(
 		break;
 	}
 	case LabelingApproach3: {
-		if (ptEdge.getType() == "Walk") {
+		if (ptEdge.getType() == sim_mob::WALK_EDGE) {
 			ptEdge.setWalkTimeSecs(100000000);
 		}
 		break;
 	}
 	case LabelingApproach4: {
-		if (ptEdge.getType() != "RTS") {
+		if (ptEdge.getType() != sim_mob::TRAIN_EDGE) {
 			ptEdge.setTransferPenaltySecs(100000000);
 		}
 		break;
 	}
 	case LabelingApproach5: {
-		if (ptEdge.getType() != "Bus") {
+		if (ptEdge.getType() != sim_mob::BUS_EDGE) {
 			ptEdge.setTransferPenaltySecs(100000000);
 		}
 		break;

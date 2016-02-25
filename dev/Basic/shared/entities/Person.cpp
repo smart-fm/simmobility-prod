@@ -145,12 +145,12 @@ bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::S
 			int sType = (*it).sType;
 			int eType = (*it).eType;
 
-			if (it->tType == "Bus" && (sType != 1 || eType != 1))
+			if (it->tType == sim_mob::BUS_EDGE && (sType != 1 || eType != 1))
 			{
 				invalidFlag = true;
 			}
 
-			if (it->tType == "RTS" && (sType != 2 || eType != 2))
+			if (it->tType == sim_mob::TRAIN_EDGE && (sType != 2 || eType != 2))
 			{
 				invalidFlag = true;
 			}
@@ -271,13 +271,13 @@ bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::S
 				}
 
 				subTrip.tripID = "";
-				if ((*it).tType.find("Walk") != std::string::npos)
+				if ((*it).tType == sim_mob::WALK_EDGE)
 				{
 					subTrip.travelMode = "Walk";
 					subTrip.isPT_Walk = true;
 					subTrip.walkTime = (*it).walkTime;
 				}
-				else if ((*it).tType.find("Bus") != std::string::npos)
+				else if ((*it).tType == sim_mob::BUS_EDGE)
 				{
 					subTrip.travelMode = "BusTravel";
 				}
@@ -290,7 +290,7 @@ bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::S
 			}
 			else
 			{
-				Print() << "[PT pathset] make trip failed:[" << sSrc << "(" << sType << ")" << "]|[" << sEnd << "(" << eType << ")" << "] mode: " << it->tType << std::endl;
+				Print() << "[PT pathset] make trip failed:[" << sSrc << "(" << sType << ")" << "]|[" << sEnd << "(" << eType << ")" << "] mode: " << it->tTypeStr << std::endl;
 				ret = false;
 				break;
 			}

@@ -7,6 +7,7 @@
 #include "lua/LuaModel.hpp"
 #include "Path.hpp"
 #include "soci/soci.h"
+#include "util/DailyTime.hpp"
 
 namespace sim_mob
 {
@@ -70,7 +71,7 @@ public:
 	 * @param odTrips is list of trip legs in pt path
 	 * @return true if route choice was successful; false otherwise
 	 */
-	bool getBestPT_Path(int origin, int destination, unsigned int startTime, std::vector<sim_mob::OD_Trip>& odTrips);
+	bool getBestPT_Path(int origin, int destination, const DailyTime& startTime, std::vector<sim_mob::OD_Trip>& odTrips);
 
 	/**
 	 * store chosen path in file
@@ -91,7 +92,7 @@ private:
 	std::string ptPathsetStoredProcName;
 
 	/**start time for current trip*/
-	unsigned curStartTime;
+	DailyTime curStartTime;
 
 	/**
 	 * load public transit path set from database

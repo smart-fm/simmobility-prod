@@ -7,10 +7,9 @@
 #include <string>
 #include "util/DailyTime.hpp"
 #include "boost/lexical_cast.hpp"
+#include "path/Common.hpp"
 
 namespace sim_mob {
-
-
 
 class PT_BusDispatchFreq {
 public:
@@ -41,7 +40,8 @@ public:
 	  std::string endStop;
 	  int sType;
 	  int eType;
-	  std::string tType;
+	  sim_mob::PT_EdgeType tType;
+	  std::string tTypeStr;
 	  std::string serviceLines;
 	  std::string pathset;
 	  int id;

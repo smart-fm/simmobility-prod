@@ -359,7 +359,7 @@ sim_mob::PT_Path::PT_Path(const std::vector<PT_NetworkEdge> &path) :
 		totalWalkingTimeSecs += itEdge->getWalkTimeSecs();
 		pathTravelTime += itEdge->getLinkTravelTimeSecs();
 		totalDistanceKms += itEdge->getDistKms();
-		if (itEdge->getType() == "Bus" || itEdge->getType() == "RTS")
+		if (itEdge->getType() == sim_mob::BUS_EDGE || itEdge->getType() == sim_mob::TRAIN_EDGE)
 		{
 			totalBusMRTTravelDistance += itEdge->getDistKms();
 			totalNumberOfTransfers++;
@@ -482,8 +482,8 @@ void sim_mob::PT_PathSet::checkPathFeasibilty()
 			pathSet.erase(tempitPath);
 			continue;
 		}
-		std::string prevEdgeType = "";
-		std::string currentEdgeType = "";
+		sim_mob::PT_EdgeType prevEdgeType = sim_mob::UNKNOWN_EDGE;
+		sim_mob::PT_EdgeType currentEdgeType = sim_mob::UNKNOWN_EDGE;
 		int simMobilityNodeCount = 0; // simMobility Node counts along the path
 		int busLegCount = 0; // Number of buslegs along the path
 		std::vector<PT_NetworkEdge> edges;
@@ -493,7 +493,7 @@ void sim_mob::PT_PathSet::checkPathFeasibilty()
 		{
 			// Check 2 : No two consecutive walking edges along the path
 			currentEdgeType = itEdge->getType();
-			if (currentEdgeType == "Walk" and prevEdgeType == "Walk")
+			if (currentEdgeType == sim_mob::WALK_EDGE && prevEdgeType == sim_mob::WALK_EDGE)
 			{
 				// Infeasible path
 				itPathComp++;
@@ -520,7 +520,7 @@ void sim_mob::PT_PathSet::checkPathFeasibilty()
 				incrementFlag = true;
 				break;
 			}
-			if (itEdge->getType() == "Bus")
+			if (itEdge->getType() == sim_mob::BUS_EDGE)
 			{
 				busLegCount++;
 				// Check 4 : Total number of bus legs <= 4

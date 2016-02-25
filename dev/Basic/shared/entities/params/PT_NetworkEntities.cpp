@@ -161,7 +161,7 @@ TrainStop* PT_Network::findMRT_Stop(const std::string& stopId) const
 
 PT_NetworkEdge::PT_NetworkEdge():startStop(""),endStop(""),rType(""),road_index(""),roadEdgeId(""),
 rServiceLines(""),linkTravelTimeSecs(0),edgeId(0),waitTimeSecs(0),walkTimeSecs(0),transitTimeSecs(0),
-transferPenaltySecs(0),dayTransitTimeSecs(0),distKMs(0)
+transferPenaltySecs(0),dayTransitTimeSecs(0),distKMs(0), edgeType(sim_mob::UNKNOWN_EDGE)
 {}
 
 PT_NetworkEdge::~PT_NetworkEdge() {}

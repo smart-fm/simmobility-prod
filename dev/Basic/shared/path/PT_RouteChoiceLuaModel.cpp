@@ -5,14 +5,18 @@
  *      Author: zhang
  */
 
+#include <cmath>
 #include "boost/algorithm/string.hpp"
 #include "boost/filesystem.hpp"
 #include "boost/foreach.hpp"
 #include "boost/regex.hpp"
 #include "boost/thread/mutex.hpp"
+#include "Common.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
+#include "entities/BusController.hpp"
 #include "entities/params/PT_NetworkEntities.hpp"
+#include "geospatial/network/PT_Stop.hpp"
 #include "logging/Log.hpp"
 #include "lua/LuaLibrary.hpp"
 #include "lua/third-party/luabridge/LuaBridge.h"
@@ -27,7 +31,7 @@ using namespace luabridge;
 namespace sim_mob
 {
 
-PT_RouteChoiceLuaModel::PT_RouteChoiceLuaModel() : publicTransitPathSet(nullptr), curStartTime(0)
+PT_RouteChoiceLuaModel::PT_RouteChoiceLuaModel() : publicTransitPathSet(nullptr), curStartTime()
 {
 	ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
 	ptPathsetStoredProcName = cfg.getDatabaseProcMappings().procedureMappings["pt_pathset"];
@@ -162,6 +166,7 @@ std::vector<sim_mob::OD_Trip> PT_RouteChoiceLuaModel::makePT_RouteChoice(const s
 				trip.endStop = trip.endStop.substr(2);
 			}
 			trip.tType = itEdge->getType();
+			trip.tTypeStr = itEdge->getTypeStr();
 			trip.serviceLines = itEdge->getServiceLines();
 			trip.originNode = origin;
 			trip.destNode = destination;
@@ -176,7 +181,7 @@ std::vector<sim_mob::OD_Trip> PT_RouteChoiceLuaModel::makePT_RouteChoice(const s
 	return odTrips;
 }
 
-bool PT_RouteChoiceLuaModel::getBestPT_Path(int origin, int dest, unsigned int startTime, std::vector<sim_mob::OD_Trip>& odTrips)
+bool PT_RouteChoiceLuaModel::getBestPT_Path(int origin, int dest, const DailyTime& startTime, std::vector<sim_mob::OD_Trip>& odTrips)
 {
 	bool ret = false;
 	PT_PathSet pathSet;
@@ -207,7 +212,7 @@ void PT_RouteChoiceLuaModel::storeBestPT_Path()
 			outputFile << odIt->endStop << ",";
 			outputFile << odIt->sType << ",";
 			outputFile << odIt->eType << ",";
-			outputFile << odIt->tType << ",";
+			outputFile << odIt->tTypeStr << ",";
 			outputFile << odIt->serviceLines << ",";
 			outputFile << odIt->pathset << ",";
 			outputFile << odIt->id << ",";
@@ -243,12 +248,102 @@ void loadPT_PathsetFromDB(soci::session& sql, const std::string& funcName, int o
 
 void PT_RouteChoiceLuaModel::loadPT_PathSet(int origin, int dest, PT_PathSet& pathSet)
 {
+	const BusController* busController = BusController::GetInstance();
+	const TravelTimeManager* ttMgr = TravelTimeManager::getInstance();
 	std::vector<sim_mob::PT_Path> paths;
 	loadPT_PathsetFromDB(*dbSession, ptPathsetStoredProcName, origin, dest, paths);
 	for(auto& path : paths)
 	{
+		std::vector<PT_NetworkEdge> pathEdges = path.getPathEdges();
+
+		//compute and set path travel time
+		double pathTravelTime = 0.0;
+		DailyTime nextStartTime = curStartTime;
+		for(PT_NetworkEdge& edge : pathEdges)
+		{
+			switch(edge.getType())
+			{
+			case sim_mob::BUS_EDGE:
+			{
+				const std::vector<const Link*>& busRouteLinks = busController->getLinkRoute(edge.getServiceLines());
+
+				const BusStop* originStop = BusStop::findBusStop(edge.getStartStop());
+				if(!originStop)
+				{
+					throw std::runtime_error("invalid origin stop in path edge: " + edge.getStartStop());
+				}
+
+				const BusStop* destinStop = BusStop::findBusStop(edge.getEndStop());
+				if(!destinStop)
+				{
+					throw std::runtime_error("invalid origin stop in path edge: " + edge.getEndStop());
+				}
+
+				const Link* originLink = originStop->getParentSegment()->getParentLink();
+				const Link* destinLink = destinStop->getParentSegment()->getParentLink();
+				std::vector<const Link*>::const_iterator lnkIt = std::find(busRouteLinks.begin(), busRouteLinks.end(), originLink);
+				if(lnkIt == busRouteLinks.end())
+				{
+					throw std::runtime_error("origin link not found in bus route");
+				}
+				std::vector<const Link*>::const_iterator nextLnkIt = lnkIt+1;
+				if(nextLnkIt == busRouteLinks.end())
+				{	//we have hit the end before encountering the destination link
+					throw std::runtime_error("destination stop's link not found in bus route");
+				}
+				const Link* currentLink = nullptr;
+				const Link* nextLink = nullptr;
+				double edgeTravelTime = 0.0;
+				double tt = 0.0;
+				for(; lnkIt != busRouteLinks.end(); lnkIt++, nextLnkIt++)
+				{
+					currentLink = *lnkIt;
+					if(nextLnkIt == busRouteLinks.end()) { nextLink = nullptr; }
+					else { nextLink = *nextLnkIt; }
+					tt = ttMgr->getLinkTT(currentLink, nextStartTime, nextLink);
+					edgeTravelTime = edgeTravelTime + tt;
+					nextStartTime = DailyTime(nextStartTime.getValue() + std::floor(tt*1000));
+					if(currentLink == destinLink)
+					{
+						break;
+					}
+				}
+				if(lnkIt == busRouteLinks.end())
+				{	//we have hit the end before encountering the destination stop
+					throw std::runtime_error("destination stop's link not found in bus route");
+				}
+
+				edge.setLinkTravelTimeSecs(edgeTravelTime);
+				pathTravelTime = pathTravelTime + edgeTravelTime;
+				break;
+			}
+			case sim_mob::TRAIN_EDGE:
+			{
+				double edgeTravelTime =  edge.getLinkTravelTimeSecs() + edge.getWalkTimeSecs() + edge.getWaitTimeSecs();
+				edge.setLinkTravelTimeSecs(edgeTravelTime);
+				pathTravelTime = pathTravelTime + edgeTravelTime;
+				nextStartTime = DailyTime(nextStartTime.getValue() + std::floor(edgeTravelTime*1000));
+				break;
+			}
+			case sim_mob::WALK_EDGE:
+			{
+				double edgeTravelTime = edge.getLinkTravelTimeSecs() + edge.getWaitTimeSecs(); //same as walk time for walk edges
+				edge.setLinkTravelTimeSecs(edgeTravelTime);
+				pathTravelTime = pathTravelTime + edgeTravelTime;
+				nextStartTime = DailyTime(nextStartTime.getValue() + std::floor(edgeTravelTime*1000));
+				break;
+			}
+			default:
+			{
+				throw std::runtime_error("Unknown PT edge type found in path");
+			}
+			}
+		}
+		path.setPathEdges(pathEdges);
+		path.setPathTravelTime(pathTravelTime);
 		pathSet.pathSet.insert(path);
 	}
+	pathSet.computeAndSetPathSize();
 }
 
 }

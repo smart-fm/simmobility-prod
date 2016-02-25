@@ -4,6 +4,7 @@
 #include <soci/soci.h>
 #include <soci/postgresql/soci-postgresql.h>
 #include <string>
+#include "util/DailyTime.hpp"
 #include "path/Common.hpp"
 
 namespace sim_mob

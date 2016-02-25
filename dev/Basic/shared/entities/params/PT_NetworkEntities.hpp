@@ -17,6 +17,7 @@
 #include "geospatial/network/RoadSegment.hpp"
 #include "geospatial/network/Node.hpp"
 #include "geospatial/network/PT_Stop.hpp"
+#include "path/Common.hpp"
 
 namespace sim_mob{
 
@@ -89,12 +90,28 @@ public:
 		rServiceLines = serviceLines;
 	}
 
-	const std::string& getType() const {
+	const std::string& getTypeStr() const {
 		return rType;
+	}
+
+	sim_mob::PT_EdgeType getType() const {
+		return edgeType;
 	}
 
 	void setType(const std::string& type) {
 		rType = type;
+		if(rType == "Bus")
+		{
+			edgeType = sim_mob::BUS_EDGE;
+		}
+		else if(rType == "Walk")
+		{
+			edgeType = sim_mob::WALK_EDGE;
+		}
+		else if(rType == "RTS")
+		{
+			edgeType = sim_mob::TRAIN_EDGE;
+		}
 	}
 
 	const std::string& getStartStop() const {
@@ -152,6 +169,7 @@ private:
 	std::string startStop;       // Alphanumeric id
 	std::string endStop;         // Alphanumeric id
  	std::string rType;           // Service Line type, can be "BUS","LRT","WALK"
+ 	PT_EdgeType edgeType;        // Edge type inferred from
 	std::string road_index;      // Index for road type 0 for BUS , 1 for LRT , 2 for Walk
 	std::string roadEdgeId;      // Strings of passing road segments Ex: 4/15/35/43
 	std::string rServiceLines; 	 //If the edge is a route segment, it will have bus service lines

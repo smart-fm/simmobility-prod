@@ -52,7 +52,7 @@ int PopulationPerPlanningArea::getPopulation() const
 	return population;
 }
 
-int PopulationPerPlanningArea::getFloorArea() const
+double PopulationPerPlanningArea::getFloorArea() const
 {
 	return floorArea;
 }

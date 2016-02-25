@@ -30,7 +30,7 @@ namespace sim_mob
 			double getAvgIncome() const;
 			int getAvgHhSize() const;
 			int getUnitType() const;
-			int getFloorArea() const;
+			double getFloorArea() const;
 
 		private:
 			friend class PopulationPerPlanningAreaDao;
@@ -42,7 +42,7 @@ namespace sim_mob
 			double avgIncome;
 			int avgHhSize;
 			int unitType;
-			int floorArea;
+			double floorArea;
 		};
 	}
 }

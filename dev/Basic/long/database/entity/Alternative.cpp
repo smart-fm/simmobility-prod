@@ -16,10 +16,10 @@ namespace sim_mob
 	namespace long_term
 	{
 		Alternative::Alternative( BigSerial id, BigSerial planAreaId, std::string planAreaName, BigSerial dwellingTypeId, std::string dwellingTypeName,
-								  double avgHouseholdSize, double avgHouseholdIncome, int unitTypeCounter, int populationByUnitType, double medianHedonicPrice)
+								  double avgHouseholdSize, double avgHouseholdIncome, int unitTypeCounter, int populationByUnitType, double medianHedonicPrice, double sumFloorArea)
 								 :id(id), planAreaId(planAreaId), planAreaName(planAreaName), dwellingTypeId(dwellingTypeId), dwellingTypeName(dwellingTypeName),
 								  avgHouseholdSize(avgHouseholdSize), avgHouseholdIncome(avgHouseholdIncome), unitTypeCounter(unitTypeCounter),
-								  populationByUnitType(populationByUnitType), medianHedonicPrice(medianHedonicPrice){}
+								  populationByUnitType(populationByUnitType), medianHedonicPrice(medianHedonicPrice), sumFloorArea(sumFloorArea){}
 
 		Alternative::~Alternative() {}
 
@@ -35,6 +35,7 @@ namespace sim_mob
 			this->unitTypeCounter = source.unitTypeCounter;
 			this->populationByUnitType = source.populationByUnitType;
 			this->medianHedonicPrice = source.medianHedonicPrice;
+			this->sumFloorArea = source.sumFloorArea;
 		}
 
 		Alternative& Alternative::operator=(const Alternative& source)
@@ -49,6 +50,7 @@ namespace sim_mob
 			this->unitTypeCounter = source.unitTypeCounter;
 			this->populationByUnitType = source.populationByUnitType;
 			this->medianHedonicPrice = source.medianHedonicPrice;
+			this->sumFloorArea = source.sumFloorArea;
 
 			return *this;
 		}
@@ -121,6 +123,21 @@ namespace sim_mob
 		void Alternative::setPopulationByUnitType( int value )
 		{
 			populationByUnitType = value;
+		}
+
+		void Alternative::setSumFloorArea( double value)
+		{
+			sumFloorArea = value;
+		}
+
+		double Alternative::getSumFloorArea()
+		{
+			return sumFloorArea;
+		}
+
+		void Alternative::setMedianHedonicPrice(double value)
+		{
+			medianHedonicPrice = value;
 		}
 
 		std::ostream& operator<<(std::ostream& strm, const Alternative& data)

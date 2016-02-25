@@ -119,6 +119,33 @@ namespace sim_mob
 			}
 		}
 
+		int ScreeningSubModel::GetDwellingType(int unitType)
+		{
+			int dwellingType = 0;
+
+			if( unitType < 3 )
+				dwellingType = 100;
+			else
+			if( unitType == 3 )
+				dwellingType = 300;
+			else
+			if( unitType == 4 )
+				dwellingType = 400;
+			else
+			if( unitType == 5 || unitType == 6 )
+				dwellingType = 500;
+			else
+			if(( unitType >=7 && unitType <=16 ) || ( unitType >= 32 && unitType <= 36 ) )
+				dwellingType = 600;
+			else
+			if( unitType >= 17 && unitType <= 31 )
+				dwellingType = 700;
+			else
+				dwellingType = 800;
+
+			return dwellingType;
+		}
+
 		void ScreeningSubModel::getScreeningProbabilities( int hhId, std::vector<double> &probabilities, HM_Model *modelArg, int day )
 		{
 			model = modelArg;
@@ -244,28 +271,9 @@ namespace sim_mob
 			 	{
 					for(int m = 0; m < populationPerPlanningArea.size(); m++)
 					{
-						int dwellingType = 0;
 						int unitType = populationPerPlanningArea[m]->getUnitType();
 
-						if( unitType < 3 )
-							dwellingType = 100;
-						else
-						if( unitType == 3 )
-							dwellingType = 300;
-						else
-						if( unitType == 4 )
-							dwellingType = 400;
-						else
-						if( unitType == 5 || unitType == 6 )
-							dwellingType = 500;
-						else
-						if(( unitType >=7 && unitType <=16 ) || ( unitType >= 32 && unitType <= 36 ) )
-							dwellingType = 600;
-						else
-						if( unitType >= 17 && unitType <= 31 )
-							dwellingType = 700;
-						else
-							dwellingType = 800;
+						int dwellingType = GetDwellingType(unitType);
 
 						if( dwellingType == model->getAlternatives()[n]->getDwellingTypeId() )
 						{
@@ -281,6 +289,7 @@ namespace sim_mob
 					model->getAlternatives()[n]->setAvgHouseholdIncome(avgHouseholdIncome );
 					model->getAlternatives()[n]->setUnitTypeCounter(unitTypeCounter );
 					model->getAlternatives()[n]->setPopulationByUnitType(populationByunitType );
+					model->getAlternatives()[n]->setSumFloorArea(sumFloorArea);
 			 	}
 			 	else
 			 	{
@@ -288,6 +297,7 @@ namespace sim_mob
 			 		avgHouseholdIncome = model->getAlternatives()[n]->getAvgHouseholdIncome();
 			 		unitTypeCounter = model->getAlternatives()[n]->getUnitTypeCounter();
 			 		populationByunitType = model->getAlternatives()[n]->getPopulationByUnitType();
+			 		sumFloorArea = model->getAlternatives()[n]->getSumFloorArea();
 			 	}
 
 				avgHouseholdSize 	= avgHouseholdSize 	  / unitTypeCounter;
@@ -391,7 +401,6 @@ namespace sim_mob
 					}
 				}
 
-
 				/*
 				HedonicPrice_SubModel hpSubmodel(day, model, const_cast<Unit*>(unit));
 				std::vector<ExpectationEntry> expectations;
@@ -399,9 +408,24 @@ namespace sim_mob
 				logZonalMedianHousingPrice = log(expectations[0].hedonicPrice);
 				*/
 
+				std::vector<double> medianHedonicPrice;
+				if( model->getAlternatives()[n]->getMedianHedonicPrice() > 0.000001 )
+				{
+					logZonalMedianHousingPrice =  model->getAlternatives()[n]->getMedianHedonicPrice() / sumFloorArea / 1000;
+				}
+				else
+				{
+					for( int m = 0;  m < model->getAlternativeHedonicPrice().size(); m++ )
+					{
+						if( model->getAlternatives()[n]->getDwellingTypeId() == model->getAlternativeHedonicPrice()[m]->getDwellingType() &&
+							model->getAlternatives()[n]->getPlanAreaId() 	 == model->getAlternativeHedonicPrice()[m]->getPlanningAreaId() )
+							medianHedonicPrice.push_back( model->getAlternativeHedonicPrice()[m]->getTotalPrice() );
+					}
 
-				logZonalMedianHousingPrice =  model->getAlternatives()[n]->getMedianHedonicPrice();
+					logZonalMedianHousingPrice = medianHedonicPrice[ medianHedonicPrice.size()/2 ] / sumFloorArea / 1000;
 
+					model->getAlternatives()[n]->setMedianHedonicPrice( logZonalMedianHousingPrice );
+				}
 
 				double probability =( logPopulationByHousingType* ln_popdwl 		) +
 									( populationDensity			* den_respop_ha 	) +

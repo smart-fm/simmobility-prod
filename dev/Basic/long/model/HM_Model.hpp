@@ -41,6 +41,7 @@
 #include "database/entity/ScreeningCostTime.hpp"
 #include "database/entity/TenureTransitionRate.hpp"
 #include "database/entity/OwnerTenantMovingRate.hpp"
+#include "database/entity/AlternativeHedonicPrice.hpp"
 #include "core/HousingMarket.hpp"
 #include "boost/unordered_map.hpp"
 #include "DeveloperModel.hpp"
@@ -146,6 +147,9 @@ namespace sim_mob
 
             typedef std::vector<OwnerTenantMovingRate*>OwnerTenantMovingRateList;
             typedef boost::unordered_map<BigSerial, OwnerTenantMovingRate*> OwnerTenantMovingRateMap;
+
+            typedef std::vector<AlternativeHedonicPrice*>AlternativeHedonicPriceList;
+            typedef boost::unordered_map<BigSerial, AlternativeHedonicPrice*> AlternativeHedonicPriceMap;
 
             /**
              * Taz statistics
@@ -338,9 +342,9 @@ namespace sim_mob
 
             std::multimap<BigSerial, Unit*> getUnitsByZoneHousingType();
 
-
             std::vector<OwnerTenantMovingRate*> getOwnerTenantMovingRates();
             std::vector<TenureTransitionRate*> getTenureTransitionRates();
+            std::vector<AlternativeHedonicPrice*> getAlternativeHedonicPrice();
 
         protected:
             /**
@@ -478,6 +482,9 @@ namespace sim_mob
             std::vector<boost::shared_ptr<VehicleOwnershipChanges> > vehicleOwnershipChangesVector;
             IndvidualVehicleOwnershipLogsumList IndvidualVehicleOwnershipLogsums;
             IndvidualVehicleOwnershipLogsumMap IndvidualVehicleOwnershipLogsumById;
+
+            AlternativeHedonicPriceList alternativeHedonicPrice;
+            AlternativeHedonicPriceMap alternativeHedonicPriceById;
         };
     }
 }

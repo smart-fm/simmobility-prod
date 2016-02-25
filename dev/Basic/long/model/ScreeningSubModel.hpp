@@ -37,6 +37,7 @@ namespace sim_mob
 				BigSerial ComputeWorkPlanningArea(PlanningArea *planningAreaWork);
 				BigSerial ComputeHomePlanningArea(PlanningArea *planningAreaWork, Household *household);
 				void ComputeHeadOfHousehold(Household* household);
+				int  GetDwellingType(int unitType);
 
 			private:
 

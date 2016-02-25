@@ -102,6 +102,16 @@ public:
 	 * assign train trip to person
 	 */
 	void assignTrainTripToPerson(std::set<Entity*>& activeAgents);
+	/**
+	 * finds the station Agent from station name.
+	 * @param nameStation is the name of station
+	 * @returns pointer to station agent corresponding to station
+	 */
+	static Agent* getAgentFromStation(const std::string& nameStation);
+	/**
+	 * adds station agent to the static allStationAgents
+	 */
+	static void registerStationAgent(const std::string& nameStation, const Agent* stationAgent);
 protected:
 	/**
 	 * inherited from base class agent to initialize parameters for train controller
@@ -135,6 +145,7 @@ protected:
 	 * @return true if successfully get the list of platforms
 	 */
 	bool getTrainPlatforms(const std::string& lineId, std::vector<Platform*>& platforms);
+
 private:
 	/**
 	 * the function to load platforms from DB
@@ -164,16 +175,6 @@ private:
 	 * the function to load polylines from DB
 	 */
 	void loadBlockPolylines();
-	/**
-	 * finds the station Agent from station name.
-	 * @param nameStation is the name of station
-	 * @returns pointer to station agent corresponding to station
-	 */
-	static Agent* getAgentFromStation(const std::string& nameStation);
-	/**
-	 * adds station agent to the static allStationAgents
-	 */
-	static void registerStationAgent(const std::string& nameStation, const Agent* stationAgent);
 private:
 	/** global static bus stop agents lookup table*/
 	static StationAgentsMap allStationAgents;

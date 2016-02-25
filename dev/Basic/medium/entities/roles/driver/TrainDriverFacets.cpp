@@ -9,9 +9,14 @@
 #include "entities/misc/TrainTrip.hpp"
 #include "entities/Person_MT.hpp"
 #include "entities/roles/driver/TrainDriver.hpp"
+#include "entities/TrainController.hpp"
+#include "message/MT_Message.hpp"
+#include "message/MessageBus.hpp"
+#include "message/MessageHandler.hpp"
 namespace {
-const double safeDistanceInMetres = 100;
+const double safeDistanceCM = 10000;
 const double distanceArrvingAtPlatform = 0.1;
+const double trainLengthCM = 12000;
 }
 namespace sim_mob {
 namespace medium{
@@ -83,7 +88,33 @@ void TrainMovement::frame_init()
 }
 void TrainMovement::frame_tick()
 {
-	moveForward();
+	TrainUpdateParams& params = parentDriver->getParams();
+	TrainDriver::TRAIN_STATUS status = parentDriver->getCurrentStatus();
+	switch(status){
+	case TrainDriver::MOVE_TO_PLATFROM:
+	{
+		moveForward();
+		if(isStopAtPlatform()){
+			parentDriver->setCurrentStatus(TrainDriver::ARRIVAL_AT_PLATFORM);
+		}
+		break;
+	}
+	case TrainDriver::WAITING_LEAVING:
+	{
+		parentDriver->reduceWaitingTime(params.secondsInTick);
+		double waitingTime = parentDriver->getWaitingTime();
+		if(waitingTime<params.secondsInTick){
+			if(!isAtLastPlaform()){
+				leaveFromPlaform();
+				parentDriver->setCurrentStatus(TrainDriver::LEAVING_FROM_PLATFORM);
+				params.elapsedSeconds = waitingTime;
+			} else {
+				parentDriver->getParent()->setToBeRemoved();
+			}
+		}
+		break;
+	}
+	}
 }
 std::string TrainMovement::frame_tick_output()
 {
@@ -113,7 +144,7 @@ double TrainMovement::getRealSpeedLimit()
 	if(nextDriver){
 		TrainMovement* nextMovement = dynamic_cast<TrainMovement*>(nextDriver->movementFacet);
 		if(nextMovement){
-			distanceToNextTrain = trainPathMover.getDistanceToNextTrain(nextMovement->getPathMover())+safeDistanceInMetres;
+			distanceToNextTrain = trainPathMover.getDistanceToNextTrain(nextMovement->getPathMover())-safeDistanceCM-trainLengthCM;
 			distanceToNextPlatform = trainPathMover.getDistanceToNextPlatform(trainPlatformMover.getNextPlatform());
 		}
 	}
@@ -184,9 +215,13 @@ bool TrainMovement::isAtLastPlaform()
 }
 void TrainMovement::leaveFromPlaform()
 {
-	if(!isAtLastPlaform()){
-		trainPlatformMover.getNextPlatform(true);
+	if (!isAtLastPlaform()) {
 		moveForward();
+		Platform* next = trainPlatformMover.getNextPlatform(true);
+		std::string stationNo = next->getPlatformNo();
+		Agent* stationAgent = TrainController<Person_MT>::getAgentFromStation(stationNo);
+		messaging::MessageBus::PostMessage(stationAgent,TRAIN_MOVETO_NEXT_PLATFORM,
+				messaging::MessageBus::MessagePtr(new TrainDriverMessage(parentDriver)));
 	}
 }
 }

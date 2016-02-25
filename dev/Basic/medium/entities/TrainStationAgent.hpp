@@ -12,10 +12,31 @@
 namespace sim_mob {
 namespace medium
 {
+class TrainDriver;
 class TrainStationAgent : public sim_mob::Agent {
 public:
 	TrainStationAgent();
 	virtual ~TrainStationAgent();
+	void setStation(const Station* station);
+
+protected:
+	virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
+	//Virtual overrides
+	virtual Entity::UpdateStatus frame_init(timeslice now);
+	virtual Entity::UpdateStatus frame_tick(timeslice now);
+	virtual void frame_output(timeslice now);
+	/**
+	 * calls frame_tick of the movement facet for the person's role
+	 * @param now current time slice
+	 * @param person person to tick
+	 * @return update status
+	 */
+	Entity::UpdateStatus callMovementFrameTick(timeslice now, TrainDriver* person);
+private:
+	/**the reference to the station*/
+	const Station* station;
+	/**the reference */
+	std::list<TrainDriver*> trainDriver;
 };
 }
 } /* namespace sim_mob */

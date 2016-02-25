@@ -104,7 +104,7 @@ double TrainPathMover::getDistanceToNextPlatform(Platform* platform) const
 		if((*tempIt)->getAttachedPlatform()!=platform){
 			distance += (*tempIt)->getLength();
 		} else {
-			distance += (platform->getOffset()+platform->getLength());
+			distance += platform->getOffset();
 			break;
 		}
 	}

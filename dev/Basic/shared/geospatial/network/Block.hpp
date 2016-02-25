@@ -4,7 +4,8 @@
  *  Created on: Feb 5, 2016
  *      Author: zhang huai peng
  */
-
+#ifndef BLOCKT_HPP_
+#define BLOCKT_HPP_
 #include "PolyLine.hpp"
 #include "Platform.hpp"
 
@@ -76,4 +77,4 @@ public:
 
 } /* namespace sim_mob */
 
-
+#endif

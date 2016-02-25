@@ -16,7 +16,8 @@
 namespace sim_mob {
 	template<typename PERSON>
 	TrainController<PERSON>* TrainController<PERSON>::pInstance=nullptr;
-
+	template<typename PERSON>
+	boost::unordered_map<const Station*, Agent*> TrainController<PERSON>::allStationAgents;
 	template<typename PERSON>
 	TrainController<PERSON>::TrainController(int id, const MutexStrategy& mtxStrat):Agent(mtxStrat, id)
 	{

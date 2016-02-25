@@ -2,9 +2,10 @@
  * TrainTrip.hpp
  *
  *  Created on: Feb 19, 2016
- *      Author: fm-simmobility
+ *      Author: zhang huai peng
  */
-
+#ifndef TRAINTRIP_HPP_
+#define TRAINTRIP_HPP_
 #include <vector>
 #include <map>
 #include <string>
@@ -60,4 +61,4 @@ private:
 
 } /* namespace sim_mob */
 
-
+#endif

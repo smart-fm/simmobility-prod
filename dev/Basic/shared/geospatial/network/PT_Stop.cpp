@@ -215,13 +215,18 @@ const RoadSegment* TrainStop::getRandomStationSegment() const
 	return (*segIt);
 }
 
-Station::Station(const std::string& id):TrainStop(id)
+Station::Station(const std::string& id):TrainStop(id),stationAgent(nullptr)
 {
 
 }
-void Station::addPlatform(const std::string& lineId, const Platform* platform)
+void Station::addPlatform(const std::string& lineId, Platform* platform)
 {
+	lineToPlatform[lineId] = platform;
+}
 
+void Station::setAssociatedAgent(Agent* agent)
+{
+	stationAgent = agent;
 }
 
 void TrainStop::addAccessRoadSegment(unsigned int segmentId)

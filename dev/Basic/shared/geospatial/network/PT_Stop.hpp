@@ -155,6 +155,7 @@ private:
 	std::vector<const RoadSegment*> roadSegments;
 };
 
+class Agent;
 class Station : public TrainStop
 {
 public:
@@ -164,9 +165,16 @@ public:
 	 * @param lineId is line id of MRT
 	 * @param platform is the pointer to the object of platform
 	 */
-	void addPlatform(const std::string& lineId, const Platform* platform);
-
+	void addPlatform(const std::string& lineId, Platform* platform);
+	/**
+	 * set associated agent for future lookup
+	 * @param agent is a train station agent
+	 */
+	void setAssociatedAgent(Agent* agent);
 private:
+	/**the map from line id to platform*/
 	std::map<std::string, Platform*> lineToPlatform;
+	/**parent agent*/
+	const Agent* stationAgent;
 };
 }

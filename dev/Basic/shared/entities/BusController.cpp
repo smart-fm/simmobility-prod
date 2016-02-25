@@ -286,6 +286,25 @@ void BusController::initializeBusController(std::set<Entity*>& agentList)
 
 	setPTScheduleFromConfig(dispatchFreq);
 	assignBusTripChainWithPerson(agentList);
+
+	//initialize bus route links map for passenger route choice
+	busRouteLinksMap.clear();
+	for(std::map<std::string, std::vector<const RoadSegment*> >::const_iterator routeMapIt = busRouteMap.begin();
+			routeMapIt != busRouteMap.end(); routeMapIt++)
+	{
+		const string& busline = routeMapIt->first;
+		const std::vector<const RoadSegment*>& segRoute = routeMapIt->second;
+		std::vector<const Link*>& linkRoute = busRouteLinksMap[busline];
+		const Link* currLink = nullptr;
+		for(const RoadSegment* seg : segRoute)
+		{
+			if(currLink != seg->getParentLink())
+			{
+				currLink = seg->getParentLink();
+				linkRoute.push_back(currLink);
+			}
+		}
+	}
 }
 
 BusController* BusController::GetInstance()
@@ -810,4 +829,32 @@ void BusController::load(const std::map<std::string, std::string>& configProps)
 bool BusController::isNonspatial()
 {
 	return true;
+}
+
+const std::vector<const Link*>& sim_mob::BusController::getLinkRoute(const std::string& busline) const
+{
+	if(busline.empty())
+	{
+		throw std::runtime_error("empty busline passed for fetching link route");
+	}
+	std::map<std::string, std::vector<const Link*> >::const_iterator lnkRouteMapIt = busRouteLinksMap.find(busline);
+	if(lnkRouteMapIt == busRouteLinksMap.end())
+	{
+		throw std::runtime_error("invalid busline passed for fetching link route: " + busline);
+	}
+	return lnkRouteMapIt->second;
+}
+
+const std::vector<const BusStop*>& sim_mob::BusController::getStops(const std::string& busline) const
+{
+	if(busline.empty())
+	{
+		throw std::runtime_error("empty busline passed for fetching stop list");
+	}
+	std::map<std::string, std::vector<const BusStop*> >::const_iterator stopsMapIt = busStopSequenceMap.find(busline);
+	if(stopsMapIt == busStopSequenceMap.end())
+	{
+		throw std::runtime_error("invalid busline passed for fetching stops list: " + busline);
+	}
+	return stopsMapIt->second;
 }

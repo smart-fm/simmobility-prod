@@ -93,6 +93,20 @@ public:
 	 */
 	virtual void unregisterChild(Entity* child);
 
+	/**
+	 * returns list of links in the route of a bus line
+	 * @param busline input bus service line id
+	 * @return list of links in the route of a bus line
+	 */
+	const std::vector<const Link*>& getLinkRoute(const std::string& busline) const;
+
+	/**
+	 * returns list of stops in the route of a bus line
+	 * @param busline input bus service line id
+	 * @return list of bus stops in the route of a bus line
+	 */
+	const std::vector<const BusStop*>& getStops(const std::string& busline) const;
+
 protected:
 
 	/**
@@ -173,6 +187,11 @@ protected:
 	 * map of busline id -> bus route (as list of segments)
 	 */
 	std::map<std::string, std::vector<const RoadSegment*> > busRouteMap;
+
+	/**
+	 * map of busline id -> bus route (as list of links)
+	 */
+	std::map<std::string, std::vector<const Link*> > busRouteLinksMap;
 
 	/**
 	 * map of busline id -> list of bus stops

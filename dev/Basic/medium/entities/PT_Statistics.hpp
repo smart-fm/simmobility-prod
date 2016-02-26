@@ -5,6 +5,7 @@
 #pragma once
 #include <map>
 #include <string>
+#include <utility>
 #include <vector>
 #include "message/MessageBus.hpp"
 #include "message/MessageHandler.hpp"
@@ -30,8 +31,8 @@ struct PersonWaitingTime
 	std::string currentTime;
 	/** waiting time in seconds*/
 	double waitingTime;
-	/** bus lines for which the person waited*/
-	std::string busLines;
+	/** bus line for which the person waited*/
+	std::string busLine;
 	/** number of times this person was denied boarding before he got a chance to board a bus */
 	unsigned int deniedBoardingCount;
 
@@ -70,6 +71,8 @@ struct BusArrivalTime
 	std::string arrivalTime;
 	/** dwell time at bus stop	 */
 	std::string dwellTime;
+	/** dwell time at bus stop in seconds */
+	double dwellTimeSecs;
 	/** percentage occupancy of bus when it arrives at this stop*/
 	double pctOccupancy; //percentage
 
@@ -169,6 +172,71 @@ public:
 };
 
 /**
+ *  Class to store PT stop related stats for a particular interval
+ *  This class is intended to be used for both bus stops and MRT stops
+ */
+class StopStats
+{
+public:
+	StopStats() : needsInitialization(true), serviceLine(std::string()), stopCode(std::string()), interval(0), waitingTime(0), waitingCount(0), dwellTime(0), numArrivals(0)
+	{}
+
+	/** initialization flag */
+	bool needsInitialization;
+	/** PT service line id (bus line id) */
+	std::string serviceLine;
+	/** PT stop code (bus stop code) */
+	std::string stopCode;
+	/** index of time interval */
+	unsigned int interval;
+	/** average waiting time for stop with code stopCode, for line identified by serviceLine for this time interval*/
+	double waitingTime;
+	/** number of persons who contributed to this waiting time */
+	double waitingCount;
+	/** average dwell time at stop with code stopCode, for line identified by serviceLine for this time interval*/
+	double dwellTime;
+	/** number of PT vehicle (bus or train) arrivals for stop with code stopCode and for line identified by serviceLine for this time interval*/
+	double numArrivals;
+
+	/**
+	 * constructs a string of comma separated values to be printed in output files
+	 * @returns printable csv string
+	 */
+	std::string getCSV() const;
+};
+
+/**
+ * class to load, track and store PT stop related statistics
+ */
+class StopStatsManager
+{
+private:
+	/**
+	 * map of interval => [stopCode => [serviceLine => StopStats] ] collected in current simulation
+	 */
+	std::map<unsigned int, std::map<std::string, std::map<std::string, StopStats> > > stopStatsMap;
+
+	/**
+	 * map of interval => [stopCode => [serviceLine => StopStats] ] loaded from previous simulations
+	 */
+	std::map<unsigned int, std::map<std::string, std::map<std::string, StopStats> > > historicalStopStatsMap;
+
+	/** width of an interval in seconds */
+	unsigned int intervalWidth;
+
+	unsigned int getTimeInSecs(const std::string& time) const;
+
+public:
+	StopStatsManager();
+
+	void addStopStats(const BusArrivalTime& busArrival);
+
+	void addStopStats(const PersonWaitingTime& personWaiting);
+
+	void exportStopStats();
+};
+
+/**
  * Statistics collector for PT entities.
  * \author Zhang Huai Peng
  * \author Harish Loganathan
@@ -212,6 +280,9 @@ private:
 
 	/**travel time store*/
 	std::vector<PersonTravelTime> personTravelTimes;
+
+	/**PT stop statistics manager*/
+	StopStatsManager stopStatsMgr;
 
 	static PT_Statistics* instance;
 };

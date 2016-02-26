@@ -8,13 +8,21 @@
 #include "entities/PT_Statistics.hpp"
 #include <cstdio>
 #include <fstream>
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
 #include "config/MT_Config.hpp"
+#include "util/DailyTime.hpp"
 #include "util/LangHelpers.hpp"
 
 namespace sim_mob
 {
 namespace medium
 {
+namespace
+{
+unsigned int SECONDS_IN_DAY = 24 * 60 * 60;
+}
+
 PT_Statistics* PT_Statistics::instance(nullptr);
 
 PT_Statistics* PT_Statistics::getInstance()
@@ -44,6 +52,7 @@ void PT_Statistics::HandleMessage(Message::MessageType type, const Message& mess
 	{
 		const BusArrivalTimeMessage& msg = MSG_CAST(BusArrivalTimeMessage, message);
 		busJourneyTimes.push_back(msg.busArrivalInfo);
+		stopStatsMgr.addStopStats(msg.busArrivalInfo);
 		break;
 	}
 	case STORE_PERSON_WAITING:
@@ -52,6 +61,7 @@ void PT_Statistics::HandleMessage(Message::MessageType type, const Message& mess
 		char key[50];
 		sprintf(key, "%u,%s", msg.personWaitingTime.personId, msg.personWaitingTime.busStopNo.c_str());
 		personWaitingTimes[std::string(key)] = msg.personWaitingTime;
+		stopStatsMgr.addStopStats(msg.personWaitingTime);
 		break;
 	}
 	case STORE_PERSON_TRAVEL_TIME:
@@ -139,6 +149,8 @@ void PT_Statistics::storeStatistics()
 		}
 	}
 	personTravelTimes.clear();
+
+	stopStatsMgr.exportStopStats();
 }
 
 std::string PersonWaitingTime::getCSV() const
@@ -147,7 +159,7 @@ std::string PersonWaitingTime::getCSV() const
 	sprintf(csvArray, "%u,%s,%s,%s,%.2f,%u\n",
 			personId,
 			busStopNo.c_str(),
-			busLines.c_str(),
+			busLine.c_str(),
 			currentTime.c_str(),
 			waitingTime,
 			deniedBoardingCount);
@@ -195,5 +207,91 @@ std::string WaitingCount::getCSV() const
 	return std::string(csvArray);
 }
 
+std::string StopStats::getCSV() const
+{
+	char csvArray[100];
+	sprintf(csvArray, "%u,%s,%s,%.2f,%.2f,%.2f\n",
+			interval,
+			stopCode.c_str(),
+			serviceLine.c_str(),
+			((waitingCount==0)? 0 : (waitingTime/waitingCount)),
+			((numArrivals==0)? 0 : (dwellTime/numArrivals)),
+			numArrivals);
+	return std::string(csvArray);
 }
+
+StopStatsManager::StopStatsManager() : intervalWidth(sim_mob::ConfigManager::GetInstance().FullConfig().getPathSetConf().interval)
+{
 }
+
+unsigned int StopStatsManager::getTimeInSecs(const std::string& time) const
+{
+	return (DailyTime(time).getValue() / 1000);
+}
+
+void StopStatsManager::addStopStats(const BusArrivalTime& busArrival)
+{
+	unsigned int interval = getTimeInSecs(busArrival.arrivalTime) / intervalWidth;
+	StopStats& stats = stopStatsMap[interval][busArrival.busStopNo][busArrival.busLine]; //an entry to be created if not in the map already
+	if(stats.needsInitialization)
+	{
+		stats.interval = interval;
+		stats.stopCode = busArrival.busStopNo;
+		stats.serviceLine = busArrival.busLine;
+		stats.needsInitialization = false;
+	}
+	stats.numArrivals++;
+	stats.dwellTime = stats.dwellTime + busArrival.dwellTimeSecs;
+}
+
+void StopStatsManager::addStopStats(const PersonWaitingTime& personWaiting)
+{
+	unsigned int personArrivalTime = getTimeInSecs(personWaiting.currentTime) - personWaiting.waitingTime;
+	if(personArrivalTime > SECONDS_IN_DAY) // personWaiting.waitingTime > personWaiting.currentTime(from start of day)
+	{
+		throw std::runtime_error("invalid currentTime or waiting time passed with person waiting message");
+	}
+	unsigned int interval = personArrivalTime / intervalWidth;
+	StopStats& stats = stopStatsMap[interval][personWaiting.busStopNo][personWaiting.busLine]; //an entry to be created if not in the map already
+	if(stats.needsInitialization)
+	{
+		stats.interval = interval;
+		stats.stopCode = personWaiting.busStopNo;
+		stats.serviceLine = personWaiting.busLine;
+		stats.needsInitialization = false;
+	}
+	stats.waitingCount++;
+	stats.waitingTime = stats.waitingTime + personWaiting.waitingTime;
+}
+
+void StopStatsManager::exportStopStats()
+{
+	const MT_Config& mtcfg = MT_Config::getInstance();
+	std::string stopStatsFilename = mtcfg.getPT_StopStatsFilename();
+	if (!stopStatsFilename.empty())
+	{
+		std::ofstream outputFile(stopStatsFilename.c_str());
+		if (outputFile.is_open())
+		{
+			std::map<unsigned int, std::map<std::string, std::map<std::string, StopStats> > >::const_iterator stopStatsMapIt = stopStatsMap.begin();
+			for (; stopStatsMapIt!=stopStatsMap.end(); stopStatsMapIt++)
+			{
+				const std::map<std::string, std::map<std::string, StopStats> >& stopLineStatsMap = stopStatsMapIt->second;
+				std::map<std::string, std::map<std::string, StopStats> >::const_iterator stopLineStatsMapIt = stopLineStatsMap.begin();
+				for(; stopLineStatsMapIt!=stopLineStatsMap.end(); stopLineStatsMapIt++)
+				{
+					const std::map<std::string, StopStats>& lineStatsMap = stopLineStatsMapIt->second;
+					std::map<std::string, StopStats>::const_iterator lineStatsMapIt = lineStatsMap.begin();
+					for(; lineStatsMapIt!=lineStatsMap.end(); lineStatsMapIt++)
+					{
+						outputFile << lineStatsMapIt->second.getCSV();
+					}
+				}
+			}
+			outputFile.close();
+		}
+	}
+	stopStatsMap.clear();
+}
+} //end namespace medium
+} //end namespace simmob

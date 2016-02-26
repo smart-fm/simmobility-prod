@@ -343,6 +343,20 @@ void MT_Config::setTravelTimeStatsFilename(const std::string& str)
 		travelTimeStatsFilename = str;
 	}
 }
+
+const std::string& MT_Config::getPT_StopStatsFilename() const
+{
+	return ptStopStatsFilename;
+}
+
+void MT_Config::setPT_StopStatsFilename(const std::string& str)
+{
+	if(!configSealed)
+	{
+		ptStopStatsFilename = str;
+	}
+}
+
 const unsigned int MT_Config::getBusCapacity() const
 {
 	return busCapacity;

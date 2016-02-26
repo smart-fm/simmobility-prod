@@ -289,7 +289,7 @@ void BusStopAgent::storeWaitingTime(sim_mob::medium::WaitBusActivity* waitingAct
 	personWaitInfo.personId  = waitingActivity->getParent()->getId();
 	personWaitInfo.currentTime = DailyTime(currentTimeMS).getStrRepr();
 	personWaitInfo.waitingTime = ((double) waitingActivity->getWaitingTime())/1000.0; //convert ms to second
-	personWaitInfo.busLines = waitingActivity->getBusLines();
+	personWaitInfo.busLine = waitingActivity->getBusLines();
 	personWaitInfo.deniedBoardingCount = waitingActivity->getDeniedBoardingCount();
 	messaging::MessageBus::PostMessage(PT_Statistics::getInstance(), STORE_PERSON_WAITING,
 			messaging::MessageBus::MessagePtr(new PersonWaitingTimeMessage(personWaitInfo)));

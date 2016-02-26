@@ -157,6 +157,7 @@
             <waiting_time file="waitingtime.csv"/>
             <waiting_count file="waitingcount.csv"/>
             <travel_time file="traveltime.csv"/>
+            <pt_stop_stats file="ptstopstats.csv"/>
         </output_pt_statistics>  
     </supply>                                      
             

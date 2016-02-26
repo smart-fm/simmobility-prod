@@ -571,6 +571,20 @@ public:
 	void setTravelTimeStatsFilename(const std::string& str);
 	
     /**
+     * Retrieves PT stop stats file name
+     *
+     * @return PT stop  stats file name
+     */
+	const std::string& getPT_StopStatsFilename() const;
+
+    /**
+     * Sets PT stop  stats file name
+     *
+     * @param str PT stop  stats file name to be set
+     */
+	void setPT_StopStatsFilename(const std::string& str);
+
+    /**
      * Retrieves bus capacity
      *
      * @return bus capacity
@@ -802,18 +816,21 @@ private:
     /// container for mongo collections
 	MongoCollectionsMap mongoCollectionsMap;
 
-	/** the filename of storing journey statistics */
+	/** name of file to store journey statistics */
 	std::string journeyTimeStatsFilename;
 	
-	/** the filename of storing waiting time statistics*/
+	/** name of file to store waiting time statistics*/
 	std::string waitingTimeStatsFilename;
 	
-	/** the filename of storing waiting count statistics*/
+	/** name of file to store waiting count statistics*/
 	std::string waitingCountStatsFilename;
 	
-	/** the filename of storing travel time statistics*/
+	/** name of file to store travel time statistics*/
 	std::string travelTimeStatsFilename;
 	
+	/** name of file to store PT stop statistics */
+	std::string ptStopStatsFilename;
+
 	/** default capacity for bus*/
 	unsigned int busCapacity;
 

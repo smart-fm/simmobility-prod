@@ -111,7 +111,7 @@ public:
 	/**
 	 * adds station agent to the static allStationAgents
 	 */
-	static void registerStationAgent(const std::string& nameStation, const Agent* stationAgent);
+	static void registerStationAgent(const std::string& nameStation, Agent* stationAgent);
 protected:
 	/**
 	 * inherited from base class agent to initialize parameters for train controller

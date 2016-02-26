@@ -292,6 +292,9 @@ Entity::UpdateStatus Conflux::frame_init(timeslice now)
 			(*segIt)->initializeBusStops();
 		}
 	}
+	for(std::vector<Agent*>::iterator it=stationAgents.begin(); it!=stationAgents.end(); it++){
+		messaging::MessageBus::RegisterHandler((*it));
+	}
 	/**************test code insert incident *********************/
 
 	/*************************************************************/
@@ -383,6 +386,9 @@ void Conflux::processAgents()
 		updateAgent(*personIt);
 	}
 	updateBusStopAgents(); //finally update bus stop agents in this conflux
+	for(std::vector<Agent*>::iterator it=stationAgents.begin(); it!=stationAgents.end(); it++){
+		(*it)->update(currFrame);
+	}
 }
 
 void  Conflux::processInfiniteAgents()
@@ -1981,7 +1987,10 @@ void Conflux::removeIncident(SegmentStats* segStats)
 		segStats->restoreLaneParams(*it);
 	}
 }
-
+void Conflux::addStationAgent(Agent* stationAgent)
+{
+	stationAgents.push_back(stationAgent);
+}
 void Conflux::driverStatistics(timeslice now)
 {
 	std::map<int, int> statSegs;

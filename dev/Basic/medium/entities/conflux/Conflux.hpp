@@ -169,6 +169,9 @@ private:
 	/**time in seconds of a single tick*/
 	const double tickTimeInS;
 
+	/**station agents*/
+	std::vector<Agent*> stationAgents;
+
 	/**
 	 * number of times update function was called for this conflux in current tick
 	 */
@@ -623,6 +626,11 @@ public:
 	 * @param now indicate current time
 	 */
 	void driverStatistics(timeslice now);
+	/**
+	 * add station agent to the conflux
+	 * @param stationAgent is station agent;
+	 */
+	void addStationAgent(Agent* stationAgent);
 };
 
 /**

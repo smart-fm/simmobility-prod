@@ -27,7 +27,9 @@
 #include "entities/AuraManager.hpp"
 #include "entities/BusController.hpp"
 #include "entities/TrainController.hpp"
+#include "entities/TrainController.hpp"
 #include "entities/BusStopAgent.hpp"
+#include "entities/TrainStationAgent.hpp"
 #include "entities/PT_EdgeTravelTime.hpp"
 #include "entities/incident/IncidentManager.hpp"
 #include "entities/params/PT_NetworkEntities.hpp"
@@ -198,6 +200,27 @@ void assignConfluxToWorkers(WorkGroup* workGrp)
 }
 
 /**
+ * assign train station agent to conflux
+ */
+void assignStationAgentToConfluxes()
+{
+	std::map<std::string, TrainStop*>&  MRTStopMap = PT_Network::getInstance().MRTStopsMap;
+	std::map<std::string, TrainStop*>::iterator trainStopIt;
+	for(trainStopIt = MRTStopMap.begin();trainStopIt!=MRTStopMap.end();trainStopIt++){
+		Agent* stationAgent = new TrainStationAgent();
+		TrainController<Person_MT>::registerStationAgent(trainStopIt->first, stationAgent);
+		const Node* node = trainStopIt->second->getRandomStationSegment()->getParentLink()->getFromNode();
+		ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
+		MT_Config& mtCfg = MT_Config::getInstance();
+		std::map<const Node*, Conflux*>& nodeConfluxesMap = mtCfg.getConfluxNodes();
+		std::map<const Node*, Conflux*>::iterator it = nodeConfluxesMap.find(node);
+		if(it!=nodeConfluxesMap.end()){
+			it->second->addStationAgent(stationAgent);
+		}
+	}
+}
+
+/**
  * Main simulation loop for the supply simulator
  * @param configFileName name of the input config xml file
  * @param resLogFiles name of the output log file
@@ -283,6 +306,9 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 
 	//distribute confluxes among workers
 	assignConfluxToWorkers(personWorkers);
+
+	//distribute station agents among confluxes
+	assignStationAgentToConfluxes();
 
 	//Anything in all_agents is starting on time 0, and should be added now.
 	for (std::set<Entity*>::iterator it = Agent::all_agents.begin(); it != Agent::all_agents.end(); it++)

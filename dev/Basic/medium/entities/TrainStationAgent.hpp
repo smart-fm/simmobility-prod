@@ -25,6 +25,7 @@ protected:
 	virtual Entity::UpdateStatus frame_init(timeslice now);
 	virtual Entity::UpdateStatus frame_tick(timeslice now);
 	virtual void frame_output(timeslice now);
+	virtual bool isNonspatial();
 	/**
 	 * calls frame_tick of the movement facet for the person's role
 	 * @param now current time slice

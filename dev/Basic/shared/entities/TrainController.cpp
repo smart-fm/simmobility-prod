@@ -355,7 +355,7 @@ namespace sim_mob {
 		return nullptr;
 	}
 	template<typename PERSON>
-	void TrainController<PERSON>::registerStationAgent(const std::string& nameStation, const Agent* stationAgent)
+	void TrainController<PERSON>::registerStationAgent(const std::string& nameStation, Agent* stationAgent)
 	{
 		std::map<std::string, Station*>& mapOfIdvsStations = getInstance()->mapOfIdvsStations;
 		std::map<std::string, Station*>::const_iterator it = mapOfIdvsStations.find(nameStation);

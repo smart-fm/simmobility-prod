@@ -275,3 +275,54 @@ void ConfigParams::setEnabledEdgeTravelTime(bool enabledEdgeTravelTime)
 {
 	this->enabledEdgeTravelTime = enabledEdgeTravelTime;
 }
+
+const std::string& ConfigParams::getJourneyTimeStatsFilename() const
+{
+	return journeyTimeStatsFilename;
+}
+
+const std::string& ConfigParams::getWaitingTimeStatsFilename() const
+{
+	return waitingTimeStatsFilename;
+}
+
+void ConfigParams::setJourneyTimeStatsFilename(const std::string& str)
+{
+	journeyTimeStatsFilename = str;
+}
+
+void ConfigParams::setWaitingTimeStatsFilename(const std::string& str)
+{
+	waitingTimeStatsFilename = str;
+}
+
+const std::string& ConfigParams::getWaitingCountStatsFilename() const
+{
+	return waitingCountStatsFilename;
+}
+
+void ConfigParams::setWaitingCountStatsFilename(const std::string& str)
+{
+	waitingCountStatsFilename = str;
+}
+
+const std::string& ConfigParams::getTravelTimeStatsFilename() const
+{
+	return travelTimeStatsFilename;
+}
+
+void ConfigParams::setTravelTimeStatsFilename(const std::string& str)
+{
+	travelTimeStatsFilename = str;
+}
+
+const std::string& ConfigParams::getPT_StopStatsFilename() const
+{
+	return ptStopStatsFilename;
+}
+
+void ConfigParams::setPT_StopStatsFilename(const std::string& str)
+{
+	ptStopStatsFilename = str;
+}
+

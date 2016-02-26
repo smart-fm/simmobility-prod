@@ -255,7 +255,7 @@ void ParseMidTermConfigFile::processStatisticsOutputNode(xercesc::DOMElement* no
 		throw std::runtime_error("journey_time output file name missing in MT_Config");
 	}
 	std::string value = ParseString(GetNamedAttributeValue(child, "file"), "");
-	mtCfg.setJourneyTimeStatsFilename(value);
+	cfg.setJourneyTimeStatsFilename(value);
 
 	child = GetSingleElementByName(node, "waiting_time");
 	if (child == nullptr)
@@ -263,7 +263,7 @@ void ParseMidTermConfigFile::processStatisticsOutputNode(xercesc::DOMElement* no
 		throw std::runtime_error("waiting_time output file name missing in MT_Config");
 	}
 	value = ParseString(GetNamedAttributeValue(child, "file"), "");
-	mtCfg.setWaitingTimeStatsFilename(value);
+	cfg.setWaitingTimeStatsFilename(value);
 
 	child = GetSingleElementByName(node, "waiting_count");
 	if (child == nullptr)
@@ -271,7 +271,7 @@ void ParseMidTermConfigFile::processStatisticsOutputNode(xercesc::DOMElement* no
 		throw std::runtime_error("waiting_count output file name missing in MT_Config");
 	}
 	value = ParseString(GetNamedAttributeValue(child, "file"), "");
-	mtCfg.setWaitingCountStatsFilename(value);
+	cfg.setWaitingCountStatsFilename(value);
 
 	child = GetSingleElementByName(node, "travel_time");
 	if (child == nullptr)
@@ -279,7 +279,7 @@ void ParseMidTermConfigFile::processStatisticsOutputNode(xercesc::DOMElement* no
 		throw std::runtime_error("travel_time output file name missing in MT_Config");
 	}
 	value = ParseString(GetNamedAttributeValue(child, "file"), "");
-	mtCfg.setTravelTimeStatsFilename(value);
+	cfg.setTravelTimeStatsFilename(value);
 
 	child = GetSingleElementByName(node, "pt_stop_stats");
 	if (child == nullptr)
@@ -287,7 +287,7 @@ void ParseMidTermConfigFile::processStatisticsOutputNode(xercesc::DOMElement* no
 		throw std::runtime_error("pt_stop_stats output file name missing in MT_Config");
 	}
 	value = ParseString(GetNamedAttributeValue(child, "file"), "");
-	mtCfg.setPT_StopStatsFilename(value);
+	cfg.setPT_StopStatsFilename(value);
 }
 
 

@@ -187,7 +187,7 @@ Entity::UpdateStatus BusStopAgent::frame_tick(timeslice now)
 		itWaitBusRole++;
 	}
 
-	sim_mob::medium::WaitingCount waitingCnt;
+	sim_mob::WaitingCount waitingCnt;
 	waitingCnt.busStopNo = busStop->getStopCode();
 	waitingCnt.currTime = DailyTime(now.ms()).getStrRepr();
 	waitingCnt.count = waitingPersons.size();

@@ -16,6 +16,7 @@
 #include "conf/ConfigParams.hpp"
 #include "entities/BusController.hpp"
 #include "entities/params/PT_NetworkEntities.hpp"
+#include "entities/PT_Statistics.hpp"
 #include "geospatial/network/PT_Stop.hpp"
 #include "logging/Log.hpp"
 #include "lua/LuaLibrary.hpp"
@@ -250,6 +251,8 @@ void PT_RouteChoiceLuaModel::loadPT_PathSet(int origin, int dest, PT_PathSet& pa
 {
 	const BusController* busController = BusController::GetInstance();
 	const TravelTimeManager* ttMgr = TravelTimeManager::getInstance();
+	const PT_Statistics* ptStats = PT_Statistics::getInstance();
+
 	std::vector<sim_mob::PT_Path> paths;
 	loadPT_PathsetFromDB(*dbSession, ptPathsetStoredProcName, origin, dest, paths);
 	for(auto& path : paths)
@@ -265,13 +268,27 @@ void PT_RouteChoiceLuaModel::loadPT_PathSet(int origin, int dest, PT_PathSet& pa
 			{
 			case sim_mob::BUS_EDGE:
 			{
+				double edgeTravelTime = 0.0;
 				const std::vector<const Link*>& busRouteLinks = busController->getLinkRoute(edge.getServiceLines());
+				const std::vector<const BusStop*>& busRouteStops = busController->getStops(edge.getServiceLines());
 
 				const BusStop* originStop = BusStop::findBusStop(edge.getStartStop());
 				if(!originStop)
 				{
 					throw std::runtime_error("invalid origin stop in path edge: " + edge.getStartStop());
 				}
+				std::vector<const BusStop*>::const_iterator nextStopIt = std::find(busRouteStops.begin(), busRouteStops.end(), originStop);
+				if(nextStopIt == busRouteStops.end())
+				{
+					throw std::runtime_error("origin stop not found in bus route stops");
+				}
+				double waitingTime = ptStats->getWaitingTime((nextStartTime.getValue()/1000), originStop->getStopCode(), edge.getServiceLines());
+				if(waitingTime > 0)
+				{
+					edgeTravelTime = edgeTravelTime + waitingTime;
+					nextStartTime = DailyTime(nextStartTime.getValue() + std::floor(waitingTime*1000));
+				}
+				nextStopIt++; //nextStop points to first stop after origin
 
 				const BusStop* destinStop = BusStop::findBusStop(edge.getEndStop());
 				if(!destinStop)
@@ -291,18 +308,36 @@ void PT_RouteChoiceLuaModel::loadPT_PathSet(int origin, int dest, PT_PathSet& pa
 				{	//we have hit the end before encountering the destination link
 					throw std::runtime_error("destination stop's link not found in bus route");
 				}
+
 				const Link* currentLink = nullptr;
 				const Link* nextLink = nullptr;
-				double edgeTravelTime = 0.0;
+				const BusStop* nextStop = nullptr;
 				double tt = 0.0;
+				bool isBeforeDestStop = true;
 				for(; lnkIt != busRouteLinks.end(); lnkIt++, nextLnkIt++)
 				{
 					currentLink = *lnkIt;
 					if(nextLnkIt == busRouteLinks.end()) { nextLink = nullptr; }
 					else { nextLink = *nextLnkIt; }
+
 					tt = ttMgr->getLinkTT(currentLink, nextStartTime, nextLink);
+
+					nextStop = *nextStopIt;
+					while(isBeforeDestStop && nextStop->getParentSegment()->getParentLink() == currentLink)
+					{
+						isBeforeDestStop = !(nextStop == destinStop);
+						double dwellTime = ptStats->getDwellTime((nextStartTime.getValue()/1000), nextStop->getStopCode(), edge.getServiceLines());
+						if(dwellTime > 0)
+						{
+							tt = tt + dwellTime;
+						}
+						nextStopIt++;
+						nextStop = *nextStopIt;
+					}
+
 					edgeTravelTime = edgeTravelTime + tt;
 					nextStartTime = DailyTime(nextStartTime.getValue() + std::floor(tt*1000));
+
 					if(currentLink == destinLink)
 					{
 						break;

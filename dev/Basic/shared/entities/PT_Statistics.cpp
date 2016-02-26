@@ -8,15 +8,14 @@
 #include "entities/PT_Statistics.hpp"
 #include <cstdio>
 #include <fstream>
+#include <soci/soci.h>
+#include <soci/postgresql/soci-postgresql.h>
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
-#include "config/MT_Config.hpp"
 #include "util/DailyTime.hpp"
 #include "util/LangHelpers.hpp"
 
 namespace sim_mob
-{
-namespace medium
 {
 namespace
 {
@@ -85,8 +84,8 @@ void PT_Statistics::HandleMessage(Message::MessageType type, const Message& mess
 
 void PT_Statistics::storeStatistics()
 {
-	const MT_Config& mtcfg = MT_Config::getInstance();
-	std::string journeyStatsFilename = mtcfg.getJourneyTimeStatsFilename();
+	const sim_mob::ConfigParams& cfg = ConfigManager::GetInstance().FullConfig();
+	std::string journeyStatsFilename = cfg.getJourneyTimeStatsFilename();
 	if (!journeyStatsFilename.empty())
 	{
 		std::ofstream outputFile(journeyStatsFilename.c_str());
@@ -102,7 +101,7 @@ void PT_Statistics::storeStatistics()
 	}
 	busJourneyTimes.clear();
 
-	std::string waitingTimeStatsFilename = mtcfg.getWaitingTimeStatsFilename();
+	std::string waitingTimeStatsFilename = cfg.getWaitingTimeStatsFilename();
 	if (!waitingTimeStatsFilename.empty())
 	{
 		std::ofstream outputFile(waitingTimeStatsFilename.c_str());
@@ -118,7 +117,7 @@ void PT_Statistics::storeStatistics()
 	}
 	personWaitingTimes.clear();
 
-	std::string waitingCountsFilename = mtcfg.getWaitingCountStatsFilename();
+	std::string waitingCountsFilename = cfg.getWaitingCountStatsFilename();
 	if (waitingCountsFilename.size() > 0)
 	{
 		std::ofstream outputFile(waitingCountsFilename.c_str());
@@ -134,7 +133,7 @@ void PT_Statistics::storeStatistics()
 	}
 	waitingCounts.clear();
 
-	std::string travelTimeFilename = mtcfg.getTravelTimeStatsFilename();
+	std::string travelTimeFilename = cfg.getTravelTimeStatsFilename();
 	if (travelTimeFilename.size() > 0)
 	{
 		std::ofstream outputFile(travelTimeFilename.c_str());
@@ -151,6 +150,16 @@ void PT_Statistics::storeStatistics()
 	personTravelTimes.clear();
 
 	stopStatsMgr.exportStopStats();
+}
+
+double PT_Statistics::getDwellTime(unsigned int time, const std::string& stopCode, const std::string& serviceLine) const
+{
+	return stopStatsMgr.getDwellTime(time, stopCode, serviceLine);
+}
+
+double PT_Statistics::getWaitingTime(unsigned int time, const std::string& stopCode, const std::string& serviceLine) const
+{
+	return stopStatsMgr.getWaitingTime(time, stopCode, serviceLine);
 }
 
 std::string PersonWaitingTime::getCSV() const
@@ -264,10 +273,80 @@ void StopStatsManager::addStopStats(const PersonWaitingTime& personWaiting)
 	stats.waitingTime = stats.waitingTime + personWaiting.waitingTime;
 }
 
+void StopStatsManager::loadHistoricalStopStats()
+{
+	const sim_mob::ConfigParams& cfg = ConfigManager::GetInstance().FullConfig();
+	std::string dbStr(cfg.getDatabaseConnectionString(false));
+	soci::session dbSession(soci::postgresql, dbStr);
+
+	std::string historicalStopStatsProc = ConfigManager::GetInstance().FullConfig().getDatabaseProcMappings().procedureMappings["pt_stop_stats"];
+	std::string query = "select * from " + historicalStopStatsProc;
+	soci::rowset<soci::row> rs = (dbSession.prepare << query);
+	historicalStopStatsMap.clear();
+	for (soci::rowset<soci::row>::const_iterator it=rs.begin(); it!=rs.end(); ++it)
+	{
+		const soci::row& r = (*it);
+		StopStats stats;
+		stats.interval = r.get<int>(0);
+		stats.stopCode = r.get<std::string>(1);
+		stats.serviceLine = r.get<std::string>(2);
+		stats.waitingTime = r.get<double>(3);
+		stats.dwellTime = r.get<double>(4);
+		stats.numArrivals = r.get<double>(5);
+		historicalStopStatsMap[stats.interval][stats.stopCode][stats.serviceLine] = stats;
+	}
+}
+
+double StopStatsManager::getDwellTime(unsigned int time, const std::string& stopCode, const std::string& serviceLine) const
+{
+	unsigned int interval = time / intervalWidth;
+	std::map<unsigned int, std::map<std::string, std::map<std::string, StopStats> > >::const_iterator histMapIt = historicalStopStatsMap.find(time);
+	if(histMapIt == historicalStopStatsMap.end())
+	{
+		return -1.0;
+	}
+	const std::map<std::string, std::map<std::string, StopStats> >& stopLineStatsMap = histMapIt->second;
+	std::map<std::string, std::map<std::string, StopStats> >::const_iterator stopLineStatsMapIt = stopLineStatsMap.find(stopCode);
+	if(stopLineStatsMapIt == stopLineStatsMap.end())
+	{
+		return -1;
+	}
+	const std::map<std::string, StopStats>& lineStatsMap = stopLineStatsMapIt->second;
+	std::map<std::string, StopStats>::const_iterator lineStatsMapIt = lineStatsMap.find(serviceLine);
+	if(lineStatsMapIt == lineStatsMap.end())
+	{
+		return -1;
+	}
+	return lineStatsMapIt->second.dwellTime;
+}
+
+double StopStatsManager::getWaitingTime(unsigned int time, const std::string& stopCode, const std::string& serviceLine) const
+{
+	unsigned int interval = time / intervalWidth;
+	std::map<unsigned int, std::map<std::string, std::map<std::string, StopStats> > >::const_iterator histMapIt = historicalStopStatsMap.find(time);
+	if(histMapIt == historicalStopStatsMap.end())
+	{
+		return -1.0;
+	}
+	const std::map<std::string, std::map<std::string, StopStats> >& stopLineStatsMap = histMapIt->second;
+	std::map<std::string, std::map<std::string, StopStats> >::const_iterator stopLineStatsMapIt = stopLineStatsMap.find(stopCode);
+	if(stopLineStatsMapIt == stopLineStatsMap.end())
+	{
+		return -1;
+	}
+	const std::map<std::string, StopStats>& lineStatsMap = stopLineStatsMapIt->second;
+	std::map<std::string, StopStats>::const_iterator lineStatsMapIt = lineStatsMap.find(serviceLine);
+	if(lineStatsMapIt == lineStatsMap.end())
+	{
+		return -1;
+	}
+	return lineStatsMapIt->second.waitingTime;
+}
+
 void StopStatsManager::exportStopStats()
 {
-	const MT_Config& mtcfg = MT_Config::getInstance();
-	std::string stopStatsFilename = mtcfg.getPT_StopStatsFilename();
+	const sim_mob::ConfigParams& cfg = ConfigManager::GetInstance().FullConfig();
+	std::string stopStatsFilename = cfg.getPT_StopStatsFilename();
 	if (!stopStatsFilename.empty())
 	{
 		std::ofstream outputFile(stopStatsFilename.c_str());
@@ -292,6 +371,5 @@ void StopStatsManager::exportStopStats()
 		}
 	}
 	stopStatsMap.clear();
-}
 } //end namespace medium
 } //end namespace simmob

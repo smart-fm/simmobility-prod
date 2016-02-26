@@ -513,76 +513,6 @@ public:
      * @param supplyUpdateInterval interval to be set
      */
 	void setSupplyUpdateInterval(unsigned supplyUpdateInterval);
-	
-	/**
-     * Retrives journey time stats file name
-     *
-     * @return journey time file name
-     */
-	const std::string& getJourneyTimeStatsFilename() const;
-	
-	/**
-     * Sets journey time stats file name
-     *
-     * @param str journey time stats file name to be set
-     */
-	void setJourneyTimeStatsFilename(const std::string& str);
-	
-    /**
-     * Retrieves waiting time stats file name
-     *
-     * @return waiting time file name
-     */
-	const std::string& getWaitingTimeStatsFilename() const;
-		
-    /**
-     * Sets waiting time stats file name
-     *
-     * @param str waiting time stats file name to be set
-     */
-	void setWaitingTimeStatsFilename(const std::string& str);
-	
-    /**
-     * Retrieves waiting count stats file name
-     *
-     * @return waiting count stats file name
-     */
-	const std::string& getWaitingCountStatsFilename() const;
-	
-    /**
-     * Sets waiting count stats file name
-     *
-     * @param str waiting count stats file name to be set
-     */
-	void setWaitingCountStatsFilename(const std::string& str);
-	
-    /**
-     * Retrieves travel time stats file name
-     *
-     * @return travel time stats file name
-     */
-	const std::string& getTravelTimeStatsFilename() const;
-	
-    /**
-     * Sets travel time stats file name
-     *
-     * @param str travel time stats file name to be set
-     */
-	void setTravelTimeStatsFilename(const std::string& str);
-	
-    /**
-     * Retrieves PT stop stats file name
-     *
-     * @return PT stop  stats file name
-     */
-	const std::string& getPT_StopStatsFilename() const;
-
-    /**
-     * Sets PT stop  stats file name
-     *
-     * @param str PT stop  stats file name to be set
-     */
-	void setPT_StopStatsFilename(const std::string& str);
 
     /**
      * Retrieves bus capacity
@@ -815,21 +745,6 @@ private:
 
     /// container for mongo collections
 	MongoCollectionsMap mongoCollectionsMap;
-
-	/** name of file to store journey statistics */
-	std::string journeyTimeStatsFilename;
-	
-	/** name of file to store waiting time statistics*/
-	std::string waitingTimeStatsFilename;
-	
-	/** name of file to store waiting count statistics*/
-	std::string waitingCountStatsFilename;
-	
-	/** name of file to store travel time statistics*/
-	std::string travelTimeStatsFilename;
-	
-	/** name of file to store PT stop statistics */
-	std::string ptStopStatsFilename;
 
 	/** default capacity for bus*/
 	unsigned int busCapacity;

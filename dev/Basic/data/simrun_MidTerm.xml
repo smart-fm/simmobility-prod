@@ -47,6 +47,7 @@
             <mapping name="pt_bus_dispatch_freq" procedure="get_pt_bus_frequency()"/>
             <mapping name="pt_bus_routes" procedure="get_pt_bus_routes()"/>
             <mapping name="pt_bus_stops" procedure="get_pt_bus_stops()"/>
+            <mapping name="pt_stop_stats" procedure="get_pt_stop_stats()"/>
             <!-- MT specific stored procedures -->
             <mapping name="pt_vertices" procedure="get_pt_map_vertices()"/>
             <mapping name="pt_edges" procedure="get_pt_map_edges()"/>

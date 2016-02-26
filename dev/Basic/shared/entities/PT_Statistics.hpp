@@ -9,14 +9,19 @@
 #include <vector>
 #include "message/MessageBus.hpp"
 #include "message/MessageHandler.hpp"
-#include "message/MT_Message.hpp"
 
 namespace sim_mob
 {
-namespace medium
-{
 
 using namespace messaging;
+
+enum PT_StatsMessage
+{
+	STORE_BUS_ARRIVAL = 6500000,
+	STORE_PERSON_WAITING,
+	STORE_WAITING_PERSON_COUNT,
+	STORE_PERSON_TRAVEL_TIME
+};
 
 /**
  * simple struct to hold waiting time information for a person
@@ -229,10 +234,30 @@ private:
 public:
 	StopStatsManager();
 
+	/**
+	 * loads PT stop stats from previous simulations
+	 */
+	void loadHistoricalStopStats();
+
+	double getDwellTime(unsigned int time, const std::string& stopCode, const std::string& serviceLine) const;
+
+	double getWaitingTime(unsigned int time, const std::string& stopCode, const std::string& serviceLine) const;
+
+	/**
+	 * registers bus arrival and dwell time for a stop, bus line and interval
+	 * @param busArrival bus arrival info
+	 */
 	void addStopStats(const BusArrivalTime& busArrival);
 
+	/**
+	 * registers person waiting time and count for a stop, bus line and interval
+	 * @param personWaiting person's waiting related info
+	 */
 	void addStopStats(const PersonWaitingTime& personWaiting);
 
+	/**
+	 * dumps collected stats into file
+	 */
 	void exportStopStats();
 };
 
@@ -266,6 +291,10 @@ public:
 	 */
 	void storeStatistics();
 
+	double getDwellTime(unsigned int time, const std::string& stopCode, const std::string& serviceLine) const;
+
+	double getWaitingTime(unsigned int time, const std::string& stopCode, const std::string& serviceLine) const;
+
 private:
 	PT_Statistics();
 
@@ -287,5 +316,4 @@ private:
 	static PT_Statistics* instance;
 };
 
-}
 }

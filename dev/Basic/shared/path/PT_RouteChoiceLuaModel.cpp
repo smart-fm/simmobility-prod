@@ -277,16 +277,22 @@ void PT_RouteChoiceLuaModel::loadPT_PathSet(int origin, int dest, PT_PathSet& pa
 				{
 					throw std::runtime_error("invalid origin stop in path edge: " + edge.getStartStop());
 				}
-				std::vector<const BusStop*>::const_iterator nextStopIt = std::find(busRouteStops.begin(), busRouteStops.end(), originStop);
-				if(nextStopIt == busRouteStops.end())
+				if(originStop->getTerminusType() == sim_mob::SINK_TERMINUS)
 				{
-					throw std::runtime_error("origin stop not found in bus route stops");
+					originStop = originStop->getTwinStop(); // origin stop should not be a sink terminus
 				}
+
 				double waitingTime = ptStats->getWaitingTime((nextStartTime.getValue()/1000), originStop->getStopCode(), edge.getServiceLines());
 				if(waitingTime > 0)
 				{
 					edgeTravelTime = edgeTravelTime + waitingTime;
 					nextStartTime = DailyTime(nextStartTime.getValue() + std::floor(waitingTime*1000));
+				}
+
+				std::vector<const BusStop*>::const_iterator nextStopIt = std::find(busRouteStops.begin(), busRouteStops.end(), originStop);
+				if(nextStopIt == busRouteStops.end())
+				{
+					throw std::runtime_error("origin stop not found in bus route stops");
 				}
 				nextStopIt++; //nextStop points to first stop after origin
 
@@ -294,6 +300,10 @@ void PT_RouteChoiceLuaModel::loadPT_PathSet(int origin, int dest, PT_PathSet& pa
 				if(!destinStop)
 				{
 					throw std::runtime_error("invalid origin stop in path edge: " + edge.getEndStop());
+				}
+				if(destinStop->getTerminusType() == sim_mob::SOURCE_TERMINUS)
+				{
+					destinStop = destinStop->getTwinStop(); // destination stop should not be a source terminus
 				}
 
 				const Link* originLink = originStop->getParentSegment()->getParentLink();

@@ -333,16 +333,17 @@ void PT_RouteChoiceLuaModel::loadPT_PathSet(int origin, int dest, PT_PathSet& pa
 					tt = ttMgr->getLinkTT(currentLink, nextStartTime, nextLink);
 
 					nextStop = *nextStopIt;
-					while(isBeforeDestStop && nextStop->getParentSegment()->getParentLink() == currentLink)
+					while(isBeforeDestStop && nextStop && nextStop->getParentSegment()->getParentLink() == currentLink)
 					{
-						isBeforeDestStop = !(nextStop == destinStop);
+						isBeforeDestStop = !((nextStop == destinStop) || (nextStop->getTwinStop() == destinStop));
 						double dwellTime = ptStats->getDwellTime((nextStartTime.getValue()/1000), nextStop->getStopCode(), edge.getServiceLines());
 						if(dwellTime > 0)
 						{
 							tt = tt + dwellTime;
 						}
 						nextStopIt++;
-						nextStop = *nextStopIt;
+						if(nextStopIt == busRouteStops.end()) { nextStop = nullptr; }
+						else { nextStop = *nextStopIt; }
 					}
 
 					edgeTravelTime = edgeTravelTime + tt;

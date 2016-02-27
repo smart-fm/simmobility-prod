@@ -126,7 +126,6 @@
     <travel_time_update interval="300" alpha="0.5" />
     <subtrip_travel_metrics_output enabled="true" file="subtrip_level_travel_metrics.csv" />
     <public_transit enabled="true"/>
-    <pt_edge_time enabled="false" />
     <screen-line-count interval="900" file-name="screenLineCount.txt" enabled="true" />
 
     <!-- Determines whether to run SimMobility_Medium's demand simulator or the supply simulator -->

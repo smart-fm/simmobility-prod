@@ -262,8 +262,14 @@ void PT_RouteChoiceLuaModel::loadPT_PathSet(int origin, int dest, PT_PathSet& pa
 		//compute and set path travel time
 		double pathTravelTime = 0.0;
 		DailyTime nextStartTime = curStartTime;
+		bool invalidPath = false;
 		for(PT_NetworkEdge& edge : pathEdges)
 		{
+			if(edge.getStartStop() == edge.getEndStop())
+			{
+				invalidPath = true;
+				break;
+			}
 			switch(edge.getType())
 			{
 			case sim_mob::BUS_EDGE:
@@ -349,7 +355,7 @@ void PT_RouteChoiceLuaModel::loadPT_PathSet(int origin, int dest, PT_PathSet& pa
 					edgeTravelTime = edgeTravelTime + tt;
 					nextStartTime = DailyTime(nextStartTime.getValue() + std::floor(tt*1000));
 
-					if(currentLink == destinLink)
+					if(!isBeforeDestStop)
 					{
 						break;
 					}
@@ -385,6 +391,7 @@ void PT_RouteChoiceLuaModel::loadPT_PathSet(int origin, int dest, PT_PathSet& pa
 			}
 			}
 		}
+		if(invalidPath) { continue; }
 		path.setPathEdges(pathEdges);
 		path.setPathTravelTime(pathTravelTime);
 		pathSet.pathSet.insert(path);

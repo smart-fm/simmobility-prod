@@ -320,7 +320,7 @@ void PT_RouteChoiceLuaModel::loadPT_PathSet(int origin, int dest, PT_PathSet& pa
 					throw std::runtime_error("origin link not found in bus route");
 				}
 				std::vector<const Link*>::const_iterator nextLnkIt = lnkIt+1;
-				if(nextLnkIt == busRouteLinks.end())
+				if(destinLink!=originLink && nextLnkIt == busRouteLinks.end())
 				{	//we have hit the end before encountering the destination link
 					throw std::runtime_error("destination stop's link not found in bus route");
 				}

@@ -205,6 +205,14 @@ public:
 	 * @return tt found from downstreamLinkTT_Map if available; -1 otherwise
 	 */
 	double getHistoricalLinkTT(unsigned int downstreamLinkId, const DailyTime& dt) const;
+	
+	/**
+	 * fetches tt in seconds for provided downstream link and interval index
+	 * @param downstreamLinkId id of the downstream link
+	 * @param dt time of day for which travel time is to be fetched
+	 * @return tt found from currentSimulationTT_Map if available; -1 otherwise
+	 */
+	double getInSimulationLinkTT(unsigned int downstreamLinkId, const DailyTime& dt) const;
 
 	/**
 	 * fetches tt in seconds for provided time interval index
@@ -250,9 +258,11 @@ public:
 	 * @param lnk input Link
 	 * @param startTime start of the time range
 	 * @param downstreamLink the next link which is to be taken after lnk
+	 * @param useInSimulationTT indicates whether in simulation travel times are to be used
 	 * @return travel time in seconds
 	 */
-	double getLinkTT(const sim_mob::Link* lnk, const sim_mob::DailyTime& startTime, const sim_mob::Link* downstreamLink = NULL) const;
+	double getLinkTT(const sim_mob::Link* lnk, const sim_mob::DailyTime& startTime, const sim_mob::Link* downstreamLink = NULL,
+					bool useInSimulationTT = false) const;
 
 	/**
 	 * fetches the default travel time for link

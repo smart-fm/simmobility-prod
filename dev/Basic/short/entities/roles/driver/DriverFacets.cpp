@@ -1196,7 +1196,8 @@ Vehicle* DriverMovement::initializePath(bool createVehicle)
 		//Get the path from the path-set manager if we're using route-choice, else find the shortest path
 		if (ConfigManager::GetInstance().FullConfig().PathSetMode())
 		{
-			path = PrivateTrafficRouteChoice::getInstance()->getPath(*(parentDriver->getParent()->currSubTrip), false, nullptr);
+			bool useInSimulationTT = parentDriver->getParent()->usesInSimulationTravelTime();
+			path = PrivateTrafficRouteChoice::getInstance()->getPath(*(parentDriver->getParent()->currSubTrip), false, nullptr, useInSimulationTT);
 		}
 		else
 		{

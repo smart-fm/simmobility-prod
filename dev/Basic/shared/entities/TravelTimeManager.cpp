@@ -140,6 +140,43 @@ double sim_mob::LinkTravelTime::getHistoricalLinkTT(const DailyTime& dt) const
 	return (totalTT/ttInnerMap.size());
 }
 
+double sim_mob::LinkTravelTime::getInSimulationLinkTT(unsigned int downstreamLinkId, const DailyTime& dt) const
+{
+	TimeInterval timeInterval = getTimeInterval(dt.getValue());
+	
+	//No in-simulation times present for previous interval
+	if(timeInterval == 0)
+	{
+		return -1;
+	}
+	
+	//We need to look for travel times in the previous interval
+	timeInterval -= 1;
+	
+	TimeAndCountStore::const_iterator tcIt = currentSimulationTT_Map.find(timeInterval);
+	
+	if(tcIt != currentSimulationTT_Map.end())
+	{
+		const DownStreamLinkSpecificTimeAndCount_Map &tcMap = tcIt->second;
+		DownStreamLinkSpecificTimeAndCount_Map::const_iterator tcMapIt = tcMap.find(downstreamLinkId);
+		
+		if(tcMapIt != tcMap.end())
+		{
+			return tcMapIt->second.getTravelTime();
+		}
+		else
+		{
+			return -1;
+		}
+	}
+	else		
+	{
+		return -1;
+	}
+	
+	return -1;
+}
+
 void sim_mob::LinkTravelTime::dumpTravelTimesToFile(const std::string fileName) const
 {
 	//	destination file
@@ -244,7 +281,8 @@ double sim_mob::TravelTimeManager::getDefaultLinkTT(const Link* lnk) const
 	return lnkTT.getDefaultTravelTime();
 }
 
-double sim_mob::TravelTimeManager::getLinkTT(const sim_mob::Link* lnk, const sim_mob::DailyTime& startTime, const sim_mob::Link* downstreamLink) const
+double sim_mob::TravelTimeManager::getLinkTT(const sim_mob::Link* lnk, const sim_mob::DailyTime& startTime, const sim_mob::Link* downstreamLink, 
+											 bool useInSimulationTT) const
 {
 	std::map<unsigned int, sim_mob::LinkTravelTime>::const_iterator it = lnkTravelTimeMap.find(lnk->getLinkId());
 	if (it == lnkTravelTimeMap.end())
@@ -257,7 +295,15 @@ double sim_mob::TravelTimeManager::getLinkTT(const sim_mob::Link* lnk, const sim
 	double res = 0;
 	if(downstreamLink)
 	{
-		res = lnkTT.getHistoricalLinkTT(downstreamLink->getLinkId(), startTime);
+		if(useInSimulationTT)
+		{
+			res = lnkTT.getInSimulationLinkTT(downstreamLink->getLinkId(), startTime);
+		}		
+		
+		if(res <= 0.0)
+		{
+			res = lnkTT.getHistoricalLinkTT(downstreamLink->getLinkId(), startTime);
+		}
 	}
 	else
 	{

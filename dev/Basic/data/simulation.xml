@@ -83,6 +83,10 @@
        
 	<start_time         value="00:00:00"/>
 
+	<!--Indicates the percentage of drivers that will use in-simulation travel times rather than the historical travel times-->
+   	<in_simulation_travel_time_usage value="100"/>
+
+
 	<!-- Strategy for adding new Agents to Workers. -->
 	<!-- "roundrobin" assigns in order. (default) -->
 	<!-- "smallest" assigns to the Worker with the smallest Agent count. -->

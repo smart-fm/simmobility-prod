@@ -81,6 +81,9 @@ protected:
 
 	/**Marks the first call to update function*/
 	bool isFirstTick;
+	
+	/**Indicates whether this person will use the in-simulation travel times*/
+	bool useInSimulationTravelTime;
 
 	/**
 	 * Called during the first call to update() for the person
@@ -333,6 +336,16 @@ public:
 	bool getNextPathPlanned()
 	{
 		return nextPathPlanned;
+	}
+	
+    void setUseInSimulationTravelTime(bool useInSimulationTravelTime)
+	{
+		this->useInSimulationTravelTime = useInSimulationTravelTime;
+	}
+	
+    bool usesInSimulationTravelTime() const
+	{
+		return useInSimulationTravelTime;
 	}
 
 #ifndef SIMMOB_DISABLE_MPI

@@ -7,7 +7,7 @@
 #include "DriverFacets.hpp"
 #include "entities/roles/RoleFacets.hpp"
 #include "DriverUpdateParams.hpp"
-#include "Biker.hpp"
+#include "DriverVariants.hpp"
 
 /*
  * BikerFacets.hpp

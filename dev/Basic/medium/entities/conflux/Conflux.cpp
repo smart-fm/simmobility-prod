@@ -20,7 +20,7 @@
 #include "entities/Entity.hpp"
 #include "entities/misc/TripChain.hpp"
 #include "entities/roles/activityRole/ActivityPerformer.hpp"
-#include "entities/roles/driver/BikerFacets.hpp"
+#include "entities/roles/driver/DriverVariantFacets.hpp"
 #include "entities/roles/driver/BusDriverFacets.hpp"
 #include "entities/roles/driver/DriverFacets.hpp"
 #include "entities/roles/passenger/PassengerFacets.hpp"

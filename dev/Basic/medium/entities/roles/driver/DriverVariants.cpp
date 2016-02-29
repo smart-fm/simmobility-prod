@@ -2,7 +2,7 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
-#include "Biker.hpp"
+#include "DriverVariants.hpp"
 
 using namespace sim_mob;
 using namespace sim_mob::medium;

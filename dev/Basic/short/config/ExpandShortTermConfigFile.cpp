@@ -524,10 +524,20 @@ void ExpandShortTermConfigFile::generateAgentsFromTripChain(ConfigParams::AgentC
 			if(persons.find(personId) == persons.end())
 			{
 				Person_ST *person = new Person_ST("XML_TripChain", cfg.mutexStategy(), -1);
+				
+				//Set the usage of in-simulation travel times
+				//Generate random number between 0 and 100 (indicates percentage)
+				int randomInt = Utils::generateInt(0, 100);
+				
+				if(randomInt <= cfg.simulation.inSimulationTTUsage)
+				{
+					person->setUseInSimulationTravelTime(true);
+				}
+								
 				persons.insert(make_pair(personId, person));
 			}
 		}
-
+		
 		//Close the connection
 		//sql.close();
 		
@@ -576,6 +586,14 @@ void ExpandShortTermConfigFile::generateXMLAgents(const std::vector<EntityTempla
 	//Create the Person agent with that given ID (or an auto-generated one)
 	Person_ST *person = new Person_ST("XML_Def", cfg.mutexStategy(), agentId);	
 	person->setStartTime(xmlItems.begin()->startTimeMs);
+	
+	//Set the usage of in-simulation travel times
+	int randomInt = Utils::generateInt(0, 100);
+
+	if (randomInt < cfg.simulation.inSimulationTTUsage)
+	{
+		person->setUseInSimulationTravelTime(true);
+	}
 	
 	std::vector<TripChainItem*> tripChain;
 	const RoadNetwork *rn = RoadNetwork::getInstance();

@@ -52,6 +52,17 @@ private:
 	 * @return the trip constructed from the supplied row
 	 */
 	static Trip* makeTrip(const soci::row& r, unsigned int seqNo);
+
+	/**
+	 * makes a freight trip
+	 * @param r row from database table
+	 * @param seqNo tripchain item sequence number
+	 * @return the trip constructed from the supplied row
+	 */
+	static Trip* makeFreightTrip(const soci::row& r		);
+
+	/** stored procedure to periodically load freight demand*/
+	std::string freightStoredProcName;
 };
 
 } // namespace medium

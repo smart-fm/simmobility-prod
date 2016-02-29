@@ -33,6 +33,8 @@ public:
 		CAR,
 		BUS,
 		BIKE,
+		LGV,
+		HGV,
 		OTHER
 	};
 

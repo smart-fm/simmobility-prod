@@ -153,6 +153,14 @@ public:
 		{
 			return "biker";
 		}
+		if (mode == "lgv")
+		{
+			return "truckerLGV";
+		}
+		if (mode == "hgv")
+		{
+			return "truckerHGV";
+		}
 		if (mode == "Activity")
 		{
 			return "activityRole";

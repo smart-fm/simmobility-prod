@@ -231,6 +231,8 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	rf->registerRole("pedestrian", new sim_mob::medium::Pedestrian(nullptr));
 	rf->registerRole("passenger", new sim_mob::medium::Passenger(nullptr));
 	rf->registerRole("biker", new sim_mob::medium::Biker(nullptr));
+	rf->registerRole("truckerLGV", new sim_mob::medium::TruckerLGV(nullptr));
+	rf->registerRole("truckerHGV", new sim_mob::medium::TruckerHGV(nullptr));
 
 	//Load our user config file, which is a time costly function
 	ExpandMidTermConfigFile expand(MT_Config::getInstance(), ConfigManager::GetInstanceRW().FullConfig(), Agent::all_agents);

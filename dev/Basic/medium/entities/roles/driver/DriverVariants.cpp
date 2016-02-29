@@ -27,3 +27,41 @@ Role<Person_MT>* sim_mob::medium::Biker::clone(Person_MT* parent) const
 	movement->setParentDriver(biker);
 	return biker;
 }
+
+sim_mob::medium::TruckerLGV::TruckerLGV(Person_MT* parent, sim_mob::medium::TruckerBehavior* behavior, sim_mob::medium::TruckerMovement* movement, std::string roleName,
+		Role<Person_MT>::Type roleType) :
+		sim_mob::medium::Driver(parent, behavior, movement, roleName, roleType)
+{
+}
+
+sim_mob::medium::TruckerLGV::~TruckerLGV()
+{
+}
+
+Role<Person_MT>* sim_mob::medium::TruckerLGV::clone(Person_MT* parent) const
+{
+	TruckerBehavior* behavior = new TruckerBehavior();
+	TruckerMovement* movement = new TruckerMovement();
+	TruckerLGV* trucker = new TruckerLGV(parent, behavior, movement, "TruckerLGV_");
+	movement->setParentDriver(trucker);
+	return trucker;
+}
+
+sim_mob::medium::TruckerHGV::TruckerHGV(Person_MT* parent, sim_mob::medium::TruckerBehavior* behavior, sim_mob::medium::TruckerMovement* movement, std::string roleName,
+		Role<Person_MT>::Type roleType) :
+		sim_mob::medium::Driver(parent, behavior, movement, roleName, roleType)
+{
+}
+
+sim_mob::medium::TruckerHGV::~TruckerHGV()
+{
+}
+
+Role<Person_MT>* sim_mob::medium::TruckerHGV::clone(Person_MT* parent) const
+{
+	TruckerBehavior* behavior = new TruckerBehavior();
+	TruckerMovement* movement = new TruckerMovement();
+	TruckerHGV* trucker = new TruckerHGV(parent, behavior, movement, "TruckerHGV_");
+	movement->setParentDriver(trucker);
+	return trucker;
+}

@@ -115,6 +115,7 @@ const std::string LOG_UNIT = "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%,
 //projectId,parcelId,developerId,templateId,projectName,constructionDate,completionDate,constructionCost,demolitionCost,totalCost,fmLotSize,grossRatio,grossArea
 const std::string LOG_PROJECT = "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%, %11%, %12%, %13%";
 
+const std::string LOG_POTENTIAL_PROJECT = "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%";
 /**
  * Write the data of profitable parcels to a csv.
  * @param parcel to be written.
@@ -159,6 +160,14 @@ inline void writeProjectDataToFile(boost::shared_ptr<Project>project) {
 			             %project->getConstructionDate().tm_year%project->getCompletionDate().tm_year%project->getConstructionCost()%project->getDemolitionCost()%project->getTotalCost()
 			             %project->getFmLotSize()%project->getGrossRatio()%project->getGrossArea();
 	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::PROJECTS,fmtr.str());
+
+}
+
+inline void writePotentialProjectDataToFile(PotentialProject &project) {
+
+	boost::format fmtr = boost::format(LOG_POTENTIAL_PROJECT) % project.getFmParcelId() % project.getTotalUnits()%project.getDevTemplate()->getTemplateId()%project.getProfit()%project.getInvestmentReturnRatio()%project.getAcquisitionCost()
+			             %project.getLandValue()%project.getConstructionCost();
+	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_POTENTIAL_PROJECTS,fmtr.str());
 
 }
 
@@ -245,7 +254,8 @@ inline void calculateProjectProfit(PotentialProject& project,DeveloperModel* mod
 		}
 		else
 		{
-			unitAge = model->getBuildingAvgAge(fmParcelId);
+			const BuildingAvgAgePerParcel *avgAgePerParcel = model->getBuildingAvgAgeByParcelId(fmParcelId);
+			unitAge = avgAgePerParcel->getAge();
 		}
 		if((amenities != nullptr))
 		{
@@ -290,8 +300,14 @@ inline void calculateProjectProfit(PotentialProject& project,DeveloperModel* mod
 			(*unitsItr).setUnitProfit(profitPerUnit);
 			(*unitsItr).setDemolitionCostPerUnit(demolitionCostPerUnit);
 
+			double totalRevenuePerUnitType = revenuePerUnit * (*unitsItr).getNumUnits();
+			totalRevenue = totalRevenue + totalRevenuePerUnitType;
+
+			double constructionCostPerUnitType = constructionCostPerUnit * (*unitsItr).getNumUnits();
+			totalConstructionCost = totalConstructionCost + constructionCostPerUnitType;
+
 			#ifdef VERBOSE_DEVELOPER
-			PrintOutV("revenue calculated per unit type "<<revenuePerUnit<<model->getUnitTypeById((*unitsItr).getUnitTypeId())->getName()<<" with logsum "<<logsum<<"with parcel id"<<project.getParcel()->getId()<<std::endl);
+			PrintOutV("revenue calculated per unit type "<<revenuePerUnit<<"**"<<model->getUnitTypeById((*unitsItr).getUnitTypeId())->getName()<<" with logsum "<<logsum<<"with parcel id"<<project.getParcel()->getId()<<std::endl);
 			PrintOutV("construction Cost Per Unit type"<<constructionCostPerUnit<<"**"<<model->getUnitTypeById((*unitsItr).getUnitTypeId())->getName()<<std::endl);
 			if (!isEmptyParcel)
 			{
@@ -299,13 +315,11 @@ inline void calculateProjectProfit(PotentialProject& project,DeveloperModel* mod
 
 			}
 			PrintOutV("profit per unit"<<profitPerUnit<<std::endl);
+			PrintOutV("num units"<<(*unitsItr).getNumUnits()<<"in unit type id"<<(*unitsItr).getUnitTypeId()<<std::endl);
+			PrintOutV("totalRevenue"<<totalRevenue<<std::endl);
 			#endif
 
-			double totalRevenuePerUnitType = revenuePerUnit * (*unitsItr).getNumUnits();
-			totalRevenue = totalRevenue + totalRevenuePerUnitType;
 
-			double constructionCostPerUnitType = constructionCostPerUnit * (*unitsItr).getNumUnits();
-			totalConstructionCost = totalConstructionCost + constructionCostPerUnitType;
 
 			if((currTick+1)%model->getOpSchemaloadingInterval() == 0)
 			{
@@ -325,7 +339,7 @@ inline void calculateProjectProfit(PotentialProject& project,DeveloperModel* mod
 		const UnitPriceSum* unitPriceSum = model->getUnitPriceSumByParcelId(fmParcelId);
 		if(unitPriceSum != nullptr)
 		{
-			acqusitionCost = unitPriceSum->getUnitPriceSum();
+			acqusitionCost = unitPriceSum->getUnitPriceSum() * 1000000; // unit price in the table is in millions
 		}
 	}
 	else
@@ -350,7 +364,7 @@ inline void calculateProjectProfit(PotentialProject& project,DeveloperModel* mod
 		investmentReturnRatio = (totalRevenue - totalCost)/ (totalCost);
 	}
 	project.setInvestmentReturnRatio(investmentReturnRatio);
-
+	//writePotentialProjectDataToFile(project);
 
 }
 inline void createPotentialUnits(PotentialProject& project,const DeveloperModel* model)
@@ -367,7 +381,7 @@ inline void createPotentialUnits(PotentialProject& project,const DeveloperModel*
 	        	if(itr->getProportion()>0)
 	        	{
 	        		double propotion = (itr->getProportion()/100.0);
-	        		//add the minimum lot size constraint if the unit type is terraced, semi detached or detached
+	        		//add the minimum lot size constraint if the unit type is terrace, semi detached or detached
 	        		if((itr->getUnitTypeId()>=checkUnitTypeStart) and (itr->getUnitTypeId() <= checkUnitTypeEnd))
 	        		{
 	        			weightedAverage = weightedAverage + (model->getUnitTypeById(itr->getUnitTypeId())->getTypicalArea()* model->getUnitTypeById(itr->getUnitTypeId())->getMinLosize() *(propotion));
@@ -391,7 +405,11 @@ inline void createPotentialUnits(PotentialProject& project,const DeveloperModel*
 	        double grossArea = 0;
 	        for (itr = project.templateUnitTypes.begin(); itr != project.templateUnitTypes.end(); itr++)
 	            {
-	        		int numUnitsPerType = totalUnits * (itr->getProportion()/100);
+	        	    double propotion = (itr->getProportion()/100.00);
+	        		double numUnitsPerType = totalUnits * propotion;
+	        		//PrintOutV("num units per type"<<numUnitsPerType<<"int"<<int(numUnitsPerType)<<std::endl);
+	        		//int numUnits2 = int(numUnitsPerType);
+	        		//PrintOutV("numUnits2"<<numUnits2<<std::endl);
 	        		grossArea = grossArea + numUnitsPerType *  model->getUnitTypeById(itr->getUnitTypeId())->getTypicalArea();
 	        		PotentialUnit potentialUnit(itr->getUnitTypeId(),numUnitsPerType,model->getUnitTypeById(itr->getUnitTypeId())->getTypicalArea(),0,0);
 	        		project.addUnit(potentialUnit);
@@ -498,7 +516,6 @@ inline void createPotentialProjects(BigSerial parcelId, DeveloperModel* model, P
                 	{
                 		for (projectIt = projects.begin(); projectIt != projects.end(); projectIt++)
                 		{
-
                 			if( (pTemp < randomNum) && ( randomNum < ((projectIt)->getTempSelectProbability() + pTemp)))
                 			{
 
@@ -786,7 +803,7 @@ void DeveloperAgent::processExistingProjects()
 				std::vector<boost::shared_ptr<Unit> > unitsToSale(first,last);
 
 				#ifdef VERBOSE_DEVELOPER
-				PrintOutV(unitsToSale.size()<<" number of units launched for selling by developer agent "<<this->GetId()<<"on day "<<devModel->getCurrentTick()<<std::endl);
+				PrintOutV(unitsToSale.size()<<" number of units launched for selling by developer agent "<<this->GetId()<<"on day "<<currentTick<<std::endl);
 				#endif
 
 				for(unitsItr = unitsToSale.begin(); unitsItr != unitsToSale.end(); unitsItr++)

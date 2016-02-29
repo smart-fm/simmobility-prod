@@ -21,6 +21,11 @@ public:
 	double secondsInTick;
 	/**time elapsed in the current tick (in seconds)*/
 	double elapsedSeconds;
+	/**
+	 * resets this update params.
+	 * @param now current timeslice in which reset is called
+	 */
+	virtual void reset(timeslice now);
 };
 
 } /* namespace sim_mob */

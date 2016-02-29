@@ -104,9 +104,9 @@ void TrainMovement::frame_tick()
 		parentDriver->reduceWaitingTime(params.secondsInTick);
 		double waitingTime = parentDriver->getWaitingTime();
 		if(waitingTime<params.secondsInTick){
+			parentDriver->setCurrentStatus(TrainDriver::LEAVING_FROM_PLATFORM);
 			if(!isAtLastPlaform()){
 				leaveFromPlaform();
-				parentDriver->setCurrentStatus(TrainDriver::LEAVING_FROM_PLATFORM);
 				params.elapsedSeconds = waitingTime;
 			} else {
 				parentDriver->getParent()->setToBeRemoved();
@@ -145,9 +145,9 @@ double TrainMovement::getRealSpeedLimit()
 		TrainMovement* nextMovement = dynamic_cast<TrainMovement*>(nextDriver->movementFacet);
 		if(nextMovement){
 			distanceToNextTrain = trainPathMover.getDistanceToNextTrain(nextMovement->getPathMover())-safeDistanceCM-trainLengthCM;
-			distanceToNextPlatform = trainPathMover.getDistanceToNextPlatform(trainPlatformMover.getNextPlatform());
 		}
 	}
+	distanceToNextPlatform = trainPathMover.getDistanceToNextPlatform(trainPlatformMover.getNextPlatform());
 	if(distanceToNextTrain==0.0||distanceToNextPlatform==0.0){
 		distanceToNextObject = std::max(distanceToNextTrain, distanceToNextPlatform);
 	} else {
@@ -218,11 +218,20 @@ void TrainMovement::leaveFromPlaform()
 	if (!isAtLastPlaform()) {
 		moveForward();
 		Platform* next = trainPlatformMover.getNextPlatform(true);
-		std::string stationNo = next->getPlatformNo();
+		std::string stationNo = next->getStationNo();
 		Agent* stationAgent = TrainController<Person_MT>::getAgentFromStation(stationNo);
 		messaging::MessageBus::PostMessage(stationAgent,TRAIN_MOVETO_NEXT_PLATFORM,
 				messaging::MessageBus::MessagePtr(new TrainDriverMessage(parentDriver)));
 	}
 }
+void TrainMovement::arrivalAtStartPlaform() const
+{
+	Platform* next = trainPlatformMover.getFirstPlatform();
+	std::string stationNo = next->getStationNo();
+	Agent* stationAgent = TrainController<Person_MT>::getAgentFromStation(stationNo);
+	messaging::MessageBus::PostMessage(stationAgent, TRAIN_MOVETO_NEXT_PLATFORM,
+			messaging::MessageBus::MessagePtr(new TrainDriverMessage(parentDriver)));
+}
+
 }
 } /* namespace sim_mob */

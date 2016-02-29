@@ -74,6 +74,7 @@ bool TrainStationAgent::isNonspatial()
 Entity::UpdateStatus TrainStationAgent::callMovementFrameTick(timeslice now, TrainDriver* driver)
 {
 	if(driver){
+		driver->make_frame_tick_params(now);
 		driver->Movement()->frame_tick();
 	}
 	return UpdateStatus::Continue;

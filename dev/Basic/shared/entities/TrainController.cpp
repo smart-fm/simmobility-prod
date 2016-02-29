@@ -109,6 +109,7 @@ namespace sim_mob {
 		loadSchedules();
 		loadBlocks();
 		loadTrainRoutes();
+		loadTrainPlatform();
 		loadTransferedTimes();
 		loadBlockPolylines();
 
@@ -197,7 +198,7 @@ namespace sim_mob {
 			std::string lineId = r.get<std::string>(1);
 			TrainSchedule schedule;
 			schedule.lineId = lineId;
-			schedule.scheduleId = r.get<int>(0);
+			schedule.scheduleId = r.get<std::string>(0);
 			schedule.startTime = r.get<std::string>(2);
 			schedule.endTime = r.get<std::string>(3);
 			schedule.headwaySec = r.get<int>(4);
@@ -229,6 +230,8 @@ namespace sim_mob {
 			block->setSpeedLimit(r.get<double>(1));
 			block->setAccelerateRate(r.get<double>(2));
 			block->setDecelerateRate(r.get<double>(3));
+			block->setAccelerateRate(10.0);
+			block->setDecelerateRate(10.0);
 			block->setLength(r.get<double>(4));
 			mapOfIdvsBlocks[blockId] = block;
 		}
@@ -316,7 +319,7 @@ namespace sim_mob {
 			point.setX(r.get<double>(1));
 			point.setY(r.get<double>(2));
 			point.setZ(r.get<double>(3));
-			point.setSequenceNumber(r.get<double>(4));
+			point.setSequenceNumber(r.get<int>(4));
 			if(mapOfIdvsPolylines.find(polylineId)==mapOfIdvsPolylines.end()) {
 				mapOfIdvsPolylines[polylineId] = new PolyLine();
 				mapOfIdvsPolylines[polylineId]->setPolyLineId(polylineId);
@@ -328,8 +331,8 @@ namespace sim_mob {
 	void TrainController<PERSON>::assignTrainTripToPerson(std::set<Entity*>& activeAgents)
 	{
 		const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
-		PERSON* person = new PERSON("TrainController", config.mutexStategy(), -1, -1);
-		std::string lineId;
+		PERSON* person = new PERSON("TrainController", config.mutexStategy());
+		std::string lineId="NE_1";
 		std::vector<Block*> route;
 		std::vector<Platform*> platforms;
 		getTrainRoute(lineId, route);
@@ -337,6 +340,8 @@ namespace sim_mob {
 		TrainTrip* trainTrip = new TrainTrip();
 		trainTrip->setTrainRoute(route);
 		trainTrip->setTrainPlatform(platforms);
+		trainTrip->setLineId(lineId);
+		trainTrip->itemType = TripChainItem::IT_TRAINTRIP;
 		std::vector<TripChainItem*> tripChain;
 		tripChain.push_back(trainTrip);
 		person->setTripChain(tripChain);

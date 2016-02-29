@@ -84,7 +84,8 @@ void PT_Network::init()
 	   }
 	   else
 	   {
-		   TrainStop* mrtStopObj = nullptr;
+		   TrainStop* mrtStopObj = new TrainStop(mrtstopid);
+		   MRTStopsMap[mrtstopid] = mrtStopObj;
 		   std::stringstream ss(mrtstopid);
 		   std::string singleMrtStopId;
 		   while (std::getline(ss, singleMrtStopId, '/'))

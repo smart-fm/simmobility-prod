@@ -47,10 +47,10 @@ struct TrainPlatform {
  */
 struct TrainSchedule {
 	TrainSchedule() :
-			scheduleId(0), headwaySec(0) {
+			headwaySec(0) {
 	}
 	;
-	int scheduleId;
+	std::string scheduleId;
 	std::string lineId;
 	std::string startTime;
 	std::string endTime;

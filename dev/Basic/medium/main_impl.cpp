@@ -44,6 +44,7 @@
 #include "entities/roles/passenger/Passenger.hpp"
 #include "entities/roles/pedestrian/Pedestrian.hpp"
 #include "entities/roles/waitBusActivity/WaitBusActivity.hpp"
+#include "entities/roles/driver/TrainDriver.hpp"
 #include "entities/ScreenLineCounter.hpp"
 #include "entities/TravelTimeManager.hpp"
 #include "geospatial/aimsun/Loader.hpp"
@@ -256,6 +257,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	rf->registerRole("pedestrian", new sim_mob::medium::Pedestrian(nullptr));
 	rf->registerRole("passenger", new sim_mob::medium::Passenger(nullptr));
 	rf->registerRole("biker", new sim_mob::medium::Biker(nullptr));
+	rf->registerRole("trainDriver", new sim_mob::medium::TrainDriver(nullptr));
 
 	//Load our user config file, which is a time costly function
 	ExpandMidTermConfigFile expand(MT_Config::getInstance(), ConfigManager::GetInstanceRW().FullConfig(), Agent::all_agents);

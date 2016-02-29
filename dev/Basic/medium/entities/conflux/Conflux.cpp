@@ -26,6 +26,7 @@
 #include "entities/roles/passenger/PassengerFacets.hpp"
 #include "entities/roles/pedestrian/PedestrianFacets.hpp"
 #include "entities/roles/waitBusActivity/WaitBusActivityFacets.hpp"
+#include "entities/roles/driver/TrainDriverFacets.hpp"
 #include "entities/vehicle/VehicleBase.hpp"
 #include "event/args/EventArgs.hpp"
 #include "event/EventPublisher.hpp"
@@ -1888,6 +1889,14 @@ Conflux* Conflux::findStartingConflux(Person_MT* person, unsigned int now)
 			throw std::runtime_error("Driver role facets not/incorrectly initialized");
 		}
 		break;
+	}
+	case Role<Person_MT>::RL_TRAINDRIVER:
+	{
+		const medium::TrainMovement* trainMvt = dynamic_cast<const medium::TrainMovement*>(personRole->Movement());
+		if(trainMvt){
+			trainMvt->arrivalAtStartPlaform();
+		}
+		return nullptr;
 	}
 	case Role<Person_MT>::RL_BIKER:
 	{

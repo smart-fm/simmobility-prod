@@ -98,15 +98,21 @@ double TrainPathMover::advance(double distance)
 }
 double TrainPathMover::getDistanceToNextPlatform(Platform* platform) const
 {
+	bool res = false;
 	double distance = (*currBlockIt)->getLength()-getDistCoveredOnCurrBlock();
 	std::vector<Block*>::const_iterator tempIt = currBlockIt+1;
 	while(tempIt!=drivingPath.end()){
 		if((*tempIt)->getAttachedPlatform()!=platform){
 			distance += (*tempIt)->getLength();
+			tempIt++;
 		} else {
 			distance += platform->getOffset();
+			res = true;
 			break;
 		}
+	}
+	if(!res){
+		distance = 0.0;
 	}
 	return distance;
 }

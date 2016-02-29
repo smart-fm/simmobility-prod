@@ -70,6 +70,10 @@ public:
 	 * make train leave from current platform
 	 */
 	void leaveFromPlaform();
+	/**
+	 * assign the train to the first platform
+	 */
+	void arrivalAtStartPlaform() const;
 
 protected:
 	virtual TravelMetric& startTravelTimeMetric();

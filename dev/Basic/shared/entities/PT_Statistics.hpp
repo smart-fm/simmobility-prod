@@ -183,7 +183,8 @@ public:
 class StopStats
 {
 public:
-	StopStats() : needsInitialization(true), serviceLine(std::string()), stopCode(std::string()), interval(0), waitingTime(0), waitingCount(0), dwellTime(0), numArrivals(0)
+	StopStats() : needsInitialization(true), serviceLine(std::string()), stopCode(std::string()), interval(0),
+		waitingTime(0), waitingCount(0), dwellTime(0), numArrivals(0), numBoarding(0)
 	{}
 
 	/** initialization flag */
@@ -202,6 +203,8 @@ public:
 	double dwellTime;
 	/** number of PT vehicle (bus or train) arrivals for stop with code stopCode and for line identified by serviceLine for this time interval*/
 	double numArrivals;
+	/** number of persons boarding in each interval at this stop and service_line */
+	double numBoarding;
 
 	/**
 	 * constructs a string of comma separated values to be printed in output files

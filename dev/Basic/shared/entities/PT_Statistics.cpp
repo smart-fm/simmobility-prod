@@ -219,13 +219,14 @@ std::string WaitingCount::getCSV() const
 std::string StopStats::getCSV() const
 {
 	char csvArray[100];
-	sprintf(csvArray, "%u,%s,%s,%.2f,%.2f,%.2f\n",
+	sprintf(csvArray, "%u,%s,%s,%.2f,%.2f,%.2f,%.2f\n",
 			interval,
 			stopCode.c_str(),
 			serviceLine.c_str(),
 			((waitingCount==0)? 0 : (waitingTime/waitingCount)),
 			((numArrivals==0)? 0 : (dwellTime/numArrivals)),
-			numArrivals);
+			numArrivals,
+			numBoarding);
 	return std::string(csvArray);
 }
 
@@ -255,7 +256,23 @@ void StopStatsManager::addStopStats(const BusArrivalTime& busArrival)
 
 void StopStatsManager::addStopStats(const PersonWaitingTime& personWaiting)
 {
-	unsigned int personArrivalTime = getTimeInSecs(personWaiting.currentTime) - personWaiting.waitingTime;
+	unsigned int personBoardingTime = getTimeInSecs(personWaiting.currentTime);
+	if(personBoardingTime > SECONDS_IN_DAY) // personWaiting.waitingTime > personWaiting.currentTime(from start of day)
+	{
+		throw std::runtime_error("invalid currentTime passed with person waiting message");
+	}
+	unsigned int boardingInterval = personBoardingTime / intervalWidth;
+	StopStats& boardingStats = stopStatsMap[boardingInterval][personWaiting.busStopNo][personWaiting.busLine]; //an entry to be created if not in the map already
+	if(boardingStats.needsInitialization)
+	{
+		boardingStats.interval = boardingInterval;
+		boardingStats.stopCode = personWaiting.busStopNo;
+		boardingStats.serviceLine = personWaiting.busLine;
+		boardingStats.needsInitialization = false;
+	}
+	boardingStats.numBoarding++;
+
+	unsigned int personArrivalTime = personBoardingTime - personWaiting.waitingTime;
 	if(personArrivalTime > SECONDS_IN_DAY) // personWaiting.waitingTime > personWaiting.currentTime(from start of day)
 	{
 		throw std::runtime_error("invalid currentTime or waiting time passed with person waiting message");

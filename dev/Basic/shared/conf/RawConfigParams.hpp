@@ -123,6 +123,9 @@ public:
 
     /// When the simulation begins(based on configuration)
     DailyTime simStartTime;
+	
+    /// Indicates the percentage of persons which will use in-simulation travel times instead of historical travel times
+    unsigned int inSimulationTTUsage;
 
     /// Defautl assignment strategy for Workgroups.
     WorkGroup::ASSIGNMENT_STRATEGY workGroupAssigmentStrategy;

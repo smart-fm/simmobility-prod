@@ -241,6 +241,15 @@ public:
 			Person_MT* person = new Person_MT("DAS_TripChain", cfg.mutexStategy(), personTripChain);
 			if (!person->getTripChain().empty())
 			{
+				//Set the usage of in-simulation travel times
+				//Generate random number between 0 and 100 (indicates percentage)
+				int randomInt = Utils::generateInt(0, 100);
+				
+				if(randomInt <= cfg.simulation.inSimulationTTUsage)
+				{
+					person->setUseInSimulationTravelTime(true);
+				}
+				
 				persons.push_back(person);
 			}
 			else

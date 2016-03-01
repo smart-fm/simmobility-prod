@@ -313,7 +313,8 @@ bool DriverMovement::initializePath()
 		const SubTrip& currSubTrip = *(person->currSubTrip);
 		if (ConfigManager::GetInstance().FullConfig().PathSetMode()) // if use path set
 		{
-			wp_path = PrivateTrafficRouteChoice::getInstance()->getPath(currSubTrip, false, nullptr);
+			bool useInSimulationTT = parentDriver->parent->usesInSimulationTravelTime();
+			wp_path = PrivateTrafficRouteChoice::getInstance()->getPath(currSubTrip, false, nullptr, useInSimulationTT);
 		}
 		else
 		{

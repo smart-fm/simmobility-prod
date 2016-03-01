@@ -675,6 +675,11 @@ public:
 
 	const WorkerParams& getWorkerParams() const;
 
+	double getSpeedDensityAlphaParam() const;
+	void setSpeedDensityAlphaParam(double speedDensityAlphaParam);
+	double getSpeedDensityBetaParam() const;
+	void setSpeedDensityBetaParam(double speedDensityBetaParam);
+
 	/**
      * Enumerator for mid term run mode
      */
@@ -805,6 +810,12 @@ private:
 
     /// set of segment stats with bus stops
     std::set<SegmentStats*> segmentStatsWithBusStops;
+
+    /// speed-density parameter alpha
+    double speedDensityAlphaParam;
+
+    /// speed-density parameter beta
+    double speedDensityBetaParam;
 };
 }
 }

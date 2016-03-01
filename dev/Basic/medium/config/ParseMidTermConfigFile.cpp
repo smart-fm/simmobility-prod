@@ -121,6 +121,7 @@ void ParseMidTermConfigFile::processSupplyNode(xercesc::DOMElement* node)
 	processWalkSpeedElement(GetSingleElementByName(node, "pedestrian_walk_speed", true));
 	processStatisticsOutputNode(GetSingleElementByName(node, "output_pt_statistics", true));
 	processBusCapactiyElement(GetSingleElementByName(node, "bus_default_capacity", true));
+	processSpeedDensityParamsNode(GetSingleElementByName(node, "speed_density_params", true));
 }
 
 
@@ -287,6 +288,12 @@ void ParseMidTermConfigFile::processStatisticsOutputNode(xercesc::DOMElement* no
 	}
 	value = ParseString(GetNamedAttributeValue(child, "file"), "");
 	cfg.setPT_StopStatsFilename(value);
+}
+
+void ParseMidTermConfigFile::processSpeedDensityParamsNode(xercesc::DOMElement* node)
+{
+	mtCfg.setSpeedDensityAlphaParam(ParseFloat(GetNamedAttributeValue(node, "alpha")));
+	mtCfg.setSpeedDensityBetaParam(ParseFloat(GetNamedAttributeValue(node, "beta")));
 }
 
 

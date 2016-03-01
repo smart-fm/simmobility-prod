@@ -160,6 +160,10 @@
             <travel_time file="traveltime.csv"/>
             <pt_stop_stats file="ptstopstats.csv"/>
         </output_pt_statistics>  
+        
+        <!-- parameters used in speed density function -->
+        <speed_density_params alpha="3.0" beta="1.5"/>
+        
     </supply>                                      
             
     <!-- config specific to preday simulator -->

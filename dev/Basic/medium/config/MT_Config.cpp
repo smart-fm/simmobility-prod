@@ -433,5 +433,31 @@ unsigned int sim_mob::medium::MT_Config::personWorkGroupSize() const
 	return workers.person.count;
 }
 
+double sim_mob::medium::MT_Config::getSpeedDensityAlphaParam() const
+{
+	return speedDensityAlphaParam;
+}
+
+void sim_mob::medium::MT_Config::setSpeedDensityAlphaParam(double speedDensityAlphaParam)
+{
+	if(!configSealed)
+	{
+		this->speedDensityAlphaParam = speedDensityAlphaParam;
+	}
+}
+
+double sim_mob::medium::MT_Config::getSpeedDensityBetaParam() const
+{
+	return speedDensityBetaParam;
+}
+
+void sim_mob::medium::MT_Config::setSpeedDensityBetaParam(double speedDensityBetaParam)
+{
+	if(!configSealed)
+	{
+		this->speedDensityBetaParam = speedDensityBetaParam;
+	}
+}
+
 }
 }

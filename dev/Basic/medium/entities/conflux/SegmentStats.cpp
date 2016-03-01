@@ -9,6 +9,7 @@
 #include <ctime>
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
+#include "config/MT_Config.hpp"
 #include "Conflux.hpp"
 #include "entities/BusStopAgent.hpp"
 #include "entities/roles/Role.hpp"
@@ -71,7 +72,8 @@ SupplyParams::SupplyParams(const RoadSegment* rdSeg, double statsLength) :
 		jamDensity(0.2), /*density during traffic jam in veh/meter*/
 		minDensity(0.0), /*minimum traffic density in veh/meter*/
 		capacity(rdSeg->getCapacity()), /*capacity in vehicles/s*/
-		alpha(3.0), beta(1.5)
+		alpha(MT_Config::getInstance().getSpeedDensityAlphaParam()),
+		beta(MT_Config::getInstance().getSpeedDensityBetaParam())
 {
 }
 

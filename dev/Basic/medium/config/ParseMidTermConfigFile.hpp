@@ -130,6 +130,11 @@ private:
 	void processStatisticsOutputNode(xercesc::DOMElement* node);
 
 	/**
+	 * processes node for speed-density function params
+	 */
+	void processSpeedDensityParamsNode(xercesc::DOMElement* node);
+
+	/**
 	 * processes calibration element in config xml
      *
 	 * @param node node corresponding to calibration element inside xml file

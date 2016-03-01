@@ -136,21 +136,17 @@ void DriverUpdateParams::insertConflictTurningDriver(const TurningConflict *conf
 	nearestVehicle.driver = driver;
 
 	//Find turning conflict
-	std::map<const TurningConflict*, std::list<NearestVehicle> >::iterator it = conflictVehicles.find(conflict);
+	std::map<const TurningConflict*, std::set<NearestVehicle, compare_NearestVehicle> >::iterator it = conflictVehicles.find(conflict);
 
 	if (it != conflictVehicles.end())
 	{
-		std::list<NearestVehicle>& nearestVehicles = it->second;
-		nearestVehicles.push_back(nearestVehicle);
-
-		//Sort list
-		compare_NearestVehicle f;
-		nearestVehicles.sort(f);
+		std::set<NearestVehicle, compare_NearestVehicle>& nearestVehicles = it->second;
+		nearestVehicles.insert(nearestVehicle);
 	}
 	else
 	{
-		std::list<NearestVehicle> nearestVehicles;
-		nearestVehicles.push_back(nearestVehicle);
+		std::set<NearestVehicle, compare_NearestVehicle> nearestVehicles;
+		nearestVehicles.insert(nearestVehicle);
 		conflictVehicles.insert(std::make_pair(conflict, nearestVehicles));
 	}
 }

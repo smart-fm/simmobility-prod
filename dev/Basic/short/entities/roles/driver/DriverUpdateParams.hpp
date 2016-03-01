@@ -396,8 +396,8 @@ public:
 	 */
 	std::map<unsigned int, std::vector<StopPoint> > stopPointPool;
 
-	/**The map of conflicting vehicles in the intersection. Key=Turning conflict, Value=Sorted list of vehicles(nearest vehicle first)*/
-	std::map<const TurningConflict*, std::list<NearestVehicle> > conflictVehicles;
+	/**The map of conflicting vehicles in the intersection. Key=Turning conflict, Value=Sorted set of vehicles(nearest vehicle first)*/
+	std::map<const TurningConflict*, std::set<NearestVehicle, compare_NearestVehicle> > conflictVehicles;
 
 	/**Parameters for calculating the target gap*/
 	std::vector<double> targetGapParams;

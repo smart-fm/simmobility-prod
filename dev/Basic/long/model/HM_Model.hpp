@@ -149,7 +149,7 @@ namespace sim_mob
             typedef boost::unordered_map<BigSerial, OwnerTenantMovingRate*> OwnerTenantMovingRateMap;
 
             typedef std::vector<AlternativeHedonicPrice*>AlternativeHedonicPriceList;
-            typedef boost::unordered_map<BigSerial, AlternativeHedonicPrice*> AlternativeHedonicPriceMap;
+            typedef boost::unordered_multimap<BigSerial, AlternativeHedonicPrice*> AlternativeHedonicPriceMap;
 
             /**
              * Taz statistics
@@ -305,7 +305,7 @@ namespace sim_mob
             HouseholdGroup* getHouseholdGroupByGroupId(BigSerial id)const;
             void addHouseholdGroupByGroupId(HouseholdGroup* hhGroup);
             void getScreeningProbabilities(std::string hitsId, std::vector<double> &householdScreeningProbabilties );
-            AlternativeList getAlternatives();
+            AlternativeList& getAlternatives();
             Alternative* getAlternativeById(int zoneHousingType);
             PlanningArea* getPlanningAreaById( int id );
             std::vector<PlanningSubzone*> getPlanningSubZoneByPlanningAreaId(int id);
@@ -345,6 +345,7 @@ namespace sim_mob
             std::vector<OwnerTenantMovingRate*> getOwnerTenantMovingRates();
             std::vector<TenureTransitionRate*> getTenureTransitionRates();
             std::vector<AlternativeHedonicPrice*> getAlternativeHedonicPrice();
+            boost::unordered_multimap<BigSerial, AlternativeHedonicPrice*>& getAlternativeHedonicPriceById();
 
         protected:
             /**

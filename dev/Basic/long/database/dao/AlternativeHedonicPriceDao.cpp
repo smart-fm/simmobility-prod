@@ -11,6 +11,7 @@
 
 #include <database/dao/AlternativeHedonicPriceDao.hpp>
 #include "DatabaseHelper.hpp"
+#include <string>
 
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
@@ -22,11 +23,14 @@ AlternativeHedonicPriceDao::~AlternativeHedonicPriceDao(){}
 
 void AlternativeHedonicPriceDao::fromRow(Row& result, AlternativeHedonicPrice& outObj)
 {
-	//outObj.planning_area_id	= result.get<BigSerial>( "planning_area_id",  0);
     outObj.planning_area	= result.get<std::string>( "planning_area_name",  "");
     outObj.dwelling_type	= result.get<int>( "dwelling_type",	 0);
     outObj.total_price		= result.get<double>( "total_price", 0.0);
     outObj.planning_area_id	= result.get<BigSerial>( "planning_area_id",  0);
+
+	std::string strId = std::to_string( outObj.planning_area_id) + std::to_string( outObj.dwelling_type);
+	int id = atoi( strId.c_str());
+	outObj.id = id;
 }
 
 void AlternativeHedonicPriceDao::toRow(AlternativeHedonicPrice& data, Parameters& outParams, bool update) {}

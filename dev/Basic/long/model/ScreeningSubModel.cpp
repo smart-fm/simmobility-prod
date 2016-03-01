@@ -401,28 +401,35 @@ namespace sim_mob
 					}
 				}
 
-				/*
-				HedonicPrice_SubModel hpSubmodel(day, model, const_cast<Unit*>(unit));
-				std::vector<ExpectationEntry> expectations;
-				hpSubmodel.ComputeExpectation(1, expectations);
-				logZonalMedianHousingPrice = log(expectations[0].hedonicPrice);
-				*/
-
-				std::vector<double> medianHedonicPrice;
 				if( model->getAlternatives()[n]->getMedianHedonicPrice() > 0.000001 )
 				{
-					logZonalMedianHousingPrice =  model->getAlternatives()[n]->getMedianHedonicPrice() / sumFloorArea / 1000;
+					logZonalMedianHousingPrice =  model->getAlternatives()[n]->getMedianHedonicPrice();// / sumFloorArea / 1000;
+
+					PrintOutV("1. n " << n << " oldmp: " <<  model->getAlternatives()[n]->getMedianHedonicPrice() << " mp: " << logZonalMedianHousingPrice << std::endl);
 				}
 				else
 				{
-					for( int m = 0;  m < model->getAlternativeHedonicPrice().size(); m++ )
+
+					string strId = to_string(model->getAlternatives()[n]->getPlanAreaId()) + to_string(model->getAlternatives()[n]->getDwellingTypeId());
+					int key = std::atoi( strId.c_str());
+
+					typedef boost::unordered_multimap<BigSerial, AlternativeHedonicPrice*>::iterator altmm_itr;
+					typedef boost::unordered_multimap<BigSerial, AlternativeHedonicPrice*> altmmap;
+
+					std::pair< altmm_itr,altmm_itr > its = model->getAlternativeHedonicPriceById().equal_range(key);
+					int count = 0;
+
+					for (altmm_itr it = its.first; it != its.second; it++)
 					{
-						if( model->getAlternatives()[n]->getDwellingTypeId() == model->getAlternativeHedonicPrice()[m]->getDwellingType() &&
-							model->getAlternatives()[n]->getPlanAreaId() 	 == model->getAlternativeHedonicPrice()[m]->getPlanningAreaId() )
-							medianHedonicPrice.push_back( model->getAlternativeHedonicPrice()[m]->getTotalPrice() );
+						count++;
 					}
 
-					logZonalMedianHousingPrice = medianHedonicPrice[ medianHedonicPrice.size()/2 ] / sumFloorArea / 1000;
+					auto it = its.first;
+					std::advance(it, count/2);
+
+					logZonalMedianHousingPrice = it->second->getTotalPrice();
+
+					PrintOutV("2. n " << n << " oldmp: " <<  model->getAlternatives()[n]->getMedianHedonicPrice() << " mp: " << logZonalMedianHousingPrice << std::endl);
 
 					model->getAlternatives()[n]->setMedianHedonicPrice( logZonalMedianHousingPrice );
 				}

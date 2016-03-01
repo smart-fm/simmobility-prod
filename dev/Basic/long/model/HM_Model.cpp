@@ -662,7 +662,7 @@ void HM_Model::getScreeningProbabilities(std::string hitsId, vector<double> &hou
 	}
 }
 
-std::vector<Alternative*> HM_Model::getAlternatives()
+std::vector<Alternative*>& HM_Model::getAlternatives()
 {
 	return alternative;
 }
@@ -1157,7 +1157,7 @@ void HM_Model::startImpl()
 		loadData<OwnerTenantMovingRateDao>( conn, ownerTenantMovingRate, ownerTenantMovingRateById, &OwnerTenantMovingRate::getId );
 		PrintOutV("Number of Owner Tenant Moving Rate rows: " << ownerTenantMovingRate.size() << std::endl );
 
-		loadData<AlternativeHedonicPriceDao>( conn, alternativeHedonicPrice, alternativeHedonicPriceById, &AlternativeHedonicPrice::getPlanningAreaId );
+		loadData<AlternativeHedonicPriceDao>( conn, alternativeHedonicPrice, alternativeHedonicPriceById, &AlternativeHedonicPrice::getId );
 		PrintOutV("Number of Alternative Hedonic Price rows: " << alternativeHedonicPrice.size() << std::endl );
 	}
 
@@ -1995,6 +1995,11 @@ std::vector<TenureTransitionRate*> HM_Model::getTenureTransitionRates()
 std::vector<AlternativeHedonicPrice*> HM_Model::getAlternativeHedonicPrice()
 {
 	return alternativeHedonicPrice;
+}
+
+boost::unordered_multimap<BigSerial, AlternativeHedonicPrice*>& HM_Model::getAlternativeHedonicPriceById()
+{
+	return alternativeHedonicPriceById;
 }
 
 void HM_Model::stopImpl()

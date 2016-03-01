@@ -132,6 +132,10 @@ protected:
 	 */
 	virtual bool isNonspatial();
 	/**
+	 * unregister child item from children list
+	 */
+	virtual void unregisterChild(Entity* child);
+	/**
 	 * get block list for a particular line
 	 * @param lineId is line id
 	 * @param route is the list of blocks
@@ -145,6 +149,10 @@ protected:
 	 * @return true if successfully get the list of platforms
 	 */
 	bool getTrainPlatforms(const std::string& lineId, std::vector<Platform*>& platforms);
+	/**
+	 * handle messages
+	 */
+	virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
 
 private:
 	/**

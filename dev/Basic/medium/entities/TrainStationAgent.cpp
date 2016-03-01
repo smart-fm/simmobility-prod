@@ -9,6 +9,8 @@
 #include "message/MT_Message.hpp"
 #include "entities/roles/driver/TrainDriver.hpp"
 #include "entities/Person_MT.hpp"
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
 namespace sim_mob {
 namespace medium
 {
@@ -46,17 +48,22 @@ Entity::UpdateStatus TrainStationAgent::frame_init(timeslice now)
 }
 Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 {
+	ConfigManager::GetInstance().FullConfig().simStartTime();
+	double sysGran = ConfigManager::GetInstance().FullConfig().baseGranSecond();
 	std::list<TrainDriver*>::iterator it=trainDriver.begin();
-	while(it!=trainDriver.end())
-	{
-		callMovementFrameTick(now, *it);
-		if((*it)->getCurrentStatus()==TrainDriver::ARRIVAL_AT_PLATFORM){
-			(*it)->calculateDwellTime();
-			(*it)->setCurrentStatus(TrainDriver::WAITING_LEAVING);
-		} else if((*it)->getCurrentStatus()==TrainDriver::LEAVING_FROM_PLATFORM){
-			it = trainDriver.erase(it);
-			continue;
-		}
+	while (it != trainDriver.end()) {
+		double tickInSec = (*it)->getParams().secondsInTick;
+		do {
+			callMovementFrameTick(now, *it);
+			tickInSec += (*it)->getParams().secondsInTick;
+			if ((*it)->getCurrentStatus() == TrainDriver::ARRIVAL_AT_PLATFORM) {
+				(*it)->calculateDwellTime();
+				(*it)->setCurrentStatus(TrainDriver::WAITING_LEAVING);
+			} else if ((*it)->getCurrentStatus() == TrainDriver::LEAVING_FROM_PLATFORM) {
+				it = trainDriver.erase(it);
+				break;
+			}
+		} while (tickInSec < sysGran);
 		it++;
 	}
 	return UpdateStatus::Continue;

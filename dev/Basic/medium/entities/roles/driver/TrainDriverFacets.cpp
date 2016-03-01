@@ -17,6 +17,7 @@ namespace {
 const double safeDistanceCM = 10000;
 const double distanceArrvingAtPlatform = 0.1;
 const double trainLengthCM = 12000;
+const double convertKmPerHourToMeterPerSec = 1000.0/3600.0;
 }
 namespace sim_mob {
 namespace medium{
@@ -103,6 +104,7 @@ void TrainMovement::frame_tick()
 	{
 		parentDriver->reduceWaitingTime(params.secondsInTick);
 		double waitingTime = parentDriver->getWaitingTime();
+		params.currentSpeed = 0.0;
 		if(waitingTime<params.secondsInTick){
 			parentDriver->setCurrentStatus(TrainDriver::LEAVING_FROM_PLATFORM);
 			if(!isAtLastPlaform()){
@@ -115,6 +117,21 @@ void TrainMovement::frame_tick()
 		break;
 	}
 	}
+
+    const std::string& fileName("pt_mrt_move.csv");
+    sim_mob::BasicLogger& ptMRTMoveLogger  = sim_mob::Logger::log(fileName);
+    DailyTime startTime = ConfigManager::GetInstance().FullConfig().simStartTime();
+    ptMRTMoveLogger << DailyTime(params.now.ms()+startTime.getValue()).getStrRepr() << ",";
+    ptMRTMoveLogger << params.currentSpeed/convertKmPerHourToMeterPerSec << ",";
+    ptMRTMoveLogger << params.disToNextPlatform << ",";
+    Platform* next = trainPlatformMover.getNextPlatform();
+    std::string platformNo;
+    if(next){
+    	platformNo = next->getPlatformNo();
+    }
+    ptMRTMoveLogger << platformNo << ",";
+    ptMRTMoveLogger << this->parentDriver->waitingTimeSec << std::endl;
+    sim_mob::Logger::log(fileName).flush();
 }
 std::string TrainMovement::frame_tick_output()
 {
@@ -136,6 +153,7 @@ void TrainMovement::setParentDriver(TrainDriver* parentDriver)
 
 double TrainMovement::getRealSpeedLimit()
 {
+	TrainUpdateParams& params = parentDriver->getParams();
 	const TrainDriver* nextDriver = parentDriver->getNextDriver();
 	double distanceToNextTrain = 0.0;
 	double distanceToNextPlatform = 0.0;
@@ -153,11 +171,10 @@ double TrainMovement::getRealSpeedLimit()
 	} else {
 		distanceToNextObject = std::min(distanceToNextTrain,distanceToNextPlatform);
 	}
-
 	double decelerate = trainPathMover.getCurrentDecelerationRate();
 	speedLimit = std::sqrt(2.0*decelerate*distanceToNextObject);
-	speedLimit = std::min(speedLimit, trainPathMover.getCurrentSpeedLimit());
-
+	speedLimit = std::min(speedLimit, trainPathMover.getCurrentSpeedLimit()*convertKmPerHourToMeterPerSec);
+	params.currentSpeedLimit = speedLimit;
 	return speedLimit;
 }
 
@@ -204,7 +221,15 @@ bool TrainMovement::moveForward()
 {
 	if(!isStopAtPlatform()){
 		double movingDistance = getEffectiveMovingDistance();
-		trainPathMover.advance(movingDistance);
+		double distanceToNextPlat = trainPathMover.getDistanceToNextPlatform(trainPlatformMover.getNextPlatform());
+		TrainUpdateParams& params = parentDriver->getParams();
+		if(movingDistance>distanceToNextPlat){
+			trainPathMover.advance(distanceToNextPlat);
+			params.disToNextPlatform = 0.0;
+		} else {
+			trainPathMover.advance(movingDistance);
+			params.disToNextPlatform = trainPathMover.getDistanceToNextPlatform(trainPlatformMover.getNextPlatform());
+		}
 		return true;
 	}
 	return false;

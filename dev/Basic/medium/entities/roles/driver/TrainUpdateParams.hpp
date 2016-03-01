@@ -21,6 +21,10 @@ public:
 	double secondsInTick;
 	/**time elapsed in the current tick (in seconds)*/
 	double elapsedSeconds;
+	/**current distance to next platform*/
+	double disToNextPlatform;
+	/**current speed limit*/
+	double currentSpeedLimit;
 	/**
 	 * resets this update params.
 	 * @param now current timeslice in which reset is called

@@ -230,8 +230,8 @@ namespace sim_mob {
 			block->setSpeedLimit(r.get<double>(1));
 			block->setAccelerateRate(r.get<double>(2));
 			block->setDecelerateRate(r.get<double>(3));
-			block->setAccelerateRate(10.0);
-			block->setDecelerateRate(10.0);
+			block->setAccelerateRate(2.0);
+			block->setDecelerateRate(2.0);
 			block->setLength(r.get<double>(4));
 			mapOfIdvsBlocks[blockId] = block;
 		}
@@ -345,7 +345,13 @@ namespace sim_mob {
 		std::vector<TripChainItem*> tripChain;
 		tripChain.push_back(trainTrip);
 		person->setTripChain(tripChain);
+		person->parentEntity = this;
 		activeAgents.insert(person);
+	}
+	template<typename PERSON>
+	void TrainController<PERSON>::unregisterChild(Entity* child)
+	{
+		delete child;
 	}
 	template<typename PERSON>
 	Agent* TrainController<PERSON>::getAgentFromStation(const std::string& nameStation)
@@ -366,6 +372,13 @@ namespace sim_mob {
 		std::map<std::string, Station*>::const_iterator it = mapOfIdvsStations.find(nameStation);
 		if(it!=mapOfIdvsStations.end()) {
 			allStationAgents[it->second]=stationAgent;
+		}
+	}
+	template<typename PERSON>
+	void TrainController<PERSON>::HandleMessage(messaging::Message::MessageType type, const messaging::Message& message)
+	{
+		switch (type)
+		{
 		}
 	}
 } /* namespace sim_mob */

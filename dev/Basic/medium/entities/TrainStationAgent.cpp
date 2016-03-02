@@ -39,6 +39,11 @@ void TrainStationAgent::HandleMessage(messaging::Message::MessageType type, cons
 		msg.trainDriver->setCurrentStatus(TrainDriver::MOVE_TO_PLATFROM);
 		break;
 	}
+	case TRAIN_ARRIVAL_AT_TERMINAL:
+	{
+		const TrainDriverMessage& msg = MSG_CAST(TrainDriverMessage, message);
+		break;
+	}
 	}
 }
 

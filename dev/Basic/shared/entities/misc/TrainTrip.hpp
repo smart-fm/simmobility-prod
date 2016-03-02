@@ -48,6 +48,12 @@ public:
 	const std::vector<Platform*>& getTrainPlatform() const{
 		return trainPlatform;
 	}
+	void setStartTime(const DailyTime& time){
+		startTime = time;
+	}
+	unsigned int getStartTime() const{
+		return startTime.getValue();
+	}
 private:
 	/**train line id*/
 	std::string lineId;
@@ -57,6 +63,8 @@ private:
 	std::vector<Block*> trainRoute;
 	/**train platform include a list of platform*/
 	std::vector<Platform*> trainPlatform;
+	/**start time*/
+	DailyTime startTime;
 };
 
 } /* namespace sim_mob */

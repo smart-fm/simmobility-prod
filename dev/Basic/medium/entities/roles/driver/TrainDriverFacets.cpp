@@ -118,20 +118,23 @@ void TrainMovement::frame_tick()
 	}
 	}
 
+	const TrainTrip* trip = dynamic_cast<const TrainTrip*>(*(parentDriver->getParent()->currTripChainItem));
     const std::string& fileName("pt_mrt_move.csv");
     sim_mob::BasicLogger& ptMRTMoveLogger  = sim_mob::Logger::log(fileName);
     DailyTime startTime = ConfigManager::GetInstance().FullConfig().simStartTime();
     ptMRTMoveLogger << DailyTime(params.now.ms()+startTime.getValue()).getStrRepr() << ",";
+    if(trip) ptMRTMoveLogger << trip->getLineId() << ",";
+    if(trip) ptMRTMoveLogger << trip->getTripId() << ",";
     ptMRTMoveLogger << params.currentSpeed/convertKmPerHourToMeterPerSec << ",";
     ptMRTMoveLogger << params.disToNextPlatform << ",";
     Platform* next = trainPlatformMover.getNextPlatform();
-    std::string platformNo;
+    std::string platformNo("");
     if(next){
     	platformNo = next->getPlatformNo();
     }
     ptMRTMoveLogger << platformNo << ",";
     ptMRTMoveLogger << this->parentDriver->waitingTimeSec << std::endl;
-    sim_mob::Logger::log(fileName).flush();
+    //sim_mob::Logger::log(fileName).flush();
 }
 std::string TrainMovement::frame_tick_output()
 {

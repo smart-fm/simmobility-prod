@@ -38,6 +38,8 @@ private:
 	const Station* station;
 	/**the reference */
 	std::list<TrainDriver*> trainDriver;
+	/**record last train in each line*/
+	std::map<std::string, TrainDriver*> lastTrainDriver;
 };
 }
 } /* namespace sim_mob */

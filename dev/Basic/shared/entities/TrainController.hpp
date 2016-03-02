@@ -183,6 +183,14 @@ private:
 	 * the function to load polylines from DB
 	 */
 	void loadBlockPolylines();
+	/**
+	 * compose the train blocks with poly-line
+	 */
+	void composeBlocksAndPolyline();
+	/**
+	 * compose trips from schedules
+	 */
+	void composeTrainTrips();
 private:
 	/** global static bus stop agents lookup table*/
 	static StationAgentsMap allStationAgents;
@@ -196,10 +204,14 @@ private:
 	std::map<std::string, std::vector<TrainPlatform>> mapOfIdvsTrainPlatforms;
 	/**the map from id to the schedule table*/
 	std::map<std::string, std::vector<TrainSchedule>> mapOfIdvsSchedules;
+	/**the map from id to trip*/
+	std::map<std::string, std::vector<TrainTrip*>> mapOfIdvsTrip;
 	/**the map from name to the station*/
 	std::map<std::string, Station*> mapOfIdvsStations;
 	/**the map from id to polyline object*/
 	std::map<unsigned int, PolyLine*> mapOfIdvsPolylines;
+	/**	buses waiting to be added to the simulation, prioritized by start time.*/
+	StartTimePriorityQueue pendingChildren;
 private:
 	static TrainController* pInstance;
 };

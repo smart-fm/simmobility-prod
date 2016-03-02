@@ -2,9 +2,9 @@
  * TrainController.cpp
  *
  *  Created on: Feb 11, 2016
- *      Author: fm-simmobility
+ *      Author: zhang huai peng
  */
-
+#include <boost/algorithm/string/erase.hpp>
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "logging/Log.hpp"
@@ -12,7 +12,9 @@
 #ifndef _CLASS_TRAIN_CONTROLLER_FUNCTIONS
 #include "entities/TrainController.hpp"
 #else
-
+namespace{
+const double MILLISECS_CONVERT_UNIT = 1000.0;
+}
 namespace sim_mob {
 	template<typename PERSON>
 	TrainController<PERSON>* TrainController<PERSON>::pInstance=nullptr;
@@ -44,6 +46,13 @@ namespace sim_mob {
 	template<typename PERSON>
 	Entity::UpdateStatus TrainController<PERSON>::frame_tick(timeslice now)
 	{
+		while (!pendingChildren.empty() && pendingChildren.top()->getStartTime()<=now.ms())
+		{
+			Entity* child = pendingChildren.top();
+			pendingChildren.pop();
+			child->parentEntity = this;
+			this->currWorkerProvider->scheduleForBred(child);
+		}
 		return Entity::UpdateStatus::Continue;
 	}
 	template<typename PERSON>
@@ -106,13 +115,19 @@ namespace sim_mob {
 	void TrainController<PERSON>::initTrainController()
 	{
 		loadPlatforms();
-		loadSchedules();
 		loadBlocks();
 		loadTrainRoutes();
 		loadTrainPlatform();
 		loadTransferedTimes();
 		loadBlockPolylines();
+		composeBlocksAndPolyline();
+		loadSchedules();
+		composeTrainTrips();
 
+	}
+	template<typename PERSON>
+	void TrainController<PERSON>::composeBlocksAndPolyline()
+	{
 		for (std::map<unsigned int, Block*>::iterator it = mapOfIdvsBlocks.begin();it != mapOfIdvsBlocks.end(); it++) {
 			std::map<unsigned int, PolyLine*>::iterator itLine =mapOfIdvsPolylines.find(it->first);
 			if (itLine != mapOfIdvsPolylines.end()) {
@@ -206,6 +221,44 @@ namespace sim_mob {
 				mapOfIdvsSchedules[lineId] = std::vector<TrainSchedule>();
 			}
 			mapOfIdvsSchedules[lineId].push_back(schedule);
+		}
+	}
+	template<typename PERSON>
+	void TrainController<PERSON>::composeTrainTrips()
+	{
+		std::map<std::string, std::vector<TrainSchedule>>::const_iterator it;
+		for(it=mapOfIdvsSchedules.begin(); it!=mapOfIdvsSchedules.end(); it++)
+		{
+			int tripId = 1;
+			std::string lineId = it->first;
+			boost::algorithm::erase_all(lineId, " ");
+			std::vector<TrainSchedule>::const_iterator iSchedule;
+			const std::vector<TrainSchedule>& schedules = it->second;
+			std::vector<Block*> route;
+			std::vector<Platform*> platforms;
+			getTrainRoute(lineId, route);
+			getTrainPlatforms(lineId, platforms);
+			for(iSchedule=schedules.begin(); iSchedule!=schedules.end(); iSchedule++)
+			{
+				DailyTime startTime(iSchedule->startTime);
+				DailyTime endTime(iSchedule->endTime);
+				DailyTime advance(iSchedule->headwaySec*MILLISECS_CONVERT_UNIT);
+				for(DailyTime time = startTime; time.isBeforeEqual(endTime); time += advance)
+				{
+					TrainTrip* trainTrip = new TrainTrip();
+					trainTrip->setTrainRoute(route);
+					trainTrip->setTrainPlatform(platforms);
+					trainTrip->setLineId(lineId);
+					trainTrip->setTripId(tripId++);
+					DailyTime start(time.offsetMS_From(ConfigManager::GetInstance().FullConfig().simStartTime()));
+					trainTrip->setStartTime(start);
+					trainTrip->itemType = TripChainItem::IT_TRAINTRIP;
+					if(mapOfIdvsTrip.find(lineId)==mapOfIdvsTrip.end()) {
+						mapOfIdvsTrip[lineId] = std::vector<TrainTrip*>();
+					}
+					mapOfIdvsTrip[lineId].push_back(trainTrip);
+				}
+			}
 		}
 	}
 	template<typename PERSON>
@@ -341,12 +394,30 @@ namespace sim_mob {
 		trainTrip->setTrainRoute(route);
 		trainTrip->setTrainPlatform(platforms);
 		trainTrip->setLineId(lineId);
+		trainTrip->setTripId(1);
 		trainTrip->itemType = TripChainItem::IT_TRAINTRIP;
 		std::vector<TripChainItem*> tripChain;
 		tripChain.push_back(trainTrip);
 		person->setTripChain(tripChain);
 		person->parentEntity = this;
 		activeAgents.insert(person);
+
+		/*std::map<std::string, std::vector<TrainTrip*>>::const_iterator it;
+		for(it=mapOfIdvsTrip.begin(); it!=mapOfIdvsTrip.end(); it++)
+		{
+			const std::vector<TrainTrip*>& trainTrips = it->second;
+			std::vector<TrainTrip*>::const_iterator iTrip;
+			for(iTrip=trainTrips.begin(); iTrip!=trainTrips.end(); iTrip++){
+				const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
+				PERSON* person = new PERSON("TrainController", config.mutexStategy());
+				std::vector<TripChainItem*> tripChain;
+				tripChain.push_back((*iTrip));
+				person->setTripChain(tripChain);
+				person->setStartTime((*iTrip)->getStartTime());
+				person->parentEntity = this;
+				pendingChildren.push(person);
+			}
+		}*/
 	}
 	template<typename PERSON>
 	void TrainController<PERSON>::unregisterChild(Entity* child)

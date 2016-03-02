@@ -265,8 +265,11 @@ namespace sim_mob
 		std::vector<ExternalEvent> AwakeningSubModel::DailyAwakenings( int day, HM_Model *model)
 		{
 			std::vector<ExternalEvent> events;
+			ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 
-		    for( int n = 0; n < 300; n++ )
+			int dailyAwakenings = config.ltParams.housingModel.dailyHouseholdAwakenings;
+
+		    for( int n = 0; n < dailyAwakenings; n++ )
 		    {
 		    	ExternalEvent extEv;
 

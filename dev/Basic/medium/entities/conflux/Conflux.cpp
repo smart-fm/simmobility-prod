@@ -378,6 +378,10 @@ void Conflux::loadPersons()
 		{
 			messaging::MessageBus::PostMessage(conflux, MSG_PERSON_LOAD, messaging::MessageBus::MessagePtr(new PersonMessage(person)));
 		}
+		else
+		{
+			safe_delete_item(person);
+		}
 	}
 }
 

@@ -371,13 +371,13 @@ Trip* MT_PersonLoader::makeFreightTrip(const soci::row& r)
 	tripToSave->tripID = r.get<string>(0);
 	tripToSave->setPersonID(r.get<string>(0));
 	tripToSave->itemType = TripChainItem::IT_TRIP;
-	tripToSave->origin = WayPoint(rn->getById(rn->getMapOfIdvsNodes(), r.get<int>(2)));
+	tripToSave->origin = WayPoint(rn->getById(rn->getMapOfIdvsNodes(), r.get<unsigned int>(2)));
 	tripToSave->originType = TripChainItem::LT_NODE;
 	tripToSave->originZoneCode = r.get<int>(1);
-	tripToSave->destination = WayPoint(rn->getById(rn->getMapOfIdvsNodes(), r.get<int>(4)));
+	tripToSave->destination = WayPoint(rn->getById(rn->getMapOfIdvsNodes(), r.get<unsigned int>(4)));
 	tripToSave->destinationType = TripChainItem::LT_NODE;
 	tripToSave->destinationZoneCode = r.get<int>(3);
-	tripToSave->startTime = DailyTime(getRandomTimeInWindow(r.get<double>(6), false));
+	tripToSave->startTime = DailyTime(getRandomTimeInWindow(r.get<double>(5), false));
 	tripToSave->travelMode = r.get<string>(6);
 	//just a sanity check
 	if(tripToSave->origin == tripToSave->destination)

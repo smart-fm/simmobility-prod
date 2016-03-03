@@ -163,14 +163,6 @@ inline void writeProjectDataToFile(boost::shared_ptr<Project>project) {
 
 }
 
-inline void writePotentialProjectDataToFile(PotentialProject &project) {
-
-	boost::format fmtr = boost::format(LOG_POTENTIAL_PROJECT) % project.getFmParcelId() % project.getTotalUnits()%project.getDevTemplate()->getTemplateId()%project.getProfit()%project.getInvestmentReturnRatio()%project.getAcquisitionCost()
-			             %project.getLandValue()%project.getConstructionCost();
-	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_POTENTIAL_PROJECTS,fmtr.str());
-
-}
-
 inline void formatDate(int &month, int &year)
 {
 		month = month - 12;
@@ -1039,4 +1031,14 @@ void DeveloperAgent::setParcelDBStatus(bool status)
 bool DeveloperAgent::getParcelDBStatus()
 {
 	return this->parcelDBStatus;
+}
+
+void DeveloperAgent::setNewBuildings(std::vector<boost::shared_ptr<Building> > buildings)
+{
+	this->newBuildings = buildings;
+}
+
+void DeveloperAgent::setNewUnits(std::vector<boost::shared_ptr<Unit> > units)
+{
+	this->newUnits = units;
 }

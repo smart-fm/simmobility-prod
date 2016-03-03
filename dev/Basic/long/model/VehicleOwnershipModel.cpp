@@ -238,7 +238,7 @@ double VehicleOwnershipModel::getExpOneCar(int unitTypeId,double vehicleOwnershi
 		{
 			valueOneCar = valueOneCar +  model->getVehicleOwnershipCoeffsById(B_distMRT500_ONECAR)->getCoefficientEstimate();
 		}
-		else if((distanceMrt<500) && (distanceMrt<=1000))
+		else if((distanceMrt > 500) && (distanceMrt<=1000))
 		{
 			valueOneCar = valueOneCar +  model->getVehicleOwnershipCoeffsById(B_distMRT1000_ONECAR)->getCoefficientEstimate();
 		}

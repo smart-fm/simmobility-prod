@@ -223,8 +223,8 @@ std::string StopStats::getCSV() const
 			interval,
 			stopCode.c_str(),
 			serviceLine.c_str(),
-			((waitingCount==0)? 0 : (waitingTime/waitingCount)),
-			((numArrivals==0)? 0 : (dwellTime/numArrivals)),
+			((waitingCount<=0)? 0 : (waitingTime / waitingCount)),
+			((numArrivals<=0)? 0 : (dwellTime / numArrivals)),
 			numArrivals,
 			numBoarding);
 	return std::string(csvArray);

@@ -92,7 +92,6 @@ namespace sim_mob {
             std::vector<PotentialUnit>& getUnits();
             double getProfit();
             double getConstructionCost() const;
-            double getRevenue() const;
             double getGrosArea() const;
             double getInvestmentReturnRatio() const;
             double getExpRatio() const;

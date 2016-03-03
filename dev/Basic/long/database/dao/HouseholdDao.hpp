@@ -41,6 +41,7 @@ namespace sim_mob {
              */
             void toRow(Household& data, db::Parameters& outParams, bool update);
 
+        public:
             void insertHousehold(Household& houseHold,std::string schema);
         };
     }

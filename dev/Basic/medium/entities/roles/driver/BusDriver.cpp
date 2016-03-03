@@ -10,6 +10,7 @@
 #include "entities/roles/passenger/Passenger.hpp"
 #include "util/DwellTimeCalc.hpp"
 #include "util/Utils.hpp"
+#include "util/DailyTime.hpp"
 #include "config/MT_Config.hpp"
 
 using namespace sim_mob;
@@ -150,6 +151,7 @@ void BusDriver::storeArrivalTime(const std::string& current, const std::string& 
 		busArrivalInfo.sequenceNo = busSequenceNumber;
 		busArrivalInfo.arrivalTime = current;
 		busArrivalInfo.dwellTime = waitTime;
+		busArrivalInfo.dwellTimeSecs = (DailyTime(waitTime)).getValue() / 1000.0;
 		busArrivalInfo.pctOccupancy = (((double)passengerList.size())/MT_Config::getInstance().getBusCapacity()) * 100.0;
 		busArrivalInfo.busStopNo = busStopNo;
 		messaging::MessageBus::PostMessage(PT_Statistics::getInstance(), STORE_BUS_ARRIVAL, messaging::MessageBus::MessagePtr(new BusArrivalTimeMessage(busArrivalInfo)));

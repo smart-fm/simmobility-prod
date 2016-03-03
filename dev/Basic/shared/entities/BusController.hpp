@@ -107,6 +107,14 @@ public:
 	 */
 	const std::vector<const BusStop*>& getStops(const std::string& busline) const;
 
+	/**
+	 * tells whether a given bus line is available for a given time
+	 * @param busline input bus line
+	 * @param time time of day
+	 * @returns true if bus line operates around the provided time; false otherwise.
+	 */
+	bool isBuslineAvailable(const std::string& busline, const DailyTime& time) const;
+
 protected:
 
 	/**

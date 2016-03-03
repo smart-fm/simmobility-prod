@@ -858,3 +858,17 @@ const std::vector<const BusStop*>& sim_mob::BusController::getStops(const std::s
 	}
 	return stopsMapIt->second;
 }
+
+bool sim_mob::BusController::isBuslineAvailable(const std::string& buslineid, const DailyTime& time) const
+{
+	if(buslineid.empty())
+	{
+		throw std::runtime_error("empty busline passed for fetching availability");
+	}
+	const BusLine* busline = ptSchedule.findBusLine(buslineid);
+	if(!busline)
+	{
+		throw std::runtime_error("invalid busline passed for fetching availability (" + buslineid + ")");
+	}
+	return busline->isAvailable(time);
+}

@@ -275,8 +275,14 @@ void PT_RouteChoiceLuaModel::loadPT_PathSet(int origin, int dest, PT_PathSet& pa
 			case sim_mob::BUS_EDGE:
 			{
 				double edgeTravelTime = 0.0;
-				const std::vector<const Link*>& busRouteLinks = busController->getLinkRoute(edge.getServiceLines());
-				const std::vector<const BusStop*>& busRouteStops = busController->getStops(edge.getServiceLines());
+				const std::string& busLineId = edge.getServiceLines();
+				if(!busController->isBuslineAvailable(busLineId, nextStartTime))
+				{
+					invalidPath = true;
+					break;
+				}
+				const std::vector<const Link*>& busRouteLinks = busController->getLinkRoute(busLineId);
+				const std::vector<const BusStop*>& busRouteStops = busController->getStops(busLineId);
 
 				const BusStop* originStop = BusStop::findBusStop(edge.getStartStop());
 				if(!originStop)

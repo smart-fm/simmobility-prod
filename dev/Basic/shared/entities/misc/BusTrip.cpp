@@ -10,6 +10,11 @@
 #include "geospatial/network/PT_Stop.hpp"
 #include "logging/Log.hpp"
 
+namespace
+{
+const unsigned int MINUTES_IN_DAY = 1440;
+const unsigned int MS_IN_MINUTE = 60 * 1000;
+}
 
 using namespace sim_mob;
 
@@ -191,6 +196,32 @@ void sim_mob::BusLine::addBusTrip(BusTrip& trip)
 void sim_mob::BusLine::addBusLineFrequency(const BusLineFrequency& frequency)
 {
 	busLineFrequency.push_back(frequency);
+	setAvailability(frequency);
+}
+
+bool sim_mob::BusLine::isAvailable(const DailyTime& time) const
+{
+	unsigned int minute = time.getValue() / MS_IN_MINUTE;
+	while (minute > MINUTES_IN_DAY)
+	{
+		minute = minute - MINUTES_IN_DAY;
+	}
+	return buslineAvailability.test(minute);
+}
+
+void sim_mob::BusLine::setAvailability(const BusLineFrequency& frequency)
+{
+	unsigned int startMinute = frequency.startTime.getValue() / MS_IN_MINUTE;
+	unsigned int endMinute = frequency.endTime.getValue() / MS_IN_MINUTE;
+
+	if(endMinute < startMinute)
+	{	//the frequency crosses the day boundary. add a day to the endMinute.
+		endMinute = endMinute + MINUTES_IN_DAY;
+	}
+	for(unsigned int i=startMinute; i<=endMinute; i++)
+	{
+		buslineAvailability.set(i%MINUTES_IN_DAY);
+	}
 }
 
 void sim_mob::BusLine::resetBusTripStopRealTimes(int trip, int sequence, Shared<BusStopRealTimes>* realTimes)
@@ -232,7 +263,7 @@ void sim_mob::PT_Schedule::registerControlType(const std::string buslineId, cons
 	buslineIdControlTypeMap[buslineId] = controlType;
 }
 
-BusLine* sim_mob::PT_Schedule::findBusLine(const std::string& buslineId)
+BusLine* sim_mob::PT_Schedule::findBusLine(const std::string& buslineId) const
 {
 	std::map<std::string, BusLine*>::const_iterator it;
 	it = buslineIdBuslineMap.find(buslineId);

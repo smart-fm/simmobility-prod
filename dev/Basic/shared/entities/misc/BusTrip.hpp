@@ -3,7 +3,7 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 #pragma once
-
+#include <bitset>
 #include <vector>
 #include <map>
 #include <string>
@@ -323,6 +323,12 @@ public:
 	void resetBusTripStopRealTimes(int trip, int stopSequence,
 			Shared<BusStopRealTimes>* busStopRealTime);
 
+	/**
+	 * tells whether this bus line is available for a given time
+	 * @param time time of day
+	 * @returns true if bus line operates around the provided time; false otherwise.
+	 */
+	bool isAvailable(const DailyTime& time) const;
 private:
 	/**
 	 * bus line id
@@ -347,6 +353,18 @@ private:
 	int controlTimePointNum1;
 	int controlTimePointNum2;
 	int controlTimePointNum3;
+
+	/**
+	 * availability of this bus line in every minute of the day (based of dispatch frequency)
+	 * this is useful during PT route choice. see PT route choice model for more details.
+	 */
+	std::bitset<1440> buslineAvailability; //1440 minutes in the day
+
+	/**
+	 * sets availability bits for each minute within the start and end time specified in frequency
+	 * @param frequency busline frequency range
+	 */
+	void setAvailability(const BusLineFrequency& frequency);
 };
 /**
  * stored in BusController, Schedule Time Points and Real Time Points should be put seperatedly
@@ -373,7 +391,7 @@ public:
 	 * @param lineId is one bus line's ID
 	 * @return corresponding bus line from line's ID
 	 */
-	BusLine* findBusLine(const std::string& lineId);
+	BusLine* findBusLine(const std::string& lineId) const;
 	/**
 	 * find a control type from registered control set
 	 * @param lineId is one bus line's ID

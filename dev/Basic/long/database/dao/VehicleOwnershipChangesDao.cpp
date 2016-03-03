@@ -18,7 +18,7 @@ void VehicleOwnershipChangesDao::fromRow(Row& result, VehicleOwnershipChanges& o
 {
     outObj.householdId		= result.get<BigSerial>("household_id",INVALID_ID);
     outObj.oldVehicleOwnershipOptionId		= result.get<int>("old_vehicle_ownership_option_id",0);
-    outObj.newVehicleOwnershipOptionId		= result.get<int>("newd_vehicle_ownership_option_id",0);
+    outObj.newVehicleOwnershipOptionId		= result.get<int>("new_vehicle_ownership_option_id",0);
     outObj.startDate = result.get<std::tm>("start_date",std::tm());
 }
 

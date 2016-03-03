@@ -405,7 +405,7 @@ namespace sim_mob
 				{
 					logZonalMedianHousingPrice =  model->getAlternatives()[n]->getMedianHedonicPrice();// / sumFloorArea / 1000;
 
-					PrintOutV("1. n " << n << " oldmp: " <<  model->getAlternatives()[n]->getMedianHedonicPrice() << " mp: " << logZonalMedianHousingPrice << std::endl);
+					//PrintOutV("1. n " << n << " oldmp: " <<  model->getAlternatives()[n]->getMedianHedonicPrice() << " mp: " << logZonalMedianHousingPrice << std::endl);
 				}
 				else
 				{
@@ -429,7 +429,7 @@ namespace sim_mob
 
 					logZonalMedianHousingPrice = it->second->getTotalPrice();
 
-					PrintOutV("2. n " << n << " oldmp: " <<  model->getAlternatives()[n]->getMedianHedonicPrice() << " mp: " << logZonalMedianHousingPrice << std::endl);
+					//PrintOutV("2. n " << n << " oldmp: " <<  model->getAlternatives()[n]->getMedianHedonicPrice() << " mp: " << logZonalMedianHousingPrice << std::endl);
 
 					model->getAlternatives()[n]->setMedianHedonicPrice( logZonalMedianHousingPrice );
 				}

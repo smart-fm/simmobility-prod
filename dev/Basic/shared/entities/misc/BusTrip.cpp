@@ -202,7 +202,7 @@ void sim_mob::BusLine::addBusLineFrequency(const BusLineFrequency& frequency)
 bool sim_mob::BusLine::isAvailable(const DailyTime& time) const
 {
 	unsigned int minute = time.getValue() / MS_IN_MINUTE;
-	while (minute > MINUTES_IN_DAY)
+	while (minute >= MINUTES_IN_DAY)
 	{
 		minute = minute - MINUTES_IN_DAY;
 	}

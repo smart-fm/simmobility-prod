@@ -108,8 +108,11 @@
 		<initialProjectId value = "200000" />
 		<minLotSize value = "100.00" />
     	</developerModel>
-        <housingModel enabled="true"> 
-	    <outputHouseholdLogsums value="false"/>
+	<outputHouseholdLogsums enabled="true">
+	    <fixedHomeVariableWork value ="true"/>
+	    <fixedWorkVariableHome value ="false"/>
+	</outputHouseholdLogsums>
+    <housingModel enabled="true"> 	    
             <timeOnMarket value="90"/>
             <timeOffMarket value="150"/>
             <timeInterval value="7"/>
@@ -121,7 +124,7 @@
 	    <offsetBetweenUnitBuyingAndSelling value ="7"/>
 	    <bidderUnitsChoiceSet value = "50"/>
 	    <householdBiddingWindow value = "30" />
-        </housingModel>
+    </housingModel>
 	<vehicleOwnershipModel enabled='true'>
 		<vehicleBuyingWaitingTimeInDays value= "1"/>
 	</vehicleOwnershipModel>

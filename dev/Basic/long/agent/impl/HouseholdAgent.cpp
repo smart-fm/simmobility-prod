@@ -265,7 +265,7 @@ void HouseholdAgent::onWorkerEnter()
 
 
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
-	if( config.ltParams.housingModel.outputHouseholdLogsums )
+	if( config.ltParams.outputHouseholdLogsums.enabled )
 	{
 		const Household *hh = this->getHousehold();
 

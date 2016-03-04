@@ -1558,6 +1558,8 @@ void HM_Model::getLogsumOfHousehold(BigSerial householdId2)
 	BigSerial householdId = 0;
 	HouseHoldHitsSample *hitsSample = nullptr;
 
+	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+
 	{
 		boost::mutex::scoped_lock lock( mtx3 );
 
@@ -1595,25 +1597,42 @@ void HM_Model::getLogsumOfHousehold(BigSerial householdId2)
 		vector<double> travelProbability;
 		vector<double> tripsExpected;
 
-		int tazId = -1;
+		int tazIdHome = -1;
+		int tazIdWork = -1;
 		int paxId  = -1;
 		int p = 0;
 		for(p = 0; p < hitsIndividualLogsum.size(); p++ )
 		{
 			if (  hitsIndividualLogsum[p]->getHitsId().compare( hitsSample->getHouseholdHitsId() ) == 0 )
 			{
-				tazId = hitsIndividualLogsum[p]->getHomeTaz();
-				paxId  = hitsIndividualLogsum[p]->getPaxId();
-
+				tazIdHome = hitsIndividualLogsum[p]->getHomeTaz();
+				tazIdWork = hitsIndividualLogsum[p]->getWorkTaz();
 				break;
 			}
 		}
 
-		Taz *tazObj = getTazById( tazId );
-	    std::string tazStr;
-		if( tazObj != NULL )
-			tazStr = tazObj->getName();
-		BigSerial tazHome = std::atoi( tazStr.c_str() );
+
+		BigSerial tazWork = 0;
+		{
+			std::string tazStrWork;
+			Taz *tazObjWork = getTazById( tazIdWork );
+			if( tazObjWork != NULL )
+				tazStrWork = tazObjWork->getName();
+
+			tazWork = std::atoi( tazStrWork.c_str() );
+		}
+
+
+		BigSerial tazHome = 0;
+		{
+			std::string tazStrHome;
+			Taz *tazObjHome = getTazById( tazIdHome );
+			if( tazObjHome != NULL )
+				tazStrHome = tazObjHome->getName();
+
+			tazHome = std::atoi( tazStrHome.c_str() );
+		}
+
 
 		for( int m = 0; m < this->tazs.size(); m++)
 		{
@@ -1621,9 +1640,24 @@ void HM_Model::getLogsumOfHousehold(BigSerial householdId2)
 		    std::string tazStrList;
 			if( tazObjList != NULL )
 				tazStrList = tazObjList->getName();
+			else
+			{
+				PrintOutV("taz id " << m << " not found" << std::endl);
+				continue;
+			}
+
 			BigSerial tazList = std::atoi( tazStrList.c_str() );
 
-			PredayPersonParams personParams = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazHome, tazList, vehicleOwnership );
+			if( tazObjList->getStatus0812() == 3)
+				continue;
+
+			PredayPersonParams personParams;
+
+			if( config.ltParams.outputHouseholdLogsums.fixedHomeVariableWork )
+				personParams = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazHome, tazList, vehicleOwnership );
+			else
+			if( config.ltParams.outputHouseholdLogsums.fixedWorkVariableHome )
+				personParams = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazList, tazWork, vehicleOwnership );
 
 			double logsumD 				= personParams.getDpbLogsum();
  			double travelProbabilityD	= personParams.getTravelProbability();
@@ -1636,9 +1670,9 @@ void HM_Model::getLogsumOfHousehold(BigSerial householdId2)
 
 		simulationStopCounter++;
 
-		printHouseholdHitsLogsum( "logsum", hitsSample->getHouseholdHitsId() , householdId, householdIndividualIds[n], paxId, logsum );
-		printHouseholdHitsLogsum( "travelProbability", hitsSample->getHouseholdHitsId() , householdId, householdIndividualIds[n], paxId, travelProbability );
-		printHouseholdHitsLogsum( "tripsExpected", hitsSample->getHouseholdHitsId() , householdId, householdIndividualIds[n], paxId, tripsExpected );
+		printHouseholdHitsLogsum( "logsum", hitsSample->getHouseholdHitsId() , householdId, householdIndividualIds[n], thisIndividual->getMemberId(), logsum );
+		printHouseholdHitsLogsum( "travelProbability", hitsSample->getHouseholdHitsId() , householdId, householdIndividualIds[n], thisIndividual->getMemberId(), travelProbability );
+		printHouseholdHitsLogsum( "tripsExpected", hitsSample->getHouseholdHitsId() , householdId, householdIndividualIds[n], thisIndividual->getMemberId(), tripsExpected );
 	}
 }
 
@@ -1702,7 +1736,6 @@ void HM_Model::unitsFiltering()
 
 void HM_Model::update(int day)
 {
-	//PrintOut("HM_Model update" << std::endl);
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 
 	for(UnitList::const_iterator it = units.begin(); it != units.end(); it++)

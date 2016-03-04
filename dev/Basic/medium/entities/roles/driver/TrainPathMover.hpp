@@ -72,6 +72,11 @@ public:
 	 */
 	bool isCompletePath() const;
 	/**
+	 * check whether the path is set
+	 * @return true if the path is set
+	 */
+	bool isDrivingPath() const;
+	/**
 	 * Calculates the distance covered on the current block
      * @return the distance covered on the current block
      */
@@ -91,6 +96,11 @@ public:
 	 * @return current acceleration rate
 	 */
 	double getCurrentAccelerationRate();
+	/**
+	 * get current position
+	 * @return current position
+	 */
+	Point getCurrentPosition() const;
 private:
 	/**
 	 * Calculates the distance between the current poly-point and the next poly-point

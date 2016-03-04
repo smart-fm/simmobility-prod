@@ -383,7 +383,7 @@ namespace sim_mob {
 	template<typename PERSON>
 	void TrainController<PERSON>::assignTrainTripToPerson(std::set<Entity*>& activeAgents)
 	{
-		const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
+		/*const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
 		PERSON* person = new PERSON("TrainController", config.mutexStategy());
 		std::string lineId="NE_1";
 		std::vector<Block*> route;
@@ -400,9 +400,9 @@ namespace sim_mob {
 		tripChain.push_back(trainTrip);
 		person->setTripChain(tripChain);
 		person->parentEntity = this;
-		activeAgents.insert(person);
+		activeAgents.insert(person);*/
 
-		/*std::map<std::string, std::vector<TrainTrip*>>::const_iterator it;
+		std::map<std::string, std::vector<TrainTrip*>>::const_iterator it;
 		for(it=mapOfIdvsTrip.begin(); it!=mapOfIdvsTrip.end(); it++)
 		{
 			const std::vector<TrainTrip*>& trainTrips = it->second;
@@ -417,7 +417,7 @@ namespace sim_mob {
 				person->parentEntity = this;
 				pendingChildren.push(person);
 			}
-		}*/
+		}
 	}
 	template<typename PERSON>
 	void TrainController<PERSON>::unregisterChild(Entity* child)

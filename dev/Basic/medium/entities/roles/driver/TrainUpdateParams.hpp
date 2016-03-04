@@ -25,6 +25,8 @@ public:
 	double disToNextPlatform;
 	/**current speed limit*/
 	double currentSpeedLimit;
+	/**current effective acceleration*/
+	double currentAcelerate;
 	/**
 	 * resets this update params.
 	 * @param now current timeslice in which reset is called

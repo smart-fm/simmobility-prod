@@ -40,6 +40,11 @@ private:
 	std::list<TrainDriver*> trainDriver;
 	/**record last train in each line*/
 	std::map<std::string, TrainDriver*> lastTrainDriver;
+	/**record pending trains in each line*/
+	std::map<std::string, std::vector<TrainDriver*>> pendingTrainDriver;
+	/**record platform in each line*/
+	std::map<std::string, Platform*> lastPlatform;
+
 };
 }
 } /* namespace sim_mob */

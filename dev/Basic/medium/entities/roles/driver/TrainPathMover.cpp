@@ -99,16 +99,26 @@ double TrainPathMover::advance(double distance)
 double TrainPathMover::getDistanceToNextPlatform(Platform* platform) const
 {
 	bool res = false;
-	double distance = (*currBlockIt)->getLength()-getDistCoveredOnCurrBlock();
-	std::vector<Block*>::const_iterator tempIt = currBlockIt+1;
-	while(tempIt!=drivingPath.end()){
-		if((*tempIt)->getAttachedPlatform()!=platform){
-			distance += (*tempIt)->getLength();
-			tempIt++;
-		} else {
-			distance += platform->getOffset();
+	double distance = 0.0;
+	if (currBlockIt != drivingPath.end()) {
+		if ((*currBlockIt)->getAttachedPlatform() == platform) {
+			distance = platform->getOffset() + platform->getLength()
+					- getDistCoveredOnCurrBlock();
 			res = true;
-			break;
+		} else {
+			distance = (*currBlockIt)->getLength()
+					- getDistCoveredOnCurrBlock();
+			std::vector<Block*>::const_iterator tempIt = currBlockIt + 1;
+			while (tempIt != drivingPath.end()) {
+				if ((*tempIt)->getAttachedPlatform() != platform) {
+					distance += (*tempIt)->getLength();
+					tempIt++;
+				} else {
+					distance += platform->getOffset() + platform->getLength();
+					res = true;
+					break;
+				}
+			}
 		}
 	}
 	if(!res){
@@ -154,6 +164,26 @@ double TrainPathMover::getCurrentAccelerationRate()
 		accelerate = (*currBlockIt)->getAccelerateRate();
 	}
 	return accelerate;
+}
+Point TrainPathMover::getCurrentPosition() const
+{
+	if(isDrivingPath())
+	{
+		if(!isCompletePath())
+		{
+			DynamicVector movementVector(*currPolyPointIt, *nextPolyPointIt);
+			movementVector.scaleVectTo(distanceMoveToNextPoint).translateVect();
+			return Point(movementVector.getX(), movementVector.getY());
+		}
+		else
+		{
+			return *currPolyPointIt;
+		}
+	}
+	else
+	{
+		throw std::runtime_error("no path is set in train");
+	}
 }
 double TrainPathMover::getDistCoveredOnCurrBlock() const
 {
@@ -204,6 +234,10 @@ double TrainPathMover::getTotalCoveredDistance()
 bool TrainPathMover::isCompletePath() const
 {
 	return (currBlockIt == drivingPath.end());
+}
+bool TrainPathMover::isDrivingPath() const
+{
+	return !drivingPath.empty();
 }
 
 void TrainPathMover::setPath(const std::vector<Block*> &path)

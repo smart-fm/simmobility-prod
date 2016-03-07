@@ -308,7 +308,7 @@ inline void calculateProjectProfit(PotentialProject& project,DeveloperModel* mod
 
 			}
 			PrintOutV("profit per unit"<<profitPerUnit<<std::endl);
-			PrintOutV("num units"<<(*unitsItr).getNumUnits()<<"in unit type id"<<(*unitsItr).getUnitTypeId()<<std::endl);
+			PrintOutV("num units"<<(*unitsItr).getNumUnits()<<"in unit type id"<<unitsItr->getUnitTypeId()<<std::endl);
 			PrintOutV("totalRevenue"<<totalRevenue<<std::endl);
 			#endif
 
@@ -375,14 +375,14 @@ inline void createPotentialUnits(PotentialProject& project,const DeveloperModel*
 	        	{
 	        		double propotion = (itr->getProportion()/100.0);
 	        		//add the minimum lot size constraint if the unit type is terrace, semi detached or detached
-//	        		if((itr->getUnitTypeId()>=checkUnitTypeStart) and (itr->getUnitTypeId() <= checkUnitTypeEnd))
-//	        		{
-//	        			weightedAverage = weightedAverage + (model->getUnitTypeById(itr->getUnitTypeId())->getTypicalArea()* model->getUnitTypeById(itr->getUnitTypeId())->getMinLosize() *(propotion));
-//	        		}
-//	        		else
-//	        		{
+	        		if((itr->getUnitTypeId()>=checkUnitTypeStart) and (itr->getUnitTypeId() <= checkUnitTypeEnd))
+	        		{
+	        			weightedAverage = weightedAverage + (model->getUnitTypeById(itr->getUnitTypeId())->getTypicalArea()* model->getUnitTypeById(itr->getUnitTypeId())->getMinLosize() *(propotion));
+	        		}
+	        		else
+	        		{
 	        			weightedAverage = weightedAverage + (model->getUnitTypeById(itr->getUnitTypeId())->getTypicalArea()*(propotion));
-	        		//}
+	        		}
 	        	}
 	        	}
 

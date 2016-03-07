@@ -311,14 +311,17 @@ void BusStopAgent::boardWaitingPersons(BusDriver* busDriver)
 	{
 		WaitBusActivity* waitingRole = *itWaitingPerson;
 		Person_MT* person = waitingRole->getParent();
-		unsigned int waitingTm = waitingRole->getWaitingTime();
-		if (waitingTm > ONE_HOUR_IN_MS)
-		{
-			const sim_mob::SubTrip& subTrip = *(person->currSubTrip);
-			Warn() << "[waiting long]Person[" << person->getId() << "] waiting for [" << subTrip.getBusLineID()
-					<< " ] at [" << busStop->getStopCode() << "] for ["
-					<< DailyTime(waitingTm).getStrRepr() << "]" << std::endl;
-		}
+//		COMMENTED FOR CALIBRATION ~Harish
+//		unsigned int waitingTm = waitingRole->getWaitingTime();
+//		if (waitingTm > ONE_HOUR_IN_MS)
+//		{
+//			const sim_mob::SubTrip& subTrip = *(person->currSubTrip);
+//			Warn() << "waiting_long,"
+//					<< person->getDatabaseId() << ","
+//					<< subTrip.getBusLineID() <<","
+//					<< busStop->getStopCode() << ","
+//					<< DailyTime(waitingTm).getStrRepr() << std::endl;
+//		}
 		if ((*itWaitingPerson)->canBoardBus())
 		{
 			bool ret = false;

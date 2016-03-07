@@ -32,6 +32,7 @@
 #include "behavioral/PredayLT_Logsum.hpp"
 #include "model/HedonicPriceSubModel.hpp"
 #include "model/WillingnessToPaySubModel.hpp"
+#include "model/VehicleOwnershipModel.hpp"
 
 using std::list;
 using std::endl;
@@ -382,23 +383,24 @@ void HouseholdBidderRole::update(timeslice now)
 	}
 
 	//wait x days after move in to a new unit to reconsider the vehicle ownership option.
-//	if( vehicleBuyingWaitingTimeInDays > 0 && moveInWaitingTimeInDays == 0)
-//	{
-//
-//		if( vehicleBuyingWaitingTimeInDays == 1)
-//		{
-//			TimeCheck vehicleOwnershipTiming;
-//
-//			reconsiderVehicleOwnershipOption();
-//
-//			double vehicleOwnershipTime = vehicleOwnershipTiming.getClockTime();
-//
-//			#ifdef VERBOSE_SUBMODEL_TIMING
-//				PrintOutV("vehicleOwnership time for agent " << getParent()->getId() << " is " << vehicleOwnershipTime << std::endl );
-//			#endif
-//		}
-//			vehicleBuyingWaitingTimeInDays--;
-//	}
+	if( vehicleBuyingWaitingTimeInDays > 0 && moveInWaitingTimeInDays == 0)
+	{
+
+		if( vehicleBuyingWaitingTimeInDays == 1)
+		{
+			TimeCheck vehicleOwnershipTiming;
+
+			VehicleOwnershipModel vehOwnershipModel(getParent()->getModel());
+			vehOwnershipModel.reconsiderVehicleOwnershipOption(getParent()->getHousehold(),getParent(), day);
+
+			double vehicleOwnershipTime = vehicleOwnershipTiming.getClockTime();
+
+			#ifdef VERBOSE_SUBMODEL_TIMING
+				PrintOutV("vehicleOwnership time for agent " << getParent()->getId() << " is " << vehicleOwnershipTime << std::endl );
+			#endif
+		}
+			vehicleBuyingWaitingTimeInDays--;
+	}
 
     //can bid another house if it is not waiting for any 
     //response and if it not the same day
@@ -460,7 +462,7 @@ void HouseholdBidderRole::HandleMessage(Message::MessageType type, const Message
                 		boost::shared_ptr<Household> houseHold = boost::make_shared<Household>( *getParent()->getHousehold());
                 		houseHold->setUnitId(unitIdToBeOwned);
                 		houseHold->setHasMoved(0);
-                		houseHold->setMoveInDate(getDateBySimDay(year,(day+moveInWaitingTimeInDays)));
+                		houseHold->setMoveInDate(getDateBySimDay(year,moveInWaitingTimeInDays));
                 		HM_Model* model = getParent()->getModel();
                 		model->addHouseholdsTo_OPSchema(houseHold);
                 	}
@@ -785,4 +787,9 @@ void HouseholdBidderRole::computeBidValueLogistic( double price, double wp, doub
 
 	finalBid     = price * incrementScaledMax;
 	finalSurplus = ( w - incrementScaledMax ) * price;
+}
+
+void HouseholdBidderRole::setMovInWaitingTimeInDays(int days)
+{
+	this->moveInWaitingTimeInDays = days;
 }

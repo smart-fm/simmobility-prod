@@ -18,7 +18,7 @@ namespace sim_mob
         class SimulationStoppedPoint
         {
         public:
-        	SimulationStoppedPoint(BigSerial simVersionId = INVALID_ID, BigSerial postcode = INVALID_ID, BigSerial buildingId = INVALID_ID, BigSerial unitId = INVALID_ID, BigSerial projectId = INVALID_ID);
+        	SimulationStoppedPoint(BigSerial simVersionId = INVALID_ID, BigSerial postcode = INVALID_ID, BigSerial buildingId = INVALID_ID, BigSerial unitId = INVALID_ID, BigSerial projectId = INVALID_ID, BigSerial bidId = INVALID_ID, BigSerial unitSaleId = INVALID_ID);
 
             virtual ~SimulationStoppedPoint();
 
@@ -30,12 +30,16 @@ namespace sim_mob
             BigSerial getUnitId() const;
             BigSerial getProjectId() const;
             BigSerial getSimVersionId() const;
+            BigSerial getBidId() const;
+            BigSerial getUnitSaleId() const;
 
             void setPostcode(BigSerial postcode);
             void setBuildingId(BigSerial buildingId);
             void setUnitId(BigSerial unitId);
             void setProjectId(BigSerial projectId);
             void setSimVersionId(BigSerial simVersionId);
+            void setBidId(BigSerial bidId);
+            void setUnitSaleId(BigSerial unitId);
 
             /**
              * Operator to print the Status if the world data.
@@ -51,6 +55,8 @@ namespace sim_mob
             BigSerial buildingId;
             BigSerial unitId;
             BigSerial projectId;
+            BigSerial bidId;
+            BigSerial unitSaleId;
          };
     }
 }

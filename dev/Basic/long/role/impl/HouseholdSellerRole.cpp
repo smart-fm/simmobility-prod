@@ -119,7 +119,7 @@ namespace
         if( entry.askingPrice > 0.0001 )
         	printBid(agent, bid, entry, bidsCounter, (response == ACCEPTED));
 
-        //save accepted bids to a vector, to be saved in DB later.
+        //save accepted bids to a vector, to be saved in op schema later.
         if(response == ACCEPTED)
         {
         	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
@@ -150,8 +150,9 @@ namespace
         	newBid->setCurrentUnitPrice(thisBidder->getCurrentUnitPrice());
         	newBid->setLogsum(thisBidder->getLogsum());
         	newBid->setSellerId(agent.getId());
+        	newBid->setAccepted(ACCEPTED);
         	model->addNewBids(newBid);
-        	boost::shared_ptr<UnitSale> unitSale(new UnitSale(bid.getNewUnitId(),bid.getBidderId(),agent.getId(),bid.getBidValue(),getDateBySimDay(config.ltParams.year,bid.getSimulationDay()),(unit->getbiddingMarketEntryDay()-bid.getSimulationDay()),(agent.getAwakeningDay()-bid.getSimulationDay())));
+        	boost::shared_ptr<UnitSale> unitSale(new UnitSale(model->getUnitSaleId(),bid.getNewUnitId(),bid.getBidderId(),agent.getId(),bid.getBidValue(),getDateBySimDay(config.ltParams.year,bid.getSimulationDay()),(unit->getbiddingMarketEntryDay()-bid.getSimulationDay()),(agent.getAwakeningDay()-bid.getSimulationDay())));
         	model->addUnitSales(unitSale);
         }
     }
@@ -198,7 +199,7 @@ namespace
 HouseholdSellerRole::SellingUnitInfo::SellingUnitInfo() :startedDay(0), interval(0), daysOnMarket(0), numExpectations(0)
 {}
 
-HouseholdSellerRole::HouseholdSellerRole(HouseholdAgent* parent): parent(parent), currentTime(0, 0), hasUnitsToSale(true), selling(false), active(false)
+HouseholdSellerRole::HouseholdSellerRole(HouseholdAgent* parent): parent(parent), currentTime(0, 0), hasUnitsToSale(true), selling(false), active(false),runOnce(false)
 {
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 	timeOnMarket   = config.ltParams.housingModel.timeOnMarket;
@@ -229,6 +230,25 @@ void HouseholdSellerRole::setActive(bool activeArg)
 
 void HouseholdSellerRole::update(timeslice now)
 {
+
+	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
+	bool resume = config.ltParams.resume;
+	if(resume && runOnce)
+	{
+		runOnce = false;
+		std::vector<Bid*> resumptionBids = getParent()->getModel()->getResumptionBids();
+		std::vector<Bid*>::iterator bidsItr;
+		for(bidsItr = resumptionBids.begin(); bidsItr != resumptionBids.end() ; ++bidsItr )
+		{
+			if ( (*bidsItr)->getSellerId() == getParent()->getId())
+			{
+				handleReceivedBid(*(*bidsItr), (*bidsItr)->getNewUnitId());
+				PrintOutV("Processing the bids from previous run for bid id" << (*bidsItr)->getBidId()<<std::endl);
+			}
+		}
+	}
+
+
     timeslice lastTime = currentTime;
 
     //update current time.
@@ -317,86 +337,91 @@ void HouseholdSellerRole::HandleMessage(Message::MessageType type, const Message
         {
             const BidMessage& msg = MSG_CAST(BidMessage, message);
             BigSerial unitId = msg.getBid().getNewUnitId();
-            bool decision = false;
-            ExpectationEntry entry;
-
-            if(getCurrentExpectation(unitId, entry))
-            {
-                //increment counter
-                unsigned int dailyBidCounter = incrementCounter(dailyBids, unitId);
-
-                //verify if is the bid satisfies the asking price.
-                decision = decide(msg.getBid(), entry);
-
-                if (decision)
-                {
-                    //get the maximum bid of the day
-                    Bids::iterator bidItr = maxBidsOfDay.find(unitId);
-                    Bid* maxBidOfDay = nullptr;
-
-                    if (bidItr != maxBidsOfDay.end())
-                    {
-                        maxBidOfDay = &(bidItr->second);
-                    }
-
-                    if (!maxBidOfDay)
-                    {
-                        maxBidsOfDay.insert(std::make_pair(unitId, msg.getBid()));
-                    }
-                    else if(maxBidOfDay->getBidValue() == msg.getBid().getBidValue())
-				    {
-					   // bids are exactly equal. Randomly choose one.
-
-                    	double randomDraw = (double)rand()/RAND_MAX;
-
-                    	//drop the current bid
-                    	if(randomDraw < 0.5)
-                    	{
-						   replyBid(*getParent(), *maxBidOfDay, entry, BETTER_OFFER, dailyBidCounter);
-						   maxBidsOfDay.erase(unitId);
-
-						   //update the new bid and bidder.
-						   maxBidsOfDay.insert(std::make_pair(unitId, msg.getBid()));
-                    	}
-                    	else //keep the current bid
-                    	{
-                    		 replyBid(*getParent(), msg.getBid(), entry, BETTER_OFFER, dailyBidCounter);
-                    	}
-				    }
-                    else if(maxBidOfDay->getBidValue() < msg.getBid().getBidValue())
-                    {
-                        // bid is higher than the current one of the day.
-                        // it is necessary to notify the old max bidder
-                        // that his bid was not accepted.
-                        //reply to sender.
-                        replyBid(*getParent(), *maxBidOfDay, entry, BETTER_OFFER, dailyBidCounter);
-                        maxBidsOfDay.erase(unitId);
-
-                        //update the new bid and bidder.
-                        maxBidsOfDay.insert(std::make_pair(unitId, msg.getBid()));
-                    }
-                    else
-                    {
-                        replyBid(*getParent(), msg.getBid(), entry, BETTER_OFFER, dailyBidCounter);
-                    }
-                }
-                else
-                {
-                    replyBid(*getParent(), msg.getBid(), entry, NOT_ACCEPTED, dailyBidCounter);
-                }
-            }
-            else
-            {
-                // Sellers is not the owner of the unit or unit is not available.
-                replyBid(*getParent(), msg.getBid(), entry, NOT_AVAILABLE, 0);
-            }
-
-            Statistics::increment(Statistics::N_BIDS);
+            handleReceivedBid(msg.getBid(), unitId);
             break;
         }
 
         default:break;
     }
+}
+
+void HouseholdSellerRole::handleReceivedBid(const Bid &bid, BigSerial unitId)
+{
+	bool decision = false;
+	ExpectationEntry entry;
+
+	if(getCurrentExpectation(unitId, entry))
+	{
+		//increment counter
+		unsigned int dailyBidCounter = incrementCounter(dailyBids, unitId);
+
+		//verify if is the bid satisfies the asking price.
+		decision = decide(bid, entry);
+
+		if (decision)
+		{
+			//get the maximum bid of the day
+			Bids::iterator bidItr = maxBidsOfDay.find(unitId);
+			Bid* maxBidOfDay = nullptr;
+
+			if (bidItr != maxBidsOfDay.end())
+			{
+				maxBidOfDay = &(bidItr->second);
+			}
+
+			if (!maxBidOfDay)
+			{
+				maxBidsOfDay.insert(std::make_pair(unitId, bid));
+			}
+			else if(maxBidOfDay->getBidValue() == bid.getBidValue())
+			{
+				// bids are exactly equal. Randomly choose one.
+
+				double randomDraw = (double)rand()/RAND_MAX;
+
+				//drop the current bid
+				if(randomDraw < 0.5)
+				{
+					replyBid(*getParent(), *maxBidOfDay, entry, BETTER_OFFER, dailyBidCounter);
+					maxBidsOfDay.erase(unitId);
+
+					//update the new bid and bidder.
+					maxBidsOfDay.insert(std::make_pair(unitId, bid));
+				}
+				else //keep the current bid
+				{
+					replyBid(*getParent(), bid, entry, BETTER_OFFER, dailyBidCounter);
+				}
+			}
+			else if(maxBidOfDay->getBidValue() < bid.getBidValue())
+			{
+				// bid is higher than the current one of the day.
+				// it is necessary to notify the old max bidder
+				// that his bid was not accepted.
+				//reply to sender.
+				replyBid(*getParent(), *maxBidOfDay, entry, BETTER_OFFER, dailyBidCounter);
+				maxBidsOfDay.erase(unitId);
+
+				//update the new bid and bidder.
+				maxBidsOfDay.insert(std::make_pair(unitId, bid));
+			}
+			else
+			{
+				replyBid(*getParent(), bid, entry, BETTER_OFFER, dailyBidCounter);
+			}
+		}
+		else
+		{
+			replyBid(*getParent(), bid, entry, NOT_ACCEPTED, dailyBidCounter);
+		}
+	}
+	else
+	{
+		// Sellers is not the owner of the unit or unit is not available.
+		replyBid(*getParent(), bid, entry, NOT_AVAILABLE, 0);
+	}
+
+	Statistics::increment(Statistics::N_BIDS);
 }
 
 void HouseholdSellerRole::adjustNotSoldUnits()

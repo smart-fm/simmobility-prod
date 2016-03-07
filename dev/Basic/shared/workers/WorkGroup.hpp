@@ -53,7 +53,7 @@ private:
 
 	//Private constructor: Use the static NewWorkGroup function instead.
 	WorkGroup(unsigned int wgNum, unsigned int numWorkers, unsigned int numSimTicks, unsigned int tickStep,
-			sim_mob::AuraManager* auraMgr, sim_mob::PartitionManager* partitionMgr, sim_mob::PeriodicPersonLoader* periodicLoader);
+			sim_mob::AuraManager* auraMgr, sim_mob::PartitionManager* partitionMgr, sim_mob::PeriodicPersonLoader* periodicLoader, uint32_t _simulationStart);
 
 	//Helper method; find the least congested worker (leas number of Agents). O(n), so be careful.
 	static sim_mob::Worker* GetLeastCongestedWorker(const std::vector<sim_mob::Worker*>& workers);
@@ -204,6 +204,8 @@ private:
 	sim_mob::ProfileBuilder* profile;
 
 	PeriodicPersonLoader* periodicPersonLoader;
+
+	uint32_t simulationStart;
 };
 
 

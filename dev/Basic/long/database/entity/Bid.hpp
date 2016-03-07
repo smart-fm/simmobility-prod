@@ -27,9 +27,9 @@ namespace sim_mob
         {
         public:
         	Bid(BigSerial bidId, int simulationDay, BigSerial bidderId, BigSerial currentUnitId, BigSerial newUnitId,double willingnessToPay,double affordabilityAmount,double hedonicPrice, double askingPrice,
-        	            	double targetPrice, double bidValue, int isAccepted,BigSerial currentPostcode, BigSerial newPostcode,Agent_LT* bidder,std::tm moveInDate, double wtpErrorTerm);
+        	            	double targetPrice, double bidValue, int isAccepted,BigSerial currentPostcode, BigSerial newPostcode,Agent_LT* bidder,std::tm moveInDate, double wtpErrorTerm, int accepted = 0,BigSerial sellerId = INVALID_ID,BigSerial unitTypeId = INVALID_ID, double logsum = 0, double currentUnitPrice = 0, double unitFloorArea = 0,int bidsCounter = 0, double lagCoefficient = 0);
 
-        	            Bid(BigSerial bidId,BigSerial currentUnitId, BigSerial newUnitId,BigSerial bidderId,Agent_LT* bidder,double bidValue, int simulationDay, double willingnessToPay, double wtp_e, double affordability );
+        	            Bid(BigSerial bidId,BigSerial currentUnitId, BigSerial newUnitId,BigSerial bidderId,Agent_LT* bidder,double bidValue, int simulationDay, double willingnessToPay, double wtp_e, double affordability,int accepted = 0,BigSerial sellerId = INVALID_ID, BigSerial unitTypeId = INVALID_ID,double logsum = 0, double currentUnitPrice = 0,double unitFloorArea = 0,int bidsCounter = 0, double lagCoefficient = 0);
         	            Bid();
         	            Bid(const Bid& source);
             virtual ~Bid();
@@ -120,6 +120,8 @@ namespace sim_mob
            void setUnitTypeId(BigSerial typeId) ;
            int getBidsCounter() const;
            void setBidsCounter(int bidsCounter);
+           int getAccepted();
+           void setAccepted(int isAccepted);
 
            /**
             * Operator to print the Bid data.
@@ -157,6 +159,7 @@ namespace sim_mob
            Agent_LT* bidder;
            std::tm moveInDate;
            int bidsCounter;
+           int accepted;
         };
     }
 }

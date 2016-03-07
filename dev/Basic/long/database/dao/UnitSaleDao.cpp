@@ -17,6 +17,7 @@ UnitSaleDao::~UnitSaleDao() {}
 
 void UnitSaleDao::fromRow(Row& result, UnitSale& outObj)
 {
+	outObj.unitSaleId  = result.get<BigSerial>("unit_sale_id",INVALID_ID);
     outObj.unitId  = result.get<BigSerial>("unit_id",INVALID_ID);
     outObj.buyerId = result.get<BigSerial>("buyer_id",INVALID_ID);
     outObj.sellerId = result.get<BigSerial>("seller_id",INVALID_ID);
@@ -29,6 +30,7 @@ void UnitSaleDao::fromRow(Row& result, UnitSale& outObj)
 
 void UnitSaleDao::toRow(UnitSale& data, Parameters& outParams, bool update)
 {
+	outParams.push_back(data.getUnitSaleId());
 	outParams.push_back(data.getUnitId());
 	outParams.push_back(data.getBuyerId());
 	outParams.push_back(data.getSellerId());
@@ -43,8 +45,8 @@ void UnitSaleDao::insertUnitSale(UnitSale& unitSale,std::string schema)
 {
 
 	const std::string DB_INSERT_UNIT_SALE = "INSERT INTO " + APPLY_SCHEMA(schema, ".unit_sale")
-                		+ " (" + "unit_id " + ", " + "buyer_id" + ", " + "seller_id" + ", " + "unit_price" ", " + "transaction_day" ", " + "days_on_market_unit" ", " + "days_on_market_bidder"
-                		+ ") VALUES (:v1, :v2, :v3, :v4, :v5, :v6, :v7)";
+                		+ " (" + "unit_sale_id " + ", " + "unit_id " + ", " + "buyer_id" + ", " + "seller_id" + ", " + "unit_price" ", " + "transaction_day" ", " + "days_on_market_unit" ", " + "days_on_market_bidder"
+                		+ ") VALUES (:v1, :v2, :v3, :v4, :v5, :v6, :v7, :v8)";
 	insertViaQuery(unitSale,DB_INSERT_UNIT_SALE);
 
 }

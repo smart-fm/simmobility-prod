@@ -45,9 +45,9 @@ namespace sim_mob
 
         public:
             /*
-            * Get the parcels of given parcel id
+            * Get the buildings of given parcel id
             */
-            std::vector<Building*> getBuildingsByParcelId(const long long parcelId);
+            std::vector<Building*> getBuildingsByParcelId(const long long parcelId,std::string schema);
 
             void insertBuilding(Building& building,std::string schema);
         };

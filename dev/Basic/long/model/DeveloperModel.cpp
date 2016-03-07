@@ -25,6 +25,7 @@
 #include "database/dao/ParcelMatchDao.hpp"
 #include "database/entity/ParcelMatch.hpp"
 #include "database/entity/SlaParcel.hpp"
+#include "database/entity/BuildingAvgAgePerParcel.hpp"
 #include "database/dao/SlaParcelDao.hpp"
 #include "database/dao/UnitDao.hpp"
 #include "database/entity/UnitType.hpp"
@@ -40,8 +41,10 @@
 #include "database/dao/TazLevelLandPriceDao.hpp"
 #include "database/dao/SimulationStoppedPointDao.hpp"
 #include "database/dao/ProjectDao.hpp"
+#include "database/dao/BuildingAvgAgePerParcelDao.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
+#include "util/SharedFunctions.hpp"
 
 using namespace sim_mob;
 using namespace sim_mob::long_term;
@@ -53,10 +56,10 @@ namespace {
     const string MODEL_NAME = "Developer Model";
 }
 
-DeveloperModel::DeveloperModel(WorkGroup& workGroup): Model(MODEL_NAME, workGroup), timeInterval( 30 ),dailyParcelCount(0),isParcelRemain(true),numSimulationDays(0),dailyAgentCount(0),isDevAgentsRemain(true),realEstateAgentIdIndex(0),housingMarketModel(nullptr),postcodeForDevAgent(0),initPostcode(false),unitIdForDevAgent(0),buildingIdForDevAgent(0),projectIdForDevAgent(0),devAgentCount(0),simYear(0),minLotSize(0),isRestart(false),OpSchemaLoadingInterval(0){ //In days (7 - weekly, 30 - Monthly)
+DeveloperModel::DeveloperModel(WorkGroup& workGroup): Model(MODEL_NAME, workGroup), timeInterval( 30 ),dailyParcelCount(0),isParcelRemain(true),numSimulationDays(0),dailyAgentCount(0),isDevAgentsRemain(true),realEstateAgentIdIndex(0),housingMarketModel(nullptr),postcodeForDevAgent(0),initPostcode(false),unitIdForDevAgent(0),buildingIdForDevAgent(0),projectIdForDevAgent(0),devAgentCount(0),simYear(0),minLotSize(0),isRestart(false),OpSchemaLoadingInterval(0),startDay(0){ //In days (7 - weekly, 30 - Monthly)
 }
 
-DeveloperModel::DeveloperModel(WorkGroup& workGroup, unsigned int timeIntervalDevModel ): Model(MODEL_NAME, workGroup), timeInterval( timeIntervalDevModel ),dailyParcelCount(0),isParcelRemain(true),numSimulationDays(0),dailyAgentCount(0),isDevAgentsRemain(true),realEstateAgentIdIndex(0),housingMarketModel(nullptr),postcodeForDevAgent(0),initPostcode(false), unitIdForDevAgent(0),buildingIdForDevAgent(0),projectIdForDevAgent(0),devAgentCount(0),simYear(0),minLotSize(0),isRestart(false),OpSchemaLoadingInterval(0){
+DeveloperModel::DeveloperModel(WorkGroup& workGroup, unsigned int timeIntervalDevModel ): Model(MODEL_NAME, workGroup), timeInterval( timeIntervalDevModel ),dailyParcelCount(0),isParcelRemain(true),numSimulationDays(0),dailyAgentCount(0),isDevAgentsRemain(true),realEstateAgentIdIndex(0),housingMarketModel(nullptr),postcodeForDevAgent(0),initPostcode(false), unitIdForDevAgent(0),buildingIdForDevAgent(0),projectIdForDevAgent(0),devAgentCount(0),simYear(0),minLotSize(0),isRestart(false),OpSchemaLoadingInterval(0),startDay(0){
 }
 
 DeveloperModel::~DeveloperModel() {
@@ -112,6 +115,8 @@ void DeveloperModel::startImpl() {
 		PrintOutV("unit price sums loaded " << unitPriceSumList.size() << std::endl);
 		loadData<TazLevelLandPriceDao>(conn,tazLevelLandPriceList,tazLevelLandPriceByTazId,&TazLevelLandPrice::getTazId);
 		PrintOutV("land values loaded " << tazLevelLandPriceList.size() << std::endl);
+		loadData<BuildingAvgAgePerParcelDao>(conn,buildingAvgAgePerParcel,BuildingAvgAgeByParceld,&BuildingAvgAgePerParcel::getFmParcelId);
+		PrintOutV("building average age per parcel loaded " << buildingAvgAgePerParcel.size() << std::endl);
 
 		setRealEstateAgentIds(housingMarketModel->getRealEstateAgentIds());
 
@@ -121,7 +126,7 @@ void DeveloperModel::startImpl() {
 
 		if(resume)
 		{
-			std::string  outputSchema = config.ltParams.currentOutputSchema;
+			outputSchema = config.ltParams.currentOutputSchema;
 			SimulationStoppedPointDao simStoppedPointDao(conn);
 			const std::string getAllSimStoppedPointParams = "SELECT * FROM " + outputSchema+ "."+"simulation_stopped_point;";
 			simStoppedPointDao.getByQuery(getAllSimStoppedPointParams,simStoppedPointList);
@@ -159,8 +164,6 @@ void DeveloperModel::startImpl() {
 		minLotSize= config.ltParams.developerModel.minLotSize;
 
 	}
-
-
 
 
 	PrintOut("minLotSize"<<minLotSize<<std::endl);
@@ -324,6 +327,39 @@ void DeveloperModel::createDeveloperAgents(ParcelList devCandidateParcelList, bo
 						devAgent->setProject(projectPtr);
 						devAgent->getParcel().get()->setStatus(1);
 					}
+
+					BuildingList buildingsInOngoingProjects;
+					DB_Config dbConfig(LT_DB_CONFIG_FILE);
+					dbConfig.load();
+					// Connect to database
+					DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
+					conn.connect();
+					if (conn.isConnected())
+					{
+						BuildingDao buildingDao(conn);
+						buildingsInOngoingProjects = buildingDao.getBuildingsByParcelId(devCandidateParcelList[i]->getId(),outputSchema);
+					}
+
+					std::vector< boost::shared_ptr<Building> > buildingsInOngoingProjectsSharedVec;
+					buildingsInOngoingProjectsSharedVec.reserve(buildingsInOngoingProjects.size());
+					std::transform(buildingsInOngoingProjects.begin(), buildingsInOngoingProjects.end(), std::back_inserter(buildingsInOngoingProjectsSharedVec),to_shared_ptr<Building>);
+					buildingsInOngoingProjects.clear();
+					devAgent->setNewBuildings(buildingsInOngoingProjectsSharedVec);
+
+					std::vector<Unit*> unitsInOngoingProjects;
+					UnitDao unitDao(conn);
+					BuildingList::iterator buildingsItr;
+					for(buildingsItr = buildingsInOngoingProjects.begin(); buildingsItr != buildingsInOngoingProjects.end(); ++buildingsItr)
+					{
+						//TODO:: currently there is only one building with all the new units assigned to it. have to revisit this when there are multiple buildings.
+						unitsInOngoingProjects = unitDao.getUnitsByBuildingId((*buildingsItr)->getFmBuildingId(),outputSchema);
+					}
+
+					std::vector< boost::shared_ptr<Unit> > unitsInOngoingProjectsSharedVec;
+					unitsInOngoingProjectsSharedVec.reserve(unitsInOngoingProjects.size());
+					std::transform(unitsInOngoingProjects.begin(), unitsInOngoingProjects.end(), std::back_inserter(unitsInOngoingProjectsSharedVec),to_shared_ptr<Unit>);
+					unitsInOngoingProjects.clear();
+					devAgent->setNewUnits(unitsInOngoingProjectsSharedVec);
 				}
 				agents.push_back(devAgent);
 				developers.push_back(devAgent);
@@ -633,37 +669,19 @@ const TazLevelLandPrice* DeveloperModel::getTazLevelLandPriceByTazId(BigSerial t
 	return nullptr;
 }
 
-const int DeveloperModel::getBuildingAvgAge(const BigSerial fmParcelId) const
+const BuildingAvgAgePerParcel* DeveloperModel::getBuildingAvgAgeByParcelId(const BigSerial fmParcelId) const
 {
-	mtx1.lock();
-
-	DB_Config dbConfig(LT_DB_CONFIG_FILE);
-	dbConfig.load();
-
-	// Connect to database.
-	DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
-	conn.connect();
-	int ageSum = 0;
-	std::vector<Building*> buildingsPerParcel;
-	if (conn.isConnected())
-	{
-		BuildingDao buildingDao(conn);
-		buildingsPerParcel =  buildingDao.getBuildingsByParcelId(fmParcelId);
-		std::vector<Building*>::iterator itr;
-		for (itr = buildingsPerParcel.begin(); itr != buildingsPerParcel.end(); itr++) {
-			int fromYear = (*itr)->getFromDate().tm_year + 1900;
-			int age = simYear - fromYear;
-			ageSum = age + ageSum;
+	BuildingAvgAgePerParcelMap::const_iterator itr = BuildingAvgAgeByParceld.find(fmParcelId);
+		if (itr != BuildingAvgAgeByParceld.end())
+		{
+			return itr->second;
 		}
-	}
-	int avgAge = ageSum / buildingsPerParcel.size();
-	mtx1.unlock();
-	return avgAge;
+		return nullptr;
 }
 
 const boost::shared_ptr<SimulationStoppedPoint> DeveloperModel::getSimStoppedPointObj(BigSerial simVersionId)
 {
-	const boost::shared_ptr<SimulationStoppedPoint> simStoppedPointObj(new SimulationStoppedPoint(simVersionId,postcodeForDevAgent,buildingIdForDevAgent,unitIdForDevAgent,projectIdForDevAgent));
+	const boost::shared_ptr<SimulationStoppedPoint> simStoppedPointObj(new SimulationStoppedPoint(simVersionId,postcodeForDevAgent,buildingIdForDevAgent,unitIdForDevAgent,projectIdForDevAgent,housingMarketModel->getBidId(),housingMarketModel->getUnitSaleId()));
 	return simStoppedPointObj;
 }
 
@@ -762,4 +780,14 @@ Project* DeveloperModel::getProjectByParcelId(BigSerial parcelId) const
 		return itr->second;
 	}
 	return nullptr;
+}
+
+void DeveloperModel::setStartDay(int day)
+{
+	startDay = day;
+}
+
+int DeveloperModel::getStartDay() const
+{
+	return this->startDay;
 }

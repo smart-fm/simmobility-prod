@@ -9,12 +9,13 @@
 
 using namespace sim_mob::long_term;
 
-UnitSale::UnitSale(BigSerial unitId,BigSerial buyerId, BigSerial sellerId, double unitPrice,std::tm transactionDate,int daysOnMarketUnit, int daysOnMarketBidder):
-		unitId(unitId),buyerId(buyerId),sellerId(sellerId),unitPrice(unitPrice),transactionDate(transactionDate),daysOnMarketUnit(daysOnMarketUnit),daysOnMarketBidder(daysOnMarketBidder){}
+UnitSale::UnitSale(BigSerial unitSaleId,BigSerial unitId,BigSerial buyerId, BigSerial sellerId, double unitPrice,std::tm transactionDate,int daysOnMarketUnit, int daysOnMarketBidder):
+		unitSaleId(unitSaleId),unitId(unitId),buyerId(buyerId),sellerId(sellerId),unitPrice(unitPrice),transactionDate(transactionDate),daysOnMarketUnit(daysOnMarketUnit),daysOnMarketBidder(daysOnMarketBidder){}
 
 
 UnitSale::UnitSale(const UnitSale& source)
 {
+	this->unitSaleId = source.unitSaleId;
 	this->unitId = source.unitId;
 	this->buyerId = source.buyerId;
 	this->sellerId = source.sellerId;
@@ -26,6 +27,7 @@ UnitSale::UnitSale(const UnitSale& source)
 
 UnitSale& UnitSale::operator=(const UnitSale& source)
 {
+	this->unitSaleId = source.unitSaleId;
 	this->unitId = source.unitId;
 	this->buyerId = source.buyerId;
 	this->sellerId = source.sellerId;
@@ -67,6 +69,17 @@ void UnitSale::setTransactionDate(const std::tm& transactionDate)
 {
 	this->transactionDate = transactionDate;
 }
+
+BigSerial UnitSale::getUnitSaleId() const
+{
+	return unitSaleId;
+}
+
+void UnitSale::setUnitSaleId(BigSerial unitSaleId)
+{
+		this->unitSaleId = unitSaleId;
+}
+
 
 BigSerial UnitSale::getUnitId() const
 {

@@ -39,6 +39,7 @@ void BidDao::fromRow(Row& result, Bid& outObj)
     outObj.currentPostcode = result.get<BigSerial>("current_postcode",INVALID_ID);
     outObj.newPostcode = result.get<BigSerial>("new_postcode",INVALID_ID);
     outObj.moveInDate = result.get<std::tm>("move_in_date",std::tm());
+    outObj.accepted = result.get<int>("accepted",0);
 
 }
 
@@ -66,6 +67,7 @@ void BidDao::toRow(Bid& data, Parameters& outParams, bool update)
 	outParams.push_back(data.getCurrentPostcode());
 	outParams.push_back(data.getNewPostcode());
 	outParams.push_back(data.getMoveInDate());
+	outParams.push_back(data.getAccepted());
 
 }
 
@@ -76,8 +78,8 @@ void BidDao::insertBid(Bid& bid,std::string schema)
 	const std::string DB_INSERT_BID = "INSERT INTO " + APPLY_SCHEMA(schema, ".bids")
                 		+ " (" + "bid_id" + ", " + "simulation_day" + ", " + "seller_id" + ", " + "bidder_id"+ ", " + "current_unit_id" ", " + "new_unit_id" + ", " + "willingness_to_pay"+ ", "
                 		+ "wtp_error_term"+  ", " + "affordability_amount" + ", " + "current_unit_price" + ", " + "target_price" + ", " + "hedonic_price" + ", " + "lag_coefficient" +", " + "asking_price" + ", " + "bid_value"+ ", "
-                		+ "bids_counter" + ", " + "logsum" + ", "+ "unit_floor_area" + ", " + "unit_type_id" ", " + "current_postcode" + ", " + "new_postcode" + + ", " + "move_in_date"
-                		+ ") VALUES (:v1, :v2, :v3, :v4, :v5, :v6, :v7, :v8, :v9, :v10, :v11, :v12, :v13, :v14, :v15, :v16, :v17, :v18, :v19, :v20 ,:v21, :v22)";
+                		+ "bids_counter" + ", " + "logsum" + ", "+ "unit_floor_area" + ", " + "unit_type_id" ", " + "current_postcode" + ", " + "new_postcode" + ", " + "move_in_date" +", " + "accepted"
+                		+ ") VALUES (:v1, :v2, :v3, :v4, :v5, :v6, :v7, :v8, :v9, :v10, :v11, :v12, :v13, :v14, :v15, :v16, :v17, :v18, :v19, :v20 ,:v21, :v22, :v23)";
 	insertViaQuery(bid,DB_INSERT_BID);
 
 }

@@ -42,6 +42,9 @@
 #include "database/dao/ScreeningCostTimeDao.hpp"
 #include "database/dao/TenureTransitionRateDao.hpp"
 #include "database/dao/OwnerTenantMovingRateDao.hpp"
+#include "database/dao/SimulationStoppedPointDao.hpp"
+#include "database/dao/BidDao.hpp"
+#include "database/dao/VehicleOwnershipChangesDao.hpp"
 #include "agent/impl/HouseholdAgent.hpp"
 #include "event/SystemEvents.hpp"
 #include "core/DataManager.hpp"
@@ -362,7 +365,7 @@ double HM_Model::TazStats::getAvgHHSize() const
 
 
 HM_Model::HM_Model(WorkGroup& workGroup) :	Model(MODEL_NAME, workGroup),numberOfBidders(0), initialHHAwakeningCounter(0), numLifestyle1HHs(0), numLifestyle2HHs(0), numLifestyle3HHs(0), hasTaxiAccess(false),
-											householdLogsumCounter(0), simulationStopCounter(0), developerModel(nullptr), startDay(0), bidId(0), numberOfBids(0), numberOfExits(0),	numberOfSuccessfulBids(0){}
+											householdLogsumCounter(0), simulationStopCounter(0), developerModel(nullptr), startDay(0), bidId(0), numberOfBids(0), numberOfExits(0),	numberOfSuccessfulBids(0), unitSaleId(0){}
 
 HM_Model::~HM_Model()
 {
@@ -1028,6 +1031,7 @@ int HM_Model::getStartDay() const
 {
 	return this->startDay;
 }
+
 void HM_Model::addHouseholdGroupByGroupId(HouseholdGroup* hhGroup)
 {
 	mtx2.lock();
@@ -1240,6 +1244,8 @@ void HM_Model::startImpl()
 	DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
 	conn.connect();
 
+	bool resume = config.ltParams.resume;
+
 	if (conn.isConnected())
 	{
 		//load individuals
@@ -1336,6 +1342,43 @@ void HM_Model::startImpl()
 
 		loadData<OwnerTenantMovingRateDao>( conn, ownerTenantMovingRate, ownerTenantMovingRateById, &OwnerTenantMovingRate::getId );
 		PrintOutV("Number of Owner Tenant Moving Rate rows: " << ownerTenantMovingRate.size() << std::endl );
+
+		if(resume)
+		{
+			std::string  outputSchema = config.ltParams.currentOutputSchema;
+			SimulationStoppedPointDao simStoppedPointDao(conn);
+			const std::string getAllSimStoppedPointParams = "SELECT * FROM " + outputSchema+ "."+"simulation_stopped_point;";
+			simStoppedPointDao.getByQuery(getAllSimStoppedPointParams,simStoppedPointList);
+			if(!simStoppedPointList.empty())
+			{
+				bidId = simStoppedPointList[simStoppedPointList.size()-1]->getBidId();
+				unitSaleId = simStoppedPointList[simStoppedPointList.size()-1]->getUnitSaleId();
+			}
+			BidDao bidDao(conn);
+			db::Parameters params;
+		    params.push_back(lastStoppedDay);
+			const std::string getResumptionBidsOnLastDay = "SELECT * FROM " + outputSchema+ "."+"bids" + " WHERE simulation_day = :v1;";
+			bidDao.getByQueryId(getResumptionBidsOnLastDay,params,resumptionBids);
+
+			const std::string getAllResumptionHouseholds = "SELECT * FROM " + outputSchema+ "."+"household;";
+
+			HouseholdDao hhDao(conn);
+			hhDao.getByQuery(getAllResumptionHouseholds,resumptionHouseholds);
+			//Index all resumed households.
+			for (HouseholdList::iterator it = resumptionHouseholds.begin(); it != resumptionHouseholds.end(); ++it) {
+				resumptionHHById.insert(std::make_pair((*it)->getId(), *it));
+			}
+
+			const std::string getAllVehicleOwnershipChanges = "SELECT * FROM " + outputSchema+ "."+"vehicle_ownership_changes;";
+			VehicleOwnershipChangesDao vehicleOwnershipChangesDao(conn);
+			vehicleOwnershipChangesDao.getByQuery(getAllVehicleOwnershipChanges,vehOwnershipChangesList);
+			for (VehicleOwnershipChangesList::iterator it = vehOwnershipChangesList.begin(); it != vehOwnershipChangesList.end(); ++it) {
+				vehicleOwnershipChangesById.insert(std::make_pair((*it)->getHouseholdId(), *it));
+			}
+
+		}
+
+
 	}
 
 
@@ -1357,7 +1400,7 @@ void HM_Model::startImpl()
 	std::vector<HouseholdAgent*> freelanceAgents;
 	for (int i = 0; i < numWorkers ; i++)
 	{
-		HouseholdAgent* freelanceAgent = new HouseholdAgent((FAKE_IDS_START + i),this, nullptr, &market, true, 0, config.ltParams.housingModel.householdBiddingWindow);
+		HouseholdAgent* freelanceAgent = new HouseholdAgent((FAKE_IDS_START + i),this, nullptr, &market, true, startDay, config.ltParams.housingModel.householdBiddingWindow);
 		AgentsLookupSingleton::getInstance().addHouseholdAgent(freelanceAgent);
 		agents.push_back(freelanceAgent);
 		workGroup.assignAWorker(freelanceAgent);
@@ -1373,7 +1416,7 @@ void HM_Model::startImpl()
 	{
 		BigSerial id = FAKE_IDS_START + numWorkers + i;
 		realEstateAgentIds.push_back(id);
-		RealEstateAgent* realEstateAgent = new RealEstateAgent(id, this, nullptr, &market, true);
+		RealEstateAgent* realEstateAgent = new RealEstateAgent(id, this, nullptr, &market, true,startDay);
 		AgentsLookupSingleton::getInstance().addRealEstateAgent(realEstateAgent);
 		agents.push_back(realEstateAgent);
 		workGroup.assignAWorker(realEstateAgent);
@@ -1388,10 +1431,38 @@ void HM_Model::startImpl()
 	// 1. Create Household Agents.
 	// 2. Assign households to the units.
 	//
-	for (HouseholdList::const_iterator it = households.begin();	it != households.end(); it++)
+	for (HouseholdList::iterator it = households.begin();	it != households.end(); it++)
 	{
-		const Household* household = *it;
-		HouseholdAgent* hhAgent = new HouseholdAgent(household->getId(), this,	household, &market, false, 0, config.ltParams.housingModel.householdBiddingWindow);
+		Household* household = *it;
+		Household *resumptionHH = getResumptionHouseholdById(household->getId());
+		if(resume)
+		{
+			if ((resumptionHH != nullptr) && (resumptionHH->getHasMoved()))//update the unit id of the households moved to new units.
+			{
+				household->setUnitId(getResumptionHouseholdById(household->getId())->getUnitId());
+			}
+
+			if(getVehicleOwnershipChangesByHHId(household->getId()) != nullptr) //update the vehicle ownership option of the households that change vehicles.
+			{
+				household->setVehicleOwnershipOptionId(getVehicleOwnershipChangesByHHId(household->getId())->getNewVehicleOwnershipOptionId());
+			}
+		}
+		HouseholdAgent* hhAgent = new HouseholdAgent(household->getId(), this,	household, &market, false, startDay, config.ltParams.housingModel.householdBiddingWindow);
+		if (resumptionHH != nullptr)
+		{
+			if(resumptionHH->getIsBidder())
+			{
+				hhAgent->getBidder()->setActive(true);
+				if(!resumptionHH->getHasMoved())
+				{
+					hhAgent->getBidder()->setMovInWaitingTimeInDays(resumptionHH->getMoveInDate().tm_mday - startDay);
+				}
+			}
+			else if(resumptionHH->getIsSeller())
+			{
+				hhAgent->getSeller()->setActive(true);
+			}
+		}
 		const Unit* unit = getUnitById(household->getUnitId());
 
 		if (unit)
@@ -2159,16 +2230,16 @@ void HM_Model::hdbEligibilityTest(int index)
 
 void HM_Model::addNewBids(boost::shared_ptr<Bid> &newBid)
 {
-	addBidsLock.lock();
+	DBLock.lock();
 	newBids.push_back(newBid);
-	addBidsLock.unlock();
+	DBLock.unlock();
 }
 
 void HM_Model::addUnitSales(boost::shared_ptr<UnitSale> &unitSale)
 {
-	addUnitSalesLock.lock();
+	DBLock.lock();
 	unitSales.push_back(unitSale);
-	addUnitSalesLock.unlock();
+	DBLock.unlock();
 }
 
 std::vector<boost::shared_ptr<UnitSale> > HM_Model::getUnitSales()
@@ -2184,28 +2255,38 @@ std::vector<boost::shared_ptr<Bid> > HM_Model::getNewBids()
 BigSerial HM_Model::getBidId()
 {
 	{
-		boost::mutex::scoped_lock lock(bidIdLock);
+		boost::mutex::scoped_lock lock(idLock);
+
 		return ++bidId;
+	}
+}
+
+BigSerial HM_Model::getUnitSaleId()
+{
+	{
+		boost::mutex::scoped_lock lock(idLock);
+
+		return ++unitSaleId;
 	}
 }
 
 void HM_Model::addHouseholdsTo_OPSchema(boost::shared_ptr<Household> &houseHold)
 {
-	addHHLock.lock();
+	DBLock.lock();
 	hhVector.push_back(houseHold);
-	addHHLock.unlock();
+	DBLock.unlock();
 }
 
-std::vector<boost::shared_ptr<Household> > HM_Model::getHouseholds()
+std::vector<boost::shared_ptr<Household> > HM_Model::getHouseholdsWithBids()
 {
 	return this->hhVector;
 }
 
 void HM_Model::addVehicleOwnershipChanges(boost::shared_ptr<VehicleOwnershipChanges> &vehicleOwnershipChange)
 {
-	addVehicleOwnershipChangesLock.lock();
+	DBLock.lock();
 	vehicleOwnershipChangesVector.push_back(vehicleOwnershipChange);
-	addVehicleOwnershipChangesLock.unlock();
+	DBLock.unlock();
 }
 
 std::vector<boost::shared_ptr<VehicleOwnershipChanges> > HM_Model::getVehicleOwnershipChanges()
@@ -2257,6 +2338,40 @@ std::vector<AccessibilityFixedPzid*> HM_Model::getAccessibilityFixedPzid()
 {
 	return accessibilityFixedPzid;
 
+}
+
+std::vector<Bid*> HM_Model::getResumptionBids()
+{
+	return this->resumptionBids;
+}
+
+Household* HM_Model::getResumptionHouseholdById(BigSerial id) const
+{
+	HouseholdMap::const_iterator itr = resumptionHHById.find(id);
+
+	if (itr != resumptionHHById.end())
+	{
+		return (*itr).second;
+	}
+
+	return nullptr;
+}
+
+VehicleOwnershipChanges* HM_Model::getVehicleOwnershipChangesByHHId(BigSerial houseHoldId) const
+{
+	VehicleOwnershipChangesMap::const_iterator itr = vehicleOwnershipChangesById.find(houseHoldId);
+
+	if (itr != vehicleOwnershipChangesById.end())
+	{
+		return (*itr).second;
+	}
+
+	return nullptr;
+}
+
+void HM_Model::setLastStoppedDay(int stopDay)
+{
+	lastStoppedDay = stopDay;
 }
 
 void HM_Model::stopImpl()

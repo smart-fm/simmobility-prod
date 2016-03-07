@@ -71,7 +71,7 @@ std::list<std::string> sim_mob::WorkGroupManager::retrieveOutFileNames() const
 
 
 WorkGroup* sim_mob::WorkGroupManager::newWorkGroup(unsigned int numWorkers, unsigned int numSimTicks, unsigned int tickStep,
-		AuraManager* auraMgr, PartitionManager* partitionMgr, sim_mob::PeriodicPersonLoader* periodicLoader)
+		AuraManager* auraMgr, PartitionManager* partitionMgr, sim_mob::PeriodicPersonLoader* periodicLoader, uint32_t simulationStartDay)
 {
 	//Sanity check
 	bool pass = (currState.test(INIT)||currState.test(CREATE)) && currState.set(CREATE);
@@ -80,7 +80,7 @@ WorkGroup* sim_mob::WorkGroupManager::newWorkGroup(unsigned int numWorkers, unsi
 	}
 
 	//Most of this involves passing paramters on to the WorkGroup itself, and then bookkeeping via static data.
-	WorkGroup* res = new WorkGroup(registeredWorkGroups.size(), numWorkers, numSimTicks, tickStep, auraMgr, partitionMgr, periodicLoader);
+	WorkGroup* res = new WorkGroup(registeredWorkGroups.size(), numWorkers, numSimTicks, tickStep, auraMgr, partitionMgr, periodicLoader, simulationStartDay);
 	currBarrierCount += numWorkers;
 
 	registeredWorkGroups.push_back(res);

@@ -137,11 +137,7 @@ void loadDataToOutputSchema(db::DB_Connection& conn,std::string &currentOutputSc
 	if(conn.isConnected())
 	{
 		SimulationStartPointDao simStartPointDao(conn);
-		//std::vector<SimulationStartPoint*> simVersionList = simStartPointDao.getAllSimulationStartPoints(currentOutputSchema);
-		//if(simVersionList.empty())
-		//{
-			simStartPointDao.insertSimulationStartPoint(*simStartPointObj.get(),currentOutputSchema);
-		//}
+		simStartPointDao.insertSimulationStartPoint(*simStartPointObj.get(),currentOutputSchema);
 
 		std::vector<boost::shared_ptr<Building> > buildings = developerModel.getBuildingsVec();
 		std::vector<boost::shared_ptr<Building> >::iterator buildingsItr;
@@ -207,12 +203,22 @@ void loadDataToOutputSchema(db::DB_Connection& conn,std::string &currentOutputSc
 			vehOwnChangeDao.insertVehicleOwnershipChanges(*(*vehOwnChangeItr),currentOutputSchema);
 		}
 
-		std::vector<boost::shared_ptr<Household> > households = housingMarketModel.getHouseholds();
+		std::vector<boost::shared_ptr<Household> > householdsWithBids = housingMarketModel.getHouseholdsWithBids();
 		std::vector<boost::shared_ptr<Household> >::iterator hhItr;
 		HouseholdDao hhDao(conn);
-		for(hhItr = households.begin(); hhItr != households.end(); ++hhItr)
+		for(hhItr = householdsWithBids.begin(); hhItr != householdsWithBids.end(); ++hhItr)
 		{
 			hhDao.insertHousehold(*(*hhItr),currentOutputSchema);
+		}
+
+		HM_Model::HouseholdList *households = housingMarketModel.getHouseholdList();
+		HM_Model::HouseholdList::iterator houseHoldItr;
+		for(houseHoldItr = households->begin(); houseHoldItr != households->end(); ++houseHoldItr)
+		{
+			if(((*houseHoldItr)->getIsBidder()) || ((*houseHoldItr)->getIsSeller()))
+					{
+						hhDao.insertHousehold(*(*houseHoldItr),currentOutputSchema);
+					}
 		}
 
 		SimulationStoppedPointDao simStoppedPointDao(conn);

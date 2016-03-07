@@ -326,7 +326,7 @@ namespace sim_mob
             void addUnitSales(boost::shared_ptr<UnitSale> &unitSale);
             std::vector<boost::shared_ptr<UnitSale> > getUnitSales();
             void addHouseholdsTo_OPSchema(boost::shared_ptr<Household> &houseHold);
-            std::vector<boost::shared_ptr<Household> > getHouseholds();
+            std::vector<boost::shared_ptr<Household> > getHouseholdsWithBids();
             void addVehicleOwnershipChanges(boost::shared_ptr<VehicleOwnershipChanges> &vehicleOwnershipChange);
             std::vector<boost::shared_ptr<VehicleOwnershipChanges> > getVehicleOwnershipChanges();
 

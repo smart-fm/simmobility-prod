@@ -1254,6 +1254,7 @@ void HM_Model::startImpl()
 
 		//Load households
 		loadData<HouseholdDao>(conn, households, householdsById, &Household::getId);
+		households.resize(100);
 		PrintOutV("Number of households: " << households.size() << ". Households used: " << households.size()  << std::endl);
 
 		//Load units
@@ -1434,10 +1435,10 @@ void HM_Model::startImpl()
 	for (HouseholdList::iterator it = households.begin();	it != households.end(); it++)
 	{
 		Household* household = *it;
+		Household *resumptionHH = getResumptionHouseholdById(household->getId());
 		if(resume)
 		{
-
-			if(getResumptionHouseholdById(household->getId()) != nullptr) //update the unit id of the households moved to new units.
+			if ((resumptionHH != nullptr) && (resumptionHH->getHasMoved()))//update the unit id of the households moved to new units.
 			{
 				household->setUnitId(getResumptionHouseholdById(household->getId())->getUnitId());
 			}
@@ -1448,6 +1449,21 @@ void HM_Model::startImpl()
 			}
 		}
 		HouseholdAgent* hhAgent = new HouseholdAgent(household->getId(), this,	household, &market, false, startDay, config.ltParams.housingModel.householdBiddingWindow);
+		if (resumptionHH != nullptr)
+		{
+			if(resumptionHH->getIsBidder())
+			{
+				hhAgent->getBidder()->setActive(true);
+				if(!resumptionHH->getHasMoved())
+				{
+					hhAgent->getBidder()->setMovInWaitingTimeInDays(resumptionHH->getMoveInDate().tm_mday - startDay);
+				}
+			}
+			else if(resumptionHH->getIsSeller())
+			{
+				hhAgent->getSeller()->setActive(true);
+			}
+		}
 		const Unit* unit = getUnitById(household->getUnitId());
 
 		if (unit)
@@ -2262,7 +2278,7 @@ void HM_Model::addHouseholdsTo_OPSchema(boost::shared_ptr<Household> &houseHold)
 	DBLock.unlock();
 }
 
-std::vector<boost::shared_ptr<Household> > HM_Model::getHouseholds()
+std::vector<boost::shared_ptr<Household> > HM_Model::getHouseholdsWithBids()
 {
 	return this->hhVector;
 }

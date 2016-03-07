@@ -292,10 +292,11 @@ inline void calculateProjectProfit(PotentialProject& project,DeveloperModel* mod
 			(*unitsItr).setUnitProfit(profitPerUnit);
 			(*unitsItr).setDemolitionCostPerUnit(demolitionCostPerUnit);
 
-			double totalRevenuePerUnitType = revenuePerUnit * (*unitsItr).getNumUnits();
+			double totalRevenuePerUnitType = revenuePerUnit * ((*unitsItr).getNumUnits());
+			//PrintOut("numUnitsPerType"<<(*unitsItr).getNumUnits()<<std::endl);
 			totalRevenue = totalRevenue + totalRevenuePerUnitType;
 
-			double constructionCostPerUnitType = constructionCostPerUnit * (*unitsItr).getNumUnits();
+			double constructionCostPerUnitType = constructionCostPerUnit * ((*unitsItr).getNumUnits());
 			totalConstructionCost = totalConstructionCost + constructionCostPerUnitType;
 
 			#ifdef VERBOSE_DEVELOPER
@@ -374,34 +375,29 @@ inline void createPotentialUnits(PotentialProject& project,const DeveloperModel*
 	        	{
 	        		double propotion = (itr->getProportion()/100.0);
 	        		//add the minimum lot size constraint if the unit type is terrace, semi detached or detached
-	        		if((itr->getUnitTypeId()>=checkUnitTypeStart) and (itr->getUnitTypeId() <= checkUnitTypeEnd))
-	        		{
-	        			weightedAverage = weightedAverage + (model->getUnitTypeById(itr->getUnitTypeId())->getTypicalArea()* model->getUnitTypeById(itr->getUnitTypeId())->getMinLosize() *(propotion));
-	        		}
-	        		else
-	        		{
+//	        		if((itr->getUnitTypeId()>=checkUnitTypeStart) and (itr->getUnitTypeId() <= checkUnitTypeEnd))
+//	        		{
+//	        			weightedAverage = weightedAverage + (model->getUnitTypeById(itr->getUnitTypeId())->getTypicalArea()* model->getUnitTypeById(itr->getUnitTypeId())->getMinLosize() *(propotion));
+//	        		}
+//	        		else
+//	        		{
 	        			weightedAverage = weightedAverage + (model->getUnitTypeById(itr->getUnitTypeId())->getTypicalArea()*(propotion));
-	        		}
+	        		//}
 	        	}
 	        	}
 
 	        int totalUnits = 0;
 	        if(weightedAverage>0)
 	        {
-	        		totalUnits = int((getGpr(project.getParcel()) * project.getParcel()->getLotSize())/(weightedAverage));
-
-
-	        	project.setTotalUnits(totalUnits);
+	        		totalUnits = (getGpr(project.getParcel()) * project.getParcel()->getLotSize())/(weightedAverage);
+	        		project.setTotalUnits(totalUnits);
 	        }
 
 	        double grossArea = 0;
 	        for (itr = project.templateUnitTypes.begin(); itr != project.templateUnitTypes.end(); itr++)
 	            {
 	        	    double propotion = (itr->getProportion()/100.00);
-	        		double numUnitsPerType = totalUnits * propotion;
-	        		//PrintOutV("num units per type"<<numUnitsPerType<<"int"<<int(numUnitsPerType)<<std::endl);
-	        		//int numUnits2 = int(numUnitsPerType);
-	        		//PrintOutV("numUnits2"<<numUnits2<<std::endl);
+	        		int numUnitsPerType = totalUnits * propotion;
 	        		grossArea = grossArea + numUnitsPerType *  model->getUnitTypeById(itr->getUnitTypeId())->getTypicalArea();
 	        		PotentialUnit potentialUnit(itr->getUnitTypeId(),numUnitsPerType,model->getUnitTypeById(itr->getUnitTypeId())->getTypicalArea(),0,0);
 	        		project.addUnit(potentialUnit);

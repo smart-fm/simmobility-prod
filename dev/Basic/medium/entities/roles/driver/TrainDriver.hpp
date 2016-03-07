@@ -62,7 +62,11 @@ public:
 	 * computing dwell time
 	 */
 	void calculateDwellTime();
-
+	/**
+	 * get train line id
+	 * @return line id
+	 */
+	std::string getTrainLine();
 private:
 	/**get next train driver*/
 	const TrainDriver* nextDriver;

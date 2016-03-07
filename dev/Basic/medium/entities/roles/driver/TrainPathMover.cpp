@@ -10,7 +10,9 @@
 #include <limits>
 #include <stdexcept>
 #include "util/GeomHelpers.hpp"
-
+namespace{
+const double distanceMinimal = 0.00001;
+}
 namespace sim_mob {
 TrainPlatformMover::TrainPlatformMover()
 {
@@ -121,24 +123,28 @@ double TrainPathMover::getDistanceToNextPlatform(Platform* platform) const
 			}
 		}
 	}
-	if(!res){
+	if(!res || distance<distanceMinimal){
 		distance = 0.0;
 	}
 	return distance;
 }
 double TrainPathMover::getDistanceToNextTrain(const TrainPathMover& other) const
 {
+	double distance = 0.0;
 	std::vector<Block*>::const_iterator tempIt = currBlockIt;
 	std::vector<Block*>::const_iterator tempOtherIt = other.currBlockIt;
-	if(std::distance(tempIt, tempOtherIt)<0){
-		return -1.0;
+	if ((*tempIt) == (*tempOtherIt)) {
+		distance = other.getDistCoveredOnCurrBlock()-getDistCoveredOnCurrBlock();
+	} else if(tempOtherIt==other.drivingPath.end()) {
+		distance = 0.0;
+	} else {
+		distance = (*currBlockIt)->getLength() - getDistCoveredOnCurrBlock();
+		while (tempIt!=drivingPath.end()&&(*tempIt) != (*tempOtherIt)) {
+			distance += (*tempIt)->getLength();
+			tempIt++;
+		}
+		distance += other.getDistCoveredOnCurrBlock();
 	}
-	double distance = (*currBlockIt)->getLength()-getDistCoveredOnCurrBlock();
-	while(tempIt!=tempOtherIt){
-		distance += (*tempIt)->getLength();
-		tempIt++;
-	}
-	distance += other.getDistCoveredOnCurrBlock();
 	return distance;
 }
 double TrainPathMover::getCurrentSpeedLimit()

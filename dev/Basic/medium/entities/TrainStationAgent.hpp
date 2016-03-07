@@ -34,6 +34,13 @@ protected:
 	 */
 	Entity::UpdateStatus callMovementFrameTick(timeslice now, TrainDriver* person);
 private:
+	/**
+	 * dispatch pending train
+	 * @param now current time slice
+	 */
+	void dispathPendingTrains(timeslice now);
+
+private:
 	/**the reference to the station*/
 	const Station* station;
 	/**the reference */
@@ -41,9 +48,9 @@ private:
 	/**record last train in each line*/
 	std::map<std::string, TrainDriver*> lastTrainDriver;
 	/**record pending trains in each line*/
-	std::map<std::string, std::vector<TrainDriver*>> pendingTrainDriver;
-	/**record platform in each line*/
-	std::map<std::string, Platform*> lastPlatform;
+	std::map<std::string, std::list<TrainDriver*>> pendingTrainDriver;
+	/**record usage in each line*/
+	std::map<std::string, bool> lastUsage;
 
 };
 }

@@ -23,6 +23,8 @@ public:
 	double elapsedSeconds;
 	/**current distance to next platform*/
 	double disToNextPlatform;
+	/**current distance to next train*/
+	double disToNextTrain;
 	/**current speed limit*/
 	double currentSpeedLimit;
 	/**current effective acceleration*/

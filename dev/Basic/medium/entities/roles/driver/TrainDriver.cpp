@@ -2,12 +2,15 @@
  * TrainDriver.cpp
  *
  *  Created on: Feb 17, 2016
- *      Author: fm-simmobility
+ *      Author: zhang huai peng
  */
 
-#include <entities/roles/driver/TrainDriver.hpp>
+#include "entities/roles/driver/TrainDriver.hpp"
 #include "TrainDriverFacets.hpp"
-
+#include "util/Utils.hpp"
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
+#include "entities/misc/TrainTrip.hpp"
 namespace sim_mob {
 namespace medium{
 
@@ -70,7 +73,11 @@ void TrainDriver::setCurrentStatus(TRAIN_STATUS status)
 }
 void TrainDriver::calculateDwellTime()
 {
-	waitingTimeSec = 30;
+	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
+	int time = Utils::generateFloat(config.trainController.miniDwellTime, config.trainController.maxDwellTime);
+	int sysGran = ConfigManager::GetInstance().FullConfig().baseGranSecond();
+	time = (time/sysGran)*sysGran;
+	waitingTimeSec = time;
 }
 double TrainDriver::getWaitingTime() const
 {
@@ -80,6 +87,21 @@ double TrainDriver::getWaitingTime() const
 void TrainDriver::reduceWaitingTime(double val)
 {
 	waitingTimeSec -= val;
+}
+
+std::string TrainDriver::getTrainLine()
+{
+	std::string lineId;
+	if(getParent())
+	{
+		std::vector<TripChainItem *>::iterator currTrip = getParent()->currTripChainItem;
+		const TrainTrip* trip = dynamic_cast<const TrainTrip*>(*currTrip);
+		if(trip){
+			lineId = trip->getLineId();
+		}
+	}
+
+	return lineId;
 }
 }
 } /* namespace sim_mob */

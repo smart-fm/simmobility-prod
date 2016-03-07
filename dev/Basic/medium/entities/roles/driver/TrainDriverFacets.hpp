@@ -86,6 +86,10 @@ private:
 	TrainPathMover trainPathMover;
 	/**Train platform mover*/
 	TrainPlatformMover trainPlatformMover;
+	/**safe distance*/
+	double safeDistance;
+	/**safe headway*/
+	double safeHeadway;
 private:
 	/**
 	 * get current speed limit

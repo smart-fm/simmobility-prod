@@ -667,6 +667,31 @@ void ParseMidTermConfigFile::processTrainControllerNode(xercesc::DOMElement *nod
     {
         cfg.trainController.enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), "false");
         cfg.trainController.trainControlType = ParseString(GetNamedAttributeValue(node, "train_control_type"), "");
+        DOMElement* child = GetSingleElementByName(node, "safe_operation_distance_metre");
+    	if (child == nullptr)
+    	{
+    		throw std::runtime_error("load safe_operation_distance_metre errors in MT_Config");
+    	}
+    	double value = ParseFloat(GetNamedAttributeValue(child, "value"));
+    	cfg.trainController.safeDistance = value;
+
+        child = GetSingleElementByName(node, "safe_operation_headway_sec");
+    	if (child == nullptr)
+    	{
+    		throw std::runtime_error("load safe_operation_headway_sec errors in MT_Config");
+    	}
+    	value = ParseFloat(GetNamedAttributeValue(child, "value"));
+    	cfg.trainController.safeHeadway = value;
+
+        child = GetSingleElementByName(node, "dwell_time_params");
+    	if (child == nullptr)
+    	{
+    		throw std::runtime_error("load dwell_time_params errors in MT_Config");
+    	}
+    	value = ParseFloat(GetNamedAttributeValue(child, "min_sec"));
+    	cfg.trainController.miniDwellTime = value;
+    	value = ParseFloat(GetNamedAttributeValue(child, "max_sec"));
+    	cfg.trainController.maxDwellTime = value;
     }
 }
 

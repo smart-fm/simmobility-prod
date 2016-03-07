@@ -283,8 +283,8 @@ namespace sim_mob {
 			block->setSpeedLimit(r.get<double>(1));
 			block->setAccelerateRate(r.get<double>(2));
 			block->setDecelerateRate(r.get<double>(3));
-			block->setAccelerateRate(2.0);
-			block->setDecelerateRate(2.0);
+			block->setAccelerateRate(1.1);
+			block->setDecelerateRate(1.1);
 			block->setLength(r.get<double>(4));
 			mapOfIdvsBlocks[blockId] = block;
 		}

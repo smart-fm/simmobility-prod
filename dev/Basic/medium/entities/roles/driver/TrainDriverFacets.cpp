@@ -13,10 +13,12 @@
 #include "message/MT_Message.hpp"
 #include "message/MessageBus.hpp"
 #include "message/MessageHandler.hpp"
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
+
 namespace {
-const double safeDistanceCM = 10000;
 const double distanceArrvingAtPlatform = 0.1;
-const double trainLengthCM = 12000;
+const double trainLengthMeter = 124;
 const double convertKmPerHourToMeterPerSec = 1000.0/3600.0;
 }
 namespace sim_mob {
@@ -54,9 +56,11 @@ void TrainBehavior::setParentDriver(TrainDriver* parentDriver)
 	this->parentDriver = parentDriver;
 }
 
-TrainMovement::TrainMovement():MovementFacet(),parentDriver(nullptr)
+TrainMovement::TrainMovement():MovementFacet(),parentDriver(nullptr),safeDistance(0),safeHeadway(0)
 {
-
+	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
+	safeDistance = config.trainController.safeDistance;
+	safeHeadway = config.trainController.safeHeadway;
 }
 TrainMovement::~TrainMovement()
 {
@@ -169,11 +173,18 @@ double TrainMovement::getRealSpeedLimit()
 	double distanceToNextPlatform = 0.0;
 	double distanceToNextObject = 0.0;
 	double speedLimit = 0.0;
+	double speedLimit2 = 0.0;
 	if(nextDriver){
 		TrainMovement* nextMovement = dynamic_cast<TrainMovement*>(nextDriver->movementFacet);
 		if(nextMovement){
-			distanceToNextTrain = trainPathMover.getDistanceToNextTrain(nextMovement->getPathMover())-safeDistanceCM-trainLengthCM;
+			double dis = trainPathMover.getDistanceToNextTrain(nextMovement->getPathMover());
+			if(dis>0){
+				distanceToNextTrain = dis-safeDistance-trainLengthMeter;
+			}
 		}
+	}
+	if (distanceToNextTrain > 0 && safeHeadway > 0) {
+		speedLimit2 = distanceToNextTrain / safeHeadway;
 	}
 	distanceToNextPlatform = trainPathMover.getDistanceToNextPlatform(trainPlatformMover.getNextPlatform());
 	if(distanceToNextTrain==0.0||distanceToNextPlatform==0.0){
@@ -181,9 +192,17 @@ double TrainMovement::getRealSpeedLimit()
 	} else {
 		distanceToNextObject = std::min(distanceToNextTrain,distanceToNextPlatform);
 	}
-	double decelerate = trainPathMover.getCurrentDecelerationRate();
-	speedLimit = std::sqrt(2.0*decelerate*distanceToNextObject);
+
+	if(distanceToNextObject<0){
+		speedLimit = 0.0;
+	} else {
+		double decelerate = trainPathMover.getCurrentDecelerationRate();
+		speedLimit = std::sqrt(2.0*decelerate*distanceToNextObject);
+	}
 	speedLimit = std::min(speedLimit, trainPathMover.getCurrentSpeedLimit()*convertKmPerHourToMeterPerSec);
+	if (speedLimit2 > 0) {
+		speedLimit = std::min(speedLimit, speedLimit2);
+	}
 	params.currentSpeedLimit = speedLimit;
 	return speedLimit;
 }
@@ -265,7 +284,7 @@ void TrainMovement::arrivalAtStartPlaform() const
 	Platform* next = trainPlatformMover.getFirstPlatform();
 	std::string stationNo = next->getStationNo();
 	Agent* stationAgent = TrainController<Person_MT>::getAgentFromStation(stationNo);
-	messaging::MessageBus::PostMessage(stationAgent, TRAIN_MOVETO_NEXT_PLATFORM,
+	messaging::MessageBus::PostMessage(stationAgent, TRAIN_ARRIVAL_AT_TERMINAL,
 			messaging::MessageBus::MessagePtr(new TrainDriverMessage(parentDriver)));
 }
 

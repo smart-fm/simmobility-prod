@@ -385,7 +385,7 @@ struct TrainControllerParams
     /**
      * Constructor
      */
-	TrainControllerParams() : enabled(false), trainControlType("")
+	TrainControllerParams() : enabled(false), trainControlType(""), safeDistance(0), safeHeadway(0), miniDwellTime(0), maxDwellTime(0)
     {}
 
     /// Is train controller enabled?
@@ -393,6 +393,14 @@ struct TrainControllerParams
 
     /// train line control type
     std::string trainControlType;
+    /// safe operation distance;
+    double safeDistance;
+    /// safe operation headway
+    double safeHeadway;
+    /// dwell time minimum value
+    double miniDwellTime;
+    /// dwell time maximum value
+    double maxDwellTime;
 };
 
 /**

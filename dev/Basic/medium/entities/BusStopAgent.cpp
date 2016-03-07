@@ -349,7 +349,6 @@ void BusStopAgent::boardWaitingPersons(BusDriver* busDriver)
 			else
 			{
 				waitingRole->incrementDeniedBoardingCount();
-				storeWaitingTime(waitingRole);
 			}
 
 			if (ret)

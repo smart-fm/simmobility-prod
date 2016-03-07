@@ -50,29 +50,32 @@ void PT_Statistics::HandleMessage(Message::MessageType type, const Message& mess
 	case STORE_BUS_ARRIVAL:
 	{
 		const BusArrivalTimeMessage& msg = MSG_CAST(BusArrivalTimeMessage, message);
-		busJourneyTimes.push_back(msg.busArrivalInfo);
+//		busJourneyTimes.push_back(msg.busArrivalInfo); //  COMMENTED FOR CALIBRATION ~Harish
 		stopStatsMgr.addStopStats(msg.busArrivalInfo);
 		break;
 	}
 	case STORE_PERSON_WAITING:
 	{
 		const PersonWaitingTimeMessage& msg = MSG_CAST(PersonWaitingTimeMessage, message);
-		char key[50];
-		sprintf(key, "%u,%s", msg.personWaitingTime.personId, msg.personWaitingTime.busStopNo.c_str());
-		personWaitingTimes[std::string(key)] = msg.personWaitingTime;
+//		COMMENTED FOR CALIBRATION ~Harish
+//		char key[50];
+//		sprintf(key, "%u,%s", msg.personWaitingTime.personId, msg.personWaitingTime.busStopNo.c_str());
+//		personWaitingTimes[std::string(key)] = msg.personWaitingTime;
 		stopStatsMgr.addStopStats(msg.personWaitingTime);
 		break;
 	}
 	case STORE_PERSON_TRAVEL_TIME:
 	{
-		const PersonTravelTimeMessage& msg = MSG_CAST(PersonTravelTimeMessage, message);
-		personTravelTimes.push_back(msg.personTravelTime);
+//		COMMENTED FOR CALIBRATION ~Harish
+//		const PersonTravelTimeMessage& msg = MSG_CAST(PersonTravelTimeMessage, message);
+//		personTravelTimes.push_back(msg.personTravelTime);
 		break;
 	}
 	case STORE_WAITING_PERSON_COUNT:
 	{
-		const WaitingCountMessage& msg = MSG_CAST(WaitingCountMessage, message);
-		waitingCounts.push_back(msg.waitingCnt);
+//		COMMENTED FOR CALIBRATION ~Harish
+//		const WaitingCountMessage& msg = MSG_CAST(WaitingCountMessage, message);
+//		waitingCounts.push_back(msg.waitingCnt);
 		break;
 	}
 	default:

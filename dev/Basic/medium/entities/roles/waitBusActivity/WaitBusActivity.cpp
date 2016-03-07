@@ -53,21 +53,22 @@ void sim_mob::medium::WaitBusActivity::make_frame_tick_params(timeslice now)
 
 void sim_mob::medium::WaitBusActivity::collectTravelTime()
 {
-	PersonTravelTime personTravelTime;
-	std::string personId, tripStartPoint, tripEndPoint, subStartPoint, subEndPoint, subStartType, subEndType, mode, service, arrivaltime, travelTime;
-	personTravelTime.personId = parent->getId();
-	personTravelTime.tripStartPoint = (*(parent->currTripChainItem))->startLocationId;
-	personTravelTime.tripEndPoint = (*(parent->currTripChainItem))->endLocationId;
-	personTravelTime.subStartPoint = parent->currSubTrip->startLocationId;
-	personTravelTime.subEndPoint = parent->currSubTrip->endLocationId;
-	personTravelTime.subStartType = parent->currSubTrip->startLocationType;
-	personTravelTime.subEndType = parent->currSubTrip->endLocationType;
-	personTravelTime.mode = "WAITING_BUS";
-	personTravelTime.service = parent->currSubTrip->ptLineId;
-	personTravelTime.travelTime = ((double) parent->getRole()->getTravelTime())/1000.0; //convert to seconds
-	personTravelTime.arrivalTime = DailyTime(parent->getRole()->getArrivalTime()).getStrRepr();
-	messaging::MessageBus::PostMessage(PT_Statistics::getInstance(),
-					STORE_PERSON_TRAVEL_TIME, messaging::MessageBus::MessagePtr(new PersonTravelTimeMessage(personTravelTime)), true);
+//  COMMENTED FOR CALIBRATION ~Harish
+//	PersonTravelTime personTravelTime;
+//	std::string personId, tripStartPoint, tripEndPoint, subStartPoint, subEndPoint, subStartType, subEndType, mode, service, arrivaltime, travelTime;
+//	personTravelTime.personId = parent->getId();
+//	personTravelTime.tripStartPoint = (*(parent->currTripChainItem))->startLocationId;
+//	personTravelTime.tripEndPoint = (*(parent->currTripChainItem))->endLocationId;
+//	personTravelTime.subStartPoint = parent->currSubTrip->startLocationId;
+//	personTravelTime.subEndPoint = parent->currSubTrip->endLocationId;
+//	personTravelTime.subStartType = parent->currSubTrip->startLocationType;
+//	personTravelTime.subEndType = parent->currSubTrip->endLocationType;
+//	personTravelTime.mode = "WAITING_BUS";
+//	personTravelTime.service = parent->currSubTrip->ptLineId;
+//	personTravelTime.travelTime = ((double) parent->getRole()->getTravelTime())/1000.0; //convert to seconds
+//	personTravelTime.arrivalTime = DailyTime(parent->getRole()->getArrivalTime()).getStrRepr();
+//	messaging::MessageBus::PostMessage(PT_Statistics::getInstance(),
+//					STORE_PERSON_TRAVEL_TIME, messaging::MessageBus::MessagePtr(new PersonTravelTimeMessage(personTravelTime)), true);
 }
 
 void sim_mob::medium::WaitBusActivity::incrementDeniedBoardingCount()

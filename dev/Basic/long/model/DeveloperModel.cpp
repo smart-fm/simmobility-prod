@@ -44,6 +44,7 @@
 #include "database/dao/BuildingAvgAgePerParcelDao.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
+#include "util/SharedFunctions.hpp"
 
 using namespace sim_mob;
 using namespace sim_mob::long_term;
@@ -62,12 +63,6 @@ DeveloperModel::DeveloperModel(WorkGroup& workGroup, unsigned int timeIntervalDe
 }
 
 DeveloperModel::~DeveloperModel() {
-}
-
-template <class T>
-static inline boost::shared_ptr<T> to_shared_ptr(T *val)
-{
-   return boost::shared_ptr<T>(val);
 }
 
 void DeveloperModel::startImpl() {

@@ -462,7 +462,7 @@ void HouseholdBidderRole::HandleMessage(Message::MessageType type, const Message
                 		boost::shared_ptr<Household> houseHold = boost::make_shared<Household>( *getParent()->getHousehold());
                 		houseHold->setUnitId(unitIdToBeOwned);
                 		houseHold->setHasMoved(0);
-                		houseHold->setMoveInDate(getDateBySimDay(year,(day+moveInWaitingTimeInDays)));
+                		houseHold->setMoveInDate(getDateBySimDay(year,moveInWaitingTimeInDays));
                 		HM_Model* model = getParent()->getModel();
                 		model->addHouseholdsTo_OPSchema(houseHold);
                 	}
@@ -787,4 +787,9 @@ void HouseholdBidderRole::computeBidValueLogistic( double price, double wp, doub
 
 	finalBid     = price * incrementScaledMax;
 	finalSurplus = ( w - incrementScaledMax ) * price;
+}
+
+void HouseholdBidderRole::setMovInWaitingTimeInDays(int days)
+{
+	this->moveInWaitingTimeInDays = days;
 }

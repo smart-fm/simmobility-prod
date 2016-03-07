@@ -105,6 +105,8 @@ namespace sim_mob
 
             int getMoveInWaitingTimeInDays();
 
+            void setMovInWaitingTimeInDays(int days);
+
         protected:
 
             /**

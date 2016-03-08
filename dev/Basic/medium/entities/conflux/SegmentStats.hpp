@@ -85,8 +85,8 @@ private:
 	double minDensity;     ///<minimum traffic density in vehicles/m
 	double minSpeed;       ///<minimum speed in the segment in m/s
 	double capacity;       ///<segment capacity in vehicles/s
-	const double alpha;          ///<Model parameter of speed density function
-	const double beta;           ///<Model parameter of speed density function
+	double alpha;          ///<Model parameter of speed density function
+	double beta;           ///<Model parameter of speed density function
 };
 
 /**

@@ -108,7 +108,7 @@
 		<initialProjectId value = "200000" />
 		<minLotSize value = "100.00" />
     	</developerModel>
-	<outputHouseholdLogsums enabled="true">
+	<outputHouseholdLogsums enabled="false">
 	    <fixedHomeVariableWork value ="true"/>
 	    <fixedWorkVariableHome value ="false"/>
 	</outputHouseholdLogsums>

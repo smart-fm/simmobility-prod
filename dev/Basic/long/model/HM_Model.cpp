@@ -43,6 +43,7 @@
 #include "database/dao/TenureTransitionRateDao.hpp"
 #include "database/dao/OwnerTenantMovingRateDao.hpp"
 #include "database/dao/AlternativeHedonicPriceDao.hpp"
+#include "database/dao/ScreeningModelCoefficientsDao.hpp"
 #include "agent/impl/HouseholdAgent.hpp"
 #include "event/SystemEvents.hpp"
 #include "core/DataManager.hpp"
@@ -1062,6 +1063,9 @@ void HM_Model::startImpl()
 
 	if (conn.isConnected())
 	{
+		loadData<ScreeningModelCoefficientsDao>( conn, screeningModelCoefficientsList, screeningModelCoefficicientsMap, &ScreeningModelCoefficients::getId );
+		PrintOutV("Number of screening Model Coefficients: " << screeningModelCoefficientsList.size() << std::endl );
+
 		//load individuals
 		loadData<IndividualDao>(conn, individuals, individualsById,	&Individual::getId);
 		PrintOutV("Initial Individuals: " << individuals.size() << std::endl);

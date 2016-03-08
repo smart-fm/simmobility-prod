@@ -83,6 +83,8 @@ namespace sim_mob {
         const std::string DB_TABLE_SCREENINGCOSTTIME= APPLY_SCHEMA( CALIBRATION_SCHEMA, "cost_time");
         const std::string DB_TABLE_OWNERTENANTMOVINGRATE= APPLY_SCHEMA( CALIBRATION_SCHEMA, "owner_tenant_moving_rate");
         const std::string DB_TABLE_TENURETRANSITIONRATE= APPLY_SCHEMA( CALIBRATION_SCHEMA, "tenure_transition_rate");
+        const std::string DB_TABLE_SCREENINGMODELCOEFFICIENT= APPLY_SCHEMA( CALIBRATION_SCHEMA, "screening_model_coefficients");
+
 
         /**
          * Views
@@ -407,6 +409,7 @@ namespace sim_mob {
         const std::string DB_GETALL_OWNERTENANTMOVINGRATE = "SELECT * FROM "+ DB_TABLE_OWNERTENANTMOVINGRATE+ LIMIT;
         const std::string DB_GETALL_TENURETRANSITIONRATE = "SELECT * FROM "+ DB_TABLE_TENURETRANSITIONRATE+ LIMIT;
         const std::string DB_GETALL_ALTERNATIVE_HEDONIC_PRICE = "SELECT * FROM " + DB_FUNC_GET_ALTERNATIVE_HEDONIC_PRICE + LIMIT;
+        const std::string DB_GETALL_SCREENINGMODELCOEFFICIENT = "SELECT * FROM " + DB_TABLE_SCREENINGMODELCOEFFICIENT + LIMIT;
 
         /**
          * GET BY ID

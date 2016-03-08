@@ -42,6 +42,7 @@
 #include "database/entity/TenureTransitionRate.hpp"
 #include "database/entity/OwnerTenantMovingRate.hpp"
 #include "database/entity/AlternativeHedonicPrice.hpp"
+#include "database/entity/ScreeningModelCoefficients.hpp"
 #include "core/HousingMarket.hpp"
 #include "boost/unordered_map.hpp"
 #include "DeveloperModel.hpp"
@@ -150,6 +151,9 @@ namespace sim_mob
 
             typedef std::vector<AlternativeHedonicPrice*>AlternativeHedonicPriceList;
             typedef boost::unordered_multimap<BigSerial, AlternativeHedonicPrice*> AlternativeHedonicPriceMap;
+
+            typedef std::vector<ScreeningModelCoefficients*>ScreeningModelCoefficientsList;
+            typedef boost::unordered_map<BigSerial, ScreeningModelCoefficients*> ScreeningModelCoefficicientsMap;
 
             /**
              * Taz statistics
@@ -486,6 +490,9 @@ namespace sim_mob
 
             AlternativeHedonicPriceList alternativeHedonicPrice;
             AlternativeHedonicPriceMap alternativeHedonicPriceById;
+
+            ScreeningModelCoefficientsList screeningModelCoefficientsList;
+            ScreeningModelCoefficicientsMap screeningModelCoefficicientsMap;
         };
     }
 }

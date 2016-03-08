@@ -507,7 +507,8 @@ void BusController::setPTScheduleFromConfig(const vector<PT_BusDispatchFreq>& di
 		DailyTime nextTime = curr->endTime;
 
 		DailyTime advance(curr->headwaySec*MILLISECS_CONVERT_UNIT);
-		for(DailyTime startTime = curr->startTime; startTime.isBeforeEqual(nextTime); startTime += advance)
+		DailyTime startTime = curr->startTime + advance;
+		for(; startTime.isBeforeEqual(nextTime); startTime += advance)
 		{
 			// deal with small gaps between the group dispatching times
 			if ((startTime - lastBusDispatchTime).isBeforeEqual(advance))

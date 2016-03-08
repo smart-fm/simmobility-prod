@@ -105,6 +105,9 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 			} else if ((*it)->getCurrentStatus() == TrainDriver::LEAVING_FROM_PLATFORM) {
 				std::string lineId = (*it)->getTrainLine();
 				lastUsage[lineId] = false;
+				if((*it)->getParent()->isToBeRemoved()){
+					removeAheadTrain(*it);
+				}
 				it = trainDriver.erase(it);
 				break;
 			}
@@ -121,6 +124,16 @@ void TrainStationAgent::frame_output(timeslice now)
 bool TrainStationAgent::isNonspatial()
 {
 	return false;
+}
+void TrainStationAgent::removeAheadTrain(TrainDriver* aheadDriver)
+{
+	std::list<TrainDriver*>::iterator it=trainDriver.begin();
+	while (it != trainDriver.end()) {
+		if((*it)->getNextDriver()==aheadDriver){
+			(*it)->setNextDriver(nullptr);
+		}
+		it++;
+	}
 }
 
 Entity::UpdateStatus TrainStationAgent::callMovementFrameTick(timeslice now, TrainDriver* driver)

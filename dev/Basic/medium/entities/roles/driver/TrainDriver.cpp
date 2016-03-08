@@ -89,7 +89,7 @@ void TrainDriver::reduceWaitingTime(double val)
 	waitingTimeSec -= val;
 }
 
-std::string TrainDriver::getTrainLine()
+std::string TrainDriver::getTrainLine() const
 {
 	std::string lineId;
 	if(getParent())
@@ -102,6 +102,20 @@ std::string TrainDriver::getTrainLine()
 	}
 
 	return lineId;
+}
+
+int TrainDriver::getTripId() const
+{
+	int id = 0;
+	if(getParent())
+	{
+		std::vector<TripChainItem *>::iterator currTrip = getParent()->currTripChainItem;
+		const TrainTrip* trip = dynamic_cast<const TrainTrip*>(*currTrip);
+		if(trip){
+			id = trip->getTripId();
+		}
+	}
+	return id;
 }
 }
 } /* namespace sim_mob */

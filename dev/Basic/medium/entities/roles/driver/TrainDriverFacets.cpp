@@ -113,6 +113,7 @@ void TrainMovement::frame_tick()
     ptMRTMoveLogger << trainPathMover.getCurrentPosition().getX() << ",";
     ptMRTMoveLogger << trainPathMover.getCurrentPosition().getY() << ",";
     ptMRTMoveLogger << params.currentAcelerate << ",";
+    ptMRTMoveLogger << params.currCase << ",";
     ptMRTMoveLogger << this->parentDriver->waitingTimeSec << std::endl;
     //sim_mob::Logger::log(fileName).flush();
 
@@ -174,6 +175,7 @@ double TrainMovement::getRealSpeedLimit()
 	double distanceToNextObject = 0.0;
 	double speedLimit = 0.0;
 	double speedLimit2 = 0.0;
+	distanceToNextPlatform = trainPathMover.getDistanceToNextPlatform(trainPlatformMover.getNextPlatform());
 	if(nextDriver){
 		TrainMovement* nextMovement = dynamic_cast<TrainMovement*>(nextDriver->movementFacet);
 		if(nextMovement){
@@ -183,10 +185,21 @@ double TrainMovement::getRealSpeedLimit()
 			}
 		}
 	}
-	if (distanceToNextTrain > 0 && safeHeadway > 0) {
-		speedLimit2 = distanceToNextTrain / safeHeadway;
-	}
-	distanceToNextPlatform = trainPathMover.getDistanceToNextPlatform(trainPlatformMover.getNextPlatform());
+
+	/*if ((distanceToNextPlatform != 0.0 && distanceToNextTrain == 0.0)
+			|| (distanceToNextTrain != 0.0 && distanceToNextPlatform != 0.0
+					&& distanceToNextPlatform < distanceToNextTrain)) {
+		double decelerate = trainPathMover.getCurrentDecelerationRate();
+		speedLimit = std::sqrt(2.0 * decelerate * distanceToNextPlatform);
+		if (params.currentSpeed > speedLimit) {
+			params.currCase = TrainUpdateParams::STATION_CASE;
+			params.currentSpeedLimit = speedLimit;
+			params.disToNextPlatform = distanceToNextPlatform;
+			return speedLimit;
+		}
+	}*/
+
+	params.currCase = TrainUpdateParams::NORMAL_CASE;
 	if(distanceToNextTrain==0.0||distanceToNextPlatform==0.0){
 		distanceToNextObject = std::max(distanceToNextTrain, distanceToNextPlatform);
 	} else {
@@ -200,6 +213,10 @@ double TrainMovement::getRealSpeedLimit()
 		speedLimit = std::sqrt(2.0*decelerate*distanceToNextObject);
 	}
 	speedLimit = std::min(speedLimit, trainPathMover.getCurrentSpeedLimit()*convertKmPerHourToMeterPerSec);
+
+	if (distanceToNextTrain > 0 && safeHeadway > 0) {
+		speedLimit2 = distanceToNextTrain / safeHeadway;
+	}
 	if (speedLimit2 > 0) {
 		speedLimit = std::min(speedLimit, speedLimit2);
 	}
@@ -210,8 +227,15 @@ double TrainMovement::getRealSpeedLimit()
 double TrainMovement::getEffectiveAccelerate()
 {
 	TrainUpdateParams& params = parentDriver->getParams();
+
 	double effectiveSpeed = params.currentSpeed;
 	double realSpeedLimit = getRealSpeedLimit();
+	if(params.currCase==TrainUpdateParams::STATION_CASE){
+		double effectiveAccelerate = -effectiveSpeed*effectiveSpeed/(2.0*params.disToNextPlatform);
+		params.currentAcelerate = effectiveAccelerate;
+		return effectiveAccelerate;
+	}
+
 	bool isAccelerated = false;
 	if(effectiveSpeed<realSpeedLimit){
 		isAccelerated = true;

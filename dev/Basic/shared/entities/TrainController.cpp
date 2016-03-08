@@ -226,10 +226,10 @@ namespace sim_mob {
 	template<typename PERSON>
 	void TrainController<PERSON>::composeTrainTrips()
 	{
+		int tripId = 1;
 		std::map<std::string, std::vector<TrainSchedule>>::const_iterator it;
 		for(it=mapOfIdvsSchedules.begin(); it!=mapOfIdvsSchedules.end(); it++)
 		{
-			int tripId = 1;
 			std::string lineId = it->first;
 			boost::algorithm::erase_all(lineId, " ");
 			std::vector<TrainSchedule>::const_iterator iSchedule;
@@ -384,8 +384,8 @@ namespace sim_mob {
 	void TrainController<PERSON>::assignTrainTripToPerson(std::set<Entity*>& activeAgents)
 	{
 		/*const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
-		PERSON* person = new PERSON("TrainController", config.mutexStategy());
-		std::string lineId="NE_1";
+		{PERSON* person = new PERSON("TrainController", config.mutexStategy());
+		std::string lineId="NE_2";
 		std::vector<Block*> route;
 		std::vector<Platform*> platforms;
 		getTrainRoute(lineId, route);
@@ -400,7 +400,25 @@ namespace sim_mob {
 		tripChain.push_back(trainTrip);
 		person->setTripChain(tripChain);
 		person->parentEntity = this;
-		activeAgents.insert(person);*/
+		activeAgents.insert(person);}
+
+		{PERSON* person = new PERSON("TrainController", config.mutexStategy());
+		std::string lineId="NE_2";
+		std::vector<Block*> route;
+		std::vector<Platform*> platforms;
+		getTrainRoute(lineId, route);
+		getTrainPlatforms(lineId, platforms);
+		TrainTrip* trainTrip = new TrainTrip();
+		trainTrip->setTrainRoute(route);
+		trainTrip->setTrainPlatform(platforms);
+		trainTrip->setLineId(lineId);
+		trainTrip->setTripId(2);
+		trainTrip->itemType = TripChainItem::IT_TRAINTRIP;
+		std::vector<TripChainItem*> tripChain;
+		tripChain.push_back(trainTrip);
+		person->setTripChain(tripChain);
+		person->parentEntity = this;
+		activeAgents.insert(person);}*/
 
 		std::map<std::string, std::vector<TrainTrip*>>::const_iterator it;
 		for(it=mapOfIdvsTrip.begin(); it!=mapOfIdvsTrip.end(); it++)

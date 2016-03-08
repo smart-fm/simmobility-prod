@@ -66,7 +66,12 @@ public:
 	 * get train line id
 	 * @return line id
 	 */
-	std::string getTrainLine();
+	std::string getTrainLine() const;
+	/**
+	 * get trip id
+	 * @return trip id;
+	 */
+	int getTripId() const;
 private:
 	/**get next train driver*/
 	const TrainDriver* nextDriver;

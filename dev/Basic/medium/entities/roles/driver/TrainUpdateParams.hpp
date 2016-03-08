@@ -13,6 +13,7 @@ namespace sim_mob {
 
 class TrainUpdateParams: public UpdateParams {
 public:
+	enum CURRENTCASE{NORMAL_CASE,STATION_CASE};
 	TrainUpdateParams();
 	virtual ~TrainUpdateParams();
 	/**current speed*/
@@ -29,6 +30,8 @@ public:
 	double currentSpeedLimit;
 	/**current effective acceleration*/
 	double currentAcelerate;
+	/**current case*/
+	CURRENTCASE currCase;
 	/**
 	 * resets this update params.
 	 * @param now current timeslice in which reset is called

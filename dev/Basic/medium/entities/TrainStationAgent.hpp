@@ -39,6 +39,11 @@ private:
 	 * @param now current time slice
 	 */
 	void dispathPendingTrains(timeslice now);
+	/**
+	 * remove ahead train
+	 * @param aheadTrain is pointer to the ahead train
+	 */
+	void removeAheadTrain(TrainDriver* aheadDriver);
 
 private:
 	/**the reference to the station*/

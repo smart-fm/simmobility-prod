@@ -490,6 +490,20 @@ double SegmentStats::getQueueLength() const
 	return queueLength;
 }
 
+bool SegmentStats::hasQueue() const
+{
+	for (LaneStatsMap::const_iterator laneStatsIt = laneStatsMap.begin(); laneStatsIt != laneStatsMap.end(); laneStatsIt++)
+	{
+		if (!laneStatsIt->second->isLaneInfinity()
+				&& !laneStatsIt->first->isPedestrianLane()
+				&& laneStatsIt->second->getQueueLength() > 0.0)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
 double SegmentStats::getTotalVehicleLength() const
 {
 	double totalLength = 0;

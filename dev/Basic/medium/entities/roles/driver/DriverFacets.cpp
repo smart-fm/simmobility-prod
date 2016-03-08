@@ -470,7 +470,14 @@ bool DriverMovement::moveToNextSegment(DriverUpdateParams& params)
 	double departTime = getLastAccept(laneInNextSegment, nxtSegStat);
 	if(!nxtSegStat->isShortSegment())
 	{
-		departTime += getAcceptRate(laneInNextSegment, nxtSegStat); //in seconds
+		if(nxtSegStat->hasQueue())
+		{
+			departTime += getAcceptRate(laneInNextSegment, nxtSegStat); //in seconds
+		}
+		else
+		{
+			departTime += PASSENGER_CAR_UNIT / nxtSegStat->getSegSpeed(true);
+		}
 	}
 
 	params.elapsedSeconds = std::max(params.elapsedSeconds, departTime - convertToSeconds(params.now.ms())); //in seconds
@@ -555,7 +562,14 @@ void DriverMovement::flowIntoNextLinkIfPossible(DriverUpdateParams& params)
 	double departTime = getLastAccept(laneInNextSegment, nextSegStats);
 	if(!nextSegStats->isShortSegment())
 	{
-		departTime += getAcceptRate(laneInNextSegment, nextSegStats); //in seconds
+		if(nextSegStats->hasQueue())
+		{
+			departTime += getAcceptRate(laneInNextSegment, nextSegStats); //in seconds
+		}
+		else
+		{
+			departTime += PASSENGER_CAR_UNIT / nextSegStats->getSegSpeed(true);
+		}
 	}
 	params.elapsedSeconds = std::max(params.elapsedSeconds, departTime - (convertToSeconds(params.now.ms()))); //in seconds
 
@@ -944,7 +958,14 @@ void DriverMovement::setOrigin(DriverUpdateParams& params)
 	double departTime = getLastAccept(laneInNextSegment, currSegStats);
 	if(!currSegStats->isShortSegment())
 	{
-		departTime += getAcceptRate(laneInNextSegment, currSegStats); //in seconds
+		if(currSegStats->hasQueue())
+		{
+			departTime += getAcceptRate(laneInNextSegment, currSegStats); //in seconds
+		}
+		else
+		{
+			departTime += PASSENGER_CAR_UNIT / currSegStats->getSegSpeed(true);
+		}
 	}
 
 	params.elapsedSeconds = std::max(params.elapsedSeconds, departTime - (convertToSeconds(params.now.ms()))); //in seconds

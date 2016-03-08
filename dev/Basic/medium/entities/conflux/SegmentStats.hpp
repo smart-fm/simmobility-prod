@@ -682,6 +682,13 @@ public:
 	double getQueueLength() const;
 
 	/**
+	 * Tells whether there is queuing in any lane in this seg stats.
+	 * This function considers only vehicle lanes
+	 * @returns true if queuing occurs; false otherwise.
+	 */
+	bool hasQueue() const;
+
+	/**
 	 * Returns the sum of moving lengths of all lanes in this seg stats
 	 * This function considers only vehicle lanes
 	 * @returns total moving length of this seg stats

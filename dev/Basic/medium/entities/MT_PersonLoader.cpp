@@ -156,6 +156,11 @@ std::string getRandomTimeInWindow(double mid, bool firstFifteenMins)
 	int minute = Utils::generateInt(min,max) + ((mid - hour - 0.25)*60);
 	int second = Utils::generateInt(0,59);
 
+	//hour ranges from 3 to 26... wrap around to 0 after 23.
+	if(hour >= 24)
+	{
+		hour = hour - 24;
+	}
 	//construct string representation
 	std::string random_time;
 	random_time.resize(8); //hh:mi:ss - 8 characters

@@ -524,7 +524,7 @@ void ExpandShortTermConfigFile::generateAgentsFromTripChain(ConfigParams::AgentC
 			if(persons.find(personId) == persons.end())
 			{
 				Person_ST *person = new Person_ST("XML_TripChain", cfg.mutexStategy(), -1);
-				
+				person->setDatabaseId(personId);
 				//Set the usage of in-simulation travel times
 				//Generate random number between 0 and 100 (indicates percentage)
 				int randomInt = Utils::generateInt(0, 100);

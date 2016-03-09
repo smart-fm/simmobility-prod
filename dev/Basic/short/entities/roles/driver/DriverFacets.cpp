@@ -126,6 +126,14 @@ void DriverMovement::frame_tick()
 			parentDriver->getParent()->handleAMODArrival();
 		}
 
+		if(parentDriver->roleType != sim_mob::Role<sim_mob::Person_ST>::RL_BUSDRIVER)
+		{
+			TravelTimeManager::getInstance()->addODTravelTime(std::make_pair(parentDriver->origin->getNodeId(),
+					parentDriver->destination->getNodeId()),
+					(*parentDriver->parent->currSubTrip).startTime.getValue(),
+					params.now.ms());
+		}
+
 		parentDriver->getParent()->setToBeRemoved();
 		return;
 	}
@@ -368,19 +376,19 @@ std::string DriverMovement::frame_tick_output()
 		}
 	}
 
-	output << "(\"Driver\"" << "," << params.now.frame() << "," << id.str()
-			<< ",{" << "\"xPos\":\"" << parentDriver->getCurrPosition().getX()
-			<< "\",\"yPos\":\"" << parentDriver->getCurrPosition().getY()
-			<< "\",\"angle\":\"" << (360 - (baseAngle * 180 / M_PI))
-			<< "\",\"length\":\"" << static_cast<int> (parentDriver->vehicle->getLengthInM())
-			<< "\",\"width\":\"" << static_cast<int> (parentDriver->vehicle->getWidthInM())
-			<< "\",\"veh-name\":\"" << parentDriver->vehicle->getVehicleName()
-			<< "\",\"curr-waypoint\":\"" << wayPtId
-			<< "\",\"fwd-speed\":\"" << parentDriver->vehicle->getVelocity()
-			<< "\",\"fwd-accel\":\"" << parentDriver->vehicle->getAcceleration()
-			<< "\",\"info\":\"" << params.debugInfo
-			<< "\",\"mandatory\":\"" << incidentPerformer.getIncidentStatus().getChangedLane()
-			<< addLine.str() << "\"})" << std::endl;
+//	output << "(\"Driver\"" << "," << params.now.frame() << "," << id.str()
+//			<< ",{" << "\"xPos\":\"" << parentDriver->getCurrPosition().getX()
+//			<< "\",\"yPos\":\"" << parentDriver->getCurrPosition().getY()
+//			<< "\",\"angle\":\"" << (360 - (baseAngle * 180 / M_PI))
+//			<< "\",\"length\":\"" << static_cast<int> (parentDriver->vehicle->getLengthInM())
+//			<< "\",\"width\":\"" << static_cast<int> (parentDriver->vehicle->getWidthInM())
+//			<< "\",\"veh-name\":\"" << parentDriver->vehicle->getVehicleName()
+//			<< "\",\"curr-waypoint\":\"" << wayPtId
+//			<< "\",\"fwd-speed\":\"" << parentDriver->vehicle->getVelocity()
+//			<< "\",\"fwd-accel\":\"" << parentDriver->vehicle->getAcceleration()
+//			<< "\",\"info\":\"" << params.debugInfo
+//			<< "\",\"mandatory\":\"" << incidentPerformer.getIncidentStatus().getChangedLane()
+//			<< addLine.str() << "\"})" << std::endl;
 	
 	return output.str();
 }
@@ -524,10 +532,13 @@ bool DriverMovement::updateMovement()
 	{
 		return false;
 	}
-	
+
 	//Store the current link to check if the link has changed after the movement
 	const Link *prevLink = fwdDriverMovement.getCurrLink();
 	
+	std::vector<const RoadSegment*> segmentsPassed;
+	std::vector<WayPoint>::const_iterator startWayPoint = fwdDriverMovement.getCurrWayPointIt();
+
 	//Store the speed
 	params.currSpeed = parentDriver->vehicle->getVelocity();	
 	
@@ -569,6 +580,21 @@ bool DriverMovement::updateMovement()
 	{
 		double linkEntryTimeSec = params.elapsedSeconds + (params.now.ms() / 1000);
 		parentDriver->parent->currLinkTravelStats.start(currLink, linkEntryTimeSec);
+	}
+
+	std::vector<WayPoint>::const_iterator currWayPoint = fwdDriverMovement.getCurrWayPointIt();
+	if(currWayPoint != startWayPoint)
+	{
+		for(std::vector<WayPoint>::const_iterator iter = startWayPoint;
+				iter != currWayPoint; iter++)
+		{
+			if(iter->type == WayPoint::ROAD_SEGMENT)
+			{
+				segmentsPassed.push_back((*iter).roadSegment);
+			}
+		}
+
+		updateRoadSegmentTravelTime(segmentsPassed);
 	}
 
 	//Build debugging information to be displayed on the visualiser
@@ -2007,3 +2033,59 @@ void DriverMovement::setTrafficSignalParams(DriverUpdateParams &params)
 		parentDriver->perceivedDistToTrafficSignal->delay(params.trafficSignalStopDistance);
 	}
 }
+
+void sim_mob::DriverMovement::startRdSegStat(const RoadSegment* roadSegment, double startTime)
+{
+	parentDriver->parent->getCurrRdSegTravelStats().reset();
+	parentDriver->parent->startCurrRdSegTravelStat(roadSegment, startTime);
+}
+
+void sim_mob::DriverMovement::finalizeRdSegStat(const RoadSegment* roadSegment,
+		double endTime, const std::string travelMode)
+{
+	SegmentTravelStats &currStats = parentDriver->parent->finalizeCurrRdSegTravelStat(roadSegment, endTime, travelMode);
+	if (ConfigManager::GetInstance().FullConfig().rsTTConfig.enabled)
+	{
+		TravelTimeManager::getInstance()->addSegmentTravelTime(currStats);
+	}
+}
+
+void DriverMovement::updateRoadSegmentTravelTime(const vector<const RoadSegment*>& segmentsPassed)
+{
+	if(segmentsPassed.empty())
+			return;
+
+	std::string travelMode = (*parentDriver->parent->currTripChainItem)->getMode();
+	double actualTime = parentDriver->getParams().elapsedSeconds
+						+ (parentDriver->getParams().now.ms() / MILLISECS_CONVERT_UNIT);
+
+	bool finalized = false;
+
+	// The segments that are passed are finalized in this loop. If there are multiple segments
+	// that are passed in this time tick, those will be recorded with same start and end time
+	std::vector<const RoadSegment*>::const_iterator rdSegIter = segmentsPassed.begin();
+	for(;rdSegIter != segmentsPassed.end();rdSegIter++)
+	{
+		if((*rdSegIter) == parentDriver->parent->getCurrRdSegTravelStats().roadSegment)
+		{
+			finalizeRdSegStat((*rdSegIter), actualTime, travelMode);
+			finalized = true;
+		}
+		if(rdSegIter+1 != segmentsPassed.end())
+		{
+			startRdSegStat(*(rdSegIter+1), actualTime);
+		}
+	}
+	// If the journey is not done yet, record the start time of current segment
+	if(!fwdDriverMovement.isDoneWithEntireRoute())
+	{
+		startRdSegStat(fwdDriverMovement.getCurrSegment(), actualTime);
+	}
+	// Start and Finalize the travel times for paths with single segment
+	else if(!finalized)
+	{
+		startRdSegStat(segmentsPassed.front(), actualTime);
+		finalizeRdSegStat(segmentsPassed.front(), actualTime, travelMode);
+	}
+}
+

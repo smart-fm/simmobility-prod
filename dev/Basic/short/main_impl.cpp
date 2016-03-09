@@ -448,6 +448,16 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 		TravelTimeManager::getInstance()->storeCurrentSimulationTT();;
 	}
 
+	if(config.odTTConfig.enabled)
+	{
+		TravelTimeManager::getInstance()->dumpODTravelTimeToFile(config.odTTConfig.fileName);
+	}
+
+	if(config.rsTTConfig.enabled)
+	{
+		TravelTimeManager::getInstance()->dumpSegmentTravelTimeToFile(config.rsTTConfig.fileName);
+	}
+
 	Print() << "Database lookup took: " <<loop_start_offset <<" ms" <<std::endl;
 	Print() << "Max Agents at any given time: " <<maxAgents <<std::endl;
 	Print() << "Starting Agents: " << numStartAgents;

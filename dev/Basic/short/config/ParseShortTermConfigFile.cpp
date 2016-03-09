@@ -206,6 +206,8 @@ void ParseShortTermConfigFile::processXmlFile(XercesDOMParser& parser)
 	processSubtripTravelMetricsOutputNode(GetSingleElementByName(rootNode, "subtrip_travel_metrics_output"));
 	processAssignmentMatrixNode(GetSingleElementByName(rootNode, "assignment_matrix"));
 	processSegmentDensityNode(GetSingleElementByName(rootNode, "short-term_density-map"));
+	processODTravelTimeNode(GetSingleElementByName(rootNode, "od_travel_time"));
+	processSegmentTravelTimeNode(GetSingleElementByName(rootNode, "segment_travel_time"));
 	
 	//Take care of path-set manager configuration in here
     ParsePathXmlConfig(cfg.pathsetFile, cfg.getPathSetConf());
@@ -734,6 +736,34 @@ void ParseShortTermConfigFile::processAssignmentMatrixNode(xercesc::DOMElement* 
 		{
 			stCfg.assignmentMatrix.enabled = true;
 			stCfg.assignmentMatrix.fileName = ParseString(GetNamedAttributeValue(node, "file-name"), "assignment_matrix.csv");
+		}
+	}
+}
+
+void ParseShortTermConfigFile::processODTravelTimeNode(xercesc::DOMElement* node)
+{
+	if(node)
+	{
+		bool enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"));
+		if (enabled)
+		{
+			cfg.odTTConfig.enabled = true;
+			cfg.odTTConfig.intervalMS = ParseInteger(GetNamedAttributeValue(node, "interval"), 300000);
+			cfg.odTTConfig.fileName = ParseString(GetNamedAttributeValue(node, "file-name"), "od_travel_time.csv");
+		}
+	}
+}
+
+void ParseShortTermConfigFile::processSegmentTravelTimeNode(xercesc::DOMElement* node)
+{
+	if(node)
+	{
+		bool enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"));
+		if (enabled)
+		{
+			cfg.rsTTConfig.enabled = true;
+			cfg.rsTTConfig.intervalMS = ParseInteger(GetNamedAttributeValue(node, "interval"), 300000);
+			cfg.rsTTConfig.fileName = ParseString(GetNamedAttributeValue(node, "file-name"), "segment_travel_time.csv");
 		}
 	}
 }

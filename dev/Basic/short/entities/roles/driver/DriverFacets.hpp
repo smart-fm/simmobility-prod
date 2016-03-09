@@ -188,6 +188,17 @@ private:
      */
 	void updateDensityMap();
 
+	void startRdSegStat(const RoadSegment* roadSegment, double startTime);
+
+	void finalizeRdSegStat(const RoadSegment* roadSegment,double endTime, const std::string travelMode);
+
+	/**
+	 * This method is used to update the travel times of segments passed by the driver during the current frame tick
+	 *
+	 * @param segmentsPassed Segments passed by the driver during the current frame tick
+	 */
+	void updateRoadSegmentTravelTime(const std::vector<const RoadSegment*>& segmentsPassed);
+
 protected:
 	/**Pointer to the lane changing model being used*/
 	LaneChangingModel *lcModel;

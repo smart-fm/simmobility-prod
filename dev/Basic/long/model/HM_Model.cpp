@@ -1437,6 +1437,11 @@ void HM_Model::startImpl()
 
 }
 
+HM_Model::ScreeningModelCoefficientsList HM_Model::getScreeningModelCoefficientsList()
+{
+	return screeningModelCoefficientsList;
+}
+
 std::multimap<BigSerial, Unit*> HM_Model::getUnitsByZoneHousingType()
 {
 	return unitsByZoneHousingType;

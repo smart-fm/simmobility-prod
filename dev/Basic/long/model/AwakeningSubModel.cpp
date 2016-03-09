@@ -55,6 +55,8 @@ namespace sim_mob
 
 		    std::string tenureTransitionId;
 
+		    //Thse age category were set by the Jingsi shaw (xujs@mit.edu)
+		    //in her tenure transition model.
 		    if( household->getAgeOfHead() <= 6 )
 		    	tenureTransitionId = "<35";
 		    else

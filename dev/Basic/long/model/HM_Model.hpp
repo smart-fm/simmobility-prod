@@ -333,6 +333,7 @@ namespace sim_mob
             std::vector<boost::shared_ptr<Household> > getHouseholds();
             void addVehicleOwnershipChanges(boost::shared_ptr<VehicleOwnershipChanges> &vehicleOwnershipChange);
             std::vector<boost::shared_ptr<VehicleOwnershipChanges> > getVehicleOwnershipChanges();
+            ScreeningModelCoefficientsList getScreeningModelCoefficientsList();
 
            IndvidualVehicleOwnershipLogsumList getIndvidualVehicleOwnershipLogsums() const;
            IndvidualVehicleOwnershipLogsum* getIndvidualVehicleOwnershipLogsumsByHHId(BigSerial householdId) const;

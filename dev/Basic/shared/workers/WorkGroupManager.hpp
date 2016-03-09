@@ -59,7 +59,7 @@ public:
 	 * \param partitionMgr The partition manager. Will be updated during the AuraManager barrier wait (but *before*) the AuraMaanger if it exists.
 	 */
 	sim_mob::WorkGroup* newWorkGroup(unsigned int numWorkers, unsigned int numSimTicks=0, unsigned int tickStep=1,
-			sim_mob::AuraManager* auraMgr=nullptr, sim_mob::PartitionManager* partitionMgr=nullptr, sim_mob::PeriodicPersonLoader* periodicLoader=nullptr);
+			sim_mob::AuraManager* auraMgr=nullptr, sim_mob::PartitionManager* partitionMgr=nullptr, sim_mob::PeriodicPersonLoader* periodicLoader=nullptr, uint32_t simulationStartDay = 0);
 
 	///Initialize all WorkGroups. Before this function is called, WorkGroups cannot have Workers added to them. After this function is
 	///  called, no new WorkGroups may be added.
@@ -109,6 +109,8 @@ private:
 	sim_mob::FlexiBarrier* frameTickBarr;
 	sim_mob::FlexiBarrier* buffFlipBarr;
 	sim_mob::FlexiBarrier* msgBusBarr;
+
+	uint32_t simulationStartDay;
 
 	//#define GROUP_TIMING
 };

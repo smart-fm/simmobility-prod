@@ -48,6 +48,11 @@ namespace sim_mob {
             BigSerial getMaxUnitId();
 
             void insertUnit(Unit& unit,std::string schema);
+
+            /*
+             * Get the units of given building id
+             */
+            std::vector<Unit*> getUnitsByBuildingId(const long long buildingId,std::string schema);
         };
     }
 }

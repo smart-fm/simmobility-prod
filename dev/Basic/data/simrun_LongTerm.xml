@@ -96,9 +96,13 @@
     	<workers value="8"/>
     	<tickStep value="1"/>  
 	<year value = "2012" />  
-	<simulationScenario value="baselline"/> 
+	<simulationScenario value="baseline"/> 
 	<resume value ="false"/> 
-	<currentOutputSchema value = "baselline_2012_20151123052357"/> <!--if resume is true give the current op schema name-->
+	<currentOutputSchema value = "baseline_2012_20160225034344"/> <!--if resume is true give the current op schema name-->
+	<mainSchemaVersion value="main2012" />
+	<configSchemaVersion value = "configuration2012" />
+	<calibrationSchemaVersion value= "calibration2012" />
+	<geometrySchemaVersion value = "geometry2012" />
         <opSchemaloadingInterval value = "365"/>
     	<developerModel enabled="true">
     		<timeInterval value="30"/>
@@ -124,8 +128,8 @@
 	    <offsetBetweenUnitBuyingAndSelling value ="7"/>
 	    <bidderUnitsChoiceSet value = "50"/>
 	    <householdBiddingWindow value = "30" />
-    </housingModel>
-	<vehicleOwnershipModel enabled='true'>
+        </housingModel>
+	<vehicleOwnershipModel enabled='false'>
 		<vehicleBuyingWaitingTimeInDays value= "1"/>
 	</vehicleOwnershipModel>
     </longTermParams>

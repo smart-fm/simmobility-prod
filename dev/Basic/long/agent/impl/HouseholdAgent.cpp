@@ -34,10 +34,11 @@ using std::string;
 using std::map;
 using std::endl;
 
-HouseholdAgent::HouseholdAgent(BigSerial _id, HM_Model* _model, const Household* _household, HousingMarket* _market, bool _marketSeller, int _day, int _householdBiddingWindow)
-							 : Agent_LT(ConfigManager::GetInstance().FullConfig().mutexStategy(), _id), model(_model), market(_market), household(_household), marketSeller(_marketSeller), bidder (nullptr),
-							   seller(nullptr), day(_day), vehicleOwnershipOption(NO_CAR), householdBiddingWindow(_householdBiddingWindow)
-{
+HouseholdAgent::HouseholdAgent(BigSerial _id, HM_Model* _model, const Household* _household, HousingMarket* _market, bool _marketSeller, int _day, int _householdBiddingWindow, int awakeningDay)
+							 : Agent_LT(ConfigManager::GetInstance().FullConfig().mutexStategy(), _id), model(_model), market(_market), household(_household), marketSeller(_marketSeller), bidder (nullptr), seller(nullptr), day(_day),
+							   vehicleOwnershipOption(NO_CAR), householdBiddingWindow(_householdBiddingWindow),awakeningDay(awakeningDay)
+							{
+
     seller = new HouseholdSellerRole(this);
     seller->setActive(marketSeller);
 
@@ -124,6 +125,12 @@ void HouseholdAgent::setHouseholdBiddingWindow(int value)
 	householdBiddingWindow = value;
 }
 
+
+int HouseholdAgent::getAwakeningDay() const
+{
+	return awakeningDay;
+}
+
 HouseholdBidderRole* HouseholdAgent::getBidder()
 {
 	return bidder;
@@ -132,6 +139,7 @@ HouseholdBidderRole* HouseholdAgent::getBidder()
 HouseholdSellerRole* HouseholdAgent::getSeller()
 {
 	return seller;
+
 }
 
 
@@ -229,6 +237,7 @@ void HouseholdAgent::processExternalEvent(const ExternalEventArgs& args)
 
             if (bidder)
             {
+            	awakeningDay = day;
                 bidder->setActive(true);
                 model->incrementBidders();
                 model->incrementAwakeningCounter();

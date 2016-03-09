@@ -12,7 +12,7 @@
 #pragma once
 
 #include "database/dao/SqlAbstractDao.hpp"
-#include "database/entity/SimulationVersion.hpp"
+#include "database/entity/SimulationStartPoint.hpp"
 
 
 namespace sim_mob
@@ -20,15 +20,15 @@ namespace sim_mob
     namespace long_term
     {
         /**
-         * Data Access Object to SimulationVersion table on datasource.
+         * Data Access Object to SimulationStartPoint table on datasource.
          */
-        class SimulationVersionDao : public db::SqlAbstractDao<SimulationVersion>
+        class SimulationStartPointDao : public db::SqlAbstractDao<SimulationStartPoint>
         {
         public:
-        	SimulationVersionDao(db::DB_Connection& connection);
-            virtual ~SimulationVersionDao();
-            void insertSimulationVersion(SimulationVersion& objToInsert,std::string schema);
-            std::vector<SimulationVersion*> getAllSimulationVersions(std::string schema);
+        	SimulationStartPointDao(db::DB_Connection& connection);
+            virtual ~SimulationStartPointDao();
+            void insertSimulationStartPoint(SimulationStartPoint& objToInsert,std::string schema);
+            std::vector<SimulationStartPoint*> getAllSimulationStartPoints(std::string schema);
 
         private:
             /**
@@ -36,7 +36,7 @@ namespace sim_mob
              * @param result row with data to fill the out object.
              * @param outObj to fill.
              */
-            void fromRow(db::Row& result, SimulationVersion& outObj);
+            void fromRow(db::Row& result, SimulationStartPoint& outObj);
 
             /**
              * Fills the outParam with all values to insert or update on datasource.
@@ -44,7 +44,7 @@ namespace sim_mob
              * @param outParams to put the data parameters.
              * @param update tells if operation is an Update or Insert.
              */
-            void toRow(SimulationVersion& data, db::Parameters& outParams, bool update);
+            void toRow(SimulationStartPoint& data, db::Parameters& outParams, bool update);
 
         };
     }

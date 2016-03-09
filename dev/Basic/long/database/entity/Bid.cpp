@@ -15,14 +15,14 @@
 using namespace sim_mob::long_term;
 
 Bid::Bid(BigSerial bidId,int simulationDay, BigSerial bidderId, BigSerial currentUnitId, BigSerial newUnitId,double willingnessToPay,double affordabilityAmount,double hedonicPrice,
-		double askingPrice,double targetPrice,double bidValue, int isAccepted,BigSerial currentPostcode, BigSerial newPostcode,Agent_LT* bidder,std::tm moveInDate, double wtpErrorTerm)
+		double askingPrice,double targetPrice,double bidValue, int isAccepted,BigSerial currentPostcode, BigSerial newPostcode,Agent_LT* bidder,std::tm moveInDate, double wtpErrorTerm, int accepted,BigSerial sellerId,BigSerial unitTypeId,double logsum,double currentUnitPrice, double unitFloorArea,int bidsCounter,double lagCoefficient)
 		:bidId(bidId),simulationDay(simulationDay),bidderId(bidderId),currentUnitId(currentUnitId),newUnitId(newUnitId), willingnessToPay(willingnessToPay),
 		 affordabilityAmount(affordabilityAmount), hedonicPrice(hedonicPrice), askingPrice(askingPrice),targetPrice(targetPrice),bidValue(bidValue),
-		 isAccepted(isAccepted),currentPostcode(currentPostcode),newPostcode(newPostcode),bidder(bidder),moveInDate(moveInDate), wtpErrorTerm(wtpErrorTerm){}
+		 isAccepted(isAccepted),currentPostcode(currentPostcode),newPostcode(newPostcode),bidder(bidder),moveInDate(moveInDate), wtpErrorTerm(wtpErrorTerm),accepted(accepted),sellerId(sellerId),unitTypeId(unitTypeId),logsum(logsum),currentUnitPrice(currentUnitPrice),unitFloorArea(unitFloorArea),bidsCounter(bidsCounter),lagCoefficient(lagCoefficient){}
 
-Bid::Bid(BigSerial bidId,BigSerial currentUnitId,BigSerial newUnitId, BigSerial bidderId,Agent_LT* bidder,double bidValue, int simulationDay, double willingnessToPay, double wtp_e, double affordabilityAmount)
+Bid::Bid(BigSerial bidId,BigSerial currentUnitId,BigSerial newUnitId, BigSerial bidderId,Agent_LT* bidder,double bidValue, int simulationDay, double willingnessToPay, double wtp_e, double affordabilityAmount,int accepted,BigSerial sellerId,BigSerial unitTypeId,double logsum,double currentUnitPrice,double unitFloorArea, int bidsCounter,double lagCoefficient)
 		:bidId(bidId),currentUnitId(currentUnitId), newUnitId(newUnitId),bidderId(bidderId),bidder(bidder),bidValue(bidValue), simulationDay(simulationDay) , willingnessToPay(willingnessToPay), hedonicPrice(0),
-		askingPrice(0),targetPrice(0), isAccepted(0),currentPostcode(INVALID_ID),newPostcode(INVALID_ID),moveInDate(tm()), wtpErrorTerm(wtp_e), affordabilityAmount(affordabilityAmount){}
+		askingPrice(0),targetPrice(0), isAccepted(0),currentPostcode(INVALID_ID),newPostcode(INVALID_ID),moveInDate(tm()), wtpErrorTerm(wtp_e), affordabilityAmount(affordabilityAmount),accepted(accepted), sellerId(sellerId),unitTypeId(unitTypeId),logsum(logsum),currentUnitPrice(currentUnitPrice),unitFloorArea(unitFloorArea),bidsCounter(bidsCounter),lagCoefficient(lagCoefficient){}
 
 Bid::Bid(const Bid& source)
 {
@@ -43,10 +43,19 @@ Bid::Bid(const Bid& source)
     this->bidder = source.bidder;
     this->moveInDate = source.moveInDate;
     this->wtpErrorTerm = source.wtpErrorTerm;
+    this->bidsCounter = source.bidsCounter;
+    this->logsum = source.logsum;
+    this->unitFloorArea = source.unitFloorArea;
+    this->unitTypeId = source.unitTypeId;
+    this->currentUnitPrice = source.currentUnitPrice;
+    this->lagCoefficient = source.lagCoefficient;
+    this->sellerId = source.sellerId;
+    this->accepted = source.accepted;
 }
 
 Bid::Bid(): bidId(bidId),simulationDay(simulationDay),bidderId(INVALID_ID),currentUnitId(INVALID_ID),newUnitId(INVALID_ID),willingnessToPay(0.0),affordabilityAmount(0.0),hedonicPrice(0.0),
-		askingPrice(0.0),targetPrice(0.0),bidValue(0.0),isAccepted(0),currentPostcode(INVALID_ID),newPostcode(INVALID_ID),bidder(nullptr),moveInDate(moveInDate), wtpErrorTerm(0){}
+		askingPrice(0.0),targetPrice(0.0),bidValue(0.0),isAccepted(0),currentPostcode(INVALID_ID),newPostcode(INVALID_ID),bidder(nullptr),moveInDate(std::tm()), wtpErrorTerm(0),
+		accepted(0), sellerId(INVALID_ID),unitTypeId(INVALID_ID),logsum(0),currentUnitPrice(0),unitFloorArea(0),bidsCounter(0),lagCoefficient(0){}
 
 Bid::~Bid() {}
 
@@ -69,6 +78,14 @@ Bid& Bid::operator=(const Bid& source)
 	this->bidder = source.bidder;
 	this->moveInDate = source.moveInDate;
 	this->wtpErrorTerm = source.wtpErrorTerm;
+	this->bidsCounter = source.bidsCounter;
+	this->logsum = source.logsum;
+	this->unitFloorArea = source.unitFloorArea;
+	this->unitTypeId = source.unitTypeId;
+	this->currentUnitPrice = source.currentUnitPrice;
+	this->lagCoefficient = source.lagCoefficient;
+	this->sellerId = source.sellerId;
+	this->accepted = source.accepted;
     return *this;
 }
 
@@ -236,6 +253,71 @@ double Bid::getWtpErrorTerm() const
 	return wtpErrorTerm;
 }
 
+double Bid::getCurrentUnitPrice() const {
+		return currentUnitPrice;
+	}
+
+void Bid::setCurrentUnitPrice(double currentUnitPrice) {
+		this->currentUnitPrice = currentUnitPrice;
+	}
+
+double Bid::getUnitFloorArea() const {
+		return unitFloorArea;
+	}
+
+	void Bid::setUnitFloorArea(double floorArea) {
+		this->unitFloorArea = floorArea;
+	}
+
+	double Bid::getLagCoefficient() const {
+		return lagCoefficient;
+	}
+
+	void Bid::setLagCoefficient(double lagCoefficient) {
+		this->lagCoefficient = lagCoefficient;
+	}
+
+	double Bid::getLogsum() const {
+		return logsum;
+	}
+
+	void Bid::setLogsum(double logsum) {
+		this->logsum = logsum;
+	}
+
+	BigSerial Bid::getSellerId() const {
+		return sellerId;
+	}
+
+	void Bid::setSellerId(BigSerial sellerId) {
+		this->sellerId = sellerId;
+	}
+
+	BigSerial Bid::getUnitTypeId() const {
+		return unitTypeId;
+	}
+
+	void Bid::setUnitTypeId(BigSerial typeId) {
+		this->unitTypeId = typeId;
+	}
+
+	int Bid::getBidsCounter() const {
+		return bidsCounter;
+	}
+
+	void Bid::setBidsCounter(int bidsCounter) {
+		this->bidsCounter = bidsCounter;
+	}
+
+	int Bid::getAccepted()
+	{
+		return this->accepted;
+	}
+
+	void Bid::setAccepted(int isAccepted)
+	{
+		this->accepted = isAccepted;
+	}
 
 namespace sim_mob {
     namespace long_term {

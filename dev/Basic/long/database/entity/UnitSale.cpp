@@ -9,26 +9,32 @@
 
 using namespace sim_mob::long_term;
 
-UnitSale::UnitSale(BigSerial unitId,BigSerial buyerId, BigSerial sellerId, double unitPrice,std::tm transactionDate):
-		unitId(unitId),buyerId(buyerId),sellerId(sellerId),unitPrice(unitPrice),transactionDate(transactionDate) {}
+UnitSale::UnitSale(BigSerial unitSaleId,BigSerial unitId,BigSerial buyerId, BigSerial sellerId, double unitPrice,std::tm transactionDate,int daysOnMarketUnit, int daysOnMarketBidder):
+		unitSaleId(unitSaleId),unitId(unitId),buyerId(buyerId),sellerId(sellerId),unitPrice(unitPrice),transactionDate(transactionDate),daysOnMarketUnit(daysOnMarketUnit),daysOnMarketBidder(daysOnMarketBidder){}
 
 
 UnitSale::UnitSale(const UnitSale& source)
 {
+	this->unitSaleId = source.unitSaleId;
 	this->unitId = source.unitId;
 	this->buyerId = source.buyerId;
 	this->sellerId = source.sellerId;
 	this->unitPrice = source.unitPrice;
 	this->transactionDate = source.transactionDate;
+	this->daysOnMarketBidder = source.daysOnMarketBidder;
+	this->daysOnMarketUnit = source.daysOnMarketUnit;
 }
 
 UnitSale& UnitSale::operator=(const UnitSale& source)
 {
+	this->unitSaleId = source.unitSaleId;
 	this->unitId = source.unitId;
 	this->buyerId = source.buyerId;
 	this->sellerId = source.sellerId;
 	this->unitPrice = source.unitPrice;
 	this->transactionDate = source.transactionDate;
+	this->daysOnMarketBidder = source.daysOnMarketBidder;
+	this->daysOnMarketUnit = source.daysOnMarketUnit;
     return *this;
 }
 
@@ -64,6 +70,17 @@ void UnitSale::setTransactionDate(const std::tm& transactionDate)
 	this->transactionDate = transactionDate;
 }
 
+BigSerial UnitSale::getUnitSaleId() const
+{
+	return unitSaleId;
+}
+
+void UnitSale::setUnitSaleId(BigSerial unitSaleId)
+{
+		this->unitSaleId = unitSaleId;
+}
+
+
 BigSerial UnitSale::getUnitId() const
 {
 	return unitId;
@@ -84,3 +101,22 @@ void UnitSale::setUnitPrice(double unitPrice)
 	this->unitPrice = unitPrice;
 }
 
+int UnitSale::getDaysOnMarketBidder() const
+{
+	return daysOnMarketBidder;
+}
+
+void UnitSale::setDaysOnMarketBidder(int daysOnMarketBidder)
+{
+	this->daysOnMarketBidder = daysOnMarketBidder;
+}
+
+int UnitSale::getDaysOnMarketUnit() const
+{
+		return daysOnMarketUnit;
+}
+
+void UnitSale::setDaysOnMarketUnit(int daysOnMarketUnit)
+{
+		this->daysOnMarketUnit = daysOnMarketUnit;
+}

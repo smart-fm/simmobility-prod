@@ -76,8 +76,8 @@ namespace sim_mob {
         const std::string DB_TABLE_ZONALLANDUSEVARIABLEVALUES= APPLY_SCHEMA(CALIBRATION_SCHEMA, "zonal_landuse_variable_values");
         const std::string DB_TABLE_HITSINDIVIDUALLOGSUM= APPLY_SCHEMA(MAIN_SCHEMA, "hits_individual_logsum");
         const std::string DB_TABLE_TAZ_LEVEL_LAND_PRICE = APPLY_SCHEMA(CALIBRATION_SCHEMA, "taz_level_land_price");
-        const std::string DB_TABLE_SIM_VERSION = APPLY_SCHEMA( OUTPUT_SCHEMA, "simulation_version");
-        const std::string DB_TABLE_ENCODED_PARAMS_BY_SIMULATION = APPLY_SCHEMA( OUTPUT_SCHEMA, "encoded_params_by_simulation");
+        const std::string DB_TABLE_SIM_START_POINT = APPLY_SCHEMA( OUTPUT_SCHEMA, "simulation_start_point");
+        const std::string DB_TABLE_SIM_STOPPED_POINT = APPLY_SCHEMA( OUTPUT_SCHEMA, "simulation_stopped_point");
         const std::string DB_TABLE_CREATE_OP_SCHEMA = APPLY_SCHEMA( MAIN_SCHEMA, "create_output_schema");
         const std::string DB_TABLE_INDIVIDUAL_LEVEL_VEHICLEOWNERSHIP_LOGSUM = APPLY_SCHEMA(CALIBRATION_SCHEMA, "individual_level_vehicle_ownership_logsum");
         const std::string DB_TABLE_SCREENINGCOSTTIME= APPLY_SCHEMA( CALIBRATION_SCHEMA, "cost_time");
@@ -399,7 +399,7 @@ namespace sim_mob {
         const std::string DB_GETALL_POPULATION_PER_PLANNING_AREA = "SELECT * FROM " + DB_FUNC_GET_POPULATION_PER_PLANNING_AREA + LIMIT;
         const std::string DB_GETALL_HITSINDIVIDUALLOGSUM = "SELECT * FROM " + DB_TABLE_HITSINDIVIDUALLOGSUM + LIMIT;
         const std::string DB_GETALL_TAZ_LEVEL_LAND_PRICES = "SELECT * FROM " + DB_TABLE_TAZ_LEVEL_LAND_PRICE + LIMIT;
-        const std::string DB_GETALL_SIMVERSION = "SELECT * FROM " + DB_TABLE_SIM_VERSION + LIMIT;
+        const std::string DB_GETALL_SIMSTARTPOINT = "SELECT * FROM " + DB_TABLE_SIM_START_POINT + LIMIT;
       //  const std::string DB_GETALL_STAUS_OF_WORLD = "SELECT * FROM " + DB_TABLE_STATUS_OF_WORLD + LIMIT;
       //  const std::string DB_GETALL_PARCELS_WITH_ONGOING_PROJECTS = "SELECT * FROM " + APPLY_SCHEMA(OUTPUT_SCHEMA, "fm_parcel") + LIMIT;
         const std::string DB_GETALL_CREATEOPSCHEMA = "SELECT * FROM " + APPLY_SCHEMA(MAIN_SCHEMA, "create_output_schema") + LIMIT;
@@ -410,6 +410,7 @@ namespace sim_mob {
         const std::string DB_GETALL_TENURETRANSITIONRATE = "SELECT * FROM "+ DB_TABLE_TENURETRANSITIONRATE+ LIMIT;
         const std::string DB_GETALL_ALTERNATIVE_HEDONIC_PRICE = "SELECT * FROM " + DB_FUNC_GET_ALTERNATIVE_HEDONIC_PRICE + LIMIT;
         const std::string DB_GETALL_SCREENINGMODELCOEFFICIENT = "SELECT * FROM " + DB_TABLE_SCREENINGMODELCOEFFICIENT + LIMIT;
+        const std::string DB_GETALL_BUILDING_AGES = "SELECT * FROM "+ APPLY_SCHEMA(MAIN_SCHEMA, "fm_building_avg_age")+ LIMIT;
 
         /**
          * GET BY ID
@@ -444,7 +445,6 @@ namespace sim_mob {
         const std::string DB_GETBYID_ZONALLANDUSEVARIABLEVALUES = "SELECT * FROM " + DB_TABLE_ZONALLANDUSEVARIABLEVALUES + " WHERE id = :v1;";
         const std::string DB_GETBYID_POPULATION_PER_PLANNING_AREA = "SELECT * FROM " + DB_FUNC_GET_POPULATION_PER_PLANNING_AREA + " WHERE planning_area_id = :v1;";
         const std::string DB_GETBYID_HITSINDIVIDUALLOGSUM = "SELECT * FROM " + DB_TABLE_HITSINDIVIDUALLOGSUM + " WHERE id = :v1;";
-        const std::string DB_GETBUILDINGS_BY_PARCELID      = "SELECT * FROM " + DB_TABLE_BUILDING + " WHERE fm_parcel_id = :v1;";
         const std::string DB_GET_INDIVIDUAL_VEHICLEOWNERSHIP_LOGSUM_BY_HHID = "SELECT * FROM " + DB_TABLE_INDIVIDUAL_LEVEL_VEHICLEOWNERSHIP_LOGSUM + " WHERE household_id = :v1;";
         //const std::string DB_GETBYID_AWAKENING      = "SELECT * FROM " + DB_TABLE_AWAKENING + " WHERE h1_hhid = :v1;";
         const std::string DB_GETBYID_ACCESSIBILITYFIXEDPZID = "SELECT * FROM "+ DB_TABLE_ACCESSIBILITYFIXEDPZID + " WHERE planning_area_id = :v1;";

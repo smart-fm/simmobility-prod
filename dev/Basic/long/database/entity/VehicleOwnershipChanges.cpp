@@ -9,8 +9,8 @@
 
 using namespace sim_mob::long_term;
 
-VehicleOwnershipChanges::VehicleOwnershipChanges(BigSerial householdId, int vehicleOwnershipOptionId, std::tm startDate) :
-		householdId(householdId), vehicleOwnershipOptionId(vehicleOwnershipOptionId), startDate(startDate){
+VehicleOwnershipChanges::VehicleOwnershipChanges(BigSerial householdId, int oldVehicleOwnershipOptionId, int newVehicleOwnershipOptionId,std::tm startDate) :
+		householdId(householdId), oldVehicleOwnershipOptionId(oldVehicleOwnershipOptionId), newVehicleOwnershipOptionId(newVehicleOwnershipOptionId), startDate(startDate){
 }
 
 VehicleOwnershipChanges::~VehicleOwnershipChanges() {
@@ -19,14 +19,16 @@ VehicleOwnershipChanges::~VehicleOwnershipChanges() {
 VehicleOwnershipChanges::VehicleOwnershipChanges( const VehicleOwnershipChanges &source)
 {
 	this->householdId = source.householdId;
-	this->vehicleOwnershipOptionId = source.vehicleOwnershipOptionId;
+	this->oldVehicleOwnershipOptionId = source.oldVehicleOwnershipOptionId;
+	this->newVehicleOwnershipOptionId = source.newVehicleOwnershipOptionId;
 	this->startDate = source.startDate;
 }
 
 VehicleOwnershipChanges& VehicleOwnershipChanges::operator=(const VehicleOwnershipChanges& source)
 {
 	this->householdId = source.householdId;
-	this->vehicleOwnershipOptionId = source.vehicleOwnershipOptionId;
+	this->oldVehicleOwnershipOptionId = source.oldVehicleOwnershipOptionId;
+	this->newVehicleOwnershipOptionId = source.newVehicleOwnershipOptionId;
 	this->startDate = source.startDate;
 
     return *this;
@@ -52,12 +54,22 @@ void VehicleOwnershipChanges::setStartDate(const std::tm& startDate)
 	this->startDate = startDate;
 }
 
-int VehicleOwnershipChanges::getVehicleOwnershipOptionId() const
+int VehicleOwnershipChanges::getOldVehicleOwnershipOptionId() const
 {
-	return vehicleOwnershipOptionId;
+	return oldVehicleOwnershipOptionId;
 }
 
-void VehicleOwnershipChanges::setVehicleOwnershipOptionId(int vehicleOwnershipOptionId)
+void VehicleOwnershipChanges::setOldVehicleOwnershipOptionId(int vehicleOwnershipOptionId)
 {
-	this->vehicleOwnershipOptionId = vehicleOwnershipOptionId;
+	this->oldVehicleOwnershipOptionId = vehicleOwnershipOptionId;
+}
+
+int VehicleOwnershipChanges::getNewVehicleOwnershipOptionId() const
+{
+	return newVehicleOwnershipOptionId;
+}
+
+void VehicleOwnershipChanges::setNewVehicleOwnershipOptionId(int vehicleOwnershipOptionId)
+{
+	this->newVehicleOwnershipOptionId = vehicleOwnershipOptionId;
 }

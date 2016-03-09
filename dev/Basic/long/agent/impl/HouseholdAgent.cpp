@@ -23,6 +23,7 @@
 #include "conf/ConfigManager.hpp"
 #include "model/VehicleOwnershipModel.hpp"
 #include "model/AwakeningSubModel.hpp"
+#include "util/PrintLog.hpp"
 
 using namespace sim_mob::long_term;
 using namespace sim_mob::event;
@@ -51,6 +52,9 @@ HouseholdAgent::HouseholdAgent(BigSerial _id, HM_Model* _model, const Household*
     buySellInterval = config.ltParams.housingModel.offsetBetweenUnitBuyingAndSelling;
 
     householdBiddingWindow = config.ltParams.housingModel.householdBiddingWindow * (double)rand() / RAND_MAX + 1;
+
+    if( household )
+    	(const_cast<Household*>(household))->setTimeOnMarket(householdBiddingWindow);
 
     futureTransitionOwn = false;
 }
@@ -172,6 +176,7 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 
 	if( bidder && bidder->isActive() && householdBiddingWindow == 0 && bidder->getMoveInWaitingTimeInDays() == 0)
 	{
+		PrintExit( day, household, 0);
 		bidder->setActive(false);
 		model->decrementBidders();
 		model->incrementExits();
@@ -269,7 +274,7 @@ void HouseholdAgent::onWorkerEnter()
 
 
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
-	if( config.ltParams.housingModel.outputHouseholdLogsums )
+	if( config.ltParams.outputHouseholdLogsums.enabled )
 	{
 		const Household *hh = this->getHousehold();
 

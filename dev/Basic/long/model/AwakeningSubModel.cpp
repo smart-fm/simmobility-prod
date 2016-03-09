@@ -17,6 +17,7 @@
 #include "role/impl/HouseholdSellerRole.hpp"
 #include <stdlib.h>
 #include <vector>
+#include "util/PrintLog.hpp"
 
 using namespace std;
 
@@ -33,10 +34,8 @@ namespace sim_mob
 			return futureTransitionOwn;
 		}
 
-		void AwakeningSubModel::InitialAwakenings(HM_Model *_model, Household *household, HouseholdAgent *agent, int day)
+		void AwakeningSubModel::InitialAwakenings(HM_Model *model, Household *household, HouseholdAgent *agent, int day)
 		{
-			model = _model;
-
 			HouseholdBidderRole *bidder = agent->getBidder();
 			HouseholdSellerRole *seller = agent->getSeller();
 
@@ -56,14 +55,16 @@ namespace sim_mob
 
 		    std::string tenureTransitionId;
 
-		    if( household->getAgeOfHead() < 35 )
-		    	tenureTransitionId = " <35";
+		    //Thse age category were set by the Jingsi shaw (xujs@mit.edu)
+		    //in her tenure transition model.
+		    if( household->getAgeOfHead() <= 6 )
+		    	tenureTransitionId = "<35";
 		    else
-		    if( household->getAgeOfHead()>= 35 && household->getAgeOfHead() <= 49 )
+		    if( household->getAgeOfHead()>= 7 && household->getAgeOfHead() <= 9 )
 		    	tenureTransitionId = "35-49";
-		    if( household->getAgeOfHead()>= 50 && household->getAgeOfHead() <= 64 )
+		    if( household->getAgeOfHead()>= 10 && household->getAgeOfHead() <= 12 )
 		        tenureTransitionId = "50-64";
-		    if( household->getAgeOfHead()>= 65 )
+		    if( household->getAgeOfHead()>= 13 )
 		        tenureTransitionId = "65+";
 
 			string tenureStatus;
@@ -140,7 +141,7 @@ namespace sim_mob
 
 			float r2 = (float)rand() / RAND_MAX;
 
-			r2 = r2 * movingProbability(household);
+			r2 = r2 * movingProbability(household, model);
 
 			IdVector unitIds = agent->getUnitIds();
 
@@ -149,6 +150,8 @@ namespace sim_mob
 				seller->setActive(true);
 				bidder->setActive(true);
 				model->incrementBidders();
+
+			    printAwakening(day, household);
 
 				#ifdef VERBOSE
 				PrintOutV("[day " << day << "] Lifestyle 1. Household " << getId() << " has been awakened." << model->getNumberOfBidders()  << std::endl);
@@ -174,6 +177,8 @@ namespace sim_mob
 				seller->setActive(true);
 				bidder->setActive(true);
 				model->incrementBidders();
+
+				printAwakening(day, household);
 
 				#ifdef VERBOSE
 				PrintOutV("[day " << day << "] Lifestyle 2. Household " << getId() << " has been awakened. "  << model->getNumberOfBidders() << std::endl);
@@ -201,6 +206,8 @@ namespace sim_mob
 				bidder->setActive(true);
 				model->incrementBidders();
 
+				printAwakening(day, household);
+
 				#ifdef VERBOSE
 				PrintOutV("[day " << day << "] Lifestyle 3. Household " << getId() << " has been awakened. " << model->getNumberOfBidders() << std::endl);
 				#endif
@@ -220,7 +227,7 @@ namespace sim_mob
 		}
 
 
-		double AwakeningSubModel::movingProbability(Household* household)
+		double AwakeningSubModel::movingProbability( Household* household, HM_Model *model)
 		{
 			std::vector<BigSerial> individuals = household->getIndividuals();
 			Individual *householdHead;
@@ -249,19 +256,26 @@ namespace sim_mob
 		}
 
 
-		std::vector<ExternalEvent> AwakeningSubModel::DailyAwakenings(int day)
+		std::vector<ExternalEvent> AwakeningSubModel::DailyAwakenings( int day, HM_Model *model)
 		{
 			std::vector<ExternalEvent> events;
+			ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 
-		    for( int n = 0; n < 300; n++ )
+			int dailyAwakenings = config.ltParams.housingModel.dailyHouseholdAwakenings;
+
+		    for( int n = 0; n < dailyAwakenings; n++ )
 		    {
 		    	ExternalEvent extEv;
 
-		    	Household *potentialAwakening = model->getHouseholdById((double)rand()/RAND_MAX * 1000000);
 
-		    	potentialAwakening->getTenureStatus();
+		    	BigSerial householdId = (double)rand()/RAND_MAX * model->getHouseholdList()->size();
 
-		    	double movingRate = movingProbability(potentialAwakening);
+		    	Household *potentialAwakening = model->getHouseholdById( householdId );
+
+		    	if( !potentialAwakening)
+		    		continue;
+
+		    	double movingRate = movingProbability(potentialAwakening, model ) / 100.0;
 
 		    	double randomDraw = (double)rand()/RAND_MAX;
 
@@ -270,6 +284,8 @@ namespace sim_mob
 		    		n--;
 					continue;
 				}
+
+		    	printAwakening(day, potentialAwakening);
 
 		    	extEv.setDay( day + 1 );
 		    	extEv.setType( ExternalEvent::NEW_JOB );

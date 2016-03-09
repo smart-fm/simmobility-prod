@@ -14,7 +14,8 @@
 
 using namespace sim_mob::long_term;
 
-Taz::Taz(BigSerial id, const std::string& name, float area, int surcharge): id(id), name(name), area(area), surcharge(surcharge) {}
+Taz::Taz(BigSerial id, const std::string& name, float area, int surcharge, int status_0812, std::string mtzName, std::string subzoneName, std::string planningAreaName):
+		 id(id), name(name), area(area), surcharge(surcharge), status_0812(status_0812), mtzName(mtzName), subzoneName(subzoneName), planningAreaName(planningAreaName) {}
 
 Taz::~Taz() {}
 
@@ -53,6 +54,26 @@ void Taz::setSurchage( int value)
 	surcharge = value;
 }
 
+int  Taz::getStatus0812() const
+{
+	return status_0812;
+}
+
+std::string Taz::getMtzName() const
+{
+	return mtzName;
+}
+
+std::string Taz::getSubzoneName() const
+{
+	return subzoneName;
+}
+
+std::string Taz::getPlanningAreaName() const
+{
+	return planningAreaName;
+}
+
 namespace sim_mob
 {
     namespace long_term
@@ -64,6 +85,10 @@ namespace sim_mob
                     << "\"name\":\"" << data.name << "\","
                     << "\"area\":\"" << data.area << "\","
                     << "\"surcharge\":\"" << data.surcharge << "\""
+					<< "\"status_0812\":\"" << data.status_0812 << "\""
+					<< "\"mtzName\":\"" << data.mtzName << "\""
+					<< "\"subzoneName\":\"" << data.subzoneName << "\""
+					<< "\"planningAreaName\":\"" << data.planningAreaName << "\""
                     << "}";
         }
     }

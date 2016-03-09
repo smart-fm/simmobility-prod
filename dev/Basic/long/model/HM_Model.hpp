@@ -41,6 +41,8 @@
 #include "database/entity/ScreeningCostTime.hpp"
 #include "database/entity/TenureTransitionRate.hpp"
 #include "database/entity/OwnerTenantMovingRate.hpp"
+#include "database/entity/AlternativeHedonicPrice.hpp"
+#include "database/entity/ScreeningModelCoefficients.hpp"
 #include "core/HousingMarket.hpp"
 #include "boost/unordered_map.hpp"
 #include "DeveloperModel.hpp"
@@ -147,8 +149,15 @@ namespace sim_mob
             typedef std::vector<OwnerTenantMovingRate*>OwnerTenantMovingRateList;
             typedef boost::unordered_map<BigSerial, OwnerTenantMovingRate*> OwnerTenantMovingRateMap;
 
+            typedef std::vector<AlternativeHedonicPrice*>AlternativeHedonicPriceList;
+            typedef boost::unordered_multimap<BigSerial, AlternativeHedonicPrice*> AlternativeHedonicPriceMap;
+
+            typedef std::vector<ScreeningModelCoefficients*>ScreeningModelCoefficientsList;
+            typedef boost::unordered_map<BigSerial, ScreeningModelCoefficients*> ScreeningModelCoefficicientsMap;
+
             typedef std::vector<VehicleOwnershipChanges*> VehicleOwnershipChangesList;
             typedef boost::unordered_map<BigSerial, VehicleOwnershipChanges*> VehicleOwnershipChangesMap;
+
 
             /**
              * Taz statistics
@@ -304,7 +313,7 @@ namespace sim_mob
             HouseholdGroup* getHouseholdGroupByGroupId(BigSerial id)const;
             void addHouseholdGroupByGroupId(HouseholdGroup* hhGroup);
             void getScreeningProbabilities(std::string hitsId, std::vector<double> &householdScreeningProbabilties );
-            AlternativeList getAlternatives();
+            AlternativeList& getAlternatives();
             Alternative* getAlternativeById(int zoneHousingType);
             PlanningArea* getPlanningAreaById( int id );
             std::vector<PlanningSubzone*> getPlanningSubZoneByPlanningAreaId(int id);
@@ -329,6 +338,7 @@ namespace sim_mob
             std::vector<boost::shared_ptr<Household> > getHouseholdsWithBids();
             void addVehicleOwnershipChanges(boost::shared_ptr<VehicleOwnershipChanges> &vehicleOwnershipChange);
             std::vector<boost::shared_ptr<VehicleOwnershipChanges> > getVehicleOwnershipChanges();
+            ScreeningModelCoefficientsList getScreeningModelCoefficientsList();
 
            IndvidualVehicleOwnershipLogsumList getIndvidualVehicleOwnershipLogsums() const;
            IndvidualVehicleOwnershipLogsum* getIndvidualVehicleOwnershipLogsumsByHHId(BigSerial householdId) const;
@@ -346,9 +356,10 @@ namespace sim_mob
             VehicleOwnershipChanges* getVehicleOwnershipChangesByHHId(BigSerial houseHoldId) const;
             void setLastStoppedDay(int stopDay);
 
-
             std::vector<OwnerTenantMovingRate*> getOwnerTenantMovingRates();
             std::vector<TenureTransitionRate*> getTenureTransitionRates();
+            std::vector<AlternativeHedonicPrice*> getAlternativeHedonicPrice();
+            boost::unordered_multimap<BigSerial, AlternativeHedonicPrice*>& getAlternativeHedonicPriceById();
 
         protected:
             /**
@@ -483,6 +494,13 @@ namespace sim_mob
             std::vector<boost::shared_ptr<VehicleOwnershipChanges> > vehicleOwnershipChangesVector;
             IndvidualVehicleOwnershipLogsumList IndvidualVehicleOwnershipLogsums;
             IndvidualVehicleOwnershipLogsumMap IndvidualVehicleOwnershipLogsumById;
+
+            AlternativeHedonicPriceList alternativeHedonicPrice;
+            AlternativeHedonicPriceMap alternativeHedonicPriceById;
+
+            ScreeningModelCoefficientsList screeningModelCoefficientsList;
+            ScreeningModelCoefficicientsMap screeningModelCoefficicientsMap;
+
             std::vector<SimulationStoppedPoint*> simStoppedPointList;
             std::vector<Bid*> resumptionBids;
             HouseholdList resumptionHouseholds;

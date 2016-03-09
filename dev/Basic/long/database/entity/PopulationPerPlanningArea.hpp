@@ -17,7 +17,7 @@ namespace sim_mob
 		class PopulationPerPlanningArea
 		{
 		public:
-			PopulationPerPlanningArea(int planningAreaId = 0, int population = 0, int ethnicityId=0, int ageCategoryId=0, double avgIncome=0, int avgHhSize=0, int unitType = 0 );
+			PopulationPerPlanningArea(int planningAreaId = 0, int population = 0, int ethnicityId=0, int ageCategoryId=0, double avgIncome=0, int avgHhSize=0, int unitType = 0, int floorArea = 0 );
 			virtual ~PopulationPerPlanningArea();
 
 			PopulationPerPlanningArea( const PopulationPerPlanningArea & source);
@@ -30,6 +30,7 @@ namespace sim_mob
 			double getAvgIncome() const;
 			int getAvgHhSize() const;
 			int getUnitType() const;
+			double getFloorArea() const;
 
 		private:
 			friend class PopulationPerPlanningAreaDao;
@@ -41,6 +42,7 @@ namespace sim_mob
 			double avgIncome;
 			int avgHhSize;
 			int unitType;
+			double floorArea;
 		};
 	}
 }

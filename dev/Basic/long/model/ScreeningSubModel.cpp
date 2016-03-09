@@ -19,31 +19,6 @@ namespace sim_mob
 
 		ScreeningSubModel::ScreeningSubModel()
 		{
-			ln_popdwl		=  0.8455215;	//1 logarithm of population by housing type in the zone 	persons
-			den_respop_ha	=  0.0115146;	//2 population density	persons per hectare (x10^-2)
-			f_loc_com		=  0.1923675;	//3 zonal average fraction of commercial land within a 500-meter buffer area from a residential postcode (weighted by no. of residential unit within the buffer)	percentage point (x10^-1)
-			f_loc_res		= -1.2908764;	//4 zonal average fraction of residential land within a 500-meter buffer area from a residential postcode  (weighted by no. of residential unit within the buffer)	percentage point (x10^-1)
-			f_loc_open		=  0.0183812;	//5 zonal average fraction of open space within a 500-meter buffer area from a residential postcode (weighted by residential unit within the buffer)	percentage point (x10^-1)
-			odi10_loc		= -2.4180224;	//6 zonal average local land use mix (opportunity diversity) index: 1-(|lu1/t-1/9|+|lu2/t-1/9|+|lu3/t-1/9|+|lu4/t-1/9|+|lu5/t-1/9|+|lu6/t-1/9|+|lu7/t-1/9|+|lu8/t-1/9|+|lu9/t-1/9|)/(16/9)	(x10)
-			dis2mrt			= -0.1569961;	//7 zonal average distance to the nearest MRT station	in kilometer
-			dis2exp			=  0.0623541;	//8 zonal average distance to the nearest express way	in kilometer
-			accmanufact_jobs= -0.5423132;	// manufacturing jobs
-			accoffice_jobs	= -0.0438822;	// office jobs
-			pt_tt			= -0.0062194;	// public transit total time
-			pt_cost			= -0.8954747;	// public transit total cost
-			f_age4_n4		= 2.3885324;	//10 zonal fraction of population younger than 4 years old x dummy if presence of kids younger than 4 years old in the household (=1, yes; =0, no)	percentage point (x10^-1)
-			f_age19_n19		= 0.4570936;	//11 zonal fraction of population between 5 and 19 years old x dummy if presence of children in the household  (=1, yes; =0, no)	percentage point (x10^-1)
-			f_age65_n65		= 1.0005127;	//12 zonal fraction of population older than 65 years old x dummy if presence of seniors in the household  (=1, yes; =0, no)	percentage point (x10^-1)
-			f_chn_nchn		= -0.2992827;	//13 zonal fraction of Chinese population x  dummy if household is Chinese (=1, yes; =0, no)	percentage point (x10^-1)
-			f_mal_nmal		= -0.0702382;	//14 zonal fraction of Malay population x  dummy if household is Malay (=1, yes; =0, no)	percentage point (x10^-1)
-			f_indian_nind	= -0.8482557;	//15 zonal fraction of Indian population x  dummy if household is Indian (=1, yes; =0, no)	percentage point (x10^-1)
-			hhsize_diff		= -0.5143233;	//16 absolute difference between zonal average household size by housing type and household size	persons
-			log_hhinc_diff	= -0.2505445;	//17 absolute difference between logarithm of the zonal median household montly income by housing type and logarithm of the household income	SGD
-			log_price05tt_med= 0.1718173;	//18 logarithm of the zonal median housing price by housing type	in (2005) SGD
-			DWL600			= -0.5939059;	//19 = 1, if household size is 1, living in private condo/apartment
-			DWL700			= -0.3587303;	//20 = 1, if household size is 1, living in landed property
-			DWL800			=  1.4437154; 	//21 = 1, if household size is 1, living in other types of housing units
-
 			model 			= nullptr;
 			headOfHousehold = nullptr;
 		}
@@ -118,6 +93,33 @@ namespace sim_mob
 			}
 		}
 
+		int ScreeningSubModel::GetDwellingType(int unitType)
+		{
+			int dwellingType = 0;
+
+			if( unitType < 3 )
+				dwellingType = 100;
+			else
+			if( unitType == 3 )
+				dwellingType = 300;
+			else
+			if( unitType == 4 )
+				dwellingType = 400;
+			else
+			if( unitType == 5 || unitType == 6 )
+				dwellingType = 500;
+			else
+			if(( unitType >=7 && unitType <=16 ) || ( unitType >= 32 && unitType <= 36 ) )
+				dwellingType = 600;
+			else
+			if( unitType >= 17 && unitType <= 31 )
+				dwellingType = 700;
+			else
+				dwellingType = 800;
+
+			return dwellingType;
+		}
+
 		void ScreeningSubModel::getScreeningProbabilities( int hhId, std::vector<double> &probabilities, HM_Model *modelArg, int day )
 		{
 			model = modelArg;
@@ -164,6 +166,7 @@ namespace sim_mob
 			double 	avgHouseholdIncome = 0;
 			int	   	unitTypeCounter = 0;
 			int 	populationByunitType = 0;
+			int		sumFloorArea = 0;
 
 			if( household->getEthnicityId() == 1 )
 				bHouseholdEthnicityChinese = true;
@@ -216,23 +219,7 @@ namespace sim_mob
 					 populationGreaterThan65 = populationGreaterThan65 + populationPerPlanningArea[n]->getPopulation();
 			}
 
-			std::vector<PlanningSubzone*>  planningSubzones = model->getPlanningSubZoneByPlanningAreaId(planningArea->getId());
-			std::vector<Mtz*> mtzs = model->getMtzBySubzoneVec(planningSubzones);
-			std::vector<BigSerial> planningAreaTazs = model->getTazByMtzVec(mtzs);
-
-			double planningArea_size = 0;
-			for( int n = 0; n < planningAreaTazs.size();n++)
-			{
-				Taz *thisTaz = model->getTazById(planningAreaTazs[n]);
-
-				planningArea_size += thisTaz->getArea();
-			}
-
-			//convert sqm into hectares
-			planningArea_size = planningArea_size / 10000.0;
-
 		 	double probabilitySum = 0;
-
 
 			for( int n = 0; n < model->getAlternatives().size(); n++ )
 			{
@@ -240,28 +227,9 @@ namespace sim_mob
 			 	{
 					for(int m = 0; m < populationPerPlanningArea.size(); m++)
 					{
-						int dwellingType = 0;
 						int unitType = populationPerPlanningArea[m]->getUnitType();
 
-						if( unitType < 3 )
-							dwellingType = 100;
-						else
-						if( unitType == 3 )
-							dwellingType = 300;
-						else
-						if( unitType == 4 )
-							dwellingType = 400;
-						else
-						if( unitType == 5 || unitType == 6 )
-							dwellingType = 500;
-						else
-						if(( unitType >=7 && unitType <=16 ) || ( unitType >= 32 && unitType <= 36 ) )
-							dwellingType = 600;
-						else
-						if( unitType >= 17 && unitType <= 31 )
-							dwellingType = 700;
-						else
-							dwellingType = 800;
+						int dwellingType = GetDwellingType(unitType);
 
 						if( dwellingType == model->getAlternatives()[n]->getDwellingTypeId() )
 						{
@@ -269,6 +237,7 @@ namespace sim_mob
 							avgHouseholdIncome += populationPerPlanningArea[m]->getAvgIncome();
 							unitTypeCounter++;
 							populationByunitType += populationPerPlanningArea[m]->getPopulation();
+							sumFloorArea += populationPerPlanningArea[m]->getFloorArea();
 						}
 					}
 
@@ -276,6 +245,7 @@ namespace sim_mob
 					model->getAlternatives()[n]->setAvgHouseholdIncome(avgHouseholdIncome );
 					model->getAlternatives()[n]->setUnitTypeCounter(unitTypeCounter );
 					model->getAlternatives()[n]->setPopulationByUnitType(populationByunitType );
+					model->getAlternatives()[n]->setSumFloorArea(sumFloorArea);
 			 	}
 			 	else
 			 	{
@@ -283,16 +253,21 @@ namespace sim_mob
 			 		avgHouseholdIncome = model->getAlternatives()[n]->getAvgHouseholdIncome();
 			 		unitTypeCounter = model->getAlternatives()[n]->getUnitTypeCounter();
 			 		populationByunitType = model->getAlternatives()[n]->getPopulationByUnitType();
+			 		sumFloorArea = model->getAlternatives()[n]->getSumFloorArea();
 			 	}
 
 				avgHouseholdSize 	= avgHouseholdSize 	  / unitTypeCounter;
 				avgHouseholdIncome 	= avgHouseholdIncome  / unitTypeCounter;
 
+				int bHighInc = 0;
+
+				if(household->getIncome() > 7000 )
+					bHighInc = 1;
 
 				ZonalLanduseVariableValues *zonalLanduseVariableValues = model->getZonalLandUseByAlternativeId(n + 1);
 
 				double logPopulationByHousingType	= log((double)unitTypeCounter);	//1 logarithm of population by housing type in the zone 	persons
-				double populationDensity			= (double)unitTypeCounter / planningArea_size;	//2 population density	persons per hectare
+				double populationDensity			= (double)unitTypeCounter / (double)sumFloorArea * 100.0;	//2 population density	persons per hectare
 				double commercialLandFraction		= zonalLanduseVariableValues->getFLocCom();	//3 zonal average fraction of commercial land within a 500-meter buffer area from a residential postcode (weighted by no. of residential unit within the buffer)	percentage point
 				double residentialLandFraction		= zonalLanduseVariableValues->getFLocRes();	//4 zonal average fraction of residential land within a 500-meter buffer area from a residential postcode  (weighted by no. of residential unit within the buffer)	percentage point
 				double openSpaceFraction			= zonalLanduseVariableValues->getFLocOpen();	//5 zonal average fraction of open space within a 500-meter buffer area from a residential postcode (weighted by residential unit within the buffer)	percentage point
@@ -315,15 +290,29 @@ namespace sim_mob
 				double publicTransitCost 			= 0.0;
 				double accessbilityManufacturJobs	= 0.0;
 				double accessibilityOfficeJobs 		= 0.0;
+				double hdb45						= 0.0;
 
-				if( household->getSize() == 1 )
+
+
+				if( model->getAlternatives()[n]->getDwellingTypeId() == 600 )
 				{
-					if( model->getAlternatives()[n]->getDwellingTypeId() == 600 )
+					if( household->getSize() == 1 )
 						privateCondoHhSizeOne = 1.0;
-					else
-					if( model->getAlternatives()[n]->getDwellingTypeId() == 700 )
+				}
+				else
+				if( model->getAlternatives()[n]->getDwellingTypeId() == 700 )
+				{
+					if( household->getSize() == 1 )
 						landedPropertyHhSizeOne = 1.0;
-					else
+				}
+				else
+				if(model->getAlternatives()[n]->getDwellingTypeId() == 400 || model->getAlternatives()[n]->getDwellingTypeId() == 500 )
+				{
+					hdb45 = 1.0;
+				}
+				else
+				{
+					if( household->getSize() == 1 )
 						otherHousingHhSizeOne = 1.0;
 				}
 
@@ -368,37 +357,62 @@ namespace sim_mob
 					}
 				}
 
-				HedonicPrice_SubModel hpSubmodel(day, model, const_cast<Unit*>(unit));
+				if( model->getAlternatives()[n]->getMedianHedonicPrice() > 0.000001 )
+				{
+					logZonalMedianHousingPrice =  model->getAlternatives()[n]->getMedianHedonicPrice();// / sumFloorArea / 1000;
+				}
+				else
+				{
 
-				std::vector<ExpectationEntry> expectations;
-				hpSubmodel.ComputeExpectation(1, expectations);
+					string strId = to_string(model->getAlternatives()[n]->getPlanAreaId()) + to_string(model->getAlternatives()[n]->getDwellingTypeId());
+					int key = std::atoi( strId.c_str());
 
-				logZonalMedianHousingPrice = log(expectations[0].hedonicPrice);
+					typedef boost::unordered_multimap<BigSerial, AlternativeHedonicPrice*>::iterator altmm_itr;
+					typedef boost::unordered_multimap<BigSerial, AlternativeHedonicPrice*> altmmap;
 
-				double probability =( logPopulationByHousingType* ln_popdwl 		) +
-									( populationDensity			* den_respop_ha 	) +
-									( commercialLandFraction	* f_loc_com 		) +
-									( residentialLandFraction	* f_loc_res		 	) +
-									( openSpaceFraction			* f_loc_open	 	) +
-									( oppurtunityDiversityIndex	* odi10_loc		 	) +
-									( distanceToMrt				* dis2mrt		 	) +
-									( distanceToExp				* dis2exp		 	) +
-									( accessbilityManufacturJobs* accmanufact_jobs 	) +
-									( accessibilityOfficeJobs	* accoffice_jobs	) +
-									( publicTransitTime			* pt_tt 			) +
-									( publicTransitCost 		* pt_cost			) +
-									( fractionYoungerThan4		* f_age4_n4		 	* 10 ) +
-									( fractionBetween5And19		* f_age19_n19	 	* 10 ) +
-									( fractionOlderThan65		* f_age65_n65	 	* 10 ) +
-									( fractionOfChinese			* f_chn_nchn	 	) +
-									( fractionOfMalay			* f_mal_nmal	 	) +
-									( fractionOfIndian			* f_indian_nind	 	) +
-									( householdSizeMinusZoneAvg	* hhsize_diff	 	) +
-									( logHouseholdInconeMinusZoneAvg * log_hhinc_diff ) +
-									( logZonalMedianHousingPrice* log_price05tt_med ) +
-									( privateCondoHhSizeOne		* DWL600 ) +
-									( landedPropertyHhSizeOne	* DWL700 ) +
-									( otherHousingHhSizeOne		* DWL800 );
+					std::pair< altmm_itr,altmm_itr > its = model->getAlternativeHedonicPriceById().equal_range(key);
+					int count = 0;
+
+					for (altmm_itr it = its.first; it != its.second; it++)
+					{
+						count++;
+					}
+
+					auto it = its.first;
+					std::advance(it, count/2);
+
+					logZonalMedianHousingPrice = it->second->getTotalPrice();
+
+					model->getAlternatives()[n]->setMedianHedonicPrice( logZonalMedianHousingPrice );
+				}
+
+				int m = 0;
+
+				double probability =( logPopulationByHousingType* model->getScreeningModelCoefficientsList()[m]->getln_popdwl()	) +
+									( populationDensity			* model->getScreeningModelCoefficientsList()[m]->getden_respop_ha() 	) +
+									( commercialLandFraction	* model->getScreeningModelCoefficientsList()[m]->getf_loc_com() 		) +
+									( residentialLandFraction	* model->getScreeningModelCoefficientsList()[m]->getf_loc_res()		 	) +
+									( openSpaceFraction			* model->getScreeningModelCoefficientsList()[m]->getf_loc_open()	 	) +
+									( oppurtunityDiversityIndex	* model->getScreeningModelCoefficientsList()[m]->getodi10_loc()		 	) +
+									( distanceToMrt				* model->getScreeningModelCoefficientsList()[m]->getdis2mrt()		 	) +
+									( distanceToExp				* model->getScreeningModelCoefficientsList()[m]->getdis2exp()		 	) +
+									( accessbilityManufacturJobs* model->getScreeningModelCoefficientsList()[m]->getaccmanufact_jobs() 	) +
+									( accessibilityOfficeJobs	* model->getScreeningModelCoefficientsList()[m]->getaccoffice_jobs()	) +
+									( publicTransitTime			* model->getScreeningModelCoefficientsList()[m]->getpt_tt() 			) +
+									( publicTransitCost 		* model->getScreeningModelCoefficientsList()[m]->getpt_cost()			) +
+									( fractionYoungerThan4		* model->getScreeningModelCoefficientsList()[m]->getf_age4_n4()		 	) +
+									( fractionBetween5And19		* model->getScreeningModelCoefficientsList()[m]->getf_age19_n19()	 	) +
+									( fractionOlderThan65		* model->getScreeningModelCoefficientsList()[m]->getf_age65_n65() 		) +
+									( fractionOfChinese			* model->getScreeningModelCoefficientsList()[m]->getf_chn_nchn()	 	) +
+									( fractionOfMalay			* model->getScreeningModelCoefficientsList()[m]->getf_mal_nmal()	 	) +
+									( fractionOfIndian			* model->getScreeningModelCoefficientsList()[m]->getf_indian_nind()	 	) +
+									( householdSizeMinusZoneAvg	* model->getScreeningModelCoefficientsList()[m]->gethhsize_diff()	 	) +
+									( logHouseholdInconeMinusZoneAvg * model->getScreeningModelCoefficientsList()[m]->getlog_hhinc_diff() ) +
+									( logZonalMedianHousingPrice* model->getScreeningModelCoefficientsList()[m]->getlog_price05tt_med() ) +
+									( privateCondoHhSizeOne		* model->getScreeningModelCoefficientsList()[m]->getDWL600() * bHighInc ) +
+									( landedPropertyHhSizeOne	* model->getScreeningModelCoefficientsList()[m]->getDWL700() * bHighInc ) +
+									( otherHousingHhSizeOne		* model->getScreeningModelCoefficientsList()[m]->getDWL800() * bHighInc ) +
+									( hdb45						* model->getScreeningModelCoefficientsList()[m]->getDWL400_500() );
 
 				/*
 				PrintOut("n: " <<    populationByunitType 		<< " 0 " << planningArea->getId()  << " hhid:  " << hhId << " " <<

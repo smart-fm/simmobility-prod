@@ -242,9 +242,7 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
     const unsigned int tickStep = config.ltParams.tickStep;
     const unsigned int days = config.ltParams.days;
     const unsigned int workers = config.ltParams.workers;
-    const bool enableHousingMarket = config.ltParams.housingModel.enabled;
 
-    const bool enableDeveloperModel = config.ltParams.developerModel.enabled;
     const unsigned int timeIntervalDevModel = config.ltParams.developerModel.timeInterval;
     unsigned int opSchemaloadingInterval = config.ltParams.opSchemaloadingInterval;
 
@@ -327,22 +325,18 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
         DeveloperModel *developerModel = nullptr;
         HM_Model *housingMarketModel = nullptr;
 
-        if( enableHousingMarket )
-        	hmWorkers = wgMgr.newWorkGroup( workers, days, tickStep ,nullptr,nullptr,nullptr, (uint32_t)lastStoppedDay );
 
-        if( enableDeveloperModel )
-        	devWorkers = wgMgr.newWorkGroup(workers, days, tickStep,nullptr,nullptr,nullptr, (uint32_t)lastStoppedDay );
+        hmWorkers = wgMgr.newWorkGroup( workers, days, tickStep ,nullptr,nullptr,nullptr, (uint32_t)lastStoppedDay );
+
+        devWorkers = wgMgr.newWorkGroup(workers, days, tickStep,nullptr,nullptr,nullptr, (uint32_t)lastStoppedDay );
         
         //init work groups.
         wgMgr.initAllGroups();
         logsWorker->initWorkers(nullptr);
         eventsWorker->initWorkers(nullptr);
 
-        if( enableHousingMarket )
-        	hmWorkers->initWorkers(nullptr);
-
-        if( enableDeveloperModel )
-        	devWorkers->initWorkers(nullptr);
+       	hmWorkers->initWorkers(nullptr);
+       	devWorkers->initWorkers(nullptr);
         
         //assign agents
         logsWorker->assignAWorker(&(agentsLookup.getLogger()));
@@ -356,15 +350,14 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
         	currentTick = lastStoppedDay;
         }
 
-        if( enableHousingMarket )
         {
         	 housingMarketModel = new HM_Model(*hmWorkers);//initializing the housing market model
              housingMarketModel->setStartDay(currentTick);
              housingMarketModel->setLastStoppedDay(lastStoppedDay);
         	 models.push_back(housingMarketModel);
+        	 agentsLookup.getEventsInjector().setModel(housingMarketModel);
         }
 
-        if( enableDeveloperModel )
         {
         	 //initiate developer model; to be referred later at each time tick (day)
         	 developerModel = new DeveloperModel(*devWorkers, timeIntervalDevModel);
@@ -374,9 +367,7 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
         	 models.push_back(developerModel);
         }
 
-
-		if( enableHousingMarket )
-        	housingMarketModel->setDeveloperModel(developerModel);
+        housingMarketModel->setDeveloperModel(developerModel);
 
         //start all models.
         for (vector<Model*>::iterator it = models.begin(); it != models.end(); it++)

@@ -22,9 +22,13 @@ TazDao::~TazDao() {}
 void TazDao::fromRow(Row& result, Taz& outObj)
 {
     outObj.id = result.get<BigSerial>(DB_FIELD_ID, INVALID_ID);
-    outObj.name = result.get<std::string>(DB_FIELD_NAME, EMPTY_STR);
+    outObj.name = result.get<std::string>(DB_FIELD_NAME, "");
     outObj.area = result.get<double>("area", 0.0);
     outObj.surcharge = result.get<int>("surcharge", 0);
+    outObj.status_0812 = result.get<int>("status_0812", 0);
+    outObj.mtzName = result.get<std::string>("mtz_name", "");
+    outObj.subzoneName = result.get<std::string>("subzone_name", "");
+    outObj.planningAreaName = result.get<std::string>("planning_area_name", "");
 }
 
 void TazDao::toRow(Taz& data, Parameters& outParams, bool update) {}

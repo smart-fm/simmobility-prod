@@ -17,7 +17,7 @@
 #include "conf/ConfigParams.hpp"
 
 namespace {
-const double distanceArrvingAtPlatform = 0.1;
+const double distanceArrvingAtPlatform = 0.001;
 const double trainLengthMeter = 124;
 const double convertKmPerHourToMeterPerSec = 1000.0/3600.0;
 }
@@ -113,7 +113,9 @@ void TrainMovement::frame_tick()
     ptMRTMoveLogger << trainPathMover.getCurrentPosition().getX() << ",";
     ptMRTMoveLogger << trainPathMover.getCurrentPosition().getY() << ",";
     ptMRTMoveLogger << params.currentAcelerate << ",";
-    ptMRTMoveLogger << params.currCase << ",";
+    //ptMRTMoveLogger << params.currCase << ",";
+    //ptMRTMoveLogger << parentDriver->getParent()->isToBeRemoved() << ",";
+    //ptMRTMoveLogger << (parentDriver->getNextDriver()?parentDriver->getNextDriver()->getTripId():0) << ",";
     ptMRTMoveLogger << this->parentDriver->waitingTimeSec << std::endl;
     //sim_mob::Logger::log(fileName).flush();
 
@@ -140,13 +142,12 @@ void TrainMovement::frame_tick()
 				params.elapsedSeconds = waitingTime;
 			} else {
 				parentDriver->getParent()->setToBeRemoved();
+				//arrivalAtEndPlatform();
 			}
 		}
 		break;
 	}
 	}
-
-
 }
 std::string TrainMovement::frame_tick_output()
 {
@@ -186,7 +187,7 @@ double TrainMovement::getRealSpeedLimit()
 		}
 	}
 
-	/*if ((distanceToNextPlatform != 0.0 && distanceToNextTrain == 0.0)
+	if ((distanceToNextPlatform != 0.0 && distanceToNextTrain == 0.0)
 			|| (distanceToNextTrain != 0.0 && distanceToNextPlatform != 0.0
 					&& distanceToNextPlatform < distanceToNextTrain)) {
 		double decelerate = trainPathMover.getCurrentDecelerationRate();
@@ -197,7 +198,7 @@ double TrainMovement::getRealSpeedLimit()
 			params.disToNextPlatform = distanceToNextPlatform;
 			return speedLimit;
 		}
-	}*/
+	}
 
 	params.currCase = TrainUpdateParams::NORMAL_CASE;
 	if(distanceToNextTrain==0.0||distanceToNextPlatform==0.0){
@@ -231,7 +232,7 @@ double TrainMovement::getEffectiveAccelerate()
 	double effectiveSpeed = params.currentSpeed;
 	double realSpeedLimit = getRealSpeedLimit();
 	if(params.currCase==TrainUpdateParams::STATION_CASE){
-		double effectiveAccelerate = -effectiveSpeed*effectiveSpeed/(2.0*params.disToNextPlatform);
+		double effectiveAccelerate = -(effectiveSpeed*effectiveSpeed)/(2.0*params.disToNextPlatform);
 		params.currentAcelerate = effectiveAccelerate;
 		return effectiveAccelerate;
 	}
@@ -255,10 +256,18 @@ double TrainMovement::getEffectiveAccelerate()
 
 double TrainMovement::getEffectiveMovingDistance()
 {
+	double movingDist = 0.0;
 	TrainUpdateParams& params = parentDriver->getParams();
 	double effectiveAcc = getEffectiveAccelerate();
-	double movingDist = params.currentSpeed*params.secondsInTick+0.5*effectiveAcc*params.secondsInTick*params.secondsInTick;
-	params.currentSpeed = params.currentSpeed+effectiveAcc*params.secondsInTick;
+	if(params.currCase==TrainUpdateParams::STATION_CASE){
+		double nextSpeed = params.currentSpeed+effectiveAcc*params.secondsInTick;
+		nextSpeed = std::max(0.0, nextSpeed);
+		movingDist = (nextSpeed*nextSpeed-params.currentSpeed*params.currentSpeed)/(2.0*effectiveAcc);
+		params.currentSpeed = nextSpeed;
+	} else {
+		movingDist = params.currentSpeed*params.secondsInTick+0.5*effectiveAcc*params.secondsInTick*params.secondsInTick;
+		params.currentSpeed = params.currentSpeed+effectiveAcc*params.secondsInTick;
+	}
 	return movingDist;
 }
 
@@ -308,9 +317,23 @@ void TrainMovement::arrivalAtStartPlaform() const
 	Platform* next = trainPlatformMover.getFirstPlatform();
 	std::string stationNo = next->getStationNo();
 	Agent* stationAgent = TrainController<Person_MT>::getAgentFromStation(stationNo);
-	messaging::MessageBus::PostMessage(stationAgent, TRAIN_ARRIVAL_AT_TERMINAL,
+	messaging::MessageBus::PostMessage(stationAgent, TRAIN_ARRIVAL_AT_STARTPOINT,
 			messaging::MessageBus::MessagePtr(new TrainDriverMessage(parentDriver)));
 }
+
+void TrainMovement::arrivalAtEndPlatform() const
+{
+	std::vector<Platform*>::const_iterator it;
+	const std::vector<Platform*>& prevs = trainPlatformMover.getPrevPlatforms();
+	for (it = prevs.begin(); it != prevs.end(); it++) {
+		Platform* prev = (*it);
+		std::string stationNo = prev->getStationNo();
+		Agent* stationAgent = TrainController<Person_MT>::getAgentFromStation(stationNo);
+		messaging::MessageBus::PostMessage(stationAgent,TRAIN_ARRIVAL_AT_ENDPOINT,
+				messaging::MessageBus::MessagePtr(new TrainDriverMessage(parentDriver)));
+	}
+}
+
 
 }
 } /* namespace sim_mob */

@@ -283,8 +283,6 @@ namespace sim_mob {
 			block->setSpeedLimit(r.get<double>(1));
 			block->setAccelerateRate(r.get<double>(2));
 			block->setDecelerateRate(r.get<double>(3));
-			block->setAccelerateRate(1.1);
-			block->setDecelerateRate(1.1);
 			block->setLength(r.get<double>(4));
 			mapOfIdvsBlocks[blockId] = block;
 		}
@@ -395,24 +393,6 @@ namespace sim_mob {
 		trainTrip->setTrainPlatform(platforms);
 		trainTrip->setLineId(lineId);
 		trainTrip->setTripId(1);
-		trainTrip->itemType = TripChainItem::IT_TRAINTRIP;
-		std::vector<TripChainItem*> tripChain;
-		tripChain.push_back(trainTrip);
-		person->setTripChain(tripChain);
-		person->parentEntity = this;
-		activeAgents.insert(person);}
-
-		{PERSON* person = new PERSON("TrainController", config.mutexStategy());
-		std::string lineId="NE_2";
-		std::vector<Block*> route;
-		std::vector<Platform*> platforms;
-		getTrainRoute(lineId, route);
-		getTrainPlatforms(lineId, platforms);
-		TrainTrip* trainTrip = new TrainTrip();
-		trainTrip->setTrainRoute(route);
-		trainTrip->setTrainPlatform(platforms);
-		trainTrip->setLineId(lineId);
-		trainTrip->setTripId(2);
 		trainTrip->itemType = TripChainItem::IT_TRAINTRIP;
 		std::vector<TripChainItem*> tripChain;
 		tripChain.push_back(trainTrip);

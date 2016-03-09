@@ -74,6 +74,10 @@ public:
 	 * assign the train to the first platform
 	 */
 	void arrivalAtStartPlaform() const;
+	/**
+	 * inform the train arrival at last platform
+	 */
+	void arrivalAtEndPlatform() const;
 
 protected:
 	virtual TravelMetric& startTravelTimeMetric();

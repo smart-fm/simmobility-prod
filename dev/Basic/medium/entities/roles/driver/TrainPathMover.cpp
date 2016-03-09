@@ -11,7 +11,7 @@
 #include <stdexcept>
 #include "util/GeomHelpers.hpp"
 namespace{
-const double distanceMinimal = 0.00001;
+const double distanceMinimal = 0.001;
 }
 namespace sim_mob {
 TrainPlatformMover::TrainPlatformMover()
@@ -27,6 +27,10 @@ void TrainPlatformMover::setPlatforms(const std::vector<Platform*>& plats)
 	platforms = plats;
 	currPlatformIt = platforms.begin();
 }
+const std::vector<Platform*>& TrainPlatformMover::getPrevPlatforms() const
+{
+	return prevPlatforms;
+}
 
 Platform* TrainPlatformMover::getFirstPlatform() const
 {
@@ -40,6 +44,7 @@ Platform* TrainPlatformMover::getFirstPlatform() const
 Platform* TrainPlatformMover::getNextPlatform(bool updated)
 {
 	if(updated){
+		prevPlatforms.push_back(*currPlatformIt);
 		currPlatformIt++;
 	}
 	if(currPlatformIt!=platforms.end()){

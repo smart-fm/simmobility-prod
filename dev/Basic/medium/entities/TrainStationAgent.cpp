@@ -39,7 +39,7 @@ void TrainStationAgent::HandleMessage(messaging::Message::MessageType type, cons
 		msg.trainDriver->setCurrentStatus(TrainDriver::MOVE_TO_PLATFROM);
 		break;
 	}
-	case TRAIN_ARRIVAL_AT_TERMINAL:
+	case TRAIN_ARRIVAL_AT_STARTPOINT:
 	{
 		const TrainDriverMessage& msg = MSG_CAST(TrainDriverMessage, message);
 		msg.trainDriver->setCurrentStatus(TrainDriver::MOVE_TO_PLATFROM);
@@ -48,6 +48,12 @@ void TrainStationAgent::HandleMessage(messaging::Message::MessageType type, cons
 			pendingTrainDriver[lineId] = std::list<TrainDriver*>();
 		}
 		pendingTrainDriver[lineId].push_back(msg.trainDriver);
+		break;
+	}
+	case TRAIN_ARRIVAL_AT_ENDPOINT:
+	{
+		const TrainDriverMessage& msg = MSG_CAST(TrainDriverMessage, message);
+		removeAheadTrain(msg.trainDriver);
 		break;
 	}
 	}
@@ -95,7 +101,7 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 	double sysGran = ConfigManager::GetInstance().FullConfig().baseGranSecond();
 	std::list<TrainDriver*>::iterator it=trainDriver.begin();
 	while (it != trainDriver.end()) {
-		double tickInSec = (*it)->getParams().secondsInTick;
+		double tickInSec = 0.0;
 		do {
 			callMovementFrameTick(now, *it);
 			tickInSec += (*it)->getParams().secondsInTick;
@@ -127,12 +133,23 @@ bool TrainStationAgent::isNonspatial()
 }
 void TrainStationAgent::removeAheadTrain(TrainDriver* aheadDriver)
 {
+	if(!aheadDriver){
+		return;
+	}
 	std::list<TrainDriver*>::iterator it=trainDriver.begin();
 	while (it != trainDriver.end()) {
 		if((*it)->getNextDriver()==aheadDriver){
 			(*it)->setNextDriver(nullptr);
 		}
 		it++;
+	}
+
+	std::string lineId = aheadDriver->getTrainLine();
+	std::map<std::string, TrainDriver*>::iterator iLastDriver = lastTrainDriver.find(lineId);
+	if(iLastDriver!=lastTrainDriver.end()){
+		if(iLastDriver->second==aheadDriver){
+			lastTrainDriver[lineId]=nullptr;
+		}
 	}
 }
 

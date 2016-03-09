@@ -34,11 +34,18 @@ public:
 	 * is arriving at last platform
 	 */
 	bool isLastPlatform();
+	/**
+	 * get previous platform
+	 * @return previous platform
+	 */
+	const std::vector<Platform*>& getPrevPlatforms() const;
 private:
 	/**driving platforms*/
 	std::vector<Platform*> platforms;
 	/**the iterator to current platform*/
 	std::vector<Platform*>::iterator currPlatformIt;
+	/**record previous platform*/
+	std::vector<Platform*> prevPlatforms;
 };
 class TrainPathMover {
 public:

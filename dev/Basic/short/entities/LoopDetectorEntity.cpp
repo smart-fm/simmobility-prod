@@ -57,10 +57,11 @@ void AABB::united(AABB const &another)
 }
 
 LoopDetector::LoopDetector(Lane const *lane, meter_t innerLength, meter_t outerLength, Shared<Sensor::CountAndTimePair> &pair)
-: width_(lane->getWidth()), innerLength_(innerLength), outerLength_(outerLength), request_to_reset_(false), countAndTimePair_(pair), vehicle_(nullptr)
+: width_(lane->getWidth()), innerLength_(innerLength), outerLength_(outerLength), request_to_reset_(false), countAndTimePair_(pair)
 {
 	const std::vector<PolyPoint> polyline = lane->getPolyLine()->getPoints();
 	size_t count = polyline.size();
+
 	// The last line of the lane's poly-line is from <p1> to <p2>.
 	Point const & p1 = polyline[count - 2];
 	Point const & p2 = polyline[count - 1];
@@ -93,7 +94,7 @@ namespace
 {
 
 // Set <left>, <bottom>, <right>, and <top> to include <p>.
-void getBounds(Vector2D<double> const &p, int &left, int &bottom, int &right, int &top)
+void getBounds(Vector2D<double> const &p, double &left, double &bottom, double &right, double &top)
 {
 	if (left > p.getX())
 	{
@@ -116,10 +117,10 @@ void getBounds(Vector2D<double> const &p, int &left, int &bottom, int &right, in
 
 AABB LoopDetector::getAABB() const
 {
-	int left = std::numeric_limits<int>::max();
-	int bottom = std::numeric_limits<int>::max();
-	int right = std::numeric_limits<int>::min();
-	int top = std::numeric_limits<int>::min();
+	double left = std::numeric_limits<double>::max();
+	double bottom = std::numeric_limits<double>::max();
+	double right = std::numeric_limits<double>::min();
+	double top = std::numeric_limits<double>::min();
 
 	Vector2D<double> c(center_.getX(), center_.getY());
 	// orientationL_ and orientationW_ are normalized, they have unit length.
@@ -132,10 +133,10 @@ AABB LoopDetector::getAABB() const
 	getBounds(c - vL + vW, left, bottom, right, top);
 	getBounds(c - vL - vW, left, bottom, right, top);
 
-	AABB aabb;
-	aabb.lowerLeft_ = Point(left, bottom);
-	aabb.upperRight_ = Point(right, top);
-	return aabb;
+    AABB aabb;
+    aabb.lowerLeft_ = Point(left, bottom);
+    aabb.upperRight_ = Point(right, top);
+    return aabb;
 }
 
 bool LoopDetector::check(boost::unordered_set<Vehicle const *> &vehicles, std::vector<Vehicle const *>& vehsInLoopDetector)
@@ -164,9 +165,9 @@ bool LoopDetector::check(boost::unordered_set<Vehicle const *> &vehicles, std::v
 		Vehicle const *vehicle = *iter;
 		if (check(*vehicle))
 		{
-			if (vehicle != vehicle_)
+			if (std::find(vehicles_.begin(), vehicles_.end(), vehicle) == vehicles_.end())
 			{
-				vehicle_ = vehicle;
+				vehicles_.push_back(vehicle);
 				vehsInLoopDetector.push_back(vehicle);
 				incrementVehicleCount();
 			}
@@ -179,10 +180,17 @@ bool LoopDetector::check(boost::unordered_set<Vehicle const *> &vehicles, std::v
 			// Eventually one will move away.
 			return true;
 		}
+		else
+		{
+			std::vector<const Vehicle*>::iterator iter = std::find(vehicles_.begin(), vehicles_.end(), vehicle);
+			if(iter != vehicles_.end())
+			{
+				vehicles_.erase(iter);
+			}
+		}
 	}
 
 	// No vehicle (or part of) is hovering over the loop detector.
-	vehicle_ = nullptr;
 	incrementSpaceTime();
 	return false;
 }
@@ -255,6 +263,8 @@ private:
 
 	void
 	createLoopDetectors(std::vector<RoadSegment *> const &roads, LoopDetectorEntity &entity);
+
+	void printLoopDetectors();
 
 	BasicLogger& assignmentMatrixLogger;
 	ST_Config& stCfg;
@@ -431,6 +441,8 @@ bool LoopDetectorEntity::Impl::check(timeslice now)
 				}
 
 				assignmentMatrixLogger << iter->first->getParentSegment()->getParentLink()->getToNode()->getTrafficLightId()
+						<< "," << iter->first->getParentSegment()->getRoadSegmentId()
+						<< "," << iter->first->getLaneId()
 						<< "," << now.ms()
 						<< "," << (person->getDatabaseId().empty() ? "-1" : person->getDatabaseId())
 						<< "," << (*person->currSubTrip).origin.node->getNodeId()

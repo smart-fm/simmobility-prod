@@ -128,9 +128,9 @@ public:
 	 */
 	AABB getAABB() const;
 
-	const Vehicle* vehicle() const
+	const std::vector<const Vehicle* > vehicle() const
 	{
-		return vehicle_;
+		return vehicles_;
 	}
 
 	/**
@@ -141,7 +141,6 @@ public:
 		request_to_reset_ = true;
 	}
 
-private:
 	Point center_;
 	Vector2D<double> orientationL_; // orientation of the OBB along its length.
 	Vector2D<double> orientationW_; // orientation of the OBB along its width.
@@ -149,11 +148,11 @@ private:
 	meter_t innerLength_;
 	meter_t outerLength_;
 
+private:
 	unsigned int timeStepInMilliSeconds_; // The loop detector entity runs at this rate.
 	bool request_to_reset_; // See the comment in check().
 	Shared<Sensor::CountAndTimePair> & countAndTimePair_;
-	const Vehicle *vehicle_; // Current vehicle, if any, that is hovering over the loop detector.
-
+	std::vector<const Vehicle*> vehicles_;
 private:
 	// Return true if any part of <vehicle> is hovering over the loop detector.
 	bool check(Vehicle const &vehicle);

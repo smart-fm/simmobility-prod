@@ -12,15 +12,15 @@ Authors - Siyu Li, Harish Loganathan
 
 --!! see the documentation on the definition of AM,PM and OP table!!
 
-local beta_cons_bus = -0.404
-local beta_cons_mrt = -0.876
-local beta_cons_privatebus = -2.41
-local beta_cons_drive1 = -0.2258
-local beta_cons_share2 = -3.719
-local beta_cons_share3 = -4.81
-local beta_cons_motor = -8.196
-local beta_cons_walk = -0.435
-local beta_cons_taxi = -4.66
+local beta_cons_bus = -1.260
+local beta_cons_mrt = -1.361
+local beta_cons_privatebus = -2.774
+local beta_cons_drive1 = 2.865
+local beta_cons_share2 = -2.159
+local beta_cons_share3 = -5.232
+local beta_cons_motor = -4.633
+local beta_cons_walk = 2.207
+local beta_cons_taxi = -4.973
 
 local beta1_1_tt = -0.717
 local beta1_2_tt = -1.37
@@ -228,6 +228,24 @@ local choice = {
 local utility = {}
 local function computeUtilities(params,dbparams)
 	local cost_increase = dbparams.cost_increase
+
+	local age_id = params.age_id
+	-- age group related variables
+	local age20,age2025,age2635,age3650,age5165,age65 = 0,0,0,0,0,0
+	if age_id < 4 then 
+		age20 = 1
+	elseif age_id == 4 then 
+		age2025 = 1
+	elseif age_id == 5 or age_id == 6 then 
+		age2635 = 1
+	elseif age_id == 7 or age_id == 8 or age_id == 9 then 
+		age3650 = 1
+	elseif age_id == 10 or age_id == 11 or age_id == 12 then 
+		age5165 = 1
+	elseif age_id > 12 then 
+		age65 = 1
+	end
+
 
 	local age_id = params.age_id
 	-- age group related variables

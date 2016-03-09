@@ -161,6 +161,7 @@ sim_mob::PathSet::~PathSet()
 
 short sim_mob::PathSet::addOrDeleteSinglePath(sim_mob::SinglePath* s)
 {
+	if(s->id.empty()) return 0;
 	if (!s && s->path.empty())
 	{
 		return 0;

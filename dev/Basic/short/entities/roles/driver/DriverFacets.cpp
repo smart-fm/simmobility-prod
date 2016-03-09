@@ -133,7 +133,7 @@ void DriverMovement::frame_tick()
 	identifyAdjacentLanes(params);
 
 	//If the vehicle is in the loading queue, we need to check if some empty space has opened up.
-	if (parentDriver->isVehicleInLoadingQueue && parentDriver->isVehiclePositionDefined)
+	if (parentDriver->isVehicleInLoadingQueue && parentDriver->isVehiclePositionDefined && params.now.frame() % 50 == 0)
 	{
 		//Use the aura manager to find out nearby vehicles. If none of the nearby vehicles on the same lane
 		//take up the position that is with-in a particular tolerance of the origin of the current vehicle,

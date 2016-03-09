@@ -17,6 +17,7 @@
 #include "geospatial/network/RoadSegment.hpp"
 #include "logging/Log.hpp"
 #include "util/GeomHelpers.hpp"
+#include "util/Utils.hpp"
 
 #ifndef SIMMOB_DISABLE_MPI
 #include "partitions/PackageUtils.hpp"
@@ -321,7 +322,10 @@ void DriverPathMover::setPath(const std::vector<WayPoint> &path, int startLaneIn
 		if(startLaneIndex < 0 || startLaneIndex >= noOfLanes)
 		{
 			//Invalid index, default to left most lane
-			currLaneIndex = 0;
+			//currLaneIndex = 0;
+			
+			//Randomly select a lane
+			currLaneIndex = Utils::generateInt(0, noOfLanes-1);
 		}
 		else
 		{

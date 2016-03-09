@@ -147,6 +147,9 @@ namespace sim_mob
             typedef std::vector<OwnerTenantMovingRate*>OwnerTenantMovingRateList;
             typedef boost::unordered_map<BigSerial, OwnerTenantMovingRate*> OwnerTenantMovingRateMap;
 
+            typedef std::vector<VehicleOwnershipChanges*> VehicleOwnershipChangesList;
+            typedef boost::unordered_map<BigSerial, VehicleOwnershipChanges*> VehicleOwnershipChangesMap;
+
             /**
              * Taz statistics
              */
@@ -318,11 +321,12 @@ namespace sim_mob
             int getStartDay() const;
             void addNewBids(boost::shared_ptr<Bid> &newBid);
             BigSerial getBidId();
+            BigSerial getUnitSaleId();
             std::vector<boost::shared_ptr<Bid> > getNewBids();
             void addUnitSales(boost::shared_ptr<UnitSale> &unitSale);
             std::vector<boost::shared_ptr<UnitSale> > getUnitSales();
             void addHouseholdsTo_OPSchema(boost::shared_ptr<Household> &houseHold);
-            std::vector<boost::shared_ptr<Household> > getHouseholds();
+            std::vector<boost::shared_ptr<Household> > getHouseholdsWithBids();
             void addVehicleOwnershipChanges(boost::shared_ptr<VehicleOwnershipChanges> &vehicleOwnershipChange);
             std::vector<boost::shared_ptr<VehicleOwnershipChanges> > getVehicleOwnershipChanges();
 
@@ -337,6 +341,10 @@ namespace sim_mob
             static const BigSerial FAKE_IDS_START = 9999900;
 
             std::multimap<BigSerial, Unit*> getUnitsByZoneHousingType();
+            std::vector<Bid*> getResumptionBids();
+            Household* getResumptionHouseholdById( BigSerial id) const;
+            VehicleOwnershipChanges* getVehicleOwnershipChangesByHHId(BigSerial houseHoldId) const;
+            void setLastStoppedDay(int stopDay);
 
 
             std::vector<OwnerTenantMovingRate*> getOwnerTenantMovingRates();
@@ -421,11 +429,7 @@ namespace sim_mob
             boost::mutex mtx2;
             boost::mutex mtx3;
             boost::mutex mtx4;
-            boost::mutex addBidsLock;
-            boost::mutex bidIdLock;
-            boost::mutex addUnitSalesLock;
-            boost::mutex addHHLock;
-            boost::mutex addVehicleOwnershipChangesLock;
+            boost::mutex idLock;
             boost::mutex DBLock;
             boost::unordered_map<BigSerial, double>tazLevelLogsum;
             boost::unordered_map<BigSerial, double>vehicleOwnershipLogsum;
@@ -474,10 +478,18 @@ namespace sim_mob
             std::vector<boost::shared_ptr<Bid> > newBids;
             std::vector<boost::shared_ptr<UnitSale> > unitSales;
             BigSerial bidId;
+            BigSerial unitSaleId;
             std::vector<boost::shared_ptr<Household> > hhVector;
             std::vector<boost::shared_ptr<VehicleOwnershipChanges> > vehicleOwnershipChangesVector;
             IndvidualVehicleOwnershipLogsumList IndvidualVehicleOwnershipLogsums;
             IndvidualVehicleOwnershipLogsumMap IndvidualVehicleOwnershipLogsumById;
+            std::vector<SimulationStoppedPoint*> simStoppedPointList;
+            std::vector<Bid*> resumptionBids;
+            HouseholdList resumptionHouseholds;
+            HouseholdMap resumptionHHById;
+            VehicleOwnershipChangesList vehOwnershipChangesList;
+            VehicleOwnershipChangesMap vehicleOwnershipChangesById;
+            int lastStoppedDay;
         };
     }
 }

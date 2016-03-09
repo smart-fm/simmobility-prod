@@ -14,15 +14,17 @@
 #include "entities/Agent_LT.hpp"
 #include "database/entity/Household.hpp"
 #include "event/LT_EventArgs.hpp"
-
+#include "model/HM_Model.hpp"
+#include "role/impl/HouseholdBidderRole.hpp"
+#include "role/impl/HouseholdSellerRole.hpp"
 
 namespace sim_mob
 {
     namespace long_term
     {
-        class HM_Model;
-        class HouseholdBidderRole;
-        class HouseholdSellerRole;
+        //class HM_Model;
+        //class HouseholdBidderRole;
+        //class HouseholdSellerRole;
         /**
          * Represents an Long-Term household agent.
          * An household agent has the following capabilities:
@@ -32,7 +34,7 @@ namespace sim_mob
         class HouseholdAgent : public Agent_LT
         {
         public:
-            HouseholdAgent(BigSerial id, HM_Model* model, const Household* hh, HousingMarket* market, bool marketSeller = false, int day = 0, int householdBiddingWindow = 0);
+            HouseholdAgent(BigSerial id, HM_Model* model, const Household* hh, HousingMarket* market, bool marketSeller = false, int day = 0, int householdBiddingWindow = 0, int awakeningDay = 0);
             virtual ~HouseholdAgent();
             
             enum VehicleOwnershipOption
@@ -54,6 +56,7 @@ namespace sim_mob
             int getBuySellInterval( ) const;
 
             void setHouseholdBiddingWindow(int value);
+            int getAwakeningDay() const;
 
             HouseholdBidderRole* getBidder();
             HouseholdSellerRole* getSeller();
@@ -120,6 +123,9 @@ namespace sim_mob
             int day;
 
             bool futureTransitionOwn; //If awakened, will the household choose to rent or own a unit? If true, this household will choose to own.
+
+            int awakeningDay;
+
         };
     }
 }

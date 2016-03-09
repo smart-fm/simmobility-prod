@@ -30,9 +30,9 @@
 #include "core/DataManager.hpp"
 #include "core/AgentsLookup.hpp"
 #include "model/DeveloperModel.hpp"
-#include "database/dao/SimulationVersionDao.hpp"
-#include "database/dao/EncodedParamsBySimulationDao.hpp"
-#include "database/entity/SimulationVersion.hpp"
+#include "database/dao/SimulationStartPointDao.hpp"
+#include "database/dao/SimulationStoppedPointDao.hpp"
+#include "database/entity/SimulationStartPoint.hpp"
 #include "database/dao/CreateOutputSchemaDao.hpp"
 #include "database/dao/BuildingDao.hpp"
 #include "database/dao/ParcelDao.hpp"
@@ -42,6 +42,7 @@
 #include "database/dao/UnitSaleDao.hpp"
 #include "database/dao/DevelopmentPlanDao.hpp"
 #include "database/dao/VehicleOwnershipChangesDao.hpp"
+#include "database/dao/HouseholdDao.hpp"
 #include "util/HelperFunctions.hpp"
 
 using std::cout;
@@ -122,25 +123,21 @@ void loadDataToOutputSchema(db::DB_Connection& conn,std::string &currentOutputSc
 	bool resume = config.ltParams.resume;
 	unsigned int year = config.ltParams.year;
 	std::string scenario = config.ltParams.simulationScenario;
+	std::string mainSchemaVersion = config.ltParams.mainSchemaVersion;
+	std::string cfgSchemaVersion = config.ltParams.configSchemaVersion;
+	std::string calibrationSchemaVersion = config.ltParams.calibrationSchemaVersion;
+	std::string geometrySchemaVersion = config.ltParams.geometrySchemaVersion;
 	std::string simScenario = boost::lexical_cast<std::string>(scenario)+"_"+boost::lexical_cast<std::string>(year);
 	time_t rawtime;
 	struct tm * timeinfo;
 	time (&rawtime);
 	timeinfo = localtime (&rawtime);
-	boost::shared_ptr<SimulationVersion>simVersionObj(new SimulationVersion(simVersionId,simScenario,*timeinfo,simStoppedTick));
+	boost::shared_ptr<SimulationStartPoint>simStartPointObj(new SimulationStartPoint(simVersionId,simScenario,*timeinfo,mainSchemaVersion,cfgSchemaVersion,calibrationSchemaVersion,geometrySchemaVersion,simStoppedTick));
 
 	if(conn.isConnected())
 	{
-		SimulationVersionDao simVersionDao(conn);
-		std::vector<SimulationVersion> simVersionList;
-		loadData<SimulationVersionDao>(conn, simVersionList);
-		if(simVersionList.empty())
-		{
-			simVersionDao.insertSimulationVersion(*simVersionObj.get(),currentOutputSchema);
-		}
-
-		EncodedParamsBySimulationDao encodedParamsDao(conn);
-		encodedParamsDao.insertEncodedParams(*(developerModel.getEncodedParamsObj(simVersionId)).get(),currentOutputSchema);
+		SimulationStartPointDao simStartPointDao(conn);
+		simStartPointDao.insertSimulationStartPoint(*simStartPointObj.get(),currentOutputSchema);
 
 		std::vector<boost::shared_ptr<Building> > buildings = developerModel.getBuildingsVec();
 		std::vector<boost::shared_ptr<Building> >::iterator buildingsItr;
@@ -205,6 +202,27 @@ void loadDataToOutputSchema(db::DB_Connection& conn,std::string &currentOutputSc
 		{
 			vehOwnChangeDao.insertVehicleOwnershipChanges(*(*vehOwnChangeItr),currentOutputSchema);
 		}
+
+		std::vector<boost::shared_ptr<Household> > householdsWithBids = housingMarketModel.getHouseholdsWithBids();
+		std::vector<boost::shared_ptr<Household> >::iterator hhItr;
+		HouseholdDao hhDao(conn);
+		for(hhItr = householdsWithBids.begin(); hhItr != householdsWithBids.end(); ++hhItr)
+		{
+			hhDao.insertHousehold(*(*hhItr),currentOutputSchema);
+		}
+
+		HM_Model::HouseholdList *households = housingMarketModel.getHouseholdList();
+		HM_Model::HouseholdList::iterator houseHoldItr;
+		for(houseHoldItr = households->begin(); houseHoldItr != households->end(); ++houseHoldItr)
+		{
+			if(((*houseHoldItr)->getIsBidder()) || ((*houseHoldItr)->getIsSeller()))
+					{
+						hhDao.insertHousehold(*(*houseHoldItr),currentOutputSchema);
+					}
+		}
+
+		SimulationStoppedPointDao simStoppedPointDao(conn);
+		simStoppedPointDao.insertSimulationStoppedPoints(*(developerModel.getSimStoppedPointObj(simVersionId)).get(),currentOutputSchema);
 //		developerModel.getBuildingsVec().clear();
 	}
 }
@@ -238,6 +256,7 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
     config.totalRuntimeTicks = days;
     config.defaultWrkGrpAssignment() = WorkGroup::ASSIGN_ROUNDROBIN;
     config.singleThreaded() = false;
+
    
     //simulation time.
     StopWatch simulationWatch;
@@ -252,14 +271,14 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
     dataManager.load();
 
 
-    std::vector<SimulationVersion*> simulationVersionList;
+    std::vector<SimulationStartPoint*> simulationStartPointList;
     DB_Config dbConfig(LT_DB_CONFIG_FILE);
     dbConfig.load();
 
     // Connect to database.
     DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
     conn.connect();
-    SimulationVersionDao simVersionDao(conn);
+    SimulationStartPointDao simStartPointDao(conn);
     bool resume = config.ltParams.resume;
     std::string currentOutputSchema;
 
@@ -277,11 +296,11 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
     	currentOutputSchema = config.ltParams.currentOutputSchema;
     	if(conn.isConnected())
     	{
-    		simulationVersionList = simVersionDao.getAllSimulationVersions(currentOutputSchema);
-    		if(!simulationVersionList.empty())
+    		simulationStartPointList = simStartPointDao.getAllSimulationStartPoints(currentOutputSchema);
+    		if(!simulationStartPointList.empty())
     		{
-    			simVersionId = simulationVersionList[simulationVersionList.size()-1]->getId() + 1;
-    			lastStoppedDay = simulationVersionList[simulationVersionList.size()-1]->getSimStoppedTick();
+    			simVersionId = simulationStartPointList[simulationStartPointList.size()-1]->getId() + 1;
+    			lastStoppedDay = simulationStartPointList[simulationStartPointList.size()-1]->getSimStoppedTick() + 1;
     		}
     	}
     }
@@ -301,18 +320,18 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
         wgMgr.setSingleThreadMode(config.singleThreaded());
         
         // -- Events injector work group.
-        WorkGroup* logsWorker = wgMgr.newWorkGroup(1, days, tickStep);
-        WorkGroup* eventsWorker = wgMgr.newWorkGroup(1, days, tickStep);
+        WorkGroup* logsWorker = wgMgr.newWorkGroup(1, days, tickStep, nullptr, nullptr, nullptr, (uint32_t)lastStoppedDay );
+        WorkGroup* eventsWorker = wgMgr.newWorkGroup(1, days, tickStep,nullptr,nullptr,nullptr, (uint32_t)lastStoppedDay );
         WorkGroup* hmWorkers;
         WorkGroup* devWorkers;
         DeveloperModel *developerModel = nullptr;
         HM_Model *housingMarketModel = nullptr;
 
         if( enableHousingMarket )
-        	hmWorkers = wgMgr.newWorkGroup( workers, days, tickStep);
+        	hmWorkers = wgMgr.newWorkGroup( workers, days, tickStep ,nullptr,nullptr,nullptr, (uint32_t)lastStoppedDay );
 
         if( enableDeveloperModel )
-        	devWorkers = wgMgr.newWorkGroup(workers, days, tickStep);
+        	devWorkers = wgMgr.newWorkGroup(workers, days, tickStep,nullptr,nullptr,nullptr, (uint32_t)lastStoppedDay );
         
         //init work groups.
         wgMgr.initAllGroups();
@@ -341,6 +360,7 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
         {
         	 housingMarketModel = new HM_Model(*hmWorkers);//initializing the housing market model
              housingMarketModel->setStartDay(currentTick);
+             housingMarketModel->setLastStoppedDay(lastStoppedDay);
         	 models.push_back(housingMarketModel);
         }
 
@@ -349,6 +369,7 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
         	 //initiate developer model; to be referred later at each time tick (day)
         	 developerModel = new DeveloperModel(*devWorkers, timeIntervalDevModel);
         	 developerModel->setHousingMarketModel(housingMarketModel);
+        	 developerModel->setStartDay(currentTick);
         	 developerModel->setOpSchemaloadingInterval(opSchemaloadingInterval);
         	 models.push_back(developerModel);
         }

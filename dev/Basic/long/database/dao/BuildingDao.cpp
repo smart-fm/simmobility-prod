@@ -54,14 +54,14 @@ void BuildingDao::toRow(Building& data, Parameters& outParams, bool update)
 	outParams.push_back(data.getLastChangedDate());
 }
 
-std::vector<Building*> BuildingDao::getBuildingsByParcelId(const long long parcelId)
+std::vector<Building*> BuildingDao::getBuildingsByParcelId(const long long parcelId,std::string schema)
 {
 
-	const std::string queryStr = DB_GETBUILDINGS_BY_PARCELID;
+	const std::string DB_GETBUILDINGS_BY_PARCELID      = "SELECT * FROM " + APPLY_SCHEMA(schema, ".fm_building") + " WHERE fm_parcel_id = :v1;";
 	db::Parameters params;
 	params.push_back(parcelId);
 	std::vector<Building*> buildingList;
-	getByQueryId(queryStr,params,buildingList);
+	getByQueryId(DB_GETBUILDINGS_BY_PARCELID,params,buildingList);
 	return buildingList;
 }
 

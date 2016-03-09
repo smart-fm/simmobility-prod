@@ -52,6 +52,10 @@ struct LongTermParams{
 	std::string simulationScenario;
 	bool resume;
 	std::string currentOutputSchema;
+	std::string mainSchemaVersion;
+	std::string configSchemaVersion;
+	std::string calibrationSchemaVersion;
+	std::string geometrySchemaVersion;
 	unsigned int opSchemaloadingInterval;
 
 	struct DeveloperModel{

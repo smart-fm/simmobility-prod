@@ -83,3 +83,14 @@ void UnitDao::insertUnit(Unit& unit,std::string schema)
 	insertViaQuery(unit,DB_INSERT_UNIT_OP);
 
 }
+
+std::vector<Unit*> UnitDao::getUnitsByBuildingId(const long long buildingId,std::string schema)
+{
+	const std::string DB_GET_UNITS_BY_BUILDINGID      = "SELECT * FROM " + APPLY_SCHEMA(schema, ".fm_unit_res") + " WHERE fm_buildingl_id = :v1;";
+	db::Parameters params;
+	params.push_back(buildingId);
+	std::vector<Unit*> unitList;
+	getByQueryId(DB_GET_UNITS_BY_BUILDINGID,params,unitList);
+	return unitList;
+
+}

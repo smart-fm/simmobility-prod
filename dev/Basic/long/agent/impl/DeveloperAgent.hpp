@@ -149,6 +149,10 @@ namespace sim_mob {
 
             bool getParcelDBStatus();
 
+            void setNewBuildings(std::vector<boost::shared_ptr<Building> > buildings);
+
+            void setNewUnits(std::vector<boost::shared_ptr<Unit> > units);
+
         private:
             DeveloperModel* devModel;
             boost::shared_ptr<Parcel> parcel;

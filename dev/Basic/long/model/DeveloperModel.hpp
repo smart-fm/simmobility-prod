@@ -29,8 +29,9 @@
 #include "database/entity/TAO.hpp"
 #include "database/entity/UnitPriceSum.hpp"
 #include "database/entity/TazLevelLandPrice.hpp"
-#include "database/entity/EncodedParamsBySimulation.hpp"
+#include "database/entity/SimulationStoppedPoint.hpp"
 #include "database/entity/DevelopmentPlan.hpp"
+#include "database/entity/BuildingAvgAgePerParcel.hpp"
 #include "agent/impl/DeveloperAgent.hpp"
 #include "agent/impl/RealEstateAgent.hpp"
 #include "model/HM_Model.hpp"
@@ -60,7 +61,8 @@ namespace sim_mob {
             typedef std::vector<TAO*> TAOList;
             typedef std::vector<UnitPriceSum*> UnitPriceSumList;
             typedef std::vector<TazLevelLandPrice*>TazLevelLandPriceList;
-            typedef std::vector<EncodedParamsBySimulation*>EncodedParamsList;
+            typedef std::vector<SimulationStoppedPoint*>SimulationStoppedPointList;
+            typedef std::vector<BuildingAvgAgePerParcel*>BuildingAvgAgePerParcelList;
 
             //maps
             typedef boost::unordered_map<BigSerial,Parcel*> ParcelMap;
@@ -74,6 +76,7 @@ namespace sim_mob {
             typedef boost::unordered_map<BigSerial,UnitPriceSum*> UnitPriceSumMap;
             typedef boost::unordered_map<BigSerial,TazLevelLandPrice*> TazLevelLandPriceMap;
             typedef boost::unordered_map<BigSerial,Project*> ProjectMap;
+            typedef boost::unordered_map<BigSerial,BuildingAvgAgePerParcel*> BuildingAvgAgePerParcelMap;
 
         public:
             DeveloperModel(WorkGroup& workGroup);
@@ -198,12 +201,12 @@ namespace sim_mob {
             /*
              * return the average age of all the buildings in a given parcel for the current simulation date
              */
-            const int getBuildingAvgAge(const BigSerial fmParcelId) const;
+            const BuildingAvgAgePerParcel* getBuildingAvgAgeByParcelId(const BigSerial fmParcelId) const;
 
             /*
              * @return StatusOfWorld object to be inserted to DB at the end of the simulation
              */
-            const boost::shared_ptr<EncodedParamsBySimulation> getEncodedParamsObj(BigSerial simVersionId);
+            const boost::shared_ptr<SimulationStoppedPoint> getSimStoppedPointObj(BigSerial simVersionId);
 
             Parcel* getParcelWithOngoingProjectById(BigSerial parcelId) const;
 
@@ -233,6 +236,8 @@ namespace sim_mob {
 
             std::vector<boost::shared_ptr<DevelopmentPlan> > getDevelopmentPlansVec();
             Project* getProjectByParcelId(BigSerial parcelId) const;
+            void setStartDay(int day);
+            int getStartDay() const;
 
         protected:
             /**
@@ -305,7 +310,7 @@ namespace sim_mob {
             boost::mutex addPotentialProjectsLock;
             boost::mutex addDevPlansLock;
             bool isRestart;
-            EncodedParamsList encodedParamsList;
+            SimulationStoppedPointList simStoppedPointList;
             boost::mutex projectIdLock;
             boost::mutex postcodeLock;
             std::vector<boost::shared_ptr<Building> > newBuildings;
@@ -315,6 +320,10 @@ namespace sim_mob {
             int OpSchemaLoadingInterval;
             std::vector<boost::shared_ptr<DevelopmentPlan> > developmentPlansVec;
             ProjectMap projectByParcelId;
+            int startDay; //start tick of the simulation
+            BuildingAvgAgePerParcelList buildingAvgAgePerParcel;
+            BuildingAvgAgePerParcelMap BuildingAvgAgeByParceld;
+            std::string  outputSchema;
         };
     }
 }

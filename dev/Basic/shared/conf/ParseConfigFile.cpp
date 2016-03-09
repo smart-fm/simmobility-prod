@@ -492,6 +492,10 @@ void sim_mob::ParseConfigFile::ProcessLongTermParamsNode(xercesc::DOMElement* no
 	cfg.ltParams.simulationScenario  = ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "simulationScenario"), "value"), static_cast<std::string>(""));
 	cfg.ltParams.resume              = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName( node, "resume"), "value"), false );
 	cfg.ltParams.currentOutputSchema = ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "currentOutputSchema"), "value"), static_cast<std::string>(""));
+	cfg.ltParams.mainSchemaVersion = ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "mainSchemaVersion"), "value"), static_cast<std::string>(""));
+	cfg.ltParams.configSchemaVersion = ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "configSchemaVersion"), "value"), static_cast<std::string>(""));
+	cfg.ltParams.calibrationSchemaVersion = ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "calibrationSchemaVersion"), "value"), static_cast<std::string>(""));
+	cfg.ltParams.geometrySchemaVersion = ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "geometrySchemaVersion"), "value"), static_cast<std::string>(""));
 	cfg.ltParams.opSchemaloadingInterval = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "opSchemaloadingInterval"), "value"), static_cast<unsigned int>(0));
 
 	LongTermParams::DeveloperModel developerModel;

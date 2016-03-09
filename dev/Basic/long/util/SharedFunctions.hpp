@@ -48,6 +48,12 @@ namespace sim_mob
 		return currentDate;
 	}
 
+	template <class T>
+	static inline boost::shared_ptr<T> to_shared_ptr(T *val)
+	{
+	   return boost::shared_ptr<T>(val);
+	}
+
 	}
 
 }

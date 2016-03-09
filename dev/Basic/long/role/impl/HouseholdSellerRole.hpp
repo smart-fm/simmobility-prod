@@ -50,6 +50,7 @@ namespace sim_mob
              * Inherited from LT_Role
              */
             virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
+            void handleReceivedBid(const Bid &bid, BigSerial unitId);
 
         private:
             friend class HouseholdAgent;
@@ -116,6 +117,7 @@ namespace sim_mob
 
             HouseholdAgent *parent;
             bool active;
+            bool runOnce;
         };
     }
 }

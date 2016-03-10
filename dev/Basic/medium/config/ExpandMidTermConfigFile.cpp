@@ -8,6 +8,7 @@
 #include "entities/BusController.hpp"
 #include "entities/BusControllerMT.hpp"
 #include "entities/TrainController.hpp"
+#include "entities/TrainController.hpp"
 #include "entities/conflux/Conflux.hpp"
 #include "entities/TravelTimeManager.hpp"
 #include "entities/PT_EdgeTravelTime.hpp"
@@ -287,4 +288,9 @@ void ExpandMidTermConfigFile::printSettings()
     NetworkPrinter nwPrinter(cfg, cfg.outNetworkFileName);
 	nwPrinter.printNetwork(RoadNetwork::getInstance());
     std::cout << "------------------\n";
+
+    //Print the train network
+    if(cfg.trainController.enabled){
+    	TrainController<Person_MT>::getInstance()->printTrainNetwork(cfg.outTrainNetworkFilename);
+    }
 }

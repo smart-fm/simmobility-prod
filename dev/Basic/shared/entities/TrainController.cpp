@@ -379,6 +379,52 @@ namespace sim_mob {
 		}
 	}
 	template<typename PERSON>
+	void TrainController<PERSON>::printBlocks(std::ofstream& out) const
+	{
+		std::stringstream outStream;
+		outStream << std::setprecision(8);
+		for (std::map<unsigned int, Block*>::const_iterator it = mapOfIdvsBlocks.begin();it != mapOfIdvsBlocks.end(); it++) {
+			outStream << "(\"block\", " << it->second->getBlockId() << ", {";
+			outStream << "\"length\":\"" << it->second->getLength() << "\",";
+			outStream << "\"speedlimit\":\"" << it->second->getSpeedLimit() << "\",";
+			outStream << "\"acceleration\":\"" << it->second->getAccelerateRate() << "\",";
+			outStream << "\"deceleration\":\"" << it->second->getDecelerateRate() << "\",";
+			outStream << "\"points\":\"[";
+			const PolyLine *polyLine = it->second->getPolyLine();
+			for (std::vector<PolyPoint>::const_iterator itPts = polyLine->getPoints().begin(); itPts != polyLine->getPoints().end(); ++itPts)
+			{
+				outStream << "(" << itPts->getX() << "," << itPts->getY() << "),";
+			}
+			outStream << "]\",";
+			outStream << "})\n";
+		}
+		out << outStream.str() << std::endl;
+	}
+	template<typename PERSON>
+	void TrainController<PERSON>::printPlatforms(std::ofstream& out) const
+	{
+		std::stringstream outStream;
+		outStream << std::setprecision(8);
+		for(std::map<std::string, Platform*>::const_iterator it = mapOfIdvsPlatforms.begin(); it!=mapOfIdvsPlatforms.end(); it++) {
+			const Platform *platform = it->second;
+			outStream << "(\"platform\", " << platform->getPlatformNo() << ", {";
+			outStream << "\"station\":\"" << platform->getStationNo() << "\",";
+			outStream << "\"lineId\":\"" << platform->getLineId() << "\",";
+			outStream << "\"block\":\"" << platform->getAttachedBlockId() << "\",";
+			outStream << "\"length\":\"" << platform->getLength() << "\",";
+			outStream << "\"offset\":\"" << platform->getOffset() << "\",";
+			outStream << "})\n";
+		}
+		out << outStream.str() << std::endl;
+	}
+	template<typename PERSON>
+	void TrainController<PERSON>::printTrainNetwork(const std::string& outFileName) const
+	{
+		std::ofstream out(outFileName.c_str());
+		printBlocks(out);
+		printPlatforms(out);
+	}
+	template<typename PERSON>
 	void TrainController<PERSON>::assignTrainTripToPerson(std::set<Entity*>& activeAgents)
 	{
 		/*const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
@@ -420,7 +466,7 @@ namespace sim_mob {
 	template<typename PERSON>
 	void TrainController<PERSON>::unregisterChild(Entity* child)
 	{
-		delete child;
+
 	}
 	template<typename PERSON>
 	Agent* TrainController<PERSON>::getAgentFromStation(const std::string& nameStation)

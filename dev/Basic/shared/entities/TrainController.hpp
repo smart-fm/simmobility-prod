@@ -112,6 +112,12 @@ public:
 	 * adds station agent to the static allStationAgents
 	 */
 	static void registerStationAgent(const std::string& nameStation, Agent* stationAgent);
+	/**
+	 * Prints the road network to the output file
+	 * @param network the road network
+	 */
+	void printTrainNetwork(const std::string& outFileName) const;
+
 protected:
 	/**
 	 * inherited from base class agent to initialize parameters for train controller
@@ -191,6 +197,16 @@ private:
 	 * compose trips from schedules
 	 */
 	void composeTrainTrips();
+	/**
+	 * print out blocks information
+	 * @param out is output stream
+	 */
+	void printBlocks(std::ofstream& out) const;
+	/**
+	 * print out platforms information
+	 * @param out is output stream
+	 */
+	void printPlatforms(std::ofstream& out) const;
 private:
 	/** global static bus stop agents lookup table*/
 	static StationAgentsMap allStationAgents;

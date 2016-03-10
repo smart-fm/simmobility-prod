@@ -7,6 +7,7 @@
 #ifndef BLOCKT_HPP_
 #define BLOCKT_HPP_
 #include "PolyLine.hpp"
+#include "Point.hpp"
 #include "Platform.hpp"
 
 namespace sim_mob {

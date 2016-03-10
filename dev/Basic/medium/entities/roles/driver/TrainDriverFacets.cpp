@@ -142,12 +142,14 @@ void TrainMovement::frame_tick()
 				params.elapsedSeconds = waitingTime;
 			} else {
 				parentDriver->getParent()->setToBeRemoved();
-				//arrivalAtEndPlatform();
+				arrivalAtEndPlatform();
 			}
 		}
 		break;
 	}
 	}
+
+
 }
 std::string TrainMovement::frame_tick_output()
 {

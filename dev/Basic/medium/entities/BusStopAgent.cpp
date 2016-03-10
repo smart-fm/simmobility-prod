@@ -286,7 +286,7 @@ void BusStopAgent::storeWaitingTime(sim_mob::medium::WaitBusActivity* waitingAct
 {
 	if(!waitingActivity) { return; }
 	PersonWaitingTime personWaitInfo;
-	personWaitInfo.busStopNo = busStop->getStopCode();
+	personWaitInfo.busStopNo = (busStop->isVirtualStop()? busStop->getTwinStop()->getStopCode() : busStop->getStopCode());
 	personWaitInfo.personId  = waitingActivity->getParent()->getId();
 	personWaitInfo.currentTime = DailyTime(currentTimeMS).getStrRepr();
 	personWaitInfo.waitingTime = ((double) waitingActivity->getWaitingTime())/1000.0; //convert ms to second

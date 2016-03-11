@@ -187,13 +187,12 @@ Entity::UpdateStatus BusStopAgent::frame_tick(timeslice now)
 		itWaitBusRole++;
 	}
 
-//  COMMENTED FOR CALIBRATION ~Harish
-//	sim_mob::WaitingCount waitingCnt;
-//	waitingCnt.busStopNo = busStop->getStopCode();
-//	waitingCnt.currTime = DailyTime(now.ms()).getStrRepr();
-//	waitingCnt.count = waitingPersons.size();
-//	messaging::MessageBus::PostMessage(PT_Statistics::getInstance(), STORE_WAITING_PERSON_COUNT,
-//											messaging::MessageBus::MessagePtr(new WaitingCountMessage(waitingCnt)));
+	sim_mob::WaitingCount waitingCnt;
+	waitingCnt.busStopNo = busStop->getStopCode();
+	waitingCnt.currTime = DailyTime(now.ms()).getStrRepr();
+	waitingCnt.count = waitingPersons.size();
+	messaging::MessageBus::PostMessage(PT_Statistics::getInstance(), STORE_WAITING_PERSON_COUNT,
+											messaging::MessageBus::MessagePtr(new WaitingCountMessage(waitingCnt)));
 
 	for(auto* busDriver : servingDrivers)
 	{

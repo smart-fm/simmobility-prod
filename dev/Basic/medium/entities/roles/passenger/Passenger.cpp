@@ -92,38 +92,37 @@ void sim_mob::medium::Passenger::HandleParentMessage(messaging::Message::Message
 
 void sim_mob::medium::Passenger::collectTravelTime()
 {
-//  COMMENTED FOR CALIBRATION ~ Harish
-//	PersonTravelTime personTravelTime;
-//	personTravelTime.personId = parent->getId();
-//	personTravelTime.tripStartPoint = (*(parent->currTripChainItem))->startLocationId;
-//	personTravelTime.tripEndPoint = (*(parent->currTripChainItem))->endLocationId;
-//	personTravelTime.subStartPoint = parent->currSubTrip->startLocationId;
-//	personTravelTime.subEndPoint = parent->currSubTrip->endLocationId;
-//	personTravelTime.subStartType = parent->currSubTrip->startLocationType;
-//	personTravelTime.subEndType = parent->currSubTrip->endLocationType;
-//	personTravelTime.mode = parent->currSubTrip->getMode();
-//	personTravelTime.service = parent->currSubTrip->ptLineId;
-//	personTravelTime.travelTime = ((double)parent->getRole()->getTravelTime()) / 1000.0; //convert to seconds
-//	personTravelTime.arrivalTime = DailyTime(parent->getRole()->getArrivalTime()).getStrRepr();
-//	if (roleType == Role<Person_MT>::RL_TRAINPASSENGER)
-//	{
-//		personTravelTime.mode = "MRT_TRAVEL";
-//	}
-//	else if (roleType == Role<Person_MT>::RL_CARPASSENGER)
-//	{
-//		personTravelTime.mode = "CAR_SHARING_TRAVEL";
-//	}
-//	else if (roleType == Role<Person_MT>::RL_PRIVATEBUSPASSENGER)
-//	{
-//		personTravelTime.mode = "PRIVATE_BUS_TRAVEL";
-//	}
-//	else
-//	{
-//		personTravelTime.mode = "BUS_TRAVEL";
-//	}
-//
-//	messaging::MessageBus::PostMessage(PT_Statistics::getInstance(),
-//			STORE_PERSON_TRAVEL_TIME, messaging::MessageBus::MessagePtr(new PersonTravelTimeMessage(personTravelTime)), true);
+	PersonTravelTime personTravelTime;
+	personTravelTime.personId = parent->getId();
+	personTravelTime.tripStartPoint = (*(parent->currTripChainItem))->startLocationId;
+	personTravelTime.tripEndPoint = (*(parent->currTripChainItem))->endLocationId;
+	personTravelTime.subStartPoint = parent->currSubTrip->startLocationId;
+	personTravelTime.subEndPoint = parent->currSubTrip->endLocationId;
+	personTravelTime.subStartType = parent->currSubTrip->startLocationType;
+	personTravelTime.subEndType = parent->currSubTrip->endLocationType;
+	personTravelTime.mode = parent->currSubTrip->getMode();
+	personTravelTime.service = parent->currSubTrip->ptLineId;
+	personTravelTime.travelTime = ((double)parent->getRole()->getTravelTime()) / 1000.0; //convert to seconds
+	personTravelTime.arrivalTime = DailyTime(parent->getRole()->getArrivalTime()).getStrRepr();
+	if (roleType == Role<Person_MT>::RL_TRAINPASSENGER)
+	{
+		personTravelTime.mode = "MRT_TRAVEL";
+	}
+	else if (roleType == Role<Person_MT>::RL_CARPASSENGER)
+	{
+		personTravelTime.mode = "CAR_SHARING_TRAVEL";
+	}
+	else if (roleType == Role<Person_MT>::RL_PRIVATEBUSPASSENGER)
+	{
+		personTravelTime.mode = "PRIVATE_BUS_TRAVEL";
+	}
+	else
+	{
+		personTravelTime.mode = "BUS_TRAVEL";
+	}
+
+	messaging::MessageBus::PostMessage(PT_Statistics::getInstance(),
+			STORE_PERSON_TRAVEL_TIME, messaging::MessageBus::MessagePtr(new PersonTravelTimeMessage(personTravelTime)), true);
 }
 
 }

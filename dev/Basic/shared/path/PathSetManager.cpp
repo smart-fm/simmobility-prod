@@ -1303,7 +1303,7 @@ bool sim_mob::PrivateTrafficRouteChoice::getBestPathChoiceFromPathSet(boost::sha
 	//step 1.2 : accumulate the logsum
 	ps->logsum = 0.0;
 	std:ostringstream utilityDbg("");
-	sim_mob::BasicLogger & utilLogger = sim_mob::Logger::log("util.log");
+	utilityDbg << ps->id << "\nutility:\n";
 
 	std::vector<sim_mob::SinglePath*> availablePathsForRouteChoice;
 	BOOST_FOREACH(sim_mob::SinglePath* sp, ps->pathChoices)
@@ -1324,9 +1324,11 @@ bool sim_mob::PrivateTrafficRouteChoice::getBestPathChoiceFromPathSet(boost::sha
 			sp->utility = generateUtility(sp); //re-calculate utility
 		}
 
+		utilityDbg << "[" << sp->utility << "," << exp(sp->utility) << "]";
 		ps->logsum += exp(sp->utility);
 		availablePathsForRouteChoice.push_back(sp);
 	}
+	utilityDbg << "\n\nlogsum: " << ps->logsum;
 	// step 2: find the best waypoint path :
 	// calculate a probability using path's utility and pathset's logsum,
 	// compare the resultwith a  random number to decide whether pick the current path as the best path or not
@@ -1334,32 +1336,22 @@ bool sim_mob::PrivateTrafficRouteChoice::getBestPathChoiceFromPathSet(boost::sha
 	double upperProb=0;
 	// 2.1 Draw a random number X between 0.0 and 1.0 for agent A.
 	double random = genRandomDouble(0,1);
+	utilityDbg << "\nrandom number:" << random << "\n";
 	// 2.2 For each path i in the path choice set PathSet(O, D):
 	int i = -1;
-
-	BOOST_FOREACH(sim_mob::SinglePath* sp, availablePathsForRouteChoice)
-	{
-		utilityDbg << ps->id << ","
-				<< sp->scenario << ","
-				<< sp->length << ","
-				<< sp->highWayDistance << ","
-				<< sp->travelTime << ","
-				<< sp->utility << ","
-				<< exp(sp->utility)/(ps->logsum) << ","
-				<< random << "\n";
-	}
-	utilLogger << utilityDbg.str();
-
 	BOOST_FOREACH(sim_mob::SinglePath* sp, availablePathsForRouteChoice)
 	{
 		i++;
 		double prob = exp(sp->utility)/(ps->logsum);
 		upperProb += prob;
+		utilityDbg << "[" << sp->scenario << "," << sp->utility << "," << prob << "," << upperProb << "]";
 		if (random <= upperProb)
 		{
 			// 2.3 agent A chooses path i from the path choice set.
 			ps->bestPath = &(sp->path);
 			//logger << "[LOGIT][" << sp->pathSetId <<  "] [" << i << " of " << ps->pathChoices.size()  << "] [util: " <<  sp->utility << "] [logsum: " << ps->logsum << "][p: " << prob << "][X:" << random << "]\n";
+			utilityDbg << "\nselect: " << sp->pathSetId  << "|" << sp->scenario << "|[" << sp->scenario << "," << sp->utility << "," << prob << "," << upperProb << "]" << "\n";
+			sim_mob::Logger::log("path_selection") << utilityDbg.str() << "\n-------------------------------------------------------\n";
 			return true;
 		}
 	}

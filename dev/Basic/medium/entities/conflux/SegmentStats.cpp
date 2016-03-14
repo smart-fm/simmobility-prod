@@ -749,7 +749,7 @@ void LaneStats::initLaneParams(double vehSpeed, const double capacity)
 	}
 
 	updateOutputCounter();
-	updateAcceptRate(vehSpeed);
+	updateAcceptRate(vehSpeed, numLanes);
 }
 
 void LaneStats::updateOutputFlowRate(double newFlowRate)
@@ -773,10 +773,9 @@ void LaneStats::updateOutputCounter()
 	}
 }
 
-void LaneStats::updateAcceptRate(double speed)
+void LaneStats::updateAcceptRate(double speed, unsigned int numLanes)
 {
 	double acceptRateA = (laneParams->outputFlowRate > 0) ? (1.0 / laneParams->outputFlowRate) : 0.0;
-	int numLanes = parentStats->getNumVehicleLanes();
 	double acceptRateB = PASSENGER_CAR_UNIT / (numLanes * speed);
 	laneParams->acceptRate = std::max(acceptRateA, acceptRateB);
 }
@@ -837,7 +836,7 @@ void SegmentStats::restoreLaneParams(const Lane* lane)
 	laneStats->updateOutputCounter();
 	segDensity = getDensity(true);
 	double upSpeed = speedDensityFunction(segDensity);
-	laneStats->updateAcceptRate(upSpeed);
+	laneStats->updateAcceptRate(upSpeed, numVehicleLanes);
 }
 
 void SegmentStats::updateLaneParams(const Lane* lane, double newOutputFlowRate)
@@ -852,7 +851,7 @@ void SegmentStats::updateLaneParams(const Lane* lane, double newOutputFlowRate)
 	laneStats->updateOutputCounter();
 	segDensity = getDensity(true);
 	double upSpeed = speedDensityFunction(segDensity);
-	laneStats->updateAcceptRate(upSpeed);
+	laneStats->updateAcceptRate(upSpeed, numVehicleLanes);
 }
 
 void SegmentStats::updateLaneParams(timeslice frameNumber)
@@ -867,7 +866,7 @@ void SegmentStats::updateLaneParams(timeslice frameNumber)
 		if (!(it->first)->isPedestrianLane())
 		{
 			(it->second)->updateOutputCounter();
-			(it->second)->updateAcceptRate(segVehicleSpeed);
+			(it->second)->updateAcceptRate(segVehicleSpeed, numVehicleLanes);
 			(it->second)->setInitialQueueLength(it->second->getQueueLength());
 		}
 	}

@@ -293,8 +293,9 @@ public:
 	/**
 	 * updates the accept rate of lane
 	 * @param upSpeed lane speed in m/s
+	 * @param numLanes number of lanes in the parent segment stats
 	 */
-	void updateAcceptRate(double upSpeed);
+	void updateAcceptRate(double upSpeed, unsigned int numLanes);
 
 	/**
 	 * This function prints all agents in laneAgents

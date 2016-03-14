@@ -494,6 +494,12 @@ namespace sim_mob {
 	{
 		switch (type)
 		{
+		case MSG_TRAIN_BACK_DEPOT:
+		{
+			const TrainMessage& msg = MSG_CAST(TrainMessage, message);
+
+			break;
+		}
 		}
 	}
 } /* namespace sim_mob */

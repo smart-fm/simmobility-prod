@@ -388,6 +388,7 @@ void Conflux::processAgents()
 	}
 	updateBusStopAgents(); //finally update bus stop agents in this conflux
 	for(std::vector<Agent*>::iterator it=stationAgents.begin(); it!=stationAgents.end(); it++){
+		(*it)->currWorkerProvider = currWorkerProvider;
 		(*it)->update(currFrame);
 	}
 }
@@ -1998,6 +1999,10 @@ void Conflux::removeIncident(SegmentStats* segStats)
 }
 void Conflux::addStationAgent(Agent* stationAgent)
 {
+	if(!stationAgent){
+		return;
+	}
+	stationAgent->currWorkerProvider = currWorkerProvider;
 	stationAgents.push_back(stationAgent);
 }
 void Conflux::driverStatistics(timeslice now)

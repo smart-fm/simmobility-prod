@@ -9,8 +9,12 @@
 #include "message/MT_Message.hpp"
 #include "entities/roles/driver/TrainDriver.hpp"
 #include "entities/Person_MT.hpp"
+#include "entities/TrainController.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
+#include "message/MT_Message.hpp"
+#include "message/MessageBus.hpp"
+#include "message/MessageHandler.hpp"
 namespace sim_mob {
 namespace medium
 {
@@ -35,6 +39,7 @@ void TrainStationAgent::HandleMessage(messaging::Message::MessageType type, cons
 	case TRAIN_MOVETO_NEXT_PLATFORM:
 	{
 		const TrainDriverMessage& msg = MSG_CAST(TrainDriverMessage, message);
+		msg.trainDriver->getParent()->currWorkerProvider = currWorkerProvider;
 		trainDriver.push_back(msg.trainDriver);
 		msg.trainDriver->setCurrentStatus(TrainDriver::MOVE_TO_PLATFROM);
 		break;
@@ -113,6 +118,8 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 				lastUsage[lineId] = false;
 				if((*it)->getParent()->isToBeRemoved()){
 					removeAheadTrain(*it);
+					messaging::MessageBus::PostMessage(TrainController<Person_MT>::getInstance(),
+							MSG_TRAIN_BACK_DEPOT, messaging::MessageBus::MessagePtr(new TrainMessage((*it)->getParent())));
 				}
 				it = trainDriver.erase(it);
 				break;
@@ -124,7 +131,14 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 }
 void TrainStationAgent::frame_output(timeslice now)
 {
-
+	if (!isToBeRemoved())
+	{
+		std::list<TrainDriver*>::iterator it=trainDriver.begin();
+		while (it != trainDriver.end()) {
+			LogOut((*it)->Movement()->frame_tick_output());
+			it++;
+		}
+	}
 }
 
 bool TrainStationAgent::isNonspatial()

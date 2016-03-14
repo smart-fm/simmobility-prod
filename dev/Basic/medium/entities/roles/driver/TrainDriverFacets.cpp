@@ -18,7 +18,7 @@
 
 namespace {
 const double distanceArrvingAtPlatform = 0.001;
-const double trainLengthMeter = 124;
+const double trainLengthMeter = 140;
 const double convertKmPerHourToMeterPerSec = 1000.0/3600.0;
 }
 namespace sim_mob {
@@ -153,7 +153,22 @@ void TrainMovement::frame_tick()
 }
 std::string TrainMovement::frame_tick_output()
 {
-	return std::string();
+	TrainUpdateParams& params = parentDriver->getParams();
+	const ConfigParams& configParams = ConfigManager::GetInstance().FullConfig();
+	if (!configParams.trainController.outputEnabled) {
+		return std::string();
+	}
+
+	std::stringstream logout;
+	logout << std::setprecision(8);
+	logout << "(\"TrainDriver\"" << ","
+			<< params.now.frame() << "," << parentDriver->getParent()->getId()
+			<< ",{" << "\"xPos\":\"" << trainPathMover.getCurrentPosition().getX()
+			<< "\",\"yPos\":\"" << trainPathMover.getCurrentPosition().getY()
+			<< "\",\"length\":\"" << trainLengthMeter
+			<< "\",\"lineID\":\"" << parentDriver->getTrainLine();
+	logout << "\"})" << std::endl;
+	return logout.str();
 }
 TrainDriver* TrainMovement::getParentDriver() const
 {

@@ -692,6 +692,12 @@ void ParseMidTermConfigFile::processTrainControllerNode(xercesc::DOMElement *nod
     	cfg.trainController.miniDwellTime = value;
     	value = ParseFloat(GetNamedAttributeValue(child, "max_sec"));
     	cfg.trainController.maxDwellTime = value;
+    	child = GetSingleElementByName(node, "output_enabled");
+    	if (child == nullptr)
+    	{
+    		throw std::runtime_error("load output_enabled errors in MT_Config");
+    	}
+    	cfg.trainController.outputEnabled=ParseBoolean(GetNamedAttributeValue(child, "value"), false);
     }
 }
 

@@ -17,7 +17,25 @@
 #include "entities/Agent.hpp"
 #include "entities/misc/TrainTrip.hpp"
 
+using namespace sim_mob::messaging;
 namespace sim_mob {
+
+const Message::MessageType MSG_TRAIN_BACK_DEPOT = 7300001;
+/**
+ * Message holding a pointer to trainDriver
+ */
+class TrainMessage: public messaging::Message
+{
+public:
+	TrainMessage(Agent* agent):
+		trainAgent(agent)
+	{
+	}
+	virtual ~TrainMessage()
+	{
+	}
+	Agent* trainAgent;
+};
 /**
  * the structure to store the train route
  */

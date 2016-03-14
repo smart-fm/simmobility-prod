@@ -476,7 +476,7 @@ bool DriverMovement::moveToNextSegment(DriverUpdateParams& params)
 		}
 		else
 		{
-			departTime += PASSENGER_CAR_UNIT / nxtSegStat->getSegSpeed(true);
+			departTime += (PASSENGER_CAR_UNIT / (nxtSegStat->getNumVehicleLanes() *nxtSegStat->getSegSpeed(true)));
 		}
 	}
 
@@ -568,7 +568,7 @@ void DriverMovement::flowIntoNextLinkIfPossible(DriverUpdateParams& params)
 		}
 		else
 		{
-			departTime += PASSENGER_CAR_UNIT / nextSegStats->getSegSpeed(true);
+			departTime += (PASSENGER_CAR_UNIT / (nextSegStats->getNumVehicleLanes() * nextSegStats->getSegSpeed(true)));
 		}
 	}
 	params.elapsedSeconds = std::max(params.elapsedSeconds, departTime - (convertToSeconds(params.now.ms()))); //in seconds

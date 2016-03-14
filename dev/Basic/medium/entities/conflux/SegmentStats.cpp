@@ -776,7 +776,8 @@ void LaneStats::updateOutputCounter()
 void LaneStats::updateAcceptRate(double speed)
 {
 	double acceptRateA = (laneParams->outputFlowRate > 0) ? (1.0 / laneParams->outputFlowRate) : 0.0;
-	double acceptRateB = PASSENGER_CAR_UNIT / speed;
+	int numLanes = parentStats->getNumVehicleLanes();
+	double acceptRateB = PASSENGER_CAR_UNIT / (numLanes * speed);
 	laneParams->acceptRate = std::max(acceptRateA, acceptRateB);
 }
 
@@ -878,8 +879,6 @@ std::string SegmentStats::reportSegmentStats(uint32_t frameNumber)
 	std::stringstream msg("");
 	if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled())
 	{
-		double density = (numMovingInSegment(true) + numQueuingInSegment(true)) / ((length / 100000.0) * numVehicleLanes); //veh/lane-km
-
 		msg << "(\"segmentState\"" << ","
 				<< frameNumber << ","
 				<< roadSegment->getRoadSegmentId()

@@ -421,7 +421,7 @@ void BusDriverMovement::flowIntoNextLinkIfPossible(DriverUpdateParams& params)
 		}
 		else
 		{
-			departTime += PASSENGER_CAR_UNIT / nextSegStats->getSegSpeed(true);
+			departTime += (PASSENGER_CAR_UNIT / (nextSegStats->getNumVehicleLanes() * nextSegStats->getSegSpeed(true)));
 		}
 	}
 
@@ -675,7 +675,7 @@ bool BusDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 			}
 			else
 			{
-				departTime += PASSENGER_CAR_UNIT / nxtSegStat->getSegSpeed(true);
+				departTime += (PASSENGER_CAR_UNIT / (nxtSegStat->getNumVehicleLanes() * nxtSegStat->getSegSpeed(true)));
 			}
 		}
 

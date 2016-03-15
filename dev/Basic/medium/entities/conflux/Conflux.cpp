@@ -801,24 +801,26 @@ unsigned int Conflux::resetOutputBounds()
 	{
 		lnk = i->first;
 		segStats = upstreamSegStatsMap.at(lnk).front();
-		/** In DynaMIT, the upper bound to the space in virtual queue was set based on the number of empty spaces
-		 the first segment of the downstream link (the one with the vq is attached to it) is going to create in this tick according to the outputFlowRate*tick_size.
-		 This would ideally underestimate the space available in the next segment, as it doesn't account for the empty spaces the segment already has.
-		 Therefore the virtual queues are most likely to be cleared by the end of that tick.
-		 [1] But with short segments, we noticed that this over estimated the space and left a considerably large amount of vehicles remaining in vq.
-		 Therefore, as per Yang Lu's suggestion, we are replacing computeExpectedOutputPerTick() calculation with existing number of empty spaces on the segment.
-		 [2] Another reason for vehicles to remain in vq is that in mid-term, we currently process the new vehicles (i.e.trying to get added to the network from lane infinity),
-		 before we process the virtual queues. Therefore the space that we computed to be for vehicles in virtual queues, would have been already occupied by the new vehicles
-		 by the time the vehicles in virtual queues try to get added.
-		 **/
-		//outputEstimate = segStats->computeExpectedOutputPerTick();
-		/** using ceil here, just to avoid short segments returning 0 as the total number of vehicles the road segment can hold i.e. when segment is shorter than a car**/
-		int num_emptySpaces = std::ceil(segStats->getRoadSegment()->getPolyLine()->getLength() * segStats->getRoadSegment()->getLanes().size() / PASSENGER_CAR_UNIT)
-				- segStats->numMovingInSegment(true) - segStats->numQueuingInSegment(true);
-		outputEstimate = (num_emptySpaces >= 0) ? num_emptySpaces : 0;
-		/** we are decrementing the number of agents in lane infinity (of the first segment) to overcome problem [2] above**/
-		outputEstimate = outputEstimate - segStats->numAgentsInLane(segStats->laneInfinity);
-		outputEstimate = (outputEstimate > 0 ? outputEstimate : 0);
+
+		outputEstimate = segStats->computeExpectedOutputPerTick();
+
+//		/** In DynaMIT, the upper bound to the space in virtual queue was set based on the number of empty spaces
+//		 the first segment of the downstream link (the one with the vq is attached to it) is going to create in this tick according to the outputFlowRate*tick_size.
+//		 This would ideally underestimate the space available in the next segment, as it doesn't account for the empty spaces the segment already has.
+//		 Therefore the virtual queues are most likely to be cleared by the end of that tick.
+//		 [1] But with short segments, we noticed that this over estimated the space and left a considerably large amount of vehicles remaining in vq.
+//		 Therefore, as per Yang Lu's suggestion, we are replacing computeExpectedOutputPerTick() calculation with existing number of empty spaces on the segment.
+//		 [2] Another reason for vehicles to remain in vq is that in mid-term, we currently process the new vehicles (i.e.trying to get added to the network from lane infinity),
+//		 before we process the virtual queues. Therefore the space that we computed to be for vehicles in virtual queues, would have been already occupied by the new vehicles
+//		 by the time the vehicles in virtual queues try to get added.
+//		 **/
+//		/** using ceil here, just to avoid short segments returning 0 as the total number of vehicles the road segment can hold i.e. when segment is shorter than a car**/
+//		int num_emptySpaces = std::ceil(segStats->getLength() * segStats->getNumVehicleLanes() / PASSENGER_CAR_UNIT)
+//				- segStats->numMovingInSegment(true) - segStats->numQueuingInSegment(true);
+//		outputEstimate = (num_emptySpaces >= 0) ? num_emptySpaces : 0;
+//		/** we are decrementing the number of agents in lane infinity (of the first segment) to overcome problem [2] above**/
+//		outputEstimate = outputEstimate - segStats->numAgentsInLane(segStats->laneInfinity);
+//		outputEstimate = (outputEstimate > 0 ? outputEstimate : 0);
 		vqBounds.insert(std::make_pair(lnk, (unsigned int) outputEstimate));
 		vqCount += i->second.size();
 	}			//loop

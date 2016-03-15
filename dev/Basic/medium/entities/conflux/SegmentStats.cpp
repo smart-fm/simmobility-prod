@@ -544,14 +544,8 @@ double SegmentStats::getTotalDensity(bool hasVehicle)
 {
 	double density = 0.0;
 	double totalPCUs = getTotalVehicleLength() / PASSENGER_CAR_UNIT;
-	if (length > PASSENGER_CAR_UNIT)
-	{
-		density = totalPCUs / (numVehicleLanes * (length / 1000.0));
-	}
-	else
-	{
-		density = 1 / (PASSENGER_CAR_UNIT / 1000.0);
-	}
+	density = totalPCUs / (numVehicleLanes * (length / 1000.0));
+
 	return density;
 }
 
@@ -881,27 +875,35 @@ std::string SegmentStats::reportSegmentStats(uint32_t frameNumber)
 		msg << "(\"segmentState\"" << ","
 				<< frameNumber << ","
 				<< roadSegment->getRoadSegmentId()
-				<< ",{" << "\"speed\":\"" << segVehicleSpeed << "\",\"flow\":\"" << segFlow << "\",\"density\":\"" << getTotalDensity(true) << "\",\"total\":\"" << (numPersons - numAgentsInLane(laneInfinity)) << "\",\"totalL\":\""
-				<< getTotalVehicleLength()
-				<< "\",\"moving\":\"" << numMovingInSegment(true) << "\",\"movingL\":\"" << getMovingLength()
-				<< "\",\"queue\":\"" << numQueuingInSegment(true) << "\",\"queueL\":\"" << getQueueLength()
+				<< ",{" << "\"speed\":\"" << segVehicleSpeed
+				<< "\",\"flow\":\"" << segFlow
+				<< "\",\"density\":\"" << getTotalDensity(true)
+				<< "\",\"total\":\"" << (numPersons - numAgentsInLane(laneInfinity))
+				<< "\",\"totalL\":\"" << getTotalVehicleLength()
+				<< "\",\"moving\":\"" << numMovingInSegment(true)
+				<< "\",\"movingL\":\"" << getMovingLength()
+				<< "\",\"queue\":\"" << numQueuingInSegment(true)
+				<< "\",\"queueL\":\"" << getQueueLength()
 				<< "\",\"numVehicleLanes\":\"" << numVehicleLanes
 				<< "\",\"segment_length\":\"" << length
-				<< "\",\"segment_id\":\"" << roadSegment->getRoadSegmentId() << "\",\"stats_num\":\"" << statsNumberInSegment << "\"})"
+				<< "\",\"segment_id\":\"" << roadSegment->getRoadSegmentId()
+				<< "\",\"stats_num\":\"" << statsNumberInSegment << "\"})"
 				<< "\n";
 //		msg << "SegStats-,"
 //				<< frameNumber << ","
-//				<< roadSegment->getSegmentAimsunId() << ","
-//				<< roadSegment->getPolylineLength() / 100000.0 << ","
+//				<< roadSegment->getRoadSegmentId() << ","
 //				<< statsNumberInSegment << ","
-//				<< length / 100000.0 << ","
 //				<< numVehicleLanes << ","
+//				<< length << ","
 //				<< numMovingInSegment(true) << ","
+//				<< getMovingLength() << ","
 //				<< numQueuingInSegment(true) << ","
+//				<< getQueueLength() << ","
+//				<< supplyParams.getCapacity() << ","
 //				<< segVehicleSpeed << ","
-//				<< density << ","
-//				<< supplyParams.getCapacity()
-//				<< std::endl;
+//				<< segFlow << ","
+//				<< getTotalDensity(true)
+//				<< "\n";
 	}
 	return msg.str();
 

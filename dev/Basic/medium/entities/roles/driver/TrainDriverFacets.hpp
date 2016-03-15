@@ -52,6 +52,11 @@ public:
 	 */
 	const TrainPathMover& getPathMover() const;
 	/**
+	 * get the object of platform mover
+	 * @return the reference to the object of platform mover
+	 */
+	Platform* getNextPlatform();
+	/**
 	 * move train forward
 	 * @return true if train successfully move forward.
 	 */
@@ -110,6 +115,11 @@ private:
 	 * @return effective distance
 	 */
 	double getEffectiveMovingDistance();
+	/**
+	 * is station case happen?
+	 * @return true when station case happen
+	 */
+	bool isStationCase(double disToTrain, double disToPlatform, double& effectDis);
 };
 
 }

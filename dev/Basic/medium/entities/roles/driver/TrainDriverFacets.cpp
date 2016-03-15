@@ -75,7 +75,10 @@ const TrainPathMover& TrainMovement::getPathMover() const
 {
 	return trainPathMover;
 }
-
+Platform* TrainMovement::getNextPlatform()
+{
+	return trainPlatformMover.getNextPlatform();
+}
 TravelMetric& TrainMovement::finalizeTravelTimeMetric()
 {
 	return  travelMetric;
@@ -94,31 +97,6 @@ void TrainMovement::frame_init()
 void TrainMovement::frame_tick()
 {
 	TrainUpdateParams& params = parentDriver->getParams();
-
-	const TrainTrip* trip = dynamic_cast<const TrainTrip*>(*(parentDriver->getParent()->currTripChainItem));
-    const std::string& fileName("pt_mrt_move.csv");
-    sim_mob::BasicLogger& ptMRTMoveLogger  = sim_mob::Logger::log(fileName);
-    DailyTime startTime = ConfigManager::GetInstance().FullConfig().simStartTime();
-    ptMRTMoveLogger << DailyTime(params.now.ms()+startTime.getValue()).getStrRepr() << ",";
-    if(trip) ptMRTMoveLogger << trip->getLineId() << ",";
-    if(trip) ptMRTMoveLogger << trip->getTripId() << ",";
-    ptMRTMoveLogger << params.currentSpeed/convertKmPerHourToMeterPerSec << ",";
-     Platform* next = trainPlatformMover.getNextPlatform();
-    std::string platformNo("");
-    if(next){
-    	platformNo = next->getPlatformNo();
-		ptMRTMoveLogger << platformNo << ",";
-		ptMRTMoveLogger << trainPathMover.getDistanceToNextPlatform(next) << ",";
-    }
-    ptMRTMoveLogger << trainPathMover.getCurrentPosition().getX() << ",";
-    ptMRTMoveLogger << trainPathMover.getCurrentPosition().getY() << ",";
-    ptMRTMoveLogger << params.currentAcelerate << ",";
-    //ptMRTMoveLogger << params.currCase << ",";
-    //ptMRTMoveLogger << parentDriver->getParent()->isToBeRemoved() << ",";
-    //ptMRTMoveLogger << (parentDriver->getNextDriver()?parentDriver->getNextDriver()->getTripId():0) << ",";
-    ptMRTMoveLogger << this->parentDriver->waitingTimeSec << std::endl;
-    //sim_mob::Logger::log(fileName).flush();
-
 	TrainDriver::TRAIN_STATUS status = parentDriver->getCurrentStatus();
 	switch(status){
 	case TrainDriver::MOVE_TO_PLATFROM:
@@ -150,6 +128,29 @@ void TrainMovement::frame_tick()
 	}
 
 
+	const TrainTrip* trip = dynamic_cast<const TrainTrip*>(*(parentDriver->getParent()->currTripChainItem));
+    const std::string& fileName("pt_mrt_move.csv");
+    sim_mob::BasicLogger& ptMRTMoveLogger  = sim_mob::Logger::log(fileName);
+    DailyTime startTime = ConfigManager::GetInstance().FullConfig().simStartTime();
+    ptMRTMoveLogger << DailyTime(params.now.ms()+startTime.getValue()).getStrRepr() << ",";
+    if(trip) ptMRTMoveLogger << trip->getLineId() << ",";
+    if(trip) ptMRTMoveLogger << trip->getTripId() << ",";
+    ptMRTMoveLogger << params.currentSpeed/convertKmPerHourToMeterPerSec << ",";
+     Platform* next = trainPlatformMover.getNextPlatform();
+    std::string platformNo("");
+    if(next){
+    	platformNo = next->getPlatformNo();
+		ptMRTMoveLogger << platformNo << ",";
+    }
+    ptMRTMoveLogger << params.disToNextPlatform << ",";
+    //ptMRTMoveLogger << params.disToNextTrain << ",";
+    ptMRTMoveLogger << trainPathMover.getCurrentPosition().getX() << ",";
+    ptMRTMoveLogger << trainPathMover.getCurrentPosition().getY() << ",";
+    ptMRTMoveLogger << params.currentAcelerate << ",";
+    //ptMRTMoveLogger << params.currCase << ",";
+    //ptMRTMoveLogger << (parentDriver->getNextDriver()?parentDriver->getNextDriver()->getTripId():0) << ",";
+    ptMRTMoveLogger << this->parentDriver->waitingTimeSec << std::endl;
+    //sim_mob::Logger::log(fileName).flush();
 }
 std::string TrainMovement::frame_tick_output()
 {
@@ -183,7 +184,34 @@ void TrainMovement::setParentDriver(TrainDriver* parentDriver)
 	}
 	this->parentDriver = parentDriver;
 }
-
+bool TrainMovement::isStationCase(double disToTrain, double disToPlatform, double& effectDis)
+{
+	bool res = false;
+	effectDis = disToTrain;
+	if (disToPlatform > 0.0 && disToTrain == 0.0) {
+		effectDis = disToPlatform;
+		res = true;
+	} else if (disToTrain != 0.0 && disToPlatform != 0.0
+			&& disToPlatform < disToTrain) {
+		effectDis = disToPlatform;
+		res = true;
+	} else {
+		const TrainDriver* next = parentDriver->getNextDriver();
+		if (next) {
+			if (disToPlatform > 0.0
+					&& next->getNextPlatform() != parentDriver->getNextPlatform()) {
+				effectDis = disToPlatform;
+				res = true;
+			} else if (disToTrain > 0.0 && disToTrain < disToPlatform
+					&& next->getCurrentStatus() == TrainDriver::WAITING_LEAVING
+					&& next->getNextPlatform() == parentDriver->getNextPlatform()) {
+				effectDis = disToTrain;
+				res = true;
+			}
+		}
+	}
+	return res;
+}
 double TrainMovement::getRealSpeedLimit()
 {
 	TrainUpdateParams& params = parentDriver->getParams();
@@ -204,26 +232,25 @@ double TrainMovement::getRealSpeedLimit()
 		}
 	}
 
-	if ((distanceToNextPlatform != 0.0 && distanceToNextTrain == 0.0)
-			|| (distanceToNextTrain != 0.0 && distanceToNextPlatform != 0.0
-					&& distanceToNextPlatform < distanceToNextTrain)) {
-		double decelerate = trainPathMover.getCurrentDecelerationRate();
-		speedLimit = std::sqrt(2.0 * decelerate * distanceToNextPlatform);
-		if (params.currentSpeed > speedLimit) {
-			params.currCase = TrainUpdateParams::STATION_CASE;
-			params.currentSpeedLimit = speedLimit;
-			params.disToNextPlatform = distanceToNextPlatform;
-			return speedLimit;
-		}
-	}
-
-	params.currCase = TrainUpdateParams::NORMAL_CASE;
 	if(distanceToNextTrain==0.0||distanceToNextPlatform==0.0){
 		distanceToNextObject = std::max(distanceToNextTrain, distanceToNextPlatform);
 	} else {
 		distanceToNextObject = std::min(distanceToNextTrain,distanceToNextPlatform);
 	}
 
+	params.disToNextPlatform = distanceToNextPlatform;
+	params.disToNextTrain = distanceToNextTrain;
+	if (isStationCase(distanceToNextTrain,distanceToNextPlatform, distanceToNextObject)) {
+		double decelerate = trainPathMover.getCurrentDecelerationRate();
+		speedLimit = std::sqrt(2.0 * decelerate * distanceToNextObject);
+		if (params.currentSpeed > speedLimit) {
+			params.currCase = TrainUpdateParams::STATION_CASE;
+			params.currentSpeedLimit = speedLimit;
+			return speedLimit;
+		}
+	}
+
+	params.currCase = TrainUpdateParams::NORMAL_CASE;
 	if(distanceToNextObject<0){
 		speedLimit = 0.0;
 	} else {

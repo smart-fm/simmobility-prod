@@ -10,7 +10,7 @@
 namespace sim_mob {
 
 
-TrainTrip::TrainTrip()
+TrainTrip::TrainTrip():trainId(0), tripId(0)
 {
 
 }

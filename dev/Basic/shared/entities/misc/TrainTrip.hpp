@@ -54,11 +54,19 @@ public:
 	unsigned int getStartTime() const{
 		return startTime.getValue();
 	}
+	void setTrainId(int id){
+		trainId = id;
+	}
+	int getTrainId() const{
+		return trainId;
+	}
 private:
 	/**train line id*/
 	std::string lineId;
 	/**trip id of current train*/
 	int tripId;
+	/**train id of current train*/
+	int trainId;
 	/**train route include a list of blocks*/
 	std::vector<Block*> trainRoute;
 	/**train platform include a list of platform*/

@@ -117,5 +117,14 @@ int TrainDriver::getTripId() const
 	}
 	return id;
 }
+Platform* TrainDriver::getNextPlatform() const
+{
+	Platform* platform = nullptr;
+	TrainMovement* movement = dynamic_cast<TrainMovement*>(movementFacet);
+	if(movement){
+		platform = movement->getNextPlatform();
+	}
+	return platform;
+}
 }
 } /* namespace sim_mob */

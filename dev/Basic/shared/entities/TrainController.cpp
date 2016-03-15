@@ -46,12 +46,22 @@ namespace sim_mob {
 	template<typename PERSON>
 	Entity::UpdateStatus TrainController<PERSON>::frame_tick(timeslice now)
 	{
-		while (!pendingChildren.empty() && pendingChildren.top()->getStartTime()<=now.ms())
+		std::map<std::string, TripStartTimePriorityQueue>::iterator it;
+		for(it=mapOfIdvsTrip.begin(); it!=mapOfIdvsTrip.end(); it++)
 		{
-			Entity* child = pendingChildren.top();
-			pendingChildren.pop();
-			child->parentEntity = this;
-			this->currWorkerProvider->scheduleForBred(child);
+			TripStartTimePriorityQueue& trainTrips = it->second;
+			while(!trainTrips.empty()&&trainTrips.top()->getStartTime()<=now.ms())
+			{
+				const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
+				PERSON* person = new PERSON("TrainController", config.mutexStategy());
+				std::vector<TripChainItem*> tripChain;
+				TrainTrip* top = trainTrips.top();
+				tripChain.push_back(top);
+				person->setTripChain(tripChain);
+				person->setStartTime(top->getStartTime());
+				trainTrips.pop();
+				this->currWorkerProvider->scheduleForBred(person);
+			}
 		}
 		return Entity::UpdateStatus::Continue;
 	}
@@ -254,9 +264,9 @@ namespace sim_mob {
 					trainTrip->setStartTime(start);
 					trainTrip->itemType = TripChainItem::IT_TRAINTRIP;
 					if(mapOfIdvsTrip.find(lineId)==mapOfIdvsTrip.end()) {
-						mapOfIdvsTrip[lineId] = std::vector<TrainTrip*>();
+						mapOfIdvsTrip[lineId] = TripStartTimePriorityQueue();
 					}
-					mapOfIdvsTrip[lineId].push_back(trainTrip);
+					mapOfIdvsTrip[lineId].push(trainTrip);
 				}
 			}
 		}
@@ -445,23 +455,6 @@ namespace sim_mob {
 		person->setTripChain(tripChain);
 		person->parentEntity = this;
 		activeAgents.insert(person);}*/
-
-		std::map<std::string, std::vector<TrainTrip*>>::const_iterator it;
-		for(it=mapOfIdvsTrip.begin(); it!=mapOfIdvsTrip.end(); it++)
-		{
-			const std::vector<TrainTrip*>& trainTrips = it->second;
-			std::vector<TrainTrip*>::const_iterator iTrip;
-			for(iTrip=trainTrips.begin(); iTrip!=trainTrips.end(); iTrip++){
-				const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
-				PERSON* person = new PERSON("TrainController", config.mutexStategy());
-				std::vector<TripChainItem*> tripChain;
-				tripChain.push_back((*iTrip));
-				person->setTripChain(tripChain);
-				person->setStartTime((*iTrip)->getStartTime());
-				person->parentEntity = this;
-				pendingChildren.push(person);
-			}
-		}
 	}
 	template<typename PERSON>
 	void TrainController<PERSON>::unregisterChild(Entity* child)
@@ -496,9 +489,16 @@ namespace sim_mob {
 		{
 		case MSG_TRAIN_BACK_DEPOT:
 		{
-			const TrainMessage& msg = MSG_CAST(TrainMessage, message);
+				const TrainMessage& msg = MSG_CAST(TrainMessage, message);
+				PERSON* person = dynamic_cast<PERSON*>(msg.trainAgent);
+				if(person) {
+					const std::vector<TripChainItem *>& tripChain = person->getTripChain();
+					TrainTrip* front = dynamic_cast<TrainTrip*>(tripChain.front());
+					if(front) {
 
-			break;
+					}
+				}
+				break;
 		}
 		}
 	}

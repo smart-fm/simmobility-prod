@@ -87,7 +87,22 @@ struct TransferTimeInPlatform {
 	std::string platformSecond;
 	int transferedTimeSec;
 };
+struct cmp_trip_start : public std::less<TrainTrip*>
+{
+	bool operator()(const TrainTrip* x, const TrainTrip* y) const
+	{
+		if ((!x) || (!y)) {
+			return false;
+		}
 
+		return x->getStartTime() > y->getStartTime();
+	}
+};
+
+/**C++ static constructors*/
+class TripStartTimePriorityQueue : public std::priority_queue<TrainTrip*, std::vector<TrainTrip*>, cmp_trip_start>
+{
+};
 template<typename PERSON>
 class TrainController: public sim_mob::Agent {
 	BOOST_STATIC_ASSERT_MSG(
@@ -239,7 +254,7 @@ private:
 	/**the map from id to the schedule table*/
 	std::map<std::string, std::vector<TrainSchedule>> mapOfIdvsSchedules;
 	/**the map from id to trip*/
-	std::map<std::string, std::vector<TrainTrip*>> mapOfIdvsTrip;
+	std::map<std::string, TripStartTimePriorityQueue> mapOfIdvsTrip;
 	/**the map from name to the station*/
 	std::map<std::string, Station*> mapOfIdvsStations;
 	/**the map from id to polyline object*/

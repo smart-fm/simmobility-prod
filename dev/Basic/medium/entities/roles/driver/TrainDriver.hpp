@@ -72,6 +72,11 @@ public:
 	 * @return trip id;
 	 */
 	int getTripId() const;
+	/**
+	 * get next platform
+	 * @return next platform
+	 */
+	Platform* getNextPlatform() const;
 private:
 	/**get next train driver*/
 	const TrainDriver* nextDriver;

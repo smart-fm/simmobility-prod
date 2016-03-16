@@ -70,7 +70,7 @@ bool GreaterDistToSegmentEnd::operator ()(const Person_MT* x, const Person_MT* y
 SupplyParams::SupplyParams(const RoadSegment* rdSeg, double statsLength) :
 		freeFlowSpeed(rdSeg->getMaxSpeed()), minSpeed(0.2 * freeFlowSpeed), /*20% of free flow speed as suggested by Yang Lu*/
 		jamDensity(0.2), /*density during traffic jam in veh/meter*/
-		minDensity(0.0), /*minimum traffic density in veh/meter*/
+		minDensity(0.2 * 0.2), /*minimum traffic density in veh/meter*/ /*20% of jam density as suggested by Adnan*/
 		capacity(rdSeg->getCapacity()), /*capacity in vehicles/s*/
 		alpha(0.0),
 		beta(0.0)
@@ -79,6 +79,14 @@ SupplyParams::SupplyParams(const RoadSegment* rdSeg, double statsLength) :
 	std::pair<double, double> speedDensityParams = MT_Config::getInstance().getSpeedDensityParam(linkCategory);
 	alpha = speedDensityParams.first;
 	beta = speedDensityParams.second;
+
+	//TESTING ~ Harish
+	alpha = 1.0;
+	beta = 1.0;
+	unsigned int numLanes = rdSeg->getLanes().size();
+	capacity = capacity + (0.42 * numLanes); // increase by 1600 veh/hr
+	freeFlowSpeed = freeFlowSpeed + 5.55556; //increase by 20kmph
+	minSpeed = 0.2 * freeFlowSpeed;
 }
 
 SegmentStats::SegmentStats(const RoadSegment* rdSeg, Conflux* parentConflux, double statslengthInM) :

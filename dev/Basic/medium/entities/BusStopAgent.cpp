@@ -287,7 +287,7 @@ void BusStopAgent::storeWaitingTime(sim_mob::medium::WaitBusActivity* waitingAct
 	PersonWaitingTime personWaitInfo;
 	personWaitInfo.busStopNo = (busStop->isVirtualStop()? busStop->getTwinStop()->getStopCode() : busStop->getStopCode());
 	personWaitInfo.personId  = waitingActivity->getParent()->getId();
-	personWaitInfo.currentTime = DailyTime(currentTimeMS).getStrRepr();
+	personWaitInfo.currentTime = DailyTime(currentTimeMS + ConfigManager::GetInstance().FullConfig().simulation.baseGranMS).getStrRepr(); //person is boarded at the end of tick
 	personWaitInfo.waitingTime = ((double) waitingActivity->getWaitingTime())/1000.0; //convert ms to second
 	personWaitInfo.busLine = waitingActivity->getBusLines();
 	personWaitInfo.deniedBoardingCount = waitingActivity->getDeniedBoardingCount();

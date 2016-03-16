@@ -74,17 +74,15 @@ namespace sim_mob
 			else
 				tenureStatus = "rent";
 
-			std::vector<TenureTransitionRate*> tenureTransitionRates;
-
 			double futureTransitionRate = 0;
 
-			for(int p = 0; p < tenureTransitionRates.size(); p++)
+			for(int p = 0; p < model->getTenureTransitionRates().size(); p++)
 			{
-				if( tenureTransitionRates[p]->getAgeGroup() == tenureTransitionId &&
-					tenureTransitionRates[p]->getCurrentStatus() == tenureStatus  &&
-					tenureTransitionRates[p]->getFutureStatus() == "own" )
+				if( model->getTenureTransitionRates()[p]->getAgeGroup() == tenureTransitionId &&
+					model->getTenureTransitionRates()[p]->getCurrentStatus() == tenureStatus  &&
+					model->getTenureTransitionRates()[p]->getFutureStatus() == string("own") )
 				{
-					futureTransitionRate = tenureTransitionRates[p]->getRate() / 100.0;
+					futureTransitionRate = model->getTenureTransitionRates()[p]->getRate() / 100.0;
 				}
 			}
 

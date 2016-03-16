@@ -4,6 +4,7 @@
  *  Created on: Feb 17, 2016
  *      Author: zhang huai peng
  */
+#include <atomic>
 #include "conf/settings/DisableMPI.h"
 #include "entities/roles/RoleFacets.hpp"
 #include "TrainPathMover.hpp"
@@ -99,6 +100,8 @@ private:
 	double safeDistance;
 	/**safe headway*/
 	double safeHeadway;
+	/**next platform*/
+	std::atomic<Platform*> nextPlatform;
 private:
 	/**
 	 * get current speed limit

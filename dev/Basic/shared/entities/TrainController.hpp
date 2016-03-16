@@ -240,6 +240,11 @@ private:
 	 * @param out is output stream
 	 */
 	void printPlatforms(std::ofstream& out) const;
+	/**
+	 * get Train Id
+	 * @param lineId is refer to train line
+	 */
+	int getTrainId(const std::string& lineId);
 private:
 	/** global static bus stop agents lookup table*/
 	static StationAgentsMap allStationAgents;
@@ -261,6 +266,10 @@ private:
 	std::map<unsigned int, PolyLine*> mapOfIdvsPolylines;
 	/**	buses waiting to be added to the simulation, prioritized by start time.*/
 	StartTimePriorityQueue pendingChildren;
+	/**last train id*/
+	int lastTrainId;
+	/**reused train Ids*/
+	std::map<std::string, std::vector<int>> recycleTrainId;
 private:
 	static TrainController* pInstance;
 };

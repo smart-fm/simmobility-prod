@@ -56,7 +56,7 @@ void TrainBehavior::setParentDriver(TrainDriver* parentDriver)
 	this->parentDriver = parentDriver;
 }
 
-TrainMovement::TrainMovement():MovementFacet(),parentDriver(nullptr),safeDistance(0),safeHeadway(0)
+TrainMovement::TrainMovement():MovementFacet(),parentDriver(nullptr),safeDistance(0),safeHeadway(0),nextPlatform(nullptr)
 {
 	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
 	safeDistance = config.trainController.safeDistance;
@@ -77,7 +77,7 @@ const TrainPathMover& TrainMovement::getPathMover() const
 }
 Platform* TrainMovement::getNextPlatform()
 {
-	return trainPlatformMover.getNextPlatform();
+	return nextPlatform;
 }
 TravelMetric& TrainMovement::finalizeTravelTimeMetric()
 {
@@ -97,6 +97,33 @@ void TrainMovement::frame_init()
 void TrainMovement::frame_tick()
 {
 	TrainUpdateParams& params = parentDriver->getParams();
+	///output movement info
+	const TrainTrip* trip = dynamic_cast<const TrainTrip*>(*(parentDriver->getParent()->currTripChainItem));
+    const std::string& fileName("pt_mrt_move.csv");
+    sim_mob::BasicLogger& ptMRTMoveLogger  = sim_mob::Logger::log(fileName);
+    DailyTime startTime = ConfigManager::GetInstance().FullConfig().simStartTime();
+    ptMRTMoveLogger << DailyTime(params.now.ms()+startTime.getValue()).getStrRepr() << ",";
+    if(trip) ptMRTMoveLogger << trip->getLineId() << ",";
+    //if(trip) ptMRTMoveLogger << trip->getTrainId() << ",";
+    if(trip) ptMRTMoveLogger << trip->getTripId() << ",";
+    ptMRTMoveLogger << params.currentSpeed/convertKmPerHourToMeterPerSec << ",";
+     Platform* next = trainPlatformMover.getNextPlatform();
+    std::string platformNo("");
+    if(next){
+    	platformNo = next->getPlatformNo();
+		ptMRTMoveLogger << platformNo << ",";
+		ptMRTMoveLogger << trainPathMover.getDistanceToNextPlatform(trainPlatformMover.getNextPlatform()) << ",";
+    }
+    //ptMRTMoveLogger << params.disToNextPlatform << ",";
+    //ptMRTMoveLogger << params.disToNextTrain << ",";
+    ptMRTMoveLogger << trainPathMover.getCurrentPosition().getX() << ",";
+    ptMRTMoveLogger << trainPathMover.getCurrentPosition().getY() << ",";
+    ptMRTMoveLogger << params.currentAcelerate << ",";
+    //ptMRTMoveLogger << params.currCase << ",";
+    //ptMRTMoveLogger << (parentDriver->getNextDriver()?parentDriver->getNextDriver()->getTripId():0) << ",";
+    ptMRTMoveLogger << this->parentDriver->waitingTimeSec << std::endl;
+    //sim_mob::Logger::log(fileName).flush();
+
 	TrainDriver::TRAIN_STATUS status = parentDriver->getCurrentStatus();
 	switch(status){
 	case TrainDriver::MOVE_TO_PLATFROM:
@@ -126,31 +153,6 @@ void TrainMovement::frame_tick()
 		break;
 	}
 	}
-
-
-	const TrainTrip* trip = dynamic_cast<const TrainTrip*>(*(parentDriver->getParent()->currTripChainItem));
-    const std::string& fileName("pt_mrt_move.csv");
-    sim_mob::BasicLogger& ptMRTMoveLogger  = sim_mob::Logger::log(fileName);
-    DailyTime startTime = ConfigManager::GetInstance().FullConfig().simStartTime();
-    ptMRTMoveLogger << DailyTime(params.now.ms()+startTime.getValue()).getStrRepr() << ",";
-    if(trip) ptMRTMoveLogger << trip->getLineId() << ",";
-    if(trip) ptMRTMoveLogger << trip->getTripId() << ",";
-    ptMRTMoveLogger << params.currentSpeed/convertKmPerHourToMeterPerSec << ",";
-     Platform* next = trainPlatformMover.getNextPlatform();
-    std::string platformNo("");
-    if(next){
-    	platformNo = next->getPlatformNo();
-		ptMRTMoveLogger << platformNo << ",";
-    }
-    ptMRTMoveLogger << params.disToNextPlatform << ",";
-    //ptMRTMoveLogger << params.disToNextTrain << ",";
-    ptMRTMoveLogger << trainPathMover.getCurrentPosition().getX() << ",";
-    ptMRTMoveLogger << trainPathMover.getCurrentPosition().getY() << ",";
-    ptMRTMoveLogger << params.currentAcelerate << ",";
-    //ptMRTMoveLogger << params.currCase << ",";
-    //ptMRTMoveLogger << (parentDriver->getNextDriver()?parentDriver->getNextDriver()->getTripId():0) << ",";
-    ptMRTMoveLogger << this->parentDriver->waitingTimeSec << std::endl;
-    //sim_mob::Logger::log(fileName).flush();
 }
 std::string TrainMovement::frame_tick_output()
 {
@@ -225,7 +227,8 @@ double TrainMovement::getRealSpeedLimit()
 	if(nextDriver){
 		TrainMovement* nextMovement = dynamic_cast<TrainMovement*>(nextDriver->movementFacet);
 		if(nextMovement){
-			double dis = trainPathMover.getDistanceToNextTrain(nextMovement->getPathMover());
+			//double dis = trainPathMover.getDistanceToNextTrain(nextMovement->getPathMover());
+			double dis = trainPathMover.getDifferentDistance(nextMovement->getPathMover());
 			if(dis>0){
 				distanceToNextTrain = dis-safeDistance-trainLengthMeter;
 			}
@@ -350,6 +353,7 @@ void TrainMovement::leaveFromPlaform()
 	if (!isAtLastPlaform()) {
 		moveForward();
 		Platform* next = trainPlatformMover.getNextPlatform(true);
+		nextPlatform = next;
 		std::string stationNo = next->getStationNo();
 		Agent* stationAgent = TrainController<Person_MT>::getAgentFromStation(stationNo);
 		messaging::MessageBus::PostMessage(stationAgent,TRAIN_MOVETO_NEXT_PLATFORM,

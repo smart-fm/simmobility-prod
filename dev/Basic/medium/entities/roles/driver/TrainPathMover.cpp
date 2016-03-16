@@ -87,7 +87,8 @@ double TrainPathMover::advance(double distance)
 	}
 
 	distanceMoveToNextPoint += distance;
-	distMovedOnEntirePath += distance;
+	double temp = distMovedOnEntirePath.load();
+	distMovedOnEntirePath.store(temp+distance);
 
 	double distBetwCurrAndNxtPt = calcDistanceBetweenTwoPoints();
 
@@ -151,6 +152,11 @@ double TrainPathMover::getDistanceToNextTrain(const TrainPathMover& other) const
 		distance += other.getDistCoveredOnCurrBlock();
 	}
 	return distance;
+}
+double TrainPathMover::getDifferentDistance(const TrainPathMover& other) const
+{
+	double otherCoveredDis = other.getTotalCoveredDistance();
+	return otherCoveredDis-distMovedOnEntirePath;
 }
 double TrainPathMover::getCurrentSpeedLimit()
 {
@@ -237,7 +243,7 @@ bool TrainPathMover::advanceToNextBlock()
 
 	return ret;
 }
-double TrainPathMover::getTotalCoveredDistance()
+double TrainPathMover::getTotalCoveredDistance() const
 {
 	return distMovedOnEntirePath;
 }

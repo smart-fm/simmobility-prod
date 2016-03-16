@@ -2,9 +2,9 @@
  * TrainDriver.hpp
  *
  *  Created on: Feb 17, 2016
- *      Author: fm-simmobility
+ *      Author: zhang huai peng
  */
-
+#include <atomic>
 #include "entities/Person_MT.hpp"
 #include "entities/roles/Role.hpp"
 #include "TrainUpdateParams.hpp"
@@ -81,7 +81,7 @@ private:
 	/**get next train driver*/
 	const TrainDriver* nextDriver;
 	/**current status*/
-	TRAIN_STATUS trainStatus;
+	std::atomic<TRAIN_STATUS> trainStatus;
 	/**current waiting time*/
 	double waitingTimeSec;
 private:

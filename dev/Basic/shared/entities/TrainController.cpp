@@ -21,7 +21,7 @@ namespace sim_mob {
 	template<typename PERSON>
 	boost::unordered_map<const Station*, Agent*> TrainController<PERSON>::allStationAgents;
 	template<typename PERSON>
-	TrainController<PERSON>::TrainController(int id, const MutexStrategy& mtxStrat):Agent(mtxStrat, id)
+	TrainController<PERSON>::TrainController(int id, const MutexStrategy& mtxStrat):Agent(mtxStrat, id),lastTrainId(0)
 	{
 
 	}
@@ -56,6 +56,8 @@ namespace sim_mob {
 				PERSON* person = new PERSON("TrainController", config.mutexStategy());
 				std::vector<TripChainItem*> tripChain;
 				TrainTrip* top = trainTrips.top();
+				std::string lineId = top->getLineId();
+				top->setTrainId(getTrainId(lineId));
 				tripChain.push_back(top);
 				person->setTripChain(tripChain);
 				person->setStartTime(top->getStartTime());
@@ -64,6 +66,24 @@ namespace sim_mob {
 			}
 		}
 		return Entity::UpdateStatus::Continue;
+	}
+	template<typename PERSON>
+	int TrainController<PERSON>::getTrainId(const std::string& lineId)
+	{
+		int trainId = 0;
+		std::map<std::string, std::vector<int>>::iterator it;
+		it=recycleTrainId.find(lineId);
+		if(it!=recycleTrainId.end()){
+			std::vector<int>& trainIds = it->second;
+			if(trainIds.size()>0){
+				trainId = trainIds.back();
+				trainIds.pop_back();
+			}
+		}
+		if(trainId==0){
+			trainId = ++lastTrainId;
+		}
+		return trainId;
 	}
 	template<typename PERSON>
 	Entity::UpdateStatus TrainController<PERSON>::frame_init(timeslice now)
@@ -495,7 +515,14 @@ namespace sim_mob {
 					const std::vector<TripChainItem *>& tripChain = person->getTripChain();
 					TrainTrip* front = dynamic_cast<TrainTrip*>(tripChain.front());
 					if(front) {
-
+						int trainId = front->getTrainId();
+						std::string lineId = front->getLineId();
+						std::map<std::string, std::vector<int>>::iterator it;
+						it=recycleTrainId.find(lineId);
+						if(it==recycleTrainId.end()){
+							recycleTrainId[lineId] = std::vector<int>();
+						}
+						recycleTrainId[lineId].push_back(trainId);
 					}
 				}
 				break;

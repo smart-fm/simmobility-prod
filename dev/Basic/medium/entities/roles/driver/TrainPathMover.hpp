@@ -4,7 +4,7 @@
  *  Created on: Feb 17, 2016
  *      Author: zhang huai peng
  */
-
+#include <atomic>
 #include "geospatial/network/Point.hpp"
 #include "geospatial/network/Block.hpp"
 #include "geospatial/network/Platform.hpp"
@@ -69,10 +69,15 @@ public:
 	 */
 	double getDistanceToNextTrain(const TrainPathMover& other) const;
 	/**
+	 * get different distance about total moved path
+	 * @param other is the path mover of next train
+	 */
+	double getDifferentDistance(const TrainPathMover& other) const;
+	/**
 	 * get distance in total movement
 	 * @return total distance.
 	 */
-	double getTotalCoveredDistance();
+	double getTotalCoveredDistance() const;
 	/**
 	 * check whether the path is completed
 	 * @return true if the path is completed
@@ -140,7 +145,7 @@ private:
 	/**Stores the distance covered by the driver on the current block*/
 	double distMovedOnCurrBlock;
 	/**Stores the distance covered by driver on entire path*/
-	double distMovedOnEntirePath;
+	std::atomic<double> distMovedOnEntirePath;
 };
 
 } /* namespace sim_mob */

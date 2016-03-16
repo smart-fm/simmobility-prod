@@ -170,13 +170,13 @@ void DriverMovement::frame_tick()
 			parentDriver->parent->canMoveToNextSegment = Person_MT::NONE;
 			setParentData(params);
 
-			/*if(parentDriver && parentDriver->roleType == Role<Person_MT>::RL_DRIVER)
+			/*if(parentDriver && parentDriver->roleType != Role<Person_MT>::RL_BUSDRIVER)
 			{
 				std::stringstream logout;
 				Person_MT* person = parentDriver->parent;
 				unsigned int segId = (person->getCurrSegStats() ? person->getCurrSegStats()->getRoadSegment()->getRoadSegmentId() : 0);
 				uint16_t statsNum = (person->getCurrSegStats() ? person->getCurrSegStats()->getStatsNumberInSegment() : 0);
-				logout << "(Driver" << "," << person->getDatabaseId() << ","
+				logout << "(" << parentDriver->getRoleName() << "," << person->getDatabaseId() << ","
 						<< parentDriver->getParams().now.frame()
 						<< ",{"
 						<< "RoadSegment:" << segId
@@ -207,13 +207,13 @@ void DriverMovement::frame_tick()
 		setParentData(params);
 	}
 
-	/*if(parentDriver && parentDriver->roleType == Role<Person_MT>::RL_DRIVER)
+	/*if(parentDriver && parentDriver->roleType != Role<Person_MT>::RL_BUSDRIVER)
 	{
 		std::stringstream logout;
 		Person_MT* person = parentDriver->parent;
 		unsigned int segId = (person->getCurrSegStats() ? person->getCurrSegStats()->getRoadSegment()->getRoadSegmentId() : 0);
 		uint16_t statsNum = (person->getCurrSegStats() ? person->getCurrSegStats()->getStatsNumberInSegment() : 0);
-		logout << "(Driver" << "," << person->getDatabaseId() << ","
+		logout << "(" << parentDriver->getRoleName() << "," << person->getDatabaseId() << ","
 				<< parentDriver->getParams().now.frame()
 				<< ",{"
 				<< "RoadSegment:" << segId
@@ -468,7 +468,7 @@ bool DriverMovement::moveToNextSegment(DriverUpdateParams& params)
 	const Lane* laneInNextSegment = getBestTargetLane(nxtSegStat, nextToNextSegStat);
 
 	double departTime = getLastAccept(laneInNextSegment, nxtSegStat);
-	if(!nxtSegStat->isShortSegment())
+/*	if(!nxtSegStat->isShortSegment())
 	{
 		if(nxtSegStat->hasQueue())
 		{
@@ -479,7 +479,7 @@ bool DriverMovement::moveToNextSegment(DriverUpdateParams& params)
 			departTime += (PASSENGER_CAR_UNIT / (nxtSegStat->getNumVehicleLanes() *nxtSegStat->getSegSpeed(true)));
 		}
 	}
-
+*/
 	params.elapsedSeconds = std::max(params.elapsedSeconds, departTime - convertToSeconds(params.now.ms())); //in seconds
 
 	const Link* nextLink = getNextLinkForLaneChoice(nxtSegStat);
@@ -560,7 +560,7 @@ void DriverMovement::flowIntoNextLinkIfPossible(DriverUpdateParams& params)
 	const Lane* laneInNextSegment = getBestTargetLane(nextSegStats, nextToNextSegStats);
 
 	double departTime = getLastAccept(laneInNextSegment, nextSegStats);
-	if(!nextSegStats->isShortSegment())
+/*	if(!nextSegStats->isShortSegment())
 	{
 		if(nextSegStats->hasQueue())
 		{
@@ -571,6 +571,7 @@ void DriverMovement::flowIntoNextLinkIfPossible(DriverUpdateParams& params)
 			departTime += (PASSENGER_CAR_UNIT / (nextSegStats->getNumVehicleLanes() * nextSegStats->getSegSpeed(true)));
 		}
 	}
+*/
 	params.elapsedSeconds = std::max(params.elapsedSeconds, departTime - (convertToSeconds(params.now.ms()))); //in seconds
 
 	const Link* nextLink = getNextLinkForLaneChoice(nextSegStats);
@@ -956,7 +957,7 @@ void DriverMovement::setOrigin(DriverUpdateParams& params)
 
 	//this will space out the drivers on the same lane, by separating them by the time taken for the previous car to move a car's length
 	double departTime = getLastAccept(laneInNextSegment, currSegStats);
-	if(!currSegStats->isShortSegment())
+/*	if(!currSegStats->isShortSegment())
 	{
 		if(currSegStats->hasQueue())
 		{
@@ -964,10 +965,10 @@ void DriverMovement::setOrigin(DriverUpdateParams& params)
 		}
 		else
 		{
-			departTime += PASSENGER_CAR_UNIT / currSegStats->getSegSpeed(true);
+			departTime += (PASSENGER_CAR_UNIT / (currSegStats->getNumVehicleLanes() * currSegStats->getSegSpeed(true)));
 		}
 	}
-
+*/
 	params.elapsedSeconds = std::max(params.elapsedSeconds, departTime - (convertToSeconds(params.now.ms()))); //in seconds
 
 	const Link* nextLink = getNextLinkForLaneChoice(currSegStats);

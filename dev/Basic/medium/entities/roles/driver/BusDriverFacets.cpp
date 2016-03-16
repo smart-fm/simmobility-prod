@@ -413,7 +413,7 @@ void BusDriverMovement::flowIntoNextLinkIfPossible(DriverUpdateParams& params)
 	const Lane* laneInNextSegment = getBestTargetLane(nextSegStats, nextToNextSegStats);
 
 	double departTime = getLastAccept(laneInNextSegment, nextSegStats);
-	if(!nextSegStats->isShortSegment())
+/*	if(!nextSegStats->isShortSegment())
 	{
 		if(nextSegStats->hasQueue())
 		{
@@ -424,7 +424,7 @@ void BusDriverMovement::flowIntoNextLinkIfPossible(DriverUpdateParams& params)
 			departTime += (PASSENGER_CAR_UNIT / (nextSegStats->getNumVehicleLanes() * nextSegStats->getSegSpeed(true)));
 		}
 	}
-
+*/
 	params.elapsedSeconds = std::max(params.elapsedSeconds, departTime - (params.now.ms()/1000.0)); //in seconds
 
 	const Link* nextLink = getNextLinkForLaneChoice(nextSegStats);
@@ -667,7 +667,7 @@ bool BusDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 		const Lane* laneInNextSegment = getBestTargetLane(nxtSegStat, nextToNextSegStat);
 
 		double departTime = getLastAccept(laneInNextSegment, nxtSegStat);
-		if(!nxtSegStat->isShortSegment())
+/*		if(!nxtSegStat->isShortSegment())
 		{
 			if(nxtSegStat->hasQueue())
 			{
@@ -678,7 +678,7 @@ bool BusDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 				departTime += (PASSENGER_CAR_UNIT / (nxtSegStat->getNumVehicleLanes() * nxtSegStat->getSegSpeed(true)));
 			}
 		}
-
+*/
 		params.elapsedSeconds = std::max(params.elapsedSeconds, departTime - (params.now.ms()/1000.0)); //in seconds
 
 		const Link* nextLink = getNextLinkForLaneChoice(nxtSegStat);

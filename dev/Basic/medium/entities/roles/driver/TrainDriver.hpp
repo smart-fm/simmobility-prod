@@ -8,6 +8,7 @@
 #include "entities/Person_MT.hpp"
 #include "entities/roles/Role.hpp"
 #include "TrainUpdateParams.hpp"
+#include "entities/roles/passenger/Passenger.hpp"
 
 namespace sim_mob {
 namespace medium{
@@ -20,7 +21,8 @@ public:
 		ARRIVAL_AT_PLATFORM,
 		WAITING_LEAVING,
 		LEAVING_FROM_PLATFORM,
-		MOVE_TO_PLATFROM
+		MOVE_TO_PLATFROM,
+		MOVE_TO_DEPOT
 	};
 	virtual ~TrainDriver();
 
@@ -77,6 +79,21 @@ public:
 	 * @return next platform
 	 */
 	Platform* getNextPlatform() const;
+	/**
+	 * get current passengers inside
+	 * @retutn passenger list
+	 */
+	std::list<Passenger*>& getPassengers();
+	/**
+	 * check whether the train is full
+	 * @return the number for empty occupation
+	 */
+	unsigned int getEmptyOccupation();
+	/**
+	 * passenger alighting
+	 * @param platform is current platform
+	 */
+	std::list<Passenger*> alightPassenger(Platform* platform);
 private:
 	/**get next train driver*/
 	const TrainDriver* nextDriver;
@@ -84,6 +101,8 @@ private:
 	std::atomic<TRAIN_STATUS> trainStatus;
 	/**current waiting time*/
 	double waitingTimeSec;
+	/**passengers list*/
+	std::list<Passenger*> passengerList;
 private:
 	friend class TrainBehavior;
 	friend class TrainMovement;

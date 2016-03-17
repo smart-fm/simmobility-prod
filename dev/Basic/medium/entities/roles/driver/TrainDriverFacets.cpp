@@ -107,7 +107,7 @@ void TrainMovement::frame_tick()
     //if(trip) ptMRTMoveLogger << trip->getTrainId() << ",";
     if(trip) ptMRTMoveLogger << trip->getTripId() << ",";
     ptMRTMoveLogger << params.currentSpeed/convertKmPerHourToMeterPerSec << ",";
-     Platform* next = trainPlatformMover.getNextPlatform();
+    Platform* next = trainPlatformMover.getNextPlatform();
     std::string platformNo("");
     if(next){
     	platformNo = next->getPlatformNo();
@@ -169,6 +169,7 @@ std::string TrainMovement::frame_tick_output()
 			<< ",{" << "\"xPos\":\"" << trainPathMover.getCurrentPosition().getX()
 			<< "\",\"yPos\":\"" << trainPathMover.getCurrentPosition().getY()
 			<< "\",\"length\":\"" << trainLengthMeter
+			<< "\",\"passengerNum\":\"" << parentDriver->getPassengers().size()
 			<< "\",\"lineID\":\"" << parentDriver->getTrainLine();
 	logout << "\"})" << std::endl;
 	return logout.str();
@@ -225,12 +226,16 @@ double TrainMovement::getRealSpeedLimit()
 	double speedLimit2 = 0.0;
 	distanceToNextPlatform = trainPathMover.getDistanceToNextPlatform(trainPlatformMover.getNextPlatform());
 	if(nextDriver){
-		TrainMovement* nextMovement = dynamic_cast<TrainMovement*>(nextDriver->movementFacet);
-		if(nextMovement){
-			//double dis = trainPathMover.getDistanceToNextTrain(nextMovement->getPathMover());
-			double dis = trainPathMover.getDifferentDistance(nextMovement->getPathMover());
-			if(dis>0){
-				distanceToNextTrain = dis-safeDistance-trainLengthMeter;
+		if (nextDriver->getCurrentStatus() == TrainDriver::MOVE_TO_DEPOT) {
+			parentDriver->setNextDriver(nullptr);
+		} else {
+			TrainMovement* nextMovement = dynamic_cast<TrainMovement*>(nextDriver->movementFacet);
+			if (nextMovement) {
+				//double dis = trainPathMover.getDistanceToNextTrain(nextMovement->getPathMover());
+				double dis = trainPathMover.getDifferentDistance(nextMovement->getPathMover());
+				if (dis > 0) {
+					distanceToNextTrain = dis - safeDistance - trainLengthMeter;
+				}
 			}
 		}
 	}
@@ -357,7 +362,7 @@ void TrainMovement::leaveFromPlaform()
 		std::string stationNo = next->getStationNo();
 		Agent* stationAgent = TrainController<Person_MT>::getAgentFromStation(stationNo);
 		messaging::MessageBus::PostMessage(stationAgent,TRAIN_MOVETO_NEXT_PLATFORM,
-				messaging::MessageBus::MessagePtr(new TrainDriverMessage(parentDriver)));
+				messaging::MessageBus::MessagePtr(new TrainDriverMessage(parentDriver,true)));
 	}
 }
 void TrainMovement::arrivalAtStartPlaform() const

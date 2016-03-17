@@ -248,6 +248,7 @@ bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::S
 				subTrip.endLocationId = sEnd;
 				subTrip.endLocationType = endType;
 				subTrip.edgeId = (*it).id;
+				subTrip.serviceLine = (*it).serviceLine;
 				switch(source.type)
 				{
 				case WayPoint::BUS_STOP:

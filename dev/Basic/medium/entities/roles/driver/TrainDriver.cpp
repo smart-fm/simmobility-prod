@@ -126,5 +126,22 @@ Platform* TrainDriver::getNextPlatform() const
 	}
 	return platform;
 }
+std::list<Passenger*>& TrainDriver::getPassengers()
+{
+	return passengerList;
+}
+unsigned int TrainDriver::getEmptyOccupation()
+{
+	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
+	if(passengerList.size()<config.trainController.maxCapacity){
+		return config.trainController.maxCapacity-passengerList.size();
+	}
+	return 0;
+}
+std::list<Passenger*> TrainDriver::alightPassenger(Platform* platform)
+{
+	std::list<Passenger*> alightingPassenger;
+	return alightingPassenger;
+}
 }
 } /* namespace sim_mob */

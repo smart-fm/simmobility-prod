@@ -118,6 +118,7 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 				lastUsage[lineId] = false;
 				if((*it)->getParent()->isToBeRemoved()){
 					removeAheadTrain(*it);
+					(*it)->setCurrentStatus(TrainDriver::MOVE_TO_DEPOT);
 					messaging::MessageBus::PostMessage(TrainController<Person_MT>::getInstance(),
 							MSG_TRAIN_BACK_DEPOT, messaging::MessageBus::MessagePtr(new TrainMessage((*it)->getParent())));
 				}

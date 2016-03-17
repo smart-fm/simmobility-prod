@@ -53,6 +53,7 @@ void Pt_EdgesSqlDao::fromRow(Row& result, PT_NetworkEdge& outObj)
 	outObj.setStartStop(result.get<std::string>(DB_FIELD_PT_EDGES_START_STOP, EMPTY_STRING));
 	outObj.setEndStop(result.get<std::string>(DB_FIELD_PT_EDGES_END_STOP, EMPTY_STRING));
 	outObj.setType(result.get<std::string>(DB_FIELD_PT_EDGES_R_TYPE, EMPTY_STRING));
+	outObj.setServiceLine(result.get<std::string>(DB_FIELD_PT_SERVICE_LINE, EMPTY_STRING));
 	outObj.setRoadIndex(result.get<std::string>(DB_FIELD_PT_EDGES_ROAD_INDEX, EMPTY_STRING));
 	outObj.setRoadEdgeId(result.get<std::string>(DB_FIELD_PT_EDGES_ROAD_EDGE_ID, EMPTY_STRING));
 	outObj.setServiceLines(result.get<std::string>(DB_FIELD_PT_EDGES_R_SERVICE_LINES, EMPTY_STRING));

@@ -698,6 +698,12 @@ void ParseMidTermConfigFile::processTrainControllerNode(xercesc::DOMElement *nod
     		throw std::runtime_error("load output_enabled errors in MT_Config");
     	}
     	cfg.trainController.outputEnabled=ParseBoolean(GetNamedAttributeValue(child, "value"), false);
+    	child = GetSingleElementByName(node, "max_capacity");
+    	if (child == nullptr)
+    	{
+    		throw std::runtime_error("load max_capacity errors in MT_Config");
+    	}
+    	cfg.trainController.maxCapacity=ParseUnsignedInt(GetNamedAttributeValue(child, "value"));
     }
 }
 

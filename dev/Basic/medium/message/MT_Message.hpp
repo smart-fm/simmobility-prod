@@ -82,9 +82,12 @@ public:
 class TrainDriverMessage: public messaging::Message
 {
 public:
-	TrainDriverMessage(TrainDriver* driver):
+	TrainDriverMessage(TrainDriver* driver, bool isHigher=false):
 		trainDriver(driver)
 	{
+		if(isHigher){
+			priority += 1;
+		}
 	}
 	virtual ~TrainDriverMessage()
 	{

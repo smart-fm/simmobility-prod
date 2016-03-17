@@ -385,7 +385,9 @@ struct TrainControllerParams
     /**
      * Constructor
      */
-	TrainControllerParams() : enabled(false), trainControlType(""), safeDistance(0), safeHeadway(0), miniDwellTime(0), maxDwellTime(0),outputEnabled(false)
+	TrainControllerParams() : enabled(false), trainControlType(""),
+			safeDistance(0), safeHeadway(0), miniDwellTime(0),
+			maxDwellTime(0),outputEnabled(false),maxCapacity(0)
     {}
 
     /// Is train controller enabled?
@@ -403,6 +405,8 @@ struct TrainControllerParams
     double maxDwellTime;
     /// train output enabled
     bool outputEnabled;
+    /// train capacity
+    unsigned int maxCapacity;
 };
 
 /**

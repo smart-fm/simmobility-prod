@@ -101,6 +101,13 @@ public:
 		return startStop;
 	}
 
+	void setServiceLine(const std::string& line){
+		serviceLine = line;
+	}
+
+	const std::string getServiceLine() const{
+		return serviceLine;
+	}
 
 	void setStartStop(const std::string& startStop) {
 		this->startStop = startStop;
@@ -152,6 +159,7 @@ private:
 	std::string startStop;       // Alphanumeric id
 	std::string endStop;         // Alphanumeric id
  	std::string rType;           // Service Line type, can be "BUS","LRT","WALK"
+ 	std::string serviceLine;	 // Service Line
 	std::string road_index;      // Index for road type 0 for BUS , 1 for LRT , 2 for Walk
 	std::string roadEdgeId;      // Strings of passing road segments Ex: 4/15/35/43
 	std::string rServiceLines; 	 //If the edge is a route segment, it will have bus service lines

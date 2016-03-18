@@ -91,11 +91,11 @@ namespace sim_mob
 											"%1064%, %1065%, %1066%, %1067%, %1068%, %1069%, %1070%, %1071%, %1072%, %1073%, %1074%, %1075%, %1076%, %1077%, %1078%, %1079%, %1080%, %1081%, %1082%, %1083%, %1084%, %1085%, %1086%, %1087%, %1088%, %1089%, %1090%, %1091%, "
 											"%1092%, %1093%, %1094%, %1095%, %1096%, %1097%, %1098%, %1099%, %1100%, %1101%, %1102%, %1103%, %1104%, %1105%, %1106%, %1107%, %1108%, %1109%, %1110%, %1111%, %1112%, %1113%, %1114%, %1115%, %1116%, %1117%, %1118%, %1119%, "
 											"%1120%, %1121%, %1122%, %1123%, %1124%, %1125%, %1126%, %1127%, %1128%, %1129%, %1130%, %1131%, %1132%, %1133%, %1134%, %1135%, %1136%, %1137%, %1138%, %1139%, %1140%, %1141%, %1142%, %1143%, %1144%, %1145%, %1146%, %1147%, "
-											"%1148%, %1149%, %1150%, %1151%, %1152%, %1153%, %1154%, %1155%, %1156%, %1157%, %1158%, %1159%, %1160%, %1161%, %1162%, %1163%, %1164%, %1165%, %1166%, %1167%, %1168%, %1169%, %1170%, %1171%, %1172%, %1173%, %1174%, %1175%, "
+											"%1148%, %1149%, %1150%, %1151%, %1152%, %1153%, %1154%, %1155%, %1156%, %1157%, %1158%, %1159%, %1160%, %1161%, %1162%, %1163%, %1164%, %1165%, %1166%, %1167%, %1168%, %1169%, %1170%, %1171%, %1172%, %1173%, %1174%, %1175%"/*, "
 											"%1176%, %1177%, %1178%, %1179%, %1180%, %1181%, %1182%, %1183%, %1184%, %1185%, %1186%, %1187%, %1188%, %1189%, %1190%, %1191%, %1192%, %1193%, %1194%, %1195%, %1196%, %1197%, %1198%, %1199%, %1200%, %1201%, %1202%, %1203%, "
 											"%1204%, %1205%, %1206%, %1207%, %1208%, %1209%, %1210%, %1211%, %1212%, %1213%, %1214%, %1215%, %1216%, %1217%, %1218%, %1219%, %1220%, %1221%, %1222%, %1223%, %1224%, %1225%, %1226%, %1227%, %1228%, %1229%, %1230%, %1231%, "
 											"%1232%, %1233%, %1234%, %1235%, %1236%, %1237%, %1238%, %1239%, %1240%, %1241%, %1242%, %1243%, %1244%, %1245%, %1246%, %1247%, %1248%, %1249%, %1250%, %1251%, %1252%, %1253%, %1254%, %1255%, %1256%, %1257%, %1258%, %1259%, "
-											"%1260%, %1261%, %1262%, %1263%, %1264%, %1265%, %1266%, %1267%, %1268%, %1269%, %1270%, %1271%, %1272%") % title % hitsId % householdId % individualId % paxId
+											"%1260%, %1261%, %1262%, %1263%, %1264%, %1265%, %1266%, %1267%, %1268%, %1269%, %1270%, %1271%, %1272%"*/) % title % hitsId % householdId % individualId % paxId
 											% logsum[0]  % logsum[1]  % logsum[2]  % logsum[3]  % logsum[4]  % logsum[5]  % logsum[6]  % logsum[7]  % logsum[8]  % logsum[9]  % logsum[10]  % logsum[11]  % logsum[12]  % logsum[13]
 											% logsum[14]  % logsum[15]  % logsum[16]  % logsum[17]  % logsum[18]  % logsum[19]  % logsum[20]  % logsum[21]  % logsum[22]  % logsum[23]  % logsum[24]  % logsum[25]  % logsum[26]  % logsum[27]
 											% logsum[28]  % logsum[29]  % logsum[30]  % logsum[31]  % logsum[32]  % logsum[33]  % logsum[34]  % logsum[35]  % logsum[36]  % logsum[37]  % logsum[38]  % logsum[39]  % logsum[40]  % logsum[41]
@@ -186,7 +186,7 @@ namespace sim_mob
 											% logsum[1127]  % logsum[1128]  % logsum[1129]  % logsum[1130]  % logsum[1131]  % logsum[1132]  % logsum[1133]  % logsum[1134]  % logsum[1135]  % logsum[1136]  % logsum[1137]  % logsum[1138]
 											% logsum[1139]  % logsum[1140]  % logsum[1141]  % logsum[1142]  % logsum[1143]  % logsum[1144]  % logsum[1145]  % logsum[1146]  % logsum[1147]  % logsum[1148]  % logsum[1149]  % logsum[1150]
 											% logsum[1151]  % logsum[1152]  % logsum[1153]  % logsum[1154]  % logsum[1155]  % logsum[1156]  % logsum[1157]  % logsum[1158]  % logsum[1159]  % logsum[1160]  % logsum[1161]  % logsum[1162]
-											% logsum[1163]  % logsum[1164]  % logsum[1165]  % logsum[1166]  % logsum[1167]  % logsum[1168]  % logsum[1169]  % logsum[1170]  % logsum[1171]  % logsum[1172]  % logsum[1173]  % logsum[1174]
+											% logsum[1163]  % logsum[1164]  % logsum[1165]  % logsum[1166]  % logsum[1167]  % logsum[1168]  % logsum[1169]/*% logsum[1170]  % logsum[1171]  % logsum[1172]  % logsum[1173]  % logsum[1174]
 											% logsum[1175]  % logsum[1176]  % logsum[1177]  % logsum[1178]  % logsum[1179]  % logsum[1180]  % logsum[1181]  % logsum[1182]  % logsum[1183]  % logsum[1184]  % logsum[1185]  % logsum[1186]
 											% logsum[1187]  % logsum[1188]  % logsum[1189]  % logsum[1190]  % logsum[1191]  % logsum[1192]  % logsum[1193]  % logsum[1194]  % logsum[1195]  % logsum[1196]  % logsum[1197]  % logsum[1198]
 											% logsum[1199]  % logsum[1200]  % logsum[1201]  % logsum[1202]  % logsum[1203]  % logsum[1204]  % logsum[1205]  % logsum[1206]  % logsum[1207]  % logsum[1208]  % logsum[1209]  % logsum[1210]
@@ -194,7 +194,8 @@ namespace sim_mob
 											% logsum[1223]  % logsum[1224]  % logsum[1225]  % logsum[1226]  % logsum[1227]  % logsum[1228]  % logsum[1229]  % logsum[1230]  % logsum[1231]  % logsum[1232]  % logsum[1233]  % logsum[1234]
 											% logsum[1235]  % logsum[1236]  % logsum[1237]  % logsum[1238]  % logsum[1239]  % logsum[1240]  % logsum[1241]  % logsum[1242]  % logsum[1243]  % logsum[1244]  % logsum[1245]  % logsum[1246]
 											% logsum[1247]  % logsum[1248]  % logsum[1249]  % logsum[1250]  % logsum[1251]  % logsum[1252]  % logsum[1253]  % logsum[1254]  % logsum[1255]  % logsum[1256]  % logsum[1257]  % logsum[1258]
-											% logsum[1259]  % logsum[1260]  % logsum[1261]  % logsum[1262]  % logsum[1263]  % logsum[1264]  % logsum[1265]  % logsum[1266];
+											% logsum[1259]  % logsum[1260]  % logsum[1261]  % logsum[1262]  % logsum[1263]  % logsum[1264]  % logsum[1265]  % logsum[1266]*/;
+
 
 
 		AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_INDIVIDUAL_HITS_LOGSUM, fmtr.str());

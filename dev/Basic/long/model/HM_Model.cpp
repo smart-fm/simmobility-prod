@@ -1711,7 +1711,7 @@ void HM_Model::getLogsumOfHousehold(BigSerial householdId2)
 		}
 
 
-		for( int m = 0; m < this->tazs.size(); m++)
+		for( int m = 1; m <= this->tazs.size(); m++)
 		{
 			Taz *tazObjList = getTazById( m );
 		    std::string tazStrList;
@@ -1744,6 +1744,8 @@ void HM_Model::getLogsumOfHousehold(BigSerial householdId2)
 			travelProbability.push_back(travelProbabilityD);
 			tripsExpected.push_back(tripsExpectedD);
 		}
+
+		PrintOutV("size: " << logsum.size() << std::endl);
 
 		simulationStopCounter++;
 

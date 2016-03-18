@@ -424,7 +424,7 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 		wgMgr.waitAllGroups();
 		
 		unsigned long currTimeMS = currTick * config.baseGranMS();
-		if(stCfg.segDensityMap.outputEnabled && (currTimeMS % stCfg.segDensityMap.updateInterval == 0))
+		if(stCfg.segDensityMap.outputEnabled && ((currTimeMS + config.baseGranMS()) % stCfg.segDensityMap.updateInterval == 0))
 		{
 			DriverMovement::outputDensityMap(currTimeMS / stCfg.segDensityMap.updateInterval);
 		}

@@ -208,7 +208,7 @@ void assignStationAgentToConfluxes()
 	std::map<std::string, TrainStop*>&  MRTStopMap = PT_Network::getInstance().MRTStopsMap;
 	std::map<std::string, TrainStop*>::iterator trainStopIt;
 	for(trainStopIt = MRTStopMap.begin();trainStopIt!=MRTStopMap.end();trainStopIt++){
-		Agent* stationAgent = new TrainStationAgent();
+		TrainStationAgent* stationAgent = new TrainStationAgent();
 		TrainController<Person_MT>::registerStationAgent(trainStopIt->first, stationAgent);
 		const Node* node = trainStopIt->second->getRandomStationSegment()->getParentLink()->getFromNode();
 		ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
@@ -217,6 +217,7 @@ void assignStationAgentToConfluxes()
 		std::map<const Node*, Conflux*>::iterator it = nodeConfluxesMap.find(node);
 		if(it!=nodeConfluxesMap.end()){
 			it->second->addStationAgent(stationAgent);
+			stationAgent->setConflux(it->second);
 		}
 	}
 }
@@ -628,6 +629,7 @@ int main_impl(int ARGC, char* ARGV[])
 	if (!resLogFiles.empty())
 	{
 		resLogFiles.insert(resLogFiles.begin(), ConfigManager::GetInstance().FullConfig().outNetworkFileName);
+		resLogFiles.insert(resLogFiles.begin(), ConfigManager::GetInstance().FullConfig().outTrainNetworkFilename);
 		Utils::printAndDeleteLogFiles(resLogFiles);
 	}
 

@@ -150,6 +150,12 @@ public:
 	 * @param network the road network
 	 */
 	void printTrainNetwork(const std::string& outFileName) const;
+	/**
+	 * get platform from line id and station name
+	 * @param lineId is the line id
+	 * @param stationName is the station name
+	 */
+	static Platform* getPlatform(const std::string& lineId, const std::string& stationName);
 
 protected:
 	/**

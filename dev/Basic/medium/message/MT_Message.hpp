@@ -16,6 +16,7 @@ namespace medium
 {
 class BusDriver;
 class TrainDriver;
+class Passenger;
 enum ConfluxMessage
 {
 	MSG_PEDESTRIAN_TRANSFER_REQUEST = 5000000,
@@ -41,7 +42,9 @@ enum PublicTransitMessage
 	STORE_PERSON_TRAVEL_TIME,
 	TRAIN_MOVETO_NEXT_PLATFORM,
 	TRAIN_ARRIVAL_AT_STARTPOINT,
-	TRAIN_ARRIVAL_AT_ENDPOINT
+	TRAIN_ARRIVAL_AT_ENDPOINT,
+	PASSENGER_ARRIVAL_AT_PLATFORM,
+	PASSENGER_LEAVE_FRM_PLATFORM
 };
 
 /**
@@ -93,6 +96,22 @@ public:
 	{
 	}
 	TrainDriver* trainDriver;
+};
+/**
+ * Message holding a pointer to passenger
+ */
+class TrainPassengerMessage: public messaging::Message
+{
+public:
+	TrainPassengerMessage(Passenger* passenger):trainPassenger(passenger)
+	{
+
+	}
+	virtual ~TrainPassengerMessage()
+	{
+
+	}
+	Passenger* trainPassenger;
 };
 /**
  * Message to wrap a Person

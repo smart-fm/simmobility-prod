@@ -9,6 +9,7 @@
 #include "RoadSegment.hpp"
 #include "TurningGroup.hpp"
 #include "PT_Stop.hpp"
+#include "Platform.hpp"
 
 namespace sim_mob
 {
@@ -38,6 +39,9 @@ struct WayPoint
 		/**The way point is a turning group. turningGroup points to a TurningGroup object*/
 		TURNING_GROUP,
 
+		/**The way point is a platform, platform points to a Platform object*/
+		MRT_PLATFORM,
+
 		/**The way point is a bus stop. busStop points to a BusStop object*/
 		BUS_STOP,
 
@@ -53,6 +57,7 @@ struct WayPoint
 		const Link *link;
 		const TurningPath *turningPath;
 		const TurningGroup *turningGroup;
+		const Platform* platform;
 		const BusStop *busStop;
 		const TrainStop *trainStop;
 	};
@@ -89,6 +94,11 @@ struct WayPoint
 
 	explicit WayPoint(const TurningGroup *turningGroup) :
 	type(TURNING_GROUP), turningGroup(turningGroup)
+	{
+	}
+
+	explicit WayPoint(const Platform* platform) :
+	type(MRT_PLATFORM), platform(platform)
 	{
 	}
 

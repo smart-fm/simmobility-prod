@@ -71,7 +71,7 @@ void TrainDriver::setCurrentStatus(TRAIN_STATUS status)
 {
 	trainStatus = status;
 }
-void TrainDriver::calculateDwellTime()
+void TrainDriver::calculateDwellTime(int totalNum)
 {
 	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
 	int time = Utils::generateFloat(config.trainController.miniDwellTime, config.trainController.maxDwellTime);
@@ -138,10 +138,38 @@ unsigned int TrainDriver::getEmptyOccupation()
 	}
 	return 0;
 }
-std::list<Passenger*> TrainDriver::alightPassenger(Platform* platform)
+int TrainDriver::alightPassenger(std::list<Passenger*>& alightingPassenger)
 {
-	std::list<Passenger*> alightingPassenger;
-	return alightingPassenger;
+	int num = 0;
+	const Platform* platform = this->getNextPlatform();
+	std::list<Passenger*>::iterator i = passengerList.begin();
+	while(i!=passengerList.end()){
+		const WayPoint& endPoint = (*i)->getEndPoint();
+		if(endPoint.type==WayPoint::MRT_PLATFORM){
+			if(endPoint.platform==platform){
+				alightingPassenger.push_back(*i);
+				i = passengerList.erase(i);
+				num++;
+				continue;
+			}
+		}
+		i++;
+	}
+	return num;
+}
+
+int TrainDriver::boardPassenger(std::list<Passenger*>& boardingPassenger)
+{
+	int num = 0;
+	int validNum = getEmptyOccupation();
+	std::list<Passenger*>::iterator i = boardingPassenger.begin();
+	while(i!=boardingPassenger.end()&&validNum>0){
+		passengerList.push_back(*i);
+		i = boardingPassenger.erase(i);
+		validNum--;
+		num++;
+	}
+	return num;
 }
 }
 } /* namespace sim_mob */

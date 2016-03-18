@@ -228,7 +228,16 @@ void Station::setAssociatedAgent(Agent* agent)
 {
 	stationAgent = agent;
 }
-
+Platform* Station::getPlatform(const std::string& lineId) const
+{
+	Platform* platform = nullptr;
+	std::map<std::string, Platform*>::const_iterator it;
+	it = lineToPlatform.find(lineId);
+	if(it!=lineToPlatform.end()){
+		platform = it->second;
+	}
+	return platform;
+}
 void TrainStop::addAccessRoadSegment(unsigned int segmentId)
 {
 	const RoadNetwork* rn = RoadNetwork::getInstance();

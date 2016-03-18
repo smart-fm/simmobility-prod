@@ -10,6 +10,7 @@
 #include "entities/roles/driver/TrainDriver.hpp"
 #include "entities/Person_MT.hpp"
 #include "entities/TrainController.hpp"
+#include "entities/conflux/Conflux.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "message/MT_Message.hpp"
@@ -18,7 +19,7 @@
 namespace sim_mob {
 namespace medium
 {
-TrainStationAgent::TrainStationAgent():station(nullptr),Agent(MutexStrategy::MtxStrat_Buffered, -1) {
+TrainStationAgent::TrainStationAgent():station(nullptr),Agent(MutexStrategy::MtxStrat_Buffered, -1), parentConflux(nullptr) {
 	// TODO Auto-generated constructor stub
 
 }
@@ -31,7 +32,10 @@ void TrainStationAgent::setStation(const Station* station)
 {
 	this->station = station;
 }
-
+void TrainStationAgent::setConflux(Conflux* conflux)
+{
+	parentConflux = conflux;
+}
 void TrainStationAgent::HandleMessage(messaging::Message::MessageType type, const messaging::Message& message)
 {
 	switch (type)
@@ -59,6 +63,20 @@ void TrainStationAgent::HandleMessage(messaging::Message::MessageType type, cons
 	{
 		const TrainDriverMessage& msg = MSG_CAST(TrainDriverMessage, message);
 		removeAheadTrain(msg.trainDriver);
+		break;
+	}
+	case PASSENGER_ARRIVAL_AT_PLATFORM:
+	{
+		const TrainPassengerMessage& msg = MSG_CAST(TrainPassengerMessage, message);
+		Passenger* passenger = msg.trainPassenger;
+		const sim_mob::WayPoint& startPoint = passenger->getStartPoint();
+		if(startPoint.type == WayPoint::MRT_PLATFORM){
+			const Platform* platform = startPoint.platform;
+			if(waitingPersons.find(platform)==waitingPersons.end()){
+				waitingPersons[platform] = std::list<Passenger*>();
+			}
+			waitingPersons[platform].push_back(passenger);
+		}
 		break;
 	}
 	}
@@ -94,7 +112,18 @@ void TrainStationAgent::dispathPendingTrains(timeslice now)
 		}
 	}
 }
-
+void TrainStationAgent::passengerLeaving(timeslice now)
+{
+	std::map<const Platform*, std::list<Passenger*>>::iterator it;
+	for (it = aligtingPersons.begin(); it != aligtingPersons.end(); it++) {
+		std::list<Passenger*>::iterator itPassenger = it->second.begin();
+		while (itPassenger != it->second.end() && parentConflux) {
+			messaging::MessageBus::PostMessage(parentConflux,
+					PASSENGER_LEAVE_FRM_PLATFORM, messaging::MessageBus::MessagePtr(new TrainPassengerMessage(*itPassenger)));
+			itPassenger = it->second.erase(itPassenger);
+		}
+	}
+}
 Entity::UpdateStatus TrainStationAgent::frame_init(timeslice now)
 {
 	return UpdateStatus::Continue;
@@ -111,7 +140,10 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 			callMovementFrameTick(now, *it);
 			tickInSec += (*it)->getParams().secondsInTick;
 			if ((*it)->getCurrentStatus() == TrainDriver::ARRIVAL_AT_PLATFORM) {
-				(*it)->calculateDwellTime();
+				const Platform* platform = (*it)->getNextPlatform();
+				int alightingNum = (*it)->alightPassenger(aligtingPersons[platform]);
+				int boardingNum = (*it)->boardPassenger(waitingPersons[platform]);
+				(*it)->calculateDwellTime(alightingNum+boardingNum);
 				(*it)->setCurrentStatus(TrainDriver::WAITING_LEAVING);
 			} else if ((*it)->getCurrentStatus() == TrainDriver::LEAVING_FROM_PLATFORM) {
 				std::string lineId = (*it)->getTrainLine();
@@ -128,6 +160,7 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 		} while (tickInSec < sysGran);
 		it++;
 	}
+	passengerLeaving(now);
 	return UpdateStatus::Continue;
 }
 void TrainStationAgent::frame_output(timeslice now)

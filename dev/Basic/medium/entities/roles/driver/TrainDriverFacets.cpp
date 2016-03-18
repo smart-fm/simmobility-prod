@@ -104,7 +104,7 @@ void TrainMovement::frame_tick()
     DailyTime startTime = ConfigManager::GetInstance().FullConfig().simStartTime();
     ptMRTMoveLogger << DailyTime(params.now.ms()+startTime.getValue()).getStrRepr() << ",";
     if(trip) ptMRTMoveLogger << trip->getLineId() << ",";
-    //if(trip) ptMRTMoveLogger << trip->getTrainId() << ",";
+    if(trip) ptMRTMoveLogger << trip->getTrainId() << ",";
     if(trip) ptMRTMoveLogger << trip->getTripId() << ",";
     ptMRTMoveLogger << params.currentSpeed/convertKmPerHourToMeterPerSec << ",";
     Platform* next = trainPlatformMover.getNextPlatform();
@@ -114,6 +114,8 @@ void TrainMovement::frame_tick()
 		ptMRTMoveLogger << platformNo << ",";
 		ptMRTMoveLogger << trainPathMover.getDistanceToNextPlatform(trainPlatformMover.getNextPlatform()) << ",";
     }
+    //ptMRTMoveLogger << std::setprecision(8);
+    ptMRTMoveLogger << trainPathMover.getTotalCoveredDistance() << ",";
     //ptMRTMoveLogger << params.disToNextPlatform << ",";
     //ptMRTMoveLogger << params.disToNextTrain << ",";
     ptMRTMoveLogger << trainPathMover.getCurrentPosition().getX() << ",";

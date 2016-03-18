@@ -62,8 +62,9 @@ public:
 	void reduceWaitingTime(double val);
 	/**
 	 * computing dwell time
+	 * @param totalNum is the total number of boarding and alighting
 	 */
-	void calculateDwellTime();
+	void calculateDwellTime(int totalNum);
 	/**
 	 * get train line id
 	 * @return line id
@@ -91,9 +92,14 @@ public:
 	unsigned int getEmptyOccupation();
 	/**
 	 * passenger alighting
-	 * @param platform is current platform
+	 * @param alightingPassenger is the list of alighting person
 	 */
-	std::list<Passenger*> alightPassenger(Platform* platform);
+	int alightPassenger(std::list<Passenger*>& alightingPassenger);
+	/**
+	 * passenger boarding
+	 * @param boardingPassenger is the list of boarding person
+	 */
+	int boardPassenger(std::list<Passenger*>& boardingPassenger);
 private:
 	/**get next train driver*/
 	const TrainDriver* nextDriver;

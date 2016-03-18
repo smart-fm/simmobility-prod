@@ -171,6 +171,11 @@ public:
 	 * @param agent is a train station agent
 	 */
 	void setAssociatedAgent(Agent* agent);
+	/**
+	 * get platform for a given line
+	 * @param lineId is line id
+	 */
+	Platform* getPlatform(const std::string& lineId) const;
 private:
 	/**the map from line id to platform*/
 	std::map<std::string, Platform*> lineToPlatform;

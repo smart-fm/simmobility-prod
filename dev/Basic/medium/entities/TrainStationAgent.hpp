@@ -8,17 +8,19 @@
 #ifndef TRAINSTATIONAGENT_HPP_
 #define TRAINSTATIONAGENT_HPP_
 #include "entities/Agent.hpp"
+#include "entities/roles/passenger/Passenger.hpp"
 #include "geospatial/network/PT_Stop.hpp"
 namespace sim_mob {
 namespace medium
 {
 class TrainDriver;
+class Conflux;
 class TrainStationAgent : public sim_mob::Agent {
 public:
 	TrainStationAgent();
 	virtual ~TrainStationAgent();
 	void setStation(const Station* station);
-
+	void setConflux(Conflux* conflux);
 protected:
 	virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
 	//Virtual overrides
@@ -44,7 +46,11 @@ private:
 	 * @param aheadTrain is pointer to the ahead train
 	 */
 	void removeAheadTrain(TrainDriver* aheadDriver);
-
+	/**
+	 * alighting passenger leave platform
+	 * @param now current time slice
+	 */
+	void passengerLeaving(timeslice now);
 private:
 	/**the reference to the station*/
 	const Station* station;
@@ -56,7 +62,12 @@ private:
 	std::map<std::string, std::list<TrainDriver*>> pendingTrainDriver;
 	/**record usage in each line*/
 	std::map<std::string, bool> lastUsage;
-
+	/**waiting person for boarding*/
+	std::map<const Platform*, std::list<Passenger*>> waitingPersons;
+	/**alighting person for next trip*/
+	std::map<const Platform*, std::list<Passenger*>> aligtingPersons;
+	/** parent conflux */
+	Conflux* parentConflux;
 };
 }
 } /* namespace sim_mob */

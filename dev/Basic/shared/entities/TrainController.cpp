@@ -413,6 +413,7 @@ namespace sim_mob {
 	{
 		std::stringstream outStream;
 		outStream << std::setprecision(8);
+		outStream << "Print train network(blocks)" << std::endl;
 		for (std::map<unsigned int, Block*>::const_iterator it = mapOfIdvsBlocks.begin();it != mapOfIdvsBlocks.end(); it++) {
 			outStream << "(\"block\", " << it->second->getBlockId() << ", {";
 			outStream << "\"length\":\"" << it->second->getLength() << "\",";
@@ -435,6 +436,7 @@ namespace sim_mob {
 	{
 		std::stringstream outStream;
 		outStream << std::setprecision(8);
+		outStream << "Print train network(platforms)" << std::endl;
 		for(std::map<std::string, Platform*>::const_iterator it = mapOfIdvsPlatforms.begin(); it!=mapOfIdvsPlatforms.end(); it++) {
 			const Platform *platform = it->second;
 			outStream << "(\"platform\", " << platform->getPlatformNo() << ", {";
@@ -492,6 +494,18 @@ namespace sim_mob {
 			}
 		}
 		return nullptr;
+	}
+	template<typename PERSON>
+	Platform* TrainController<PERSON>::getPlatform(const std::string& lineId, const std::string& stationName)
+	{
+		Platform* platform = nullptr;
+		std::map<std::string, Station*>& mapOfIdvsStations = getInstance()->mapOfIdvsStations;
+		std::map<std::string, Station*>::const_iterator it = mapOfIdvsStations.find(stationName);
+		if(it!=mapOfIdvsStations.end()){
+			Station* station = it->second;
+			platform = station->getPlatform(lineId);
+		}
+		return platform;
 	}
 	template<typename PERSON>
 	void TrainController<PERSON>::registerStationAgent(const std::string& nameStation, Agent* stationAgent)

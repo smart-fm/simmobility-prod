@@ -9,6 +9,7 @@
 #define TRAINSTATIONAGENT_HPP_
 #include "entities/Agent.hpp"
 #include "entities/roles/passenger/Passenger.hpp"
+#include "entities/roles/waitTrainActivity/WaitTrainActivity.hpp"
 #include "geospatial/network/PT_Stop.hpp"
 namespace sim_mob {
 namespace medium
@@ -51,6 +52,10 @@ private:
 	 * @param now current time slice
 	 */
 	void passengerLeaving(timeslice now);
+	/**
+	 * update wait persons
+	 */
+	void updateWaitPersons();
 private:
 	/**the reference to the station*/
 	const Station* station;
@@ -63,7 +68,7 @@ private:
 	/**record usage in each line*/
 	std::map<std::string, bool> lastUsage;
 	/**waiting person for boarding*/
-	std::map<const Platform*, std::list<Passenger*>> waitingPersons;
+	std::map<const Platform*, std::list<WaitTrainActivity*>> waitingPersons;
 	/**alighting person for next trip*/
 	std::map<const Platform*, std::list<Passenger*>> aligtingPersons;
 	/** parent conflux */

@@ -174,12 +174,18 @@ void BusStop::setTerminalNodeId(unsigned int terminalNodeId)
 
 TrainStop::TrainStop(std::string stopIds)
 {
+	stopName = stopIds;
 	std::stringstream ss(stopIds);
 	std::string singleMrtStopId;
 	while (std::getline(ss, singleMrtStopId, '/'))
 	{
 		trainStopIds.push_back(singleMrtStopId);
 	}
+}
+
+const std::string& TrainStop::getStopName() const
+{
+	return stopName;
 }
 
 TrainStop::~TrainStop()

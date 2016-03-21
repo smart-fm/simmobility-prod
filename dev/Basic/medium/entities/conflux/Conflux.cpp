@@ -28,6 +28,7 @@
 #include "entities/roles/waitBusActivity/WaitBusActivityFacets.hpp"
 #include "entities/roles/driver/TrainDriverFacets.hpp"
 #include "entities/vehicle/VehicleBase.hpp"
+#include "entities/TrainController.hpp"
 #include "event/args/EventArgs.hpp"
 #include "event/EventPublisher.hpp"
 #include "event/SystemEvents.hpp"
@@ -1235,6 +1236,11 @@ Entity::UpdateStatus Conflux::switchTripChainItem(Person_MT* person)
 			assignPersonToBusStopAgent(person);
 			return retVal;
 		}
+		case Role<Person_MT>::RL_WAITTRAINACTIVITY:
+		{
+			assignPersonToStationAgent(person);
+			return retVal;
+		}
 		case Role<Person_MT>::RL_TRAINPASSENGER:
 		{
 			assignPersonToMRT(person);
@@ -1431,6 +1437,23 @@ void Conflux::updateBusStopAgents()
 		for (std::vector<SegmentStats*>::const_iterator segStatsIt = upStrmSegMapIt->second.begin(); segStatsIt != upStrmSegMapIt->second.end(); segStatsIt++)
 		{
 			(*segStatsIt)->updateBusStopAgents(currFrame);
+		}
+	}
+}
+
+void Conflux::assignPersonToStationAgent(Person_MT* person)
+{
+	Role<Person_MT>* role = person->getRole();
+	if (role && role->roleType == Role<Person_MT>::RL_WAITTRAINACTIVITY)
+	{
+		const Platform* platform = nullptr;
+		if (person->originNode.type == WayPoint::MRT_PLATFORM)
+		{
+			platform = person->originNode.platform;
+			std::string stationNo = platform->getStationNo();
+			Agent* stationAgent = TrainController<Person_MT>::getAgentFromStation(stationNo);
+			messaging::MessageBus::PostMessage(stationAgent,PASSENGER_ARRIVAL_AT_PLATFORM,
+					messaging::MessageBus::MessagePtr(new PersonMessage(person)));
 		}
 	}
 }

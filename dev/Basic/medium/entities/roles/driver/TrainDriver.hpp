@@ -9,7 +9,7 @@
 #include "entities/roles/Role.hpp"
 #include "TrainUpdateParams.hpp"
 #include "entities/roles/passenger/Passenger.hpp"
-
+#include "entities/roles/waitTrainActivity/WaitTrainActivity.hpp"
 namespace sim_mob {
 namespace medium{
 class TrainBehavior;
@@ -99,7 +99,11 @@ public:
 	 * passenger boarding
 	 * @param boardingPassenger is the list of boarding person
 	 */
-	int boardPassenger(std::list<Passenger*>& boardingPassenger);
+	int boardPassenger(std::list<WaitTrainActivity*>& boardingPassenger,timeslice now);
+	/**
+	 * update passengers inside the train
+	 */
+	void updatePassengers();
 private:
 	/**get next train driver*/
 	const TrainDriver* nextDriver;

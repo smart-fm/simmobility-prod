@@ -15,6 +15,7 @@
 #include "entities/misc/TripChain.hpp"
 #include "entities/roles/RoleFactory.hpp"
 #include "entities/TravelTimeManager.hpp"
+#include "entities/TrainController.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "geospatial/network/WayPoint.hpp"
 #include "path/PT_RouteChoiceLuaProvider.hpp"
@@ -171,6 +172,37 @@ void Person_MT::insertWaitingActivityToTrip()
 						subTrip.ptLineId = itSubTrip[1]->ptLineId;
 						subTrip.edgeId = itSubTrip[1]->edgeId;
 						itSubTrip[1] = subTrips.insert(itSubTrip[1], subTrip);
+					}
+				}
+				else if(itSubTrip[1]->getMode() == "MRT" && itSubTrip[0]->getMode() != "WaitingTrainActivity")
+				{
+					if (itSubTrip[1]->origin.type == WayPoint::TRAIN_STOP) {
+						sim_mob::SubTrip subTrip;
+						subTrip.itemType = TripChainItem::getItemType("WaitingTrainActivity");
+						const std::string& stationName = itSubTrip[1]->origin.trainStop->getStopName();
+						std::string lineId = itSubTrip[1]->serviceLine;
+						Platform* platform =TrainController<Person_MT>::getInstance()->getPlatform(lineId, stationName);
+						if (platform && itSubTrip[1]->destination.type == WayPoint::TRAIN_STOP) {
+							subTrip.origin = WayPoint(platform);
+							subTrip.originType = itSubTrip[1]->originType;
+							subTrip.startLocationId = stationName;
+							const std::string& stationName = itSubTrip[1]->destination.trainStop->getStopName();
+							platform = TrainController<Person_MT>::getInstance()->getPlatform(lineId, stationName);
+							if (platform) {
+								subTrip.destination = WayPoint(platform);
+								subTrip.destinationType = itSubTrip[1]->destinationType;
+								subTrip.endLocationId = stationName;
+								subTrip.startLocationType = "TRAIN_STOP";
+								subTrip.endLocationType = "TRAIN_STOP";
+								subTrip.travelMode = "WaitingTrainActivity";
+								subTrip.serviceLine = itSubTrip[1]->serviceLine;
+								subTrip.ptLineId = itSubTrip[1]->ptLineId;
+								subTrip.edgeId = itSubTrip[1]->edgeId;
+								itSubTrip[1] = subTrips.insert(itSubTrip[1],subTrip);
+								itSubTrip[1]->origin = subTrip.origin;
+								itSubTrip[1]->destination = subTrip.destination;
+							}
+						}
 					}
 				}
 

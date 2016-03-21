@@ -126,6 +126,7 @@ void TrainMovement::frame_tick()
     ptMRTMoveLogger << this->parentDriver->waitingTimeSec << std::endl;
     //sim_mob::Logger::log(fileName).flush();
 
+    parentDriver->updatePassengers();
 	TrainDriver::TRAIN_STATUS status = parentDriver->getCurrentStatus();
 	switch(status){
 	case TrainDriver::MOVE_TO_PLATFROM:

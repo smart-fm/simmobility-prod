@@ -149,10 +149,15 @@ public:
 	 * @returns random road segment attached with mrt stop
 	 */
 	const sim_mob::RoadSegment* getRandomStationSegment() const;
-
+	/**
+	 * get stop name
+	 * @return stop name
+	 */
+	const std::string& getStopName() const;
 private:
 	std::vector<std::string> trainStopIds;
 	std::vector<const RoadSegment*> roadSegments;
+	std::string stopName;
 };
 
 class Agent;

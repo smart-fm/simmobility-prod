@@ -152,22 +152,42 @@ int TrainDriver::alightPassenger(std::list<Passenger*>& alightingPassenger)
 				num++;
 				continue;
 			}
+		}else {
+			throw std::runtime_error("the passenger in train do not know ending platform");
 		}
 		i++;
 	}
 	return num;
 }
 
-int TrainDriver::boardPassenger(std::list<Passenger*>& boardingPassenger)
+void TrainDriver::updatePassengers()
+{
+	for (std::list<Passenger*>::iterator it = passengerList.begin(); it != passengerList.end(); it++)
+	{
+		(*it)->Movement()->frame_tick();
+	}
+}
+
+int TrainDriver::boardPassenger(std::list<WaitTrainActivity*>& boardingPassenger,timeslice now)
 {
 	int num = 0;
 	int validNum = getEmptyOccupation();
-	std::list<Passenger*>::iterator i = boardingPassenger.begin();
+	std::list<WaitTrainActivity*>::iterator i = boardingPassenger.begin();
 	while(i!=boardingPassenger.end()&&validNum>0){
-		passengerList.push_back(*i);
-		i = boardingPassenger.erase(i);
-		validNum--;
-		num++;
+		(*i)->collectTravelTime();
+		Person_MT* person = (*i)->getParent();
+		person->checkTripChain(now.ms());
+		Role<Person_MT>* curRole = person->getRole();
+		curRole->setArrivalTime(now.ms());
+		sim_mob::medium::Passenger* passenger = dynamic_cast<sim_mob::medium::Passenger*>(curRole);
+		if(passenger){
+			passengerList.push_back(passenger);
+			i = boardingPassenger.erase(i);
+			validNum--;
+			num++;
+		} else {
+			throw std::runtime_error("next trip is not passenger in train boarding");
+		}
 	}
 	return num;
 }

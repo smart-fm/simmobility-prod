@@ -255,6 +255,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	rf->registerRole("activityRole", new sim_mob::ActivityPerformer<Person_MT>(nullptr));
 	rf->registerRole("busdriver", new sim_mob::medium::BusDriver(nullptr, mtx));
 	rf->registerRole("waitBusActivity", new sim_mob::medium::WaitBusActivity(nullptr));
+	rf->registerRole("waitTrainActivity", new sim_mob::medium::WaitTrainActivity(nullptr));
 	rf->registerRole("pedestrian", new sim_mob::medium::Pedestrian(nullptr));
 	rf->registerRole("passenger", new sim_mob::medium::Passenger(nullptr));
 	rf->registerRole("biker", new sim_mob::medium::Biker(nullptr));

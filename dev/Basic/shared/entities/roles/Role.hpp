@@ -111,7 +111,8 @@ public:
 		RL_TRAINPASSENGER,
 		RL_CARPASSENGER,
 		RL_PRIVATEBUSPASSENGER,
-		RL_TRAINDRIVER
+		RL_TRAINDRIVER,
+		RL_WAITTRAINACTIVITY
 	};
 
 	/**Defines the various types of requests*/

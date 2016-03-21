@@ -217,6 +217,12 @@ private:
 	void assignPersonToBusStopAgent(Person_MT* person);
 
 	/**
+	 * assign a waiting person to station agent
+	 * @param person is with the role "waiting train activity"
+	 */
+	void assignPersonToStationAgent(Person_MT* person);
+
+	/**
 	 * assign person to MRT
 	 * @param person who wants to board MRT
 	 */

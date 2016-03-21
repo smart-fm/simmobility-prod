@@ -67,15 +67,20 @@ void TrainStationAgent::HandleMessage(messaging::Message::MessageType type, cons
 	}
 	case PASSENGER_ARRIVAL_AT_PLATFORM:
 	{
-		const TrainPassengerMessage& msg = MSG_CAST(TrainPassengerMessage, message);
-		Passenger* passenger = msg.trainPassenger;
-		const sim_mob::WayPoint& startPoint = passenger->getStartPoint();
-		if(startPoint.type == WayPoint::MRT_PLATFORM){
-			const Platform* platform = startPoint.platform;
-			if(waitingPersons.find(platform)==waitingPersons.end()){
-				waitingPersons[platform] = std::list<Passenger*>();
+		const PersonMessage& msg = MSG_CAST(PersonMessage, message);
+		WaitTrainActivity* waitingPerson = dynamic_cast<WaitTrainActivity*>(msg.person->getRole());
+		if(waitingPerson){
+			const Platform* platform = waitingPerson->getStartPlatform();
+			if(platform){
+				if(waitingPersons.find(platform)==waitingPersons.end()){
+					waitingPersons[platform] = std::list<WaitTrainActivity*>();
+				}
+				waitingPersons[platform].push_back(waitingPerson);
+			} else {
+				throw std::runtime_error("the waiting person don't know starting platform.");
 			}
-			waitingPersons[platform].push_back(passenger);
+		} else {
+			throw std::runtime_error("the person arriving at platform is not waiting role.");
 		}
 		break;
 	}
@@ -124,6 +129,16 @@ void TrainStationAgent::passengerLeaving(timeslice now)
 		}
 	}
 }
+void TrainStationAgent::updateWaitPersons()
+{
+	std::map<const Platform*, std::list<WaitTrainActivity*>>::iterator it;
+	for(it=waitingPersons.begin(); it!=waitingPersons.end(); it++){
+		std::list<WaitTrainActivity*>& persons = it->second;
+		for(std::list<WaitTrainActivity*>::iterator i=persons.begin(); i!=persons.end(); i++){
+			(*i)->Movement()->frame_tick();
+		}
+	}
+}
 Entity::UpdateStatus TrainStationAgent::frame_init(timeslice now)
 {
 	return UpdateStatus::Continue;
@@ -131,6 +146,7 @@ Entity::UpdateStatus TrainStationAgent::frame_init(timeslice now)
 Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 {
 	dispathPendingTrains(now);
+	updateWaitPersons();
 	ConfigManager::GetInstance().FullConfig().simStartTime();
 	double sysGran = ConfigManager::GetInstance().FullConfig().baseGranSecond();
 	std::list<TrainDriver*>::iterator it=trainDriver.begin();
@@ -142,7 +158,7 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 			if ((*it)->getCurrentStatus() == TrainDriver::ARRIVAL_AT_PLATFORM) {
 				const Platform* platform = (*it)->getNextPlatform();
 				int alightingNum = (*it)->alightPassenger(aligtingPersons[platform]);
-				int boardingNum = (*it)->boardPassenger(waitingPersons[platform]);
+				int boardingNum = (*it)->boardPassenger(waitingPersons[platform], now);
 				(*it)->calculateDwellTime(alightingNum+boardingNum);
 				(*it)->setCurrentStatus(TrainDriver::WAITING_LEAVING);
 			} else if ((*it)->getCurrentStatus() == TrainDriver::LEAVING_FROM_PLATFORM) {

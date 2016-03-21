@@ -150,6 +150,10 @@ struct WayPoint
 			busStop = orig.busStop;
 			break;
 
+		case MRT_PLATFORM:
+			platform = orig.platform;
+			break;
+
 		case TRAIN_STOP:
 			trainStop = orig.trainStop;
 			break;
@@ -166,7 +170,8 @@ struct WayPoint
 				turningPath == rhs.turningPath &&
 				turningGroup == rhs.turningGroup &&
 				busStop == rhs.busStop &&
-				trainStop == rhs.trainStop);
+				trainStop == rhs.trainStop &&
+				platform == rhs.platform);
 	}
 
 	bool operator!=(const WayPoint& rhs) const
@@ -215,6 +220,10 @@ struct WayPoint
 
 		case TRAIN_STOP:
 			trainStop = rhs.trainStop;
+			break;
+
+		case MRT_PLATFORM:
+			platform = rhs.platform;
 			break;
 		}
 

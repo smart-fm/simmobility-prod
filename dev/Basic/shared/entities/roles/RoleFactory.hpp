@@ -149,6 +149,10 @@ public:
 		{
 			return "waitBusActivity";
 		}
+		if (mode == "WaitingTrainActivity")
+		{
+			return "waitTrainActivity";
+		}
 		if (mode == "Motorcycle")
 		{
 			return "biker";

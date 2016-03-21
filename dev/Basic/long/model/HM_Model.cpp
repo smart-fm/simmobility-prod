@@ -1745,8 +1745,6 @@ void HM_Model::getLogsumOfHousehold(BigSerial householdId2)
 			tripsExpected.push_back(tripsExpectedD);
 		}
 
-		PrintOutV("size: " << logsum.size() << std::endl);
-
 		simulationStopCounter++;
 
 		printHouseholdHitsLogsum( "logsum", hitsSample->getHouseholdHitsId() , householdId, householdIndividualIds[n], thisIndividual->getMemberId(), logsum );

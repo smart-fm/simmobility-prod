@@ -72,9 +72,6 @@ void TrainStationAgent::HandleMessage(messaging::Message::MessageType type, cons
 		if(waitingPerson){
 			const Platform* platform = waitingPerson->getStartPlatform();
 			if(platform){
-				if(waitingPersons.find(platform)==waitingPersons.end()){
-					waitingPersons[platform] = std::list<WaitTrainActivity*>();
-				}
 				waitingPersons[platform].push_back(waitingPerson);
 			} else {
 				throw std::runtime_error("the waiting person don't know starting platform.");
@@ -124,11 +121,12 @@ void TrainStationAgent::passengerLeaving(timeslice now)
 		std::list<Passenger*>::iterator itPassenger = it->second.begin();
 		while (itPassenger != it->second.end() && parentConflux) {
 			messaging::MessageBus::PostMessage(parentConflux,
-					PASSENGER_LEAVE_FRM_PLATFORM, messaging::MessageBus::MessagePtr(new TrainPassengerMessage(*itPassenger)));
+					PASSENGER_LEAVE_FRM_PLATFORM, messaging::MessageBus::MessagePtr(new PersonMessage((*itPassenger)->getParent())));
 			itPassenger = it->second.erase(itPassenger);
 		}
 	}
 }
+
 void TrainStationAgent::updateWaitPersons()
 {
 	std::map<const Platform*, std::list<WaitTrainActivity*>>::iterator it;

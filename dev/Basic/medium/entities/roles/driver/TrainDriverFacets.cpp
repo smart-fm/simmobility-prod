@@ -173,6 +173,7 @@ std::string TrainMovement::frame_tick_output()
 			<< "\",\"yPos\":\"" << trainPathMover.getCurrentPosition().getY()
 			<< "\",\"length\":\"" << trainLengthMeter
 			<< "\",\"passengerNum\":\"" << parentDriver->getPassengers().size()
+			<< "\",\"next\":\"" << trainPlatformMover.getNextPlatform()->getPlatformNo()
 			<< "\",\"lineID\":\"" << parentDriver->getTrainLine();
 	logout << "\"})" << std::endl;
 	return logout.str();

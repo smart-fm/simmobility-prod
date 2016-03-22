@@ -101,7 +101,7 @@ void sim_mob::medium::Passenger::collectTravelTime()
 	personTravelTime.subStartType = parent->currSubTrip->startLocationType;
 	personTravelTime.subEndType = parent->currSubTrip->endLocationType;
 	personTravelTime.mode = parent->currSubTrip->getMode();
-	personTravelTime.service = parent->currSubTrip->ptLineId;
+	personTravelTime.service = parent->currSubTrip->serviceLine;
 	personTravelTime.travelTime = ((double)parent->getRole()->getTravelTime()) / 1000.0; //convert to seconds
 	personTravelTime.arrivalTime = DailyTime(parent->getRole()->getArrivalTime()).getStrRepr();
 	if (roleType == Role<Person_MT>::RL_TRAINPASSENGER)

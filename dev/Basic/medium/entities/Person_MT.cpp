@@ -185,27 +185,31 @@ void Person_MT::insertWaitingActivityToTrip()
 						if (platform && itSubTrip[1]->destination.type == WayPoint::TRAIN_STOP) {
 							subTrip.origin = WayPoint(platform);
 							subTrip.originType = itSubTrip[1]->originType;
-							subTrip.startLocationId = stationName;
+							subTrip.startLocationId = platform->getPlatformNo();
 							const std::string& stationName = itSubTrip[1]->destination.trainStop->getStopName();
 							platform = TrainController<Person_MT>::getInstance()->getPlatform(lineId, stationName);
 							if (platform) {
 								subTrip.destination = WayPoint(platform);
 								subTrip.destinationType = itSubTrip[1]->destinationType;
-								subTrip.endLocationId = stationName;
-								subTrip.startLocationType = "TRAIN_STOP";
-								subTrip.endLocationType = "TRAIN_STOP";
+								subTrip.endLocationId = platform->getPlatformNo();
+								subTrip.startLocationType = "PLATFORM";
+								subTrip.endLocationType = "PLATFORM";
 								subTrip.travelMode = "WaitingTrainActivity";
 								subTrip.serviceLine = itSubTrip[1]->serviceLine;
 								subTrip.ptLineId = itSubTrip[1]->ptLineId;
 								subTrip.edgeId = itSubTrip[1]->edgeId;
+								//itSubTrip[1]->origin = subTrip.origin;
+								//itSubTrip[1]->destination = subTrip.destination;
+								//itSubTrip[1]->startLocationId = subTrip.startLocationId;
+								//itSubTrip[1]->startLocationType = "PLATFORM";
+								//itSubTrip[1]->endLocationId = subTrip.endLocationId;
+								//itSubTrip[1]->endLocationType = "PLATFORM";
+								//itSubTrip[1]->serviceLine = subTrip.serviceLine;
 								itSubTrip[1] = subTrips.insert(itSubTrip[1],subTrip);
-								itSubTrip[1]->origin = subTrip.origin;
-								itSubTrip[1]->destination = subTrip.destination;
 							}
 						}
 					}
 				}
-
 				itSubTrip[0] = itSubTrip[1];
 				itSubTrip[1]++;
 			}

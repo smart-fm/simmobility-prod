@@ -104,6 +104,12 @@ public:
 	 * update passengers inside the train
 	 */
 	void updatePassengers();
+	/**
+	 * store waiting time
+	 * @param waitingActivity is pointer to the waiting people
+	 * @param now is current time
+	 */
+	void storeWaitingTime(WaitTrainActivity* waitingActivity,timeslice now) const;
 private:
 	/**get next train driver*/
 	const TrainDriver* nextDriver;

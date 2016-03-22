@@ -26,6 +26,7 @@
 #include "entities/roles/passenger/PassengerFacets.hpp"
 #include "entities/roles/pedestrian/PedestrianFacets.hpp"
 #include "entities/roles/waitBusActivity/WaitBusActivityFacets.hpp"
+#include "entities/roles/waitTrainActivity/WaitTrainActivity.hpp"
 #include "entities/roles/driver/TrainDriverFacets.hpp"
 #include "entities/vehicle/VehicleBase.hpp"
 #include "entities/TrainController.hpp"
@@ -1164,6 +1165,12 @@ void Conflux::HandleMessage(messaging::Message::MessageType type, const messagin
 		addAgent(msg.person);
 		break;
 	}
+	case PASSENGER_LEAVE_FRM_PLATFORM:
+	{
+		const PersonMessage& msg = MSG_CAST(PersonMessage, message);
+		switchTripChainItem(msg.person);
+		break;
+	}
 	default:
 		break;
 	}
@@ -1449,11 +1456,16 @@ void Conflux::assignPersonToStationAgent(Person_MT* person)
 		const Platform* platform = nullptr;
 		if (person->originNode.type == WayPoint::MRT_PLATFORM)
 		{
-			platform = person->originNode.platform;
-			std::string stationNo = platform->getStationNo();
-			Agent* stationAgent = TrainController<Person_MT>::getAgentFromStation(stationNo);
-			messaging::MessageBus::PostMessage(stationAgent,PASSENGER_ARRIVAL_AT_PLATFORM,
-					messaging::MessageBus::MessagePtr(new PersonMessage(person)));
+			sim_mob::medium::WaitTrainActivity* curRole = dynamic_cast<sim_mob::medium::WaitTrainActivity*>(person->getRole());
+			if(curRole){
+				platform = person->originNode.platform;
+				curRole->setStartPlatform(platform);
+				curRole->setArrivalTime(currFrame.ms());
+				std::string stationNo = platform->getStationNo();
+				Agent* stationAgent = TrainController<Person_MT>::getAgentFromStation(stationNo);
+				messaging::MessageBus::PostMessage(stationAgent,PASSENGER_ARRIVAL_AT_PLATFORM,
+						messaging::MessageBus::MessagePtr(new PersonMessage(person)));
+			}
 		}
 	}
 }

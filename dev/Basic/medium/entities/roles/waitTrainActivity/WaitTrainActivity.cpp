@@ -96,9 +96,13 @@ const Platform* sim_mob::medium::WaitTrainActivity::getStartPlatform() const
 {
 	return platform;
 }
-void sim_mob::medium::WaitTrainActivity::setStartPlatform(Platform* plat)
+void sim_mob::medium::WaitTrainActivity::setStartPlatform(const Platform* plat)
 {
 	platform = plat;
+}
+const std::string& sim_mob::medium::WaitTrainActivity::getTrainLine() const
+{
+	return parent->currSubTrip->serviceLine;
 }
 }
 }

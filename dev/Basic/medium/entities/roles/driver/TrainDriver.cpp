@@ -8,6 +8,7 @@
 #include "entities/roles/driver/TrainDriver.hpp"
 #include "TrainDriverFacets.hpp"
 #include "util/Utils.hpp"
+#include "entities/PT_Statistics.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "entities/misc/TrainTrip.hpp"
@@ -152,7 +153,9 @@ int TrainDriver::alightPassenger(std::list<Passenger*>& alightingPassenger)
 				num++;
 				continue;
 			}
-		}else {
+		}
+		else
+		{
 			throw std::runtime_error("the passenger in train do not know ending platform");
 		}
 		i++;
@@ -167,7 +170,19 @@ void TrainDriver::updatePassengers()
 		(*it)->Movement()->frame_tick();
 	}
 }
-
+void TrainDriver::storeWaitingTime(WaitTrainActivity* waitingActivity, timeslice now) const
+{
+	if(!waitingActivity) { return; }
+	PersonWaitingTime personWaitInfo;
+	personWaitInfo.busStopNo = waitingActivity->getStartPlatform()->getPlatformNo();
+	personWaitInfo.personId  = waitingActivity->getParent()->getId();
+	personWaitInfo.currentTime = DailyTime(now.ms()).getStrRepr();
+	personWaitInfo.waitingTime = ((double) waitingActivity->getWaitingTime())/1000.0; //convert ms to second
+	personWaitInfo.busLines = waitingActivity->getTrainLine();
+	personWaitInfo.deniedBoardingCount = waitingActivity->getDeniedBoardingCount();
+	messaging::MessageBus::PostMessage(PT_Statistics::getInstance(), STORE_PERSON_WAITING,
+			messaging::MessageBus::MessagePtr(new PersonWaitingTimeMessage(personWaitInfo)));
+}
 int TrainDriver::boardPassenger(std::list<WaitTrainActivity*>& boardingPassenger,timeslice now)
 {
 	int num = 0;
@@ -175,12 +190,16 @@ int TrainDriver::boardPassenger(std::list<WaitTrainActivity*>& boardingPassenger
 	std::list<WaitTrainActivity*>::iterator i = boardingPassenger.begin();
 	while(i!=boardingPassenger.end()&&validNum>0){
 		(*i)->collectTravelTime();
+		storeWaitingTime((*i), now);
 		Person_MT* person = (*i)->getParent();
 		person->checkTripChain(now.ms());
 		Role<Person_MT>* curRole = person->getRole();
 		curRole->setArrivalTime(now.ms());
 		sim_mob::medium::Passenger* passenger = dynamic_cast<sim_mob::medium::Passenger*>(curRole);
 		if(passenger){
+			passenger->setArrivalTime(now.ms());
+			passenger->setStartPoint(person->currSubTrip->origin);
+			passenger->setEndPoint(person->currSubTrip->destination);
 			passengerList.push_back(passenger);
 			i = boardingPassenger.erase(i);
 			validNum--;
@@ -188,6 +207,11 @@ int TrainDriver::boardPassenger(std::list<WaitTrainActivity*>& boardingPassenger
 		} else {
 			throw std::runtime_error("next trip is not passenger in train boarding");
 		}
+	}
+	i = boardingPassenger.begin();
+	while(i!=boardingPassenger.end()){
+		(*i)->incrementDeniedBoardingCount();
+		i++;
 	}
 	return num;
 }

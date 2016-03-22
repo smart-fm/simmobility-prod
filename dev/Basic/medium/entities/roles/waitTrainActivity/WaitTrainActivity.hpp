@@ -72,7 +72,12 @@ public:
 	 * set starting platform
 	 * @param platform is a pointer to the Platform object
 	 */
-	void setStartPlatform(Platform* platform);
+	void setStartPlatform(const Platform* platform);
+	/**
+	 * get train line
+	 * @return the train line
+	 */
+	const std::string& getTrainLine() const;
 private:
 	friend class WaitTrainActivityBehavior;
 	friend class WaitTrainActivityMovement;

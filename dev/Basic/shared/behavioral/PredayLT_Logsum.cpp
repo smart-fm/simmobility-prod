@@ -254,8 +254,8 @@ PredayPersonParams sim_mob::PredayLT_LogsumManager::computeLogsum(long individua
 		{
 			orgZnParams = new ZoneParams();
 
-			std::cout << "individualId: " << individualId << " " << homeLoc << " taz cannot be found" << std::endl;
-			printedError = true;
+			//std::cout << "individualId: " << individualId << " " << homeLoc << " taz cannot be found" << std::endl;
+			//printedError = true;
 		}
 
 		try
@@ -266,8 +266,8 @@ PredayPersonParams sim_mob::PredayLT_LogsumManager::computeLogsum(long individua
 		{
 			destZnParams = new ZoneParams();
 
-			if( !printedError )
-				std::cout << "individualId: " << individualId << " " << workLoc  << " taz cannot be found. destznparam" << std::endl;
+			//if( !printedError )
+			//	std::cout << "individualId: " << individualId << " " << workLoc  << " taz cannot be found. destznparam" << std::endl;
 
 			printedError = true;
 		}
@@ -282,8 +282,8 @@ PredayPersonParams sim_mob::PredayLT_LogsumManager::computeLogsum(long individua
 			{
 				amCostParams = new CostParams();
 
-				if( !printedError )
-					std::cout << "individualId: " << individualId << " " << workLoc << " or " << homeLoc << " taz cannot be found. amcostparam" << std::endl;
+				//if( !printedError )
+				//	std::cout << "individualId: " << individualId << " " << workLoc << " or " << homeLoc << " taz cannot be found. amcostparam" << std::endl;
 
 				printedError = true;
 			}
@@ -296,8 +296,8 @@ PredayPersonParams sim_mob::PredayLT_LogsumManager::computeLogsum(long individua
 			{
 				pmCostParams = new CostParams();
 
-				if( !printedError )
-					std::cout << "individualId: " << individualId << " " << workLoc << " or " << homeLoc << " taz cannot be found. pmcostparam" << std::endl;
+				//if( !printedError )
+				//	std::cout << "individualId: " << individualId << " " << workLoc << " or " << homeLoc << " taz cannot be found. pmcostparam" << std::endl;
 
 				printedError = true;
 			}
@@ -316,8 +316,8 @@ PredayPersonParams sim_mob::PredayLT_LogsumManager::computeLogsum(long individua
 	}
 	catch(...)
 	{
-		if( !printedError )
-			std::cout << "individualId: " << individualId << " " << zoneLookupItr->second << " taz cannot be found. cbdorgzone" << std::endl;
+		//if( !printedError )
+		//	std::cout << "individualId: " << individualId << " " << zoneLookupItr->second << " taz cannot be found. cbdorgzone" << std::endl;
 
 		printedError = true;
 	}

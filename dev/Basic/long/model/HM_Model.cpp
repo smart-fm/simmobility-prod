@@ -1711,6 +1711,19 @@ void HM_Model::getLogsumOfHousehold(BigSerial householdId2)
 		}
 
 
+		if( tazHome <= 0 )
+		{
+			PrintOutV( " individualId " << householdIndividualIds[n] << " has an empty home taz" << std::endl);
+			AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, (boost::format( "individualId %1% has an empty home taz.") % householdIndividualIds[n]).str());
+		}
+
+		if( tazWork <= 0 )
+		{
+			PrintOutV( " individualId " << householdIndividualIds[n] << " has an empty work taz" << std::endl);
+			AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, (boost::format( "individualId %1% has an empty work taz.") % householdIndividualIds[n]).str());
+		}
+
+
 		for( int m = 1; m <= this->tazs.size(); m++)
 		{
 			Taz *tazObjList = getTazById( m );
@@ -1745,9 +1758,8 @@ void HM_Model::getLogsumOfHousehold(BigSerial householdId2)
 			tripsExpected.push_back(tripsExpectedD);
 		}
 
-		simulationStopCounter++;
-
-		printHouseholdHitsLogsum( "logsum", hitsSample->getHouseholdHitsId() , householdId, householdIndividualIds[n], thisIndividual->getMemberId(), logsum );
+		PrintOutV("Logsum index: " << householdLogsumCounter << std::endl);
+		printHouseholdHitsLogsum( "logsum", hitsSample->getHouseholdHitsId() , householdId, householdIndividualIds[n], thisIndividual->getMemberId(), logsum  );
 		printHouseholdHitsLogsum( "travelProbability", hitsSample->getHouseholdHitsId() , householdId, householdIndividualIds[n], thisIndividual->getMemberId(), travelProbability );
 		printHouseholdHitsLogsum( "tripsExpected", hitsSample->getHouseholdHitsId() , householdId, householdIndividualIds[n], thisIndividual->getMemberId(), tripsExpected );
 	}

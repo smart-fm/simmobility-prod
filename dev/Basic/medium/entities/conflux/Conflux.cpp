@@ -172,55 +172,50 @@ Conflux::PersonProps::PersonProps(const Person_MT* person, const Conflux* cnflx)
 void Conflux::PersonProps::printProps(std::string personId, uint32_t frame, std::string prefix) const
 {
 	std::stringstream propStrm;
-	propStrm << personId << "," << frame << "," << prefix << ",{";
-	propStrm << " conflux:";
+	propStrm << personId << "," << frame << "," << prefix << ",conflux,";
 	if (conflux)
 	{
-		propStrm << conflux->getConfluxNode()->getNodeId() << "(worker: " << conflux->currWorkerProvider << ")";
+		propStrm << conflux->getConfluxNode()->getNodeId() << "," << conflux->currWorkerProvider << ",";
 	}
 	else
 	{
-		propStrm << "0x0";
+		propStrm << "0x0,0x0,";
 	}
 	if(roleType == 5)
 	{
-		propStrm << "activityPerformer}" << std::endl;
+		propStrm << "activityPerformer" << std::endl;
 		Print() << propStrm.str();
 	}
 	else
 	{
-		propStrm << " seg:";
 		if (segment)
 		{
-			propStrm << segment->getRoadSegmentId();
+			propStrm << "seg:" << segment->getRoadSegmentId() << ",";
 		}
 		else
 		{
-			propStrm << "0x0";
+			propStrm << "seg:0x0,";
 		}
-		propStrm << " stats:";
 		if (segStats)
 		{
-			propStrm << segStats->getStatsNumberInSegment();
+			propStrm << "stats:" << segStats->getStatsNumberInSegment() << ",";
 		}
 		else
 		{
-			propStrm << "0x0";
+			propStrm << "stats:0x0,";
 		}
-		propStrm << " lane:";
 		if (lane)
 		{
-			propStrm << lane->getLaneId();
+			propStrm << "lane:" << lane->getLaneId() << ",";
 		}
 		else
 		{
-			propStrm << "0x0";
+			propStrm << "lane:0x0,";
 		}
-		propStrm << " role:" << roleType
-				<< " isQueuing:" << isQueuing
-				<< " isMoving:" << isMoving
-				<< " dist:" << distanceToSegEnd
-				<< " }" << std::endl;
+		propStrm << "role:" << roleType << ","
+			 << "isqueuing:" << isQueuing << ","
+			 << "ismoving:" << isMoving << ","
+			 << "dist:" << distanceToSegEnd << "\n";
 		Print() << propStrm.str();
 	}
 }

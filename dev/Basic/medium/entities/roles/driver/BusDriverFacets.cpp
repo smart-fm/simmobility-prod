@@ -705,6 +705,7 @@ bool BusDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 			}
 
 			res = true;
+			parentBusDriver->getResource()->setMoving(true);
 			advance(params);
 		}
 		else

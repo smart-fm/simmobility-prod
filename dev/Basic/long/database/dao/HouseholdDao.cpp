@@ -56,6 +56,7 @@ void HouseholdDao::toRow(Household& data, Parameters& outParams, bool update)
 	outParams.push_back(data.getLifestyleId());
 	outParams.push_back(data.getUnitId());
 	outParams.push_back(data.getEthnicityId());
+	outParams.push_back(data.getVehicleCategoryId());
 	outParams.push_back(data.getSize());
 	outParams.push_back(data.getChildUnder4());
 	outParams.push_back(data.getChildUnder15());
@@ -82,10 +83,10 @@ void HouseholdDao::toRow(Household& data, Parameters& outParams, bool update)
 void HouseholdDao::insertHousehold(Household& houseHold,std::string schema)
 {
 	const std::string DB_INSERT_HOUSEHOLD_OP = "INSERT INTO " + APPLY_SCHEMA(schema, ".household")
-					+ DB_FIELD_ID + ", "+ "lifestyle_id" + ", "+ DB_FIELD_UNIT_ID + ", "+ "ethnicity_id" + ", "+ "vehicle_category_id" + ", "+ DB_FIELD_SIZE + ", "+
+					+ " (" + DB_FIELD_ID + ", "+ "lifestyle_id" + ", "+ DB_FIELD_UNIT_ID + ", "+ "ethnicity_id" + ", "+ "vehicle_category_id" + ", "+ DB_FIELD_SIZE + ", "+
 					DB_FIELD_CHILDUNDER4 + ", "+ DB_FIELD_CHILDUNDER15 + ", " + "adult" + ", "+ DB_FIELD_INCOME + ", "+ DB_FIELD_HOUSING_DURATION + ", " + "workers"+ ", "+
 					"age_of_head" + ", "+ "pending_status_id" + ", " + "pending_from_date" + ", "+ "unit_pending" + ", "+ "taxi_availability" + ", " + "vehicle_ownership_option_id"+ ", "+
-					+ "time_on_market" + ", " + "time_off_market"+ ", "+ "is_bidder" + ", " + "is_seller"+ ", "+ "buy_sell_interval" + ", "+ "move_in_date" + ", " + "has_moved"
-					+ "tenure_status,"  + ") VALUES (:v1, :v2, :v3, :v4, :v5, :v6, :v7 ,:v8, :v9, :v10, :v11, :v12, :v13, :v14, :v15, :v16, :v17, :v18, :v19, :v20, :v21, :v22, :v23, :v24, :V25)";
+					+ "time_on_market" + ", " + "time_off_market"+ ", "+ "is_bidder" + ", " + "is_seller"+ ", "+ "buy_sell_interval" + ", "+ "move_in_date" + ", " + "has_moved"+ ", "+ "tenure_status"
+					+ ") VALUES (:v1, :v2, :v3, :v4, :v5, :v6, :v7 ,:v8, :v9, :v10, :v11, :v12, :v13, :v14, :v15, :v16, :v17, :v18, :v19, :v20, :v21, :v22, :v23, :v24, :V25, :v26)";
 	insertViaQuery(houseHold,DB_INSERT_HOUSEHOLD_OP);
 }

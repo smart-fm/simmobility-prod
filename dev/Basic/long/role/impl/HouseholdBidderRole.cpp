@@ -457,7 +457,7 @@ void HouseholdBidderRole::HandleMessage(Message::MessageType type, const Message
                 	vehicleBuyingWaitingTimeInDays = config.ltParams.vehicleOwnershipModel.vehicleBuyingWaitingTimeInDays;
                 	int simulationEndDay = config.ltParams.days;
                 	year = config.ltParams.year;
-                	if(simulationEndDay < (vehicleBuyingWaitingTimeInDays+day))
+                	if(simulationEndDay < moveInWaitingTimeInDays)
                 	{
                 		boost::shared_ptr<Household> houseHold = boost::make_shared<Household>( *getParent()->getHousehold());
                 		houseHold->setUnitId(unitIdToBeOwned);

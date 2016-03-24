@@ -33,5 +33,6 @@ sim_mob::LongTermParams::HousingModel::HousingModel(): enabled(false), timeInter
 													   housingMarketSearchPercentage(0), housingMoveInDaysInterval(0), outputHouseholdLogsums(0), offsetBetweenUnitBuyingAndSelling(0),
 													   bidderUnitsChoiceSet(0),householdBiddingWindow(0){}
 sim_mob::LongTermParams::VehicleOwnershipModel::VehicleOwnershipModel():enabled(false), vehicleBuyingWaitingTimeInDays(0){}
+sim_mob::LongTermParams::SchoolAssignmentModel::SchoolAssignmentModel():enabled(false), schoolChangeWaitingTimeInDays(0){}
 
 ModelScriptsMap::ModelScriptsMap(const std::string& scriptFilesPath, const std::string& scriptsLang) : path(scriptFilesPath), scriptLanguage(scriptsLang) {}

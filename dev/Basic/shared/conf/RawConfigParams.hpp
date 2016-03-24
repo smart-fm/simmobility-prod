@@ -90,6 +90,12 @@ struct LongTermParams{
 		bool enabled;
 		unsigned int vehicleBuyingWaitingTimeInDays;
 	}vehicleOwnershipModel;
+
+	struct SchoolAssignmentModel{
+		SchoolAssignmentModel();
+		bool enabled;
+		unsigned int schoolChangeWaitingTimeInDays;
+	}schoolAssignmentModel;
 };
 
 ///Represents the loop-detector_counts section of the configuration file

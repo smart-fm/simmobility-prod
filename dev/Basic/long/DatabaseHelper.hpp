@@ -178,6 +178,7 @@ namespace sim_mob {
 
         const std::string DB_FUNC_GET_POPULATION_PER_PLANNING_AREA = APPLY_SCHEMA( MAIN_SCHEMA, "getPopulationPerPlanningArea()");
         const std::string DB_FUNC_GET_PRIMARY_SCHOOL_INDS = APPLY_SCHEMA( MAIN_SCHEMA, "getPrimarySchoolIndivduals()");
+        const std::string DB_FUNC_GET_PRE_SCHOOL_INDS = APPLY_SCHEMA( MAIN_SCHEMA, "getPreschoolIndivduals()");
 
         /**
          * Fields
@@ -416,6 +417,8 @@ namespace sim_mob {
         const std::string DB_GETALL_HH_COORDINATES = "SELECT * FROM " + DB_VIEW_HH_COORDINATES + LIMIT;
         const std::string DB_GETALL_PRE_SCHOOL = "SELECT * FROM " + DB_TABLE_PRE_SCHOOL + LIMIT;
         const std::string DB_GETALL_PRIMARY_SCHOOL_INDIVIDUALS = "SELECT * FROM "+ DB_FUNC_GET_PRIMARY_SCHOOL_INDS + LIMIT;
+        const std::string DB_GETALL_PRE_SCHOOL_INDIVIDUALS = "SELECT * FROM "+ DB_FUNC_GET_PRE_SCHOOL_INDS + LIMIT;
+
         /**
          * GET BY ID
          */

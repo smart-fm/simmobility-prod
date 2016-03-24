@@ -51,7 +51,9 @@ namespace sim_mob
                 LOG_INDIVIDUAL_LOGSUM_VO,
 				LOG_SCREENINGPROBABILITIES,
 				LOG_HHCHOICESET,
-				LOG_ERROR
+				LOG_ERROR,
+				LOG_SCHOOL_ASSIGNMENT,
+				LOG_PRE_SCHOOL_ASSIGNMENT
             };
 
             LoggerAgent();

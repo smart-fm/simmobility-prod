@@ -218,6 +218,9 @@
 	<vehicleOwnershipModel enabled='false'>
 		<vehicleBuyingWaitingTimeInDays value= "1"/>
 	</vehicleOwnershipModel>
+	<schoolAssignmentModel enabled = 'true'>
+		<schoolChangeWaitingTimeInDays value ="1" />
+	</schoolAssignmentModel>
     </longTermParams>
 
     <model_scripts path="scripts/lua/mid/behavior-models/" format="lua">

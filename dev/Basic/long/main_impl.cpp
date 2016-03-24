@@ -216,9 +216,9 @@ void loadDataToOutputSchema(db::DB_Connection& conn,std::string &currentOutputSc
 		for(houseHoldItr = households->begin(); houseHoldItr != households->end(); ++houseHoldItr)
 		{
 			if(((*houseHoldItr)->getIsBidder()) || ((*houseHoldItr)->getIsSeller()))
-					{
-						hhDao.insertHousehold(*(*houseHoldItr),currentOutputSchema);
-					}
+			{
+				hhDao.insertHousehold(*(*houseHoldItr),currentOutputSchema);
+			}
 		}
 
 		SimulationStoppedPointDao simStoppedPointDao(conn);

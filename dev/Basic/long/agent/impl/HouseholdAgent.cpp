@@ -23,6 +23,7 @@
 #include "conf/ConfigManager.hpp"
 #include "model/VehicleOwnershipModel.hpp"
 #include "model/AwakeningSubModel.hpp"
+#include "model/SchoolAssignmentSubModel.hpp"
 
 using namespace sim_mob::long_term;
 using namespace sim_mob::event;
@@ -41,16 +42,26 @@ HouseholdAgent::HouseholdAgent(BigSerial _id, HM_Model* _model, const Household*
     seller = new HouseholdSellerRole(this);
     seller->setActive(marketSeller);
 
+    ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+    bool resume = config.ltParams.resume;
+
     if ( marketSeller == false )
     {
         bidder = new HouseholdBidderRole(this);
         bidder->setActive(false);
     }
 
-    ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+
     buySellInterval = config.ltParams.housingModel.offsetBetweenUnitBuyingAndSelling;
 
-    householdBiddingWindow = config.ltParams.housingModel.householdBiddingWindow * (double)rand() / RAND_MAX + 1;
+
+
+    if(resume)
+    	householdBiddingWindow = household->getTimeOnMarket();
+    else
+    {
+    	householdBiddingWindow = config.ltParams.housingModel.householdBiddingWindow * (double)rand() / RAND_MAX + 1;
+    }
 }
 
 HouseholdAgent::~HouseholdAgent()
@@ -279,6 +290,32 @@ void HouseholdAgent::onWorkerEnter()
 		{
 			VehicleOwnershipModel vehOwnershipModel(model);
 			vehOwnershipModel.reconsiderVehicleOwnershipOption(this->getHousehold(),this, day);
+		}
+	}
+
+	if(config.ltParams.schoolAssignmentModel.enabled)
+	{
+		if( getId() < model->FAKE_IDS_START)
+		{
+			std::vector<BigSerial> individuals = household->getIndividuals();
+			std::vector<BigSerial>::iterator individualsItr;
+			for(individualsItr = individuals.begin(); individualsItr != individuals.end(); individualsItr++)
+				{
+					const Individual* individual = model->getPrimaySchoolIndById((*individualsItr));
+					SchoolAssignmentSubModel schoolAssignmentModel(model);
+					if (individual!= nullptr)
+					{
+						schoolAssignmentModel.assignPrimarySchool(this->getHousehold(),individual->getId(),this, day);
+					}
+					else
+					{
+						const Individual* individual = model->getPreSchoolIndById((*individualsItr));
+						if (individual!= nullptr)
+						{
+							schoolAssignmentModel.assignPreSchool(this->getHousehold(),individual->getId(),this, day);
+						}
+					}
+				}
 		}
 	}
 

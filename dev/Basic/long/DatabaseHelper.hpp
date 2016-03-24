@@ -83,6 +83,12 @@ namespace sim_mob {
         const std::string DB_TABLE_SCREENINGCOSTTIME= APPLY_SCHEMA( CALIBRATION_SCHEMA, "cost_time");
         const std::string DB_TABLE_OWNERTENANTMOVINGRATE= APPLY_SCHEMA( CALIBRATION_SCHEMA, "owner_tenant_moving_rate");
         const std::string DB_TABLE_TENURETRANSITIONRATE= APPLY_SCHEMA( CALIBRATION_SCHEMA, "tenure_transition_rate");
+        const std::string DB_TABLE_SCHOOL_ASSIGNMENT_COEFFICIENTS = APPLY_SCHEMA(CALIBRATION_SCHEMA, "school_assignment_coefficients");
+        const std::string DB_VIEW_HH_PLANNING_AREA = APPLY_SCHEMA(MAIN_SCHEMA, "view_household_planning_area");
+        const std::string DB_TABLE_PRIMARY_SCHOOL = APPLY_SCHEMA(CALIBRATION_SCHEMA, "primary_schools");
+        const std::string DB_VIEW_HH_COORDINATES = APPLY_SCHEMA(MAIN_SCHEMA, "view_household_coordinates");
+        const std::string DB_TABLE_TRAVEL_TIME = APPLY_SCHEMA(CALIBRATION_SCHEMA, "travel_time");
+        const std::string DB_TABLE_PRE_SCHOOL = APPLY_SCHEMA(CALIBRATION_SCHEMA, "pre_schools");
 
         /**
          * Views
@@ -171,7 +177,7 @@ namespace sim_mob {
         const std::string DB_FUNC_GET_UNIT_PRICE_SUM_PER_PARCLE = APPLY_SCHEMA( MAIN_SCHEMA, "getUnitPriceSumPerParcel()");
 
         const std::string DB_FUNC_GET_POPULATION_PER_PLANNING_AREA = APPLY_SCHEMA( MAIN_SCHEMA, "getPopulationPerPlanningArea()");
-
+        const std::string DB_FUNC_GET_PRIMARY_SCHOOL_INDS = APPLY_SCHEMA( MAIN_SCHEMA, "getPrimarySchoolIndivduals()");
 
         /**
          * Fields
@@ -404,6 +410,12 @@ namespace sim_mob {
         const std::string DB_GETALL_OWNERTENANTMOVINGRATE = "SELECT * FROM "+ DB_TABLE_OWNERTENANTMOVINGRATE+ LIMIT;
         const std::string DB_GETALL_TENURETRANSITIONRATE = "SELECT * FROM "+ DB_TABLE_TENURETRANSITIONRATE+ LIMIT;
         const std::string DB_GETALL_BUILDING_AGES = "SELECT * FROM "+ APPLY_SCHEMA(MAIN_SCHEMA, "fm_building_avg_age")+ LIMIT;
+        const std::string DB_GETALL_HH_PLANNING_AREA = "SELECT * FROM "+ DB_VIEW_HH_PLANNING_AREA + LIMIT;
+        const std::string DB_GETALL_SCHOOL_ASSIGNMENT_COEFFICIENTS = "SELECT * FROM "+ DB_TABLE_SCHOOL_ASSIGNMENT_COEFFICIENTS + LIMIT;
+        const std::string DB_GETALL_PRIMARY_SCHOOL = "SELECT * FROM " + DB_TABLE_PRIMARY_SCHOOL + LIMIT;
+        const std::string DB_GETALL_HH_COORDINATES = "SELECT * FROM " + DB_VIEW_HH_COORDINATES + LIMIT;
+        const std::string DB_GETALL_PRE_SCHOOL = "SELECT * FROM " + DB_TABLE_PRE_SCHOOL + LIMIT;
+        const std::string DB_GETALL_PRIMARY_SCHOOL_INDIVIDUALS = "SELECT * FROM "+ DB_FUNC_GET_PRIMARY_SCHOOL_INDS + LIMIT;
         /**
          * GET BY ID
          */

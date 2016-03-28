@@ -219,30 +219,35 @@ bool TrainMovement::isStationCase(double disToTrain, double disToPlatform, doubl
 	}
 	return res;
 }
-double TrainMovement::getRealSpeedLimit()
+double TrainMovement::getDistanceToNextTrain(const TrainDriver* nextDriver) const
 {
-	TrainUpdateParams& params = parentDriver->getParams();
-	const TrainDriver* nextDriver = parentDriver->getNextDriver();
 	double distanceToNextTrain = 0.0;
-	double distanceToNextPlatform = 0.0;
-	double distanceToNextObject = 0.0;
-	double speedLimit = 0.0;
-	double speedLimit2 = 0.0;
-	distanceToNextPlatform = trainPathMover.getDistanceToNextPlatform(trainPlatformMover.getNextPlatform());
 	if(nextDriver){
 		if (nextDriver->getCurrentStatus() == TrainDriver::MOVE_TO_DEPOT) {
 			parentDriver->setNextDriver(nullptr);
 		} else {
 			TrainMovement* nextMovement = dynamic_cast<TrainMovement*>(nextDriver->movementFacet);
 			if (nextMovement) {
-				//double dis = trainPathMover.getDistanceToNextTrain(nextMovement->getPathMover());
-				double dis = trainPathMover.getDifferentDistance(nextMovement->getPathMover());
+				double dis = trainPathMover.getDistanceToNextTrain(nextMovement->getPathMover());
 				if (dis > 0) {
 					distanceToNextTrain = dis - safeDistance - trainLengthMeter;
 				}
 			}
 		}
 	}
+	return distanceToNextTrain;
+}
+double TrainMovement::getRealSpeedLimit()
+{
+	TrainUpdateParams& params = parentDriver->getParams();
+	double distanceToNextTrain = 0.0;
+	double distanceToNextPlatform = 0.0;
+	double distanceToNextObject = 0.0;
+	double speedLimit = 0.0;
+	double speedLimit2 = 0.0;
+	distanceToNextPlatform = trainPathMover.getDistanceToNextPlatform(trainPlatformMover.getNextPlatform());
+	const TrainDriver* nextDriver = parentDriver->getNextDriver();
+	distanceToNextTrain = getDistanceToNextTrain(nextDriver);
 
 	if(distanceToNextTrain==0.0||distanceToNextPlatform==0.0){
 		distanceToNextObject = std::max(distanceToNextTrain, distanceToNextPlatform);

@@ -32,6 +32,8 @@ public:
 	double currentAcelerate;
 	/**current case*/
 	CURRENTCASE currCase;
+	/**distance to next train*/
+	double disToNext;
 	/**
 	 * resets this update params.
 	 * @param now current timeslice in which reset is called

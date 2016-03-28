@@ -179,15 +179,15 @@ void Person_MT::insertWaitingActivityToTrip()
 					if (itSubTrip[1]->origin.type == WayPoint::TRAIN_STOP) {
 						sim_mob::SubTrip subTrip;
 						subTrip.itemType = TripChainItem::getItemType("WaitingTrainActivity");
-						const std::string& stationName = itSubTrip[1]->origin.trainStop->getStopName();
+						const std::string& firstStationName = itSubTrip[1]->origin.trainStop->getStopName();
 						std::string lineId = itSubTrip[1]->serviceLine;
-						Platform* platform =TrainController<Person_MT>::getInstance()->getPlatform(lineId, stationName);
+						Platform* platform =TrainController<Person_MT>::getInstance()->getPlatform(lineId, firstStationName);
 						if (platform && itSubTrip[1]->destination.type == WayPoint::TRAIN_STOP) {
 							subTrip.origin = WayPoint(platform);
 							subTrip.originType = itSubTrip[1]->originType;
 							subTrip.startLocationId = platform->getPlatformNo();
-							const std::string& stationName = itSubTrip[1]->destination.trainStop->getStopName();
-							platform = TrainController<Person_MT>::getInstance()->getPlatform(lineId, stationName);
+							const std::string& secondStationName = itSubTrip[1]->destination.trainStop->getStopName();
+							platform = TrainController<Person_MT>::getInstance()->getPlatform(lineId, secondStationName);
 							if (platform) {
 								subTrip.destination = WayPoint(platform);
 								subTrip.destinationType = itSubTrip[1]->destinationType;
@@ -206,6 +206,8 @@ void Person_MT::insertWaitingActivityToTrip()
 								//itSubTrip[1]->endLocationType = "PLATFORM";
 								//itSubTrip[1]->serviceLine = subTrip.serviceLine;
 								itSubTrip[1] = subTrips.insert(itSubTrip[1],subTrip);
+							} else {
+								Print() << "[PT pathset] train trip failed:[" << firstStationName << "]|[" << secondStationName << "]--["<< lineId<<"] - Invalid start/end stop for PT edge" << std::endl;
 							}
 						}
 					}

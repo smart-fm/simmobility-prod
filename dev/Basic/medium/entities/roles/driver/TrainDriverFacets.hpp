@@ -84,7 +84,12 @@ public:
 	 * inform the train arrival at last platform
 	 */
 	void arrivalAtEndPlatform() const;
-
+	/**
+	 * get distance to next train
+	 * @param next is a pointer to next TrainDriver
+	 * @return the distance to next train
+	 */
+	double getDistanceToNextTrain(const TrainDriver* next) const;
 protected:
 	virtual TravelMetric& startTravelTimeMetric();
 	virtual TravelMetric& finalizeTravelTimeMetric();

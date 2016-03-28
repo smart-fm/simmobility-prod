@@ -11,11 +11,15 @@
 #include "entities/Person_MT.hpp"
 #include "entities/TrainController.hpp"
 #include "entities/conflux/Conflux.hpp"
+#include "entities/roles/driver/TrainDriverFacets.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "message/MT_Message.hpp"
 #include "message/MessageBus.hpp"
 #include "message/MessageHandler.hpp"
+namespace {
+const double safeDistanceToAhead = 1000.0;
+}
 namespace sim_mob {
 namespace medium
 {
@@ -99,17 +103,27 @@ void TrainStationAgent::dispathPendingTrains(timeslice now)
 			} else {
 				lastUsage[lineId] = false;
 			}
-			if(!isUsed){
+			if (!isUsed) {
 				TrainDriver* next = pendingDrivers.front();
-				trainDriver.push_back(next);
-				pendingDrivers.pop_front();
-				lastUsage[lineId] = true;
+				TrainDriver* ahead = nullptr;
+				bool success = false;
 				std::map<std::string, TrainDriver*>::iterator iLastDriver;
 				iLastDriver = lastTrainDriver.find(lineId);
-				if(iLastDriver!=lastTrainDriver.end()){
-					next->setNextDriver(iLastDriver->second);
+				if (iLastDriver != lastTrainDriver.end()) {
+					ahead = iLastDriver->second;
+					sim_mob::medium::TrainMovement* trainMover = dynamic_cast<sim_mob::medium::TrainMovement*>(next->Movement());
+					double distanceToNextTrain = trainMover->getDistanceToNextTrain(ahead);
+					if (distanceToNextTrain > safeDistanceToAhead) {
+						success = true;
+					}
 				}
-				lastTrainDriver[lineId] = next;
+				if (success || !ahead) {
+					trainDriver.push_back(next);
+					pendingDrivers.pop_front();
+					lastUsage[lineId] = true;
+					lastTrainDriver[lineId] = next;
+					next->setNextDriver(ahead);
+				}
 			}
 		}
 	}

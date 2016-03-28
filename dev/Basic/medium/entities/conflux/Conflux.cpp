@@ -258,6 +258,11 @@ void Conflux::addAgent(Person_MT* person)
 			assignPersonToBusStopAgent(person);
 			break;
 		}
+		case Role<Person_MT>::RL_WAITTRAINACTIVITY:
+		{
+			assignPersonToStationAgent(person);
+			break;
+		}
 		case Role<Person_MT>::RL_TRAINPASSENGER:
 		{
 			assignPersonToMRT(person);
@@ -1465,6 +1470,8 @@ void Conflux::assignPersonToStationAgent(Person_MT* person)
 				Agent* stationAgent = TrainController<Person_MT>::getAgentFromStation(stationNo);
 				messaging::MessageBus::PostMessage(stationAgent,PASSENGER_ARRIVAL_AT_PLATFORM,
 						messaging::MessageBus::MessagePtr(new PersonMessage(person)));
+			} else {
+				throw std::runtime_error("waiting train activity role don't exist.");
 			}
 		}
 	}

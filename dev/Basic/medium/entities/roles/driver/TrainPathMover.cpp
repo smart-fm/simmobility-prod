@@ -144,7 +144,8 @@ double TrainPathMover::getDistanceToNextTrain(const TrainPathMover& other) const
 	} else if(tempOtherIt==other.drivingPath.end()) {
 		distance = 0.0;
 	} else {
-		distance = (*currBlockIt)->getLength() - getDistCoveredOnCurrBlock();
+		distance = (*tempIt)->getLength() - getDistCoveredOnCurrBlock();
+		tempIt++;
 		while (tempIt!=drivingPath.end()&&(*tempIt) != (*tempOtherIt)) {
 			distance += (*tempIt)->getLength();
 			tempIt++;

@@ -90,6 +90,10 @@ public:
 	 * @return the distance to next train
 	 */
 	double getDistanceToNextTrain(const TrainDriver* next) const;
+	/**
+	 * produce movement result for diagnosis
+	 */
+	void produceMoveInfo();
 protected:
 	virtual TravelMetric& startTravelTimeMetric();
 	virtual TravelMetric& finalizeTravelTimeMetric();

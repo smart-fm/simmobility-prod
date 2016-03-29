@@ -94,10 +94,9 @@ void TrainMovement::frame_init()
 		trainPlatformMover.setPlatforms(trip->getTrainPlatform());
 	}
 }
-void TrainMovement::frame_tick()
+void TrainMovement::produceMoveInfo()
 {
 	TrainUpdateParams& params = parentDriver->getParams();
-	///output movement info
 	const TrainTrip* trip = dynamic_cast<const TrainTrip*>(*(parentDriver->getParent()->currTripChainItem));
     const std::string& fileName("pt_mrt_move.csv");
     sim_mob::BasicLogger& ptMRTMoveLogger  = sim_mob::Logger::log(fileName);
@@ -119,7 +118,11 @@ void TrainMovement::frame_tick()
     ptMRTMoveLogger << trainPathMover.getCurrentPosition().getY() << ",";
     ptMRTMoveLogger << params.currentAcelerate << ",";
     ptMRTMoveLogger << this->parentDriver->waitingTimeSec << std::endl;
-
+}
+void TrainMovement::frame_tick()
+{
+	produceMoveInfo();
+	TrainUpdateParams& params = parentDriver->getParams();
     parentDriver->updatePassengers();
 	TrainDriver::TRAIN_STATUS status = parentDriver->getCurrentStatus();
 	switch(status){
@@ -283,7 +286,6 @@ double TrainMovement::getRealSpeedLimit()
 double TrainMovement::getEffectiveAccelerate()
 {
 	TrainUpdateParams& params = parentDriver->getParams();
-
 	double effectiveSpeed = params.currentSpeed;
 	double realSpeedLimit = getRealSpeedLimit();
 	if(params.currCase==TrainUpdateParams::STATION_CASE){

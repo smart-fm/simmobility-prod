@@ -114,17 +114,11 @@ void TrainMovement::frame_tick()
 		ptMRTMoveLogger << platformNo << ",";
 		ptMRTMoveLogger << trainPathMover.getDistanceToNextPlatform(trainPlatformMover.getNextPlatform()) << ",";
     }
-    //ptMRTMoveLogger << std::setprecision(8);
     ptMRTMoveLogger << trainPathMover.getTotalCoveredDistance() << ",";
-    //ptMRTMoveLogger << params.disToNextPlatform << ",";
-    //ptMRTMoveLogger << params.disToNextTrain << ",";
     ptMRTMoveLogger << trainPathMover.getCurrentPosition().getX() << ",";
     ptMRTMoveLogger << trainPathMover.getCurrentPosition().getY() << ",";
     ptMRTMoveLogger << params.currentAcelerate << ",";
-    //ptMRTMoveLogger << params.currCase << ",";
-    //ptMRTMoveLogger << (parentDriver->getNextDriver()?parentDriver->getNextDriver()->getTripId():0) << ",";
     ptMRTMoveLogger << this->parentDriver->waitingTimeSec << std::endl;
-    //sim_mob::Logger::log(fileName).flush();
 
     parentDriver->updatePassengers();
 	TrainDriver::TRAIN_STATUS status = parentDriver->getCurrentStatus();

@@ -198,13 +198,13 @@ void Person_MT::insertWaitingActivityToTrip()
 								subTrip.serviceLine = itSubTrip[1]->serviceLine;
 								subTrip.ptLineId = itSubTrip[1]->ptLineId;
 								subTrip.edgeId = itSubTrip[1]->edgeId;
-								//itSubTrip[1]->origin = subTrip.origin;
-								//itSubTrip[1]->destination = subTrip.destination;
-								//itSubTrip[1]->startLocationId = subTrip.startLocationId;
-								//itSubTrip[1]->startLocationType = "PLATFORM";
-								//itSubTrip[1]->endLocationId = subTrip.endLocationId;
-								//itSubTrip[1]->endLocationType = "PLATFORM";
-								//itSubTrip[1]->serviceLine = subTrip.serviceLine;
+								itSubTrip[1]->origin = subTrip.origin;
+								itSubTrip[1]->destination = subTrip.destination;
+								itSubTrip[1]->startLocationId = subTrip.startLocationId;
+								itSubTrip[1]->startLocationType = "PLATFORM";
+								itSubTrip[1]->endLocationId = subTrip.endLocationId;
+								itSubTrip[1]->endLocationType = "PLATFORM";
+								itSubTrip[1]->serviceLine = subTrip.serviceLine;
 								itSubTrip[1] = subTrips.insert(itSubTrip[1],subTrip);
 							} else {
 								Print() << "[PT pathset] train trip failed:[" << firstStationName << "]|[" << secondStationName << "]--["<< lineId<<"] - Invalid start/end stop for PT edge" << std::endl;

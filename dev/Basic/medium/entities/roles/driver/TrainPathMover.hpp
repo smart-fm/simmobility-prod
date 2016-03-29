@@ -145,7 +145,7 @@ private:
 	/**Stores the distance covered by the driver on the current block*/
 	double distMovedOnCurrBlock;
 	/**Stores the distance covered by driver on entire path*/
-	std::atomic<double> distMovedOnEntirePath;
+	double distMovedOnEntirePath;
 };
 
 } /* namespace sim_mob */

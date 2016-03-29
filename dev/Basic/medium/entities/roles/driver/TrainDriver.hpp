@@ -114,7 +114,7 @@ private:
 	/**get next train driver*/
 	const TrainDriver* nextDriver;
 	/**current status*/
-	std::atomic<TRAIN_STATUS> trainStatus;
+	TRAIN_STATUS trainStatus;
 	/**current waiting time*/
 	double waitingTimeSec;
 	/**passengers list*/

@@ -87,8 +87,8 @@ double TrainPathMover::advance(double distance)
 	}
 
 	distanceMoveToNextPoint += distance;
-	double temp = distMovedOnEntirePath.load();
-	distMovedOnEntirePath.store(temp+distance);
+	double temp = distMovedOnEntirePath;
+	distMovedOnEntirePath = (temp+distance);
 
 	double distBetwCurrAndNxtPt = calcDistanceBetweenTwoPoints();
 

@@ -106,7 +106,7 @@ private:
 	/**safe headway*/
 	double safeHeadway;
 	/**next platform*/
-	std::atomic<Platform*> nextPlatform;
+	Platform* nextPlatform;
 private:
 	/**
 	 * get current speed limit

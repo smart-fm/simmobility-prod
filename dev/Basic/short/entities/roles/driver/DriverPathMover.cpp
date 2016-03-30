@@ -573,6 +573,9 @@ void DriverPathMover::updateLateralMovement(const Lane* lane)
 		currPolyPoint = currPolyLine->getPoints().begin();
 		nextPolyPoint = currPolyPoint + 1;
 		
+		//Reset next turning
+		nextTurning = nullptr;
+		
 		//Map progress to current poly-line
 		if(pointsCovered > 0)
 		{

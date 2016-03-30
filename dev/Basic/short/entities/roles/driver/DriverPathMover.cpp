@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <limits>
 #include <stdexcept>
+#include <bits/stl_map.h>
 
 #include "conf/CMakeConfigParams.hpp"
 #include "conf/ConfigManager.hpp"
@@ -33,7 +34,7 @@ const std::string DriverPathMover::ErrorNotInIntersection("the driver is not in 
 const std::string DriverPathMover::ErrorEntireRouteDone("Entire route is done!");
 
 DriverPathMover::DriverPathMover() :
-currLane(NULL), currTurning(NULL), currPolyLine(NULL), inIntersection(false), distCoveredFromCurrPtToNextPt(0.0), distCoveredOnCurrWayPt(0.0)
+currLane(NULL), currTurning(NULL), nextTurning(NULL), currPolyLine(NULL), inIntersection(false), distCoveredFromCurrPtToNextPt(0.0), distCoveredOnCurrWayPt(0.0)
 {
 }
 
@@ -246,23 +247,35 @@ const Lane* DriverPathMover::getNextLane() const
 	return nextLane;
 }
 
-const TurningPath* DriverPathMover::getNextTurning() const
+const TurningPath* DriverPathMover::getNextTurning()
 {
-	const TurningPath *nextTurning = NULL;
-	
-	if(currLane && currWayPointIt != drivingPath.end() && (currWayPointIt + 1) != drivingPath.end()) 
+	if(nextTurning == nullptr)
 	{
-		//Get next way point. It should be a turning group
-		const WayPoint nextWayPt = *(currWayPointIt + 1);
-		if(nextWayPt.type == WayPoint::TURNING_GROUP)
+		if (currLane && currWayPointIt != drivingPath.end() && (currWayPointIt + 1) != drivingPath.end())
 		{
-			//The turnings from the current lane
-			const std::map<unsigned int, TurningPath *> *turnings = nextWayPt.turningGroup->getTurningPaths(currLane->getLaneId());
-			
-			if(turnings)
+			//Get next way point. It should be a turning group
+			const WayPoint nextWayPt = *(currWayPointIt + 1);
+			if (nextWayPt.type == WayPoint::TURNING_GROUP)
 			{
-				//Select the first turning path that we find
-				nextTurning = turnings->begin()->second;
+				//The turnings from the current lane
+				const std::map<unsigned int, TurningPath *> *turnings = nextWayPt.turningGroup->getTurningPaths(currLane->getLaneId());
+
+				if (turnings)
+				{
+					if(turnings->size() > 1)
+					{
+						//Select a random turning path
+						unsigned int randomInt = Utils::generateInt(0, turnings->size() - 1);
+						std::map<unsigned int, TurningPath *>::const_iterator it = turnings->begin();
+						std::advance(it, randomInt);
+						nextTurning = it->second;
+					}
+					else
+					{
+						//Only one turning path available
+						nextTurning = turnings->begin()->second;
+					}
+				}
 			}
 		}
 	}
@@ -346,6 +359,13 @@ void DriverPathMover::setPath(const std::vector<WayPoint> &path, int startLaneIn
 			currLane = currWayPointIt->roadSegment->getLane(currLaneIndex);
 		}
 		
+		//Set the starting point at a random distance within the start segment
+		double laneLength = currLane->getLength();
+		
+		//Divide the lane into parts of 100m and select a random entry section
+		int lastEntryIndex = laneLength / 100;
+		int selectedIndex = Utils::generateInt(0, lastEntryIndex);		
+		
 		//Set the current poly-line and the set the iterators to point to the current and next points
 		currPolyLine = currLane->getPolyLine();
 		currPolyPoint = currPolyLine->getPoints().begin();
@@ -354,6 +374,31 @@ void DriverPathMover::setPath(const std::vector<WayPoint> &path, int startLaneIn
 		//Initialise the distances covered
 		distCoveredFromCurrPtToNextPt = 0;
 		distCoveredOnCurrWayPt = 0;
+		
+		//Distance at which the the driver will start
+		double distance = selectedIndex * 100;
+		
+		//If the starting distance is 0, no need to bother
+		if(distance != 0)
+		{
+			//Adjust the distances covered according to the driver's starting distance
+			while (distance != 0)
+			{
+				double distBetwCurrAndNxtPt = calcDistFromCurrToNextPt();
+				if (distBetwCurrAndNxtPt <= distance)
+				{
+					distCoveredOnCurrWayPt += distBetwCurrAndNxtPt;
+					currPolyPoint = nextPolyPoint;
+					nextPolyPoint += 1;
+					distance -= distBetwCurrAndNxtPt;
+				}
+				else
+				{
+					distCoveredFromCurrPtToNextPt = distance;
+					distance = 0;
+				}
+			}
+		}
 	}
 }
 
@@ -469,6 +514,7 @@ double DriverPathMover::advanceToNextPolyLine()
 					
 					//We're entering an intersection. Use the turning group and the current lane to get the turning path			
 					currTurning = getNextTurning();
+					nextTurning = nullptr;
 					
 					if(currTurning)
 					{

@@ -36,6 +36,9 @@ private:
 
 	/**The current turning path of the driver (this will be non-null while driving in an intersection)*/
 	const TurningPath *currTurning;
+	
+	/**The next turning path of the driver.*/
+	const TurningPath *nextTurning;
 
 	/**The entire driving path consisting of road-segments and turning groups*/
 	std::vector<WayPoint> drivingPath;
@@ -149,7 +152,7 @@ public:
 	 * Uses the turnings from the current lane to determine the next turning
      * @return
      */
-	const TurningPath *getNextTurning() const;
+	const TurningPath *getNextTurning();
 
 	/**
 	 * Sets the driving path and initialises the internal members to point to the elements in the path

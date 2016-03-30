@@ -30,6 +30,7 @@
 #include "IncidentPerformer.hpp"
 #include "network/CommunicationDataManager.hpp"
 #include "path/PathSetManager.hpp"
+#include "util/Utils.hpp"
 
 using namespace sim_mob;
 using std::vector;
@@ -141,7 +142,7 @@ void DriverMovement::frame_tick()
 	identifyAdjacentLanes(params);
 
 	//If the vehicle is in the loading queue, we need to check if some empty space has opened up.
-	if (parentDriver->isVehicleInLoadingQueue && parentDriver->isVehiclePositionDefined && params.now.frame() % 50 == 0)
+	if (parentDriver->isVehicleInLoadingQueue && parentDriver->isVehiclePositionDefined && params.now.frame() % 20 == 0)
 	{
 		//Use the aura manager to find out nearby vehicles. If none of the nearby vehicles on the same lane
 		//take up the position that is with-in a particular tolerance of the origin of the current vehicle,
@@ -376,19 +377,19 @@ std::string DriverMovement::frame_tick_output()
 		}
 	}
 
-//	output << "(\"Driver\"" << "," << params.now.frame() << "," << id.str()
-//			<< ",{" << "\"xPos\":\"" << parentDriver->getCurrPosition().getX()
-//			<< "\",\"yPos\":\"" << parentDriver->getCurrPosition().getY()
-//			<< "\",\"angle\":\"" << (360 - (baseAngle * 180 / M_PI))
-//			<< "\",\"length\":\"" << static_cast<int> (parentDriver->vehicle->getLengthInM())
-//			<< "\",\"width\":\"" << static_cast<int> (parentDriver->vehicle->getWidthInM())
-//			<< "\",\"veh-name\":\"" << parentDriver->vehicle->getVehicleName()
-//			<< "\",\"curr-waypoint\":\"" << wayPtId
-//			<< "\",\"fwd-speed\":\"" << parentDriver->vehicle->getVelocity()
-//			<< "\",\"fwd-accel\":\"" << parentDriver->vehicle->getAcceleration()
-//			<< "\",\"info\":\"" << params.debugInfo
-//			<< "\",\"mandatory\":\"" << incidentPerformer.getIncidentStatus().getChangedLane()
-//			<< addLine.str() << "\"})" << std::endl;
+	output << "(\"Driver\"" << "," << params.now.frame() << "," << id.str()
+			<< ",{" << "\"xPos\":\"" << parentDriver->getCurrPosition().getX()
+			<< "\",\"yPos\":\"" << parentDriver->getCurrPosition().getY()
+			<< "\",\"angle\":\"" << (360 - (baseAngle * 180 / M_PI))
+			<< "\",\"length\":\"" << static_cast<int> (parentDriver->vehicle->getLengthInM())
+			<< "\",\"width\":\"" << static_cast<int> (parentDriver->vehicle->getWidthInM())
+			<< "\",\"veh-name\":\"" << parentDriver->vehicle->getVehicleName()
+			<< "\",\"curr-waypoint\":\"" << wayPtId
+			<< "\",\"fwd-speed\":\"" << parentDriver->vehicle->getVelocity()
+			<< "\",\"fwd-accel\":\"" << parentDriver->vehicle->getAcceleration()
+			<< "\",\"info\":\"" << params.debugInfo
+			<< "\",\"mandatory\":\"" << incidentPerformer.getIncidentStatus().getChangedLane()
+			<< addLine.str() << "\"})" << std::endl;
 	
 	return output.str();
 }
@@ -868,6 +869,21 @@ void DriverMovement::buildPath(std::vector<WayPoint> &wayPoints, int startLaneIn
 		}
 	}
 	
+	if(startSegmentId <= 0)
+	{
+		for (auto wp : pathOfLinks)
+		{
+			if (wp.type == WayPoint::LINK)
+			{
+				const Link* firstLink = wp.link;
+				const std::vector<RoadSegment*>& firstLinkRoadSegments = firstLink->getRoadSegments();
+				int startSegIndex = Utils::generateInt(0, firstLinkRoadSegments.size()-1);
+				startSegmentId = firstLinkRoadSegments[startSegIndex]->getRoadSegmentId();					
+				break;
+			}
+		}
+	}
+	
 	//The path containing the links and turning groups
 	vector<WayPoint> path;
 	
@@ -1311,7 +1327,8 @@ void DriverMovement::setOrigin(DriverUpdateParams &params)
 		targetLaneIndex = params.currLaneIndex = params.currLane->getLaneIndex();
 	}
 
-	//Vehicles start at rest (or may be given initial speed in configuration file)
+	//Vehicles start at 10-30% of road speed limit (or may be given initial speed in configuration file)
+	parentDriver->getParent()->initialSpeed = Utils::generateFloat(0.1 * params.maxLaneSpeed, 0.3 * params.maxLaneSpeed);
 	parentDriver->vehicle->setVelocity(parentDriver->getParent()->initialSpeed);
 	parentDriver->vehicle->setLateralVelocity(0);
 	parentDriver->vehicle->setAcceleration(0);

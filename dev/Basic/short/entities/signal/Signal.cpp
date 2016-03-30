@@ -560,9 +560,12 @@ void VehicleCounter::serialize(const uint32_t& time)
 		std::map<const Lane*, int> ::iterator it(counter.begin());
 		for (; it != counter.end(); it++)
 		{
-			logger << time << "," << signal->getTrafficLightId() \
+			if(signal->getTrafficLightId() != 0)
+			{
+				logger << time << "," << signal->getTrafficLightId() \
 					<< "," << it->first->getRoadSegmentId() \
 					<< "," << it->first->getLaneId() << "," << it->second << "\n";
+			}
 		}
 	}
 }

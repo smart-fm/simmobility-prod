@@ -162,6 +162,15 @@ public:
 	 * @param startSegmentId the id of starting segment (optional)
      */
 	void setPath(const std::vector<WayPoint> &path, int startLaneIndex = -1, int startSegmentId = 0);
+	
+	/**
+	 * Sets the driving path that begins with a turning group and initialises the internal members to 
+	 * point to the elements in the path
+	 *
+     * @param path the path retrieved from the street directory or the path set manager
+	 * @param fromLane the lane from which the vehicle arrives
+     */
+	void setPathStartingWithTurningGroup(const std::vector<WayPoint> &path, const Lane *fromLane);
 
 	/**
 	 * Checks if the path has been set

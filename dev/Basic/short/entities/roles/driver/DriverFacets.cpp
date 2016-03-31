@@ -6,6 +6,7 @@
 
 #include <limits>
 #include <algorithm>
+#include <stdexcept>
 
 #include "boost/bind.hpp"
 #include "BusDriver.hpp"
@@ -16,6 +17,7 @@
 #include "entities/Person_ST.hpp"
 #include "entities/profile/ProfileBuilder.hpp"
 #include "entities/UpdateParams.hpp"
+#include "exceptions/Exceptions.hpp"
 #include "geospatial/network/Lane.hpp"
 #include "geospatial/network/LaneConnector.hpp"
 #include "geospatial/network/Link.hpp"
@@ -538,7 +540,7 @@ bool DriverMovement::updateMovement()
 	const Link *prevLink = fwdDriverMovement.getCurrLink();
 	
 	std::vector<const RoadSegment*> segmentsPassed;
-	std::vector<WayPoint>::const_iterator startWayPoint = fwdDriverMovement.getCurrWayPointIt();
+	const WayPoint &startWayPoint = fwdDriverMovement.getCurrWayPoint();
 
 	//Store the speed
 	params.currSpeed = parentDriver->vehicle->getVelocity();	
@@ -583,18 +585,47 @@ bool DriverMovement::updateMovement()
 		parentDriver->parent->currLinkTravelStats.start(currLink, linkEntryTimeSec);
 	}
 
-	std::vector<WayPoint>::const_iterator currWayPoint = fwdDriverMovement.getCurrWayPointIt();
-	if(currWayPoint != startWayPoint)
+	if (!fwdDriverMovement.isDoneWithEntireRoute())
 	{
-		for(std::vector<WayPoint>::const_iterator iter = startWayPoint;
-				iter != currWayPoint; iter++)
+		const WayPoint &currWayPoint = fwdDriverMovement.getCurrWayPoint();
+		if (currWayPoint != startWayPoint)
 		{
-			if(iter->type == WayPoint::ROAD_SEGMENT)
+			if (startWayPoint.type == WayPoint::ROAD_SEGMENT && currWayPoint.type == WayPoint::ROAD_SEGMENT)
 			{
-				segmentsPassed.push_back((*iter).roadSegment);
+				if (startWayPoint.roadSegment->getLinkId() == currWayPoint.roadSegment->getLinkId())
+				{
+					const Link *link = startWayPoint.roadSegment->getParentLink();
+					segmentsPassed.insert(segmentsPassed.begin(), link->getRoadSegments().begin() + startWayPoint.roadSegment->getSequenceNumber(),
+										  link->getRoadSegments().begin() + currWayPoint.roadSegment->getSequenceNumber());
+				}
+				else
+				{
+					segmentsPassed.insert(segmentsPassed.begin(), prevLink->getRoadSegments().begin() + startWayPoint.roadSegment->getSequenceNumber(),
+										  prevLink->getRoadSegments().end());
+					segmentsPassed.insert(segmentsPassed.end(), currLink->getRoadSegments().begin(),
+										  currLink->getRoadSegments().begin() + currWayPoint.roadSegment->getSequenceNumber());
+				}
 			}
-		}
+			else if (startWayPoint.type == WayPoint::ROAD_SEGMENT && currWayPoint.type == WayPoint::TURNING_GROUP)
+			{
+				const Link *startLink = startWayPoint.roadSegment->getParentLink();
+				segmentsPassed.insert(segmentsPassed.begin(), startLink->getRoadSegments().begin() + startWayPoint.roadSegment->getSequenceNumber(),
+									  startLink->getRoadSegments().end());
+			}
+			else if (startWayPoint.type == WayPoint::TURNING_GROUP && currWayPoint.type == WayPoint::ROAD_SEGMENT)
+			{
+				segmentsPassed.insert(segmentsPassed.begin(), currLink->getRoadSegments().begin(),
+									  currLink->getRoadSegments().begin() + currWayPoint.roadSegment->getSequenceNumber());
+			}
 
+			updateRoadSegmentTravelTime(segmentsPassed);
+		}
+	}
+	else
+	{
+		const Link *startLink = startWayPoint.roadSegment->getParentLink();
+		segmentsPassed.insert(segmentsPassed.begin(), startLink->getRoadSegments().begin() + startWayPoint.roadSegment->getSequenceNumber(),
+							  startLink->getRoadSegments().end());
 		updateRoadSegmentTravelTime(segmentsPassed);
 	}
 
@@ -855,7 +886,7 @@ void DriverMovement::setParentBufferedData()
 	parentDriver->getParent()->yPos.set(parentDriver->getCurrPosition().getY());
 }
 
-void DriverMovement::buildPath(std::vector<WayPoint> &wayPoints, int startLaneIndex, int startSegmentId)
+std::vector<WayPoint> DriverMovement::buildPath(std::vector<WayPoint> &wayPoints)
 {
 	//Path containing only links
 	vector<WayPoint> pathOfLinks;
@@ -867,22 +898,7 @@ void DriverMovement::buildPath(std::vector<WayPoint> &wayPoints, int startLaneIn
 		{
 			pathOfLinks.push_back(*itWayPts);
 		}
-	}
-	
-	if(startSegmentId <= 0)
-	{
-		for (auto wp : pathOfLinks)
-		{
-			if (wp.type == WayPoint::LINK)
-			{
-				const Link* firstLink = wp.link;
-				const std::vector<RoadSegment*>& firstLinkRoadSegments = firstLink->getRoadSegments();
-				int startSegIndex = Utils::generateInt(0, firstLinkRoadSegments.size()-1);
-				startSegmentId = firstLinkRoadSegments[startSegIndex]->getRoadSegmentId();					
-				break;
-			}
-		}
-	}
+	}	
 	
 	//The path containing the links and turning groups
 	vector<WayPoint> path;
@@ -921,12 +937,12 @@ void DriverMovement::buildPath(std::vector<WayPoint> &wayPoints, int startLaneIn
 		}				
 	}
 
-	fwdDriverMovement.setPath(path, startLaneIndex, startSegmentId);
+	return path;
 }
 
 void DriverMovement::resetPath(std::vector<WayPoint> path)
 {
-	buildPath(path);
+	fwdDriverMovement.setPath(buildPath(path), parentDriver->getParent()->startLaneIndex, parentDriver->getParent()->startSegmentId);	
 }
 
 bool DriverMovement::isLastSegmentInLink() const
@@ -1262,8 +1278,25 @@ Vehicle* DriverMovement::initializePath(bool createVehicle)
         }
 
 		if (createVehicle)
-		{			
-			buildPath(path, parentDriver->getParent()->startLaneIndex, parentDriver->getParent()->startSegmentId);
+		{
+			//If not provided, set a random start segment
+			if (parentDriver->getParent()->startSegmentId <= 0)
+			{
+				for (auto wp : path)
+				{
+					if (wp.type == WayPoint::LINK)
+					{
+						const Link* firstLink = wp.link;
+						const std::vector<RoadSegment *> &firstLinkRoadSegments = firstLink->getRoadSegments();
+						int startSegIndex = Utils::generateInt(0, firstLinkRoadSegments.size() - 1);
+						parentDriver->getParent()->startSegmentId = firstLinkRoadSegments[startSegIndex]->getRoadSegmentId();
+						
+						break;
+					}
+				}
+			}
+			
+			fwdDriverMovement.setPath(buildPath(path), parentDriver->getParent()->startLaneIndex, parentDriver->getParent()->startSegmentId);
 			vehicle = new Vehicle(VehicleBase::CAR, length, width, vehName);
 		}
 	}
@@ -1355,8 +1388,82 @@ double DriverMovement::updatePosition(DriverUpdateParams &params)
 	{
 		distCovered = 0;
 		params.setStatus(STATUS_STOPPED);
-	}
+	}	
 
+	double overflow = 0;
+	
+	try
+	{
+		//Move the vehicle forward
+		overflow = fwdDriverMovement.advance(distCovered);
+	}
+	catch(no_turning_path_exception &ex)
+	{
+		//No turning path to the next link from the selected route. Change route.
+		
+		//Create a temporary sub-trip
+		DailyTime startTime(ConfigManager::GetInstance().FullConfig().simStartTime().getValue() + params.now.ms());
+		SubTrip subtrip;
+		
+		subtrip.origin = WayPoint(ex.fromLane->getParentSegment()->getParentLink()->getToNode());
+		subtrip.destination = parentDriver->parent->destNode;		
+		subtrip.startTime = startTime;				
+		
+		//Get the path from the path-set manager if we're using route-choice, else find the shortest path
+		vector<WayPoint> path;
+		if (ConfigManager::GetInstance().FullConfig().PathSetMode())
+		{
+			//Black list the next link from the original path so that we do not get that path again
+			set<const Link *> blackListLink;
+			blackListLink.insert(ex.toSegment->getParentLink());
+			
+			bool useInSimulationTT = parentDriver->getParent()->usesInSimulationTravelTime();			
+			bool pathFound = PrivateTrafficRouteChoice::getInstance()->getBestPath(path, subtrip, true, blackListLink,
+																				false, false, false, nullptr, useInSimulationTT);
+			
+			if(!pathFound)
+			{
+				stringstream msg;
+				msg << "No path found from node " << subtrip.origin.node->getNodeId() << " to " << subtrip.destination.node->getNodeId() 
+					<< " [En-route search]";
+				throw runtime_error(msg.str());
+			}
+		}
+		else
+		{
+			//Black list the next link from the original path so that we do not get that path again
+			vector<const Link *> blackListLink;
+			blackListLink.push_back(ex.toSegment->getParentLink());
+			
+			const StreetDirectory& stdir = StreetDirectory::Instance();
+			path = stdir.SearchShortestDrivingPath(*(subtrip.origin.node), *(parentDriver->destination), blackListLink);
+		}		
+		
+		//Build the new path
+		path = buildPath(path);
+		
+		//Get the turning group the driver should enter
+		const TurningGroup *tGroup = subtrip.origin.node->getTurningGroup(ex.fromLane->getParentSegment()->getLinkId(), path.front().roadSegment->getLinkId());
+		
+		if (tGroup)
+		{
+			//Prepend the path with the turning group
+			path.insert(path.begin(), WayPoint(tGroup));
+
+			//Set the updated path
+			fwdDriverMovement.setPathStartingWithTurningGroup(path, ex.fromLane);
+
+			updatePosition(params);
+		}
+		else
+		{
+			stringstream msg;
+			msg << "No turning found from link " << ex.fromLane->getParentSegment()->getLinkId() << " to " << path.front().roadSegment->getLinkId() 
+				<< " [En-route search]";
+			throw runtime_error(msg.str());
+		}
+	}
+	
 	//Update the vehicle's velocity based on its acceleration using the equation of motion
 	//v = u + at
 	//where, v = final velocity, u = initial velocity, a = acceleration, t = time
@@ -1368,10 +1475,7 @@ double DriverMovement::updatePosition(DriverUpdateParams &params)
 	}
 
 	parentDriver->vehicle->setVelocity(updatedVelocity);
-
-	//Move the vehicle forward
-	double overflow = fwdDriverMovement.advance(distCovered);
-
+	
 	identifyAdjacentLanes(params);
 
 	//Check if the lane which we want to move into exists

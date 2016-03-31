@@ -365,17 +365,16 @@ public:
 	 * starting road segment and starting lane
 	 *
      * @param wayPoints The list of way points along the path
-     * @param startLaneIndex The index of the lane where the driver starts
-	 * @param startSegmentId The id of the segment in the path where the driver starts
+	 * @return the path consisting of segments and turning groups (as way points)
      */
-	void buildPath(std::vector<WayPoint> &wayPoints, int startLaneIndex = -1, int startSegmentId = -1);
+	std::vector<WayPoint> buildPath(std::vector<WayPoint> &wayPoints);
 
 	/**
 	 * Replaces the path with the given path
 	 * 
      * @param path the new path
      */
-	void resetPath(std::vector<WayPoint> path);
+	void resetPath(std::vector<WayPoint> path);	
 
 	/**
 	 * Checks if the current segment is the last segment in the link

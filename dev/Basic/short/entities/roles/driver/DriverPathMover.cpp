@@ -12,6 +12,7 @@
 #include "conf/CMakeConfigParams.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/settings/DisableMPI.h"
+#include "exceptions/Exceptions.hpp"
 #include "geospatial/network/Lane.hpp"
 #include "geospatial/network/Link.hpp"
 #include "geospatial/network/Node.hpp"
@@ -402,6 +403,59 @@ void DriverPathMover::setPath(const std::vector<WayPoint> &path, int startLaneIn
 	}
 }
 
+void DriverPathMover::setPathStartingWithTurningGroup(const std::vector<WayPoint> &path, const Lane *fromLane)
+{
+	//Clear the previous path, if any
+	drivingPath.clear();
+	currLane = nullptr;
+	inIntersection = true;
+
+	if (!path.empty())
+	{
+		//Copy the way-points from the given path
+		drivingPath = path;
+
+		//Set the current way-point iterator to point to the first segment in the path
+		currWayPointIt = drivingPath.begin();
+		
+		//Select the turning path based on the previous lane and next lane
+		const TurningGroup *tGroup = path.front().turningGroup;
+		const std::map<unsigned int, TurningPath *> *turnings = tGroup->getTurningPaths(fromLane->getLaneId());
+		
+		if (turnings)
+		{
+			if (turnings->size() > 1)
+			{
+				//Select a random turning path
+				unsigned int randomInt = Utils::generateInt(0, turnings->size() - 1);
+				std::map<unsigned int, TurningPath *>::const_iterator it = turnings->begin();
+				std::advance(it, randomInt);
+				currTurning = it->second;
+			}
+			else
+			{
+				//Only one turning path available
+				currTurning = turnings->begin()->second;
+			}
+		}
+		else
+		{
+			std::stringstream msg;
+			msg << "No turning path from Lane " << fromLane->getLaneId() << " in the turning group " << tGroup->getTurningGroupId();
+			throw runtime_error(msg.str());
+		}
+
+		//Set the current poly-line and the set the iterators to point to the current and next points
+		currPolyLine = currTurning->getPolyLine();
+		currPolyPoint = currPolyLine->getPoints().begin();
+		nextPolyPoint = currPolyPoint + 1;
+
+		//Initialise the distances covered
+		distCoveredFromCurrPtToNextPt = 0;
+		distCoveredOnCurrWayPt = 0;		
+	}
+}
+
 bool DriverPathMover::isDrivingPathSet() const
 {
 	return (!drivingPath.empty());
@@ -525,7 +579,7 @@ double DriverPathMover::advanceToNextPolyLine()
 					{
 						std::stringstream msg;
 						msg << "Reached intersection from lane " << currLane->getLaneId() << ". It is not connected to a turning path!";
-						throw std::runtime_error(msg.str());
+						throw no_turning_path_exception(msg.str(), currLane, getNextSegInNextLink());
 					}
 				}
 			}

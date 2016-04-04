@@ -26,7 +26,7 @@ namespace sim_mob
             Household( BigSerial id, BigSerial lifestyleId, BigSerial unitId, BigSerial ethnicityId, BigSerial vehicleCategoryId,  int size, int childUnder4, int childUnder15, int adult, double income,
             		   int housingDuration,int workers, int ageOfHead, int pendingStatusId,std::tm pendingFromDate,int unitPending,bool twoRoomHdbEligibility, bool threeRoomHdbEligibility,
 					   bool fourRoomHdbEligibility, int familyType, bool taxiAvailability, int vehicleOwnershipOptionId, double logsum, double currentUnitPrice, double householdAffordabilityAmount,
-					   int buySellInterval, std::tm moveInDate,int timeOnMarket,int timeOffMarket,int isBidder,int isSeller,int hasMoved, int tenureStatus);
+					   int buySellInterval, std::tm moveInDate,int timeOnMarket,int timeOffMarket,int isBidder,int isSeller,int hasMoved, int tenureStatus,int awakenedDay,bool existInDB);
 
             virtual ~Household();
 
@@ -97,6 +97,8 @@ namespace sim_mob
 			int getIsSeller() const;
 			int getHasMoved() const;
 			int getTenureStatus() const;
+			int getAwaknedDay() const;
+			bool getExistInDB() const;
 
 			void setBuySellInterval(int buyerSellerInterval);
 			void setTimeOffMarket(int timeOffMarket);
@@ -110,6 +112,8 @@ namespace sim_mob
 			void setIsBidder(int bidder);
 			void setIsSeller(int seller);
 			void setHasMoved(int hasMove);
+			void setAwakenedDay(int awakenDay);
+			void setExistInDB(bool exist);
 
 
 			enum FAMILY_TYPE
@@ -170,6 +174,8 @@ namespace sim_mob
 			int isSeller;
 			int hasMoved;
 			int tenureStatus;
+			int awakenedDay;
+			bool existInDB;
 
         };
 

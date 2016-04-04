@@ -1882,6 +1882,8 @@ Conflux* Conflux::findStartingConflux(Person_MT* person, unsigned int now)
 	switch(personRole->roleType)
 	{
 	case Role<Person_MT>::RL_DRIVER:
+	case Role<Person_MT>::RL_TRUCKER_HGV:
+	case Role<Person_MT>::RL_TRUCKER_LGV:
 	{
 		const medium::DriverMovement* driverMvt = dynamic_cast<const medium::DriverMovement*>(personRole->Movement());
 		if(driverMvt)

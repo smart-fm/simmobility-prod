@@ -35,6 +35,10 @@ void BuildingDao::fromRow(Row& result, Building& outObj)
     outObj.grossSqMRetail 	= result.get<double>(		"gross_sq_m_retail", 	0.0);
     outObj.grossSqMOther	= result.get<double>(		"gross_sq_m_other", 	0.0);
     outObj.lastChangedDate = result.get<std::tm>(       "last_changed_date", std::tm());
+    outObj.freehold = result.get<int>("freehold", 0);
+    outObj.floorSpace =  result.get<double>(		"floor_space", 		0.0);
+    outObj.buildingType =  result.get<std::string>(	"building_type", std::string());
+    outObj.slaAddressId =  result.get<BigSerial>(		"sla_address_id", INVALID_ID);
 }
 
 void BuildingDao::toRow(Building& data, Parameters& outParams, bool update)
@@ -52,6 +56,10 @@ void BuildingDao::toRow(Building& data, Parameters& outParams, bool update)
 	outParams.push_back(data.getGrossSqmRetail());
 	outParams.push_back(data.getGrossSqmOther());
 	outParams.push_back(data.getLastChangedDate());
+	outParams.push_back(data.getFreehold());
+	outParams.push_back(data.getLastChangedDate());
+	outParams.push_back(data.getBuildingType());
+	outParams.push_back(data.getSlaAddressId());
 }
 
 std::vector<Building*> BuildingDao::getBuildingsByParcelId(const long long parcelId,std::string schema)
@@ -71,7 +79,8 @@ void BuildingDao::insertBuilding(Building& building,std::string schema)
 	const std::string DB_INSERT_BUILDING_OP = "INSERT INTO " + APPLY_SCHEMA(schema, ".fm_building")
 	        		+ " (" + "fm_building_id" + ", " + "fm_project_id" + ", " + "fm_parcel_id" + ", " + "storeys_above_ground"+ ", " + "storeys_below_ground" + ", " + "from_date" + ", " + "to_date"
 	        		+ ", " + "building_status" + ", " + "gross_sq_m_res" + ", " + "gross_sq_m_office" + ", " + "gross_sq_m_retail" + ", " + "gross_sq_m_other" + ", " + "last_changed_date"
-	        		+ ") VALUES (:v1, :v2, :v3, :v4, :v5, :v6, :v7, :v8, :v9, :v10, :v11, :v12, :v13)";
+					+ ", " + "freehold" + ", " + "floor_space" + ", " + "building_type" + ", " + "sla_address_id"
+	        		+ ") VALUES (:v1, :v2, :v3, :v4, :v5, :v6, :v7, :v8, :v9, :v10, :v11, :v12, :v13, :v14, v15, :v16, :v17)";
 	insertViaQuery(building,DB_INSERT_BUILDING_OP);
 
 }

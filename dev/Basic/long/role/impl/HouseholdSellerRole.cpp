@@ -30,6 +30,7 @@
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "database/entity/UnitSale.hpp"
+#include "database/entity/HouseholdUnit.hpp"
 #include "util/PrintLog.hpp"
 
 using namespace sim_mob;
@@ -101,6 +102,8 @@ namespace
         	model->addNewBids(newBid);
         	boost::shared_ptr<UnitSale> unitSale(new UnitSale(model->getUnitSaleId(),bid.getNewUnitId(),bid.getBidderId(),agent.getId(),bid.getBidValue(),getDateBySimDay(config.ltParams.year,bid.getSimulationDay()),(unit->getbiddingMarketEntryDay()-bid.getSimulationDay()),(agent.getAwakeningDay()-bid.getSimulationDay())));
         	model->addUnitSales(unitSale);
+        	boost::shared_ptr<HouseholdUnit> hhUnit(new HouseholdUnit(agent.getHousehold()->getId(),bid.getNewUnitId(),getDateBySimDay(config.ltParams.year,bid.getSimulationDay()+moveInWaitingTimeInDays)));
+        	model->addHouseholdUnits(hhUnit);
         }
     }
 
@@ -173,6 +176,10 @@ bool HouseholdSellerRole::isActive() const
 void HouseholdSellerRole::setActive(bool activeArg)
 {
     active = activeArg;
+    if( getParent()->getHousehold() != nullptr)
+    {
+    	getParent()->getHousehold()->setIsSeller(activeArg);
+    }
 }
 
 void HouseholdSellerRole::update(timeslice now)

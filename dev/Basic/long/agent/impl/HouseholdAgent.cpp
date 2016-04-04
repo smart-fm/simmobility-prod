@@ -34,13 +34,14 @@ using std::string;
 using std::map;
 using std::endl;
 
-HouseholdAgent::HouseholdAgent(BigSerial _id, HM_Model* _model, const Household* _household, HousingMarket* _market, bool _marketSeller, int _day, int _householdBiddingWindow, int awakeningDay)
+HouseholdAgent::HouseholdAgent(BigSerial _id, HM_Model* _model, Household* _household, HousingMarket* _market, bool _marketSeller, int _day, int _householdBiddingWindow, int awakeningDay)
 							 : Agent_LT(ConfigManager::GetInstance().FullConfig().mutexStategy(), _id), model(_model), market(_market), household(_household), marketSeller(_marketSeller), bidder (nullptr), seller(nullptr), day(_day),
 							   vehicleOwnershipOption(NO_CAR), householdBiddingWindow(_householdBiddingWindow),awakeningDay(awakeningDay)
 							{
 
     seller = new HouseholdSellerRole(this);
     seller->setActive(marketSeller);
+
 
     if ( marketSeller == false )
     {
@@ -50,8 +51,14 @@ HouseholdAgent::HouseholdAgent(BigSerial _id, HM_Model* _model, const Household*
 
     ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
     buySellInterval = config.ltParams.housingModel.offsetBetweenUnitBuyingAndSelling;
+    bool resume = config.ltParams.resume;
 
-    householdBiddingWindow = config.ltParams.housingModel.householdBiddingWindow * (double)rand() / RAND_MAX + 1;
+    if(resume)
+    	householdBiddingWindow = householdBiddingWindow - household->getTimeOnMarket();
+    else
+    {
+    	householdBiddingWindow =  config.ltParams.housingModel.housingMoveInDaysInterval + config.ltParams.housingModel.householdBiddingWindow * (double)rand() / RAND_MAX + 1;
+    }
 
     if( household )
     	(const_cast<Household*>(household))->setTimeOnMarket(householdBiddingWindow);
@@ -100,7 +107,7 @@ HousingMarket* HouseholdAgent::getMarket() const
     return market;
 }
 
-const Household* HouseholdAgent::getHousehold() const
+Household* HouseholdAgent::getHousehold() const
 {
     return household;
 }
@@ -238,6 +245,7 @@ void HouseholdAgent::processExternalEvent(const ExternalEventArgs& args)
             if (bidder)
             {
             	awakeningDay = day;
+            	household->setAwakenedDay(day);
                 bidder->setActive(true);
                 model->incrementBidders();
                 model->incrementAwakeningCounter();
@@ -263,7 +271,7 @@ void HouseholdAgent::onWorkerEnter()
 	TimeCheck awakeningTiming;
 
 	AwakeningSubModel awakenings;
-	awakenings.InitialAwakenings( model, const_cast<Household*>(household), this, day );
+	awakenings.InitialAwakenings( model, household, this, day );
 	futureTransitionOwn = awakenings.getFutureTransitionOwn();
 
 	double awakeningTime =  awakeningTiming.getClockTime();

@@ -1059,7 +1059,14 @@ double MITSIM_CF_Model::calcWaitForLaneExitAcc(DriverUpdateParams &params)
 	if(!driverMvt->fwdDriverMovement.isInIntersection() && params.flag(FLAG_ESCAPE) 
 			|| (params.flag(FLAG_NOSING) && !params.flag(FLAG_NOSING_FEASIBLE)))
 	{
-		acceleration = calcBrakeToStopAcc(params, params.distToStop);
+		if(!params.driver->IsBusDriver())
+		{
+			acceleration = calcBrakeToStopAcc(params, params.distToStop);
+		}
+		else
+		{
+			acceleration = calcBrakeToStopAcc(params, params.distToStop / 4);
+		}
 	}
 	
 	return acceleration;

@@ -29,10 +29,10 @@
 namespace
 {
 /**Constant distance value used for looking ahead (metre)*/
-const static int distanceInFront = 50;
+const static int distanceInFront = 150;
 
 /**Constant distance value used for looking behind  (metre)*/
-const static int distanceBehind = 30;
+const static int distanceBehind = 50;
 
 /**Constant distance value used for looking ahead (metre)*/
 const static int maxVisibleDis = 100;

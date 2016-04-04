@@ -1399,67 +1399,76 @@ double DriverMovement::updatePosition(DriverUpdateParams &params)
 	}
 	catch(no_turning_path_exception &ex)
 	{
-		//No turning path to the next link from the selected route. Change route.
-		
-		//Create a temporary sub-trip
-		DailyTime startTime(ConfigManager::GetInstance().FullConfig().simStartTime().getValue() + params.now.ms());
-		SubTrip subtrip;
-		
-		subtrip.origin = WayPoint(ex.fromLane->getParentSegment()->getParentLink()->getToNode());
-		subtrip.destination = parentDriver->parent->destNode;		
-		subtrip.startTime = startTime;				
-		
-		//Get the path from the path-set manager if we're using route-choice, else find the shortest path
-		vector<WayPoint> path;
-		if (ConfigManager::GetInstance().FullConfig().PathSetMode())
+		if(!parentDriver->isBusDriver)
 		{
-			//Black list the next link from the original path so that we do not get that path again
-			set<const Link *> blackListLink;
-			blackListLink.insert(ex.toSegment->getParentLink());
-			
-			bool useInSimulationTT = parentDriver->getParent()->usesInSimulationTravelTime();			
-			bool pathFound = PrivateTrafficRouteChoice::getInstance()->getBestPath(path, subtrip, true, blackListLink,
-																				false, false, false, nullptr, useInSimulationTT);
-			
-			if(!pathFound)
+			//No turning path to the next link from the selected route. Change route.
+
+			//Create a temporary sub-trip
+			DailyTime startTime(ConfigManager::GetInstance().FullConfig().simStartTime().getValue() + params.now.ms());
+			SubTrip subtrip;
+
+			subtrip.origin = WayPoint(ex.fromLane->getParentSegment()->getParentLink()->getToNode());
+			subtrip.destination = parentDriver->parent->destNode;
+			subtrip.startTime = startTime;
+
+			//Get the path from the path-set manager if we're using route-choice, else find the shortest path
+			vector<WayPoint> path;
+			if (ConfigManager::GetInstance().FullConfig().PathSetMode())
+			{
+				//Black list the next link from the original path so that we do not get that path again
+				set<const Link *> blackListLink;
+				blackListLink.insert(ex.toSegment->getParentLink());
+
+				bool useInSimulationTT = parentDriver->getParent()->usesInSimulationTravelTime();
+				bool pathFound = PrivateTrafficRouteChoice::getInstance()->getBestPath(path, subtrip, true, blackListLink,
+																					   false, false, false, nullptr, useInSimulationTT);
+
+				if (!pathFound)
+				{
+					stringstream msg;
+					msg << "No path found from node " << subtrip.origin.node->getNodeId() << " to " << subtrip.destination.node->getNodeId()
+							<< " [En-route search]";
+					throw runtime_error(msg.str());
+				}
+			}
+			else
+			{
+				//Black list the next link from the original path so that we do not get that path again
+				vector<const Link *> blackListLink;
+				blackListLink.push_back(ex.toSegment->getParentLink());
+
+				const StreetDirectory& stdir = StreetDirectory::Instance();
+				path = stdir.SearchShortestDrivingPath(*(subtrip.origin.node), *(parentDriver->destination), blackListLink);
+			}
+
+			//Build the new path
+			path = buildPath(path);
+
+			//Get the turning group the driver should enter
+			const TurningGroup *tGroup = subtrip.origin.node->getTurningGroup(ex.fromLane->getParentSegment()->getLinkId(), path.front().roadSegment->getLinkId());
+
+			if (tGroup)
+			{
+				//Prepend the path with the turning group
+				path.insert(path.begin(), WayPoint(tGroup));
+
+				//Set the updated path
+				fwdDriverMovement.setPathStartingWithTurningGroup(path, ex.fromLane);
+
+				updatePosition(params);
+			}
+			else
 			{
 				stringstream msg;
-				msg << "No path found from node " << subtrip.origin.node->getNodeId() << " to " << subtrip.destination.node->getNodeId() 
-					<< " [En-route search]";
+				msg << "No turning found from link " << ex.fromLane->getParentSegment()->getLinkId() << " to " << path.front().roadSegment->getLinkId()
+						<< " [En-route search]";
 				throw runtime_error(msg.str());
 			}
 		}
 		else
 		{
-			//Black list the next link from the original path so that we do not get that path again
-			vector<const Link *> blackListLink;
-			blackListLink.push_back(ex.toSegment->getParentLink());
-			
-			const StreetDirectory& stdir = StreetDirectory::Instance();
-			path = stdir.SearchShortestDrivingPath(*(subtrip.origin.node), *(parentDriver->destination), blackListLink);
-		}		
-		
-		//Build the new path
-		path = buildPath(path);
-		
-		//Get the turning group the driver should enter
-		const TurningGroup *tGroup = subtrip.origin.node->getTurningGroup(ex.fromLane->getParentSegment()->getLinkId(), path.front().roadSegment->getLinkId());
-		
-		if (tGroup)
-		{
-			//Prepend the path with the turning group
-			path.insert(path.begin(), WayPoint(tGroup));
-
-			//Set the updated path
-			fwdDriverMovement.setPathStartingWithTurningGroup(path, ex.fromLane);
-
-			updatePosition(params);
-		}
-		else
-		{
 			stringstream msg;
-			msg << "No turning found from link " << ex.fromLane->getParentSegment()->getLinkId() << " to " << path.front().roadSegment->getLinkId() 
-				<< " [En-route search]";
+			msg << "Bus driver on incorrect lane " << ex.fromLane->getLaneId() << " trying to go to segment " << ex.toSegment->getRoadSegmentId();
 			throw runtime_error(msg.str());
 		}
 	}

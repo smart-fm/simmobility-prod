@@ -152,6 +152,10 @@ bool HouseholdBidderRole::isActive() const
 void HouseholdBidderRole::setActive(bool activeArg)
 {
     active = activeArg;
+    if( getParent()->getHousehold() != nullptr)
+    {
+    	getParent()->getHousehold()->setIsBidder(activeArg);
+    }
 }
 
 void HouseholdBidderRole::computeHouseholdAffordability()
@@ -386,6 +390,7 @@ void HouseholdBidderRole::TakeUnitOwnership()
 	boost::shared_ptr<Household> houseHold = boost::make_shared<Household>( *getParent()->getHousehold());
 	houseHold->setUnitId(unitIdToBeOwned);
 	houseHold->setHasMoved(1);
+	houseHold->setUnitPending(0);
 	houseHold->setMoveInDate(getDateBySimDay(year,day));
 	HM_Model* model = getParent()->getModel();
 	model->addHouseholdsTo_OPSchema(houseHold);
@@ -412,11 +417,14 @@ void HouseholdBidderRole::HandleMessage(Message::MessageType type, const Message
                 	vehicleBuyingWaitingTimeInDays = config.ltParams.vehicleOwnershipModel.vehicleBuyingWaitingTimeInDays;
                 	int simulationEndDay = config.ltParams.days;
                 	year = config.ltParams.year;
-                	if(simulationEndDay < (vehicleBuyingWaitingTimeInDays+day))
+                	if(simulationEndDay < (moveInWaitingTimeInDays))
                 	{
                 		boost::shared_ptr<Household> houseHold = boost::make_shared<Household>( *getParent()->getHousehold());
                 		houseHold->setUnitId(unitIdToBeOwned);
                 		houseHold->setHasMoved(0);
+                		houseHold->setUnitPending(1);
+                		int awakenDay = getParent()->getAwakeningDay();
+                		houseHold->setAwakenedDay(awakenDay);
                 		houseHold->setMoveInDate(getDateBySimDay(year,moveInWaitingTimeInDays));
                 		HM_Model* model = getParent()->getModel();
                 		model->addHouseholdsTo_OPSchema(houseHold);
@@ -758,4 +766,9 @@ void HouseholdBidderRole::computeBidValueLogistic( double price, double wp, doub
 void HouseholdBidderRole::setMovInWaitingTimeInDays(int days)
 {
 	this->moveInWaitingTimeInDays = days;
+}
+
+void HouseholdBidderRole::setUnitIdToBeOwned(BigSerial unitId)
+{
+	this->unitIdToBeOwned = unitId;
 }

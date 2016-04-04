@@ -43,6 +43,7 @@
 #include "database/entity/OwnerTenantMovingRate.hpp"
 #include "database/entity/AlternativeHedonicPrice.hpp"
 #include "database/entity/ScreeningModelCoefficients.hpp"
+#include "database/entity/HouseholdUnit.hpp"
 #include "core/HousingMarket.hpp"
 #include "boost/unordered_map.hpp"
 #include "DeveloperModel.hpp"
@@ -158,6 +159,10 @@ namespace sim_mob
             typedef std::vector<VehicleOwnershipChanges*> VehicleOwnershipChangesList;
             typedef boost::unordered_map<BigSerial, VehicleOwnershipChanges*> VehicleOwnershipChangesMap;
 
+            typedef std::vector<HouseholdUnit*> HouseholdUnitList;
+            typedef boost::unordered_map<BigSerial, HouseholdUnit*> HouseholdUnitMap;
+
+
 
             /**
              * Taz statistics
@@ -250,6 +255,7 @@ namespace sim_mob
 
 
             Household* getHouseholdById( BigSerial id) const;
+            Household* getHouseholdWithBidsById( BigSerial id) const;
 			Individual* getIndividualById( BigSerial id) const;
             Awakening* getAwakeningById( BigSerial id) const;
             Postcode* getPostcodeById(BigSerial id) const;
@@ -329,6 +335,7 @@ namespace sim_mob
             void setStartDay(int day);
             int getStartDay() const;
             void addNewBids(boost::shared_ptr<Bid> &newBid);
+            void addHouseholdUnits(boost::shared_ptr<HouseholdUnit> &newHouseholdUnit);
             BigSerial getBidId();
             BigSerial getUnitSaleId();
             std::vector<boost::shared_ptr<Bid> > getNewBids();
@@ -340,8 +347,8 @@ namespace sim_mob
             std::vector<boost::shared_ptr<VehicleOwnershipChanges> > getVehicleOwnershipChanges();
             ScreeningModelCoefficientsList getScreeningModelCoefficientsList();
 
-           IndvidualVehicleOwnershipLogsumList getIndvidualVehicleOwnershipLogsums() const;
-           IndvidualVehicleOwnershipLogsum* getIndvidualVehicleOwnershipLogsumsByHHId(BigSerial householdId) const;
+            IndvidualVehicleOwnershipLogsumList getIndvidualVehicleOwnershipLogsums() const;
+            IndvidualVehicleOwnershipLogsum* getIndvidualVehicleOwnershipLogsumsByHHId(BigSerial householdId) const;
 
             ScreeningCostTimeList getScreeningCostTime();
             ScreeningCostTime* getScreeningCostTimeInst(std::string key);
@@ -361,6 +368,8 @@ namespace sim_mob
             std::vector<AlternativeHedonicPrice*> getAlternativeHedonicPrice();
             boost::unordered_multimap<BigSerial, AlternativeHedonicPrice*>& getAlternativeHedonicPriceById();
 
+            HouseholdUnit* getHouseholdUnitByHHId(BigSerial hhId) const;
+
         protected:
             /**
              * Inherited from Model.
@@ -375,6 +384,7 @@ namespace sim_mob
 
             HouseholdList households;
             HouseholdMap householdsById;
+            HouseholdMap householdWithBidsById;
 
             UnitList units; //residential only.
             UnitMap unitsById;
@@ -488,9 +498,10 @@ namespace sim_mob
             int startDay; //start tick of the simulation
             std::vector<boost::shared_ptr<Bid> > newBids;
             std::vector<boost::shared_ptr<UnitSale> > unitSales;
+            std::vector<boost::shared_ptr<HouseholdUnit> > newHouseholdUnits;
             BigSerial bidId;
             BigSerial unitSaleId;
-            std::vector<boost::shared_ptr<Household> > hhVector;
+            std::vector<boost::shared_ptr<Household> > hhWithBidsVector;
             std::vector<boost::shared_ptr<VehicleOwnershipChanges> > vehicleOwnershipChangesVector;
             IndvidualVehicleOwnershipLogsumList IndvidualVehicleOwnershipLogsums;
             IndvidualVehicleOwnershipLogsumMap IndvidualVehicleOwnershipLogsumById;
@@ -507,7 +518,10 @@ namespace sim_mob
             HouseholdMap resumptionHHById;
             VehicleOwnershipChangesList vehOwnershipChangesList;
             VehicleOwnershipChangesMap vehicleOwnershipChangesById;
+            HouseholdUnitList householdUnits;
+            HouseholdUnitMap householdUnitByHHId;
             int lastStoppedDay;
+            bool resume ;
         };
     }
 }

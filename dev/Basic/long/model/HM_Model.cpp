@@ -2054,6 +2054,11 @@ std::vector<boost::shared_ptr<Bid> > HM_Model::getNewBids()
 	return this->newBids;
 }
 
+std::vector<boost::shared_ptr<HouseholdUnit> > HM_Model::getNewHouseholdUnits()
+{
+	return this->newHouseholdUnits;
+}
+
 BigSerial HM_Model::getBidId()
 {
 	{

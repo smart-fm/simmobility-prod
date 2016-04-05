@@ -339,6 +339,7 @@ namespace sim_mob
             BigSerial getBidId();
             BigSerial getUnitSaleId();
             std::vector<boost::shared_ptr<Bid> > getNewBids();
+            std::vector<boost::shared_ptr<HouseholdUnit> > getNewHouseholdUnits();
             void addUnitSales(boost::shared_ptr<UnitSale> &unitSale);
             std::vector<boost::shared_ptr<UnitSale> > getUnitSales();
             void addHouseholdsTo_OPSchema(boost::shared_ptr<Household> &houseHold);

@@ -80,7 +80,7 @@ void BuildingDao::insertBuilding(Building& building,std::string schema)
 	        		+ " (" + "fm_building_id" + ", " + "fm_project_id" + ", " + "fm_parcel_id" + ", " + "storeys_above_ground"+ ", " + "storeys_below_ground" + ", " + "from_date" + ", " + "to_date"
 	        		+ ", " + "building_status" + ", " + "gross_sq_m_res" + ", " + "gross_sq_m_office" + ", " + "gross_sq_m_retail" + ", " + "gross_sq_m_other" + ", " + "last_changed_date"
 					+ ", " + "freehold" + ", " + "floor_space" + ", " + "building_type" + ", " + "sla_address_id"
-	        		+ ") VALUES (:v1, :v2, :v3, :v4, :v5, :v6, :v7, :v8, :v9, :v10, :v11, :v12, :v13, :v14, v15, :v16, :v17)";
+	        		+ ") VALUES (:v1, :v2, :v3, :v4, :v5, :v6, :v7, :v8, :v9, :v10, :v11, :v12, :v13, :v14, :v15, :v16, :v17)";
 	insertViaQuery(building,DB_INSERT_BUILDING_OP);
 
 }

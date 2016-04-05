@@ -57,7 +57,7 @@ void BuildingDao::toRow(Building& data, Parameters& outParams, bool update)
 	outParams.push_back(data.getGrossSqmOther());
 	outParams.push_back(data.getLastChangedDate());
 	outParams.push_back(data.getFreehold());
-	outParams.push_back(data.getLastChangedDate());
+	outParams.push_back(data.getFloorSpace());
 	outParams.push_back(data.getBuildingType());
 	outParams.push_back(data.getSlaAddressId());
 }

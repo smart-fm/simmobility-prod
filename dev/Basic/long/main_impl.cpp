@@ -43,6 +43,7 @@
 #include "database/dao/DevelopmentPlanDao.hpp"
 #include "database/dao/VehicleOwnershipChangesDao.hpp"
 #include "database/dao/HouseholdDao.hpp"
+#include "database/dao/HouseholdUnitDao.hpp"
 #include "util/HelperFunctions.hpp"
 
 using std::cout;
@@ -225,6 +226,12 @@ void loadDataToOutputSchema(db::DB_Connection& conn,std::string &currentOutputSc
 			}
 		}
 
+		std::vector<boost::shared_ptr<HouseholdUnit> > hhUnits = housingMarketModel.getNewHouseholdUnits();
+		HouseholdUnitDao hhUnitDao(conn);
+		for (boost::shared_ptr<HouseholdUnit> hhUnit :hhUnits)
+		{
+			hhUnitDao.insertHouseholdUnit(*hhUnit,currentOutputSchema);
+		}
 		SimulationStoppedPointDao simStoppedPointDao(conn);
 		simStoppedPointDao.insertSimulationStoppedPoints(*(developerModel.getSimStoppedPointObj(simVersionId)).get(),currentOutputSchema);
 //		developerModel.getBuildingsVec().clear();

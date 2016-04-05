@@ -102,7 +102,7 @@ namespace
         	model->addNewBids(newBid);
         	boost::shared_ptr<UnitSale> unitSale(new UnitSale(model->getUnitSaleId(),bid.getNewUnitId(),bid.getBidderId(),agent.getId(),bid.getBidValue(),getDateBySimDay(config.ltParams.year,bid.getSimulationDay()),(unit->getbiddingMarketEntryDay()-bid.getSimulationDay()),(agent.getAwakeningDay()-bid.getSimulationDay())));
         	model->addUnitSales(unitSale);
-        	boost::shared_ptr<HouseholdUnit> hhUnit(new HouseholdUnit(agent.getHousehold()->getId(),bid.getNewUnitId(),getDateBySimDay(config.ltParams.year,bid.getSimulationDay()+moveInWaitingTimeInDays)));
+        	boost::shared_ptr<HouseholdUnit> hhUnit(new HouseholdUnit(thisBidder->getId(),bid.getNewUnitId(),getDateBySimDay(config.ltParams.year,bid.getSimulationDay()+moveInWaitingTimeInDays)));
         	model->addHouseholdUnits(hhUnit);
         }
     }

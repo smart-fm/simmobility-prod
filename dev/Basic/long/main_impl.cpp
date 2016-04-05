@@ -106,6 +106,7 @@ void createOutputSchema(db::DB_Connection& conn,const std::string& currentOutput
 
 		std::vector<CreateOutputSchema*> createOPSchemaList;
 		loadData<CreateOutputSchemaDao>(conn,createOPSchemaList);
+		std::sort(createOPSchemaList.begin(), createOPSchemaList.end(), CreateOutputSchema::OrderById());
 		std::vector<CreateOutputSchema*>::iterator opSchemaTablesItr;
 		for(opSchemaTablesItr = createOPSchemaList.begin(); opSchemaTablesItr != createOPSchemaList.end(); ++opSchemaTablesItr)
 		{

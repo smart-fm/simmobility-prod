@@ -4,6 +4,8 @@
 
 #pragma once
 #include <boost/unordered_set.hpp>
+#include <boost/geometry.hpp>
+#include <boost/geometry/geometries/polygon.hpp>
 
 #include "buffering/Vector2D.hpp"
 #include "entities/Sensor.hpp"
@@ -11,8 +13,14 @@
 #include "entities/vehicle/Vehicle.hpp"
 #include "geospatial/network/Lane.hpp"
 
+
 namespace sim_mob
 {
+
+namespace bg = boost::geometry;
+
+typedef bg::model::point<double, 2, bg::cs::cartesian> point_t;
+typedef bg::model::box<point_t> loop_detector_box;
 
 /**
  * This class models an Axially Aligned Bounding Box.  That is, it is a rectangle that is 
@@ -27,6 +35,14 @@ struct AABB
 	// Expand this AABB to include another AABB.  That is, this = this union <another>.
 	// union is a keyword in C++, so the method name is united.
 	void united(AABB const &another);
+};
+
+struct Box
+{
+	Point lowerLeft_;
+	Point upperLeft_;
+	Point upperRight_;
+	Point lowerRight_;
 };
 
 /**
@@ -105,17 +121,15 @@ protected:
 // detector.  See the comment in LoopDetectorEntity::Impl::Impl() below.
 //
 // Since most loop detectors are not aligned to the X- and Y- axes, the monitoring area is a 2D
-// Object-oriented Bounding Box (OBB).  The OBB implementation has a center, 2 normalized
-// orientations and 2 scalars representing the length and width of the OBB.  <orientationL_>
-// represents the orientation of the OBB along the length of the monitoring area.  <innerLength_>
-// is exactly half the length of the loop detector while 2 * <outerLength_> represents the full
-// length of the OBB.  That is, the length of the outer area before (or after) the loop detector
-// is outerLength_ - innerLength_.
+// Object-oriented Bounding Box (OBB). The corners of OBB is computed based on the last polyline
+// of the lane where it is placed. If the projection of line between the vehicle position and
+// lowerleft corner and leftEdge, bottomEdge is less than the square length of leftEdge,bottomEdge
+// respectively, then the vehicle is inside the monitor area, otherwise not.
 
 class LoopDetector : private boost::noncopyable
 {
 public:
-	LoopDetector(Lane const *lane, meter_t innerLength, meter_t outerLength, Shared<Sensor::CountAndTimePair> &pair);
+	LoopDetector(Lane const *lane, meter_t length, Shared<Sensor::CountAndTimePair> &pair);
 
 	// Check if any vehicle in the <vehicles> list is hovering over the loop detector.  If there
 	// is no vehicle, then set <vehicle_> to 0 and increment the space-time attribute.  If a
@@ -126,7 +140,7 @@ public:
 	/**
 	 * @return the AABB that would contain the monitoring area of this object.
 	 */
-	AABB getAABB() const;
+	Box getLDBox() const;
 
 	const std::vector<const Vehicle* > vehicle() const
 	{
@@ -142,12 +156,15 @@ public:
 	}
 
 	Point center_;
-	Vector2D<double> orientationL_; // orientation of the OBB along its length.
-	Vector2D<double> orientationW_; // orientation of the OBB along its width.
 	meter_t width_;
-	meter_t innerLength_;
-	meter_t outerLength_;
 
+	Box ld_area;
+
+	Vector2D<double> leftEdge;
+	Vector2D<double> bottomEdge;
+
+	double sqLenOfLeftEdge;
+	double sqLenOfBottomEdge;
 private:
 	unsigned int timeStepInMilliSeconds_; // The loop detector entity runs at this rate.
 	bool request_to_reset_; // See the comment in check().

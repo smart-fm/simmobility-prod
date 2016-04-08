@@ -1621,7 +1621,8 @@ bool DriverMovement::updateNearbyAgent(const Agent *nearbyAgent, const Driver *n
 			}
 		}
 	}
-	else if(currTurning)
+	
+	if(currTurning)
 	{
 		//We are in or approaching an intersection, but the other driver may be in a segment after the intersection
 		
@@ -1636,8 +1637,13 @@ bool DriverMovement::updateNearbyAgent(const Agent *nearbyAgent, const Driver *n
 			//Check if the other driver is in the segment that we're heading into
 			if(otherSeg == targetSeg)
 			{
-				//Distance between the drivers
-				int distance = (currTurning->getLength() - fwdDriverMovement.getDistCoveredOnCurrWayPt()) + nearbyDriver->getDistCoveredOnCurrWayPt();
+				//Distance between the drivers				
+				int distance = nearbyDriver->getDistCoveredOnCurrWayPt() + fwdDriverMovement.getDistToEndOfCurrWayPt();
+				
+				if(fwdDriverMovement.getCurrLane())
+				{
+					distance += currTurning->getLength();
+				}				
 									
 				if(otherLane == currTurning->getToLane())
 				{
@@ -1657,7 +1663,8 @@ bool DriverMovement::updateNearbyAgent(const Agent *nearbyAgent, const Driver *n
 			}
 		}
 	}
-	else if(otherTurning)
+	
+	if(otherTurning)
 	{
 		//We are on a segment after the intersection, but the other driver is approaching or in an intersection.
 		//We need to know the drivers behind while lane changing
@@ -1669,7 +1676,12 @@ bool DriverMovement::updateNearbyAgent(const Agent *nearbyAgent, const Driver *n
 		if(otherTurning->getToLane()->getParentSegment() == currSeg)
 		{
 			//Distance between the drivers
-			int distance = (otherTurning->getLength() - nearbyDriver->getDistCoveredOnCurrWayPt()) + fwdDriverMovement.getDistCoveredOnCurrWayPt();
+			int distance = fwdDriverMovement.getDistCoveredOnCurrWayPt() + nearbyDriver->getDistToIntersection() + otherTurning->getLength();
+			
+			if(!nearbyDriver->getCurrLane())
+			{
+				distance -= nearbyDriver->getDistCoveredOnCurrWayPt();
+			}
 
 			if (toLane == fwdDriverMovement.getCurrLane())
 			{
@@ -1906,7 +1918,8 @@ bool DriverMovement::updateNearbyAgent(const Agent *nearbyAgent, const Driver *n
 				if (params.nvFwd.driver == NULL)
 				{
 					//Distance between the drivers
-					double distance = fwdDriverMovement.getDistToEndOfCurrLink() + nearbyDriver->distCoveredOnCurrWayPt_.get();
+					double distance = fwdDriverMovement.getDistToEndOfCurrLink() + nearbyDriver->distCoveredOnCurrWayPt_.get() +
+							parentDriver->expectedTurning_.get()->getLength();
 					setNearestVehicle(params.nvFwdNextLink, distance, nearbyDriver);
 				}
 			}

@@ -7,6 +7,7 @@
 #include <boost/nondet_random.hpp>
 #include <boost/random.hpp>
 #include <limits>
+#include <cmath>
 
 #include "Driver.hpp"
 #include "entities/roles/driver/models/CarFollowModel.hpp"
@@ -1101,6 +1102,14 @@ double MITSIM_CF_Model::calcDesiredSpeed(DriverUpdateParams &params)
 	}
 
 	float desired = speedFactor * speedOnSign;
+	
+	//Higher speed for the lanes on the right
+	if(params.currLane)
+	{
+		unsigned int distFromRightLane = params.currLane->getParentSegment()->getNoOfLanes() - params.currLaneIndex;
+		desired *= (1 - (log2(distFromRightLane) / 10));
+	}
+	
 	desired = desired * (1 + getSpeedLimitAddon());
 
 	double desiredSpeed = std::min<double>(desired, params.maxLaneSpeed);

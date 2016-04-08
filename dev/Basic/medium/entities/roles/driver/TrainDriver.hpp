@@ -42,12 +42,12 @@ public:
 	 */
 	void leaveFromCurrentPlatform();
 	/**
-	 * get current train status
-	 * @return current status in the train
+	 * get next requested
+	 * @return next requested in the train
 	 */
 	TRAIN_NEXTREQUESTED getNextRequested() const;
 	/**
-	 * set next status
+	 * set next requested
 	 */
 	void setNextRequested(TRAIN_NEXTREQUESTED res);
 	/**
@@ -113,7 +113,7 @@ public:
 private:
 	/**get next train driver*/
 	const TrainDriver* nextDriver;
-	/**current status*/
+	/**next requested*/
 	TRAIN_NEXTREQUESTED nextRequested;
 	/**current waiting time*/
 	double waitingTimeSec;

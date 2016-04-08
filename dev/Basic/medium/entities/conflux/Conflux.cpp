@@ -72,7 +72,9 @@ Conflux::Conflux(Node* confluxNode, const MutexStrategy& mtxStrat, int id, bool 
 		Agent(mtxStrat, id), confluxNode(confluxNode), parentWorkerAssigned(false), currFrame(0, 0), isLoader(isLoader), numUpdatesThisTick(0),
 		tickTimeInS(ConfigManager::GetInstance().FullConfig().baseGranSecond())
 {
-	multiUpdate = true;
+	if (!isLoader) {
+		multiUpdate = true;
+	}
 }
 
 Conflux::~Conflux()

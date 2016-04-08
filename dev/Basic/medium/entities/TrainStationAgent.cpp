@@ -49,13 +49,13 @@ void TrainStationAgent::HandleMessage(messaging::Message::MessageType type, cons
 		const TrainDriverMessage& msg = MSG_CAST(TrainDriverMessage, message);
 		msg.trainDriver->getParent()->currWorkerProvider = currWorkerProvider;
 		trainDriver.push_back(msg.trainDriver);
-		msg.trainDriver->setCurrentStatus(TrainDriver::MOVE_TO_PLATFROM);
+		msg.trainDriver->setNextRequested(TrainDriver::REQUESTED_TO_PLATFROM);
 		break;
 	}
 	case TRAIN_ARRIVAL_AT_STARTPOINT:
 	{
 		const TrainDriverMessage& msg = MSG_CAST(TrainDriverMessage, message);
-		msg.trainDriver->setCurrentStatus(TrainDriver::MOVE_TO_PLATFROM);
+		msg.trainDriver->setNextRequested(TrainDriver::REQUESTED_TO_PLATFROM);
 		std::string lineId = msg.trainDriver->getTrainLine();
 		if(pendingTrainDriver.find(lineId)==pendingTrainDriver.end()){
 			pendingTrainDriver[lineId] = std::list<TrainDriver*>();
@@ -167,18 +167,18 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 		do {
 			callMovementFrameTick(now, *it);
 			tickInSec += (*it)->getParams().secondsInTick;
-			if ((*it)->getCurrentStatus() == TrainDriver::ARRIVAL_AT_PLATFORM) {
+			if ((*it)->getNextRequested() == TrainDriver::REQUESTED_AT_PLATFORM) {
 				const Platform* platform = (*it)->getNextPlatform();
 				int alightingNum = (*it)->alightPassenger(aligtingPersons[platform]);
 				int boardingNum = (*it)->boardPassenger(waitingPersons[platform], now);
 				(*it)->calculateDwellTime(alightingNum+boardingNum);
-				(*it)->setCurrentStatus(TrainDriver::WAITING_LEAVING);
-			} else if ((*it)->getCurrentStatus() == TrainDriver::LEAVING_FROM_PLATFORM) {
+				(*it)->setNextRequested(TrainDriver::REQUESTED_WAITING_LEAVING);
+			} else if ((*it)->getNextRequested() == TrainDriver::REQUESTED_LEAVING_PLATFORM) {
 				std::string lineId = (*it)->getTrainLine();
 				lastUsage[lineId] = false;
 				if((*it)->getParent()->isToBeRemoved()){
 					removeAheadTrain(*it);
-					(*it)->setCurrentStatus(TrainDriver::MOVE_TO_DEPOT);
+					(*it)->setNextRequested(TrainDriver::REQUESTED_TO_DEPOT);
 					messaging::MessageBus::PostMessage(TrainController<Person_MT>::getInstance(),
 							MSG_TRAIN_BACK_DEPOT, messaging::MessageBus::MessagePtr(new TrainMessage((*it)->getParent())));
 				}

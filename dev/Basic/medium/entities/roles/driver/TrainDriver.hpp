@@ -16,13 +16,13 @@ class TrainBehavior;
 class TrainMovement;
 class TrainDriver : public sim_mob::Role<Person_MT>, public UpdateWrapper<TrainUpdateParams> {
 public:
-	enum TRAIN_STATUS{
-		NO_STATUS=0,
-		ARRIVAL_AT_PLATFORM,
-		WAITING_LEAVING,
-		LEAVING_FROM_PLATFORM,
-		MOVE_TO_PLATFROM,
-		MOVE_TO_DEPOT
+	enum TRAIN_NEXTREQUESTED{
+		NO_REQUESTED=0,
+		REQUESTED_AT_PLATFORM,
+		REQUESTED_WAITING_LEAVING,
+		REQUESTED_LEAVING_PLATFORM,
+		REQUESTED_TO_PLATFROM,
+		REQUESTED_TO_DEPOT
 	};
 	virtual ~TrainDriver();
 
@@ -45,11 +45,11 @@ public:
 	 * get current train status
 	 * @return current status in the train
 	 */
-	TRAIN_STATUS getCurrentStatus() const;
+	TRAIN_NEXTREQUESTED getNextRequested() const;
 	/**
 	 * set next status
 	 */
-	void setCurrentStatus(TRAIN_STATUS status);
+	void setNextRequested(TRAIN_NEXTREQUESTED res);
 	/**
 	 * get waiting time when parking at platform
 	 * @return current waiting time
@@ -114,7 +114,7 @@ private:
 	/**get next train driver*/
 	const TrainDriver* nextDriver;
 	/**current status*/
-	TRAIN_STATUS trainStatus;
+	TRAIN_NEXTREQUESTED nextRequested;
 	/**current waiting time*/
 	double waitingTimeSec;
 	/**passengers list*/

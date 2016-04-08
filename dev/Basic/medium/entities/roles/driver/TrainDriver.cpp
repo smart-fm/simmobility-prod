@@ -19,7 +19,7 @@ TrainDriver::TrainDriver(Person_MT* parent,
 		sim_mob::medium::TrainBehavior* behavior,
 		sim_mob::medium::TrainMovement* movement,
 		std::string roleName, Role<Person_MT>::Type roleType) :
-	sim_mob::Role<Person_MT>::Role(parent, behavior, movement, roleName, roleType),nextDriver(nullptr),trainStatus(NO_STATUS),waitingTimeSec(0.0)
+	sim_mob::Role<Person_MT>::Role(parent, behavior, movement, roleName, roleType),nextDriver(nullptr),nextRequested(NO_REQUESTED),waitingTimeSec(0.0)
 {
 
 }
@@ -63,14 +63,14 @@ void TrainDriver::leaveFromCurrentPlatform()
 		movement->leaveFromPlaform();
 	}
 }
-TrainDriver::TRAIN_STATUS TrainDriver::getCurrentStatus() const
+TrainDriver::TRAIN_NEXTREQUESTED TrainDriver::getNextRequested() const
 {
-	return trainStatus;
+	return nextRequested;
 }
 
-void TrainDriver::setCurrentStatus(TRAIN_STATUS status)
+void TrainDriver::setNextRequested(TRAIN_NEXTREQUESTED res)
 {
-	trainStatus = status;
+	nextRequested = res;
 }
 void TrainDriver::calculateDwellTime(int totalNum)
 {

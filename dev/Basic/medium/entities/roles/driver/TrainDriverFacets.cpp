@@ -124,24 +124,24 @@ void TrainMovement::frame_tick()
 	produceMoveInfo();
 	TrainUpdateParams& params = parentDriver->getParams();
     parentDriver->updatePassengers();
-	TrainDriver::TRAIN_STATUS status = parentDriver->getCurrentStatus();
-	switch(status){
-	case TrainDriver::MOVE_TO_PLATFROM:
+	TrainDriver::TRAIN_NEXTREQUESTED requested = parentDriver->getNextRequested();
+	switch(requested){
+	case TrainDriver::REQUESTED_TO_PLATFROM:
 	{
 		moveForward();
 		if(isStopAtPlatform()){
-			parentDriver->setCurrentStatus(TrainDriver::ARRIVAL_AT_PLATFORM);
+			parentDriver->setNextRequested(TrainDriver::REQUESTED_AT_PLATFORM);
 		}
 		break;
 	}
-	case TrainDriver::WAITING_LEAVING:
+	case TrainDriver::REQUESTED_WAITING_LEAVING:
 	{
 		parentDriver->reduceWaitingTime(params.secondsInTick);
 		double waitingTime = parentDriver->getWaitingTime();
 		params.currentSpeed = 0.0;
 		params.currentAcelerate = 0.0;
 		if(waitingTime<params.secondsInTick){
-			parentDriver->setCurrentStatus(TrainDriver::LEAVING_FROM_PLATFORM);
+			parentDriver->setNextRequested(TrainDriver::REQUESTED_LEAVING_PLATFORM);
 			if(!isAtLastPlaform()){
 				leaveFromPlaform();
 				params.elapsedSeconds = waitingTime;
@@ -207,7 +207,7 @@ bool TrainMovement::isStationCase(double disToTrain, double disToPlatform, doubl
 				effectDis = disToPlatform;
 				res = true;
 			} else if (disToTrain > 0.0 && disToTrain < disToPlatform
-					&& next->getCurrentStatus() == TrainDriver::WAITING_LEAVING
+					&& next->getNextRequested() == TrainDriver::REQUESTED_WAITING_LEAVING
 					&& next->getNextPlatform() == parentDriver->getNextPlatform()) {
 				effectDis = disToTrain;
 				res = true;
@@ -220,7 +220,7 @@ double TrainMovement::getDistanceToNextTrain(const TrainDriver* nextDriver) cons
 {
 	double distanceToNextTrain = 0.0;
 	if(nextDriver){
-		if (nextDriver->getCurrentStatus() == TrainDriver::MOVE_TO_DEPOT) {
+		if (nextDriver->getNextRequested() == TrainDriver::REQUESTED_TO_DEPOT) {
 			parentDriver->setNextDriver(nullptr);
 		} else {
 			TrainMovement* nextMovement = dynamic_cast<TrainMovement*>(nextDriver->movementFacet);

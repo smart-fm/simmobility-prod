@@ -66,7 +66,7 @@ bool sim_mob::ModeDestinationParams::isUnavailable(int origin, int destination) 
 
 LogsumTourModeDestinationParams::LogsumTourModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap,
 		const PredayPersonParams& personParams, StopType tourType) :
-		ModeDestinationParams(zoneMap, amCostsMap, pmCostsMap, tourType, personParams.getHomeLocation(), unavailableODsDummy, MTZ12_MTZ08_MapDummy),
+		ModeDestinationParams(zoneMap, amCostsMap, pmCostsMap, tourType, personParams.getHomeLocation(), unavailableODsDummy),
 			drive1Available(personParams.hasDrivingLicence() * personParams.getCarOwn()),
 			motorAvailable(personParams.getMotorLicense() * personParams.getMotorOwn()),
 			modeForParentWorkTour(0), costIncrease(1)

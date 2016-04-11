@@ -3,6 +3,7 @@
 #include <boost/shared_ptr.hpp>
 #include <map>
 #include <vector>
+#include <fstream>
 #include "entities/misc/PublicTransit.hpp"
 #include "lua/LuaModel.hpp"
 #include "Path.hpp"
@@ -71,12 +72,14 @@ public:
 	 * @param odTrips is list of trip legs in pt path
 	 * @return true if route choice was successful; false otherwise
 	 */
-	bool getBestPT_Path(int origin, int destination, const DailyTime& startTime, std::vector<sim_mob::OD_Trip>& odTrips);
-
+	//bool getBestPT_Path(int origin, int destination, const DailyTime& startTime, std::vector<sim_mob::OD_Trip>& odTrips);
+	bool getBestPT_Path(int origin, int destination, const DailyTime& startTime, std::vector<sim_mob::OD_Trip>& odTrips, std::string dbid, unsigned int start_time);
 	/**
 	 * store chosen path in file
 	 */
 	void storeBestPT_Path();
+
+	void printScenarioAndOD(const std::vector<sim_mob::OD_Trip>& odTrips, std::string dbid, unsigned int startTime);
 
 private:
 	/**public path set for a given O-D pair*/
@@ -93,6 +96,8 @@ private:
 
 	/**start time for current trip*/
 	DailyTime curStartTime;
+
+	std::ofstream output;
 
 	/**
 	 * load public transit path set from database

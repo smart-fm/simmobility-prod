@@ -41,10 +41,12 @@ PT_RouteChoiceLuaModel::PT_RouteChoiceLuaModel() : publicTransitPathSet(nullptr)
 		throw std::runtime_error("stored procedure for \"pt_pathset\" is empty or not specified in config file");
 	}
 	dbSession = new soci::session(soci::postgresql, cfg.getDatabaseConnectionString(false));
+	output.open("od_scenario.csv",std::ofstream::out);
 }
 PT_RouteChoiceLuaModel::~PT_RouteChoiceLuaModel()
 {
 	delete dbSession;
+	output.close();
 }
 
 unsigned int PT_RouteChoiceLuaModel::getSizeOfChoiceSet()
@@ -171,6 +173,7 @@ std::vector<sim_mob::OD_Trip> PT_RouteChoiceLuaModel::makePT_RouteChoice(const s
 			trip.serviceLines = itEdge->getServiceLines();
 			trip.originNode = origin;
 			trip.destNode = destination;
+			trip.scenario = it->getScenario();
 			trip.travelTime = itEdge->getTransitTimeSecs();
 			trip.walkTime = itEdge->getWalkTimeSecs();
 			trip.id = itEdge->getEdgeId();
@@ -182,7 +185,8 @@ std::vector<sim_mob::OD_Trip> PT_RouteChoiceLuaModel::makePT_RouteChoice(const s
 	return odTrips;
 }
 
-bool PT_RouteChoiceLuaModel::getBestPT_Path(int origin, int dest, const DailyTime& startTime, std::vector<sim_mob::OD_Trip>& odTrips)
+
+bool PT_RouteChoiceLuaModel::getBestPT_Path(int origin, int dest, const DailyTime& startTime, std::vector<sim_mob::OD_Trip>& odTrips, std::string dbid, unsigned int start_time)
 {
 	bool ret = false;
 	PT_PathSet pathSet;
@@ -194,13 +198,25 @@ bool PT_RouteChoiceLuaModel::getBestPT_Path(int origin, int dest, const DailyTim
 	}
 	else
 	{
+
 		std::string originId = boost::lexical_cast < std::string > (origin);
 		std::string destId = boost::lexical_cast < std::string > (dest);
 		publicTransitPathSet = &pathSet;
 		odTrips = makePT_RouteChoice(originId, destId);
+		//printScenarioAndOD(odTrips, dbid, start_time);
 		ret = true;
 	}
 	return ret;
+}
+
+void PT_RouteChoiceLuaModel::printScenarioAndOD(const std::vector<sim_mob::OD_Trip>& odTrips, std::string dbid, unsigned int startTime)
+{
+	if (odTrips.empty())
+	{
+		return;
+	}
+	output << odTrips.front().originNode << " , " << odTrips.front().destNode << " , " << odTrips.front().scenario << " , " << dbid << ", " << startTime
+			<< std::endl;
 }
 
 void PT_RouteChoiceLuaModel::storeBestPT_Path()

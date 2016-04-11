@@ -27,7 +27,7 @@ class TourModeDestinationParams: public ModeDestinationParams
 {
 public:
 	TourModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap, const PersonParams& personParams, StopType tourType,
-			const std::vector<OD_Pair>& unavailableODs, const std::map<int, int>& MTZ12_MTZ08_Map);
+			const std::vector<OD_Pair>& unavailableODs);
 	virtual ~TourModeDestinationParams();
 
 	double getCostPublicFirst(int zoneId) const;
@@ -71,7 +71,7 @@ class StopModeDestinationParams: public ModeDestinationParams
 {
 public:
 	StopModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap, const PersonParams& personParams, const Stop* stop,
-			int originCode, const std::vector<OD_Pair>& unavailableODs, const std::map<int, int>& MTZ12_MTZ08_Map);
+			int originCode, const std::vector<OD_Pair>& unavailableODs);
 	virtual ~StopModeDestinationParams();
 	double getCostCarParking(int zone) const;
 	double getCostCarOP(int zone) const;

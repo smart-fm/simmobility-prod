@@ -11,8 +11,8 @@ using namespace medium;
 
 TourModeDestinationParams::TourModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap,
 		const PersonParams& personParams, StopType tourType,
-		const std::vector<OD_Pair>& unavailableODs, const std::map<int, int>& MTZ12_MTZ08_Map) :
-		ModeDestinationParams(zoneMap, amCostsMap, pmCostsMap, tourType, personParams.getHomeLocation(), unavailableODs, MTZ12_MTZ08_Map),
+		const std::vector<OD_Pair>& unavailableODs) :
+		ModeDestinationParams(zoneMap, amCostsMap, pmCostsMap, tourType, personParams.getHomeLocation(), unavailableODs),
 			drive1Available(personParams.hasDrivingLicence() * personParams.getCarOwn()),
 			motorAvailable(personParams.getMotorLicense() * personParams.getMotorOwn()),
 			modeForParentWorkTour(0), costIncrease(0)
@@ -315,8 +315,8 @@ int sim_mob::medium::TourModeDestinationParams::isCbdOrgZone() const
 
 StopModeDestinationParams::StopModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap,
 		const PersonParams& personParams, const Stop* stop, int originCode,
-		const std::vector<OD_Pair>& unavailableODs, const std::map<int, int>& MTZ12_MTZ08_Map) :
-		ModeDestinationParams(zoneMap, amCostsMap, pmCostsMap, stop->getStopType(), originCode, unavailableODs, MTZ12_MTZ08_Map), homeZone(personParams.getHomeLocation()),
+		const std::vector<OD_Pair>& unavailableODs) :
+		ModeDestinationParams(zoneMap, amCostsMap, pmCostsMap, stop->getStopType(), originCode, unavailableODs), homeZone(personParams.getHomeLocation()),
 			driveAvailable(personParams.hasDrivingLicence() * personParams.getCarOwn()),
 			motorAvailable(personParams.getMotorLicense() * personParams.getMotorOwn()),
 			tourMode(stop->getParentTour().getTourMode()),

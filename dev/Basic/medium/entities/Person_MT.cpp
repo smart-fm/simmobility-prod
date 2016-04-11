@@ -61,6 +61,7 @@ void Person_MT::convertPublicTransitODsToTrips()
 	{
 		if ((*tripChainItemIt)->itemType == sim_mob::TripChainItem::IT_TRIP)
 		{
+			unsigned int start_time = ((*tripChainItemIt)->startTime.offsetMS_From(ConfigManager::GetInstance().FullConfig().simStartTime())/1000); // start time in seconds
 			TripChainItem* trip = (*tripChainItemIt);
 			std::string originId = boost::lexical_cast<std::string>(trip->origin.node->getNodeId());
 			std::string destId = boost::lexical_cast<std::string>(trip->destination.node->getNodeId());
@@ -76,8 +77,10 @@ void Person_MT::convertPublicTransitODsToTrips()
 					if (itSubTrip->getMode() == "BusTravel" || itSubTrip->getMode() == "MRT")
 					{
 						std::vector<sim_mob::OD_Trip> odTrips;
+
+						std::string dbid = this->getDatabaseId();
 						bool ret = sim_mob::PT_RouteChoiceLuaProvider::getPTRC_Model().getBestPT_Path(itSubTrip->origin.node->getNodeId(),
-								itSubTrip->destination.node->getNodeId(), itSubTrip->startTime, odTrips);
+												itSubTrip->destination.node->getNodeId(),itSubTrip->startTime, odTrips, dbid, start_time);
 						if (ret)
 						{
 							ret = makeODsToTrips(&(*itSubTrip), newSubTrips, odTrips);

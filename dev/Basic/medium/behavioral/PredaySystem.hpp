@@ -274,11 +274,6 @@ private:
 	const boost::unordered_map<int, int>& zoneIdLookup;
 
 	/**
-	 * MTZ 12 --> 08 map
-	 */
-	const std::map<int, int>& MTZ12_MTZ08_Map;
-
-	/**
 	 * AM Costs [origin zone, destination zone] -> CostParams*
 	 */
 	const CostMap& amCostMap;

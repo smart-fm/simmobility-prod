@@ -47,6 +47,7 @@ public:
 	  int id;
 	  std::string originNode;
 	  std::string destNode;
+	  std::string scenario;
 	  double travelTime;
 	  double walkTime;
 };

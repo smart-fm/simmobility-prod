@@ -72,7 +72,9 @@ Conflux::Conflux(Node* confluxNode, const MutexStrategy& mtxStrat, int id, bool 
 		Agent(mtxStrat, id), confluxNode(confluxNode), parentWorkerAssigned(false), currFrame(0, 0), isLoader(isLoader), numUpdatesThisTick(0),
 		tickTimeInS(ConfigManager::GetInstance().FullConfig().baseGranSecond())
 {
-	multiUpdate = true;
+	if (!isLoader) {
+		multiUpdate = true;
+	}
 }
 
 Conflux::~Conflux()
@@ -1877,6 +1879,8 @@ Conflux* Conflux::findStartingConflux(Person_MT* person, unsigned int now)
 	switch(personRole->roleType)
 	{
 	case Role<Person_MT>::RL_DRIVER:
+	case Role<Person_MT>::RL_TRUCKER_HGV:
+	case Role<Person_MT>::RL_TRUCKER_LGV:
 	{
 		const medium::DriverMovement* driverMvt = dynamic_cast<const medium::DriverMovement*>(personRole->Movement());
 		if(driverMvt)

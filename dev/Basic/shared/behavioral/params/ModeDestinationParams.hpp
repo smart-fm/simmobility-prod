@@ -33,11 +33,10 @@ protected:
 	const CostMap& pmCostsMap;
 	int cbdOrgZone;
 	const std::vector<OD_Pair>& unavailableODs;
-	const std::map<int, int>& MTZ12_MTZ08_Map;
 
 public:
 	ModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap, StopType purpose, int originCode,
-			const std::vector<OD_Pair>& unavailableODs, const std::map<int, int>& MTZ12_MTZ08_Map);
+			const std::vector<OD_Pair>& unavailableODs);
 	virtual ~ModeDestinationParams();
 
 	/**

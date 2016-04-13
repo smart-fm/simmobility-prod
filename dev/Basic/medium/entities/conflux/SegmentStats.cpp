@@ -880,38 +880,40 @@ std::string SegmentStats::reportSegmentStats(uint32_t frameNumber)
 	std::stringstream msg("");
 	if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled())
 	{
-		msg << "(\"segmentState\"" << ","
-				<< frameNumber << ","
-				<< roadSegment->getRoadSegmentId()
-				<< ",{" << "\"speed\":\"" << segVehicleSpeed
-				<< "\",\"flow\":\"" << segFlow
-				<< "\",\"density\":\"" << getTotalDensity(true)
-				<< "\",\"total\":\"" << (numPersons - numAgentsInLane(laneInfinity))
-				<< "\",\"totalL\":\"" << getTotalVehicleLength()
-				<< "\",\"moving\":\"" << numMovingInSegment(true)
-				<< "\",\"movingL\":\"" << getMovingLength()
-				<< "\",\"queue\":\"" << numQueuingInSegment(true)
-				<< "\",\"queueL\":\"" << getQueueLength()
-				<< "\",\"numVehicleLanes\":\"" << numVehicleLanes
-				<< "\",\"segment_length\":\"" << length
-				<< "\",\"segment_id\":\"" << roadSegment->getRoadSegmentId()
-				<< "\",\"stats_num\":\"" << statsNumberInSegment << "\"})"
-				<< "\n";
-//		msg << "SegStats-,"
+//		msg << "(\"segmentState\"" << ","
 //				<< frameNumber << ","
-//				<< roadSegment->getRoadSegmentId() << ","
-//				<< statsNumberInSegment << ","
-//				<< numVehicleLanes << ","
-//				<< length << ","
-//				<< numMovingInSegment(true) << ","
-//				<< getMovingLength() << ","
-//				<< numQueuingInSegment(true) << ","
-//				<< getQueueLength() << ","
-//				<< supplyParams.getCapacity() << ","
-//				<< segVehicleSpeed << ","
-//				<< segFlow << ","
-//				<< getTotalDensity(true)
+//				<< roadSegment->getRoadSegmentId()
+//				<< ",{" << "\"speed\":\"" << segVehicleSpeed
+//				<< "\",\"flow\":\"" << segFlow
+//				<< "\",\"density\":\"" << getTotalDensity(true)
+//				<< "\",\"total\":\"" << (numPersons - numAgentsInLane(laneInfinity))
+//				<< "\",\"totalL\":\"" << getTotalVehicleLength()
+//				<< "\",\"moving\":\"" << numMovingInSegment(true)
+//				<< "\",\"movingL\":\"" << getMovingLength()
+//				<< "\",\"queue\":\"" << numQueuingInSegment(true)
+//				<< "\",\"queueL\":\"" << getQueueLength()
+//				<< "\",\"numVehicleLanes\":\"" << numVehicleLanes
+//				<< "\",\"segment_length\":\"" << length
+//				<< "\",\"segment_id\":\"" << roadSegment->getRoadSegmentId()
+//				<< "\",\"stats_num\":\"" << statsNumberInSegment << "\"})"
 //				<< "\n";
+		msg << "segstat,"
+				<< frameNumber << ","
+				<< roadSegment->getRoadSegmentId() << ","
+				<< segVehicleSpeed << ","
+				<< segFlow << ","
+				<< getTotalDensity(true) << ","
+				<< (numPersons - numAgentsInLane(laneInfinity)) << ","
+				<< getTotalVehicleLength() << ","
+				<< numMovingInSegment(true) << ","
+				<< getMovingLength() << ","
+				<< numQueuingInSegment(true) << ","
+				<< getQueueLength() << ","
+				<< numVehicleLanes << ","
+				<< length << ","
+				<< roadSegment->getRoadSegmentId() << ","
+				<< statsNumberInSegment << ","
+				<< "\n";
 	}
 	return msg.str();
 

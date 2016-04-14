@@ -900,6 +900,7 @@ std::string SegmentStats::reportSegmentStats(uint32_t frameNumber)
 		msg << "segstat,"
 				<< frameNumber << ","
 				<< roadSegment->getRoadSegmentId() << ","
+				<< statsNumberInSegment << ","
 				<< segVehicleSpeed << ","
 				<< segFlow << ","
 				<< getTotalDensity(true) << ","
@@ -910,10 +911,7 @@ std::string SegmentStats::reportSegmentStats(uint32_t frameNumber)
 				<< numQueuingInSegment(true) << ","
 				<< getQueueLength() << ","
 				<< numVehicleLanes << ","
-				<< length << ","
-				<< roadSegment->getRoadSegmentId() << ","
-				<< statsNumberInSegment << ","
-				<< "\n";
+				<< length << "\n";
 	}
 	return msg.str();
 

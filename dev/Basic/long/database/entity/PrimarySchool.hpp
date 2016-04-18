@@ -9,19 +9,43 @@
 
 #include "Common.hpp"
 #include "Types.hpp"
+#include "Individual.hpp"
 
 namespace sim_mob
 {
 	namespace long_term
 	{
+		class Individual;
 		class PrimarySchool
 		{
 		public:
-			PrimarySchool(BigSerial schoolId = INVALID_ID, BigSerial postcode = INVALID_ID, double centroidX = 0, double centroidY = 0, std::string schoolName = EMPTY_STR, int giftedProgram = false, int sapProgram = false, std::string dgp = EMPTY_STR, BigSerial tazId = INVALID_ID );
+			PrimarySchool(BigSerial schoolId = INVALID_ID, BigSerial postcode = INVALID_ID, double centroidX = 0, double centroidY = 0, std::string schoolName = EMPTY_STR, int giftedProgram = false, int sapProgram = false, std::string dgp = EMPTY_STR, BigSerial tazId = INVALID_ID, int numStudents = 0 );
 			virtual ~PrimarySchool();
 
 			PrimarySchool(const PrimarySchool& source);
 			PrimarySchool& operator=(const PrimarySchool& source);
+
+			struct DistanceIndividual
+			{
+				BigSerial individualId;
+				double distanceToSchool;
+			};
+
+			struct OrderByDistance
+			{
+				bool operator ()( const DistanceIndividual &a, const DistanceIndividual &b ) const
+				{
+					return a.distanceToSchool < b.distanceToSchool;
+				}
+			};
+
+			struct OrderByProbability
+			{
+				bool operator ()( const PrimarySchool *a, const PrimarySchool *b ) const
+				{
+					return a->reAllocationProb > b->reAllocationProb;
+				}
+			};
 
 			double getCentroidX() const;
 			double getCentroidY() const;
@@ -32,6 +56,12 @@ namespace sim_mob
 			BigSerial getSchoolId() const;
 			const std::string& getSchoolName() const;
 			BigSerial getTazId() const;
+			int getNumStudents() const;
+			std::vector<PrimarySchool::DistanceIndividual> getSortedDistanceIndList();
+			std::vector<BigSerial> getStudents();
+			std::vector<BigSerial> getSelectedStudents();
+			int getNumStudentsCanBeAssigned();
+			double getReAllocationProb();
 
 			void setCentroidX(double centroidX);
 			void setCentroidY(double centroidY);
@@ -42,6 +72,13 @@ namespace sim_mob
 			void setSchoolId(BigSerial schoolId);
 			void setSchoolName(const std::string& schoolName);
 			void setTazId(BigSerial tazId);
+			void addStudent(Individual *student);
+			void addIndividualDistance(DistanceIndividual &distanceIndividual);
+			void setSelectedStudentList(std::vector<BigSerial>selectedStudentsList);
+			void setNumStudentsCanBeAssigned(int numStudents);
+			void setReAllocationProb(double probability);
+			void addSelectedStudent(BigSerial individualId);
+
 
 		private:
 			friend class PrimarySchoolDao;
@@ -55,6 +92,12 @@ namespace sim_mob
 			int sapProgram;
 			std::string dgp;
 			BigSerial tazId;
+			int numStudents;
+			std::vector<Individual*> students;
+			std::vector<BigSerial> selectedStudents;
+			std::vector<PrimarySchool::DistanceIndividual> distanceIndList;
+			int numStudentsCanBeAssigned;
+			double reAllocationProb;
 		};
 	}
 

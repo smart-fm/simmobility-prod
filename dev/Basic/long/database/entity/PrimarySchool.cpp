@@ -9,8 +9,8 @@
 
 using namespace sim_mob::long_term;
 
-PrimarySchool::PrimarySchool(BigSerial schoolId, BigSerial postcode , double centroidX, double centroidY, std::string schoolName, int giftedProgram, int sapProgram, std::string dgp, BigSerial tazId)
-							:schoolId(schoolId),postcode(postcode), centroidX(centroidX),centroidY(centroidY), schoolName(schoolName), giftedProgram(giftedProgram), sapProgram(sapProgram),dgp(dgp), tazId(tazId) {}
+PrimarySchool::PrimarySchool(BigSerial schoolId, BigSerial postcode , double centroidX, double centroidY, std::string schoolName, int giftedProgram, int sapProgram, std::string dgp, BigSerial tazId,int numStudents)
+							:schoolId(schoolId),postcode(postcode), centroidX(centroidX),centroidY(centroidY), schoolName(schoolName), giftedProgram(giftedProgram), sapProgram(sapProgram),dgp(dgp), tazId(tazId),numStudents(numStudents){}
 
 PrimarySchool::~PrimarySchool(){}
 
@@ -25,6 +25,7 @@ PrimarySchool::PrimarySchool(const PrimarySchool& source)
 	this->sapProgram = source.sapProgram;
 	this->dgp = source.dgp;
 	this->tazId = source.tazId;
+	this->numStudents = source.numStudents;
 
 }
 
@@ -39,6 +40,7 @@ PrimarySchool& PrimarySchool::operator=(const PrimarySchool& source)
 	this->sapProgram = source.sapProgram;
 	this->dgp = source.dgp;
 	this->tazId = source.tazId;
+	this->numStudents = source.numStudents;
 
 	return *this;
 }
@@ -133,3 +135,69 @@ void PrimarySchool::setTazId(BigSerial tazId)
 	this->tazId = tazId;
 }
 
+int PrimarySchool::getNumStudents() const
+{
+	return this->numStudents;
+}
+
+void PrimarySchool::addStudent(Individual *student)
+{
+	this->students.push_back(student);
+	numStudents++;
+}
+
+void PrimarySchool::addIndividualDistance(DistanceIndividual &distanceIndividual)
+{
+	distanceIndList.push_back(distanceIndividual);
+}
+
+std::vector<PrimarySchool::DistanceIndividual>  PrimarySchool::getSortedDistanceIndList()
+{
+	std::sort(distanceIndList.begin(), distanceIndList.end(), PrimarySchool::OrderByDistance());
+	return distanceIndList;
+}
+
+std::vector<BigSerial> PrimarySchool::getStudents()
+{
+	std::vector<BigSerial> studentIdList;
+	for( Individual *student: students)
+	{
+		studentIdList.push_back(student->getId());
+	}
+	return studentIdList;
+}
+
+std::vector<BigSerial> PrimarySchool::getSelectedStudents()
+{
+	return this->selectedStudents;
+}
+
+void PrimarySchool::setSelectedStudentList(std::vector<BigSerial>selectedStudentsList)
+{
+	this->selectedStudents = selectedStudentsList;
+}
+
+void PrimarySchool::setNumStudentsCanBeAssigned(int numStudents)
+{
+	this->numStudentsCanBeAssigned = numStudents;
+}
+
+int PrimarySchool::getNumStudentsCanBeAssigned()
+{
+	return this->numStudentsCanBeAssigned;
+}
+
+void PrimarySchool::setReAllocationProb(double probability)
+{
+	this->reAllocationProb = probability;
+}
+
+double PrimarySchool::getReAllocationProb()
+{
+	return this->reAllocationProb;
+}
+
+void PrimarySchool::addSelectedStudent(BigSerial individualId)
+{
+	this->selectedStudents.push_back(individualId);
+}

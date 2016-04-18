@@ -9,6 +9,7 @@
  * 
  * Created on May 16, 2013, 6:36 PM
  */
+#include <mutex>
 
 #include "HouseholdAgent.hpp"
 #include "message/MessageBus.hpp"
@@ -197,6 +198,46 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
         seller->update(now);
     }
 
+    ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+    int startDay = 0;
+    if(config.ltParams.resume)
+    {
+    	startDay = model->getLastStoppedDay();
+    }
+
+    if(config.ltParams.schoolAssignmentModel.enabled)
+    	{
+    		if( getId() < model->FAKE_IDS_START)
+    		{
+    			std::vector<BigSerial> individuals = household->getIndividuals();
+    			std::vector<BigSerial>::iterator individualsItr;
+    			for(individualsItr = individuals.begin(); individualsItr != individuals.end(); individualsItr++)
+    				{
+    					const Individual* individual = model->getPrimaySchoolIndById((*individualsItr));
+    					SchoolAssignmentSubModel schoolAssignmentModel(model);
+    					if (individual!= nullptr)
+    					{
+    						if(day == startDay)
+    						{
+    							schoolAssignmentModel.assignPrimarySchool(this->getHousehold(),individual->getId(),this, day);
+    						}
+    						if(day == ++startDay)
+    						{
+    							schoolAssignmentModel.setStudentLimitInPrimarySchool();
+    						}
+    					}
+//    					else
+//    					{
+//    						const Individual* individual = model->getPreSchoolIndById((*individualsItr));
+//    						if (individual!= nullptr && day == startDay)
+//    						{
+//    							schoolAssignmentModel.assignPreSchool(this->getHousehold(),individual->getId(),this, day);
+//    						}
+//    					}
+    				}
+    		}
+    	}
+
     return Entity::UpdateStatus(UpdateStatus::RS_CONTINUE);
 }
 
@@ -290,32 +331,6 @@ void HouseholdAgent::onWorkerEnter()
 		{
 			VehicleOwnershipModel vehOwnershipModel(model);
 			vehOwnershipModel.reconsiderVehicleOwnershipOption(this->getHousehold(),this, day);
-		}
-	}
-
-	if(config.ltParams.schoolAssignmentModel.enabled)
-	{
-		if( getId() < model->FAKE_IDS_START)
-		{
-			std::vector<BigSerial> individuals = household->getIndividuals();
-			std::vector<BigSerial>::iterator individualsItr;
-			for(individualsItr = individuals.begin(); individualsItr != individuals.end(); individualsItr++)
-				{
-					const Individual* individual = model->getPrimaySchoolIndById((*individualsItr));
-					SchoolAssignmentSubModel schoolAssignmentModel(model);
-					if (individual!= nullptr)
-					{
-						schoolAssignmentModel.assignPrimarySchool(this->getHousehold(),individual->getId(),this, day);
-					}
-					else
-					{
-						const Individual* individual = model->getPreSchoolIndById((*individualsItr));
-						if (individual!= nullptr)
-						{
-							schoolAssignmentModel.assignPreSchool(this->getHousehold(),individual->getId(),this, day);
-						}
-					}
-				}
 		}
 	}
 

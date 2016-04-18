@@ -102,6 +102,7 @@ namespace sim_mob
              */
             void processExternalEvent(const ExternalEventArgs& args);
             
+
         private:
             HM_Model* model;
             HousingMarket* market;

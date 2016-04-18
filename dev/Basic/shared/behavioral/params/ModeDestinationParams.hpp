@@ -44,7 +44,7 @@ public:
 	 *
 	 * @param choice an integer ranging from 1 to (numZones*numModes = 9828) representing a unique combination of mode and destination
 	 * 			(1 to numZones) = mode 1, (numZones+1 to 2*numZones) = mode 2, (2*numZones+1 to 3*numZones) = mode 3, and so on for 9 modes.
-	 * @return the mode represented in choice
+	 * @return the mode represented in choice; -1 for invalid value of choice
 	 */
 	int getMode(int choice) const;
 

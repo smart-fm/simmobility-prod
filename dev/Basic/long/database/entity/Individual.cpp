@@ -155,9 +155,20 @@ std::tm Individual::getDateOfBirth() const
 {
 	return dateOfBirth;
 }
+
+std::vector<PrimarySchool*> Individual::getPrimarySchoolsWithin5km()
+{
+	return this->primarySchoolsWithin5km;
+}
+
 void Individual::setDateOfBirth( std::tm dob )
 {
 	this->dateOfBirth = dob;
+}
+
+void Individual::addprimarySchoolWithin5km(PrimarySchool *school)
+{
+	this->primarySchoolsWithin5km.push_back(school);
 }
 
 namespace sim_mob

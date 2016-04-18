@@ -15,11 +15,11 @@
 #include "Types.hpp"
 #include <ctime>
 
-
 namespace sim_mob
 {
 	namespace long_term
 	{
+		class PrimarySchool;
 		class Individual
 		{
 		public:
@@ -51,8 +51,10 @@ namespace sim_mob
 			bool	  getMotorLicense() const;
 			bool	  getVanBusLicense() const;
 			std::tm   getDateOfBirth() const;
+			std::vector<PrimarySchool*> getPrimarySchoolsWithin5km();
 
 			void	  setDateOfBirth(std::tm);
+			void addprimarySchoolWithin5km(PrimarySchool *school);
 
 			Individual& operator=(const Individual& source);
 
@@ -82,7 +84,7 @@ namespace sim_mob
 			bool	  motorLicense;
 			bool	  vanbusLicense;
 			std::tm	  dateOfBirth;
-
+			std::vector<PrimarySchool*> primarySchoolsWithin5km;
 
 		};
 	}

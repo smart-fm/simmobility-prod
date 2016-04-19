@@ -1349,9 +1349,9 @@ void HM_Model::startImpl()
 	//assign empty units to freelance housing agents
 	for (UnitList::const_iterator it = units.begin(); it != units.end(); it++)
 	{
-		(*it)->setbiddingMarketEntryDay( 365 );
-		(*it)->setTimeOnMarket(config.ltParams.housingModel.timeOnMarket);
-		(*it)->setTimeOffMarket(config.ltParams.housingModel.timeOffMarket);
+		(*it)->setbiddingMarketEntryDay( startDay );
+		(*it)->setTimeOnMarket(  1 + (float)rand() / RAND_MAX * config.ltParams.housingModel.timeOnMarket);
+		(*it)->setTimeOffMarket( 1 + (float)rand() / RAND_MAX * config.ltParams.housingModel.timeOffMarket);
 
 		//this unit is a vacancy
 		if (assignedUnits.find((*it)->getId()) == assignedUnits.end())
@@ -1363,13 +1363,12 @@ void HM_Model::startImpl()
 				if( awakeningProbability < config.ltParams.housingModel.vacantUnitActivationProbability )
 				{
 					(*it)->setbiddingMarketEntryDay( startDay );
-					(*it)->setTimeOnMarket( 1 + int((float)rand() / RAND_MAX * ( config.ltParams.housingModel.timeOnMarket )) );
 
 					onMarket++;
 				}
 				else
 				{
-					(*it)->setbiddingMarketEntryDay( (float)rand() / RAND_MAX * ( config.ltParams.housingModel.timeOnMarket + config.ltParams.housingModel.timeOffMarket));
+					(*it)->setbiddingMarketEntryDay( startDay +( (float)rand() / RAND_MAX * 365) );
 					offMarket++;
 				}
 
@@ -1834,11 +1833,11 @@ void HM_Model::update(int day)
 		if (assignedUnits.find((*it)->getId()) == assignedUnits.end())
 		{
 			//If a unit is off the market and unoccupied, we should put it back on the market after its timeOffMarket value is exceeded.
-			if( (*it)->getbiddingMarketEntryDay() + (*it)->getTimeOnMarket() + (*it)->getTimeOffMarket() < day )
+			if( (*it)->getbiddingMarketEntryDay() + (*it)->getTimeOnMarket() + (*it)->getTimeOffMarket() > day )
 			{
 				//PrintOutV("A unit is being re-awakened" << std::endl);
 				(*it)->setbiddingMarketEntryDay(day + 1);
-				(*it)->setTimeOnMarket( config.ltParams.housingModel.timeOnMarket);
+				(*it)->setTimeOnMarket( 1 + config.ltParams.housingModel.timeOnMarket * (float)rand() / RAND_MAX );
 			}
 		}
 	}

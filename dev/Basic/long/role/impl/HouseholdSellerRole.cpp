@@ -149,9 +149,6 @@ HouseholdSellerRole::SellingUnitInfo::SellingUnitInfo() :startedDay(0), interval
 HouseholdSellerRole::HouseholdSellerRole(HouseholdAgent* parent): parent(parent), currentTime(0, 0), hasUnitsToSale(true), selling(false), active(false),runOnce(false)
 {
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
-	timeOnMarket   = config.ltParams.housingModel.timeOnMarket;
-	timeOffMarket  = config.ltParams.housingModel.timeOffMarket;
-	marketLifespan = timeOnMarket + timeOffMarket;
 }
 
 HouseholdSellerRole::~HouseholdSellerRole()
@@ -263,7 +260,17 @@ void HouseholdSellerRole::update(timeslice now)
             //get first expectation to add the entry on market.
             ExpectationEntry firstExpectation; 
 
-            if(getCurrentExpectation(unit->getId(), firstExpectation))
+            bool entryDay = true;
+            //freelance agents will only awaken their units based on the unit market entry day
+            if( getParent()->getId() >= model->FAKE_IDS_START )
+            {
+            	if( unit->getbiddingMarketEntryDay() == now.ms() )
+            		entryDay = true;
+            	else
+            		entryDay = false;
+            }
+
+            if(getCurrentExpectation(unit->getId(), firstExpectation) && entryDay )
             {
                 market->addEntry( HousingMarket::Entry( getParent(), unit->getId(), unit->getSlaAddressId(), tazId, firstExpectation.askingPrice, firstExpectation.hedonicPrice));
 				#ifdef VERBOSE
@@ -451,7 +458,6 @@ void HouseholdSellerRole::calculateUnitExpectations(const Unit& unit)
 {
 	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
 	unsigned int timeInterval = config.ltParams.housingModel.timeInterval;
-	unsigned int timeOnMarket = config.ltParams.housingModel.timeOnMarket;
 
     SellingUnitInfo info;
     info.startedDay = currentTime.ms();

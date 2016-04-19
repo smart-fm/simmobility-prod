@@ -120,8 +120,8 @@
             <timeOnMarket value="90"/>
             <timeOffMarket value="150"/>
             <timeInterval value="7"/>
-	    <InitialHouseholdsOnMarket value="20000"/>
-	    <dailyHouseholdAwakenings value="600"/>
+	    <InitialHouseholdsOnMarket value="15000"/>
+	    <dailyHouseholdAwakenings value="400"/>
 	    <vacantUnitActivationProbability value="0.375"/>
 	    <housingMarketSearchPercentage value="0.15"/>
 	    <housingMoveInDaysInterval value="30"/>

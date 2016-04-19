@@ -111,10 +111,6 @@ namespace sim_mob
             volatile bool selling;
             CounterMap dailyBids;
 
-            int timeOnMarket;
-            int timeOffMarket;
-            int marketLifespan;
-
             HouseholdAgent *parent;
             bool active;
             bool runOnce;

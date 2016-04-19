@@ -163,8 +163,11 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 					BigSerial unitId = *itr;
 					Unit* unit = const_cast<Unit*>(model->getUnitById(unitId));
 
-					unit->setbiddingMarketEntryDay(day + 1);
-					unit->setTimeOnMarket( config.ltParams.housingModel.timeOnMarket);
+					if( id < model->FAKE_IDS_START )
+					{
+						unit->setbiddingMarketEntryDay(day + 1);
+						unit->setTimeOnMarket( config.ltParams.housingModel.timeOnMarket);
+					}
 				}
 			}
 

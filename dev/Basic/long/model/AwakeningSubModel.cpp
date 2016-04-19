@@ -36,6 +36,10 @@ namespace sim_mob
 
 		void AwakeningSubModel::InitialAwakenings(HM_Model *model, Household *household, HouseholdAgent *agent, int day)
 		{
+
+			if( agent->getId() >= model->FAKE_IDS_START )
+				return;
+
 			HouseholdBidderRole *bidder = agent->getBidder();
 			HouseholdSellerRole *seller = agent->getSeller();
 
@@ -74,17 +78,15 @@ namespace sim_mob
 			else
 				tenureStatus = "rent";
 
-			std::vector<TenureTransitionRate*> tenureTransitionRates;
-
 			double futureTransitionRate = 0;
 
-			for(int p = 0; p < tenureTransitionRates.size(); p++)
+			for(int p = 0; p < model->getTenureTransitionRates().size(); p++)
 			{
-				if( tenureTransitionRates[p]->getAgeGroup() == tenureTransitionId &&
-					tenureTransitionRates[p]->getCurrentStatus() == tenureStatus  &&
-					tenureTransitionRates[p]->getFutureStatus() == "own" )
+				if( model->getTenureTransitionRates()[p]->getAgeGroup() == tenureTransitionId &&
+					model->getTenureTransitionRates()[p]->getCurrentStatus() == tenureStatus  &&
+					model->getTenureTransitionRates()[p]->getFutureStatus() == string("own") )
 				{
-					futureTransitionRate = tenureTransitionRates[p]->getRate() / 100.0;
+					futureTransitionRate = model->getTenureTransitionRates()[p]->getRate() / 100.0;
 				}
 			}
 
@@ -163,8 +165,8 @@ namespace sim_mob
 					Unit* unit = const_cast<Unit*>(model->getUnitById(unitId));
 
 					unit->setbiddingMarketEntryDay(day);
-					unit->setTimeOnMarket( config.ltParams.housingModel.timeOnMarket);
-					unit->setTimeOffMarket( config.ltParams.housingModel.timeOffMarket);
+					unit->setTimeOnMarket( 1 + config.ltParams.housingModel.timeOnMarket * (float)rand() / RAND_MAX);
+					unit->setTimeOffMarket( 1 + config.ltParams.housingModel.timeOffMarket * (float)rand() / RAND_MAX);
 				}
 
 				model->incrementAwakeningCounter();
@@ -191,8 +193,8 @@ namespace sim_mob
 					Unit* unit = const_cast<Unit*>(model->getUnitById(unitId));
 
 					unit->setbiddingMarketEntryDay(day);
-					unit->setTimeOnMarket( config.ltParams.housingModel.timeOnMarket );
-					unit->setTimeOffMarket( config.ltParams.housingModel.timeOffMarket );
+					unit->setTimeOnMarket( 1 + config.ltParams.housingModel.timeOnMarket * (float)rand() / RAND_MAX);
+					unit->setTimeOffMarket( 1 + config.ltParams.housingModel.timeOffMarket * (float)rand() / RAND_MAX);
 				}
 
 				model->incrementAwakeningCounter();
@@ -218,7 +220,8 @@ namespace sim_mob
 					Unit* unit = const_cast<Unit*>(model->getUnitById(unitId));
 
 					unit->setbiddingMarketEntryDay(day);
-					unit->setTimeOnMarket( config.ltParams.housingModel.timeOnMarket);
+					unit->setTimeOnMarket( 1 + config.ltParams.housingModel.timeOnMarket * (float)rand() / RAND_MAX);
+					unit->setTimeOffMarket( 1 + config.ltParams.housingModel.timeOffMarket * (float)rand() / RAND_MAX);
 				}
 
 				model->incrementAwakeningCounter();

@@ -436,12 +436,12 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
 
             sleep(1);
 
-            PrintOutV("Day " << currTick << " Housing market. Units: " << std::dec << (dynamic_cast<HM_Model*>(models[0]))->getMarket()->getEntrySize()
-            	   << " Bidders: " 		<< (dynamic_cast<HM_Model*>(models[0]))->getNumberOfBidders() << " "
-				   << " Bids: " 		<< (dynamic_cast<HM_Model*>(models[0]))->getBids()
-            	   << " Accepted: " 	<< (dynamic_cast<HM_Model*>(models[0]))->getSuccessfulBids()
-				   << " Exits: " 		<< (dynamic_cast<HM_Model*>(models[0]))->getExits()
-				   << " Awakenings: "	<< (dynamic_cast<HM_Model*>(models[0]))->getAwakeningCounter()
+            PrintOutV("Day " << currTick << " HUnits: " << std::dec << (dynamic_cast<HM_Model*>(models[0]))->getMarket()->getEntrySize()
+				   << " Bidders: " 	<< (dynamic_cast<HM_Model*>(models[0]))->getNumberOfBidders() << " "
+				   << " Bids: " 	<< (dynamic_cast<HM_Model*>(models[0]))->getBids()
+				   << " Accepted: " << (dynamic_cast<HM_Model*>(models[0]))->getSuccessfulBids()
+				   << " Exits: " 	<< (dynamic_cast<HM_Model*>(models[0]))->getExits()
+				   << " Awaken: "	<< (dynamic_cast<HM_Model*>(models[0]))->getAwakeningCounter()
 				   << " " << std::endl );
 
             (dynamic_cast<HM_Model*>(models[0]))->resetBAEStatistics();

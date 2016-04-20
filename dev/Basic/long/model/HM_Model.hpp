@@ -368,6 +368,7 @@ namespace sim_mob
             Household* getResumptionHouseholdById( BigSerial id) const;
             VehicleOwnershipChanges* getVehicleOwnershipChangesByHHId(BigSerial houseHoldId) const;
             void setLastStoppedDay(int stopDay);
+            int getLastStoppedDay();
             HouseholdPlanningAreaList getHouseholdPlanningAreaList() const;
             HouseholdPlanningArea* getHouseholdPlanningAreaByHHId(BigSerial houseHoldId) const;
             SchoolAssignmentCoefficientsList getSchoolAssignmentCoefficientsList() const;

@@ -1296,7 +1296,6 @@ void HM_Model::startImpl()
 
 		//Load households
 		loadData<HouseholdDao>(conn, households, householdsById, &Household::getId);
-		households.resize(100000);
 		PrintOutV("Number of households: " << households.size() << ". Households used: " << households.size()  << std::endl);
 
 		//Load units
@@ -1484,7 +1483,6 @@ void HM_Model::startImpl()
 
 
 	int homelessHousehold = 0;
-
 	//
 	// 1. Create Household Agents.
 	// 2. Assign households to the units.
@@ -1505,7 +1503,7 @@ void HM_Model::startImpl()
 				household->setVehicleOwnershipOptionId(getVehicleOwnershipChangesByHHId(household->getId())->getNewVehicleOwnershipOptionId());
 			}
 		}
-		HouseholdAgent* hhAgent = new HouseholdAgent(household->getId(), this,	household, &market, false, startDay, config.ltParams.housingModel.householdBiddingWindow);
+		HouseholdAgent* hhAgent = new HouseholdAgent(household->getId(), this,	household, &market, false, startDay, config.ltParams.housingModel.householdBiddingWindow,0);
 		if (resumptionHH != nullptr)
 		{
 			if(resumptionHH->getIsBidder())
@@ -2452,6 +2450,11 @@ HM_Model::SchoolAssignmentCoefficientsList HM_Model::getSchoolAssignmentCoeffici
 void HM_Model::setLastStoppedDay(int stopDay)
 {
 	lastStoppedDay = stopDay;
+}
+
+int HM_Model::getLastStoppedDay()
+{
+	return lastStoppedDay;
 }
 
 SchoolAssignmentCoefficients* HM_Model::getSchoolAssignmentCoefficientsById( BigSerial id) const

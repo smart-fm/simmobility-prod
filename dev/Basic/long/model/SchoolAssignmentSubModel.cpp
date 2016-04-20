@@ -19,16 +19,16 @@ SchoolAssignmentSubModel::SchoolAssignmentSubModel(HM_Model *model): model(model
 
 SchoolAssignmentSubModel::~SchoolAssignmentSubModel() {}
 
-inline void writeSchoolAssignmentsToFile(BigSerial hhId,BigSerial individualId,BigSerial schoolId)
+inline void writePreSchoolAssignmentsToFile(BigSerial hhId,BigSerial individualId,BigSerial schoolId)
 {
 	boost::format fmtr = boost::format("%1%, %2%, %3%") % hhId % individualId % schoolId;
 	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_SCHOOL_ASSIGNMENT,fmtr.str());
 
 }
 
-inline void writePreSchoolAssignmentsToFile(BigSerial hhId,BigSerial individualId,BigSerial preSchoolId)
+inline void writeSchoolAssignmentsToFile(BigSerial individualId,BigSerial preSchoolId)
 {
-	boost::format fmtr = boost::format("%1%, %2%, %3%") % hhId % individualId % preSchoolId;
+	boost::format fmtr = boost::format("%1%, %2%") % individualId % preSchoolId;
 	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_PRE_SCHOOL_ASSIGNMENT,fmtr.str());
 
 }
@@ -42,6 +42,8 @@ void SchoolAssignmentSubModel::assignPrimarySchool(const Household *household,Bi
 	vector<double> schoolExpVec;
 	map<BigSerial,double> expSchoolMap;
 	double totalExp = 0;
+	HHCoordinates *hhCoords = model->getHHCoordinateByHHId(household->getId());
+
 	for(schoolsItr = primarySchools.begin(); schoolsItr != primarySchools.end(); ++schoolsItr )
 	{
 		double valueSchool = 0;
@@ -59,8 +61,12 @@ void SchoolAssignmentSubModel::assignPrimarySchool(const Household *household,Bi
 			valueSchool = valueSchool + model->getSchoolAssignmentCoefficientsById(HOME_SCHOOL_SAME_TAZ)->getCoefficientEstimate();
 		}
 
-		HHCoordinates *hhCoords = model->getHHCoordinateByHHId(household->getId());
 		double distanceFromHomeToSchool = (distanceCalculateEuclidean((*schoolsItr)->getCentroidX(),(*schoolsItr)->getCentroidY(),hhCoords->getCentroidX(),hhCoords->getCentroidY()))/1000;
+		if(distanceFromHomeToSchool <=5)
+		{
+			Individual *ind = model->getIndividualById(individualId);
+			ind->addprimarySchoolWithin5km((*schoolsItr));
+		}
 		valueSchool = valueSchool + distanceFromHomeToSchool * model->getSchoolAssignmentCoefficientsById(DISTANCE_TO_SCHOOL)->getCoefficientEstimate();
 		valueSchool = valueSchool + (*schoolsItr)->isGiftedProgram() * model->getSchoolAssignmentCoefficientsById(HAS_GIFTED_PROGRAM)->getCoefficientEstimate();
 		valueSchool = valueSchool + (*schoolsItr)->isSapProgram() * model->getSchoolAssignmentCoefficientsById(HAS_SAP_PROGRAM)->getCoefficientEstimate();
@@ -143,11 +149,102 @@ void SchoolAssignmentSubModel::assignPrimarySchool(const Household *household,Bi
 		}
 	}
 
-	writeSchoolAssignmentsToFile(household->getId(),individualId,selectedSchoolId);
+
+
+	PrimarySchool *priSchool = model->getPrimarySchoolById(selectedSchoolId);
+	priSchool->addStudent(model->getIndividualById(individualId));
+	double distanceFromHomeToSchool = (distanceCalculateEuclidean(priSchool->getCentroidX(),priSchool->getCentroidY(),hhCoords->getCentroidX(),hhCoords->getCentroidY()))/1000;
+	PrimarySchool::DistanceIndividual distanceInd{individualId,distanceFromHomeToSchool};
+	priSchool->addIndividualDistance(distanceInd);
+
 	}
 
 }
 
+void SchoolAssignmentSubModel::setStudentLimitInPrimarySchool()
+{
+	HM_Model::PrimarySchoolList primarySchools = model->getPrimarySchoolList();
+	std::size_t const studentLimitPerSchool = 3000;
+	for (PrimarySchool *priSchool:primarySchools )
+	{
+		if(priSchool->getNumStudents() > studentLimitPerSchool)
+		{
+			//sort the individuals by distance to school
+			std::vector<PrimarySchool::DistanceIndividual> distanceIndividualList = priSchool->getSortedDistanceIndList();
+			//select the top 3000 students
+			std::vector<PrimarySchool::DistanceIndividual> distIndWithinLimit(distanceIndividualList.begin(), distanceIndividualList.begin() + studentLimitPerSchool);
+			//the rest of the students need to be reallocated
+			std::vector<PrimarySchool::DistanceIndividual> disIndToReallocate(distanceIndividualList.begin() + studentLimitPerSchool, distanceIndividualList.end());
+			std::vector<BigSerial> selectedStudents;
+			for(PrimarySchool::DistanceIndividual distInd:distIndWithinLimit )
+			{
+				selectedStudents.push_back(distInd.individualId);
+				writeSchoolAssignmentsToFile(distInd.individualId,priSchool->getSchoolId());
+			}
+			priSchool->setSelectedStudentList(selectedStudents);
+
+			//reallocate the rest of the students among schools within 5km and still have positions
+			for(PrimarySchool::DistanceIndividual distInd:disIndToReallocate )
+			{
+				reAllocatePrimarySchoolStudents(distInd.individualId);
+			}
+
+		}
+		else
+		{
+			std::vector<BigSerial> students = priSchool->getStudents();
+			priSchool->setSelectedStudentList(students);
+		}
+	}
+}
+
+void SchoolAssignmentSubModel::reAllocatePrimarySchoolStudents(BigSerial individualId)
+{
+	std::size_t const studentLimitPerSchool = 3000;
+	Individual *individual = model->getIndividualById(individualId);
+	if(individual != nullptr)
+	{
+	HM_Model::PrimarySchoolList primarySchoolsIn5km = individual->getPrimarySchoolsWithin5km();
+	double totalStudentLimitDif = 0;
+	int numStudentsCanBeAssigned = 0;
+
+	for(PrimarySchool *priSchool : primarySchoolsIn5km)
+	{
+		if(priSchool->getSelectedStudents().size() < studentLimitPerSchool)
+		{
+			totalStudentLimitDif = totalStudentLimitDif + (studentLimitPerSchool - priSchool->getSelectedStudents().size());
+			numStudentsCanBeAssigned = studentLimitPerSchool - priSchool->getSelectedStudents().size();
+			priSchool->setNumStudentsCanBeAssigned(numStudentsCanBeAssigned);
+		}
+	}
+
+	std::map<BigSerial,double> probSchoolMap;
+	HM_Model::PrimarySchoolList schoolsWithProb;
+	for(PrimarySchool *priSchool : primarySchoolsIn5km)
+	{
+		if(priSchool->getNumOfSelectedStudents() < studentLimitPerSchool)
+		{
+			double probSchool = priSchool->getSelectedStudents().size() / totalStudentLimitDif;
+			priSchool->setReAllocationProb(probSchool);
+			schoolsWithProb.push_back(priSchool);
+		}
+	}
+
+	//sort the vector according to the probability
+	std::sort(schoolsWithProb.begin(), schoolsWithProb.end(), PrimarySchool::OrderByProbability());
+
+	for(PrimarySchool *priSchool : schoolsWithProb)
+	{
+		if(priSchool->getNumStudentsCanBeAssigned() > 0)
+		{
+			priSchool->addSelectedStudent(individualId);
+			writeSchoolAssignmentsToFile(individualId,priSchool->getSchoolId());
+			break;
+		}
+	}
+
+	}
+}
 
 void SchoolAssignmentSubModel::assignPreSchool(const Household *household,BigSerial individualId, HouseholdAgent *hhAgent, int day)
 {

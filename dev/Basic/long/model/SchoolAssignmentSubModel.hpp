@@ -26,7 +26,24 @@ namespace sim_mob
 
 			virtual ~SchoolAssignmentSubModel();
 
+			/*
+			 * first round of assigning individuals to primary schools
+			 */
 			void assignPrimarySchool(const Household *household,BigSerial individualId, HouseholdAgent *hhAgent, int day);
+
+			/*
+			 *  identify those schools that have over 3000 students selected (or applied for) in the first round assignment
+				for each over-assigned school, sort applied students by distance from home to school and select the top 3000
+			 */
+			void setStudentLimitInPrimarySchool();
+
+			/*
+			 *for the rest of the students, assign them to other nearby schools (within 5km distance to home) that still have positions based on the following probability calculation:
+			 P_school i= (maximum allowable enrollment – current applied students) of school i / (maximum allowable enrollment – current applied students) of all schools that within 5km
+			 *
+			 */
+			void reAllocatePrimarySchoolStudents(BigSerial individualId);
+
 			void assignPreSchool(const Household *household,BigSerial individualId, HouseholdAgent *hhAgent, int day);
 
 

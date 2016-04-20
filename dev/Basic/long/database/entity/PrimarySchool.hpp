@@ -62,6 +62,7 @@ namespace sim_mob
 			std::vector<BigSerial> getSelectedStudents();
 			int getNumStudentsCanBeAssigned();
 			double getReAllocationProb();
+			int getNumOfSelectedStudents();
 
 			void setCentroidX(double centroidX);
 			void setCentroidY(double centroidY);

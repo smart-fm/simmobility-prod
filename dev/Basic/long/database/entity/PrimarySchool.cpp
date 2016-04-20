@@ -201,3 +201,8 @@ void PrimarySchool::addSelectedStudent(BigSerial individualId)
 {
 	this->selectedStudents.push_back(individualId);
 }
+
+int  PrimarySchool::getNumOfSelectedStudents()
+{
+	return this->selectedStudents.size();
+}

@@ -170,7 +170,7 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 	rf->registerRole("passenger",new Passenger(nullptr, mtx));
 	rf->registerRole("busdriver", new BusDriver(nullptr, mtx));
 	rf->registerRole("activityRole", new ActivityPerformer<Person_ST>(nullptr));
-	rf->registerRole("waitBusActivityRole", new WaitBusActivityRoleImpl(nullptr));
+	rf->registerRole("waitBusActivity", new WaitBusActivityRoleImpl(nullptr));
 	rf->registerRole("taxidriver", new Driver(nullptr, mtx));
 
 	//Loader params for our Agents

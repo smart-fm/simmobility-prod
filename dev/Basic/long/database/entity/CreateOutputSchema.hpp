@@ -22,6 +22,14 @@ namespace sim_mob
 
             virtual ~CreateOutputSchema();
 
+            struct OrderById
+            {
+            	bool operator ()( const CreateOutputSchema *a, const CreateOutputSchema *b ) const
+            	{
+            		return a->id< b->id;
+            	}
+            };
+
             /**
              * Getters and Setters
              */

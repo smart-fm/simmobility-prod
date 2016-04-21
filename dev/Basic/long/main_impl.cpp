@@ -43,6 +43,7 @@
 #include "database/dao/DevelopmentPlanDao.hpp"
 #include "database/dao/VehicleOwnershipChangesDao.hpp"
 #include "database/dao/HouseholdDao.hpp"
+#include "database/dao/HouseholdUnitDao.hpp"
 #include "util/HelperFunctions.hpp"
 
 using std::cout;
@@ -106,6 +107,7 @@ void createOutputSchema(db::DB_Connection& conn,const std::string& currentOutput
 
 		std::vector<CreateOutputSchema*> createOPSchemaList;
 		loadData<CreateOutputSchemaDao>(conn,createOPSchemaList);
+		std::sort(createOPSchemaList.begin(), createOPSchemaList.end(), CreateOutputSchema::OrderById());
 		std::vector<CreateOutputSchema*>::iterator opSchemaTablesItr;
 		for(opSchemaTablesItr = createOPSchemaList.begin(); opSchemaTablesItr != createOPSchemaList.end(); ++opSchemaTablesItr)
 		{
@@ -215,12 +217,21 @@ void loadDataToOutputSchema(db::DB_Connection& conn,std::string &currentOutputSc
 		HM_Model::HouseholdList::iterator houseHoldItr;
 		for(houseHoldItr = households->begin(); houseHoldItr != households->end(); ++houseHoldItr)
 		{
-			if(((*houseHoldItr)->getIsBidder()) || ((*houseHoldItr)->getIsSeller()))
-					{
-						hhDao.insertHousehold(*(*houseHoldItr),currentOutputSchema);
-					}
+			if(housingMarketModel.getHouseholdWithBidsById((*houseHoldItr)->getId()) == nullptr)
+			{
+				if(((*houseHoldItr)->getIsBidder()) || ((*houseHoldItr)->getIsSeller()))
+				{
+					hhDao.insertHousehold(*(*houseHoldItr),currentOutputSchema);
+				}
+			}
 		}
 
+		std::vector<boost::shared_ptr<HouseholdUnit> > hhUnits = housingMarketModel.getNewHouseholdUnits();
+		HouseholdUnitDao hhUnitDao(conn);
+		for (boost::shared_ptr<HouseholdUnit> hhUnit :hhUnits)
+		{
+			hhUnitDao.insertHouseholdUnit(*hhUnit,currentOutputSchema);
+		}
 		SimulationStoppedPointDao simStoppedPointDao(conn);
 		simStoppedPointDao.insertSimulationStoppedPoints(*(developerModel.getSimStoppedPointObj(simVersionId)).get(),currentOutputSchema);
 //		developerModel.getBuildingsVec().clear();

@@ -15,6 +15,7 @@
 #include "geospatial/network/RoadNetwork.hpp"
 
 using std::numeric_limits;
+using namespace std;
 using namespace sim_mob;
 
 namespace
@@ -509,7 +510,7 @@ LaneChangeTo MITSIM_LC_Model::checkForLC_WithLookAhead(DriverUpdateParams &param
 	}
 
 	//Find lanes connect to target segment in lookahead distance
-	std::vector<Lane*> connectedLanes;
+	std::vector<const Lane*> connectedLanes;
 	getConnectedLanesInLookAheadDistance(params, lookAheadDistance, connectedLanes);
 	params.lcDebugStr << ";clilad" << connectedLanes.size();
 
@@ -1560,9 +1561,9 @@ int MITSIM_LC_Model::checkNosingFeasibility(DriverUpdateParams &params, const Ne
 	else
 	{
 		params.lcDebugStr << ";CF0";
-		double length = params.driver->getVehicleLength();
+		double length = 2 * params.driver->getVehicleLength();
 
-		if (distToStop < length && params.currSpeed < Math::DOUBLE_EPSILON)
+		if (distToStop <= length && params.currSpeed < Math::DOUBLE_EPSILON)
 		{
 			params.lcDebugStr << ";CF1";
 			params.setFlag(FLAG_STUCK_AT_END);
@@ -1752,12 +1753,13 @@ int MITSIM_LC_Model::checkForEventsAhead(DriverUpdateParams& params)
 	{
 		needDLC = true;
 	}
+	
+	set<const Lane*> connectedLanes;
 
 	// 1.1 check connections to the next way-point
-	//No incident, but check for lane connectivity
-	set<const Lane*> connectedLanes;
-	res = isLaneConnectedToNextWayPt(params, connectedLanes);
-	
+	//No incident, but check for lane connectivity	
+	/*res = isLaneConnectedToNextWayPt(params, connectedLanes);
+
 	if (res == -1)
 	{
 		needMLC = true;
@@ -1767,14 +1769,14 @@ int MITSIM_LC_Model::checkForEventsAhead(DriverUpdateParams& params)
 	{
 		needDLC = true;
 	}
-	
+
 	params.targetLanes = connectedLanes;
-	
-	// 1.2 check connections to the next link
-	//This is equivalent to the previous check only when we're on the last segment of the link
 	connectedLanes.clear();
+
+	// 1.2 check connections to the next link
+	//This is equivalent to the previous check only when we're on the last segment of the link		
 	res = isLaneConnectedToNextLink(params, connectedLanes);
-	
+
 	if (res == -1)
 	{
 		needMLC = true;
@@ -1784,11 +1786,27 @@ int MITSIM_LC_Model::checkForEventsAhead(DriverUpdateParams& params)
 	{
 		needDLC = true;
 	}
-	
-	params.targetLanes = connectedLanes;
 
-	// 1.2 check stop point, like bus stop
-	connectedLanes.clear();
+	params.targetLanes = connectedLanes;
+	connectedLanes.clear();*/
+
+	// 1.3 Check connections in a lookahead distance
+	vector<const Lane *> targetLanes;
+	res = getConnectedLanesInLookAheadDistance(params, lookAheadDistance, targetLanes);
+
+	if (res == -1)
+	{
+		needMLC = true;		
+		params.lcDebugStr << ";Xclad";
+	}
+	if (res == 1)
+	{
+		needDLC = true;
+	}
+
+	params.targetLanes.insert(targetLanes.begin(), targetLanes.end());
+
+	// 1.2 check stop point, like bus stop	
 	res = isLaneConnectedToStopPoint(params, connectedLanes);
 	
 	if (res == -1)
@@ -2026,8 +2044,9 @@ int MITSIM_LC_Model::isLaneConnectedToStopPoint(DriverUpdateParams &params, set<
 	return result;
 }
 
-void MITSIM_LC_Model::getConnectedLanesInLookAheadDistance(DriverUpdateParams &params, double lookAheadDist, std::vector<Lane *> &lanePool)
+int MITSIM_LC_Model::getConnectedLanesInLookAheadDistance(DriverUpdateParams &params, double lookAheadDist, std::vector<const Lane *> &lanePool)
 {
+	int res = -1;
 	double scannedDist = 0;
 	std::vector<WayPoint> wayPtsInLookAheadDist;
 			
@@ -2065,54 +2084,96 @@ void MITSIM_LC_Model::getConnectedLanesInLookAheadDistance(DriverUpdateParams &p
 	{
 		//The way points in the look ahead distance
 		itWayPts = wayPtsInLookAheadDist.begin() + 1;
-		const Lane *lane = *itLanes;
+		double distance = 0;
 		
-		while(itWayPts != end)
-		{
-			if(itWayPts->type == WayPoint::ROAD_SEGMENT)
-			{
-				//The next way point is a road segment. If we have a lane connector, then we're connected to it
-				
-				std::vector<const LaneConnector *> connectors;
-				lane->getPhysicalConnectors(connectors);
-				
-				if (!connectors.empty())
-				{
-					lane = connectors[connectors.size() / 2]->getToLane();
-				}
-				else
-				{
-					//We're not connected to the next segment
-					params.lcDebugStr << ";Xcl" << lane->getLaneId();
-					break;
-				}
-			}
-			else
-			{
-				//The next way point is a turning group. If we have a turning path, then we're connected to it
-				
-				const std::map<unsigned int, TurningPath *> *turnings = itWayPts->turningGroup->getTurningPaths(lane->getLaneId());
-				
-				if(turnings)
-				{
-					lane = turnings->begin()->second->getToLane();
-				}
-				else
-				{
-					//We're not connected to the next link
-					params.lcDebugStr << ";Xct" << lane->getLaneId();
-					break;
-				}
-			}
-			
-			++itWayPts;
-		}
-		
-		//Lane is connected as we reached the end of the way points
-		if(itWayPts == end)
+		if(isLaneConnected(*itLanes, itWayPts, end, &distance))
 		{
 			params.lcDebugStr << ";cl" << (*itLanes)->getLaneId();
 			lanePool.push_back(*itLanes);
+
+			if (params.currLane == *itLanes)
+			{
+				res = 0;
+			}
+		}
+		else
+		{
+			if(params.distToStop > distance)
+			{
+				params.distToStop = distance;
+			}
+		}
+	}
+	
+	return res;
+}
+
+bool MITSIM_LC_Model::isLaneConnected(const Lane* lane, vector<WayPoint>::const_iterator itWayPts, vector<WayPoint>::const_iterator end, double *distance)
+{
+	if(itWayPts == end)
+	{
+		return true;
+	}
+	else
+	{
+		if (itWayPts->type == WayPoint::ROAD_SEGMENT)
+		{
+			//Update the distance
+			(*distance) += lane->getLength();
+			
+			//The next way point is a road segment. If we have a lane connector, then we're connected to it
+
+			std::vector<const LaneConnector *> connectors;
+			lane->getPhysicalConnectors(connectors);
+
+			if (!connectors.empty())
+			{
+				bool isConnected = false;
+				
+				for(vector<const LaneConnector *>::const_iterator itConnectors = connectors.begin(); itConnectors != connectors.end(); ++itConnectors)
+				{
+					isConnected = isConnected || isLaneConnected((*itConnectors)->getToLane(), (itWayPts + 1), end, distance);
+				}
+				
+				return isConnected;
+			}
+			else
+			{
+				//We're not connected to the next segment
+				return false;
+			}
+		}
+		else
+		{
+			//Update the distance
+			(*distance) += lane->getLength();
+			
+			//The next way point is a turning group. If we have a turning path, then we're connected to it
+
+			const std::map<unsigned int, TurningPath *> *turnings = itWayPts->turningGroup->getTurningPaths(lane->getLaneId());
+
+			if (turnings)
+			{
+				if ((itWayPts + 1) == end)
+				{
+					return true;
+				}
+				
+				bool isConnected = false;
+				
+				for(map<unsigned int, TurningPath *>::const_iterator itTurnings = turnings->begin(); itTurnings != turnings->end(); ++itTurnings)
+				{									
+					//Additional increment for itWayPts as we are going from lane->turning path->lane directly
+					isConnected = isConnected || isLaneConnected(itTurnings->second->getToLane() , (itWayPts + 2), end, distance);
+				}
+
+				return isConnected;
+			}
+			else
+			{
+				//We're not connected to the next link
+				return false;
+			}
 		}
 	}
 }

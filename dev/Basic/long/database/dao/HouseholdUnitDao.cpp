@@ -33,7 +33,7 @@ void HouseholdUnitDao::toRow(HouseholdUnit& data, Parameters& outParams, bool up
 void HouseholdUnitDao::insertHouseholdUnit(HouseholdUnit& houseHold,std::string schema)
 {
 	const std::string DB_INSERT_HOUSEHOLD_UNIT = "INSERT INTO " + APPLY_SCHEMA(schema, ".household_unit")
-					+ "household_id" + ", "+ "unit_id" + ", "+ "move_in_date" +") VALUES (:v1, :v2, :v3)";
+		+ " (" + "household_id" + ", "+ "unit_id" + ", "+ "move_in_date" + ") VALUES (:v1, :v2, :v3)";
 	insertViaQuery(houseHold,DB_INSERT_HOUSEHOLD_UNIT);
 }
 

@@ -40,7 +40,7 @@ Role<Person_ST>(parent, behavior, movement, roleName_, roleType_), currLane_(mtx
 distCoveredOnCurrWayPt_(mtxStrat, 0), isInIntersection_(mtxStrat, false), latMovement_(mtxStrat, 0), fwdVelocity_(mtxStrat, 0), latVelocity_(mtxStrat, 0),
 fwdAccel_(mtxStrat, 0), turningDirection_(mtxStrat, LANE_CHANGE_TO_NONE), vehicle(NULL), isVehicleInLoadingQueue(true), isVehiclePositionDefined(false),
 distToIntersection_(mtxStrat, -1), perceivedAccOfFwdCar(NULL), perceivedDistToFwdCar(NULL), perceivedDistToTrafficSignal(NULL), perceivedFwdAcc(NULL), 
-perceivedFwdVel(NULL), perceivedTrafficColor(NULL), perceivedVelOfFwdCar(NULL), yieldingToInIntersection(false)
+perceivedFwdVel(NULL), perceivedTrafficColor(NULL), perceivedVelOfFwdCar(NULL), yieldingToInIntersection(false), isBusDriver(false)
 {
 	getParams().driver = this;
 }

@@ -826,194 +826,203 @@ double MITSIM_CF_Model::calcTrafficSignalAcc(DriverUpdateParams &p)
 
 double MITSIM_CF_Model::calcYieldingAcc(DriverUpdateParams &params)
 {
-	float acc = 0;
-	params.lcDebugStr << ";---CYR";
+	DriverMovement *driverMvt = dynamic_cast<DriverMovement*> (params.driver->Movement());
 	
-	if (params.flag(FLAG_YIELDING))
+	if(!driverMvt->fwdDriverMovement.isInIntersection())
 	{
-		// This vehicle is yielding to another vehicle
-		
-		params.lcDebugStr << ";DING";
-		
-		uint32_t dt_sec = millisecondToSecond(params.now.ms() - params.yieldTime.ms());
-		
-		params.lcDebugStr << ";dt" << dt_sec;
-		
-		//Make sure a vehicle will not yield infinitely.
-		if (dt_sec > params.lcMaxYieldingTime)
+		float acc = 0;
+		params.lcDebugStr << ";---CYR";
+
+		if (params.flag(FLAG_YIELDING))
 		{
+			// This vehicle is yielding to another vehicle
+
+			params.lcDebugStr << ";DING";
+
+			uint32_t dt_sec = millisecondToSecond(params.now.ms() - params.yieldTime.ms());
+
+			params.lcDebugStr << ";dt" << dt_sec;
+
+			//Make sure a vehicle will not yield infinitely.
+			if (dt_sec > params.lcMaxYieldingTime)
+			{
+				params.driver->setYieldingToDriver(NULL);
+				params.unsetFlag(FLAG_YIELDING);
+				params.lcDebugStr << ";yd1";
+				return params.maxAcceleration;
+			}
+
+			bool rightFwdVhFlag = false;
+
+			if (params.nvRightFwd.exists())
+			{
+				params.lcDebugStr << ";yd2";
+
+				Driver* dRF = const_cast<Driver*> (params.nvRightFwd.driver);
+				DriverUpdateParams& pRF = dRF->getParams();
+
+				if (pRF.flag(FLAG_NOSING_LEFT))
+				{
+					rightFwdVhFlag = true;
+					params.lcDebugStr << ";yd3";
+				}
+			}
+
+			bool leftFwdVhFlag = false;
+
+			if (params.nvLeftFwd.exists())
+			{
+				params.lcDebugStr << ";yd4";
+
+				Driver* d = const_cast<Driver*> (params.nvLeftFwd.driver);
+				DriverUpdateParams& p = d->getParams();
+
+				if (p.flag(FLAG_NOSING_RIGHT))
+				{
+					leftFwdVhFlag = true;
+					p.lcDebugStr << ";yd5";
+				}
+			}
+
+			if (params.flag(FLAG_YIELDING_RIGHT))
+			{
+				params.lcDebugStr << ";yd6";
+
+				//Check if the right front vehicle is nosing
+				if ((params.rightLane) && (params.nvRightFwd.exists()) && params.nvRightFwd.driver == params.driver->getYieldingToDriver() && rightFwdVhFlag)
+				{
+					params.lcDebugStr << ";yd7";
+
+					acc = calcCarFollowingAcc(params, params.nvRightFwd);
+
+					if (acc < params.normalDeceleration)
+					{
+						acc = params.normalDeceleration;
+					}
+					else if (acc > 0)
+					{
+						acc = 0.0;
+					}
+
+					params.lcDebugStr << ";acc" << acc;
+
+					return acc;
+				}
+			}
+			else if (params.flag(FLAG_YIELDING_LEFT))
+			{
+				params.lcDebugStr << ";yd8";
+
+				//Check if the left front vehicle is nosing
+				if ((params.leftLane) && (params.nvLeftFwd.exists()) && params.nvLeftFwd.driver == params.driver->getYieldingToDriver() && leftFwdVhFlag)
+				{
+					params.lcDebugStr << ";yd9";
+
+					acc = calcCarFollowingAcc(params, params.nvLeftFwd);
+
+					if (acc < params.normalDeceleration)
+					{
+						acc = params.normalDeceleration;
+					}
+					else if (acc > 0)
+					{
+						acc = 0.0;
+					}
+
+					params.lcDebugStr << ";acc" << acc;
+
+					return acc;
+				}
+			}
+
 			params.driver->setYieldingToDriver(NULL);
 			params.unsetFlag(FLAG_YIELDING);
-			params.lcDebugStr << ";yd1";
+
+			params.lcDebugStr << ";yd10" << acc;
+
 			return params.maxAcceleration;
 		}
-
-		bool rightFwdVhFlag = false;
-		
-		if (params.nvRightFwd.exists())
+		else if (params.flag(FLAG_NOSING))
 		{
-			params.lcDebugStr << ";yd2";
-			
-			Driver* dRF = const_cast<Driver*> (params.nvRightFwd.driver);
-			DriverUpdateParams& pRF = dRF->getParams();
-			
-			if (pRF.flag(FLAG_NOSING_LEFT))
-			{
-				rightFwdVhFlag = true;
-				params.lcDebugStr << ";yd3";
-			}
-		}
+			// This vehicle is nosing
 
-		bool leftFwdVhFlag = false;
-		
-		if (params.nvLeftFwd.exists())
-		{
-			params.lcDebugStr << ";yd4";
-			
-			Driver* d = const_cast<Driver*> (params.nvLeftFwd.driver);
-			DriverUpdateParams& p = d->getParams();
-			
-			if (p.flag(FLAG_NOSING_RIGHT))
-			{
-				leftFwdVhFlag = true;
-				p.lcDebugStr << ";yd5";
-			}
-		}
+			params.lcDebugStr << ";SING";
 
-		if (params.flag(FLAG_YIELDING_RIGHT))
-		{
-			params.lcDebugStr << ";yd6";
-			
-			//Check if the right front vehicle is nosing
-			if ((params.rightLane) && (params.nvRightFwd.exists()) && params.nvRightFwd.driver == params.driver->getYieldingToDriver() && rightFwdVhFlag)
+			bool rightBackVhFlag = false;
+
+			if (params.nvRightBack.exists())
 			{
-				params.lcDebugStr << ";yd7";
-				
-				acc = calcCarFollowingAcc(params, params.nvRightFwd);
-				
-				if (acc < params.normalDeceleration)
+				Driver* d = const_cast<Driver*> (params.nvRightBack.driver);
+				DriverUpdateParams& pd = d->getParams();
+
+				if (pd.flag(FLAG_YIELDING_LEFT) || pd.flag(FLAG_NOSING))
 				{
-					acc = params.normalDeceleration;
+					rightBackVhFlag = true;
 				}
-				else if (acc > 0)
-				{
-					acc = 0.0;
-				}
-				
-				params.lcDebugStr << ";acc" << acc;
-				
-				return acc;
 			}
-		}
-		else if (params.flag(FLAG_YIELDING_LEFT))
-		{
-			params.lcDebugStr << ";yd8";
-			
-			//Check if the left front vehicle is nosing
-			if ((params.leftLane) && (params.nvLeftFwd.exists()) && params.nvLeftFwd.driver == params.driver->getYieldingToDriver() && leftFwdVhFlag)
-			{
-				params.lcDebugStr << ";yd9";
-				
-				acc = calcCarFollowingAcc(params, params.nvLeftFwd);
-				
-				if (acc < params.normalDeceleration)
-				{
-					acc = params.normalDeceleration;
-				}
-				else if (acc > 0)
-				{
-					acc = 0.0;
-				}
-				
-				params.lcDebugStr << ";acc" << acc;
-				
-				return acc;
-			}
-		}
 
-		params.driver->setYieldingToDriver(NULL);
-		params.unsetFlag(FLAG_YIELDING);
-		
-		params.lcDebugStr << ";yd10" << acc;
-		
-		return params.maxAcceleration;
-	}
-	else if (params.flag(FLAG_NOSING))
-	{
-		// This vehicle is nosing
-		
-		params.lcDebugStr << ";SING";
-		
-		bool rightBackVhFlag = false;
-		
-		if (params.nvRightBack.exists())
-		{
-			Driver* d = const_cast<Driver*> (params.nvRightBack.driver);
-			DriverUpdateParams& pd = d->getParams();
-			
-			if (pd.flag(FLAG_YIELDING_LEFT) || pd.flag(FLAG_NOSING))
-			{
-				rightBackVhFlag = true;
-			}
-		}
-		
-		bool leftBackVhFlag = false;
-		
-		if (params.nvLeftBack.exists())
-		{
-			Driver* d = const_cast<Driver*> (params.nvLeftBack.driver);
-			DriverUpdateParams& pd = d->getParams();
-			
-			if (pd.flag(FLAG_YIELDING_RIGHT) || pd.flag(FLAG_NOSING))
-			{
-				leftBackVhFlag = true;
-			}
-		}
+			bool leftBackVhFlag = false;
 
-		if (params.flag(FLAG_NOSING_RIGHT))
-		{
-			params.lcDebugStr << ";RT";
-			params.lcDebugStr << ";RBD" << params.nvRightBack.distance;
-			params.lcDebugStr << ";RFD" << params.nvRightFwd.distance;
-			
-			//Check if the right rear vehicle is yielding to the left
-			if ((params.rightLane) && (params.nvRightBack.exists()) && rightBackVhFlag)
+			if (params.nvLeftBack.exists())
 			{
-				acc = calcAccToCreateGap(params, params.nvRightFwd, params.lcMinGap(2) + Math::DOUBLE_EPSILON);
-				double res = std::max<double>(params.maxDeceleration, acc);
-				
-				params.lcDebugStr << ";acc" << acc;
-				
-				return res;
-			}
-		}
-		else if (params.flag(FLAG_NOSING_LEFT))
-		{
-			params.lcDebugStr << ";LT";
-			
-			if ((params.leftLane) && (params.nvLeftBack.exists()) && leftBackVhFlag)
-			{
-				acc = calcAccToCreateGap(params, params.nvLeftFwd, params.lcMinGap(2) + Math::DOUBLE_EPSILON);
-				return std::max<double>(params.maxDeceleration, acc);
-			}
-		}
+				Driver* d = const_cast<Driver*> (params.nvLeftBack.driver);
+				DriverUpdateParams& pd = d->getParams();
 
-		if (params.getStatus(STATUS_CHANGING) && params.flag(FLAG_LC_FAILED_LEAD))
-		{
-			return params.normalDeceleration;
+				if (pd.flag(FLAG_YIELDING_RIGHT) || pd.flag(FLAG_NOSING))
+				{
+					leftBackVhFlag = true;
+				}
+			}
+
+			if (params.flag(FLAG_NOSING_RIGHT))
+			{
+				params.lcDebugStr << ";RT";
+				params.lcDebugStr << ";RBD" << params.nvRightBack.distance;
+				params.lcDebugStr << ";RFD" << params.nvRightFwd.distance;
+
+				//Check if the right rear vehicle is yielding to the left
+				if ((params.rightLane) && (params.nvRightBack.exists()) && rightBackVhFlag)
+				{
+					acc = calcAccToCreateGap(params, params.nvRightFwd, params.lcMinGap(2) + Math::DOUBLE_EPSILON);
+					double res = std::max<double>(params.maxDeceleration, acc);
+
+					params.lcDebugStr << ";acc" << acc;
+
+					return res;
+				}
+			}
+			else if (params.flag(FLAG_NOSING_LEFT))
+			{
+				params.lcDebugStr << ";LT";
+
+				if ((params.leftLane) && (params.nvLeftBack.exists()) && leftBackVhFlag)
+				{
+					acc = calcAccToCreateGap(params, params.nvLeftFwd, params.lcMinGap(2) + Math::DOUBLE_EPSILON);
+					return std::max<double>(params.maxDeceleration, acc);
+				}
+			}
+
+			if (params.getStatus(STATUS_CHANGING) && params.flag(FLAG_LC_FAILED_LEAD))
+			{
+				return params.normalDeceleration;
+			}
+			else
+			{
+				return params.maxAcceleration;
+			}
+
 		}
 		else
 		{
+			//Currently this vehicle is neither yielding, nor nosing.
+
+			params.lcDebugStr << ";NTH";
+
 			return params.maxAcceleration;
 		}
-
 	}
 	else
 	{
-		//Currently this vehicle is neither yielding, nor nosing.
-		
-		params.lcDebugStr << ";NTH";
-		
 		return params.maxAcceleration;
 	}
 }
@@ -1060,14 +1069,7 @@ double MITSIM_CF_Model::calcWaitForLaneExitAcc(DriverUpdateParams &params)
 	if(!driverMvt->fwdDriverMovement.isInIntersection() && params.flag(FLAG_ESCAPE) 
 			|| (params.flag(FLAG_NOSING) && !params.flag(FLAG_NOSING_FEASIBLE)))
 	{
-		if(!params.driver->IsBusDriver())
-		{
-			acceleration = calcBrakeToStopAcc(params, params.distToStop);
-		}
-		else
-		{
-			acceleration = calcBrakeToStopAcc(params, params.distToStop / 4);
-		}
+		acceleration = calcBrakeToStopAcc(params, params.distToStop);
 	}
 	
 	return acceleration;

@@ -650,8 +650,20 @@ double DriverPathMover::getDistCoveredOnCurrWayPt() const
 
 double DriverPathMover::getDistToEndOfCurrWayPt() const
 {
-	double length = (currLane != NULL) ? currLane->getLength() : currTurning->getLength();
-	return (length - getDistCoveredOnCurrWayPt());
+	double distance = 0;
+	
+	/*It may seem that an if-else will suffice [rather than an else-if], but there are situations where a driver accesses this method
+	  of another driver which in the middle of re-routing [and yet to get a valid turning path]*/
+	if(currLane)
+	{
+		distance = currLane->getLength()- getDistCoveredOnCurrWayPt();
+	}
+	else if(currTurning)
+	{
+		distance = currTurning->getLength() - getDistCoveredOnCurrWayPt();
+	}
+	
+	return distance;
 }
 
 double DriverPathMover::getDistToEndOfCurrLink() const

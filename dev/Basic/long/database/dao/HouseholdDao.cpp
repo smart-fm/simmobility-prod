@@ -41,12 +41,10 @@ void HouseholdDao::fromRow(Row& result, Household& outObj)
     outObj.taxiAvailability = result.get<int>(DB_FIELD_TAXI_AVAILABILITY, false);
     outObj.vehicleOwnershipOptionId = result.get<int>("vehicle_ownership_option_id", false);
     outObj.timeOnMarket = result.get<int>("time_on_market", INVALID_ID);
-    //outObj.timeOffMarket = result.get<int>("time_off_market", INVALID_ID);
     outObj.isBidder = result.get<int>("is_bidder", 0);
     outObj.isSeller = result.get<int>("is_seller", 0);
     outObj.buySellInterval = result.get<int>("buy_sell_interval", 0);
     outObj.moveInDate = result.get<std::tm>("move_in_date", std::tm());
-    //outObj.hasMoved = result.get<int>("has_moved", 0);
     outObj.tenureStatus = result.get<int>("tenure_status", 0);
     outObj.awakenedDay= result.get<int>("awakened_day", 0);
 }

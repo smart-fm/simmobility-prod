@@ -385,12 +385,12 @@ std::string DriverMovement::frame_tick_output()
 			<< "\",\"angle\":\"" << (360 - (baseAngle * 180 / M_PI))
 			<< "\",\"length\":\"" << static_cast<int> (parentDriver->vehicle->getLengthInM())
 			<< "\",\"width\":\"" << static_cast<int> (parentDriver->vehicle->getWidthInM())
-			<< "\",\"veh-name\":\"" << parentDriver->vehicle->getVehicleName()
+			//<< "\",\"veh-name\":\"" << parentDriver->vehicle->getVehicleName()
 			<< "\",\"curr-waypoint\":\"" << wayPtId
-			<< "\",\"fwd-speed\":\"" << parentDriver->vehicle->getVelocity()
-			<< "\",\"fwd-accel\":\"" << parentDriver->vehicle->getAcceleration()
+			//<< "\",\"fwd-speed\":\"" << parentDriver->vehicle->getVelocity()
+			//<< "\",\"fwd-accel\":\"" << parentDriver->vehicle->getAcceleration()
 			<< "\",\"info\":\"" << params.debugInfo
-			<< "\",\"mandatory\":\"" << incidentPerformer.getIncidentStatus().getChangedLane()
+			//<< "\",\"mandatory\":\"" << incidentPerformer.getIncidentStatus().getChangedLane()
 			<< addLine.str() << "\"})" << std::endl;
 	
 	return output.str();
@@ -1391,7 +1391,12 @@ double DriverMovement::updatePosition(DriverUpdateParams &params)
 	}	
 
 	double overflow = 0;
+
+	//Move the vehicle forward
+	overflow = fwdDriverMovement.advance(distCovered);
 	
+	/*-------Code related to en-route route choice when the vehicle enters a wrong turning path-------*/
+	/*
 	try
 	{
 		//Move the vehicle forward
@@ -1471,7 +1476,7 @@ double DriverMovement::updatePosition(DriverUpdateParams &params)
 			msg << "Bus driver on incorrect lane " << ex.fromLane->getLaneId() << " trying to go to segment " << ex.toSegment->getRoadSegmentId();
 			throw runtime_error(msg.str());
 		}
-	}
+	}*/
 	
 	//Update the vehicle's velocity based on its acceleration using the equation of motion
 	//v = u + at
@@ -1539,7 +1544,7 @@ bool DriverMovement::updateNearbyAgent(const Agent *nearbyAgent, const Driver *n
 		
 		const TurningConflict *conflict = currTurning->getTurningConflict(otherTurning);
 		
-		if (conflict)
+		if (conflict && currTurning->getFromLaneId() != otherTurning->getFromLaneId())
 		{
 			double conflictDist = (otherTurning == conflict->getFirstTurning()) ? conflict->getFirstConflictDistance() : conflict->getSecondConflictDistance();
 			double distance = 0;

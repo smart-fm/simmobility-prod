@@ -237,8 +237,8 @@
 	A vehicle must remain in a lane for a minimum of "minimum time in lane" seconds before
 	considering another lane chane.-->                                   
 	<param name="MLC_PARAMETERS" value="
-	150.0		#lower bound(meter) 
-	250.0		#delta(meter)
+	750.0		#lower bound(meter) 
+	1000.0		#delta(meter)
 	2.0			#minimum time in lane (sec)
 	"/>
 
@@ -419,8 +419,8 @@
 	<param name="min_speed" value="0.1"/>  <!-- m/s -->
 	
 	<!-- minimum time required between lane changing decisions -->
-	<param name="LC_Discretionary_Lane_Change_Model_MinTimeInLaneSameDir" value="2"/> <!-- s -->
-	<param name="LC_Discretionary_Lane_Change_Model_MinTimeInLaneDiffDir" value="2"/> <!-- s -->
+	<param name="LC_Discretionary_Lane_Change_Model_MinTimeInLaneSameDir" value="7"/> <!-- s -->
+	<param name="LC_Discretionary_Lane_Change_Model_MinTimeInLaneDiffDir" value="15"/> <!-- s -->
 
 	<!-- Visibility of stopping points (default value) -->
 	<param name="check_stop_point_distance" value="200"/> <!-- meters -->

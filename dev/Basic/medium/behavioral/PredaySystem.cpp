@@ -321,7 +321,12 @@ void PredaySystem::predictTourMode(Tour& tour)
 {
 	TourModeParams tmParams;
 	constructTourModeParams(tmParams, tour.getTourDestination(), tour.getTourType());
-	tour.setTourMode(PredayLuaProvider::getPredayModel().predictTourMode(personParams, tmParams));
+	int mode = PredayLuaProvider::getPredayModel().predictTourMode(personParams, tmParams);
+	if(mode < 1 || mode > 9)
+	{
+		throw std::runtime_error("Invalid tour mode");
+	}
+	tour.setTourMode(mode);
 }
 
 void sim_mob::medium::PredaySystem::predictSubTours(Tour& parentTour)
@@ -343,6 +348,10 @@ void sim_mob::medium::PredaySystem::predictSubTours(Tour& parentTour)
 		//set mode and destination
 		Tour& subTour = *tourIt;
 		predictSubTourModeDestination(subTour, parentTour);
+		if(subTour.getTourMode() == -1 || subTour.getTourDestination() ==  -1) //if mode destination choice failed due to unavailability of data in tcost collections
+		{
+			break; //ignore this sub tour and any remaining sub tour
+		}
 
 		//unavail travel time to predicted destination by predicted mode
 		blockTravelTimeToSubTourLocation(subTour, parentTour, workBasedSubTourParams);
@@ -377,7 +386,14 @@ void PredaySystem::predictSubTourModeDestination(Tour& subTour, const Tour& pare
 	int modeDest = PredayLuaProvider::getPredayModel().predictSubTourModeDestination(personParams, stmdParams);
 	subTour.setTourMode(stmdParams.getMode(modeDest));
 	int zone_id = stmdParams.getDestination(modeDest);
-	subTour.setTourDestination(zoneMap.at(zone_id)->getZoneCode());
+	if(zone_id == -1) //if invalid zone
+	{
+		subTour.setTourDestination(zone_id); //set invalid zone and handle it up the call stack
+	}
+	else
+	{
+		subTour.setTourDestination(zoneMap.at(zone_id)->getZoneCode());
+	}
 }
 
 void PredaySystem::predictTourModeDestination(Tour& tour)
@@ -952,6 +968,10 @@ bool PredaySystem::predictStopModeDestination(Stop* stop, int origin)
 	int zone_id = imdParams.getDestination(modeDest);
 	stop->setStopLocationId(zone_id);
 	stop->setStopLocation(zoneMap.at(zone_id)->getZoneCode());
+	if(stop->getStopLocation() == origin || stop->getStopMode() > 9 || stop->getStopMode() < 1)
+	{
+		std::cout << "break!\n";
+	}
 	return true;
 }
 

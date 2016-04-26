@@ -35,7 +35,7 @@ int ModeDestinationParams::getMode(int choice) const
 	int nModes = 9;
 	if (choice < 1 || choice > nZones * nModes)
 	{
-		throw std::runtime_error("getMode()::invalid choice id for mode-destination model");
+		return -1;
 	}
 	return ((choice - 1) / nZones + 1);
 }
@@ -46,7 +46,7 @@ int ModeDestinationParams::getDestination(int choice) const
 	int nModes = 9;
 	if (choice < 1 || choice > nZones * nModes)
 	{
-		throw std::runtime_error("getDestination()::invalid choice id for mode-destination model");
+		return -1;
 	}
 	int zoneId = choice % nZones;
 	if (zoneId == 0)

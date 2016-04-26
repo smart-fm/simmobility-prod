@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <boost/foreach.hpp>
 #include <cmath>
+#include <cstdio>
 #include <ostream>
 #include "buffering/BufferedDataManager.hpp"
 #include "conf/ConfigManager.hpp"
@@ -170,32 +171,46 @@ void DriverMovement::frame_tick()
 			parentDriver->parent->canMoveToNextSegment = Person_MT::NONE;
 			setParentData(params);
 
-/*			if(parentDriver && parentDriver->roleType != Role<Person_MT>::RL_BUSDRIVER)
+			if(parentDriver && parentDriver->roleType != Role<Person_MT>::RL_BUSDRIVER)
 			{
-				std::stringstream logout;
 				Person_MT* person = parentDriver->parent;
 				unsigned int segId = (person->getCurrSegStats() ? person->getCurrSegStats()->getRoadSegment()->getRoadSegmentId() : 0);
 				uint16_t statsNum = (person->getCurrSegStats() ? person->getCurrSegStats()->getStatsNumberInSegment() : 0);
-				logout << "(" << parentDriver->getRoleName() << "," << person->getDatabaseId() << ","
-						<< parentDriver->getParams().now.frame()
-						<< ",{"
-						<< "seg:" << segId
-						<< ",stat:" << statsNum
-						<< ",ln:" << (person->getCurrLane() ? person->getCurrLane()->getLaneId() : 0)
-						<< ",dist:" << person->distanceToEndOfSegment;
-				if (person->isQueuing)
-				{
-					logout << ",q:T";
-				}
-				else
-				{
-					logout << ",q:F";
-				}
-				logout << ",elapsed:" << params.elapsedSeconds;
-				logout << "})\n";
-				Print() << logout.str();
+
+				char logbuf[1000];
+				sprintf(logbuf, "%s,%s,%u,seg:%u-%u,ln:%u,d:%f,q:%c,elpsd:%fs\n",
+						parentDriver->getRoleName().c_str(),
+						person->getDatabaseId().c_str(),
+						parentDriver->getParams().now.frame(),
+						segId,
+						statsNum,
+						(person->getCurrLane() ? person->getCurrLane()->getLaneId() : 0),
+						person->distanceToEndOfSegment,
+						(person->isQueuing ? 'T' : 'F'),
+						params.elapsedSeconds
+						);
+				Print() << std::string(logbuf);
+
+//				std::stringstream logout;
+//				logout << "(" << parentDriver->getRoleName() << "," << person->getDatabaseId() << ","
+//						<< parentDriver->getParams().now.frame()
+//						<< ",{"
+//						<< "seg:" << segId
+//						<< ",stat:" << statsNum
+//						<< ",ln:" << (person->getCurrLane() ? person->getCurrLane()->getLaneId() : 0)
+//						<< ",dist:" << person->distanceToEndOfSegment;
+//				if (person->isQueuing)
+//				{
+//					logout << ",q:T";
+//				}
+//				else
+//				{
+//					logout << ",q:F";
+//				}
+//				logout << ",elapsed:" << params.elapsedSeconds;
+//				logout << "})\n";
+//				Print() << logout.str();
 			}
-*/
 			return;
 		}
 	}
@@ -207,32 +222,46 @@ void DriverMovement::frame_tick()
 		setParentData(params);
 	}
 
-/*	if(parentDriver && parentDriver->roleType != Role<Person_MT>::RL_BUSDRIVER)
+	//Debug print
+	if(parentDriver && parentDriver->roleType != Role<Person_MT>::RL_BUSDRIVER)
 	{
-		std::stringstream logout;
 		Person_MT* person = parentDriver->parent;
 		unsigned int segId = (person->getCurrSegStats() ? person->getCurrSegStats()->getRoadSegment()->getRoadSegmentId() : 0);
 		uint16_t statsNum = (person->getCurrSegStats() ? person->getCurrSegStats()->getStatsNumberInSegment() : 0);
-		logout << "(" << parentDriver->getRoleName() << "," << person->getDatabaseId() << ","
-				<< parentDriver->getParams().now.frame()
-				<< ",{"
-				<< "seg:" << segId
-				<< ",stat:" << statsNum
-				<< ",ln:" << (person->getCurrLane() ? person->getCurrLane()->getLaneId() : 0)
-				<< ",dist:" << person->distanceToEndOfSegment;
-		if (person->isQueuing)
-		{
-			logout << ",q:" << "T";
-		}
-		else
-		{
-			logout << ",q:" << "F";
-		}
-		logout << ",elapsed:" << params.elapsedSeconds;
-		logout << "})\n";
-		Print() << logout.str();
+		char logbuf[1000];
+		sprintf(logbuf, "%s,%s,%u,seg:%u-%u,ln:%u,d:%f,q:%c,elpsd:%fs\n",
+				parentDriver->getRoleName().c_str(),
+				person->getDatabaseId().c_str(),
+				parentDriver->getParams().now.frame(),
+				segId,
+				statsNum,
+				(person->getCurrLane() ? person->getCurrLane()->getLaneId() : 0),
+				person->distanceToEndOfSegment,
+				(person->isQueuing ? 'T' : 'F'),
+				params.elapsedSeconds
+				);
+		Print() << std::string(logbuf);
+
+//		std::stringstream logout;
+//		logout << "(" << parentDriver->getRoleName() << "," << person->getDatabaseId() << ","
+//				<< parentDriver->getParams().now.frame()
+//				<< ",{"
+//				<< "seg:" << segId
+//				<< ",stat:" << statsNum
+//				<< ",ln:" << (person->getCurrLane() ? person->getCurrLane()->getLaneId() : 0)
+//				<< ",dist:" << person->distanceToEndOfSegment;
+//		if (person->isQueuing)
+//		{
+//			logout << ",q:" << "T";
+//		}
+//		else
+//		{
+//			logout << ",q:" << "F";
+//		}
+//		logout << ",elapsed:" << params.elapsedSeconds;
+//		logout << "})\n";
+//		Print() << logout.str();
 	}
-*/
 }
 
 std::string DriverMovement::frame_tick_output()

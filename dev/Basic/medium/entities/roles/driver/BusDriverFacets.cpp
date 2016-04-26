@@ -4,6 +4,7 @@
 
 #include "BusDriverFacets.hpp"
 
+#include <cstdio>
 #include <sstream>
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
@@ -59,7 +60,7 @@ std::string BusDriverBehavior::frame_tick_output() {
 
 
 BusDriverMovement::BusDriverMovement():
-	DriverMovement(), parentBusDriver(nullptr) {}
+	DriverMovement(), parentBusDriver(nullptr), busTripId(std::string("NA")) {}
 
 BusDriverMovement::~BusDriverMovement() {}
 
@@ -72,6 +73,11 @@ void BusDriverMovement::frame_init()
 		VehicleBase* oldBus = parentBusDriver->getResource();
 		safe_delete_item(oldBus);
 		parentBusDriver->setResource(newVeh);
+		const BusTrip* busTrip = dynamic_cast<const BusTrip*>(*(parentBusDriver->parent->currTripChainItem));
+		if(busTrip)
+		{
+			busTripId = busTrip->tripID;
+		}
 	}
 	else
 	{
@@ -176,44 +182,60 @@ void BusDriverMovement::frame_tick()
 	}
 
 
-/*	std::stringstream logout;
+	//Debug print
 	Person_MT* person = parentBusDriver->parent;
 	unsigned int segId = (person->getCurrSegStats() ? person->getCurrSegStats()->getRoadSegment()->getRoadSegmentId() : 0);
 	uint16_t statsNum = (person->getCurrSegStats() ? person->getCurrSegStats()->getStatsNumberInSegment() : 0);
-	const BusTrip* busTrip = dynamic_cast<const BusTrip*>(*(person->currTripChainItem));
-	logout << "(BD" << "," << person->getId() << ","
-			<< person->busLine << ","
-			<< (busTrip? busTrip->tripID : "NA") << ","
-			<< parentBusDriver->getParams().now.frame()
-			<< ",{"
-			<< "seg:" << segId
-			<< ",stat:" << statsNum
-			<< ",ln:" << (person->getCurrLane() ? person->getCurrLane()->getLaneId() : 0)
-			<< ",dist:" << person->distanceToEndOfSegment;
-
-	if (parentBusDriver->getResource()->isMoving())
-	{
-		logout << ",onRoad";
-	}
-	else
-	{
-		logout << ",atStop";
-	}
 	const BusStop* nextStop = routeTracker.getNextStop();
-	logout << ",nextStop:" << (nextStop ? nextStop->getStopCode() : "0");
-
-	if (person->isQueuing)
-	{
-		logout << ",q:T";
-	}
-	else
-	{
-		logout << ",q:F";
-	}
-	logout << ",elapsed:" << params.elapsedSeconds;
-	logout << "})" << std::endl;
-	Print() << logout.str();
-*/
+	char logbuf[1000];
+	sprintf(logbuf, "BD,%u,%s,%s,%u,seg:%u-%u,ln:%u,d:%f,%s,next:%s,q:%c,elpsd:%fs\n",
+			person->getId(),
+			person->busLine.c_str(),
+			busTripId.c_str(),
+			parentBusDriver->getParams().now.frame(),
+			segId,
+			statsNum,
+			(person->getCurrLane() ? person->getCurrLane()->getLaneId() : 0),
+			 person->distanceToEndOfSegment,
+			 (parentBusDriver->getResource()->isMoving()? "road" : "stop"),
+			 (nextStop ? nextStop->getStopCode().c_str() : "0"),
+			 (person->isQueuing? 'T' : 'F'),
+			 params.elapsedSeconds
+			);
+	Print() << std::string(logbuf);
+//	std::stringstream logout;
+//	logout << "(BD" << "," << person->getId() << ","
+//			<< person->busLine << ","
+//			<< busTripId << ","
+//			<< parentBusDriver->getParams().now.frame()
+//			<< ",{"
+//			<< "seg:" << segId
+//			<< ",stat:" << statsNum
+//			<< ",ln:" << (person->getCurrLane() ? person->getCurrLane()->getLaneId() : 0)
+//			<< ",dist:" << person->distanceToEndOfSegment;
+//
+//	if (parentBusDriver->getResource()->isMoving())
+//	{
+//		logout << ",onRoad";
+//	}
+//	else
+//	{
+//		logout << ",atStop";
+//	}
+//
+//	logout << ",nextStop:" << (nextStop ? nextStop->getStopCode() : "0");
+//
+//	if (person->isQueuing)
+//	{
+//		logout << ",q:T";
+//	}
+//	else
+//	{
+//		logout << ",q:F";
+//	}
+//	logout << ",elapsed:" << params.elapsedSeconds;
+//	logout << "})" << std::endl;
+//	Print() << logout.str();
 }
 
 std::string BusDriverMovement::frame_tick_output() {

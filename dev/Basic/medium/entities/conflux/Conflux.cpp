@@ -5,6 +5,7 @@
 #include "Conflux.hpp"
 
 #include <algorithm>
+#include <cstdio>
 #include <cmath>
 #include <map>
 #include <stdexcept>
@@ -173,53 +174,83 @@ Conflux::PersonProps::PersonProps(const Person_MT* person, const Conflux* cnflx)
 
 void Conflux::PersonProps::printProps(std::string personId, uint32_t frame, std::string prefix) const
 {
-	std::stringstream propStrm;
-	propStrm << personId << "," << frame << "," << prefix << ",cfx,";
-	if (conflux)
-	{
-		propStrm << conflux->getConfluxNode()->getNodeId() << "," << conflux->currWorkerProvider << ",";
-	}
-	else
-	{
-		propStrm << "0x0,0x0,";
-	}
+	char propbuf[1000];
 	if(roleType == 5)
 	{
-		propStrm << "activity" << std::endl;
-		Print() << propStrm.str();
+		sprintf(propbuf, "%s,%u,%s,cfx:%u,%p,activity\n",
+				personId.c_str(),
+				frame,
+				prefix.c_str(),
+				(conflux ? conflux->getConfluxNode()->getNodeId() : 0),
+				(conflux ? conflux->currWorkerProvider : 0)
+		);
 	}
 	else
 	{
-		if (segment)
-		{
-			propStrm << "seg:" << segment->getRoadSegmentId() << ",";
-		}
-		else
-		{
-			propStrm << "seg:0x0,";
-		}
-		if (segStats)
-		{
-			propStrm << "stat:" << segStats->getStatsNumberInSegment() << ",";
-		}
-		else
-		{
-			propStrm << "stat:0x0,";
-		}
-		if (lane)
-		{
-			propStrm << "ln:" << lane->getLaneId() << ",";
-		}
-		else
-		{
-			propStrm << "ln:0x0,";
-		}
-		propStrm << "rl:" << roleType << ","
-			 << "q:" << isQueuing << ","
-			 << "m:" << isMoving << ","
-			 << "dist:" << distanceToSegEnd << "\n";
-		Print() << propStrm.str();
+		sprintf(propbuf, "%s,%u,%s,cfx:%u,%p,seg:%u-%u,ln:%u,rl:%u,q:%c,m:%c,d:%f\n",
+				personId.c_str(),
+				frame,
+				prefix.c_str(),
+				(conflux ? conflux->getConfluxNode()->getNodeId() : 0),
+				(conflux ? conflux->currWorkerProvider : 0),
+				(segment? segment->getRoadSegmentId() : 0),
+				(segStats? segStats->getStatsNumberInSegment() : 0),
+				(lane? lane->getLaneId() : 0),
+				roleType,
+				(isQueuing? 'T' : 'F' ),
+				(isMoving? 'T' : 'F'),
+				distanceToSegEnd
+		);
 	}
+	Print() << std::string(propbuf);
+
+//	std::stringstream propStrm;
+//	propStrm << personId << "," << frame << "," << prefix << ",cfx,";
+//	if (conflux)
+//	{
+//		propStrm << conflux->getConfluxNode()->getNodeId() << "," << conflux->currWorkerProvider << ",";
+//	}
+//	else
+//	{
+//		propStrm << "0x0,0x0,";
+//	}
+//	if(roleType == 5)
+//	{
+//		propStrm << "activity" << std::endl;
+//		Print() << propStrm.str();
+//	}
+//	else
+//	{
+//		if (segment)
+//		{
+//			propStrm << "seg:" << segment->getRoadSegmentId() << ",";
+//		}
+//		else
+//		{
+//			propStrm << "seg:0x0,";
+//		}
+//		if (segStats)
+//		{
+//			propStrm << "stat:" << segStats->getStatsNumberInSegment() << ",";
+//		}
+//		else
+//		{
+//			propStrm << "stat:0x0,";
+//		}
+//		if (lane)
+//		{
+//			propStrm << "ln:" << lane->getLaneId() << ",";
+//		}
+//		else
+//		{
+//			propStrm << "ln:0x0,";
+//		}
+//		propStrm << "rl:" << roleType << ","
+//			 << "q:" << isQueuing << ","
+//			 << "m:" << isMoving << ","
+//			 << "dist:" << distanceToSegEnd << "\n";
+//		Print() << propStrm.str();
+//	}
 }
 
 void Conflux::addAgent(Person_MT* person)
@@ -449,11 +480,11 @@ void Conflux::updateAgent(Person_MT* person)
 	//update person's handler registration with MessageBus, if required
 	updateAgentContext(beforeUpdate, afterUpdate, person);
 
-/*	if(!(beforeUpdate.roleType == 5 && afterUpdate.roleType == 5))
+	if(!(beforeUpdate.roleType == 5 && afterUpdate.roleType == 5))
 	{
 		beforeUpdate.printProps(person->getDatabaseId(), currFrame.frame(), std::to_string(confluxNode->getNodeId()) + ",before");
 		afterUpdate.printProps(person->getDatabaseId(), currFrame.frame(), std::to_string(confluxNode->getNodeId()) + ",after");
-	}*/
+	}
 }
 
 bool Conflux::handleRoleChange(PersonProps& beforeUpdate, PersonProps& afterUpdate, Person_MT* person)

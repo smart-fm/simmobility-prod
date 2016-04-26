@@ -174,46 +174,46 @@ void BusDriverMovement::frame_tick()
 	{
 		parentBusDriver->updatePassengers();
 	}
-/*
-	std::stringstream logout;
+
+
+/*	std::stringstream logout;
 	Person_MT* person = parentBusDriver->parent;
 	unsigned int segId = (person->getCurrSegStats() ? person->getCurrSegStats()->getRoadSegment()->getRoadSegmentId() : 0);
 	uint16_t statsNum = (person->getCurrSegStats() ? person->getCurrSegStats()->getStatsNumberInSegment() : 0);
 	const BusTrip* busTrip = dynamic_cast<const BusTrip*>(*(person->currTripChainItem));
-	logout << "(BusDriver" << "," << person->getId() << ","
+	logout << "(BD" << "," << person->getId() << ","
 			<< person->busLine << ","
 			<< (busTrip? busTrip->tripID : "NA") << ","
 			<< parentBusDriver->getParams().now.frame()
 			<< ",{"
-			<< "RoadSegment:" << segId
-			<< ",StatsNum:" << statsNum
-			<< ",Lane:" << (person->getCurrLane() ? person->getCurrLane()->getLaneId() : 0)
-			<< ",DistanceToEndSeg:" << person->distanceToEndOfSegment;
+			<< "seg:" << segId
+			<< ",stat:" << statsNum
+			<< ",ln:" << (person->getCurrLane() ? person->getCurrLane()->getLaneId() : 0)
+			<< ",dist:" << person->distanceToEndOfSegment;
 
 	if (parentBusDriver->getResource()->isMoving())
 	{
-		logout << ",Moving";
+		logout << ",onRoad";
 	}
 	else
 	{
-		logout << ",ServingStop";
+		logout << ",atStop";
 	}
 	const BusStop* nextStop = routeTracker.getNextStop();
-	logout << ",NextStop:" << (nextStop ? nextStop->getStopCode() : "0");
+	logout << ",nextStop:" << (nextStop ? nextStop->getStopCode() : "0");
 
 	if (person->isQueuing)
 	{
-		logout << ",queuing:true";
+		logout << ",q:T";
 	}
 	else
 	{
-		logout << ",queuing:false";
+		logout << ",q:F";
 	}
 	logout << ",elapsed:" << params.elapsedSeconds;
 	logout << "})" << std::endl;
 	Print() << logout.str();
 */
-
 }
 
 std::string BusDriverMovement::frame_tick_output() {
@@ -705,7 +705,7 @@ bool BusDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 			}
 
 			res = true;
-			parentBusDriver->getResource()->setMoving(true);
+			parentBusDriver->getResource()->setMoving(true);//set moving is set to true here explicitly because the BD could try to move to next segement from within advance and we want the correct moving status there
 			advance(params);
 		}
 		else

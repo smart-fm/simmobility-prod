@@ -170,7 +170,7 @@ void DriverMovement::frame_tick()
 			parentDriver->parent->canMoveToNextSegment = Person_MT::NONE;
 			setParentData(params);
 
-			/*if(parentDriver && parentDriver->roleType != Role<Person_MT>::RL_BUSDRIVER)
+/*			if(parentDriver && parentDriver->roleType != Role<Person_MT>::RL_BUSDRIVER)
 			{
 				std::stringstream logout;
 				Person_MT* person = parentDriver->parent;
@@ -179,23 +179,23 @@ void DriverMovement::frame_tick()
 				logout << "(" << parentDriver->getRoleName() << "," << person->getDatabaseId() << ","
 						<< parentDriver->getParams().now.frame()
 						<< ",{"
-						<< "RoadSegment:" << segId
-						<< ",StatsNum:" << statsNum
-						<< ",Lane:" << (person->getCurrLane() ? person->getCurrLane()->getLaneId() : 0)
-						<< ",DistanceToEndSeg:" << person->distanceToEndOfSegment;
+						<< "seg:" << segId
+						<< ",stat:" << statsNum
+						<< ",ln:" << (person->getCurrLane() ? person->getCurrLane()->getLaneId() : 0)
+						<< ",dist:" << person->distanceToEndOfSegment;
 				if (person->isQueuing)
 				{
-					logout << ",queuing:" << "true";
+					logout << ",q:T";
 				}
 				else
 				{
-					logout << ",queuing:" << "false";
+					logout << ",q:F";
 				}
-				logout << ",elapsedSeconds:" << params.elapsedSeconds;
-				logout << "})" << std::endl;
+				logout << ",elapsed:" << params.elapsedSeconds;
+				logout << "})\n";
 				Print() << logout.str();
-			}*/
-
+			}
+*/
 			return;
 		}
 	}
@@ -207,7 +207,7 @@ void DriverMovement::frame_tick()
 		setParentData(params);
 	}
 
-	/*if(parentDriver && parentDriver->roleType != Role<Person_MT>::RL_BUSDRIVER)
+/*	if(parentDriver && parentDriver->roleType != Role<Person_MT>::RL_BUSDRIVER)
 	{
 		std::stringstream logout;
 		Person_MT* person = parentDriver->parent;
@@ -216,22 +216,23 @@ void DriverMovement::frame_tick()
 		logout << "(" << parentDriver->getRoleName() << "," << person->getDatabaseId() << ","
 				<< parentDriver->getParams().now.frame()
 				<< ",{"
-				<< "RoadSegment:" << segId
-				<< ",StatsNum:" << statsNum
-				<< ",Lane:" << (person->getCurrLane() ? person->getCurrLane()->getLaneId() : 0)
-				<< ",DistanceToEndSeg:" << person->distanceToEndOfSegment;
+				<< "seg:" << segId
+				<< ",stat:" << statsNum
+				<< ",ln:" << (person->getCurrLane() ? person->getCurrLane()->getLaneId() : 0)
+				<< ",dist:" << person->distanceToEndOfSegment;
 		if (person->isQueuing)
 		{
-			logout << ",queuing:" << "true";
+			logout << ",q:" << "T";
 		}
 		else
 		{
-			logout << ",queuing:" << "false";
+			logout << ",q:" << "F";
 		}
-		logout << ",elapsedSeconds:" << params.elapsedSeconds;
-		logout << "})" << std::endl;
+		logout << ",elapsed:" << params.elapsedSeconds;
+		logout << "})\n";
 		Print() << logout.str();
-	}*/
+	}
+*/
 }
 
 std::string DriverMovement::frame_tick_output()
@@ -969,6 +970,7 @@ void DriverMovement::setOrigin(DriverUpdateParams& params)
 		}
 	}
 */
+
 	params.elapsedSeconds = std::max(params.elapsedSeconds, departTime - (convertToSeconds(params.now.ms()))); //in seconds
 
 	const Link* nextLink = getNextLinkForLaneChoice(currSegStats);

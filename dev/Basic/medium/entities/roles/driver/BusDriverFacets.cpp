@@ -203,39 +203,6 @@ void BusDriverMovement::frame_tick()
 			 params.elapsedSeconds
 			);
 	Print() << std::string(logbuf);
-//	std::stringstream logout;
-//	logout << "(BD" << "," << person->getId() << ","
-//			<< person->busLine << ","
-//			<< busTripId << ","
-//			<< parentBusDriver->getParams().now.frame()
-//			<< ",{"
-//			<< "seg:" << segId
-//			<< ",stat:" << statsNum
-//			<< ",ln:" << (person->getCurrLane() ? person->getCurrLane()->getLaneId() : 0)
-//			<< ",dist:" << person->distanceToEndOfSegment;
-//
-//	if (parentBusDriver->getResource()->isMoving())
-//	{
-//		logout << ",onRoad";
-//	}
-//	else
-//	{
-//		logout << ",atStop";
-//	}
-//
-//	logout << ",nextStop:" << (nextStop ? nextStop->getStopCode() : "0");
-//
-//	if (person->isQueuing)
-//	{
-//		logout << ",q:T";
-//	}
-//	else
-//	{
-//		logout << ",q:F";
-//	}
-//	logout << ",elapsed:" << params.elapsedSeconds;
-//	logout << "})" << std::endl;
-//	Print() << logout.str();
 }
 
 std::string BusDriverMovement::frame_tick_output() {

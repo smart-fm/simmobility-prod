@@ -204,53 +204,6 @@ void Conflux::PersonProps::printProps(std::string personId, uint32_t frame, std:
 	}
 	Print() << std::string(propbuf);
 
-//	std::stringstream propStrm;
-//	propStrm << personId << "," << frame << "," << prefix << ",cfx,";
-//	if (conflux)
-//	{
-//		propStrm << conflux->getConfluxNode()->getNodeId() << "," << conflux->currWorkerProvider << ",";
-//	}
-//	else
-//	{
-//		propStrm << "0x0,0x0,";
-//	}
-//	if(roleType == 5)
-//	{
-//		propStrm << "activity" << std::endl;
-//		Print() << propStrm.str();
-//	}
-//	else
-//	{
-//		if (segment)
-//		{
-//			propStrm << "seg:" << segment->getRoadSegmentId() << ",";
-//		}
-//		else
-//		{
-//			propStrm << "seg:0x0,";
-//		}
-//		if (segStats)
-//		{
-//			propStrm << "stat:" << segStats->getStatsNumberInSegment() << ",";
-//		}
-//		else
-//		{
-//			propStrm << "stat:0x0,";
-//		}
-//		if (lane)
-//		{
-//			propStrm << "ln:" << lane->getLaneId() << ",";
-//		}
-//		else
-//		{
-//			propStrm << "ln:0x0,";
-//		}
-//		propStrm << "rl:" << roleType << ","
-//			 << "q:" << isQueuing << ","
-//			 << "m:" << isMoving << ","
-//			 << "dist:" << distanceToSegEnd << "\n";
-//		Print() << propStrm.str();
-//	}
 }
 
 void Conflux::addAgent(Person_MT* person)

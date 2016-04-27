@@ -187,6 +187,8 @@ public:
 		case RL_ACTIVITY: return "Activity";
 		case RL_PASSENGER: return "BusTravel";
 		case RL_WAITBUSACTIVITY: return "WaitingBusActivity";
+		case RL_TRUCKER_HGV: return "HGV";
+		case RL_TRUCKER_LGV: return "LGV";
 		}
 	}
 

@@ -273,6 +273,8 @@ void Conflux::addAgent(Person_MT* person)
 		case Role<Person_MT>::RL_DRIVER: //fall through
 		case Role<Person_MT>::RL_BUSDRIVER:
 		case Role<Person_MT>::RL_BIKER:
+		case Role<Person_MT>::RL_TRUCKER_LGV:
+		case Role<Person_MT>::RL_TRUCKER_HGV:
 		{
 			SegmentStats* rdSegStats = const_cast<SegmentStats*>(person->getCurrSegStats()); // person->currSegStats is set when frame_init of role is called
 			person->setCurrLane(rdSegStats->laneInfinity);
@@ -514,6 +516,8 @@ bool Conflux::handleRoleChange(PersonProps& beforeUpdate, PersonProps& afterUpda
 	}
 	case Role<Person_MT>::RL_DRIVER: //fall through
 	case Role<Person_MT>::RL_BIKER:
+	case Role<Person_MT>::RL_TRUCKER_LGV:
+	case Role<Person_MT>::RL_TRUCKER_HGV:
 	{
 		if(beforeUpdate.lane) //if person was not from VQ
 		{
@@ -545,6 +549,8 @@ bool Conflux::handleRoleChange(PersonProps& beforeUpdate, PersonProps& afterUpda
 	}
 	case Role<Person_MT>::RL_DRIVER: //fall through
 	case Role<Person_MT>::RL_BIKER:
+	case Role<Person_MT>::RL_TRUCKER_LGV:
+	case Role<Person_MT>::RL_TRUCKER_HGV:
 	{
 		if (afterUpdate.lane)
 		{
@@ -967,6 +973,8 @@ void Conflux::killAgent(Person_MT* person, PersonProps& beforeUpdate)
 	}
 	case Role<Person_MT>::RL_DRIVER:
 	case Role<Person_MT>::RL_BIKER:
+	case Role<Person_MT>::RL_TRUCKER_LGV:
+	case Role<Person_MT>::RL_TRUCKER_HGV:
 	{
 		if (prevLane)
 		{
@@ -1681,6 +1689,16 @@ PersonCount Conflux::countPersons() const
 				count.motorCyclists++;
 				break;
 			}
+			case Role<Person_MT>::RL_TRUCKER_HGV:
+			{
+				count.truckerHGV++;
+				break;
+			}
+			case Role<Person_MT>::RL_TRUCKER_LGV:
+			{
+				count.truckerLGV++;
+				break;
+			}
 			case Role<Person_MT>::RL_BUSDRIVER:
 			{
 				count.busDrivers++;
@@ -1913,13 +1931,25 @@ Conflux* Conflux::findStartingConflux(Person_MT* person, unsigned int now)
 	switch(personRole->roleType)
 	{
 	case Role<Person_MT>::RL_DRIVER:
-	case Role<Person_MT>::RL_TRUCKER_HGV:
-	case Role<Person_MT>::RL_TRUCKER_LGV:
 	{
 		const medium::DriverMovement* driverMvt = dynamic_cast<const medium::DriverMovement*>(personRole->Movement());
 		if(driverMvt)
 		{
 			return driverMvt->getStartingConflux();
+		}
+		else
+		{
+			throw std::runtime_error("Driver role facets not/incorrectly initialized");
+		}
+		break;
+	}
+	case Role<Person_MT>::RL_TRUCKER_HGV:
+	case Role<Person_MT>::RL_TRUCKER_LGV:
+	{
+		const medium::TruckerMovement* truckerMvt = dynamic_cast<const medium::TruckerMovement*>(personRole->Movement());
+		if(truckerMvt)
+		{
+			return truckerMvt->getStartingConflux();
 		}
 		else
 		{
@@ -2568,7 +2598,7 @@ void Conflux::CreateLaneGroups()
 }
 
 PersonCount::PersonCount() : pedestrians(0), busPassengers(0), trainPassengers(0), carDrivers(0), motorCyclists(0),
-		busDrivers(0), busWaiters(0), activityPerformers(0), carSharers(0)
+		busDrivers(0), busWaiters(0), activityPerformers(0), carSharers(0), truckerLGV(0), truckerHGV(0)
 {
 }
 
@@ -2580,6 +2610,8 @@ const PersonCount& PersonCount::operator+=(const PersonCount& personCount)
 	carDrivers += personCount.carDrivers;
 	carSharers += personCount.carSharers;
 	motorCyclists += personCount.motorCyclists;
+	truckerLGV += personCount.truckerLGV;
+	truckerHGV += personCount.truckerHGV;
 	busDrivers += personCount.busDrivers;
 	busWaiters += personCount.busWaiters;
 	activityPerformers += personCount.activityPerformers;
@@ -2594,6 +2626,8 @@ unsigned int sim_mob::medium::PersonCount::getTotal()
 			+ carDrivers
 			+ carSharers
 			+ motorCyclists
+			+ truckerLGV
+			+ truckerLGV
 			+ busDrivers
 			+ busWaiters
 			+ activityPerformers);

@@ -47,6 +47,8 @@ public:
 	unsigned int carDrivers;
 	unsigned int carSharers;
 	unsigned int motorCyclists;
+	unsigned int truckerLGV;
+	unsigned int truckerHGV;
 	unsigned int busDrivers;
 	unsigned int busWaiters;
 	unsigned int activityPerformers;

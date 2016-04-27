@@ -987,7 +987,7 @@ void DriverMovement::setOrigin(DriverUpdateParams& params)
 
 	//this will space out the drivers on the same lane, by separating them by the time taken for the previous car to move a car's length
 	double departTime = getLastAccept(laneInNextSegment, currSegStats);
-/*	if(!currSegStats->isShortSegment())
+	if(!currSegStats->isShortSegment())
 	{
 		if(currSegStats->hasQueue())
 		{
@@ -998,7 +998,7 @@ void DriverMovement::setOrigin(DriverUpdateParams& params)
 			departTime += (PASSENGER_CAR_UNIT / (currSegStats->getNumVehicleLanes() * currSegStats->getSegSpeed(true)));
 		}
 	}
-*/
+
 
 	params.elapsedSeconds = std::max(params.elapsedSeconds, departTime - (convertToSeconds(params.now.ms()))); //in seconds
 

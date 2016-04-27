@@ -35,12 +35,14 @@ const std::string DriverPathMover::ErrorNotInIntersection("the driver is not in 
 const std::string DriverPathMover::ErrorEntireRouteDone("Entire route is done!");
 
 DriverPathMover::DriverPathMover() :
-currLane(NULL), currTurning(NULL), nextTurning(NULL), currPolyLine(NULL), inIntersection(false), distCoveredFromCurrPtToNextPt(0.0), distCoveredOnCurrWayPt(0.0)
+currLane(NULL), currTurning(NULL), nextLane(NULL), nextTurning(NULL), currPolyLine(NULL), inIntersection(false), distCoveredFromCurrPtToNextPt(0.0),
+distCoveredOnCurrWayPt(0.0)
 {
 }
 
 DriverPathMover::DriverPathMover(const DriverPathMover &pathMover) :
-currLane(pathMover.currLane), currTurning(pathMover.currTurning), currPolyLine(pathMover.currPolyLine), inIntersection(pathMover.inIntersection),
+currLane(pathMover.currLane), currTurning(pathMover.currTurning), nextLane(pathMover.nextLane), nextTurning(pathMover.nextTurning),
+currPolyLine(pathMover.currPolyLine), inIntersection(pathMover.inIntersection),
 distCoveredFromCurrPtToNextPt(pathMover.distCoveredFromCurrPtToNextPt), distCoveredOnCurrWayPt(pathMover.distCoveredOnCurrWayPt)
 {
 	//Align the iterators
@@ -221,30 +223,30 @@ const Link* DriverPathMover::getNextLink() const
 	return nextLink;
 }
 
-const Lane* DriverPathMover::getNextLane() const
+const Lane* DriverPathMover::getNextLane()
 {
-	const Lane *nextLane = NULL;
-	
-	if(currLane)
+	if(nextLane == nullptr)
 	{
-		//Use the lane connectors to find the next lane
-		
-		//Get all the connectors that are physically connected to the next segment
-		std::vector<const LaneConnector *> trueConnections;
-		currLane->getPhysicalConnectors(trueConnections);
-		
-		if(!trueConnections.empty())
+		if (currLane)
 		{
-			//Choose the middle connection
-			unsigned int midConnection = trueConnections.size() / 2;
-			nextLane = trueConnections.at(midConnection)->getToLane();
+			//Use the lane connectors to find the next lane
+
+			//Get all the connectors that are physically connected to the next segment
+			std::vector<const LaneConnector *> trueConnections;
+			currLane->getPhysicalConnectors(trueConnections);
+
+			if (!trueConnections.empty())
+			{
+				//Choose the a connection randomly
+				unsigned int randomInt = Utils::generateInt(0, trueConnections.size() - 1);
+				nextLane = trueConnections.at(randomInt)->getToLane();
+			}
+		}
+		else
+		{
+			nextLane = currTurning->getToLane();
 		}
 	}
-	else
-	{
-		nextLane = currTurning->getToLane();
-	}
-	
 	return nextLane;
 }
 
@@ -548,6 +550,7 @@ double DriverPathMover::advanceToNextPolyLine()
 					
 					//Get the next lane					
 					currLane = getNextLane();
+					nextLane = nullptr;
 					
 					if(currLane)
 					{
@@ -574,6 +577,7 @@ double DriverPathMover::advanceToNextPolyLine()
 					{
 						currPolyLine = currTurning->getPolyLine();
 						currLane = NULL;
+						nextLane = NULL;
 					}
 					else
 					{
@@ -592,6 +596,7 @@ double DriverPathMover::advanceToNextPolyLine()
 				currLane = getNextLane();
 				currPolyLine = currLane->getPolyLine();
 				currTurning = NULL;
+				nextLane = NULL;
 			}
 			
 			//Set the iterators to point to the current and next points
@@ -627,8 +632,9 @@ void DriverPathMover::updateLateralMovement(const Lane* lane)
 		currPolyPoint = currPolyLine->getPoints().begin();
 		nextPolyPoint = currPolyPoint + 1;
 		
-		//Reset next turning
+		//Reset next turning, lane
 		nextTurning = nullptr;
+		nextLane = nullptr;
 		
 		//Map progress to current poly-line
 		if(pointsCovered > 0)

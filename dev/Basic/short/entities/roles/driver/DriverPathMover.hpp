@@ -37,6 +37,9 @@ private:
 	/**The current turning path of the driver (this will be non-null while driving in an intersection)*/
 	const TurningPath *currTurning;
 	
+	/**The next lane of the driver.*/
+	const Lane *nextLane;
+	
 	/**The next turning path of the driver.*/
 	const TurningPath *nextTurning;
 
@@ -146,7 +149,7 @@ public:
 	 *
      * @return the next lane
      */
-	const Lane* getNextLane() const;
+	const Lane* getNextLane();
 
 	/**
 	 * Uses the turnings from the current lane to determine the next turning

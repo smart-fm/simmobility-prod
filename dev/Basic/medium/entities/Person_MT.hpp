@@ -129,6 +129,11 @@ public:
 	 */
 	virtual std::vector<BufferedBase *> buildSubscriptionList();
 
+	/**
+	 * exposes the Log function to print in thread local output files
+	 */
+	void log(std::string line) const;
+
 	const Lane* getCurrLane() const
 	{
 		return currLane;

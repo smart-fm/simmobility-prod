@@ -625,6 +625,11 @@ public:
 	 * @param now indicate current time
 	 */
 	void driverStatistics(timeslice now);
+
+	/**
+	 * exposes the Log() function for printing in output files
+	 */
+	void log(std::string line) const;
 };
 
 /**

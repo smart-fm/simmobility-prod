@@ -202,7 +202,7 @@ void BusDriverMovement::frame_tick()
 			 (person->isQueuing? 'T' : 'F'),
 			 params.elapsedSeconds
 			);
-	Print() << std::string(logbuf);
+	person->log(std::string(logbuf));
 }
 
 std::string BusDriverMovement::frame_tick_output() {

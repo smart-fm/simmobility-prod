@@ -106,7 +106,7 @@ protected:
 	 *
 	 * @return an output stream for the current worker
 	 */
-	sim_mob::NullableOutputStream Log();
+	sim_mob::NullableOutputStream Log() const;
 
 	/**
 	 * Called during the first call to update() for a given agent.

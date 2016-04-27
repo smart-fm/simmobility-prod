@@ -401,3 +401,8 @@ Entity::UpdateStatus Person_MT::checkTripChain(unsigned int currentTime)
 	clearToBeRemoved();
 	return UpdateStatus(UpdateStatus::RS_CONTINUE, prevParams, currParams);
 }
+
+void Person_MT::log(std::string line) const
+{
+	Log() << line;
+}

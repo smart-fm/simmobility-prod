@@ -189,7 +189,7 @@ void DriverMovement::frame_tick()
 						(person->isQueuing ? 'T' : 'F'),
 						params.elapsedSeconds
 						);
-				Print() << std::string(logbuf);
+				person->log(std::string(logbuf));
 
 			}
 			return;
@@ -221,7 +221,7 @@ void DriverMovement::frame_tick()
 				(person->isQueuing ? 'T' : 'F'),
 				params.elapsedSeconds
 				);
-		Print() << std::string(logbuf);
+		person->log(std::string(logbuf));
 
 	}
 }

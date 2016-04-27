@@ -202,7 +202,10 @@ void Conflux::PersonProps::printProps(std::string personId, uint32_t frame, std:
 				distanceToSegEnd
 		);
 	}
-	Print() << std::string(propbuf);
+	if(conflux)
+	{
+		conflux->log(std::string(propbuf));
+	}
 
 }
 
@@ -2548,6 +2551,11 @@ void Conflux::CreateLaneGroups()
 //			}
 		}
 	}
+}
+
+void Conflux::log(std::string line) const
+{
+	Log() << line;
 }
 
 PersonCount::PersonCount() : pedestrians(0), busPassengers(0), trainPassengers(0), carDrivers(0), motorCyclists(0),

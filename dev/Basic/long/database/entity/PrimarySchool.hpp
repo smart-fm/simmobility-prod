@@ -58,7 +58,7 @@ namespace sim_mob
 			BigSerial getTazId() const;
 			int getNumStudents() const;
 			std::vector<PrimarySchool::DistanceIndividual> getSortedDistanceIndList();
-			std::vector<BigSerial> getStudents();
+			std::vector<Individual*> getStudents();
 			std::vector<BigSerial> getSelectedStudents();
 			int getNumStudentsCanBeAssigned();
 			double getReAllocationProb();
@@ -75,7 +75,7 @@ namespace sim_mob
 			void setTazId(BigSerial tazId);
 			void addStudent(Individual *student);
 			void addIndividualDistance(DistanceIndividual &distanceIndividual);
-			void setSelectedStudentList(std::vector<BigSerial>selectedStudentsList);
+			void setSelectedStudentList(std::vector<BigSerial>&selectedStudentsList);
 			void setNumStudentsCanBeAssigned(int numStudents);
 			void setReAllocationProb(double probability);
 			void addSelectedStudent(BigSerial individualId);

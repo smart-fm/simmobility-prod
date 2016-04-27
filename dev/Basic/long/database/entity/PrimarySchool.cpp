@@ -157,14 +157,16 @@ std::vector<PrimarySchool::DistanceIndividual>  PrimarySchool::getSortedDistance
 	return distanceIndList;
 }
 
-std::vector<BigSerial> PrimarySchool::getStudents()
+std::vector<Individual*> PrimarySchool::getStudents()
 {
-	std::vector<BigSerial> studentIdList;
-	for( Individual *student: students)
-	{
-		studentIdList.push_back(student->getId());
-	}
-	return studentIdList;
+//	std::vector<BigSerial> studentIdList;
+//	std::vector<Individual*>::iterator schoolsItr;
+//	for(schoolsItr = students.begin(); schoolsItr != students.end(); schoolsItr++)
+//	{
+//
+//		studentIdList.push_back((*schoolsItr)->getId());
+//	}
+	return this->students;
 }
 
 std::vector<BigSerial> PrimarySchool::getSelectedStudents()
@@ -172,9 +174,13 @@ std::vector<BigSerial> PrimarySchool::getSelectedStudents()
 	return this->selectedStudents;
 }
 
-void PrimarySchool::setSelectedStudentList(std::vector<BigSerial>selectedStudentsList)
+void PrimarySchool::setSelectedStudentList(std::vector<BigSerial>&selectedStudentsList)
 {
-	this->selectedStudents = selectedStudentsList;
+	for(BigSerial studentId: selectedStudentsList)
+	{
+		this->selectedStudents.push_back(studentId);
+	}
+
 }
 
 void PrimarySchool::setNumStudentsCanBeAssigned(int numStudents)

@@ -22,14 +22,14 @@ SchoolAssignmentSubModel::~SchoolAssignmentSubModel() {}
 inline void writePreSchoolAssignmentsToFile(BigSerial hhId,BigSerial individualId,BigSerial schoolId)
 {
 	boost::format fmtr = boost::format("%1%, %2%, %3%") % hhId % individualId % schoolId;
-	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_SCHOOL_ASSIGNMENT,fmtr.str());
+	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_PRE_SCHOOL_ASSIGNMENT,fmtr.str());
 
 }
 
 inline void writeSchoolAssignmentsToFile(BigSerial individualId,BigSerial preSchoolId)
 {
 	boost::format fmtr = boost::format("%1%, %2%") % individualId % preSchoolId;
-	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_PRE_SCHOOL_ASSIGNMENT,fmtr.str());
+	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_SCHOOL_ASSIGNMENT,fmtr.str());
 
 }
 
@@ -192,8 +192,16 @@ void SchoolAssignmentSubModel::setStudentLimitInPrimarySchool()
 		}
 		else
 		{
-			std::vector<BigSerial> students = priSchool->getStudents();
-			priSchool->setSelectedStudentList(students);
+			std::vector<Individual*> students = priSchool->getStudents();
+			for(Individual *individual : students)
+			{
+				priSchool->addSelectedStudent(individual->getId());
+				writeSchoolAssignmentsToFile(individual->getId(),priSchool->getSchoolId());
+			}
+//			for(BigSerial studentId : students)
+//			{
+//				writeSchoolAssignmentsToFile(studentId,priSchool->getSchoolId());
+//			}
 		}
 	}
 }

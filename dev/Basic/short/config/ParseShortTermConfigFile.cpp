@@ -812,7 +812,7 @@ void ParseShortTermTripFile::processTrips(DOMElement *node)
 				EntityTemplate ent;
 				
 				ent.startTimeMs = ParseUnsignedInt(GetNamedAttributeValue(*stIter, "time", true), static_cast<unsigned int> (0));
-				ent.startLaneIndex = ParseUnsignedInt(GetNamedAttributeValue(*stIter, "startLaneIndex"), static_cast<unsigned int> (0));
+				ent.startLaneIndex = ParseInteger(GetNamedAttributeValue(*stIter, "startLaneIndex"), -1);
 				ent.agentId = personId;
 				ent.startSegmentId = ParseUnsignedInt(GetNamedAttributeValue(*stIter, "startSegmentId", false), static_cast<unsigned int> (0));
 				ent.segmentStartOffset = ParseUnsignedInt(GetNamedAttributeValue(*stIter, "segmentStartOffset", false), static_cast<unsigned int> (0));

@@ -22,7 +22,7 @@ bool VehicleType::operator!=(const std::string& rhs) const
     return (this->name != rhs);
 }
 
-EntityTemplate::EntityTemplate() : startTimeMs(0), startLaneIndex(0),originNode(-1),
+EntityTemplate::EntityTemplate() : startTimeMs(0), startLaneIndex(-1),originNode(-1),
     destNode(-1),startSegmentId(-1),segmentStartOffset(-1),initialSpeed(0),agentId(-1), tripId(std::make_pair(-1,-1)),
     mode("")
 {}

@@ -162,21 +162,26 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 	ConfigManager::GetInstance().FullConfig().simStartTime();
 	double sysGran = ConfigManager::GetInstance().FullConfig().baseGranSecond();
 	std::list<TrainDriver*>::iterator it=trainDriver.begin();
-	while (it != trainDriver.end()) {
+	while (it != trainDriver.end())
+	{
 		double tickInSec = 0.0;
 		do {
 			callMovementFrameTick(now, *it);
 			tickInSec += (*it)->getParams().secondsInTick;
-			if ((*it)->getNextRequested() == TrainDriver::REQUESTED_AT_PLATFORM) {
+			if ((*it)->getNextRequested() == TrainDriver::REQUESTED_AT_PLATFORM)
+			{
 				const Platform* platform = (*it)->getNextPlatform();
 				int alightingNum = (*it)->alightPassenger(aligtingPersons[platform]);
 				int boardingNum = (*it)->boardPassenger(waitingPersons[platform], now);
-				(*it)->calculateDwellTime(alightingNum+boardingNum);
+				(*it)->calculateDwellTime(boardingNum,alightingNum);
 				(*it)->setNextRequested(TrainDriver::REQUESTED_WAITING_LEAVING);
-			} else if ((*it)->getNextRequested() == TrainDriver::REQUESTED_LEAVING_PLATFORM) {
+			}
+			else if ((*it)->getNextRequested() == TrainDriver::REQUESTED_LEAVING_PLATFORM)
+			{
 				std::string lineId = (*it)->getTrainLine();
 				lastUsage[lineId] = false;
-				if((*it)->getParent()->isToBeRemoved()){
+				if((*it)->getParent()->isToBeRemoved())
+				{
 					removeAheadTrain(*it);
 					(*it)->setNextRequested(TrainDriver::REQUESTED_TO_DEPOT);
 					messaging::MessageBus::PostMessage(TrainController<Person_MT>::getInstance(),
@@ -185,7 +190,7 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 				it = trainDriver.erase(it);
 				break;
 			}
-		} while (tickInSec < sysGran);
+		}while (tickInSec < sysGran);
 		it++;
 	}
 	passengerLeaving(now);

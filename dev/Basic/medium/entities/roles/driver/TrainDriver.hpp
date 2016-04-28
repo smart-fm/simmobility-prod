@@ -64,7 +64,7 @@ public:
 	 * computing dwell time
 	 * @param totalNum is the total number of boarding and alighting
 	 */
-	void calculateDwellTime(int totalNum);
+	void calculateDwellTime(int boarding,int alighting);
 	/**
 	 * get train line id
 	 * @return line id

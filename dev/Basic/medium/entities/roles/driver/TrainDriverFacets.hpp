@@ -46,6 +46,7 @@ public:
 	virtual std::string frame_tick_output();
 
 	TrainDriver* getParentDriver() const;
+	static bool areColumnNamesAdded;
 	void setParentDriver(TrainDriver* parentDriver);
 	/**
 	 * get the object of path mover
@@ -111,6 +112,7 @@ private:
 	double safeHeadway;
 	/**next platform*/
 	Platform* nextPlatform;
+
 private:
 	/**
 	 * get current speed limit
@@ -132,7 +134,10 @@ private:
 	 * @return true when station case happen
 	 */
 	bool isStationCase(double disToTrain, double disToPlatform, double& effectDis);
+
+	void produceDwellTimeInfo();
 };
+
 
 }
 

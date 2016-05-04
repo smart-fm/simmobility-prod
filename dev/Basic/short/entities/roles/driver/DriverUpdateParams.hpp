@@ -161,6 +161,9 @@ public:
 
 	/**Additional indicator for internal use*/
 	unsigned int flags;
+	
+	/**No of lane changes to be done*/
+	int noOfLC;
 
 	/**The initial speed of the vehicle*/
 	int initialSpeed;
@@ -483,6 +486,14 @@ public:
      * @param driver the conflicting driver
      */
 	void insertConflictTurningDriver(const TurningConflict *conflict, double distance, const Driver *driver);
+	
+	/**
+	 * Finds the intersection of the given set with the set of targetLanes (member of the class) and assigns the
+	 * result to the set of targetLanes
+	 * 
+	 * @param tgtLanes set of lanes
+	 */
+	void addTargetLanes(set<const Lane *> tgtLanes);
 
 	double getNextStepSize()
 	{

@@ -10,7 +10,7 @@
 using namespace sim_mob;
 
 DriverUpdateParams::DriverUpdateParams() : UpdateParams(), isApproachingIntersection(false), hasStoppedForStopSign(false), isResponseReceived(false),
-useIntAcc(false), isTargetLane(false), currLaneIndex(0), nextLaneIndex(0), status(0), flags(0), initialSpeed(0), parentId(0), currSpeed(0), desiredSpeed(0), elapsedSeconds(0),
+useIntAcc(false), isTargetLane(false), currLaneIndex(0), nextLaneIndex(0), status(0), flags(0), noOfLC(0), initialSpeed(0), parentId(0), currSpeed(0), desiredSpeed(0), elapsedSeconds(0),
 trafficSignalStopDistance(0), perceivedFwdVelocity(0), perceivedLatVelocity(0), perceivedFwdVelocityOfFwdCar(0), perceivedLatVelocityOfFwdCar(0), 
 perceivedAccelerationOfFwdCar(0), perceivedDistToFwdCar(0), perceivedDistToTrafficSignal(500), speedLimit(0), impatienceTimer(0), impatienceTimerStart(0), 
 accessTime(0), gapBetnVehicles(0), accLeadVehicle(0), velocityLeadVehicle(0), spaceStar(0), distanceToNormalStop(0), distToStop(999), 
@@ -151,13 +151,32 @@ void DriverUpdateParams::insertConflictTurningDriver(const TurningConflict *conf
 	}
 }
 
+void DriverUpdateParams::addTargetLanes(set<const Lane *> tgtLanes)
+{
+	set<const Lane*> newTargetLanes;
+	set<const Lane*>::iterator it;
+
+	//find the lane in both tgtLanes and targetLanes
+	for (it = tgtLanes.begin(); it != tgtLanes.end(); ++it)
+	{
+		const Lane* l = *it;
+		set<const Lane*>::iterator itFind = targetLanes.find(l);
+		if (itFind != targetLanes.end())
+		{
+			newTargetLanes.insert(l);
+		}
+	}
+
+	targetLanes = newTargetLanes;
+}
+
 void DriverUpdateParams::buildDebugInfo()
 {
 	std::stringstream s;
 	
 	s << "            " << parentId << ":" << accSelect << ":" << acc;
 	s << ":speed:" << perceivedFwdVelocity;
-
+	
 #if 0
 	//Debug lane changing
 
@@ -168,12 +187,6 @@ void DriverUpdateParams::buildDebugInfo()
 	sprintf(ur, "ur%3.2f", utilityRight);
 	char uc[20] = "\0";
 	sprintf(uc, "uc%3.2f", utilityCurrent);
-
-	char sp[20] = "\0";
-	sprintf(sp, "sp%3.2f", perceivedFwdVelocity);
-
-	char ds[200] = "\0";
-	sprintf(ds, "ds%3.2f", perceivedDistToTrafficSignal);
 	
 	// lc
 	string lc = "lc-s";
@@ -191,7 +204,6 @@ void DriverUpdateParams::buildDebugInfo()
 	s<<":"<<ur;
 	s<<":"<<lcd;
 	s<<":"<<lc;
-	s<<":"<<sp;
 	s<<"=="<<lcDebugStr.str();
 
 	s << "++" << cfDebugStr;
@@ -205,13 +217,13 @@ void DriverUpdateParams::buildDebugInfo()
 	if (this->nvFwd.exists())
 	{
 		Driver* fwd_driver_ = const_cast<Driver*> (nvFwd.driver);
-		fwdcarid = fwd_driver_->getParent()->getId();
+		fwdcarid = fwd_driver_->getParams().parentId;
 		sprintf(fwdnvdis, "fwdnvdis:%03.1f", nvFwd.distance);
 	}
 	else if (this->nvFwdNextLink.exists())
 	{
 		Driver* fwd_driver_ = const_cast<Driver*> (nvFwdNextLink.driver);
-		fwdcarid = fwd_driver_->getParent()->getId();
+		fwdcarid = fwd_driver_->getParams().parentId;
 		sprintf(fwdnvdis, "fwdnv_nxtlnkdis:%03.1f", nvFwdNextLink.distance);
 	}
 
@@ -220,11 +232,11 @@ void DriverUpdateParams::buildDebugInfo()
 	if (this->nvBack.exists())
 	{
 		Driver* back_driver_ = const_cast<Driver*> (nvBack.driver);
-		backcarid = back_driver_->getParent()->getId();
+		backcarid = back_driver_->getParams().parentId;
 		sprintf(backnvdis, "backnvdis:%03.1f", nvBack.distance);
 	}
 	s << ":fwd:" << fwdcarid << ":" << fwdnvdis;
-	s << ":back:" << backcarid << ":" << backnvdis;
+	s << ":back:" << backcarid << ":" << backnvdis;	
 #endif
 	
 #if 0

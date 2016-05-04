@@ -39,7 +39,10 @@ void PT_Statistics::resetInstance()
 	instance = nullptr;
 }
 
-PT_Statistics::PT_Statistics() : MessageHandler(0) {}
+PT_Statistics::PT_Statistics() : MessageHandler(0)
+{
+	stopStatsMgr.loadHistoricalStopStats();
+}
 
 PT_Statistics::~PT_Statistics() {}
 
@@ -298,10 +301,15 @@ void StopStatsManager::loadHistoricalStopStats()
 	std::string dbStr(cfg.getDatabaseConnectionString(false));
 	soci::session dbSession(soci::postgresql, dbStr);
 
+	historicalStopStatsMap.clear();
 	std::string historicalStopStatsProc = ConfigManager::GetInstance().FullConfig().getDatabaseProcMappings().procedureMappings["pt_stop_stats"];
+	if(historicalStopStatsProc.empty())
+	{
+		return;
+	}
+
 	std::string query = "select * from " + historicalStopStatsProc;
 	soci::rowset<soci::row> rs = (dbSession.prepare << query);
-	historicalStopStatsMap.clear();
 	for (soci::rowset<soci::row>::const_iterator it=rs.begin(); it!=rs.end(); ++it)
 	{
 		const soci::row& r = (*it);

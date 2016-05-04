@@ -1231,18 +1231,18 @@ Entity::UpdateStatus Conflux::switchTripChainItem(Person_MT* person)
 		case Role<Person_MT>::RL_WAITBUSACTIVITY:
 		{
 			assignPersonToBusStopAgent(person);
-			return retVal;
+			break;
 		}
 		case Role<Person_MT>::RL_TRAINPASSENGER:
 		{
 			assignPersonToMRT(person);
-			return retVal;
+			break;
 		}
 		case Role<Person_MT>::RL_CARPASSENGER:
 		case Role<Person_MT>::RL_PRIVATEBUSPASSENGER:
 		{
 			stashPerson(person);
-			return retVal;
+			break;
 		}
 		case Role<Person_MT>::RL_PEDESTRIAN:
 		{
@@ -1257,7 +1257,7 @@ Entity::UpdateStatus Conflux::switchTripChainItem(Person_MT* person)
 				throw std::runtime_error("Pedestrian role facets not/incorrectly initialized");
 			}
 			messaging::MessageBus::PostMessage(destinationConflux, MSG_PEDESTRIAN_TRANSFER_REQUEST, messaging::MessageBus::MessagePtr(new PersonMessage(person)));
-			return retVal;
+			break;
 		}
 		}
 	}

@@ -259,7 +259,7 @@ public:
 			}
 			else
 			{
-				delete person;
+				safe_delete_item(person);
 			}
 		}
 	}

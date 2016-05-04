@@ -706,7 +706,7 @@ void Conflux::housekeep(PersonProps& beforeUpdate, PersonProps& afterUpdate, Per
 
 void Conflux::updateAgentContext(PersonProps& beforeUpdate, PersonProps& afterUpdate, Person_MT* person) const
 {
-	if (beforeUpdate.conflux && afterUpdate.conflux && beforeUpdate.conflux != afterUpdate.conflux)
+	if (afterUpdate.conflux && beforeUpdate.conflux != afterUpdate.conflux)
 	{
 		MessageBus::ReRegisterHandler(person, afterUpdate.conflux->GetContext());
 	}
@@ -976,7 +976,7 @@ void Conflux::killAgent(Person_MT* person, PersonProps& beforeUpdate)
 	}
 	default:
 	{
-		break;
+		throw std::runtime_error("Person to be killed is not found.");
 	}
 	}
 

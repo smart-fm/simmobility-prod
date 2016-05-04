@@ -27,16 +27,16 @@ using namespace sim_mob::medium;
 Person_MT::Person_MT(const std::string& src, const MutexStrategy& mtxStrat, int id, std::string databaseID)
 : Person(src, mtxStrat, id, databaseID),
 isQueuing(false), distanceToEndOfSegment(0.0), drivingTimeToEndOfLink(0.0), remainingTimeThisTick(0.0),
-requestedNextSegStats(NULL), canMoveToNextSegment(NONE), currSegStats(NULL), currLane(NULL),
-prevRole(NULL), currRole(NULL), nextRole(NULL)		
+requestedNextSegStats(nullptr), canMoveToNextSegment(NONE), currSegStats(nullptr), currLane(nullptr),
+prevRole(nullptr), currRole(nullptr), nextRole(nullptr)
 {
 }
 
 Person_MT::Person_MT(const std::string& src, const MutexStrategy& mtxStrat, const std::vector<sim_mob::TripChainItem*>& tc)
 : Person(src, mtxStrat, tc),
 isQueuing(false), distanceToEndOfSegment(0.0), drivingTimeToEndOfLink(0.0), remainingTimeThisTick(0.0),
-requestedNextSegStats(NULL), canMoveToNextSegment(NONE), currSegStats(NULL), currLane(NULL),
-prevRole(NULL), currRole(NULL), nextRole(NULL)
+requestedNextSegStats(nullptr), canMoveToNextSegment(NONE), currSegStats(nullptr), currLane(nullptr),
+prevRole(nullptr), currRole(nullptr), nextRole(nullptr)
 {
 	convertPublicTransitODsToTrips();
 	insertWaitingActivityToTrip();
@@ -242,7 +242,7 @@ bool Person_MT::updatePersonRole()
 	{
 		const RoleFactory<Person_MT> *rf = RoleFactory<Person_MT>::getInstance();
 		const TripChainItem *tci = *(this->currTripChainItem);
-		const SubTrip* subTrip = NULL;
+		const SubTrip* subTrip = nullptr;
 
 		if (tci->itemType == TripChainItem::IT_TRIP)
 		{

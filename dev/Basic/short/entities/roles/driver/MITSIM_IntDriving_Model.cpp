@@ -411,7 +411,7 @@ double MITSIM_IntDriving_Model::makeAcceleratingDecision(DriverUpdateParams &par
 						break;
 					}
 
-					if (itNearestVehicles->distance >= -itNearestVehicles->driver->getVehicleLength() && itNearestVehicles->distance < 0.0)
+					if (itNearestVehicles->distance >= -itNearestVehicles->driver->getVehicleLength() / 2 && itNearestVehicles->distance < 0.0)
 					{
 						//Other vehicle is blocking the conflict
 						debugStr << ";StpPtCrsd:";

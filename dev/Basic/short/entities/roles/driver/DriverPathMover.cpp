@@ -153,6 +153,10 @@ const RoadSegment* DriverPathMover::getCurrSegment() const
 	{
 		return currLane->getParentSegment();
 	}
+	else if(isDrivingPathSet() && !isDoneWithEntireRoute() && currWayPointIt->type == WayPoint::ROAD_SEGMENT)
+	{
+		return currWayPointIt->roadSegment;
+	}
 	else
 	{
 		return NULL;
@@ -164,6 +168,10 @@ const Link* DriverPathMover::getCurrLink() const
 	if (currLane)
 	{
 		return currLane->getParentSegment()->getParentLink();
+	}
+	else if(isDrivingPathSet() && !isDoneWithEntireRoute() && currWayPointIt->type == WayPoint::ROAD_SEGMENT)
+	{
+		return currWayPointIt->roadSegment->getParentLink();
 	}
 	else
 	{
@@ -337,11 +345,28 @@ void DriverPathMover::setPath(const std::vector<WayPoint> &path, int startLaneIn
 		//Validate the given start lane index
 		if(startLaneIndex < 0 || startLaneIndex >= noOfLanes)
 		{
-			//Invalid index, default to left most lane
-			//currLaneIndex = 0;
+			//Invalid index
 			
-			//Randomly select a lane
-			currLaneIndex = Utils::generateInt(0, noOfLanes-1);
+			if(drivingPath.size() > 1 && (currWayPointIt + 1)->type == WayPoint::TURNING_GROUP)
+			{
+				//Only one segment in the current link. Assign a lane that connects to the next link
+				
+				//Get the turning group and turning paths
+				const TurningGroup *tGroup = (currWayPointIt + 1)->turningGroup;
+				const std::map<unsigned int, std::map<unsigned int, TurningPath *> > &tPaths = tGroup->getTurningPaths();
+				
+				//Select "from lane" randomly from the available paths
+				unsigned int randomInt = Utils::generateInt(0, tPaths.size() - 1);
+				std::map<unsigned int, std::map<unsigned int, TurningPath *> >::const_iterator it = tPaths.begin();
+				std::advance(it, randomInt);
+				
+				//Extract the lane index
+				currLaneIndex = it->first % 10;
+			}
+			else
+			{
+				currLaneIndex = Utils::generateInt(0, noOfLanes-1);
+			}
 		}
 		else
 		{

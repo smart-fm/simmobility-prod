@@ -292,13 +292,16 @@ void PT_RouteChoiceLuaModel::loadPT_PathSet(int origin, int dest, PT_PathSet& pa
 			{
 				double edgeTravelTime = 0.0;
 				const std::string& busLineId = edge.getServiceLines();
+
 				if(!busController->isBuslineAvailable(busLineId, nextStartTime))
 				{
 					invalidPath = true;
 					break;
 				}
-				const std::vector<const Link*>& busRouteLinks = busController->getLinkRoute(busLineId);
-				const std::vector<const BusStop*>& busRouteStops = busController->getStops(busLineId);
+				std::vector<std::string> lines;
+				boost::split(lines, busLineId, boost::is_any_of("/"));
+				const std::vector<const Link*>& busRouteLinks = busController->getLinkRoute(lines.front());
+				const std::vector<const BusStop*>& busRouteStops = busController->getStops(lines.front());
 
 				const BusStop* originStop = BusStop::findBusStop(edge.getStartStop());
 				if(!originStop)
@@ -310,9 +313,15 @@ void PT_RouteChoiceLuaModel::loadPT_PathSet(int origin, int dest, PT_PathSet& pa
 					originStop = originStop->getTwinStop(); // origin stop should not be a sink terminus
 				}
 
-				double waitingTime = ptStats->getWaitingTime((nextStartTime.getValue()/1000), originStop->getStopCode(), edge.getServiceLines());
+				double waitingTime = ptStats->getWaitingTime((nextStartTime.getValue()/1000), originStop->getStopCode(), lines.front());
 				if(waitingTime > 0)
 				{
+					edgeTravelTime = edgeTravelTime + waitingTime;
+					nextStartTime = DailyTime(nextStartTime.getValue() + std::floor(waitingTime*1000));
+				}
+				else
+				{
+					waitingTime = edge.getWaitTimeSecs();
 					edgeTravelTime = edgeTravelTime + waitingTime;
 					nextStartTime = DailyTime(nextStartTime.getValue() + std::floor(waitingTime*1000));
 				}
@@ -364,7 +373,7 @@ void PT_RouteChoiceLuaModel::loadPT_PathSet(int origin, int dest, PT_PathSet& pa
 					while(isBeforeDestStop && nextStop && nextStop->getParentSegment()->getParentLink() == currentLink)
 					{
 						isBeforeDestStop = !((nextStop == destinStop) || (nextStop->getTwinStop() == destinStop));
-						double dwellTime = ptStats->getDwellTime((nextStartTime.getValue()/1000), nextStop->getStopCode(), edge.getServiceLines());
+						double dwellTime = ptStats->getDwellTime((nextStartTime.getValue()/1000), nextStop->getStopCode(), lines.front());
 						if(dwellTime > 0)
 						{
 							tt = tt + dwellTime;

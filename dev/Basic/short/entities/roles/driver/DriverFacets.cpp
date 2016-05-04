@@ -87,7 +87,7 @@ void DriverMovement::init()
 
 	//Create the driving models
 	lcModel = new MITSIM_LC_Model(params, &fwdDriverMovement);
-	cfModel = new MITSIM_CF_Model(params);
+	cfModel = new MITSIM_CF_Model(params, &fwdDriverMovement);
 	intModel = new MITSIM_IntDriving_Model(params);
 
 	parentDriver->initReactionTime();
@@ -269,7 +269,7 @@ bool DriverMovement::findEmptySpaceAhead()
 							//As the gap is positive, there is a vehicle in front of us. We should have enough distance
 							//so as to avoid crashing into it
 							MITSIM_CF_Model *mitsim_cf_model = dynamic_cast<MITSIM_CF_Model *> (cfModel);
-							requiredGap = (2 * parentDriver->getVehicleLength()) + (mitsim_cf_model->getHBufferUpper() * driverUpdateParams.initialSpeed);
+							requiredGap = (2 * parentDriver->getVehicleLength()) + (mitsim_cf_model->getHBufferUpper() * parentDriver->getParent()->initialSpeed);
 						}
 						else
 						{
@@ -766,7 +766,11 @@ void DriverMovement::applyDrivingModels(DriverUpdateParams &params)
 	if(!fwdDriverMovement.isInIntersection())
 	{
 		//Apply the lane changing model to make the lane changing decision
-		lcModel->makeLaneChangingDecision(params);
+		//if we're not in the middle of a lane change
+		if(!params.getStatus(STATUS_LC_CHANGING))
+		{			
+			lcModel->makeLaneChangingDecision(params);
+		}
 		
 		//If we've decided to change the lane, execute the lane change manoeuvre
 		if (params.getStatus() & STATUS_CHANGING)
@@ -1279,23 +1283,6 @@ Vehicle* DriverMovement::initializePath(bool createVehicle)
 
 		if (createVehicle)
 		{
-			//If not provided, set a random start segment
-			if (parentDriver->getParent()->startSegmentId <= 0)
-			{
-				for (auto wp : path)
-				{
-					if (wp.type == WayPoint::LINK)
-					{
-						const Link* firstLink = wp.link;
-						const std::vector<RoadSegment *> &firstLinkRoadSegments = firstLink->getRoadSegments();
-						int startSegIndex = Utils::generateInt(0, firstLinkRoadSegments.size() - 1);
-						parentDriver->getParent()->startSegmentId = firstLinkRoadSegments[startSegIndex]->getRoadSegmentId();
-						
-						break;
-					}
-				}
-			}
-			
 			fwdDriverMovement.setPath(buildPath(path), parentDriver->getParent()->startLaneIndex, parentDriver->getParent()->startSegmentId);
 			vehicle = new Vehicle(VehicleBase::CAR, length, width, vehName);
 		}
@@ -1360,8 +1347,12 @@ void DriverMovement::setOrigin(DriverUpdateParams &params)
 		targetLaneIndex = params.currLaneIndex = params.currLane->getLaneIndex();
 	}
 
-	//Vehicles start at 10-30% of road speed limit (or may be given initial speed in configuration file)
-	parentDriver->getParent()->initialSpeed = Utils::generateFloat(0.1 * params.maxLaneSpeed, 0.3 * params.maxLaneSpeed);
+	if(parentDriver->getParent()->initialSpeed == 0)
+	{
+		//Vehicles start at 30-60% of road speed limit (or may be given initial speed in configuration file)
+		parentDriver->getParent()->initialSpeed = Utils::generateFloat(0.30 * params.maxLaneSpeed, 0.60 * params.maxLaneSpeed);
+	}
+	
 	parentDriver->vehicle->setVelocity(parentDriver->getParent()->initialSpeed);
 	parentDriver->vehicle->setLateralVelocity(0);
 	parentDriver->vehicle->setAcceleration(0);
@@ -1609,17 +1600,19 @@ bool DriverMovement::updateNearbyAgent(const Agent *nearbyAgent, const Driver *n
 			
 			double distance = 0;
 
-			//The other driver can be the front driver only for a few meters, say 10m
+			//The other driver can be the front driver only for a few meters,
 			//till the turning has some common area
 			
-			const double turningOverlapDist = 10;
+			const double turningOverlapDist = currTurning->getLength() / 4;
 			
-			if (nearbyDriver->isInIntersection_.get() && nearbyDriver->distCoveredOnCurrWayPt_.get() <= turningOverlapDist)
+			if (nearbyDriver->isInIntersection_.get() && !parentDriver->isInIntersection_.get()
+					&& nearbyDriver->distCoveredOnCurrWayPt_.get() <= turningOverlapDist)
 			{
 				distance = fwdDriverMovement.getDistToEndOfCurrWayPt() + nearbyDriver->distCoveredOnCurrWayPt_.get();
 				setNearestVehicle(params.nvFwd, distance, nearbyDriver);
 			}
-			else if (parentDriver->isInIntersection_.get() && parentDriver->distCoveredOnCurrWayPt_.get() <= turningOverlapDist)
+			else if (parentDriver->isInIntersection_.get() && !nearbyDriver->isInIntersection_.get()
+					&& parentDriver->distCoveredOnCurrWayPt_.get() <= turningOverlapDist)
 			{
 				distance = nearbyDriver->distToIntersection_.get() + parentDriver->distCoveredOnCurrWayPt_.get();
 				setNearestVehicle(params.nvBack, distance, nearbyDriver);
@@ -1653,7 +1646,7 @@ bool DriverMovement::updateNearbyAgent(const Agent *nearbyAgent, const Driver *n
 				if(otherLane == currTurning->getToLane())
 				{
 					//Set the other driver as the forward driver is our turning path is connected to the other driver's lane
-					setNearestVehicle(params.nvFwd, distance, nearbyDriver);
+					setNearestVehicle(params.nvFwd, distance, nearbyDriver);					
 				}
 				else if(otherLane->getLaneIndex() > 0 && otherSeg->getLane(otherLane->getLaneIndex() - 1) == currTurning->getToLane())
 				{

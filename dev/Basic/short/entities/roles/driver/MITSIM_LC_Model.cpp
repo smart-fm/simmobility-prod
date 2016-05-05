@@ -1802,7 +1802,7 @@ int MITSIM_LC_Model::checkForEventsAhead(DriverUpdateParams& params)
 	if (res == -1)
 	{
 		needMLC = true;
-		params.lcDebugStr << ";Xcnl";
+		params.lcDebugStr << ";Xcnl" << fwdDriverMovement->getNextLink()->getLinkId();
 	}
 	if (res == 1)
 	{
@@ -1814,21 +1814,24 @@ int MITSIM_LC_Model::checkForEventsAhead(DriverUpdateParams& params)
 	
 	// 1.3 Check connections in a lookahead distance
 	vector<const Lane *> targetLanes;
-	res = getConnectedLanesInLookAheadDistance(params, lookAheadDistance, targetLanes);
+	res = getConnectedLanesInLookAheadDistance(params, lookAheadDistance, targetLanes);	
 
-	if (res == -1)
+	if(!targetLanes.empty())
 	{
-		needMLC = true;		
-		params.lcDebugStr << ";Xclad";
+		if (res == -1)
+		{
+			needMLC = true;
+			params.lcDebugStr << ";Xclad";
+		}
+		if (res == 1)
+		{
+			needDLC = true;
+		}
+		
+		connectedLanes.insert(targetLanes.begin(), targetLanes.end());
+		params.addTargetLanes(connectedLanes);
+		connectedLanes.clear();
 	}
-	if (res == 1)
-	{
-		needDLC = true;
-	}
-
-	connectedLanes.insert(targetLanes.begin(), targetLanes.end());
-	params.addTargetLanes(connectedLanes);
-	connectedLanes.clear();
 
 	// 1.4 check stop point, like bus stop	
 	res = isLaneConnectedToStopPoint(params, connectedLanes);

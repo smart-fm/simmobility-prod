@@ -394,13 +394,6 @@ void DriverPathMover::setPath(const std::vector<WayPoint> &path, int startLaneIn
 			currLane = currWayPointIt->roadSegment->getLane(currLaneIndex);
 		}
 		
-		//Set the starting point at a random distance within the start segment
-		double laneLength = currLane->getLength();
-		
-		//Divide the lane into parts of 100m and select a random entry section
-		int lastEntryIndex = laneLength / 100;
-		int selectedIndex = Utils::generateInt(0, lastEntryIndex);		
-		
 		//Set the current poly-line and the set the iterators to point to the current and next points
 		currPolyLine = currLane->getPolyLine();
 		currPolyPoint = currPolyLine->getPoints().begin();
@@ -409,31 +402,6 @@ void DriverPathMover::setPath(const std::vector<WayPoint> &path, int startLaneIn
 		//Initialise the distances covered
 		distCoveredFromCurrPtToNextPt = 0;
 		distCoveredOnCurrWayPt = 0;
-		
-		//Distance at which the the driver will start
-		double distance = selectedIndex * 100;
-		
-		//If the starting distance is 0, no need to bother
-		if(distance != 0)
-		{
-			//Adjust the distances covered according to the driver's starting distance
-			while (distance != 0)
-			{
-				double distBetwCurrAndNxtPt = calcDistFromCurrToNextPt();
-				if (distBetwCurrAndNxtPt <= distance)
-				{
-					distCoveredOnCurrWayPt += distBetwCurrAndNxtPt;
-					currPolyPoint = nextPolyPoint;
-					nextPolyPoint += 1;
-					distance -= distBetwCurrAndNxtPt;
-				}
-				else
-				{
-					distCoveredFromCurrPtToNextPt = distance;
-					distance = 0;
-				}
-			}
-		}
 	}
 }
 

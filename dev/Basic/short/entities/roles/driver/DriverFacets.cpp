@@ -199,6 +199,7 @@ void DriverMovement::frame_tick()
 	parentDriver->latVelocity_.set(parentDriver->vehicle->getLateralVelocity());
 	parentDriver->fwdAccel_.set(parentDriver->vehicle->getAcceleration());
 	parentDriver->turningDirection_.set(parentDriver->vehicle->getTurningDirection());
+	parentDriver->laneDensity_.set(params.density);
 
 	//Update your perceptions
 	parentDriver->perceivedFwdVel->delay(parentDriver->vehicle->getVelocity());
@@ -257,6 +258,10 @@ bool DriverMovement::findEmptySpaceAhead()
 							driverUpdateParams.currLane == nearbyDriversParams.currLane)
 					{
 						DriverMovement *nearbyDriverMovement = dynamic_cast<DriverMovement *> (nearbyDriver->Movement());
+						
+						//Match the speed of the nearby vehicle
+						parentDriver->getParent()->initialSpeed = nearbyDriversParams.currSpeed;
+						parentDriver->vehicle->setVelocity(parentDriver->getParent()->initialSpeed);
 
 						//Get the gap to the nearby driver
 						double availableGap = fwdDriverMovement.getDistToEndOfCurrWayPt() - nearbyDriverMovement->fwdDriverMovement.getDistToEndOfCurrWayPt();
@@ -268,7 +273,7 @@ bool DriverMovement::findEmptySpaceAhead()
 						{
 							//As the gap is positive, there is a vehicle in front of us. We should have enough distance
 							//so as to avoid crashing into it
-							MITSIM_CF_Model *mitsim_cf_model = dynamic_cast<MITSIM_CF_Model *> (cfModel);
+							MITSIM_CF_Model *mitsim_cf_model = dynamic_cast<MITSIM_CF_Model *> (cfModel);							
 							requiredGap = (2 * parentDriver->getVehicleLength()) + (mitsim_cf_model->getHBufferUpper() * parentDriver->getParent()->initialSpeed);
 						}
 						else

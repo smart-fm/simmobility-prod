@@ -973,7 +973,7 @@ double MITSIM_LC_Model::lcUtilityLookAheadLeft(DriverUpdateParams &params, int n
 	vector<double> a = laneUtilityParams;
 	double vld, mlc, density, spacing;
 
-	density = params.density;
+	density = 0;
 	float heavy_neighbor = 0.0;
 
 	if (params.nvLeftFwd.exists())
@@ -988,6 +988,7 @@ double MITSIM_LC_Model::lcUtilityLookAheadLeft(DriverUpdateParams &params, int n
 			heavy_neighbor = a[7];
 		}
 		spacing = params.nvLeftFwd.distance;
+		density = params.nvLeftFwd.driver->getDensity();
 	}
 	else
 	{
@@ -1002,6 +1003,8 @@ double MITSIM_LC_Model::lcUtilityLookAheadLeft(DriverUpdateParams &params, int n
 		{
 			heavy_neighbor = a[7];
 		}
+		
+		density = params.nvLeftBack.driver->getDensity();
 	}
 
 	float left_most = 0.0;
@@ -1052,7 +1055,7 @@ double MITSIM_LC_Model::lcUtilityLookAheadRight(DriverUpdateParams &params, int 
 	vector<double> a = laneUtilityParams;
 	double vld, mlc, density, spacing;
 
-	density = params.density;
+	density = 0.0;
 	float heavy_neighbor = 0.0;
 
 	if (params.nvRightFwd.exists())
@@ -1068,6 +1071,7 @@ double MITSIM_LC_Model::lcUtilityLookAheadRight(DriverUpdateParams &params, int 
 			heavy_neighbor = a[7];
 		}
 		spacing = params.nvRightFwd.distance;
+		density = params.nvRightFwd.driver->getDensity();
 	}
 	else
 	{
@@ -1082,6 +1086,7 @@ double MITSIM_LC_Model::lcUtilityLookAheadRight(DriverUpdateParams &params, int 
 		{
 			heavy_neighbor = a[7];
 		}
+		density = params.nvRightBack.driver->getDensity();
 	}
 
 	float left_most = 0.0;

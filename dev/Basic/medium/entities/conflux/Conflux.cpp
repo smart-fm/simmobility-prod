@@ -1126,7 +1126,11 @@ void Conflux::HandleMessage(messaging::Message::MessageType type, const messagin
 		}
 		mrt.erase(pIt);
 		//switch to next trip chain item
-		switchTripChainItem(msg.person);
+		Entity::UpdateStatus retVal = switchTripChainItem(msg.person);
+		if(retVal.status == UpdateStatus::RS_DONE)
+		{
+			safe_delete_item(msg.person);
+		}
 		break;
 	}
 	case MSG_WAKEUP_STASHED_PERSON:
@@ -1139,7 +1143,11 @@ void Conflux::HandleMessage(messaging::Message::MessageType type, const messagin
 		}
 		stashedPersons.erase(pIt);
 		//switch to next trip chain item
-		switchTripChainItem(msg.person);
+		Entity::UpdateStatus retVal = switchTripChainItem(msg.person);
+		if(retVal.status == UpdateStatus::RS_DONE)
+		{
+			safe_delete_item(msg.person);
+		}
 		break;
 	}
 	case MSG_WAKEUP_PEDESTRIAN:
@@ -1152,7 +1160,11 @@ void Conflux::HandleMessage(messaging::Message::MessageType type, const messagin
 		}
 		pedestrianList.erase(pIt);
 		//switch to next trip chain item
-		switchTripChainItem(msg.person);
+		Entity::UpdateStatus retVal = switchTripChainItem(msg.person);
+		if(retVal.status == UpdateStatus::RS_DONE)
+		{
+			safe_delete_item(msg.person);
+		}
 		break;
 	}
 	case MSG_PERSON_LOAD:

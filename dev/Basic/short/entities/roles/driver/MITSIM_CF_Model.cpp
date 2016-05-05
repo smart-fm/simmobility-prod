@@ -1063,7 +1063,7 @@ double MITSIM_CF_Model::calcWaitForLaneExitAcc(DriverUpdateParams &params)
 	if (!fwdDriverMovement->isInIntersection() && params.flag(FLAG_ESCAPE)
 			|| (params.flag(FLAG_NOSING) && !params.flag(FLAG_NOSING_FEASIBLE)))
 	{
-		acceleration = calcBrakeToStopAcc(params, params.distToStop);
+		acceleration = calcBrakeToStopAcc(params, params.distToStop / 2);
 	}
 
 	return acceleration;
@@ -1098,13 +1098,6 @@ double MITSIM_CF_Model::calcDesiredSpeed(DriverUpdateParams &params)
 	}
 
 	float desired = speedFactor * speedOnSign;
-
-	//Higher speed for the lanes on the right
-	if (params.currLane)
-	{
-		unsigned int distFromRightLane = params.currLane->getParentSegment()->getNoOfLanes() - params.currLaneIndex;
-		desired *= (1 - (log2(distFromRightLane) / 10));
-	}
 
 	desired = desired * (1 + getSpeedLimitAddon());
 

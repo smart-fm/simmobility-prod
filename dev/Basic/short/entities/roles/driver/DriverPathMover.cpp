@@ -355,13 +355,20 @@ void DriverPathMover::setPath(const std::vector<WayPoint> &path, int startLaneIn
 				const TurningGroup *tGroup = (currWayPointIt + 1)->turningGroup;
 				const std::map<unsigned int, std::map<unsigned int, TurningPath *> > &tPaths = tGroup->getTurningPaths();
 				
-				//Select "from lane" randomly from the available paths
-				unsigned int randomInt = Utils::generateInt(0, tPaths.size() - 1);
-				std::map<unsigned int, std::map<unsigned int, TurningPath *> >::const_iterator it = tPaths.begin();
-				std::advance(it, randomInt);
-				
-				//Extract the lane index
-				currLaneIndex = it->first % 10;
+				if(!tPaths.empty())
+				{
+					//Select "from lane" randomly from the available paths
+					unsigned int randomInt = Utils::generateInt(0, tPaths.size() - 1);
+					std::map<unsigned int, std::map<unsigned int, TurningPath *> >::const_iterator it = tPaths.begin();
+					std::advance(it, randomInt);
+
+					//Extract the lane index
+					currLaneIndex = it->first % 10;
+				}
+				else
+				{
+					currLaneIndex = Utils::generateInt(0, noOfLanes-1);
+				}
 			}
 			else
 			{

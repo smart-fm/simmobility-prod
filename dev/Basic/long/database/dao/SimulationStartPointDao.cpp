@@ -11,7 +11,7 @@
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
-SimulationStartPointDao::SimulationStartPointDao(DB_Connection& connection): SqlAbstractDao<SimulationStartPoint>( connection, DB_TABLE_SIM_START_POINT,EMPTY_STR,EMPTY_STR, EMPTY_STR,DB_GETALL_SIMSTARTPOINT, EMPTY_STR){}
+SimulationStartPointDao::SimulationStartPointDao(DB_Connection& connection): SqlAbstractDao<SimulationStartPoint>( connection, "",EMPTY_STR,EMPTY_STR, EMPTY_STR,"", EMPTY_STR){}
 
 SimulationStartPointDao::~SimulationStartPointDao() {}
 

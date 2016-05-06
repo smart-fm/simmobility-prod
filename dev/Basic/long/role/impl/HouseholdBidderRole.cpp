@@ -135,7 +135,7 @@ void HouseholdBidderRole::CurrentBiddingEntry::setWtp_e(double value)
 
 
 HouseholdBidderRole::HouseholdBidderRole(HouseholdAgent* parent): parent(parent), waitingForResponse(false), lastTime(0, 0), bidOnCurrentDay(false), active(false), unitIdToBeOwned(0),
-																  moveInWaitingTimeInDays(0),vehicleBuyingWaitingTimeInDays(0), day(day), initBidderRole(true),year(0),bidComplete(true){}
+																  moveInWaitingTimeInDays(-1),vehicleBuyingWaitingTimeInDays(0), day(day), initBidderRole(true),year(0),bidComplete(true){}
 
 HouseholdBidderRole::~HouseholdBidderRole(){}
 
@@ -217,7 +217,7 @@ void HouseholdBidderRole::computeHouseholdAffordability()
 		std::tm dob = householdIndividual->getDateOfBirth();
 
 		double income = debtToIncomeRatio * householdIndividual->getIncome();
-		double loanTenure = ( retirementAge - ( HITS_SURVEY_YEAR - ( 1900 + dob.tm_year ) ) ) * 12.0; //times 12 to get he tenure in months, not years.
+		double loanTenure = ( retirementAge - ( HITS_SURVEY_YEAR - ( 1900 + dob.tm_year ) ) ) * 12.0; //times 12 to get the tenure in months, not years.
 
 		loanTenure = std::min( 360.0, loanTenure ); //tenure has a max for 30 years.
 
@@ -319,12 +319,6 @@ void HouseholdBidderRole::update(timeslice now)
 	//The bidder role will do nothing else during this period (hence the return at the end of the if function).
 	if( moveInWaitingTimeInDays > 0 )
 	{
-		if(bidComplete)
-		{
-			bidComplete = false;
-			getParent()->getModel()->decrementBidders();
-			PrintExit( day, getParent()->getHousehold(), 1 );
-		}
 
 		//Just before we set the bidderRole to inactive, we do the unit ownership switch.
 		if( moveInWaitingTimeInDays == 1 )
@@ -680,7 +674,11 @@ bool HouseholdBidderRole::pickEntryToBid()
             	if( newPC )
             		newPCStr = newPC->getSlaPostcode();
 
-            	printHouseholdBiddingList( day, household->getId(), unit->getId(), oldPCStr, newPCStr, wp);
+
+            	if( household->getAffordabilityAmount() > household->getCurrentUnitPrice() )
+            		maxAffordability = household->getAffordabilityAmount();
+            	else
+            		maxAffordability = household->getCurrentUnitPrice();
 
             	wp = std::max(0.0, wp );
 
@@ -692,10 +690,7 @@ bool HouseholdBidderRole::pickEntryToBid()
             	else
             		PrintOutV("Asking price is zero for unit " << entry->getUnitId() << std::endl );
 
-            	if( household->getAffordabilityAmount() > household->getCurrentUnitPrice() )
-            		maxAffordability = household->getAffordabilityAmount();
-            	else
-            		maxAffordability = household->getCurrentUnitPrice();
+                	printHouseholdBiddingList( day, household->getId(), unit->getId(), oldPCStr, newPCStr, wp, entry->getAskingPrice(), maxAffordability, currentBid, currentSurplus);
 
             	if( currentSurplus > maxSurplus && maxAffordability > entry->getAskingPrice() )
             	{

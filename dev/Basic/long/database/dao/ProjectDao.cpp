@@ -12,9 +12,7 @@ using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
 ProjectDao::ProjectDao(DB_Connection& connection)
-: SqlAbstractDao<Project>(connection, DB_TABLE_PROJECT,
-DB_INSERT_PROJECT, DB_UPDATE_PROJECT, DB_DELETE_PROJECT,
-DB_GETALL_PROJECTS, EMPTY_STR) {}
+: SqlAbstractDao<Project>(connection, DB_TABLE_PROJECT,"", DB_UPDATE_PROJECT, DB_DELETE_PROJECT,DB_GETALL_PROJECTS, EMPTY_STR) {}
 
 ProjectDao::~ProjectDao() {}
 

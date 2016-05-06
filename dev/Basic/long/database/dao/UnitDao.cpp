@@ -15,7 +15,7 @@
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
-UnitDao::UnitDao(DB_Connection& connection): SqlAbstractDao<Unit>(connection, DB_TABLE_UNIT,DB_INSERT_UNIT, DB_UPDATE_UNIT, DB_DELETE_UNIT,DB_GETALL_UNIT, DB_GETBYID_UNIT) {}
+UnitDao::UnitDao(DB_Connection& connection): SqlAbstractDao<Unit>(connection, DB_TABLE_UNIT,"", DB_UPDATE_UNIT, DB_DELETE_UNIT,DB_GETALL_UNIT, DB_GETBYID_UNIT) {}
 
 UnitDao::~UnitDao() {}
 
@@ -64,7 +64,7 @@ void UnitDao::toRow(Unit& data, Parameters& outParams, bool update)
 
 BigSerial UnitDao::getMaxUnitId()
 {
-	const std::string queryStr = DB_FUNC_GETALL_UNIT_WITH_MAX_ID;
+	const std::string queryStr = "";
 	std::vector<Unit*> unitWithMaxId;
 	getByQuery(queryStr,unitWithMaxId);
 	return unitWithMaxId.at(0)->getId();

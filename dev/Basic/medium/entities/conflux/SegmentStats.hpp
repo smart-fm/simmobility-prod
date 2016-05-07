@@ -3,7 +3,7 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 #pragma once
-
+#include <boost/thread/shared_mutex.hpp>
 #include <string>
 #include <set>
 #include <vector>
@@ -465,6 +465,11 @@ protected:
 	 * map of lanes connected to each downstream link
 	 */
 	std::map<const Link*, std::vector<LaneStats*> > laneGroup;
+
+	/**
+	 * mutex for adding agents to lanes 
+	 */
+	boost::recursive_mutex mutexPersonManagement;
 
 public:
 	SegmentStats(const RoadSegment* rdSeg, Conflux* parentConflux, double length);

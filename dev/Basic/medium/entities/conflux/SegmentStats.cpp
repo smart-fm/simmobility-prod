@@ -154,6 +154,7 @@ void SegmentStats::updateBusStopAgents(timeslice now)
 
 void SegmentStats::addAgent(const Lane* lane, Person_MT* p)
 {
+	boost::unique_lock<boost::recursive_mutex> lock(mutexPersonManagement);
 	laneStatsMap.find(lane)->second->addPerson(p);
 	numPersons++; //record addition to segment
 }
@@ -663,6 +664,10 @@ void LaneStats::addPerson(Person_MT* p)
 				queueCount++;
 				queueLength = queueLength + vehicle->getLengthInM();
 			}
+		}
+		else
+		{
+			throw std::runtime_error("Person with no vehicle is added to lane");
 		}
 		verifyOrdering();
 	}
@@ -1177,18 +1182,21 @@ void LaneStats::verifyOrdering()
 	double distance = -1.0;
 	for (PersonList::const_iterator i = laneAgents.begin(); i != laneAgents.end(); i++)
 	{
-		if (distance > (*i)->distanceToEndOfSegment)
+		const Person_MT* person = (*i);
+		if (distance > person->distanceToEndOfSegment)
 		{
 			std::stringstream debugMsgs;
 			debugMsgs << "Invariant violated: Ordering of laneAgents does not reflect ordering w.r.t. distance to end of segment."
 					<< "\nSegment: " << lane->getParentSegment()->getRoadSegmentId() << "-" << parentStats->getStatsNumberInSegment()
 					<< " length = " << lane->getParentSegment()->getLength() << "\nLane: " << lane->getLaneId()
-					<< "\nCulprit Person: " << (*i)->getDatabaseId();
+					<< "\nCulprit Person: " << person->getDatabaseId();
+			printf("%s", debugMsgs.str().c_str());
 			debugMsgs << "\nAgents ";
 			for (PersonList::const_iterator j = laneAgents.begin(); j != laneAgents.end(); j++)
 			{
 				debugMsgs << "|" << (*j)->getDatabaseId() << "(" << (*j)->getRole()->getRoleName() << ")" << "--" << (*j)->distanceToEndOfSegment;
 			}
+			printf("%s", debugMsgs.str().c_str());
 			throw std::runtime_error(debugMsgs.str());
 		}
 		else

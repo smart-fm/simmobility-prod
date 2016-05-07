@@ -592,6 +592,7 @@ int main_impl(int ARGC, char* ARGV[])
 		resLogFiles.insert(resLogFiles.begin(), ConfigManager::GetInstance().FullConfig().outNetworkFileName);
 		Utils::printAndDeleteLogFiles(resLogFiles);
 	}
+	std::system("rm out_0_*.txt out.network.txt");
 
 	timeval simEndTime;
 	gettimeofday(&simEndTime, nullptr);

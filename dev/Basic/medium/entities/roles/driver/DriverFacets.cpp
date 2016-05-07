@@ -662,6 +662,13 @@ bool DriverMovement::canGoToNextRdSeg(DriverUpdateParams& params, const SegmentS
 	{
 		return true;
 	}
+	
+	//if this segment is a bus terminus segment, we assume only buses try to enter this segment and allow the bus inside irrespective of available space.
+	if(nextSegStats->getRoadSegment()->isBusTerminusSegment())
+	{
+		return true;
+	}
+	
 
 	bool hasSpaceInNextStats = ((maxAllowed - total) >= enteringVehicleLength);
 	if (hasSpaceInNextStats && nextLink)

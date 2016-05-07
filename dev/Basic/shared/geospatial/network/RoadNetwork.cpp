@@ -486,13 +486,14 @@ void RoadNetwork::addBusStop(BusStop* stop)
 
 		if (itSegments != mapOfIdVsRoadSegments.end())
 		{
+			RoadSegment* stopSegment = itSegments->second;
 			double offset = stop->getOffset();
 			double stopHalfLength = stop->getLength() / 2;
 			
 			//Ensure that the stop doesn't go beyond the road segment
-			if ((offset + stopHalfLength) > itSegments->second->getLength())
+			if ((offset + stopHalfLength) > stopSegment->getLength())
 			{
-				offset = itSegments->second->getLength() - stopHalfLength;
+				offset = stopSegment->getLength() - stopHalfLength;
 				if (offset > 0) {
 					stop->setOffset(offset);
 				} else {
@@ -501,10 +502,14 @@ void RoadNetwork::addBusStop(BusStop* stop)
 			}
 
 			//Set the parent segment of the bus stop
-			stop->setParentSegment(itSegments->second);
+			stop->setParentSegment(stopSegment);
 
 			//Add the stop to the segment
-			itSegments->second->addObstacle(offset, stop);
+			stopSegment->addObstacle(offset, stop);
+			if(stop->getTerminusType() != sim_mob::NOT_A_TERMINUS)
+			{
+				stopSegment->setBusTerminusSegment();
+			}
 			
 			//Insert the stop into the map
 			mapOfIdvsBusStops.insert(std::make_pair(stop->getRoadItemId(), stop));

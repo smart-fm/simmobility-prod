@@ -182,7 +182,7 @@ void BusDriverMovement::frame_tick()
 	}
 
 
-	//Debug print
+/*	//Debug print
 	Person_MT* person = parentBusDriver->parent;
 	unsigned int segId = (person->getCurrSegStats() ? person->getCurrSegStats()->getRoadSegment()->getRoadSegmentId() : 0);
 	uint16_t statsNum = (person->getCurrSegStats() ? person->getCurrSegStats()->getStatsNumberInSegment() : 0);
@@ -203,6 +203,7 @@ void BusDriverMovement::frame_tick()
 			 params.elapsedSeconds
 			);
 	person->log(std::string(logbuf));
+*/
 }
 
 std::string BusDriverMovement::frame_tick_output() {

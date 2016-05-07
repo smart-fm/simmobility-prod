@@ -171,7 +171,7 @@ void DriverMovement::frame_tick()
 			parentDriver->parent->canMoveToNextSegment = Person_MT::NONE;
 			setParentData(params);
 
-			if(parentDriver && parentDriver->roleType != Role<Person_MT>::RL_BUSDRIVER)
+/*			if(parentDriver && parentDriver->roleType != Role<Person_MT>::RL_BUSDRIVER)
 			{
 				Person_MT* person = parentDriver->parent;
 				unsigned int segId = (person->getCurrSegStats() ? person->getCurrSegStats()->getRoadSegment()->getRoadSegmentId() : 0);
@@ -192,6 +192,7 @@ void DriverMovement::frame_tick()
 				person->log(std::string(logbuf));
 
 			}
+*/
 			return;
 		}
 	}
@@ -203,7 +204,7 @@ void DriverMovement::frame_tick()
 		setParentData(params);
 	}
 
-	//Debug print
+/*	//Debug print
 	if(parentDriver && parentDriver->roleType != Role<Person_MT>::RL_BUSDRIVER)
 	{
 		Person_MT* person = parentDriver->parent;
@@ -224,6 +225,7 @@ void DriverMovement::frame_tick()
 		person->log(std::string(logbuf));
 
 	}
+*/
 }
 
 std::string DriverMovement::frame_tick_output()

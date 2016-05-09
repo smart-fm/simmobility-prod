@@ -62,14 +62,6 @@ void UnitDao::toRow(Unit& data, Parameters& outParams, bool update)
 
 }
 
-BigSerial UnitDao::getMaxUnitId()
-{
-	const std::string queryStr = "";
-	std::vector<Unit*> unitWithMaxId;
-	getByQuery(queryStr,unitWithMaxId);
-	return unitWithMaxId.at(0)->getId();
-}
-
 void UnitDao::insertUnit(Unit& unit,std::string schema)
 {
 

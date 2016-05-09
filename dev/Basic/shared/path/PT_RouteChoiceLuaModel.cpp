@@ -293,7 +293,7 @@ void PT_RouteChoiceLuaModel::loadPT_PathSet(int origin, int dest, PT_PathSet& pa
 				double edgeTravelTime = 0.0;
 				const std::string& busLineId = edge.getServiceLines();
 
-				if(!busController->isBuslineAvailable(busLineId, nextStartTime))
+				if(!busController || !busController->isBuslineAvailable(busLineId, nextStartTime))
 				{
 					invalidPath = true;
 					break;

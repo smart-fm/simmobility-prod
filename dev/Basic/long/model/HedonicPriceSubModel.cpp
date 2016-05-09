@@ -155,6 +155,7 @@ void HedonicPrice_SubModel::ComputeHedonicPrice( HouseholdSellerRole::SellingUni
 	double finalCoefficient = ComputeLagCoefficient();
 
 	unit->setLagCoefficient(finalCoefficient);
+	lagCoefficient = finalCoefficient;
 
     info.numExpectations = (info.interval == 0) ? 0 : ceil((double) info.daysOnMarket / (double) info.interval);
 
@@ -195,6 +196,8 @@ void HedonicPrice_SubModel::ComputeExpectation( int numExpectations, std::vector
 
 	//double logsum =  model->ComputeHedonicPriceLogsumFromMidterm( taz );
 	double logsum = hmModel->ComputeHedonicPriceLogsumFromDatabase( taz );
+
+	lagCoefficient = ComputeLagCoefficient();
 
 	if( logsum < 0.0000001)
 		AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, (boost::format( "LOGSUM FOR UNIT %1% is 0.") %  unit->getId()).str());

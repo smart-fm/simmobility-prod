@@ -245,10 +245,12 @@ namespace sim_mob
 	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_VEHICLE_OWNERSIP,fmtr.str());
 
 	    }
-
-	    inline void printHouseholdBiddingList( int day, BigSerial householdId, BigSerial unitId, std::string postcodeCurrent, std::string postcodeNew, float wp  )
+	    									//day, hhId, uId, cPC, nPC, wp, ap, aff
+	    inline void printHouseholdBiddingList(  int day, BigSerial householdId, BigSerial unitId, std::string postcodeCurrent, std::string postcodeNew,
+	    										double wp, double askingPrice, double affordability, double currentBid, double currentSurplus)
 	    {
-	    	boost::format fmtr = boost::format("%1%, %2%, %3%, %4%, %5%, %6%")% day % householdId % unitId % postcodeCurrent % postcodeNew % wp;
+	    	boost::format fmtr = boost::format("%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%") % day % householdId % unitId % postcodeCurrent % postcodeNew % wp % askingPrice
+	    										% affordability % currentBid % currentSurplus;
 	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_HOUSEHOLDBIDLIST,fmtr.str());
 	    }
 

@@ -43,7 +43,9 @@
 #include "metrics/Length.hpp"
 #include "path/PathSetManager.hpp"
 #include "util/Utils.hpp"
-
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
+//#include "DailyTime.cpp"
 using namespace boost;
 using namespace sim_mob;
 using namespace sim_mob::medium;
@@ -1465,7 +1467,7 @@ void Conflux::assignPersonToStationAgent(Person_MT* person)
 			if(curRole){
 				platform = person->originNode.platform;
 				curRole->setStartPlatform(platform);
-				curRole->setArrivalTime(currFrame.ms());
+				curRole->setArrivalTime(currFrame.ms()+(ConfigManager::GetInstance().FullConfig().simStartTime()).getValue());
 				std::string stationNo = platform->getStationNo();
 				Agent* stationAgent = TrainController<Person_MT>::getAgentFromStation(stationNo);
 				messaging::MessageBus::PostMessage(stationAgent,PASSENGER_ARRIVAL_AT_PLATFORM,

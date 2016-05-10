@@ -57,12 +57,16 @@ namespace sim_mob {
 				std::vector<TripChainItem*> tripChain;
 				TrainTrip* top = trainTrips.top();
 				std::string lineId = top->getLineId();
-				top->setTrainId(getTrainId(lineId));
+				int trainId=getTrainId(lineId);
+				//if(trainId!=null)
+				//{
+				top->setTrainId(trainId);
 				tripChain.push_back(top);
 				person->setTripChain(tripChain);
 				person->setStartTime(top->getStartTime());
 				trainTrips.pop();
 				this->currWorkerProvider->scheduleForBred(person);
+				//}
 			}
 		}
 		return Entity::UpdateStatus::Continue;
@@ -73,15 +77,19 @@ namespace sim_mob {
 		int trainId = 0;
 		std::map<std::string, std::vector<int>>::iterator it;
 		it=recycleTrainId.find(lineId);
-		if(it!=recycleTrainId.end()){
+		if(it!=recycleTrainId.end())
+		{
 			std::vector<int>& trainIds = it->second;
-			if(trainIds.size()>0){
+			if(trainIds.size()>0)
+			{
 				trainId = trainIds.back();
 				trainIds.pop_back();
 			}
 		}
-		if(trainId==0){
+		if(trainId==0)
+	    {
 			trainId = ++lastTrainId;
+		//	return null
 		}
 		return trainId;
 	}

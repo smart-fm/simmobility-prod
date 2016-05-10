@@ -119,6 +119,8 @@ private:
 	double waitingTimeSec;
 	/**passengers list*/
 	std::list<Passenger*> passengerList;
+	/**the locker for this driver*/
+	mutable boost::mutex driverMutex;
 private:
 	friend class TrainBehavior;
 	friend class TrainMovement;

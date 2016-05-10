@@ -111,6 +111,8 @@ private:
 	double safeHeadway;
 	/**next platform*/
 	Platform* nextPlatform;
+	/**the locker for this class*/
+	boost::mutex facetMutex;
 private:
 	/**
 	 * get current speed limit

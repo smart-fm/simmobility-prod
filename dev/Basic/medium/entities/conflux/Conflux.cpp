@@ -383,23 +383,23 @@ void Conflux::processAgents()
 	updateBusStopAgents(); //finally update bus stop agents in this conflux
 }
 
-void  Conflux::processInfiniteAgents()
+void  Conflux::processStartingAgents()
 {
-	PersonList infinitePersons, tmpAgents;
+	PersonList newPersons, tmpAgents;
 	SegmentStats* segStats = nullptr;
-	string PersonIds;
 	for(UpstreamSegmentStatsMap::iterator upStrmSegMapIt = upstreamSegStatsMap.begin();
-			upStrmSegMapIt!=upstreamSegStatsMap.end(); upStrmSegMapIt++) {
+			upStrmSegMapIt!=upstreamSegStatsMap.end(); upStrmSegMapIt++)
+	{
 		const SegmentStatsList& upstreamSegments = upStrmSegMapIt->second;
-		for(SegmentStatsList::const_iterator rdSegIt=upstreamSegments.begin();
-				rdSegIt!=upstreamSegments.end(); rdSegIt++) {
+		for(SegmentStatsList::const_iterator rdSegIt=upstreamSegments.begin(); rdSegIt!=upstreamSegments.end(); rdSegIt++)
+		{
 			segStats = (*rdSegIt);
 			tmpAgents.clear();
-			segStats->getInfinityPersons(tmpAgents, PersonIds);
-			infinitePersons.insert(infinitePersons.end(), tmpAgents.begin(), tmpAgents.end());
+			segStats->getInfinityPersons(tmpAgents);
+			newPersons.insert(newPersons.end(), tmpAgents.begin(), tmpAgents.end());
 		}
 	}
-	for (PersonList::iterator personIt = infinitePersons.begin(); personIt != infinitePersons.end(); personIt++) //iterate and update all persons
+	for (PersonList::iterator personIt = newPersons.begin(); personIt != newPersons.end(); personIt++) //iterate and update all persons
 	{
 		updateAgent(*personIt);
 	}
@@ -702,6 +702,21 @@ void Conflux::housekeep(PersonProps& beforeUpdate, PersonProps& afterUpdate, Per
 		double lengthToVehicleEnd = person->distanceToEndOfSegment + person->getRole()->getResource()->getLengthInM();
 		afterUpdate.segStats->setPositionOfLastUpdatedAgentInLane(lengthToVehicleEnd, afterUpdate.lane);
 	}
+
+	if((beforeUpdate.roleType == Role<Person_MT>::RL_DRIVER || beforeUpdate.roleType == Role<Person_MT>::RL_BIKER)
+			&& beforeUpdate.lane
+			&& beforeUpdate.lane != beforeUpdate.segStats->laneInfinity
+			&& beforeUpdate.lane == afterUpdate.lane
+			&& beforeUpdate.segStats == afterUpdate.segStats
+			&& beforeUpdate.distanceToSegEnd == afterUpdate.distanceToSegEnd
+			&& beforeUpdate.roleType == afterUpdate.roleType)
+	{ // if the was basically stuck at the same position in a segment in some lane
+		person->numTicksStuck++;
+	}
+	else
+	{
+		person->numTicksStuck = 0;
+	}
 }
 
 void Conflux::updateAgentContext(PersonProps& beforeUpdate, PersonProps& afterUpdate, Person_MT* person) const
@@ -822,35 +837,47 @@ unsigned int Conflux::resetOutputBounds()
 	{
 		Print() << boost::this_thread::get_id() << "," << this->confluxNode->getNodeId() << " vqBounds.empty()" << std::endl;
 	}
+	evadeVQ_Bounds = false; //reset to false at the end of everytick
 	return vqCount;
 }
 
-bool Conflux::hasSpaceInVirtualQueue(const Link* lnk)
+bool Conflux::hasSpaceInVirtualQueue(const Link* lnk, short numTicksStuck)
 {
-	bool res = false;
+	// large value of numTicksStuck indicates that congestion is being built up because of VQ size limit.
+	// we prevent deadlocks by returning true for 1 tick
+	evadeVQ_Bounds = (numTicksStuck >= 60);
+	if(evadeVQ_Bounds)
 	{
-		boost::unique_lock<boost::recursive_mutex> lock(mutexOfVirtualQueue);
-		try
-		{
-			res = (vqBounds.at(lnk) > virtualQueuesMap.at(lnk).size());
-		}
-		catch (std::out_of_range& ex)
-		{
-			std::stringstream debugMsgs;
-			debugMsgs << boost::this_thread::get_id() << " out_of_range exception occured in hasSpaceInVirtualQueue()"
-					<< "|Conflux: "	<< this->confluxNode->getNodeId()
-					<< "|lnk: " << lnk->getLinkId()
-					<< "|virtualQueuesMap.size():" << virtualQueuesMap.size()
-					<< "|elements:";
-			for (VirtualQueueMap::iterator i = virtualQueuesMap.begin(); i != virtualQueuesMap.end(); i++)
-			{
-				debugMsgs << " (" << lnk->getLinkId() << ":" << i->second.size() << "),";
-			}
-			debugMsgs << "|\nvqBounds.size(): " << vqBounds.size() << std::endl;
-			throw std::runtime_error(debugMsgs.str());
-		}
+		std::cout << "evadeVQ_Bounds true\n";
+		return true;
 	}
-	return res;
+	else
+	{
+		bool res = false;
+		{
+			boost::unique_lock<boost::recursive_mutex> lock(mutexOfVirtualQueue);
+			try
+			{
+				res = (vqBounds.at(lnk) > virtualQueuesMap.at(lnk).size());
+			}
+			catch (std::out_of_range& ex)
+			{
+				std::stringstream debugMsgs;
+				debugMsgs << boost::this_thread::get_id() << " out_of_range exception occured in hasSpaceInVirtualQueue()"
+						<< "|Conflux: "	<< this->confluxNode->getNodeId()
+						<< "|lnk: " << lnk->getLinkId()
+						<< "|virtualQueuesMap.size():" << virtualQueuesMap.size()
+						<< "|elements:";
+				for (VirtualQueueMap::iterator i = virtualQueuesMap.begin(); i != virtualQueuesMap.end(); i++)
+				{
+					debugMsgs << " (" << lnk->getLinkId() << ":" << i->second.size() << "),";
+				}
+				debugMsgs << "|\nvqBounds.size(): " << vqBounds.size() << std::endl;
+				throw std::runtime_error(debugMsgs.str());
+			}
+		}
+		return res;
+	}
 }
 
 void Conflux::pushBackOntoVirtualQueue(const Link* lnk, Person_MT* p)
@@ -1344,7 +1371,7 @@ Entity::UpdateStatus Conflux::callMovementFrameTick(timeslice now, Person_MT* pe
 			if (currentFrame > nxtConflux->getLastUpdatedFrame())
 			{
 				// nxtConflux is not processed for the current tick yet
-				if (nxtConflux->hasSpaceInVirtualQueue(nxtSegment->getParentLink()) && currLnParams->getOutputCounter() > 0)
+				if (nxtConflux->hasSpaceInVirtualQueue(nxtSegment->getParentLink(), person->numTicksStuck) && currLnParams->getOutputCounter() > 0)
 				{
 					currLnParams->decrementOutputCounter();
 					person->setCurrSegStats(person->requestedNextSegStats);
@@ -2023,76 +2050,6 @@ void Conflux::removeIncident(SegmentStats* segStats)
 		segStats->restoreLaneParams(*it);
 	}
 }
-
-void Conflux::driverStatistics(timeslice now)
-{
-	std::map<int, int> statSegs;
-	std::map<int, int> statSegsInfinity;
-	std::map<int, int> statLinks;
-	std::map<int, string> statPersons;
-	PersonList allPersonsInCfx, tmpAgents;
-	SegmentStats* segStats = nullptr;
-	std::string personIds;
-	for(UpstreamSegmentStatsMap::iterator upStrmSegMapIt = upstreamSegStatsMap.begin();
-			upStrmSegMapIt!=upstreamSegStatsMap.end(); upStrmSegMapIt++) {
-		const SegmentStatsList& upstreamSegments = upStrmSegMapIt->second;
-		for(SegmentStatsList::const_iterator rdSegIt=upstreamSegments.begin();
-				rdSegIt!=upstreamSegments.end(); rdSegIt++) {
-			tmpAgents.clear();
-			segStats = (*rdSegIt);
-			segStats->getPersons(tmpAgents);
-			int segId = segStats->getRoadSegment()->getRoadSegmentId();
-			if(statSegs.find(segId)!=statSegs.end()){
-				statSegs[segId] = statSegs[segId]+tmpAgents.size();
-			} else {
-				statSegs[segId] = tmpAgents.size();
-			}
-			statLinks[segId] = segStats->getRoadSegment()->getLinkId();
-			tmpAgents.clear();
-			personIds.clear();
-			segStats->getInfinityPersons(tmpAgents, personIds);
-			statSegsInfinity[segId] = tmpAgents.size();
-			statPersons[segId] = personIds;
-		}
-	}
-
-	for(VirtualQueueMap::iterator vqMapIt = virtualQueuesMap.begin();
-			vqMapIt != virtualQueuesMap.end(); vqMapIt++) {
-		tmpAgents = vqMapIt->second;
-		int segId = 0;
-		if(vqMapIt->first && vqMapIt->first->getRoadSegments().size()>0){
-			segId = vqMapIt->first->getRoadSegments().back()->getRoadSegmentId();
-		}
-		if(segId!=0){
-			segId = -segId;
-			statSegs[segId] = tmpAgents.size();
-			statLinks[segId] = vqMapIt->first->getLinkId();
-		}
-	}
-
-	std::stringstream logout;
-	std::string filename("driverstats.csv");
-	sim_mob::BasicLogger & movement = sim_mob::Logger::log(filename);
-	std::map<int, int>::iterator it;
-	for (it = statSegs.begin(); it != statSegs.end(); it++) {
-		if (it->second > 0) {
-			if (it->first > 0) {
-				logout << it->first << "," << it->second << ","
-						<< statSegsInfinity[it->first] << ","
-						<< statLinks[it->first] << ","
-						<< DailyTime(now.ms()).getStrRepr() << std::endl;
-			} else {
-				logout << it->first << "," << it->second << ","
-						<< 0 << ","
-						<< statLinks[it->first] << ","
-						<< DailyTime(now.ms()).getStrRepr() << std::endl;
-			}
-		}
-	}
-	movement <<logout.str();
-	movement.flush();
-}
-
 
 void Conflux::addConnectedConflux(Conflux* conflux)
 {

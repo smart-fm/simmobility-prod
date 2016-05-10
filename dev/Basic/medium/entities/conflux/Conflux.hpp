@@ -177,6 +177,11 @@ private:
 	unsigned int numUpdatesThisTick;
 
 	/**
+	 * flag to indicate whether the VQ size limits are to be ignored
+	 */
+	bool evadeVQ_Bounds;
+
+	/**
 	 * updates agents in this conflux
 	 */
 	void processAgents();
@@ -184,7 +189,7 @@ private:
 	/**
 	 * update agent in infinite lanes
 	 */
-	void processInfiniteAgents();
+	void processStartingAgents();
 
 	/**
 	 * loads newly starting persons and dispatches them to the correct starting conflux.
@@ -406,9 +411,10 @@ public:
 	/**
 	 * checks whether the virtual queue can accommodate a vehicle
 	 * @param link the link whose VQ is to be checked
+	 * @param numTicksStuck number of ticks for which the person trying to enter the VQ was stuck in the upstream segment
 	 * @return true if vq bound is not zero; false otherwise
 	 */
-	bool hasSpaceInVirtualQueue(const Link* lnk);
+	bool hasSpaceInVirtualQueue(const Link* lnk, short numTicksStuck);
 
 	/**
 	 * puts person on VQ
@@ -619,12 +625,6 @@ public:
 	 * Lane groups are elicited based on the lane connections (turnings) of the last segment of the link.
 	 */
 	static void CreateLaneGroups();
-
-	/**
-	 * generate cars statistics on the road for diagnosis
-	 * @param now indicate current time
-	 */
-	void driverStatistics(timeslice now);
 
 	/**
 	 * exposes the Log() function for printing in output files

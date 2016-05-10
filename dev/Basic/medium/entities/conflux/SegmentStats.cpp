@@ -267,27 +267,10 @@ void SegmentStats::getPersons(std::deque<Person_MT*>& segAgents)
 	}
 }
 
-void SegmentStats::getInfinityPersons(std::deque<Person_MT*>& segAgents, std::string& personIds)
+void SegmentStats::getInfinityPersons(std::deque<Person_MT*>& segAgents)
 {
 	PersonList& lnAgents = laneStatsMap.find(laneInfinity)->second->laneAgents;
 	segAgents.insert(segAgents.end(), lnAgents.begin(), lnAgents.end());
-	for (PersonList::iterator pIt = lnAgents.begin(); pIt != lnAgents.end(); pIt++)
-	{
-		std::string id = boost::lexical_cast<string>((*pIt)->GetId());
-		personIds += "|";
-		personIds += id;
-		personIds += "(";
-		if((*pIt)->originNode.node){
-				id = boost::lexical_cast<string>((*pIt)->originNode.node->getNodeId());
-				personIds += id;
-		}
-		personIds += "-";
-		if((*pIt)->destNode.node){
-				id = boost::lexical_cast<string>((*pIt)->destNode.node->getNodeId());
-				personIds += id;
-		}
-		personIds += ")";
-	}
 }
 
 void SegmentStats::topCMergeLanesInSegment(PersonList& mergedPersonList)

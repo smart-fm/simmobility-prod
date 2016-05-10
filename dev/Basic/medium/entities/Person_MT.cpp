@@ -28,7 +28,7 @@ Person_MT::Person_MT(const std::string& src, const MutexStrategy& mtxStrat, int 
 : Person(src, mtxStrat, id, databaseID),
 isQueuing(false), distanceToEndOfSegment(0.0), drivingTimeToEndOfLink(0.0), remainingTimeThisTick(0.0),
 requestedNextSegStats(nullptr), canMoveToNextSegment(NONE), currSegStats(nullptr), currLane(nullptr),
-prevRole(nullptr), currRole(nullptr), nextRole(nullptr)
+prevRole(nullptr), currRole(nullptr), nextRole(nullptr), numTicksStuck(0)
 {
 }
 
@@ -36,7 +36,7 @@ Person_MT::Person_MT(const std::string& src, const MutexStrategy& mtxStrat, cons
 : Person(src, mtxStrat, tc),
 isQueuing(false), distanceToEndOfSegment(0.0), drivingTimeToEndOfLink(0.0), remainingTimeThisTick(0.0),
 requestedNextSegStats(nullptr), canMoveToNextSegment(NONE), currSegStats(nullptr), currLane(nullptr),
-prevRole(nullptr), currRole(nullptr), nextRole(nullptr)
+prevRole(nullptr), currRole(nullptr), nextRole(nullptr), numTicksStuck(0)
 {
 	convertPublicTransitODsToTrips();
 	insertWaitingActivityToTrip();

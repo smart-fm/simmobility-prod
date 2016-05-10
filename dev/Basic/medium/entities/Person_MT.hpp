@@ -82,6 +82,8 @@ public:
 	};
 	Permission canMoveToNextSegment;
 
+	short numTicksStuck;
+
 	Person_MT(const std::string& src, const MutexStrategy& mtxStrat, int id = -1, std::string databaseID = "");
 	Person_MT(const std::string& src, const MutexStrategy& mtxStrat, const std::vector<TripChainItem*>& tc);
 	virtual ~Person_MT();

@@ -309,9 +309,6 @@ void BusController::initializeBusController(std::set<Entity*>& agentList)
 
 BusController* BusController::GetInstance()
 {
-	if(!instance){
-		throw std::runtime_error("bus controller not registered");
-	}
 	return instance;
 }
 

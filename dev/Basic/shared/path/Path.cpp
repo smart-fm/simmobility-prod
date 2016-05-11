@@ -379,9 +379,18 @@ void sim_mob::PT_Path::updatePathEdges()
 	int edgeId;
 	std::stringstream ss(ptPathId);
 	pathEdges.clear();
+	PT_Network& ptNetwork = PT_Network::getInstance();
 	while (ss >> edgeId)
 	{
-		pathEdges.push_back(PT_Network::getInstance().PT_NetworkEdgeMap[edgeId]);
+		std::map<int, PT_NetworkEdge>::iterator edgeIt = ptNetwork.PT_NetworkEdgeMap.find(edgeId);
+		if(edgeIt == ptNetwork.PT_NetworkEdgeMap.end())
+		{
+			char errBuf[1000];
+			sprintf(errBuf, "PT path %s has invalid edge %d", ptPathId.c_str(), edgeId);
+			throw std::runtime_error(std::string(errBuf));
+		}
+
+		pathEdges.push_back(edgeIt->second);
 		if (ss.peek() == ',')
 		{
 			ss.ignore();

@@ -855,7 +855,7 @@ bool Conflux::hasSpaceInVirtualQueue(const Link* lnk, short numTicksStuck)
 {
 	// large value of numTicksStuck indicates that congestion is being built up because of VQ size limit.
 	// we prevent deadlocks by returning true for 1 tick
-	evadeVQ_Bounds = (numTicksStuck >= 60);
+	evadeVQ_Bounds = (numTicksStuck >= EVADE_VQ_BOUNDS_THRESHOLD_TICKS);
 	if(evadeVQ_Bounds)
 	{
 		return true;

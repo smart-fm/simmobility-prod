@@ -347,7 +347,7 @@ public:
 
 struct cmp_path_vector: public std::less<PT_Path>
 {
-		bool operator() (const PT_Path, const PT_Path) const;
+		bool operator() (const PT_Path& lhs, const PT_Path& rhs) const;
 };
 
 class PT_PathSet

@@ -571,7 +571,7 @@ void sim_mob::PT_PathSet::checkPathFeasibilty()
 
 }
 
-bool sim_mob::cmp_path_vector::operator()(const PT_Path A, const PT_Path B) const
+bool sim_mob::cmp_path_vector::operator()(const PT_Path& lhs, const PT_Path& rhs) const
 {
-	return A.getPtPathId() < B.getPtPathId();
+	return (lhs.getPtPathId() < rhs.getPtPathId());
 }

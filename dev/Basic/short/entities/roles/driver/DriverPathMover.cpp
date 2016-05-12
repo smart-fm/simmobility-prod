@@ -347,12 +347,17 @@ void DriverPathMover::setPath(const std::vector<WayPoint> &path, int startLaneIn
 		{
 			//Invalid index
 			
-			if(drivingPath.size() > 1 && (currWayPointIt + 1)->type == WayPoint::TURNING_GROUP)
+			if(drivingPath.size() > 1 && getNextLink())
 			{
-				//Only one segment in the current link. Assign a lane that connects to the next link
+				//Assign a lane that connects to the next link
+				unsigned int i = 1;
+				while((currWayPointIt + i)->type != WayPoint::TURNING_GROUP)
+				{
+					i++;
+				}
 				
-				//Get the turning group and turning paths
-				const TurningGroup *tGroup = (currWayPointIt + 1)->turningGroup;
+				//Get the turning group and turning paths				
+				const TurningGroup *tGroup = (currWayPointIt + i)->turningGroup;
 				const std::map<unsigned int, std::map<unsigned int, TurningPath *> > &tPaths = tGroup->getTurningPaths();
 				
 				if(!tPaths.empty())

@@ -341,6 +341,14 @@ private:
 	 */
 	void updateAgentContext(PersonProps& beforeUpdate, PersonProps& afterUpdate, Person_MT* person) const;
 
+	/**
+	 * checks personProps before and after update to see if he was stuck in the same position in this tick
+	 * @param beforeUpdate person properties before update
+	 * @param afterUpdate person properties after update
+	 * @return true if person hasn't moved; false otherwise
+	 */
+	bool isStuck(Conflux::PersonProps& beforeUpdate, Conflux::PersonProps& afterUpdate) const;
+
 protected:
 	/**
 	 * Function to initialize the conflux before its first update.

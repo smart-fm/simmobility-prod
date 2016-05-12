@@ -56,6 +56,7 @@ const double INFINITESIMAL_DOUBLE = 0.000001;
 const double PASSENGER_CAR_UNIT = 400.0; //cm; 4 m.
 const double MAX_DOUBLE = std::numeric_limits<double>::max();
 const double SHORT_SEGMENT_LENGTH_LIMIT = 5 * sim_mob::PASSENGER_CAR_UNIT; // 5 times a car's length
+const short EVADE_VQ_BOUNDS_THRESHOLD_TICKS = 60; //upper limit of number of ticks for which VQ size limit can reject a person from entering next link
 }
 
 void sim_mob::medium::sortPersonsDecreasingRemTime(std::deque<Person_MT*>& personList)
@@ -71,7 +72,7 @@ unsigned Conflux::updateInterval = 0;
 
 Conflux::Conflux(Node* confluxNode, const MutexStrategy& mtxStrat, int id, bool isLoader) :
 		Agent(mtxStrat, id), confluxNode(confluxNode), parentWorkerAssigned(false), currFrame(0, 0), isLoader(isLoader), numUpdatesThisTick(0),
-		tickTimeInS(ConfigManager::GetInstance().FullConfig().baseGranSecond())
+		tickTimeInS(ConfigManager::GetInstance().FullConfig().baseGranSecond()), evadeVQ_Bounds(false)
 {
 	if (!isLoader) {
 		multiUpdate = true;
@@ -207,6 +208,21 @@ void Conflux::PersonProps::printProps(std::string personId, uint32_t frame, std:
 		conflux->log(std::string(propbuf));
 	}
 
+}
+
+bool Conflux::isStuck(Conflux::PersonProps& beforeUpdate, Conflux::PersonProps& afterUpdate) const
+{
+	return ((beforeUpdate.roleType == Role<Person_MT>::RL_DRIVER
+				|| beforeUpdate.roleType == Role<Person_MT>::RL_BUSDRIVER
+				|| beforeUpdate.roleType == Role<Person_MT>::RL_BIKER
+				|| beforeUpdate.roleType == Role<Person_MT>::RL_TRUCKER_HGV
+				|| beforeUpdate.roleType == Role<Person_MT>::RL_TRUCKER_LGV)
+			&& beforeUpdate.lane
+			&& beforeUpdate.lane != beforeUpdate.segStats->laneInfinity
+			&& beforeUpdate.lane == afterUpdate.lane
+			&& beforeUpdate.segStats == afterUpdate.segStats
+			&& beforeUpdate.distanceToSegEnd == afterUpdate.distanceToSegEnd
+			&& beforeUpdate.roleType == afterUpdate.roleType);
 }
 
 void Conflux::addAgent(Person_MT* person)
@@ -703,14 +719,8 @@ void Conflux::housekeep(PersonProps& beforeUpdate, PersonProps& afterUpdate, Per
 		afterUpdate.segStats->setPositionOfLastUpdatedAgentInLane(lengthToVehicleEnd, afterUpdate.lane);
 	}
 
-	if((beforeUpdate.roleType == Role<Person_MT>::RL_DRIVER || beforeUpdate.roleType == Role<Person_MT>::RL_BIKER)
-			&& beforeUpdate.lane
-			&& beforeUpdate.lane != beforeUpdate.segStats->laneInfinity
-			&& beforeUpdate.lane == afterUpdate.lane
-			&& beforeUpdate.segStats == afterUpdate.segStats
-			&& beforeUpdate.distanceToSegEnd == afterUpdate.distanceToSegEnd
-			&& beforeUpdate.roleType == afterUpdate.roleType)
-	{ // if the was basically stuck at the same position in a segment in some lane
+	if(isStuck(beforeUpdate, afterUpdate))
+	{ // if the person was stuck at the same position in a segment in some lane
 		person->numTicksStuck++;
 	}
 	else
@@ -848,7 +858,6 @@ bool Conflux::hasSpaceInVirtualQueue(const Link* lnk, short numTicksStuck)
 	evadeVQ_Bounds = (numTicksStuck >= 60);
 	if(evadeVQ_Bounds)
 	{
-		std::cout << "evadeVQ_Bounds true\n";
 		return true;
 	}
 	else

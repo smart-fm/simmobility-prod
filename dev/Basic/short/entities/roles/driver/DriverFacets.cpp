@@ -1501,6 +1501,18 @@ double DriverMovement::updatePosition(DriverUpdateParams &params)
 	{
 		updateLateralMovement(params);
 	}
+	else if (params.getStatus(STATUS_LC_CHANGING))
+	{
+		parentDriver->vehicle->resetLateralMovement();
+
+		params.unsetStatus(STATUS_CHANGING);
+		params.unsetStatus(STATUS_LC_CHANGING);
+		params.unsetStatus(STATUS_MANDATORY);
+		params.unsetFlag(FLAG_NOSING | FLAG_YIELDING | FLAG_LC_FAILED);
+		params.unsetFlag(FLAG_VMS_LANE_USE_BITS | FLAG_ESCAPE | FLAG_AVOID);
+		params.unsetFlag(FLAG_STUCK_AT_END | FLAG_NOSING_FEASIBLE);
+		params.unsetStatus(STATUS_TARGET_GAP);
+	}
 
 	return overflow;
 }
@@ -1509,6 +1521,8 @@ void DriverMovement::setNearestVehicle(NearestVehicle &nearestVeh, double distan
 {
 	//Subtract the size of the car from the distance between them
 	distance = fabs(distance) - parentDriver->getVehicleLength() / 2 - otherDriver->getVehicleLength() / 2;
+	
+	distance = distance < 0 ? 0 : distance;
 
 	if (distance <= nearestVeh.distance)
 	{
@@ -1655,12 +1669,12 @@ bool DriverMovement::updateNearbyAgent(const Agent *nearbyAgent, const Driver *n
 				}
 				else if(otherLane->getLaneIndex() > 0 && otherSeg->getLane(otherLane->getLaneIndex() - 1) == currTurning->getToLane())
 				{
-					//Set the other driver as the right forward driver is our turning path is connected to the other driver's left lane
+					//Set the other driver as the left forward driver is our turning path is connected to the other driver's left lane
 					setNearestVehicle(params.nvLeftFwd, distance, nearbyDriver);
 				}
 				else if(otherLane->getLaneIndex() + 1 < otherSeg->getNoOfLanes() && otherSeg->getLane(otherLane->getLaneIndex() + 1) == currTurning->getToLane())
 				{
-					//Set the other driver as the left forward driver is our turning path is connected to the other driver's right lane
+					//Set the other driver as the right forward driver is our turning path is connected to the other driver's right lane
 					setNearestVehicle(params.nvRightFwd, distance, nearbyDriver);
 				}
 			}

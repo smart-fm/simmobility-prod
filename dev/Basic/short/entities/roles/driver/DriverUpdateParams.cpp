@@ -180,15 +180,6 @@ void DriverUpdateParams::buildDebugInfo()
 #if 0
 	//Debug lane changing
 
-	// utility
-	char ul[20] = "\0";
-	sprintf(ul, "ul%3.2f", utilityLeft);
-	char ur[20] = "\0";
-	sprintf(ur, "ur%3.2f", utilityRight);
-	char uc[20] = "\0";
-	sprintf(uc, "uc%3.2f", utilityCurrent);
-	
-	// lc
 	string lc = "lc-s";
 	if (getStatus(STATUS_LC_LEFT))
 	{
@@ -199,14 +190,10 @@ void DriverUpdateParams::buildDebugInfo()
 		lc = "lc-r";
 	}
 
-	s<<":"<<ul;
-	s<<":"<<uc;
-	s<<":"<<ur;
 	s<<":"<<lcd;
 	s<<":"<<lc;
 	s<<"=="<<lcDebugStr.str();
 
-	s << "++" << cfDebugStr;
 #endif
 
 #if 0
@@ -237,6 +224,46 @@ void DriverUpdateParams::buildDebugInfo()
 	}
 	s << ":fwd:" << fwdcarid << ":" << fwdnvdis;
 	s << ":back:" << backcarid << ":" << backnvdis;	
+	
+	int lftFwdId = -1;
+	char leftFwdDis[30] = "\0";
+	if (this->nvLeftFwd.exists())
+	{
+		Driver* leftFwdDrv = const_cast<Driver*> (nvLeftFwd.driver);
+		lftFwdId = leftFwdDrv->getParams().parentId;
+		sprintf(leftFwdDis, "leftFwdDis:%03.1f", nvLeftFwd.distance);
+	}
+	
+	int rtFwdId = -1;
+	char rtFwdDis[30] = "\0";
+	if (this->nvRightFwd.exists())
+	{
+		Driver* rtFwdDrv = const_cast<Driver*> (nvRightFwd.driver);
+		rtFwdId = rtFwdDrv->getParams().parentId;
+		sprintf(rtFwdDis, "rtFwdDis:%03.1f", nvRightFwd.distance);
+	}
+	s << ":lftFwd:" << lftFwdId << ":" << leftFwdDis;
+	s << ":rtFwd:" << rtFwdId << ":" << rtFwdDis;
+	
+	int lftBkId = -1;
+	char leftBkDis[30] = "\0";
+	if (this->nvLeftBack.exists())
+	{
+		Driver* leftBkDrv = const_cast<Driver*> (nvLeftBack.driver);
+		lftBkId = leftBkDrv->getParams().parentId;
+		sprintf(leftBkDis, "leftBkDis:%03.1f", nvLeftBack.distance);
+	}
+	
+	int rtBkId = -1;
+	char rtBkDis[30] = "\0";
+	if (this->nvRightBack.exists())
+	{
+		Driver* rtBkDrv = const_cast<Driver*> (nvRightBack.driver);
+		rtBkId = rtBkDrv->getParams().parentId;
+		sprintf(rtBkDis, "rtBkDis:%03.1f", nvRightBack.distance);
+	}
+	s << ":lftBk:" << lftBkId << ":" << leftBkDis;
+	s << ":rtBk:" << rtBkId << ":" << rtBkDis;
 #endif
 	
 #if 0

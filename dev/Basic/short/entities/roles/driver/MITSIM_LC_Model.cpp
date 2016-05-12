@@ -1428,7 +1428,7 @@ double MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams &params)
 		params.lcDebugStr << ";FLG";
 		params.setFlag(FLAG_LC_FAILED_LAG); // lag gap
 	}
-	else if (fwdVeh->exists() && aheadway < lcCriticalGap(params, 0, fwdVeh->driver->getFwdVelocity() - params.currSpeed))
+	if (fwdVeh->exists() && aheadway < lcCriticalGap(params, 0, fwdVeh->driver->getFwdVelocity() - params.currSpeed))
 	{
 		params.lcDebugStr << ";FLD";
 		params.setFlag(FLAG_LC_FAILED_LEAD); // lead gap
@@ -1495,18 +1495,20 @@ double MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams &params)
 			int isNosingFeasible = checkNosingFeasibility(params, fwdVeh, rearVeh, params.distToStop);
 			params.lcDebugStr << ";fi" << isNosingFeasible;
 			
-			if (isNosingFeasible && rearVeh->exists())
-			{
-				Driver *bvd = const_cast<Driver *> (rearVeh->driver);
-				DriverUpdateParams &bvp = bvd->getParams();
+			if (isNosingFeasible)
+			{				
 				params.lcDebugStr << ";nf";
-
 				params.setFlag(FLAG_NOSING_FEASIBLE);
 
 				// Nosing is feasible
-				if (rearVeh->exists())
-				{
-					// There is a lag vehicle in the target lane
+				if (rearVeh->exists() && params.flag(FLAG_LC_FAILED_LAG) &&!params.flag(FLAG_STUCK_AT_END))
+				{					
+					// There is a lag vehicle in the target lane with which we don't have enough gap
+					//Also, make sure that the lag vehicle isn't stuck (yielding to it would get us stuck as well,
+					//the stuck vehicle will change lanes once we go through)
+					Driver *bvd = const_cast<Driver *> (rearVeh->driver);
+					DriverUpdateParams &bvp = bvd->getParams();
+				
 					bvd->setYieldingToDriver(params.driver);
 					if (!(bvd->IsBusDriver() && bvp.getStatus(STATUS_STOPPED)))
 					{
@@ -1583,7 +1585,7 @@ int MITSIM_LC_Model::checkNosingFeasibility(DriverUpdateParams &params, const Ne
 	else
 	{
 		params.lcDebugStr << ";CF0";
-		double length = 2 * params.driver->getVehicleLength();
+		double length = params.driver->getVehicleLength();
 
 		if (distToStop <= length && params.currSpeed < Math::DOUBLE_EPSILON)
 		{
@@ -1669,7 +1671,6 @@ int MITSIM_LC_Model::checkNosingFeasibility(DriverUpdateParams &params, const Ne
 			// not willing to yield
 			return 0; // To avoid dead lock
 		}
-
 		else if (params.flag(FLAG_LC_FAILED_LAG))
 		{
 			params.lcDebugStr << ";CF13";
@@ -1888,7 +1889,7 @@ int MITSIM_LC_Model::isIncidentAhead(DriverUpdateParams &params)
 
 	if (driverMvt->incidentPerformer.getIncidentStatus().getChangedLane())
 	{
-		params.distToStop = driverMvt->incidentPerformer.getIncidentStatus().getDistanceToIncident() - 2 * params.driver->getVehicleLength();
+		params.distToStop = driverMvt->incidentPerformer.getIncidentStatus().getDistanceToIncident() - params.driver->getVehicleLength();
 		return -1; //mandatory lane change
 	}
 
@@ -1926,7 +1927,7 @@ int MITSIM_LC_Model::isLaneConnectedToNextWayPt(DriverUpdateParams &params, set<
 		if (connectors.empty())
 		{
 			//No lane connector for this lane, so we need to change lane
-			double distToStop = fwdDriverMovement->getDistToEndOfCurrWayPt() - 2 * params.driver->getVehicleLength();
+			double distToStop = fwdDriverMovement->getDistToEndOfCurrWayPt() - params.driver->getVehicleLength();
 			
 			if (distToStop < params.distToStop)
 			{
@@ -1962,7 +1963,7 @@ int MITSIM_LC_Model::isLaneConnectedToNextWayPt(DriverUpdateParams &params, set<
 			if (!turningGroup->getTurningPaths(currLane->getLaneId()))
 			{
 				//No turning path from current lane
-				double distToStop = fwdDriverMovement->getDistToEndOfCurrLink() - 2 * params.driver->getVehicleLength();
+				double distToStop = fwdDriverMovement->getDistToEndOfCurrLink() - params.driver->getVehicleLength();
 				
 				if (distToStop < params.distToStop)
 				{
@@ -2026,7 +2027,7 @@ int MITSIM_LC_Model::isLaneConnectedToNextLink(DriverUpdateParams &params, set<c
 	
 	if(!isLaneConnected)
 	{
-		double distToStop = fwdDriverMovement->getDistToEndOfCurrLink() - 2 * params.driver->getVehicleLength();
+		double distToStop = fwdDriverMovement->getDistToEndOfCurrLink() - params.driver->getVehicleLength();
 
 		if (distToStop < params.distToStop)
 		{

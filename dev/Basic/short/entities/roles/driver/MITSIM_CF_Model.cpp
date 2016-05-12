@@ -832,7 +832,7 @@ double MITSIM_CF_Model::calcYieldingAcc(DriverUpdateParams &params)
 		{
 			// This vehicle is yielding to another vehicle
 
-			params.lcDebugStr << ";DING";
+			params.lcDebugStr << ";DING" << params.driver->getYieldingToDriver()->getParent()->getId();
 
 			uint32_t dt_sec = millisecondToSecond(params.now.ms() - params.yieldTime.ms());
 
@@ -1063,9 +1063,18 @@ double MITSIM_CF_Model::calcWaitForLaneExitAcc(DriverUpdateParams &params)
 	if (!fwdDriverMovement->isInIntersection() && params.flag(FLAG_ESCAPE)
 			|| (params.flag(FLAG_NOSING) && !params.flag(FLAG_NOSING_FEASIBLE)))
 	{
-		acceleration = calcBrakeToStopAcc(params, params.distToStop / 2);
+		double distance = params.distToStop;
+		
+		if(distance <= 2 * params.driver->getVehicleLength())
+		{
+			//Set vehicle as stuck when we get close to the end of the lane, so that a rear vehicle
+			//will NOT yield (and get stuck as well)
+			params.setFlag(FLAG_STUCK_AT_END);
+		}
+		
+		acceleration = calcBrakeToStopAcc(params, distance);
 	}
-
+		
 	return acceleration;
 }
 

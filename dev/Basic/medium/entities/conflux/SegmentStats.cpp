@@ -652,7 +652,7 @@ void LaneStats::addPerson(Person_MT* p)
 		{
 			throw std::runtime_error("Person with no vehicle is added to lane");
 		}
-		verifyOrdering();
+		//verifyOrdering();
 	}
 }
 
@@ -1168,7 +1168,7 @@ void LaneStats::printAgents() const
 	Print() << debugMsgs.str();
 }
 
-void LaneStats::verifyOrdering()
+void LaneStats::verifyOrdering() const
 {
 	double distance = -1.0;
 	for (PersonList::const_iterator i = laneAgents.begin(); i != laneAgents.end(); i++)

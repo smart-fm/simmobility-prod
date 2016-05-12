@@ -306,7 +306,7 @@ public:
 	 * Verifies if the invariant that the order in laneAgents of each lane matches
 	 * with the ordering w.r.t the distance to the end of segment
 	 */
-	void verifyOrdering();
+	void verifyOrdering() const;
 
 	double getTotalVehicleLength() const
 	{

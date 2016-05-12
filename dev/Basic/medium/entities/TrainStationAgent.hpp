@@ -36,6 +36,16 @@ protected:
 	 * @return update status
 	 */
 	Entity::UpdateStatus callMovementFrameTick(timeslice now, TrainDriver* person);
+	/**
+	 * Inherited from EventListener.
+	 *
+	 * @param eventId
+	 * @param ctxId
+	 * @param sender
+	 * @param args
+	 */
+	virtual void onEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args);
+
 private:
 	/**
 	 * dispatch pending train

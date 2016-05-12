@@ -5,7 +5,6 @@
 #include "entities/conflux/SegmentStats.hpp"
 #include "entities/Person_MT.hpp"
 #include "geospatial/network/RoadNetwork.hpp"
-#include "config/MT_Config.hpp"
 #include "path/PathSetManager.hpp"
 #include "message/MessageBus.hpp"
 #include "conf/ConfigManager.hpp"
@@ -40,6 +39,27 @@ IncidentManager::IncidentManager(const std::string inputFile) :
 
 void IncidentManager::setSourceFile(const std::string inputFile_){
 	inputFile = inputFile_;
+}
+
+void IncidentManager::setDisruptions(std::vector<DisruptionParams>& disruptions)
+{
+	this->disruptions = disruptions;
+}
+
+void IncidentManager::publishDisruption(timeslice now)
+{
+	ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
+	DailyTime& simStart = cfg.simulation.simStartTime;
+	DailyTime current = DailyTime(now.ms()+simStart.getValue());
+	std::vector<DisruptionParams>::iterator it=disruptions.begin();
+	while(it!=disruptions.end()){
+		if((*it).startTime.getValue()<current.getValue()){
+			messaging::MessageBus::PublishEvent(GLOBAL_EVENT_DISRUPTION, nullptr, messaging::MessageBus::EventArgsPtr(new DisruptionEventArgs(*it)));
+			it = disruptions.erase(it);
+		} else {
+			it++;
+		}
+	}
 }
 
 /**
@@ -206,6 +226,7 @@ Entity::UpdateStatus IncidentManager::frame_init(timeslice now){
 
 Entity::UpdateStatus IncidentManager::frame_tick(timeslice now){
 	insertTickIncidents(now.frame());
+	publishDisruption(now);
 	return UpdateStatus::Continue;
 }
 

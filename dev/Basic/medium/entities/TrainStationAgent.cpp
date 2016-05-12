@@ -12,6 +12,7 @@
 #include "entities/TrainController.hpp"
 #include "entities/conflux/Conflux.hpp"
 #include "entities/roles/driver/TrainDriverFacets.hpp"
+#include "entities/incident/IncidentManager.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "message/MT_Message.hpp"
@@ -40,6 +41,20 @@ void TrainStationAgent::setConflux(Conflux* conflux)
 {
 	parentConflux = conflux;
 }
+
+void TrainStationAgent::onEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args)
+{
+	switch(eventId)
+	{
+	case GLOBAL_EVENT_DISRUPTION:
+	{
+		const DisruptionEventArgs& exArgs = MSG_CAST(DisruptionEventArgs, args);
+		const DisruptionParams& disruption = exArgs.getDisruption();
+		break;
+	}
+	}
+}
+
 void TrainStationAgent::HandleMessage(messaging::Message::MessageType type, const messaging::Message& message)
 {
 	switch (type)
@@ -153,6 +168,7 @@ void TrainStationAgent::updateWaitPersons()
 }
 Entity::UpdateStatus TrainStationAgent::frame_init(timeslice now)
 {
+	messaging::MessageBus::SubscribeEvent(GLOBAL_EVENT_DISRUPTION, this, this);
 	return UpdateStatus::Continue;
 }
 Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)

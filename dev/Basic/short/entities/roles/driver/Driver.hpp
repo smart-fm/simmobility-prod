@@ -144,9 +144,6 @@ private:
 	/**Represents the density observed in the current lane*/
 	Shared<double> laneDensity_;
 
-	/**Indicates the lane changing move that the driver is going to make*/
-	Shared<LaneChangeTo> turningDirection_;
-
 	friend class DriverBehavior;
 	friend class DriverMovement;
 

@@ -198,7 +198,6 @@ void DriverMovement::frame_tick()
 	parentDriver->fwdVelocity_.set(parentDriver->vehicle->getVelocity());
 	parentDriver->latVelocity_.set(parentDriver->vehicle->getLateralVelocity());
 	parentDriver->fwdAccel_.set(parentDriver->vehicle->getAcceleration());
-	parentDriver->turningDirection_.set(parentDriver->vehicle->getTurningDirection());
 	parentDriver->laneDensity_.set(params.density);
 
 	//Update your perceptions

@@ -481,9 +481,6 @@ void MessageBus::DispatchMessages() {
 			ThreadContext* context = (*lstItr);
 			while (!context->output.empty()) {
 				const MessageEntry& entry = context->output.top();
-				if(entry.type==MSGI_PUBLISH_EVENT){
-					int ii = 0;
-				}
 				dispatch(entry, context, mainContext);
 				// internal messages go to the input queue of the main context.
 				context->output.pop();

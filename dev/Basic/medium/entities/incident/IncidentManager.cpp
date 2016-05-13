@@ -50,11 +50,12 @@ void IncidentManager::publishDisruption(timeslice now)
 {
 	ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
 	DailyTime& simStart = cfg.simulation.simStartTime;
-	DailyTime current = DailyTime(now.ms()+simStart.getValue());
-	std::vector<DisruptionParams>::iterator it=disruptions.begin();
-	while(it!=disruptions.end()){
-		if((*it).startTime.getValue()<current.getValue()){
-			messaging::MessageBus::PublishEvent(GLOBAL_EVENT_DISRUPTION, nullptr, messaging::MessageBus::EventArgsPtr(new DisruptionEventArgs(*it)));
+	DailyTime current = DailyTime(now.ms() + simStart.getValue());
+	std::vector<DisruptionParams>::iterator it = disruptions.begin();
+	while (it != disruptions.end()) {
+		if ((*it).startTime.getValue() < current.getValue()) {
+			messaging::MessageBus::PublishEvent(GLOBAL_EVENT_DISRUPTION, this,
+					messaging::MessageBus::EventArgsPtr(new DisruptionEventArgs(*it)));
 			it = disruptions.erase(it);
 		} else {
 			it++;

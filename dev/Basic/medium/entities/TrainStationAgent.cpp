@@ -168,7 +168,7 @@ void TrainStationAgent::updateWaitPersons()
 }
 Entity::UpdateStatus TrainStationAgent::frame_init(timeslice now)
 {
-	messaging::MessageBus::SubscribeEvent(GLOBAL_EVENT_DISRUPTION, this, this);
+	messaging::MessageBus::SubscribeEvent(GLOBAL_EVENT_DISRUPTION, this);
 	return UpdateStatus::Continue;
 }
 Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)

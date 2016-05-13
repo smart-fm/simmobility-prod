@@ -41,9 +41,9 @@ namespace
 // planned headway(ms) of the buses
 const double PLANNED_HEADWAY_MS = 480000;
 // secs conversion unit from milliseconds
-const double SECS_CONVERT_UNIT = 0.001;
+const double SECS_IN_UNIT_MS = 0.001;
 // millisecs conversion unit from seconds
-const double MILLISECS_CONVERT_UNIT = 1000.0;
+const double MS_IN_UNIT_SEC = 1000.0;
 
 /**
  * Database loader for bus controller
@@ -503,8 +503,8 @@ void BusController::setPTScheduleFromConfig(const vector<PT_BusDispatchFreq>& di
 		//Set nextTime to the next frequency bus line's start time or the current line's end time if this is the last line.
 		DailyTime nextTime = curr->endTime;
 
-		DailyTime advance(curr->headwaySec*MILLISECS_CONVERT_UNIT);
-		DailyTime startTime = curr->startTime + advance;
+		DailyTime advance(curr->headwaySec*MS_IN_UNIT_SEC);
+		DailyTime startTime = curr->startTime;
 		for(; startTime.isBeforeEqual(nextTime); startTime += advance)
 		{
 			// deal with small gaps between the group dispatching times
@@ -575,7 +575,7 @@ void BusController::storeRealTimesAtEachBusStop(const std::string& busLine, int 
 		return;
 	}
 
-	double departureTime = arrivalTime + (departTime * MILLISECS_CONVERT_UNIT);
+	double departureTime = arrivalTime + (departTime * MS_IN_UNIT_SEC);
 	BusStopRealTimes busStopRealTimes(ConfigManager::GetInstance().FullConfig().simStartTime() + DailyTime(arrivalTime), ConfigManager::GetInstance().FullConfig().simStartTime() + DailyTime(departureTime));
 	busStopRealTimes.setRealBusStop(lastVisitedBusStop);
 	realTime = (busStopRealTimes);
@@ -602,19 +602,19 @@ double BusController::computeDwellTime(const string& busLine, int trip, int sequ
 	{
 	case SCHEDULE_BASED:
 		departureTime = scheduledDecision(busLine, trip, sequence, arrivalTime, departTime, realTime, lastVisitedBusStop);
-		waitTimeBusStop = (departureTime - arrivalTime) * SECS_CONVERT_UNIT;
+		waitTimeBusStop = (departureTime - arrivalTime) * SECS_IN_UNIT_MS;
 		break;
 	case HEADWAY_BASED:
 		departureTime = headwayDecision(busLine, trip, sequence, arrivalTime, departTime, realTime, lastVisitedBusStop);
-		waitTimeBusStop = (departureTime - arrivalTime) * SECS_CONVERT_UNIT;
+		waitTimeBusStop = (departureTime - arrivalTime) * SECS_IN_UNIT_MS;
 		break;
 	case EVENHEADWAY_BASED:
 		departureTime = evenheadwayDecision(busLine, trip, sequence, arrivalTime, departTime, realTime, lastVisitedBusStop);
-		waitTimeBusStop = (departureTime - arrivalTime) * SECS_CONVERT_UNIT;
+		waitTimeBusStop = (departureTime - arrivalTime) * SECS_IN_UNIT_MS;
 		break;
 	case HYBRID_BASED:
 		departureTime = hybridDecision(busLine, trip, sequence, arrivalTime, departTime, realTime, lastVisitedBusStop);
-		waitTimeBusStop = (departureTime - arrivalTime) * SECS_CONVERT_UNIT;
+		waitTimeBusStop = (departureTime - arrivalTime) * SECS_IN_UNIT_MS;
 		break;
 	default:
 		storeRealTimesAtEachBusStop(busLine, trip, sequence, arrivalTime, departTime, lastVisitedBusStop, realTime);
@@ -637,7 +637,7 @@ double BusController::scheduledDecision(const string& busLine, int trip, int seq
 	const vector<BusTrip>& busTrips = busline->queryBusTrips();
 	const vector<BusStopScheduledTimes>& busStopScheduledTime = busTrips[trip].getBusStopScheduledTimes();
 	assumedTime = busStopScheduledTime[sequence].departureTime.offsetMS_From(ConfigManager::GetInstance().FullConfig().simStartTime());
-	estimatedTime = std::max(assumedTime, arrivalTime + (departTime * MILLISECS_CONVERT_UNIT));
+	estimatedTime = std::max(assumedTime, arrivalTime + (departTime * MS_IN_UNIT_SEC));
 
 	storeRealTimesAtEachBusStop(busLine, trip, sequence, arrivalTime, departTime, lastVisitedBusStop, realTime);
 
@@ -662,10 +662,10 @@ double BusController::headwayDecision(const string& busLine, int trip, int seque
 	if (busStopRealTimeTripkMinusOne[sequence]->get().busStop) {
 		// there are some cases that buses are bunched together so that k-1 has no values updated yet
 		arrivalTimeMinusOne = busStopRealTimeTripkMinusOne[sequence]->get().arrivalTime.offsetMS_From(ConfigManager::GetInstance().FullConfig().simStartTime());
-		estimatedTime = std::max(arrivalTimeMinusOne + alpha * PLANNED_HEADWAY_MS, arrivalTime + (departTime * MILLISECS_CONVERT_UNIT));
+		estimatedTime = std::max(arrivalTimeMinusOne + alpha * PLANNED_HEADWAY_MS, arrivalTime + (departTime * MS_IN_UNIT_SEC));
 	} else {
 		// immediately leave
-		estimatedTime = arrivalTime + (departTime * MILLISECS_CONVERT_UNIT);
+		estimatedTime = arrivalTime + (departTime * MS_IN_UNIT_SEC);
 	}
 
 	storeRealTimesAtEachBusStop(busLine, trip, sequence, arrivalTime, departTime, lastVisitedBusStop, realTime);
@@ -695,7 +695,7 @@ double BusController::evenheadwayDecision(const string& busLine, int trip, int s
 
 	if (0 == trip) {
 		// the first trip just use Dwell Time, no holding strategy
-		estimatedTime = arrivalTime + (departTime * MILLISECS_CONVERT_UNIT);
+		estimatedTime = arrivalTime + (departTime * MS_IN_UNIT_SEC);
 
 	} else if (lastTrip || lastVisitedStopNum == -1) {
 		// If last trip or if next trip k+1 is not dispatched yet then use single headway
@@ -714,7 +714,7 @@ double BusController::evenheadwayDecision(const string& busLine, int trip, int s
 						- busStopScheduledTime_tripKplus1[lastVisitedStopNum].departureTime.offsetMS_From(ConfigManager::GetInstance().FullConfig().simStartTime());
 
 		estimatedTime = std::max(arrivalTimeMinusOne + (oneTimePlusOne + val - arrivalTimeMinusOne) / 2.0,
-				arrivalTime + (departTime * MILLISECS_CONVERT_UNIT));
+				arrivalTime + (departTime * MS_IN_UNIT_SEC));
 	}
 
 	storeRealTimesAtEachBusStop(busLine, trip, sequence, arrivalTime, departTime, lastVisitedBusStop, realTime);
@@ -743,7 +743,7 @@ double BusController::hybridDecision(const string& busLine, int trip, int sequen
 
 	if (0 == trip) {
 		// the first trip just use Dwell Time, no holding strategy
-		estimatedTime = arrivalTime + (departTime * MILLISECS_CONVERT_UNIT);
+		estimatedTime = arrivalTime + (departTime * MS_IN_UNIT_SEC);
 
 	} else if (lastTrip || lastVisitedStopNum == -1) {
 		// If last trip or if next trip k+1 is not dispatched yet then use single headway
@@ -761,7 +761,7 @@ double BusController::hybridDecision(const string& busLine, int trip, int sequen
 						- busStopScheduledTime_tripKplus1[lastVisitedStopNum].departureTime.offsetMS_From(ConfigManager::GetInstance().FullConfig().simStartTime());
 		estimatedTime = std::max(
 				std::min(arrivalTimeMinusOne + (oneTimePlusOne + val - arrivalTimeMinusOne)/ 2.0, (arrivalTimeMinusOne + PLANNED_HEADWAY_MS)),
-				(double) (arrivalTime) + (departTime * MILLISECS_CONVERT_UNIT));
+				(double) (arrivalTime) + (departTime * MS_IN_UNIT_SEC));
 	}
 
 	storeRealTimesAtEachBusStop(busLine, trip, sequence, arrivalTime, departTime, lastVisitedBusStop, realTime);

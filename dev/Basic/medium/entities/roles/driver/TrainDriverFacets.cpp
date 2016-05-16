@@ -80,7 +80,10 @@ const TrainPathMover& TrainMovement::getPathMover() const
 }
 Platform* TrainMovement::getNextPlatform()
 {
-	return nextPlatform;
+	facetMutex.lock();
+	Platform* next = nextPlatform;
+	facetMutex.unlock();
+	return next;
 }
 TravelMetric& TrainMovement::finalizeTravelTimeMetric()
 {
@@ -283,7 +286,7 @@ double TrainMovement::getDistanceToNextTrain(const TrainDriver* nextDriver) cons
 		} else {
 			TrainMovement* nextMovement = dynamic_cast<TrainMovement*>(nextDriver->movementFacet);
 			if (nextMovement) {
-				double dis = trainPathMover.getDistanceToNextTrain(nextMovement->getPathMover());
+				double dis = trainPathMover.getDifferentDistance(nextMovement->getPathMover());
 				if (dis > 0) {
 					distanceToNextTrain = dis - safeDistance - trainLengthMeter;
 				}
@@ -431,7 +434,9 @@ void TrainMovement::leaveFromPlaform()
 	if (!isAtLastPlaform()) {
 		moveForward();
 		Platform* next = trainPlatformMover.getNextPlatform(true);
+		facetMutex.lock();
 		nextPlatform = next;
+		facetMutex.unlock();
 		std::string stationNo = next->getStationNo();
 		Agent* stationAgent = TrainController<Person_MT>::getAgentFromStation(stationNo);
 		messaging::MessageBus::PostMessage(stationAgent,TRAIN_MOVETO_NEXT_PLATFORM,

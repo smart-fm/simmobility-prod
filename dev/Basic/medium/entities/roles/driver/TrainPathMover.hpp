@@ -4,10 +4,11 @@
  *  Created on: Feb 17, 2016
  *      Author: zhang huai peng
  */
-#include <atomic>
+
 #include "geospatial/network/Point.hpp"
 #include "geospatial/network/Block.hpp"
 #include "geospatial/network/Platform.hpp"
+#include "boost/thread/mutex.hpp"
 
 namespace sim_mob {
 class TrainPlatformMover {
@@ -146,6 +147,8 @@ private:
 	double distMovedOnCurrBlock;
 	/**Stores the distance covered by driver on entire path*/
 	double distMovedOnEntirePath;
+	/**the locker for this mover*/
+	mutable boost::mutex moverMutex;
 };
 
 } /* namespace sim_mob */

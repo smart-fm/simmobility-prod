@@ -241,6 +241,15 @@ struct IncidentParams {
     std::vector<LaneParams> laneParams;
 };
 
+/**
+ * represent disruption data section of the config file
+ */
+struct DisruptionParams{
+	unsigned int id;
+	DailyTime startTime;
+	DailyTime duration;
+	std::vector<std::string> platformNames;
+};
 class MT_Config : private ProtectedCopyable
 {
 	friend class ParseMidTermConfigFile;
@@ -724,6 +733,12 @@ public:
     std::vector<IncidentParams>& getIncidents();
 
     /**
+     * Retrieve the disruption params
+     * @return disruption definition
+     */
+    std::vector<DisruptionParams>& getDisruption();
+
+    /**
      * get person timestep in milliseconds
      * @return timestep in milliseconds
      */
@@ -867,6 +882,9 @@ private:
 
     ///setting for the incidents
     std::vector<IncidentParams> incidents;
+
+    ///setting for disruptions
+    std::vector<DisruptionParams> disruptions;
 
     /// set of confluxes
     std::set<Conflux*> confluxes;

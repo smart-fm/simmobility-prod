@@ -629,26 +629,36 @@ void ParseMidTermConfigFile::processIncidentsNode(xercesc::DOMElement* node)
     }
 
     for(DOMElement* item=node->getFirstElementChild(); item; item=item->getNextElementSibling()) {
-        IncidentParams incident;
-        incident.incidentId = ParseUnsignedInt(GetNamedAttributeValue(item, "id"));
-        incident.visibilityDistance = ParseFloat(GetNamedAttributeValue(item, "visibility"));
-        incident.segmentId = ParseUnsignedInt(GetNamedAttributeValue(item, "segment") );
-        incident.position = ParseFloat(GetNamedAttributeValue(item, "position"));
-        incident.capFactor = ParseFloat(GetNamedAttributeValue(item, "cap_factor") );
-        incident.startTime = ParseDailyTime(GetNamedAttributeValue(item, "start_time") ).getValue();
-        incident.duration = ParseDailyTime(GetNamedAttributeValue(item, "duration") ).getValue();
-        incident.length = ParseFloat(GetNamedAttributeValue(item, "length") );
-        incident.compliance = ParseFloat(GetNamedAttributeValue(item, "compliance") );
-        incident.accessibility = ParseFloat(GetNamedAttributeValue(item, "accessibility") );
-
-        for(DOMElement* child=item->getFirstElementChild(); child; child=child->getNextElementSibling()){
-            IncidentParams::LaneParams lane;
-            lane.laneId = ParseUnsignedInt(GetNamedAttributeValue(child, "laneId"));
-            lane.speedLimit = ParseFloat(GetNamedAttributeValue(child, "speedLimitFactor") );
-            incident.laneParams.push_back(lane);
-        }
-
-        mtCfg.incidents.push_back(incident);
+    	if(TranscodeString(item->getNodeName())=="incident"){
+			IncidentParams incident;
+			incident.incidentId = ParseUnsignedInt(GetNamedAttributeValue(item, "id"));
+			incident.visibilityDistance = ParseFloat(GetNamedAttributeValue(item, "visibility"));
+			incident.segmentId = ParseUnsignedInt(GetNamedAttributeValue(item, "segment") );
+			incident.position = ParseFloat(GetNamedAttributeValue(item, "position"));
+			incident.capFactor = ParseFloat(GetNamedAttributeValue(item, "cap_factor") );
+			incident.startTime = ParseDailyTime(GetNamedAttributeValue(item, "start_time") ).getValue();
+			incident.duration = ParseDailyTime(GetNamedAttributeValue(item, "duration") ).getValue();
+			incident.length = ParseFloat(GetNamedAttributeValue(item, "length") );
+			incident.compliance = ParseFloat(GetNamedAttributeValue(item, "compliance") );
+			incident.accessibility = ParseFloat(GetNamedAttributeValue(item, "accessibility") );
+			for(DOMElement* child=item->getFirstElementChild(); child; child=child->getNextElementSibling()){
+				IncidentParams::LaneParams lane;
+				lane.laneId = ParseUnsignedInt(GetNamedAttributeValue(child, "laneId"));
+				lane.speedLimit = ParseFloat(GetNamedAttributeValue(child, "speedLimitFactor") );
+				incident.laneParams.push_back(lane);
+			}
+			mtCfg.incidents.push_back(incident);
+    	} else if(TranscodeString(item->getNodeName())=="disruption"){
+    		DisruptionParams disruption;
+    		disruption.id = ParseUnsignedInt(GetNamedAttributeValue(item, "id"));
+    		disruption.startTime = ParseDailyTime(GetNamedAttributeValue(item, "start_time") );
+    		disruption.duration = ParseDailyTime(GetNamedAttributeValue(item, "duration") );
+    		for(DOMElement* child=item->getFirstElementChild(); child; child=child->getNextElementSibling()){
+    			std::string platform = ParseString(GetNamedAttributeValue(node, "name"), "");
+    			disruption.platformNames.push_back(platform);
+    		}
+    		mtCfg.disruptions.push_back(disruption);
+    	}
     }
 }
 

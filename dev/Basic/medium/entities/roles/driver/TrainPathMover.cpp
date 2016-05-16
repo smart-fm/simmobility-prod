@@ -87,8 +87,10 @@ double TrainPathMover::advance(double distance)
 	}
 
 	distanceMoveToNextPoint += distance;
+	moverMutex.lock();
 	double temp = distMovedOnEntirePath;
 	distMovedOnEntirePath = (temp+distance);
+	moverMutex.unlock();
 
 	double distBetwCurrAndNxtPt = calcDistanceBetweenTwoPoints();
 
@@ -157,7 +159,10 @@ double TrainPathMover::getDistanceToNextTrain(const TrainPathMover& other) const
 double TrainPathMover::getDifferentDistance(const TrainPathMover& other) const
 {
 	double otherCoveredDis = other.getTotalCoveredDistance();
-	return otherCoveredDis-distMovedOnEntirePath;
+	moverMutex.lock();
+	double res = otherCoveredDis-distMovedOnEntirePath;
+	moverMutex.unlock();
+	return res;
 }
 double TrainPathMover::getCurrentSpeedLimit()
 {
@@ -246,7 +251,10 @@ bool TrainPathMover::advanceToNextBlock()
 }
 double TrainPathMover::getTotalCoveredDistance() const
 {
-	return distMovedOnEntirePath;
+	moverMutex.lock();
+	double res = distMovedOnEntirePath;
+	moverMutex.unlock();
+	return res;
 }
 
 bool TrainPathMover::isCompletePath() const

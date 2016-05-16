@@ -12,11 +12,13 @@
 #include "entities/TrainController.hpp"
 #include "entities/conflux/Conflux.hpp"
 #include "entities/roles/driver/TrainDriverFacets.hpp"
+#include "entities/incident/IncidentManager.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "message/MT_Message.hpp"
 #include "message/MessageBus.hpp"
 #include "message/MessageHandler.hpp"
+#include "event/SystemEvents.hpp"
 namespace {
 const double safeDistanceToAhead = 1000.0;
 }
@@ -40,6 +42,20 @@ void TrainStationAgent::setConflux(Conflux* conflux)
 {
 	parentConflux = conflux;
 }
+
+void TrainStationAgent::onEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args)
+{
+	switch(eventId)
+	{
+	case event::EVT_CORE_MRT_DISRUPTION:
+	{
+		const DisruptionEventArgs& exArgs = MSG_CAST(DisruptionEventArgs, args);
+		const DisruptionParams& disruption = exArgs.getDisruption();
+		break;
+	}
+	}
+}
+
 void TrainStationAgent::HandleMessage(messaging::Message::MessageType type, const messaging::Message& message)
 {
 	switch (type)
@@ -153,6 +169,7 @@ void TrainStationAgent::updateWaitPersons()
 }
 Entity::UpdateStatus TrainStationAgent::frame_init(timeslice now)
 {
+	messaging::MessageBus::SubscribeEvent(event::EVT_CORE_MRT_DISRUPTION, this);
 	return UpdateStatus::Continue;
 }
 Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)

@@ -6,7 +6,7 @@
 #include "message/Message.hpp"
 #include "entities/Agent.hpp"
 #include "util/Profiler.hpp"
-
+#include "config/MT_Config.hpp"
 #include <boost/tuple/tuple.hpp>
 #include <boost/foreach.hpp>
 #include <boost/lexical_cast.hpp>
@@ -14,6 +14,21 @@
 namespace sim_mob {
 namespace medium {
 class Person_MT;
+class DisruptionParams;
+class DisruptionEventArgs : public sim_mob::event::EventArgs {
+public:
+	DisruptionEventArgs(const DisruptionParams& disruption):disruption(disruption){;}
+    virtual ~DisruptionEventArgs(){;}
+
+    /**
+     * Getters for disruption object
+     */
+    const DisruptionParams& getDisruption() const{
+    	return disruption;
+    }
+private:
+    DisruptionParams disruption;
+};
 
 /**
  * A class designed to manage the incidents.
@@ -29,6 +44,8 @@ private:
 	std::string inputFile;
 
 	static IncidentManager * instance;
+	/**disruptions*/
+	std::vector<DisruptionParams> disruptions;
 public:
 	//debug
 //	static sim_mob::Logger profiler;
@@ -38,6 +55,18 @@ public:
 	 * \param inputFile_ the file containing the incident information
 	 */
 	void setSourceFile(const std::string inputFile_);
+
+	/**
+	 * set disruption information
+	 * @param disruptions hold disruption information
+	 */
+	void setDisruptions(std::vector<DisruptionParams>& disruptions);
+
+	/**
+	 * publish disruption event based on current time
+	 * @param now is current time
+	 */
+	void publishDisruption(timeslice now);
 
 	/**
 	 * read the incidents from a file

@@ -12,6 +12,7 @@
 #include "entities/conflux/Conflux.hpp"
 #include "entities/TravelTimeManager.hpp"
 #include "entities/PT_EdgeTravelTime.hpp"
+#include "entities/incident/IncidentManager.hpp"
 #include "geospatial/Incident.hpp"
 #include "geospatial/network/RoadNetwork.hpp"
 #include "geospatial/network/NetworkLoader.hpp"
@@ -153,7 +154,7 @@ void ExpandMidTermConfigFile::verifyIncidents()
 		const std::map<unsigned int, RoadSegment*>::const_iterator segIt = segLookup.find((*incIt).segmentId);
 		if (segIt == segLookup.end())
 		{
-			throw std::runtime_error("invalid segment id supplied for incident injection");
+			continue;
 		}
 		const RoadSegment* roadSeg = segIt->second;
 
@@ -194,6 +195,8 @@ void ExpandMidTermConfigFile::verifyIncidents()
 			rs->addObstacle(pos, item);
 		}
 	}
+
+	IncidentManager::getInstance()->setDisruptions(MT_Config::getInstance().getDisruption());
 }
 
 void ExpandMidTermConfigFile::setRestrictedRegionSupport()

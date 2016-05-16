@@ -80,12 +80,17 @@ TrainMovement* TrainDriver::GetMovement()
 }
 TrainDriver::TRAIN_NEXTREQUESTED TrainDriver::getNextRequested() const
 {
-	return nextRequested;
+	driverMutex.lock();
+	TRAIN_NEXTREQUESTED next = nextRequested;
+	driverMutex.unlock();
+	return next;
 }
 
 void TrainDriver::setNextRequested(TRAIN_NEXTREQUESTED res)
 {
+	driverMutex.lock();
 	nextRequested = res;
+	driverMutex.unlock();
 }
 void TrainDriver::calculateDwellTime(int boarding,int alighting)
 {

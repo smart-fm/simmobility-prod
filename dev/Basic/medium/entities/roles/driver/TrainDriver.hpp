@@ -110,6 +110,14 @@ public:
 	 * @param now is current time
 	 */
 	void storeWaitingTime(WaitTrainActivity* waitingActivity,timeslice now) const;
+	/**
+	 * Event handler which provides a chance to handle event transfered from parent agent.
+	 * @param sender pointer for the event producer.
+	 * @param id event identifier.
+	 * @param args event arguments.
+	 */
+	virtual void onParentEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args);
+
 private:
 	/**get next train driver*/
 	const TrainDriver* nextDriver;

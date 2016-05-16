@@ -29,7 +29,10 @@ enum ConfluxMessage
 	MSG_PERSON_LOAD,
 	MSG_PERSON_TRANSFER
 };
-
+enum PublicTrainsitEvent
+{
+	EVT_DISRUPTION_REROUTING=7000000
+};
 enum PublicTransitMessage
 {
 	BOARD_BUS = 6000000,

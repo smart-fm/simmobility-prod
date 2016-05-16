@@ -65,6 +65,10 @@ private:
 	 * update wait persons
 	 */
 	void updateWaitPersons();
+	/**
+	 * trigger reroute event
+	 */
+	void triggerRerouting(const event::EventArgs& args);
 private:
 	/**the reference to the station*/
 	const Station* station;
@@ -79,7 +83,7 @@ private:
 	/**waiting person for boarding*/
 	std::map<const Platform*, std::list<WaitTrainActivity*>> waitingPersons;
 	/**alighting person for next trip*/
-	std::map<const Platform*, std::list<Passenger*>> aligtingPersons;
+	std::map<const Platform*, std::list<Passenger*>> leavingPersons;
 	/** parent conflux */
 	Conflux* parentConflux;
 };

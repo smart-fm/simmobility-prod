@@ -12,6 +12,7 @@
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "entities/misc/TrainTrip.hpp"
+#include "entities/incident/IncidentManager.hpp"
 namespace sim_mob {
 namespace medium{
 
@@ -138,6 +139,20 @@ Platform* TrainDriver::getNextPlatform() const
 	}
 	return platform;
 }
+
+void TrainDriver::onParentEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args)
+{
+	switch(eventId)
+	{
+	case EVT_DISRUPTION_REROUTING:
+	{
+		const DisruptionEventArgs& exArgs = MSG_CAST(DisruptionEventArgs, args);
+		const DisruptionParams& disruption = exArgs.getDisruption();
+		break;
+	}
+	}
+}
+
 std::list<Passenger*>& TrainDriver::getPassengers()
 {
 	return passengerList;

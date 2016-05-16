@@ -10,10 +10,12 @@
  */
 
 #pragma once
+#include <ctime>
 
+#include "boost/unordered_map.hpp"
 #include "Common.hpp"
 #include "Types.hpp"
-#include <ctime>
+
 
 namespace sim_mob
 {
@@ -51,10 +53,10 @@ namespace sim_mob
 			bool	  getMotorLicense() const;
 			bool	  getVanBusLicense() const;
 			std::tm   getDateOfBirth() const;
-			std::vector<PrimarySchool*> getPrimarySchoolsWithin5km();
+			bool getIsPrimarySchoolWithin5Km(BigSerial primarySchoolId) const;
 
 			void	  setDateOfBirth(std::tm);
-			void addprimarySchoolWithin5km(PrimarySchool *school);
+			void addprimarySchoolIdWithin5km(BigSerial schoolId,PrimarySchool *primarySchool);
 
 			Individual& operator=(const Individual& source);
 
@@ -84,7 +86,7 @@ namespace sim_mob
 			bool	  motorLicense;
 			bool	  vanbusLicense;
 			std::tm	  dateOfBirth;
-			std::vector<PrimarySchool*> primarySchoolsWithin5km;
+			boost::unordered_map<BigSerial,PrimarySchool*> primarySchoolsWithin5KmById;
 
 		};
 	}

@@ -156,9 +156,14 @@ std::tm Individual::getDateOfBirth() const
 	return dateOfBirth;
 }
 
-std::vector<PrimarySchool*> Individual::getPrimarySchoolsWithin5km()
+bool Individual::getIsPrimarySchoolWithin5Km(BigSerial primarySchoolId) const
 {
-	return this->primarySchoolsWithin5km;
+	boost::unordered_map<BigSerial,PrimarySchool*>::const_iterator itr = primarySchoolsWithin5KmById.find(primarySchoolId);
+	if (itr != primarySchoolsWithin5KmById.end())
+	{
+		return true;
+	}
+	return false;
 }
 
 void Individual::setDateOfBirth( std::tm dob )
@@ -166,9 +171,9 @@ void Individual::setDateOfBirth( std::tm dob )
 	this->dateOfBirth = dob;
 }
 
-void Individual::addprimarySchoolWithin5km(PrimarySchool *school)
+void Individual::addprimarySchoolIdWithin5km(BigSerial schoolId,PrimarySchool *primarySchool)
 {
-	this->primarySchoolsWithin5km.push_back(school);
+	this->primarySchoolsWithin5KmById.insert(std::make_pair(schoolId,primarySchool));
 }
 
 namespace sim_mob

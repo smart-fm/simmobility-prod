@@ -198,6 +198,14 @@ protected:
 	 * handle messages
 	 */
 	virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
+	/**
+	 * Inherited from EventListener.
+	 * @param eventId
+	 * @param ctxId
+	 * @param sender
+	 * @param args
+	 */
+	virtual void onEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args);
 
 private:
 	/**

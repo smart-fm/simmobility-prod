@@ -8,7 +8,8 @@
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "logging/Log.hpp"
-
+#include "message/MessageBus.hpp"
+#include "event/SystemEvents.hpp"
 #ifndef _CLASS_TRAIN_CONTROLLER_FUNCTIONS
 #include "entities/TrainController.hpp"
 #else
@@ -96,6 +97,7 @@ namespace sim_mob {
 	template<typename PERSON>
 	Entity::UpdateStatus TrainController<PERSON>::frame_init(timeslice now)
 	{
+		messaging::MessageBus::SubscribeEvent(event::EVT_CORE_MRT_DISRUPTION, this);
 		return Entity::UpdateStatus::Continue;
 	}
 	template<typename PERSON>
@@ -551,5 +553,17 @@ namespace sim_mob {
 		}
 		}
 	}
+	template<typename PERSON>
+	void TrainController<PERSON>::onEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args)
+	{
+		switch(eventId)
+		{
+		case event::EVT_CORE_MRT_DISRUPTION:
+		{
+			break;
+		}
+		}
+	}
+
 } /* namespace sim_mob */
 #endif

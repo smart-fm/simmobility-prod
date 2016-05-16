@@ -15,7 +15,6 @@ namespace sim_mob {
 namespace medium {
 class Person_MT;
 class DisruptionParams;
-const unsigned int GLOBAL_EVENT_DISRUPTION = 23457800;
 class DisruptionEventArgs : public sim_mob::event::EventArgs {
 public:
 	DisruptionEventArgs(const DisruptionParams& disruption):disruption(disruption){;}

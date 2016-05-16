@@ -9,6 +9,7 @@
 #include "message/MessageBus.hpp"
 #include "conf/ConfigManager.hpp"
 #include <boost/tokenizer.hpp>
+#include "event/SystemEvents.hpp"
 
 using namespace sim_mob;
 using namespace sim_mob::medium;
@@ -54,7 +55,7 @@ void IncidentManager::publishDisruption(timeslice now)
 	std::vector<DisruptionParams>::iterator it = disruptions.begin();
 	while (it != disruptions.end()) {
 		if ((*it).startTime.getValue() < current.getValue()) {
-			messaging::MessageBus::PublishEvent(GLOBAL_EVENT_DISRUPTION, this,
+			messaging::MessageBus::PublishEvent(event::EVT_CORE_MRT_DISRUPTION, this,
 					messaging::MessageBus::EventArgsPtr(new DisruptionEventArgs(*it)));
 			it = disruptions.erase(it);
 		} else {

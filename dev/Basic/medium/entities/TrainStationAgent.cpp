@@ -18,6 +18,7 @@
 #include "message/MT_Message.hpp"
 #include "message/MessageBus.hpp"
 #include "message/MessageHandler.hpp"
+#include "event/SystemEvents.hpp"
 namespace {
 const double safeDistanceToAhead = 1000.0;
 }
@@ -46,7 +47,7 @@ void TrainStationAgent::onEvent(event::EventId eventId, sim_mob::event::Context 
 {
 	switch(eventId)
 	{
-	case GLOBAL_EVENT_DISRUPTION:
+	case event::EVT_CORE_MRT_DISRUPTION:
 	{
 		const DisruptionEventArgs& exArgs = MSG_CAST(DisruptionEventArgs, args);
 		const DisruptionParams& disruption = exArgs.getDisruption();
@@ -168,7 +169,7 @@ void TrainStationAgent::updateWaitPersons()
 }
 Entity::UpdateStatus TrainStationAgent::frame_init(timeslice now)
 {
-	messaging::MessageBus::SubscribeEvent(GLOBAL_EVENT_DISRUPTION, this);
+	messaging::MessageBus::SubscribeEvent(event::EVT_CORE_MRT_DISRUPTION, this);
 	return UpdateStatus::Continue;
 }
 Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)

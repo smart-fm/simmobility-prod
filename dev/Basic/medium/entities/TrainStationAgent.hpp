@@ -38,7 +38,6 @@ protected:
 	Entity::UpdateStatus callMovementFrameTick(timeslice now, TrainDriver* person);
 	/**
 	 * Inherited from EventListener.
-	 *
 	 * @param eventId
 	 * @param ctxId
 	 * @param sender

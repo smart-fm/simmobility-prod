@@ -61,7 +61,7 @@ void PT_Statistics::HandleMessage(Message::MessageType type, const Message& mess
 	{
 		const PersonWaitingTimeMessage& msg = MSG_CAST(PersonWaitingTimeMessage, message);
 		char key[50];
-		sprintf(key, "%u,%s", msg.personWaitingTime.personId, msg.personWaitingTime.busStopNo.c_str());
+		sprintf(key, "%s,%s", msg.personWaitingTime.personIddb.c_str(), msg.personWaitingTime.busStopNo.c_str());
 		personWaitingTimes[std::string(key)] = msg.personWaitingTime;
 		stopStatsMgr.addStopStats(msg.personWaitingTime);
 		break;
@@ -197,8 +197,8 @@ std::string BusArrivalTime::getCSV() const
 std::string PersonTravelTime::getCSV() const
 {
 	char csvArray[200];
-	sprintf(csvArray, "%u,%s,%s,%s,%s,%s,%s,%s,%s,%.2f\n",
-			personId,
+	sprintf(csvArray, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%.2f\n",
+			personId.c_str(),
 			tripStartPoint.c_str(),
 			tripEndPoint.c_str(),
 			subStartPoint.c_str(),

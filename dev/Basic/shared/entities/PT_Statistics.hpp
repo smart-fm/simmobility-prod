@@ -108,7 +108,7 @@ public:
 struct PersonTravelTime
 {
 	/** person id*/
-	unsigned int personId;
+	std::string personId;
 	/** start location of trip*/
 	std::string tripStartPoint;
 	/** end location of trip*/

@@ -120,6 +120,7 @@ public:
 	 * @param now is current time
 	 */
 	void storeWaitingTime(WaitTrainActivity* waitingActivity,timeslice now) const;
+        virtual void onParentEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args);
 	/* to get traiId*/
 	int getTrainId() const;
 

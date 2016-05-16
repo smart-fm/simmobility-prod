@@ -13,6 +13,7 @@
 #include "conf/ConfigParams.hpp"
 #include "entities/misc/TrainTrip.hpp"
 #include "behavioral/ServiceController.hpp"
+#include "entities/incident/IncidentManager.hpp"
 namespace sim_mob {
 
 namespace medium{
@@ -36,6 +37,19 @@ TrainDriver::TrainDriver(Person_MT* parent,
 TrainDriver::~TrainDriver()
 {
 
+}
+
+void TrainDriver::onParentEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args)
+{
+	switch(eventId)
+	{
+	case EVT_DISRUPTION_REROUTING:
+	{
+		const DisruptionEventArgs& exArgs = MSG_CAST(DisruptionEventArgs, args);
+		const DisruptionParams& disruption = exArgs.getDisruption();
+		break;
+	}
+	}
 }
 
 Role<Person_MT>* TrainDriver::clone(Person_MT *parent) const

@@ -5,6 +5,7 @@
  *      Author: zhang huai peng
  */
 #include <boost/algorithm/string/erase.hpp>
+#include <boost/algorithm/string.hpp>
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "logging/Log.hpp"
@@ -58,15 +59,18 @@ namespace sim_mob {
 				TrainTrip* top = trainTrips.top();
 				std::string lineId = top->getLineId();
 				int trainId=getTrainId(lineId);
-				//if(trainId!=null)
-				//{
-				top->setTrainId(trainId);
-				tripChain.push_back(top);
-				person->setTripChain(tripChain);
-				person->setStartTime(top->getStartTime());
-				trainTrips.pop();
-				this->currWorkerProvider->scheduleForBred(person);
-				//}
+				if(trainId!=-1)
+				{
+					top->setTrainId(trainId);
+					tripChain.push_back(top);
+					person->setTripChain(tripChain);
+					person->setStartTime(top->getStartTime());
+					trainTrips.pop();
+					this->currWorkerProvider->scheduleForBred(person);
+
+				}
+				else
+					break;
 			}
 		}
 		return Entity::UpdateStatus::Continue;
@@ -80,16 +84,19 @@ namespace sim_mob {
 		if(it!=recycleTrainId.end())
 		{
 			std::vector<int>& trainIds = it->second;
-			if(trainIds.size()>0)
+			if(trainIds.size()>0&&mapOfNoAvailableTrains[lineId]>0)
 			{
-				trainId = trainIds.back();
-				trainIds.pop_back();
+				//getting the train Id
+				trainId = trainIds[0];
+				trainIds.erase(trainIds.begin());
+				mapOfNoAvailableTrains[lineId]=mapOfNoAvailableTrains[lineId]-1;
+
 			}
 		}
 		if(trainId==0)
 	    {
-			trainId = ++lastTrainId;
-		//	return null
+			//trainId = ++lastTrainId;
+			return -1;
 		}
 		return trainId;
 	}
@@ -97,6 +104,15 @@ namespace sim_mob {
 	Entity::UpdateStatus TrainController<PERSON>::frame_init(timeslice now)
 	{
 		return Entity::UpdateStatus::Continue;
+	}
+
+	template<typename PERSON>
+	std::string TrainController<PERSON>::GetOppositeLineId(std::string lineId)
+	{
+        if(boost::iequals(lineId, "NE_1"))
+        	return "NE_2";
+        else if (boost::iequals(lineId, "NE_2"))
+        	return "NE_1";
 	}
 	template<typename PERSON>
 	void TrainController<PERSON>::frame_output(timeslice now)
@@ -117,7 +133,9 @@ namespace sim_mob {
 		} else {
 			std::vector<TrainRoute>& trainRoute = it->second;
 			for(std::vector<TrainRoute>::iterator i=trainRoute.begin();i!=trainRoute.end();i++) {
+
 				std::map<unsigned int, Block*>::iterator iBlock = mapOfIdvsBlocks.find(i->blockId);
+
 				if(iBlock==mapOfIdvsBlocks.end()) {
 					res = false;
 					break;
@@ -133,7 +151,8 @@ namespace sim_mob {
 	{
 		bool res = true;
 		std::map<std::string, std::vector<TrainPlatform>>::iterator it = mapOfIdvsTrainPlatforms.find(lineId);
-		if(it==mapOfIdvsTrainPlatforms.end()) {
+		if(it==mapOfIdvsTrainPlatforms.end())
+		{
 			res = false;
 		} else {
 			std::vector<TrainPlatform>& trainPlatform = it->second;
@@ -161,8 +180,40 @@ namespace sim_mob {
 		composeBlocksAndPolyline();
 		loadSchedules();
 		composeTrainTrips();
+		//InitializeTrainIds();
 
 	}
+
+	//Initialize Train ids function
+	template<typename PERSON>
+	void TrainController<PERSON>::InitializeTrainIds(std::string lineId)
+	{
+		int noOfTrains=0,startId=0;
+
+		if(boost::iequals(lineId, "NE_1")) //to be pushed into database when other train lines are implemented
+		{
+			noOfTrains=14;
+			startId=1;
+			mapOfNoAvailableTrains["NE_1"]=14;
+		}
+
+		else if(boost::iequals(lineId, "NE_2"))
+		{
+			noOfTrains=14;
+			startId=15;
+			mapOfNoAvailableTrains["NE_2"]=14;
+		}
+
+		 std::vector<int> trainIds=std::vector<int>();
+			for(int i=startId;i<=noOfTrains+startId-1;i++)
+			{
+				trainIds.push_back(i);
+			}
+
+			recycleTrainId[lineId] = trainIds;
+	}
+
+
 	template<typename PERSON>
 	void TrainController<PERSON>::composeBlocksAndPolyline()
 	{
@@ -192,6 +243,9 @@ namespace sim_mob {
 		}
 		return pInstance;
 	}
+
+
+
 	template<typename PERSON>
 	bool TrainController<PERSON>::HasTrainController()
 	{
@@ -225,7 +279,8 @@ namespace sim_mob {
 			platform->setOffset(r.get<double>(6));
 			platform->setLength(r.get<double>(7));
 			mapOfIdvsPlatforms[platformNo] = platform;
-			if(mapOfIdvsStations.find(stationNo)==mapOfIdvsStations.end()){
+			if(mapOfIdvsStations.find(stationNo)==mapOfIdvsStations.end())
+			{
 				mapOfIdvsStations[stationNo] = new Station(stationNo);
 			}
 			Station* station = mapOfIdvsStations[stationNo];
@@ -255,10 +310,12 @@ namespace sim_mob {
 			schedule.startTime = r.get<std::string>(2);
 			schedule.endTime = r.get<std::string>(3);
 			schedule.headwaySec = r.get<int>(4);
-			if(mapOfIdvsSchedules.find(lineId)==mapOfIdvsSchedules.end()) {
+			if(mapOfIdvsSchedules.find(lineId)==mapOfIdvsSchedules.end())
+			{
 				mapOfIdvsSchedules[lineId] = std::vector<TrainSchedule>();
 			}
 			mapOfIdvsSchedules[lineId].push_back(schedule);
+
 		}
 	}
 	template<typename PERSON>
@@ -325,6 +382,32 @@ namespace sim_mob {
 			mapOfIdvsBlocks[blockId] = block;
 		}
 	}
+
+	template<typename PERSON>
+	std::vector<Block*> TrainController<PERSON>::GetBlocks(std::string lineId)
+	{
+		std::map<std::string, std::vector<TrainRoute>>::iterator it = mapOfIdvsTrainRoutes.find(lineId);
+		std::vector<Block*> blockVector;
+
+		if(it==mapOfIdvsTrainRoutes.end())
+		{
+			//res = false;
+		}
+
+		else
+		{
+			std::vector<TrainRoute>& trainRoute = it->second;
+			for(std::vector<TrainRoute>::iterator i=trainRoute.begin();i!=trainRoute.end();i++)
+			{
+
+				std::map<unsigned int, Block*>::iterator iBlock = mapOfIdvsBlocks.find(i->blockId);
+				blockVector.push_back(iBlock->second);
+			}
+
+		}
+		return blockVector;
+	}
+
 	template<typename PERSON>
 	void TrainController<PERSON>::loadTrainRoutes()
 	{
@@ -350,7 +433,10 @@ namespace sim_mob {
 				mapOfIdvsTrainRoutes[lineId] = std::vector<TrainRoute>();
 			}
 			mapOfIdvsTrainRoutes[lineId].push_back(route);
+			mapOfTrainServiceTerminated[lineId]=false;
+			InitializeTrainIds(lineId);
 		}
+
 	}
 	template<typename PERSON>
 	void TrainController<PERSON>::loadTrainPlatform()
@@ -467,7 +553,7 @@ namespace sim_mob {
 	template<typename PERSON>
 	void TrainController<PERSON>::assignTrainTripToPerson(std::set<Entity*>& activeAgents)
 	{
-		/*const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
+		/*const ConfigParams& config = ConfigManager::GetInstance().FulflConfig();
 		{PERSON* person = new PERSON("TrainController", config.mutexStategy());
 		std::string lineId="NE_2";
 		std::vector<Block*> route;
@@ -508,6 +594,15 @@ namespace sim_mob {
 	{
 		Platform* platform = nullptr;
 		std::map<std::string, Station*>& mapOfIdvsStations = getInstance()->mapOfIdvsStations;
+		std::map<std::string, Station*>::const_iterator it1 = mapOfIdvsStations.begin();
+		/*if(lineId=="NE_1"||lineId=="NE_2")
+		{
+		while(it1!=mapOfIdvsStations.end())
+		{
+			Print() <<it1->first<<std::endl;
+			it1++;
+		}
+		}*/
 		std::map<std::string, Station*>::const_iterator it = mapOfIdvsStations.find(stationName);
 		if(it!=mapOfIdvsStations.end()){
 			Station* station = it->second;
@@ -519,11 +614,32 @@ namespace sim_mob {
 	void TrainController<PERSON>::registerStationAgent(const std::string& nameStation, Agent* stationAgent)
 	{
 		std::map<std::string, Station*>& mapOfIdvsStations = getInstance()->mapOfIdvsStations;
+
 		std::map<std::string, Station*>::const_iterator it = mapOfIdvsStations.find(nameStation);
 		if(it!=mapOfIdvsStations.end()) {
 			allStationAgents[it->second]=stationAgent;
 		}
 	}
+
+	template<typename PERSON>
+	Station *TrainController<PERSON>::GetStationFromId(std::string stationId)
+	{
+		Station *station=mapOfIdvsStations[stationId];
+		return station;
+	}
+
+	template<typename PERSON>
+	void TrainController<PERSON>::TerminateTrainService(std::string lineId)
+	{
+		mapOfTrainServiceTerminated[lineId]=true;
+	}
+
+	template<typename PERSON>
+	bool TrainController<PERSON>::IsServiceTerminated(std::string lineId)
+	{
+		return mapOfTrainServiceTerminated[lineId];
+	}
+
 	template<typename PERSON>
 	void TrainController<PERSON>::HandleMessage(messaging::Message::MessageType type, const messaging::Message& message)
 	{
@@ -531,25 +647,34 @@ namespace sim_mob {
 		{
 		case MSG_TRAIN_BACK_DEPOT:
 		{
+			//sending the train back to depot
 				const TrainMessage& msg = MSG_CAST(TrainMessage, message);
 				PERSON* person = dynamic_cast<PERSON*>(msg.trainAgent);
-				if(person) {
+				if(person)
+				{
 					const std::vector<TripChainItem *>& tripChain = person->getTripChain();
 					TrainTrip* front = dynamic_cast<TrainTrip*>(tripChain.front());
-					if(front) {
+					if(front)
+					{
 						int trainId = front->getTrainId();
 						std::string lineId = front->getLineId();
 						std::map<std::string, std::vector<int>>::iterator it;
 						it=recycleTrainId.find(lineId);
-						if(it==recycleTrainId.end()){
+						if(it==recycleTrainId.end())
+						{
 							recycleTrainId[lineId] = std::vector<int>();
 						}
 						recycleTrainId[lineId].push_back(trainId);
+					    std::string oppLineId=GetOppositeLineId(lineId);
+						mapOfNoAvailableTrains[oppLineId]=mapOfNoAvailableTrains[oppLineId]+1;
+
 					}
 				}
 				break;
 		}
 		}
 	}
+
+
 } /* namespace sim_mob */
 #endif

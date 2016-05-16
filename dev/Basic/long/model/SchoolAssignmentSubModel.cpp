@@ -26,9 +26,9 @@ inline void writePreSchoolAssignmentsToFile(BigSerial hhId,BigSerial individualI
 
 }
 
-inline void writeSchoolAssignmentsToFile(BigSerial individualId,BigSerial preSchoolId)
+inline void writeSchoolAssignmentsToFile(BigSerial individualId,BigSerial priSchoolId)
 {
-	boost::format fmtr = boost::format("%1%, %2%") % individualId % preSchoolId;
+	boost::format fmtr = boost::format("%1%, %2%") % individualId % priSchoolId;
 	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_SCHOOL_ASSIGNMENT,fmtr.str());
 
 }
@@ -65,7 +65,7 @@ void SchoolAssignmentSubModel::assignPrimarySchool(const Household *household,Bi
 		if(distanceFromHomeToSchool <=5)
 		{
 			Individual *ind = model->getIndividualById(individualId);
-			ind->addprimarySchoolWithin5km((*schoolsItr));
+			ind->addprimarySchoolIdWithin5km((*schoolsItr)->getSchoolId(),(*schoolsItr));
 		}
 		valueSchool = valueSchool + distanceFromHomeToSchool * model->getSchoolAssignmentCoefficientsById(DISTANCE_TO_SCHOOL)->getCoefficientEstimate();
 		valueSchool = valueSchool + (*schoolsItr)->isGiftedProgram() * model->getSchoolAssignmentCoefficientsById(HAS_GIFTED_PROGRAM)->getCoefficientEstimate();
@@ -152,7 +152,7 @@ void SchoolAssignmentSubModel::assignPrimarySchool(const Household *household,Bi
 
 
 	PrimarySchool *priSchool = model->getPrimarySchoolById(selectedSchoolId);
-	priSchool->addStudent(model->getIndividualById(individualId));
+	priSchool->addStudent(individualId);
 	double distanceFromHomeToSchool = (distanceCalculateEuclidean(priSchool->getCentroidX(),priSchool->getCentroidY(),hhCoords->getCentroidX(),hhCoords->getCentroidY()))/1000;
 	PrimarySchool::DistanceIndividual distanceInd{individualId,distanceFromHomeToSchool};
 	priSchool->addIndividualDistance(distanceInd);
@@ -179,9 +179,13 @@ void SchoolAssignmentSubModel::setStudentLimitInPrimarySchool()
 			for(PrimarySchool::DistanceIndividual distInd:distIndWithinLimit )
 			{
 				selectedStudents.push_back(distInd.individualId);
-				writeSchoolAssignmentsToFile(distInd.individualId,priSchool->getSchoolId());
+				BigSerial schoolId = priSchool->getSchoolId();
+				writeSchoolAssignmentsToFile(distInd.individualId,schoolId);
 			}
 			priSchool->setSelectedStudentList(selectedStudents);
+
+			PrimarySchool *prSchoolFromMap = model->getPrimarySchoolById(priSchool->getSchoolId());
+			prSchoolFromMap->setSelectedStudentList(selectedStudents);
 
 			//reallocate the rest of the students among schools within 5km and still have positions
 			for(PrimarySchool::DistanceIndividual distInd:disIndToReallocate )
@@ -192,64 +196,89 @@ void SchoolAssignmentSubModel::setStudentLimitInPrimarySchool()
 		}
 		else
 		{
-			std::vector<Individual*> students = priSchool->getStudents();
-			for(Individual *individual : students)
+			std::vector<BigSerial> students = priSchool->getStudents();
+			for(BigSerial individualId : students)
 			{
-				priSchool->addSelectedStudent(individual->getId());
-				writeSchoolAssignmentsToFile(individual->getId(),priSchool->getSchoolId());
+				priSchool->addSelectedStudent(individualId);
+				PrimarySchool *prSchoolFromMap = model->getPrimarySchoolById(priSchool->getSchoolId());
+				prSchoolFromMap->addSelectedStudent(individualId);
+
+				BigSerial schoolId = priSchool->getSchoolId();
+				writeSchoolAssignmentsToFile(individualId,schoolId);
 			}
-//			for(BigSerial studentId : students)
-//			{
-//				writeSchoolAssignmentsToFile(studentId,priSchool->getSchoolId());
-//			}
 		}
 	}
 }
 
 void SchoolAssignmentSubModel::reAllocatePrimarySchoolStudents(BigSerial individualId)
 {
+	HM_Model::PrimarySchoolList primarySchools = model->getPrimarySchoolList();
 	std::size_t const studentLimitPerSchool = 3000;
 	Individual *individual = model->getIndividualById(individualId);
 	if(individual != nullptr)
 	{
-	HM_Model::PrimarySchoolList primarySchoolsIn5km = individual->getPrimarySchoolsWithin5km();
-	double totalStudentLimitDif = 0;
-	int numStudentsCanBeAssigned = 0;
+		HM_Model::PrimarySchoolList primarySchools = model->getPrimarySchoolList();
 
-	for(PrimarySchool *priSchool : primarySchoolsIn5km)
-	{
-		if(priSchool->getSelectedStudents().size() < studentLimitPerSchool)
+		double totalStudentLimitDif = 0;
+		int numStudentsCanBeAssigned = 0;
+
+		for(PrimarySchool *primaryScool : primarySchools)
 		{
-			totalStudentLimitDif = totalStudentLimitDif + (studentLimitPerSchool - priSchool->getSelectedStudents().size());
-			numStudentsCanBeAssigned = studentLimitPerSchool - priSchool->getSelectedStudents().size();
-			priSchool->setNumStudentsCanBeAssigned(numStudentsCanBeAssigned);
-		}
-	}
+			//PrintOut("num students before"<<primaryScool->getNumSelectedStudents());
+			if(individual->getIsPrimarySchoolWithin5Km(primaryScool->getSchoolId()))
+			{
 
-	std::map<BigSerial,double> probSchoolMap;
-	HM_Model::PrimarySchoolList schoolsWithProb;
-	for(PrimarySchool *priSchool : primarySchoolsIn5km)
-	{
-		if(priSchool->getNumOfSelectedStudents() < studentLimitPerSchool)
+
+				int numSelectedStudents = primaryScool->getNumSelectedStudents();
+				if(numSelectedStudents < studentLimitPerSchool)
+				{
+					totalStudentLimitDif = totalStudentLimitDif + (studentLimitPerSchool - numSelectedStudents);
+					numStudentsCanBeAssigned = studentLimitPerSchool - numSelectedStudents;
+					primaryScool->setNumStudentsCanBeAssigned(numStudentsCanBeAssigned);
+				}
+			}
+		}
+
+		std::map<BigSerial,double> probSchoolMap;
+		HM_Model::PrimarySchoolList schoolsWithProb;
+		for(PrimarySchool *priSchool : primarySchools)
 		{
-			double probSchool = priSchool->getSelectedStudents().size() / totalStudentLimitDif;
-			priSchool->setReAllocationProb(probSchool);
-			schoolsWithProb.push_back(priSchool);
+			if(individual->getIsPrimarySchoolWithin5Km(priSchool->getSchoolId()))
+			{
+				int numSelectedStudents = priSchool->getNumSelectedStudents();
+				if(priSchool->getNumOfSelectedStudents() < studentLimitPerSchool)
+				{
+					double probSchool = numSelectedStudents / totalStudentLimitDif;
+					priSchool->setReAllocationProb(probSchool);
+					schoolsWithProb.push_back(priSchool);
+					probSchoolMap.insert(std::pair<BigSerial, double>( priSchool->getSchoolId(), probSchool));
+				}
+			}
 		}
-	}
 
-	//sort the vector according to the probability
-	std::sort(schoolsWithProb.begin(), schoolsWithProb.end(), PrimarySchool::OrderByProbability());
+		//generate a normally distributed random number
+		boost::mt19937 igen;
+		boost::variate_generator<boost::mt19937, boost::normal_distribution<> >gen(igen,boost::normal_distribution<>(0.0, 1.0 ));
+		const double randomNum = gen();
+		double pTemp = 0;
 
-	for(PrimarySchool *priSchool : schoolsWithProb)
-	{
-		if(priSchool->getNumStudentsCanBeAssigned() > 0)
+		BigSerial selectedSchoolId = 0;
+		std::map<BigSerial,double>::const_iterator probSchoolItr;
+		for(probSchoolItr = probSchoolMap.begin(); probSchoolItr != probSchoolMap.end(); ++probSchoolItr)
 		{
-			priSchool->addSelectedStudent(individualId);
-			writeSchoolAssignmentsToFile(individualId,priSchool->getSchoolId());
-			break;
+			if ((pTemp < randomNum) && (randomNum < (pTemp + (*probSchoolItr).second)))
+			{
+				selectedSchoolId = (*probSchoolItr).first;
+				PrimarySchool *priSchool = model->getPrimarySchoolById(selectedSchoolId);
+				priSchool->addSelectedStudent(individualId);
+				writeSchoolAssignmentsToFile(individualId,selectedSchoolId);
+				break;
+			}
+			else
+			{
+				pTemp = pTemp + (*probSchoolItr).second;
+			}
 		}
-	}
 
 	}
 }

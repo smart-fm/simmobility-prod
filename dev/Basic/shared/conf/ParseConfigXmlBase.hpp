@@ -45,7 +45,8 @@ protected:
 	 * Normally meant to be called from within the constructor of derived classes.
 	 */
 	void parseXmlAndProcess();
-
+	void processXmlFileForServiceControler(xercesc::XercesDOMParser& parser);
+        void parseXmlAndProcessForServiceController();
 	/**
 	 * Perform per-process parser initialization
 	 */

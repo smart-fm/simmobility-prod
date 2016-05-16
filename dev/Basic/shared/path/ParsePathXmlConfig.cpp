@@ -37,7 +37,10 @@ void sim_mob::ParsePathXmlConfig::processXmlFile(XercesDOMParser& parser)
 	ProcessPathSetNode(rootNode);
 }
 
+void sim_mob::ParsePathXmlConfig::processXmlFileForServiceControler(xercesc::XercesDOMParser& parser)
+{
 
+}
 void sim_mob::ParsePathXmlConfig::ProcessPathSetNode(xercesc::DOMElement* node){
 
 	if (!node)

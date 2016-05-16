@@ -20,6 +20,7 @@
 #include "geospatial/network/WayPoint.hpp"
 #include "path/PT_RouteChoiceLuaProvider.hpp"
 #include "entities/PT_EdgeTravelTime.hpp"
+#include "entities/incident/IncidentManager.hpp"
 #include "util/DailyTime.hpp"
 
 using namespace std;
@@ -140,6 +141,22 @@ void Person_MT::convertPublicTransitODsToTrips()
 	}
 }
 
+void Person_MT::onEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args)
+{
+	switch(eventId)
+	{
+	case EVT_DISRUPTION_REROUTING:
+	{
+		const DisruptionEventArgs& exArgs = MSG_CAST(DisruptionEventArgs, args);
+		const DisruptionParams& disruption = exArgs.getDisruption();
+		break;
+	}
+	}
+
+	if(currRole){
+		currRole->onParentEvent(eventId, ctxId, sender, args);
+	}
+}
 void Person_MT::insertWaitingActivityToTrip()
 {
 	std::vector<TripChainItem*>::iterator tripChainItem;

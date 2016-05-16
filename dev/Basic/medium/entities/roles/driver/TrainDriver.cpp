@@ -184,6 +184,8 @@ Platform* TrainDriver::getNextPlatform() const
 	}
 	return platform;
 }
+
+
 std::list<Passenger*>& TrainDriver::getPassengers()
 {
 	return passengerList;

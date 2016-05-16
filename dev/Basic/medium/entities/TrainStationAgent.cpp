@@ -51,6 +51,7 @@ void TrainStationAgent::onEvent(event::EventId eventId, sim_mob::event::Context 
 	{
 		const DisruptionEventArgs& exArgs = MSG_CAST(DisruptionEventArgs, args);
 		const DisruptionParams& disruption = exArgs.getDisruption();
+		triggerRerouting(args);
 		break;
 	}
 	}
@@ -147,7 +148,7 @@ void TrainStationAgent::dispathPendingTrains(timeslice now)
 void TrainStationAgent::passengerLeaving(timeslice now)
 {
 	std::map<const Platform*, std::list<Passenger*>>::iterator it;
-	for (it = aligtingPersons.begin(); it != aligtingPersons.end(); it++) {
+	for (it = leavingPersons.begin(); it != leavingPersons.end(); it++) {
 		std::list<Passenger*>::iterator itPassenger = it->second.begin();
 		while (itPassenger != it->second.end() && parentConflux) {
 			messaging::MessageBus::PostMessage(parentConflux,
@@ -156,7 +157,21 @@ void TrainStationAgent::passengerLeaving(timeslice now)
 		}
 	}
 }
-
+void TrainStationAgent::triggerRerouting(const event::EventArgs& args)
+{
+	const DisruptionEventArgs& exArgs = MSG_CAST(DisruptionEventArgs, args);
+	std::map<const Platform*, std::list<Passenger*>>::iterator it;
+	for (it = leavingPersons.begin(); it != leavingPersons.end(); it++) {
+		std::list<Passenger*>::iterator itPassenger = it->second.begin();
+		while (itPassenger != it->second.end()) {
+			Person_MT* parent = (*itPassenger)->getParent();
+			messaging::MessageBus::SubscribeEvent(EVT_DISRUPTION_REROUTING, this, parent);
+			messaging::MessageBus::PublishInstantaneousEvent(EVT_DISRUPTION_REROUTING, this, messaging::MessageBus::EventArgsPtr(new DisruptionEventArgs(exArgs)));
+			messaging::MessageBus::UnSubscribeEvent(EVT_DISRUPTION_REROUTING, this, parent);
+			itPassenger++;
+		}
+	}
+}
 void TrainStationAgent::updateWaitPersons()
 {
 	std::map<const Platform*, std::list<WaitTrainActivity*>>::iterator it;
@@ -188,7 +203,7 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 			if ((*it)->getNextRequested() == TrainDriver::REQUESTED_AT_PLATFORM)
 			{
 				const Platform* platform = (*it)->getNextPlatform();
-				int alightingNum = (*it)->alightPassenger(aligtingPersons[platform],now);
+				int alightingNum = (*it)->alightPassenger(leavingPersons[platform],now);
 				int boardingNum = (*it)->boardPassenger(waitingPersons[platform], now);
 				(*it)->calculateDwellTime(boardingNum,alightingNum);
 				(*it)->setNextRequested(TrainDriver::REQUESTED_WAITING_LEAVING);

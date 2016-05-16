@@ -60,6 +60,15 @@ private:
      */
 	bool advanceCurrentTripChainItem();
 
+	/**
+	 * Inherited from EventListener.
+	 * @param eventId
+	 * @param ctxId
+	 * @param sender
+	 * @param args
+	 */
+	virtual void onEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args);
+
 protected:
 public:
 	/**Indicates if the agent is queuing*/

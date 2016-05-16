@@ -12,16 +12,25 @@
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "entities/misc/TrainTrip.hpp"
+#include "behavioral/ServiceController.hpp"
 namespace sim_mob {
+
 namespace medium{
 
 TrainDriver::TrainDriver(Person_MT* parent,
 		sim_mob::medium::TrainBehavior* behavior,
 		sim_mob::medium::TrainMovement* movement,
 		std::string roleName, Role<Person_MT>::Type roleType) :
-	sim_mob::Role<Person_MT>::Role(parent, behavior, movement, roleName, roleType),nextDriver(nullptr),nextRequested(NO_REQUESTED),waitingTimeSec(0.0)
+	sim_mob::Role<Person_MT>::Role(parent, behavior, movement, roleName, roleType),nextDriver(nullptr),nextRequested(NO_REQUESTED),waitingTimeSec(0.0),initialDwellTime(0.0)
 {
-
+	int trainId=getTrainId();
+	std::string lineId=getTrainLine();
+	//TrainIdLineId trainLineId;
+	//trainLineId.lineId=lineId;
+	//trainLineId.trainId=trainId;
+	Role<Person_MT> *trainDriver=dynamic_cast<Role<Person_MT>*>(this);
+	ServiceController::getInstance()->InsertTrainIdAndTrainDriverInMap(trainId,lineId,trainDriver);
+	//trainLineId,trainDriver
 }
 
 TrainDriver::~TrainDriver()
@@ -63,6 +72,12 @@ void TrainDriver::leaveFromCurrentPlatform()
 		movement->leaveFromPlaform();
 	}
 }
+
+TrainMovement* TrainDriver::GetMovement()
+{
+	TrainMovement* movement = dynamic_cast<TrainMovement*>(movementFacet);
+	return movement;
+}
 TrainDriver::TRAIN_NEXTREQUESTED TrainDriver::getNextRequested() const
 {
 	return nextRequested;
@@ -82,6 +97,7 @@ void TrainDriver::calculateDwellTime(int boarding,int alighting)
 
 	double time = 12.22 + 2.27*boarding/24 + 1.82*alighting/24 + 0.00062*(noOfPassengerInTrain/24)*(noOfPassengerInTrain/24)*(noOfPassengerInTrain/24)*(boarding/24);
 	waitingTimeSec = time;
+	initialDwellTime=time;
 }
 double TrainDriver::getWaitingTime() const
 {
@@ -123,6 +139,22 @@ int TrainDriver::getTripId() const
 	}
 	return id;
 }
+
+int TrainDriver::getTrainId() const
+{
+	int id = 0;
+	if(getParent())
+	{
+		std::vector<TripChainItem *>::iterator currTrip = getParent()->currTripChainItem;
+		const TrainTrip* trip = dynamic_cast<const TrainTrip*>(*currTrip);
+		if(trip)
+		{
+			id = trip->getTrainId();
+		}
+	}
+	return id;
+}
+
 Platform* TrainDriver::getNextPlatform() const
 {
 	Platform* platform = nullptr;
@@ -146,11 +178,13 @@ unsigned int TrainDriver::getEmptyOccupation()
 	}
 	return 0;
 }
-int TrainDriver::alightPassenger(std::list<Passenger*>& alightingPassenger)
+int TrainDriver::alightPassenger(std::list<Passenger*>& alightingPassenger,timeslice now)
 {
 	int num = 0;
 	const Platform* platform = this->getNextPlatform();
 	std::list<Passenger*>::iterator i = passengerList.begin();
+	std::string tm=(DailyTime(now.ms())+DailyTime(ConfigManager::GetInstance().FullConfig().simStartTime())).getStrRepr();
+	sim_mob::BasicLogger& ptMRTLogger  = sim_mob::Logger::log("PersonsAlighting.csv");
 	while(i!=passengerList.end())
 	{
 		const WayPoint& endPoint = (*i)->getEndPoint();
@@ -159,6 +193,7 @@ int TrainDriver::alightPassenger(std::list<Passenger*>& alightingPassenger)
 			if(endPoint.platform==platform)
 			{
 				alightingPassenger.push_back(*i);
+				ptMRTLogger <<(*i)->getParent()->GetId()<<","<<tm<<","<<getTrainId()<<","<<getTripId()<<","<<(*i)->getParent()->currSubTrip->origin.platform->getPlatformNo()<<","<<(*i)->getParent()->currSubTrip->destination.platform->getPlatformNo()<<std::endl;
 				i = passengerList.erase(i);
 				num++;
 				continue;
@@ -171,6 +206,11 @@ int TrainDriver::alightPassenger(std::list<Passenger*>& alightingPassenger)
 		i++;
 	}
 	return num;
+}
+
+void TrainDriver::AlightAllPassengers()
+{
+	passengerList.clear();
 }
 
 void TrainDriver::updatePassengers()
@@ -197,6 +237,7 @@ int TrainDriver::boardPassenger(std::list<WaitTrainActivity*>& boardingPassenger
 {
 	int num = 0;
 	int validNum = getEmptyOccupation();
+	sim_mob::BasicLogger& ptMRTLogger  = sim_mob::Logger::log("PersonsBoarding.csv");
 	std::list<WaitTrainActivity*>::iterator i = boardingPassenger.begin();
 	while(i!=boardingPassenger.end()&&validNum>0)
 	{
@@ -208,13 +249,16 @@ int TrainDriver::boardPassenger(std::list<WaitTrainActivity*>& boardingPassenger
 		person->checkTripChain(now.ms());
 		Role<Person_MT>* curRole = person->getRole();
 		curRole->setArrivalTime(now.ms()+(ConfigManager::GetInstance().FullConfig().simStartTime()).getValue());
+		std::string tm=(DailyTime(now.ms())+DailyTime(ConfigManager::GetInstance().FullConfig().simStartTime())).getStrRepr();
 		sim_mob::medium::Passenger* passenger = dynamic_cast<sim_mob::medium::Passenger*>(curRole);
 		if(passenger)
 		{
 			passenger->setArrivalTime(now.ms()+(ConfigManager::GetInstance().FullConfig().simStartTime()).getValue());
 			passenger->setStartPoint(person->currSubTrip->origin);
 			passenger->setEndPoint(person->currSubTrip->destination);
-			passengerList.push_back(passenger);
+			passenger->Movement()->startTravelTimeMetric();
+			ptMRTLogger<<person->GetId()<<","<<tm<<","<<getTrainId()<<","<<getTripId()<<","<<person->currSubTrip->origin.platform->getPlatformNo()<<","<<person->currSubTrip->destination.platform->getPlatformNo()<<std::endl;
+            passengerList.push_back(passenger);
 			i = boardingPassenger.erase(i);
 			validNum--;
 			num++;

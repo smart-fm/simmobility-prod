@@ -4,16 +4,22 @@
  *  Created on: Feb 17, 2016
  *      Author: zhang huai peng
  */
+#pragma once
 #include <atomic>
 #include "entities/Person_MT.hpp"
+//#include "shared/entities/Person.hpp"
 #include "entities/roles/Role.hpp"
 #include "TrainUpdateParams.hpp"
 #include "entities/roles/passenger/Passenger.hpp"
 #include "entities/roles/waitTrainActivity/WaitTrainActivity.hpp"
-namespace sim_mob {
+#include "behavioral/ServiceController.hpp"
+
+namespace sim_mob{
 namespace medium{
 class TrainBehavior;
 class TrainMovement;
+
+
 class TrainDriver : public sim_mob::Role<Person_MT>, public UpdateWrapper<TrainUpdateParams> {
 public:
 	enum TRAIN_NEXTREQUESTED{
@@ -94,7 +100,7 @@ public:
 	 * passenger alighting
 	 * @param alightingPassenger is the list of alighting person
 	 */
-	int alightPassenger(std::list<Passenger*>& alightingPassenger);
+	int alightPassenger(std::list<Passenger*>& alightingPassenger,timeslice now);
 	/**
 	 * passenger boarding
 	 * @param boardingPassenger is the list of boarding person
@@ -104,12 +110,19 @@ public:
 	 * update passengers inside the train
 	 */
 	void updatePassengers();
+
+	void AlightAllPassengers();
+
+	TrainMovement * GetMovement();
 	/**
 	 * store waiting time
 	 * @param waitingActivity is pointer to the waiting people
 	 * @param now is current time
 	 */
 	void storeWaitingTime(WaitTrainActivity* waitingActivity,timeslice now) const;
+	/* to get traiId*/
+	int getTrainId() const;
+
 private:
 	/**get next train driver*/
 	const TrainDriver* nextDriver;
@@ -117,6 +130,7 @@ private:
 	TRAIN_NEXTREQUESTED nextRequested;
 	/**current waiting time*/
 	double waitingTimeSec;
+	double initialDwellTime;
 	/**passengers list*/
 	std::list<Passenger*> passengerList;
 private:

@@ -9,8 +9,9 @@
 
 using namespace sim_mob::long_term;
 
-PrimarySchool::PrimarySchool(BigSerial schoolId, BigSerial postcode , double centroidX, double centroidY, std::string schoolName, int giftedProgram, int sapProgram, std::string dgp, BigSerial tazId,int numStudents)
-							:schoolId(schoolId),postcode(postcode), centroidX(centroidX),centroidY(centroidY), schoolName(schoolName), giftedProgram(giftedProgram), sapProgram(sapProgram),dgp(dgp), tazId(tazId),numStudents(numStudents){}
+PrimarySchool::PrimarySchool(BigSerial schoolId, BigSerial postcode , double centroidX, double centroidY, std::string schoolName, int giftedProgram, int sapProgram, std::string dgp, BigSerial tazId,int numStudents, int numStudentsCanBeAssigned, double reAllocationProb)
+							:schoolId(schoolId),postcode(postcode), centroidX(centroidX),centroidY(centroidY), schoolName(schoolName), giftedProgram(giftedProgram), sapProgram(sapProgram),dgp(dgp), tazId(tazId),
+							 numStudents(numStudents),numStudentsCanBeAssigned(numStudentsCanBeAssigned), reAllocationProb(reAllocationProb){}
 
 PrimarySchool::~PrimarySchool(){}
 
@@ -26,6 +27,23 @@ PrimarySchool::PrimarySchool(const PrimarySchool& source)
 	this->dgp = source.dgp;
 	this->tazId = source.tazId;
 	this->numStudents = source.numStudents;
+	this->numStudentsCanBeAssigned = source.numStudentsCanBeAssigned;
+	this->reAllocationProb = source.reAllocationProb;
+
+	for (int i=0; i< source.students.size(); i++)
+	{
+		this->students[i] = source.students[i];
+	}
+
+	for (int i=0; i< source.selectedStudents.size(); i++)
+	{
+		this->selectedStudents[i] = source.selectedStudents[i];
+	}
+
+	for (int i=0; i< source.distanceIndList.size(); i++)
+	{
+		this->distanceIndList[i] = source.distanceIndList[i];
+	}
 
 }
 
@@ -41,13 +59,31 @@ PrimarySchool& PrimarySchool::operator=(const PrimarySchool& source)
 	this->dgp = source.dgp;
 	this->tazId = source.tazId;
 	this->numStudents = source.numStudents;
+	this->numStudentsCanBeAssigned = source.numStudentsCanBeAssigned;
+	this->reAllocationProb = source.reAllocationProb;
+
+	for (int i=0; i< source.students.size(); i++)
+	{
+		this->students[i] = source.students[i];
+	}
+
+	for (int i=0; i< source.selectedStudents.size(); i++)
+	{
+		this->selectedStudents[i] = source.selectedStudents[i];
+	}
+
+	for (int i=0; i< source.distanceIndList.size(); i++)
+	{
+		this->distanceIndList[i] = source.distanceIndList[i];
+	}
 
 	return *this;
 }
 
 double PrimarySchool::getCentroidX() const
 {
-	return centroidX;
+	return centroidX;			std::vector<Individual*> students;
+
 }
 
 void PrimarySchool::setCentroidX(double centroidX)
@@ -140,9 +176,9 @@ int PrimarySchool::getNumStudents() const
 	return this->numStudents;
 }
 
-void PrimarySchool::addStudent(Individual *student)
+void PrimarySchool::addStudent(BigSerial studentId)
 {
-	this->students.push_back(student);
+	this->students.push_back(studentId);
 	numStudents++;
 }
 
@@ -157,7 +193,13 @@ std::vector<PrimarySchool::DistanceIndividual>  PrimarySchool::getSortedDistance
 	return distanceIndList;
 }
 
-std::vector<Individual*> PrimarySchool::getStudents()
+std::vector<PrimarySchool> getSortedProbSchoolList( std::vector<PrimarySchool> studentsWithProb)
+{
+	std::sort(studentsWithProb.begin(), studentsWithProb.end(), PrimarySchool::OrderByProbability());
+	return studentsWithProb;
+}
+
+std::vector<BigSerial> PrimarySchool::getStudents()
 {
 //	std::vector<BigSerial> studentIdList;
 //	std::vector<Individual*>::iterator schoolsItr;
@@ -169,9 +211,9 @@ std::vector<Individual*> PrimarySchool::getStudents()
 	return this->students;
 }
 
-std::vector<BigSerial> PrimarySchool::getSelectedStudents()
+int PrimarySchool::getNumSelectedStudents()
 {
-	return this->selectedStudents;
+	return this->selectedStudents.size();
 }
 
 void PrimarySchool::setSelectedStudentList(std::vector<BigSerial>&selectedStudentsList)
@@ -203,7 +245,7 @@ double PrimarySchool::getReAllocationProb()
 	return this->reAllocationProb;
 }
 
-void PrimarySchool::addSelectedStudent(BigSerial individualId)
+void PrimarySchool::addSelectedStudent(BigSerial &individualId)
 {
 	this->selectedStudents.push_back(individualId);
 }

@@ -245,6 +245,7 @@ struct IncidentParams {
  * represent disruption data section of the config file
  */
 struct DisruptionParams{
+	DisruptionParams():startTime(0),duration(0),id(0){}
 	unsigned int id;
 	DailyTime startTime;
 	DailyTime duration;

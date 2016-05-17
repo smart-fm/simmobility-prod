@@ -11,6 +11,7 @@
 #include "entities/roles/passenger/Passenger.hpp"
 #include "entities/roles/waitTrainActivity/WaitTrainActivity.hpp"
 #include "geospatial/network/PT_Stop.hpp"
+#include "entities/incident/IncidentManager.hpp"
 namespace sim_mob {
 namespace medium
 {
@@ -69,6 +70,11 @@ private:
 	 * trigger reroute event
 	 */
 	void triggerRerouting(const event::EventArgs& args);
+	/**
+	 * perform disruption processing
+	 * @param now is current time
+	 */
+	void performDisruption(timeslice now);
 private:
 	/**the reference to the station*/
 	const Station* station;
@@ -86,6 +92,8 @@ private:
 	std::map<const Platform*, std::list<Passenger*>> leavingPersons;
 	/** parent conflux */
 	Conflux* parentConflux;
+	/**recording disruption information*/
+	boost::shared_ptr<DisruptionParams> disruptionParam;
 };
 }
 } /* namespace sim_mob */

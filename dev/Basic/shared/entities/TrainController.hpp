@@ -156,6 +156,13 @@ public:
 	 * @param stationName is the station name
 	 */
 	static Platform* getPlatform(const std::string& lineId, const std::string& stationName);
+	/**
+	 * check whether platform is existed or not
+	 * @param stationAgent is a pointer to station agent
+	 * @param platformName is the name of platform you want to check
+	 * @return true if find corresponding platform
+	 */
+	static bool checkPlatformIsExisted(const Agent* stationAgent, const std::string& platformName);
 
 protected:
 	/**

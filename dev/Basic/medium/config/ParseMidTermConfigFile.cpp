@@ -654,7 +654,7 @@ void ParseMidTermConfigFile::processIncidentsNode(xercesc::DOMElement* node)
     		disruption.startTime = ParseDailyTime(GetNamedAttributeValue(item, "start_time") );
     		disruption.duration = ParseDailyTime(GetNamedAttributeValue(item, "duration") );
     		for(DOMElement* child=item->getFirstElementChild(); child; child=child->getNextElementSibling()){
-    			std::string platform = ParseString(GetNamedAttributeValue(node, "name"), "");
+    			std::string platform = ParseString(GetNamedAttributeValue(child, "name"), "");
     			disruption.platformNames.push_back(platform);
     		}
     		mtCfg.disruptions.push_back(disruption);

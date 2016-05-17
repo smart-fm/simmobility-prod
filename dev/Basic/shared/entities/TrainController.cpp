@@ -518,6 +518,26 @@ namespace sim_mob {
 		return platform;
 	}
 	template<typename PERSON>
+	bool TrainController<PERSON>::checkPlatformIsExisted(const Agent* stationAgent, const std::string& platformNo)
+	{
+		bool res = false;
+		boost::unordered_map<const Station*, Agent*>::const_iterator it;
+		for(it=allStationAgents.begin();it!=allStationAgents.end(); it++){
+			if((*it).second==stationAgent){
+				const std::map<std::string, Platform*>& platforms = (*it).first->getPlatforms();
+				std::map<std::string, Platform*>::const_iterator ii;
+				for(ii=platforms.begin(); ii!=platforms.end(); ii++){
+					if((*ii).second->getPlatformNo()==platformNo){
+						res = true;
+						break;
+					}
+				}
+				break;
+			}
+		}
+		return res;
+	}
+	template<typename PERSON>
 	void TrainController<PERSON>::registerStationAgent(const std::string& nameStation, Agent* stationAgent)
 	{
 		std::map<std::string, Station*>& mapOfIdvsStations = getInstance()->mapOfIdvsStations;

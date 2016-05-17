@@ -181,6 +181,11 @@ public:
 	 * @param lineId is line id
 	 */
 	Platform* getPlatform(const std::string& lineId) const;
+	/**
+	 * get all platforms
+	 * return all platforms
+	 */
+	const std::map<std::string, Platform*>& getPlatforms() const;
 private:
 	/**the map from line id to platform*/
 	std::map<std::string, Platform*> lineToPlatform;

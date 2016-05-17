@@ -16,6 +16,9 @@
 #include "geospatial/network/Platform.hpp"
 #include "entities/Agent.hpp"
 #include "entities/misc/TrainTrip.hpp"
+//#include "entities/roles/Role.hpp"
+//#include "entities/Person_MT.hpp"
+//#include "medium/entities/roles/driver/TrainDriver.hpp"
 
 using namespace sim_mob::messaging;
 namespace sim_mob {
@@ -24,6 +27,8 @@ const Message::MessageType MSG_TRAIN_BACK_DEPOT = 7300001;
 /**
  * Message holding a pointer to trainDriver
  */
+
+
 class TrainMessage: public messaging::Message
 {
 public:
@@ -104,7 +109,8 @@ class TripStartTimePriorityQueue : public std::priority_queue<TrainTrip*, std::v
 {
 };
 template<typename PERSON>
-class TrainController: public sim_mob::Agent {
+class TrainController: public sim_mob::Agent
+{
 	BOOST_STATIC_ASSERT_MSG(
 			(boost::is_base_of<sim_mob::Person, PERSON>::value),
 			"PERSON must be a descendant of sim_mob::Person"
@@ -122,6 +128,8 @@ public:
 	/**
 	 * update nearby previous and next train location
 	 */
+
+	void InitializeTrainIds(std::string lineId);
 	void updateTrainPosition();
 	/**
 	 * get global instance for train controller
@@ -163,6 +171,11 @@ public:
 	 * @return true if find corresponding platform
 	 */
 	static bool checkPlatformIsExisted(const Agent* stationAgent, const std::string& platformName);
+	/* get vector of blocks from lineId*/
+	std::vector<Block*> GetBlocks(std::string lineId);
+	/* get station entity from ID*/
+	Station * GetStationFromId(std::string stationId);
+	std::string GetOppositeLineId(std::string lineId);
 
 protected:
 	/**
@@ -214,6 +227,8 @@ protected:
 	 */
 	virtual void onEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args);
 
+
+
 private:
 	/**
 	 * the function to load platforms from DB
@@ -230,6 +245,11 @@ private:
 	/**
 	 * the function to load routes from DB
 	 */
+
+
+
+	/** function to get blocks for particular train route*/
+
 	void loadTrainRoutes();
 	/**
 	 * the function to load train platforms from DB
@@ -266,6 +286,14 @@ private:
 	 * @param lineId is refer to train line
 	 */
 	int getTrainId(const std::string& lineId);
+
+	/** get the station entity from its Id */
+	void TerminateTrainService( std::string lineId);
+
+	bool IsServiceTerminated(std::string lineId);
+
+    /** gives opposite line Id */
+
 private:
 	/** global static bus stop agents lookup table*/
 	static StationAgentsMap allStationAgents;
@@ -288,7 +316,13 @@ private:
 	/**	buses waiting to be added to the simulation, prioritized by start time.*/
 	StartTimePriorityQueue pendingChildren;
 	/**last train id*/
+	std::map< std::string,unsigned int>mapOfNoAvailableTrains;
+    /* holds the status of train service ...true if terminated false if running*/
+	std::map<std::string,bool>mapOfTrainServiceTerminated;
+
 	int lastTrainId;
+
+
 	/**reused train Ids*/
 	std::map<std::string, std::vector<int>> recycleTrainId;
 private:

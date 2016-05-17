@@ -132,6 +132,8 @@ bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::S
 	bool invalidFlag = false;
 	if (!matchedTrips.empty())
 	{
+		sim_mob::BasicLogger& ptMRTMoveLogger  = sim_mob::Logger::log("ODSNorthEast.csv");
+		sim_mob::BasicLogger& ptMRTPathsetFailed  = sim_mob::Logger::log("PathsetFailed.csv");
 		std::vector<sim_mob::OD_Trip>::const_iterator it = matchedTrips.begin();
 		while (it != matchedTrips.end())
 		{
@@ -158,6 +160,7 @@ bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::S
 			if(invalidFlag)
 			{
 				Print() << "[PT pathset] make trip failed:[" << sSrc << "]|[" << sEnd << "] - Invalid start/end stop for PT edge" << std::endl;
+				ptMRTPathsetFailed <<sSrc<<","<<sEnd<<std::endl;
 				ret = false;
 				break;
 			}
@@ -292,10 +295,17 @@ bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::S
 			else
 			{
 				Print() << "[PT pathset] make trip failed:[" << sSrc << "(" << sType << ")" << "]|[" << sEnd << "(" << eType << ")" << "] mode: " << it->tType << std::endl;
+				//ptMRTPathsetFailed <<GetId()<<","<<sSrc<<","<<sEnd<<","<<currSubTrip->getMode()<<std::endl;
 				ret = false;
 				break;
 			}
 			++it;
+			//if(sSrc.find("NE")!=-1&&sEnd.find("NE")!=-1)
+			//{
+
+				ptMRTMoveLogger << getDatabaseId() <<","<<(subTrip.startTime).getStrRepr()<<","<<(subTrip.endTime).getStrRepr()<<","<<sSrc<<","<<sEnd<<","<<subTrip.travelMode<<std::endl;
+				//Print() <<"dest is"<<dest;
+			//}
 		}
 	}
 	return ret;
@@ -535,6 +545,12 @@ void sim_mob::Person::serializeSubTripChainItemTravelTimeMetrics(const TravelMet
 		origin = trainStopIdStrm.str();
 		break;
 	}
+
+	case WayPoint::MRT_PLATFORM:
+	{
+		origin=subtripMetrics.origin.platform->getPlatformNo();
+		break;
+	}
 	default:
 	{
 		origin = std::to_string(subtripMetrics.origin.type);
@@ -561,6 +577,12 @@ void sim_mob::Person::serializeSubTripChainItemTravelTimeMetrics(const TravelMet
 		const std::vector<std::string>& trainStopIdVect = subtripMetrics.destination.trainStop->getTrainStopIds();
 		std::copy(trainStopIdVect.begin(), trainStopIdVect.end(), std::ostream_iterator<std::string>(trainStopIdStrm, delimiter));
 		destination = trainStopIdStrm.str();
+		break;
+	}
+
+	case WayPoint::MRT_PLATFORM:
+	{
+		destination=subtripMetrics.destination.platform->getPlatformNo();
 		break;
 	}
 	default:

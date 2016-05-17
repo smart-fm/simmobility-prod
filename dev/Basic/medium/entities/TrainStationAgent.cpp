@@ -224,7 +224,7 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 			if ((*it)->getNextRequested() == TrainDriver::REQUESTED_AT_PLATFORM)
 			{
 				const Platform* platform = (*it)->getNextPlatform();
-				int alightingNum = (*it)->alightPassenger(leavingPersons[platform]);
+				int alightingNum = (*it)->alightPassenger(leavingPersons[platform],now);
 				int boardingNum = (*it)->boardPassenger(waitingPersons[platform], now);
 				(*it)->calculateDwellTime(boardingNum,alightingNum);
 				(*it)->setNextRequested(TrainDriver::REQUESTED_WAITING_LEAVING);

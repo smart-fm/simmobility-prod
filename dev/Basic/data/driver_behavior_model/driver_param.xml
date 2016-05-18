@@ -237,8 +237,8 @@
 	A vehicle must remain in a lane for a minimum of "minimum time in lane" seconds before
 	considering another lane chane.-->                                   
 	<param name="MLC_PARAMETERS" value="
-	750.0		#lower bound(meter) 
-	1000.0		#delta(meter)
+	300.0		#lower bound(meter)
+	500.0		#delta(meter)
 	2.0			#minimum time in lane (sec)
 	"/>
 
@@ -291,7 +291,7 @@
 	"/>-->
 	<!-- From mitsim (left hand driving): -->
 	<param name="lane_utility_model" value="
-	4.2656		# current lane constant
+	3.9443		# current lane constant
 	0.3213		# right lane constant
 	-1.1683		# right most lane dummy
 	0.0			# currently unused
@@ -303,8 +303,8 @@
 	-3.3754		# tailgate
 	10			# gap behind threshold for tailgate dummy (meters)
 	19			# density threshold for tailgate dummy	
-	-2.3400		# one lane change required
-	-4.5084		# two lane changes required
+	-1.3400		# one lane change required
+	-3.5084		# two lane changes required
 	-2.8257		# each additional lane change required
 	-1.2597		# next exit, one lane change required
 	-0.7239		# next exit, each additional lane changes required

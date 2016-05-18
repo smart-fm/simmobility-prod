@@ -1385,6 +1385,7 @@ double MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams &params)
 	if (fwdVeh->exists())
 	{
 		aheadway = fwdVeh->distance;
+		params.lcDebugStr << ";ah" << aheadway;
 	}
 	else
 	{
@@ -1396,6 +1397,7 @@ double MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams &params)
 	if (rearVeh->exists())
 	{
 		bheadway = rearVeh->distance;
+		params.lcDebugStr << ";bh" << bheadway;
 	}
 	else
 	{
@@ -1421,17 +1423,29 @@ double MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams &params)
 		params.lcDebugStr << ";0";
 		lctype = 0; // discretionary
 	}
+	
+	double cGapRear = -1, cGapFwd = -1;
 
 	// 6.0 check if lead, lag gap is OK
-	if (rearVeh->exists() && bheadway < lcCriticalGap(params, 1, rearVeh->driver->getFwdVelocity() - params.currSpeed))
+	if (rearVeh->exists())
 	{
-		params.lcDebugStr << ";FLG";
-		params.setFlag(FLAG_LC_FAILED_LAG); // lag gap
+		cGapRear = lcCriticalGap(params, 1, rearVeh->driver->getFwdVelocity() - params.currSpeed);
+		
+		if(bheadway < cGapRear)
+		{
+			params.lcDebugStr << ";FLG" << "cgapR" << cGapRear;
+			params.setFlag(FLAG_LC_FAILED_LAG); // lag gap
+		}
 	}
-	if (fwdVeh->exists() && aheadway < lcCriticalGap(params, 0, fwdVeh->driver->getFwdVelocity() - params.currSpeed))
+	if (fwdVeh->exists())
 	{
-		params.lcDebugStr << ";FLD";
-		params.setFlag(FLAG_LC_FAILED_LEAD); // lead gap
+		cGapFwd = lcCriticalGap(params, 0, fwdVeh->driver->getFwdVelocity() - params.currSpeed);
+		
+		if(aheadway < cGapFwd)
+		{
+			params.lcDebugStr << ";FLD" << "cgapF" << cGapFwd;
+			params.setFlag(FLAG_LC_FAILED_LEAD); // lead gap
+		}
 	}
 
 	// 7.0 if gap is OK, then set status as doing lane change
@@ -1501,7 +1515,7 @@ double MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams &params)
 				params.setFlag(FLAG_NOSING_FEASIBLE);
 
 				// Nosing is feasible
-				if (rearVeh->exists() && params.flag(FLAG_LC_FAILED_LAG) &&!params.flag(FLAG_STUCK_AT_END))
+				if (rearVeh->exists() && params.flag(FLAG_LC_FAILED_LAG) && rearVeh->distance > 0)
 				{					
 					// There is a lag vehicle in the target lane with which we don't have enough gap
 					//Also, make sure that the lag vehicle isn't stuck (yielding to it would get us stuck as well,
@@ -1544,7 +1558,7 @@ double MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams &params)
 				}
 				
 				// Check if the minimum gaps are available.				
-				if (abs(bheadway) > params.lcMinGap(lctype + 1) && aheadway > params.lcMinGap(lctype))
+				if (abs(bheadway) > cGapRear && aheadway > cGapFwd)
 				{
 					params.setStatusDoingLC(changeMode);
 				}				

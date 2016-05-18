@@ -113,7 +113,9 @@ void DriverMovement::frame_init()
 	}
 	else
 	{
-		throw std::runtime_error("No path found!");
+		std::stringstream msg;
+		msg << "No path found from " << parentDriver->origin->getNodeId() << " to " << parentDriver->destination->getNodeId();
+		throw std::runtime_error(msg.str());
 	}
 }
 
@@ -567,7 +569,7 @@ bool DriverMovement::updateMovement()
 	
 	const Link *currLink = fwdDriverMovement.getCurrLink();
 	
-	if(prevLink && !currLink)
+	if((prevLink && !currLink) || fwdDriverMovement.isDoneWithEntireRoute())
 	{
 		double linkExitTimeSec = params.elapsedSeconds + (params.now.ms() / 1000);
 		
@@ -2129,12 +2131,12 @@ void DriverMovement::syncLaneInfoPostLateralMove(DriverUpdateParams &params)
 		msg << ") is attempting to change lane when no lane changing decision made";
 		throw std::runtime_error(msg.str().c_str());
 	}
-		
+
 	//Update the driver path mover
 	fwdDriverMovement.updateLateralMovement(params.currLane);
 
 	//Update which lanes are adjacent.
-	identifyAdjacentLanes(params);	
+	identifyAdjacentLanes(params);
 }
 
 void DriverMovement::setTrafficSignal()

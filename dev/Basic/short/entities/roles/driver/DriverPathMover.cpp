@@ -98,7 +98,7 @@ const PolyPoint& DriverPathMover::getNextPolyPoint() const
 	}
 	else
 	{
-		throw std::runtime_error(ErrorEntireRouteDone);
+		return *currPolyPoint;
 	}
 }
 
@@ -215,18 +215,21 @@ const Link* DriverPathMover::getNextLink() const
 {
 	const Link *nextLink = NULL;
 	
-	//Access the next way-point
-	std::vector<WayPoint>::const_iterator itWayPt = currWayPointIt + 1;
-	
-	while(itWayPt != drivingPath.end())
+	if (!isDoneWithEntireRoute())
 	{
-		if(itWayPt->type == WayPoint::ROAD_SEGMENT && itWayPt->roadSegment->getParentLink() != getCurrLink())
+		//Access the next way-point
+		std::vector<WayPoint>::const_iterator itWayPt = currWayPointIt + 1;
+
+		while (itWayPt != drivingPath.end())
 		{
-			nextLink = itWayPt->roadSegment->getParentLink();
-			break;
+			if (itWayPt->type == WayPoint::ROAD_SEGMENT && itWayPt->roadSegment->getParentLink() != getCurrLink())
+			{
+				nextLink = itWayPt->roadSegment->getParentLink();
+				break;
+			}
+			++itWayPt;
 		}
-		++itWayPt;
-	}
+	}	
 	
 	return nextLink;
 }

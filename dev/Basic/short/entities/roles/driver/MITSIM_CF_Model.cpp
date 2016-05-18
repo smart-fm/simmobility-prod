@@ -619,11 +619,8 @@ double MITSIM_CF_Model::calcCarFollowingAcc(DriverUpdateParams &params, NearestV
 	{
 		debugStr << "ELSE;";
 
-		//When nearest vehicle is the left/right vehicle, we cannot use perceived values!
-		//Create perceived left, right values
-
-		params.velocityLeadVehicle = params.perceivedFwdVelocityOfFwdCar;
-		params.accLeadVehicle = params.perceivedAccelerationOfFwdCar;
+		params.velocityLeadVehicle = nearestVehicle.driver->getFwdVelocity();
+		params.accLeadVehicle = params.driver->getFwdAcceleration();
 
 		double dt = params.nextStepSize;
 		float auxspeed = params.perceivedFwdVelocity == 0 ? 0.00001 : params.perceivedFwdVelocity;
@@ -1064,14 +1061,6 @@ double MITSIM_CF_Model::calcWaitForLaneExitAcc(DriverUpdateParams &params)
 			|| (params.flag(FLAG_NOSING) && !params.flag(FLAG_NOSING_FEASIBLE)))
 	{
 		double distance = params.distToStop;
-		
-		if(distance <= 2 * params.driver->getVehicleLength())
-		{
-			//Set vehicle as stuck when we get close to the end of the lane, so that a rear vehicle
-			//will NOT yield (and get stuck as well)
-			params.setFlag(FLAG_STUCK_AT_END);
-		}
-		
 		acceleration = calcBrakeToStopAcc(params, distance);
 	}
 		

@@ -407,10 +407,10 @@ Entity::UpdateStatus Person_ST::frame_tick(timeslice now)
 void Person_ST::frame_output(timeslice now)
 {
 	//Save the output
-	/*if (!isToBeRemoved())
+	if (!isToBeRemoved())
 	{
-		//LogOut(currRole->Movement()->frame_tick_output());
-	}*/
+		LogOut(currRole->Movement()->frame_tick_output());
+	}
 
 	setResetParamsRequired(true);
 }

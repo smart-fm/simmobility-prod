@@ -205,7 +205,7 @@ double Driver::gapDistance(const Driver *front)
 		DriverMovement* frontMov = dynamic_cast<DriverMovement*> (front->Movement());
 
 		//Check if the vehicle in front has arrived at its destination
-		if (!frontMov->fwdDriverMovement.isDoneWithEntireRoute())
+		if (!mov->fwdDriverMovement.isDoneWithEntireRoute() && !frontMov->fwdDriverMovement.isDoneWithEntireRoute())
 		{
 			//Check if the driver in front is on the same way point as us
 			if (mov->fwdDriverMovement.getCurrWayPoint() == frontMov->fwdDriverMovement.getCurrWayPoint())

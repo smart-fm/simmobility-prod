@@ -62,7 +62,7 @@ struct EntityTemplate
 	unsigned int startTimeMs;
 
 	/**Index of the agent's starting lane (Default is 0)*/
-	unsigned int startLaneIndex;
+	int startLaneIndex;
 
 	/**The user defined id of the agent (This will override the auto-generated agent id)*/
 	int agentId;

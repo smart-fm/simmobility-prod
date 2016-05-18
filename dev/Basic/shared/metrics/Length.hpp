@@ -39,7 +39,7 @@ typedef int32_t centimeter_t;
 
 
 ///A variable to hold meters. Note that the default unit of length is centimeters.
-typedef int32_t meter_t;
+typedef double meter_t;
 
 
 /** The type to represent speeds in centimeter per second.
@@ -59,7 +59,7 @@ typedef int32_t centimeterPerSecond_t;
 
 
 ///A variable to hold meters-per-second
-typedef int32_t meterPerSecond_t;
+typedef double meterPerSecond_t;
 
 
 /** Convert from miles to centimeters.  */

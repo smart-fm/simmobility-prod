@@ -6,6 +6,7 @@
 
 #include <limits>
 #include <algorithm>
+#include <stdexcept>
 
 #include "boost/bind.hpp"
 #include "BusDriver.hpp"
@@ -16,6 +17,7 @@
 #include "entities/Person_ST.hpp"
 #include "entities/profile/ProfileBuilder.hpp"
 #include "entities/UpdateParams.hpp"
+#include "exceptions/Exceptions.hpp"
 #include "geospatial/network/Lane.hpp"
 #include "geospatial/network/LaneConnector.hpp"
 #include "geospatial/network/Link.hpp"
@@ -30,6 +32,7 @@
 #include "IncidentPerformer.hpp"
 #include "network/CommunicationDataManager.hpp"
 #include "path/PathSetManager.hpp"
+#include "util/Utils.hpp"
 
 using namespace sim_mob;
 using std::vector;
@@ -84,7 +87,7 @@ void DriverMovement::init()
 
 	//Create the driving models
 	lcModel = new MITSIM_LC_Model(params, &fwdDriverMovement);
-	cfModel = new MITSIM_CF_Model(params);
+	cfModel = new MITSIM_CF_Model(params, &fwdDriverMovement);
 	intModel = new MITSIM_IntDriving_Model(params);
 
 	parentDriver->initReactionTime();
@@ -110,7 +113,9 @@ void DriverMovement::frame_init()
 	}
 	else
 	{
-		throw std::runtime_error("No path found!");
+		std::stringstream msg;
+		msg << "No path found from " << parentDriver->origin->getNodeId() << " to " << parentDriver->destination->getNodeId();
+		throw std::runtime_error(msg.str());
 	}
 }
 
@@ -126,6 +131,14 @@ void DriverMovement::frame_tick()
 			parentDriver->getParent()->handleAMODArrival();
 		}
 
+		if(parentDriver->roleType != sim_mob::Role<sim_mob::Person_ST>::RL_BUSDRIVER)
+		{
+			TravelTimeManager::getInstance()->addODTravelTime(std::make_pair(parentDriver->origin->getNodeId(),
+					parentDriver->destination->getNodeId()),
+					(*parentDriver->parent->currSubTrip).startTime.getValue(),
+					params.now.ms());
+		}
+
 		parentDriver->getParent()->setToBeRemoved();
 		return;
 	}
@@ -133,7 +146,7 @@ void DriverMovement::frame_tick()
 	identifyAdjacentLanes(params);
 
 	//If the vehicle is in the loading queue, we need to check if some empty space has opened up.
-	if (parentDriver->isVehicleInLoadingQueue && parentDriver->isVehiclePositionDefined)
+	if (parentDriver->isVehicleInLoadingQueue && parentDriver->isVehiclePositionDefined && params.now.frame() % 20 == 0)
 	{
 		//Use the aura manager to find out nearby vehicles. If none of the nearby vehicles on the same lane
 		//take up the position that is with-in a particular tolerance of the origin of the current vehicle,
@@ -187,7 +200,7 @@ void DriverMovement::frame_tick()
 	parentDriver->fwdVelocity_.set(parentDriver->vehicle->getVelocity());
 	parentDriver->latVelocity_.set(parentDriver->vehicle->getLateralVelocity());
 	parentDriver->fwdAccel_.set(parentDriver->vehicle->getAcceleration());
-	parentDriver->turningDirection_.set(parentDriver->vehicle->getTurningDirection());
+	parentDriver->laneDensity_.set(params.density);
 
 	//Update your perceptions
 	parentDriver->perceivedFwdVel->delay(parentDriver->vehicle->getVelocity());
@@ -246,6 +259,10 @@ bool DriverMovement::findEmptySpaceAhead()
 							driverUpdateParams.currLane == nearbyDriversParams.currLane)
 					{
 						DriverMovement *nearbyDriverMovement = dynamic_cast<DriverMovement *> (nearbyDriver->Movement());
+						
+						//Match the speed of the nearby vehicle
+						parentDriver->getParent()->initialSpeed = nearbyDriversParams.currSpeed;
+						parentDriver->vehicle->setVelocity(parentDriver->getParent()->initialSpeed);
 
 						//Get the gap to the nearby driver
 						double availableGap = fwdDriverMovement.getDistToEndOfCurrWayPt() - nearbyDriverMovement->fwdDriverMovement.getDistToEndOfCurrWayPt();
@@ -257,8 +274,8 @@ bool DriverMovement::findEmptySpaceAhead()
 						{
 							//As the gap is positive, there is a vehicle in front of us. We should have enough distance
 							//so as to avoid crashing into it
-							MITSIM_CF_Model *mitsim_cf_model = dynamic_cast<MITSIM_CF_Model *> (cfModel);
-							requiredGap = (2 * parentDriver->getVehicleLength()) + (mitsim_cf_model->getHBufferUpper() * driverUpdateParams.initialSpeed);
+							MITSIM_CF_Model *mitsim_cf_model = dynamic_cast<MITSIM_CF_Model *> (cfModel);							
+							requiredGap = (2 * parentDriver->getVehicleLength()) + (mitsim_cf_model->getHBufferUpper() * parentDriver->getParent()->initialSpeed);
 						}
 						else
 						{
@@ -374,12 +391,12 @@ std::string DriverMovement::frame_tick_output()
 			<< "\",\"angle\":\"" << (360 - (baseAngle * 180 / M_PI))
 			<< "\",\"length\":\"" << static_cast<int> (parentDriver->vehicle->getLengthInM())
 			<< "\",\"width\":\"" << static_cast<int> (parentDriver->vehicle->getWidthInM())
-			<< "\",\"veh-name\":\"" << parentDriver->vehicle->getVehicleName()
+			//<< "\",\"veh-name\":\"" << parentDriver->vehicle->getVehicleName()
 			<< "\",\"curr-waypoint\":\"" << wayPtId
-			<< "\",\"fwd-speed\":\"" << parentDriver->vehicle->getVelocity()
-			<< "\",\"fwd-accel\":\"" << parentDriver->vehicle->getAcceleration()
+			//<< "\",\"fwd-speed\":\"" << parentDriver->vehicle->getVelocity()
+			//<< "\",\"fwd-accel\":\"" << parentDriver->vehicle->getAcceleration()
 			<< "\",\"info\":\"" << params.debugInfo
-			<< "\",\"mandatory\":\"" << incidentPerformer.getIncidentStatus().getChangedLane()
+			//<< "\",\"mandatory\":\"" << incidentPerformer.getIncidentStatus().getChangedLane()
 			<< addLine.str() << "\"})" << std::endl;
 	
 	return output.str();
@@ -524,10 +541,13 @@ bool DriverMovement::updateMovement()
 	{
 		return false;
 	}
-	
+
 	//Store the current link to check if the link has changed after the movement
 	const Link *prevLink = fwdDriverMovement.getCurrLink();
 	
+	std::vector<const RoadSegment*> segmentsPassed;
+	const WayPoint &startWayPoint = fwdDriverMovement.getCurrWayPoint();
+
 	//Store the speed
 	params.currSpeed = parentDriver->vehicle->getVelocity();	
 	
@@ -549,7 +569,7 @@ bool DriverMovement::updateMovement()
 	
 	const Link *currLink = fwdDriverMovement.getCurrLink();
 	
-	if(prevLink && !currLink)
+	if((prevLink && !currLink) || fwdDriverMovement.isDoneWithEntireRoute())
 	{
 		double linkExitTimeSec = params.elapsedSeconds + (params.now.ms() / 1000);
 		
@@ -569,6 +589,50 @@ bool DriverMovement::updateMovement()
 	{
 		double linkEntryTimeSec = params.elapsedSeconds + (params.now.ms() / 1000);
 		parentDriver->parent->currLinkTravelStats.start(currLink, linkEntryTimeSec);
+	}
+
+	if (!fwdDriverMovement.isDoneWithEntireRoute())
+	{
+		const WayPoint &currWayPoint = fwdDriverMovement.getCurrWayPoint();
+		if (currWayPoint != startWayPoint)
+		{
+			if (startWayPoint.type == WayPoint::ROAD_SEGMENT && currWayPoint.type == WayPoint::ROAD_SEGMENT)
+			{
+				if (startWayPoint.roadSegment->getLinkId() == currWayPoint.roadSegment->getLinkId())
+				{
+					const Link *link = startWayPoint.roadSegment->getParentLink();
+					segmentsPassed.insert(segmentsPassed.begin(), link->getRoadSegments().begin() + startWayPoint.roadSegment->getSequenceNumber(),
+										  link->getRoadSegments().begin() + currWayPoint.roadSegment->getSequenceNumber());
+				}
+				else
+				{
+					segmentsPassed.insert(segmentsPassed.begin(), prevLink->getRoadSegments().begin() + startWayPoint.roadSegment->getSequenceNumber(),
+										  prevLink->getRoadSegments().end());
+					segmentsPassed.insert(segmentsPassed.end(), currLink->getRoadSegments().begin(),
+										  currLink->getRoadSegments().begin() + currWayPoint.roadSegment->getSequenceNumber());
+				}
+			}
+			else if (startWayPoint.type == WayPoint::ROAD_SEGMENT && currWayPoint.type == WayPoint::TURNING_GROUP)
+			{
+				const Link *startLink = startWayPoint.roadSegment->getParentLink();
+				segmentsPassed.insert(segmentsPassed.begin(), startLink->getRoadSegments().begin() + startWayPoint.roadSegment->getSequenceNumber(),
+									  startLink->getRoadSegments().end());
+			}
+			else if (startWayPoint.type == WayPoint::TURNING_GROUP && currWayPoint.type == WayPoint::ROAD_SEGMENT)
+			{
+				segmentsPassed.insert(segmentsPassed.begin(), currLink->getRoadSegments().begin(),
+									  currLink->getRoadSegments().begin() + currWayPoint.roadSegment->getSequenceNumber());
+			}
+
+			updateRoadSegmentTravelTime(segmentsPassed);
+		}
+	}
+	else
+	{
+		const Link *startLink = startWayPoint.roadSegment->getParentLink();
+		segmentsPassed.insert(segmentsPassed.begin(), startLink->getRoadSegments().begin() + startWayPoint.roadSegment->getSequenceNumber(),
+							  startLink->getRoadSegments().end());
+		updateRoadSegmentTravelTime(segmentsPassed);
 	}
 
 	//Build debugging information to be displayed on the visualiser
@@ -708,7 +772,11 @@ void DriverMovement::applyDrivingModels(DriverUpdateParams &params)
 	if(!fwdDriverMovement.isInIntersection())
 	{
 		//Apply the lane changing model to make the lane changing decision
-		lcModel->makeLaneChangingDecision(params);
+		//if we're not in the middle of a lane change
+		if(!params.getStatus(STATUS_LC_CHANGING))
+		{			
+			lcModel->makeLaneChangingDecision(params);
+		}
 		
 		//If we've decided to change the lane, execute the lane change manoeuvre
 		if (params.getStatus() & STATUS_CHANGING)
@@ -828,7 +896,7 @@ void DriverMovement::setParentBufferedData()
 	parentDriver->getParent()->yPos.set(parentDriver->getCurrPosition().getY());
 }
 
-void DriverMovement::buildPath(std::vector<WayPoint> &wayPoints, int startLaneIndex, int startSegmentId)
+std::vector<WayPoint> DriverMovement::buildPath(std::vector<WayPoint> &wayPoints)
 {
 	//Path containing only links
 	vector<WayPoint> pathOfLinks;
@@ -840,7 +908,7 @@ void DriverMovement::buildPath(std::vector<WayPoint> &wayPoints, int startLaneIn
 		{
 			pathOfLinks.push_back(*itWayPts);
 		}
-	}
+	}	
 	
 	//The path containing the links and turning groups
 	vector<WayPoint> path;
@@ -879,12 +947,12 @@ void DriverMovement::buildPath(std::vector<WayPoint> &wayPoints, int startLaneIn
 		}				
 	}
 
-	fwdDriverMovement.setPath(path, startLaneIndex, startSegmentId);
+	return path;
 }
 
 void DriverMovement::resetPath(std::vector<WayPoint> path)
 {
-	buildPath(path);
+	fwdDriverMovement.setPath(buildPath(path), parentDriver->getParent()->startLaneIndex, parentDriver->getParent()->startSegmentId);	
 }
 
 bool DriverMovement::isLastSegmentInLink() const
@@ -1220,8 +1288,8 @@ Vehicle* DriverMovement::initializePath(bool createVehicle)
         }
 
 		if (createVehicle)
-		{			
-			buildPath(path, parentDriver->getParent()->startLaneIndex, parentDriver->getParent()->startSegmentId);
+		{
+			fwdDriverMovement.setPath(buildPath(path), parentDriver->getParent()->startLaneIndex, parentDriver->getParent()->startSegmentId);
 			vehicle = new Vehicle(VehicleBase::CAR, length, width, vehName);
 		}
 	}
@@ -1285,7 +1353,12 @@ void DriverMovement::setOrigin(DriverUpdateParams &params)
 		targetLaneIndex = params.currLaneIndex = params.currLane->getLaneIndex();
 	}
 
-	//Vehicles start at rest (or may be given initial speed in configuration file)
+	if(parentDriver->getParent()->initialSpeed == 0)
+	{
+		//Vehicles start at 30-60% of road speed limit (or may be given initial speed in configuration file)
+		parentDriver->getParent()->initialSpeed = Utils::generateFloat(0.30 * params.maxLaneSpeed, 0.60 * params.maxLaneSpeed);
+	}
+	
 	parentDriver->vehicle->setVelocity(parentDriver->getParent()->initialSpeed);
 	parentDriver->vehicle->setLateralVelocity(0);
 	parentDriver->vehicle->setAcceleration(0);
@@ -1312,8 +1385,96 @@ double DriverMovement::updatePosition(DriverUpdateParams &params)
 	{
 		distCovered = 0;
 		params.setStatus(STATUS_STOPPED);
-	}
+	}	
 
+	double overflow = 0;
+
+	//Move the vehicle forward
+	overflow = fwdDriverMovement.advance(distCovered);
+	
+	/*-------Code related to en-route route choice when the vehicle enters a wrong turning path-------*/
+	/*
+	try
+	{
+		//Move the vehicle forward
+		overflow = fwdDriverMovement.advance(distCovered);
+	}
+	catch(no_turning_path_exception &ex)
+	{
+		if(!parentDriver->isBusDriver)
+		{
+			//No turning path to the next link from the selected route. Change route.
+
+			//Create a temporary sub-trip
+			DailyTime startTime(ConfigManager::GetInstance().FullConfig().simStartTime().getValue() + params.now.ms());
+			SubTrip subtrip;
+
+			subtrip.origin = WayPoint(ex.fromLane->getParentSegment()->getParentLink()->getToNode());
+			subtrip.destination = parentDriver->parent->destNode;
+			subtrip.startTime = startTime;
+
+			//Get the path from the path-set manager if we're using route-choice, else find the shortest path
+			vector<WayPoint> path;
+			if (ConfigManager::GetInstance().FullConfig().PathSetMode())
+			{
+				//Black list the next link from the original path so that we do not get that path again
+				set<const Link *> blackListLink;
+				blackListLink.insert(ex.toSegment->getParentLink());
+
+				bool useInSimulationTT = parentDriver->getParent()->usesInSimulationTravelTime();
+				bool pathFound = PrivateTrafficRouteChoice::getInstance()->getBestPath(path, subtrip, true, blackListLink,
+																					   false, false, false, nullptr, useInSimulationTT);
+
+				if (!pathFound)
+				{
+					stringstream msg;
+					msg << "No path found from node " << subtrip.origin.node->getNodeId() << " to " << subtrip.destination.node->getNodeId()
+							<< " [En-route search]";
+					throw runtime_error(msg.str());
+				}
+			}
+			else
+			{
+				//Black list the next link from the original path so that we do not get that path again
+				vector<const Link *> blackListLink;
+				blackListLink.push_back(ex.toSegment->getParentLink());
+
+				const StreetDirectory& stdir = StreetDirectory::Instance();
+				path = stdir.SearchShortestDrivingPath(*(subtrip.origin.node), *(parentDriver->destination), blackListLink);
+			}
+
+			//Build the new path
+			path = buildPath(path);
+
+			//Get the turning group the driver should enter
+			const TurningGroup *tGroup = subtrip.origin.node->getTurningGroup(ex.fromLane->getParentSegment()->getLinkId(), path.front().roadSegment->getLinkId());
+
+			if (tGroup)
+			{
+				//Prepend the path with the turning group
+				path.insert(path.begin(), WayPoint(tGroup));
+
+				//Set the updated path
+				fwdDriverMovement.setPathStartingWithTurningGroup(path, ex.fromLane);
+
+				updatePosition(params);
+			}
+			else
+			{
+				stringstream msg;
+				msg << "No turning found from link " << ex.fromLane->getParentSegment()->getLinkId() << " to " << path.front().roadSegment->getLinkId()
+						<< " [En-route search]";
+				throw runtime_error(msg.str());
+			}
+		}
+		else
+		{
+			stringstream msg;
+			msg << "Bus driver on incorrect lane " << ex.fromLane->getLaneId() << " trying to go to segment " << ex.toSegment->getRoadSegmentId();
+			throw runtime_error(msg.str());
+		}
+	}*/
+	
 	//Update the vehicle's velocity based on its acceleration using the equation of motion
 	//v = u + at
 	//where, v = final velocity, u = initial velocity, a = acceleration, t = time
@@ -1325,10 +1486,7 @@ double DriverMovement::updatePosition(DriverUpdateParams &params)
 	}
 
 	parentDriver->vehicle->setVelocity(updatedVelocity);
-
-	//Move the vehicle forward
-	double overflow = fwdDriverMovement.advance(distCovered);
-
+	
 	identifyAdjacentLanes(params);
 
 	//Check if the lane which we want to move into exists
@@ -1344,6 +1502,18 @@ double DriverMovement::updatePosition(DriverUpdateParams &params)
 	{
 		updateLateralMovement(params);
 	}
+	else if (params.getStatus(STATUS_LC_CHANGING))
+	{
+		parentDriver->vehicle->resetLateralMovement();
+
+		params.unsetStatus(STATUS_CHANGING);
+		params.unsetStatus(STATUS_LC_CHANGING);
+		params.unsetStatus(STATUS_MANDATORY);
+		params.unsetFlag(FLAG_NOSING | FLAG_YIELDING | FLAG_LC_FAILED);
+		params.unsetFlag(FLAG_VMS_LANE_USE_BITS | FLAG_ESCAPE | FLAG_AVOID);
+		params.unsetFlag(FLAG_STUCK_AT_END | FLAG_NOSING_FEASIBLE);
+		params.unsetStatus(STATUS_TARGET_GAP);
+	}
 
 	return overflow;
 }
@@ -1352,6 +1522,8 @@ void DriverMovement::setNearestVehicle(NearestVehicle &nearestVeh, double distan
 {
 	//Subtract the size of the car from the distance between them
 	distance = fabs(distance) - parentDriver->getVehicleLength() / 2 - otherDriver->getVehicleLength() / 2;
+	
+	distance = distance < 0 ? 0 : distance;
 
 	if (distance <= nearestVeh.distance)
 	{
@@ -1383,7 +1555,7 @@ bool DriverMovement::updateNearbyAgent(const Agent *nearbyAgent, const Driver *n
 		
 		const TurningConflict *conflict = currTurning->getTurningConflict(otherTurning);
 		
-		if (conflict)
+		if (conflict && currTurning->getFromLaneId() != otherTurning->getFromLaneId())
 		{
 			double conflictDist = (otherTurning == conflict->getFirstTurning()) ? conflict->getFirstConflictDistance() : conflict->getSecondConflictDistance();
 			double distance = 0;
@@ -1448,24 +1620,27 @@ bool DriverMovement::updateNearbyAgent(const Agent *nearbyAgent, const Driver *n
 			
 			double distance = 0;
 
-			//The other driver can be the front driver only for a few meters, say 10m
+			//The other driver can be the front driver only for a few meters,
 			//till the turning has some common area
 			
-			const double turningOverlapDist = 10;
+			const double turningOverlapDist = currTurning->getLength() / 4;
 			
-			if (nearbyDriver->isInIntersection_.get() && nearbyDriver->distCoveredOnCurrWayPt_.get() <= turningOverlapDist)
+			if (nearbyDriver->isInIntersection_.get() && !parentDriver->isInIntersection_.get()
+					&& nearbyDriver->distCoveredOnCurrWayPt_.get() <= turningOverlapDist)
 			{
 				distance = fwdDriverMovement.getDistToEndOfCurrWayPt() + nearbyDriver->distCoveredOnCurrWayPt_.get();
 				setNearestVehicle(params.nvFwd, distance, nearbyDriver);
 			}
-			else if (parentDriver->isInIntersection_.get() && parentDriver->distCoveredOnCurrWayPt_.get() <= turningOverlapDist)
+			else if (parentDriver->isInIntersection_.get() && !nearbyDriver->isInIntersection_.get()
+					&& parentDriver->distCoveredOnCurrWayPt_.get() <= turningOverlapDist)
 			{
 				distance = nearbyDriver->distToIntersection_.get() + parentDriver->distCoveredOnCurrWayPt_.get();
 				setNearestVehicle(params.nvBack, distance, nearbyDriver);
 			}
 		}
 	}
-	else if(currTurning)
+	
+	if(currTurning)
 	{
 		//We are in or approaching an intersection, but the other driver may be in a segment after the intersection
 		
@@ -1480,28 +1655,34 @@ bool DriverMovement::updateNearbyAgent(const Agent *nearbyAgent, const Driver *n
 			//Check if the other driver is in the segment that we're heading into
 			if(otherSeg == targetSeg)
 			{
-				//Distance between the drivers
-				int distance = (currTurning->getLength() - fwdDriverMovement.getDistCoveredOnCurrWayPt()) + nearbyDriver->getDistCoveredOnCurrWayPt();
+				//Distance between the drivers				
+				int distance = nearbyDriver->getDistCoveredOnCurrWayPt() + fwdDriverMovement.getDistToEndOfCurrWayPt();
+				
+				if(fwdDriverMovement.getCurrLane())
+				{
+					distance += currTurning->getLength();
+				}				
 									
 				if(otherLane == currTurning->getToLane())
 				{
 					//Set the other driver as the forward driver is our turning path is connected to the other driver's lane
-					setNearestVehicle(params.nvFwd, distance, nearbyDriver);
+					setNearestVehicle(params.nvFwd, distance, nearbyDriver);					
 				}
 				else if(otherLane->getLaneIndex() > 0 && otherSeg->getLane(otherLane->getLaneIndex() - 1) == currTurning->getToLane())
 				{
-					//Set the other driver as the right forward driver is our turning path is connected to the other driver's left lane
+					//Set the other driver as the left forward driver is our turning path is connected to the other driver's left lane
 					setNearestVehicle(params.nvLeftFwd, distance, nearbyDriver);
 				}
 				else if(otherLane->getLaneIndex() + 1 < otherSeg->getNoOfLanes() && otherSeg->getLane(otherLane->getLaneIndex() + 1) == currTurning->getToLane())
 				{
-					//Set the other driver as the left forward driver is our turning path is connected to the other driver's right lane
+					//Set the other driver as the right forward driver is our turning path is connected to the other driver's right lane
 					setNearestVehicle(params.nvRightFwd, distance, nearbyDriver);
 				}
 			}
 		}
 	}
-	else if(otherTurning)
+	
+	if(otherTurning)
 	{
 		//We are on a segment after the intersection, but the other driver is approaching or in an intersection.
 		//We need to know the drivers behind while lane changing
@@ -1513,7 +1694,12 @@ bool DriverMovement::updateNearbyAgent(const Agent *nearbyAgent, const Driver *n
 		if(otherTurning->getToLane()->getParentSegment() == currSeg)
 		{
 			//Distance between the drivers
-			int distance = (otherTurning->getLength() - nearbyDriver->getDistCoveredOnCurrWayPt()) + fwdDriverMovement.getDistCoveredOnCurrWayPt();
+			int distance = fwdDriverMovement.getDistCoveredOnCurrWayPt() + nearbyDriver->getDistToIntersection() + otherTurning->getLength();
+			
+			if(!nearbyDriver->getCurrLane())
+			{
+				distance -= nearbyDriver->getDistCoveredOnCurrWayPt();
+			}
 
 			if (toLane == fwdDriverMovement.getCurrLane())
 			{
@@ -1750,7 +1936,8 @@ bool DriverMovement::updateNearbyAgent(const Agent *nearbyAgent, const Driver *n
 				if (params.nvFwd.driver == NULL)
 				{
 					//Distance between the drivers
-					double distance = fwdDriverMovement.getDistToEndOfCurrLink() + nearbyDriver->distCoveredOnCurrWayPt_.get();
+					double distance = fwdDriverMovement.getDistToEndOfCurrLink() + nearbyDriver->distCoveredOnCurrWayPt_.get() +
+							parentDriver->expectedTurning_.get()->getLength();
 					setNearestVehicle(params.nvFwdNextLink, distance, nearbyDriver);
 				}
 			}
@@ -1944,12 +2131,12 @@ void DriverMovement::syncLaneInfoPostLateralMove(DriverUpdateParams &params)
 		msg << ") is attempting to change lane when no lane changing decision made";
 		throw std::runtime_error(msg.str().c_str());
 	}
-		
+
 	//Update the driver path mover
 	fwdDriverMovement.updateLateralMovement(params.currLane);
 
 	//Update which lanes are adjacent.
-	identifyAdjacentLanes(params);	
+	identifyAdjacentLanes(params);
 }
 
 void DriverMovement::setTrafficSignal()
@@ -2007,3 +2194,59 @@ void DriverMovement::setTrafficSignalParams(DriverUpdateParams &params)
 		parentDriver->perceivedDistToTrafficSignal->delay(params.trafficSignalStopDistance);
 	}
 }
+
+void sim_mob::DriverMovement::startRdSegStat(const RoadSegment* roadSegment, double startTime)
+{
+	parentDriver->parent->getCurrRdSegTravelStats().reset();
+	parentDriver->parent->startCurrRdSegTravelStat(roadSegment, startTime);
+}
+
+void sim_mob::DriverMovement::finalizeRdSegStat(const RoadSegment* roadSegment,
+		double endTime, const std::string travelMode)
+{
+	SegmentTravelStats &currStats = parentDriver->parent->finalizeCurrRdSegTravelStat(roadSegment, endTime, travelMode);
+	if (ConfigManager::GetInstance().FullConfig().rsTTConfig.enabled)
+	{
+		TravelTimeManager::getInstance()->addSegmentTravelTime(currStats);
+	}
+}
+
+void DriverMovement::updateRoadSegmentTravelTime(const vector<const RoadSegment*>& segmentsPassed)
+{
+	if(segmentsPassed.empty())
+			return;
+
+	std::string travelMode = (*parentDriver->parent->currTripChainItem)->getMode();
+	double actualTime = parentDriver->getParams().elapsedSeconds
+						+ (parentDriver->getParams().now.ms() / MILLISECS_CONVERT_UNIT);
+
+	bool finalized = false;
+
+	// The segments that are passed are finalized in this loop. If there are multiple segments
+	// that are passed in this time tick, those will be recorded with same start and end time
+	std::vector<const RoadSegment*>::const_iterator rdSegIter = segmentsPassed.begin();
+	for(;rdSegIter != segmentsPassed.end();rdSegIter++)
+	{
+		if((*rdSegIter) == parentDriver->parent->getCurrRdSegTravelStats().roadSegment)
+		{
+			finalizeRdSegStat((*rdSegIter), actualTime, travelMode);
+			finalized = true;
+		}
+		if(rdSegIter+1 != segmentsPassed.end())
+		{
+			startRdSegStat(*(rdSegIter+1), actualTime);
+		}
+	}
+	// If the journey is not done yet, record the start time of current segment
+	if(!fwdDriverMovement.isDoneWithEntireRoute())
+	{
+		startRdSegStat(fwdDriverMovement.getCurrSegment(), actualTime);
+	}
+	// Start and Finalize the travel times for paths with single segment
+	else if(!finalized)
+	{
+		startRdSegStat(segmentsPassed.front(), actualTime);
+		finalizeRdSegStat(segmentsPassed.front(), actualTime, travelMode);
+	}
+}
+

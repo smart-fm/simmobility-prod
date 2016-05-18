@@ -12,6 +12,7 @@
 #include "conf/params/ParameterManager.hpp"
 #include "entities/models/Constants.hpp"
 #include "entities/roles/driver/Driver.hpp"
+#include "entities/roles/driver/DriverPathMover.hpp"
 #include "entities/vehicle/VehicleBase.hpp"
 
 using namespace std;
@@ -46,6 +47,10 @@ public:
 
 	/**Split delimiter in the driver parameters XML file*/
 	string splitDelimiter;
+	
+protected:
+	/**The pointer to the driver path mover object*/
+	DriverPathMover *fwdDriverMovement;
 
 	/**
 	 * Calculates the step size of update state variables
@@ -57,7 +62,7 @@ public:
 	double calcNextStepSize(DriverUpdateParams &params);
 
 public:
-	CarFollowingModel()
+	CarFollowingModel(DriverPathMover *pathMover) : fwdDriverMovement(pathMover)
 	{
 	}
 	virtual ~CarFollowingModel()
@@ -581,7 +586,7 @@ private:
 	}
 
 public:
-	MITSIM_CF_Model(DriverUpdateParams &params);
+	MITSIM_CF_Model(DriverUpdateParams &params, DriverPathMover *pathMover);
 	~MITSIM_CF_Model();
 
 	/**

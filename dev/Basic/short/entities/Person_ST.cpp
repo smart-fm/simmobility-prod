@@ -21,14 +21,16 @@ Person_ST::Person_ST(const std::string &src, const MutexStrategy &mtxStrat, int 
 : Person(src, mtxStrat, id, databaseID), startLaneIndex(-1), boardingTimeSecs(0), alightingTimeSecs(0), 
 prevRole(NULL), currRole(NULL), nextRole(NULL), commEventRegistered(false), amodId("-1"),
 amodPickUpSegmentStr("-1"), startSegmentId(-1), segmentStartOffset(0), initialSpeed(0),
-amodSegmLength(0.0), amodSegmLength2(0.0), client_id(0), isPositionValid(false), isVehicleInLoadingQueue(false)
+amodSegmLength(0.0), amodSegmLength2(0.0), client_id(0), isPositionValid(false), isVehicleInLoadingQueue(false),
+rsTravelStats(nullptr)
 {
 }
 
 Person_ST::Person_ST(const std::string &src, const MutexStrategy &mtxStrat, const std::vector<TripChainItem *> &tc)
 : Person(src, mtxStrat, tc), startLaneIndex(-1), boardingTimeSecs(0), alightingTimeSecs(0), 
 prevRole(NULL), currRole(NULL), nextRole(NULL), commEventRegistered(false), amodId("-1"),
-amodPickUpSegmentStr("-1"), startSegmentId(-1), segmentStartOffset(0), initialSpeed(0), amodSegmLength(0.0), amodSegmLength2(0.0)
+amodPickUpSegmentStr("-1"), startSegmentId(-1), segmentStartOffset(0), initialSpeed(0), amodSegmLength(0.0), amodSegmLength2(0.0),
+rsTravelStats(nullptr)
 {
 	if (!tripChain.empty())
 	{
@@ -366,6 +368,11 @@ Entity::UpdateStatus Person_ST::frame_tick(timeslice now)
 	//      about Agent/Person at once. ~Seth
 	if (isToBeRemoved())
 	{
+//		TravelTimeManager::getInstance()->addODTravelTime(std::make_pair((*currSubTrip).origin.node->getNodeId(),
+//				(*currSubTrip).destination.node->getNodeId()),
+//				(*currSubTrip).start,
+//							params.now.ms());
+
 		//Reset the start time (to the NEXT time tick) so our dispatcher doesn't complain.
         setStartTime(now.ms() + config.baseGranMS());
 
@@ -534,4 +541,21 @@ void Person_ST::handleAMODPickup()
 {
 	//ask the AMODController to handle the arrival
 	sim_mob::amod::AMODController::getInstance()->handleVHPickup(this);
+}
+
+
+SegmentTravelStats& Person_ST::startCurrRdSegTravelStat(const RoadSegment* rdSeg, double entryTime) {
+	rsTravelStats.start(rdSeg,entryTime);
+	return rsTravelStats;
+}
+
+SegmentTravelStats& Person_ST::finalizeCurrRdSegTravelStat(const RoadSegment* rdSeg,
+		double exitTime, const std::string travelMode)
+{
+	if(rdSeg != rsTravelStats.roadSegment)
+	{
+		throw std::runtime_error("roadsegment mismatch while finalizing travel time stats");
+	}
+	rsTravelStats.finalize(rdSeg,exitTime, travelMode);
+	return rsTravelStats;
 }

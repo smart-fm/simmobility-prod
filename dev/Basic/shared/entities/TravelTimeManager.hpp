@@ -9,6 +9,7 @@
 
 namespace sim_mob
 {
+
 /**
  * Simple helper struct to store info needed to track average travel time for a link.
  * Stores the sum of all travel times experienced by agents on a link along with the count of those agents.
@@ -35,6 +36,83 @@ struct TimeAndCount
 			return totalTravelTime/travelTimeCnt;
 		}
 		return 0.0;
+	}
+};
+
+typedef std::map<const RoadSegment*, TimeAndCount> RSToTimeCountMap;
+typedef std::map<std::string, RSToTimeCountMap> ModeToRSCountMap;
+typedef std::map<unsigned int, ModeToRSCountMap> SegmentTravelTimeMap;
+
+struct SegmentTravelStats
+{
+	const RoadSegment* roadSegment;
+	double entryTime;
+	double travelTime;
+	bool started;
+	bool finalized;
+	std::string travelMode;
+
+	SegmentTravelStats(const RoadSegment* rs = nullptr):
+		roadSegment(rs), entryTime(0.0), travelTime(0.0), started(false), finalized(false), travelMode("")
+	{}
+
+	/**
+	 * Records the entry time for the Roadsegment
+	 *
+	 * @param rs The Roadsegment which was entered
+	 * @param lnkEntryTime The time of entry into the link
+	 */
+	void start(const RoadSegment* rs, const double segEntryTime)
+	{
+		if (started)
+		{
+			throw std::runtime_error("Starting a segment travel time which was started before");
+		}
+		roadSegment = rs;
+		entryTime = segEntryTime;
+		started = true;
+	}
+
+	/**
+	 * Records the exit time for the Roadsegment
+	 *
+	 * @param rdSeg The road segment which the agent has exited
+	 * @param rdSegExitTime The time of exit on the road segment
+	 * @param travelMode_ The mode of travel being used by the agent
+	 */
+	void finalize(const RoadSegment* rdSeg, const double rdSegExitTime, const std::string travelMode_)
+	{
+		//validations
+		if (!started)
+		{
+			throw std::runtime_error("Finalizing a segment travel time which never started");
+		}
+		if (finalized)
+		{
+			throw std::runtime_error("Finalizing a segment travel time which is already finalized");
+		}
+		if (rdSeg == nullptr)
+		{
+			throw std::runtime_error("empty road segment supplied for travel time calculations.");
+		}
+		if (travelMode_.empty())
+		{
+			throw std::runtime_error("Finalizing a wrong travel time");
+		}
+		if(rdSegExitTime < entryTime)
+		{
+			throw std::runtime_error("link exit time is before entry time");
+		}
+
+		travelTime = rdSegExitTime - entryTime;
+		travelMode = travelMode_;
+		finalized = true;
+	}
+
+	/**Reset the member variables to their un-initialized values*/
+	void reset()
+	{
+		*this = SegmentTravelStats(nullptr);
 	}
 };
 
@@ -284,6 +362,15 @@ public:
 	unsigned int intervalMS;
 
 	/**
+	 * accumulated segment travel time data
+	 * @param stats segment travel time record
+	 */
+	void addSegmentTravelTime(const SegmentTravelStats& stats);
+
+	void dumpSegmentTravelTimeToFile(const std::string& fileName) const;
+
+
+	/**
 	 * accumulates Travel Time data
 	 * @param stats travel time record
 	 */
@@ -299,6 +386,16 @@ public:
 	 * save Realtime Travel Time into Database
 	 */
 	bool storeCurrentSimulationTT();
+
+	/**
+	 * accumulated OD travel time data
+	 * @param odPair Origin-Destination pair
+	 * @param travelTime travel time
+	 */
+	void addODTravelTime(const std::pair<unsigned int, unsigned int>& odPair,
+			const uint32_t startTime, const uint32_t travelTime);
+
+	void dumpODTravelTimeToFile(const std::string& fileName) const;
 
 	/**
 	 * a helper class that maintains the latest processed travel time information.
@@ -341,10 +438,34 @@ private:
 	 */
 	void loadLinkHistoricalTravelTime(soci::session& sql);
 
+	unsigned int getODInterval(const unsigned int time);
+
+	unsigned int getSegmentInterval(const unsigned int time);
+
+	/**
+	 * OD Travel Time interval in milliseconds
+	 */
+	unsigned int odIntervalMS;
+
+	/**
+	 * Segment travel time interval in milliseconds
+	 */
+	unsigned int segIntervalMS;
+
+	/**
+	 * a structure to keep history of average segment travel time records
+	 */
+	SegmentTravelTimeMap segmentTravelTimeMap;
+
 	/**
 	 * a structure to keep history of average travel time records
 	 */
 	std::map<unsigned int, sim_mob::LinkTravelTime> lnkTravelTimeMap;
+
+	/**
+	 * a structure to keep history of average od travel time records
+	 */
+	std::map<unsigned int, std::map<std::pair<unsigned int, unsigned int>, TimeAndCount> > odTravelTimeMap;
 
 	/** historical travel time table name */
 	std::string historicalTT_TableName;

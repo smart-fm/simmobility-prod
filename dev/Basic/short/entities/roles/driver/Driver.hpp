@@ -140,9 +140,9 @@ private:
 
 	/**Represents the acceleration of the vehicle (m/s^2)*/
 	Shared<double> fwdAccel_;
-
-	/**Indicates the lane changing move that the driver is going to make*/
-	Shared<LaneChangeTo> turningDirection_;
+	
+	/**Represents the density observed in the current lane*/
+	Shared<double> laneDensity_;
 
 	friend class DriverBehavior;
 	friend class DriverMovement;
@@ -175,6 +175,8 @@ public:
 
 	const double getFwdVelocity() const;
 	const double getFwdAcceleration() const;
+	
+	const double getDensity() const;
 
 	/**Initialises the reaction time of the driver and the perception delays based on the reaction time*/
 	void initReactionTime();

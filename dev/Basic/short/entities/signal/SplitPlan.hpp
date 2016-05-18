@@ -9,6 +9,7 @@
 
 #include "Cycle.hpp"
 #include "Phase.hpp"
+#include "Offset.hpp"
 
 namespace sim_mob
 {
@@ -126,7 +127,7 @@ private:
 	void calcMaxProjectedDS(std::vector<double> &maxProjectedDS, std::vector<double> &DS);
 
 public:
-	SplitPlan(double cycleLength_ = 90, double offset_ = 0);
+	SplitPlan(double cycleLength_ = Offset::CLmed, double offset_ = 0);
 	~SplitPlan();
 	
 	const std::vector< double >& getCurrSplitPlan() const;

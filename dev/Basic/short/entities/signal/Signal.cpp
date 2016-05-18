@@ -3,6 +3,7 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 #include <cmath>
+#include <bits/localefwd.h>
 
 #include "Signal.hpp"
 #include "conf/ConfigManager.hpp"
@@ -48,6 +49,11 @@ Signal::~Signal()
 unsigned int Signal::getTrafficLightId() const
 {
 	return trafficLightId;
+}
+
+void Signal::setTrafficLightId(unsigned int id)
+{
+	trafficLightId = 0;
 }
 
 const std::vector<const Node *>& Signal::getNodes() const
@@ -334,6 +340,11 @@ void Signal_SCATS::resetCycle()
 
 TrafficColor Signal_SCATS::getDriverLight(unsigned int fromLink, unsigned int toLink) const
 {
+	if(phases.empty())
+	{		
+		return TrafficColor::TRAFFIC_COLOUR_GREEN;
+	}
+	
 	const Phase *currPhase = phases[currPhaseAtGreen];
 	Phase::linksMappingEqualRange range = currPhase->getLinkTos(fromLink);
 	Phase::linksMappingConstIterator iter;
@@ -389,35 +400,51 @@ void Signal_SCATS::createPhases()
 				//The colour sequence structure for this phase
 				ToLinkColourSequence toLinkClrSeq(itInnerMap->first);
 
-				//Phase name
-				const std::string &phaseName = itInnerMap->second->getPhases();
-
-				//Check whether a phase with with the same name is already created for this signal
-				bool phaseExists = false;
-				for (std::vector<Phase *>::const_iterator itPhases = phases.begin(); itPhases != phases.end(); ++itPhases)
+				//Phase name - this is the concatenated string of all phase names (which are single letter names or 
+				//have a digit after the letter e.g. A1, A2)
+				const std::string &phaseNames = itInnerMap->second->getPhases();
+				
+				for(std::string::const_iterator itChar = phaseNames.begin(); itChar != phaseNames.end(); ++itChar)
 				{
-					if ((*itPhases)->getName() == phaseName)
+					//Create the phase name (either single letter or digit followed by letter)
+					std::string phaseName;
+					
+					if(isdigit(*(itChar + 1)))
 					{
-						//Associate the colour sequence structure with this phase
-						(*itPhases)->addLinkMapping(itOuterMap->first, toLinkClrSeq);
-
-						phaseExists = true;
-
-						break;
+						phaseName.append(itChar, itChar + 1);
 					}
-				}
+					else
+					{
+						phaseName.append(1, *itChar);
+					}
+					
+					//Check whether a phase with with the same name is already created for this signal
+					bool phaseExists = false;
+					for (std::vector<Phase *>::const_iterator itPhases = phases.begin(); itPhases != phases.end(); ++itPhases)
+					{
+						if ((*itPhases)->getName() == phaseName)
+						{
+							//Associate the colour sequence structure with this phase
+							(*itPhases)->addLinkMapping(itOuterMap->first, toLinkClrSeq);
 
-				if (!phaseExists)
-				{
-					//Create a new phase for this turning group
-					Phase *phase = new Phase(phaseName, splitPlan);
+							phaseExists = true;
 
-					//Associate the colour sequence structure with this phase
-					phase->addLinkMapping(itOuterMap->first, toLinkClrSeq);
+							break;
+						}
+					}
 
-					//Add the phase to the vector of phases
-					phases.push_back(phase);
-				}
+					if (!phaseExists)
+					{
+						//Create a new phase for this turning group
+						Phase *phase = new Phase(phaseName, splitPlan);
+
+						//Associate the colour sequence structure with this phase
+						phase->addLinkMapping(itOuterMap->first, toLinkClrSeq);
+
+						//Add the phase to the vector of phases
+						phases.push_back(phase);
+					}
+				}				
 
 				++itInnerMap;
 			}
@@ -533,9 +560,12 @@ void VehicleCounter::serialize(const uint32_t& time)
 		std::map<const Lane*, int> ::iterator it(counter.begin());
 		for (; it != counter.end(); it++)
 		{
-			logger << time << "," << signal->getTrafficLightId() \
+			if(signal->getTrafficLightId() != 0)
+			{
+				logger << time << "," << signal->getTrafficLightId() \
 					<< "," << it->first->getRoadSegmentId() \
 					<< "," << it->first->getLaneId() << "," << it->second << "\n";
+			}
 		}
 	}
 }

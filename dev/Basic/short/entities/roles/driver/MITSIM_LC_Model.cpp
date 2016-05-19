@@ -1257,13 +1257,13 @@ double MITSIM_LC_Model::lcCriticalGap(DriverUpdateParams &params, int type, doub
 	case 0:
 	{
 		// lead gap
-		gap = a[0] + a[1] * dvNegative + a[2] * dvPositive + Utils::generateFloat(0, a[3]);
+		gap = a[0] + a[1] * dvNegative + a[2] * dvPositive + Utils::nRandom(0, a[3]);
 		break;
 	}
 	case 1:
 	{
 		// lag gap
-		gap = a[4] + a[5] * dvNegative + a[6] * std::min<double>(dvPositive, maxdiff) + Utils::generateFloat(0, a[7]);
+		gap = a[4] + a[5] * dvNegative + a[6] * std::min<double>(dvPositive, maxdiff) + Utils::nRandom(0, a[7]);
 		break;
 	}
 	}
@@ -1592,7 +1592,20 @@ int MITSIM_LC_Model::checkNosingFeasibility(DriverUpdateParams &params, const Ne
 		if (timeSinceTagged(params) > lcMaxStuckTime)
 		{
 			//If stuck for a very long time, skip the feasibility check
-			params.lcDebugStr << ";max";
+			LaneChangeTo changeMode = LANE_CHANGE_TO_NONE;
+			params.lcDebugStr << ";max";		
+			
+			if (params.getStatus(STATUS_LEFT))
+			{
+				changeMode = LANE_CHANGE_TO_LEFT;
+			}
+			else if (params.getStatus(STATUS_RIGHT))
+			{
+				changeMode = LANE_CHANGE_TO_RIGHT;
+			}
+			
+			params.setStatusDoingLC(changeMode);
+			
 			return 1;
 		}
 	}

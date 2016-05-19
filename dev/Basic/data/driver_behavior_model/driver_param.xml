@@ -334,7 +334,7 @@
 	0.000		# lag gap negative speed difference
 	0.2			# lag gap positive speed difference
 	0.742		# lag gap standard deviation
-	6.0			# max speed difference
+	15.0		# max speed difference
 	"/>
 	
 	<param name="Target_Gap_Model" value="-0.837   0.913  0.816  -1.218  -2.393  -1.662"/>
@@ -354,8 +354,8 @@
 	0.1			# coef for time (in minutes) since tagged
 	0.5			# max prob one on ramp lane drop, incident, red LUS, etc
 	1.0			# max prob two in connection to next link
-	30.0		# max yielding time (seconds)
-	100.0		# max stuck time (seconds)
+	10.0		# max yielding time (seconds)
+	10.0		# max stuck time (seconds)
 	600.0		# max distance for nosing	
 	40.0		# min distance for nosing
 	"/>

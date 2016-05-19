@@ -56,7 +56,7 @@ const double INFINITESIMAL_DOUBLE = 0.000001;
 const double PASSENGER_CAR_UNIT = 400.0; //cm; 4 m.
 const double MAX_DOUBLE = std::numeric_limits<double>::max();
 const double SHORT_SEGMENT_LENGTH_LIMIT = 5 * sim_mob::PASSENGER_CAR_UNIT; // 5 times a car's length
-const short EVADE_VQ_BOUNDS_THRESHOLD_TICKS = 60; //upper limit of number of ticks for which VQ size limit can reject a person from entering next link
+const short EVADE_VQ_BOUNDS_THRESHOLD_TICKS = 24; //upper limit of number of ticks for which VQ size limit can reject a person from entering next link
 }
 
 void sim_mob::medium::sortPersonsDecreasingRemTime(std::deque<Person_MT*>& personList)

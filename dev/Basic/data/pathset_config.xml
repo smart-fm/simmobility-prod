@@ -30,6 +30,10 @@
                         <link_elimination types="default,highway" />    <!-- unused for now. only default and highway are used in the code-->
                         <random_perturbation modes="time" iterations="100" uniform_range="1,100" /> <!-- for 'modes' attribute, only "time" is supported for now -->
                 </path_generators>
+		<model_scripts path="scripts/lua/mid/behavior-models/" format="lua">
+                        <script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models-->
+                        <script name="pvtrc" file="pvtrc.lua"/> <!--private traffic route choice -->
+                </model_scripts>
         </private_pathset>
 
         <public_pathset enabled="true" mode="normal"> <!-- "normal" and "generation" modes are supported -->

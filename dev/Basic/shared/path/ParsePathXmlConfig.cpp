@@ -114,6 +114,47 @@ void sim_mob::ParsePathXmlConfig::processModelScriptsNode(xercesc::DOMElement* n
 	cfg.ptRouteChoiceScriptsMap = scriptsMap;
 }
 
+void sim_mob::ParsePathXmlConfig::processModelScriptsNodePvt(xercesc::DOMElement* node)
+{
+	std::string format = ParseString(GetNamedAttributeValue(node, "format"), "");
+	if (format.empty() || format != "lua")
+	{
+		throw std::runtime_error("Unsupported script format");
+	}
+
+	std::string scriptsDirectoryPath = ParseString(GetNamedAttributeValue(node, "path"), "");
+	if (scriptsDirectoryPath.empty())
+	{
+		throw std::runtime_error("path to scripts is not provided");
+	}
+	if ((*scriptsDirectoryPath.rbegin()) != '/')
+	{
+		//add a / to the end of the path string if it is not already there
+		scriptsDirectoryPath.push_back('/');
+	}
+	ModelScriptsMap scriptsMap(scriptsDirectoryPath, format);
+	for (DOMElement* item = node->getFirstElementChild(); item; item = item->getNextElementSibling())
+	{
+		std::string name = TranscodeString(item->getNodeName());
+		if (name != "script")
+		{
+			Warn() << "Invalid db_proc_groups child node.\n";
+			continue;
+		}
+
+		std::string key = ParseString(GetNamedAttributeValue(item, "name"), "");
+		std::string val = ParseString(GetNamedAttributeValue(item, "file"), "");
+		if (key.empty() || val.empty())
+		{
+			Warn() << "Invalid script; missing \"name\" or \"file\".\n";
+			continue;
+		}
+
+		scriptsMap.addScriptFileName(key, val);
+	}
+	cfg.pvtRouteChoiceScriptsMap = scriptsMap;
+}
+
 void sim_mob::ParsePathXmlConfig::processPublicPathsetNode(xercesc::DOMElement* publicConfNode)
 {
 
@@ -303,6 +344,11 @@ void sim_mob::ParsePathXmlConfig::processPrivatePathsetNode(xercesc::DOMElement*
 		cfg.params.minDistanceParam = ParseFloat(GetNamedAttributeValue(GetSingleElementByName(utility, "minDistanceParam"), "value"), 0.325);
 		cfg.params.minSignalParam = ParseFloat(GetNamedAttributeValue(GetSingleElementByName(utility, "minSignalParam"), "value"), 0.256);
 		cfg.params.maxHighwayParam = ParseFloat(GetNamedAttributeValue(GetSingleElementByName(utility, "maxHighwayParam"), "value"), 0.422);
+	}
+
+	if(cfg.privatePathSetMode == "normal")
+	{
+		processModelScriptsNodePvt(GetSingleElementByName(pvtConfNode, "model_scripts", true));
 	}
 
 	//sanity check

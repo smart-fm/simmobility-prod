@@ -36,6 +36,8 @@ private:
 	 */
 	void processModelScriptsNode(xercesc::DOMElement* node);
 
+	void processModelScriptsNodePvt(xercesc::DOMElement* node);
+
 	/**
 	 * process public pathset node in config
 	 * @param node node corresponding to public pathset element inside xml file

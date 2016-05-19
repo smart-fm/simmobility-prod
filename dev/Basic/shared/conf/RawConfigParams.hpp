@@ -406,6 +406,7 @@ struct PathSetConf
 
     /// pt route choice model scripts params
 	ModelScriptsMap ptRouteChoiceScriptsMap;
+	ModelScriptsMap pvtRouteChoiceScriptsMap;
 };
 
 /**

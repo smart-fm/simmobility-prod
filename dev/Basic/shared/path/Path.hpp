@@ -99,6 +99,7 @@ public:
 
 	bool valid_path;
 
+
 	SinglePath(const SinglePath &source);
 	///	extract the segment waypoint from series og node-segments waypoints
 	SinglePath();
@@ -116,7 +117,56 @@ public:
 	bool includesLinks(const std::set<const sim_mob::Link*>& lnks) const;
 	static void filterOutNodes(std::vector<sim_mob::WayPoint>& input, std::vector<sim_mob::WayPoint>& output);
 
+	double getHighWayDistance() const {
+		return highWayDistance;
+	}
+
+	bool isIsMaxHighWayUsage() const {
+		return isMaxHighWayUsage;
+	}
+
+	bool isIsMinDistance() const {
+		return isMinDistance;
+	}
+
+	bool isIsMinSignal() const {
+		return isMinSignal;
+	}
+
+	double getLength() const {
+		return length;
+	}
+
+	double getPathSize() const {
+		return pathSize;
+	}
+
+	sim_mob::TRIP_PURPOSE getPurpose() const {
+		return purpose;
+	}
+
+	int getRightTurnNumber() const {
+		return rightTurnNumber;
+	}
+
+	int getSignalNumber() const {
+		return signalNumber;
+	}
+
+	double getTravelCost() const {
+		return travelCost;
+	}
+
+	double getTravelTime() const {
+		return travelTime;
+	}
+
+	double getPartialUtility() const {
+		return partialUtility;
+	}
 };
+
+
 
 /*****************************************************
  ******************* Path Set ************************
@@ -375,6 +425,5 @@ public:
 	void computeAndSetPathSize();
 	void checkPathFeasibilty();
 };
-
 
 }//namespace

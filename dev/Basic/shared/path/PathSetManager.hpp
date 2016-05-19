@@ -15,6 +15,8 @@
 #include "PathSetParam.hpp"
 #include "entities/TravelTimeManager.hpp"
 #include "util/Cache.hpp"
+#include "lua/LuaModel.hpp"
+#include "Path.hpp"
 #include "util/OneTimeFlag.hpp"
 
 
@@ -330,7 +332,7 @@ public:
  * \author Harish Loganathan
  * \author Balakumar Marimuthu
  */
-class PrivateTrafficRouteChoice : public sim_mob::PathSetManager
+class PrivateTrafficRouteChoice : public sim_mob::PathSetManager , public lua::LuaModel
 {
 private:
 	/**	the pathset cache */
@@ -356,6 +358,8 @@ private:
 
 	/** flag to indicate whether restricted region case study is enabled*/
 	bool regionRestrictonEnabled;
+
+	std::vector<sim_mob::SinglePath*> pvtpathset;
 
 	/**
 	 * cache the generated pathset
@@ -397,6 +401,8 @@ private:
 	 */
 	double generateUtility(const sim_mob::SinglePath* sp) const;
 
+	unsigned int getSizeOfChoiceSet();
+
 	/**
 	 * Get best path from given pathsets
 	 * @param ps input pathset choices
@@ -410,6 +416,8 @@ private:
 	bool getBestPathChoiceFromPathSet(boost::shared_ptr<sim_mob::PathSet> &ps,
 			const std::set<const sim_mob::Link*>& partialExclusion,
 			const std::set<const sim_mob::Link*>& blckLstLnks, bool enRoute);
+
+	void mapClasses();
 
 	/**
 	 * loads set of paths pre-generated for an OD
@@ -431,6 +439,21 @@ private:
 public:
 	PrivateTrafficRouteChoice();
 	virtual ~PrivateTrafficRouteChoice();
+
+	double getTotalTravelCost(unsigned int index);
+	double getTotalTravelTime(unsigned int index);
+	double getTotalPathSize(unsigned int index);
+	double getTotalLength(unsigned int index);
+	double getTotalPartialUtility(unsigned int index);
+	double getTotalHighwayDistance(unsigned int index);
+	double getTotalSignalNumber(unsigned int index);
+	double getTotalRightTurnNumber(unsigned int index);
+	int isTotalMinDistance(unsigned int index);
+	int isTotalMinSignal(unsigned int index);
+	int isTotalMaxHighWayUsage(unsigned int index);
+	int getTotalPurpose(unsigned int index);
+
+
 
 	/**
 	 * gets the thread specific instance of pathset manager

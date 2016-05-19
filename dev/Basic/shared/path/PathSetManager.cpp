@@ -18,6 +18,10 @@
 #include <boost/thread/tss.hpp>
 #include <soci/postgresql/soci-postgresql.h>
 #include <sstream>
+#include <algorithm>
+#include "lua/LuaLibrary.hpp"
+#include "lua/third-party/luabridge/LuaBridge.h"
+#include "lua/third-party/luabridge/RefCountedObject.h"
 
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
@@ -44,6 +48,7 @@
 using std::vector;
 using std::string;
 
+using namespace luabridge;
 using namespace sim_mob;
 
 namespace
@@ -58,14 +63,36 @@ namespace
 
 	boost::thread_specific_ptr<ModelContext> threadContext;
 
-	void ensureContext()
-	{
-		if (!threadContext.get())
-		{
-			ModelContext* modelCtx = new ModelContext();
-			threadContext.reset(modelCtx);
-		}
-	}
+//	void ensureContext()
+//	{
+//		if (!threadContext.get())
+//		{
+//			ModelContext* modelCtx = new ModelContext();
+//			threadContext.reset(modelCtx);
+//		}
+//	}
+
+    void ensureContext()
+    {
+        if (!threadContext.get())
+        {
+        	try
+        	{
+        		const ModelScriptsMap& extScripts = ConfigManager::GetInstance().PathSetConfig().pvtRouteChoiceScriptsMap;
+        		const std::string& scriptsPath = extScripts.getPath();
+        		ModelContext* modelCtx = new ModelContext();
+        		modelCtx->pvtRouteChoiceModel->loadFile(scriptsPath + extScripts.getScriptFileName("logit"));
+        		modelCtx->pvtRouteChoiceModel->loadFile(scriptsPath + extScripts.getScriptFileName("pvtrc"));
+        		modelCtx->pvtRouteChoiceModel->initialize();
+        		threadContext.reset(modelCtx);
+        	}
+        	catch (const std::out_of_range& oorx)
+        	{
+        		throw std::runtime_error("missing or invalid generic property 'external_scripts'");
+        	}
+        }
+    }
+
 
 	class PrivateRouteChoiceProvider
 	{
@@ -556,10 +583,10 @@ void sim_mob::PrivateTrafficRouteChoice::onPathSetRetrieval(boost::shared_ptr<Pa
 	}
 
 	//step-2 utility calculation
-	BOOST_FOREACH(SinglePath *sp, ps->pathChoices)
-	{
-		sp->utility = generateUtility(sp);
-	}
+//	BOOST_FOREACH(SinglePath *sp, ps->pathChoices)
+//	{
+//		sp->utility = generateUtility(sp);
+//	}
 }
 
 
@@ -635,7 +662,7 @@ bool sim_mob::PrivateTrafficRouteChoice::getBestPath(
 		pathset->subTrip = st;//at least for the travel start time, subtrip is needed
 		onPathSetRetrieval(pathset, enRoute, useInSimulationTT);
 		//no need to supply permanent blacklist
-		bool pathChosen = getBestPathChoiceFromPathSet(pathset, partial, emptyBlkLst, enRoute);
+		bool pathChosen = PrivateRouteChoiceProvider::getPvtRouteChoiceModel()->getBestPathChoiceFromPathSet(pathset, partial, emptyBlkLst, enRoute);
 		if(pathChosen)
 		{
 			res = *(pathset->bestPath);
@@ -674,9 +701,10 @@ bool sim_mob::PrivateTrafficRouteChoice::getBestPath(
 		//	no need of processing and storing blacklisted paths
 		short psCnt = pathset->pathChoices.size();
 		onPathSetRetrieval(pathset,enRoute);
-		bool pathChosen = getBestPathChoiceFromPathSet(pathset, partial, emptyBlkLst, enRoute);
+		bool pathChosen = PrivateRouteChoiceProvider::getPvtRouteChoiceModel()->getBestPathChoiceFromPathSet(pathset, partial, emptyBlkLst, enRoute);
 		if(pathChosen)
 		{
+			//std::cout << "Path Chosen Successfully" << std::endl;
 			res = *(pathset->bestPath);
 			//cache
 			if(useCache) { cachePathSet(pathset); }
@@ -1291,20 +1319,179 @@ double sim_mob::PrivateTrafficRouteChoice::generateUtility(const sim_mob::Single
 	return utility;
 }
 
+unsigned int sim_mob::PrivateTrafficRouteChoice::getSizeOfChoiceSet()
+{
+	unsigned int size = 0;
+	if(pvtpathset.size()) {
+		size = pvtpathset.size();
+	}
+	return size;
+}
+
+void sim_mob::PrivateTrafficRouteChoice::mapClasses()
+{
+	getGlobalNamespace(state.get()).beginClass <PrivateTrafficRouteChoice> ("PrivateTrafficRouteChoice")
+			.addFunction("travel_cost",&PrivateTrafficRouteChoice::getTotalTravelCost)
+			.addFunction("travel_time",&PrivateTrafficRouteChoice::getTotalTravelTime)
+			.addFunction("path_size",&PrivateTrafficRouteChoice::getTotalPathSize)
+			.addFunction("length",&PrivateTrafficRouteChoice::getTotalLength)
+			.addFunction("partial_utility",&PrivateTrafficRouteChoice::getTotalPartialUtility)
+			.addFunction("highway_distance",&PrivateTrafficRouteChoice::getTotalHighwayDistance)
+			.addFunction("signal_number",&PrivateTrafficRouteChoice::getTotalSignalNumber)
+			.addFunction("right_turn_number",&PrivateTrafficRouteChoice::getTotalRightTurnNumber)
+			.addFunction("is_min_distance",&PrivateTrafficRouteChoice::isTotalMinDistance)
+			.addFunction("is_min_signal",&PrivateTrafficRouteChoice::isTotalMinSignal)
+			.addFunction("is_max_highway_usage",&PrivateTrafficRouteChoice::isTotalMaxHighWayUsage)
+			.addFunction("purpose",&PrivateTrafficRouteChoice::getTotalPurpose)
+			.endClass();
+}
+
+double PrivateTrafficRouteChoice::getTotalTravelCost(unsigned int index)
+{
+	double ret = 0.0;
+	unsigned int sizeOfChoiceSet = getSizeOfChoiceSet();
+	if (index <= sizeOfChoiceSet && index > 0) {
+		ret = pvtpathset[index-1]->getTravelCost();
+	}
+	return ret;
+}
+
+double PrivateTrafficRouteChoice::getTotalLength(unsigned int index)
+{
+	double ret = 0.0;
+	unsigned int sizeOfChoiceSet = getSizeOfChoiceSet();
+	if (index <= sizeOfChoiceSet && index > 0) {
+
+		ret = pvtpathset[index-1]->getLength();
+	}
+	return ret;
+}
+
+double PrivateTrafficRouteChoice::getTotalTravelTime(unsigned int index)
+{
+	double ret = 0.0;
+	unsigned int sizeOfChoiceSet = getSizeOfChoiceSet();
+	if (index <= sizeOfChoiceSet && index > 0) {
+
+		ret = pvtpathset[index-1]->getTravelTime();
+	}
+	return ret;
+}
+
+double PrivateTrafficRouteChoice::getTotalPartialUtility(unsigned int index)
+{
+	double ret = 0.0;
+	unsigned int sizeOfChoiceSet = getSizeOfChoiceSet();
+	if (index <= sizeOfChoiceSet && index > 0) {
+
+		ret = pvtpathset[index-1]->getPartialUtility();
+	}
+	return ret;
+}
+
+double PrivateTrafficRouteChoice::getTotalPathSize(unsigned int index)
+{
+	double ret = 0.0;
+	unsigned int sizeOfChoiceSet = getSizeOfChoiceSet();
+	if (index <= sizeOfChoiceSet && index > 0) {
+
+		ret = pvtpathset[index-1]->getPathSize();
+	}
+	return ret;
+}
+
+double PrivateTrafficRouteChoice::getTotalHighwayDistance(unsigned int index)
+{
+	double ret = 0.0;
+	unsigned int sizeOfChoiceSet = getSizeOfChoiceSet();
+	if (index <= sizeOfChoiceSet && index > 0) {
+
+		ret = pvtpathset[index-1]->getHighWayDistance();
+	}
+	return ret;
+}
+
+double PrivateTrafficRouteChoice::getTotalSignalNumber(unsigned int index)
+{
+	double ret = 0.0;
+	unsigned int sizeOfChoiceSet = getSizeOfChoiceSet();
+	if (index <= sizeOfChoiceSet && index > 0) {
+
+		ret = pvtpathset[index-1]->getSignalNumber();
+	}
+	return ret;
+}
+
+double PrivateTrafficRouteChoice::getTotalRightTurnNumber(unsigned int index)
+{
+	double ret = 0.0;
+	unsigned int sizeOfChoiceSet = getSizeOfChoiceSet();
+	if (index <= sizeOfChoiceSet && index > 0) {
+
+		ret = pvtpathset[index-1]->getRightTurnNumber();
+	}
+	return ret;
+}
+
+int PrivateTrafficRouteChoice::isTotalMinDistance(unsigned int index)
+{
+	bool ret = false;
+	unsigned int sizeOfChoiceSet = getSizeOfChoiceSet();
+	if (index <= sizeOfChoiceSet && index > 0) {
+
+		ret = pvtpathset[index-1]->isIsMinDistance();
+	}
+	return ret;
+}
+
+int PrivateTrafficRouteChoice::isTotalMinSignal(unsigned int index)
+{
+	bool ret = false;
+	unsigned int sizeOfChoiceSet = getSizeOfChoiceSet();
+	if (index <= sizeOfChoiceSet && index > 0) {
+
+		ret = pvtpathset[index-1]->isIsMinSignal();
+	}
+	return ret;
+}
+
+int PrivateTrafficRouteChoice::isTotalMaxHighWayUsage(unsigned int index)
+{
+	bool ret = false;
+	unsigned int sizeOfChoiceSet = getSizeOfChoiceSet();
+	if (index <= sizeOfChoiceSet && index > 0) {
+
+		ret = pvtpathset[index-1]->isIsMaxHighWayUsage();
+	}
+	return ret;
+}
+
+int PrivateTrafficRouteChoice::getTotalPurpose(unsigned int index)
+{
+	int ret = 0;
+		unsigned int sizeOfChoiceSet = getSizeOfChoiceSet();
+		if (index <= sizeOfChoiceSet && index > 0) {
+			std::vector<sim_mob::SinglePath*>::iterator it = pvtpathset.begin();
+			std::advance(it, index - 1);
+			ret = pvtpathset[index-1]->getPurpose();
+		}
+		return ret;
+}
+
 bool sim_mob::PrivateTrafficRouteChoice::getBestPathChoiceFromPathSet(boost::shared_ptr<sim_mob::PathSet> &ps,
 		const std::set<const sim_mob::Link*> & partialExclusion ,
 		const std::set<const sim_mob::Link*> &blckLstLnks , bool enRoute)
 {
-	bool computeUtility = false;
+
+	//bool computeUtility = false;
 	// step 1.1 : For each path i in the path choice:
 	//1. set PathSet(O, D)
 	//2. travle_time
 	//3. utility
 	//step 1.2 : accumulate the logsum
-	ps->logsum = 0.0;
+	//ps->logsum = 0.0;
 	//std:ostringstream utilityDbg("");
 	//utilityDbg << ps->id << "\nutility:\n";
-
 	std::vector<sim_mob::SinglePath*> availablePathsForRouteChoice;
 	BOOST_FOREACH(sim_mob::SinglePath* sp, ps->pathChoices)
 	{
@@ -1314,48 +1501,64 @@ bool sim_mob::PrivateTrafficRouteChoice::getBestPathChoiceFromPathSet(boost::sha
 		if(sp->travelTime <= 0.0 )
 		{
 			std::stringstream out("");
-			out << sp->pathSetId << " getBestPathChoiceFromPathSet=>invalid single path travleTime :" << sp->travelTime;
+			out << sp->pathSetId << " getBestPathChoiceFromPathSet=>invalid single path travelTime :" << sp->travelTime;
 			throw std::runtime_error(out.str());
 		}
-
 		if (sp->includesLinks(partialExclusion) )
 		{
 			sp->travelTime = std::numeric_limits<double>::max();//some large value like infinity
-			sp->utility = generateUtility(sp); //re-calculate utility
+			//sp->utility = generateUtility(sp); //re-calculate utility
 		}
-
-		//utilityDbg << "[" << sp->utility << "," << exp(sp->utility) << "]";
-		ps->logsum += exp(sp->utility);
+		//ps->logsum += exp(sp->utility);
 		availablePathsForRouteChoice.push_back(sp);
+		pvtpathset.clear();
+		pvtpathset = availablePathsForRouteChoice;
 	}
 	//utilityDbg << "\n\nlogsum: " << ps->logsum;
 	// step 2: find the best waypoint path :
 	// calculate a probability using path's utility and pathset's logsum,
 	// compare the resultwith a  random number to decide whether pick the current path as the best path or not
 	//if not, just chose the shortest path as the best path
-	double upperProb=0;
+//	double upperProb=0;
 	// 2.1 Draw a random number X between 0.0 and 1.0 for agent A.
-	double random = genRandomDouble(0,1);
+//	double random = genRandomDouble(0,1);
 	//utilityDbg << "\nrandom number:" << random << "\n";
 	// 2.2 For each path i in the path choice set PathSet(O, D):
-	int i = -1;
-	BOOST_FOREACH(sim_mob::SinglePath* sp, availablePathsForRouteChoice)
+//	int i = -1;
+//	BOOST_FOREACH(sim_mob::SinglePath* sp, availablePathsForRouteChoice)
+//	{
+//		i++;
+//		double prob = exp(sp->utility)/(ps->logsum);
+//		upperProb += prob;
+//		//utilityDbg << "[" << sp->scenario << "," << sp->utility << "," << prob << "," << upperProb << "]";
+//		if (random <= upperProb)
+//		{
+//			// 2.3 agent A chooses path i from the path choice set.
+//			ps->bestPath = &(sp->path);
+//			//logger << "[LOGIT][" << sp->pathSetId <<  "] [" << i << " out of " << ps->pathChoices.size()  << " paths chosen] [UTIL: " <<  sp->utility << "] [LOGSUM: " << ps->logsum << "][exp(sp->utility)/(ps->logsum) : " << prob << "][X:" << random << "]\n";
+//			//utilityDbg << "\nselect: " << sp->pathSetId  << "|" << sp->scenario << "|[" << sp->scenario << "," << sp->utility << "," << prob << "," << upperProb << "]" << "\n";
+//			//sim_mob::Logger::log("path_selection") << utilityDbg.str() << "\n-------------------------------------------------------\n";
+//			return true;
+//		}
+//	}
+	unsigned int sizeOfChoiceSet = getSizeOfChoiceSet();
+	if (sizeOfChoiceSet)
 	{
-		i++;
-		double prob = exp(sp->utility)/(ps->logsum);
-		upperProb += prob;
-		//utilityDbg << "[" << sp->scenario << "," << sp->utility << "," << prob << "," << upperProb << "]";
-		if (random <= upperProb)
-		{
-			// 2.3 agent A chooses path i from the path choice set.
-			ps->bestPath = &(sp->path);
-			//logger << "[LOGIT][" << sp->pathSetId <<  "] [" << i << " out of " << ps->pathChoices.size()  << " paths chosen] [UTIL: " <<  sp->utility << "] [LOGSUM: " << ps->logsum << "][exp(sp->utility)/(ps->logsum) : " << prob << "][X:" << random << "]\n";
-			//utilityDbg << "\nselect: " << sp->pathSetId  << "|" << sp->scenario << "|[" << sp->scenario << "," << sp->utility << "," << prob << "," << upperProb << "]" << "\n";
-			//sim_mob::Logger::log("path_selection") << utilityDbg.str() << "\n-------------------------------------------------------\n";
-			return true;
+		LuaRef funcRef = getGlobal(state.get(), "choose_PVT_path");
+		LuaRef retVal = funcRef(this,sizeOfChoiceSet);
+		int index = -1;
+		if (retVal.isNumber()) {
+			index = retVal.cast<int>();
 		}
+		if (index > sizeOfChoiceSet || index <= 0) {
+			std::stringstream errStrm;
+			errStrm << "invalid path index (" << index
+					<< ") returned from PT route choice for OD with " << sizeOfChoiceSet << "path choices" << std::endl;
+			throw std::runtime_error(errStrm.str());
+		}
+		ps->bestPath = &(pvtpathset[index-1]->path);
+		return true;
 	}
-	//sim_mob::Logger::log("path_selection") << utilityDbg.str() << "\n-------------------------------------------------------\n";
 
 	// path choice algorithm
 	if(!ps->oriPath)//return upon null oriPath only if the condition is normal(excludedSegs is empty)
@@ -1693,4 +1896,3 @@ bool sim_mob::RestrictedRegion::isInRestrictedZone(const std::vector<WayPoint>& 
 	}
 	return false;
 }
-

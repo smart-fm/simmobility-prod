@@ -1592,7 +1592,20 @@ int MITSIM_LC_Model::checkNosingFeasibility(DriverUpdateParams &params, const Ne
 		if (timeSinceTagged(params) > lcMaxStuckTime)
 		{
 			//If stuck for a very long time, skip the feasibility check
+			LaneChangeTo changeMode = LANE_CHANGE_TO_NONE;
 			params.lcDebugStr << ";max";		
+			
+			if (params.getStatus(STATUS_LEFT))
+			{
+				changeMode = LANE_CHANGE_TO_LEFT;
+			}
+			else if (params.getStatus(STATUS_RIGHT))
+			{
+				changeMode = LANE_CHANGE_TO_RIGHT;
+			}
+			
+			params.setStatusDoingLC(changeMode);
+			
 			return 1;
 		}
 	}

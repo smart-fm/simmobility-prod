@@ -3,7 +3,7 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 #pragma once
-
+#include <boost/thread/shared_mutex.hpp>
 #include <string>
 #include <set>
 #include <vector>
@@ -85,8 +85,8 @@ private:
 	double minDensity;     ///<minimum traffic density in vehicles/m
 	double minSpeed;       ///<minimum speed in the segment in m/s
 	double capacity;       ///<segment capacity in vehicles/s
-	const double alpha;          ///<Model parameter of speed density function
-	const double beta;           ///<Model parameter of speed density function
+	double alpha;          ///<Model parameter of speed density function
+	double beta;           ///<Model parameter of speed density function
 };
 
 /**
@@ -293,8 +293,9 @@ public:
 	/**
 	 * updates the accept rate of lane
 	 * @param upSpeed lane speed in m/s
+	 * @param numLanes number of lanes in the parent segment stats
 	 */
-	void updateAcceptRate(double upSpeed);
+	void updateAcceptRate(double upSpeed, unsigned int numLanes);
 
 	/**
 	 * This function prints all agents in laneAgents
@@ -305,7 +306,7 @@ public:
 	 * Verifies if the invariant that the order in laneAgents of each lane matches
 	 * with the ordering w.r.t the distance to the end of segment
 	 */
-	void verifyOrdering();
+	void verifyOrdering() const;
 
 	double getTotalVehicleLength() const
 	{
@@ -464,6 +465,11 @@ protected:
 	 * map of lanes connected to each downstream link
 	 */
 	std::map<const Link*, std::vector<LaneStats*> > laneGroup;
+
+	/**
+	 * mutex for adding agents to lanes 
+	 */
+	boost::recursive_mutex mutexPersonManagement;
 
 public:
 	SegmentStats(const RoadSegment* rdSeg, Conflux* parentConflux, double length);
@@ -629,9 +635,8 @@ public:
 	/**
 	 * get a list of all persons in the infinite lane
 	 * @param out list for all persons in the infinite lane
-	 * @param personIds for all persons ids in the segment stats
 	 */
-	void getInfinityPersons(std::deque<Person_MT*>& segAgents, std::string& personIds);
+	void getInfinityPersons(std::deque<Person_MT*>& segAgents);
 
 	/**
 	 * updates the driving time to reach end of link of all persons in segment stats
@@ -680,6 +685,13 @@ public:
 	 * @returns total queuing length of this seg stats
 	 */
 	double getQueueLength() const;
+
+	/**
+	 * Tells whether there is queuing in any lane in this seg stats.
+	 * This function considers only vehicle lanes
+	 * @returns true if queuing occurs; false otherwise.
+	 */
+	bool hasQueue() const;
 
 	/**
 	 * Returns the sum of moving lengths of all lanes in this seg stats

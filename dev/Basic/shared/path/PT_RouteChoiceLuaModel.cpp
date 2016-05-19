@@ -41,10 +41,12 @@ PT_RouteChoiceLuaModel::PT_RouteChoiceLuaModel() : publicTransitPathSet(nullptr)
 		throw std::runtime_error("stored procedure for \"pt_pathset\" is empty or not specified in config file");
 	}
 	dbSession = new soci::session(soci::postgresql, cfg.getDatabaseConnectionString(false));
+	output.open("od_scenario.csv",std::ofstream::out);
 }
 PT_RouteChoiceLuaModel::~PT_RouteChoiceLuaModel()
 {
 	delete dbSession;
+	output.close();
 }
 
 unsigned int PT_RouteChoiceLuaModel::getSizeOfChoiceSet()
@@ -171,6 +173,7 @@ std::vector<sim_mob::OD_Trip> PT_RouteChoiceLuaModel::makePT_RouteChoice(const s
 			trip.serviceLines = itEdge->getServiceLines();
 			trip.originNode = origin;
 			trip.destNode = destination;
+			trip.scenario = it->getScenario();
 			trip.travelTime = itEdge->getTransitTimeSecs();
 			trip.walkTime = itEdge->getWalkTimeSecs();
 			trip.id = itEdge->getEdgeId();
@@ -182,7 +185,8 @@ std::vector<sim_mob::OD_Trip> PT_RouteChoiceLuaModel::makePT_RouteChoice(const s
 	return odTrips;
 }
 
-bool PT_RouteChoiceLuaModel::getBestPT_Path(int origin, int dest, const DailyTime& startTime, std::vector<sim_mob::OD_Trip>& odTrips)
+
+bool PT_RouteChoiceLuaModel::getBestPT_Path(int origin, int dest, const DailyTime& startTime, std::vector<sim_mob::OD_Trip>& odTrips, std::string dbid, unsigned int start_time)
 {
 	bool ret = false;
 	PT_PathSet pathSet;
@@ -194,13 +198,25 @@ bool PT_RouteChoiceLuaModel::getBestPT_Path(int origin, int dest, const DailyTim
 	}
 	else
 	{
+
 		std::string originId = boost::lexical_cast < std::string > (origin);
 		std::string destId = boost::lexical_cast < std::string > (dest);
 		publicTransitPathSet = &pathSet;
 		odTrips = makePT_RouteChoice(originId, destId);
+		//printScenarioAndOD(odTrips, dbid, start_time);
 		ret = true;
 	}
 	return ret;
+}
+
+void PT_RouteChoiceLuaModel::printScenarioAndOD(const std::vector<sim_mob::OD_Trip>& odTrips, std::string dbid, unsigned int startTime)
+{
+	if (odTrips.empty())
+	{
+		return;
+	}
+	output << odTrips.front().originNode << " , " << odTrips.front().destNode << " , " << odTrips.front().scenario << " , " << dbid << ", " << startTime
+			<< std::endl;
 }
 
 void PT_RouteChoiceLuaModel::storeBestPT_Path()
@@ -274,15 +290,25 @@ void PT_RouteChoiceLuaModel::loadPT_PathSet(int origin, int dest, PT_PathSet& pa
 			{
 			case sim_mob::BUS_EDGE:
 			{
-				double edgeTravelTime = 0.0;
-				const std::string& busLineId = edge.getServiceLines();
-				if(!busController->isBuslineAvailable(busLineId, nextStartTime))
+				if(!busController)
 				{
 					invalidPath = true;
 					break;
 				}
-				const std::vector<const Link*>& busRouteLinks = busController->getLinkRoute(busLineId);
-				const std::vector<const BusStop*>& busRouteStops = busController->getStops(busLineId);
+
+				double edgeTravelTime = 0.0;
+				const std::string& busLineIds = edge.getServiceLines();
+				std::vector<std::string> lines;
+				boost::split(lines, busLineIds, boost::is_any_of("/"));
+
+				if(!busController->isBuslineAvailable(lines, nextStartTime))
+				{
+					invalidPath = true;
+					break;
+				}
+
+				const std::vector<const Link*>& busRouteLinks = busController->getLinkRoute(lines.front());
+				const std::vector<const BusStop*>& busRouteStops = busController->getStops(lines.front());
 
 				const BusStop* originStop = BusStop::findBusStop(edge.getStartStop());
 				if(!originStop)
@@ -294,9 +320,15 @@ void PT_RouteChoiceLuaModel::loadPT_PathSet(int origin, int dest, PT_PathSet& pa
 					originStop = originStop->getTwinStop(); // origin stop should not be a sink terminus
 				}
 
-				double waitingTime = ptStats->getWaitingTime((nextStartTime.getValue()/1000), originStop->getStopCode(), edge.getServiceLines());
+				double waitingTime = ptStats->getWaitingTime((nextStartTime.getValue()/1000), originStop->getStopCode(), lines.front());
 				if(waitingTime > 0)
 				{
+					edgeTravelTime = edgeTravelTime + waitingTime;
+					nextStartTime = DailyTime(nextStartTime.getValue() + std::floor(waitingTime*1000));
+				}
+				else
+				{
+					waitingTime = edge.getWaitTimeSecs();
 					edgeTravelTime = edgeTravelTime + waitingTime;
 					nextStartTime = DailyTime(nextStartTime.getValue() + std::floor(waitingTime*1000));
 				}
@@ -348,7 +380,7 @@ void PT_RouteChoiceLuaModel::loadPT_PathSet(int origin, int dest, PT_PathSet& pa
 					while(isBeforeDestStop && nextStop && nextStop->getParentSegment()->getParentLink() == currentLink)
 					{
 						isBeforeDestStop = !((nextStop == destinStop) || (nextStop->getTwinStop() == destinStop));
-						double dwellTime = ptStats->getDwellTime((nextStartTime.getValue()/1000), nextStop->getStopCode(), edge.getServiceLines());
+						double dwellTime = ptStats->getDwellTime((nextStartTime.getValue()/1000), nextStop->getStopCode(), lines.front());
 						if(dwellTime > 0)
 						{
 							tt = tt + dwellTime;

@@ -4,6 +4,7 @@
 
 #include "BusDriverFacets.hpp"
 
+#include <cstdio>
 #include <sstream>
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
@@ -59,7 +60,7 @@ std::string BusDriverBehavior::frame_tick_output() {
 
 
 BusDriverMovement::BusDriverMovement():
-	DriverMovement(), parentBusDriver(nullptr) {}
+	DriverMovement(), parentBusDriver(nullptr), busTripId(std::string("NA")) {}
 
 BusDriverMovement::~BusDriverMovement() {}
 
@@ -72,6 +73,11 @@ void BusDriverMovement::frame_init()
 		VehicleBase* oldBus = parentBusDriver->getResource();
 		safe_delete_item(oldBus);
 		parentBusDriver->setResource(newVeh);
+		const BusTrip* busTrip = dynamic_cast<const BusTrip*>(*(parentBusDriver->parent->currTripChainItem));
+		if(busTrip)
+		{
+			busTripId = busTrip->tripID;
+		}
 	}
 	else
 	{
@@ -174,46 +180,30 @@ void BusDriverMovement::frame_tick()
 	{
 		parentBusDriver->updatePassengers();
 	}
-/*
-	std::stringstream logout;
+
+
+/*	//Debug print
 	Person_MT* person = parentBusDriver->parent;
 	unsigned int segId = (person->getCurrSegStats() ? person->getCurrSegStats()->getRoadSegment()->getRoadSegmentId() : 0);
 	uint16_t statsNum = (person->getCurrSegStats() ? person->getCurrSegStats()->getStatsNumberInSegment() : 0);
-	const BusTrip* busTrip = dynamic_cast<const BusTrip*>(*(person->currTripChainItem));
-	logout << "(BusDriver" << "," << person->getId() << ","
-			<< person->busLine << ","
-			<< (busTrip? busTrip->tripID : "NA") << ","
-			<< parentBusDriver->getParams().now.frame()
-			<< ",{"
-			<< "RoadSegment:" << segId
-			<< ",StatsNum:" << statsNum
-			<< ",Lane:" << (person->getCurrLane() ? person->getCurrLane()->getLaneId() : 0)
-			<< ",DistanceToEndSeg:" << person->distanceToEndOfSegment;
-
-	if (parentBusDriver->getResource()->isMoving())
-	{
-		logout << ",Moving";
-	}
-	else
-	{
-		logout << ",ServingStop";
-	}
 	const BusStop* nextStop = routeTracker.getNextStop();
-	logout << ",NextStop:" << (nextStop ? nextStop->getStopCode() : "0");
-
-	if (person->isQueuing)
-	{
-		logout << ",queuing:true";
-	}
-	else
-	{
-		logout << ",queuing:false";
-	}
-	logout << ",elapsed:" << params.elapsedSeconds;
-	logout << "})" << std::endl;
-	Print() << logout.str();
+	char logbuf[1000];
+	sprintf(logbuf, "BD,%u,%s,%s,%u,seg:%u-%u,ln:%u,d:%f,%s,next:%s,q:%c,elpsd:%fs\n",
+			person->getId(),
+			person->busLine.c_str(),
+			busTripId.c_str(),
+			parentBusDriver->getParams().now.frame(),
+			segId,
+			statsNum,
+			(person->getCurrLane() ? person->getCurrLane()->getLaneId() : 0),
+			 person->distanceToEndOfSegment,
+			 (parentBusDriver->getResource()->isMoving()? "road" : "stop"),
+			 (nextStop ? nextStop->getStopCode().c_str() : "0"),
+			 (person->isQueuing? 'T' : 'F'),
+			 params.elapsedSeconds
+			);
+	person->log(std::string(logbuf));
 */
-
 }
 
 std::string BusDriverMovement::frame_tick_output() {
@@ -413,11 +403,18 @@ void BusDriverMovement::flowIntoNextLinkIfPossible(DriverUpdateParams& params)
 	const Lane* laneInNextSegment = getBestTargetLane(nextSegStats, nextToNextSegStats);
 
 	double departTime = getLastAccept(laneInNextSegment, nextSegStats);
-	if(!nextSegStats->isShortSegment())
+/*	if(!nextSegStats->isShortSegment())
 	{
-		departTime += getAcceptRate(laneInNextSegment, nextSegStats); //in seconds
+		if(nextSegStats->hasQueue())
+		{
+			departTime += getAcceptRate(laneInNextSegment, nextSegStats); //in seconds
+		}
+		else
+		{
+			departTime += (PASSENGER_CAR_UNIT / (nextSegStats->getNumVehicleLanes() * nextSegStats->getSegSpeed(true)));
+		}
 	}
-
+*/
 	params.elapsedSeconds = std::max(params.elapsedSeconds, departTime - (params.now.ms()/1000.0)); //in seconds
 
 	const Link* nextLink = getNextLinkForLaneChoice(nextSegStats);
@@ -660,11 +657,18 @@ bool BusDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 		const Lane* laneInNextSegment = getBestTargetLane(nxtSegStat, nextToNextSegStat);
 
 		double departTime = getLastAccept(laneInNextSegment, nxtSegStat);
-		if(!nxtSegStat->isShortSegment())
+/*		if(!nxtSegStat->isShortSegment())
 		{
-			departTime += getAcceptRate(laneInNextSegment, nxtSegStat); //in seconds
+			if(nxtSegStat->hasQueue())
+			{
+				departTime += getAcceptRate(laneInNextSegment, nxtSegStat); //in seconds
+			}
+			else
+			{
+				departTime += (PASSENGER_CAR_UNIT / (nxtSegStat->getNumVehicleLanes() * nxtSegStat->getSegSpeed(true)));
+			}
 		}
-
+*/
 		params.elapsedSeconds = std::max(params.elapsedSeconds, departTime - (params.now.ms()/1000.0)); //in seconds
 
 		const Link* nextLink = getNextLinkForLaneChoice(nxtSegStat);
@@ -691,6 +695,7 @@ bool BusDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 			}
 
 			res = true;
+			parentBusDriver->getResource()->setMoving(true);//set moving is set to true here explicitly because the BD could try to move to next segement from within advance and we want the correct moving status there
 			advance(params);
 		}
 		else

@@ -175,6 +175,9 @@ protected:
 
 	/**list of bus stops for the bus line of this driver*/
 	BusRouteTracker routeTracker;
+
+	/** bus trip id corresponding to this bus driver role */
+	std::string busTripId;
 };
 
 }

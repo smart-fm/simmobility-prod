@@ -113,7 +113,7 @@ public:
 	 * @param time time of day
 	 * @returns true if bus line operates around the provided time; false otherwise.
 	 */
-	bool isBuslineAvailable(const std::string& busline, const DailyTime& time) const;
+	bool isBuslineAvailable(const std::vector<std::string>& busLineIds, const DailyTime& time) const;
 
 protected:
 

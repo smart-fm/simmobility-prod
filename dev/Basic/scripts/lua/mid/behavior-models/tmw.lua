@@ -12,15 +12,15 @@ Authors - Siyu Li, Harish Loganathan
 
 --!! see the documentation on the definition of AM,PM and OP table!!
 
-local beta_cons_bus = -0.404
-local beta_cons_mrt = -0.876
-local beta_cons_privatebus = -2.41
-local beta_cons_drive1 = -0.2258
-local beta_cons_share2 = -3.719
-local beta_cons_share3 = -4.81
-local beta_cons_motor = -8.196
-local beta_cons_walk = -0.435
-local beta_cons_taxi = -4.66
+local beta_cons_bus = -1.260
+local beta_cons_mrt = -1.361
+local beta_cons_privatebus = -2.774
+local beta_cons_drive1 = 2.865
+local beta_cons_share2 = -2.159
+local beta_cons_share3 = -5.232
+local beta_cons_motor = -4.633
+local beta_cons_walk = 2.207
+local beta_cons_taxi = -4.973
 
 local beta1_1_tt = -0.717
 local beta1_2_tt = -1.37
@@ -295,7 +295,7 @@ local function computeUtilities(params,dbparams)
 	local income_id = params.income_id
 	local income_cat = {500,1250,1750,2250,2750,3500,4500,5500,6500,7500,8500,0,99999,99999}
 	local income_mid = income_cat[income_id]
-	local missing_income = (params.income_id >= 13) and 1 or 0
+	local missing_income = (params.income_id >= 12) and 1 or 0    -- Vishnu 14th April 2016- Changed from the previous value of 12
 
 	local cost_taxi_1=3.4+((d1*(d1>10 and 1 or 0)-10*(d1>10 and 1 or 0))/0.35+(d1*(d1<=10 and 1 or 0)+10*(d1>10 and 1 or 0))/0.4)*0.22+ cost_car_ERP_first + central_dummy*3
 	local cost_taxi_2=3.4+((d2*(d2>10 and 1 or 0)-10*(d2>10 and 1 or 0))/0.35+(d2*(d2<=10 and 1 or 0)+10*(d2>10 and 1 or 0))/0.4)*0.22+ cost_car_ERP_second + central_dummy*3

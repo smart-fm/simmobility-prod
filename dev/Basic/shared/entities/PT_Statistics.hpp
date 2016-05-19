@@ -31,6 +31,7 @@ struct PersonWaitingTime
 	/** id of person who submitted this waiting time record*/
 	unsigned int personId;
 	/** stop number of bus stop where the person is/was waiting*/
+	std::string personIddb;
 	std::string busStopNo;
 	/** hh:mi:ss format time at which this waiting time information was collected*/
 	std::string currentTime;
@@ -40,6 +41,8 @@ struct PersonWaitingTime
 	std::string busLine;
 	/** number of times this person was denied boarding before he got a chance to board a bus */
 	unsigned int deniedBoardingCount;
+	unsigned int destnode;
+	std::string endstop;
 
 	/**
 	 * constructs a string of comma separated values to be printed in output files
@@ -105,7 +108,7 @@ public:
 struct PersonTravelTime
 {
 	/** person id*/
-	unsigned int personId;
+	std::string personId;
 	/** start location of trip*/
 	std::string tripStartPoint;
 	/** end location of trip*/

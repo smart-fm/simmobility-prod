@@ -39,7 +39,10 @@ void PT_Statistics::resetInstance()
 	instance = nullptr;
 }
 
-PT_Statistics::PT_Statistics() : MessageHandler(0) {}
+PT_Statistics::PT_Statistics() : MessageHandler(0)
+{
+	stopStatsMgr.loadHistoricalStopStats();
+}
 
 PT_Statistics::~PT_Statistics() {}
 
@@ -58,7 +61,7 @@ void PT_Statistics::HandleMessage(Message::MessageType type, const Message& mess
 	{
 		const PersonWaitingTimeMessage& msg = MSG_CAST(PersonWaitingTimeMessage, message);
 		char key[50];
-		sprintf(key, "%u,%s", msg.personWaitingTime.personId, msg.personWaitingTime.busStopNo.c_str());
+		sprintf(key, "%s,%s", msg.personWaitingTime.personIddb.c_str(), msg.personWaitingTime.busStopNo.c_str());
 		personWaitingTimes[std::string(key)] = msg.personWaitingTime;
 		stopStatsMgr.addStopStats(msg.personWaitingTime);
 		break;
@@ -165,9 +168,11 @@ double PT_Statistics::getWaitingTime(unsigned int time, const std::string& stopC
 std::string PersonWaitingTime::getCSV() const
 {
 	char csvArray[500];
-	sprintf(csvArray, "%u,%s,%s,%s,%.2f,%u\n",
-			personId,
+	sprintf(csvArray, "%s,%s,%u,%s,%s,%s,%.2f,%u\n",
+			personIddb.c_str(),
 			busStopNo.c_str(),
+			destnode,
+			endstop.c_str(),
 			busLine.c_str(),
 			currentTime.c_str(),
 			waitingTime,
@@ -192,8 +197,8 @@ std::string BusArrivalTime::getCSV() const
 std::string PersonTravelTime::getCSV() const
 {
 	char csvArray[200];
-	sprintf(csvArray, "%u,%s,%s,%s,%s,%s,%s,%s,%s,%.2f\n",
-			personId,
+	sprintf(csvArray, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%.2f\n",
+			personId.c_str(),
 			tripStartPoint.c_str(),
 			tripEndPoint.c_str(),
 			subStartPoint.c_str(),
@@ -296,10 +301,15 @@ void StopStatsManager::loadHistoricalStopStats()
 	std::string dbStr(cfg.getDatabaseConnectionString(false));
 	soci::session dbSession(soci::postgresql, dbStr);
 
+	historicalStopStatsMap.clear();
 	std::string historicalStopStatsProc = ConfigManager::GetInstance().FullConfig().getDatabaseProcMappings().procedureMappings["pt_stop_stats"];
+	if(historicalStopStatsProc.empty())
+	{
+		return;
+	}
+
 	std::string query = "select * from " + historicalStopStatsProc;
 	soci::rowset<soci::row> rs = (dbSession.prepare << query);
-	historicalStopStatsMap.clear();
 	for (soci::rowset<soci::row>::const_iterator it=rs.begin(); it!=rs.end(); ++it)
 	{
 		const soci::row& r = (*it);

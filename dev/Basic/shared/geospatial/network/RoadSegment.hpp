@@ -59,6 +59,9 @@ private:
 	/**Obstacles generally include things like bus stops and crossing and incidents*/
 	std::map<double, RoadItem *> obstacles;
 
+	/**Flag to indicate whether this segment exists only to hold a bus interchange*/
+	bool busTerminusSegment;
+
 public:
 	RoadSegment();
 	virtual ~RoadSegment();
@@ -93,6 +96,9 @@ public:
 
 	const std::map<double, RoadItem *>& getObstacles() const;
 	unsigned int getNoOfLanes() const;
+
+	bool isBusTerminusSegment() const;
+	void setBusTerminusSegment();
 
 	/**
 	 * Gets the length of the road segment poly-line. This is equal to the length of the segment

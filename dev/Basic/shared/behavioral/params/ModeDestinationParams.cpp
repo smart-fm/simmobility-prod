@@ -16,13 +16,12 @@ const double WALKABLE_DISTANCE = 3.0; //km
 const double OPERATIONAL_COST = 0.147;
 
 const std::vector<OD_Pair> unavailableODsDummy;
-const std::map<int, int> MTZ12_MTZ08_MapDummy;
 }
 
 ModeDestinationParams::ModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap,
-		StopType purpose, int originCode, const std::vector<OD_Pair>& unavailableODs, const std::map<int, int>& MTZ12_MTZ08_Map) :
+		StopType purpose, int originCode, const std::vector<OD_Pair>& unavailableODs) :
 		zoneMap(zoneMap), amCostsMap(amCostsMap), pmCostsMap(pmCostsMap), purpose(purpose), origin(originCode), OPERATIONAL_COST(0.147),
-			MAX_WALKING_DISTANCE(3), cbdOrgZone(false), unavailableODs(unavailableODs), MTZ12_MTZ08_Map(MTZ12_MTZ08_Map)
+			MAX_WALKING_DISTANCE(3), cbdOrgZone(false), unavailableODs(unavailableODs)
 {
 }
 
@@ -36,7 +35,7 @@ int ModeDestinationParams::getMode(int choice) const
 	int nModes = 9;
 	if (choice < 1 || choice > nZones * nModes)
 	{
-		throw std::runtime_error("getMode()::invalid choice id for mode-destination model");
+		return -1;
 	}
 	return ((choice - 1) / nZones + 1);
 }
@@ -47,7 +46,7 @@ int ModeDestinationParams::getDestination(int choice) const
 	int nModes = 9;
 	if (choice < 1 || choice > nZones * nModes)
 	{
-		throw std::runtime_error("getDestination()::invalid choice id for mode-destination model");
+		return -1;
 	}
 	int zoneId = choice % nZones;
 	if (zoneId == 0)
@@ -59,15 +58,15 @@ int ModeDestinationParams::getDestination(int choice) const
 
 bool sim_mob::ModeDestinationParams::isUnavailable(int origin, int destination) const
 {
-	int origin08 = MTZ12_MTZ08_Map.at(origin);
-	int destin08 = MTZ12_MTZ08_Map.at(destination);
-	OD_Pair orgDest = OD_Pair(origin08, destin08);
+	//int origin08 = MTZ12_MTZ08_Map.at(origin);
+	//int destin08 = MTZ12_MTZ08_Map.at(destination);
+	OD_Pair orgDest = OD_Pair(origin, destination);
 	return binary_search(unavailableODs.begin(), unavailableODs.end(), orgDest);
 }
 
 LogsumTourModeDestinationParams::LogsumTourModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap,
 		const PredayPersonParams& personParams, StopType tourType) :
-		ModeDestinationParams(zoneMap, amCostsMap, pmCostsMap, tourType, personParams.getHomeLocation(), unavailableODsDummy, MTZ12_MTZ08_MapDummy),
+		ModeDestinationParams(zoneMap, amCostsMap, pmCostsMap, tourType, personParams.getHomeLocation(), unavailableODsDummy),
 			drive1Available(personParams.hasDrivingLicence() * personParams.getCarOwn()),
 			motorAvailable(personParams.getMotorLicense() * personParams.getMotorOwn()),
 			modeForParentWorkTour(0), costIncrease(1)

@@ -433,29 +433,24 @@ unsigned int sim_mob::medium::MT_Config::personWorkGroupSize() const
 	return workers.person.count;
 }
 
-double sim_mob::medium::MT_Config::getSpeedDensityAlphaParam() const
+std::pair<double, double> sim_mob::medium::MT_Config::getSpeedDensityParam(int linkCategory) const
 {
-	return speedDensityAlphaParam;
-}
-
-void sim_mob::medium::MT_Config::setSpeedDensityAlphaParam(double speedDensityAlphaParam)
-{
-	if(!configSealed)
+	if(linkCategory < 1 || linkCategory > 7)
 	{
-		this->speedDensityAlphaParam = speedDensityAlphaParam;
+		throw std::runtime_error("invalid link category passed to fetch speed density parameters");
 	}
+	return speedDensityParams[linkCategory-1];
 }
 
-double sim_mob::medium::MT_Config::getSpeedDensityBetaParam() const
-{
-	return speedDensityBetaParam;
-}
-
-void sim_mob::medium::MT_Config::setSpeedDensityBetaParam(double speedDensityBetaParam)
+void sim_mob::medium::MT_Config::setSpeedDensityParam(int linkCategory, double alpha, double beta)
 {
 	if(!configSealed)
 	{
-		this->speedDensityBetaParam = speedDensityBetaParam;
+		if(linkCategory < 1 || linkCategory > 7)
+		{
+			throw std::runtime_error("invalid link category passed to set speed density parameters");
+		}
+		speedDensityParams[linkCategory-1] = std::make_pair(alpha, beta);
 	}
 }
 

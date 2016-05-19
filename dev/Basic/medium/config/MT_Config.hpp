@@ -6,6 +6,7 @@
 #include <string>
 #include <map>
 #include <vector>
+#include <utility>
 
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
@@ -675,10 +676,20 @@ public:
 
 	const WorkerParams& getWorkerParams() const;
 
-	double getSpeedDensityAlphaParam() const;
-	void setSpeedDensityAlphaParam(double speedDensityAlphaParam);
-	double getSpeedDensityBetaParam() const;
-	void setSpeedDensityBetaParam(double speedDensityBetaParam);
+	/**
+	 * returns speed density params for a given link category
+	 * @param linkCategory link category (1=A, 2=B, 3=C, 4=D, 5=E, 6=SLIPROAD, 7=ROUNDABOUT)
+	 * @return pair <alpha, beta> for the given link category
+	 */
+	std::pair<double, double> getSpeedDensityParam(int linkCategory) const;
+
+	/**
+	 * sets speed density params for a given link category
+	 * @param linkCategory link category (1=A, 2=B, 3=C, 4=D, 5=E, 6=SLIPROAD, 7=ROUNDABOUT)
+	 * @param alpha speed density parameter alpha
+	 * @param beta speed density parameter beta
+	 */
+	void setSpeedDensityParam(int linkCategory, double alpha, double beta);
 
 	/**
      * Enumerator for mid term run mode
@@ -811,11 +822,8 @@ private:
     /// set of segment stats with bus stops
     std::set<SegmentStats*> segmentStatsWithBusStops;
 
-    /// speed-density parameter alpha
-    double speedDensityAlphaParam;
-
-    /// speed-density parameter beta
-    double speedDensityBetaParam;
+    /// map of link category to speed density function parameters <alpha, beta>
+    std::pair<double, double> speedDensityParams[7];
 };
 }
 }

@@ -70,11 +70,21 @@ bool GreaterDistToSegmentEnd::operator ()(const Person_MT* x, const Person_MT* y
 SupplyParams::SupplyParams(const RoadSegment* rdSeg, double statsLength) :
 		freeFlowSpeed(rdSeg->getMaxSpeed()), minSpeed(0.2 * freeFlowSpeed), /*20% of free flow speed as suggested by Yang Lu*/
 		jamDensity(0.2), /*density during traffic jam in veh/meter*/
-		minDensity(0.0), /*minimum traffic density in veh/meter*/
+		minDensity(0.2 * 0.2), /*minimum traffic density in veh/meter*/ /*20% of jam density as suggested by Adnan*/
 		capacity(rdSeg->getCapacity()), /*capacity in vehicles/s*/
-		alpha(MT_Config::getInstance().getSpeedDensityAlphaParam()),
-		beta(MT_Config::getInstance().getSpeedDensityBetaParam())
+		alpha(0.0),
+		beta(0.0)
 {
+	int linkCategory = static_cast<int>(rdSeg->getParentLink()->getLinkCategory());
+	std::pair<double, double> speedDensityParams = MT_Config::getInstance().getSpeedDensityParam(linkCategory);
+	alpha = speedDensityParams.first;
+	beta = speedDensityParams.second;
+
+	//TESTING ~ Harish
+	unsigned int numLanes = rdSeg->getLanes().size();
+	capacity = capacity + (0.42 * numLanes); // increase by 1600 veh/hr
+	freeFlowSpeed = freeFlowSpeed + 5.55556; //increase by 20kmph
+	minSpeed = 0.2 * freeFlowSpeed;
 }
 
 SegmentStats::SegmentStats(const RoadSegment* rdSeg, Conflux* parentConflux, double statslengthInM) :
@@ -144,6 +154,7 @@ void SegmentStats::updateBusStopAgents(timeslice now)
 
 void SegmentStats::addAgent(const Lane* lane, Person_MT* p)
 {
+	boost::unique_lock<boost::recursive_mutex> lock(mutexPersonManagement);
 	laneStatsMap.find(lane)->second->addPerson(p);
 	numPersons++; //record addition to segment
 }
@@ -257,27 +268,10 @@ void SegmentStats::getPersons(std::deque<Person_MT*>& segAgents)
 	}
 }
 
-void SegmentStats::getInfinityPersons(std::deque<Person_MT*>& segAgents, std::string& personIds)
+void SegmentStats::getInfinityPersons(std::deque<Person_MT*>& segAgents)
 {
 	PersonList& lnAgents = laneStatsMap.find(laneInfinity)->second->laneAgents;
 	segAgents.insert(segAgents.end(), lnAgents.begin(), lnAgents.end());
-	for (PersonList::iterator pIt = lnAgents.begin(); pIt != lnAgents.end(); pIt++)
-	{
-		std::string id = boost::lexical_cast<string>((*pIt)->GetId());
-		personIds += "|";
-		personIds += id;
-		personIds += "(";
-		if((*pIt)->originNode.node){
-				id = boost::lexical_cast<string>((*pIt)->originNode.node->getNodeId());
-				personIds += id;
-		}
-		personIds += "-";
-		if((*pIt)->destNode.node){
-				id = boost::lexical_cast<string>((*pIt)->destNode.node->getNodeId());
-				personIds += id;
-		}
-		personIds += ")";
-	}
 }
 
 void SegmentStats::topCMergeLanesInSegment(PersonList& mergedPersonList)
@@ -490,6 +484,20 @@ double SegmentStats::getQueueLength() const
 	return queueLength;
 }
 
+bool SegmentStats::hasQueue() const
+{
+	for (LaneStatsMap::const_iterator laneStatsIt = laneStatsMap.begin(); laneStatsIt != laneStatsMap.end(); laneStatsIt++)
+	{
+		if (!laneStatsIt->second->isLaneInfinity()
+				&& !laneStatsIt->first->isPedestrianLane()
+				&& laneStatsIt->second->getQueueLength() > 0.0)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
 double SegmentStats::getTotalVehicleLength() const
 {
 	double totalLength = 0;
@@ -526,14 +534,8 @@ double SegmentStats::getTotalDensity(bool hasVehicle)
 {
 	double density = 0.0;
 	double totalPCUs = getTotalVehicleLength() / PASSENGER_CAR_UNIT;
-	if (length > PASSENGER_CAR_UNIT)
-	{
-		density = totalPCUs / (numVehicleLanes * (length / 1000.0));
-	}
-	else
-	{
-		density = 1 / (PASSENGER_CAR_UNIT / 1000.0);
-	}
+	density = totalPCUs / (numVehicleLanes * (length / 1000.0));
+
 	return density;
 }
 
@@ -646,7 +648,11 @@ void LaneStats::addPerson(Person_MT* p)
 				queueLength = queueLength + vehicle->getLengthInM();
 			}
 		}
-		verifyOrdering();
+		else
+		{
+			throw std::runtime_error("Person with no vehicle is added to lane");
+		}
+		//verifyOrdering();
 	}
 }
 
@@ -731,7 +737,7 @@ void LaneStats::initLaneParams(double vehSpeed, const double capacity)
 	}
 
 	updateOutputCounter();
-	updateAcceptRate(vehSpeed);
+	updateAcceptRate(vehSpeed, numLanes);
 }
 
 void LaneStats::updateOutputFlowRate(double newFlowRate)
@@ -755,10 +761,10 @@ void LaneStats::updateOutputCounter()
 	}
 }
 
-void LaneStats::updateAcceptRate(double speed)
+void LaneStats::updateAcceptRate(double speed, unsigned int numLanes)
 {
 	double acceptRateA = (laneParams->outputFlowRate > 0) ? (1.0 / laneParams->outputFlowRate) : 0.0;
-	double acceptRateB = PASSENGER_CAR_UNIT / speed;
+	double acceptRateB = PASSENGER_CAR_UNIT / (numLanes * speed);
 	laneParams->acceptRate = std::max(acceptRateA, acceptRateB);
 }
 
@@ -818,7 +824,7 @@ void SegmentStats::restoreLaneParams(const Lane* lane)
 	laneStats->updateOutputCounter();
 	segDensity = getDensity(true);
 	double upSpeed = speedDensityFunction(segDensity);
-	laneStats->updateAcceptRate(upSpeed);
+	laneStats->updateAcceptRate(upSpeed, numVehicleLanes);
 }
 
 void SegmentStats::updateLaneParams(const Lane* lane, double newOutputFlowRate)
@@ -833,7 +839,7 @@ void SegmentStats::updateLaneParams(const Lane* lane, double newOutputFlowRate)
 	laneStats->updateOutputCounter();
 	segDensity = getDensity(true);
 	double upSpeed = speedDensityFunction(segDensity);
-	laneStats->updateAcceptRate(upSpeed);
+	laneStats->updateAcceptRate(upSpeed, numVehicleLanes);
 }
 
 void SegmentStats::updateLaneParams(timeslice frameNumber)
@@ -848,7 +854,7 @@ void SegmentStats::updateLaneParams(timeslice frameNumber)
 		if (!(it->first)->isPedestrianLane())
 		{
 			(it->second)->updateOutputCounter();
-			(it->second)->updateAcceptRate(segVehicleSpeed);
+			(it->second)->updateAcceptRate(segVehicleSpeed, numVehicleLanes);
 			(it->second)->setInitialQueueLength(it->second->getQueueLength());
 		}
 	}
@@ -856,39 +862,53 @@ void SegmentStats::updateLaneParams(timeslice frameNumber)
 
 std::string SegmentStats::reportSegmentStats(uint32_t frameNumber)
 {
-
-	std::stringstream msg("");
 	if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled())
 	{
-		double density = (numMovingInSegment(true) + numQueuingInSegment(true)) / ((length / 100000.0) * numVehicleLanes); //veh/lane-km
-
-		msg << "(\"segmentState\"" << ","
-				<< frameNumber << ","
-				<< roadSegment->getRoadSegmentId()
-				<< ",{" << "\"speed\":\"" << segVehicleSpeed << "\",\"flow\":\"" << segFlow << "\",\"density\":\"" << getTotalDensity(true) << "\",\"total\":\"" << (numPersons - numAgentsInLane(laneInfinity)) << "\",\"totalL\":\""
-				<< getTotalVehicleLength()
-				<< "\",\"moving\":\"" << numMovingInSegment(true) << "\",\"movingL\":\"" << getMovingLength()
-				<< "\",\"queue\":\"" << numQueuingInSegment(true) << "\",\"queueL\":\"" << getQueueLength()
-				<< "\",\"numVehicleLanes\":\"" << numVehicleLanes
-				<< "\",\"segment_length\":\"" << length
-				<< "\",\"segment_id\":\"" << roadSegment->getRoadSegmentId() << "\",\"stats_num\":\"" << statsNumberInSegment << "\"})"
-				<< "\n";
-//		msg << "SegStats-,"
-//				<< frameNumber << ","
-//				<< roadSegment->getSegmentAimsunId() << ","
-//				<< roadSegment->getPolylineLength() / 100000.0 << ","
-//				<< statsNumberInSegment << ","
-//				<< length / 100000.0 << ","
-//				<< numVehicleLanes << ","
-//				<< numMovingInSegment(true) << ","
-//				<< numQueuingInSegment(true) << ","
-//				<< segVehicleSpeed << ","
-//				<< density << ","
-//				<< supplyParams.getCapacity()
-//				<< std::endl;
+		char segStatBuf[100];
+		sprintf(segStatBuf, "segstat,%u,%u,%u,%.2f,%u,%.2f,%u,%.2f,%u,%.2f,%u,%.2f,%d,%.2f\n",
+				frameNumber,
+				roadSegment->getRoadSegmentId(),
+				statsNumberInSegment,
+				segVehicleSpeed,
+				segFlow,
+				getTotalDensity(true),
+				(numPersons - numAgentsInLane(laneInfinity)),
+				getTotalVehicleLength(),
+				numMovingInSegment(true),
+				getMovingLength(),
+				numQueuingInSegment(true),
+				getQueueLength(),
+				numVehicleLanes,
+				length);
+		return std::string(segStatBuf);
 	}
-	return msg.str();
+	else
+	{
+		return std::string();
+	}
 
+//	std::stringstream msg("");
+//	if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled())
+//	{
+//		msg << "(\"segmentState\"" << ","
+//				<< frameNumber << ","
+//				<< roadSegment->getRoadSegmentId()
+//				<< ",{" << "\"speed\":\"" << segVehicleSpeed
+//				<< "\",\"flow\":\"" << segFlow
+//				<< "\",\"density\":\"" << getTotalDensity(true)
+//				<< "\",\"total\":\"" << (numPersons - numAgentsInLane(laneInfinity))
+//				<< "\",\"totalL\":\"" << getTotalVehicleLength()
+//				<< "\",\"moving\":\"" << numMovingInSegment(true)
+//				<< "\",\"movingL\":\"" << getMovingLength()
+//				<< "\",\"queue\":\"" << numQueuingInSegment(true)
+//				<< "\",\"queueL\":\"" << getQueueLength()
+//				<< "\",\"numVehicleLanes\":\"" << numVehicleLanes
+//				<< "\",\"segment_length\":\"" << length
+//				<< "\",\"segment_id\":\"" << roadSegment->getRoadSegmentId()
+//				<< "\",\"stats_num\":\"" << statsNumberInSegment << "\"})"
+//				<< "\n";
+//	}
+//	return msg.str();
 }
 
 bool SegmentStats::hasPersons() const
@@ -1148,23 +1168,26 @@ void LaneStats::printAgents() const
 	Print() << debugMsgs.str();
 }
 
-void LaneStats::verifyOrdering()
+void LaneStats::verifyOrdering() const
 {
 	double distance = -1.0;
 	for (PersonList::const_iterator i = laneAgents.begin(); i != laneAgents.end(); i++)
 	{
-		if (distance > (*i)->distanceToEndOfSegment)
+		const Person_MT* person = (*i);
+		if (distance > person->distanceToEndOfSegment)
 		{
 			std::stringstream debugMsgs;
 			debugMsgs << "Invariant violated: Ordering of laneAgents does not reflect ordering w.r.t. distance to end of segment."
 					<< "\nSegment: " << lane->getParentSegment()->getRoadSegmentId() << "-" << parentStats->getStatsNumberInSegment()
 					<< " length = " << lane->getParentSegment()->getLength() << "\nLane: " << lane->getLaneId()
-					<< "\nCulprit Person: " << (*i)->getDatabaseId();
+					<< "\nCulprit Person: " << person->getDatabaseId();
+			printf("%s", debugMsgs.str().c_str());
 			debugMsgs << "\nAgents ";
 			for (PersonList::const_iterator j = laneAgents.begin(); j != laneAgents.end(); j++)
 			{
 				debugMsgs << "|" << (*j)->getDatabaseId() << "(" << (*j)->getRole()->getRoleName() << ")" << "--" << (*j)->distanceToEndOfSegment;
 			}
+			printf("%s", debugMsgs.str().c_str());
 			throw std::runtime_error(debugMsgs.str());
 		}
 		else

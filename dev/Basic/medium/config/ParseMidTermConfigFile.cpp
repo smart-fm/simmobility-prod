@@ -292,8 +292,20 @@ void ParseMidTermConfigFile::processStatisticsOutputNode(xercesc::DOMElement* no
 
 void ParseMidTermConfigFile::processSpeedDensityParamsNode(xercesc::DOMElement* node)
 {
-	mtCfg.setSpeedDensityAlphaParam(ParseFloat(GetNamedAttributeValue(node, "alpha")));
-	mtCfg.setSpeedDensityBetaParam(ParseFloat(GetNamedAttributeValue(node, "beta")));
+    for (DOMElement* item=node->getFirstElementChild(); item; item=item->getNextElementSibling())
+    {
+        if (TranscodeString(item->getNodeName())!="param")
+        {
+            Warn() <<"Invalid db_proc_groups child node.\n";
+            continue;
+        }
+
+        ///Retrieve some attributes from the Node itself.
+        int linkCategory = ParseInteger(GetNamedAttributeValue(item, "category"));
+        double alpha = ParseFloat(GetNamedAttributeValue(item, "alpha"));
+        double beta = ParseFloat(GetNamedAttributeValue(item, "beta"));
+        mtCfg.setSpeedDensityParam(linkCategory, alpha, beta);
+    }
 }
 
 

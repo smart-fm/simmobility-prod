@@ -93,7 +93,7 @@ void sim_mob::medium::Passenger::HandleParentMessage(messaging::Message::Message
 void sim_mob::medium::Passenger::collectTravelTime()
 {
 	PersonTravelTime personTravelTime;
-	personTravelTime.personId = parent->getId();
+	personTravelTime.personId = parent->getDatabaseId();
 	personTravelTime.tripStartPoint = (*(parent->currTripChainItem))->startLocationId;
 	personTravelTime.tripEndPoint = (*(parent->currTripChainItem))->endLocationId;
 	personTravelTime.subStartPoint = parent->currSubTrip->startLocationId;

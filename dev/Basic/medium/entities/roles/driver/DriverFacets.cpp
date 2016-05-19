@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <boost/foreach.hpp>
 #include <cmath>
+#include <cstdio>
 #include <ostream>
 #include "buffering/BufferedDataManager.hpp"
 #include "conf/ConfigManager.hpp"
@@ -170,32 +171,28 @@ void DriverMovement::frame_tick()
 			parentDriver->parent->canMoveToNextSegment = Person_MT::NONE;
 			setParentData(params);
 
-			/*if(parentDriver && parentDriver->roleType == Role<Person_MT>::RL_DRIVER)
+/*			if(parentDriver && parentDriver->roleType != Role<Person_MT>::RL_BUSDRIVER)
 			{
-				std::stringstream logout;
 				Person_MT* person = parentDriver->parent;
 				unsigned int segId = (person->getCurrSegStats() ? person->getCurrSegStats()->getRoadSegment()->getRoadSegmentId() : 0);
 				uint16_t statsNum = (person->getCurrSegStats() ? person->getCurrSegStats()->getStatsNumberInSegment() : 0);
-				logout << "(Driver" << "," << person->getDatabaseId() << ","
-						<< parentDriver->getParams().now.frame()
-						<< ",{"
-						<< "RoadSegment:" << segId
-						<< ",StatsNum:" << statsNum
-						<< ",Lane:" << (person->getCurrLane() ? person->getCurrLane()->getLaneId() : 0)
-						<< ",DistanceToEndSeg:" << person->distanceToEndOfSegment;
-				if (person->isQueuing)
-				{
-					logout << ",queuing:" << "true";
-				}
-				else
-				{
-					logout << ",queuing:" << "false";
-				}
-				logout << ",elapsedSeconds:" << params.elapsedSeconds;
-				logout << "})" << std::endl;
-				Print() << logout.str();
-			}*/
 
+				char logbuf[1000];
+				sprintf(logbuf, "%s,%s,%u,seg:%u-%u,ln:%u,d:%f,q:%c,elpsd:%fs\n",
+						parentDriver->getRoleName().c_str(),
+						person->getDatabaseId().c_str(),
+						parentDriver->getParams().now.frame(),
+						segId,
+						statsNum,
+						(person->getCurrLane() ? person->getCurrLane()->getLaneId() : 0),
+						person->distanceToEndOfSegment,
+						(person->isQueuing ? 'T' : 'F'),
+						params.elapsedSeconds
+						);
+				person->log(std::string(logbuf));
+
+			}
+*/
 			return;
 		}
 	}
@@ -207,31 +204,28 @@ void DriverMovement::frame_tick()
 		setParentData(params);
 	}
 
-	/*if(parentDriver && parentDriver->roleType == Role<Person_MT>::RL_DRIVER)
+/*	//Debug print
+	if(parentDriver && parentDriver->roleType != Role<Person_MT>::RL_BUSDRIVER)
 	{
-		std::stringstream logout;
 		Person_MT* person = parentDriver->parent;
 		unsigned int segId = (person->getCurrSegStats() ? person->getCurrSegStats()->getRoadSegment()->getRoadSegmentId() : 0);
 		uint16_t statsNum = (person->getCurrSegStats() ? person->getCurrSegStats()->getStatsNumberInSegment() : 0);
-		logout << "(Driver" << "," << person->getDatabaseId() << ","
-				<< parentDriver->getParams().now.frame()
-				<< ",{"
-				<< "RoadSegment:" << segId
-				<< ",StatsNum:" << statsNum
-				<< ",Lane:" << (person->getCurrLane() ? person->getCurrLane()->getLaneId() : 0)
-				<< ",DistanceToEndSeg:" << person->distanceToEndOfSegment;
-		if (person->isQueuing)
-		{
-			logout << ",queuing:" << "true";
-		}
-		else
-		{
-			logout << ",queuing:" << "false";
-		}
-		logout << ",elapsedSeconds:" << params.elapsedSeconds;
-		logout << "})" << std::endl;
-		Print() << logout.str();
-	}*/
+		char logbuf[1000];
+		sprintf(logbuf, "%s,%s,%u,seg:%u-%u,ln:%u,d:%f,q:%c,elpsd:%fs\n",
+				parentDriver->getRoleName().c_str(),
+				person->getDatabaseId().c_str(),
+				parentDriver->getParams().now.frame(),
+				segId,
+				statsNum,
+				(person->getCurrLane() ? person->getCurrLane()->getLaneId() : 0),
+				person->distanceToEndOfSegment,
+				(person->isQueuing ? 'T' : 'F'),
+				params.elapsedSeconds
+				);
+		person->log(std::string(logbuf));
+
+	}
+*/
 }
 
 std::string DriverMovement::frame_tick_output()
@@ -468,11 +462,18 @@ bool DriverMovement::moveToNextSegment(DriverUpdateParams& params)
 	const Lane* laneInNextSegment = getBestTargetLane(nxtSegStat, nextToNextSegStat);
 
 	double departTime = getLastAccept(laneInNextSegment, nxtSegStat);
-	if(!nxtSegStat->isShortSegment())
+/*	if(!nxtSegStat->isShortSegment())
 	{
-		departTime += getAcceptRate(laneInNextSegment, nxtSegStat); //in seconds
+		if(nxtSegStat->hasQueue())
+		{
+			departTime += getAcceptRate(laneInNextSegment, nxtSegStat); //in seconds
+		}
+		else
+		{
+			departTime += (PASSENGER_CAR_UNIT / (nxtSegStat->getNumVehicleLanes() *nxtSegStat->getSegSpeed(true)));
+		}
 	}
-
+*/
 	params.elapsedSeconds = std::max(params.elapsedSeconds, departTime - convertToSeconds(params.now.ms())); //in seconds
 
 	const Link* nextLink = getNextLinkForLaneChoice(nxtSegStat);
@@ -553,10 +554,18 @@ void DriverMovement::flowIntoNextLinkIfPossible(DriverUpdateParams& params)
 	const Lane* laneInNextSegment = getBestTargetLane(nextSegStats, nextToNextSegStats);
 
 	double departTime = getLastAccept(laneInNextSegment, nextSegStats);
-	if(!nextSegStats->isShortSegment())
+/*	if(!nextSegStats->isShortSegment())
 	{
-		departTime += getAcceptRate(laneInNextSegment, nextSegStats); //in seconds
+		if(nextSegStats->hasQueue())
+		{
+			departTime += getAcceptRate(laneInNextSegment, nextSegStats); //in seconds
+		}
+		else
+		{
+			departTime += (PASSENGER_CAR_UNIT / (nextSegStats->getNumVehicleLanes() * nextSegStats->getSegSpeed(true)));
+		}
 	}
+*/
 	params.elapsedSeconds = std::max(params.elapsedSeconds, departTime - (convertToSeconds(params.now.ms()))); //in seconds
 
 	const Link* nextLink = getNextLinkForLaneChoice(nextSegStats);
@@ -655,6 +664,13 @@ bool DriverMovement::canGoToNextRdSeg(DriverUpdateParams& params, const SegmentS
 	{
 		return true;
 	}
+	
+	//if this segment is a bus terminus segment, we assume only buses try to enter this segment and allow the bus inside irrespective of available space.
+	if(nextSegStats->getRoadSegment()->isBusTerminusSegment())
+	{
+		return true;
+	}
+	
 
 	bool hasSpaceInNextStats = ((maxAllowed - total) >= enteringVehicleLength);
 	if (hasSpaceInNextStats && nextLink)
@@ -944,8 +960,16 @@ void DriverMovement::setOrigin(DriverUpdateParams& params)
 	double departTime = getLastAccept(laneInNextSegment, currSegStats);
 	if(!currSegStats->isShortSegment())
 	{
-		departTime += getAcceptRate(laneInNextSegment, currSegStats); //in seconds
+		if(currSegStats->hasQueue())
+		{
+			departTime += getAcceptRate(laneInNextSegment, currSegStats); //in seconds
+		}
+		else
+		{
+			departTime += (PASSENGER_CAR_UNIT / (currSegStats->getNumVehicleLanes() * currSegStats->getSegSpeed(true)));
+		}
 	}
+
 
 	params.elapsedSeconds = std::max(params.elapsedSeconds, departTime - (convertToSeconds(params.now.ms()))); //in seconds
 

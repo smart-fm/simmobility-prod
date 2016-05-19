@@ -99,6 +99,7 @@ void sim_mob::medium::PersonParams::setIncomeIdFromIncome(double income)
 	{
 		i++;
 	}
+	i = i - 1; //income id is the index of the greatest element in incomeCategoryLowerLimits lower than or equal to income
 	setIncomeId((i > 0) ? i : NUM_VALID_INCOME_CATEGORIES); //lua models expect 12 to be the id for no income
 }
 

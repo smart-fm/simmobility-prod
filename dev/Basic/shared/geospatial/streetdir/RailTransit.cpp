@@ -36,6 +36,11 @@ RailTransit& sim_mob::RailTransit::getInstance()
 
 void sim_mob::RailTransit::initGraph(const std::set<string>& vertices, const std::vector<RTS_NetworkEdge>& edges)
 {
+	if(vertices.empty() || edges.empty())
+	{
+		throw std::runtime_error("insufficient data provided for rail transit graph construction");
+	}
+
 	for(const string& stn : vertices)
 	{
 		RT_Vertex stnVertex = boost::add_vertex(railTransitGraph);

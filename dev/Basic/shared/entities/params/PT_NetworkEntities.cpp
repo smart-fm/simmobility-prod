@@ -78,8 +78,10 @@ void loadMRTData(soci::session& sql_, std::map<std::string, TrainStop*>& mrtStop
 void loadRailTransitGraphData(soci::session& sql_, std::set<string>& rtVertices, std::vector<RTS_NetworkEdge>& rtEdges)
 {
 	//Reading the MRT data
+	std::string storedProc = sim_mob::ConfigManager::GetInstance().FullConfig().getDatabaseProcMappings().procedureMappings["rail_transit_edges"];
+	if(storedProc.empty()) { return; }
 	std::stringstream query;
-	query << "select * from supply.rail_transit_edge";
+	query << "select * from " << storedProc;
 	soci::rowset<soci::row> rs = (sql_.prepare << query.str());
 	for (soci::rowset<soci::row>::const_iterator it = rs.begin(); it != rs.end(); ++it)
 	{

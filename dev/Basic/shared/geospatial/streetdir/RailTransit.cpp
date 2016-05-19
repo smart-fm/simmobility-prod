@@ -57,8 +57,13 @@ void sim_mob::RailTransit::initGraph(const std::set<string>& vertices, const std
 
 vector<string> sim_mob::RailTransit::fetchBoardAlightStopSeq(string origin, string dest) const
 {
+	if(origin == dest) //trivial
+	{
+		return vector<string>();
+	}
+
 	RT_Vertex fromVertex = findVertex(origin);
-	RT_Vertex toVertex = findVertex(origin);
+	RT_Vertex toVertex = findVertex(dest);
 
 	vector<RT_Vertex> p(boost::num_vertices(railTransitGraph));
 	vector<double> d(boost::num_vertices(railTransitGraph));
@@ -68,7 +73,7 @@ vector<string> sim_mob::RailTransit::fetchBoardAlightStopSeq(string origin, stri
 	{
 		boost::dijkstra_shortest_paths(railTransitGraph, fromVertex, boost::predecessor_map(&p[0]).distance_map(&d[0]).visitor(RT_GoalVisitor(toVertex)));
 	}
-	catch (RT_GoalVisitor& goal)
+	catch (RT_FoundGoal& goal)
 	{
 		//Build backwards.
 		for (RT_Vertex v = toVertex;; v = p[v])
@@ -88,14 +93,12 @@ vector<string> sim_mob::RailTransit::fetchBoardAlightStopSeq(string origin, stri
 		}
 
 		//Now build forwards.
-		list<RT_Vertex>::const_iterator currIt = partialRes.begin();
-		string stnId = boost::get(boost::vertex_name, railTransitGraph, *currIt);
-		res.push_back(stnId); //add the first boarding point
-		list<RT_Vertex>::const_iterator prev = currIt;
-		currIt++;
-		for ( ;currIt!=partialRes.end(); currIt++)
+		string stnId;
+		list<RT_Vertex>::const_iterator prevIt = partialRes.begin();
+		list<RT_Vertex>::const_iterator currIt = prevIt; currIt++; //second element in list
+		for (; currIt!=partialRes.end(); currIt++)
 		{
-			std::pair<RT_Edge, bool> edge = boost::edge(*prev, *currIt, railTransitGraph);
+			std::pair<RT_Edge, bool> edge = boost::edge(*prevIt, *currIt, railTransitGraph);
 			if (!edge.second)
 			{
 				throw std::runtime_error("ERROR: Boost can't find an edge that it should know about.");
@@ -103,19 +106,22 @@ vector<string> sim_mob::RailTransit::fetchBoardAlightStopSeq(string origin, stri
 			bool transferEdge = boost::get(boost::edge_name, railTransitGraph, edge.first);
 			if(transferEdge)
 			{
-				stnId = boost::get(boost::vertex_name, railTransitGraph, *prev);
+				stnId = boost::get(boost::vertex_name, railTransitGraph, *prevIt);
 				res.push_back(stnId); // add alighting point for transfer
-				list<RT_Vertex>::const_iterator next = currIt; next++;
-				if(next != partialRes.end())
-				{
-					stnId = boost::get(boost::vertex_name, railTransitGraph, *next);
-					res.push_back(stnId); // add next boarding point for transfer
-				}
+				stnId = boost::get(boost::vertex_name, railTransitGraph, *currIt);
+				res.push_back(stnId); // add next boarding point for transfer
 			}
-			prev = currIt;
+			prevIt = currIt;
 		}
-		stnId = boost::get(boost::vertex_name, railTransitGraph, partialRes.back());
-		res.push_back(stnId); // add last alighting point
+
+		if(res.empty() || res.front() != origin)
+		{
+			res.insert(res.begin(), origin); // add first boarding stn
+		}
+		if(res.back() != dest)
+		{
+			res.push_back(dest); // add last alighting stn
+		}
 	}
 	return res;
 }

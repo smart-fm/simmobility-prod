@@ -37,8 +37,10 @@ struct PersonWaitingTime
 	std::string currentTime;
 	/** waiting time in seconds*/
 	double waitingTime;
-	/** bus line for which the person waited*/
-	std::string busLine;
+	/** bus lines for which the person waited*/
+	std::string busLines;
+	/** bus line which the person boarded*/
+	std::string busLineBoarded;
 	/** number of times this person was denied boarding before he got a chance to board a bus */
 	unsigned int deniedBoardingCount;
 	unsigned int destnode;

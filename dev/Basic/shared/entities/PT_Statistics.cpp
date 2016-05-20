@@ -167,13 +167,14 @@ double PT_Statistics::getWaitingTime(unsigned int time, const std::string& stopC
 
 std::string PersonWaitingTime::getCSV() const
 {
-	char csvArray[500];
-	sprintf(csvArray, "%s,%s,%u,%s,%s,%s,%.2f,%u\n",
+	char csvArray[600];
+	sprintf(csvArray, "%s,%s,%u,%s,%s,%s,%s,%.2f,%u\n",
 			personIddb.c_str(),
 			busStopNo.c_str(),
 			destnode,
 			endstop.c_str(),
-			busLine.c_str(),
+			busLines.c_str(),
+			busLineBoarded.c_str(),
 			currentTime.c_str(),
 			waitingTime,
 			deniedBoardingCount);
@@ -267,12 +268,12 @@ void StopStatsManager::addStopStats(const PersonWaitingTime& personWaiting)
 		throw std::runtime_error("invalid currentTime passed with person waiting message");
 	}
 	unsigned int boardingInterval = personBoardingTime / intervalWidth;
-	StopStats& boardingStats = stopStatsMap[boardingInterval][personWaiting.busStopNo][personWaiting.busLine]; //an entry to be created if not in the map already
+	StopStats& boardingStats = stopStatsMap[boardingInterval][personWaiting.busStopNo][personWaiting.busLineBoarded]; //an entry to be created if not in the map already
 	if(boardingStats.needsInitialization)
 	{
 		boardingStats.interval = boardingInterval;
 		boardingStats.stopCode = personWaiting.busStopNo;
-		boardingStats.serviceLine = personWaiting.busLine;
+		boardingStats.serviceLine = personWaiting.busLineBoarded;
 		boardingStats.needsInitialization = false;
 	}
 	boardingStats.numBoarding++;
@@ -283,12 +284,12 @@ void StopStatsManager::addStopStats(const PersonWaitingTime& personWaiting)
 		throw std::runtime_error("invalid currentTime or waiting time passed with person waiting message");
 	}
 	unsigned int interval = personArrivalTime / intervalWidth;
-	StopStats& stats = stopStatsMap[interval][personWaiting.busStopNo][personWaiting.busLine]; //an entry to be created if not in the map already
+	StopStats& stats = stopStatsMap[interval][personWaiting.busStopNo][personWaiting.busLineBoarded]; //an entry to be created if not in the map already
 	if(stats.needsInitialization)
 	{
 		stats.interval = interval;
 		stats.stopCode = personWaiting.busStopNo;
-		stats.serviceLine = personWaiting.busLine;
+		stats.serviceLine = personWaiting.busLineBoarded;
 		stats.needsInitialization = false;
 	}
 	stats.waitingCount++;

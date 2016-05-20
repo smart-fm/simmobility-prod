@@ -24,14 +24,14 @@ public:
 	virtual ~PT_RouteChoiceLuaModel();
 
 	/**
-	 * interface functions for Lua script to get total time in vehicle
+	 * interface function for Lua script to get total time in vehicle
 	 * @param index the index in public path set
 	 * @return total time in vehicle
 	 */
 	double getTotalInVehicleTime(unsigned int index);
 
 	/**
-	 * interface functions for Lua script to get total walking time
+	 * interface function for Lua script to get total walking time
 	 * @param index the index in public path set
 	 * @return total walking time
 	 */
@@ -45,25 +45,35 @@ public:
 	double getTotalWaitTime(unsigned int index);
 
 	/**
-	 * interface functions for Lua script to get the size of path
+	 * interface function for Lua script to get the size of path
 	 * @param index the index in public path set
 	 * @return the size of path
 	 */
 	double getTotalPathSize(unsigned int index);
 
 	/**
-	 * interface functions for Lua script to get total transfered time
+	 * interface function for Lua script to get total transfered time
 	 * @param index the index in public path set
 	 * @return total transfered time
 	 */
 	int getTotalNumTxf(unsigned int index);
 
 	/**
-	 * interface functions for Lua script to get total cost
+	 * interface function for Lua script to get total cost
 	 * @param index the index in public path set
 	 * @return total total cost
 	 */
 	double getTotalCost(unsigned int index);
+
+	/**
+	 * interface function for lua script to get the PT modes in a path
+	 * @param index the index of path in public path set
+	 * @return 0 if path involves neither bus nor MRT travel;
+	 *         1 if path involves only bus travel;
+	 *         2 if path involves only MRT travel;
+	 *         3 if path involves both bus and MRT travel
+	 */
+	int getModes(unsigned int index);
 
 	/**
 	 * finds the best path for the given OD for public transit commuters

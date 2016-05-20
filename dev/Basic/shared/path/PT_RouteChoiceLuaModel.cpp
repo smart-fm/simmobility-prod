@@ -132,6 +132,19 @@ double PT_RouteChoiceLuaModel::getTotalCost(unsigned int index)
 	return ret;
 }
 
+int PT_RouteChoiceLuaModel::getModes(unsigned int index)
+{
+	int ret = 0;
+	unsigned int sizeOfChoiceSet = getSizeOfChoiceSet();
+	if(publicTransitPathSet && index <= sizeOfChoiceSet && index > 0)
+	{
+		std::set<PT_Path, cmp_path_vector>::iterator it = publicTransitPathSet->pathSet.begin();
+		std::advance(it, index - 1);
+		ret = it->getPathModesType();
+	}
+	return ret;
+}
+
 std::vector<sim_mob::OD_Trip> PT_RouteChoiceLuaModel::makePT_RouteChoice(const std::string& origin, const std::string& destination)
 {
 	std::vector<sim_mob::OD_Trip> odTrips;
@@ -250,6 +263,7 @@ void PT_RouteChoiceLuaModel::mapClasses()
 			.addFunction("total_path_size",&PT_RouteChoiceLuaModel::getTotalPathSize)
 			.addFunction("total_no_txf", &PT_RouteChoiceLuaModel::getTotalNumTxf)
 			.addFunction("total_cost", &PT_RouteChoiceLuaModel::getTotalCost)
+			.addFunction("path_pt_modes", &PT_RouteChoiceLuaModel::getModes)
 			.endClass();
 }
 

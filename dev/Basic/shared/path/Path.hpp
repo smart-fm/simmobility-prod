@@ -316,7 +316,15 @@ public:
 		this->validPath = validPath;
 	}
 
-	//Path representation
+	int getPathModesType() const
+	{
+		return pathModesType;
+	}
+
+	/**
+	 * parses comma separated list of path edge ids and builds pathEdges (vector of PT_NetworkEdge objects)
+	 */
+	void updatePathEdges();
 
 private:
 	std::vector<PT_NetworkEdge> pathEdges;
@@ -339,10 +347,17 @@ private:
 	bool minWalkingDistance;
 	bool minTravelOnMRT;
 	bool minTravelOnBus;
-	double getTotalCostByDistance(double);
 
-public:
-	void updatePathEdges();
+ 	/**
+	 * pathModesType is set to
+	 *  0 if path involves neither bus nor MRT travel;
+	 *  1 if path involves only bus travel;
+	 *  2 if path involves only MRT travel;
+	 *  3 if path involves both bus and MRT travel
+	 */
+	int pathModesType;
+
+	double getTotalCostByDistance(double);
 };
 
 struct cmp_path_vector: public std::less<PT_Path>

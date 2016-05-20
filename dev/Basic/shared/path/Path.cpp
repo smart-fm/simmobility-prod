@@ -4,6 +4,7 @@
 #include <boost/iterator/filter_iterator.hpp>
 #include <cmath>
 #include <set>
+#include "Common.hpp"
 #include "entities/params/PT_NetworkEntities.hpp"
 #include "geospatial/network/Lane.hpp"
 #include "geospatial/network/Link.hpp"
@@ -339,7 +340,7 @@ std::string sim_mob::makePT_PathSetString(const std::vector<PT_NetworkEdge> &pat
 sim_mob::PT_Path::PT_Path() :
 		totalDistanceKms(0.0), totalCost(0.0), totalInVehicleTravelTimeSecs(0.0), totalWaitingTimeSecs(0.0), totalWalkingTimeSecs(0.0), totalNumberOfTransfers(
 				0), minDistance(false), validPath(false), shortestPath(false), minInVehicleTravelTime(false), minNumberOfTransfers(false), minWalkingDistance(
-				false), minTravelOnMRT(false), minTravelOnBus(false), pathSize(0.0), pathTravelTime(0.0)
+				false), minTravelOnMRT(false), minTravelOnBus(false), pathSize(0.0), pathTravelTime(0.0), pathModesType(0)
 {
 
 }
@@ -347,7 +348,7 @@ sim_mob::PT_Path::PT_Path() :
 sim_mob::PT_Path::PT_Path(const std::vector<PT_NetworkEdge> &path) :
 		pathEdges(path), totalDistanceKms(0.0), totalCost(0.0), totalInVehicleTravelTimeSecs(0.0), totalWaitingTimeSecs(0.0), totalWalkingTimeSecs(0.0), totalNumberOfTransfers(
 				0), minDistance(false), validPath(false), shortestPath(false), minInVehicleTravelTime(false), minNumberOfTransfers(false), minWalkingDistance(
-				false), minTravelOnMRT(false), minTravelOnBus(false), pathSize(0.0), pathTravelTime(0.0)
+				false), minTravelOnMRT(false), minTravelOnBus(false), pathSize(0.0), pathTravelTime(0.0), pathModesType(0)
 
 {
 	double totalBusMRTTravelDistance = 0.0;
@@ -380,6 +381,8 @@ void sim_mob::PT_Path::updatePathEdges()
 	std::stringstream ss(ptPathId);
 	pathEdges.clear();
 	PT_Network& ptNetwork = PT_Network::getInstance();
+	bool hasBusTrip = false;
+	bool hasTrainTrip = false;
 	while (ss >> edgeId)
 	{
 		std::map<int, PT_NetworkEdge>::iterator edgeIt = ptNetwork.PT_NetworkEdgeMap.find(edgeId);
@@ -391,11 +394,19 @@ void sim_mob::PT_Path::updatePathEdges()
 		}
 
 		pathEdges.push_back(edgeIt->second);
+		hasBusTrip = (hasBusTrip || (edgeIt->second.getType() == sim_mob::PT_EdgeType::BUS_EDGE));
+		hasTrainTrip = (hasTrainTrip || (edgeIt->second.getType() == sim_mob::PT_EdgeType::TRAIN_EDGE));
+
 		if (ss.peek() == ',')
 		{
 			ss.ignore();
 		}
 	}
+
+	if(hasBusTrip && hasTrainTrip) { pathModesType = 3; }
+	else if(hasTrainTrip) { pathModesType = 2; }
+	else if(hasBusTrip) { pathModesType = 1; }
+	else { pathModesType = 0; }
 }
 
 sim_mob::PT_Path::~PT_Path()

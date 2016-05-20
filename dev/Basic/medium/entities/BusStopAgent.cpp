@@ -284,12 +284,14 @@ bool BusStopAgent::handleBusDeparture(BusDriver* busDriver)
 void BusStopAgent::storeWaitingTime(sim_mob::medium::WaitBusActivity* waitingActivity, const std::string& busLine) const
 {
 	if(!waitingActivity) { return; }
+	Person_MT* person = waitingActivity->getParent();
 	PersonWaitingTime personWaitInfo;
 	personWaitInfo.busStopNo = (busStop->isVirtualStop()? busStop->getTwinStop()->getStopCode() : busStop->getStopCode());
-	personWaitInfo.personId  = waitingActivity->getParent()->getId();
-	personWaitInfo.personIddb = waitingActivity->getParent()->getDatabaseId();
-	personWaitInfo.destnode = waitingActivity->getParent()->destNode.node->getNodeId();
-	personWaitInfo.endstop = waitingActivity->getParent()->currSubTrip->endLocationId;
+	personWaitInfo.personId  = person->getId();
+	personWaitInfo.personIddb = person->getDatabaseId();
+	personWaitInfo.originNode = (*(person->currTripChainItem))->origin.node->getNodeId();
+	personWaitInfo.destNode = (*(person->currTripChainItem))->destination.node->getNodeId();
+	personWaitInfo.endstop = person->currSubTrip->endLocationId;
 	personWaitInfo.currentTime = DailyTime(currentTimeMS + ConfigManager::GetInstance().FullConfig().simulation.baseGranMS).getStrRepr(); //person is boarded at the end of tick
 	personWaitInfo.waitingTime = ((double) waitingActivity->getWaitingTime())/1000.0; //convert ms to second
 	personWaitInfo.busLineBoarded = busLine;

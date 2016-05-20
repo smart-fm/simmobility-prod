@@ -43,7 +43,10 @@ struct PersonWaitingTime
 	std::string busLineBoarded;
 	/** number of times this person was denied boarding before he got a chance to board a bus */
 	unsigned int deniedBoardingCount;
-	unsigned int destnode;
+
+	unsigned int originNode;
+	unsigned int destNode;
+
 	std::string endstop;
 
 	/**

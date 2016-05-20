@@ -168,10 +168,11 @@ double PT_Statistics::getWaitingTime(unsigned int time, const std::string& stopC
 std::string PersonWaitingTime::getCSV() const
 {
 	char csvArray[600];
-	sprintf(csvArray, "%s,%s,%u,%s,%s,%s,%s,%.2f,%u\n",
+	sprintf(csvArray, "%s,%u,%u,%s,%s,%s,%s,%s,%.2f,%u\n",
 			personIddb.c_str(),
+			originNode,
+			destNode,
 			busStopNo.c_str(),
-			destnode,
 			endstop.c_str(),
 			busLines.c_str(),
 			busLineBoarded.c_str(),

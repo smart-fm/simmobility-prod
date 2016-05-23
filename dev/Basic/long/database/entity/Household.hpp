@@ -22,8 +22,12 @@ namespace sim_mob
         {
         public:
             Household();
-            Household( BigSerial id, BigSerial lifestyleId, BigSerial unitId, BigSerial ethnicityId, BigSerial vehicleCategoryId,  int size, int childUnder4, int childUnder15, double income,
-            		   int housingDuration,int workers, int ageOfHead, bool twoRoomHdbEligibility, bool threeRoomHdbEligibility, bool fourRoomHdbEligibility, int familyType, bool taxiAvailability, int vehicleOwnershipOptionId);
+
+            Household( BigSerial id, BigSerial lifestyleId, BigSerial unitId, BigSerial ethnicityId, BigSerial vehicleCategoryId,  int size, int childUnder4, int childUnder15, int adult, double income,
+            		   int housingDuration,int workers, int ageOfHead, int pendingStatusId,std::tm pendingFromDate,int unitPending,bool twoRoomHdbEligibility, bool threeRoomHdbEligibility,
+					   bool fourRoomHdbEligibility, int familyType, bool taxiAvailability, int vehicleOwnershipOptionId, double logsum, double currentUnitPrice, double householdAffordabilityAmount,
+					   int buySellInterval, std::tm moveInDate,int timeOnMarket,int timeOffMarket,int isBidder,int isSeller,int hasMoved, int tenureStatus,int awakenedDay,bool existInDB);
+
             virtual ~Household();
 
             Household& operator=(const Household& source);
@@ -52,6 +56,9 @@ namespace sim_mob
             void setId(BigSerial id);
             BigSerial getId() const;
 
+            void setLogsum(double logsum);
+            double getLogsum() const;
+
             void setIndividual( BigSerial individualId );
             std::vector<BigSerial> getIndividuals() const;
 
@@ -66,12 +73,48 @@ namespace sim_mob
 			void	setFamilyType(int);
 			int		getFamilyType();
 			void 	setTaxiAvailability(bool taxiAvailable);
-			bool 	getTaxiAvailability();
+			bool 	getTaxiAvailability() const;
 			void 	setVehicleOwnershipOptionId(int vehicleOwnershipOption);
 			int 	getVehicleOwnershipOptionId();
 
 			void 	setAffordabilityAmount( double value );
 			double	getAffordabilityAmount() const;
+
+
+			void	setCurrentUnitPrice( double value);
+			double	getCurrentUnitPrice() const;
+
+			int getBuySellInterval() const;
+			int getTimeOffMarket() const ;
+			int getTimeOnMarket() const;
+			double getHouseholdAffordabilityAmount() const;
+			const std::tm& getMoveInDate() const ;
+			int getAdult() const;
+			const std::tm& getPendingFromDate() const;
+			int getPendingStatusId() const ;
+			int getUnitPending() const;
+			int getIsBidder() const;
+			int getIsSeller() const;
+			int getHasMoved() const;
+			int getTenureStatus() const;
+			int getAwaknedDay() const;
+			bool getExistInDB() const;
+
+			void setBuySellInterval(int buyerSellerInterval);
+			void setTimeOffMarket(int timeOffMarket);
+			void setTimeOnMarket(int timeOnMarket);
+			void setHouseholdAffordabilityAmount(double householdAffordabilityAmount);
+			void setMoveInDate(const std::tm& moveInDate);
+			void setAdult(int adult);
+			void setPendingFromDate(const std::tm& pendingFromDate);
+			void setPendingStatusId(int pendingStatusId);
+			void setUnitPending(int unitPending);
+			void setIsBidder(int bidder);
+			void setIsSeller(int seller);
+			void setHasMoved(int hasMove);
+			void setAwakenedDay(int awakenDay);
+			void setExistInDB(bool exist);
+
 
 			enum FAMILY_TYPE
 			{
@@ -99,10 +142,14 @@ namespace sim_mob
             int size;
             int childUnder4;
             int childUnder15;
+            int adult;
             double income;
             int housingDuration;
             int workers;
             int ageOfHead;
+            int pendingStatusId;
+            std::tm pendingFromDate;
+            int unitPending;
 
             std::vector<BigSerial> individuals;
 
@@ -115,6 +162,21 @@ namespace sim_mob
 			int vehicleOwnershipOptionId;
 
 			double householdAffordabilityAmount;
+			double logsum;
+
+			double currentUnitPrice;
+
+			int buySellInterval;
+			std::tm moveInDate;
+			int timeOnMarket;
+			int timeOffMarket;
+			int isBidder;
+			int isSeller;
+			int hasMoved;
+			int tenureStatus;
+			int awakenedDay;
+			bool existInDB;
+
         };
 
 

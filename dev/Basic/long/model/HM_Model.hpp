@@ -34,8 +34,19 @@
 #include "database/entity/ZonalLanduseVariableValues.hpp"
 #include "database/entity/PopulationPerPlanningArea.hpp"
 #include "database/entity/HitsIndividualLogsum.hpp"
+#include "database/entity/UnitSale.hpp"
+#include "database/entity/VehicleOwnershipChanges.hpp"
+#include "database/entity/IndvidualVehicleOwnershipLogsum.hpp"
+#include "database/entity/AccessibilityFixedPzid.hpp"
+#include "database/entity/ScreeningCostTime.hpp"
+#include "database/entity/TenureTransitionRate.hpp"
+#include "database/entity/OwnerTenantMovingRate.hpp"
+#include "database/entity/AlternativeHedonicPrice.hpp"
+#include "database/entity/ScreeningModelCoefficients.hpp"
+#include "database/entity/HouseholdUnit.hpp"
 #include "core/HousingMarket.hpp"
 #include "boost/unordered_map.hpp"
+#include "DeveloperModel.hpp"
 
 namespace sim_mob
 {
@@ -122,6 +133,37 @@ namespace sim_mob
             typedef std::vector<HitsIndividualLogsum*> HitsIndividualLogsumList;
             typedef boost::unordered_map<BigSerial, HitsIndividualLogsum*> HitsIndividualLogsumMap;
 
+
+            typedef std::vector<IndvidualVehicleOwnershipLogsum*> IndvidualVehicleOwnershipLogsumList;
+            typedef boost::unordered_map<BigSerial, IndvidualVehicleOwnershipLogsum*> IndvidualVehicleOwnershipLogsumMap;
+
+            typedef std::vector<AccessibilityFixedPzid*> AccessibilityFixedPzidList;
+            typedef boost::unordered_map<BigSerial, AccessibilityFixedPzid*> AccessibilityFixedPzidMap;
+
+            typedef std::vector<ScreeningCostTime*> ScreeningCostTimeList;
+            typedef boost::unordered_map<BigSerial, ScreeningCostTime*> ScreeningCostTimeMap;
+            typedef boost::unordered_map<std::string, BigSerial> ScreeningCostTimeSuperMap;
+
+            typedef std::vector<TenureTransitionRate*> TenureTransitionRateList;
+            typedef boost::unordered_map<BigSerial, TenureTransitionRate*> TenureTransitionRateMap;
+
+            typedef std::vector<OwnerTenantMovingRate*>OwnerTenantMovingRateList;
+            typedef boost::unordered_map<BigSerial, OwnerTenantMovingRate*> OwnerTenantMovingRateMap;
+
+            typedef std::vector<AlternativeHedonicPrice*>AlternativeHedonicPriceList;
+            typedef boost::unordered_multimap<BigSerial, AlternativeHedonicPrice*> AlternativeHedonicPriceMap;
+
+            typedef std::vector<ScreeningModelCoefficients*>ScreeningModelCoefficientsList;
+            typedef boost::unordered_map<BigSerial, ScreeningModelCoefficients*> ScreeningModelCoefficicientsMap;
+
+            typedef std::vector<VehicleOwnershipChanges*> VehicleOwnershipChangesList;
+            typedef boost::unordered_map<BigSerial, VehicleOwnershipChanges*> VehicleOwnershipChangesMap;
+
+            typedef std::vector<HouseholdUnit*> HouseholdUnitList;
+            typedef boost::unordered_map<BigSerial, HouseholdUnit*> HouseholdUnitMap;
+
+
+
             /**
              * Taz statistics
              */
@@ -199,7 +241,6 @@ namespace sim_mob
             std::vector<HouseholdGroup> householdGroupVec;
             boost::unordered_map<BigSerial, HouseholdGroup*> vehicleOwnerhipHHGroupByGroupId;
 
-
             HM_Model(WorkGroup& workGroup);
             virtual ~HM_Model();
             
@@ -214,6 +255,7 @@ namespace sim_mob
 
 
             Household* getHouseholdById( BigSerial id) const;
+            Household* getHouseholdWithBidsById( BigSerial id) const;
 			Individual* getIndividualById( BigSerial id) const;
             Awakening* getAwakeningById( BigSerial id) const;
             Postcode* getPostcodeById(BigSerial id) const;
@@ -226,15 +268,29 @@ namespace sim_mob
             int  getAwakeningCounter() const;
             void getLogsumOfIndividuals(BigSerial id);
             void getLogsumOfHousehold(BigSerial id);
+            void getLogsumOfHouseholdVO(BigSerial householdId);
 
             HousingMarket* getMarket();
 
             HouseholdList* getHouseholdList();
 
+            void setDeveloperModel(DeveloperModel *developerModel);
+            DeveloperModel* getDeveloperModel() const;
+
+
             HousingInterestRateList* getHousingInterestRateList();
 
             double ComputeHedonicPriceLogsumFromMidterm(BigSerial taz);
             double ComputeHedonicPriceLogsumFromDatabase(BigSerial taz) const;
+
+            int getBids();
+            int getExits();
+            int getSuccessfulBids();
+
+            void incrementBids();
+            void incrementExits();
+            void incrementSuccessfulBids();
+            void resetBAEStatistics(); //BAE is Bids, Awakenings and Exits
 
             void incrementBidders();
             void decrementBidders();
@@ -263,6 +319,7 @@ namespace sim_mob
             HouseholdGroup* getHouseholdGroupByGroupId(BigSerial id)const;
             void addHouseholdGroupByGroupId(HouseholdGroup* hhGroup);
             void getScreeningProbabilities(std::string hitsId, std::vector<double> &householdScreeningProbabilties );
+            AlternativeList& getAlternatives();
             Alternative* getAlternativeById(int zoneHousingType);
             PlanningArea* getPlanningAreaById( int id );
             std::vector<PlanningSubzone*> getPlanningSubZoneByPlanningAreaId(int id);
@@ -274,6 +331,45 @@ namespace sim_mob
             ZonalLanduseVariableValues* getZonalLandUseByAlternativeId(int id) const;
             Alternative* getAlternativeByPlanningAreaId(int id) const;
             std::vector<PopulationPerPlanningArea*> getPopulationByPlanningAreaId(BigSerial id)const;
+            HitsIndividualLogsumList getHitsIndividualLogsumVec() const;
+            void setStartDay(int day);
+            int getStartDay() const;
+            void addNewBids(boost::shared_ptr<Bid> &newBid);
+            void addHouseholdUnits(boost::shared_ptr<HouseholdUnit> &newHouseholdUnit);
+            BigSerial getBidId();
+            BigSerial getUnitSaleId();
+            std::vector<boost::shared_ptr<Bid> > getNewBids();
+            std::vector<boost::shared_ptr<HouseholdUnit> > getNewHouseholdUnits();
+            void addUnitSales(boost::shared_ptr<UnitSale> &unitSale);
+            std::vector<boost::shared_ptr<UnitSale> > getUnitSales();
+            void addHouseholdsTo_OPSchema(boost::shared_ptr<Household> &houseHold);
+            std::vector<boost::shared_ptr<Household> > getHouseholdsWithBids();
+            void addVehicleOwnershipChanges(boost::shared_ptr<VehicleOwnershipChanges> &vehicleOwnershipChange);
+            std::vector<boost::shared_ptr<VehicleOwnershipChanges> > getVehicleOwnershipChanges();
+            ScreeningModelCoefficientsList getScreeningModelCoefficientsList();
+
+            IndvidualVehicleOwnershipLogsumList getIndvidualVehicleOwnershipLogsums() const;
+            IndvidualVehicleOwnershipLogsum* getIndvidualVehicleOwnershipLogsumsByHHId(BigSerial householdId) const;
+
+            ScreeningCostTimeList getScreeningCostTime();
+            ScreeningCostTime* getScreeningCostTimeInst(std::string key);
+            AccessibilityFixedPzidList getAccessibilityFixedPzid();
+
+
+            static const BigSerial FAKE_IDS_START = 9999900;
+
+            std::multimap<BigSerial, Unit*> getUnitsByZoneHousingType();
+            std::vector<Bid*> getResumptionBids();
+            Household* getResumptionHouseholdById( BigSerial id) const;
+            VehicleOwnershipChanges* getVehicleOwnershipChangesByHHId(BigSerial houseHoldId) const;
+            void setLastStoppedDay(int stopDay);
+
+            std::vector<OwnerTenantMovingRate*> getOwnerTenantMovingRates();
+            std::vector<TenureTransitionRate*> getTenureTransitionRates();
+            std::vector<AlternativeHedonicPrice*> getAlternativeHedonicPrice();
+            boost::unordered_multimap<BigSerial, AlternativeHedonicPrice*>& getAlternativeHedonicPriceById();
+
+            HouseholdUnit* getHouseholdUnitByHHId(BigSerial hhId) const;
 
         protected:
             /**
@@ -289,9 +385,11 @@ namespace sim_mob
 
             HouseholdList households;
             HouseholdMap householdsById;
+            HouseholdMap householdWithBidsById;
 
             UnitList units; //residential only.
             UnitMap unitsById;
+            std::multimap<BigSerial, Unit*> unitsByZoneHousingType;
 
             StatsMap stats;
 
@@ -342,8 +440,19 @@ namespace sim_mob
             HitsIndividualLogsumList hitsIndividualLogsum;
             HitsIndividualLogsumMap  hitsIndividualLogsumById;
 
+            AccessibilityFixedPzidList accessibilityFixedPzid;
+            AccessibilityFixedPzidMap accessibilityFixedPzidById;
+
+            ScreeningCostTimeList screeningCostTime;
+            ScreeningCostTimeMap screeningCostTimeById;
+            ScreeningCostTimeSuperMap screeningCostTimeSuperMap;
+
             boost::mutex mtx;
             boost::mutex mtx2;
+            boost::mutex mtx3;
+            boost::mutex mtx4;
+            boost::mutex idLock;
+            boost::mutex DBLock;
             boost::unordered_map<BigSerial, double>tazLevelLogsum;
             boost::unordered_map<BigSerial, double>vehicleOwnershipLogsum;
 
@@ -364,9 +473,13 @@ namespace sim_mob
 
             std::set<std::string> processedHouseholdHitsLogsum;
 
-
             ZonalLanduseVariableValuesList zonalLanduseVariableValues;
             ZonalLanduseVariableValuesMap zonalLanduseVariableValuesById;
+
+            TenureTransitionRateList tenureTransitionRate;
+            TenureTransitionRateMap tenureTransitionRateById;
+            OwnerTenantMovingRateList ownerTenantMovingRate;
+            OwnerTenantMovingRateMap ownerTenantMovingRateById;
 
             int	initialHHAwakeningCounter;
             int numberOfBidders;
@@ -377,6 +490,39 @@ namespace sim_mob
             bool hasTaxiAccess;
             int householdLogsumCounter;
             int simulationStopCounter;
+
+            int numberOfBids;
+            int numberOfExits;
+            int numberOfSuccessfulBids;
+
+            DeveloperModel *developerModel;
+            int startDay; //start tick of the simulation
+            std::vector<boost::shared_ptr<Bid> > newBids;
+            std::vector<boost::shared_ptr<UnitSale> > unitSales;
+            std::vector<boost::shared_ptr<HouseholdUnit> > newHouseholdUnits;
+            BigSerial bidId;
+            BigSerial unitSaleId;
+            std::vector<boost::shared_ptr<Household> > hhWithBidsVector;
+            std::vector<boost::shared_ptr<VehicleOwnershipChanges> > vehicleOwnershipChangesVector;
+            IndvidualVehicleOwnershipLogsumList IndvidualVehicleOwnershipLogsums;
+            IndvidualVehicleOwnershipLogsumMap IndvidualVehicleOwnershipLogsumById;
+
+            AlternativeHedonicPriceList alternativeHedonicPrice;
+            AlternativeHedonicPriceMap alternativeHedonicPriceById;
+
+            ScreeningModelCoefficientsList screeningModelCoefficientsList;
+            ScreeningModelCoefficicientsMap screeningModelCoefficicientsMap;
+
+            std::vector<SimulationStoppedPoint*> simStoppedPointList;
+            std::vector<Bid*> resumptionBids;
+            HouseholdList resumptionHouseholds;
+            HouseholdMap resumptionHHById;
+            VehicleOwnershipChangesList vehOwnershipChangesList;
+            VehicleOwnershipChangesMap vehicleOwnershipChangesById;
+            HouseholdUnitList householdUnits;
+            HouseholdUnitMap householdUnitByHHId;
+            int lastStoppedDay;
+            bool resume ;
         };
     }
 }

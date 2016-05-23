@@ -32,7 +32,7 @@ namespace sim_mob
         class RealEstateSellerRole
         {
         public:
-            RealEstateSellerRole(LT_Agent* parent);
+            RealEstateSellerRole(Agent_LT* parent);
             virtual ~RealEstateSellerRole();
 
             bool isActive() const;
@@ -44,7 +44,7 @@ namespace sim_mob
              */
             virtual void update(timeslice currTime);
 
-            LT_Agent* getParent();
+            Agent_LT* getParent();
 
             /**
              * Inherited from LT_Role
@@ -110,7 +110,7 @@ namespace sim_mob
             int timeOffMarket;
             int marketLifespan;
 
-            LT_Agent *parent;
+            Agent_LT *parent;
             bool active;
         };
     }

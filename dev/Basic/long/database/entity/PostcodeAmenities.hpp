@@ -71,7 +71,6 @@ namespace sim_mob {
             double distanceToJob;
             bool mrt_200m;
             bool mrt_400m;
-            bool mrt_800m;
             bool express_200m;
             bool bus_200m;
             bool bus_400m;

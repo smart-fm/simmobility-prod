@@ -50,6 +50,7 @@ namespace sim_mob
              * Inherited from LT_Role
              */
             virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
+            void handleReceivedBid(const Bid &bid, BigSerial unitId);
 
         private:
             friend class HouseholdAgent;
@@ -82,7 +83,6 @@ namespace sim_mob
         public:
             typedef boost::unordered_map<BigSerial, unsigned int> CounterMap;
 
-        private:
             typedef std::vector<ExpectationEntry> ExpectationList;
 
             struct SellingUnitInfo
@@ -96,22 +96,24 @@ namespace sim_mob
             };
 
             typedef boost::unordered_map<BigSerial, SellingUnitInfo> UnitsInfoMap;
+            UnitsInfoMap sellingUnitsMap;
+
+        private:
+
+
+
             typedef boost::unordered_map<BigSerial, Bid> Bids;
             
             timeslice currentTime;
             volatile bool hasUnitsToSale;
             //Current max bid information.
             Bids maxBidsOfDay;
-            UnitsInfoMap sellingUnitsMap;
             volatile bool selling;
             CounterMap dailyBids;
 
-            int timeOnMarket;
-            int timeOffMarket;
-            int marketLifespan;
-
             HouseholdAgent *parent;
             bool active;
+            bool runOnce;
         };
     }
 }

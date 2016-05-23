@@ -316,7 +316,7 @@ namespace
 					for(int i=0;i<erp_surcharges.size();++i)
 					{
 						sim_mob::ERP_Surcharge* s = erp_surcharges[i];
-						if( s->startTime_DT.isBeforeEqual(tripStartTime) && s->endTime_DT.isAfter(tripStartTime) &&
+						if( s->startTime_DT.isBeforeEqual(tripStartTime) && s->endTime_DT.isAfterEqual(tripStartTime) &&
 								s->vehicleTypeId == 1 && s->day == "Weekdays")
 						{
 							res += s->rate;

@@ -6,6 +6,8 @@
 #include "LogsumTourModeDestinationParams.hpp"
 
 #include <algorithm>
+#include <stdio.h>
+#include <iostream>
 
 using namespace std;
 using namespace sim_mob;
@@ -58,8 +60,6 @@ int ModeDestinationParams::getDestination(int choice) const
 
 bool sim_mob::ModeDestinationParams::isUnavailable(int origin, int destination) const
 {
-	//int origin08 = MTZ12_MTZ08_Map.at(origin);
-	//int destin08 = MTZ12_MTZ08_Map.at(destination);
 	OD_Pair orgDest = OD_Pair(origin, destination);
 	return binary_search(unavailableODs.begin(), unavailableODs.end(), orgDest);
 }
@@ -84,7 +84,19 @@ double LogsumTourModeDestinationParams::getCostPublicFirst(int zoneId) const
 	{
 		return 0;
 	}
-	return amCostsMap.at(origin).at(destination)->getPubCost();
+
+	double result = 0;
+
+	try
+	{
+		result = amCostsMap.at(origin).at(destination)->getPubCost();
+	}
+	catch(...)
+	{
+		std::cout << " [ModeDestinationParam.cpp:" << __LINE__ << "] " << origin << " or " << destination << " is invalid." << std::endl;
+	}
+
+	return result;
 }
 
 double LogsumTourModeDestinationParams::getCostPublicSecond(int zoneId) const
@@ -94,7 +106,19 @@ double LogsumTourModeDestinationParams::getCostPublicSecond(int zoneId) const
 	{
 		return 0;
 	}
-	return pmCostsMap.at(destination).at(origin)->getPubCost();
+
+	double result = 0;
+
+	try
+	{
+		result = pmCostsMap.at(destination).at(origin)->getPubCost();
+	}
+	catch(...)
+	{
+		std::cout << " [ModeDestinationParam.cpp:" << __LINE__ << "] " << origin << " or " << destination << " is invalid." << std::endl;
+	}
+
+	return result;
 }
 
 double LogsumTourModeDestinationParams::getCostCarERPFirst(int zoneId) const
@@ -104,7 +128,20 @@ double LogsumTourModeDestinationParams::getCostCarERPFirst(int zoneId) const
 	{
 		return 0;
 	}
-	return amCostsMap.at(origin).at(destination)->getCarCostErp();
+
+
+	double result = 0;
+
+	try
+	{
+		result = amCostsMap.at(origin).at(destination)->getCarCostErp();
+	}
+	catch(...)
+	{
+		std::cout << " [ModeDestinationParam.cpp:" << __LINE__ << "] " << origin << " or " << destination << " is invalid." << std::endl;
+	}
+
+	return result;
 }
 
 double LogsumTourModeDestinationParams::getCostCarERPSecond(int zoneId) const
@@ -114,7 +151,19 @@ double LogsumTourModeDestinationParams::getCostCarERPSecond(int zoneId) const
 	{
 		return 0;
 	}
-	return pmCostsMap.at(destination).at(origin)->getCarCostErp();
+
+	double result = 0;
+
+	try
+	{
+		result = pmCostsMap.at(destination).at(origin)->getCarCostErp();
+	}
+	catch(...)
+	{
+		std::cout  << " [ModeDestinationParam.cpp:" << __LINE__ << "] " << origin << " or " << destination << " is invalid." << std::endl;
+	}
+
+	return result;
 }
 
 double LogsumTourModeDestinationParams::getCostCarOPFirst(int zoneId) const
@@ -124,7 +173,19 @@ double LogsumTourModeDestinationParams::getCostCarOPFirst(int zoneId) const
 	{
 		return 0;
 	}
-	return (amCostsMap.at(origin).at(destination)->getDistance() * OPERATIONAL_COST);
+
+	double result = 0;
+
+	try
+	{
+		result = (amCostsMap.at(origin).at(destination)->getDistance() * OPERATIONAL_COST);
+	}
+	catch(...)
+	{
+		std::cout  << " [ModeDestinationParam.cpp:" << __LINE__ << "] " << origin << " or " << destination << " is invalid." << std::endl;
+	}
+
+	return result;
 }
 
 double LogsumTourModeDestinationParams::getCostCarOPSecond(int zoneId) const
@@ -134,12 +195,35 @@ double LogsumTourModeDestinationParams::getCostCarOPSecond(int zoneId) const
 	{
 		return 0;
 	}
-	return (pmCostsMap.at(destination).at(origin)->getDistance() * OPERATIONAL_COST);
+
+	double result = 0;
+
+	try
+	{
+		result = (pmCostsMap.at(destination).at(origin)->getDistance() * OPERATIONAL_COST);
+	}
+	catch(...)
+	{
+		std::cout  << " [ModeDestinationParam.cpp:" << __LINE__ << "] " << origin << " or " << destination << " is invalid." << std::endl;
+	}
+
+	return result;
 }
 
 double LogsumTourModeDestinationParams::getCostCarParking(int zoneId) const
 {
-	return (8 * zoneMap.at(zoneId)->getParkingRate());
+	double result = 0;
+
+	try
+	{
+		result = (8 * zoneMap.at(zoneId)->getParkingRate());
+	}
+	catch(...)
+	{
+		std::cout  << " [ModeDestinationParam.cpp:" << __LINE__ << "] " << zoneId << " is invalid." << std::endl;
+	}
+
+	return result;
 }
 
 double LogsumTourModeDestinationParams::getWalkDistance1(int zoneId) const
@@ -149,7 +233,19 @@ double LogsumTourModeDestinationParams::getWalkDistance1(int zoneId) const
 	{
 		return 0;
 	}
-	return amCostsMap.at(origin).at(destination)->getPubWalkt();
+
+	double result = 0;
+
+	try
+	{
+		result = amCostsMap.at(origin).at(destination)->getPubWalkt();
+	}
+	catch(...)
+	{
+		std::cout  << " [ModeDestinationParam.cpp:" << __LINE__ << "] " << origin << " or " << destination << " is invalid." << std::endl;
+	}
+
+	return result;
 }
 
 double LogsumTourModeDestinationParams::getWalkDistance2(int zoneId) const
@@ -159,7 +255,19 @@ double LogsumTourModeDestinationParams::getWalkDistance2(int zoneId) const
 	{
 		return 0;
 	}
-	return pmCostsMap.at(destination).at(origin)->getPubWalkt();
+
+	double result = 0;
+
+	try
+	{
+		result = pmCostsMap.at(destination).at(origin)->getPubWalkt();
+	}
+	catch(...)
+	{
+		std::cout  << " [ModeDestinationParam.cpp:" << __LINE__ << "] " << origin << " or " << destination << " is invalid." << std::endl;
+	}
+
+	return result;
 }
 
 double LogsumTourModeDestinationParams::getTT_PublicIvtFirst(int zoneId)
@@ -169,7 +277,19 @@ double LogsumTourModeDestinationParams::getTT_PublicIvtFirst(int zoneId)
 	{
 		return 0;
 	}
-	return amCostsMap.at(origin).at(destination)->getPubIvt();
+
+	double result = 0;
+
+	try
+	{
+		result = amCostsMap.at(origin).at(destination)->getPubIvt();
+	}
+	catch(...)
+	{
+		std::cout  << " [ModeDestinationParam.cpp:" << __LINE__ << "] " << origin << " or " << destination << " is invalid." << std::endl;
+	}
+
+	return result;
 }
 
 double LogsumTourModeDestinationParams::getTT_PublicIvtSecond(int zoneId) const
@@ -179,7 +299,19 @@ double LogsumTourModeDestinationParams::getTT_PublicIvtSecond(int zoneId) const
 	{
 		return 0;
 	}
-	return pmCostsMap.at(destination).at(origin)->getPubIvt();
+
+	double result = 0;
+
+	try
+	{
+		result = pmCostsMap.at(destination).at(origin)->getPubIvt();
+	}
+	catch(...)
+	{
+		std::cout  << " [ModeDestinationParam.cpp:" << __LINE__ << "] " << origin << " or " << destination << " is invalid." << std::endl;
+	}
+
+	return result;
 }
 
 double LogsumTourModeDestinationParams::getTT_CarIvtFirst(int zoneId) const
@@ -189,7 +321,19 @@ double LogsumTourModeDestinationParams::getTT_CarIvtFirst(int zoneId) const
 	{
 		return 0;
 	}
-	return amCostsMap.at(origin).at(destination)->getCarIvt();
+
+	double result = 0;
+
+	try
+	{
+		result = amCostsMap.at(origin).at(destination)->getCarIvt();
+	}
+	catch(...)
+	{
+		std::cout  << " [ModeDestinationParam.cpp:" << __LINE__ << "] " << origin << " or " << destination << " is invalid." << std::endl;
+	}
+
+	return result;
 }
 
 double LogsumTourModeDestinationParams::getTT_CarIvtSecond(int zoneId) const
@@ -199,7 +343,19 @@ double LogsumTourModeDestinationParams::getTT_CarIvtSecond(int zoneId) const
 	{
 		return 0;
 	}
-	return pmCostsMap.at(destination).at(origin)->getCarIvt();
+
+	double result = 0;
+
+	try
+	{
+		result = pmCostsMap.at(destination).at(origin)->getCarIvt();
+	}
+	catch(...)
+	{
+		std::cout  << " [ModeDestinationParam.cpp:" << __LINE__ << "] " << origin << " or " << destination << " is invalid." << std::endl;
+	}
+
+	return result;
 }
 
 double LogsumTourModeDestinationParams::getTT_PublicOutFirst(int zoneId) const
@@ -209,7 +365,19 @@ double LogsumTourModeDestinationParams::getTT_PublicOutFirst(int zoneId) const
 	{
 		return 0;
 	}
-	return amCostsMap.at(origin).at(destination)->getPubOut();
+
+	double result = 0;
+
+	try
+	{
+		result = amCostsMap.at(origin).at(destination)->getPubOut();
+	}
+	catch(...)
+	{
+		std::cout  << " [ModeDestinationParam.cpp:" << __LINE__ << "] " << origin << " or " << destination << " is invalid." << std::endl;
+	}
+
+	return result;
 }
 
 double LogsumTourModeDestinationParams::getTT_PublicOutSecond(int zoneId) const
@@ -219,7 +387,19 @@ double LogsumTourModeDestinationParams::getTT_PublicOutSecond(int zoneId) const
 	{
 		return 0;
 	}
-	return pmCostsMap.at(destination).at(origin)->getPubOut();
+
+	double result = 0;
+
+	try
+	{
+		result = pmCostsMap.at(destination).at(origin)->getPubOut();
+	}
+	catch(...)
+	{
+		std::cout  << " [ModeDestinationParam.cpp:" << __LINE__ << "] " << origin << " or " << destination << " is invalid." << std::endl;
+	}
+
+	return result;
 }
 
 double LogsumTourModeDestinationParams::getAvgTransferNumber(int zoneId) const
@@ -229,12 +409,35 @@ double LogsumTourModeDestinationParams::getAvgTransferNumber(int zoneId) const
 	{
 		return 0;
 	}
-	return (amCostsMap.at(origin).at(destination)->getAvgTransfer() + pmCostsMap.at(destination).at(origin)->getAvgTransfer()) / 2;
+
+	double result = 0;
+
+	try
+	{
+		result = (amCostsMap.at(origin).at(destination)->getAvgTransfer() + pmCostsMap.at(destination).at(origin)->getAvgTransfer()) / 2;
+	}
+	catch(...)
+	{
+		std::cout  << " [ModeDestinationParam.cpp:" << __LINE__ << "] " << origin << " or " << destination << " is invalid." << std::endl;
+	}
+
+	return result;
 }
 
 int LogsumTourModeDestinationParams::getCentralDummy(int zone) const
 {
-	return zoneMap.at(zone)->getCentralDummy();
+	double result = 0;
+
+	try
+	{
+		result = zoneMap.at(zone)->getCentralDummy();
+	}
+	catch(...)
+	{
+		std::cout  << " [ModeDestinationParam.cpp:" << __LINE__ << "] " << zone << " is invalid." << std::endl;
+	}
+
+	return result;
 }
 
 StopType LogsumTourModeDestinationParams::getTourPurpose() const
@@ -244,22 +447,66 @@ StopType LogsumTourModeDestinationParams::getTourPurpose() const
 
 double LogsumTourModeDestinationParams::getShop(int zone) const
 {
-	return zoneMap.at(zone)->getShop();
+	double result = 0;
+
+	try
+	{
+		result = zoneMap.at(zone)->getShop();
+	}
+	catch(...)
+	{
+		std::cout  << " [ModeDestinationParam.cpp:" << __LINE__ << "] " << zone << " is invalid." << std::endl;
+	}
+
+	return result;
 }
 
 double LogsumTourModeDestinationParams::getEmployment(int zone) const
 {
-	return zoneMap.at(zone)->getEmployment();
+	double result = 0;
+
+	try
+	{
+		result = zoneMap.at(zone)->getEmployment();
+	}
+	catch(...)
+	{
+		std::cout  << " [ModeDestinationParam.cpp:" << __LINE__ << "] " << zone << " is invalid." << std::endl;
+	}
+
+	return result;
 }
 
 double LogsumTourModeDestinationParams::getPopulation(int zone) const
 {
-	return zoneMap.at(zone)->getPopulation();
+	double result = 0;
+
+	try
+	{
+		result = zoneMap.at(zone)->getPopulation();
+	}
+	catch(...)
+	{
+		std::cout  << " [ModeDestinationParam.cpp:" << __LINE__ << "] " << zone << " is invalid." << std::endl;
+	}
+
+	return result;
 }
 
 double LogsumTourModeDestinationParams::getArea(int zone) const
 {
-	return zoneMap.at(zone)->getArea();
+	double result = 0;
+
+	try
+	{
+		result = zoneMap.at(zone)->getArea();
+	}
+	catch(...)
+	{
+		std::cout  << " [ModeDestinationParam.cpp:" << __LINE__ << "] " << zone << " or " << " is invalid." << std::endl;
+	}
+
+	return result;
 }
 
 void LogsumTourModeDestinationParams::setDrive1Available(bool drive1Available)
@@ -292,7 +539,15 @@ int LogsumTourModeDestinationParams::isAvailable_TMD(int choiceId) const
 	{ // zoneId will become zero for the last zone
 		zoneId = numZones;
 	}
-	int destination = zoneMap.at(zoneId)->getZoneCode();
+
+	int destination = 0;
+
+	try
+	{
+		destination = zoneMap.at(zoneId)->getZoneCode();
+	}
+	catch(...){}
+
 	// the destination same as origin is not available
 	if (origin == destination)
 	{
@@ -302,8 +557,17 @@ int LogsumTourModeDestinationParams::isAvailable_TMD(int choiceId) const
 	// bus 1-1092; mrt 1093 - 2184; private bus 2185 - 3276; same result for the three modes
 	if (choiceId <= 3 * numZones)
 	{
-		return (pmCostsMap.at(destination).at(origin)->getPubIvt() > 0 && amCostsMap.at(origin).at(destination)->getPubIvt() > 0);
+		bool result = false;
+
+		try
+		{
+			result = pmCostsMap.at(destination).at(origin)->getPubIvt() > 0 && amCostsMap.at(origin).at(destination)->getPubIvt() > 0;
+		}
+		catch(...){}
+
+		return result;
 	}
+
 	// drive1 3277 - 4368
 	if (choiceId <= 4 * numZones)
 	{
@@ -330,8 +594,16 @@ int LogsumTourModeDestinationParams::isAvailable_TMD(int choiceId) const
 	// walk 7645 - 8736
 	if (choiceId <= 8 * numZones)
 	{
-		return (amCostsMap.at(origin).at(destination)->getDistance() <= MAX_WALKING_DISTANCE
-				&& pmCostsMap.at(destination).at(origin)->getDistance() <= MAX_WALKING_DISTANCE);
+		bool result = false;
+
+		try
+		{
+			result =  (amCostsMap.at(origin).at(destination)->getDistance() <= MAX_WALKING_DISTANCE
+					&& pmCostsMap.at(destination).at(origin)->getDistance() <= MAX_WALKING_DISTANCE);
+		}
+		catch(...){}
+
+		return result;
 	}
 	// taxi 8737 - 9828
 	if (choiceId <= 9 * numZones)
@@ -344,13 +616,25 @@ int LogsumTourModeDestinationParams::isAvailable_TMD(int choiceId) const
 
 int sim_mob::LogsumTourModeDestinationParams::getCbdDummy(int zone) const
 {
-	return zoneMap.at(zone)->getCbdDummy();
+	double result = 0;
+
+	try
+	{
+		result = zoneMap.at(zone)->getCbdDummy();
+	}
+	catch(...)
+	{
+		std::cout  << " [ModeDestinationParam.cpp:" << __LINE__ << "] " << zone << " is invalid." << std::endl;
+	}
+
+	return result;
 }
 
 int sim_mob::LogsumTourModeDestinationParams::isCbdOrgZone() const
 {
 	return cbdOrgZone;
 }
+
 
 sim_mob::LogsumTourModeParams::LogsumTourModeParams(const ZoneParams* znOrgObj, const ZoneParams* znDesObj, const CostParams* amObj, const CostParams* pmObj,
 		const PredayPersonParams& personParams, StopType tourType) :

@@ -25,7 +25,7 @@ using namespace sim_mob::db;
 namespace
 {
 
-const std::string LT_DB_CONFIG_FILE = "../private/lt-db.ini";
+const std::string LT_DB_CONFIG_FILE = "private/lt-db.ini";
 
 
 /**
@@ -236,24 +236,92 @@ PredayPersonParams sim_mob::PredayLT_LogsumManager::computeLogsum(long individua
 		return PredayPersonParams();
 	}
 
+	bool printedError = false;
+
 	if(personParams.hasFixedWorkPlace())
 	{
-		int workLoc = personParams.getFixedWorkLocation();
-		ZoneParams* orgZnParams = zoneMap.at(zoneIdLookup.at(homeLoc));
-		ZoneParams* destZnParams = zoneMap.at(zoneIdLookup.at(workLoc));
+		int workLoc = workLoc = personParams.getFixedWorkLocation();
+		ZoneParams* orgZnParams = nullptr;
+		ZoneParams* destZnParams = nullptr;
 		CostParams* amCostParams = nullptr;
 		CostParams* pmCostParams = nullptr;
+
+		try
+		{
+			orgZnParams = zoneMap.at(zoneIdLookup.at(homeLoc));
+		}
+		catch(...)
+		{
+			orgZnParams = new ZoneParams();
+
+			//std::cout << "individualId: " << individualId << " " << homeLoc << " taz cannot be found" << std::endl;
+			//printedError = true;
+		}
+
+		try
+		{
+			destZnParams = zoneMap.at(zoneIdLookup.at(workLoc));
+		}
+		catch(...)
+		{
+			destZnParams = new ZoneParams();
+
+			//if( !printedError )
+			//	std::cout << "individualId: " << individualId << " " << workLoc  << " taz cannot be found. destznparam" << std::endl;
+
+			printedError = true;
+		}
+
 		if(homeLoc != workLoc)
 		{
-			amCostParams = amCostMap.at(homeLoc).at(workLoc);
-			pmCostParams = pmCostMap.at(workLoc).at(homeLoc);
+			try
+			{
+				amCostParams = amCostMap.at(homeLoc).at(workLoc);
+			}
+			catch(...)
+			{
+				amCostParams = new CostParams();
+
+				//if( !printedError )
+				//	std::cout << "individualId: " << individualId << " " << workLoc << " or " << homeLoc << " taz cannot be found. amcostparam" << std::endl;
+
+				printedError = true;
+			}
+
+			try
+			{
+				pmCostParams = pmCostMap.at(workLoc).at(homeLoc);
+			}
+			catch(...)
+			{
+				pmCostParams = new CostParams();
+
+				//if( !printedError )
+				//	std::cout << "individualId: " << individualId << " " << workLoc << " or " << homeLoc << " taz cannot be found. pmcostparam" << std::endl;
+
+				printedError = true;
+			}
+
 		}
 		LogsumTourModeParams tmParams(orgZnParams, destZnParams, amCostParams, pmCostParams, personParams, WORK);
 		PredayLogsumLuaProvider::getPredayModel().computeTourModeLogsum(personParams, tmParams);
+
 	}
 
 	LogsumTourModeDestinationParams tmdParams(zoneMap, amCostMap, pmCostMap, personParams, NULL_STOP);
-	tmdParams.setCbdOrgZone(zoneMap.at(zoneLookupItr->second)->getCbdDummy());
+
+	try
+	{
+		tmdParams.setCbdOrgZone(zoneMap.at(zoneLookupItr->second)->getCbdDummy());
+	}
+	catch(...)
+	{
+		//if( !printedError )
+		//	std::cout << "individualId: " << individualId << " " << zoneLookupItr->second << " taz cannot be found. cbdorgzone" << std::endl;
+
+		printedError = true;
+	}
+
 
 	PredayLogsumLuaProvider::getPredayModel().computeTourModeDestinationLogsum(personParams, tmdParams);
 	PredayLogsumLuaProvider::getPredayModel().computeDayPatternLogsums(personParams);

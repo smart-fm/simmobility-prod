@@ -10,7 +10,7 @@
  * Created on Mar 5, 2014, 6:36 PM
  */
 #pragma once
-#include "agent/LT_Agent.hpp"
+#include "entities/Agent_LT.hpp"
 #include "database/entity/Developer.hpp"
 #include "database/entity/Parcel.hpp"
 #include "database/entity/PotentialProject.hpp"
@@ -25,9 +25,9 @@ namespace sim_mob {
 
         class DeveloperModel;
         
-        class DeveloperAgent : public LT_Agent {
+        class DeveloperAgent : public Agent_LT {
         public:
-            DeveloperAgent(Parcel* parcel, DeveloperModel* model);
+            DeveloperAgent(boost::shared_ptr<Parcel> parcel, DeveloperModel* model);
             virtual ~DeveloperAgent();
             
             /**
@@ -113,16 +113,13 @@ namespace sim_mob {
              * set a 20% of new units at each month after 6th month of the simulation
              * to be sent to HM via real estate agent
              */
-            void setUnitsForHM(std::vector<Unit*>::iterator &first,std::vector<Unit*>::iterator &last);
+            void setUnitsForHM(std::vector<boost::shared_ptr<Unit> >::iterator &first,std::vector<boost::shared_ptr<Unit> >::iterator &last);
 
             /*
              * set whether there are new units remaining to enter to market
              */
             void setUnitsRemain (bool unitRemain);
-            /*
-             * get the simulation date by frame tick
-             */
-            std::tm getDate(int day);
+
             /*
              * set the real estate agent for this developer agent
              */
@@ -144,15 +141,25 @@ namespace sim_mob {
              */
             void setSimYear(int simulationYear);
 
+            void setProject(boost::shared_ptr<Project> project);
+
+            boost::shared_ptr<Parcel> getParcel();
+
+            void setParcelDBStatus(bool status);
+
+            bool getParcelDBStatus();
+
+            void setNewBuildings(std::vector<boost::shared_ptr<Building> > buildings);
+
+            void setNewUnits(std::vector<boost::shared_ptr<Unit> > units);
 
         private:
             DeveloperModel* devModel;
-            Parcel *parcel;
+            boost::shared_ptr<Parcel> parcel;
             IdVector parcelsToProcess;
             bool active;
             std::vector<boost::shared_ptr<Building> > newBuildings;
-            //std::vector<boost::shared_ptr<Unit> > newUnits;
-            std::vector<Unit*> newUnits;
+            std::vector<boost::shared_ptr<Unit> > newUnits;
             boost::shared_ptr<Project> fmProject;
             int monthlyUnitCount;
             bool unitsRemain;
@@ -161,6 +168,8 @@ namespace sim_mob {
             int postcode;
             HM_Model *housingMarketModel;
             int simYear;
+            int currentTick;
+            bool parcelDBStatus;
 
         };
     }

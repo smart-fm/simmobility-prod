@@ -1,6 +1,6 @@
 //Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
 //Licensed under the terms of the MIT License, as described in the file:
-//   license.txt   (http://opensource.org/licenses/MIT)
+//license.txt   (http://opensource.org/licenses/MIT)
 
 /* 
  * File:   HouseholdBidderRole.hpp
@@ -13,6 +13,7 @@
 #include "event/LT_EventArgs.hpp"
 #include "database/entity/Household.hpp"
 #include "core/HousingMarket.hpp"
+#include <util/TimeCheck.hpp>
 
 namespace sim_mob
 {
@@ -41,7 +42,7 @@ namespace sim_mob
             class CurrentBiddingEntry
             {
             public:
-                CurrentBiddingEntry(const BigSerial unitId = INVALID_ID, const double bestBid = 0, const double wp = 0, double lastSurplus = 0 );
+                CurrentBiddingEntry(const BigSerial unitId = INVALID_ID, const double bestBid = 0, const double wp = 0, double lastSurplus = 0, double wtp_e  = 0, double affordability = 0);
                 ~CurrentBiddingEntry();
 
                 /**
@@ -56,6 +57,12 @@ namespace sim_mob
                 double getLastSurplus() const;
                 void setLastSurplus(double value);
 
+                double getWtp_e();
+                void setWtp_e(double value);
+
+                double getAffordability() const;
+                void setAffordability( double value);
+
                 /**
                  * Increments the tries variable with given quantity.
                  * @param quantity to increment.
@@ -68,6 +75,8 @@ namespace sim_mob
                 double bestBid; //actual final bid
                 long int tries; // number of bids sent to the seller.
                 double lastSurplus; // value of the last surplus
+                double wtp_e; //willingToPay error term
+                double affordability;
             };
 
         public:
@@ -80,7 +89,6 @@ namespace sim_mob
 
             void computeHouseholdAffordability();
             void computeBidValueLogistic( double price, double wp, double &finalBid, double &finalSurplus );
-            void getScreeningProbabilities(int hitsId, std::vector<double> &probabilities);
 
             /**
              * Inherited from LT_Role
@@ -88,18 +96,18 @@ namespace sim_mob
              */
             virtual void update(timeslice currTime);
 
-            void reconsiderVehicleOwnershipOption();
-
-            double getExpOneCar(int unitTypeId, double vehicleOwnershipLogsum);
-
-            double getExpTwoPlusCar(int unitTypeId, double vehicleOwnershipLogsum);
-
             /*
              * check all the vehicle categories and returns if it includes a motorcycle
              */
             bool isMotorCycle(int vehicleCategoryId);
 
             int getIncomeCategoryId(double income);
+
+            int getMoveInWaitingTimeInDays();
+
+            void setMovInWaitingTimeInDays(int days);
+
+            void setUnitIdToBeOwned(BigSerial unitId);
 
         protected:
 
@@ -144,8 +152,10 @@ namespace sim_mob
             bool active;
         	BigSerial unitIdToBeOwned;
         	int moveInWaitingTimeInDays;
+        	bool bidComplete;
         	int vehicleBuyingWaitingTimeInDays;
         	uint32_t day;
+        	int year;
 
             enum EthnicityId
             {
@@ -154,16 +164,13 @@ namespace sim_mob
 
             enum CoeffParamId
             {
-            	ASC_NO_CAR = 1, ASC_ONECAR, ASC_TWOplusCAR, B_ABOVE60_ONE_CAR, B_ABOVE60_TWOplusCAR, B_CEO_ONECAR, B_CEO_TWOplusCAR,
-            	B_FULLWORKER1_ONECAR, B_FULLWORKER1_TWOplusCAR, B_FULLWORKER2_ONECAR, B_FULLWORKER2_TWOplusCAR, B_FULLWORKER3p_ONECAR, B_FULLWORKER3p_TWOplusCAR, B_HAS_MC_ONECAR,
-            	B_HAS_MC_TWOplusCAR, B_HHSIZE3_ONECAR, B_HHSIZE3_TWOplusCAR, B_HHSIZE4_ONECAR, B_HHSIZE4_TWOplusCAR, B_HHSIZE5_ONECAR, B_HHSIZE5_TWOplusCAR,
-            	B_HHSIZE6_ONECAR, B_HHSIZE6_TWOplusCAR, B_INC12_ONECAR, B_INC12_TWOplusCAR, B_INC3_ONECAR, B_INC3_TWOplusCAR, B_INC4_ONECAR, B_INC4_TWOplusCAR, B_INC5_ONECAR, B_INC5_TWOplusCAR,
-            	B_INC6_ONECAR, B_INC6_TWOplusCAR, B_INDIAN_ONECAR, B_INDIAN_TWOplusCAR, B_KID1_ONECAR, B_KID1_TWOplusCAR, B_KID2p_ONECAR, B_KID2p_TWOplusCAR, B_LANDED_ONECAR, B_LANDED_TWOplusCAR, B_LOGSUM_ONECAR,
-            	B_LOGSUM_TWOplusCAR, B_MALAY_ONECAR, B_MALAY_TWOplusCAR, B_OTHER_RACE_ONECAR, B_OTHER_RACE_TWOplusCAR, B_PRIVATE_ONECAR, B_PRIVATE_TWOplusCAR, B_SELFEMPLOYED_ONECAR, B_SELFEMPLOYED_TWOplusCAR,
-            	B_STUDENT1_ONECAR, B_STUDENT1_TWOplusCAR, B_STUDENT2_ONECAR, B_STUDENT2_TWOplusCAR, B_STUDENT3_ONECAR, B_STUDENT3_TWOplusCAR, B_WHITECOLLAR1_ONECAR, B_WHITECOLLAR1_TWOplusCAR, B_WHITECOLLAR2_ONECAR,
-            	B_WHITECOLLAR2_TWOplusCAR, B_distMRT1000_ONECAR, B_distMRT1000_TWOplusCAR, B_distMRT500_ONECAR, B_distMRT500_TWOplusCAR
+            	ASC_NO_CAR = 1, ASC_ONECAR, ASC_TWOplusCAR, B_ABOVE60_ONE_CAR, B_ABOVE60_TWOplusCAR,
+            	B_INC1_ONECAR, B_INC1_TWOplusCAR, B_INC2_ONECAR, B_INC2_TWOplusCAR,B_INC3_ONECAR, B_INC3_TWOplusCAR, B_INC4_ONECAR, B_INC4_TWOplusCAR, B_INC5_ONECAR, B_INC5_TWOplusCAR,
+            	B_INDIAN_ONECAR, B_INDIAN_TWOplusCAR, B_KIDS1_ONECAR, B_KIDS1_TWOplusCAR, B_KIDS2p_ONECAR, B_KIDS2p_TWOplusCAR, B_MALAY_ONECAR, B_MALAY_TWOplusCAR,B_MC_ONECAR,
+            	B_MC_TWOplusCAR,  B_OTHERS_ONECAR, B_OTHERS_TWOplusCAR,B_PRIVATE_ONECAR, B_PRIVATE_TWOplusCAR, B_TAXI_ONECAR, B_TAXI_TWOplusCAR, B_WHITECOLLAR1_ONECAR, B_WHITECOLLAR1_TWOplusCAR, B_WHITECOLLAR2_ONECAR,
+            	B_WHITECOLLAR2_TWOplusCAR, B_distMRT1000_ONECAR, B_distMRT1000_TWOplusCAR, B_distMRT500_ONECAR, B_distMRT500_TWOplusCAR,
+            	B_LOGSUM_ONECAR,B_LOGSUM_TWOplusCAR
             };
-
             bool initBidderRole;
         };
     }

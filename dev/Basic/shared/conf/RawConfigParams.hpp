@@ -21,47 +21,93 @@ namespace sim_mob {
 /**
  * Represents the long-term developer model of the config file
  */
-struct LongTermParams{
-    LongTermParams();
-    bool enabled;
-    unsigned int workers;
-    unsigned int days;
-    unsigned int tickStep;
-    unsigned int maxIterations;
+struct LongTermParams
+{
+	LongTermParams();
+	bool enabled;
+	unsigned int workers;
+	unsigned int days;
+	unsigned int tickStep;
+	unsigned int maxIterations;
+	unsigned int year;
+	std::string simulationScenario;
+	bool resume;
+	std::string currentOutputSchema;
+	std::string mainSchemaVersion;
+	std::string configSchemaVersion;
+	std::string calibrationSchemaVersion;
+	std::string geometrySchemaVersion;
+	unsigned int opSchemaloadingInterval;
 
-    struct DeveloperModel{
-        DeveloperModel();
-        bool enabled;
-        unsigned int timeInterval;
-        int initialPostcode;
-        int initialUnitId;
-        int initialBuildingId;
-        int initialProjectId;
-        int year;
-        double minLotSize;
-    } developerModel;
+	struct DeveloperModel{
+		DeveloperModel();
+		bool enabled;
+		unsigned int timeInterval;
+		int initialPostcode;
+		int initialUnitId;
+		int initialBuildingId;
+		int initialProjectId;
+		double minLotSize;
+	} developerModel;
 
-    struct HousingModel{
-        HousingModel();
-        bool enabled;
-        unsigned int timeInterval; ///time interval before a unit drops its asking price by a certain percentage.
-        unsigned int timeOnMarket; ///for units on the housing market
-        unsigned int timeOffMarket;///for units on the housing market
-        float vacantUnitActivationProbability;
-        int initialHouseholdsOnMarket;
-        float housingMarketSearchPercentage;
-        float housingMoveInDaysInterval;
-        bool  outputHouseholdLogsums;
-        int offsetBetweenUnitBuyingAndSelling;
-        int bidderUnitsChoiceSet;
-        int householdBiddingWindow;
-    } housingModel;
+	struct HousingModel{
+		HousingModel();
+		bool enabled;
+		unsigned int timeInterval; //time interval before a unit drops its asking price by a certain percentage.
+		unsigned int timeOnMarket; //for units on the housing market
+		unsigned int timeOffMarket;//for units on the housing market
+		float vacantUnitActivationProbability;
+		int initialHouseholdsOnMarket;
+		int dailyHouseholdAwakenings;
+		float housingMarketSearchPercentage;
+		float housingMoveInDaysInterval;
+		int offsetBetweenUnitBuyingAndSelling;
+		int bidderUnitsChoiceSet;
+		int householdBiddingWindow;
+	} housingModel;
 
-    struct VehicleOwnershipModel{
-        VehicleOwnershipModel();
-        bool enabled;
-        unsigned int vehicleBuyingWaitingTimeInDays;
-    }vehicleOwnershipModel;
+	struct OutputHouseholdLogsums
+	{
+		OutputHouseholdLogsums();
+		bool enabled;
+		bool fixedHomeVariableWork;
+		bool fixedWorkVariableHome;
+	} outputHouseholdLogsums;
+
+	struct VehicleOwnershipModel{
+		VehicleOwnershipModel();
+		bool enabled;
+		unsigned int vehicleBuyingWaitingTimeInDays;
+	}vehicleOwnershipModel;
+};
+
+///represent the incident data section of the config file
+struct IncidentParams {
+	IncidentParams() : incidentId(-1), visibilityDistance(0), segmentId(-1), position(0), severity(0),
+			capFactor(0), startTime(0), duration(0), length(0),	compliance(0), accessibility(0){}
+
+	struct LaneParams {
+		LaneParams() : laneId(0), speedLimit(0), xLaneStartPos(0), yLaneStartPos(0), xLaneEndPos(0),yLaneEndPos(0){}
+		unsigned int laneId;
+		float speedLimit;
+		float xLaneStartPos;
+		float yLaneStartPos;
+		float xLaneEndPos;
+		float yLaneEndPos;
+	};
+
+	unsigned int incidentId;
+	float visibilityDistance;
+	unsigned int segmentId;
+	float position;
+	unsigned int severity;
+	float capFactor;
+	unsigned int startTime;
+	unsigned int duration;
+	float length;
+	float compliance;
+	float accessibility;
+	std::vector<LaneParams> laneParams;
 };
 
 /**

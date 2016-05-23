@@ -1,6 +1,6 @@
 //Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
 //Licensed under the terms of the MIT License, as described in the file:
-//   license.txt   (http://opensource.org/licenses/MIT)
+//license.txt   (http://opensource.org/licenses/MIT)
 
 #include "Agent_LT.hpp"
 
@@ -15,41 +15,29 @@
 #include "conf/settings/StrictAgentErrors.h"
 #include "entities/profile/ProfileBuilder.hpp"
 #include "event/SystemEvents.hpp"
-#include "event/args/ReRouteEventArgs.hpp"
-#include "geospatial/network/Node.hpp"
-#include "geospatial/network/Lane.hpp"
-#include "geospatial/network/Link.hpp"
-#include "geospatial/network/RoadSegment.hpp"
-#include "geospatial/streetdir/StreetDirectory.hpp"
 #include "logging/Log.hpp"
 #include "message/MessageBus.hpp"
 #include "partitions/PartitionManager.hpp"
 #include "partitions/PackageUtils.hpp"
 #include "partitions/UnPackageUtils.hpp"
-#include "workers/Worker.hpp"
 #include "util/LangHelpers.hpp"
 #include "util/DebugFlags.hpp"
-
+#include "workers/Worker.hpp"
 
 using namespace sim_mob;
-using namespace sim_mob::event;
-using namespace sim_mob::messaging;
+using namespace sim_mob::long_term;
 
 typedef Entity::UpdateStatus UpdateStatus;
 
 using std::vector;
 using std::priority_queue;
 
-StartTimePriorityQueue_lt sim_mob::Agent_LT::pending_agents;
-std::set<Entity*> sim_mob::Agent_LT::all_agents;
-//EventTimePriorityQueue sim_mob::Agent::agents_with_pending_event;
-//vector<Entity*> sim_mob::Agent::agents_on_event;
+StartTimePriorityQueue_lt sim_mob::long_term::Agent_LT::pending_agents;
+std::set<Entity*> sim_mob::long_term::Agent_LT::all_agents;
 
 //Implementation of our comparison function for Agents by start time.
-bool sim_mob::cmp_agent_lt_start::operator()(const Agent_LT* x, const Agent_LT* y) const
+bool sim_mob::long_term::cmp_agent_lt_start::operator()(const Agent_LT* x, const Agent_LT* y) const
 {
-
-	//TODO: Not sure what to do in this case...
 	if ((!x) || (!y))
 	{
 		return 0;
@@ -59,8 +47,8 @@ bool sim_mob::cmp_agent_lt_start::operator()(const Agent_LT* x, const Agent_LT* 
 	return x->getStartTime() > y->getStartTime();
 }
 
-unsigned int sim_mob::Agent_LT::next_agent_id = 0;
-unsigned int sim_mob::Agent_LT::GetAndIncrementID(int preferredID)
+unsigned int sim_mob::long_term::Agent_LT::next_agent_id = 0;
+unsigned int sim_mob::long_term::Agent_LT::GetAndIncrementID(int preferredID)
 {
 	//If the ID is valid, modify next_agent_id;
 	if (preferredID > static_cast<int>(next_agent_id))
@@ -82,12 +70,10 @@ unsigned int sim_mob::Agent_LT::GetAndIncrementID(int preferredID)
 	//  the value of next_agent_id (if it's <0)
 	unsigned int res = (preferredID >= 0) ? static_cast<unsigned int>(preferredID) : next_agent_id++;
 
-	//std::cout <<"  assigned: " <<res <<std::endl;
-
 	return res;
 }
 
-void sim_mob::Agent_LT::SetIncrementIDStartValue(int startID,bool failIfAlreadyUsed)
+void sim_mob::long_term::Agent_LT::SetIncrementIDStartValue(int startID,bool failIfAlreadyUsed)
 {
 	//Check fail condition
 	if (failIfAlreadyUsed && Agent_LT::next_agent_id != 0)
@@ -105,36 +91,49 @@ void sim_mob::Agent_LT::SetIncrementIDStartValue(int startID,bool failIfAlreadyU
 	Agent_LT::next_agent_id = startID;
 }
 
-sim_mob::Agent_LT::Agent_LT(	const MutexStrategy& mtxStrat, int id) : Entity(GetAndIncrementID(id)), mutexStrat(mtxStrat), initialized(false),
-								lastUpdatedFrame(-1),toRemoved(false), nextPathPlanned(false), dynamic_seed(id), currTick(0,0), commEventRegistered(false)
-{}
+sim_mob::long_term::Agent_LT::Agent_LT(	const MutexStrategy& mtxStrat, int id) : Entity(GetAndIncrementID(id)), mutexStrat(mtxStrat), initialized(false),
+										lastUpdatedFrame(-1),toRemoved(false), dynamic_seed(id), currTick(0,0){}
 
-sim_mob::Agent_LT::~Agent_LT()
+sim_mob::long_term::Agent_LT::~Agent_LT(){}
+
+
+///A temporary list of configuration properties used to load an Agent's role from the config file.
+void sim_mob::long_term::Agent_LT::setConfigProperties(const std::map<std::string, std::string>& props)
 {
-	//Un-register event listeners.
-	if (commEventRegistered)
-	{
-		messaging::MessageBus::UnSubscribeEvent(sim_mob::event::EVT_CORE_COMMSIM_ENABLED_FOR_AGENT,	this,this);
-	}
-
+	this->configProperties = props;
 }
 
-void sim_mob::Agent_LT::resetFrameInit()
+const std::map<std::string, std::string>& sim_mob::long_term::Agent_LT::getConfigProperties()
+{
+	return this->configProperties;
+}
+
+void sim_mob::long_term::Agent_LT::clearConfigProperties()
+{
+	this->configProperties.clear();
+}
+
+void sim_mob::long_term::Agent_LT::resetFrameInit()
 {
 	initialized = false;
 }
 
-long sim_mob::Agent_LT::getLastUpdatedFrame()
+long sim_mob::long_term::Agent_LT::getLastUpdatedFrame()
 {
 	return lastUpdatedFrame;
 }
 
-void sim_mob::Agent_LT::setLastUpdatedFrame(long lastUpdatedFrame)
+void sim_mob::long_term::Agent_LT::setLastUpdatedFrame(long lastUpdatedFrame)
 {
 	this->lastUpdatedFrame = lastUpdatedFrame;
 }
 
-void sim_mob::Agent_LT::CheckFrameTimes(unsigned int agentId, uint32_t now, unsigned int startTime, bool wasFirstFrame, bool wasRemoved)
+std::vector<sim_mob::BufferedBase*>  sim_mob::long_term::Agent_LT::buildSubscriptionList()
+{
+	return std::vector<sim_mob::BufferedBase*>();
+}
+
+void sim_mob::long_term::Agent_LT::CheckFrameTimes(unsigned int agentId, uint32_t now, unsigned int startTime, bool wasFirstFrame, bool wasRemoved)
 {
 	//Has update() been called early?
 	if (now<startTime)
@@ -172,11 +171,8 @@ void sim_mob::Agent_LT::CheckFrameTimes(unsigned int agentId, uint32_t now, unsi
 
 
 
-UpdateStatus sim_mob::Agent_LT::perform_update(timeslice now)
+UpdateStatus sim_mob::long_term::Agent_LT::perform_update(timeslice now)
 {
-	//Reset the Region tracking data structures, if applicable.
-	//regionAndPathTracker.reset();
-
 	//We give the Agent the benefit of the doubt here and simply call frame_init().
 	//This allows them to override the start_time if it seems appropriate (e.g., if they
 	// are swapping trip chains). If frame_init() returns false, immediately exit.
@@ -216,121 +212,27 @@ UpdateStatus sim_mob::Agent_LT::perform_update(timeslice now)
 	return retVal;
 }
 
-Entity::UpdateStatus sim_mob::Agent_LT::update(timeslice now)
-{
-	PROFILE_LOG_AGENT_UPDATE_BEGIN(currWorkerProvider, this, now);
-
-	//Update within an optional try/catch block.
-	UpdateStatus retVal(UpdateStatus::RS_CONTINUE);
-
-#ifndef SIMMOB_STRICT_AGENT_ERRORS
-	try
-	{
-#endif
-		//Update functionality
-		retVal = perform_update(now);
-
-//Respond to errors only if STRICT is off; otherwise, throw it (so we can catch it in the debugger).
-#ifndef SIMMOB_STRICT_AGENT_ERRORS
-	}
-	catch (std::exception& ex)
-	{
-		//TODO: We can't handle this right now.
-		//PROFILE_LOG_AGENT_EXCEPTION(currWorkerProvider->getProfileBuilder(), *this, now, ex);
-
-		//Add a line to the output file.
-		if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled())
-		{
-			std::stringstream msg;
-			msg <<"Error updating Agent[" <<getId() <<"], will be removed from the simulation.";
-
-			msg <<"\n  " <<ex.what();
-			LogOut(msg.str() <<std::endl);
-		}
-		setToBeRemoved();
-	}
-#endif
-
-	//Ensure that isToBeRemoved() and UpdateStatus::status are in sync
-	if (isToBeRemoved() || retVal.status == UpdateStatus::RS_DONE)
-	{
-		retVal.status = UpdateStatus::RS_DONE;
-		setToBeRemoved();
-
-		//notify subscribers that this agent is done
-		MessageBus::PublishEvent(event::EVT_CORE_AGENT_DIED, this, MessageBus::EventArgsPtr(new AgentLifeCycleEventArgsLT(getId(), this)));
-                
-        //unsubscribes all listeners of this agent to this event.
-        //(it is safe to do this here because the priority between events)
-        MessageBus::UnSubscribeAll(event::EVT_CORE_AGENT_DIED, this);
-	}
-
-	PROFILE_LOG_AGENT_UPDATE_END(currWorkerProvider, this, now);
-	return retVal;
-}
-
-
-vector<BufferedBase*> sim_mob::Agent_LT::buildSubscriptionList()
-{
-	return vector<BufferedBase*>();
-}
-
-
-bool sim_mob::Agent_LT::isToBeRemoved()
+bool sim_mob::long_term::Agent_LT::isToBeRemoved()
 {
 	return toRemoved;
 }
 
-void sim_mob::Agent_LT::setToBeRemoved()
+void sim_mob::long_term::Agent_LT::setToBeRemoved()
 {
 	toRemoved = true;
 }
 
-void sim_mob::Agent_LT::clearToBeRemoved()
+void sim_mob::long_term::Agent_LT::clearToBeRemoved()
 {
 	toRemoved = false;
 }
 
-NullableOutputStream sim_mob::Agent_LT::Log()
+NullableOutputStream sim_mob::long_term::Agent_LT::Log()
 {
 	return NullableOutputStream(currWorkerProvider->getLogFile());
 }
 
-void sim_mob::Agent_LT::onEvent(EventId eventId, Context ctxId, EventPublisher* sender, const EventArgs& args)
-{
-	//Some events only matter if they are for us.
-	if (ctxId == this)
-	{
-		if (eventId==event::EVT_CORE_COMMSIM_ENABLED_FOR_AGENT)
-		{
-			//Was commsim enabled for us? If so, start tracking Regions.
-			Print() <<"Enabling Region support for agent: " <<this <<"\n";
-			//enableRegionSupport();
-
-			//This requires us to now listen for a new set of events.
-			messaging::MessageBus::SubscribeEvent(	sim_mob::event::EVT_CORE_COMMSIM_REROUTING_REQUEST,
-													this, //Only when we are the Agent being requested to re-route..
-													this //Return this event to us (the agent).
-												 );
-
-		}
-		/*else if (eventId==event::EVT_CORE_COMMSIM_REROUTING_REQUEST)
-		{
-			//Were we requested to re-route?
-			const ReRouteEventArgs& rrArgs = MSG_CAST(ReRouteEventArgs, args);
-			const std::map<int, sim_mob::RoadRunnerRegion>& regions = ConfigManager::GetInstance().FullConfig().getNetwork().roadRunnerRegions;
-			std::map<int, sim_mob::RoadRunnerRegion>::const_iterator it = regions.find(boost::lexical_cast<int>(rrArgs.getBlacklistRegion()));
-
-			if (it != regions.end())
-			{
-				std::vector<const sim_mob::RoadSegment*> blacklisted = StreetDirectory::Instance().getSegmentsFromRegion(it->second);
-				rerouteWithBlacklist(blacklisted);
-			}
-		}*/
-	}
-}
-
-void sim_mob::Agent_LT::HandleMessage(messaging::Message::MessageType type, const messaging::Message& message){}
+void sim_mob::long_term::Agent_LT::HandleMessage(messaging::Message::MessageType type, const messaging::Message& message){}
 
 #ifndef SIMMOB_DISABLE_MPI
 int sim_mob::Agent_LT::getOwnRandomNumber()
@@ -356,6 +258,33 @@ int sim_mob::Agent_LT::getOwnRandomNumber()
 	return one_try;
 }
 #endif
+
+
+bool sim_mob::long_term::Agent_LT::frame_init(timeslice now)
+{
+    return onFrameInit(now);
+}
+
+Entity::UpdateStatus sim_mob::long_term::Agent_LT::frame_tick(timeslice now)
+{
+    return onFrameTick(now);
+}
+
+void sim_mob::long_term::Agent_LT::frame_output(timeslice now)
+{
+    onFrameOutput(now);
+}
+
+bool sim_mob::long_term::Agent_LT::isNonspatial()
+{
+    return false;
+}
+
+Entity::UpdateStatus sim_mob::long_term::Agent_LT::update(timeslice now)
+{
+	return onFrameTick(now);
+}
+
 
 
 

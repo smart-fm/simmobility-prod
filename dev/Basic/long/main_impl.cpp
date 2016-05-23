@@ -30,7 +30,21 @@
 #include "core/DataManager.hpp"
 #include "core/AgentsLookup.hpp"
 #include "model/DeveloperModel.hpp"
-
+#include "database/dao/SimulationStartPointDao.hpp"
+#include "database/dao/SimulationStoppedPointDao.hpp"
+#include "database/entity/SimulationStartPoint.hpp"
+#include "database/dao/CreateOutputSchemaDao.hpp"
+#include "database/dao/BuildingDao.hpp"
+#include "database/dao/ParcelDao.hpp"
+#include "database/dao/UnitDao.hpp"
+#include "database/dao/ProjectDao.hpp"
+#include "database/dao/BidDao.hpp"
+#include "database/dao/UnitSaleDao.hpp"
+#include "database/dao/DevelopmentPlanDao.hpp"
+#include "database/dao/VehicleOwnershipChangesDao.hpp"
+#include "database/dao/HouseholdDao.hpp"
+#include "database/dao/HouseholdUnitDao.hpp"
+#include "util/HelperFunctions.hpp"
 
 using std::cout;
 using std::endl;
@@ -41,6 +55,7 @@ using std::pair;
 using std::map;
 using namespace sim_mob;
 using namespace sim_mob::long_term;
+using namespace sim_mob::db;
 
 //Current software version.
 const string SIMMOB_VERSION = string(SIMMOB_VERSION_MAJOR) + "." + SIMMOB_VERSION_MINOR;
@@ -79,6 +94,150 @@ int printReport(int simulationNumber, vector<Model*>& models, StopWatch& simulat
     return 0;
 }
 
+void createOutputSchema(db::DB_Connection& conn,const std::string& currentOutputSchema)
+{
+	if(conn.isConnected())
+	{
+		CreateOutputSchemaDao createOPDao(conn);
+		std::string createSchemaquery = "CREATE SCHEMA " + currentOutputSchema +";";
+		createOPDao.executeQuery(createSchemaquery);
+		std::string setSearchPathQuery = "SET search_path to " + currentOutputSchema;
+		createOPDao.executeQuery(setSearchPathQuery);
+
+
+		std::vector<CreateOutputSchema*> createOPSchemaList;
+		loadData<CreateOutputSchemaDao>(conn,createOPSchemaList);
+		std::sort(createOPSchemaList.begin(), createOPSchemaList.end(), CreateOutputSchema::OrderById());
+		std::vector<CreateOutputSchema*>::iterator opSchemaTablesItr;
+		for(opSchemaTablesItr = createOPSchemaList.begin(); opSchemaTablesItr != createOPSchemaList.end(); ++opSchemaTablesItr)
+		{
+			std::string createTableQuery = (*opSchemaTablesItr)->getQuery();
+			std::string query = "CREATE TABLE " + currentOutputSchema +"."+ createTableQuery +";";
+			createOPDao.executeQuery(query);
+		}
+	}
+
+}
+
+void loadDataToOutputSchema(db::DB_Connection& conn,std::string &currentOutputSchema,BigSerial simVersionId,int simStoppedTick,DeveloperModel &developerModel,HM_Model &housingMarketModel)
+{
+	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+	bool resume = config.ltParams.resume;
+	unsigned int year = config.ltParams.year;
+	std::string scenario = config.ltParams.simulationScenario;
+	std::string mainSchemaVersion = config.ltParams.mainSchemaVersion;
+	std::string cfgSchemaVersion = config.ltParams.configSchemaVersion;
+	std::string calibrationSchemaVersion = config.ltParams.calibrationSchemaVersion;
+	std::string geometrySchemaVersion = config.ltParams.geometrySchemaVersion;
+	std::string simScenario = boost::lexical_cast<std::string>(scenario)+"_"+boost::lexical_cast<std::string>(year);
+	time_t rawtime;
+	struct tm * timeinfo;
+	time (&rawtime);
+	timeinfo = localtime (&rawtime);
+	boost::shared_ptr<SimulationStartPoint>simStartPointObj(new SimulationStartPoint(simVersionId,simScenario,*timeinfo,mainSchemaVersion,cfgSchemaVersion,calibrationSchemaVersion,geometrySchemaVersion,simStoppedTick));
+
+	if(conn.isConnected())
+	{
+		SimulationStartPointDao simStartPointDao(conn);
+		simStartPointDao.insertSimulationStartPoint(*simStartPointObj.get(),currentOutputSchema);
+
+		std::vector<boost::shared_ptr<Building> > buildings = developerModel.getBuildingsVec();
+		std::vector<boost::shared_ptr<Building> >::iterator buildingsItr;
+		BuildingDao buildingDao(conn);
+		for(buildingsItr = buildings.begin(); buildingsItr != buildings.end(); ++buildingsItr)
+		{
+			buildingDao.insertBuilding(*(*buildingsItr),currentOutputSchema);
+		}
+
+		std::vector<boost::shared_ptr<Parcel> > parcels = developerModel.getProfitableParcelsVec();
+		std::vector<boost::shared_ptr<Parcel> >::iterator parcelsItr;
+		ParcelDao parcelDao(conn);
+		for(parcelsItr = parcels.begin(); parcelsItr != parcels.end(); ++parcelsItr)
+		{
+			parcelDao.insertParcel(*(*parcelsItr),currentOutputSchema);
+		}
+
+		std::vector<boost::shared_ptr<Unit> > units = developerModel.getUnitsVec();
+		std::vector<boost::shared_ptr<Unit> >::iterator unitsItr;
+		UnitDao unitDao(conn);
+		for(unitsItr = units.begin(); unitsItr != units.end(); ++unitsItr)
+		{
+			unitDao.insertUnit(*(*unitsItr),currentOutputSchema);
+		}
+
+		std::vector<boost::shared_ptr<Project> > projects = developerModel.getProjectsVec();
+		std::vector<boost::shared_ptr<Project> >::iterator projectsItr;
+		ProjectDao projectDao(conn);
+		for(projectsItr = projects.begin(); projectsItr != projects.end(); ++projectsItr)
+		{
+			projectDao.insertProject(*(*projectsItr),currentOutputSchema);
+		}
+
+		std::vector<boost::shared_ptr<Bid> > bids = housingMarketModel.getNewBids();
+		std::vector<boost::shared_ptr<Bid> >::iterator bidsItr;
+		BidDao bidDao(conn);
+		for(bidsItr = bids.begin(); bidsItr != bids.end(); ++bidsItr)
+		{
+			bidDao.insertBid(*(*bidsItr),currentOutputSchema);
+		}
+
+		std::vector<boost::shared_ptr<UnitSale> > unitSales = housingMarketModel.getUnitSales();
+		std::vector<boost::shared_ptr<UnitSale> >::iterator unitSalesItr;
+		UnitSaleDao unitSaleDao(conn);
+		for(unitSalesItr = unitSales.begin(); unitSalesItr != unitSales.end(); ++unitSalesItr)
+		{
+			unitSaleDao.insertUnitSale(*(*unitSalesItr),currentOutputSchema);
+		}
+
+		std::vector<boost::shared_ptr<DevelopmentPlan> > devPlans = developerModel.getDevelopmentPlansVec();
+		std::vector<boost::shared_ptr<DevelopmentPlan> >::iterator devPlansItr;
+		DevelopmentPlanDao devPlanDao(conn);
+		for(devPlansItr = devPlans.begin(); devPlansItr != devPlans.end(); ++devPlansItr)
+		{
+			devPlanDao.insertDevelopmentPlan(*(*devPlansItr),currentOutputSchema);
+		}
+
+		std::vector<boost::shared_ptr<VehicleOwnershipChanges> > vehicleOwnershipChanges = housingMarketModel.getVehicleOwnershipChanges();
+		std::vector<boost::shared_ptr<VehicleOwnershipChanges> >::iterator vehOwnChangeItr;
+		VehicleOwnershipChangesDao vehOwnChangeDao(conn);
+		for(vehOwnChangeItr = vehicleOwnershipChanges.begin(); vehOwnChangeItr != vehicleOwnershipChanges.end(); ++vehOwnChangeItr)
+		{
+			vehOwnChangeDao.insertVehicleOwnershipChanges(*(*vehOwnChangeItr),currentOutputSchema);
+		}
+
+		std::vector<boost::shared_ptr<Household> > householdsWithBids = housingMarketModel.getHouseholdsWithBids();
+		std::vector<boost::shared_ptr<Household> >::iterator hhItr;
+		HouseholdDao hhDao(conn);
+		for(hhItr = householdsWithBids.begin(); hhItr != householdsWithBids.end(); ++hhItr)
+		{
+			hhDao.insertHousehold(*(*hhItr),currentOutputSchema);
+		}
+
+		HM_Model::HouseholdList *households = housingMarketModel.getHouseholdList();
+		HM_Model::HouseholdList::iterator houseHoldItr;
+		for(houseHoldItr = households->begin(); houseHoldItr != households->end(); ++houseHoldItr)
+		{
+			if(housingMarketModel.getHouseholdWithBidsById((*houseHoldItr)->getId()) == nullptr)
+			{
+				if(((*houseHoldItr)->getIsBidder()) || ((*houseHoldItr)->getIsSeller()))
+				{
+					hhDao.insertHousehold(*(*houseHoldItr),currentOutputSchema);
+				}
+			}
+		}
+
+		std::vector<boost::shared_ptr<HouseholdUnit> > hhUnits = housingMarketModel.getNewHouseholdUnits();
+		HouseholdUnitDao hhUnitDao(conn);
+		for (boost::shared_ptr<HouseholdUnit> hhUnit :hhUnits)
+		{
+			hhUnitDao.insertHouseholdUnit(*hhUnit,currentOutputSchema);
+		}
+		SimulationStoppedPointDao simStoppedPointDao(conn);
+		simStoppedPointDao.insertSimulationStoppedPoints(*(developerModel.getSimStoppedPointObj(simVersionId)).get(),currentOutputSchema);
+//		developerModel.getBuildingsVec().clear();
+	}
+}
+
 void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
 {
 	time_t timeInSeconds = std::time(0);
@@ -94,16 +253,18 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
     const unsigned int tickStep = config.ltParams.tickStep;
     const unsigned int days = config.ltParams.days;
     const unsigned int workers = config.ltParams.workers;
-    const bool enableHousingMarket = config.ltParams.housingModel.enabled;
 
-    const bool enableDeveloperModel = config.ltParams.developerModel.enabled;
     const unsigned int timeIntervalDevModel = config.ltParams.developerModel.timeInterval;
+    unsigned int opSchemaloadingInterval = config.ltParams.opSchemaloadingInterval;
+
+    int lastStoppedDay = 0;
+    int simStoppedTick = 0;
 
     //configure time.
     config.baseGranMS() = tickStep;
     config.totalRuntimeTicks = days;
     config.defaultWrkGrpAssignment() = WorkGroup::ASSIGN_ROUNDROBIN;
-   
+
     //simulation time.
     StopWatch simulationWatch;
     
@@ -115,53 +276,107 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
     AgentsLookup& agentsLookup = AgentsLookupSingleton::getInstance();
     //loads all necessary data
     dataManager.load();
-    
+
+
+    std::vector<SimulationStartPoint*> simulationStartPointList;
+    DB_Config dbConfig(LT_DB_CONFIG_FILE);
+    dbConfig.load();
+
+    // Connect to database.
+    DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
+    conn.connect();
+    SimulationStartPointDao simStartPointDao(conn);
+    bool resume = config.ltParams.resume;
+    std::string currentOutputSchema;
+
+    unsigned int year = config.ltParams.year;
+    std::string scenario = config.ltParams.simulationScenario;
+    std::string simScenario = boost::lexical_cast<std::string>(scenario)+"_"+boost::lexical_cast<std::string>(year);
+    time_t rawtime;
+    struct tm * timeinfo;
+    time (&rawtime);
+    timeinfo = localtime (&rawtime);
+    BigSerial simVersionId = 1;
+
+    if(resume)
+    {
+    	currentOutputSchema = config.ltParams.currentOutputSchema;
+    	if(conn.isConnected())
+    	{
+    		simulationStartPointList = simStartPointDao.getAllSimulationStartPoints(currentOutputSchema);
+    		if(!simulationStartPointList.empty())
+    		{
+    			simVersionId = simulationStartPointList[simulationStartPointList.size()-1]->getId() + 1;
+    			lastStoppedDay = simulationStartPointList[simulationStartPointList.size()-1]->getSimStoppedTick() + 1;
+    		}
+    	}
+    }
+    else
+    {
+    	char buffer[80];
+    	strftime(buffer,80,"%Y%m%d%I%M%S",timeinfo);
+    	std::string dateTimeStr(buffer);
+    	currentOutputSchema = simScenario +"_"+ dateTimeStr;
+
+    }
+
+
     vector<Model*> models;
     {
         WorkGroupManager wgMgr;
         wgMgr.setSingleThreadMode(false);
         
         // -- Events injector work group.
-        WorkGroup* logsWorker = wgMgr.newWorkGroup(1, days, tickStep);
-        WorkGroup* eventsWorker = wgMgr.newWorkGroup(1, days, tickStep);
+        WorkGroup* logsWorker = wgMgr.newWorkGroup(1, days, tickStep, nullptr, nullptr, nullptr, (uint32_t)lastStoppedDay );
+        WorkGroup* eventsWorker = wgMgr.newWorkGroup(1, days, tickStep,nullptr,nullptr,nullptr, (uint32_t)lastStoppedDay );
         WorkGroup* hmWorkers;
         WorkGroup* devWorkers;
         DeveloperModel *developerModel = nullptr;
         HM_Model *housingMarketModel = nullptr;
 
-        if( enableHousingMarket )
-        	hmWorkers = wgMgr.newWorkGroup( workers, days, tickStep);
 
-        if( enableDeveloperModel )
-        	devWorkers = wgMgr.newWorkGroup(workers, days, tickStep);
+        hmWorkers = wgMgr.newWorkGroup( workers, days, tickStep ,nullptr,nullptr,nullptr, (uint32_t)lastStoppedDay );
+
+        devWorkers = wgMgr.newWorkGroup(workers, days, tickStep,nullptr,nullptr,nullptr, (uint32_t)lastStoppedDay );
         
         //init work groups.
         wgMgr.initAllGroups();
         logsWorker->initWorkers(nullptr);
         eventsWorker->initWorkers(nullptr);
 
-        if( enableHousingMarket )
-        	hmWorkers->initWorkers(nullptr);
-
-        if( enableDeveloperModel )
-        	devWorkers->initWorkers(nullptr);
+       	hmWorkers->initWorkers(nullptr);
+       	devWorkers->initWorkers(nullptr);
         
         //assign agents
         logsWorker->assignAWorker(&(agentsLookup.getLogger()));
         eventsWorker->assignAWorker(&(agentsLookup.getEventsInjector()));
 
-        if( enableHousingMarket )
-        	 housingMarketModel = new HM_Model(*hmWorkers);//initializing the housing market model
-        	 models.push_back(housingMarketModel);
+        unsigned int currentTick = 0;
 
-        if( enableDeveloperModel )
+        //set the currentTick to the last stopped date if it is a restart run
+        if (resume )
+        {
+        	currentTick = lastStoppedDay;
+        }
+
+        {
+        	 housingMarketModel = new HM_Model(*hmWorkers);//initializing the housing market model
+             housingMarketModel->setStartDay(currentTick);
+             housingMarketModel->setLastStoppedDay(lastStoppedDay);
+        	 models.push_back(housingMarketModel);
+        	 agentsLookup.getEventsInjector().setModel(housingMarketModel);
+        }
+
         {
         	 //initiate developer model; to be referred later at each time tick (day)
         	 developerModel = new DeveloperModel(*devWorkers, timeIntervalDevModel);
         	 developerModel->setHousingMarketModel(housingMarketModel);
-        	 developerModel->setDays(days);
+        	 developerModel->setStartDay(currentTick);
+        	 developerModel->setOpSchemaloadingInterval(opSchemaloadingInterval);
         	 models.push_back(developerModel);
         }
+
+        housingMarketModel->setDeveloperModel(developerModel);
 
         //start all models.
         for (vector<Model*>::iterator it = models.begin(); it != models.end(); it++)
@@ -175,8 +390,17 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
         PrintOutV("Started all workgroups." << endl);
         PrintOutV("Day of Simulation: " << std::endl);
 
-        for (unsigned int currTick = 0; currTick < days; currTick++)
+        for (unsigned int currTick = currentTick; currTick < days; currTick++)
         {
+        	simStoppedTick = currTick;
+        	if(((currTick+1) == opSchemaloadingInterval) && (!resume))
+        	{
+        		createOutputSchema(conn,currentOutputSchema);
+        	}
+        	if((currTick > 0) && ((currTick+1)%opSchemaloadingInterval == 0))
+        	{
+        		loadDataToOutputSchema(conn,currentOutputSchema,simVersionId,simStoppedTick,*developerModel,*housingMarketModel);
+        	}
             if( currTick == 0 )
             {
 				PrintOutV(" Lifestyle1: " << (dynamic_cast<HM_Model*>(models[0]))->getLifestyle1HHs() <<
@@ -206,9 +430,7 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
 			 }
 			#endif
 
-            PrintOutV("Day " << currTick << " The housing market has " << std::dec << (dynamic_cast<HM_Model*>(models[0]))->getMarket()->getEntrySize() << " units and \t" << (dynamic_cast<HM_Model*>(models[0]))->getNumberOfBidders() << " bidders on the market" << std::endl );
-
-            //start all models.
+			//start all models.
 		    for (vector<Model*>::iterator it = models.begin(); it != models.end(); it++)
 		    {
 		 	   (*it)->update(currTick);
@@ -216,12 +438,22 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
 
             wgMgr.waitAllGroups();
 
-            developerModel->setCurrentTick(currTick);
             DeveloperModel::ParcelList parcels;
             DeveloperModel::DeveloperList developerAgents;
             developerAgents = developerModel->getDeveloperAgents();
             developerModel->wakeUpDeveloperAgents(developerAgents);
 
+            sleep(1);
+
+            PrintOutV("Day " << currTick << " HUnits: " << std::dec << (dynamic_cast<HM_Model*>(models[0]))->getMarket()->getEntrySize()
+				   << " Bidders: " 	<< (dynamic_cast<HM_Model*>(models[0]))->getNumberOfBidders() << " "
+				   << " Bids: " 	<< (dynamic_cast<HM_Model*>(models[0]))->getBids()
+				   << " Accepted: " << (dynamic_cast<HM_Model*>(models[0]))->getSuccessfulBids()
+				   << " Exits: " 	<< (dynamic_cast<HM_Model*>(models[0]))->getExits()
+				   << " Awaken: "	<< (dynamic_cast<HM_Model*>(models[0]))->getAwakeningCounter()
+				   << " " << std::endl );
+
+            (dynamic_cast<HM_Model*>(models[0]))->resetBAEStatistics();
         }
 
         //Save our output files if we are merging them later.
@@ -229,7 +461,7 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
         {
             resLogFiles = wgMgr.retrieveOutFileNames();
         }
-        
+
         //stop all models.
         for (vector<Model*>::iterator it = models.begin(); it != models.end(); it++)
         {
@@ -238,6 +470,7 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
     }
     
     simulationWatch.stop();
+
     printReport(simulationNumber, models, simulationWatch);
     //delete all models.
     while (!models.empty())

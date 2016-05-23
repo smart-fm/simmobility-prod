@@ -5,6 +5,7 @@
 #include <cmath>
 #include <set>
 #include "Common.hpp"
+#include <sstream>
 #include "entities/params/PT_NetworkEntities.hpp"
 #include "geospatial/network/Lane.hpp"
 #include "geospatial/network/Link.hpp"
@@ -13,6 +14,7 @@
 #include "geospatial/network/TurningGroup.hpp"
 #include "geospatial/network/TurningPath.hpp"
 #include "geospatial/network/WayPoint.hpp"
+#include "logging/Log.hpp"
 #include "PathSetParam.hpp"
 #include "util/Profiler.hpp"
 #include "util/Utils.hpp"
@@ -308,7 +310,7 @@ std::string sim_mob::makePT_PathString(const std::vector<PT_NetworkEdge> &path)
 	std::stringstream str("");
 	if (path.size() == 0)
 	{
-		std::cout << "warning: empty output makePT_PathString id" << std::endl;
+		Print()<<"warning: empty output makePT_PathString id"<<std::endl;
 	}
 	for (std::vector<PT_NetworkEdge>::const_iterator it = path.begin(); it != path.end(); it++)
 	{
@@ -316,7 +318,7 @@ std::string sim_mob::makePT_PathString(const std::vector<PT_NetworkEdge> &path)
 	}
 	if (str.str().size() < 1)
 	{
-		std::cout << "warning: empty output makePT_PathString id" << std::endl;
+		Print()<<"warning: empty output makePT_PathString id"<<std::endl;
 	}
 	return str.str();
 
@@ -326,13 +328,13 @@ std::string sim_mob::makePT_PathSetString(const std::vector<PT_NetworkEdge> &pat
 	std::stringstream str("");
 	if (path.size() == 0)
 	{
-		std::cout << "warning: empty output makePT_PathSetString id" << std::endl;
+		Print()<<"warning: empty output makePT_PathSetString id"<<std::endl;
 	}
 	str << path.front().getStartStop() << ",";
 	str << path.back().getEndStop();
 	if (str.str().size() < 1)
 	{
-		std::cout << "warning: empty output makePT_PathSetString id" << std::endl;
+		Print()<<"warning: empty output makePT_PathSetString id"<<std::endl;
 	}
 	return str.str();
 }
@@ -495,8 +497,8 @@ void sim_mob::PT_PathSet::checkPathFeasibilty()
 	{
 		incrementFlag = false;
 		std::set<PT_Path>::iterator tempitPath = itPathComp;
-		// Check 1 : Total Number of transfers < = 6
-		if (itPathComp->getTotalNumberOfTransfers() > 4)
+		// Check 1 : Total Number of transfers <= 4
+		if(itPathComp->getTotalNumberOfTransfers() > 4)
 		{
 			// Infeasible path
 			itPathComp++;
@@ -577,7 +579,7 @@ void sim_mob::PT_PathSet::checkPathFeasibilty()
 	}
 	if (pathSet.empty())
 	{
-		std::cout << pathsetId << " has not left with any path after feasibility check" << std::endl;
+		Print() << pathsetId << " has no path left after feasibility check\n" << std::endl;
 	}
 
 }

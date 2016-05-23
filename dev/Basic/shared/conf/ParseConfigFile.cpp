@@ -239,6 +239,15 @@ void sim_mob::ParseConfigFile::processLongTermParamsNode(xercesc::DOMElement* no
 	cfg.ltParams.maxIterations 		 = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "maxIterations"), "value"), static_cast<unsigned int>(0));
 	cfg.ltParams.tickStep 			 = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "tickStep"), "value"), static_cast<unsigned int>(0));
 	cfg.ltParams.workers 			 = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "workers"), "value"), static_cast<unsigned int>(0));
+	cfg.ltParams.year 				 = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "year"), "value"), static_cast<unsigned int>(0));
+	cfg.ltParams.simulationScenario  = ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "simulationScenario"), "value"), static_cast<std::string>(""));
+	cfg.ltParams.resume              = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName( node, "resume"), "value"), false );
+	cfg.ltParams.currentOutputSchema = ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "currentOutputSchema"), "value"), static_cast<std::string>(""));
+	cfg.ltParams.mainSchemaVersion = ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "mainSchemaVersion"), "value"), static_cast<std::string>(""));
+	cfg.ltParams.configSchemaVersion = ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "configSchemaVersion"), "value"), static_cast<std::string>(""));
+	cfg.ltParams.calibrationSchemaVersion = ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "calibrationSchemaVersion"), "value"), static_cast<std::string>(""));
+	cfg.ltParams.geometrySchemaVersion = ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "geometrySchemaVersion"), "value"), static_cast<std::string>(""));
+	cfg.ltParams.opSchemaloadingInterval = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "opSchemaloadingInterval"), "value"), static_cast<unsigned int>(0));
 
 	LongTermParams::DeveloperModel developerModel;
 	developerModel.enabled = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName( node, "developerModel"), "enabled"), false );
@@ -247,7 +256,6 @@ void sim_mob::ParseConfigFile::processLongTermParamsNode(xercesc::DOMElement* no
 	developerModel.initialUnitId = ParseInteger(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "developerModel"), "initialUnitId"), "value"), static_cast<int>(0));
 	developerModel.initialBuildingId = ParseInteger(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "developerModel"), "initialBuildingId"), "value"), static_cast<int>(0));
 	developerModel.initialProjectId = ParseInteger(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "developerModel"), "initialProjectId"), "value"), static_cast<int>(0));
-	developerModel.year = ParseInteger(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "developerModel"), "year"), "value"), static_cast<int>(0));
 	developerModel.minLotSize = ParseFloat(GetNamedAttributeValue(GetSingleElementByName(node, "minLotSize"), "value"));
 	cfg.ltParams.developerModel = developerModel;
 
@@ -261,11 +269,17 @@ void sim_mob::ParseConfigFile::processLongTermParamsNode(xercesc::DOMElement* no
 	housingModel.initialHouseholdsOnMarket = ParseInteger(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "InitialHouseholdsOnMarket"), "value"), static_cast<int>(0));
 	housingModel.housingMarketSearchPercentage = ParseFloat(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "housingMarketSearchPercentage"), "value"));
 	housingModel.housingMoveInDaysInterval = ParseFloat(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "housingMoveInDaysInterval"), "value"));
-	housingModel.outputHouseholdLogsums = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "outputHouseholdLogsums"), "value"), false);
 	housingModel.offsetBetweenUnitBuyingAndSelling = ParseInteger(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "offsetBetweenUnitBuyingAndSelling"), "value"), static_cast<int>(0));
 	housingModel.bidderUnitsChoiceSet = ParseInteger(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "bidderUnitsChoiceSet"), "value"), static_cast<int>(0));
 	housingModel.householdBiddingWindow = ParseInteger(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "householdBiddingWindow"), "value"), static_cast<int>(0));
+	housingModel.dailyHouseholdAwakenings = ParseInteger(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "dailyHouseholdAwakenings"), "value"), static_cast<int>(0));
 	cfg.ltParams.housingModel = housingModel;
+
+	LongTermParams::OutputHouseholdLogsums outputHouseholdLogsums;
+	outputHouseholdLogsums.enabled = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName( node, "outputHouseholdLogsums"), "enabled"), false);
+	outputHouseholdLogsums.fixedHomeVariableWork = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "outputHouseholdLogsums"), "fixedHomeVariableWork"), "value"), false);
+	outputHouseholdLogsums.fixedWorkVariableHome = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "outputHouseholdLogsums"), "fixedWorkVariableHome"), "value"), false);
+	cfg.ltParams.outputHouseholdLogsums = outputHouseholdLogsums;
 
 	LongTermParams::VehicleOwnershipModel vehicleOwnershipModel;
 	vehicleOwnershipModel.enabled = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName( node, "vehicleOwnershipModel"), "enabled"), false);

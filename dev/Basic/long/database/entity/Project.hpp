@@ -12,32 +12,35 @@
 namespace sim_mob
 {
 
-    namespace long_term
-    {
+namespace long_term
+{
 
-    /*
-     * Project plain object
-     */
-    	class Project
-    	{
-    	public:
-    		Project(BigSerial projectId = INVALID_ID,
-    		    				BigSerial parcelId = INVALID_ID,
-    		    				BigSerial developerId = INVALID_ID,
-    		    				BigSerial templateId = INVALID_ID,
-    		    				std::string projectName = EMPTY_STR,
-    		    				std::tm constructionDate = std::tm(),
-    		    				std::tm completionDate = std::tm(),
-    		    				double constructionCost = .0f,
-    		    				double demolitionCost = .0f,
-    		    				double totalCost = .0f,
-    		    				double fmLotSize = .0f,
-    		    				std::string grossRatio = EMPTY_STR,
-    		    				double grossArea = .0f,
-    		    				int currTick = 0,
-    		    				std::tm plannedDate = std::tm(),
-    		    				std::string projectStatus = EMPTY_STR)	;
-    		virtual ~Project();
+/*
+ * Project plain object
+ */
+class Project
+{
+public:
+	Project(BigSerial projectId = INVALID_ID,
+			BigSerial parcelId = INVALID_ID,
+			BigSerial developerId = INVALID_ID,
+			BigSerial templateId = INVALID_ID,
+			std::string projectName = EMPTY_STR,
+			std::tm constructionDate = std::tm(),
+			std::tm completionDate = std::tm(),
+			double constructionCost = .0f,
+			double demolitionCost = .0f,
+			double totalCost = .0f,
+			double fmLotSize = .0f,
+			std::string grossRatio = EMPTY_STR,
+			double grossArea = .0f,
+			int currTick = 0,
+			std::tm plannedDate = std::tm(),
+			std::string projectStatus = EMPTY_STR)	;
+	virtual ~Project();
+
+	Project( const Project &source);
+	Project& operator=(const Project& source);
 
 
 	double getFmLotSize() const;
@@ -70,34 +73,36 @@ namespace sim_mob
 	void setCurrTick(int currentTick);
 	std::tm getPlannedDate() const;
 	void setPlannedDate(std::tm lastPlannedDate);
+	std::string getProjectStatus() const;
+	void setProjectStatus(std::string prjStatus);
 
 	/* Operator to print the Parcel Match data.*/
 	friend std::ostream& operator<<(std::ostream& strm, const Project& data);
 
 
 
-    private:
+private:
 	friend class ProjectDao;
-    		BigSerial projectId;
-    		BigSerial parcelId;
-    		BigSerial developerId;
-    		BigSerial templateId;
-    		std::string projectName;
-    		std::tm constructionDate;
-    		std::tm completionDate;
-    		double constructionCost;
-    		double demolitionCost;
-    		double totalCost;
-    		double fmLotSize;
-    		std::string grossRatio;
-    		double grossArea;
-    		int currTick;
-    		std::tm plannedDate;
-    		std::string projectStatus;
+	BigSerial projectId;
+	BigSerial parcelId;
+	BigSerial developerId;
+	BigSerial templateId;
+	std::string projectName;
+	std::tm constructionDate;
+	std::tm completionDate;
+	double constructionCost;
+	double demolitionCost;
+	double totalCost;
+	double fmLotSize;
+	std::string grossRatio;
+	double grossArea;
+	int currTick;
+	std::tm plannedDate;
+	std::string projectStatus;
 
-    	};
+};
 
 
-    }
+}
 
 }

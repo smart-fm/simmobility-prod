@@ -42,10 +42,13 @@ namespace sim_mob {
             void toRow(Unit& data, db::Parameters& outParams, bool update);
 
         public:
+
+            void insertUnit(Unit& unit,std::string schema);
+
             /*
-             * @return the maximum unit id from the database.
+             * Get the units of given building id
              */
-            BigSerial getMaxUnitId();
+            std::vector<Unit*> getUnitsByBuildingId(const long long buildingId,std::string schema);
         };
     }
 }

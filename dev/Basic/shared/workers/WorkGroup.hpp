@@ -45,7 +45,7 @@ private:
 
 	/** Private constructor: Use the static newWorkGroup function instead. */
 	WorkGroup(unsigned int wgNum, unsigned int numWorkers, unsigned int numSimTicks, unsigned int tickStep, sim_mob::AuraManager* auraMgr,
-			sim_mob::PartitionManager* partitionMgr, sim_mob::PeriodicPersonLoader* periodicLoader);
+			sim_mob::PartitionManager* partitionMgr, sim_mob::PeriodicPersonLoader* periodicLoader, uint32_t _simulationStart);
 
 	/**
 	 * Helper method; find the least loaded worker (least number of Agents). O(n), so be careful.
@@ -337,6 +337,8 @@ private:
 
 	/** entity loader to load person entities periodically */
 	PeriodicPersonLoader* periodicPersonLoader;
+
+	uint32_t simulationStart;
 };
 
 } // namespace sim_mob

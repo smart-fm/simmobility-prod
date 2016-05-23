@@ -5,6 +5,7 @@
 /* 
  * File:   Building.hpp
  * Author: Pedro Gandola <pedrogandola@smart.mit.edu>
+ * Author : Gishara Premarathne <gishara@smart.mit.edu>
  *
  * Created on May 8, 2013, 3:04 PM
  */
@@ -23,10 +24,19 @@ namespace sim_mob
         {
         public:
         	Building( BigSerial fmBuildingId = INVALID_ID, BigSerial fmProjectId = INVALID_ID, BigSerial fmParcelId = INVALID_ID, int storeysAboveGround = 0,
-        			  int storeysBelowGround = 0, std::tm fromDate = std::tm(), std::tm toDate = std::tm(), int buildingStatus = 0,
-        			  float	grossSqMRes = 0, float grossSqMOffice = 0, float grossSqMRetail = 0, float grossSqMOther = 0,std::tm lastChangedDate = std::tm());
+        			  int storeysBelowGround = 0, std::tm fromDate = std::tm(), std::tm toDate = std::tm(), int buildingStatus = 0,float	grossSqMRes = 0, float grossSqMOffice = 0,
+					  float grossSqMRetail = 0, float grossSqMOther = 0,std::tm lastChangedDate = std::tm(),int freehold = 0,float floorSpace = 0,std::string buildingType = std::string(),BigSerial slaAddressId = INVALID_ID);
 
             virtual ~Building();
+
+            Building( const Building &source);
+
+            /**
+             * Assign operator.
+             * @param source to assign.
+             * @return Building instance reference.
+             */
+            Building& operator=(const Building& source);
 
             /**
              * Gets unique identifier of the Building Type.
@@ -102,6 +112,10 @@ namespace sim_mob
 
             std::tm getLastChangedDate() const;
 
+            const std::string& getBuildingType() const;
+            float getFloorSpace() const ;
+            int getFreehold() const;
+            BigSerial getSlaAddressId() const;
             /*
              * setters
              */
@@ -118,13 +132,11 @@ namespace sim_mob
             void setStoreysBelowGround(int storeysBelowGround);
             void setToDate(const std::tm& toDate);
             void setLastChangedDate(const std::tm& lastChangedDate);
+            void setBuildingType(const std::string& buildingType);
+            void setFloorSpace(float floorSpace);
+            void setFreehold(int freehold);
+            void setSlaAddressId(BigSerial slaAddressId);
 
-            /**
-             * Assign operator.
-             * @param source to assign.
-             * @return Building instance reference.
-             */
-            Building& operator=(const Building& source);
 
             /**
              * Operator to print the Building data.  
@@ -147,6 +159,10 @@ namespace sim_mob
             float	grossSqMRetail;
             float	grossSqMOther;
             std::tm lastChangedDate;
+            int freehold;
+            float floorSpace;
+            std::string buildingType;
+            BigSerial slaAddressId;
 
         };
     }

@@ -14,6 +14,8 @@
 #include "agent/impl/HouseholdAgent.hpp"
 #include "AgentsLookup.hpp"
 #include "message/LT_Message.hpp"
+#include <model/AwakeningSubModel.hpp>
+
 
 using namespace sim_mob;
 using namespace sim_mob::long_term;
@@ -50,7 +52,7 @@ namespace
     }
 }
 
-EventsInjector::EventsInjector() : Entity(-1) {}
+EventsInjector::EventsInjector() : Entity(-1), model(nullptr){}
 
 EventsInjector::~EventsInjector() {}
 
@@ -59,10 +61,17 @@ bool EventsInjector::isNonspatial()
     return false;
 }
 
-std::vector<sim_mob::BufferedBase*> EventsInjector::buildSubscriptionList() 
+void EventsInjector::setModel(HM_Model *value)
 {
-	return std::vector<sim_mob::BufferedBase*>();
+	model = value;
 }
+
+HM_Model* EventsInjector::getModel()
+{
+	return model;
+}
+
+std::vector<sim_mob::BufferedBase*> EventsInjector::buildSubscriptionList() {}
 
 void EventsInjector::onWorkerEnter() {}
 
@@ -73,15 +82,14 @@ Entity::UpdateStatus EventsInjector::update(timeslice now)
     const ExternalEventsModel& model = LuaProvider::getExternalEventsModel();
     
     vector<ExternalEvent> events;
-    //(now+1) - events for the next day once our events are 1 tick delayed
-    model.getExternalEvents((now.ms() + 1), events);
-    vector<ExternalEvent>::iterator it = events.begin();
+    AwakeningSubModel awakenings;
+    events = awakenings.DailyAwakenings( now.ms(), getModel() );
 
     AgentsLookup& lookup = AgentsLookupSingleton::getInstance();
     const HouseholdAgent* householdAgent = nullptr;
     const DeveloperAgent* developerAgent = nullptr;
     const RealEstateAgent* realEstateAgent = nullptr;
-    for (it; it != events.end(); ++it)
+    for ( vector<ExternalEvent>::iterator it = events.begin(); it != events.end(); ++it)
     {
     	developerAgent = lookup.getDeveloperAgentById(it->getDeveloperId());
     	if(developerAgent)

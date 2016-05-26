@@ -1245,6 +1245,15 @@ Entity::UpdateStatus Conflux::switchTripChainItem(Person_MT* person)
 			activityPerformers.push_back(person);
 			break;
 		}
+		case Role<Person_MT>::RL_DRIVER:
+		{
+			SegmentStats* rdSegStats = const_cast<SegmentStats*>(person->getCurrSegStats());
+			person->setCurrLane(rdSegStats->laneInfinity);
+			person->distanceToEndOfSegment = rdSegStats->getLength();
+			person->remainingTimeThisTick = tickTimeInS;
+			rdSegStats->addAgent(rdSegStats->laneInfinity, person);
+			break;
+		}
 		case Role<Person_MT>::RL_WAITBUSACTIVITY:
 		{
 			assignPersonToBusStopAgent(person);

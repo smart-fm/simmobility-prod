@@ -7,6 +7,7 @@
 #include "entities/Agent.hpp"
 #include "util/Profiler.hpp"
 #include "config/MT_Config.hpp"
+#include "conf/RawConfigParams.hpp"
 #include <boost/tuple/tuple.hpp>
 #include <boost/foreach.hpp>
 #include <boost/lexical_cast.hpp>
@@ -14,22 +15,27 @@
 namespace sim_mob {
 namespace medium {
 class Person_MT;
-class DisruptionParams;
-class DisruptionEventArgs : public sim_mob::event::EventArgs {
+class ChangeRouteEventArgs : public sim_mob::event::EventArgs {
 public:
-	DisruptionEventArgs(const DisruptionParams& disruption):disruption(disruption){;}
-    virtual ~DisruptionEventArgs(){;}
+	ChangeRouteEventArgs(const std::string& stationName, int type):stationName(stationName),type(type){;}
+    virtual ~ChangeRouteEventArgs(){;}
 
     /**
-     * Getters for disruption object
+     * Getters for stationName
      */
-    const DisruptionParams& getDisruption() const{
-    	return disruption;
+    const std::string& getStationName() const{
+    	return stationName;
+    }
+    /**
+     * Getters for type
+     */
+    int getType() const{
+    	return type;
     }
 private:
-    DisruptionParams disruption;
+    std::string stationName;
+    int type;
 };
-
 /**
  * A class designed to manage the incidents.
  * It can read the load the incidents for preday/test planning as well as en-route incidents

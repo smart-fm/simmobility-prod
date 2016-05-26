@@ -210,6 +210,7 @@ void assignStationAgentToConfluxes()
 	for(trainStopIt = MRTStopMap.begin();trainStopIt!=MRTStopMap.end();trainStopIt++){
 		TrainStationAgent* stationAgent = new TrainStationAgent();
 		TrainController<Person_MT>::registerStationAgent(trainStopIt->first, stationAgent);
+		stationAgent->setStationName(trainStopIt->first);
 		const Node* node = trainStopIt->second->getRandomStationSegment()->getParentLink()->getFromNode();
 		ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
 		MT_Config& mtCfg = MT_Config::getInstance();

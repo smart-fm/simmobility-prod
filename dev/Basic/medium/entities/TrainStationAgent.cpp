@@ -18,6 +18,8 @@
 #include "message/MessageBus.hpp"
 #include "message/MessageHandler.hpp"
 #include "event/SystemEvents.hpp"
+#include "event/args/ReRouteEventArgs.hpp"
+using namespace sim_mob::event;
 namespace {
 const double safeDistanceToAhead = 1000.0;
 }
@@ -33,6 +35,10 @@ TrainStationAgent::~TrainStationAgent() {
 	// TODO Auto-generated destructor stub
 }
 
+void TrainStationAgent::setStationName(const std::string& name)
+{
+	stationName = name;
+}
 void TrainStationAgent::setStation(const Station* station)
 {
 	this->station = station;
@@ -48,7 +54,7 @@ void TrainStationAgent::onEvent(event::EventId eventId, sim_mob::event::Context 
 	{
 	case event::EVT_CORE_MRT_DISRUPTION:
 	{
-		const DisruptionEventArgs& exArgs = MSG_CAST(DisruptionEventArgs, args);
+		const event::DisruptionEventArgs& exArgs = MSG_CAST(event::DisruptionEventArgs, args);
 		const DisruptionParams& disruption = exArgs.getDisruption();
 		std::vector<std::string>::const_iterator it;
 		for(it=disruption.platformNames.begin(); it!=disruption.platformNames.end(); it++){
@@ -181,15 +187,32 @@ void TrainStationAgent::triggerRerouting(const event::EventArgs& args)
 		}
 		persons.clear();
 	}
+	for(std::list<Person_MT*>::iterator it = colPersons.begin(); it!=colPersons.end();it++){
+		messaging::MessageBus::SubscribeEvent(EVT_DISRUPTION_CHANGEROUTE, this, *it);
+		messaging::MessageBus::PublishInstantaneousEvent(EVT_DISRUPTION_CHANGEROUTE, this,
+				messaging::MessageBus::EventArgsPtr(new ChangeRouteEventArgs(stationName,0)));
+		messaging::MessageBus::UnSubscribeEvent(EVT_DISRUPTION_CHANGEROUTE, this, *it);
+		messaging::MessageBus::PostMessage(parentConflux,
+							PASSENGER_LEAVE_FRM_PLATFORM, messaging::MessageBus::MessagePtr(new PersonMessage(*it)));
+	}
+
+	colPersons.clear();
 	for(std::list<TrainDriver*>::iterator it=trainDriver.begin(); it!=trainDriver.end(); it++){
 		colPersons.push_back((*it)->getParent());
 	}
-
+	std::map<std::string, std::list<TrainDriver*>>::iterator iPending;
+	for (iPending = pendingTrainDriver.begin();	iPending != pendingTrainDriver.end(); iPending++) {
+		std::list<TrainDriver*>& pendingDrivers = (*iPending).second;
+		for(std::list<TrainDriver*>::iterator it=pendingDrivers.begin(); it!=pendingDrivers.end(); it++){
+			colPersons.push_back((*it)->getParent());
+		}
+	}
 	const DisruptionEventArgs& exArgs = MSG_CAST(DisruptionEventArgs, args);
 	for(std::list<Person_MT*>::iterator it = colPersons.begin(); it!=colPersons.end();it++){
-		messaging::MessageBus::SubscribeEvent(EVT_DISRUPTION_REROUTING, this, *it);
-		messaging::MessageBus::PublishInstantaneousEvent(EVT_DISRUPTION_REROUTING, this, messaging::MessageBus::EventArgsPtr(new DisruptionEventArgs(exArgs)));
-		messaging::MessageBus::UnSubscribeEvent(EVT_DISRUPTION_REROUTING, this, *it);
+		messaging::MessageBus::SubscribeEvent(EVT_DISRUPTION_STATION, this, *it);
+		messaging::MessageBus::PublishInstantaneousEvent(EVT_DISRUPTION_STATION, this,
+				messaging::MessageBus::EventArgsPtr(new DisruptionEventArgs(exArgs)));
+		messaging::MessageBus::UnSubscribeEvent(EVT_DISRUPTION_STATION, this, *it);
 	}
 }
 void TrainStationAgent::updateWaitPersons()

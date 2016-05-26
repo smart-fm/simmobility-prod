@@ -23,6 +23,7 @@ public:
 	virtual ~TrainStationAgent();
 	void setStation(const Station* station);
 	void setConflux(Conflux* conflux);
+	void setStationName(const std::string& name);
 protected:
 	virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
 	//Virtual overrides
@@ -94,6 +95,8 @@ private:
 	Conflux* parentConflux;
 	/**recording disruption information*/
 	boost::shared_ptr<DisruptionParams> disruptionParam;
+	/**station name*/
+	std::string stationName;
 };
 }
 } /* namespace sim_mob */

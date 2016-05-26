@@ -60,6 +60,12 @@ public:
 	int getTrainId() const{
 		return trainId;
 	}
+	/**
+	 * remove the platforms from route
+	 * @param platforms hold the list of platforms removed
+	 */
+	void removeTrainRoute(const std::vector<std::string>& platforms);
+
 private:
 	/**train line id*/
 	std::string lineId;

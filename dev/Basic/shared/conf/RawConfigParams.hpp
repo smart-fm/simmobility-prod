@@ -63,7 +63,17 @@ struct LongTermParams{
         unsigned int vehicleBuyingWaitingTimeInDays;
     }vehicleOwnershipModel;
 };
-
+/**
+ * represent disruption data section of the config file
+ */
+struct DisruptionParams{
+	DisruptionParams():startTime(0),duration(0),id(0){}
+	unsigned int id;
+	DailyTime startTime;
+	DailyTime duration;
+	std::vector<std::string> platformNames;
+	std::vector<std::string> platformLineIds;
+};
 /**
  * Represents a Person's Characteristic in the config file. (NOTE: Further documentation needed.)
  */

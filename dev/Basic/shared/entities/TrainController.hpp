@@ -16,9 +16,7 @@
 #include "geospatial/network/Platform.hpp"
 #include "entities/Agent.hpp"
 #include "entities/misc/TrainTrip.hpp"
-//#include "entities/roles/Role.hpp"
-//#include "entities/Person_MT.hpp"
-//#include "medium/entities/roles/driver/TrainDriver.hpp"
+#include "conf/RawConfigParams.hpp"
 
 using namespace sim_mob::messaging;
 namespace sim_mob {
@@ -226,9 +224,12 @@ protected:
 	 * @param args
 	 */
 	virtual void onEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args);
-
-
-
+	/**
+	 * change train trip when disruption happen
+	 * @param trip is a pointer to the train trip
+	 * @param params is a pointer to disruption structure
+	 */
+	void changeTrainTrip(sim_mob::TrainTrip* trip, sim_mob::DisruptionParams* params);
 private:
 	/**
 	 * the function to load platforms from DB
@@ -295,6 +296,8 @@ private:
     /** gives opposite line Id */
 
 private:
+	/**recording disruption information*/
+	boost::shared_ptr<DisruptionParams> disruptionParam;
 	/** global static bus stop agents lookup table*/
 	static StationAgentsMap allStationAgents;
 	/**the map from id to the object of platform*/

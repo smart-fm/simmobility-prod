@@ -32,7 +32,8 @@ enum ConfluxMessage
 
 enum PublicTrainsitEvent
 {
-	EVT_DISRUPTION_REROUTING=7000000
+	EVT_DISRUPTION_STATION=7000000,
+	EVT_DISRUPTION_CHANGEROUTE
 };
 enum PublicTransitMessage
 {

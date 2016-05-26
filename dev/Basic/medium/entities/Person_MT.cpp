@@ -57,6 +57,30 @@ Person_MT::~Person_MT()
 	safe_delete_item(nextRole);
 }
 
+void Person_MT::changeToNewTrip(const std::string& stationName)
+{
+	TripChainItem* trip = (*currTripChainItem);
+	sim_mob::TrainStop* stop = sim_mob::PT_Network::getInstance().findMRT_Stop(stationName);
+	if(stop){
+		const Node* node = stop->getRandomStationSegment()->getParentLink()->getFromNode();
+		trip->origin = WayPoint(node);
+		std::vector<sim_mob::SubTrip>& subTrips = (dynamic_cast<sim_mob::Trip*>(trip))->getSubTripsRW();
+		sim_mob::SubTrip newSubTrip;
+		newSubTrip.origin = trip->origin;
+		newSubTrip.destination = trip->destination;
+		newSubTrip.originType = trip->originType;
+		newSubTrip.destinationType = trip->destinationType;
+		newSubTrip.travelMode = "MRT";
+		subTrips.clear();
+		subTrips.push_back(newSubTrip);
+		convertPublicTransitODsToTrips();
+		insertWaitingActivityToTrip();
+		assignSubtripIds();
+		currSubTrip = subTrips.begin();
+		isFirstTick = true;
+	}
+}
+
 void Person_MT::convertPublicTransitODsToTrips()
 {
 	std::vector<TripChainItem*>::iterator tripChainItemIt;
@@ -145,10 +169,11 @@ void Person_MT::onEvent(event::EventId eventId, sim_mob::event::Context ctxId, e
 {
 	switch(eventId)
 	{
-	case EVT_DISRUPTION_REROUTING:
+	case EVT_DISRUPTION_CHANGEROUTE:
 	{
-		const DisruptionEventArgs& exArgs = MSG_CAST(DisruptionEventArgs, args);
-		const DisruptionParams& disruption = exArgs.getDisruption();
+		const ChangeRouteEventArgs& exArgs = MSG_CAST(ChangeRouteEventArgs, args);
+		const std::string stationName = exArgs.getStationName();
+		changeToNewTrip(stationName);
 		break;
 	}
 	}

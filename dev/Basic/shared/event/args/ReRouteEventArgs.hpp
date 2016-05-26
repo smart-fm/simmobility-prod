@@ -7,7 +7,7 @@
 #include <string>
 
 #include "event/args/EventArgs.hpp"
-
+#include "conf/RawConfigParams.hpp"
 
 namespace sim_mob {
 namespace event {
@@ -26,6 +26,20 @@ public:
 
 private:
 	std::string blacklistRegion;
+};
+class DisruptionEventArgs : public sim_mob::event::EventArgs {
+public:
+	DisruptionEventArgs(const sim_mob::DisruptionParams& disruption):disruption(disruption){;}
+    virtual ~DisruptionEventArgs(){;}
+
+    /**
+     * Getters for disruption object
+     */
+    const sim_mob::DisruptionParams& getDisruption() const{
+    	return disruption;
+    }
+private:
+    sim_mob::DisruptionParams disruption;
 };
 
 }}

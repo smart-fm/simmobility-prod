@@ -14,6 +14,7 @@
 #include "entities/misc/TrainTrip.hpp"
 #include "behavioral/ServiceController.hpp"
 #include "entities/incident/IncidentManager.hpp"
+#include "event/args/ReRouteEventArgs.hpp"
 namespace sim_mob {
 
 namespace medium{
@@ -39,9 +40,9 @@ void TrainDriver::onParentEvent(event::EventId eventId, sim_mob::event::Context 
 {
 	switch(eventId)
 	{
-	case EVT_DISRUPTION_REROUTING:
+	case EVT_DISRUPTION_STATION:
 	{
-		const DisruptionEventArgs& exArgs = MSG_CAST(DisruptionEventArgs, args);
+		const event::DisruptionEventArgs& exArgs = MSG_CAST(event::DisruptionEventArgs, args);
 		const DisruptionParams& disruption = exArgs.getDisruption();
 		break;
 	}

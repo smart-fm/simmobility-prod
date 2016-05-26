@@ -10,9 +10,10 @@
 #include "conf/ConfigManager.hpp"
 #include <boost/tokenizer.hpp>
 #include "event/SystemEvents.hpp"
-
+#include "event/args/ReRouteEventArgs.hpp"
 using namespace sim_mob;
 using namespace sim_mob::medium;
+using namespace sim_mob::event;
 
 namespace{
 //BasicLogger & logger = Logger::log("pathset.log");
@@ -56,7 +57,7 @@ void IncidentManager::publishDisruption(timeslice now)
 	while (it != disruptions.end()) {
 		if ((*it).startTime.getValue() < current.getValue()) {
 			messaging::MessageBus::PublishEvent(event::EVT_CORE_MRT_DISRUPTION, this,
-					messaging::MessageBus::EventArgsPtr(new DisruptionEventArgs(*it)));
+					messaging::MessageBus::EventArgsPtr(new event::DisruptionEventArgs(*it)));
 			it = disruptions.erase(it);
 		} else {
 			it++;

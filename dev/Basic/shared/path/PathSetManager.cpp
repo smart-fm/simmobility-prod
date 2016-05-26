@@ -581,12 +581,6 @@ void sim_mob::PrivateTrafficRouteChoice::onPathSetRetrieval(boost::shared_ptr<Pa
 			sp->isMinTravelTime = 1;
 		}
 	}
-
-	//step-2 utility calculation
-//	BOOST_FOREACH(SinglePath *sp, ps->pathChoices)
-//	{
-//		sp->utility = generateUtility(sp);
-//	}
 }
 
 
@@ -597,7 +591,7 @@ void sim_mob::PrivatePathsetGenerator::onGeneratePathSet(boost::shared_ptr<PathS
 	//partial utility calculation to save some time
 	BOOST_FOREACH(SinglePath *sp, ps->pathChoices)
 	{
-		sp->partialUtility = generatePartialUtility(sp);
+		//sp->partialUtility = generatePartialUtility(sp);
 	}
 	//store in into the database
 	//logger << "[STORE PATH: " << ps->id << "]\n";
@@ -1226,103 +1220,11 @@ namespace
 {
 	std::map<const void*,sim_mob::OneTimeFlag> utilityLogger;
 }
-
-std::string sim_mob::PathSetManager::logPartialUtility(const sim_mob::SinglePath* sp, double pUtility) const
-{
-	//generate log file for debugging only
-	if(utilityLogger[nullptr].check())
-	{
-		sim_mob::Logger::log("partial_utility.txt") << "pathSetId#algorithm#index#travleTime#bTTVOT#travleTime * bTTVOT#pathSize#bCommonFactor#pathSize*bCommonFactor#length#bLength#length*bLength#"
-				"highWayDistance#bHighway#highWayDistance*bHighway#travelCost#bCost#travelCost*bCost#signalNumber#bSigInter#signalNumber*bSigInter#rightTurnNumber#bLeftTurns#rightTurnNumber*bLeftTurns#"
-				"minTravelTimeParam#isMinTravelTime#minTravelTimeParam*isMinTravelTime#minDistanceParam#isMinDistance#minDistanceParam*isMinDistance#minSignalParam#isMinSignal#minSignalParam*isMinSignal#"
-				"maxHighwayParam#isMaxHighWayUsage#maxHighwayParam*isMaxHighWayUsage#purpose#b-value#purpose*b-value#partial-utility" << "\n" ;
-	}
-
-	if(utilityLogger[sp].check())
-	{
-		sp->partialUtilityDbg << sp->pathSetId << "#" << sp->scenario << "#" << sp->travelTime << "#" << pathSetParam->bTTVOT <<  "#" << sp->travelTime * pathSetParam->bTTVOT << "#"
-				<< sp->pathSize << "#" << pathSetParam->bCommonFactor << "#" <<  sp->pathSize * pathSetParam->bCommonFactor << "#"
-				<< sp->length << "#" << pathSetParam->bLength << "#"   <<  sp->length * pathSetParam->bLength << "#"
-				<< sp->highWayDistance << "#"  <<  pathSetParam->bHighway << "#" << sp->highWayDistance * pathSetParam->bHighway << "#"
-				<< sp->travelCost << "#" <<   pathSetParam->bCost << "#"  << sp->travelCost * pathSetParam->bCost << "#"
-				<< sp->signalNumber << "#"  <<   pathSetParam->bSigInter << "#" << sp->signalNumber * pathSetParam->bSigInter << "#"
-				<< sp->rightTurnNumber << "#" << pathSetParam->bLeftTurns << "#" << sp->rightTurnNumber * pathSetParam->bLeftTurns << "#"
-				<< pathSetParam->minTravelTimeParam << "#" <<  (sp->isMinTravelTime == 1) << "#" << pathSetParam->minTravelTimeParam *  (sp->isMinTravelTime == 1 ? 1 : 0) << "#"
-				<< pathSetParam->minDistanceParam << "#" << (sp->isMinDistance == 1) << "#" << pathSetParam->minDistanceParam * (sp->isMinDistance == 1 ? 1 : 0) << "#"
-				<< pathSetParam->minSignalParam  << "#" << (sp->isMinSignal == 1) << "#" << pathSetParam->minSignalParam * (sp->isMinSignal == 1 ? 1 : 0) << "#"
-				<< pathSetParam->maxHighwayParam << "#"  << (sp->isMaxHighWayUsage == 1) << "#"  << pathSetParam->maxHighwayParam * (sp->isMaxHighWayUsage == 1 ? 1 : 0) << "#"
-				<< sp->purpose << "#"  << (sp->purpose == sim_mob::work ? pathSetParam->bWork : pathSetParam->bLeisure) << "#" << sp->purpose  * (sp->purpose == sim_mob::work ? pathSetParam->bWork : pathSetParam->bLeisure) << "#"
-				<< pUtility ;
-		sim_mob::Logger::log("partial_utility.txt") << sp->partialUtilityDbg.str() << "\n";
-	}
-	return sp->partialUtilityDbg.str();
-}
-
-double sim_mob::PathSetManager::generatePartialUtility(const sim_mob::SinglePath* sp) const
-{
-	double pUtility = 0;
-	if(!sp)
-	{
-		return pUtility;
-	}
-	pUtility += sp->pathSize * pathSetParam->bCommonFactor;
-	//Obtain the travel distance l and the highway distance w of the path.
-	pUtility += sp->length * pathSetParam->bLength ;
-	pUtility += sp->highWayDistance * pathSetParam->bHighway;
-
-	if(sp->highWayDistance > 0)
-	{
-		pUtility += pathSetParam->highwayBias;
-	}
-	//Obtain the number of signalized intersections s of the path.
-	pUtility += sp->signalNumber * pathSetParam->bSigInter;
-	//Obtain the number of right turns f of the path.
-	pUtility += sp->rightTurnNumber * pathSetParam->bLeftTurns;
-	//min distance param
-	if(sp->isMinDistance == 1)
-	{
-		pUtility += pathSetParam->minDistanceParam;
-	}
-	//min signal param
-	if(sp->isMinSignal == 1)
-	{
-		pUtility += pathSetParam->minSignalParam;
-	}
-	//min highway param
-	if(sp->isMaxHighWayUsage == 1)
-	{
-		pUtility += pathSetParam->maxHighwayParam;
-	}
-	//Obtain the trip purpose.
-	if(sp->purpose == sim_mob::work)
-	{
-		pUtility += sp->purpose * pathSetParam->bWork;
-	}
-	else if(sp->purpose == sim_mob::leisure)
-	{
-		pUtility += sp->purpose * pathSetParam->bLeisure;
-	}
-	return pUtility;
-}
-
-double sim_mob::PrivateTrafficRouteChoice::generateUtility(const sim_mob::SinglePath* sp) const
-{
-	if(!sp) { return 0; }
-	if(sp->travelTime <= 0.0) { throw std::runtime_error("generateUtility: invalid single path travleTime :"); }
-	double partialUtility = (sp->partialUtility > 0.0 ? sp->partialUtility : generatePartialUtility(sp));
-	double utility = partialUtility;
-	// calculate utility
-	//obtain value of time for the agent A: bTTlowVOT/bTTmedVOT/bTThiVOT.
-	utility += sp->travelTime * pathSetParam->bTTVOT;
-	//obtain travel cost part of utility
-	utility += sp->travelCost * pathSetParam->bCost;
-	return utility;
-}
-
 unsigned int sim_mob::PrivateTrafficRouteChoice::getSizeOfChoiceSet()
 {
 	unsigned int size = 0;
-	if(pvtpathset.size()) {
+	if(pvtpathset.size())
+	{
 		size = pvtpathset.size();
 	}
 	return size;
@@ -1331,148 +1233,148 @@ unsigned int sim_mob::PrivateTrafficRouteChoice::getSizeOfChoiceSet()
 void sim_mob::PrivateTrafficRouteChoice::mapClasses()
 {
 	getGlobalNamespace(state.get()).beginClass <PrivateTrafficRouteChoice> ("PrivateTrafficRouteChoice")
-			.addFunction("travel_cost",&PrivateTrafficRouteChoice::getTotalTravelCost)
-			.addFunction("travel_time",&PrivateTrafficRouteChoice::getTotalTravelTime)
-			.addFunction("path_size",&PrivateTrafficRouteChoice::getTotalPathSize)
-			.addFunction("length",&PrivateTrafficRouteChoice::getTotalLength)
-			.addFunction("partial_utility",&PrivateTrafficRouteChoice::getTotalPartialUtility)
-			.addFunction("highway_distance",&PrivateTrafficRouteChoice::getTotalHighwayDistance)
-			.addFunction("signal_number",&PrivateTrafficRouteChoice::getTotalSignalNumber)
-			.addFunction("right_turn_number",&PrivateTrafficRouteChoice::getTotalRightTurnNumber)
-			.addFunction("is_min_distance",&PrivateTrafficRouteChoice::isTotalMinDistance)
-			.addFunction("is_min_signal",&PrivateTrafficRouteChoice::isTotalMinSignal)
-			.addFunction("is_max_highway_usage",&PrivateTrafficRouteChoice::isTotalMaxHighWayUsage)
-			.addFunction("purpose",&PrivateTrafficRouteChoice::getTotalPurpose)
+			.addFunction("travel_cost",&PrivateTrafficRouteChoice::getTravelCost)
+			.addFunction("travel_time",&PrivateTrafficRouteChoice::getTravelTime)
+			.addFunction("path_size",&PrivateTrafficRouteChoice::getPathSize)
+			.addFunction("length",&PrivateTrafficRouteChoice::getLength)
+			.addFunction("partial_utility",&PrivateTrafficRouteChoice::getPartialUtility)
+			.addFunction("highway_distance",&PrivateTrafficRouteChoice::getHighwayDistance)
+			.addFunction("signal_number",&PrivateTrafficRouteChoice::getSignalNumber)
+			.addFunction("right_turn_number",&PrivateTrafficRouteChoice::getRightTurnNumber)
+			.addFunction("is_min_distance",&PrivateTrafficRouteChoice::isMinDistance)
+			.addFunction("is_min_signal",&PrivateTrafficRouteChoice::isMinSignal)
+			.addFunction("is_max_highway_usage",&PrivateTrafficRouteChoice::isMaxHighWayUsage)
+			.addFunction("purpose",&PrivateTrafficRouteChoice::getPurpose)
 			.endClass();
 }
 
-double PrivateTrafficRouteChoice::getTotalTravelCost(unsigned int index)
+double PrivateTrafficRouteChoice::getTravelCost(unsigned int index)
 {
 	double ret = 0.0;
 	unsigned int sizeOfChoiceSet = getSizeOfChoiceSet();
-	if (index <= sizeOfChoiceSet && index > 0) {
+	if (index <= sizeOfChoiceSet && index > 0)
+	{
 		ret = pvtpathset[index-1]->getTravelCost();
 	}
 	return ret;
 }
 
-double PrivateTrafficRouteChoice::getTotalLength(unsigned int index)
+double PrivateTrafficRouteChoice::getLength(unsigned int index)
 {
 	double ret = 0.0;
 	unsigned int sizeOfChoiceSet = getSizeOfChoiceSet();
-	if (index <= sizeOfChoiceSet && index > 0) {
-
+	if (index <= sizeOfChoiceSet && index > 0)
+	{
 		ret = pvtpathset[index-1]->getLength();
 	}
 	return ret;
 }
 
-double PrivateTrafficRouteChoice::getTotalTravelTime(unsigned int index)
+double PrivateTrafficRouteChoice::getTravelTime(unsigned int index)
 {
 	double ret = 0.0;
 	unsigned int sizeOfChoiceSet = getSizeOfChoiceSet();
-	if (index <= sizeOfChoiceSet && index > 0) {
-
+	if (index <= sizeOfChoiceSet && index > 0)
+	{
 		ret = pvtpathset[index-1]->getTravelTime();
 	}
 	return ret;
 }
 
-double PrivateTrafficRouteChoice::getTotalPartialUtility(unsigned int index)
+double PrivateTrafficRouteChoice::getPartialUtility(unsigned int index)
 {
 	double ret = 0.0;
 	unsigned int sizeOfChoiceSet = getSizeOfChoiceSet();
-	if (index <= sizeOfChoiceSet && index > 0) {
-
+	if (index <= sizeOfChoiceSet && index > 0)
+	{
 		ret = pvtpathset[index-1]->getPartialUtility();
 	}
 	return ret;
 }
 
-double PrivateTrafficRouteChoice::getTotalPathSize(unsigned int index)
+double PrivateTrafficRouteChoice::getPathSize(unsigned int index)
 {
 	double ret = 0.0;
 	unsigned int sizeOfChoiceSet = getSizeOfChoiceSet();
-	if (index <= sizeOfChoiceSet && index > 0) {
-
+	if (index <= sizeOfChoiceSet && index > 0)
+	{
 		ret = pvtpathset[index-1]->getPathSize();
 	}
 	return ret;
 }
 
-double PrivateTrafficRouteChoice::getTotalHighwayDistance(unsigned int index)
+double PrivateTrafficRouteChoice::getHighwayDistance(unsigned int index)
 {
 	double ret = 0.0;
 	unsigned int sizeOfChoiceSet = getSizeOfChoiceSet();
-	if (index <= sizeOfChoiceSet && index > 0) {
-
+	if (index <= sizeOfChoiceSet && index > 0)
+	{
 		ret = pvtpathset[index-1]->getHighWayDistance();
 	}
 	return ret;
 }
 
-double PrivateTrafficRouteChoice::getTotalSignalNumber(unsigned int index)
+double PrivateTrafficRouteChoice::getSignalNumber(unsigned int index)
 {
 	double ret = 0.0;
 	unsigned int sizeOfChoiceSet = getSizeOfChoiceSet();
-	if (index <= sizeOfChoiceSet && index > 0) {
-
+	if (index <= sizeOfChoiceSet && index > 0)
+	{
 		ret = pvtpathset[index-1]->getSignalNumber();
 	}
 	return ret;
 }
 
-double PrivateTrafficRouteChoice::getTotalRightTurnNumber(unsigned int index)
+double PrivateTrafficRouteChoice::getRightTurnNumber(unsigned int index)
 {
 	double ret = 0.0;
 	unsigned int sizeOfChoiceSet = getSizeOfChoiceSet();
-	if (index <= sizeOfChoiceSet && index > 0) {
-
+	if (index <= sizeOfChoiceSet && index > 0)
+	{
 		ret = pvtpathset[index-1]->getRightTurnNumber();
 	}
 	return ret;
 }
 
-int PrivateTrafficRouteChoice::isTotalMinDistance(unsigned int index)
+int PrivateTrafficRouteChoice::isMinDistance(unsigned int index)
 {
 	bool ret = false;
 	unsigned int sizeOfChoiceSet = getSizeOfChoiceSet();
-	if (index <= sizeOfChoiceSet && index > 0) {
-
+	if (index <= sizeOfChoiceSet && index > 0)
+	{
 		ret = pvtpathset[index-1]->isIsMinDistance();
 	}
 	return ret;
 }
 
-int PrivateTrafficRouteChoice::isTotalMinSignal(unsigned int index)
+int PrivateTrafficRouteChoice::isMinSignal(unsigned int index)
 {
 	bool ret = false;
 	unsigned int sizeOfChoiceSet = getSizeOfChoiceSet();
-	if (index <= sizeOfChoiceSet && index > 0) {
-
+	if (index <= sizeOfChoiceSet && index > 0)
+	{
 		ret = pvtpathset[index-1]->isIsMinSignal();
 	}
 	return ret;
 }
 
-int PrivateTrafficRouteChoice::isTotalMaxHighWayUsage(unsigned int index)
+int PrivateTrafficRouteChoice::isMaxHighWayUsage(unsigned int index)
 {
 	bool ret = false;
 	unsigned int sizeOfChoiceSet = getSizeOfChoiceSet();
-	if (index <= sizeOfChoiceSet && index > 0) {
-
+	if (index <= sizeOfChoiceSet && index > 0)
+	{
 		ret = pvtpathset[index-1]->isIsMaxHighWayUsage();
 	}
 	return ret;
 }
 
-int PrivateTrafficRouteChoice::getTotalPurpose(unsigned int index)
+int PrivateTrafficRouteChoice::getPurpose(unsigned int index)
 {
 	int ret = 0;
 		unsigned int sizeOfChoiceSet = getSizeOfChoiceSet();
-		if (index <= sizeOfChoiceSet && index > 0) {
-			std::vector<sim_mob::SinglePath*>::iterator it = pvtpathset.begin();
-			std::advance(it, index - 1);
+		if (index <= sizeOfChoiceSet && index > 0)
+		{
 			ret = pvtpathset[index-1]->getPurpose();
 		}
 		return ret;
@@ -1482,16 +1384,6 @@ bool sim_mob::PrivateTrafficRouteChoice::getBestPathChoiceFromPathSet(boost::sha
 		const std::set<const sim_mob::Link*> & partialExclusion ,
 		const std::set<const sim_mob::Link*> &blckLstLnks , bool enRoute)
 {
-
-	//bool computeUtility = false;
-	// step 1.1 : For each path i in the path choice:
-	//1. set PathSet(O, D)
-	//2. travle_time
-	//3. utility
-	//step 1.2 : accumulate the logsum
-	//ps->logsum = 0.0;
-	//std:ostringstream utilityDbg("");
-	//utilityDbg << ps->id << "\nutility:\n";
 	std::vector<sim_mob::SinglePath*> availablePathsForRouteChoice;
 	BOOST_FOREACH(sim_mob::SinglePath* sp, ps->pathChoices)
 	{
@@ -1507,43 +1399,16 @@ bool sim_mob::PrivateTrafficRouteChoice::getBestPathChoiceFromPathSet(boost::sha
 		if (sp->includesLinks(partialExclusion) )
 		{
 			sp->travelTime = std::numeric_limits<double>::max();//some large value like infinity
-			//sp->utility = generateUtility(sp); //re-calculate utility
 		}
-		//ps->logsum += exp(sp->utility);
 		availablePathsForRouteChoice.push_back(sp);
 		pvtpathset.clear();
 		pvtpathset = availablePathsForRouteChoice;
 	}
-	//utilityDbg << "\n\nlogsum: " << ps->logsum;
-	// step 2: find the best waypoint path :
-	// calculate a probability using path's utility and pathset's logsum,
-	// compare the resultwith a  random number to decide whether pick the current path as the best path or not
-	//if not, just chose the shortest path as the best path
-//	double upperProb=0;
-	// 2.1 Draw a random number X between 0.0 and 1.0 for agent A.
-//	double random = genRandomDouble(0,1);
-	//utilityDbg << "\nrandom number:" << random << "\n";
-	// 2.2 For each path i in the path choice set PathSet(O, D):
-//	int i = -1;
-//	BOOST_FOREACH(sim_mob::SinglePath* sp, availablePathsForRouteChoice)
-//	{
-//		i++;
-//		double prob = exp(sp->utility)/(ps->logsum);
-//		upperProb += prob;
-//		//utilityDbg << "[" << sp->scenario << "," << sp->utility << "," << prob << "," << upperProb << "]";
-//		if (random <= upperProb)
-//		{
-//			// 2.3 agent A chooses path i from the path choice set.
-//			ps->bestPath = &(sp->path);
-//			//logger << "[LOGIT][" << sp->pathSetId <<  "] [" << i << " out of " << ps->pathChoices.size()  << " paths chosen] [UTIL: " <<  sp->utility << "] [LOGSUM: " << ps->logsum << "][exp(sp->utility)/(ps->logsum) : " << prob << "][X:" << random << "]\n";
-//			//utilityDbg << "\nselect: " << sp->pathSetId  << "|" << sp->scenario << "|[" << sp->scenario << "," << sp->utility << "," << prob << "," << upperProb << "]" << "\n";
-//			//sim_mob::Logger::log("path_selection") << utilityDbg.str() << "\n-------------------------------------------------------\n";
-//			return true;
-//		}
-//	}
+
 	unsigned int sizeOfChoiceSet = getSizeOfChoiceSet();
 	if (sizeOfChoiceSet)
 	{
+		// Call to the Lua function
 		LuaRef funcRef = getGlobal(state.get(), "choose_PVT_path");
 		LuaRef retVal = funcRef(this,sizeOfChoiceSet);
 		int index = -1;
@@ -1556,6 +1421,7 @@ bool sim_mob::PrivateTrafficRouteChoice::getBestPathChoiceFromPathSet(boost::sha
 					<< ") returned from PT route choice for OD with " << sizeOfChoiceSet << "path choices" << std::endl;
 			throw std::runtime_error(errStrm.str());
 		}
+		//Assigning the best path based on the index received from pvtrc lua
 		ps->bestPath = &(pvtpathset[index-1]->path);
 		return true;
 	}

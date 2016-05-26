@@ -10,20 +10,7 @@
                 <recursive_pathset_generation value="false"/>
                 <reroute enabled="false" />
                 <utility_parameters>
-                        <bTTVOT value="-0.001102975"/>
-                        <bCommonFactor value="2.467634254273781"/>
-                        <bLength value="-1.875e-06"/>
-                        <bHighway value="0.0001"/>
-                        <bCost value="0.0"/>
-                        <bSigInter value="-0.001"/>
-                        <bLeftTurns value="0.0"/>
-                        <bWork value="0.0"/>
-                        <bLeisure value="0.0"/>
                         <highwayBias value="0.5"/>
-                        <minTravelTimeParam value="2.3466342542737815"/>
-                        <minDistanceParam value="1.7926342542737816"/>
-                        <minSignalParam value="1.7236342542737817"/>
-                        <maxHighwayParam value="1.8896342542737816"/>
                 </utility_parameters>
                 <path_generators max_segment_speed="26.39"> <!--in cm/s--> <!-- 2639cm/s = 95km/hr -->
                         <k_shortest_path level="5" />

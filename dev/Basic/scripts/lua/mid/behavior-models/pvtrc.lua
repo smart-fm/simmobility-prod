@@ -1,7 +1,7 @@
 --[[
 Model - Private Traffic Route Choice	
 Type - MNL
-Authors - Rui Tan	
+Authors - Adnan, Shahita	
 ]]
 
 --Estimated values for all betas
@@ -22,6 +22,7 @@ local beta_minDistanceParam = 0.325
 local beta_minSignalParam = 0.256
 local beta_maxHighwayParam = 0.422
 
+
 --utility
 --utility[i] for choice[i]
 local utility = {}
@@ -29,35 +30,46 @@ local choice = {}
 local availability = {}
 
 local function computeUtilities(params, N_choice)
-    utility = {}
-    choice = {}
-    availability = {}
-
+	utility = {}
+    	choice = {}
+    	availability = {}
 	for i = 1,N_choice do 
 		choice[i] = i
 		availability[i] = 1
 	end
 	for i = 1,N_choice do
+		local travel_time = params:travel_time(i)
+		local travel_cost = params:travel_cost(i)
+		local partial_utility = params:partial_utility(i)
+		local path_size = params:path_size(i)
+		local length = params:length(i)
+		local highway_distance = params:highway_distance(i)
+		local signal_number = params:signal_number(i)
+		local right_turn_number = params:right_turn_number(i)
+		local is_min_distance = params:is_min_distance(i)
+		local is_min_signal = params:is_min_signal(i)
+		local is_max_highway_usage = params:is_max_highway_usage(i)
+		local purpose = params:purpose(i)
 		local pUtility = 0.0
-		if params:travel_time(i) <= 0 then io.write("generateUtility: invalid single path travelTime\n") end
-		if params:partial_utility(i) > 0.0 then pUtility = params:partial_utility(i)
+
+		if partial_utility > 0.0 then pUtility = partial_utility
 		else
-			pUtility = pUtility + (params:path_size(i))*beta_bCommonFactor
-			pUtility = pUtility + (params:length(i))*beta_bLength
-			pUtility = pUtility + (params:highway_distance(i))*beta_bHighway
-			if params:highway_distance(i) > 0 then pUtility = pUtility + beta_highwayBias end
-			pUtility = pUtility+(params:signal_number(i))*beta_bSigInter
-			pUtility = pUtility+(params:right_turn_number(i))*beta_bLeftTurns
-			if params:is_min_distance(i) == 1 then pUtility = pUtility+beta_minDistanceParam end
-			if params:is_min_signal(i) == 1 then pUtility = pUtility+beta_minSignalParam end
-			if params:is_max_highway_usage(i) == 1 then pUtility = pUtility+beta_maxHighwayParam end
-			if params:purpose(i) == 1 then pUtility = pUtility+params:purpose(i)*beta_bWork end
-			if params:purpose(i) == 2 then pUtility = pUtility+params:purpose(i)*beta_bLeisure end
+			pUtility = pUtility + (path_size)*beta_bCommonFactor
+			pUtility = pUtility + (length)*beta_bLength
+			pUtility = pUtility + (highway_distance)*beta_bHighway
+			if highway_distance > 0 then pUtility = pUtility + beta_highwayBias end
+			pUtility = pUtility+(signal_number)*beta_bSigInter
+			pUtility = pUtility+(right_turn_number)*beta_bLeftTurns
+			if is_min_distance == 1 then pUtility = pUtility+beta_minDistanceParam end
+			if is_min_signal == 1 then pUtility = pUtility+beta_minSignalParam end
+			if is_max_highway_usage == 1 then pUtility = pUtility+beta_maxHighwayParam end
+			if purpose == 1 then pUtility = pUtility+purpose*beta_bWork end
+			if purpose == 2 then pUtility = pUtility+purpose*beta_bLeisure end
 		
 		end	
 		utility[i] = pUtility
-		utility[i] = utility[i] + params:travel_time(i) * beta_bTTVOT
-		utility[i] = utility[i]+params:travel_cost(i) * beta_bCost
+		utility[i] = utility[i] + travel_time * beta_bTTVOT
+		utility[i] = utility[i]+ travel_cost * beta_bCost
 	end
 end
 

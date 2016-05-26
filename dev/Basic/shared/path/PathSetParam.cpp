@@ -87,20 +87,7 @@ void sim_mob::PathSetParam::storeSinglePath(soci::session& sql, std::set<sim_mob
 void sim_mob::PathSetParam::initParameters()
 {
 	const PathSetConf & pathset = sim_mob::ConfigManager::GetInstance().PathSetConfig();
-	bTTVOT = pathset.params.bTTVOT; //-0.01373;//-0.0108879;
-	bCommonFactor = pathset.params.bCommonFactor; // 1.0;
-	bLength = pathset.params.bLength; //-0.001025;//0.0; //negative sign proposed by milan
-	bHighway = pathset.params.bHighway; // 0.00052;//0.0;
-	bCost = pathset.params.bCost; //0.0;
-	bSigInter = pathset.params.bSigInter; //-0.13;//0.0;
-	bLeftTurns = pathset.params.bLeftTurns; //0.0;
-	bWork = pathset.params.bWork; //0.0;
-	bLeisure = pathset.params.bLeisure; //0.0;
 	highwayBias = pathset.params.highwayBias; //0.5;
-	minTravelTimeParam = pathset.params.minTravelTimeParam; //0.879;
-	minDistanceParam = pathset.params.minDistanceParam; //0.325;
-	minSignalParam = pathset.params.minSignalParam; //0.256;
-	maxHighwayParam = pathset.params.maxHighwayParam; //0.422;
 }
 
 sim_mob::PathSetParam::PathSetParam() :

@@ -364,37 +364,10 @@ struct PathSetConf
 	/// Utility parameters
 	struct UtilityParams
 	{
-
-		double bTTVOT;
-		double bCommonFactor;
-		double bLength;
-		double bHighway;
-		double bCost;
-		double bSigInter;
-		double bLeftTurns;
-		double bWork;
-		double bLeisure;
 		double highwayBias;
-		double minTravelTimeParam;
-		double minDistanceParam;
-		double minSignalParam;
-		double maxHighwayParam;
 		UtilityParams()
 		{
-            bTTVOT = -0.01373;///-0.0108879;
-			bCommonFactor = 1.0;
-            bLength = -0.001025;///0.0; ///negative sign proposed by milan
-            bHighway = 0.00052;///0.0;
-			bCost = 0.0;
-            bSigInter = -0.13;///0.0;
-			bLeftTurns = 0.0;
-			bWork = 0.0;
-			bLeisure = 0.0;
 			highwayBias = 0.5;
-			minTravelTimeParam = 0.879;
-			minDistanceParam = 0.325;
-			minSignalParam = 0.256;
-			maxHighwayParam = 0.422;
 		}
 	};
 

@@ -152,7 +152,6 @@ public:
 	 * @param pUtility the already computed utility
 	 * @return the generated string
 	 */
-	std::string logPartialUtility(const sim_mob::SinglePath* sp, double pUtility) const;
 
 	/**
 	 * basically delete all the dynamically allocated memories, in addition to some more cleanups
@@ -440,18 +439,18 @@ public:
 	PrivateTrafficRouteChoice();
 	virtual ~PrivateTrafficRouteChoice();
 
-	double getTotalTravelCost(unsigned int index);
-	double getTotalTravelTime(unsigned int index);
-	double getTotalPathSize(unsigned int index);
-	double getTotalLength(unsigned int index);
-	double getTotalPartialUtility(unsigned int index);
-	double getTotalHighwayDistance(unsigned int index);
-	double getTotalSignalNumber(unsigned int index);
-	double getTotalRightTurnNumber(unsigned int index);
-	int isTotalMinDistance(unsigned int index);
-	int isTotalMinSignal(unsigned int index);
-	int isTotalMaxHighWayUsage(unsigned int index);
-	int getTotalPurpose(unsigned int index);
+	double getTravelCost(unsigned int index);
+	double getTravelTime(unsigned int index);
+	double getPathSize(unsigned int index);
+	double getLength(unsigned int index);
+	double getPartialUtility(unsigned int index);
+	double getHighwayDistance(unsigned int index);
+	double getSignalNumber(unsigned int index);
+	double getRightTurnNumber(unsigned int index);
+	int isMinDistance(unsigned int index);
+	int isMinSignal(unsigned int index);
+	int isMaxHighWayUsage(unsigned int index);
+	int getPurpose(unsigned int index);
 
 
 

@@ -104,20 +104,7 @@ public:
 	}
 
 	///	pathset parameters
-	double bTTVOT;
-	double bCommonFactor;
-	double bLength;
-	double bHighway;
-	double bCost;
-	double bSigInter;
-	double bLeftTurns;
-	double bWork;
-	double bLeisure;
 	double highwayBias;
-	double minTravelTimeParam;
-	double minDistanceParam;
-	double minSignalParam;
-	double maxHighwayParam;
 
 	///	store all multi nodes in the map
 	std::vector<Node*>  multiNodesPool;

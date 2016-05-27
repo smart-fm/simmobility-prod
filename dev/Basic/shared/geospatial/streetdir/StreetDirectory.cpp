@@ -44,7 +44,7 @@ void StreetDirectory::Init(const RoadNetwork& network)
 		spImpl = new A_StarShortestPathImpl(network);
 	}
 	if (!ptImpl && ConfigManager::GetInstance().FullConfig().isPublicTransitEnabled()) {
-		ptImpl = new A_StarPublicTransitShortestPathImpl(PT_Network::getInstance().PT_NetworkEdgeMap,PT_Network::getInstance().PT_NetworkVertexMap);
+		ptImpl = new A_StarPublicTransitShortestPathImpl(PT_NetworkCreater::getInstance().PT_NetworkEdgeMap,PT_NetworkCreater::getInstance().PT_NetworkVertexMap);
 	}
 	if(!sttpImpl && ConfigManager::GetInstance().FullConfig().PathSetMode()){
 		sttpImpl = new A_StarShortestTravelTimePathImpl(network);

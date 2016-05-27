@@ -126,7 +126,7 @@ std::vector<sim_mob::SubTrip>::iterator sim_mob::Person::resetCurrSubTrip()
 	return trip->getSubTripsRW().begin();
 }
 
-bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::SubTrip>& newSubTrips, const std::vector<sim_mob::OD_Trip>& matchedTrips)
+bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::SubTrip>& newSubTrips, const std::vector<sim_mob::OD_Trip>& matchedTrips,  PT_Network& ptNetwork)
 {
 	bool ret = true;
 	bool invalidFlag = false;
@@ -192,7 +192,7 @@ bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::S
 			case 2:
 			{
 				endType = "MRT_STOP";
-				sim_mob::TrainStop* stop = sim_mob::PT_Network::getInstance().findMRT_Stop(sEnd);
+				sim_mob::TrainStop* stop = ptNetwork.findMRT_Stop(sEnd);
 				if (stop)
 				{
 					dest = WayPoint(stop);
@@ -228,7 +228,7 @@ bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::S
 			case 2:
 			{
 				srcType = "MRT_STOP";
-				sim_mob::TrainStop* stop = sim_mob::PT_Network::getInstance().findMRT_Stop(sSrc);
+				sim_mob::TrainStop* stop = ptNetwork.findMRT_Stop(sSrc);
 				if (stop)
 				{
 					source = WayPoint(stop);

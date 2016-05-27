@@ -44,7 +44,7 @@ private:
 	double remainingTimeThisTick;
 
 	/**Alters trip chain in accordance to route choice for public transit trips*/
-	void convertPublicTransitODsToTrips();
+	void convertPublicTransitODsToTrips(PT_Network& ptNetwork,const std::string& ptPathsetStoredProcName);
 
 	/**Inserts a waiting activity before bus travel*/
 	void insertWaitingActivityToTrip();

@@ -30,11 +30,6 @@ namespace sim_mob
 PT_RouteChoiceLuaModel::PT_RouteChoiceLuaModel() : publicTransitPathSet(nullptr)
 {
 	ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
-	ptPathsetStoredProcName = cfg.getDatabaseProcMappings().procedureMappings["pt_pathset"];
-	if (ptPathsetStoredProcName.empty())
-	{
-		throw std::runtime_error("stored procedure for \"pt_pathset\" is empty or not specified in config file");
-	}
 	dbSession = new soci::session(soci::postgresql, cfg.getDatabaseConnectionString(false));
 }
 PT_RouteChoiceLuaModel::~PT_RouteChoiceLuaModel()
@@ -152,12 +147,12 @@ std::vector<sim_mob::OD_Trip> PT_RouteChoiceLuaModel::makePT_RouteChoice(const s
 		for (std::vector<PT_NetworkEdge>::const_iterator itEdge = pathEdges.begin(); itEdge != pathEdges.end(); itEdge++) {
 			sim_mob::OD_Trip trip;
 			trip.startStop = itEdge->getStartStop();
-			trip.sType = PT_Network::getInstance().getVertexTypeFromStopId(trip.startStop);
+			trip.sType = PT_NetworkCreater::getInstance().getVertexTypeFromStopId(trip.startStop);
 			if (trip.startStop.find("N_") != std::string::npos) {
 				trip.startStop = trip.startStop.substr(2);
 			}
 			trip.endStop = itEdge->getEndStop();
-			trip.eType = PT_Network::getInstance().getVertexTypeFromStopId(trip.endStop);
+			trip.eType = PT_NetworkCreater::getInstance().getVertexTypeFromStopId(trip.endStop);
 			if (trip.endStop.find("N_") != std::string::npos) {
 				trip.endStop = trip.endStop.substr(2);
 			}
@@ -177,11 +172,11 @@ std::vector<sim_mob::OD_Trip> PT_RouteChoiceLuaModel::makePT_RouteChoice(const s
 	return odTrips;
 }
 
-bool PT_RouteChoiceLuaModel::getBestPT_Path(int origin, int dest, unsigned int startTime, std::vector<sim_mob::OD_Trip>& odTrips)
+bool PT_RouteChoiceLuaModel::getBestPT_Path(int origin, int dest, unsigned int startTime, std::vector<sim_mob::OD_Trip>& odTrips, const std::string& ptPathsetStoredProcName)
 {
 	bool ret = false;
 	PT_PathSet pathSet;
-	pathSet = loadPT_PathSet(origin, dest);
+	pathSet = loadPT_PathSet(origin, dest, ptPathsetStoredProcName);
 	if (pathSet.pathSet.size() == 0)
 	{
 		Print() << "[PT pathset]load pathset failed:[" << origin << "]:[" << dest << "]" << std::endl;
@@ -243,7 +238,7 @@ void loadPT_PathsetFromDB(soci::session& sql, const std::string& funcName, int o
 	}
 }
 
-PT_PathSet PT_RouteChoiceLuaModel::loadPT_PathSet(int origin, int dest)
+PT_PathSet PT_RouteChoiceLuaModel::loadPT_PathSet(int origin, int dest, const std::string& ptPathsetStoredProcName)
 {
 	PT_PathSet pathSet;
 	loadPT_PathsetFromDB(*dbSession, ptPathsetStoredProcName, origin, dest, pathSet);

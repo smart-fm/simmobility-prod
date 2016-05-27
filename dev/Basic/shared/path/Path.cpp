@@ -369,7 +369,7 @@ void sim_mob::PT_Path::updatePathEdges()
 	pathEdges.clear();
 	while (ss >> edgeId)
 	{
-		pathEdges.push_back(PT_Network::getInstance().PT_NetworkEdgeMap[edgeId]);
+		pathEdges.push_back(PT_NetworkCreater::getInstance().PT_NetworkEdgeMap[edgeId]);
 		if (ss.peek() == ',')
 		{
 			ss.ignore();
@@ -491,11 +491,11 @@ void sim_mob::PT_PathSet::checkPathFeasibilty()
 			prevEdgeType = currentEdgeType;
 
 			// Check 3 : Doesn't walk back to any simMobility node from bus stop/ MRT station in the middle of the path
-			if (sim_mob::PT_Network::getInstance().PT_NetworkVertexMap[itEdge->getStartStop()].getStopType() == 0)
+			if (sim_mob::PT_NetworkCreater::getInstance().PT_NetworkVertexMap[itEdge->getStartStop()].getStopType() == 0)
 			{
 				simMobilityNodeCount++;
 			}
-			if (sim_mob::PT_Network::getInstance().PT_NetworkVertexMap[itEdge->getEndStop()].getStopType() == 0)
+			if (sim_mob::PT_NetworkCreater::getInstance().PT_NetworkVertexMap[itEdge->getEndStop()].getStopType() == 0)
 			{
 				simMobilityNodeCount++;
 			}

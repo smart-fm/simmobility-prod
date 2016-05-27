@@ -49,6 +49,15 @@ namespace sim_mob {
 	template<typename PERSON>
 	Entity::UpdateStatus TrainController<PERSON>::frame_tick(timeslice now)
 	{
+		if(disruptionParam.get()){
+			unsigned int baseGran = ConfigManager::GetInstance().FullConfig().baseGranMS();
+			DailyTime duration = disruptionParam->duration;
+			if(duration.getValue()>baseGran){
+				disruptionParam->duration = DailyTime(duration.offsetMS_From(DailyTime(baseGran)));
+			} else {
+				disruptionParam.reset();
+			}
+		}
 		std::map<std::string, TripStartTimePriorityQueue>::iterator it;
 		for(it=mapOfIdvsTrip.begin(); it!=mapOfIdvsTrip.end(); it++)
 		{
@@ -64,14 +73,7 @@ namespace sim_mob {
 				if(trainId!=-1)
 				{
 					if(disruptionParam.get()){
-						DailyTime duration = disruptionParam->duration;
-						unsigned int baseGran = ConfigManager::GetInstance().FullConfig().baseGranMS();
-						if(duration.getValue()>baseGran){
-							changeTrainTrip(top, disruptionParam.get());
-							disruptionParam->duration = DailyTime(duration.offsetMS_From(DailyTime(baseGran)));
-						} else {
-							disruptionParam.reset();
-						}
+						changeTrainTrip(top, disruptionParam.get());
 					}
 					top->setTrainId(trainId);
 					tripChain.push_back(top);

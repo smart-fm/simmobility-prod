@@ -41,7 +41,9 @@ isQueuing(false), distanceToEndOfSegment(0.0), drivingTimeToEndOfLink(0.0), rema
 requestedNextSegStats(NULL), canMoveToNextSegment(NONE), currSegStats(NULL), currLane(NULL),
 prevRole(NULL), currRole(NULL), nextRole(NULL)
 {
-	convertPublicTransitODsToTrips();
+	ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
+	std::string ptPathsetStoredProcName = cfg.getDatabaseProcMappings().procedureMappings["pt_pathset"];
+	convertPublicTransitODsToTrips(PT_NetworkCreater::getInstance(), ptPathsetStoredProcName);
 	insertWaitingActivityToTrip();
 	assignSubtripIds();
 	if (!tripChain.empty())
@@ -59,8 +61,10 @@ Person_MT::~Person_MT()
 
 void Person_MT::changeToNewTrip(const std::string& stationName)
 {
+	ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
+	std::string ptPathsetStoredProcName = cfg.getDatabaseProcMappings().procedureMappings["pt_pathset"];
 	TripChainItem* trip = (*currTripChainItem);
-	sim_mob::TrainStop* stop = sim_mob::PT_Network::getInstance().findMRT_Stop(stationName);
+	sim_mob::TrainStop* stop = sim_mob::PT_NetworkCreater::getInstance().findMRT_Stop(stationName);
 	if(stop){
 		const Node* node = stop->getRandomStationSegment()->getParentLink()->getFromNode();
 		trip->origin = WayPoint(node);
@@ -73,7 +77,7 @@ void Person_MT::changeToNewTrip(const std::string& stationName)
 		newSubTrip.travelMode = "MRT";
 		subTrips.clear();
 		subTrips.push_back(newSubTrip);
-		convertPublicTransitODsToTrips();
+		convertPublicTransitODsToTrips(PT_NetworkCreater::getInstance2(), ptPathsetStoredProcName);
 		insertWaitingActivityToTrip();
 		assignSubtripIds();
 		currSubTrip = subTrips.begin();
@@ -81,7 +85,7 @@ void Person_MT::changeToNewTrip(const std::string& stationName)
 	}
 }
 
-void Person_MT::convertPublicTransitODsToTrips()
+void Person_MT::convertPublicTransitODsToTrips(PT_Network& ptNetwork,const std::string&  ptPathsetStoredProcName)
 {
 	std::vector<TripChainItem*>::iterator tripChainItemIt;
 	for (tripChainItemIt = tripChain.begin(); tripChainItemIt != tripChain.end(); ++tripChainItemIt)
@@ -104,10 +108,10 @@ void Person_MT::convertPublicTransitODsToTrips()
 					{
 						std::vector<sim_mob::OD_Trip> odTrips;
 						bool ret = sim_mob::PT_RouteChoiceLuaProvider::getPTRC_Model().getBestPT_Path(itSubTrip->origin.node->getNodeId(),
-								itSubTrip->destination.node->getNodeId(), itSubTrip->startTime.getValue(), odTrips);
+								itSubTrip->destination.node->getNodeId(), itSubTrip->startTime.getValue(), odTrips, ptPathsetStoredProcName);
 						if (ret)
 						{
-							ret = makeODsToTrips(&(*itSubTrip), newSubTrips, odTrips);
+							ret = makeODsToTrips(&(*itSubTrip), newSubTrips, odTrips, ptNetwork);
 						}
 						if (!ret)
 						{

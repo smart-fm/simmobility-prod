@@ -88,7 +88,12 @@ void TrainStationAgent::HandleMessage(messaging::Message::MessageType type, cons
 		if(pendingTrainDriver.find(lineId)==pendingTrainDriver.end()){
 			pendingTrainDriver[lineId] = std::list<TrainDriver*>();
 		}
-		pendingTrainDriver[lineId].push_back(msg.trainDriver);
+		if(pendingTrainDriver[lineId].size()>1){
+			messaging::MessageBus::PostMessage(TrainController<Person_MT>::getInstance(),
+										MSG_TRAIN_BACK_DEPOT, messaging::MessageBus::MessagePtr(new TrainMessage(msg.trainDriver->getParent())));
+		} else {
+			pendingTrainDriver[lineId].push_back(msg.trainDriver);
+		}
 		break;
 	}
 	case TRAIN_ARRIVAL_AT_ENDPOINT:

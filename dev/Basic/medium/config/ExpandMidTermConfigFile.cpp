@@ -140,7 +140,7 @@ void ExpandMidTermConfigFile::loadNetworkFromDatabase()
 
 void ExpandMidTermConfigFile::loadPublicTransitNetworkFromDatabase()
 {
-    PT_Network::getInstance().init();
+	PT_NetworkCreater::init();
 }
 
 void ExpandMidTermConfigFile::verifyIncidents()

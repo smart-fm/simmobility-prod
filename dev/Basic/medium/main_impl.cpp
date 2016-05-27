@@ -205,7 +205,7 @@ void assignConfluxToWorkers(WorkGroup* workGrp)
  */
 void assignStationAgentToConfluxes()
 {
-	std::map<std::string, TrainStop*>&  MRTStopMap = PT_Network::getInstance().MRTStopsMap;
+	std::map<std::string, TrainStop*>&  MRTStopMap = PT_NetworkCreater::getInstance().MRTStopsMap;
 	std::map<std::string, TrainStop*>::iterator trainStopIt;
 	for(trainStopIt = MRTStopMap.begin();trainStopIt!=MRTStopMap.end();trainStopIt++){
 		TrainStationAgent* stationAgent = new TrainStationAgent();

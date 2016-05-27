@@ -19,9 +19,18 @@
 
 using namespace std;
 using namespace sim_mob;
-PT_Network sim_mob::PT_Network::instance_;
+PT_Network sim_mob::PT_NetworkCreater::instance;
+PT_Network sim_mob::PT_NetworkCreater::instance2;
 
-void PT_Network::init()
+void PT_NetworkCreater::init()
+{
+	const std::string DB_STORED_PROC_PT_EDGES = ConfigManager::GetInstanceRW().FullConfig().getDatabaseProcMappings().procedureMappings["pt_edges"];
+	const std::string DB_STORED_PROC_PT_VERTICES = ConfigManager::GetInstanceRW().FullConfig().getDatabaseProcMappings().procedureMappings["pt_vertices"];
+	instance.init(DB_STORED_PROC_PT_VERTICES, DB_STORED_PROC_PT_EDGES);
+	instance2.init(DB_STORED_PROC_PT_VERTICES, DB_STORED_PROC_PT_EDGES);
+}
+
+void PT_Network::init(const std::string& storedProcForVertex, const std::string& storeProceForEdges)
 {
 	vector<PT_NetworkVertex> PublicTransitVertices;
 	vector<PT_NetworkEdge> PublicTransitEdges;
@@ -34,11 +43,8 @@ void PT_Network::init()
 	std::string password = credentials.getPassword(false);
 	sim_mob::db::DB_Config dbConfig(database.host, database.port, database.dbName, username, password);
 
-
-	const std::string DB_STORED_PROC_PT_EDGES = ConfigManager::GetInstanceRW().FullConfig().getDatabaseProcMappings().procedureMappings["pt_edges"];
-	const std::string DB_GETALL_PT_EDGES_QUERY = "SELECT * FROM " + DB_STORED_PROC_PT_EDGES;
-	const std::string DB_STORED_PROC_PT_VERTICES = ConfigManager::GetInstanceRW().FullConfig().getDatabaseProcMappings().procedureMappings["pt_vertices"];
-	const std::string DB_GETALL_PT_VERTICES_QUERY = "SELECT * FROM " + DB_STORED_PROC_PT_VERTICES;
+	const std::string DB_GETALL_PT_EDGES_QUERY = "SELECT * FROM " + storeProceForEdges;
+	const std::string DB_GETALL_PT_VERTICES_QUERY = "SELECT * FROM " + storedProcForVertex;
 
 	// Connect to database and load data.
 	sim_mob::db::DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);

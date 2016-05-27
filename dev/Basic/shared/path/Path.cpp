@@ -76,7 +76,6 @@ bool sim_mob::SinglePath::includesLink(const sim_mob::Link* lnk) const
 	{
 		return false;
 	}
-	unsigned int linkId = 0;
 	for(const auto& wp : this->path)
 	{
 		if (wp.link == lnk)

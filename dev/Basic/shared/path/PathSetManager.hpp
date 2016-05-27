@@ -133,13 +133,6 @@ public:
 	void setScenarioName(std::string& name) { scenarioName = name; }
 
 	/**
-	 * check whether a given path is black listed
-	 * @param path waypoint path
-	 * @param blkLst black list to check against
-	 */
-	bool pathInBlackList(const std::vector<WayPoint> path, const std::set<const Link*> & blkLst) const;
-
-	/**
 	 * calculate those part of the utility function that are always fixed(like path length)
 	 * and are not going to change(like travel time)
 	 * @param sp the input path
@@ -281,7 +274,7 @@ private:
 	  * set some tags as a result of comparing attributes among paths in a pathset
 	  * @param ps general information
 	  */
-	 void setPathSetTags(boost::shared_ptr<sim_mob::PathSet>& ps);
+	 void setPathSetTags(boost::shared_ptr<sim_mob::PathSet>& ps) const;
 
 	/**
 	 * post pathset generation processes

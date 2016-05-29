@@ -33,10 +33,9 @@ private:
 	/**
 	 * processes model scripts element in config xml
 	 * @param node node corresponding to model_scripts element inside xml file
+	 * @return lookup helper for model scripts
 	 */
-	void processModelScriptsNode(xercesc::DOMElement* node);
-
-	void processModelScriptsNodePvt(xercesc::DOMElement* node);
+	ModelScriptsMap processModelScriptsNode(xercesc::DOMElement* node);
 
 	/**
 	 * process public pathset node in config

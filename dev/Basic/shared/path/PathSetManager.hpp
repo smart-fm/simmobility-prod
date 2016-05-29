@@ -1,10 +1,3 @@
-/*
- * PathSetManager.hpp
- *
- *  Created on: May 6, 2013
- *      Author: Max
- *      Author: Vahid
- */
 
 #pragma once
 
@@ -198,7 +191,7 @@ protected:
 class PrivatePathsetGenerator : boost::noncopyable, public sim_mob::PathSetManager
 {
 private:
-	static PrivatePathsetGenerator* instance_;
+	static PrivatePathsetGenerator* pvtPathGeneratorInstance;
 	static boost::mutex instanceMutex;
 
 	/** reference to street directory */
@@ -297,15 +290,12 @@ public:
 	static void resetInstance();
 
 	/**
-	 * generate all the paths for a person given its subtrip(OD)
-	 * @param per input agent applying to get the path
+	 * generate all the paths for a set of ODs
 	 * @param st input subtrip
 	 * @param res output path generated
-	 * @param excludedSegs input list segments to be excluded from the target set
-	 * @param isUseCache is using the cache allowed
 	 * @return number of paths generated
 	 */
-	int generateAllPathChoices(boost::shared_ptr<sim_mob::PathSet> ps, std::set<OD> &recursiveODs, const std::set<const sim_mob::RoadSegment*> & excludedSegs);
+	int generateAllPathChoices(boost::shared_ptr<sim_mob::PathSet> ps, std::set<OD> &recursiveODs);
 
 	/**
 	 *	offline pathset generation method.
@@ -392,8 +382,6 @@ private:
 	 * @param sp the target path
 	 */
 	double generateUtility(const sim_mob::SinglePath* sp) const;
-
-	unsigned int getSizeOfChoiceSet();
 
 	/**
 	 * Get best path from given pathsets

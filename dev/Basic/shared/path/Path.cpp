@@ -163,23 +163,21 @@ sim_mob::PathSet::~PathSet()
 
 short sim_mob::PathSet::addOrDeleteSinglePath(sim_mob::SinglePath* s)
 {
-	if(s->id.empty()) return 0;
-	if (!s && s->path.empty())
-	{
-		return 0;
-	}
+	if(s->id.empty()) { return 0; }
+	if (!s || s->path.empty()) { return 0; }
 	if (s->path.begin()->link->getFromNodeId() != subTrip.origin.node->getNodeId())
 	{
-		std::cerr << s->scenario << " path begins with " << s->path.begin()->link->getFromNodeId() << " while pathset begins with "
-				<< subTrip.origin.node->getNodeId() << std::endl;
+		std::cerr << s->scenario << " path begins with " << s->path.begin()->link->getFromNodeId() << " while pathset begins with " << subTrip.origin.node->getNodeId() << std::endl;
 		throw std::runtime_error("Mismatch");
 	}
 
 	bool res = false;
+
 	{
 		boost::unique_lock<boost::shared_mutex> lock(pathChoicesMutex);
 		res = pathChoices.insert(s).second;
 	}
+
 	if (!res)
 	{
 		safe_delete_item(s);

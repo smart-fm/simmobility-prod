@@ -191,7 +191,7 @@ public:
 	~PathSet();
 
 	short addOrDeleteSinglePath(sim_mob::SinglePath* s);
-	std::vector<WayPoint> *bestPath;  //best choice
+	std::vector<WayPoint>* bestPath;  //best choice
 	SinglePath* oriPath;  // shortest path with all segments
 	std::set<sim_mob::SinglePath*, sim_mob::SinglePath> pathChoices;
 	boost::shared_mutex pathChoicesMutex;
@@ -200,7 +200,6 @@ public:
 	// pathset use info of subtrip to get start, end, travel start time...
 	sim_mob::SubTrip subTrip;
 	std::string id;
-	std::string excludedPaths;
 	std::string scenario;
 	bool hasPath;
 	bool nonCDB_OD;

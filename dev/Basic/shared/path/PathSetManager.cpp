@@ -1024,7 +1024,7 @@ int sim_mob::PrivatePathsetGenerator::generateAllPathChoices(boost::shared_ptr<s
 	std::pair<boost::chrono::microseconds, boost::chrono::microseconds> tick = gen.tick();
 	{
 		char buf[200];
-		sprintf(buf, "[%s,PATHSET SIZE: %u, TIME:%d seconds]\n", fromToID.c_str(), ps->pathChoices.size(), (tick.first.count()/1000000));
+		sprintf(buf, "[%s,PATHSET SIZE: %lu, TIME:%ld seconds]\n", fromToID.c_str(), ps->pathChoices.size(), (tick.first.count()/1000000));
 		Print() << std::string(buf);
 	}
 

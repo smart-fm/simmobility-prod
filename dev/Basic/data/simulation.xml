@@ -24,7 +24,7 @@
                 <dbname value="sim_mob_lt"/>
             </database>
 
-        <!-- Variables stores for preday demand simulator-->
+            <!-- Variables stores for preday demand simulator-->
             <database id="fm_mongo" dbtype="mongodb">
                 <host value="localhost"/>
                 <port value="27017"/>

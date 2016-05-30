@@ -5,30 +5,36 @@
 <config>
     <!-- Groupings of stored procedures, used for loading network data from certain tables. -->
    <db_proc_groups>
-        <!-- Entire singapore network in old format -->
-        <proc_map id="withinday_old_network" format="aimsun">
-            <mapping name="node" procedure="get_node_sg()"/>
-            <mapping name="section" procedure="get_section_sg()"/>
-            <mapping name="turning" procedure="get_lane_connector_sg()"/>
-            <mapping name="busstop" procedure="get_bus_stop_location_interchange()"/>
-            <mapping name="polyline" procedure="get_section_polyline()"/>
-            <mapping name="pt_bus_dispatch_freq" procedure="get_pt_bus_dispatch_freq('weekday')"/>
-            <mapping name="pt_bus_routes" procedure="get_pt_bus_routes()"/>           
-            <mapping name="pt_bus_stops" procedure="get_pt_bus_stops()"/>             
-            <mapping name="day_activity_schedule" procedure="get_persons_between"/>
-            <mapping name="pt_edges" procedure="get_pt_edges()"/>
-            <mapping name="pt_vertices" procedure="get_pt_vertices()"/>
-            <mapping name="mrt_road_segments" procedure="get_mrt_road_segments()"/>
-            <mapping name="pt_pathset" procedure="get_pt_pathset"/>
-            <mapping name="screen_line" procedure="get_screen_line_segments()"/>
+        <!-- SimMobility Virtual City Network -->
+        <proc_map id="simmobcity" format="aimsun">
+            <mapping name="nodes" procedure="get_nodes()"/>
+            <mapping name="links" procedure="get_links()"/>
+            <mapping name="turning_groups" procedure="get_turning_groups()"/>
+            <mapping name="turning_paths" procedure="get_turning_paths()"/>
+            <mapping name="turning_polylines" procedure="get_turning_polylines()"/>
+            <mapping name="turning_conflicts" procedure="get_turning_conflicts()"/>
+            <mapping name="road_segments" procedure="get_road_segments()"/>
+            <mapping name="segment_polylines" procedure="get_segment_polylines()"/>
+            <mapping name="lanes" procedure="get_lanes()"/>
+            <mapping name="lane_polylines" procedure="get_lane_polylines()"/>
+            <mapping name="lane_connectors" procedure="get_lane_connectors()"/>
+            <mapping name="bus_stops" procedure="get_bus_stops()"/>
+            <mapping name="pt_bus_dispatch_freq" procedure="get_pt_bus_frequency()"/>
+            <mapping name="pt_bus_routes" procedure="get_pt_bus_routes()"/>
+            <mapping name="pt_bus_stops" procedure="get_pt_bus_stops()"/>
+            <mapping name="pt_stop_stats" procedure="get_pt_stop_stats()"/>
+            <mapping name="pt_edges" procedure="get_pt_tr_edges()"/>
+            <mapping name="pt_vertices" procedure="get_pt_tr_vertices()"/>
+            <mapping name="pt_pathset" procedure="get_pt_pathset_tr"/>
+            <mapping name="mrt_road_segments" procedure="get_pt_mrt_segments()"/>
             <mapping name="erp_gantry_zone" procedure="get_erp_gantry_zone()"/>
+            <mapping name="screen_line" procedure="get_screen_line_segments()"/>
             <mapping name="erp_section" procedure="get_erp_section()"/>
+            <mapping name="day_activity_schedule" procedure="get_persons_between"/>
+            <mapping name="freight_trips" procedure="get_freight_between"/>
             <mapping name="erp_surcharge" procedure="get_erp_surcharge()"/>
-            <mapping name="restricted_reg_segments" procedure="get_section_banned_area()"/>
-            <mapping name="restricted_reg_in_turning" procedure="get_banned_area_in_turning()"/>
-            <mapping name="restricted_reg_out_turning" procedure="get_banned_area_out_turning()"/>
-            <mapping name="restricted_reg_nodes" procedure="get_restricted_region_nodes()"/>
         </proc_map>
+
 
         <!-- Entire Singapore network in new format -->
         <proc_map id="withinday" format="aimsun">
@@ -49,8 +55,8 @@
             <mapping name="pt_bus_stops" procedure="get_pt_bus_stops_17feb()"/>
             <mapping name="pt_stop_stats" procedure="get_pt_stop_stats()"/>
             <!-- MT specific stored procedures -->
-            <mapping name="pt_vertices" procedure="get_pt_map_trvertices()"/>
-            <mapping name="pt_edges" procedure="get_pt_map_tredges()"/>
+            <mapping name="pt_vertices" procedure="get_pt_map_vertices()"/>
+            <mapping name="pt_edges" procedure="get_pt_map_edges()"/>
             <mapping name="pt_pathset" procedure="get_pt_trpathset"/>
             <mapping name="mrt_road_segments" procedure="get_pt_mrt_segments()"/>
             <mapping name="rail_transit_edges" procedure="get_rail_transit_edges()"/>
@@ -172,6 +178,11 @@
             <param category="6" alpha="3.0" beta="1.5"/>
             <param category="7" alpha="3.0" beta="1.5"/>
         </speed_density_params>
+
+        <model_scripts path="scripts/lua/mid/behavior-models/" format="lua">
+             <script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models-->
+             <script name="pvtrc" file="pvtrc.lua"/> <!--private traffic route choice -->
+        </model_scripts>
         
     </supply>                                      
             

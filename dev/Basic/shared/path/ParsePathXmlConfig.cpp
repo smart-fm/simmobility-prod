@@ -73,7 +73,7 @@ void sim_mob::ParsePathXmlConfig::ProcessPathSetNode(xercesc::DOMElement* node){
 
 }
 
-void sim_mob::ParsePathXmlConfig::processModelScriptsNode(xercesc::DOMElement* node)
+ModelScriptsMap sim_mob::ParsePathXmlConfig::processModelScriptsNode(xercesc::DOMElement* node)
 {
 	std::string format = ParseString(GetNamedAttributeValue(node, "format"), "");
 	if (format.empty() || format != "lua")
@@ -111,7 +111,7 @@ void sim_mob::ParsePathXmlConfig::processModelScriptsNode(xercesc::DOMElement* n
 
 		scriptsMap.addScriptFileName(key, val);
 	}
-	cfg.ptRouteChoiceScriptsMap = scriptsMap;
+	return scriptsMap;
 }
 
 void sim_mob::ParsePathXmlConfig::processPublicPathsetNode(xercesc::DOMElement* publicConfNode)
@@ -160,7 +160,7 @@ void sim_mob::ParsePathXmlConfig::processPublicPathsetNode(xercesc::DOMElement* 
 
 	if(cfg.publicPathSetMode == "normal")
 	{
-		processModelScriptsNode(GetSingleElementByName(publicConfNode, "model_scripts", true));
+		cfg.ptRouteChoiceScriptsMap = processModelScriptsNode(GetSingleElementByName(publicConfNode, "model_scripts", true));
 	}
 }
 
@@ -289,20 +289,12 @@ void sim_mob::ParsePathXmlConfig::processPrivatePathsetNode(xercesc::DOMElement*
 	xercesc::DOMElement* utility = GetSingleElementByName(pvtConfNode, "utility_parameters");
 	if (utility)
 	{
-		cfg.params.bTTVOT = ParseFloat(GetNamedAttributeValue(GetSingleElementByName(utility, "bTTVOT"), "value"), -0.01373); //-0.0108879;
-		cfg.params.bCommonFactor = ParseFloat(GetNamedAttributeValue(GetSingleElementByName(utility, "bCommonFactor"), "value"), 1.0);
-		cfg.params.bLength = ParseFloat(GetNamedAttributeValue(GetSingleElementByName(utility, "bLength"), "value"), -0.001025); //0.0; //negative sign proposed by milan
-		cfg.params.bHighway = ParseFloat(GetNamedAttributeValue(GetSingleElementByName(utility, "bHighway"), "value"), 0.00052); //0.0;
-		cfg.params.bCost = ParseFloat(GetNamedAttributeValue(GetSingleElementByName(utility, "bCost"), "value"), 0.0);
-		cfg.params.bSigInter = ParseFloat(GetNamedAttributeValue(GetSingleElementByName(utility, "bSigInter"), "value"), -0.13); //0.0;
-		cfg.params.bLeftTurns = ParseFloat(GetNamedAttributeValue(GetSingleElementByName(utility, "bLeftTurns"), "value"), 0.0);
-		cfg.params.bWork = ParseFloat(GetNamedAttributeValue(GetSingleElementByName(utility, "bWork"), "value"), 0.0);
-		cfg.params.bLeisure = ParseFloat(GetNamedAttributeValue(GetSingleElementByName(utility, "bLeisure"), "value"), 0.0);
 		cfg.params.highwayBias = ParseFloat(GetNamedAttributeValue(GetSingleElementByName(utility, "highwayBias"), "value"), 0.5);
-		cfg.params.minTravelTimeParam = ParseFloat(GetNamedAttributeValue(GetSingleElementByName(utility, "minTravelTimeParam"), "value"), 0.879);
-		cfg.params.minDistanceParam = ParseFloat(GetNamedAttributeValue(GetSingleElementByName(utility, "minDistanceParam"), "value"), 0.325);
-		cfg.params.minSignalParam = ParseFloat(GetNamedAttributeValue(GetSingleElementByName(utility, "minSignalParam"), "value"), 0.256);
-		cfg.params.maxHighwayParam = ParseFloat(GetNamedAttributeValue(GetSingleElementByName(utility, "maxHighwayParam"), "value"), 0.422);
+	}
+
+	if(cfg.privatePathSetMode == "normal")
+	{
+		cfg.pvtRouteChoiceScriptsMap = processModelScriptsNode(GetSingleElementByName(pvtConfNode, "model_scripts", true));
 	}
 
 	//sanity check

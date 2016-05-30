@@ -71,14 +71,14 @@ void sim_mob::PathSetParam::storeSinglePath(soci::session& sql, std::set<sim_mob
 						<< sp->rightTurnNumber << ","
 						<< sp->length << ","
 						<< sp->highWayDistance << ","
-						<< sp->isMinDistance << ","
-						<< sp->isMinSignal << ","
-						<< sp->isMinRightTurn << ","
-						<< sp->isMaxHighWayUsage << ","
-						<< sp->valid_path << ","
-						<< sp->isShortestPath << ","
+						<< sp->minDistance << ","
+						<< sp->minSignals << ","
+						<< sp->minRightTurns << ","
+						<< sp->maxHighWayUsage << ","
+						<< sp->validPath << ","
+						<< sp->shortestPath << ","
 						<< sp->travelTime << ","
-						<< sp->isMinTravelTime << "\n";
+						<< sp->minTravelTime << "\n";
 			}
 		}
 	}

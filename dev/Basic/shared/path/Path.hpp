@@ -90,14 +90,14 @@ public:
 	double length; //length in meter
 	sim_mob::TRIP_PURPOSE purpose;
 
-	bool isMinTravelTime;
-	bool isMinDistance;
-	bool isMinSignal;
-	bool isMinRightTurn;
-	bool isMaxHighWayUsage;
-	bool isShortestPath;
+	bool minTravelTime;
+	bool minDistance;
+	bool minSignals;
+	bool minRightTurns;
+	bool maxHighWayUsage;
+	bool shortestPath;
 
-	bool valid_path;
+	bool validPath;
 
 
 	SinglePath(const SinglePath &source);
@@ -122,19 +122,19 @@ public:
 		return highWayDistance;
 	}
 
-	bool isIsMaxHighWayUsage() const
+	bool isMaxHighWayUsage() const
 	{
-		return isMaxHighWayUsage;
+		return maxHighWayUsage;
 	}
 
-	bool isIsMinDistance() const
+	bool isMinDistance() const
 	{
-		return isMinDistance;
+		return minDistance;
 	}
 
-	bool isIsMinSignal() const
+	bool isMinSignal() const
 	{
-		return isMinSignal;
+		return minSignals;
 	}
 
 	double getLength() const

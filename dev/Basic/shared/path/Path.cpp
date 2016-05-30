@@ -29,16 +29,16 @@ double pathCostArray[] = { 0.77, 0.87, 0.98, 1.08, 1.16, 1.23, 1.29, 1.33, 1.37,
 
 sim_mob::SinglePath::SinglePath() :
 		purpose(work), utility(0.0), pathSize(0.0), travelCost(0.0), partialUtility(0.0), signalNumber(0.0), rightTurnNumber(0.0), length(0.0), travelTime(0.0), highWayDistance(
-				0.0), valid_path(true), isMinTravelTime(0), isMinDistance(0), isMinSignal(0), isMinRightTurn(0), isMaxHighWayUsage(0), isShortestPath(0),
+				0.0), validPath(true), minTravelTime(0), minDistance(0), minSignals(0), minRightTurns(0), maxHighWayUsage(0), shortestPath(0),
 				path(std::vector<sim_mob::WayPoint>()), isNeedSave2DB(false)
 {
 }
 
 sim_mob::SinglePath::SinglePath(const SinglePath& source) :
-		id(source.id), utility(source.utility), pathSize(source.pathSize), travelCost(source.travelCost), valid_path(source.valid_path), signalNumber(
+		id(source.id), utility(source.utility), pathSize(source.pathSize), travelCost(source.travelCost), validPath(source.validPath), signalNumber(
 				source.signalNumber), rightTurnNumber(source.rightTurnNumber), length(source.length), travelTime(source.travelTime), pathSetId(
-				source.pathSetId), highWayDistance(source.highWayDistance), isMinTravelTime(source.isMinTravelTime), isMinDistance(source.isMinDistance), isMinSignal(
-				source.isMinSignal), isMinRightTurn(source.isMinRightTurn), isMaxHighWayUsage(source.isMaxHighWayUsage), isShortestPath(source.isShortestPath), partialUtility(
+				source.pathSetId), highWayDistance(source.highWayDistance), minTravelTime(source.minTravelTime), minDistance(source.minDistance), minSignals(
+				source.minSignals), minRightTurns(source.minRightTurns), maxHighWayUsage(source.maxHighWayUsage), shortestPath(source.shortestPath), partialUtility(
 				source.partialUtility), scenario(source.scenario)
 {
 	isNeedSave2DB = false;
@@ -145,11 +145,11 @@ void sim_mob::SinglePath::clear()
 	length = 0.0;
 	travelTime = 0.0;
 	highWayDistance = 0.0;
-	isMinTravelTime = 0;
-	isMinDistance = 0;
-	isMinSignal = 0;
-	isMinRightTurn = 0;
-	isMaxHighWayUsage = 0;
+	minTravelTime = 0;
+	minDistance = 0;
+	minSignals = 0;
+	minRightTurns = 0;
+	maxHighWayUsage = 0;
 }
 
 sim_mob::PathSet::~PathSet()

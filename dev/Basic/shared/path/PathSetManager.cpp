@@ -413,11 +413,11 @@ void sim_mob::PrivatePathsetGenerator::setPathSetTags(boost::shared_ptr<sim_mob:
 	//set all minima maximas to true (more than one path may have same minima/maxima)
 	for (sim_mob::SinglePath* sp : ps->pathChoices)
 	{
-		sp->isMinDistance = (sp->length == minDistance);
-		sp->isMinSignal = (minSignal == sp->signalNumber);
-		sp->isMinRightTurn = (sp->rightTurnNumber == minRightTurn);
-		sp->isMaxHighWayUsage = (maxHighWayUsage == sp->highWayDistance / sp->length);
-		sp->isMinTravelTime = (minTravelTime == sp->travelTime);
+		sp->minDistance = (sp->length == minDistance);
+		sp->minSignals = (minSignal == sp->signalNumber);
+		sp->minRightTurns = (sp->rightTurnNumber == minRightTurn);
+		sp->maxHighWayUsage = (maxHighWayUsage == sp->highWayDistance / sp->length);
+		sp->minTravelTime = (minTravelTime == sp->travelTime);
 	}
 }
 
@@ -467,7 +467,7 @@ void sim_mob::PrivateTrafficRouteChoice::onPathSetRetrieval(boost::shared_ptr<Pa
 
 	for (SinglePath* sp : ps->pathChoices)
 	{
-		sp->isMinTravelTime = (minTravelTime == sp->travelTime);
+		sp->minTravelTime = (minTravelTime == sp->travelTime);
 	}
 }
 
@@ -556,7 +556,7 @@ bool sim_mob::PrivateTrafficRouteChoice::getBestPath(std::vector<sim_mob::WayPoi
 		pathset->oriPath = nullptr;
 		for (sim_mob::SinglePath* sp : pathset->pathChoices)
 		{
-			if (sp->isShortestPath)
+			if (sp->shortestPath)
 			{
 				pathset->oriPath = sp;
 				break;
@@ -982,7 +982,7 @@ int sim_mob::PrivatePathsetGenerator::generateAllPathChoices(boost::shared_ptr<s
 		std::string str = "path set " + ps->id + " has no shortest path\n";
 		throw std::runtime_error(str);
 	}
-	if (!ps->oriPath->isShortestPath)
+	if (!ps->oriPath->shortestPath)
 	{
 		std::string str = "path set " + ps->id + " is supposed to be the shortest path but it is not!\n";
 		throw std::runtime_error(str);
@@ -1003,7 +1003,7 @@ int sim_mob::PrivatePathsetGenerator::generateAllPathChoices(boost::shared_ptr<s
 		{
 			if (p->hasPath)
 			{
-				if (p->path->isShortestPath)
+				if (p->path->shortestPath)
 				{
 					std::string str = "Single path from pathset " + ps->id + " is not supposed to be marked as a shortest path but it is!\n";
 					throw std::runtime_error(str);
@@ -1204,7 +1204,7 @@ int PrivateTrafficRouteChoice::isMinDistance(unsigned int index)
 	unsigned int sizeOfChoiceSet = pvtpathset.size();
 	if (index <= sizeOfChoiceSet && index > 0)
 	{
-		ret = pvtpathset[index - 1]->isIsMinDistance();
+		ret = pvtpathset[index - 1]->isMinDistance();
 	}
 	return ret;
 }
@@ -1215,7 +1215,7 @@ int PrivateTrafficRouteChoice::isMinSignal(unsigned int index)
 	unsigned int sizeOfChoiceSet = pvtpathset.size();
 	if (index <= sizeOfChoiceSet && index > 0)
 	{
-		ret = pvtpathset[index - 1]->isIsMinSignal();
+		ret = pvtpathset[index - 1]->isMinSignal();
 	}
 	return ret;
 }
@@ -1226,7 +1226,7 @@ int PrivateTrafficRouteChoice::isMaxHighWayUsage(unsigned int index)
 	unsigned int sizeOfChoiceSet = pvtpathset.size();
 	if (index <= sizeOfChoiceSet && index > 0)
 	{
-		ret = pvtpathset[index - 1]->isIsMaxHighWayUsage();
+		ret = pvtpathset[index - 1]->isMaxHighWayUsage();
 	}
 	return ret;
 }
@@ -1321,7 +1321,7 @@ sim_mob::SinglePath * sim_mob::PrivatePathsetGenerator::findShortestDrivingPath(
 	singlePath->init(wpPath);
 	singlePath->id = sim_mob::makePathString(wpPath);
 	singlePath->scenario = scenarioName;
-	singlePath->isShortestPath = true;
+	singlePath->shortestPath = true;
 	return singlePath;
 }
 

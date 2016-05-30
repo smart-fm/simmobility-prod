@@ -81,7 +81,6 @@ void ParseMidTermConfigFile::processXmlFile(xercesc::XercesDOMParser& parser)
     processBusControllerNode(GetSingleElementByName(rootNode, "busController", true));
     processTrainControllerNode(GetSingleElementByName(rootNode, "trainController", true));
     processScreenLineNode(GetSingleElementByName(rootNode, "screen-line-count"));
-    processPT_EdgeTravelTimeNode(GetSingleElementByName(rootNode, "pt_edge_time"));
     processGenerateBusRoutesNode(GetSingleElementByName(rootNode, "generateBusRoutes"));
     processTT_Update(GetSingleElementByName(rootNode, "travel_time_update", true));
     processSubtripTravelMetricsOutputNode(GetSingleElementByName(rootNode, "subtrip_travel_metrics_output"));
@@ -123,6 +122,7 @@ void ParseMidTermConfigFile::processSupplyNode(xercesc::DOMElement* node)
 	processWalkSpeedElement(GetSingleElementByName(node, "pedestrian_walk_speed", true));
 	processStatisticsOutputNode(GetSingleElementByName(node, "output_pt_statistics", true));
 	processBusCapactiyElement(GetSingleElementByName(node, "bus_default_capacity", true));
+	processSpeedDensityParamsNode(GetSingleElementByName(node, "speed_density_params", true));
 }
 
 
@@ -253,34 +253,60 @@ void ParseMidTermConfigFile::processStatisticsOutputNode(xercesc::DOMElement* no
 	DOMElement* child = GetSingleElementByName(node, "journey_time");
 	if (child == nullptr)
 	{
-		throw std::runtime_error("load statistics output parameters errors in MT_Config");
+		throw std::runtime_error("journey_time output file name missing in MT_Config");
 	}
 	std::string value = ParseString(GetNamedAttributeValue(child, "file"), "");
-	mtCfg.setJourneyTimeStatsFilename(value);
+	cfg.setJourneyTimeStatsFilename(value);
 
 	child = GetSingleElementByName(node, "waiting_time");
 	if (child == nullptr)
 	{
-		throw std::runtime_error("load statistics output parameters errors in MT_Config");
+		throw std::runtime_error("waiting_time output file name missing in MT_Config");
 	}
 	value = ParseString(GetNamedAttributeValue(child, "file"), "");
-	mtCfg.setWaitingTimeStatsFilename(value);
+	cfg.setWaitingTimeStatsFilename(value);
 
 	child = GetSingleElementByName(node, "waiting_count");
 	if (child == nullptr)
 	{
-		throw std::runtime_error("load statistics output parameters errors in MT_Config");
+		throw std::runtime_error("waiting_count output file name missing in MT_Config");
 	}
 	value = ParseString(GetNamedAttributeValue(child, "file"), "");
-	mtCfg.setWaitingCountStatsFilename(value);
+	cfg.setWaitingCountStatsFilename(value);
 
 	child = GetSingleElementByName(node, "travel_time");
 	if (child == nullptr)
 	{
-		throw std::runtime_error("load statistics output parameters errors in MT_Config");
+		throw std::runtime_error("travel_time output file name missing in MT_Config");
 	}
 	value = ParseString(GetNamedAttributeValue(child, "file"), "");
-	mtCfg.setTravelTimeStatsFilename(value);
+	cfg.setTravelTimeStatsFilename(value);
+
+	child = GetSingleElementByName(node, "pt_stop_stats");
+	if (child == nullptr)
+	{
+		throw std::runtime_error("pt_stop_stats output file name missing in MT_Config");
+	}
+	value = ParseString(GetNamedAttributeValue(child, "file"), "");
+	cfg.setPT_StopStatsFilename(value);
+}
+
+void ParseMidTermConfigFile::processSpeedDensityParamsNode(xercesc::DOMElement* node)
+{
+    for (DOMElement* item=node->getFirstElementChild(); item; item=item->getNextElementSibling())
+    {
+        if (TranscodeString(item->getNodeName())!="param")
+        {
+            Warn() <<"Invalid db_proc_groups child node.\n";
+            continue;
+        }
+
+        ///Retrieve some attributes from the Node itself.
+        int linkCategory = ParseInteger(GetNamedAttributeValue(item, "category"));
+        double alpha = ParseFloat(GetNamedAttributeValue(item, "alpha"));
+        double beta = ParseFloat(GetNamedAttributeValue(item, "beta"));
+        mtCfg.setSpeedDensityParam(linkCategory, alpha, beta);
+    }
 }
 
 
@@ -517,13 +543,6 @@ void ParseMidTermConfigFile::processScreenLineNode(DOMElement *node)
             }
         }
     }
-}
-
-void ParseMidTermConfigFile::processPT_EdgeTravelTimeNode(DOMElement *node)
-{
-	if(node){
-		mtCfg.enabledEdgeTravelTime = ParseBoolean(GetNamedAttributeValue(node, "enabled"), false);
-	}
 }
 
 void ParseMidTermConfigFile::processGenerateBusRoutesNode(xercesc::DOMElement* node)

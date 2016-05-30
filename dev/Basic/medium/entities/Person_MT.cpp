@@ -19,7 +19,6 @@
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "geospatial/network/WayPoint.hpp"
 #include "path/PT_RouteChoiceLuaProvider.hpp"
-#include "entities/PT_EdgeTravelTime.hpp"
 #include "entities/incident/IncidentManager.hpp"
 #include "util/DailyTime.hpp"
 
@@ -30,16 +29,16 @@ using namespace sim_mob::medium;
 Person_MT::Person_MT(const std::string& src, const MutexStrategy& mtxStrat, int id, std::string databaseID)
 : Person(src, mtxStrat, id, databaseID),
 isQueuing(false), distanceToEndOfSegment(0.0), drivingTimeToEndOfLink(0.0), remainingTimeThisTick(0.0),
-requestedNextSegStats(NULL), canMoveToNextSegment(NONE), currSegStats(NULL), currLane(NULL),
-prevRole(NULL), currRole(NULL), nextRole(NULL)		
+requestedNextSegStats(nullptr), canMoveToNextSegment(NONE), currSegStats(nullptr), currLane(nullptr),
+prevRole(nullptr), currRole(nullptr), nextRole(nullptr), numTicksStuck(0)
 {
 }
 
 Person_MT::Person_MT(const std::string& src, const MutexStrategy& mtxStrat, const std::vector<sim_mob::TripChainItem*>& tc)
 : Person(src, mtxStrat, tc),
 isQueuing(false), distanceToEndOfSegment(0.0), drivingTimeToEndOfLink(0.0), remainingTimeThisTick(0.0),
-requestedNextSegStats(NULL), canMoveToNextSegment(NONE), currSegStats(NULL), currLane(NULL),
-prevRole(NULL), currRole(NULL), nextRole(NULL)
+requestedNextSegStats(nullptr), canMoveToNextSegment(NONE), currSegStats(nullptr), currLane(nullptr),
+prevRole(nullptr), currRole(nullptr), nextRole(nullptr), numTicksStuck(0)
 {
 	ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
 	std::string ptPathsetStoredProcName = cfg.getDatabaseProcMappings().procedureMappings["pt_pathset"];
@@ -92,6 +91,7 @@ void Person_MT::convertPublicTransitODsToTrips(PT_Network& ptNetwork,const std::
 	{
 		if ((*tripChainItemIt)->itemType == sim_mob::TripChainItem::IT_TRIP)
 		{
+			unsigned int start_time = ((*tripChainItemIt)->startTime.offsetMS_From(ConfigManager::GetInstance().FullConfig().simStartTime())/1000); // start time in seconds
 			TripChainItem* trip = (*tripChainItemIt);
 			std::string originId = boost::lexical_cast<std::string>(trip->origin.node->getNodeId());
 			std::string destId = boost::lexical_cast<std::string>(trip->destination.node->getNodeId());
@@ -107,8 +107,11 @@ void Person_MT::convertPublicTransitODsToTrips(PT_Network& ptNetwork,const std::
 					if (itSubTrip->getMode() == "BusTravel" || itSubTrip->getMode() == "MRT")
 					{
 						std::vector<sim_mob::OD_Trip> odTrips;
+
+						std::string dbid = this->getDatabaseId();
 						bool ret = sim_mob::PT_RouteChoiceLuaProvider::getPTRC_Model().getBestPT_Path(itSubTrip->origin.node->getNodeId(),
-								itSubTrip->destination.node->getNodeId(), itSubTrip->startTime.getValue(), odTrips, ptPathsetStoredProcName);
+												itSubTrip->destination.node->getNodeId(),itSubTrip->startTime.getValue(), odTrips, dbid, start_time,ptPathsetStoredProcName);
+
 						if (ret)
 						{
 							ret = makeODsToTrips(&(*itSubTrip), newSubTrips, odTrips, ptNetwork);
@@ -324,7 +327,7 @@ bool Person_MT::updatePersonRole()
 	{
 		const RoleFactory<Person_MT> *rf = RoleFactory<Person_MT>::getInstance();
 		const TripChainItem *tci = *(this->currTripChainItem);
-		const SubTrip* subTrip = NULL;
+		const SubTrip* subTrip = nullptr;
 
 		if (tci->itemType == TripChainItem::IT_TRIP)
 		{
@@ -430,13 +433,6 @@ Entity::UpdateStatus Person_MT::checkTripChain(unsigned int currentTime)
 	//advance the trip, sub-trip or activity....
 	if (!isFirstTick)
 	{
-		if(isTripValid())
-		{
-			currSubTrip->endTime = DailyTime(currentTime);
-			PT_EdgeTravelTime::getInstance()->updateEdgeTravelTime(
-					currSubTrip->edgeId, currSubTrip->startTime.getValue(),
-					currSubTrip->endTime.getValue(), currSubTrip->travelMode);
-		}
 		if (!(advanceCurrentTripChainItem()))
 		{
 			return UpdateStatus::Done;
@@ -489,4 +485,9 @@ Entity::UpdateStatus Person_MT::checkTripChain(unsigned int currentTime)
 	//remove the "removed" flag, and return
 	clearToBeRemoved();
 	return UpdateStatus(UpdateStatus::RS_CONTINUE, prevParams, currParams);
+}
+
+void Person_MT::log(std::string line) const
+{
+	Log() << line;
 }

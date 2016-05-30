@@ -48,9 +48,15 @@ public:
 	{
 		/**R-Star tree*/
 		IMPL_RSTAR,
+		
+		/**Sim-tree*/
+		IMPL_SIMTREE,
 
 		/**RDU tree*/
-		IMPL_RDU
+		IMPL_RDU,
+		
+		/**R-Star with packing algorithm*/
+		IMPL_PACKING
 	};
 
 	static AuraManager& instance()

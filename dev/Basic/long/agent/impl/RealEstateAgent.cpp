@@ -29,7 +29,7 @@ using std::map;
 using std::endl;
 
 RealEstateAgent::RealEstateAgent(BigSerial id, HM_Model* model, const Household* household, HousingMarket* market, bool marketSeller, int day)
-: LT_Agent(id), model(model), market(market), household(household), marketSeller(marketSeller), seller(nullptr), day(day)
+: Agent_LT(ConfigManager::GetInstance().FullConfig().mutexStategy(), id), model(model), market(market), household(household), marketSeller(marketSeller), seller(nullptr), day(day)
 {
     seller = new RealEstateSellerRole(this);
     seller->setActive(marketSeller);
@@ -100,7 +100,8 @@ void RealEstateAgent::changeToDateInToBeDemolishedBuildings(BigSerial buildingId
 	boost::unordered_map<BigSerial,Building*>::const_iterator itr = buildingsById.find(buildingId);
 	    if (itr != buildingsById.end())
 	    {
-	        itr->second->setToDate(toDate);
+	    	itr->second->setToDate(toDate);
+
 	    }
 
 	    //change unit statuses to demolished
@@ -121,7 +122,7 @@ void RealEstateAgent::changeBuildingStatus(BigSerial buildingId,BuildingStatus b
 	boost::unordered_map<BigSerial,Building*>::const_iterator itr = buildingsById.find(buildingId);
 	if (itr != buildingsById.end())
 	{
-		itr->second->setBuildingStatus(buildingStatus);
+		(itr->second)->setBuildingStatus(buildingStatus);
 	}
 }
 
@@ -131,7 +132,7 @@ void RealEstateAgent::changeUnitStatus(BigSerial unitId,UnitStatus unitStatus)
 	boost::unordered_map<BigSerial,Unit*>::const_iterator itr = unitsById.find(unitId);
 	if (itr != unitsById.end())
 	{
-		itr->second->setUnitStatus(unitStatus);
+		(itr->second)->setConstructionStatus(unitStatus);
 	}
 }
 
@@ -141,7 +142,7 @@ void RealEstateAgent::changeUnitSaleStatus(BigSerial unitId,UnitSaleStatus unitS
 	boost::unordered_map<BigSerial,Unit*>::const_iterator itr = unitsById.find(unitId);
 	if (itr != unitsById.end())
 	{
-		itr->second->setSaleStatus(unitSaleStatus);
+		(itr->second)->setSaleStatus(unitSaleStatus);
 	}
 }
 
@@ -151,7 +152,7 @@ void RealEstateAgent::changeUnitPhysicalStatus(BigSerial unitId,UnitPhysicalStat
 	boost::unordered_map<BigSerial,Unit*>::const_iterator itr = unitsById.find(unitId);
 	if (itr != unitsById.end())
 	{
-		itr->second->setPhysicalStatus(unitPhysicalStatus);
+		(itr->second)->setOccupancyStatus(unitPhysicalStatus);
 	}
 }
 
@@ -210,9 +211,9 @@ void RealEstateAgent::HandleMessage(Message::MessageType type, const Message& me
 	            Unit *unit = hmMessage.getUnit();
 
 				ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
-	            unit->setTimeOffMarket(config.ltParams.housingModel.timeOnMarket);
-	            unit->setTimeOnMarket(config.ltParams.housingModel.timeOffMarket);
-	            unit->setbiddingMarketEntryDay(day + 180 + 1);
+	            unit->setTimeOffMarket(1 + config.ltParams.housingModel.timeOnMarket * (float)rand() / RAND_MAX );
+	            unit->setTimeOnMarket(1 + config.ltParams.housingModel.timeOffMarket * (float)rand() / RAND_MAX);
+	            unit->setbiddingMarketEntryDay(day);
 
 	           	units.push_back(unit);
 	            unitsById.insert(std::make_pair((unit)->getId(), unit));

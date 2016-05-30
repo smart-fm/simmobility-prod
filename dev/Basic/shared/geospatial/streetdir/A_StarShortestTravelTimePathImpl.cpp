@@ -117,7 +117,7 @@ void A_StarShortestTravelTimePathImpl::initDrivingNetwork(const sim_mob::RoadNet
 	}
 
 	//Now add all Intersection edges (link connectors)
-	for (NodeLookup::const_iterator it = nodeLookupMorningPeak.begin();	it != nodeLookupMorningPeak.end(); it++) {
+	for (NodeLookup::const_iterator it = nodeLookupDefault.begin();	it != nodeLookupDefault.end(); it++) {
 //		procAddDrivingLinkConnectors(drivingMapMorningPeak, (it->first),nodeLookupMorningPeak);
 //		procAddDrivingLinkConnectors(drivingMapEveningPeak, (it->first),nodeLookupEveningPeak);
 //		procAddDrivingLinkConnectors(drivingMapNormalTime, (it->first),nodeLookupNormalTime);
@@ -385,6 +385,132 @@ std::vector<sim_mob::WayPoint> A_StarShortestTravelTimePathImpl::GetShortestDriv
 	return GetShortestDrivingPath(from, to, blacklist, MorningPeak);
 }
 
+
+std::vector<WayPoint> A_StarShortestTravelTimePathImpl::searchShortestTTPathWithBlackList(const StreetDirectory::Graph& graph, const StreetDirectory::Vertex& fromVertex,
+																			  const StreetDirectory::Vertex& toVertex,
+																			  const std::set<StreetDirectory::Edge>& blacklist)
+{
+	//Lock for read access.
+	boost::shared_lock<boost::shared_mutex> lock(GraphSearchMutex);
+
+	//Filter it.
+	BlackListEdgeConstraint filter(blacklist);
+	boost::filtered_graph<StreetDirectory::Graph, BlackListEdgeConstraint> filtered(graph, filter);
+
+	vector<WayPoint> res;
+	std::list<StreetDirectory::Vertex> partialRes;
+	//Output variable for A* searching
+	vector<StreetDirectory::Vertex> p(boost::num_vertices(filtered));
+	//Output variable for A* searching
+	vector<double> d(boost::num_vertices(filtered));
+
+	//Use A* to search for a path
+	try
+	{
+		boost::astar_search(filtered, fromVertex, A_StarShortestTravelTimePathImpl::DistanceHeuristicFiltered(&filtered, toVertex),
+							boost::predecessor_map(&p[0]).distance_map(&d[0]).visitor(GoalVisitor(toVertex)));
+	}
+	catch (Goal& goal)
+	{
+		//Build backwards.
+		for (StreetDirectory::Vertex v = toVertex;; v = p[v])
+		{
+			partialRes.push_front(v);
+			if (p[v] == v)
+			{
+				break;
+			}
+		}
+
+		//Now build forwards.
+		std::list<StreetDirectory::Vertex>::const_iterator prev = partialRes.end();
+		for (std::list<StreetDirectory::Vertex>::const_iterator it = partialRes.begin(); it != partialRes.end(); it++)
+		{
+			//Add this edge.
+			if (prev != partialRes.end())
+			{
+				//This shouldn't fail.
+				std::pair < StreetDirectory::Edge, bool> edge = boost::edge(*prev, *it, filtered);
+				if (!edge.second)
+				{
+					Warn() << "ERROR: Boost can't find an edge that it should know about."
+							<< std::endl;
+					return std::vector<WayPoint>();
+				}
+
+				//Retrieve, add this edge's WayPoint.
+				WayPoint wp = boost::get(boost::edge_name, filtered, edge.first);
+				res.push_back(wp);
+			}
+
+			//Save for later.
+			prev = it;
+		}
+	}
+
+	return res;
+}
+
+vector<WayPoint> A_StarShortestTravelTimePathImpl::searchShortestTTPath(const StreetDirectory::Graph& graph, const StreetDirectory::Vertex& fromVertex,
+															const StreetDirectory::Vertex& toVertex)
+{
+	vector<WayPoint> res;
+	std::list<StreetDirectory::Vertex> partialRes;
+
+	//Lock for read access.
+	boost::shared_lock<boost::shared_mutex> lock(GraphSearchMutex);
+	//Output variable for A* searching
+	vector<StreetDirectory::Vertex> p(boost::num_vertices(graph));
+	//Output variable for A* searching
+	vector<double> d(boost::num_vertices(graph));
+
+	//Use A* to search for a path
+	try
+	{
+		boost::astar_search(graph, fromVertex, A_StarShortestTravelTimePathImpl::DistanceHeuristicGraph(&graph, toVertex),
+							boost::predecessor_map(&p[0]).distance_map(&d[0]).visitor(GoalVisitor(toVertex)));
+	}
+	catch (Goal& goal)
+	{
+		//Build backwards.
+		for (StreetDirectory::Vertex v = toVertex;; v = p[v])
+		{
+			partialRes.push_front(v);
+			if (p[v] == v)
+			{
+				break;
+			}
+		}
+
+		//Now build forwards.
+		std::list<StreetDirectory::Vertex>::const_iterator prev = partialRes.end();
+		for (std::list<StreetDirectory::Vertex>::const_iterator it = partialRes.begin(); it != partialRes.end(); it++)
+		{
+			//Add this edge.
+			if (prev != partialRes.end())
+			{
+				//This shouldn't fail.
+				std::pair < StreetDirectory::Edge, bool> edge = boost::edge(*prev, *it, graph);
+				if (!edge.second)
+				{
+					Warn() << "ERROR: Boost can't find an edge that it should know about."
+							<< std::endl;
+					return std::vector<WayPoint>();
+				}
+
+				//Retrieve, add this edge WayPoint.
+				WayPoint wp = boost::get(boost::edge_name, graph, edge.first);
+				res.push_back(wp);
+			}
+
+			//Save for later.
+			prev = it;
+		}
+	}
+
+	return res;
+}
+
 vector<sim_mob::WayPoint> A_StarShortestTravelTimePathImpl::GetShortestDrivingPath(
 		const StreetDirectory::VertexDesc& from, const StreetDirectory::VertexDesc& to,const vector<const sim_mob::Link*>& blacklist, TimeRange tmRange,unsigned int randomGraphId) const
 {
@@ -514,11 +640,11 @@ vector<sim_mob::WayPoint> A_StarShortestTravelTimePathImpl::GetShortestDrivingPa
 //		else
 		if (tmRange == Default)
 		{
-			return searchShortestPath(drivingMapDefault, fromV, toV);
+			return searchShortestTTPath(drivingMapDefault, fromV, toV);
 		}
 		else if (tmRange == HighwayBiasDistance)
 		{
-			return searchShortestPath(drivingMapHighwayBiasDistance, fromV, toV);
+			return searchShortestTTPath(drivingMapHighwayBiasDistance, fromV, toV);
 		}
 		else
 //		if (tmRange == HighwayBiasMorningPeak)
@@ -536,7 +662,7 @@ vector<sim_mob::WayPoint> A_StarShortestTravelTimePathImpl::GetShortestDrivingPa
 //		else
 		if (tmRange == HighwayBiasDefault)
 		{
-			return searchShortestPath(drivingMapHighwayBiasDefault, fromV, toV);
+			return searchShortestTTPath(drivingMapHighwayBiasDefault, fromV, toV);
 		}
 		else if (tmRange == Random)
 		{
@@ -544,7 +670,7 @@ vector<sim_mob::WayPoint> A_StarShortestTravelTimePathImpl::GetShortestDrivingPa
 			{
 				return vector<sim_mob::WayPoint>();
 			}
-			return searchShortestPath(drivingMapRandomPool[randomGraphId], fromV, toV);
+			return searchShortestTTPath(drivingMapRandomPool[randomGraphId], fromV, toV);
 		}
 		else
 		{
@@ -568,11 +694,11 @@ vector<sim_mob::WayPoint> A_StarShortestTravelTimePathImpl::GetShortestDrivingPa
 //		else
 		if (tmRange == Default)
 		{
-			return searchShortestPathWithBlackList(drivingMapDefault, fromV, toV, blacklistV);
+			return searchShortestTTPathWithBlackList(drivingMapDefault, fromV, toV, blacklistV);
 		}
 		else if (tmRange == HighwayBiasDistance)
 		{
-			return searchShortestPathWithBlackList(drivingMapHighwayBiasDistance, fromV, toV, blacklistV);
+			return searchShortestTTPathWithBlackList(drivingMapHighwayBiasDistance, fromV, toV, blacklistV);
 		}
 		else
 //		if (tmRange == HighwayBiasMorningPeak)
@@ -590,7 +716,7 @@ vector<sim_mob::WayPoint> A_StarShortestTravelTimePathImpl::GetShortestDrivingPa
 //		else
 		if (tmRange == HighwayBiasDefault)
 		{
-			return searchShortestPathWithBlackList(drivingMapHighwayBiasDefault, fromV, toV, blacklistV);
+			return searchShortestTTPathWithBlackList(drivingMapHighwayBiasDefault, fromV, toV, blacklistV);
 		}
 		else if (tmRange == Random)
 		{
@@ -598,7 +724,7 @@ vector<sim_mob::WayPoint> A_StarShortestTravelTimePathImpl::GetShortestDrivingPa
 			{
 				return vector<sim_mob::WayPoint>();
 			}
-			return searchShortestPathWithBlackList(drivingMapRandomPool[randomGraphId], fromV, toV, blacklistV);
+			return searchShortestTTPathWithBlackList(drivingMapRandomPool[randomGraphId], fromV, toV, blacklistV);
 		}
 		else
 		{

@@ -384,7 +384,7 @@ double MITSIM_IntDriving_Model::makeAcceleratingDecision(DriverUpdateParams &par
 			debugStr << ";CGap:" << criticalGap;			
 
 			//The map entry to the conflict and list of NearestVehicles on the it
-			map<const TurningConflict *, list<NearestVehicle> >::iterator itConflictVehicles = params.conflictVehicles.find(conflict);
+			map<const TurningConflict *, std::set<NearestVehicle, compare_NearestVehicle> >::iterator itConflictVehicles = params.conflictVehicles.find(conflict);
 
 			//Check if we have found an entry in the map
 			if (itConflictVehicles != params.conflictVehicles.end())
@@ -392,7 +392,7 @@ double MITSIM_IntDriving_Model::makeAcceleratingDecision(DriverUpdateParams &par
 				debugStr << ";#veh:" << itConflictVehicles->second.size();
 
 				//Iterator to the list of nearest vehicles on the list
-				list<NearestVehicle>::iterator itNearestVehicles = itConflictVehicles->second.begin();
+				std::set<NearestVehicle, compare_NearestVehicle>::iterator itNearestVehicles = itConflictVehicles->second.begin();
 
 				//Look for the vehicle reaching the conflict point - the list is sorted according to the distance from the conflict
 				//point - distance less than 0 means yet to reach the conflict and greater than 0 means crossed the conflict point
@@ -411,7 +411,7 @@ double MITSIM_IntDriving_Model::makeAcceleratingDecision(DriverUpdateParams &par
 						break;
 					}
 
-					if (itNearestVehicles->distance >= -itNearestVehicles->driver->getVehicleLength() && itNearestVehicles->distance < 0.0)
+					if (itNearestVehicles->distance >= -itNearestVehicles->driver->getVehicleLength() / 2 && itNearestVehicles->distance < 0.0)
 					{
 						//Other vehicle is blocking the conflict
 						debugStr << ";StpPtCrsd:";

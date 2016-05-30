@@ -1039,7 +1039,7 @@ void sim_mob::medium::PredayManager::dispatchLT_Persons()
 		bool truncated = logsumSqlDao.erase(db::EMPTY_PARAMS);
 		if(truncated)
 		{
-			Print() << DB_TABLE_LOGSUMS << " truncated on logsumDatabase.dbName" << std::endl;
+			Print() << DB_TABLE_LOGSUMS << " truncated on " << logsumDatabase.dbName << std::endl;
 		}
 		else
 		{

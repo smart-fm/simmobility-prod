@@ -52,6 +52,7 @@ public:
 
 private:
 	bool drive1Available;
+	bool motorAvailable;
 	/**mode for parent work tour in case of sub tours*/
 	int modeForParentWorkTour;
 	double costIncrease;

@@ -6,6 +6,8 @@
  * 
  * Created on March 11, 2014, 3:08 PM
  */
+#include <boost/make_shared.hpp>
+
 #include "DeveloperModel.hpp"
 #include "util/LangHelpers.hpp"
 #include "util/HelperFunctions.hpp"
@@ -23,6 +25,7 @@
 #include "database/dao/ParcelMatchDao.hpp"
 #include "database/entity/ParcelMatch.hpp"
 #include "database/entity/SlaParcel.hpp"
+#include "database/entity/BuildingAvgAgePerParcel.hpp"
 #include "database/dao/SlaParcelDao.hpp"
 #include "database/dao/UnitDao.hpp"
 #include "database/entity/UnitType.hpp"
@@ -36,8 +39,12 @@
 #include "database/dao/TAO_Dao.hpp"
 #include "database/dao/UnitPriceSumDao.hpp"
 #include "database/dao/TazLevelLandPriceDao.hpp"
+#include "database/dao/SimulationStoppedPointDao.hpp"
+#include "database/dao/ProjectDao.hpp"
+#include "database/dao/BuildingAvgAgePerParcelDao.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
+#include "util/SharedFunctions.hpp"
 
 using namespace sim_mob;
 using namespace sim_mob::long_term;
@@ -49,10 +56,10 @@ namespace {
     const string MODEL_NAME = "Developer Model";
 }
 
-DeveloperModel::DeveloperModel(WorkGroup& workGroup): Model(MODEL_NAME, workGroup), timeInterval( 30 ),dailyParcelCount(0),isParcelRemain(true),numSimulationDays(0),dailyAgentCount(0),isDevAgentsRemain(true),currentTick(0),realEstateAgentIdIndex(0),housingMarketModel(nullptr),postcodeForDevAgent(0),initPostcode(false),unitIdForDevAgent(0),buildingIdForDevAgent(0),projectIdForDevAgent(0),devAgentCount(0),simYearForDevAgent(0),minLotSize(0){ //In days (7 - weekly, 30 - Monthly)
+DeveloperModel::DeveloperModel(WorkGroup& workGroup): Model(MODEL_NAME, workGroup), timeInterval( 30 ),dailyParcelCount(0),isParcelRemain(true),numSimulationDays(0),dailyAgentCount(0),isDevAgentsRemain(true),realEstateAgentIdIndex(0),housingMarketModel(nullptr),postcodeForDevAgent(0),initPostcode(false),unitIdForDevAgent(0),buildingIdForDevAgent(0),projectIdForDevAgent(0),devAgentCount(0),simYear(0),minLotSize(0),isRestart(false),OpSchemaLoadingInterval(0),startDay(0){ //In days (7 - weekly, 30 - Monthly)
 }
 
-DeveloperModel::DeveloperModel(WorkGroup& workGroup, unsigned int timeIntervalDevModel ): Model(MODEL_NAME, workGroup), timeInterval( timeIntervalDevModel ),dailyParcelCount(0),isParcelRemain(true),numSimulationDays(0),dailyAgentCount(0),isDevAgentsRemain(true),currentTick(0),realEstateAgentIdIndex(0),housingMarketModel(nullptr),postcodeForDevAgent(0),initPostcode(false), unitIdForDevAgent(0),buildingIdForDevAgent(0),projectIdForDevAgent(0),devAgentCount(0),simYearForDevAgent(0),minLotSize(0){
+DeveloperModel::DeveloperModel(WorkGroup& workGroup, unsigned int timeIntervalDevModel ): Model(MODEL_NAME, workGroup), timeInterval( timeIntervalDevModel ),dailyParcelCount(0),isParcelRemain(true),numSimulationDays(0),dailyAgentCount(0),isDevAgentsRemain(true),realEstateAgentIdIndex(0),housingMarketModel(nullptr),postcodeForDevAgent(0),initPostcode(false), unitIdForDevAgent(0),buildingIdForDevAgent(0),projectIdForDevAgent(0),devAgentCount(0),simYear(0),minLotSize(0),isRestart(false),OpSchemaLoadingInterval(0),startDay(0){
 }
 
 DeveloperModel::~DeveloperModel() {
@@ -79,6 +86,7 @@ void DeveloperModel::startImpl() {
 		for (ParcelList::iterator it = emptyParcels.begin(); it != emptyParcels.end(); it++) {
 			emptyParcelsById.insert(std::make_pair((*it)->getId(), *it));
 		}
+
 		//load DevelopmentType-Templates
 		loadData<DevelopmentTypeTemplateDao>(conn, developmentTypeTemplates);
 		//load Template - UnitType
@@ -94,12 +102,6 @@ void DeveloperModel::startImpl() {
 		for (BuildingSpaceList::iterator it = buildingSpaces.begin(); it != buildingSpaces.end(); it++) {
 			buildingSpacesByParcelId.insert(std::make_pair((*it)->getFmParcelId(), *it));
 		}
-		//load projects
-		loadData<ProjectDao>(conn,projects);
-
-		for (ProjectList::iterator it = projects.begin(); it != projects.end(); it++) {
-			existingProjectIds.push_back((*it)->getProjectId());
-		}
 
 		loadData<ParcelAmenitiesDao>(conn,amenities,amenitiesById,&ParcelAmenities::getFmParcelId);
 
@@ -113,20 +115,61 @@ void DeveloperModel::startImpl() {
 		PrintOutV("unit price sums loaded " << unitPriceSumList.size() << std::endl);
 		loadData<TazLevelLandPriceDao>(conn,tazLevelLandPriceList,tazLevelLandPriceByTazId,&TazLevelLandPrice::getTazId);
 		PrintOutV("land values loaded " << tazLevelLandPriceList.size() << std::endl);
+		loadData<BuildingAvgAgePerParcelDao>(conn,buildingAvgAgePerParcel,BuildingAvgAgeByParceld,&BuildingAvgAgePerParcel::getFmParcelId);
+		PrintOutV("building average age per parcel loaded " << buildingAvgAgePerParcel.size() << std::endl);
+
+		setRealEstateAgentIds(housingMarketModel->getRealEstateAgentIds());
+
+
+		ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+		bool resume = config.ltParams.resume;
+
+		if(resume)
+		{
+			outputSchema = config.ltParams.currentOutputSchema;
+			SimulationStoppedPointDao simStoppedPointDao(conn);
+			const std::string getAllSimStoppedPointParams = "SELECT * FROM " + outputSchema+ "."+"simulation_stopped_point;";
+			simStoppedPointDao.getByQuery(getAllSimStoppedPointParams,simStoppedPointList);
+			if(!simStoppedPointList.empty())
+			{
+				postcodeForDevAgent = simStoppedPointList[simStoppedPointList.size()-1]->getPostcode();
+				unitIdForDevAgent = simStoppedPointList[simStoppedPointList.size()-1]->getUnitId();
+				buildingIdForDevAgent = simStoppedPointList[simStoppedPointList.size()-1]->getBuildingId();
+				projectIdForDevAgent = simStoppedPointList[simStoppedPointList.size()-1]->getProjectId();
+			}
+
+			parcelsWithOngoingProjects = parcelDao.getParcelsWithOngoingProjects(outputSchema);
+			//Index all parcels with ongoing projects.
+			for (ParcelList::iterator it = parcelsWithOngoingProjects.begin(); it != parcelsWithOngoingProjects.end(); it++) {
+				parcelsWithOngoingProjectsById.insert(std::make_pair((*it)->getId(), *it));
+			}
+
+			//load projects
+			ProjectDao projectDao(conn);
+			projects = projectDao.loadOngoingProjects(outputSchema);
+			for (ProjectList::iterator it = projects.begin(); it != projects.end(); it++) {
+				existingProjectIds.push_back((*it)->getProjectId());
+				projectByParcelId.insert(std::make_pair((*it)->getParcelId(),*it));
+			}
+
+		}
+		else
+		{
+			postcodeForDevAgent = config.ltParams.developerModel.initialPostcode;
+			unitIdForDevAgent = config.ltParams.developerModel.initialUnitId;
+			buildingIdForDevAgent = config.ltParams.developerModel.initialBuildingId;
+			projectIdForDevAgent = config.ltParams.developerModel.initialProjectId;
+		}
+		simYear = config.ltParams.year;
+		minLotSize= config.ltParams.developerModel.minLotSize;
 
 	}
-	setRealEstateAgentIds(housingMarketModel->getRealEstateAgentIds());
-	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
-	postcodeForDevAgent = config.ltParams.developerModel.initialPostcode;
-	unitIdForDevAgent = config.ltParams.developerModel.initialUnitId;
-	buildingIdForDevAgent = config.ltParams.developerModel.initialBuildingId;
-	projectIdForDevAgent = config.ltParams.developerModel.initialProjectId;
-	simYearForDevAgent = config.ltParams.developerModel.year;
-	minLotSize= config.ltParams.developerModel.minLotSize;
+
 
 	PrintOut("minLotSize"<<minLotSize<<std::endl);
 	processParcels();
-	createDeveloperAgents(developmentCandidateParcelList);
+	createDeveloperAgents(developmentCandidateParcelList,false);
+	createDeveloperAgents(parcelsWithProjectsList,true);
 	wakeUpDeveloperAgents(getDeveloperAgents());
 
 	PrintOutV("Time Interval " << timeInterval << std::endl);
@@ -258,7 +301,7 @@ const DeveloperModel::TemplateUnitTypeList& DeveloperModel::getTemplateUnitType(
     return templateUnitTypes;
 }
 
-void DeveloperModel::createDeveloperAgents(ParcelList devCandidateParcelList)
+void DeveloperModel::createDeveloperAgents(ParcelList devCandidateParcelList, bool onGoingProject)
 {
 
 	if (!devCandidateParcelList.empty()) {
@@ -266,13 +309,58 @@ void DeveloperModel::createDeveloperAgents(ParcelList devCandidateParcelList)
 		{
 			if (devCandidateParcelList[i])
 			{
-				DeveloperAgent* devAgent = new DeveloperAgent(devCandidateParcelList[i], this);
+				boost::shared_ptr<Parcel> parcelToDevelop (new Parcel(*devCandidateParcelList[i]));
+				DeveloperAgent* devAgent = new DeveloperAgent(parcelToDevelop, this);
 				AgentsLookupSingleton::getInstance().addDeveloperAgent(devAgent);
 				RealEstateAgent* realEstateAgent = const_cast<RealEstateAgent*>(getRealEstateAgentForDeveloper());
 				devAgent->setRealEstateAgent(realEstateAgent);
 				devAgent->setPostcode(getPostcodeForDeveloperAgent());
 				devAgent->setHousingMarketModel(housingMarketModel);
-				devAgent->setSimYear(simYearForDevAgent);
+				devAgent->setSimYear(simYear);
+				if(onGoingProject)
+				{
+					devAgent->setParcelDBStatus(true);
+					Project *project = getProjectByParcelId(devCandidateParcelList[i]->getId());
+					if(project != nullptr)
+					{
+						boost::shared_ptr<Project> projectPtr (new Project(*project));
+						devAgent->setProject(projectPtr);
+						devAgent->getParcel().get()->setStatus(1);
+					}
+
+					BuildingList buildingsInOngoingProjects;
+					DB_Config dbConfig(LT_DB_CONFIG_FILE);
+					dbConfig.load();
+					// Connect to database
+					DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
+					conn.connect();
+					if (conn.isConnected())
+					{
+						BuildingDao buildingDao(conn);
+						buildingsInOngoingProjects = buildingDao.getBuildingsByParcelId(devCandidateParcelList[i]->getId(),outputSchema);
+					}
+
+					std::vector< boost::shared_ptr<Building> > buildingsInOngoingProjectsSharedVec;
+					buildingsInOngoingProjectsSharedVec.reserve(buildingsInOngoingProjects.size());
+					std::transform(buildingsInOngoingProjects.begin(), buildingsInOngoingProjects.end(), std::back_inserter(buildingsInOngoingProjectsSharedVec),to_shared_ptr<Building>);
+					buildingsInOngoingProjects.clear();
+					devAgent->setNewBuildings(buildingsInOngoingProjectsSharedVec);
+
+					std::vector<Unit*> unitsInOngoingProjects;
+					UnitDao unitDao(conn);
+					BuildingList::iterator buildingsItr;
+					for(buildingsItr = buildingsInOngoingProjects.begin(); buildingsItr != buildingsInOngoingProjects.end(); ++buildingsItr)
+					{
+						//TODO:: currently there is only one building with all the new units assigned to it. have to revisit this when there are multiple buildings.
+						unitsInOngoingProjects = unitDao.getUnitsByBuildingId((*buildingsItr)->getFmBuildingId(),outputSchema);
+					}
+
+					std::vector< boost::shared_ptr<Unit> > unitsInOngoingProjectsSharedVec;
+					unitsInOngoingProjectsSharedVec.reserve(unitsInOngoingProjects.size());
+					std::transform(unitsInOngoingProjects.begin(), unitsInOngoingProjects.end(), std::back_inserter(unitsInOngoingProjectsSharedVec),to_shared_ptr<Unit>);
+					unitsInOngoingProjects.clear();
+					devAgent->setNewUnits(unitsInOngoingProjectsSharedVec);
+				}
 				agents.push_back(devAgent);
 				developers.push_back(devAgent);
 				workGroup.assignAWorker(devAgent);
@@ -315,10 +403,17 @@ void DeveloperModel::processParcels()
 
 		if (parcel)
 		{
-			//parcel has an ongoing project. unitPrice sum null means that the parcel has buildings without units or buildings with HDB units.
-			if ((parcel->getStatus()==1) || ((!isEmptyParcel(parcel->getId())) && (getUnitPriceSumByParcelId(parcel->getId())==nullptr)))
+			//parcel has an ongoing project.
+			if(getParcelWithOngoingProjectById(parcel->getId())!= nullptr)
 			{
 				parcelsWithProjectsList.push_back(parcel);
+			}
+			else
+			{
+			//unitPrice sum null means that the parcel has buildings without units or buildings with HDB units.
+			if ((parcel->getStatus()==1) || ((!isEmptyParcel(parcel->getId())) && (getUnitPriceSumByParcelId(parcel->getId())==nullptr)))
+			{
+				nonEligibleParcelList.push_back(parcel);
 			}
 			else
 			{
@@ -347,6 +442,7 @@ void DeveloperModel::processParcels()
 					}
 
 				}
+			}
 
 			}
 		}
@@ -361,11 +457,11 @@ void DeveloperModel::processProjects()
 	for(projectsItr = projects.begin(); projectsItr != this->projects.end(); projectsItr++)
 	{
 		//check whether the project's last planned date is older than 90 days; current date is assumed to be 01/01/2008.
-		if((*projectsItr)->getPlannedDate().tm_year<2007)
+		if((*projectsItr)->getPlannedDate().tm_year<simYear)
 		{
 
 		}
-		else if((*projectsItr)->getPlannedDate().tm_year==2007)
+		else if((*projectsItr)->getPlannedDate().tm_year==simYear)
 		{
 			if((*projectsItr)->getPlannedDate().tm_mon<10)
 			{
@@ -456,32 +552,37 @@ const bool DeveloperModel::isEmptyParcel(BigSerial id) const {
 
 BigSerial DeveloperModel::getProjectIdForDeveloperAgent()
 {
-	return ++projectIdForDevAgent;
+	{
+		boost::mutex::scoped_lock lock(projectIdLock);
+		return ++projectIdForDevAgent;
+	}
 }
 
 BigSerial DeveloperModel::getBuildingIdForDeveloperAgent()
 {
-	if(!newBuildingIdList.empty())
 	{
-		BigSerial buildingId = newBuildingIdList.back();
-		//remove the last building Id in the list
-		newBuildingIdList.erase(newBuildingIdList.end()-1);
-		return buildingId;
+		boost::mutex::scoped_lock lock( buildingIdLock );
+		if(!newBuildingIdList.empty())
+		{
+			BigSerial buildingId = newBuildingIdList.back();
+			//remove the last building Id in the list
+			newBuildingIdList.erase(newBuildingIdList.end()-1);
+			return buildingId;
+		}
+		else
+		{
+			 ++buildingIdForDevAgent;
+		}
+		return buildingIdForDevAgent;
 	}
-	else
-	{
-
-		return ++buildingIdForDevAgent;
-
-	}
-
 }
 
 BigSerial DeveloperModel::getUnitIdForDeveloperAgent()
 {
-	boost::lock_guard<boost::recursive_mutex> lock(m_guard);
-	return ++unitIdForDevAgent;
-
+	{
+		boost::mutex::scoped_lock lock( unitIdLock );
+		return ++unitIdForDevAgent;
+	}
 }
 
 void DeveloperModel::setUnitId(BigSerial unitId)
@@ -499,29 +600,9 @@ void DeveloperModel::addNewBuildingId(BigSerial buildingId)
 	newBuildingIdList.push_back(buildingId);
 }
 
-void DeveloperModel::setCurrentTick(int currTick)
-{
-	this->currentTick = currTick;
-}
-
-int DeveloperModel::getCurrentTick()
-{
-	return this->currentTick;
-}
-
 int DeveloperModel::getSimYearForDevAgent()
 {
-	return this->simYearForDevAgent;
-}
-
-void DeveloperModel::addProjects(boost::shared_ptr<Project> project)
-{
-	newProjects.push_back(project);
-}
-
-void DeveloperModel::addBuildings(boost::shared_ptr<Building> building)
-{
-	newBuildings.push_back(building);
+	return this->simYear;
 }
 
 const RealEstateAgent* DeveloperModel::getRealEstateAgentForDeveloper()
@@ -554,16 +635,18 @@ void DeveloperModel::setHousingMarketModel(HM_Model *housingModel)
 
 int DeveloperModel::getPostcodeForDeveloperAgent()
 {
-	if(initPostcode)
 	{
-		initPostcode = false;
-		return postcodeForDevAgent;
+		boost::mutex::scoped_lock lock( postcodeLock);
+		if(initPostcode)
+		{
+			initPostcode = false;
+			return postcodeForDevAgent;
+		}
+		else
+		{
+			return ++postcodeForDevAgent;
+		}
 	}
-	else
-	{
-		return ++postcodeForDevAgent;
-	}
-
 }
 
 const UnitPriceSum* DeveloperModel::getUnitPriceSumByParcelId(BigSerial fmParcelId) const
@@ -584,4 +667,127 @@ const TazLevelLandPrice* DeveloperModel::getTazLevelLandPriceByTazId(BigSerial t
 		return itr->second;
 	}
 	return nullptr;
+}
+
+const BuildingAvgAgePerParcel* DeveloperModel::getBuildingAvgAgeByParcelId(const BigSerial fmParcelId) const
+{
+	BuildingAvgAgePerParcelMap::const_iterator itr = BuildingAvgAgeByParceld.find(fmParcelId);
+		if (itr != BuildingAvgAgeByParceld.end())
+		{
+			return itr->second;
+		}
+		return nullptr;
+}
+
+const boost::shared_ptr<SimulationStoppedPoint> DeveloperModel::getSimStoppedPointObj(BigSerial simVersionId)
+{
+	const boost::shared_ptr<SimulationStoppedPoint> simStoppedPointObj(new SimulationStoppedPoint(simVersionId,postcodeForDevAgent,buildingIdForDevAgent,unitIdForDevAgent,projectIdForDevAgent,housingMarketModel->getBidId(),housingMarketModel->getUnitSaleId()));
+	return simStoppedPointObj;
+}
+
+Parcel* DeveloperModel::getParcelWithOngoingProjectById(BigSerial id) const {
+    ParcelMap::const_iterator itr = parcelsWithOngoingProjectsById.find(id);
+    if (itr != parcelsWithOngoingProjectsById.end())
+    {
+        return itr->second;
+    }
+    return nullptr;
+}
+
+void DeveloperModel::addNewBuildings(boost::shared_ptr<Building> &newBuilding)
+{
+	addBuildingLock.lock();
+	newBuildings.push_back(newBuilding);
+	addBuildingLock.unlock();
+}
+
+void DeveloperModel::addNewProjects(boost::shared_ptr<Project> &newProject)
+{
+	addProjectsLock.lock();
+	newProjects.push_back(newProject);
+	addProjectsLock.unlock();
+}
+
+void DeveloperModel::addNewUnits(boost::shared_ptr<Unit> &newUnit)
+{
+	addUnitsLock.lock();
+	newUnits.push_back(newUnit);
+	addUnitsLock.unlock();
+}
+
+
+void DeveloperModel::addProfitableParcels(boost::shared_ptr<Parcel> &profitableParcel)
+{
+	addParcelLock.lock();
+	profitableParcels.push_back(profitableParcel);
+	addParcelLock.unlock();
+}
+
+void DeveloperModel::addPotentialProjects(boost::shared_ptr<PotentialProject> &potentialProject)
+{
+	addPotentialProjectsLock.lock();
+	potentialProjects.push_back(potentialProject);
+	addPotentialProjectsLock.unlock();
+}
+
+std::vector<boost::shared_ptr<Building> > DeveloperModel::getBuildingsVec()
+{
+	return newBuildings;
+}
+
+std::vector<boost::shared_ptr<Unit> > DeveloperModel::getUnitsVec()
+{
+	return newUnits;
+}
+
+std::vector<boost::shared_ptr<Project> > DeveloperModel::getProjectsVec()
+{
+	return newProjects;
+}
+
+std::vector<boost::shared_ptr<Parcel> > DeveloperModel::getProfitableParcelsVec()
+{
+	return profitableParcels;
+}
+
+const int DeveloperModel::getOpSchemaloadingInterval()
+{
+	return OpSchemaLoadingInterval;
+}
+
+void DeveloperModel::setOpSchemaloadingInterval(int opSchemaLoadingInt)
+{
+	this->OpSchemaLoadingInterval = opSchemaLoadingInt;
+}
+
+void DeveloperModel::addDevelopmentPlans(boost::shared_ptr<DevelopmentPlan> &devPlan)
+{
+	addDevPlansLock.lock();
+	developmentPlansVec.push_back(devPlan);
+	addDevPlansLock.unlock();
+}
+
+std::vector<boost::shared_ptr<DevelopmentPlan> > DeveloperModel::getDevelopmentPlansVec()
+{
+	return developmentPlansVec;
+}
+
+Project* DeveloperModel::getProjectByParcelId(BigSerial parcelId) const
+{
+	ProjectMap::const_iterator itr = projectByParcelId.find(parcelId);
+	if (itr != projectByParcelId.end())
+	{
+		return itr->second;
+	}
+	return nullptr;
+}
+
+void DeveloperModel::setStartDay(int day)
+{
+	startDay = day;
+}
+
+int DeveloperModel::getStartDay() const
+{
+	return this->startDay;
 }

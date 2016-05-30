@@ -9,6 +9,7 @@
 #include "entities/Person.hpp"
 #include "entities/roles/Role.hpp"
 #include "entities/amodController/AMODEvent.hpp"
+#include "entities/TravelTimeManager.hpp"
 #include "event/args/EventArgs.hpp"
 #include "event/EventListener.hpp"
 #include "event/EventPublisher.hpp"
@@ -38,6 +39,9 @@ private:
 
 	/**Indicates whether we have registered to receive communication simulator related messages*/
 	bool commEventRegistered;
+
+	/**Road Segment Travel time collector*/
+	SegmentTravelStats rsTravelStats;
 
 	/**Stores the configuration properties of the agent loaded from the XML configuration file*/
 	std::map<std::string, std::string> configProperties;
@@ -263,5 +267,15 @@ public:
 	{
 		return this->configProperties;
 	}
+
+	SegmentTravelStats& getCurrRdSegTravelStats()
+	{
+		return this->rsTravelStats;
+	}
+
+	SegmentTravelStats& startCurrRdSegTravelStat(const RoadSegment* rdSeg, double entryTime);
+
+	SegmentTravelStats& finalizeCurrRdSegTravelStat(const RoadSegment* rdSeg,double exitTime,
+			const std::string travelMode);
 };
 }

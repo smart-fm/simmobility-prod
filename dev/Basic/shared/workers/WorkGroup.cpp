@@ -30,10 +30,10 @@ using std::vector;
 using namespace sim_mob;
 
 sim_mob::WorkGroup::WorkGroup(unsigned int wgNum, unsigned int numWorkers, unsigned int numSimTicks, unsigned int tickStep, AuraManager* auraMgr,
-		PartitionManager* partitionMgr, PeriodicPersonLoader* periodicLoader) :
+		PartitionManager* partitionMgr, PeriodicPersonLoader* periodicLoader, uint32_t _simulationStart) :
 		wgNum(wgNum), numWorkers(numWorkers), numSimTicks(numSimTicks), tickStep(tickStep), auraMgr(auraMgr), partitionMgr(partitionMgr), tickOffset(0), started(
 				false), currTimeTick(0), nextTimeTick(0), loader(nullptr), nextWorkerID(0), frame_tick_barr(nullptr), buff_flip_barr(nullptr), msg_bus_barr(
-				nullptr), macro_tick_barr(nullptr), profile(nullptr), periodicPersonLoader(periodicLoader), nextLoaderIdx(0)
+				nullptr), macro_tick_barr(nullptr), profile(nullptr), periodicPersonLoader(periodicLoader), nextLoaderIdx(0), simulationStart(0)
 {
 	if (ConfigManager::GetInstance().CMakeConfig().ProfileAuraMgrUpdates())
 	{

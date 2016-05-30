@@ -50,7 +50,7 @@ void sim_mob::medium::Pedestrian::make_frame_tick_params(timeslice now)
 void sim_mob::medium::Pedestrian::collectTravelTime()
 {
 	PersonTravelTime personTravelTime;
-	personTravelTime.personId = parent->getId();
+	personTravelTime.personId = parent->getDatabaseId();
 	if(parent->getPrevRole() && parent->getPrevRole()->roleType==Role<Person_MT>::RL_ACTIVITY)
 	{
 		ActivityPerformer<Person_MT>* activity = dynamic_cast<ActivityPerformer<Person_MT>* >(parent->getPrevRole());

@@ -40,6 +40,9 @@ namespace sim_mob {
              * @param update tells if operation is an Update or Insert.
              */
             void toRow(Household& data, db::Parameters& outParams, bool update);
+
+        public:
+            void insertHousehold(Household& houseHold,std::string schema);
         };
     }
 }

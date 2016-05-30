@@ -29,10 +29,10 @@
 namespace
 {
 /**Constant distance value used for looking ahead (metre)*/
-const static int distanceInFront = 50;
+const static int distanceInFront = 150;
 
 /**Constant distance value used for looking behind  (metre)*/
-const static int distanceBehind = 30;
+const static int distanceBehind = 50;
 
 /**Constant distance value used for looking ahead (metre)*/
 const static int maxVisibleDis = 100;
@@ -187,6 +187,17 @@ private:
 	 * This method simply increments the vehicle count for the vehicle's current road segment in the RdSegDensityMap  
      */
 	void updateDensityMap();
+
+	void startRdSegStat(const RoadSegment* roadSegment, double startTime);
+
+	void finalizeRdSegStat(const RoadSegment* roadSegment,double endTime, const std::string travelMode);
+
+	/**
+	 * This method is used to update the travel times of segments passed by the driver during the current frame tick
+	 *
+	 * @param segmentsPassed Segments passed by the driver during the current frame tick
+	 */
+	void updateRoadSegmentTravelTime(const std::vector<const RoadSegment*>& segmentsPassed);
 
 protected:
 	/**Pointer to the lane changing model being used*/
@@ -354,17 +365,16 @@ public:
 	 * starting road segment and starting lane
 	 *
      * @param wayPoints The list of way points along the path
-     * @param startLaneIndex The index of the lane where the driver starts
-	 * @param startSegmentId The id of the segment in the path where the driver starts
+	 * @return the path consisting of segments and turning groups (as way points)
      */
-	void buildPath(std::vector<WayPoint> &wayPoints, int startLaneIndex = -1, int startSegmentId = -1);
+	std::vector<WayPoint> buildPath(std::vector<WayPoint> &wayPoints);
 
 	/**
 	 * Replaces the path with the given path
 	 * 
      * @param path the new path
      */
-	void resetPath(std::vector<WayPoint> path);
+	void resetPath(std::vector<WayPoint> path);	
 
 	/**
 	 * Checks if the current segment is the last segment in the link

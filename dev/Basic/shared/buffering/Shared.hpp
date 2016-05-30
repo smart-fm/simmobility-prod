@@ -78,24 +78,24 @@ public:
 	 * also be thought of as being one flip "behind" the actual value.
 	 */
     const T& get() const {
-    	if (strategy_==MtxStrat_Locked) {
+    	/*if (strategy_==MtxStrat_Locked) {
     		//NOTE: I'm not entirely sure if this will work or is even needed.
     		//      Have to double-check mutex-locking in boost (but no-one uses locking
     		//      right now anyway). ~Seth
     		boost::shared_lock<boost::shared_mutex> lock_(mutex_);
     		return current_;
-    	}
+    	}*/
     	return current_;
     }
 
     T& getRW() {
-    	if (strategy_==MtxStrat_Locked) {
+    	/*if (strategy_==MtxStrat_Locked) {
     		//NOTE: I'm not entirely sure if this will work or is even needed.
     		//      Have to double-check mutex-locking in boost (but no-one uses locking
     		//      right now anyway). ~Seth
     		boost::shared_lock<boost::shared_mutex> lock_(mutex_);
     		return current_;
-    	}
+    	}*/
     	return current_;
     }
 
@@ -105,13 +105,14 @@ public:
 	 * only take effect when "flip" is called.
 	 */
     void set (const T& value) {
-    	if (strategy_==MtxStrat_Locked) {
+    	/*if (strategy_==MtxStrat_Locked) {
         	boost::upgrade_lock<boost::shared_mutex> lock_(mutex_);
         	boost::upgrade_to_unique_lock<boost::shared_mutex> unique_(lock_);
         	current_ = value;
     	} else if (strategy_==MtxStrat_Buffered) {
     		next_ = value;
-    	}
+    	}*/
+		next_ = value;
     }
 
 

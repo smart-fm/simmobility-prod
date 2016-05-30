@@ -20,15 +20,12 @@ namespace sim_mob {
 
             virtual ~UnitPriceSum();
 
-            BigSerial getFmParcelId() const;
-
-
-            double getUnitPriceSum() const;
-
             /**
              * Getters and Setters
              */
 
+            BigSerial getFmParcelId() const;
+            double getUnitPriceSum() const;
 
             /**
              * Operator to print the UnitPrice data.

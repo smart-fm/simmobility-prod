@@ -10,7 +10,7 @@
 using namespace sim_mob;
 
 RoadSegment::RoadSegment() : roadSegmentId(0), capacity(0), linkId(0), maxSpeed(0), polyLine(nullptr), sequenceNumber(0),
-parentLink(nullptr)
+parentLink(nullptr), busTerminusSegment(false)
 {
 }
 
@@ -112,6 +112,16 @@ unsigned int RoadSegment::getSequenceNumber() const
 void RoadSegment::setSequenceNumber(unsigned int sequenceNumber)
 {
 	this->sequenceNumber = sequenceNumber;
+}
+
+bool RoadSegment::isBusTerminusSegment() const
+{
+	return busTerminusSegment;
+}
+
+void RoadSegment::setBusTerminusSegment()
+{
+	this->busTerminusSegment = true;
 }
 
 const std::map<double, RoadItem *>& RoadSegment::getObstacles() const

@@ -130,6 +130,11 @@ private:
 	void processStatisticsOutputNode(xercesc::DOMElement* node);
 
 	/**
+	 * processes node for speed-density function params
+	 */
+	void processSpeedDensityParamsNode(xercesc::DOMElement* node);
+
+	/**
 	 * processes calibration element in config xml
      *
 	 * @param node node corresponding to calibration element inside xml file
@@ -177,13 +182,6 @@ private:
      * @param node node corresponding to screenline element inside xml file
      */
     void processScreenLineNode(xercesc::DOMElement* node);
-
-    /**
-     * processes pt edge travel time element in config xml
-     *
-     * @param node node corresponding to pt edge travel element inside xml file
-     */
-    void processPT_EdgeTravelTimeNode(xercesc::DOMElement* node);
 
     /**
      * processes the cbd element in config xml

@@ -14,7 +14,7 @@
 //#include <boost/type_traits.hpp>
 
 #include "event/EventListener.hpp"
-#include "agent/LT_Agent.hpp"
+#include "entities/Agent_LT.hpp"
 
 //TEMP: Needed for logging.
 #include "workers/Worker.hpp"

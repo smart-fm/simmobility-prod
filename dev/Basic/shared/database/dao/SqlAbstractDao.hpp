@@ -127,7 +127,48 @@ public:
 
 			// prepare statement.
 			prepareStatement(upperQuery, params, query);
+			//TODO: POSTGRES ONLY for now
+			//execute and return data if (RETURNING clause is defined)
+			ResultSet rs(query);
 
+			if (returning)
+			{
+				ResultSet::const_iterator it = rs.begin();
+				if (it != rs.end())
+				{
+					fromRow((*it), entity);
+				}
+			}
+			tr.commit();
+		}
+		return entity;
+	}
+
+	virtual T& insertViaQuery(T& entity, std::string insertQuery, bool returning = false)
+	{
+		if (isConnected())
+		{
+			// Get data to insert.
+			Parameters params;
+			toRow(entity, params, false);
+
+			Transaction tr(connection.getSession<soci::session>());
+			Statement query(connection.getSession<soci::session>());
+			//append returning clause.
+			//Attention: this is only prepared for POSTGRES.
+			std::string upperQuery = boost::to_upper_copy(insertQuery);
+
+			if (returning)
+			{
+				size_t found = upperQuery.rfind(DB_RETURNING_CLAUSE);
+				if (found == std::string::npos)
+				{
+					upperQuery += DB_RETURNING_ALL_CLAUSE;
+				}
+			}
+
+			// prepare statement.
+			prepareStatement(upperQuery, params, query);
 			//TODO: POSTGRES ONLY for now
 			//execute and return data if (RETURNING clause is defined)
 			ResultSet rs(query);
@@ -194,6 +235,7 @@ public:
 		return getByValues(defaultQueries[GET_ALL], EMPTY_PARAMS, outList);
 	}
 
+
 	template<typename K, typename F>
 	bool getAll(boost::unordered_map<K, T>& outMap, F getter)
 	{
@@ -214,6 +256,32 @@ public:
 	virtual bool getByQuery(std::string query, std::vector<T*>& outList)
 	{
 		return getByValues(query, EMPTY_PARAMS, outList);
+	}
+
+	/*
+	 * execute a given query with given parameters(ids)
+	 * @param query to be executed query
+	 * @param outList gives the result of the query
+	 */
+	virtual bool getByQueryId(std::string query, const Parameters& ids,std::vector<T*>& outList)
+	{
+		return getByValues(query, ids, outList);
+	}
+
+	bool executeQuery(std::string queryStr)
+	{
+		if (isConnected())
+				{
+					Transaction tr(connection.getSession<soci::session>());
+					Statement query(connection.getSession<soci::session>());
+					// prepare statement.
+					prepareStatement(queryStr, EMPTY_PARAMS, query);
+					//execute query.
+					ResultSet rs(query);
+					tr.commit();
+					return true;
+				}
+				return false;
 	}
 
 protected:

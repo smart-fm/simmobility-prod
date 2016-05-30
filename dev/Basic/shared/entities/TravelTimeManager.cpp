@@ -140,6 +140,43 @@ double sim_mob::LinkTravelTime::getHistoricalLinkTT(const DailyTime& dt) const
 	return (totalTT/ttInnerMap.size());
 }
 
+double sim_mob::LinkTravelTime::getInSimulationLinkTT(unsigned int downstreamLinkId, const DailyTime& dt) const
+{
+	TimeInterval timeInterval = getTimeInterval(dt.getValue());
+	
+	//No in-simulation times present for previous interval
+	if(timeInterval == 0)
+	{
+		return -1;
+	}
+	
+	//We need to look for travel times in the previous interval
+	timeInterval -= 1;
+	
+	TimeAndCountStore::const_iterator tcIt = currentSimulationTT_Map.find(timeInterval);
+	
+	if(tcIt != currentSimulationTT_Map.end())
+	{
+		const DownStreamLinkSpecificTimeAndCount_Map &tcMap = tcIt->second;
+		DownStreamLinkSpecificTimeAndCount_Map::const_iterator tcMapIt = tcMap.find(downstreamLinkId);
+		
+		if(tcMapIt != tcMap.end())
+		{
+			return tcMapIt->second.getTravelTime();
+		}
+		else
+		{
+			return -1;
+		}
+	}
+	else		
+	{
+		return -1;
+	}
+	
+	return -1;
+}
+
 void sim_mob::LinkTravelTime::dumpTravelTimesToFile(const std::string fileName) const
 {
 	//	destination file
@@ -164,7 +201,9 @@ void sim_mob::LinkTravelTime::dumpTravelTimesToFile(const std::string fileName) 
 
 sim_mob::TravelTimeManager::TravelTimeManager()
 	: intervalMS(sim_mob::ConfigManager::GetInstance().FullConfig().getPathSetConf().interval * 1000), //conversion from seconds to milliseconds
-	  enRouteTT(new sim_mob::TravelTimeManager::EnRouteTT(*this))
+	  enRouteTT(new sim_mob::TravelTimeManager::EnRouteTT(*this)),
+	  odIntervalMS(sim_mob::ConfigManager::GetInstance().FullConfig().odTTConfig.intervalMS),
+	  segIntervalMS(sim_mob::ConfigManager::GetInstance().FullConfig().rsTTConfig.intervalMS)
 {}
 
 sim_mob::TravelTimeManager::~TravelTimeManager()
@@ -244,7 +283,8 @@ double sim_mob::TravelTimeManager::getDefaultLinkTT(const Link* lnk) const
 	return lnkTT.getDefaultTravelTime();
 }
 
-double sim_mob::TravelTimeManager::getLinkTT(const sim_mob::Link* lnk, const sim_mob::DailyTime& startTime, const sim_mob::Link* downstreamLink) const
+double sim_mob::TravelTimeManager::getLinkTT(const sim_mob::Link* lnk, const sim_mob::DailyTime& startTime, const sim_mob::Link* downstreamLink, 
+											 bool useInSimulationTT) const
 {
 	std::map<unsigned int, sim_mob::LinkTravelTime>::const_iterator it = lnkTravelTimeMap.find(lnk->getLinkId());
 	if (it == lnkTravelTimeMap.end())
@@ -257,7 +297,15 @@ double sim_mob::TravelTimeManager::getLinkTT(const sim_mob::Link* lnk, const sim
 	double res = 0;
 	if(downstreamLink)
 	{
-		res = lnkTT.getHistoricalLinkTT(downstreamLink->getLinkId(), startTime);
+		if(useInSimulationTT)
+		{
+			res = lnkTT.getInSimulationLinkTT(downstreamLink->getLinkId(), startTime);
+		}		
+		
+		if(res <= 0.0)
+		{
+			res = lnkTT.getHistoricalLinkTT(downstreamLink->getLinkId(), startTime);
+		}
 	}
 	else
 	{
@@ -282,6 +330,32 @@ void sim_mob::TravelTimeManager::addTravelTime(const LinkTravelStats& stats)
 		throw std::runtime_error(errStrm.str());
 	}
 	ttMapIt->second.addInSimulationTravelTime(stats);
+}
+
+unsigned int sim_mob::TravelTimeManager::getODInterval(const unsigned int time)
+{
+	if(odIntervalMS <= 0)
+	{
+		throw std::runtime_error("OD Travel time interval is 0");
+	}
+	return time/odIntervalMS;
+}
+
+void sim_mob::TravelTimeManager::addODTravelTime(const std::pair<unsigned int, unsigned int>& odPair,
+		const uint32_t startTime, const uint32_t endTime)
+{
+	if(endTime < startTime)
+	{
+		throw std::runtime_error("OD Travel stats: End time is before start time");
+	}
+	unsigned int travelTime = (endTime-startTime);
+	travelTime /= 1000; // MS to Seconds
+	unsigned int interval = getODInterval(startTime);
+
+	TimeAndCount& timeAndCount = odTravelTimeMap[interval][odPair];
+
+	timeAndCount.travelTimeCnt++;
+	timeAndCount.totalTravelTime += travelTime;
 }
 
 double sim_mob::TravelTimeManager::getInSimulationLinkTT(const sim_mob::Link *lnk) const
@@ -332,6 +406,72 @@ bool sim_mob::TravelTimeManager::storeCurrentSimulationTT()
 	dumpTravelTimesToFile(historicalTT_TableName);
 	sim_mob::Logger::log(historicalTT_TableName).flush();
 	return true;
+}
+
+unsigned int sim_mob::TravelTimeManager::getSegmentInterval(const unsigned int time)
+{
+	if(segIntervalMS <= 0)
+	{
+		throw std::runtime_error("OD Travel time interval is 0");
+	}
+	return time/segIntervalMS;
+}
+
+void sim_mob::TravelTimeManager::addSegmentTravelTime(const SegmentTravelStats& segStats)
+{
+	unsigned int interval = getSegmentInterval(segStats.entryTime * 1000);
+
+	TimeAndCount& timeAndCount = segmentTravelTimeMap[interval][segStats.travelMode][segStats.roadSegment];
+
+	timeAndCount.travelTimeCnt++;
+	timeAndCount.totalTravelTime += segStats.travelTime;
+}
+
+void sim_mob::TravelTimeManager::dumpSegmentTravelTimeToFile(const std::string& fileName) const
+{
+	if(fileName.empty())
+	{
+		throw std::runtime_error("Segment Travel Stat: Filename is empty");
+	}
+	BasicLogger& rdSegTTLogger = sim_mob::Logger::log(fileName);
+	for(auto rdSegTT : segmentTravelTimeMap)
+	{
+		for(auto modTT : rdSegTT.second)
+		{
+			for(auto TT : modTT.second)
+			{
+				rdSegTTLogger << (rdSegTT.first+1)*segIntervalMS
+						<< "," << modTT.first
+						<< "," << TT.first->getRoadSegmentId()
+						<< "," << TT.second.getTravelTime()
+						<< "," << TT.second.travelTimeCnt
+						<< "\n";
+			}
+		}
+	}
+}
+
+void sim_mob::TravelTimeManager::dumpODTravelTimeToFile(const std::string& fileName) const
+{
+	if(fileName.empty())
+	{
+		throw std::runtime_error("OD Travel Stat: Filename is empty");
+	}
+	BasicLogger& odTravelTimeLogger = sim_mob::Logger::log(fileName);
+	for(auto intervalODTravelTime : odTravelTimeMap)
+	{
+		const unsigned int interval = intervalODTravelTime.first;
+		for(auto ODTravelTime : intervalODTravelTime.second)
+		{
+			odTravelTimeLogger << ((interval+1) * odIntervalMS) << ","
+					<< ODTravelTime.first.first
+					<< "," << ODTravelTime.first.second
+					<< "," << ODTravelTime.second.getTravelTime()
+					<< "," << ODTravelTime.second.travelTimeCnt
+					<< "\n";
+		}
+	}
+	odTravelTimeLogger.flush();
 }
 
 sim_mob::TravelTimeManager* sim_mob::TravelTimeManager::getInstance()

@@ -38,9 +38,9 @@ using std::endl;
 Driver::Driver(Person_ST* parent, MutexStrategy mtxStrat, DriverBehavior* behavior, DriverMovement* movement, Role<Person_ST>::Type roleType_, std::string roleName_) :
 Role<Person_ST>(parent, behavior, movement, roleName_, roleType_), currLane_(mtxStrat, NULL), currTurning_(mtxStrat, NULL), expectedTurning_(mtxStrat, NULL),
 distCoveredOnCurrWayPt_(mtxStrat, 0), isInIntersection_(mtxStrat, false), latMovement_(mtxStrat, 0), fwdVelocity_(mtxStrat, 0), latVelocity_(mtxStrat, 0),
-fwdAccel_(mtxStrat, 0), turningDirection_(mtxStrat, LANE_CHANGE_TO_NONE), vehicle(NULL), isVehicleInLoadingQueue(true), isVehiclePositionDefined(false),
+fwdAccel_(mtxStrat, 0), laneDensity_(mtxStrat, 0), vehicle(NULL), isVehicleInLoadingQueue(true), isVehiclePositionDefined(false),
 distToIntersection_(mtxStrat, -1), perceivedAccOfFwdCar(NULL), perceivedDistToFwdCar(NULL), perceivedDistToTrafficSignal(NULL), perceivedFwdAcc(NULL), 
-perceivedFwdVel(NULL), perceivedTrafficColor(NULL), perceivedVelOfFwdCar(NULL), yieldingToInIntersection(false)
+perceivedFwdVel(NULL), perceivedTrafficColor(NULL), perceivedVelOfFwdCar(NULL), yieldingToInIntersection(false), isBusDriver(false)
 {
 	getParams().driver = this;
 }
@@ -109,6 +109,11 @@ const double Driver::getFwdAcceleration() const
 	return fwdAccel_.get();
 }
 
+const double Driver::getDensity() const
+{
+	return laneDensity_.get();
+}
+
 bool Driver::IsBusDriver()
 {
 	return isBusDriver;
@@ -164,7 +169,7 @@ vector<BufferedBase*> Driver::getSubscriptionParams()
 	res.push_back(&(fwdVelocity_));
 	res.push_back(&(latVelocity_));
 	res.push_back(&(fwdAccel_));
-	res.push_back(&(turningDirection_));
+	res.push_back(&(laneDensity_));
 
 	return res;
 }
@@ -200,7 +205,7 @@ double Driver::gapDistance(const Driver *front)
 		DriverMovement* frontMov = dynamic_cast<DriverMovement*> (front->Movement());
 
 		//Check if the vehicle in front has arrived at its destination
-		if (!frontMov->fwdDriverMovement.isDoneWithEntireRoute())
+		if (!mov->fwdDriverMovement.isDoneWithEntireRoute() && !frontMov->fwdDriverMovement.isDoneWithEntireRoute())
 		{
 			//Check if the driver in front is on the same way point as us
 			if (mov->fwdDriverMovement.getCurrWayPoint() == frontMov->fwdDriverMovement.getCurrWayPoint())

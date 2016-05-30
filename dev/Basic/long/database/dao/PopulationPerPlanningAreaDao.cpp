@@ -29,6 +29,7 @@ void PopulationPerPlanningAreaDao::fromRow(Row& result, PopulationPerPlanningAre
     outObj.avgIncome		= result.get<double>( "avg_income", 		 0);
     outObj.avgHhSize		= result.get<BigSerial>( "avg_hhsize", 		 0);
     outObj.unitType			= result.get<int>( "unit_type",		 0);
+    outObj.floorArea		= result.get<double>( "floor_area",	 0);
 }
 
 void PopulationPerPlanningAreaDao::toRow(PopulationPerPlanningArea& data, Parameters& outParams, bool update) {}

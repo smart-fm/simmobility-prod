@@ -491,43 +491,57 @@ void ExpandShortTermConfigFile::generateAgentsFromTripChain(ConfigParams::AgentC
 
 		for (soci::rowset<soci::row>::const_iterator itRows = rows.begin(); itRows != rows.end(); ++itRows)
 		{
-			//Get the person id and trip id
-			const string tripId = (*itRows).get<string>(0);
-			const string personId = (*itRows).get<string>(1);			
-			
-			//The trip belonging to the person
-			vector<TripChainItem *> &personTripChain = tripChains[personId][tripId];			
-			
-			if(personTripChain.empty())
+			//Load only if the load factor is 1
+			if((*itRows).get<unsigned int>(9) == 1)
 			{
-				//Create a trip and the corresponding activity				
-				Trip *trip = makeTrip(*itRows);
-				personTripChain.push_back(trip);
+				//Get the person id and trip id
+				const string tripId = (*itRows).get<string>(0);
+				const string personId = (*itRows).get<string>(1);
 
-				//Create activity if end time is provided
-				if(!(*itRows).get<string>(4).empty())
+				//The trip belonging to the person
+				vector<TripChainItem *> &personTripChain = tripChains[personId][tripId];
+
+				if(personTripChain.empty())
 				{
-					Activity *activity = makeActivity(*itRows);
-					personTripChain.push_back(activity);
+					//Create a trip and the corresponding activity
+					Trip *trip = makeTrip(*itRows);
+					personTripChain.push_back(trip);
+
+					//Create activity if end time is provided
+					if(!(*itRows).get<string>(4).empty())
+					{
+						Activity *activity = makeActivity(*itRows);
+						personTripChain.push_back(activity);
+					}
+				}
+				else
+				{
+					//Create a sub-trip and add it to the trip
+					SubTrip *subTrip = makeSubTrip(*itRows);
+
+					Trip *trip = dynamic_cast<Trip *>(personTripChain[0]);
+					trip->addSubTrip(*subTrip);
+				}
+				
+				//If the person is not created, create it and add it to the map
+				if(persons.find(personId) == persons.end())
+				{
+					Person_ST *person = new Person_ST("XML_TripChain", cfg.mutexStategy(), -1);
+					person->setDatabaseId(personId);
+					//Set the usage of in-simulation travel times
+					//Generate random number between 0 and 100 (indicates percentage)
+					int randomInt = Utils::generateInt(0, 100);
+
+					if(randomInt <= cfg.simulation.inSimulationTTUsage)
+					{
+						person->setUseInSimulationTravelTime(true);
+					}
+
+					persons.insert(make_pair(personId, person));
 				}
 			}
-			else
-			{
-				//Create a sub-trip and add it to the trip
-				SubTrip *subTrip = makeSubTrip(*itRows);
-				
-				Trip *trip = dynamic_cast<Trip *>(personTripChain[0]);
-				trip->addSubTrip(*subTrip);
-			}
-			
-			//If the person is not created, create it and add it to the map
-			if(persons.find(personId) == persons.end())
-			{
-				Person_ST *person = new Person_ST("XML_TripChain", cfg.mutexStategy(), -1);
-				persons.insert(make_pair(personId, person));
-			}
 		}
-
+		
 		//Close the connection
 		//sql.close();
 		
@@ -576,6 +590,14 @@ void ExpandShortTermConfigFile::generateXMLAgents(const std::vector<EntityTempla
 	//Create the Person agent with that given ID (or an auto-generated one)
 	Person_ST *person = new Person_ST("XML_Def", cfg.mutexStategy(), agentId);	
 	person->setStartTime(xmlItems.begin()->startTimeMs);
+	
+	//Set the usage of in-simulation travel times
+	int randomInt = Utils::generateInt(0, 100);
+
+	if (randomInt < cfg.simulation.inSimulationTTUsage)
+	{
+		person->setUseInSimulationTravelTime(true);
+	}
 	
 	std::vector<TripChainItem*> tripChain;
 	const RoadNetwork *rn = RoadNetwork::getInstance();

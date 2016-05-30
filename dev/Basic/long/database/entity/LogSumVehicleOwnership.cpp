@@ -9,26 +9,26 @@
 
 using namespace sim_mob::long_term;
 
-LogSumVehicleOwnership::LogSumVehicleOwnership(BigSerial householdId,double avgLogsum):
-		householdId(householdId),avgLogsum(avgLogsum) {}
+LogSumVehicleOwnership::LogSumVehicleOwnership(BigSerial householdId,double logsum):
+		householdId(householdId),logsum(logsum) {}
 
 LogSumVehicleOwnership::~LogSumVehicleOwnership() {}
 
 LogSumVehicleOwnership& LogSumVehicleOwnership::operator=(const LogSumVehicleOwnership& source)
 {
 	this->householdId 			= source.householdId;
-	this->avgLogsum	= source.avgLogsum;
+	this->logsum	= source.logsum;
     return *this;
 }
 
-double LogSumVehicleOwnership::getHouseholdId() const
+BigSerial LogSumVehicleOwnership::getHouseholdId() const
 {
 		return this->householdId;
 }
 
-BigSerial LogSumVehicleOwnership::getAvgLogsum() const
+double LogSumVehicleOwnership::getLogsum() const
 {
-		return this->avgLogsum;
+		return this->logsum;
 }
 
 namespace sim_mob
@@ -39,7 +39,7 @@ namespace sim_mob
         {
             return strm << "{"
 						<< "\"householdId \":\"" << data.householdId 	<< "\","
-						<< "\"avgLogsum \":\"" 	<< data.avgLogsum 	<< "\","
+						<< "\"avgLogsum \":\"" 	<< data.logsum 	<< "\","
 						<< "}";
         }
     }

@@ -110,6 +110,28 @@ public:
 			const std::vector<const sim_mob::Link*>& blacklist,
 			sim_mob::TimeRange timeRange = sim_mob::Default, unsigned int randomGraphId = 0) const;
 
+	/**
+	 * Search shortest path with black list.
+	 *
+	 * @param graph is the graph object
+	 * @param fromVertex is a source vertex in the graph
+	 * @param toVertex is a sink vertex in the graph
+	 * @param blackList is a black list used to block edges in the graph
+	 *
+	 * @return a shortest path
+	 */
+	static std::vector<WayPoint> searchShortestTTPathWithBlackList(const StreetDirectory::Graph& graph, const StreetDirectory::Vertex& fromVertex, const StreetDirectory::Vertex& toVertex, const std::set<StreetDirectory::Edge>& blacklist);
+	/**
+	 * Search the shortest path without black list.
+	 *
+	 * @param graph is the graph object
+	 * @param fromVertex is a source vertex in the graph
+	 * @param toVertex is a sink vertex in the graph
+	 *
+	 * @return a shortest path
+	 */
+	static std::vector<WayPoint> searchShortestTTPath(const StreetDirectory::Graph& graph, const StreetDirectory::Vertex& fromVertex, const StreetDirectory::Vertex& toVertex);
+
 public:
 	/**
 	 * Distance heuristic for our A* search algorithm

@@ -22,6 +22,48 @@ Project::Project(BigSerial projectId,BigSerial parcelId,BigSerial developerId,
 
 Project::~Project() {}
 
+Project::Project( const Project &source)
+{
+	this->projectId = source.projectId;
+	this->parcelId = source.parcelId;
+	this->developerId = source.developerId;
+	this->templateId = source.templateId;
+	this->projectName = source.projectName;
+	this->constructionDate = source.constructionDate;
+	this->completionDate = source.completionDate;
+	this->constructionCost = source.constructionCost;
+	this->demolitionCost = source.demolitionCost;
+	this->totalCost = source.totalCost;
+	this->fmLotSize = source.fmLotSize;
+	this->grossRatio = source.grossRatio;
+	this->grossArea = source.grossArea;
+	this->currTick = source.currTick;
+	this->plannedDate = source.plannedDate;
+	this->projectStatus = source.projectName;
+
+}
+
+Project& Project::operator=(const Project& source)
+{
+	this->projectId = source.projectId;
+	this->parcelId = source.parcelId;
+	this->developerId = source.developerId;
+	this->templateId = source.templateId;
+	this->projectName = source.projectName;
+	this->constructionDate = source.constructionDate;
+	this->completionDate = source.completionDate;
+	this->constructionCost = source.constructionCost;
+	this->demolitionCost = source.demolitionCost;
+	this->totalCost = source.totalCost;
+	this->fmLotSize = source.fmLotSize;
+	this->grossRatio = source.grossRatio;
+	this->grossArea = source.grossArea;
+	this->currTick = source.currTick;
+	this->plannedDate = source.plannedDate;
+	this->projectStatus = source.projectName;
+
+	return *this;
+}
 
 double Project::getFmLotSize() const{
 	return fmLotSize;
@@ -145,6 +187,17 @@ void Project::setPlannedDate(std::tm lastPlannedDate)
 {
 	this->plannedDate = lastPlannedDate;
 }
+
+std::string Project::getProjectStatus() const
+{
+	return this->projectStatus;
+}
+
+void Project::setProjectStatus(std::string prjStatus)
+{
+	this->projectStatus = prjStatus;
+}
+
 namespace sim_mob
 {
     namespace long_term

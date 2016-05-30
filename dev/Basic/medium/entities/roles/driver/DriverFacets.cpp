@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <boost/foreach.hpp>
 #include <cmath>
+#include <cstdio>
 #include <ostream>
 #include "buffering/BufferedDataManager.hpp"
 #include "conf/ConfigManager.hpp"
@@ -169,6 +170,29 @@ void DriverMovement::frame_tick()
 			parentDriver->parent->setRemainingTimeThisTick(0.0); //(elapsed - seconds this tick)
 			parentDriver->parent->canMoveToNextSegment = Person_MT::NONE;
 			setParentData(params);
+
+/*			if(parentDriver && parentDriver->roleType != Role<Person_MT>::RL_BUSDRIVER)
+			{
+				Person_MT* person = parentDriver->parent;
+				unsigned int segId = (person->getCurrSegStats() ? person->getCurrSegStats()->getRoadSegment()->getRoadSegmentId() : 0);
+				uint16_t statsNum = (person->getCurrSegStats() ? person->getCurrSegStats()->getStatsNumberInSegment() : 0);
+
+				char logbuf[1000];
+				sprintf(logbuf, "%s,%s,%u,seg:%u-%u,ln:%u,d:%f,q:%c,elpsd:%fs\n",
+						parentDriver->getRoleName().c_str(),
+						person->getDatabaseId().c_str(),
+						parentDriver->getParams().now.frame(),
+						segId,
+						statsNum,
+						(person->getCurrLane() ? person->getCurrLane()->getLaneId() : 0),
+						person->distanceToEndOfSegment,
+						(person->isQueuing ? 'T' : 'F'),
+						params.elapsedSeconds
+						);
+				person->log(std::string(logbuf));
+
+			}
+*/
 			return;
 		}
 	}
@@ -179,6 +203,29 @@ void DriverMovement::frame_tick()
 		advance(params);
 		setParentData(params);
 	}
+
+/*	//Debug print
+	if(parentDriver && parentDriver->roleType != Role<Person_MT>::RL_BUSDRIVER)
+	{
+		Person_MT* person = parentDriver->parent;
+		unsigned int segId = (person->getCurrSegStats() ? person->getCurrSegStats()->getRoadSegment()->getRoadSegmentId() : 0);
+		uint16_t statsNum = (person->getCurrSegStats() ? person->getCurrSegStats()->getStatsNumberInSegment() : 0);
+		char logbuf[1000];
+		sprintf(logbuf, "%s,%s,%u,seg:%u-%u,ln:%u,d:%f,q:%c,elpsd:%fs\n",
+				parentDriver->getRoleName().c_str(),
+				person->getDatabaseId().c_str(),
+				parentDriver->getParams().now.frame(),
+				segId,
+				statsNum,
+				(person->getCurrLane() ? person->getCurrLane()->getLaneId() : 0),
+				person->distanceToEndOfSegment,
+				(person->isQueuing ? 'T' : 'F'),
+				params.elapsedSeconds
+				);
+		person->log(std::string(logbuf));
+
+	}
+*/
 }
 
 std::string DriverMovement::frame_tick_output()
@@ -260,7 +307,8 @@ bool DriverMovement::initializePath()
 		const SubTrip& currSubTrip = *(person->currSubTrip);
 		if (ConfigManager::GetInstance().FullConfig().PathSetMode()) // if use path set
 		{
-			wp_path = PrivateTrafficRouteChoice::getInstance()->getPath(currSubTrip, false, nullptr);
+			bool useInSimulationTT = parentDriver->parent->usesInSimulationTravelTime();
+			wp_path = PrivateTrafficRouteChoice::getInstance()->getPath(currSubTrip, false, nullptr, useInSimulationTT);
 		}
 		else
 		{
@@ -413,18 +461,19 @@ bool DriverMovement::moveToNextSegment(DriverUpdateParams& params)
 	const SegmentStats* nextToNextSegStat = pathMover.getSecondSegStatsAhead();
 	const Lane* laneInNextSegment = getBestTargetLane(nxtSegStat, nextToNextSegStat);
 
-	//this will space out the drivers on the same lane, by separating them by the time taken for the previous car to move a car's length
-	//Commenting out the delay from accept rate as per Yang Lu's suggestion (we only use this delay in setOrigin)
-	double departTime = getLastAccept(laneInNextSegment, nxtSegStat)
-			/*+ getAcceptRate(laneInNextSegment, nxtSegStat)*/; //in seconds
-
-	//skip acceptance capacity if there's no queue - this is done in DynaMIT
-	//commenting out - the delay from acceptRate is removed as per Yang Lu's suggestion
-	/*	if(nextRdSeg->getParentConflux()->numQueueingInSegment(nextRdSeg, true) == 0){
-			departTime = getLastAccept(nextLaneInNextSegment)
-							+ (0.01 * vehicle->length) / (nextRdSeg->getParentConflux()->getSegmentSpeed(nextRdSeg) ); // skip input capacity
-		}*/
-
+	double departTime = getLastAccept(laneInNextSegment, nxtSegStat);
+/*	if(!nxtSegStat->isShortSegment())
+	{
+		if(nxtSegStat->hasQueue())
+		{
+			departTime += getAcceptRate(laneInNextSegment, nxtSegStat); //in seconds
+		}
+		else
+		{
+			departTime += (PASSENGER_CAR_UNIT / (nxtSegStat->getNumVehicleLanes() *nxtSegStat->getSegSpeed(true)));
+		}
+	}
+*/
 	params.elapsedSeconds = std::max(params.elapsedSeconds, departTime - convertToSeconds(params.now.ms())); //in seconds
 
 	const Link* nextLink = getNextLinkForLaneChoice(nxtSegStat);
@@ -504,10 +553,19 @@ void DriverMovement::flowIntoNextLinkIfPossible(DriverUpdateParams& params)
 	const SegmentStats* nextToNextSegStats = pathMover.getSecondSegStatsAhead();
 	const Lane* laneInNextSegment = getBestTargetLane(nextSegStats, nextToNextSegStats);
 
-	//this will space out the drivers on the same lane, by separating them by the time taken for the previous car to move a car's length
-	//Commenting out the delay from accept rate as per Yang Lu's suggestion (we use this delay only in setOrigin)
-	double departTime = getLastAccept(laneInNextSegment, nextSegStats) /*+ getAcceptRate(laneInNextSegment, nextSegStats)*/; //in seconds
-
+	double departTime = getLastAccept(laneInNextSegment, nextSegStats);
+/*	if(!nextSegStats->isShortSegment())
+	{
+		if(nextSegStats->hasQueue())
+		{
+			departTime += getAcceptRate(laneInNextSegment, nextSegStats); //in seconds
+		}
+		else
+		{
+			departTime += (PASSENGER_CAR_UNIT / (nextSegStats->getNumVehicleLanes() * nextSegStats->getSegSpeed(true)));
+		}
+	}
+*/
 	params.elapsedSeconds = std::max(params.elapsedSeconds, departTime - (convertToSeconds(params.now.ms()))); //in seconds
 
 	const Link* nextLink = getNextLinkForLaneChoice(nextSegStats);
@@ -606,6 +664,13 @@ bool DriverMovement::canGoToNextRdSeg(DriverUpdateParams& params, const SegmentS
 	{
 		return true;
 	}
+	
+	//if this segment is a bus terminus segment, we assume only buses try to enter this segment and allow the bus inside irrespective of available space.
+	if(nextSegStats->getRoadSegment()->isBusTerminusSegment())
+	{
+		return true;
+	}
+	
 
 	bool hasSpaceInNextStats = ((maxAllowed - total) >= enteringVehicleLength);
 	if (hasSpaceInNextStats && nextLink)
@@ -892,13 +957,19 @@ void DriverMovement::setOrigin(DriverUpdateParams& params)
 	const Lane* laneInNextSegment = getBestTargetLane(currSegStats, nextSegStats);
 
 	//this will space out the drivers on the same lane, by separating them by the time taken for the previous car to move a car's length
-	double departTime = getLastAccept(laneInNextSegment, currSegStats) + getAcceptRate(laneInNextSegment, currSegStats); //in seconds
+	double departTime = getLastAccept(laneInNextSegment, currSegStats);
+	if(!currSegStats->isShortSegment())
+	{
+		if(currSegStats->hasQueue())
+		{
+			departTime += getAcceptRate(laneInNextSegment, currSegStats); //in seconds
+		}
+		else
+		{
+			departTime += (PASSENGER_CAR_UNIT / (currSegStats->getNumVehicleLanes() * currSegStats->getSegSpeed(true)));
+		}
+	}
 
-	/*//skip acceptance capacity if there's no queue - this is done in DynaMIT
-	if(getCurrSegment()->getParentConflux()->numQueueingInSegment(getCurrSegment(), true) == 0){
-		departTime = getLastAccept(nextLaneInNextSegment)
-						+ (0.01 * vehicle->length) / (getCurrSegment()->getParentConflux()->getSegmentSpeed(getCurrSegment()) ); // skip input capacity
-	}*/
 
 	params.elapsedSeconds = std::max(params.elapsedSeconds, departTime - (convertToSeconds(params.now.ms()))); //in seconds
 

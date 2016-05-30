@@ -15,12 +15,33 @@ using namespace sim_mob::long_term;
 
 Building::Building( BigSerial fmBuildingId, BigSerial fmProjectId, BigSerial fmParcelId, int storeysAboveGround, int storeysBelowGround,
 					std::tm fromDate, std::tm toDate, int buildingStatus, float	grossSqMRes, float grossSqMOffice,
-					float grossSqMRetail, float grossSqMOther, std::tm lastChangedDate) :
-					fmBuildingId(fmBuildingId), fmProjectId(fmProjectId), fmParcelId(fmParcelId), storeysAboveGround(storeysAboveGround),
-					storeysBelowGround(storeysBelowGround), fromDate(fromDate), toDate(toDate), buildingStatus(buildingStatus),grossSqMRes(grossSqMRes),
-					grossSqMOffice(grossSqMOffice), grossSqMRetail(grossSqMRetail), grossSqMOther(grossSqMOther),lastChangedDate(lastChangedDate){}
+					float grossSqMRetail, float grossSqMOther, std::tm lastChangedDate,int freehold,float floorSpace,std::string buildingType,BigSerial slaAddressId) :
+					fmBuildingId(fmBuildingId), fmProjectId(fmProjectId), fmParcelId(fmParcelId), storeysAboveGround(storeysAboveGround),storeysBelowGround(storeysBelowGround), fromDate(fromDate),
+					toDate(toDate), buildingStatus(buildingStatus),grossSqMRes(grossSqMRes),grossSqMOffice(grossSqMOffice), grossSqMRetail(grossSqMRetail), grossSqMOther(grossSqMOther),
+					lastChangedDate(lastChangedDate),freehold(freehold),floorSpace(floorSpace),buildingType(buildingType),slaAddressId(slaAddressId){}
 
 Building::~Building() {}
+
+Building::Building( const Building &source)
+{
+	this->fmBuildingId 			= source.fmBuildingId;
+	this->fmProjectId			= source.fmProjectId;
+	this->fmParcelId 			= source.fmParcelId;
+	this->storeysAboveGround	= source.storeysAboveGround;
+	this->storeysBelowGround  	= source.storeysBelowGround;
+	this->fromDate				= source.fromDate;
+	this->toDate				= source.toDate;
+	this->buildingStatus		= source.buildingStatus;
+	this->grossSqMRes			= source.grossSqMRes;
+	this->grossSqMOffice		= source.grossSqMOffice;
+	this->grossSqMRetail		= source.grossSqMRetail;
+	this->grossSqMOther			= source.grossSqMOther;
+	this->lastChangedDate       = source.lastChangedDate;
+	this->freehold              = source.freehold;
+	this->floorSpace            = source.freehold;
+	this->buildingType          = source.buildingType;
+	this->slaAddressId          = source.slaAddressId;
+}
 
 Building& Building::operator=(const Building& source)
 {
@@ -37,6 +58,10 @@ Building& Building::operator=(const Building& source)
 	this->grossSqMRetail		= source.grossSqMRetail;
 	this->grossSqMOther			= source.grossSqMOther;
 	this->lastChangedDate       = source.lastChangedDate;
+	this->freehold              = source.freehold;
+	this->floorSpace            = source.freehold;
+	this->buildingType          = source.buildingType;
+	this->slaAddressId          = source.slaAddressId;
 
     return *this;
 }
@@ -154,6 +179,47 @@ void Building::setStoreysBelowGround(int storeysBelowGround) {
 void Building::setToDate(const std::tm& toDate) {
 	this->toDate = toDate;
 }
+
+const std::string& Building::getBuildingType() const
+{
+	return buildingType;
+}
+
+void Building::setBuildingType(const std::string& buildingType)
+{
+	this->buildingType = buildingType;
+}
+
+float Building::getFloorSpace() const
+{
+	return floorSpace;
+}
+
+void Building::setFloorSpace(float floorSpace)
+{
+	this->floorSpace = floorSpace;
+}
+
+int Building::getFreehold() const
+{
+	return freehold;
+}
+
+void Building::setFreehold(int freehold)
+{
+	this->freehold = freehold;
+}
+
+BigSerial Building::getSlaAddressId() const
+{
+	return slaAddressId;
+}
+
+void Building::setSlaAddressId(BigSerial slaAddressId)
+{
+	this->slaAddressId = slaAddressId;
+}
+
 
 namespace sim_mob
 {

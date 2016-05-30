@@ -42,13 +42,8 @@ set (Basic_VERSION_MAJOR 0)
 set (Basic_VERSION_MINOR 1)
 
 #Flags for each configuration type
-#IF (${BUILD_LONG} MATCHES "ON" OR ${BUILD_TESTS_LONG} MATCHES "ON")
-#SET(CMAKE_CXX_FLAGS_RELEASE "-O2 -std=c++11 -DSIMMOB_LATEST_STANDARD ")
-#SET(CMAKE_CXX_FLAGS_DEBUG  "-O0 -g -std=c++11 -DSIMMOB_LATEST_STANDARD ")
-#ELSE()
 SET(CMAKE_CXX_FLAGS_RELEASE "-O2")
 SET(CMAKE_CXX_FLAGS_DEBUG  "-O0 -g")
-#ENDIF(${BUILD_LONG} MATCHES "ON" OR ${BUILD_TESTS_LONG} MATCHES "ON")
 
 #Function that turns on Unity builds. From:
 #   http://cheind.wordpress.com/2009/12/10/reducing-compilation-time-unity-builds/
@@ -277,7 +272,7 @@ ENDFOREACH()
 #Cflags for C++0x support via gcc
 IF (SIMMOB_LATEST_STANDARD)
   IF(CMAKE_COMPILER_IS_GNUCXX)
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++0x")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
   ELSE() 
     #Just hope for the best
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")

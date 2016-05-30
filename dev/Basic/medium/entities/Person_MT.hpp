@@ -95,6 +95,8 @@ public:
 	};
 	Permission canMoveToNextSegment;
 
+	short numTicksStuck;
+
 	Person_MT(const std::string& src, const MutexStrategy& mtxStrat, int id = -1, std::string databaseID = "");
 	Person_MT(const std::string& src, const MutexStrategy& mtxStrat, const std::vector<TripChainItem*>& tc);
 	virtual ~Person_MT();
@@ -141,6 +143,11 @@ public:
 	 * @return the list of Buffered<> types this entity subscribes to
 	 */
 	virtual std::vector<BufferedBase *> buildSubscriptionList();
+
+	/**
+	 * exposes the Log function to print in thread local output files
+	 */
+	void log(std::string line) const;
 
 	const Lane* getCurrLane() const
 	{

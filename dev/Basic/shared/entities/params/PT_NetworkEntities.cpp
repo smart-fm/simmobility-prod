@@ -12,6 +12,7 @@
 #include "database/DB_Connection.hpp"
 #include "database/pt_network_dao/PT_NetworkSqlDao.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
+#include "geospatial/streetdir/RailTransit.hpp"
 #include "util/LangHelpers.hpp"
 #include "util/Utils.hpp"
 
@@ -28,6 +29,95 @@ void PT_NetworkCreater::init()
 	const std::string DB_STORED_PROC_PT_VERTICES = ConfigManager::GetInstanceRW().FullConfig().getDatabaseProcMappings().procedureMappings["pt_vertices"];
 	instance.init(DB_STORED_PROC_PT_VERTICES, DB_STORED_PROC_PT_EDGES);
 	instance2.init(DB_STORED_PROC_PT_VERTICES, DB_STORED_PROC_PT_EDGES);
+}
+namespace
+{
+void loadMRTData(soci::session& sql_, std::map<std::string, TrainStop*>& mrtStopsMap)
+{
+	//Reading the MRT data
+	std::string storedProc = sim_mob::ConfigManager::GetInstance().FullConfig().getDatabaseProcMappings().procedureMappings["mrt_road_segments"];
+	std::stringstream query;
+	query << "select * from " << storedProc;
+	soci::rowset<soci::row> rs = (sql_.prepare << query.str());
+	for (soci::rowset<soci::row>::const_iterator it = rs.begin(); it != rs.end(); ++it)
+	{
+	   soci::row const& row = *it;
+	   std::string mrtstopid = row.get<std::string>(0);
+	   int roadsegmentId = row.get<unsigned int>(1);
+	   //MRT stop id can be a slash '/' separated list of IDs in case of interchanges. We need to split it into individual stop ids
+	   if(mrtstopid.find('/') == std::string::npos)
+	   {
+		   if(mrtStopsMap.find(mrtstopid) == mrtStopsMap.end())
+		   {
+			   TrainStop* mrtStopObj = new TrainStop(mrtstopid);
+			   mrtStopsMap[mrtstopid] = mrtStopObj;
+		   }
+		   mrtStopsMap[mrtstopid]->addAccessRoadSegment(roadsegmentId);
+	   }
+	   else
+	   {
+		   TrainStop* mrtStopObj = nullptr;
+		   std::stringstream ss(mrtstopid);
+		   std::string singleMrtStopId;
+		   while (std::getline(ss, singleMrtStopId, '/'))
+		   {
+			   if(!mrtStopObj)
+			   {
+				   if(mrtStopsMap.find(singleMrtStopId) == mrtStopsMap.end())
+				   {
+					   mrtStopObj = new TrainStop(mrtstopid); //note: the original '/' separated string of ids must be passed to constructor; check constructor implementation for details.
+					   mrtStopsMap[singleMrtStopId] = mrtStopObj;
+				   }
+				   else
+				   {
+					   mrtStopObj = mrtStopsMap[singleMrtStopId];
+				   }
+			   }
+			   else if(mrtStopsMap.find(singleMrtStopId) == mrtStopsMap.end())
+			   {
+				   mrtStopsMap[singleMrtStopId] = mrtStopObj;
+			   }
+		   }
+		   mrtStopObj->addAccessRoadSegment(roadsegmentId);
+	   }
+	}
+}
+
+void loadRailTransitGraphData(soci::session& sql_, std::set<string>& rtVertices, std::vector<RTS_NetworkEdge>& rtEdges)
+{
+	//Reading the MRT data
+	std::string storedProc = sim_mob::ConfigManager::GetInstance().FullConfig().getDatabaseProcMappings().procedureMappings["rail_transit_edges"];
+	if(storedProc.empty()) { return; }
+	std::stringstream query;
+	query << "select * from " << storedProc;
+	soci::rowset<soci::row> rs = (sql_.prepare << query.str());
+	for (soci::rowset<soci::row>::const_iterator it = rs.begin(); it != rs.end(); ++it)
+	{
+	   soci::row const& row = *it;
+	   RTS_NetworkEdge rtNwEdge;
+	   rtNwEdge.setFromStationId(row.get<std::string>(0));
+	   rtNwEdge.setToStationId(row.get<std::string>(1));
+	   rtNwEdge.setEdgeTravelTime(row.get<double>(2));
+	   rtNwEdge.setTransferEdge((row.get<std::string>(3) == "TRF"));
+
+	   rtVertices.insert(rtNwEdge.getFromStationId()); //set container eliminates duplicates
+	   rtVertices.insert(rtNwEdge.getToStationId()); //set container eliminates duplicates
+	   rtEdges.push_back(rtNwEdge);
+	}
+}
+
+void printTransferPoints(std::string o, std::string d)
+{
+	const RailTransit& railTransit = RailTransit::getInstance();
+	std::vector<string> boardAlightSeq;
+	boardAlightSeq = railTransit.fetchBoardAlightStopSeq(o,d);
+	cout << o << "," << d << ": ";
+	for(auto& stn : boardAlightSeq)
+	{
+		cout << stn << ",";
+	}
+	cout << endl;
+}
 }
 
 void PT_Network::init(const std::string& storedProcForVertex, const std::string& storeProceForEdges)
@@ -67,8 +157,9 @@ void PT_Network::init(const std::string& storedProcForVertex, const std::string&
 		PT_NetworkEdgeMap[ptEdgeIt->getEdgeId()]=*ptEdgeIt;
 	}
 
-	//Reading the MRT data
+	//Read MRT data
 	soci::session& sql_ = conn.getSession<soci::session>();
+
 	std::string storedProc = sim_mob::ConfigManager::GetInstance().FullConfig().getDatabaseProcMappings().procedureMappings["mrt_road_segments"];
 	std::stringstream query;
 	query << "select * from " << storedProc;
@@ -116,6 +207,15 @@ void PT_Network::init(const std::string& storedProcForVertex, const std::string&
 		   mrtStopObj->addAccessRoadSegment(roadsegmentId);
 	   }
 	}
+
+	loadMRTData(sql_, MRTStopsMap);
+
+	std::set<string> mrtStationIds;
+	std::vector<RTS_NetworkEdge> mrtEdges;
+	loadRailTransitGraphData(sql_, mrtStationIds, mrtEdges);
+	RailTransit::getInstance().initGraph(mrtStationIds, mrtEdges);
+
+
 	cout << "Public Transport network loaded\n";
 }
 
@@ -168,7 +268,7 @@ TrainStop* PT_Network::findMRT_Stop(const std::string& stopId) const
 
 PT_NetworkEdge::PT_NetworkEdge():startStop(""),endStop(""),rType(""),road_index(""),roadEdgeId(""),
 rServiceLines(""),linkTravelTimeSecs(0),edgeId(0),waitTimeSecs(0),walkTimeSecs(0),transitTimeSecs(0),
-transferPenaltySecs(0),dayTransitTimeSecs(0),distKMs(0)
+transferPenaltySecs(0),dayTransitTimeSecs(0),distKMs(0), edgeType(sim_mob::UNKNOWN_EDGE)
 {}
 
 PT_NetworkEdge::~PT_NetworkEdge() {}

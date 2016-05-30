@@ -3,10 +3,12 @@
 #include <boost/shared_ptr.hpp>
 #include <map>
 #include <vector>
+#include <fstream>
 #include "entities/misc/PublicTransit.hpp"
 #include "lua/LuaModel.hpp"
 #include "Path.hpp"
 #include "soci/soci.h"
+#include "util/DailyTime.hpp"
 
 namespace sim_mob
 {
@@ -22,14 +24,14 @@ public:
 	virtual ~PT_RouteChoiceLuaModel();
 
 	/**
-	 * interface functions for Lua script to get total time in vehicle
+	 * interface function for Lua script to get total time in vehicle
 	 * @param index the index in public path set
 	 * @return total time in vehicle
 	 */
 	double getTotalInVehicleTime(unsigned int index);
 
 	/**
-	 * interface functions for Lua script to get total walking time
+	 * interface function for Lua script to get total walking time
 	 * @param index the index in public path set
 	 * @return total walking time
 	 */
@@ -43,25 +45,35 @@ public:
 	double getTotalWaitTime(unsigned int index);
 
 	/**
-	 * interface functions for Lua script to get the size of path
+	 * interface function for Lua script to get the size of path
 	 * @param index the index in public path set
 	 * @return the size of path
 	 */
 	double getTotalPathSize(unsigned int index);
 
 	/**
-	 * interface functions for Lua script to get total transfered time
+	 * interface function for Lua script to get total transfered time
 	 * @param index the index in public path set
 	 * @return total transfered time
 	 */
 	int getTotalNumTxf(unsigned int index);
 
 	/**
-	 * interface functions for Lua script to get total cost
+	 * interface function for Lua script to get total cost
 	 * @param index the index in public path set
 	 * @return total total cost
 	 */
 	double getTotalCost(unsigned int index);
+
+	/**
+	 * interface function for lua script to get the PT modes in a path
+	 * @param index the index of path in public path set
+	 * @return 0 if path involves neither bus nor MRT travel;
+	 *         1 if path involves only bus travel;
+	 *         2 if path involves only MRT travel;
+	 *         3 if path involves both bus and MRT travel
+	 */
+	int getModes(unsigned int index);
 
 	/**
 	 * finds the best path for the given OD for public transit commuters
@@ -70,12 +82,13 @@ public:
 	 * @param odTrips is list of trip legs in pt path
 	 * @return true if route choice was successful; false otherwise
 	 */
-	bool getBestPT_Path(int origin, int destination, unsigned int startTime, std::vector<sim_mob::OD_Trip>& odTrips, const std::string& ptPathsetStoredProcName);
-
+	bool getBestPT_Path(int origin, int destination, unsigned int startTime, std::vector<sim_mob::OD_Trip>& odTrips, std::string dbid, unsigned int start_time, const std::string& ptPathsetStoredProcName);
 	/**
 	 * store chosen path in file
 	 */
 	void storeBestPT_Path();
+
+	void printScenarioAndOD(const std::vector<sim_mob::OD_Trip>& odTrips, std::string dbid, unsigned int startTime);
 
 private:
 	/**public path set for a given O-D pair*/
@@ -88,16 +101,17 @@ private:
 	soci::session* dbSession;
 
 	/**start time for current trip*/
-	unsigned curStartTime;
+	DailyTime curStartTime;
+
+	std::ofstream output;
 
 	/**
 	 * load public transit path set from database
 	 * @param origin is trip origin
 	 * @param dest is trip destination
-	 * @return path set retrieved from database
+	 * @param pathSet output parameter for path set retrieved from database
 	 */
-	PT_PathSet loadPT_PathSet(int origin, int dest, const std::string& ptPathsetStoredProcName);
-
+	void loadPT_PathSet(int origin, int dest, PT_PathSet& pathSet, const std::string& ptPathsetStoredProcName);
 	/**
 	 * Inherited from LuaModel
 	 */

@@ -142,6 +142,15 @@ private:
      * @return extracted DailyTime value
      */
     sim_mob::DailyTime processValueDailyTime(xercesc::DOMElement* node);
+	
+	/**
+	 * Helper function to process the value for percentage of drivers using in-simulation travel times
+	 * 
+	 * @param node xml element to be processed
+	 * 
+	 * @return extracted percentage value
+	 */
+	unsigned int processInSimulationTTUsage(xercesc::DOMElement* node);
 
     /**
      * Processes the mutex_enforcement element in the config file

@@ -251,11 +251,25 @@ private:
     void processSubtripTravelMetricsOutputNode(xercesc::DOMElement* node);
 
     /**
-     * processes the assingment_matrix element in config xml
+     * processes the assignment_matrix element in config xml
      *
      * @param node node corresponding to assingment_matrix element inside xml file
      */
     void processAssignmentMatrixNode(xercesc::DOMElement* node);
+
+    /**
+     * processes the OD Travel Time node in the config xml
+     *
+     * @param node node correspoding to od travel time element inside xml file
+     */
+    void processODTravelTimeNode(xercesc::DOMElement* node);
+
+    /**
+	 * processes the Segment Travel Time node in the config xml
+	 *
+	 * @param node node correspoding to segment travel time element inside xml file
+	 */
+    void processSegmentTravelTimeNode(xercesc::DOMElement* node);
 
     /// Short Term config reference
     ST_Config& stCfg;

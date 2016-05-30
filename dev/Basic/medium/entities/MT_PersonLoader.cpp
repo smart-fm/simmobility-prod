@@ -156,6 +156,11 @@ std::string getRandomTimeInWindow(double mid, bool firstFifteenMins)
 	int minute = Utils::generateInt(min,max) + ((mid - hour - 0.25)*60);
 	int second = Utils::generateInt(0,59);
 
+	//hour ranges from 3 to 26... wrap around to 0 after 23.
+	if(hour >= 24)
+	{
+		hour = hour - 24;
+	}
 	//construct string representation
 	std::string random_time;
 	random_time.resize(8); //hh:mi:ss - 8 characters
@@ -241,11 +246,20 @@ public:
 			Person_MT* person = new Person_MT("DAS_TripChain", cfg.mutexStategy(), personTripChain);
 			if (!person->getTripChain().empty())
 			{
+				//Set the usage of in-simulation travel times
+				//Generate random number between 0 and 100 (indicates percentage)
+				int randomInt = Utils::generateInt(0, 100);
+				
+				if(randomInt <= cfg.simulation.inSimulationTTUsage)
+				{
+					person->setUseInSimulationTravelTime(true);
+				}
+				
 				persons.push_back(person);
 			}
 			else
 			{
-				delete person;
+				safe_delete_item(person);
 			}
 		}
 	}
@@ -287,6 +301,7 @@ MT_PersonLoader::MT_PersonLoader(std::set<sim_mob::Entity*>& activeAgents, Start
 	elapsedTimeSinceLastLoad = cfg.baseGranSecond(); // initializing to base gran second so that all subsequent loads will happen 1 tick before the actual start of the interval
 	nextLoadStart = getHalfHourWindow(cfg.simulation.simStartTime.getValue()/1000);
 	storedProcName = cfg.getDatabaseProcMappings().procedureMappings["day_activity_schedule"];
+	freightStoredProcName = cfg.getDatabaseProcMappings().procedureMappings["freight_trips"];
 }
 
 MT_PersonLoader::~MT_PersonLoader()
@@ -353,6 +368,44 @@ Trip* MT_PersonLoader::makeTrip(const soci::row& r, unsigned int seqNo)
 	return tripToSave;
 }
 
+Trip* MT_PersonLoader::makeFreightTrip(const soci::row& r)
+{
+	const RoadNetwork* rn = RoadNetwork::getInstance();
+	Trip* tripToSave = new Trip();
+	tripToSave->sequenceNumber = 1;
+	tripToSave->tripID = r.get<string>(0);
+	tripToSave->setPersonID(r.get<string>(0));
+	tripToSave->itemType = TripChainItem::IT_TRIP;
+	tripToSave->origin = WayPoint(rn->getById(rn->getMapOfIdvsNodes(), r.get<unsigned int>(2)));
+	tripToSave->originType = TripChainItem::LT_NODE;
+	tripToSave->originZoneCode = r.get<int>(1);
+	tripToSave->destination = WayPoint(rn->getById(rn->getMapOfIdvsNodes(), r.get<unsigned int>(4)));
+	tripToSave->destinationType = TripChainItem::LT_NODE;
+	tripToSave->destinationZoneCode = r.get<int>(3);
+	tripToSave->startTime = DailyTime(getRandomTimeInWindow(r.get<double>(5), false));
+	tripToSave->travelMode = r.get<string>(6);
+	//just a sanity check
+	if(tripToSave->origin == tripToSave->destination)
+	{
+		safe_delete_item(tripToSave);
+		return nullptr;
+	}
+
+	SubTrip subtrip;
+	subtrip.setPersonID(r.get<string>(0));
+	subtrip.itemType = TripChainItem::IT_TRIP;
+	subtrip.tripID = tripToSave->tripID + "-" + boost::lexical_cast<string>(1);
+	subtrip.origin = tripToSave->origin;
+	subtrip.originType = TripChainItem::LT_NODE;
+	subtrip.destination = tripToSave->destination;
+	subtrip.destinationType = TripChainItem::LT_NODE;
+	subtrip.travelMode = tripToSave->travelMode;
+	subtrip.startTime = tripToSave->startTime;
+	tripToSave->addSubTrip(subtrip);
+
+	return tripToSave;
+}
+
 void MT_PersonLoader::loadPersonDemand()
 {
 	if (storedProcName.empty()) { return; }
@@ -382,6 +435,24 @@ void MT_PersonLoader::loadPersonDemand()
 		actCtr++;
 	}
 
+	if (freightStoredProcName.empty()) { return; }
+	//Our SQL statement
+	stringstream freightQuery;
+	freightQuery << "select * from " << freightStoredProcName << "(" << nextLoadStart << "," << end << ")";
+	std::string freightSql_str = freightQuery.str();
+
+	soci::rowset<soci::row> rsFreight = (sql_.prepare << freightSql_str);
+	for (soci::rowset<soci::row>::const_iterator it=rsFreight.begin(); it!=rsFreight.end(); ++it)
+	{
+		const soci::row& r = (*it);
+		std::string freightTripId = r.get<string>(0);
+		std::vector<TripChainItem*>& personTripChain = tripchains[freightTripId];
+		//add trip and activity
+		sim_mob::Trip* constructedTrip = makeFreightTrip(r);
+		if(constructedTrip) { personTripChain.push_back(constructedTrip); }
+		else { continue; }
+	}
+
 	vector<Person_MT*> persons;
 	int personsLoaded = CellLoader::load(tripchains, persons);
 	for(vector<Person_MT*>::iterator i=persons.begin(); i!=persons.end(); i++)
@@ -399,5 +470,4 @@ void MT_PersonLoader::loadPersonDemand()
 		nextLoadStart = nextLoadStart - TWENTY_FOUR_HOURS; //next day starts at 3.25
 	}
 }
-
 

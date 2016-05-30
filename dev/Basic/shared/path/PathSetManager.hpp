@@ -1,10 +1,3 @@
-/*
- * PathSetManager.hpp
- *
- *  Created on: May 6, 2013
- *      Author: Max
- *      Author: Vahid
- */
 
 #pragma once
 
@@ -15,6 +8,8 @@
 #include "PathSetParam.hpp"
 #include "entities/TravelTimeManager.hpp"
 #include "util/Cache.hpp"
+#include "lua/LuaModel.hpp"
+#include "Path.hpp"
 #include "util/OneTimeFlag.hpp"
 
 
@@ -131,13 +126,6 @@ public:
 	void setScenarioName(std::string& name) { scenarioName = name; }
 
 	/**
-	 * check whether a given path is black listed
-	 * @param path waypoint path
-	 * @param blkLst black list to check against
-	 */
-	bool pathInBlackList(const std::vector<WayPoint> path, const std::set<const Link*> & blkLst) const;
-
-	/**
 	 * calculate those part of the utility function that are always fixed(like path length)
 	 * and are not going to change(like travel time)
 	 * @param sp the input path
@@ -150,7 +138,6 @@ public:
 	 * @param pUtility the already computed utility
 	 * @return the generated string
 	 */
-	std::string logPartialUtility(const sim_mob::SinglePath* sp, double pUtility) const;
 
 	/**
 	 * basically delete all the dynamically allocated memories, in addition to some more cleanups
@@ -204,7 +191,7 @@ protected:
 class PrivatePathsetGenerator : boost::noncopyable, public sim_mob::PathSetManager
 {
 private:
-	static PrivatePathsetGenerator* instance_;
+	static PrivatePathsetGenerator* pvtPathGeneratorInstance;
 	static boost::mutex instanceMutex;
 
 	/** reference to street directory */
@@ -280,7 +267,7 @@ private:
 	  * set some tags as a result of comparing attributes among paths in a pathset
 	  * @param ps general information
 	  */
-	 void setPathSetTags(boost::shared_ptr<sim_mob::PathSet>& ps);
+	 void setPathSetTags(boost::shared_ptr<sim_mob::PathSet>& ps) const;
 
 	/**
 	 * post pathset generation processes
@@ -303,15 +290,12 @@ public:
 	static void resetInstance();
 
 	/**
-	 * generate all the paths for a person given its subtrip(OD)
-	 * @param per input agent applying to get the path
+	 * generate all the paths for a set of ODs
 	 * @param st input subtrip
 	 * @param res output path generated
-	 * @param excludedSegs input list segments to be excluded from the target set
-	 * @param isUseCache is using the cache allowed
 	 * @return number of paths generated
 	 */
-	int generateAllPathChoices(boost::shared_ptr<sim_mob::PathSet> ps, std::set<OD> &recursiveODs, const std::set<const sim_mob::RoadSegment*> & excludedSegs);
+	int generateAllPathChoices(boost::shared_ptr<sim_mob::PathSet> ps, std::set<OD> &recursiveODs);
 
 	/**
 	 *	offline pathset generation method.
@@ -330,7 +314,7 @@ public:
  * \author Harish Loganathan
  * \author Balakumar Marimuthu
  */
-class PrivateTrafficRouteChoice : public sim_mob::PathSetManager
+class PrivateTrafficRouteChoice : public sim_mob::PathSetManager , public lua::LuaModel
 {
 private:
 	/**	the pathset cache */
@@ -357,6 +341,8 @@ private:
 	/** flag to indicate whether restricted region case study is enabled*/
 	bool regionRestrictonEnabled;
 
+	std::vector<sim_mob::SinglePath*> pvtpathset;
+
 	/**
 	 * cache the generated pathset
 	 * @param ps pathset general information
@@ -377,16 +363,18 @@ private:
 	 * @param travelMode mode of travelling through the path
 	 * @startTime when to start the path
 	 * @enRoute decided whether in simulation travel time should be searched or not
+	 * @param useInSimulationTT indicates whether in simulation travel times are to be used
 	 * @returns path's travel time
 	 */
-	double getPathTravelTime(sim_mob::SinglePath *sp, const sim_mob::DailyTime & startTime, bool enRoute = false);
+	double getPathTravelTime(sim_mob::SinglePath *sp, const sim_mob::DailyTime & startTime, bool enRoute = false, bool useInSimulationTT = false);
 
 	/**
 	 * update pathset paramenters before selecting the best path
 	 * @param ps the input pathset
 	 * @param enRoute decides if travel time retrieval should included in simulation travel time or not
+	 * @param useInSimulationTT indicates whether in simulation travel times are to be used
 	 */
-	void onPathSetRetrieval(boost::shared_ptr<PathSet> &ps, bool enRoute);
+	void onPathSetRetrieval(boost::shared_ptr<PathSet> &ps, bool enRoute, bool useInSimulationTT = false);
 
 	/**
 	 * calculates utility of the given path those part of the utility function that are always fixed(like path length)
@@ -409,6 +397,8 @@ private:
 			const std::set<const sim_mob::Link*>& partialExclusion,
 			const std::set<const sim_mob::Link*>& blckLstLnks, bool enRoute);
 
+	void mapClasses();
+
 	/**
 	 * loads set of paths pre-generated for an OD
 	 *
@@ -429,6 +419,21 @@ private:
 public:
 	PrivateTrafficRouteChoice();
 	virtual ~PrivateTrafficRouteChoice();
+
+	double getTravelCost(unsigned int index);
+	double getTravelTime(unsigned int index);
+	double getPathSize(unsigned int index);
+	double getLength(unsigned int index);
+	double getPartialUtility(unsigned int index);
+	double getHighwayDistance(unsigned int index);
+	double getSignalNumber(unsigned int index);
+	double getRightTurnNumber(unsigned int index);
+	int isMinDistance(unsigned int index);
+	int isMinSignal(unsigned int index);
+	int isMaxHighWayUsage(unsigned int index);
+	int getPurpose(unsigned int index);
+
+
 
 	/**
 	 * gets the thread specific instance of pathset manager
@@ -469,6 +474,7 @@ public:
 	 * @param tempBlckLstSegs segments temporarily off the road network
 	 * @param enRoute is this method called for an enroute path request
 	 * @param approach if this is an entoute, from which segment is it permitted to enter the rerouting point to start a new path
+	 * @param useInSimulationTT indicates whether in-simulation link travel times are to be used
 	 * Note: PathsetManager object already has containers for partially excluded and blacklisted segments. They will be
 	 * the default containers throughout the simulation. but partialExcludedSegs and blckLstSegs arguments are combined
 	 * with their counterparts in PathSetmanager only during the scope of this method to serve temporary purposes.
@@ -478,17 +484,19 @@ public:
 			 const std::set<const sim_mob::Link*> tempBlckLstSegs/*=std::set<const sim_mob::RoadSegment*>()*/,
 			 bool usePartialExclusion ,
 			 bool useBlackList ,
-			 bool enRoute ,const sim_mob::RoadSegment* approach);
+			 bool enRoute ,const sim_mob::RoadSegment* approach,
+			 bool useInSimulationTT = false);
 
 	/**
 	 * The main entry point to the pathset manager,
-	 * returns a path for the requested subtrip
-	 * @param per the requesting person (todo:for logging purpose only)
-	 * @subTrip the subtrip information containing OD, start time etc
-	 * @enRoute indication of whether this request was made in the beginning of the trip or enRoute
+	 * returns a path for the requested subtrip per the requesting person (todo:for logging purpose only)
+	 * @param subTrip the subtrip information containing OD, start time etc
+	 * @param enRoute indication of whether this request was made in the beginning of the trip or enRoute
+	 * @param approach 
+	 * @param useInSimulationTT indicates whether in-simulation link travel times are to be used
 	 * @return a sequence of road segments wrapped in way point structure
 	 */
-	std::vector<WayPoint> getPath(const sim_mob::SubTrip &subTrip, bool enRoute , const sim_mob::RoadSegment* approach);
+	std::vector<WayPoint> getPath(const sim_mob::SubTrip &subTrip, bool enRoute , const sim_mob::RoadSegment* approach, bool useInSimulationTT = false);
 };
 
 }//namespace

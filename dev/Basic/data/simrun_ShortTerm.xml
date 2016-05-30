@@ -65,6 +65,31 @@
 			<mapping name="lane_polylines" procedure="get_ext_cbd_lane_polylines()"/>
 			<mapping name="lane_connectors" procedure="get_ext_cbd_lane_connectors()"/>
 			<mapping name="bus_stops" procedure="get_ext_cbd_bus_stops()"/>
+			<mapping name="pt_bus_dispatch_freq" procedure="get_pt_bus_frequency_extcbd()"/>
+			<mapping name="pt_bus_routes" procedure="get_pt_bus_routes_extcbd()"/>
+			<mapping name="pt_bus_stops" procedure="get_pt_bus_stops_extcbd()"/>
+			<!--Stored procedures for route-choice-->
+			<mapping name="erp_gantry_zone" procedure="get_erp_gantry_zone()"/>
+			<mapping name="erp_section" procedure="get_erp_section()"/>
+			<mapping name="erp_surcharge" procedure="get_erp_surcharge()"/>
+			<!--Stored procedure for trip-chains-->
+			<mapping name="trip_chains" procedure="get_trip_chains_extcbd_stcalibration"/>
+		</proc_map> 
+
+		<!-- Changi network -->
+		<proc_map id="changi" format="aimsun">
+			<mapping name="nodes" procedure="get_changi_nodes()"/>
+			<mapping name="links" procedure="get_changi_links()"/>
+			<mapping name="turning_groups" procedure="get_changi_turning_groups()"/>
+			<mapping name="turning_paths" procedure="get_changi_turning_paths()"/>
+			<mapping name="turning_polylines" procedure="get_changi_turning_polylines()"/>
+			<mapping name="turning_conflicts" procedure="get_changi_turning_conflicts()"/>
+			<mapping name="road_segments" procedure="get_changi_road_segments()"/>
+			<mapping name="segment_polylines" procedure="get_changi_segment_polylines()"/>
+			<mapping name="lanes" procedure="get_changi_lanes()"/>
+			<mapping name="lane_polylines" procedure="get_changi_lane_polylines()"/>
+			<mapping name="lane_connectors" procedure="get_changi_lane_connectors()"/>
+			<mapping name="bus_stops" procedure="get_changi_bus_stops()"/>
 			<mapping name="pt_bus_dispatch_freq" procedure="get_pt_bus_frequency()"/>
 			<mapping name="pt_bus_routes" procedure="get_pt_bus_routes()"/>
 			<mapping name="pt_bus_stops" procedure="get_pt_bus_stops()"/>
@@ -78,12 +103,12 @@
 	<!-- System configuration properties -->
 	<system>
 		<!-- Implementation to use for the Aura Manager. -->
-		<!-- Values include: rdu, rstar (default) -->
-		<aura_manager_impl value="rstar"/>
+		<!-- Values include: rdu, rstar (default), simtree, packing-tree -->
+		<aura_manager_impl value="packing-tree"/>
             
 		<!-- Order in which agents are to be loaded into the simulation -->
 		<!-- Values include: database, drivers, pedestrians, passenger -->
-		<load_agents order="drivers"/>
+		<load_agents order="database"/>
 
 		<!--  Commsim (communication) settings -->
 		<commsim enabled="false"> <!-- If false, the Broker is never added, so no commsim activities take place. -->
@@ -97,20 +122,20 @@
 		<partitioning_solution_id   value="1"    units="unit" />
 
 		<network>
-	    	<!-- Setting to "database" will load the road network from the database. By default we load from "xml". -->
-	        <!-- NOTE: This is fairly confusing; later we'll make it easier for different users to -->
-	        <!--       maintain their own configurations. -->
-	        <network_source value="database"/>
-	        
-	        <!-- If loading from XML, which input file? Default (or blank string) will force private/SimMobilityInput.xml -->
-	        <!-- If Writing XML, which output file? Default (or blank string) don't write at all -->
-	        <!-- This only has an effect if network_source is set to "xml" -->
-	        <network_xml_file_input value=""/>
-	        <network_xml_file_output value=""/>
+			<!-- Setting to "database" will load the road network from the database. By default we load from "xml". -->
+			<!-- NOTE: This is fairly confusing; later we'll make it easier for different users to -->
+			<!--       maintain their own configurations. -->
+			<network_source value="database"/>
 
-	        <!-- If loading from the database, which database, proc_map, and credentials are used? -->
-		<network_database database="fm_remote" credentials="fm_remote_plain" proc_map="extended_cbd"/>
-	    </network>
+			<!-- If loading from XML, which input file? Default (or blank string) will force private/SimMobilityInput.xml -->
+			<!-- If Writing XML, which output file? Default (or blank string) don't write at all -->
+			<!-- This only has an effect if network_source is set to "xml" -->
+			<network_xml_file_input value=""/>
+			<network_xml_file_output value=""/>
+
+			<!-- If loading from the database, which database, proc_map, and credentials are used? -->
+			<network_database database="fm_remote" credentials="fm_remote_plain" proc_map="extended_cbd"/>
+		</network>
         
 		<!-- Where to find our various schema files. -->
 		<!-- Overrides xsi:schemaLocation in the files themselves. -->
@@ -144,12 +169,12 @@
 		</generic_props>
 	</system>
 
-    <!-- List of all Worker types and their properties. -->
+	<!-- List of all Worker types and their properties. -->
 	<!-- granularity of each component must be a multiple of the "base" granularity -->
 	<workers>
-		<person count="2" granularity="100 ms"/> <!-- Person agents (with Roles) -->
+		<person count="5" granularity="100 ms"/> <!-- Person agents (with Roles) -->
 		<signal count="1" granularity="1 second"/> <!-- Traffic signals -->
-		<intersection_manager count="0" granularity="500 ms"/> <!-- Intersection managers -->
+		<intersection_manager count="0" granularity="1 second"/> <!-- Intersection managers -->
 		<communication count="0" granularity="100 ms"/>  <!-- Communication simulator -->
 	</workers>
 
@@ -162,15 +187,15 @@
 		<blocking_time_sec value="5"/>
 	</fmodcontroller>   
 
-    <vehicleTypes>
-    	<vehicleType name="Car" length="4.0" width="2.0" capacity="4"/>
-    	<vehicleType name="Truck" length="6.0" width="2.0" capacity="8"/>
-    </vehicleTypes>
+	<vehicleTypes>
+		<vehicleType name="Car" length="4.0" width="2.0" capacity="4"/>
+		<vehicleType name="Truck" length="6.0" width="2.0" capacity="8"/>
+	</vehicleTypes>
 
-    <tripFiles>
-    	<!--<tripFile name="CarTrips" fileName="data/carTrips.xml"/>-->
-    	<!--<tripFile name="TruckTrips" fileName="data/truckTrips.xml"/>-->
-    </tripFiles>
+	<tripFiles>
+		<!--<tripFile name="CarTrips" fileName="data/carTrips.xml"/>-->
+		<!--<tripFile name="TruckTrips" fileName="data/truckTrips.xml"/>-->
+	</tripFiles>
 
 	<person_characteristics>
 		<person lowerAge="20" upperAge="30" lowerSecs="3" upperSecs="7"/>
@@ -185,22 +210,24 @@
 	<!-- 3. "pt_bus_stops" -->
 	<!-- With the above three procedures present and valid, enable buses with "<busController enabled="true" />" in the <busController> -->
 	<!-- The current control strategy for buses. Can be "headway_based", "evenheadway_based", "hybrid_based", or (default) "no_control" -->
-	<busController enabled="false" busline_control_type="headway_based"/>
+	<busController enabled="true" busline_control_type="headway_based"/>
 	
 	<!--If enabled, outputs the vehicles counted by every loop detector, accumulated over the given period length (in milliseconds)
 	i.e. count of vehicles passing a loop detector in every "600,000" milliseconds -->
-	<loop-detector_counts frequency="300000" outputEnabled="false" file-name="private/VehicleCounts.csv"/>
+	<loop-detector_counts frequency="900000" outputEnabled="true" file-name="VehicleCounts.csv"/>
 
-    <path-set-config-file value="data/pathset_config.xml" />
-    <travel_time_update interval="300" alpha="0.5" />
-    <subtrip_travel_metrics_output enabled="true" file="subtrip_level_travel_metrics.csv" />
+	<path-set-config-file value="data/pathset_config.xml" />
+	<travel_time_update interval="300" alpha="0.5" />
+	<subtrip_travel_metrics_output enabled="true" file="subtrip_level_travel_metrics.csv" />
 
 	<amodcontroller enabled="false"/>
 
+	<assignment_matrix enabled="true" file-name="assignment_matrix.csv"/>
+	<od_travel_time enabled="true" file-name="od_travel_time.csv" interval="900000"/>
+	<segment_travel_time enabled="true" file-name="segment_travel_time.csv" interval="300000"/>
+
 	<!--(Short-term only) If enabled, outputs the density at every road segment present at the end of the 
 	update interval (in milliseconds)-->
-	<short-term_density-map updateInterval="1000" outputEnabled="false" file-name="private/DensityMap.csv"/>  
-
-	<assignment_matrix enabled="true" file-name="assignment_matrix.csv"/>
+	<short-term_density-map updateInterval="300000" outputEnabled="true" file-name="private/DensityMap.csv"/>  
 </config>
 

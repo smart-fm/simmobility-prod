@@ -78,7 +78,7 @@ std::list<std::string> sim_mob::WorkGroupManager::retrieveOutFileNames() const
 }
 
 WorkGroup* sim_mob::WorkGroupManager::newWorkGroup(unsigned int numWorkers, unsigned int numSimTicks, unsigned int tickStep, AuraManager* auraMgr,
-		PartitionManager* partitionMgr, sim_mob::PeriodicPersonLoader* periodicLoader)
+		PartitionManager* partitionMgr, sim_mob::PeriodicPersonLoader* periodicLoader, uint32_t simulationStartDay)
 {
 	//Sanity check
 	bool pass = (currState.test(INIT) || currState.test(CREATE)) && currState.set(CREATE);
@@ -88,7 +88,7 @@ WorkGroup* sim_mob::WorkGroupManager::newWorkGroup(unsigned int numWorkers, unsi
 	}
 
 	//Most of this involves passing paramters on to the WorkGroup itself, and then bookkeeping via static data.
-	WorkGroup* res = new WorkGroup(registeredWorkGroups.size(), numWorkers, numSimTicks, tickStep, auraMgr, partitionMgr, periodicLoader);
+	WorkGroup* res = new WorkGroup(registeredWorkGroups.size(), numWorkers, numSimTicks, tickStep, auraMgr, partitionMgr, periodicLoader, simulationStartDay);
 	currBarrierCount += numWorkers;
 
 	registeredWorkGroups.push_back(res);
@@ -152,9 +152,6 @@ void sim_mob::WorkGroupManager::waitAllGroups()
 {
 	std::set<Entity*> removedEntities;
 
-	timeval start, end, endFT, endFB, endDM, endMT;
-	std::stringstream timestream;
-	gettimeofday(&start, nullptr);
 	//Call each function in turn.
 	//NOTE: Each sub-function tests the current state.
 	if (ConfigManager::GetInstance().FullConfig().RunningMidTerm() && firstTick)
@@ -166,21 +163,11 @@ void sim_mob::WorkGroupManager::waitAllGroups()
 		}
 		firstTick = false;
 	}
+
 	waitAllGroups_FrameTick();
-	gettimeofday(&endFT, nullptr);
-	timestream << "FT: " << (ProfileBuilder::diff_ms(endFT, start)) / 1000.0 << "s|";
-
 	waitAllGroups_FlipBuffers(&removedEntities);
-	gettimeofday(&endFB, nullptr);
-	timestream << "FB: " << (ProfileBuilder::diff_ms(endFB, endFT)) / 1000.0 << "s|";
-
 	waitAllGroups_DistributeMessages(removedEntities);
-	gettimeofday(&endDM, nullptr);
-	timestream << "DM: " << (ProfileBuilder::diff_ms(endDM, endFB)) / 1000.0 << "s|";
-
 	waitAllGroups_MacroTimeTick();
-	gettimeofday(&endMT, nullptr);
-	timestream << "MT: " << (ProfileBuilder::diff_ms(endMT, endDM)) / 1000.0 << "s|";
 
 	//Delete all collected entities:
 	while (!removedEntities.empty())
@@ -189,10 +176,6 @@ void sim_mob::WorkGroupManager::waitAllGroups()
 		removedEntities.erase(removedEntities.begin());
 		delete ag;
 	}
-
-	gettimeofday(&end, nullptr);
-	timestream << "total: " << (ProfileBuilder::diff_ms(end, start)) / 1000.0 << "s" << std::endl;
-	std::cout << timestream.str();
 }
 
 void sim_mob::WorkGroupManager::waitAllGroups_FrameTick()

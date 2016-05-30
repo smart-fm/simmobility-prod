@@ -7,16 +7,19 @@
 #include <algorithm>
 #include <limits>
 #include <stdexcept>
+#include <bits/stl_map.h>
 
 #include "conf/CMakeConfigParams.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/settings/DisableMPI.h"
+#include "exceptions/Exceptions.hpp"
 #include "geospatial/network/Lane.hpp"
 #include "geospatial/network/Link.hpp"
 #include "geospatial/network/Node.hpp"
 #include "geospatial/network/RoadSegment.hpp"
 #include "logging/Log.hpp"
 #include "util/GeomHelpers.hpp"
+#include "util/Utils.hpp"
 
 #ifndef SIMMOB_DISABLE_MPI
 #include "partitions/PackageUtils.hpp"
@@ -32,12 +35,14 @@ const std::string DriverPathMover::ErrorNotInIntersection("the driver is not in 
 const std::string DriverPathMover::ErrorEntireRouteDone("Entire route is done!");
 
 DriverPathMover::DriverPathMover() :
-currLane(NULL), currTurning(NULL), currPolyLine(NULL), inIntersection(false), distCoveredFromCurrPtToNextPt(0.0), distCoveredOnCurrWayPt(0.0)
+currLane(NULL), currTurning(NULL), nextLane(NULL), nextTurning(NULL), currPolyLine(NULL), inIntersection(false), distCoveredFromCurrPtToNextPt(0.0),
+distCoveredOnCurrWayPt(0.0)
 {
 }
 
 DriverPathMover::DriverPathMover(const DriverPathMover &pathMover) :
-currLane(pathMover.currLane), currTurning(pathMover.currTurning), currPolyLine(pathMover.currPolyLine), inIntersection(pathMover.inIntersection),
+currLane(pathMover.currLane), currTurning(pathMover.currTurning), nextLane(pathMover.nextLane), nextTurning(pathMover.nextTurning),
+currPolyLine(pathMover.currPolyLine), inIntersection(pathMover.inIntersection),
 distCoveredFromCurrPtToNextPt(pathMover.distCoveredFromCurrPtToNextPt), distCoveredOnCurrWayPt(pathMover.distCoveredOnCurrWayPt)
 {
 	//Align the iterators
@@ -93,7 +98,7 @@ const PolyPoint& DriverPathMover::getNextPolyPoint() const
 	}
 	else
 	{
-		throw std::runtime_error(ErrorEntireRouteDone);
+		return *currPolyPoint;
 	}
 }
 
@@ -148,6 +153,10 @@ const RoadSegment* DriverPathMover::getCurrSegment() const
 	{
 		return currLane->getParentSegment();
 	}
+	else if(isDrivingPathSet() && !isDoneWithEntireRoute() && currWayPointIt->type == WayPoint::ROAD_SEGMENT)
+	{
+		return currWayPointIt->roadSegment;
+	}
 	else
 	{
 		return NULL;
@@ -159,6 +168,10 @@ const Link* DriverPathMover::getCurrLink() const
 	if (currLane)
 	{
 		return currLane->getParentSegment()->getParentLink();
+	}
+	else if(isDrivingPathSet() && !isDoneWithEntireRoute() && currWayPointIt->type == WayPoint::ROAD_SEGMENT)
+	{
+		return currWayPointIt->roadSegment->getParentLink();
 	}
 	else
 	{
@@ -202,66 +215,81 @@ const Link* DriverPathMover::getNextLink() const
 {
 	const Link *nextLink = NULL;
 	
-	//Access the next way-point
-	std::vector<WayPoint>::const_iterator itWayPt = currWayPointIt + 1;
-	
-	while(itWayPt != drivingPath.end())
+	if (!isDoneWithEntireRoute())
 	{
-		if(itWayPt->type == WayPoint::ROAD_SEGMENT && itWayPt->roadSegment->getParentLink() != getCurrLink())
+		//Access the next way-point
+		std::vector<WayPoint>::const_iterator itWayPt = currWayPointIt + 1;
+
+		while (itWayPt != drivingPath.end())
 		{
-			nextLink = itWayPt->roadSegment->getParentLink();
-			break;
+			if (itWayPt->type == WayPoint::ROAD_SEGMENT && itWayPt->roadSegment->getParentLink() != getCurrLink())
+			{
+				nextLink = itWayPt->roadSegment->getParentLink();
+				break;
+			}
+			++itWayPt;
 		}
-		++itWayPt;
-	}
+	}	
 	
 	return nextLink;
 }
 
-const Lane* DriverPathMover::getNextLane() const
+const Lane* DriverPathMover::getNextLane()
 {
-	const Lane *nextLane = NULL;
-	
-	if(currLane)
+	if(nextLane == nullptr)
 	{
-		//Use the lane connectors to find the next lane
-		
-		//Get all the connectors that are physically connected to the next segment
-		std::vector<const LaneConnector *> trueConnections;
-		currLane->getPhysicalConnectors(trueConnections);
-		
-		if(!trueConnections.empty())
+		if (currLane)
 		{
-			//Choose the middle connection
-			unsigned int midConnection = trueConnections.size() / 2;
-			nextLane = trueConnections.at(midConnection)->getToLane();
+			//Use the lane connectors to find the next lane
+
+			//Get all the connectors that are physically connected to the next segment
+			std::vector<const LaneConnector *> trueConnections;
+			currLane->getPhysicalConnectors(trueConnections);
+
+			if (!trueConnections.empty())
+			{
+				//Choose the a connection randomly
+				unsigned int randomInt = Utils::generateInt(0, trueConnections.size() - 1);
+				nextLane = trueConnections.at(randomInt)->getToLane();
+			}
+		}
+		else
+		{
+			nextLane = currTurning->getToLane();
 		}
 	}
-	else
-	{
-		nextLane = currTurning->getToLane();
-	}
-	
 	return nextLane;
 }
 
-const TurningPath* DriverPathMover::getNextTurning() const
+const TurningPath* DriverPathMover::getNextTurning()
 {
-	const TurningPath *nextTurning = NULL;
-	
-	if(currLane && currWayPointIt != drivingPath.end() && (currWayPointIt + 1) != drivingPath.end()) 
+	if(nextTurning == nullptr)
 	{
-		//Get next way point. It should be a turning group
-		const WayPoint nextWayPt = *(currWayPointIt + 1);
-		if(nextWayPt.type == WayPoint::TURNING_GROUP)
+		if (currLane && currWayPointIt != drivingPath.end() && (currWayPointIt + 1) != drivingPath.end())
 		{
-			//The turnings from the current lane
-			const std::map<unsigned int, TurningPath *> *turnings = nextWayPt.turningGroup->getTurningPaths(currLane->getLaneId());
-			
-			if(turnings)
+			//Get next way point. It should be a turning group
+			const WayPoint nextWayPt = *(currWayPointIt + 1);
+			if (nextWayPt.type == WayPoint::TURNING_GROUP)
 			{
-				//Select the first turning path that we find
-				nextTurning = turnings->begin()->second;
+				//The turnings from the current lane
+				const std::map<unsigned int, TurningPath *> *turnings = nextWayPt.turningGroup->getTurningPaths(currLane->getLaneId());
+
+				if (turnings)
+				{
+					if(turnings->size() > 1)
+					{
+						//Select a random turning path
+						unsigned int randomInt = Utils::generateInt(0, turnings->size() - 1);
+						std::map<unsigned int, TurningPath *>::const_iterator it = turnings->begin();
+						std::advance(it, randomInt);
+						nextTurning = it->second;
+					}
+					else
+					{
+						//Only one turning path available
+						nextTurning = turnings->begin()->second;
+					}
+				}
 			}
 		}
 	}
@@ -320,8 +348,35 @@ void DriverPathMover::setPath(const std::vector<WayPoint> &path, int startLaneIn
 		//Validate the given start lane index
 		if(startLaneIndex < 0 || startLaneIndex >= noOfLanes)
 		{
-			//Invalid index, default to left most lane
-			currLaneIndex = 0;
+			//Invalid index
+			
+			if(drivingPath.size() > 1 && (currWayPointIt + 1)->type == WayPoint::TURNING_GROUP)
+			{
+				//Only one segment in the current link. Assign a lane that connects to the next link
+				
+				//Get the turning group and turning paths
+				const TurningGroup *tGroup = (currWayPointIt + 1)->turningGroup;
+				const std::map<unsigned int, std::map<unsigned int, TurningPath *> > &tPaths = tGroup->getTurningPaths();
+				
+				if(!tPaths.empty())
+				{
+					//Select "from lane" randomly from the available paths
+					unsigned int randomInt = Utils::generateInt(0, tPaths.size() - 1);
+					std::map<unsigned int, std::map<unsigned int, TurningPath *> >::const_iterator it = tPaths.begin();
+					std::advance(it, randomInt);
+
+					//Extract the lane index
+					currLaneIndex = it->first % 10;
+				}
+				else
+				{
+					currLaneIndex = Utils::generateInt(0, noOfLanes-1);
+				}
+			}
+			else
+			{
+				currLaneIndex = Utils::generateInt(0, noOfLanes-1);
+			}
 		}
 		else
 		{
@@ -350,6 +405,59 @@ void DriverPathMover::setPath(const std::vector<WayPoint> &path, int startLaneIn
 		//Initialise the distances covered
 		distCoveredFromCurrPtToNextPt = 0;
 		distCoveredOnCurrWayPt = 0;
+	}
+}
+
+void DriverPathMover::setPathStartingWithTurningGroup(const std::vector<WayPoint> &path, const Lane *fromLane)
+{
+	//Clear the previous path, if any
+	drivingPath.clear();
+	currLane = nullptr;
+	inIntersection = true;
+
+	if (!path.empty())
+	{
+		//Copy the way-points from the given path
+		drivingPath = path;
+
+		//Set the current way-point iterator to point to the first segment in the path
+		currWayPointIt = drivingPath.begin();
+		
+		//Select the turning path based on the previous lane and next lane
+		const TurningGroup *tGroup = path.front().turningGroup;
+		const std::map<unsigned int, TurningPath *> *turnings = tGroup->getTurningPaths(fromLane->getLaneId());
+		
+		if (turnings)
+		{
+			if (turnings->size() > 1)
+			{
+				//Select a random turning path
+				unsigned int randomInt = Utils::generateInt(0, turnings->size() - 1);
+				std::map<unsigned int, TurningPath *>::const_iterator it = turnings->begin();
+				std::advance(it, randomInt);
+				currTurning = it->second;
+			}
+			else
+			{
+				//Only one turning path available
+				currTurning = turnings->begin()->second;
+			}
+		}
+		else
+		{
+			std::stringstream msg;
+			msg << "No turning path from Lane " << fromLane->getLaneId() << " in the turning group " << tGroup->getTurningGroupId();
+			throw runtime_error(msg.str());
+		}
+
+		//Set the current poly-line and the set the iterators to point to the current and next points
+		currPolyLine = currTurning->getPolyLine();
+		currPolyPoint = currPolyLine->getPoints().begin();
+		nextPolyPoint = currPolyPoint + 1;
+
+		//Initialise the distances covered
+		distCoveredFromCurrPtToNextPt = 0;
+		distCoveredOnCurrWayPt = 0;		
 	}
 }
 
@@ -445,6 +553,7 @@ double DriverPathMover::advanceToNextPolyLine()
 					
 					//Get the next lane					
 					currLane = getNextLane();
+					nextLane = nullptr;
 					
 					if(currLane)
 					{
@@ -465,17 +574,19 @@ double DriverPathMover::advanceToNextPolyLine()
 					
 					//We're entering an intersection. Use the turning group and the current lane to get the turning path			
 					currTurning = getNextTurning();
+					nextTurning = nullptr;
 					
 					if(currTurning)
 					{
 						currPolyLine = currTurning->getPolyLine();
 						currLane = NULL;
+						nextLane = NULL;
 					}
 					else
 					{
 						std::stringstream msg;
 						msg << "Reached intersection from lane " << currLane->getLaneId() << ". It is not connected to a turning path!";
-						throw std::runtime_error(msg.str());
+						throw no_turning_path_exception(msg.str(), currLane, getNextSegInNextLink());
 					}
 				}
 			}
@@ -488,6 +599,7 @@ double DriverPathMover::advanceToNextPolyLine()
 				currLane = getNextLane();
 				currPolyLine = currLane->getPolyLine();
 				currTurning = NULL;
+				nextLane = NULL;
 			}
 			
 			//Set the iterators to point to the current and next points
@@ -523,6 +635,10 @@ void DriverPathMover::updateLateralMovement(const Lane* lane)
 		currPolyPoint = currPolyLine->getPoints().begin();
 		nextPolyPoint = currPolyPoint + 1;
 		
+		//Reset next turning, lane
+		nextTurning = nullptr;
+		nextLane = nullptr;
+		
 		//Map progress to current poly-line
 		if(pointsCovered > 0)
 		{
@@ -543,8 +659,20 @@ double DriverPathMover::getDistCoveredOnCurrWayPt() const
 
 double DriverPathMover::getDistToEndOfCurrWayPt() const
 {
-	double length = (currLane != NULL) ? currLane->getLength() : currTurning->getLength();
-	return (length - getDistCoveredOnCurrWayPt());
+	double distance = 0;
+	
+	/*It may seem that an if-else will suffice [rather than an else-if], but there are situations where a driver accesses this method
+	  of another driver which in the middle of re-routing [and yet to get a valid turning path]*/
+	if(currLane)
+	{
+		distance = currLane->getLength()- getDistCoveredOnCurrWayPt();
+	}
+	else if(currTurning)
+	{
+		distance = currTurning->getLength() - getDistCoveredOnCurrWayPt();
+	}
+	
+	return distance;
 }
 
 double DriverPathMover::getDistToEndOfCurrLink() const

@@ -21,47 +21,93 @@ namespace sim_mob {
 /**
  * Represents the long-term developer model of the config file
  */
-struct LongTermParams{
-    LongTermParams();
-    bool enabled;
-    unsigned int workers;
-    unsigned int days;
-    unsigned int tickStep;
-    unsigned int maxIterations;
+struct LongTermParams
+{
+	LongTermParams();
+	bool enabled;
+	unsigned int workers;
+	unsigned int days;
+	unsigned int tickStep;
+	unsigned int maxIterations;
+	unsigned int year;
+	std::string simulationScenario;
+	bool resume;
+	std::string currentOutputSchema;
+	std::string mainSchemaVersion;
+	std::string configSchemaVersion;
+	std::string calibrationSchemaVersion;
+	std::string geometrySchemaVersion;
+	unsigned int opSchemaloadingInterval;
 
-    struct DeveloperModel{
-        DeveloperModel();
-        bool enabled;
-        unsigned int timeInterval;
-        int initialPostcode;
-        int initialUnitId;
-        int initialBuildingId;
-        int initialProjectId;
-        int year;
-        double minLotSize;
-    } developerModel;
+	struct DeveloperModel{
+		DeveloperModel();
+		bool enabled;
+		unsigned int timeInterval;
+		int initialPostcode;
+		int initialUnitId;
+		int initialBuildingId;
+		int initialProjectId;
+		double minLotSize;
+	} developerModel;
 
-    struct HousingModel{
-        HousingModel();
-        bool enabled;
-        unsigned int timeInterval; ///time interval before a unit drops its asking price by a certain percentage.
-        unsigned int timeOnMarket; ///for units on the housing market
-        unsigned int timeOffMarket;///for units on the housing market
-        float vacantUnitActivationProbability;
-        int initialHouseholdsOnMarket;
-        float housingMarketSearchPercentage;
-        float housingMoveInDaysInterval;
-        bool  outputHouseholdLogsums;
-        int offsetBetweenUnitBuyingAndSelling;
-        int bidderUnitsChoiceSet;
-        int householdBiddingWindow;
-    } housingModel;
+	struct HousingModel{
+		HousingModel();
+		bool enabled;
+		unsigned int timeInterval; //time interval before a unit drops its asking price by a certain percentage.
+		unsigned int timeOnMarket; //for units on the housing market
+		unsigned int timeOffMarket;//for units on the housing market
+		float vacantUnitActivationProbability;
+		int initialHouseholdsOnMarket;
+		int dailyHouseholdAwakenings;
+		float housingMarketSearchPercentage;
+		float housingMoveInDaysInterval;
+		int offsetBetweenUnitBuyingAndSelling;
+		int bidderUnitsChoiceSet;
+		int householdBiddingWindow;
+	} housingModel;
 
-    struct VehicleOwnershipModel{
-        VehicleOwnershipModel();
-        bool enabled;
-        unsigned int vehicleBuyingWaitingTimeInDays;
-    }vehicleOwnershipModel;
+	struct OutputHouseholdLogsums
+	{
+		OutputHouseholdLogsums();
+		bool enabled;
+		bool fixedHomeVariableWork;
+		bool fixedWorkVariableHome;
+	} outputHouseholdLogsums;
+
+	struct VehicleOwnershipModel{
+		VehicleOwnershipModel();
+		bool enabled;
+		unsigned int vehicleBuyingWaitingTimeInDays;
+	}vehicleOwnershipModel;
+};
+
+///represent the incident data section of the config file
+struct IncidentParams {
+	IncidentParams() : incidentId(-1), visibilityDistance(0), segmentId(-1), position(0), severity(0),
+			capFactor(0), startTime(0), duration(0), length(0),	compliance(0), accessibility(0){}
+
+	struct LaneParams {
+		LaneParams() : laneId(0), speedLimit(0), xLaneStartPos(0), yLaneStartPos(0), xLaneEndPos(0),yLaneEndPos(0){}
+		unsigned int laneId;
+		float speedLimit;
+		float xLaneStartPos;
+		float yLaneStartPos;
+		float xLaneEndPos;
+		float yLaneEndPos;
+	};
+
+	unsigned int incidentId;
+	float visibilityDistance;
+	unsigned int segmentId;
+	float position;
+	unsigned int severity;
+	float capFactor;
+	unsigned int startTime;
+	unsigned int duration;
+	float length;
+	float compliance;
+	float accessibility;
+	std::vector<LaneParams> laneParams;
 };
 /**
  * represent disruption data section of the config file
@@ -133,6 +179,9 @@ public:
 
     /// When the simulation begins(based on configuration)
     DailyTime simStartTime;
+	
+    /// Indicates the percentage of persons which will use in-simulation travel times instead of historical travel times
+    unsigned int inSimulationTTUsage;
 
     /// Defautl assignment strategy for Workgroups.
     WorkGroup::ASSIGNMENT_STRATEGY workGroupAssigmentStrategy;
@@ -325,37 +374,10 @@ struct PathSetConf
 	/// Utility parameters
 	struct UtilityParams
 	{
-
-		double bTTVOT;
-		double bCommonFactor;
-		double bLength;
-		double bHighway;
-		double bCost;
-		double bSigInter;
-		double bLeftTurns;
-		double bWork;
-		double bLeisure;
 		double highwayBias;
-		double minTravelTimeParam;
-		double minDistanceParam;
-		double minSignalParam;
-		double maxHighwayParam;
 		UtilityParams()
 		{
-            bTTVOT = -0.01373;///-0.0108879;
-			bCommonFactor = 1.0;
-            bLength = -0.001025;///0.0; ///negative sign proposed by milan
-            bHighway = 0.00052;///0.0;
-			bCost = 0.0;
-            bSigInter = -0.13;///0.0;
-			bLeftTurns = 0.0;
-			bWork = 0.0;
-			bLeisure = 0.0;
 			highwayBias = 0.5;
-			minTravelTimeParam = 0.879;
-			minDistanceParam = 0.325;
-			minSignalParam = 0.256;
-			maxHighwayParam = 0.422;
 		}
 	};
 
@@ -367,6 +389,7 @@ struct PathSetConf
 
     /// pt route choice model scripts params
 	ModelScriptsMap ptRouteChoiceScriptsMap;
+	ModelScriptsMap pvtRouteChoiceScriptsMap;
 };
 
 /**
@@ -429,6 +452,14 @@ struct BusStopScheduledTime {
     unsigned int offsetDT; //<Presumably departure time?
 };
 
+struct TravelTimeConfig {
+	unsigned int intervalMS;
+	std::string fileName;
+	bool enabled;
+
+	TravelTimeConfig() : intervalMS(0), fileName(""), enabled(false) {}
+};
+
 /**
  * Contains the properties of the config file as they appear in, e.g., test_road_network.xml, with
  *   minimal conversion.
@@ -481,6 +512,11 @@ public:
 
     /// Train controller parameters
     TrainControllerParams trainController;
+    //OD Travel Time configurations
+    TravelTimeConfig odTTConfig;
+
+    //OD Travel Time configurations
+	TravelTimeConfig rsTTConfig;
 
     ///Some settings for bus stop arrivals/departures.
     std::map<int, BusStopScheduledTime> busScheduledTimes; //The int is a "bus stop ID", starting from 0.

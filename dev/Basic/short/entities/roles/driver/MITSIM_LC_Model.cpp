@@ -15,6 +15,7 @@
 #include "geospatial/network/RoadNetwork.hpp"
 
 using std::numeric_limits;
+using namespace std;
 using namespace sim_mob;
 
 namespace
@@ -509,26 +510,42 @@ LaneChangeTo MITSIM_LC_Model::checkForLC_WithLookAhead(DriverUpdateParams &param
 	}
 
 	//Find lanes connect to target segment in lookahead distance
-	std::vector<Lane*> connectedLanes;
+	/*std::vector<const Lane*> connectedLanes;
 	getConnectedLanesInLookAheadDistance(params, lookAheadDistance, connectedLanes);
-	params.lcDebugStr << ";clilad" << connectedLanes.size();
+	params.lcDebugStr << ";clilad" << connectedLanes.size();*/
 
-	int nRight = 100; // number of lane changes required for the current lane.
-	int nLeft = 100; // number of lane changes required for the current lane.
-	int nCurrent = 100; // number of lane changes required for the current lane.
+	int nRight = -1; // number of lane changes required for the current lane.
+	int nLeft = -1; // number of lane changes required for the current lane.
+	int nCurrent = -1; // number of lane changes required for the current lane.
 
 	//Compute number of lane changes to right,left,current
-	for (int i = 0; i < connectedLanes.size(); i++)
+	set<const Lane *>::iterator it;
+	for (it = params.targetLanes.begin(); it != params.targetLanes.end(); ++it)
 	{
-		int l1 = abs(connectedLanes[i]->getLaneIndex());
-		int l2 = params.currLaneIndex;
-		int numlcRight = abs(l1 - (l2 + 1));
-		int numlcLeft = abs(l1 - (l2 - 1));
-		int numlcCurrent = abs(l1 - l2);
-
-		nRight = std::min<int>(nRight, numlcRight);
-		nLeft = std::min<int>(nLeft, numlcLeft);
-		nCurrent = std::min<int>(nCurrent, numlcCurrent);
+		const Lane *lane = *it;
+		size_t targetLaneIdx = lane->getLaneIndex();
+		if (targetLaneIdx < params.currLaneIndex)
+		{
+			//Target lane is on the left of current lane
+			int numberlc = params.currLaneIndex - targetLaneIdx;
+			if (numberlc < nLeft || nLeft < 0)
+			{
+				nLeft = numberlc;
+			}
+		}
+		else if (targetLaneIdx > params.currLaneIndex)
+		{
+			//Target lane on the right
+			int numberlc = targetLaneIdx - params.currLaneIndex;
+			if (numberlc < nRight || nRight < 0)
+			{
+				nRight = numberlc;
+			}
+		}
+		else
+		{
+			nCurrent = 0;
+		}		
 	}
 
 	params.lcDebugStr << ";nR" << nRight << ";nL" << nLeft << ";nC" << nCurrent;
@@ -538,7 +555,7 @@ LaneChangeTo MITSIM_LC_Model::checkForLC_WithLookAhead(DriverUpdateParams &param
 
 	int res = isReadyForNextDLC(params, 2);
 	params.lcDebugStr << ";isRyL" << res;
-	if (res && nLeft == 0 && params.leftLane)
+	if (res && nLeft > 0 && params.leftLane)
 	{
 		eul = lcUtilityLookAheadLeft(params, nLeft, lcDistance);
 		params.lcDebugStr << ";doeul" << eul;
@@ -546,7 +563,7 @@ LaneChangeTo MITSIM_LC_Model::checkForLC_WithLookAhead(DriverUpdateParams &param
 
 	res = isReadyForNextDLC(params, 1);
 	params.lcDebugStr << ";isRyR" << res;
-	if (res && nRight == 0 && params.rightLane)
+	if (res && nRight > 0 && params.rightLane)
 	{
 		eur = lcUtilityLookAheadRight(params, nRight, lcDistance);
 		params.lcDebugStr << ";doeur" << eur;
@@ -956,7 +973,7 @@ double MITSIM_LC_Model::lcUtilityLookAheadLeft(DriverUpdateParams &params, int n
 	vector<double> a = laneUtilityParams;
 	double vld, mlc, density, spacing;
 
-	density = params.density;
+	density = 0;
 	float heavy_neighbor = 0.0;
 
 	if (params.nvLeftFwd.exists())
@@ -971,6 +988,7 @@ double MITSIM_LC_Model::lcUtilityLookAheadLeft(DriverUpdateParams &params, int n
 			heavy_neighbor = a[7];
 		}
 		spacing = params.nvLeftFwd.distance;
+		density = params.nvLeftFwd.driver->getDensity();
 	}
 	else
 	{
@@ -985,6 +1003,8 @@ double MITSIM_LC_Model::lcUtilityLookAheadLeft(DriverUpdateParams &params, int n
 		{
 			heavy_neighbor = a[7];
 		}
+		
+		density = params.nvLeftBack.driver->getDensity();
 	}
 
 	float left_most = 0.0;
@@ -1035,7 +1055,7 @@ double MITSIM_LC_Model::lcUtilityLookAheadRight(DriverUpdateParams &params, int 
 	vector<double> a = laneUtilityParams;
 	double vld, mlc, density, spacing;
 
-	density = params.density;
+	density = 0.0;
 	float heavy_neighbor = 0.0;
 
 	if (params.nvRightFwd.exists())
@@ -1051,6 +1071,7 @@ double MITSIM_LC_Model::lcUtilityLookAheadRight(DriverUpdateParams &params, int 
 			heavy_neighbor = a[7];
 		}
 		spacing = params.nvRightFwd.distance;
+		density = params.nvRightFwd.driver->getDensity();
 	}
 	else
 	{
@@ -1065,6 +1086,7 @@ double MITSIM_LC_Model::lcUtilityLookAheadRight(DriverUpdateParams &params, int 
 		{
 			heavy_neighbor = a[7];
 		}
+		density = params.nvRightBack.driver->getDensity();
 	}
 
 	float left_most = 0.0;
@@ -1235,13 +1257,13 @@ double MITSIM_LC_Model::lcCriticalGap(DriverUpdateParams &params, int type, doub
 	case 0:
 	{
 		// lead gap
-		gap = a[0] + a[1] * dvNegative + a[2] * dvPositive + Utils::generateFloat(0, a[3]);
+		gap = a[0] + a[1] * dvNegative + a[2] * dvPositive + Utils::nRandom(0, a[3]);
 		break;
 	}
 	case 1:
 	{
 		// lag gap
-		gap = a[4] + a[5] * dvNegative + a[6] * std::min<double>(dvPositive, maxdiff) + Utils::generateFloat(0, a[7]);
+		gap = a[4] + a[5] * dvNegative + a[6] * std::min<double>(dvPositive, maxdiff) + Utils::nRandom(0, a[7]);
 		break;
 	}
 	}
@@ -1262,8 +1284,9 @@ LaneChangeTo MITSIM_LC_Model::makeLaneChangingDecision(DriverUpdateParams &param
 {
 	static const std::string makeLCD("makeLaneChangingDecision");
 	params.lcDebugStr << "makeD" << params.now.frame();
+	params.noOfLC = 0;
 	
-	if(params.perceivedFwdVelocity < minSpeed)
+	if(params.desiredSpeed < minSpeed)
 	{
 		params.lcDebugStr << ";samesm";
 		return LANE_CHANGE_TO_NONE;
@@ -1362,6 +1385,7 @@ double MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams &params)
 	if (fwdVeh->exists())
 	{
 		aheadway = fwdVeh->distance;
+		params.lcDebugStr << ";ah" << aheadway;
 	}
 	else
 	{
@@ -1373,6 +1397,7 @@ double MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams &params)
 	if (rearVeh->exists())
 	{
 		bheadway = rearVeh->distance;
+		params.lcDebugStr << ";bh" << bheadway;
 	}
 	else
 	{
@@ -1383,7 +1408,7 @@ double MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams &params)
 	int escape = params.flag(FLAG_ESCAPE);
 
 	int lctype;
-	if (params.getStatus(STATUS_MANDATORY) && params.getStatus(STATUS_CURRENT_LANE_OK) != StatusValue::STATUS_YES)
+	if (params.getStatus(STATUS_MANDATORY))
 	{
 		params.lcDebugStr << ";M";
 		lctype = 2; // must do lane changing
@@ -1398,17 +1423,29 @@ double MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams &params)
 		params.lcDebugStr << ";0";
 		lctype = 0; // discretionary
 	}
+	
+	double cGapRear = -1, cGapFwd = -1;
 
 	// 6.0 check if lead, lag gap is OK
-	if (rearVeh->exists() && bheadway < lcCriticalGap(params, 1, rearVeh->driver->getFwdVelocity() - params.currSpeed))
+	if (rearVeh->exists())
 	{
-		params.lcDebugStr << ";FLG";
-		params.setFlag(FLAG_LC_FAILED_LAG); // lag gap
+		cGapRear = lcCriticalGap(params, 1, rearVeh->driver->getFwdVelocity() - params.currSpeed);
+		
+		if(bheadway < cGapRear)
+		{
+			params.lcDebugStr << ";FLG" << "cgapR" << cGapRear;
+			params.setFlag(FLAG_LC_FAILED_LAG); // lag gap
+		}
 	}
-	else if (fwdVeh->exists() && aheadway < lcCriticalGap(params, 0, fwdVeh->driver->getFwdVelocity() - params.currSpeed))
+	if (fwdVeh->exists())
 	{
-		params.lcDebugStr << ";FLD";
-		params.setFlag(FLAG_LC_FAILED_LEAD); // lead gap
+		cGapFwd = lcCriticalGap(params, 0, fwdVeh->driver->getFwdVelocity() - params.currSpeed);
+		
+		if(aheadway < cGapFwd)
+		{
+			params.lcDebugStr << ";FLD" << "cgapF" << cGapFwd;
+			params.setFlag(FLAG_LC_FAILED_LEAD); // lead gap
+		}
 	}
 
 	// 7.0 if gap is OK, then set status as doing lane change
@@ -1430,17 +1467,17 @@ double MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams &params)
 		if (!nosing && params.distToStop < lcMaxNosingDis)
 		{
 			params.lcDebugStr << ";NDis";
-			int nlanes = 0;
+			int nlanes = params.noOfLC;
 			float gap = aheadway + bheadway;
 			float dv = fwdVeh->exists() ? fwdVeh->driver->getFwdVelocity() - params.currSpeed : 0;
 
 			float pmf;
 
-			if (params.getStatus(STATUS_CURRENT_LANE_OK) && fwdDriverMovement->getNextSegInNextLink())
+			if (params.flag(FLAG_ESCAPE) == 0 && fwdDriverMovement->getNextSegInNextLink())
 			{
 				// current lane connects to next link on path
 				params.lcDebugStr << ";CN";
-				float longer_dis = params.distToStop + fwdDriverMovement->getNextSegInNextLink()->getLength();
+				float longer_dis = fwdDriverMovement->getDistToEndOfCurrLink() + fwdDriverMovement->getNextSegInNextLink()->getLength();
 				pmf = lcNosingProbability(longer_dis, dv, gap, nlanes);
 				// remaining distance for forced merging is the length remaining
 				// in the current link plus at least the length of the first
@@ -1450,7 +1487,7 @@ double MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams &params)
 			{
 				// current lane does not connect to next link on path
 				params.lcDebugStr << ";else";
-				pmf = lcNosingProbability(params.distToStop, dv, gap, nlanes);
+				pmf = lcNosingProbability(fwdDriverMovement->getDistToEndOfCurrWayPt(), dv, gap, nlanes);
 				// forced merging must be performed in current link
 			}
 
@@ -1472,18 +1509,20 @@ double MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams &params)
 			int isNosingFeasible = checkNosingFeasibility(params, fwdVeh, rearVeh, params.distToStop);
 			params.lcDebugStr << ";fi" << isNosingFeasible;
 			
-			if (isNosingFeasible && rearVeh->exists())
-			{
-				Driver *bvd = const_cast<Driver *> (rearVeh->driver);
-				DriverUpdateParams &bvp = bvd->getParams();
+			if (isNosingFeasible)
+			{				
 				params.lcDebugStr << ";nf";
-
 				params.setFlag(FLAG_NOSING_FEASIBLE);
 
 				// Nosing is feasible
-				if (rearVeh->exists())
-				{
-					// There is a lag vehicle in the target lane
+				if (rearVeh->exists() && params.flag(FLAG_LC_FAILED_LAG) && rearVeh->distance > 0)
+				{					
+					// There is a lag vehicle in the target lane with which we don't have enough gap
+					//Also, make sure that the lag vehicle isn't stuck (yielding to it would get us stuck as well,
+					//the stuck vehicle will change lanes once we go through)
+					Driver *bvd = const_cast<Driver *> (rearVeh->driver);
+					DriverUpdateParams &bvp = bvd->getParams();
+				
 					bvd->setYieldingToDriver(params.driver);
 					if (!(bvd->IsBusDriver() && bvp.getStatus(STATUS_STOPPED)))
 					{
@@ -1519,7 +1558,7 @@ double MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams &params)
 				}
 				
 				// Check if the minimum gaps are available.				
-				if (abs(bheadway) > params.lcMinGap(lctype + 1) && aheadway > params.lcMinGap(lctype))
+				if (abs(bheadway) > cGapRear && aheadway > cGapFwd)
 				{
 					params.setStatusDoingLC(changeMode);
 				}				
@@ -1553,7 +1592,20 @@ int MITSIM_LC_Model::checkNosingFeasibility(DriverUpdateParams &params, const Ne
 		if (timeSinceTagged(params) > lcMaxStuckTime)
 		{
 			//If stuck for a very long time, skip the feasibility check
-			params.lcDebugStr << ";max";
+			LaneChangeTo changeMode = LANE_CHANGE_TO_NONE;
+			params.lcDebugStr << ";max";		
+			
+			if (params.getStatus(STATUS_LEFT))
+			{
+				changeMode = LANE_CHANGE_TO_LEFT;
+			}
+			else if (params.getStatus(STATUS_RIGHT))
+			{
+				changeMode = LANE_CHANGE_TO_RIGHT;
+			}
+			
+			params.setStatusDoingLC(changeMode);
+			
 			return 1;
 		}
 	}
@@ -1562,7 +1614,7 @@ int MITSIM_LC_Model::checkNosingFeasibility(DriverUpdateParams &params, const Ne
 		params.lcDebugStr << ";CF0";
 		double length = params.driver->getVehicleLength();
 
-		if (distToStop < length && params.currSpeed < Math::DOUBLE_EPSILON)
+		if (distToStop <= length && params.currSpeed < Math::DOUBLE_EPSILON)
 		{
 			params.lcDebugStr << ";CF1";
 			params.setFlag(FLAG_STUCK_AT_END);
@@ -1646,7 +1698,6 @@ int MITSIM_LC_Model::checkNosingFeasibility(DriverUpdateParams &params, const Ne
 			// not willing to yield
 			return 0; // To avoid dead lock
 		}
-
 		else if (params.flag(FLAG_LC_FAILED_LAG))
 		{
 			params.lcDebugStr << ";CF13";
@@ -1752,12 +1803,13 @@ int MITSIM_LC_Model::checkForEventsAhead(DriverUpdateParams& params)
 	{
 		needDLC = true;
 	}
-
-	// 1.1 check connections to the next way-point
-	//No incident, but check for lane connectivity
-	set<const Lane*> connectedLanes;
-	res = isLaneConnectedToNextWayPt(params, connectedLanes);
 	
+	set<const Lane*> connectedLanes;	
+	
+	// 1.1 check connections to the next way-point
+	//No incident, but check for lane connectivity	
+	res = isLaneConnectedToNextWayPt(params, connectedLanes);
+
 	if (res == -1)
 	{
 		needMLC = true;
@@ -1767,28 +1819,49 @@ int MITSIM_LC_Model::checkForEventsAhead(DriverUpdateParams& params)
 	{
 		needDLC = true;
 	}
-	
+
 	params.targetLanes = connectedLanes;
-	
-	// 1.2 check connections to the next link
-	//This is equivalent to the previous check only when we're on the last segment of the link
 	connectedLanes.clear();
+
+	// 1.2 check connections to the next link
+	//This is equivalent to the previous check only when we're on the last segment of the link		
 	res = isLaneConnectedToNextLink(params, connectedLanes);
-	
+
 	if (res == -1)
 	{
 		needMLC = true;
-		params.lcDebugStr << ";Xcnl";
+		params.lcDebugStr << ";Xcnl" << fwdDriverMovement->getNextLink()->getLinkId();
 	}
 	if (res == 1)
 	{
 		needDLC = true;
 	}
-	
-	params.targetLanes = connectedLanes;
 
-	// 1.2 check stop point, like bus stop
+	params.addTargetLanes(connectedLanes);	
 	connectedLanes.clear();
+	
+	// 1.3 Check connections in a lookahead distance
+	vector<const Lane *> targetLanes;
+	res = getConnectedLanesInLookAheadDistance(params, lookAheadDistance, targetLanes);	
+
+	if(!targetLanes.empty())
+	{
+		if (res == -1)
+		{
+			needMLC = true;
+			params.lcDebugStr << ";Xclad";
+		}
+		if (res == 1)
+		{
+			needDLC = true;
+		}
+		
+		connectedLanes.insert(targetLanes.begin(), targetLanes.end());
+		params.addTargetLanes(connectedLanes);
+		connectedLanes.clear();
+	}
+
+	// 1.4 check stop point, like bus stop	
 	res = isLaneConnectedToStopPoint(params, connectedLanes);
 	
 	if (res == -1)
@@ -1843,7 +1916,7 @@ int MITSIM_LC_Model::isIncidentAhead(DriverUpdateParams &params)
 
 	if (driverMvt->incidentPerformer.getIncidentStatus().getChangedLane())
 	{
-		params.distToStop = driverMvt->incidentPerformer.getIncidentStatus().getDistanceToIncident() - 2 * params.driver->getVehicleLength();
+		params.distToStop = driverMvt->incidentPerformer.getIncidentStatus().getDistanceToIncident() - params.driver->getVehicleLength();
 		return -1; //mandatory lane change
 	}
 
@@ -1881,7 +1954,7 @@ int MITSIM_LC_Model::isLaneConnectedToNextWayPt(DriverUpdateParams &params, set<
 		if (connectors.empty())
 		{
 			//No lane connector for this lane, so we need to change lane
-			double distToStop = fwdDriverMovement->getDistToEndOfCurrWayPt() - 2 * params.driver->getVehicleLength();
+			double distToStop = fwdDriverMovement->getDistToEndOfCurrWayPt() - params.driver->getVehicleLength();
 			
 			if (distToStop < params.distToStop)
 			{
@@ -1917,7 +1990,7 @@ int MITSIM_LC_Model::isLaneConnectedToNextWayPt(DriverUpdateParams &params, set<
 			if (!turningGroup->getTurningPaths(currLane->getLaneId()))
 			{
 				//No turning path from current lane
-				double distToStop = fwdDriverMovement->getDistToEndOfCurrLink() - 2 * params.driver->getVehicleLength();
+				double distToStop = fwdDriverMovement->getDistToEndOfCurrLink() - params.driver->getVehicleLength();
 				
 				if (distToStop < params.distToStop)
 				{
@@ -1981,7 +2054,7 @@ int MITSIM_LC_Model::isLaneConnectedToNextLink(DriverUpdateParams &params, set<c
 	
 	if(!isLaneConnected)
 	{
-		double distToStop = fwdDriverMovement->getDistToEndOfCurrLink() - 2 * params.driver->getVehicleLength();
+		double distToStop = fwdDriverMovement->getDistToEndOfCurrLink() - params.driver->getVehicleLength();
 
 		if (distToStop < params.distToStop)
 		{
@@ -2026,8 +2099,9 @@ int MITSIM_LC_Model::isLaneConnectedToStopPoint(DriverUpdateParams &params, set<
 	return result;
 }
 
-void MITSIM_LC_Model::getConnectedLanesInLookAheadDistance(DriverUpdateParams &params, double lookAheadDist, std::vector<Lane *> &lanePool)
+int MITSIM_LC_Model::getConnectedLanesInLookAheadDistance(DriverUpdateParams &params, double lookAheadDist, std::vector<const Lane *> &lanePool)
 {
+	int res = -1;
 	double scannedDist = 0;
 	std::vector<WayPoint> wayPtsInLookAheadDist;
 			
@@ -2065,54 +2139,96 @@ void MITSIM_LC_Model::getConnectedLanesInLookAheadDistance(DriverUpdateParams &p
 	{
 		//The way points in the look ahead distance
 		itWayPts = wayPtsInLookAheadDist.begin() + 1;
-		const Lane *lane = *itLanes;
+		double distance = 0;
 		
-		while(itWayPts != end)
-		{
-			if(itWayPts->type == WayPoint::ROAD_SEGMENT)
-			{
-				//The next way point is a road segment. If we have a lane connector, then we're connected to it
-				
-				std::vector<const LaneConnector *> connectors;
-				lane->getPhysicalConnectors(connectors);
-				
-				if (!connectors.empty())
-				{
-					lane = connectors[connectors.size() / 2]->getToLane();
-				}
-				else
-				{
-					//We're not connected to the next segment
-					params.lcDebugStr << ";Xcl" << lane->getLaneId();
-					break;
-				}
-			}
-			else
-			{
-				//The next way point is a turning group. If we have a turning path, then we're connected to it
-				
-				const std::map<unsigned int, TurningPath *> *turnings = itWayPts->turningGroup->getTurningPaths(lane->getLaneId());
-				
-				if(turnings)
-				{
-					lane = turnings->begin()->second->getToLane();
-				}
-				else
-				{
-					//We're not connected to the next link
-					params.lcDebugStr << ";Xct" << lane->getLaneId();
-					break;
-				}
-			}
-			
-			++itWayPts;
-		}
-		
-		//Lane is connected as we reached the end of the way points
-		if(itWayPts == end)
+		if(isLaneConnected(*itLanes, itWayPts, end, &distance))
 		{
 			params.lcDebugStr << ";cl" << (*itLanes)->getLaneId();
 			lanePool.push_back(*itLanes);
+
+			if (params.currLane == *itLanes)
+			{
+				res = 0;
+			}
+		}
+		else
+		{
+			if(params.distToStop > distance)
+			{
+				params.distToStop = distance;
+			}
+		}
+	}
+	
+	return res;
+}
+
+bool MITSIM_LC_Model::isLaneConnected(const Lane* lane, vector<WayPoint>::const_iterator itWayPts, vector<WayPoint>::const_iterator end, double *distance)
+{
+	if(itWayPts == end)
+	{
+		return true;
+	}
+	else
+	{
+		if (itWayPts->type == WayPoint::ROAD_SEGMENT)
+		{
+			//Update the distance
+			(*distance) += lane->getLength();
+			
+			//The next way point is a road segment. If we have a lane connector, then we're connected to it
+
+			std::vector<const LaneConnector *> connectors;
+			lane->getPhysicalConnectors(connectors);
+
+			if (!connectors.empty())
+			{
+				bool isConnected = false;
+				
+				for(vector<const LaneConnector *>::const_iterator itConnectors = connectors.begin(); itConnectors != connectors.end(); ++itConnectors)
+				{
+					isConnected = isConnected || isLaneConnected((*itConnectors)->getToLane(), (itWayPts + 1), end, distance);
+				}
+				
+				return isConnected;
+			}
+			else
+			{
+				//We're not connected to the next segment
+				return false;
+			}
+		}
+		else
+		{
+			//Update the distance
+			(*distance) += lane->getLength();
+			
+			//The next way point is a turning group. If we have a turning path, then we're connected to it
+
+			const std::map<unsigned int, TurningPath *> *turnings = itWayPts->turningGroup->getTurningPaths(lane->getLaneId());
+
+			if (turnings)
+			{
+				if ((itWayPts + 1) == end)
+				{
+					return true;
+				}
+				
+				bool isConnected = false;
+				
+				for(map<unsigned int, TurningPath *>::const_iterator itTurnings = turnings->begin(); itTurnings != turnings->end(); ++itTurnings)
+				{									
+					//Additional increment for itWayPts as we are going from lane->turning path->lane directly
+					isConnected = isConnected || isLaneConnected(itTurnings->second->getToLane() , (itWayPts + 2), end, distance);
+				}
+
+				return isConnected;
+			}
+			else
+			{
+				//We're not connected to the next link
+				return false;
+			}
 		}
 	}
 }
@@ -2199,6 +2315,7 @@ LaneChangeTo MITSIM_LC_Model::checkMandatoryEventLC(DriverUpdateParams &params)
 				params.setFlag(FLAG_AVOID_LEFT);
 			}
 
+			params.noOfLC = nl;
 			params.lcDebugStr << ";LEFT";
 
 			return LANE_CHANGE_TO_LEFT;
@@ -2216,44 +2333,15 @@ LaneChangeTo MITSIM_LC_Model::checkMandatoryEventLC(DriverUpdateParams &params)
 				params.setFlag(FLAG_AVOID_RIGHT);
 			}
 
+			params.noOfLC = nr;
 			params.lcDebugStr << ";RIGHT";
 
 			return LANE_CHANGE_TO_RIGHT;
-		}
-		// 2.3.3 There is open lane on both side. Choose one randomly.
-		if (Utils::brandom(0.5))
-		{
-			if (params.flag(FLAG_ESCAPE))
-			{
-				params.setFlag(FLAG_ESCAPE_LEFT);
-			}
-			else if (params.flag(FLAG_AVOID))
-			{
-				params.setFlag(FLAG_AVOID_LEFT);
-			}
-
-			params.lcDebugStr << ";LEFT2";
-
-			return LANE_CHANGE_TO_LEFT;
-		}
-		else
-		{
-			if (params.flag(FLAG_ESCAPE))
-			{
-				params.setFlag(FLAG_ESCAPE_RIGHT);
-			}
-			else if (params.flag(FLAG_AVOID))
-			{
-				params.setFlag(FLAG_AVOID_RIGHT);
-			}
-
-			params.lcDebugStr << ";RIGHT2";
-
-			return LANE_CHANGE_TO_RIGHT;
-		}
+		}		
 	}
 
-	// 3.0 discretionary lane change
+	/*-------We should not be doing discretionary lane change when we have mandatory event------*/
+	/*// 3.0 discretionary lane change
 	double eul = 0.0, eur = 0.0, euc = 1.0;
 	if (isReadyForNextDLC(params, 2))
 	{
@@ -2278,27 +2366,26 @@ LaneChangeTo MITSIM_LC_Model::checkMandatoryEventLC(DriverUpdateParams &params)
 
 	sum += euc;
 
-	double rnd = Utils::urandom();
-	LaneChangeTo change;
+	double rnd = Utils::urandom();	
 	float probOfCurrentLane = euc / sum;
 	float probOfCL_LL = probOfCurrentLane + eul / sum;
 
 	if (rnd <= probOfCurrentLane)
 	{
-		change = LANE_CHANGE_TO_NONE;
+		lcs = LANE_CHANGE_TO_NONE;
 	}
 	else if (rnd <= probOfCL_LL)
 	{
-		change = LANE_CHANGE_TO_LEFT;
+		lcs = LANE_CHANGE_TO_LEFT;
 	}
 	else
 	{
-		change = LANE_CHANGE_TO_RIGHT;
-	}
+		lcs = LANE_CHANGE_TO_RIGHT;
+	}*/
 
-	params.lcDebugStr << ";change" << change;
+	params.lcDebugStr << ";change" << lcs;
 
-	return change;
+	return lcs;
 }
 
 void MITSIM_LC_Model::setLaneConnectionStatus(DriverUpdateParams &params)
@@ -2363,27 +2450,42 @@ void MITSIM_LC_Model::setLaneConnectionStatus(DriverUpdateParams &params)
 			//Check if we have a turning path to the next link from the current, left and right lanes
 
 			const std::map<unsigned int, TurningPath *> *turnings = nextWayPt->turningGroup->getTurningPaths(currLane->getLaneId());
+			const Link *nextLink = fwdDriverMovement->getNextLink();
+			
+			//Clear status
+			params.setStatus(STATUS_CURRENT_LANE_OK, STATUS_NO, str);
 
 			if (turnings)
 			{
-				params.setStatus(STATUS_CURRENT_LANE_OK, STATUS_YES, str);
-			}
-			else
-			{
-				params.setStatus(STATUS_CURRENT_LANE_OK, STATUS_NO, str);
+				//Set status OK if a turning path connects to the next link
+				for(std::map<unsigned int, TurningPath *>::const_iterator itTurnings = turnings->begin(); itTurnings != turnings->end(); ++itTurnings)
+				{
+					if(itTurnings->second->getToLane()->getParentSegment()->getParentLink() == nextLink)
+					{
+						params.setStatus(STATUS_CURRENT_LANE_OK, STATUS_YES, str);
+						break;
+					}
+				}
 			}
 
 			if (params.leftLane)
 			{
 				turnings = nextWayPt->turningGroup->getTurningPaths(params.leftLane->getLaneId());
+				
+				//Clear status
+				params.setStatus(STATUS_LEFT_SIDE_OK, STATUS_NO, str);
 
 				if (turnings)
 				{
-					params.setStatus(STATUS_LEFT_SIDE_OK, STATUS_YES, str);
-				}
-				else
-				{
-					params.setStatus(STATUS_LEFT_SIDE_OK, STATUS_NO, str);
+					//Set status OK if a turning path connects to the next link
+					for (std::map<unsigned int, TurningPath *>::const_iterator itTurnings = turnings->begin(); itTurnings != turnings->end(); ++itTurnings)
+					{
+						if (itTurnings->second->getToLane()->getParentSegment()->getParentLink() == nextLink)
+						{
+							params.setStatus(STATUS_LEFT_SIDE_OK, STATUS_YES, str);
+							break;
+						}
+					}
 				}
 			}
 
@@ -2391,13 +2493,20 @@ void MITSIM_LC_Model::setLaneConnectionStatus(DriverUpdateParams &params)
 			{
 				turnings = nextWayPt->turningGroup->getTurningPaths(params.rightLane->getLaneId());
 
+				//Clear status
+				params.setStatus(STATUS_RIGHT_SIDE_OK, STATUS_NO, str);
+				
 				if (turnings)
 				{
-					params.setStatus(STATUS_RIGHT_SIDE_OK, STATUS_YES, str);
-				}
-				else
-				{
-					params.setStatus(STATUS_RIGHT_SIDE_OK, STATUS_NO, str);
+					//Set status OK if a turning path connects to the next link
+					for (std::map<unsigned int, TurningPath *>::const_iterator itTurnings = turnings->begin(); itTurnings != turnings->end(); ++itTurnings)
+					{
+						if (itTurnings->second->getToLane()->getParentSegment()->getParentLink() == nextLink)
+						{
+							params.setStatus(STATUS_RIGHT_SIDE_OK, STATUS_YES, str);
+							break;
+						}
+					}					
 				}
 			}
 		}

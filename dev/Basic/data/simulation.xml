@@ -2,120 +2,123 @@
 
 <!-- Copyright Singapore-MIT Alliance for Research and Technology -->
 <config>
-	<constructs>
-            <!-- Various database connections, used for loading network and agent data. -->
-	    <!-- Note that credentials (login details) are stored in a separate construct. -->
-            <databases>
-                <database id="fm_remote" dbtype="postgres">
-	            <host value="172.25.184.48"/>
-	            <port value="5432"/>
-	            <dbname value="simmobility"/>
-	        </database>
+    <constructs>
+        <!-- Various database connections, used for loading network and agent data. -->
+        <!-- Note that credentials (login details) are stored in a separate construct. -->
+        <databases>
+            <database id="fm_remote" dbtype="postgres">
+                <host value="172.25.184.48"/>
+                <port value="5432"/>
+                <dbname value="simmobility_virtualcity"/>
+            </database>
 
-                <database id="fm_hpchead" dbtype="postgres">
-                    <host value="172.25.184.156"/>
-                    <port value="5432"/>
-                    <dbname value="simmobility"/>
-                </database>
-	        
-	        <database id="fm_remote_lt" dbtype="postgres">
-	            <host value="172.25.184.14"/>
-	            <port value="5432"/>
-	            <dbname value="sim_mob_lt"/>
-	        </database>
-	
-	        <!-- Variables stores for preday demand simulator-->
-	        <database id="fm_mongo" dbtype="mongodb">
-	            <host value="localhost"/>
-	            <port value="27017"/>
-	            <dbname value="mydb"/>
-	        </database>
+            <database id="fm_hpchead" dbtype="postgres">
+                <host value="172.25.184.156"/>
+                <port value="5432"/>
+                <dbname value="simmobility"/>
+            </database>
+            
+            <database id="fm_remote_lt" dbtype="postgres">
+                <host value="172.25.184.14"/>
+                <port value="5432"/>
+                <dbname value="sim_mob_lt"/>
+            </database>
 
-	        <database id="fm_local" dbtype="postgres">
+        <!-- Variables stores for preday demand simulator-->
+            <database id="fm_mongo" dbtype="mongodb">
+                <host value="localhost"/>
+                <port value="27017"/>
+                <dbname value="simmobcity"/>
+            </database>
+
+            <database id="fm_local" dbtype="postgres">
                 <host value="localhost"/>
                 <port value="5432"/>
                 <dbname value="simmobility"/>
             </database>
 
-                <database id="fm_local_harish" dbtype="postgres">
-                    <host value="localhost"/>
-                    <port value="5433"/>
-                    <dbname value="simmobility"/>
-                </database>
-            </databases>
-	
-		<!-- Login credentials to be used for database connections. These can be plaintext, -->
-	    <!-- file-based, and possibly even signed. Note that invalid credentials will simply be ignored. -->
-	    <credentials>
-	        <!-- A file-based credential loads credentials from a JSON file with its own special format. -->
-	        <!-- Multiple files can be listed, and they will be tried in order until one is found. -->
-	        <!-- If the first existing file has an error, parsing will NOT continue to the next file. -->
-	        <!-- The actual credentials file looks something like this: -->
-	        <!-- 
-	        {
-	            "username" : "postgres",
-	            "password" : "AbCdEfG=",
-	            "algorithm" : ["clear","xor23","base64","cipher"]
-	        }
-	        -->
-	        <!-- Here, the username is stored in cleartext. The password is stored according to the algorithm listed. -->
-	        <!-- So in this example, the "clear" text is first "xor23"'d, then "base64" encoded, then finally we arrive at the "cipher" text. -->
-	        <!-- If you  just want to store the password in cleartext, use "algorithm" : ["clear","cipher"] -->
-	        <file-based-credential id="fm_remote">
-	            <file path="private/fm_remote.cred.txt"/>
-	            <file path="/usr/share/simmobility/credentials/fm_remote.cred.txt"/> <!-- For example -->
-	        </file-based-credential>
-	      
-	        <!-- Plaintext credentials can be used to store the password verbatim. -->
-	        <!-- BE CAREFUL with these; remember that EVERYONE can see them: -->
-	        <!--    1) Don't put any passwords here that you care about (e.g., email accounts) -->
-	        <!--    2) Don't put any passwords to databases on the FM server. -->
-	        <plaintext-credential id="lt_cred">
-	            <username value="fmstaff"/>
-	            <password value="fm4trans"/>
-	        </plaintext-credential>
+            <database id="fm_local_harish" dbtype="postgres">
+                <host value="localhost"/>
+                <port value="5432"/>
+                <dbname value="simmobility_virtualcity"/>
+            </database>
+        </databases>
+    
+        <!-- Login credentials to be used for database connections. These can be plaintext, -->
+        <!-- file-based, and possibly even signed. Note that invalid credentials will simply be ignored. -->
+        <credentials>
+            <!-- A file-based credential loads credentials from a JSON file with its own special format. -->
+            <!-- Multiple files can be listed, and they will be tried in order until one is found. -->
+            <!-- If the first existing file has an error, parsing will NOT continue to the next file. -->
+            <!-- The actual credentials file looks something like this: -->
+            <!-- 
+            {
+                "username" : "postgres",
+                "password" : "AbCdEfG=",
+                "algorithm" : ["clear","xor23","base64","cipher"]
+            }
+            -->
+            <!-- Here, the username is stored in cleartext. The password is stored according to the algorithm listed. -->
+            <!-- So in this example, the "clear" text is first "xor23"'d, then "base64" encoded, then finally we arrive at the "cipher" text. -->
+            <!-- If you  just want to store the password in cleartext, use "algorithm" : ["clear","cipher"] -->
+            <file-based-credential id="fm_remote">
+                <file path="private/fm_remote.cred.txt"/>
+                <file path="/usr/share/simmobility/credentials/fm_remote.cred.txt"/> <!-- For example -->
+            </file-based-credential>
+          
+            <!-- Plaintext credentials can be used to store the password verbatim. -->
+            <!-- BE CAREFUL with these; remember that EVERYONE can see them: -->
+            <!--    1) Don't put any passwords here that you care about (e.g., email accounts) -->
+            <!--    2) Don't put any passwords to databases on the FM server. -->
+            <plaintext-credential id="lt_cred">
+                <username value="fmstaff"/>
+                <password value="fm4trans"/>
+            </plaintext-credential>
 
-			<plaintext-credential id="harish_cred">
-				<username value="postgres"/>
-				<password value="secret"/>
-			</plaintext-credential>
+            <plaintext-credential id="shahita_cred">
+                <username value="postgres"/>
+                <password value="password"/>
+            </plaintext-credential>
 
-			<plaintext-credential id="fm_local">
-				<username value="postgres"/>
-				<password value="5M_S1mM0bility"/>
-			</plaintext-credential>
+            <plaintext-credential id="harish_cred">
+                <username value="postgres"/>
+                <password value="secret"/>
+            </plaintext-credential>
 
-		
-			<plaintext-credential id="fm_remote_plain">
-				<username value="postgres"/>
-				<password value="5M_S1mM0bility"/>
-			</plaintext-credential>
+            <plaintext-credential id="fm_local">
+                <username value="postgres"/>
+                <password value="5M_S1mM0bility"/>
+            </plaintext-credential>
 
-                        <plaintext-credential id="fm_hpchead">
-                                <username value="postgres"/>
-                                <password value="d84dmiN"/>
-                        </plaintext-credential>
+            <plaintext-credential id="fm_remote_plain">
+                <username value="postgres"/>
+                <password value="5M_S1mM0bility"/>
+            </plaintext-credential>
 
-    	</credentials>
+            <plaintext-credential id="fm_hpchead">
+                <username value="postgres"/>
+                <password value="d84dmiN"/>
+            </plaintext-credential>
+        </credentials>
     </constructs>
 
     <simulation>
-	<base_granularity   value="5"   units="seconds"/>
-	<total_runtime      value="60"      units="minutes" />
-	<total_warmup       value="10"     units="seconds" />
+        <base_granularity   value="5"   units="seconds"/>
+        <total_runtime      value="60"      units="minutes" />
+        <total_warmup       value="10"     units="seconds" />
        
-	<start_time         value="10:00:00"/>
+        <start_time         value="10:00:00"/>
 
-	<!--Indicates the percentage of drivers that will use in-simulation travel times rather than the historical travel times-->
-   	<in_simulation_travel_time_usage value="100"/>
+        <!--Indicates the percentage of drivers that will use in-simulation travel times rather than the historical travel times-->
+        <in_simulation_travel_time_usage value="100"/>
 
-	<!-- Strategy for adding new Agents to Workers. -->
-	<!-- "roundrobin" assigns in order. (default) -->
-	<!-- "smallest" assigns to the Worker with the smallest Agent count. -->
-	<!-- Note that "smallest" does not appear to offer any benefit over "roundrobin" -->
-	<workgroup_assignment value="roundrobin"/>
+        <!-- Strategy for adding new Agents to Workers. -->
+        <!-- "roundrobin" assigns in order. (default) -->
+        <!-- "smallest" assigns to the Worker with the smallest Agent count. -->
+        <!-- Note that "smallest" does not appear to offer any benefit over "roundrobin" -->
+        <workgroup_assignment value="roundrobin"/>
 
-	<!-- Optional. How we enforce mutual exclusion. Can be "buffered" (the default) or "locked" -->
+        <!-- Optional. How we enforce mutual exclusion. Can be "buffered" (the default) or "locked" -->
         <mutex_enforcement strategy="buffered"/>
 
         <!-- Optional. At what value do we start counting for automatically -->
@@ -126,9 +129,9 @@
     </simulation>
 
     <generic_props>
-    	<!--Specifies the location of the dirver behaviour parameter files-->
-    	<property key="driver_behaviour_file" value="data/driver_behavior_model/driver_param.xml"/>
-    	<property key="amod_behaviour_file" value="data/driver_behavior_model/amod_driver_param.xml"/>
+        <!--Specifies the location of the dirver behaviour parameter files-->
+        <property key="driver_behaviour_file" value="data/driver_behavior_model/driver_param.xml"/>
+        <property key="amod_behaviour_file" value="data/driver_behavior_model/amod_driver_param.xml"/>
     </generic_props>
 
     <merge_log_files value="true"/>

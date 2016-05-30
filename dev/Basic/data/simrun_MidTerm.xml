@@ -30,7 +30,7 @@
             <mapping name="restricted_reg_nodes" procedure="get_restricted_region_nodes()"/>
         </proc_map>
 
-	<!-- SimMobility Virtual City Network -->
+        <!-- SimMobility Virtual City Network -->
         <proc_map id="simmobcity" format="aimsun">
             <mapping name="nodes" procedure="get_nodes()"/>
             <mapping name="links" procedure="get_links()"/>
@@ -47,18 +47,18 @@
             <mapping name="pt_bus_dispatch_freq" procedure="get_pt_bus_frequency()"/>
             <mapping name="pt_bus_routes" procedure="get_pt_bus_routes()"/>
             <mapping name="pt_bus_stops" procedure="get_pt_bus_stops()"/>
-	    <mapping name="pt_stop_stats" procedure="get_pt_stop_stats()"/>
+            <mapping name="pt_stop_stats" procedure="get_pt_stop_stats()"/>
             <mapping name="pt_edges" procedure="get_pt_tr_edges()"/>
             <mapping name="pt_vertices" procedure="get_pt_tr_vertices()"/>
             <mapping name="pt_pathset" procedure="get_pt_pathset_tr"/>
-	    <mapping name="mrt_road_segments" procedure="get_pt_mrt_segments()"/>
+            <mapping name="mrt_road_segments" procedure="get_pt_mrt_segments()"/>
             <mapping name="erp_gantry_zone" procedure="get_erp_gantry_zone()"/>
             <mapping name="screen_line" procedure="get_screen_line_segments()"/>
             <mapping name="erp_section" procedure="get_erp_section()"/>
             <mapping name="day_activity_schedule" procedure="get_persons_between"/>
- 	    <mapping name="freight_trips" procedure="get_freight_between"/>
+            <mapping name="freight_trips" procedure="get_freight_between"/>
             <mapping name="erp_surcharge" procedure="get_erp_surcharge()"/>
-   	</proc_map>
+        </proc_map>
 
 
         <!-- Entire Singapore network in new format -->

@@ -244,9 +244,14 @@ void TrainDriver::storeWaitingTime(WaitTrainActivity* waitingActivity, timeslice
 	PersonWaitingTime personWaitInfo;
 	personWaitInfo.busStopNo = waitingActivity->getStartPlatform()->getPlatformNo();
 	personWaitInfo.personId  = waitingActivity->getParent()->getId();
+	personWaitInfo.personIddb = waitingActivity->getParent()->getDatabaseId();
+	personWaitInfo.originNode = (*(waitingActivity->getParent()->currTripChainItem))->origin.node->getNodeId();
+	personWaitInfo.destNode = (*(waitingActivity->getParent()->currTripChainItem))->destination.node->getNodeId();
+	personWaitInfo.endstop = waitingActivity->getParent()->currSubTrip->endLocationId;
 	personWaitInfo.currentTime = (DailyTime(now.ms())+DailyTime(ConfigManager::GetInstance().FullConfig().simStartTime())).getStrRepr();
 	personWaitInfo.waitingTime = ((double) waitingActivity->getWaitingTime())/1000.0; //convert ms to second
 	personWaitInfo.busLines = waitingActivity->getTrainLine();
+	personWaitInfo.busLineBoarded = waitingActivity->getTrainLine();
 	personWaitInfo.deniedBoardingCount = waitingActivity->getDeniedBoardingCount();
 	messaging::MessageBus::PostMessage(PT_Statistics::getInstance(), STORE_PERSON_WAITING,
 			messaging::MessageBus::MessagePtr(new PersonWaitingTimeMessage(personWaitInfo)));
@@ -259,8 +264,6 @@ int TrainDriver::boardPassenger(std::list<WaitTrainActivity*>& boardingPassenger
 	std::list<WaitTrainActivity*>::iterator i = boardingPassenger.begin();
 	while(i!=boardingPassenger.end()&&validNum>0)
 	{
-		//Person_MT* person = (*i)->getParent();
-		//Role<Person_MT>* curRole = person->getRole();
 		(*i)->collectTravelTime();
 		storeWaitingTime((*i), now);
 		Person_MT* person = (*i)->getParent();

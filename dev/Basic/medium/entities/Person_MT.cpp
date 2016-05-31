@@ -215,8 +215,8 @@ void Person_MT::insertWaitingActivityToTrip()
 						subTrip.destinationType = itSubTrip[1]->destinationType;
 						subTrip.startLocationId = itSubTrip[1]->origin.busStop->getStopCode();
 						subTrip.endLocationId = itSubTrip[1]->destination.busStop->getStopCode();
-						subTrip.startLocationType = "BUS_STOP";
-						subTrip.endLocationType = "BUS_STOP";
+						subTrip.startLocationType = "BS";
+						subTrip.endLocationType = "BS";
 						subTrip.travelMode = "WaitingBusActivity";
 						subTrip.ptLineId = itSubTrip[1]->ptLineId;
 						subTrip.edgeId = itSubTrip[1]->edgeId;
@@ -241,8 +241,8 @@ void Person_MT::insertWaitingActivityToTrip()
 								subTrip.destination = WayPoint(platform);
 								subTrip.destinationType = itSubTrip[1]->destinationType;
 								subTrip.endLocationId = platform->getPlatformNo();
-								subTrip.startLocationType = "PLATFORM";
-								subTrip.endLocationType = "PLATFORM";
+								subTrip.startLocationType = "PT";
+								subTrip.endLocationType = "PT";
 								subTrip.travelMode = "WaitingTrainActivity";
 								subTrip.serviceLine = itSubTrip[1]->serviceLine;
 								subTrip.ptLineId = itSubTrip[1]->ptLineId;
@@ -250,9 +250,9 @@ void Person_MT::insertWaitingActivityToTrip()
 								itSubTrip[1]->origin = subTrip.origin;
 								itSubTrip[1]->destination = subTrip.destination;
 								itSubTrip[1]->startLocationId = subTrip.startLocationId;
-								itSubTrip[1]->startLocationType = "PLATFORM";
+								itSubTrip[1]->startLocationType = "PT";
 								itSubTrip[1]->endLocationId = subTrip.endLocationId;
-								itSubTrip[1]->endLocationType = "PLATFORM";
+								itSubTrip[1]->endLocationType = "PT";
 								itSubTrip[1]->serviceLine = subTrip.serviceLine;
 								itSubTrip[1] = subTrips.insert(itSubTrip[1],subTrip);
 							} else {

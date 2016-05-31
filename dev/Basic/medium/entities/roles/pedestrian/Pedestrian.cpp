@@ -59,8 +59,8 @@ void sim_mob::medium::Pedestrian::collectTravelTime()
 		personTravelTime.tripEndPoint = activityLocNodeIdStr;
 		personTravelTime.subStartPoint = activityLocNodeIdStr;
 		personTravelTime.subEndPoint = activityLocNodeIdStr;
-		personTravelTime.subStartType = "NODE";
-		personTravelTime.subEndType = "NODE";
+		personTravelTime.subStartType = "N";
+		personTravelTime.subEndType = "N";
 		personTravelTime.mode = "ACTIVITY";
 		personTravelTime.service = parent->currSubTrip->ptLineId;
 		personTravelTime.travelTime = ((double) activity->getTravelTime())/1000.0;

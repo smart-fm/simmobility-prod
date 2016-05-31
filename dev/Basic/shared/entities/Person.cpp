@@ -169,7 +169,7 @@ bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::S
 			{
 			case 0:
 			{
-				endType = "NODE";
+				endType = "N";
 				int id = boost::lexical_cast<unsigned int>(sEnd);
 				const RoadNetwork* rn = RoadNetwork::getInstance();
 				const sim_mob::Node* node = rn->getById(rn->getMapOfIdvsNodes() , id);
@@ -181,7 +181,7 @@ bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::S
 			}
 			case 1:
 			{
-				endType = "BUS_STOP";
+				endType = "BS";
 				sim_mob::BusStop* stop = sim_mob::BusStop::findBusStop(sEnd);
 				if (stop)
 				{
@@ -191,7 +191,7 @@ bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::S
 			}
 			case 2:
 			{
-				endType = "MRT_STOP";
+				endType = "MS";
 				sim_mob::TrainStop* stop = ptNetwork.findMRT_Stop(sEnd);
 				if (stop)
 				{
@@ -205,7 +205,7 @@ bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::S
 			{
 			case 0:
 			{
-				srcType = "NODE";
+				srcType = "N";
 				int id = boost::lexical_cast<unsigned int>(sSrc);
 				const RoadNetwork* rn = RoadNetwork::getInstance();
 				const sim_mob::Node* node = rn->getById(rn->getMapOfIdvsNodes() , id);
@@ -217,7 +217,7 @@ bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::S
 			}
 			case 1:
 			{
-				srcType = "BUS_STOP";
+				srcType = "BS";
 				sim_mob::BusStop* stop = sim_mob::BusStop::findBusStop(sSrc);
 				if (stop)
 				{
@@ -227,7 +227,7 @@ bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::S
 			}
 			case 2:
 			{
-				srcType = "MRT_STOP";
+				srcType = "MS";
 				sim_mob::TrainStop* stop = ptNetwork.findMRT_Stop(sSrc);
 				if (stop)
 				{

@@ -79,6 +79,12 @@ struct LongTermParams
 		bool enabled;
 		unsigned int vehicleBuyingWaitingTimeInDays;
 	}vehicleOwnershipModel;
+
+	struct SchoolAssignmentModel{
+		SchoolAssignmentModel();
+		bool enabled;
+		unsigned int schoolChangeWaitingTimeInDays;
+	}schoolAssignmentModel;
 };
 
 ///represent the incident data section of the config file

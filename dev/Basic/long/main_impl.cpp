@@ -217,12 +217,14 @@ void loadDataToOutputSchema(db::DB_Connection& conn,std::string &currentOutputSc
 		HM_Model::HouseholdList::iterator houseHoldItr;
 		for(houseHoldItr = households->begin(); houseHoldItr != households->end(); ++houseHoldItr)
 		{
+
 			if(housingMarketModel.getHouseholdWithBidsById((*houseHoldItr)->getId()) == nullptr)
 			{
 				if(((*houseHoldItr)->getIsBidder()) || ((*houseHoldItr)->getIsSeller()))
 				{
 					hhDao.insertHousehold(*(*houseHoldItr),currentOutputSchema);
 				}
+
 			}
 		}
 

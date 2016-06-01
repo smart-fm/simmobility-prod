@@ -48,4 +48,17 @@ void IndividualDao::fromRow(Row& result, Individual& outObj)
 
 void IndividualDao::toRow(Individual& data, Parameters& outParams, bool update) {}
 
+std::vector<Individual*> IndividualDao::getPrimarySchoolIndividual()
+{
+	std::vector<Individual*> primarySchoolIndList;
+	getByQuery(DB_GETALL_PRIMARY_SCHOOL_INDIVIDUALS,primarySchoolIndList);
+	return primarySchoolIndList;
+}
 
+std::vector<Individual*> IndividualDao::getPreSchoolIndividual()
+{
+	std::vector<Individual*> preSchoolIndList;
+	getByQuery(DB_GETALL_PRE_SCHOOL_INDIVIDUALS,preSchoolIndList);
+	return preSchoolIndList;
+
+}

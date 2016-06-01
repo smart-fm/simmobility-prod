@@ -39,6 +39,10 @@ namespace sim_mob
              * @param update tells if operation is an Update or Insert.
              */
             void toRow(Individual& data, db::Parameters& outParams, bool update);
+
+		public:
+            std::vector<Individual*> getPrimarySchoolIndividual();
+            std::vector<Individual*> getPreSchoolIndividual();
 		};
 	}
 }

@@ -10,16 +10,18 @@
  */
 
 #pragma once
+#include <ctime>
 
+#include "boost/unordered_map.hpp"
 #include "Common.hpp"
 #include "Types.hpp"
-#include <ctime>
 
 
 namespace sim_mob
 {
 	namespace long_term
 	{
+		class PrimarySchool;
 		class Individual
 		{
 		public:
@@ -51,8 +53,10 @@ namespace sim_mob
 			bool	  getMotorLicense() const;
 			bool	  getVanBusLicense() const;
 			std::tm   getDateOfBirth() const;
+			bool getIsPrimarySchoolWithin5Km(BigSerial primarySchoolId) const;
 
 			void	  setDateOfBirth(std::tm);
+			void addprimarySchoolIdWithin5km(BigSerial schoolId,PrimarySchool *primarySchool);
 
 			Individual& operator=(const Individual& source);
 
@@ -82,7 +86,7 @@ namespace sim_mob
 			bool	  motorLicense;
 			bool	  vanbusLicense;
 			std::tm	  dateOfBirth;
-
+			boost::unordered_map<BigSerial,PrimarySchool*> primarySchoolsWithin5KmById;
 
 		};
 	}

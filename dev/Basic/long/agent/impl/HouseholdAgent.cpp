@@ -9,6 +9,7 @@
  * 
  * Created on May 16, 2013, 6:36 PM
  */
+#include <mutex>
 
 #include "HouseholdAgent.hpp"
 #include "message/MessageBus.hpp"
@@ -23,6 +24,7 @@
 #include "conf/ConfigManager.hpp"
 #include "model/VehicleOwnershipModel.hpp"
 #include "model/AwakeningSubModel.hpp"
+#include "model/SchoolAssignmentSubModel.hpp"
 #include "util/PrintLog.hpp"
 
 using namespace sim_mob::long_term;
@@ -43,15 +45,17 @@ HouseholdAgent::HouseholdAgent(BigSerial _id, HM_Model* _model, Household* _hous
     seller->setActive(marketSeller);
 
 
+    ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+    bool resume = config.ltParams.resume;
+
     if ( marketSeller == false )
     {
         bidder = new HouseholdBidderRole(this);
         bidder->setActive(false);
     }
 
-    ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+
     buySellInterval = config.ltParams.housingModel.offsetBetweenUnitBuyingAndSelling;
-    bool resume = config.ltParams.resume;
 
     if(resume)
     	householdBiddingWindow = householdBiddingWindow - household->getTimeOnMarket();
@@ -60,10 +64,12 @@ HouseholdAgent::HouseholdAgent(BigSerial _id, HM_Model* _model, Household* _hous
     	householdBiddingWindow =  config.ltParams.housingModel.housingMoveInDaysInterval + config.ltParams.housingModel.householdBiddingWindow * (double)rand() / RAND_MAX + 1;
     }
 
+
     if( household )
     	(const_cast<Household*>(household))->setTimeOnMarket(householdBiddingWindow);
 
     futureTransitionOwn = false;
+
 }
 
 HouseholdAgent::~HouseholdAgent()
@@ -202,6 +208,46 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
     {
         seller->update(now);
     }
+
+    ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+    int startDay = 0;
+    if(config.ltParams.resume)
+    {
+    	startDay = model->getLastStoppedDay();
+    }
+
+    if(config.ltParams.schoolAssignmentModel.enabled)
+    	{
+    		if( getId() < model->FAKE_IDS_START)
+    		{
+    			std::vector<BigSerial> individuals = household->getIndividuals();
+    			std::vector<BigSerial>::iterator individualsItr;
+    			for(individualsItr = individuals.begin(); individualsItr != individuals.end(); individualsItr++)
+    				{
+    					const Individual* individual = model->getPrimaySchoolIndById((*individualsItr));
+    					SchoolAssignmentSubModel schoolAssignmentModel(model);
+    					if (individual!= nullptr)
+    					{
+    						if(day == startDay)
+    						{
+    							schoolAssignmentModel.assignPrimarySchool(this->getHousehold(),individual->getId(),this, day);
+    						}
+    						if(day == ++startDay)
+    						{
+    							schoolAssignmentModel.setStudentLimitInPrimarySchool();
+    						}
+    					}
+//    					else
+//    					{
+//    						const Individual* individual = model->getPreSchoolIndById((*individualsItr));
+//    						if (individual!= nullptr && day == startDay)
+//    						{
+//    							schoolAssignmentModel.assignPreSchool(this->getHousehold(),individual->getId(),this, day);
+//    						}
+//    					}
+    				}
+    		}
+    	}
 
     return Entity::UpdateStatus(UpdateStatus::RS_CONTINUE);
 }

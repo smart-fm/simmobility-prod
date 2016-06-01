@@ -41,6 +41,11 @@
 #include "database/entity/ScreeningCostTime.hpp"
 #include "database/entity/TenureTransitionRate.hpp"
 #include "database/entity/OwnerTenantMovingRate.hpp"
+#include "database/entity/HouseholdPlanningArea.hpp"
+#include "database/entity/SchoolAssignmentCoefficients.hpp"
+#include "database/entity/PrimarySchool.hpp"
+#include "database/entity/PreSchool.hpp"
+#include "database/entity/HHCoordinates.hpp"
 #include "database/entity/AlternativeHedonicPrice.hpp"
 #include "database/entity/ScreeningModelCoefficients.hpp"
 #include "database/entity/HouseholdUnit.hpp"
@@ -159,6 +164,22 @@ namespace sim_mob
             typedef std::vector<VehicleOwnershipChanges*> VehicleOwnershipChangesList;
             typedef boost::unordered_map<BigSerial, VehicleOwnershipChanges*> VehicleOwnershipChangesMap;
 
+
+            typedef std::vector<HouseholdPlanningArea*> HouseholdPlanningAreaList;
+            typedef boost::unordered_map<BigSerial, HouseholdPlanningArea*> HouseholdPlanningAreaMap;
+
+            typedef std::vector<SchoolAssignmentCoefficients*> SchoolAssignmentCoefficientsList;
+            typedef boost::unordered_map<BigSerial, SchoolAssignmentCoefficients*> SchoolAssignmentCoefficientsMap;
+
+            typedef std::vector<PrimarySchool*> PrimarySchoolList;
+            typedef boost::unordered_map<BigSerial, PrimarySchool*> PrimarySchoolMap;
+
+            typedef std::vector<HHCoordinates*> HHCoordinatesList;
+            typedef boost::unordered_map<BigSerial, HHCoordinates*> HHCoordinatesMap;
+
+            typedef std::vector<PreSchool*> PreSchoolList;
+            typedef boost::unordered_map<BigSerial, PreSchool*> PreSchoolMap;
+
             typedef std::vector<HouseholdUnit*> HouseholdUnitList;
             typedef boost::unordered_map<BigSerial, HouseholdUnit*> HouseholdUnitMap;
 
@@ -257,6 +278,8 @@ namespace sim_mob
             Household* getHouseholdById( BigSerial id) const;
             Household* getHouseholdWithBidsById( BigSerial id) const;
 			Individual* getIndividualById( BigSerial id) const;
+			Individual* getPrimaySchoolIndById(BigSerial id) const;
+			Individual* getPreSchoolIndById(BigSerial id) const;
             Awakening* getAwakeningById( BigSerial id) const;
             Postcode* getPostcodeById(BigSerial id) const;
             Job* getJobById(BigSerial id) const;
@@ -363,6 +386,17 @@ namespace sim_mob
             Household* getResumptionHouseholdById( BigSerial id) const;
             VehicleOwnershipChanges* getVehicleOwnershipChangesByHHId(BigSerial houseHoldId) const;
             void setLastStoppedDay(int stopDay);
+            int getLastStoppedDay();
+            HouseholdPlanningAreaList getHouseholdPlanningAreaList() const;
+            HouseholdPlanningArea* getHouseholdPlanningAreaByHHId(BigSerial houseHoldId) const;
+            SchoolAssignmentCoefficientsList getSchoolAssignmentCoefficientsList() const;
+            SchoolAssignmentCoefficients* getSchoolAssignmentCoefficientsById( BigSerial id) const;
+            PrimarySchoolList getPrimarySchoolList() const;
+            PrimarySchool* getPrimarySchoolById( BigSerial id) const;
+            HHCoordinatesList getHHCoordinatesList() const;
+            HHCoordinates* getHHCoordinateByHHId(BigSerial houseHoldId) const;
+            PreSchoolList getPreSchoolList() const;
+            PreSchool* getPreSchoolById( BigSerial id) const;
 
             std::vector<OwnerTenantMovingRate*> getOwnerTenantMovingRates();
             std::vector<TenureTransitionRate*> getTenureTransitionRates();
@@ -395,6 +429,10 @@ namespace sim_mob
 
             IndividualList individuals;
             IndividualMap individualsById;
+            IndividualList primarySchoolIndList;
+            IndividualList preSchoolIndList;
+            IndividualMap primarySchoolIndById;
+            IndividualMap preSchoolIndById;
 
             PostcodeList postcodes;
             PostcodeMap postcodesById;
@@ -522,7 +560,18 @@ namespace sim_mob
             HouseholdUnitList householdUnits;
             HouseholdUnitMap householdUnitByHHId;
             int lastStoppedDay;
+            HouseholdPlanningAreaList hhPlanningAreaList;
+            HouseholdPlanningAreaMap hhPlanningAreaMap;
+            SchoolAssignmentCoefficientsList schoolAssignmentCoefficients;
+            SchoolAssignmentCoefficientsMap SchoolAssignmentCoefficientsById;
+            PrimarySchoolList primarySchools;
+            PrimarySchoolMap primarySchoolById;
+            HHCoordinatesList hhCoordinates;
+            HHCoordinatesMap hhCoordinatesById;
+            PreSchoolList preSchools;
+            PreSchoolMap preSchoolById;
             bool resume ;
+
         };
     }
 }

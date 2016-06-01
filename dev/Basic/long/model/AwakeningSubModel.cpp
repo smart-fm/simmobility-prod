@@ -151,6 +151,7 @@ namespace sim_mob
 			{
 				seller->setActive(true);
 				bidder->setActive(true);
+				agent->setAwakeningDay(day);
 				model->incrementBidders();
 
 			    printAwakening(day, household);
@@ -178,6 +179,7 @@ namespace sim_mob
 			{
 				seller->setActive(true);
 				bidder->setActive(true);
+				agent->setAwakeningDay(day);
 				model->incrementBidders();
 
 				printAwakening(day, household);
@@ -206,6 +208,7 @@ namespace sim_mob
 			{
 				seller->setActive(true);
 				bidder->setActive(true);
+				agent->setAwakeningDay(day);
 				model->incrementBidders();
 
 				printAwakening(day, household);

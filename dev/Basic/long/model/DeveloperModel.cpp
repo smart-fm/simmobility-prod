@@ -26,6 +26,7 @@
 #include "database/entity/ParcelMatch.hpp"
 #include "database/entity/SlaParcel.hpp"
 #include "database/entity/BuildingAvgAgePerParcel.hpp"
+#include "database/entity/ROILimits.hpp"
 #include "database/dao/SlaParcelDao.hpp"
 #include "database/dao/UnitDao.hpp"
 #include "database/entity/UnitType.hpp"
@@ -42,6 +43,7 @@
 #include "database/dao/SimulationStoppedPointDao.hpp"
 #include "database/dao/ProjectDao.hpp"
 #include "database/dao/BuildingAvgAgePerParcelDao.hpp"
+#include "database/dao/ROILimitsDao.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "util/SharedFunctions.hpp"
@@ -117,6 +119,8 @@ void DeveloperModel::startImpl() {
 		PrintOutV("land values loaded " << tazLevelLandPriceList.size() << std::endl);
 		loadData<BuildingAvgAgePerParcelDao>(conn,buildingAvgAgePerParcel,BuildingAvgAgeByParceld,&BuildingAvgAgePerParcel::getFmParcelId);
 		PrintOutV("building average age per parcel loaded " << buildingAvgAgePerParcel.size() << std::endl);
+		loadData<ROILimitsDao>(conn,roiLimits,roiLimitsByBuildingTypeId,&ROILimits::getBuildingTypeId);
+		PrintOutV("roi limits loaded " << roiLimits.size() << std::endl);
 
 		setRealEstateAgentIds(housingMarketModel->getRealEstateAgentIds());
 
@@ -790,4 +794,19 @@ void DeveloperModel::setStartDay(int day)
 int DeveloperModel::getStartDay() const
 {
 	return this->startDay;
+}
+
+DeveloperModel::ROILimitsList DeveloperModel::getROILimits() const
+{
+	return roiLimits;
+}
+
+const ROILimits* DeveloperModel::getROILimitsByBuildingTypeId(BigSerial buildingTypeId) const
+{
+	ROILimitsMap::const_iterator itr = roiLimitsByBuildingTypeId.find(buildingTypeId);
+	if (itr != roiLimitsByBuildingTypeId.end())
+	{
+		return itr->second;
+	}
+	return nullptr;
 }

@@ -26,6 +26,7 @@
 #include "database/dao/UnitDao.hpp"
 #include "database/dao/ProjectDao.hpp"
 #include "database/dao/ParcelDao.hpp"
+#include "database/entity/ROILimits.hpp"
 #include "behavioral/PredayLT_Logsum.hpp"
 #include "util/SharedFunctions.hpp"
 
@@ -110,7 +111,7 @@ namespace {
 //award_date,award_status,use_restriction,development_type_code,successful_tender_id,successful_tender_price,tender_closing_date,lease,status,developmentAllowed,nextAvailableDate
 const std::string LOG_PARCEL = "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%, %11%, %12%, %13%, %14%, %15%, %16%, %17%, %18%, %19%, %20%, %21%, %22%, %23%, %24%,%25%, %26%, %27%";
 
-const std::string LOG_UNIT = "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%, %11%, %12%, %13%, %14%, %15%, %16%, %17%";
+const std::string LOG_UNIT = "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%, %11%, %12%, %13%, %14%, %15%, %16%, %17%, %18%";
 
 //projectId,parcelId,developerId,templateId,projectName,constructionDate,completionDate,constructionCost,demolitionCost,totalCost,fmLotSize,grossRatio,grossArea
 const std::string LOG_PROJECT = "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%, %11%, %12%, %13%";
@@ -140,10 +141,10 @@ inline void writeParcelDataToFile(Parcel &parcel, int newDevelopment,double prof
  * @param unit to be written.
  *
  */
-inline void writeUnitDataToFile(Unit &unit, double unitProfit,BigSerial parcelId,double demolitionCost) {
+inline void writeUnitDataToFile(Unit &unit, double unitProfit,BigSerial parcelId,double demolitionCost,int quarter) {
 
 	boost::format fmtr = boost::format(LOG_UNIT) % unit.getId() % unit.getBuildingId() % unit.getSlaAddressId() % unit.getUnitType() % unit.getStoreyRange() % unit.getConstructionStatus() % unit.getFloorArea() % unit.getStorey() % unit.getMonthlyRent()
-			% unit.getSaleFromDate().tm_year % unit.getOccupancyFromDate().tm_year % unit.getSaleStatus() % unit.getOccupancyStatus() % unit.getLastChangedDate().tm_year % unitProfit % parcelId % demolitionCost;
+			% unit.getSaleFromDate().tm_year % unit.getOccupancyFromDate().tm_year % unit.getSaleStatus() % unit.getOccupancyStatus() % unit.getLastChangedDate().tm_year % unitProfit % parcelId % demolitionCost % quarter;
 	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::UNITS,fmtr.str());
 
 }
@@ -225,8 +226,8 @@ inline void calculateProjectProfit(PotentialProject& project,DeveloperModel* mod
 	double totalDemolitionCost = 0;
 	int unitAge = 0;
 	const BigSerial fmParcelId = project.getParcel()->getId();
-
 	bool isEmptyParcel = model->isEmptyParcel(fmParcelId);
+	BigSerial buildingTypeId = 0;
 
 	for (unitsItr = units.begin(); unitsItr != units.end(); unitsItr++) {
 		const ParcelAmenities *amenities = model->getAmenitiesById(fmParcelId);
@@ -253,7 +254,7 @@ inline void calculateProjectProfit(PotentialProject& project,DeveloperModel* mod
 		{
 			const DeveloperLuaModel& luaModel = LuaProvider::getDeveloperModel();
 			double taoValue = 0;
-			BigSerial buildingTypeId = getBuildingTypeFromUnitType((*unitsItr).getUnitTypeId());
+			buildingTypeId = getBuildingTypeFromUnitType((*unitsItr).getUnitTypeId());
 			if(buildingTypeId == 2)
 			{
 				taoValue = tao->getApartment();
@@ -346,6 +347,7 @@ inline void calculateProjectProfit(PotentialProject& project,DeveloperModel* mod
 
 	project.setAcquisitionCost(acqusitionCost);
 	project.setLandValue(landCost);
+	project.setBuildingTypeId(buildingTypeId);
 
 	double totalCost = totalConstructionCost + totalDemolitionCost + acqusitionCost+ landCost;
 	double profit = totalRevenue - totalCost;
@@ -463,8 +465,15 @@ inline void createPotentialProjects(BigSerial parcelId, DeveloperModel* model, P
                         		newDevelopment = 1;
                         	}
 
-                        const double threshold = 0.01; // temporary : to be determined later by Mi Diao/Yi Zhu - Gishara(14/12/2015)
-                        if(project.getInvestmentReturnRatio()> threshold)
+                        const ROILimits *roiLimit = model->getROILimitsByBuildingTypeId(project.getBuildingTypeId());
+
+                        double thresholdInvestmentReturnRatio = 0;
+                        if(roiLimit != nullptr)
+                        {
+                        	thresholdInvestmentReturnRatio = roiLimit->getRoiLimit();
+                        }
+
+                        if(project.getInvestmentReturnRatio()> thresholdInvestmentReturnRatio)
                         {
                         	if(&project != nullptr)
                         	{
@@ -641,7 +650,7 @@ void DeveloperAgent::createUnitsAndBuildings(PotentialProject &project,BigSerial
 	{
 		devModel->addProfitableParcels(profitableParcel);
 	}
-	//writeParcelDataToFile(parcel,newDevelopment,project.getProfit());
+	writeParcelDataToFile(*parcel,newDevelopment,project.getProfit());
 	//Parcel *parcel1 = new Parcel(*this->parcel);
 
 	//check whether the parcel is empty; if not send a message to HM model with building id and future demolition date about the units that are going to be demolished.
@@ -700,7 +709,8 @@ void DeveloperAgent::createUnitsAndBuildings(PotentialProject &project,BigSerial
 			newUnits.push_back(unit);
 			double profit = (*unitsItr).getUnitProfit();
 			double demolitionCost = (*unitsItr).getDemolitionCostPerUnit();
-			//writeUnitDataToFile(*unit, profit,parcel.getId(),demolitionCost);
+			int quarter = ((currentDate.tm_mon)/4) + 1; //get the current month of the simulation and divide it by 4 to determine the quarter
+			writeUnitDataToFile(*unit, profit,parcel->getId(),demolitionCost,quarter);
 			MessageBus::PostMessage(this, LTEID_DEV_UNIT_ADDED, MessageBus::MessagePtr(new DEV_InternalMsg(*unit.get())), true);
 		}
 

@@ -58,6 +58,8 @@ namespace sim_mob
             void setHouseholdBiddingWindow(int value);
             int getAwakeningDay() const;
 
+            void setAwakeningDay(int _day);
+
             HouseholdBidderRole* getBidder();
             HouseholdSellerRole* getSeller();
 

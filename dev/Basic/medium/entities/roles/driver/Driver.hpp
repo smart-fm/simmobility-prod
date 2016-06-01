@@ -8,12 +8,12 @@
 #include <map>
 
 #include "conf/settings/DisableMPI.h"
+#include "entities/Person_MT.hpp"
 #include "entities/roles/Role.hpp"
 #include "entities/Vehicle.hpp"
-#include "geospatial/WayPoint.hpp"
+#include "geospatial/network/WayPoint.hpp"
 #include "util/DynamicVector.hpp"
 #include "DriverUpdateParams.hpp"
-#include "DriverFacets.hpp"
 
 #ifndef SIMMOB_DISABLE_MPI
 class PackageUtils;
@@ -30,7 +30,7 @@ class RoadSegment;
 class Lane;
 class Node;
 class MultiNode;
-class DPoint;
+class Point;
 class UpdateParams;
 
 namespace medium
@@ -46,25 +46,17 @@ class DriverMovement;
  * \author Harish Loganathan
  */
 
-class Driver : public sim_mob::Role, public UpdateWrapper<DriverUpdateParams> {
-private:
-	/** Helper class for grouping a Node and a Point2D together. */
-	class NodePoint {
-	public:
-		Point2D point;
-		const Node* node;
-		NodePoint() : point(0,0), node(nullptr) {}
-	};
-
+class Driver : public sim_mob::Role<Person_MT>, public UpdateWrapper<DriverUpdateParams>
+{
 public:
-	Driver(Person* parent, MutexStrategy mtxStrat,
-			sim_mob::medium::DriverBehavior* behavior = nullptr,
-			sim_mob::medium::DriverMovement* movement = nullptr,
-			std::string roleName = std::string(),
-			Role::type roleType = Role::RL_DRIVER);
+	Driver(Person_MT* parent, 
+		sim_mob::medium::DriverBehavior* behavior = nullptr,
+		sim_mob::medium::DriverMovement* movement = nullptr,
+		std::string roleName = std::string(),
+		Role<Person_MT>::Type roleType = Role<Person_MT>::RL_DRIVER);
 	virtual ~Driver();
 
-	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;
+	virtual Role<Person_MT>* clone(Person_MT *parent) const;
 
 	//Virtual overrides
 	virtual void make_frame_tick_params(timeslice now);
@@ -75,8 +67,8 @@ public:
 	const Lane* currLane;
 
 protected:
-	NodePoint origin;
-	NodePoint goal;
+	WayPoint origin;
+	WayPoint goal;
 
 	friend class DriverBehavior;
 	friend class DriverMovement;

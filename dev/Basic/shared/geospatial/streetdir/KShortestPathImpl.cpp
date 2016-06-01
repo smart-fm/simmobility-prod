@@ -1,28 +1,36 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
 #include "KShortestPathImpl.hpp"
-#include "geospatial/RoadSegment.hpp"
-#include "geospatial/Lane.hpp"
-#include "geospatial/Node.hpp"
-#include "geospatial/UniNode.hpp"
-#include "geospatial/MultiNode.hpp"
-#include "geospatial/LaneConnector.hpp"
-#include "path/PathSetManager.hpp"
+
+#include <list>
+#include <utility>
+#include "geospatial/network/RoadNetwork.hpp"
+#include "geospatial/network/TurningGroup.hpp"
 #include "path/Path.hpp"
-#include "entities/roles/RoleFacets.hpp"
 #include "conf/ConfigParams.hpp"
 #include "conf/ConfigManager.hpp"
-#include<vector>
+#include "StreetDirectory.hpp"
 
 using namespace sim_mob;
+
 boost::shared_ptr<K_ShortestPathImpl> sim_mob::K_ShortestPathImpl::instance;
-sim_mob::K_ShortestPathImpl::K_ShortestPathImpl()
+
+sim_mob::K_ShortestPathImpl::K_ShortestPathImpl() : k(sim_mob::ConfigManager::GetInstance().FullConfig().getPathSetConf().kspLevel)
 {
-	init();
+	// build set of upstream links for each link in the network
+	const RoadNetwork* rn = RoadNetwork::getInstance();
+	const std::map<unsigned int, Link *>& linksMap = rn->getMapOfIdVsLinks();
+	for(std::map<unsigned int, Link *>::const_iterator lnkIt=linksMap.begin(); lnkIt!=linksMap.end(); lnkIt++)
+	{
+		const Link* lnk = lnkIt->second;
+		upstreamLinksLookup[lnk->getToNode()].insert(lnk);
+	}
 }
-sim_mob::K_ShortestPathImpl::~K_ShortestPathImpl() {
-	// TODO Auto-generated destructor stub
+
+sim_mob::K_ShortestPathImpl::~K_ShortestPathImpl()
+{
 }
+
 boost::shared_ptr<K_ShortestPathImpl> sim_mob::K_ShortestPathImpl::getInstance()
 {
 	if(!instance)
@@ -31,43 +39,43 @@ boost::shared_ptr<K_ShortestPathImpl> sim_mob::K_ShortestPathImpl::getInstance()
 	}
 	return instance;
 }
-void sim_mob::K_ShortestPathImpl::init()
-{
-	k = sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().kspLevel;
-	stdir = &StreetDirectory::instance();
-}
 
 /// a structure to store paths in order of their length
 class BType
 {
-	typedef std::list<std::vector<sim_mob::WayPoint> >::iterator pathIt;
-	typedef std::pair<double, pathIt> Pair;
-	struct comp{
-		bool operator()(const Pair& lhs,const Pair& rhs) const
+private:
+	typedef std::list<std::vector<sim_mob::WayPoint> >::iterator PathIt;
+	typedef std::pair<double, PathIt> LengthPathIteratorPair;
+
+	struct comp
+	{
+		bool operator()(const LengthPathIteratorPair& lhs, const LengthPathIteratorPair& rhs) const
 		{
 			return lhs.first < rhs.first;
 		}
 	};
+
 	std::list<std::vector<sim_mob::WayPoint> > paths;
-	std::vector<Pair> keys;
+	std::vector<LengthPathIteratorPair> keys;
 
 public:
-	BType(){
+	BType()
+	{
 		clear();
 	}
 
-	bool insert(double length, std::vector<sim_mob::WayPoint> & path)
+	bool insert(double length, std::vector<sim_mob::WayPoint> &path)
 	{
 		{
 			//this block is a modification to Yen's algorithm to discard the duplicates in the candidate paths' list
 			//todo: optimize this duplicate search
-			pathIt it = std::find(paths.begin(), paths.end(), path);
+			PathIt it = std::find(paths.begin(), paths.end(), path);
 			if(it != paths.end())
 			{
 				return false;
 			}
 		}
-		pathIt it = paths.insert(paths.end(),path);
+		PathIt it = paths.insert(paths.end(),path);
 		keys.push_back(std::make_pair(length, it));
 		return true;
 	}
@@ -97,7 +105,7 @@ public:
 	{
 		if(empty() || !size())
 		{
-			throw std::runtime_error("Empty K-Shortest Path intermediary Collections, Check before Fetch");
+			throw std::runtime_error("Empty K-Shortest path intermediary collections, check before fetch");
 		}
 		return *(keys.begin()->second);
 	}
@@ -107,14 +115,13 @@ public:
 		paths.erase(keys.begin()->second);
 		keys.erase(keys.begin());
 	}
-
 };
 
 namespace
 {
-	std::vector<const sim_mob::RoadSegment*> BL_VECTOR(std::set<const sim_mob::RoadSegment*> &input)
+	std::vector<const sim_mob::Link*> BL_VECTOR(std::set<const sim_mob::Link*> &input)
 	{
-		std::vector<const sim_mob::RoadSegment*> output;
+		std::vector<const sim_mob::Link*> output;
 		std::copy(input.begin(), input.end(), std::back_inserter(output));
 		return output;
 	}
@@ -124,61 +131,65 @@ namespace
  */
 int sim_mob::K_ShortestPathImpl::getKShortestPaths(const sim_mob::Node *from, const sim_mob::Node *to, std::vector< std::vector<sim_mob::WayPoint> > &res)
 {
+	StreetDirectory& stdir = StreetDirectory::Instance();
 	std::vector< std::vector<sim_mob::WayPoint> > &A = res;//just renaming the variable
-	std::vector<const RoadSegment*> bl = std::vector<const RoadSegment*>();//black list
-	std::set<const RoadSegment*> BL;
+	std::vector<const Link*> bl;//black list
+	std::set<const Link*> blSet;
 	//	STEP 1: find path A1
 	//			Apply any shortest path algorithm (e.g., Dijkstra's) to find the shortest path from O to D,	given link weights W and network graph G.
-	std::vector<sim_mob::WayPoint> temp = stdir->SearchShortestDrivingPath(stdir->DrivingVertex(*from),stdir->DrivingVertex(*to),bl);
+	std::vector<sim_mob::WayPoint> temp = stdir.SearchShortestDrivingPath(*from, *to, bl);
 	std::vector<sim_mob::WayPoint> A0;//actually A1 (in the pseudo code)
-	sim_mob::SinglePath::filterOutNodes(temp,A0);
+	sim_mob::SinglePath::filterOutNodes(temp, A0);
 	//sanity check
 	if(A0.empty())
 	{
 		return 0;
 	}
-	//			Store it in path list A as A1
+
+	// Store it in path list A as A1
 	A.push_back(A0);
-	//			Set path list B = []
+
+	// Set path list B = []
 	BType B ;
 
-
-	//STEP 2: find path A,k , where k = 2, 3, ..., K.
+	//STEP 2: find paths AK , where K = 2, 3, ..., k.
 	int K = 1; //k = 2
 	while(true)
 	{
-		//		Set path list C = A.
+		// Set path list C = A.
 		std::vector< std::vector<sim_mob::WayPoint> > C = A;
-		//		Set RootPath = [].
-		std::vector<sim_mob::WayPoint> RootPath = std::vector<sim_mob::WayPoint>();
-		//		For i = 0 to size(A,k-1)-1:
+		// Set RootPath = [].
+		std::vector<sim_mob::WayPoint> rootPath;
+		// For i = 0 to size(A,k-1)-1:
 		for(int i = 0; i < A[K-1].size(); i++)
 		{
-			//	nextRootPathLink = A,k-1 [i]
+			// nextRootPathLink = A,k-1 [i]
 			sim_mob::WayPoint nextRootPathLink = A[K-1][i];
-			const sim_mob::Node *SpurNode = nextRootPathLink.roadSegment_->getStart();
-			//	Find links whose EndNode = SpurNode, and block them.
-			getEndSegments(SpurNode,BL);//find and store in the blacklist
-			if(nextRootPathLink.roadSegment_->getStart() == nextRootPathLink.roadSegment_->getLink()->getStart())//this line('if' condition only, not the if block) is an optimization to HE's pseudo code to bypass uninodes
+			const sim_mob::Node *spurNode = nextRootPathLink.link->getFromNode();
+
+			// Find links whose EndNode = SpurNode, and block them.
+			blSet = getUpstreamLinks(spurNode); //find and store in the blacklist
+			//if(nextRootPathLink.roadSegment_->getStart() == nextRootPathLink.roadSegment_->getLink()->getStart())//this line('if' condition only, not the if block) is an optimization to HE's pseudo code to bypass uninodes
 			{
 				//	For each path Cj in path list C:
 				for(int j = 0; j < C.size(); j++)
 				{
 					//Block link Cj[i].
-					BL.insert(C[j][i].roadSegment_);
+					blSet.insert(C[j][i].link);
 				}
 				//Find shortest path from SpurNode to D, and store it as SpurPath.
-				std::vector<sim_mob::WayPoint> SpurPath,temp;
-				temp = stdir->SearchShortestDrivingPath(stdir->DrivingVertex(*SpurNode),stdir->DrivingVertex(*to),BL_VECTOR(BL));
-				sim_mob::SinglePath::filterOutNodes(temp,SpurPath);
-				std::vector<sim_mob::WayPoint> TotalPath = std::vector<sim_mob::WayPoint>();
-				if(validatePath(RootPath, SpurPath))
+				temp.clear();
+				temp = stdir.SearchShortestDrivingPath(*spurNode, *to, BL_VECTOR(blSet));
+				std::vector<sim_mob::WayPoint> spurPath;
+				sim_mob::SinglePath::filterOutNodes(temp, spurPath);
+				std::vector<sim_mob::WayPoint> fullPath;
+				if(validatePath(rootPath, spurPath))
 				{
 					//	Set TotalPath = RootPath + SpurPath.
-					TotalPath.insert(TotalPath.end(), RootPath.begin(),RootPath.end());
-					TotalPath.insert(TotalPath.end(), SpurPath.begin(), SpurPath.end());
+					fullPath.insert(fullPath.end(), rootPath.begin(),rootPath.end());
+					fullPath.insert(fullPath.end(), spurPath.begin(), spurPath.end());
 					//	Add TotalPath to path list B.
-					B.insert(sim_mob::generateSinglePathLength(TotalPath),TotalPath);
+					B.insert(sim_mob::generatePathLength(fullPath), fullPath);
 				}
 			}
 			//	For each path Cj in path list C:
@@ -193,7 +204,7 @@ int sim_mob::K_ShortestPathImpl::getKShortestPaths(const sim_mob::Node *from, co
 				}
 			}
 			//	Add nextRootPathLink to RootPath
-			RootPath.push_back(nextRootPathLink);
+			rootPath.push_back(nextRootPathLink);
 		}//for
 
 		//	If B = []:
@@ -210,7 +221,7 @@ int sim_mob::K_ShortestPathImpl::getKShortestPaths(const sim_mob::Node *from, co
 		A.push_back(B0);
 		B.eraseBegin();
 		//	Restore blocked links.
-		BL.clear();
+		blSet.clear();
 		// If size(A) < k:
 		if(A.size() < k)//mind the lower/upper case of K!
 		{
@@ -225,65 +236,36 @@ int sim_mob::K_ShortestPathImpl::getKShortestPaths(const sim_mob::Node *from, co
 		}
 	}//while
 	//	The final path list A contains the K shortest paths (if possible) from O to D.
-	//std::cout << "Created " << A.size() << " K shortest paths\n";
 	return A.size();
 }
 
-void sim_mob::K_ShortestPathImpl::getEndSegments(const Node *SpurNode,std::set<const RoadSegment*>& blackList)
+std::set<const Link*> sim_mob::K_ShortestPathImpl::getUpstreamLinks(const Node *spurNode) const
 {
-	std::set<const RoadSegment*> endSegments;
-	//step-1: get ALL the segments, regardless of spurnode
-	const sim_mob::UniNode * uNode = dynamic_cast<const sim_mob::UniNode*>(SpurNode);
-	if(uNode)
+	std::map<const Node *, std::set<const Link*> >::const_iterator itUpstreamLinks = upstreamLinksLookup.find(spurNode);
+	
+	if(itUpstreamLinks != upstreamLinksLookup.end())
 	{
-		const std::vector<const RoadSegment*>& src = uNode->getRoadSegments();
-		for(std::vector<const RoadSegment*>::const_iterator it = src.begin(); it != src.end(); it++)
-		{
-			endSegments.insert(*it);
-		}
+		return itUpstreamLinks->second;
 	}
 	else
 	{
-		const sim_mob::MultiNode * mNode = dynamic_cast <const sim_mob::MultiNode*>(SpurNode);
-		const std::set<sim_mob::RoadSegment*>& src = mNode->getRoadSegments();
-		for(std::set<RoadSegment*>::const_iterator it = src.begin(); it != src.end(); it++)
-		{
-			endSegments.insert(*it);
-		}
-	}
-	//step-2: filter out the segments for whom SpurNode is a start node
-	for (std::set<const RoadSegment*>::iterator it(endSegments.begin()) ; it != endSegments.end(); ) {
-	  if ((*it)->getEnd() !=  SpurNode){
-	    endSegments.erase(it++);
-	  } else {
-	    ++it;
-	  }
-	}
-	//step-3: add the results to blacklist
-	for (std::set<const RoadSegment*>::iterator it(endSegments.begin()) ; it != endSegments.end(); it++) {
-		blackList.insert(*it);
-	}
-}
-void sim_mob::K_ShortestPathImpl::storeSegments(std::vector<sim_mob::WayPoint> path)
-{
-	for(int i=0;i<path.size();++i)
-	{
-		if (path[i].type_ == WayPoint::ROAD_SEGMENT) {
-			const sim_mob::RoadSegment *roadSeg = path[i].roadSegment_;
-			A_Segments.insert(std::make_pair(roadSeg->originalDB_ID.getLogItem(),roadSeg));
-		}
+		return std::set<const Link*>();
 	}
 }
 
-bool sim_mob::K_ShortestPathImpl::validatePath(const std::vector<sim_mob::WayPoint> &RootPath, const std::vector<sim_mob::WayPoint>&SpurPath)
+bool sim_mob::K_ShortestPathImpl::validatePath(const std::vector<sim_mob::WayPoint> &rootPath, const std::vector<sim_mob::WayPoint> &spurPath)
 {
-	if(SpurPath.empty())
+	if(spurPath.empty())
 	{
 		return false;
 	}
-	if(!RootPath.empty())
+
+	if(!rootPath.empty())
 	{
-		if(!sim_mob::MovementFacet::isConnectedToNextSeg(RootPath.rbegin()->roadSegment_, SpurPath.begin()->roadSegment_))
+		const Link *spurPathFirstLnk = spurPath.begin()->link;
+		const Link *rootPathLastLnk = rootPath.rbegin()->link;
+		const TurningGroup* connectingTurnGroup = spurPathFirstLnk->getFromNode()->getTurningGroup(rootPathLastLnk->getLinkId(), spurPathFirstLnk->getLinkId());
+		if(!connectingTurnGroup)
 		{
 			return false;
 		}

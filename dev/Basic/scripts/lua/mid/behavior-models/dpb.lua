@@ -15,7 +15,6 @@ UPDATED VERSION - Adnan
 --travel constants
 local cons_travel = 3.347
 
-
 --Person type
 local beta_homemaker = 0.442
 local beta_retired = -0.419
@@ -194,8 +193,10 @@ local function computeUtilities(params)
 			
 	utility[1] = 0
 			
-	if person_type_id == 11 then --taking care of excluded individuals at dpbinary level (individuals not eligible for hits interview and also not traveling (persontype_id =1, age_id=0))
-
+	if person_type_id == 11 or person_type_id == 99 then 
+		--taking care of excluded individuals at dpbinary level (individuals not eligible for hits interview and also not traveling 
+		--person_type_id = 11, age_id=0 for HITS population data
+		--person_type_id = 99, age_id=0 or 99 for LT population data. NOTE: LT population dataset has no individual with person_type_id = 11.
 		utility[2]=-999
 	else	
 		utility[2] = cons_travel +  

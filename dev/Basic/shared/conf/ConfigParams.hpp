@@ -12,7 +12,7 @@
 #include "conf/RawConfigParams.hpp"
 #include "entities/roles/RoleFactory.hpp"
 #include "entities/misc/PublicTransit.hpp"
-#include "geospatial/RoadNetwork.hpp"
+#include "geospatial/network/PT_Stop.hpp"
 #include "util/DailyTime.hpp"
 #include "util/Factory.hpp"
 
@@ -21,17 +21,15 @@ namespace sim_mob {
 
 //Forward declarations
 class BusStop;
-class Conflux;
 class CommunicationDataManager;
 class ControlManager;
 class ConfigManager;
-class ReactionTimeDist;
 class RoadSegment;
+class RoadNetwork;
 class PassengerDist;
 class ProfileBuilder;
 class TripChainItem;
 class Broker;
-class SegmentStats;
 
 
 
@@ -70,263 +68,359 @@ public:
 
 	~ConfigParams();
 
-	//If any Agents specify manual IDs, we must ensure that:
-	//   * the ID is < startingAutoAgentID
-	//   * all manual IDs are unique.
-	//We do this using the Agent constraints struct
+    /**
+     * If any Agents specify manual IDs, we must ensure that:
+     * the ID is < startingAutoAgentID
+     * all manual IDs are unique.
+     * We do this using the Agent constraints struct
+     */
 	struct AgentConstraints {
 		AgentConstraints() : startingAutoAgentID(0) {}
+
 		int startingAutoAgentID;
 		std::set<unsigned int> manualAgentIDs;
 	};
 
+    /**
+     * Retrieves the Broker Factory
+     *
+     * @return broker factory
+     */
+    sim_mob::Factory<sim_mob::Broker>& getBrokerFactoryRW();
 
-	unsigned int totalRuntimeTicks;   ///<Number of ticks to run the simulation for. (Includes "warmup" ticks.)
-	unsigned int totalWarmupTicks;    ///<Number of ticks considered "warmup".
+    /// Number of ticks to run the simulation for. (Includes "warmup" ticks.)
+    unsigned int totalRuntimeTicks;
 
-	unsigned int granPersonTicks;     ///<Number of ticks to wait before updating all Person agents.
-	unsigned int granSignalsTicks;    ///<Number of ticks to wait before updating all signals.
-	unsigned int granIntMgrTicks;     ///<Number of ticks to wait before updating all intersection managers.
-	unsigned int granCommunicationTicks;      ///<Number of ticks to wait before updating all communication brokers.
+    /// Number of ticks considered "warmup".
+    unsigned int totalWarmupTicks;
 
-	///TEMP: Need to customize this later.
+    /// Output network file name
 	std::string outNetworkFileName;
 
-	//The role factory used for generating roles.
-	const sim_mob::RoleFactory& getRoleFactory() const;
-
-	//Use caution here.
-	sim_mob::RoleFactory& getRoleFactoryRW();
-	sim_mob::Factory<sim_mob::Broker>& getBrokerFactoryRW();
-
-	//For generating reaction times
-	ReactionTimeDist* reactDist1;
-	ReactionTimeDist* reactDist2;
-
-	//for generating passenger distribution
-	PassengerDist* passengerDist_busstop;
-	PassengerDist* passengerDist_crowdness;
-
-	//Number of agents skipped in loading
-	unsigned int numAgentsSkipped;
-
+    /// Is the simulation run using MPI?
 	bool using_MPI;
-	bool is_run_on_many_computers;
+
+    /// Is the simulation repeatable?
 	bool is_simulation_repeatable;
 
+    /// Number of agents skipped in loading
+    unsigned int numAgentsSkipped;
+
 public:
+    /**
+     * Retrieves/Builds the database connection string
+     *
+     * @param maskPassword is the password masked/encoded (default is true)
+     *
+     * @return database connection string
+     */
+    std::string getDatabaseConnectionString(bool maskPassword=true) const;
 
-	///Retrieve/build the connection string.
-	std::string getDatabaseConnectionString(bool maskPassword=true) const;
-	StoredProcedureMap getDatabaseProcMappings() const;
-
-	/**
-	 * Retrieve a reference to the current RoadNetwork.
-	 */
-	const sim_mob::RoadNetwork& getNetwork() const;
-
-	/**
-	 * Retrieve a reference to the current RoadNetwork; read-write access.
-	 * Fails if the network has been sealed.
-	 */
-	sim_mob::RoadNetwork& getNetworkRW();
-
-	std::vector<IncidentParams>& getIncidents();
+    /**
+     * Retrieves the stored procedure mappings
+     *
+     * @return stored procedure map
+     */
+    StoredProcedureMap getDatabaseProcMappings() const;
 
 	/**
 	 * Seal the network. After this, no more editing of the network can take place.
 	 */
 	void sealNetwork();
 
-	sim_mob::CommunicationDataManager&  getCommDataMgr() const ;
+    /**
+     * Retrieves a reference to the current communication data manager
+     *
+     * @return Reference to the current communication data manager
+     */
+    //sim_mob::CommunicationDataManager&  getCommDataMgr() const ;
 
+    /**
+     * Retrieves a reference to the current control manager
+     *
+     * @return Reference to the current control manager
+     */
 	sim_mob::ControlManager* getControlMgr() const;
 
-	///Retrieve a reference to the list of trip chains.
-	std::map<std::string, std::vector<sim_mob::TripChainItem*> >& getTripChains();
-	const std::map<std::string, std::vector<sim_mob::TripChainItem*> >& getTripChains() const;
-
-	std::vector<sim_mob::PT_BusDispatchFreq>& getPT_BusDispatchFreq();
-	const std::vector<sim_mob::PT_BusDispatchFreq>& getPT_BusDispatchFreq() const;
-
-	std::vector<sim_mob::PT_BusRoutes>& getPT_BusRoutes();
-	std::vector<sim_mob::PT_BusStops>& getPT_BusStops();
-	std::vector<sim_mob::OD_Trip>& getODsTripsMap();
-
-	//Temporary: Santhosh
-	//std::map<int, std::vector<int> > scheduledTImes;//store the actual scheduledAT and DT.assumed dwell time as 6 sec for all stops.
-
-	//NOTE: Technically we use the "sealed" property to indicate data structures that cannot change later.
-	//      From that point, there's no need for a "RW" function. For now, this is a necessary workaround, but
-	//      it also indicates that these data structures should not be located in simpleconf.hpp. ~Seth
-	const std::map<std::string, std::vector<const sim_mob::RoadSegment*> >& getRoadSegments_Map() const;
-	std::map<std::string, std::vector<const sim_mob::RoadSegment*> >& getRoadSegments_Map();
-
+    /**
+     * Retrives a reference to the bus stop num to bus stop map
+     *
+     * @return reference to the bus stop num to bus stop map
+     */
 	std::map<std::string, sim_mob::BusStop*>& getBusStopNo_BusStops();
+
+    /**
+     * Retrives a const reference to the bus stop num to bus stop map
+     *
+     * @return const reference to the bus stop num to bus stop map
+     */
 	const std::map<std::string, sim_mob::BusStop*>& getBusStopNo_BusStops() const;
 
-	std::map<std::string, std::vector<const sim_mob::BusStop*> >& getBusStops_Map();
-	const std::map<std::string, std::vector<const sim_mob::BusStop*> >& getBusStops_Map() const;
-
-	std::set<sim_mob::Conflux*>& getConfluxes();
-	const std::set<sim_mob::Conflux*>& getConfluxes() const;
-
-	std::map<const sim_mob::MultiNode*, sim_mob::Conflux*>& getConfluxNodes();
-	const std::map<const sim_mob::MultiNode*, sim_mob::Conflux*>& getConfluxNodes() const;
-	sim_mob::Conflux* getConfluxForNode(const sim_mob::MultiNode* multinode) const;
-	std::set<sim_mob::SegmentStats*>& getSegmentStatsWithBusStops();
-
+    /**
+     * Retrives a const reference to the lua scripts map
+     *
+     * @return const refernence to the lua scripts map
+     */
 	const ModelScriptsMap& getLuaScriptsMap() const;
 
+    /**
+     * Checks whether pathset mode is enabled
+     *
+     * @return true if enabled, else false
+     */
 	bool PathSetMode() const;
-	const PathSetConf & pathSet() const;
 
-	bool CBD() const;
-	bool isGenerateBusRoutes() const;
-	
-	bool PublicTransitEnabled() const;
+    /**
+     * Retrieves a const reference to the pathset configuration
+     *
+     * @return const reference to the pathset configuration
+     */
+    PathSetConf& getPathSetConf();
+
+    const PathSetConf& getPathSetConf() const;
+
+    bool RunningMidTerm() const;
+
+    bool RunningShortTerm() const;
+
+    bool RunningLongTerm() const;
 
 private:
+    /**
+     * Constructor
+     */
 	ConfigParams();
 
-	//static ConfigParams instance;
+    /// Broker Factory
+    sim_mob::Factory<sim_mob::Broker> brokerFact;
 
-	sim_mob::RoadNetwork network;
-	sim_mob::RoleFactory roleFact;
-	sim_mob::Factory<sim_mob::Broker> brokerFact;
-
+    /// Bus stop number to Bus stop mapping
 	std::map<std::string, sim_mob::BusStop*> busStopNo_busStops;
-	std::map<std::string, std::vector<sim_mob::TripChainItem*> > tripchains; //map<personID,tripchains>
 
-	//Mutable because they are set when retrieved.
-	mutable CommunicationDataManager* commDataMgr;
+    /// Mutable because they are set when retrieved.
 	mutable ControlManager* controlMgr;
 
-	std::vector<sim_mob::PT_BusDispatchFreq> ptBusDispatchFreq;
-	std::vector<sim_mob::PT_BusRoutes> ptBusRoutes;
-	std::vector<sim_mob::PT_BusStops> ptBusStops;
-	std::vector<sim_mob::OD_Trip> ODsTripsMap;
-	// Temporary: Yao Jin
-
-	std::map<std::string, std::vector<const sim_mob::RoadSegment*> > routeID_roadSegments; // map<routeID, vector<RoadSegment*>>
-	std::map<std::string, std::vector<const sim_mob::BusStop*> > routeID_busStops; // map<routeID, vector<BusStop*>>
+    /// Flag to indicate whether the network is sealed after loading
 	bool sealedNetwork;
 
-	//Confluxes in this network
-	std::set<sim_mob::Conflux*> confluxes;
-	std::set<sim_mob::SegmentStats*> segmentStatsWithBusStops;
-	std::map<const sim_mob::MultiNode*, sim_mob::Conflux*> multinode_confluxes; //map <MultiNode*, Conflux*>
+    bool workerPublisherEnabled;
 
-	enum MidTermRunMode
-	{
-		NONE,
-		SUPPLY,
-		PREDAY
-	};
+    /// is public transit enabled
+    bool publicTransitEnabled;
 
-	MidTermRunMode midTermRunMode;
+    /// pt edge travel time generation
+    bool enabledEdgeTravelTime;
+
+	/** name of file to store journey statistics */
+	std::string journeyTimeStatsFilename;
+
+	/** name of file to store waiting time statistics*/
+	std::string waitingTimeStatsFilename;
+
+	/** name of file to store waiting count statistics*/
+	std::string waitingCountStatsFilename;
+
+	/** name of file to store travel time statistics*/
+	std::string travelTimeStatsFilename;
+
+	/** name of file to store PT stop statistics */
+	std::string ptStopStatsFilename;
 
 public:
 	/////////////////////////////////////////////////////////////////////////////////////
-	//These are helper functions, to make compatibility between old/new parsing easier.
+    /// These are helper functions, to make compatibility between old/new parsing easier.
 	/////////////////////////////////////////////////////////////////////////////////////
 
-	///Number of workers handling Agents.
-	unsigned int& personWorkGroupSize();
-	const unsigned int& personWorkGroupSize() const;
-
-	///Number of workers handling Signals.
-	unsigned int& signalWorkGroupSize();
-	const unsigned int& signalWorkGroupSize() const;
-        
-	///Number of workers handling Intersection managers.
-	unsigned int& intMgrWorkGroupSize();
-	const unsigned int& intMgrWorkGroupSize() const;
-
-	///Number of workers handling communication broker.
-	unsigned int& commWorkGroupSize();
-	const unsigned int& commWorkGroupSize() const;
-
-	///Base system granularity, in milliseconds. Each "tick" is this long.
+    /**
+     * Retrives a reference to Base system granularity, in milliseconds. Each "tick" is this long.
+     *
+     * @return reference to base system granularity in milliseconds
+     */
 	unsigned int& baseGranMS();
+
+    /**
+     * Retrieves a const reference to base system granularity in milliseconds. Each "tick" is this long.
+     *
+     * @return const reference to base system granularity in milliseconds
+     */
 	const unsigned int& baseGranMS() const;
 
-	///Base system granularity, in seconds. Each "tick" is this long.
+    /**
+     * Retrievs a const reference to base system granularity, in seconds. Each "tick" is this long.
+     *
+     * @return const reference to base system granularity in seconds
+     */
 	const double& baseGranSecond() const;
 
-	///If true, we are running everything on one thread.
-	bool& singleThreaded();
-	const bool& singleThreaded() const;
+    /**
+     * Checks whether to merge log files at the end of simulation
+     * If true, we take time to merge the output of the individual log files after the simulation is complete.
+     *
+     * @return true is allowed to merge, else false
+     */
+	bool& isMergeLogFiles();
 
-	///If true, we take time to merge the output of the individual log files after the simulation is complete.
-	bool& mergeLogFiles();
-	const bool& mergeLogFiles() const;
+    /**
+     * Checks whether to merge log files at the end of simulation
+     * If true, we take time to merge the output of the individual log files after the simulation is complete.
+     *
+     * @return true is allowed to merge, else false
+     */
+    const bool isMergeLogFiles() const;
 
-	///Whether to load the network from the database or from an XML file.
-	SystemParams::NetworkSource& networkSource();
-	const SystemParams::NetworkSource& networkSource() const;
-
-	///Whether configuration has been set to run mid-term supply or demand. Used for runtime checks
-	bool RunningMidSupply() const;
-	bool RunningMidDemand() const;
-	void setMidTermRunMode(const std::string& runMode);
-
-	///If loading the network from an XML file, which file? Empty=private/SimMobilityInput.xml
-	std::string& networkXmlInputFile();
-	const std::string& networkXmlInputFile() const;
-
-	///If writing the network to an XML file, which file? Empty= dont write at all
-	std::string& networkXmlOutputFile();
-	const std::string& networkXmlOutputFile() const;
-
-	///If empty, use the default provided in "xsi:schemaLocation".
-	std::string& roadNetworkXsdSchemaFile();
-	void setRoadNetworkXsdSchemaFile(std::string& name);
-	const std::string& roadNetworkXsdSchemaFile() const;
-
-	///Which tree implementation to use for spatial partitioning for the aura manager.
-	AuraManager::AuraManagerImplementation& aura_manager_impl();
-	const AuraManager::AuraManagerImplementation& aura_manager_impl() const;
-
-	int& percent_boarding();
-	const int& percent_boarding() const;
-
-	int& percent_alighting();
-	const int& percent_alighting() const;
-
+    /**
+     * Retrieves the default workgroup assignment stratergy
+     *
+     * @return workgroup assignment stratergy
+     */
 	WorkGroup::ASSIGNMENT_STRATEGY& defaultWrkGrpAssignment();
+
+    /**
+     * Retrieves the default workgroup assignment stratergy
+     *
+     * @return workgroup assignment stratergy
+     */
 	const WorkGroup::ASSIGNMENT_STRATEGY& defaultWrkGrpAssignment() const;
 
+    /**
+     * Retrieves the mutex stratergy
+     *
+     * @return mutex stratergy
+     */
 	sim_mob::MutexStrategy& mutexStategy();
-	const sim_mob::MutexStrategy& mutexStategy() const;
-	//Communication Simulator accessors and configurators
-	bool commSimEnabled() const;
 
+    /**
+     * Retrieves the mutex stratergy
+     *
+     * @return mutex stratergy
+     */
+    const sim_mob::MutexStrategy& mutexStategy() const;
+
+    /**
+     * Retrieves the simulation start time
+     *
+     * @return simulation start time
+     */
 	DailyTime& simStartTime();
+
+    /**
+     * Retrieves the simulation start time
+     *
+     * @return simulation start time (const reference)
+     */
 	const DailyTime& simStartTime() const;
-	///	get realtime travel time table name for route choice model
+
+    /**
+     * retrieves realtime travel time table name for route choice model
+     *
+     * @return realtime travel time table
+     */
 	const std::string& getRTTT() const;
-	///	get default travel time table name for route choice model
+
+    /**
+     * retrieves default travel time table name for route choice model
+     *
+     * @return default travel time table
+     */
 	const std::string& getDTT() const;
 
-	//This one's slightly tricky, as it's in generic_props
-	std::string busline_control_type() const;
+    /**
+     * Retrieves the total runtime in milliseconds
+     *
+     * @return total runtime in milliseconds
+     */
+    unsigned int totalRuntimeInMilliSeconds() const;
 
-	/////////////////////////////////////////////////////////////////////////////////////
-	//These are sort of similar, but might need some fixing after we validate the input file.
-	/////////////////////////////////////////////////////////////////////////////////////
-
-	unsigned int totalRuntimeInMilliSeconds() const;
-
+    /**
+     * Retrieves the warmup time in milliseconds
+     *
+     * @return warmup time in milliseconds
+     */
 	unsigned int warmupTimeInMilliSeconds() const;
 
-	unsigned int personTimeStepInMilliSeconds() const;
+    bool isWorkerPublisherEnabled() const;
 
-	unsigned int signalTimeStepInMilliSeconds() const;
-        
-	unsigned int intMgrTimeStepInMilliSeconds() const;
+    void setWorkerPublisherEnabled(bool value);
 
-	unsigned int communicationTimeStepInMilliSeconds() const;
+    bool isGenerateBusRoutes() const;
+
+    bool isPublicTransitEnabled() const;
+
+    void setPublicTransitEnabled(bool value);
+
+    bool isEnabledEdgeTravelTime() const;
+
+    void setEnabledEdgeTravelTime(bool enabledEdgeTravelTime);
+
+	/**
+     * Retrives journey time stats file name
+     *
+     * @return journey time file name
+     */
+	const std::string& getJourneyTimeStatsFilename() const;
+
+	/**
+     * Sets journey time stats file name
+     *
+     * @param str journey time stats file name to be set
+     */
+	void setJourneyTimeStatsFilename(const std::string& str);
+
+    /**
+     * Retrieves waiting time stats file name
+     *
+     * @return waiting time file name
+     */
+	const std::string& getWaitingTimeStatsFilename() const;
+
+    /**
+     * Sets waiting time stats file name
+     *
+     * @param str waiting time stats file name to be set
+     */
+	void setWaitingTimeStatsFilename(const std::string& str);
+
+    /**
+     * Retrieves waiting count stats file name
+     *
+     * @return waiting count stats file name
+     */
+	const std::string& getWaitingCountStatsFilename() const;
+
+    /**
+     * Sets waiting count stats file name
+     *
+     * @param str waiting count stats file name to be set
+     */
+	void setWaitingCountStatsFilename(const std::string& str);
+
+    /**
+     * Retrieves travel time stats file name
+     *
+     * @return travel time stats file name
+     */
+	const std::string& getTravelTimeStatsFilename() const;
+
+    /**
+     * Sets travel time stats file name
+     *
+     * @param str travel time stats file name to be set
+     */
+	void setTravelTimeStatsFilename(const std::string& str);
+
+    /**
+     * Retrieves PT stop stats file name
+     *
+     * @return PT stop  stats file name
+     */
+	const std::string& getPT_StopStatsFilename() const;
+
+    /**
+     * Sets PT stop  stats file name
+     *
+     * @param str PT stop  stats file name to be set
+     */
+	void setPT_StopStatsFilename(const std::string& str);
 };
 
 

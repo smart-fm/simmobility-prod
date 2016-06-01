@@ -84,17 +84,26 @@ void sim_mob::medium::PopulationSqlDao::getAllIds(std::vector<long>& outList)
 	}
 }
 
-void sim_mob::medium::PopulationSqlDao::getAddressTAZs(std::map<long, int>& addressTazMap)
+void sim_mob::medium::PopulationSqlDao::getAddresses(std::map<long, sim_mob::medium::Address>& addressMap, std::map<int, std::vector<long> >& zoneAddressesMap)
 {
 	if (isConnected())
 	{
-		addressTazMap.clear();
+		addressMap.clear();
+		zoneAddressesMap.clear();
 		Statement query(connection.getSession<soci::session>());
-		prepareStatement(DB_GET_ADDRESS_TAZ, db::EMPTY_PARAMS, query);
+		prepareStatement(DB_GET_ADDRESSES, db::EMPTY_PARAMS, query);
 		ResultSet rs(query);
 		for (ResultSet::const_iterator it = rs.begin(); it != rs.end(); ++it)
 		{
-			addressTazMap[(*it).get<BigInt>(DB_FIELD_ADDRESS_ID)] = (*it).get<int>(DB_FIELD_TAZ_CODE);
+			long addressId = (*it).get<BigInt>(DB_FIELD_ADDRESS_ID);
+			sim_mob::medium::Address& address = addressMap[addressId];
+			address.setAddressId(addressId);
+			address.setPostcode((*it).get<int>(DB_FIELD_POSTCODE));
+			address.setTazCode((*it).get<int>(DB_FIELD_TAZ_CODE));
+			address.setDistanceMrt((*it).get<double>(DB_FIELD_DISTANCE_MRT));
+			address.setDistanceBus((*it).get<double>(DB_FIELD_DISTANCE_BUS));
+
+			zoneAddressesMap[address.getTazCode()].push_back(addressId);
 		}
 	}
 }
@@ -107,14 +116,14 @@ void PopulationSqlDao::getIncomeCategories(double incomeLowerLimits[])
 		prepareStatement(DB_GET_INCOME_CATEGORIES, db::EMPTY_PARAMS, query);
 		ResultSet rs(query);
 
-		double uLimit = 0;
+		double lowLimit = 0;
 		incomeLowerLimits[0] = 0;
 		for (ResultSet::const_iterator it = rs.begin(); it != rs.end(); ++it)
 		{
-			uLimit = (*it).get<double>(DB_FIELD_INCOME_CATEGORY_LOWER_LIMIT);
-			if (uLimit > 0)
+			lowLimit = (*it).get<double>(DB_FIELD_INCOME_CATEGORY_LOWER_LIMIT);
+			if (lowLimit > 0)
 			{
-				incomeLowerLimits[(*it).get<BigInt>(DB_FIELD_ID)] = uLimit;
+				incomeLowerLimits[(*it).get<BigInt>(DB_FIELD_ID)] = lowLimit;
 			}
 		}
 	}
@@ -151,16 +160,16 @@ void PopulationSqlDao::getVehicleCategories(std::map<int, std::bitset<4> >& vehi
 	}
 }
 
-sim_mob::medium::LogsumSqlDao::LogsumSqlDao(db::DB_Connection& connection) :
+sim_mob::medium::SimmobSqlDao::SimmobSqlDao(db::DB_Connection& connection) :
 		SqlAbstractDao<PersonParams>(connection, DB_TABLE_LOGSUMS, DB_INSERT_LOGSUMS, "", DB_TRUNCATE_LOGSUMS, "", DB_GET_LOGSUMS_BY_ID)
 {
 }
 
-sim_mob::medium::LogsumSqlDao::~LogsumSqlDao()
+sim_mob::medium::SimmobSqlDao::~SimmobSqlDao()
 {
 }
 
-void sim_mob::medium::LogsumSqlDao::fromRow(db::Row& result, PersonParams& outObj)
+void sim_mob::medium::SimmobSqlDao::fromRow(db::Row& result, PersonParams& outObj)
 {
 	outObj.setWorkLogSum(result.get<double>(DB_FIELD_WORK_LOGSUM));
 	outObj.setEduLogSum(result.get<double>(DB_FIELD_EDUCATION_LOGSUM));
@@ -170,7 +179,7 @@ void sim_mob::medium::LogsumSqlDao::fromRow(db::Row& result, PersonParams& outOb
 	outObj.setDpsLogsum(result.get<double>(DB_FIELD_DPS_LOGSUM));
 }
 
-void sim_mob::medium::LogsumSqlDao::toRow(PersonParams& data, db::Parameters& outParams, bool update)
+void sim_mob::medium::SimmobSqlDao::toRow(PersonParams& data, db::Parameters& outParams, bool update)
 {
 	outParams.push_back(data.getPersonId());
 	outParams.push_back(data.getWorkLogSum());
@@ -181,9 +190,24 @@ void sim_mob::medium::LogsumSqlDao::toRow(PersonParams& data, db::Parameters& ou
 	outParams.push_back(data.getDpsLogsum());
 }
 
-void sim_mob::medium::LogsumSqlDao::getLogsumById(long long id, PersonParams& outObj)
+void sim_mob::medium::SimmobSqlDao::getLogsumById(long long id, PersonParams& outObj)
 {
 	db::Parameters params;
 	params.push_back(id);
 	getById(params, outObj);
+}
+
+void sim_mob::medium::SimmobSqlDao::getPostcodeToNodeMap(std::map<unsigned int, unsigned int>& postcodeNodeMap)
+{
+	if (isConnected())
+	{
+		postcodeNodeMap.clear();
+		Statement query(connection.getSession<soci::session>());
+		prepareStatement(DB_GET_POSTCODE_NODE_MAP, db::EMPTY_PARAMS, query);
+		ResultSet rs(query);
+		for (ResultSet::const_iterator it = rs.begin(); it != rs.end(); ++it)
+		{
+			postcodeNodeMap[(*it).get<int>(DB_FIELD_POSTCODE)] = (*it).get<BigInt>(DB_FIELD_NODE_ID);
+		}
+	}
 }

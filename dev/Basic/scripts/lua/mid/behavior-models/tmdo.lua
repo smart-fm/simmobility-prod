@@ -148,7 +148,7 @@ local function computeUtilities(params,dbparams)
 	local income_id = params.income_id
 	local income_cat = {500.5,1250,1749.5,2249.5,2749.5,3499.5,4499.5,5499.5,6499.5,7499.5,8500,0,99999,99999}
 	local income_mid = income_cat[income_id]
-	local missing_income = (params.income_id >= 13) and 1 or 0
+	local missing_income = (params.income_id >= 12) and 1 or 0  -- Vishnu 14th April 2016- Changed from the previous value of 12
 
 	--params.car_own_normal is from household table
 	local zero_car = params.car_own_normal == 0 and 1 or 0

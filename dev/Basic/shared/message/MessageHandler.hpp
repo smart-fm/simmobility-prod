@@ -12,44 +12,48 @@
 #include "Message.hpp"
 #include <set>
 
-namespace sim_mob {
+namespace sim_mob
+{
 
-    namespace messaging {
+namespace messaging
+{
 
-        /**
-         * Interface for all classes which are capable to receive messages from 
-         * MessageBus. 
-         * @see MessageBus to get more details.
-         */
-        class MessageHandler {
-        public:
-            MessageHandler(unsigned int id);
-            MessageHandler();
+/**
+ * Interface for all classes which are capable to receive messages from
+ * MessageBus.
+ * @see MessageBus to get more details.
+ */
+class MessageHandler
+{
+public:
+	MessageHandler(unsigned int id);
+	MessageHandler();
 
-            virtual ~MessageHandler();
-            /**
-             * Handles all messages sent to the MessageHandler implementation.
-             * @param type of the message.
-             * @param message data received.
-             */
-            virtual void HandleMessage(Message::MessageType type, const Message& message) = 0;
+	virtual ~MessageHandler();
+	/**
+	 * Handles all messages sent to the MessageHandler implementation.
+	 * @param type of the message.
+	 * @param message data received.
+	 */
+	virtual void HandleMessage(Message::MessageType type, const Message& message) = 0;
 
-            /**
-             * Gets the id associated with this handler.
-             * NOTE: used only for debug but it will be necessary on the future.
-             * @return id value associated.
-             */
-            unsigned int GetId() const;
+	/**
+	 * Gets the id associated with this handler.
+	 * NOTE: used only for debug but it will be necessary on the future.
+	 * @return id value associated.
+	 */
+	unsigned int GetId() const;
 
-            void* GetContext() const{
-            	return context;
-            }
+	void* GetContext() const
+	{
+		return context;
+	}
 
-        private:
-            friend class MessageBus;
-            unsigned int id;
-            //MessageBus exclusive
-            void* context;
-        };
-    }
+private:
+	friend class MessageBus;
+	unsigned int id;
+	//MessageBus exclusive
+	void* context;
+};
+}
 }

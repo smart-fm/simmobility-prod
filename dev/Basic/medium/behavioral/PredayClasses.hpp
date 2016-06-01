@@ -9,6 +9,7 @@
 #include <string>
 #include <vector>
 #include "behavioral/StopType.hpp"
+#include "behavioral/StopType.hpp"
 #include "util/LangHelpers.hpp"
 
 namespace sim_mob
@@ -424,36 +425,69 @@ private:
 	bool firstTour;
 };
 
-class OD_Pair
+class Address
 {
-private:
-	int origin;
-	int destination;
-
 public:
-	OD_Pair(int org, int dest) :
-			origin(org), destination(dest)
-	{
-	}
-	virtual ~OD_Pair()
+	Address() : addressId(0), postcode(0), tazCode(0), distanceMRT(0.0), distanceBus(0.0)
 	{
 	}
 
-	bool operator ==(const OD_Pair& rhs) const;
-	bool operator !=(const OD_Pair& rhs) const;
-
-	bool operator >(const OD_Pair& rhs) const;
-	bool operator <(const OD_Pair& rhs) const;
-
-	int getDestination() const
+	long getAddressId() const
 	{
-		return destination;
+		return addressId;
 	}
 
-	int getOrigin() const
+	void setAddressId(long addressId)
 	{
-		return origin;
+		this->addressId = addressId;
 	}
+
+	unsigned int getPostcode() const
+	{
+		return postcode;
+	}
+
+	void setPostcode(unsigned int postcode)
+	{
+		this->postcode = postcode;
+	}
+
+	int getTazCode() const
+	{
+		return tazCode;
+	}
+
+	void setTazCode(int tazCode)
+	{
+		this->tazCode = tazCode;
+	}
+
+	double getDistanceBus() const
+	{
+		return distanceBus;
+	}
+
+	void setDistanceBus(double distanceBus)
+	{
+		this->distanceBus = distanceBus;
+	}
+
+	double getDistanceMrt() const
+	{
+		return distanceMRT;
+	}
+
+	void setDistanceMrt(double distanceMrt)
+	{
+		distanceMRT = distanceMrt;
+	}
+
+private:
+	long addressId;
+	unsigned int postcode;
+	int tazCode;
+	double distanceBus; //km
+	double distanceMRT; //km
 };
 
 } // end namespace medium

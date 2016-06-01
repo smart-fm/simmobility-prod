@@ -10,10 +10,9 @@
 
 #include "logging/Log.hpp"
 #include "util/GeomHelpers.hpp"
-#include "geospatial/RoadNetwork.hpp"
-#include "geospatial/RoadSegment.hpp"
-#include "geospatial/Crossing.hpp"
-#include "geospatial/Lane.hpp"
+#include "geospatial/network/RoadNetwork.hpp"
+#include "geospatial/network/RoadSegment.hpp"
+#include "geospatial/network/Lane.hpp"
 #include "util/OutputUtil.hpp"
 
 #include "Section.hpp"
@@ -49,6 +48,7 @@ int minID(const vector<double>& vals)
 
 void sim_mob::aimsun::CrossingLoader::DecorateCrossings(map<int, Node>& nodes, vector<Crossing>& crossings)
 {
+/*
 	if(crossings.empty()) { return; }
 
 	//Step 5: Tag all Nodes with the crossings that are near to these nodes.
@@ -84,7 +84,7 @@ void sim_mob::aimsun::CrossingLoader::DecorateCrossings(map<int, Node>& nodes, v
 					//And search through all RoadSegments
 					for (vector<Section*>::iterator itSec=n.sectionsAtNode.begin(); itSec!=n.sectionsAtNode.end()&&!found; itSec++) {
 						//Get the intersection between the two Points, and the Section we are considering
-						Point2D intRes = sim_mob::LineLineIntersect(it->second[i], it->second[j], *itSec);
+						Point intRes = sim_mob::LineLineIntersect(it->second[i], it->second[j], *itSec);
 						if (intRes.getX()==std::numeric_limits<int>::max()) {
 							//Lines are parallel
 							continue;
@@ -110,11 +110,12 @@ void sim_mob::aimsun::CrossingLoader::DecorateCrossings(map<int, Node>& nodes, v
 
 	//Print all skipped lane-crossing IDs:
 	sim_mob::PrintArray(skippedCrossingLaneIDs, std::cout, "Skipped \"crossing\" laneIDs: ", "[", "]", ", ", 4);
+*/
 }
 
 
 void sim_mob::aimsun::CrossingLoader::GenerateACrossing(sim_mob::RoadNetwork& resNW, Node& origin, Node& dest, vector<int>& laneIDs)
-{
+{/*
 	//Nothing to do here?
 	if (laneIDs.empty()) {
 		return;
@@ -130,12 +131,12 @@ void sim_mob::aimsun::CrossingLoader::GenerateACrossing(sim_mob::RoadNetwork& re
 	//Reduce the number of points on each "Lane" to 2. Also record the distance of the midpoint of the final
 	// line from the origin node.
 	std::vector<double> lineDistsFromOrigin;
-	std::vector<Point2D> midPoints;
-	std::vector< std::pair<Point2D, Point2D> > lineMinMaxes;
+	std::vector<Point> midPoints;
+	std::vector< std::pair<Point, Point> > lineMinMaxes;
 	std::vector<Crossing*> candidates;
 	for (std::vector<int>::iterator it=laneIDs.begin(); it!=laneIDs.end(); it++) {
 		//Quick check
-		/*std::vector<Crossing*>*/ candidates = origin.crossingsAtNode.find(*it)->second;
+		candidates = origin.crossingsAtNode.find(*it)->second;
 		if (candidates.empty() || candidates.size()==1){
 			sim_mob::Warn() <<"ERROR: Unexpected Crossing candidates size.\n";
 			return;
@@ -159,9 +160,9 @@ void sim_mob::aimsun::CrossingLoader::GenerateACrossing(sim_mob::RoadNetwork& re
 		}
 
 		//Now save these two points and their combined distance.
-		pair<Point2D, Point2D> res = std::make_pair(Point2D(candidates[0]->xPos, candidates[0]->yPos), Point2D(candidates[1]->xPos, candidates[1]->yPos));
+		pair<Point, Point> res = std::make_pair(Point(candidates[0]->xPos, candidates[0]->yPos), Point(candidates[1]->xPos, candidates[1]->yPos));
 		lineMinMaxes.push_back(res);
-		Point2D midPoint((res.second.getX()-res.first.getX())/2 + res.first.getX(),(res.second.getY()-res.first.getY())/2 + res.first.getY());
+		Point midPoint((res.second.getX()-res.first.getX())/2 + res.first.getX(),(res.second.getY()-res.first.getY())/2 + res.first.getY());
 		double distOrigin = dist(midPoint.getX(), midPoint.getY(), origin.xPos, origin.yPos);
 		lineDistsFromOrigin.push_back(distOrigin);
 		midPoints.push_back(midPoint);
@@ -191,7 +192,7 @@ void sim_mob::aimsun::CrossingLoader::GenerateACrossing(sim_mob::RoadNetwork& re
 
 	//This crossing will now be listed as an obstacle in all Segments which share the same two nodes. Its "offset" will be determined from the "start"
 	//   of the given segment to the "midpoint" of the two midpoints of the near/far lines.
-	Point2D midPoint((midPoints[1].getX()-midPoints[0].getX())/2 + midPoints[0].getX(),(midPoints[1].getY()-midPoints[0].getY())/2 + midPoints[0].getY());
+	Point midPoint((midPoints[1].getX()-midPoints[0].getX())/2 + midPoints[0].getX(),(midPoints[1].getY()-midPoints[0].getY())/2 + midPoints[0].getY());
 	for (vector<Section*>::iterator it=origin.sectionsAtNode.begin(); it!=origin.sectionsAtNode.end(); it++) {
 		bool match =    ((*it)->generatedSegment->start==origin.generatedNode && (*it)->generatedSegment->end==dest.generatedNode)
 					 || ((*it)->generatedSegment->end==origin.generatedNode && (*it)->generatedSegment->start==dest.generatedNode);
@@ -215,14 +216,14 @@ void sim_mob::aimsun::CrossingLoader::GenerateACrossing(sim_mob::RoadNetwork& re
 			res->setParentSegment((*it)->generatedSegment);
 			//(*it)->generatedSegment->obstacles[distOrigin_] = res;
 			(*it)->generatedSegment->addObstacle(distOrigin,res);
-			res->setCrossingID( res->generateRoadItemID(*((*it)->generatedSegment))/*(*it)->generatedSegment->getId() * 10 + (*it)->generatedSegment->obstacles.size()*/); //sorry I have to put the formula here -vahid
+			//(*it)->generatedSegment->getId() * 10 + (*it)->generatedSegment->obstacles.size()
+			res->setCrossingID( res->generateRoadItemID(*((*it)->generatedSegment))); //sorry I have to put the formula here -vahid
 //			if((res->getRoadSegment()->getId() == 100001005)||(res->getRoadSegment()->getId() == 100001004))
 //			{
 //				std::cout << "Segment " << (*it)->generatedSegment << "  "<< (*it)->generatedSegment->getId() << " with length "  << (*it)->generatedSegment->length << " has a crossing at  " << distOrigin_ << " with crossingID: " << res->getCrossingID() << "  " << res << "  Obstacles size=" << (*it)->generatedSegment->obstacles.size() << "\n" ;
 //
 //			}
-
 		}
-	}
+	}*/
 }
 

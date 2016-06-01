@@ -108,8 +108,8 @@ void unit_tests::PackUnpackUnitTests::test_PackUnpack_fixed_delayed()
 void unit_tests::PackUnpackUnitTests::test_PackUnpack_fixed_delayed_dpoint()
 {
 	//We only care that one point works.
-	FixedDelayed<DPoint> srcFD(10); //10ms delay
-	srcFD.delay(DPoint(1.1, 3.3));
+	FixedDelayed<Point> srcFD(10); //10ms delay
+	srcFD.delay(Point(1.1, 3.3));
 	srcFD.update(9);
 
 	//Now pack it.
@@ -118,7 +118,7 @@ void unit_tests::PackUnpackUnitTests::test_PackUnpack_fixed_delayed_dpoint()
 
 	//Unpack it
 	UnPackageUtils up(p.getPackageData());
-	FixedDelayed<DPoint> destFD; //Use the default constructor (0ms delay)
+	FixedDelayed<Point> destFD; //Use the default constructor (0ms delay)
 	up >> destFD;
 
 	//Ensure neither one can be sensed

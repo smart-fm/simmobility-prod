@@ -1,66 +1,90 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 #pragma once
-#include "A_StarShortestPathImpl.hpp"
-#include "AStarShortestTravelTimePathImpl.hpp"
-#include "StreetDirectory.hpp"
 
+#include <boost/shared_ptr.hpp>
 #include <map>
 #include <vector>
+#include <set>
 #include <string>
+#include "geospatial/network/Link.hpp"
+#include "geospatial/network/Node.hpp"
+#include "geospatial/network/WayPoint.hpp"
 
-namespace sim_mob {
+namespace sim_mob
+{
 
-class PathSet;
-class SinglePath;
-
-class K_ShortestPathImpl {
+/**
+ * Class encapsulating K-shortest path algorithm as documented by Dr. Huang He
+ *
+ * \author Zhang Huai Peng
+ * \author Vahid Saber Hamishagi
+ * \author Harish Loganathan
+ */
+class K_ShortestPathImpl
+{
 public:
-	K_ShortestPathImpl();
 	virtual ~K_ShortestPathImpl();
-	static boost::shared_ptr<K_ShortestPathImpl> instance;
-public:
+
 	static boost::shared_ptr<K_ShortestPathImpl> getInstance();
+
 	/**
-	 * Main Operation of this Class: Find K-Shortest Paths
-	 * \param from Oigin
-	 * \param to Destination
-	 * \param res generated paths
-	 * \return number of paths found
+	 * primary operation provided by this class: Find K-Shortest Paths
+	 * @param from Origin
+	 * @param to Destination
+	 * @param res generated paths (output param)
+	 * @return number of paths found
+	 *
 	 * Note: naming conventions follows the Huang HE's documented algorithm.
 	 */
-	int getKShortestPaths(const sim_mob::Node *from, const sim_mob::Node *to, std::vector< std::vector<sim_mob::WayPoint> > &res);
+	int getKShortestPaths(const sim_mob::Node *from, const sim_mob::Node *to, std::vector<std::vector<sim_mob::WayPoint> > &res);
 
-	void setK(int value) { k = value; }
-	int getK() { return k; }
+	void setK(int value)
+	{
+		k = value;
+	}
+
+	int getK()
+	{
+		return k;
+	}
+
 private:
+	K_ShortestPathImpl();
+
+	/**
+	 * Obtain the end segments of a given node, as per requirement of Yen's shortest path (mentioned in He's Algorithm)
+	 * @param spurNode input node
+	 * @param upLinks output
+	 */
+	std::set<const Link*> getUpstreamLinks(const Node *spurNode) const;
+
+	/**
+	 * Validates the intermediary results
+	 * @param RootPath root path of the k-shortest path
+	 * @param spurPath spur path of the k-shortest path
+	 * @return true if all the validations are valid, false otherwise
+	 */
+	bool validatePath(const std::vector<sim_mob::WayPoint> &rootPath, const std::vector<sim_mob::WayPoint> &spurPath);
+
+	/**
+	 * number of shortest paths to generate when getKShortestPaths() function is called
+	 */
 	int k;
+
 	/**
 	 * store all segments in A, key=id, value=road segment
 	 */
-	std::map< std::string,const sim_mob::RoadSegment* > A_Segments;
-	StreetDirectory* stdir;
+	std::map<std::string, const sim_mob::RoadSegment*> A_Segments;
+
 	/**
-	 * initialization
+	 * store all upstream links for each node
 	 */
-	void init();
+	std::map<const Node *, std::set<const Link *> > upstreamLinksLookup;
+
 	/**
-	 * Obtain the end segments of a given node, as per requirement of Yen's shortest path
-	 * (mentioned in He's Algorithm)
-	 * \param SpurNode input
-	 * \paream endSegments output
+	 * static singleton instance
 	 */
-	void getEndSegments(const Node *SpurNode,std::set<const RoadSegment*> &endSegments);
-	/**
-	 * store intermediary result into A_Segments(get segments list of the path)
-	 */
-	void storeSegments(std::vector<sim_mob::WayPoint> path);
-	/**
-	 * Validates the intermediary results
-	 * \param RootPath root path of the k-shortest path
-	 * \param spurPath spur path of the k-shortest path
-	 * \return true if all the validations are valid, false otherwise
-	 */
-	bool validatePath(const std::vector<sim_mob::WayPoint> &RootPath, const std::vector<sim_mob::WayPoint>&SpurPath);
+	static boost::shared_ptr<K_ShortestPathImpl> instance;
 };
 
 } //end namespace sim_mob

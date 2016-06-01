@@ -46,6 +46,9 @@
 #include "database/entity/PrimarySchool.hpp"
 #include "database/entity/PreSchool.hpp"
 #include "database/entity/HHCoordinates.hpp"
+#include "database/entity/AlternativeHedonicPrice.hpp"
+#include "database/entity/ScreeningModelCoefficients.hpp"
+#include "database/entity/HouseholdUnit.hpp"
 #include "core/HousingMarket.hpp"
 #include "boost/unordered_map.hpp"
 #include "DeveloperModel.hpp"
@@ -152,8 +155,15 @@ namespace sim_mob
             typedef std::vector<OwnerTenantMovingRate*>OwnerTenantMovingRateList;
             typedef boost::unordered_map<BigSerial, OwnerTenantMovingRate*> OwnerTenantMovingRateMap;
 
+            typedef std::vector<AlternativeHedonicPrice*>AlternativeHedonicPriceList;
+            typedef boost::unordered_multimap<BigSerial, AlternativeHedonicPrice*> AlternativeHedonicPriceMap;
+
+            typedef std::vector<ScreeningModelCoefficients*>ScreeningModelCoefficientsList;
+            typedef boost::unordered_map<BigSerial, ScreeningModelCoefficients*> ScreeningModelCoefficicientsMap;
+
             typedef std::vector<VehicleOwnershipChanges*> VehicleOwnershipChangesList;
             typedef boost::unordered_map<BigSerial, VehicleOwnershipChanges*> VehicleOwnershipChangesMap;
+
 
             typedef std::vector<HouseholdPlanningArea*> HouseholdPlanningAreaList;
             typedef boost::unordered_map<BigSerial, HouseholdPlanningArea*> HouseholdPlanningAreaMap;
@@ -169,6 +179,10 @@ namespace sim_mob
 
             typedef std::vector<PreSchool*> PreSchoolList;
             typedef boost::unordered_map<BigSerial, PreSchool*> PreSchoolMap;
+
+            typedef std::vector<HouseholdUnit*> HouseholdUnitList;
+            typedef boost::unordered_map<BigSerial, HouseholdUnit*> HouseholdUnitMap;
+
 
 
             /**
@@ -262,6 +276,7 @@ namespace sim_mob
 
 
             Household* getHouseholdById( BigSerial id) const;
+            Household* getHouseholdWithBidsById( BigSerial id) const;
 			Individual* getIndividualById( BigSerial id) const;
 			Individual* getPrimaySchoolIndById(BigSerial id) const;
 			Individual* getPreSchoolIndById(BigSerial id) const;
@@ -327,7 +342,7 @@ namespace sim_mob
             HouseholdGroup* getHouseholdGroupByGroupId(BigSerial id)const;
             void addHouseholdGroupByGroupId(HouseholdGroup* hhGroup);
             void getScreeningProbabilities(std::string hitsId, std::vector<double> &householdScreeningProbabilties );
-            AlternativeList getAlternatives();
+            AlternativeList& getAlternatives();
             Alternative* getAlternativeById(int zoneHousingType);
             PlanningArea* getPlanningAreaById( int id );
             std::vector<PlanningSubzone*> getPlanningSubZoneByPlanningAreaId(int id);
@@ -343,15 +358,18 @@ namespace sim_mob
             void setStartDay(int day);
             int getStartDay() const;
             void addNewBids(boost::shared_ptr<Bid> &newBid);
+            void addHouseholdUnits(boost::shared_ptr<HouseholdUnit> &newHouseholdUnit);
             BigSerial getBidId();
             BigSerial getUnitSaleId();
             std::vector<boost::shared_ptr<Bid> > getNewBids();
+            std::vector<boost::shared_ptr<HouseholdUnit> > getNewHouseholdUnits();
             void addUnitSales(boost::shared_ptr<UnitSale> &unitSale);
             std::vector<boost::shared_ptr<UnitSale> > getUnitSales();
             void addHouseholdsTo_OPSchema(boost::shared_ptr<Household> &houseHold);
             std::vector<boost::shared_ptr<Household> > getHouseholdsWithBids();
             void addVehicleOwnershipChanges(boost::shared_ptr<VehicleOwnershipChanges> &vehicleOwnershipChange);
             std::vector<boost::shared_ptr<VehicleOwnershipChanges> > getVehicleOwnershipChanges();
+            ScreeningModelCoefficientsList getScreeningModelCoefficientsList();
 
             IndvidualVehicleOwnershipLogsumList getIndvidualVehicleOwnershipLogsums() const;
             IndvidualVehicleOwnershipLogsum* getIndvidualVehicleOwnershipLogsumsByHHId(BigSerial householdId) const;
@@ -380,6 +398,13 @@ namespace sim_mob
             PreSchoolList getPreSchoolList() const;
             PreSchool* getPreSchoolById( BigSerial id) const;
 
+            std::vector<OwnerTenantMovingRate*> getOwnerTenantMovingRates();
+            std::vector<TenureTransitionRate*> getTenureTransitionRates();
+            std::vector<AlternativeHedonicPrice*> getAlternativeHedonicPrice();
+            boost::unordered_multimap<BigSerial, AlternativeHedonicPrice*>& getAlternativeHedonicPriceById();
+
+            HouseholdUnit* getHouseholdUnitByHHId(BigSerial hhId) const;
+
         protected:
             /**
              * Inherited from Model.
@@ -394,6 +419,7 @@ namespace sim_mob
 
             HouseholdList households;
             HouseholdMap householdsById;
+            HouseholdMap householdWithBidsById;
 
             UnitList units; //residential only.
             UnitMap unitsById;
@@ -511,18 +537,28 @@ namespace sim_mob
             int startDay; //start tick of the simulation
             std::vector<boost::shared_ptr<Bid> > newBids;
             std::vector<boost::shared_ptr<UnitSale> > unitSales;
+            std::vector<boost::shared_ptr<HouseholdUnit> > newHouseholdUnits;
             BigSerial bidId;
             BigSerial unitSaleId;
-            std::vector<boost::shared_ptr<Household> > hhVector;
+            std::vector<boost::shared_ptr<Household> > hhWithBidsVector;
             std::vector<boost::shared_ptr<VehicleOwnershipChanges> > vehicleOwnershipChangesVector;
             IndvidualVehicleOwnershipLogsumList IndvidualVehicleOwnershipLogsums;
             IndvidualVehicleOwnershipLogsumMap IndvidualVehicleOwnershipLogsumById;
+
+            AlternativeHedonicPriceList alternativeHedonicPrice;
+            AlternativeHedonicPriceMap alternativeHedonicPriceById;
+
+            ScreeningModelCoefficientsList screeningModelCoefficientsList;
+            ScreeningModelCoefficicientsMap screeningModelCoefficicientsMap;
+
             std::vector<SimulationStoppedPoint*> simStoppedPointList;
             std::vector<Bid*> resumptionBids;
             HouseholdList resumptionHouseholds;
             HouseholdMap resumptionHHById;
             VehicleOwnershipChangesList vehOwnershipChangesList;
             VehicleOwnershipChangesMap vehicleOwnershipChangesById;
+            HouseholdUnitList householdUnits;
+            HouseholdUnitMap householdUnitByHHId;
             int lastStoppedDay;
             HouseholdPlanningAreaList hhPlanningAreaList;
             HouseholdPlanningAreaMap hhPlanningAreaMap;
@@ -534,6 +570,8 @@ namespace sim_mob
             HHCoordinatesMap hhCoordinatesById;
             PreSchoolList preSchools;
             PreSchoolMap preSchoolById;
+            bool resume ;
+
         };
     }
 }

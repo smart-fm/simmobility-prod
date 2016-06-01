@@ -7,12 +7,14 @@
 #include "entities/roles/Role.hpp"
 #include "PedestrianFacets.hpp"
 
-namespace sim_mob {
+namespace sim_mob
+{
 
 class Agent;
 class Person;
 
-namespace medium {
+namespace medium
+{
 
 class PedestrianBehavior;
 class PedestrianMovement;
@@ -22,18 +24,19 @@ class PedestrianMovement;
  * \author Seth N. Hetu
  * \author zhang huai peng
  */
-class Pedestrian: public sim_mob::Role {
+class Pedestrian : public sim_mob::Role<Person_MT>
+{
 public:
 
-	explicit Pedestrian(Person* parent, MutexStrategy mtxStrat,
-			sim_mob::medium::PedestrianBehavior* behavior = nullptr,
-			sim_mob::medium::PedestrianMovement* movement = nullptr,
-			std::string roleName = std::string("Pedestrian_"),
-			Role::type roleType = Role::RL_PEDESTRIAN);
+	explicit Pedestrian(Person_MT* parent,
+						sim_mob::medium::PedestrianBehavior* behavior = nullptr,
+						sim_mob::medium::PedestrianMovement* movement = nullptr,
+						std::string roleName = std::string("Pedestrian_"),
+						Role<Person_MT>::Type roleType = Role<Person_MT>::RL_PEDESTRIAN);
 
 	virtual ~Pedestrian();
 
-	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;
+	virtual sim_mob::Role<Person_MT>* clone(Person_MT *parent) const;
 
 	virtual void make_frame_tick_params(timeslice now);
 
@@ -45,9 +48,8 @@ public:
 	virtual void collectTravelTime();
 
 private:
-	friend class PedestrainBehavior;
-	friend class PedestrainMovement;
-
+	friend class PedestrianBehavior;
+	friend class PedestrianMovement;
 };
 
 }

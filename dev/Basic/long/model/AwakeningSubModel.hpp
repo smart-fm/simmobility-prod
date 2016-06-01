@@ -25,7 +25,15 @@ namespace sim_mob
 			virtual ~AwakeningSubModel();
 
 			void InitialAwakenings(HM_Model *model, Household *household, HouseholdAgent *agent, int day);
-			std::vector<ExternalEvent> DailyAwakenings(int day);
+			std::vector<ExternalEvent> DailyAwakenings(int day, HM_Model *model);
+
+			double getFutureTransitionOwn();
+
+			double movingProbability(Household* household, HM_Model *model);
+
+		private:
+
+			bool futureTransitionOwn = false;
 		};
 	}
 }

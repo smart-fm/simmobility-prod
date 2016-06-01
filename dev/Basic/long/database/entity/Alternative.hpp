@@ -22,7 +22,7 @@ namespace sim_mob
 		{
 		public:
 			Alternative( BigSerial id = 0, BigSerial planAreaId =0, std::string planAreaName="", BigSerial dwellingTypeId = 0, std::string dwellingTypeName="",
-					 	 double avgHouseholdSize = 0, double avgHouseholdIncome = 0, int unitTypeCounter = 0, int populationByUnitType = 0 );
+					 	 double avgHouseholdSize = 0, double avgHouseholdIncome = 0, int unitTypeCounter = 0, int populationByUnitType = 0, double medianHedonicPrice = 0, double sumFloorArea = 0 );
 
 			virtual ~Alternative();
 
@@ -40,10 +40,16 @@ namespace sim_mob
 			int getUnitTypeCounter()const;
 			int getPopulationByUnitType()const;
 
+			int getMedianHedonicPrice() const;
+			void setMedianHedonicPrice(double value);
+
 			void setAvgHouseholdSize( double value );
 			void setAvgHouseholdIncome( double value );
 			void setUnitTypeCounter( int value );
 			void setPopulationByUnitType( int value );
+
+			double getSumFloorArea();
+			void setSumFloorArea( double value);
 
 			friend std::ostream& operator<<(std::ostream& strm, const Alternative& data);
 
@@ -61,6 +67,9 @@ namespace sim_mob
 			double avgHouseholdIncome;
 			int unitTypeCounter;
 			int populationByUnitType;
+			double medianHedonicPrice;
+			double sumFloorArea;
+
 		};
 	}
 }

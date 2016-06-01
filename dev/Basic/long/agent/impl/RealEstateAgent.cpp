@@ -211,9 +211,9 @@ void RealEstateAgent::HandleMessage(Message::MessageType type, const Message& me
 	            Unit *unit = hmMessage.getUnit();
 
 				ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
-	            unit->setTimeOffMarket(config.ltParams.housingModel.timeOnMarket);
-	            unit->setTimeOnMarket(config.ltParams.housingModel.timeOffMarket);
-	            unit->setbiddingMarketEntryDay(day + 180 + 1);
+	            unit->setTimeOffMarket(1 + config.ltParams.housingModel.timeOnMarket * (float)rand() / RAND_MAX );
+	            unit->setTimeOnMarket(1 + config.ltParams.housingModel.timeOffMarket * (float)rand() / RAND_MAX);
+	            unit->setbiddingMarketEntryDay(day);
 
 	           	units.push_back(unit);
 	            unitsById.insert(std::make_pair((unit)->getId(), unit));

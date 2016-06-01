@@ -486,9 +486,19 @@ public:
 		return vehicleCategoryLookup;
 	}
 
-	static std::map<long, int>& getAddressTazLookup()
+	static std::map<long, sim_mob::medium::Address>& getAddressLookup()
 	{
-		return addressTazLookup;
+		return addressLookup;
+	}
+
+	static std::map<unsigned int, unsigned int>& getPostcodeNodeMap()
+	{
+		return postCodeToNodeMapping;
+	}
+
+	static std::map<int, std::vector<long> >& getZoneAddresses()
+	{
+		return zoneAddresses;
 	}
 
 	/**
@@ -500,13 +510,14 @@ public:
 	 * get the availability for a time window for tour
 	 *
 	 * @param timeWnd time window index to check availability
+	 * @param mode of activity for which time window is being predicted
 	 *
 	 * @return 0 if time window is not available; 1 if available
 	 *
 	 * NOTE: This function is invoked from the Lua layer. The return type is int in order to be compatible with Lua.
 	 *       Lua does not support boolean types.
 	 */
-	int getTimeWindowAvailability(size_t timeWnd) const;
+	int getTimeWindowAvailability(size_t timeWnd, int mode) const;
 
 	/**
 	 * overload function to set availability of times in timeWnd to 0
@@ -520,15 +531,6 @@ public:
 	 * prints the fields of this object
 	 */
 	void print();
-
-	/**
-	 * looks up TAZ code for a given address ID from LT population data
-	 *
-	 * @param addressId input address id
-	 *
-	 * @return TAZ code for addressId
-	 */
-	int getTAZCodeForAddressId(long addressId);
 
 	/**
 	 * sets income ID by looking up income on a pre loaded map of income ranges.
@@ -549,6 +551,31 @@ public:
 	 * infers params used in preday system of models from params obtained from LT population
 	 */
 	void fixUpParamsForLtPerson();
+
+	/**
+	 * looks up TAZ code for a given address ID from LT population data
+	 *
+	 * @param addressId input address id
+	 *
+	 * @return TAZ code for addressId
+	 */
+	int getTAZCodeForAddressId(long addressId) const;
+
+	/**
+	 * looks up postcode for a given address ID from LT population data
+	 *
+	 * @param addressId input address id
+	 *
+	 * @return postcode for addressId
+	 */
+	unsigned int getSimMobNodeForAddressId(long addressId) const;
+
+	/**
+	 * returns the list of address ids in a zone
+	 * @param zoneCode input zone code
+	 * @return list of address ids in a zone
+	 */
+	const std::vector<long>& getAddressIdsInZone(int zoneCode) const;
 
 private:
 	std::string personId;
@@ -620,7 +647,58 @@ private:
 	/**
 	 * address to taz map
 	 */
-	static std::map<long, int> addressTazLookup;
+	static std::map<long, sim_mob::medium::Address> addressLookup;
+
+	/**
+	 * postcode to simmobility node mapping
+	 */
+	static std::map<unsigned int, unsigned int> postCodeToNodeMapping;
+
+	/**
+	 * zone to number of addresses in zone map
+	 */
+	static std::map<int, std::vector<long> > zoneAddresses;
+};
+
+class ZoneAddressParams
+{
+public:
+	ZoneAddressParams(const std::map<long, sim_mob::medium::Address>& addressLkp, const std::vector<long>& znAddresses);
+	virtual ~ZoneAddressParams();
+
+	/**
+	 * gets number of addresses in a zone
+	 */
+	int getNumAddresses() const;
+
+	/**
+	 * gets distance to mrt for given address
+	 */
+	double getDistanceMRT(int addressIdx) const;
+
+	/**
+	 * gets distance to bus stop for given address
+	 */
+	double getDistanceBus(int addressIdx) const;
+
+	/**
+	 * fetches address for an index
+	 */
+	long getAddressId(int addressIdx) const;
+
+private:
+	/**
+	 * address to taz map
+	 */
+	const std::map<long, sim_mob::medium::Address>& addressLookup;
+
+	/**
+	 * zone to number of addresses in zone map
+	 */
+	const std::vector<long>& zoneAddresses;
+
+	/** number of addresses in zone*/
+	int numAddresses;
 };
 
 /**
@@ -845,6 +923,5 @@ private:
 	int cbdOrgZone;
 	int cbdDestZone;
 };
-
 } //end namespace medium
 } // end namespace sim_mob

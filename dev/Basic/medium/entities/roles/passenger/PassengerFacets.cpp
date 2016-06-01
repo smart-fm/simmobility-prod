@@ -6,32 +6,35 @@
  */
 
 #include "PassengerFacets.hpp"
-#include "conf/ConfigManager.hpp"
-#include "conf/ConfigParams.hpp"
-#include "geospatial/MultiNode.hpp"
+#include "config/MT_Config.hpp"
+#include "geospatial/network/Node.hpp"
 #include "Passenger.hpp"
 
-namespace sim_mob
+using namespace sim_mob;
+using namespace medium;
+
+PassengerBehavior::PassengerBehavior() : BehaviorFacet(), parentPassenger(nullptr)
 {
-namespace medium
+}
+
+PassengerBehavior::~PassengerBehavior()
 {
+}
 
-PassengerBehavior::PassengerBehavior(sim_mob::Person* parentAgent) : BehaviorFacet(parentAgent), parentPassenger(nullptr)
-{}
+PassengerMovement::PassengerMovement() : MovementFacet(), parentPassenger(nullptr), totalTimeToCompleteMS(0)
+{
+}
 
-PassengerBehavior::~PassengerBehavior() {}
+PassengerMovement::~PassengerMovement()
+{
+}
 
-PassengerMovement::PassengerMovement(sim_mob::Person* parentAgent) : MovementFacet(parentAgent), parentPassenger(nullptr), totalTimeToCompleteMS(0)
-{}
-
-PassengerMovement::~PassengerMovement() {}
-
-void PassengerMovement::setParentPassenger(sim_mob::medium::Passenger* parentPassenger)
+void PassengerMovement::setParentPassenger(Passenger* parentPassenger)
 {
 	this->parentPassenger = parentPassenger;
 }
 
-void PassengerBehavior::setParentPassenger(sim_mob::medium::Passenger* parentPassenger)
+void PassengerBehavior::setParentPassenger(Passenger* parentPassenger)
 {
 	this->parentPassenger = parentPassenger;
 }
@@ -48,36 +51,35 @@ void PassengerMovement::frame_tick()
 	parentPassenger->setTravelTime(totalTimeToCompleteMS);
 }
 
-void PassengerMovement::frame_tick_output() {}
-
+std::string PassengerMovement::frame_tick_output()
+{
+	return std::string();
+}
 
 TravelMetric & PassengerMovement::startTravelTimeMetric()
 {
 	travelMetric.startTime = DailyTime(parentPassenger->getArrivalTime());
-	travelMetric.origin = WayPoint(parentPassenger->getStartNode());
+	travelMetric.origin = parentPassenger->getStartPoint();
 	travelMetric.started = true;
 	return travelMetric;
 }
 
 TravelMetric & PassengerMovement::finalizeTravelTimeMetric()
 {
-	travelMetric.destination = WayPoint(parentPassenger->getEndNode());
-	travelMetric.endTime = DailyTime(parentPassenger->getArrivalTime() + totalTimeToCompleteMS);
+	travelMetric.destination = parentPassenger->getEndPoint();
+	travelMetric.endTime = DailyTime(parentPassenger->getArrivalTime() + parentPassenger->totalTravelTimeMS);
 	travelMetric.travelTime = TravelMetric::getTimeDiffHours(travelMetric.endTime , travelMetric.startTime); // = totalTimeToCompleteMS in hours
 	travelMetric.finalized = true;
 	return travelMetric;
 }
-sim_mob::Conflux* PassengerMovement::getStartingConflux() const
+
+Conflux* PassengerMovement::getDestinationConflux() const
 {
-	if (parentPassenger->roleType == Role::RL_CARPASSENGER)
+	if (parentPassenger->roleType == Role<Person_MT>::RL_CARPASSENGER
+			|| parentPassenger->roleType == Role<Person_MT>::RL_PRIVATEBUSPASSENGER
+			|| parentPassenger->roleType == Role<Person_MT>::RL_TRAINPASSENGER)
 	{
-		const sim_mob::MultiNode* location = dynamic_cast<const sim_mob::MultiNode*>(parentPassenger->parent->currSubTrip->toLocation.node_);
-		if (location)
-		{
-			return ConfigManager::GetInstanceRW().FullConfig().getConfluxForNode(location);
-		}
+		return MT_Config::getInstance().getConfluxForNode(parentPassenger->parent->currSubTrip->destination.node);
 	}
 	return nullptr;
 }
-}//medium
-} /* namespace sim_mob */

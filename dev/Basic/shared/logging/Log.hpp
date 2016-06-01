@@ -455,7 +455,7 @@ private:
 #define LogOut( strm ) \
     do \
     { \
-        Log() << strm; \
+    	Log() << strm; \
     } \
     while (0)
 

@@ -41,13 +41,12 @@ void HouseholdDao::fromRow(Row& result, Household& outObj)
     outObj.taxiAvailability = result.get<int>(DB_FIELD_TAXI_AVAILABILITY, false);
     outObj.vehicleOwnershipOptionId = result.get<int>("vehicle_ownership_option_id", false);
     outObj.timeOnMarket = result.get<int>("time_on_market", INVALID_ID);
-    outObj.timeOffMarket = result.get<int>("time_off_market", INVALID_ID);
     outObj.isBidder = result.get<int>("is_bidder", 0);
     outObj.isSeller = result.get<int>("is_seller", 0);
     outObj.buySellInterval = result.get<int>("buy_sell_interval", 0);
     outObj.moveInDate = result.get<std::tm>("move_in_date", std::tm());
-    outObj.hasMoved = result.get<int>("has_moved", 0);
     outObj.tenureStatus = result.get<int>("tenure_status", 0);
+    outObj.awakenedDay= result.get<int>("awakened_day", 0);
 }
 
 void HouseholdDao::toRow(Household& data, Parameters& outParams, bool update)
@@ -78,15 +77,49 @@ void HouseholdDao::toRow(Household& data, Parameters& outParams, bool update)
 	outParams.push_back(data.getMoveInDate());
 	outParams.push_back(data.getHasMoved());
 	outParams.push_back(data.getTenureStatus());
+	outParams.push_back(data.getAwaknedDay());
 }
 
 void HouseholdDao::insertHousehold(Household& houseHold,std::string schema)
 {
+	if(houseHold.getExistInDB())
+	{
+		const std::string DB_UPDATE_HOUSEHOLD = "UPDATE "	+ APPLY_SCHEMA(schema, ".household") + " SET "
+																	+ DB_FIELD_LIFESTYLE_ID+ "= :v2, "
+																	+ DB_FIELD_UNIT_ID + "= :v3, "
+																	+ DB_FIELD_VEHICLE_CATEGORY_ID + "= :v5, "
+																	+ DB_FIELD_SIZE + "= :v6, "
+																	+ DB_FIELD_CHILDUNDER4 + "= :v7, "
+																	+ DB_FIELD_CHILDUNDER15 + "= :v8, "
+																	+ "adult" + "= :v9, "
+																	+ DB_FIELD_INCOME + "= :v10, "
+																	+ DB_FIELD_HOUSING_DURATION + "= :v11, "
+																	+ DB_FIELD_WORKERS + "= :v12, "
+																	+ DB_FIELD_AGE_OF_HEAD + "= :v13, "
+																	+ "pending_status_id" + "= :v14, "
+																	+ "pending_from_date" + "= :v15, "
+																	+ "unit_pending" + "= :v16, "
+																	+ DB_FIELD_TAXI_AVAILABILITY + "= :v17, "
+																	+ "vehicle_ownership_option_id" + "= :v18, "
+																	+ "time_on_market" + "= :v19, "
+																	+ "is_bidder" + "= :v21, "
+																	+ "is_seller" + "= :v22, "
+																	+ "buy_sell_interval" + "= :v23, "
+																	+ "move_in_date" + "= :v24, "
+																	+ "tenure_status" + "= :v26, "
+																	+ "awakened_day"
+																	+ "= :v27 WHERE "
+																	+ DB_FIELD_ID + "=:v1";
+		insertViaQuery(houseHold,DB_UPDATE_HOUSEHOLD);
+	}
+	else
+	{
 	const std::string DB_INSERT_HOUSEHOLD_OP = "INSERT INTO " + APPLY_SCHEMA(schema, ".household")
 					+ " (" + DB_FIELD_ID + ", "+ "lifestyle_id" + ", "+ DB_FIELD_UNIT_ID + ", "+ "ethnicity_id" + ", "+ "vehicle_category_id" + ", "+ DB_FIELD_SIZE + ", "+
 					DB_FIELD_CHILDUNDER4 + ", "+ DB_FIELD_CHILDUNDER15 + ", " + "adult" + ", "+ DB_FIELD_INCOME + ", "+ DB_FIELD_HOUSING_DURATION + ", " + "workers"+ ", "+
 					"age_of_head" + ", "+ "pending_status_id" + ", " + "pending_from_date" + ", "+ "unit_pending" + ", "+ "taxi_availability" + ", " + "vehicle_ownership_option_id"+ ", "+
-					+ "time_on_market" + ", " + "time_off_market"+ ", "+ "is_bidder" + ", " + "is_seller"+ ", "+ "buy_sell_interval" + ", "+ "move_in_date" + ", " + "has_moved"+ ", "+ "tenure_status"
-					+ ") VALUES (:v1, :v2, :v3, :v4, :v5, :v6, :v7 ,:v8, :v9, :v10, :v11, :v12, :v13, :v14, :v15, :v16, :v17, :v18, :v19, :v20, :v21, :v22, :v23, :v24, :V25, :v26)";
+					+ "time_on_market" + ", " + "time_off_market"+ ", "+ "is_bidder" + ", " + "is_seller"+ ", "+ "buy_sell_interval" + ", "+ "move_in_date" + ", " + "has_moved"+ ", "+
+					+ "tenure_status"  ", " + "awakened_day" + ") VALUES (:v1, :v2, :v3, :v4, :v5, :v6, :v7 ,:v8, :v9, :v10, :v11, :v12, :v13, :v14, :v15, :v16, :v17, :v18, :v19, :v20, :v21, :v22, :v23, :v24, :V25, :v26, :v27)";
 	insertViaQuery(houseHold,DB_INSERT_HOUSEHOLD_OP);
+	}
 }

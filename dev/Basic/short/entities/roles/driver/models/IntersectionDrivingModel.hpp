@@ -5,12 +5,10 @@
 
 #pragma once
 
-#include <vector>
-
 #include "conf/params/ParameterManager.hpp"
 #include "conf/settings/DisableMPI.h"
 #include "entities/roles/driver/DriverUpdateParams.hpp"
-#include "geospatial/TurningSection.hpp"
+#include "geospatial/network/TurningPath.hpp"
 #include "util/DynamicVector.hpp"
 
 #ifndef SIMMOB_DISABLE_MPI
@@ -21,265 +19,184 @@
 namespace sim_mob
 {
 
-  class TurningSection;
+class TurningPath;
 
 #ifndef SIMMOB_DISABLE_MPI
-  class PackageUtils;
-  class UnPackageUtils;
+class PackageUtils;
+class UnPackageUtils;
 #endif
-  
-  enum IntModelType
-  {
-    //Indicates that the object is of the simple intersection driving model class
-    Int_Model_Simple = 0,
-    
-    //Indicates that the object is of the MITSIM intersection driving model class
-    Int_Model_MITSIM = 1,
-    
-    //Indicates that the object is of the slot based intersection driving model class
-    Int_Model_SlotBased =2
-  };
 
-  /**
-   * \author Seth N. Hetu
-   */
-  class IntersectionDrivingModel
-  {
-  protected:
-    
-    //Indicates the type of model being used
-    IntModelType modelType;
+/**Defines the types of intersection driving models supported*/
+enum IntModelType
+{
+	/**Indicates that the object is of the simple intersection driving model class*/
+	Int_Model_Simple = 0,
 
-    //Trajectory of the vehicle in the intersection
-    DynamicVector intTrajectory;
+	/**Indicates that the object is of the MITSIM intersection driving model class*/
+	Int_Model_MITSIM = 1,
 
-    //Distance covered within the intersection
-    double totalMovement;
+	/**Indicates that the object is of the slot based intersection driving model class*/
+	Int_Model_SlotBased = 2
+};
 
-    //Distance at which an intersection and vehicles approaching it from other links
-    //is visible to the driver (metre)
-    double intersectionVisbility;
+/**Abstract class which describes driving behaviour within an intersection (without signals)*/
+class IntersectionDrivingModel
+{
+protected:
+	/**Indicates the type of model being used*/
+	IntModelType modelType;
 
-    //The current turning
-    const TurningSection *currTurning;
+	/**Distance covered within the intersection*/
+	double distCoveredOnTurning;
 
-  public:
-    
-    IntersectionDrivingModel() :
-    totalMovement(0), intersectionVisbility(100), currTurning(nullptr)
-    {
-    }
+	/**The current turning path*/
+	const TurningPath *currTurning;
 
-    //Allow propagation of delete
-    virtual ~IntersectionDrivingModel()
-    {
-    }
+public:
+	IntersectionDrivingModel() :
+	modelType(Int_Model_Simple), distCoveredOnTurning(0), currTurning(NULL)
+	{
+	}
 
-    //Builds a straight line trajectory form the end point of the entry lane into the intersection
-    //to the start point of the exit lane out of the intersection
-    virtual void startDriving(const DPoint& fromLanePt, const DPoint& toLanePt, double startOffset) = 0;
+	virtual ~IntersectionDrivingModel()
+	{
+	}
 
-    //Moves the vehicle by given amount along the trajectory
-    virtual DPoint continueDriving(double amount, DriverUpdateParams& p) = 0;
+	double getDistCoveredOnTurning()
+	{
+		return distCoveredOnTurning;
+	}
 
-    //Depending on the conflicting vehicles, calculates the acceleration that allows the vehicle to 
-    //pass through without colliding with the other vehicles
-    virtual double makeAcceleratingDecision(DriverUpdateParams& params) = 0;
+	void setCurrTurning(const TurningPath* currTurning)
+	{
+		this->currTurning = currTurning;
+	}
 
-    //Returns the current angle of the vehicle according to the position in the trajectory
-    virtual double getCurrentAngle()
-    {
-      return intTrajectory.getAngle();
-    }
+	IntModelType getIntModelType() const
+	{
+		return modelType;
+	}
 
-    //Returns the distance covered within the intersection
-    double getMoveDistance()
-    {
-      return totalMovement;
-    }
+	/**
+	 * Calculates the acceleration for driving within the intersection
+	 *
+     * @param params driver parameters
+	 *
+     * @return acceleration
+     */
+	virtual double makeAcceleratingDecision(DriverUpdateParams& params) = 0;
+};
 
-    //Checks whether we've completed driving in the intersection
-    virtual bool isDone()
-    {
-      return totalMovement >= intTrajectory.getMagnitude();
-    }
+/*
+ * MITSIMLab version of the intersection driving model
+ */
+class MITSIM_IntDriving_Model : public IntersectionDrivingModel
+{
+private:
+	/**The minimum value of the attentiveness factor within an intersection. The factor is a random value between the given min and max*/
+	double intersectionAttentivenessFactorMin;
 
-    //Getter for the intersection visibility distance
-    int getIntersectionVisbility() const
-    {
-      return intersectionVisbility;
-    }
+	/**The maximum value of the attentiveness factor within an intersection. The factor is a random value between the given min and max*/
+	double intersectionAttentivenessFactorMax;
 
-    //Setter for the current turning
-    void setCurrTurning(const TurningSection* currTurning)
-    {
-      this->currTurning = currTurning;
-    }
-    
-    //Getter for the intersection model type
-    IntModelType getIntModelType() const
-    {
-      return modelType;
-    }
-    
-  } ;
+	/**The value of minimum gap*/
+	double minimumGap;
 
-  /**
-   *
-   * Simple version of the intersection driving model
-   * The purpose of this model is to demonstrate a very simple (yet reasonably accurate) model
-   * which generates somewhat plausible visuals. This model should NOT be considered valid, but
-   * it can be used for demonstrations and for learning how to write your own *Model subclasses.
-   *
-   * \author Seth N. Hetu
-   */
-  class SimpleIntDrivingModel : public IntersectionDrivingModel
-  {
-  public:
-    
-    SimpleIntDrivingModel()
-    {
-      modelType = Int_Model_Simple;
-    }
+	/**Contains the mean and standard deviation values for generating a random add-on to the critical gap*/
+	double criticalGapAddOn[2];
 
-    virtual double makeAcceleratingDecision(DriverUpdateParams& params)
-    {
-      return params.maxAcceleration;
-    }
+	/**The multiplier for the impatience timer.*/
+	double impatienceFactor;
+	
+	/**
+	 * Reads and stores the parameters related to intersection driving from the driver parameter XML file
+	 *
+     * @param params driver parameters
+     */
+	void readDriverParameters(DriverUpdateParams &params);
 
-    virtual void startDriving(const DPoint& fromLanePt, const DPoint& toLanePt, double startOffset)
-    {
-      intTrajectory = DynamicVector(fromLanePt.x, fromLanePt.y, toLanePt.x, toLanePt.y);
-      totalMovement = startOffset;
-    }
+	/**
+	 * Calculate the acceleration needed to crawl
+	 *
+     * @param distance the stopping distance i.e. the distance at which the nearest obstacle is present
+     * @param params driver parameters
+	 *
+     * @return acceleration
+     */
+	double calcCrawlingAcc(double distance, DriverUpdateParams& params);
 
-    virtual DPoint continueDriving(double amount, DriverUpdateParams& params)
-    {
-      totalMovement += amount;
-      DynamicVector temp(intTrajectory);
-      temp.scaleVectTo(totalMovement).translateVect();
-      return DPoint(temp.getX(), temp.getY());
-    }
+protected:
+	/**
+	 * Calculates the acceleration rate required to accelerate / decelerate from current speed to a full
+	 * stop within a given distance
+     *
+	 * @param params driver parameters
+     * @param distance distance within which we need to stop
+     *
+	 * @return acceleration
+     */
+	double calcBrakeToStopAcc(double distance, DriverUpdateParams &params);
 
-    //add by xuyan
-#ifndef SIMMOB_DISABLE_MPI
-    static void pack(PackageUtils& package, const SimpleIntDrivingModel* params);
+	/**
+	 * Calculates the time required to reach the given distance
+	 *
+     * @param distance the distance to be covered
+     * @param params driver parameters
+	 *
+     * @return time (in seconds) required to reach the given distance
+     */
+	double calcArrivalTime(double distance, DriverUpdateParams& params);
 
-    static void unpack(UnPackageUtils& unpackage, SimpleIntDrivingModel* params);
-#endif
-  } ;
+public:
+	MITSIM_IntDriving_Model();
+	MITSIM_IntDriving_Model(DriverUpdateParams &params);
+	virtual ~MITSIM_IntDriving_Model();
 
-  /*
-   * MITSIMLab version of the intersection driving model
-   */
-  class MITSIM_IntDriving_Model : public IntersectionDrivingModel
-  {
-  private:
+	double getIntersectionAttentivenessFactorMin() const;
+	double getIntersectionAttentivenessFactorMax() const;
 
-    //The minimum value of the attentiveness factor within an intersection. The factor is a random value between the 
-    //given min and max
-    double intersectionAttentivenessFactorMin;
+	double getImpatienceFactor() const;
 
-    //The maximum value of the attentiveness factor within an intersection. The factor is a random value between the 
-    //given min and max
-    double intersectionAttentivenessFactorMax;
+	/**
+	 * Scans the conflicting vehicles  in the path and calculates the acceleration that allows the vehicle to
+	 * pass through without colliding with the other vehicles
+     *
+	 * @param params driver parameters
+     *
+	 * @return acceleration
+     */
+	virtual double makeAcceleratingDecision(DriverUpdateParams &params);
+};
 
-    //The value of minimum gap
-    double minimumGap;
+/*
+ * Slot-based intersection driving model
+ */
+class SlotBased_IntDriving_Model : public MITSIM_IntDriving_Model
+{
+private:
+	/**Indicates whether a request has been sent to the intersection manager for access to the intersection*/
+	bool isRequestSent;
 
-    //Contains the mean and std dev values for generating a random add-on to the critical gap
-    double criticalGapAddOn[2];
+public:
+	SlotBased_IntDriving_Model();
+	virtual ~SlotBased_IntDriving_Model();
 
-    //The multiplier for the impatience timer. 
-    double impatienceFactor;
+	/**
+	 * Calculates the acceleration required to reach the intersection at the allocated time so as to
+	 * avoid collisions with conflicting vehicles
+     *
+	 * @param params driver parameters
+	 *
+     * @return acceleration
+     */
+	virtual double makeAcceleratingDecision(DriverUpdateParams &params);
 
-    //Stores the poly-points of the turning path
-    std::vector<DPoint> polypoints;
-    std::vector<DPoint>::iterator polypointIter;
-
-    //Stores the current position in the intersection
-    DPoint currPosition;
-    DynamicVector currPolyline;
-
-    //Length of the turning
-    double length;
-
-    double polylineMovement;
-
-    //Reads and stores the parameters related to intersection driving from the driver parameter xml file
-    //(data/driver_param.xml)
-    void initParam(DriverUpdateParams& params);    
-
-    //Calculate the acceleration needed to crawl
-    double crawlingAcc(double distance, DriverUpdateParams& params);
-    
-  protected:
-    
-    //Calculates the deceleration needed for the vehicle to come to a stop within a given distance
-    double brakeToStop(double distance, DriverUpdateParams& params);
-    
-    //Calculates the time required to reach the given distance
-    double calcArrivalTime(double distance, DriverUpdateParams& params);
-
-  public:
-    
-    MITSIM_IntDriving_Model();
-
-    MITSIM_IntDriving_Model(DriverUpdateParams& params);
-
-    virtual ~MITSIM_IntDriving_Model();
-
-    //Getter for intersectionAttentivenessFactorMin
-    double getIntersectionAttentivenessFactorMin() const;
-
-    //Getter for intersectionAttentivenessFactorMax
-    double getIntersectionAttentivenessFactorMax() const;
-
-    //Getter for the impatience factor
-    double getImpatienceFactor() const;
-
-    //Builds a straight line trajectory form the end point of the entry lane into the intersection
-    //to the start point of the exit lane out of the intersection
-    virtual void startDriving (const DPoint& fromLanePt, const DPoint& toLanePt, double startOffset);
-
-    //Moves the vehicle by given amount along the trajectory
-    virtual DPoint continueDriving (double amount, DriverUpdateParams& p);
-
-    //Return the current angle
-    virtual double getCurrentAngle();
-
-    //Returns true if the vehicle has left the intersection
-    virtual bool isDone();
-
-    void makePolypoints(const DPoint& fromLanePt, const DPoint& toLanePt);
-
-    //Depending on the conflicting vehicles, calculates the acceleration that allows the vehicle to 
-    //pass through without colliding with the other vehicles
-    virtual double makeAcceleratingDecision(DriverUpdateParams& params);
-  } ;
-
-  /*
-   * Slot-based intersection driving model
-   */
-  class SlotBased_IntDriving_Model : public MITSIM_IntDriving_Model
-  {
-  private:
-    
-    //Indicates whether a request has been sent to the intersection manager for access to the intersection
-    bool isRequestSent;
-
-  public:
-
-    SlotBased_IntDriving_Model();
-    
-    //Sends the intersection access request to the intersection manager
-    void sendAccessRequest(DriverUpdateParams& params);
-    
-    virtual ~SlotBased_IntDriving_Model();
-
-    //Calculates the acceleration required to reach the intersection at the allocated time so as to 
-    //avoid collisions with conflicting vehicles
-    virtual double makeAcceleratingDecision(DriverUpdateParams& params);
-  } ;
+	/**
+	 * Sends the intersection access request to the intersection manager
+	 *
+     * @param params driver parameters
+     */
+	void sendAccessRequest(DriverUpdateParams &params);
+};
 
 }

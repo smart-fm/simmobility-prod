@@ -2,25 +2,20 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
-/*
- * BusDriver.cpp
- *
- *  Created on: May 6, 2013
- *      Author: zhang huai peng
- *      		melani
- */
-
 #include "BusDriver.hpp"
-#include "entities/Person.hpp"
+#include "BusDriverFacets.hpp"
 #include "entities/BusStopAgent.hpp"
 #include "message/MT_Message.hpp"
 #include "entities/PT_Statistics.hpp"
 #include "entities/roles/passenger/Passenger.hpp"
 #include "util/DwellTimeCalc.hpp"
 #include "util/Utils.hpp"
+#include "util/DailyTime.hpp"
 #include "config/MT_Config.hpp"
 
 using namespace sim_mob;
+using namespace sim_mob::medium;
+
 using std::max;
 using std::vector;
 using std::set;
@@ -42,23 +37,17 @@ inline unsigned int converToMilliseconds(double timeInMs) {
 }
 }
 
-sim_mob::medium::BusDriver::BusDriver(Person* parent, MutexStrategy mtxStrat,
-		sim_mob::medium::BusDriverBehavior* behavior,
-		sim_mob::medium::BusDriverMovement* movement,
-		std::string roleName, Role::type roleType)
-: sim_mob::medium::Driver(parent, mtxStrat, behavior, movement, roleName, roleType),
-  requestMode(mtxStrat, 0), visitedBusStop(mtxStrat, nullptr),
-  visitedBusStopSequenceNo(mtxStrat, -1), arrivalTime(mtxStrat, 0.0),
-  dwellTime(mtxStrat, 0.0), visitedBusTripSequenceNo(mtxStrat, 0),
-  visitedBusLine(mtxStrat, "0"), holdingTime(mtxStrat, 0.0),
-  waitingTimeAtbusStop(0.0),busSequenceNumber(1)
-{}
+BusDriver::BusDriver(Person_MT* parent, const MutexStrategy& mtxStrat, BusDriverBehavior* behavior,
+		BusDriverMovement* movement, std::string roleName, Role<Person_MT>::Type roleType) :
+		Driver(parent, behavior, movement, roleName, roleType),  waitingTimeAtbusStop(0.0), busSequenceNumber(1)
+{
+}
 
-sim_mob::medium::BusDriver::~BusDriver(){}
+BusDriver::~BusDriver(){}
 
-Role* sim_mob::medium::BusDriver::clone(Person* parent) const {
-	BusDriverBehavior* behavior = new BusDriverBehavior(parent);
-	BusDriverMovement* movement = new BusDriverMovement(parent);
+Role<Person_MT>* BusDriver::clone(Person_MT* parent) const {
+	BusDriverBehavior* behavior = new BusDriverBehavior();
+	BusDriverMovement* movement = new BusDriverMovement();
 	BusDriver* busdriver = new BusDriver(parent, parent->getMutexStrategy(), behavior, movement, "BusDriver_");
 	behavior->setParentBusDriver(busdriver);
 	movement->setParentBusDriver(busdriver);
@@ -66,9 +55,9 @@ Role* sim_mob::medium::BusDriver::clone(Person* parent) const {
 	return busdriver;
 }
 
-const std::vector<const sim_mob::BusStop*>* sim_mob::medium::BusDriver::getBusStopsVector() const {
-	const std::vector<const sim_mob::BusStop*>* stopsVec=nullptr;
-	sim_mob::Person* person = dynamic_cast<Person*>(parent);
+const std::vector<const BusStop*>* BusDriver::getBusStopsVector() const {
+	const std::vector<const BusStop*>* stopsVec=nullptr;
+	Person_MT* person = dynamic_cast<Person_MT*>(parent);
 	if(!person){
 		return stopsVec;
 	}
@@ -82,18 +71,23 @@ const std::vector<const sim_mob::BusStop*>* sim_mob::medium::BusDriver::getBusSt
 	return stopsVec;
 }
 std::string lastBoarding;
-bool sim_mob::medium::BusDriver::addPassenger(sim_mob::medium::Passenger* passenger) {
+bool BusDriver::addPassenger(Passenger* passenger) {
 	passengerList.push_back(passenger);
 	return true;
 }
 
-sim_mob::DriverRequestParams sim_mob::medium::BusDriver::getDriverRequestParams()
+unsigned int BusDriver::getPassengerCount() const
 {
-	sim_mob::DriverRequestParams res;
+	return passengerList.size();
+}
+
+DriverRequestParams BusDriver::getDriverRequestParams()
+{
+	DriverRequestParams res;
 	return res;
 }
 
-bool  sim_mob::medium::BusDriver::checkIsFull()
+bool  BusDriver::checkIsFull()
 {
 	if (passengerList.size() < MT_Config::getInstance().getBusCapacity()) {
 		return false;
@@ -102,10 +96,10 @@ bool  sim_mob::medium::BusDriver::checkIsFull()
 	}
 }
 
-unsigned int sim_mob::medium::BusDriver::alightPassenger(sim_mob::medium::BusStopAgent* busStopAgent){
+unsigned int BusDriver::alightPassenger(BusStopAgent* busStopAgent){
 	unsigned int numAlighting = 0;
-	std::list<sim_mob::medium::Passenger*>::iterator itPassenger = passengerList.begin();
-	const sim_mob::BusStop* stop = busStopAgent->getBusStop();
+	std::list<Passenger*>::iterator itPassenger = passengerList.begin();
+	const BusStop* stop = busStopAgent->getBusStop();
 	if(stop->isVirtualStop())
 	{
 		stop = stop->getTwinStop();
@@ -133,9 +127,9 @@ unsigned int sim_mob::medium::BusDriver::alightPassenger(sim_mob::medium::BusSto
 	return numAlighting;
 }
 
-void sim_mob::medium::BusDriver::storeArrivalTime(const std::string& current, const std::string& waitTime, const sim_mob::BusStop* stop)
+void BusDriver::storeArrivalTime(const std::string& current, const std::string& waitTime, const BusStop* stop)
 {
-	sim_mob::Person* person = parent;
+	Person_MT* person = parent;
 	if (!person) {
 		return;
 	}
@@ -145,11 +139,11 @@ void sim_mob::medium::BusDriver::storeArrivalTime(const std::string& current, co
 		std::string busStopNo;
 		if(stop->isVirtualStop())
 		{
-			busStopNo = stop->getTwinStop()->getBusstopno_();
+			busStopNo = stop->getTwinStop()->getStopCode();
 		}
 		else
 		{
-			busStopNo = stop->getBusstopno_();
+			busStopNo = stop->getStopCode();
 		}
 		BusArrivalTime busArrivalInfo;
 		busArrivalInfo.busLine = busTrip->getBusLine()->getBusLineID();
@@ -157,6 +151,7 @@ void sim_mob::medium::BusDriver::storeArrivalTime(const std::string& current, co
 		busArrivalInfo.sequenceNo = busSequenceNumber;
 		busArrivalInfo.arrivalTime = current;
 		busArrivalInfo.dwellTime = waitTime;
+		busArrivalInfo.dwellTimeSecs = (DailyTime(waitTime)).getValue() / 1000.0;
 		busArrivalInfo.pctOccupancy = (((double)passengerList.size())/MT_Config::getInstance().getBusCapacity()) * 100.0;
 		busArrivalInfo.busStopNo = busStopNo;
 		messaging::MessageBus::PostMessage(PT_Statistics::getInstance(), STORE_BUS_ARRIVAL, messaging::MessageBus::MessagePtr(new BusArrivalTimeMessage(busArrivalInfo)));
@@ -164,37 +159,15 @@ void sim_mob::medium::BusDriver::storeArrivalTime(const std::string& current, co
 	}
 }
 
-void sim_mob::medium::BusDriver::calcTravelTime()
+void BusDriver::updatePassengers()
 {
-	std::list<sim_mob::medium::Passenger*>::iterator it=passengerList.begin();
-	for(; it!=passengerList.end(); it++){
-		PassengerMovement* movement = dynamic_cast<PassengerMovement*>((*it)->Movement());
-		movement->frame_tick();
+	for (std::list<Passenger*>::iterator it = passengerList.begin(); it != passengerList.end(); it++)
+	{
+		(*it)->Movement()->frame_tick();
 	}
 }
 
-
-void sim_mob::medium::BusDriver::predictArrivalAtBusStop(double preArrivalTime,
-		sim_mob::medium::BusStopAgent* busStopAgent) {
-	sim_mob::Person* person = dynamic_cast<Person*>(parent);
-	if (!person) {
-		return;
-	}
-
-	const BusTrip* busTrip =
-			dynamic_cast<const BusTrip*>(*(person->currTripChainItem));
-	if (busTrip) {
-		const BusLine* busLine = busTrip->getBusLine();
-		visitedBusLine.set(busLine->getBusLineID());
-		visitedBusTripSequenceNo.set(busTrip->getTotalSequenceNum());
-		requestMode.set(Role::REQUEST_DECISION_TIME);
-		visitedBusStop.set(busStopAgent->getBusStop());
-		visitedBusStopSequenceNo.set(visitedBusStopSequenceNo.get() + 1);
-		arrivalTime.set(preArrivalTime);
-	}
-}
-
-const std::string sim_mob::medium::BusDriver::getBusLineID() const
+const std::string BusDriver::getBusLineID() const
 {
 	if (!parent) {
 		return std::string();
@@ -211,7 +184,7 @@ const std::string sim_mob::medium::BusDriver::getBusLineID() const
 }
 
 
-void sim_mob::medium::BusDriver::openBusDoors(const std::string& current, sim_mob::medium::BusStopAgent* busStopAgent) {
+void BusDriver::openBusDoors(const std::string& current, BusStopAgent* busStopAgent) {
 	if(!busStopAgent)
 	{
 		throw std::runtime_error("openBusDoors(): NusStopAgent is NULL");
@@ -249,17 +222,10 @@ void sim_mob::medium::BusDriver::openBusDoors(const std::string& current, sim_mo
 	DailyTime dwellTime( converToMilliseconds(waitingTimeAtbusStop) );
 	storeArrivalTime(current, dwellTime.getStrRepr(), busStopAgent->getBusStop());
 
-
-	if (requestMode.get() == Role::REQUEST_DECISION_TIME) {
-		requestMode.set(Role::REQUEST_NONE);
-		//final waiting time is maximum value between dwelling time and holding time
-		waitingTimeAtbusStop = std::max(waitingTimeAtbusStop, holdingTime.get());
-		holdingTime.set(0.0);
-	}
 	currResource->setMoving(false);
 }
 
-void sim_mob::medium::BusDriver::closeBusDoors(sim_mob::medium::BusStopAgent* busStopAgent) {
+void BusDriver::closeBusDoors(BusStopAgent* busStopAgent) {
 	if(!busStopAgent)
 	{
 		throw std::runtime_error("openBusDoors(): NusStopAgent is NULL");
@@ -281,11 +247,11 @@ void sim_mob::medium::BusDriver::closeBusDoors(sim_mob::medium::BusStopAgent* bu
 	currResource->setMoving(true);
 }
 
-std::vector<BufferedBase*> sim_mob::medium::BusDriver::getSubscriptionParams() {
+std::vector<BufferedBase*> BusDriver::getSubscriptionParams() {
 	return vector<BufferedBase*>();
 }
 
-void sim_mob::medium::BusDriver::make_frame_tick_params(timeslice now) {
+void BusDriver::make_frame_tick_params(timeslice now) {
 	getParams().reset(now);
 }
 

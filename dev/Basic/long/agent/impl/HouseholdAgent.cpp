@@ -25,6 +25,7 @@
 #include "model/VehicleOwnershipModel.hpp"
 #include "model/AwakeningSubModel.hpp"
 #include "model/SchoolAssignmentSubModel.hpp"
+#include "util/PrintLog.hpp"
 
 using namespace sim_mob::long_term;
 using namespace sim_mob::event;
@@ -35,13 +36,14 @@ using std::string;
 using std::map;
 using std::endl;
 
-HouseholdAgent::HouseholdAgent(BigSerial _id, HM_Model* _model, const Household* _household, HousingMarket* _market, bool _marketSeller, int _day, int _householdBiddingWindow, int awakeningDay)
+HouseholdAgent::HouseholdAgent(BigSerial _id, HM_Model* _model, Household* _household, HousingMarket* _market, bool _marketSeller, int _day, int _householdBiddingWindow, int awakeningDay)
 							 : Agent_LT(ConfigManager::GetInstance().FullConfig().mutexStategy(), _id), model(_model), market(_market), household(_household), marketSeller(_marketSeller), bidder (nullptr), seller(nullptr), day(_day),
 							   vehicleOwnershipOption(NO_CAR), householdBiddingWindow(_householdBiddingWindow),awakeningDay(awakeningDay)
 							{
 
     seller = new HouseholdSellerRole(this);
     seller->setActive(marketSeller);
+
 
     ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
     bool resume = config.ltParams.resume;
@@ -55,14 +57,19 @@ HouseholdAgent::HouseholdAgent(BigSerial _id, HM_Model* _model, const Household*
 
     buySellInterval = config.ltParams.housingModel.offsetBetweenUnitBuyingAndSelling;
 
-
-
     if(resume)
-    	householdBiddingWindow = household->getTimeOnMarket();
+    	householdBiddingWindow = householdBiddingWindow - household->getTimeOnMarket();
     else
     {
-    	householdBiddingWindow = config.ltParams.housingModel.householdBiddingWindow * (double)rand() / RAND_MAX + 1;
+    	householdBiddingWindow =  config.ltParams.housingModel.housingMoveInDaysInterval + config.ltParams.housingModel.householdBiddingWindow * (double)rand() / RAND_MAX + 1;
     }
+
+
+    if( household )
+    	(const_cast<Household*>(household))->setTimeOnMarket(householdBiddingWindow);
+
+    futureTransitionOwn = false;
+
 }
 
 HouseholdAgent::~HouseholdAgent()
@@ -106,7 +113,7 @@ HousingMarket* HouseholdAgent::getMarket() const
     return market;
 }
 
-const Household* HouseholdAgent::getHousehold() const
+Household* HouseholdAgent::getHousehold() const
 {
     return household;
 }
@@ -169,8 +176,11 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 					BigSerial unitId = *itr;
 					Unit* unit = const_cast<Unit*>(model->getUnitById(unitId));
 
-					unit->setbiddingMarketEntryDay(day + 1);
-					unit->setTimeOnMarket( config.ltParams.housingModel.timeOnMarket);
+					if( id < model->FAKE_IDS_START )
+					{
+						unit->setbiddingMarketEntryDay(day + 1);
+						unit->setTimeOnMarket( config.ltParams.housingModel.timeOnMarket);
+					}
 				}
 			}
 
@@ -180,8 +190,9 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 		buySellInterval--;
 	}
 
-	if( bidder && bidder->isActive() && householdBiddingWindow == 0 && bidder->getMoveInWaitingTimeInDays() == 0)
+	if( bidder && bidder->isActive() && ( householdBiddingWindow == 0 || bidder->getMoveInWaitingTimeInDays() == 0) )
 	{
+		PrintExit( day, household, 0);
 		bidder->setActive(false);
 		model->decrementBidders();
 		model->incrementExits();
@@ -283,6 +294,7 @@ void HouseholdAgent::processExternalEvent(const ExternalEventArgs& args)
             if (bidder)
             {
             	awakeningDay = day;
+            	household->setAwakenedDay(day);
                 bidder->setActive(true);
                 model->incrementBidders();
                 model->incrementAwakeningCounter();
@@ -298,13 +310,18 @@ void HouseholdAgent::processExternalEvent(const ExternalEventArgs& args)
     }
 }
 
+bool HouseholdAgent::getFutureTransitionOwn()
+{
+	return futureTransitionOwn;
+}
 
 void HouseholdAgent::onWorkerEnter()
 {
 	TimeCheck awakeningTiming;
 
 	AwakeningSubModel awakenings;
-	awakenings.InitialAwakenings( model, const_cast<Household*>(household), this, day );
+	awakenings.InitialAwakenings( model, household, this, day );
+	futureTransitionOwn = awakenings.getFutureTransitionOwn();
 
 	double awakeningTime =  awakeningTiming.getClockTime();
 
@@ -314,7 +331,7 @@ void HouseholdAgent::onWorkerEnter()
 
 
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
-	if( config.ltParams.housingModel.outputHouseholdLogsums )
+	if( config.ltParams.outputHouseholdLogsums.enabled )
 	{
 		const Household *hh = this->getHousehold();
 

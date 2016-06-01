@@ -15,26 +15,30 @@
 #include "Pedestrian2.hpp"
 #include "PedestrianPathMover.hpp"
 
-namespace sim_mob {
+namespace sim_mob
+{
 
 class Pedestrian2;
 class Signal;
 
-class Pedestrian2Behavior: public sim_mob::BehaviorFacet {
+class Pedestrian2Behavior : public sim_mob::BehaviorFacet
+{
 public:
-	explicit Pedestrian2Behavior(sim_mob::Person* parentAgent = nullptr);
+	explicit Pedestrian2Behavior();
 	virtual ~Pedestrian2Behavior();
 
 	//Virtual overrides
 	virtual void frame_init();
 	virtual void frame_tick();
-	virtual void frame_tick_output();
+	virtual std::string frame_tick_output();
 
-	Pedestrian2* getParentPedestrian2() const {
+	Pedestrian2* getParentPedestrian2() const
+	{
 		return parentPedestrian2;
 	}
 
-	void setParentPedestrian2(Pedestrian2* parentPedestrian2) {
+	void setParentPedestrian2(Pedestrian2* parentPedestrian2)
+	{
 		this->parentPedestrian2 = parentPedestrian2;
 	}
 
@@ -43,27 +47,36 @@ private:
 
 };
 
-class Pedestrian2Movement: public sim_mob::MovementFacet {
+class Pedestrian2Movement : public sim_mob::MovementFacet
+{
 public:
-	explicit Pedestrian2Movement(sim_mob::Person* parentAgent = nullptr);
+	explicit Pedestrian2Movement();
 	virtual ~Pedestrian2Movement();
 
 	//Virtual overrides
 	virtual void frame_init();
 	virtual void frame_tick();
-	virtual void frame_tick_output();
+	virtual std::string frame_tick_output();
 
 	// mark startTimeand origin
-	virtual TravelMetric & startTravelTimeMetric() {}
+	virtual TravelMetric & startTravelTimeMetric()
+	{
+	}
 
 	//	mark the destination and end time and travel time
-	virtual TravelMetric & finalizeTravelTimeMetric() {}
+	virtual TravelMetric & finalizeTravelTimeMetric()
+	{
+	}
 
 	bool isOnCrossing() const;
-	Pedestrian2* getParentPedestrian2() const {
+
+	Pedestrian2* getParentPedestrian2() const
+	{
 		return parentPedestrian2;
 	}
-	void setParentPedestrian2(Pedestrian2* parentPedestrian2) {
+
+	void setParentPedestrian2(Pedestrian2* parentPedestrian2)
+	{
 		this->parentPedestrian2 = parentPedestrian2;
 	}
 
@@ -81,7 +94,7 @@ private:
 	double yVel;
 
 	const Signal* trafficSignal;// later move this into Pedestrian2 if required by Behavior Facet
-	const Crossing* currCrossing;
+	//const Crossing* currCrossing;
 	int sigColor; //0-red, 1-yellow, 2-green
 
 	//For collisions

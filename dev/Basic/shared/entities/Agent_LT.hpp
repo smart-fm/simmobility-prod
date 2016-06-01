@@ -20,7 +20,6 @@
 
 #include "buffering/Shared.hpp"
 #include "entities/Entity.hpp"
-#include "entities/PendingEvent.hpp"
 #include "logging/NullableOutputStream.hpp"
 #include "event/EventListener.hpp"
 
@@ -44,14 +43,8 @@ namespace sim_mob
 		  bool operator() (const Agent_LT* x, const Agent_LT* y) const;
 		};
 
-		struct cmp_event_lt_start : public std::less<PendingEvent>
-		{
-		  bool operator() (const PendingEvent& x, const PendingEvent& y) const;
-		};
-
 		//C++ static constructors...
 		class StartTimePriorityQueue_lt : public std::priority_queue<Agent_LT*, std::vector<Agent_LT*>, cmp_agent_lt_start> {};
-		class EventTimePriorityQueue_lt : public std::priority_queue<PendingEvent, std::vector<PendingEvent>, cmp_event_lt_start> {};
 
 		/**
 		 * Basic Agent class.
@@ -96,7 +89,7 @@ namespace sim_mob
 			/**
 			 * Inherited from MessageHandler.
 			 */
-			 virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message) = 0;
+			 virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
 
 			///Retrieve a monotonically-increasing unique ID value.
 			///\param preferredID Will be returned if it is greater than the current maximum-assigned ID.
@@ -104,7 +97,7 @@ namespace sim_mob
 			///Passing in a negative number will always auto-assign an ID, and is recommended.
 			static unsigned int GetAndIncrementID(int preferredID);
 
-			void buildSubscriptionList(std::vector<sim_mob::BufferedBase*>& subsList);
+			virtual std::vector<sim_mob::BufferedBase*> buildSubscriptionList();
 
 			///Set the start ID for automatically generated IDs.
 			///\param startID Must be >0

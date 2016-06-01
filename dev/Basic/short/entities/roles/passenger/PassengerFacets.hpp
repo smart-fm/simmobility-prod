@@ -14,27 +14,31 @@
 #include "entities/roles/RoleFacets.hpp"
 #include "Passenger.hpp"
 
-namespace sim_mob {
+namespace sim_mob
+{
 
 class Passenger;
 class Bus;
 class BusDriver;
 
-class PassengerBehavior: public sim_mob::BehaviorFacet {
+class PassengerBehavior : public sim_mob::BehaviorFacet
+{
 public:
-	explicit PassengerBehavior(sim_mob::Person* parentAgent = nullptr);
+	explicit PassengerBehavior();
 	virtual ~PassengerBehavior();
 
 	//Virtual overrides
 	virtual void frame_init();
 	virtual void frame_tick();
-	virtual void frame_tick_output();
+	virtual std::string frame_tick_output();
 
-	Passenger* getParentPassenger() const {
+	Passenger* getParentPassenger() const
+	{
 		return parentPassenger;
 	}
 
-	void setParentPassenger(Passenger* parentPassenger) {
+	void setParentPassenger(Passenger* parentPassenger)
+	{
 		this->parentPassenger = parentPassenger;
 	}
 
@@ -43,37 +47,52 @@ private:
 
 };
 
-class PassengerMovement: public sim_mob::MovementFacet {
+class PassengerMovement : public sim_mob::MovementFacet
+{
 public:
-	explicit PassengerMovement(sim_mob::Person* parentAgent = nullptr);
+	explicit PassengerMovement();
 	virtual ~PassengerMovement();
 
 	//Virtual overrides
 	void setParentBufferedData();
 	virtual void frame_init();
 	virtual void frame_tick();
-	virtual void frame_tick_output();
+	virtual std::string frame_tick_output();
 
 	// mark startTimeand origin
-	virtual TravelMetric & startTravelTimeMetric() {}
+
+	virtual TravelMetric & startTravelTimeMetric()
+	{
+	}
 
 	//	mark the destination and end time and travel time
-	virtual TravelMetric & finalizeTravelTimeMetric() {}
+
+	virtual TravelMetric & finalizeTravelTimeMetric()
+	{
+	}
 
 	bool isAtBusStop();
 	bool isBusBoarded();
 	bool isDestBusStopReached();
-	Point2D getXYPosition();
-	Point2D getDestPosition();
-	const BusStop* getOriginBusStop() { return originBusStop; }
-	const BusStop* getDestBusStop() { return destBusStop; }
+	Point getXYPosition();
+	Point getDestPosition();
+
+	const BusStop* getOriginBusStop()
+	{
+		return originBusStop;
+	}
+
+	const BusStop* getDestBusStop()
+	{
+		return destBusStop;
+	}
 
 	///NOTE: These boarding/alighting functions are called from BusDriver and used to transfer data.
 
 	///passenger boards the approaching bus if it goes to the destination
 	///.Decision to board is made when the bus approaches the busstop.So the first
 	///bus which would take to the destination would be boarded
-	bool PassengerBoardBus_Normal(BusDriver* busdriver,std::vector<const BusStop*> busStops);
+	bool PassengerBoardBus_Normal(BusDriver* busdriver, std::vector<const BusStop*> busStops);
 
 	bool PassengerAlightBus(Driver* busdriver);
 
@@ -96,37 +115,46 @@ public:
 	std::vector<BusLine*> ReturnBusLines();
 
 	//bool isOnCrossing() const;
-	Passenger* getParentPassenger() const {
+
+	Passenger* getParentPassenger() const
+	{
 		return parentPassenger;
 	}
-	void setParentPassenger(Passenger* parentPassenger) {
+
+	void setParentPassenger(Passenger* parentPassenger)
+	{
 		this->parentPassenger = parentPassenger;
 	}
-	const int getBusTripRunNum() const {
+
+	const int getBusTripRunNum() const
+	{
 		return busTripRunNum;
 	}
-	const std::string& getBuslineId() const {
+
+	const std::string& getBuslineId() const
+	{
 		return buslineId;
 	}
 
 public:
 	// to record the alightingMS for each individual person
 	uint32_t alightingMS;
-	int busTripRunNum;// busTripRunNum to record the bus trip run num
-	std::string buslineId;// busline_id to record the bus line id
+	int busTripRunNum; // busTripRunNum to record the bus trip run num
+	std::string buslineId; // busline_id to record the bus line id
 
 private:
 	Passenger* parentPassenger;
-	BusStop* originBusStop;///busstop passenger is starting the trip from
-    BusStop* destBusStop;///busstop passenger is ending the trip
+	BusStop* originBusStop; ///busstop passenger is starting the trip from
+	BusStop* destBusStop; ///busstop passenger is ending the trip
 
-	std::vector<BusLine*> buslinesToTake;///buslines passenger can take;decided by passenger upon reaching busstop
+	std::vector<BusLine*> buslinesToTake; ///buslines passenger can take;decided by passenger upon reaching busstop
+
 	double waitingTime;
 	double timeOfReachingBusStop;
 	uint32_t timeOfStartTrip;
 	uint32_t travelTime;
 	///For display purposes: offset this Passenger by a given +x, +y
-	Point2D displayOffset;
+	Point displayOffset;
 
 	///for display purpose of alighting passengers
 	int displayX;

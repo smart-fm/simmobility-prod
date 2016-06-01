@@ -7,6 +7,7 @@
 #include <ostream>
 #include <vector>
 #include <set>
+#include <boost/random.hpp>
 #include <boost/thread.hpp>
 #include "buffering/BufferedDataManager.hpp"
 #include "metrics/Frame.hpp"
@@ -21,7 +22,6 @@ class FlexiBarrier;
 class ProfileBuilder;
 class ControlManager;
 class WorkGroup;
-class Conflux;
 class Entity;
 class PathSetManager;
 
@@ -45,7 +45,6 @@ public:
 	virtual ~UpdateEventArgs();
 };
 
-
 /**
  * A "WorkerProvider" is a restrictive parent class of Worker that provides Worker-related
  * functionality to Agents. This prevents the Agent from requiring full access to the Worker.
@@ -54,7 +53,12 @@ public:
  * \note
  * See the Worker class for documentation on these functions.
  */
-class WorkerProvider : public BufferedDataManager {
+class WorkerProvider : public BufferedDataManager
+{
+protected:
+	/**Worker specific random number generator*/
+	boost::mt19937 gen;
+
 public:
 	//NOTE: Allowing access to the BufferedDataManager is somewhat risky; we need it for Roles, but we might
 	//      want to organize this differently.
@@ -68,6 +72,13 @@ public:
 
 	virtual ProfileBuilder* getProfileBuilder() const = 0;
 
+	/**
+	 * Note: Calling this function from another worker is extremely dangerous if you don't know what you're doing
+	 */
+	boost::mt19937& getGenerator()
+	{
+		return gen;
+	}
 };
 
 
@@ -109,10 +120,6 @@ private:
 	void scheduleForAddition(Entity* entity);
 	int getAgentSize(bool includeToBeAdded=false);
 	void migrateAllOut();
-	bool beginManagingConflux(Conflux* cf); ///<Returns true if the Conflux was inserted; false if it already exists in the managedConfluxes map.
-
-	//End of functions for friend WorkGroup
-
 
 public:
 	virtual ~Worker();
@@ -123,8 +130,7 @@ public:
 	void scheduleForRemoval(Entity* entity);
 	void scheduleForBred(Entity* entity);
 
-	void processVirtualQueues();
-	void outputSupplyStats(uint32_t currTick);
+	void processMultiUpdateEntities(uint32_t currTick);
 
 	virtual std::ostream* getLogFile() const;
 
@@ -132,8 +138,6 @@ public:
 //	virtual sim_mob::PathSetManager *getPathSetMgr();
 
 	virtual ProfileBuilder* getProfileBuilder() const;
-
-	void findBoundaryConfluxes();
 
 protected:
 	///Simple struct that holds all of the params used throughout threaded_function_loop().
@@ -168,10 +172,8 @@ private:
 
 	//Helper functions for various update functionality.
 	virtual void update_entities(timeslice currTime);
-	void initializeConfluxes(timeslice currTime);
 
 	void migrateOut(Entity& ent);
-	void migrateOutConflux(Conflux& cfx);
 	void migrateIn(Entity& ent);
 
 	//Entity management. Adding is restricted (use WorkGroups).
@@ -222,9 +224,15 @@ private:
 	///All parameters used by main_thread. Maintained by the object so that we don't need to use boost::coroutines.
 	MgmtParams loop_params;
 
-	///Entities managed by this worker
+	///Simple Entities managed by this worker
 	std::set<Entity*> managedEntities;
-	std::set<Conflux*> managedConfluxes;
+
+	///Some Entities need to be updated multiple times in each time step.
+	///This typically happens when part of the update of an Entity depends on the partial update of other entities.
+	///Confluxes in mid-term are a good example of multi-update entities
+	///NOTE: The entities in this set also belong to managedEntities set.
+	///      In other words, managedMultiUpdateEntities is a subset of managedEntities containing only multi-update entities
+	std::set<Entity*> managedMultiUpdateEntities;
 
 	///If non-null, used for profiling.
 	sim_mob::ProfileBuilder* profile;
@@ -233,7 +241,7 @@ private:
 
 	uint32_t simulationStartDay;
 public:
-	
+
 	/// each worker has its own path set manager
 	sim_mob::PathSetManager *pathSetMgr;
 };

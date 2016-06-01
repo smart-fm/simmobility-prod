@@ -20,9 +20,19 @@ namespace sim_mob
 class ParseConfigXmlBase
 {
 public:
+    /**
+     * Constructore
+     *
+     * @param configFileName configuration file name to be parsed
+     */
 	ParseConfigXmlBase(const std::string& configFileName);
-	virtual ~ParseConfigXmlBase();
-	/**
+
+    /**
+     * Destructor
+     */
+    virtual ~ParseConfigXmlBase();
+
+    /**
 	 * Parse a xml config file
 	 * @param configFileName is the filename of configuration
 	 * @return true if success otherwise false
@@ -43,20 +53,23 @@ protected:
 
 	/**
 	 * parse xml file
-	 * @param parser the parser to parse the xml
+     *
+     * @param parser the parser to parse the xml
 	 * @param errorHandler error handler in case of errors
-	 * @return empty string in case of no errors; the error message other wise
+     *
+     * @return empty string in case of no errors; the error message other wise
 	 */
 	std::string parseXmlFile(xercesc::XercesDOMParser& parser, xercesc::ErrorHandler& errorHandler);
 
 	/**
 	 * pure virtual function to override in derived classes.
 	 * code for processing the respective xml must be written in this function in the derived classes
-	 * @param parser reference to parser after parsing the xml
+     *
+     * @param parser reference to parser after parsing the xml
 	 */
 	virtual void processXmlFile(xercesc::XercesDOMParser& parser) = 0;
 
-	/**The path of the file we are loading our configuration from.*/
+    /// The path of the file we are loading our configuration from
 	std::string inFilePath;
 };
 }

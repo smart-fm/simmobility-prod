@@ -9,6 +9,7 @@
 #pragma once
 
 #include "entities/Entity.hpp"
+#include "model/HM_Model.hpp"
 
 namespace sim_mob {
 
@@ -32,13 +33,15 @@ namespace sim_mob {
              */
             virtual UpdateStatus update(timeslice now);
             
+            void setModel(HM_Model *value);
+            HM_Model* getModel();
+
         protected:
             /**
              * Inherited from Entity
              */
             virtual bool isNonspatial();
-            virtual void buildSubscriptionList(
-                std::vector<BufferedBase*>& subsList);
+            virtual std::vector<sim_mob::BufferedBase*> buildSubscriptionList();
 
         private:
             /**
@@ -46,6 +49,8 @@ namespace sim_mob {
              */
             void onWorkerEnter();
             void onWorkerExit();
+
+            HM_Model *model;
         };
     }
 }

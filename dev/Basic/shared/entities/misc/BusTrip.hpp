@@ -3,7 +3,7 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 #pragma once
-
+#include <bitset>
 #include <vector>
 #include <map>
 #include <string>
@@ -12,6 +12,7 @@
 #include "buffering/Shared.hpp"
 #include "conf/settings/DisableMPI.h"
 #include "entities/misc/TripChain.hpp"
+#include "util/DailyTime.hpp"
 
 #ifndef SIMMOB_DISABLE_MPI
 #include "partitions/PackageUtils.hpp"
@@ -248,9 +249,9 @@ enum ControlTypes {
 	NO_CONTROL, SCHEDULE_BASED, HEADWAY_BASED, EVENHEADWAY_BASED, HYBRID_BASED
 };
 
-class FrequencyBusLine {
+class BusLineFrequency {
 public:
-	FrequencyBusLine(DailyTime startTime = DailyTime("00:00:00"),
+	BusLineFrequency(DailyTime startTime = DailyTime("00:00:00"),
 			DailyTime endTime = DailyTime("00:00:00"), int headway = 0);
 	/**
 	 * starting time for first dispatched bus
@@ -300,7 +301,7 @@ public:
 	/**
 	 * add one bus frequency to current bus line
 	 */
-	void addFrequencyBusLine(const FrequencyBusLine& aFrequencyBusline);
+	void addBusLineFrequency(const BusLineFrequency& aFrequencyBusline);
 	/**
 	 * query all the bus trips related to current bus line
 	 */
@@ -310,8 +311,8 @@ public:
 	/**
 	 * query all the bus frequencies related to current bus line
 	 */
-	const std::vector<FrequencyBusLine>& queryFrequencyBusline() const {
-		return frequencyBusLine;
+	const std::vector<BusLineFrequency>& queryFrequencyBusline() const {
+		return busLineFrequency;
 	}
 	/**
 	 * reset the bus arrival time to zero when necessary
@@ -322,6 +323,12 @@ public:
 	void resetBusTripStopRealTimes(int trip, int stopSequence,
 			Shared<BusStopRealTimes>* busStopRealTime);
 
+	/**
+	 * tells whether this bus line is available for a given time
+	 * @param time time of day
+	 * @returns true if bus line operates around the provided time; false otherwise.
+	 */
+	bool isAvailable(const DailyTime& time) const;
 private:
 	/**
 	 * bus line id
@@ -334,7 +341,7 @@ private:
 	/**
 	 * provide different headways according to the offset from simulation for each busline
 	 */
-	std::vector<FrequencyBusLine> frequencyBusLine;
+	std::vector<BusLineFrequency> busLineFrequency;
 	/**
 	 * constructed based on MSOffset_headway
 	 */
@@ -346,6 +353,18 @@ private:
 	int controlTimePointNum1;
 	int controlTimePointNum2;
 	int controlTimePointNum3;
+
+	/**
+	 * availability of this bus line in every minute of the day (based of dispatch frequency)
+	 * this is useful during PT route choice. see PT route choice model for more details.
+	 */
+	std::bitset<1440> buslineAvailability; //1440 minutes in the day
+
+	/**
+	 * sets availability bits for each minute within the start and end time specified in frequency
+	 * @param frequency busline frequency range
+	 */
+	void setAvailability(const BusLineFrequency& frequency);
 };
 /**
  * stored in BusController, Schedule Time Points and Real Time Points should be put seperatedly
@@ -372,7 +391,7 @@ public:
 	 * @param lineId is one bus line's ID
 	 * @return corresponding bus line from line's ID
 	 */
-	BusLine* findBusLine(const std::string& lineId);
+	BusLine* findBusLine(const std::string& lineId) const;
 	/**
 	 * find a control type from registered control set
 	 * @param lineId is one bus line's ID

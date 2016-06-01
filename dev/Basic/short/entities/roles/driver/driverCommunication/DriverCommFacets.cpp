@@ -5,7 +5,7 @@
 #include "DriverCommFacets.hpp"
 
 #include "entities/commsim/broker/Broker.hpp"
-#include "entities/Person.hpp"
+#include "entities/Person_ST.hpp"
 
 using namespace sim_mob;
 using std::vector;
@@ -15,22 +15,19 @@ using std::endl;
 
 using namespace sim_mob;
 
-
-sim_mob::DriverCommMovement::DriverCommMovement(sim_mob::Person* parentAgent) :
-	DriverMovement(parentAgent)
+DriverCommMovement::DriverCommMovement() :
+DriverMovement()
 {
 }
 
-sim_mob::DriverCommMovement::~DriverCommMovement()
+DriverCommMovement::~DriverCommMovement()
 {
 }
 
-void sim_mob::DriverCommMovement::frame_init()
+void DriverCommMovement::frame_init()
 {
 	DriverMovement::frame_init();
 
 	//Register this Agent with the Broker singleton.
-	Broker::GetSingleBroker()->registerEntity(parent);
+	Broker::GetSingleBroker()->registerEntity(this->getParentDriver()->getParent());
 }
-
-

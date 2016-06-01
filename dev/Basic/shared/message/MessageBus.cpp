@@ -417,7 +417,7 @@ void MessageBus::UnRegisterHandler(MessageHandler* handler) {
         if (context == handler->context || context->main) {
             handler->context = nullptr;
         } else {
- //           throw runtime_error("MessageBus - To unregister the handler it is necessary to use the registered thread context.");
+            throw runtime_error("MessageBus - To unregister the handler it is necessary to use the registered thread context.");
         }
     }
 }
@@ -519,31 +519,36 @@ void MessageBus::ThreadDispatchMessages() {
     }
 }
 
-void MessageBus::PostMessage(MessageHandler* destination, Message::MessageType type, 
-                             MessageBus::MessagePtr message, bool processOnMainThread, unsigned int timeOffset) {
-    CheckThreadContext();
-    ThreadContext* context = GetThreadContext();
-    if (context) {
-        InternalMessage* internalMsg = dynamic_cast<InternalMessage*> (message.get());
-        InternalEventMessage* eventMsg = dynamic_cast<InternalEventMessage*> (message.get());
-        if (destination || eventMsg) {
-            MessageEntry entry;
-            entry.destination = destination;
-            entry.type = type;
-            entry.message = message;
-            entry.priority = (!internalMsg && !eventMsg && message->GetPriority() < MB_MIN_MSG_PRIORITY) ? MB_MIN_MSG_PRIORITY : message->priority;
-            entry.internal = (internalMsg != nullptr);
-            entry.event = (eventMsg != nullptr);
-            entry.processOnMainThread = processOnMainThread;
-			if (timeOffset == 0) {
+void MessageBus::PostMessage(MessageHandler* destination, Message::MessageType type, MessageBus::MessagePtr message, bool processOnMainThread,
+		unsigned int timeOffset)
+{
+	CheckThreadContext();
+	ThreadContext* context = GetThreadContext();
+	if (context)
+	{
+		InternalMessage* internalMsg = dynamic_cast<InternalMessage*>(message.get());
+		InternalEventMessage* eventMsg = dynamic_cast<InternalEventMessage*>(message.get());
+		if (destination || eventMsg)
+		{
+			MessageEntry entry;
+			entry.destination = destination;
+			entry.type = type;
+			entry.message = message;
+			entry.priority = (!internalMsg && !eventMsg && message->GetPriority() < MB_MIN_MSG_PRIORITY) ? MB_MIN_MSG_PRIORITY : message->priority;
+			entry.internal = (internalMsg != nullptr);
+			entry.event = (eventMsg != nullptr);
+			entry.processOnMainThread = processOnMainThread;
+			if (timeOffset == 0)
+			{
 				context->output.push(entry);
-			} else {
+			}
+			else
+			{
 				entry.triggerTime = currentTime + timeOffset;
 				context->futureEventList.push(entry);
-
 			}
-        }
-    }
+		}
+	}
 }
 
 void MessageBus::SendInstantaneousMessage(MessageHandler* destination,

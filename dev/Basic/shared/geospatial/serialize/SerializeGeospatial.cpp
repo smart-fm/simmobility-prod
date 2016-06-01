@@ -8,13 +8,13 @@
 
 #ifndef SIMMOB_DISABLE_MPI
 
-#include "geospatial/Lane.hpp"
+#include "geospatial/network/Lane.hpp"
 #include "geospatial/Crossing.hpp"
-#include "geospatial/Link.hpp"
-#include "geospatial/Node.hpp"
-#include "geospatial/RoadNetwork.hpp"
-#include "geospatial/Point2D.hpp"
-#include "geospatial/RoadSegment.hpp"
+#include "geospatial/network/Link.hpp"
+#include "geospatial/network/Node.hpp"
+#include "geospatial/network/RoadNetwork.hpp"
+#include "geospatial/network/Point.hpp"
+#include "geospatial/network/RoadSegment.hpp"
 #include "geospatial/Pavement.hpp"
 
 #include "util/GeomHelpers.hpp"
@@ -55,8 +55,8 @@ Lane* Lane::unpack(sim_mob::UnPackageUtils& unpackage) {
 		return NULL;
 	}
 
-	sim_mob::Point2D start;
-	sim_mob::Point2D end;
+	sim_mob::Point start;
+	sim_mob::Point end;
 	int lane_id;
 
 	unpackage >> start;
@@ -92,8 +92,8 @@ void sim_mob::Link::pack(PackageUtils& package,const Link* one_link)
 	package << one_link->getStart()->location;
 	package << one_link->getEnd()->location;
 
-//	sim_mob::Point2D point_1 = one_link->getStart()->location;
-//	sim_mob::Point2D point_2 = one_link->getEnd()->location;
+//	sim_mob::Point point_1 = one_link->getStart()->location;
+//	sim_mob::Point point_2 = one_link->getEnd()->location;
 //
 //	package.packPoint2D(point_1);
 //	package.packPoint2D(point_2);
@@ -107,8 +107,8 @@ const Link* sim_mob::Link::unpack(UnPackageUtils& unpackage)
 		return NULL;
 	}
 
-	sim_mob::Point2D point_1;
-	sim_mob::Point2D point_2;
+	sim_mob::Point point_1;
+	sim_mob::Point point_2;
 
 	unpackage >> point_1;
 	unpackage >> point_2;
@@ -137,10 +137,10 @@ void Crossing::pack(PackageUtils& package, Crossing* one_cross) {
 	package << one_cross->farLine.first;
 	package << one_cross->farLine.second;
 
-//	Point2D near1 = one_cross->nearLine.first;
-//	Point2D near2 = one_cross->nearLine.second;
-//	Point2D far1 = one_cross->farLine.first;
-//	Point2D far2 = one_cross->farLine.second;
+//	Point near1 = one_cross->nearLine.first;
+//	Point near2 = one_cross->nearLine.second;
+//	Point far1 = one_cross->farLine.first;
+//	Point far2 = one_cross->farLine.second;
 //
 //	package.packPoint2D(near1);
 //	package.packPoint2D(near2);
@@ -157,10 +157,10 @@ const Crossing* Crossing::unpack(UnPackageUtils& unpackage) {
 		return NULL;
 	}
 
-	sim_mob::Point2D near_1; //= *(unpackage.unpackPoint2D());
-	sim_mob::Point2D near_2; //= *(unpackage.unpackPoint2D());
-	sim_mob::Point2D far_1; //= *(unpackage.unpackPoint2D());
-	sim_mob::Point2D far_2; //= *(unpackage.unpackPoint2D());
+	sim_mob::Point near_1; //= *(unpackage.unpackPoint2D());
+	sim_mob::Point near_2; //= *(unpackage.unpackPoint2D());
+	sim_mob::Point far_1; //= *(unpackage.unpackPoint2D());
+	sim_mob::Point far_2; //= *(unpackage.unpackPoint2D());
 
 	unpackage >> near_1;
 	unpackage >> near_2;
@@ -195,7 +195,7 @@ Node* Node::unpack(UnPackageUtils& unpackage)
 		return NULL;
 	}
 
-	 sim_mob::Point2D location;
+	 sim_mob::Point location;
 	 unpackage >> location;
 
 	 const sim_mob::RoadNetwork& rn = ConfigManager::GetInstance().FullConfig().getNetwork();
@@ -216,8 +216,8 @@ void sim_mob::RoadSegment::pack(PackageUtils& package, const RoadSegment* one_se
 
 const RoadSegment* sim_mob::RoadSegment::unpack(UnPackageUtils& unpackage)
 {
-	sim_mob::Point2D point_1;
-	sim_mob::Point2D point_2;
+	sim_mob::Point point_1;
+	sim_mob::Point point_2;
 
 	unpackage >> point_1;
 	unpackage >> point_2;

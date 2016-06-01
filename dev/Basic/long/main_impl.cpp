@@ -43,6 +43,7 @@
 #include "database/dao/DevelopmentPlanDao.hpp"
 #include "database/dao/VehicleOwnershipChangesDao.hpp"
 #include "database/dao/HouseholdDao.hpp"
+#include "database/dao/HouseholdUnitDao.hpp"
 #include "util/HelperFunctions.hpp"
 
 using std::cout;
@@ -106,6 +107,7 @@ void createOutputSchema(db::DB_Connection& conn,const std::string& currentOutput
 
 		std::vector<CreateOutputSchema*> createOPSchemaList;
 		loadData<CreateOutputSchemaDao>(conn,createOPSchemaList);
+		std::sort(createOPSchemaList.begin(), createOPSchemaList.end(), CreateOutputSchema::OrderById());
 		std::vector<CreateOutputSchema*>::iterator opSchemaTablesItr;
 		for(opSchemaTablesItr = createOPSchemaList.begin(); opSchemaTablesItr != createOPSchemaList.end(); ++opSchemaTablesItr)
 		{
@@ -215,12 +217,23 @@ void loadDataToOutputSchema(db::DB_Connection& conn,std::string &currentOutputSc
 		HM_Model::HouseholdList::iterator houseHoldItr;
 		for(houseHoldItr = households->begin(); houseHoldItr != households->end(); ++houseHoldItr)
 		{
-			if(((*houseHoldItr)->getIsBidder()) || ((*houseHoldItr)->getIsSeller()))
+
+			if(housingMarketModel.getHouseholdWithBidsById((*houseHoldItr)->getId()) == nullptr)
 			{
-				hhDao.insertHousehold(*(*houseHoldItr),currentOutputSchema);
+				if(((*houseHoldItr)->getIsBidder()) || ((*houseHoldItr)->getIsSeller()))
+				{
+					hhDao.insertHousehold(*(*houseHoldItr),currentOutputSchema);
+				}
+
 			}
 		}
 
+		std::vector<boost::shared_ptr<HouseholdUnit> > hhUnits = housingMarketModel.getNewHouseholdUnits();
+		HouseholdUnitDao hhUnitDao(conn);
+		for (boost::shared_ptr<HouseholdUnit> hhUnit :hhUnits)
+		{
+			hhUnitDao.insertHouseholdUnit(*hhUnit,currentOutputSchema);
+		}
 		SimulationStoppedPointDao simStoppedPointDao(conn);
 		simStoppedPointDao.insertSimulationStoppedPoints(*(developerModel.getSimStoppedPointObj(simVersionId)).get(),currentOutputSchema);
 //		developerModel.getBuildingsVec().clear();
@@ -242,9 +255,7 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
     const unsigned int tickStep = config.ltParams.tickStep;
     const unsigned int days = config.ltParams.days;
     const unsigned int workers = config.ltParams.workers;
-    const bool enableHousingMarket = config.ltParams.housingModel.enabled;
 
-    const bool enableDeveloperModel = config.ltParams.developerModel.enabled;
     const unsigned int timeIntervalDevModel = config.ltParams.developerModel.timeInterval;
     unsigned int opSchemaloadingInterval = config.ltParams.opSchemaloadingInterval;
 
@@ -255,9 +266,7 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
     config.baseGranMS() = tickStep;
     config.totalRuntimeTicks = days;
     config.defaultWrkGrpAssignment() = WorkGroup::ASSIGN_ROUNDROBIN;
-    config.singleThreaded() = false;
 
-   
     //simulation time.
     StopWatch simulationWatch;
     
@@ -317,7 +326,7 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
     vector<Model*> models;
     {
         WorkGroupManager wgMgr;
-        wgMgr.setSingleThreadMode(config.singleThreaded());
+        wgMgr.setSingleThreadMode(false);
         
         // -- Events injector work group.
         WorkGroup* logsWorker = wgMgr.newWorkGroup(1, days, tickStep, nullptr, nullptr, nullptr, (uint32_t)lastStoppedDay );
@@ -327,22 +336,18 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
         DeveloperModel *developerModel = nullptr;
         HM_Model *housingMarketModel = nullptr;
 
-        if( enableHousingMarket )
-        	hmWorkers = wgMgr.newWorkGroup( workers, days, tickStep ,nullptr,nullptr,nullptr, (uint32_t)lastStoppedDay );
 
-        if( enableDeveloperModel )
-        	devWorkers = wgMgr.newWorkGroup(workers, days, tickStep,nullptr,nullptr,nullptr, (uint32_t)lastStoppedDay );
+        hmWorkers = wgMgr.newWorkGroup( workers, days, tickStep ,nullptr,nullptr,nullptr, (uint32_t)lastStoppedDay );
+
+        devWorkers = wgMgr.newWorkGroup(workers, days, tickStep,nullptr,nullptr,nullptr, (uint32_t)lastStoppedDay );
         
         //init work groups.
         wgMgr.initAllGroups();
         logsWorker->initWorkers(nullptr);
         eventsWorker->initWorkers(nullptr);
 
-        if( enableHousingMarket )
-        	hmWorkers->initWorkers(nullptr);
-
-        if( enableDeveloperModel )
-        	devWorkers->initWorkers(nullptr);
+       	hmWorkers->initWorkers(nullptr);
+       	devWorkers->initWorkers(nullptr);
         
         //assign agents
         logsWorker->assignAWorker(&(agentsLookup.getLogger()));
@@ -356,15 +361,14 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
         	currentTick = lastStoppedDay;
         }
 
-        if( enableHousingMarket )
         {
         	 housingMarketModel = new HM_Model(*hmWorkers);//initializing the housing market model
              housingMarketModel->setStartDay(currentTick);
              housingMarketModel->setLastStoppedDay(lastStoppedDay);
         	 models.push_back(housingMarketModel);
+        	 agentsLookup.getEventsInjector().setModel(housingMarketModel);
         }
 
-        if( enableDeveloperModel )
         {
         	 //initiate developer model; to be referred later at each time tick (day)
         	 developerModel = new DeveloperModel(*devWorkers, timeIntervalDevModel);
@@ -374,9 +378,7 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
         	 models.push_back(developerModel);
         }
 
-
-		if( enableHousingMarket )
-        	housingMarketModel->setDeveloperModel(developerModel);
+        housingMarketModel->setDeveloperModel(developerModel);
 
         //start all models.
         for (vector<Model*>::iterator it = models.begin(); it != models.end(); it++)
@@ -445,19 +447,19 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
 
             sleep(1);
 
-            PrintOutV("Day " << currTick << " Housing market. Units: " << std::dec << (dynamic_cast<HM_Model*>(models[0]))->getMarket()->getEntrySize()
-            	   << " Bidders: " 		<< (dynamic_cast<HM_Model*>(models[0]))->getNumberOfBidders() << " "
-				   << " Bids: " 		<< (dynamic_cast<HM_Model*>(models[0]))->getBids()
-            	   << " Accepted: " 	<< (dynamic_cast<HM_Model*>(models[0]))->getSuccessfulBids()
-				   << " Exits: " 		<< (dynamic_cast<HM_Model*>(models[0]))->getExits()
-				   << " Awakenings: "	<< (dynamic_cast<HM_Model*>(models[0]))->getAwakeningCounter()
+            PrintOutV("Day " << currTick << " HUnits: " << std::dec << (dynamic_cast<HM_Model*>(models[0]))->getMarket()->getEntrySize()
+				   << " Bidders: " 	<< (dynamic_cast<HM_Model*>(models[0]))->getNumberOfBidders() << " "
+				   << " Bids: " 	<< (dynamic_cast<HM_Model*>(models[0]))->getBids()
+				   << " Accepted: " << (dynamic_cast<HM_Model*>(models[0]))->getSuccessfulBids()
+				   << " Exits: " 	<< (dynamic_cast<HM_Model*>(models[0]))->getExits()
+				   << " Awaken: "	<< (dynamic_cast<HM_Model*>(models[0]))->getAwakeningCounter()
 				   << " " << std::endl );
 
             (dynamic_cast<HM_Model*>(models[0]))->resetBAEStatistics();
         }
 
         //Save our output files if we are merging them later.
-        if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled() && config.mergeLogFiles())
+        if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled() && config.isMergeLogFiles())
         {
             resLogFiles = wgMgr.retrieveOutFileNames();
         }

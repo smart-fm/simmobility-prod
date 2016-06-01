@@ -14,8 +14,10 @@
 #include <string>
 #include <vector>
 #include <map>
-#include "geospatial/RoadSegment.hpp"
-#include "geospatial/Node.hpp"
+#include "geospatial/network/RoadSegment.hpp"
+#include "geospatial/network/Node.hpp"
+#include "geospatial/network/PT_Stop.hpp"
+#include "path/Common.hpp"
 
 namespace sim_mob{
 
@@ -88,12 +90,28 @@ public:
 		rServiceLines = serviceLines;
 	}
 
-	const std::string& getType() const {
+	const std::string& getTypeStr() const {
 		return rType;
+	}
+
+	sim_mob::PT_EdgeType getType() const {
+		return edgeType;
 	}
 
 	void setType(const std::string& type) {
 		rType = type;
+		if(rType == "Bus")
+		{
+			edgeType = sim_mob::BUS_EDGE;
+		}
+		else if(rType == "Walk")
+		{
+			edgeType = sim_mob::WALK_EDGE;
+		}
+		else if(rType == "RTS")
+		{
+			edgeType = sim_mob::TRAIN_EDGE;
+		}
 	}
 
 	const std::string& getStartStop() const {
@@ -151,6 +169,7 @@ private:
 	std::string startStop;       // Alphanumeric id
 	std::string endStop;         // Alphanumeric id
  	std::string rType;           // Service Line type, can be "BUS","LRT","WALK"
+ 	PT_EdgeType edgeType;        // Edge type inferred from
 	std::string road_index;      // Index for road type 0 for BUS , 1 for LRT , 2 for Walk
 	std::string roadEdgeId;      // Strings of passing road segments Ex: 4/15/35/43
 	std::string rServiceLines; 	 //If the edge is a route segment, it will have bus service lines
@@ -199,7 +218,7 @@ public:
 		this->stopDesc = stopDesc;
 	}
 
-	const std::string& getStopId() const {
+	const std::string& getRoadItemId() const {
 		return stopId;
 	}
 
@@ -253,56 +272,18 @@ private:
 	std::string stopDesc;   // Description of stops . Usually street where the stop is located
 };
 
-class MRT_Stop{
+class PT_Network
+{
 public:
-	MRT_Stop();
-	MRT_Stop(std::string stopId,int roadSegment);
-	~MRT_Stop();
-
-	std::string getmrtStopId() const
-	{
-		return this->mrtStopId;
-	}
-
-	void addRoadSegment(int segmentId)
-	{
-		this->roadSegments.push_back(segmentId);
-	}
-	std::vector<int> getRoadSegments() const
-	{
-		return this->roadSegments;
-	}
-
-	/**
-	 * finds a road segment attached with mrt stop that is closest to a node
-	 * @param nd simmobility node
-	 * @returns road segment attached with mrt stop and closest to nd
-	 */
-	const sim_mob::RoadSegment* getStationSegmentForNode(const sim_mob::Node* nd) const;
-
-	/**
-	 * finds a road segment attached with mrt stop that is closest to a node
-	 * @returns random road segment attached with mrt stop
-	 */
-	const sim_mob::RoadSegment* getRandomStationSegment() const;
-private:
-	std::string mrtStopId;
-	std::vector<int> roadSegments;
-};
-
-class PT_Network{
-public:
-	//PT_Network();
-	//~PT_Network();
+	virtual ~PT_Network();
 
 	std::map<int, PT_NetworkEdge> PT_NetworkEdgeMap;
 	std::map<std::string, PT_NetworkVertex> PT_NetworkVertexMap;
-	std::map<std::string, MRT_Stop> MRTStopsMap;
+	std::map<std::string, TrainStop*> MRTStopsMap;
 
 	void init();
-	PT_NetworkVertex getVertexFromStopId(std::string stopId);
 
-	MRT_Stop* findMRT_Stop(const std::string& stopId);
+	TrainStop* findMRT_Stop(const std::string& stopId) const;
 
 	int getVertexTypeFromStopId(std::string stopId);
 	static PT_Network instance_;

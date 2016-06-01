@@ -126,7 +126,7 @@ public:
 		throw std::runtime_error("MongoDao::getAll() - Not implemented");
 	}
 
-	void getMultiple(mongo::Query& qry, std::auto_ptr<mongo::DBClientCursor>& outCursor)
+	void getMultiple(mongo::Query& qry, std::unique_ptr<mongo::DBClientCursor>& outCursor)
 	{
 		outCursor = connection.getSession<mongo::DBClientConnection>().query(collectionName, qry);
 		return;

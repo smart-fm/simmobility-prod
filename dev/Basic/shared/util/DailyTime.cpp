@@ -3,7 +3,7 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 #include "DailyTime.hpp"
-
+#include <cmath>
 #include <cstdlib>
 #include <stdexcept>
 #include <sstream>
@@ -249,9 +249,9 @@ const DailyTime& sim_mob::DailyTime::operator-=(const DailyTime& dailytime)
 std::string sim_mob::DailyTime::getStrRepr() const
 {
 	uint32_t timeValInSec = time_/1000;
-	while(timeValInSec >= SECONDS_IN_DAY)
+	if(timeValInSec >= SECONDS_IN_DAY) //86400 seconds in a day
 	{
-		timeValInSec = timeValInSec - SECONDS_IN_DAY;
+		timeValInSec = timeValInSec % SECONDS_IN_DAY;
 	}
 	return timeList[timeValInSec];
 }

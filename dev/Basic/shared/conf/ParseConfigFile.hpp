@@ -11,7 +11,7 @@
 #include <xercesc/dom/DOMNodeList.hpp>
 
 #include "conf/ParseConfigXmlBase.hpp"
-#include "conf/RawConfigParams.hpp" //For EntityTemplate.
+#include "conf/RawConfigParams.hpp"
 #include "util/DailyTime.hpp"
 
 using namespace sim_mob;
@@ -31,85 +31,146 @@ namespace sim_mob {
  */
 class ParseConfigFile : public ParseConfigXmlBase, private boost::noncopyable {
 public:
-	///Parse a config file into RawConfigParams, performing all XML parsing and some trivial semantic processing.
-	ParseConfigFile(const std::string& configFileName, RawConfigParams& result, bool longTerm = false);
+    /**
+     * Parse a config file into RawConfigParams, performing all XML parsing and some trivial semantic processing.
+     *
+     * @param configFileName - Configuration filename which is to be parsed
+     * @param result - parsed values are stored here
+     * @param longTerm - flag for long term config file
+     */
+    ParseConfigFile(const std::string& configFileName, RawConfigParams& result, bool longTerm = false);
 
 private:
-	virtual void processXmlFile(xercesc::XercesDOMParser& parser);
+    /**
+     * Code for processing the xml
+     *
+     * @param configFileName is the filename of configuration
+     */
+    virtual void processXmlFile(xercesc::XercesDOMParser& parser);
 
-	//These functions are called by parseXmlAndProcess()
-	//Process through recursive descent.
-	void ProcessSystemNode(xercesc::DOMElement* node);
-	//void ProcessGeometryNode(xercesc::DOMElement* node);
-	void ProcessConstructsNode(xercesc::DOMElement* node);
-	void ProcessFMOD_Node(xercesc::DOMElement* node);
-	void ProcessAMOD_Node(xercesc::DOMElement* node);
-	void ProcessIncidentsNode(xercesc::DOMElement* node);
-	void ProcessBusStopScheduledTimesNode(xercesc::DOMElement* node);
-	void ProcessPersonCharacteristicsNode(xercesc::DOMElement* node);
-	void ProcessDriversNode(xercesc::DOMElement* node);
-	void ProcessTaxiDriversNode(xercesc::DOMElement* node);
-	void ProcessPedestriansNode(xercesc::DOMElement* node);
-	void ProcessBusDriversNode(xercesc::DOMElement* node);
-	void ProcessPassengersNode(xercesc::DOMElement* node);
-	void ProcessSignalsNode(xercesc::DOMElement* node);
-	void ProcessBusControllersNode(xercesc::DOMElement* node);
-	void ProcessCBD_Node(xercesc::DOMElement* node);
-	void ProcessPublicTransit(xercesc::DOMElement* node);
-	void processPathSetFileName(xercesc::DOMElement* node);
-	void processTT_Update(xercesc::DOMElement* node);
-	void processGeneratedRoutesNode(xercesc::DOMElement* node);
-	void ProcessLongTermParamsNode(xercesc::DOMElement* node);
-	void ProcessLoopDetectorCountsNode(xercesc::DOMElement* node);
-	void ProcessShortDensityMapNode(xercesc::DOMElement* node);
-	void ProcessScreenLineNode(xercesc::DOMElement* node);
+    ///These functions are called by processXmlFile()
+    ///Process through recursive descent.
+    /**
+     * Processes the constructs element in the config file
+     *
+     * @param node node corresponding to the construct element in xml file
+     */
+    void processConstructsNode(xercesc::DOMElement* node);
 
-	//Descend through Constructs
-	void ProcessConstructDatabasesNode(xercesc::DOMElement* node);
-	void ProcessConstructDbProcGroupsNode(xercesc::DOMElement* node);
-	void ProcessConstructCredentialsNode(xercesc::DOMElement* node);
+    /**
+     * Processes the simulation element in the config file
+     *
+     * @param node node corresponding to the simulation element in xml file
+     */
+    void processSimulationNode(xercesc::DOMElement* node);
 
-	//Descend through System
-	void ProcessSystemSimulationNode(xercesc::DOMElement* node);
-	void ProcessSystemWorkersNode(xercesc::DOMElement* node);
-	void ProcessSystemSingleThreadedNode(xercesc::DOMElement* node);
-	void ProcessSystemMergeLogFilesNode(xercesc::DOMElement* node);
-	void ProcessSystemNetworkSourceNode(xercesc::DOMElement* node);
-	void ProcessSystemNetworkXmlInputFileNode(xercesc::DOMElement* node);
-	void ProcessSystemNetworkXmlOutputFileNode(xercesc::DOMElement* node);
-	void ProcessSystemDatabaseNode(xercesc::DOMElement* node);
-	void ProcessSystemXmlSchemaFilesNode(xercesc::DOMElement* node);
-	void ProcessSystemGenericPropsNode(xercesc::DOMElement* node);
+    /**
+     * Processes the longTerm element in the config file
+     * @param node node corresponding to the longTerm element in xml file
+     */
+    void processLongTermParamsNode(xercesc::DOMElement* node);
 
-	//Descend through System/Simulation
-	unsigned int ProcessTimegranUnits(xercesc::DOMElement* node); //This is reused in several places.
-	bool ProcessValueBoolean(xercesc::DOMElement* node);
-	int ProcessValueInteger(xercesc::DOMElement* node); //Represents nodes with "value" attributes.
-	sim_mob::DailyTime ProcessValueDailyTime(xercesc::DOMElement* node);
-	void ProcessSystemAuraManagerImplNode(xercesc::DOMElement* node);
-	void ProcessSystemWorkgroupAssignmentNode(xercesc::DOMElement* node);
-	void ProcessSystemLoadAgentsOrderNode(xercesc::DOMElement* node);
-	void ProcessSystemMutexEnforcementNode(xercesc::DOMElement* node);
-	void ProcessSystemCommsimNode(xercesc::DOMElement* node);
+    ///Descend through Constructs
+    /**
+     * Processes the databases element in the config file
+     *
+     * @param node node corresponding to the databases element in the xml file
+     */
+    void processConstructDatabaseNode(xercesc::DOMElement* node);
 
-	//Descend through System/Workers
-	void ProcessWorkerPersonNode(xercesc::DOMElement* node);
-	void ProcessWorkerSignalNode(xercesc::DOMElement* node);
-	void ProcessWorkerIntMgrNode(xercesc::DOMElement* node);
-	void ProcessWorkerCommunicationNode(xercesc::DOMElement* node);
+    /**
+     * Processes the credentials element in the config file
+     *
+     * @param node node corresponding to the credentials element in the xml file
+     */
+    void processConstructCredentialNode(xercesc::DOMElement* node);
 
-	//Dabase mappings/connection
-	//void ProcessGeomDbConnection(xercesc::DOMElement* node);
-	//void ProcessGeomDbMappings(xercesc::DOMElement* node);
+    ///Descend through Simulation
+    /**
+     * Processes the workgroup_assignment element in the config file
+     *
+     * @param node node correspoding to the workgroup_assignment element in the xml file
+     */
+    void processWorkgroupAssignmentNode(xercesc::DOMElement* node);
 
-	//All entities are added to a "pending" list in the same manner.
-	void ProcessFutureAgentList(xercesc::DOMElement* node, const std::string& itemName, std::vector<sim_mob::EntityTemplate>& res, bool originReq=true, bool destReq=true, bool timeReq=true, bool laneReq=false);
+    /**
+     * Processes the merge_log_files element in the config file
+     *
+     * @param node node corresponding to the merge_log_files element in the xml file
+     */
+    void processMergeLogFilesNode(xercesc::DOMElement* node);
 
-	void ProcessModelScriptsNode(xercesc::DOMElement* node);
+    /**
+     * Processes the generic_props element in the config file
+     *
+     * @param node node corresponding to the generic_props element in the xml file
+     */
+    void processGenericPropsNode(xercesc::DOMElement* node);
+
+    /**
+     * Helper function to process time from nodes represented with "value" attribute
+     *
+     * @param node xml element to be processed
+     *
+     * @return extracted time in ms
+     */
+    unsigned int processTimegranUnits(xercesc::DOMElement* node);
+
+    /**
+     * Helper function to process boolean from nodes represented with "value" attribute
+     *
+     * @param node xml element to be processed
+     *
+     * @return extracted boolean value
+     */
+    bool processValueBoolean(xercesc::DOMElement* node);
+
+    /**
+     * Helper function to process integer from nodes represented with "value" attribute
+     *
+     * @param node xml element to be processed
+     *
+     * @return extracted integer value
+     */
+    int processValueInteger(xercesc::DOMElement* node);
+
+    /**
+     * Helper function to process DailyTime from nodes represented with "value" attribute
+     *
+     * @param node xml element to be processed
+     *
+     * @return extracted DailyTime value
+     */
+    sim_mob::DailyTime processValueDailyTime(xercesc::DOMElement* node);
+	
+	/**
+	 * Helper function to process the value for percentage of drivers using in-simulation travel times
+	 * 
+	 * @param node xml element to be processed
+	 * 
+	 * @return extracted percentage value
+	 */
+	unsigned int processInSimulationTTUsage(xercesc::DOMElement* node);
+
+    /**
+     * Processes the mutex_enforcement element in the config file
+     *
+     * @param node node corresponding to the mutex_enforcement element in the xml file
+     */
+    void processMutexEnforcementNode(xercesc::DOMElement* node);
+
+    /**
+     * Processes the model_scripts element in the config file
+     *
+     * @param node node corresponding to the model_scripts element in the xml file
+     */
+    void processModelScriptsNode(xercesc::DOMElement* node);
 
 private:
-	//The config file we are currently loading
+    ///The config file we are currently loading
 	RawConfigParams& cfg;
+
+    /// LongTerm configuration flag
 	bool longTerm;
 };
 

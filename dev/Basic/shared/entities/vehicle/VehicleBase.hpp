@@ -4,15 +4,23 @@
 
 #pragma once
 
-#include "geospatial/RoadSegment.hpp"
-
 namespace sim_mob {
 /**
  * Passenger car units.
  * TODO: Defining this as a global variable for now. Must make this
  * configurable in future.
  */
-const double PASSENGER_CAR_UNIT = 400.0; //cm; 4 m.
+const double PASSENGER_CAR_UNIT = 4.0; //m.
+
+/**
+ * number of PCU for bus
+ */
+const double BUS_PCU = 2;
+/**
+ * length of a bus is hard coded to 3 times the PCU for now.
+ * TODO: this must be made configurable.
+ */
+const double BUS_LENGTH = sim_mob::BUS_PCU * sim_mob::PASSENGER_CAR_UNIT; // 2 times PASSENGER_CAR_UNIT
 
 /**
  * A simple base class for all Vehicles
@@ -25,26 +33,28 @@ public:
 		CAR,
 		BUS,
 		BIKE,
+		LGV,
+		HGV,
 		OTHER
 	};
 
 	VehicleBase(const VehicleType vehType, const double length, const double width)
-	: vehicleType(vehType), lengthCM(length), widthCM(width), moving(true)
+	: vehicleType(vehType), lengthM(length), widthM(width), moving(true)
 	{}
 
 	VehicleBase(const VehicleBase& copy)
-	: vehicleType(copy.vehicleType), lengthCM(copy.lengthCM),
-	  widthCM(copy.widthCM), moving(copy.moving)
+	: vehicleType(copy.vehicleType), lengthM(copy.lengthM),
+	  widthM(copy.widthM), moving(copy.moving)
 	{}
 
 	virtual ~VehicleBase() {}
 
-	const double getLengthCm() const {
-		return lengthCM;
+	const double getLengthInM() const {
+		return lengthM;
 	}
 
-	const double getWidthCm() const {
-		return widthCM;
+	const double getWidthInM() const {
+		return widthM;
 	}
 
 	const VehicleType getVehicleType() const {
@@ -59,36 +69,11 @@ public:
 		this->moving = moving;
 	}
 
-	/*virtual std::vector<const sim_mob::RoadSegment *>::iterator getPathIterator()
-	{
-		throw std::runtime_error("VehicleBase::getPathIterator is not implemented");
-	}
-
-	virtual std::vector<const sim_mob::RoadSegment *>::iterator getPathIteratorEnd()
-	{
-		throw std::runtime_error("VehicleBase::getPathIteratorEnd is not implemented");
-	}
-
-	virtual const sim_mob::RoadSegment * getCurrSegment() const
-	{
-		throw std::runtime_error("VehicleBase::getCurrSegment is not implemented");
-	}
-
-	virtual double getAcceleration() const
-	{
-		throw std::runtime_error("VehicleBase::getAcceleration is not implemented");
-	}
-
-	virtual double getVelocity() const
-	{
-		throw std::runtime_error("VehicleBase::getVelocity is not implemented");
-	}*/
-
 protected:
-	/**length of the vehicle in cm*/
-	const double lengthCM;
-	/**width of the vehicle in cm*/
-	const double widthCM;
+	/**length of the vehicle in m*/
+	const double lengthM;
+	/**width of the vehicle in m*/
+	const double widthM;
 	/**type of vehicle*/
 	const VehicleType vehicleType;
 	/**flag to indicate moving status of vehicle*/

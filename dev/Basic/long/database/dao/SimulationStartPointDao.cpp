@@ -11,7 +11,7 @@
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
-SimulationStartPointDao::SimulationStartPointDao(DB_Connection& connection): SqlAbstractDao<SimulationStartPoint>( connection, DB_TABLE_SIM_START_POINT,EMPTY_STR,EMPTY_STR, EMPTY_STR,DB_GETALL_SIMSTARTPOINT, EMPTY_STR){}
+SimulationStartPointDao::SimulationStartPointDao(DB_Connection& connection): SqlAbstractDao<SimulationStartPoint>( connection, "",EMPTY_STR,EMPTY_STR, EMPTY_STR,"", EMPTY_STR){}
 
 SimulationStartPointDao::~SimulationStartPointDao() {}
 
@@ -25,7 +25,7 @@ void SimulationStartPointDao::fromRow(Row& result, SimulationStartPoint& outObj)
 	outObj.configSchemaVersion = result.get<std::string>(  "configuration_schema_version", EMPTY_STR	);
 	outObj.calibrationSchemaVersion = result.get<std::string>(  "calibration_schema_version", EMPTY_STR	);
 	outObj.geometrySchemaVersion = result.get<std::string>(  "geometry_schema_version", EMPTY_STR	);
-	outObj.simStoppedTick = result.get<int>("simulation_stopped_tick",0);
+	outObj.simStoppedTick = result.get<int>("simulation_stopped_day",0);
 
 }
 
@@ -45,7 +45,7 @@ void SimulationStartPointDao::insertSimulationStartPoint(SimulationStartPoint& o
 {
 
 	const std::string DB_INSERT_SIM_VERSION = "INSERT INTO " + APPLY_SCHEMA(schema, ".simulation_start_point")
-	        		+ " (" + "id" + ", " + "scenario" + ", " + "simulation_start_date" + ", " + "main_schema_version" + ", " + "configuration_schema_version" + ", " + "calibration_schema_version" + ", " + "geometry_schema_version" + ", " + "simulation_stopped_tick"
+	        		+ " (" + "id" + ", " + "scenario" + ", " + "simulation_start_date" + ", " + "main_schema_version" + ", " + "configuration_schema_version" + ", " + "calibration_schema_version" + ", " + "geometry_schema_version" + ", " + "simulation_stopped_day"
 	        		+ ") VALUES (:v1, :v2, :v3, :v4, :v5, :v6, :v7, :v8)";
 	insertViaQuery(objToInsert,DB_INSERT_SIM_VERSION);
 

@@ -10,6 +10,7 @@
 #include "database/dao/SqlAbstractDao.hpp"
 #include "database/DB_Connection.hpp"
 #include "behavioral/params/PersonParams.hpp"
+#include "behavioral/PredayClasses.hpp"
 
 namespace sim_mob
 {
@@ -53,9 +54,10 @@ public:
 
 	/**
 	 * fetches taz code for each address id in LT database
-	 * @param outMap output parameter for storing address_id -> TAZ code map
+	 * @param addressMap output parameter for storing address_id -> TAZ code map
+	 * @param zoneAddressesMap output parameter for storing list of addresses in each TAZ
 	 */
-	void getAddressTAZs(std::map<long, int>& outMap);
+	void getAddresses(std::map<long, sim_mob::medium::Address>& addressMap, std::map<int, std::vector<long> >& zoneAddressesMap);
 
 private:
 	/**
@@ -77,15 +79,15 @@ private:
 };
 
 /**
- * Data access object for Logsum table
+ * Data access object for Logsum table and other dataset
  *
  * \author Harish Loganathan
  */
-class LogsumSqlDao: public db::SqlAbstractDao<PersonParams>
+class SimmobSqlDao: public db::SqlAbstractDao<PersonParams>
 {
 public:
-	LogsumSqlDao(db::DB_Connection& connection);
-	virtual ~LogsumSqlDao();
+	SimmobSqlDao(db::DB_Connection& connection);
+	virtual ~SimmobSqlDao();
 
 	/**
 	 * fetches logsum data for individual id
@@ -93,6 +95,12 @@ public:
 	 * @param outParam output parameter to load logsums
 	 */
 	void getLogsumById(long long id, PersonParams& outObj);
+
+	/**
+	 * fetches taz code for each address id in LT database
+	 * @param outMap output parameter for storing address_id -> TAZ code map
+	 */
+	void getPostcodeToNodeMap(std::map<unsigned int, unsigned int>& outMap);
 
 private:
 	/**

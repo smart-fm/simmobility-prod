@@ -41,16 +41,9 @@ set (EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 set (Basic_VERSION_MAJOR 0)
 set (Basic_VERSION_MINOR 1)
 
-
-
 #Flags for each configuration type
-IF (${BUILD_LONG} MATCHES "ON" OR ${BUILD_TESTS_LONG} MATCHES "ON")
-SET(CMAKE_CXX_FLAGS_RELEASE "-O2 -std=c++11 -DSIMMOB_LATEST_STANDARD ")
-SET(CMAKE_CXX_FLAGS_DEBUG  "-O0 -g -std=c++11 -DSIMMOB_LATEST_STANDARD ")
-ELSE()
-SET(CMAKE_CXX_FLAGS_RELEASE "-O2 ")
-SET(CMAKE_CXX_FLAGS_DEBUG  "-O0 -g ")
-ENDIF(${BUILD_LONG} MATCHES "ON" OR ${BUILD_TESTS_LONG} MATCHES "ON")
+SET(CMAKE_CXX_FLAGS_RELEASE "-O2")
+SET(CMAKE_CXX_FLAGS_DEBUG  "-O0 -g")
 
 #Function that turns on Unity builds. From:
 #   http://cheind.wordpress.com/2009/12/10/reducing-compilation-time-unity-builds/
@@ -163,6 +156,12 @@ SET(CPACK_DEBIAN_PACKAGE_DEPENDS
   ${COMMA} "cmake"  #We check the version earlier; leave this line last.
 )
 
+IF (${BUILD_SHORT} MATCHES "ON")
+	SET(CPACK_DEBIAN_PACKAGE_DEPENDS
+		"libglpk-dev (>= 4.43-1)"
+	)
+ENDIF (${BUILD_SHORT} MATCHES "ON")
+
 #Make sure to flatten the DEPENDS array before using it.
 string(REPLACE ";" "" CPACK_DEBIAN_PACKAGE_DEPENDS ${CPACK_DEBIAN_PACKAGE_DEPENDS})
 
@@ -233,7 +232,7 @@ option (SIMMOB_DISABLE_OUTPUT  "Disable all mutex-locked output and all addition
 option (SIMMOB_DISABLE_MPI  "Disable all included files, libraries, and code segments that require MPI." ON)
 
 #Option: compile with c++0x. Use the cmake gui to change this on a per-user basis.
-option (SIMMOB_LATEST_STANDARD  "Attempt to compile Sim Mobility with the latest version of C++ (2011). Untested." OFF)
+option (SIMMOB_LATEST_STANDARD  "Attempt to compile Sim Mobility with the latest version of C++ (2011). Untested." ON)
 
 #Option: profiling flags. Use the cmake gui to change this on a per-user basis.
 option(SIMMOB_PROFILE_ON "Turn on profiling. If this flag is off, all SIMMOB_PROFILE_* options will be treated as effectively off." OFF)
@@ -273,7 +272,7 @@ ENDFOREACH()
 #Cflags for C++0x support via gcc
 IF (SIMMOB_LATEST_STANDARD)
   IF(CMAKE_COMPILER_IS_GNUCXX)
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++0x")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
   ELSE() 
     #Just hope for the best
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
@@ -401,6 +400,19 @@ LIST(APPEND LibraryList ${LUA_LIBRARIES} -ldl)
 find_package(MongoClient REQUIRED)
 include_directories(${MONGOCLIENT_INCLUDE_DIRS})
 LIST(APPEND LibraryList ${MONGOCLIENT_LIBRARY} -lcrypto -lssl)
+
+IF (${BUILD_SHORT} MATCHES "ON")
+        #Find GLPK
+	FIND_LIBRARY( GLPK_LIB glpk PATHS /usr/lib $ENV{GLPK_DIR}/lib)
+	SET(GLPK_LIBRARIES ${GLPK_LIB} )
+
+	FIND_PATH(GLPK_INCLUDE_DIR
+	  glpk.h
+	  PATHS /usr/include/ /usr/include/glpk $ENV{GLPK_DIR}/include
+	  DOC "Directory where GLPK header files are stored" )
+	include_directories(${GLPK_INCLUDE_DIR})
+	LIST(APPEND LibraryList -lglpk)
+ENDIF (${BUILD_SHORT} MATCHES "ON")
 
 #Find CppUnit and QxCppUnit if we are building unit tests.
 SET(UnitTestLibs "")

@@ -28,7 +28,7 @@ public:
 	LinearScale()
 	{}
 
-	virtual LatLngLocation transform(DPoint source);
+	virtual LatLngLocation transform(Point source);
 
 	Range sourceX;
 	Range sourceY;

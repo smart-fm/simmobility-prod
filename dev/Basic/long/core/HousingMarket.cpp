@@ -288,5 +288,8 @@ bool HousingMarket::isNonspatial()
     return false;
 }
 
-void HousingMarket::buildSubscriptionList(vector<BufferedBase*>& subsList) {}
+std::vector<sim_mob::BufferedBase*> HousingMarket::buildSubscriptionList() 
+{
+	return std::vector<sim_mob::BufferedBase*>();
+}
 

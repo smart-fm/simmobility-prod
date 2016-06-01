@@ -3,250 +3,98 @@
 <!-- Copyright Singapore-MIT Alliance for Research and Technology -->
 
 <config>
-    <!-- Anything in the "constructs" section is created with an ID and some structure (e.g., an object) -->
-    <!-- The idea here is to allow re-using some common settings in multiple places, and to allow multiple optional -->
-    <!-- items (e.g. database connections), without having to comment out the ones which are not used. -->
-    <!-- Key to the idea of a construct is that if it is incorrectly specified, it is only considered to be an error if -->
-    <!-- it is USED. In other words, the parser will flag it as an error, but pend that error until the construct is requested. -->
-    <!-- A construct ID must be unique for its type (databases, credentials, etc.) -->
-    <!-- Note that constructs can be defined and used out-of-order, since their IDs are only resolved once they are retrieved. -->
-    <constructs>
-        <!-- Define distributions which may be used for a variety of things. -->
-        <!-- NOTE: These are not currently created or used, but should be added soon. -->
-        <distributions>
-            <!-- Distributions pertinent to driver reaction times -->
-            <dist id="driver_react_1" type="lognormal"  mean="500"  stdev="100"/>
-            <dist id="driver_react_2" type="lognormal"  mean="500"  stdev="100"/>
-        </distributions>
+    <!-- Groupings of stored procedures, used for loading network data from certain tables. -->
+   <db_proc_groups>
+        <!-- SimMobility Virtual City Network -->
+        <proc_map id="simmobcity" format="aimsun">
+            <mapping name="nodes" procedure="get_nodes()"/>
+            <mapping name="links" procedure="get_links()"/>
+            <mapping name="turning_groups" procedure="get_turning_groups()"/>
+            <mapping name="turning_paths" procedure="get_turning_paths()"/>
+            <mapping name="turning_polylines" procedure="get_turning_polylines()"/>
+            <mapping name="turning_conflicts" procedure="get_turning_conflicts()"/>
+            <mapping name="road_segments" procedure="get_road_segments()"/>
+            <mapping name="segment_polylines" procedure="get_segment_polylines()"/>
+            <mapping name="lanes" procedure="get_lanes()"/>
+            <mapping name="lane_polylines" procedure="get_lane_polylines()"/>
+            <mapping name="lane_connectors" procedure="get_lane_connectors()"/>
+            <mapping name="bus_stops" procedure="get_bus_stops()"/>
+            <mapping name="pt_bus_dispatch_freq" procedure="get_pt_bus_frequency()"/>
+            <mapping name="pt_bus_routes" procedure="get_pt_bus_routes()"/>
+            <mapping name="pt_bus_stops" procedure="get_pt_bus_stops()"/>
+            <mapping name="pt_stop_stats" procedure="get_pt_stop_stats()"/>
+            <mapping name="pt_edges" procedure="get_pt_tr_edges()"/>
+            <mapping name="pt_vertices" procedure="get_pt_tr_vertices()"/>
+            <mapping name="pt_pathset" procedure="get_pt_pathset_tr"/>
+            <mapping name="mrt_road_segments" procedure="get_pt_mrt_segments()"/>
+            <mapping name="erp_gantry_zone" procedure="get_erp_gantry_zone()"/>
+            <mapping name="screen_line" procedure="get_screen_line_segments()"/>
+            <mapping name="erp_section" procedure="get_erp_section()"/>
+            <mapping name="day_activity_schedule" procedure="get_persons_between"/>
+            <mapping name="freight_trips" procedure="get_freight_between"/>
+            <mapping name="erp_surcharge" procedure="get_erp_surcharge()"/>
+        </proc_map>
 
-        <!-- Various database connections, used for loading network and agent data. -->
-        <!-- Note that credentials (login details) are stored in a separate construct. -->
-        <databases>
-            <!-- FM server connection -->
-            <database id="fm_remote" dbtype="postgres">
-                <host value="172.25.184.48"/>
-                <port value="5432"/>
-                <dbname value="SimMobility_DB_2015"/>
-            </database>
 
-            <database id="fm_hpchead" dbtype="postgres">
-                <host value="fmhpchead"/>
-                <port value="5432"/>
-                <dbname value="SimMobility_DB_2015"/>
-            </database>
-            
-            <database id="fm_remote_lt" dbtype="postgres">
-                <host value="172.25.184.14"/>
-                <port value="5432"/>
-                <dbname value="sim_mob_lt"/>
-            </database>
-
-            <database id="fm_hpchead_lt" dbtype="postgres">
-                <host value="fmhpchead"/>
-                <port value="5432"/>
-                <dbname value="sim_mob_lt"/>
-            </database>
-
-            <!-- Variables stores for preday demand simulator-->
-            <database id="fm_mongo" dbtype="mongodb">
-                <host value="localhost"/>
-                <!--<host value="192.168.114.200"/>--> <!--private IP of hpc head node-->
-                <port value="27017"/>
-                <dbname value="preday"/>
-            </database>
-
-        </databases>
+        <!-- Entire Singapore network in new format -->
+        <proc_map id="withinday" format="aimsun">
+            <mapping name="nodes" procedure="get_test_singapore_nodes()"/>
+            <mapping name="links" procedure="get_singapore_links()"/>
+            <mapping name="turning_groups" procedure="get_test_singapore_turning_groups()"/>
+            <mapping name="turning_paths" procedure="get_test_singapore_turning_paths()"/>
+            <mapping name="turning_polylines" procedure="get_test_singapore_turning_polylines()"/>
+            <mapping name="turning_conflicts" procedure="get_test_singapore_turning_conflicts()"/>
+            <mapping name="road_segments" procedure="get_test_singapore_road_segments()"/>
+            <mapping name="segment_polylines" procedure="get_test_singapore_segment_polylines()"/>
+            <mapping name="lanes" procedure="get_test_singapore_lanes()"/>
+            <mapping name="lane_polylines" procedure="get_test_singapore_lane_polylines()"/>
+            <mapping name="lane_connectors" procedure="get_test_singapore_lane_connectors()"/>
+            <mapping name="bus_stops" procedure="get_singapore_bus_stops_17feb()"/>
+            <mapping name="pt_bus_dispatch_freq" procedure="get_pt_bus_frequency()"/>
+            <mapping name="pt_bus_routes" procedure="get_pt_bus_routes_17feb()"/>
+            <mapping name="pt_bus_stops" procedure="get_pt_bus_stops_17feb()"/>
+            <mapping name="pt_stop_stats" procedure="get_pt_stop_stats()"/>
+            <!-- MT specific stored procedures -->
+            <mapping name="pt_vertices" procedure="get_pt_map_vertices()"/>
+            <mapping name="pt_edges" procedure="get_pt_map_edges()"/>
+            <mapping name="pt_pathset" procedure="get_pt_trpathset"/>
+            <mapping name="mrt_road_segments" procedure="get_pt_mrt_segments()"/>
+            <mapping name="rail_transit_edges" procedure="get_rail_transit_edges()"/>
+            <mapping name="erp_gantry_zone" procedure="get_erp_gantry_zone()"/>
+            <mapping name="erp_section" procedure="get_erp_section()"/>
+            <mapping name="erp_surcharge" procedure="get_erp_surcharge()"/>
+            <mapping name="day_activity_schedule" procedure="get_persons_between_calib20"/>
+            <mapping name="freight_trips" procedure="get_testfreight_between"/>
+            <mapping name="screen_line" procedure="get_screen_line_segments()"/>
+            <!--<mapping name="restricted_reg_segments" procedure="get_section_banned_area()"/>
+            <mapping name="restricted_reg_in_turning" procedure="get_banned_area_in_turning()"/>
+            <mapping name="restricted_reg_out_turning" procedure="get_banned_area_out_turning()"/>
+            <mapping name="restricted_reg_nodes" procedure="get_restricted_region_nodes()"/>-->
+        </proc_map> 
+    </db_proc_groups>
     
-        <!-- Groupings of stored procedures, used for loading network data from certain tables. -->
-        <db_proc_groups>
-            <!-- Entire singapore network with scaled activity_schedules from preday-->
-            <proc_map id="withinday" format="aimsun">
-                <mapping name="node" procedure="get_node_sg()"/>
-                <mapping name="section" procedure="get_section_sg()"/>
-                <mapping name="turning" procedure="get_lane_connector_sg()"/>
-                <mapping name="busstop" procedure="get_bus_stop_location_interchange()"/>
-                <mapping name="polyline" procedure="get_section_polyline()"/>
-                <mapping name="pt_bus_dispatch_freq" procedure="get_pt_bus_dispatch_freq('weekday')"/>
-                <mapping name="pt_bus_routes" procedure="get_pt_bus_routes()"/>           
-                <mapping name="pt_bus_stops" procedure="get_pt_bus_stops()"/>             
-                <mapping name="day_activity_schedule" procedure="get_persons_between"/>
-                <mapping name="pt_edges" procedure="get_pt_edges()"/>
-                <mapping name="pt_vertices" procedure="get_pt_vertices()"/>
-                <mapping name="mrt_road_segments" procedure="get_mrt_road_segments()"/>
-                <mapping name="pt_pathset" procedure="get_pt_pathset"/>
-		<mapping name="restricted_reg_segments" procedure="get_section_banned_area()"/>
-                <mapping name="restricted_reg_in_turning" procedure="get_banned_area_in_turning()"/>
-                <mapping name="restricted_reg_out_turning" procedure="get_banned_area_out_turning()"/>
-		<mapping name="restricted_reg_nodes" procedure="get_restricted_region_nodes()"/>
-		<mapping name="screen_line" procedure="get_screen_line_segments()"/>
-            </proc_map>
-
-        </db_proc_groups>
-    
-        <!-- Login credentials to be used for database connections. These can be plaintext, -->
-        <!-- file-based, and possibly even signed. Note that invalid credentials will simply be ignored. -->
-        <credentials>
-            <!-- A file-based credential loads credentials from a JSON file with its own special format. -->
-            <!-- Multiple files can be listed, and they will be tried in order until one is found. -->
-            <!-- If the first existing file has an error, parsing will NOT continue to the next file. -->
-            <!-- The actual credentials file looks something like this: -->
-            <!-- 
-            {
-                "username" : "postgres",
-                "password" : "AbCdEfG=",
-                "algorithm" : ["clear","xor23","base64","cipher"]
-            }
-            -->
-            <!-- Here, the username is stored in cleartext. The password is stored according to the algorithm listed. -->
-            <!-- So in this example, the "clear" text is first "xor23"'d, then "base64" encoded, then finally we arrive at the "cipher" text. -->
-            <!-- If you  just want to store the password in cleartext, use "algorithm" : ["clear","cipher"] -->
-            <file-based-credential id="fm_remote">
-                <file path="private/fm_remote.cred.txt"/>
-                <file path="/usr/share/simmobility/credentials/fm_remote.cred.txt"/> <!-- For example -->
-            </file-based-credential>
-          
-            <!-- Plaintext credentials can be used to store the password verbatim. -->
-            <!-- BE CAREFUL with these; remember that EVERYONE can see them: -->
-            <!--    1) Don't put any passwords here that you care about (e.g., email accounts) -->
-            <!--    2) Don't put any passwords to databases on the FM server. -->
-            <plaintext-credential id="lt_cred">
-                <username value="fmstaff"/>
-                <password value="fm4trans"/>
-            </plaintext-credential>            
-
-            <plaintext-credential id="fm_hpchead">
-                <username value="postgres"/>
-                <password value="d84dmiN"/>
-            </plaintext-credential>
-
-        </credentials>
-    </constructs>
-
-    <!-- System configuration properties -->
-    <system>
-        <!-- Properties for a single simulation run -->
-        <!-- Total runtime need not be a multiple of the base granularity -->
-        <!-- (but will be rounded down.) -->
-        <simulation>
-            <base_granularity   value="5"   units="seconds" />
-            <total_runtime      value="240"      units="minutes" />
-            <total_warmup       value="10"     units="seconds" />
-            
-            <start_time         value="06:00:00"/>           
-            
-            <!-- Implementation to use for the Aura Manager. -->
-            <!-- Values include: simtree, rdu, rstar (default) -->
-            <aura_manager_impl value="rstar"/>
-            
-            <!-- Strategy for adding new Agents to Workers. -->
-            <!-- "roundrobin" assigns in order. (default) -->
-            <!-- "smallest" assigns to the Worker with the smallest Agent count. -->
-            <!--  Note that "smallest" does not appear to offer any benefit over "roundrobin" -->
-            <workgroup_assignment value="roundrobin"/>
-                        
-            <!-- Properties for SimMobility-MPI -->
-            <partitioning_solution_id   value="1"    units="unit" />
-            
-            <!-- Order in which agents are to be loaded into the simulation -->
-            <!-- Values include: database, drivers, pedestrians, passenger, xml-tripchains -->
-
-            <load_agents order="database"/>
-
-            
-            <!-- Optional. At what value do we start counting for automatically -->
-            <!-- generated Agent IDs? Set to a high value if you want to avoid  -->
-            <!-- ID collisions when manually specifying Agent IDs in the config file. -->
-            <!-- Setting this to zero has the same effect as leaving it out; the default value is zero. -->
-            <auto_id_start value="0"/>
-            
-            <!-- Optional. How we enforce mutual exclusion. Can be "buffered" (the default) or "locked" -->
-            <mutex_enforcement    strategy="buffered" />
-
-            <!--  Commsim (communication) settings -->
-            <commsim enabled="false"> <!-- If false, the Broker is never added, so no commsim activities take place. -->
-                <min_clients value="1"/> <!-- Sim Mobility will hold on time tick 1 until this many clients connect. -->
-                <io_threads value="2"/> <!-- The number of threads to use for boost's io_service (for reading from Android clients). -->
-                <hold_tick value="500"/> <!-- Which tick to enforce the "min_clients" restriction at. -->
-                <use_ns3 value="true"/>  <!-- Use ns-3 to route network traffice between agents? If not, opaque messages are dispatched immediately. -->
-            </commsim>
-            
-            <reacTime_distributionType1      value="1" /> <!-- 0 is normal distribution, 1 is log normal-->
-            <reacTime_distributionType2      value="1" />
-            <reacTime_mean1      value="500" />
-            <reacTime_mean2      value="500" />
-            <reacTime_standardDev1    value="100" />
-            <reacTime_standardDev2    value="100" />
-        </simulation>
-                
-        <!-- List of all Worker types and their properties. -->
-        <!-- granularity of each component must be a multiple of the "base" granularity -->
-        <workers>
-            <person count="6" granularity="5 second"/> <!-- Person agents (with Roles) -->
-            <signal count="0" granularity="5 second"/> <!-- Traffic signals -->
-            <intersection_manager count="0" granularity="5 second"/> <!-- Intersection managers -->
-            <communication count="0" granularity="5 second"/>  <!-- Communication simulator -->
-        </workers>
-        
-        <!-- Setting to true should push everything onto one thread. -->
-        <!-- NOTE: Setting to true will cause the synchronization barriers not to be used. -->
-        <!-- Be careful about any functional logic which depends on the barriers -->
-        <single_threaded value="false"/>
-        
-        <!-- Setting to true will combine all out* files into one out.txt and delete the out* files. -->
-        <!-- Note that this may take quite some time to complete. -->
-        <!-- NOTE: We currently don't delete the source files; this seems un-needed. -->
-        <merge_log_files value="true"/>
-        
-        <!-- Setting to "database" will load the road network from the database. By default we load from "xml". -->
-        <!-- NOTE: This is fairly confusing; later we'll make it easier for different users to -->
-        <!--       maintain their own configurations. -->
-        <network_source value="database"/>
-        
-        <!-- If loading from XML, which input file? Default (or blank string) will force private/SimMobilityInput.xml -->
-        <!-- If Writing XML, which output file? Default (or blank string) don't write at all -->
-        <!-- This only has an effect if network_source is set to "xml" -->
-        <network_xml_file_input value=""/>
-        <network_xml_file_output value=""/>
-    
+    <system>         
         <!-- If loading from the database, which database, proc_map, and credentials are used? -->
-        <!-- <network_database database="fm_local" credentials="vahid_cred" proc_map="bugis_small"/> -->
+        <!-- <network_database database="fm_remote" credentials="vahid_cred" proc_map="bugis_small"/> -->
         <network_database database="fm_hpchead" credentials="fm_hpchead" proc_map="withinday"/>
         <!-- <network_database database="fm_local" credentials="harish_cred" proc_map="bugis_large"/> -->
-        <!--<network_database database="fm_remote" credentials="fm_remote" proc_map="bugis_large"/>-->
-        
-        <!-- Where to find our various schema files. -->
-        <!-- Overrides xsi:schemaLocation in the files themselves. -->
-        <!-- Note that absolute paths are allowed, and that relative paths are relative to the current working directory. -->
-        <xsd_schema_files>
-            <!-- Where to find our Road Network schema files. -->
-            <!-- The first valid path is used. -->
-            <road_network>
-                <option value="shared/geospatial/xmlLoader/geo10.xsd"/>     <!-- Running from dev/Basic or from Eclipse -->
-                <option value="../shared/geospatial/xmlLoader/geo10.xsd"/>  <!-- Running from dev/Basic/Debug or dev/Basic/Release -->
-            </road_network>
-        </xsd_schema_files>
+        <!--<network_database database="fm_remote" credentials="fm_remote" proc_map="withinday"/>-->
         
         <!-- The new parser will simply load everything in the "generic_props" section into "SystemParams.genericProps".  -->
         <!-- In other words, you DO NOT need to update the parser just to add a simple string-based configuration parameter to -->
         <!-- the config file. This is intended to be used for new or temporary features. -->
         <generic_props>
             <!-- The current control strategy for buses. Can be "headway_based", "evenheadway_based", "hybrid_based", or (default) "no_control" -->
-            <property key="busline_control_type" value="headway_based"/>
+            <property key="update_interval" value="60"/>
         </generic_props>
     </system>
-
     
-    <!-- FMOD controller settings. This is for FMOD extention -->
-    <fmodcontroller enabled="false">
-        <ip_address value="127.0.0.1"/>
-        <port value="9000"/>
-        <update_time_ms value="500"/>
-
-        <map_file value="cityhall/cityhall.osm"/>
-
-        <blocking_time_sec value="5"/>
-    </fmodcontroller>
-        
+    <!-- List of all Worker types and their properties. -->
+    <!-- granularity of each component must be a multiple of the "base" granularity -->
+    <workers>
+        <person count="7" granularity="5 seconds"/> <!-- Person agents (with Roles) -->
+    </workers>
+      
     <incidentsData enabled="false">
         <incident id="0" visibility="4000" segment="40200" position="60" cap_factor="1.0" start_time="08:30:00" duration="00:32:00" length="1000" compliance="50" accessibility="50" > 
             <lane laneId="0" speedLimitFactor="0"/>
@@ -269,48 +117,177 @@
         <stop offsetAT="376100" offsetDT="382100" />    
         <stop offsetAT="403600" offsetDT="409600" />        
     </scheduledTimes>
-    
-    
-    <!--Driver start locations-->
-    <!--3 drivers start at the N/S/E/W and each turns a different way-->
-    <!--Center node is: 37218351,14335255-->
-    <!--North node is: 37241080,14362955-->
-    <!--South node is: 37261496,14346008-->
-    <!--East node is: 37270984,14378959-->
-    <!--West node is: 37227139,14327875-->
-    <drivers>
-    </drivers> 
-    
-    <pedestrians> 
-    </pedestrians>
-    
-    <!-- Bus Drivers. This is just for testing; currently a lot of Bus information is simply generated. -->
-    <!-- Note that Buses are loaded with "drivers", since I don't want to add a new tag for testing data -->
-    <busdrivers>
-    </busdrivers>
-    
+
     <!-- To Enable Buses: make sure the following stored procedures in your <proc_map> not empty and valid -->
     <!-- 1. "pt_bus_dispatch_freq" -->
     <!-- 2. "pt_bus_routes" -->
     <!-- 3. "pt_bus_stops" -->
     <!-- With the above three procedures present and valid, enable buses with "<buscontroller time="0" />" in the <buscontrollers> -->
     <!-- To Disable Buses: user can simply comment the buscontroller in the <buscontrollers> -->
-    <buscontrollers>
-       <buscontroller time="0" />
-    </buscontrollers>
+    <!-- The current control strategy for buses. Can be "headway_based", "evenheadway_based", "hybrid_based", or (default) "no_control" -->
+    <busController enabled="true" busline_control_type="headway_based"/>
     
-<!--<signals> -->
-    <!-- Any of the following signals will not be created if it has already been created by -->
-    <!-- the 'signal' stored procedure above.  Note that this <signals> section will be -->
-    <!-- removed soon and without notice.  After that, only signals found in the database -->
-    <!-- will be created. -->
-<!--<signal xpos="37250760" ypos="14355120"/>
-    </signals> -->
+    <path-set-config-file value="data/pathset_config.xml" />
+
     <CBD enabled="false"/>
     <generateBusRoutes enabled="false" /> 
-    <path-set-config-file value="data/pathset_config.xml" />
     <travel_time_update interval="300" alpha="0.5" />
+    <subtrip_travel_metrics_output enabled="true" file="subtrip_level_travel_metrics.csv" />
     <public_transit enabled="true"/>
-    <screen-line_count interval="900" file-name="screenLineCount.txt" screenLineCountEnabled="false" />
+    <screen-line-count interval="900" file-name="screenLineCount.txt" enabled="true" />
+
+    <!-- Determines whether to run SimMobility_Medium's demand simulator or the supply simulator -->
+    <!-- Admissible values are "preday", "withinday" and "supply". Values "withinday" and "supply" runs the same code. Two different values are allowed just for convenience.--> 
+    <mid_term_run_mode value="withinday"/>
+    
+    <!-- config specific to supply simulator -->                    
+    <supply>
+        <!-- period of supply output -->
+        <update_interval value="1" units="minute" />
+        
+        <!-- these parameters are used to calculate dwell time of buses at bus stops-->
+        <!-- these parameters will be organized in a better way after finding the meaning of these numbers -->
+        <dwell_time_parameters>
+        <!--parameters : minimum and maximum of fixed dwelling time, minimum and maximum of individual dwelling time-->
+        <parameters value="0.0, 0.0, 2.0, 3.0"/>
+        </dwell_time_parameters>
+
+        <!-- pedestrian walking speed in cm/s (approximately 5 km/h)-->
+        <pedestrian_walk_speed value="135"/>
+        
+        <!-- default capacity value -->
+        <bus_default_capacity value="80"/>
+                
+        <!-- these parameters are used to assign filename for the storage of statistics -->   
+        <!-- if the value is empty, no output file is generated, otherwise store to csv file -->     
+        <output_pt_statistics>                              
+            <journey_time file="journeytime.csv"/>
+            <waiting_time file="waitingtime.csv"/>
+            <waiting_count file="waitingcount.csv"/>
+            <travel_time file="traveltime.csv"/>
+            <pt_stop_stats file="ptstopstats.csv"/>
+        </output_pt_statistics>  
+        
+        <!-- parameters used in speed density function -->
+        <speed_density_params>
+            <param category="1" alpha="3.0" beta="1.5"/>
+            <param category="2" alpha="3.0" beta="1.5"/>
+            <param category="3" alpha="3.0" beta="1.5"/>
+            <param category="4" alpha="3.0" beta="1.5"/>
+            <param category="5" alpha="3.0" beta="1.5"/>
+            <param category="6" alpha="3.0" beta="1.5"/>
+            <param category="7" alpha="3.0" beta="1.5"/>
+        </speed_density_params>
+
+        <model_scripts path="scripts/lua/mid/behavior-models/" format="lua">
+             <script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models-->
+             <script name="pvtrc" file="pvtrc.lua"/> <!--private traffic route choice -->
+        </model_scripts>
+        
+    </supply>                                      
+            
+    <!-- config specific to preday simulator -->
+    <preday>
+        <!-- Control variable to run simulation, calibration or logsum computation. Admissible values are "simulation", "calibration", "logsum" and "lt_logsum" -->
+        <run_mode value="simulation"/>
+        <!-- Number of threads to create for processing the population in-->
+        <!-- the preday demand simulator -->
+        <threads value="1"/>
+        <!-- outputs the preday predictions as activity schedule in CSV format if enabled with simulation run_mode -->
+        <output_activity_schedule enabled="true"/>
+        <!-- outputs the preday's predicted tours and stops to mongodb if enabled -->
+        <output_predictions enabled="false"/>
+        <!-- prints person ids and tour details in console for each person if enabled -->
+        <console_output enabled="true"/>
+        
+        <!-- Data source for population and logsums. 
+         Admissible values for source are 'pgsql' and 'mongodb' which points to LT database or local MongoDB respectively. 
+         Value 'mongodb' is default for source. 
+         Database and credentials attributes are required only for pgsql source.
+         Valid ids from the list constructs list have to be specified -->
+        <population source="pgsql" database="fm_hpchead_lt" credential="fm_hpchead"/>
+        <simmob_mt source="pgsql" database="fm_hpchead" credential="fm_hpchead"/>
+            
+        <model_scripts path="scripts/lua/mid/behavior-models/" format="lua">
+            <script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models-->
+            <script name="dpb" file="dpb.lua"/> <!-- Day Pattern Binary -->
+            <script name="dpt" file="dpt.lua"/> <!-- Day Pattern Tours -->
+            <script name="dps" file="dps.lua"/> <!-- Day Pattern Stops -->
+            <script name="ntw" file="ntw.lua"/> <!-- Number Of Tours Work -->
+            <script name="nte" file="nte.lua"/> <!-- Number Of Tours Education -->
+            <script name="nts" file="nts.lua"/> <!--Number Of Tours Shopping -->
+            <script name="nto" file="nto.lua"/> <!--Number Of Tours Others -->
+            <script name="uw" file="tuw.lua"/> <!--Attend Usual Work -->
+            <script name="tmw" file="tmw.lua"/> <!--Tour Mode Work -->
+            <script name="tme" file="tme.lua"/> <!--Tour Mode Education -->
+            <script name="tmdw" file="tmdw.lua"/> <!--Tour Mode/Destination Work -->
+            <script name="tmds" file="tmds.lua"/> <!--Tour Mode/Destination Shopping -->
+            <script name="tmdo" file="tmdo.lua"/> <!--Tour Mode/Destination Others -->
+            <script name="ttdw" file="ttdw.lua"/> <!--Tour Time Of Day Work -->
+            <script name="ttdo" file="ttdo.lua"/> <!--Tour Time Of Day Others -->
+            <script name="ttde" file="ttde.lua"/> <!--Tour Time Of Day Education -->
+            <script name="tws" file="tws.lua"/> <!--Work Based Sub-Tours -->
+            <script name="stmd" file="stmd.lua"/> <!--Work Based Sub-Tours Mode/Destination-->
+            <script name="sttd" file="sttd.lua"/> <!--Work Based Sub-Tours Time Of Day-->
+            <script name="isg" file="isg.lua"/> <!--Intermediate Stop Generation -->
+            <script name="imd" file="imd.lua"/> <!--Intermediate Stop Mode/Destination -->
+            <script name="itd" file="itd.lua"/> <!--Intermediate Stop Time Of Day -->                      
+            <script name="zpa" file="zpa.lua"/> <!--Zone postcode assignment --> 
+        </model_scripts>
+            
+        <!-- Names of MongoDB database and collections -->
+        <mongo_collections db_name="preday">
+            <mongo_collection name="population" collection="hits12_population_updated_zones"/>
+            <mongo_collection name="tcost_bus" collection="tcost_bus_2012"/>
+            <mongo_collection name="tcost_car" collection="tcost_car_2012"/>
+            <mongo_collection name="AMCosts" collection="AMCosts_2012"/>
+            <mongo_collection name="OPCosts" collection="OPCosts_2012"/>
+            <mongo_collection name="PMCosts" collection="PMCosts_2012"/>
+            <mongo_collection name="Zone" collection="Zone_2012"/>
+            <mongo_collection name="zone_node" collection="node_taz_mapping_750m"/>
+            <mongo_collection name="zone_08_12" collection="map_1169_to_1092_zones"/>
+            <mongo_collection name="Output_DayPattern" collection="daypattern_0815"/>
+            <mongo_collection name="Output_Tour" collection="tour_0815"/>
+            <mongo_collection name="Output_Activity" collection="activity_0815"/>
+            <mongo_collection name="Output_SubTour" collection="wbst_0815"/>
+        </mongo_collections>
+            
+        <calibration enabled="false">
+            <!-- variables to calibrate -->
+            <!-- expected csv format: variable_name,lua_file_name,initial_value,lower_limit,upper_limit -->
+            <variables file="data/medium/preday_calibration_variables.csv"/>
+            <!--csv providing the observed values for the statistics to compute-->
+            <observed_statistics file="data/medium/preday_observed_HITS08_statistics.csv"/>
+            <!-- which calibration technique to use: SPSA/WSPSA -->
+            <calibration_technique value="SPSA"/>
+            <!-- logsums will be recomputed every x iterations if value is set to x -->
+            <logsum_computation_frequency value="5"/>
+            <SPSA>
+                <!-- max number of iterations that spsa must run for -->
+                <iterations value="20"/>
+                <!-- termination condition for spsa is (F(X_k+1) - F(X_k) <= tolerance ) where F(X) is the objective function -->
+                <tolerence value="0.000001"/>
+                <!-- perturbation step size for iteration k is given by c_k = c / ((1+k)^gamma) -->
+                <gradient_step_size initial_value="0.1" algorithm_coefficient2="0.101"/>
+                <!-- step size for iteration k is given by a_k = a / ((1+k)^alpha) -->
+                <step_size initial_value="0.16" stability_constant="100" algorithm_coefficient1="0.602"/>
+            </SPSA>
+            <WSPSA>
+                <!-- max number of iterations that spsa must run for -->
+                <iterations value="20"/>
+                <!-- termination condition for spsa is (F(X_k+1) - F(X_k) <= tolerance ) where F(X) is the objective function -->
+                <tolerence value="0.000001"/>
+                <!-- perturbation step size for iteration k is given by c_k = c / ((1+k)^gamma) -->
+                <gradient_step_size initial_value="0.1" algorithm_coefficient2="0.101"/>
+                <!-- step size for iteration k is given by a_k = a / ((1+k)^alpha) -->
+                <step_size initial_value="0.16" stability_constant="100" algorithm_coefficient1="0.602"/>
+                <!-- csv containing the weight matrix-->
+                <weight_matrix file="data/medium/preday_calibration_weight_matrix.csv"/>
+            </WSPSA>
+            
+            <!-- output file to track the statistics and parameters for every iteration of calibration -->
+            <output file="preday_calibration_out.csv"/>
+        </calibration>
+    </preday>
 </config>
 

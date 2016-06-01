@@ -34,7 +34,7 @@ namespace sim_mob
         class HouseholdAgent : public Agent_LT
         {
         public:
-            HouseholdAgent(BigSerial id, HM_Model* model, const Household* hh, HousingMarket* market, bool marketSeller = false, int day = 0, int householdBiddingWindow = 0, int awakeningDay = 0);
+            HouseholdAgent(BigSerial id, HM_Model* model, Household* hh, HousingMarket* market, bool marketSeller = false, int day = 0, int householdBiddingWindow = 0, int awakeningDay = 0);
             virtual ~HouseholdAgent();
             
             enum VehicleOwnershipOption
@@ -50,7 +50,7 @@ namespace sim_mob
             const IdVector& getPreferableZones() const;
             HM_Model* getModel() const;
             HousingMarket* getMarket() const;
-            const Household* getHousehold() const;
+            Household* getHousehold() const;
 
             void setBuySellInterval( int value );
             int getBuySellInterval( ) const;
@@ -60,6 +60,8 @@ namespace sim_mob
 
             HouseholdBidderRole* getBidder();
             HouseholdSellerRole* getSeller();
+
+            bool getFutureTransitionOwn();
         
         protected:
             /**
@@ -106,7 +108,7 @@ namespace sim_mob
         private:
             HM_Model* model;
             HousingMarket* market;
-            const Household* household;
+            Household* household;
 
             IdVector unitIds;
             IdVector preferableZones;
@@ -120,7 +122,11 @@ namespace sim_mob
 
             bool marketSeller; //tells if the agent is only a fake market seller
             int day;
+
+            bool futureTransitionOwn; //If awakened, will the household choose to rent or own a unit? If true, this household will choose to own.
+
             int awakeningDay;
+
         };
     }
 }

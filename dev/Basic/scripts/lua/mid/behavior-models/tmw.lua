@@ -295,7 +295,7 @@ local function computeUtilities(params,dbparams)
 	local income_id = params.income_id
 	local income_cat = {500,1250,1750,2250,2750,3500,4500,5500,6500,7500,8500,0,99999,99999}
 	local income_mid = income_cat[income_id]
-	local missing_income = (params.income_id >= 13) and 1 or 0
+	local missing_income = (params.income_id >= 12) and 1 or 0    -- Vishnu 14th April 2016- Changed from the previous value of 12
 
 	local cost_taxi_1=3.4+((d1*(d1>10 and 1 or 0)-10*(d1>10 and 1 or 0))/0.35+(d1*(d1<=10 and 1 or 0)+10*(d1>10 and 1 or 0))/0.4)*0.22+ cost_car_ERP_first + central_dummy*3
 	local cost_taxi_2=3.4+((d2*(d2>10 and 1 or 0)-10*(d2>10 and 1 or 0))/0.35+(d2*(d2<=10 and 1 or 0)+10*(d2>10 and 1 or 0))/0.4)*0.22+ cost_car_ERP_second + central_dummy*3

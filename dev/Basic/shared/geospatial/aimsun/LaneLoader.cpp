@@ -10,9 +10,8 @@
 
 #include "util/GeomHelpers.hpp"
 #include "util/DynamicVector.hpp"
-#include "geospatial/RoadNetwork.hpp"
-#include "geospatial/RoadSegment.hpp"
-#include "geospatial/Link.hpp"
+#include "geospatial/network/RoadSegment.hpp"
+#include "geospatial/network/Link.hpp"
 #include "logging/Log.hpp"
 
 
@@ -34,6 +33,7 @@ namespace {
  */
 void SortLaneLine(vector<Lane*>& laneLine, std::pair<Node*, Node*> nodes)
 {
+/*
 	//Quality control
 	size_t oldSize = laneLine.size();
 	
@@ -82,11 +82,14 @@ void SortLaneLine(vector<Lane*>& laneLine, std::pair<Node*, Node*> nodes)
 	} else {
 		laneLine.insert(laneLine.begin(), res.begin(), res.end());
 	}
+*/
 }
 
 
 //Helpers for Lane construction
-struct LaneSingleLine { //Used to represent a set of Lanes by id.
+struct LaneSingleLine 
+{
+	//Used to represent a set of Lanes by id.
 	vector<Lane*> points;
 	LaneSingleLine() : angle(0), minDist(0) {}
 	LaneSingleLine(const vector<Lane*>& mypoints) : angle(0), minDist(0) {
@@ -104,7 +107,7 @@ struct LaneSingleLine { //Used to represent a set of Lanes by id.
 		Lane* pastLane = nullptr;
 		for (vector<Lane*>::iterator currLane=points.begin(); currLane!=points.end(); currLane++) {
 			if (pastLane) {
-				double currLen = sim_mob::dist(pastLane, *currLane);
+				double currLen = 0;//sim_mob::dist(pastLane, *currLane);
 				if (currLen > maxLen) {
 					maxLen = currLen;
 					angle = ComputeAngle(pastLane, *currLane);
@@ -119,6 +122,7 @@ struct LaneSingleLine { //Used to represent a set of Lanes by id.
 	double angle;
 	double minDist;
 };
+
 struct LinkHelperStruct {
 	Node* start;
 	Node* end;
@@ -128,6 +132,7 @@ struct LinkHelperStruct {
 
 vector<LinkHelperStruct> buildLinkHelperStruct(map<int, Node>& nodes, map<int, Section>& sections)
 {
+/*
 	//We can index on anything. We'll do a "start,end" index, and just check for both.
 	map<std::pair<sim_mob::Node*, sim_mob::Node*>, LinkHelperStruct> res;
 
@@ -209,6 +214,7 @@ vector<LinkHelperStruct> buildLinkHelperStruct(map<int, Node>& nodes, map<int, S
 	}
 
 	return actRes;
+*/
 }
 
 
@@ -222,7 +228,7 @@ double getClosestPoint(const vector<Lane*>& candidates, double xPos, double yPos
 	//Search
 	pair<double, Lane*> res(0.0, nullptr);
 	for (vector<Lane*>::const_iterator it=candidates.begin(); it!=candidates.end(); it++) {
-		double currDist = sim_mob::dist(&origin, *it);
+		double currDist = 0;//sim_mob::dist(&origin, *it);
 		if (!res.second || currDist<res.first) {
 			res.first = currDist;
 			res.second = *it;
@@ -310,7 +316,7 @@ Lane* GetX_EstPoint(Lane* from, const vector<Lane*>& points, int sign)
 {
 	pair<Lane*, double> res(nullptr, 0.0);
 	for (vector<Lane*>::const_iterator it=points.begin(); it!=points.end(); it++) {
-		double currDist = sim_mob::dist(from, *it);
+		double currDist = 0;//sim_mob::dist(from, *it);
 		if (!res.first || currDist*sign < res.second*sign) {
 			res.first = *it;
 			res.second = currDist;
@@ -332,6 +338,7 @@ Lane* GetFarthestPoint(Lane* from, const vector<Lane*>& points)
 
 void OrganizePointsInDrivingDirection(bool drivesOnLHS, Node* start, Node* end, vector<Lane*>& points)
 {
+/*
 	//Step 1: retrieve the two endpoints
 	pair<Lane*, Lane*> endpoints;
 	endpoints.first = GetFarthestPoint(points[0], points);
@@ -355,6 +362,7 @@ void OrganizePointsInDrivingDirection(bool drivesOnLHS, Node* start, Node* end, 
 		curr = GetNearestPoint(curr, points);
 	}
 	points.insert(points.begin(), res.begin(), res.end());
+*/
 }
 
 
@@ -443,6 +451,7 @@ pair<Lane, Lane> ComputeMedianEndpoints(bool drivesOnLHS, Node* start, Node* end
 
 bool LanesWithinBounds(const vector<Lane*>& lanes, const pair<DynamicVector, DynamicVector>& bounds)
 {
+/*
 	pair<DynamicVector, DynamicVector> bounds2;
 	bounds2.first = DynamicVector(bounds.first.getX(), bounds.first.getY(), bounds.second.getX(), bounds.second.getY());
 	bounds2.second = DynamicVector(bounds.first.getEndX(), bounds.first.getEndY(), bounds.second.getEndX(), bounds.second.getEndY());
@@ -459,7 +468,7 @@ bool LanesWithinBounds(const vector<Lane*>& lanes, const pair<DynamicVector, Dyn
 			return false;
 		}
 	}
-
+*/
 	//All points are within the bounds.
 	return true;
 }
@@ -590,7 +599,7 @@ void CalculateSectionLanes(pair<Section*, Section*> currSectPair, const Node* co
 		//Calculate "offsets" for the origin. This occurs if either the start or end is a MultiNode start/end.
 		//The offset is the distance from the node's center to the median point.
 		pair<double, double> originOffsets(0.0, 0.0);
-		if (currSect->fromNode==startNode) {
+		/*if (currSect->fromNode==startNode) {
 			originOffsets.first = sim_mob::dist(&medianEndpoints.first, startNode);
 		} else if (currSect->fromNode==endNode) {
 			originOffsets.first = sim_mob::dist(&medianEndpoints.first, startNode);
@@ -599,7 +608,7 @@ void CalculateSectionLanes(pair<Section*, Section*> currSectPair, const Node* co
 			originOffsets.second = sim_mob::dist(&medianEndpoints.second, endNode);
 		} else if (currSect->toNode==endNode) {
 			originOffsets.second = sim_mob::dist(&medianEndpoints.second, endNode);
-		}
+		}*/
 
 		//TEMP: For now, our "median" point is somewhat in error, so we manually scale it back to 20m
 		if (originOffsets.first) {
@@ -614,7 +623,7 @@ void CalculateSectionLanes(pair<Section*, Section*> currSectPair, const Node* co
 			for (size_t laneID=0; laneID<=(size_t)currSect->numLanes; laneID++) {
 				//Ensure our vector is sized properly
 				while (currSect->lanePolylinesForGenNode.size()<=laneID) {
-					currSect->lanePolylinesForGenNode.push_back(std::vector<sim_mob::Point2D>());
+					currSect->lanePolylinesForGenNode.push_back(std::vector<sim_mob::Point>());
 				}
 
 				//Create a vector in the direction of the ending point.
@@ -632,8 +641,8 @@ void CalculateSectionLanes(pair<Section*, Section*> currSectPair, const Node* co
 				laneVect.scaleVectTo(remMag);
 
 				//Add the starting point, ending point
-				sim_mob::Point2D startPt((int)laneVect.getX(), (int)laneVect.getY());
-				sim_mob::Point2D endPt((int)laneVect.getEndX(), (int)laneVect.getEndY());
+				sim_mob::Point startPt((int)laneVect.getX(), (int)laneVect.getY());
+				sim_mob::Point endPt((int)laneVect.getEndX(), (int)laneVect.getEndY());
 				currSect->lanePolylinesForGenNode[laneID].push_back(startPt);
 				currSect->lanePolylinesForGenNode[laneID].push_back(endPt);
 
@@ -682,6 +691,7 @@ void sim_mob::aimsun::LaneLoader::GenerateLinkLanes(const sim_mob::RoadNetwork& 
 //  polyline for each Segment representing the median.
 void sim_mob::aimsun::LaneLoader::GenerateLinkLaneZero(const sim_mob::RoadNetwork& rn, Node* start, Node* end, set<Section*> linkSections)
 {
+/*
 	//Step 1: Retrieve candidate endpoints. For each Lane_Id in all Segments within this Link,
 	//        get the point closest to the segment's start or end node. If this point is within X
 	//        cm of the start/end, it becomes a candidate point.
@@ -804,5 +814,6 @@ void sim_mob::aimsun::LaneLoader::GenerateLinkLaneZero(const sim_mob::RoadNetwor
 
 		}
 	}
+*/
 }
 

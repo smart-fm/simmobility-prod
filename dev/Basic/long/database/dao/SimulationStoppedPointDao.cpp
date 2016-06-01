@@ -10,7 +10,7 @@
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
-SimulationStoppedPointDao::SimulationStoppedPointDao(DB_Connection& connection): SqlAbstractDao<SimulationStoppedPoint>(connection, DB_TABLE_SIM_STOPPED_POINT, EMPTY_STR,EMPTY_STR, EMPTY_STR, EMPTY_STR, EMPTY_STR) {
+SimulationStoppedPointDao::SimulationStoppedPointDao(DB_Connection& connection): SqlAbstractDao<SimulationStoppedPoint>(connection, "", EMPTY_STR,EMPTY_STR, EMPTY_STR, EMPTY_STR, EMPTY_STR) {
 }
 
 SimulationStoppedPointDao::~SimulationStoppedPointDao() {

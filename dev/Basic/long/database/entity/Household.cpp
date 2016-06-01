@@ -19,17 +19,17 @@ using namespace sim_mob::long_term;
 Household::Household( BigSerial id, BigSerial lifestyleId, BigSerial unitId, BigSerial ethnicityId, BigSerial vehicleCategoryId,  int size, int childUnder4, int childUnder15, int adult, double income,
 					  int housingDuration,int workers, int ageOfHead, int pendingStatusId,std::tm pendingFromDate,int unitPending,bool twoRoomHdbEligibility, bool threeRoomHdbEligibility,
 					  bool fourRoomHdbEligibility, int familyType, bool taxiAvailability,  int vehicleOwnershipOptionId, double logsum, double currentUnitPrice, double householdAffordabilityAmount,
-					  int buySellInterval, std::tm moveInDate,int timeOnMarket,int timeOffMarket,int isBidder,int isSeller,int hasMoved, int tenureStatus): id(id), lifestyleId(lifestyleId), unitId(unitId),
+					  int buySellInterval, std::tm moveInDate,int timeOnMarket,int timeOffMarket,int isBidder,int isSeller,int hasMoved, int tenureStatus, int awakenedDay, bool existInDB): id(id), lifestyleId(lifestyleId), unitId(unitId),
 					  ethnicityId(ethnicityId), vehicleCategoryId(vehicleCategoryId),size(size), childUnder4(childUnder4), childUnder15(childUnder15), adult(adult),income(income),  housingDuration(housingDuration),
 					  workers(workers), ageOfHead(ageOfHead), pendingStatusId(pendingStatusId),pendingFromDate(pendingFromDate),unitPending(unitPending),twoRoomHdbEligibility(twoRoomHdbEligibility),
 					  threeRoomHdbEligibility(threeRoomHdbEligibility),  fourRoomHdbEligibility(fourRoomHdbEligibility),familyType(familyType), taxiAvailability(taxiAvailability),
 					  vehicleOwnershipOptionId(vehicleOwnershipOptionId), logsum(logsum), currentUnitPrice(currentUnitPrice),  householdAffordabilityAmount(householdAffordabilityAmount), buySellInterval(buySellInterval),
-					  moveInDate(moveInDate),  timeOnMarket(timeOnMarket),timeOffMarket(timeOffMarket),isBidder(isBidder),isSeller(isSeller),hasMoved(hasMoved), tenureStatus(tenureStatus){}
+					  moveInDate(moveInDate),  timeOnMarket(timeOnMarket),timeOffMarket(timeOffMarket),isBidder(isBidder),isSeller(isSeller),hasMoved(hasMoved), tenureStatus(tenureStatus), awakenedDay(awakenedDay), existInDB(existInDB){}
 
 Household::Household(): id(0), lifestyleId(0), unitId(0), ethnicityId(0), vehicleCategoryId(0),size(0), childUnder4(0), childUnder15(0), adult(0),income(0), housingDuration(0), workers(0), ageOfHead(0),
 						pendingStatusId(0),pendingFromDate(std::tm()),unitPending(0), twoRoomHdbEligibility(0), threeRoomHdbEligibility(0), fourRoomHdbEligibility(0), familyType(0),taxiAvailability(false),
 						vehicleOwnershipOptionId(0), logsum(0),  currentUnitPrice(0),householdAffordabilityAmount(0),buySellInterval(0), moveInDate(std::tm()),timeOnMarket(0),timeOffMarket(0),isBidder(0),
-						isSeller(0),hasMoved(0), tenureStatus(0){}
+						isSeller(0),hasMoved(0), tenureStatus(0), awakenedDay(0),existInDB(false){}
 
 
 Household::~Household() {}
@@ -64,6 +64,7 @@ Household& Household::operator=(const Household& source)
     this->buySellInterval = source.buySellInterval;
     this->moveInDate = source.moveInDate;
     this->tenureStatus = source.tenureStatus;
+    this->awakenedDay = source.awakenedDay;
 
     return *this;
 }
@@ -289,14 +290,14 @@ void Household::setTaxiAvailability(bool taxiAvailable)
 	taxiAvailability = taxiAvailable;
 }
 
-void Household::setVehicleOwnershipOptionId(int vehicleOwnershipOption)
-{
-	this->vehicleOwnershipOptionId = vehicleOwnershipOption;
-}
-
 int Household::getVehicleOwnershipOptionId()
 {
 	return this->vehicleOwnershipOptionId;
+}
+
+void Household::setVehicleOwnershipOptionId(int vehicleOwnershipOption)
+{
+	this->vehicleOwnershipOptionId = vehicleOwnershipOption;
 }
 
 void Household::setAffordabilityAmount(double value)
@@ -412,6 +413,26 @@ void Household::setHasMoved(int hasMove)
 int Household::getTenureStatus() const
 {
 	return tenureStatus;
+}
+
+int Household::getAwaknedDay() const
+{
+	return this->awakenedDay;
+}
+
+void Household::setAwakenedDay(int awakenDay)
+{
+	this->awakenedDay = awakenDay;
+}
+
+bool Household::getExistInDB() const
+{
+	return this->existInDB;
+}
+
+void Household::setExistInDB(bool exist)
+{
+	this->existInDB = exist;
 }
 
 namespace sim_mob

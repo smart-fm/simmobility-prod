@@ -42,10 +42,6 @@ namespace sim_mob {
             void toRow(Unit& data, db::Parameters& outParams, bool update);
 
         public:
-            /*
-             * @return the maximum unit id from the database.
-             */
-            BigSerial getMaxUnitId();
 
             void insertUnit(Unit& unit,std::string schema);
 

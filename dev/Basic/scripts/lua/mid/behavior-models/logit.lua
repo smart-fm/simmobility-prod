@@ -105,6 +105,9 @@ function make_final_choice(probability)
 		cum_prob = cum_prob + p
 		table.insert(choices_prob, cum_prob)
 	end
+	if cum_prob == 0 then
+		return -1
+	end
 	idx = binary_search(choices_prob, math.random()) 
 	return choices[idx]
 end
@@ -123,4 +126,33 @@ function compute_mnl_logsum(utility, availability)
 		evsum = evsum + ev	
 	end
 	return math.log(evsum)
+end
+
+function compute_nl_logsum(choiceset, utility, availables, scales)
+	local evmu = {}
+	local evsum = {}
+	local probability = {}
+	local exp = math.exp
+	local pow = math.pow
+	for nest,choices in pairs(choiceset) do
+		local mu = scales[nest]
+		local nest_evsum = 0
+		for i,c in ipairs(choices) do
+			if utility[c] ~= utility[c] then 
+				utility[c] = 0
+				availables[c] = 0
+			end
+			local evmuc = availables[c] * exp(mu*utility[c])
+			evmu[c] = evmuc
+			nest_evsum = nest_evsum + evmuc
+		end
+		evsum[nest] = nest_evsum
+	end
+		
+	sum_evsum_pow_muinv = 0
+	for nest,val in pairs(evsum) do
+		local mu = scales[nest]
+		sum_evsum_pow_muinv = sum_evsum_pow_muinv + pow(evsum[nest], (1/mu))
+	end
+	return math.log(sum_evsum_pow_muinv)
 end

@@ -113,5 +113,6 @@ public:
 	 */
 	bool getAll(std::map<int, int>& outList);
 };
+
 } // end namespace medium
 } // end namespace sim_mob

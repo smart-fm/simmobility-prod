@@ -10,6 +10,7 @@
 
 #include "buffering/Shared.hpp"
 #include "conf/settings/DisableMPI.h"
+#include "entities/Person_ST.hpp"
 #include "entities/roles/Role.hpp"
 #include "entities/vehicle/Vehicle.hpp"
 #include "entities/roles/driver/models/CarFollowModel.hpp"
@@ -22,20 +23,17 @@
 
 #include "DriverUpdateParams.hpp"
 #include "DriverFacets.hpp"
-#include "geospatial/TurningSection.hpp"
 
 namespace sim_mob
 {
 
 //Forward declarations
-class Pedestrian;
 class Signal;
 class Link;
 class RoadSegment;
 class Lane;
 class Node;
-class MultiNode;
-class DPoint;
+class Point;
 class UpdateParams;
 class DriverBehavior;
 class DriverMovement;
@@ -46,265 +44,261 @@ class UnPackageUtils;
 #endif
 
 /**
-   * \author Wang Xinyuan
-   * \author Li Zhemin
-   * \author Runmin Xu
-   * \author Seth N. Hetu
-   * \author Luo Linbo
-   * \author LIM Fung Chai
-   * \author Zhang Shuai
-   * \author Xu Yan
-   */
-  class Driver : public sim_mob::Role , public UpdateWrapper<DriverUpdateParams>
-  {
-  private:
+ * \author Wang Xinyuan
+ * \author Li Zhemin
+ * \author Runmin Xu
+ * \author Seth N. Hetu
+ * \author Luo Linbo
+ * \author LIM Fung Chai
+ * \author Zhang Shuai
+ * \author Xu Yan
+ */
 
-    //Internal classes
-    //Helper class for grouping a Node and a Point2D together.
-    class NodePoint
-    {
-    public:
-      Point2D point;
-      const Node* node;
+class Driver : public Role<Person_ST>, public UpdateWrapper<DriverUpdateParams>
+{
+private:
+	/**
+	 * Indicates whether the driver is in a loading queue. There isn't actually any data structure to represent this
+	 * queue. We use the fact that at every time tick, agents are going to be processed sequentially anyway.
+	 * If true, it means that there is no space for it on the road.
+	 */
+	bool isVehicleInLoadingQueue;
 
-      NodePoint() : point(0, 0), node(nullptr)
-      {
-      }
-    } ;
+	/**Indicates whether the position of the vehicle has been found.*/
+	bool isVehiclePositionDefined;
 
-    //Indicates whether the driver is in a loading queue. There isn't actually any data structure to represent this
-    //queue. We use the fact that at every time tick, agents are going to be processed sequentially anyway.
-    //If this boolean is true, it means that there is no space for it on the road.
-    bool isVehicleInLoadingQueue;
+	/**Indicates whether we are yielding to another driver at a conflict in the intersection*/
+	int yieldingToInIntersection;
 
-    //Indicates whether the position of the vehicle has been found.
-    bool isVehiclePositionDefined;
+	/**Represents the vehicle this driver is controlling.*/
+	Vehicle *vehicle;	
 
-    //Indicates whether we are yielding to another driver at a conflict in the intersection
-    int yieldingToInIntersection;
+	/**Pointer to the Driver object that is performing 'nosing'. (Current driver is 'yielding')*/
+	const Driver *yieldingToDriver;
 
-    //Pointer to the vehicle this driver is controlling.
-    Vehicle* vehicle;
+	/**Rection time of the driver*/
+	unsigned int reactionTime;
 
-    friend class DriverBehavior;
-    friend class DriverMovement;
-    
-  protected:
-    
-    //Current position of the Driver
-    DPoint currPos;
+	/**The origin of the driver's trip*/
+	const Node *origin;
 
-  public:
-    
-    //Constant distance values used for looking ahead / behind
-    const static int distanceInFront = 3000;
-    const static int distanceBehind = 5000;
-    const static int maxVisibleDis = 5000;
+	/**The destination of the driver's trip*/
+	const Node *destination;
 
-    /*Buffered data
-     These values are stored the double buffer because they are needed by other drivers.*/
-    
-    //The driver's current lane
-    Shared<const Lane*> currLane_;
-    
-    //Indicates whether the driver is in an intersection
-    Shared<bool> isInIntersection_;
-    
-    //Pointer to a turning object. The driver is either on the turning (if in intersection) or will be
-    //soon (currently approaching an intersection)
-    Shared<const TurningSection*> currTurning_;
-    
-    //Represents the distance covered within an intersection (in centimetre)
-    Shared<double> moveDisOnTurning_;
-    
-    //Represents the distance to be covered in order to reach the approaching intersection (in metre)
-    Shared<double> distToIntersection_;
-    
-    //Represents the distance to be covered in order to reach the end of the current segment (in centimetre)
-    Shared<double> distToCurrSegmentEnd_;
-    
-    //Represents the distance covered on the current road segment (in centimetre)
-    Shared<double> currLaneOffset_;
-    
-    //Represents the total length of the current road segment (in centimetre)
-    Shared<double> currLaneLength_;
-    
-    //Represents the lateral movement distance of the vehicle (in centimetre)
-    Shared<double> latMovement_;
-    
-    //Represents the forward speed of the vehicle (centimetre/second)
-    Shared<double> fwdVelocity_;
-    
-    //Represents the lateral velocity of the vehicle (centimetre/second)
-    Shared<double> latVelocity_;
-    
-    //Represents the acceleration of the vehicle (centimetre/second^2)
-    Shared<double> fwdAccel_;
-    
-    //Indicates the lane changing move that the driver is going to make
-    Shared<LANE_CHANGE_SIDE> turningDirection_;
+	/**Perceived value of forward velocity*/
+	FixedDelayed<double> *perceivedFwdVel;
 
-    //The distance covered along the current road segment (in centimetre)
-    double currDistAlongRoadSegment;
+	/**Perceived value of the acceleration*/
+	FixedDelayed<double> *perceivedFwdAcc;
 
-    //Pointer to the Driver object that is performing 'nosing'. (Current driver is 'yielding')
-    Driver* yieldVehicle;
-    
-    //Rection time of the driver
-    size_t reactionTime;
-    
-    //Perceived value of forward velocity
-    FixedDelayed<double> *perceivedFwdVel;
-    
-    //Perceived value of the acceleration
-    FixedDelayed<double> *perceivedFwdAcc;
-    
-    //Perceived value of the velocity of the vehicle in front
-    FixedDelayed<double> *perceivedVelOfFwdCar;
-    
-    //Perceived value acceleration of the vehicle in front
-    FixedDelayed<double> *perceivedAccOfFwdCar;
-    
-    //Perceived distance to the vehicle in front
-    FixedDelayed<double> *perceivedDistToFwdCar;
-    
-    //The perceived colour of the traffic signal
-    FixedDelayed<sim_mob::TrafficColor> *perceivedTrafficColor;
-    
-    //The perceived distance to the traffic signal
-    FixedDelayed<double> *perceivedDistToTrafficSignal;
+	/**Perceived value of the velocity of the vehicle in front*/
+	FixedDelayed<double> *perceivedVelOfFwdCar;
 
-    //The origin of the driver's trip
-    NodePoint origin;
-    
-    //The destination of the driver's trip
-    NodePoint goal;
+	/**Perceived value acceleration of the vehicle in front*/
+	FixedDelayed<double> *perceivedAccOfFwdCar;
 
-    //For FMOD request
-    Shared<std::string> stop_event_time;
-    Shared<int> stop_event_type;
-    Shared<int> stop_event_scheduleid;
-    Shared<int> stop_event_nodeid;
-    Shared<std::vector<int> > stop_event_lastBoardingPassengers;
-    Shared<std::vector<int> > stop_event_lastAlightingPassengers;
+	/**Perceived distance to the vehicle in front*/
+	FixedDelayed<double> *perceivedDistToFwdCar;
 
-    //Constructor and public member functions
-    Driver(Person* parent, sim_mob::MutexStrategy mtxStrat, sim_mob::DriverBehavior* behavior = nullptr,
-           sim_mob::DriverMovement* movement = nullptr, Role::type roleType_ = RL_DRIVER, std::string roleName_ = "driver");
+	/**The perceived colour of the traffic signal*/
+	FixedDelayed<TrafficColor> *perceivedTrafficColor;
 
-    virtual ~Driver();
+	/**The perceived distance to the traffic signal*/
+	FixedDelayed<double> *perceivedDistToTrafficSignal;
 
-    //Initialises the reaction time of the driver and the perception delays based on the reaction time
-    void initReactionTime();
+	/**
+	 * Buffered data.
+	 * These values are stored the double buffer because they are needed by other drivers.
+	 */
 
-    //Updates the information held by the current driver about a nearby driver
-    void handleUpdateRequest(MovementFacet* mFacet);
+	/**The driver's current lane*/
+	Shared<const Lane*> currLane_;
 
-    //Returns true if the vehicle associated with this driver is a bus, else returns false
-    bool isBus();
+	/**Indicates whether the driver is in an intersection*/
+	Shared<bool> isInIntersection_;
 
-    //Calculates and returns the gap between the current driver and the given driver. The gap calculated
-    //is in terms of seconds (i.e. headway)
-    //CAUTION: The driver in "front" and this driver may not be in the same lane (it could be in the left
-    //or right neighbour lane), but the two have to be in either the same segment or in adjoining segment downstream
-    double gapDistance(const Driver* front);
+	/**The current turning. If not NULL, the driver is on the turning*/
+	Shared<const TurningPath *> currTurning_;
 
-    //Getter to the vehicle object controlled by the driver. Returns a constant pointer.
-    const Vehicle* getVehicle() const
-    {
-      return vehicle;
-    }
+	/**The expected turning. If not NULL, the driver is approaching the intersection and will probably take this turning*/
+	Shared<const TurningPath *> expectedTurning_;
 
-    //Setter for the vehicle object controlled by the driver
-    void setVehicle(Vehicle *vehicle)
-    {
-      safe_delete_item(this->vehicle);
-      this->vehicle = vehicle;
-    }
-    
-    //Getter to the vehicle object controlled by the driver.
-    Vehicle* getVehicle()
-    {
-      return vehicle;
-    }
+	/**Represents the distance covered on the current way point, which is either a segment or a turning group (in metre)*/
+	Shared<double> distCoveredOnCurrWayPt_;
 
-    //Getter to the length of the vehicle being driven by this driver (in centimetre). Returns a constant value.
-    const double getVehicleLengthCM() const
-    {
-      return vehicle->getLengthCm();
-    }
+	/**Represents the distance to be covered in order to reach the approaching intersection (in metre)*/
+	Shared<double> distToIntersection_;
 
-    //Getter to the length of the vehicle being driven by this driver (in metre). Returns a constant value.
-    const double getVehicleLengthM() const
-    {
-      return getVehicleLengthCM() / 100.0;
-    }
+	/**Represents the lateral movement distance of the vehicle (in metre)*/
+	Shared<double> latMovement_;
 
-    //Getter to the isVehicleInLoadingQueue flag. Returns true if the vehicle is still in the loading queue.
-    bool IsVehicleInLoadingQueue()
-    {
-      return isVehicleInLoadingQueue;
-    }
+	/**Represents the forward speed of the vehicle (m/s)*/
+	Shared<double> fwdVelocity_;
 
-    //Returns the forward velocity of the vehicle (in metre/second)
-    const double getFwdVelocityM() const;
+	/**Represents the lateral velocity of the vehicle (m/s)*/
+	Shared<double> latVelocity_;
 
-    //Returns the current position of the driver
-    const DPoint& getCurrPosition() const;
-
-    //Sets a new path from the current segment to the destination.
-    //NOTE: Used only by road-runner. The vehicle will restart from the start of the current segment
-    void rerouteWithPath(const std::vector<sim_mob::WayPoint>& path);
-
-    //Sets the current position of the driver
-    void setCurrPosition(DPoint currPosition);
-
-    //Sets the reaction time of the driver to the one provided (in milli-seconds). 
-    //Also resets the perception delays accordingly.
-    void resetReactionTime(double timeMS);
+	/**Represents the acceleration of the vehicle (m/s^2)*/
+	Shared<double> fwdAccel_;
 	
-	//Setter for yieldingToInIntersection
-    void setYieldingToInIntersection(int);
+	/**Represents the density observed in the current lane*/
+	Shared<double> laneDensity_;
 
-    //Getter for yieldingToInIntersection
-    int getYieldingToInIntersection() const;
+	friend class DriverBehavior;
+	friend class DriverMovement;
 
-    /*Overridden functions*/
+protected:
+	/**Current position of the Driver*/
+	Point currPos;
 	
-	//Creates and initialises the movement and behaviour objects required for the Driver role,
-	//assigns them to a new driver and returns a pointer to the driver.
-    virtual sim_mob::Role* clone(sim_mob::Person* parent) const;
+	/**Indicates whether the driver is a bus driver*/
+	bool isBusDriver;
 
-	//Resets the dirver parameters object
-    virtual void make_frame_tick_params(timeslice now);
+public:
+	Driver(Person_ST *parent, MutexStrategy mtxStrat, DriverBehavior* behavior = nullptr, DriverMovement* movement = nullptr,
+		Role<Person_ST>::Type roleType_ = Role<Person_ST>::RL_DRIVER, std::string roleName_ = "driver");
+	virtual ~Driver();
 
-	//Creates a vector of the subscription parameters and returns it
-    virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
+	const Driver* getYieldingToDriver() const;
+	void setYieldingToDriver(const Driver *driver);
 
-	//Creates a vector of the subscription parameters specific to FMOD and returns it
-    virtual std::vector<sim_mob::BufferedBase*> getDriverInternalParams();
+	const Lane* getCurrLane() const;
 
-    //Handler for the parent event from other agents
-    virtual void onParentEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args);
+	const Point& getCurrPosition() const;
+	void setCurrPosition(Point currPosition);
 
-    ///Reroute around a blacklisted set of RoadSegments. See Role's comments for more information.
-    virtual void rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment*>& blacklisted);
-    
-    //Message handler which provide a chance to handle message transfered from parent agent
-    virtual void HandleParentMessage(messaging::Message::MessageType type, const messaging::Message& message);
+	int getYieldingToInIntersection() const;
+	void setYieldingToInIntersection(int);
 
-    //Serialization
+	double getDistCoveredOnCurrWayPt() const;
+	double getDistToIntersection() const;
+
+	const double getFwdVelocity() const;
+	const double getFwdAcceleration() const;
+	
+	const double getDensity() const;
+
+	/**Initialises the reaction time of the driver and the perception delays based on the reaction time*/
+	void initReactionTime();
+
+	/**
+	 * Updates the information held by the current driver about a nearby driver
+	 *
+     * @param mFacet the movement facet
+     */
+	void handleUpdateRequest(MovementFacet *mFacet);
+
+	/**
+	 * Checks whether the driver is a bus driver
+	 * 
+     * @return true if the driver is driving a bus, else returns false
+     */
+	bool IsBusDriver();
+
+	/**
+	 * Calculates and returns the gap between the current driver and the given driver. The gap calculated
+	 * is in terms of seconds (i.e. headway)
+	 *
+	 * NOTE: The driver in "front" and this driver may not be in the same lane (it could be in the left
+	 * or right neighbour lane), but the two have to be in either the same segment or in adjoining segment downstream
+	 *
+     * @param front the driver in front
+     *
+	 * @return the calculated gap (headway)
+     */
+	double gapDistance(const Driver *front);
+
+	/**
+	 * Sets the reaction time of the driver to the one provided (in milli-seconds).
+	 * Also resets the perception delays accordingly.
+	 * 
+     * @param time time in milli-seconds
+     */
+	void resetReactionTime(double time);
+
+	/**
+	 * Creates and initialises the movement and behaviour objects required for the Driver role,
+	 * assigns them to a new driver and returns a pointer to the driver.
+     *
+	 * @param parent the person who will be taking up the requested role
+     *
+	 * @return the created role
+     */
+	virtual Role* clone(Person_ST* parent) const;
+
+	/**
+	 * Resets the driver parameters object
+     *
+	 * @param now the time frame for which the parameters are to be reset
+     */
+	virtual void make_frame_tick_params(timeslice now);
+
+	/**
+	 * Creates a vector of the subscription parameters and returns it
+	 *
+     * @return vector of the subscription parameters
+     */
+	virtual std::vector<BufferedBase *> getSubscriptionParams();
+
+	/**
+	 * Handler for the parent event from other agents
+	 * 
+     * @param eventId event identifier
+     * @param ctxId context identifier
+     * @param sender the sender of the event
+     * @param args event arguments
+     */
+	virtual void onParentEvent(event::EventId eventId, event::Context ctxId, event::EventPublisher *sender, const event::EventArgs &args);
+
+	/**
+	 * Reroute around a blacklisted set of links.
+	 *
+     * @param blacklisted the blacklisted links
+     */
+	virtual void rerouteWithBlacklist(const std::vector<const Link *> &blacklisted);
+
+	/**
+	 * Sets a new path from the current segment to the destination.
+	 * NOTE: Used only by road-runner. The vehicle will restart from the start of the current segment
+     *
+	 * @param path the new path
+     */
+	void rerouteWithPath(const std::vector<WayPoint>& path);
+
+	const Vehicle* getVehicle() const
+	{
+		return vehicle;
+	}
+
+	Vehicle* getVehicle()
+	{
+		return vehicle;
+	}
+
+	void setVehicle(Vehicle *vehicle)
+	{
+		safe_delete_item(this->vehicle);
+		this->vehicle = vehicle;
+	}
+
+	const double getVehicleLength() const
+	{
+		return vehicle->getLengthInM();
+	}
+
+	bool IsVehicleInLoadingQueue() const
+	{
+		return isVehicleInLoadingQueue;
+	}
+
 #ifndef SIMMOB_DISABLE_MPI
-  public:
-    virtual void pack(PackageUtils& packageUtil);
-    virtual void unpack(UnPackageUtils& unpackageUtil);
+	//Serialization
+	virtual void pack(PackageUtils& packageUtil);
+	virtual void unpack(UnPackageUtils& unpackageUtil);
 
-    virtual void packProxy(PackageUtils& packageUtil);
-    virtual void unpackProxy(UnPackageUtils& unpackageUtil);
+	virtual void packProxy(PackageUtils& packageUtil);
+	virtual void unpackProxy(UnPackageUtils& unpackageUtil);
 #endif
 
-  } ;
-
-
-
+};
 }

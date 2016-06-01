@@ -52,7 +52,7 @@ namespace
     }
 }
 
-EventsInjector::EventsInjector() : Entity(-1) {}
+EventsInjector::EventsInjector() : Entity(-1), model(nullptr){}
 
 EventsInjector::~EventsInjector() {}
 
@@ -61,7 +61,17 @@ bool EventsInjector::isNonspatial()
     return false;
 }
 
-void EventsInjector::buildSubscriptionList(vector<BufferedBase*>& subsList) {}
+void EventsInjector::setModel(HM_Model *value)
+{
+	model = value;
+}
+
+HM_Model* EventsInjector::getModel()
+{
+	return model;
+}
+
+std::vector<sim_mob::BufferedBase*> EventsInjector::buildSubscriptionList() {}
 
 void EventsInjector::onWorkerEnter() {}
 
@@ -73,9 +83,7 @@ Entity::UpdateStatus EventsInjector::update(timeslice now)
     
     vector<ExternalEvent> events;
     AwakeningSubModel awakenings;
-
-    events = awakenings.DailyAwakenings(now.ms());
-
+    events = awakenings.DailyAwakenings( now.ms(), getModel() );
 
     AgentsLookup& lookup = AgentsLookupSingleton::getInstance();
     const HouseholdAgent* householdAgent = nullptr;

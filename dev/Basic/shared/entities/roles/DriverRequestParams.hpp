@@ -6,6 +6,7 @@
 
 #include "entities/misc/BusTrip.hpp"
 #include "entities/Agent.hpp"
+#include "entities/TravelTimeManager.hpp"
 
 namespace sim_mob {
 
@@ -27,7 +28,7 @@ struct DriverRequestParams {
 		existedRequest_Mode(nullptr), lastVisited_Busline(nullptr), lastVisited_BusTrip_SequenceNo(nullptr),
 		busstop_sequence_no(nullptr), real_ArrivalTime(nullptr), DwellTime_ijk(nullptr),
 		lastVisited_BusStop(nullptr), last_busStopRealTimes(nullptr), waiting_Time(nullptr),
-		travelStatsMap(nullptr), agentID(nullptr), xPos(nullptr), yPos(nullptr), isAtStop(nullptr),
+		agentID(nullptr), xPos(nullptr), yPos(nullptr), isAtStop(nullptr),
 		boardingPassengers(nullptr), alightingPassengers(nullptr)
 	{}
 
@@ -40,7 +41,6 @@ struct DriverRequestParams {
 	sim_mob::Shared<const sim_mob::BusStop*>* lastVisited_BusStop;
 	sim_mob::Shared<BusStopRealTimes>* last_busStopRealTimes;
 	sim_mob::Shared<double>* waiting_Time;
-	sim_mob::Shared< std::map<double, sim_mob::Agent::linkTravelStats> >* travelStatsMap;
 	sim_mob::Shared<int>* agentID;
 	sim_mob::Shared<int>* xPos;
 	sim_mob::Shared<int>* yPos;
@@ -60,7 +60,6 @@ struct DriverRequestParams {
 		push_non_null(res, lastVisited_BusStop);
 		push_non_null(res, last_busStopRealTimes);
 		push_non_null(res, waiting_Time);
-		push_non_null(res, travelStatsMap);
 		push_non_null(res, agentID);
 		push_non_null(res, xPos);
 		push_non_null(res, yPos);

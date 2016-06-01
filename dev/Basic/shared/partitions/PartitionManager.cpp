@@ -164,7 +164,7 @@ void sim_mob::PartitionManager::setBoundaryProcessor(BoundaryProcessor* boundary
 //		{
 //			Person* p = const_cast<Person*> (person);
 //			//init random seed
-//			p->dynamic_seed = one_agent->getId();
+//			p->dynamicSeed = one_agent->getId();
 //
 //			//update pedestrain speed
 //			Pedestrian* pedestrian = dynamic_cast<Pedestrian*> (p->getRole());

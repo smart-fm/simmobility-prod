@@ -17,7 +17,7 @@ using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
 ParcelDao::ParcelDao(DB_Connection& connection)
-: SqlAbstractDao<Parcel>(connection, DB_TABLE_PARCEL,DB_INSERT_PARCEL, EMPTY_STR, EMPTY_STR,DB_GETALL_PARCELS, DB_GETBYID_PARCEL) {}
+: SqlAbstractDao<Parcel>(connection, DB_TABLE_PARCEL,"", EMPTY_STR, EMPTY_STR,DB_GETALL_PARCELS, DB_GETBYID_PARCEL) {}
 
 ParcelDao::~ParcelDao() {}
 

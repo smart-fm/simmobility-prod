@@ -4,14 +4,16 @@
 
 #pragma once
 #include "conf/settings/DisableMPI.h"
-#include "Driver.hpp"
+#include "entities/conflux/Conflux.hpp"
 #include "DriverUpdateParams.hpp"
 #include "entities/roles/RoleFacets.hpp"
 #include "entities/conflux/SegmentStats.hpp"
 #include "MesoPathMover.hpp"
 
-namespace sim_mob {
-namespace medium {
+namespace sim_mob
+{
+namespace medium
+{
 
 class Driver;
 
@@ -21,9 +23,10 @@ class Driver;
  * \author Melani Jayasuriya
  * \author Harish Loganathan
  */
-class DriverBehavior: public sim_mob::BehaviorFacet {
+class DriverBehavior : public BehaviorFacet
+{
 public:
-	explicit DriverBehavior(sim_mob::Person* parentAgent = nullptr);
+	explicit DriverBehavior();
 	virtual ~DriverBehavior();
 
 	/**
@@ -31,26 +34,29 @@ public:
 	 */
 	virtual void frame_init();
 	virtual void frame_tick();
-	virtual void frame_tick_output();
+	virtual std::string frame_tick_output();
 
-	sim_mob::medium::Driver* getParentDriver() const {
+	Driver* getParentDriver() const
+	{
 		return parentDriver;
 	}
 
-	void setParentDriver(sim_mob::medium::Driver* parentDriver) {
-		if(!parentDriver) {
+	void setParentDriver(Driver* parentDriver)
+	{
+		if (!parentDriver)
+		{
 			throw std::runtime_error("parentDriver cannot be NULL");
 		}
 		this->parentDriver = parentDriver;
 	}
 
-	sim_mob::medium::Driver* getParentDriver();
+	Driver* getParentDriver();
 
 protected:
 	/**
 	 * Pointer to the parent Driver role.
 	 */
-	sim_mob::medium::Driver* parentDriver;
+	Driver* parentDriver;
 
 };
 
@@ -60,33 +66,39 @@ protected:
  * \author Melani Jayasuriya
  * \author Harish Loganathan
  */
-class DriverMovement: public sim_mob::MovementFacet {
+class DriverMovement : public MovementFacet
+{
 public:
-	explicit DriverMovement(sim_mob::Person* parentAgent = nullptr);
+	explicit DriverMovement();
 	virtual ~DriverMovement();
 
 	//virtual overrides
 	virtual void frame_init();
 	virtual void frame_tick();
-	virtual void frame_tick_output();
-	virtual sim_mob::Conflux* getStartingConflux() const;
+	virtual std::string frame_tick_output();
+	virtual Conflux* getStartingConflux() const;
 
-	sim_mob::medium::Driver* getParentDriver() const {
+	Driver* getParentDriver() const
+	{
 		return parentDriver;
 	}
 
-	void setParentDriver(sim_mob::medium::Driver* parentDriver) {
-		if(!parentDriver) {
+	void setParentDriver(Driver* parentDriver)
+	{
+		if (!parentDriver)
+		{
 			throw std::runtime_error("parentDriver cannot be NULL");
 		}
 		this->parentDriver = parentDriver;
 	}
 
-	const MesoPathMover & getMesoPathMover() const{
+	const MesoPathMover & getMesoPathMover() const
+	{
 		return pathMover;
 	}
 
-	MesoPathMover & getMesoPathMover() {
+	MesoPathMover & getMesoPathMover()
+	{
 		return pathMover;
 	}
 
@@ -109,23 +121,28 @@ protected:
 	 * to collect the metrics collected during the previous
 	 * role's period.
 	 */
-	//
 	virtual TravelMetric& finalizeTravelTimeMetric();
 
 
 	/**
 	 * Process CBD information where a segment in the path has been traversed
-	 * @param  completedRS the completed Road Segment
-	 * @param  nextRS the next Road Segment to be visited next(if any)
+	 * @param  completedLink the completed Link
+	 * @param  nextLink the next Link to be visited next(if any)
 	 * @return Travel Metrics member object
 	 */
+	virtual TravelMetric& processCBD_TravelMetrics(const Link* completedLink, const Link* nextLink);
 
-	virtual TravelMetric& processCBD_TravelMetrics(const sim_mob::RoadSegment* completedRS, const sim_mob::RoadSegment* nextRS);
+	/**
+	 * For moving into a new link after getting permission from the managing conflux
+	 *
+	 * @param params driver update params for current tick
+	 */
+	virtual void flowIntoNextLinkIfPossible(DriverUpdateParams& params);
 
 	/**
 	 * Pointer to the parent Driver role.
 	 */
-	sim_mob::medium::Driver* parentDriver;
+	Driver* parentDriver;
 
 	MesoPathMover pathMover;
 	const Lane* currLane;
@@ -135,18 +152,11 @@ protected:
 	mutable std::stringstream DebugStream;
 
 	/**
-	 * For moving into a new link after getting permission from the managing conflux
-	 *
-	 * @param params driver update params for current tick
-	 */
-	void flowIntoNextLinkIfPossible(DriverUpdateParams& params);
-
-	/**
 	 * sets fields in the parent person so that the conflux can manage the person
 	 *
 	 * @param params driver update params for current tick
 	 */
-	void setParentData(DriverUpdateParams& params);	///<set next data to parent buffer data
+	void setParentData(DriverUpdateParams& params); ///<set next data to parent buffer data
 
 	/**
 	 * adds to the time spent by driver in current tick
@@ -176,7 +186,7 @@ protected:
 	 * @param  completedRS the completed Road Segment
 	 * @param  nextRS the next Road Segment to be visited next(if any)
 	 */
-	virtual void onSegmentCompleted(const sim_mob::RoadSegment* completedRS, const sim_mob::RoadSegment* nextRS);
+	virtual void onSegmentCompleted(const RoadSegment* completedRS, const RoadSegment* nextRS);
 
 	/**
 	 * Handle the event where a Link in the path has been traversed
@@ -184,7 +194,7 @@ protected:
 	 * @param  nextLink the next link to be visited next(if any)
 	 */
 
-	virtual void onLinkCompleted(const sim_mob::Link * completedLink, const sim_mob::Link * nextLink);
+	virtual void onLinkCompleted(const Link * completedLink, const Link * nextLink);
 
 	/**
 	 * checks whether the driver can move into the next segment in path
@@ -194,7 +204,7 @@ protected:
 	 * @param nextLink the immediate link downstream to nextSegStats
 	 * @return true if driver can move into the next segment; false otherwise
 	 */
-	bool canGoToNextRdSeg(DriverUpdateParams& params, const sim_mob::SegmentStats* nextSegStats, const Link* nextLink = nullptr) const;
+	bool canGoToNextRdSeg(DriverUpdateParams& params, const SegmentStats* nextSegStats, const Link* nextLink = nullptr) const;
 
 	/**
 	 * sets position of driver in queue
@@ -241,7 +251,7 @@ protected:
 	 * @param segStats segment stats corresponding to lane l's segment
 	 * @return num. of vehicles that can move out
 	 */
-	int getOutputCounter(const Lane* lane, const sim_mob::SegmentStats* segStats);
+	int getOutputCounter(const Lane* lane, const SegmentStats* segStats);
 
 	/**
 	 * set number of vehicles that can move out of a lane in this tick
@@ -250,13 +260,13 @@ protected:
 	 * @param count new value of outpur counter
 	 * @param segStats segStats segment stats corresponding to lane l's segment
 	 */
-	void setOutputCounter(const Lane* lane, int count, const sim_mob::SegmentStats* segStats);
+	void setOutputCounter(const Lane* lane, int count, const SegmentStats* segStats);
 
 	double getOutputFlowRate(const Lane* lane);
-	double getAcceptRate(const Lane* lane, const sim_mob::SegmentStats* segStats);
+	double getAcceptRate(const Lane* lane, const SegmentStats* segStats);
 	double getQueueLength(const Lane* lane);
-	double getLastAccept(const Lane* lane, const sim_mob::SegmentStats* segStats);
-	void setLastAccept(const Lane* lane, double lastAccept, const sim_mob::SegmentStats* segStats);
+	double getLastAccept(const Lane* lane, const SegmentStats* segStats);
+	void setLastAccept(const Lane* lane, double lastAccept, const SegmentStats* segStats);
 
 	/**
 	 * update flow of segment segStats
@@ -264,25 +274,18 @@ protected:
 	 * @param startPos position of driver at the start of the tick
 	 * @param endPos final position of driver
 	 */
-	void updateFlow(const sim_mob::SegmentStats* segStats, double startPos, double endPos);
+	void updateFlow(const SegmentStats* segStats, double startPos, double endPos);
 
 	/**
 	 * accepts a list of WayPoint-s and returns a list of SegmentStats* corresponding
 	 * to RoadSegment* in the list of WayPoint.
 	 */
-	void initSegStatsPath(std::vector<sim_mob::WayPoint>& input,
-			std::vector<const sim_mob::SegmentStats*>& output);
+	void initSegStatsPath(std::vector<WayPoint>& input, std::vector<const SegmentStats*>& output) const;
 	/**
 	 * overload of the above
 	 */
-	void initSegStatsPath(const std::vector<const sim_mob::RoadSegment*>& input,
-			std::vector<const sim_mob::SegmentStats*>& output);
-
-	/**
-	 * randomly chooses the starting segment from the first link of the path
-	 * @param path the path for which first segment has to be randomized
-	 */
-	void randomizeStartingSegment(std::vector<sim_mob::WayPoint>& path);
+	void initSegStatsPath(const std::vector<const RoadSegment*>& input,
+						std::vector<const SegmentStats*>& output);
 
 	/**
 	 * constructs the path for this driver if required.
@@ -324,9 +327,7 @@ protected:
 	 * @param nextToNextSegStats second segment stats ahead from the current
 	 * @return best lane in nextSegStats
 	 */
-	virtual const sim_mob::Lane* getBestTargetLane(
-			const sim_mob::SegmentStats* nextSegStats,
-			const sim_mob::SegmentStats* nextToNextSegStats);
+	virtual const Lane* getBestTargetLane(const SegmentStats* nextSegStats, const SegmentStats* nextToNextSegStats);
 
 	/**
 	 * Updates travel time for this driver for the link which he has just exited from.
@@ -334,7 +335,7 @@ protected:
 	 * @param prevSeg the last segment in the link from which the driver has just exited
 	 * @param linkExitTimeSec time at which the link was exited
 	 */
-	void updateLinkTravelTimes(const sim_mob::SegmentStats* prevSegStat, double linkExitTimeSec);
+	void updateLinkTravelTimes(const SegmentStats* prevSegStat, double linkExitTimeSec);
 
 	/**
 	 * Updates travel time for this driver for the road segment which he has just exited from.
@@ -342,7 +343,7 @@ protected:
 	 * @param prevSeg the last segment in the link from which the driver has just exited
 	 * @param linkExitTimeSec time at which the link was exited
 	 */
-	void updateRdSegTravelTimes(const sim_mob::SegmentStats* prevSegStat, double segEnterExitTime);
+	void updateScreenlineCounts(const SegmentStats* prevSegStat, double segEnterExitTime);
 
 	/**
 	 * get number of intersections between the agent's location and incident location
@@ -351,9 +352,12 @@ protected:
 	 * \param remaining lists of segstats from the original path which are remaining to reach to each of the suggested re-routing point
 	 * return the number of intersections
 	 */
-	int findReroutingPoints(const std::vector<sim_mob::SegmentStats*>& stats,std::map<const sim_mob::Node*, std::vector<const sim_mob::SegmentStats*> > & remaining) const;
+	int findReroutingPoints(const RoadSegment* rdSeg, std::map<const Node*, std::vector<const SegmentStats*> > & remaining) const;
 
-	bool wantReRoute(){return true;};//placeholder
+	bool wantReRoute()
+	{
+		return true;
+	}; //placeholder
 
 	/**
 	 * Changes the Travel Path
@@ -370,14 +374,14 @@ protected:
 	void reroute(const InsertIncidentMessage &msg);
 
 	///tries to remove the uturn if any
-	bool UTurnFree(std::vector<WayPoint> & oldPath, std::vector<const sim_mob::SegmentStats*> & newPath, sim_mob::SubTrip & subTrip, std::set<const sim_mob::RoadSegment*> & excludeRS);
+	bool UTurnFree(std::vector<WayPoint> & oldPath, std::vector<const SegmentStats*> & newPath, SubTrip & subTrip, std::set<const RoadSegment*> & excludeRS);
 
 	///checks to see if it is possible to join an old path to a new one
 	///it even tries to create a second new path  it the check fails once
-	bool canJoinPaths(std::vector<WayPoint> & oldPath, std::vector<const sim_mob::SegmentStats*> & newPath, sim_mob::SubTrip & subTrip, std::set<const sim_mob::RoadSegment*> & excludeRS);
+	bool canJoinPaths(std::vector<WayPoint> & oldPath, std::vector<const SegmentStats*> & newPath, SubTrip & subTrip, std::set<const Link*> & excludeRS);
 
 	//checks if there is a uturn
-	bool hasUTurn(std::vector<WayPoint> & oldPath, std::vector<const sim_mob::SegmentStats*> & newPath);
+	bool hasUTurn(std::vector<WayPoint> & oldPath, std::vector<const SegmentStats*> & newPath);
 
 	/**
 	 * message handler which provide a chance to handle message transfered from parent agent.
@@ -391,7 +395,7 @@ protected:
 	 * @param nextSegStats the next segment stats for driver
 	 * @return next link for driver
 	 */
-	const sim_mob::Link* getNextLinkForLaneChoice(const SegmentStats* nextSegStats) const;
+	const Link* getNextLinkForLaneChoice(const SegmentStats* nextSegStats) const;
 	friend class MesoReroute;
 
 };

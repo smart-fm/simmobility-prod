@@ -107,6 +107,8 @@ namespace sim_mob
 
             void setMovInWaitingTimeInDays(int days);
 
+            void setUnitIdToBeOwned(BigSerial unitId);
+
         protected:
 
             /**

@@ -1,76 +1,19 @@
 #pragma once
-#include "geospatial/WayPoint.hpp"
-#include "util/DailyTime.hpp"
-#include "geospatial/UniNode.hpp"
-#include "geospatial/MultiNode.hpp"
+
+#include <sstream>
+
+#include "geospatial/network/WayPoint.hpp"
+#include "geospatial/network/Node.hpp"
 
 namespace sim_mob
 {
-class RoadSegment;
-
-struct RdSegTravelTimes
+enum PT_EdgeType
 {
-public:
-	double travelTimeSum;
-	unsigned int agCnt;
-
-	RdSegTravelTimes(double rdSegTravelTime, unsigned int agentCount)
-	: travelTimeSum(rdSegTravelTime), agCnt(agentCount) {}
+	UNKNOWN_EDGE,
+	WALK_EDGE,
+	BUS_EDGE,
+	TRAIN_EDGE
 };
-namespace TT
-{
-	struct TimeAndCount
-	{
-		///	total travel time
-		double totalTravelTime;
-
-		///	total count of contributions to travel time
-		unsigned int travelTimeCnt;
-
-		TimeAndCount():totalTravelTime(0.0),travelTimeCnt(0){}
-	};
-
-	///	time interval
-	typedef unsigned int TI;
-
-	/*******************************************************************************
-	 * ************* In Simulation Travel Time Collection **************************
-	 *******************************************************************************/
-	///	the heart of the final container holding accumulated travel time
-	typedef std::map<const sim_mob::RoadSegment*,TimeAndCount > RSTC;
-
-	/// part of the data structure used in travel time collection mechanism
-	typedef std::map<std::string , RSTC >  MRTC;//MTITC=> M:mode, TI:Time Interval, T:time, C:count
-
-	///	final container for collecting in simulation data:
-	///	map[time interval][travel mode][road segment][pair(total-time , number-of-records)]
-	typedef std::map<TI,MRTC> TravelTimeCollector;
-
-	/*******************************************************************************
-	 * ********** Average Travel Time Collection from previous Simulations *********
-	 *******************************************************************************/
-
-	///	part of the structure used for retrieving the stored travel time (average) from database
-	typedef std::map<std::string , std::map<const sim_mob::RoadSegment*,double > >  MST;//MST:M:mode, S:segment, T:time-average
-
-	///	map[time interval][travel mode][road segment][average travel time]
-	typedef std::map<TI,MST> TravelTimeStore;
-}
-
-///	typedef of TT namespace structures
-/**
- * Container used for TravelTime collection during simulation     :
- * [road segment][travel mode][time interval][average travel time]
- * <-----RS-----><-------------------MTITC----------------------->
- */
-typedef sim_mob::TT::TravelTimeCollector TravelTime;
-
-/**
- * Container used to retrieve Previous travel time data stored in external source(database)
- * [time interval][travel mode][road segment][average travel time]
- * <-----TI-----> <-------------------MST------------------------>
- */
-typedef sim_mob::TT::TravelTimeStore AverageTravelTime;
 }
 
 
@@ -93,7 +36,7 @@ public:
 		origin(origin), destination(destination)
 	{
 		std::stringstream str("");
-		str << origin.node_->getID() << "," << destination.node_->getID();
+		str << origin.node->getNodeId() << "," << destination.node->getNodeId();
 		odIdStr = str.str();
 	}
 
@@ -101,7 +44,7 @@ public:
 		origin(sim_mob::WayPoint(origin)), destination(sim_mob::WayPoint(destination))
 	{
 		std::stringstream str("");
-		str << origin->getID() << "," << destination->getID();
+		str << origin->getNodeId() << "," << destination->getNodeId();
 		odIdStr = str.str();
 	}
 

@@ -51,7 +51,7 @@ namespace sim_mob {
             /**
              * Inherited from Agent.
              */
-            bool frame_init(timeslice now);
+            UpdateStatus frame_init(timeslice now);
             sim_mob::Entity::UpdateStatus frame_tick(timeslice now);
             void frame_output(timeslice now);
             bool isNonspatial();    

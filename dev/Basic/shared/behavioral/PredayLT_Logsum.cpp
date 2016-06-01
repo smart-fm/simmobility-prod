@@ -236,6 +236,8 @@ PredayPersonParams sim_mob::PredayLT_LogsumManager::computeLogsum(long individua
 		return PredayPersonParams();
 	}
 
+	bool printedError = false;
+
 	if(personParams.hasFixedWorkPlace())
 	{
 		int workLoc = workLoc = personParams.getFixedWorkLocation();
@@ -251,7 +253,9 @@ PredayPersonParams sim_mob::PredayLT_LogsumManager::computeLogsum(long individua
 		catch(...)
 		{
 			orgZnParams = new ZoneParams();
-			std::cout << homeLoc << " taz cannot be found" << std::endl;
+
+			//std::cout << "individualId: " << individualId << " " << homeLoc << " taz cannot be found" << std::endl;
+			//printedError = true;
 		}
 
 		try
@@ -261,7 +265,11 @@ PredayPersonParams sim_mob::PredayLT_LogsumManager::computeLogsum(long individua
 		catch(...)
 		{
 			destZnParams = new ZoneParams();
-			std::cout << workLoc  << " taz cannot be found" << std::endl;
+
+			//if( !printedError )
+			//	std::cout << "individualId: " << individualId << " " << workLoc  << " taz cannot be found. destznparam" << std::endl;
+
+			printedError = true;
 		}
 
 		if(homeLoc != workLoc)
@@ -273,7 +281,11 @@ PredayPersonParams sim_mob::PredayLT_LogsumManager::computeLogsum(long individua
 			catch(...)
 			{
 				amCostParams = new CostParams();
-				std::cout << workLoc << " or " << homeLoc << " taz cannot be found" << std::endl;
+
+				//if( !printedError )
+				//	std::cout << "individualId: " << individualId << " " << workLoc << " or " << homeLoc << " taz cannot be found. amcostparam" << std::endl;
+
+				printedError = true;
 			}
 
 			try
@@ -283,7 +295,11 @@ PredayPersonParams sim_mob::PredayLT_LogsumManager::computeLogsum(long individua
 			catch(...)
 			{
 				pmCostParams = new CostParams();
-				std::cout << workLoc << " or " << homeLoc << " taz cannot be found" << std::endl;
+
+				//if( !printedError )
+				//	std::cout << "individualId: " << individualId << " " << workLoc << " or " << homeLoc << " taz cannot be found. pmcostparam" << std::endl;
+
+				printedError = true;
 			}
 
 		}
@@ -300,7 +316,10 @@ PredayPersonParams sim_mob::PredayLT_LogsumManager::computeLogsum(long individua
 	}
 	catch(...)
 	{
-		std::cout << zoneLookupItr->second << " taz cannot be found" << std::endl;
+		//if( !printedError )
+		//	std::cout << "individualId: " << individualId << " " << zoneLookupItr->second << " taz cannot be found. cbdorgzone" << std::endl;
+
+		printedError = true;
 	}
 
 

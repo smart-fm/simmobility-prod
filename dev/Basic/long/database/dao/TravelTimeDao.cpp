@@ -30,7 +30,6 @@ void TravelTimeDao::toRow(TravelTime& data, Parameters& outParams, bool update) 
 
 const TravelTime* TravelTimeDao::getTravelTimeByOriginDest(BigSerial origin, BigSerial destination)
 {
-	//const std::string queryStr = "SELECT * FROM " + DB_TABLE_TRAVEL_TIME + LIMIT;
 	db::Parameters params;
 	params.push_back(origin);
 	params.push_back(destination);

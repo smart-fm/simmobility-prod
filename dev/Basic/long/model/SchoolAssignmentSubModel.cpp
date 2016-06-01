@@ -10,6 +10,7 @@
 #include "message/MessageBus.hpp"
 #include "util/SharedFunctions.hpp"
 #include "database/dao/TravelTimeDao.hpp"
+#include "util/PrintLog.hpp"
 
 using namespace sim_mob;
 using namespace sim_mob::long_term;
@@ -18,20 +19,6 @@ using namespace sim_mob::messaging;
 SchoolAssignmentSubModel::SchoolAssignmentSubModel(HM_Model *model): model(model){}
 
 SchoolAssignmentSubModel::~SchoolAssignmentSubModel() {}
-
-inline void writePreSchoolAssignmentsToFile(BigSerial hhId,BigSerial individualId,BigSerial schoolId)
-{
-	boost::format fmtr = boost::format("%1%, %2%, %3%") % hhId % individualId % schoolId;
-	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_PRE_SCHOOL_ASSIGNMENT,fmtr.str());
-
-}
-
-inline void writeSchoolAssignmentsToFile(BigSerial individualId,BigSerial priSchoolId)
-{
-	boost::format fmtr = boost::format("%1%, %2%") % individualId % priSchoolId;
-	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_SCHOOL_ASSIGNMENT,fmtr.str());
-
-}
 
 void SchoolAssignmentSubModel::assignPrimarySchool(const Household *household,BigSerial individualId, HouseholdAgent *hhAgent, int day)
 {
@@ -140,7 +127,7 @@ void SchoolAssignmentSubModel::assignPrimarySchool(const Household *household,Bi
 	{
 		if ((pTemp < randomNum) && (randomNum < (pTemp + (*probSchoolItr).second)))
 		{
-			selectedSchoolId = (*probSchoolItr).first;
+			selectedSchoolId = probSchoolItr->first;
 			break;
 		}
 		else
@@ -268,7 +255,7 @@ void SchoolAssignmentSubModel::reAllocatePrimarySchoolStudents(BigSerial individ
 		{
 			if ((pTemp < randomNum) && (randomNum < (pTemp + (*probSchoolItr).second)))
 			{
-				selectedSchoolId = (*probSchoolItr).first;
+				selectedSchoolId = probSchoolItr->first;
 				PrimarySchool *priSchool = model->getPrimarySchoolById(selectedSchoolId);
 				priSchool->addSelectedStudent(individualId);
 				writeSchoolAssignmentsToFile(individualId,selectedSchoolId);

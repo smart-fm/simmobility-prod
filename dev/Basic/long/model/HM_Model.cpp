@@ -48,6 +48,11 @@
 #include "database/dao/SimulationStoppedPointDao.hpp"
 #include "database/dao/BidDao.hpp"
 #include "database/dao/VehicleOwnershipChangesDao.hpp"
+#include "database/dao/HouseholdPlanningAreaDao.hpp"
+#include "database/dao/SchoolAssignmentCoefficientsDao.hpp"
+#include "database/dao/PrimarySchoolDao.hpp"
+#include "database/dao/PreSchoolDao.hpp"
+#include "database/dao/HHCoordinatesDao.hpp"
 #include "database/dao/HouseholdUnitDao.hpp"
 #include "agent/impl/HouseholdAgent.hpp"
 #include "event/SystemEvents.hpp"
@@ -290,6 +295,30 @@ Individual* HM_Model::getIndividualById(BigSerial id) const
 	IndividualMap::const_iterator itr = individualsById.find(id);
 
 	if (itr != individualsById.end())
+	{
+		return (*itr).second;
+	}
+
+	return nullptr;
+}
+
+Individual* HM_Model::getPrimaySchoolIndById(BigSerial id) const
+{
+	IndividualMap::const_iterator itr = primarySchoolIndById.find(id);
+
+	if (itr != primarySchoolIndById.end())
+	{
+		return (*itr).second;
+	}
+
+	return nullptr;
+}
+
+Individual* HM_Model::getPreSchoolIndById(BigSerial id) const
+{
+	IndividualMap::const_iterator itr = preSchoolIndById.find(id);
+
+	if (itr != preSchoolIndById.end())
 	{
 		return (*itr).second;
 	}
@@ -1091,6 +1120,19 @@ void HM_Model::startImpl()
 		loadData<IndividualDao>(conn, individuals, individualsById,	&Individual::getId);
 		PrintOutV("Initial Individuals: " << individuals.size() << std::endl);
 
+		IndividualDao indDao(conn);
+		primarySchoolIndList = indDao.getPrimarySchoolIndividual();
+		//Index all primary school inds.
+		for (IndividualList::iterator it = primarySchoolIndList.begin(); it != primarySchoolIndList.end(); it++) {
+			primarySchoolIndById.insert(std::make_pair((*it)->getId(), *it));
+		}
+
+		preSchoolIndList = indDao.getPreSchoolIndividual();
+		//Index all pre school inds.
+		for (IndividualList::iterator it = preSchoolIndList.begin(); it != preSchoolIndList.end(); it++) {
+			preSchoolIndById.insert(std::make_pair((*it)->getId(), *it));
+		}
+
 		//Load households
 		loadData<HouseholdDao>(conn, households, householdsById, &Household::getId);
 		PrintOutV("Number of households: " << households.size() << ". Households used: " << households.size()  << std::endl);
@@ -1181,6 +1223,21 @@ void HM_Model::startImpl()
 
 		loadData<OwnerTenantMovingRateDao>( conn, ownerTenantMovingRate, ownerTenantMovingRateById, &OwnerTenantMovingRate::getId );
 		PrintOutV("Number of Owner Tenant Moving Rate rows: " << ownerTenantMovingRate.size() << std::endl );
+
+		loadData<HouseholdPlanningAreaDao>( conn, hhPlanningAreaList, hhPlanningAreaMap, &HouseholdPlanningArea::getHouseHoldId);
+	    PrintOutV("Number of household planning area rows: " << hhPlanningAreaList.size() << std::endl );
+
+	    loadData<HHCoordinatesDao>( conn, hhCoordinates, hhCoordinatesById, &HHCoordinates::getHouseHoldId);
+	    PrintOutV("Number of household coordinate rows: " << hhCoordinates.size() << std::endl );
+
+	    loadData<SchoolAssignmentCoefficientsDao>( conn, schoolAssignmentCoefficients, SchoolAssignmentCoefficientsById, &SchoolAssignmentCoefficients::getParameterId);
+	    PrintOutV("Number of School Assignment Coefficients rows: " << schoolAssignmentCoefficients.size() << std::endl );
+
+	    loadData<PrimarySchoolDao>( conn, primarySchools, primarySchoolById, &PrimarySchool::getSchoolId);
+	    PrintOutV("Number of Primary School rows: " << primarySchools.size() << std::endl );
+
+	    loadData<PreSchoolDao>( conn, preSchools, preSchoolById, &PreSchool::getPreSchoolId);
+	    PrintOutV("Number of Pre School rows: " << preSchools.size() << std::endl );
 
 		loadData<AlternativeHedonicPriceDao>( conn, alternativeHedonicPrice, alternativeHedonicPriceById, &AlternativeHedonicPrice::getId );
 		PrintOutV("Number of Alternative Hedonic Price rows: " << alternativeHedonicPrice.size() << std::endl );
@@ -1273,7 +1330,6 @@ void HM_Model::startImpl()
 
 
 	int homelessHousehold = 0;
-
 	//
 	// 1. Create Household Agents.
 	// 2. Assign households to the units.
@@ -1302,7 +1358,7 @@ void HM_Model::startImpl()
 			}
 		}
 
-		HouseholdAgent* hhAgent = new HouseholdAgent(household->getId(), this,	household, &market, false, startDay, config.ltParams.housingModel.householdBiddingWindow);
+		HouseholdAgent* hhAgent = new HouseholdAgent(household->getId(), this,	household, &market, false, startDay, config.ltParams.housingModel.householdBiddingWindow,0);
 
 		if (resumptionHH != nullptr)
 		{
@@ -2228,9 +2284,98 @@ VehicleOwnershipChanges* HM_Model::getVehicleOwnershipChangesByHHId(BigSerial ho
 	return nullptr;
 }
 
+HM_Model::HouseholdPlanningAreaList HM_Model::getHouseholdPlanningAreaList() const
+{
+	return this->hhPlanningAreaList;
+}
+
+HouseholdPlanningArea* HM_Model::getHouseholdPlanningAreaByHHId(BigSerial houseHoldId) const
+{
+	HouseholdPlanningAreaMap::const_iterator itr = hhPlanningAreaMap.find(houseHoldId);
+
+	if (itr != hhPlanningAreaMap.end())
+	{
+		return (*itr).second;
+	}
+
+	return nullptr;
+}
+
+HM_Model::SchoolAssignmentCoefficientsList HM_Model::getSchoolAssignmentCoefficientsList() const
+{
+	return this->schoolAssignmentCoefficients;
+}
+
 void HM_Model::setLastStoppedDay(int stopDay)
 {
 	lastStoppedDay = stopDay;
+}
+
+int HM_Model::getLastStoppedDay()
+{
+	return lastStoppedDay;
+}
+
+SchoolAssignmentCoefficients* HM_Model::getSchoolAssignmentCoefficientsById( BigSerial id) const
+{
+	SchoolAssignmentCoefficientsMap::const_iterator itr = SchoolAssignmentCoefficientsById.find(id);
+
+	if (itr != SchoolAssignmentCoefficientsById.end())
+	{
+		return itr->second;
+	}
+
+	return nullptr;
+}
+
+HM_Model::PrimarySchoolList HM_Model::getPrimarySchoolList() const
+{
+	return this->primarySchools;
+}
+
+PrimarySchool* HM_Model::getPrimarySchoolById( BigSerial id) const
+{
+	PrimarySchoolMap::const_iterator itr = primarySchoolById.find(id);
+
+	if (itr != primarySchoolById.end())
+	{
+		return itr->second;
+	}
+
+	return nullptr;
+}
+
+HM_Model::HHCoordinatesList HM_Model::getHHCoordinatesList() const
+{
+	return this->hhCoordinates;
+}
+
+HHCoordinates* HM_Model::getHHCoordinateByHHId(BigSerial houseHoldId) const
+{
+	HM_Model::HHCoordinatesMap::const_iterator itr = hhCoordinatesById.find(houseHoldId);
+
+	if (itr != hhCoordinatesById.end())
+	{
+		return itr->second;
+	}
+
+	return nullptr;
+}
+
+HM_Model::PreSchoolList HM_Model::getPreSchoolList() const
+{
+	return this->preSchools;
+}
+
+PreSchool* HM_Model::getPreSchoolById( BigSerial id) const
+{
+	PreSchoolMap::const_iterator itr = preSchoolById.find(id);
+
+	if (itr != preSchoolById.end())
+	{
+		return itr->second;
+	}
+	return nullptr;
 }
 
 HouseholdUnit* HM_Model::getHouseholdUnitByHHId(BigSerial hhId) const

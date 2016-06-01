@@ -323,5 +323,19 @@ namespace sim_mob
 	        //PrintOut(fmtr.str() << endl);
 	    }
 
+	    inline void writePreSchoolAssignmentsToFile(BigSerial hhId,BigSerial individualId,BigSerial schoolId)
+	    {
+	    	boost::format fmtr = boost::format("%1%, %2%, %3%") % hhId % individualId % schoolId;
+	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_PRE_SCHOOL_ASSIGNMENT,fmtr.str());
+
+	    }
+
+	    inline void writeSchoolAssignmentsToFile(BigSerial individualId,BigSerial priSchoolId)
+	    {
+	    	boost::format fmtr = boost::format("%1%, %2%") % individualId % priSchoolId;
+	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_SCHOOL_ASSIGNMENT,fmtr.str());
+
+	    }
+
 	}
 }

@@ -635,13 +635,19 @@ bool HouseholdBidderRole::pickEntryToBid()
     	HousingMarket::ConstEntryList::const_iterator itr = screenedEntries.begin() + offset;
         const HousingMarket::Entry* entry = *itr;
 
-        if(entry && entry->getOwner() != getParent() && entry->getAskingPrice() > 0.01 )
+        if( entry->getAskingPrice() < 0.01 )
+        {
+        	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, (boost::format( "[unit %1%] Asking price is suspiciously low at %2%.") % entry->getUnitId() % entry->getAskingPrice() ).str());
+        }
+
+        if(entry && entry->getOwner() != getParent() )
         {
             const Unit* unit = model->getUnitById(entry->getUnitId());
             const HM_Model::TazStats* stats = model->getTazStatsByUnitId(entry->getUnitId());
 
             bool flatEligibility = true;
 
+            /*
             if( unit && unit->getUnitType() == 2 && household->getTwoRoomHdbEligibility()  == false)
             	flatEligibility = false;
 
@@ -650,6 +656,7 @@ bool HouseholdBidderRole::pickEntryToBid()
 
             if( unit && unit->getUnitType() == 4 && household->getFourRoomHdbEligibility() == false )
                 flatEligibility = false;
+			*/
 
             if( unit && stats && flatEligibility )
             {

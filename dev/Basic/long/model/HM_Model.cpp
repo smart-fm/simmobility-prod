@@ -1679,6 +1679,11 @@ void HM_Model::getLogsumOfHousehold(BigSerial householdId2)
 		if( !hitsSample )
 			return;
 
+		Household *currentHousehold = getHouseholdById( householdId );
+
+		if( !currentHousehold )
+			return;
+
 		std::string householdHitsIdStr = hitsSample->getHouseholdHitsId();
 
 		if( processedHouseholdHitsLogsum.find( householdHitsIdStr ) != processedHouseholdHitsLogsum.end() )

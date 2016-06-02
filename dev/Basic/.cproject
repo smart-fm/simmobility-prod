@@ -185,7 +185,7 @@
 			</target>
 			<target name="CMake [D.3] Long" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 				<buildCommand>cmake</buildCommand>
-				<buildArguments>-E chdir "${ProjDirPath}/Debug" cmake  ../  -DCMAKE_BUILD_TYPE:STRING=Debug -DBUILD_SHORT:BOOL=OFF -DBUILD_MEDIUM:BOOL=OFF -DBUILD_LONG:BOOL=ON -DBUILD_TESTS:BOOL=OFF -DBUILD_TESTS_LONG:BOOL=ON</buildArguments>
+				<buildArguments>-E chdir "${ProjDirPath}/Debug" cmake  ../  -DCMAKE_BUILD_TYPE:STRING=Debug -DBUILD_SHORT:BOOL=OFF -DBUILD_MEDIUM:BOOL=OFF -DBUILD_LONG:BOOL=ON -DBUILD_TESTS:BOOL=OFF -DBUILD_TESTS_LONG:BOOL=OFF</buildArguments>
 				<stopOnError>true</stopOnError>
 				<useDefaultCommand>false</useDefaultCommand>
 				<runAllBuilders>false</runAllBuilders>

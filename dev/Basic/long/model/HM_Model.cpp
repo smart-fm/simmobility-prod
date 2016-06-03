@@ -1686,10 +1686,10 @@ void HM_Model::getLogsumOfHousehold(BigSerial householdId2)
 
 		std::string householdHitsIdStr = hitsSample->getHouseholdHitsId();
 
-		if( processedHouseholdHitsLogsum.find( householdHitsIdStr ) != processedHouseholdHitsLogsum.end() )
-			return;
-		else
-			processedHouseholdHitsLogsum.insert( householdHitsIdStr );
+		//if( processedHouseholdHitsLogsum.find( householdHitsIdStr ) != processedHouseholdHitsLogsum.end() )
+		//	return;
+		//else
+		//	processedHouseholdHitsLogsum.insert( householdHitsIdStr );
 
 		PrintOutV("Logsum index: " << simulationStopCounter++ << std::endl);
 	}

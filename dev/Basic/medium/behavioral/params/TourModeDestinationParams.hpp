@@ -102,5 +102,161 @@ private:
 	bool firstBound;
 };
 
+/**
+ * Simple class to store information pertaining sub tour model
+ * \note This class is used by the mid-term behavior models.
+ *
+ * \author Harish Loganathan
+ */
+class SubTourParams
+{
+public:
+	SubTourParams(const Tour& tour);
+	virtual ~SubTourParams();
+
+	int isFirstOfMultipleTours() const
+	{
+		return firstOfMultipleTours;
+	}
+
+	void setFirstOfMultipleTours(bool firstOfMultipleTours)
+	{
+		this->firstOfMultipleTours = firstOfMultipleTours;
+	}
+
+	int isSubsequentOfMultipleTours() const
+	{
+		return subsequentOfMultipleTours;
+	}
+
+	void setSubsequentOfMultipleTours(bool subsequentOfMultipleTours)
+	{
+		this->subsequentOfMultipleTours = subsequentOfMultipleTours;
+	}
+
+	int getTourMode() const
+	{
+		return tourMode;
+	}
+
+	void setTourMode(int tourMode)
+	{
+		this->tourMode = tourMode;
+	}
+
+	int isUsualLocation() const
+	{
+		return usualLocation;
+	}
+
+	void setUsualLocation(bool usualLocation)
+	{
+		this->usualLocation = usualLocation;
+	}
+
+	int getSubTourPurpose() const
+	{
+		return subTourPurpose;
+	}
+
+	void setSubTourPurpose(StopType subTourpurpose)
+	{
+		this->subTourPurpose = subTourpurpose;
+	}
+
+	int isCbdDestZone() const
+	{
+		return (cbdDestZone ? 1 : 0);
+	}
+
+	void setCbdDestZone(int cbdDestZone)
+	{
+		this->cbdDestZone = cbdDestZone;
+	}
+
+	int isCbdOrgZone() const
+	{
+		return (cbdOrgZone ? 1 : 0);
+	}
+
+	void setCbdOrgZone(int cbdOrgZone)
+	{
+		this->cbdOrgZone = cbdOrgZone;
+	}
+
+	/**
+	 * make time windows between startTime and endTime available
+	 *
+	 * @param startTime start time of available window
+	 * @param endTime end time of available window
+	 */
+	void initTimeWindows(double startTime, double endTime);
+
+	/**
+	 * get the availability for a time window for tour
+	 *
+	 * @param timeWnd time window index to check availability
+	 *
+	 * @return 0 if time window is not available; 1 if available
+	 *
+	 * NOTE: This function is invoked from the Lua layer. The return type is int in order to be compatible with Lua.
+	 *       Lua does not support boolean types.
+	 */
+	int getTimeWindowAvailability(size_t timeWnd) const;
+
+	/**
+	 * make time windows between startTime and endTime unavailable
+	 *
+	 * @param startTime start time
+	 * @param endTime end time
+	 */
+	void blockTime(double startTime, double endTime);
+
+	/**
+	 * check if all time windows are unavailable
+	 *
+	 * @return true if all time windows are unavailable; false otherwise
+	 */
+	bool allWindowsUnavailable();
+
+private:
+	/**
+	 * mode choice for parent tour
+	 */
+	int tourMode;
+
+	/**
+	 * parent tour is the first of many tours for person
+	 */
+	bool firstOfMultipleTours;
+
+	/**
+	 * parent tour is the 2+ of many tours for person
+	 */
+	bool subsequentOfMultipleTours;
+
+	/**
+	 * parent tour is to a usual location
+	 */
+	bool usualLocation;
+
+	/**
+	 * sub tour type
+	 */
+	StopType subTourPurpose;
+
+	/**
+	 * Time windows available for sub-tour.
+	 */
+	std::vector<sim_mob::medium::TimeWindowAvailability> timeWindowAvailability;
+
+	/**
+	 * bitset of availablilities for fast checking
+	 */
+	std::bitset<1176> availabilityBit;
+
+	int cbdOrgZone;
+	int cbdDestZone;
+};
 } // end namespace medium
 } // end namespace sim_mob

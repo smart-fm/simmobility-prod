@@ -5,8 +5,6 @@
 #include "PersonParams.hpp"
 
 #include <sstream>
-#include <string>
-#include "logging/Log.hpp"
 
 using namespace std;
 using namespace sim_mob;
@@ -16,7 +14,45 @@ namespace
 {
 const int NUM_VALID_INCOME_CATEGORIES = 12;
 const std::vector<long> EMPTY_VECTOR_OF_LONGS = std::vector<long>();
+
+/**
+ * initializes all possible time windows in a day and returns a vector of all windows.
+ */
+std::vector<TimeWindowAvailability> insertAllTimeWindows()
+{
+	// Following values are hard coded for now.
+	double dayStart = 1; //index of first half hour window in a day
+	double dayEnd = 48; //index of last half hour window in a day
+	double stepSz = 1;
+
+	std::vector<TimeWindowAvailability> timeWindows;
+	for (double i = dayStart; i <= dayEnd; i = i + stepSz)
+	{
+		for (double j = i; j <= dayEnd; j = j + stepSz)
+		{
+			timeWindows.push_back(TimeWindowAvailability(i, j));
+		}
+	}
+	return timeWindows;
 }
+
+}
+
+TimeWindowAvailability::TimeWindowAvailability() :
+		startTime(0), endTime(0), availability(false)
+{
+}
+
+TimeWindowAvailability::TimeWindowAvailability(double startTime, double endTime, bool availability) :
+		startTime(startTime), endTime(endTime), availability(availability)
+{
+	if (startTime > endTime)
+	{
+		throw std::runtime_error("Invalid time window; start time cannot be greater than end time");
+	}
+}
+
+const std::vector<TimeWindowAvailability> TimeWindowAvailability::timeWindowsLookup = insertAllTimeWindows();
 
 double sim_mob::medium::PersonParams::incomeCategoryLowerLimits[] = {};
 std::map<int, std::bitset<4> > sim_mob::medium::PersonParams::vehicleCategoryLookup = std::map<int, std::bitset<4> >();
@@ -117,86 +153,14 @@ void sim_mob::medium::PersonParams::setVehicleOwnershipFromCategoryId(int vehicl
 	setMotorOwn(vehOwnershipBits[3]);
 }
 
-void sim_mob::medium::PersonParams::print()
+std::string sim_mob::medium::PersonParams::print()
 {
 	std::stringstream printStrm;
 	printStrm << personId << "," << personTypeId << "," << ageId << "," << isUniversityStudent << "," << hhOnlyAdults << "," << hhOnlyWorkers << ","
 			<< hhNumUnder4 << "," << hasUnder15 << "," << isFemale << "," << incomeId << "," << missingIncome << "," << worksAtHome << "," << carOwn << ","
 			<< carOwnNormal << "," << carOwnOffpeak << "," << motorOwn << "," << workLogSum << "," << eduLogSum << "," << shopLogSum << "," << otherLogSum
 			<< std::endl;
-	Print() << printStrm.str();
-}
-
-int sim_mob::medium::SubTourParams::getTimeWindowAvailability(size_t timeWnd) const
-{
-	return timeWindowAvailability[timeWnd - 1].getAvailability();
-}
-
-void sim_mob::medium::SubTourParams::initTimeWindows(double startTime, double endTime)
-{
-	if (!timeWindowAvailability.empty())
-	{
-		timeWindowAvailability.clear();
-	}
-	size_t index = 0;
-	for (double start = 1; start <= 48; start++)
-	{
-		for (double end = start; end <= 48; end++)
-		{
-			if (start >= startTime && end <= endTime)
-			{
-				timeWindowAvailability.push_back(TimeWindowAvailability(start, end, true));
-				availabilityBit[index] = 1;
-			}
-			else
-			{
-				timeWindowAvailability.push_back(TimeWindowAvailability(start, end, false));
-			}
-			index++;
-		}
-	}
-}
-
-void sim_mob::medium::SubTourParams::blockTime(double startTime, double endTime)
-{
-	if (startTime <= endTime)
-	{
-		size_t index = 0;
-		for (std::vector<TimeWindowAvailability>::iterator i = timeWindowAvailability.begin(); i != timeWindowAvailability.end(); i++, index++)
-		{
-			TimeWindowAvailability& twa = (*i);
-			double start = twa.getStartTime();
-			double end = twa.getEndTime();
-			if ((start >= startTime && start <= endTime) || (end >= startTime && end <= endTime))
-			{
-				twa.setAvailability(false);
-				availabilityBit[index] = 0;
-			}
-		}
-	}
-	else
-	{
-		std::stringstream errStream;
-		errStream << "invalid time window was passed for blocking" << "|start: " << startTime << "|end: " << endTime << std::endl;
-		throw std::runtime_error(errStream.str());
-	}
-}
-
-sim_mob::medium::SubTourParams::SubTourParams(const Tour& parentTour) :
-		subTourPurpose(parentTour.getTourType()), usualLocation(parentTour.isUsualLocation()), tourMode(parentTour.getTourMode()),
-			firstOfMultipleTours(parentTour.isFirstTour()), subsequentOfMultipleTours(!parentTour.isFirstTour())
-{
-	const Stop* primaryStop = parentTour.getPrimaryStop();
-	initTimeWindows(primaryStop->getArrivalTime(), primaryStop->getDepartureTime());
-}
-
-sim_mob::medium::SubTourParams::~SubTourParams()
-{
-}
-
-bool sim_mob::medium::SubTourParams::allWindowsUnavailable()
-{
-	return availabilityBit.none();
+	return printStrm.str();
 }
 
 void sim_mob::medium::PersonParams::fixUpParamsForLtPerson()

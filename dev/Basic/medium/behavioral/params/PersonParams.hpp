@@ -5,13 +5,144 @@
 #pragma once
 #include <vector>
 #include <bitset>
+#include <map>
 #include <stdint.h>
-#include "behavioral/PredayClasses.hpp"
+#include <string>
 
 namespace sim_mob
 {
 namespace medium
 {
+
+/**
+ * An encapsulation of a time window and its availability.
+ *
+ * startTime and endTime are integral numbers from 1 to 48
+ * The times are considered in half hour windows.
+ * There are 48 half hour windows in a day.
+ *
+ * x.25 represents a time value between x:00 - x:29
+ * x.75 represents a time value between x:30 and x:59
+ * - where x varies from 3 to 26
+ *
+ * The startTime must be lesser than or equal to endTime.
+ *
+ * 3.25 (0300 to 0329 hrs) is time 1
+ * 3.75 (0330 to 0359 hrs) is time 2
+ * 4.25 (0400 to 0429 hrs) is time 3
+ * ... so on
+ * 23.75 (1130 to 1159 hrs) is time 42
+ * 24.25 (1200 to 1229 hrs) is time 43
+ * ... so on
+ * 26.75 (0230 to 0259 hrs) is time 48
+ *
+ * \author Harish Loganathan
+ */
+
+class TimeWindowAvailability
+{
+public:
+	TimeWindowAvailability();
+	TimeWindowAvailability(double startTime, double endTime, bool availability = true);
+
+	int getAvailability() const
+	{
+		return availability;
+	}
+
+	void setAvailability(bool availability)
+	{
+		this->availability = availability;
+	}
+
+	double getEndTime() const
+	{
+		return endTime;
+	}
+
+	double getStartTime() const
+	{
+		return startTime;
+	}
+
+	/**
+	 * This vector is used as lookup for obtaining the start and end time of the time window chosen from the time of day model
+	 * There are 48 half-hour windows in a day. Each half hour window can be a start time of a time-window and any half-hour window
+	 * after the start time in the same can be an end time of a time-window. Therefore there are (48 * (48+1) / 2) = 1176 time windows in a day.
+	 * This vector has 1176 elements.
+	 */
+	static const std::vector<TimeWindowAvailability> timeWindowsLookup;
+
+private:
+	double startTime;
+	double endTime;
+	bool availability;
+};
+
+class Address
+{
+public:
+	Address() : addressId(0), postcode(0), tazCode(0), distanceMRT(0.0), distanceBus(0.0)
+	{
+	}
+
+	long getAddressId() const
+	{
+		return addressId;
+	}
+
+	void setAddressId(long addressId)
+	{
+		this->addressId = addressId;
+	}
+
+	unsigned int getPostcode() const
+	{
+		return postcode;
+	}
+
+	void setPostcode(unsigned int postcode)
+	{
+		this->postcode = postcode;
+	}
+
+	int getTazCode() const
+	{
+		return tazCode;
+	}
+
+	void setTazCode(int tazCode)
+	{
+		this->tazCode = tazCode;
+	}
+
+	double getDistanceBus() const
+	{
+		return distanceBus;
+	}
+
+	void setDistanceBus(double distanceBus)
+	{
+		this->distanceBus = distanceBus;
+	}
+
+	double getDistanceMrt() const
+	{
+		return distanceMRT;
+	}
+
+	void setDistanceMrt(double distanceMrt)
+	{
+		distanceMRT = distanceMrt;
+	}
+
+private:
+	long addressId;
+	unsigned int postcode;
+	int tazCode;
+	double distanceBus; //km
+	double distanceMRT; //km
+};
 
 /**
  * Simple class to store information about a person from population database.
@@ -530,7 +661,7 @@ public:
 	/**
 	 * prints the fields of this object
 	 */
-	void print();
+	std::string print();
 
 	/**
 	 * sets income ID by looking up income on a pre loaded map of income ranges.
@@ -765,163 +896,6 @@ private:
 	double walkDistanceAM;
 	double walkDistancePM;
 	double zoneEmployment;
-};
-
-/**
- * Simple class to store information pertaining sub tour model
- * \note This class is used by the mid-term behavior models.
- *
- * \author Harish Loganathan
- */
-class SubTourParams
-{
-public:
-	SubTourParams(const Tour& tour);
-	virtual ~SubTourParams();
-
-	int isFirstOfMultipleTours() const
-	{
-		return firstOfMultipleTours;
-	}
-
-	void setFirstOfMultipleTours(bool firstOfMultipleTours)
-	{
-		this->firstOfMultipleTours = firstOfMultipleTours;
-	}
-
-	int isSubsequentOfMultipleTours() const
-	{
-		return subsequentOfMultipleTours;
-	}
-
-	void setSubsequentOfMultipleTours(bool subsequentOfMultipleTours)
-	{
-		this->subsequentOfMultipleTours = subsequentOfMultipleTours;
-	}
-
-	int getTourMode() const
-	{
-		return tourMode;
-	}
-
-	void setTourMode(int tourMode)
-	{
-		this->tourMode = tourMode;
-	}
-
-	int isUsualLocation() const
-	{
-		return usualLocation;
-	}
-
-	void setUsualLocation(bool usualLocation)
-	{
-		this->usualLocation = usualLocation;
-	}
-
-	int getSubTourPurpose() const
-	{
-		return subTourPurpose;
-	}
-
-	void setSubTourPurpose(StopType subTourpurpose)
-	{
-		this->subTourPurpose = subTourpurpose;
-	}
-
-	int isCbdDestZone() const
-	{
-		return (cbdDestZone ? 1 : 0);
-	}
-
-	void setCbdDestZone(int cbdDestZone)
-	{
-		this->cbdDestZone = cbdDestZone;
-	}
-
-	int isCbdOrgZone() const
-	{
-		return (cbdOrgZone ? 1 : 0);
-	}
-
-	void setCbdOrgZone(int cbdOrgZone)
-	{
-		this->cbdOrgZone = cbdOrgZone;
-	}
-
-	/**
-	 * make time windows between startTime and endTime available
-	 *
-	 * @param startTime start time of available window
-	 * @param endTime end time of available window
-	 */
-	void initTimeWindows(double startTime, double endTime);
-
-	/**
-	 * get the availability for a time window for tour
-	 *
-	 * @param timeWnd time window index to check availability
-	 *
-	 * @return 0 if time window is not available; 1 if available
-	 *
-	 * NOTE: This function is invoked from the Lua layer. The return type is int in order to be compatible with Lua.
-	 *       Lua does not support boolean types.
-	 */
-	int getTimeWindowAvailability(size_t timeWnd) const;
-
-	/**
-	 * make time windows between startTime and endTime unavailable
-	 *
-	 * @param startTime start time
-	 * @param endTime end time
-	 */
-	void blockTime(double startTime, double endTime);
-
-	/**
-	 * check if all time windows are unavailable
-	 *
-	 * @return true if all time windows are unavailable; false otherwise
-	 */
-	bool allWindowsUnavailable();
-
-private:
-	/**
-	 * mode choice for parent tour
-	 */
-	int tourMode;
-
-	/**
-	 * parent tour is the first of many tours for person
-	 */
-	bool firstOfMultipleTours;
-
-	/**
-	 * parent tour is the 2+ of many tours for person
-	 */
-	bool subsequentOfMultipleTours;
-
-	/**
-	 * parent tour is to a usual location
-	 */
-	bool usualLocation;
-
-	/**
-	 * sub tour type
-	 */
-	StopType subTourPurpose;
-
-	/**
-	 * Time windows available for sub-tour.
-	 */
-	std::vector<sim_mob::medium::TimeWindowAvailability> timeWindowAvailability;
-
-	/**
-	 * bitset of availablilities for fast checking
-	 */
-	std::bitset<1176> availabilityBit;
-
-	int cbdOrgZone;
-	int cbdDestZone;
 };
 } //end namespace medium
 } // end namespace sim_mob

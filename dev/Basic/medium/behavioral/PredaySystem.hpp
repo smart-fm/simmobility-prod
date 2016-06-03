@@ -10,10 +10,10 @@
 #include <vector>
 #include <sstream>
 #include "behavioral/lua/PredayLuaProvider.hpp"
+#include "behavioral/params/PersonParams.hpp"
 #include "CalibrationStatistics.hpp"
-#include "params/PersonParams.hpp"
 #include "PredayClasses.hpp"
-#include "database/PopulationSqlDao.hpp"
+#include "database/predaydao/PopulationSqlDao.hpp"
 #include "database/dao/MongoDao.hpp"
 
 namespace sim_mob

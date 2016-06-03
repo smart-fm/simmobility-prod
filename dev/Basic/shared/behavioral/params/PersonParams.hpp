@@ -3,26 +3,156 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 #pragma once
-
+#include <vector>
 #include <bitset>
 #include <map>
 #include <stdint.h>
-#include <vector>
+#include <string>
 
 namespace sim_mob
 {
-
 /**
- * Simple class to store information about a person from population database.
- * NOTE: This class is used by the mid-term behavior models and logsum computation in long-term
+ * An encapsulation of a time window and its availability.
+ *
+ * startTime and endTime are integral numbers from 1 to 48
+ * The times are considered in half hour windows.
+ * There are 48 half hour windows in a day.
+ *
+ * x.25 represents a time value between x:00 - x:29
+ * x.75 represents a time value between x:30 and x:59
+ * - where x varies from 3 to 26
+ *
+ * The startTime must be lesser than or equal to endTime.
+ *
+ * 3.25 (0300 to 0329 hrs) is time 1
+ * 3.75 (0330 to 0359 hrs) is time 2
+ * 4.25 (0400 to 0429 hrs) is time 3
+ * ... so on
+ * 23.75 (1130 to 1159 hrs) is time 42
+ * 24.25 (1200 to 1229 hrs) is time 43
+ * ... so on
+ * 26.75 (0230 to 0259 hrs) is time 48
  *
  * \author Harish Loganathan
  */
-class PredayPersonParams
+
+class TimeWindowAvailability
 {
 public:
-	PredayPersonParams();
-	virtual ~PredayPersonParams();
+	TimeWindowAvailability();
+	TimeWindowAvailability(double startTime, double endTime, bool availability = true);
+
+	int getAvailability() const
+	{
+		return availability;
+	}
+
+	void setAvailability(bool availability)
+	{
+		this->availability = availability;
+	}
+
+	double getEndTime() const
+	{
+		return endTime;
+	}
+
+	double getStartTime() const
+	{
+		return startTime;
+	}
+
+	/**
+	 * This vector is used as lookup for obtaining the start and end time of the time window chosen from the time of day model
+	 * There are 48 half-hour windows in a day. Each half hour window can be a start time of a time-window and any half-hour window
+	 * after the start time in the same can be an end time of a time-window. Therefore there are (48 * (48+1) / 2) = 1176 time windows in a day.
+	 * This vector has 1176 elements.
+	 */
+	static const std::vector<TimeWindowAvailability> timeWindowsLookup;
+
+private:
+	double startTime;
+	double endTime;
+	bool availability;
+};
+
+class Address
+{
+public:
+	Address() : addressId(0), postcode(0), tazCode(0), distanceMRT(0.0), distanceBus(0.0)
+	{
+	}
+
+	long getAddressId() const
+	{
+		return addressId;
+	}
+
+	void setAddressId(long addressId)
+	{
+		this->addressId = addressId;
+	}
+
+	unsigned int getPostcode() const
+	{
+		return postcode;
+	}
+
+	void setPostcode(unsigned int postcode)
+	{
+		this->postcode = postcode;
+	}
+
+	int getTazCode() const
+	{
+		return tazCode;
+	}
+
+	void setTazCode(int tazCode)
+	{
+		this->tazCode = tazCode;
+	}
+
+	double getDistanceBus() const
+	{
+		return distanceBus;
+	}
+
+	void setDistanceBus(double distanceBus)
+	{
+		this->distanceBus = distanceBus;
+	}
+
+	double getDistanceMrt() const
+	{
+		return distanceMRT;
+	}
+
+	void setDistanceMrt(double distanceMrt)
+	{
+		distanceMRT = distanceMrt;
+	}
+
+private:
+	long addressId;
+	unsigned int postcode;
+	int tazCode;
+	double distanceBus; //km
+	double distanceMRT; //km
+};
+
+/**
+ * Simple class to store information about a person from population database.
+ * \note This class is used by the mid-term behavior models.
+ *
+ *
+ * \author Harish Loganathan
+ */
+class PersonParams
+{
+public:
+	PersonParams();
+	virtual ~PersonParams();
 
 	const std::string& getHhId() const
 	{
@@ -474,16 +604,6 @@ public:
 		this->student = isStudent;
 	}
 
-	static double* getIncomeCategoryLowerLimits()
-	{
-		return incomeCategoryLowerLimits;
-	}
-
-	static std::map<int, std::bitset<4> >& getVehicleCategoryLookup()
-	{
-		return vehicleCategoryLookup;
-	}
-
 	double getTravelProbability() const
 	{
 		return travelProbability;
@@ -504,24 +624,61 @@ public:
 		this->tripsExpected = tripsExpected;
 	}
 
-	static std::map<long, int>& getAddressTazLookup()
+	static double* getIncomeCategoryLowerLimits()
 	{
-		return addressTazLookup;
+		return incomeCategoryLowerLimits;
+	}
+
+	static std::map<int, std::bitset<4> >& getVehicleCategoryLookup()
+	{
+		return vehicleCategoryLookup;
+	}
+
+	static std::map<long, sim_mob::Address>& getAddressLookup()
+	{
+		return addressLookup;
+	}
+
+	static std::map<unsigned int, unsigned int>& getPostcodeNodeMap()
+	{
+		return postCodeToNodeMapping;
+	}
+
+	static std::map<int, std::vector<long> >& getZoneAddresses()
+	{
+		return zoneAddresses;
 	}
 
 	/**
-	 * prints the data members of this object
+	 * makes all time windows to available
 	 */
-	void print();
+	void initTimeWindows();
 
 	/**
-	 * looks up TAZ code for a given address ID from LT population data
+	 * get the availability for a time window for tour
 	 *
-	 * @param addressId input address id
+	 * @param timeWnd time window index to check availability
+	 * @param mode of activity for which time window is being predicted
 	 *
-	 * @return TAZ code for addressId
+	 * @return 0 if time window is not available; 1 if available
+	 *
+	 * NOTE: This function is invoked from the Lua layer. The return type is int in order to be compatible with Lua.
+	 *       Lua does not support boolean types.
 	 */
-	int getTAZCodeForAddressId(long addressId);
+	int getTimeWindowAvailability(size_t timeWnd, int mode) const;
+
+	/**
+	 * overload function to set availability of times in timeWnd to 0
+	 *
+	 * @param startTime start time
+	 * @param endTime end time
+	 */
+	void blockTime(double startTime, double endTime);
+
+	/**
+	 * prints the fields of this object
+	 */
+	std::string print();
 
 	/**
 	 * sets income ID by looking up income on a pre loaded map of income ranges.
@@ -541,9 +698,34 @@ public:
 	/**
 	 * infers params used in preday system of models from params obtained from LT population
 	 */
-	void fixUpForLtPerson();
+	void fixUpParamsForLtPerson();
 
-protected:
+	/**
+	 * looks up TAZ code for a given address ID from LT population data
+	 *
+	 * @param addressId input address id
+	 *
+	 * @return TAZ code for addressId
+	 */
+	int getTAZCodeForAddressId(long addressId) const;
+
+	/**
+	 * looks up postcode for a given address ID from LT population data
+	 *
+	 * @param addressId input address id
+	 *
+	 * @return postcode for addressId
+	 */
+	unsigned int getSimMobNodeForAddressId(long addressId) const;
+
+	/**
+	 * returns the list of address ids in a zone
+	 * @param zoneCode input zone code
+	 * @return list of address ids in a zone
+	 */
+	const std::vector<long>& getAddressIdsInZone(int zoneCode) const;
+
+private:
 	std::string personId;
 	std::string hhId;
 	int personTypeId;
@@ -593,9 +775,13 @@ protected:
 	double dpsLogsum;
 	double dpbLogsum;
 
-	//extras
 	double travelProbability;
 	double tripsExpected;
+
+	/**
+	 * Time windows availability for the person.
+	 */
+	std::vector<sim_mob::TimeWindowAvailability> timeWindowAvailability;
 
 	/**
 	 * income category lookup containing lower limits of each category.
@@ -612,7 +798,123 @@ protected:
 	/**
 	 * address to taz map
 	 */
-	static std::map<long, int> addressTazLookup;
+	static std::map<long, sim_mob::Address> addressLookup;
+
+	/**
+	 * postcode to simmobility node mapping
+	 */
+	static std::map<unsigned int, unsigned int> postCodeToNodeMapping;
+
+	/**
+	 * zone to number of addresses in zone map
+	 */
+	static std::map<int, std::vector<long> > zoneAddresses;
 };
 
+class ZoneAddressParams
+{
+public:
+	ZoneAddressParams(const std::map<long, sim_mob::Address>& addressLkp, const std::vector<long>& znAddresses);
+	virtual ~ZoneAddressParams();
+
+	/**
+	 * gets number of addresses in a zone
+	 */
+	int getNumAddresses() const;
+
+	/**
+	 * gets distance to mrt for given address
+	 */
+	double getDistanceMRT(int addressIdx) const;
+
+	/**
+	 * gets distance to bus stop for given address
+	 */
+	double getDistanceBus(int addressIdx) const;
+
+	/**
+	 * fetches address for an index
+	 */
+	long getAddressId(int addressIdx) const;
+
+private:
+	/**
+	 * address to taz map
+	 */
+	const std::map<long, sim_mob::Address>& addressLookup;
+
+	/**
+	 * zone to number of addresses in zone map
+	 */
+	const std::vector<long>& zoneAddresses;
+
+	/** number of addresses in zone*/
+	int numAddresses;
+};
+
+/**
+ * Class for storing person parameters related to usual work location model
+ *
+ * \author Harish Loganathan
+ */
+class UsualWorkParams
+{
+public:
+	int getFirstOfMultiple() const
+	{
+		return firstOfMultiple;
+	}
+
+	void setFirstOfMultiple(int firstOfMultiple)
+	{
+		this->firstOfMultiple = firstOfMultiple;
+	}
+
+	int getSubsequentOfMultiple() const
+	{
+		return subsequentOfMultiple;
+	}
+
+	void setSubsequentOfMultiple(int subsequentOfMultiple)
+	{
+		this->subsequentOfMultiple = subsequentOfMultiple;
+	}
+
+	double getWalkDistanceAm() const
+	{
+		return walkDistanceAM;
+	}
+
+	void setWalkDistanceAm(double walkDistanceAm)
+	{
+		walkDistanceAM = walkDistanceAm;
+	}
+
+	double getWalkDistancePm() const
+	{
+		return walkDistancePM;
+	}
+
+	void setWalkDistancePm(double walkDistancePm)
+	{
+		walkDistancePM = walkDistancePm;
+	}
+
+	double getZoneEmployment() const
+	{
+		return zoneEmployment;
+	}
+
+	void setZoneEmployment(double zoneEmployment)
+	{
+		this->zoneEmployment = zoneEmployment;
+	}
+
+private:
+	int firstOfMultiple;
+	int subsequentOfMultiple;
+	double walkDistanceAM;
+	double walkDistancePM;
+	double zoneEmployment;
+};
 } // end namespace sim_mob

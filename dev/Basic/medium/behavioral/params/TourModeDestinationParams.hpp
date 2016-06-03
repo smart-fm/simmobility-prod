@@ -6,11 +6,11 @@
 #include <map>
 #include <vector>
 #include "behavioral/params/ModeDestinationParams.hpp"
+#include "behavioral/params/PersonParams.hpp"
 #include "behavioral/params/ZoneCostParams.hpp"
 #include "behavioral/StopType.hpp"
 #include "behavioral/PredayClasses.hpp"
 #include "behavioral/PredayUtils.hpp"
-#include "PersonParams.hpp"
 
 namespace sim_mob
 {
@@ -248,7 +248,7 @@ private:
 	/**
 	 * Time windows available for sub-tour.
 	 */
-	std::vector<sim_mob::medium::TimeWindowAvailability> timeWindowAvailability;
+	std::vector<sim_mob::TimeWindowAvailability> timeWindowAvailability;
 
 	/**
 	 * bitset of availablilities for fast checking

@@ -6,7 +6,7 @@
 #include "behavioral/params/ModeDestinationParams.hpp"
 #include "behavioral/params/ZoneCostParams.hpp"
 #include "behavioral/StopType.hpp"
-#include "PredayPersonParams.hpp"
+#include "PersonParams.hpp"
 
 namespace sim_mob
 {
@@ -18,7 +18,7 @@ namespace sim_mob
 class LogsumTourModeDestinationParams: public ModeDestinationParams
 {
 public:
-	LogsumTourModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap, const PredayPersonParams& personParams,
+	LogsumTourModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap, const PersonParams& personParams,
 			StopType tourType);
 	virtual ~LogsumTourModeDestinationParams();
 
@@ -108,7 +108,7 @@ private:
 
 public:
 	LogsumTourModeParams(const ZoneParams* znOrgObj, const ZoneParams* znDesObj, const CostParams* amObj, const CostParams* pmObj,
-			const PredayPersonParams& personParams, StopType tourType);
+			const PersonParams& personParams, StopType tourType);
 	virtual ~LogsumTourModeParams();
 
 	double getAvgTransfer() const

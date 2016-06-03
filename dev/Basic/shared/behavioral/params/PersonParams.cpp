@@ -8,7 +8,6 @@
 
 using namespace std;
 using namespace sim_mob;
-using namespace medium;
 
 namespace
 {
@@ -54,13 +53,13 @@ TimeWindowAvailability::TimeWindowAvailability(double startTime, double endTime,
 
 const std::vector<TimeWindowAvailability> TimeWindowAvailability::timeWindowsLookup = insertAllTimeWindows();
 
-double sim_mob::medium::PersonParams::incomeCategoryLowerLimits[] = {};
-std::map<int, std::bitset<4> > sim_mob::medium::PersonParams::vehicleCategoryLookup = std::map<int, std::bitset<4> >();
-std::map<long, sim_mob::medium::Address> sim_mob::medium::PersonParams::addressLookup = std::map<long, sim_mob::medium::Address>();
-std::map<unsigned int, unsigned int> sim_mob::medium::PersonParams::postCodeToNodeMapping = std::map<unsigned int, unsigned int>();
-std::map<int, std::vector<long> > sim_mob::medium::PersonParams::zoneAddresses = std::map<int, std::vector<long> >();
+double PersonParams::incomeCategoryLowerLimits[] = {};
+std::map<int, std::bitset<4> > PersonParams::vehicleCategoryLookup = std::map<int, std::bitset<4> >();
+std::map<long, Address> PersonParams::addressLookup = std::map<long, Address>();
+std::map<unsigned int, unsigned int> PersonParams::postCodeToNodeMapping = std::map<unsigned int, unsigned int>();
+std::map<int, std::vector<long> > PersonParams::zoneAddresses = std::map<int, std::vector<long> >();
 
-sim_mob::medium::PersonParams::PersonParams() :
+PersonParams::PersonParams() :
 		personId(""), hhId(""), personTypeId(-1), ageId(-1), isUniversityStudent(-1), studentTypeId(-1), isFemale(-1), incomeId(-1), worksAtHome(-1),
 			carOwn(-1), carOwnNormal(-1), carOwnOffpeak(-1), motorOwn(-1), hasFixedWorkTiming(-1), homeLocation(-1), fixedWorkLocation(-1),
 			fixedSchoolLocation(-1), stopType(-1), drivingLicence(-1), hhOnlyAdults(-1), hhOnlyWorkers(-1), hhNumUnder4(-1), hasUnder15(-1), workLogSum(0),
@@ -71,12 +70,12 @@ sim_mob::medium::PersonParams::PersonParams() :
 	initTimeWindows();
 }
 
-sim_mob::medium::PersonParams::~PersonParams()
+PersonParams::~PersonParams()
 {
 	timeWindowAvailability.clear();
 }
 
-void sim_mob::medium::PersonParams::initTimeWindows()
+void PersonParams::initTimeWindows()
 {
 	if (!timeWindowAvailability.empty())
 	{
@@ -91,7 +90,7 @@ void sim_mob::medium::PersonParams::initTimeWindows()
 	}
 }
 
-void sim_mob::medium::PersonParams::blockTime(double startTime, double endTime)
+void PersonParams::blockTime(double startTime, double endTime)
 {
 	if (startTime <= endTime)
 	{
@@ -116,7 +115,7 @@ void sim_mob::medium::PersonParams::blockTime(double startTime, double endTime)
 
 int PersonParams::getTimeWindowAvailability(size_t timeWnd, int mode) const
 {
-	const sim_mob::medium::TimeWindowAvailability& timeWndwAvail = timeWindowAvailability[timeWnd - 1];
+	const TimeWindowAvailability& timeWndwAvail = timeWindowAvailability[timeWnd - 1];
 	//anytime before 6AM cannot is not a valid start time for tour's primary activity with PT modes
 	if((mode == 1 || mode == 2) && timeWndwAvail.getStartTime() <= 6)
 	{
@@ -128,7 +127,7 @@ int PersonParams::getTimeWindowAvailability(size_t timeWnd, int mode) const
 	}
 }
 
-void sim_mob::medium::PersonParams::setIncomeIdFromIncome(double income)
+void PersonParams::setIncomeIdFromIncome(double income)
 {
 	int i = 0;
 	while (i < NUM_VALID_INCOME_CATEGORIES && income >= incomeCategoryLowerLimits[i])
@@ -139,7 +138,7 @@ void sim_mob::medium::PersonParams::setIncomeIdFromIncome(double income)
 	setIncomeId((i > 0) ? i : NUM_VALID_INCOME_CATEGORIES); //lua models expect 12 to be the id for no income
 }
 
-void sim_mob::medium::PersonParams::setVehicleOwnershipFromCategoryId(int vehicleCategoryId)
+void PersonParams::setVehicleOwnershipFromCategoryId(int vehicleCategoryId)
 {
 	std::map<int, std::bitset<4> >::const_iterator it = vehicleCategoryLookup.find(vehicleCategoryId);
 	if (it == vehicleCategoryLookup.end())
@@ -153,7 +152,7 @@ void sim_mob::medium::PersonParams::setVehicleOwnershipFromCategoryId(int vehicl
 	setMotorOwn(vehOwnershipBits[3]);
 }
 
-std::string sim_mob::medium::PersonParams::print()
+std::string PersonParams::print()
 {
 	std::stringstream printStrm;
 	printStrm << personId << "," << personTypeId << "," << ageId << "," << isUniversityStudent << "," << hhOnlyAdults << "," << hhOnlyWorkers << ","
@@ -163,7 +162,7 @@ std::string sim_mob::medium::PersonParams::print()
 	return printStrm.str();
 }
 
-void sim_mob::medium::PersonParams::fixUpParamsForLtPerson()
+void PersonParams::fixUpParamsForLtPerson()
 {
 	if(incomeId >= 12)
 	{
@@ -194,9 +193,9 @@ void sim_mob::medium::PersonParams::fixUpParamsForLtPerson()
 	setHH_HasUnder15(hhNumUnder15 > 0);
 }
 
-int sim_mob::medium::PersonParams::getTAZCodeForAddressId(long addressId) const
+int PersonParams::getTAZCodeForAddressId(long addressId) const
 {
-	std::map<long, sim_mob::medium::Address>::const_iterator addressIdIt = addressLookup.find(addressId);
+	std::map<long, Address>::const_iterator addressIdIt = addressLookup.find(addressId);
 	if (addressIdIt == addressLookup.end())
 	{
 		throw std::runtime_error("invalid address id");
@@ -204,9 +203,9 @@ int sim_mob::medium::PersonParams::getTAZCodeForAddressId(long addressId) const
 	return addressIdIt->second.getTazCode();
 }
 
-unsigned int sim_mob::medium::PersonParams::getSimMobNodeForAddressId(long addressId) const
+unsigned int PersonParams::getSimMobNodeForAddressId(long addressId) const
 {
-	std::map<long, sim_mob::medium::Address>::const_iterator addressIdIt = addressLookup.find(addressId);
+	std::map<long, Address>::const_iterator addressIdIt = addressLookup.find(addressId);
 	if (addressIdIt == addressLookup.end())
 	{
 		throw std::runtime_error("invalid address id " + std::to_string(addressId));
@@ -220,19 +219,19 @@ unsigned int sim_mob::medium::PersonParams::getSimMobNodeForAddressId(long addre
 	return postcodeIt->second;
 }
 
-int sim_mob::medium::ZoneAddressParams::getNumAddresses() const
+int ZoneAddressParams::getNumAddresses() const
 {
 	return numAddresses;
 }
 
-double sim_mob::medium::ZoneAddressParams::getDistanceMRT(int addressIdx) const
+double ZoneAddressParams::getDistanceMRT(int addressIdx) const
 {
 	if(addressIdx > numAddresses || addressIdx <= 0)
 	{
 		throw std::runtime_error("Invalid address index passed to getDistanceMRT()");
 	}
 	long addressId = zoneAddresses[addressIdx-1];
-	std::map<long, sim_mob::medium::Address>::const_iterator addressIt = addressLookup.find(addressId);
+	std::map<long, Address>::const_iterator addressIt = addressLookup.find(addressId);
 	if (addressIt == addressLookup.end())
 	{
 		throw std::runtime_error("invalid address id " + std::to_string(addressId));
@@ -240,14 +239,14 @@ double sim_mob::medium::ZoneAddressParams::getDistanceMRT(int addressIdx) const
 	return addressIt->second.getDistanceMrt();
 }
 
-double sim_mob::medium::ZoneAddressParams::getDistanceBus(int addressIdx) const
+double ZoneAddressParams::getDistanceBus(int addressIdx) const
 {
 	if(addressIdx > numAddresses || addressIdx <= 0)
 	{
 		throw std::runtime_error("Invalid address index passed to getDistanceBus()");
 	}
 	long addressId = zoneAddresses[addressIdx-1];
-	std::map<long, sim_mob::medium::Address>::const_iterator addressIt = addressLookup.find(addressId);
+	std::map<long, Address>::const_iterator addressIt = addressLookup.find(addressId);
 	if (addressIt == addressLookup.end())
 	{
 		throw std::runtime_error("invalid address id " + std::to_string(addressId));
@@ -255,16 +254,16 @@ double sim_mob::medium::ZoneAddressParams::getDistanceBus(int addressIdx) const
 	return addressIt->second.getDistanceBus();
 }
 
-sim_mob::medium::ZoneAddressParams::ZoneAddressParams(const std::map<long, sim_mob::medium::Address>& addressLkp, const std::vector<long>& znAddresses)
+ZoneAddressParams::ZoneAddressParams(const std::map<long, Address>& addressLkp, const std::vector<long>& znAddresses)
 	: addressLookup(addressLkp), zoneAddresses(znAddresses), numAddresses(znAddresses.size())
 {
 }
 
-sim_mob::medium::ZoneAddressParams::~ZoneAddressParams()
+ZoneAddressParams::~ZoneAddressParams()
 {
 }
 
-long sim_mob::medium::ZoneAddressParams::getAddressId(int addressIdx) const
+long ZoneAddressParams::getAddressId(int addressIdx) const
 {
 	if(addressIdx > numAddresses || addressIdx <= 0)
 	{
@@ -273,7 +272,7 @@ long sim_mob::medium::ZoneAddressParams::getAddressId(int addressIdx) const
 	return zoneAddresses[addressIdx-1];
 }
 
-const std::vector<long>& sim_mob::medium::PersonParams::getAddressIdsInZone(int zoneCode) const
+const std::vector<long>& PersonParams::getAddressIdsInZone(int zoneCode) const
 {
 	std::map<int, std::vector<long> >::const_iterator znAddressIt = zoneAddresses.find(zoneCode);
 	if(znAddressIt == zoneAddresses.end())

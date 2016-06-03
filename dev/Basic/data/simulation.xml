@@ -17,6 +17,12 @@
                 <port value="5432"/>
                 <dbname value="simmobility"/>
             </database>
+
+            <database id="fm_hpchead_lt" dbtype="postgres">
+                <host value="172.25.184.156"/>
+                <port value="5432"/>
+                <dbname value="sim_mob_lt"/>
+            </database>
             
             <database id="fm_remote_lt" dbtype="postgres">
                 <host value="172.25.184.14"/>

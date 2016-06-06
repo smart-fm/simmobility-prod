@@ -40,6 +40,12 @@ public:
 	 * @return previous platform
 	 */
 	const std::vector<Platform*>& getPrevPlatforms() const;
+	/**
+	 * get next platform shifted by offset
+	 * @param offset is the shifted offset from current platform
+	 * @return empty if offset is beyond last item
+	 */
+	Platform* getPlatformByOffset(unsigned int offset);
 private:
 	/**driving platforms*/
 	std::vector<Platform*> platforms;

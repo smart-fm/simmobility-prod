@@ -23,7 +23,7 @@ TrainDriver::TrainDriver(Person_MT* parent,
 		sim_mob::medium::TrainBehavior* behavior,
 		sim_mob::medium::TrainMovement* movement,
 		std::string roleName, Role<Person_MT>::Type roleType) :
-	sim_mob::Role<Person_MT>::Role(parent, behavior, movement, roleName, roleType),nextDriver(nullptr),nextRequested(NO_REQUESTED),waitingTimeSec(0.0),initialDwellTime(0.0)
+	sim_mob::Role<Person_MT>::Role(parent, behavior, movement, roleName, roleType),nextDriver(nullptr),nextRequested(NO_REQUESTED),waitingTimeSec(0.0),initialDwellTime(0.0),disruptionParam(nullptr)
 {
 	int trainId=getTrainId();
 	std::string lineId=getTrainLine();
@@ -44,6 +44,7 @@ void TrainDriver::onParentEvent(event::EventId eventId, sim_mob::event::Context 
 	{
 		const event::DisruptionEventArgs& exArgs = MSG_CAST(event::DisruptionEventArgs, args);
 		const DisruptionParams& disruption = exArgs.getDisruption();
+		disruptionParam.reset(new DisruptionParams(disruption));
 		break;
 	}
 	}
@@ -71,6 +72,15 @@ const TrainDriver* TrainDriver::getNextDriver() const
 void TrainDriver::make_frame_tick_params(timeslice now)
 {
 	getParams().reset(now);
+	if(disruptionParam.get()){
+		DailyTime duration = disruptionParam->duration;
+		unsigned int baseGran = ConfigManager::GetInstance().FullConfig().baseGranMS();
+		if(duration.getValue()>baseGran){
+			disruptionParam->duration = DailyTime(duration.offsetMS_From(DailyTime(baseGran)));
+		} else {
+			disruptionParam.reset();
+		}
+	}
 }
 
 std::vector<BufferedBase*> TrainDriver::getSubscriptionParams() {
@@ -123,6 +133,10 @@ double TrainDriver::getWaitingTime() const
 void TrainDriver::reduceWaitingTime(double val)
 {
 	waitingTimeSec -= val;
+}
+void TrainDriver::setWaitingTime(double val)
+{
+	waitingTimeSec = val;
 }
 
 std::string TrainDriver::getTrainLine() const

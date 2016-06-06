@@ -1226,6 +1226,14 @@ void Conflux::HandleMessage(messaging::Message::MessageType type, const messagin
 	{
 		const PersonMessage& msg = MSG_CAST(PersonMessage, message);
 		switchTripChainItem(msg.person);
+		if(!msg.person->isToBeRemoved() && msg.person->getRole()->roleType == Role<Person_MT>::RL_DRIVER)
+		{
+			SegmentStats* rdSegStats = const_cast<SegmentStats*>(msg.person->getCurrSegStats());
+			msg.person->setCurrLane(rdSegStats->laneInfinity);
+			msg.person->distanceToEndOfSegment = rdSegStats->getLength();
+			msg.person->remainingTimeThisTick = tickTimeInS;
+			rdSegStats->addAgent(rdSegStats->laneInfinity, msg.person);
+		}
 		break;
 	}
 	default:
@@ -1293,15 +1301,6 @@ Entity::UpdateStatus Conflux::switchTripChainItem(Person_MT* person)
 		case Role<Person_MT>::RL_ACTIVITY:
 		{
 			activityPerformers.push_back(person);
-			break;
-		}
-		case Role<Person_MT>::RL_DRIVER:
-		{
-			SegmentStats* rdSegStats = const_cast<SegmentStats*>(person->getCurrSegStats());
-			person->setCurrLane(rdSegStats->laneInfinity);
-			person->distanceToEndOfSegment = rdSegStats->getLength();
-			person->remainingTimeThisTick = tickTimeInS;
-			rdSegStats->addAgent(rdSegStats->laneInfinity, person);
 			break;
 		}
 		case Role<Person_MT>::RL_WAITBUSACTIVITY:

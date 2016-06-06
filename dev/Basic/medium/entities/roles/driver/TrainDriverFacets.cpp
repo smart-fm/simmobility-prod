@@ -158,7 +158,7 @@ void TrainMovement::produceMoveInfo()
     ptMRTMoveLogger << trainPathMover.getCurrentPosition().getY() << ",";
     ptMRTMoveLogger << params.currentAcelerate << ",";
     ptMRTMoveLogger << parentDriver->getPassengers().size()<<",";
-    ptMRTMoveLogger << this->parentDriver->waitingTimeSec << std::endl;
+    ptMRTMoveLogger << parentDriver->getWaitingTime() << std::endl;
     produceDwellTimeInfo();
     passengerInfo();
 }
@@ -201,14 +201,38 @@ void TrainMovement::frame_tick()
 		double waitingTime = parentDriver->getWaitingTime();
 		params.currentSpeed = 0.0;
 		params.currentAcelerate = 0.0;
+		params.elapsedSeconds = waitingTime;
+		parentDriver->setWaitingTime(0.0);
 		if(waitingTime<params.secondsInTick){
-			parentDriver->setNextRequested(TrainDriver::REQUESTED_LEAVING_PLATFORM);
-			if(!isAtLastPlaform()){
-				leaveFromPlaform();
-				params.elapsedSeconds = waitingTime;
-			} else {
-				parentDriver->getParent()->setToBeRemoved();
-				arrivalAtEndPlatform();
+			bool isDisruptedPlatform = false;
+			if(parentDriver->disruptionParam.get()){
+				const std::vector<std::string>& platformNames = parentDriver->disruptionParam->platformNames;
+				Platform* cur = trainPlatformMover.getPlatformByOffset(0);
+				Platform* next = trainPlatformMover.getPlatformByOffset(1);
+				if(cur){
+					auto it = std::find(platformNames.begin(), platformNames.end(), cur->getPlatformNo());
+					if(it!=platformNames.end()){
+						isDisruptedPlatform = true;
+					}
+				}
+				if(next && !isDisruptedPlatform){
+					auto it = std::find(platformNames.begin(), platformNames.end(), next->getPlatformNo());
+					if(it!=platformNames.end()){
+						parentDriver->setNextRequested(TrainDriver::REQUESTED_LEAVING_PLATFORM);
+						parentDriver->getParent()->setToBeRemoved();
+						arrivalAtEndPlatform();
+						isDisruptedPlatform = true;
+					}
+				}
+			}
+			if(!isDisruptedPlatform){
+				parentDriver->setNextRequested(TrainDriver::REQUESTED_LEAVING_PLATFORM);
+				if(!isAtLastPlaform()){
+					leaveFromPlaform();
+				} else {
+					parentDriver->getParent()->setToBeRemoved();
+					arrivalAtEndPlatform();
+				}
 			}
 		}
 		break;

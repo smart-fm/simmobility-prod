@@ -56,13 +56,7 @@ void TrainStationAgent::onEvent(event::EventId eventId, sim_mob::event::Context 
 	{
 		const event::DisruptionEventArgs& exArgs = MSG_CAST(event::DisruptionEventArgs, args);
 		const DisruptionParams& disruption = exArgs.getDisruption();
-		std::vector<std::string>::const_iterator it;
-		for(it=disruption.platformNames.begin(); it!=disruption.platformNames.end(); it++){
-			if(TrainController<Person_MT>::checkPlatformIsExisted(this, *it)){
-				disruptionParam.reset(new DisruptionParams(disruption));
-				break;
-			}
-		}
+		disruptionParam.reset(new DisruptionParams(disruption));
 		break;
 	}
 	}
@@ -200,25 +194,6 @@ void TrainStationAgent::triggerRerouting(const event::EventArgs& args)
 		messaging::MessageBus::PostMessage(parentConflux,
 							PASSENGER_LEAVE_FRM_PLATFORM, messaging::MessageBus::MessagePtr(new PersonMessage(*it)));
 	}
-
-	colPersons.clear();
-	for(std::list<TrainDriver*>::iterator it=trainDriver.begin(); it!=trainDriver.end(); it++){
-		colPersons.push_back((*it)->getParent());
-	}
-	std::map<std::string, std::list<TrainDriver*>>::iterator iPending;
-	for (iPending = pendingTrainDriver.begin();	iPending != pendingTrainDriver.end(); iPending++) {
-		std::list<TrainDriver*>& pendingDrivers = (*iPending).second;
-		for(std::list<TrainDriver*>::iterator it=pendingDrivers.begin(); it!=pendingDrivers.end(); it++){
-			colPersons.push_back((*it)->getParent());
-		}
-	}
-	const DisruptionEventArgs& exArgs = MSG_CAST(DisruptionEventArgs, args);
-	for(std::list<Person_MT*>::iterator it = colPersons.begin(); it!=colPersons.end();it++){
-		messaging::MessageBus::SubscribeEvent(EVT_DISRUPTION_STATION, this, *it);
-		messaging::MessageBus::PublishInstantaneousEvent(EVT_DISRUPTION_STATION, this,
-				messaging::MessageBus::EventArgsPtr(new DisruptionEventArgs(exArgs)));
-		messaging::MessageBus::UnSubscribeEvent(EVT_DISRUPTION_STATION, this, *it);
-	}
 }
 void TrainStationAgent::updateWaitPersons()
 {
@@ -251,11 +226,21 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 			tickInSec += (*it)->getParams().secondsInTick;
 			if ((*it)->getNextRequested() == TrainDriver::REQUESTED_AT_PLATFORM)
 			{
+				bool isDisruptedPlat = false;
 				const Platform* platform = (*it)->getNextPlatform();
-				int alightingNum = (*it)->alightPassenger(leavingPersons[platform],now);
-				int boardingNum = (*it)->boardPassenger(waitingPersons[platform], now);
-				(*it)->calculateDwellTime(boardingNum,alightingNum);
-				(*it)->setNextRequested(TrainDriver::REQUESTED_WAITING_LEAVING);
+				if(disruptionParam.get()&&platform){
+					const std::vector<std::string>& platformNames = disruptionParam->platformNames;
+					auto it = std::find(platformNames.begin(), platformNames.end(), platform->getPlatformNo());
+					if (it != platformNames.end()) {
+						isDisruptedPlat = true;
+					}
+				}
+				if(!isDisruptedPlat){
+					int alightingNum = (*it)->alightPassenger(leavingPersons[platform],now);
+					int boardingNum = (*it)->boardPassenger(waitingPersons[platform], now);
+					(*it)->calculateDwellTime(boardingNum,alightingNum);
+					(*it)->setNextRequested(TrainDriver::REQUESTED_WAITING_LEAVING);
+				}
 			}
 			else if ((*it)->getNextRequested() == TrainDriver::REQUESTED_LEAVING_PLATFORM)
 			{
@@ -284,9 +269,26 @@ void TrainStationAgent::performDisruption(timeslice now)
 	} else {
 		DailyTime duration = disruptionParam->duration;
 		unsigned int baseGran = ConfigManager::GetInstance().FullConfig().baseGranMS();
+		disruptionParam->duration = DailyTime(duration.offsetMS_From(DailyTime(baseGran)));
 		if(duration.getValue()>baseGran){
-			triggerRerouting(DisruptionEventArgs(*disruptionParam));
-			disruptionParam->duration = DailyTime(duration.offsetMS_From(DailyTime(baseGran)));
+			std::vector<std::string>::const_iterator it;
+			const std::vector<std::string>& platformNames = disruptionParam->platformNames;
+			for(it=platformNames.begin(); it!=platformNames.end(); it++){
+				if(TrainController<Person_MT>::checkPlatformIsExisted(this, *it)){
+					triggerRerouting(DisruptionEventArgs(*disruptionParam));
+					break;
+				}
+			}
+			std::list<Person_MT*> colPersons;
+			for(std::list<TrainDriver*>::iterator it=trainDriver.begin(); it!=trainDriver.end(); it++){
+				colPersons.push_back((*it)->getParent());
+			}
+			for(std::list<Person_MT*>::iterator it = colPersons.begin(); it!=colPersons.end();it++){
+				messaging::MessageBus::SubscribeEvent(EVT_DISRUPTION_STATION, this, *it);
+				messaging::MessageBus::PublishInstantaneousEvent(EVT_DISRUPTION_STATION, this,
+						messaging::MessageBus::EventArgsPtr(new DisruptionEventArgs(*disruptionParam)));
+				messaging::MessageBus::UnSubscribeEvent(EVT_DISRUPTION_STATION, this, *it);
+			}
 		} else {
 			disruptionParam.reset();
 		}

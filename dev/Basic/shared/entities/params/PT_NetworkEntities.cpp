@@ -26,14 +26,18 @@ PT_Network sim_mob::PT_NetworkCreater::instance2;
 void PT_NetworkCreater::init()
 {
 	{
-	const std::string DB_STORED_PROC_PT_EDGES = ConfigManager::GetInstanceRW().FullConfig().getDatabaseProcMappings().procedureMappings["pt_edges"];
-	const std::string DB_STORED_PROC_PT_VERTICES = ConfigManager::GetInstanceRW().FullConfig().getDatabaseProcMappings().procedureMappings["pt_vertices"];
-	instance.init(DB_STORED_PROC_PT_VERTICES, DB_STORED_PROC_PT_EDGES);
+		const std::string DB_STORED_PROC_PT_EDGES = ConfigManager::GetInstanceRW().FullConfig().getDatabaseProcMappings().procedureMappings["pt_edges"];
+		const std::string DB_STORED_PROC_PT_VERTICES = ConfigManager::GetInstanceRW().FullConfig().getDatabaseProcMappings().procedureMappings["pt_vertices"];
+		if(!DB_STORED_PROC_PT_EDGES.empty()&&!DB_STORED_PROC_PT_VERTICES.empty()){
+			instance.init(DB_STORED_PROC_PT_VERTICES, DB_STORED_PROC_PT_EDGES);
+		}
 	}
 	{
-	const std::string DB_STORED_PROC_PT_EDGES = ConfigManager::GetInstanceRW().FullConfig().getDatabaseProcMappings().procedureMappings["pt_edges2"];
-	const std::string DB_STORED_PROC_PT_VERTICES = ConfigManager::GetInstanceRW().FullConfig().getDatabaseProcMappings().procedureMappings["pt_vertices2"];
-	instance2.init(DB_STORED_PROC_PT_VERTICES, DB_STORED_PROC_PT_EDGES);
+		const std::string DB_STORED_PROC_PT_EDGES = ConfigManager::GetInstanceRW().FullConfig().getDatabaseProcMappings().procedureMappings["pt_edges2"];
+		const std::string DB_STORED_PROC_PT_VERTICES = ConfigManager::GetInstanceRW().FullConfig().getDatabaseProcMappings().procedureMappings["pt_vertices2"];
+		if(!DB_STORED_PROC_PT_EDGES.empty()&&!DB_STORED_PROC_PT_VERTICES.empty()){
+			instance2.init(DB_STORED_PROC_PT_VERTICES, DB_STORED_PROC_PT_EDGES);
+		}
 	}
 }
 namespace

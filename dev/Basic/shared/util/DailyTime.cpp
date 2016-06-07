@@ -163,10 +163,10 @@ namespace
 			}
 		}
 		if(num > 0) { timePart[timePartIdx] = num; } //millisecond part was present in the string
-		if (numDigits%2!=0)
+		if (numDigits%2!=0 && timePart[0] > 9) //hour part is the only component that is allowed to be single digit
 		{
-			std::cout << "Invalid format: non-even digit count:" + err << std::endl;
-			//throw std::runtime_error(err);
+			err = "Invalid format: non-even digit count: " + err + "\n";
+			throw std::runtime_error(err);
 		}
 		if (numColon!=2)
 		{

@@ -242,7 +242,7 @@ inline void calculateProjectProfit(PotentialProject& project,DeveloperModel* mod
 
 		if(isEmptyParcel)
 		{
-			unitAge = 0;//::TODO add code to calculate average unit of all the units in this parcel;
+			unitAge = 0;
 		}
 		else
 		{

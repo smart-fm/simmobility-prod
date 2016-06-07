@@ -9,7 +9,7 @@
 #include <boost/regex.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/thread.hpp>
-#include <boost/thread/tss.hpp>
+#include <memory>
 #include <soci/postgresql/soci-postgresql.h>
 #include <sstream>
 #include "lua/LuaLibrary.hpp"
@@ -60,11 +60,11 @@ struct ModelContext
 	PrivateTrafficRouteChoice* pvtRouteChoiceModel;
 };
 
-boost::thread_specific_ptr<ModelContext> threadContext;
+thread_local std::unique_ptr<ModelContext> threadContext;
 
 void ensureContext()
 {
-	if (!threadContext.get())
+	if (!threadContext)
 	{
 		try
 		{

@@ -39,7 +39,7 @@ namespace sim_mob
             
             enum VehicleOwnershipOption
             {
-            	NO_CAR, ONE_CAR, TWO_PLUS_CAR
+            	NO_VEHICLE = 1, PLUS1_MOTOR_ONLY,OFF_PEAK_CAR_W_WO_MOTOR,NORMAL_CAR_ONLY,NORMAL_CAR_1PLUS_MOTOR,NORMAL_CAR_W_WO_MOTOR
             };
             VehicleOwnershipOption vehicleOwnershipOption;
 

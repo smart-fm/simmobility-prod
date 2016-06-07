@@ -10,6 +10,7 @@
 #include <cmath>
 #include <functional>
 #include <map>
+#include <regex>
 #include <sstream>
 #include <string>
 #include <stdint.h>
@@ -17,6 +18,12 @@
 #include <vector>
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
+#include "conf/Constructs.hpp"
+#include "conf/RawConfigParams.hpp"
+#include "database/DB_Connection.hpp"
+#include "database/DB_Config.hpp"
+#include "database/predaydao/DatabaseHelper.hpp"
+#include "database/predaydao/PopulationSqlDao.hpp"
 #include "geospatial/network/RoadNetwork.hpp"
 #include "logging/Log.hpp"
 #include "Person_MT.hpp"
@@ -26,6 +33,8 @@
 using namespace std;
 using namespace sim_mob;
 using namespace sim_mob::medium;
+using sim_mob::db::DB_Config;
+using sim_mob::db::DB_Connection;
 
 namespace
 {
@@ -219,6 +228,18 @@ void setActivityStartEnd(sim_mob::Activity* activity, double startInterval, doub
 	activity->endTime = sim_mob::DailyTime(randomEndTime);
 }
 
+DB_Connection getDB_Connection(const DatabaseDetails& dbInfo)
+{
+	const std::string& dbId = dbInfo.database;
+	Database db = ConfigManager::GetInstance().FullConfig().constructs.databases.at(dbId);
+	const std::string& cred_id = dbInfo.credentials;
+	Credential cred = ConfigManager::GetInstance().FullConfig().constructs.credentials.at(cred_id);
+	std::string username = cred.getUsername();
+	std::string password = cred.getPassword(false);
+	DB_Config dbConfig(db.host, db.port, db.dbName, username, password);
+	return DB_Connection(sim_mob::db::POSTGRES, dbConfig);
+}
+
 }//anon namespace
 
 /**
@@ -238,23 +259,47 @@ public:
 	void operator()(void)
 	{
 		id = boost::this_thread::get_id();
+		ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
+		DB_Connection populationConn = getDB_Connection(cfg.populationDatabase);
+		populationConn.connect();
+		if (!populationConn.isConnected())
+		{
+			throw std::runtime_error("connection to LT population database failed");
+		}
+		PopulationSqlDao populationDao(populationConn);
+
+		DB_Connection logsumConn = getDB_Connection(cfg.networkDatabase);
+		logsumConn.connect();
+		if (!logsumConn.isConnected())
+		{
+			throw std::runtime_error("logsum db connection failure!");
+		}
+		SimmobSqlDao logsumSqlDao(logsumConn);
+
 		for (size_t i = 0; i < tripChainList.size(); i++)
 		{
 			std::vector<TripChainItem*>& personTripChain = tripChainList[i];
 			if (personTripChain.empty()) { continue; }
-			ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
 			Person_MT* person = new Person_MT("DAS_TripChain", cfg.mutexStategy(), personTripChain);
 			if (!person->getTripChain().empty())
 			{
 				//Set the usage of in-simulation travel times
 				//Generate random number between 0 and 100 (indicates percentage)
 				int randomInt = Utils::generateInt(0, 100);
-				
 				if(randomInt <= cfg.simulation.inSimulationTTUsage)
 				{
 					person->setUseInSimulationTravelTime(true);
 				}
-				
+
+				if(person->getDatabaseId().find_first_not_of("0123456789") == std::string::npos) // to eliminate any dummy persons we include for background traffic
+				{
+					std::string::size_type sz;
+					long long personId = std::stol(person->getDatabaseId(), &sz);
+					PersonParams personInfo;
+					populationDao.getOneById(personId, personInfo);
+					logsumSqlDao.getLogsumById(personId, personInfo);
+					person->setPersonInfo(personInfo);
+				}
 				persons.push_back(person);
 			}
 			else
@@ -302,6 +347,17 @@ MT_PersonLoader::MT_PersonLoader(std::set<sim_mob::Entity*>& activeAgents, Start
 	nextLoadStart = getHalfHourWindow(cfg.simulation.simStartTime.getValue()/1000);
 	storedProcName = cfg.getDatabaseProcMappings().procedureMappings["day_activity_schedule"];
 	freightStoredProcName = cfg.getDatabaseProcMappings().procedureMappings["freight_trips"];
+
+	DB_Connection populationConn = getDB_Connection(cfg.populationDatabase);
+	populationConn.connect();
+	if (!populationConn.isConnected())
+	{
+		throw std::runtime_error("connection to LT population database failed");
+	}
+	PopulationSqlDao populationDao(populationConn);
+	populationDao.getIncomeCategories(PersonParams::getIncomeCategoryLowerLimits());
+	populationDao.getVehicleCategories(PersonParams::getVehicleCategoryLookup());
+	populationDao.getAddresses(PersonParams::getAddressLookup(), PersonParams::getZoneAddresses());
 }
 
 MT_PersonLoader::~MT_PersonLoader()

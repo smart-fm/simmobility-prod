@@ -26,10 +26,10 @@ const std::string DEMAND_SCHEMA = "demand.";
 const std::string DB_TABLE_INCOME_CATEGORIES = APPLY_SCHEMA(MAIN_SCHEMA, "income_category");
 const std::string DB_TABLE_VEHICLE_CATEGORIES = APPLY_SCHEMA(MAIN_SCHEMA, "vehicle_category");
 const std::string DB_TABLE_LOGSUMS = APPLY_SCHEMA(DEMAND_SCHEMA, "preday_logsum");
-const std::string DB_TABLE_AM_COSTS = APPLY_SCHEMA(PUBLIC_SCHEMA, "amcosts");
-const std::string DB_TABLE_PM_COSTS = APPLY_SCHEMA(PUBLIC_SCHEMA, "pmcosts");
-const std::string DB_TABLE_OP_COSTS = APPLY_SCHEMA(PUBLIC_SCHEMA, "opcosts");
-const std::string DB_TABLE_TAZ = APPLY_SCHEMA(PUBLIC_SCHEMA, "taz_2012");
+const std::string DB_TABLE_AM_COSTS = APPLY_SCHEMA(DEMAND_SCHEMA, "amcosts");
+const std::string DB_TABLE_PM_COSTS = APPLY_SCHEMA(DEMAND_SCHEMA, "pmcosts");
+const std::string DB_TABLE_OP_COSTS = APPLY_SCHEMA(DEMAND_SCHEMA, "opcosts");
+const std::string DB_TABLE_TAZ = APPLY_SCHEMA(DEMAND_SCHEMA, "taz_2012");
 
 /**
  * Stored procedures for long-term population database

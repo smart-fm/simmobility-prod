@@ -468,6 +468,9 @@ public:
     /// If loading from the database, how do we connect?
     DatabaseDetails networkDatabase;
 
+    /// If loading population from the database, how do we connect?
+    DatabaseDetails populationDatabase;
+
     /// Represents simulation section
     SimulationParams simulation;
 

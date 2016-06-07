@@ -6,6 +6,7 @@
 
 #include <string>
 #include <vector>
+#include "behavioral/params/PersonParams.hpp"
 #include "entities/Person.hpp"
 #include "geospatial/network/Lane.hpp"
 #include "geospatial/network/Link.hpp"
@@ -42,6 +43,9 @@ private:
 
 	/**Used by confluxes to move the person for his tick duration across link and sub-trip boundaries*/
 	double remainingTimeThisTick;
+
+	/**	struct containing additional pertinent information about this person */
+	PersonParams personInfo;
 
 	/**Alters trip chain in accordance to route choice for public transit trips*/
 	void convertPublicTransitODsToTrips();
@@ -184,6 +188,16 @@ public:
 	void setRemainingTimeThisTick(double remainingTimeThisTick)
 	{
 		this->remainingTimeThisTick = remainingTimeThisTick;
+	}
+
+	const PersonParams& getPersonInfo() const
+	{
+		return personInfo;
+	}
+
+	void setPersonInfo(const PersonParams& personInfo)
+	{
+		this->personInfo = personInfo;
 	}
 };
 } // namespace medium

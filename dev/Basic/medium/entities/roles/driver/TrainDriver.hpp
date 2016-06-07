@@ -111,7 +111,12 @@ public:
 	 */
 	void updatePassengers();
 
-	void AlightAllPassengers();
+	int AlightAllPassengers(std::list<Passenger*>& alightingPassenger);
+
+	void TeleportToOppositeLine(std::string station,std::string lineId);
+
+	void SetTrainDriverInOpposite(TrainDriver *trainDriver);
+	TrainDriver *GetDriverInOppositeLine();
 
 	TrainMovement * GetMovement();
 	/**
@@ -143,6 +148,9 @@ private:
 	std::list<Passenger*> passengerList;
 	/**the locker for this driver*/
 	mutable boost::mutex driverMutex;
+	TrainDriver *nextDriverInOppLine;
+	bool holdTrain=false;
+	static int counter;
 private:
 	friend class TrainBehavior;
 	friend class TrainMovement;

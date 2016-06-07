@@ -27,7 +27,7 @@ MT_Config::MT_Config() :
        regionRestrictionEnabled(false), midTermRunMode(MT_Config::MT_NONE), pedestrianWalkSpeed(0), numPredayThreads(0),
 			configSealed(false), fileOutputEnabled(false), consoleOutput(false), predayRunMode(MT_Config::PREDAY_NONE), calibrationMethodology(MT_Config::WSPSA),
 			logsumComputationFrequency(0), supplyUpdateInterval(0), activityScheduleLoadInterval(0), busCapacity(0), outputPredictions(false),
-            populationSource(db::MONGO_DB), populationDB(), simmobDB(), enabledEdgeTravelTime(false)
+            populationSource(db::MONGO_DB), populationDB(), simmobDB(), granPersonTicks(0)
 {
 }
 
@@ -131,6 +131,19 @@ void MT_Config::setModelScriptsMap(const ModelScriptsMap& modelScriptsMap)
 	{
 		this->modelScriptsMap = modelScriptsMap;
 	}
+}
+
+void MT_Config::setServiceControllerScriptsMap(const ModelScriptsMap& modelScriptsMap)
+{
+	if(!configSealed)
+	{
+		this->ServiceControllerScriptsMap = modelScriptsMap;
+	}
+}
+
+const ModelScriptsMap& MT_Config::getServiceControllerScriptsMap()
+{
+	 return this->ServiceControllerScriptsMap;
 }
 
 const MongoCollectionsMap& MT_Config::getMongoCollectionsMap() const
@@ -292,57 +305,6 @@ void MT_Config::setLogsumComputationFrequency(unsigned logsumComputationFrequenc
 	}
 }
 
-const std::string& MT_Config::getJourneyTimeStatsFilename() const
-{
-	return journeyTimeStatsFilename;
-}
-
-const std::string& MT_Config::getWaitingTimeStatsFilename() const
-{
-	return waitingTimeStatsFilename;
-}
-
-void MT_Config::setJourneyTimeStatsFilename(const std::string& str)
-{
-	if(!configSealed)
-	{
-		journeyTimeStatsFilename = str;
-	}
-}
-
-void MT_Config::setWaitingTimeStatsFilename(const std::string& str)
-{
-	if(!configSealed)
-	{
-		waitingTimeStatsFilename = str;
-	}
-}
-
-const std::string& MT_Config::getWaitingCountStatsFilename() const
-{
-	return waitingCountStatsFilename;
-}
-
-void MT_Config::setWaitingCountStatsFilename(const std::string& str)
-{
-	if(!configSealed)
-	{
-		waitingCountStatsFilename = str;
-	}
-}
-
-const std::string& MT_Config::getTravelTimeStatsFilename() const
-{
-	return travelTimeStatsFilename;
-}
-
-void MT_Config::setTravelTimeStatsFilename(const std::string& str)
-{
-	if(!configSealed)
-	{
-		travelTimeStatsFilename = str;
-	}
-}
 const unsigned int MT_Config::getBusCapacity() const
 {
 	return busCapacity;
@@ -486,6 +448,27 @@ unsigned int& sim_mob::medium::MT_Config::personWorkGroupSize()
 unsigned int sim_mob::medium::MT_Config::personWorkGroupSize() const
 {
 	return workers.person.count;
+}
+
+std::pair<double, double> sim_mob::medium::MT_Config::getSpeedDensityParam(int linkCategory) const
+{
+	if(linkCategory < 1 || linkCategory > 7)
+	{
+		throw std::runtime_error("invalid link category passed to fetch speed density parameters");
+	}
+	return speedDensityParams[linkCategory-1];
+}
+
+void sim_mob::medium::MT_Config::setSpeedDensityParam(int linkCategory, double alpha, double beta)
+{
+	if(!configSealed)
+	{
+		if(linkCategory < 1 || linkCategory > 7)
+		{
+			throw std::runtime_error("invalid link category passed to set speed density parameters");
+		}
+		speedDensityParams[linkCategory-1] = std::make_pair(alpha, beta);
+	}
 }
 
 }

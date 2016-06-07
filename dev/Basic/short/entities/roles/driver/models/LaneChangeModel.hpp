@@ -255,7 +255,7 @@ private:
 	 * @param params driver parameters
 	 * @param targetLanes the lanes connected to the stop point
 	 *
-	 * @return -1 if lance change is require, 0 otherwise
+	 * @return -1 if lane change is required, 0 otherwise
 	 */
 	int isLaneConnectedToStopPoint(DriverUpdateParams &params, set<const Lane *> &targetLanes);
 	
@@ -265,8 +265,22 @@ private:
 	 * @param params driver parameters
      * @param lookAheadDist look ahead distance
      * @param lanePool stores the result
+	 * 
+	 * @return -1 if current lane is not connected to the lanes in the look ahead distance, 0 otherwise
      */
-	void getConnectedLanesInLookAheadDistance(DriverUpdateParams &params, double lookAheadDist, std::vector<Lane *> &lanePool);
+	int getConnectedLanesInLookAheadDistance(DriverUpdateParams &params, double lookAheadDist, std::vector<const Lane *> &lanePool);
+	
+	/**
+	 * Checks whether the given lane is connected to last way-point in the list
+	 * 
+	 * @param lane lane to be tested
+	 * @param itWayPts the iterator pointing to the start of the way-points in the path
+	 * @param end iterator pointing to end of path
+	 * @param distance the distance before which the lane change must happen (if any)
+	 * 
+	 * @return true if connected, else false
+	 */
+	bool isLaneConnected(const Lane *lane, vector<WayPoint>::const_iterator itWayPts, vector<WayPoint>::const_iterator end, double *distance);
 
 	/**
 	 * Calculates the utility of the left lane when looking ahead for lane change

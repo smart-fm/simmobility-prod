@@ -3,21 +3,16 @@
 #include <sstream>
 
 #include "geospatial/network/WayPoint.hpp"
-#include "util/DailyTime.hpp"
 #include "geospatial/network/Node.hpp"
 
 namespace sim_mob
 {
-class RoadSegment;
-
-struct RdSegTravelTimes
+enum PT_EdgeType
 {
-public:
-	double travelTimeSum;
-	unsigned int agCnt;
-
-	RdSegTravelTimes(double rdSegTravelTime, unsigned int agentCount)
-	: travelTimeSum(rdSegTravelTime), agCnt(agentCount) {}
+	UNKNOWN_EDGE,
+	WALK_EDGE,
+	BUS_EDGE,
+	TRAIN_EDGE
 };
 }
 

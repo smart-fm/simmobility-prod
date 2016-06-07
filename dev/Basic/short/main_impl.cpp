@@ -170,7 +170,7 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 	rf->registerRole("passenger",new Passenger(nullptr, mtx));
 	rf->registerRole("busdriver", new BusDriver(nullptr, mtx));
 	rf->registerRole("activityRole", new ActivityPerformer<Person_ST>(nullptr));
-	rf->registerRole("waitBusActivityRole", new WaitBusActivityRoleImpl(nullptr));
+	rf->registerRole("waitBusActivity", new WaitBusActivityRoleImpl(nullptr));
 	rf->registerRole("taxidriver", new Driver(nullptr, mtx));
 
 	//Loader params for our Agents
@@ -424,7 +424,7 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 		wgMgr.waitAllGroups();
 		
 		unsigned long currTimeMS = currTick * config.baseGranMS();
-		if(stCfg.segDensityMap.outputEnabled && (currTimeMS % stCfg.segDensityMap.updateInterval == 0))
+		if(stCfg.segDensityMap.outputEnabled && ((currTimeMS + config.baseGranMS()) % stCfg.segDensityMap.updateInterval == 0))
 		{
 			DriverMovement::outputDensityMap(currTimeMS / stCfg.segDensityMap.updateInterval);
 		}
@@ -446,6 +446,16 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 	if (config.PathSetMode()) 
 	{
 		TravelTimeManager::getInstance()->storeCurrentSimulationTT();;
+	}
+
+	if(config.odTTConfig.enabled)
+	{
+		TravelTimeManager::getInstance()->dumpODTravelTimeToFile(config.odTTConfig.fileName);
+	}
+
+	if(config.rsTTConfig.enabled)
+	{
+		TravelTimeManager::getInstance()->dumpSegmentTravelTimeToFile(config.rsTTConfig.fileName);
 	}
 
 	Print() << "Database lookup took: " <<loop_start_offset <<" ms" <<std::endl;

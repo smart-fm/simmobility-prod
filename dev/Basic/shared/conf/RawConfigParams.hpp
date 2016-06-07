@@ -123,6 +123,9 @@ public:
 
     /// When the simulation begins(based on configuration)
     DailyTime simStartTime;
+	
+    /// Indicates the percentage of persons which will use in-simulation travel times instead of historical travel times
+    unsigned int inSimulationTTUsage;
 
     /// Defautl assignment strategy for Workgroups.
     WorkGroup::ASSIGNMENT_STRATEGY workGroupAssigmentStrategy;
@@ -357,6 +360,7 @@ struct PathSetConf
 
     /// pt route choice model scripts params
 	ModelScriptsMap ptRouteChoiceScriptsMap;
+	ModelScriptsMap ServiceControllerScriptsMap;
 };
 
 /**
@@ -419,6 +423,14 @@ struct BusStopScheduledTime {
     unsigned int offsetDT; //<Presumably departure time?
 };
 
+struct TravelTimeConfig {
+	unsigned int intervalMS;
+	std::string fileName;
+	bool enabled;
+
+	TravelTimeConfig() : intervalMS(0), fileName(""), enabled(false) {}
+};
+
 /**
  * Contains the properties of the config file as they appear in, e.g., test_road_network.xml, with
  *   minimal conversion.
@@ -469,8 +481,16 @@ public:
     /// Bus controller parameters
     BusControllerParams busController;
 
+
     /// Train controller parameters
     TrainControllerParams trainController;
+
+    //OD Travel Time configurations
+    TravelTimeConfig odTTConfig;
+
+    //OD Travel Time configurations
+	TravelTimeConfig rsTTConfig;
+
 
     ///Some settings for bus stop arrivals/departures.
     std::map<int, BusStopScheduledTime> busScheduledTimes; //The int is a "bus stop ID", starting from 0.

@@ -116,14 +116,14 @@ void PopulationSqlDao::getIncomeCategories(double incomeLowerLimits[])
 		prepareStatement(DB_GET_INCOME_CATEGORIES, db::EMPTY_PARAMS, query);
 		ResultSet rs(query);
 
-		double uLimit = 0;
+		double lowLimit = 0;
 		incomeLowerLimits[0] = 0;
 		for (ResultSet::const_iterator it = rs.begin(); it != rs.end(); ++it)
 		{
-			uLimit = (*it).get<double>(DB_FIELD_INCOME_CATEGORY_LOWER_LIMIT);
-			if (uLimit > 0)
+			lowLimit = (*it).get<double>(DB_FIELD_INCOME_CATEGORY_LOWER_LIMIT);
+			if (lowLimit > 0)
 			{
-				incomeLowerLimits[(*it).get<BigInt>(DB_FIELD_ID)] = uLimit;
+				incomeLowerLimits[(*it).get<BigInt>(DB_FIELD_ID)] = lowLimit;
 			}
 		}
 	}

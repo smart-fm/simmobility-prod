@@ -17,7 +17,8 @@
 #include "conf/ConfigParams.hpp"
 #include <iostream>
 #include "stdlib.h"
-
+//#include "shared/entities/Person.hpp"
+using namespace std;
 namespace {
 const double distanceArrvingAtPlatform = 0.001;
 const double trainLengthMeter = 138;
@@ -65,6 +66,17 @@ TrainMovement::TrainMovement():MovementFacet(),parentDriver(nullptr),safeDistanc
 	safeDistance = config.trainController.safeDistance;
 	safeHeadway = config.trainController.safeHeadway;
 }
+
+void TrainMovement::ResetSafeHeadWay(double safeHeadWay)
+{
+	this->safeHeadway = safeHeadWay;
+}
+
+void TrainMovement::ResetSafeDistance(double safeDistance)
+{
+	this->safeHeadway = safeDistance;
+}
+
 TrainMovement::~TrainMovement()
 {
 
@@ -104,6 +116,144 @@ void TrainMovement::frame_init()
 	}
 }
 
+void TrainMovement::ChangeTrip()
+{
+	Person_MT* person = parentDriver->parent;
+	std::string lineId=parentDriver->getTrainLine();
+	Platform *platform=getNextPlatform();
+	TrainController<sim_mob::medium::Person_MT> *trainController=TrainController<sim_mob::medium::Person_MT>::getInstance();
+	std::string oppLineId=trainController->GetOppositeLineId(lineId);
+	TrainTrip* trip = dynamic_cast<TrainTrip*>(*(person->currTripChainItem));
+	//TrainTrip* trainTrip = new TrainTrip();
+	trip->setLineId(oppLineId);
+	std::vector<Block*>route;
+	std::vector<Platform*> platforms;
+	trainController->getTrainRoute(oppLineId,route);
+	trip->setTrainRoute(route);
+	trainController->getTrainPlatforms(oppLineId,platforms);
+	trip->setTrainPlatform(platforms);
+	std::string stationName=platform->getStationNo();
+	TakeUTurn(stationName);
+}
+
+bool TrainMovement::CheckIfTrainsAreApprochingOrAtPlatform(std::string platformNo,std::string lineID)
+{
+   //get the vector of train drivers for that line
+	TrainController<sim_mob::medium::Person_MT> *trainController=TrainController<sim_mob::medium::Person_MT>::getInstance();
+	typename  std::vector <Role<Person_MT>*> trainDriverVector=trainController->GetActiveTrainsForALine(lineID);
+	//std::vector<Role<Person_MT>*> trainDriverVector;
+    std::vector<Role<Person_MT>*>::iterator it;
+    for(it=trainDriverVector.begin();it!=trainDriverVector.end();it++)
+    {
+    	TrainDriver *tDriver=dynamic_cast<TrainDriver*>(*(it));
+    	if(tDriver)
+    	{
+    		MovementFacet *moveFacet=tDriver->GetMovement();
+    		if(moveFacet)
+    		{
+    			TrainMovement* trainMovement=dynamic_cast<TrainMovement*>(moveFacet);
+                if(trainMovement)
+                {
+                   Platform *platform=trainMovement->getNextPlatform();
+                   if(platform)
+                   {
+                	   if(boost::iequals(platform->getPlatformNo(),platformNo))
+                		   return true;
+                   }
+                }
+    		}
+    	}
+    }
+return false;
+}
+
+bool TrainMovement::CheckSafeHeadWayBeforeTeleport(std::string platformNo,std::string lineID)
+{
+	TrainController<sim_mob::medium::Person_MT> *trainController=TrainController<sim_mob::medium::Person_MT>::getInstance();
+	typename  std::vector <Role<Person_MT>*> trainDriverVector=trainController->GetActiveTrainsForALine(lineID);
+    TrainPlatform trainPlatform=trainController->GetNextPlatform(platformNo,lineID);
+    Platform *platform=trainController->GetPlatformFromId(platformNo);
+    typename std::vector <Role<Person_MT>*>::iterator it=trainDriverVector.begin();
+    double minDis=-1;
+    TrainDriver *nextDriverInOppLine;
+    while(it!=trainDriverVector.end())
+    {
+
+    	MovementFacet *movementFacet=(*it)->Movement();
+    	if(movementFacet)
+    	{
+    		TrainMovement *trainMovement=dynamic_cast<TrainMovement*>(movementFacet);
+    		if(trainMovement)
+    		{
+                 Platform *nextPlatform=trainMovement->getNextPlatform();
+                 if(nextPlatform)
+                 {
+                	 std::string nextPlatformNo=nextPlatform->getPlatformNo();
+                	 if(boost::iequals(trainPlatform.platformNo,nextPlatformNo))
+                	 {
+                		     //const TrainPathMover &trainPathMover=trainMovement->getPathMover();
+
+                			 double disCovered=getTotalCoveredDistance();
+
+                             double disOfPlatform=GetDistanceFromStartToPlatform(lineID,platform);
+                        	 if(minDis==-1||disCovered-disOfPlatform<minDis)
+                        	 {
+                        		 minDis=disCovered-disOfPlatform;
+                        		 nextDriverInOppLine = dynamic_cast<TrainDriver*>((*it));
+                        	 }
+
+                             if(disCovered-disOfPlatform<=safeDistance)
+                             {
+
+                            	 return false;
+                             }
+
+                	 }
+                 }
+    		}
+    	}
+    }
+  TrainDriver * trainDriver=this->getParentDriver();
+  if(trainDriver)
+  {
+	trainDriver->SetTrainDriverInOpposite(nextDriverInOppLine);
+  }
+return true;
+}
+
+double TrainMovement::getTotalCoveredDistance()
+{
+	return trainPathMover.getTotalCoveredDistance();
+}
+
+double TrainMovement::GetDistanceFromStartToPlatform(std::string lineID,Platform *platform)
+{
+  return trainPathMover.GetDistanceFromStartToPlatform(lineID,platform);
+}
+
+
+void TrainMovement::TakeUTurn(std::string stationName)
+{
+    //std::string platformName=getNextPlatform();
+    TrainController<sim_mob::medium::Person_MT> *trainController=TrainController<sim_mob::medium::Person_MT>::getInstance();
+    Person_MT* person = parentDriver->parent;
+    TrainTrip* trip = dynamic_cast<TrainTrip*>(*(person->currTripChainItem));
+    std::string lineId=trip->getLineId();
+    Platform *platform=parentDriver->getNextPlatform();
+    std::string stationId=platform->getStationNo();
+    Station *station=trainController->GetStationFromId(stationId);
+    Platform *oppPlatform=station->getPlatform(lineId);
+    std::vector<Block *> blocks=trip->getTrainRoute();
+    trainPathMover.setPath(trip->getTrainRoute());
+    trainPathMover.TeleportToOppositeLine(stationId,lineId,oppPlatform);
+    facetMutex.lock();
+    nextPlatform = oppPlatform;
+    facetMutex.unlock();
+    TrainDriver *parentDriver=getParentDriver();
+    parentDriver->setNextDriver(parentDriver->GetDriverInOppositeLine());
+
+}
+
 void TrainMovement::produceDwellTimeInfo()
 {
 	const std::string& fileName("pt_mrt_dwellTime.csv");
@@ -141,6 +291,7 @@ void TrainMovement::produceMoveInfo()
     sim_mob::BasicLogger& ptMRTMoveLogger  = sim_mob::Logger::log(fileName);
     DailyTime startTime = ConfigManager::GetInstance().FullConfig().simStartTime();
     ptMRTMoveLogger << DailyTime(params.now.ms()+startTime.getValue()).getStrRepr() << ",";
+
     if(trip) ptMRTMoveLogger << trip->getLineId() << ",";
     if(trip) ptMRTMoveLogger << trip->getTrainId() << ",";
     if(trip) ptMRTMoveLogger << trip->getTripId() << ",";
@@ -158,7 +309,9 @@ void TrainMovement::produceMoveInfo()
     ptMRTMoveLogger << trainPathMover.getCurrentPosition().getY() << ",";
     ptMRTMoveLogger << params.currentAcelerate << ",";
     ptMRTMoveLogger << parentDriver->getPassengers().size()<<",";
-    ptMRTMoveLogger << this->parentDriver->waitingTimeSec << std::endl;
+    ptMRTMoveLogger << this->parentDriver->waitingTimeSec << ",";
+   // Print()<<"The train ID is"<<trip->getTrainId()<<endl;
+//    ptMRTMoveLogger << trainPathMover.GetCurrentBlockId()<< std::endl;
     produceDwellTimeInfo();
     passengerInfo();
 }

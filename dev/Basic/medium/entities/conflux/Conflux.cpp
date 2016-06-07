@@ -5,6 +5,7 @@
 #include "Conflux.hpp"
 
 #include <algorithm>
+#include <cstdio>
 #include <cmath>
 #include <map>
 #include <stdexcept>
@@ -20,7 +21,7 @@
 #include "entities/Entity.hpp"
 #include "entities/misc/TripChain.hpp"
 #include "entities/roles/activityRole/ActivityPerformer.hpp"
-#include "entities/roles/driver/BikerFacets.hpp"
+#include "entities/roles/driver/DriverVariantFacets.hpp"
 #include "entities/roles/driver/BusDriverFacets.hpp"
 #include "entities/roles/driver/DriverFacets.hpp"
 #include "entities/roles/passenger/PassengerFacets.hpp"
@@ -60,6 +61,7 @@ const double INFINITESIMAL_DOUBLE = 0.000001;
 const double PASSENGER_CAR_UNIT = 400.0; //cm; 4 m.
 const double MAX_DOUBLE = std::numeric_limits<double>::max();
 const double SHORT_SEGMENT_LENGTH_LIMIT = 5 * sim_mob::PASSENGER_CAR_UNIT; // 5 times a car's length
+const short EVADE_VQ_BOUNDS_THRESHOLD_TICKS = 24; //upper limit of number of ticks for which VQ size limit can reject a person from entering next link
 }
 
 void sim_mob::medium::sortPersonsDecreasingRemTime(std::deque<Person_MT*>& personList)
@@ -75,9 +77,11 @@ unsigned Conflux::updateInterval = 0;
 
 Conflux::Conflux(Node* confluxNode, const MutexStrategy& mtxStrat, int id, bool isLoader) :
 		Agent(mtxStrat, id), confluxNode(confluxNode), parentWorkerAssigned(false), currFrame(0, 0), isLoader(isLoader), numUpdatesThisTick(0),
-		tickTimeInS(ConfigManager::GetInstance().FullConfig().baseGranSecond())
+		tickTimeInS(ConfigManager::GetInstance().FullConfig().baseGranSecond()), evadeVQ_Bounds(false)
 {
-	multiUpdate = true;
+	if (!isLoader) {
+		multiUpdate = true;
+	}
 }
 
 Conflux::~Conflux()
@@ -176,50 +180,54 @@ Conflux::PersonProps::PersonProps(const Person_MT* person, const Conflux* cnflx)
 
 void Conflux::PersonProps::printProps(std::string personId, uint32_t frame, std::string prefix) const
 {
-	std::stringstream propStrm;
-	propStrm << personId << "," << frame << "," << prefix << ",{";
-	propStrm << " conflux:";
-	if (conflux)
+	char propbuf[1000];
+	if(roleType == 5)
 	{
-		propStrm << conflux->getConfluxNode()->getNodeId() << "(worker: " << conflux->currWorkerProvider << ")";
+		sprintf(propbuf, "%s,%u,%s,cfx:%u,%p,activity\n",
+				personId.c_str(),
+				frame,
+				prefix.c_str(),
+				(conflux ? conflux->getConfluxNode()->getNodeId() : 0),
+				(conflux ? conflux->currWorkerProvider : 0)
+		);
 	}
 	else
 	{
-		propStrm << "0x0";
+		sprintf(propbuf, "%s,%u,%s,cfx:%u,%p,seg:%u-%u,ln:%u,rl:%u,q:%c,m:%c,d:%f\n",
+				personId.c_str(),
+				frame,
+				prefix.c_str(),
+				(conflux ? conflux->getConfluxNode()->getNodeId() : 0),
+				(conflux ? conflux->currWorkerProvider : 0),
+				(segment? segment->getRoadSegmentId() : 0),
+				(segStats? segStats->getStatsNumberInSegment() : 0),
+				(lane? lane->getLaneId() : 0),
+				roleType,
+				(isQueuing? 'T' : 'F' ),
+				(isMoving? 'T' : 'F'),
+				distanceToSegEnd
+		);
 	}
-	propStrm << " segment:";
-	if (segment)
+	if(conflux)
 	{
-		propStrm << segment->getRoadSegmentId();
+		conflux->log(std::string(propbuf));
 	}
-	else
-	{
-		propStrm << "0x0";
-	}
-	propStrm << " segstats:";
-	if (segStats)
-	{
-		propStrm << segStats->getStatsNumberInSegment();
-	}
-	else
-	{
-		propStrm << "0x0";
-	}
-	propStrm << " lane:";
-	if (lane)
-	{
-		propStrm << lane->getLaneId();
-	}
-	else
-	{
-		propStrm << "0x0";
-	}
-	propStrm << " roleType:" << roleType
-			<< " isQueuing:" << isQueuing
-			<< " isMoving:" << isMoving
-			<< " distance:" << distanceToSegEnd
-			<< " }" << std::endl;
-	Print() << propStrm.str();
+
+}
+
+bool Conflux::isStuck(Conflux::PersonProps& beforeUpdate, Conflux::PersonProps& afterUpdate) const
+{
+	return ((beforeUpdate.roleType == Role<Person_MT>::RL_DRIVER
+				|| beforeUpdate.roleType == Role<Person_MT>::RL_BUSDRIVER
+				|| beforeUpdate.roleType == Role<Person_MT>::RL_BIKER
+				|| beforeUpdate.roleType == Role<Person_MT>::RL_TRUCKER_HGV
+				|| beforeUpdate.roleType == Role<Person_MT>::RL_TRUCKER_LGV)
+			&& beforeUpdate.lane
+			&& beforeUpdate.lane != beforeUpdate.segStats->laneInfinity
+			&& beforeUpdate.lane == afterUpdate.lane
+			&& beforeUpdate.segStats == afterUpdate.segStats
+			&& beforeUpdate.distanceToSegEnd == afterUpdate.distanceToSegEnd
+			&& beforeUpdate.roleType == afterUpdate.roleType);
 }
 
 void Conflux::addAgent(Person_MT* person)
@@ -242,6 +250,8 @@ void Conflux::addAgent(Person_MT* person)
 		case Role<Person_MT>::RL_DRIVER: //fall through
 		case Role<Person_MT>::RL_BUSDRIVER:
 		case Role<Person_MT>::RL_BIKER:
+		case Role<Person_MT>::RL_TRUCKER_LGV:
+		case Role<Person_MT>::RL_TRUCKER_HGV:
 		{
 			SegmentStats* rdSegStats = const_cast<SegmentStats*>(person->getCurrSegStats()); // person->currSegStats is set when frame_init of role is called
 			person->setCurrLane(rdSegStats->laneInfinity);
@@ -383,6 +393,10 @@ void Conflux::loadPersons()
 		{
 			messaging::MessageBus::PostMessage(conflux, MSG_PERSON_LOAD, messaging::MessageBus::MessagePtr(new PersonMessage(person)));
 		}
+		/*else
+		{
+			safe_delete_item(person);
+		}*/
 	}
 }
 
@@ -402,23 +416,23 @@ void Conflux::processAgents()
 	}
 }
 
-void  Conflux::processInfiniteAgents()
+void  Conflux::processStartingAgents()
 {
-	PersonList infinitePersons, tmpAgents;
+	PersonList newPersons, tmpAgents;
 	SegmentStats* segStats = nullptr;
-	string PersonIds;
 	for(UpstreamSegmentStatsMap::iterator upStrmSegMapIt = upstreamSegStatsMap.begin();
-			upStrmSegMapIt!=upstreamSegStatsMap.end(); upStrmSegMapIt++) {
+			upStrmSegMapIt!=upstreamSegStatsMap.end(); upStrmSegMapIt++)
+	{
 		const SegmentStatsList& upstreamSegments = upStrmSegMapIt->second;
-		for(SegmentStatsList::const_iterator rdSegIt=upstreamSegments.begin();
-				rdSegIt!=upstreamSegments.end(); rdSegIt++) {
+		for(SegmentStatsList::const_iterator rdSegIt=upstreamSegments.begin(); rdSegIt!=upstreamSegments.end(); rdSegIt++)
+		{
 			segStats = (*rdSegIt);
 			tmpAgents.clear();
-			segStats->getInfinityPersons(tmpAgents, PersonIds);
-			infinitePersons.insert(infinitePersons.end(), tmpAgents.begin(), tmpAgents.end());
+			segStats->getInfinityPersons(tmpAgents);
+			newPersons.insert(newPersons.end(), tmpAgents.begin(), tmpAgents.end());
 		}
 	}
-	for (PersonList::iterator personIt = infinitePersons.begin(); personIt != infinitePersons.end(); personIt++) //iterate and update all persons
+	for (PersonList::iterator personIt = newPersons.begin(); personIt != newPersons.end(); personIt++) //iterate and update all persons
 	{
 		updateAgent(*personIt);
 	}
@@ -457,7 +471,7 @@ void Conflux::updateAgent(Person_MT* person)
 	//update person's handler registration with MessageBus, if required
 	updateAgentContext(beforeUpdate, afterUpdate, person);
 
-//	if (beforeUpdate.roleType != 4)
+//	if(!(beforeUpdate.roleType == 5 && afterUpdate.roleType == 5))
 //	{
 //		beforeUpdate.printProps(person->getDatabaseId(), currFrame.frame(), std::to_string(confluxNode->getNodeId()) + ",before");
 //		afterUpdate.printProps(person->getDatabaseId(), currFrame.frame(), std::to_string(confluxNode->getNodeId()) + ",after");
@@ -491,6 +505,8 @@ bool Conflux::handleRoleChange(PersonProps& beforeUpdate, PersonProps& afterUpda
 	}
 	case Role<Person_MT>::RL_DRIVER: //fall through
 	case Role<Person_MT>::RL_BIKER:
+	case Role<Person_MT>::RL_TRUCKER_LGV:
+	case Role<Person_MT>::RL_TRUCKER_HGV:
 	{
 		if(beforeUpdate.lane) //if person was not from VQ
 		{
@@ -522,6 +538,8 @@ bool Conflux::handleRoleChange(PersonProps& beforeUpdate, PersonProps& afterUpda
 	}
 	case Role<Person_MT>::RL_DRIVER: //fall through
 	case Role<Person_MT>::RL_BIKER:
+	case Role<Person_MT>::RL_TRUCKER_LGV:
+	case Role<Person_MT>::RL_TRUCKER_HGV:
 	{
 		if (afterUpdate.lane)
 		{
@@ -717,11 +735,20 @@ void Conflux::housekeep(PersonProps& beforeUpdate, PersonProps& afterUpdate, Per
 		double lengthToVehicleEnd = person->distanceToEndOfSegment + person->getRole()->getResource()->getLengthInM();
 		afterUpdate.segStats->setPositionOfLastUpdatedAgentInLane(lengthToVehicleEnd, afterUpdate.lane);
 	}
+
+	if(isStuck(beforeUpdate, afterUpdate))
+	{ // if the person was stuck at the same position in a segment in some lane
+		person->numTicksStuck++;
+	}
+	else
+	{
+		person->numTicksStuck = 0;
+	}
 }
 
 void Conflux::updateAgentContext(PersonProps& beforeUpdate, PersonProps& afterUpdate, Person_MT* person) const
 {
-	if (beforeUpdate.conflux && afterUpdate.conflux && beforeUpdate.conflux != afterUpdate.conflux)
+	if (afterUpdate.conflux && beforeUpdate.conflux != afterUpdate.conflux)
 	{
 		MessageBus::ReRegisterHandler(person, afterUpdate.conflux->GetContext());
 	}
@@ -809,24 +836,26 @@ unsigned int Conflux::resetOutputBounds()
 	{
 		lnk = i->first;
 		segStats = upstreamSegStatsMap.at(lnk).front();
-		/** In DynaMIT, the upper bound to the space in virtual queue was set based on the number of empty spaces
-		 the first segment of the downstream link (the one with the vq is attached to it) is going to create in this tick according to the outputFlowRate*tick_size.
-		 This would ideally underestimate the space available in the next segment, as it doesn't account for the empty spaces the segment already has.
-		 Therefore the virtual queues are most likely to be cleared by the end of that tick.
-		 [1] But with short segments, we noticed that this over estimated the space and left a considerably large amount of vehicles remaining in vq.
-		 Therefore, as per Yang Lu's suggestion, we are replacing computeExpectedOutputPerTick() calculation with existing number of empty spaces on the segment.
-		 [2] Another reason for vehicles to remain in vq is that in mid-term, we currently process the new vehicles (i.e.trying to get added to the network from lane infinity),
-		 before we process the virtual queues. Therefore the space that we computed to be for vehicles in virtual queues, would have been already occupied by the new vehicles
-		 by the time the vehicles in virtual queues try to get added.
-		 **/
-		//outputEstimate = segStats->computeExpectedOutputPerTick();
-		/** using ceil here, just to avoid short segments returning 0 as the total number of vehicles the road segment can hold i.e. when segment is shorter than a car**/
-		int num_emptySpaces = std::ceil(segStats->getRoadSegment()->getPolyLine()->getLength() * segStats->getRoadSegment()->getLanes().size() / PASSENGER_CAR_UNIT)
-				- segStats->numMovingInSegment(true) - segStats->numQueuingInSegment(true);
-		outputEstimate = (num_emptySpaces >= 0) ? num_emptySpaces : 0;
-		/** we are decrementing the number of agents in lane infinity (of the first segment) to overcome problem [2] above**/
-		outputEstimate = outputEstimate - segStats->numAgentsInLane(segStats->laneInfinity);
-		outputEstimate = (outputEstimate > 0 ? outputEstimate : 0);
+
+		outputEstimate = segStats->computeExpectedOutputPerTick();
+
+//		/** In DynaMIT, the upper bound to the space in virtual queue was set based on the number of empty spaces
+//		 the first segment of the downstream link (the one with the vq is attached to it) is going to create in this tick according to the outputFlowRate*tick_size.
+//		 This would ideally underestimate the space available in the next segment, as it doesn't account for the empty spaces the segment already has.
+//		 Therefore the virtual queues are most likely to be cleared by the end of that tick.
+//		 [1] But with short segments, we noticed that this over estimated the space and left a considerably large amount of vehicles remaining in vq.
+//		 Therefore, as per Yang Lu's suggestion, we are replacing computeExpectedOutputPerTick() calculation with existing number of empty spaces on the segment.
+//		 [2] Another reason for vehicles to remain in vq is that in mid-term, we currently process the new vehicles (i.e.trying to get added to the network from lane infinity),
+//		 before we process the virtual queues. Therefore the space that we computed to be for vehicles in virtual queues, would have been already occupied by the new vehicles
+//		 by the time the vehicles in virtual queues try to get added.
+//		 **/
+//		/** using ceil here, just to avoid short segments returning 0 as the total number of vehicles the road segment can hold i.e. when segment is shorter than a car**/
+//		int num_emptySpaces = std::ceil(segStats->getLength() * segStats->getNumVehicleLanes() / PASSENGER_CAR_UNIT)
+//				- segStats->numMovingInSegment(true) - segStats->numQueuingInSegment(true);
+//		outputEstimate = (num_emptySpaces >= 0) ? num_emptySpaces : 0;
+//		/** we are decrementing the number of agents in lane infinity (of the first segment) to overcome problem [2] above**/
+//		outputEstimate = outputEstimate - segStats->numAgentsInLane(segStats->laneInfinity);
+//		outputEstimate = (outputEstimate > 0 ? outputEstimate : 0);
 		vqBounds.insert(std::make_pair(lnk, (unsigned int) outputEstimate));
 		vqCount += i->second.size();
 	}			//loop
@@ -835,35 +864,46 @@ unsigned int Conflux::resetOutputBounds()
 	{
 		Print() << boost::this_thread::get_id() << "," << this->confluxNode->getNodeId() << " vqBounds.empty()" << std::endl;
 	}
+	evadeVQ_Bounds = false; //reset to false at the end of everytick
 	return vqCount;
 }
 
-bool Conflux::hasSpaceInVirtualQueue(const Link* lnk)
+bool Conflux::hasSpaceInVirtualQueue(const Link* lnk, short numTicksStuck)
 {
-	bool res = false;
+	// large value of numTicksStuck indicates that congestion is being built up because of VQ size limit.
+	// we prevent deadlocks by returning true for 1 tick
+	evadeVQ_Bounds = (numTicksStuck >= EVADE_VQ_BOUNDS_THRESHOLD_TICKS);
+	if(evadeVQ_Bounds)
 	{
-		boost::unique_lock<boost::recursive_mutex> lock(mutexOfVirtualQueue);
-		try
-		{
-			res = (vqBounds.at(lnk) > virtualQueuesMap.at(lnk).size());
-		}
-		catch (std::out_of_range& ex)
-		{
-			std::stringstream debugMsgs;
-			debugMsgs << boost::this_thread::get_id() << " out_of_range exception occured in hasSpaceInVirtualQueue()"
-					<< "|Conflux: "	<< this->confluxNode->getNodeId()
-					<< "|lnk: " << lnk->getLinkId()
-					<< "|virtualQueuesMap.size():" << virtualQueuesMap.size()
-					<< "|elements:";
-			for (VirtualQueueMap::iterator i = virtualQueuesMap.begin(); i != virtualQueuesMap.end(); i++)
-			{
-				debugMsgs << " (" << lnk->getLinkId() << ":" << i->second.size() << "),";
-			}
-			debugMsgs << "|\nvqBounds.size(): " << vqBounds.size() << std::endl;
-			throw std::runtime_error(debugMsgs.str());
-		}
+		return true;
 	}
-	return res;
+	else
+	{
+		bool res = false;
+		{
+			boost::unique_lock<boost::recursive_mutex> lock(mutexOfVirtualQueue);
+			try
+			{
+				res = (vqBounds.at(lnk) > virtualQueuesMap.at(lnk).size());
+			}
+			catch (std::out_of_range& ex)
+			{
+				std::stringstream debugMsgs;
+				debugMsgs << boost::this_thread::get_id() << " out_of_range exception occured in hasSpaceInVirtualQueue()"
+						<< "|Conflux: "	<< this->confluxNode->getNodeId()
+						<< "|lnk: " << lnk->getLinkId()
+						<< "|virtualQueuesMap.size():" << virtualQueuesMap.size()
+						<< "|elements:";
+				for (VirtualQueueMap::iterator i = virtualQueuesMap.begin(); i != virtualQueuesMap.end(); i++)
+				{
+					debugMsgs << " (" << lnk->getLinkId() << ":" << i->second.size() << "),";
+				}
+				debugMsgs << "|\nvqBounds.size(): " << vqBounds.size() << std::endl;
+				throw std::runtime_error(debugMsgs.str());
+			}
+		}
+		return res;
+	}
 }
 
 void Conflux::pushBackOntoVirtualQueue(const Link* lnk, Person_MT* p)
@@ -942,6 +982,8 @@ void Conflux::killAgent(Person_MT* person, PersonProps& beforeUpdate)
 	}
 	case Role<Person_MT>::RL_DRIVER:
 	case Role<Person_MT>::RL_BIKER:
+	case Role<Person_MT>::RL_TRUCKER_LGV:
+	case Role<Person_MT>::RL_TRUCKER_HGV:
 	{
 		if (prevLane)
 		{
@@ -987,7 +1029,7 @@ void Conflux::killAgent(Person_MT* person, PersonProps& beforeUpdate)
 	}
 	default:
 	{
-		break;
+		throw std::runtime_error("Person to be killed is not found.");
 	}
 	}
 
@@ -1137,7 +1179,11 @@ void Conflux::HandleMessage(messaging::Message::MessageType type, const messagin
 		}
 		mrt.erase(pIt);
 		//switch to next trip chain item
-		switchTripChainItem(msg.person);
+		Entity::UpdateStatus retVal = switchTripChainItem(msg.person);
+		if(retVal.status == UpdateStatus::RS_DONE)
+		{
+			safe_delete_item(msg.person);
+		}
 		break;
 	}
 	case MSG_WAKEUP_STASHED_PERSON:
@@ -1150,7 +1196,11 @@ void Conflux::HandleMessage(messaging::Message::MessageType type, const messagin
 		}
 		stashedPersons.erase(pIt);
 		//switch to next trip chain item
-		switchTripChainItem(msg.person);
+		Entity::UpdateStatus retVal = switchTripChainItem(msg.person);
+		if(retVal.status == UpdateStatus::RS_DONE)
+		{
+			safe_delete_item(msg.person);
+		}
 		break;
 	}
 	case MSG_WAKEUP_PEDESTRIAN:
@@ -1163,7 +1213,11 @@ void Conflux::HandleMessage(messaging::Message::MessageType type, const messagin
 		}
 		pedestrianList.erase(pIt);
 		//switch to next trip chain item
-		switchTripChainItem(msg.person);
+		Entity::UpdateStatus retVal = switchTripChainItem(msg.person);
+		if(retVal.status == UpdateStatus::RS_DONE)
+		{
+			safe_delete_item(msg.person);
+		}
 		break;
 	}
 	case MSG_PERSON_LOAD:
@@ -1248,7 +1302,7 @@ Entity::UpdateStatus Conflux::switchTripChainItem(Person_MT* person)
 		case Role<Person_MT>::RL_WAITBUSACTIVITY:
 		{
 			assignPersonToBusStopAgent(person);
-			return retVal;
+			break;
 		}
 		case Role<Person_MT>::RL_WAITTRAINACTIVITY:
 		{
@@ -1258,13 +1312,13 @@ Entity::UpdateStatus Conflux::switchTripChainItem(Person_MT* person)
 		case Role<Person_MT>::RL_TRAINPASSENGER:
 		{
 			assignPersonToMRT(person);
-			return retVal;
+			break;
 		}
 		case Role<Person_MT>::RL_CARPASSENGER:
 		case Role<Person_MT>::RL_PRIVATEBUSPASSENGER:
 		{
 			stashPerson(person);
-			return retVal;
+			break;
 		}
 		case Role<Person_MT>::RL_PEDESTRIAN:
 		{
@@ -1279,7 +1333,7 @@ Entity::UpdateStatus Conflux::switchTripChainItem(Person_MT* person)
 				throw std::runtime_error("Pedestrian role facets not/incorrectly initialized");
 			}
 			messaging::MessageBus::PostMessage(destinationConflux, MSG_PEDESTRIAN_TRANSFER_REQUEST, messaging::MessageBus::MessagePtr(new PersonMessage(person)));
-			return retVal;
+			break;
 		}
 		}
 	}
@@ -1354,7 +1408,7 @@ Entity::UpdateStatus Conflux::callMovementFrameTick(timeslice now, Person_MT* pe
 			if (currentFrame > nxtConflux->getLastUpdatedFrame())
 			{
 				// nxtConflux is not processed for the current tick yet
-				if (nxtConflux->hasSpaceInVirtualQueue(nxtSegment->getParentLink()) && currLnParams->getOutputCounter() > 0)
+				if (nxtConflux->hasSpaceInVirtualQueue(nxtSegment->getParentLink(), person->numTicksStuck) && currLnParams->getOutputCounter() > 0)
 				{
 					currLnParams->decrementOutputCounter();
 					person->setCurrSegStats(person->requestedNextSegStats);
@@ -1691,6 +1745,16 @@ PersonCount Conflux::countPersons() const
 				count.motorCyclists++;
 				break;
 			}
+			case Role<Person_MT>::RL_TRUCKER_HGV:
+			{
+				count.truckerHGV++;
+				break;
+			}
+			case Role<Person_MT>::RL_TRUCKER_LGV:
+			{
+				count.truckerLGV++;
+				break;
+			}
 			case Role<Person_MT>::RL_BUSDRIVER:
 			{
 				count.busDrivers++;
@@ -1935,6 +1999,7 @@ Conflux* Conflux::findStartingConflux(Person_MT* person, unsigned int now)
 		}
 		break;
 	}
+
 	case Role<Person_MT>::RL_TRAINDRIVER:
 	{
 		const medium::TrainMovement* trainMvt = dynamic_cast<const medium::TrainMovement*>(personRole->Movement());
@@ -1942,6 +2007,21 @@ Conflux* Conflux::findStartingConflux(Person_MT* person, unsigned int now)
 			trainMvt->arrivalAtStartPlaform();
 		}
 		return nullptr;
+        }
+	case Role<Person_MT>::RL_TRUCKER_HGV:
+	case Role<Person_MT>::RL_TRUCKER_LGV:
+	{
+		const medium::TruckerMovement* truckerMvt = dynamic_cast<const medium::TruckerMovement*>(personRole->Movement());
+		if(truckerMvt)
+		{
+			return truckerMvt->getStartingConflux();
+		}
+		else
+		{
+			throw std::runtime_error("Driver role facets not/incorrectly initialized");
+		}
+		break;
+
 	}
 	case Role<Person_MT>::RL_BIKER:
 	{
@@ -2041,6 +2121,7 @@ void Conflux::removeIncident(SegmentStats* segStats)
 		segStats->restoreLaneParams(*it);
 	}
 }
+
 void Conflux::addStationAgent(Agent* stationAgent)
 {
 	if(!stationAgent){
@@ -2075,7 +2156,7 @@ void Conflux::driverStatistics(timeslice now)
 			statLinks[segId] = segStats->getRoadSegment()->getLinkId();
 			tmpAgents.clear();
 			personIds.clear();
-			segStats->getInfinityPersons(tmpAgents, personIds);
+			segStats->getInfinityPersons(tmpAgents);
 			statSegsInfinity[segId] = tmpAgents.size();
 			statPersons[segId] = personIds;
 		}
@@ -2117,6 +2198,7 @@ void Conflux::driverStatistics(timeslice now)
 	movement <<logout.str();
 	movement.flush();
 }
+
 
 
 void Conflux::addConnectedConflux(Conflux* conflux)
@@ -2590,8 +2672,13 @@ void Conflux::CreateLaneGroups()
 	}
 }
 
+void Conflux::log(std::string line) const
+{
+	Log() << line;
+}
+
 PersonCount::PersonCount() : pedestrians(0), busPassengers(0), trainPassengers(0), carDrivers(0), motorCyclists(0),
-		busDrivers(0), busWaiters(0), activityPerformers(0), carSharers(0)
+		busDrivers(0), busWaiters(0), activityPerformers(0), carSharers(0), truckerLGV(0), truckerHGV(0)
 {
 }
 
@@ -2603,6 +2690,8 @@ const PersonCount& PersonCount::operator+=(const PersonCount& personCount)
 	carDrivers += personCount.carDrivers;
 	carSharers += personCount.carSharers;
 	motorCyclists += personCount.motorCyclists;
+	truckerLGV += personCount.truckerLGV;
+	truckerHGV += personCount.truckerHGV;
 	busDrivers += personCount.busDrivers;
 	busWaiters += personCount.busWaiters;
 	activityPerformers += personCount.activityPerformers;
@@ -2617,6 +2706,8 @@ unsigned int sim_mob::medium::PersonCount::getTotal()
 			+ carDrivers
 			+ carSharers
 			+ motorCyclists
+			+ truckerLGV
+			+ truckerLGV
 			+ busDrivers
 			+ busWaiters
 			+ activityPerformers);

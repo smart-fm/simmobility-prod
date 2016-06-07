@@ -172,7 +172,7 @@
 	<!-- A headway buffer is found for each vehicle and is a behavioral parameter that describes the aggressiveness of a driver for accepting
 	a headway gap in lane changing, merging, and car-following. Some value between the lower and upper bound will be added to the minimum
 	headway gaps for the population, which are constants also provided in -->
-	<param name="hbuffer_lower" value="0.80"/>
+	<param name="hbuffer_lower" value="1.50"/>
 	<!-- Variation (factor)-->
 	<!-- Each column represents the following population percentile-->
 											<!--0.05	0.15	0.25	0.35	0.45	0.55	0.65	0.75	0.85	0.95-->
@@ -237,8 +237,8 @@
 	A vehicle must remain in a lane for a minimum of "minimum time in lane" seconds before
 	considering another lane chane.-->                                   
 	<param name="MLC_PARAMETERS" value="
-	100.0		#lower bound(meter) 
-	190.0		#delta(meter)
+	300.0		#lower bound(meter)
+	500.0		#delta(meter)
 	2.0			#minimum time in lane (sec)
 	"/>
 
@@ -291,7 +291,7 @@
 	"/>-->
 	<!-- From mitsim (left hand driving): -->
 	<param name="lane_utility_model" value="
-	4.2656		# current lane constant
+	3.9443		# current lane constant
 	0.3213		# right lane constant
 	-1.1683		# right most lane dummy
 	0.0			# currently unused
@@ -303,8 +303,8 @@
 	-3.3754		# tailgate
 	10			# gap behind threshold for tailgate dummy (meters)
 	19			# density threshold for tailgate dummy	
-	-2.3400		# one lane change required
-	-4.5084		# two lane changes required
+	-1.3400		# one lane change required
+	-3.5084		# two lane changes required
 	-2.8257		# each additional lane change required
 	-1.2597		# next exit, one lane change required
 	-0.7239		# next exit, each additional lane changes required
@@ -334,7 +334,7 @@
 	0.000		# lag gap negative speed difference
 	0.2			# lag gap positive speed difference
 	0.742		# lag gap standard deviation
-	6.0			# max speed difference
+	15.0		# max speed difference
 	"/>
 	
 	<param name="Target_Gap_Model" value="-0.837   0.913  0.816  -1.218  -2.393  -1.662"/>
@@ -354,8 +354,8 @@
 	0.1			# coef for time (in minutes) since tagged
 	0.5			# max prob one on ramp lane drop, incident, red LUS, etc
 	1.0			# max prob two in connection to next link
-	30.0		# max yielding time (seconds)
-	100.0		# max stuck time (seconds)
+	10.0		# max yielding time (seconds)
+	10.0		# max stuck time (seconds)
 	600.0		# max distance for nosing	
 	40.0		# min distance for nosing
 	"/>
@@ -382,7 +382,7 @@
 	currently yields to nosing vehicle only-->
 	<param name="LC_Yielding_Model" value="
 	0.80		# previously not yielding
-	1.00		# previously yieldind "/>
+	1.00		# previously yielding "/>
 	
 	<!-- Probabilities to yield to other vehicles -->
 	<param name="MLC_Yielding_Probabilities" value="
@@ -419,8 +419,8 @@
 	<param name="min_speed" value="0.1"/>  <!-- m/s -->
 	
 	<!-- minimum time required between lane changing decisions -->
-	<param name="LC_Discretionary_Lane_Change_Model_MinTimeInLaneSameDir" value="1"/> <!-- s -->
-	<param name="LC_Discretionary_Lane_Change_Model_MinTimeInLaneDiffDir" value="1"/> <!-- s -->
+	<param name="LC_Discretionary_Lane_Change_Model_MinTimeInLaneSameDir" value="7"/> <!-- s -->
+	<param name="LC_Discretionary_Lane_Change_Model_MinTimeInLaneDiffDir" value="15"/> <!-- s -->
 
 	<!-- Visibility of stopping points (default value) -->
 	<param name="check_stop_point_distance" value="200"/> <!-- meters -->

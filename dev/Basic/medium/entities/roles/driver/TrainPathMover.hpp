@@ -51,6 +51,7 @@ private:
 class TrainPathMover {
 public:
 	TrainPathMover();
+
 	virtual ~TrainPathMover();
 public:
 	double advance(double distance);
@@ -114,6 +115,12 @@ public:
 	 * @return current position
 	 */
 	Point getCurrentPosition() const;
+
+	int GetCurrentBlockId();
+
+	double GetDistanceFromStartToPlatform(std::string lineId,Platform *platform);
+
+	void TeleportToOppositeLine(std::string station,std::string lineId,Platform *platform);
 private:
 	/**
 	 * Calculates the distance between the current poly-point and the next poly-point
@@ -130,6 +137,9 @@ private:
 	 * @return true if successfully move to block
 	 */
 	bool advanceToNextBlock();
+
+
+
 private:
 	/**The driving path is a vector of blocks*/
 	std::vector<Block*> drivingPath;

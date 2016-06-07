@@ -26,6 +26,7 @@ using namespace sim_mob;
 BusDriver::BusDriver(Person_ST *parent, MutexStrategy mtxStrat, BusDriverBehavior *behavior, BusDriverMovement *movement, Role<Person_ST>::Type roleType_) :
 Driver(parent, mtxStrat, behavior, movement, roleType_)
 {
+	isBusDriver = true;
 }
 
 Role<Person_ST>* BusDriver::clone(Person_ST* parent) const

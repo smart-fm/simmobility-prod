@@ -30,7 +30,6 @@
 #include "entities/TrainController.hpp"
 #include "entities/BusStopAgent.hpp"
 #include "entities/TrainStationAgent.hpp"
-#include "entities/PT_EdgeTravelTime.hpp"
 #include "entities/incident/IncidentManager.hpp"
 #include "entities/params/PT_NetworkEntities.hpp"
 #include "entities/MT_PersonLoader.hpp"
@@ -38,7 +37,7 @@
 #include "entities/profile/ProfileBuilder.hpp"
 #include "entities/PT_Statistics.hpp"
 #include "entities/roles/activityRole/ActivityPerformer.hpp"
-#include "entities/roles/driver/Biker.hpp"
+#include "entities/roles/driver/DriverVariants.hpp"
 #include "entities/roles/driver/BusDriver.hpp"
 #include "entities/roles/driver/Driver.hpp"
 #include "entities/roles/passenger/Passenger.hpp"
@@ -259,7 +258,12 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	rf->registerRole("pedestrian", new sim_mob::medium::Pedestrian(nullptr));
 	rf->registerRole("passenger", new sim_mob::medium::Passenger(nullptr));
 	rf->registerRole("biker", new sim_mob::medium::Biker(nullptr));
+
 	rf->registerRole("trainDriver", new sim_mob::medium::TrainDriver(nullptr));
+
+	rf->registerRole("truckerLGV", new sim_mob::medium::TruckerLGV(nullptr));
+	rf->registerRole("truckerHGV", new sim_mob::medium::TruckerHGV(nullptr));
+
 
 	//Load our user config file, which is a time costly function
 	ExpandMidTermConfigFile expand(MT_Config::getInstance(), ConfigManager::GetInstanceRW().FullConfig(), Agent::all_agents);
@@ -418,11 +422,6 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	PT_Statistics::getInstance()->storeStatistics();
 	PT_Statistics::resetInstance();
 
-	if(mtConfig.enabledEdgeTravelTime)
-	{
-		PT_EdgeTravelTime::getInstance()->exportEdgeTravelTime();
-	}
-
 	if (config.numAgentsSkipped>0)
 	{
 		cout<<"Agents SKIPPED due to invalid route assignment: "
@@ -470,7 +469,6 @@ bool performMainDemand()
 	const db::BackendType populationSource = mtConfig.getPopulationSource();
 	PredayManager predayManager;
 	predayManager.loadZones(db::MONGO_DB);
-	predayManager.load2012_2008ZoneMapping(db::MONGO_DB);
 	predayManager.loadCosts(db::MONGO_DB);
 	predayManager.loadPersonIds(populationSource);
 	predayManager.loadUnavailableODs(db::MONGO_DB);
@@ -633,6 +631,7 @@ int main_impl(int ARGC, char* ARGV[])
 		resLogFiles.insert(resLogFiles.begin(), ConfigManager::GetInstance().FullConfig().outTrainNetworkFilename);
 		Utils::printAndDeleteLogFiles(resLogFiles);
 	}
+	std::system("rm out_0_*.txt out.network.txt");
 
 	timeval simEndTime;
 	gettimeofday(&simEndTime, nullptr);

@@ -6,6 +6,7 @@
 #include <string>
 #include <map>
 #include <vector>
+#include <utility>
 
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
@@ -244,7 +245,8 @@ struct IncidentParams {
 /**
  * represent disruption data section of the config file
  */
-struct DisruptionParams{
+struct DisruptionParams
+{
 	DisruptionParams():startTime(0),duration(0),id(0){}
 	unsigned int id;
 	DailyTime startTime;
@@ -315,6 +317,10 @@ public:
      * @param modelScriptsMap model scripts map to be set
      */
 	void setModelScriptsMap(const ModelScriptsMap& modelScriptsMap);
+
+	void setServiceControllerScriptsMap(const ModelScriptsMap& modelScriptsMap);
+
+	const ModelScriptsMap& getServiceControllerScriptsMap();
 
     /**
      * Retrieves Mongo Collection map
@@ -523,63 +529,7 @@ public:
      * @param supplyUpdateInterval interval to be set
      */
 	void setSupplyUpdateInterval(unsigned supplyUpdateInterval);
-	
-	/**
-     * Retrives journey time stats file name
-     *
-     * @return journey time file name
-     */
-	const std::string& getJourneyTimeStatsFilename() const;
-	
-	/**
-     * Sets journey time stats file name
-     *
-     * @param str journey time stats file name to be set
-     */
-	void setJourneyTimeStatsFilename(const std::string& str);
-	
-    /**
-     * Retrieves waiting time stats file name
-     *
-     * @return waiting time file name
-     */
-	const std::string& getWaitingTimeStatsFilename() const;
-		
-    /**
-     * Sets waiting time stats file name
-     *
-     * @param str waiting time stats file name to be set
-     */
-	void setWaitingTimeStatsFilename(const std::string& str);
-	
-    /**
-     * Retrieves waiting count stats file name
-     *
-     * @return waiting count stats file name
-     */
-	const std::string& getWaitingCountStatsFilename() const;
-	
-    /**
-     * Sets waiting count stats file name
-     *
-     * @param str waiting count stats file name to be set
-     */
-	void setWaitingCountStatsFilename(const std::string& str);
-	
-    /**
-     * Retrieves travel time stats file name
-     *
-     * @return travel time stats file name
-     */
-	const std::string& getTravelTimeStatsFilename() const;
-	
-    /**
-     * Sets travel time stats file name
-     *
-     * @param str travel time stats file name to be set
-     */
-	void setTravelTimeStatsFilename(const std::string& str);
-	
+
     /**
      * Retrieves bus capacity
      *
@@ -748,6 +698,22 @@ public:
 	const WorkerParams& getWorkerParams() const;
 
 	/**
+	 * returns speed density params for a given link category
+	 * @param linkCategory link category (1=A, 2=B, 3=C, 4=D, 5=E, 6=SLIPROAD, 7=ROUNDABOUT)
+	 * @return pair <alpha, beta> for the given link category
+	 */
+	std::pair<double, double> getSpeedDensityParam(int linkCategory) const;
+
+	/**
+	 * sets speed density params for a given link category
+	 * @param linkCategory link category (1=A, 2=B, 3=C, 4=D, 5=E, 6=SLIPROAD, 7=ROUNDABOUT)
+	 * @param alpha speed density parameter alpha
+	 * @param beta speed density parameter beta
+	 */
+	void setSpeedDensityParam(int linkCategory, double alpha, double beta);
+
+
+	/**
      * Enumerator for mid term run mode
      */
     enum MidTermRunMode
@@ -768,9 +734,6 @@ public:
 
     /// Generic properties, for testing new features.
     std::map<std::string, std::string> genericProps;
-
-    /// pt edge travel time generation
-    bool enabledEdgeTravelTime;
 
 private:
     /**
@@ -818,21 +781,11 @@ private:
     /// Container for lua scripts
 	ModelScriptsMap modelScriptsMap;
 
+	ModelScriptsMap ServiceControllerScriptsMap;
+
     /// container for mongo collections
 	MongoCollectionsMap mongoCollectionsMap;
 
-	/** the filename of storing journey statistics */
-	std::string journeyTimeStatsFilename;
-	
-	/** the filename of storing waiting time statistics*/
-	std::string waitingTimeStatsFilename;
-	
-	/** the filename of storing waiting count statistics*/
-	std::string waitingCountStatsFilename;
-	
-	/** the filename of storing travel time statistics*/
-	std::string travelTimeStatsFilename;
-	
 	/** default capacity for bus*/
 	unsigned int busCapacity;
 
@@ -895,6 +848,9 @@ private:
 
     /// set of segment stats with bus stops
     std::set<SegmentStats*> segmentStatsWithBusStops;
+
+    /// map of link category to speed density function parameters <alpha, beta>
+    std::pair<double, double> speedDensityParams[7];
 };
 }
 }

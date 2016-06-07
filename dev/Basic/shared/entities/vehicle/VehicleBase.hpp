@@ -13,10 +13,14 @@ namespace sim_mob {
 const double PASSENGER_CAR_UNIT = 4.0; //m.
 
 /**
+ * number of PCU for bus
+ */
+const double BUS_PCU = 2;
+/**
  * length of a bus is hard coded to 3 times the PCU for now.
  * TODO: this must be made configurable.
  */
-const double BUS_LENGTH = 3 * sim_mob::PASSENGER_CAR_UNIT; // 3 times PASSENGER_CAR_UNIT
+const double BUS_LENGTH = sim_mob::BUS_PCU * sim_mob::PASSENGER_CAR_UNIT; // 2 times PASSENGER_CAR_UNIT
 
 /**
  * A simple base class for all Vehicles
@@ -29,6 +33,8 @@ public:
 		CAR,
 		BUS,
 		BIKE,
+		LGV,
+		HGV,
 		OTHER
 	};
 

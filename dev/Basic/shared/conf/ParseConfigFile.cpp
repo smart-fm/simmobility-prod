@@ -282,6 +282,7 @@ void sim_mob::ParseConfigFile::processSimulationNode(xercesc::DOMElement* node)
     cfg.simulation.totalWarmupMS = processTimegranUnits(GetSingleElementByName(node, "total_warmup"));
 
     cfg.simulation.simStartTime = processValueDailyTime(GetSingleElementByName(node, "start_time", true));
+	cfg.simulation.inSimulationTTUsage = processInSimulationTTUsage(GetSingleElementByName(node, "in_simulation_travel_time_usage", true));
 
     ///Now we're getting back to real properties.
     processWorkgroupAssignmentNode(GetSingleElementByName(node, "workgroup_assignment"));
@@ -329,6 +330,18 @@ int sim_mob::ParseConfigFile::processValueInteger(xercesc::DOMElement* node)
 DailyTime sim_mob::ParseConfigFile::processValueDailyTime(xercesc::DOMElement* node)
 {
 	return ParseDailyTime(GetNamedAttributeValue(node, "value"));
+}
+
+unsigned int sim_mob::ParseConfigFile::processInSimulationTTUsage(xercesc::DOMElement* node)
+{
+	unsigned int percentage = ParseUnsignedInt(GetNamedAttributeValue(node, "value"));
+	
+	if(percentage > 100)
+	{
+		percentage = 100;
+	}
+	
+	return percentage;
 }
 
 void sim_mob::ParseConfigFile::processWorkgroupAssignmentNode(xercesc::DOMElement* node)

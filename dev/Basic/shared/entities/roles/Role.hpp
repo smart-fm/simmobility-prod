@@ -112,7 +112,9 @@ public:
 		RL_CARPASSENGER,
 		RL_PRIVATEBUSPASSENGER,
 		RL_TRAINDRIVER,
-		RL_WAITTRAINACTIVITY
+		RL_WAITTRAINACTIVITY,
+		RL_TRUCKER_LGV,
+		RL_TRUCKER_HGV
 	};
 
 	/**Defines the various types of requests*/
@@ -187,6 +189,8 @@ public:
 		case RL_ACTIVITY: return "Activity";
 		case RL_PASSENGER: return "BusTravel";
 		case RL_WAITBUSACTIVITY: return "WaitingBusActivity";
+		case RL_TRUCKER_HGV: return "HGV";
+		case RL_TRUCKER_LGV: return "LGV";
 		}
 	}
 

@@ -161,6 +161,9 @@ public:
 
 	/**Additional indicator for internal use*/
 	unsigned int flags;
+	
+	/**No of lane changes to be done*/
+	int noOfLC;
 
 	/**The initial speed of the vehicle*/
 	int initialSpeed;
@@ -396,8 +399,8 @@ public:
 	 */
 	std::map<unsigned int, std::vector<StopPoint> > stopPointPool;
 
-	/**The map of conflicting vehicles in the intersection. Key=Turning conflict, Value=Sorted list of vehicles(nearest vehicle first)*/
-	std::map<const TurningConflict*, std::list<NearestVehicle> > conflictVehicles;
+	/**The map of conflicting vehicles in the intersection. Key=Turning conflict, Value=Sorted set of vehicles(nearest vehicle first)*/
+	std::map<const TurningConflict*, std::set<NearestVehicle, compare_NearestVehicle> > conflictVehicles;
 
 	/**Parameters for calculating the target gap*/
 	std::vector<double> targetGapParams;
@@ -483,6 +486,14 @@ public:
      * @param driver the conflicting driver
      */
 	void insertConflictTurningDriver(const TurningConflict *conflict, double distance, const Driver *driver);
+	
+	/**
+	 * Finds the intersection of the given set with the set of targetLanes (member of the class) and assigns the
+	 * result to the set of targetLanes
+	 * 
+	 * @param tgtLanes set of lanes
+	 */
+	void addTargetLanes(set<const Lane *> tgtLanes);
 
 	double getNextStepSize()
 	{

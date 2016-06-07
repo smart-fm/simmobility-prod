@@ -25,7 +25,7 @@ sim_mob::ConfigParams::ConfigParams() : RawConfigParams(),
 	publicTransitEnabled(false), totalRuntimeTicks(0), totalWarmupTicks(0), numAgentsSkipped(0),
     using_MPI(false), outNetworkFileName("out.network.txt"),outTrainNetworkFilename("out.train.network.txt"),
     is_simulation_repeatable(false), sealedNetwork(false), controlMgr(nullptr),
-    workerPublisherEnabled(false)
+    workerPublisherEnabled(false), enabledEdgeTravelTime(false)
 {}
 
 sim_mob::ConfigParams::~ConfigParams()
@@ -265,3 +265,64 @@ void ConfigParams::setPublicTransitEnabled(bool value)
 {
 	publicTransitEnabled = value;
 }
+
+bool ConfigParams::isEnabledEdgeTravelTime() const
+{
+	return enabledEdgeTravelTime;
+}
+
+void ConfigParams::setEnabledEdgeTravelTime(bool enabledEdgeTravelTime)
+{
+	this->enabledEdgeTravelTime = enabledEdgeTravelTime;
+}
+
+const std::string& ConfigParams::getJourneyTimeStatsFilename() const
+{
+	return journeyTimeStatsFilename;
+}
+
+const std::string& ConfigParams::getWaitingTimeStatsFilename() const
+{
+	return waitingTimeStatsFilename;
+}
+
+void ConfigParams::setJourneyTimeStatsFilename(const std::string& str)
+{
+	journeyTimeStatsFilename = str;
+}
+
+void ConfigParams::setWaitingTimeStatsFilename(const std::string& str)
+{
+	waitingTimeStatsFilename = str;
+}
+
+const std::string& ConfigParams::getWaitingCountStatsFilename() const
+{
+	return waitingCountStatsFilename;
+}
+
+void ConfigParams::setWaitingCountStatsFilename(const std::string& str)
+{
+	waitingCountStatsFilename = str;
+}
+
+const std::string& ConfigParams::getTravelTimeStatsFilename() const
+{
+	return travelTimeStatsFilename;
+}
+
+void ConfigParams::setTravelTimeStatsFilename(const std::string& str)
+{
+	travelTimeStatsFilename = str;
+}
+
+const std::string& ConfigParams::getPT_StopStatsFilename() const
+{
+	return ptStopStatsFilename;
+}
+
+void ConfigParams::setPT_StopStatsFilename(const std::string& str)
+{
+	ptStopStatsFilename = str;
+}
+

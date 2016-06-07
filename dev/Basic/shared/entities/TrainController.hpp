@@ -16,6 +16,8 @@
 #include "geospatial/network/Platform.hpp"
 #include "entities/Agent.hpp"
 #include "entities/misc/TrainTrip.hpp"
+#include "entities/roles/Role.hpp"
+//#include "behavioral/ServiceController.hpp"
 //#include "entities/roles/Role.hpp"
 //#include "entities/Person_MT.hpp"
 //#include "medium/entities/roles/driver/TrainDriver.hpp"
@@ -24,9 +26,11 @@ using namespace sim_mob::messaging;
 namespace sim_mob {
 
 const Message::MessageType MSG_TRAIN_BACK_DEPOT = 7300001;
+const Message::MessageType MSG_REGISTER_BLOCKS_CHANGE_SPEEDLIMIT = 84099002;
 /**
  * Message holding a pointer to trainDriver
  */
+
 
 
 class TrainMessage: public messaging::Message
@@ -40,6 +44,31 @@ public:
 	{
 	}
 	Agent* trainAgent;
+};
+
+struct ResetBlockSpeeds
+{
+std::string startStation;
+std::string endStation;
+double speedLimit;;
+double defaultSpeed;
+std::string startTime;
+std::string endTime;
+std::string line;
+bool speedReset=false;
+};
+
+class ResetSpeedMessage: public messaging::Message
+{
+public:
+	ResetSpeedMessage(ResetBlockSpeeds resetSpeedBlock)
+	{
+		ResetSpeedBlock = resetSpeedBlock;
+	}
+	virtual ~ResetSpeedMessage()
+	{
+	}
+	ResetBlockSpeeds ResetSpeedBlock;
 };
 /**
  * the structure to store the train route
@@ -92,6 +121,11 @@ struct TransferTimeInPlatform {
 	std::string platformSecond;
 	int transferedTimeSec;
 };
+
+
+
+
+
 struct cmp_trip_start : public std::less<TrainTrip*>
 {
 	bool operator()(const TrainTrip* x, const TrainTrip* y) const
@@ -163,7 +197,24 @@ public:
 	 * @param lineId is the line id
 	 * @param stationName is the station name
 	 */
+
+	void AssignResetBlocks(ResetBlockSpeeds resetSpeedBlocks);
+
+	void AddToListOfActiveTrainsInLine(std::string lineId,Role<PERSON> *driver);
+
+	void RemoveFromListOfActiveTrainsInLine(std::string lineId,Role<PERSON> *driver);
+
+	bool getTrainRoute(const std::string& lineId, std::vector<Block*>& route);
+
+	bool getTrainPlatforms(const std::string& lineId, std::vector<Platform*>& platforms);
+	std::vector<std::string> GetLinesBetweenTwoStations(std::string src,std::string dest);
+	typename std::vector <Role<PERSON>*> GetActiveTrainsForALine(std::string lineID);
+
+	TrainPlatform  GetNextPlatform(std::string platformNo,std::string lineID);
+
 	static Platform* getPlatform(const std::string& lineId, const std::string& stationName);
+
+	Platform* GetPlatformFromId(std::string platformNo);
 	/**
 	 * check whether platform is existed or not
 	 * @param stationAgent is a pointer to station agent
@@ -176,6 +227,8 @@ public:
 	/* get station entity from ID*/
 	Station * GetStationFromId(std::string stationId);
 	std::string GetOppositeLineId(std::string lineId);
+	Block * GetBlock(int blockId);
+
 
 protected:
 	/**
@@ -206,14 +259,14 @@ protected:
 	 * @param route is the list of blocks
 	 * @return true if successfully get the list of blocks
 	 */
-	bool getTrainRoute(const std::string& lineId, std::vector<Block*>& route);
+	//bool getTrainRoute(const std::string& lineId, std::vector<Block*>& route);
 	/**
 	 * get platform list for a particular line
 	 * @param lineId is line id
 	 * @param platforms are the list of platforms
 	 * @return true if successfully get the list of platforms
 	 */
-	bool getTrainPlatforms(const std::string& lineId, std::vector<Platform*>& platforms);
+	//bool getTrainPlatforms(const std::string& lineId, std::vector<Platform*>& platforms);
 	/**
 	 * handle messages
 	 */
@@ -292,6 +345,11 @@ private:
 
 	bool IsServiceTerminated(std::string lineId);
 
+
+	void resetBlockSpeeds(timeslice now);
+
+
+
     /** gives opposite line Id */
 
 private:
@@ -319,6 +377,13 @@ private:
 	std::map< std::string,unsigned int>mapOfNoAvailableTrains;
     /* holds the status of train service ...true if terminated false if running*/
 	std::map<std::string,bool>mapOfTrainServiceTerminated;
+	std::vector<ResetBlockSpeeds> resetSpeedBlocks;
+	std::map<int, double> blockIdSpeed;
+	std::map<std::string, std::vector <Role<PERSON>*>> mapOfLineAndTrainDrivers;
+	//std::map<std::string, std::vector <int>> mapOfLineAndTrainDrivers;
+	//sim_mob::Role<PERSON>*
+    //std::map< std::vector<Block*> blockVectorOfRessetedSpeeds>;
+
 
 	int lastTrainId;
 

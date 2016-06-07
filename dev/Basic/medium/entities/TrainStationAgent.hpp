@@ -15,6 +15,12 @@
 namespace sim_mob {
 namespace medium
 {
+
+struct ForceReleaseEntity
+{
+	int trainId;
+	std::string lineId;
+};
 class TrainDriver;
 class Conflux;
 class TrainStationAgent : public sim_mob::Agent {
@@ -23,6 +29,7 @@ public:
 	virtual ~TrainStationAgent();
 	void setStation(const Station* station);
 	void setConflux(Conflux* conflux);
+
 protected:
 	virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
 	//Virtual overrides
@@ -94,6 +101,8 @@ private:
 	Conflux* parentConflux;
 	/**recording disruption information*/
 	boost::shared_ptr<DisruptionParams> disruptionParam;
+	std::vector<ForceReleaseEntity> forceReleaseEntities;
+
 };
 }
 } /* namespace sim_mob */

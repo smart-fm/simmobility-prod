@@ -10,7 +10,7 @@
 using namespace sim_mob;
 
 DriverUpdateParams::DriverUpdateParams() : UpdateParams(), isApproachingIntersection(false), hasStoppedForStopSign(false), isResponseReceived(false),
-useIntAcc(false), isTargetLane(false), currLaneIndex(0), nextLaneIndex(0), status(0), flags(0), initialSpeed(0), parentId(0), currSpeed(0), desiredSpeed(0), elapsedSeconds(0),
+useIntAcc(false), isTargetLane(false), currLaneIndex(0), nextLaneIndex(0), status(0), flags(0), noOfLC(0), initialSpeed(0), parentId(0), currSpeed(0), desiredSpeed(0), elapsedSeconds(0),
 trafficSignalStopDistance(0), perceivedFwdVelocity(0), perceivedLatVelocity(0), perceivedFwdVelocityOfFwdCar(0), perceivedLatVelocityOfFwdCar(0), 
 perceivedAccelerationOfFwdCar(0), perceivedDistToFwdCar(0), perceivedDistToTrafficSignal(500), speedLimit(0), impatienceTimer(0), impatienceTimerStart(0), 
 accessTime(0), gapBetnVehicles(0), accLeadVehicle(0), velocityLeadVehicle(0), spaceStar(0), distanceToNormalStop(0), distToStop(999), 
@@ -100,17 +100,6 @@ void DriverUpdateParams::reset(timeslice now, const Driver &owner)
 
 	turningDirection = LANE_CHANGE_TO_NONE;
 
-	nvFwd.reset();
-	nvLeftFwd.reset();
-	nvRightFwd.reset();
-	nvBack.reset();
-	nvLeftBack.reset();
-	nvRightBack.reset();
-	nvLeftFwd2.reset();
-	nvLeftBack2.reset();
-	nvRightFwd2.reset();
-	nvRightBack2.reset();
-
 	density = 0;
 }
 
@@ -147,23 +136,38 @@ void DriverUpdateParams::insertConflictTurningDriver(const TurningConflict *conf
 	nearestVehicle.driver = driver;
 
 	//Find turning conflict
-	std::map<const TurningConflict*, std::list<NearestVehicle> >::iterator it = conflictVehicles.find(conflict);
+	std::map<const TurningConflict*, std::set<NearestVehicle, compare_NearestVehicle> >::iterator it = conflictVehicles.find(conflict);
 
 	if (it != conflictVehicles.end())
 	{
-		std::list<NearestVehicle>& nearestVehicles = it->second;
-		nearestVehicles.push_back(nearestVehicle);
-
-		//Sort list
-		compare_NearestVehicle f;
-		nearestVehicles.sort(f);
+		std::set<NearestVehicle, compare_NearestVehicle>& nearestVehicles = it->second;
+		nearestVehicles.insert(nearestVehicle);
 	}
 	else
 	{
-		std::list<NearestVehicle> nearestVehicles;
-		nearestVehicles.push_back(nearestVehicle);
+		std::set<NearestVehicle, compare_NearestVehicle> nearestVehicles;
+		nearestVehicles.insert(nearestVehicle);
 		conflictVehicles.insert(std::make_pair(conflict, nearestVehicles));
 	}
+}
+
+void DriverUpdateParams::addTargetLanes(set<const Lane *> tgtLanes)
+{
+	set<const Lane*> newTargetLanes;
+	set<const Lane*>::iterator it;
+
+	//find the lane in both tgtLanes and targetLanes
+	for (it = tgtLanes.begin(); it != tgtLanes.end(); ++it)
+	{
+		const Lane* l = *it;
+		set<const Lane*>::iterator itFind = targetLanes.find(l);
+		if (itFind != targetLanes.end())
+		{
+			newTargetLanes.insert(l);
+		}
+	}
+
+	targetLanes = newTargetLanes;
 }
 
 void DriverUpdateParams::buildDebugInfo()
@@ -172,25 +176,10 @@ void DriverUpdateParams::buildDebugInfo()
 	
 	s << "            " << parentId << ":" << accSelect << ":" << acc;
 	s << ":speed:" << perceivedFwdVelocity;
-
+	
 #if 0
 	//Debug lane changing
 
-	// utility
-	char ul[20] = "\0";
-	sprintf(ul, "ul%3.2f", utilityLeft);
-	char ur[20] = "\0";
-	sprintf(ur, "ur%3.2f", utilityRight);
-	char uc[20] = "\0";
-	sprintf(uc, "uc%3.2f", utilityCurrent);
-
-	char sp[20] = "\0";
-	sprintf(sp, "sp%3.2f", perceivedFwdVelocity);
-
-	char ds[200] = "\0";
-	sprintf(ds, "ds%3.2f", perceivedDistToTrafficSignal);
-	
-	// lc
 	string lc = "lc-s";
 	if (getStatus(STATUS_LC_LEFT))
 	{
@@ -201,15 +190,10 @@ void DriverUpdateParams::buildDebugInfo()
 		lc = "lc-r";
 	}
 
-	s<<":"<<ul;
-	s<<":"<<uc;
-	s<<":"<<ur;
 	s<<":"<<lcd;
 	s<<":"<<lc;
-	s<<":"<<sp;
 	s<<"=="<<lcDebugStr.str();
 
-	s << "++" << cfDebugStr;
 #endif
 
 #if 0
@@ -220,13 +204,13 @@ void DriverUpdateParams::buildDebugInfo()
 	if (this->nvFwd.exists())
 	{
 		Driver* fwd_driver_ = const_cast<Driver*> (nvFwd.driver);
-		fwdcarid = fwd_driver_->getParent()->getId();
+		fwdcarid = fwd_driver_->getParams().parentId;
 		sprintf(fwdnvdis, "fwdnvdis:%03.1f", nvFwd.distance);
 	}
 	else if (this->nvFwdNextLink.exists())
 	{
 		Driver* fwd_driver_ = const_cast<Driver*> (nvFwdNextLink.driver);
-		fwdcarid = fwd_driver_->getParent()->getId();
+		fwdcarid = fwd_driver_->getParams().parentId;
 		sprintf(fwdnvdis, "fwdnv_nxtlnkdis:%03.1f", nvFwdNextLink.distance);
 	}
 
@@ -235,11 +219,51 @@ void DriverUpdateParams::buildDebugInfo()
 	if (this->nvBack.exists())
 	{
 		Driver* back_driver_ = const_cast<Driver*> (nvBack.driver);
-		backcarid = back_driver_->getParent()->getId();
+		backcarid = back_driver_->getParams().parentId;
 		sprintf(backnvdis, "backnvdis:%03.1f", nvBack.distance);
 	}
 	s << ":fwd:" << fwdcarid << ":" << fwdnvdis;
-	s << ":back:" << backcarid << ":" << backnvdis;
+	s << ":back:" << backcarid << ":" << backnvdis;	
+	
+	int lftFwdId = -1;
+	char leftFwdDis[30] = "\0";
+	if (this->nvLeftFwd.exists())
+	{
+		Driver* leftFwdDrv = const_cast<Driver*> (nvLeftFwd.driver);
+		lftFwdId = leftFwdDrv->getParams().parentId;
+		sprintf(leftFwdDis, "leftFwdDis:%03.1f", nvLeftFwd.distance);
+	}
+	
+	int rtFwdId = -1;
+	char rtFwdDis[30] = "\0";
+	if (this->nvRightFwd.exists())
+	{
+		Driver* rtFwdDrv = const_cast<Driver*> (nvRightFwd.driver);
+		rtFwdId = rtFwdDrv->getParams().parentId;
+		sprintf(rtFwdDis, "rtFwdDis:%03.1f", nvRightFwd.distance);
+	}
+	s << ":lftFwd:" << lftFwdId << ":" << leftFwdDis;
+	s << ":rtFwd:" << rtFwdId << ":" << rtFwdDis;
+	
+	int lftBkId = -1;
+	char leftBkDis[30] = "\0";
+	if (this->nvLeftBack.exists())
+	{
+		Driver* leftBkDrv = const_cast<Driver*> (nvLeftBack.driver);
+		lftBkId = leftBkDrv->getParams().parentId;
+		sprintf(leftBkDis, "leftBkDis:%03.1f", nvLeftBack.distance);
+	}
+	
+	int rtBkId = -1;
+	char rtBkDis[30] = "\0";
+	if (this->nvRightBack.exists())
+	{
+		Driver* rtBkDrv = const_cast<Driver*> (nvRightBack.driver);
+		rtBkId = rtBkDrv->getParams().parentId;
+		sprintf(rtBkDis, "rtBkDis:%03.1f", nvRightBack.distance);
+	}
+	s << ":lftBk:" << lftBkId << ":" << leftBkDis;
+	s << ":rtBk:" << rtBkId << ":" << rtBkDis;
 #endif
 	
 #if 0

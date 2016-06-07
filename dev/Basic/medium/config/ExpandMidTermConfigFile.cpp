@@ -11,7 +11,6 @@
 #include "entities/TrainController.hpp"
 #include "entities/conflux/Conflux.hpp"
 #include "entities/TravelTimeManager.hpp"
-#include "entities/PT_EdgeTravelTime.hpp"
 #include "entities/incident/IncidentManager.hpp"
 #include "geospatial/Incident.hpp"
 #include "geospatial/network/RoadNetwork.hpp"
@@ -20,6 +19,8 @@
 #include "metrics/Length.hpp"
 #include "path/PathSetManager.hpp"
 #include "path/PT_PathSetManager.hpp"
+#include "behavioral/ServiceController.hpp"
+#include "behavioral/PT_ServiceControllerLuaProvider.hpp"
 
 using namespace sim_mob;
 using namespace sim_mob::medium;
@@ -63,7 +64,6 @@ void ExpandMidTermConfigFile::processConfig()
     if (cfg.isPublicTransitEnabled())
     {
         loadPublicTransitNetworkFromDatabase();
-        PT_EdgeTravelTime::getInstance()->loadPT_EdgeTravelTime();
     }
 
     cfg.sealNetwork();
@@ -114,6 +114,8 @@ void ExpandMidTermConfigFile::processConfig()
 	if(cfg.trainController.enabled)
 	{
 		TrainController<Person_MT>::getInstance()->initTrainController();
+		PT_ServiceControllerLuaProvider::getPTRC_Model().Use_ServiceController();
+       // ServiceController::getInstance()->Use_ServiceController();
 		TrainController<Person_MT>::getInstance()->assignTrainTripToPerson(active_agents);
 	}
 

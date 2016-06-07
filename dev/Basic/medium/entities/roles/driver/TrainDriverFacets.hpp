@@ -52,7 +52,7 @@ public:
 	 * get the object of path mover
 	 * @return the reference to the object of path mover
 	 */
-	const TrainPathMover& getPathMover() const;
+	 const TrainPathMover& getPathMover() const ;
 	/**
 	 * get the object of platform mover
 	 * @return the reference to the object of platform mover
@@ -94,11 +94,27 @@ public:
 
 	/* get distance to next platform*/
 	double getDistanceToNextPlatform(const TrainDriver* nextDriver);
+
+	void ResetSafeHeadWay(double safeHeadWay);
+
+	void ResetSafeDistance(double safeDistance);
+
+	void TakeUTurn(std::string stationName);
+
+	bool CheckIfTrainsAreApprochingOrAtPlatform(std::string pltaformName,std::string lineID);
+
+	bool CheckSafeHeadWayBeforeTeleport(std::string platformNo,std::string lineID);
+
+	double GetDistanceFromStartToPlatform(std::string lineID,Platform *platform);
+
+	double getTotalCoveredDistance();
 	/**
 	 * produce movement result for diagnosis
 	 */
 	void produceMoveInfo();
 	void passengerInfo();
+	void ChangeTrip();
+
 protected:
 	virtual TravelMetric& startTravelTimeMetric();
 	virtual TravelMetric& finalizeTravelTimeMetric();

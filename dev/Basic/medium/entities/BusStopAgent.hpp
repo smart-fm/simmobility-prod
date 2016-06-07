@@ -84,7 +84,7 @@ public:
 	 * store waiting time
 	 * @param waitingActivity is pointer to the waiting people
 	 */
-	void storeWaitingTime(sim_mob::medium::WaitBusActivity* waitingActivity) const;
+	void storeWaitingTime(sim_mob::medium::WaitBusActivity* waitingActivity, const std::string& busLine) const;
 
 	/**
 	 * returns number of people waiting for buses in this stop

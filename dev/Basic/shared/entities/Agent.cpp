@@ -249,7 +249,7 @@ void sim_mob::Agent::setToBeRemoved()
 	toRemoved = true;
 }
 
-NullableOutputStream sim_mob::Agent::Log()
+NullableOutputStream sim_mob::Agent::Log() const
 {
 	return NullableOutputStream(currWorkerProvider->getLogFile());
 }

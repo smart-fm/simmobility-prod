@@ -119,6 +119,7 @@ public:
 	virtual ~Signal();
 	
 	unsigned int getTrafficLightId() const;
+	void setTrafficLightId(unsigned int id);
 	
 	const std::vector<const Node *>& getNodes() const;
 	void addNode(const Node *node);

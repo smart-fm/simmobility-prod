@@ -116,7 +116,7 @@ namespace
 		sim_mob::SinglePath* res = nullptr;
 		double min = std::numeric_limits<double>::max();
 		double tmp = 0.0;
-		BOOST_FOREACH(sim_mob::SinglePath*sp, pathChoices)
+		for(sim_mob::SinglePath* sp : pathChoices)
 		{
 			if(sp->path.empty())
 			{
@@ -157,7 +157,7 @@ namespace
 
 		bool uniquePath;
 		//pathsize
-		BOOST_FOREACH(sim_mob::SinglePath* sp, ps->pathChoices)
+		for(sim_mob::SinglePath* sp : ps->pathChoices)
 		{
 			uniquePath = true; //this variable checks if a path has No common segments with the rest of the pathset
 			double size=0.0;
@@ -181,7 +181,7 @@ namespace
 				double l = lnk->getLength();
 				double sum = 0.0;
 				//For each path j in the path choice set PathSet(O, D):
-				BOOST_FOREACH(sim_mob::SinglePath* spj, ps->pathChoices)
+				for(sim_mob::SinglePath* spj : ps->pathChoices)
 				{
 					if(spj->includesLink(lnk))
 					{
@@ -192,7 +192,7 @@ namespace
 						}
 					}
 				} // for j
-				size += l / sp->length / sum;
+				size += (l / sp->length) / sum;
 			}
 			//is this a unique path ?
 			if(uniquePath)
@@ -288,11 +288,10 @@ namespace
 		}
 	};
 
-	double getPathTravelCost(sim_mob::SinglePath *sp, const sim_mob::DailyTime & startTime_)
+	double getPathTravelCost(sim_mob::SinglePath *sp, const sim_mob::DailyTime & startTime_, bool useInSimulationTT = false)
 	{
 		sim_mob::DailyTime tripStartTime(startTime_);
 		double res=0.0;
-		double ts=0.0;
 		for(std::vector<WayPoint>::iterator pathIt = sp->path.begin(); pathIt != sp->path.end(); pathIt++)
 		{
 			unsigned long lnkId = (pathIt)->link->getLinkId();
@@ -304,8 +303,7 @@ namespace
 			}
 			std::map<int,sim_mob::ERP_Section*>::iterator erpSectionIt = sim_mob::PathSetParam::getInstance()->ERP_SectionPool.find(lnkId);
 			//get travel time to this segment
-			double t = sim_mob::TravelTimeManager::getInstance()->getLinkTT((pathIt)->link, tripStartTime, nextLink);
-			ts += t;
+			double t = sim_mob::TravelTimeManager::getInstance()->getLinkTT((pathIt)->link, tripStartTime, nextLink, useInSimulationTT);
 			tripStartTime = tripStartTime + sim_mob::DailyTime(t*1000);
 			if(erpSectionIt!=sim_mob::PathSetParam::getInstance()->ERP_SectionPool.end())
 			{
@@ -442,7 +440,8 @@ void sim_mob::PrivatePathsetGenerator::setPathSetTags(boost::shared_ptr<sim_mob:
 	}
 }
 
-vector<WayPoint> sim_mob::PrivateTrafficRouteChoice::getPath(const sim_mob::SubTrip &subTrip, bool enRoute, const sim_mob::RoadSegment* approach)
+vector<WayPoint> sim_mob::PrivateTrafficRouteChoice::getPath(const sim_mob::SubTrip &subTrip, bool enRoute, const sim_mob::RoadSegment* approach, 
+															 bool useInSimulationTT)
 {
 	std::stringstream str("");
 	str << subTrip.origin.node->getNodeId() << "," << subTrip.destination.node->getNodeId();
@@ -462,7 +461,7 @@ vector<WayPoint> sim_mob::PrivateTrafficRouteChoice::getPath(const sim_mob::SubT
 		{
 			str << "[BLCKLST]";
 			std::stringstream outDbg("");
-			getBestPath(res, subTrip, true, std::set<const sim_mob::Link*>(), false, true, enRoute, approach);
+			getBestPath(res, subTrip, true, std::set<const sim_mob::Link*>(), false, true, enRoute, approach, useInSimulationTT);
 		}
 		else
 		{
@@ -475,12 +474,12 @@ vector<WayPoint> sim_mob::PrivateTrafficRouteChoice::getPath(const sim_mob::SubT
 			{
 				str << "[BOTH INSIDE CBD]";
 			}
-			getBestPath(res, subTrip, true,std::set<const sim_mob::Link*>(), false, false, enRoute, approach);
+			getBestPath(res, subTrip, true,std::set<const sim_mob::Link*>(), false, false, enRoute, approach, useInSimulationTT);
 		}
 	}
 	else
 	{
-		getBestPath(res, subTrip, true, std::set<const sim_mob::Link*>(), false, false, enRoute, approach);
+		getBestPath(res, subTrip, true, std::set<const sim_mob::Link*>(), false, false, enRoute, approach, useInSimulationTT);
 	}
 
 //	logger << "[SELECTED PATH FOR : " << fromToID  << "]:\n";
@@ -531,15 +530,15 @@ vector<WayPoint> sim_mob::PrivateTrafficRouteChoice::getPath(const sim_mob::SubT
 //	return ps.pathChoices.size();
 //}
 
-void sim_mob::PrivateTrafficRouteChoice::onPathSetRetrieval(boost::shared_ptr<PathSet> &ps, bool enRoute)
+void sim_mob::PrivateTrafficRouteChoice::onPathSetRetrieval(boost::shared_ptr<PathSet> &ps, bool enRoute, bool useInSimulationTT)
 {
 	//step-1 time dependent calculations
 	double minTravelTime= std::numeric_limits<double>::max();
 	sim_mob::SinglePath *minSP = *(ps->pathChoices.begin());
 	BOOST_FOREACH(SinglePath *sp, ps->pathChoices)
 	{
-		sp->travelTime = getPathTravelTime(sp,ps->subTrip.startTime, enRoute);
-		sp->travelCost = getPathTravelCost(sp, ps->subTrip.startTime);
+		sp->travelTime = getPathTravelTime(sp,ps->subTrip.startTime, enRoute, useInSimulationTT);
+		sp->travelCost = getPathTravelCost(sp, ps->subTrip.startTime, useInSimulationTT);
 		//MIN_TRAVEL_TIME
 		if(sp->travelTime < minTravelTime)
 		{
@@ -595,7 +594,8 @@ bool sim_mob::PrivateTrafficRouteChoice::getBestPath(
 		bool usePartialExclusion,
 		bool nonCBD_OD,
 		bool enRoute,
-		const sim_mob::RoadSegment* approach)
+		const sim_mob::RoadSegment* approach, 
+		bool useInSimulationTT)
 {
 	res.clear();
 
@@ -633,7 +633,7 @@ bool sim_mob::PrivateTrafficRouteChoice::getBestPath(
 	if(useCache && findCachedPathSet(fromToID, pathset))
 	{
 		pathset->subTrip = st;//at least for the travel start time, subtrip is needed
-		onPathSetRetrieval(pathset,enRoute);
+		onPathSetRetrieval(pathset, enRoute, useInSimulationTT);
 		//no need to supply permanent blacklist
 		bool pathChosen = getBestPathChoiceFromPathSet(pathset, partial, emptyBlkLst, enRoute);
 		if(pathChosen)
@@ -1241,8 +1241,11 @@ double sim_mob::PathSetManager::generatePartialUtility(const sim_mob::SinglePath
 	//Obtain the travel distance l and the highway distance w of the path.
 	pUtility += sp->length * pathSetParam->bLength ;
 	pUtility += sp->highWayDistance * pathSetParam->bHighway;
-	//Obtain the travel cost c of the path.
-//	pUtility += sp->travelCost * pathSetParam->bCost;
+
+	if(sp->highWayDistance > 0)
+	{
+		pUtility += pathSetParam->highwayBias;
+	}
 	//Obtain the number of signalized intersections s of the path.
 	pUtility += sp->signalNumber * pathSetParam->bSigInter;
 	//Obtain the number of right turns f of the path.
@@ -1421,7 +1424,8 @@ sim_mob::SinglePath* sim_mob::PrivatePathsetGenerator::generateShortestTravelTim
 
 
 
-double sim_mob::PrivateTrafficRouteChoice::getPathTravelTime(sim_mob::SinglePath *sp, const sim_mob::DailyTime & startTime_, bool enRoute)
+double sim_mob::PrivateTrafficRouteChoice::getPathTravelTime(sim_mob::SinglePath *sp, const sim_mob::DailyTime & startTime_, bool enRoute, 
+															 bool useInSimulationTT)
 {
 	sim_mob::DailyTime startTime = startTime_;
 	double timeSum = 0.0;
@@ -1442,14 +1446,7 @@ double sim_mob::PrivateTrafficRouteChoice::getPathTravelTime(sim_mob::SinglePath
 //		}
 //		else
 		{
-			if(enRoute)
-			{
-				time = getInSimulationLinkTT(lnk, startTime);
-			}
-			if(!enRoute || time == 0.0)
-			{
-				time = sim_mob::TravelTimeManager::getInstance()->getLinkTT(lnk, startTime, nextLink);
-			}
+			time = sim_mob::TravelTimeManager::getInstance()->getLinkTT(lnk, startTime, nextLink, useInSimulationTT);
 		}
 		if(time == 0.0)
 		{

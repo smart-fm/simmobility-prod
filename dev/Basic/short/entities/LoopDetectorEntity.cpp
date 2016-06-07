@@ -2,6 +2,7 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
+#include <algorithm>
 #include <boost/utility.hpp>
 
 #include "LoopDetectorEntity.hpp"
@@ -11,6 +12,7 @@
 #include "config/ST_Config.hpp"
 #include "entities/AuraManager.hpp"
 #include "Person_ST.hpp"
+#include "entities/roles/driver/Driver.hpp"
 #include "entities/roles/Role.hpp"
 #include "entities/Sensor.hpp"
 #include "entities/signal/Signal.hpp"
@@ -25,6 +27,41 @@ using namespace sim_mob;
 using std::vector;
 typedef sim_mob::Entity::UpdateStatus UpdateStatus;
 
+namespace
+{
+Point zero(0, 0);
+
+bool isNotInitialized(AABB const & aabb)
+{
+	return (aabb.lowerLeft_.getX() == zero.getX() && aabb.lowerLeft_.getY() == zero.getY()
+			&& aabb.upperRight_.getX() == zero.getX() && aabb.upperRight_.getY() == zero.getY());
+}
+
+Box getBox(const Point& p1, const Point& p2, double halfWidth,
+		double length, double offset, int id)
+{
+	Box box;
+
+	Vector2D<double> lastLine = normalize(Vector2D<double>(p2.getX() - p1.getX(), p2.getY() - p1.getY()));
+	Vector2D<double> ldHorizontal = Vector2D<double>(-lastLine.getY(), lastLine.getX());
+
+	Vector2D<double> moveRight = ldHorizontal * (halfWidth);
+	Vector2D<double> moveLeft = ldHorizontal * (-halfWidth);
+
+	Vector2D<double> bottomCenter = lastLine * (-(length + offset));
+	Vector2D<double> topCenter = lastLine * (-offset);
+
+	Point bottom = Point(p2.getX() + bottomCenter.getX(), p2.getY() + bottomCenter.getY());
+	Point top = Point(p2.getX() + topCenter.getX(), p2.getY() + topCenter.getY());
+
+	box.upperLeft_ = Point(top.getX()+moveLeft.getX(), top.getY()+moveLeft.getY());
+	box.upperRight_ = Point(top.getX()+moveRight.getX(), top.getY()+moveRight.getY());
+	box.lowerLeft_ = Point(bottom.getX()+moveLeft.getX(), bottom.getY()+moveLeft.getY());
+	box.lowerRight_ = Point(bottom.getX()+moveRight.getX(), bottom.getY()+moveRight.getY());
+
+	return box;
+}
+}
 
 /** \cond ignoreLoopDetectorEntityInnards -- Start of block to be ignored by doxygen.  */
 
@@ -56,86 +93,34 @@ void AABB::united(AABB const &another)
 	this->upperRight_ = Point(right, top);
 }
 
-LoopDetector::LoopDetector(Lane const *lane, meter_t innerLength, meter_t outerLength, Shared<Sensor::CountAndTimePair> &pair)
-: width_(lane->getWidth()), innerLength_(innerLength), outerLength_(outerLength), request_to_reset_(false), countAndTimePair_(pair), vehicle_(nullptr)
+LoopDetector::LoopDetector(Lane const *lane, meter_t length, Shared<Sensor::CountAndTimePair> &pair)
+: width_(lane->getWidth())
+, request_to_reset_(false)
+, countAndTimePair_(pair)
 {
 	const std::vector<PolyPoint> polyline = lane->getPolyLine()->getPoints();
 	size_t count = polyline.size();
+
 	// The last line of the lane's poly-line is from <p1> to <p2>.
 	Point const & p1 = polyline[count - 2];
 	Point const & p2 = polyline[count - 1];
 
-	meter_t dx = p2.getX() - p1.getX();
-	meter_t dy = p2.getY() - p1.getY();
-	// orientationL_ is exactly the direction of the last line, from <p1> to <p2>.
-	orientationL_.setX(dx);
-	orientationL_.setY(dy);
-	double lineLength = length(orientationL_); // To be used in calculation of center_ below.
-	orientationL_ = normalize(orientationL_);
+	ld_area = getBox(p1, p2, width_/2.5, length, 0.5, lane->getLaneId());
 
-	// orientationW_ is perpendicular to orientationL_.
-	orientationW_.setX(-dy);
-	orientationW_.setY(dx);
-	orientationW_ = normalize(orientationW_);
+	leftEdge = Vector2D<double>(ld_area.upperLeft_.getX() - ld_area.lowerLeft_.getX(),
+			ld_area.upperLeft_.getY() - ld_area.lowerLeft_.getY());
+	bottomEdge = Vector2D<double>(ld_area.lowerRight_.getX() - ld_area.lowerLeft_.getX(),
+			ld_area.lowerRight_.getY() - ld_area.lowerLeft_.getY());
 
-	// The current Driver code stops 3m from <p2>.  Later when the SimMobility road network
-	// database includes stop-lines, <p2> should be at the stop-line.
-	// Therefore, for now, the center of the OBB is 3m + innerLength_ away from <p2>.
-	double ratio = (3 + innerLength_) / lineLength;
-	dx *= ratio;
-	dy *= ratio;
-	center_ = Point(p2.getX() - dx, p2.getY() - dy);
+	sqLenOfLeftEdge = ((leftEdge.getX() * leftEdge.getX()) + (leftEdge.getY() * leftEdge.getY()));
+	sqLenOfBottomEdge = ((bottomEdge.getX() * bottomEdge.getX()) + (bottomEdge.getY() * bottomEdge.getY()));
 
 	timeStepInMilliSeconds_ = ST_Config::getInstance().personTimeStepInMilliSeconds();
 }
 
-namespace
+Box LoopDetector::getLDBox() const
 {
-
-// Set <left>, <bottom>, <right>, and <top> to include <p>.
-void getBounds(Vector2D<double> const &p, int &left, int &bottom, int &right, int &top)
-{
-	if (left > p.getX())
-	{
-		left = p.getX();
-	}
-	if (right < p.getX())
-	{
-		right = p.getX();
-	}
-	if (bottom > p.getY())
-	{
-		bottom = p.getY();
-	}
-	if (top < p.getY())
-	{
-		top = p.getY();
-	}
-}
-}
-
-AABB LoopDetector::getAABB() const
-{
-	int left = std::numeric_limits<int>::max();
-	int bottom = std::numeric_limits<int>::max();
-	int right = std::numeric_limits<int>::min();
-	int top = std::numeric_limits<int>::min();
-
-	Vector2D<double> c(center_.getX(), center_.getY());
-	// orientationL_ and orientationW_ are normalized, they have unit length.
-	Vector2D<double> vL(orientationL_);
-	vL *= outerLength_;
-	Vector2D<double> vW(orientationW_);
-	vW *= width_;
-	getBounds(c + vL + vW, left, bottom, right, top);
-	getBounds(c + vL - vW, left, bottom, right, top);
-	getBounds(c - vL + vW, left, bottom, right, top);
-	getBounds(c - vL - vW, left, bottom, right, top);
-
-	AABB aabb;
-	aabb.lowerLeft_ = Point(left, bottom);
-	aabb.upperRight_ = Point(right, top);
-	return aabb;
+    return ld_area;
 }
 
 bool LoopDetector::check(boost::unordered_set<Vehicle const *> &vehicles, std::vector<Vehicle const *>& vehsInLoopDetector)
@@ -164,9 +149,9 @@ bool LoopDetector::check(boost::unordered_set<Vehicle const *> &vehicles, std::v
 		Vehicle const *vehicle = *iter;
 		if (check(*vehicle))
 		{
-			if (vehicle != vehicle_)
+			if (std::find(vehicles_.begin(), vehicles_.end(), vehicle) == vehicles_.end())
 			{
-				vehicle_ = vehicle;
+				vehicles_.push_back(vehicle);
 				vehsInLoopDetector.push_back(vehicle);
 				incrementVehicleCount();
 			}
@@ -179,36 +164,39 @@ bool LoopDetector::check(boost::unordered_set<Vehicle const *> &vehicles, std::v
 			// Eventually one will move away.
 			return true;
 		}
+		else
+		{
+			std::vector<const Vehicle*>::iterator iter = std::find(vehicles_.begin(), vehicles_.end(), vehicle);
+			if(iter != vehicles_.end())
+			{
+				vehicles_.erase(iter);
+			}
+		}
 	}
 
 	// No vehicle (or part of) is hovering over the loop detector.
-	vehicle_ = nullptr;
 	incrementSpaceTime();
 	return false;
 }
 
 bool LoopDetector::check(Vehicle const & vehicle)
 {
-	Vector2D<double> pos(vehicle.getCurrPosition().getX() - center_.getX(), vehicle.getCurrPosition().getY() - center_.getY());
-	// The dot product produces the projection onto the orientation vector.  If the projection
-	// falls within the extents (ie, the width and length), then the vehicle is hovering over
-	// the loop detector.
-	if (abs(pos * orientationW_) > width_)
-		return false;
-	double dotProduct = abs(pos * orientationL_);
-	if (dotProduct > outerLength_)
-		return false;
-	if (dotProduct < innerLength_)
+	Point vehPos = vehicle.getCurrPosition();
+
+	// Line connecting the lower left corner of loop detector and vehicle position
+	Vector2D<double> line(vehPos.getX() - ld_area.lowerLeft_.getX(),
+			vehPos.getY() - ld_area.lowerLeft_.getY());
+
+	double projOnLeftEdge = (line * leftEdge);
+	if (0 <= projOnLeftEdge && projOnLeftEdge <= sqLenOfLeftEdge)
 	{
-		return true;
+		double projOnBottomEdge = (line * bottomEdge);
+		if (0 <= projOnBottomEdge && projOnBottomEdge <= sqLenOfBottomEdge)
+		{
+			return true;
+		}
 	}
-	// The vehicle (that is, its central position) is outside of the inner area, but within the
-	// outer monitoring area.  If its length is longer than the outer area, then it would extends
-	// into the inner area, and hence over the loop detector.
-	if (dotProduct - vehicle.getLengthInM() < innerLength_)
-	{
-		return true;
-	}
+
 	return false;
 }
 
@@ -233,8 +221,7 @@ public:
 	void reset(Lane const &lane);
 
 private:
-	meter_t innerLength_;
-	meter_t outerLength_;
+	meter_t length;
 
 	// Collection of loop detectors managed by this entity.
 	std::map<Lane const *, LoopDetector *> loopDetectors_;
@@ -256,6 +243,8 @@ private:
 	void
 	createLoopDetectors(std::vector<RoadSegment *> const &roads, LoopDetectorEntity &entity);
 
+	void computeMonitorArea();
+
 	BasicLogger& assignmentMatrixLogger;
 	ST_Config& stCfg;
 };
@@ -267,14 +256,8 @@ LoopDetectorEntity::Impl::Impl(Signal const &signal, LoopDetectorEntity &entity)
 	// Assume that each loop-detector is 4 meters in length.  This will be the inner monitoring
 	// area.  Any vehicle whose (central) position is within this area will be considered to be
 	// hovering over the loop detector.
-	innerLength_ = 4 / 2;
+	length = 4;
 
-	// According to http://sgwiki.com/wiki/Singapore_Bus_Specification, the length of the
-	// articulated bus (long bendy bus) in Singapore is 19m.  Assume that the longest vehicle in
-	// SimMobility is 20m.  The outer monitor area is 10 m before and 10 m after the loop detector.
-	// If the vehicle falls within this area, we will use both the vehicle's position and length
-	// to determine if any part of the vehicle is over the loop detector. 
-	outerLength_ = innerLength_ + 20 / 2;
 	createLoopDetectors(signal, entity);
 }
 
@@ -316,17 +299,43 @@ void LoopDetectorEntity::Impl::createLoopDetectors(Signal const &signal, LoopDet
 
 		++itNodes;
 	}
+	computeMonitorArea();
 }
 
-namespace
-{
-Point zero(0, 0);
 
-bool isNotInitialized(AABB const & aabb)
+void LoopDetectorEntity::Impl::computeMonitorArea()
 {
-	return (aabb.lowerLeft_.getX() == zero.getX() && aabb.lowerLeft_.getY() == zero.getY()
-			&& aabb.upperRight_.getX() == zero.getX() && aabb.upperRight_.getY() == zero.getY());
-}
+	if(loopDetectors_.empty())
+	{
+		return;
+	}
+
+	// TODO: Currently computing the rectangle which contains all the loop detector
+	// 		 in a signalized intersection. To improve the performance minimum bounding
+	//		 rectangle should be computed
+
+	std::vector<Point> vecPoints;
+	for (auto item : loopDetectors_)
+	{
+		Box box = item.second->getLDBox();
+		vecPoints.push_back(box.lowerLeft_);
+		vecPoints.push_back(box.upperLeft_);
+		vecPoints.push_back(box.upperRight_);
+		vecPoints.push_back(box.lowerRight_);
+	}
+
+	auto xExtremes = std::minmax_element(vecPoints.begin(), vecPoints.end(),
+					[](const Point& lhs, const Point& rhs) {
+							return lhs.getX() < rhs.getX();
+			 	 	 });
+
+	auto yExtremes = std::minmax_element(vecPoints.begin(), vecPoints.end(),
+						[](const Point& lhs, const Point& rhs) {
+								return lhs.getY() < rhs.getY();
+				 	 	 });
+
+	monitorArea_.lowerLeft_ = Point((*xExtremes.first).getX(), (*yExtremes.first).getY());
+	monitorArea_.upperRight_ = Point((*xExtremes.second).getX(), (*yExtremes.second).getY());
 }
 
 void LoopDetectorEntity::Impl::createLoopDetectors(std::vector<RoadSegment *> const & roads, LoopDetectorEntity & entity)
@@ -359,19 +368,9 @@ void LoopDetectorEntity::Impl::createLoopDetectors(std::vector<RoadSegment *> co
 		}
 		Shared<CountAndTimePair> * pair = iter->second;
 
-		LoopDetector* detector = new LoopDetector(lane, innerLength_, outerLength_, *pair);
+		LoopDetector* detector = new LoopDetector(lane, length, *pair);
 		loopDetectors_.insert(std::make_pair(lane, detector));
 
-		if (isNotInitialized(monitorArea_))
-		{
-			// First detector.
-			monitorArea_ = detector->getAABB();
-		}
-		else
-		{
-			// Subsequent detector; expand monitorArea_ to include the subsequent detectors.
-			monitorArea_.united(detector->getAABB());
-		}
 		createdLDs++;
 	}
 	if (createdLDs == 0)
@@ -395,14 +394,25 @@ bool LoopDetectorEntity::Impl::check(timeslice now)
 		Agent const * agent = agents[i];
 		if (Person_ST const * person = dynamic_cast<Person_ST const *> (agent))
 		{
-			//Extract the current resource used by this Agent.
-			//TODO: Currently the only resource type is "Vehicle"
-			const Vehicle * vehicle = dynamic_cast<Vehicle*> (person->getRole()->getResource());
-			
-			if (vehicle)
+			//Extract the current resource used by this Agent.			
+			const Role<Person_ST> *role = person->getRole();
+
+			if(role)
 			{
-				vehicles.insert(vehicle);
-				vehicleToPersonMap[vehicle] = person;
+				const Driver* driver = dynamic_cast<const Driver*>(role);
+
+				if(!driver || loopDetectors_.find(driver->getCurrLane()) == loopDetectors_.end())
+				{
+					continue;
+				}
+
+				const Vehicle * vehicle = dynamic_cast<Vehicle *> (role->getResource());
+
+				if (vehicle)
+				{
+					vehicles.insert(vehicle);
+					vehicleToPersonMap[vehicle] = person;
+				}
 			}
 		}
 	}
@@ -427,6 +437,8 @@ bool LoopDetectorEntity::Impl::check(timeslice now)
 				}
 
 				assignmentMatrixLogger << iter->first->getParentSegment()->getParentLink()->getToNode()->getTrafficLightId()
+						<< "," << iter->first->getParentSegment()->getRoadSegmentId()
+						<< "," << iter->first->getLaneId()
 						<< "," << now.ms()
 						<< "," << (person->getDatabaseId().empty() ? "-1" : person->getDatabaseId())
 						<< "," << (*person->currSubTrip).origin.node->getNodeId()

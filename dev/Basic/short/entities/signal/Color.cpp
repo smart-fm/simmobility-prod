@@ -62,12 +62,12 @@ std::string ColorSequence::getTrafficLightColor(const TrafficColor &value)
 
 TrafficColor ColorSequence::computeColor(double duration)
 {
-	double sum = 0;
+	int sum = 0;
 
 	for (std::vector< std::pair<TrafficColor, int> >::iterator itDurations = colourDurations.begin(); itDurations != colourDurations.end(); ++itDurations)
 	{
 		sum += (*itDurations).second;
-		if (duration < sum)
+		if (int(duration) <= sum)
 		{
 			return (*itDurations).first;
 		}

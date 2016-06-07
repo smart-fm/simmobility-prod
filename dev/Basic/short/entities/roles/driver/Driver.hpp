@@ -71,10 +71,7 @@ private:
 	int yieldingToInIntersection;
 
 	/**Represents the vehicle this driver is controlling.*/
-	Vehicle *vehicle;
-
-	/**Indicates whether the driver is a bus driver*/
-	bool isBusDriver;
+	Vehicle *vehicle;	
 
 	/**Pointer to the Driver object that is performing 'nosing'. (Current driver is 'yielding')*/
 	const Driver *yieldingToDriver;
@@ -143,9 +140,9 @@ private:
 
 	/**Represents the acceleration of the vehicle (m/s^2)*/
 	Shared<double> fwdAccel_;
-
-	/**Indicates the lane changing move that the driver is going to make*/
-	Shared<LaneChangeTo> turningDirection_;
+	
+	/**Represents the density observed in the current lane*/
+	Shared<double> laneDensity_;
 
 	friend class DriverBehavior;
 	friend class DriverMovement;
@@ -153,6 +150,9 @@ private:
 protected:
 	/**Current position of the Driver*/
 	Point currPos;
+	
+	/**Indicates whether the driver is a bus driver*/
+	bool isBusDriver;
 
 public:
 	Driver(Person_ST *parent, MutexStrategy mtxStrat, DriverBehavior* behavior = nullptr, DriverMovement* movement = nullptr,
@@ -175,6 +175,8 @@ public:
 
 	const double getFwdVelocity() const;
 	const double getFwdAcceleration() const;
+	
+	const double getDensity() const;
 
 	/**Initialises the reaction time of the driver and the perception delays based on the reaction time*/
 	void initReactionTime();

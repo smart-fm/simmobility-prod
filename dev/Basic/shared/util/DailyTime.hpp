@@ -19,20 +19,7 @@ namespace sim_mob
  * Simple class to represent any point in time during a single day.
  *
  * \author Seth N. Hetu
- * \author Xu Yan
- *
- * This class is based on the ISO 8601 standard, with the following restrictions:
- *   \li No date may be specified, only times.
- *   \li Times must be of the format HH:MM:SS  --the colon is not optional.
- *   \li Only the seconds component may have a fractional component: HH:MM:SS.ffff..fff
- *   \li Hours and minutes are mandatory. Seconds (and second fractions) are optional.
- *
- * \note
- * Many of these constraints are not enforced, but may be in the future. ~Seth
- *
- *
- * All times are constant once created. (If we need modifiers later, we should probably use
- *    functions like "addSeconds", which return a different DailyTime object.)
+ * \author Harish Loganathan
  */
 class DailyTime {
 public:
@@ -85,14 +72,6 @@ public:
 private:
 	uint32_t time_;  //MS from 0, which corresponds to 00:00:00.00
 
-	//add by xuyan
-public:
-	friend class boost::serialization::access;
-	template<class Archive>
-	void serialize(Archive & ar, const unsigned int version)
-	{
-		ar & time_;
-	}
 };
 }
 

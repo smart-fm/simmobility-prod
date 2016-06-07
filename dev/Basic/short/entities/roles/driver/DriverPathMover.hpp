@@ -36,6 +36,12 @@ private:
 
 	/**The current turning path of the driver (this will be non-null while driving in an intersection)*/
 	const TurningPath *currTurning;
+	
+	/**The next lane of the driver.*/
+	const Lane *nextLane;
+	
+	/**The next turning path of the driver.*/
+	const TurningPath *nextTurning;
 
 	/**The entire driving path consisting of road-segments and turning groups*/
 	std::vector<WayPoint> drivingPath;
@@ -143,13 +149,13 @@ public:
 	 *
      * @return the next lane
      */
-	const Lane* getNextLane() const;
+	const Lane* getNextLane();
 
 	/**
 	 * Uses the turnings from the current lane to determine the next turning
      * @return
      */
-	const TurningPath *getNextTurning() const;
+	const TurningPath *getNextTurning();
 
 	/**
 	 * Sets the driving path and initialises the internal members to point to the elements in the path
@@ -159,6 +165,15 @@ public:
 	 * @param startSegmentId the id of starting segment (optional)
      */
 	void setPath(const std::vector<WayPoint> &path, int startLaneIndex = -1, int startSegmentId = 0);
+	
+	/**
+	 * Sets the driving path that begins with a turning group and initialises the internal members to 
+	 * point to the elements in the path
+	 *
+     * @param path the path retrieved from the street directory or the path set manager
+	 * @param fromLane the lane from which the vehicle arrives
+     */
+	void setPathStartingWithTurningGroup(const std::vector<WayPoint> &path, const Lane *fromLane);
 
 	/**
 	 * Checks if the path has been set

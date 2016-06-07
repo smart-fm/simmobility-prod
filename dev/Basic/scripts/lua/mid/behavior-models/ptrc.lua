@@ -13,8 +13,8 @@ local beta_no_txf= -4.31
 local beta_cost = -0.16
 local beta_path_size = 0.8
 local beta_bus = 0
-local beta_train = 1
-local beta_both = 10
+local beta_train = 2
+local beta_both = 15
 
 --utility
 -- utility[i] for choice[i]

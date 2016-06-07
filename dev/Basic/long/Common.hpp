@@ -113,9 +113,12 @@ namespace sim_mob {
             //HH message for taxi availability
             LTMID_HH_TAXI_AVAILABILITY,
             //HH messages for vehicle ownership
-            LTMID_HH_NO_CAR,
-            LTMID_HH_ONE_CAR,
-            LTMID_HH_TWO_PLUS_CAR,
+            LTMID_HH_NO_VEHICLE,
+            LTMID_HH_PLUS1_MOTOR_ONLY,
+            LTMID_HH_OFF_PEAK_CAR_W_WO_MOTOR,
+			LTMID_HH_NORMAL_CAR_ONLY,
+		    LTMID_HH_NORMAL_CAR_1PLUS_MOTOR,
+		    LTMID_HH_NORMAL_CAR_W_WO_MOTOR
         };
 
         const int INTERNAL_MESSAGE_PRIORITY = 5;

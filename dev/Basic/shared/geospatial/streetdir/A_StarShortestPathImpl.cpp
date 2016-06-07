@@ -115,7 +115,7 @@ void A_StarShortestPathImpl::initLinkDrivingNetwork(const RoadNetwork& roadNetwo
 	//Proceed through our Links, adding each link path.
 	for (iter = links.begin(); iter != links.end(); ++iter)
 	{
-        procAddDrivingLinks(drivingLinkMap, iter->second, nodeLookup, drivingLinkEdgeLookup, drivingLinkVertexLookup);
+		procAddDrivingLinks(drivingLinkMap, iter->second, nodeLookup, drivingLinkEdgeLookup, drivingLinkVertexLookup);
 	}
 
 	//Now add all Intersection edges (turning connectors)
@@ -358,12 +358,14 @@ void A_StarShortestPathImpl::procAddDrivingSegments(StreetDirectory::Graph& grap
 			}
 		}
 
-		if (!fromVertex.second) {
+        	if (!fromVertex.second)
+        	{
 			PolyPoint sPos = rs->getPolyLine()->getFirstPoint();
 			fromVertex.first = addSimpleVertex(graph, sPos);
 			fromVertex.second = true;
 		}
-		if (!toVertex.second) {
+        	if (!toVertex.second)
+        	{
 			PolyPoint dPos = rs->getPolyLine()->getLastPoint();
 			toVertex.first = addSimpleVertex(graph, dPos);
 			toVertex.second = true;
@@ -553,12 +555,14 @@ void A_StarShortestPathImpl::procAddStartNodesAndEdges(StreetDirectory::Graph& g
 	{
 		StreetDirectory::Vertex source = addSimpleVertex(graph, it->first->getLocation());
 		StreetDirectory::Vertex sink = addSimpleVertex(graph, it->first->getLocation());
-		if (resLookup) {
+        	if (resLookup)
+        	{
 			(*resLookup)[it->first] = std::make_pair(source, sink);
 		}
 
 		//Link to each child vertex. Assume a trivial distance.
-		for (std::vector<NodeDescriptor>::const_iterator it2 =it->second.vertices.begin(); it2 != it->second.vertices.end();it2++) {
+        	for (std::vector<NodeDescriptor>::const_iterator it2 =it->second.vertices.begin(); it2 != it->second.vertices.end();it2++)
+        	{
 			//From source to "other"
 			StreetDirectory::Vertex v =it2->v;
 			if(!it2->before)
@@ -589,32 +593,32 @@ StreetDirectory::VertexDesc A_StarShortestPathImpl::DrivingVertex(const Node& n,
 		res.source = vertexIt->second.first;
 		res.sink = vertexIt->second.second;
 	}
-
-    return res;
+	
+	return res;
 }
 
 StreetDirectory::VertexDesc A_StarShortestPathImpl::DrivingVertex(const Link &link, TimeRange timeRange, int randomGraphIdx) const
 {
-    StreetDirectory::VertexDesc res;
+	StreetDirectory::VertexDesc res;
+	
+	//Convert the link to a vertex in the map.
+	////It is possible that link are not represented by any vertex in the graph.
+	LinkVertexLookup::const_iterator vertexIt = drivingLinkVertexLookup.find(&link);
+	if(vertexIt != drivingLinkVertexLookup.end())
+	{
+		res.valid = true;
+		res.source = vertexIt->second.first;
+		res.sink = vertexIt->second.second;
+	}
 
-    //Convert the node to a vertex in the map.
-    //It is possible that link are not represented by any vertex in the graph.
-    LinkVertexLookup::const_iterator vertexIt = drivingLinkVertexLookup.find(&link);
-    if(vertexIt != drivingLinkVertexLookup.end())
-    {
-        res.valid = true;
-        res.source = vertexIt->second.first;
-        res.sink = vertexIt->second.second;
-    }
-
-    return res;
+	return res;
 }
 
 StreetDirectory::VertexDesc A_StarShortestPathImpl::DrivingVertex(const BusStop& b, TimeRange timeRange, int randomGraphIdx) const
 {
 	StreetDirectory::VertexDesc res;
-
-	//Convert the node to a vertex in the map.
+	
+	//Convert the busstop to a vertex in the map.
 	//It is possible that bus stop are not represented by any vertex in the graph.
 	StopVertexLookup::const_iterator vertexIt = drivingBusStopLookup.find(&b);
 	if (vertexIt != drivingBusStopLookup.end())
@@ -643,7 +647,8 @@ std::vector<WayPoint> A_StarShortestPathImpl::GetShortestDrivingPath(const Stree
 
 	StreetDirectory::Vertex fromV = from.source;
 	StreetDirectory::Vertex toV = to.sink;
-	if (fromV == toV) {
+	if (fromV == toV)
+	{
 		return vector<WayPoint>();
 	}
 
@@ -684,7 +689,8 @@ vector<WayPoint> A_StarShortestPathImpl::GetShortestDrivingPath(const StreetDire
 
 	StreetDirectory::Vertex fromV = from.source;
 	StreetDirectory::Vertex toV = to.sink;
-	if (fromV == toV) {
+	if (fromV == toV)
+	{
 		return vector<WayPoint>();
 	}
 
@@ -879,11 +885,14 @@ void A_StarShortestPathImpl::printGraph(std::ostream& outFile, const std::string
 			StreetDirectory::Vertex destV = boost::target(ed, graph);
 			WayPoint wp = boost::get(boost::edge_name, graph, ed);
 			std::stringstream ssEdge;
-			if(wp.type==WayPoint::ROAD_SEGMENT){
+            if(wp.type==WayPoint::ROAD_SEGMENT)
+            {
 				ssEdge <<"{segment:"<<wp.roadSegment->getRoadSegmentId()<<"}";
-			} else if(wp.type==WayPoint::NODE){
+            } else if(wp.type==WayPoint::NODE)
+            {
 				ssEdge<<"{node:"<<wp.node->getNodeId()<<"}";
-			} else if(wp.type==WayPoint::LINK){
+            } else if(wp.type==WayPoint::LINK)
+            {
 				ssEdge<<"{link:"<<wp.link->getLinkId()<<"}";
 			}
 			outFile << "(\"sd-edge\"" << "," << 0 << "," << id++ << ",{"

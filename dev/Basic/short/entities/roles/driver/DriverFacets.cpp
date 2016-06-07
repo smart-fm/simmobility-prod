@@ -1269,24 +1269,23 @@ Vehicle* DriverMovement::initializePath(bool createVehicle)
 		}
 		else
 		{
-            const StreetDirectory& stdir = StreetDirectory::Instance();
-
-            path = stdir.SearchShortestDrivingPath<sim_mob::Node, sim_mob::Node>(*(parentDriver->origin), *(parentDriver->destination));
+            		const StreetDirectory& stdir = StreetDirectory::Instance();
+            		path = stdir.SearchShortestDrivingPath<sim_mob::Node, sim_mob::Node>(*(parentDriver->origin), *(parentDriver->destination));
 		}
 
 		double length = 4.0;
-        double width = 2.0;
-        std::string vehName = "Car";
+        	double width = 2.0;
+        	std::string vehName = "Car";
 
-        ST_Config& stCfg = ST_Config::getInstance();
-        std::vector<VehicleType>::const_iterator vehicleTypeIter = std::find(stCfg.vehicleTypes.begin(), stCfg.vehicleTypes.end(),
+        	ST_Config& stCfg = ST_Config::getInstance();
+        	std::vector<VehicleType>::const_iterator vehicleTypeIter = std::find(stCfg.vehicleTypes.begin(), stCfg.vehicleTypes.end(),
                                                                              (*parentDriver->parent->currTripChainItem)->getMode());
-        if(vehicleTypeIter != stCfg.vehicleTypes.end())
-        {
-            length = vehicleTypeIter->length;
-            width = vehicleTypeIter->width;
-            vehName = vehicleTypeIter->name;
-        }
+        	if(vehicleTypeIter != stCfg.vehicleTypes.end())
+        	{
+            		length = vehicleTypeIter->length;
+            		width = vehicleTypeIter->width;
+            		vehName = vehicleTypeIter->name;
+        	}
 
 		if (createVehicle)
 		{

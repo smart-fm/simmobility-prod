@@ -229,9 +229,18 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 				bool isDisruptedPlat = false;
 				const Platform* platform = (*it)->getNextPlatform();
 				if(disruptionParam.get()&&platform){
-					const std::vector<std::string>& platformNames = disruptionParam->platformNames;
-					auto it = std::find(platformNames.begin(), platformNames.end(), platform->getPlatformNo());
-					if (it != platformNames.end()) {
+					std::vector<std::string> platformNames = disruptionParam->platformNames;
+					if(platformNames.size()>0&&disruptionParam->platformLineIds.size()>0){
+						Platform* platform = TrainController<Person_MT>::getPrePlatform(disruptionParam->platformLineIds.front(),platformNames.front());
+						if(platform){
+							platformNames.push_back(platform->getPlatformNo());
+						}
+					}
+					auto itPlat = std::find(platformNames.begin(), platformNames.end(), platform->getPlatformNo());
+					if (itPlat != platformNames.end()) {
+						int alightingNum = (*it)->AlightAllPassengers(leavingPersons[platform], now);
+						(*it)->calculateDwellTime(0,alightingNum);
+						(*it)->setNextRequested(TrainDriver::REQUESTED_WAITING_LEAVING);
 						isDisruptedPlat = true;
 					}
 				}
@@ -272,7 +281,13 @@ void TrainStationAgent::performDisruption(timeslice now)
 		disruptionParam->duration = DailyTime(duration.offsetMS_From(DailyTime(baseGran)));
 		if(duration.getValue()>baseGran){
 			std::vector<std::string>::const_iterator it;
-			const std::vector<std::string>& platformNames = disruptionParam->platformNames;
+			std::vector<std::string> platformNames = disruptionParam->platformNames;
+			if(platformNames.size()>0&&disruptionParam->platformLineIds.size()>0){
+				Platform* platform = TrainController<Person_MT>::getPrePlatform(disruptionParam->platformLineIds.front(),platformNames.front());
+				if(platform){
+					platformNames.push_back(platform->getPlatformNo());
+				}
+			}
 			for(it=platformNames.begin(); it!=platformNames.end(); it++){
 				if(TrainController<Person_MT>::checkPlatformIsExisted(this, *it)){
 					triggerRerouting(DisruptionEventArgs(*disruptionParam));

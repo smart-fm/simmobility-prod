@@ -115,7 +115,7 @@ ServiceController::~ServiceController()
 	 				TrainDriver* driver= dynamic_cast<TrainDriver*>(role);
 	 				if(driver)
 	 				{
-	 					driver->AlightAllPassengers();
+	 					//driver->AlightAllPassengers();
 	 				}
 	 			}
 

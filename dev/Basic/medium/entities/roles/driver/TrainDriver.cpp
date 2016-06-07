@@ -240,9 +240,17 @@ int TrainDriver::alightPassenger(std::list<Passenger*>& alightingPassenger,times
 	return num;
 }
 
-void TrainDriver::AlightAllPassengers()
+int TrainDriver::AlightAllPassengers(std::list<Passenger*>& alightingPassenger,timeslice now)
 {
-	passengerList.clear();
+	int num = 0;
+	std::list<Passenger*>::iterator i = passengerList.begin();
+	while(i!=passengerList.end())
+	{
+		alightingPassenger.push_back(*i);
+		i = passengerList.erase(i);
+		num++;
+	}
+	return num;
 }
 
 void TrainDriver::updatePassengers()

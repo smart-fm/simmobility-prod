@@ -169,6 +169,13 @@ public:
 	 * @return true if find corresponding platform
 	 */
 	static bool checkPlatformIsExisted(const Agent* stationAgent, const std::string& platformName);
+	/**
+	 * get previous platform for a particular line
+	 * @param lineId is a train line
+	 * @param curPlatform is current platform name
+	 * @return null if do't have previous platform
+	 */
+	static Platform* getPrePlatform(const std::string& lineId, const std::string& curPlatform);
 	/* get vector of blocks from lineId*/
 	std::vector<Block*> GetBlocks(std::string lineId);
 	/* get station entity from ID*/

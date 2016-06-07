@@ -201,8 +201,9 @@ void TrainMovement::frame_tick()
 		double waitingTime = parentDriver->getWaitingTime();
 		params.currentSpeed = 0.0;
 		params.currentAcelerate = 0.0;
-		params.elapsedSeconds = waitingTime;
-		parentDriver->setWaitingTime(0.0);
+		if(waitingTime<0){
+			parentDriver->setWaitingTime(0.0);
+		}
 		if(waitingTime<params.secondsInTick){
 			bool isDisruptedPlatform = false;
 			if(parentDriver->disruptionParam.get()){
@@ -228,6 +229,8 @@ void TrainMovement::frame_tick()
 			if(!isDisruptedPlatform){
 				parentDriver->setNextRequested(TrainDriver::REQUESTED_LEAVING_PLATFORM);
 				if(!isAtLastPlaform()){
+					params.elapsedSeconds = waitingTime;
+					parentDriver->setWaitingTime(0.0);
 					leaveFromPlaform();
 				} else {
 					parentDriver->getParent()->setToBeRemoved();

@@ -61,7 +61,7 @@ Person_MT::~Person_MT()
 void Person_MT::changeToNewTrip(const std::string& stationName)
 {
 	ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
-	std::string ptPathsetStoredProcName = cfg.getDatabaseProcMappings().procedureMappings["pt_pathset"];
+	std::string ptPathsetStoredProcName = cfg.getDatabaseProcMappings().procedureMappings["pt_pathset2"];
 	TripChainItem* trip = (*currTripChainItem);
 	sim_mob::TrainStop* stop = sim_mob::PT_NetworkCreater::getInstance2().findMRT_Stop(stationName);
 	if(stop){

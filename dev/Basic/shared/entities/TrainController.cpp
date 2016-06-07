@@ -612,6 +612,29 @@ namespace sim_mob {
 		return platform;
 	}
 	template<typename PERSON>
+	Platform* TrainController<PERSON>::getPrePlatform(const std::string& lineId, const std::string& curPlatform)
+	{
+		Platform* platform = nullptr;
+		TrainController<PERSON>* self = TrainController<PERSON>::getInstance();
+		std::vector<Platform*> platforms;
+		if(self->getTrainPlatforms(lineId, platforms)){
+			std::vector<Platform*>::iterator it = platforms.begin();
+			Platform* prev = nullptr;
+			while(it!=platforms.end()){
+				if((*it)->getPlatformNo()==curPlatform){
+					platform = (*it);
+					break;
+				}
+				prev = *it;
+				it++;
+			}
+			if(platform){
+				platform = prev;
+			}
+		}
+		return platform;
+	}
+	template<typename PERSON>
 	bool TrainController<PERSON>::checkPlatformIsExisted(const Agent* stationAgent, const std::string& platformNo)
 	{
 		bool res = false;

@@ -115,8 +115,13 @@ public:
 	 * update passengers inside the train
 	 */
 	void updatePassengers();
-
-	void AlightAllPassengers();
+	/**
+	 * alight all passengers
+	 * @param alightingPassenger is the list of alighting person
+	 * @param now is current time
+	 * @return the number of alighting persons
+	 */
+	int AlightAllPassengers(std::list<Passenger*>& alightingPassenger,timeslice now);
 
 	TrainMovement * GetMovement();
 	/**

@@ -28,42 +28,49 @@ public:
 	 * @param index the index in public path set
 	 * @return total time in vehicle
 	 */
-	double getTotalInVehicleTime(unsigned int index);
+	double getInVehicleTime(unsigned int index) const;
 
 	/**
 	 * interface function for Lua script to get total walking time
 	 * @param index the index in public path set
 	 * @return total walking time
 	 */
-	double getTotalWalkTime(unsigned int index);
+	double getWalkTime(unsigned int index) const;
 
 	/**
 	 * interface functions for Lua script to get total waiting time
 	 * @param index the index in public path set
 	 * @return total waiting time
 	 */
-	double getTotalWaitTime(unsigned int index);
+	double getWaitTime(unsigned int index) const;
 
 	/**
 	 * interface function for Lua script to get the size of path
 	 * @param index the index in public path set
 	 * @return the size of path
 	 */
-	double getTotalPathSize(unsigned int index);
+	double getPathSize(unsigned int index) const;
 
 	/**
 	 * interface function for Lua script to get total transfered time
 	 * @param index the index in public path set
 	 * @return total transfered time
 	 */
-	int getTotalNumTxf(unsigned int index);
+	int getNumTxf(unsigned int index) const;
 
 	/**
 	 * interface function for Lua script to get total cost
 	 * @param index the index in public path set
 	 * @return total total cost
 	 */
-	double getTotalCost(unsigned int index);
+	double getCost(unsigned int index) const;
+
+	/**
+	 * interface function for Lua script to get total cost
+	 * @param index the index in public path set
+	 * @return total total cost
+	 */
+	double getPtDistanceKms(unsigned int index) const;
 
 	/**
 	 * interface function for lua script to get the PT modes in a path
@@ -73,7 +80,7 @@ public:
 	 *         2 if path involves only MRT travel;
 	 *         3 if path involves both bus and MRT travel
 	 */
-	int getModes(unsigned int index);
+	int getModes(unsigned int index) const;
 
 	/**
 	 * finds the best path for the given OD for public transit commuters
@@ -134,7 +141,7 @@ private:
 	 * get the size of current path set.
 	 * @return the size of current choice set
 	 */
-	unsigned int getSizeOfChoiceSet();
+	unsigned int getSizeOfChoiceSet() const;
 
 };
 

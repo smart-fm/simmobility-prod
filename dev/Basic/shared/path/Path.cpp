@@ -337,37 +337,37 @@ std::string sim_mob::makePT_PathSetString(const std::vector<PT_NetworkEdge> &pat
 }
 
 sim_mob::PT_Path::PT_Path() :
-		totalDistanceKms(0.0), totalCost(0.0), totalInVehicleTravelTimeSecs(0.0), totalWaitingTimeSecs(0.0), totalWalkingTimeSecs(0.0), totalNumberOfTransfers(
-				0), minDistance(false), validPath(false), shortestPath(false), minInVehicleTravelTime(false), minNumberOfTransfers(false), minWalkingDistance(
-				false), minTravelOnMRT(false), minTravelOnBus(false), pathSize(0.0), pathTravelTime(0.0), pathModesType(0)
+		totalDistanceKms(0.0), totalCost(0.0), ptDistanceKms(0.0), pathInVehicleTravelTimeSecs(0.0),
+		pathWaitingTimeSecs(0.0), totalWalkingTimeSecs(0.0), totalNumberOfTransfers(0), minDistance(false), validPath(false),
+		shortestPath(false), minInVehicleTravelTime(false), minNumberOfTransfers(false), minWalkingDistance(false),
+		minTravelOnMRT(false), minTravelOnBus(false), pathSize(0.0), pathTravelTime(0.0), pathModesType(0)
 {
 
 }
 
 sim_mob::PT_Path::PT_Path(const std::vector<PT_NetworkEdge> &path) :
-		pathEdges(path), totalDistanceKms(0.0), totalCost(0.0), totalInVehicleTravelTimeSecs(0.0), totalWaitingTimeSecs(0.0), totalWalkingTimeSecs(0.0), totalNumberOfTransfers(
-				0), minDistance(false), validPath(false), shortestPath(false), minInVehicleTravelTime(false), minNumberOfTransfers(false), minWalkingDistance(
-				false), minTravelOnMRT(false), minTravelOnBus(false), pathSize(0.0), pathTravelTime(0.0), pathModesType(0)
-
+		pathEdges(path), totalDistanceKms(0.0), totalCost(0.0), ptDistanceKms(0.0), pathInVehicleTravelTimeSecs(0.0),
+		pathWaitingTimeSecs(0.0), totalWalkingTimeSecs(0.0), totalNumberOfTransfers(0), minDistance(false), validPath(false),
+		shortestPath(false), minInVehicleTravelTime(false), minNumberOfTransfers(false), minWalkingDistance(false),
+		minTravelOnMRT(false), minTravelOnBus(false), pathSize(0.0), pathTravelTime(0.0), pathModesType(0)
 {
-	double totalBusMRTTravelDistance = 0.0;
 	ptPathId = makePT_PathString(pathEdges);
 	ptPathSetId = makePT_PathSetString(pathEdges);
 	for (std::vector<PT_NetworkEdge>::const_iterator itEdge = pathEdges.begin(); itEdge != pathEdges.end(); itEdge++)
 	{
-		totalWaitingTimeSecs += itEdge->getWaitTimeSecs();
-		totalInVehicleTravelTimeSecs += itEdge->getDayTransitTimeSecs();
+		pathWaitingTimeSecs += itEdge->getWaitTimeSecs();
+		pathInVehicleTravelTimeSecs += itEdge->getDayTransitTimeSecs();
 		totalWalkingTimeSecs += itEdge->getWalkTimeSecs();
 		pathTravelTime += itEdge->getLinkTravelTimeSecs();
 		totalDistanceKms += itEdge->getDistKms();
 		if (itEdge->getType() == sim_mob::BUS_EDGE || itEdge->getType() == sim_mob::TRAIN_EDGE)
 		{
-			totalBusMRTTravelDistance += itEdge->getDistKms();
+			ptDistanceKms += itEdge->getDistKms();
 			totalNumberOfTransfers++;
 		}
 	}
 
-	totalCost = this->getTotalCostByDistance(totalBusMRTTravelDistance);
+	totalCost = this->getTotalCostByDistance(ptDistanceKms);
 	if (totalNumberOfTransfers > 0)
 	{
 		totalNumberOfTransfers = totalNumberOfTransfers - 1;
@@ -495,7 +495,7 @@ void sim_mob::PT_PathSet::checkPathFeasibilty()
 		incrementFlag = false;
 		std::set<PT_Path>::iterator tempitPath = itPathComp;
 		// Check 1 : Total Number of transfers <= 4
-		if(itPathComp->getTotalNumberOfTransfers() > 4)
+		if(itPathComp->getNumTransfers() > 4)
 		{
 			// Infeasible path
 			itPathComp++;

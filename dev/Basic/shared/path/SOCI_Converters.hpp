@@ -34,13 +34,13 @@ template<> struct type_conversion<sim_mob::PT_Path>
 		res.setScenario(vals.get<std::string>("scenario", ""));
 		res.setPtPathId(vals.get<std::string>("path", ""));
 		res.setPathTravelTime(vals.get<double>("path_travel_time_secs", 0));
-		res.setTotalDistanceKms(vals.get<double>("total_distance_kms", 0));
+		res.setPathDistanceKms(vals.get<double>("total_distance_kms", 0));
 		res.setPathSize(vals.get<double>("path_size", 0.0));
-		res.setTotalCost(vals.get<double>("total_cost", 0.0));
-		res.setTotalInVehicleTravelTimeSecs(vals.get<double>("total_in_vehicle_travel_time_secs", 0.0));
-		res.setTotalWaitingTimeSecs(vals.get<double>("total_waiting_time", 0));
-		res.setTotalWalkingTimeSecs(vals.get<double>("total_walking_time", 0));
-		res.setTotalNumberOfTransfers(vals.get<int>("total_number_of_transfers", 0));
+		res.setPathCost(vals.get<double>("total_cost", 0.0));
+		res.setInVehicleTravelTimeSecs(vals.get<double>("total_in_vehicle_travel_time_secs", 0.0));
+		res.setWaitingTimeSecs(vals.get<double>("total_waiting_time", 0));
+		res.setWalkingTimeSecs(vals.get<double>("total_walking_time", 0));
+		res.setNumTransfers(vals.get<int>("total_number_of_transfers", 0));
 		res.updatePathEdges();
 	}
 };

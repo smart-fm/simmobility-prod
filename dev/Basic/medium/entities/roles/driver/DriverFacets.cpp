@@ -313,7 +313,7 @@ bool DriverMovement::initializePath()
 		else
 		{
 			const StreetDirectory& stdir = StreetDirectory::Instance();
-			wp_path = stdir.SearchShortestDrivingPath(*(parentDriver->origin).node, *(parentDriver->goal).node);
+            wp_path = stdir.SearchShortestDrivingPath<Node, Node>(*(parentDriver->origin).node, *(parentDriver->goal).node);
 		}
 
 		if (wp_path.empty()) //ideally should not be empty after randomization.

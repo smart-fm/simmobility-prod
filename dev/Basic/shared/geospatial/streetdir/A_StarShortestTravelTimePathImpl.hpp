@@ -19,83 +19,18 @@ public:
 	explicit A_StarShortestTravelTimePathImpl(const sim_mob::RoadNetwork& network);
 	virtual ~A_StarShortestTravelTimePathImpl() {}
 
-public:
 	/**
 	 * retrieve a vertex in the travel-time graph
 	 * @param node is a pointer to the node
 	 * @return a VertexDesc which hold vertex in the graph
 	 */
-	virtual StreetDirectory::VertexDesc DrivingVertex(const sim_mob::Node& node) const;
-//	/**
-//	 * retrieve a vertex in the travel-time graph for the morning peak hours
-//	 * @param node is a pointer to the node
-//	 * @return a VertexDesc which hold vertex information in the graph
-//	 */
-//	StreetDirectory::VertexDesc DrivingVertexMorningPeak(const sim_mob::Node& node) const;
-//	/**
-//	 * retrieve a vertex in the travel-time graph for the evening peak hours
-//	 * @param node is a pointer to the node
-//	 * @return a VertexDesc which hold vertex information in the graph
-//	 */
-//	StreetDirectory::VertexDesc DrivingVertexEveningPeak(const sim_mob::Node& node) const;
-//	/**
-//	 * retrieve a vertex in the travel-time graph for the normal-time hours
-//	 * @param node is a pointer to the node
-//	 * @return a VertexDesc which hold vertex information in the graph
-//	 */
-//	StreetDirectory::VertexDesc DrivingVertexNormalTime(const sim_mob::Node& node) const;
-	/**
-	 * retrieve a vertex in the travel-time graph for the default-time hours
-	 * @param node is a pointer to the node
-	 * @return a VertexDesc which hold vertex information in the graph
-	 */
-	StreetDirectory::VertexDesc DrivingVertexDefault(const sim_mob::Node& node) const;
-	/**
-	 * retrieve a vertex in the travel-time graph with highway bias distance
-	 * @param node is a pointer to the node
-	 * @return a VertexDesc which hold vertex information in the graph
-	 */
-	StreetDirectory::VertexDesc DrivingVertexHighwayBiasDistance(const sim_mob::Node& node) const;
-//	/**
-//	 * retrieve a vertex in the travel-time graph with highway bias morning peak
-//	 * @param node is a pointer to the node
-//	 * @return a VertexDesc which hold vertex information in the graph
-//	 */
-//	StreetDirectory::VertexDesc DrivingVertexHighwayBiasMorningPeak(const sim_mob::Node& node) const;
-//	/**
-//	 * retrieve a vertex in the travel-time graph with highway bias evening peak
-//	 * @param node is a pointer to the node
-//	 * @return a VertexDesc which hold vertex information in the graph
-//	 */
-//	StreetDirectory::VertexDesc DrivingVertexHighwayBiasEveningPeak(const sim_mob::Node& node) const;
-//	/**
-//	 * retrieve a vertex in the travel-time graph with highway bias normal time
-//	 * @param node is a pointer to the node
-//	 * @return a VertexDesc which hold vertex information in the graph
-//	 */
-//	StreetDirectory::VertexDesc DrivingVertexHighwayBiasNormalTIme(const sim_mob::Node& node) const;
-	/**
-	 * retrieve a vertex in the travel-time graph with highway bias default time
-	 * @param node is a pointer to the node
-	 * @return a VertexDesc which hold vertex information in the graph
-	 */
-	StreetDirectory::VertexDesc DrivingVertexHighwayBiasDefault(const sim_mob::Node& node) const;
-	/**
-	 * retrieve a vertex in the travel-time graph with highway bias random time
-	 * @param node is a pointer to the node
-	 * @return a VertexDesc which hold vertex information in the graph
-	 */
-	StreetDirectory::VertexDesc DrivingVertexRandom(const sim_mob::Node& node,	unsigned int randomGraphId = 0) const;
-	/**
-	 * retrieve travel-time shortest driving path from original point to destination
-	 * @param from is original vertex in the graph
-	 * @param to is destination vertex in the graph
-	 * @param blackList is the black list to mask some edge in the graph
-	 * @return the shortest path result.
-	 */
-	virtual std::vector<sim_mob::WayPoint> GetShortestDrivingPath(
-			const StreetDirectory::VertexDesc& from,const StreetDirectory::VertexDesc& to,
-			const std::vector<const sim_mob::Link*>& blacklist) const;
+    virtual StreetDirectory::VertexDesc DrivingVertex(const sim_mob::Node& node, TimeRange timeRange = Default, int randomGraphIdx = 0) const;
+    /**
+     * retrieve a vertex in the travel-time graph
+     * @param link - link for which the Vertex is retrieved
+     * @return a VertexDesc which hold vertex in the graph
+     */
+    virtual StreetDirectory::VertexDesc DrivingVertex(const Link& link, TimeRange timeRange = Default, int randomGraphIdx = 0) const;
 	/**
 	 * retrieve travel-time shortest driving path from original point to destination
 	 * @param from is original vertex in the graph
@@ -287,10 +222,18 @@ public:
 	 * the map lookup from link to edge in default-time graph
 	 */
 	LinkEdgeLookup drivingLinkLookupDefault;
+    /**
+     * the map lookup from link to edge in default-time graph
+     */
+    LinkVertexLookup drivingLinkVertexLookupDefault;
 	/**
 	 * the map lookup from link to edge in travel-time graph with highway bias distance
 	 */
 	LinkEdgeLookup drivingLinkLookupHighwayBiasDistance;
+    /**
+     * the map lookup from link to edge in travel-time graph with highway bias distance
+     */
+    LinkVertexLookup drivingLinkVertexLookupHighwayBiasDistance;
 //	/**
 //	 * the map lookup from link to edge in travel-time graph with highway bias morning peak
 //	 */
@@ -307,10 +250,18 @@ public:
 	 * the map lookup from link to edge in travel-time graph with highway bias default time
 	 */
 	LinkEdgeLookup drivingLinkLookupHighwayBiasDefault;
+    /**
+     * the map lookup from link to edge in travel-time graph with highway bias default time
+     */
+    LinkVertexLookup drivingLinkVertexLookupHighwayBiasDefault;
+    /**
+     * the map lookup from link to edge in travel-time graph with random time
+     */
+    std::vector<LinkEdgeLookup> drivingLinkLookupRandomPool;
 	/**
 	 * the map lookup from link to edge in travel-time graph with random time
 	 */
-	std::vector<LinkEdgeLookup> drivingLinkLookupRandomPool;
+    std::vector<LinkVertexLookup> drivingLinkVertexLookupRandomPool;
 private:
     /**
      * Initialize network graph
@@ -324,6 +275,90 @@ private:
 	 * @return weight value for input time range
 	 */
 	double getEdgeWeight(const sim_mob::Link* link, sim_mob::TimeRange timeRange);
+//	/**
+//	 * retrieve a vertex in the travel-time graph for the morning peak hours
+//	 * @param node is a pointer to the node
+//	 * @return a VertexDesc which hold vertex information in the graph
+//	 */
+//	StreetDirectory::VertexDesc DrivingVertexMorningPeak(const sim_mob::Node& node) const;
+//	/**
+//	 * retrieve a vertex in the travel-time graph for the evening peak hours
+//	 * @param node is a pointer to the node
+//	 * @return a VertexDesc which hold vertex information in the graph
+//	 */
+//	StreetDirectory::VertexDesc DrivingVertexEveningPeak(const sim_mob::Node& node) const;
+//	/**
+//	 * retrieve a vertex in the travel-time graph for the normal-time hours
+//	 * @param node is a pointer to the node
+//	 * @return a VertexDesc which hold vertex information in the graph
+//	 */
+//	StreetDirectory::VertexDesc DrivingVertexNormalTime(const sim_mob::Node& node) const;
+    /**
+     * retrieve a vertex in the travel-time graph for the default-time hours
+     * @param node is a pointer to the node
+     * @return a VertexDesc which hold vertex information in the graph
+     */
+    StreetDirectory::VertexDesc DrivingVertexDefault(const sim_mob::Node& node) const;
+    /**
+     * retrieve a vertex in the travel-time graph for the default-time hours
+     * @param link is a pointer to the link
+     * @return a VertexDesc which hold vertex information in the graph
+     */
+    StreetDirectory::VertexDesc DrivingVertexDefault(const sim_mob::Link& link) const;
+    /**
+     * retrieve a vertex in the travel-time graph with highway bias distance
+     * @param node is a pointer to the node
+     * @return a VertexDesc which hold vertex information in the graph
+     */
+    StreetDirectory::VertexDesc DrivingVertexHighwayBiasDistance(const sim_mob::Node& node) const;
+    /**
+     * retrieve a vertex in the travel-time graph with highway bias distance
+     * @param link is a pointer to the link
+     * @return a VertexDesc which hold vertex information in the graph
+     */
+    StreetDirectory::VertexDesc DrivingVertexHighwayBiasDistance(const sim_mob::Link& link) const;
+//    /**
+//     * retrieve a vertex in the travel-time graph with highway bias morning peak
+//     * @param node is a pointer to the node
+//     * @return a VertexDesc which hold vertex information in the graph
+//     */
+//    StreetDirectory::VertexDesc DrivingVertexHighwayBiasMorningPeak(const sim_mob::Node& node) const;
+//    /**
+//     * retrieve a vertex in the travel-time graph with highway bias evening peak
+//     * @param node is a pointer to the node
+//     * @return a VertexDesc which hold vertex information in the graph
+//     */
+//    StreetDirectory::VertexDesc DrivingVertexHighwayBiasEveningPeak(const sim_mob::Node& node) const;
+//    /**
+//     * retrieve a vertex in the travel-time graph with highway bias normal time
+//     * @param node is a pointer to the node
+//     * @return a VertexDesc which hold vertex information in the graph
+//     */
+//    StreetDirectory::VertexDesc DrivingVertexHighwayBiasNormalTIme(const sim_mob::Node& node) const;
+    /**
+     * retrieve a vertex in the travel-time graph with highway bias default time
+     * @param node is a pointer to the node
+     * @return a VertexDesc which hold vertex information in the graph
+     */
+    StreetDirectory::VertexDesc DrivingVertexHighwayBiasDefault(const sim_mob::Node& node) const;
+    /**
+     * retrieve a vertex in the travel-time graph with highway bias default time
+     * @param link is a pointer to the link
+     * @return a VertexDesc which hold vertex information in the graph
+     */
+    StreetDirectory::VertexDesc DrivingVertexHighwayBiasDefault(const sim_mob::Link& link) const;
+    /**
+     * retrieve a vertex in the travel-time graph with highway bias random time
+     * @param node is a pointer to the node
+     * @return a VertexDesc which hold vertex information in the graph
+     */
+    StreetDirectory::VertexDesc DrivingVertexRandom(const sim_mob::Node& node,	unsigned int randomGraphId = 0) const;
+    /**
+     * retrieve a vertex in the travel-time graph with highway bias random time
+     * @param link is a pointer to the link
+     * @return a VertexDesc which hold vertex information in the graph
+     */
+    StreetDirectory::VertexDesc DrivingVertexRandom(const sim_mob::Link& link,	unsigned int randomGraphId = 0) const;
 };
 
 }

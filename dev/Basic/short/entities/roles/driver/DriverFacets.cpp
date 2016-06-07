@@ -1269,8 +1269,9 @@ Vehicle* DriverMovement::initializePath(bool createVehicle)
 		}
 		else
 		{
-			const StreetDirectory& stdir = StreetDirectory::Instance();
-			path = stdir.SearchShortestDrivingPath(*(parentDriver->origin), *(parentDriver->destination));
+            const StreetDirectory& stdir = StreetDirectory::Instance();
+
+            path = stdir.SearchShortestDrivingPath<sim_mob::Node, sim_mob::Node>(*(parentDriver->origin), *(parentDriver->destination));
 		}
 
 		double length = 4.0;
@@ -1331,7 +1332,7 @@ void DriverMovement::rerouteWithBlacklist(const std::vector<const Link *> &black
 	}
 	
 	const StreetDirectory& stdir = StreetDirectory::Instance();
-	vector<WayPoint> path = stdir.SearchShortestDrivingPath(*node, *(parentDriver->destination), blacklisted);	
+    vector<WayPoint> path = stdir.SearchShortestDrivingPath<sim_mob::Node, sim_mob::Node>(*node, *(parentDriver->destination), blacklisted);
 
 	//Pre-pend the current segment, and reset the current driver.
 	//NOTE: This will put the current driver back onto the start of the segment.

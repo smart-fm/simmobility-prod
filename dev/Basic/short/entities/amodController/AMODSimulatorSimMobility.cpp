@@ -384,7 +384,7 @@ double AMODSimulatorSimMobility::getDrivingDistance(int fromLocId, int toLocId) 
     // if we're here, we have not computed this distance before
     std::vector<const sim_mob::Link*> blacklist;
 
-    std::vector < WayPoint > wp = stDir->SearchShortestDrivingPath(*fromItr->second,
+    std::vector < WayPoint > wp = stDir->SearchShortestDrivingPath<sim_mob::Node, sim_mob::Node>(*fromItr->second,
                *toItr->second,
                blacklist);
 
@@ -996,7 +996,7 @@ amod::ReturnCode AMODSimulatorSimMobility::dispatchVehicle(amod::World *worldSta
         if (waypoints.empty() || useShortestPath) {
             //std::cout << "Shortest Path" << std::endl;
             std::vector<const sim_mob::Link*> blacklist;
-            waypoints = stDir->SearchShortestDrivingPath(*nodePool[dp.fromLocId],*nodePool[dp.toLocId],blacklist);
+            waypoints = stDir->SearchShortestDrivingPath<sim_mob::Node, sim_mob::Node>(*nodePool[dp.fromLocId],*nodePool[dp.toLocId],blacklist);
         }
 
 

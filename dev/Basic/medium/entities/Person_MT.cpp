@@ -116,7 +116,7 @@ void Person_MT::convertPublicTransitODsToTrips()
 						}
 
 						const StreetDirectory& streetDirectory = StreetDirectory::Instance();
-						std::vector<WayPoint> wayPoints = streetDirectory.SearchShortestDrivingPath(*itSubTrip->origin.node, *itSubTrip->destination.node);
+                        std::vector<WayPoint> wayPoints = streetDirectory.SearchShortestDrivingPath<Node, Node>(*itSubTrip->origin.node, *itSubTrip->destination.node);
 						double travelTime = 0.0;
 						const TravelTimeManager* ttMgr = TravelTimeManager::getInstance();
 						for (std::vector<WayPoint>::iterator it = wayPoints.begin(); it != wayPoints.end(); it++)

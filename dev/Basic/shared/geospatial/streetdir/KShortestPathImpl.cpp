@@ -137,7 +137,7 @@ int sim_mob::K_ShortestPathImpl::getKShortestPaths(const sim_mob::Node *from, co
 	std::set<const Link*> blSet;
 	//	STEP 1: find path A1
 	//			Apply any shortest path algorithm (e.g., Dijkstra's) to find the shortest path from O to D,	given link weights W and network graph G.
-	std::vector<sim_mob::WayPoint> temp = stdir.SearchShortestDrivingPath(*from, *to, bl);
+    std::vector<sim_mob::WayPoint> temp = stdir.SearchShortestDrivingPath<sim_mob::Node, sim_mob::Node>(*from, *to, bl);
 	std::vector<sim_mob::WayPoint> A0;//actually A1 (in the pseudo code)
 	sim_mob::SinglePath::filterOutNodes(temp, A0);
 	//sanity check
@@ -179,7 +179,7 @@ int sim_mob::K_ShortestPathImpl::getKShortestPaths(const sim_mob::Node *from, co
 				}
 				//Find shortest path from SpurNode to D, and store it as SpurPath.
 				temp.clear();
-				temp = stdir.SearchShortestDrivingPath(*spurNode, *to, BL_VECTOR(blSet));
+                temp = stdir.SearchShortestDrivingPath<sim_mob::Node, sim_mob::Node>(*spurNode, *to, BL_VECTOR(blSet));
 				std::vector<sim_mob::WayPoint> spurPath;
 				sim_mob::SinglePath::filterOutNodes(temp, spurPath);
 				std::vector<sim_mob::WayPoint> fullPath;

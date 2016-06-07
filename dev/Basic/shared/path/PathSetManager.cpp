@@ -722,8 +722,8 @@ int sim_mob::PrivatePathsetGenerator::genSTTLE(boost::shared_ptr<sim_mob::PathSe
 	const sim_mob::Link *curLink = nullptr;
 	std::set<const Link*> blackList = std::set<const Link*>();
 	A_StarShortestTravelTimePathImpl * sttpImpl = (A_StarShortestTravelTimePathImpl*) stdir.getTravelTimeImpl();
-	StreetDirectory::VertexDesc from = sttpImpl->DrivingVertexDefault(*ps->subTrip.origin.node);
-	StreetDirectory::VertexDesc to = sttpImpl->DrivingVertexDefault(*ps->subTrip.destination.node);
+    StreetDirectory::VertexDesc from = sttpImpl->DrivingVertex(*ps->subTrip.origin.node, sim_mob::Default, 0);
+    StreetDirectory::VertexDesc to = sttpImpl->DrivingVertex(*ps->subTrip.destination.node, sim_mob::Default, 0);
 	SinglePath* pathTT = generateShortestTravelTimePath(ps->subTrip.origin.node, ps->subTrip.destination.node, sim_mob::Default);
 
 	int cnt = 0;
@@ -784,8 +784,8 @@ int sim_mob::PrivatePathsetGenerator::genSTTHBLE(boost::shared_ptr<sim_mob::Path
 	std::set<const Link*> blackList = std::set<const Link*>();
 	SinglePath *sinPathHighwayBias = generateShortestTravelTimePath(ps->subTrip.origin.node, ps->subTrip.destination.node, sim_mob::HighwayBiasDefault);
 	A_StarShortestTravelTimePathImpl * sttpImpl = (A_StarShortestTravelTimePathImpl*) stdir.getTravelTimeImpl();
-	StreetDirectory::VertexDesc from = sttpImpl->DrivingVertexHighwayBiasDefault(*ps->subTrip.origin.node);
-	StreetDirectory::VertexDesc to = sttpImpl->DrivingVertexHighwayBiasDefault(*ps->subTrip.destination.node);
+    StreetDirectory::VertexDesc from = sttpImpl->DrivingVertex(*ps->subTrip.origin.node, sim_mob::HighwayBiasDefault, 0);
+    StreetDirectory::VertexDesc to = sttpImpl->DrivingVertex(*ps->subTrip.destination.node,sim_mob::HighwayBiasDefault, 0);
 	int cnt = 0;
 	if (sinPathHighwayBias && !sinPathHighwayBias->path.empty())
 	{
@@ -847,8 +847,8 @@ int sim_mob::PrivatePathsetGenerator::genRandPert(boost::shared_ptr<sim_mob::Pat
 	int cnt = 0;
 	for (int i = 0; i < randCnt; ++i)
 	{
-		StreetDirectory::VertexDesc from = sttpImpl->DrivingVertexRandom(*ps->subTrip.origin.node, i);
-		StreetDirectory::VertexDesc to = sttpImpl->DrivingVertexRandom(*ps->subTrip.destination.node, i);
+        StreetDirectory::VertexDesc from = sttpImpl->DrivingVertex(*ps->subTrip.origin.node, sim_mob::Random, i);
+        StreetDirectory::VertexDesc to = sttpImpl->DrivingVertex(*ps->subTrip.destination.node, sim_mob::Random,  i);
 		if (!(from.valid && to.valid))
 		{
 			std::cout << "Invalid VertexDesc\n";
@@ -1309,7 +1309,7 @@ sim_mob::SinglePath * sim_mob::PrivatePathsetGenerator::findShortestDrivingPath(
 		blacklist.insert(blacklist.end(), excludedLinks.begin(), excludedLinks.end());
 	}
 
-	std::vector<WayPoint> wpPath = stdir.SearchShortestDrivingPath(*fromNode, *toNode, blacklist);
+    std::vector<WayPoint> wpPath = stdir.SearchShortestDrivingPath<sim_mob::Node, sim_mob::Node>(*fromNode, *toNode, blacklist);
 
 	if (wpPath.empty())
 	{
@@ -1332,7 +1332,7 @@ sim_mob::SinglePath* sim_mob::PrivatePathsetGenerator::generateShortestTravelTim
 	{
 		blacklist.insert(blacklist.end(), excludedLinks.begin(), excludedLinks.end());
 	}
-	std::vector<WayPoint> wp = stdir.SearchShortestDrivingTimePath(*fromNode, *toNode, blacklist, tr, random_graph_idx);
+    std::vector<WayPoint> wp = stdir.SearchShortestDrivingTimePath<sim_mob::Node, sim_mob::Node>(*fromNode, *toNode, blacklist, tr, random_graph_idx);
 	if (wp.empty())
 	{
 		return NULL; // no path

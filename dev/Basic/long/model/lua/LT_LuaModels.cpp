@@ -66,14 +66,14 @@ namespace {
         	.addProperty("slaAddressId", &Unit::getSlaAddressId)
         	.addProperty("unitType", &Unit::getUnitType)
         	.addProperty("storeyRange", &Unit::getStoreyRange)
-        	.addProperty("unitStatus", &Unit::getUnitStatus)
+        	.addProperty("unitStatus", &Unit::getConstructionStatus)
         	.addProperty("floorArea", &Unit::getFloorArea)
         	.addProperty("storey", &Unit::getStorey)
-        	.addProperty("rent", &Unit::getRent)
+        	.addProperty("mothlyRent", &Unit::getMonthlyRent)
         	.addProperty("saleFromDate", &Unit::getSaleFromDate)
-        	.addProperty("physicalFromDate", &Unit::getPhysicalFromDate)
+        	.addProperty("physicalFromYear", &Unit::getOccupancyFromYear)
         	.addProperty("saleStatus", &Unit::getSaleStatus)
-        	.addProperty("physicalStatus", &Unit::getPhysicalStatus)
+        	.addProperty("occupancyStatus", &Unit::getOccupancyStatus)
             .endClass();
     getGlobalNamespace(state)
             .beginClass <Postcode> ("Postcode")
@@ -230,12 +230,12 @@ void HM_LuaModel::mapClasses()
     mapCommonClasses(state.get());
 }
 
-void HM_LuaModel::calulateUnitExpectations(const Unit& unit, int timeOnMarket, double logsum, vector<ExpectationEntry>& outValues) const
+void HM_LuaModel::calulateUnitExpectations(const Unit& unit, int timeOnMarket, double logsum, double lagCoefficient, vector<ExpectationEntry>& outValues ) const
 {
     const BigSerial pcId = unit.getSlaAddressId();
     LuaRef funcRef = getGlobal(state.get(), "calulateUnitExpectations");
 
-	LuaRef retVal = funcRef(&unit, timeOnMarket, logsum, getBuilding(unit.getBuildingId()), getPostcode(pcId), getAmenities(pcId));
+	LuaRef retVal = funcRef(&unit, timeOnMarket, logsum, lagCoefficient, getBuilding(unit.getBuildingId()), getPostcode(pcId), getAmenities(pcId));
 
     if (retVal.isTable())
     {
@@ -320,10 +320,10 @@ void DeveloperLuaModel::mapClasses()
     mapCommonClasses(state.get());
 }
 
-double DeveloperLuaModel::calculateUnitRevenue(const PotentialUnit& unit,const ParcelAmenities& amenities, double logsum, int quarter, int futureYear, double HPIfromData) const {
+double DeveloperLuaModel::calculateUnitRevenue(const PotentialUnit& unit,const ParcelAmenities& amenities, double logsum, int quarter, int futureYear, double HPIfromData,int age) const {
 
     LuaRef funcRef = getGlobal(state.get(), "calculateUnitRevenue");
-    LuaRef retVal = funcRef(&unit, &amenities, logsum, quarter,futureYear,HPIfromData);
+    LuaRef retVal = funcRef(&unit, &amenities, logsum, quarter,futureYear,HPIfromData,age);
 
     if (retVal.isNumber())
     {

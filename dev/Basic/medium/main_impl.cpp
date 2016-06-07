@@ -204,11 +204,12 @@ void assignConfluxToWorkers(WorkGroup* workGrp)
  */
 void assignStationAgentToConfluxes()
 {
-	std::map<std::string, TrainStop*>&  MRTStopMap = PT_Network::getInstance().MRTStopsMap;
+	std::map<std::string, TrainStop*>&  MRTStopMap = PT_NetworkCreater::getInstance().MRTStopsMap;
 	std::map<std::string, TrainStop*>::iterator trainStopIt;
 	for(trainStopIt = MRTStopMap.begin();trainStopIt!=MRTStopMap.end();trainStopIt++){
 		TrainStationAgent* stationAgent = new TrainStationAgent();
 		TrainController<Person_MT>::registerStationAgent(trainStopIt->first, stationAgent);
+		stationAgent->setStationName(trainStopIt->first);
 		const Node* node = trainStopIt->second->getRandomStationSegment()->getParentLink()->getFromNode();
 		ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
 		MT_Config& mtCfg = MT_Config::getInstance();
@@ -258,11 +259,10 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	rf->registerRole("pedestrian", new sim_mob::medium::Pedestrian(nullptr));
 	rf->registerRole("passenger", new sim_mob::medium::Passenger(nullptr));
 	rf->registerRole("biker", new sim_mob::medium::Biker(nullptr));
-
 	rf->registerRole("trainDriver", new sim_mob::medium::TrainDriver(nullptr));
-
 	rf->registerRole("truckerLGV", new sim_mob::medium::TruckerLGV(nullptr));
 	rf->registerRole("truckerHGV", new sim_mob::medium::TruckerHGV(nullptr));
+
 
 
 	//Load our user config file, which is a time costly function

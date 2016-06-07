@@ -59,12 +59,12 @@ template<> struct type_conversion<sim_mob::SinglePath>
 		res.rightTurnNumber = vals.get<int>("right_turn_number", 0);
 		res.length = vals.get<double>("length", 0.0);
 		res.highWayDistance = vals.get<double>("highway_distance", 0.0);
-		res.isMinDistance = vals.get<int>("min_distance", 0);
-		res.isMinSignal = vals.get<int>("min_signal", 0);
-		res.isMinRightTurn = vals.get<int>("min_right_turn", 0);
-		res.isMaxHighWayUsage = vals.get<int>("max_highway_usage", 0);
-		res.valid_path = vals.get<int>("valid_path", 0);
-		res.isShortestPath = vals.get<int>("shortest_path", 0);
+		res.minDistance = vals.get<int>("min_distance", 0);
+		res.minSignals = vals.get<int>("min_signal", 0);
+		res.minRightTurns = vals.get<int>("min_right_turn", 0);
+		res.maxHighWayUsage = vals.get<int>("max_highway_usage", 0);
+		res.validPath = vals.get<int>("valid_path", 0);
+		res.shortestPath = vals.get<int>("shortest_path", 0);
 	}
 };
 template<> struct type_conversion<sim_mob::ERP_Surcharge>

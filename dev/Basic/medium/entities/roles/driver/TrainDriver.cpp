@@ -14,6 +14,7 @@
 #include "entities/misc/TrainTrip.hpp"
 #include "behavioral/ServiceController.hpp"
 #include "entities/incident/IncidentManager.hpp"
+#include "event/args/ReRouteEventArgs.hpp"
 namespace sim_mob {
 
 namespace medium{
@@ -22,7 +23,7 @@ TrainDriver::TrainDriver(Person_MT* parent,
 		sim_mob::medium::TrainBehavior* behavior,
 		sim_mob::medium::TrainMovement* movement,
 		std::string roleName, Role<Person_MT>::Type roleType) :
-	sim_mob::Role<Person_MT>::Role(parent, behavior, movement, roleName, roleType),nextDriver(nullptr),nextRequested(NO_REQUESTED),waitingTimeSec(0.0),initialDwellTime(0.0)
+	sim_mob::Role<Person_MT>::Role(parent, behavior, movement, roleName, roleType),nextDriver(nullptr),nextRequested(NO_REQUESTED),waitingTimeSec(0.0),initialDwellTime(0.0),disruptionParam(nullptr)
 {
 	int trainId=getTrainId();
 	std::string lineId=getTrainLine();
@@ -39,10 +40,11 @@ void TrainDriver::onParentEvent(event::EventId eventId, sim_mob::event::Context 
 {
 	switch(eventId)
 	{
-	case EVT_DISRUPTION_REROUTING:
+	case EVT_DISRUPTION_STATION:
 	{
-		const DisruptionEventArgs& exArgs = MSG_CAST(DisruptionEventArgs, args);
+		const event::DisruptionEventArgs& exArgs = MSG_CAST(event::DisruptionEventArgs, args);
 		const DisruptionParams& disruption = exArgs.getDisruption();
+		disruptionParam.reset(new DisruptionParams(disruption));
 		break;
 	}
 	}
@@ -70,6 +72,15 @@ const TrainDriver* TrainDriver::getNextDriver() const
 void TrainDriver::make_frame_tick_params(timeslice now)
 {
 	getParams().reset(now);
+	if(disruptionParam.get()){
+		DailyTime duration = disruptionParam->duration;
+		unsigned int baseGran = ConfigManager::GetInstance().FullConfig().baseGranMS();
+		if(duration.getValue()>baseGran){
+			disruptionParam->duration = DailyTime(duration.offsetMS_From(DailyTime(baseGran)));
+		} else {
+			disruptionParam.reset();
+		}
+	}
 }
 
 std::vector<BufferedBase*> TrainDriver::getSubscriptionParams() {
@@ -136,6 +147,10 @@ double TrainDriver::getWaitingTime() const
 void TrainDriver::reduceWaitingTime(double val)
 {
 	waitingTimeSec -= val;
+}
+void TrainDriver::setWaitingTime(double val)
+{
+	waitingTimeSec = val;
 }
 
 std::string TrainDriver::getTrainLine() const
@@ -243,16 +258,18 @@ int TrainDriver::alightPassenger(std::list<Passenger*>& alightingPassenger,times
 	return num;
 }
 
-int TrainDriver::AlightAllPassengers(std::list<Passenger*>& alightingPassenger)
+
+int TrainDriver::AlightAllPassengers(std::list<Passenger*>& alightingPassenger,timeslice now)
 {
+	int num = 0;
 	std::list<Passenger*>::iterator i = passengerList.begin();
-	int num=0;
 	while(i!=passengerList.end())
 	{
 		alightingPassenger.push_back(*i);
-        num++;
+		i = passengerList.erase(i);
+		num++;
 	}
-	passengerList.clear();
+
 	return num;
 }
 
@@ -269,9 +286,14 @@ void TrainDriver::storeWaitingTime(WaitTrainActivity* waitingActivity, timeslice
 	PersonWaitingTime personWaitInfo;
 	personWaitInfo.busStopNo = waitingActivity->getStartPlatform()->getPlatformNo();
 	personWaitInfo.personId  = waitingActivity->getParent()->getId();
+	personWaitInfo.personIddb = waitingActivity->getParent()->getDatabaseId();
+	personWaitInfo.originNode = (*(waitingActivity->getParent()->currTripChainItem))->origin.node->getNodeId();
+	personWaitInfo.destNode = (*(waitingActivity->getParent()->currTripChainItem))->destination.node->getNodeId();
+	personWaitInfo.endstop = waitingActivity->getParent()->currSubTrip->endLocationId;
 	personWaitInfo.currentTime = (DailyTime(now.ms())+DailyTime(ConfigManager::GetInstance().FullConfig().simStartTime())).getStrRepr();
 	personWaitInfo.waitingTime = ((double) waitingActivity->getWaitingTime())/1000.0; //convert ms to second
 	personWaitInfo.busLines = waitingActivity->getTrainLine();
+	personWaitInfo.busLineBoarded = waitingActivity->getTrainLine();
 	personWaitInfo.deniedBoardingCount = waitingActivity->getDeniedBoardingCount();
 	messaging::MessageBus::PostMessage(PT_Statistics::getInstance(), STORE_PERSON_WAITING,
 			messaging::MessageBus::MessagePtr(new PersonWaitingTimeMessage(personWaitInfo)));
@@ -284,8 +306,6 @@ int TrainDriver::boardPassenger(std::list<WaitTrainActivity*>& boardingPassenger
 	std::list<WaitTrainActivity*>::iterator i = boardingPassenger.begin();
 	while(i!=boardingPassenger.end()&&validNum>0)
 	{
-		//Person_MT* person = (*i)->getParent();
-		//Role<Person_MT>* curRole = person->getRole();
 		(*i)->collectTravelTime();
 		storeWaitingTime((*i), now);
 		Person_MT* person = (*i)->getParent();

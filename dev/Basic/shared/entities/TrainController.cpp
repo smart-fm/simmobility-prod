@@ -11,6 +11,7 @@
 #include "logging/Log.hpp"
 #include "message/MessageBus.hpp"
 #include "event/SystemEvents.hpp"
+#include "event/args/ReRouteEventArgs.hpp"
 #ifndef _CLASS_TRAIN_CONTROLLER_FUNCTIONS
 #include "entities/TrainController.hpp"
 #else
@@ -23,7 +24,7 @@ namespace sim_mob {
 	template<typename PERSON>
 	boost::unordered_map<const Station*, Agent*> TrainController<PERSON>::allStationAgents;
 	template<typename PERSON>
-	TrainController<PERSON>::TrainController(int id, const MutexStrategy& mtxStrat):Agent(mtxStrat, id),lastTrainId(0)
+	TrainController<PERSON>::TrainController(int id, const MutexStrategy& mtxStrat):Agent(mtxStrat, id),lastTrainId(0),disruptionParam(nullptr)
 	{
 
 	}
@@ -48,7 +49,19 @@ namespace sim_mob {
 	template<typename PERSON>
 	Entity::UpdateStatus TrainController<PERSON>::frame_tick(timeslice now)
 	{
+
 		//resetBlockSpeeds(now);
+		if(disruptionParam.get())
+                {
+			unsigned int baseGran = ConfigManager::GetInstance().FullConfig().baseGranMS();
+			DailyTime duration = disruptionParam->duration;
+			if(duration.getValue()>baseGran){
+				disruptionParam->duration = DailyTime(duration.offsetMS_From(DailyTime(baseGran)));
+			} else {
+				disruptionParam.reset();
+			}
+		}
+
 		std::map<std::string, TripStartTimePriorityQueue>::iterator it;
 		for(it=mapOfIdvsTrip.begin(); it!=mapOfIdvsTrip.end(); it++)
 		{
@@ -63,19 +76,35 @@ namespace sim_mob {
 				int trainId=getTrainId(lineId);
 				if(trainId!=-1)
 				{
+					if(disruptionParam.get()){
+						changeTrainTrip(top, disruptionParam.get());
+					}
 					top->setTrainId(trainId);
 					tripChain.push_back(top);
 					person->setTripChain(tripChain);
 					person->setStartTime(top->getStartTime());
 					trainTrips.pop();
 					this->currWorkerProvider->scheduleForBred(person);
-
 				}
 				else
 					break;
 			}
 		}
 		return Entity::UpdateStatus::Continue;
+	}
+	template<typename PERSON>
+	void TrainController<PERSON>::changeTrainTrip(sim_mob::TrainTrip* trip, sim_mob::DisruptionParams* params)
+	{
+		std::map<std::string, std::vector<std::string>> platformsInline;
+		for(size_t i=0; i<params->platformNames.size(); i++){
+			platformsInline[params->platformLineIds[i]].push_back(params->platformNames[i]);
+		}
+		std::string lineId = trip->getLineId();
+		std::map<std::string, std::vector<std::string>>::iterator it;
+		it = platformsInline.find(lineId);
+		if(it!=platformsInline.end()){
+			trip->removeTrainRoute(it->second);
+		}
 	}
 	template<typename PERSON>
 	int TrainController<PERSON>::getTrainId(const std::string& lineId)
@@ -684,6 +713,29 @@ namespace sim_mob {
 		return platform;
 	}
 	template<typename PERSON>
+	Platform* TrainController<PERSON>::getPrePlatform(const std::string& lineId, const std::string& curPlatform)
+	{
+		Platform* platform = nullptr;
+		TrainController<PERSON>* self = TrainController<PERSON>::getInstance();
+		std::vector<Platform*> platforms;
+		if(self->getTrainPlatforms(lineId, platforms)){
+			std::vector<Platform*>::iterator it = platforms.begin();
+			Platform* prev = nullptr;
+			while(it!=platforms.end()){
+				if((*it)->getPlatformNo()==curPlatform){
+					platform = (*it);
+					break;
+				}
+				prev = *it;
+				it++;
+			}
+			if(platform){
+				platform = prev;
+			}
+		}
+		return platform;
+	}
+	template<typename PERSON>
 	bool TrainController<PERSON>::checkPlatformIsExisted(const Agent* stationAgent, const std::string& platformNo)
 	{
 		bool res = false;
@@ -875,6 +927,9 @@ namespace sim_mob {
 		{
 		case event::EVT_CORE_MRT_DISRUPTION:
 		{
+			const event::DisruptionEventArgs& exArgs = MSG_CAST(event::DisruptionEventArgs, args);
+			const DisruptionParams& disruption = exArgs.getDisruption();
+			disruptionParam.reset(new DisruptionParams(disruption));
 			break;
 		}
 		}

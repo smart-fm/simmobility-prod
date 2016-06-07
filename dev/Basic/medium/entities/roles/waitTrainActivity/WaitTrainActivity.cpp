@@ -55,14 +55,14 @@ void sim_mob::medium::WaitTrainActivity::collectTravelTime()
 {
 	PersonTravelTime personTravelTime;
 	std::string personId, tripStartPoint, tripEndPoint, subStartPoint, subEndPoint, subStartType, subEndType, mode, service, arrivaltime, travelTime;
-	personTravelTime.personId = parent->getId();
+	personTravelTime.personId = parent->getDatabaseId();
 	personTravelTime.tripStartPoint = (*(parent->currTripChainItem))->startLocationId;
 	personTravelTime.tripEndPoint = (*(parent->currTripChainItem))->endLocationId;
 	personTravelTime.subStartPoint = parent->currSubTrip->startLocationId;
 	personTravelTime.subEndPoint = parent->currSubTrip->endLocationId;
 	personTravelTime.subStartType = parent->currSubTrip->startLocationType;
 	personTravelTime.subEndType = parent->currSubTrip->endLocationType;
-	personTravelTime.mode = "WAITING_TRAIN";
+	personTravelTime.mode = "WAIT_MRT";
 	personTravelTime.service = parent->currSubTrip->ptLineId;
 	personTravelTime.travelTime = ((double) parent->getRole()->getTravelTime())/1000.0; //convert to seconds
 	personTravelTime.arrivalTime = DailyTime(parent->getRole()->getArrivalTime()).getStrRepr();

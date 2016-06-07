@@ -44,7 +44,7 @@ private:
 	double remainingTimeThisTick;
 
 	/**Alters trip chain in accordance to route choice for public transit trips*/
-	void convertPublicTransitODsToTrips();
+	void convertPublicTransitODsToTrips(PT_Network& ptNetwork,const std::string& ptPathsetStoredProcName);
 
 	/**Inserts a waiting activity before bus travel*/
 	void insertWaitingActivityToTrip();
@@ -59,7 +59,11 @@ private:
 	 * @return true, if the trip chain item is advanced
      */
 	bool advanceCurrentTripChainItem();
-
+	/**
+	 * make new trip from current point
+	 * @param stationName is current station name
+	 */
+	void changeToNewTrip(const std::string& stationName);
 	/**
 	 * Inherited from EventListener.
 	 * @param eventId

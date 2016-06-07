@@ -9,8 +9,6 @@
  *  Author: Chetan Rogbeer <chetan.rogbeer@smart.mit.edu>
  *
  */
-
-#pragma once
 #include "AlternativeDao.hpp"
 #include "DatabaseHelper.hpp"
 
@@ -28,6 +26,7 @@ void AlternativeDao::fromRow(Row& result, Alternative& outObj)
     outObj.planAreaName		= result.get<std::string>( "plan_area_name", "");
     outObj.dwellingTypeId	= result.get<BigSerial>( "dwelling_type_id", 0);
     outObj.dwellingTypeName	= result.get<std::string>( "dwelling_type_name", "");
+    outObj.medianHedonicPrice	= result.get<double>( "median_hedonic_price", .0);
 }
 
 void AlternativeDao::toRow(Alternative& data, Parameters& outParams, bool update) {}

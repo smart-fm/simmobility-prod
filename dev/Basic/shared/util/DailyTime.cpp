@@ -15,8 +15,10 @@ using std::string;
 
 namespace
 {
+	const unsigned int SECONDS_IN_DAY = 86400;
+	const unsigned int MILLISECONDS_IN_DAY = SECONDS_IN_DAY * 1000;
 	const std::string TEMPLATE_STRING = "00000000";
-	std::vector<std::string> timeList = std::vector<std::string>(86400, TEMPLATE_STRING);
+	std::vector<std::string> timeList = std::vector<std::string>(SECONDS_IN_DAY, TEMPLATE_STRING);
 
 	/**
 	 * a verbose, dangerous and yet fast helper function to get characters corresponding to decimal numbers 0 through 59
@@ -247,17 +249,34 @@ const DailyTime& sim_mob::DailyTime::operator-=(const DailyTime& dailytime)
 std::string sim_mob::DailyTime::getStrRepr() const
 {
 	uint32_t timeValInSec = time_/1000;
-	if(timeValInSec >= 86400) //86400 seconds in a day
+	if(timeValInSec >= SECONDS_IN_DAY) //86400 seconds in a day
 	{
-		timeValInSec = timeValInSec % 86400;
+		timeValInSec = timeValInSec % SECONDS_IN_DAY;
 	}
 	return timeList[timeValInSec];
 }
 
 void sim_mob::DailyTime::initAllTimes()
 {
-	for(int i=0; i<86400; i++) //86400 seconds in a day
+	for(int i=0; i<SECONDS_IN_DAY; i++) //86400 seconds in a day
 	{
 		timeList[i] = buildStringRepr(i);
+	}
+}
+
+DailyTime sim_mob::DailyTime::getTimeFromMidNight() const
+{
+	if (time_ >= MILLISECONDS_IN_DAY)
+	{
+		uint32_t timeValInMS = time_;
+		while (timeValInMS > MILLISECONDS_IN_DAY)
+		{
+			timeValInMS = timeValInMS - MILLISECONDS_IN_DAY;
+		}
+		return DailyTime(timeValInMS);
+	}
+	else
+	{
+		return (*this);
 	}
 }

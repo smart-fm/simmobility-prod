@@ -401,7 +401,12 @@ void PredaySystem::predictTourModeDestination(Tour& tour)
 	TourModeDestinationParams tmdParams(zoneMap, amCostMap, pmCostMap, personParams, tour.getTourType(), unavailableODs);
 	tmdParams.setCbdOrgZone(zoneMap.at(zoneIdLookup.at(personParams.getHomeLocation()))->getCbdDummy());
 	int modeDest = PredayLuaProvider::getPredayModel().predictTourModeDestination(personParams, tmdParams);
-	tour.setTourMode(tmdParams.getMode(modeDest));
+	int mode = tmdParams.getMode(modeDest);
+	if(mode < 1 || mode > 9)
+	{
+		throw std::runtime_error("invalid tour mode");
+	}
+	tour.setTourMode(mode);
 	int zone_id = tmdParams.getDestination(modeDest);
 	tour.setTourDestination(zoneMap.at(zone_id)->getZoneCode());
 }
@@ -970,7 +975,7 @@ bool PredaySystem::predictStopModeDestination(Stop* stop, int origin)
 	stop->setStopLocation(zoneMap.at(zone_id)->getZoneCode());
 	if(stop->getStopLocation() == origin || stop->getStopMode() > 9 || stop->getStopMode() < 1)
 	{
-		std::cout << "break!\n";
+		throw std::runtime_error("o = d || invalid stop mode");
 	}
 	return true;
 }
@@ -1510,13 +1515,8 @@ void PredaySystem::planDay()
 
 	if(!toursConstructed)
 	{
-		short numRemovedTours = 0;
-		while(tourIt != tours.end())
-		{
-			tourIt = tours.erase(tourIt);
-			numRemovedTours++;
-		}
-		logStream << "|" << numRemovedTours << " tours removed due to time in-availability";
+		tours.erase(tourIt, tours.end()); //erase current tour and all remaining tours
+		logStream << "|" << (remainingTours+1) << " tours removed due to time in-availability";
 	}
 	logStream << "\n";
 }

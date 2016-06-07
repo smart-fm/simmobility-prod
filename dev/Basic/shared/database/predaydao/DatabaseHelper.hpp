@@ -17,7 +17,7 @@ const std::string EMPTY_STRING = "";
  * Schemas
  */
 const std::string MAIN_SCHEMA = "main2012.";
-const std::string PUBLIC_SCHEMA = "public.";
+const std::string PUBLIC_SCHEMA = "calibration2012."; //demand.
 
 /**
  * Tables
@@ -27,14 +27,14 @@ const std::string DB_TABLE_VEHICLE_CATEGORIES = APPLY_SCHEMA(MAIN_SCHEMA, "vehic
 const std::string DB_TABLE_AM_COSTS = APPLY_SCHEMA(PUBLIC_SCHEMA, "amcosts");
 const std::string DB_TABLE_PM_COSTS = APPLY_SCHEMA(PUBLIC_SCHEMA, "pmcosts");
 const std::string DB_TABLE_OP_COSTS = APPLY_SCHEMA(PUBLIC_SCHEMA, "opcosts");
-const std::string DB_TABLE_TAZ = APPLY_SCHEMA(PUBLIC_SCHEMA, "zone_preday2012");
+const std::string DB_TABLE_TAZ = APPLY_SCHEMA(PUBLIC_SCHEMA, "taz_2012");
 
 /**
  * Stored procedures for long-term population database
  */
 const std::string DB_SP_GET_INDIVIDUAL_IDS = APPLY_SCHEMA(MAIN_SCHEMA, "getindividualids()");
 const std::string DB_SP_GET_INDIVIDUAL_BY_ID_FOR_PREDAY = APPLY_SCHEMA(MAIN_SCHEMA, "getindividualbyidforpreday(:_id)");
-const std::string DB_SP_GET_ADDRESS_TAZ = APPLY_SCHEMA(MAIN_SCHEMA, "getaddresstaz()");
+const std::string DB_SP_GET_ADDRESS_TAZ = APPLY_SCHEMA(MAIN_SCHEMA, "getaddresses()");
 
 /**
  * Fields for long-term population database

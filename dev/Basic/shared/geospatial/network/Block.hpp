@@ -68,7 +68,7 @@ public:
 	void setPloyLine(PolyLine* line){
 		polyLine = line;
 	}
-	const Platform* getAttachedPlatform() const{
+	Platform* getAttachedPlatform() const{
 		return attachedPlatform;
 	}
 	void setAttachedPlatform(Platform* platform){

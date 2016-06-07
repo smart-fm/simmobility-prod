@@ -127,42 +127,7 @@ std::vector<sim_mob::SubTrip>::iterator sim_mob::Person::resetCurrSubTrip()
 }
 
 
-
-/*sim_mob::SubTrip sim_mob::Person::CreateMRTSubTrips(std::string src,std::string dest)
-{
-
-	sim_mob::TrainStop* destStop = sim_mob::PT_Network::getInstance().findMRT_Stop(dest);
-	WayPoint wayPointDestStop;//=WayPoint(destStop);
-	WayPoint wayPointSrcStop;
-     if (destStop)
-	 {
-    	 wayPointDestStop = WayPoint(destStop);
-	 }
-
- 	sim_mob::TrainStop* srcStop = sim_mob::PT_Network::getInstance().findMRT_Stop(src);
- 	//WayPoint wayPointDestStop;//=WayPoint(destStop);
-      if (srcStop)
- 	 {
-     	 wayPointSrcStop = WayPoint(srcStop);
- 	 }
-	sim_mob::SubTrip subTrip;
-	subTrip.setPersonID(-1);
-	subTrip.itemType = TripChainItem::getItemType("Trip");
-	subTrip.sequenceNumber = 1;
-	//subTrip.startTime = curSubTrip->startTime;
-	//subTrip.endTime = DailyTime((*it).travelTime * 1000.0);
-	subTrip.startLocationId = srcStop->getStopName();
-	subTrip.endLocationId = destStop->getStopName();
-	subTrip.startLocationType ="MRT_STOP";
-	subTrip.endLocationType ="MRT_STOP";
-	subTrip.origin = wayPointSrcStop;
-	subTrip.destination = wayPointDestStop;
-
-	return subTrip;
-
-}*/
-
-bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::SubTrip>& newSubTrips, const std::vector<sim_mob::OD_Trip>& matchedTrips)
+bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::SubTrip>& newSubTrips, const std::vector<sim_mob::OD_Trip>& matchedTrips,  PT_Network& ptNetwork)
 {
 	bool ret = true;
 	bool invalidFlag = false;
@@ -205,7 +170,7 @@ bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::S
 			{
 			case 0:
 			{
-				endType = "NODE";
+				endType = "N";
 				int id = boost::lexical_cast<unsigned int>(sEnd);
 				const RoadNetwork* rn = RoadNetwork::getInstance();
 				const sim_mob::Node* node = rn->getById(rn->getMapOfIdvsNodes() , id);
@@ -217,7 +182,7 @@ bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::S
 			}
 			case 1:
 			{
-				endType = "BUS_STOP";
+				endType = "BS";
 				sim_mob::BusStop* stop = sim_mob::BusStop::findBusStop(sEnd);
 				if (stop)
 				{
@@ -227,8 +192,8 @@ bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::S
 			}
 			case 2:
 			{
-				endType = "MRT_STOP";
-				sim_mob::TrainStop* stop = sim_mob::PT_Network::getInstance().findMRT_Stop(sEnd);
+				endType = "MS";
+				sim_mob::TrainStop* stop = ptNetwork.findMRT_Stop(sEnd);
 				if (stop)
 				{
 					dest = WayPoint(stop);
@@ -241,7 +206,7 @@ bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::S
 			{
 			case 0:
 			{
-				srcType = "NODE";
+				srcType = "N";
 				int id = boost::lexical_cast<unsigned int>(sSrc);
 				const RoadNetwork* rn = RoadNetwork::getInstance();
 				const sim_mob::Node* node = rn->getById(rn->getMapOfIdvsNodes() , id);
@@ -253,7 +218,7 @@ bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::S
 			}
 			case 1:
 			{
-				srcType = "BUS_STOP";
+				srcType = "BS";
 				sim_mob::BusStop* stop = sim_mob::BusStop::findBusStop(sSrc);
 				if (stop)
 				{
@@ -263,8 +228,8 @@ bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::S
 			}
 			case 2:
 			{
-				srcType = "MRT_STOP";
-				sim_mob::TrainStop* stop = sim_mob::PT_Network::getInstance().findMRT_Stop(sSrc);
+				srcType = "MS";
+				sim_mob::TrainStop* stop = ptNetwork.findMRT_Stop(sSrc);
 				if (stop)
 				{
 					source = WayPoint(stop);
@@ -331,8 +296,12 @@ bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::S
 			else
 			{
 
+
 				Print() << "[PT pathset] make trip failed:[" << sSrc << "(" << sType << ")" << "]|[" << sEnd << "(" << eType << ")" << "] mode: " << it->tType << std::endl;
 				//ptMRTPathsetFailed <<GetId()<<","<<sSrc<<","<<sEnd<<","<<currSubTrip->getMode()<<std::endl;
+
+				Print() << "[PT pathset] make trip failed:[" << sSrc << "(" << sType << ")" << "]|[" << sEnd << "(" << eType << ")" << "] mode: " << it->tTypeStr << std::endl;
+
 
 				Print() << "[PT pathset] make trip failed:[" << sSrc << "(" << sType << ")" << "]|[" << sEnd << "(" << eType << ")" << "] mode: " << it->tTypeStr << std::endl;
 

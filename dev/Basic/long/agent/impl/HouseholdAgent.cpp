@@ -9,6 +9,7 @@
  * 
  * Created on May 16, 2013, 6:36 PM
  */
+#include <mutex>
 
 #include "HouseholdAgent.hpp"
 #include "message/MessageBus.hpp"
@@ -21,6 +22,10 @@
 #include "core/AgentsLookup.hpp"
 #include "conf/ConfigParams.hpp"
 #include "conf/ConfigManager.hpp"
+#include "model/VehicleOwnershipModel.hpp"
+#include "model/AwakeningSubModel.hpp"
+#include "model/SchoolAssignmentSubModel.hpp"
+#include "util/PrintLog.hpp"
 
 using namespace sim_mob::long_term;
 using namespace sim_mob::event;
@@ -31,21 +36,40 @@ using std::string;
 using std::map;
 using std::endl;
 
-HouseholdAgent::HouseholdAgent(BigSerial id, HM_Model* model, const Household* household, HousingMarket* market, bool marketSeller, int day, int householdBiddingWindow)
-: LT_Agent(id), model(model), market(market), household(household), marketSeller(marketSeller), bidder (nullptr), seller(nullptr), day(day),vehicleOwnershipOption(NO_CAR), householdBiddingWindow(householdBiddingWindow)
-{
+HouseholdAgent::HouseholdAgent(BigSerial _id, HM_Model* _model, Household* _household, HousingMarket* _market, bool _marketSeller, int _day, int _householdBiddingWindow, int awakeningDay)
+							 : Agent_LT(ConfigManager::GetInstance().FullConfig().mutexStategy(), _id), model(_model), market(_market), household(_household), marketSeller(_marketSeller), bidder (nullptr), seller(nullptr), day(_day),
+							   vehicleOwnershipOption(NO_CAR), householdBiddingWindow(_householdBiddingWindow),awakeningDay(awakeningDay)
+							{
+
     seller = new HouseholdSellerRole(this);
     seller->setActive(marketSeller);
 
-    if (!marketSeller)
+
+    ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+    bool resume = config.ltParams.resume;
+
+    if ( marketSeller == false )
     {
         bidder = new HouseholdBidderRole(this);
         bidder->setActive(false);
     }
 
-    ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+
     buySellInterval = config.ltParams.housingModel.offsetBetweenUnitBuyingAndSelling;
-    householdBiddingWindow = config.ltParams.housingModel.householdBiddingWindow;
+
+    if(resume)
+    	householdBiddingWindow = householdBiddingWindow - household->getTimeOnMarket();
+    else
+    {
+    	householdBiddingWindow =  config.ltParams.housingModel.housingMoveInDaysInterval + config.ltParams.housingModel.householdBiddingWindow * (double)rand() / RAND_MAX + 1;
+    }
+
+
+    if( household )
+    	(const_cast<Household*>(household))->setTimeOnMarket(householdBiddingWindow);
+
+    futureTransitionOwn = false;
+
 }
 
 HouseholdAgent::~HouseholdAgent()
@@ -89,7 +113,7 @@ HousingMarket* HouseholdAgent::getMarket() const
     return market;
 }
 
-const Household* HouseholdAgent::getHousehold() const
+Household* HouseholdAgent::getHousehold() const
 {
     return household;
 }
@@ -115,140 +139,29 @@ void HouseholdAgent::setHouseholdBiddingWindow(int value)
 }
 
 
-void HouseholdAgent::awakenHousehold()
+int HouseholdAgent::getAwakeningDay() const
 {
-	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
-
-	//We will awaken a specific number of households on day 1 as dictated by the long term XML file.
-
-	if( model->getAwakeningCounter() > config.ltParams.housingModel.initialHouseholdsOnMarket)
-		return;
-
-	if(household == nullptr)
-		return;
-
-	Awakening *awakening = model->getAwakeningById( household->getId() );
-
-	if( awakening == nullptr || bidder == nullptr || seller == nullptr )
-		return;
-
-	//These 6 variables are the 3 classes that we believe households fall into.
-	//And the 3 probabilities that we believe these 3 classes will have of awakening.
-	float class1 = awakening->getClass1();
-	float class2 = awakening->getClass2();
-	float class3 = awakening->getClass3();
-	float awaken_class1 = awakening->getAwakenClass1();
-	float awaken_class2 = awakening->getAwakenClass2();
-	float awaken_class3 = awakening->getAwakenClass3();
-
-	float r1 = (float)rand() / RAND_MAX;
-	int lifestyle = 1;
-
-	if( r1 > class1 && r1 <= class1 + class2 )
-	{
-		lifestyle = 2;
-	}
-	else if( r1 > class1 + class2 )
-	{
-		lifestyle = 3;
-	}
-
-	float r2 = (float)rand() / RAND_MAX;
-
-	if( lifestyle == 1 && r2 < awaken_class1)
-	{
-		seller->setActive(true);
-		bidder->setActive(true);
-		model->incrementBidders();
-
-		#ifdef VERBOSE
-		PrintOutV("Household " << getId() << " has been awakened."<< std::endl);
-		#endif
-
-		for (vector<BigSerial>::const_iterator itr = unitIds.begin(); itr != unitIds.end(); itr++)
-		{
-			BigSerial unitId = *itr;
-			Unit* unit = const_cast<Unit*>(model->getUnitById(unitId));
-
-			unit->setbiddingMarketEntryDay(day);
-			unit->setTimeOnMarket( config.ltParams.housingModel.timeOnMarket);
-		}
-
-		model->incrementAwakeningCounter();
-
-		model->incrementLifestyle1HHs();
-	}
-	else
-	if( lifestyle == 2 && r2 < awaken_class2)
-	{
-		seller->setActive(true);
-		bidder->setActive(true);
-		model->incrementBidders();
-
-		#ifdef VERBOSE
-		PrintOutV("[day " << day << "] Household " << getId() << " has been awakened."<< std::endl);
-		#endif
-
-
-		for (vector<BigSerial>::const_iterator itr = unitIds.begin(); itr != unitIds.end(); itr++)
-		{
-			BigSerial unitId = *itr;
-			Unit* unit = const_cast<Unit*>(model->getUnitById(unitId));
-
-			unit->setbiddingMarketEntryDay(day);
-			unit->setTimeOnMarket( config.ltParams.housingModel.timeOnMarket);
-		}
-
-		model->incrementAwakeningCounter();
-
-		model->incrementLifestyle2HHs();
-	}
-	else
-	if( lifestyle == 3 && r2 < awaken_class3)
-	{
-		seller->setActive(true);
-		bidder->setActive(true);
-		model->incrementBidders();
-
-		#ifdef VERBOSE
-		PrintOutV("[day " << day << "] Household " << getId() << " has been awakened."<< std::endl);
-		#endif
-
-		for (vector<BigSerial>::const_iterator itr = unitIds.begin(); itr != unitIds.end(); itr++)
-		{
-			BigSerial unitId = *itr;
-			Unit* unit = const_cast<Unit*>(model->getUnitById(unitId));
-
-			unit->setbiddingMarketEntryDay(day);
-			unit->setTimeOnMarket( config.ltParams.housingModel.timeOnMarket);
-		}
-
-		model->incrementAwakeningCounter();
-		model->incrementLifestyle3HHs();
-	}
+	return awakeningDay;
 }
+
+HouseholdBidderRole* HouseholdAgent::getBidder()
+{
+	return bidder;
+}
+
+HouseholdSellerRole* HouseholdAgent::getSeller()
+{
+	return seller;
+
+}
+
 
 Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 {
 	day = now.frame();
 
-	if( day == 0 )
-	{		
-		awakenHousehold();
-
-		ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
-		if( config.ltParams.housingModel.outputHouseholdLogsums )
-		{
-			const Household *hh = this->getHousehold();
-
-			if( hh != NULL )
-				model->getLogsumOfHousehold(hh->getId());
-		}
-	}
-
 	if( bidder && bidder->isActive() && buySellInterval > 0 )
 		buySellInterval--;
-
 
 	if( buySellInterval == 0 )
 	{
@@ -263,8 +176,11 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 					BigSerial unitId = *itr;
 					Unit* unit = const_cast<Unit*>(model->getUnitById(unitId));
 
-					unit->setbiddingMarketEntryDay(day + 1);
-					unit->setTimeOnMarket( config.ltParams.housingModel.timeOnMarket);
+					if( id < model->FAKE_IDS_START )
+					{
+						unit->setbiddingMarketEntryDay(day + 1);
+						unit->setTimeOnMarket( config.ltParams.housingModel.timeOnMarket);
+					}
 				}
 			}
 
@@ -274,9 +190,13 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 		buySellInterval--;
 	}
 
-	if( bidder && householdBiddingWindow == 0 )
+	if( bidder && bidder->isActive() && ( householdBiddingWindow == 0 || bidder->getMoveInWaitingTimeInDays() == 0) )
+	{
+		PrintExit( day, household, 0);
 		bidder->setActive(false);
-
+		model->decrementBidders();
+		model->incrementExits();
+	}
 
     if (bidder && bidder->isActive() && householdBiddingWindow > 0 )
     {
@@ -288,6 +208,46 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
     {
         seller->update(now);
     }
+
+    ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+    int startDay = 0;
+    if(config.ltParams.resume)
+    {
+    	startDay = model->getLastStoppedDay();
+    }
+
+    if(config.ltParams.schoolAssignmentModel.enabled)
+    	{
+    		if( getId() < model->FAKE_IDS_START)
+    		{
+    			std::vector<BigSerial> individuals = household->getIndividuals();
+    			std::vector<BigSerial>::iterator individualsItr;
+    			for(individualsItr = individuals.begin(); individualsItr != individuals.end(); individualsItr++)
+    				{
+    					const Individual* individual = model->getPrimaySchoolIndById((*individualsItr));
+    					SchoolAssignmentSubModel schoolAssignmentModel(model);
+    					if (individual!= nullptr)
+    					{
+    						if(day == startDay)
+    						{
+    							schoolAssignmentModel.assignPrimarySchool(this->getHousehold(),individual->getId(),this, day);
+    						}
+    						if(day == ++startDay)
+    						{
+    							schoolAssignmentModel.setStudentLimitInPrimarySchool();
+    						}
+    					}
+//    					else
+//    					{
+//    						const Individual* individual = model->getPreSchoolIndById((*individualsItr));
+//    						if (individual!= nullptr && day == startDay)
+//    						{
+//    							schoolAssignmentModel.assignPreSchool(this->getHousehold(),individual->getId(),this, day);
+//    						}
+//    					}
+    				}
+    		}
+    	}
 
     return Entity::UpdateStatus(UpdateStatus::RS_CONTINUE);
 }
@@ -333,8 +293,11 @@ void HouseholdAgent::processExternalEvent(const ExternalEventArgs& args)
 
             if (bidder)
             {
+            	awakeningDay = day;
+            	household->setAwakenedDay(day);
                 bidder->setActive(true);
                 model->incrementBidders();
+                model->incrementAwakeningCounter();
             }
 
 			#ifdef VERBOSE
@@ -347,9 +310,47 @@ void HouseholdAgent::processExternalEvent(const ExternalEventArgs& args)
     }
 }
 
+bool HouseholdAgent::getFutureTransitionOwn()
+{
+	return futureTransitionOwn;
+}
 
 void HouseholdAgent::onWorkerEnter()
 {
+	TimeCheck awakeningTiming;
+
+	AwakeningSubModel awakenings;
+	awakenings.InitialAwakenings( model, household, this, day );
+	futureTransitionOwn = awakenings.getFutureTransitionOwn();
+
+	double awakeningTime =  awakeningTiming.getClockTime();
+
+	#ifdef VERBOSE_SUBMODEL_TIMING
+		PrintOutV(" awakeningTime for agent " << getId() << " is " << awakeningTime << std::endl);
+	#endif
+
+
+	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+	if( config.ltParams.outputHouseholdLogsums.enabled )
+	{
+		const Household *hh = this->getHousehold();
+
+		if( hh != NULL )
+		{
+			//model->getLogsumOfHouseholdVO(hh->getId());
+			model->getLogsumOfHousehold(hh->getId());
+		}
+	}
+
+	if(config.ltParams.vehicleOwnershipModel.enabled)
+	{
+		if( getId() < model->FAKE_IDS_START)
+		{
+			VehicleOwnershipModel vehOwnershipModel(model);
+			vehOwnershipModel.reconsiderVehicleOwnershipOption(this->getHousehold(),this, day);
+		}
+	}
+
     if (!marketSeller)
     {
         MessageBus::SubscribeEvent(LTEID_EXT_NEW_JOB, this, this);

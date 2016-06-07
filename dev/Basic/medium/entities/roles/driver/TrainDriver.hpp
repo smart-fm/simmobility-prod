@@ -13,7 +13,7 @@
 #include "entities/roles/passenger/Passenger.hpp"
 #include "entities/roles/waitTrainActivity/WaitTrainActivity.hpp"
 #include "behavioral/ServiceController.hpp"
-
+#include "entities/incident/IncidentManager.hpp"
 namespace sim_mob{
 namespace medium{
 class TrainBehavior;
@@ -67,6 +67,11 @@ public:
 	 */
 	void reduceWaitingTime(double val);
 	/**
+	 * set waiting time
+	 * @val is the value to be set
+	 */
+	void setWaitingTime(double val);
+	/**
 	 * computing dwell time
 	 * @param totalNum is the total number of boarding and alighting
 	 */
@@ -111,12 +116,22 @@ public:
 	 */
 	void updatePassengers();
 
+
 	int AlightAllPassengers(std::list<Passenger*>& alightingPassenger);
 
 	void TeleportToOppositeLine(std::string station,std::string lineId);
 
 	void SetTrainDriverInOpposite(TrainDriver *trainDriver);
 	TrainDriver *GetDriverInOppositeLine();
+
+	/**
+	 * alight all passengers
+	 * @param alightingPassenger is the list of alighting person
+	 * @param now is current time
+	 * @return the number of alighting persons
+	 */
+	int AlightAllPassengers(std::list<Passenger*>& alightingPassenger,timeslice now);
+
 
 	TrainMovement * GetMovement();
 	/**
@@ -151,6 +166,10 @@ private:
 	TrainDriver *nextDriverInOppLine;
 	bool holdTrain=false;
 	static int counter;
+
+	/**recording disruption information*/
+	boost::shared_ptr<DisruptionParams> disruptionParam;
+
 private:
 	friend class TrainBehavior;
 	friend class TrainMovement;

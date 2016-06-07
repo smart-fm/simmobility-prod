@@ -25,8 +25,8 @@ void PostcodeDao::fromRow(Row& result, Postcode& outObj)
     outObj.address_id 		= result.get<BigSerial>(	"address_id", 		INVALID_ID);
     outObj.sla_postcode 	= result.get<std::string>(	"sla_postcode", 	EMPTY_STR);
     outObj.taz_id 			= result.get<BigSerial>(	"taz_id", 			INVALID_ID);
-    outObj.longitude 		= result.get<double>(		"longitude", 		.0);
-    outObj.latitude 		= result.get<double>(		"latitude", 		.0);
+    outObj.longitude 		= result.get<double>(		"y_coord", 		.0);
+    outObj.latitude 		= result.get<double>(		"x_coord", 		.0);
     outObj.primary_postcode = result.get<int>(			"primary_postcode",  0);
 }
 

@@ -1,10 +1,3 @@
-/*
- * PathSetManager.hpp
- *
- *  Created on: May 6, 2013
- *      Author: Max
- *      Author: Vahid
- */
 
 #pragma once
 
@@ -15,6 +8,8 @@
 #include "PathSetParam.hpp"
 #include "entities/TravelTimeManager.hpp"
 #include "util/Cache.hpp"
+#include "lua/LuaModel.hpp"
+#include "Path.hpp"
 #include "util/OneTimeFlag.hpp"
 
 
@@ -131,13 +126,6 @@ public:
 	void setScenarioName(std::string& name) { scenarioName = name; }
 
 	/**
-	 * check whether a given path is black listed
-	 * @param path waypoint path
-	 * @param blkLst black list to check against
-	 */
-	bool pathInBlackList(const std::vector<WayPoint> path, const std::set<const Link*> & blkLst) const;
-
-	/**
 	 * calculate those part of the utility function that are always fixed(like path length)
 	 * and are not going to change(like travel time)
 	 * @param sp the input path
@@ -150,7 +138,6 @@ public:
 	 * @param pUtility the already computed utility
 	 * @return the generated string
 	 */
-	std::string logPartialUtility(const sim_mob::SinglePath* sp, double pUtility) const;
 
 	/**
 	 * basically delete all the dynamically allocated memories, in addition to some more cleanups
@@ -204,7 +191,7 @@ protected:
 class PrivatePathsetGenerator : boost::noncopyable, public sim_mob::PathSetManager
 {
 private:
-	static PrivatePathsetGenerator* instance_;
+	static PrivatePathsetGenerator* pvtPathGeneratorInstance;
 	static boost::mutex instanceMutex;
 
 	/** reference to street directory */
@@ -280,7 +267,7 @@ private:
 	  * set some tags as a result of comparing attributes among paths in a pathset
 	  * @param ps general information
 	  */
-	 void setPathSetTags(boost::shared_ptr<sim_mob::PathSet>& ps);
+	 void setPathSetTags(boost::shared_ptr<sim_mob::PathSet>& ps) const;
 
 	/**
 	 * post pathset generation processes
@@ -303,15 +290,12 @@ public:
 	static void resetInstance();
 
 	/**
-	 * generate all the paths for a person given its subtrip(OD)
-	 * @param per input agent applying to get the path
+	 * generate all the paths for a set of ODs
 	 * @param st input subtrip
 	 * @param res output path generated
-	 * @param excludedSegs input list segments to be excluded from the target set
-	 * @param isUseCache is using the cache allowed
 	 * @return number of paths generated
 	 */
-	int generateAllPathChoices(boost::shared_ptr<sim_mob::PathSet> ps, std::set<OD> &recursiveODs, const std::set<const sim_mob::RoadSegment*> & excludedSegs);
+	int generateAllPathChoices(boost::shared_ptr<sim_mob::PathSet> ps, std::set<OD> &recursiveODs);
 
 	/**
 	 *	offline pathset generation method.
@@ -330,7 +314,7 @@ public:
  * \author Harish Loganathan
  * \author Balakumar Marimuthu
  */
-class PrivateTrafficRouteChoice : public sim_mob::PathSetManager
+class PrivateTrafficRouteChoice : public sim_mob::PathSetManager , public lua::LuaModel
 {
 private:
 	/**	the pathset cache */
@@ -356,6 +340,8 @@ private:
 
 	/** flag to indicate whether restricted region case study is enabled*/
 	bool regionRestrictonEnabled;
+
+	std::vector<sim_mob::SinglePath*> pvtpathset;
 
 	/**
 	 * cache the generated pathset
@@ -411,6 +397,8 @@ private:
 			const std::set<const sim_mob::Link*>& partialExclusion,
 			const std::set<const sim_mob::Link*>& blckLstLnks, bool enRoute);
 
+	void mapClasses();
+
 	/**
 	 * loads set of paths pre-generated for an OD
 	 *
@@ -431,6 +419,21 @@ private:
 public:
 	PrivateTrafficRouteChoice();
 	virtual ~PrivateTrafficRouteChoice();
+
+	double getTravelCost(unsigned int index);
+	double getTravelTime(unsigned int index);
+	double getPathSize(unsigned int index);
+	double getLength(unsigned int index);
+	double getPartialUtility(unsigned int index);
+	double getHighwayDistance(unsigned int index);
+	double getSignalNumber(unsigned int index);
+	double getRightTurnNumber(unsigned int index);
+	int isMinDistance(unsigned int index);
+	int isMinSignal(unsigned int index);
+	int isMaxHighWayUsage(unsigned int index);
+	int getPurpose(unsigned int index);
+
+
 
 	/**
 	 * gets the thread specific instance of pathset manager

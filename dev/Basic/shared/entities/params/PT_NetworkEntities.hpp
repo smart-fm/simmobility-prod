@@ -280,7 +280,6 @@ private:
 							// 2 --- MRT/LRT Stations
 	std::string stopDesc;   // Description of stops . Usually street where the stop is located
 };
-
 class PT_Network
 {
 public:
@@ -289,17 +288,32 @@ public:
 	std::map<int, PT_NetworkEdge> PT_NetworkEdgeMap;
 	std::map<std::string, PT_NetworkVertex> PT_NetworkVertexMap;
 	std::map<std::string, TrainStop*> MRTStopsMap;
+
     std::map<std::string ,std::map<std::string ,std::vector<PT_NetworkEdge>>> MRTStopdgesMap;
-	void init();
+	
+        void init();
+	void init(const std::string& storedProcForVertex, const std::string& storeProceForEdges);
+
 
 	TrainStop* findMRT_Stop(const std::string& stopId) const;
 
 	int getVertexTypeFromStopId(std::string stopId);
-	static PT_Network instance_;
+};
+class PT_NetworkCreater
+{
 
+public:
+	static void init();
 	static PT_Network& getInstance()
 	{
-		return instance_;
+		return instance;
 	}
+	static PT_Network& getInstance2()
+	{
+		return instance2;
+	}
+private:
+	static PT_Network instance;
+	static PT_Network instance2;
 };
 }//End of namespace sim_mob

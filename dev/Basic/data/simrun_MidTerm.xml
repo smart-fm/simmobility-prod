@@ -51,6 +51,10 @@
             <mapping name="lane_connectors" procedure="get_test_singapore_lane_connectors()"/>
             <mapping name="bus_stops" procedure="get_singapore_bus_stops_17feb()"/>
             <mapping name="pt_bus_dispatch_freq" procedure="get_pt_bus_frequency()"/>
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 5e9e6306df4e827aa626230b860dc409117651eb
             <mapping name="pt_bus_routes" procedure="get_pt_bus_routes()"/>
             <mapping name="pt_bus_stops" procedure="get_pt_bus_stops()"/>
             <!-- MRT stored procedures-->
@@ -63,7 +67,11 @@
             <mapping name="pt_bus_routes" procedure="get_pt_bus_routes_17feb()"/>
             <mapping name="pt_bus_stops" procedure="get_pt_bus_stops_17feb()"/>
             <mapping name="pt_stop_stats" procedure="get_pt_stop_stats()"/>
+<<<<<<< HEAD
 
+=======
+>>>>>>> master
+>>>>>>> 5e9e6306df4e827aa626230b860dc409117651eb
             <!-- MT specific stored procedures -->
             <mapping name="pt_vertices" procedure="get_pt_map_vertices()"/>
             <mapping name="pt_edges" procedure="get_pt_map_edges()"/>

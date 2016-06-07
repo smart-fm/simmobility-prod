@@ -5,6 +5,7 @@
 #include <cmath>
 #include <set>
 #include "Common.hpp"
+#include <sstream>
 #include "entities/params/PT_NetworkEntities.hpp"
 #include "geospatial/network/Lane.hpp"
 #include "geospatial/network/Link.hpp"
@@ -13,6 +14,7 @@
 #include "geospatial/network/TurningGroup.hpp"
 #include "geospatial/network/TurningPath.hpp"
 #include "geospatial/network/WayPoint.hpp"
+#include "logging/Log.hpp"
 #include "PathSetParam.hpp"
 #include "util/Profiler.hpp"
 #include "util/Utils.hpp"
@@ -27,16 +29,16 @@ double pathCostArray[] = { 0.77, 0.87, 0.98, 1.08, 1.16, 1.23, 1.29, 1.33, 1.37,
 
 sim_mob::SinglePath::SinglePath() :
 		purpose(work), utility(0.0), pathSize(0.0), travelCost(0.0), partialUtility(0.0), signalNumber(0.0), rightTurnNumber(0.0), length(0.0), travelTime(0.0), highWayDistance(
-				0.0), valid_path(true), isMinTravelTime(0), isMinDistance(0), isMinSignal(0), isMinRightTurn(0), isMaxHighWayUsage(0), isShortestPath(0),
+				0.0), validPath(true), minTravelTime(0), minDistance(0), minSignals(0), minRightTurns(0), maxHighWayUsage(0), shortestPath(0),
 				path(std::vector<sim_mob::WayPoint>()), isNeedSave2DB(false)
 {
 }
 
 sim_mob::SinglePath::SinglePath(const SinglePath& source) :
-		id(source.id), utility(source.utility), pathSize(source.pathSize), travelCost(source.travelCost), valid_path(source.valid_path), signalNumber(
+		id(source.id), utility(source.utility), pathSize(source.pathSize), travelCost(source.travelCost), validPath(source.validPath), signalNumber(
 				source.signalNumber), rightTurnNumber(source.rightTurnNumber), length(source.length), travelTime(source.travelTime), pathSetId(
-				source.pathSetId), highWayDistance(source.highWayDistance), isMinTravelTime(source.isMinTravelTime), isMinDistance(source.isMinDistance), isMinSignal(
-				source.isMinSignal), isMinRightTurn(source.isMinRightTurn), isMaxHighWayUsage(source.isMaxHighWayUsage), isShortestPath(source.isShortestPath), partialUtility(
+				source.pathSetId), highWayDistance(source.highWayDistance), minTravelTime(source.minTravelTime), minDistance(source.minDistance), minSignals(
+				source.minSignals), minRightTurns(source.minRightTurns), maxHighWayUsage(source.maxHighWayUsage), shortestPath(source.shortestPath), partialUtility(
 				source.partialUtility), scenario(source.scenario)
 {
 	isNeedSave2DB = false;
@@ -74,7 +76,6 @@ bool sim_mob::SinglePath::includesLink(const sim_mob::Link* lnk) const
 	{
 		return false;
 	}
-	unsigned int linkId = 0;
 	for(const auto& wp : this->path)
 	{
 		if (wp.link == lnk)
@@ -144,11 +145,11 @@ void sim_mob::SinglePath::clear()
 	length = 0.0;
 	travelTime = 0.0;
 	highWayDistance = 0.0;
-	isMinTravelTime = 0;
-	isMinDistance = 0;
-	isMinSignal = 0;
-	isMinRightTurn = 0;
-	isMaxHighWayUsage = 0;
+	minTravelTime = 0;
+	minDistance = 0;
+	minSignals = 0;
+	minRightTurns = 0;
+	maxHighWayUsage = 0;
 }
 
 sim_mob::PathSet::~PathSet()
@@ -162,23 +163,21 @@ sim_mob::PathSet::~PathSet()
 
 short sim_mob::PathSet::addOrDeleteSinglePath(sim_mob::SinglePath* s)
 {
-	if(s->id.empty()) return 0;
-	if (!s && s->path.empty())
-	{
-		return 0;
-	}
+	if(s->id.empty()) { return 0; }
+	if (!s || s->path.empty()) { return 0; }
 	if (s->path.begin()->link->getFromNodeId() != subTrip.origin.node->getNodeId())
 	{
-		std::cerr << s->scenario << " path begins with " << s->path.begin()->link->getFromNodeId() << " while pathset begins with "
-				<< subTrip.origin.node->getNodeId() << std::endl;
+		std::cerr << s->scenario << " path begins with " << s->path.begin()->link->getFromNodeId() << " while pathset begins with " << subTrip.origin.node->getNodeId() << std::endl;
 		throw std::runtime_error("Mismatch");
 	}
 
 	bool res = false;
+
 	{
 		boost::unique_lock<boost::shared_mutex> lock(pathChoicesMutex);
 		res = pathChoices.insert(s).second;
 	}
+
 	if (!res)
 	{
 		safe_delete_item(s);
@@ -308,7 +307,7 @@ std::string sim_mob::makePT_PathString(const std::vector<PT_NetworkEdge> &path)
 	std::stringstream str("");
 	if (path.size() == 0)
 	{
-		std::cout << "warning: empty output makePT_PathString id" << std::endl;
+		Print()<<"warning: empty output makePT_PathString id"<<std::endl;
 	}
 	for (std::vector<PT_NetworkEdge>::const_iterator it = path.begin(); it != path.end(); it++)
 	{
@@ -316,7 +315,7 @@ std::string sim_mob::makePT_PathString(const std::vector<PT_NetworkEdge> &path)
 	}
 	if (str.str().size() < 1)
 	{
-		std::cout << "warning: empty output makePT_PathString id" << std::endl;
+		Print()<<"warning: empty output makePT_PathString id"<<std::endl;
 	}
 	return str.str();
 
@@ -326,13 +325,13 @@ std::string sim_mob::makePT_PathSetString(const std::vector<PT_NetworkEdge> &pat
 	std::stringstream str("");
 	if (path.size() == 0)
 	{
-		std::cout << "warning: empty output makePT_PathSetString id" << std::endl;
+		Print()<<"warning: empty output makePT_PathSetString id"<<std::endl;
 	}
 	str << path.front().getStartStop() << ",";
 	str << path.back().getEndStop();
 	if (str.str().size() < 1)
 	{
-		std::cout << "warning: empty output makePT_PathSetString id" << std::endl;
+		Print()<<"warning: empty output makePT_PathSetString id"<<std::endl;
 	}
 	return str.str();
 }
@@ -380,7 +379,7 @@ void sim_mob::PT_Path::updatePathEdges()
 	int edgeId;
 	std::stringstream ss(ptPathId);
 	pathEdges.clear();
-	PT_Network& ptNetwork = PT_Network::getInstance();
+	PT_Network& ptNetwork = PT_NetworkCreater::getInstance();
 	bool hasBusTrip = false;
 	bool hasTrainTrip = false;
 	while (ss >> edgeId)
@@ -396,7 +395,6 @@ void sim_mob::PT_Path::updatePathEdges()
 		pathEdges.push_back(edgeIt->second);
 		hasBusTrip = (hasBusTrip || (edgeIt->second.getType() == sim_mob::PT_EdgeType::BUS_EDGE));
 		hasTrainTrip = (hasTrainTrip || (edgeIt->second.getType() == sim_mob::PT_EdgeType::TRAIN_EDGE));
-
 		if (ss.peek() == ',')
 		{
 			ss.ignore();
@@ -495,8 +493,8 @@ void sim_mob::PT_PathSet::checkPathFeasibilty()
 	{
 		incrementFlag = false;
 		std::set<PT_Path>::iterator tempitPath = itPathComp;
-		// Check 1 : Total Number of transfers < = 6
-		if (itPathComp->getTotalNumberOfTransfers() > 4)
+		// Check 1 : Total Number of transfers <= 4
+		if(itPathComp->getTotalNumberOfTransfers() > 4)
 		{
 			// Infeasible path
 			itPathComp++;
@@ -525,11 +523,11 @@ void sim_mob::PT_PathSet::checkPathFeasibilty()
 			prevEdgeType = currentEdgeType;
 
 			// Check 3 : Doesn't walk back to any simMobility node from bus stop/ MRT station in the middle of the path
-			if (sim_mob::PT_Network::getInstance().PT_NetworkVertexMap[itEdge->getStartStop()].getStopType() == 0)
+			if (sim_mob::PT_NetworkCreater::getInstance().PT_NetworkVertexMap[itEdge->getStartStop()].getStopType() == 0)
 			{
 				simMobilityNodeCount++;
 			}
-			if (sim_mob::PT_Network::getInstance().PT_NetworkVertexMap[itEdge->getEndStop()].getStopType() == 0)
+			if (sim_mob::PT_NetworkCreater::getInstance().PT_NetworkVertexMap[itEdge->getEndStop()].getStopType() == 0)
 			{
 				simMobilityNodeCount++;
 			}
@@ -577,7 +575,7 @@ void sim_mob::PT_PathSet::checkPathFeasibilty()
 	}
 	if (pathSet.empty())
 	{
-		std::cout << pathsetId << " has not left with any path after feasibility check" << std::endl;
+		Print() << pathsetId << " has no path left after feasibility check\n" << std::endl;
 	}
 
 }

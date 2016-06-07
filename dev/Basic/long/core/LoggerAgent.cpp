@@ -55,10 +55,6 @@ LoggerAgent::LoggerAgent() : Entity(-1)
     std::ofstream* projectsFile = new std::ofstream("projects.csv");
     streams.insert(std::make_pair(PROJECTS, projectsFile));
 
-    //projects
-    std::ofstream* projectsDBFile = new std::ofstream("projectsDB.csv");
-    streams.insert(std::make_pair(PROJECTS_DB, projectsDBFile));
-
     //hhpc postcodes
     std::ofstream* hhpcFile = new std::ofstream("HouseholdPostcodes.csv");
     streams.insert(std::make_pair(HH_PC, hhpcFile));
@@ -90,6 +86,39 @@ LoggerAgent::LoggerAgent() : Entity(-1)
     //household bid list
     std::ofstream* householdBidFile = new std::ofstream("householdBidList.csv");
     streams.insert(std::make_pair(LOG_HOUSEHOLDBIDLIST, householdBidFile));
+
+    //individual hits logsum for vehicle ownership
+    std::ofstream* individualHitsLogsumForVOFile = new std::ofstream("IndividualHitsLogsum4VO.csv");
+    streams.insert(std::make_pair(LOG_INDIVIDUAL_LOGSUM_VO, individualHitsLogsumForVOFile));
+
+    //screening probabilities
+    std::ofstream* screeningProbabilitiesFile = new std::ofstream("ScreeningProbabilities.csv");
+    streams.insert(std::make_pair(LOG_SCREENINGPROBABILITIES, screeningProbabilitiesFile));
+
+    //HH Choice set
+    std::ofstream* hhChoiceSetFile = new std::ofstream("HHChoiceSet.csv");
+    streams.insert(std::make_pair(LOG_HHCHOICESET, hhChoiceSetFile));
+
+    //errors
+    std::ofstream* errorFile = new std::ofstream("Errors.csv");
+    streams.insert(std::make_pair(LOG_ERROR, errorFile));
+
+    //school assignment
+    std::ofstream* schoolAssignmentFile = new std::ofstream("schools.csv");
+    streams.insert(std::make_pair(LOG_SCHOOL_ASSIGNMENT, schoolAssignmentFile));
+
+    //pre school assignment
+    std::ofstream* preSchoolAssignmentFile = new std::ofstream("preSchools.csv");
+    streams.insert(std::make_pair(LOG_PRE_SCHOOL_ASSIGNMENT, preSchoolAssignmentFile));
+
+    //awakenings
+    std::ofstream* hhawakeningFile = new std::ofstream("HH_Awakenings.csv");
+    streams.insert(std::make_pair(LOG_HH_AWAKENING, hhawakeningFile));
+
+    //Exits
+    std::ofstream* hhexitsFile = new std::ofstream("HH_Exits.csv");
+    streams.insert(std::make_pair(LOG_HH_EXIT, hhexitsFile));
+
 }
 
 LoggerAgent::~LoggerAgent()

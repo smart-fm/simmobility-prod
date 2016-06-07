@@ -29,6 +29,7 @@ public:
 	virtual ~TrainStationAgent();
 	void setStation(const Station* station);
 	void setConflux(Conflux* conflux);
+	void setStationName(const std::string& name);
 
 protected:
 	virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
@@ -101,7 +102,11 @@ private:
 	Conflux* parentConflux;
 	/**recording disruption information*/
 	boost::shared_ptr<DisruptionParams> disruptionParam;
+
 	std::vector<ForceReleaseEntity> forceReleaseEntities;
+
+	/**station name*/
+	std::string stationName;
 
 };
 }

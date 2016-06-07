@@ -21,14 +21,14 @@
             </database>
             
 	    <!-- internal ip for remote midterm server -->
-            <database id="fm_remote_mt" dbtype="postgres">
+            <database id="fm_remote_mt1" dbtype="postgres">
                 <host value="172.25.184.48"/>
                 <port value="5432"/>
-                <dbname value="simmobility_db_2014"/>
+                <dbname value="SimMobility_DB_2015"/>
             </database>
 
             <!-- localhost for midterm server -->
-            <database id="fm_remote_mt2" dbtype="postgres">
+            <database id="fm_remote_mt" dbtype="postgres">
                 <host value="localhost"/>
                 <port value="5432"/>
                 <dbname value="sim_mob_lt"/>
@@ -38,163 +38,106 @@
 	    <database id="fm_remote_mt3" dbtype="postgres">
 	        <host value="137.132.22.82"/>
 	        <port value="15061"/> <!--old port: 15025 -->
-	        <dbname value="simmobility_db_2014"/>
+	        <dbname value="SimMobility_DB_2015"/>
 	    </database>
+
+		<!-- public ip for remote midterm server -->
+	    <database id="fm_remote_mt4" dbtype="postgres">
+	        <host value="fmhpchead"/>
+	        <port value="5432"/> <!--old port: 15025 -->
+	        <dbname value="SimMobility_DB_2015"/>
+	    </database>
+
+		<!-- longterm localhost server hosting midterm data -->
+	    <database id="fm_remote_mt5" dbtype="postgres">
+	        <host value="172.25.184.14"/>
+	        <port value="5432"/>
+	        <dbname value="sim_mob_lt"/>
+	    </database>
+
 	 </databases>
     
-		    <!-- Groupings of stored procedures, used for loading network data from certain tables. -->
-		    <db_proc_groups/>
-		
-		    <!-- Login credentials to be used for database connections. These can be plaintext, -->
-		    <!-- file-based, and possibly even signed. Note that invalid credentials will simply be ignored. -->
-		    <credentials>
-		        <!-- A file-based credential loads credentials from a JSON file with its own special format. -->
-		        <!-- Multiple files can be listed, and they will be tried in order until one is found. -->
-		        <!-- If the first existing file has an error, parsing will NOT continue to the next file. -->
-		        <!-- The actual credentials file looks something like this: -->
-		        <!-- 
-		        {
-		            "username" : "postgres",
-		            "password" : "AbCdEfG=",
-		            "algorithm" : ["clear","xor23","base64","cipher"]
-		        }
-		        -->
-		        
-		        <file-based-credential id="fm_remote_mt">
-		            <file path="../private/fm_remote.cred.txt"/>
-		        </file-based-credential>
-		        
-		        <plaintext-credential id="LT_cred">
-		            <username value="postgres"/>
-		            <password value="postgres"/>
-		        </plaintext-credential>
-		    </credentials>
+	<!-- Groupings of stored procedures, used for loading network data from certain tables. -->
+	<db_proc_groups/>
+
+	<!-- Login credentials to be used for database connections. These can be plaintext, -->
+	<!-- file-based, and possibly even signed. Note that invalid credentials will simply be ignored. -->
+	<credentials>
+	<!-- A file-based credential loads credentials from a JSON file with its own special format. -->
+	<!-- Multiple files can be listed, and they will be tried in order until one is found. -->
+	<!-- If the first existing file has an error, parsing will NOT continue to the next file. -->
+	<!-- The actual credentials file looks something like this: -->
+	<!-- 
+	{
+	    "username" : "postgres",
+	    "password" : "AbCdEfG=",
+	    "algorithm" : ["clear","xor23","base64","cipher"]
+	}
+	-->
+
+	<file-based-credential id="fm_remote_mt">
+	<!-- <file path="private/fm_remote.cred"/> -->
+	     <file path="private/fm_local.cred"/>
+	</file-based-credential>
+
+	<plaintext-credential id="LT_cred">
+	    <username value="postgres"/>
+	    <password value="postgres"/>
+	</plaintext-credential>
+	</credentials>
     </constructs>
 
-    <!-- System configuration properties -->
-    <system>
-        <!-- Properties for a single simulation run -->
-        <!-- Total runtime need not be a multiple of the base granularity -->
-        <!-- (but will be rounded down.) -->
-        <simulation>
-            <base_granularity   value="5"   units="seconds" />
-            <total_runtime      value="245" units="minutes" />
-            <total_warmup       value="10"  units="seconds" />            
-            <start_time         value="03:00:00"/>
-            <pathset_traveltime_save_table value="pathset"/>
-            
-            <!-- Implementation to use for the Aura Manager. -->
-            <!-- Values include: simtree, rdu, rstar (default) -->
-            <aura_manager_impl value="rstar"/>
-            
-            <!-- Strategy for adding new Agents to Workers. -->
-            <!-- "roundrobin" assigns in order. (default) -->
-            <!-- "smallest" assigns to the Worker with the smallest Agent count. -->
-            <!--  Note that "smallest" does not appear to offer any benefit over "roundrobin" -->
-            <workgroup_assignment value="roundrobin"/>
-                        
-            <!-- Properties for SimMobility-MPI -->
-            <partitioning_solution_id   value="1"    units="unit" />
-            
-            <!-- Order in which agents are to be loaded into the simulation -->
-            <!-- Values include: database, drivers, pedestrians, passenger, xml-tripchains -->
-            <load_agents order="database"/>
-            
-            <!-- Optional. At what value do we start counting for automatically -->
-            <!-- generated Agent IDs? Set to a high value if you want to avoid  -->
-            <!-- ID collisions when manually specifying Agent IDs in the config file. -->
-            <!-- Setting this to zero has the same effect as leaving it out; the default value is zero. -->
-            <auto_id_start value="0"/>
-            
-            <!-- Optional. How we enforce mutual exclusion. Can be "buffered" (the default) or "locked" -->
-            <mutex_enforcement    strategy="buffered" />
 
-            <!--  Commsim (communication) settings -->
-            <commsim enabled="false"> <!-- If false, the Broker is never added, so no commsim activities take place. -->
-                <min_clients value="1"/> <!-- Sim Mobility will hold on time tick 1 until this many clients connect. -->
-                <io_threads value="2"/> <!-- The number of threads to use for boost's io_service (for reading from Android clients). -->
-                <hold_tick value="500"/> <!-- Which tick to enforce the "min_clients" restriction at. -->
-                <use_ns3 value="true"/>  <!-- Use ns-3 to route network traffice between agents? If not, opaque messages are dispatched immediately. -->
-            </commsim>
-
-            <reacTime_distributionType1      value="1" /> <!-- 0 is normal distribution, 1 is log normal-->
-            <reacTime_distributionType2      value="1" />
-            <reacTime_mean1      value="500" />
-            <reacTime_mean2      value="500" />
-            <reacTime_standardDev1    value="100" />
-            <reacTime_standardDev2    value="100" />
-        </simulation>
-                
-        <!-- List of all Worker types and their properties. -->
-        <!-- granularity of each component must be a multiple of the "base" granularity -->
-        <workers>
-            <person count="1" granularity="5 seconds"/> <!-- Person agents (with Roles) -->
-            <signal count="0" granularity="5 seconds"/> <!-- Traffic signals -->
-            <communication count="0" granularity="5 seconds"/>  <!-- Communication simulator -->
-        </workers>
-        
-        <!-- Setting to true should push everything onto one thread. -->
-        <!-- NOTE: Setting to true will cause the synchronization barriers not to be used. -->
-        <!-- Be careful about any functional logic which depends on the barriers -->
-        <single_threaded value="false"/>
-        
-        <!-- Setting to true will combine all out* files into one out.txt and delete the out* files. -->
-        <!-- Note that this may take quite some time to complete. -->
-        <!-- NOTE: We currently don't delete the source files; this seems un-needed. -->
-        <merge_log_files value="true"/>
-        
-        <!-- Setting to "database" will load the road network from the database. By default we load from "xml". -->
-        <!-- NOTE: This is fairly confusing; later we'll make it easier for different users to -->
-        <!--       maintain their own configurations. -->
-        <network_source value="database"/>
-
-        <!-- If loading from the database, which database, proc_map, and credentials are used? -->
-        <!-- <network_database database="fm_local" credentials="vahid_cred" proc_map="bugis_small"/> -->
-        <!-- <network_database database="fm_remote_path_choice" credentials="fm_remote_path_choice" proc_map="HITS"/> -->
-         <network_database database="fm_local_lt" credentials="LT_cred" /> 
-        <!--<network_database database="fm_remote" credentials="fm_remote" proc_map="bugis_large"/>-->
-        
-        <!-- Where to find our various schema files. -->
-        <!-- Overrides xsi:schemaLocation in the files themselves. -->
-        <!-- Note that absolute paths are allowed, and that relative paths are relative to the current working directory. -->
-        <xsd_schema_files/>  
-
-    </system>
               
     <!-- Long Term Configurations parameters -->
     <longTermParams enabled ="true">
     	<days value="100"/>
     	<maxIterations value="1"/>
     	<workers value="8"/>
-    	<tickStep value="1"/>       
+    	<tickStep value="1"/>  
+	<year value = "2012" />  
+	<simulationScenario value="baseline"/> 
+	<resume value ="false"/> 
+	<currentOutputSchema value = "baseline_2012_20160225034344"/> <!--if resume is true give the current op schema name-->
+	<mainSchemaVersion value="main2012" />
+	<configSchemaVersion value = "configuration2012" />
+	<calibrationSchemaVersion value= "calibration2012" />
+	<geometrySchemaVersion value = "geometry2012" />
+        <opSchemaloadingInterval value = "365"/>
     	<developerModel enabled="true">
     		<timeInterval value="30"/>
 		<InitialPostcode value = "1000000"/>
 		<initialBuildingId value = "300000" />
 		<initialUnitId value = "2000000" />
 		<initialProjectId value = "200000" />
-		<year value = "2012" />
 		<minLotSize value = "100.00" />
     	</developerModel>
-        <housingModel enabled="true"> 
-	    <outputHouseholdLogsums value="false"/>
+	<outputHouseholdLogsums enabled="false">
+	    <fixedHomeVariableWork value ="true"/>
+	    <fixedWorkVariableHome value ="false"/>
+	</outputHouseholdLogsums>
+    <housingModel enabled="true"> 	    
             <timeOnMarket value="90"/>
             <timeOffMarket value="150"/>
             <timeInterval value="7"/>
-	    <InitialHouseholdsOnMarket value="1000"/>
+	    <InitialHouseholdsOnMarket value="15000"/>
+	    <dailyHouseholdAwakenings value="400"/>
 	    <vacantUnitActivationProbability value="0.375"/>
 	    <housingMarketSearchPercentage value="0.15"/>
 	    <housingMoveInDaysInterval value="30"/>
 	    <offsetBetweenUnitBuyingAndSelling value ="7"/>
-	    <bidderUnitsChoiceSet value = "100"/>
-	    <householdBiddingWindow value = "100" />
+	    <bidderUnitsChoiceSet value = "50"/>
+	    <householdBiddingWindow value = "30" />
         </housingModel>
-	<vehicleOwnershipModel enabled='true'>
-		<vehicleBuyingWaitingTimeInDays value= "60"/>
+	<vehicleOwnershipModel enabled='false'>
+		<vehicleBuyingWaitingTimeInDays value= "1"/>
 	</vehicleOwnershipModel>
+	<schoolAssignmentModel enabled = 'false'>
+		<schoolChangeWaitingTimeInDays value ="1" />
+	</schoolAssignmentModel>
     </longTermParams>
 
-    <model_scripts path="../scripts/lua/mid/behavior-models/" format="lua">
+    <model_scripts path="scripts/lua/mid/behavior-models/" format="lua">
 	<script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models-->
 	<script name="dpb" file="dpb.lua"/> <!-- Day Pattern Binary -->
 	<script name="dpt" file="dpt.lua"/> <!-- Day Pattern Tours -->

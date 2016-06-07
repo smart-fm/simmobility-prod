@@ -94,14 +94,15 @@ double PotentialUnit::getDemolitionCostPerUnit()
 	return this->demolitionCostPerUnit;
 }
 
-PotentialProject::PotentialProject(const DevelopmentTypeTemplate* devTemplate, const Parcel* parcel,double constructionCost, double grossArea,double tempSelectProbability,double investmentReturnRatio, double demolitionCost, double expRatio,int totalUnits,double acquisitionCost, double landValue)
-								  : devTemplate(devTemplate), parcel(parcel), profit(0) , constructionCost(constructionCost),grossArea(grossArea),tempSelectProbability(tempSelectProbability),
-								    investmentReturnRatio(investmentReturnRatio), demolitionCost(demolitionCost), expRatio(expRatio),totalUnits(totalUnits),acquisitionCost(acquisitionCost), landValue(landValue){}
+PotentialProject::PotentialProject(const DevelopmentTypeTemplate* devTemplate, const Parcel* parcel, BigSerial fmParcelId,std::tm simulationDate, double constructionCost, double grossArea,double tempSelectProbability,double investmentReturnRatio, double demolitionCost, double expRatio,int totalUnits,double acquisitionCost, double landValue)
+								  : devTemplate(devTemplate), parcel(parcel), fmParcelId(fmParcelId), simulationDate(simulationDate), profit(0) , constructionCost(0),grossArea(0),tempSelectProbability(0),
+								    investmentReturnRatio(0), demolitionCost(0), expRatio(0),totalUnits(0),acquisitionCost(0), landValue(0){}
 
 PotentialProject::PotentialProject( const PotentialProject &source)
 {
 	this->devTemplate = source.devTemplate;
 	this->parcel = source.parcel;
+	this->fmParcelId = source.fmParcelId;
 	this->profit = source.profit;
 	this->constructionCost = source.constructionCost;
 	this->grossArea = source.grossArea;
@@ -112,6 +113,7 @@ PotentialProject::PotentialProject( const PotentialProject &source)
 	this->totalUnits = source.totalUnits;
 	this->acquisitionCost = source.acquisitionCost;
 	this->landValue = source.landValue;
+	this->simulationDate = source.simulationDate;
 
 	this->units = source.units;
 	for (int i=0; i < source.units.size(); i++)
@@ -123,12 +125,21 @@ PotentialProject::PotentialProject( const PotentialProject &source)
 		unit.setFloorArea(source.units[i].getFloorArea());
 		this->units[i]= unit;
 	}
+
+	this->templateUnitTypes = source.templateUnitTypes;
+		for (int i=0; i < source.templateUnitTypes.size(); i++)
+		{
+			TemplateUnitType templateUnitType;
+			templateUnitType = source.templateUnitTypes[i];
+			this->templateUnitTypes[i] = templateUnitType;
+		}
 }
 
 PotentialProject& PotentialProject::operator=(const PotentialProject& source)
 {
 	this->devTemplate = source.devTemplate;
 	this->parcel = source.parcel;
+	this->fmParcelId = source.fmParcelId;
 	this->profit = source.profit;
 	this->constructionCost = source.constructionCost;
 	this->grossArea = source.grossArea;
@@ -139,6 +150,7 @@ PotentialProject& PotentialProject::operator=(const PotentialProject& source)
 	this->totalUnits = source.totalUnits;
 	this->acquisitionCost = source.acquisitionCost;
 	this->landValue = source.landValue;
+	this->simulationDate = source.simulationDate;
 
 	this->units.resize(source.units.size());
 
@@ -151,6 +163,14 @@ PotentialProject& PotentialProject::operator=(const PotentialProject& source)
 			unit.setFloorArea(source.units[i].getFloorArea());
 			this->units[i]= unit;
 		}
+
+	this->templateUnitTypes = source.templateUnitTypes;
+			for (int i=0; i < source.templateUnitTypes.size(); i++)
+			{
+				TemplateUnitType templateUnitType;
+				templateUnitType = source.templateUnitTypes[i];
+				this->templateUnitTypes[i] = templateUnitType;
+			}
 	return *this;
 }
 
@@ -161,7 +181,7 @@ void PotentialProject::addUnit(const PotentialUnit& unit) {
     units.push_back(unit);
 }
 
-void PotentialProject::addTemplateUnitType(TemplateUnitType* templateUnitType) {
+void PotentialProject::addTemplateUnitType(const TemplateUnitType& templateUnitType) {
 
 	templateUnitTypes.push_back(templateUnitType);
 }
@@ -278,6 +298,20 @@ double PotentialProject::getLandValue() const
 	return this->landValue;
 }
 
+BigSerial PotentialProject::getFmParcelId() const
+{
+	return this->fmParcelId;
+}
+
+std::tm PotentialProject::getSimulationDate() const
+{
+	return this->simulationDate;
+}
+
+void PotentialProject::setSimulationDate(std::tm simDate)
+{
+	this->simulationDate = simDate;
+}
 namespace sim_mob
 {
     namespace long_term

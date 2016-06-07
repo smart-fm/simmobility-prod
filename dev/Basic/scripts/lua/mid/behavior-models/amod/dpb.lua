@@ -13,108 +13,57 @@ UPDATED VERSION - Adnan
 --Estimated values for all betas
 --Note: the betas that not estimated are fixed to zero.
 --travel constants
-local cons_travel = 2.08
-local cons_notravel = 0
+local cons_travel = 3.347
+
 
 --Person type
-local beta_parttime_travel = -0.768
-local beta_parttime_notravel=0
+local beta_homemaker = 0.442
+local beta_retired = -0.419
+local beta_fulltime = 4.10
+local beta_parttime = 3.02
+local beta_selfemployed = 2.60
+local beta_unemployed = -0.329
 
-local beta_selfemployed_travel = -1.74
-local beta_selfemployed_notravel = 0
-
-local beta_universitystudent_travel = 0
-local beta_universitystudent_notravel = 0
-
-local beta_homemaker_travel = -4.18
-local beta_homemaker_notravel = 0
-
-local beta_retired_travel = -3.84
-local beta_retired_notravel = 0
-
-local beta_unemployed_travel = -4.06
-local beta_unemployed_notravel = 0
-
-local beta_nationalservice_travel= 0
-local beta_nationalservice_notravel= 0
-
-local beta_voluntary_travel = -3.30
-local beta_voluntary_notravel = 0
-
-local beta_domestic_travel= -4.33
-local beta_domestic_notravel= 0
-
-local beta_otherindividual_travel = -2.37
-local beta_otherindividual_notravel = 0
-
-local beta_student16_travel = 0
-local beta_student16_notravel = 0
-
-local beta_student515_travel = 0
-local beta_student515_notravel = 0
-
-local beta_child4_travel = 0
-local beta_child4_notravel = 0
+--female dummy
+local beta_female_travel = 0.348
 
 
 --Adult age group
-local beta_age2025_travel = 0.0705
-local beta_age2025_notravel = 0
+local beta_age2025_travel = -2.32
+local beta_age2635_travel = -2.87
+local beta_age3650_travel = -2.68
+local beta_age5165_travel = -2.87
+local beta_age65_travel = -3.01
 
-local beta_age2635_travel = 0.160
-local beta_age2635_notravel = 0
 
-local beta_age5165_travel = -0.0196
-local beta_age5165_notravel = 0
 
 --Adult gender/children
-local beta_maleage4_travel = -0.0609
-local beta_maleage4_notravel = 0
-
-local beta_maleage515_travel = 0
-local beta_maleage515_notravel = 0
-
-local beta_femalenone_travel = 0.331
-local beta_femalenone_notravel = 0
-
-local beta_femaleage4_travel = 0.00102
-local beta_femaleage4_notravel = 0
-
-local beta_femaleage515_travel = 0.320
-local beta_femaleage515_notravel = 0
+local beta_maleage4_travel = -0.0547
+local beta_maleage515_travel = -0.0436
+local beta_femalenone_travel = -0.0541
+local beta_femaleage4_travel = -0.243
+local beta_femaleage515_travel = -0.0453
 
 --Household composition
-local beta_onlyadults_travel = 0.213
-local beta_onlyadults_notravel = 0
+local beta_onlyadults_travel = 0.326
 
-local beta_onlyworkers_travel = 0
-local beta_onlyworkers_notravel = 0
 
 --Personal income
-local beta_income_travel = 0.112
-local beta_income_notravel = 0
-
-local beta_missingincome_travel = 0.725
-local beta_missingincome_notravel = 0
+local beta_income_travel = 0.162
+local beta_missingincome_travel = -0.427
 
 --Others
-local beta_workathome_travel = -1.75
-local beta_workathome_notravel = 0
+local beta_workathome_travel = -1.66
 
-local beta_caravail_travel = 0.100
-local beta_caravail_notravel = 0
 
-local beta_motoravail_travel = 0
-local beta_motoravail_notravel = 0
+local beta_twoplus_car_travel = 0.421
+local beta_one_car_travel = 0.0779
+
+local beta_motoravail_travel = -0.235
+
 
 --logsums
-local beta_dptour_logsum = 0.413
-local beta_dpstop_logsum = 0.413
-
-local beta_work_logsum = 0
-local beta_edu_logsum = 0
-local beta_shopping_logsum = 0
-local beta_other_logsum = 0
+local beta_dptour_logsum = 0.227
 
 
 --choiceset
@@ -229,83 +178,47 @@ local function computeUtilities(params)
 	local income = income_mid[income_id] * (1 - missing_income)/1000 
 
 	-- other variables
-	local caravail,motoravail = 0,0
+	local zero_car,one_car,twoplus_car,motoravail = 0,0,0,0
+	if car_own == 0  then 
+		zero_car = 1 
+	end
 	if car_own >= 1  then 
-		caravail = 1 
+		one_car = 1 
+	end
+	if car_own >= 2  then 
+		twoplus_car = 1 
 	end
 	if motor_own >= 1 then 
 		motoravail = 1 
 	end
 			
-	utility[1] = cons_notravel +  
-			beta_parttime_notravel * parttime +
-			beta_selfemployed_notravel * selfemployed +
-			beta_universitystudent_notravel * univ_student +
-			beta_homemaker_notravel * homemaker +
-			beta_retired_notravel * retired +
-			beta_unemployed_notravel * unemployed +
-			beta_nationalservice_notravel * nationalservice +
-			beta_voluntary_notravel * voluntary +
-			beta_domestic_notravel * domestic +
-			beta_otherindividual_notravel * otherindividual +
-			beta_student16_notravel * student16 +
-			beta_student515_notravel * student515 +
-			beta_child4_notravel * child4 +
-			beta_age2025_notravel * age2025 +
-			beta_age2635_notravel * age2635 +
-			beta_age5165_notravel * age5165 +
-			beta_maleage4_notravel * maleage4 +
-			beta_maleage515_notravel * maleage515 +
-			beta_femalenone_notravel * femalenone +
-			beta_femaleage4_notravel * femaleage4 +
-			beta_femaleage515_notravel * femaleage515 +
-			beta_onlyadults_notravel * onlyadults +
-			beta_onlyworkers_notravel * onlyworkers +
-			beta_income_notravel * income +
-			beta_missingincome_notravel * missing_income + 
-			beta_workathome_notravel * workathome +
-			beta_caravail_notravel * caravail +
-			beta_motoravail_notravel * motoravail
+	utility[1] = 0
 			
 	if person_type_id == 11 then --taking care of excluded individuals at dpbinary level (individuals not eligible for hits interview and also not traveling (persontype_id =1, age_id=0))
 
-		utility[2]=-99
+		utility[2]=-999
 	else	
 		utility[2] = cons_travel +  
-			beta_parttime_travel * parttime +
-			beta_selfemployed_travel * selfemployed +
-			beta_universitystudent_travel * univ_student +
-			beta_homemaker_travel * homemaker +
-			beta_retired_travel * retired +
-			beta_unemployed_travel * unemployed +
-			beta_nationalservice_travel * nationalservice +
-			beta_voluntary_travel * voluntary +
-			beta_domestic_travel * domestic +
-			beta_otherindividual_travel * otherindividual +
-			beta_student16_travel * student16 +
-			beta_student515_travel * student515 +
-			beta_child4_travel * child4 +
-			beta_age2025_travel * age2025 +
+			beta_female_travel*female_dummy+
+			beta_age2025_travel * age2025+
 			beta_age2635_travel * age2635 +
+			beta_age3650_travel * age3650 +
 			beta_age5165_travel * age5165 +
+			beta_age65_travel * age65 +
 			beta_maleage4_travel * maleage4 +
 			beta_maleage515_travel * maleage515 +
 			beta_femalenone_travel * femalenone +
 			beta_femaleage4_travel * femaleage4 +
 			beta_femaleage515_travel * femaleage515 +
 			beta_onlyadults_travel * onlyadults +
-			beta_onlyworkers_travel * onlyworkers +
 			beta_income_travel * income +
 			beta_missingincome_travel * missing_income + 
 			beta_workathome_travel * workathome +
-			beta_caravail_travel * caravail +
+			beta_one_car_travel * one_car +
+			beta_twoplus_car_travel * twoplus_car +
 			beta_motoravail_travel * motoravail +
-			beta_work_logsum * worklogsum +
-			beta_edu_logsum * edulogsum +
-			beta_shopping_logsum * shoplogsum +
-			beta_other_logsum * otherlogsum +
-			beta_dptour_logsum * dptour_logsum +
-			beta_dpstop_logsum * dpstop_logsum		
+			beta_dptour_logsum * (dptour_logsum + dpstop_logsum) +
+			beta_homemaker * homemaker + beta_retired * retired + beta_fulltime * fulltime + beta_unemployed * unemployed + beta_selfemployed * selfemployed + beta_parttime * parttime
 	end
 end
 
@@ -326,4 +239,16 @@ function choose_dpb(params)
 	local probability = calculate_probability("mnl", choice, utility, availability, scale)
 	idx = make_final_choice(probability)
 	return choice[idx]
+end
+
+-- function to call from C++ preday simulator for logsums computation
+-- params table contain person data passed from C++
+-- to check variable bindings in params, refer PredayLuaModel::mapClasses() function in dev/Basic/medium/behavioral/lua/PredayLuaModel.cpp
+function compute_logsum_dpb(params)
+	computeUtilities(params) 
+	local probability = calculate_probability("mnl", choice, utility, availability, scale)
+	local return_table = {}
+	return_table[1] = compute_mnl_logsum(utility, availability)
+	return_table[2] = probability[2]
+	return return_table
 end

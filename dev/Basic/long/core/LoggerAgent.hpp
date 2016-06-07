@@ -40,7 +40,6 @@ namespace sim_mob
                 PARCELS,
                 UNITS,
                 PROJECTS,
-                PROJECTS_DB,
                 HH_PC,
                 UNITS_IN_MARKET,
                 LOG_TAXI_AVAILABILITY,
@@ -48,7 +47,15 @@ namespace sim_mob
                 LOG_TAZ_LEVEL_LOGSUM,
                 LOG_HOUSEHOLDGROUPLOGSUM,
                 LOG_INDIVIDUAL_HITS_LOGSUM,
-                LOG_HOUSEHOLDBIDLIST
+                LOG_HOUSEHOLDBIDLIST,
+                LOG_INDIVIDUAL_LOGSUM_VO,
+				LOG_SCREENINGPROBABILITIES,
+				LOG_HHCHOICESET,
+				LOG_ERROR,
+				LOG_SCHOOL_ASSIGNMENT,
+				LOG_PRE_SCHOOL_ASSIGNMENT,
+				LOG_HH_AWAKENING,
+				LOG_HH_EXIT
             };
 
             LoggerAgent();

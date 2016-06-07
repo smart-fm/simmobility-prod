@@ -411,7 +411,8 @@ void Signal_SCATS::createPhases()
 					
 					if(isdigit(*(itChar + 1)))
 					{
-						phaseName.append(itChar, itChar + 1);
+						phaseName.append(itChar, itChar + 2);
+						++itChar;
 					}
 					else
 					{
@@ -444,7 +445,7 @@ void Signal_SCATS::createPhases()
 						//Add the phase to the vector of phases
 						phases.push_back(phase);
 					}
-				}				
+				}
 
 				++itInnerMap;
 			}

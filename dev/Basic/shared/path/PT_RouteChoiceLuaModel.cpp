@@ -35,11 +35,6 @@ namespace sim_mob
 PT_RouteChoiceLuaModel::PT_RouteChoiceLuaModel() : publicTransitPathSet(nullptr), curStartTime()
 {
 	ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
-	ptPathsetStoredProcName = cfg.getDatabaseProcMappings().procedureMappings["pt_pathset"];
-	if (ptPathsetStoredProcName.empty())
-	{
-		throw std::runtime_error("stored procedure for \"pt_pathset\" is empty or not specified in config file");
-	}
 	dbSession = new soci::session(soci::postgresql, cfg.getDatabaseConnectionString(false));
 	output.open("od_scenario.csv",std::ofstream::out);
 }
@@ -172,12 +167,12 @@ std::vector<sim_mob::OD_Trip> PT_RouteChoiceLuaModel::makePT_RouteChoice(const s
 		for (std::vector<PT_NetworkEdge>::const_iterator itEdge = pathEdges.begin(); itEdge != pathEdges.end(); itEdge++) {
 			sim_mob::OD_Trip trip;
 			trip.startStop = itEdge->getStartStop();
-			trip.sType = PT_Network::getInstance().getVertexTypeFromStopId(trip.startStop);
+			trip.sType = PT_NetworkCreater::getInstance().getVertexTypeFromStopId(trip.startStop);
 			if (trip.startStop.find("N_") != std::string::npos) {
 				trip.startStop = trip.startStop.substr(2);
 			}
 			trip.endStop = itEdge->getEndStop();
-			trip.eType = PT_Network::getInstance().getVertexTypeFromStopId(trip.endStop);
+			trip.eType = PT_NetworkCreater::getInstance().getVertexTypeFromStopId(trip.endStop);
 			if (trip.endStop.find("N_") != std::string::npos) {
 				trip.endStop = trip.endStop.substr(2);
 			}
@@ -199,13 +194,12 @@ std::vector<sim_mob::OD_Trip> PT_RouteChoiceLuaModel::makePT_RouteChoice(const s
 	return odTrips;
 }
 
-
-bool PT_RouteChoiceLuaModel::getBestPT_Path(int origin, int dest, const DailyTime& startTime, std::vector<sim_mob::OD_Trip>& odTrips, std::string dbid, unsigned int start_time)
+bool PT_RouteChoiceLuaModel::getBestPT_Path(int origin, int dest, unsigned int startTime, std::vector<sim_mob::OD_Trip>& odTrips, std::string dbid, unsigned int start_time, const std::string& ptPathsetStoredProcName)
 {
 	bool ret = false;
 	PT_PathSet pathSet;
-	curStartTime = startTime;
-	loadPT_PathSet(origin, dest, pathSet);
+	curStartTime = DailyTime(startTime);
+	loadPT_PathSet(origin, dest, pathSet,ptPathsetStoredProcName);
 	if (pathSet.pathSet.empty())
 	{
 		Print() << "[PT pathset]load pathset failed:[" << origin << "]:[" << dest << "]" << std::endl;
@@ -278,7 +272,7 @@ void loadPT_PathsetFromDB(soci::session& sql, const std::string& funcName, int o
 	}
 }
 
-void PT_RouteChoiceLuaModel::loadPT_PathSet(int origin, int dest, PT_PathSet& pathSet)
+void PT_RouteChoiceLuaModel::loadPT_PathSet(int origin, int dest, PT_PathSet& pathSet, const std::string& ptPathsetStoredProcName)
 {
 	const BusController* busController = BusController::GetInstance();
 	const TravelTimeManager* ttMgr = TravelTimeManager::getInstance();

@@ -31,7 +31,8 @@ class WorkGroup;
 class WorkGroupManager
 {
 public:
-	WorkGroupManager() : currBarrierCount(1), frameTickBarr(nullptr), buffFlipBarr(nullptr), msgBusBarr(nullptr), singleThreaded(false), currState(INIT)
+	WorkGroupManager() : currBarrierCount(1), frameTickBarr(nullptr), buffFlipBarr(nullptr), msgBusBarr(nullptr),
+	singleThreaded(false), currState(INIT), simulationStartDay(0)
 	{
 	}
 
@@ -65,7 +66,7 @@ public:
 	 * @return created work group
 	 */
 	sim_mob::WorkGroup* newWorkGroup(unsigned int numWorkers, unsigned int numSimTicks = 0, unsigned int tickStep = 1, sim_mob::AuraManager* auraMgr = nullptr,
-			sim_mob::PartitionManager* partitionMgr = nullptr, sim_mob::PeriodicPersonLoader* periodicLoader = nullptr);
+			sim_mob::PartitionManager* partitionMgr = nullptr, sim_mob::PeriodicPersonLoader* periodicLoader = nullptr, uint32_t simulationStartDay = 0);
 
 	/**
 	 * Initialize all WorkGroups.
@@ -140,6 +141,9 @@ private:
 
 	/** message bus barrier */
 	sim_mob::FlexiBarrier* msgBusBarr;
+
+	uint32_t simulationStartDay;
+
 };
 
 } // namespace sim_mob

@@ -393,10 +393,12 @@ void Conflux::loadPersons()
 		{
 			messaging::MessageBus::PostMessage(conflux, MSG_PERSON_LOAD, messaging::MessageBus::MessagePtr(new PersonMessage(person)));
 		}
+
 		/*else
 		{
 			safe_delete_item(person);
 		}*/
+
 	}
 }
 
@@ -1230,6 +1232,14 @@ void Conflux::HandleMessage(messaging::Message::MessageType type, const messagin
 	{
 		const PersonMessage& msg = MSG_CAST(PersonMessage, message);
 		switchTripChainItem(msg.person);
+		if(!msg.person->isToBeRemoved() && msg.person->getRole()->roleType == Role<Person_MT>::RL_DRIVER)
+		{
+			SegmentStats* rdSegStats = const_cast<SegmentStats*>(msg.person->getCurrSegStats());
+			msg.person->setCurrLane(rdSegStats->laneInfinity);
+			msg.person->distanceToEndOfSegment = rdSegStats->getLength();
+			msg.person->remainingTimeThisTick = tickTimeInS;
+			rdSegStats->addAgent(rdSegStats->laneInfinity, msg.person);
+		}
 		break;
 	}
 	default:
@@ -2007,7 +2017,9 @@ Conflux* Conflux::findStartingConflux(Person_MT* person, unsigned int now)
 			trainMvt->arrivalAtStartPlaform();
 		}
 		return nullptr;
-        }
+
+	}
+
 	case Role<Person_MT>::RL_TRUCKER_HGV:
 	case Role<Person_MT>::RL_TRUCKER_LGV:
 	{
@@ -2159,6 +2171,7 @@ void Conflux::driverStatistics(timeslice now)
 			segStats->getInfinityPersons(tmpAgents);
 			statSegsInfinity[segId] = tmpAgents.size();
 			statPersons[segId] = personIds;
+
 		}
 	}
 
@@ -2198,7 +2211,6 @@ void Conflux::driverStatistics(timeslice now)
 	movement <<logout.str();
 	movement.flush();
 }
-
 
 
 void Conflux::addConnectedConflux(Conflux* conflux)

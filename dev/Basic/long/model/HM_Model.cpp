@@ -1389,7 +1389,9 @@ void HM_Model::startImpl()
 		//this unit is a vacancy
 		if (assignedUnits.find((*it)->getId()) == assignedUnits.end())
 		{
-			if( (*it)->getUnitType() != NON_RESIDENTIAL_PROPERTY )
+			boost::gregorian::date occupancyDate = boost::gregorian::date_from_tm((*it)->getOccupancyFromDate());
+
+			if( (*it)->getUnitType() != NON_RESIDENTIAL_PROPERTY &&  occupancyDate < boost::gregorian::date(HITS_SURVEY_YEAR, 1, 1) )
 			{
 				float awakeningProbability = (float)rand() / RAND_MAX;
 

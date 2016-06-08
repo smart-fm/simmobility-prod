@@ -29,6 +29,10 @@
 
 using namespace luabridge;
 
+namespace
+{
+const double METERS_IN_UNIT_KM = 1000.0;
+}
 namespace sim_mob
 {
 
@@ -49,96 +53,111 @@ PT_RouteChoiceLuaModel::~PT_RouteChoiceLuaModel()
 	output.close();
 }
 
-unsigned int PT_RouteChoiceLuaModel::getSizeOfChoiceSet()
+unsigned int PT_RouteChoiceLuaModel::getSizeOfChoiceSet() const
 {
 	unsigned int size = 0;
-	if (publicTransitPathSet) {
+	if (publicTransitPathSet)
+	{
 		size = publicTransitPathSet->pathSet.size();
 	}
 	return size;
 }
 
-double PT_RouteChoiceLuaModel::getTotalInVehicleTime(unsigned int index)
+double PT_RouteChoiceLuaModel::getInVehicleTime(unsigned int index) const
 {
 	double ret = 0.0;
 	unsigned int sizeOfChoiceSet = getSizeOfChoiceSet();
 	if (publicTransitPathSet && index <= sizeOfChoiceSet && index > 0) {
-		std::set<PT_Path, cmp_path_vector>::iterator it = publicTransitPathSet->pathSet.begin();
+		std::set<PT_Path, cmp_path_vector>::const_iterator it = publicTransitPathSet->pathSet.begin();
 		std::advance(it, index - 1);
-		ret = it->getTotalInVehicleTravelTimeSecs();
+		ret = it->getInVehicleTravelTimeSecs();
 	}
 	return ret;
 }
 
-double PT_RouteChoiceLuaModel::getTotalWalkTime(unsigned int index)
+double PT_RouteChoiceLuaModel::getWalkTime(unsigned int index) const
 {
 	double ret = 0.0;
 	unsigned int sizeOfChoiceSet = getSizeOfChoiceSet();
 	if (publicTransitPathSet && index <= sizeOfChoiceSet && index > 0) {
-		std::set<PT_Path, cmp_path_vector>::iterator it = publicTransitPathSet->pathSet.begin();
+		std::set<PT_Path, cmp_path_vector>::const_iterator it = publicTransitPathSet->pathSet.begin();
 		std::advance(it, index - 1);
-		ret = it->getTotalWalkingTimeSecs();
+		ret = it->getWalkingTimeSecs();
 	}
 	return ret;
 }
 
-double PT_RouteChoiceLuaModel::getTotalWaitTime(unsigned int index)
+double PT_RouteChoiceLuaModel::getWaitTime(unsigned int index) const
 {
 	double ret = 0.0;
 	unsigned int sizeOfChoiceSet = getSizeOfChoiceSet();
 	if (publicTransitPathSet && index <= sizeOfChoiceSet && index > 0) {
-		std::set<PT_Path, cmp_path_vector>::iterator it = publicTransitPathSet->pathSet.begin();
+		std::set<PT_Path, cmp_path_vector>::const_iterator it = publicTransitPathSet->pathSet.begin();
 		std::advance(it, index - 1);
-		ret = it->getTotalWaitingTimeSecs();
+		ret = it->getWaitingTimeSecs();
 	}
 	return ret;
 }
 
-double PT_RouteChoiceLuaModel::getTotalPathSize(unsigned int index)
+double PT_RouteChoiceLuaModel::getPathSize(unsigned int index) const
 {
 	double ret = 0.0;
 	unsigned int sizeOfChoiceSet = getSizeOfChoiceSet();
 	if (publicTransitPathSet && index <= sizeOfChoiceSet && index > 0)
 	{
-		std::set<PT_Path, cmp_path_vector>::iterator it = publicTransitPathSet->pathSet.begin();
+		std::set<PT_Path, cmp_path_vector>::const_iterator it = publicTransitPathSet->pathSet.begin();
 		std::advance(it, index - 1);
 		ret = it->getPathSize();
 	}
 	return ret;
 }
 
-int PT_RouteChoiceLuaModel::getTotalNumTxf(unsigned int index)
+int PT_RouteChoiceLuaModel::getNumTxf(unsigned int index) const
 {
 	int ret = 0.0;
 	unsigned int sizeOfChoiceSet = getSizeOfChoiceSet();
 	if (publicTransitPathSet && index <= sizeOfChoiceSet && index > 0)
 	{
-		std::set<PT_Path, cmp_path_vector>::iterator it = publicTransitPathSet->pathSet.begin();
+		std::set<PT_Path, cmp_path_vector>::const_iterator it = publicTransitPathSet->pathSet.begin();
 		std::advance(it, index - 1);
-		ret = it->getTotalNumberOfTransfers();
+		ret = it->getNumTransfers();
 	}
 	return ret;
 }
 
-double PT_RouteChoiceLuaModel::getTotalCost(unsigned int index)
+double PT_RouteChoiceLuaModel::getCost(unsigned int index) const
 {
 	double ret = 0.0;
 	unsigned int sizeOfChoiceSet = getSizeOfChoiceSet();
-	if (publicTransitPathSet && index <= sizeOfChoiceSet && index > 0) {
-		std::set<PT_Path, cmp_path_vector>::iterator it = publicTransitPathSet->pathSet.begin();
+	if (publicTransitPathSet && index <= sizeOfChoiceSet && index > 0)
+	{
+		std::set<PT_Path, cmp_path_vector>::const_iterator it = publicTransitPathSet->pathSet.begin();
 		std::advance(it, index - 1);
-		ret = it->getTotalCost();
+		ret = it->getPathCost();
 	}
 	return ret;
 }
 
-int PT_RouteChoiceLuaModel::getModes(unsigned int index)
+double PT_RouteChoiceLuaModel::getPtDistanceKms(unsigned int index) const
+{
+	double ret = 0.0;
+	unsigned int sizeOfChoiceSet = getSizeOfChoiceSet();
+	if (publicTransitPathSet && index <= sizeOfChoiceSet && index > 0)
+	{
+		std::set<PT_Path, cmp_path_vector>::const_iterator it = publicTransitPathSet->pathSet.begin();
+		std::advance(it, index - 1);
+		ret = it->getPtDistanceKms();
+	}
+	return ret;
+}
+
+int PT_RouteChoiceLuaModel::getModes(unsigned int index) const
 {
 	int ret = 0;
 	unsigned int sizeOfChoiceSet = getSizeOfChoiceSet();
 	if(publicTransitPathSet && index <= sizeOfChoiceSet && index > 0)
 	{
-		std::set<PT_Path, cmp_path_vector>::iterator it = publicTransitPathSet->pathSet.begin();
+		std::set<PT_Path, cmp_path_vector>::const_iterator it = publicTransitPathSet->pathSet.begin();
 		std::advance(it, index - 1);
 		ret = it->getPathModesType();
 	}
@@ -257,12 +276,13 @@ void PT_RouteChoiceLuaModel::storeBestPT_Path()
 void PT_RouteChoiceLuaModel::mapClasses()
 {
 	getGlobalNamespace(state.get()).beginClass <PT_RouteChoiceLuaModel> ("PT_RouteChoiceLuaModel")
-			.addFunction("total_in_vehicle_time",&PT_RouteChoiceLuaModel::getTotalInVehicleTime)
-			.addFunction("total_walk_time",&PT_RouteChoiceLuaModel::getTotalWalkTime)
-			.addFunction("total_wait_time",&PT_RouteChoiceLuaModel::getTotalWaitTime)
-			.addFunction("total_path_size",&PT_RouteChoiceLuaModel::getTotalPathSize)
-			.addFunction("total_no_txf", &PT_RouteChoiceLuaModel::getTotalNumTxf)
-			.addFunction("total_cost", &PT_RouteChoiceLuaModel::getTotalCost)
+			.addFunction("total_in_vehicle_time",&PT_RouteChoiceLuaModel::getInVehicleTime)
+			.addFunction("total_walk_time",&PT_RouteChoiceLuaModel::getWalkTime)
+			.addFunction("total_wait_time",&PT_RouteChoiceLuaModel::getWaitTime)
+			.addFunction("total_path_size",&PT_RouteChoiceLuaModel::getPathSize)
+			.addFunction("total_no_txf", &PT_RouteChoiceLuaModel::getNumTxf)
+			.addFunction("total_cost", &PT_RouteChoiceLuaModel::getCost)
+			.addFunction("pt_distance_km", &PT_RouteChoiceLuaModel::getPtDistanceKms)
 			.addFunction("path_pt_modes", &PT_RouteChoiceLuaModel::getModes)
 			.endClass();
 }
@@ -291,6 +311,9 @@ void PT_RouteChoiceLuaModel::loadPT_PathSet(int origin, int dest, PT_PathSet& pa
 
 		//compute and set path travel time
 		double pathTravelTime = 0.0;
+		double pathWaitingTime = 0.0;
+		double pathInVehicleTravelTime = 0.0;
+		double pathPtDistanceInMts = 0.0;
 		DailyTime nextStartTime = curStartTime;
 		bool invalidPath = false;
 		for(PT_NetworkEdge& edge : pathEdges)
@@ -405,6 +428,8 @@ void PT_RouteChoiceLuaModel::loadPT_PathSet(int origin, int dest, PT_PathSet& pa
 					}
 
 					edgeTravelTime = edgeTravelTime + tt;
+					pathInVehicleTravelTime = pathInVehicleTravelTime + tt;
+					pathPtDistanceInMts = pathPtDistanceInMts + currentLink->getLength();
 					nextStartTime = DailyTime(nextStartTime.getValue() + std::floor(tt*1000));
 
 					if(!isBeforeDestStop)
@@ -419,6 +444,7 @@ void PT_RouteChoiceLuaModel::loadPT_PathSet(int origin, int dest, PT_PathSet& pa
 
 				edge.setLinkTravelTimeSecs(edgeTravelTime);
 				pathTravelTime = pathTravelTime + edgeTravelTime;
+				pathWaitingTime = pathWaitingTime + waitingTime;
 				break;
 			}
 			case sim_mob::TRAIN_EDGE:
@@ -426,6 +452,9 @@ void PT_RouteChoiceLuaModel::loadPT_PathSet(int origin, int dest, PT_PathSet& pa
 				double edgeTravelTime =  edge.getLinkTravelTimeSecs() + edge.getWalkTimeSecs() + edge.getWaitTimeSecs();
 				edge.setLinkTravelTimeSecs(edgeTravelTime);
 				pathTravelTime = pathTravelTime + edgeTravelTime;
+				pathWaitingTime = pathWaitingTime + edge.getWaitTimeSecs();
+				pathInVehicleTravelTime = pathInVehicleTravelTime + edge.getLinkTravelTimeSecs();
+				pathPtDistanceInMts = pathPtDistanceInMts + (edge.getDistKms() * 1000);
 				nextStartTime = DailyTime(nextStartTime.getValue() + std::floor(edgeTravelTime*1000));
 				break;
 			}
@@ -446,6 +475,9 @@ void PT_RouteChoiceLuaModel::loadPT_PathSet(int origin, int dest, PT_PathSet& pa
 		if(invalidPath) { continue; }
 		path.setPathEdges(pathEdges);
 		path.setPathTravelTime(pathTravelTime);
+		path.setWaitingTimeSecs(pathWaitingTime);
+		path.setInVehicleTravelTimeSecs(pathInVehicleTravelTime);
+		path.setPtDistanceKms(pathPtDistanceInMts/METERS_IN_UNIT_KM);
 		pathSet.pathSet.insert(path);
 	}
 	pathSet.computeAndSetPathSize();

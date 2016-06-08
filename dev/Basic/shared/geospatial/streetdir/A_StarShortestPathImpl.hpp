@@ -66,6 +66,7 @@ protected:
 	typedef std::map<const Node*, std::pair<StreetDirectory::Vertex, StreetDirectory::Vertex> > NodeVertexLookup;
 	typedef std::map<const RoadSegment*, std::set<StreetDirectory::Edge> > SegmentEdgeLookup;
 	typedef std::map<const Link*, std::set<StreetDirectory::Edge> > LinkEdgeLookup;
+	typedef std::map<const Link*, std::pair<StreetDirectory::Vertex, StreetDirectory::Vertex> > LinkVertexLookup;
 	typedef std::map<const RoadSegment*, std::pair<StreetDirectory::Vertex, StreetDirectory::Vertex> > SegmentVertexLookup;
 	typedef std::map<const BusStop*, std::pair<StreetDirectory::Vertex, StreetDirectory::Vertex> > StopVertexLookup;
 
@@ -180,7 +181,7 @@ protected:
 	 * @param LinkEdgeLookup is a lookup table about the map from links to edges
 	 * @param weight is the weight value used in the edge
 	 */
-	void procAddDrivingLinks(StreetDirectory::Graph& graph, const Link* link, const NodeLookup& nodeLookup, LinkEdgeLookup& resLinkEdgeLookup, double weight=-1.0);
+	void procAddDrivingLinks(StreetDirectory::Graph& graph, const Link* link, const NodeLookup& nodeLookup, LinkEdgeLookup& resLinkEdgeLookup, LinkVertexLookup& resLinkVertexLookup,double weight=-1.0);
 	/**
 	 * Processes the driving path at each node
 	 * @param graph is the graph object
@@ -355,6 +356,9 @@ public:
 	/**Lookup for road links. This maps each Links to *all* Edges that are related to it.*/
 	LinkEdgeLookup drivingLinkEdgeLookup;
 
+    /** Lookup for road links mapping to its start/end vertex */
+    LinkVertexLookup drivingLinkVertexLookup;
+
 	/**Lookup for road segments mapping to vertexes.*/
 	SegmentVertexLookup drivingSegVertexLookup;
 
@@ -374,13 +378,19 @@ public:
 	 * @param node is a pointer to the node
 	 * @return a VertexDesc which hold vertex in the graph
 	 */
-	virtual StreetDirectory::VertexDesc DrivingVertex(const Node& node) const;
+	virtual StreetDirectory::VertexDesc DrivingVertex(const Node& node, TimeRange timeRange = Default, int randomGraphIdx = 0) const;
+	/**
+	 * retrieve a vertex in the travel-time graph
+	 * @param link - link for which the Vertex is retrieved
+	 * @return a VertexDesc which hold vertex in the graph
+	 */
+	virtual StreetDirectory::VertexDesc DrivingVertex(const Link& link, TimeRange timeRange = Default, int randomGraphIdx = 0) const;
 	/**
 	 * retrieve a vertex in the travel-time graph
 	 * @param stop is a pointer to the bus stop
 	 * @return a VertexDesc which hold vertex in the graph
 	 */
-	virtual StreetDirectory::VertexDesc DrivingVertex(const BusStop& stop) const;
+	virtual StreetDirectory::VertexDesc DrivingVertex(const BusStop& stop, TimeRange timeRange = Default, int randomGraphIdx = 0) const;
 	/**
 	 * retrieve distance shortest driving path from original point to destination
 	 * @param from is original vertex in the graph
@@ -389,7 +399,7 @@ public:
 	 * @return the shortest path result.
 	 */
 	virtual std::vector<WayPoint> GetShortestDrivingPath(const StreetDirectory::VertexDesc &from, const StreetDirectory::VertexDesc &to,
-														const std::vector<const RoadSegment*> &blacklist) const;
+								const std::vector<const RoadSegment*> &blacklist) const;
 	/**
 	 * retrieve distance shortest driving path from original point to destination
 	 * @param from is original vertex in the graph
@@ -398,7 +408,7 @@ public:
 	 * @return the shortest path result.
 	 */
 	virtual std::vector<WayPoint> GetShortestDrivingPath(const StreetDirectory::VertexDesc &from, const StreetDirectory::VertexDesc &to,
-														const std::vector<const Link*> &blacklist) const;
+                                                        const std::vector<const Link*> &blacklist, TimeRange timeRange = Default, int randomGraphIdx = 0) const;
     /**
      * Return the distance-based shortest path to drive from to another. Performs a search (currently using
      *  the A* algorithm) from one to another.

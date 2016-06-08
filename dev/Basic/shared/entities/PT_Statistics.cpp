@@ -10,6 +10,7 @@
 #include <fstream>
 #include <soci/soci.h>
 #include <soci/postgresql/soci-postgresql.h>
+#include "boost/algorithm/string.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "util/DailyTime.hpp"
@@ -279,22 +280,27 @@ void StopStatsManager::addStopStats(const PersonWaitingTime& personWaiting)
 	}
 	boardingStats.numBoarding++;
 
+	std::vector<std::string> lines;
+	boost::split(lines, personWaiting.busLines, boost::is_any_of("/"));
 	unsigned int personArrivalTime = personBoardingTime - personWaiting.waitingTime;
 	if(personArrivalTime > SECONDS_IN_DAY) // personWaiting.waitingTime > personWaiting.currentTime(from start of day)
 	{
 		throw std::runtime_error("invalid currentTime or waiting time passed with person waiting message");
 	}
 	unsigned int interval = personArrivalTime / intervalWidth;
-	StopStats& stats = stopStatsMap[interval][personWaiting.busStopNo][personWaiting.busLineBoarded]; //an entry to be created if not in the map already
-	if(stats.needsInitialization)
+	for(const std::string& line : lines)
 	{
-		stats.interval = interval;
-		stats.stopCode = personWaiting.busStopNo;
-		stats.serviceLine = personWaiting.busLineBoarded;
-		stats.needsInitialization = false;
+		StopStats& stats = stopStatsMap[interval][personWaiting.busStopNo][line]; //an entry to be created if not in the map already
+		if(stats.needsInitialization)
+		{
+			stats.interval = interval;
+			stats.stopCode = personWaiting.busStopNo;
+			stats.serviceLine = line;
+			stats.needsInitialization = false;
+		}
+		stats.waitingCount++;
+		stats.waitingTime = stats.waitingTime + personWaiting.waitingTime;
 	}
-	stats.waitingCount++;
-	stats.waitingTime = stats.waitingTime + personWaiting.waitingTime;
 }
 
 void StopStatsManager::loadHistoricalStopStats()

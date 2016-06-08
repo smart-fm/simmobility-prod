@@ -61,6 +61,7 @@ A_StarShortestTravelTimePathImpl::A_StarShortestTravelTimePathImpl(const sim_mob
 		drivingMapRandomPool.push_back(StreetDirectory::Graph());
 		drivingNodeLookupRandomPool.push_back(NodeVertexLookup());
 		drivingLinkLookupRandomPool.push_back(LinkEdgeLookup());
+		drivingLinkVertexLookupRandomPool.push_back(LinkVertexLookup());
 	}
 	initDrivingNetwork(network);
 }

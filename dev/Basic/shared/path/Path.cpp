@@ -496,8 +496,8 @@ void sim_mob::PT_PathSet::checkPathFeasibilty()
 	{
 		incrementFlag = false;
 		std::set<PT_Path>::iterator tempitPath = itPathComp;
-		// Check 1 : Total Number of transfers <= 4
-		if(itPathComp->getNumTransfers() > 4)
+		// Check 1 : Total Number of transfers <= MAX_TRANSFERS
+		if(itPathComp->getNumTransfers() > MAX_TRANSFERS)
 		{
 			// Infeasible path
 			itPathComp++;

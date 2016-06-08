@@ -120,10 +120,10 @@ namespace
 	{
 		//A few quick sanity checks
 		size_t numColon = 0;
-		size_t numDigits = 0;
 		bool hasDot = false;
 		std::string err = timeRepr;
 		int timePart[4] = {0,0,0,0}; //{hours, minutes, seconds, milliseconds}
+		short numDigits[4] = {0,0,0,0}; //number of digits in {hours, minutes, seconds, milliseconds} part of time string
 		int timePartIdx = 0; //hours index
 		uint32_t num = 0;
 		for (int i=0; i<timeRepr.size(); i++)
@@ -153,7 +153,7 @@ namespace
 			}
 			else if (currChar>='0' && currChar<='9')
 			{
-				if(!hasDot) { numDigits++; }
+				if(!hasDot) { numDigits[timePartIdx]++; }
 				num = (num*10) + (currChar-'0');
 			}
 			else if (currChar!=' ' && currChar!='\t')
@@ -163,7 +163,7 @@ namespace
 			}
 		}
 		if(num > 0) { timePart[timePartIdx] = num; } //millisecond part was present in the string
-		if (numDigits < 6 && timePart[0] > 9) //hour part is the only component that is allowed to be single digit
+		if ((numDigits[0] != 1 && numDigits[0] != 2) || numDigits[1] != 2 || numDigits[2] != 2) //hour part is the only component that is allowed to be single digit
 		{
 			err = "Invalid format: " + err + "\n";
 			throw std::runtime_error(err);

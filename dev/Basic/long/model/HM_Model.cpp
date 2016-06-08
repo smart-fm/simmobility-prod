@@ -1892,13 +1892,10 @@ void HM_Model::hdbEligibilityTest(int index)
 	{
 		const Individual* hhIndividual = getIndividualById(	households[index]->getIndividuals()[n]);
 
-		time_t now = time(0);
-		tm ltm = *(localtime(&now));
-		std::tm birthday = hhIndividual->getDateOfBirth();
-
-
-		boost::gregorian::date date1(birthday.tm_year + 1900, birthday.tm_mon + 1, birthday.tm_mday);
-		boost::gregorian::date date2(ltm.tm_year + 1900, ltm.tm_mon + 1, ltm.tm_mday);
+		boost::gregorian::date date1 = boost::gregorian::date_from_tm(hhIndividual->getDateOfBirth());
+		boost::gregorian::date date2(HITS_SURVEY_YEAR, 1, 1);
+		boost::gregorian::date_duration simulationDay(0); //we only check HDB eligibility on day 0 of simulation.
+		date2 = date2 + simulationDay;
 
 		int years = (date2 - date1).days() / YEAR;
 
@@ -2026,12 +2023,14 @@ void HM_Model::hdbEligibilityTest(int index)
 		{
 			households[index]->setTwoRoomHdbEligibility(true);
 		}
-		else if (households[index]->getIncome() < THREEBEDROOM && familyTypeGeneral == true)
+
+		if (households[index]->getIncome() < THREEBEDROOM && familyTypeGeneral == true)
 		{
-			households[index]->setTwoRoomHdbEligibility(true);
 			households[index]->setThreeRoomHdbEligibility(true);
+			households[index]->setFourRoomHdbEligibility(true);
 		}
-		else if (households[index]->getIncome() < THREEBEDROOMMATURE && familyTypeGeneral == true && familyType == Household::MULTIGENERATION)
+
+		if (households[index]->getIncome() < THREEBEDROOMMATURE && familyType == Household::MULTIGENERATION)
 		{
 			households[index]->setTwoRoomHdbEligibility(true);
 			households[index]->setThreeRoomHdbEligibility(true);

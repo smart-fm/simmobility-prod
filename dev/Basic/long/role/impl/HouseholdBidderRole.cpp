@@ -406,8 +406,20 @@ void HouseholdBidderRole::HandleMessage(Message::MessageType type, const Message
                 case ACCEPTED:// Bid accepted 
                 {
                 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
-                	moveInWaitingTimeInDays = config.ltParams.housingModel.housingMoveInDaysInterval;
+
                 	unitIdToBeOwned = msg.getBid().getNewUnitId();
+                	const Unit *newUnit = getParent()->getModel()->getUnitById(unitIdToBeOwned);
+                	boost::gregorian::date moveInDate = boost::gregorian::date_from_tm(newUnit->getOccupancyFromDate());
+                	boost::gregorian::date simulationDate(HITS_SURVEY_YEAR, 1, 1);
+                	boost::gregorian::date_duration dt(day);
+                	simulationDate = simulationDate + dt;
+
+                	if( simulationDate <  moveInDate )
+                		moveInWaitingTimeInDays = ( moveInDate - simulationDate ).days();
+                	else
+                		moveInWaitingTimeInDays = config.ltParams.housingModel.housingMoveInDaysInterval;
+
+
                 	vehicleBuyingWaitingTimeInDays = config.ltParams.vehicleOwnershipModel.vehicleBuyingWaitingTimeInDays;
                 	int simulationEndDay = config.ltParams.days;
                 	year = config.ltParams.year;
@@ -647,18 +659,32 @@ bool HouseholdBidderRole::pickEntryToBid()
 
             bool flatEligibility = true;
 
-            /*
-            if( unit && unit->getUnitType() == 2 && household->getTwoRoomHdbEligibility()  == false)
-            	flatEligibility = false;
+            bool buildToOrder= false;
 
-            if( unit && unit->getUnitType() == 3 && household->getThreeRoomHdbEligibility() == false )
-                flatEligibility = false;
 
-            if( unit && unit->getUnitType() == 4 && household->getFourRoomHdbEligibility() == false )
-                flatEligibility = false;
-			*/
+            boost::gregorian::date occupancyDate = boost::gregorian::date_from_tm( unit->getOccupancyFromDate() );
+            boost::gregorian::date currentDate(HITS_SURVEY_YEAR,01,01);
+            boost::gregorian::date_duration simulationDay(day);
+            currentDate = currentDate + simulationDay;
 
-            if( unit && stats && flatEligibility )
+            if((occupancyDate - currentDate).days() > 0 )
+            	buildToOrder = true;
+
+
+            if( buildToOrder )
+            {
+				if( unit->getUnitType() == 2 && household->getTwoRoomHdbEligibility()  == false )
+					flatEligibility = false;
+
+				if( unit->getUnitType() == 3 && household->getThreeRoomHdbEligibility() == false )
+					flatEligibility = false;
+
+				if( unit->getUnitType() == 4 && household->getFourRoomHdbEligibility() == false )
+					flatEligibility = false;
+            }
+
+
+            if( stats && flatEligibility )
             {
             	const Unit *hhUnit = model->getUnitById( household->getUnitId() );
 

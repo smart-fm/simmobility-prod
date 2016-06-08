@@ -25,6 +25,8 @@ namespace
 
 double pathCostArray[] = { 0.77, 0.87, 0.98, 1.08, 1.16, 1.23, 1.29, 1.33, 1.37, 1.41, 1.45, 1.49, 1.53, 1.57, 1.61, 1.65, 1.69, 1.72, 1.75, 1.78, 1.81, 1.83,
 		1.85, 1.87, 1.88, 1.89, 1.90, 1.91, 1.92, 1.93, 1.94, 1.95, 1.96, 1.97, 1.98, 1.99, 2.00, 2.01, 2.02 };
+
+const short MAX_TRANSFERS = 4;
 }
 
 sim_mob::SinglePath::SinglePath() :
@@ -543,8 +545,8 @@ void sim_mob::PT_PathSet::checkPathFeasibilty()
 			if (itEdge->getType() == sim_mob::BUS_EDGE)
 			{
 				busLegCount++;
-				// Check 4 : Total number of bus legs <= 4
-				if (busLegCount > 4)
+				// Check 4 : Total number of bus legs <= MAX_TRANSFERS
+				if (busLegCount > MAX_TRANSFERS)
 				{
 					// Infeasible path
 					itPathComp++;

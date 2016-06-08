@@ -66,7 +66,7 @@ public:
 	double getCost(unsigned int index) const;
 
 	/**
-	 * interface function for Lua script to get total cost
+	 * interface function for Lua script to get path distance in PT vehicle (Bus or MRT)
 	 * @param index the index in public path set
 	 * @return total total cost
 	 */

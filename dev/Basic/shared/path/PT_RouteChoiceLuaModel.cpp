@@ -29,6 +29,10 @@
 
 using namespace luabridge;
 
+namespace
+{
+const double METERS_IN_UNIT_KM = 1000.0;
+}
 namespace sim_mob
 {
 
@@ -473,7 +477,7 @@ void PT_RouteChoiceLuaModel::loadPT_PathSet(int origin, int dest, PT_PathSet& pa
 		path.setPathTravelTime(pathTravelTime);
 		path.setWaitingTimeSecs(pathWaitingTime);
 		path.setInVehicleTravelTimeSecs(pathInVehicleTravelTime);
-		path.setPtDistanceKms(pathPtDistanceInMts/1000);
+		path.setPtDistanceKms(pathPtDistanceInMts/METERS_IN_UNIT_KM);
 		pathSet.pathSet.insert(path);
 	}
 	pathSet.computeAndSetPathSize();

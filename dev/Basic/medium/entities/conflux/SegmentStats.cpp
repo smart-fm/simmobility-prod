@@ -81,10 +81,10 @@ SupplyParams::SupplyParams(const RoadSegment* rdSeg, double statsLength) :
 	beta = speedDensityParams.second;
 
 	//TESTING ~ Harish
-	unsigned int numLanes = rdSeg->getLanes().size();
-	capacity = capacity + (0.42 * numLanes); // increase by 1600 veh/hr
-	freeFlowSpeed = freeFlowSpeed + 5.55556; //increase by 20kmph
-	minSpeed = 0.2 * freeFlowSpeed;
+//	unsigned int numLanes = rdSeg->getLanes().size();
+//	capacity = capacity + (0.42 * numLanes); // increase by 1600 veh/hr
+//	freeFlowSpeed = freeFlowSpeed + 5.55556; //increase by 20kmph
+//	minSpeed = 0.2 * freeFlowSpeed;
 }
 
 SegmentStats::SegmentStats(const RoadSegment* rdSeg, Conflux* parentConflux, double statslengthInM) :

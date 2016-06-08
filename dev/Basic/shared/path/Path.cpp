@@ -25,6 +25,8 @@ namespace
 
 double pathCostArray[] = { 0.77, 0.87, 0.98, 1.08, 1.16, 1.23, 1.29, 1.33, 1.37, 1.41, 1.45, 1.49, 1.53, 1.57, 1.61, 1.65, 1.69, 1.72, 1.75, 1.78, 1.81, 1.83,
 		1.85, 1.87, 1.88, 1.89, 1.90, 1.91, 1.92, 1.93, 1.94, 1.95, 1.96, 1.97, 1.98, 1.99, 2.00, 2.01, 2.02 };
+
+const short MAX_TRANSFERS = 4;
 }
 
 sim_mob::SinglePath::SinglePath() :
@@ -337,37 +339,37 @@ std::string sim_mob::makePT_PathSetString(const std::vector<PT_NetworkEdge> &pat
 }
 
 sim_mob::PT_Path::PT_Path() :
-		totalDistanceKms(0.0), totalCost(0.0), totalInVehicleTravelTimeSecs(0.0), totalWaitingTimeSecs(0.0), totalWalkingTimeSecs(0.0), totalNumberOfTransfers(
-				0), minDistance(false), validPath(false), shortestPath(false), minInVehicleTravelTime(false), minNumberOfTransfers(false), minWalkingDistance(
-				false), minTravelOnMRT(false), minTravelOnBus(false), pathSize(0.0), pathTravelTime(0.0), pathModesType(0)
+		totalDistanceKms(0.0), totalCost(0.0), ptDistanceKms(0.0), pathInVehicleTravelTimeSecs(0.0),
+		pathWaitingTimeSecs(0.0), totalWalkingTimeSecs(0.0), totalNumberOfTransfers(0), minDistance(false), validPath(false),
+		shortestPath(false), minInVehicleTravelTime(false), minNumberOfTransfers(false), minWalkingDistance(false),
+		minTravelOnMRT(false), minTravelOnBus(false), pathSize(0.0), pathTravelTime(0.0), pathModesType(0)
 {
 
 }
 
 sim_mob::PT_Path::PT_Path(const std::vector<PT_NetworkEdge> &path) :
-		pathEdges(path), totalDistanceKms(0.0), totalCost(0.0), totalInVehicleTravelTimeSecs(0.0), totalWaitingTimeSecs(0.0), totalWalkingTimeSecs(0.0), totalNumberOfTransfers(
-				0), minDistance(false), validPath(false), shortestPath(false), minInVehicleTravelTime(false), minNumberOfTransfers(false), minWalkingDistance(
-				false), minTravelOnMRT(false), minTravelOnBus(false), pathSize(0.0), pathTravelTime(0.0), pathModesType(0)
-
+		pathEdges(path), totalDistanceKms(0.0), totalCost(0.0), ptDistanceKms(0.0), pathInVehicleTravelTimeSecs(0.0),
+		pathWaitingTimeSecs(0.0), totalWalkingTimeSecs(0.0), totalNumberOfTransfers(0), minDistance(false), validPath(false),
+		shortestPath(false), minInVehicleTravelTime(false), minNumberOfTransfers(false), minWalkingDistance(false),
+		minTravelOnMRT(false), minTravelOnBus(false), pathSize(0.0), pathTravelTime(0.0), pathModesType(0)
 {
-	double totalBusMRTTravelDistance = 0.0;
 	ptPathId = makePT_PathString(pathEdges);
 	ptPathSetId = makePT_PathSetString(pathEdges);
 	for (std::vector<PT_NetworkEdge>::const_iterator itEdge = pathEdges.begin(); itEdge != pathEdges.end(); itEdge++)
 	{
-		totalWaitingTimeSecs += itEdge->getWaitTimeSecs();
-		totalInVehicleTravelTimeSecs += itEdge->getDayTransitTimeSecs();
+		pathWaitingTimeSecs += itEdge->getWaitTimeSecs();
+		pathInVehicleTravelTimeSecs += itEdge->getDayTransitTimeSecs();
 		totalWalkingTimeSecs += itEdge->getWalkTimeSecs();
 		pathTravelTime += itEdge->getLinkTravelTimeSecs();
 		totalDistanceKms += itEdge->getDistKms();
 		if (itEdge->getType() == sim_mob::BUS_EDGE || itEdge->getType() == sim_mob::TRAIN_EDGE)
 		{
-			totalBusMRTTravelDistance += itEdge->getDistKms();
+			ptDistanceKms += itEdge->getDistKms();
 			totalNumberOfTransfers++;
 		}
 	}
 
-	totalCost = this->getTotalCostByDistance(totalBusMRTTravelDistance);
+	totalCost = this->getTotalCostByDistance(ptDistanceKms);
 	if (totalNumberOfTransfers > 0)
 	{
 		totalNumberOfTransfers = totalNumberOfTransfers - 1;
@@ -494,8 +496,8 @@ void sim_mob::PT_PathSet::checkPathFeasibilty()
 	{
 		incrementFlag = false;
 		std::set<PT_Path>::iterator tempitPath = itPathComp;
-		// Check 1 : Total Number of transfers <= 4
-		if(itPathComp->getTotalNumberOfTransfers() > 4)
+		// Check 1 : Total Number of transfers <= MAX_TRANSFERS
+		if(itPathComp->getNumTransfers() > MAX_TRANSFERS)
 		{
 			// Infeasible path
 			itPathComp++;
@@ -543,8 +545,8 @@ void sim_mob::PT_PathSet::checkPathFeasibilty()
 			if (itEdge->getType() == sim_mob::BUS_EDGE)
 			{
 				busLegCount++;
-				// Check 4 : Total number of bus legs <= 4
-				if (busLegCount > 4)
+				// Check 4 : Total number of bus legs <= MAX_TRANSFERS
+				if (busLegCount > MAX_TRANSFERS)
 				{
 					// Infeasible path
 					itPathComp++;

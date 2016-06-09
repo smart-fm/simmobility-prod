@@ -124,7 +124,7 @@ void ParseMidTermConfigFile::processSupplyNode(xercesc::DOMElement* node)
 	processBusCapactiyElement(GetSingleElementByName(node, "bus_default_capacity", true));
 	processSpeedDensityParamsNode(GetSingleElementByName(node, "speed_density_params", true));
 	/* temporary will be deleted and separte node for supply scripts*/
-	processModelScriptsNode(GetSingleElementByName(node, "model_scripts_supply", true));
+	//processModelScriptsNode(GetSingleElementByName(node, "model_scripts_supply", true));
 }
 
 

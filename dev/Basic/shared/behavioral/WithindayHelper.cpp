@@ -2,22 +2,29 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
+#include <limits>
 #include <map>
+#include <set>
 #include <stdexcept>
 #include <string>
 #include <utility>
+#include "behavioral/params/WithindayModeParams.hpp"
 #include "behavioral/WithindayHelper.hpp"
 #include "boost/unordered/detail/buckets.hpp"
-#include "boost/unordered/unordered_map.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/Constructs.hpp"
 #include "conf/RawConfigParams.hpp"
 #include "database/dao/SqlAbstractDao.hpp"
+#include "database/DB_Config.hpp"
 #include "database/DB_Connection.hpp"
 #include "database/predaydao/ZoneCostSqlDao.hpp"
-#include "entities/misc/TripChain.hpp"
-#include "logging/Log.hpp"
-
+#include "geospatial/network/Node.hpp"
+#include "geospatial/network/WayPoint.hpp"
+#include "path/Path.hpp"
+#include "path/PathSetManager.hpp"
+#include "path/PT_RouteChoiceLuaModel.hpp"
+#include "path/PT_RouteChoiceLuaProvider.hpp"
+#include "util/DailyTime.hpp"
 
 using namespace sim_mob;
 using namespace sim_mob::db;
@@ -49,7 +56,6 @@ void WithindayModelsHelper::loadZones()
 	{
 		throw std::runtime_error("MT database connection unavailable");
 	}
-	Print() << "TAZs loaded" << std::endl;
 }
 
 WithindayModelsHelper::WithindayModelsHelper()
@@ -70,7 +76,7 @@ const ZoneParams* sim_mob::WithindayModelsHelper::findZone(int zoneCode) const
 	return znIt->second;
 }
 
-WithindayModeParams WithindayModelsHelper::buildModeChoiceParams(const Trip& curTrip, unsigned int orgNd) const
+WithindayModeParams WithindayModelsHelper::buildModeChoiceParams(const Trip& curTrip, unsigned int orgNd, const DailyTime& curTime) const
 {
 	WithindayModeParams wdModeParams;
 	int originZn = curTrip.originZoneCode;
@@ -88,12 +94,31 @@ WithindayModeParams WithindayModelsHelper::buildModeChoiceParams(const Trip& cur
 	wdModeParams.setCostCarParking(destZnParams->getParkingRate());
 	wdModeParams.setCentralZone(destZnParams->getCentralDummy());
 
+	double carInVehicleTT = PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(orgNd, destNd, curTime);
+	if(carInVehicleTT <= 0) { carInVehicleTT = std::numeric_limits<double>::max(); }
+	wdModeParams.setTtCarInVehicle(carInVehicleTT);
+
+	const PT_PathSet ptPathset = PT_RouteChoiceLuaProvider::getPTRC_Model().fetchPathset(orgNd, destNd, curTime);
+	unsigned int numPaths = ptPathset.pathSet.size();
+	int sumTransfers = 0;
+	double sumInVehicleTimeSecs = 0.0;
+	double sumWaitingTimeSecs = 0.0;
+	double sumWalkTimeSecs = 0.0;
+	double sumDistance = 0.0;
+	for(const auto& ptPath : ptPathset.pathSet)
+	{
+		sumTransfers = sumTransfers + ptPath.getNumTransfers();
+		sumInVehicleTimeSecs = sumInVehicleTimeSecs + ptPath.getInVehicleTravelTimeSecs();
+		sumWaitingTimeSecs = sumWaitingTimeSecs + ptPath.getWaitingTimeSecs();
+		sumWalkTimeSecs = sumWalkTimeSecs + ptPath.getWalkingTimeSecs();
+		sumDistance = sumDistance + ptPath.getPathDistanceKms();
+	}
+	wdModeParams.setAvgTransfer(sumTransfers/numPaths);
+	wdModeParams.setTtPublicInVehicle(sumInVehicleTimeSecs/numPaths);
+	wdModeParams.setTtPublicWaiting(sumWaitingTimeSecs/numPaths);
+	wdModeParams.setTtPublicWalk(sumWalkTimeSecs/numPaths);
+	wdModeParams.setWalkDistance(sumDistance/numPaths);
+
 	return wdModeParams;
-//	wdModeParams.setAvgTransfer(double avgTransfer)
-//	wdModeParams.setTtCarInVehicle(double ttCarInVehicle)
-//	wdModeParams.setTtPublicInVehicle(double ttPublicInVehicle)
-//	wdModeParams.setTtPublicWaiting(double ttPublicWaiting)
-//	wdModeParams.setTtPublicWalk(double ttPublicWalk)
-//	wdModeParams.setWalkDistance(double walkDistance)
 
 }

@@ -3,13 +3,15 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 #pragma once
-#include <boost/unordered_map.hpp>
+
 #include "behavioral/params/WithindayModeParams.hpp"
 #include "behavioral/params/ZoneCostParams.hpp"
+#include "boost/unordered/unordered_map.hpp"
+#include "entities/misc/TripChain.hpp"
 
 namespace sim_mob
 {
-class Trip;
+class DailyTime;
 /**
  * Singleton class to help build params required by withinday lua models
  *
@@ -33,6 +35,6 @@ public:
 	WithindayModelsHelper();
 	virtual ~WithindayModelsHelper();
 
-	WithindayModeParams buildModeChoiceParams(const Trip& curTrip, unsigned int orgNd) const;
+	WithindayModeParams buildModeChoiceParams(const Trip& curTrip, unsigned int orgNd, const DailyTime& curTime) const;
 };
 } //end namespace sim_mob

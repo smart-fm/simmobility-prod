@@ -32,6 +32,7 @@ using namespace luabridge;
 namespace
 {
 const double METERS_IN_UNIT_KM = 1000.0;
+const std::string TWIN_BUS_STOP_PREFIX = "twin_";
 }
 namespace sim_mob
 {
@@ -217,13 +218,19 @@ std::vector<sim_mob::OD_Trip> PT_RouteChoiceLuaModel::makePT_RouteChoice(const s
 	return odTrips;
 }
 
+PT_PathSet PT_RouteChoiceLuaModel::fetchPathset(int origin, int destination, const DailyTime& startTime) const
+{
+	PT_PathSet pathSet;
+	loadPT_PathSet(origin, destination, startTime, pathSet);
+	return pathSet;
+}
 
 bool PT_RouteChoiceLuaModel::getBestPT_Path(int origin, int dest, const DailyTime& startTime, std::vector<sim_mob::OD_Trip>& odTrips, std::string dbid, unsigned int start_time)
 {
 	bool ret = false;
 	PT_PathSet pathSet;
 	curStartTime = startTime;
-	loadPT_PathSet(origin, dest, pathSet);
+	loadPT_PathSet(origin, dest, startTime, pathSet);
 	if (pathSet.pathSet.empty())
 	{
 		Print() << "[PT pathset]load pathset failed:[" << origin << "]:[" << dest << "]" << std::endl;
@@ -297,7 +304,7 @@ void loadPT_PathsetFromDB(soci::session& sql, const std::string& funcName, int o
 	}
 }
 
-void PT_RouteChoiceLuaModel::loadPT_PathSet(int origin, int dest, PT_PathSet& pathSet)
+void PT_RouteChoiceLuaModel::loadPT_PathSet(int origin, int dest, const DailyTime& curTime, PT_PathSet& pathSet) const
 {
 	const BusController* busController = BusController::GetInstance();
 	const TravelTimeManager* ttMgr = TravelTimeManager::getInstance();
@@ -314,7 +321,7 @@ void PT_RouteChoiceLuaModel::loadPT_PathSet(int origin, int dest, PT_PathSet& pa
 		double pathWaitingTime = 0.0;
 		double pathInVehicleTravelTime = 0.0;
 		double pathPtDistanceInMts = 0.0;
-		DailyTime nextStartTime = curStartTime;
+		DailyTime nextStartTime = curTime;
 		bool invalidPath = false;
 		for(PT_NetworkEdge& edge : pathEdges)
 		{
@@ -357,7 +364,10 @@ void PT_RouteChoiceLuaModel::loadPT_PathSet(int origin, int dest, PT_PathSet& pa
 					originStop = originStop->getTwinStop(); // origin stop should not be a sink terminus
 				}
 
-				double waitingTime = ptStats->getWaitingTime((nextStartTime.getValue()/1000), originStop->getStopCode(), lines.front());
+				std::string originStopCode = originStop->getStopCode();
+				if(originStopCode.find(TWIN_BUS_STOP_PREFIX) != std::string::npos) {	originStopCode = originStop->getTwinStop()->getStopCode(); }
+
+				double waitingTime = ptStats->getWaitingTime((nextStartTime.getValue()/1000), originStopCode, lines.front());
 				if(waitingTime > 0)
 				{
 					edgeTravelTime = edgeTravelTime + waitingTime;
@@ -417,7 +427,9 @@ void PT_RouteChoiceLuaModel::loadPT_PathSet(int origin, int dest, PT_PathSet& pa
 					while(isBeforeDestStop && nextStop && nextStop->getParentSegment()->getParentLink() == currentLink)
 					{
 						isBeforeDestStop = !((nextStop == destinStop) || (nextStop->getTwinStop() == destinStop));
-						double dwellTime = ptStats->getDwellTime((nextStartTime.getValue()/1000), nextStop->getStopCode(), lines.front());
+						std::string nextStopCode = nextStop->getStopCode();
+						if(nextStopCode.find(TWIN_BUS_STOP_PREFIX) != std::string::npos) { nextStop->getTwinStop()->getStopCode(); }
+						double dwellTime = ptStats->getDwellTime((nextStartTime.getValue()/1000), nextStopCode, lines.front());
 						if(dwellTime > 0)
 						{
 							tt = tt + dwellTime;

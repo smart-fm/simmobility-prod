@@ -91,6 +91,17 @@ public:
 	 */
 	//bool getBestPT_Path(int origin, int destination, const DailyTime& startTime, std::vector<sim_mob::OD_Trip>& odTrips);
 	bool getBestPT_Path(int origin, int destination, const DailyTime& startTime, std::vector<sim_mob::OD_Trip>& odTrips, std::string dbid, unsigned int start_time);
+
+	/**
+	 * fetches the public transit pathset for a given OD from database
+	 * @param origin origin node id
+	 * @param destination destination node id
+	 * @param startTime time at which route choice is to be done
+	 *
+	 * @return public transit pathset for the supplied OD.
+	 */
+	PT_PathSet fetchPathset(int origin, int destination, const DailyTime& startTime) const;
+
 	/**
 	 * store chosen path in file
 	 */
@@ -120,9 +131,10 @@ private:
 	 * load public transit path set from database
 	 * @param origin is trip origin
 	 * @param dest is trip destination
+	 * @param curTime time at which routechoice is to be done
 	 * @param pathSet output parameter for path set retrieved from database
 	 */
-	void loadPT_PathSet(int origin, int dest, PT_PathSet& pathSet);
+	void loadPT_PathSet(int origin, int dest, const DailyTime& curTime, PT_PathSet& pathSet) const;
 
 	/**
 	 * Inherited from LuaModel

@@ -119,6 +119,8 @@ WithindayModeParams WithindayModelsHelper::buildModeChoiceParams(const Trip& cur
 	wdModeParams.setTtPublicWalk(sumWalkTimeSecs/numPaths);
 	wdModeParams.setWalkDistance(sumDistance/numPaths);
 
+	wdModeParams.setTripType(curTrip.purpose);
+
 	return wdModeParams;
 
 }

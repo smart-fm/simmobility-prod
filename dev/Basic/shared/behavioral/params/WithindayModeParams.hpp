@@ -3,6 +3,7 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 #pragma once
+#include "behavioral/StopType.hpp"
 
 namespace sim_mob
 {
@@ -14,6 +15,7 @@ namespace sim_mob
 class WithindayModeParams
 {
 private:
+	StopType tripType;
 	double costCarParking;
 	double walkDistance;
 	bool centralZone;
@@ -40,7 +42,7 @@ private:
 
 public:
 	WithindayModeParams()
-		: costCarParking(0), walkDistance(0), centralZone(false), ttPublicInVehicle(0),
+		: tripType(NULL_STOP), costCarParking(0), walkDistance(0), centralZone(false), ttPublicInVehicle(0),
 		  ttPublicWaiting(0), ttPublicWalk(0), ttCarInVehicle(0), avgTransfer(0), originArea(0), originResidentSize(0),
 		  destinationWorkerSize(0), destinationStudentsSize(0), destinationArea(0), publicBusAvailable(false), mrtAvailable(false),
 		  privateBusAvailable(false), drive1Available(false), share2Available(false), share3Available(false), motorAvailable(false),
@@ -267,6 +269,16 @@ public:
 	void setWalkDistance(double walkDistance)
 	{
 		this->walkDistance = walkDistance;
+	}
+
+	StopType getTripType() const
+	{
+		return tripType;
+	}
+
+	void setTripType(StopType tripType)
+	{
+		this->tripType = tripType;
 	}
 };
 }

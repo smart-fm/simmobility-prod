@@ -328,6 +328,7 @@ void StopStatsManager::loadHistoricalStopStats()
 		stats.waitingTime = r.get<double>(3);
 		stats.dwellTime = r.get<double>(4);
 		stats.numArrivals = r.get<double>(5);
+		stats.needsInitialization = false;
 		historicalStopStatsMap[stats.interval][stats.stopCode][stats.serviceLine] = stats;
 	}
 }
@@ -335,10 +336,10 @@ void StopStatsManager::loadHistoricalStopStats()
 double StopStatsManager::getDwellTime(unsigned int time, const std::string& stopCode, const std::string& serviceLine) const
 {
 	unsigned int interval = time / intervalWidth;
-	std::map<unsigned int, std::map<std::string, std::map<std::string, StopStats> > >::const_iterator histMapIt = historicalStopStatsMap.find(time);
+	std::map<unsigned int, std::map<std::string, std::map<std::string, StopStats> > >::const_iterator histMapIt = historicalStopStatsMap.find(interval);
 	if(histMapIt == historicalStopStatsMap.end())
 	{
-		return -1.0;
+		return -1;
 	}
 	const std::map<std::string, std::map<std::string, StopStats> >& stopLineStatsMap = histMapIt->second;
 	std::map<std::string, std::map<std::string, StopStats> >::const_iterator stopLineStatsMapIt = stopLineStatsMap.find(stopCode);
@@ -358,10 +359,10 @@ double StopStatsManager::getDwellTime(unsigned int time, const std::string& stop
 double StopStatsManager::getWaitingTime(unsigned int time, const std::string& stopCode, const std::string& serviceLine) const
 {
 	unsigned int interval = time / intervalWidth;
-	std::map<unsigned int, std::map<std::string, std::map<std::string, StopStats> > >::const_iterator histMapIt = historicalStopStatsMap.find(time);
+	std::map<unsigned int, std::map<std::string, std::map<std::string, StopStats> > >::const_iterator histMapIt = historicalStopStatsMap.find(interval);
 	if(histMapIt == historicalStopStatsMap.end())
 	{
-		return -1.0;
+		return -1;
 	}
 	const std::map<std::string, std::map<std::string, StopStats> >& stopLineStatsMap = histMapIt->second;
 	std::map<std::string, std::map<std::string, StopStats> >::const_iterator stopLineStatsMapIt = stopLineStatsMap.find(stopCode);

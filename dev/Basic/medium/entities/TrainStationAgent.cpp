@@ -226,6 +226,7 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 {
 	dispathPendingTrains(now);
 	updateWaitPersons();
+	performDisruption(now);
 	ConfigManager::GetInstance().FullConfig().simStartTime();
 	double sysGran = ConfigManager::GetInstance().FullConfig().baseGranSecond();
 	std::list<TrainDriver*>::iterator it=trainDriver.begin();

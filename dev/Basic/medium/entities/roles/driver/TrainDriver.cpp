@@ -259,6 +259,7 @@ int TrainDriver::alightPassenger(std::list<Passenger*>& alightingPassenger,times
 }
 
 
+
 int TrainDriver::AlightAllPassengers(std::list<Passenger*>& alightingPassenger,timeslice now)
 {
 	int num = 0;

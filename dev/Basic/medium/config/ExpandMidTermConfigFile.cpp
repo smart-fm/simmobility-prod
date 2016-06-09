@@ -114,8 +114,8 @@ void ExpandMidTermConfigFile::processConfig()
 	if(cfg.trainController.enabled)
 	{
 		TrainController<Person_MT>::getInstance()->initTrainController();
-		PT_ServiceControllerLuaProvider::getPTRC_Model().Use_ServiceController();
-       // ServiceController::getInstance()->Use_ServiceController();
+		//PT_ServiceControllerLuaProvider::getPTRC_Model().Use_ServiceController();
+        // ServiceController::getInstance()->Use_ServiceController();
 		TrainController<Person_MT>::getInstance()->assignTrainTripToPerson(active_agents);
 	}
 

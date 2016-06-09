@@ -238,6 +238,10 @@ public:
      */
 	bool updateNextSubTrip();
 
+	void splitMrtTrips(std::vector<std::string> railPath);
+
+	sim_mob::SubTrip CreateMRTSubTrips(std::string src,std::string dest);
+
 	/**
 	 * Check if any role changing is required.
 

@@ -18,7 +18,7 @@
 namespace sim_mob {
 
 namespace medium{
-
+int TrainDriver::counter=0;
 TrainDriver::TrainDriver(Person_MT* parent,
 		sim_mob::medium::TrainBehavior* behavior,
 		sim_mob::medium::TrainMovement* movement,
@@ -99,8 +99,20 @@ TrainMovement* TrainDriver::GetMovement()
 	TrainMovement* movement = dynamic_cast<TrainMovement*>(movementFacet);
 	return movement;
 }
+
+void TrainDriver::SetTrainDriverInOpposite(TrainDriver *trainDriver)
+{
+	nextDriverInOppLine = trainDriver;
+}
+
+TrainDriver * TrainDriver::GetDriverInOppositeLine()
+{
+    return nextDriverInOppLine;
+}
+
 TrainDriver::TRAIN_NEXTREQUESTED TrainDriver::getNextRequested() const
 {
+
 	driverMutex.lock();
 	TRAIN_NEXTREQUESTED next = nextRequested;
 	driverMutex.unlock();
@@ -109,6 +121,8 @@ TrainDriver::TRAIN_NEXTREQUESTED TrainDriver::getNextRequested() const
 
 void TrainDriver::setNextRequested(TRAIN_NEXTREQUESTED res)
 {
+	counter++;
+	Print() <<"Driver is "<<counter;
 	driverMutex.lock();
 	nextRequested = res;
 	driverMutex.unlock();
@@ -214,6 +228,10 @@ int TrainDriver::alightPassenger(std::list<Passenger*>& alightingPassenger,times
 {
 	int num = 0;
 	const Platform* platform = this->getNextPlatform();
+    if(platform)
+    {
+    	std::string ptName=platform->getPlatformNo();
+    }
 	std::list<Passenger*>::iterator i = passengerList.begin();
 	std::string tm=(DailyTime(now.ms())+DailyTime(ConfigManager::GetInstance().FullConfig().simStartTime())).getStrRepr();
 	sim_mob::BasicLogger& ptMRTLogger  = sim_mob::Logger::log("PersonsAlighting.csv");
@@ -225,7 +243,7 @@ int TrainDriver::alightPassenger(std::list<Passenger*>& alightingPassenger,times
 			if(endPoint.platform==platform)
 			{
 				alightingPassenger.push_back(*i);
-				ptMRTLogger <<(*i)->getParent()->GetId()<<","<<tm<<","<<getTrainId()<<","<<getTripId()<<","<<(*i)->getParent()->currSubTrip->origin.platform->getPlatformNo()<<","<<(*i)->getParent()->currSubTrip->destination.platform->getPlatformNo()<<std::endl;
+				ptMRTLogger <<(*i)->getParent()->getDatabaseId()<<","<<tm<<","<<getTrainId()<<","<<getTripId()<<","<<(*i)->getParent()->currSubTrip->origin.platform->getPlatformNo()<<","<<(*i)->getParent()->currSubTrip->destination.platform->getPlatformNo()<<std::endl;
 				i = passengerList.erase(i);
 				num++;
 				continue;
@@ -240,6 +258,7 @@ int TrainDriver::alightPassenger(std::list<Passenger*>& alightingPassenger,times
 	return num;
 }
 
+
 int TrainDriver::AlightAllPassengers(std::list<Passenger*>& alightingPassenger,timeslice now)
 {
 	int num = 0;
@@ -250,6 +269,7 @@ int TrainDriver::AlightAllPassengers(std::list<Passenger*>& alightingPassenger,t
 		i = passengerList.erase(i);
 		num++;
 	}
+
 	return num;
 }
 
@@ -300,7 +320,8 @@ int TrainDriver::boardPassenger(std::list<WaitTrainActivity*>& boardingPassenger
 			passenger->setStartPoint(person->currSubTrip->origin);
 			passenger->setEndPoint(person->currSubTrip->destination);
 			passenger->Movement()->startTravelTimeMetric();
-			ptMRTLogger<<person->GetId()<<","<<tm<<","<<getTrainId()<<","<<getTripId()<<","<<person->currSubTrip->origin.platform->getPlatformNo()<<","<<person->currSubTrip->destination.platform->getPlatformNo()<<std::endl;
+
+			ptMRTLogger<<person->getDatabaseId()<<","<<tm<<","<<getTrainId()<<","<<getTripId()<<","<<person->currSubTrip->origin.platform->getPlatformNo()<<","<<person->currSubTrip->destination.platform->getPlatformNo()<<std::endl;
             passengerList.push_back(passenger);
 			i = boardingPassenger.erase(i);
 			validNum--;

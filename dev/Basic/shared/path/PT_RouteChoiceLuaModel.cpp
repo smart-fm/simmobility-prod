@@ -423,6 +423,21 @@ void PT_RouteChoiceLuaModel::loadPT_PathSet(int origin, int dest, PT_PathSet& pa
 				edge.setLinkTravelTimeSecs(edgeTravelTime);
 				pathTravelTime = pathTravelTime + edgeTravelTime;
 				nextStartTime = DailyTime(nextStartTime.getValue() + std::floor(edgeTravelTime*1000));
+				/*std::string startStop=edge.getStartStop();
+				std::string endStop=edge.getEndStop();
+				std::vector<std::string> stopVector=RailTransit::getInstance().fetchBoardAlightStopSeq(startStop,endStop);
+				std::vector<std::string>::iterator it;
+				bool inter=true;
+				for(it=stopVector.begin() ; it < stopVector.end(); it++)
+				{
+                     if(inter==true)
+                     {
+
+                    	 inter=false;
+                     }
+                     else
+                         inter=true;
+				}*/
 				break;
 			}
 			case sim_mob::WALK_EDGE:

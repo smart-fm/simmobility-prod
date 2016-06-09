@@ -49,7 +49,10 @@ namespace sim_mob {
 	template<typename PERSON>
 	Entity::UpdateStatus TrainController<PERSON>::frame_tick(timeslice now)
 	{
-		if(disruptionParam.get()){
+
+		//resetBlockSpeeds(now);
+		if(disruptionParam.get())
+                {
 			unsigned int baseGran = ConfigManager::GetInstance().FullConfig().baseGranMS();
 			DailyTime duration = disruptionParam->duration;
 			if(duration.getValue()>baseGran){
@@ -58,6 +61,7 @@ namespace sim_mob {
 				disruptionParam.reset();
 			}
 		}
+
 		std::map<std::string, TripStartTimePriorityQueue>::iterator it;
 		for(it=mapOfIdvsTrip.begin(); it!=mapOfIdvsTrip.end(); it++)
 		{
@@ -127,6 +131,33 @@ namespace sim_mob {
 		}
 		return trainId;
 	}
+
+	template<typename PERSON>
+	void TrainController<PERSON>::AddToListOfActiveTrainsInLine(std::string lineId,Role<PERSON> *driver)
+	{
+		mapOfLineAndTrainDrivers[lineId].push_back(driver);
+	}
+
+	template<typename PERSON>
+	void TrainController<PERSON>::RemoveFromListOfActiveTrainsInLine(std::string lineId,Role<PERSON> *driver)
+	{
+
+		std::vector <Role<PERSON>*> vect=mapOfLineAndTrainDrivers[lineId];
+		typename std::vector <sim_mob::Role<PERSON>*>::iterator it=vect.begin();
+		//std::vector<Role<PERSON>*>::iterator it=vect.begin();
+		it=find(vect.begin(),vect.end(),driver);
+		int pos=std::distance (vect.begin (), it);
+		vect.erase(vect.begin()+pos,vect.begin()+pos+1);
+		//vect.erase(vect.begin()+pos,vect.begin()+pos+1);
+		mapOfLineAndTrainDrivers[lineId]=vect;
+	}
+
+	template<typename PERSON>
+	typename  std::vector <Role<PERSON>*> TrainController<PERSON>::GetActiveTrainsForALine(std::string lineID)
+	{
+       return mapOfLineAndTrainDrivers[lineID];
+	}
+
 	template<typename PERSON>
 	Entity::UpdateStatus TrainController<PERSON>::frame_init(timeslice now)
 	{
@@ -412,6 +443,34 @@ namespace sim_mob {
 	}
 
 	template<typename PERSON>
+	TrainPlatform TrainController<PERSON>::GetNextPlatform(std::string platformNo,std::string lineID)
+	{
+		std::vector<TrainPlatform> trainPlatforms=mapOfIdvsTrainPlatforms[lineID];
+		typename std::vector<TrainPlatform>::iterator it=trainPlatforms.begin();
+		while(it!=trainPlatforms.end())
+		{
+           if(boost::iequals((*it).platformNo,platformNo))
+           {
+              break;
+           }
+		}
+        if(it!=trainPlatforms.end())
+        {
+			it++;
+			if(it!=trainPlatforms.end())
+			{
+				return (*it);
+			}
+        }
+	}
+
+	template<typename PERSON>
+	Platform* TrainController<PERSON>::GetPlatformFromId(std::string platformNo)
+	{
+	   return mapOfIdvsPlatforms[platformNo];
+	}
+
+	template<typename PERSON>
 	std::vector<Block*> TrainController<PERSON>::GetBlocks(std::string lineId)
 	{
 		std::map<std::string, std::vector<TrainRoute>>::iterator it = mapOfIdvsTrainRoutes.find(lineId);
@@ -436,6 +495,48 @@ namespace sim_mob {
 		return blockVector;
 	}
 
+	template<typename PERSON>
+    Block* TrainController<PERSON>::GetBlock(int blockId)
+	{
+		std::map<unsigned int, Block*>::iterator iBlock = mapOfIdvsBlocks.find(blockId);
+		return iBlock->second;
+	}
+
+
+	template<typename PERSON>
+	std::vector<std::string> TrainController<PERSON>::GetLinesBetweenTwoStations(std::string src,std::string dest)
+	{
+		typename std::map<std::string, std::vector<TrainRoute>>::iterator it=mapOfIdvsTrainRoutes.begin();
+		std::vector<std::string> lines;
+		while(it!=mapOfIdvsTrainRoutes.end())
+		{
+			std::vector<TrainRoute> route=it->second;
+			std::vector<TrainRoute> ::iterator tritr=route.begin();
+			bool originFound=false;
+            while(tritr!=route.end())
+            {
+            	int blockId=(*tritr).blockId;
+            	typename std::map<unsigned int, Block*>::iterator iBlock =mapOfIdvsBlocks.find(blockId);
+            	Block *block=(iBlock)->second;
+            	Platform *plt=block->getAttachedPlatform();
+            	if(plt)
+            	{
+            		std::string stationNo=plt->getStationNo();
+            		if(boost::iequals(stationNo, src))
+            		{
+            			originFound=true;
+            		}
+            		else if(boost::iequals(stationNo, dest)&&originFound==true)
+            		{
+            			lines.push_back((*tritr).lineId);
+            			break;
+            		}
+
+            	}
+            }
+		}
+ return lines;
+	}
 	template<typename PERSON>
 	void TrainController<PERSON>::loadTrainRoutes()
 	{
@@ -707,15 +808,116 @@ namespace sim_mob {
 						{
 							recycleTrainId[lineId] = std::vector<int>();
 						}
-						recycleTrainId[lineId].push_back(trainId);
-					    std::string oppLineId=GetOppositeLineId(lineId);
+
+						std::string oppLineId=GetOppositeLineId(lineId);
+						recycleTrainId[oppLineId].push_back(trainId);
 						mapOfNoAvailableTrains[oppLineId]=mapOfNoAvailableTrains[oppLineId]+1;
 
 					}
 				}
 				break;
 		}
+
+		case MSG_REGISTER_BLOCKS_CHANGE_SPEEDLIMIT:
+		{
+			const ResetSpeedMessage& msg = MSG_CAST(ResetSpeedMessage, message);
+			resetSpeedBlocks.push_back(msg.ResetSpeedBlock);
 		}
+
+		}
+	}
+
+	template<typename PERSON>
+	void TrainController<PERSON>::AssignResetBlocks(ResetBlockSpeeds resetSpeedBlocksEntity)
+	{
+		resetSpeedBlocks.push_back(resetSpeedBlocksEntity);
+	}
+
+	template<typename PERSON>
+	void TrainController<PERSON>::resetBlockSpeeds(timeslice now)
+	{
+		std::vector<ResetBlockSpeeds>::iterator it;
+		DailyTime currentTime=ConfigManager::GetInstance().FullConfig().simStartTime()+DailyTime(now.ms());
+		DailyTime nextFrameTickTime=ConfigManager::GetInstance().FullConfig().simStartTime()+DailyTime(now.ms()+5000);
+		//map<int, double> blockIdSpeed;
+		//std::vector<Block*> blockVector;
+		int count=-1;
+		for(it=resetSpeedBlocks.begin() ; it < resetSpeedBlocks.end(); it++ )
+		{
+           count++;
+		   if((*it).startTime>=currentTime.getStrRepr()&&(*it).startTime<nextFrameTickTime.getStrRepr()&&(*it).speedReset==false)
+           {
+               std::string startStation=(*it).startStation;
+               std::string endStation =(*it).endStation;
+               std::string lineId=(*it).line;
+               double speedLimit=(*it).speedLimit;
+
+			   //=TrainController<sim_mob::medium::Person_MT>::getInstance()->GetBlocks(lineId);
+               std::vector<Platform*> platforms;
+               getTrainPlatforms(lineId,platforms);
+               bool startSeq=false;
+
+               std::vector<Platform *>::iterator itpl;
+               for(itpl=platforms.begin() ; itpl < platforms.end(); itpl++)
+               {
+            	   //boost::iequals((*itpl)->getStationNo(), startStation)
+            	   if(boost::iequals((*itpl)->getStationNo(), startStation))
+                   {
+                        startSeq=true;
+                   }
+                   else if (boost::iequals((*itpl)->getStationNo(), endStation))
+                   {
+                       break;
+                   }
+                   if(startSeq==true)
+                   {
+                	   int blockId=(*itpl)->getAttachedBlockId();
+                	   std::map<unsigned int, Block*>::iterator iBlock = mapOfIdvsBlocks.find(blockId);
+                       Block *block=iBlock->second;
+                       blockIdSpeed[blockId]=block->getSpeedLimit();
+                       block->setSpeedLimit(speedLimit);
+                       //blockVectorOfRessetedSpeeds.push_back(block);
+                   }
+               }
+               //resetSpeedBlocks[count].speedReset=true;
+               //(*it).speedReset=true;
+
+           }
+		   //&&(*it).speedReset==true
+           else if((*it).endTime<currentTime.getStrRepr())
+           {
+
+        	  std::vector<Platform *>::iterator itpl;
+        	  std::string startStation=(*it).startStation;
+        	  std::string endStation =(*it).endStation;
+        	  std::string lineId=(*it).line;
+        	  std::vector<Platform*> platforms;
+        	  getTrainPlatforms(lineId,platforms);
+        	  bool startSeq=false;
+        	  for(itpl=platforms.begin() ; itpl < platforms.end(); itpl++)
+			  {
+				  if(boost::iequals((*itpl)->getStationNo(), startStation))
+				  {
+					   startSeq=true;
+				  }
+				  else if (boost::iequals((*itpl)->getStationNo(), endStation))
+				  {
+					  break;
+				  }
+				  if(startSeq==true)
+				  {
+				   int blockId=(*itpl)->getAttachedBlockId();
+				   std::map<unsigned int, Block*>::iterator iBlock = mapOfIdvsBlocks.find(blockId);
+				   Block *block=iBlock->second;
+				   double defaultSpeed=blockIdSpeed[block->getBlockId()];
+				   block->setSpeedLimit(defaultSpeed);
+				  }
+			  }
+        	  resetSpeedBlocks[count].speedReset=false;
+           }
+
+		}
+
 	}
 
 	template<typename PERSON>

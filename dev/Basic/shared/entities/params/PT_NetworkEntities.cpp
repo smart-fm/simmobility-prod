@@ -66,7 +66,8 @@ void loadMRTData(soci::session& sql_, std::map<std::string, TrainStop*>& mrtStop
 	   }
 	   else
 	   {
-		   TrainStop* mrtStopObj = nullptr;
+		   TrainStop* mrtStopObj = new TrainStop(mrtstopid);
+		   mrtStopsMap[mrtstopid] = mrtStopObj;
 		   std::stringstream ss(mrtstopid);
 		   std::string singleMrtStopId;
 		   while (std::getline(ss, singleMrtStopId, '/'))
@@ -165,11 +166,16 @@ void PT_Network::init(const std::string& storedProcForVertex, const std::string&
 	for(vector<PT_NetworkEdge>::const_iterator ptEdgeIt=PublicTransitEdges.begin();ptEdgeIt!=PublicTransitEdges.end();ptEdgeIt++)
 	{
 		PT_NetworkEdgeMap[ptEdgeIt->getEdgeId()]=*ptEdgeIt;
+		//(*ptEdgeIt).startStop;
+		//(*ptEdgeIt).endStop;
+		if((*ptEdgeIt).getType()==TRAIN_EDGE)
+		{
+			MRTStopdgesMap[(*ptEdgeIt).getStartStop()][(*ptEdgeIt).getEndStop()].push_back((*ptEdgeIt));
+		}
 	}
 
 	//Read MRT data
 	soci::session& sql_ = conn.getSession<soci::session>();
-
 	std::string storedProc = sim_mob::ConfigManager::GetInstance().FullConfig().getDatabaseProcMappings().procedureMappings["mrt_road_segments"];
 	std::stringstream query;
 	query << "select * from " << storedProc;
@@ -218,13 +224,13 @@ void PT_Network::init(const std::string& storedProcForVertex, const std::string&
 	   }
 	}
 
+
 	loadMRTData(sql_, MRTStopsMap);
 
 	std::set<string> mrtStationIds;
 	std::vector<RTS_NetworkEdge> mrtEdges;
 	loadRailTransitGraphData(sql_, mrtStationIds, mrtEdges);
 	RailTransit::getInstance().initGraph(mrtStationIds, mrtEdges);
-
 
 	cout << "Public Transport network loaded\n";
 }

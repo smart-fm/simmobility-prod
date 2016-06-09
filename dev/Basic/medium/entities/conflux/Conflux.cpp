@@ -393,6 +393,12 @@ void Conflux::loadPersons()
 		{
 			messaging::MessageBus::PostMessage(conflux, MSG_PERSON_LOAD, messaging::MessageBus::MessagePtr(new PersonMessage(person)));
 		}
+
+		/*else
+		{
+			safe_delete_item(person);
+		}*/
+
 	}
 }
 
@@ -2003,6 +2009,7 @@ Conflux* Conflux::findStartingConflux(Person_MT* person, unsigned int now)
 		}
 		break;
 	}
+
 	case Role<Person_MT>::RL_TRAINDRIVER:
 	{
 		const medium::TrainMovement* trainMvt = dynamic_cast<const medium::TrainMovement*>(personRole->Movement());
@@ -2010,7 +2017,9 @@ Conflux* Conflux::findStartingConflux(Person_MT* person, unsigned int now)
 			trainMvt->arrivalAtStartPlaform();
 		}
 		return nullptr;
+
 	}
+
 	case Role<Person_MT>::RL_TRUCKER_HGV:
 	case Role<Person_MT>::RL_TRUCKER_LGV:
 	{
@@ -2024,6 +2033,7 @@ Conflux* Conflux::findStartingConflux(Person_MT* person, unsigned int now)
 			throw std::runtime_error("Driver role facets not/incorrectly initialized");
 		}
 		break;
+
 	}
 	case Role<Person_MT>::RL_BIKER:
 	{
@@ -2158,6 +2168,10 @@ void Conflux::driverStatistics(timeslice now)
 			statLinks[segId] = segStats->getRoadSegment()->getLinkId();
 			tmpAgents.clear();
 			personIds.clear();
+			segStats->getInfinityPersons(tmpAgents);
+			statSegsInfinity[segId] = tmpAgents.size();
+			statPersons[segId] = personIds;
+
 		}
 	}
 

@@ -646,6 +646,7 @@ public:
 	/**
 	 * exposes the Log() function for printing in output files
 	 */
+
 	void driverStatistics(timeslice now);
 	/**
 	 * add station agent to the conflux

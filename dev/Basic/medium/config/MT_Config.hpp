@@ -243,6 +243,11 @@ struct IncidentParams {
 };
 
 
+/**
+ * represent disruption data section of the config file
+ */
+
+
 class MT_Config : private ProtectedCopyable
 {
 	friend class ParseMidTermConfigFile;
@@ -307,6 +312,10 @@ public:
      * @param modelScriptsMap model scripts map to be set
      */
 	void setModelScriptsMap(const ModelScriptsMap& modelScriptsMap);
+
+	void setServiceControllerScriptsMap(const ModelScriptsMap& modelScriptsMap);
+
+	const ModelScriptsMap& getServiceControllerScriptsMap();
 
     /**
      * Retrieves Mongo Collection map
@@ -698,6 +707,7 @@ public:
 	 */
 	void setSpeedDensityParam(int linkCategory, double alpha, double beta);
 
+
 	/**
      * Enumerator for mid term run mode
      */
@@ -765,6 +775,8 @@ private:
 
     /// Container for lua scripts
 	ModelScriptsMap modelScriptsMap;
+
+	ModelScriptsMap ServiceControllerScriptsMap;
 
     /// container for mongo collections
 	MongoCollectionsMap mongoCollectionsMap;

@@ -43,15 +43,16 @@ class ServiceController:  public lua::LuaModel
           //add new parameters to lua files
 	}
 
-	void resetSpeedLimit(double speedLimit,std::string lineId);
+	void resetSpeedLimit(double speedLimit,std::string startStation,std::string endStation,std::string lineId,std::string startTime,std::string endTime);
 	void resetAcceleration(double accelerate,std::string lineId);
-	void resetSafeHeadwaySec(double sec);
-	void resetSafeOperationDistance(double distance);
+	void resetSafeHeadwaySec(double sec,int trainId,std::string lineId);
+	void resetSafeOperationDistance(double distance,int trainId,std::string lineId);
 	void resetMovingCase(int caseVal);
 	void forceReleasePassenegers(int trainId,std::string lineId);
 	void restrictPassengers(int behavior);
 	void resetHoldingTimeAtStation(double time);
 	void terminateTrainService(std::string lineId);
+	void Uturn(int trainId,std::string lineId);
 	double getDwellTime(int trainId,std::string lineId,std::string station);
 	static ServiceController* getInstance();
 	void mapClasses();

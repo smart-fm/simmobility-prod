@@ -178,6 +178,7 @@ private:
  	std::string rType;           // Service Line type, can be "BUS","LRT","WALK"
  	std::string serviceLine;	 // Service Line
  	PT_EdgeType edgeType;        // Edge type inferred from
+
 	std::string road_index;      // Index for road type 0 for BUS , 1 for LRT , 2 for Walk
 	std::string roadEdgeId;      // Strings of passing road segments Ex: 4/15/35/43
 	std::string rServiceLines; 	 //If the edge is a route segment, it will have bus service lines
@@ -288,7 +289,11 @@ public:
 	std::map<std::string, PT_NetworkVertex> PT_NetworkVertexMap;
 	std::map<std::string, TrainStop*> MRTStopsMap;
 
+    std::map<std::string ,std::map<std::string ,std::vector<PT_NetworkEdge>>> MRTStopdgesMap;
+	
+        void init();
 	void init(const std::string& storedProcForVertex, const std::string& storeProceForEdges);
+
 
 	TrainStop* findMRT_Stop(const std::string& stopId) const;
 

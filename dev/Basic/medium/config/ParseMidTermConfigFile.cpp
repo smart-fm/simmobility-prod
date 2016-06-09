@@ -123,6 +123,8 @@ void ParseMidTermConfigFile::processSupplyNode(xercesc::DOMElement* node)
 	processStatisticsOutputNode(GetSingleElementByName(node, "output_pt_statistics", true));
 	processBusCapactiyElement(GetSingleElementByName(node, "bus_default_capacity", true));
 	processSpeedDensityParamsNode(GetSingleElementByName(node, "speed_density_params", true));
+	/* temporary will be deleted and separte node for supply scripts*/
+	processModelScriptsNode(GetSingleElementByName(node, "model_scripts_supply", true));
 }
 
 
@@ -323,6 +325,8 @@ void ParseMidTermConfigFile::processBusCapactiyElement(xercesc::DOMElement* node
 void ParseMidTermConfigFile::processModelScriptsNode(xercesc::DOMElement* node)
 {
 	std::string format = ParseString(GetNamedAttributeValue(node, "format"), "");
+	//std::string format = ParseString(GetNamedAttributeValue(node, "type"), "");
+		std::string filename="";
 	if (format.empty() || format != "lua")
 	{
 		throw std::runtime_error("Unsupported script format");
@@ -357,6 +361,13 @@ void ParseMidTermConfigFile::processModelScriptsNode(xercesc::DOMElement* node)
 		}
 
 		scriptsMap.addScriptFileName(key, val);
+		filename=val;
+	}
+
+	if(boost::iequals(filename, "serv.lua"))
+	{
+		mtCfg.setServiceControllerScriptsMap(scriptsMap);
+		return;
 	}
 	mtCfg.setModelScriptsMap(scriptsMap);
 }

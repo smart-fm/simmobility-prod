@@ -115,6 +115,15 @@ public:
 	 * update passengers inside the train
 	 */
 	void updatePassengers();
+
+
+	int AlightAllPassengers(std::list<Passenger*>& alightingPassenger);
+
+	void TeleportToOppositeLine(std::string station,std::string lineId);
+
+	void SetTrainDriverInOpposite(TrainDriver *trainDriver);
+	TrainDriver *GetDriverInOppositeLine();
+
 	/**
 	 * alight all passengers
 	 * @param alightingPassenger is the list of alighting person
@@ -122,6 +131,7 @@ public:
 	 * @return the number of alighting persons
 	 */
 	int AlightAllPassengers(std::list<Passenger*>& alightingPassenger,timeslice now);
+
 
 	TrainMovement * GetMovement();
 	/**
@@ -153,8 +163,13 @@ private:
 	std::list<Passenger*> passengerList;
 	/**the locker for this driver*/
 	mutable boost::mutex driverMutex;
+	TrainDriver *nextDriverInOppLine;
+	bool holdTrain=false;
+	static int counter;
+
 	/**recording disruption information*/
 	boost::shared_ptr<DisruptionParams> disruptionParam;
+
 private:
 	friend class TrainBehavior;
 	friend class TrainMovement;

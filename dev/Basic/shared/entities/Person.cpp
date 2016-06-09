@@ -28,7 +28,7 @@
 #include "path/PT_RouteChoiceLuaProvider.hpp"
 #include "entities/params/PT_NetworkEntities.hpp"
 #include "geospatial/network/RoadNetwork.hpp"
-
+#include "geospatial/streetdir/RailTransit.hpp"
 #ifndef SIMMOB_DISABLE_MPI
 #include "partitions/PackageUtils.hpp"
 #include "partitions/UnPackageUtils.hpp"
@@ -125,6 +125,7 @@ std::vector<sim_mob::SubTrip>::iterator sim_mob::Person::resetCurrSubTrip()
 
 	return trip->getSubTripsRW().begin();
 }
+
 
 bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::SubTrip>& newSubTrips, const std::vector<sim_mob::OD_Trip>& matchedTrips,  PT_Network& ptNetwork)
 {
@@ -294,7 +295,16 @@ bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::S
 			}
 			else
 			{
+
+
+				Print() << "[PT pathset] make trip failed:[" << sSrc << "(" << sType << ")" << "]|[" << sEnd << "(" << eType << ")" << "] mode: " << it->tType << std::endl;
+				//ptMRTPathsetFailed <<GetId()<<","<<sSrc<<","<<sEnd<<","<<currSubTrip->getMode()<<std::endl;
+
 				Print() << "[PT pathset] make trip failed:[" << sSrc << "(" << sType << ")" << "]|[" << sEnd << "(" << eType << ")" << "] mode: " << it->tTypeStr << std::endl;
+
+
+				Print() << "[PT pathset] make trip failed:[" << sSrc << "(" << sType << ")" << "]|[" << sEnd << "(" << eType << ")" << "] mode: " << it->tTypeStr << std::endl;
+
 				ret = false;
 				break;
 			}

@@ -395,7 +395,9 @@ struct PathSetConf
 
     /// pt route choice model scripts params
 	ModelScriptsMap ptRouteChoiceScriptsMap;
+	ModelScriptsMap ServiceControllerScriptsMap;
 	ModelScriptsMap pvtRouteChoiceScriptsMap;
+
 };
 
 /**
@@ -516,13 +518,18 @@ public:
     /// Bus controller parameters
     BusControllerParams busController;
 
+
+
     /// Train controller parameters
     TrainControllerParams trainController;
+
+
     //OD Travel Time configurations
     TravelTimeConfig odTTConfig;
 
     //OD Travel Time configurations
 	TravelTimeConfig rsTTConfig;
+
 
     ///Some settings for bus stop arrivals/departures.
     std::map<int, BusStopScheduledTime> busScheduledTimes; //The int is a "bus stop ID", starting from 0.

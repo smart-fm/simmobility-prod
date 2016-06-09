@@ -79,6 +79,7 @@ void sim_mob::ParsePathXmlConfig::ProcessPathSetNode(xercesc::DOMElement* node){
 ModelScriptsMap sim_mob::ParsePathXmlConfig::processModelScriptsNode(xercesc::DOMElement* node)
 {
 	std::string format = ParseString(GetNamedAttributeValue(node, "format"), "");
+	std::string filename="";
 	if (format.empty() || format != "lua")
 	{
 		throw std::runtime_error("Unsupported script format");
@@ -113,9 +114,21 @@ ModelScriptsMap sim_mob::ParsePathXmlConfig::processModelScriptsNode(xercesc::DO
 		}
 
 		scriptsMap.addScriptFileName(key, val);
+		filename=val;
 	}
+
+	if(boost::iequals(filename, "serv.lua"))
+	{
+		cfg.ServiceControllerScriptsMap=scriptsMap;
+		return scriptsMap;
+	}
+
+	cfg.ptRouteChoiceScriptsMap = scriptsMap;
 	return scriptsMap;
+
 }
+
+
 
 void sim_mob::ParsePathXmlConfig::processPublicPathsetNode(xercesc::DOMElement* publicConfNode)
 {

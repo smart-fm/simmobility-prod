@@ -19,6 +19,7 @@
 #include "entities/roles/driver/TrainDriver.hpp"
 #include "entities/TrainController.hpp"
 #include "entities/roles/driver/TrainDriverFacets.hpp"
+#include "entities/TrainStationAgent.hpp"
 #include <iostream>
 
 //#ifndef _CLASS_TRAIN_CONTROLLER_FUNCTIONS
@@ -33,13 +34,15 @@ ServiceController* ServiceController::pInstance=nullptr;
 ServiceController::ServiceController()
 {
 
+
 }
 
 
 double ServiceController::Use_ServiceController()
 {
 		LuaRef Use_Service_Controller = getGlobal(state.get(), "Use_Service_Controller");
-		Use_Service_Controller(this);
+		LuaRef retVal =Use_Service_Controller(this);
+
 
 }
 ServiceController::~ServiceController()
@@ -59,18 +62,38 @@ ServiceController::~ServiceController()
 				.addFunction("reset_HoldingTime_AtStation", &ServiceController::resetHoldingTimeAtStation)
 				.addFunction("terminate_TrainService", &ServiceController::terminateTrainService)
 				.addFunction("get_DwellTime", &ServiceController::getDwellTime)
+				.addFunction("get_Opposite_LineId", &ServiceController::GetOppositeLineId)
+				.addFunction("get_LineId", &ServiceController::GetLineId)
+				.addFunction("get_LineId", &ServiceController::GetDistanceToNextPlatform)
+				.addFunction("get_LineId", &ServiceController::GetNextPlatform)
 	 			.endClass();
+
+
 
  }
 
- void ServiceController::resetSpeedLimit(double speedLimit,std::string lineId)
+ void ServiceController::resetSpeedLimit(double speedLimit,std::string startStation,std::string endStation,std::string lineId,std::string startTime,std::string endTime)
  {
 
-	 std::vector<Block*> blockVector=TrainController<sim_mob::medium::Person_MT>::getInstance()->GetBlocks(lineId);
+	 ResetBlockSpeeds resetSpeedBlocks;
+	 resetSpeedBlocks.endStation=endStation;
+	 resetSpeedBlocks.startStation=startStation;
+	 resetSpeedBlocks.line = lineId;
+	 resetSpeedBlocks.speedReset=false;
+	 resetSpeedBlocks.speedLimit=speedLimit;
+	 resetSpeedBlocks.startTime=startTime;
+	 resetSpeedBlocks.endTime=endTime;
+
+	 //Pass the message
+	 TrainController<Person_MT>::getInstance()->AssignResetBlocks(resetSpeedBlocks);
+	 //messaging::MessageBus::PostMessage(TrainController<Person_MT>::getInstance(),
+	//		 84099002, messaging::MessageBus::MessagePtr(new ResetSpeedMessage(resetSpeedBlocks)));
+
+	 /*std::vector<Block*> blockVector=TrainController<sim_mob::medium::Person_MT>::getInstance()->GetBlocks(lineId);
 	 for (std::vector<Block*>::iterator it = blockVector.begin() ; it != blockVector.end(); ++it)
 	 {
             (*it)->setSpeedLimit(speedLimit);
-	 }
+	 }*/
  }
 
 
@@ -84,14 +107,68 @@ ServiceController::~ServiceController()
 
  }
 
- void ServiceController::resetSafeHeadwaySec(double sec)
+ void ServiceController::resetSafeHeadwaySec(double sec,int trainId,std::string lineId)
  {
+	 //const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
+     //config.trainController.safeHeadway=sec;
+	 map<std::string,std::vector<Role<Person_MT> *>>::iterator it=mapOfLineAndTrainDrivers.find(lineId);
+		 	if(it != mapOfLineAndTrainDrivers.end())
+		 	{
+		 		std::vector<Role<sim_mob::medium::Person_MT>*> vect = it->second;
+		 		for (typename std::vector<Role<sim_mob::medium::Person_MT>*>::iterator it = vect.begin() ; it != vect.end(); ++it)
+		 		{
+		 			TrainDriver* driver= dynamic_cast<TrainDriver*>(*it);
+		 		    if(driver)
+		 		    {
+		 		    	if(driver->getTrainId()==trainId)
+		 		    	{
+		 		    		MovementFacet *movement=driver->Movement();
+		 		    		if(movement)
+		 		    		{
+		 		    			TrainMovement *trainMovement=dynamic_cast<TrainMovement*>(movement);
+		 		    			if(trainMovement)
+		 		    			{
+		 		    				trainMovement->ResetSafeDistance(sec);
+		 		    			}
+		 		    		}
+		 		    	}
+		 		    }
 
+		 		}
+
+		 	}
  }
 
- void ServiceController::resetSafeOperationDistance(double distance)
+ void ServiceController::resetSafeOperationDistance(double distance,int trainId,std::string lineId)
  {
+	 //const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
+	 //config.trainController.safeDistance=distance;
+	 map<std::string,std::vector<Role<Person_MT> *>>::iterator it=mapOfLineAndTrainDrivers.find(lineId);
+	 		 	if(it != mapOfLineAndTrainDrivers.end())
+	 		 	{
+	 		 		std::vector<Role<sim_mob::medium::Person_MT>*> vect = it->second;
+	 		 		for (std::vector<Role<sim_mob::medium::Person_MT>*>::iterator it = vect.begin() ; it != vect.end(); ++it)
+	 		 		{
+	 		 			TrainDriver* driver= dynamic_cast<TrainDriver*>(*it);
+	 		 		    if(driver)
+	 		 		    {
+	 		 		    	if(driver->getTrainId()==trainId)
+	 		 		    	{
+	 		 		    		MovementFacet *movement=driver->Movement();
+	 		 		    		if(movement)
+	 		 		    		{
+	 		 		    			TrainMovement *trainMovement=dynamic_cast<TrainMovement*>(movement);
+	 		 		    			if(trainMovement)
+	 		 		    			{
+	 		 		    				trainMovement->ResetSafeHeadWay(distance);
+	 		 		    			}
+	 		 		    		}
+	 		 		    	}
+	 		 		    }
 
+	 		 		}
+
+	 		 	}
  }
 
  void ServiceController::resetMovingCase(int caseVal)
@@ -102,7 +179,7 @@ ServiceController::~ServiceController()
  //namespace
  void ServiceController::forceReleasePassenegers(int trainID,std::string lineId)
  {
-	 map<std::string,std::vector<Role<Person_MT> *>>::iterator it=mapOfLineAndTrainDrivers.find(lineId);
+	 /*map<std::string,std::vector<Role<Person_MT> *>>::iterator it=mapOfLineAndTrainDrivers.find(lineId);
 	 	if(it != mapOfLineAndTrainDrivers.end())
 	 	{
 	 		std::vector<Role<sim_mob::medium::Person_MT>*> vect = it->second;
@@ -121,7 +198,11 @@ ServiceController::~ServiceController()
 
 	 		}
 
-	 	}
+	 	}*/
+	 	ForceReleaseEntity fReleaseEntity;
+	 	fReleaseEntity.lineId=lineId;
+	 	fReleaseEntity.trainId=trainID;
+	 //TrainStationAgent::forceReleaseEntities.push_back(fReleaseEntity);
 
  }
 
@@ -229,6 +310,11 @@ void ServiceController::RemoveTrainIdAndTrainDriverInMap(int trainId,std::string
 				mapOfLineAndTrainDrivers.erase(lineId);
 		}
 	}
+}
+
+void ServiceController::Uturn(int trainId,std::string lineId)
+{
+
 }
 
 int ServiceController::GetTrainId(TrainDriver *trainDriver)

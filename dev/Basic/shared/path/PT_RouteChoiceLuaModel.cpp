@@ -202,7 +202,9 @@ bool PT_RouteChoiceLuaModel::getBestPT_Path(int origin, int dest, unsigned int s
 	loadPT_PathSet(origin, dest, pathSet,ptPathsetStoredProcName);
 	if (pathSet.pathSet.empty())
 	{
-		Print() << "[PT pathset]load pathset failed:[" << origin << "]:[" << dest << "]" << std::endl;
+		sim_mob::BasicLogger& ptPathsetLogger  = sim_mob::Logger::log("pt_pathset_failed.csv");
+		ptPathsetLogger << origin << "," << dest << ","<<curStartTime.getStrRepr() << std::endl;
+		throw PT_PathsetLoadException(origin, dest);
 	}
 	else
 	{
@@ -211,7 +213,6 @@ bool PT_RouteChoiceLuaModel::getBestPT_Path(int origin, int dest, unsigned int s
 		std::string destId = boost::lexical_cast < std::string > (dest);
 		publicTransitPathSet = &pathSet;
 		odTrips = makePT_RouteChoice(originId, destId);
-		//printScenarioAndOD(odTrips, dbid, start_time);
 		ret = true;
 	}
 	return ret;

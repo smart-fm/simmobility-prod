@@ -13,6 +13,20 @@
 namespace sim_mob
 {
 /**
+ * the exception for pt pathset loading
+ * \author Zhang Huai Peng
+ */
+class PT_PathsetLoadException: public std::exception {
+public:
+	int originNode;
+	int destNode;
+	PT_PathsetLoadException(int sNode, int dNode):
+		originNode(sNode),destNode(dNode){}
+	virtual const char* what() const throw () {
+		return "the exception of pt pathset loading";
+	}
+};
+/**
  * public transit route choice model
  * \author Zhang Huai Peng
  * \author Harish Loganathan

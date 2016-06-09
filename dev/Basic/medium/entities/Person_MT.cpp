@@ -42,7 +42,11 @@ prevRole(nullptr), currRole(nullptr), nextRole(nullptr), numTicksStuck(0)
 {
 	ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
 	std::string ptPathsetStoredProcName = cfg.getDatabaseProcMappings().procedureMappings["pt_pathset"];
-	convertPublicTransitODsToTrips(PT_NetworkCreater::getInstance(), ptPathsetStoredProcName);
+	try{
+		convertPublicTransitODsToTrips(PT_NetworkCreater::getInstance(), ptPathsetStoredProcName);
+	} catch(PT_PathsetLoadException& exception){
+		Print()<<"[PT pathset]load pt pathset failed!"<<"["<<exception.originNode<<","<<exception.destNode<<"]"<<std::endl;
+	}
 	insertWaitingActivityToTrip();
 	assignSubtripIds();
 	if (!tripChain.empty())
@@ -73,12 +77,38 @@ void Person_MT::changeToNewTrip(const std::string& stationName)
 		newSubTrip.destination = trip->destination;
 		newSubTrip.originType = trip->originType;
 		newSubTrip.destinationType = trip->destinationType;
-		newSubTrip.travelMode = "MRT";
+		newSubTrip.travelMode = "Car";
 		subTrips.clear();
+		bool isLoaded=false;
 		subTrips.push_back(newSubTrip);
-		convertPublicTransitODsToTrips(PT_NetworkCreater::getInstance2(), ptPathsetStoredProcName);
-		insertWaitingActivityToTrip();
-		assignSubtripIds();
+		if(newSubTrip.travelMode=="BusTravel"){
+			try{
+				convertPublicTransitODsToTrips(PT_NetworkCreater::getInstance2(), ptPathsetStoredProcName);
+				isLoaded = true;
+			} catch(PT_PathsetLoadException& exception){
+				Print()<<"[PT pathset]load pt pathset failed!"<<"["<<exception.originNode<<","<<exception.destNode<<"]"<<std::endl;
+				isLoaded = false;
+			}
+			insertWaitingActivityToTrip();
+			assignSubtripIds();
+		}
+		sim_mob::BasicLogger& logger  = sim_mob::Logger::log("disruption.csv");
+		logger << this->getDatabaseId() <<",";
+		logger << stop->getStopName() << ",";
+		logger << this->getRole()->roleType<<",";
+		if(newSubTrip.travelMode=="BusTravel"){
+			logger << "PT" << ",";
+		} else {
+			logger << "TX" << ",";
+		}
+		logger << newSubTrip.origin.node->getNodeId()<<",";
+		logger << newSubTrip.destination.node->getNodeId()<<",";
+		if (newSubTrip.travelMode == "BusTravel") {
+			logger << isLoaded << ",";
+		} else {
+			logger << "N" << ",";
+		}
+		logger << std::endl;
 		currSubTrip = subTrips.begin();
 		isFirstTick = true;
 	}

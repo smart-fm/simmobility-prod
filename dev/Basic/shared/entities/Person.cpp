@@ -242,7 +242,7 @@ bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::S
 				subTrip.setPersonID(-1);
 				subTrip.itemType = TripChainItem::getItemType("Trip");
 				subTrip.sequenceNumber = 1;
-				subTrip.startTime = curSubTrip->endTime;
+				subTrip.startTime = curSubTrip->startTime;
 				subTrip.endTime = DailyTime((*it).travelTime * 1000.0);
 				subTrip.origin = source;
 				subTrip.destination = dest;

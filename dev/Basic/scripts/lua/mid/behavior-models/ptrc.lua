@@ -13,8 +13,8 @@ local beta_no_txf= -4.31
 local beta_cost = -0.16
 local beta_path_size = 0.8
 local beta_bus = 0
-local beta_train = 3
-local beta_both = 0
+local beta_train = 2
+local beta_both = 15
 
 --utility
 -- utility[i] for choice[i]
@@ -41,9 +41,9 @@ local function computeUtilities(params, N_choice)
         elseif pt_mode_type == 3 then mode_coef = beta_both
         else mode_coef = 0
         end
-        utility[i] = beta_in_vehicle * params:total_in_vehicle_time(i) / 60
-                + beta_walk * params:total_walk_time(i) / 60
-                + beta_wait * params:total_wait_time(i) / 60
+        utility[i] = beta_in_vehicle * params:total_in_vehicle_time(i) / 3660
+                + beta_walk * params:total_walk_time(i) / 3660
+                + beta_wait * params:total_wait_time(i) / 3660
                 + beta_no_txf * params:total_no_txf(i)
                 + beta_path_size * log(params:total_path_size(i))
                 + beta_cost * params:total_cost(i) + mode_coef

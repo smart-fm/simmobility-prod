@@ -367,99 +367,100 @@ MT_PersonLoader::~MT_PersonLoader()
 void MT_PersonLoader::makeSubTrip(const soci::row& r, Trip* parentTrip, unsigned short subTripNo)
 {
 	const RoadNetwork* rn = RoadNetwork::getInstance();
-	SubTrip aSubTripInTrip;
-	aSubTripInTrip.setPersonID(r.get<string>(0));
-	aSubTripInTrip.itemType = TripChainItem::IT_TRIP;
-	aSubTripInTrip.tripID = parentTrip->tripID + "-" + boost::lexical_cast<string>(subTripNo);
-	aSubTripInTrip.origin = WayPoint(rn->getById(rn->getMapOfIdvsNodes(), r.get<int>(10)));
-	aSubTripInTrip.originType = TripChainItem::LT_NODE;
-	aSubTripInTrip.destination = WayPoint(rn->getById(rn->getMapOfIdvsNodes(), r.get<int>(5)));
-	aSubTripInTrip.destinationType = TripChainItem::LT_NODE;
-	aSubTripInTrip.travelMode = r.get<string>(6);
-	aSubTripInTrip.startTime = parentTrip->startTime;
-	parentTrip->addSubTrip(aSubTripInTrip);
+	SubTrip subTrip;
+	subTrip.setPersonID(r.get<string>(0));
+	subTrip.itemType = TripChainItem::IT_TRIP;
+	subTrip.tripID = parentTrip->tripID + "-" + boost::lexical_cast<string>(subTripNo);
+	subTrip.origin = WayPoint(rn->getById(rn->getMapOfIdvsNodes(), r.get<int>(10)));
+	subTrip.originType = TripChainItem::LT_NODE;
+	subTrip.destination = WayPoint(rn->getById(rn->getMapOfIdvsNodes(), r.get<int>(5)));
+	subTrip.destinationType = TripChainItem::LT_NODE;
+	subTrip.travelMode = r.get<string>(6);
+	subTrip.startTime = parentTrip->startTime;
+	parentTrip->addSubTrip(subTrip);
 }
 
 Activity* MT_PersonLoader::makeActivity(const soci::row& r, unsigned int seqNo)
 {
 	const RoadNetwork* rn = RoadNetwork::getInstance();
-	Activity* res = new Activity();
-	res->setPersonID(r.get<string>(0));
-	res->itemType = TripChainItem::IT_ACTIVITY;
-	res->sequenceNumber = seqNo;
-	res->description = r.get<string>(4);
-	res->isPrimary = r.get<int>(7);
-	res->isFlexible = false;
-	res->isMandatory = true;
-	res->destination = WayPoint(rn->getById(rn->getMapOfIdvsNodes(), r.get<int>(5)));
-	res->destinationType = TripChainItem::LT_NODE;
-	res->destinationZoneCode = r.get<int>(13);
-	setActivityStartEnd(res, r.get<double>(8), r.get<double>(9));
-	return res;
+	Activity* activity = new Activity();
+	activity->setPersonID(r.get<string>(0));
+	activity->itemType = TripChainItem::IT_ACTIVITY;
+	activity->sequenceNumber = seqNo;
+	activity->purpose = TripChainItem::getItemPurpose(r.get<string>(4));
+	activity->isPrimary = r.get<int>(7);
+	activity->isFlexible = false;
+	activity->isMandatory = true;
+	activity->destination = WayPoint(rn->getById(rn->getMapOfIdvsNodes(), r.get<int>(5)));
+	activity->destinationType = TripChainItem::LT_NODE;
+	activity->destinationZoneCode = r.get<int>(13);
+	setActivityStartEnd(activity, r.get<double>(8), r.get<double>(9));
+	return activity;
 }
 
 Trip* MT_PersonLoader::makeTrip(const soci::row& r, unsigned int seqNo)
 {
 	const RoadNetwork* rn = RoadNetwork::getInstance();
-	Trip* tripToSave = new Trip();
-	tripToSave->sequenceNumber = seqNo;
-	tripToSave->tripID = boost::lexical_cast<string>(r.get<int>(1) * 100 + r.get<int>(3)); //each row corresponds to 1 trip and 1 activity. The tour and stop number can be used to generate unique tripID
-	tripToSave->setPersonID(r.get<string>(0));
-	tripToSave->itemType = TripChainItem::IT_TRIP;
-	tripToSave->origin = WayPoint(rn->getById(rn->getMapOfIdvsNodes(), r.get<int>(10)));
-	tripToSave->originType = TripChainItem::LT_NODE;
-	tripToSave->originZoneCode = r.get<int>(12);
-	tripToSave->destination = WayPoint(rn->getById(rn->getMapOfIdvsNodes(), r.get<int>(5)));
-	tripToSave->destinationType = TripChainItem::LT_NODE;
-	tripToSave->destinationZoneCode = r.get<int>(13);
-	tripToSave->startTime = DailyTime(getRandomTimeInWindow(r.get<double>(11), false));
-	tripToSave->travelMode = r.get<string>(6);
+	Trip* trip = new Trip();
+	trip->sequenceNumber = seqNo;
+	trip->tripID = boost::lexical_cast<string>(r.get<int>(1) * 100 + r.get<int>(3)); //each row corresponds to 1 trip and 1 activity. The tour and stop number can be used to generate unique tripID
+	trip->setPersonID(r.get<string>(0));
+	trip->itemType = TripChainItem::IT_TRIP;
+	trip->purpose = TripChainItem::getItemPurpose(r.get<string>(4));
+	trip->origin = WayPoint(rn->getById(rn->getMapOfIdvsNodes(), r.get<int>(10)));
+	trip->originType = TripChainItem::LT_NODE;
+	trip->originZoneCode = r.get<int>(12);
+	trip->destination = WayPoint(rn->getById(rn->getMapOfIdvsNodes(), r.get<int>(5)));
+	trip->destinationType = TripChainItem::LT_NODE;
+	trip->destinationZoneCode = r.get<int>(13);
+	trip->startTime = DailyTime(getRandomTimeInWindow(r.get<double>(11), false));
+	trip->travelMode = r.get<string>(6);
 	//just a sanity check
-	if(tripToSave->origin == tripToSave->destination)
+	if(trip->origin == trip->destination)
 	{
-		safe_delete_item(tripToSave);
+		safe_delete_item(trip);
 		return nullptr;
 	}
-	makeSubTrip(r, tripToSave);
-	return tripToSave;
+	makeSubTrip(r, trip);
+	return trip;
 }
 
 Trip* MT_PersonLoader::makeFreightTrip(const soci::row& r)
 {
 	const RoadNetwork* rn = RoadNetwork::getInstance();
-	Trip* tripToSave = new Trip();
-	tripToSave->sequenceNumber = 1;
-	tripToSave->tripID = r.get<string>(0);
-	tripToSave->setPersonID(r.get<string>(0));
-	tripToSave->itemType = TripChainItem::IT_TRIP;
-	tripToSave->origin = WayPoint(rn->getById(rn->getMapOfIdvsNodes(), r.get<unsigned int>(2)));
-	tripToSave->originType = TripChainItem::LT_NODE;
-	tripToSave->originZoneCode = r.get<int>(1);
-	tripToSave->destination = WayPoint(rn->getById(rn->getMapOfIdvsNodes(), r.get<unsigned int>(4)));
-	tripToSave->destinationType = TripChainItem::LT_NODE;
-	tripToSave->destinationZoneCode = r.get<int>(3);
-	tripToSave->startTime = DailyTime(getRandomTimeInWindow(r.get<double>(5), false));
-	tripToSave->travelMode = r.get<string>(6);
+	Trip* trip = new Trip();
+	trip->sequenceNumber = 1;
+	trip->tripID = r.get<string>(0);
+	trip->setPersonID(r.get<string>(0));
+	trip->itemType = TripChainItem::IT_TRIP;
+	trip->origin = WayPoint(rn->getById(rn->getMapOfIdvsNodes(), r.get<unsigned int>(2)));
+	trip->originType = TripChainItem::LT_NODE;
+	trip->originZoneCode = r.get<int>(1);
+	trip->destination = WayPoint(rn->getById(rn->getMapOfIdvsNodes(), r.get<unsigned int>(4)));
+	trip->destinationType = TripChainItem::LT_NODE;
+	trip->destinationZoneCode = r.get<int>(3);
+	trip->startTime = DailyTime(getRandomTimeInWindow(r.get<double>(5), false));
+	trip->travelMode = r.get<string>(6);
 	//just a sanity check
-	if(tripToSave->origin == tripToSave->destination)
+	if(trip->origin == trip->destination)
 	{
-		safe_delete_item(tripToSave);
+		safe_delete_item(trip);
 		return nullptr;
 	}
 
 	SubTrip subtrip;
 	subtrip.setPersonID(r.get<string>(0));
 	subtrip.itemType = TripChainItem::IT_TRIP;
-	subtrip.tripID = tripToSave->tripID + "-" + boost::lexical_cast<string>(1);
-	subtrip.origin = tripToSave->origin;
+	subtrip.tripID = trip->tripID + "-" + boost::lexical_cast<string>(1);
+	subtrip.origin = trip->origin;
 	subtrip.originType = TripChainItem::LT_NODE;
-	subtrip.destination = tripToSave->destination;
+	subtrip.destination = trip->destination;
 	subtrip.destinationType = TripChainItem::LT_NODE;
-	subtrip.travelMode = tripToSave->travelMode;
-	subtrip.startTime = tripToSave->startTime;
-	tripToSave->addSubTrip(subtrip);
+	subtrip.travelMode = trip->travelMode;
+	subtrip.startTime = trip->startTime;
+	trip->addSubTrip(subtrip);
 
-	return tripToSave;
+	return trip;
 }
 
 void MT_PersonLoader::loadPersonDemand()

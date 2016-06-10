@@ -93,6 +93,7 @@ WithindayModeParams WithindayModelsHelper::buildModeChoiceParams(const Trip& cur
 	wdModeParams.setDestinationWorkerSize(destZnParams->getEmployment());
 	wdModeParams.setCostCarParking(destZnParams->getParkingRate());
 	wdModeParams.setCentralZone(destZnParams->getCentralDummy());
+	wdModeParams.setDestinationShops(destZnParams->getShop());
 
 	double carInVehicleTT = PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(orgNd, destNd, curTime);
 	if(carInVehicleTT <= 0) { carInVehicleTT = std::numeric_limits<double>::max(); }
@@ -117,7 +118,7 @@ WithindayModeParams WithindayModelsHelper::buildModeChoiceParams(const Trip& cur
 	wdModeParams.setTtPublicInVehicle(sumInVehicleTimeSecs/numPaths);
 	wdModeParams.setTtPublicWaiting(sumWaitingTimeSecs/numPaths);
 	wdModeParams.setTtPublicWalk(sumWalkTimeSecs/numPaths);
-	wdModeParams.setWalkDistance(sumDistance/numPaths);
+	wdModeParams.setDistance(sumDistance/numPaths);
 
 	wdModeParams.setTripType(curTrip.purpose);
 

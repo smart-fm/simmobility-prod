@@ -89,50 +89,63 @@ void sim_mob::WithindayLuaModel::mapClasses()
 				.addProperty("dpstop_logsum", &PersonParams::getDpsLogsum)
 				.addProperty("travel_probability", &PersonParams::getTravelProbability)
 				.addProperty("num_expected_trips", &PersonParams::getTripsExpected)
-			.endClass();
+			.endClass()
 
-//			.beginClass<LogsumTourModeParams>("TourModeParams")
-//				.addProperty("average_transfer_number",&LogsumTourModeParams::getAvgTransfer)
-//				.addProperty("central_dummy",&LogsumTourModeParams::isCentralZone)
-//				.addProperty("cost_car_ERP_first",&LogsumTourModeParams::getCostCarErpFirst)
-//				.addProperty("cost_car_ERP_second",&LogsumTourModeParams::getCostCarErpSecond)
-//				.addProperty("cost_car_OP_first",&LogsumTourModeParams::getCostCarOpFirst)
-//				.addProperty("cost_car_OP_second",&LogsumTourModeParams::getCostCarOpSecond)
-//				.addProperty("cost_car_parking",&LogsumTourModeParams::getCostCarParking)
-//				.addProperty("cost_public_first",&LogsumTourModeParams::getCostPublicFirst)
-//				.addProperty("cost_public_second",&LogsumTourModeParams::getCostPublicSecond)
-//				.addProperty("drive1_AV",&LogsumTourModeParams::isDrive1Available)
-//				.addProperty("motor_AV",&LogsumTourModeParams::isMotorAvailable)
-//				.addProperty("mrt_AV",&LogsumTourModeParams::isMrtAvailable)
-//				.addProperty("privatebus_AV",&LogsumTourModeParams::isPrivateBusAvailable)
-//				.addProperty("publicbus_AV",&LogsumTourModeParams::isPublicBusAvailable)
-//				.addProperty("share2_AV",&LogsumTourModeParams::isShare2Available)
-//				.addProperty("share3_AV",&LogsumTourModeParams::isShare3Available)
-//				.addProperty("taxi_AV",&LogsumTourModeParams::isTaxiAvailable)
-//				.addProperty("walk_AV",&LogsumTourModeParams::isWalkAvailable)
-//				.addProperty("tt_ivt_car_first",&LogsumTourModeParams::getTtCarIvtFirst)
-//				.addProperty("tt_ivt_car_second",&LogsumTourModeParams::getTtCarIvtSecond)
-//				.addProperty("tt_public_ivt_first",&LogsumTourModeParams::getTtPublicIvtFirst)
-//				.addProperty("tt_public_ivt_second",&LogsumTourModeParams::getTtPublicIvtSecond)
-//				.addProperty("tt_public_waiting_first",&LogsumTourModeParams::getTtPublicWaitingFirst)
-//				.addProperty("tt_public_waiting_second",&LogsumTourModeParams::getTtPublicWaitingSecond)
-//				.addProperty("tt_public_walk_first",&LogsumTourModeParams::getTtPublicWalkFirst)
-//				.addProperty("tt_public_walk_second",&LogsumTourModeParams::getTtPublicWalkSecond)
-//				.addProperty("walk_distance1",&LogsumTourModeParams::getWalkDistance1)
-//				.addProperty("walk_distance2",&LogsumTourModeParams::getWalkDistance2)
-//				.addProperty("destination_area",&LogsumTourModeParams::getDestinationArea)
-//				.addProperty("origin_area",&LogsumTourModeParams::getOriginArea)
-//				.addProperty("resident_size",&LogsumTourModeParams::getResidentSize)
-//				.addProperty("work_op",&LogsumTourModeParams::getWorkOp)
-//				.addProperty("education_op",&LogsumTourModeParams::getEducationOp)
-//				.addProperty("cbd_dummy",&LogsumTourModeParams::isCbdDestZone)
-//				.addProperty("cbd_dummy_origin",&LogsumTourModeParams::isCbdOrgZone)
-//				.addProperty("cost_increase", &LogsumTourModeParams::getCostIncrease)
-//			.endClass();
+			.beginClass<WithindayModeParams>("WithindayModeParams")
+				.addProperty("average_transfer_number",&WithindayModeParams::getAvgTransfer)
+				.addProperty("central_dummy",&WithindayModeParams::isCentralZone)
+				.addProperty("parking_rate",&WithindayModeParams::getCostCarParking)
+				.addProperty("tt_ivt_car",&WithindayModeParams::getTtCarInVehicle)
+				.addProperty("tt_public_ivt",&WithindayModeParams::getTtPublicInVehicle)
+				.addProperty("tt_public_waiting",&WithindayModeParams::getTtPublicWaiting)
+				.addProperty("tt_public_walk",&WithindayModeParams::getTtPublicWalk)
+				.addProperty("destination_area",&WithindayModeParams::getDestinationArea)
+				.addProperty("origin_area",&WithindayModeParams::getOriginArea)
+				.addProperty("resident_size",&WithindayModeParams::getOriginResidentSize)
+				.addProperty("work_op",&WithindayModeParams::getDestinationWorkerSize)
+				.addProperty("education_op",&WithindayModeParams::getDestinationStudentsSize)
+				.addProperty("shop", &WithindayModeParams::getDestinationShops)
+				.addProperty("distance_remaining", &WithindayModeParams::getDistance)
+				.addProperty("drive1_AV",&WithindayModeParams::isDrive1Available)
+				.addProperty("motor_AV",&WithindayModeParams::isMotorAvailable)
+				.addProperty("mrt_AV",&WithindayModeParams::isMrtAvailable)
+				.addProperty("privatebus_AV",&WithindayModeParams::isPrivateBusAvailable)
+				.addProperty("publicbus_AV",&WithindayModeParams::isPublicBusAvailable)
+				.addProperty("share2_AV",&WithindayModeParams::isShare2Available)
+				.addProperty("share3_AV",&WithindayModeParams::isShare3Available)
+				.addProperty("taxi_AV",&WithindayModeParams::isTaxiAvailable)
+				.addProperty("walk_AV",&WithindayModeParams::isWalkAvailable)
+			.endClass();
 }
 
-void sim_mob::WithindayLuaModel::chooseMode(PersonParams& personParams/*, LogsumTourModeParams& tourModeParams*/) const
+int sim_mob::WithindayLuaModel::chooseMode(PersonParams& personParams, WithindayModeParams& wdModeParams) const
 {
+	switch(wdModeParams.getTripType())
+	{
+	case WORK:
+	{
+		LuaRef chooseWDMW = getGlobal(state.get(), "choose_wdmw");
+		LuaRef retVal = chooseWDMW(&personParams, &wdModeParams);
+		return retVal.cast<int>();
+		break;
+	}
+	case EDUCATION:
+	{
+		LuaRef chooseWDME = getGlobal(state.get(), "choose_wdme");
+		LuaRef retVal = chooseWDME(&personParams, &wdModeParams);
+		return retVal.cast<int>();
+		break;
+	}
+	case SHOP:
+	case OTHER:
+	case NULL_STOP:
+	{
+		LuaRef chooseWDMSO = getGlobal(state.get(), "choose_wdmso");
+		LuaRef retVal = chooseWDMSO(&personParams, &wdModeParams);
+		return retVal.cast<int>();
+		break;
+	}
+	}
 }
 
 const WithindayLuaModel& sim_mob::WithindayLuaProvider::getWithindayModel()

@@ -4,6 +4,7 @@
 
 #pragma once
 #include "behavioral/params/PersonParams.hpp"
+#include "behavioral/params/WithindayModeParams.hpp"
 #include "lua/LuaModel.hpp"
 
 namespace sim_mob
@@ -21,12 +22,12 @@ public:
 	virtual ~WithindayLuaModel();
 
 	/**
-	 * Computes logsums for work tours with fixed work location by invoking corresponding functions in tour mode (for work) model
+	 * Choose mode for a trip in withinday
 	 *
 	 * @param personParams object containing person and household related variables. logsums will be updated in this object
-	 * @param tourModeDestinationParams parameters specific to tour mode model
+	 * @param wdModeParams parameters specific to withinday mode model
 	 */
-	void chooseMode(PersonParams& personParams/*, LogsumTourModeParams& tourModeParams*/) const;
+	int chooseMode(PersonParams& personParams, WithindayModeParams& wdModeParams) const;
 
 private:
     /**

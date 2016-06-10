@@ -17,7 +17,6 @@ class WithindayModeParams
 private:
 	StopType tripType;
 	double costCarParking;
-	double walkDistance;
 	bool centralZone;
 	double ttPublicInVehicle;
 	double ttPublicWaiting;
@@ -28,7 +27,9 @@ private:
 	double originResidentSize;
 	double destinationWorkerSize;
 	double destinationStudentsSize;
+	double destinationShops;
 	double destinationArea;
+	double distance;
 
 	bool publicBusAvailable;
 	bool mrtAvailable;
@@ -42,11 +43,11 @@ private:
 
 public:
 	WithindayModeParams()
-		: tripType(NULL_STOP), costCarParking(0), walkDistance(0), centralZone(false), ttPublicInVehicle(0),
+		: tripType(NULL_STOP), costCarParking(0), centralZone(false), ttPublicInVehicle(0),
 		  ttPublicWaiting(0), ttPublicWalk(0), ttCarInVehicle(0), avgTransfer(0), originArea(0), originResidentSize(0),
-		  destinationWorkerSize(0), destinationStudentsSize(0), destinationArea(0), publicBusAvailable(false), mrtAvailable(false),
-		  privateBusAvailable(false), drive1Available(false), share2Available(false), share3Available(false), motorAvailable(false),
-		  walkAvailable(false), taxiAvailable(false)
+		  destinationWorkerSize(0), destinationStudentsSize(0), destinationArea(0), destinationShops(0), distance(0),
+		  publicBusAvailable(false), mrtAvailable(false), privateBusAvailable(false), drive1Available(false),
+		  share2Available(false), share3Available(false), motorAvailable(false), walkAvailable(false), taxiAvailable(false)
 	{}
 
 	virtual ~WithindayModeParams() {}
@@ -261,16 +262,6 @@ public:
 		this->walkAvailable = walkAvailable;
 	}
 
-	double getWalkDistance() const
-	{
-		return walkDistance;
-	}
-
-	void setWalkDistance(double walkDistance)
-	{
-		this->walkDistance = walkDistance;
-	}
-
 	StopType getTripType() const
 	{
 		return tripType;
@@ -279,6 +270,26 @@ public:
 	void setTripType(StopType tripType)
 	{
 		this->tripType = tripType;
+	}
+
+	double getDistance() const
+	{
+		return distance;
+	}
+
+	void setDistance(double distance)
+	{
+		this->distance = distance;
+	}
+
+	double getDestinationShops() const
+	{
+		return destinationShops;
+	}
+
+	void setDestinationShops(double destinationShops)
+	{
+		this->destinationShops = destinationShops;
 	}
 };
 }

@@ -1269,23 +1269,24 @@ Vehicle* DriverMovement::initializePath(bool createVehicle)
 		}
 		else
 		{
-            		const StreetDirectory& stdir = StreetDirectory::Instance();
-            		path = stdir.SearchShortestDrivingPath<sim_mob::Node, sim_mob::Node>(*(parentDriver->origin), *(parentDriver->destination));
+			const StreetDirectory& stdir = StreetDirectory::Instance();
+			path = stdir.SearchShortestDrivingPath<sim_mob::Node, sim_mob::Node>(*(parentDriver->origin), *(parentDriver->destination));
 		}
 
 		double length = 4.0;
-        	double width = 2.0;
-        	std::string vehName = "Car";
+		double width = 2.0;
+		std::string vehName = "Car";
 
-        	ST_Config& stCfg = ST_Config::getInstance();
-        	std::vector<VehicleType>::const_iterator vehicleTypeIter = std::find(stCfg.vehicleTypes.begin(), stCfg.vehicleTypes.end(),
-                                                                             (*parentDriver->parent->currTripChainItem)->getMode());
-        	if(vehicleTypeIter != stCfg.vehicleTypes.end())
-        	{
-            		length = vehicleTypeIter->length;
-            		width = vehicleTypeIter->width;
-            		vehName = vehicleTypeIter->name;
-        	}
+		ST_Config& stCfg = ST_Config::getInstance();
+		std::vector<VehicleType>::const_iterator vehicleTypeIter = std::find(stCfg.vehicleTypes.begin(), stCfg.vehicleTypes.end(), 
+				(*parentDriver->parent->currTripChainItem)->getMode());
+		
+		if (vehicleTypeIter != stCfg.vehicleTypes.end())
+		{
+			length = vehicleTypeIter->length;
+			width = vehicleTypeIter->width;
+			vehName = vehicleTypeIter->name;
+		}
 
 		if (createVehicle)
 		{
@@ -1390,10 +1391,9 @@ double DriverMovement::updatePosition(DriverUpdateParams &params)
 	double overflow = 0;
 
 	//Move the vehicle forward
-	overflow = fwdDriverMovement.advance(distCovered);
+	//overflow = fwdDriverMovement.advance(distCovered);
 	
 	/*-------Code related to en-route route choice when the vehicle enters a wrong turning path-------*/
-	/*
 	try
 	{
 		//Move the vehicle forward
@@ -1402,68 +1402,79 @@ double DriverMovement::updatePosition(DriverUpdateParams &params)
 	catch(no_turning_path_exception &ex)
 	{
 		if(!parentDriver->isBusDriver)
-		{
-			//No turning path to the next link from the selected route. Change route.
-
-			//Create a temporary sub-trip
-			DailyTime startTime(ConfigManager::GetInstance().FullConfig().simStartTime().getValue() + params.now.ms());
-			SubTrip subtrip;
-
-			subtrip.origin = WayPoint(ex.fromLane->getParentSegment()->getParentLink()->getToNode());
-			subtrip.destination = parentDriver->parent->destNode;
-			subtrip.startTime = startTime;
-
-			//Get the path from the path-set manager if we're using route-choice, else find the shortest path
-			vector<WayPoint> path;
-			if (ConfigManager::GetInstance().FullConfig().PathSetMode())
+		{			
+			//No turning path to the next link from the selected route. Change route.			
+			
+			bool isPathFound = false;
+			
+			//Get the link that we are connected to from the current lane
+			const Node *currNode = ex.fromLane->getParentSegment()->getParentLink()->getToNode();			
+			const TurningGroup *tGroupToEnter = nullptr;			
+			const Link *nextLink = nullptr;
+			const std::map<unsigned int, TurningGroup *> &tGroups = currNode->getTurningGroups(ex.fromLane->getParentSegment()->getLinkId());			
+			
+			//From the current node, get the turning group that has turning paths originating at the current lane
+			for(std::map<unsigned int, TurningGroup *>::const_iterator itGroups = tGroups.begin(); itGroups != tGroups.end(); ++itGroups)
 			{
-				//Black list the next link from the original path so that we do not get that path again
-				set<const Link *> blackListLink;
-				blackListLink.insert(ex.toSegment->getParentLink());
-
-				bool useInSimulationTT = parentDriver->getParent()->usesInSimulationTravelTime();
-				bool pathFound = PrivateTrafficRouteChoice::getInstance()->getBestPath(path, subtrip, true, blackListLink,
-																					   false, false, false, nullptr, useInSimulationTT);
-
-				if (!pathFound)
+				const std::map<unsigned int, TurningPath *> *tPaths = itGroups->second->getTurningPaths(ex.fromLane->getLaneId());				
+				
+				if (tPaths)
 				{
-					stringstream msg;
-					msg << "No path found from node " << subtrip.origin.node->getNodeId() << " to " << subtrip.destination.node->getNodeId()
-							<< " [En-route search]";
-					throw runtime_error(msg.str());
+					tGroupToEnter = itGroups->second;
+					nextLink = tPaths->begin()->second->getToLane()->getParentSegment()->getParentLink();
+
+					//Create a temporary sub-trip
+					DailyTime startTime(ConfigManager::GetInstance().FullConfig().simStartTime().getValue() + params.now.ms());
+					SubTrip subtrip;
+
+					subtrip.origin = WayPoint(currNode);
+					subtrip.destination = parentDriver->parent->destNode;
+					subtrip.startTime = startTime;
+
+					//Get the path from the path-set manager if we're using route-choice, else find the shortest path
+					vector<WayPoint> path;
+					if (ConfigManager::GetInstance().FullConfig().PathSetMode())
+					{
+						set<const Link *> blackListLink;
+
+						bool useInSimulationTT = parentDriver->getParent()->usesInSimulationTravelTime();
+						isPathFound = PrivateTrafficRouteChoice::getInstance()->getBestPath(path, subtrip, true, blackListLink, 
+								false, false, false, nextLink, useInSimulationTT);
+					}
+					
+					if(!isPathFound || ConfigManager::GetInstance().FullConfig().PathSetMode())
+					{
+						const StreetDirectory& stdir = StreetDirectory::Instance();						
+						path = stdir.SearchShortestDrivingPath<sim_mob::Link, sim_mob::Node>(*nextLink, *(parentDriver->destination));
+						
+						if(path.empty())
+						{
+							continue;
+						}	
+					}
+
+					//Build the new path
+					path = buildPath(path);
+					
+					//Prepend the path with the next turning group
+					path.insert(path.begin(), WayPoint(tGroupToEnter));
+
+					//Set the updated path
+					fwdDriverMovement.setPathStartingWithTurningGroup(path, ex.fromLane);
+
+					updatePosition(params);
+
+					//Set path found
+					isPathFound = true;
+					break;					
 				}
 			}
-			else
-			{
-				//Black list the next link from the original path so that we do not get that path again
-				vector<const Link *> blackListLink;
-				blackListLink.push_back(ex.toSegment->getParentLink());
-
-				const StreetDirectory& stdir = StreetDirectory::Instance();
-				path = stdir.SearchShortestDrivingPath(*(subtrip.origin.node), *(parentDriver->destination), blackListLink);
-			}
-
-			//Build the new path
-			path = buildPath(path);
-
-			//Get the turning group the driver should enter
-			const TurningGroup *tGroup = subtrip.origin.node->getTurningGroup(ex.fromLane->getParentSegment()->getLinkId(), path.front().roadSegment->getLinkId());
-
-			if (tGroup)
-			{
-				//Prepend the path with the turning group
-				path.insert(path.begin(), WayPoint(tGroup));
-
-				//Set the updated path
-				fwdDriverMovement.setPathStartingWithTurningGroup(path, ex.fromLane);
-
-				updatePosition(params);
-			}
-			else
+			
+			if(!isPathFound)
 			{
 				stringstream msg;
-				msg << "No turning found from link " << ex.fromLane->getParentSegment()->getLinkId() << " to " << path.front().roadSegment->getLinkId()
-						<< " [En-route search]";
+				msg << "No alternate path found from lane " << ex.fromLane->getLaneId() << " to destination node " << parentDriver->destination->getNodeId();
+				msg << " Frame: [" << params.now.frame() << "]";
 				throw runtime_error(msg.str());
 			}
 		}
@@ -1471,9 +1482,10 @@ double DriverMovement::updatePosition(DriverUpdateParams &params)
 		{
 			stringstream msg;
 			msg << "Bus driver on incorrect lane " << ex.fromLane->getLaneId() << " trying to go to segment " << ex.toSegment->getRoadSegmentId();
+			msg << " Frame: [" << params.now.frame() << "]";
 			throw runtime_error(msg.str());
 		}
-	}*/
+	}
 	
 	//Update the vehicle's velocity based on its acceleration using the equation of motion
 	//v = u + at

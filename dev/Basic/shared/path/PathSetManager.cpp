@@ -421,7 +421,7 @@ void sim_mob::PrivatePathsetGenerator::setPathSetTags(boost::shared_ptr<sim_mob:
 	}
 }
 
-vector<WayPoint> sim_mob::PrivateTrafficRouteChoice::getPath(const sim_mob::SubTrip& subTrip, bool enRoute, const sim_mob::RoadSegment* approach, bool useInSimulationTT)
+vector<WayPoint> sim_mob::PrivateTrafficRouteChoice::getPath(const sim_mob::SubTrip& subTrip, bool enRoute, const sim_mob::Link *approach, bool useInSimulationTT)
 {
 	vector<WayPoint> res = vector<WayPoint>();
 
@@ -490,7 +490,7 @@ void sim_mob::PrivatePathsetGenerator::onGeneratePathSet(boost::shared_ptr<PathS
 //Step-3: If not found in DB, generate all 4 types of path
 //step-5: Choose the best path using utility function
 bool sim_mob::PrivateTrafficRouteChoice::getBestPath(std::vector<sim_mob::WayPoint>& res, const sim_mob::SubTrip& st, bool useCache, std::set<const sim_mob::Link*> blackListedLinks, bool usePartialExclusion, bool nonCBD_OD, bool enRoute,
-		const sim_mob::RoadSegment* approach, bool useInSimulationTT)
+		const sim_mob::Link* approach, bool useInSimulationTT)
 {
 	res.clear();
 
@@ -526,7 +526,7 @@ bool sim_mob::PrivateTrafficRouteChoice::getBestPath(std::vector<sim_mob::WayPoi
 		pathset->subTrip = st; //at least for the travel start time, subtrip is needed
 		onPathSetRetrieval(pathset, enRoute, useInSimulationTT);
 		//no need to supply permanent blacklist
-		bool pathChosen = PrivateRouteChoiceProvider::getPvtRouteChoiceModel()->getBestPathChoiceFromPathSet(pathset, partial, emptyBlkLst, enRoute);
+		bool pathChosen = PrivateRouteChoiceProvider::getPvtRouteChoiceModel()->getBestPathChoiceFromPathSet(pathset, partial, emptyBlkLst, enRoute, approach);
 		if (pathChosen)
 		{
 			res = *(pathset->bestPath);
@@ -564,7 +564,7 @@ bool sim_mob::PrivateTrafficRouteChoice::getBestPath(std::vector<sim_mob::WayPoi
 		}
 		//	no need of processing and storing blacklisted paths
 		onPathSetRetrieval(pathset, enRoute);
-		bool pathChosen = PrivateRouteChoiceProvider::getPvtRouteChoiceModel()->getBestPathChoiceFromPathSet(pathset, partial, emptyBlkLst, enRoute);
+		bool pathChosen = PrivateRouteChoiceProvider::getPvtRouteChoiceModel()->getBestPathChoiceFromPathSet(pathset, partial, emptyBlkLst, enRoute, approach);
 		if (pathChosen)
 		{
 			res = *(pathset->bestPath);
@@ -1242,7 +1242,8 @@ int PrivateTrafficRouteChoice::getPurpose(unsigned int index)
 	return ret;
 }
 
-bool sim_mob::PrivateTrafficRouteChoice::getBestPathChoiceFromPathSet(boost::shared_ptr<sim_mob::PathSet>& ps, const std::set<const sim_mob::Link*>& partialExclusion, const std::set<const sim_mob::Link*>& blckLstLnks, bool enRoute)
+bool sim_mob::PrivateTrafficRouteChoice::getBestPathChoiceFromPathSet(boost::shared_ptr<sim_mob::PathSet>& ps, 
+		const std::set<const sim_mob::Link*>& partialExclusion, const std::set<const sim_mob::Link*>& blckLstLnks, bool enRoute, const sim_mob::Link *approach)
 {
 	bool hasElementsPartialExclusion = (!partialExclusion.empty());
 	bool hasElementsBlackListLinks = (!blckLstLnks.empty());
@@ -1257,6 +1258,12 @@ bool sim_mob::PrivateTrafficRouteChoice::getBestPathChoiceFromPathSet(boost::sha
 		if (hasElementsBlackListLinks && sp->includesLinks(blckLstLnks))
 		{
 			continue; //skip this path
+		}
+		
+		//Check if the approach is specified for the path, if so skip the paths that do not start at the approach link
+		if(approach && sp->path.front().link != approach)
+		{
+			continue;
 		}
 
 		if (sp->travelTime <= 0.0)

@@ -153,7 +153,7 @@
         <pedestrian_walk_speed value="135"/>
         
         <!-- default capacity value -->
-        <bus_default_capacity value="80"/>
+        <bus_default_capacity value="100"/>
                 
         <!-- these parameters are used to assign filename for the storage of statistics -->   
         <!-- if the value is empty, no output file is generated, otherwise store to csv file -->     
@@ -178,7 +178,11 @@
 
         <model_scripts path="scripts/lua/mid/behavior-models/" format="lua">
              <script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models-->
-             <script name="pvtrc" file="pvtrc.lua"/> <!--private traffic route choice -->
+             <script name="pvtrc" file="pvtrc.lua"/> <!--private traffic route choice-->
+             <script name="ptrc" file="ptrc.lua"/> <!--public transit route choice-->
+             <script name="wdmw" file="wdmw.lua"/> <!--within-day mode choice for work trips-->
+             <script name="wdme" file="wdme.lua"/> <!--within-day mode choice for education trips-->
+             <script name="wdmso" file="wdmso.lua"/> <!--within-day mode choice for work shopping and other trips-->
         </model_scripts>
         
     </supply>                                      

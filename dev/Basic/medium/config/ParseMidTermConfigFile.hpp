@@ -114,7 +114,7 @@ private:
      *
 	 * @param node node corresponding to model_scripts element inside xml file
 	 */
-	void processModelScriptsNode(xercesc::DOMElement* node);
+	ModelScriptsMap processModelScriptsNode(xercesc::DOMElement* node);
 
 	/**
 	 * processes mongo collections element in config xml

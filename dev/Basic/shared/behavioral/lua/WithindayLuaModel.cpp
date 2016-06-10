@@ -35,7 +35,9 @@ void ensureContext()
 			const std::string& scriptsPath = extScripts.getPath();
 			ModelContext* modelCtx = new ModelContext();
 			modelCtx->wdModel.loadFile(scriptsPath + extScripts.getScriptFileName("logit"));
-			modelCtx->wdModel.loadFile(scriptsPath + extScripts.getScriptFileName("tmw"));
+			modelCtx->wdModel.loadFile(scriptsPath + extScripts.getScriptFileName("wdmw"));
+			modelCtx->wdModel.loadFile(scriptsPath + extScripts.getScriptFileName("wdme"));
+			modelCtx->wdModel.loadFile(scriptsPath + extScripts.getScriptFileName("wdmso"));
 			modelCtx->wdModel.initialize();
 			threadContext.reset(modelCtx);
 		}

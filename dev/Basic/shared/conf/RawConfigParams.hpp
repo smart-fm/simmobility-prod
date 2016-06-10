@@ -382,10 +382,6 @@ struct PathSetConf
 
     /// Utility Parameters
 	UtilityParams params;
-
-    /// pt route choice model scripts params
-	ModelScriptsMap ptRouteChoiceScriptsMap;
-	ModelScriptsMap pvtRouteChoiceScriptsMap;
 };
 
 /**

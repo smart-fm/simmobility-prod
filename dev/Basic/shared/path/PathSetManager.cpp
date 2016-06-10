@@ -68,7 +68,7 @@ void ensureContext()
 	{
 		try
 		{
-			const ModelScriptsMap& extScripts = ConfigManager::GetInstance().PathSetConfig().pvtRouteChoiceScriptsMap;
+			const ModelScriptsMap& extScripts = ConfigManager::GetInstance().FullConfig().luaScriptsMap;
 			const std::string& scriptsPath = extScripts.getPath();
 			ModelContext* modelCtx = new ModelContext();
 			modelCtx->pvtRouteChoiceModel->loadFile(scriptsPath + extScripts.getScriptFileName("logit"));

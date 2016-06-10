@@ -162,9 +162,9 @@ public:
 	void setPersonID(const std::string& val);
 	void setPersonID(int val);
 
-	TripChainItem(std::string entId = std::string(),
+	TripChainItem(std::string purpose = std::string(),
+			std::string entId = std::string(),
 			std::string type = "Trip",
-			std::string purpose = std::string(),
 			DailyTime start = DailyTime(), DailyTime end = DailyTime(),
 			unsigned int seqNumber=0,
 			int requestTime=-1,

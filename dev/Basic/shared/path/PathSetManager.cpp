@@ -1243,9 +1243,7 @@ int PrivateTrafficRouteChoice::getPurpose(unsigned int index)
 }
 
 bool sim_mob::PrivateTrafficRouteChoice::getBestPathChoiceFromPathSet(boost::shared_ptr<sim_mob::PathSet>& ps, 
-																	  const std::set<const sim_mob::Link*>& partialExclusion, 
-																	  const std::set<const sim_mob::Link*>& blckLstLnks, bool enRoute, 
-																	  const sim_mob::Link *approach)
+		const std::set<const sim_mob::Link*>& partialExclusion, const std::set<const sim_mob::Link*>& blckLstLnks, bool enRoute, const sim_mob::Link *approach)
 {
 	bool hasElementsPartialExclusion = (!partialExclusion.empty());
 	bool hasElementsBlackListLinks = (!blckLstLnks.empty());

@@ -1278,8 +1278,9 @@ Vehicle* DriverMovement::initializePath(bool createVehicle)
 		std::string vehName = "Car";
 
 		ST_Config& stCfg = ST_Config::getInstance();
-		std::vector<VehicleType>::const_iterator vehicleTypeIter = std::find(stCfg.vehicleTypes.begin(), stCfg.vehicleTypes.end(),
-																			 (*parentDriver->parent->currTripChainItem)->getMode());
+		std::vector<VehicleType>::const_iterator vehicleTypeIter = std::find(stCfg.vehicleTypes.begin(), stCfg.vehicleTypes.end(), 
+				(*parentDriver->parent->currTripChainItem)->getMode());
+		
 		if (vehicleTypeIter != stCfg.vehicleTypes.end())
 		{
 			length = vehicleTypeIter->length;
@@ -1437,8 +1438,8 @@ double DriverMovement::updatePosition(DriverUpdateParams &params)
 						set<const Link *> blackListLink;
 
 						bool useInSimulationTT = parentDriver->getParent()->usesInSimulationTravelTime();
-						isPathFound = PrivateTrafficRouteChoice::getInstance()->getBestPath(path, subtrip, true, blackListLink,
-																							   false, false, false, nextLink, useInSimulationTT);						
+						isPathFound = PrivateTrafficRouteChoice::getInstance()->getBestPath(path, subtrip, true, blackListLink, 
+								false, false, false, nextLink, useInSimulationTT);
 					}
 					
 					if(!isPathFound || ConfigManager::GetInstance().FullConfig().PathSetMode())

@@ -619,6 +619,21 @@ bool HouseholdBidderRole::pickEntryToBid()
     }
     else
     {
+        //Add x BTO units to the screenedUnit vector if the household is eligible for it
+        for(int n = 0, m = 0; n < entries.size() && m < config.ltParams.housingModel.bidderBTOUnitsChoiceSet; n++ )
+        {
+        	int offset = rand() / RAND_MAX * entries.size();
+
+         	HousingMarket::ConstEntryList::const_iterator itr = entries.begin() + offset;
+           	const HousingMarket::Entry* entry = *itr;
+
+        	if( entry->isBTO() == true )
+        	{
+        		screenedEntries.push_back(entry);
+        		m++;
+        	}
+        }
+
     	std::string choiceset(" ");
     	for(int n = 0; n < screenedEntries.size(); n++)
     	{

@@ -1382,6 +1382,13 @@ void HM_Model::startImpl()
 	//assign empty units to freelance housing agents
 	for (UnitList::const_iterator it = units.begin(); it != units.end(); it++)
 	{
+		boost::gregorian::date saleDate = boost::gregorian::date_from_tm((*it)->getSaleFromDate());
+		boost::gregorian::date simulationDate = boost::gregorian::date(HITS_SURVEY_YEAR, 1, 1);
+		if( saleDate > simulationDate )
+		{
+			startDay = (saleDate - simulationDate).days();
+		}
+
 		(*it)->setbiddingMarketEntryDay( startDay );
 		(*it)->setTimeOnMarket(  1 + (float)rand() / RAND_MAX * config.ltParams.housingModel.timeOnMarket);
 		(*it)->setTimeOffMarket( 1 + (float)rand() / RAND_MAX * config.ltParams.housingModel.timeOffMarket);
@@ -1389,9 +1396,7 @@ void HM_Model::startImpl()
 		//this unit is a vacancy
 		if (assignedUnits.find((*it)->getId()) == assignedUnits.end())
 		{
-			boost::gregorian::date occupancyDate = boost::gregorian::date_from_tm((*it)->getOccupancyFromDate());
-
-			if( (*it)->getUnitType() != NON_RESIDENTIAL_PROPERTY &&  occupancyDate < boost::gregorian::date(HITS_SURVEY_YEAR, 1, 1) )
+			if( (*it)->getUnitType() != NON_RESIDENTIAL_PROPERTY )
 			{
 				float awakeningProbability = (float)rand() / RAND_MAX;
 

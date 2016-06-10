@@ -267,7 +267,13 @@ void RealEstateSellerRole::update(timeslice now)
 
             if(getCurrentExpectation(unit->getId(), firstExpectation))
             {
-                market->addEntry( HousingMarket::Entry( getParent(), unit->getId(), unit->getSlaAddressId(), tazId, firstExpectation.askingPrice, firstExpectation.hedonicPrice));
+            	bool bto = false;
+            	boost::gregorian::date simulationDay = boost::gregorian::date(HITS_SURVEY_YEAR,1,1) + boost::gregorian::date_duration(currentTime.ms());
+            	boost::gregorian::date saleDate = boost::gregorian::date_from_tm(unit->getSaleFromDate());
+            	if( saleDate == simulationDay)
+            		bto = true;
+
+                market->addEntry( HousingMarket::Entry( getParent(), unit->getId(), unit->getSlaAddressId(), tazId, firstExpectation.askingPrice, firstExpectation.hedonicPrice, bto));
 				#ifdef VERBOSE
                 PrintOutV("[day " << currentTime.ms() << "] RealEstate Agent " <<  this->getParent()->getId() << ". Adding entry to Housing market for unit " << unit->getId() << " with asking price: " << firstExpectation.askingPrice << std::endl);
 				#endif

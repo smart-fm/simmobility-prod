@@ -73,9 +73,11 @@ public:
 	void setWaitingTime(double val);
 	/**
 	 * computing dwell time
-	 * @param totalNum is the total number of boarding and alighting
+	 * @param boardingNum is the boarding number of passengers
+	 * @param alightingNum is alighting number of passengers
+	 * @return dwell time in seconds
 	 */
-	void calculateDwellTime(int boarding,int alighting);
+	double calculateDwellTime(int boardingNum,int alightingNum);
 	/**
 	 * get train line id
 	 * @return line id
@@ -140,6 +142,12 @@ public:
 	 * @param now is current time
 	 */
 	void storeWaitingTime(WaitTrainActivity* waitingActivity,timeslice now) const;
+	/**
+	 * store arrival time
+	 * @param currentTime is current time
+	 * @param waitTime is waiting time at current platform
+	 */
+	void storeArrivalTime(const std::string& currentTime, const std::string& waitTime);
 	/* to get traiId*/
 	int getTrainId() const;
 	/**
@@ -163,6 +171,8 @@ private:
 	std::list<Passenger*> passengerList;
 	/**the locker for this driver*/
 	mutable boost::mutex driverMutex;
+	/**sequence no for platforms*/
+	unsigned int platSequenceNumber;
 	TrainDriver *nextDriverInOppLine;
 	bool holdTrain=false;
 	static int counter;

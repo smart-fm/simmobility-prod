@@ -22,6 +22,12 @@
 using namespace sim_mob::event;
 namespace {
 const double safeDistanceToAhead = 1000.0;
+/**
+ * converts time from  seconds to milli-seconds
+ */
+inline unsigned int converToMilliseconds(double timeInSecs) {
+	return (timeInSecs*1000.0);
+}
 }
 namespace sim_mob {
 namespace medium
@@ -241,6 +247,7 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 			{
 
 				bool isDisruptedPlat = false;
+				double dwellTimeInSecs = 0.0;
 				const Platform* platform = (*it)->getNextPlatform();
 				if(disruptionParam.get()&&platform){
 					std::vector<std::string> platformNames = disruptionParam->platformNames;
@@ -261,10 +268,13 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 				if(!isDisruptedPlat){
 					int alightingNum = (*it)->alightPassenger(leavingPersons[platform],now);
 					int boardingNum = (*it)->boardPassenger(waitingPersons[platform], now);
-					(*it)->calculateDwellTime(boardingNum,alightingNum);
+					dwellTimeInSecs = (*it)->calculateDwellTime(boardingNum,alightingNum);
 					(*it)->setNextRequested(TrainDriver::REQUESTED_WAITING_LEAVING);
 				}
-
+				DailyTime startTm = ConfigManager::GetInstance().FullConfig().simStartTime();
+				DailyTime current(now.ms() + startTm.getValue());
+				DailyTime dwellTime(converToMilliseconds(dwellTimeInSecs));
+				(*it)->storeArrivalTime(current.getStrRepr(), dwellTime.getStrRepr());
 			}
 
 			else if ((*it)->getNextRequested() == TrainDriver::REQUESTED_LEAVING_PLATFORM)

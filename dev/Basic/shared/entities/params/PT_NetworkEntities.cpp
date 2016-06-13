@@ -33,8 +33,8 @@ void PT_NetworkCreater::init()
 		}
 	}
 	{
-		const std::string DB_STORED_PROC_PT_EDGES = ConfigManager::GetInstanceRW().FullConfig().getDatabaseProcMappings().procedureMappings["pt_edges2"];
-		const std::string DB_STORED_PROC_PT_VERTICES = ConfigManager::GetInstanceRW().FullConfig().getDatabaseProcMappings().procedureMappings["pt_vertices2"];
+		const std::string DB_STORED_PROC_PT_EDGES = ConfigManager::GetInstanceRW().FullConfig().getDatabaseProcMappings().procedureMappings["pt_edges_dis"];
+		const std::string DB_STORED_PROC_PT_VERTICES = ConfigManager::GetInstanceRW().FullConfig().getDatabaseProcMappings().procedureMappings["pt_vertices_dis"];
 		if(!DB_STORED_PROC_PT_EDGES.empty()&&!DB_STORED_PROC_PT_VERTICES.empty()){
 			instance2.init(DB_STORED_PROC_PT_VERTICES, DB_STORED_PROC_PT_EDGES);
 		}

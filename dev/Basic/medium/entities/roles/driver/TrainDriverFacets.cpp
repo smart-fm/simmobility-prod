@@ -113,6 +113,10 @@ void TrainMovement::frame_init()
 	{
 		trainPathMover.setPath(trip->getTrainRoute());
 		trainPlatformMover.setPlatforms(trip->getTrainPlatform());
+		Platform* next = trainPlatformMover.getNextPlatform();
+		facetMutex.lock();
+		nextPlatform = next;
+		facetMutex.unlock();
 	}
 }
 

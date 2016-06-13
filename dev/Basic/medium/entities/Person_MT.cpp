@@ -74,8 +74,6 @@ void Person_MT::FindMrtTripsAndPerformRailTransitRoute(std::vector<sim_mob::OD_T
        {
            std::string src=(*itr).startStop;
            std::string end=(*itr).endStop;
-           //src="NE12/CC13";
-           //end="NS24/NE6/CC1";
            size_t pos = 0;
            if((pos=(src.find("/"))) != std::string::npos)
 		   {
@@ -235,7 +233,7 @@ void Person_MT::FindMrtTripsAndPerformRailTransitRoute(std::vector<sim_mob::OD_T
 void Person_MT::changeToNewTrip(const std::string& stationName)
 {
 	ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
-	std::string ptPathsetStoredProcName = cfg.getDatabaseProcMappings().procedureMappings["pt_pathset2"];
+	std::string ptPathsetStoredProcName = cfg.getDatabaseProcMappings().procedureMappings["pt_pathset_dis"];
 	TripChainItem* trip = (*currTripChainItem);
 	sim_mob::TrainStop* stop = sim_mob::PT_NetworkCreater::getInstance2().findMRT_Stop(stationName);
 	if(stop){

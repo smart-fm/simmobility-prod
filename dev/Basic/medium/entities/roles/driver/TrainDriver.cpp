@@ -23,7 +23,8 @@ TrainDriver::TrainDriver(Person_MT* parent,
 		sim_mob::medium::TrainBehavior* behavior,
 		sim_mob::medium::TrainMovement* movement,
 		std::string roleName, Role<Person_MT>::Type roleType) :
-	sim_mob::Role<Person_MT>::Role(parent, behavior, movement, roleName, roleType),nextDriver(nullptr),nextRequested(NO_REQUESTED),waitingTimeSec(0.0),initialDwellTime(0.0),disruptionParam(nullptr)
+	sim_mob::Role<Person_MT>::Role(parent, behavior, movement, roleName, roleType),
+	nextDriver(nullptr),nextRequested(NO_REQUESTED),waitingTimeSec(0.0),initialDwellTime(0.0),disruptionParam(nullptr),platSequenceNumber(0)
 {
 	int trainId=getTrainId();
 	std::string lineId=getTrainLine();
@@ -122,12 +123,11 @@ TrainDriver::TRAIN_NEXTREQUESTED TrainDriver::getNextRequested() const
 void TrainDriver::setNextRequested(TRAIN_NEXTREQUESTED res)
 {
 	counter++;
-	Print() <<"Driver is "<<counter;
 	driverMutex.lock();
 	nextRequested = res;
 	driverMutex.unlock();
 }
-void TrainDriver::calculateDwellTime(int boarding,int alighting)
+double TrainDriver::calculateDwellTime(int boarding,int alighting)
 {
 	int noOfPassengerInTrain=this->getPassengers().size();
 	/*const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
@@ -138,6 +138,7 @@ void TrainDriver::calculateDwellTime(int boarding,int alighting)
 	double time = 12.22 + 2.27*boarding/24 + 1.82*alighting/24 + 0.00062*(noOfPassengerInTrain/24)*(noOfPassengerInTrain/24)*(noOfPassengerInTrain/24)*(boarding/24);
 	waitingTimeSec = time;
 	initialDwellTime=time;
+	return waitingTimeSec;
 }
 double TrainDriver::getWaitingTime() const
 {
@@ -258,8 +259,6 @@ int TrainDriver::alightPassenger(std::list<Passenger*>& alightingPassenger,times
 	return num;
 }
 
-
-
 int TrainDriver::AlightAllPassengers(std::list<Passenger*>& alightingPassenger,timeslice now)
 {
 	int num = 0;
@@ -298,6 +297,35 @@ void TrainDriver::storeWaitingTime(WaitTrainActivity* waitingActivity, timeslice
 	personWaitInfo.deniedBoardingCount = waitingActivity->getDeniedBoardingCount();
 	messaging::MessageBus::PostMessage(PT_Statistics::getInstance(), STORE_PERSON_WAITING,
 			messaging::MessageBus::MessagePtr(new PersonWaitingTimeMessage(personWaitInfo)));
+}
+void TrainDriver::storeArrivalTime(const std::string& currentTime, const std::string& waitTime)
+{
+	Person_MT* person = parent;
+	if (!person) {
+		return;
+	}
+
+	Platform* platform = nullptr;
+	TrainMovement* movement = dynamic_cast<TrainMovement*>(movementFacet);
+	if(movement)
+	{
+		platform = movement->getNextPlatform();
+	}
+	std::vector<TripChainItem *>::iterator currTrip = getParent()->currTripChainItem;
+	const TrainTrip* trip = dynamic_cast<const TrainTrip*>(*currTrip);
+	if (trip && platform) {
+		PT_ArrivalTime arrivalInfo;
+		arrivalInfo.serviceLine = trip->getLineId();
+		arrivalInfo.tripId = boost::lexical_cast<std::string>(trip->getTripId());
+		arrivalInfo.sequenceNo = platSequenceNumber++;
+		arrivalInfo.arrivalTime = currentTime;
+		arrivalInfo.dwellTime = waitTime;
+		arrivalInfo.dwellTimeSecs = (DailyTime(waitTime)).getValue() / 1000.0;
+		const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
+		arrivalInfo.pctOccupancy = (((double)passengerList.size())/config.trainController.maxCapacity) * 100.0;
+		arrivalInfo.stopNo = platform->getPlatformNo();
+		messaging::MessageBus::PostMessage(PT_Statistics::getInstance(), STORE_BUS_ARRIVAL, messaging::MessageBus::MessagePtr(new PT_ArrivalTimeMessage(arrivalInfo)));
+	}
 }
 int TrainDriver::boardPassenger(std::list<WaitTrainActivity*>& boardingPassenger,timeslice now)
 {

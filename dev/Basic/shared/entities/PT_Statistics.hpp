@@ -68,14 +68,14 @@ public:
 };
 
 /**
- * simple struct to store arrival time at bus stop and pertinent info for buses
+ * simple struct to store arrival time at bus stop or mrt station
  */
-struct BusArrivalTime
+struct PT_ArrivalTime
 {
 	/** bus stop number*/
-	std::string busStopNo;
+	std::string stopNo;
 	/** bus line*/
-	std::string busLine;
+	std::string serviceLine;
 	/** trip number for the bus line*/
 	std::string tripId;
 	/** bus stop sequence number*/
@@ -99,12 +99,12 @@ struct BusArrivalTime
 /**
  * Message to transfer bus arrival time at bus stop
  */
-class BusArrivalTimeMessage : public messaging::Message
+class PT_ArrivalTimeMessage : public messaging::Message
 {
 public:
-	BusArrivalTimeMessage(const BusArrivalTime& busArrivalInfo) : busArrivalInfo(busArrivalInfo) {}
-	virtual ~BusArrivalTimeMessage() {}
-	BusArrivalTime busArrivalInfo;
+	PT_ArrivalTimeMessage(const PT_ArrivalTime& arrivalInfo) : arrivalInfo(arrivalInfo) {}
+	virtual ~PT_ArrivalTimeMessage() {}
+	PT_ArrivalTime arrivalInfo;
 };
 
 /**
@@ -258,7 +258,7 @@ public:
 	 * registers bus arrival and dwell time for a stop, bus line and interval
 	 * @param busArrival bus arrival info
 	 */
-	void addStopStats(const BusArrivalTime& busArrival);
+	void addStopStats(const PT_ArrivalTime& busArrival);
 
 	/**
 	 * registers person waiting time and count for a stop, bus line and interval
@@ -310,7 +310,7 @@ private:
 	PT_Statistics();
 
 	/**store stop to stop journey time. bus stop No. is key */
-	std::vector<BusArrivalTime> busJourneyTimes;
+	std::vector<PT_ArrivalTime> journeyTimes;
 
 	/**store for waiting time at bus stop*/
 	std::map<std::string, PersonWaitingTime> personWaitingTimes;

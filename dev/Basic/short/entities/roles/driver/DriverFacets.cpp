@@ -131,7 +131,7 @@ void DriverMovement::frame_tick()
 			parentDriver->getParent()->handleAMODArrival();
 		}
 
-		if(parentDriver->roleType != sim_mob::Role<sim_mob::Person_ST>::RL_BUSDRIVER)
+		if(parentDriver->roleType != sim_mob::Role<sim_mob::Person_ST>::RL_BUSDRIVER && ConfigManager::GetInstance().FullConfig().odTTConfig.enabled)
 		{
 			TravelTimeManager::getInstance()->addODTravelTime(std::make_pair(parentDriver->origin->getNodeId(),
 					parentDriver->destination->getNodeId()),

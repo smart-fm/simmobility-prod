@@ -266,7 +266,7 @@ namespace sim_mob
 
 			int dailyAwakenings = config.ltParams.housingModel.dailyHouseholdAwakenings;
 
-		    for( int n = 0; n < dailyAwakenings; n++ )
+		    for( int n = 0; n < dailyAwakenings; )
 		    {
 		    	ExternalEvent extEv;
 
@@ -277,6 +277,8 @@ namespace sim_mob
 
 		    	if( !potentialAwakening)
 		    		continue;
+
+		    	n++;
 
 		    	double movingRate = movingProbability(potentialAwakening, model ) / 100.0;
 

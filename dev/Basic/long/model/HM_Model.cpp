@@ -1579,27 +1579,16 @@ void HM_Model::getLogsumOfIndividuals(BigSerial id)
 }
 
 
-void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId2)
+void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId)
 {
-	BigSerial householdId = 0;
 	HouseHoldHitsSample *hitsSample = nullptr;
-
 	{
 		boost::mutex::scoped_lock lock( mtx3 );
-
-		householdId = householdLogsumCounter++;
 
 		hitsSample = this->getHouseHoldHitsById( householdId );
 
 		if( !hitsSample )
 			return;
-
-		std::string householdHitsIdStr = hitsSample->getHouseholdHitsId();
-
-		if( processedHouseholdHitsLogsum.find( householdHitsIdStr ) != processedHouseholdHitsLogsum.end() )
-			return;
-		else
-			processedHouseholdHitsLogsum.insert( householdHitsIdStr );
 	}
 
 	Household *currentHousehold = getHouseholdById( householdId );
@@ -1669,17 +1658,14 @@ void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId2)
 	}
 }
 
-void HM_Model::getLogsumOfHousehold(BigSerial householdId2)
+void HM_Model::getLogsumOfHousehold(BigSerial householdId)
 {
-	BigSerial householdId = 0;
 	HouseHoldHitsSample *hitsSample = nullptr;
 
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 
 	{
 		boost::mutex::scoped_lock lock( mtx3 );
-
-		householdId = householdLogsumCounter++;
 
 		hitsSample = this->getHouseHoldHitsById( householdId );
 
@@ -1690,17 +1676,7 @@ void HM_Model::getLogsumOfHousehold(BigSerial householdId2)
 
 		if( !currentHousehold )
 			return;
-
-		std::string householdHitsIdStr = hitsSample->getHouseholdHitsId();
-
-		//if( processedHouseholdHitsLogsum.find( householdHitsIdStr ) != processedHouseholdHitsLogsum.end() )
-		//	return;
-		//else
-		//	processedHouseholdHitsLogsum.insert( householdHitsIdStr );
-
-		PrintOutV("Logsum index: " << simulationStopCounter++ << std::endl);
 	}
-
 
 	Household *currentHousehold = getHouseholdById( householdId );
 
@@ -1714,7 +1690,6 @@ void HM_Model::getLogsumOfHousehold(BigSerial householdId2)
 
 		if( thisIndividual->getVehicleCategoryId() > 0)
 			vehicleOwnership = 1;
-
 
 		vector<double> logsum;
 		vector<double> travelProbability;
@@ -1734,7 +1709,6 @@ void HM_Model::getLogsumOfHousehold(BigSerial householdId2)
 			}
 		}
 
-
 		BigSerial tazWork = 0;
 		{
 			std::string tazStrWork;
@@ -1745,7 +1719,6 @@ void HM_Model::getLogsumOfHousehold(BigSerial householdId2)
 			tazWork = std::atoi( tazStrWork.c_str() );
 		}
 
-
 		BigSerial tazHome = 0;
 		{
 			std::string tazStrHome;
@@ -1755,7 +1728,6 @@ void HM_Model::getLogsumOfHousehold(BigSerial householdId2)
 
 			tazHome = std::atoi( tazStrHome.c_str() );
 		}
-
 
 		if( tazHome <= 0 )
 		{
@@ -1768,7 +1740,6 @@ void HM_Model::getLogsumOfHousehold(BigSerial householdId2)
 			PrintOutV( " individualId " << householdIndividualIds[n] << " has an empty work taz" << std::endl);
 			AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, (boost::format( "individualId %1% has an empty work taz.") % householdIndividualIds[n]).str());
 		}
-
 
 		for( int m = 1; m <= this->tazs.size(); m++)
 		{

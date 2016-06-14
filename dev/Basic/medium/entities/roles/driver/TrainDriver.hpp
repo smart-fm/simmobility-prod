@@ -148,6 +148,11 @@ public:
 	 * @param waitTime is waiting time at current platform
 	 */
 	void storeArrivalTime(const std::string& currentTime, const std::string& waitTime);
+	/**
+	 * set arrival time
+	 * @param currentTime is current time when train arrive at platform
+	 */
+	void setArrivalTime(const std::string& currentTime);
 	/* to get traiId*/
 	int getTrainId() const;
 	/**
@@ -179,6 +184,8 @@ private:
 
 	/**recording disruption information*/
 	boost::shared_ptr<DisruptionParams> disruptionParam;
+	/**arrival time when stopping the platform*/
+	std::string arrivalTimeAtPlatform;
 
 private:
 	friend class TrainBehavior;

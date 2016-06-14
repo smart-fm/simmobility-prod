@@ -130,12 +130,7 @@ void TrainDriver::setNextRequested(TRAIN_NEXTREQUESTED res)
 double TrainDriver::calculateDwellTime(int boarding,int alighting)
 {
 	int noOfPassengerInTrain=this->getPassengers().size();
-	/*const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
-	int time = Utils::generateFloat(config.trainController.miniDwellTime, config.trainController.maxDwellTime);
-	int sysGran = ConfigManager::GetInstance().FullConfig().baseGranSecond();
-	time = (time/sysGran)*sysGran;*/
-
-	double time = 12.22 + 2.27*boarding/24 + 1.82*alighting/24 + 0.00062*(noOfPassengerInTrain/24)*(noOfPassengerInTrain/24)*(noOfPassengerInTrain/24)*(boarding/24);
+	double time = 12.22 + 2.27*boarding/24 + 1.82*alighting/24;// + 0.00062*(noOfPassengerInTrain/24)*(noOfPassengerInTrain/24)*(noOfPassengerInTrain/24)*(boarding/24);
 	waitingTimeSec = time;
 	initialDwellTime=time;
 	return waitingTimeSec;
@@ -298,6 +293,11 @@ void TrainDriver::storeWaitingTime(WaitTrainActivity* waitingActivity, timeslice
 	messaging::MessageBus::PostMessage(PT_Statistics::getInstance(), STORE_PERSON_WAITING,
 			messaging::MessageBus::MessagePtr(new PersonWaitingTimeMessage(personWaitInfo)));
 }
+void TrainDriver::setArrivalTime(const std::string& currentTime)
+{
+	arrivalTimeAtPlatform = currentTime;
+}
+
 void TrainDriver::storeArrivalTime(const std::string& currentTime, const std::string& waitTime)
 {
 	Person_MT* person = parent;

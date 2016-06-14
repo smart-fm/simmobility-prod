@@ -72,6 +72,12 @@ void PT_Statistics::HandleMessage(Message::MessageType type, const Message& mess
 		personTravelTimes.push_back(msg.personTravelTime);
 		break;
 	}
+	case STORE_PERSON_REROUTE:
+	{
+		const PT_RerouteInfoMessage& msg = MSG_CAST(PT_RerouteInfoMessage, message);
+		personsReroutes.push_back(msg.rerouteInfo);
+		break;
+	}
 	case STORE_WAITING_PERSON_COUNT:
 	{
 		const WaitingCountMessage& msg = MSG_CAST(WaitingCountMessage, message);
@@ -154,6 +160,23 @@ void PT_Statistics::storeStatistics()
 	}
 	personTravelTimes.clear();
 
+	std::string personRerouteFilename("pt_reroute.csv");
+	if (personRerouteFilename.size() > 0)
+	{
+		std::ofstream outputFile(personRerouteFilename.c_str());
+		if (outputFile.is_open())
+		{
+			outputFile <<"person_id, stop_id,last_role_type,mode_choice,rerouting_starting_node,dest_node,is_pt_loaded"<<std::endl;
+			std::vector<PT_RerouteInfo>::const_iterator itPerson = personsReroutes.begin();
+			for (; itPerson != personsReroutes.end(); itPerson++)
+			{
+				outputFile << itPerson->getCSV();
+			}
+			outputFile.close();
+		}
+	}
+	personsReroutes.clear();
+
 	stopStatsMgr.exportStopStats();
 }
 
@@ -197,7 +220,19 @@ std::string PT_ArrivalTime::getCSV() const
 			dwellTime.c_str());
 	return std::string(csvArray);
 }
-
+std::string PT_RerouteInfo::getCSV() const
+{
+	char csvArray[200];
+	sprintf(csvArray, "%s,%s,%u,%s,%u,%u,%u\n",
+			personId.c_str(),
+			stopNo.c_str(),
+			lastRoleType,
+			travelMode.c_str(),
+			startNodeId,
+			destNodeId,
+			isPT_loaded);
+	return std::string(csvArray);
+}
 std::string PersonTravelTime::getCSV() const
 {
 	char csvArray[200];

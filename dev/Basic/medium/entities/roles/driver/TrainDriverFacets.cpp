@@ -23,6 +23,12 @@ namespace {
 const double distanceArrvingAtPlatform = 0.001;
 const double trainLengthMeter = 138;
 const double convertKmPerHourToMeterPerSec = 1000.0/3600.0;
+/**
+ * converts time from  seconds to milli-seconds
+ */
+inline unsigned int converToMilliseconds(double timeInSecs) {
+	return (timeInSecs*1000.0);
+}
 }
 namespace sim_mob {
 namespace medium{
@@ -356,9 +362,9 @@ void TrainMovement::frame_tick()
 		double waitingTime = parentDriver->getWaitingTime();
 		params.currentSpeed = 0.0;
 		params.currentAcelerate = 0.0;
-		if(waitingTime<0){
+		/*if(waitingTime<0){
 			parentDriver->setWaitingTime(0.0);
-		}
+		}*/
 		if(waitingTime<params.secondsInTick){
 			bool isDisruptedPlatform = false;
 			if(parentDriver->disruptionParam.get()){
@@ -378,11 +384,22 @@ void TrainMovement::frame_tick()
 						parentDriver->getParent()->setToBeRemoved();
 						arrivalAtEndPlatform();
 						isDisruptedPlatform = true;
+						double dwellTimeInSecs = parentDriver->initialDwellTime;
+						DailyTime dwellTime(converToMilliseconds(dwellTimeInSecs));
+						parentDriver->storeArrivalTime(parentDriver->arrivalTimeAtPlatform, dwellTime.getStrRepr());
 					}
 				}
 			}
 			if(!isDisruptedPlatform){
 				parentDriver->setNextRequested(TrainDriver::REQUESTED_LEAVING_PLATFORM);
+				double dwellTimeInSecs = 0.0;
+				if(waitingTime<0.0){
+					dwellTimeInSecs = parentDriver->initialDwellTime-waitingTime;
+				} else {
+					dwellTimeInSecs = parentDriver->initialDwellTime;
+				}
+				DailyTime dwellTime(converToMilliseconds(dwellTimeInSecs));
+				parentDriver->storeArrivalTime(parentDriver->arrivalTimeAtPlatform, dwellTime.getStrRepr());
 				if(!isAtLastPlaform()){
 					params.elapsedSeconds = waitingTime;
 					parentDriver->setWaitingTime(0.0);

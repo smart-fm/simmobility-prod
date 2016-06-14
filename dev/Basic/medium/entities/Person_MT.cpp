@@ -23,6 +23,7 @@
 #include "util/DailyTime.hpp"
 #include "geospatial/streetdir/RailTransit.hpp"
 #include "entities/params/PT_NetworkEntities.hpp"
+#include "entities/PT_Statistics.hpp"
 
 using namespace std;
 using namespace sim_mob;
@@ -260,23 +261,16 @@ void Person_MT::changeToNewTrip(const std::string& stationName)
 			insertWaitingActivityToTrip();
 			assignSubtripIds();
 		}
-		sim_mob::BasicLogger& logger  = sim_mob::Logger::log("disruption.csv");
-		logger << this->getDatabaseId() <<",";
-		logger << stop->getStopName() << ",";
-		logger << this->getRole()->roleType<<",";
-		if(newSubTrip.travelMode=="BusTravel"){
-			logger << "PT" << ",";
-		} else {
-			logger << "TX" << ",";
-		}
-		logger << newSubTrip.origin.node->getNodeId()<<",";
-		logger << newSubTrip.destination.node->getNodeId()<<",";
-		if (newSubTrip.travelMode == "BusTravel") {
-			logger << isLoaded << ",";
-		} else {
-			logger << "N" << ",";
-		}
-		logger << std::endl;
+		PT_RerouteInfo rerouteInfo;
+		rerouteInfo.personId = this->getDatabaseId();
+		rerouteInfo.stopNo = stop->getStopName();
+		rerouteInfo.lastRoleType = this->getRole()->roleType;
+		rerouteInfo.travelMode = newSubTrip.travelMode;
+		rerouteInfo.startNodeId = newSubTrip.origin.node->getNodeId();
+		rerouteInfo.destNodeId = newSubTrip.destination.node->getNodeId();
+		rerouteInfo.isPT_loaded = isLoaded;
+		messaging::MessageBus::PostMessage(PT_Statistics::getInstance(),
+				STORE_PERSON_REROUTE, messaging::MessageBus::MessagePtr(new PT_RerouteInfoMessage(rerouteInfo)), true);
 		currSubTrip = subTrips.begin();
 		isFirstTick = true;
 	}

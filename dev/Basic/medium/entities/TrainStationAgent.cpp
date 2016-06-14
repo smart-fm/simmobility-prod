@@ -22,12 +22,6 @@
 using namespace sim_mob::event;
 namespace {
 const double safeDistanceToAhead = 1000.0;
-/**
- * converts time from  seconds to milli-seconds
- */
-inline unsigned int converToMilliseconds(double timeInSecs) {
-	return (timeInSecs*1000.0);
-}
 }
 namespace sim_mob {
 namespace medium
@@ -273,8 +267,7 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 				}
 				DailyTime startTm = ConfigManager::GetInstance().FullConfig().simStartTime();
 				DailyTime current(now.ms() + startTm.getValue());
-				DailyTime dwellTime(converToMilliseconds(dwellTimeInSecs));
-				(*it)->storeArrivalTime(current.getStrRepr(), dwellTime.getStrRepr());
+				(*it)->setArrivalTime(current.getStrRepr());
 			}
 
 			else if ((*it)->getNextRequested() == TrainDriver::REQUESTED_LEAVING_PLATFORM)

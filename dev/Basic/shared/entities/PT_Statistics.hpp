@@ -20,7 +20,8 @@ enum PT_StatsMessage
 	STORE_BUS_ARRIVAL = 6500000,
 	STORE_PERSON_WAITING,
 	STORE_WAITING_PERSON_COUNT,
-	STORE_PERSON_TRAVEL_TIME
+	STORE_PERSON_TRAVEL_TIME,
+	STORE_PERSON_REROUTE
 };
 
 /**
@@ -107,6 +108,39 @@ public:
 	PT_ArrivalTime arrivalInfo;
 };
 
+struct PT_RerouteInfo
+{
+	/**person id*/
+	std::string personId;
+	/** bus stop number*/
+	std::string stopNo;
+	/** last role type*/
+	int lastRoleType;
+	/** mode choice result*/
+	std::string travelMode;
+	/** starting node for reroute*/
+	unsigned int startNodeId;
+	/** destination node id*/
+	unsigned int  destNodeId;
+	/** pt pathset loading result	 */
+	bool isPT_loaded;
+	/**
+	 * constructs a string of comma separated values to be printed in output files
+	 * @returns printable csv string
+	 */
+	std::string getCSV() const;
+};
+
+/**
+ * Message to public reroute
+ */
+class PT_RerouteInfoMessage : public messaging::Message
+{
+public:
+	PT_RerouteInfoMessage(const PT_RerouteInfo& rerouteInfo) : rerouteInfo(rerouteInfo) {}
+	virtual ~PT_RerouteInfoMessage() {}
+	PT_RerouteInfo rerouteInfo;
+};
 /**
  * struct to store travel time of persons taking public transit
  */
@@ -323,6 +357,9 @@ private:
 
 	/**PT stop statistics manager*/
 	StopStatsManager stopStatsMgr;
+
+	/**public reroute when disruption*/
+	std::vector<PT_RerouteInfo> personsReroutes;
 
 	static PT_Statistics* instance;
 };

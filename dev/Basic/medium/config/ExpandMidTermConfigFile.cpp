@@ -4,6 +4,7 @@
 #include <map>
 #include <vector>
 #include "conf/NetworkPrinter.hpp"
+#include "conf/SimulationInfoPrinter.hpp"
 #include "entities/params/PT_NetworkEntities.hpp"
 #include "entities/BusController.hpp"
 #include "entities/BusControllerMT.hpp"
@@ -277,5 +278,8 @@ void ExpandMidTermConfigFile::printSettings()
     std::cout << "------------------\n";
     NetworkPrinter nwPrinter(cfg, cfg.outNetworkFileName);
 	nwPrinter.printNetwork(RoadNetwork::getInstance());
+    std::cout << "------------------\n";
+    SimulationInfoPrinter siPrinter(cfg, cfg.outSimInfoFileName);
+    siPrinter.printSimulationInfo();
     std::cout << "------------------\n";
 }

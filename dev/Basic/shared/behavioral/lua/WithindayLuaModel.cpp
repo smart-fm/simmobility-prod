@@ -103,6 +103,7 @@ void sim_mob::WithindayLuaModel::mapClasses()
 				.addProperty("origin_area",&WithindayModeParams::getOriginArea)
 				.addProperty("resident_size",&WithindayModeParams::getOriginResidentSize)
 				.addProperty("work_op",&WithindayModeParams::getDestinationWorkerSize)
+				.addProperty("population", &WithindayModeParams::getDestinationPopulation)
 				.addProperty("education_op",&WithindayModeParams::getDestinationStudentsSize)
 				.addProperty("shop", &WithindayModeParams::getDestinationShops)
 				.addProperty("distance_remaining", &WithindayModeParams::getDistance)
@@ -118,7 +119,7 @@ void sim_mob::WithindayLuaModel::mapClasses()
 			.endClass();
 }
 
-int sim_mob::WithindayLuaModel::chooseMode(PersonParams& personParams, WithindayModeParams& wdModeParams) const
+int sim_mob::WithindayLuaModel::chooseMode(const PersonParams& personParams, const WithindayModeParams& wdModeParams) const
 {
 	switch(wdModeParams.getTripType())
 	{

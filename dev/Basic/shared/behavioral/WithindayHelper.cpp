@@ -89,6 +89,7 @@ WithindayModeParams WithindayModelsHelper::buildModeChoiceParams(const Trip& cur
 
 	const ZoneParams* destZnParams = findZone(destinZn);
 	wdModeParams.setDestinationArea(destZnParams->getArea());
+	wdModeParams.setDestinationPopulation(destZnParams->getPopulation());
 	wdModeParams.setDestinationStudentsSize(destZnParams->getTotalEnrollment());
 	wdModeParams.setDestinationWorkerSize(destZnParams->getEmployment());
 	wdModeParams.setCostCarParking(destZnParams->getParkingRate());
@@ -96,29 +97,48 @@ WithindayModeParams WithindayModelsHelper::buildModeChoiceParams(const Trip& cur
 	wdModeParams.setDestinationShops(destZnParams->getShop());
 
 	double carInVehicleTT = PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(orgNd, destNd, curTime);
-	if(carInVehicleTT <= 0) { carInVehicleTT = std::numeric_limits<double>::max(); }
-	wdModeParams.setTtCarInVehicle(carInVehicleTT);
+	if(carInVehicleTT > 0)
+	{
+		wdModeParams.setTtCarInVehicle(carInVehicleTT);
+	}
+	else
+	{
+		wdModeParams.drive1Available = false;
+		wdModeParams.motorAvailable = false;
+		wdModeParams.share2Available = false;
+		wdModeParams.share3Available = false;
+		wdModeParams.taxiAvailable = false;
+		wdModeParams.privateBusAvailable = false;
+	}
 
 	const PT_PathSet ptPathset = PT_RouteChoiceLuaProvider::getPTRC_Model().fetchPathset(orgNd, destNd, curTime);
 	unsigned int numPaths = ptPathset.pathSet.size();
-	int sumTransfers = 0;
-	double sumInVehicleTimeSecs = 0.0;
-	double sumWaitingTimeSecs = 0.0;
-	double sumWalkTimeSecs = 0.0;
-	double sumDistance = 0.0;
-	for(const auto& ptPath : ptPathset.pathSet)
+	if(numPaths > 0)
 	{
-		sumTransfers = sumTransfers + ptPath.getNumTransfers();
-		sumInVehicleTimeSecs = sumInVehicleTimeSecs + ptPath.getInVehicleTravelTimeSecs();
-		sumWaitingTimeSecs = sumWaitingTimeSecs + ptPath.getWaitingTimeSecs();
-		sumWalkTimeSecs = sumWalkTimeSecs + ptPath.getWalkingTimeSecs();
-		sumDistance = sumDistance + ptPath.getPathDistanceKms();
+		int sumTransfers = 0;
+		double sumInVehicleTimeSecs = 0.0;
+		double sumWaitingTimeSecs = 0.0;
+		double sumWalkTimeSecs = 0.0;
+		double sumDistance = 0.0;
+		for(const auto& ptPath : ptPathset.pathSet)
+		{
+			sumTransfers = sumTransfers + ptPath.getNumTransfers();
+			sumInVehicleTimeSecs = sumInVehicleTimeSecs + ptPath.getInVehicleTravelTimeSecs();
+			sumWaitingTimeSecs = sumWaitingTimeSecs + ptPath.getWaitingTimeSecs();
+			sumWalkTimeSecs = sumWalkTimeSecs + ptPath.getWalkingTimeSecs();
+			sumDistance = sumDistance + ptPath.getPathDistanceKms();
+		}
+		wdModeParams.setAvgTransfer(sumTransfers/numPaths);
+		wdModeParams.setTtPublicInVehicle(sumInVehicleTimeSecs/numPaths);
+		wdModeParams.setTtPublicWaiting(sumWaitingTimeSecs/numPaths);
+		wdModeParams.setTtPublicWalk(sumWalkTimeSecs/numPaths);
+		wdModeParams.setDistance(sumDistance/numPaths);
 	}
-	wdModeParams.setAvgTransfer(sumTransfers/numPaths);
-	wdModeParams.setTtPublicInVehicle(sumInVehicleTimeSecs/numPaths);
-	wdModeParams.setTtPublicWaiting(sumWaitingTimeSecs/numPaths);
-	wdModeParams.setTtPublicWalk(sumWalkTimeSecs/numPaths);
-	wdModeParams.setDistance(sumDistance/numPaths);
+	else
+	{
+		wdModeParams.publicBusAvailable = false;
+		wdModeParams.mrtAvailable = false;
+	}
 
 	wdModeParams.setTripType(curTrip.purpose);
 

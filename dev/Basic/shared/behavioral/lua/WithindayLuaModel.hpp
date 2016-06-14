@@ -27,7 +27,7 @@ public:
 	 * @param personParams object containing person and household related variables. logsums will be updated in this object
 	 * @param wdModeParams parameters specific to withinday mode model
 	 */
-	int chooseMode(PersonParams& personParams, WithindayModeParams& wdModeParams) const;
+	int chooseMode(const PersonParams& personParams, const WithindayModeParams& wdModeParams) const;
 
 private:
     /**

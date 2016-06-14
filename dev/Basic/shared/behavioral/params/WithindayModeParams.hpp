@@ -7,6 +7,7 @@
 
 namespace sim_mob
 {
+class WithindayModelsHelper;
 /**
  * Simple class to store information pertinent to withinday-mode choice model
  *
@@ -27,6 +28,7 @@ private:
 	double originResidentSize;
 	double destinationWorkerSize;
 	double destinationStudentsSize;
+	double destinationPopulation;
 	double destinationShops;
 	double destinationArea;
 	double distance;
@@ -41,13 +43,15 @@ private:
 	bool walkAvailable;
 	bool taxiAvailable;
 
+	friend class WithindayModelsHelper;
+
 public:
 	WithindayModeParams()
 		: tripType(NULL_STOP), costCarParking(0), centralZone(false), ttPublicInVehicle(0),
 		  ttPublicWaiting(0), ttPublicWalk(0), ttCarInVehicle(0), avgTransfer(0), originArea(0), originResidentSize(0),
 		  destinationWorkerSize(0), destinationStudentsSize(0), destinationArea(0), destinationShops(0), distance(0),
-		  publicBusAvailable(false), mrtAvailable(false), privateBusAvailable(false), drive1Available(false),
-		  share2Available(false), share3Available(false), motorAvailable(false), walkAvailable(false), taxiAvailable(false)
+		  destinationPopulation(0), publicBusAvailable(true), mrtAvailable(true), privateBusAvailable(true), drive1Available(true),
+		  share2Available(true), share3Available(true), motorAvailable(true), walkAvailable(true), taxiAvailable(true)
 	{}
 
 	virtual ~WithindayModeParams() {}
@@ -62,9 +66,9 @@ public:
 		this->avgTransfer = avgTransfer;
 	}
 
-	bool isCentralZone() const
+	int isCentralZone() const
 	{
-		return centralZone;
+		return (centralZone? 1 : 0);
 	}
 
 	void setCentralZone(bool centralZone)
@@ -112,34 +116,34 @@ public:
 		this->destinationWorkerSize = destinationWorkerSize;
 	}
 
-	bool isDrive1Available() const
+	int isDrive1Available() const
 	{
 		return drive1Available;
 	}
 
-	void setDrive1Available(bool drive1Available)
+	void unsetDrive1Availability()
 	{
-		this->drive1Available = drive1Available;
+		this->drive1Available = false;
 	}
 
-	bool isMotorAvailable() const
+	int isMotorAvailable() const
 	{
 		return motorAvailable;
 	}
 
-	void setMotorAvailable(bool motorAvailable)
+	void unsetMotorAvailability()
 	{
-		this->motorAvailable = motorAvailable;
+		this->motorAvailable = false;
 	}
 
-	bool isMrtAvailable() const
+	int isMrtAvailable() const
 	{
 		return mrtAvailable;
 	}
 
-	void setMrtAvailable(bool mrtAvailable)
+	void unsetMrtAvailability()
 	{
-		this->mrtAvailable = mrtAvailable;
+		this->mrtAvailable = false;
 	}
 
 	double getOriginArea() const
@@ -162,54 +166,54 @@ public:
 		this->originResidentSize = originResidentSize;
 	}
 
-	bool isPrivateBusAvailable() const
+	int isPrivateBusAvailable() const
 	{
 		return privateBusAvailable;
 	}
 
-	void setPrivateBusAvailable(bool privateBusAvailable)
+	void unsetPrivateBusAvailability()
 	{
-		this->privateBusAvailable = privateBusAvailable;
+		this->privateBusAvailable = false;
 	}
 
-	bool isPublicBusAvailable() const
+	int isPublicBusAvailable() const
 	{
 		return publicBusAvailable;
 	}
 
-	void setPublicBusAvailable(bool publicBusAvailable)
+	void unsetPublicBusAvailability()
 	{
-		this->publicBusAvailable = publicBusAvailable;
+		this->publicBusAvailable = false;
 	}
 
-	bool isShare2Available() const
+	int isShare2Available() const
 	{
 		return share2Available;
 	}
 
-	void setShare2Available(bool share2Available)
+	void unsetShare2Availability()
 	{
-		this->share2Available = share2Available;
+		this->share2Available = false;
 	}
 
-	bool isShare3Available() const
+	int isShare3Available() const
 	{
 		return share3Available;
 	}
 
-	void setShare3Available(bool share3Available)
+	void unsetShare3Availability()
 	{
-		this->share3Available = share3Available;
+		this->share3Available = false;
 	}
 
-	bool isTaxiAvailable() const
+	int isTaxiAvailable() const
 	{
 		return taxiAvailable;
 	}
 
-	void setTaxiAvailable(bool taxiAvailable)
+	void unsetTaxiAvailability()
 	{
-		this->taxiAvailable = taxiAvailable;
+		this->taxiAvailable = false;
 	}
 
 	double getTtCarInVehicle() const
@@ -252,14 +256,14 @@ public:
 		this->ttPublicWalk = ttPublicWalk;
 	}
 
-	bool isWalkAvailable() const
+	int isWalkAvailable() const
 	{
 		return walkAvailable;
 	}
 
-	void setWalkAvailable(bool walkAvailable)
+	void unsetWalkAvailability()
 	{
-		this->walkAvailable = walkAvailable;
+		this->walkAvailable = false;
 	}
 
 	StopType getTripType() const
@@ -290,6 +294,16 @@ public:
 	void setDestinationShops(double destinationShops)
 	{
 		this->destinationShops = destinationShops;
+	}
+
+	double getDestinationPopulation() const
+	{
+		return destinationPopulation;
+	}
+
+	void setDestinationPopulation(double destinationPopulation)
+	{
+		this->destinationPopulation = destinationPopulation;
 	}
 };
 }

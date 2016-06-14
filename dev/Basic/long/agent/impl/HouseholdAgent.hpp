@@ -47,7 +47,6 @@ namespace sim_mob
             void addUnitId (const BigSerial& unitId);
             void removeUnitId (const BigSerial& unitId);
             const IdVector& getUnitIds() const;
-            const IdVector& getPreferableZones() const;
             HM_Model* getModel() const;
             HousingMarket* getMarket() const;
             Household* getHousehold() const;
@@ -111,7 +110,6 @@ namespace sim_mob
             Household* household;
 
             IdVector unitIds;
-            IdVector preferableZones;
 
             HouseholdBidderRole* bidder;
             HouseholdSellerRole* seller;

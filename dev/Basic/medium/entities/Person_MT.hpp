@@ -135,6 +135,8 @@ public:
 	 */
 	virtual std::vector<BufferedBase *> buildSubscriptionList();
 
+	std::string chooseModeEnRoute(const Trip& trip, unsigned int originNode, const DailyTime& curTime) const;
+
 	/**
 	 * exposes the Log function to print in thread local output files
 	 */

@@ -50,7 +50,9 @@ public:
 		: tripType(NULL_STOP), costCarParking(0), centralZone(false), ttPublicInVehicle(0),
 		  ttPublicWaiting(0), ttPublicWalk(0), ttCarInVehicle(0), avgTransfer(0), originArea(0), originResidentSize(0),
 		  destinationWorkerSize(0), destinationStudentsSize(0), destinationArea(0), destinationShops(0), distance(0),
-		  destinationPopulation(0), publicBusAvailable(true), mrtAvailable(true), privateBusAvailable(true), drive1Available(true),
+		  destinationPopulation(0),
+		  //all modes are available by default
+		  publicBusAvailable(true), mrtAvailable(true), privateBusAvailable(true), drive1Available(true),
 		  share2Available(true), share3Available(true), motorAvailable(true), walkAvailable(true), taxiAvailable(true)
 	{}
 

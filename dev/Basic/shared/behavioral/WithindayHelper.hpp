@@ -12,8 +12,9 @@
 namespace sim_mob
 {
 class DailyTime;
+
 /**
- * Singleton class to help build params required by withinday lua models
+ * Class to help build params required by withinday lua models
  *
  * \author Harish Loganathan
  */

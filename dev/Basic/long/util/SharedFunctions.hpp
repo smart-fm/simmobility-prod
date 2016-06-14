@@ -66,6 +66,15 @@ namespace sim_mob
 		return dist;
 	}
 
+	inline bool compareTMDates(std::tm date1, std::tm date2)
+	{
+		if ((date1.tm_year == date2.tm_year) && (date1.tm_mon == date2.tm_mon) && (date1.tm_mday == date2.tm_mday) )
+		{
+			return true;
+		}
+		return false;
+	}
+
 	}
 
 }

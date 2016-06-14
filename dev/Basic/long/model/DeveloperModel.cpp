@@ -106,17 +106,26 @@ void DeveloperModel::startImpl() {
 		loadData<ParcelAmenitiesDao>(conn,amenities,amenitiesById,&ParcelAmenities::getFmParcelId);
 
 		loadData<MacroEconomicsDao>(conn,macroEconomics,macroEconomicsById,&MacroEconomics::getExFactorId);
+
 		loadData<LogsumForDevModelDao>(conn,accessibilityList,accessibilityByTazId,&LogsumForDevModel::gettAZ2012Id);
+
 		loadData<ParcelsWithHDBDao>(conn,parcelsWithHDB,parcelsWithHDB_ById,&ParcelsWithHDB::getFmParcelId);
 		PrintOutV("Parcels with HDB loaded " << parcelsWithHDB.size() << std::endl);
+
 		loadData<TAO_Dao>(conn,taoList,taoByQuarterId,&TAO::getId);
 		PrintOutV("TAO by quarters loaded " << taoList.size() << std::endl);
+
 		loadData<UnitPriceSumDao>(conn,unitPriceSumList,unitPriceSumByParcelId,&UnitPriceSum::getFmParcelId);
 		PrintOutV("unit price sums loaded " << unitPriceSumList.size() << std::endl);
+
 		loadData<TazLevelLandPriceDao>(conn,tazLevelLandPriceList,tazLevelLandPriceByTazId,&TazLevelLandPrice::getTazId);
 		PrintOutV("land values loaded " << tazLevelLandPriceList.size() << std::endl);
+
 		loadData<BuildingAvgAgePerParcelDao>(conn,buildingAvgAgePerParcel,BuildingAvgAgeByParceld,&BuildingAvgAgePerParcel::getFmParcelId);
 		PrintOutV("building average age per parcel loaded " << buildingAvgAgePerParcel.size() << std::endl);
+
+		UnitDao unitDao(conn);
+		btoUnits = unitDao.getBTOUnits();
 
 		setRealEstateAgentIds(housingMarketModel->getRealEstateAgentIds());
 
@@ -790,4 +799,18 @@ void DeveloperModel::setStartDay(int day)
 int DeveloperModel::getStartDay() const
 {
 	return this->startDay;
+}
+
+DeveloperModel::UnitList DeveloperModel::getBTOUnits(std::tm currentDate)
+{
+	DeveloperModel::UnitList btoUnitsForSale;
+	for(Unit *unit : btoUnits)
+	{
+
+		if(compareTMDates(unit->getSaleFromDate(),currentDate))
+			{
+				btoUnitsForSale.push_back(unit);
+			}
+	}
+	return btoUnitsForSale;
 }

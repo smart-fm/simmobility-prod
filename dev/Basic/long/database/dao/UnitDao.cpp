@@ -86,3 +86,11 @@ std::vector<Unit*> UnitDao::getUnitsByBuildingId(const long long buildingId,std:
 	return unitList;
 
 }
+
+std::vector<Unit*> UnitDao::getBTOUnits()
+{
+	const std::string queryStr = DB_GETALL_BTO_UNITS;
+	std::vector<Unit*> BTOUnitList;
+	getByQuery(queryStr,BTOUnitList);
+	return BTOUnitList;
+}

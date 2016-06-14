@@ -153,6 +153,8 @@ namespace sim_mob {
 
             void setNewUnits(std::vector<boost::shared_ptr<Unit> > units);
 
+            void launchBTOUnits(std::tm currentDate);
+
         private:
             DeveloperModel* devModel;
             boost::shared_ptr<Parcel> parcel;

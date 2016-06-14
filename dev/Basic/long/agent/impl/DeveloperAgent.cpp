@@ -547,9 +547,10 @@ Entity::UpdateStatus DeveloperAgent::onFrameTick(timeslice now) {
     if (devModel && isActive())
     {
     	currentTick = now.ms();
+    	std::tm currentDate = getDateBySimDay(simYear,now.ms());
+
     	if(this->parcel->getStatus()== 0)
     	{
-    		std::tm currentDate = getDateBySimDay(simYear,now.ms());
     		int quarter = ((currentDate.tm_mon)/4) + 1; //get the current month of the simulation and divide it by 4 to determine the quarter
     		std::string quarterStr = "Y"+boost::lexical_cast<std::string>(simYear)+"Q"+boost::lexical_cast<std::string>(quarter);
     		const TAO *tao = devModel->getTaoByQuarter(getQuarterIdByQuarterStr(quarterStr));
@@ -603,6 +604,8 @@ Entity::UpdateStatus DeveloperAgent::onFrameTick(timeslice now) {
     		this->fmProject->setCurrTick(currTick);
     		processExistingProjects();
     	}
+
+    	launchBTOUnits(currentDate);
 
     }
     //setActive(false);
@@ -687,7 +690,7 @@ void DeveloperAgent::createUnitsAndBuildings(PotentialProject &project,BigSerial
 	toDate.tm_year = completionYear;
 	boost::shared_ptr<Building>building(new Building(buildingId,projectId,parcel->getId(),0,0,currentDate,toDate,BUILDING_UNCOMPLETED_WITHOUT_PREREQUISITES,project.getGrosArea(),0,0,0,toDate));
 	newBuildings.push_back(building);
-	MessageBus::PostMessage(this, LTEID_DEV_BUILDING_ADDED, MessageBus::MessagePtr(new DEV_InternalMsg(*building.get())), true);
+	MessageBus::PostMessage(this, LT_DEV_BUILDING_ADDED, MessageBus::MessagePtr(new DEV_InternalMsg(*building.get())), true);
 
 	//create new units and add all the units to the newly created building.
 	std::vector<PotentialUnit> units = project.getUnits();
@@ -701,7 +704,7 @@ void DeveloperAgent::createUnitsAndBuildings(PotentialProject &project,BigSerial
 			double profit = (*unitsItr).getUnitProfit();
 			double demolitionCost = (*unitsItr).getDemolitionCostPerUnit();
 			//writeUnitDataToFile(*unit, profit,parcel.getId(),demolitionCost);
-			MessageBus::PostMessage(this, LTEID_DEV_UNIT_ADDED, MessageBus::MessagePtr(new DEV_InternalMsg(*unit.get())), true);
+			MessageBus::PostMessage(this, LT_DEV_UNIT_ADDED, MessageBus::MessagePtr(new DEV_InternalMsg(*unit.get())), true);
 		}
 
 	}
@@ -726,7 +729,7 @@ void DeveloperAgent::createProject(PotentialProject &project, BigSerial projectI
 	boost::shared_ptr<Project>fmProject(new Project(projectId,parcel->getId(),INVALID_ID,project.getDevTemplate()->getTemplateId(),EMPTY_STR,constructionDate,completionDate,constructionCost,demolitionCost,totalCost,fmLotSize,grossRatio,grossArea,0,constructionDate,projectStatus));
 	writeProjectDataToFile(fmProject);
 	this->fmProject = fmProject;
-	MessageBus::PostMessage(this, LTEID_DEV_PROJECT_ADDED, MessageBus::MessagePtr(new DEV_InternalMsg()), true);
+	MessageBus::PostMessage(this, LT_DEV_PROJECT_ADDED, MessageBus::MessagePtr(new DEV_InternalMsg()), true);
 
 }
 
@@ -833,6 +836,15 @@ void DeveloperAgent::setUnitsRemain (bool unitRemain)
 	unitsRemain = unitRemain;
 }
 
+void DeveloperAgent::launchBTOUnits(std::tm currentDate)
+{
+	DeveloperModel::UnitList btoUnits = devModel->getBTOUnits(currentDate);
+	for(Unit *btoUnit : btoUnits)
+	{
+			MessageBus::PostMessage(realEstateAgent, LT_BTO_UNIT_ADDED, MessageBus::MessagePtr(new HM_ActionMessage((*btoUnit))), true);
+	}
+}
+
 void DeveloperAgent::onFrameOutput(timeslice now) {
 }
 
@@ -869,7 +881,7 @@ void DeveloperAgent::HandleMessage(Message::MessageType type, const Message& mes
 
 	switch (type) {
 
-		        case LTEID_DEV_UNIT_ADDED:
+		        case LT_DEV_UNIT_ADDED:
 		        {
 		            const DEV_InternalMsg& devArgs = MSG_CAST(DEV_InternalMsg, message);
 		            boost::shared_ptr<Unit> newUnit = boost::make_shared<Unit>(*(devArgs.getUnit()));
@@ -877,7 +889,7 @@ void DeveloperAgent::HandleMessage(Message::MessageType type, const Message& mes
 		            MessageBus::PostMessage(realEstateAgent, LTEID_HM_UNIT_ADDED, MessageBus::MessagePtr(new HM_ActionMessage((*devArgs.getUnit()))), true);
 		            break;
 		        }
-		        case LTEID_DEV_PROJECT_ADDED:
+		        case LT_DEV_PROJECT_ADDED:
 		       	{
 		       	    devModel->addNewProjects(fmProject);
 		       	    break;
@@ -906,7 +918,7 @@ void DeveloperAgent::HandleMessage(Message::MessageType type, const Message& mes
 		        	MessageBus::PostMessage(realEstateAgent, LT_STATUS_ID_HM_UNIT_READY_FOR_OCCUPANCY_AND_VACANT, MessageBus::MessagePtr(new HM_ActionMessage((devArgs.getUnitId()))), true);
 		        	break;
 		        }
-		        case LTEID_DEV_BUILDING_ADDED:
+		        case LT_DEV_BUILDING_ADDED:
 		        {
 		        	const DEV_InternalMsg& devArgs = MSG_CAST(DEV_InternalMsg, message);
 		        	boost::shared_ptr<Building> newBuilding = boost::make_shared<Building>(*(devArgs.getBuilding()));

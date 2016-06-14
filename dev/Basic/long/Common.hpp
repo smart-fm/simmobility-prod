@@ -35,6 +35,7 @@ namespace sim_mob {
             LTEID_HM_UNIT_ADDED,
             LTEID_HM_BUILDING_ADDED,
             LTEID_HM_UNIT_READY_FOR_SALE,
+			LTEID_HM_BTO_UNIT_ADDED,
             
             // External Events
             LTEID_EXT_NEW_JOB,
@@ -44,10 +45,11 @@ namespace sim_mob {
             LTEID_EXT_NEW_SCHOOL_LOCATION,
             LTEID_EXT_ZONING_RULE_CHANGE,
 
-            //developer agent events
-            LTEID_DEV_UNIT_ADDED,
-            LTEID_DEV_BUILDING_ADDED,
-            LTEID_DEV_PROJECT_ADDED,
+            //developer agent messages
+            LT_DEV_UNIT_ADDED,
+            LT_DEV_BUILDING_ADDED,
+            LT_DEV_PROJECT_ADDED,
+			LT_BTO_UNIT_ADDED,
 
             //developer model status changes events for developer agent
             //units
@@ -90,8 +92,6 @@ namespace sim_mob {
             LT_STATUS_ID_HM_BUILDING_LAUNCHED_AND_SOLD,
             LT_STATUS_ID_HM_COMPLETED_WITH_PREREQUISITES,
             LT_STATUS_ID_HM_BUILDING_DEMOLISHED,
-
-
 
         };
 

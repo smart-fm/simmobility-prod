@@ -272,7 +272,7 @@ void sim_mob::BasicLogger::flush()
 		outIt it = out.begin();
 		if(it== out.end())
 		{
-			std::cout << "flush()  missing buffer   " << id << std::endl;
+			std::cout << "flush()  No outputs for   " << id << std::endl;
 		}
 		for(; it!= out.end(); it++)
 		{

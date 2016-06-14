@@ -500,6 +500,8 @@ double sim_mob::PrivateTrafficRouteChoice::getOD_TravelTime(unsigned int origin,
 	else
 	{
 		sim_mob::HasPath pathsetRetrievalStatus = PSM_UNKNOWN;
+		pathset.reset(new sim_mob::PathSet());
+		pathset->id = fromToID;
 		pathsetRetrievalStatus = loadPathsetFromDB(*getSession(), fromToID, pathset->pathChoices, psRetrieval);
 		if(pathsetRetrievalStatus == PSM_HASPATH)
 		{

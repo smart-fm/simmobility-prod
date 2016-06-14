@@ -747,10 +747,8 @@ void ExpandShortTermConfigFile::printSettings()
 	NetworkPrinter nwPrinter(cfg, cfg.outNetworkFileName);
 	nwPrinter.printSignals(getSignalsInfo(Signal::getMapOfIdVsSignals()));
 	nwPrinter.printNetwork(RoadNetwork::getInstance());
-	std::cout << "------------------\n";
-	SimulationInfoPrinter siPrinter(cfg, cfg.outSimInfoFileName);
-	siPrinter.printSimulationInfo();
-	std::cout << "------------------\n";
+	SimulationInfoPrinter simInfoPrinter(cfg, cfg.outSimInfoFileName);
+	simInfoPrinter.printSimulationInfo();
 }
 
 const std::string ExpandShortTermConfigFile::getSignalsInfo(std::map<unsigned int, Signal*>& signals) const

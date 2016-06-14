@@ -704,7 +704,7 @@ int main_impl(int ARGC, char* ARGV[])
 	//Concatenate output files?
 	if (!resLogFiles.empty()) 
 	{
-        resLogFiles.insert(resLogFiles.begin(), config.outSimInfoFileName);
+		resLogFiles.insert(resLogFiles.begin(), config.outSimInfoFileName);
 		resLogFiles.insert(resLogFiles.begin(), config.outNetworkFileName);
 		Utils::printAndDeleteLogFiles(resLogFiles,outputFileName);
 	}

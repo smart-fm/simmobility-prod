@@ -97,8 +97,8 @@ public:
     /// Output network file name
 	std::string outNetworkFileName;
 
-    /// Output simulation information file name
-    std::string outSimInfoFileName;
+	/// Output simulation information file name
+	std::string outSimInfoFileName;
 
     /// Is the simulation run using MPI?
 	bool using_MPI;

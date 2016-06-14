@@ -589,7 +589,7 @@ int main_impl(int ARGC, char* ARGV[])
 	//Concatenate output files?
 	if (!resLogFiles.empty())
 	{
-        resLogFiles.insert(resLogFiles.begin(), ConfigManager::GetInstance().FullConfig().outSimInfoFileName);
+		resLogFiles.insert(resLogFiles.begin(), ConfigManager::GetInstance().FullConfig().outSimInfoFileName);
 		resLogFiles.insert(resLogFiles.begin(), ConfigManager::GetInstance().FullConfig().outNetworkFileName);
 		Utils::printAndDeleteLogFiles(resLogFiles);
 	}

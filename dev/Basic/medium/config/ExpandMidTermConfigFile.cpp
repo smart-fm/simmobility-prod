@@ -275,11 +275,11 @@ void ExpandMidTermConfigFile::printSettings()
     std::cout << "Network details loaded from database connection: " << cfg.getDatabaseConnectionString() << "\n";
 
     //Print the network (this will go to a different output file...)
-    std::cout << "------------------\n";
-    NetworkPrinter nwPrinter(cfg, cfg.outNetworkFileName);
+	std::cout << "------------------\n";
+	NetworkPrinter nwPrinter(cfg, cfg.outNetworkFileName);
 	nwPrinter.printNetwork(RoadNetwork::getInstance());
-    std::cout << "------------------\n";
-    SimulationInfoPrinter siPrinter(cfg, cfg.outSimInfoFileName);
-    siPrinter.printSimulationInfo();
-    std::cout << "------------------\n";
+	std::cout << "------------------\n";
+	SimulationInfoPrinter siPrinter(cfg, cfg.outSimInfoFileName);
+	siPrinter.printSimulationInfo();
+	std::cout << "------------------\n";
 }

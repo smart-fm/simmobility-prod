@@ -9,7 +9,7 @@
             <database id="fm_remote" dbtype="postgres">
                 <host value="172.25.184.48"/>
                 <port value="5432"/>
-                <dbname value="simmobility_changi"/>
+                <dbname value="simmobility_virtualcity"/>
             </database>
 
             <database id="fm_hpchead" dbtype="postgres">
@@ -103,7 +103,7 @@
     </constructs>
 
     <simulation>
-        <base_granularity   value="100"   units="ms"/>
+        <base_granularity   value="5"   units="seconds"/>
         <total_runtime      value="60"      units="minutes" />
         <total_warmup       value="10"     units="seconds" />
        

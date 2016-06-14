@@ -265,14 +265,11 @@ void sim_mob::QueuedLogger::flushLog()
 
 void sim_mob::BasicLogger::flush()
 {
-	if(id == "real_time_travel_time"){
-		std::cout << "flush()  " << id << std::endl;
-	}
 	if (logFile.is_open()) {
 		outIt it = out.begin();
 		if(it== out.end())
 		{
-			std::cout << "flush()  No outputs for   " << id << std::endl;
+			std::cout << "No output for " << id << std::endl;
 		}
 		for(; it!= out.end(); it++)
 		{
@@ -281,7 +278,7 @@ void sim_mob::BasicLogger::flush()
 	}
 	else
 	{
-		std::cout << "flush()  logFile not open   " << id << std::endl;
+		std::cout << "flush() logFile not open   " << id << std::endl;
 	}
 }
 

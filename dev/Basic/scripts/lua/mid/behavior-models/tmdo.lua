@@ -131,8 +131,7 @@ local beta_female_motor = 0
 local beta_female_taxi = 1.24
 local beta_female_walk = 2.29
 
---local costsSize = 1169 --for main2012 (for full synthetic population)
-local costsSize = 23   --for virtual_city
+local costsSize = 0
 
 
 --choice set
@@ -392,7 +391,10 @@ end
 -- function to call from C++ preday simulator for logsum computation
 -- params and dbparams tables contain data passed from C++
 -- to check variable bindings in params or dbparams, refer PredayLuaModel::mapClasses() function in dev/Basic/medium/behavioral/lua/PredayLuaModel.cpp
-function compute_logsum_tmdo(params,dbparams)
+function compute_logsum_tmdo(params,dbparams, size)
+
+	costsSize = size
+
 	computeUtilities(params,dbparams) 
 	computeAvailabilities(params,dbparams)
 	return compute_mnl_logsum(utility, availability)

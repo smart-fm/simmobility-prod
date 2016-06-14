@@ -167,20 +167,20 @@ void sim_mob::PredayLogsumLuaModel::computeTourModeLogsum(PredayPersonParams& pe
 	}
 }
 
-void sim_mob::PredayLogsumLuaModel::computeTourModeDestinationLogsum(PredayPersonParams& personParams, LogsumTourModeDestinationParams& tourModeDestinationParams) const
+void sim_mob::PredayLogsumLuaModel::computeTourModeDestinationLogsum(PredayPersonParams& personParams, LogsumTourModeDestinationParams& tourModeDestinationParams, int size) const
 {
 	if(!personParams.hasFixedWorkPlace())
 	{
 		LuaRef computeLogsumTMDW = getGlobal(state.get(), "compute_logsum_tmdw");
-		LuaRef workLogSum = computeLogsumTMDW(&personParams, &tourModeDestinationParams);
+		LuaRef workLogSum = computeLogsumTMDW(&personParams, &tourModeDestinationParams, size);
 		personParams.setWorkLogSum(workLogSum.cast<double>());
 	}
 
 	LuaRef computeLogsumTMDS = getGlobal(state.get(), "compute_logsum_tmds");
-	LuaRef shopLogSum = computeLogsumTMDS(&personParams, &tourModeDestinationParams);
+	LuaRef shopLogSum = computeLogsumTMDS(&personParams, &tourModeDestinationParams,  size);
 	personParams.setShopLogSum(shopLogSum.cast<double>());
 
 	LuaRef computeLogsumTMDO = getGlobal(state.get(), "compute_logsum_tmdo");
-	LuaRef otherLogSum = computeLogsumTMDO(&personParams, &tourModeDestinationParams);
+	LuaRef otherLogSum = computeLogsumTMDO(&personParams, &tourModeDestinationParams, size);
 	personParams.setOtherLogSum(otherLogSum.cast<double>());
 }

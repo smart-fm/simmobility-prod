@@ -268,14 +268,6 @@ public:
 		}
 		PopulationSqlDao populationDao(populationConn);
 
-		DB_Connection logsumConn = getDB_Connection(cfg.networkDatabase);
-		logsumConn.connect();
-		if (!logsumConn.isConnected())
-		{
-			throw std::runtime_error("logsum db connection failure!");
-		}
-		SimmobSqlDao logsumSqlDao(logsumConn);
-
 		for (size_t i = 0; i < tripChainList.size(); i++)
 		{
 			std::vector<TripChainItem*>& personTripChain = tripChainList[i];
@@ -291,13 +283,13 @@ public:
 					person->setUseInSimulationTravelTime(true);
 				}
 
-				if(person->getDatabaseId().find_first_not_of("0123456789") == std::string::npos) // to eliminate any dummy persons we include for background traffic
-				{
+				if(person->getDatabaseId().find_first_not_of("0123456789-") == std::string::npos)
+				{   // to eliminate any dummy persons we include for background traffic
+					// person ids from long-term population are numeric
 					std::string::size_type sz;
-					long long personId = std::stol(person->getDatabaseId(), &sz);
+					long long personId = std::stol(person->getDatabaseId(), &sz); //gets the numerical part before '-' from the person id
 					PersonParams personInfo;
 					populationDao.getOneById(personId, personInfo);
-					logsumSqlDao.getLogsumById(personId, personInfo);
 					person->setPersonInfo(personInfo);
 				}
 				persons.push_back(person);

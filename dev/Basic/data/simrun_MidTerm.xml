@@ -27,6 +27,7 @@
             <mapping name="pt_vertices" procedure="get_pt_tr_vertices()"/>
             <mapping name="pt_pathset" procedure="get_pt_pathset_tr"/>
             <mapping name="mrt_road_segments" procedure="get_pt_mrt_segments()"/>
+            <mapping name="rail_transit_edges" procedure="get_rail_transit_edges()"/>
             <mapping name="erp_gantry_zone" procedure="get_erp_gantry_zone()"/>
             <mapping name="screen_line" procedure="get_screen_line_segments()"/>
             <mapping name="erp_section" procedure="get_erp_section()"/>
@@ -77,6 +78,7 @@
         <!-- If loading from the database, which database, proc_map, and credentials are used? -->
         <network_database database="fm_hpchead" credentials="fm_hpchead" proc_map="withinday"/>
         <population_database  database="fm_hpchead_lt" credentials="fm_hpchead" proc_map=""/> 
+
         <!-- The new parser will simply load everything in the "generic_props" section into "SystemParams.genericProps".  -->
         <!-- In other words, you DO NOT need to update the parser just to add a simple string-based configuration parameter to -->
         <!-- the config file. This is intended to be used for new or temporary features. -->

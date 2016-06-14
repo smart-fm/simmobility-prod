@@ -1,5 +1,6 @@
 #include "ExpandShortTermConfigFile.hpp"
 #include "conf/NetworkPrinter.hpp"
+#include "conf/SimulationInfoPrinter.hpp"
 #include "entities/amodController/AMODController.hpp"
 #include "entities/BusController.hpp"
 #include "entities/BusControllerST.hpp"
@@ -746,7 +747,8 @@ void ExpandShortTermConfigFile::printSettings()
 	NetworkPrinter nwPrinter(cfg, cfg.outNetworkFileName);
 	nwPrinter.printSignals(getSignalsInfo(Signal::getMapOfIdVsSignals()));
 	nwPrinter.printNetwork(RoadNetwork::getInstance());
-	std::cout << "------------------\n";
+	SimulationInfoPrinter simInfoPrinter(cfg, cfg.outSimInfoFileName);
+	simInfoPrinter.printSimulationInfo();
 }
 
 const std::string ExpandShortTermConfigFile::getSignalsInfo(std::map<unsigned int, Signal*>& signals) const

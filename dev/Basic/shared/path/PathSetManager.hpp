@@ -389,13 +389,15 @@ private:
 	 * @param partialExclusion input segments temporarily having different attributes
 	 * @param blckLstSegs segments off the road network. This
 	 * @param enRoute is this method called for an enroute path request
+	 * @param approach the starting link of the path
 	 * Note: PathsetManager object already has containers for partially excluded and blacklisted segments. They will be
 	 * the default containers throughout the simulation. but partialExcludedSegs and blckLstSegs arguments are combined
 	 * with their counterparts in PathSetmanager only during the scope of this method to serve temporary purposes.
 	 */
 	bool getBestPathChoiceFromPathSet(boost::shared_ptr<sim_mob::PathSet> &ps,
 			const std::set<const sim_mob::Link*>& partialExclusion,
-			const std::set<const sim_mob::Link*>& blckLstLnks, bool enRoute);
+			const std::set<const sim_mob::Link*>& blckLstLnks, bool enRoute,
+			const sim_mob::Link *approach);
 
 	void mapClasses();
 
@@ -473,7 +475,7 @@ public:
 	 * @param blckLstSegs segments off the road network. This
 	 * @param tempBlckLstSegs segments temporarily off the road network
 	 * @param enRoute is this method called for an enroute path request
-	 * @param approach if this is an entoute, from which segment is it permitted to enter the rerouting point to start a new path
+	 * @param approach the starting link of the path
 	 * @param useInSimulationTT indicates whether in-simulation link travel times are to be used
 	 * Note: PathsetManager object already has containers for partially excluded and blacklisted segments. They will be
 	 * the default containers throughout the simulation. but partialExcludedSegs and blckLstSegs arguments are combined
@@ -482,21 +484,21 @@ public:
 	 bool getBestPath(std::vector<sim_mob::WayPoint>& res,
 			 const sim_mob::SubTrip& st,bool useCache,
 			 const std::set<const sim_mob::Link*> tempBlckLstSegs/*=std::set<const sim_mob::RoadSegment*>()*/,
-			 bool usePartialExclusion ,
-			 bool useBlackList ,
-			 bool enRoute ,const sim_mob::RoadSegment* approach,
+			 bool usePartialExclusion,
+			 bool useBlackList,
+			 bool enRoute, const sim_mob::Link *approach,
 			 bool useInSimulationTT = false);
 
 	/**
 	 * The main entry point to the pathset manager,
-	 * returns a path for the requested subtrip per the requesting person (todo:for logging purpose only)
+	 * returns a path for the requested subtrip per the requesting person
 	 * @param subTrip the subtrip information containing OD, start time etc
 	 * @param enRoute indication of whether this request was made in the beginning of the trip or enRoute
-	 * @param approach 
+	 * @param approach the starting road segment of the path (if null, the argument will be ignored)
 	 * @param useInSimulationTT indicates whether in-simulation link travel times are to be used
 	 * @return a sequence of road segments wrapped in way point structure
 	 */
-	std::vector<WayPoint> getPath(const sim_mob::SubTrip &subTrip, bool enRoute , const sim_mob::RoadSegment* approach, bool useInSimulationTT = false);
+	std::vector<WayPoint> getPath(const sim_mob::SubTrip &subTrip, bool enRoute , const sim_mob::Link *approach, bool useInSimulationTT = false);
 
 	/**
 	 * calculates the travel time of the shortest path in the pathset for a given OD

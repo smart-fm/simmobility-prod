@@ -108,7 +108,7 @@
             
 		<!-- Order in which agents are to be loaded into the simulation -->
 		<!-- Values include: database, drivers, pedestrians, passenger -->
-		<load_agents order="drivers"/>
+		<load_agents order="database"/>
 
 		<!--  Commsim (communication) settings -->
 		<commsim enabled="false"> <!-- If false, the Broker is never added, so no commsim activities take place. -->

@@ -476,7 +476,7 @@ bool TrainMovement::isStationCase(double disToTrain, double disToPlatform, doubl
 	}
 	return res;
 }
-double TrainMovement::getDistanceToNextTrain(const TrainDriver* nextDriver) const
+double TrainMovement::getDistanceToNextTrain(const TrainDriver* nextDriver,bool isSafed) const
 {
 	double distanceToNextTrain = 0.0;
 	if(nextDriver){
@@ -487,7 +487,11 @@ double TrainMovement::getDistanceToNextTrain(const TrainDriver* nextDriver) cons
 			if (nextMovement) {
 				double dis = trainPathMover.getDifferentDistance(nextMovement->getPathMover());
 				if (dis > 0) {
-					distanceToNextTrain = dis - safeDistance - trainLengthMeter;
+					if(isSafed){
+						distanceToNextTrain = dis - safeDistance - trainLengthMeter;
+					} else {
+						distanceToNextTrain = dis - trainLengthMeter;
+					}
 				}
 			}
 		}

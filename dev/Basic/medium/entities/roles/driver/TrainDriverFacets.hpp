@@ -88,9 +88,10 @@ public:
 	/**
 	 * get distance to next train
 	 * @param next is a pointer to next TrainDriver
+	 * @param isSafed indicate whether conside safe distance
 	 * @return the distance to next train
 	 */
-	double getDistanceToNextTrain(const TrainDriver* next) const;
+	double getDistanceToNextTrain(const TrainDriver* next, bool isSafed=true) const;
 
 	/* get distance to next platform*/
 	double getDistanceToNextPlatform(const TrainDriver* nextDriver);

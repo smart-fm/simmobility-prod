@@ -21,7 +21,7 @@
 #include "event/args/ReRouteEventArgs.hpp"
 using namespace sim_mob::event;
 namespace {
-const double safeDistanceToAhead = 1000.0;
+const double safeDistanceToAhead = 140;
 }
 namespace sim_mob {
 namespace medium
@@ -83,12 +83,7 @@ void TrainStationAgent::HandleMessage(messaging::Message::MessageType type, cons
 		if(pendingTrainDriver.find(lineId)==pendingTrainDriver.end()){
 			pendingTrainDriver[lineId] = std::list<TrainDriver*>();
 		}
-		if(pendingTrainDriver[lineId].size()>1){
-			messaging::MessageBus::PostMessage(TrainController<Person_MT>::getInstance(),
-										MSG_TRAIN_BACK_DEPOT, messaging::MessageBus::MessagePtr(new TrainMessage(msg.trainDriver->getParent())));
-		} else {
-			pendingTrainDriver[lineId].push_back(msg.trainDriver);
-		}
+		pendingTrainDriver[lineId].push_back(msg.trainDriver);
 		break;
 	}
 	case TRAIN_ARRIVAL_AT_ENDPOINT:
@@ -146,12 +141,13 @@ void TrainStationAgent::dispathPendingTrains(timeslice now)
 				{
 					ahead = iLastDriver->second;
 					sim_mob::medium::TrainMovement* trainMover = dynamic_cast<sim_mob::medium::TrainMovement*>(next->Movement());
-					double distanceToNextTrain = trainMover->getDistanceToNextTrain(ahead);
+					double distanceToNextTrain = trainMover->getDistanceToNextTrain(ahead,false);
 					if (distanceToNextTrain > safeDistanceToAhead)
 					{
 						success = true;
 					}
 				}
+
 				if (success || !ahead)
 				{
 					trainDriver.push_back(next);
@@ -161,7 +157,6 @@ void TrainStationAgent::dispathPendingTrains(timeslice now)
 					next->setNextDriver(ahead);
 					Role<Person_MT> *tDriver=dynamic_cast<Role<Person_MT>*>(next);
 					TrainController<Person_MT>::getInstance()->AddToListOfActiveTrainsInLine(lineId,tDriver);
-
 				}
 			}
 		}

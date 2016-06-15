@@ -49,6 +49,11 @@ void RealEstateAgent::addNewUnit(const BigSerial& unitId)
     model->addUnit( unitItr->second);
 }
 
+void  RealEstateAgent::addBTOUnit (const BigSerial& unitId)
+{
+	unitIds.push_back(unitId);
+}
+
 void RealEstateAgent::removeUnitId(const BigSerial& unitId)
 {
     unitIds.erase(std::remove(unitIds.begin(), unitIds.end(), unitId), unitIds.end());
@@ -288,7 +293,7 @@ void RealEstateAgent::HandleMessage(Message::MessageType type, const Message& me
 				Unit *unit = hmMessage.getUnit();
 				units.push_back(unit);
 				unitsById.insert(std::make_pair((unit)->getId(), unit));
-				addNewUnit(unit->getId());
+				addBTOUnit(unit->getId());
 				ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 				unit->setTimeOffMarket(1 + config.ltParams.housingModel.timeOnMarket * (float)rand() / RAND_MAX );
 				unit->setTimeOnMarket(1 + config.ltParams.housingModel.timeOffMarket * (float)rand() / RAND_MAX);

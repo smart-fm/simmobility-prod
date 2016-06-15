@@ -674,29 +674,18 @@ bool HouseholdBidderRole::pickEntryToBid()
 
             bool flatEligibility = true;
 
-            bool buildToOrder= false;
 
 
-            boost::gregorian::date occupancyDate = boost::gregorian::date_from_tm( unit->getOccupancyFromDate() );
-            boost::gregorian::date currentDate(HITS_SURVEY_YEAR,01,01);
-            boost::gregorian::date_duration simulationDay(day);
-            currentDate = currentDate + simulationDay;
+            // chetan *must* add unit->getBTO() here after gishara merges her branch
+			if( unit->getUnitType() == 2 && household->getTwoRoomHdbEligibility()  == false )
+				flatEligibility = false;
 
-            if((occupancyDate - currentDate).days() > 0 )
-            	buildToOrder = true;
+			if( unit->getUnitType() == 3 && household->getThreeRoomHdbEligibility() == false )
+				flatEligibility = false;
 
+			if( unit->getUnitType() == 4 && household->getFourRoomHdbEligibility() == false )
+				flatEligibility = false;
 
-            if( buildToOrder )
-            {
-				if( unit->getUnitType() == 2 && household->getTwoRoomHdbEligibility()  == false )
-					flatEligibility = false;
-
-				if( unit->getUnitType() == 3 && household->getThreeRoomHdbEligibility() == false )
-					flatEligibility = false;
-
-				if( unit->getUnitType() == 4 && household->getFourRoomHdbEligibility() == false )
-					flatEligibility = false;
-            }
 
 
             if( stats && flatEligibility )

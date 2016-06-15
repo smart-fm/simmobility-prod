@@ -12,6 +12,7 @@
 
 #pragma once
 #include <string>
+#include "../shared/database/predaydao/DatabaseHelper.hpp"
 
 namespace sim_mob {
 
@@ -24,8 +25,6 @@ namespace sim_mob {
          */
         const std::string DB_EMPTY_QUERY = "";
         const std::string DB_SCHEMA_EMPTY = "";
-        const std::string MAIN_SCHEMA = "main2012.";
-        const std::string CALIBRATION_SCHEMA = "calibration2012.";
         const std::string LIMIT_10000 = " order by random() limit 10000";
         const std::string LIMIT_RAND0_DOT1 = "WHERE random() < 0.01";
         const std::string LIMIT_ALL = "";

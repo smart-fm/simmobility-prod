@@ -16,8 +16,9 @@ const std::string EMPTY_STRING = "";
 /**
  * Schemas
  */
-const std::string MAIN_SCHEMA = "main2012.";
-const std::string PUBLIC_SCHEMA = "calibration2012."; //demand.
+const std::string MAIN_SCHEMA = "virtual_city.";
+const std::string PUBLIC_SCHEMA = "calibration_virtual_city."; //demand.
+const std::string CALIBRATION_SCHEMA = "calibration_virtual_city.";
 
 /**
  * Tables
@@ -85,7 +86,7 @@ const std::string SEARCH_STRING_MOTORCYCLE = "motorcycle";
 const std::string DB_GET_ALL_PERSON_IDS = "SELECT * FROM " + DB_SP_GET_INDIVIDUAL_IDS;
 
 /** load a specific individual by id */
-const std::string DB_GET_PERSON_BY_ID = "SELECT * FROM main2012.getindividualbyidforpreday(:_id)"; //argument to be passed
+const std::string DB_GET_PERSON_BY_ID = "SELECT * FROM "+ MAIN_SCHEMA + "getindividualbyidforpreday(:_id)"; //argument to be passed
 
 /** load address taz mapping from LT database */
 const std::string DB_GET_ADDRESS_TAZ = "SELECT * FROM " + DB_SP_GET_ADDRESS_TAZ;

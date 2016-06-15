@@ -63,6 +63,7 @@ struct LongTermParams
 		float housingMoveInDaysInterval;
 		int offsetBetweenUnitBuyingAndSelling;
 		int bidderUnitsChoiceSet;
+		int bidderBTOUnitsChoiceSet;
 		int householdBiddingWindow;
 	} housingModel;
 

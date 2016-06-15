@@ -1438,6 +1438,13 @@ void HM_Model::startImpl()
 	//assign empty units to freelance housing agents
 	for (UnitList::const_iterator it = units.begin(); it != units.end(); it++)
 	{
+		boost::gregorian::date saleDate = boost::gregorian::date_from_tm((*it)->getSaleFromDate());
+		boost::gregorian::date simulationDate = boost::gregorian::date(HITS_SURVEY_YEAR, 1, 1);
+		if( saleDate > simulationDate )
+		{
+			startDay = (saleDate - simulationDate).days();
+		}
+
 		(*it)->setbiddingMarketEntryDay( startDay );
 		(*it)->setTimeOnMarket(  1 + (float)rand() / RAND_MAX * config.ltParams.housingModel.timeOnMarket);
 		(*it)->setTimeOffMarket( 1 + (float)rand() / RAND_MAX * config.ltParams.housingModel.timeOffMarket);
@@ -1628,27 +1635,16 @@ void HM_Model::getLogsumOfIndividuals(BigSerial id)
 }
 
 
-void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId2)
+void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId)
 {
-	BigSerial householdId = 0;
 	HouseHoldHitsSample *hitsSample = nullptr;
-
 	{
 		boost::mutex::scoped_lock lock( mtx3 );
-
-		householdId = householdLogsumCounter++;
 
 		hitsSample = this->getHouseHoldHitsById( householdId );
 
 		if( !hitsSample )
 			return;
-
-		std::string householdHitsIdStr = hitsSample->getHouseholdHitsId();
-
-		if( processedHouseholdHitsLogsum.find( householdHitsIdStr ) != processedHouseholdHitsLogsum.end() )
-			return;
-		else
-			processedHouseholdHitsLogsum.insert( householdHitsIdStr );
 	}
 
 	Household *currentHousehold = getHouseholdById( householdId );
@@ -1718,9 +1714,8 @@ void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId2)
 	}
 }
 
-void HM_Model::getLogsumOfHousehold(BigSerial householdId2)
+void HM_Model::getLogsumOfHousehold(BigSerial householdId)
 {
-	BigSerial householdId = 0;
 	HouseHoldHitsSample *hitsSample = nullptr;
 
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
@@ -1728,23 +1723,16 @@ void HM_Model::getLogsumOfHousehold(BigSerial householdId2)
 	{
 		boost::mutex::scoped_lock lock( mtx3 );
 
-		householdId = householdLogsumCounter++;
-
 		hitsSample = this->getHouseHoldHitsById( householdId );
 
 		if( !hitsSample )
 			return;
 
-		std::string householdHitsIdStr = hitsSample->getHouseholdHitsId();
+		Household *currentHousehold = getHouseholdById( householdId );
 
-		if( processedHouseholdHitsLogsum.find( householdHitsIdStr ) != processedHouseholdHitsLogsum.end() )
+		if( !currentHousehold )
 			return;
-		else
-			processedHouseholdHitsLogsum.insert( householdHitsIdStr );
-
-		PrintOutV("Logsum index: " << simulationStopCounter++ << std::endl);
 	}
-
 
 	Household *currentHousehold = getHouseholdById( householdId );
 
@@ -1758,7 +1746,6 @@ void HM_Model::getLogsumOfHousehold(BigSerial householdId2)
 
 		if( thisIndividual->getVehicleCategoryId() > 0)
 			vehicleOwnership = 1;
-
 
 		vector<double> logsum;
 		vector<double> travelProbability;
@@ -1778,7 +1765,6 @@ void HM_Model::getLogsumOfHousehold(BigSerial householdId2)
 			}
 		}
 
-
 		BigSerial tazWork = 0;
 		{
 			std::string tazStrWork;
@@ -1789,7 +1775,6 @@ void HM_Model::getLogsumOfHousehold(BigSerial householdId2)
 			tazWork = std::atoi( tazStrWork.c_str() );
 		}
 
-
 		BigSerial tazHome = 0;
 		{
 			std::string tazStrHome;
@@ -1799,7 +1784,6 @@ void HM_Model::getLogsumOfHousehold(BigSerial householdId2)
 
 			tazHome = std::atoi( tazStrHome.c_str() );
 		}
-
 
 		if( tazHome <= 0 )
 		{
@@ -1812,7 +1796,6 @@ void HM_Model::getLogsumOfHousehold(BigSerial householdId2)
 			PrintOutV( " individualId " << householdIndividualIds[n] << " has an empty work taz" << std::endl);
 			AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, (boost::format( "individualId %1% has an empty work taz.") % householdIndividualIds[n]).str());
 		}
-
 
 		for( int m = 1; m <= this->tazs.size(); m++)
 		{
@@ -1943,13 +1926,10 @@ void HM_Model::hdbEligibilityTest(int index)
 	{
 		const Individual* hhIndividual = getIndividualById(	households[index]->getIndividuals()[n]);
 
-		time_t now = time(0);
-		tm ltm = *(localtime(&now));
-		std::tm birthday = hhIndividual->getDateOfBirth();
-
-
-		boost::gregorian::date date1(birthday.tm_year + 1900, birthday.tm_mon + 1, birthday.tm_mday);
-		boost::gregorian::date date2(ltm.tm_year + 1900, ltm.tm_mon + 1, ltm.tm_mday);
+		boost::gregorian::date date1 = boost::gregorian::date_from_tm(hhIndividual->getDateOfBirth());
+		boost::gregorian::date date2(HITS_SURVEY_YEAR, 1, 1);
+		boost::gregorian::date_duration simulationDay(0); //we only check HDB eligibility on day 0 of simulation.
+		date2 = date2 + simulationDay;
 
 		int years = (date2 - date1).days() / YEAR;
 
@@ -2077,12 +2057,14 @@ void HM_Model::hdbEligibilityTest(int index)
 		{
 			households[index]->setTwoRoomHdbEligibility(true);
 		}
-		else if (households[index]->getIncome() < THREEBEDROOM && familyTypeGeneral == true)
+
+		if (households[index]->getIncome() < THREEBEDROOM && familyTypeGeneral == true)
 		{
-			households[index]->setTwoRoomHdbEligibility(true);
 			households[index]->setThreeRoomHdbEligibility(true);
+			households[index]->setFourRoomHdbEligibility(true);
 		}
-		else if (households[index]->getIncome() < THREEBEDROOMMATURE && familyTypeGeneral == true && familyType == Household::MULTIGENERATION)
+
+		if (households[index]->getIncome() < THREEBEDROOMMATURE && familyType == Household::MULTIGENERATION)
 		{
 			households[index]->setTwoRoomHdbEligibility(true);
 			households[index]->setThreeRoomHdbEligibility(true);

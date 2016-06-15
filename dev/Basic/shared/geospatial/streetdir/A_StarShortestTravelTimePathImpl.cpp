@@ -607,7 +607,7 @@ vector<WayPoint> A_StarShortestTravelTimePathImpl::searchShortestTTPath(const St
 
 vector<sim_mob::WayPoint> A_StarShortestTravelTimePathImpl::GetShortestDrivingPath(
         const StreetDirectory::VertexDesc& from, const StreetDirectory::VertexDesc& to,
-        const vector<const sim_mob::Link*>& blacklist, TimeRange tmRange,unsigned int randomGraphId) const
+		const vector<const sim_mob::Link*>& blacklist, TimeRange tmRange,int randomGraphId) const
 {
 	if (!(from.valid && to.valid))
 	{

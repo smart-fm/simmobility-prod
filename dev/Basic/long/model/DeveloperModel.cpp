@@ -124,14 +124,21 @@ void DeveloperModel::startImpl() {
 		loadData<BuildingAvgAgePerParcelDao>(conn,buildingAvgAgePerParcel,BuildingAvgAgeByParceld,&BuildingAvgAgePerParcel::getFmParcelId);
 		PrintOutV("building average age per parcel loaded " << buildingAvgAgePerParcel.size() << std::endl);
 
-		UnitDao unitDao(conn);
-		btoUnits = unitDao.getBTOUnits();
-
-		setRealEstateAgentIds(housingMarketModel->getRealEstateAgentIds());
-
-
 		ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 		bool resume = config.ltParams.resume;
+		simYear = config.ltParams.year;
+		minLotSize= config.ltParams.developerModel.minLotSize;
+
+		std::tm currentSimYear = getDateBySimDay(simYear,1);
+		UnitDao unitDao(conn);
+		btoUnits = unitDao.getBTOUnits(currentSimYear);
+		//set the BTO flag when the units are first loaded
+		for(Unit *unit : btoUnits)
+		{
+			unit->setBto(true);
+		}
+
+		setRealEstateAgentIds(housingMarketModel->getRealEstateAgentIds());
 
 		if(resume)
 		{
@@ -169,8 +176,6 @@ void DeveloperModel::startImpl() {
 			buildingIdForDevAgent = config.ltParams.developerModel.initialBuildingId;
 			projectIdForDevAgent = config.ltParams.developerModel.initialProjectId;
 		}
-		simYear = config.ltParams.year;
-		minLotSize= config.ltParams.developerModel.minLotSize;
 
 	}
 

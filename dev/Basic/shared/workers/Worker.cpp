@@ -515,7 +515,7 @@ void sim_mob::Worker::migrateOut(Entity& ag)
 	ag.currWorkerProvider = nullptr;
 
 	//Remove this entity's Buffered<> types from our list
-	//stopManaging(ag.getSubscriptionList());
+	stopManaging(ag.getSubscriptionList());
 
 	//Debugging output
 	if (Debug::WorkGroupSemantics) {
@@ -539,7 +539,7 @@ void sim_mob::Worker::migrateIn(Entity& ag)
 	ag.currWorkerProvider = this;
 
 	//Add this entity's Buffered<> types to our list
-	//beginManaging(ag.getSubscriptionList());
+	beginManaging(ag.getSubscriptionList());
 
 	//Debugging output
 	if (Debug::WorkGroupSemantics) {

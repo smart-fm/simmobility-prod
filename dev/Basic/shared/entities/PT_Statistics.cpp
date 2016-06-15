@@ -10,6 +10,7 @@
 #include <fstream>
 #include <soci/soci.h>
 #include <soci/postgresql/soci-postgresql.h>
+#include "boost/algorithm/string.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "util/DailyTime.hpp"
@@ -316,22 +317,27 @@ void StopStatsManager::addStopStats(const PersonWaitingTime& personWaiting)
 	}
 	boardingStats.numBoarding++;
 
+	std::vector<std::string> lines;
+	boost::split(lines, personWaiting.busLines, boost::is_any_of("/"));
 	unsigned int personArrivalTime = personBoardingTime - personWaiting.waitingTime;
 	if(personArrivalTime > SECONDS_IN_DAY) // personWaiting.waitingTime > personWaiting.currentTime(from start of day)
 	{
 		throw std::runtime_error("invalid currentTime or waiting time passed with person waiting message");
 	}
 	unsigned int interval = personArrivalTime / intervalWidth;
-	StopStats& stats = stopStatsMap[interval][personWaiting.busStopNo][personWaiting.busLineBoarded]; //an entry to be created if not in the map already
-	if(stats.needsInitialization)
+	for(const std::string& line : lines)
 	{
-		stats.interval = interval;
-		stats.stopCode = personWaiting.busStopNo;
-		stats.serviceLine = personWaiting.busLineBoarded;
-		stats.needsInitialization = false;
+		StopStats& stats = stopStatsMap[interval][personWaiting.busStopNo][line]; //an entry to be created if not in the map already
+		if(stats.needsInitialization)
+		{
+			stats.interval = interval;
+			stats.stopCode = personWaiting.busStopNo;
+			stats.serviceLine = line;
+			stats.needsInitialization = false;
+		}
+		stats.waitingCount++;
+		stats.waitingTime = stats.waitingTime + personWaiting.waitingTime;
 	}
-	stats.waitingCount++;
-	stats.waitingTime = stats.waitingTime + personWaiting.waitingTime;
 }
 
 void StopStatsManager::loadHistoricalStopStats()
@@ -359,6 +365,7 @@ void StopStatsManager::loadHistoricalStopStats()
 		stats.waitingTime = r.get<double>(3);
 		stats.dwellTime = r.get<double>(4);
 		stats.numArrivals = r.get<double>(5);
+		stats.needsInitialization = false;
 		historicalStopStatsMap[stats.interval][stats.stopCode][stats.serviceLine] = stats;
 	}
 }
@@ -366,10 +373,10 @@ void StopStatsManager::loadHistoricalStopStats()
 double StopStatsManager::getDwellTime(unsigned int time, const std::string& stopCode, const std::string& serviceLine) const
 {
 	unsigned int interval = time / intervalWidth;
-	std::map<unsigned int, std::map<std::string, std::map<std::string, StopStats> > >::const_iterator histMapIt = historicalStopStatsMap.find(time);
+	std::map<unsigned int, std::map<std::string, std::map<std::string, StopStats> > >::const_iterator histMapIt = historicalStopStatsMap.find(interval);
 	if(histMapIt == historicalStopStatsMap.end())
 	{
-		return -1.0;
+		return -1;
 	}
 	const std::map<std::string, std::map<std::string, StopStats> >& stopLineStatsMap = histMapIt->second;
 	std::map<std::string, std::map<std::string, StopStats> >::const_iterator stopLineStatsMapIt = stopLineStatsMap.find(stopCode);
@@ -389,10 +396,10 @@ double StopStatsManager::getDwellTime(unsigned int time, const std::string& stop
 double StopStatsManager::getWaitingTime(unsigned int time, const std::string& stopCode, const std::string& serviceLine) const
 {
 	unsigned int interval = time / intervalWidth;
-	std::map<unsigned int, std::map<std::string, std::map<std::string, StopStats> > >::const_iterator histMapIt = historicalStopStatsMap.find(time);
+	std::map<unsigned int, std::map<std::string, std::map<std::string, StopStats> > >::const_iterator histMapIt = historicalStopStatsMap.find(interval);
 	if(histMapIt == historicalStopStatsMap.end())
 	{
-		return -1.0;
+		return -1;
 	}
 	const std::map<std::string, std::map<std::string, StopStats> >& stopLineStatsMap = histMapIt->second;
 	std::map<std::string, std::map<std::string, StopStats> >::const_iterator stopLineStatsMapIt = stopLineStatsMap.find(stopCode);

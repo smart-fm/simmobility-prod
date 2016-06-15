@@ -17,24 +17,29 @@ const std::string EMPTY_STRING = "";
  * Schemas
  */
 const std::string MAIN_SCHEMA = "main2012.";
-const std::string PUBLIC_SCHEMA = "calibration2012."; //demand.
+const std::string PUBLIC_SCHEMA = "public.";
+const std::string DEMAND_SCHEMA = "demand.";
 
 /**
  * Tables
  */
 const std::string DB_TABLE_INCOME_CATEGORIES = APPLY_SCHEMA(MAIN_SCHEMA, "income_category");
 const std::string DB_TABLE_VEHICLE_CATEGORIES = APPLY_SCHEMA(MAIN_SCHEMA, "vehicle_category");
-const std::string DB_TABLE_AM_COSTS = APPLY_SCHEMA(PUBLIC_SCHEMA, "amcosts");
-const std::string DB_TABLE_PM_COSTS = APPLY_SCHEMA(PUBLIC_SCHEMA, "pmcosts");
-const std::string DB_TABLE_OP_COSTS = APPLY_SCHEMA(PUBLIC_SCHEMA, "opcosts");
-const std::string DB_TABLE_TAZ = APPLY_SCHEMA(PUBLIC_SCHEMA, "taz_2012");
+const std::string DB_TABLE_LOGSUMS = APPLY_SCHEMA(DEMAND_SCHEMA, "preday_logsum");
+const std::string DB_TABLE_AM_COSTS = APPLY_SCHEMA(DEMAND_SCHEMA, "amcosts");
+const std::string DB_TABLE_PM_COSTS = APPLY_SCHEMA(DEMAND_SCHEMA, "pmcosts");
+const std::string DB_TABLE_OP_COSTS = APPLY_SCHEMA(DEMAND_SCHEMA, "opcosts");
+const std::string DB_TABLE_TAZ = APPLY_SCHEMA(DEMAND_SCHEMA, "taz_2012");
 
 /**
  * Stored procedures for long-term population database
  */
 const std::string DB_SP_GET_INDIVIDUAL_IDS = APPLY_SCHEMA(MAIN_SCHEMA, "getindividualids()");
 const std::string DB_SP_GET_INDIVIDUAL_BY_ID_FOR_PREDAY = APPLY_SCHEMA(MAIN_SCHEMA, "getindividualbyidforpreday(:_id)");
-const std::string DB_SP_GET_ADDRESS_TAZ = APPLY_SCHEMA(MAIN_SCHEMA, "getaddresses()");
+const std::string DB_SP_GET_ADDRESSES = APPLY_SCHEMA(MAIN_SCHEMA, "getaddresses()");
+const std::string DB_SP_GET_ZONE_ADDRESS_COUNTS= APPLY_SCHEMA(MAIN_SCHEMA, "getzoneaddresscounts()");
+const std::string DB_SP_GET_LOGSUMS_BY_ID = APPLY_SCHEMA(PUBLIC_SCHEMA, "get_logsums_for_person(:_id)");
+const std::string DB_SP_GET_POSTCODE_NODE_MAP = APPLY_SCHEMA(PUBLIC_SCHEMA, "get_postcode_node_map()");
 
 /**
  * Fields for long-term population database
@@ -76,36 +81,18 @@ const std::string DB_FIELD_INCOME_CATEGORY_LOWER_LIMIT = "low_limit";
 const std::string DB_FIELD_VEHICLE_CATEGORY_NAME = "name";
 const std::string DB_FIELD_ADDRESS_ID = "address_id";
 const std::string DB_FIELD_TAZ_CODE = "taz_code";
+const std::string DB_FIELD_POSTCODE = "postcode";
+const std::string DB_FIELD_NODE_ID = "node_id";
+const std::string DB_FIELD_DISTANCE_MRT = "distance_mrt";
+const std::string DB_FIELD_DISTANCE_BUS = "distance_bus";
+const std::string DB_FIELD_NUM_ADDRESSES = "num_addresses";
 
 const std::string SEARCH_STRING_CAR_OWN_NORMAL = "car (normal time)";
 const std::string SEARCH_STRING_CAR_OWN_OFF_PEAK = "car (off peak time)";
 const std::string SEARCH_STRING_MOTORCYCLE = "motorcycle";
 
-/** get all individual ids from long-term population database */
-const std::string DB_GET_ALL_PERSON_IDS = "SELECT * FROM " + DB_SP_GET_INDIVIDUAL_IDS;
-
-/** load a specific individual by id */
-const std::string DB_GET_PERSON_BY_ID = "SELECT * FROM main2012.getindividualbyidforpreday(:_id)"; //argument to be passed
-
-/** load address taz mapping from LT database */
-const std::string DB_GET_ADDRESS_TAZ = "SELECT * FROM " + DB_SP_GET_ADDRESS_TAZ;
-
-/** load income categories */
-const std::string DB_GET_INCOME_CATEGORIES = "SELECT * FROM " + DB_TABLE_INCOME_CATEGORIES;
-
-/** load vehicle categories */
-const std::string DB_GET_VEHICLE_CATEGORIES = "SELECT * FROM " + DB_TABLE_VEHICLE_CATEGORIES;
-
-/** load Costs */
-const std::string DB_GET_ALL_AM_COSTS = "SELECT * FROM " + DB_TABLE_AM_COSTS;
-const std::string DB_GET_ALL_PM_COSTS = "SELECT * FROM " + DB_TABLE_PM_COSTS;
-const std::string DB_GET_ALL_OP_COSTS = "SELECT * FROM " + DB_TABLE_OP_COSTS;
-
-/** load zones */
-const std::string DB_GET_ALL_ZONES = "SELECT * FROM " + DB_TABLE_TAZ;
-
 /**
- * Fields for mongoDB Zone data
+ * Fields for Zone data (in postgres db)
  */
 const std::string DB_FIELD_ZONE_ID = "zone_id";
 const std::string DB_FIELD_ZONE_CODE = "zone_code";
@@ -121,7 +108,7 @@ const std::string DB_FIELD_ZONE_RESIDENT_STUDENTS = "resident_students";
 const std::string DB_FIELD_ZONE_CBD_ZONE = "cbd";
 
 /**
- * Fields for MongoDB cost data
+ * Fields for cost data (in postgres db)
  */
 const std::string DB_FIELD_COST_ORIGIN = "origin_zone";
 const std::string DB_FIELD_COST_DESTINATION = "destination_zone";
@@ -134,5 +121,43 @@ const std::string DB_FIELD_COST_CAR_ERP = "car_cost_erp";
 const std::string DB_FIELD_COST_PUB_IVT = "pub_ivt";
 const std::string DB_FIELD_COST_AVG_TRANSFER = "avg_transfer";
 const std::string DB_FIELD_COST_PUB_COST = "pub_cost";
+
+/** get all individual ids from long-term population database */
+const std::string DB_GET_ALL_PERSON_IDS = "SELECT * FROM " + DB_SP_GET_INDIVIDUAL_IDS;
+
+/** load a specific individual by id */
+const std::string DB_GET_PERSON_BY_ID = "SELECT * FROM " + DB_SP_GET_INDIVIDUAL_BY_ID_FOR_PREDAY; //argument to be passed
+
+/** load address taz mapping from LT database */
+const std::string DB_GET_ADDRESSES = "SELECT * FROM " + DB_SP_GET_ADDRESSES;
+
+/** load number of addresses in each taz from LT database */
+const std::string DB_GET_ZONE_ADDRESS_COUNTS = "SELECT * FROM " + DB_SP_GET_ZONE_ADDRESS_COUNTS;
+
+/** load postcode to simmobility node mapping */
+const std::string DB_GET_POSTCODE_NODE_MAP = "SELECT * FROM " + DB_SP_GET_POSTCODE_NODE_MAP;
+
+/** load income categories */
+const std::string DB_GET_INCOME_CATEGORIES = "SELECT * FROM " + DB_TABLE_INCOME_CATEGORIES;
+
+/** load vehicle categories */
+const std::string DB_GET_VEHICLE_CATEGORIES = "SELECT * FROM " + DB_TABLE_VEHICLE_CATEGORIES;
+
+/** load logsums by id */
+const std::string DB_GET_LOGSUMS_BY_ID = "SELECT * FROM " + DB_SP_GET_LOGSUMS_BY_ID; // argument to be passed
+
+/** insert logsums */
+const std::string DB_INSERT_LOGSUMS = "INSERT INTO " + DB_TABLE_LOGSUMS + " VALUES (:v1, :v2, :v3, :v4, :v5, :v6, :v7)";
+
+/** truncate logsums data */
+const std::string DB_TRUNCATE_LOGSUMS = "TRUNCATE " + DB_TABLE_LOGSUMS;
+
+/** load Costs */
+const std::string DB_GET_ALL_AM_COSTS = "SELECT * FROM " + DB_TABLE_AM_COSTS;
+const std::string DB_GET_ALL_PM_COSTS = "SELECT * FROM " + DB_TABLE_PM_COSTS;
+const std::string DB_GET_ALL_OP_COSTS = "SELECT * FROM " + DB_TABLE_OP_COSTS;
+
+/** load zones */
+const std::string DB_GET_ALL_ZONES = "SELECT * FROM " + DB_TABLE_TAZ;
 
 } // end namespace sim_mob

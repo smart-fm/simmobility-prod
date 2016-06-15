@@ -76,58 +76,6 @@ void sim_mob::ParsePathXmlConfig::ProcessPathSetNode(xercesc::DOMElement* node){
 
 }
 
-ModelScriptsMap sim_mob::ParsePathXmlConfig::processModelScriptsNode(xercesc::DOMElement* node)
-{
-	std::string format = ParseString(GetNamedAttributeValue(node, "format"), "");
-	std::string filename="";
-	if (format.empty() || format != "lua")
-	{
-		throw std::runtime_error("Unsupported script format");
-	}
-
-	std::string scriptsDirectoryPath = ParseString(GetNamedAttributeValue(node, "path"), "");
-	if (scriptsDirectoryPath.empty())
-	{
-		throw std::runtime_error("path to scripts is not provided");
-	}
-	if ((*scriptsDirectoryPath.rbegin()) != '/')
-	{
-		//add a / to the end of the path string if it is not already there
-		scriptsDirectoryPath.push_back('/');
-	}
-	ModelScriptsMap scriptsMap(scriptsDirectoryPath, format);
-	for (DOMElement* item = node->getFirstElementChild(); item; item = item->getNextElementSibling())
-	{
-		std::string name = TranscodeString(item->getNodeName());
-		if (name != "script")
-		{
-			Warn() << "Invalid db_proc_groups child node.\n";
-			continue;
-		}
-
-		std::string key = ParseString(GetNamedAttributeValue(item, "name"), "");
-		std::string val = ParseString(GetNamedAttributeValue(item, "file"), "");
-		if (key.empty() || val.empty())
-		{
-			Warn() << "Invalid script; missing \"name\" or \"file\".\n";
-			continue;
-		}
-
-		scriptsMap.addScriptFileName(key, val);
-		filename=val;
-	}
-
-	if(boost::iequals(filename, "serv.lua"))
-	{
-		cfg.ServiceControllerScriptsMap=scriptsMap;
-		return scriptsMap;
-	}
-
-	cfg.ptRouteChoiceScriptsMap = scriptsMap;
-	return scriptsMap;
-
-}
-
 
 
 void sim_mob::ParsePathXmlConfig::processPublicPathsetNode(xercesc::DOMElement* publicConfNode)
@@ -172,11 +120,6 @@ void sim_mob::ParsePathXmlConfig::processPublicPathsetNode(xercesc::DOMElement* 
 								GetSingleElementByName(publicPathSetAlgoConf, "k_shortest_path"), "level"), 10);
 				cfg.simulationApproachIterations = ParseInteger(GetNamedAttributeValue(
 								GetSingleElementByName(publicPathSetAlgoConf, "simulation_approach"), "iterations"), 10);
-	}
-
-	if(cfg.publicPathSetMode == "normal")
-	{
-		cfg.ptRouteChoiceScriptsMap = processModelScriptsNode(GetSingleElementByName(publicConfNode, "model_scripts", true));
 	}
 }
 
@@ -306,11 +249,6 @@ void sim_mob::ParsePathXmlConfig::processPrivatePathsetNode(xercesc::DOMElement*
 	if (utility)
 	{
 		cfg.params.highwayBias = ParseFloat(GetNamedAttributeValue(GetSingleElementByName(utility, "highwayBias"), "value"), 0.5);
-	}
-
-	if(cfg.privatePathSetMode == "normal")
-	{
-		cfg.pvtRouteChoiceScriptsMap = processModelScriptsNode(GetSingleElementByName(pvtConfNode, "model_scripts", true));
 	}
 
 	//sanity check

@@ -5,8 +5,12 @@
 #include "Person_MT.hpp"
 
 #include <boost/lexical_cast.hpp>
-#include <stdexcept>
+#include <map>
 #include <numeric>
+#include <stdexcept>
+#include "behavioral/lua/WithindayLuaModel.hpp"
+#include "behavioral/WithindayHelper.hpp"
+#include "behavioral/params/WithindayModeParams.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "config/MT_Config.hpp"
@@ -28,6 +32,39 @@
 using namespace std;
 using namespace sim_mob;
 using namespace sim_mob::medium;
+
+namespace
+{
+std::map<int, std::string> setModeMap()
+{
+	// 1 for public bus; 2 for MRT/LRT; 3 for private bus; 4 for drive1;
+	// 5 for shared2; 6 for shared3+; 7 for motor; 8 for walk; 9 for taxi
+	//mode_idx_ref = { 1 : 3, 2 : 5, 3 : 3, 4 : 1, 5 : 6, 6 : 6, 7 : 8, 8 : 2, 9 : 4 }
+	std::map<int, std::string> res;
+	res[-1] = "Invalid";
+	res[1] = "BusTravel";
+	res[2] = "MRT";
+	res[3] = "PrivateBus";
+	res[4] = "Car";
+	res[5] = "Car Sharing 2";
+	res[6] = "Car Sharing 3";
+	res[7] = "Motorcycle";
+	res[8] = "Walk";
+	res[9] = "Taxi";
+	return res;
+}
+
+const std::map<int,std::string> modeMap = setModeMap();
+
+const std::string& getModeString(int idx)
+{
+	if((idx < 1 || idx > 9) && (idx != -1))
+	{
+		throw std::runtime_error("Invalid mode index");
+	}
+	return modeMap.find(idx)->second;
+}
+}
 
 Person_MT::Person_MT(const std::string& src, const MutexStrategy& mtxStrat, int id, std::string databaseID)
 : Person(src, mtxStrat, id, databaseID),
@@ -339,9 +376,9 @@ void Person_MT::convertPublicTransitODsToTrips(PT_Network& ptNetwork,const std::
 						{
 							itSubTrip->travelMode = "Sharing"; // modify mode name for RoleFactory
 						}
-
+						
 						const StreetDirectory& streetDirectory = StreetDirectory::Instance();
-						std::vector<WayPoint> wayPoints = streetDirectory.SearchShortestDrivingPath(*itSubTrip->origin.node, *itSubTrip->destination.node);
+						std::vector<WayPoint> wayPoints = streetDirectory.SearchShortestDrivingPath<Node, Node>(*itSubTrip->origin.node, *itSubTrip->destination.node);
 						double travelTime = 0.0;
 						const TravelTimeManager* ttMgr = TravelTimeManager::getInstance();
 						for (std::vector<WayPoint>::iterator it = wayPoints.begin(); it != wayPoints.end(); it++)
@@ -538,6 +575,23 @@ bool Person_MT::updatePersonRole()
 
 	changeRole();
 	return true;
+}
+
+std::string Person_MT::chooseModeEnRoute(const Trip& trip, unsigned int originNode, const DailyTime& curTime) const
+{
+	WithindayModelsHelper wdHelper;
+	ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
+	std::string ptPathsetStoredProcName = cfg.getDatabaseProcMappings().procedureMappings["pt_pathset_dis"];
+	WithindayModeParams modeParams = wdHelper.buildModeChoiceParams(trip, originNode, curTime,ptPathsetStoredProcName);
+	modeParams.unsetDrive1Availability();
+	modeParams.unsetMotorAvailability();
+	modeParams.unsetShare2Availability();
+	modeParams.unsetShare3Availability();
+	modeParams.unsetWalkAvailability();
+	modeParams.unsetPrivateBusAvailability();
+	modeParams.unsetMrtAvailability();
+	int chosenMode = WithindayLuaProvider::getWithindayModel().chooseMode(personInfo, modeParams);
+	return getModeString(chosenMode);
 }
 
 void Person_MT::setStartTime(unsigned int value)

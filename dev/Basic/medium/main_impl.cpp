@@ -14,6 +14,7 @@
 #include "GenConfig.h"
 
 #include "behavioral/PredayManager.hpp"
+#include "behavioral/WithindayHelper.hpp"
 #include "buffering/BufferedDataManager.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
@@ -291,6 +292,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 
 	PeriodicPersonLoader* periodicPersonLoader = new MT_PersonLoader(Agent::all_agents, Agent::pending_agents);
 	const ScreenLineCounter* screenLnCtr = ScreenLineCounter::getInstance(); //This line is necessary. It creates the singleton ScreenlineCounter object before any workers are created.
+	WithindayModelsHelper::loadZones(); //load zone information from db
 
 	{ //Begin scope: WorkGroups
 	WorkGroupManager wgMgr;
@@ -627,6 +629,7 @@ int main_impl(int ARGC, char* ARGV[])
 	//Concatenate output files?
 	if (!resLogFiles.empty())
 	{
+		resLogFiles.insert(resLogFiles.begin(), ConfigManager::GetInstance().FullConfig().outSimInfoFileName);
 		resLogFiles.insert(resLogFiles.begin(), ConfigManager::GetInstance().FullConfig().outNetworkFileName);
 		resLogFiles.insert(resLogFiles.begin(), ConfigManager::GetInstance().FullConfig().outTrainNetworkFilename);
 		Utils::printAndDeleteLogFiles(resLogFiles);

@@ -2,7 +2,7 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
-#include "LT_PopulationSqlDao.hpp"
+#include "PopulationSqlDao.hpp"
 
 #include <boost/lexical_cast.hpp>
 #include "DatabaseHelper.hpp"
@@ -16,16 +16,16 @@ namespace
 typedef long long BigInt;
 }
 
-LT_PopulationSqlDao::LT_PopulationSqlDao(DB_Connection& connection) :
-		SqlAbstractDao<PredayPersonParams>(connection, "", "", "", "", "", "SELECT * FROM main2012.getindividualbyidforpreday(:_id)")
+PopulationSqlDao::PopulationSqlDao(DB_Connection& connection) :
+		SqlAbstractDao<PersonParams>(connection, "", "", "", "", "", DB_GET_PERSON_BY_ID)
 {
 }
 
-LT_PopulationSqlDao::~LT_PopulationSqlDao()
+PopulationSqlDao::~PopulationSqlDao()
 {
 }
 
-void LT_PopulationSqlDao::fromRow(Row& result, PredayPersonParams& outObj)
+void PopulationSqlDao::fromRow(Row& result, PersonParams& outObj)
 {
 	outObj.setPersonId(boost::lexical_cast<std::string>(result.get<BigInt>(DB_FIELD_ID)));
 	outObj.setPersonTypeId(result.get<BigInt>(DB_FIELD_PERSON_TYPE_ID));
@@ -53,14 +53,14 @@ void LT_PopulationSqlDao::fromRow(Row& result, PredayPersonParams& outObj)
 	outObj.setHH_NumWorkers(result.get<int>(DB_FIELD_HH_WORKERS));
 
 	//infer params
-	outObj.fixUpForLtPerson();
+	outObj.fixUpParamsForLtPerson();
 }
 
-void LT_PopulationSqlDao::toRow(PredayPersonParams& data, Parameters& outParams, bool update)
+void PopulationSqlDao::toRow(PersonParams& data, Parameters& outParams, bool update)
 {
 }
 
-void sim_mob::LT_PopulationSqlDao::getOneById(long long id, PredayPersonParams& outParam)
+void PopulationSqlDao::getOneById(long long id, PersonParams& outParam)
 {
 	db::Parameters params;
 	db::Parameter idParam(id);
@@ -68,7 +68,7 @@ void sim_mob::LT_PopulationSqlDao::getOneById(long long id, PredayPersonParams& 
 	getById(params, outParam);
 }
 
-void sim_mob::LT_PopulationSqlDao::getAllIds(std::vector<long>& outList)
+void PopulationSqlDao::getAllIds(std::vector<long>& outList)
 {
 	if (isConnected())
 	{
@@ -83,22 +83,31 @@ void sim_mob::LT_PopulationSqlDao::getAllIds(std::vector<long>& outList)
 	}
 }
 
-void sim_mob::LT_PopulationSqlDao::getAddressTAZs(std::map<long, int>& addressTazMap)
+void PopulationSqlDao::getAddresses(std::map<long, sim_mob::Address>& addressMap, std::map<int, std::vector<long> >& zoneAddressesMap)
 {
 	if (isConnected())
 	{
-		addressTazMap.clear();
+		addressMap.clear();
+		zoneAddressesMap.clear();
 		Statement query(connection.getSession<soci::session>());
-		prepareStatement(DB_GET_ADDRESS_TAZ, db::EMPTY_PARAMS, query);
+		prepareStatement(DB_GET_ADDRESSES, db::EMPTY_PARAMS, query);
 		ResultSet rs(query);
 		for (ResultSet::const_iterator it = rs.begin(); it != rs.end(); ++it)
 		{
-			addressTazMap[(*it).get<BigInt>(DB_FIELD_ADDRESS_ID)] = (*it).get<int>(DB_FIELD_TAZ_CODE);
+			long addressId = (*it).get<BigInt>(DB_FIELD_ADDRESS_ID);
+			sim_mob::Address& address = addressMap[addressId];
+			address.setAddressId(addressId);
+			address.setPostcode((*it).get<int>(DB_FIELD_POSTCODE));
+			address.setTazCode((*it).get<int>(DB_FIELD_TAZ_CODE));
+			address.setDistanceMrt((*it).get<double>(DB_FIELD_DISTANCE_MRT));
+			address.setDistanceBus((*it).get<double>(DB_FIELD_DISTANCE_BUS));
+
+			zoneAddressesMap[address.getTazCode()].push_back(addressId);
 		}
 	}
 }
 
-void LT_PopulationSqlDao::getIncomeCategories(double incomeLowerLimits[])
+void PopulationSqlDao::getIncomeCategories(double incomeLowerLimits[])
 {
 	if (isConnected())
 	{
@@ -106,20 +115,20 @@ void LT_PopulationSqlDao::getIncomeCategories(double incomeLowerLimits[])
 		prepareStatement(DB_GET_INCOME_CATEGORIES, db::EMPTY_PARAMS, query);
 		ResultSet rs(query);
 
-		double uLimit = 0;
+		double lowLimit = 0;
 		incomeLowerLimits[0] = 0;
 		for (ResultSet::const_iterator it = rs.begin(); it != rs.end(); ++it)
 		{
-			uLimit = (*it).get<double>(DB_FIELD_INCOME_CATEGORY_LOWER_LIMIT);
-			if (uLimit > 0)
+			lowLimit = (*it).get<double>(DB_FIELD_INCOME_CATEGORY_LOWER_LIMIT);
+			if (lowLimit > 0)
 			{
-				incomeLowerLimits[(*it).get<BigInt>(DB_FIELD_ID)] = uLimit;
+				incomeLowerLimits[(*it).get<BigInt>(DB_FIELD_ID)] = lowLimit;
 			}
 		}
 	}
 }
 
-void LT_PopulationSqlDao::getVehicleCategories(std::map<int, std::bitset<4> >& vehicleCategories)
+void PopulationSqlDao::getVehicleCategories(std::map<int, std::bitset<4> >& vehicleCategories)
 {
 	if (isConnected())
 	{
@@ -146,6 +155,58 @@ void LT_PopulationSqlDao::getVehicleCategories(std::map<int, std::bitset<4> >& v
 				vehOwnershipBits[3] = 1;
 			}
 			vehicleCategories[(*it).get<BigInt>(DB_FIELD_ID)] = vehOwnershipBits;
+		}
+	}
+}
+
+SimmobSqlDao::SimmobSqlDao(db::DB_Connection& connection) :
+		SqlAbstractDao<PersonParams>(connection, DB_TABLE_LOGSUMS, DB_INSERT_LOGSUMS, "", DB_TRUNCATE_LOGSUMS, "", DB_GET_LOGSUMS_BY_ID)
+{
+}
+
+SimmobSqlDao::~SimmobSqlDao()
+{
+}
+
+void SimmobSqlDao::fromRow(db::Row& result, PersonParams& outObj)
+{
+	outObj.setWorkLogSum(result.get<double>(DB_FIELD_WORK_LOGSUM));
+	outObj.setEduLogSum(result.get<double>(DB_FIELD_EDUCATION_LOGSUM));
+	outObj.setShopLogSum(result.get<double>(DB_FIELD_SHOP_LOGSUM));
+	outObj.setOtherLogSum(result.get<double>(DB_FIELD_OTHER_LOGSUM));
+	outObj.setDptLogsum(result.get<double>(DB_FIELD_DPT_LOGSUM));
+	outObj.setDpsLogsum(result.get<double>(DB_FIELD_DPS_LOGSUM));
+}
+
+void SimmobSqlDao::toRow(PersonParams& data, db::Parameters& outParams, bool update)
+{
+	outParams.push_back(data.getPersonId());
+	outParams.push_back(data.getWorkLogSum());
+	outParams.push_back(data.getEduLogSum());
+	outParams.push_back(data.getShopLogSum());
+	outParams.push_back(data.getOtherLogSum());
+	outParams.push_back(data.getDptLogsum());
+	outParams.push_back(data.getDpsLogsum());
+}
+
+void SimmobSqlDao::getLogsumById(long long id, PersonParams& outObj)
+{
+	db::Parameters params;
+	params.push_back(id);
+	getById(params, outObj);
+}
+
+void SimmobSqlDao::getPostcodeToNodeMap(std::map<unsigned int, unsigned int>& postcodeNodeMap)
+{
+	if (isConnected())
+	{
+		postcodeNodeMap.clear();
+		Statement query(connection.getSession<soci::session>());
+		prepareStatement(DB_GET_POSTCODE_NODE_MAP, db::EMPTY_PARAMS, query);
+		ResultSet rs(query);
+		for (ResultSet::const_iterator it = rs.begin(); it != rs.end(); ++it)
+		{
+			postcodeNodeMap[(*it).get<int>(DB_FIELD_POSTCODE)] = (*it).get<BigInt>(DB_FIELD_NODE_ID);
 		}
 	}
 }

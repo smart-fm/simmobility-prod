@@ -347,62 +347,62 @@ public:
 		this->shortestPath = shortestPath;
 	}
 
-	double getTotalCost() const
+	double getPathCost() const
 	{
 		return totalCost;
 	}
 
-	void setTotalCost(double totalCost)
+	void setPathCost(double totalCost)
 	{
 		this->totalCost = totalCost;
 	}
 
-	double getTotalDistanceKms() const
+	double getPathDistanceKms() const
 	{
 		return totalDistanceKms;
 	}
 
-	void setTotalDistanceKms(double totalDistanceKms)
+	void setPathDistanceKms(double totalDistanceKms)
 	{
 		this->totalDistanceKms = totalDistanceKms;
 	}
 
-	double getTotalInVehicleTravelTimeSecs() const
+	double getInVehicleTravelTimeSecs() const
 	{
-		return totalInVehicleTravelTimeSecs;
+		return pathInVehicleTravelTimeSecs;
 	}
 
-	void setTotalInVehicleTravelTimeSecs(double totalInVehicleTravelTimeSecs)
+	void setInVehicleTravelTimeSecs(double totalInVehicleTravelTimeSecs)
 	{
-		this->totalInVehicleTravelTimeSecs = totalInVehicleTravelTimeSecs;
+		this->pathInVehicleTravelTimeSecs = totalInVehicleTravelTimeSecs;
 	}
 
-	int getTotalNumberOfTransfers() const
+	int getNumTransfers() const
 	{
 		return totalNumberOfTransfers;
 	}
 
-	void setTotalNumberOfTransfers(int totalNumberOfTransfers)
+	void setNumTransfers(int totalNumberOfTransfers)
 	{
 		this->totalNumberOfTransfers = totalNumberOfTransfers;
 	}
 
-	double getTotalWaitingTimeSecs() const
+	double getWaitingTimeSecs() const
 	{
-		return totalWaitingTimeSecs;
+		return pathWaitingTimeSecs;
 	}
 
-	void setTotalWaitingTimeSecs(double totalWaitingTimeSecs)
+	void setWaitingTimeSecs(double totalWaitingTimeSecs)
 	{
-		this->totalWaitingTimeSecs = totalWaitingTimeSecs;
+		this->pathWaitingTimeSecs = totalWaitingTimeSecs;
 	}
 
-	double getTotalWalkingTimeSecs() const
+	double getWalkingTimeSecs() const
 	{
 		return totalWalkingTimeSecs;
 	}
 
-	void setTotalWalkingTimeSecs(double totalWalkingTimeSecs)
+	void setWalkingTimeSecs(double totalWalkingTimeSecs)
 	{
 		this->totalWalkingTimeSecs = totalWalkingTimeSecs;
 	}
@@ -422,6 +422,16 @@ public:
 		return pathModesType;
 	}
 
+	double getPtDistanceKms() const
+	{
+		return ptDistanceKms;
+	}
+
+	void setPtDistanceKms(double ptDistanceKms)
+	{
+		this->ptDistanceKms = ptDistanceKms;
+	}
+
 	/**
 	 * parses comma separated list of path edge ids and builds pathEdges (vector of PT_NetworkEdge objects)
 	 */
@@ -434,10 +444,11 @@ private:
 	std::string scenario;
 	double pathTravelTime;
 	double totalDistanceKms;
+	double ptDistanceKms;
 	mutable double pathSize;
 	double totalCost;
-	double totalInVehicleTravelTimeSecs;
-	double totalWaitingTimeSecs;
+	double pathInVehicleTravelTimeSecs;
+	double pathWaitingTimeSecs;
 	double totalWalkingTimeSecs;
 	int totalNumberOfTransfers;
 	bool minDistance;

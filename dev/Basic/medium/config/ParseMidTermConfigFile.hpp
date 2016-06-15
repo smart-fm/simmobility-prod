@@ -8,6 +8,7 @@
 #include "MT_Config.hpp"
 #include "conf/ConfigParams.hpp"
 #include "conf/ParseConfigXmlBase.hpp"
+#include "conf/RawConfigParams.hpp"
 
 using namespace sim_mob;
 using namespace sim_mob::medium;
@@ -113,7 +114,7 @@ private:
      *
 	 * @param node node corresponding to model_scripts element inside xml file
 	 */
-	void processModelScriptsNode(xercesc::DOMElement* node);
+	ModelScriptsMap processModelScriptsNode(xercesc::DOMElement* node);
 
 	/**
 	 * processes mongo collections element in config xml
@@ -160,7 +161,7 @@ private:
      *
      * @param node node corresponding to network_database element inside xml file
      */
-    void processDatabaseNode(xercesc::DOMElement* node);
+    void processDatabaseNode(xercesc::DOMElement* node, DatabaseDetails& dbDetails);
 
     /**
      * processes the workers element in config xml

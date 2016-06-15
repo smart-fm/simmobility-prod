@@ -9,7 +9,7 @@
 #include <boost/regex.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/thread.hpp>
-#include <boost/thread/tss.hpp>
+#include <memory>
 #include <soci/postgresql/soci-postgresql.h>
 #include <sstream>
 #include "lua/LuaLibrary.hpp"
@@ -60,15 +60,15 @@ struct ModelContext
 	PrivateTrafficRouteChoice* pvtRouteChoiceModel;
 };
 
-boost::thread_specific_ptr<ModelContext> threadContext;
+thread_local std::unique_ptr<ModelContext> threadContext;
 
 void ensureContext()
 {
-	if (!threadContext.get())
+	if (!threadContext)
 	{
 		try
 		{
-			const ModelScriptsMap& extScripts = ConfigManager::GetInstance().PathSetConfig().pvtRouteChoiceScriptsMap;
+			const ModelScriptsMap& extScripts = ConfigManager::GetInstance().FullConfig().luaScriptsMap;
 			const std::string& scriptsPath = extScripts.getPath();
 			ModelContext* modelCtx = new ModelContext();
 			modelCtx->pvtRouteChoiceModel->loadFile(scriptsPath + extScripts.getScriptFileName("logit"));
@@ -309,10 +309,10 @@ double getPathTravelCost(sim_mob::SinglePath *sp, const sim_mob::DailyTime & sta
  */
 SimpleCollector noPathODs;
 
-std::string getFromToString(const sim_mob::Node* fromNode, const sim_mob::Node* toNode)
+std::string getFromToString(unsigned int fromNode, unsigned int toNode)
 {
 	char fromToStrBuf[50];
-	std::sprintf(fromToStrBuf, "%u,%u", fromNode->getNodeId(), toNode->getNodeId());
+	std::sprintf(fromToStrBuf, "%u,%u", fromNode, toNode);
 	return std::string(fromToStrBuf);
 }
 } //anonymous namespace
@@ -421,7 +421,7 @@ void sim_mob::PrivatePathsetGenerator::setPathSetTags(boost::shared_ptr<sim_mob:
 	}
 }
 
-vector<WayPoint> sim_mob::PrivateTrafficRouteChoice::getPath(const sim_mob::SubTrip& subTrip, bool enRoute, const sim_mob::RoadSegment* approach, bool useInSimulationTT)
+vector<WayPoint> sim_mob::PrivateTrafficRouteChoice::getPath(const sim_mob::SubTrip& subTrip, bool enRoute, const sim_mob::Link *approach, bool useInSimulationTT)
 {
 	vector<WayPoint> res = vector<WayPoint>();
 
@@ -483,6 +483,54 @@ void sim_mob::PrivatePathsetGenerator::onGeneratePathSet(boost::shared_ptr<PathS
 	}
 }
 
+double sim_mob::PrivateTrafficRouteChoice::getOD_TravelTime(unsigned int origin, unsigned int destination, const sim_mob::DailyTime& curTime)
+{
+	double shortestPathTravelTime = 0.0;
+	if (origin == destination) { return 0.0; }
+	std::string fromToID = getFromToString(origin, destination);
+	if (noPathODs.find(fromToID)) {	return 0.0; }
+
+	sim_mob::SinglePath* shortestPath = nullptr;
+	boost::shared_ptr<sim_mob::PathSet> pathset;
+	bool pathsetFound = findCachedPathSet(fromToID, pathset);
+	if(pathsetFound)
+	{
+		shortestPath = pathset->oriPath;
+	}
+	else
+	{
+		sim_mob::HasPath pathsetRetrievalStatus = PSM_UNKNOWN;
+		pathset.reset(new sim_mob::PathSet());
+		pathset->id = fromToID;
+		pathsetRetrievalStatus = loadPathsetFromDB(*getSession(), fromToID, pathset->pathChoices, psRetrieval);
+		if(pathsetRetrievalStatus == PSM_HASPATH)
+		{
+			for (sim_mob::SinglePath* sp : pathset->pathChoices)
+			{
+				if (sp->shortestPath)
+				{
+					shortestPath = sp;
+					break;
+				}
+			}
+		}
+		else
+		{
+			noPathODs.insert(fromToID); //note pathset unavailability
+		}
+	}
+
+	if(shortestPath)
+	{
+		shortestPathTravelTime = getPathTravelTime(shortestPath, curTime, false, true);
+	}
+	else
+	{
+		shortestPathTravelTime = -1; //invalid travel time value is returned to indicate pathset unavailability
+	}
+	return shortestPathTravelTime;
+}
+
 //Operations:
 //step-0: Initial preparations
 //step-1: Check the cache
@@ -490,7 +538,7 @@ void sim_mob::PrivatePathsetGenerator::onGeneratePathSet(boost::shared_ptr<PathS
 //Step-3: If not found in DB, generate all 4 types of path
 //step-5: Choose the best path using utility function
 bool sim_mob::PrivateTrafficRouteChoice::getBestPath(std::vector<sim_mob::WayPoint>& res, const sim_mob::SubTrip& st, bool useCache, std::set<const sim_mob::Link*> blackListedLinks, bool usePartialExclusion, bool nonCBD_OD, bool enRoute,
-		const sim_mob::RoadSegment* approach, bool useInSimulationTT)
+		const sim_mob::Link* approach, bool useInSimulationTT)
 {
 	res.clear();
 
@@ -507,7 +555,7 @@ bool sim_mob::PrivateTrafficRouteChoice::getBestPath(std::vector<sim_mob::WayPoi
 	{
 		return false;
 	}
-	std::string fromToID = getFromToString(fromNode, toNode);
+	std::string fromToID = getFromToString(fromNode->getNodeId(), toNode->getNodeId());
 	if (noPathODs.find(fromToID))
 	{
 		return false;
@@ -526,7 +574,7 @@ bool sim_mob::PrivateTrafficRouteChoice::getBestPath(std::vector<sim_mob::WayPoi
 		pathset->subTrip = st; //at least for the travel start time, subtrip is needed
 		onPathSetRetrieval(pathset, enRoute, useInSimulationTT);
 		//no need to supply permanent blacklist
-		bool pathChosen = PrivateRouteChoiceProvider::getPvtRouteChoiceModel()->getBestPathChoiceFromPathSet(pathset, partial, emptyBlkLst, enRoute);
+		bool pathChosen = PrivateRouteChoiceProvider::getPvtRouteChoiceModel()->getBestPathChoiceFromPathSet(pathset, partial, emptyBlkLst, enRoute, approach);
 		if (pathChosen)
 		{
 			res = *(pathset->bestPath);
@@ -564,7 +612,7 @@ bool sim_mob::PrivateTrafficRouteChoice::getBestPath(std::vector<sim_mob::WayPoi
 		}
 		//	no need of processing and storing blacklisted paths
 		onPathSetRetrieval(pathset, enRoute);
-		bool pathChosen = PrivateRouteChoiceProvider::getPvtRouteChoiceModel()->getBestPathChoiceFromPathSet(pathset, partial, emptyBlkLst, enRoute);
+		bool pathChosen = PrivateRouteChoiceProvider::getPvtRouteChoiceModel()->getBestPathChoiceFromPathSet(pathset, partial, emptyBlkLst, enRoute, approach);
 		if (pathChosen)
 		{
 			res = *(pathset->bestPath);
@@ -640,7 +688,7 @@ void sim_mob::PrivatePathsetGenerator::bulkPathSetGenerator()
 
 int sim_mob::PrivatePathsetGenerator::genK_ShortestPath(boost::shared_ptr<sim_mob::PathSet> &ps, std::set<sim_mob::SinglePath*, sim_mob::SinglePath> &KSP_Storage)
 {
-	std::string fromToID(getFromToString(ps->subTrip.origin.node, ps->subTrip.destination.node));
+	std::string fromToID(getFromToString(ps->subTrip.origin.node->getNodeId(), ps->subTrip.destination.node->getNodeId()));
 	std::vector<std::vector<sim_mob::WayPoint> > ksp;
 	int kspn = sim_mob::K_ShortestPathImpl::getInstance()->getKShortestPaths(ps->subTrip.origin.node, ps->subTrip.destination.node, ksp);
 
@@ -722,8 +770,8 @@ int sim_mob::PrivatePathsetGenerator::genSTTLE(boost::shared_ptr<sim_mob::PathSe
 	const sim_mob::Link *curLink = nullptr;
 	std::set<const Link*> blackList = std::set<const Link*>();
 	A_StarShortestTravelTimePathImpl * sttpImpl = (A_StarShortestTravelTimePathImpl*) stdir.getTravelTimeImpl();
-	StreetDirectory::VertexDesc from = sttpImpl->DrivingVertexDefault(*ps->subTrip.origin.node);
-	StreetDirectory::VertexDesc to = sttpImpl->DrivingVertexDefault(*ps->subTrip.destination.node);
+	StreetDirectory::VertexDesc from = sttpImpl->DrivingVertex(*ps->subTrip.origin.node, sim_mob::Default, 0);
+	StreetDirectory::VertexDesc to = sttpImpl->DrivingVertex(*ps->subTrip.destination.node, sim_mob::Default, 0);
 	SinglePath* pathTT = generateShortestTravelTimePath(ps->subTrip.origin.node, ps->subTrip.destination.node, sim_mob::Default);
 
 	int cnt = 0;
@@ -784,8 +832,8 @@ int sim_mob::PrivatePathsetGenerator::genSTTHBLE(boost::shared_ptr<sim_mob::Path
 	std::set<const Link*> blackList = std::set<const Link*>();
 	SinglePath *sinPathHighwayBias = generateShortestTravelTimePath(ps->subTrip.origin.node, ps->subTrip.destination.node, sim_mob::HighwayBiasDefault);
 	A_StarShortestTravelTimePathImpl * sttpImpl = (A_StarShortestTravelTimePathImpl*) stdir.getTravelTimeImpl();
-	StreetDirectory::VertexDesc from = sttpImpl->DrivingVertexHighwayBiasDefault(*ps->subTrip.origin.node);
-	StreetDirectory::VertexDesc to = sttpImpl->DrivingVertexHighwayBiasDefault(*ps->subTrip.destination.node);
+	StreetDirectory::VertexDesc from = sttpImpl->DrivingVertex(*ps->subTrip.origin.node, sim_mob::HighwayBiasDefault, 0);
+	StreetDirectory::VertexDesc to = sttpImpl->DrivingVertex(*ps->subTrip.destination.node,sim_mob::HighwayBiasDefault, 0);
 	int cnt = 0;
 	if (sinPathHighwayBias && !sinPathHighwayBias->path.empty())
 	{
@@ -840,15 +888,15 @@ int sim_mob::PrivatePathsetGenerator::genSTTHBLE(boost::shared_ptr<sim_mob::Path
 
 int sim_mob::PrivatePathsetGenerator::genRandPert(boost::shared_ptr<sim_mob::PathSet> &ps, std::vector<PathSetWorkerThread*> &RandPertStorage)
 {
-	std::string fromToID(getFromToString(ps->subTrip.origin.node, ps->subTrip.destination.node));
+	std::string fromToID(getFromToString(ps->subTrip.origin.node->getNodeId(), ps->subTrip.destination.node->getNodeId()));
 	A_StarShortestTravelTimePathImpl * sttpImpl = (A_StarShortestTravelTimePathImpl*) stdir.getTravelTimeImpl();
 	// generate random path
 	int randCnt = sim_mob::ConfigManager::GetInstance().FullConfig().getPathSetConf().perturbationIteration;
 	int cnt = 0;
 	for (int i = 0; i < randCnt; ++i)
 	{
-		StreetDirectory::VertexDesc from = sttpImpl->DrivingVertexRandom(*ps->subTrip.origin.node, i);
-		StreetDirectory::VertexDesc to = sttpImpl->DrivingVertexRandom(*ps->subTrip.destination.node, i);
+        	StreetDirectory::VertexDesc from = sttpImpl->DrivingVertex(*ps->subTrip.origin.node, sim_mob::Random, i);
+        	StreetDirectory::VertexDesc to = sttpImpl->DrivingVertex(*ps->subTrip.destination.node, sim_mob::Random,  i);
 		if (!(from.valid && to.valid))
 		{
 			std::cout << "Invalid VertexDesc\n";
@@ -898,7 +946,7 @@ int sim_mob::PrivatePathsetGenerator::generateAllPathChoices(boost::shared_ptr<s
 		return 0;
 	}
 
-	std::string fromToID(getFromToString(ps->subTrip.origin.node, ps->subTrip.destination.node));
+	std::string fromToID(getFromToString(ps->subTrip.origin.node->getNodeId(), ps->subTrip.destination.node->getNodeId()));
 
 	/**
 	 * step-1: find the shortest path. if not found: create an entry in the "PathSet" table and return(without adding any entry into SinglePath table)
@@ -1079,7 +1127,7 @@ int sim_mob::PrivatePathsetGenerator::generateAllPathChoices(boost::shared_ptr<s
 		boost::shared_ptr<sim_mob::PathSet> recursionPs(new sim_mob::PathSet());
 		recursionPs->subTrip = ps->subTrip;
 		recursionPs->subTrip.origin.node = from;
-		recursionPs->id = getFromToString(recursionPs->subTrip.origin.node, recursionPs->subTrip.destination.node);
+		recursionPs->id = getFromToString(recursionPs->subTrip.origin.node->getNodeId(), recursionPs->subTrip.destination.node->getNodeId());
 		recursionPs->scenario = ps->scenario;
 		total += generateAllPathChoices(recursionPs, recursiveODs);
 	}
@@ -1242,7 +1290,8 @@ int PrivateTrafficRouteChoice::getPurpose(unsigned int index)
 	return ret;
 }
 
-bool sim_mob::PrivateTrafficRouteChoice::getBestPathChoiceFromPathSet(boost::shared_ptr<sim_mob::PathSet>& ps, const std::set<const sim_mob::Link*>& partialExclusion, const std::set<const sim_mob::Link*>& blckLstLnks, bool enRoute)
+bool sim_mob::PrivateTrafficRouteChoice::getBestPathChoiceFromPathSet(boost::shared_ptr<sim_mob::PathSet>& ps, 
+		const std::set<const sim_mob::Link*>& partialExclusion, const std::set<const sim_mob::Link*>& blckLstLnks, bool enRoute, const sim_mob::Link *approach)
 {
 	bool hasElementsPartialExclusion = (!partialExclusion.empty());
 	bool hasElementsBlackListLinks = (!blckLstLnks.empty());
@@ -1257,6 +1306,12 @@ bool sim_mob::PrivateTrafficRouteChoice::getBestPathChoiceFromPathSet(boost::sha
 		if (hasElementsBlackListLinks && sp->includesLinks(blckLstLnks))
 		{
 			continue; //skip this path
+		}
+		
+		//Check if the approach is specified for the path, if so skip the paths that do not start at the approach link
+		if(approach && sp->path.front().link != approach)
+		{
+			continue;
 		}
 
 		if (sp->travelTime <= 0.0)
@@ -1309,7 +1364,7 @@ sim_mob::SinglePath * sim_mob::PrivatePathsetGenerator::findShortestDrivingPath(
 		blacklist.insert(blacklist.end(), excludedLinks.begin(), excludedLinks.end());
 	}
 
-	std::vector<WayPoint> wpPath = stdir.SearchShortestDrivingPath(*fromNode, *toNode, blacklist);
+    	std::vector<WayPoint> wpPath = stdir.SearchShortestDrivingPath<sim_mob::Node, sim_mob::Node>(*fromNode, *toNode, blacklist);
 
 	if (wpPath.empty())
 	{
@@ -1332,7 +1387,7 @@ sim_mob::SinglePath* sim_mob::PrivatePathsetGenerator::generateShortestTravelTim
 	{
 		blacklist.insert(blacklist.end(), excludedLinks.begin(), excludedLinks.end());
 	}
-	std::vector<WayPoint> wp = stdir.SearchShortestDrivingTimePath(*fromNode, *toNode, blacklist, tr, random_graph_idx);
+    	std::vector<WayPoint> wp = stdir.SearchShortestDrivingTimePath<sim_mob::Node, sim_mob::Node>(*fromNode, *toNode, blacklist, tr, random_graph_idx);
 	if (wp.empty())
 	{
 		return NULL; // no path

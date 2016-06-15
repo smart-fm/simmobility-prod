@@ -123,12 +123,12 @@ void sim_mob::medium::ZoneNodeMappingDao::fromRow(mongo::BSONObj document, ZoneN
 	// the node id is stored in either integer format or long format in mongo db
 	case mongo::NumberInt:
 	{
-		outParam.setAimsunNodeId(document.getField(MONGO_FIELD_NODE_ID).Int());
+		outParam.setNodeId(document.getField(MONGO_FIELD_NODE_ID).Int());
 		break;
 	}
 	case mongo::NumberLong:
 	{
-		outParam.setAimsunNodeId(document.getField(MONGO_FIELD_NODE_ID).Long());
+		outParam.setNodeId(document.getField(MONGO_FIELD_NODE_ID).Long());
 		break;
 	}
 	default:

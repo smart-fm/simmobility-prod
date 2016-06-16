@@ -12,7 +12,7 @@
 
 #pragma once
 #include <string>
-#include "../shared/database/predaydao/DatabaseHelper.hpp"
+#include "database/predaydao/DatabaseHelper.hpp"
 
 namespace sim_mob {
 

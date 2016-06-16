@@ -6,7 +6,7 @@
 
 #include <vector>
 #include <string>
-
+#include "behavioral/StopType.hpp"
 #include "geospatial/network/WayPoint.hpp"
 #include "util/LangHelpers.hpp"
 #include "util/DailyTime.hpp"
@@ -97,7 +97,7 @@ struct TravelMetric
 
 /**
  * Base class for elements in a trip chain.
- * \author Harish L
+ * \author Harish Loganathan
  */
 class TripChainItem
 {
@@ -136,6 +136,7 @@ private:
 
 public:
 	ItemType itemType;
+	StopType purpose;
 	unsigned int sequenceNumber;
 	sim_mob::DailyTime startTime;
 	sim_mob::DailyTime endTime;
@@ -161,14 +162,19 @@ public:
 	void setPersonID(const std::string& val);
 	void setPersonID(int val);
 
-	//TripChainItem();
-	TripChainItem(std::string entId = std::string(), std::string type = "Trip",
-				DailyTime start = DailyTime(), DailyTime end = DailyTime(),
-				unsigned int seqNumber = 0, int requestTime = -1, std::string mode = std::string(),unsigned edgeId=0);
+	TripChainItem(std::string purpose = std::string(),
+			std::string entId = std::string(),
+			std::string type = "Trip",
+			DailyTime start = DailyTime(), DailyTime end = DailyTime(),
+			unsigned int seqNumber=0,
+			int requestTime=-1,
+			std::string mode=std::string(),
+			unsigned edgeId=0);
 	virtual ~TripChainItem();
 
 	static LocationType getLocationType(std::string locType);
 	static ItemType getItemType(std::string itemType);
+	static StopType getItemPurpose(std::string purpose);
 
 	//initialization within person's constructor with respect to tripchain
 
@@ -186,26 +192,24 @@ public:
 /**
  * An activity within a trip chain. Has a location and a description.
  * \author Seth N. Hetu
- * \author Harish L
+ * \author Harish Loganathan
  */
 class Activity : public sim_mob::TripChainItem
 {
 public:
-	//NOTE: I've gone with Harish's implementation here. Please double-check. ~Seth
-	std::string description;
 	const Node* location;
 	bool isPrimary;
 	bool isFlexible;
 	bool isMandatory;
 
-	Activity(std::string locType = "node");
+	Activity(std::string locType = "node", std::string purpose = std::string());
 	virtual ~Activity();
 	bool setPersonOD(sim_mob::Person *person, const sim_mob::SubTrip *);
 };
 
 /**
  * \author Seth N. Hetu
- * \author Harish
+ * \author Harish Loganathan
  * \author zhang huai peng
  */
 class Trip : public sim_mob::TripChainItem
@@ -213,10 +217,19 @@ class Trip : public sim_mob::TripChainItem
 public:
 	std::string tripID;
 
-	Trip(std::string entId = "", std::string type = "Trip", unsigned int seqNumber = 0, int requestTime = -1,
-		DailyTime start = DailyTime(), DailyTime end = DailyTime(),
-		std::string tripId = "", const Node* from = nullptr, std::string fromLocType = "node",
-		const Node* to = nullptr, std::string toLocType = "node", std::string mode = std::string());
+	Trip(std::string entId = "",
+		std::string type = "Trip",
+		unsigned int seqNumber = 0,
+		int requestTime = -1,
+		DailyTime start = DailyTime(),
+		DailyTime end = DailyTime(),
+		std::string tripId = "",
+		const Node* from = nullptr,
+		std::string fromLocType = "node",
+		const Node* to = nullptr,
+		std::string toLocType = "node",
+		std::string mode = std::string(),
+		std::string purpose = std::string());
 	virtual ~Trip();
 
 	void addSubTrip(const sim_mob::SubTrip& aSubTrip);
@@ -233,7 +246,7 @@ private:
 } ;
 
 /**
- * \author Harish
+ * \author Harish Loganathan
  * \author zhang huai peng
  */
 class SubTrip : public sim_mob::Trip

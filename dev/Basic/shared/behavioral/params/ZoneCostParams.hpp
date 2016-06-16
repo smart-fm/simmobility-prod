@@ -376,14 +376,14 @@ public:
 	{
 	}
 
-	long getAimsunNodeId() const
+	long getNodeId() const
 	{
-		return aimsunNodeId;
+		return simmobNodeId;
 	}
 
-	void setAimsunNodeId(long aimsunNodeId)
+	void setNodeId(long aimsunNodeId)
 	{
-		this->aimsunNodeId = aimsunNodeId;
+		this->simmobNodeId = aimsunNodeId;
 	}
 
 	bool isSinkNode() const
@@ -427,15 +427,16 @@ public:
 	}
 
 private:
+	/** taz code */
 	int zone;
-	long aimsunNodeId;
+	/** simmobility node id */
+	long simmobNodeId;
 	/** is this a node with no upstream segments*/
 	bool sourceNode;
 	/** is this a node with no downstream segments*/
 	bool sinkNode;
 	/** is this node a bus-terminus node*/
 	bool busTerminusNode;
-
 };
 
 } // namespace sim_mob

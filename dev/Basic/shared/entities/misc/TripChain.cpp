@@ -37,8 +37,18 @@ sim_mob::TripChainItem::LocationType sim_mob::TripChainItem::GetLocationTypeXML(
 	throw std::runtime_error("Unknown TripChain location type.");
 }
 
-sim_mob::TripChainItem::TripChainItem(std::string entId, string type, DailyTime start, DailyTime end, unsigned int seqNumber, int requestTm, std::string mode, unsigned int edge) :
-personID(entId), itemType(getItemType(type)), startTime(start), endTime(end), sequenceNumber(seqNumber), requestTime(requestTm), travelMode(mode),edgeId(edge)
+sim_mob::TripChainItem::TripChainItem(
+		string purpose, //purpose needs to be the first argument for convenience
+		std::string entId,
+		string type,
+		DailyTime start,
+		DailyTime end,
+		unsigned int seqNumber,
+		int requestTm,
+		std::string mode,
+		unsigned int edge) :
+		personID(entId), itemType(getItemType(type)), purpose(getItemPurpose(purpose)), startTime(start), endTime(end),
+		sequenceNumber(seqNumber), requestTime(requestTm), travelMode(mode),edgeId(edge)
 {
 }
 
@@ -51,8 +61,9 @@ const std::string sim_mob::TripChainItem::getMode() const
 	return travelMode;
 }
 
-sim_mob::Activity::Activity(string locType) : TripChainItem(), description(""),
-isPrimary(false), isFlexible(false), isMandatory(false), location(NULL)
+sim_mob::Activity::Activity(string locType, std::string purpose) :
+		TripChainItem(purpose),
+		isPrimary(false), isFlexible(false), isMandatory(false), location(nullptr)
 {
 	destinationType = getLocationType(locType);
 }
@@ -61,9 +72,20 @@ sim_mob::Activity::~Activity()
 {
 }
 
-sim_mob::Trip::Trip(std::string entId, std::string type, unsigned int seqNumber, int requestTime, DailyTime start,
-					DailyTime end, std::string tripId, const Node* from, std::string fromLocType, const Node* to, std::string toLocType, std::string mode)
-: TripChainItem(entId, type, start, end, seqNumber, requestTime, mode), tripID(tripId)
+sim_mob::Trip::Trip(std::string entId,
+		std::string type,
+		unsigned int seqNumber,
+		int requestTime,
+		DailyTime start,
+		DailyTime end,
+		std::string tripId,
+		const Node* from,
+		std::string fromLocType,
+		const Node* to,
+		std::string toLocType,
+		std::string mode,
+		std::string purpose) :
+				TripChainItem(purpose, entId, type, start, end, seqNumber, requestTime, mode), tripID(tripId)
 {
 	origin = WayPoint(from);
 	destination = WayPoint(to);
@@ -108,10 +130,21 @@ void sim_mob::Trip::setSubTrips(const std::vector<sim_mob::SubTrip>& subTrips)
 	this->subTrips = subTrips;
 }
 
-sim_mob::SubTrip::SubTrip(std::string entId, std::string type, unsigned int seqNumber, int requestTime, DailyTime start, DailyTime end, const Node* from,
-						  std::string fromLocType, const Node* to, std::string toLocType, std::string mode, bool isPrimary, std::string ptLineId) :
-Trip(entId, type, seqNumber, requestTime, start, end, "", from, fromLocType, to, toLocType, mode),
-isPT_Walk(false),walkTime(0.0), ptLineId(ptLineId), cbdTraverseType(sim_mob::TravelMetric::CBD_NONE)
+sim_mob::SubTrip::SubTrip(std::string entId,
+		std::string type,
+		unsigned int seqNumber,
+		int requestTime,
+		DailyTime start,
+		DailyTime end,
+		const Node* from,
+		std::string fromLocType,
+		const Node* to,
+		std::string toLocType,
+		std::string mode,
+		bool isPrimary,
+		std::string ptLineId) :
+				Trip(entId, type, seqNumber, requestTime, start, end, "", from, fromLocType, to, toLocType, mode),
+				isPT_Walk(false),walkTime(0.0), ptLineId(ptLineId), cbdTraverseType(sim_mob::TravelMetric::CBD_NONE)
 {
 }
 
@@ -162,10 +195,34 @@ TripChainItem::LocationType sim_mob::TripChainItem::getLocationType(
 	}
 }
 
+StopType sim_mob::TripChainItem::getItemPurpose(std::string purpose)
+{
+	purpose.erase(remove_if(purpose.begin(), purpose.end(), isspace), purpose.end());
+	if (purpose == "Work")
+	{
+		return WORK;
+	}
+	else if (purpose == "Education")
+	{
+		return EDUCATION;
+	}
+	else if (purpose == "Shop")
+	{
+		return SHOP;
+	}
+	else if (purpose == "Other")
+	{
+		return OTHER;
+	}
+	else
+	{
+		return NULL_STOP;
+	}
+}
+
 TripChainItem::ItemType sim_mob::TripChainItem::getItemType(std::string itemType)
 {
-	itemType.erase(remove_if(itemType.begin(), itemType.end(), isspace),
-				itemType.end());
+	itemType.erase(remove_if(itemType.begin(), itemType.end(), isspace), itemType.end());
 	if (itemType == "Activity")
 	{
 		return IT_ACTIVITY;

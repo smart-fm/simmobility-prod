@@ -464,7 +464,7 @@ double HM_Model::ComputeHedonicPriceLogsumFromMidterm(BigSerial taz)
 
 	for(int n = 0; n < tazLogsumWeights.size(); n++)
 	{
-		PredayPersonParams personParam = PredayLT_LogsumManager::getInstance().computeLogsum( tazLogsumWeights[n]->getIndividualId(), taz, workTaz, vehicleOwnership );
+		PersonParams personParam = PredayLT_LogsumManager::getInstance().computeLogsum( tazLogsumWeights[n]->getIndividualId(), taz, workTaz, vehicleOwnership );
 		double lg = personParam.getDpbLogsum();
 		double weight = tazLogsumWeights[n]->getWeight();
 
@@ -1627,7 +1627,7 @@ void HM_Model::getLogsumOfIndividuals(BigSerial id)
 
 	for( int n = 0; n < householdIndividualIds.size(); n++ )
 	{
-		PredayPersonParams personParam = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n], taz, -1, 1 );
+		PersonParams personParam = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n], taz, -1, 1 );
 		double logsum =  personParam.getDpbLogsum();
 
 		printIndividualHitsLogsum( householdIndividualIds[n], logsum );
@@ -1687,7 +1687,7 @@ void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId)
 			tazStrH = tazObjH->getName();
 		BigSerial tazH = std::atoi( tazStrH.c_str() );
 
-		PredayPersonParams personParams1 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 0 );
+		PersonParams personParams1 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 0 );
 		double logsumNoVehicle	= personParams1.getDpbLogsum();
 		double travelProbNV		= personParams1.getTravelProbability();
 		double tripsExpectedNV 	= personParams1.getTripsExpected();
@@ -1695,7 +1695,7 @@ void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId)
 		travelProbability.push_back(travelProbNV);
 		tripsExpected.push_back(tripsExpectedNV);
 
-		PredayPersonParams personParams2 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 1 );
+		PersonParams personParams2 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 1 );
 		double logsumVehicle	= personParams2.getDpbLogsum();
 		double travelProbV		= personParams2.getTravelProbability();
 		double tripsExpectedV 	= personParams2.getTripsExpected();
@@ -1814,7 +1814,7 @@ void HM_Model::getLogsumOfHousehold(BigSerial householdId)
 			if( tazObjList->getStatus0812() == 3)
 				continue;
 
-			PredayPersonParams personParams;
+			PersonParams personParams;
 
 			if( config.ltParams.outputHouseholdLogsums.fixedHomeVariableWork )
 				personParams = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazHome, tazList, vehicleOwnership );

@@ -6,6 +6,7 @@
 
 #include <string>
 #include <vector>
+#include "behavioral/params/PersonParams.hpp"
 #include "entities/Person.hpp"
 #include "geospatial/network/Lane.hpp"
 #include "geospatial/network/Link.hpp"
@@ -42,6 +43,9 @@ private:
 
 	/**Used by confluxes to move the person for his tick duration across link and sub-trip boundaries*/
 	double remainingTimeThisTick;
+
+	/**	struct containing additional pertinent information about this person */
+	PersonParams personInfo;
 
 	/**Alters trip chain in accordance to route choice for public transit trips*/
 	void convertPublicTransitODsToTrips();
@@ -132,6 +136,15 @@ public:
 	virtual std::vector<BufferedBase *> buildSubscriptionList();
 
 	/**
+	 * en-route mode choice function
+	 * @param trip current trip of person
+	 * @param originNode the new origin node considered for re-routing after mode-choice
+	 * @param curTime current time when mode choice is done
+	 * @return a mode chosen from the mode choice model (return value is compatible with mode strings used to lookup roles for modes)
+	 */
+	std::string chooseModeEnRoute(const Trip& trip, unsigned int originNode, const DailyTime& curTime) const;
+
+	/**
 	 * exposes the Log function to print in thread local output files
 	 */
 	void log(std::string line) const;
@@ -184,6 +197,16 @@ public:
 	void setRemainingTimeThisTick(double remainingTimeThisTick)
 	{
 		this->remainingTimeThisTick = remainingTimeThisTick;
+	}
+
+	const PersonParams& getPersonInfo() const
+	{
+		return personInfo;
+	}
+
+	void setPersonInfo(const PersonParams& personInfo)
+	{
+		this->personInfo = personInfo;
 	}
 };
 } // namespace medium

@@ -65,7 +65,7 @@ bool sim_mob::ModeDestinationParams::isUnavailable(int origin, int destination) 
 }
 
 LogsumTourModeDestinationParams::LogsumTourModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap,
-		const PredayPersonParams& personParams, StopType tourType) :
+		const PersonParams& personParams, StopType tourType) :
 		ModeDestinationParams(zoneMap, amCostsMap, pmCostsMap, tourType, personParams.getHomeLocation(), unavailableODsDummy),
 			drive1Available(personParams.hasDrivingLicence() * personParams.getCarOwn()),
 			motorAvailable(personParams.getMotorLicense() * personParams.getMotorOwn()),
@@ -637,7 +637,7 @@ int sim_mob::LogsumTourModeDestinationParams::isCbdOrgZone() const
 
 
 sim_mob::LogsumTourModeParams::LogsumTourModeParams(const ZoneParams* znOrgObj, const ZoneParams* znDesObj, const CostParams* amObj, const CostParams* pmObj,
-		const PredayPersonParams& personParams, StopType tourType) :
+		const PersonParams& personParams, StopType tourType) :
 		stopType(tourType), costIncrease(1), costCarParking(znDesObj->getParkingRate()), centralZone(znDesObj->getCentralDummy()),
 			cbdOrgZone(znOrgObj->getCbdDummy()), cbdDestZone(znDesObj->getCbdDummy()), residentSize(znOrgObj->getResidentWorkers()),
 			workOP(znDesObj->getEmployment()), educationOP(znDesObj->getTotalEnrollment()), originArea(znOrgObj->getArea()),

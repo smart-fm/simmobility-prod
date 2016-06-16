@@ -2,15 +2,13 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
-#include "DailyTime.hpp"
-#include <cmath>
 #include <cstdlib>
 #include <stdexcept>
-#include <sstream>
-#include "boost/date_time/posix_time/posix_time.hpp"
+#include <vector>
+#include "stddef.h"
+#include "util/DailyTime.hpp"
 
 using namespace sim_mob;
-using namespace boost::posix_time;
 using std::string;
 
 namespace
@@ -261,22 +259,5 @@ void sim_mob::DailyTime::initAllTimes()
 	for(int i=0; i<SECONDS_IN_DAY; i++) //86400 seconds in a day
 	{
 		timeList[i] = buildStringRepr(i);
-	}
-}
-
-DailyTime sim_mob::DailyTime::getTimeFromMidNight() const
-{
-	if (time_ >= MILLISECONDS_IN_DAY)
-	{
-		uint32_t timeValInMS = time_;
-		while (timeValInMS > MILLISECONDS_IN_DAY)
-		{
-			timeValInMS = timeValInMS - MILLISECONDS_IN_DAY;
-		}
-		return DailyTime(timeValInMS);
-	}
-	else
-	{
-		return (*this);
 	}
 }

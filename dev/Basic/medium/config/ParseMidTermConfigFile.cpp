@@ -122,6 +122,7 @@ void ParseMidTermConfigFile::processSupplyNode(xercesc::DOMElement* node)
 	processStatisticsOutputNode(GetSingleElementByName(node, "output_pt_statistics", true));
 	processBusCapactiyElement(GetSingleElementByName(node, "bus_default_capacity", true));
 	processSpeedDensityParamsNode(GetSingleElementByName(node, "speed_density_params", true));
+	cfg.luaScriptsMap = processModelScriptsNode(GetSingleElementByName(node, "model_scripts", true));
 }
 
 
@@ -158,7 +159,8 @@ void ParseMidTermConfigFile::processPredayNode(xercesc::DOMElement* node)
 		mtCfg.setSimmobDb(database, credential);
 	}
 
-	processModelScriptsNode(GetSingleElementByName(node, "model_scripts", true));
+	ModelScriptsMap luaModelsMap = processModelScriptsNode(GetSingleElementByName(node, "model_scripts", true));
+	mtCfg.setModelScriptsMap(luaModelsMap);
 	processMongoCollectionsNode(GetSingleElementByName(node, "mongo_collections", true));
 	processCalibrationNode(GetSingleElementByName(node, "calibration", true));
 }
@@ -319,7 +321,7 @@ void ParseMidTermConfigFile::processBusCapactiyElement(xercesc::DOMElement* node
 	mtCfg.setBusCapacity(ParseUnsignedInt(GetNamedAttributeValue(node, "value", true), nullptr));
 }
 
-void ParseMidTermConfigFile::processModelScriptsNode(xercesc::DOMElement* node)
+ModelScriptsMap ParseMidTermConfigFile::processModelScriptsNode(xercesc::DOMElement* node)
 {
 	std::string format = ParseString(GetNamedAttributeValue(node, "format"), "");
 	if (format.empty() || format != "lua")
@@ -334,7 +336,7 @@ void ParseMidTermConfigFile::processModelScriptsNode(xercesc::DOMElement* node)
 	}
 	if ((*scriptsDirectoryPath.rbegin()) != '/')
 	{
-        ///add a / to the end of the path string if it is not already there
+		//add a / to the end of the path string if it is not already there
 		scriptsDirectoryPath.push_back('/');
 	}
 	ModelScriptsMap scriptsMap(scriptsDirectoryPath, format);
@@ -357,8 +359,9 @@ void ParseMidTermConfigFile::processModelScriptsNode(xercesc::DOMElement* node)
 
 		scriptsMap.addScriptFileName(key, val);
 	}
-	mtCfg.setModelScriptsMap(scriptsMap);
+	return scriptsMap;
 }
+
 
 void ParseMidTermConfigFile::processMongoCollectionsNode(xercesc::DOMElement* node)
 {
@@ -460,7 +463,8 @@ void ParseMidTermConfigFile::processSystemNode(DOMElement *node)
 {
     if(node)
     {
-        processDatabaseNode(GetSingleElementByName(node, "network_database", true));
+        processDatabaseNode(GetSingleElementByName(node, "network_database", true), cfg.networkDatabase);
+        processDatabaseNode(GetSingleElementByName(node, "population_database", true), cfg.populationDatabase);
         processGenericPropsNode(GetSingleElementByName(node, "generic_props", true));
     }
     else
@@ -469,13 +473,13 @@ void ParseMidTermConfigFile::processSystemNode(DOMElement *node)
     }
 }
 
-void ParseMidTermConfigFile::processDatabaseNode(DOMElement *node)
+void ParseMidTermConfigFile::processDatabaseNode(DOMElement *node, DatabaseDetails& dbDetails)
 {
-    if(node)
+    if(node->getNodeName())
     {
-        cfg.networkDatabase.database = ParseString(GetNamedAttributeValue(node, "database"), "");
-        cfg.networkDatabase.credentials = ParseString(GetNamedAttributeValue(node, "credentials"), "");
-        cfg.networkDatabase.procedures = ParseString(GetNamedAttributeValue(node, "proc_map"), "");
+    	dbDetails.database = ParseString(GetNamedAttributeValue(node, "database"), "");
+    	dbDetails.credentials = ParseString(GetNamedAttributeValue(node, "credentials"), "");
+    	dbDetails.procedures = ParseString(GetNamedAttributeValue(node, "proc_map"), "");
     }
     else
     {

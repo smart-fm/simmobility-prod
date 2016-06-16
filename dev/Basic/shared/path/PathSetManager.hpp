@@ -491,14 +491,24 @@ public:
 
 	/**
 	 * The main entry point to the pathset manager,
-	 * returns a path for the requested subtrip per the requesting person (todo:for logging purpose only)
+	 * returns a path for the requested subtrip per the requesting person
 	 * @param subTrip the subtrip information containing OD, start time etc
 	 * @param enRoute indication of whether this request was made in the beginning of the trip or enRoute
-	 * @param approach the starting link of the path (if null, the argument will be ignored)
+	 * @param approach the starting road segment of the path (if null, the argument will be ignored)
 	 * @param useInSimulationTT indicates whether in-simulation link travel times are to be used
 	 * @return a sequence of road segments wrapped in way point structure
 	 */
 	std::vector<WayPoint> getPath(const sim_mob::SubTrip &subTrip, bool enRoute , const sim_mob::Link *approach, bool useInSimulationTT = false);
+
+	/**
+	 * calculates the travel time of the shortest path in the pathset for a given OD
+	 * @param origin origin node id
+	 * @param destination destination node id
+	 * @param curTime time at which route choice is to be done
+	 *
+	 * @return in vehicle travel time of shortest path in the pathset for given O and D; -1 if no pathset is available for the OD
+	 */
+	double getOD_TravelTime(unsigned int origin, unsigned int destination, const sim_mob::DailyTime& curTime);
 };
 
 }//namespace

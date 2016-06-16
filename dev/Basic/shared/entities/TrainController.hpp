@@ -234,6 +234,14 @@ public:
 	std::string GetOppositeLineId(std::string lineId);
 	Block * GetBlock(int blockId);
 
+	int pullOutTrainFromInActivePool(std::string lineID);
+	int DeleteTrainFromActivePool(std::string lineID);
+	void AddTrainToActivePool(std::string lineId,int trainId);
+	void AddTrainToInActivePool(std::string lineId,int trainId);
+	int DeleteTrainFromInActivePool(std::string lineID);
+	void pushTrainIntoInActivePool(int trainId,std::string lineID);
+	double GetMinDwellTime(std::string stationNo,std::string lineId);
+
 
 protected:
 	/**
@@ -358,6 +366,9 @@ private:
 
 
 
+
+
+
     /** gives opposite line Id */
 
 private:
@@ -390,6 +401,10 @@ private:
 	std::vector<ResetBlockSpeeds> resetSpeedBlocks;
 	std::map<int, double> blockIdSpeed;
 	std::map<std::string, std::vector <Role<PERSON>*>> mapOfLineAndTrainDrivers;
+	std::map<std::string,std::vector<int>> mapOfInActivePoolInLine;
+	std::vector<int> trainsToBePushedToInactivePoolAfterTripCompletion;
+
+
 	//std::map<std::string, std::vector <int>> mapOfLineAndTrainDrivers;
 	//sim_mob::Role<PERSON>*
     //std::map< std::vector<Block*> blockVectorOfRessetedSpeeds>;
@@ -402,6 +417,9 @@ private:
 	std::map<std::string, std::vector<int>> recycleTrainId;
 private:
 	static TrainController* pInstance;
+	mutable boost::mutex activePoolLock;
+	mutable boost::mutex inActivePoolLock;
+
 };
 
 }

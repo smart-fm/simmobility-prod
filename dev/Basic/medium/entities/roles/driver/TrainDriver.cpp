@@ -15,6 +15,7 @@
 #include "behavioral/ServiceController.hpp"
 #include "entities/incident/IncidentManager.hpp"
 #include "event/args/ReRouteEventArgs.hpp"
+#include "entities/TrainController.hpp"
 namespace sim_mob {
 
 namespace medium{
@@ -72,12 +73,16 @@ const TrainDriver* TrainDriver::getNextDriver() const
 void TrainDriver::make_frame_tick_params(timeslice now)
 {
 	getParams().reset(now);
-	if(disruptionParam.get()){
+	if(disruptionParam.get())
+	{
 		DailyTime duration = disruptionParam->duration;
 		unsigned int baseGran = ConfigManager::GetInstance().FullConfig().baseGranMS();
-		if(duration.getValue()>baseGran){
+		if(duration.getValue()>baseGran)
+		{
 			disruptionParam->duration = DailyTime(duration.offsetMS_From(DailyTime(baseGran)));
-		} else {
+		}
+		else
+		{
 			disruptionParam.reset();
 		}
 	}
@@ -127,17 +132,32 @@ void TrainDriver::setNextRequested(TRAIN_NEXTREQUESTED res)
 	nextRequested = res;
 	driverMutex.unlock();
 }
-void TrainDriver::calculateDwellTime(int boarding,int alighting)
+void TrainDriver::calculateDwellTime(int boarding,int alighting,int noOfPassengerInTrain,timeslice now)
 {
-	int noOfPassengerInTrain=this->getPassengers().size();
-	/*const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
-	int time = Utils::generateFloat(config.trainController.miniDwellTime, config.trainController.maxDwellTime);
-	int sysGran = ConfigManager::GetInstance().FullConfig().baseGranSecond();
-	time = (time/sysGran)*sysGran;*/
+	const std::string& fileName("pt_mrt_Boarding_Alighting_DwellTime.csv");
+	sim_mob::BasicLogger& ptMRTMoveLogger  = sim_mob::Logger::log(fileName);
+	std::string tm=(DailyTime(now.ms())+DailyTime(ConfigManager::GetInstance().FullConfig().simStartTime())).getStrRepr();
+	double dwellTime = 12.22 + 2.27*boarding/24 + 1.82*alighting/24 + 0.00062*(noOfPassengerInTrain/24)*(noOfPassengerInTrain/24)*(noOfPassengerInTrain/24)*(boarding/24);
+	Platform *currentPlatform=GetMovement()->getNextPlatform();
+	if(currentPlatform)
+	{
+      std::string stationNo=currentPlatform->getStationNo();
+      std::string trainLine=getTrainLine();
+      TrainController<sim_mob::medium::Person_MT> *trainController=TrainController<sim_mob::medium::Person_MT>::getInstance();
+      double minDwellTime=trainController->GetMinDwellTime(stationNo,trainLine);
+      if(dwellTime<minDwellTime)
+      {
+    	  dwellTime=minDwellTime;
+      }
+      else if(dwellTime>120)
+      {
+    	  dwellTime =120;
+      }
+	}
+	waitingTimeSec = dwellTime;
+	initialDwellTime=dwellTime;
 
-	double time = 12.22 + 2.27*boarding/24 + 1.82*alighting/24 + 0.00062*(noOfPassengerInTrain/24)*(noOfPassengerInTrain/24)*(noOfPassengerInTrain/24)*(boarding/24);
-	waitingTimeSec = time;
-	initialDwellTime=time;
+	ptMRTMoveLogger<<getTrainId()<<","<<tm<<","<<boarding<<","<<alighting<<","<<noOfPassengerInTrain<<","<<initialDwellTime<<endl;
 }
 double TrainDriver::getWaitingTime() const
 {

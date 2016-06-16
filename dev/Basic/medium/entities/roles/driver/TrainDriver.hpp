@@ -27,6 +27,7 @@ public:
 		REQUESTED_AT_PLATFORM,
 		REQUESTED_WAITING_LEAVING,
 		REQUESTED_LEAVING_PLATFORM,
+		REQUESTED_TAKE_UTURN,
 		REQUESTED_TO_PLATFROM,
 		REQUESTED_TO_DEPOT
 	};
@@ -75,7 +76,7 @@ public:
 	 * computing dwell time
 	 * @param totalNum is the total number of boarding and alighting
 	 */
-	void calculateDwellTime(int boarding,int alighting);
+	void calculateDwellTime(int boarding,int alighting,int noOfPassengerInTrain,timeslice now);
 	/**
 	 * get train line id
 	 * @return line id

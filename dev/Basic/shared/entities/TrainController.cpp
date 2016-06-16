@@ -107,24 +107,12 @@ namespace sim_mob {
 		}
 	}
 	template<typename PERSON>
-	int TrainController<PERSON>::getTrainId(const std::string& lineId)
+	int TrainController<PERSON>::getTrainId(const std::string& lineID)
 	{
 		int trainId = 0;
-		std::map<std::string, std::vector<int>>::iterator it;
-		it=recycleTrainId.find(lineId);
-		if(it!=recycleTrainId.end())
-		{
-			std::vector<int>& trainIds = it->second;
-			if(trainIds.size()>0&&mapOfNoAvailableTrains[lineId]>0)
-			{
-				//getting the train Id
-				trainId = trainIds[0];
-				trainIds.erase(trainIds.begin());
-				mapOfNoAvailableTrains[lineId]=mapOfNoAvailableTrains[lineId]-1;
+		trainId=DeleteTrainFromActivePool(lineID);
 
-			}
-		}
-		if(trainId==0)
+		if(trainId==-1)
 	    {
 			//trainId = ++lastTrainId;
 			return -1;
@@ -260,7 +248,8 @@ namespace sim_mob {
 		{
 			noOfTrains=14;
 			startId=15;
-			mapOfNoAvailableTrains["NE_2"]=14;
+			//mapOfNoAvailableTrains["NE_2"]=14;
+			mapOfNoAvailableTrains["NE_2"]=0;
 		}
 
 		 std::vector<int> trainIds=std::vector<int>();
@@ -346,6 +335,38 @@ namespace sim_mob {
 			station->addPlatform(platform->getLineId(), platform);
 		}
 	}
+
+	template<typename PERSON>
+	double TrainController<PERSON>::GetMinDwellTime(std::string stationNo,std::string lineId)
+	{
+         double minDwellTime=20;
+         if(stationNo.find("/")!= std::string::npos)
+         {
+            minDwellTime=40;
+         }
+
+         std::map<std::string, std::vector<TrainPlatform>>::iterator it = mapOfIdvsTrainPlatforms.find(lineId);
+         std::vector<TrainPlatform> TrainPlatforms=it->second;
+         std::vector<TrainPlatform>::iterator itTrainPlatforms=TrainPlatforms.begin();
+         Platform *platform=mapOfIdvsPlatforms[(*itTrainPlatforms).platformNo];
+         if(boost::iequals(platform->getStationNo(),stationNo))
+         {
+             minDwellTime=60;
+         }
+
+         else
+         {
+        	 std::vector<TrainPlatform>::iterator itTrainPlatforms=TrainPlatforms.end()-1;
+        	 Platform *platform=mapOfIdvsPlatforms[(*itTrainPlatforms).platformNo];
+        	 if(boost::iequals(platform->getStationNo(),stationNo))
+        	 {
+        		 minDwellTime=60;
+        	 }
+         }
+         return minDwellTime;
+	}
+
+
 	template<typename PERSON>
 	void TrainController<PERSON>::loadSchedules()
 	{
@@ -453,6 +474,7 @@ namespace sim_mob {
            {
               break;
            }
+           it++;
 		}
         if(it!=trainPlatforms.end())
         {
@@ -785,6 +807,116 @@ namespace sim_mob {
 	}
 
 	template<typename PERSON>
+	void TrainController<PERSON>::pushTrainIntoInActivePool(int trainId,std::string lineId)
+	{
+		trainId=DeleteTrainFromActivePool(lineId);
+		if(trainId!=-1)
+		{
+			AddTrainToInActivePool(lineId, trainId);
+		}
+
+	}
+
+	template<typename PERSON>
+	int  TrainController<PERSON>::DeleteTrainFromInActivePool(std::string lineID)
+	{
+		inActivePoolLock.lock();
+		int trainId=-1;
+		std::map<std::string, std::vector<int>>::iterator it;
+		it=mapOfInActivePoolInLine.find(lineID);
+		if(it!=mapOfInActivePoolInLine.end())
+		{
+			std::vector<int>& trainIds = it->second;
+
+
+		if(trainIds.size())
+		{
+						//getting the train Id
+			trainId = trainIds[0];
+			trainIds.erase(trainIds.begin());
+			//return trainId;
+		}
+		inActivePoolLock.unlock();
+		return trainId;
+		}
+
+	}
+
+	template<typename PERSON>
+	int TrainController<PERSON>::DeleteTrainFromActivePool(std::string lineID)
+	{
+		activePoolLock.lock();
+		int trainId=-1;
+		//std::vector<int>& trainIds;
+		std::map<std::string, std::vector<int>>::iterator it;
+		it=recycleTrainId.find(lineID);
+		if(it!=recycleTrainId.end())
+		{
+			std::vector<int>& trainIds = it->second;
+			if(trainIds.size())
+			{
+							//getting the train Id
+				if(mapOfNoAvailableTrains[lineID]>0)
+				{
+					trainId = trainIds[0];
+					trainIds.erase(trainIds.begin());
+					mapOfNoAvailableTrains[lineID]=mapOfNoAvailableTrains[lineID]-1;
+					activePoolLock.unlock();
+					return trainId;
+				}
+
+			}
+		}
+		activePoolLock.unlock();
+		return trainId;
+	}
+
+	template<typename PERSON>
+	void TrainController<PERSON>::AddTrainToActivePool(std::string lineId,int trainId)
+	{
+		activePoolLock.lock();
+		std::map<std::string, std::vector<int>>::iterator it;
+		it=recycleTrainId.find(lineId);
+		if(it==recycleTrainId.end())
+		{
+			recycleTrainId[lineId] = std::vector<int>();
+		}
+
+		recycleTrainId[lineId].push_back(trainId);
+		mapOfNoAvailableTrains[lineId]=mapOfNoAvailableTrains[lineId]+1;
+		activePoolLock.unlock();
+
+	}
+
+	template<typename PERSON>
+	void TrainController<PERSON>::AddTrainToInActivePool(std::string lineID,int trainId)
+	{
+		inActivePoolLock.lock();
+		std::map<std::string, std::vector<int>>::iterator it;
+		it=mapOfInActivePoolInLine.find(lineID);
+		if(it==mapOfInActivePoolInLine.end())
+		{
+			mapOfInActivePoolInLine[lineID] = std::vector<int>();
+		}
+		mapOfInActivePoolInLine[lineID].push_back(trainId);
+		inActivePoolLock.unlock();
+	}
+
+	template<typename PERSON>
+	int TrainController<PERSON>::pullOutTrainFromInActivePool( std::string lineID)
+	{
+
+		int trainId=-1;
+
+		trainId=DeleteTrainFromInActivePool(lineID);
+		if(trainId!=-1)
+			AddTrainToActivePool(lineID,trainId);
+
+
+        return trainId;
+	}
+
+	template<typename PERSON>
 	void TrainController<PERSON>::HandleMessage(messaging::Message::MessageType type, const messaging::Message& message)
 	{
 		switch (type)
@@ -802,16 +934,19 @@ namespace sim_mob {
 					{
 						int trainId = front->getTrainId();
 						std::string lineId = front->getLineId();
-						std::map<std::string, std::vector<int>>::iterator it;
-						it=recycleTrainId.find(lineId);
-						if(it==recycleTrainId.end())
+						std::string oppLineId=GetOppositeLineId(lineId);
+						std::vector<int>::iterator it=std::find(trainsToBePushedToInactivePoolAfterTripCompletion.begin(), trainsToBePushedToInactivePoolAfterTripCompletion.end(), trainId);
+						//std::vector<int>::iterator it=trainsToBePushedToInactivePoolAfterTripCompletion.find(trainId);
+						if(it!=trainsToBePushedToInactivePoolAfterTripCompletion.end())
 						{
-							recycleTrainId[lineId] = std::vector<int>();
+							trainsToBePushedToInactivePoolAfterTripCompletion.erase(it);
+							AddTrainToInActivePool(lineId, trainId);
+						}
+						else
+						{
+						   AddTrainToActivePool(lineId, trainId);
 						}
 
-						std::string oppLineId=GetOppositeLineId(lineId);
-						recycleTrainId[oppLineId].push_back(trainId);
-						mapOfNoAvailableTrains[oppLineId]=mapOfNoAvailableTrains[oppLineId]+1;
 
 					}
 				}

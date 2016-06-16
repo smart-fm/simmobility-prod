@@ -27,6 +27,7 @@
             <mapping name="pt_vertices" procedure="get_pt_tr_vertices()"/>
             <mapping name="pt_pathset" procedure="get_pt_pathset_tr"/>
             <mapping name="mrt_road_segments" procedure="get_pt_mrt_segments()"/>
+            <mapping name="rail_transit_edges" procedure="get_rail_transit_edges()"/>
             <mapping name="erp_gantry_zone" procedure="get_erp_gantry_zone()"/>
             <mapping name="screen_line" procedure="get_screen_line_segments()"/>
             <mapping name="erp_section" procedure="get_erp_section()"/>
@@ -76,7 +77,7 @@
     <system>         
         <!-- If loading from the database, which database, proc_map, and credentials are used? -->
         <!-- <network_database database="fm_remote" credentials="vahid_cred" proc_map="bugis_small"/> -->
-        <network_database database="fm_hpchead" credentials="fm_hpchead" proc_map="withinday"/>
+        <network_database database="fm_remote" credentials="fm_remote_plain" proc_map="simmobcity"/>
         <!-- <network_database database="fm_local" credentials="harish_cred" proc_map="bugis_large"/> -->
         <!--<network_database database="fm_remote" credentials="fm_remote" proc_map="withinday"/>-->
         

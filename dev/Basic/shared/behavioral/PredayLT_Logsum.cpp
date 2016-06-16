@@ -323,7 +323,7 @@ PredayPersonParams sim_mob::PredayLT_LogsumManager::computeLogsum(long individua
 	}
 
 
-	PredayLogsumLuaProvider::getPredayModel().computeTourModeDestinationLogsum(personParams, tmdParams);
+	PredayLogsumLuaProvider::getPredayModel().computeTourModeDestinationLogsum(personParams, tmdParams, amCostMap.size());
 	PredayLogsumLuaProvider::getPredayModel().computeDayPatternLogsums(personParams);
 	PredayLogsumLuaProvider::getPredayModel().computeDayPatternBinaryLogsums(personParams);
 

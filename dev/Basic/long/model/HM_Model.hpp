@@ -509,8 +509,6 @@ namespace sim_mob
             HouseHoldHitsSampleList houseHoldHits;
             HouseHoldHitsSampleMap houseHoldHitsById;
 
-            std::set<std::string> processedHouseholdHitsLogsum;
-
             ZonalLanduseVariableValuesList zonalLanduseVariableValues;
             ZonalLanduseVariableValuesMap zonalLanduseVariableValuesById;
 

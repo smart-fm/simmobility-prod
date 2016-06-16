@@ -17,7 +17,7 @@ typedef long long BigInt;
 }
 
 LT_PopulationSqlDao::LT_PopulationSqlDao(DB_Connection& connection) :
-		SqlAbstractDao<PredayPersonParams>(connection, "", "", "", "", "", "SELECT * FROM main2012.getindividualbyidforpreday(:_id)")
+		SqlAbstractDao<PredayPersonParams>(connection, "", "", "", "", "", "SELECT * FROM "+ MAIN_SCHEMA + "getindividualbyidforpreday(:_id)")
 {
 }
 

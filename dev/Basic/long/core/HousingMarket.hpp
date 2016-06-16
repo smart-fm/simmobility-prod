@@ -62,7 +62,7 @@ namespace sim_mob
             class Entry
             {
             public:
-                Entry(Agent_LT* owner, BigSerial unitId, BigSerial postcodeId, BigSerial tazId, double askingPrice, double hedonicPrice);
+                Entry(Agent_LT* owner, BigSerial unitId, BigSerial postcodeId, BigSerial tazId, double askingPrice, double hedonicPrice, bool bto);
                 Entry( const Entry& source );
 
                 virtual ~Entry();
@@ -75,6 +75,7 @@ namespace sim_mob
                 double getAskingPrice() const;
                 double getHedonicPrice() const;
                 Agent_LT* getOwner() const;
+                bool 	isBTO() const;
 
                 void setAskingPrice(double askingPrice);
                 void setHedonicPrice(double hedonicPrice);
@@ -87,6 +88,7 @@ namespace sim_mob
                 double askingPrice;
                 double hedonicPrice;
                 Agent_LT* owner;
+                bool bto;
             };
 
             typedef std::vector<Entry*> EntryList;

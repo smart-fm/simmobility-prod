@@ -15,10 +15,10 @@
 namespace sim_mob {
 namespace medium {
 class Person_MT;
-class ChangeRouteEventArgs : public sim_mob::event::EventArgs {
+class ReRouteEventArgs : public sim_mob::event::EventArgs {
 public:
-	ChangeRouteEventArgs(const std::string& stationName, int type):stationName(stationName),type(type){;}
-    virtual ~ChangeRouteEventArgs(){;}
+	ReRouteEventArgs(const std::string& stationName, unsigned int time):stationName(stationName),currentTime(time){;}
+    virtual ~ReRouteEventArgs(){;}
 
     /**
      * Getters for stationName
@@ -29,12 +29,12 @@ public:
     /**
      * Getters for type
      */
-    int getType() const{
-    	return type;
+    unsigned int getCurrentTime() const{
+    	return currentTime;
     }
 private:
     std::string stationName;
-    int type;
+    unsigned int currentTime;
 };
 /**
  * A class designed to manage the incidents.

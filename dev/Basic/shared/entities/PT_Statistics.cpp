@@ -167,7 +167,7 @@ void PT_Statistics::storeStatistics()
 		std::ofstream outputFile(personRerouteFilename.c_str());
 		if (outputFile.is_open())
 		{
-			outputFile <<"person_id, stop_id,last_role_type,mode_choice,rerouting_starting_node,dest_node,is_pt_loaded"<<std::endl;
+			outputFile <<"person_id, stop_id,last_role_type,mode_choice,rerouting_starting_node,dest_node,is_pt_loaded,current_time"<<std::endl;
 			std::vector<PT_RerouteInfo>::const_iterator itPerson = personsReroutes.begin();
 			for (; itPerson != personsReroutes.end(); itPerson++)
 			{
@@ -224,14 +224,16 @@ std::string PT_ArrivalTime::getCSV() const
 std::string PT_RerouteInfo::getCSV() const
 {
 	char csvArray[200];
-	sprintf(csvArray, "%s,%s,%u,%s,%u,%u,%u\n",
+	sprintf(csvArray, "%s,%s,%u,%s,%u,%u,%u,%u,%s\n",
 			personId.c_str(),
 			stopNo.c_str(),
 			lastRoleType,
 			travelMode.c_str(),
+			originNodeId,
 			startNodeId,
 			destNodeId,
-			isPT_loaded);
+			isPT_loaded,
+			currentTime.c_str());
 	return std::string(csvArray);
 }
 std::string PersonTravelTime::getCSV() const

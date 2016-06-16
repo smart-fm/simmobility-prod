@@ -76,8 +76,10 @@ private:
 	void updateWaitPersons();
 	/**
 	 * trigger reroute event
+	 * @param args is event parameter
+	 * @param now current time slice
 	 */
-	void triggerRerouting(const event::EventArgs& args);
+	void triggerRerouting(const event::EventArgs& args, timeslice now);
 	/**
 	 * perform disruption processing
 	 * @param now is current time

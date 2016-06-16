@@ -118,12 +118,16 @@ struct PT_RerouteInfo
 	int lastRoleType;
 	/** mode choice result*/
 	std::string travelMode;
+	/** original node id*/
+	unsigned int originNodeId;
 	/** starting node for reroute*/
 	unsigned int startNodeId;
 	/** destination node id*/
 	unsigned int  destNodeId;
 	/** pt pathset loading result	 */
 	bool isPT_loaded;
+	/** current time */
+	std::string currentTime;
 	/**
 	 * constructs a string of comma separated values to be printed in output files
 	 * @returns printable csv string

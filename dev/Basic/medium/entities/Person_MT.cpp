@@ -204,8 +204,6 @@ void Person_MT::FindMrtTripsAndPerformRailTransitRoute(std::vector<sim_mob::OD_T
  std::vector<sim_mob::OD_Trip>  Person_MT::splitMrtTrips(std::vector<std::string> railPath)
 {
 	vector<std::string>::iterator it=railPath.begin();
-	//vector<std::string>::iterator itrEnd=railPath.end();
-	//vector<std::string>::iterator prev=railPath.begin();
 	std::string first=(*it);
     std::string second=*(it+1);
     sim_mob::TrainStop* firststop=sim_mob::PT_NetworkCreater::getInstance().MRTStopsMap[first];
@@ -268,22 +266,25 @@ void Person_MT::FindMrtTripsAndPerformRailTransitRoute(std::vector<sim_mob::OD_T
 }
 
 
-void Person_MT::changeToNewTrip(const std::string& stationName)
+void Person_MT::EnRouteToNextTrip(const std::string& stationName, const DailyTime& now)
 {
 	ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
 	std::string ptPathsetStoredProcName = cfg.getDatabaseProcMappings().procedureMappings["pt_pathset_dis"];
-	TripChainItem* trip = (*currTripChainItem);
+	Trip* trip = dynamic_cast<Trip*>(*currTripChainItem);
 	sim_mob::TrainStop* stop = sim_mob::PT_NetworkCreater::getInstance2().findMRT_Stop(stationName);
-	if(stop){
+	if(stop && trip){
 		const Node* node = stop->getRandomStationSegment()->getParentLink()->getFromNode();
-		trip->origin = WayPoint(node);
 		std::vector<sim_mob::SubTrip>& subTrips = (dynamic_cast<sim_mob::Trip*>(trip))->getSubTripsRW();
 		sim_mob::SubTrip newSubTrip;
-		newSubTrip.origin = trip->origin;
+		newSubTrip.origin = WayPoint(node);
 		newSubTrip.destination = trip->destination;
 		newSubTrip.originType = trip->originType;
 		newSubTrip.destinationType = trip->destinationType;
-		newSubTrip.travelMode = "Car";
+		newSubTrip.travelMode = chooseModeEnRoute(*trip, node->getNodeId(), now);
+		if(newSubTrip.travelMode=="Invalid"){
+			Print()<<"[mode choice]Invalid mode!["<<getDatabaseId()<<","<<trip->origin.node->getNodeId()<<","<<node->getNodeId()<<","<<trip->destination.node->getNodeId()<<","<<now.getStrRepr()<<"]"<<std::endl;
+			tripChain.clear();
+		}
 		subTrips.clear();
 		bool isLoaded=false;
 		subTrips.push_back(newSubTrip);
@@ -303,9 +304,11 @@ void Person_MT::changeToNewTrip(const std::string& stationName)
 		rerouteInfo.stopNo = stop->getStopName();
 		rerouteInfo.lastRoleType = this->getRole()->roleType;
 		rerouteInfo.travelMode = newSubTrip.travelMode;
+		rerouteInfo.originNodeId = trip->origin.node->getNodeId();
 		rerouteInfo.startNodeId = newSubTrip.origin.node->getNodeId();
 		rerouteInfo.destNodeId = newSubTrip.destination.node->getNodeId();
 		rerouteInfo.isPT_loaded = isLoaded;
+		rerouteInfo.currentTime = 	DailyTime(ConfigManager::GetInstance().FullConfig().simStartTime().getValue()+now.getValue()).getStrRepr();
 		messaging::MessageBus::PostMessage(PT_Statistics::getInstance(),
 				STORE_PERSON_REROUTE, messaging::MessageBus::MessagePtr(new PT_RerouteInfoMessage(rerouteInfo)), true);
 		currSubTrip = subTrips.begin();
@@ -409,9 +412,10 @@ void Person_MT::onEvent(event::EventId eventId, sim_mob::event::Context ctxId, e
 	{
 	case EVT_DISRUPTION_CHANGEROUTE:
 	{
-		const ChangeRouteEventArgs& exArgs = MSG_CAST(ChangeRouteEventArgs, args);
+		const ReRouteEventArgs& exArgs = MSG_CAST(ReRouteEventArgs, args);
 		const std::string stationName = exArgs.getStationName();
-		changeToNewTrip(stationName);
+		unsigned int currentTime = exArgs.getCurrentTime();
+		EnRouteToNextTrip(stationName, DailyTime(currentTime));
 		break;
 	}
 	}

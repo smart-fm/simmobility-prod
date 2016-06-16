@@ -174,7 +174,7 @@ void TrainStationAgent::passengerLeaving(timeslice now)
 		}
 	}
 }
-void TrainStationAgent::triggerRerouting(const event::EventArgs& args)
+void TrainStationAgent::triggerRerouting(const event::EventArgs& args, timeslice now)
 {
 	std::list<Person_MT*> colPersons;
 	std::map<const Platform*, std::list<WaitTrainActivity*>>::iterator itWaiting;
@@ -196,7 +196,7 @@ void TrainStationAgent::triggerRerouting(const event::EventArgs& args)
 	for(std::list<Person_MT*>::iterator it = colPersons.begin(); it!=colPersons.end();it++){
 		messaging::MessageBus::SubscribeEvent(EVT_DISRUPTION_CHANGEROUTE, this, *it);
 		messaging::MessageBus::PublishInstantaneousEvent(EVT_DISRUPTION_CHANGEROUTE, this,
-				messaging::MessageBus::EventArgsPtr(new ChangeRouteEventArgs(stationName,0)));
+				messaging::MessageBus::EventArgsPtr(new ReRouteEventArgs(stationName,now.ms())));
 		messaging::MessageBus::UnSubscribeEvent(EVT_DISRUPTION_CHANGEROUTE, this, *it);
 		messaging::MessageBus::PostMessage(parentConflux,
 							PASSENGER_LEAVE_FRM_PLATFORM, messaging::MessageBus::MessagePtr(new PersonMessage(*it)));
@@ -222,7 +222,6 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 	dispathPendingTrains(now);
 	updateWaitPersons();
 	performDisruption(now);
-	ConfigManager::GetInstance().FullConfig().simStartTime();
 	double sysGran = ConfigManager::GetInstance().FullConfig().baseGranSecond();
 	std::list<TrainDriver*>::iterator it=trainDriver.begin();
 
@@ -264,7 +263,6 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 				DailyTime current(now.ms() + startTm.getValue());
 				(*it)->setArrivalTime(current.getStrRepr());
 			}
-
 			else if ((*it)->getNextRequested() == TrainDriver::REQUESTED_LEAVING_PLATFORM)
 			{
 				std::string lineId = (*it)->getTrainLine();
@@ -305,7 +303,7 @@ void TrainStationAgent::performDisruption(timeslice now)
 			}
 			for(it=platformNames.begin(); it!=platformNames.end(); it++){
 				if(TrainController<Person_MT>::checkPlatformIsExisted(this, *it)){
-					triggerRerouting(DisruptionEventArgs(*disruptionParam));
+					triggerRerouting(DisruptionEventArgs(*disruptionParam), now);
 					break;
 				}
 			}

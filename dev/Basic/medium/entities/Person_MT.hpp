@@ -135,6 +135,13 @@ public:
 	 */
 	virtual std::vector<BufferedBase *> buildSubscriptionList();
 
+	/**
+	 * en-route mode choice function
+	 * @param trip current trip of person
+	 * @param originNode the new origin node considered for re-routing after mode-choice
+	 * @param curTime current time when mode choice is done
+	 * @return a mode chosen from the mode choice model (return value is compatible with mode strings used to lookup roles for modes)
+	 */
 	std::string chooseModeEnRoute(const Trip& trip, unsigned int originNode, const DailyTime& curTime) const;
 
 	/**

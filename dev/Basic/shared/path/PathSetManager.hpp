@@ -171,9 +171,6 @@ protected:
 	/**	link to pathset paramaters */
 	PathSetParam* pathSetParam;
 
-	/**	stores the name of database's singlepath table//todo:doublecheck the usability */
-	const std::string &pathSetTableName;
-
 	/** contains arbitrary description usually to indicating which configuration file the generated data has originated from */
 	std::string scenarioName;
 

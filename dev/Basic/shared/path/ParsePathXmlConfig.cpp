@@ -156,12 +156,6 @@ void sim_mob::ParsePathXmlConfig::processPrivatePathsetNode(xercesc::DOMElement*
 	}
 	else
 	{
-		cfg.pathSetTableName = ParseString(GetNamedAttributeValue(tableNode, "pathset_table"), "");
-		if (cfg.pathSetTableName.empty())
-		{
-			throw std::runtime_error("private pathset table name missing in configuration");
-		}
-
 		cfg.RTTT_Conf = ParseString(GetNamedAttributeValue(tableNode, "historical_traveltime"), "");
 		if (cfg.RTTT_Conf.empty())
 		{
@@ -248,9 +242,6 @@ void sim_mob::ParsePathXmlConfig::processPrivatePathsetNode(xercesc::DOMElement*
 
 	//sanity check
 	std::stringstream out("");
-	if (cfg.pathSetTableName == "") {
-		out << "single path's table name, ";
-	}
 	if (cfg.RTTT_Conf == "") {
 		out << "single path's realtime TT table name, ";
 	}

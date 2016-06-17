@@ -92,11 +92,9 @@ public:
 
 	/**
 	 * insert an entry into singlepath table in the database
-	 * @param sql the database connection
 	 * @param spPool the set of paths to be stored
-	 * @param pathSetTableName pathSet Table Name
 	 */
-	void storeSinglePath(soci::session& sql,std::set<sim_mob::SinglePath*, sim_mob::SinglePath>& spPool,const std::string pathSetTableName);
+	void storeSinglePath(std::set<sim_mob::SinglePath*, sim_mob::SinglePath>& spPool);
 
 	double getHighwayBias() const
 	{

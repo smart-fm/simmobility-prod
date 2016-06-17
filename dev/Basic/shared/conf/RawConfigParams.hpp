@@ -326,9 +326,6 @@ struct PathSetConf
     /// data source for getting ODs for bulk pathset generation
     std::string odSourceTableName;
 
-    /// path set table name
-    std::string pathSetTableName;
-
     /// realtime travel time table name
     std::string RTTT_Conf;
 

@@ -61,7 +61,7 @@ HouseholdAgent::HouseholdAgent(BigSerial _id, HM_Model* _model, Household* _hous
     	householdBiddingWindow = householdBiddingWindow - household->getTimeOnMarket();
     else
     {
-    	householdBiddingWindow =  config.ltParams.housingModel.housingMoveInDaysInterval + config.ltParams.housingModel.householdBiddingWindow * (double)rand() / RAND_MAX + 1;
+    	householdBiddingWindow = ( config.ltParams.housingModel.housingMoveInDaysInterval + config.ltParams.housingModel.householdBiddingWindow ) * (double)rand() / RAND_MAX + 1;
     }
 
 

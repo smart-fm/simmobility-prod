@@ -1440,12 +1440,14 @@ void HM_Model::startImpl()
 	{
 		boost::gregorian::date saleDate = boost::gregorian::date_from_tm((*it)->getSaleFromDate());
 		boost::gregorian::date simulationDate = boost::gregorian::date(HITS_SURVEY_YEAR, 1, 1);
+		int unitStartDay = startDay;
+
 		if( saleDate > simulationDate )
 		{
-			startDay = (saleDate - simulationDate).days();
+			unitStartDay = (saleDate - simulationDate).days();
 		}
 
-		(*it)->setbiddingMarketEntryDay( startDay );
+		(*it)->setbiddingMarketEntryDay( unitStartDay );
 		(*it)->setTimeOnMarket(  1 + (float)rand() / RAND_MAX * config.ltParams.housingModel.timeOnMarket);
 		(*it)->setTimeOffMarket( 1 + (float)rand() / RAND_MAX * config.ltParams.housingModel.timeOffMarket);
 
@@ -1458,18 +1460,21 @@ void HM_Model::startImpl()
 
 				if( awakeningProbability < config.ltParams.housingModel.vacantUnitActivationProbability )
 				{
-					(*it)->setbiddingMarketEntryDay( startDay );
-
+					(*it)->setbiddingMarketEntryDay( unitStartDay );
 					onMarket++;
 				}
 				else
 				{
-					(*it)->setbiddingMarketEntryDay( startDay +( (float)rand() / RAND_MAX * 365) );
+					(*it)->setbiddingMarketEntryDay( unitStartDay +( (float)rand() / RAND_MAX * 365) );
 					offMarket++;
 				}
 
 				freelanceAgents[vacancies % numWorkers]->addUnitId((*it)->getId());
 				vacancies++;
+			}
+			else
+			{
+				(*it)->setbiddingMarketEntryDay( -1 );
 			}
 		}
 
@@ -1905,7 +1910,7 @@ void HM_Model::update(int day)
 		if (assignedUnits.find((*it)->getId()) == assignedUnits.end())
 		{
 			//If a unit is off the market and unoccupied, we should put it back on the market after its timeOffMarket value is exceeded.
-			if( (*it)->getbiddingMarketEntryDay() + (*it)->getTimeOnMarket() + (*it)->getTimeOffMarket() > day )
+			if( day > (*it)->getbiddingMarketEntryDay() + (*it)->getTimeOnMarket() + (*it)->getTimeOffMarket()  )
 			{
 				//PrintOutV("A unit is being re-awakened" << std::endl);
 				(*it)->setbiddingMarketEntryDay(day + 1);

@@ -72,7 +72,7 @@ void ParseMidTermConfigFile::processXmlFile(xercesc::XercesDOMParser& parser)
 	{
 		throw std::runtime_error("xml parse error: root node must be \"config\"");
 	}
-
+	processMidTermRunMode(GetSingleElementByName(rootNode, "mid_term_run_mode", true));
     processProcMapNode(GetSingleElementByName(rootNode, "db_proc_groups", true));
     processSystemNode(GetSingleElementByName(rootNode, "system", true));
     processWorkersNode(GetSingleElementByName(rootNode, "workers", true));
@@ -86,8 +86,6 @@ void ParseMidTermConfigFile::processXmlFile(xercesc::XercesDOMParser& parser)
     processPublicTransit(GetSingleElementByName(rootNode, "public_transit", true));
     processCBDNode(GetSingleElementByName(rootNode, "CBD"));
     processPathSetFileName(GetSingleElementByName(rootNode, "path-set-config-file", true));
-
-	processMidTermRunMode(GetSingleElementByName(rootNode, "mid_term_run_mode", true));
 
     if (mtCfg.RunningMidSupply())
 	{

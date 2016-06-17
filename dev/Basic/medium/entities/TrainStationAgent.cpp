@@ -193,10 +193,11 @@ void TrainStationAgent::triggerRerouting(const event::EventArgs& args, timeslice
 		}
 		persons.clear();
 	}
+	DailyTime current = DailyTime(ConfigManager::GetInstance().FullConfig().simStartTime().getValue()+now.ms());
 	for(std::list<Person_MT*>::iterator it = colPersons.begin(); it!=colPersons.end();it++){
 		messaging::MessageBus::SubscribeEvent(EVT_DISRUPTION_CHANGEROUTE, this, *it);
 		messaging::MessageBus::PublishInstantaneousEvent(EVT_DISRUPTION_CHANGEROUTE, this,
-				messaging::MessageBus::EventArgsPtr(new ReRouteEventArgs(stationName,now.ms())));
+				messaging::MessageBus::EventArgsPtr(new ReRouteEventArgs(stationName,current.getValue())));
 		messaging::MessageBus::UnSubscribeEvent(EVT_DISRUPTION_CHANGEROUTE, this, *it);
 		messaging::MessageBus::PostMessage(parentConflux,
 							PASSENGER_LEAVE_FRM_PLATFORM, messaging::MessageBus::MessagePtr(new PersonMessage(*it)));

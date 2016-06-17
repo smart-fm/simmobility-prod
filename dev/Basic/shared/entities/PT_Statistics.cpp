@@ -167,7 +167,7 @@ void PT_Statistics::storeStatistics()
 		std::ofstream outputFile(personRerouteFilename.c_str());
 		if (outputFile.is_open())
 		{
-			outputFile <<"person_id, stop_id,last_role_type,mode_choice,rerouting_starting_node,dest_node,is_pt_loaded,current_time"<<std::endl;
+			outputFile <<"person_id, stop_id,last_role_type,mode_choice,origin_node,rerouting_node,dest_node,is_pt_loaded,current_time"<<std::endl;
 			std::vector<PT_RerouteInfo>::const_iterator itPerson = personsReroutes.begin();
 			for (; itPerson != personsReroutes.end(); itPerson++)
 			{

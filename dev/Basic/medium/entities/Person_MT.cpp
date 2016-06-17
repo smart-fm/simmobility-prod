@@ -308,7 +308,7 @@ void Person_MT::EnRouteToNextTrip(const std::string& stationName, const DailyTim
 		rerouteInfo.startNodeId = newSubTrip.origin.node->getNodeId();
 		rerouteInfo.destNodeId = newSubTrip.destination.node->getNodeId();
 		rerouteInfo.isPT_loaded = isLoaded;
-		rerouteInfo.currentTime = 	DailyTime(ConfigManager::GetInstance().FullConfig().simStartTime().getValue()+now.getValue()).getStrRepr();
+		rerouteInfo.currentTime = now.getStrRepr();
 		messaging::MessageBus::PostMessage(PT_Statistics::getInstance(),
 				STORE_PERSON_REROUTE, messaging::MessageBus::MessagePtr(new PT_RerouteInfoMessage(rerouteInfo)), true);
 		currSubTrip = subTrips.begin();

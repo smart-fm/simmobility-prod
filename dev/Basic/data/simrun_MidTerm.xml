@@ -84,12 +84,11 @@
         <network_database database="fm_hpchead" credentials="fm_hpchead" proc_map="withinday"/>
         <population_database  database="fm_hpchead_lt" credentials="fm_hpchead" proc_map=""/> 
 
-        <!-- The new parser will simply load everything in the "generic_props" section into "SystemParams.genericProps".  -->
+        <!-- The parser will simply load everything in "generic_props" section into "SystemParams.genericProps".  -->
         <!-- In other words, you DO NOT need to update the parser just to add a simple string-based configuration parameter to -->
-        <!-- the config file. This is intended to be used for new or temporary features. -->
+        <!-- the config file. This is intended to be used for new or temporary features for quick testing. -->
         <generic_props>
-            <!-- The current control strategy for buses. Can be "headway_based", "evenheadway_based", "hybrid_based", or (default) "no_control" -->
-            <property key="update_interval" value="60"/>
+            <!-- <property key="sampleproperty" value="samplevalue"/> -->
         </generic_props>
     </system>
     
@@ -122,51 +121,55 @@
         <stop offsetAT="403600" offsetDT="409600" />        
     </scheduledTimes>
 
-    <!-- To Enable Buses: make sure the following stored procedures in your <proc_map> not empty and valid -->
+    <!-- To Enable Buses: make sure the following stored procedures in your <proc_map> are not empty and valid -->
     <!-- 1. "pt_bus_dispatch_freq" -->
     <!-- 2. "pt_bus_routes" -->
     <!-- 3. "pt_bus_stops" -->
-    <!-- With the above three procedures present and valid, enable buses with "<buscontroller time="0" />" in the <buscontrollers> -->
-    <!-- To Disable Buses: user can simply comment the buscontroller in the <buscontrollers> -->
     <!-- The current control strategy for buses. Can be "headway_based", "evenheadway_based", "hybrid_based", or (default) "no_control" -->
     <busController enabled="true" busline_control_type="headway_based"/>
-    
-    <path-set-config-file value="data/pathset_config.xml" />
 
-    <CBD enabled="false"/>
+    <!-- location of the config file for loading pathset generation or route choice related info -->
+    <pathset_config_file value="data/pathset_config.xml" />
+
+    <!-- config used for enabling region restriction for private vehicles. The region must be pre-defined and kept in the database. The corresponding functions must be provided in the proc_map -->
+    <region_restriction enabled="false"/>
+
+    <!-- enable this only to generate the bus routes based on stops data for each line -->
     <generateBusRoutes enabled="false" /> 
-    <travel_time_update interval="300" alpha="0.5" />
-    <subtrip_travel_metrics_output enabled="true" file="subtrip_level_travel_metrics.csv" />
+
+    <!-- the time interval in seconds for collection of link travel times -->
+    <travel_time_update interval="300" />
+
+    <!-- flag to control if PT graph should be loaded -->
     <public_transit enabled="true"/>
-    <screen-line-count interval="900" file-name="screenLineCount.txt" enabled="true" />
 
     <!-- config specific to supply simulator -->                    
     <supply>
-        <!-- period of supply output -->
+        <!-- frequency of segment density, speed and flow output -->
         <update_interval value="1" units="minute" />
         
         <!-- these parameters are used to calculate dwell time of buses at bus stops-->
-        <!-- these parameters will be organized in a better way after finding the meaning of these numbers -->
         <dwell_time_parameters>
-        <!--parameters : minimum and maximum of fixed dwelling time, minimum and maximum of individual dwelling time-->
-        <parameters value="0.0, 0.0, 2.0, 3.0"/>
+            <!--parameters : minimum and maximum of fixed dwelling time, minimum and maximum of individual dwelling time-->
+            <parameters value="0.0, 0.0, 2.0, 3.0"/>
         </dwell_time_parameters>
 
-        <!-- pedestrian walking speed in cm/s (approximately 5 km/h)-->
-        <pedestrian_walk_speed value="135"/>
+        <!-- pedestrian walking speed in kmph -->
+        <pedestrian_walk_speed value="5"/>
         
         <!-- default capacity value -->
         <bus_default_capacity value="100"/>
                 
-        <!-- these parameters are used to assign filename for the storage of statistics -->   
-        <!-- if the value is empty, no output file is generated, otherwise store to csv file -->     
-        <output_pt_statistics>                              
+        <!-- file names to output statistics from supply -->   
+        <output_statistics>                              
             <journey_time file="journeytime.csv"/>
             <waiting_time file="waitingtime.csv"/>
             <waiting_count file="waitingcount.csv"/>
             <travel_time file="traveltime.csv"/>
             <pt_stop_stats file="ptstopstats.csv"/>
-        </output_pt_statistics>  
+            <subtrip_travel_metrics_output file="subtrip_metrics.csv" enabled="true"/>
+            <screen_line_count file="screen_line_count.csv" enabled="true" interval="900"/>
+        </output_statistics>  
         
         <!-- parameters used in speed density function -->
         <speed_density_params>
@@ -179,6 +182,7 @@
             <param category="7" alpha="3.0" beta="1.5"/>
         </speed_density_params>
 
+        <!-- lua scripts used in withinday --> 
         <model_scripts path="scripts/lua/mid/behavior-models/" format="lua">
              <script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models-->
              <script name="pvtrc" file="pvtrc.lua"/> <!--private traffic route choice-->
@@ -212,6 +216,7 @@
         <population source="pgsql" database="fm_remote_lt" credential="lt_cred"/>
         <simmob_mt source="pgsql" database="fm_remote" credential="fm_remote"/>
             
+        <!-- model scripts for preday -->
         <model_scripts path="scripts/lua/mid/behavior-models/virtualcity" format="lua">
             <script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models-->
             <script name="dpb" file="dpb.lua"/> <!-- Day Pattern Binary -->

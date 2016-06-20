@@ -285,7 +285,7 @@ struct PathSetConf
      */
 	PathSetConf() : enabled(false), RTTT_Conf(""), DTT_Conf(""), psRetrievalWithoutBannedRegion(""), interval(0), recPS(false), reroute(false),
 			perturbationRange(std::pair<unsigned short,unsigned short>(0,0)), kspLevel(0),
-			perturbationIteration(0), threadPoolSize(0), alpha(0), maxSegSpeed(0), publickShortestPathLevel(10), simulationApproachIterations(10),
+			perturbationIteration(0), threadPoolSize(0), maxSegSpeed(0), publickShortestPathLevel(10), simulationApproachIterations(10),
 			publicPathSetEnabled(true), privatePathSetEnabled(true)
 	{}
 
@@ -340,9 +340,6 @@ struct PathSetConf
 
     /// travel time recording iterval(in seconds)
     int interval;
-
-    /// travel time updation coefficient
-    double alpha;
 
     ///	recursive pathset Generation
 	bool recPS;

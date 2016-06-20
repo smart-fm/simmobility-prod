@@ -180,7 +180,7 @@ void sim_mob::ParsePathXmlConfig::processPrivatePathsetNode(xercesc::DOMElement*
 		cfg.psRetrievalWithoutBannedRegion = ParseString(GetNamedAttributeValue(functionNode, "pathset_without_banned_area"), "");
 	}
 
-	//recirsive pathset generation
+	//recursive pathset generation
 	xercesc::DOMElement* recPS = GetSingleElementByName(pvtConfNode, "recursive_pathset_generation");
 	if (!recPS)
 	{

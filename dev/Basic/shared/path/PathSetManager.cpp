@@ -1478,9 +1478,10 @@ sim_mob::PrivatePathsetGenerator::~PrivatePathsetGenerator()
 }
 
 sim_mob::PrivateTrafficRouteChoice::PrivateTrafficRouteChoice()
-		: PathSetManager(), psRetrieval(sim_mob::ConfigManager::GetInstance().FullConfig().getPathSetConf().psRetrieval),
-				psRetrievalWithoutRestrictedRegion(sim_mob::ConfigManager::GetInstance().FullConfig().getPathSetConf().psRetrievalWithoutBannedRegion), cacheLRU(2500), ttMgr(*(sim_mob::TravelTimeManager::getInstance())),
-				regionRestrictonEnabled(false)
+		: PathSetManager(),
+		  psRetrieval(sim_mob::ConfigManager::GetInstance().FullConfig().getDatabaseProcMappings().procedureMappings.find("pvt_pathset")->second),
+		  psRetrievalWithoutRestrictedRegion(sim_mob::ConfigManager::GetInstance().FullConfig().getPathSetConf().psRetrievalWithoutBannedRegion),
+		  cacheLRU(2500), ttMgr(*(sim_mob::TravelTimeManager::getInstance())), regionRestrictonEnabled(false)
 {
 }
 

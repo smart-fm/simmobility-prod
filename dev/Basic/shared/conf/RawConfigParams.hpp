@@ -283,7 +283,7 @@ struct PathSetConf
     /**
      * Constructor
      */
-	PathSetConf() : enabled(false), RTTT_Conf(""), DTT_Conf(""), psRetrieval(""), psRetrievalWithoutBannedRegion(""), interval(0), recPS(false), reroute(false),
+	PathSetConf() : enabled(false), RTTT_Conf(""), DTT_Conf(""), psRetrievalWithoutBannedRegion(""), interval(0), recPS(false), reroute(false),
 			perturbationRange(std::pair<unsigned short,unsigned short>(0,0)), kspLevel(0),
 			perturbationIteration(0), threadPoolSize(0), alpha(0), maxSegSpeed(0), publickShortestPathLevel(10), simulationApproachIterations(10),
 			publicPathSetEnabled(true), privatePathSetEnabled(true)
@@ -331,9 +331,6 @@ struct PathSetConf
 
     /// default travel time table name
     std::string DTT_Conf;
-
-    /// pathset retrieval stored procedure name
-    std::string psRetrieval;
 
     /// pathset retrival (excluding banned area) stored procedure name
     std::string psRetrievalWithoutBannedRegion;

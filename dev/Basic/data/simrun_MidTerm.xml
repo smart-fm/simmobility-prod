@@ -22,6 +22,7 @@
             <mapping name="lanes" procedure="get_lanes()"/>
             <mapping name="lane_polylines" procedure="get_lane_polylines()"/>
             <mapping name="lane_connectors" procedure="get_lane_connectors()"/>
+            <mapping name="pvt_pathset" procedure="get_pvt_pathset"/>
             <mapping name="bus_stops" procedure="get_bus_stops()"/>
             <mapping name="pt_bus_dispatch_freq" procedure="get_pt_bus_frequency()"/>
             <mapping name="pt_bus_routes" procedure="get_pt_bus_routes()"/>
@@ -41,7 +42,7 @@
         </proc_map>
 
 
-        <!-- Entire Singapore network in new format -->
+        <!-- Singapore network -->
         <proc_map id="withinday" format="aimsun">
             <mapping name="nodes" procedure="get_test_singapore_nodes()"/>
             <mapping name="links" procedure="get_singapore_links()"/>
@@ -54,12 +55,12 @@
             <mapping name="lanes" procedure="get_test_singapore_lanes()"/>
             <mapping name="lane_polylines" procedure="get_test_singapore_lane_polylines()"/>
             <mapping name="lane_connectors" procedure="get_test_singapore_lane_connectors()"/>
+            <mapping name="pvt_pathset" procedure="get_pvt_pathset"/>
             <mapping name="bus_stops" procedure="get_singapore_bus_stops_17feb()"/>
             <mapping name="pt_bus_dispatch_freq" procedure="get_pt_bus_frequency()"/>
             <mapping name="pt_bus_routes" procedure="get_pt_bus_routes_17feb()"/>
             <mapping name="pt_bus_stops" procedure="get_pt_bus_stops_17feb()"/>
             <mapping name="pt_stop_stats" procedure="get_pt_stop_stats()"/>
-            <!-- MT specific stored procedures -->
             <mapping name="pt_vertices" procedure="get_pt_map_trvertices()"/>
             <mapping name="pt_edges" procedure="get_pt_map_tredges()"/>
             <mapping name="pt_pathset" procedure="get_pt_trpathset"/>

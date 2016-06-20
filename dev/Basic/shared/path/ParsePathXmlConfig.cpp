@@ -127,7 +127,8 @@ void sim_mob::ParsePathXmlConfig::processPrivatePathsetNode(xercesc::DOMElement*
 	}
 
 	//bulk pathset generation
-	if (cfg.privatePathSetMode == "generation") {
+	if (cfg.privatePathSetMode == "generation")
+	{
 		xercesc::DOMElement* odSource = GetSingleElementByName(pvtConfNode, "od_source");
 		if (!odSource)
 		{
@@ -170,12 +171,12 @@ void sim_mob::ParsePathXmlConfig::processPrivatePathsetNode(xercesc::DOMElement*
 	}
 	//function
 	xercesc::DOMElement* functionNode = GetSingleElementByName(pvtConfNode, "functions");
-	if (!functionNode) {
+	if (!functionNode)
+	{
 		throw std::runtime_error("Pathset Stored Procedure Not Found\n");
 	}
-	else {
-		cfg.psRetrieval = ParseString(GetNamedAttributeValue(functionNode, "pathset"), "");
-		cfg.upsert = ParseString(GetNamedAttributeValue(functionNode, "travel_time"), "");
+	else
+	{
 		cfg.psRetrievalWithoutBannedRegion = ParseString(GetNamedAttributeValue(functionNode, "pathset_without_banned_area"), "");
 	}
 
@@ -186,7 +187,10 @@ void sim_mob::ParsePathXmlConfig::processPrivatePathsetNode(xercesc::DOMElement*
 		std::cerr << "recursive_pathset_generation Not Found, setting to false\n";
 		cfg.recPS = false;
 	}
-	else { cfg.recPS = ParseBoolean(GetNamedAttributeValue(recPS, "value"), false); }
+	else
+	{
+		cfg.recPS = ParseBoolean(GetNamedAttributeValue(recPS, "value"), false);
+	}
 
 	//reroute
 	xercesc::DOMElement* reroute = GetSingleElementByName(pvtConfNode, "reroute");
@@ -195,11 +199,15 @@ void sim_mob::ParsePathXmlConfig::processPrivatePathsetNode(xercesc::DOMElement*
 		std::cerr << "reroute_enabled Not Found, setting to false\n";
 		cfg.reroute = false;
 	}
-	else { cfg.reroute = ParseBoolean(GetNamedAttributeValue(reroute, "enabled"), false); }
+	else
+	{
+		cfg.reroute = ParseBoolean(GetNamedAttributeValue(reroute, "enabled"), false);
+	}
 
 	///	path generators configuration
 	xercesc::DOMElement* gen = GetSingleElementByName(pvtConfNode, "path_generators");
-	if (gen) {
+	if (gen)
+	{
 		cfg.maxSegSpeed = ParseFloat(GetNamedAttributeValue(gen, "max_segment_speed"), 0.0);
 		if (cfg.maxSegSpeed <= 0.0)
 		{
@@ -219,7 +227,8 @@ void sim_mob::ParsePathXmlConfig::processPrivatePathsetNode(xercesc::DOMElement*
 
 		//K-shortest Path
 		xercesc::DOMElement* ksp = GetSingleElementByName(gen, "k_shortest_path");
-		if (ksp) {
+		if (ksp)
+		{
 			cfg.kspLevel = ParseInteger(GetNamedAttributeValue(ksp, "level"), 0);
 		}
 
@@ -242,19 +251,16 @@ void sim_mob::ParsePathXmlConfig::processPrivatePathsetNode(xercesc::DOMElement*
 
 	//sanity check
 	std::stringstream out("");
-	if (cfg.RTTT_Conf == "") {
+	if (cfg.RTTT_Conf == "")
+	{
 		out << "single path's realtime TT table name, ";
 	}
-	if (cfg.DTT_Conf == "") {
+	if (cfg.DTT_Conf == "")
+	{
 		out << "single path's default TT table name, ";
 	}
-	if (cfg.psRetrieval == "") {
-		out << "path set retieval stored procedure, ";
-	}
-	if (cfg.upsert == "") {
-		out << "travel time updation stored procedure, ";
-	}
-	if (out.str().size()) {
+	if (out.str().size())
+	{
 		std::string err = std::string("Missing:") + out.str();
 		throw std::runtime_error(err);
 	}

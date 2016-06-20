@@ -327,10 +327,10 @@ private:
 	boost::shared_mutex mutexExclusion;
 
 	/**	stores the name of database's function operating on the pathset and singlepath tables */
-	const std::string& psRetrieval;
+	const std::string psRetrieval;
 
 	/**	stores the name of database's function operating on the pathset and singlepath tables */
-	const std::string& psRetrievalWithoutRestrictedRegion;
+	const std::string psRetrievalWithoutRestrictedRegion;
 
 	/**	Travel time processing */
 	const TravelTimeManager& ttMgr;

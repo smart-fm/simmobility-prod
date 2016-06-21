@@ -68,42 +68,42 @@ ParseMidTermConfigFile::ParseMidTermConfigFile(const std::string& configFileName
 void ParseMidTermConfigFile::processXmlFile(xercesc::XercesDOMParser& parser)
 {
 	DOMElement* rootNode = parser.getDocument()->getDocumentElement();
-    ///Verify that the root node is "config"
+	///Verify that the root node is "config"
 	if (TranscodeString(rootNode->getTagName()) != "config")
 	{
 		throw std::runtime_error("xml parse error: root node must be \"config\"");
 	}
 	processMidTermRunMode(GetSingleElementByName(rootNode, "mid_term_run_mode", true));
-    processProcMapNode(GetSingleElementByName(rootNode, "db_proc_groups", true));
-    processSystemNode(GetSingleElementByName(rootNode, "system", true));
-    processWorkersNode(GetSingleElementByName(rootNode, "workers", true));
-    processIncidentsNode(GetSingleElementByName(rootNode, "incidentsData", true));
-    processBusStopScheduledTimesNode(GetSingleElementByName(rootNode, "scheduledTimes", true));
-    processBusControllerNode(GetSingleElementByName(rootNode, "busController", true));
-    processGenerateBusRoutesNode(GetSingleElementByName(rootNode, "generateBusRoutes"));
-    processTT_Update(GetSingleElementByName(rootNode, "travel_time_update", true));
-    processPublicTransit(GetSingleElementByName(rootNode, "public_transit", true));
-    processRegionRestrictionNode(GetSingleElementByName(rootNode, "region_restriction"));
-    processPathSetFileName(GetSingleElementByName(rootNode, "pathset_config_file", true));
+	processProcMapNode(GetSingleElementByName(rootNode, "db_proc_groups", true));
+	processSystemNode(GetSingleElementByName(rootNode, "system", true));
+	processWorkersNode(GetSingleElementByName(rootNode, "workers", true));
+	processIncidentsNode(GetSingleElementByName(rootNode, "incidentsData", true));
+	processBusStopScheduledTimesNode(GetSingleElementByName(rootNode, "scheduledTimes", true));
+	processBusControllerNode(GetSingleElementByName(rootNode, "busController", true));
+	processGenerateBusRoutesNode(GetSingleElementByName(rootNode, "generateBusRoutes"));
+	processTT_Update(GetSingleElementByName(rootNode, "travel_time_update", true));
+	processPublicTransit(GetSingleElementByName(rootNode, "public_transit", true));
+	processRegionRestrictionNode(GetSingleElementByName(rootNode, "region_restriction"));
+	processPathSetFileName(GetSingleElementByName(rootNode, "pathset_config_file", true));
 
-    if (mtCfg.RunningMidSupply())
+	if (mtCfg.RunningMidSupply())
 	{
 		processSupplyNode(GetSingleElementByName(rootNode, "supply", true));
 	}
-    else if (mtCfg.RunningMidDemand())
+	else if (mtCfg.RunningMidDemand())
 	{
 		processPredayNode(GetSingleElementByName(rootNode, "preday", true));
 	}
 
-    ///Take care of pathset manager confifuration in here
-    ParsePathXmlConfig(cfg.pathsetFile, cfg.getPathSetConf());
+	///Take care of pathset manager confifuration in here
+	ParsePathXmlConfig(cfg.pathsetFile, cfg.getPathSetConf());
 
-	if(mtCfg.isRegionRestrictionEnabled() && cfg.getPathSetConf().psRetrievalWithoutBannedRegion.empty())
+	if (mtCfg.isRegionRestrictionEnabled() && cfg.getPathSetConf().psRetrievalWithoutBannedRegion.empty())
 	{
-        throw std::runtime_error("Pathset without banned area stored procedure name not found\n");
+		throw std::runtime_error("Pathset without banned area stored procedure name not found\n");
 	}
 
-    mtCfg.sealConfig(); ///no more updation in mtConfig
+	mtCfg.sealConfig(); ///no more updation in mtConfig
 }
 
 void ParseMidTermConfigFile::processMidTermRunMode(xercesc::DOMElement* node)

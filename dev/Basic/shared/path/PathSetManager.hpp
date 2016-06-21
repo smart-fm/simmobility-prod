@@ -171,9 +171,6 @@ protected:
 	/**	link to pathset paramaters */
 	PathSetParam* pathSetParam;
 
-	/**	stores the name of database's singlepath table//todo:doublecheck the usability */
-	const std::string &pathSetTableName;
-
 	/** contains arbitrary description usually to indicating which configuration file the generated data has originated from */
 	std::string scenarioName;
 
@@ -330,10 +327,10 @@ private:
 	boost::shared_mutex mutexExclusion;
 
 	/**	stores the name of database's function operating on the pathset and singlepath tables */
-	const std::string& psRetrieval;
+	const std::string psRetrieval;
 
 	/**	stores the name of database's function operating on the pathset and singlepath tables */
-	const std::string& psRetrievalWithoutRestrictedRegion;
+	const std::string psRetrievalWithoutRestrictedRegion;
 
 	/**	Travel time processing */
 	const TravelTimeManager& ttMgr;

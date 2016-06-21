@@ -325,7 +325,6 @@ unsigned int sim_mob::PathSetManager::curIntervalMS = 0;
 unsigned int sim_mob::PathSetManager::intervalMS = 0;
 
 sim_mob::PathSetManager::PathSetManager()
-		: pathSetTableName(sim_mob::ConfigManager::GetInstance().FullConfig().getPathSetConf().pathSetTableName)
 {
 	pathSetParam = PathSetParam::getInstance();
 	std::string dbStr(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false));
@@ -479,7 +478,7 @@ void sim_mob::PrivatePathsetGenerator::onGeneratePathSet(boost::shared_ptr<PathS
 	//store in into the database
 	if (!ps->nonCDB_OD)
 	{
-		pathSetParam->storeSinglePath(*getSession(), ps->pathChoices, pathSetTableName);
+		pathSetParam->storeSinglePath(ps->pathChoices);
 	}
 }
 
@@ -1479,9 +1478,10 @@ sim_mob::PrivatePathsetGenerator::~PrivatePathsetGenerator()
 }
 
 sim_mob::PrivateTrafficRouteChoice::PrivateTrafficRouteChoice()
-		: PathSetManager(), psRetrieval(sim_mob::ConfigManager::GetInstance().FullConfig().getPathSetConf().psRetrieval),
-				psRetrievalWithoutRestrictedRegion(sim_mob::ConfigManager::GetInstance().FullConfig().getPathSetConf().psRetrievalWithoutBannedRegion), cacheLRU(2500), ttMgr(*(sim_mob::TravelTimeManager::getInstance())),
-				regionRestrictonEnabled(false)
+		: PathSetManager(),
+		  psRetrieval(sim_mob::ConfigManager::GetInstance().FullConfig().getDatabaseProcMappings().procedureMappings.find("pvt_pathset")->second),
+		  psRetrievalWithoutRestrictedRegion(sim_mob::ConfigManager::GetInstance().FullConfig().getPathSetConf().psRetrievalWithoutBannedRegion),
+		  cacheLRU(2500), ttMgr(*(sim_mob::TravelTimeManager::getInstance())), regionRestrictonEnabled(false)
 {
 }
 

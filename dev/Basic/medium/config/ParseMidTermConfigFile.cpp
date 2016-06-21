@@ -15,6 +15,7 @@
 namespace
 {
 const int DEFAULT_NUM_THREADS_DEMAND = 2; // default number of threads for demand
+const unsigned NUM_METERS_IN_KM = 1000;
 const unsigned NUM_SECONDS_IN_AN_HOUR = 3600;
 const std::string EMPTY_STRING = std::string();
 
@@ -67,46 +68,42 @@ ParseMidTermConfigFile::ParseMidTermConfigFile(const std::string& configFileName
 void ParseMidTermConfigFile::processXmlFile(xercesc::XercesDOMParser& parser)
 {
 	DOMElement* rootNode = parser.getDocument()->getDocumentElement();
-    ///Verify that the root node is "config"
+	///Verify that the root node is "config"
 	if (TranscodeString(rootNode->getTagName()) != "config")
 	{
 		throw std::runtime_error("xml parse error: root node must be \"config\"");
 	}
-
-    processProcMapNode(GetSingleElementByName(rootNode, "db_proc_groups", true));
-    processSystemNode(GetSingleElementByName(rootNode, "system", true));
-    processWorkersNode(GetSingleElementByName(rootNode, "workers", true));
-    processIncidentsNode(GetSingleElementByName(rootNode, "incidentsData", true));
-    processBusStopScheduledTimesNode(GetSingleElementByName(rootNode, "scheduledTimes", true));
-    processBusControllerNode(GetSingleElementByName(rootNode, "busController", true));
-    processScreenLineNode(GetSingleElementByName(rootNode, "screen-line-count"));
-    processGenerateBusRoutesNode(GetSingleElementByName(rootNode, "generateBusRoutes"));
-    processTT_Update(GetSingleElementByName(rootNode, "travel_time_update", true));
-    processSubtripTravelMetricsOutputNode(GetSingleElementByName(rootNode, "subtrip_travel_metrics_output"));
-    processPublicTransit(GetSingleElementByName(rootNode, "public_transit", true));
-    processCBDNode(GetSingleElementByName(rootNode, "CBD"));
-    processPathSetFileName(GetSingleElementByName(rootNode, "path-set-config-file", true));
-
 	processMidTermRunMode(GetSingleElementByName(rootNode, "mid_term_run_mode", true));
+	processProcMapNode(GetSingleElementByName(rootNode, "db_proc_groups", true));
+	processSystemNode(GetSingleElementByName(rootNode, "system", true));
+	processWorkersNode(GetSingleElementByName(rootNode, "workers", true));
+	processIncidentsNode(GetSingleElementByName(rootNode, "incidentsData", true));
+	processBusStopScheduledTimesNode(GetSingleElementByName(rootNode, "scheduledTimes", true));
+	processBusControllerNode(GetSingleElementByName(rootNode, "busController", true));
+	processGenerateBusRoutesNode(GetSingleElementByName(rootNode, "generateBusRoutes"));
+	processTT_Update(GetSingleElementByName(rootNode, "travel_time_update", true));
+	processPublicTransit(GetSingleElementByName(rootNode, "public_transit", true));
+	processRegionRestrictionNode(GetSingleElementByName(rootNode, "region_restriction"));
+	processPathSetFileName(GetSingleElementByName(rootNode, "pathset_config_file", true));
 
-    if (mtCfg.RunningMidSupply())
+	if (mtCfg.RunningMidSupply())
 	{
 		processSupplyNode(GetSingleElementByName(rootNode, "supply", true));
 	}
-    else if (mtCfg.RunningMidDemand())
+	else if (mtCfg.RunningMidDemand())
 	{
 		processPredayNode(GetSingleElementByName(rootNode, "preday", true));
 	}
 
-    ///Take care of pathset manager confifuration in here
-    ParsePathXmlConfig(cfg.pathsetFile, cfg.getPathSetConf());
+	///Take care of pathset manager confifuration in here
+	ParsePathXmlConfig(cfg.pathsetFile, cfg.getPathSetConf());
 
-	if(mtCfg.isRegionRestrictionEnabled() && cfg.getPathSetConf().psRetrievalWithoutBannedRegion.empty())
+	if (mtCfg.isRegionRestrictionEnabled() && cfg.getPathSetConf().psRetrievalWithoutBannedRegion.empty())
 	{
-        throw std::runtime_error("Pathset without banned area stored procedure name not found\n");
+		throw std::runtime_error("Pathset without banned area stored procedure name not found\n");
 	}
 
-    mtCfg.sealConfig(); ///no more updation in mtConfig
+	mtCfg.sealConfig(); ///no more updation in mtConfig
 }
 
 void ParseMidTermConfigFile::processMidTermRunMode(xercesc::DOMElement* node)
@@ -119,7 +116,7 @@ void ParseMidTermConfigFile::processSupplyNode(xercesc::DOMElement* node)
 	processUpdateIntervalElement(GetSingleElementByName(node, "update_interval", true));
 	processDwellTimeElement(GetSingleElementByName(node, "dwell_time_parameters", true));
 	processWalkSpeedElement(GetSingleElementByName(node, "pedestrian_walk_speed", true));
-	processStatisticsOutputNode(GetSingleElementByName(node, "output_pt_statistics", true));
+	processStatisticsOutputNode(GetSingleElementByName(node, "output_statistics", true));
 	processBusCapactiyElement(GetSingleElementByName(node, "bus_default_capacity", true));
 	processSpeedDensityParamsNode(GetSingleElementByName(node, "speed_density_params", true));
 	cfg.luaScriptsMap = processModelScriptsNode(GetSingleElementByName(node, "model_scripts", true));
@@ -290,6 +287,12 @@ void ParseMidTermConfigFile::processStatisticsOutputNode(xercesc::DOMElement* no
 	}
 	value = ParseString(GetNamedAttributeValue(child, "file"), "");
 	cfg.setPT_StopStatsFilename(value);
+
+	child = GetSingleElementByName(node, "subtrip_metrics");
+	processSubtripTravelMetricsOutputNode(child);
+
+	child = GetSingleElementByName(node, "screen_line_count");
+	processScreenLineNode(child);
 }
 
 void ParseMidTermConfigFile::processSpeedDensityParamsNode(xercesc::DOMElement* node)
@@ -313,7 +316,9 @@ void ParseMidTermConfigFile::processSpeedDensityParamsNode(xercesc::DOMElement* 
 
 void ParseMidTermConfigFile::processWalkSpeedElement(xercesc::DOMElement* node)
 {
-	mtCfg.setPedestrianWalkSpeed(ParseFloat(GetNamedAttributeValue(node, "value", true), nullptr));
+	double walkSpeed = ParseFloat(GetNamedAttributeValue(node, "value", true), nullptr);
+	walkSpeed = walkSpeed * (NUM_METERS_IN_KM/NUM_SECONDS_IN_AN_HOUR); //convert kmph to m/s
+	mtCfg.setPedestrianWalkSpeed(walkSpeed);
 }
 
 void ParseMidTermConfigFile::processBusCapactiyElement(xercesc::DOMElement* node)
@@ -601,12 +606,11 @@ void ParseMidTermConfigFile::processTT_Update(xercesc::DOMElement* node){
     else
     {
         sim_mob::ConfigManager::GetInstanceRW().PathSetConfig().interval = ParseInteger(GetNamedAttributeValue(node, "interval"), 300);
-        sim_mob::ConfigManager::GetInstanceRW().PathSetConfig().alpha = ParseFloat(GetNamedAttributeValue(node, "alpha"), 0.5);
     }
 }
 
 
-void ParseMidTermConfigFile::processCBDNode(xercesc::DOMElement* node){
+void ParseMidTermConfigFile::processRegionRestrictionNode(xercesc::DOMElement* node){
 
     if (!node) {
 

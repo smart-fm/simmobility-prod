@@ -11,7 +11,7 @@ sim_mob::RawConfigParams::RawConfigParams() : mergeLogFiles(false), generateBusR
 {}
 
 sim_mob::SimulationParams::SimulationParams() :
-    baseGranMS(0), baseGranSecond(0), totalRuntimeMS(0), totalWarmupMS(0),
+    baseGranMS(0), baseGranSecond(0), totalRuntimeMS(0), totalWarmupMS(0), inSimulationTTUsage(0),
     workGroupAssigmentStrategy(WorkGroup::ASSIGN_ROUNDROBIN), startingAutoAgentID(0),
     mutexStategy(MtxStrat_Buffered)
 {}

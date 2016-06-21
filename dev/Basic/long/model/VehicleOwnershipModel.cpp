@@ -19,18 +19,6 @@ VehicleOwnershipModel::VehicleOwnershipModel(HM_Model *model): model(model){}
 
 VehicleOwnershipModel::~VehicleOwnershipModel() {}
 
-inline const double normalRandom()
-{
-	boost::mt19937 randomNumbergenerator( time( 0 ) );
-	boost::random::uniform_real_distribution< > uniformDistribution( 0.0, 1.0 );
-	boost::variate_generator< boost::mt19937&, boost::random::uniform_real_distribution < > >
-	generateRandomNumbers( randomNumbergenerator, uniformDistribution );
-	double u1=generateRandomNumbers();
-	double u2=generateRandomNumbers();
-	const double num =  cos(8.*atan(1.)*u2)*sqrt(-2.*log(u1));
-	return num;
-}
-
 void VehicleOwnershipModel::reconsiderVehicleOwnershipOption(const Household *household,HouseholdAgent *hhAgent, int day)
 {
 
@@ -108,7 +96,7 @@ void VehicleOwnershipModel::reconsiderVehicleOwnershipOption(const Household *ho
 				{
 					selecteVehicleOwnershipOtionId = probVal.first;
 					vehcileOwnershipOptChange->setNewVehicleOwnershipOptionId(selecteVehicleOwnershipOtionId);
-					writeVehicleOwnershipToFile(household->getId(),selecteVehicleOwnershipOtionId,randomNum);
+					writeVehicleOwnershipToFile(household->getId(),selecteVehicleOwnershipOtionId);
 					switch(selecteVehicleOwnershipOtionId)
 					{
 					case 1 : MessageBus::PostMessage(hhAgent, LTMID_HH_NO_VEHICLE, MessageBus::MessagePtr(new Message()));

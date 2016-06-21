@@ -80,6 +80,11 @@ struct LongTermParams
 		unsigned int vehicleBuyingWaitingTimeInDays;
 	}vehicleOwnershipModel;
 
+	struct TaxiAccessModel{
+		TaxiAccessModel();
+		bool enabled;
+	}taxiAccessModel;
+
 	struct SchoolAssignmentModel{
 		SchoolAssignmentModel();
 		bool enabled;

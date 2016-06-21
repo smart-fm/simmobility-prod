@@ -1570,12 +1570,13 @@ void HM_Model::startImpl()
 	}
 
 
+	if(config.ltParams.taxiAccessModel.enabled)
+	{
 	for (size_t n = 0; n < households.size(); n++)
 	{
 		hdbEligibilityTest(n);
 		setTaxiAccess(households[n]);
-		//reconsiderVehicleOwnershipOption(households[n]);
-
+	}
 	}
 
 

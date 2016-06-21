@@ -449,11 +449,15 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
 
             PrintOutV("Day " << currTick << " HUnits: " << std::dec << (dynamic_cast<HM_Model*>(models[0]))->getMarket()->getEntrySize()
 				   << " Bidders: " 	<< (dynamic_cast<HM_Model*>(models[0]))->getNumberOfBidders() << " "
+				   << " Sellers: " 	<< (dynamic_cast<HM_Model*>(models[0]))->getNumberOfSellers() << " "		
 				   << " Bids: " 	<< (dynamic_cast<HM_Model*>(models[0]))->getBids()
 				   << " Accepted: " << (dynamic_cast<HM_Model*>(models[0]))->getSuccessfulBids()
 				   << " Exits: " 	<< (dynamic_cast<HM_Model*>(models[0]))->getExits()
 				   << " Awaken: "	<< (dynamic_cast<HM_Model*>(models[0]))->getAwakeningCounter()
 				   << " " << std::endl );
+
+            (dynamic_cast<HM_Model*>(models[0]))->setNumberOfBidders(0);
+            (dynamic_cast<HM_Model*>(models[0]))->setNumberOfSellers(0);
 
             (dynamic_cast<HM_Model*>(models[0]))->resetBAEStatistics();
         }

@@ -200,14 +200,29 @@ HM_Model::~HM_Model()
 	stopImpl(); //for now
 }
 
-void HM_Model::incrementBidders()
+void HM_Model::setNumberOfBidders(int number)
+{
+	numberOfBidders = number;
+}
+
+void HM_Model::setNumberOfSellers(int number)
+{
+	numberOfSellers = number;
+}
+
+void HM_Model::incrementNumberOfSellers()
+{
+	numberOfSellers++;
+}
+
+void HM_Model::incrementNumberOfBidders()
 {
 	numberOfBidders++;
 }
 
-void HM_Model::decrementBidders()
+int HM_Model::getNumberOfSellers()
 {
-	numberOfBidders--;
+	return numberOfSellers;
 }
 
 int HM_Model::getNumberOfBidders()
@@ -1367,7 +1382,7 @@ void HM_Model::startImpl()
 				hhAgent->getBidder()->setActive(true);
 				if(resumptionHH->getUnitPending())
 				{
-					hhAgent->getBidder()->setMovInWaitingTimeInDays(resumptionHH->getMoveInDate().tm_mday - startDay);
+					hhAgent->getBidder()->setMoveInWaitingTimeInDays(resumptionHH->getMoveInDate().tm_mday - startDay);
 					hhAgent->getBidder()->setUnitIdToBeOwned(unitIdToBeOwned);
 				}
 			}

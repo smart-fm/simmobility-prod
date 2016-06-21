@@ -105,7 +105,7 @@ namespace sim_mob
 
             int getMoveInWaitingTimeInDays();
 
-            void setMovInWaitingTimeInDays(int days);
+            void setMoveInWaitingTimeInDays(int days);
 
             void setUnitIdToBeOwned(BigSerial unitId);
 

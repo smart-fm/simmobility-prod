@@ -289,6 +289,11 @@ void HouseholdSellerRole::update(timeslice now)
 
             selling = true;
         }
+
+        //If a unit has nothing to sell, then its job it done
+        if( unitIds.size() == 0 )
+        	setActive( false );
+
     }
 }
 

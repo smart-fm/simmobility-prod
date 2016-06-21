@@ -386,6 +386,51 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
             (*it)->start();
         }
 
+
+        PrintOutV("XML Config Settings: " << endl);
+        PrintOutV("XML Config lt params enabled " << config.ltParams.enabled << endl);
+        PrintOutV("XML Config calibrationSchemaVersion " << config.ltParams.calibrationSchemaVersion << endl);
+        PrintOutV("XML Config configSchemaVersion  " << config.ltParams.configSchemaVersion << endl);
+       	PrintOutV("XML Config currentOutputSchema " << config.ltParams.currentOutputSchema << endl);
+       	PrintOutV("XML Config days " << config.ltParams.days << endl);
+        PrintOutV("XML Config DeveloperModel " << config.ltParams.developerModel.enabled << endl);
+        PrintOutV("XML Config DeveloperModel initialBuildingId " << config.ltParams.developerModel.initialBuildingId << endl);
+        PrintOutV("XML Config DeveloperModel initialPostcode " << config.ltParams.developerModel.initialPostcode << endl);
+        PrintOutV("XML Config DeveloperModel initialProjectId " << config.ltParams.developerModel.initialProjectId << endl);
+        PrintOutV("XML Config DeveloperModel initialUnitId " << config.ltParams.developerModel.initialUnitId << endl);
+        PrintOutV("XML Config DeveloperModel minLotSize " << config.ltParams.developerModel.minLotSize << endl);
+        PrintOutV("XML Config DeveloperModel timeInterval " << config.ltParams.developerModel.timeInterval << endl);
+        PrintOutV("XML Config geometrySchemaVersion " << config.ltParams.geometrySchemaVersion << endl);
+        PrintOutV("XML Config HousingModel bidderBTOUnitsChoiceSet " << config.ltParams.housingModel.bidderBTOUnitsChoiceSet << endl);
+        PrintOutV("XML Config HousingModel bidderUnitsChoiceSet " << config.ltParams.housingModel.bidderUnitsChoiceSet << endl);
+        PrintOutV("XML Config HousingModel dailyHouseholdAwakenings " << config.ltParams.housingModel.dailyHouseholdAwakenings << endl);
+        PrintOutV("XML Config HousingModel enabled " << config.ltParams.housingModel.enabled << endl);
+        PrintOutV("XML Config HousingModel householdBiddingWindow " << config.ltParams.housingModel.householdBiddingWindow << endl);
+        PrintOutV("XML Config HousingModel housingMarketSearchPercentage " << config.ltParams.housingModel.housingMarketSearchPercentage << endl);
+        PrintOutV("XML Config HousingModel housingMoveInDaysInterval " << config.ltParams.housingModel.housingMoveInDaysInterval << endl);
+        PrintOutV("XML Config HousingModel initialHouseholdsOnMarket " << config.ltParams.housingModel.initialHouseholdsOnMarket << endl);
+        PrintOutV("XML Config HousingModel offsetBetweenUnitBuyingAndSelling " << config.ltParams.housingModel.offsetBetweenUnitBuyingAndSelling << endl);
+        PrintOutV("XML Config HousingModel timeInterval " << config.ltParams.housingModel.timeInterval << endl);
+        PrintOutV("XML Config HousingModel timeOffMarket " << config.ltParams.housingModel.timeOffMarket << endl);
+        PrintOutV("XML Config HousingModel timeOnMarket " << config.ltParams.housingModel.timeOnMarket << endl);
+        PrintOutV("XML Config HousingModel vacantUnitActivationProbability " << config.ltParams.housingModel.vacantUnitActivationProbability << endl);
+        PrintOutV("XML Config mainSchemaVersion " << config.ltParams.mainSchemaVersion << endl);
+        PrintOutV("XML Config maxIterations " << config.ltParams.maxIterations << endl);
+        PrintOutV("XML Config opSchemaloadingInterval " << config.ltParams.opSchemaloadingInterval << endl);
+        PrintOutV("XML Config outputHouseholdLogsums " << config.ltParams.outputHouseholdLogsums.enabled << endl);
+        PrintOutV("XML Config outputHouseholdLogsums fixedHomeVariableWork " << config.ltParams.outputHouseholdLogsums.fixedHomeVariableWork << endl);
+        PrintOutV("XML Config outputHouseholdLogsums fixedWorkVariableHome " << config.ltParams.outputHouseholdLogsums.fixedWorkVariableHome << endl);
+        PrintOutV("XML Config Simulation resumption " << config.ltParams.resume << endl);
+        PrintOutV("XML Config schoolAssignmentModel enabled " << config.ltParams.schoolAssignmentModel.enabled << endl);
+        PrintOutV("XML Config schoolAssignmentModel schoolChangeWaitingTimeInDays " << config.ltParams.schoolAssignmentModel.schoolChangeWaitingTimeInDays << endl);
+        PrintOutV("XML Config simulationScenario " << config.ltParams.simulationScenario << endl);
+        PrintOutV("XML Config tickStep " << config.ltParams.tickStep << endl);
+        PrintOutV("XML Config vehicleOwnershipModel " << config.ltParams.vehicleOwnershipModel.enabled << endl);
+        PrintOutV("XML Config vehicleOwnershipModel vehicleBuyingWaitingTimeInDays " << config.ltParams.vehicleOwnershipModel.vehicleBuyingWaitingTimeInDays << endl);
+        PrintOutV("XML Config workers " << config.ltParams.workers << endl);
+        PrintOutV("XML Config year " << config.ltParams.year << endl);
+
+
         //Start work groups and all threads.
         wgMgr.startAllWorkGroups();
 

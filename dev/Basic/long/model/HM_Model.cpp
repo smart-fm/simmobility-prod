@@ -1076,13 +1076,13 @@ void HM_Model::setTaxiAccess(const Household *household)
 	double expTaxiAccess = exp(valueTaxiAccess);
 	double probabilityTaxiAccess = (expTaxiAccess) / (1 + expTaxiAccess);
 
-	/*generate a random number between 0-1
-	* time(0) is passed as an input to constructor in order to randomize the result
-	*/
 	boost::mt19937 randomNumbergenerator( time( 0 ) );
 	boost::random::uniform_real_distribution< > uniformDistribution( 0.0, 1.0 );
-	boost::variate_generator< boost::mt19937&, boost::random::uniform_real_distribution < > >generateRandomNumbers( randomNumbergenerator, uniformDistribution );
-	const double randomNum = generateRandomNumbers( );
+	boost::variate_generator< boost::mt19937&, boost::random::uniform_real_distribution < > >
+	generateRandomNumbers( randomNumbergenerator, uniformDistribution );
+
+				const double randomNum = generateRandomNumbers();
+
 	if(randomNum < probabilityTaxiAccess)
 	{
 		writeTaxiAvailabilityToFile(household->getId());
@@ -1569,6 +1569,7 @@ void HM_Model::startImpl()
 			tempHH->setIndividual(individuals[n]->getId());
 	}
 
+
 	for (size_t n = 0; n < households.size(); n++)
 	{
 		hdbEligibilityTest(n);
@@ -1576,7 +1577,7 @@ void HM_Model::startImpl()
 		//reconsiderVehicleOwnershipOption(households[n]);
 
 	}
-	//PrintOut("taxi access available for "<<count<<" number of hh"<<std::endl);
+
 
 	PrintOutV("The synthetic population contains " << household_stats.adultSingaporean_global << " adult Singaporeans." << std::endl);
 	PrintOutV("Minors. Male: " << household_stats.maleChild_global << " Female: " << household_stats.femaleChild_global << std::endl);

@@ -19,9 +19,20 @@ VehicleOwnershipModel::VehicleOwnershipModel(HM_Model *model): model(model){}
 
 VehicleOwnershipModel::~VehicleOwnershipModel() {}
 
+inline const double normalRandom()
+{
+	boost::mt19937 randomNumbergenerator( time( 0 ) );
+	boost::random::uniform_real_distribution< > uniformDistribution( 0.0, 1.0 );
+	boost::variate_generator< boost::mt19937&, boost::random::uniform_real_distribution < > >
+	generateRandomNumbers( randomNumbergenerator, uniformDistribution );
+	double u1=generateRandomNumbers();
+	double u2=generateRandomNumbers();
+	const double num =  cos(8.*atan(1.)*u2)*sqrt(-2.*log(u1));
+	return num;
+}
+
 void VehicleOwnershipModel::reconsiderVehicleOwnershipOption(const Household *household,HouseholdAgent *hhAgent, int day)
 {
-
 
 		int unitTypeId = 0;
 		if(household->getUnitId() != INVALID_ID)
@@ -49,18 +60,21 @@ void VehicleOwnershipModel::reconsiderVehicleOwnershipOption(const Household *ho
 				if(coeffsObj->getVehicleOwnershipOptionId() == 1)
 				{
 					vehicleOwnershipLogsum = logsum->getLogsumTransit();
+					double value = vehicleOwnershipLogsum * coeffsObj->getLogsum();
+					double expVal = exp(value);
+					expValMap.insert(std::pair<BigSerial, double>( coeffsObj->getVehicleOwnershipOptionId(), expVal));
+					totalExp = totalExp + expVal;
+
 				}
 				else if(coeffsObj->getVehicleOwnershipOptionId() > 1)
 				{
 					vehicleOwnershipLogsum = logsum->getLogsumCar();
+					double expVal = getExp(unitTypeId,vehicleOwnershipLogsum,coeffsObj,household);
+					expValMap.insert(std::pair<BigSerial, double>( coeffsObj->getVehicleOwnershipOptionId(), expVal));
+					totalExp = totalExp + expVal;
 				}
 			}
-
-			double expVal = getExp(unitTypeId,vehicleOwnershipLogsum,coeffsObj,household);
-			expValMap.insert(std::pair<BigSerial, double>( coeffsObj->getVehicleOwnershipOptionId(), expVal));
-			totalExp = totalExp + expVal;
 		}
-
 
 		std::map<BigSerial,double> probValMap;
 		if(totalExp > 0)
@@ -71,10 +85,12 @@ void VehicleOwnershipModel::reconsiderVehicleOwnershipOption(const Household *ho
 				probValMap.insert(std::pair<BigSerial, double>( expVal.first, probVal));
 			}
 
-			//generate a normally distributed random number
-			boost::mt19937 igen;
-			boost::variate_generator<boost::mt19937, boost::normal_distribution<> >gen(igen,boost::normal_distribution<>(0.0, 1.0 ));
-			const double randomNum = gen();
+			boost::mt19937 randomNumbergenerator( time( 0 ) );
+			boost::random::uniform_real_distribution< > uniformDistribution( 0.0, 1.0 );
+			boost::variate_generator< boost::mt19937&, boost::random::uniform_real_distribution < > >
+			generateRandomNumbers( randomNumbergenerator, uniformDistribution );
+
+			const double randomNum = generateRandomNumbers();
 			double pTemp = 0;
 
 			BigSerial selecteVehicleOwnershipOtionId = 0;
@@ -92,7 +108,7 @@ void VehicleOwnershipModel::reconsiderVehicleOwnershipOption(const Household *ho
 				{
 					selecteVehicleOwnershipOtionId = probVal.first;
 					vehcileOwnershipOptChange->setNewVehicleOwnershipOptionId(selecteVehicleOwnershipOtionId);
-					writeVehicleOwnershipToFile(household->getId(),selecteVehicleOwnershipOtionId);
+					writeVehicleOwnershipToFile(household->getId(),selecteVehicleOwnershipOtionId,randomNum);
 					switch(selecteVehicleOwnershipOtionId)
 					{
 					case 1 : MessageBus::PostMessage(hhAgent, LTMID_HH_NO_VEHICLE, MessageBus::MessagePtr(new Message()));
@@ -168,17 +184,17 @@ double VehicleOwnershipModel::getExp(int unitTypeId,double vehicleOwnershipLogsu
 	{
 		const Individual* individual = model->getIndividualById((*individualsItr));
 		int ageCategoryId = individual->getAgeCategoryId();
-		if (ageCategoryId >= 12)
+		if ( (ageCategoryId >= 12) && (ageCategoryId != 99) )
 		{
 			numElderly++;
 		}
 
-		if(individual->getOccupationId() == 2)
+		if( (individual->getOccupationId() == 1 ) || (individual->getOccupationId() == 2) || (individual->getOccupationId() == 3))
 		{
 			numWhiteCollars++;
 		}
 
-		if(individual->getEmploymentStatusId() == (1 || 2 || 3))
+		if( (individual->getEmploymentStatusId() == 1)  || (individual->getEmploymentStatusId() == 2) || (individual->getEmploymentStatusId() == 3))
 		{
 			numWorkers++;
 		}
@@ -194,11 +210,11 @@ double VehicleOwnershipModel::getExp(int unitTypeId,double vehicleOwnershipLogsu
 		value = value + coeffsObj->getWorker();
 	}
 
-	if (household->getChildUnder15()==1)
+	if ( (household->getChildUnder15()==1) || (household->getChildUnder4() == 1))
 	{
 		value = value + coeffsObj->getHhChild1();
 	}
-	else if (household->getChildUnder15()>1)
+	else if ( (household->getChildUnder15()>1) || (household->getChildUnder4()> 1))
 	{
 		value = value + coeffsObj->getHhChild2Plus();
 	}
@@ -218,11 +234,11 @@ double VehicleOwnershipModel::getExp(int unitTypeId,double vehicleOwnershipLogsu
 	if(distanceMRT != nullptr)
 	{
 		double distanceMrt = distanceMRT->getDistanceMrt();
-		if ((distanceMrt>0) && (distanceMrt<=500))
+		if (distanceMrt<500)
 		{
 			value = value + coeffsObj->getMrt500m();
 		}
-		else if((distanceMrt > 500) && (distanceMrt<=1000))
+		else if((distanceMrt >= 500) && (distanceMrt<1000))
 		{
 			value = value + coeffsObj->getMrt1000m();
 		}

@@ -502,7 +502,7 @@ inline void createPotentialProjects(BigSerial parcelId, DeveloperModel* model, P
                 	}
 
                 	//generate a normally distributed random number
-                	boost::mt19937 igen;
+                	boost::mt19937 igen(time(0));
                 	boost::variate_generator<boost::mt19937, boost::normal_distribution<> >gen(igen,boost::normal_distribution<>(0.0, 1.0 ));
                 	const double randomNum = gen();
                 	double pTemp = 0.0;

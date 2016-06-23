@@ -144,13 +144,6 @@ public:
 	void loadPostcodeNodeMapping(db::BackendType dbType);
 
 	/**
-	 * gets the mapping of zones from data for 2012 back to data for 2008
-	 *
-	 * @param dbType type of backend where the zone node mapping data is available
-	 */
-	void load2012_2008ZoneMapping(db::BackendType dbType);
-
-	/**
 	 * loads the AM, PM and off peak costs data
 	 *
 	 * @param dbType type of backend where the cost data is available

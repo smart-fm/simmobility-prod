@@ -35,6 +35,7 @@
 #include "database/DB_Config.hpp"
 #include "database/predaydao/DatabaseHelper.hpp"
 #include "database/predaydao/PopulationSqlDao.hpp"
+#include "database/predaydao/ZoneCostSqlDao.hpp"
 #include "database/PopulationMongoDao.hpp"
 #include "database/ZoneCostMongoDao.hpp"
 #include "logging/NullableOutputStream.hpp"
@@ -83,7 +84,7 @@ void printVector(const std::string vecName, const std::vector<V>& vec)
 	{
 		ss << "," << (*vIt);
 	}
-	ss << "]" << std::endl;
+	ss << "]\n";
 	Print() << ss.str();
 }
 
@@ -579,6 +580,24 @@ void mergeCSV_Files(const std::list<std::string>& fileNameList, const std::strin
 	std::cout << "Files merged; took " << sw.getTime() << "s\n";
 }
 
+/**
+ * constructs and returns a DB_Connection object
+ * @param dbInfo object holding the ids of configurations to construct the connection string
+ * @return DB_Connection object
+ */
+DB_Connection getDB_Connection(const DatabaseDetails& dbInfo)
+{
+	const std::string& dbId = dbInfo.database;
+	const std::string& cred_id = dbInfo.credentials;
+	const ConfigParams& cfg = ConfigManager::GetInstance().FullConfig();
+	Database db = cfg.constructs.databases.at(dbId);
+	Credential cred = cfg.constructs.credentials.at(cred_id);
+	std::string username = cred.getUsername();
+	std::string password = cred.getPassword(false);
+	DB_Config dbConfig(db.host, db.port, db.dbName, username, password);
+	return DB_Connection(sim_mob::db::POSTGRES, dbConfig);
+}
+
 } //end anonymous namespace
 
 sim_mob::medium::PredayManager::PredayManager() :
@@ -588,7 +607,7 @@ sim_mob::medium::PredayManager::PredayManager() :
 
 sim_mob::medium::PredayManager::~PredayManager()
 {
-	Print() << "Clearing Person List" << std::endl;
+	Print() << "Clearing Person List\n";
 	// clear Persons
 	for (PersonList::iterator i = personList.begin(); i != personList.end(); i++)
 	{
@@ -597,7 +616,7 @@ sim_mob::medium::PredayManager::~PredayManager()
 	personList.clear();
 
 	// clear Zones
-	Print() << "Clearing zoneMap" << std::endl;
+	Print() << "Clearing zoneMap\n";
 	for (ZoneMap::iterator i = zoneMap.begin(); i != zoneMap.end(); i++)
 	{
 		delete i->second;
@@ -605,7 +624,7 @@ sim_mob::medium::PredayManager::~PredayManager()
 	zoneMap.clear();
 
 	// clear AMCosts
-	Print() << "Clearing amCostMap" << std::endl;
+	Print() << "Clearing amCostMap\n";
 	for (CostMap::iterator i = amCostMap.begin(); i != amCostMap.end(); i++)
 	{
 		for (boost::unordered_map<int, CostParams*>::iterator j = i->second.begin(); j != i->second.end(); j++)
@@ -619,7 +638,7 @@ sim_mob::medium::PredayManager::~PredayManager()
 	amCostMap.clear();
 
 	// clear PMCosts
-	Print() << "Clearing pmCostMap" << std::endl;
+	Print() << "Clearing pmCostMap\n";
 	for (CostMap::iterator i = pmCostMap.begin(); i != pmCostMap.end(); i++)
 	{
 		for (boost::unordered_map<int, CostParams*>::iterator j = i->second.begin(); j != i->second.end(); j++)
@@ -633,7 +652,7 @@ sim_mob::medium::PredayManager::~PredayManager()
 	pmCostMap.clear();
 
 	// clear OPCosts
-	Print() << "Clearing opCostMap" << std::endl;
+	Print() << "Clearing opCostMap\n";
 	for (CostMap::iterator i = opCostMap.begin(); i != opCostMap.end(); i++)
 	{
 		for (boost::unordered_map<int, CostParams*>::iterator j = i->second.begin(); j != i->second.end(); j++)
@@ -647,13 +666,15 @@ sim_mob::medium::PredayManager::~PredayManager()
 	opCostMap.clear();
 
 	// clear Zone node map
-	Print() << "Clearing zoneNodeMap" << std::endl;
-	for (ZoneNodeMap::iterator i = zoneNodeMap.begin(); i != zoneNodeMap.end(); i++)
+	Print() << "Clearing zoneNodeMap\n";
+	for (ZoneNodeMap::iterator znNdMapIt = zoneNodeMap.begin(); znNdMapIt != zoneNodeMap.end(); znNdMapIt++)
 	{
-		for (std::vector<ZoneNodeParams*>::iterator j = i->second.begin(); j != i->second.end(); j++)
+		std::vector<ZoneNodeParams*>& znParamsList = znNdMapIt->second;
+		for (std::vector<ZoneNodeParams*>::iterator znNdPrmsIt = znParamsList.begin(); znNdPrmsIt != znParamsList.end(); znNdPrmsIt++)
 		{
-			delete *j;
+			safe_delete_item(*znNdPrmsIt);
 		}
+		znParamsList.clear();
 	}
 	zoneNodeMap.clear();
 }
@@ -665,16 +686,7 @@ void sim_mob::medium::PredayManager::loadPersonIds(BackendType dbType)
 	case POSTGRES:
 	{
 		// population data source
-		const std::string& populationDbId = mtConfig.getPopulationDb().database;
-		Database populationDatabase = ConfigManager::GetInstance().FullConfig().constructs.databases.at(populationDbId);
-		std::string cred_id = mtConfig.getPopulationDb().credentials;
-		Credential populationCredentials = ConfigManager::GetInstance().FullConfig().constructs.credentials.at(cred_id);
-		std::string username = populationCredentials.getUsername();
-		std::string password = populationCredentials.getPassword(false);
-		DB_Config populationDbConfig(populationDatabase.host, populationDatabase.port, populationDatabase.dbName, username, password);
-
-		// Connect to database and load data.
-		DB_Connection conn(sim_mob::db::POSTGRES, populationDbConfig);
+		DB_Connection conn = getDB_Connection(ConfigManager::GetInstance().FullConfig().populationDatabase);
 		conn.connect();
 		if (conn.isConnected())
 		{
@@ -709,7 +721,18 @@ void sim_mob::medium::PredayManager::loadZones(db::BackendType dbType)
 	{
 	case POSTGRES:
 	{
-		throw std::runtime_error("Zone information is not available in PostgreSQL database yet");
+		DB_Connection simmobConn = getDB_Connection(ConfigManager::GetInstance().FullConfig().networkDatabase);
+		simmobConn.connect();
+		if (simmobConn.isConnected())
+		{
+			ZoneSqlDao zoneDao(simmobConn);
+			zoneDao.getAll(zoneMap, &ZoneParams::getZoneId);
+			Print() << "MTZ Zones loaded\n";
+		}
+		else
+		{
+			throw std::runtime_error("connection failure. Could not MTZs zones");
+		}
 		break;
 	}
 	case MONGO_DB:
@@ -720,7 +743,7 @@ void sim_mob::medium::PredayManager::loadZones(db::BackendType dbType)
 		db::DB_Config dbConfig(db.host, db.port, db.dbName, emptyString, emptyString);
 		ZoneMongoDao zoneDao(dbConfig, db.dbName, zoneCollectionName);
 		zoneDao.getAllZones(zoneMap);
-		Print() << "MTZ Zones loaded" << std::endl;
+		Print() << "MTZ Zones loaded\n";
 		break;
 	}
 	default:
@@ -741,7 +764,19 @@ void sim_mob::medium::PredayManager::loadZoneNodes(db::BackendType dbType)
 	{
 	case POSTGRES:
 	{
-		throw std::runtime_error("Zone to node mapping is not available in PostgreSQL database");
+		DB_Connection simmobConn = getDB_Connection(ConfigManager::GetInstance().FullConfig().networkDatabase);
+		simmobConn.connect();
+		if (simmobConn.isConnected())
+		{
+			ZoneNodeSqlDao zoneNodeDao(simmobConn);
+			zoneNodeDao.getZoneNodeMap(zoneNodeMap);
+			Print() << "Zones-Node mapping loaded\n";
+		}
+		else
+		{
+			throw std::runtime_error("simmob db connection failure!");
+		}
+		break;
 	}
 	case MONGO_DB:
 	{
@@ -751,7 +786,7 @@ void sim_mob::medium::PredayManager::loadZoneNodes(db::BackendType dbType)
 		db::DB_Config dbConfig(db.host, db.port, db.dbName, emptyString, emptyString);
 		ZoneNodeMappingDao zoneNodeDao(dbConfig, db.dbName, zoneNodeCollectionName);
 		zoneNodeDao.getAll(zoneNodeMap);
-		Print() << "Zones-Node mapping loaded" << std::endl;
+		Print() << "Zones-Node mapping loaded\n";
 		break;
 	}
 	default:
@@ -767,22 +802,17 @@ void sim_mob::medium::PredayManager::loadPostcodeNodeMapping(BackendType dbType)
 	{
 	case POSTGRES:
 	{
-		// postcode to node mapping data source
-		const std::string& simmobDbId = mtConfig.getSimmobDb().database;
-		Database simmobDatabase = ConfigManager::GetInstance().FullConfig().constructs.databases.at(simmobDbId);
-		std::string cred_id = mtConfig.getSimmobDb().credentials;
-		Credential simmobCredentials = ConfigManager::GetInstance().FullConfig().constructs.credentials.at(cred_id);
-		std::string username = simmobCredentials.getUsername();
-		std::string password = simmobCredentials.getPassword(false);
-		DB_Config simmobDbConfig(simmobDatabase.host, simmobDatabase.port, simmobDatabase.dbName, username, password);
-		DB_Connection simmobConn(sim_mob::db::POSTGRES, simmobDbConfig);
+		DB_Connection simmobConn = getDB_Connection(ConfigManager::GetInstance().FullConfig().networkDatabase);
 		simmobConn.connect();
-		if (!simmobConn.isConnected())
+		if (simmobConn.isConnected())
+		{
+			SimmobSqlDao simmobSqlDao(simmobConn);
+			simmobSqlDao.getPostcodeNodeMap(PersonParams::getPostcodeNodeMap());
+		}
+		else
 		{
 			throw std::runtime_error("simmob db connection failure!");
 		}
-		SimmobSqlDao simmobSqlDao(simmobConn);
-		simmobSqlDao.getPostcodeToNodeMap(PersonParams::getPostcodeNodeMap());
 		break;
 	}
 	case MONGO_DB:
@@ -796,39 +826,46 @@ void sim_mob::medium::PredayManager::loadPostcodeNodeMapping(BackendType dbType)
 	}
 }
 
-void sim_mob::medium::PredayManager::load2012_2008ZoneMapping(db::BackendType dbType)
-{
-	switch (dbType)
-	{
-	case POSTGRES:
-	{
-		throw std::runtime_error("2012->2008 Zone mapping is not available in PostgreSQL database");
-	}
-	case MONGO_DB:
-	{
-		std::string zn12_08CollectionName = mtConfig.getMongoCollectionsMap().getCollectionName("zone_08_12");
-		Database db = ConfigManager::GetInstance().FullConfig().constructs.databases.at("fm_mongo");
-		std::string emptyString;
-		db::DB_Config dbConfig(db.host, db.port, db.dbName, emptyString, emptyString);
-		MTZ12_MTZ08_MappingDao mtz12_08MapDao(dbConfig, db.dbName, zn12_08CollectionName);
-		mtz12_08MapDao.getAll(MTZ12_MTZ08_Map);
-		Print() << "Zones 2012->2008 mapping loaded" << std::endl;
-		break;
-	}
-	default:
-	{
-		throw std::runtime_error("Unsupported backend type. Only PostgreSQL and MongoDB are currently supported.");
-	}
-	}
-}
-
 void sim_mob::medium::PredayManager::loadCosts(db::BackendType dbType)
 {
+	ZoneMap::size_type nZones = zoneMap.size();
+	if (nZones > 0)
+	{
+		// if the zone data was loaded already we can reserve space for costs to speed up the loading
+		// Cost data will be available for every pair (a,b) of zones where a!=b
+		CostMap::size_type mapSz = nZones * nZones - nZones;
+
+		amCostMap.rehash(ceil(mapSz / amCostMap.max_load_factor()));
+		pmCostMap.rehash(ceil(mapSz / pmCostMap.max_load_factor()));
+		opCostMap.rehash(ceil(mapSz / opCostMap.max_load_factor()));
+	}
+
 	switch (dbType)
 	{
 	case POSTGRES:
 	{
-		throw std::runtime_error("AM, PM and off peak costs are not available in PostgreSQL database yet");
+		DB_Connection simmobConn = getDB_Connection(ConfigManager::GetInstance().FullConfig().networkDatabase);
+		simmobConn.connect();
+		if (simmobConn.isConnected())
+		{
+			SimmobSqlDao simmobSqlDao(simmobConn);
+			CostSqlDao amCostDao(simmobConn, DB_GET_ALL_AM_COSTS);
+			amCostDao.getAll(amCostMap);
+			Print() << "AM costs loaded\n";
+
+			CostSqlDao pmCostDao(simmobConn, DB_GET_ALL_PM_COSTS);
+			pmCostDao.getAll(pmCostMap);
+			Print() << "PM costs loaded\n";
+
+			CostSqlDao opCostDao(simmobConn, DB_GET_ALL_OP_COSTS);
+			opCostDao.getAll(opCostMap);
+			Print() << "OP costs loaded\n";
+		}
+		else
+		{
+			throw std::runtime_error("simmob db connection failure!");
+		}
+		break;
 	}
 	case MONGO_DB:
 	{
@@ -840,34 +877,22 @@ void sim_mob::medium::PredayManager::loadCosts(db::BackendType dbType)
 		std::string emptyString;
 		db::DB_Config dbConfig(db.host, db.port, db.dbName, emptyString, emptyString);
 
-		ZoneMap::size_type nZones = zoneMap.size();
-		if (nZones > 0)
-		{
-			// if the zone data was loaded already we can reserve space for costs to speed up the loading
-			// Cost data will be available foe every pair (a,b) of zones where a!=b
-			CostMap::size_type mapSz = nZones * nZones - nZones;
-
-			//boost 1.49
-			amCostMap.rehash(ceil(mapSz / amCostMap.max_load_factor()));
-			pmCostMap.rehash(ceil(mapSz / pmCostMap.max_load_factor()));
-			opCostMap.rehash(ceil(mapSz / opCostMap.max_load_factor()));
-			//boost >= 1.50
-			//amCostMap.reserve(mapSz);
-			//pmCostMap.reserve(mapSz);
-			//opCostMap.reserve(mapSz);
-		}
-
 		CostMongoDao amCostDao(dbConfig, db.dbName, amCostsCollName);
 		amCostDao.getAll(amCostMap);
-		Print() << "AM Costs Loaded" << std::endl;
+		Print() << "AM Costs Loaded\n";
 
 		CostMongoDao pmCostDao(dbConfig, db.dbName, pmCostsCollName);
 		pmCostDao.getAll(pmCostMap);
-		Print() << "PM Costs Loaded" << std::endl;
+		Print() << "PM Costs Loaded\n";
 
 		CostMongoDao opCostDao(dbConfig, db.dbName, opCostsCollName);
 		opCostDao.getAll(opCostMap);
-		Print() << "OP Costs Loaded" << std::endl;
+		Print() << "OP Costs Loaded\n";
+		break;
+	}
+	default:
+	{
+		throw std::runtime_error("Unsupported backend type. Only PostgreSQL and MongoDB are currently supported.");
 	}
 	}
 }
@@ -912,7 +937,7 @@ void sim_mob::medium::PredayManager::loadUnavailableODs(db::BackendType dbType)
 			unavailableODs.push_back(OD_Pair(origin, destination)); // this push_back can create duplicates (already inserted OD pairs) to be inserted. But it is okay!
 		}
 		std::sort(unavailableODs.begin(), unavailableODs.end()); // so that future lookups can be O(log n)
-		Print() << "Unavailable ODs loaded" << std::endl;
+		Print() << "Unavailable ODs loaded\n";
 	}
 	}
 }
@@ -1044,7 +1069,7 @@ void sim_mob::medium::PredayManager::dispatchLT_Persons()
 		}
 		else
 		{
-			Print() << DB_TABLE_LOGSUMS << " truncation failed!" << std::endl;
+			Print() << DB_TABLE_LOGSUMS << " truncation failed!\n";
 		}
 	}
 
@@ -1229,7 +1254,7 @@ void sim_mob::medium::PredayManager::calibratePreday()
 
 	// iteration 0
 	std::vector<double> simulatedHITS_Stats;
-	Print() << "~~~~~ iteration " << 0 << " ~~~~~" << std::endl;
+	Print() << "~~~~~ iteration " << 0 << " ~~~~~\n";
 	printParameters(calibrationVariablesList, "iteration");
 	double objFn = computeObjectiveFunction(calibrationVariablesList, simulatedHITS_Stats);
 	objectiveFunctionValues.push_back(objFn);
@@ -1241,7 +1266,7 @@ void sim_mob::medium::PredayManager::calibratePreday()
 	for (unsigned k = 1; k <= iterationLimit; k++)
 	{
 		// iteration k
-		Print() << "~~~~~ iteration " << k << " ~~~~~" << std::endl;
+		Print() << "~~~~~ iteration " << k << " ~~~~~\n";
 		simulatedHITS_Stats.clear();
 
 		// 1. compute perturbation step size

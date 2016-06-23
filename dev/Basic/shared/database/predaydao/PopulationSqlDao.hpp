@@ -95,9 +95,9 @@ public:
 
 	/**
 	 * fetches taz code for each address id in simmobility database
-	 * @param outMap output parameter for storing address_id -> TAZ code map
+	 * @param outMap output parameter for storing postcode -> simmobility node map
 	 */
-	void getPostcodeToNodeMap(std::map<unsigned int, unsigned int>& outMap);
+	void getPostcodeNodeMap(std::map<unsigned int, unsigned int>& outMap);
 
 private:
 	/**

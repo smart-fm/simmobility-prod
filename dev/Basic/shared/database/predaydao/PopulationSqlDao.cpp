@@ -196,7 +196,7 @@ void SimmobSqlDao::getLogsumById(long long id, PersonParams& outObj)
 	getById(params, outObj);
 }
 
-void SimmobSqlDao::getPostcodeToNodeMap(std::map<unsigned int, unsigned int>& postcodeNodeMap)
+void SimmobSqlDao::getPostcodeNodeMap(std::map<unsigned int, unsigned int>& postcodeNodeMap)
 {
 	if (isConnected())
 	{

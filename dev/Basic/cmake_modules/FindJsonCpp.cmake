@@ -25,7 +25,7 @@ OUTPUT_VARIABLE _gcc_COMPILER_VERSION
 OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 
-SET(JSONCPP_NAMES ${JSONCPP_NAMES} libjsoncpp.so libjson_linux-gcc-${_gcc_COMPILER_VERSION}_libmt.so)
+SET(JSONCPP_NAMES ${JSONCPP_NAMES} libjsoncpp.a libjson_linux-gcc-${_gcc_COMPILER_VERSION}_libmt.a)
 FIND_LIBRARY(JSONCPP_LIBRARY
 NAMES ${JSONCPP_NAMES}
 PATHS /usr/lib /usr/local/lib /afs/csail.mit.edu/u/x/xuyan/lib/json-cpp/jsoncpp-src-0.5.0/libs/linux-gcc-4.4.5

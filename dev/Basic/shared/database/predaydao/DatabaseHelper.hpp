@@ -16,10 +16,10 @@ const std::string EMPTY_STRING = "";
 /**
  * Schemas
  */
-const std::string MAIN_SCHEMA = "main2012.";
-const std::string CALIBRATION_SCHEMA = "calibration2012.";
+const std::string MAIN_SCHEMA = "virtual_city.";
+const std::string CALIBRATION_SCHEMA = "calibration_virtual_city.";
 const std::string PUBLIC_SCHEMA = "public.";
-const std::string DEMAND_SCHEMA = "demand.";
+const std::string DEMAND_SCHEMA = "calibration_virtual_city.";
 
 /**
  * Tables

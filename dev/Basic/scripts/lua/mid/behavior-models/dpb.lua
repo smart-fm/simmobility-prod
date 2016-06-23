@@ -13,12 +13,12 @@ UPDATED VERSION - Adnan
 --Estimated values for all betas
 --Note: the betas that not estimated are fixed to zero.
 --travel constants
-local cons_travel = 3.347
+local cons_travel = 1.28
 
 --Person type
 local beta_homemaker = 0.442
 local beta_retired = -0.419
-local beta_fulltime = 4.10
+local beta_fulltime = 4.1
 local beta_parttime = 3.02
 local beta_selfemployed = 2.60
 local beta_unemployed = -0.329
@@ -191,7 +191,7 @@ local function computeUtilities(params)
 		motoravail = 1 
 	end
 			
-	utility[1] = 0
+	utility[1] = 0.55
 			
 	if person_type_id == 11 or person_type_id == 99 then 
 		--taking care of excluded individuals at dpbinary level (individuals not eligible for hits interview and also not traveling 

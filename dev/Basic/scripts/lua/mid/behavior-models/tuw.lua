@@ -16,16 +16,16 @@ local beta_cons_unusual = 0
 local beta_fixedlocation_usual= 0
 local beta_fixedlocation_unusual= 0
 
-local beta_fixedtime_usual= 0.231
+local beta_fixedtime_usual = 0.231
 local beta_fixedtime_unusual= 0
 
-local beta_female_usual= 0.182
+local beta_female_usual = 0.182
 local beta_female_unusual= 0
 
 local beta_under3000_usual= 0
 local beta_under3000_unusual= 0
 
-local beta_distance_log_usual=-0.0662
+local beta_distance_log_usual = -0.0662
 local beta_distance1_usual= 0
 local beta_distance2_usual= 0
 local beta_distance3_usual= 0
@@ -35,13 +35,13 @@ local beta_distance1_unusual= 0
 local beta_distance2_unusual= 0
 local beta_distance3_unusual= 0
 
-local beta_employment_full_usual= 0.0521
+local beta_employment_full_usual = 0.0521
 local beta_employment_full_unusual= 0
 
 local beta_employment_part_usual= 0.0246
 local beta_employment_part_unusual= 0
 
-local beta_employment_self_usual= 0.0695
+local beta_employment_self_usual = 0.0695
 local beta_employment_self_unusual= 0
 
 local beta_work_home_usual=1.35

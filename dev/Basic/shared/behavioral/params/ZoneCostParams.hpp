@@ -376,12 +376,12 @@ public:
 	{
 	}
 
-	long getNodeId() const
+	unsigned int getNodeId() const
 	{
 		return simmobNodeId;
 	}
 
-	void setNodeId(long aimsunNodeId)
+	void setNodeId(unsigned int aimsunNodeId)
 	{
 		this->simmobNodeId = aimsunNodeId;
 	}
@@ -430,7 +430,7 @@ private:
 	/** taz code */
 	int zone;
 	/** simmobility node id */
-	long simmobNodeId;
+	unsigned int simmobNodeId;
 	/** is this a node with no upstream segments*/
 	bool sourceNode;
 	/** is this a node with no downstream segments*/

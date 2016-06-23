@@ -16,7 +16,7 @@ const std::string EMPTY_STRING = "";
 /**
  * Schemas
  */
-const std::string MAIN_SCHEMA = "main2012.";
+const std::string MAIN_SCHEMA = "main_midterm.";
 const std::string CALIBRATION_SCHEMA = "calibration2012.";
 const std::string PUBLIC_SCHEMA = "public.";
 const std::string DEMAND_SCHEMA = "demand.";
@@ -26,11 +26,12 @@ const std::string DEMAND_SCHEMA = "demand.";
  */
 const std::string DB_TABLE_INCOME_CATEGORIES = APPLY_SCHEMA(MAIN_SCHEMA, "income_category");
 const std::string DB_TABLE_VEHICLE_CATEGORIES = APPLY_SCHEMA(MAIN_SCHEMA, "vehicle_category");
-const std::string DB_TABLE_LOGSUMS = APPLY_SCHEMA(DEMAND_SCHEMA, "preday_logsum");
+const std::string DB_TABLE_LOGSUMS = APPLY_SCHEMA(DEMAND_SCHEMA, "preday_logsum_orig");
 const std::string DB_TABLE_AM_COSTS = APPLY_SCHEMA(DEMAND_SCHEMA, "amcosts");
 const std::string DB_TABLE_PM_COSTS = APPLY_SCHEMA(DEMAND_SCHEMA, "pmcosts");
 const std::string DB_TABLE_OP_COSTS = APPLY_SCHEMA(DEMAND_SCHEMA, "opcosts");
 const std::string DB_TABLE_TAZ = APPLY_SCHEMA(DEMAND_SCHEMA, "taz_2012");
+const std::string DB_TABLE_NODE_ZONE_MAP = APPLY_SCHEMA(DEMAND_SCHEMA, "node_taz_map");
 
 /**
  * Stored procedures for long-term population database
@@ -123,6 +124,18 @@ const std::string DB_FIELD_COST_PUB_IVT = "pub_ivt";
 const std::string DB_FIELD_COST_AVG_TRANSFER = "avg_transfer";
 const std::string DB_FIELD_COST_PUB_COST = "pub_cost";
 
+/**
+ * Fields for node to zone mapping data (in postgres db)
+ */
+const std::string DB_FIELD_NODE_TYPE = "node_type";
+const std::string DB_FIELD_TRAFFIC_LIGHT = "traffic_light";
+const std::string DB_FIELD_SOURCE = "source";
+const std::string DB_FIELD_SINK = "sink";
+const std::string DB_FIELD_EXPWAY = "expressway";
+const std::string DB_FIELD_INTERSECT = "intersection";
+const std::string DB_FIELD_BUS_TERMINUS = "bus_terminus_node";
+const std::string DB_FIELD_TAZ = "taz";
+
 /** get all individual ids from long-term population database */
 const std::string DB_GET_ALL_PERSON_IDS = "SELECT * FROM " + DB_SP_GET_INDIVIDUAL_IDS;
 
@@ -160,5 +173,8 @@ const std::string DB_GET_ALL_OP_COSTS = "SELECT * FROM " + DB_TABLE_OP_COSTS;
 
 /** load zones */
 const std::string DB_GET_ALL_ZONES = "SELECT * FROM " + DB_TABLE_TAZ;
+
+/** load node to zone mapping */
+const std::string DB_GET_ALL_NODE_ZONE_MAP = "SELECT * FROM " + DB_TABLE_NODE_ZONE_MAP;
 
 } // end namespace sim_mob

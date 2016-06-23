@@ -86,3 +86,43 @@ void ZoneSqlDao::fromRow(Row& result, ZoneParams& outObj)
 void ZoneSqlDao::toRow(ZoneParams& data, Parameters& outParams, bool update)
 {
 }
+
+ZoneNodeSqlDao::ZoneNodeSqlDao(DB_Connection& connection) :
+		SqlAbstractDao<ZoneNodeParams>(connection, "", "", "", "", "", "")
+{
+}
+
+ZoneNodeSqlDao::~ZoneNodeSqlDao()
+{
+}
+
+void ZoneNodeSqlDao::fromRow(Row& result, ZoneNodeParams& outObj)
+{
+	outObj.setZone(result.get<int>(DB_FIELD_TAZ));
+	outObj.setNodeId(result.get<unsigned int>(DB_FIELD_NODE_ID));
+	outObj.setSourceNode(result.get<int>(DB_FIELD_SOURCE));
+	outObj.setSinkNode(result.get<int>(DB_FIELD_SINK));
+	outObj.setBusTerminusNode(result.get<int>(DB_FIELD_BUS_TERMINUS));
+}
+
+void ZoneNodeSqlDao::toRow(ZoneNodeParams& data, Parameters& outParams, bool update)
+{
+}
+
+void ZoneNodeSqlDao::getZoneNodeMap(boost::unordered_map<int, std::vector<ZoneNodeParams*> >& outList)
+{
+	if (isConnected())
+	{
+		Statement query(connection.getSession<soci::session>());
+		prepareStatement(DB_GET_ALL_NODE_ZONE_MAP, db::EMPTY_PARAMS, query);
+		ResultSet rs(query);
+		ResultSet::const_iterator it = rs.begin();
+		for (it; it != rs.end(); ++it)
+		{
+			Row& row = *it;
+			ZoneNodeParams* zoneNodeParams = new ZoneNodeParams();
+			fromRow(row, *zoneNodeParams);
+			outList[zoneNodeParams->getZone()].push_back(zoneNodeParams);
+		}
+	}
+}

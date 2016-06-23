@@ -79,4 +79,42 @@ private:
      */
     void toRow(ZoneParams& data, db::Parameters& outParams, bool update);
 };
+
+/**
+ * Data access object for zone to node mapping table
+ *
+ * \author Harish Loganathan
+ */
+class ZoneNodeSqlDao : public db::SqlAbstractDao<ZoneNodeParams>
+{
+public:
+
+	ZoneNodeSqlDao(db::DB_Connection& connection);
+	virtual ~ZoneNodeSqlDao();
+
+	/**
+	 * fetches TAZ code to node map from database
+	 * @param outList output parameter for [TAZ code -> list of simmobility nodes] map
+	 */
+	void getZoneNodeMap(boost::unordered_map<int, std::vector<ZoneNodeParams*> >& outList);
+
+private:
+    /**
+     * Virtual override.
+     * Fills the given outObj with all values contained on Row.
+     * @param result row with data to fill the out object.
+     * @param outObj to fill.
+     */
+    void fromRow(db::Row& result, ZoneNodeParams& outObj);
+
+    /**
+     * Virtual override.
+     * Fills the outParam with all values to insert or update on datasource.
+     * @param data to get values.
+     * @param outParams to put the data parameters.
+     * @param update tells if operation is an Update or Insert.
+     */
+    void toRow(ZoneNodeParams& data, db::Parameters& outParams, bool update);
+
+};
 } // end namespace sim_mob

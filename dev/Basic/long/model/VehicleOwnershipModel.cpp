@@ -73,6 +73,7 @@ void VehicleOwnershipModel::reconsiderVehicleOwnershipOption(const Household *ho
 				probValMap.insert(std::pair<BigSerial, double>( expVal.first, probVal));
 			}
 
+			//generate a random number with uniform real distribution.
 			boost::mt19937 randomNumbergenerator( time( 0 ) );
 			boost::random::uniform_real_distribution< > uniformDistribution( 0.0, 1.0 );
 			boost::variate_generator< boost::mt19937&, boost::random::uniform_real_distribution < > >
@@ -232,7 +233,10 @@ double VehicleOwnershipModel::getExp(int unitTypeId,double vehicleOwnershipLogsu
 		}
 	}
 
-	if( ((unitTypeId>=7) && (unitTypeId<=51)) || (unitTypeId == 64)) //finds out whether the household is a private property(Apartment, Terrace, Semi Detached, Detached, Condo, mixed R and C, other private residential) or not
+	const int privateUnitTypeIdBegin = 7;
+	const int privateUnitTypeIdEnd = 51;
+	const int otherPrivateResUnitTypeId = 64;
+	if( ((unitTypeId>=privateUnitTypeIdBegin) && (unitTypeId<=privateUnitTypeIdEnd)) || (unitTypeId == otherPrivateResUnitTypeId)) //finds out whether the household is a private property(Apartment, Terrace, Semi Detached, Detached, Condo, mixed R and C, other private residential) or not
 	{
 		value = value + coeffsObj->getPrivateProperty();
 	}

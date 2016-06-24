@@ -38,7 +38,7 @@ using std::endl;
 
 HouseholdAgent::HouseholdAgent(BigSerial _id, HM_Model* _model, Household* _household, HousingMarket* _market, bool _marketSeller, int _day, int _householdBiddingWindow, int awakeningDay)
 							 : Agent_LT(ConfigManager::GetInstance().FullConfig().mutexStategy(), _id), model(_model), market(_market), household(_household), marketSeller(_marketSeller), bidder (nullptr), seller(nullptr), day(_day),
-							   vehicleOwnershipOption(NO_CAR), householdBiddingWindow(_householdBiddingWindow),awakeningDay(awakeningDay)
+							   vehicleOwnershipOption(NO_VEHICLE), householdBiddingWindow(_householdBiddingWindow),awakeningDay(awakeningDay)
 							{
 
     seller = new HouseholdSellerRole(this);
@@ -394,26 +394,47 @@ void HouseholdAgent::HandleMessage(Message::MessageType type, const Message& mes
             (*hh).setTaxiAvailability(true);
             break;
         }
-    	case LTMID_HH_NO_CAR:
+    	case LTMID_HH_NO_VEHICLE:
     	{
     		const HM_Model* model = this->getModel();
     	    Household* hh = model->getHouseholdById(this->getHousehold()->getId());
-    	    (*hh).setVehicleOwnershipOptionId(NO_CAR);
+    	    (*hh).setVehicleOwnershipOptionId(NO_VEHICLE);
     	    break;
     	}
-    	case LTMID_HH_ONE_CAR:
+    	case LTMID_HH_PLUS1_MOTOR_ONLY:
     	{
     		const HM_Model* model = this->getModel();
     	    Household* hh = model->getHouseholdById(this->getHousehold()->getId());
-    	    (*hh).setVehicleOwnershipOptionId(ONE_CAR);
+    	    (*hh).setVehicleOwnershipOptionId(PLUS1_MOTOR_ONLY);
     	    break;
     	}
-    	case LTMID_HH_TWO_PLUS_CAR:
+    	case LTMID_HH_OFF_PEAK_CAR_W_WO_MOTOR:
     	{
     		const HM_Model* model = this->getModel();
     	    Household* hh = model->getHouseholdById(this->getHousehold()->getId());
-    	    (*hh).setVehicleOwnershipOptionId(TWO_PLUS_CAR);
+    	    (*hh).setVehicleOwnershipOptionId(OFF_PEAK_CAR_W_WO_MOTOR);
     	    break;
+    	}
+    	case LTMID_HH_NORMAL_CAR_ONLY:
+    	{
+    		const HM_Model* model = this->getModel();
+    		Household* hh = model->getHouseholdById(this->getHousehold()->getId());
+    		(*hh).setVehicleOwnershipOptionId(NORMAL_CAR_ONLY);
+    		break;
+    	}
+    	case LTMID_HH_NORMAL_CAR_1PLUS_MOTOR:
+    	{
+    		const HM_Model* model = this->getModel();
+    		Household* hh = model->getHouseholdById(this->getHousehold()->getId());
+    		(*hh).setVehicleOwnershipOptionId(NORMAL_CAR_1PLUS_MOTOR);
+    		break;
+    	}
+    	case LTMID_HH_NORMAL_CAR_W_WO_MOTOR:
+    	{
+    		const HM_Model* model = this->getModel();
+    		Household* hh = model->getHouseholdById(this->getHousehold()->getId());
+    		(*hh).setVehicleOwnershipOptionId(NORMAL_CAR_W_WO_MOTOR);
+    		break;
     	}
     	default:break;
 

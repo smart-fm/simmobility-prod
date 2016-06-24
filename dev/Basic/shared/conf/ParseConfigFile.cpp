@@ -287,10 +287,14 @@ void sim_mob::ParseConfigFile::processLongTermParamsNode(xercesc::DOMElement* no
 	vehicleOwnershipModel.vehicleBuyingWaitingTimeInDays = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "vehicleOwnershipModel"), "vehicleBuyingWaitingTimeInDays"), "value"), static_cast<unsigned int>(0));
 	cfg.ltParams.vehicleOwnershipModel = vehicleOwnershipModel;
 
+	LongTermParams::TaxiAccessModel taxiAccessModel;
+	taxiAccessModel.enabled = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName( node, "taxiAccessModel"), "enabled"), false);
+	cfg.ltParams.vehicleOwnershipModel = vehicleOwnershipModel;
+
 	LongTermParams::SchoolAssignmentModel schoolAssignmentModel;
 	schoolAssignmentModel.enabled = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName( node, "schoolAssignmentModel"), "enabled"), false);
 	schoolAssignmentModel.schoolChangeWaitingTimeInDays = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "schoolAssignmentModel"), "schoolChangeWaitingTimeInDays"), "value"), static_cast<unsigned int>(0));
-	cfg.ltParams.schoolAssignmentModel = schoolAssignmentModel;
+	cfg.ltParams.taxiAccessModel = taxiAccessModel;
 }
 
 void sim_mob::ParseConfigFile::processSimulationNode(xercesc::DOMElement* node)

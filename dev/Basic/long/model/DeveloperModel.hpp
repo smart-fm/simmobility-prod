@@ -90,6 +90,11 @@ namespace sim_mob {
              */
             void createDeveloperAgents(ParcelList initParcelList, bool onGoingProject);
 
+            /*
+             * create developer agent for BTO launching
+             */
+            void createBTODeveloperAgents();
+
             void wakeUpDeveloperAgents(DeveloperList devAgentList);
 
             /*
@@ -332,6 +337,7 @@ namespace sim_mob {
             BuildingAvgAgePerParcelMap BuildingAvgAgeByParceld;
             std::string  outputSchema;
             UnitList btoUnits;
+            UnitList ongoingBtoUnits;
         };
     }
 }

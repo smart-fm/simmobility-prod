@@ -132,6 +132,7 @@ void DeveloperModel::startImpl() {
 		std::tm currentSimYear = getDateBySimDay(simYear,1);
 		UnitDao unitDao(conn);
 		btoUnits = unitDao.getBTOUnits(currentSimYear);
+		ongoingBtoUnits = unitDao.getOngoingBTOUnits(currentSimYear);
 		//set the BTO flag when the units are first loaded
 		for(Unit *unit : btoUnits)
 		{
@@ -184,6 +185,7 @@ void DeveloperModel::startImpl() {
 	processParcels();
 	createDeveloperAgents(developmentCandidateParcelList,false);
 	createDeveloperAgents(parcelsWithProjectsList,true);
+	createBTODeveloperAgents();
 	wakeUpDeveloperAgents(getDeveloperAgents());
 
 	PrintOutV("Time Interval " << timeInterval << std::endl);
@@ -193,6 +195,7 @@ void DeveloperModel::startImpl() {
 	PrintOutV("Initial DevelopmentTypeTemplates " << developmentTypeTemplates.size() << std::endl);
 	PrintOutV("Initial TemplateUnitTypes " << templateUnitTypes.size() << std::endl);
 	PrintOutV("Parcel Amenities " << parcelsWithHDB.size() << std::endl);
+	PrintOutV("BTO units " << btoUnits.size() << std::endl);
 
 	addMetadata("Time Interval", timeInterval);
 	addMetadata("Initial Developers", developers.size());
@@ -387,6 +390,22 @@ void DeveloperModel::createDeveloperAgents(ParcelList devCandidateParcelList, bo
 		PrintOut("total eligible parcels"<<agents.size());
 	}
 
+}
+
+void DeveloperModel::createBTODeveloperAgents()
+{
+
+	DeveloperAgent* devAgent = new DeveloperAgent(nullptr, this);
+	AgentsLookupSingleton::getInstance().addDeveloperAgent(devAgent);
+	RealEstateAgent* realEstateAgent = const_cast<RealEstateAgent*>(getRealEstateAgentForDeveloper());
+	devAgent->setRealEstateAgent(realEstateAgent);
+	devAgent->setHousingMarketModel(housingMarketModel);
+	devAgent->setSimYear(simYear);
+	devAgent->setHasBto(true);
+	devAgent->setActive(true);
+	agents.push_back(devAgent);
+	developers.push_back(devAgent);
+	workGroup.assignAWorker(devAgent);
 }
 
 void DeveloperModel::wakeUpDeveloperAgents(DeveloperList devAgentList)

@@ -81,11 +81,6 @@ HouseholdAgent::~HouseholdAgent()
 void HouseholdAgent::addUnitId(const BigSerial& unitId)
 {
     unitIds.push_back(unitId);
-    BigSerial tazId = model->getUnitTazId(unitId);
-    if (tazId != INVALID_ID) 
-    {
-        preferableZones.push_back(tazId);
-    }
 }
 
 void HouseholdAgent::removeUnitId(const BigSerial& unitId)
@@ -96,11 +91,6 @@ void HouseholdAgent::removeUnitId(const BigSerial& unitId)
 const IdVector& HouseholdAgent::getUnitIds() const
 {
     return unitIds;
-}
-
-const IdVector& HouseholdAgent::getPreferableZones() const
-{
-    return preferableZones;
 }
 
 HM_Model* HouseholdAgent::getModel() const
@@ -237,14 +227,14 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
     							schoolAssignmentModel.setStudentLimitInPrimarySchool();
     						}
     					}
-//    					else
-//    					{
-//    						const Individual* individual = model->getPreSchoolIndById((*individualsItr));
-//    						if (individual!= nullptr && day == startDay)
-//    						{
-//    							schoolAssignmentModel.assignPreSchool(this->getHousehold(),individual->getId(),this, day);
-//    						}
-//    					}
+    					else
+    					{
+    						const Individual* individual = model->getPreSchoolIndById((*individualsItr));
+    						if (individual!= nullptr && day == startDay)
+    						{
+    							schoolAssignmentModel.assignPreSchool(this->getHousehold(),individual->getId(),this, day);
+    						}
+    					}
     				}
     		}
     	}
@@ -276,6 +266,9 @@ void HouseholdAgent::processEvent(EventId eventId, Context ctxId, const EventArg
             }
             break;
         }
+        case LTEID_HM_BTO_UNIT_ADDED:
+        	//code to handle BTO units
+            break;
         default:break;
     };
 }
@@ -306,6 +299,7 @@ void HouseholdAgent::processExternalEvent(const ExternalEventArgs& args)
 
             break;
         }
+
         default:break;
     }
 }
@@ -358,11 +352,14 @@ void HouseholdAgent::onWorkerEnter()
         MessageBus::SubscribeEvent(LTEID_EXT_LOST_JOB, this, this);
         MessageBus::SubscribeEvent(LTEID_EXT_NEW_SCHOOL_LOCATION, this, this);
         MessageBus::SubscribeEvent(LTEID_EXT_NEW_JOB_LOCATION, this, this);
+
+        MessageBus::SubscribeEvent(LTEID_HM_BTO_UNIT_ADDED, this);
     }
 }
 
 void HouseholdAgent::onWorkerExit()
 {
+
     if (!marketSeller)
     {
         MessageBus::UnSubscribeEvent(LTEID_EXT_NEW_JOB, this, this);
@@ -370,6 +367,8 @@ void HouseholdAgent::onWorkerExit()
         MessageBus::UnSubscribeEvent(LTEID_EXT_LOST_JOB, this, this);
         MessageBus::UnSubscribeEvent(LTEID_EXT_NEW_SCHOOL_LOCATION, this, this);
         MessageBus::UnSubscribeEvent(LTEID_EXT_NEW_JOB_LOCATION, this, this);
+
+        MessageBus::UnSubscribeEvent(LTEID_HM_BTO_UNIT_ADDED, this);
     }
 }
 

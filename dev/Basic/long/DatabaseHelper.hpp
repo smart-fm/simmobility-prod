@@ -178,8 +178,6 @@ namespace sim_mob {
         const std::string DB_FUNC_GET_PRE_SCHOOL_INDS = APPLY_SCHEMA( MAIN_SCHEMA, "getPreschoolIndivduals()");
         const std::string DB_FUNC_GET_ALTERNATIVE_HEDONIC_PRICE = APPLY_SCHEMA( MAIN_SCHEMA, "getAlternativeHedonicPrice()");
 
-
-
         /**
          * Fields
          */

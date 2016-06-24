@@ -523,7 +523,7 @@ inline void createPotentialProjects(BigSerial parcelId, DeveloperModel* model, P
 }
 
 DeveloperAgent::DeveloperAgent(boost::shared_ptr<Parcel> parcel, DeveloperModel* model)
-: Agent_LT(ConfigManager::GetInstance().FullConfig().mutexStategy(), (parcel) ? parcel->getId() : INVALID_ID), devModel(model),parcel(parcel),active(false),monthlyUnitCount(0),unitsRemain(true),realEstateAgent(nullptr),postcode(INVALID_ID),housingMarketModel(housingMarketModel),simYear(simYear),currentTick(currentTick),parcelDBStatus(false)
+: Agent_LT(ConfigManager::GetInstance().FullConfig().mutexStategy(), (parcel) ? parcel->getId() : INVALID_ID), devModel(model),parcel(parcel),active(false),monthlyUnitCount(0),unitsRemain(true),realEstateAgent(nullptr),postcode(INVALID_ID),housingMarketModel(housingMarketModel),simYear(simYear),currentTick(currentTick),parcelDBStatus(false),hasBTO(false)
 {
 
 }
@@ -548,7 +548,8 @@ Entity::UpdateStatus DeveloperAgent::onFrameTick(timeslice now) {
     {
     	currentTick = now.ms();
     	std::tm currentDate = getDateBySimDay(simYear,now.ms());
-
+    	if(!hasBTO)
+    	{
     	if(this->parcel->getStatus()== 0)
     	{
     		int quarter = ((currentDate.tm_mon)/4) + 1; //get the current month of the simulation and divide it by 4 to determine the quarter
@@ -604,10 +605,14 @@ Entity::UpdateStatus DeveloperAgent::onFrameTick(timeslice now) {
     		this->fmProject->setCurrTick(currTick);
     		processExistingProjects();
     	}
-
-    	launchBTOUnits(currentDate);
+    	}
+    	else if(hasBTO)
+    	{
+    		launchBTOUnits(currentDate);
+    	}
 
     }
+
     //setActive(false);
     return Entity::UpdateStatus(UpdateStatus::RS_CONTINUE);
 }
@@ -843,6 +848,16 @@ void DeveloperAgent::launchBTOUnits(std::tm currentDate)
 	{
 			MessageBus::PostMessage(realEstateAgent, LT_BTO_UNIT_ADDED, MessageBus::MessagePtr(new HM_ActionMessage((*btoUnit))), true);
 	}
+}
+
+bool DeveloperAgent::isHasBto() const
+{
+		return hasBTO;
+}
+
+void DeveloperAgent::setHasBto(bool hasBto)
+{
+		hasBTO = hasBto;
 }
 
 void DeveloperAgent::onFrameOutput(timeslice now) {

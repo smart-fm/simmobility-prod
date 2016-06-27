@@ -176,20 +176,25 @@ private:
 /**
  * Represents the "Workers" section of the config file.
  */
-class WorkerParams {
+class WorkerParams
+{
 public:
-    struct WorkerConf {
-        WorkerConf() : count(0), granularityMs(0) {}
-        unsigned int count;
-        unsigned int granularityMs;
-    };
+	struct WorkerConf
+	{
+		WorkerConf() : count(0), granularityMs(0) {}
+		unsigned int count;
+		unsigned int granularityMs;
+	};
 
-    WorkerConf person;
+	WorkerConf person;
 };
 
 struct DB_Details
 {
-	DB_Details() : database(std::string()), credentials(std::string()) {}
+	DB_Details() :
+			database(std::string()), credentials(std::string())
+	{
+	}
 	std::string database;
 	std::string credentials;
 };
@@ -240,6 +245,63 @@ struct IncidentParams {
     float compliance;
     float accessibility;
     std::vector<LaneParams> laneParams;
+};
+
+/**
+ * simple struct to hold speed density parameters
+ */
+struct SpeedDensityParams
+{
+public:
+	double getAlpha() const
+	{
+		return alpha;
+	}
+
+	double getBeta() const
+	{
+		return beta;
+	}
+
+	double getJamDensity() const
+	{
+		return jamDensity;
+	}
+
+	double getMinDensity() const
+	{
+		return minDensity;
+	}
+
+	void setAlpha(double alpha)
+	{
+		this->alpha = alpha;
+	}
+
+	void setBeta(double beta)
+	{
+		this->beta = beta;
+	}
+
+	void setJamDensity(double jamDensity)
+	{
+		this->jamDensity = jamDensity;
+	}
+
+	void setMinDensity(double minDensity)
+	{
+		this->minDensity = minDensity;
+	}
+
+private:
+	/** outer exponent in speed density function */
+	double alpha;
+	/** inner exponent in speed density function */
+	double beta;
+	/** upper limit of density beyond which the speed of the moving part will be min speed */
+	double jamDensity;
+	/** lower limit of density below which the speed of the moving part will be free flow speed */
+	double minDensity;
 };
 
 class MT_Config : private ProtectedCopyable
@@ -679,17 +741,16 @@ public:
 	/**
 	 * returns speed density params for a given link category
 	 * @param linkCategory link category (1=A, 2=B, 3=C, 4=D, 5=E, 6=SLIPROAD, 7=ROUNDABOUT)
-	 * @return pair <alpha, beta> for the given link category
+	 * @return SpeedDensityParams for the given link category
 	 */
-	std::pair<double, double> getSpeedDensityParam(int linkCategory) const;
+	SpeedDensityParams getSpeedDensityParam(int linkCategory) const;
 
 	/**
 	 * sets speed density params for a given link category
 	 * @param linkCategory link category (1=A, 2=B, 3=C, 4=D, 5=E, 6=SLIPROAD, 7=ROUNDABOUT)
-	 * @param alpha speed density parameter alpha
-	 * @param beta speed density parameter beta
+	 * @param sdParams speed density parameters for the link category
 	 */
-	void setSpeedDensityParam(int linkCategory, double alpha, double beta);
+	void setSpeedDensityParam(int linkCategory, SpeedDensityParams sdParams);
 
 	/**
      * Enumerator for mid term run mode
@@ -822,8 +883,8 @@ private:
     /// set of segment stats with bus stops
     std::set<SegmentStats*> segmentStatsWithBusStops;
 
-    /// map of link category to speed density function parameters <alpha, beta>
-    std::pair<double, double> speedDensityParams[7];
+    /// array of speed density function parameters indexed by link category
+    SpeedDensityParams speedDensityParams[7];
 };
 }
 }

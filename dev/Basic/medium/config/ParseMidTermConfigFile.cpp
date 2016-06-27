@@ -307,9 +307,12 @@ void ParseMidTermConfigFile::processSpeedDensityParamsNode(xercesc::DOMElement* 
 
         ///Retrieve some attributes from the Node itself.
         int linkCategory = ParseInteger(GetNamedAttributeValue(item, "category"));
-        double alpha = ParseFloat(GetNamedAttributeValue(item, "alpha"));
-        double beta = ParseFloat(GetNamedAttributeValue(item, "beta"));
-        mtCfg.setSpeedDensityParam(linkCategory, alpha, beta);
+        SpeedDensityParams speedDensityParams;
+        speedDensityParams.setAlpha(ParseFloat(GetNamedAttributeValue(item, "alpha")));
+        speedDensityParams.setBeta(ParseFloat(GetNamedAttributeValue(item, "beta")));
+        speedDensityParams.setMinDensity(ParseFloat(GetNamedAttributeValue(item, "kmin")));
+        speedDensityParams.setJamDensity(ParseFloat(GetNamedAttributeValue(item, "kjam")));
+        mtCfg.setSpeedDensityParam(linkCategory, speedDensityParams);
     }
 }
 

@@ -71,10 +71,10 @@ const std::string DB_FIELD_HH_WORKERS = "workers";
  */
 const std::string DB_FIELD_WORK_LOGSUM = "work";
 const std::string DB_FIELD_EDUCATION_LOGSUM = "education";
-const std::string DB_FIELD_SHOP_LOGSUM = "shopping";
+const std::string DB_FIELD_SHOP_LOGSUM = "shop";
 const std::string DB_FIELD_OTHER_LOGSUM = "other";
-const std::string DB_FIELD_DPT_LOGSUM = "day_pattern_tour";
-const std::string DB_FIELD_DPS_LOGSUM = "day_pattern_stop";
+const std::string DB_FIELD_DPT_LOGSUM = "dp_tour";
+const std::string DB_FIELD_DPS_LOGSUM = "dp_stop";
 
 const std::string DB_FIELD_INCOME_CATEGORY_LOWER_LIMIT = "low_limit";
 const std::string DB_FIELD_VEHICLE_CATEGORY_NAME = "name";

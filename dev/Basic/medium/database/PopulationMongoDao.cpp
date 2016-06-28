@@ -24,7 +24,7 @@ sim_mob::medium::PopulationMongoDao::~PopulationMongoDao()
 bool PopulationMongoDao::getAll(std::vector<PersonParams*>& outList)
 {
 	outList.reserve(connection.getSession<mongo::DBClientConnection>().count(collectionName, mongo::BSONObj()));
-	std::auto_ptr<mongo::DBClientCursor> cursor = connection.getSession<mongo::DBClientConnection>().query(collectionName, mongo::BSONObj());
+	std::unique_ptr<mongo::DBClientCursor> cursor = connection.getSession<mongo::DBClientConnection>().query(collectionName, mongo::BSONObj());
 	while (cursor->more())
 	{
 		PersonParams* personParams = new PersonParams();
@@ -43,7 +43,7 @@ bool PopulationMongoDao::getAllIds(std::vector<std::string>& outList)
 {
 	mongo::BSONObj projection = BSON("_id" << 1);
 	outList.reserve(connection.getSession<mongo::DBClientConnection>().count(collectionName, mongo::BSONObj()));
-	std::auto_ptr<mongo::DBClientCursor> cursor = connection.getSession<mongo::DBClientConnection>().query(collectionName, mongo::BSONObj(), 0, 0, &projection);
+	std::unique_ptr<mongo::DBClientCursor> cursor = connection.getSession<mongo::DBClientConnection>().query(collectionName, mongo::BSONObj(), 0, 0, &projection);
 	while (cursor->more())
 	{
 		outList.push_back(getIdFromRow(cursor->next()));
@@ -66,6 +66,7 @@ void PopulationMongoDao::fromRow(mongo::BSONObj document, PersonParams& outParam
 	outParam.setAgeId(document.getField(MONGO_FIELD_AGE_CATEGORY_ID).Int());
 	outParam.setWorksAtHome(document.getField(MONGO_FIELD_WORK_AT_HOME).Int());
 	outParam.setHasDrivingLicence(document.getField(MONGO_FIELD_DRIVER_LICENCE).Int());
+	outParam.setMotorLicense(outParam.hasDrivingLicence());
 	outParam.setStudentTypeId(document.getField(MONGO_FIELD_STUDENT_TYPE_ID).Int());
 	outParam.setIsUniversityStudent(document.getField(MONGO_FIELD_UNIVERSITY_STUDENT).Int());
 	outParam.setIsFemale(document.getField(MONGO_FIELD_FEMALE).Int());

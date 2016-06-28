@@ -60,13 +60,13 @@ local beta_distance_walk = 0
 local beta_distance_taxi = -0.0260
 
 
-local beta_cons_bus = 1.008
-local beta_cons_mrt = 0.368
-local beta_cons_private_bus =-5.41 
-local beta_cons_drive1 = 4.37
-local beta_cons_share2 = -0.83
-local beta_cons_share3 = -0.866
-local beta_cons_motor = -2.19
+local beta_cons_bus = 0.95
+local beta_cons_mrt = 0.3
+local beta_cons_private_bus = -6 
+local beta_cons_drive1 = 4
+local beta_cons_share2 = -1
+local beta_cons_share3 = -1.1
+local beta_cons_motor = 6
 local beta_cons_walk = -2.82
 local beta_cons_taxi = -0.68
 
@@ -148,7 +148,7 @@ local function computeUtilities(params,dbparams)
 	local income_id = params.income_id
 	local income_cat = {500.5,1250,1749.5,2249.5,2749.5,3499.5,4499.5,5499.5,6499.5,7499.5,8500,0,99999,99999}
 	local income_mid = income_cat[income_id]
-	local missing_income = (params.income_id >= 13) and 1 or 0
+	local missing_income = (params.income_id >= 12) and 1 or 0  -- Vishnu 14th April 2016- Changed from the previous value of 12
 
 	--params.car_own_normal is from household table
 	local zero_car = params.car_own_normal == 0 and 1 or 0

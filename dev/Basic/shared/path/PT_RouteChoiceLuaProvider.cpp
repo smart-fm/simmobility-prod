@@ -7,12 +7,12 @@
  * Created on October 9, 2013, 4:39 PM
  */
 
-#include "PT_RouteChoiceLuaProvider.hpp"
-
-#include <boost/thread/thread.hpp>
-#include <boost/thread/tss.hpp>
+#include <stdexcept>
+#include <string>
+#include "boost/thread/tss.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/RawConfigParams.hpp"
+#include "path/PT_RouteChoiceLuaProvider.hpp"
 
 using namespace sim_mob;
 using namespace sim_mob::lua;
@@ -32,7 +32,7 @@ namespace
         {
         	try
         	{
-        		const ModelScriptsMap& extScripts = ConfigManager::GetInstance().PathSetConfig().ptRouteChoiceScriptsMap;
+        		const ModelScriptsMap& extScripts = ConfigManager::GetInstance().FullConfig().luaScriptsMap;
         		const std::string& scriptsPath = extScripts.getPath();
         		ModelContext* modelCtx = new ModelContext();
         		modelCtx->ptrcModel.loadFile(scriptsPath + extScripts.getScriptFileName("logit"));

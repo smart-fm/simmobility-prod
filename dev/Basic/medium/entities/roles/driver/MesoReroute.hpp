@@ -15,18 +15,18 @@ class DriverMovement;
 /**
  * this class considers rerouting at each intersection
  */
-	class MesoReroute : public sim_mob::Reroute
+	class MesoReroute : public Reroute
 	{
 		///	the movement object this class is working for
-		sim_mob::medium::DriverMovement &dm;
+		medium::DriverMovement &dm;
 		///	current Segment where the Agent is or has just completed
-		const sim_mob::RoadSegment* currSegment;
+		const RoadSegment* currSegment;
 
 		///	a container to help avoid circular rerouting
-		std::set<const sim_mob::RoadSegment*> traversed;
+		std::set<const RoadSegment*> traversed;
 
 //		///	 the next segment along the user's path
-//		const sim_mob::RoadSegment* nextSegment;
+//		const RoadSegment* nextSegment;
 
 	public:
 		/**
@@ -39,7 +39,7 @@ class DriverMovement;
 		 */
 		void postReroute();
 
-		MesoReroute(sim_mob::medium::DriverMovement &dm/*, const sim_mob::RoadSegment* currSegment, const sim_mob::RoadSegment* nextSegment*/);
+		MesoReroute(medium::DriverMovement &dm/*, const RoadSegment* currSegment, const RoadSegment* nextSegment*/);
 		/**
 		 *override from base class
 		 */

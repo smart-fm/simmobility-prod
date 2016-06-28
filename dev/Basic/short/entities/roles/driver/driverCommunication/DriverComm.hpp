@@ -13,12 +13,13 @@ class Broker;
 class DriverCommMovement;
 class DriverBehavior;
 
-class DriverComm : public Driver {
+class DriverComm : public Driver
+{
 public:
-	DriverComm(Person* parent, sim_mob::MutexStrategy mtxStrat, sim_mob::DriverBehavior* behavior = nullptr, sim_mob::DriverCommMovement* movement = nullptr);
+	DriverComm(Person_ST *parent, MutexStrategy mtxStrat, DriverBehavior* behavior = nullptr, DriverCommMovement* movement = nullptr);
 	virtual ~DriverComm();
 
-	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;
+	virtual Role<Person_ST>* clone(Person_ST *parent) const;
 };
 
 }//namspace sim_mob

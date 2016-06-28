@@ -6,7 +6,7 @@
 
 #include <string>
 
-#include "geospatial/Point2D.hpp"
+#include "geospatial/network/Point.hpp"
 #include "util/LangHelpers.hpp"
 #include "util/DynamicVector.hpp"
 #include "Base.hpp"
@@ -55,7 +55,7 @@ public:
 	std::vector<Turning*> connectedTurnings;
 	std::vector<Polyline*> polylineEntries;
 	std::map<int, std::vector<Lane*> > laneLinesAtNode; //Arranged by laneID
-	std::vector< std::vector<sim_mob::Point2D> > lanePolylinesForGenNode;
+	std::vector< std::vector<sim_mob::Point> > lanePolylinesForGenNode;
 
 	//Temporary fixings
 	DynamicVector HACK_LaneLinesStartLineCut;

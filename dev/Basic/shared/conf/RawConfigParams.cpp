@@ -6,24 +6,14 @@
 
 using namespace sim_mob;
 
-sim_mob::RawConfigParams::RawConfigParams() : cbd(false)
-{}
-
-sim_mob::EntityTemplate::EntityTemplate() : startTimeMs(0), laneIndex(0),originNode(-1),destNode(-1),initSegId(-1),initDis(-1),initSpeed(0),angentId(-1)
-{}
-
-sim_mob::SystemParams::SystemParams() : singleThreaded(false), mergeLogFiles(false), networkSource(NETSRC_XML)
-{}
-
-sim_mob::WorkerParams::Worker::Worker() : count(0), granularityMs(0)
+sim_mob::RawConfigParams::RawConfigParams() : mergeLogFiles(false), generateBusRoutes(false), simMobRunMode(RawConfigParams::UNKNOWN_RUN_MODE),
+		subTripLevelTravelTimeOutput(std::string()), subTripTravelTimeEnabled(false)
 {}
 
 sim_mob::SimulationParams::SimulationParams() :
-	baseGranMS(0), baseGranSecond(0), totalRuntimeMS(0), totalWarmupMS(0), auraManagerImplementation(AuraManager::IMPL_RSTAR),
-	workGroupAssigmentStrategy(WorkGroup::ASSIGN_ROUNDROBIN), partitioningSolutionId(0), startingAutoAgentID(0),
-	mutexStategy(MtxStrat_Buffered), passenger_distribution_busstop(0),
-    passenger_mean_busstop(0), passenger_standardDev_busstop(0), passenger_percent_boarding(0),
-    passenger_percent_alighting(0), passenger_min_uniform_distribution(0), passenger_max_uniform_distribution(0)
+    baseGranMS(0), baseGranSecond(0), totalRuntimeMS(0), totalWarmupMS(0), inSimulationTTUsage(0),
+    workGroupAssigmentStrategy(WorkGroup::ASSIGN_ROUNDROBIN), startingAutoAgentID(0),
+    mutexStategy(MtxStrat_Buffered)
 {}
 
 
@@ -31,10 +21,12 @@ sim_mob::LongTermParams::LongTermParams(): enabled(false), workers(0), days(0), 
 sim_mob::LongTermParams::DeveloperModel::DeveloperModel(): enabled(false), timeInterval(0), initialPostcode(0),initialUnitId(0),initialBuildingId(0),initialProjectId(0),minLotSize(0) {}
 sim_mob::LongTermParams::HousingModel::HousingModel(): enabled(false), timeInterval(0), timeOnMarket(0), timeOffMarket(0), initialHouseholdsOnMarket(0), vacantUnitActivationProbability(0),
 													   housingMarketSearchPercentage(0), housingMoveInDaysInterval(0), offsetBetweenUnitBuyingAndSelling(0),
-													   bidderUnitsChoiceSet(0),householdBiddingWindow(0),dailyHouseholdAwakenings(0){}
+													   bidderUnitsChoiceSet(0),bidderBTOUnitsChoiceSet(0),householdBiddingWindow(0),dailyHouseholdAwakenings(0){}
 
 sim_mob::LongTermParams::OutputHouseholdLogsums::OutputHouseholdLogsums():enabled(false), fixedHomeVariableWork(false), fixedWorkVariableHome(false){}
 
 sim_mob::LongTermParams::VehicleOwnershipModel::VehicleOwnershipModel():enabled(false), vehicleBuyingWaitingTimeInDays(0){}
+sim_mob::LongTermParams::TaxiAccessModel::TaxiAccessModel():enabled(false){}
+sim_mob::LongTermParams::SchoolAssignmentModel::SchoolAssignmentModel():enabled(false), schoolChangeWaitingTimeInDays(0){}
 
 ModelScriptsMap::ModelScriptsMap(const std::string& scriptFilesPath, const std::string& scriptsLang) : path(scriptFilesPath), scriptLanguage(scriptsLang) {}

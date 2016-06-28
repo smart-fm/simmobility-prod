@@ -290,14 +290,14 @@ void Household::setTaxiAvailability(bool taxiAvailable)
 	taxiAvailability = taxiAvailable;
 }
 
-void Household::setVehicleOwnershipOptionId(int vehicleOwnershipOption)
-{
-	this->vehicleOwnershipOptionId = vehicleOwnershipOption;
-}
-
 int Household::getVehicleOwnershipOptionId()
 {
 	return this->vehicleOwnershipOptionId;
+}
+
+void Household::setVehicleOwnershipOptionId(int vehicleOwnershipOption)
+{
+	this->vehicleOwnershipOptionId = vehicleOwnershipOption;
 }
 
 void Household::setAffordabilityAmount(double value)

@@ -12,7 +12,6 @@
 
 #include "entities/roles/Role.hpp"
 #include "entities/UpdateParams.hpp"
-
 #include "entities/roles/passenger/Passenger.hpp"
 #include "entities/roles/waitBusActivityRole/WaitBusActivityRole.hpp"
 #include "entities/roles/waitBusActivityRole/WaitBusActivityRoleFacets.hpp"
@@ -31,33 +30,36 @@ class PackageUtils;
 class UnPackageUtils;
 #endif
 
-class WaitBusActivityRoleImpl : public sim_mob::WaitBusActivityRole {
+class WaitBusActivityRoleImpl : public WaitBusActivityRole
+{
 public:
-	WaitBusActivityRoleImpl(Person* parent, sim_mob::WaitBusActivityRoleBehavior* behavior = nullptr, sim_mob::WaitBusActivityRoleMovement* movement = nullptr);
+	WaitBusActivityRoleImpl(Person_ST *parent, WaitBusActivityRoleBehavior* behavior = nullptr, WaitBusActivityRoleMovement* movement = nullptr);
 	virtual ~WaitBusActivityRoleImpl();
 
-	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;
+	virtual Role<Person_ST>* clone(Person_ST *parent) const;
 };
 
-class WaitBusActivityRoleBehaviorImpl : public sim_mob::WaitBusActivityRoleBehavior {
+class WaitBusActivityRoleBehaviorImpl : public WaitBusActivityRoleBehavior
+{
 public:
-	WaitBusActivityRoleBehaviorImpl(sim_mob::Person* parentAgent = nullptr);
+	WaitBusActivityRoleBehaviorImpl();
 	virtual ~WaitBusActivityRoleBehaviorImpl();
 
 	//Virtual overrides
 	virtual void frame_init();
 	virtual void frame_tick();
-	virtual void frame_tick_output();
+	virtual std::string frame_tick_output();
 };
 
-class WaitBusActivityRoleMovementImpl : public sim_mob::WaitBusActivityRoleMovement {
+class WaitBusActivityRoleMovementImpl : public WaitBusActivityRoleMovement
+{
 public:
-	WaitBusActivityRoleMovementImpl(sim_mob::Person* parentAgent = nullptr);
+	WaitBusActivityRoleMovementImpl();
 	virtual ~WaitBusActivityRoleMovementImpl();
 
 	//Virtual overrides
 	virtual void frame_init();
 	virtual void frame_tick();
-	virtual void frame_tick_output();
+	virtual std::string frame_tick_output();
 };
 }

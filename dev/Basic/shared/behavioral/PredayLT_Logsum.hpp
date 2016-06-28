@@ -7,8 +7,7 @@
 #include <boost/noncopyable.hpp>
 #include <boost/unordered_map.hpp>
 #include <vector>
-
-#include "params/PredayPersonParams.hpp"
+#include "params/PersonParams.hpp"
 #include "params/ZoneCostParams.hpp"
 
 namespace sim_mob
@@ -74,6 +73,6 @@ public:
 	 * @param workLocation TAZ code for work location of individual
 	 * @return logsum value computed from day pattern binary (dpb.lua) model
 	 */
-	PredayPersonParams computeLogsum(long individualId, int homeLocation=-1, int workLocation=-1, int vehicleOwnership =-1) const;
+	PersonParams computeLogsum(long individualId, int homeLocation=-1, int workLocation=-1, int vehicleOwnership =-1) const;
 };
 }

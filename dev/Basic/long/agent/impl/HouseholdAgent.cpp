@@ -9,6 +9,7 @@
  * 
  * Created on May 16, 2013, 6:36 PM
  */
+#include <mutex>
 
 #include "HouseholdAgent.hpp"
 #include "message/MessageBus.hpp"
@@ -23,6 +24,7 @@
 #include "conf/ConfigManager.hpp"
 #include "model/VehicleOwnershipModel.hpp"
 #include "model/AwakeningSubModel.hpp"
+#include "model/SchoolAssignmentSubModel.hpp"
 #include "util/PrintLog.hpp"
 
 using namespace sim_mob::long_term;
@@ -36,12 +38,15 @@ using std::endl;
 
 HouseholdAgent::HouseholdAgent(BigSerial _id, HM_Model* _model, Household* _household, HousingMarket* _market, bool _marketSeller, int _day, int _householdBiddingWindow, int awakeningDay)
 							 : Agent_LT(ConfigManager::GetInstance().FullConfig().mutexStategy(), _id), model(_model), market(_market), household(_household), marketSeller(_marketSeller), bidder (nullptr), seller(nullptr), day(_day),
-							   vehicleOwnershipOption(NO_CAR), householdBiddingWindow(_householdBiddingWindow),awakeningDay(awakeningDay)
+							   vehicleOwnershipOption(NO_VEHICLE), householdBiddingWindow(_householdBiddingWindow),awakeningDay(awakeningDay)
 							{
 
     seller = new HouseholdSellerRole(this);
     seller->setActive(marketSeller);
 
+
+    ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+    bool resume = config.ltParams.resume;
 
     if ( marketSeller == false )
     {
@@ -49,9 +54,8 @@ HouseholdAgent::HouseholdAgent(BigSerial _id, HM_Model* _model, Household* _hous
         bidder->setActive(false);
     }
 
-    ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+
     buySellInterval = config.ltParams.housingModel.offsetBetweenUnitBuyingAndSelling;
-    bool resume = config.ltParams.resume;
 
     if(resume)
     	householdBiddingWindow = householdBiddingWindow - household->getTimeOnMarket();
@@ -60,10 +64,12 @@ HouseholdAgent::HouseholdAgent(BigSerial _id, HM_Model* _model, Household* _hous
     	householdBiddingWindow =  config.ltParams.housingModel.housingMoveInDaysInterval + config.ltParams.housingModel.householdBiddingWindow * (double)rand() / RAND_MAX + 1;
     }
 
+
     if( household )
     	(const_cast<Household*>(household))->setTimeOnMarket(householdBiddingWindow);
 
     futureTransitionOwn = false;
+
 }
 
 HouseholdAgent::~HouseholdAgent()
@@ -75,11 +81,6 @@ HouseholdAgent::~HouseholdAgent()
 void HouseholdAgent::addUnitId(const BigSerial& unitId)
 {
     unitIds.push_back(unitId);
-    BigSerial tazId = model->getUnitTazId(unitId);
-    if (tazId != INVALID_ID) 
-    {
-        preferableZones.push_back(tazId);
-    }
 }
 
 void HouseholdAgent::removeUnitId(const BigSerial& unitId)
@@ -90,11 +91,6 @@ void HouseholdAgent::removeUnitId(const BigSerial& unitId)
 const IdVector& HouseholdAgent::getUnitIds() const
 {
     return unitIds;
-}
-
-const IdVector& HouseholdAgent::getPreferableZones() const
-{
-    return preferableZones;
 }
 
 HM_Model* HouseholdAgent::getModel() const
@@ -208,6 +204,46 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
         seller->update(now);
     }
 
+    ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+    int startDay = 0;
+    if(config.ltParams.resume)
+    {
+    	startDay = model->getLastStoppedDay();
+    }
+
+    if(config.ltParams.schoolAssignmentModel.enabled)
+    	{
+    		if( getId() < model->FAKE_IDS_START)
+    		{
+    			std::vector<BigSerial> individuals = household->getIndividuals();
+    			std::vector<BigSerial>::iterator individualsItr;
+    			for(individualsItr = individuals.begin(); individualsItr != individuals.end(); individualsItr++)
+    				{
+    					const Individual* individual = model->getPrimaySchoolIndById((*individualsItr));
+    					SchoolAssignmentSubModel schoolAssignmentModel(model);
+    					if (individual!= nullptr)
+    					{
+    						if(day == startDay)
+    						{
+    							schoolAssignmentModel.assignPrimarySchool(this->getHousehold(),individual->getId(),this, day);
+    						}
+    						if(day == ++startDay)
+    						{
+    							schoolAssignmentModel.setStudentLimitInPrimarySchool();
+    						}
+    					}
+    					else
+    					{
+    						const Individual* individual = model->getPreSchoolIndById((*individualsItr));
+    						if (individual!= nullptr && day == startDay)
+    						{
+    							schoolAssignmentModel.assignPreSchool(this->getHousehold(),individual->getId(),this, day);
+    						}
+    					}
+    				}
+    		}
+    	}
+
     return Entity::UpdateStatus(UpdateStatus::RS_CONTINUE);
 }
 
@@ -235,6 +271,9 @@ void HouseholdAgent::processEvent(EventId eventId, Context ctxId, const EventArg
             }
             break;
         }
+        case LTEID_HM_BTO_UNIT_ADDED:
+        	//code to handle BTO units
+            break;
         default:break;
     };
 }
@@ -265,6 +304,7 @@ void HouseholdAgent::processExternalEvent(const ExternalEventArgs& args)
 
             break;
         }
+
         default:break;
     }
 }
@@ -317,11 +357,14 @@ void HouseholdAgent::onWorkerEnter()
         MessageBus::SubscribeEvent(LTEID_EXT_LOST_JOB, this, this);
         MessageBus::SubscribeEvent(LTEID_EXT_NEW_SCHOOL_LOCATION, this, this);
         MessageBus::SubscribeEvent(LTEID_EXT_NEW_JOB_LOCATION, this, this);
+
+        MessageBus::SubscribeEvent(LTEID_HM_BTO_UNIT_ADDED, this);
     }
 }
 
 void HouseholdAgent::onWorkerExit()
 {
+
     if (!marketSeller)
     {
         MessageBus::UnSubscribeEvent(LTEID_EXT_NEW_JOB, this, this);
@@ -329,6 +372,8 @@ void HouseholdAgent::onWorkerExit()
         MessageBus::UnSubscribeEvent(LTEID_EXT_LOST_JOB, this, this);
         MessageBus::UnSubscribeEvent(LTEID_EXT_NEW_SCHOOL_LOCATION, this, this);
         MessageBus::UnSubscribeEvent(LTEID_EXT_NEW_JOB_LOCATION, this, this);
+
+        MessageBus::UnSubscribeEvent(LTEID_HM_BTO_UNIT_ADDED, this);
     }
 }
 
@@ -353,26 +398,47 @@ void HouseholdAgent::HandleMessage(Message::MessageType type, const Message& mes
             (*hh).setTaxiAvailability(true);
             break;
         }
-    	case LTMID_HH_NO_CAR:
+    	case LTMID_HH_NO_VEHICLE:
     	{
     		const HM_Model* model = this->getModel();
     	    Household* hh = model->getHouseholdById(this->getHousehold()->getId());
-    	    (*hh).setVehicleOwnershipOptionId(NO_CAR);
+    	    (*hh).setVehicleOwnershipOptionId(NO_VEHICLE);
     	    break;
     	}
-    	case LTMID_HH_ONE_CAR:
+    	case LTMID_HH_PLUS1_MOTOR_ONLY:
     	{
     		const HM_Model* model = this->getModel();
     	    Household* hh = model->getHouseholdById(this->getHousehold()->getId());
-    	    (*hh).setVehicleOwnershipOptionId(ONE_CAR);
+    	    (*hh).setVehicleOwnershipOptionId(PLUS1_MOTOR_ONLY);
     	    break;
     	}
-    	case LTMID_HH_TWO_PLUS_CAR:
+    	case LTMID_HH_OFF_PEAK_CAR_W_WO_MOTOR:
     	{
     		const HM_Model* model = this->getModel();
     	    Household* hh = model->getHouseholdById(this->getHousehold()->getId());
-    	    (*hh).setVehicleOwnershipOptionId(TWO_PLUS_CAR);
+    	    (*hh).setVehicleOwnershipOptionId(OFF_PEAK_CAR_W_WO_MOTOR);
     	    break;
+    	}
+    	case LTMID_HH_NORMAL_CAR_ONLY:
+    	{
+    		const HM_Model* model = this->getModel();
+    		Household* hh = model->getHouseholdById(this->getHousehold()->getId());
+    		(*hh).setVehicleOwnershipOptionId(NORMAL_CAR_ONLY);
+    		break;
+    	}
+    	case LTMID_HH_NORMAL_CAR_1PLUS_MOTOR:
+    	{
+    		const HM_Model* model = this->getModel();
+    		Household* hh = model->getHouseholdById(this->getHousehold()->getId());
+    		(*hh).setVehicleOwnershipOptionId(NORMAL_CAR_1PLUS_MOTOR);
+    		break;
+    	}
+    	case LTMID_HH_NORMAL_CAR_W_WO_MOTOR:
+    	{
+    		const HM_Model* model = this->getModel();
+    		Household* hh = model->getHouseholdById(this->getHousehold()->getId());
+    		(*hh).setVehicleOwnershipOptionId(NORMAL_CAR_W_WO_MOTOR);
+    		break;
     	}
     	default:break;
 

@@ -24,7 +24,7 @@ bool sim_mob::medium::ZoneMongoDao::getAllZones(boost::unordered_map<int, ZonePa
 	outList.rehash(ceil(count / outList.max_load_factor()));
 	//boost >= 1.50
 	//outList.reserve(count);
-	std::auto_ptr<mongo::DBClientCursor> cursor = connection.getSession<mongo::DBClientConnection>().query(collectionName, mongo::BSONObj());
+	std::unique_ptr<mongo::DBClientCursor> cursor = connection.getSession<mongo::DBClientConnection>().query(collectionName, mongo::BSONObj());
 	while (cursor->more())
 	{
 		ZoneParams* zoneParams = new ZoneParams();
@@ -68,7 +68,7 @@ sim_mob::medium::CostMongoDao::~CostMongoDao()
 
 bool sim_mob::medium::CostMongoDao::getAll(boost::unordered_map<int, boost::unordered_map<int, CostParams*> >& outList)
 {
-	std::auto_ptr<mongo::DBClientCursor> cursor = connection.getSession<mongo::DBClientConnection>().query(collectionName, mongo::BSONObj());
+	std::unique_ptr<mongo::DBClientCursor> cursor = connection.getSession<mongo::DBClientConnection>().query(collectionName, mongo::BSONObj());
 	while (cursor->more())
 	{
 		CostParams* costParams = new CostParams();
@@ -105,7 +105,7 @@ sim_mob::medium::ZoneNodeMappingDao::~ZoneNodeMappingDao()
 
 bool sim_mob::medium::ZoneNodeMappingDao::getAll(boost::unordered_map<int, std::vector<ZoneNodeParams*> >& outList)
 {
-	std::auto_ptr<mongo::DBClientCursor> cursor = connection.getSession<mongo::DBClientConnection>().query(collectionName, mongo::BSONObj());
+	std::unique_ptr<mongo::DBClientCursor> cursor = connection.getSession<mongo::DBClientConnection>().query(collectionName, mongo::BSONObj());
 	while (cursor->more())
 	{
 		ZoneNodeParams* zoneNodeParams = new ZoneNodeParams();
@@ -123,12 +123,12 @@ void sim_mob::medium::ZoneNodeMappingDao::fromRow(mongo::BSONObj document, ZoneN
 	// the node id is stored in either integer format or long format in mongo db
 	case mongo::NumberInt:
 	{
-		outParam.setAimsunNodeId(document.getField(MONGO_FIELD_NODE_ID).Int());
+		outParam.setNodeId(document.getField(MONGO_FIELD_NODE_ID).Int());
 		break;
 	}
 	case mongo::NumberLong:
 	{
-		outParam.setAimsunNodeId(document.getField(MONGO_FIELD_NODE_ID).Long());
+		outParam.setNodeId(document.getField(MONGO_FIELD_NODE_ID).Long());
 		break;
 	}
 	default:
@@ -138,6 +138,7 @@ void sim_mob::medium::ZoneNodeMappingDao::fromRow(mongo::BSONObj document, ZoneN
 	}
 	outParam.setSourceNode(document.getField(MONGO_FIELD_SOURCE_NODE).Number());
 	outParam.setSinkNode(document.getField(MONGO_FIELD_SINK_NODE).Number());
+	outParam.setBusTerminusNode(document.getField(MONGO_FIELD_BUS_TERMINUS_NODE).Number());
 }
 
 sim_mob::medium::MTZ12_MTZ08_MappingDao::MTZ12_MTZ08_MappingDao(db::DB_Config& dbConfig, const std::string& database, const std::string& collection) :
@@ -151,7 +152,7 @@ sim_mob::medium::MTZ12_MTZ08_MappingDao::~MTZ12_MTZ08_MappingDao()
 
 bool sim_mob::medium::MTZ12_MTZ08_MappingDao::getAll(std::map<int, int>& outList)
 {
-	std::auto_ptr<mongo::DBClientCursor> cursor = connection.getSession<mongo::DBClientConnection>().query(collectionName, mongo::BSONObj());
+	std::unique_ptr<mongo::DBClientCursor> cursor = connection.getSession<mongo::DBClientConnection>().query(collectionName, mongo::BSONObj());
 	while (cursor->more())
 	{
 		mongo::BSONObj document = cursor->next();

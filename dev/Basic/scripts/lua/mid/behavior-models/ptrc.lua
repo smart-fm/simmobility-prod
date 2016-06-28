@@ -6,12 +6,19 @@ Authors - Rui Tan
 
 --Estimated values for all betas
 --Note: the betas that not estimated are fixed to zero.
-local beta_in_vehicle = -0.35
-local beta_walk = -0.65
-local beta_wait = -0.46
-local beta_no_txf= -4.31
-local beta_cost = -0.16
-local beta_path_size = 0.8
+local beta_in_vehicle = -0.315324638
+local beta_walk = -0.6152576346
+local beta_wait = -0.4252576346
+local beta_no_txf = -4.2752576346
+local beta_cost = -0.1254734748
+local beta_path_size = 0.8347423654
+
+--local beta_in_vehicle = -0.315324638
+--local beta_walk = -0.6152576346
+--local beta_wait = -0.4252576346
+--local beta_no_txf = -4.2752576346
+--local beta_cost = -0.1254734748
+--local beta_path_size = 0.8347423654
 
 --utility
 -- utility[i] for choice[i]

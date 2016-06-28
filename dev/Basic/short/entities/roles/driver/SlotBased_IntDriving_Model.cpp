@@ -16,14 +16,6 @@ SlotBased_IntDriving_Model::SlotBased_IntDriving_Model() :
 isRequestSent(false)
 {
 	modelType = Int_Model_SlotBased;
-
-	string modelName = "general_driver_model";
-
-	//Get the parameter manager instance for the AMOD, as these intersections are for AMOD
-	ParameterManager *parameterMgr = ParameterManager::Instance(true);
-
-	//Read the parameter values
-	parameterMgr->param(modelName, "intersection_visibility", intersectionVisbility, 50.0);
 }
 
 SlotBased_IntDriving_Model::~SlotBased_IntDriving_Model()
@@ -44,8 +36,7 @@ double SlotBased_IntDriving_Model::makeAcceleratingDecision(DriverUpdateParams& 
 		
 		if (timeToReachInt >= 0)
 		{
-			double speed = params.driver->distToIntersection_.get() / timeToReachInt;
-			speed = speed * 100;
+			double speed = params.driver->getDistToIntersection() / timeToReachInt;			
 			params.driver->getVehicle()->setVelocity(speed);
 			
 			acc = 0;
@@ -69,10 +60,10 @@ void SlotBased_IntDriving_Model::sendAccessRequest(DriverUpdateParams& params)
 	if(currTurning && isRequestSent == false)
 	{
 		//Get the approaching intersection manager
-		IntersectionManager *intMgr = IntersectionManager::getIntManager(currTurning->getFromSeg()->getEnd()->getID());
+		IntersectionManager *intMgr = IntersectionManager::getIntManager(currTurning->getFromLane()->getParentSegment()->getParentLink()->getFromNodeId());
 		
 		//Calculate the arrival time according to the current speed and the distance to the intersection
-		double arrivalTime = calcArrivalTime(params.driver->distToIntersection_.get(), params);		
+		double arrivalTime = calcArrivalTime(params.driver->getDistToIntersection(), params);		
 		
 		if(arrivalTime > 0)
 		{
@@ -80,7 +71,7 @@ void SlotBased_IntDriving_Model::sendAccessRequest(DriverUpdateParams& params)
 			arrivalTime += ((double) params.now.ms() / 1000);
 			
 			//Pointer to the access request sent by the driver
-			IntersectionAccessMessage *accessRequest = new IntersectionAccessMessage(arrivalTime, currTurning->getDbId());
+			IntersectionAccessMessage *accessRequest = new IntersectionAccessMessage(arrivalTime, currTurning->getTurningPathId());
 			accessRequest->SetSender(params.driver->getParent());
 			
 			//For debugging

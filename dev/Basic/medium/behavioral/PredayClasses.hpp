@@ -9,77 +9,13 @@
 #include <string>
 #include <vector>
 #include "behavioral/StopType.hpp"
+#include "behavioral/StopType.hpp"
 #include "util/LangHelpers.hpp"
 
 namespace sim_mob
 {
 namespace medium
 {
-
-/**
- * An encapsulation of a time window and its availability.
- *
- * startTime and endTime are integral numbers from 1 to 48
- * The times are considered in half hour windows.
- * There are 48 half hour windows in a day.
- *
- * x.25 represents a time value between x:00 - x:29
- * x.75 represents a time value between x:30 and x:59
- * - where x varies from 3 to 26
- *
- * The startTime must be lesser than or equal to endTime.
- *
- * 3.25 (0300 to 0329 hrs) is time 1
- * 3.75 (0330 to 0359 hrs) is time 2
- * 4.25 (0400 to 0429 hrs) is time 3
- * ... so on
- * 23.75 (1130 to 1159 hrs) is time 42
- * 24.25 (1200 to 1229 hrs) is time 43
- * ... so on
- * 26.75 (0230 to 0259 hrs) is time 48
- *
- * \author Harish Loganathan
- */
-
-class TimeWindowAvailability
-{
-public:
-	TimeWindowAvailability();
-	TimeWindowAvailability(double startTime, double endTime, bool availability = true);
-
-	int getAvailability() const
-	{
-		return availability;
-	}
-
-	void setAvailability(bool availability)
-	{
-		this->availability = availability;
-	}
-
-	double getEndTime() const
-	{
-		return endTime;
-	}
-
-	double getStartTime() const
-	{
-		return startTime;
-	}
-
-	/**
-	 * This vector is used as lookup for obtaining the start and end time of the time window chosen from the time of day model
-	 * There are 48 half-hour windows in a day. Each half hour window can be a start time of a time-window and any half-hour window
-	 * after the start time in the same can be an end time of a time-window. Therefore there are (48 * (48+1) / 2) = 1176 time windows in a day.
-	 * This vector has 1176 elements.
-	 */
-	static const std::vector<TimeWindowAvailability> timeWindowsLookup;
-
-private:
-	double startTime;
-	double endTime;
-	bool availability;
-};
 
 class Tour;
 
@@ -397,8 +333,15 @@ public:
 		return (!subTours.empty());
 	}
 
-	bool operator==(const Tour& rhs) const;
-	bool operator!=(const Tour& rhs) const;
+	bool operator==(const Tour& rhs) const
+	{
+		return (this == &rhs);
+	}
+
+	bool operator!=(const Tour& rhs) const
+	{
+		return !(*this == rhs); //call == operator overload
+	}
 
 	/**
 	 * List of stops in this tour.
@@ -422,38 +365,6 @@ private:
 	double startTime;
 	double endTime;
 	bool firstTour;
-};
-
-class OD_Pair
-{
-private:
-	int origin;
-	int destination;
-
-public:
-	OD_Pair(int org, int dest) :
-			origin(org), destination(dest)
-	{
-	}
-	virtual ~OD_Pair()
-	{
-	}
-
-	bool operator ==(const OD_Pair& rhs) const;
-	bool operator !=(const OD_Pair& rhs) const;
-
-	bool operator >(const OD_Pair& rhs) const;
-	bool operator <(const OD_Pair& rhs) const;
-
-	int getDestination() const
-	{
-		return destination;
-	}
-
-	int getOrigin() const
-	{
-		return origin;
-	}
 };
 
 } // end namespace medium

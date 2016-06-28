@@ -5,8 +5,8 @@
 #include "Vehicle.hpp"
 
 #include "logging/Log.hpp"
-#include "geospatial/Node.hpp"
-#include "geospatial/RoadSegment.hpp"
+#include "geospatial/network/Node.hpp"
+#include "geospatial/network/RoadSegment.hpp"
 
 #ifndef SIMMOB_DISABLE_MPI
 #include "partitions/PackageUtils.hpp"
@@ -17,152 +17,89 @@
 using namespace sim_mob;
 using std::vector;
 
-sim_mob::Vehicle::Vehicle(const VehicleType vehType, double lengthCM, double widthCM) :
-	VehicleBase(vehType,lengthCM,widthCM), vehicleId(0), latMovement(0),
-	fwdVelocity(0), latVelocity(0), fwdAccel(0), errorState(false),
-	turningDirection(LCS_SAME), schedule(nullptr)
-{}
-
-sim_mob::Vehicle::Vehicle(const VehicleType vehType, int vehicleId, double lengthCM, double widthCM) :
-		VehicleBase(vehType,lengthCM,widthCM), vehicleId(vehicleId),
-		latMovement(0), fwdVelocity(0), latVelocity(0), fwdAccel(0),
-		errorState(false), turningDirection(LCS_SAME), schedule(nullptr)
-{}
-
-sim_mob::Vehicle::Vehicle(const Vehicle& copyFrom) :
-	VehicleBase(copyFrom), vehicleId(copyFrom.vehicleId), latMovement(copyFrom.latMovement),
-	fwdVelocity(copyFrom.fwdVelocity), latVelocity(copyFrom.latVelocity), fwdAccel(copyFrom.fwdAccel),
-	posInIntersection(copyFrom.posInIntersection), errorState(copyFrom.errorState),
-	turningDirection(LCS_SAME), schedule(copyFrom.schedule) {
-}
-
-void sim_mob::Vehicle::setPositionInIntersection(double x, double y) {
-	posInIntersection.x = x;
-	posInIntersection.y = y;
-}
-
-const DPoint& sim_mob::Vehicle::getPositionInIntersection()
+Vehicle::Vehicle(const VehicleType vehType, double lengthM, double widthM, const std::string& vehName) :
+VehicleBase(vehType, lengthM, widthM), vehicleId(0), latMovement(0), vehicleName(vehName), forwardVelocity(0), lateralVelocity(0), 
+forwardAcceleration(0), turningDirection(LANE_CHANGE_TO_NONE)
 {
-	return posInIntersection;
 }
 
-const RoadSegment* sim_mob::Vehicle::getCurrSegment() const {
-	return fwdMovement.getCurrSegment();
-}
-
-void sim_mob::Vehicle::resetPath(vector<WayPoint> wp_path) {
-	//Construct a list of RoadSegments.
-	vector<const RoadSegment*> path;
-	for (vector<WayPoint>::iterator it = wp_path.begin(); it != wp_path.end(); ++it) {
-		if (it->type_ == WayPoint::ROAD_SEGMENT) {
-			path.push_back(it->roadSegment_);
-		}
-	}
-
-	//Assume this is sufficient; we will specifically test for error cases later.
-	errorState = false;
-
-	//reset
-	fwdMovement.resetPath(path);
-}
-
-const RoadSegment* sim_mob::Vehicle::getNextSegment(bool inSameLink) const {
-	return fwdMovement.getNextSegment(inSameLink);
-}
-
-std::vector<const sim_mob::RoadSegment*>::iterator sim_mob::Vehicle::getPathIterator()
+Vehicle::Vehicle(const VehicleType vehType, int vehicleId, double lengthM, double widthM, const std::string& vehName) :
+VehicleBase(vehType, lengthM, widthM), vehicleId(vehicleId), vehicleName(vehName), latMovement(0), forwardVelocity(0), 
+lateralVelocity(0), forwardAcceleration(0), turningDirection(LANE_CHANGE_TO_NONE)
 {
-	return fwdMovement.currSegmentIt;
 }
 
-std::vector<const sim_mob::RoadSegment*>::iterator sim_mob::Vehicle::getPathIteratorEnd()
+Vehicle::~Vehicle()
 {
-	return fwdMovement.fullPath.end();
 }
 
-const sim_mob::RoadSegment* sim_mob::Vehicle::getSecondSegmentAhead() {
-	return fwdMovement.getNextToNextSegment();
+double Vehicle::getVelocity() const
+{
+	return forwardVelocity;
 }
 
-const RoadSegment* sim_mob::Vehicle::hasNextSegment(bool inSameLink) const {
-	if(!fwdMovement.isDoneWithEntireRoute()) {
-		return fwdMovement.getNextSegment(inSameLink);
-	}
-	return nullptr;
+double Vehicle::getLateralVelocity() const
+{
+	return lateralVelocity;
 }
 
-const RoadSegment* sim_mob::Vehicle::getPrevSegment(bool inSameLink) const {
-	return fwdMovement.getPrevSegment(inSameLink);
+double Vehicle::getAcceleration() const
+{
+	return forwardAcceleration;
 }
 
-const Lane* sim_mob::Vehicle::getCurrLane() const {
-	return fwdMovement.getCurrLane();
-}
-
-double sim_mob::Vehicle::getVelocity() const {
-	throw_if_error();
-	return fwdVelocity;
-}
-
-double sim_mob::Vehicle::getLatVelocity() const {
-	throw_if_error();
-	return latVelocity;
-}
-
-double sim_mob::Vehicle::getAcceleration() const {
-	throw_if_error();
-	return fwdAccel;
-}
-
-LANE_CHANGE_SIDE sim_mob::Vehicle::getTurningDirection() const{
+LaneChangeTo Vehicle::getTurningDirection() const
+{
 	return turningDirection;
 }
 
-void sim_mob::Vehicle::setVelocity(double value) {
-	throw_if_error();
-	fwdVelocity = value;
+void Vehicle::setVelocity(double value)
+{
+	forwardVelocity = value;
 }
 
-void sim_mob::Vehicle::setLatVelocity(double value) {
-	throw_if_error();
-	latVelocity = value;
+void Vehicle::setLateralVelocity(double value)
+{
+	lateralVelocity = value;
 }
 
-void sim_mob::Vehicle::setAcceleration(double value) {
-	throw_if_error();
-	fwdAccel = value;
+void Vehicle::setAcceleration(double value)
+{
+	forwardAcceleration = value;
 }
 
-void sim_mob::Vehicle::setCurrPosition(DPoint currPosition) {
-	throw_if_error();
+void Vehicle::setCurrPosition(Point currPosition)
+{
 	currPos = currPosition;
 }
 
-const DPoint& sim_mob::Vehicle::getCurrPosition() const {
-	throw_if_error();
+const Point& Vehicle::getCurrPosition() const
+{
 	return currPos;
 }
 
-void sim_mob::Vehicle::moveLat(double amt) {
-	throw_if_error();
+void Vehicle::moveLat(double amt)
+{
 	latMovement += amt;
 }
 
-void sim_mob::Vehicle::setTurningDirection(LANE_CHANGE_SIDE direction) {
-	throw_if_error();
+void Vehicle::setTurningDirection(LaneChangeTo direction)
+{
 	turningDirection = direction;
 }
 
-void sim_mob::Vehicle::resetLateralMovement() {
-	throw_if_error();
+void Vehicle::resetLateralMovement()
+{
 	latMovement = 0;
 }
 
-double sim_mob::Vehicle::getLateralMovement() const {
-	throw_if_error();
+const std::string& Vehicle::getVehicleName() const
+{
+	return vehicleName;
+}
+
+double Vehicle::getLateralMovement() const
+{
 	return latMovement;
 }
 
-#ifndef SIMMOB_DISABLE_MPI
-
-#endif

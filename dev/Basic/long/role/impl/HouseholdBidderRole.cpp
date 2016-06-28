@@ -406,12 +406,26 @@ void HouseholdBidderRole::HandleMessage(Message::MessageType type, const Message
                 case ACCEPTED:// Bid accepted 
                 {
                 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
-                	moveInWaitingTimeInDays = config.ltParams.housingModel.housingMoveInDaysInterval;
+
                 	unitIdToBeOwned = msg.getBid().getNewUnitId();
+                	const Unit *newUnit = getParent()->getModel()->getUnitById(unitIdToBeOwned);
+                	boost::gregorian::date moveInDate = boost::gregorian::date_from_tm(newUnit->getOccupancyFromDate());
+                	boost::gregorian::date simulationDate(HITS_SURVEY_YEAR, 1, 1);
+                	boost::gregorian::date_duration dt(day);
+                	simulationDate = simulationDate + dt;
+
+                	if( simulationDate <  moveInDate )
+                		moveInWaitingTimeInDays = ( moveInDate - simulationDate ).days();
+                	else
+                		moveInWaitingTimeInDays = config.ltParams.housingModel.housingMoveInDaysInterval;
+
+
                 	vehicleBuyingWaitingTimeInDays = config.ltParams.vehicleOwnershipModel.vehicleBuyingWaitingTimeInDays;
                 	int simulationEndDay = config.ltParams.days;
                 	year = config.ltParams.year;
+
                 	if(simulationEndDay < (moveInWaitingTimeInDays))
+
                 	{
                 		boost::shared_ptr<Household> houseHold = boost::make_shared<Household>( *getParent()->getHousehold());
                 		houseHold->setUnitId(unitIdToBeOwned);
@@ -607,6 +621,21 @@ bool HouseholdBidderRole::pickEntryToBid()
     }
     else
     {
+        //Add x BTO units to the screenedUnit vector if the household is eligible for it
+        for(int n = 0, m = 0; n < entries.size() && m < config.ltParams.housingModel.bidderBTOUnitsChoiceSet; n++ )
+        {
+        	int offset = rand() / RAND_MAX * entries.size();
+
+         	HousingMarket::ConstEntryList::const_iterator itr = entries.begin() + offset;
+           	const HousingMarket::Entry* entry = *itr;
+
+        	if( entry->isBTO() == true )
+        	{
+        		screenedEntries.push_back(entry);
+        		m++;
+        	}
+        }
+
     	std::string choiceset(" ");
     	for(int n = 0; n < screenedEntries.size(); n++)
     	{
@@ -635,23 +664,33 @@ bool HouseholdBidderRole::pickEntryToBid()
     	HousingMarket::ConstEntryList::const_iterator itr = screenedEntries.begin() + offset;
         const HousingMarket::Entry* entry = *itr;
 
-        if(entry && entry->getOwner() != getParent() && entry->getAskingPrice() > 0.01 )
+        if( entry->getAskingPrice() < 0.01 )
+        {
+        	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, (boost::format( "[unit %1%] Asking price is suspiciously low at %2%.") % entry->getUnitId() % entry->getAskingPrice() ).str());
+        }
+
+        if(entry && entry->getOwner() != getParent() )
         {
             const Unit* unit = model->getUnitById(entry->getUnitId());
             const HM_Model::TazStats* stats = model->getTazStatsByUnitId(entry->getUnitId());
 
             bool flatEligibility = true;
 
-            if( unit && unit->getUnitType() == 2 && household->getTwoRoomHdbEligibility()  == false)
-            	flatEligibility = false;
 
-            if( unit && unit->getUnitType() == 3 && household->getThreeRoomHdbEligibility() == false )
-                flatEligibility = false;
 
-            if( unit && unit->getUnitType() == 4 && household->getFourRoomHdbEligibility() == false )
-                flatEligibility = false;
+            // chetan *must* add unit->getBTO() here after gishara merges her branch
+			if( unit->getUnitType() == 2 && household->getTwoRoomHdbEligibility()  == false )
+				flatEligibility = false;
 
-            if( unit && stats && flatEligibility )
+			if( unit->getUnitType() == 3 && household->getThreeRoomHdbEligibility() == false )
+				flatEligibility = false;
+
+			if( unit->getUnitType() == 4 && household->getFourRoomHdbEligibility() == false )
+				flatEligibility = false;
+
+
+
+            if( stats && flatEligibility )
             {
             	const Unit *hhUnit = model->getUnitById( household->getUnitId() );
 

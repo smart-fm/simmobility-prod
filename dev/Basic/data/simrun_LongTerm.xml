@@ -127,11 +127,17 @@
 	    <housingMoveInDaysInterval value="30"/>
 	    <offsetBetweenUnitBuyingAndSelling value ="7"/>
 	    <bidderUnitsChoiceSet value = "50"/>
+	    <bidderBTOUnitsChoiceSet value = "12"/>
 	    <householdBiddingWindow value = "30" />
         </housingModel>
 	<vehicleOwnershipModel enabled='false'>
 		<vehicleBuyingWaitingTimeInDays value= "1"/>
 	</vehicleOwnershipModel>
+        <taxiAccessModel enabled='false'>
+	</taxiAccessModel>
+	<schoolAssignmentModel enabled = 'false'>
+		<schoolChangeWaitingTimeInDays value ="1" />
+	</schoolAssignmentModel>
     </longTermParams>
 
     <model_scripts path="scripts/lua/mid/behavior-models/" format="lua">

@@ -6,17 +6,41 @@
 #include <vector>
 #include "entities/conflux/SegmentStats.hpp"
 
-namespace sim_mob {
-namespace medium {
+namespace sim_mob
+{
+namespace medium
+{
 class MesoReroute;
-class MesoPathMover {
-public:
-	MesoPathMover() : distToSegmentEnd(0) {}
+class MesoPathMover
+{
+protected:
+	//Note: Be careful if you want to change the container type of Path.
+	//The functions in this class assume that Path is a container with random
+	//access iterators. They perform operations like it+n where n is an integer.
+	//If random access iterators are not available for Path, this class will
+	//not work as expected.
+	typedef std::vector<const SegmentStats*> Path;
+	Path path;
+	Path::iterator currSegStatIt;
 
-	double getPositionInSegment() const {
+	//representation of position within segment stats
+	double distToSegmentEnd;
+
+	friend MesoReroute;
+
+public:
+	MesoPathMover() :
+			distToSegmentEnd(0)
+	{
+	}
+
+	double getPositionInSegment() const
+	{
 		return this->distToSegmentEnd;
 	}
-	void setPositionInSegment(double distanceToEnd) {
+
+	void setPositionInSegment(double distanceToEnd)
+	{
 		this->distToSegmentEnd = distanceToEnd;
 	}
 
@@ -24,8 +48,8 @@ public:
 	 * sets path and resets the current iterator
 	 * @param path the path to be set
 	 */
-	void setPath(const std::vector<const sim_mob::SegmentStats*>& path);
-	const std::vector<const sim_mob::SegmentStats*> & getPath()const;
+	void setPath(const std::vector<const SegmentStats*>& path);
+	const std::vector<const SegmentStats*> & getPath() const;
 
 	/**
 	 * resets the path. used when the path changes enroute.
@@ -34,14 +58,14 @@ public:
 	 *
 	 * @param newPath the new path to be set
 	 */
-	void resetPath(const std::vector<const sim_mob::SegmentStats*>& newPath);
+	void resetPath(const std::vector<const SegmentStats*>& newPath);
 
 	/**
 	 * gets the SegmentStats* pointed by currSegStatIt in the path
 	 * @return constant pointer to SegmentStats corresponding to currSegStatIt
 	 * 		or nullptr if currSegStatIt points to the end of the path
 	 */
-	const sim_mob::SegmentStats* getCurrSegStats() const;
+	const SegmentStats* getCurrSegStats() const;
 
 	/**
 	 * gets the SegmentStats* corresponding to the element in path next to currSegStatIt
@@ -51,7 +75,7 @@ public:
 	 * 		if currSegStatIt and currSegStatIt+1 are not end of path and
 	 * 		inSameLink condition is satisfied; nullptr otherwise.
 	 */
-	const sim_mob::SegmentStats* getNextSegStats(bool inSameLink = true) const;
+	const SegmentStats* getNextSegStats(bool inSameLink = true) const;
 
 	/**
 	 * gets the SegmentStats* corresponding to the element in path at currSegStatIt+2
@@ -59,7 +83,7 @@ public:
 	 * 		if currSegStatIt, currSegStatIt+1 and currSegStatIt+2 are not end of path;
 	 * 		nullptr otherwise.
 	 */
-	const sim_mob::SegmentStats* getSecondSegStatsAhead() const;
+	const SegmentStats* getSecondSegStatsAhead() const;
 
 	/**
 	 * gets the SegmentStats* corresponding to the element in path before currSegStatIt
@@ -69,7 +93,7 @@ public:
 	 * 		if currSegStatIt is not the first element in path and
 	 * 		inSameLink condition is satisfied; nullptr otherwise.
 	 */
-	const sim_mob::SegmentStats* getPrevSegStats(bool inSameLink = true) const;
+	const SegmentStats* getPrevSegStats(bool inSameLink = true) const;
 
 	/**
 	 * tells whether subsequent SegmentStats* in path is in same link or not
@@ -106,33 +130,11 @@ public:
 	 * @param segStats downstream seg stats for which downstream link is required
 	 * @return first segstats in the immediate downstream Link of path
 	 */
-	const sim_mob::SegmentStats* getFirstSegStatsInNextLink(const SegmentStats* segStats) const;
+	const SegmentStats* getFirstSegStatsInNextLink(const SegmentStats* segStats) const;
 
-protected:
-	//Note: Be careful if you want to change the container type of Path.
-	//The functions in this class assume that Path is a container with random
-	//access iterators. They perform operations like it+n where n is an integer.
-	//If random access iterators are not available for Path, this class will
-	//not work as expected.
-	typedef std::vector<const sim_mob::SegmentStats*> Path;
-	Path path;
-	Path::iterator currSegStatIt;
-
-	//representation of position within segment stats
-	double distToSegmentEnd;
-public:
 	//debug
 	///return string of path by aimsun section id
-	static std::string printPath(const MesoPathMover::Path &path, const Node *node = 0);
-private:
-	/**
-	 * gets the SegmentStats iterator
-	 * @return currSegStatIt
-	 */
-	Path::iterator getCurrSegStatsIt(){
-		return currSegStatIt;
-	}
-	friend MesoReroute;
+	static std::string getPathString(const MesoPathMover::Path &path, const Node *node = 0);
 };
 }
 }

@@ -24,14 +24,19 @@ PredayCalibrationParams::PredayCalibrationParams() :
 {}
 
 MT_Config::MT_Config() :
-		pedestrianWalkSpeed(0), numPredayThreads(0), configSealed(false), fileOutputEnabled(false),
-		consoleOutput(false), predayRunMode(MT_Config::NONE), calibrationMethodology(MT_Config::WSPSA),
-		logsumComputationFrequency(0), supplyUpdateInterval(0), activityScheduleLoadInterval(0), busCapacity(0),
-		outputPredictions(false), populationSource(db::MONGO_DB), populationDB(), logsumDB()
-{}
+       regionRestrictionEnabled(false), midTermRunMode(MT_Config::MT_NONE), pedestrianWalkSpeed(0), numPredayThreads(0),
+			configSealed(false), fileOutputEnabled(false), consoleOutput(false), predayRunMode(MT_Config::PREDAY_NONE), calibrationMethodology(MT_Config::WSPSA),
+			logsumComputationFrequency(0), supplyUpdateInterval(0), activityScheduleLoadInterval(0), busCapacity(0), outputPredictions(false),
+            populationSource(db::MONGO_DB), populationDB(), simmobDB(), granPersonTicks(0)
+{
+}
 
 MT_Config::~MT_Config()
 {
+    clear_delete_vector(confluxes);
+    clear_delete_vector(segmentStatsWithBusStops);
+    clear_delete_map(multinode_confluxes);
+
 	safe_delete_item(instance);
 }
 
@@ -50,10 +55,10 @@ void MT_Config::setPredayRunMode(const std::string runMode)
 {
 	if(!configSealed)
 	{
-		if(runMode == "simulation") { predayRunMode = MT_Config::SIMULATION; }
-		else if(runMode == "logsum") { predayRunMode = MT_Config::LOGSUM_COMPUTATION; }
-		else if(runMode == "calibration") { predayRunMode = MT_Config::CALIBRATION; }
-		else if(runMode == "lt_logsum") { predayRunMode = MT_Config::LOGSUM_COMPUTATION_LT; }
+		if(runMode == "simulation") { predayRunMode = MT_Config::PREDAY_SIMULATION; }
+		else if(runMode == "logsum") { predayRunMode = MT_Config::PREDAY_LOGSUM_COMPUTATION; }
+		else if(runMode == "calibration") { predayRunMode = MT_Config::PREDAY_CALIBRATION; }
+		else if(runMode == "lt_logsum") { predayRunMode = MT_Config::PREDAY_LOGSUM_COMPUTATION_LT; }
 		else { throw std::runtime_error("Inadmissible value for preday run_mode"); }
 	}
 }
@@ -81,19 +86,6 @@ void MT_Config::setSupplyUpdateInterval(unsigned supplyUpdateInterval)
 	if(!configSealed)
 	{
 		this->supplyUpdateInterval = supplyUpdateInterval;
-	}
-}
-
-const StoredProcedureMap& MT_Config::getStoredProcedure() const
-{
-	return storedProcedure;
-}
-
-void MT_Config::setStoredProcedureMap(const StoredProcedureMap& storedProcedure)
-{
-	if(!configSealed)
-	{
-		this->storedProcedure = storedProcedure;
 	}
 }
 
@@ -170,11 +162,11 @@ const PredayCalibrationParams& MT_Config::getSPSA_CalibrationParams() const
 	return spsaCalibrationParams;
 }
 
-void MT_Config::setSPSA_CalibrationParams(const PredayCalibrationParams& predayCalibrationParams)
+void MT_Config::setSPSA_CalibrationParams(const PredayCalibrationParams& spsaCalibrationParams)
 {
 	if(!configSealed)
 	{
-		this->spsaCalibrationParams = predayCalibrationParams;
+        this->spsaCalibrationParams = spsaCalibrationParams;
 	}
 }
 
@@ -224,22 +216,22 @@ void MT_Config::setConsoleOutput(bool consoleOutput)
 
 bool MT_Config::runningPredaySimulation() const
 {
-	return (predayRunMode == MT_Config::SIMULATION);
+	return (predayRunMode == MT_Config::PREDAY_SIMULATION);
 }
 
 bool MT_Config::runningPredayCalibration() const
 {
-	return (predayRunMode == MT_Config::CALIBRATION);
+	return (predayRunMode == MT_Config::PREDAY_CALIBRATION);
 }
 
 bool MT_Config::runningPredayLogsumComputation() const
 {
-	return (predayRunMode == MT_Config::LOGSUM_COMPUTATION);
+	return (predayRunMode == MT_Config::PREDAY_LOGSUM_COMPUTATION);
 }
 
 bool MT_Config::runningPredayLogsumComputationForLT() const
 {
-	return (predayRunMode == MT_Config::LOGSUM_COMPUTATION_LT);
+	return (predayRunMode == MT_Config::PREDAY_LOGSUM_COMPUTATION_LT);
 }
 
 bool MT_Config::runningSPSA() const
@@ -275,15 +267,15 @@ void MT_Config::setCalibrationMethodology(const std::string calibrationMethod)
 	}
 }
 
-void MT_Config::setWSPSA_CalibrationParams(const PredayCalibrationParams& predayCalibrationParams)
+void MT_Config::setWSPSA_CalibrationParams(const PredayCalibrationParams& wspsaCalibrationParams)
 {
 	if(!configSealed)
 	{
-		if(runningWSPSA() && predayCalibrationParams.getWeightMatrixFile().empty())
+        if(runningWSPSA() && wspsaCalibrationParams.getWeightMatrixFile().empty())
 		{
 			throw std::runtime_error("weight matrix is not provided for WSPSA");
 		}
-		this->wspsaCalibrationParams = predayCalibrationParams;
+        this->wspsaCalibrationParams = wspsaCalibrationParams;
 	}
 }
 
@@ -300,57 +292,6 @@ void MT_Config::setLogsumComputationFrequency(unsigned logsumComputationFrequenc
 	}
 }
 
-const std::string& MT_Config::getJourneyTimeStatsFilename() const
-{
-	return journeyTimeStatsFilename;
-}
-
-const std::string& MT_Config::getWaitingTimeStatsFilename() const
-{
-	return waitingTimeStatsFilename;
-}
-
-void MT_Config::setJourneyTimeStatsFilename(const std::string& str)
-{
-	if(!configSealed)
-	{
-		journeyTimeStatsFilename = str;
-	}
-}
-
-void MT_Config::setWaitingTimeStatsFilename(const std::string& str)
-{
-	if(!configSealed)
-	{
-		waitingTimeStatsFilename = str;
-	}
-}
-
-const std::string& MT_Config::getWaitingCountStatsFilename() const
-{
-	return waitingCountStatsFilename;
-}
-
-void MT_Config::setWaitingCountStatsFilename(const std::string& str)
-{
-	if(!configSealed)
-	{
-		waitingCountStatsFilename = str;
-	}
-}
-
-const std::string& MT_Config::getTravelTimeStatsFilename() const
-{
-	return travelTimeStatsFilename;
-}
-
-void MT_Config::setTravelTimeStatsFilename(const std::string& str)
-{
-	if(!configSealed)
-	{
-		travelTimeStatsFilename = str;
-	}
-}
 const unsigned int MT_Config::getBusCapacity() const
 {
 	return busCapacity;
@@ -379,17 +320,17 @@ void MT_Config::setPopulationSource(const std::string& src)
 	}
 }
 
-const DB_Details& MT_Config::getLogsumDb() const
+const DB_Details& MT_Config::getSimmobDb() const
 {
-	return logsumDB;
+	return simmobDB;
 }
 
-void MT_Config::setLogsumDb(const std::string& logsumDb, const std::string& logsumCred)
+void MT_Config::setSimmobDb(const std::string& simmobDb, const std::string& simmobCred)
 {
 	if(!configSealed)
 	{
-		logsumDB.database = logsumDb;
-		logsumDB.credentials = logsumCred;
+		simmobDB.database = simmobDb;
+		simmobDB.credentials = simmobCred;
 	}
 }
 
@@ -404,6 +345,112 @@ void MT_Config::setPopulationDb(const std::string& populationDb, const std::stri
 	{
 		populationDB.database = populationDb;
 		populationDB.credentials = populationCred;
+	}
+}
+
+bool MT_Config::RunningMidSupply() const {
+    return (midTermRunMode == MT_Config::MT_SUPPLY);
+}
+
+bool MT_Config::RunningMidDemand() const {
+    return (midTermRunMode == MT_Config::MT_PREDAY);
+}
+
+void MT_Config::setMidTermRunMode(const std::string& runMode)
+{
+    if(runMode.empty()) { return; }
+    if(runMode == "supply" || runMode == "withinday")
+    {
+        midTermRunMode = MT_Config::MT_SUPPLY;
+    }
+    else if (runMode == "preday")
+    {
+        midTermRunMode = MT_Config::MT_PREDAY;
+    }
+    else
+    {
+        throw std::runtime_error("inadmissible value for mid_term_run_mode. Must be either 'supply' or 'preday'");
+    }
+}
+
+bool MT_Config::isRegionRestrictionEnabled() const{
+    return regionRestrictionEnabled;
+}
+
+std::vector<IncidentParams>& MT_Config::getIncidents(){
+    return incidents;
+}
+
+std::map<const Node*, Conflux*>& MT_Config::getConfluxNodes()
+{
+    return multinode_confluxes;
+}
+
+const std::map<const Node*, Conflux*>& MT_Config::getConfluxNodes() const
+{
+    return multinode_confluxes;
+}
+
+Conflux* MT_Config::getConfluxForNode(const Node* multinode) const
+{
+    std::map<const Node*, Conflux*>::const_iterator cfxIt = multinode_confluxes.find(multinode);
+    if(cfxIt == multinode_confluxes.end()) { return nullptr; }
+    return cfxIt->second;
+}
+
+std::set<Conflux*>& MT_Config::getConfluxes()
+{
+    return confluxes;
+}
+
+const std::set<Conflux*>& MT_Config::getConfluxes() const
+{
+    return confluxes;
+}
+
+std::set<SegmentStats*>& MT_Config::getSegmentStatsWithBusStops()
+{
+    return segmentStatsWithBusStops;
+}
+
+unsigned int MT_Config::personTimeStepInMilliSeconds() const
+{
+    return workers.person.granularityMs;
+}
+
+const WorkerParams& MT_Config::getWorkerParams() const
+{
+	return workers;
+}
+
+unsigned int& sim_mob::medium::MT_Config::personWorkGroupSize()
+{
+	return workers.person.count;
+}
+
+unsigned int sim_mob::medium::MT_Config::personWorkGroupSize() const
+{
+	return workers.person.count;
+}
+
+std::pair<double, double> sim_mob::medium::MT_Config::getSpeedDensityParam(int linkCategory) const
+{
+	if(linkCategory < 1 || linkCategory > 7)
+	{
+		throw std::runtime_error("invalid link category passed to fetch speed density parameters");
+	}
+	return speedDensityParams[linkCategory-1];
+}
+
+void sim_mob::medium::MT_Config::setSpeedDensityParam(int linkCategory, double alpha, double beta)
+{
+	if(!configSealed)
+	{
+		if(linkCategory < 1 || linkCategory > 7)
+		{
+			throw std::runtime_error("invalid link category passed to set speed density parameters");
+		}
+		speedDensityParams[linkCategory-1] = std::make_pair(alpha, beta);
 	}
 }
 

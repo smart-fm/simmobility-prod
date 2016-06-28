@@ -13,10 +13,10 @@ UPDATED VERSION - Carlos, Adnan, Harish
 --Estimated values for all betas
 --Note: the betas that not estimated are fixed to zero.
 --stop constants
-local beta_stop_work = -8.39
-local beta_stop_edu = -4.39
-local beta_stop_shop = -5.06
-local beta_stop_others = -3.60
+local beta_stop_work = -9.229
+local beta_stop_edu = -4.829
+local beta_stop_shop = -5.566
+local beta_stop_others = -3.96
 
 --Person type
 local beta_parttime_work = 0
@@ -124,7 +124,7 @@ local beta_income_edu = 0
 local beta_income_shop = 0.147
 local beta_income_others = 0.104
 
-local beta_missingincome_work = 2.41
+local beta_missingincome_work = 0
 local beta_missingincome_edu = 0
 local beta_missingincome_shop = 0.459
 local beta_missingincome_others = 0.544

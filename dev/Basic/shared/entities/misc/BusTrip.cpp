@@ -7,9 +7,14 @@
 
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
-#include "geospatial/BusStop.hpp"
+#include "geospatial/network/PT_Stop.hpp"
 #include "logging/Log.hpp"
 
+namespace
+{
+const unsigned int MINUTES_IN_DAY = 1440;
+const unsigned int MS_IN_MINUTE = 60 * 1000;
+}
 
 using namespace sim_mob;
 
@@ -69,7 +74,7 @@ sim_mob::BusTrip::BusTrip(std::string entId, std::string type,
 		std::string toLocType) :
 		Trip(entId, type, seqNumber, requestTime, start, end,
 				boost::lexical_cast<std::string>(totalSequenceNum), from,
-				fromLocType, to, toLocType), totalSequenceNum(totalSequenceNum), busLine(
+				fromLocType, to, toLocType, "Bus"), totalSequenceNum(totalSequenceNum), busLine(
 				busLine), vehicleId(vehicleId), busRouteInfo(busRouteId) {
 	lastVisitedStopSequenceNumber = -1;
 }
@@ -128,9 +133,13 @@ bool sim_mob::BusTrip::setBusRouteInfo(const std::vector<const RoadSegment*>& ro
 		addBusStopRealTimes(pBusStopRealTimes);
 	}
 
-	if(config.busline_control_type() == "schedule_based" || config.busline_control_type() == "evenheadway_based" || config.busline_control_type() == "hybrid_based") {
+    if(config.busController.busLineControlType == "schedule_based"
+    		|| config.busController.busLineControlType == "evenheadway_based"
+    		|| config.busController.busLineControlType == "hybrid_based")
+    {
 		std::map<int, BusStopScheduledTime> scheduledTimes =  config.busScheduledTimes;
-		for(std::map<int, BusStopScheduledTime>::iterator temp=scheduledTimes.begin();temp != scheduledTimes.end();temp++) {
+		for(std::map<int, BusStopScheduledTime>::iterator temp=scheduledTimes.begin();temp != scheduledTimes.end();temp++)
+		{
 			BusStopScheduledTimes busStop_ScheduledTimes(startTime + DailyTime(temp->second.offsetAT),startTime + DailyTime(temp->second.offsetDT));
 			addBusStopScheduledTimes(busStop_ScheduledTimes);
 		}
@@ -138,7 +147,7 @@ bool sim_mob::BusTrip::setBusRouteInfo(const std::vector<const RoadSegment*>& ro
 	return true;
 }
 
-sim_mob::FrequencyBusLine::FrequencyBusLine(DailyTime start_Time, DailyTime end_Time, int headway)
+sim_mob::BusLineFrequency::BusLineFrequency(DailyTime start_Time, DailyTime end_Time, int headway)
 : startTime(start_Time), endTime(end_Time), headwaySec(headway)
 {
 
@@ -184,9 +193,35 @@ void sim_mob::BusLine::addBusTrip(BusTrip& trip)
 	busTrips.push_back(trip);
 }
 
-void sim_mob::BusLine::addFrequencyBusLine(const FrequencyBusLine& frequency)
+void sim_mob::BusLine::addBusLineFrequency(const BusLineFrequency& frequency)
 {
-	frequencyBusLine.push_back(frequency);
+	busLineFrequency.push_back(frequency);
+	setAvailability(frequency);
+}
+
+bool sim_mob::BusLine::isAvailable(const DailyTime& time) const
+{
+	unsigned int minute = time.getValue() / MS_IN_MINUTE;
+	while (minute >= MINUTES_IN_DAY)
+	{
+		minute = minute - MINUTES_IN_DAY;
+	}
+	return buslineAvailability.test(minute);
+}
+
+void sim_mob::BusLine::setAvailability(const BusLineFrequency& frequency)
+{
+	unsigned int startMinute = frequency.startTime.getValue() / MS_IN_MINUTE;
+	unsigned int endMinute = frequency.endTime.getValue() / MS_IN_MINUTE;
+
+	if(endMinute < startMinute)
+	{	//the frequency crosses the day boundary. add a day to the endMinute.
+		endMinute = endMinute + MINUTES_IN_DAY;
+	}
+	for(unsigned int i=startMinute; i<=endMinute; i++)
+	{
+		buslineAvailability.set(i%MINUTES_IN_DAY);
+	}
 }
 
 void sim_mob::BusLine::resetBusTripStopRealTimes(int trip, int sequence, Shared<BusStopRealTimes>* realTimes)
@@ -228,7 +263,7 @@ void sim_mob::PT_Schedule::registerControlType(const std::string buslineId, cons
 	buslineIdControlTypeMap[buslineId] = controlType;
 }
 
-BusLine* sim_mob::PT_Schedule::findBusLine(const std::string& buslineId)
+BusLine* sim_mob::PT_Schedule::findBusLine(const std::string& buslineId) const
 {
 	std::map<std::string, BusLine*>::const_iterator it;
 	it = buslineIdBuslineMap.find(buslineId);

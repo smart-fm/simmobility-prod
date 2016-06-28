@@ -15,15 +15,14 @@
 #include "conf/settings/StrictAgentErrors.h"
 #include "entities/profile/ProfileBuilder.hpp"
 #include "event/SystemEvents.hpp"
-
 #include "logging/Log.hpp"
 #include "message/MessageBus.hpp"
 #include "partitions/PartitionManager.hpp"
 #include "partitions/PackageUtils.hpp"
 #include "partitions/UnPackageUtils.hpp"
-#include "workers/Worker.hpp"
 #include "util/LangHelpers.hpp"
 #include "util/DebugFlags.hpp"
+#include "workers/Worker.hpp"
 
 using namespace sim_mob;
 using namespace sim_mob::long_term;
@@ -46,13 +45,6 @@ bool sim_mob::long_term::cmp_agent_lt_start::operator()(const Agent_LT* x, const
 
 	//We want a lower start time to translate into a higher priority.
 	return x->getStartTime() > y->getStartTime();
-}
-
-//Implementation of our comparison function for events by start time.
-bool cmp_event_lt_start::operator()(const PendingEvent& x,	const PendingEvent& y) const
-{
-	//We want a lower start time to translate into a higher priority.
-	return x.start > y.start;
 }
 
 unsigned int sim_mob::long_term::Agent_LT::next_agent_id = 0;
@@ -136,7 +128,10 @@ void sim_mob::long_term::Agent_LT::setLastUpdatedFrame(long lastUpdatedFrame)
 	this->lastUpdatedFrame = lastUpdatedFrame;
 }
 
-void sim_mob::long_term::Agent_LT::buildSubscriptionList(std::vector<sim_mob::BufferedBase*>& subsList){}
+std::vector<sim_mob::BufferedBase*>  sim_mob::long_term::Agent_LT::buildSubscriptionList()
+{
+	return std::vector<sim_mob::BufferedBase*>();
+}
 
 void sim_mob::long_term::Agent_LT::CheckFrameTimes(unsigned int agentId, uint32_t now, unsigned int startTime, bool wasFirstFrame, bool wasRemoved)
 {
@@ -216,7 +211,6 @@ UpdateStatus sim_mob::long_term::Agent_LT::perform_update(timeslice now)
 
 	return retVal;
 }
-
 
 bool sim_mob::long_term::Agent_LT::isToBeRemoved()
 {

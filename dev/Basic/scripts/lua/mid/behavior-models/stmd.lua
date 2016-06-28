@@ -12,7 +12,7 @@ Authors - Siyu Li, Harish Loganathan, Olga Petrik
 
 --!! see the documentation on the definition of AM,PM and OP table!!
 
-local beta_cost_bus_mrt_1= -0.190
+local beta_cost_bus_mrt_1 = -0.19
 local beta_cost_private_bus_1 = -0.696
 local beta_cost_drive1_1 = 0
 local beta_cost_share2_1= 0
@@ -52,7 +52,7 @@ local beta_distance_motor = 0
 local beta_distance_walk = 0
 local beta_distance_taxi = 0
 
-local beta_cons_bus = 2.80
+local beta_cons_bus = 2.8
 local beta_cons_mrt = 2.21
 local beta_cons_private_bus = 2.094
 local beta_cons_drive1 = 0.4

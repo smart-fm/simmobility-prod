@@ -11,7 +11,7 @@
 #include "entities/roles/driver/BusDriver.hpp"
 #include "entities/roles/waitBusActivity/WaitBusActivity.hpp"
 #include "entities/roles/passenger/Passenger.hpp"
-#include "geospatial/BusStop.hpp"
+#include "geospatial/network/PT_Stop.hpp"
 
 namespace sim_mob
 {
@@ -84,7 +84,12 @@ public:
 	 * store waiting time
 	 * @param waitingActivity is pointer to the waiting people
 	 */
-	void storeWaitingTime(sim_mob::medium::WaitBusActivity* waitingActivity) const;
+	void storeWaitingTime(sim_mob::medium::WaitBusActivity* waitingActivity, const std::string& busLine) const;
+
+	/**
+	 * returns number of people waiting for buses in this stop
+	 */
+	unsigned int getWaitingCount() const;
 
 	/**
 	 * finds the BusStopAgent corresponding to a bus stop.
@@ -105,7 +110,7 @@ public:
 
 protected:
 	//Virtual overrides
-	virtual bool frame_init(timeslice now);
+	virtual Entity::UpdateStatus frame_init(timeslice now);
 	virtual Entity::UpdateStatus frame_tick(timeslice now);
 	virtual void frame_output(timeslice now);
 	virtual bool isNonspatial();
@@ -152,7 +157,7 @@ private:
 	SegmentStats* parentSegmentStats;
 	/**record last boarding number for a given bus*/
 	std::map<sim_mob::medium::BusDriver*, unsigned int> lastBoardingRecorder;
-	/**available length in cm for incoming vehicles*/
+	/**available length in m for incoming vehicles*/
 	double availableLength;
 	/**current time in milliseconds from start of simulation*/
 	unsigned int currentTimeMS;

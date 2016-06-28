@@ -9,12 +9,12 @@
 #include <sstream>
 #include <string>
 #include <vector>
-#include "PredaySystem.hpp"
-#include "PredayClasses.hpp"
+#include "behavioral/params/PersonParams.hpp"
+#include "behavioral/params/ZoneCostParams.hpp"
 #include "CalibrationStatistics.hpp"
 #include "config/MT_Config.hpp"
-#include "params/PersonParams.hpp"
-#include "behavioral/params/ZoneCostParams.hpp"
+#include "PredaySystem.hpp"
+#include "PredayClasses.hpp"
 
 namespace sim_mob
 {
@@ -135,6 +135,13 @@ public:
 	 * @param dbType type of backend where the zone node mapping data is available
 	 */
 	void loadZoneNodes(db::BackendType dbType);
+
+	/**
+	 * Gets mapping of postcode to nearest node
+	 *
+	 * @param dbType type of backend where the zone node mapping data is available
+	 */
+	void loadPostcodeNodeMapping(db::BackendType dbType);
 
 	/**
 	 * gets the mapping of zones from data for 2012 back to data for 2008

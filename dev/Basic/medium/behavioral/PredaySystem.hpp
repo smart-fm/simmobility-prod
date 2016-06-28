@@ -10,10 +10,10 @@
 #include <vector>
 #include <sstream>
 #include "behavioral/lua/PredayLuaProvider.hpp"
+#include "behavioral/params/PersonParams.hpp"
 #include "CalibrationStatistics.hpp"
-#include "params/PersonParams.hpp"
 #include "PredayClasses.hpp"
-#include "database/PopulationSqlDao.hpp"
+#include "database/predaydao/PopulationSqlDao.hpp"
 #include "database/dao/MongoDao.hpp"
 
 namespace sim_mob
@@ -126,8 +126,9 @@ private:
 	 *
 	 * @param stop the stop for which mode and destination are to be predicted
 	 * @param origin the zone code for origin MTZ
+	 * @return true if a proper mode-destination was chosen, false otherwise
 	 */
-	void predictStopModeDestination(Stop* stop, int origin);
+	bool predictStopModeDestination(Stop* stop, int origin);
 
 	/**
 	 * Predicts the arrival time for stops before the primary activity.
@@ -241,7 +242,7 @@ private:
 	void insertStop(const Stop* stop, int stopNumber, int tourNumber);
 
 	/**
-	 * returns a random element from the list of nodes
+	 * returns a random element from the list of nodes subject to some validity criteria
 	 *
 	 * @param nodes the list of nodes
 	 * @returns a random element of the list
@@ -271,11 +272,6 @@ private:
 	 * Zone code --> zone id map
 	 */
 	const boost::unordered_map<int, int>& zoneIdLookup;
-
-	/**
-	 * MTZ 12 --> 08 map
-	 */
-	const std::map<int, int>& MTZ12_MTZ08_Map;
 
 	/**
 	 * AM Costs [origin zone, destination zone] -> CostParams*
@@ -321,6 +317,11 @@ private:
 	 * used for logging messages
 	 */
 	std::stringstream logStream;
+
+	/**
+	 * index of first available time window for person
+	 */
+	int firstAvailableTimeIndex;
 
 public:
 	PredaySystem(PersonParams& personParams, const ZoneMap& zoneMap, const boost::unordered_map<int, int>& zoneIdLookup, const CostMap& amCostMap,

@@ -3,13 +3,47 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 #pragma once
+#include <boost/unordered_set.hpp>
+#include <boost/geometry.hpp>
+#include <boost/geometry/geometries/polygon.hpp>
 
+#include "buffering/Vector2D.hpp"
 #include "entities/Sensor.hpp"
 #include "entities/signal/Signal.hpp"
-#include "geospatial/Lane.hpp"
+#include "entities/vehicle/Vehicle.hpp"
+#include "geospatial/network/Lane.hpp"
+
 
 namespace sim_mob
 {
+
+namespace bg = boost::geometry;
+
+typedef bg::model::point<double, 2, bg::cs::cartesian> point_t;
+typedef bg::model::box<point_t> loop_detector_box;
+
+/**
+ * This class models an Axially Aligned Bounding Box.  That is, it is a rectangle that is 
+ * parallel to both the X- and Y- axes.  As a bounding box, it is the smallest rectangle that 
+ * would contain something.
+ */
+struct AABB
+{
+	Point lowerLeft_;
+	Point upperRight_;
+
+	// Expand this AABB to include another AABB.  That is, this = this union <another>.
+	// union is a keyword in C++, so the method name is united.
+	void united(AABB const &another);
+};
+
+struct Box
+{
+	Point lowerLeft_;
+	Point upperLeft_;
+	Point upperRight_;
+	Point lowerRight_;
+};
 
 /**
  * The LoopDetectorEntity is an entity that models all the loop-detectors located just before the
@@ -38,32 +72,120 @@ namespace sim_mob
 class LoopDetectorEntity : public sim_mob::Sensor
 {
 public:
-    LoopDetectorEntity(MutexStrategy const & mutexStrategy) : Sensor(mutexStrategy), pimpl_(0) {}
-    virtual ~LoopDetectorEntity();
+	LoopDetectorEntity(MutexStrategy const & mutexStrategy) : Sensor(mutexStrategy), pimpl_(0)
+	{
+	}
+	virtual ~LoopDetectorEntity();
 
-	//Loop detectors are non-spatial in nature.
-	virtual bool isNonspatial() { return true; }
+	/**
+	 * @return true, as Loop detectors are non-spatial in nature.
+	 */
+	virtual bool isNonspatial()
+	{
+		return true;
+	}
 
-    void init(Signal const & signal);
+	void init(Signal const & signal);
 
-    //May want to implement later.
-    virtual void load(const std::map<std::string, std::string>& configProps) {}
+	virtual void load(const std::map<std::string, std::string>& configProps)
+	{
+	}
 
-    /**
-     * Called by the Signal object at the end of its cycle to reset all CountAndTimePair.
-     */
-    virtual void reset();
+	/**
+	 * Called by the Signal object at the end of its cycle to reset all CountAndTimePair.
+	 */
+	virtual void reset();
 
-    /**
-     * Called by the Signal object at the end of its cycle to reset the CountAndTimePair
-     * for the specified \c lane.
-     */
-    void reset(Lane const & lane);
+	/**
+	 * Called by the Signal object at the end of its cycle to reset the CountAndTimePair
+	 * for the specified \c lane.
+	 */
+	void reset(Lane const & lane);
 
 protected:
-    virtual Entity::UpdateStatus frame_tick(timeslice now);
-    class Impl;
-    Impl* pimpl_;
-    friend class Impl;
+	virtual Entity::UpdateStatus frame_tick(timeslice now);
+	class Impl;
+	Impl* pimpl_;
+	friend class Impl;
+};
+
+////////////////////////////////////////////////////////////////////////////////////////////
+// LoopDetector
+////////////////////////////////////////////////////////////////////////////////////////////
+
+// The LoopDetector class actually models a monitoring area surrounding and centered at a loop
+// detector and oriented in the same direction as the loop detector.  The width of the area is that
+// of the lane, and the loop-detector's width is assumed to be a few centimeters narrower than the
+// lane's width.  The length of the monitoring area include an area before and after the loop
+// detector.  This is the outer area, while the inner area matches the area occupied by the loop
+// detector.  See the comment in LoopDetectorEntity::Impl::Impl() below.
+//
+// Since most loop detectors are not aligned to the X- and Y- axes, the monitoring area is a 2D
+// Object-oriented Bounding Box (OBB). The corners of OBB is computed based on the last polyline
+// of the lane where it is placed. If the projection of line between the vehicle position and
+// lowerleft corner and leftEdge, bottomEdge is less than the square length of leftEdge,bottomEdge
+// respectively, then the vehicle is inside the monitor area, otherwise not.
+
+class LoopDetector : private boost::noncopyable
+{
+public:
+	LoopDetector(Lane const *lane, meter_t length, Shared<Sensor::CountAndTimePair> &pair);
+
+	// Check if any vehicle in the <vehicles> list is hovering over the loop detector.  If there
+	// is no vehicle, then set <vehicle_> to 0 and increment the space-time attribute.  If a
+	// vehicle (or part of) is hovering over the loop detector, set <vehicle_> to it; increment
+	// the vehicle count whenever <vehicle_> changes.
+	bool check(boost::unordered_set<Vehicle const *> &vehicles, std::vector<Vehicle const *>& vehsInLoopDetector);
+
+	/**
+	 * @return the AABB that would contain the monitoring area of this object.
+	 */
+	Box getLDBox() const;
+
+	const std::vector<const Vehicle* > vehicle() const
+	{
+		return vehicles_;
+	}
+
+	/**
+	 * Called by the Signal object at the end of its cycle to reset the CountAndTimePair
+	 */
+	void reset()
+	{
+		request_to_reset_ = true;
+	}
+
+	Point center_;
+	meter_t width_;
+
+	Box ld_area;
+
+	Vector2D<double> leftEdge;
+	Vector2D<double> bottomEdge;
+
+	double sqLenOfLeftEdge;
+	double sqLenOfBottomEdge;
+private:
+	unsigned int timeStepInMilliSeconds_; // The loop detector entity runs at this rate.
+	bool request_to_reset_; // See the comment in check().
+	Shared<Sensor::CountAndTimePair> & countAndTimePair_;
+	std::vector<const Vehicle*> vehicles_;
+private:
+	// Return true if any part of <vehicle> is hovering over the loop detector.
+	bool check(Vehicle const &vehicle);
+
+	void incrementSpaceTime()
+	{
+		Sensor::CountAndTimePair pair(countAndTimePair_);
+		pair.spaceTimeInMilliSeconds += timeStepInMilliSeconds_;
+		countAndTimePair_.set(pair);
+	}
+
+	void incrementVehicleCount()
+	{
+		Sensor::CountAndTimePair pair(countAndTimePair_);
+		++pair.vehicleCount;
+		countAndTimePair_.set(pair);
+	}
 };
 }

@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <boost/shared_ptr.hpp>
 #include <boost/thread.hpp>
-#include "geospatial/WayPoint.hpp"
+#include "geospatial/network/WayPoint.hpp"
 #include "entities/misc/TripChain.hpp"
 #include "entities/params/PT_NetworkEntities.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
@@ -28,12 +28,39 @@ enum TRIP_PURPOSE
 	work = 1,
 	leisure = 2
 };
-size_t getLaneIndex2(const sim_mob::Lane* l);
-void calculateRightTurnNumberAndSignalNumberByWaypoints(sim_mob::SinglePath *sp);
+
+/**
+ * counts the number of right turns and signals in path
+ * @param sp pointer to SinglePath object countaining the path
+ */
+void countRightTurnsAndSignals(sim_mob::SinglePath *sp);
+
+/**
+ * Returns total length of highway links in path
+ * @param sp pointer to SinglePath object countaining the path
+ * @return total highway length of the path in meter
+ */
 double calculateHighWayDistance(sim_mob::SinglePath *sp);
-double generateSinglePathLength(const std::vector<sim_mob::WayPoint>& wp);
+
+/**
+ * Returns path length in meter
+ * @param wp collection of links wrapped in waypoint
+ * @return total length of the path in meter
+ */
+double generatePathLength(const std::vector<sim_mob::WayPoint>& wp);
+
+/**
+ * computes the default travel time for path
+ * @param wp collection of links wrapped in waypoint
+ */
 double calculateSinglePathDefaultTT(const std::vector<sim_mob::WayPoint>& wp);
-std::string makeWaypointsetString(const std::vector<WayPoint>& wp);
+
+/**
+ * Constructs a string of comma separated link-ids from a waypoint path
+ * @param wp input waypoint path
+ * @return csv of link-ids od links in wp
+ */
+std::string makePathString(const std::vector<WayPoint>& wp);
 std::string makePT_PathString(const std::vector<PT_NetworkEdge> &path);
 std::string makePT_PathSetString(const std::vector<PT_NetworkEdge> &path);
 
@@ -42,10 +69,6 @@ class SinglePath
 public:
 	/// path representation
 	std::vector<sim_mob::WayPoint> path;
-	///	link representation of path
-	std::vector<sim_mob::Link*> linkPath;
-	///	segment collection of the path
-	std::set<const sim_mob::RoadSegment*> segSet;
 
 	bool isNeedSave2DB;
 	std::string scenario;
@@ -67,16 +90,15 @@ public:
 	double length; //length in meter
 	sim_mob::TRIP_PURPOSE purpose;
 
-	bool isMinTravelTime;
-	bool isMinDistance;
-	bool isMinSignal;
-	bool isMinRightTurn;
-	bool isMaxHighWayUsage;
-	bool isShortestPath;
+	bool minTravelTime;
+	bool minDistance;
+	bool minSignals;
+	bool minRightTurns;
+	bool maxHighWayUsage;
+	bool shortestPath;
 
-	bool valid_path;
+	bool validPath;
 
-	long long index;//unique serial number assigned by db
 
 	SinglePath(const SinglePath &source);
 	///	extract the segment waypoint from series og node-segments waypoints
@@ -89,13 +111,74 @@ public:
 	 {
 		 return lhs->id < rhs->id;
 	 }
-	///	returns the raugh size of object in Bytes
-	uint32_t getSize();
+
 	///does these SinglePath include the any of given RoadSegment(s)
-	bool includesRoadSegment(const std::set<const sim_mob::RoadSegment*> &segs) const;
+	 bool includesLink(const sim_mob::Link* lnk) const;
+	bool includesLinks(const std::set<const sim_mob::Link*>& lnks) const;
 	static void filterOutNodes(std::vector<sim_mob::WayPoint>& input, std::vector<sim_mob::WayPoint>& output);
 
+	double getHighWayDistance() const
+	{
+		return highWayDistance;
+	}
+
+	bool isMaxHighWayUsage() const
+	{
+		return maxHighWayUsage;
+	}
+
+	bool isMinDistance() const
+	{
+		return minDistance;
+	}
+
+	bool isMinSignal() const
+	{
+		return minSignals;
+	}
+
+	double getLength() const
+	{
+		return length;
+	}
+
+	double getPathSize() const
+	{
+		return pathSize;
+	}
+
+	sim_mob::TRIP_PURPOSE getPurpose() const
+	{
+		return purpose;
+	}
+
+	int getRightTurnNumber() const
+	{
+		return rightTurnNumber;
+	}
+
+	int getSignalNumber() const
+	{
+		return signalNumber;
+	}
+
+	double getTravelCost() const
+	{
+		return travelCost;
+	}
+
+	double getTravelTime() const
+	{
+		return travelTime;
+	}
+
+	double getPartialUtility() const
+	{
+		return partialUtility;
+	}
 };
+
+
 
 /*****************************************************
  ******************* Path Set ************************
@@ -106,20 +189,9 @@ class PathSet
 public:
 	PathSet():  logsum(0.0),hasPath(false),bestPath(nullptr),oriPath(nullptr),isNeedSave2DB(false),id(""),nonCDB_OD(false) {pathChoices.clear();}
 	~PathSet();
-	///	returns the rough size of object in Bytes
-	uint32_t getSize();
-	/**
-	 * checks to see if any of the SinglePath s includes a segment from the given container
-	 * returns true if there is any common segments between the two sets.
-	 * Note: This can be a computationally very expensive operation, use it with caution
-	 */
-	bool includesRoadSegment(const std::set<const sim_mob::RoadSegment*> & segs);
-	/**
-	 * eliminate those SinglePaths which have a section in the given set
-	 */
-	void excludeRoadSegment(const std::set<const sim_mob::RoadSegment*> & segs);
+
 	short addOrDeleteSinglePath(sim_mob::SinglePath* s);
-	std::vector<WayPoint> *bestPath;  //best choice
+	std::vector<WayPoint>* bestPath;  //best choice
 	SinglePath* oriPath;  // shortest path with all segments
 	std::set<sim_mob::SinglePath*, sim_mob::SinglePath> pathChoices;
 	boost::shared_mutex pathChoicesMutex;
@@ -128,7 +200,6 @@ public:
 	// pathset use info of subtrip to get start, end, travel start time...
 	sim_mob::SubTrip subTrip;
 	std::string id;
-	std::string excludedPaths;
 	std::string scenario;
 	bool hasPath;
 	bool nonCDB_OD;
@@ -145,168 +216,226 @@ public:
 	PT_Path();
 	~PT_Path();
 
-	bool isMinDistance() const {
+	bool isMinDistance() const
+	{
 		return minDistance;
 	}
 
-	void setMinDistance(bool minDistance) {
+	void setMinDistance(bool minDistance)
+	{
 		this->minDistance = minDistance;
 	}
 
-	bool isMinInVehicleTravelTimeSecs() const {
+	bool isMinInVehicleTravelTimeSecs() const
+	{
 		return minInVehicleTravelTime;
 	}
 
-	void setMinInVehicleTravelTimeSecs(bool minInVehicleTravelTimeSecs) {
+	void setMinInVehicleTravelTimeSecs(bool minInVehicleTravelTimeSecs)
+	{
 		this->minInVehicleTravelTime = minInVehicleTravelTimeSecs;
 	}
 
-	bool isMinNumberOfTransfers() const {
+	bool isMinNumberOfTransfers() const
+	{
 		return minNumberOfTransfers;
 	}
 
-	void setMinNumberOfTransfers(bool minNumberOfTransfers) {
+	void setMinNumberOfTransfers(bool minNumberOfTransfers)
+	{
 		this->minNumberOfTransfers = minNumberOfTransfers;
 	}
 
-	bool isMinTravelOnBus() const {
+	bool isMinTravelOnBus() const
+	{
 		return minTravelOnBus;
 	}
 
-	void setMinTravelOnBus(bool minTravelOnBus) {
+	void setMinTravelOnBus(bool minTravelOnBus)
+	{
 		this->minTravelOnBus = minTravelOnBus;
 	}
 
-	bool isMinTravelOnMrt() const {
+	bool isMinTravelOnMrt() const
+	{
 		return minTravelOnMRT;
 	}
 
-	void setMinTravelOnMrt(bool minTravelOnMrt) {
+	void setMinTravelOnMrt(bool minTravelOnMrt)
+	{
 		minTravelOnMRT = minTravelOnMrt;
 	}
 
-	bool isMinWalkingDistance() const {
+	bool isMinWalkingDistance() const
+	{
 		return minWalkingDistance;
 	}
 
-	void setMinWalkingDistance(bool minWalkingDistance) {
+	void setMinWalkingDistance(bool minWalkingDistance)
+	{
 		this->minWalkingDistance = minWalkingDistance;
 	}
 
-	const std::vector<PT_NetworkEdge>& getPathEdges() const {
+	const std::vector<PT_NetworkEdge>& getPathEdges() const
+	{
 		return pathEdges;
 	}
 
-	void setPathEdges(const std::vector<PT_NetworkEdge>& pathEdges) {
+	void setPathEdges(const std::vector<PT_NetworkEdge>& pathEdges)
+	{
 		this->pathEdges = pathEdges;
 	}
 
-	double getPathSize() const {
+	double getPathSize() const
+	{
 		return pathSize;
 	}
 
-	void setPathSize(double pathSize) const {
+	void setPathSize(double pathSize) const
+	{
 		this->pathSize = pathSize;
 	}
 
-	double getPathTravelTime() const {
+	double getPathTravelTime() const
+	{
 		return pathTravelTime;
 	}
 
-	void setPathTravelTime(double pathTravelTime) {
+	void setPathTravelTime(double pathTravelTime)
+	{
 		this->pathTravelTime = pathTravelTime;
 	}
 
-	const std::string& getPtPathId() const {
+	const std::string& getPtPathId() const
+	{
 		return ptPathId;
 	}
 
-	void setPtPathId(const std::string& ptPathId) {
+	void setPtPathId(const std::string& ptPathId)
+	{
 		this->ptPathId = ptPathId;
 
 	}
 
-	const std::string& getPtPathSetId() const {
+	const std::string& getPtPathSetId() const
+	{
 		return ptPathSetId;
 	}
 
-	void setPtPathSetId(const std::string& ptPathSetId) {
+	void setPtPathSetId(const std::string& ptPathSetId)
+	{
 		this->ptPathSetId = ptPathSetId;
 	}
 
-	const std::string& getScenario() const {
+	const std::string& getScenario() const
+	{
 		return scenario;
 	}
 
-	void setScenario(const std::string& scenario) {
+	void setScenario(const std::string& scenario)
+	{
 		this->scenario = scenario;
 	}
 
-	bool isShortestPath() const {
+	bool isShortestPath() const
+	{
 		return shortestPath;
 	}
 
-	void setShortestPath(bool shortestPath) {
+	void setShortestPath(bool shortestPath)
+	{
 		this->shortestPath = shortestPath;
 	}
 
-	double getTotalCost() const{
+	double getPathCost() const
+	{
 		return totalCost;
 	}
 
-	void setTotalCost(double totalCost) {
+	void setPathCost(double totalCost)
+	{
 		this->totalCost = totalCost;
 	}
 
-	double getTotalDistanceKms() const {
+	double getPathDistanceKms() const
+	{
 		return totalDistanceKms;
 	}
 
-	void setTotalDistanceKms(double totalDistanceKms) {
+	void setPathDistanceKms(double totalDistanceKms)
+	{
 		this->totalDistanceKms = totalDistanceKms;
 	}
 
-	double getTotalInVehicleTravelTimeSecs() const {
-		return totalInVehicleTravelTimeSecs;
+	double getInVehicleTravelTimeSecs() const
+	{
+		return pathInVehicleTravelTimeSecs;
 	}
 
-	void setTotalInVehicleTravelTimeSecs(double totalInVehicleTravelTimeSecs) {
-		this->totalInVehicleTravelTimeSecs = totalInVehicleTravelTimeSecs;
+	void setInVehicleTravelTimeSecs(double totalInVehicleTravelTimeSecs)
+	{
+		this->pathInVehicleTravelTimeSecs = totalInVehicleTravelTimeSecs;
 	}
 
-	int getTotalNumberOfTransfers() const {
+	int getNumTransfers() const
+	{
 		return totalNumberOfTransfers;
 	}
 
-	void setTotalNumberOfTransfers(int totalNumberOfTransfers) {
+	void setNumTransfers(int totalNumberOfTransfers)
+	{
 		this->totalNumberOfTransfers = totalNumberOfTransfers;
 	}
 
-	double getTotalWaitingTimeSecs() const {
-		return totalWaitingTimeSecs;
+	double getWaitingTimeSecs() const
+	{
+		return pathWaitingTimeSecs;
 	}
 
-	void setTotalWaitingTimeSecs(double totalWaitingTimeSecs) {
-		this->totalWaitingTimeSecs = totalWaitingTimeSecs;
+	void setWaitingTimeSecs(double totalWaitingTimeSecs)
+	{
+		this->pathWaitingTimeSecs = totalWaitingTimeSecs;
 	}
 
-	double getTotalWalkingTimeSecs() const {
+	double getWalkingTimeSecs() const
+	{
 		return totalWalkingTimeSecs;
 	}
 
-	void setTotalWalkingTimeSecs(double totalWalkingTimeSecs) {
+	void setWalkingTimeSecs(double totalWalkingTimeSecs)
+	{
 		this->totalWalkingTimeSecs = totalWalkingTimeSecs;
 	}
 
-	bool isValidPath() const {
+	bool isValidPath() const
+	{
 		return validPath;
 	}
 
-	void setValidPath(bool validPath) {
+	void setValidPath(bool validPath)
+	{
 		this->validPath = validPath;
 	}
 
-	//Path representation
+	int getPathModesType() const
+	{
+		return pathModesType;
+	}
+
+	double getPtDistanceKms() const
+	{
+		return ptDistanceKms;
+	}
+
+	void setPtDistanceKms(double ptDistanceKms)
+	{
+		this->ptDistanceKms = ptDistanceKms;
+	}
+
+	/**
+	 * parses comma separated list of path edge ids and builds pathEdges (vector of PT_NetworkEdge objects)
+	 */
+	void updatePathEdges();
 
 private:
 	std::vector<PT_NetworkEdge> pathEdges;
@@ -315,10 +444,11 @@ private:
 	std::string scenario;
 	double pathTravelTime;
 	double totalDistanceKms;
+	double ptDistanceKms;
 	mutable double pathSize;
 	double totalCost;
-	double totalInVehicleTravelTimeSecs;
-	double totalWaitingTimeSecs;
+	double pathInVehicleTravelTimeSecs;
+	double pathWaitingTimeSecs;
 	double totalWalkingTimeSecs;
 	int totalNumberOfTransfers;
 	bool minDistance;
@@ -329,15 +459,22 @@ private:
 	bool minWalkingDistance;
 	bool minTravelOnMRT;
 	bool minTravelOnBus;
-	double getTotalCostByDistance(double);
 
-public:
-	void updatePathEdges();
+ 	/**
+	 * pathModesType is set to
+	 *  0 if path involves neither bus nor MRT travel;
+	 *  1 if path involves only bus travel;
+	 *  2 if path involves only MRT travel;
+	 *  3 if path involves both bus and MRT travel
+	 */
+	int pathModesType;
+
+	double getTotalCostByDistance(double);
 };
 
 struct cmp_path_vector: public std::less<PT_Path>
 {
-		bool operator() (const PT_Path, const PT_Path) const;
+		bool operator() (const PT_Path& lhs, const PT_Path& rhs) const;
 };
 
 class PT_PathSet
@@ -350,6 +487,5 @@ public:
 	void computeAndSetPathSize();
 	void checkPathFeasibilty();
 };
-
 
 }//namespace

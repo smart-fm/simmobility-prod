@@ -20,13 +20,11 @@
 #include <boost/random.hpp>
 
 #include "conf/settings/DisableMPI.h"
-
+#include "entities/Person_ST.hpp"
 #include "entities/roles/Role.hpp"
-#include "geospatial/Point2D.hpp"
-#include "geospatial/Crossing.hpp"
+#include "geospatial/network/Point.hpp"
 #include "entities/UpdateParams.hpp"
-#include "geospatial/RoadSegment.hpp"
-
+#include "geospatial/network/RoadSegment.hpp"
 #include "entities/roles/pedestrian/PedestrianPathMover.hpp"
 #include "Pedestrian2Facets.hpp"
 
@@ -44,14 +42,24 @@ class PartitionManager;
 #endif
 
 //Helper struct
-struct PedestrianUpdateParams2 : public sim_mob::UpdateParams {
-	PedestrianUpdateParams2() : UpdateParams(), skipThisFrame(false)  {}
-	explicit PedestrianUpdateParams2(boost::mt19937& gen) : UpdateParams(gen), skipThisFrame(false) {}
-	virtual ~PedestrianUpdateParams2() {}
+
+struct PedestrianUpdateParams2 : public UpdateParams
+{
+	PedestrianUpdateParams2() : UpdateParams(), skipThisFrame(false)
+	{
+	}
+
+	explicit PedestrianUpdateParams2(boost::mt19937& gen) : UpdateParams(gen), skipThisFrame(false)
+	{
+	}
+
+	virtual ~PedestrianUpdateParams2()
+	{
+	}
 
 	virtual void reset(timeslice now)
 	{
-		sim_mob::UpdateParams::reset(now);
+		UpdateParams::reset(now);
 
 		skipThisFrame = false;
 	}
@@ -65,24 +73,30 @@ struct PedestrianUpdateParams2 : public sim_mob::UpdateParams {
 	static void unpack(UnPackageUtils& unpackage, PedestrianUpdateParams2* params);
 #endif
 };
+
 /**
  * A Person in the Pedestrian role is navigating sidewalks and zebra crossings.
  */
-class Pedestrian2 : public sim_mob::Role , public UpdateWrapper<PedestrianUpdateParams2>{
+class Pedestrian2 : public Role<Person_ST>, public UpdateWrapper<PedestrianUpdateParams2>
+{
 public:
-	Pedestrian2(Person* parent, sim_mob::Pedestrian2Behavior* behavior = nullptr, sim_mob::Pedestrian2Movement* movement = nullptr, Role::type roleType_ = RL_PEDESTRIAN, std::string roleName = "pedestrian");
+	Pedestrian2(Person_ST *parent, Pedestrian2Behavior* behavior = nullptr, Pedestrian2Movement* movement = nullptr,
+			 Role<Person_ST>::Type roleType_ = Role<Person_ST>::RL_PEDESTRIAN, std::string roleName = "pedestrian");
 	virtual ~Pedestrian2();
 
-	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;
+	virtual Role<Person_ST>* clone(Person_ST *parent) const;
 
 	//Virtual overrides
 	virtual void make_frame_tick_params(timeslice now);
-	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
+	virtual std::vector<BufferedBase*> getSubscriptionParams();
 
 private:
 	//Temporary variable which will be flushed each time tick. We save it
 	// here to avoid constantly allocating and clearing memory each time tick.
 	PedestrianUpdateParams2 params;
+
+	friend class Pedestrian2Behavior;
+	friend class Pedestrian2Movement;
 
 	//Serialization-related friends
 	friend class PackageUtils;

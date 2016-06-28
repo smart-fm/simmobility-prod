@@ -6,7 +6,7 @@
  */
 
 #include "geospatial/Incident.hpp"
-#include "geospatial/Lane.hpp"
+#include "geospatial/network/Lane.hpp"
 #include "entities/models/Constants.hpp"
 #include "map"
 #ifndef INCIDENTRESPONSE_HPP_
@@ -159,13 +159,13 @@ public:
 	 * the setter for the property 'laneSide'
 	 * return void
 	 */
-	void setLaneSide(LANE_CHANGE_SIDE value);
+	void setLaneSide(LaneChangeTo value);
 
 	/**
 	 * the  getter for the property 'laneSide'
 	 * return lane side which is left or right
 	 */
-	LANE_CHANGE_SIDE getLaneSide();
+	LaneChangeTo getLaneSide();
 
 	/**
 	 * the setter for the property 'changedLane'
@@ -206,7 +206,7 @@ private:
 	//record current incident length
 	float incidentLength;
 	//record lane changing direction(left or right) for lane changing model
-	LANE_CHANGE_SIDE laneSide;
+	LaneChangeTo laneSide;
 	//record current detection result when incident happen
 	IncidentStatusType currentStatus;
 	//record the lane changing decision

@@ -29,8 +29,8 @@
 #include "conf/ConfigParams.hpp"
 #include "workers/WorkGroup.hpp"
 
-#include "geospatial/Node.hpp"
-#include "geospatial/RoadSegment.hpp"
+#include "geospatial/network/Node.hpp"
+#include "geospatial/network/RoadSegment.hpp"
 
 #include "entities/Entity.hpp"
 #include "entities/Agent.hpp"
@@ -64,25 +64,25 @@ bool isOneagentInPolygon(int location_x, int location_y, BoundarySegment* bounda
 		std::cerr << "Boundary Segment's boundary should have 4 nodes, but not." << std::endl;
 	}
 
-	Point2D pointlist[BOUNDARY_BOX_SIZE + 1];
-	Point2D agent_location(location_x, location_y);
+	Point pointlist[BOUNDARY_BOX_SIZE + 1];
+	Point agent_location(location_x, location_y);
 
 	int index = 0;
-	vector<Point2D>::iterator itr = boundary_segment->bounary_box.begin();
+	vector<Point>::iterator itr = boundary_segment->bounary_box.begin();
 	for (; itr != boundary_segment->bounary_box.end(); itr++)
 	{
-		Point2D point((*itr).getX(), (*itr).getY());
+		Point point((*itr).getX(), (*itr).getY());
 		pointlist[index] = point;
 		index++;
 	}
 
-	Point2D last_point(pointlist[0].getX(), pointlist[0].getY());
+	Point last_point(pointlist[0].getX(), pointlist[0].getY());
 	pointlist[index] = last_point;
 
 	return sim_mob::PointInsidePolygon(pointlist, BOUNDARY_BOX_SIZE + 1, agent_location);
 }
 
-void outputLineT(Point2D& start_p, Point2D& end_p, string color)
+void outputLineT(Point& start_p, Point& end_p, string color)
 {
 	static int line_id = 100;
 	if (line_id < 105) {
@@ -92,7 +92,7 @@ void outputLineT(Point2D& start_p, Point2D& end_p, string color)
 	}
 }
 
-const Signal* findOneSignalByNode(const Point2D& point)
+const Signal* findOneSignalByNode(const Point& point)
 {
 	for (size_t i=0; i<Signal::all_signals_.size(); i++) {
 		if (Signal::all_signals_.at(i)->getNode().location == point) {
@@ -191,7 +191,7 @@ void sim_mob::ShortTermBoundaryProcessor::clearFakeAgentFlag()
 {
 	std::set<Entity*>::iterator itr = Agent::all_agents.begin();
 	while (itr != Agent::all_agents.end()) {
-		if (((*itr)->isFake) && ((*itr)->receiveTheFakeEntityAgain == false)) {
+		if (((*itr)->isFake) && ((*itr)->isDuplicateFakeEntity == false)) {
 			itr = Agent::all_agents.erase(itr);
 			releaseFakeAgentMemory(*itr);
 		} else {
@@ -204,14 +204,14 @@ void sim_mob::ShortTermBoundaryProcessor::clearFakeAgentFlag()
 	{
 		if ((*itr)->isFake)
 		{
-			(*itr)->receiveTheFakeEntityAgain = false;
+			(*itr)->isDuplicateFakeEntity = false;
 		}
 	}
 
 	itr = Agent::all_agents.begin();
 	for (; itr != Agent::all_agents.end(); itr++)
 	{
-		if ((*itr)->isFake && ((*itr)->receiveTheFakeEntityAgain == true))
+		if ((*itr)->isFake && ((*itr)->isDuplicateFakeEntity == true))
 		{
 			std::cout << "Error" << std::endl;
 			return;
@@ -476,7 +476,7 @@ void sim_mob::ShortTermBoundaryProcessor::processPackageData(string data)
 		switch (type)
 		{
 		case DRIVER_TYPE: {
-			Person* one_person = new Person("XML_Def", ConfigManager::GetInstance().FullConfig().mutexStategy);
+			Person* one_person = new Person_ST("XML_Def", ConfigManager::GetInstance().FullConfig().mutexStategy);
 			Driver* one_driver = new Driver(one_person, ConfigManager::GetInstance().FullConfig().mutexStategy);
 			one_person->changeRole(one_driver);
 
@@ -491,7 +491,7 @@ void sim_mob::ShortTermBoundaryProcessor::processPackageData(string data)
 
 			break;
 		case PEDESTRIAN_TYPE: {
-			Person* one_person = new Person("XML_Def", ConfigManager::GetInstance().FullConfig().mutexStategy);
+			Person* one_person = new Person_ST("XML_Def", ConfigManager::GetInstance().FullConfig().mutexStategy);
 			Pedestrian* one_pedestrian = new Pedestrian(one_person);
 			one_person->changeRole(one_pedestrian);
 
@@ -543,7 +543,7 @@ void sim_mob::ShortTermBoundaryProcessor::processPackageData(string data)
 			one_person->getRole()->unpackProxy(unpackageUtil);
 
 			one_person->isFake = true;
-			one_person->receiveTheFakeEntityAgain = true;
+			one_person->isDuplicateFakeEntity = true;
 //			one_person->toRemoved = false;
 		}
 		else
@@ -556,7 +556,7 @@ void sim_mob::ShortTermBoundaryProcessor::processPackageData(string data)
 			case DRIVER_TYPE:
 
 //				debug.outputToConsole("receive 27");
-				one_person = new Person("XML_Def", config.mutexStategy, -1);
+				one_person = new Person_ST("XML_Def", config.mutexStategy, -1);
 				one_person->changeRole(new Driver(one_person, config.mutexStategy));
 
 //				debug.outputToConsole("receive 28");
@@ -572,7 +572,7 @@ void sim_mob::ShortTermBoundaryProcessor::processPackageData(string data)
 //				debug.outputToConsole("receive 31");
 
 				one_person->isFake = true;
-				one_person->receiveTheFakeEntityAgain = true;
+				one_person->isDuplicateFakeEntity = true;
 //				one_person->toRemoved = false;
 				insertOneFakeAgentToWorkerGroup(one_person);
 //				debug.outputToConsole("receive 32");
@@ -580,7 +580,7 @@ void sim_mob::ShortTermBoundaryProcessor::processPackageData(string data)
 
 			case PEDESTRIAN_TYPE:
 //				debug.outputToConsole("receive 311");
-				one_person = new Person("XML_Def", ConfigParams::GetInstance().mutexStategy, -1);
+				one_person = new Person_ST("XML_Def", ConfigParams::GetInstance().mutexStategy, -1);
 				one_person->changeRole(new Pedestrian(one_person));
 
 				one_person->unpackProxy(unpackageUtil);
@@ -590,7 +590,7 @@ void sim_mob::ShortTermBoundaryProcessor::processPackageData(string data)
 					continue;
 
 				one_person->isFake = true;
-				one_person->receiveTheFakeEntityAgain = true;
+				one_person->isDuplicateFakeEntity = true;
 //				one_person->toRemoved = false;
 				insertOneFakeAgentToWorkerGroup(one_person);
 				break;
@@ -623,7 +623,7 @@ void sim_mob::ShortTermBoundaryProcessor::processPackageData(string data)
 
 	for (int i = 0; i < signal_size; i++)
 	{
-		Point2D location;
+		Point location;
 		unpackageUtil >> location;
 
 		Signal* one_signal = const_cast<Signal*> (getSignalBasedOnNode(&location));
@@ -795,7 +795,7 @@ bool sim_mob::ShortTermBoundaryProcessor::isAgentInFeedbackorForward(BoundarySeg
 void sim_mob::ShortTermBoundaryProcessor::changeAgentToFake(Agent * agent)
 {
 	agent->isFake = true;
-	agent->receiveTheFakeEntityAgain = true;
+	agent->isDuplicateFakeEntity = true;
 //	agent->toRemoved = false;
 
 	entity_group->removeAgentFromWorker(agent);
@@ -804,7 +804,7 @@ void sim_mob::ShortTermBoundaryProcessor::changeAgentToFake(Agent * agent)
 void sim_mob::ShortTermBoundaryProcessor::insertOneAgentToWorkerGroup(Agent * agent)
 {
 	agent->isFake = false;
-	agent->receiveTheFakeEntityAgain = false;
+	agent->isDuplicateFakeEntity = false;
 //	agent->toRemoved = false;
 
 	Agent::all_agents.push_back(agent);
@@ -814,7 +814,7 @@ void sim_mob::ShortTermBoundaryProcessor::insertOneAgentToWorkerGroup(Agent * ag
 void sim_mob::ShortTermBoundaryProcessor::insertOneFakeAgentToWorkerGroup(Agent * agent)
 {
 	agent->isFake = true;
-	agent->receiveTheFakeEntityAgain = true;
+	agent->isDuplicateFakeEntity = true;
 //	agent->toRemoved = false;
 
 	Agent::all_agents.push_back(agent);
@@ -891,7 +891,7 @@ vector<Agent const *> sim_mob::ShortTermBoundaryProcessor::agentsInSegmentBounda
 	int box_minumum_y = std::numeric_limits<int>::max();
 
 	//get all agents in the box
-	vector<Point2D>::iterator itr = boundary_segment->bounary_box.begin();
+	vector<Point>::iterator itr = boundary_segment->bounary_box.begin();
 	for (; itr != boundary_segment->bounary_box.end(); itr++)
 	{
 		if ((*itr).getX() > box_maximum_x)
@@ -907,8 +907,8 @@ vector<Agent const *> sim_mob::ShortTermBoundaryProcessor::agentsInSegmentBounda
 			box_minumum_y = (*itr).getY();
 	}
 
-	Point2D lower_left_point(box_minumum_x, box_minumum_y);
-	Point2D upper_right_point(box_maximum_x, box_maximum_y);
+	Point lower_left_point(box_minumum_x, box_minumum_y);
+	Point upper_right_point(box_maximum_x, box_maximum_y);
 
 	AuraManager& auraMgr = AuraManager::instance();
 	vector<Agent const *> all_agents = auraMgr.agentsInRect(lower_left_point, upper_right_point);

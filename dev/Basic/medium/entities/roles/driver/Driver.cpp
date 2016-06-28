@@ -7,7 +7,7 @@
 #include <cmath>
 #include <ostream>
 #include <algorithm>
-
+#include "DriverFacets.hpp"
 #include "entities/Person.hpp"
 #include "entities/UpdateParams.hpp"
 #include "entities/misc/TripChain.hpp"
@@ -19,14 +19,12 @@
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 
-#include "geospatial/Link.hpp"
-#include "geospatial/RoadSegment.hpp"
-#include "geospatial/Lane.hpp"
-#include "geospatial/Node.hpp"
-#include "geospatial/UniNode.hpp"
-#include "geospatial/MultiNode.hpp"
-#include "geospatial/LaneConnector.hpp"
-#include "geospatial/Point2D.hpp"
+#include "geospatial/network/Link.hpp"
+#include "geospatial/network/RoadSegment.hpp"
+#include "geospatial/network/Lane.hpp"
+#include "geospatial/network/Node.hpp"
+#include "geospatial/network/LaneConnector.hpp"
+#include "geospatial/network/Point.hpp"
 
 #include "logging/Log.hpp"
 #include "util/DebugFlags.hpp"
@@ -35,8 +33,10 @@
 #include "partitions/PackageUtils.hpp"
 #include "partitions/UnPackageUtils.hpp"
 #include "partitions/ParitionDebugOutput.hpp"
+#include "entities/Person_MT.hpp"
 
 using namespace sim_mob;
+using namespace sim_mob::medium;
 
 using std::max;
 using std::vector;
@@ -50,7 +50,7 @@ namespace {
 //TODO:I think lane index should be a data member in the lane class
 size_t getLaneIndex(const Lane* l) {
 	if (l) {
-		const RoadSegment* r = l->getRoadSegment();
+		const RoadSegment* r = l->getParentSegment();
 		for (size_t i = 0; i < r->getLanes().size(); i++) {
 			if (r->getLanes().at(i) == l) {
 				return i;
@@ -62,11 +62,11 @@ size_t getLaneIndex(const Lane* l) {
 } //end of anonymous namespace
 
 //Initialize
-sim_mob::medium::Driver::Driver(Person* parent, MutexStrategy mtxStrat,
+sim_mob::medium::Driver::Driver(Person_MT* parent,
 		sim_mob::medium::DriverBehavior* behavior,
 		sim_mob::medium::DriverMovement* movement,
-		std::string roleName, Role::type roleType) :
-	sim_mob::Role(behavior, movement, parent, roleName, roleType),
+		std::string roleName, Role<Person_MT>::Type roleType) :
+	sim_mob::Role<Person_MT>::Role(parent, behavior, movement, roleName, roleType),
 	currLane(nullptr)
 {}
 
@@ -81,11 +81,11 @@ void sim_mob::medium::Driver::make_frame_tick_params(timeslice now)
 	getParams().reset(now);
 }
 
-Role* sim_mob::medium::Driver::clone(Person* parent) const
+Role<Person_MT>* sim_mob::medium::Driver::clone(Person_MT* parent) const
 {
-	DriverBehavior* behavior = new DriverBehavior(parent);
-	DriverMovement* movement = new DriverMovement(parent);
-	Driver* driver = new Driver(parent, parent->getMutexStrategy(), behavior, movement, "Driver_");
+	DriverBehavior* behavior = new DriverBehavior();
+	DriverMovement* movement = new DriverMovement();
+	Driver* driver = new Driver(parent, behavior, movement, "Driver_");
 	behavior->setParentDriver(driver);
 	movement->setParentDriver(driver);
 	return driver;

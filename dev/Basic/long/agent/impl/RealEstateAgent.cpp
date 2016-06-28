@@ -8,6 +8,7 @@
  * 
  * Created on May 16, 2013, 6:36 PM
  */
+#include <boost/make_shared.hpp>
 
 #include "RealEstateAgent.hpp"
 #include "message/MessageBus.hpp"
@@ -18,6 +19,7 @@
 #include "conf/ConfigParams.hpp"
 #include "conf/ConfigManager.hpp"
 #include "message/LT_Message.hpp"
+#include "core/AgentsLookup.hpp"
 
 using namespace sim_mob::long_term;
 using namespace sim_mob::event;
@@ -43,16 +45,13 @@ RealEstateAgent::~RealEstateAgent()
 void RealEstateAgent::addNewUnit(const BigSerial& unitId)
 {
     unitIds.push_back(unitId);
-    BigSerial tazId = model->getUnitTazId(unitId);
-
-    if (tazId != INVALID_ID) 
-    {
-        preferableZones.push_back(tazId);
-    }
-
     boost::unordered_map<BigSerial,Unit*>::const_iterator unitItr = unitsById.find(unitId);
-
     model->addUnit( unitItr->second);
+}
+
+void  RealEstateAgent::addBTOUnit (const BigSerial& unitId)
+{
+	unitIds.push_back(unitId);
 }
 
 void RealEstateAgent::removeUnitId(const BigSerial& unitId)
@@ -209,12 +208,6 @@ void RealEstateAgent::HandleMessage(Message::MessageType type, const Message& me
 	        {
 	            const HM_ActionMessage& hmMessage = MSG_CAST(HM_ActionMessage, message);
 	            Unit *unit = hmMessage.getUnit();
-
-				ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
-	            unit->setTimeOffMarket(1 + config.ltParams.housingModel.timeOnMarket * (float)rand() / RAND_MAX );
-	            unit->setTimeOnMarket(1 + config.ltParams.housingModel.timeOffMarket * (float)rand() / RAND_MAX);
-	            unit->setbiddingMarketEntryDay(day);
-
 	           	units.push_back(unit);
 	            unitsById.insert(std::make_pair((unit)->getId(), unit));
 	            break;
@@ -240,7 +233,15 @@ void RealEstateAgent::HandleMessage(Message::MessageType type, const Message& me
 	        {
 	         	const HM_ActionMessage& hmMessage = MSG_CAST(HM_ActionMessage, message);
 	            BigSerial unitId = hmMessage.getUnitId();
-	            addNewUnit(unitId); // add unit id for sale
+	            addNewUnit(unitId);
+	            boost::unordered_map<BigSerial,Unit*>::const_iterator itr = unitsById.find(unitId);
+	            ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+	            	if (itr != unitsById.end())
+	            	{
+	            		(itr->second)->setTimeOffMarket(1 + config.ltParams.housingModel.timeOnMarket * (float)rand() / RAND_MAX );
+	            		(itr->second)->setTimeOnMarket(1 + config.ltParams.housingModel.timeOffMarket * (float)rand() / RAND_MAX);
+	            		(itr->second)->setbiddingMarketEntryDay(day);
+	            	}
 	            changeUnitSaleStatus(hmMessage.getUnitId(),UNIT_LAUNCHED_BUT_UNSOLD);
 	            //PrintOutV("unit added to housing market" << std::endl);
 	            break;
@@ -284,6 +285,20 @@ void RealEstateAgent::HandleMessage(Message::MessageType type, const Message& me
 			{
 				const HM_ActionMessage& hmMessage = MSG_CAST(HM_ActionMessage, message);
 				changeBuildingStatus(hmMessage.getBuildingId(),BUILDING_LAUNCHED_BUT_UNSOLD);
+				break;
+			}
+			case LT_BTO_UNIT_ADDED:
+			{
+				const HM_ActionMessage& hmMessage = MSG_CAST(HM_ActionMessage, message);
+				Unit *unit = hmMessage.getUnit();
+				units.push_back(unit);
+				unitsById.insert(std::make_pair((unit)->getId(), unit));
+				addBTOUnit(unit->getId());
+				ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+				unit->setTimeOffMarket(1 + config.ltParams.housingModel.timeOnMarket * (float)rand() / RAND_MAX );
+				unit->setTimeOnMarket(1 + config.ltParams.housingModel.timeOffMarket * (float)rand() / RAND_MAX);
+				unit->setbiddingMarketEntryDay(day);
+				MessageBus::PublishEvent(LTEID_HM_BTO_UNIT_ADDED,MessageBus::EventArgsPtr(new EventArgs()));
 				break;
 			}
 	        default:break;

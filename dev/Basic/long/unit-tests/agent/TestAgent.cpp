@@ -40,7 +40,7 @@ TestAgent::~TestAgent() {
 void TestAgent::load(const map<string, string>& configProps) {
 }
 
-bool TestAgent::frame_init(timeslice now) {
+Entity::UpdateStatus TestAgent::frame_init(timeslice now) {
     if (!isRegistered){
         MessageBus::SubscribeEvent(event::EVT_CORE_SYTEM_START, this);
         MessageBus::SubscribeEvent(9999999, this);
@@ -48,7 +48,7 @@ bool TestAgent::frame_init(timeslice now) {
         MessageBus::SubscribeEvent(event::EVT_CORE_AGENT_DIED, receiver, this);
         isRegistered = true;
     }
-    return true;
+    return UpdateStatus::Continue;
 }
 
 Entity::UpdateStatus TestAgent::frame_tick(timeslice now) {

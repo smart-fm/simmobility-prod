@@ -13,30 +13,41 @@
 
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
+#include "config/ST_Config.hpp"
 
-#include "geospatial/BusStop.hpp"
+#include "geospatial/network/PT_Stop.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "entities/Person.hpp"
 #include "entities/roles/passenger/Passenger.hpp"
 #include "entities/signal/Signal.hpp"
+#include "entities/Person_ST.hpp"
 
 using namespace sim_mob;
 
-namespace sim_mob {
-Pedestrian2Behavior::Pedestrian2Behavior(sim_mob::Person* parentAgent):
-	BehaviorFacet(parentAgent), parentPedestrian2(nullptr) {}
+namespace sim_mob
+{
 
-Pedestrian2Behavior::~Pedestrian2Behavior() {}
+Pedestrian2Behavior::Pedestrian2Behavior() 
+: BehaviorFacet(), parentPedestrian2(nullptr)
+{
+}
 
-void Pedestrian2Behavior::frame_init() {
+Pedestrian2Behavior::~Pedestrian2Behavior()
+{
+}
+
+void Pedestrian2Behavior::frame_init()
+{
 	throw std::runtime_error("Pedestrian2Behavior::frame_init is not implemented yet");
 }
 
-void Pedestrian2Behavior::frame_tick() {
+void Pedestrian2Behavior::frame_tick()
+{
 	throw std::runtime_error("Pedestrian2Behavior::frame_tick is not implemented yet");
 }
 
-void Pedestrian2Behavior::frame_tick_output() {
+std::string Pedestrian2Behavior::frame_tick_output()
+{
 	throw std::runtime_error("Pedestrian2Behavior::frame_tick_output is not implemented yet");
 }
 
@@ -44,13 +55,14 @@ void Pedestrian2Behavior::frame_tick_output() {
 double Pedestrian2Movement::collisionForce = 20;
 double Pedestrian2Movement::agentRadius = 0.5; //Shoulder width of a person is about 0.5 meter
 
-sim_mob::Pedestrian2Movement::Pedestrian2Movement(sim_mob::Person* parentAgent):
-	MovementFacet(parentAgent), parentPedestrian2(nullptr), trafficSignal(nullptr),
-	currCrossing(nullptr), isUsingGenPathMover(true) {
+sim_mob::Pedestrian2Movement::Pedestrian2Movement():
+	MovementFacet(), parentPedestrian2(nullptr), trafficSignal(nullptr),
+	/*currCrossing(nullptr),*/ isUsingGenPathMover(true)
+{
 	//Check non-null parent. Perhaps references may be of use here?
 
 	//Init
-	sigColor = sim_mob::Green; //Green by default
+	sigColor = sim_mob::TRAFFIC_COLOUR_GREEN; //Green by default
 
 #if 0
 	sigColor = Signal::Green; //Green by default
@@ -66,24 +78,30 @@ sim_mob::Pedestrian2Movement::Pedestrian2Movement(sim_mob::Person* parentAgent):
 	yCollisionVector = 0;
 }
 
-sim_mob::Pedestrian2Movement::~Pedestrian2Movement() {
+sim_mob::Pedestrian2Movement::~Pedestrian2Movement()
+{
 
 }
 
-void sim_mob::Pedestrian2Movement::frame_init() {
-	if(getParent()) {
-		getParent()->setNextRole(nullptr);// set nextRole to be nullptr at frame_init
+void sim_mob::Pedestrian2Movement::frame_init()
+{
+	if (parentPedestrian2->parent)
+	{
+		parentPedestrian2->parent->setNextRole(nullptr); // set nextRole to be nullptr at frame_init
 	}
 	setSubPath();
 
 	//dynamic_cast<PedestrianUpdateParams2&>(p).skipThisFrame = true;
 }
 
-void sim_mob::Pedestrian2Movement::frame_tick() {
+void sim_mob::Pedestrian2Movement::frame_tick() 
+{
+	/*
 	PedestrianUpdateParams2& p2 = parentPedestrian2->getParams();
 
 	//Is this the first frame tick?
-	if (p2.skipThisFrame) {
+	if (p2.skipThisFrame)
+	{
 		return;
 	}
 
@@ -95,50 +113,58 @@ void sim_mob::Pedestrian2Movement::frame_tick() {
 #if 0
 	signalGreen = Signal::Green; //Green by default
 #endif
-	if(pedMovement.isAtCrossing()){
+	if (pedMovement.isAtCrossing())
+	{
 		//Check whether to start to cross or not
 		updatePedestrianSignal();
 
 		if (sigColor == signalGreen) //Green phase
-			vel = speed * 2.0 * 100 * ConfigManager::GetInstance().FullConfig().personTimeStepInMilliSeconds() / 1000.0;
+            vel = speed * 2.0 * 100 * ST_Config::getInstance().personTimeStepInMilliSeconds() / 1000.0;
 		else
 			vel = 0;
 	}
-	else {
+	else
+	{
 		if (!pedMovement.isDoneWithEntireRoute())
-			vel = speed * 1.2 * 100 * ConfigManager::GetInstance().FullConfig().personTimeStepInMilliSeconds() / 1000.0;
+            vel = speed * 1.2 * 100 * ST_Config::getInstance().personTimeStepInMilliSeconds() / 1000.0;
 		else
 		{
-			//Person* person = dynamic_cast<Person*> (parent);
-			if(getParent() && (getParent()->destNode.type_==WayPoint::BUS_STOP)) { // it is at the busstop, dont set to be removed, just changeRole
-				if(!getParent()->findPersonNextRole())// find and assign the nextRole to this Person, when this nextRole is set to be nullptr?
+			if (parentPedestrian2->parent && (parentPedestrian2->parent->destNode.type_ == WayPoint::BUS_STOP))
+			{ // it is at the busstop, dont set to be removed, just changeRole
+				if (!parentPedestrian2->parent->findPersonNextRole())// find and assign the nextRole to this Person, when this nextRole is set to be nullptr?
 				{
 					std::cout << "End of trip chain...." << std::endl;
 				}
-				Passenger* passenger = dynamic_cast<Passenger*> (getParent()->getNextRole());
-				if(passenger) {// nextRole is passenger, create temporary role to avoid tripchain
-					const RoleFactory& rf = ConfigManager::GetInstance().FullConfig().getRoleFactory();
-					sim_mob::Role* newRole = rf.createRole("waitBusActivityRole", getParent());
-					getParent()->changeRole(newRole);
+				Passenger* passenger = dynamic_cast<Passenger*> (parentPedestrian2->parent->getNextRole());
+				if (passenger)
+				{// nextRole is passenger, create temporary role to avoid tripchain
+					const RoleFactory<Person_ST> *rf = RoleFactory<Person_ST>::getInstance();
+					Role<Person_ST> *newRole = rf->createRole("waitBusActivityRole", parentPedestrian2->parent);
+					parentPedestrian2->parent->changeRole(newRole);
 					newRole->Movement()->frame_init();
 					return;
-//					passenger->busdriver.set(busDriver);// assign this busdriver to Passenger
-//					passenger->BoardedBus.set(true);
-//					passenger->AlightedBus.set(false);
+					//					passenger->busdriver.set(busDriver);// assign this busdriver to Passenger
+					//					passenger->BoardedBus.set(true);
+					//					passenger->AlightedBus.set(false);
 				}
-			} else {// not at the busstop, set to be removed
-				getParent()->setToBeRemoved();
+			}
+			else
+			{// not at the busstop, set to be removed
+				parentPedestrian2->parent->setToBeRemoved();
 			}
 		}
 	}
 
-		pedMovement.advance(vel);
+	pedMovement.advance(vel);
 
-		getParent()->xPos.set(pedMovement.getPosition().x);
-		getParent()->yPos.set(pedMovement.getPosition().y);
+	parentPedestrian2->parent->xPos.set(pedMovement.getPosition().x);
+	parentPedestrian2->parent->yPos.set(pedMovement.getPosition().y);
+	*/
 }
 
-void sim_mob::Pedestrian2Movement::frame_tick_output() {
+std::string sim_mob::Pedestrian2Movement::frame_tick_output()
+{
+	/*
 	//	if (dynamic_cast<const PedestrianUpdateParams2&>(p).skipThisFrame) {
 	//		return;
 	//	}
@@ -146,8 +172,9 @@ void sim_mob::Pedestrian2Movement::frame_tick_output() {
 
 	//MPI-specific output.
 	std::stringstream addLine;
-	if (ConfigManager::GetInstance().FullConfig().using_MPI) {
-		addLine <<"\",\"fake\":\"" <<(this->getParent()->isFake?"true":"false");
+	if (ConfigManager::GetInstance().FullConfig().using_MPI)
+	{
+		addLine << "\",\"fake\":\"" << (this->parentPedestrian2->parent->isFake ? "true" : "false");
 	}
 
 
@@ -156,29 +183,32 @@ void sim_mob::Pedestrian2Movement::frame_tick_output() {
 	//	std::string s=stream.str();
 	//	CommunicationDataManager::GetInstance()->sendTrafficData(s);
 
-		LogOut("("<<"\"pedestrian\","<<p.now.frame()<<","<<getParent()->getId()<<","<<"{\"xPos\":\""<<getParent()->xPos.get()<<"\"," <<"\"yPos\":\""<<this->getParent()->yPos.get()<<addLine.str()<<"\",})"<<std::endl);
+	return ("(" << "\"pedestrian\"," << p.now.frame() << "," << parent->getId() << "," << "{\"xPos\":\"" << parent->xPos.get() << "\"," << "\"yPos\":\"" << this->parent->yPos.get() << addLine.str() << "\",})\n");
+	*/
 }
 
-void sim_mob::Pedestrian2Movement::setSubPath() {
-	const StreetDirectory& stdir = StreetDirectory::instance();
+void sim_mob::Pedestrian2Movement::setSubPath()
+{
+	/*
+	const StreetDirectory& stdir = StreetDirectory::Instance();
 
 	StreetDirectory::VertexDesc source, destination;
-	if(getParent()->originNode.type_==WayPoint::NODE)
-		source = stdir.WalkingVertex(*getParent()->originNode.node_);
-	else if(getParent()->originNode.type_==WayPoint::BUS_STOP)
-		source = stdir.WalkingVertex(*getParent()->originNode.busStop_);
+	if (parentPedestrian2->parent->originNode.type_ == WayPoint::NODE)
+		source = stdir.WalkingVertex(*parentPedestrian2->parent->originNode.node_);
+	else if (parentPedestrian2->parent->originNode.type_ == WayPoint::BUS_STOP)
+		source = stdir.WalkingVertex(*parentPedestrian2->parent->originNode.busStop_);
 
-	if(getParent()->destNode.type_==WayPoint::NODE)
-		destination = stdir.WalkingVertex(*getParent()->destNode.node_);
-	else if(getParent()->destNode.type_==WayPoint::BUS_STOP)
-		destination = stdir.WalkingVertex(*getParent()->destNode.busStop_);
+	if (parentPedestrian2->parent->destNode.type_ == WayPoint::NODE)
+		destination = stdir.WalkingVertex(*parentPedestrian2->parent->destNode.node_);
+	else if (parentPedestrian2->parent->destNode.type_ == WayPoint::BUS_STOP)
+		destination = stdir.WalkingVertex(*parentPedestrian2->parent->destNode.busStop_);
 
 	vector<WayPoint> wp_path = stdir.SearchShortestWalkingPath(source, destination);
 
 	//Used to debug pedestrian walking paths.
 	//for (vector<WayPoint>::iterator it = wp_path.begin(); it != wp_path.end(); it++) {
-	//std::cout<<"Pedestrian requested path from: " <<getParent()->originNode.getID() <<" => " <<getParent()->destNode.node_->getID() <<"  {" <<std::endl;
-	/*for (vector<WayPoint>::iterator it = wp_path.begin(); it != wp_path.end(); it++) {
+	//std::cout<<"Pedestrian requested path from: " <<parent->originNode.getID() <<" => " <<parent->destNode.node_->getID() <<"  {" <<std::endl;
+	*//*for (vector<WayPoint>::iterator it = wp_path.begin(); it != wp_path.end(); it++) {
 		if (it->type_ == WayPoint::SIDE_WALK) {
 			const Node* start = !it->directionReverse ? it->lane_->getRoadSegment()->getStart() : it->lane_->getRoadSegment()->getEnd();
 			const Node* end = !it->directionReverse ? it->lane_->getRoadSegment()->getEnd() : it->lane_->getRoadSegment()->getStart();
@@ -188,7 +218,7 @@ void sim_mob::Pedestrian2Movement::setSubPath() {
 		} else if (it->type_ == WayPoint::BUS_STOP) {
 //			std::cout<<"  Bus Stop: (not supported) id "<< it->busStop_->id << std::endl;
 		} else if (it->type_ == WayPoint::CROSSING){
-//			std::cout<<"  Crossing at Node: " <<StreetDirectory::instance().GetCrossingNode(it->crossing_)->originalDB_ID.getLogItem() <<std::endl;
+//			std::cout<<"  Crossing at Node: " <<StreetDirectory::Instance().GetCrossingNode(it->crossing_)->originalDB_ID.getLogItem() <<std::endl;
 		} else if (it->type_ == WayPoint::NODE) {
 //			std::cout<<"  Node: " <<it->node_->originalDB_ID.getLogItem() <<std::endl;
 		} else if (it->type_ == WayPoint::INVALID) {
@@ -197,95 +227,109 @@ void sim_mob::Pedestrian2Movement::setSubPath() {
 //			std::cout<<"  Unknown type."<<std::endl;
 		}
 	}
-	std::cout<<"}" <<std::endl;*/
+	std::cout<<"}" <<std::endl;*//*
 	pedMovement.setPath(wp_path);
+	*/
 }
 
 void sim_mob::Pedestrian2Movement::updatePedestrianSignal()
 {
-	const MultiNode* node = StreetDirectory::instance().GetCrossingNode(pedMovement.getCurrentWaypoint()->crossing_);
-	if (!node) {
+	/*const MultiNode* node = StreetDirectory::Instance().GetCrossingNode(pedMovement.getCurrentWaypoint()->crossing_);
+	if (!node)
+	{
 		throw std::runtime_error("Coulding find Pedestrian Sginal for crossing.");
 	}
 
-/*	const RoadSegment *rs = pedMovement.getCurrentWaypoint()->crossing_->getRoadSegment();
+	*//*const RoadSegment *rs = pedMovement.getCurrentWaypoint()->crossing_->getRoadSegment();
 
-	// find intersection's multi node,compare the distance to start ,end nodes of segment,any other way?
-	Point2D currentSegmentStartLocation(rs->getStart()->location);
-	Point2D currentSegmentEndLocation(rs->getEnd()->location);
-	DynamicVector pedDistanceToStartLocation(pedMovement.getPosition().x, pedMovement.getPosition().y,
-			currentSegmentStartLocation.getX(), currentSegmentStartLocation.getY());
-	DynamicVector pedDistanceToEndLocation(pedMovement.getPosition().x, pedMovement.getPosition().y,
-			currentSegmentEndLocation.getX(), currentSegmentEndLocation.getY());
+		// find intersection's multi node,compare the distance to start ,end nodes of segment,any other way?
+	Point currentSegmentStartLocation(rs->getStart()->location);
+	Point currentSegmentEndLocation(rs->getEnd()->location);
+		DynamicVector pedDistanceToStartLocation(pedMovement.getPosition().x, pedMovement.getPosition().y,
+				currentSegmentStartLocation.getX(), currentSegmentStartLocation.getY());
+		DynamicVector pedDistanceToEndLocation(pedMovement.getPosition().x, pedMovement.getPosition().y,
+				currentSegmentEndLocation.getX(), currentSegmentEndLocation.getY());
 
-	const Node* node = NULL;
-	Point2D location;
-	if(pedDistanceToStartLocation.getMagnitude() >= pedDistanceToEndLocation.getMagnitude())
-		location = rs->getEnd()->location;
-	else
-		location =rs->getStart()->location;
+		const Node* node = NULL;
+	Point location;
+		if(pedDistanceToStartLocation.getMagnitude() >= pedDistanceToEndLocation.getMagnitude())
+			location = rs->getEnd()->location;
+		else
+			location =rs->getStart()->location;
 
-	// we have multi node ,so get signal
-	if(rs)
-		node = ConfigParams::GetInstance().getNetwork().locateNode(location, true);*/
+		// we have multi node ,so get signal
+		if(rs)
+		node = ConfigParams::GetInstance().getNetwork().locateNode(location, true);*//*
 	if (node)
-		trafficSignal = StreetDirectory::instance().signalAt(*node);
+		trafficSignal = StreetDirectory::Instance().signalAt(*node);
 	else
 		trafficSignal = nullptr;
 
-	if (!trafficSignal) {
+	if (!trafficSignal)
+	{
 		//std::cout << "Traffic signal not found!" << std::endl;
-	} else {
-		if (pedMovement.getCurrentWaypoint()->crossing_) {
+	}
+	else
+	{
+		if (pedMovement.getCurrentWaypoint()->crossing_)
+		{
 			sigColor = trafficSignal->getPedestrianLight(*pedMovement.getCurrentWaypoint()->crossing_);
 			//			std::cout<<"Debug: signal color "<<sigColor<<std::endl;
-		} else
+		}
+		else
 			std::cout << "Current crossing not found!" << std::endl;
-	}
+	}*/
 }
 
 void sim_mob::Pedestrian2Movement::checkForCollisions()
 {
 	//For now, just check all agents and get the first positive collision. Very basic.
 	Agent* other = nullptr;
-	for (std::set<Entity*>::iterator it=Agent::all_agents.begin(); it!=Agent::all_agents.end(); it++) {
+	for (std::set<Entity*>::iterator it = Agent::all_agents.begin(); it != Agent::all_agents.end(); it++)
+	{
 		//Skip self
 		other = dynamic_cast<Agent*> (*it);
-		if (!other) {
+		if (!other)
+		{
 			break;
 		} //Shouldn't happen; we might need to write a function for this later.
 
-		if (other->getId() == getParent()->getId()) {
+		if (other->getId() == parentPedestrian2->parent->getId())
+		{
 			other = nullptr;
 			continue;
 		}
 
 		//Check.
-		double dx = other->xPos.get() - getParent()->xPos.get();
-		double dy = other->yPos.get() - getParent()->yPos.get();
+		double dx = other->xPos.get() - parentPedestrian2->parent->xPos.get();
+		double dy = other->yPos.get() - parentPedestrian2->parent->yPos.get();
 		double distance = sqrt(dx * dx + dy * dy);
-		if (distance < 2 * agentRadius) {
+		if (distance < 2 * agentRadius)
+		{
 			break; //Collision
 		}
 		other = nullptr;
 	}
 
 	//Set collision vector. Overrides previous setting, if any.
-	if (other) {
+	if (other)
+	{
 		//Get a heading.
-		double dx = other->xPos.get() - getParent()->xPos.get();
-		double dy = other->yPos.get() - getParent()->yPos.get();
+		double dx = other->xPos.get() - parentPedestrian2->parent->xPos.get();
+		double dy = other->yPos.get() - parentPedestrian2->parent->yPos.get();
 
 		//If the two agents are directly on top of each other, set
 		//  their distances to something non-crashable.
-		if (dx == 0 && dy == 0) {
-			dx = other->getId() - getParent()->getId();
-			dy = getParent()->getId() - other->getId();
+		if (dx == 0 && dy == 0)
+		{
+			dx = other->getId() - parentPedestrian2->parent->getId();
+			dy = parentPedestrian2->parent->getId() - other->getId();
 		}
 
 		//Normalize
 		double magnitude = sqrt(dx * dx + dy * dy);
-		if (magnitude == 0) {
+		if (magnitude == 0)
+		{
 			dx = dy;
 			dy = dx;
 		}

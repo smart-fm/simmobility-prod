@@ -14,9 +14,10 @@
 #include <map>
 #include <vector>
 
-#include "util/LangHelpers.hpp"
+#include "entities/Entity.hpp"
 #include "spatial_trees/rstar_tree/RStarBoundingBox.hpp"
 #include "spatial_trees/spatial_tree_include.hpp"
+#include "util/LangHelpers.hpp"
 
 //Note: this class is designed for SimMobility.
 //Agent class has been compiled into Tree Structure
@@ -36,12 +37,12 @@ struct TreeItem;
 struct TreeLeaf;
 struct TreeNode;
 
-
 /**
  * Tree Definition
  */
 
-class SimRTree {
+class SimRTree
+{
 private:
 	TreeNode* m_root;
 	TreeLeaf* first_leaf;
@@ -75,13 +76,14 @@ public:
 	int rebalance_counts;
 
 public:
+
 	SimRTree() : m_root(nullptr), first_leaf(nullptr), leaf_counts(0), leaf_agents_sum(0), unbalance_ratio(0)
-		,rebalance_counts(0), rebalance_threshold(2), rebalance_load_balance_maximum(0.3), checking_frequency(10)
-{}
+	, rebalance_counts(0), rebalance_threshold(2), rebalance_load_balance_maximum(0.3), checking_frequency(10)
+	{
+	}
 
 	//Typedef to refer to our Bounding boxes.
 	typedef RStarBoundingBox<2> BoundingBox;
-
 
 public:
 	/*
@@ -101,13 +103,13 @@ public:
 	 * The tree contains the whole Road Network;
 	 * The parameter "connectorMap" is passed in from the parent SimAuraManager. The SimRTree updates this instead of modifying the Agent directly.
 	 */
-	void insertAgent(Agent * agent, std::map<const sim_mob::Agent*, TreeItem*>& connectorMap);
+	void insertAgent(Agent * agent, std::map<const Agent*, TreeItem*>& connectorMap);
 
 	//	/**
 	//	 *Currently, when new vehicle is insert, the original node is used for locationing.
 	//   * The parameter "connectorMap" is passed in from the parent SimAuraManager. The SimRTree updates this instead of modifying the Agent directly.
 	//	 */
-	void insertAgentBasedOnOD(Agent * agent, std::map<const sim_mob::Agent*, TreeItem*>& connectorMap);
+	void insertAgentBasedOnOD(Agent * agent, std::map<const Agent*, TreeItem*>& connectorMap);
 
 	/**
 	 * Return all agents in the box, called by each agent each time step;
@@ -127,7 +129,7 @@ public:
 	 * Note: The pointers in removedAgentPointers will be deleted after this time tick; do *not*
 	 *       save them anywhere.
 	 */
-	void updateAllInternalAgents(std::map<const sim_mob::Agent*, TreeItem*>& connectorMap, const std::set<sim_mob::Agent*>& removedAgentPointers);
+	void updateAllInternalAgents(std::map<const Agent*, TreeItem*>& connectorMap, const std::set<Entity*>& removedAgentPointers);
 
 	/**
 	 *DEBUG purpose
@@ -137,12 +139,12 @@ public:
 	/**
 	 *
 	 */
-	void measureUnbalance(int time_step, std::map<const sim_mob::Agent*, TreeItem*>& agent_connector_map);
+	void measureUnbalance(int time_step, std::map<const Agent*, TreeItem*>& agent_connector_map);
 
 	/**
 	 *
 	 */
-	void rebalance(std::map<const sim_mob::Agent*, TreeItem*>& agent_connector_map);
+	void rebalance(std::map<const Agent*, TreeItem*>& agent_connector_map);
 
 	/**
 	 * DEBUG
@@ -181,15 +183,14 @@ private:
 
 	//
 	//The parameter "connectorMap" is passed in from the parent SimAuraManager. The SimRTree updates this instead of modifying the Agent directly.
-	void insertAgentEncloseBox(Agent * agent, BoundingBox & agent_box, TreeItem* item, std::map<const sim_mob::Agent*, TreeItem*>& connectorMap);
+	void insertAgentEncloseBox(Agent * agent, BoundingBox & agent_box, TreeItem* item, std::map<const Agent*, TreeItem*>& connectorMap);
 
 	//
 	void display(TreeItem* item, int level);
 };
 
-
-
-struct TreeItem {
+struct TreeItem
+{
 	SimRTree::BoundingBox bound;
 	bool is_leaf;
 	std::size_t item_id;
@@ -198,15 +199,15 @@ struct TreeItem {
 	TreeItem* father;
 };
 
-struct TreeNode: TreeItem {
+struct TreeNode : TreeItem
+{
 	std::vector<TreeItem*> items;
 };
 
-struct TreeLeaf: TreeItem {
+struct TreeLeaf : TreeItem
+{
 	std::vector<Agent*> agent_buffer;
 	TreeLeaf* next;
 };
-
-
 
 }

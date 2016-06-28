@@ -27,51 +27,42 @@
 //main.cpp (top-level) files can generally get away with including GenConfig.h
 #include "GenConfig.h"
 
-#include "buffering/Buffered.hpp"
 #include "buffering/BufferedDataManager.hpp"
+#include "buffering/Buffered.hpp"
 #include "buffering/Locked.hpp"
 #include "buffering/Shared.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
-#include "conf/ExpandAndValidateConfigFile.hpp"
+#include "config/ExpandShortTermConfigFile.hpp"
+#include "config/ParseShortTermConfigFile.hpp"
+#include "config/ST_Config.hpp"
 #include "conf/ParseConfigFile.hpp"
 #include "entities/AuraManager.hpp"
 #include "entities/BusStopAgent.hpp"
 #include "entities/commsim/broker/Broker.hpp"
-#include "entities/fmodController/FMOD_Controller.hpp"
-#include "entities/IntersectionManager.hpp"
 #include "entities/LoopDetectorEntity.hpp"
-#include "entities/Person.hpp"
+#include "entities/IntersectionManager.hpp"
+#include "entities/Person_ST.hpp"
 #include "entities/profile/ProfileBuilder.hpp"
-#include "entities/roles/Role.hpp"
-#include "entities/roles/RoleFactory.hpp"
 #include "entities/roles/activityRole/ActivityPerformer.hpp"
-#include "entities/roles/waitBusActivityRole/WaitBusActivityRoleImpl.hpp"
 #include "entities/roles/driver/BusDriver.hpp"
-#include "entities/roles/driver/Driver.hpp"
 #include "entities/roles/driver/driverCommunication/DriverComm.hpp"
-#include "entities/roles/pedestrian/Pedestrian.hpp"
-#include "entities/roles/pedestrian/Pedestrian2.hpp"
 #include "entities/roles/passenger/Passenger.hpp"
+#include "entities/roles/pedestrian/Pedestrian2.hpp"
+#include "entities/roles/RoleFactory.hpp"
+#include "entities/roles/Role.hpp"
+#include "entities/roles/waitBusActivityRole/WaitBusActivityRoleImpl.hpp"
 #include "entities/signal/Signal.hpp"
 #include "entities/TrafficWatch.hpp"
-#include "geospatial/aimsun/Loader.hpp"
-#include "geospatial/BusStop.hpp"
-#include "geospatial/Intersection.hpp"
-#include "geospatial/Lane.hpp"
-#include "geospatial/LaneConnector.hpp"
-#include "geospatial/MultiNode.hpp"
-#include "geospatial/RoadNetwork.hpp"
-#include "geospatial/RoadSegment.hpp"
-#include "geospatial/Roundabout.hpp"
-#include "geospatial/Route.hpp"
-#include "geospatial/UniNode.hpp"
+#include "entities/TravelTimeManager.hpp"
+#include "entities/fmodController/FMOD_Controller.hpp"
+#include "geospatial/network/NetworkLoader.hpp"
 #include "logging/Log.hpp"
 #include "network/CommunicationManager.hpp"
 #include "network/ControlManager.hpp"
+#include "partitions/ParitionDebugOutput.hpp"
 #include "partitions/PartitionManager.hpp"
 #include "partitions/ShortTermBoundaryProcessor.hpp"
-#include "partitions/ParitionDebugOutput.hpp"
 #include "path/PathSetManager.hpp"
 #include "perception/FixedDelayed.hpp"
 #include "util/DailyTime.hpp"
@@ -80,6 +71,7 @@
 #include "workers/Worker.hpp"
 #include "workers/WorkGroup.hpp"
 #include "workers/WorkGroupManager.hpp"
+
 
 //Note: This must be the LAST include, so that other header files don't have
 //      access to cout if SIMMOB_DISABLE_OUTPUT is true.
@@ -117,12 +109,17 @@ const string SIMMOB_VERSION = string(SIMMOB_VERSION_MAJOR) + ":" + SIMMOB_VERSIO
  *
  * This function is separate from main() to allow for easy scoping of WorkGroup objects.
  */
-bool performMain(const std::string& configFileName, std::list<std::string>& resLogFiles, const std::string& XML_OutPutFileName) 
+bool performMain(const std::string& configFileName, const std::string& shortConfigFile, std::list<std::string>& resLogFiles, const std::string& XML_OutPutFileName)
 {
 	Print() <<"Starting SimMobility, version " <<SIMMOB_VERSION <<endl;
+	DailyTime::initAllTimes();
+
+    ST_Config& stCfg = ST_Config::getInstance();
 
 	//Parse the config file (this *does not* create anything, it just reads it.).
-	ParseConfigFile parse(configFileName, ConfigManager::GetInstanceRW().FullConfig());
+    ParseConfigFile parse(configFileName, ConfigManager::GetInstanceRW().FullConfig());
+
+    ParseShortTermConfigFile stParse(shortConfigFile, ConfigManager::GetInstanceRW().FullConfig(), stCfg);
 	
 	//Enable or disable logging (all together, for now).
 	//NOTE: This may seem like an odd place to put this, but it makes sense in context.
@@ -150,60 +147,48 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 		ProfileBuilder::InitLogFile("profile_trace.txt");
 		prof = new ProfileBuilder();
 	}
+	
+    //Save a handle to the shared definition of the configuration.
+    const ConfigParams &config = ConfigManager::GetInstance().FullConfig();
+    const MutexStrategy &mtx = config.mutexStategy();
 
-	RoleFactory& rf = ConfigManager::GetInstanceRW().FullConfig().getRoleFactoryRW();
-	const MutexStrategy& mtx = ConfigManager::GetInstance().FullConfig().mutexStategy();
+	//Create an instance of role factory
+	RoleFactory<Person_ST> *rf = new RoleFactory<Person_ST>;
+	RoleFactory<Person_ST>::setInstance(rf);
 
 	//Register our Role types.
-
-	if (ConfigManager::GetInstance().FullConfig().commSimEnabled()) 
+    if (stCfg.commSimEnabled())
 	{
-		rf.registerRole("driver", new sim_mob::DriverComm(nullptr, mtx));
+		rf->registerRole("driver", new DriverComm(nullptr, mtx));
 	}
 	else 
 	{
-		rf.registerRole("driver", new sim_mob::Driver(nullptr, mtx));
+		rf->registerRole("driver", new Driver(nullptr, mtx));
 	}
 
-	rf.registerRole("pedestrian", new sim_mob::Pedestrian2(nullptr));
-	rf.registerRole("passenger",new sim_mob::Passenger(nullptr, mtx));
-	rf.registerRole("busdriver", new sim_mob::BusDriver(nullptr, mtx));
-	rf.registerRole("activityRole", new sim_mob::ActivityPerformer(nullptr));
-	rf.registerRole("waitBusActivityRole", new sim_mob::WaitBusActivityRoleImpl(nullptr));
-	rf.registerRole("taxidriver", new sim_mob::Driver(nullptr, mtx));
+	rf->registerRole("pedestrian", new Pedestrian2(nullptr));
+	rf->registerRole("passenger",new Passenger(nullptr, mtx));
+	rf->registerRole("busdriver", new BusDriver(nullptr, mtx));
+	rf->registerRole("activityRole", new ActivityPerformer<Person_ST>(nullptr));
+	rf->registerRole("waitBusActivity", new WaitBusActivityRoleImpl(nullptr));
+	rf->registerRole("taxidriver", new Driver(nullptr, mtx));
 
 	//Loader params for our Agents
 	WorkGroup::EntityLoadParams entLoader(Agent::pending_agents, Agent::all_agents);
 
-	//Load our user config file
-	Print() << "Expanding user configuration file..." << std::endl;
-	ExpandAndValidateConfigFile expand(ConfigManager::GetInstanceRW().FullConfig(), Agent::all_agents, Agent::pending_agents);
-	
-    //Some random stuff with signals??
-    //TODO: Not quite sure how this is supposed to fit into the overall order of things. ~Seth
-    std::vector<Signal*>& all_signals = Signal::all_signals_;
-    
-	for (size_t i=0; i<all_signals.size(); ++i) 
-	{
-    	Signal* signal = all_signals.at(i);
-    	Signal_SCATS* signalScats = dynamic_cast<Signal_SCATS*>(signal);
-    	if(signalScats) 
-		{
-    		LoopDetectorEntity* loopDetector = new LoopDetectorEntity(mtx);
-    		signalScats->setLoopDetector(loopDetector);
-    		loopDetector->init(*signal);			
-    		Agent::all_agents.insert(loopDetector);
-			signalScats->curVehicleCounter.init(signalScats);
-    	}
-    }
+	//Load the configuration file
+	Print() << "Loading the configuration file..." << std::endl;
+	ExpandShortTermConfigFile expand(stCfg, ConfigManager::GetInstanceRW().FullConfig(), Agent::all_agents, Agent::pending_agents);
 
-	Print() << "User configuration file loaded." << std::endl;
+	Print() << "Configuration file loaded!" << std::endl;
 
-	if (ConfigManager::GetInstance().FullConfig().PathSetMode()) 
+    if (config.PathSetMode())
 	{
-		// init path set manager
-		time_t t = time(0);   // get time now
+		//Initialise path-set manager
+		//Get time
+		time_t t = time(0);
 		struct tm * now = localtime( & t );
+		
 		Print() <<"Begin time:"<<std::endl;
 		Print() <<now->tm_hour<<" "<<now->tm_min<<" "<<now->tm_sec<< std::endl;
 		PrivateTrafficRouteChoice* pvtRtChoice = PrivateTrafficRouteChoice::getInstance();
@@ -211,12 +196,13 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 		pvtRtChoice->setScenarioName(name);
 	}
 
-	//Initialize the control manager and wait for an IDLE state (interactive mode only).
-	sim_mob::ControlManager* ctrlMgr = nullptr;
+	//Initialise the control manager and wait for an IDLE state (interactive mode only).
+	ControlManager* ctrlMgr = nullptr;
 	
 	if (ConfigManager::GetInstance().CMakeConfig().InteractiveMode()) 
 	{
 		Print() << "Scenario loaded...\nSimulation state is IDLE"<<std::endl;
+		
 		ctrlMgr = ConfigManager::GetInstance().FullConfig().getControlMgr();
 		ctrlMgr->setSimState(IDLE);
 		
@@ -225,9 +211,6 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 			boost::this_thread::sleep(boost::posix_time::milliseconds(10));
 		}
 	}
-
-	//Save a handle to the shared definition of the configuration.
-	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
 
 	//Start boundaries
 	if (!config.MPI_Disabled() && config.using_MPI) 
@@ -244,81 +227,89 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 		partMgr = &PartitionManager::instance();
 	}
 
-	{ //Begin scope: WorkGroups
+	{ 
+	//Begin scope: WorkGroups
 	//TODO: WorkGroup scope currently does nothing. We need to re-enable WorkGroup deletion at some later point. ~Seth
 	WorkGroupManager wgMgr;
-	wgMgr.setSingleThreadMode(config.singleThreaded());
+	wgMgr.setSingleThreadMode(false);
 
 	//Work Group specifications
-	WorkGroup* personWorkers = wgMgr.newWorkGroup(config.personWorkGroupSize(), config.totalRuntimeTicks, config.granPersonTicks, &AuraManager::instance(), partMgr);
-	WorkGroup* signalStatusWorkers = wgMgr.newWorkGroup(config.signalWorkGroupSize(), config.totalRuntimeTicks, config.granSignalsTicks);
-	WorkGroup* intMgrWorkers = wgMgr.newWorkGroup(config.intMgrWorkGroupSize(), config.totalRuntimeTicks, config.granIntMgrTicks);
+	WorkGroup* personWorkers = wgMgr.newWorkGroup(stCfg.personWorkGroupSize(), config.totalRuntimeTicks, stCfg.granPersonTicks, &AuraManager::instance(), partMgr);
+	WorkGroup* signalStatusWorkers = wgMgr.newWorkGroup(stCfg.signalWorkGroupSize(), config.totalRuntimeTicks, stCfg.granSignalsTicks);
+	WorkGroup* intMgrWorkers = wgMgr.newWorkGroup(stCfg.intMgrWorkGroupSize(), config.totalRuntimeTicks, stCfg.granIntMgrTicks);
 
 	//TODO: Ideally, the Broker would go on the agent Work Group. However, the Broker often has to wait for all Agents to finish.
 	//      If an Agent is "behind" the Broker, we have two options:
 	//        1) Have some way of specifying that the Broker agent goes "last" (Agent priority?)
 	//        2) Have some way of telling the parent Worker to "delay" this Agent (e.g., add it to a temporary list) from *within* update.
-	WorkGroup* communicationWorkers = wgMgr.newWorkGroup(config.commWorkGroupSize(), config.totalRuntimeTicks, config.granCommunicationTicks);
+	WorkGroup* communicationWorkers = wgMgr.newWorkGroup(stCfg.commWorkGroupSize(), config.totalRuntimeTicks, stCfg.granCommunicationTicks);
 
-	//Initialize the aura manager
-	AuraManager::instance().init(config.aura_manager_impl());
+	//Initialise the aura manager
+	AuraManager::instance().init(stCfg.aura_manager_impl());
 
-	//Initialize all work groups (this creates barriers, and locks down creation of new groups).
+	//Initialise all work groups (this creates barriers, and locks down creation of new groups).
 	wgMgr.initAllGroups();
 
-	//Initialize each work group individually
+	//Initialise each work group individually
 	personWorkers->initWorkers(&entLoader);
 	signalStatusWorkers->initWorkers(nullptr);
 	intMgrWorkers->initWorkers(nullptr);
 	communicationWorkers->initWorkers(nullptr);
 
-	//If commsim is enabled, start the Broker.
-	if(ConfigManager::GetInstance().FullConfig().commSimEnabled()) 
+	//If communication simulator is enabled, start the Broker.
+    if(stCfg.commSimEnabled())
 	{
 		//NOTE: I am fairly sure that MtxStrat_Locked is the wrong mutex strategy. However, Broker doesn't
 		//      register any buffered properties (except x/y, which Agent registers), and it never updates these.
 		//      I am changing this back to buffered; if this runs smoothly for a while, then you can remove this comment. ~Seth
 		//NOTE: I am also changing the Agent ID; manually specifying it as 0 is dangerous.
-		Broker *broker =  new sim_mob::Broker(MtxStrat_Buffered);
+		Broker *broker =  new Broker(MtxStrat_Buffered);
 		Broker::SetSingleBroker(broker);
 		communicationWorkers->assignAWorker(broker);
-	}
+	}	
 
+	//Assign all BusStopAgents
+	BusStopAgent::AssignAllBusStopAgents(*personWorkers);
+
+	//Assign all signals to the signals worker
+	const std::map<unsigned int, Signal *> &signals = Signal::getMapOfIdVsSignals();
+	
+	for (std::map<unsigned int, Signal *>::const_iterator it = signals.begin(); it != signals.end(); ++it)
+	{
+		Signal_SCATS *signalScats = dynamic_cast<Signal_SCATS *>(it->second);
+		
+		//Create and initialise loop detectors
+		LoopDetectorEntity *loopDetectorEntity = new LoopDetectorEntity(mtx );
+		loopDetectorEntity->init(*signalScats);
+		Agent::all_agents.insert(loopDetectorEntity);
+		signalScats->setLoopDetector(loopDetectorEntity);
+		signalStatusWorkers->assignAWorker(it->second);
+	}
+	
 	//Anything in all_agents is starting on time 0, and should be added now.
 	for (std::set<Entity*>::iterator it = Agent::all_agents.begin(); it != Agent::all_agents.end(); ++it) 
 	{
 		personWorkers->assignAWorker(*it);
 	}
-
-	//Assign all BusStopAgents
-	BusStopAgent::AssignAllBusStopAgents(*personWorkers);
-
-	//Assign all signals too
-	for (vector<Signal*>::iterator it = Signal::all_signals_.begin(); it != Signal::all_signals_.end(); ++it) 
-	{
-		signalStatusWorkers->assignAWorker(*it);
-	}
 	
 	//Assign all intersection managers to the signal worker
-	for (map<unsigned int, IntersectionManager *>::iterator it = IntersectionManager::intManagers.begin(); it != IntersectionManager::intManagers.end(); ++it)
+	const map<unsigned int, IntersectionManager *> &intManagers = IntersectionManager::getIntManagers();
+	for (map<unsigned int, IntersectionManager *>::const_iterator it = intManagers.begin(); it != intManagers.end(); ++it)
 	{
 		intMgrWorkers->assignAWorker(it->second);
 	}
 
-	if(sim_mob::FMOD::FMOD_Controller::instanceExists())
+	if (stCfg.amod.enabled && amod::AMODController::instanceExists())
 	{
-		personWorkers->assignAWorker( sim_mob::FMOD::FMOD_Controller::instance() );
+		personWorkers->assignAWorker(amod::AMODController::getInstance());
 	}
 
-	if(sim_mob::AMOD::AMODController::instanceExists())
+	if (FMOD::FMOD_Controller::instanceExists())
 	{
-		personWorkers->assignAWorker( sim_mob::AMOD::AMODController::instance() );
+		personWorkers->assignAWorker(FMOD::FMOD_Controller::instance());
 	}
 
 	Print() << "Initial agents dispatched or pushed to pending." << endl;
-	
-	//before starting the groups, initialise the time interval for one of the PathSet manager's helpers
-	PathSetManager::initTimeInterval();
 
 	//
 	//  TODO: Do not delete this next line. Please read the comment in TrafficWatch.hpp
@@ -329,7 +320,7 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	//Start work groups and all threads.
 	wgMgr.startAllWorkGroups();
 
-	//
+	if (!config.MPI_Disabled() && config.using_MPI) 
 	if (!config.MPI_Disabled() && config.using_MPI) 
 	{
 		PartitionManager& partitionImpl = PartitionManager::instance();
@@ -345,8 +336,8 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	//       a barrier sync.
 	/////////////////////////////////////////////////////////////////
 	size_t numStartAgents = Agent::all_agents.size();
-	size_t numPendingAgents = Agent::pending_agents.size();
 	size_t maxAgents = Agent::all_agents.size();
+	size_t numPendingAgents = Agent::pending_agents.size();
 
 	timeval loop_start_time;
 	gettimeofday(&loop_start_time, nullptr);
@@ -360,7 +351,7 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	
 	for (unsigned int currTick = 0; currTick < endTick; currTick++) 
 	{
-		if (ConfigManager::GetInstance().FullConfig().InteractiveMode()) 
+        if (config.InteractiveMode())
 		{
 			if(ctrlMgr->getSimState() == STOP) 
 			{
@@ -433,9 +424,9 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 		wgMgr.waitAllGroups();
 		
 		unsigned long currTimeMS = currTick * config.baseGranMS();
-		if(config.segDensityMap.outputEnabled && (currTimeMS % config.segDensityMap.updateInterval == 0))
+		if(stCfg.segDensityMap.outputEnabled && ((currTimeMS + config.baseGranMS()) % stCfg.segDensityMap.updateInterval == 0))
 		{
-			DriverMovement::outputDensityMap(currTimeMS/config.segDensityMap.updateInterval);
+			DriverMovement::outputDensityMap(currTimeMS / stCfg.segDensityMap.updateInterval);
 		}
 	}
 
@@ -454,14 +445,23 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	//Store the segment travel times
 	if (config.PathSetMode()) 
 	{
-		TravelTimeManager::getInstance()->storeRTT2DB();
+		TravelTimeManager::getInstance()->storeCurrentSimulationTT();;
+	}
+
+	if(config.odTTConfig.enabled)
+	{
+		TravelTimeManager::getInstance()->dumpODTravelTimeToFile(config.odTTConfig.fileName);
+	}
+
+	if(config.rsTTConfig.enabled)
+	{
+		TravelTimeManager::getInstance()->dumpSegmentTravelTimeToFile(config.rsTTConfig.fileName);
 	}
 
 	Print() << "Database lookup took: " <<loop_start_offset <<" ms" <<std::endl;
 	Print() << "Max Agents at any given time: " <<maxAgents <<std::endl;
 	Print() << "Starting Agents: " << numStartAgents;
-	Print() << ",     Pending: ";
-	Print() << numPendingAgents;
+	Print() << ",     Pending: " << numPendingAgents;
 	Print() << endl;
 
 	if (Agent::all_agents.empty()) 
@@ -477,23 +477,22 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 		
 		for (std::set<Entity*>::iterator it = Agent::all_agents.begin(); it != Agent::all_agents.end(); ++it) 
 		{
-			Person* p = dynamic_cast<Person*> (*it);
-			
-			if (p) 
+			Person_ST *person = dynamic_cast<Person_ST *> (*it);
+			if (person) 			
 			{
 				numPerson++;
 				
-				if (p->getRole() && dynamic_cast<Driver*> (p->getRole())) 
+				if (dynamic_cast<Driver*> (person->getRole()))
 				{
 					numDriver++;
 				}
 				
-				if (p->getRole() && dynamic_cast<Pedestrian*> (p->getRole())) 
+				if (dynamic_cast<Pedestrian2*> (person->getRole()))
 				{
 					numPedestrian++;
 				}
 				
-				if (p->getRole() && dynamic_cast<Passenger*> (p->getRole())) 
+				if (dynamic_cast<Passenger*> (person->getRole()))
 				{
 					numPassenger++;
 				}
@@ -508,9 +507,9 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 				- numDriver - numPedestrian) << " (Other)" << endl;
 	}
 
-	if (ConfigManager::GetInstance().FullConfig().numAgentsSkipped>0) 
+    if (config.numAgentsSkipped > 0)
 	{
-		Print() <<"Agents SKIPPED due to invalid route assignment: " <<ConfigManager::GetInstance().FullConfig().numAgentsSkipped <<endl;
+		Print() <<"Agents SKIPPED due to invalid route assignment: " << config.numAgentsSkipped <<endl;
 	}
 
 	if (!Agent::pending_agents.empty()) 
@@ -521,7 +520,7 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	}
 
 	//Save our output files if we are merging them later.
-	if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled() && ConfigManager::GetInstance().FullConfig().mergeLogFiles()) 
+    if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled() && config.mergeLogFiles)
 	{
 		resLogFiles = wgMgr.retrieveOutFileNames();
 	}
@@ -537,27 +536,34 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	//TODO: I think that the WorkGroups and Workers need to have the "endTick" value propagated to
 	//      them from the main loop, in the event that the simulator is shutting down early. This is
 	//      probably causing the Workers to hang if clear_delete_vector is called. ~Seth
-	//EDIT: Actually, Worker seems to handle the synchronization fine too.... but I still think the main
+	//EDIT: Actually, Worker seems to handle the synchronisation fine too.... but I still think the main
 	//      loop should propagate this value down. ~Seth
 	if (ConfigManager::GetInstance().CMakeConfig().InteractiveMode()) 
 	{
-		Signal::all_signals_.clear();
 		Agent::all_agents.clear();
 	} 
 	else 
 	{
-		clear_delete_map(IntersectionManager::intManagers);
-		clear_delete_vector(Signal::all_signals_);
+		clear_delete_map(IntersectionManager::getIntManagers());
+		clear_delete_map(Signal::getMapOfIdVsSignals());
 		clear_delete_vector(Agent::all_agents);
 	}
 
 	Print() << "Simulation complete; closing worker threads." << endl;
+	
+	//Destroy the road network
+	NetworkLoader::deleteInstance();
 
 	//Delete the AMOD controller instance
-	sim_mob::AMOD::AMODController::deleteInstance();
+	amod::AMODController::deleteInstance();
+
+	if(FMOD::FMOD_Controller::instanceExists())
+	{
+		FMOD::FMOD_Controller::instance()->finalizeMessageToFMOD();
+	}
 
 	//Delete the aura manger implementation instance
-	AuraManager::instance().destory();
+	AuraManager::instance().destroy();
 
 	//Delete our profiler, if it exists.
 	safe_delete_item(prof);
@@ -569,18 +575,22 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
  * Run the main loop of Sim Mobility, using command-line input.
  * Returns the value of the last completed run of performMain().
  */
-int run_simmob_interactive_loop(){
-	sim_mob::ControlManager *ctrlMgr = ConfigManager::GetInstance().FullConfig().getControlMgr();
+int run_simmob_interactive_loop()
+{
+	ControlManager *ctrlMgr = ConfigManager::GetInstance().FullConfig().getControlMgr();
 	std::list<std::string> resLogFiles;
 	int retVal = 1;
-	for (;;) {
+	
+	for (;;) 
+	{
 		if(ctrlMgr->getSimState() == LOADSCENARIO)
 		{
 			ctrlMgr->setSimState(RUNNING);
 			std::map<std::string,std::string> paras;
 			ctrlMgr->getLoadScenarioParas(paras);
 			std::string configFileName = paras["configFileName"];
-			retVal = performMain(configFileName,resLogFiles, "XML_OutPut.xml") ? 0 : 1;
+            std::string stConfigFile = paras["shortTermConfigFile"];
+            retVal = performMain(configFileName, stConfigFile, resLogFiles, "XML_OutPut.xml") ? 0 : 1;
 			ctrlMgr->setSimState(STOP);
 			ConfigManager::GetInstanceRW().reset();
 			Print() << "scenario finished" << std::endl;
@@ -599,19 +609,31 @@ int main_impl(int ARGC, char* ARGV[])
 {
 	std::vector<std::string> args = Utils::parseArgs(ARGC, ARGV);
 
-	//Argument 1: Config file
+	//Argument 1: Configuration file
 	//Note: Don't change this here; change it by supplying an argument on the
 	//      command line, or through Eclipse's "Run Configurations" dialog.
 	std::string configFileName = "data/config.xml";
-	if (args.size() > 1) {
+    std::string shortConfigFile = "data/shortTerm.xml";
+	
+    if (args.size() > 2)
+	{
 		configFileName = args[1];
-	} else {
-		Print() << "No config file specified; using the default config file." << endl;
+		shortConfigFile = args[2];
 	}
-	Print() << "Using config file: " << configFileName << endl;
-
+	else if (args.size() > 1)
+	{
+		configFileName = args[1];
+		Print() << "No short term configuration file specified; Using default short term configuration file..." << endl;
+	}
+	else
+	{
+		Print() << "No configuration files specified. \nUsing default short term configuration file: " << shortConfigFile << endl;
+		Print() << "Using the default configuration file: " << configFileName << endl;
+	}
+	
 	std::string outputFileName = "out.txt";
-	if(args.size() > 2)
+	
+	if(args.size() > 3)
 	{
 		outputFileName = args[2];
 	}
@@ -635,6 +657,7 @@ int main_impl(int ARGC, char* ARGV[])
 	 */
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 	config.using_MPI = false;
+	
 #ifndef SIMMOB_DISABLE_MPI
 	if (args.size()>2 && args[2]=="mpi") {
 		config.using_MPI = true;
@@ -668,15 +691,21 @@ int main_impl(int ARGC, char* ARGV[])
 	//Perform main loop (this differs for interactive mode)
 	int returnVal = 1;
 	std::list<std::string> resLogFiles;
-	if (ConfigManager::GetInstance().CMakeConfig().InteractiveMode()) {
+	
+	if (ConfigManager::GetInstance().CMakeConfig().InteractiveMode()) 
+	{
 		returnVal = run_simmob_interactive_loop();
-	} else {
-		returnVal = performMain(configFileName, resLogFiles, "XML_OutPut.xml") ? 0 : 1;
+	}
+    else
+	{
+		returnVal = performMain(configFileName, shortConfigFile, resLogFiles, "XML_OutPut.xml") ? 0 : 1;
 	}
 
 	//Concatenate output files?
-	if (!resLogFiles.empty()) {
-		resLogFiles.insert(resLogFiles.begin(), ConfigManager::GetInstance().FullConfig().outNetworkFileName);
+	if (!resLogFiles.empty()) 
+	{
+		resLogFiles.insert(resLogFiles.begin(), config.outSimInfoFileName);
+		resLogFiles.insert(resLogFiles.begin(), config.outNetworkFileName);
 		Utils::printAndDeleteLogFiles(resLogFiles,outputFileName);
 	}
 

@@ -80,8 +80,8 @@ namespace
     }
 }
 
-HousingMarket::Entry::Entry(Agent_LT* owner, BigSerial unitId, BigSerial postcodeId, BigSerial tazId, double askingPrice, double hedonicPrice)
-						  : owner(owner), unitId(unitId), askingPrice(askingPrice), hedonicPrice(hedonicPrice), postcodeId(postcodeId), tazId(tazId) {}
+HousingMarket::Entry::Entry(Agent_LT* owner, BigSerial unitId, BigSerial postcodeId, BigSerial tazId, double askingPrice, double hedonicPrice, bool bto)
+						  : owner(owner), unitId(unitId), askingPrice(askingPrice), hedonicPrice(hedonicPrice), postcodeId(postcodeId), tazId(tazId),bto(bto) {}
 
 HousingMarket::Entry::Entry(const Entry &source)
 {
@@ -91,6 +91,7 @@ HousingMarket::Entry::Entry(const Entry &source)
 	this->postcodeId = source.postcodeId;
 	this->tazId = source.tazId;
 	this->unitId = source.unitId;
+	this->bto = source.bto;
 }
 
 HousingMarket::Entry& HousingMarket::Entry::operator=(const Entry& source)
@@ -101,6 +102,7 @@ HousingMarket::Entry& HousingMarket::Entry::operator=(const Entry& source)
 	this->postcodeId = source.postcodeId;
 	this->tazId = source.tazId;
 	this->unitId = source.unitId;
+	this->bto = source.bto;
 
 	return *this;
 }
@@ -135,6 +137,11 @@ double HousingMarket::Entry::getHedonicPrice() const
 Agent_LT* HousingMarket::Entry::getOwner() const
 {
     return owner;
+}
+
+bool HousingMarket::Entry::isBTO() const
+{
+	return bto;
 }
 
 void HousingMarket::Entry::setAskingPrice(double askingPrice)
@@ -288,5 +295,8 @@ bool HousingMarket::isNonspatial()
     return false;
 }
 
-void HousingMarket::buildSubscriptionList(vector<BufferedBase*>& subsList) {}
+std::vector<sim_mob::BufferedBase*> HousingMarket::buildSubscriptionList() 
+{
+	return std::vector<sim_mob::BufferedBase*>();
+}
 

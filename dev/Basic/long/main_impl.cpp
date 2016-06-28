@@ -217,12 +217,14 @@ void loadDataToOutputSchema(db::DB_Connection& conn,std::string &currentOutputSc
 		HM_Model::HouseholdList::iterator houseHoldItr;
 		for(houseHoldItr = households->begin(); houseHoldItr != households->end(); ++houseHoldItr)
 		{
+
 			if(housingMarketModel.getHouseholdWithBidsById((*houseHoldItr)->getId()) == nullptr)
 			{
 				if(((*houseHoldItr)->getIsBidder()) || ((*houseHoldItr)->getIsSeller()))
 				{
 					hhDao.insertHousehold(*(*houseHoldItr),currentOutputSchema);
 				}
+
 			}
 		}
 
@@ -264,9 +266,7 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
     config.baseGranMS() = tickStep;
     config.totalRuntimeTicks = days;
     config.defaultWrkGrpAssignment() = WorkGroup::ASSIGN_ROUNDROBIN;
-    config.singleThreaded() = false;
 
-   
     //simulation time.
     StopWatch simulationWatch;
     
@@ -326,7 +326,7 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
     vector<Model*> models;
     {
         WorkGroupManager wgMgr;
-        wgMgr.setSingleThreadMode(config.singleThreaded());
+        wgMgr.setSingleThreadMode(false);
         
         // -- Events injector work group.
         WorkGroup* logsWorker = wgMgr.newWorkGroup(1, days, tickStep, nullptr, nullptr, nullptr, (uint32_t)lastStoppedDay );
@@ -459,7 +459,7 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
         }
 
         //Save our output files if we are merging them later.
-        if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled() && config.mergeLogFiles())
+        if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled() && config.isMergeLogFiles())
         {
             resLogFiles = wgMgr.retrieveOutFileNames();
         }

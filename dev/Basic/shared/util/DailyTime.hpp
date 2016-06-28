@@ -6,42 +6,21 @@
 
 #include <string>
 #include <stdint.h>  //NOTE: There's a bug in GCC whereby <cstdint> is not the same as <stdint.h>
-#include <boost/serialization/access.hpp>
-
-/*namespace geo {
-class TripChainItem_t_pimpl;
-}*/
 
 namespace sim_mob
 {
 
 /**
- * Simple class to represent any point in time during a single day.
+ * Simple class to represent any point in time within one day.
  *
  * \author Seth N. Hetu
- * \author Xu Yan
- *
- * This class is based on the ISO 8601 standard, with the following restrictions:
- *   \li No date may be specified, only times.
- *   \li Times must be of the format HH:MM:SS  --the colon is not optional.
- *   \li Only the seconds component may have a fractional component: HH:MM:SS.ffff..fff
- *   \li Hours and minutes are mandatory. Seconds (and second fractions) are optional.
- *
- * \note
- * Many of these constraints are not enforced, but may be in the future. ~Seth
- *
- *
- * All times are constant once created. (If we need modifiers later, we should probably use
- *    functions like "addSeconds", which return a different DailyTime object.)
+ * \author Harish Loganathan
  */
-class DailyTime {
+class DailyTime
+{
 public:
-	///Construct a new DailyTime from a given value. Subtract the "base" time (i.e., the day's start time).
-	explicit DailyTime(uint32_t value=0, uint32_t base=0);
-
-	///Construct a new DailyTime from a string formatted to ISO 8601 format.
+	explicit DailyTime(uint32_t value = 0, uint32_t base = 0);
 	explicit DailyTime(const std::string& value);
-
 	inline DailyTime(const DailyTime& dailytime) : time_(dailytime.getValue()) {}
 
 	/**
@@ -49,20 +28,54 @@ public:
 	 */
 	static void initAllTimes();
 
-	//Various comparison functions
+	/**
+	 * checks whether a given time is strictly before *this*
+	 * @param other another DailyTime object
+	 * @return true if other is before; false otherwise
+	 */
 	bool isBefore(const DailyTime& other) const;
+
+	/**
+	 * checks whether a given time is before *this*
+	 * @param other another DailyTime object
+	 * @return true if other is before; false otherwise
+	 */
 	bool isBeforeEqual(const DailyTime& other) const;
+
+	/**
+	 * checks whether a given time is strictly after *this*
+	 * @param other another DailyTime object
+	 * @return true if other is after; false otherwise
+	 */
 	bool isAfter(const DailyTime& other) const;
+
+	/**
+	 * checks whether a given time is after *this*
+	 * @param other another DailyTime object
+	 * @return true if other is after; false otherwise
+	 */
 	bool isAfterEqual(const DailyTime& other) const;
+
+	/**
+	 * checks whether a given time is equal to *this*
+	 * @param other another DailyTime object
+	 * @return true if other is equal; false otherwise
+	 */
 	bool isEqual(const DailyTime& other) const;
 
-	///Retrieve the distance in MS between another DailyTime and this.
+
+	/**
+	 * Retrieves the time difference in MS between this and another DailyTime
+	 * @param other another DailyTime object
+	 * @return time difference in MS
+	 */
 	uint32_t offsetMS_From(const DailyTime& other) const;
 
-	//Accessors
-	inline uint32_t getValue() const { return time_; }
+	/**
+	 * returns the string representation of time held in HH24:MI:SS format
+	 * @return time string in HH24:MI:SS format
+	 */
 	std::string getStrRepr() const;
-	DailyTime getTimeFromMidNight() const;
 
 	//operator overloads
 	DailyTime& operator=(const DailyTime& dailytime);
@@ -70,31 +83,27 @@ public:
 	bool operator==(const DailyTime& dailytime) const;
 	bool operator !=(const DailyTime& dailytime) const;
 
-    const DailyTime& operator+=(const DailyTime& dailytime);
-    const DailyTime& operator-=(const DailyTime& dailytime);
+	const DailyTime& operator+=(const DailyTime& dailytime);
+	const DailyTime& operator-=(const DailyTime& dailytime);
 
-    friend const DailyTime operator+(DailyTime lhs, const DailyTime& rhs)
-    {
-        return lhs += rhs;
-    }
+	inline uint32_t getValue() const
+	{
+		return time_;
+	}
 
-    friend const DailyTime operator-(DailyTime lhs, const DailyTime& rhs)
-    {
-        return lhs -= rhs;
-    }
+	friend const DailyTime operator+(DailyTime lhs, const DailyTime& rhs)
+	{
+		return lhs += rhs;
+	}
+
+	friend const DailyTime operator-(DailyTime lhs, const DailyTime& rhs)
+	{
+		return lhs -= rhs;
+	}
 
 private:
 	uint32_t time_;  //MS from 0, which corresponds to 00:00:00.00
 
-	//add by xuyan
-public:
-	friend class boost::serialization::access;
-	template<class Archive>
-	void serialize(Archive & ar, const unsigned int version)
-	{
-		ar & time_;
-	}
 };
 }
-
 

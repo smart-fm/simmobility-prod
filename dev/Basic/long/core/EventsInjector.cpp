@@ -71,7 +71,10 @@ HM_Model* EventsInjector::getModel()
 	return model;
 }
 
-void EventsInjector::buildSubscriptionList(vector<BufferedBase*>& subsList) {}
+std::vector<sim_mob::BufferedBase*> EventsInjector::buildSubscriptionList()
+{
+	return std::vector<sim_mob::BufferedBase*>();
+}
 
 void EventsInjector::onWorkerEnter() {}
 

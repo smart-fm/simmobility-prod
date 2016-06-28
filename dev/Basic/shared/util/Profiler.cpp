@@ -265,14 +265,11 @@ void sim_mob::QueuedLogger::flushLog()
 
 void sim_mob::BasicLogger::flush()
 {
-	if(id == "real_time_travel_time"){
-		std::cout << "flush()  " << id << std::endl;
-	}
 	if (logFile.is_open()) {
 		outIt it = out.begin();
 		if(it== out.end())
 		{
-			std::cout << "flush()  missing buffer   " << id << std::endl;
+			std::cout << "No output for " << id << std::endl;
 		}
 		for(; it!= out.end(); it++)
 		{
@@ -281,7 +278,7 @@ void sim_mob::BasicLogger::flush()
 	}
 	else
 	{
-		std::cout << "flush()  logFile not open   " << id << std::endl;
+		std::cout << "flush() logFile not open   " << id << std::endl;
 	}
 }
 
@@ -304,9 +301,6 @@ sim_mob::BasicLogger & sim_mob::Logger::operator()(const std::string &key)
 	if(it == repo.end()){
 		boost::shared_ptr<sim_mob::BasicLogger> t(new sim_mob::LogEngine(key));
 		repo.insert(std::make_pair(key,t));
-		if(key == "real_time_travel_time"){
-			std::cout << "creating "  << repo.size() << "th Logger for " << key << std::endl;
-		}
 		return *t;
 	}
 	return *it->second;

@@ -11,15 +11,15 @@ Authors - Siyu Li, Harish Loganathan
 --Note: the betas that not estimated are fixed to zero.
 
 --!! see the documentation on the definition of AM,PM and OP table!!
-local beta_cons_bus = -1.866
-local beta_cons_mrt = -2.799
-local beta_cons_privatebus= -2.074
-local beta_cons_drive1= -0.596
-local beta_cons_share2= -5.180
-local beta_cons_share3= -4.861
-local beta_cons_motor= -7.309
-local beta_cons_walk= 2.583
-local beta_cons_taxi= -4.865
+local beta_cons_bus = -2.000
+local beta_cons_mrt = -2.500
+local beta_cons_privatebus = -1.500
+local beta_cons_drive1 = -3.000
+local beta_cons_share2 = -11.000
+local beta_cons_share3 = -7.000
+local beta_cons_motor = 10.000
+local beta_cons_walk = 2.757
+local beta_cons_taxi = -3.000
 
 local beta1_1_tt = -0.687
 local beta1_2_tt = -0.690
@@ -70,7 +70,7 @@ local beta_threeplus_drive1 = 0
 
 local beta_zero_share2 = 0
 local beta_oneplus_share2 = 2.77
-local beta_twoplus_share2 = 1.31
+local beta_twoplus_share2 = 2.77
 local beta_threeplus_share2 = 0.140
 
 local beta_zero_share3 = 0
@@ -325,4 +325,13 @@ function choose_tme(params,dbparams)
 	computeAvailabilities(params,dbparams)
 	local probability = calculate_probability("nl", choice, utility, availability, scale)
 	return make_final_choice(probability)
+end
+
+-- function to call from C++ preday simulator for logsums computation
+-- params and dbparams tables contain data passed from C++
+-- to check variable bindings in params or dbparams, refer PredayLuaModel::mapClasses() function in dev/Basic/medium/behavioral/lua/PredayLuaModel.cpp
+function compute_logsum_tmw(params,dbparams)
+	computeUtilities(params,dbparams) 
+	computeAvailabilities(params,dbparams)
+	return compute_nl_logsum(choice, utility, availability, scale)
 end

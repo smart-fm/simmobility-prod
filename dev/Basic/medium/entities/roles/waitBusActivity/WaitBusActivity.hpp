@@ -5,33 +5,32 @@
 #pragma once
 
 #include "entities/roles/Role.hpp"
-#include "geospatial/BusStop.hpp"
-#include "entities/Person.hpp"
-#include "WaitBusActivityFacets.hpp"
+#include "geospatial/network/PT_Stop.hpp"
+#include "entities/Person_MT.hpp"
 
 namespace sim_mob
 {
 namespace medium
 {
 class BusDriver;
+class WaitBusActivityBehavior;
+class WaitBusActivityMovement;
 
 /**
  * A medium-term WaitBusActivity.
  * \author Seth N. Hetu
  * \author zhang huai peng
  */
-class WaitBusActivity: public sim_mob::Role, public UpdateWrapper<UpdateParams>
+class WaitBusActivity: public sim_mob::Role<Person_MT>, public UpdateWrapper<UpdateParams>
 {
 public:
-	explicit WaitBusActivity(Person* parent, MutexStrategy mtxStrat,
-			sim_mob::medium::WaitBusActivityBehavior* behavior = nullptr,
-			sim_mob::medium::WaitBusActivityMovement* movement = nullptr,
-			std::string roleName = std::string("WaitBusActivity_"),
-			Role::type roleType = Role::RL_WAITBUSACTITITY);
+	explicit WaitBusActivity(Person_MT* parent, sim_mob::medium::WaitBusActivityBehavior* behavior = nullptr,
+			sim_mob::medium::WaitBusActivityMovement* movement = nullptr, std::string roleName = std::string("WaitBusActivity_"),
+			Role<Person_MT>::Type roleType = Role<Person_MT>::RL_WAITBUSACTIVITY);
 
 	virtual ~WaitBusActivity();
 
-	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;
+	virtual sim_mob::Role<Person_MT>* clone(Person_MT *parent) const;
 
 	virtual void make_frame_tick_params(timeslice now);
 
@@ -75,7 +74,7 @@ public:
 
 	const std::string getBusLines() const;
 
-	void setStop(sim_mob::BusStop* busStop)
+	void setStop(const sim_mob::BusStop* busStop)
 	{
 		stop = busStop;
 	}
@@ -107,7 +106,7 @@ private:
 	/**record waiting time (in milliseconds) in the bus stop*/
 	unsigned int waitingTime;
 	/**pointer to waiting bus stop*/
-	BusStop* stop;
+	const BusStop* stop;
 	/**flag to indicate whether the waiting person has decided to board or not*/
 	bool boardBus;
 	/**failed boarding times*/

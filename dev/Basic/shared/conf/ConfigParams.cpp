@@ -5,15 +5,14 @@
 #include "ConfigParams.hpp"
 
 #include "conf/ParseConfigFile.hpp"
-#include "conf/ExpandAndValidateConfigFile.hpp"
-#include "entities/conflux/Conflux.hpp"
 #include "entities/Entity.hpp"
 #include "entities/Agent.hpp"
 #include "entities/Person.hpp"
 #include "entities/misc/PublicTransit.hpp"
 #include "entities/profile/ProfileBuilder.hpp"
-#include "geospatial/BusStop.hpp"
-#include "geospatial/RoadSegment.hpp"
+#include "geospatial/network/PT_Stop.hpp"
+#include "geospatial/network/RoadSegment.hpp"
+#include "geospatial/network/RoadNetwork.hpp"
 #include "network/CommunicationDataManager.hpp"
 #include "network/ControlManager.hpp"
 #include "password/password.hpp"
@@ -22,67 +21,42 @@
 
 using namespace sim_mob;
 
-//ConfigParams sim_mob::ConfigParams::instance;
-
-
 sim_mob::ConfigParams::ConfigParams() : RawConfigParams(),
-	totalRuntimeTicks(0), totalWarmupTicks(0), granPersonTicks(0), granSignalsTicks(0),
-	granCommunicationTicks(0), reactDist1(nullptr), reactDist2(nullptr), numAgentsSkipped(0),
-	using_MPI(false), is_run_on_many_computers(false), outNetworkFileName("out.network.txt"),
-	is_simulation_repeatable(false), sealedNetwork(false), commDataMgr(nullptr), controlMgr(nullptr),
-	passengerDist_busstop(nullptr), passengerDist_crowdness(nullptr), midTermRunMode(ConfigParams::NONE)
+	publicTransitEnabled(false), totalRuntimeTicks(0), totalWarmupTicks(0), numAgentsSkipped(0),
+    using_MPI(false), outNetworkFileName("out.network.txt"), outSimInfoFileName("out.siminfo.txt"),
+    is_simulation_repeatable(false), sealedNetwork(false), controlMgr(nullptr),
+    workerPublisherEnabled(false), enabledEdgeTravelTime(false)
 {}
-
 
 sim_mob::ConfigParams::~ConfigParams()
 {
-	//Delete all pointers
-	safe_delete_item(reactDist1);
-	safe_delete_item(reactDist2);
-	safe_delete_item(passengerDist_busstop);
-	safe_delete_item(passengerDist_crowdness);
-	safe_delete_item(commDataMgr);
+    ///Delete all pointers
+//	safe_delete_item(commDataMgr);
 	safe_delete_item(controlMgr);
 
-	clear_delete_vector(confluxes);
-	clear_delete_vector(segmentStatsWithBusStops);
-	clear_delete_map(busStopNo_busStops);
-	clear_delete_map(multinode_confluxes);
-	clear_delete_map_with_vector(tripchains);
+    clear_delete_map(busStopNo_busStops);
 }
-
-
-const sim_mob::RoleFactory& sim_mob::ConfigParams::getRoleFactory() const
-{
-	return roleFact;
-}
-
-
-sim_mob::RoleFactory& sim_mob::ConfigParams::getRoleFactoryRW()
-{
-	return roleFact;
-}
-
 
 sim_mob::Factory<sim_mob::Broker>& sim_mob::ConfigParams::getBrokerFactoryRW()
 {
 	return brokerFact;
 }
 
-
 std::string sim_mob::ConfigParams::getDatabaseConnectionString(bool maskPassword) const
 {
-	//The database.
-	std::string dbKey = system.networkDatabase.database;
+    ///The database.
+	std::string dbKey = networkDatabase.database;
 	std::map<std::string, Database>::const_iterator dbIt = constructs.databases.find(dbKey);
-	if (dbIt==constructs.databases.end()) {
+    if (dbIt==constructs.databases.end())
+    {
 		throw std::runtime_error("Couldn't find default database.");
 	}
 
-	//The credentials
-	std::string credKey = system.networkDatabase.credentials;
+    ///The credentials
+	std::string credKey = networkDatabase.credentials;
 	std::map<std::string, Credential>::const_iterator credIt = constructs.credentials.find(credKey);
-	if (credIt==constructs.credentials.end()) {
+    if (credIt==constructs.credentials.end())
+    {
 		Print() << "trying to find " << credKey << " among:" << std::endl;
 		std::map<std::string, Credential>::const_iterator it;
 		for( it = constructs.credentials.begin(); it != constructs.credentials.end() ; ++it)
@@ -92,7 +66,7 @@ std::string sim_mob::ConfigParams::getDatabaseConnectionString(bool maskPassword
 		throw std::runtime_error("Couldn't find default credentials..");
 	}
 
-	//Now build the string.
+    ///Now build the string.
 	std::stringstream res;
 
 	res <<"host="   <<dbIt->second.host   <<" "
@@ -100,39 +74,43 @@ std::string sim_mob::ConfigParams::getDatabaseConnectionString(bool maskPassword
 		<<"dbname=" <<dbIt->second.dbName <<" "
 		<<"user="   <<credIt->second.getUsername()   <<" "
 		<<"password=" <<credIt->second.getPassword(maskPassword);
-//		<<"password=" <<(maskPassword?"***":sim_mob::simple_password::load(std::string())); //NOTE: This is in no way secure. ~Seth
 	return res.str();
 }
 
 StoredProcedureMap sim_mob::ConfigParams::getDatabaseProcMappings() const
 {
-	std::string key = system.networkDatabase.procedures;
-	std::map<std::string, StoredProcedureMap>::const_iterator it = constructs.procedureMaps.find(key);
-	if (it==constructs.procedureMaps.end()) {
+	std::string key = networkDatabase.procedures;
+	std::map<std::string, StoredProcedureMap>::const_iterator it = procedureMaps.find(key);
+    if (it==procedureMaps.end())
+    {
 		throw std::runtime_error("Couldn't find stored procedure key.");
 	}
 	return it->second;
 }
 
 
-sim_mob::CommunicationDataManager&  sim_mob::ConfigParams::getCommDataMgr() const
-{
-	if (!InteractiveMode()) {
-		throw std::runtime_error("ConfigParams::getCommDataMgr() not supported; SIMMOB_INTERACTIVE_MODE is off.");
-	}
-	if (!commDataMgr) {
-		commDataMgr = new CommunicationDataManager();
-	}
-	return *commDataMgr;
-}
+//sim_mob::CommunicationDataManager&  sim_mob::ConfigParams::getCommDataMgr() const
+//{
+//    if (!InteractiveMode())
+//    {
+//		throw std::runtime_error("ConfigParams::getCommDataMgr() not supported; SIMMOB_INTERACTIVE_MODE is off.");
+//	}
+//    /*if (!commDataMgr)
+//    {
+//		commDataMgr = new CommunicationDataManager();
+//	}
+//	return *commDataMgr;*/
+//}
 
 sim_mob::ControlManager* sim_mob::ConfigParams::getControlMgr() const
 {
-	if (!InteractiveMode()) {
+    if (!InteractiveMode())
+    {
 		throw std::runtime_error("ConfigParams::getControlMgr() not supported; SIMMOB_INTERACTIVE_MODE is off.");
 	}
-	//In this case, ControlManager's constructor performs some logic, so it's best to use a pointer.
-	if (!controlMgr) {
+    ///In this case, ControlManager's constructor performs some logic, so it's best to use a pointer.
+    if (!controlMgr)
+    {
 		controlMgr = new ControlManager();
 	}
 	return controlMgr;
@@ -144,207 +122,58 @@ void sim_mob::ConfigParams::sealNetwork()
 	sealedNetwork = true;
 }
 
-
-const sim_mob::RoadNetwork& sim_mob::ConfigParams::getNetwork() const
-{
-	return network;
-}
-
-
-sim_mob::RoadNetwork& sim_mob::ConfigParams::getNetworkRW()
-{
-	if (sealedNetwork) {
-		//throw std::runtime_error("getNetworkRW() failed; network has been sealed.");
-	}
-	return network;
-}
-
-
-std::vector<IncidentParams>& sim_mob::ConfigParams::getIncidents(){
-	return incidents;
-}
-
-
 ////////////////////////////////////////////////////////////////////////////
-// Getters/setters
+/// Getters/setters
 ////////////////////////////////////////////////////////////////////////////
-
-
-unsigned int& sim_mob::ConfigParams::personWorkGroupSize()
-{
-	return system.workers.person.count;
-}
-const unsigned int& sim_mob::ConfigParams::personWorkGroupSize() const
-{
-	return system.workers.person.count;
-}
-
-unsigned int& sim_mob::ConfigParams::signalWorkGroupSize()
-{
-	return system.workers.signal.count;
-}
-const unsigned int& sim_mob::ConfigParams::signalWorkGroupSize() const
-{
-	return system.workers.signal.count;
-}
-
-unsigned int& sim_mob::ConfigParams::intMgrWorkGroupSize()
-{
-	return system.workers.intersectionMgr.count;
-}
-const unsigned int& sim_mob::ConfigParams::intMgrWorkGroupSize() const
-{
-	return system.workers.intersectionMgr.count;
-}
-
-unsigned int& sim_mob::ConfigParams::commWorkGroupSize()
-{
-	return system.workers.communication.count;
-}
-const unsigned int& sim_mob::ConfigParams::commWorkGroupSize() const
-{
-	return system.workers.communication.count;
-}
 
 unsigned int& sim_mob::ConfigParams::baseGranMS()
 {
-	return system.simulation.baseGranMS;
+    return simulation.baseGranMS;
 }
 const unsigned int& sim_mob::ConfigParams::baseGranMS() const
 {
-	return system.simulation.baseGranMS;
+    return simulation.baseGranMS;
 }
 
 const double& sim_mob::ConfigParams::baseGranSecond() const
 {
-	return system.simulation.baseGranSecond;
+    return simulation.baseGranSecond;
 }
 
-bool& sim_mob::ConfigParams::singleThreaded()
+bool& sim_mob::ConfigParams::isMergeLogFiles()
 {
-	return system.singleThreaded;
+    return mergeLogFiles;
 }
-const bool& sim_mob::ConfigParams::singleThreaded() const
+const bool sim_mob::ConfigParams::isMergeLogFiles() const
 {
-	return system.singleThreaded;
-}
-
-bool& sim_mob::ConfigParams::mergeLogFiles()
-{
-	return system.mergeLogFiles;
-}
-const bool& sim_mob::ConfigParams::mergeLogFiles() const
-{
-	return system.mergeLogFiles;
-}
-
-SystemParams::NetworkSource& sim_mob::ConfigParams::networkSource()
-{
-	return system.networkSource;
-}
-const SystemParams::NetworkSource& sim_mob::ConfigParams::networkSource() const
-{
-	return system.networkSource;
-}
-
-std::string& sim_mob::ConfigParams::networkXmlInputFile()
-{
-	return system.networkXmlInputFile;
-}
-const std::string& sim_mob::ConfigParams::networkXmlInputFile() const
-{
-	return system.networkXmlInputFile;
-}
-
-std::string& sim_mob::ConfigParams::networkXmlOutputFile()
-{
-	return system.networkXmlOutputFile;
-}
-const std::string& sim_mob::ConfigParams::networkXmlOutputFile() const
-{
-	return system.networkXmlOutputFile;
-}
-
-std::string& sim_mob::ConfigParams::roadNetworkXsdSchemaFile()
-{
-	return system.roadNetworkXsdSchemaFile;
-}
-void sim_mob::ConfigParams::setRoadNetworkXsdSchemaFile(std::string& name)
-{
-	system.roadNetworkXsdSchemaFile = name;
-}
-const std::string& sim_mob::ConfigParams::roadNetworkXsdSchemaFile() const
-{
-	return system.roadNetworkXsdSchemaFile;
-}
-
-AuraManager::AuraManagerImplementation& sim_mob::ConfigParams::aura_manager_impl()
-{
-	return system.simulation.auraManagerImplementation;
-}
-const AuraManager::AuraManagerImplementation& sim_mob::ConfigParams::aura_manager_impl() const
-{
-	return system.simulation.auraManagerImplementation;
-}
-
-int& sim_mob::ConfigParams::percent_boarding()
-{
-	return system.simulation.passenger_percent_boarding;
-}
-const int& sim_mob::ConfigParams::percent_boarding() const
-{
-	return system.simulation.passenger_percent_boarding;
-}
-
-int& sim_mob::ConfigParams::percent_alighting()
-{
-	return system.simulation.passenger_percent_alighting;
-}
-const int& sim_mob::ConfigParams::percent_alighting() const
-{
-	return system.simulation.passenger_percent_alighting;
+    return mergeLogFiles;
 }
 
 WorkGroup::ASSIGNMENT_STRATEGY& sim_mob::ConfigParams::defaultWrkGrpAssignment()
 {
-	return system.simulation.workGroupAssigmentStrategy;
+    return simulation.workGroupAssigmentStrategy;
 }
 const WorkGroup::ASSIGNMENT_STRATEGY& sim_mob::ConfigParams::defaultWrkGrpAssignment() const
 {
-	return system.simulation.workGroupAssigmentStrategy;
+    return simulation.workGroupAssigmentStrategy;
 }
 
 sim_mob::MutexStrategy& sim_mob::ConfigParams::mutexStategy()
 {
-	return system.simulation.mutexStategy;
+    return simulation.mutexStategy;
 }
 const sim_mob::MutexStrategy& sim_mob::ConfigParams::mutexStategy() const
 {
-	return system.simulation.mutexStategy;
+    return simulation.mutexStategy;
 }
-
-bool sim_mob::ConfigParams::commSimEnabled() const
-{
-	return system.simulation.commsim.enabled;
-}
-
-
-/*const std::string& sim_mob::ConfigParams::getCommSimMode(std::string name) const{
-	if(system.simulation.commsimElements.find(name) != system.simulation.commsimElements.end()){
-		return system.simulation.commsimElements.at(name).mode;
-	}
-	std::ostringstream out("");
-	out << "Unknown Communication Simulator : " << name ;
-	throw std::runtime_error(out.str());
-}*/
 
 DailyTime& sim_mob::ConfigParams::simStartTime()
 {
-	return system.simulation.simStartTime;
+    return simulation.simStartTime;
 }
 const DailyTime& sim_mob::ConfigParams::simStartTime() const
 {
-	return system.simulation.simStartTime;
+    return simulation.simStartTime;
 }
 
 const std::string& sim_mob::ConfigParams::getRTTT() const
@@ -357,114 +186,14 @@ const std::string& sim_mob::ConfigParams::getDTT() const
 	return pathset.DTT_Conf;
 }
 
-std::string sim_mob::ConfigParams::busline_control_type() const
-{
-	std::map<std::string,std::string>::const_iterator it = system.genericProps.find("busline_control_type");
-	if (it==system.genericProps.end()) {
-		throw std::runtime_error("busline_control_type property not found.");
-	}
-	return it->second;
-}
-
-
 unsigned int sim_mob::ConfigParams::totalRuntimeInMilliSeconds() const
 {
-	return system.simulation.totalRuntimeMS;
+    return simulation.totalRuntimeMS;
 }
 
 unsigned int sim_mob::ConfigParams::warmupTimeInMilliSeconds() const
 {
-	return system.simulation.totalWarmupMS;
-}
-
-unsigned int sim_mob::ConfigParams::personTimeStepInMilliSeconds() const
-{
-	return system.workers.person.granularityMs;
-}
-
-unsigned int sim_mob::ConfigParams::signalTimeStepInMilliSeconds() const
-{
-	return system.workers.signal.granularityMs;
-}
-
-unsigned int sim_mob::ConfigParams::intMgrTimeStepInMilliSeconds() const
-{
-	return system.workers.intersectionMgr.granularityMs;
-}
-
-bool sim_mob::ConfigParams::RunningMidSupply() const {
-	return (midTermRunMode == ConfigParams::SUPPLY);
-}
-
-bool sim_mob::ConfigParams::RunningMidDemand() const {
-	return (midTermRunMode == ConfigParams::PREDAY);
-}
-
-void sim_mob::ConfigParams::setMidTermRunMode(const std::string& runMode)
-{
-	if(runMode.empty()) { return; }
-	if(runMode == "supply" || runMode == "withinday")
-	{
-		midTermRunMode = ConfigParams::SUPPLY;
-	}
-	else if (runMode == "preday")
-	{
-		midTermRunMode = ConfigParams::PREDAY;
-	}
-	else
-	{
-		throw std::runtime_error("inadmissible value for mid_term_run_mode. Must be either 'supply' or 'preday'");
-	}
-}
-
-unsigned int sim_mob::ConfigParams::communicationTimeStepInMilliSeconds() const
-{
-	return system.workers.communication.granularityMs;
-}
-
-std::map<std::string, std::vector<sim_mob::TripChainItem*> >& sim_mob::ConfigParams::getTripChains()
-{
-	return tripchains;
-}
-
-const std::map<std::string, std::vector<sim_mob::TripChainItem*> >& sim_mob::ConfigParams::getTripChains() const
-{
-	return tripchains;
-}
-
-std::vector<sim_mob::OD_Trip>& sim_mob::ConfigParams::getODsTripsMap()
-{
-	return ODsTripsMap;
-}
-
-std::vector<sim_mob::PT_BusDispatchFreq>& sim_mob::ConfigParams::getPT_BusDispatchFreq()
-{
-	return ptBusDispatchFreq;
-}
-
-const std::vector<sim_mob::PT_BusDispatchFreq>& sim_mob::ConfigParams::getPT_BusDispatchFreq() const
-{
-	return ptBusDispatchFreq;
-}
-
-std::vector<sim_mob::PT_BusRoutes>& sim_mob::ConfigParams::getPT_BusRoutes()
-{
-	return ptBusRoutes;
-}
-
-std::vector<sim_mob::PT_BusStops>& sim_mob::ConfigParams::getPT_BusStops()
-{
-	return ptBusStops;
-}
-
-const std::map<std::string, std::vector<const sim_mob::RoadSegment*> >& sim_mob::ConfigParams::getRoadSegments_Map() const
-{
-	return routeID_roadSegments;
-}
-
-std::map<std::string, std::vector<const sim_mob::RoadSegment*> >& sim_mob::ConfigParams::getRoadSegments_Map()
-{
-	return routeID_roadSegments;
+    return simulation.totalWarmupMS;
 }
 
 std::map<std::string, sim_mob::BusStop*>& sim_mob::ConfigParams::getBusStopNo_BusStops()
@@ -477,70 +206,123 @@ const std::map<std::string, sim_mob::BusStop*>& sim_mob::ConfigParams::getBusSto
 	return busStopNo_busStops;
 }
 
-std::map<std::string, std::vector<const sim_mob::BusStop*> >& sim_mob::ConfigParams::getBusStops_Map()
+bool sim_mob::ConfigParams::isGenerateBusRoutes() const
 {
-	return routeID_busStops;
+    return generateBusRoutes;
 }
 
-const std::map<std::string, std::vector<const sim_mob::BusStop*> >& sim_mob::ConfigParams::getBusStops_Map() const
+/// use pathset to generate path of driver
+bool sim_mob::ConfigParams::PathSetMode() const
 {
-	return routeID_busStops;
-}
-
-std::set<sim_mob::Conflux*>& sim_mob::ConfigParams::getConfluxes()
-{
-	return confluxes;
-}
-
-std::set<sim_mob::SegmentStats*>& sim_mob::ConfigParams::getSegmentStatsWithBusStops()
-{
-	return segmentStatsWithBusStops;
-}
-
-// use pathset to generate path of driver
-bool sim_mob::ConfigParams::PathSetMode() const {
 	return pathset.enabled;
 }
 
-const PathSetConf & sim_mob::ConfigParams::pathSet() const{
-	return pathset;
-}
-
-bool sim_mob::ConfigParams::CBD() const{
-	return cbd;
-}
-
-bool sim_mob::ConfigParams::isGenerateBusRoutes() const{
-	return generateBusRoutes;
-}
-
-bool sim_mob::ConfigParams::PublicTransitEnabled() const{
-	return publicTransitEnabled;
-}
-
-const std::set<sim_mob::Conflux*>& sim_mob::ConfigParams::getConfluxes() const
+PathSetConf& sim_mob::ConfigParams::getPathSetConf()
 {
-	return confluxes;
+    return pathset;
 }
 
-std::map<const sim_mob::MultiNode*, sim_mob::Conflux*>& sim_mob::ConfigParams::getConfluxNodes()
+const PathSetConf& sim_mob::ConfigParams::getPathSetConf() const
 {
-	return multinode_confluxes;
+    return pathset;
 }
 
-const std::map<const sim_mob::MultiNode*, sim_mob::Conflux*>& sim_mob::ConfigParams::getConfluxNodes() const
+bool ConfigParams::RunningMidTerm() const
 {
-	return multinode_confluxes;
+    return (simMobRunMode == MID_TERM);
 }
 
-sim_mob::Conflux* sim_mob::ConfigParams::getConfluxForNode(const sim_mob::MultiNode* multinode) const
+bool ConfigParams::RunningShortTerm() const
 {
-	std::map<const sim_mob::MultiNode*, sim_mob::Conflux*>::const_iterator cfxIt = multinode_confluxes.find(multinode);
-	if(cfxIt == multinode_confluxes.end()) { return nullptr; }
-	return cfxIt->second;
+    return (simMobRunMode == SHORT_TERM);
+}
+
+bool ConfigParams::RunningLongTerm() const
+{
+    return (simMobRunMode == LONG_TERM);
 }
 
 const ModelScriptsMap& sim_mob::ConfigParams::getLuaScriptsMap() const
 {
 	return luaScriptsMap;
 }
+
+void ConfigParams::setWorkerPublisherEnabled(bool value)
+{
+    workerPublisherEnabled = value;
+}
+
+bool ConfigParams::isWorkerPublisherEnabled() const
+{
+    return workerPublisherEnabled;
+}
+
+bool ConfigParams::isPublicTransitEnabled() const{
+    return publicTransitEnabled;
+}
+
+void ConfigParams::setPublicTransitEnabled(bool value)
+{
+	publicTransitEnabled = value;
+}
+
+bool ConfigParams::isEnabledEdgeTravelTime() const
+{
+	return enabledEdgeTravelTime;
+}
+
+void ConfigParams::setEnabledEdgeTravelTime(bool enabledEdgeTravelTime)
+{
+	this->enabledEdgeTravelTime = enabledEdgeTravelTime;
+}
+
+const std::string& ConfigParams::getJourneyTimeStatsFilename() const
+{
+	return journeyTimeStatsFilename;
+}
+
+const std::string& ConfigParams::getWaitingTimeStatsFilename() const
+{
+	return waitingTimeStatsFilename;
+}
+
+void ConfigParams::setJourneyTimeStatsFilename(const std::string& str)
+{
+	journeyTimeStatsFilename = str;
+}
+
+void ConfigParams::setWaitingTimeStatsFilename(const std::string& str)
+{
+	waitingTimeStatsFilename = str;
+}
+
+const std::string& ConfigParams::getWaitingCountStatsFilename() const
+{
+	return waitingCountStatsFilename;
+}
+
+void ConfigParams::setWaitingCountStatsFilename(const std::string& str)
+{
+	waitingCountStatsFilename = str;
+}
+
+const std::string& ConfigParams::getTravelTimeStatsFilename() const
+{
+	return travelTimeStatsFilename;
+}
+
+void ConfigParams::setTravelTimeStatsFilename(const std::string& str)
+{
+	travelTimeStatsFilename = str;
+}
+
+const std::string& ConfigParams::getPT_StopStatsFilename() const
+{
+	return ptStopStatsFilename;
+}
+
+void ConfigParams::setPT_StopStatsFilename(const std::string& str)
+{
+	ptStopStatsFilename = str;
+}
+

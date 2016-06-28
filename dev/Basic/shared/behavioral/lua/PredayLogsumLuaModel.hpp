@@ -3,7 +3,7 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 #pragma once
-#include "behavioral/params/PredayPersonParams.hpp"
+#include "behavioral/params/PersonParams.hpp"
 #include "behavioral/params/LogsumTourModeDestinationParams.hpp"
 #include "lua/LuaModel.hpp"
 
@@ -25,8 +25,9 @@ public:
 	 *
 	 * @param personParams object containing person and household related variables. logsums will be updated in this object
 	 * @param tourModeDestinationParams parameters specific to tour mode-destination models
+	 * @param numZones total number of zones (possible destinations in the mode destination choice model)
 	 */
-	void computeTourModeDestinationLogsum(PredayPersonParams& personParams, LogsumTourModeDestinationParams& tourModeDestinationParams) const;
+	void computeTourModeDestinationLogsum(PersonParams& personParams, LogsumTourModeDestinationParams& tourModeDestinationParams, int numZones) const;
 
 	/**
 	 * Computes logsums for work tours with fixed work location by invoking corresponding functions in tour mode (for work) model
@@ -34,21 +35,21 @@ public:
 	 * @param personParams object containing person and household related variables. logsums will be updated in this object
 	 * @param tourModeDestinationParams parameters specific to tour mode model
 	 */
-	void computeTourModeLogsum(PredayPersonParams& personParams, LogsumTourModeParams& tourModeParams) const;
+	void computeTourModeLogsum(PersonParams& personParams, LogsumTourModeParams& tourModeParams) const;
 
 	/**
 	 * Computes logsums from day-pattern tours and day-pattern stops models
 	 *
 	 * @param personParams object containing person and household related variables. logsums will be updated in this object
 	 */
-	void computeDayPatternLogsums(PredayPersonParams& personParams) const;
+	void computeDayPatternLogsums(PersonParams& personParams) const;
 
 	/**
 	 * Computes logsums from day pattern binary model. These logsums will be passed to long-term
 	 *
 	 * @param personParams object containing person and household related variables. logsums will be updated in this object
 	 */
-	void computeDayPatternBinaryLogsums(PredayPersonParams& personParams) const;
+	void computeDayPatternBinaryLogsums(PersonParams& personParams) const;
 
 private:
     /**

@@ -5,6 +5,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
 #include <sstream>
+#include "logging/Log.hpp"
 
 using namespace xercesc;
 using namespace std;
@@ -72,47 +73,6 @@ void sim_mob::ParsePathXmlConfig::ProcessPathSetNode(xercesc::DOMElement* node){
 
 }
 
-void sim_mob::ParsePathXmlConfig::processModelScriptsNode(xercesc::DOMElement* node)
-{
-	std::string format = ParseString(GetNamedAttributeValue(node, "format"), "");
-	if (format.empty() || format != "lua")
-	{
-		throw std::runtime_error("Unsupported script format");
-	}
-
-	std::string scriptsDirectoryPath = ParseString(GetNamedAttributeValue(node, "path"), "");
-	if (scriptsDirectoryPath.empty())
-	{
-		throw std::runtime_error("path to scripts is not provided");
-	}
-	if ((*scriptsDirectoryPath.rbegin()) != '/')
-	{
-		//add a / to the end of the path string if it is not already there
-		scriptsDirectoryPath.push_back('/');
-	}
-	ModelScriptsMap scriptsMap(scriptsDirectoryPath, format);
-	for (DOMElement* item = node->getFirstElementChild(); item; item = item->getNextElementSibling())
-	{
-		std::string name = TranscodeString(item->getNodeName());
-		if (name != "script")
-		{
-			Warn() << "Invalid db_proc_groups child node.\n";
-			continue;
-		}
-
-		std::string key = ParseString(GetNamedAttributeValue(item, "name"), "");
-		std::string val = ParseString(GetNamedAttributeValue(item, "file"), "");
-		if (key.empty() || val.empty())
-		{
-			Warn() << "Invalid script; missing \"name\" or \"file\".\n";
-			continue;
-		}
-
-		scriptsMap.addScriptFileName(key, val);
-	}
-	cfg.ptRouteChoiceScriptsMap = scriptsMap;
-}
-
 void sim_mob::ParsePathXmlConfig::processPublicPathsetNode(xercesc::DOMElement* publicConfNode)
 {
 
@@ -156,11 +116,6 @@ void sim_mob::ParsePathXmlConfig::processPublicPathsetNode(xercesc::DOMElement* 
 				cfg.simulationApproachIterations = ParseInteger(GetNamedAttributeValue(
 								GetSingleElementByName(publicPathSetAlgoConf, "simulation_approach"), "iterations"), 10);
 	}
-
-	if(cfg.publicPathSetMode == "normal")
-	{
-		processModelScriptsNode(GetSingleElementByName(publicConfNode, "model_scripts", true));
-	}
 }
 
 void sim_mob::ParsePathXmlConfig::processPrivatePathsetNode(xercesc::DOMElement* pvtConfNode)
@@ -172,7 +127,8 @@ void sim_mob::ParsePathXmlConfig::processPrivatePathsetNode(xercesc::DOMElement*
 	}
 
 	//bulk pathset generation
-	if (cfg.privatePathSetMode == "generation") {
+	if (cfg.privatePathSetMode == "generation")
+	{
 		xercesc::DOMElement* odSource = GetSingleElementByName(pvtConfNode, "od_source");
 		if (!odSource)
 		{
@@ -195,32 +151,46 @@ void sim_mob::ParsePathXmlConfig::processPrivatePathsetNode(xercesc::DOMElement*
 	}
 
 	xercesc::DOMElement* tableNode = GetSingleElementByName(pvtConfNode, "tables");
-	if (!tableNode) {
+	if (!tableNode)
+	{
 		throw std::runtime_error("Pathset Tables specification not found");
-	} else {
-		cfg.pathSetTableName = ParseString(GetNamedAttributeValue(tableNode, "singlepath_table"), "");
-		cfg.RTTT_Conf = ParseString(GetNamedAttributeValue(tableNode, "realtime_traveltime"), "");
+	}
+	else
+	{
+		cfg.RTTT_Conf = ParseString(GetNamedAttributeValue(tableNode, "historical_traveltime"), "");
+		if (cfg.RTTT_Conf.empty())
+		{
+			throw std::runtime_error("historical travel time table name missing in pathset configuration");
+		}
+
 		cfg.DTT_Conf = ParseString(GetNamedAttributeValue(tableNode, "default_traveltime"), "");
+		if (cfg.DTT_Conf.empty())
+		{
+			throw std::runtime_error("default travel time table name missing in pathset configuration");
+		}
 	}
 	//function
 	xercesc::DOMElement* functionNode = GetSingleElementByName(pvtConfNode, "functions");
-	if (!functionNode) {
+	if (!functionNode)
+	{
 		throw std::runtime_error("Pathset Stored Procedure Not Found\n");
 	}
-	else {
-		cfg.psRetrieval = ParseString(GetNamedAttributeValue(functionNode, "pathset"), "");
-		cfg.upsert = ParseString(GetNamedAttributeValue(functionNode, "travel_time"), "");
+	else
+	{
 		cfg.psRetrievalWithoutBannedRegion = ParseString(GetNamedAttributeValue(functionNode, "pathset_without_banned_area"), "");
 	}
 
-	//recirsive pathset generation
+	//recursive pathset generation
 	xercesc::DOMElement* recPS = GetSingleElementByName(pvtConfNode, "recursive_pathset_generation");
 	if (!recPS)
 	{
 		std::cerr << "recursive_pathset_generation Not Found, setting to false\n";
 		cfg.recPS = false;
 	}
-	else { cfg.recPS = ParseBoolean(GetNamedAttributeValue(recPS, "value"), false); }
+	else
+	{
+		cfg.recPS = ParseBoolean(GetNamedAttributeValue(recPS, "value"), false);
+	}
 
 	//reroute
 	xercesc::DOMElement* reroute = GetSingleElementByName(pvtConfNode, "reroute");
@@ -229,26 +199,15 @@ void sim_mob::ParsePathXmlConfig::processPrivatePathsetNode(xercesc::DOMElement*
 		std::cerr << "reroute_enabled Not Found, setting to false\n";
 		cfg.reroute = false;
 	}
-	else { cfg.reroute = ParseBoolean(GetNamedAttributeValue(reroute, "enabled"), false); }
-
-	//subtrip output for preday
-	xercesc::DOMElement* predayOP = GetSingleElementByName(pvtConfNode, "subtrip_travel_metrics_output");
-	if (predayOP) {
-		const XMLCh* enabledSwitch = GetNamedAttributeValue(predayOP, "enabled");
-		if (!enabledSwitch) {
-			throw std::runtime_error("mandatory subtrip_travel_metrics_output \"enabled\" switch is missing");
-		}
-		if (ParseBoolean(enabledSwitch)) {
-			cfg.subTripOP = ParseString(GetNamedAttributeValue(predayOP, "file"), "");
-			if (!cfg.subTripOP.size()) {
-				throw std::runtime_error("mandatory subtrip_travel_metrics_output filename is missing");
-			}
-		}
+	else
+	{
+		cfg.reroute = ParseBoolean(GetNamedAttributeValue(reroute, "enabled"), false);
 	}
 
 	///	path generators configuration
 	xercesc::DOMElement* gen = GetSingleElementByName(pvtConfNode, "path_generators");
-	if (gen) {
+	if (gen)
+	{
 		cfg.maxSegSpeed = ParseFloat(GetNamedAttributeValue(gen, "max_segment_speed"), 0.0);
 		if (cfg.maxSegSpeed <= 0.0)
 		{
@@ -268,7 +227,8 @@ void sim_mob::ParsePathXmlConfig::processPrivatePathsetNode(xercesc::DOMElement*
 
 		//K-shortest Path
 		xercesc::DOMElement* ksp = GetSingleElementByName(gen, "k_shortest_path");
-		if (ksp) {
+		if (ksp)
+		{
 			cfg.kspLevel = ParseInteger(GetNamedAttributeValue(ksp, "level"), 0);
 		}
 
@@ -286,40 +246,21 @@ void sim_mob::ParsePathXmlConfig::processPrivatePathsetNode(xercesc::DOMElement*
 	xercesc::DOMElement* utility = GetSingleElementByName(pvtConfNode, "utility_parameters");
 	if (utility)
 	{
-		cfg.params.bTTVOT = ParseFloat(GetNamedAttributeValue(GetSingleElementByName(utility, "bTTVOT"), "value"), -0.01373); //-0.0108879;
-		cfg.params.bCommonFactor = ParseFloat(GetNamedAttributeValue(GetSingleElementByName(utility, "bCommonFactor"), "value"), 1.0);
-		cfg.params.bLength = ParseFloat(GetNamedAttributeValue(GetSingleElementByName(utility, "bLength"), "value"), -0.001025); //0.0; //negative sign proposed by milan
-		cfg.params.bHighway = ParseFloat(GetNamedAttributeValue(GetSingleElementByName(utility, "bHighway"), "value"), 0.00052); //0.0;
-		cfg.params.bCost = ParseFloat(GetNamedAttributeValue(GetSingleElementByName(utility, "bCost"), "value"), 0.0);
-		cfg.params.bSigInter = ParseFloat(GetNamedAttributeValue(GetSingleElementByName(utility, "bSigInter"), "value"), -0.13); //0.0;
-		cfg.params.bLeftTurns = ParseFloat(GetNamedAttributeValue(GetSingleElementByName(utility, "bLeftTurns"), "value"), 0.0);
-		cfg.params.bWork = ParseFloat(GetNamedAttributeValue(GetSingleElementByName(utility, "bWork"), "value"), 0.0);
-		cfg.params.bLeisure = ParseFloat(GetNamedAttributeValue(GetSingleElementByName(utility, "bLeisure"), "value"), 0.0);
 		cfg.params.highwayBias = ParseFloat(GetNamedAttributeValue(GetSingleElementByName(utility, "highwayBias"), "value"), 0.5);
-		cfg.params.minTravelTimeParam = ParseFloat(GetNamedAttributeValue(GetSingleElementByName(utility, "minTravelTimeParam"), "value"), 0.879);
-		cfg.params.minDistanceParam = ParseFloat(GetNamedAttributeValue(GetSingleElementByName(utility, "minDistanceParam"), "value"), 0.325);
-		cfg.params.minSignalParam = ParseFloat(GetNamedAttributeValue(GetSingleElementByName(utility, "minSignalParam"), "value"), 0.256);
-		cfg.params.maxHighwayParam = ParseFloat(GetNamedAttributeValue(GetSingleElementByName(utility, "maxHighwayParam"), "value"), 0.422);
 	}
 
 	//sanity check
 	std::stringstream out("");
-	if (cfg.pathSetTableName == "") {
-		out << "single path's table name, ";
-	}
-	if (cfg.RTTT_Conf == "") {
+	if (cfg.RTTT_Conf == "")
+	{
 		out << "single path's realtime TT table name, ";
 	}
-	if (cfg.DTT_Conf == "") {
+	if (cfg.DTT_Conf == "")
+	{
 		out << "single path's default TT table name, ";
 	}
-	if (cfg.psRetrieval == "") {
-		out << "path set retieval stored procedure, ";
-	}
-	if (cfg.upsert == "") {
-		out << "travel time updation stored procedure, ";
-	}
-	if (out.str().size()) {
+	if (out.str().size())
+	{
 		std::string err = std::string("Missing:") + out.str();
 		throw std::runtime_error(err);
 	}

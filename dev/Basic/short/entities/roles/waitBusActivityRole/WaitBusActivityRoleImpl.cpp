@@ -4,109 +4,120 @@
 
 #include "WaitBusActivityRoleImpl.hpp"
 
-#include "conf/ConfigParams.hpp"
-#include "conf/ConfigManager.hpp"
-
-#include "entities/Person.hpp"
-#include "entities/vehicle/Bus.hpp"
+#include "entities/Person_ST.hpp"
 #include "entities/roles/passenger/Passenger.hpp"
+#include "entities/vehicle/Bus.hpp"
 
 using std::vector;
 using namespace sim_mob;
 
-sim_mob::WaitBusActivityRoleImpl::WaitBusActivityRoleImpl(Person* parent, sim_mob::WaitBusActivityRoleBehavior* behavior, sim_mob::WaitBusActivityRoleMovement* movement) :
-		WaitBusActivityRole(parent, behavior, movement)
+WaitBusActivityRoleImpl::WaitBusActivityRoleImpl(Person_ST *parent, WaitBusActivityRoleBehavior *behavior, WaitBusActivityRoleMovement *movement) :
+WaitBusActivityRole(parent, behavior, movement)
 {
 }
 
-sim_mob::WaitBusActivityRoleImpl::~WaitBusActivityRoleImpl() {
-
+WaitBusActivityRoleImpl::~WaitBusActivityRoleImpl()
+{
 }
 
-Role* sim_mob::WaitBusActivityRoleImpl::clone(Person* parent) const
+Role<Person_ST>* WaitBusActivityRoleImpl::clone(Person_ST *parent) const
 {
-	WaitBusActivityRoleBehavior* behavior = new WaitBusActivityRoleBehaviorImpl(parent);
-	WaitBusActivityRoleMovement* movement = new WaitBusActivityRoleMovementImpl(parent);
+	WaitBusActivityRoleBehavior* behavior = new WaitBusActivityRoleBehaviorImpl();
+	WaitBusActivityRoleMovement* movement = new WaitBusActivityRoleMovementImpl();
 	WaitBusActivityRole* waitbusactivityrole = new WaitBusActivityRoleImpl(parent, behavior, movement);
+	
 	behavior->setParentWaitBusActivityRole(waitbusactivityrole);
 	movement->setParentWaitBusActivityRole(waitbusactivityrole);
+	
 	return waitbusactivityrole;
 }
 
-sim_mob::WaitBusActivityRoleBehaviorImpl::WaitBusActivityRoleBehaviorImpl(sim_mob::Person* parentAgent) :
-		WaitBusActivityRoleBehavior(parentAgent)
+WaitBusActivityRoleBehaviorImpl::WaitBusActivityRoleBehaviorImpl() :
+WaitBusActivityRoleBehavior()
 {
 }
 
-sim_mob::WaitBusActivityRoleBehaviorImpl::~WaitBusActivityRoleBehaviorImpl() {
+WaitBusActivityRoleBehaviorImpl::~WaitBusActivityRoleBehaviorImpl()
+{
 
 }
 
-void sim_mob::WaitBusActivityRoleBehaviorImpl::frame_init() {
+void WaitBusActivityRoleBehaviorImpl::frame_init()
+{
 	throw std::runtime_error("WaitBusActivityRoleBehavior::frame_init is not implemented yet");
 }
 
-void sim_mob::WaitBusActivityRoleBehaviorImpl::frame_tick() {
+void WaitBusActivityRoleBehaviorImpl::frame_tick()
+{
 	throw std::runtime_error("WaitBusActivityRoleBehavior::frame_tick is not implemented yet");
 }
 
-void sim_mob::WaitBusActivityRoleBehaviorImpl::frame_tick_output() {
+std::string WaitBusActivityRoleBehaviorImpl::frame_tick_output()
+{
 	throw std::runtime_error("WaitBusActivityRoleBehavior::frame_tick_output is not implemented yet");
 }
 
+WaitBusActivityRoleMovementImpl::WaitBusActivityRoleMovementImpl() :
+WaitBusActivityRoleMovement()
+{
+}
 
-sim_mob::WaitBusActivityRoleMovementImpl::WaitBusActivityRoleMovementImpl(sim_mob::Person* parentAgent) :
-		WaitBusActivityRoleMovement(parentAgent)
+WaitBusActivityRoleMovementImpl::~WaitBusActivityRoleMovementImpl()
 {
 
 }
 
-sim_mob::WaitBusActivityRoleMovementImpl::~WaitBusActivityRoleMovementImpl() {
-
-}
-
-void sim_mob::WaitBusActivityRoleMovementImpl::frame_init() {
+void WaitBusActivityRoleMovementImpl::frame_init()
+{
+	/*
 	// special case: fnode, tnode are all stop ids, for scenarios
 	isTagged = false;
 	isBoarded = false;
-	if(getParent()->originNode.type_== WayPoint::BUS_STOP && getParent()->destNode.type_== WayPoint::BUS_STOP) {
-		busStopAgent = BusStopAgent::findBusStopAgentByBusStopNo(getParent()->originNode.busStop_->getBusstopno_());
-		getParent()->xPos.force(busStopAgent->getBusStop().xPos);// set xPos to WaitBusActivityRole
-		getParent()->yPos.force(busStopAgent->getBusStop().yPos);// set yPos to WaitBusActivityRole
+	if(parent->originNode.type_== WayPoint::BUS_STOP && parent->destNode.type_== WayPoint::BUS_STOP) {
+		busStopAgent = BusStopAgent::findBusStopAgentByBusStopNo(getParent()->originNode.busStop_->getRoadItemId());
+		parent->xPos.force(busStopAgent->getBusStop().xPos);// set xPos to WaitBusActivityRole
+		parent->yPos.force(busStopAgent->getBusStop().yPos);// set yPos to WaitBusActivityRole
 		parentWaitBusActivityRole->TimeOfReachingBusStop = parentWaitBusActivityRole->getParams().now.ms();
 		buslineId = "857_1";// set Busline information(hardcoded now, later from Public Transit Route Choice to choose the busline)
 		return;
 	}
-	if(getParent()->destNode.type_== WayPoint::BUS_STOP) { // to here waiting(busstop)
-		busStopAgent = BusStopAgent::findBusStopAgentByBusStopNo(getParent()->destNode.busStop_->getBusstopno_());
-		getParent()->xPos.set(busStopAgent->getBusStop().xPos);// set xPos to WaitBusActivityRole
-		getParent()->yPos.set(busStopAgent->getBusStop().yPos);// set yPos to WaitBusActivityRole
+	if(parent->destNode.type_== WayPoint::BUS_STOP) { // to here waiting(busstop)
+		busStopAgent = BusStopAgent::findBusStopAgentByBusStopNo(getParent()->destNode.busStop_->getRoadItemId());
+		parent->xPos.set(busStopAgent->getBusStop().xPos);// set xPos to WaitBusActivityRole
+		parent->yPos.set(busStopAgent->getBusStop().yPos);// set yPos to WaitBusActivityRole
 	} else {
-		sim_mob::BusStop* busStop_dest = setBusStopXY(getParent()->destNode.node_);// to here waiting(node)
-		busStopAgent = BusStopAgent::findBusStopAgentByBusStopNo(busStop_dest->getBusstopno_());// assign the BusStopAgent to WaitBusActivityRole
-		getParent()->xPos.set(busStop_dest->xPos);// set xPos to WaitBusActivityRole
-		getParent()->yPos.set(busStop_dest->yPos);// set yPos to WaitBusActivityRole
+		BusStop* busStop_dest = setBusStopXY(parent->destNode.node_);// to here waiting(node)
+		busStopAgent = BusStopAgent::findBusStopAgentByBusStopNo(busStop_dest->getRoadItemId());// assign the BusStopAgent to WaitBusActivityRole
+		parent->xPos.set(busStop_dest->xPos);// set xPos to WaitBusActivityRole
+		parent->yPos.set(busStop_dest->yPos);// set yPos to WaitBusActivityRole
 	}
 //	parentWaitBusActivityRole->TimeOfReachingBusStop = parentWaitBusActivityRole->getParams().now.ms();
-	parentWaitBusActivityRole->TimeOfReachingBusStop = getParent()->currTick.ms();
+	parentWaitBusActivityRole->TimeOfReachingBusStop = parent->currTick.ms();
 	buslineId = "857_1";// set Busline information(hardcoded now, later from Public Transit Route Choice to choose the busline)
+	 */
 }
 
-void sim_mob::WaitBusActivityRoleMovementImpl::frame_tick() {
+void WaitBusActivityRoleMovementImpl::frame_tick()
+{
 	WaitBusActivityRoleUpdateParams &p = parentWaitBusActivityRole->getParams();
-	if(0!=boardingMS) {// if boarding_Frame is already set
-		if(boardingMS == p.now.ms()) {// if currFrame is equal to the boarding_Frame, boarding finished
-			getParent()->setToBeRemoved();
+	if (0 != boardingMS)
+	{// if boarding_Frame is already set
+		if (boardingMS == p.now.ms())
+		{// if currFrame is equal to the boarding_Frame, boarding finished
+			parent->setToBeRemoved();
 			isBoarded = true;
-			if(getParent()) {
-				if(getParent()->getNextRole()) {
-					Passenger* passenger = dynamic_cast<Passenger*> (getParent()->getNextRole());// check whether nextRole is passenger Role or not
-					if(passenger) {
+			if (parent)
+			{
+				if (parent->getNextRole())
+				{
+					Passenger* passenger = dynamic_cast<Passenger*> (parent->getNextRole()); // check whether nextRole is passenger Role or not
+					if (passenger)
+					{
 						// startBoardingMS = boardingMS(finished time) - boardingSEC(for this person)
 						// waitingTime = startBoardingMS - TimeOfReachingBusStop
-						parentWaitBusActivityRole->waitingTimeAtBusStop = p.now.ms() - getParent()->getBoardingCharacteristics() * 1000 - parentWaitBusActivityRole->TimeOfReachingBusStop;
+						parentWaitBusActivityRole->waitingTimeAtBusStop = p.now.ms() - parent->getBoardingCharacteristics() * 1000 - parentWaitBusActivityRole->TimeOfReachingBusStop;
 						passenger->setWaitingTimeAtStop(parentWaitBusActivityRole->waitingTimeAtBusStop);
-						passenger->busdriver.set(busDriver);// assign this busdriver to Passenger
+						passenger->busdriver.set(busDriver); // assign this busdriver to Passenger
 						passenger->BoardedBus.set(true);
 						passenger->AlightedBus.set(false);
 					}
@@ -116,23 +127,27 @@ void sim_mob::WaitBusActivityRoleMovementImpl::frame_tick() {
 	}
 }
 
-void sim_mob::WaitBusActivityRoleMovementImpl::frame_tick_output() {
+std::string WaitBusActivityRoleMovementImpl::frame_tick_output()
+{
 	WaitBusActivityRoleUpdateParams &p = parentWaitBusActivityRole->getParams();
-	if (ConfigManager::GetInstance().FullConfig().is_run_on_many_computers) {
-		return;
-	}
 
 	//Reset our offset if it's set to zero
-	if (displayOffset.getX()==0 && displayOffset.getY()==0) {
-	   boost::mt19937 gen(static_cast<unsigned int>(getParent()->getId()*getParent()->getId()));
-	   boost::uniform_int<> distX(0, 249);
-	   boost::variate_generator < boost::mt19937, boost::uniform_int<int> > varX(gen, distX);
-	   boost::uniform_int<> distY(0, 99);
-	   boost::variate_generator < boost::mt19937, boost::uniform_int<int> > varY(gen, distY);
-	   unsigned int value = (unsigned int)varX();
-	   displayOffset.setX(value+1);
-	   value= (unsigned int)varY();
-	   displayOffset.setY(value+1);
+	if (displayOffset.getX() == 0 && displayOffset.getY() == 0)
+	{
+		boost::mt19937 gen(static_cast<unsigned int> (parent->getId() * parent->getId()));
+		boost::uniform_int<> distX(0, 249);
+		boost::variate_generator < boost::mt19937, boost::uniform_int<int> > varX(gen, distX);
+		boost::uniform_int<> distY(0, 99);
+		boost::variate_generator < boost::mt19937, boost::uniform_int<int> > varY(gen, distY);
+		unsigned int value = (unsigned int) varX();
+		displayOffset.setX(value + 1);
+		value = (unsigned int) varY();
+		displayOffset.setY(value + 1);
 	}
-	LogOut("("<<"\"passenger\","<<getParent()->currTick.frame()<<","<<getParent()->getId()<<","<<"{\"xPos\":\""<<(getParent()->xPos.get()+displayOffset.getX())<<"\"," <<"\"yPos\":\""<<(getParent()->yPos.get()+displayOffset.getY())<<"\",})"<<std::endl);
+	
+	std::stringstream out;
+	out << "(" << "\"passenger\"," << parent->currTick.frame() << "," << parent->getId() << "," << "{\"xPos\":\"";
+	out << (parent->xPos.get() + displayOffset.getX()) << "\"," << "\"yPos\":\"" << (parent->yPos.get() + displayOffset.getY()) << "\",})\n";
+	
+	return out.str();
 }

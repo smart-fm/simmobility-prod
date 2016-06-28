@@ -99,10 +99,10 @@ local beta_caravail_work_3 =0
 local beta_motoravail_work_2 = 0.666
 local beta_motoravail_work_3 = 0
 
-local beta_logsum_work_2= 0.349
+local beta_logsum_work_2 = 0.349
 local beta_logsum_work_3= 0
 
-local beta_cons_work_2=-9.92
+local beta_cons_work_2 = -9.92
 local beta_cons_work_3=0
 
 

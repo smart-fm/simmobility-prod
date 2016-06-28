@@ -2,15 +2,13 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
-#include "DailyTime.hpp"
-
 #include <cstdlib>
 #include <stdexcept>
-#include <sstream>
-#include "boost/date_time/posix_time/posix_time.hpp"
+#include <vector>
+#include "stddef.h"
+#include "util/DailyTime.hpp"
 
 using namespace sim_mob;
-using namespace boost::posix_time;
 using std::string;
 
 namespace
@@ -120,10 +118,10 @@ namespace
 	{
 		//A few quick sanity checks
 		size_t numColon = 0;
-		size_t numDigits = 0;
 		bool hasDot = false;
 		std::string err = timeRepr;
 		int timePart[4] = {0,0,0,0}; //{hours, minutes, seconds, milliseconds}
+		short numDigits[4] = {0,0,0,0}; //number of digits in {hours, minutes, seconds, milliseconds} part of time string
 		int timePartIdx = 0; //hours index
 		uint32_t num = 0;
 		for (int i=0; i<timeRepr.size(); i++)
@@ -153,7 +151,7 @@ namespace
 			}
 			else if (currChar>='0' && currChar<='9')
 			{
-				if(!hasDot) { numDigits++; }
+				if(!hasDot) { numDigits[timePartIdx]++; }
 				num = (num*10) + (currChar-'0');
 			}
 			else if (currChar!=' ' && currChar!='\t')
@@ -163,14 +161,14 @@ namespace
 			}
 		}
 		if(num > 0) { timePart[timePartIdx] = num; } //millisecond part was present in the string
-		if (numDigits%2!=0)
+		if ((numDigits[0] != 1 && numDigits[0] != 2) || numDigits[1] != 2 || numDigits[2] != 2) //hour part is the only component that is allowed to be single digit
 		{
-			std::cout << "Invalid format: non-even digit count:" + err << std::endl;
-			//throw std::runtime_error(err);
+			err = "Invalid format: " + err + "\n";
+			throw std::runtime_error(err);
 		}
 		if (numColon!=2)
 		{
-			err = "Invalid format: invalid format: " + err + "\nexpected format is hh:mi:ss(.mil)";
+			err = "Invalid format: " + err + "\nexpected format is hh:mi:ss(.mil)";
 			throw std::runtime_error(err);
 		}
 
@@ -249,9 +247,9 @@ const DailyTime& sim_mob::DailyTime::operator-=(const DailyTime& dailytime)
 std::string sim_mob::DailyTime::getStrRepr() const
 {
 	uint32_t timeValInSec = time_/1000;
-	while(timeValInSec >= SECONDS_IN_DAY)
+	if(timeValInSec >= SECONDS_IN_DAY) //86400 seconds in a day
 	{
-		timeValInSec = timeValInSec - SECONDS_IN_DAY;
+		timeValInSec = timeValInSec % SECONDS_IN_DAY;
 	}
 	return timeList[timeValInSec];
 }
@@ -261,22 +259,5 @@ void sim_mob::DailyTime::initAllTimes()
 	for(int i=0; i<SECONDS_IN_DAY; i++) //86400 seconds in a day
 	{
 		timeList[i] = buildStringRepr(i);
-	}
-}
-
-DailyTime sim_mob::DailyTime::getTimeFromMidNight() const
-{
-	if (time_ >= MILLISECONDS_IN_DAY)
-	{
-		uint32_t timeValInMS = time_;
-		while (timeValInMS > MILLISECONDS_IN_DAY)
-		{
-			timeValInMS = timeValInMS - MILLISECONDS_IN_DAY;
-		}
-		return DailyTime(timeValInMS);
-	}
-	else
-	{
-		return (*this);
 	}
 }

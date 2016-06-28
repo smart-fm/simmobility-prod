@@ -103,6 +103,14 @@ LoggerAgent::LoggerAgent() : Entity(-1)
     std::ofstream* errorFile = new std::ofstream("Errors.csv");
     streams.insert(std::make_pair(LOG_ERROR, errorFile));
 
+    //school assignment
+    std::ofstream* schoolAssignmentFile = new std::ofstream("schools.csv");
+    streams.insert(std::make_pair(LOG_SCHOOL_ASSIGNMENT, schoolAssignmentFile));
+
+    //pre school assignment
+    std::ofstream* preSchoolAssignmentFile = new std::ofstream("preSchools.csv");
+    streams.insert(std::make_pair(LOG_PRE_SCHOOL_ASSIGNMENT, preSchoolAssignmentFile));
+
     //awakenings
     std::ofstream* hhawakeningFile = new std::ofstream("HH_Awakenings.csv");
     streams.insert(std::make_pair(LOG_HH_AWAKENING, hhawakeningFile));
@@ -132,7 +140,10 @@ bool LoggerAgent::isNonspatial()
     return false;
 }
 
-void LoggerAgent::buildSubscriptionList(std::vector<BufferedBase*>& subsList) {}
+std::vector<sim_mob::BufferedBase*> LoggerAgent::buildSubscriptionList() 
+{
+	return std::vector<sim_mob::BufferedBase*>();
+}
 
 void LoggerAgent::onWorkerEnter() {}
 

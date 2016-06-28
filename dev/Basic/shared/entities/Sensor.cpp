@@ -3,42 +3,46 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 #include "Sensor.hpp"
-#include "geospatial/Lane.hpp"
+#include "geospatial/network/Lane.hpp"
 
-namespace sim_mob {
+using namespace sim_mob;
 
-Sensor::~Sensor() {
-    std::map<Lane const *, Shared<CountAndTimePair> *>::iterator iter;
-    for (iter = data.begin(); iter != data.end(); ++iter)
-    {
-        Shared<CountAndTimePair> * pair = iter->second;
-        delete pair;
-    }
-}
-
-void
-Sensor::buildSubscriptionList(std::vector<BufferedBase*>& subsList)
+Sensor::~Sensor()
 {
-    std::map<Lane const *, Shared<CountAndTimePair> *>::iterator iter;
-    for (iter = data.begin(); iter != data.end(); ++iter)
-    {
-        Shared<CountAndTimePair> * pair = iter->second;
-        subsList.push_back(pair);
-    }
+	std::map<Lane const *, Shared<CountAndTimePair> *>::iterator iter;
+	for (iter = data.begin(); iter != data.end(); ++iter)
+	{
+		Shared<CountAndTimePair> * pair = iter->second;
+		delete pair;
+	}
 }
 
-Sensor::CountAndTimePair const &
-Sensor::getCountAndTimePair(Lane const & lane) const
+std::vector<BufferedBase *> Sensor::buildSubscriptionList()
 {
-    std::map<Lane const *, Shared<CountAndTimePair> *>::const_iterator iter = data.find(&lane);
-    if (iter != data.end())
-    {
-        Shared<CountAndTimePair> const * pair = iter->second;
-        return pair->get();
-    }
-    std::stringstream stream("");
-    stream << "Sensor::getCountAndTimePair() was called on invalid lane:" << &lane;
-    throw std::runtime_error(stream.str());
+	std::vector<BufferedBase *> subsList;
+	std::map<Lane const *, Shared<CountAndTimePair> *>::iterator iter;
+	
+	for (iter = data.begin(); iter != data.end(); ++iter)
+	{
+		Shared<CountAndTimePair> * pair = iter->second;
+		subsList.push_back(pair);
+	}
+	
+	return subsList;
 }
 
+Sensor::CountAndTimePair const & Sensor::getCountAndTimePair(Lane const & lane) const
+{
+	std::map<Lane const *, Shared<CountAndTimePair> *>::const_iterator iter = data.find(&lane);
+	if (iter != data.end())
+	{
+		Shared<CountAndTimePair> const * pair = iter->second;
+		return pair->get();
+	}
+	else
+	{
+		std::stringstream stream("");
+		stream << "Sensor::getCountAndTimePair() was called on invalid lane:" << &lane;
+		throw std::runtime_error(stream.str());
+	}
 }

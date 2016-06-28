@@ -17,16 +17,16 @@
 #include "Crossing.hpp"
 #include "Turning.hpp"
 #include "Polyline.hpp"
-#include "BusStop.hpp"
-#include "./Signal.hpp"
+#include "Signal.hpp"
 #include "Phase.hpp"
 #include "path/Path.hpp"
+#include "path/PathSetManager.hpp"
 #include "path/PathSetParam.hpp"
 #include "entities/PersonLoader.hpp"
-#include "geospatial/TurningSection.hpp"
-#include "geospatial/TurningConflict.hpp"
-#include "geospatial/TurningPolyline.hpp"
-#include "geospatial/Polypoint.hpp"
+#include "geospatial/network/TurningPath.hpp"
+#include "geospatial/network/TurningConflict.hpp"
+#include "geospatial/network/PolyLine.hpp"
+#include "geospatial/network/PT_Stop.hpp"
 
 //using namespace sim_mob::aimsun;
 //using std::string;
@@ -40,7 +40,7 @@ class ERP_Gantry_Zone;
 class LinkTravelTime;
 class PathSet;
 class SinglePath;
-class CBD_Pair;
+
 template<> struct type_conversion<sim_mob::CBD_Pair>
 {
     typedef values base_type;
@@ -50,6 +50,7 @@ template<> struct type_conversion<sim_mob::CBD_Pair>
     	res.to_section = vals.get<int>("to_section", 0);
     }
 };
+
 template<> struct type_conversion<sim_mob::aimsun::Node>
 {
     typedef values base_type;
@@ -74,90 +75,6 @@ template<> struct type_conversion<sim_mob::aimsun::Node>
     }
 };
 
-template<> struct type_conversion<sim_mob::PT_Path> {
-	typedef values base_type;
-	static void from_base(const soci::values& vals, soci::indicator& ind,sim_mob::PT_Path &res) {
-		res.setPtPathId(vals.get<std::string>("path_id", ""));
-		res.setPtPathSetId(vals.get<std::string>("pathset_id", ""));
-		res.setScenario(vals.get<std::string>("scenario", ""));
-		res.setPathTravelTime(vals.get<double>("path_travel_time_secs", 0));
-		res.setTotalDistanceKms(vals.get<double>("total_distance_kms", 0));
-		res.setPathSize(vals.get<double>("path_size", 0.0));
-		res.setTotalCost(vals.get<double>("total_cost", 0.0));
-		res.setTotalInVehicleTravelTimeSecs(vals.get<double>("total_in_vehicle_travel_time_secs", 0.0));
-		res.setTotalWaitingTimeSecs(vals.get<double>("total_waiting_time", 0));
-		res.setTotalWalkingTimeSecs(vals.get<double>("total_walking_time", 0));
-		res.setTotalNumberOfTransfers(vals.get<int>("total_number_of_transfers", 0));
-		res.updatePathEdges();
-	}
-};
-
-template<> struct type_conversion<sim_mob::SinglePath>
-{
-    typedef values base_type;
-    static void from_base(const soci::values& vals, soci::indicator& ind, sim_mob::SinglePath &res)
-    {
-    	res.id = vals.get<std::string>("id", "");
-    	res.pathSetId = vals.get<std::string>("pathset_id", "");
-    	res.partialUtility = vals.get<double>("partial_utility", 0.0);
-    	res.pathSize = vals.get<double>("path_size", 0.0);
-    	res.signalNumber = vals.get<int>("signal_number", 0);
-    	res.rightTurnNumber = vals.get<int>("right_turn_number", 0);
-    	res.scenario = vals.get<std::string>("scenario", "");
-    	res.length = vals.get<double>("length",0.0);
-    	res.highWayDistance = vals.get<double>("highway_distance",0.0);
-        res.isMinDistance = vals.get<int>("min_distance", 0);
-        res.isMinSignal = vals.get<int>("min_signal", 0);
-        res.isMinRightTurn = vals.get<int>("min_right_turn", 0);
-        res.isMaxHighWayUsage = vals.get<int>("max_highway_usage", 0);
-        res.valid_path = vals.get<int>("valid_path", 0);
-        res.isShortestPath = vals.get<int>("shortest_path", 0);
-        res.index = vals.get<long long>("serial_id", 0);
-    }
-    static void to_base(const sim_mob::SinglePath& src, soci::values& vals, soci::indicator& ind)
-    {
-    	vals.set("id", src.id);
-        vals.set("pathset_id", src.pathSetId);
-        vals.set("partial_utility", src.partialUtility);
-        vals.set("path_size", src.pathSize);
-        vals.set("signal_number", src.signalNumber);
-        vals.set("right_turn_number", src.rightTurnNumber);
-        vals.set("scenario", src.scenario);
-        vals.set("length", src.length);
-        vals.set("highway_distance", src.highWayDistance);
-        vals.set("min_distance", (src.isMinDistance ? 1 : 0));
-        vals.set("min_signal", (src.isMinSignal ? 1 : 0));
-        vals.set("min_right_turn", (src.isMinRightTurn ? 1 : 0));
-        vals.set("max_highway_usage", (src.isMaxHighWayUsage ? 1 : 0));
-        vals.set("valid_path", (src.valid_path ? 1 : 0));
-        vals.set("shortest_path", (src.isShortestPath ? 1 : 0));
-        vals.set("serial_id", src.index);
-        ind = i_ok;
-    }
-};
-template<> struct type_conversion<sim_mob::ERP_Surcharge>
-{
-    typedef values base_type;
-    static void from_base(const soci::values& vals, soci::indicator& ind, sim_mob::ERP_Surcharge &res)
-    {
-    	res.gantryNo = vals.get<std::string>("gantry_no", "");
-    	res.startTime = vals.get<std::string>("start_time", "00:00:00");
-    	res.endTime = vals.get<std::string>("end_time", "00:00:00");
-    	res.rate = vals.get<double>("rate", 0.0);
-    	res.vehicleTypeId = vals.get<int>("vehicle_type_id", 0);
-    	res.vehicleTypeDesc = vals.get<std::string>("vehicle_type_desc", "");
-    	res.day = vals.get<std::string>("day_type", "");
-    }
-};
-template<> struct type_conversion<sim_mob::ERP_Section>
-{
-    typedef values base_type;
-    static void from_base(const soci::values& vals, soci::indicator& ind, sim_mob::ERP_Section &res)
-    {
-    	res.ERP_Gantry_No = vals.get<int>("erp_gantry_no", 0);
-    	res.section_id = vals.get<int>("section_id", 0);
-    }
-};
 template<> struct type_conversion<sim_mob::SegmentType>
 {
     typedef values base_type;
@@ -173,6 +90,8 @@ template<> struct type_conversion<sim_mob::SegmentType>
         ind = i_ok;
     }
 };
+
+/*
 template<> struct type_conversion<sim_mob::NodeType>
 {
     typedef values base_type;
@@ -188,36 +107,7 @@ template<> struct type_conversion<sim_mob::NodeType>
         ind = i_ok;
     }
 };
-template<> struct type_conversion<sim_mob::ERP_Gantry_Zone>
-{
-    typedef values base_type;
-    static void from_base(const soci::values& vals, soci::indicator& ind, sim_mob::ERP_Gantry_Zone &res)
-    {
-    	res.gantryNo = vals.get<std::string>("gantry_no", "");
-    	res.zoneId = vals.get<std::string>("zone_id", "");
-    }
-};
-template<> struct type_conversion<sim_mob::SegmentTravelTime>
-{
-    typedef values base_type;
-    static void from_base(const soci::values& vals, soci::indicator& ind, sim_mob::SegmentTravelTime &res)
-    {
-    	res.linkId = vals.get<int>("link_id", 0);
-    	res.startTime = vals.get<std::string>("start_time", "00:00:00");
-    	res.endTime = vals.get<std::string>("end_time", "00:00:00");
-    	res.travelTime = vals.get<double>("travel_time", 0.0);
-    	res.travelMode = vals.get<std::string>("travel_mode", "");
-    }
-    static void to_base(const sim_mob::SegmentTravelTime& src, soci::values& vals, soci::indicator& ind)
-    {
-    	vals.set("link_id", src.linkId);
-        vals.set("start_time", src.startTime);
-        vals.set("end_time", src.endTime);
-        vals.set("travel_time", src.travelTime);
-        vals.set("travel_mode", src.travelMode);
-        ind = i_ok;
-    }
-};
+*/
 
 template<> struct type_conversion<sim_mob::aimsun::Section>
 {
@@ -401,67 +291,11 @@ struct type_conversion<sim_mob::aimsun::Signal>
     }
 };
 
-
-template<> struct type_conversion<sim_mob::aimsun::BusStop>
+/*
+template<> struct type_conversion<TurningPath>
 {
     typedef values base_type;
-    static void from_base(const soci::values& vals, soci::indicator& ind, sim_mob::aimsun::BusStop &res)
-    {
-    	res.bus_stop_no = vals.get<std::string>("bus_stop_no", "");
-    	res.TMP_AtSectionID= vals.get<int>("section_id", 0);
-    	res.TMP_RevSectionID = vals.get<int>("reverse_section_id", 0);
-    	res.TMP_TerminalNodeID = vals.get<int>("terminal_node_id", 0);
-    	res.status = vals.get<std::string>("status", "");
-    	res.lane_type = vals.get<std::string>("lane_type", "");
-    	res.road_name = vals.get<std::string>("road_name", "");
-    	res.xPos = vals.get<double>("x_pos", 0.0);
-    	res.yPos = vals.get<double>("y_pos", 0.0);
-    }
-    static void to_base(const sim_mob::aimsun::BusStop& src, soci::values& vals, soci::indicator& ind)
-    {
-    	//std::cout<<"I am here"<<src.xPos<<"    "<<src.yPos<<std::endl;
-    	vals.set("bus_stop_id", src.bus_stop_no);
-    	vals.set("section_id", src.atSection->id);
-    	vals.set("status", src.status);
-    	vals.set("lane_type", src.lane_type);
-    	vals.set("road_name", src.road_name);
-        vals.set("x_pos", src.xPos);
-        vals.set("y_pos", src.yPos);
-        ind = i_ok;
-    }
-};
-
-template<> struct type_conversion<sim_mob::aimsun::BusStopSG>
-{
-    typedef values base_type;
-    static void from_base(const soci::values& vals, soci::indicator& ind, sim_mob::aimsun::BusStopSG &res)
-    {
-    	res.bus_stop_no = vals.get<std::string>("stop_id", "");
-    	res.stop_code= vals.get<std::string>("stop_code", "");
-    	res.stop_name = vals.get<std::string>("stop_name", "");
-    	res.stop_lat = vals.get<std::string>("stop_lat", "");
-    	res.stop_lon = vals.get<std::string>("stop_lon", "");
-    	res.section_id = vals.get<std::string>("section_id", "");
-    	res.aimsun_section = vals.get<int>("aimsun_section", 0);
-    }
-    static void to_base(const sim_mob::aimsun::BusStopSG& src, soci::values& vals, soci::indicator& ind)
-    {
-    	//std::cout<<"I am here"<<src.xPos<<"    "<<src.yPos<<std::endl;
-    	vals.set("stop_id", src.bus_stop_no);
-    	vals.set("stop_code", src.stop_code);
-    	vals.set("stop_name", src.stop_name);
-    	vals.set("stop_lat", src.xPos);
-    	vals.set("stop_lon", src.yPos);
-        vals.set("section_id", src.section_id);
-        vals.set("aimsun_section", src.aimsun_section);
-        ind = i_ok;
-    }
-};
-
-template<> struct type_conversion<sim_mob::TurningSection>
-{
-    typedef values base_type;
-    static void from_base(const soci::values& vals, soci::indicator& ind, sim_mob::TurningSection &res)
+    static void from_base(const soci::values& vals, soci::indicator& ind, TurningPath &res)
     {
     	res.setDbId(vals.get<int>("id", -1));
     	res.setFrom_xpos(vals.get<double>("from_xpos", -1.0));
@@ -475,7 +309,7 @@ template<> struct type_conversion<sim_mob::TurningSection>
         res.setTurningSpeed(vals.get<int>("turning_speed", 20));
         res.setHasStopSign(vals.get<int>("has_stop_sign", 0));
     }
-    static void to_base(const sim_mob::TurningSection& src, soci::values& vals, soci::indicator& ind)
+    static void to_base(const TurningPath& src, soci::values& vals, soci::indicator& ind)
     {
     	vals.set("id", src.getDbId());
     	vals.set("from_xpos", src.getFrom_xpos());
@@ -516,6 +350,7 @@ template<> struct type_conversion<sim_mob::TurningConflict>
         ind = i_ok;
     }
 };
+
 template<> struct type_conversion<sim_mob::TurningPolyline>
 {
     typedef values base_type;
@@ -537,6 +372,7 @@ template<> struct type_conversion<sim_mob::TurningPolyline>
         ind = i_ok;
     }
 };
+
 template<> struct type_conversion<sim_mob::Polypoint>
 {
     typedef values base_type;
@@ -562,4 +398,5 @@ template<> struct type_conversion<sim_mob::Polypoint>
         ind = i_ok;
     }
 };
+*/
 }

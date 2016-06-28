@@ -22,7 +22,7 @@ local beta_tour_others = -13.206
 
 local beta_workshop_tt = 2.52
 local beta_workothers_tt = 2.99
-local beta_edushop_tt =	0
+local beta_edushop_tt = 0
 local beta_eduothers_tt = -0.375
 local beta_shopothers_tt = 0.355
 local beta_workedu_tt = -3.82

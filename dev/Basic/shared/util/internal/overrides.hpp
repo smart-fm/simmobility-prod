@@ -8,7 +8,7 @@
 
 
 namespace sim_mob {
-struct linkToLink; //forward declaration
+struct ToLinkColourSequence; //forward declaration
 namespace xml {
 
 namespace {
@@ -117,7 +117,7 @@ std::string get_id(const bool& temp)
 }
 
 template <> inline
-std::string get_id(const sim_mob::linkToLink& temp)
+std::string get_id(const sim_mob::ToLinkColourSequence& temp)
 {
 	throw std::runtime_error("linkToLink Not needed");
 }

@@ -159,8 +159,16 @@ void PopulationSqlDao::getVehicleCategories(std::map<int, std::bitset<4> >& vehi
 	}
 }
 
-SimmobSqlDao::SimmobSqlDao(db::DB_Connection& connection) :
-		SqlAbstractDao<PersonParams>(connection, DB_TABLE_LOGSUMS, DB_INSERT_LOGSUMS, "", DB_TRUNCATE_LOGSUMS, "", DB_GET_LOGSUMS_BY_ID)
+SimmobSqlDao::SimmobSqlDao(db::DB_Connection& connection, const std::string& tableName) :
+		SqlAbstractDao<PersonParams>(
+				connection,
+				tableName,
+				("INSERT INTO " + tableName + " VALUES (:v1, :v2, :v3, :v4, :v5, :v6, :v7)"), //insert
+				"", //update
+				("TRUNCATE " + tableName), //delete
+				"", //get all
+				"SELECT work, education, shop, other, dp_tour, dp_stop FROM " + tableName + " where person_id = :_id" //get by id
+				)
 {
 }
 

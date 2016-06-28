@@ -156,6 +156,9 @@ void ParseMidTermConfigFile::processPredayNode(xercesc::DOMElement* node)
 		mtCfg.setSimmobDb(database, credential);
 	}
 
+	childNode = GetSingleElementByName(node, "logsum_table", true);
+	mtCfg.setLogsumTableName(ParseString(GetNamedAttributeValue(childNode, "name", true)));
+
 	ModelScriptsMap luaModelsMap = processModelScriptsNode(GetSingleElementByName(node, "model_scripts", true));
 	mtCfg.setModelScriptsMap(luaModelsMap);
 	processMongoCollectionsNode(GetSingleElementByName(node, "mongo_collections", true));

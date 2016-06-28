@@ -753,6 +753,18 @@ public:
 	void setSpeedDensityParam(int linkCategory, SpeedDensityParams sdParams);
 
 	/**
+	 * get name of table storing logsums
+	 * @return name of table storing logsums
+	 */
+	const std::string& getLogsumTableName() const;
+
+	/**
+	 * sets name of table containing logsums
+	 * @param name of table storing logsums
+	 */
+	void setLogsumTableName(const std::string& logsumTableName);
+
+	/**
      * Enumerator for mid term run mode
      */
     enum MidTermRunMode
@@ -840,6 +852,9 @@ private:
 
     /// logsum database details
 	DB_Details simmobDB;
+
+	/// name of table containing pre-computed values
+	std::string logsumTableName;
 
     /// worker allocation details
     WorkerParams workers;

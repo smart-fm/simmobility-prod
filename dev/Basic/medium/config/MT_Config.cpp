@@ -348,6 +348,19 @@ void MT_Config::setPopulationDb(const std::string& populationDb, const std::stri
 	}
 }
 
+const std::string& MT_Config::getLogsumTableName() const
+{
+	return logsumTableName;
+}
+
+void MT_Config::setLogsumTableName(const std::string& logsumTableName)
+{
+	if(!configSealed)
+	{
+		this->logsumTableName = logsumTableName;
+	}
+}
+
 bool MT_Config::RunningMidSupply() const {
     return (midTermRunMode == MT_Config::MT_SUPPLY);
 }

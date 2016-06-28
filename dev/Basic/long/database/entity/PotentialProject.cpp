@@ -94,9 +94,9 @@ double PotentialUnit::getDemolitionCostPerUnit()
 	return this->demolitionCostPerUnit;
 }
 
-PotentialProject::PotentialProject(const DevelopmentTypeTemplate* devTemplate, const Parcel* parcel, BigSerial fmParcelId,std::tm simulationDate, double constructionCost, double grossArea,double tempSelectProbability,double investmentReturnRatio, double demolitionCost, double expRatio,int totalUnits,double acquisitionCost, double landValue)
+PotentialProject::PotentialProject(const DevelopmentTypeTemplate* devTemplate, const Parcel* parcel, BigSerial fmParcelId,std::tm simulationDate, double constructionCost, double grossArea,double tempSelectProbability,double investmentReturnRatio, double demolitionCost, double expRatio,int totalUnits,double acquisitionCost, double landValue, BigSerial buildingTypeId)
 								  : devTemplate(devTemplate), parcel(parcel), fmParcelId(fmParcelId), simulationDate(simulationDate), profit(0) , constructionCost(0),grossArea(0),tempSelectProbability(0),
-								    investmentReturnRatio(0), demolitionCost(0), expRatio(0),totalUnits(0),acquisitionCost(0), landValue(0){}
+								    investmentReturnRatio(0), demolitionCost(0), expRatio(0),totalUnits(0),acquisitionCost(0), landValue(0),buildingTypeId(0){}
 
 PotentialProject::PotentialProject( const PotentialProject &source)
 {
@@ -114,6 +114,7 @@ PotentialProject::PotentialProject( const PotentialProject &source)
 	this->acquisitionCost = source.acquisitionCost;
 	this->landValue = source.landValue;
 	this->simulationDate = source.simulationDate;
+	this->buildingTypeId = source.buildingTypeId;
 
 	this->units = source.units;
 	for (int i=0; i < source.units.size(); i++)
@@ -151,6 +152,7 @@ PotentialProject& PotentialProject::operator=(const PotentialProject& source)
 	this->acquisitionCost = source.acquisitionCost;
 	this->landValue = source.landValue;
 	this->simulationDate = source.simulationDate;
+	this->buildingTypeId = source.buildingTypeId;
 
 	this->units.resize(source.units.size());
 
@@ -312,6 +314,17 @@ void PotentialProject::setSimulationDate(std::tm simDate)
 {
 	this->simulationDate = simDate;
 }
+
+BigSerial PotentialProject::getBuildingTypeId() const
+{
+	return this->buildingTypeId;
+}
+
+void PotentialProject::setBuildingTypeId(BigSerial buildingType)
+{
+	this->buildingTypeId = buildingType;
+}
+
 namespace sim_mob
 {
     namespace long_term

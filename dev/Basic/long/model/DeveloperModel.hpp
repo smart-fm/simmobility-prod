@@ -32,6 +32,7 @@
 #include "database/entity/SimulationStoppedPoint.hpp"
 #include "database/entity/DevelopmentPlan.hpp"
 #include "database/entity/BuildingAvgAgePerParcel.hpp"
+#include "database/entity/ROILimits.hpp"
 #include "agent/impl/DeveloperAgent.hpp"
 #include "agent/impl/RealEstateAgent.hpp"
 #include "model/HM_Model.hpp"
@@ -64,6 +65,7 @@ namespace sim_mob {
             typedef std::vector<TazLevelLandPrice*>TazLevelLandPriceList;
             typedef std::vector<SimulationStoppedPoint*>SimulationStoppedPointList;
             typedef std::vector<BuildingAvgAgePerParcel*>BuildingAvgAgePerParcelList;
+            typedef std::vector<ROILimits*>ROILimitsList;
             typedef std::vector<Unit*>UnitList;
 
             //maps
@@ -79,6 +81,7 @@ namespace sim_mob {
             typedef boost::unordered_map<BigSerial,TazLevelLandPrice*> TazLevelLandPriceMap;
             typedef boost::unordered_map<BigSerial,Project*> ProjectMap;
             typedef boost::unordered_map<BigSerial,BuildingAvgAgePerParcel*> BuildingAvgAgePerParcelMap;
+            typedef boost::unordered_map<BigSerial,ROILimits*> ROILimitsMap;
 
         public:
             DeveloperModel(WorkGroup& workGroup);
@@ -248,6 +251,9 @@ namespace sim_mob {
             void setStartDay(int day);
 
             int getStartDay() const;
+            ROILimitsList getROILimits() const;
+            const ROILimits* getROILimitsByBuildingTypeId(BigSerial buildingTypeId) const;
+
 
             UnitList getBTOUnits(std::tm currentDate);
 
@@ -336,6 +342,8 @@ namespace sim_mob {
             BuildingAvgAgePerParcelList buildingAvgAgePerParcel;
             BuildingAvgAgePerParcelMap BuildingAvgAgeByParceld;
             std::string  outputSchema;
+            ROILimitsList roiLimits;
+            ROILimitsMap roiLimitsByBuildingTypeId;
             UnitList btoUnits;
             UnitList ongoingBtoUnits;
         };

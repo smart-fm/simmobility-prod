@@ -134,6 +134,11 @@ int HouseholdAgent::getAwakeningDay() const
 	return awakeningDay;
 }
 
+void HouseholdAgent::setAwakeningDay(int _day)
+{
+	awakeningDay = _day;
+}
+
 HouseholdBidderRole* HouseholdAgent::getBidder()
 {
 	return bidder;

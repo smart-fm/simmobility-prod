@@ -167,7 +167,14 @@ SimmobSqlDao::SimmobSqlDao(db::DB_Connection& connection, const std::string& tab
 				"", //update
 				("TRUNCATE " + tableName), //delete
 				"", //get all
-				"SELECT work, education, shop, other, dp_tour, dp_stop FROM " + tableName + " where person_id = :_id" //get by id
+				"SELECT "
+					+ DB_FIELD_WORK_LOGSUM + ","
+					+ DB_FIELD_EDUCATION_LOGSUM + ","
+					+ DB_FIELD_SHOP_LOGSUM + ","
+					+ DB_FIELD_OTHER_LOGSUM + ","
+					+ DB_FIELD_DPT_LOGSUM + ","
+					+ DB_FIELD_DPS_LOGSUM
+					+ " FROM " + tableName + " where person_id = :_id" //get by id
 				)
 {
 }

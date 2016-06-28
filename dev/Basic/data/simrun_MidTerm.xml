@@ -173,13 +173,13 @@
         
         <!-- parameters used in speed density function -->
         <speed_density_params>
-            <param category="1" alpha="3.0" beta="1.5"/>
-            <param category="2" alpha="3.0" beta="1.5"/>
-            <param category="3" alpha="3.0" beta="1.5"/>
-            <param category="4" alpha="3.0" beta="1.5"/>
-            <param category="5" alpha="3.0" beta="1.5"/>
-            <param category="6" alpha="3.0" beta="1.5"/>
-            <param category="7" alpha="3.0" beta="1.5"/>
+            <param category="1" alpha="3.0" beta="1.5" kmin="0.04" kjam="0.2"/>
+            <param category="2" alpha="3.0" beta="1.5" kmin="0.04" kjam="0.2"/>
+            <param category="3" alpha="3.0" beta="1.5" kmin="0.04" kjam="0.2"/>
+            <param category="4" alpha="3.0" beta="1.5" kmin="0.04" kjam="0.2"/>
+            <param category="5" alpha="3.0" beta="1.5" kmin="0.04" kjam="0.2"/>
+            <param category="6" alpha="3.0" beta="1.5" kmin="0.04" kjam="0.2"/>
+            <param category="7" alpha="3.0" beta="1.5" kmin="0.04" kjam="0.2"/>
         </speed_density_params>
 
         <!-- lua scripts used in withinday --> 
@@ -215,7 +215,10 @@
          Valid ids from the list constructs list have to be specified -->
         <population source="pgsql" database="fm_remote_lt" credential="lt_cred"/>
         <simmob_mt source="pgsql" database="fm_remote" credential="fm_remote"/>
-            
+
+        <!-- table containing logsums for each individual in the population. NOTE:  -->
+        <logsum_table name="demand.preday_logsum"/>
+
         <!-- model scripts for preday -->
         <model_scripts path="scripts/lua/mid/behavior-models/virtualcity" format="lua">
             <script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models-->

@@ -156,6 +156,9 @@ void ParseMidTermConfigFile::processPredayNode(xercesc::DOMElement* node)
 		mtCfg.setSimmobDb(database, credential);
 	}
 
+	childNode = GetSingleElementByName(node, "logsum_table", true);
+	mtCfg.setLogsumTableName(ParseString(GetNamedAttributeValue(childNode, "name", true)));
+
 	ModelScriptsMap luaModelsMap = processModelScriptsNode(GetSingleElementByName(node, "model_scripts", true));
 	mtCfg.setModelScriptsMap(luaModelsMap);
 	processMongoCollectionsNode(GetSingleElementByName(node, "mongo_collections", true));
@@ -307,9 +310,12 @@ void ParseMidTermConfigFile::processSpeedDensityParamsNode(xercesc::DOMElement* 
 
         ///Retrieve some attributes from the Node itself.
         int linkCategory = ParseInteger(GetNamedAttributeValue(item, "category"));
-        double alpha = ParseFloat(GetNamedAttributeValue(item, "alpha"));
-        double beta = ParseFloat(GetNamedAttributeValue(item, "beta"));
-        mtCfg.setSpeedDensityParam(linkCategory, alpha, beta);
+        SpeedDensityParams speedDensityParams;
+        speedDensityParams.setAlpha(ParseFloat(GetNamedAttributeValue(item, "alpha")));
+        speedDensityParams.setBeta(ParseFloat(GetNamedAttributeValue(item, "beta")));
+        speedDensityParams.setMinDensity(ParseFloat(GetNamedAttributeValue(item, "kmin")));
+        speedDensityParams.setJamDensity(ParseFloat(GetNamedAttributeValue(item, "kjam")));
+        mtCfg.setSpeedDensityParam(linkCategory, speedDensityParams);
     }
 }
 

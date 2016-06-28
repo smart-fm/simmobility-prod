@@ -16,7 +16,7 @@ const std::string EMPTY_STRING = "";
 /**
  * Schemas
  */
-const std::string MAIN_SCHEMA = "main2012.";
+const std::string MAIN_SCHEMA = "virtual_city.";
 const std::string CALIBRATION_SCHEMA = "calibration2012.";
 const std::string PUBLIC_SCHEMA = "public.";
 const std::string DEMAND_SCHEMA = "demand.";
@@ -26,7 +26,6 @@ const std::string DEMAND_SCHEMA = "demand.";
  */
 const std::string DB_TABLE_INCOME_CATEGORIES = APPLY_SCHEMA(MAIN_SCHEMA, "income_category");
 const std::string DB_TABLE_VEHICLE_CATEGORIES = APPLY_SCHEMA(MAIN_SCHEMA, "vehicle_category");
-const std::string DB_TABLE_LOGSUMS = APPLY_SCHEMA(DEMAND_SCHEMA, "preday_logsum");
 const std::string DB_TABLE_AM_COSTS = APPLY_SCHEMA(DEMAND_SCHEMA, "amcosts");
 const std::string DB_TABLE_PM_COSTS = APPLY_SCHEMA(DEMAND_SCHEMA, "pmcosts");
 const std::string DB_TABLE_OP_COSTS = APPLY_SCHEMA(DEMAND_SCHEMA, "opcosts");
@@ -39,7 +38,6 @@ const std::string DB_SP_GET_INDIVIDUAL_IDS = APPLY_SCHEMA(MAIN_SCHEMA, "getindiv
 const std::string DB_SP_GET_INDIVIDUAL_BY_ID_FOR_PREDAY = APPLY_SCHEMA(MAIN_SCHEMA, "getindividualbyidforpreday(:_id)");
 const std::string DB_SP_GET_ADDRESSES = APPLY_SCHEMA(MAIN_SCHEMA, "getaddresses()");
 const std::string DB_SP_GET_ZONE_ADDRESS_COUNTS= APPLY_SCHEMA(MAIN_SCHEMA, "getzoneaddresscounts()");
-const std::string DB_SP_GET_LOGSUMS_BY_ID = APPLY_SCHEMA(PUBLIC_SCHEMA, "get_logsums_for_person(:_id)");
 const std::string DB_SP_GET_POSTCODE_NODE_MAP = APPLY_SCHEMA(PUBLIC_SCHEMA, "get_postcode_node_map()");
 
 /**
@@ -73,10 +71,10 @@ const std::string DB_FIELD_HH_WORKERS = "workers";
  */
 const std::string DB_FIELD_WORK_LOGSUM = "work";
 const std::string DB_FIELD_EDUCATION_LOGSUM = "education";
-const std::string DB_FIELD_SHOP_LOGSUM = "shopping";
+const std::string DB_FIELD_SHOP_LOGSUM = "shop";
 const std::string DB_FIELD_OTHER_LOGSUM = "other";
-const std::string DB_FIELD_DPT_LOGSUM = "day_pattern_tour";
-const std::string DB_FIELD_DPS_LOGSUM = "day_pattern_stop";
+const std::string DB_FIELD_DPT_LOGSUM = "dp_tour";
+const std::string DB_FIELD_DPS_LOGSUM = "dp_stop";
 
 const std::string DB_FIELD_INCOME_CATEGORY_LOWER_LIMIT = "low_limit";
 const std::string DB_FIELD_VEHICLE_CATEGORY_NAME = "name";
@@ -143,15 +141,6 @@ const std::string DB_GET_INCOME_CATEGORIES = "SELECT * FROM " + DB_TABLE_INCOME_
 
 /** load vehicle categories */
 const std::string DB_GET_VEHICLE_CATEGORIES = "SELECT * FROM " + DB_TABLE_VEHICLE_CATEGORIES;
-
-/** load logsums by id */
-const std::string DB_GET_LOGSUMS_BY_ID = "SELECT * FROM " + DB_SP_GET_LOGSUMS_BY_ID; // argument to be passed
-
-/** insert logsums */
-const std::string DB_INSERT_LOGSUMS = "INSERT INTO " + DB_TABLE_LOGSUMS + " VALUES (:v1, :v2, :v3, :v4, :v5, :v6, :v7)";
-
-/** truncate logsums data */
-const std::string DB_TRUNCATE_LOGSUMS = "TRUNCATE " + DB_TABLE_LOGSUMS;
 
 /** load Costs */
 const std::string DB_GET_ALL_AM_COSTS = "SELECT * FROM " + DB_TABLE_AM_COSTS;

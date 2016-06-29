@@ -626,7 +626,7 @@ bool HouseholdBidderRole::pickEntryToBid()
         //Add x BTO units to the screenedUnit vector if the household is eligible for it
         for(int n = 0, m = 0; n < entries.size() && m < config.ltParams.housingModel.bidderBTOUnitsChoiceSet; n++ )
         {
-        	int offset = rand() / RAND_MAX * entries.size();
+        	int offset = (float)rand() / RAND_MAX * ( entries.size() - 1 );
 
          	HousingMarket::ConstEntryList::const_iterator itr = entries.begin() + offset;
            	const HousingMarket::Entry* entry = *itr;

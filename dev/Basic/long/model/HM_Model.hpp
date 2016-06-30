@@ -315,9 +315,13 @@ namespace sim_mob
             void incrementSuccessfulBids();
             void resetBAEStatistics(); //BAE is Bids, Awakenings and Exits
 
-            void incrementBidders();
-            void decrementBidders();
-            int	 getNumberOfBidders();
+            void setNumberOfBidders(int number);
+			void setNumberOfSellers(int number);
+			void incrementNumberOfSellers();
+			void incrementNumberOfBidders();
+			int getNumberOfSellers();
+			int getNumberOfBidders();
+
 
             void incrementLifestyle1HHs();
             void incrementLifestyle2HHs();
@@ -519,6 +523,7 @@ namespace sim_mob
 
             int	initialHHAwakeningCounter;
             int numberOfBidders;
+            int numberOfSellers;
             int numLifestyle1HHs;
             int numLifestyle2HHs;
             int numLifestyle3HHs;

@@ -65,6 +65,7 @@
 #include "message/MessageBus.hpp"
 #include "behavioral/PredayLT_Logsum.hpp"
 #include "util/PrintLog.hpp"
+#include "util/SharedFunctions.hpp"
 #include <random>
 #include <iostream>
 #include <boost/random/linear_congruential.hpp>
@@ -197,21 +198,37 @@ double HM_Model::TazStats::getAvgHHSize() const
 
 
 HM_Model::HM_Model(WorkGroup& workGroup) :	Model(MODEL_NAME, workGroup),numberOfBidders(0), initialHHAwakeningCounter(0), numLifestyle1HHs(0), numLifestyle2HHs(0), numLifestyle3HHs(0), hasTaxiAccess(false),
-											householdLogsumCounter(0), simulationStopCounter(0), developerModel(nullptr), startDay(0), bidId(0), numberOfBids(0), numberOfExits(0),	numberOfSuccessfulBids(0), unitSaleId(0){}
+											householdLogsumCounter(0), simulationStopCounter(0), developerModel(nullptr), startDay(0), bidId(0), numberOfBids(0), numberOfExits(0),	numberOfSuccessfulBids(0),
+											unitSaleId(0), numberOfSellers(0), resume(0), lastStoppedDay(0){}
 
 HM_Model::~HM_Model()
 {
 	stopImpl(); //for now
 }
 
-void HM_Model::incrementBidders()
+void HM_Model::setNumberOfBidders(int number)
+{
+	numberOfBidders = number;
+}
+
+void HM_Model::setNumberOfSellers(int number)
+{
+	numberOfSellers = number;
+}
+
+void HM_Model::incrementNumberOfSellers()
+{
+	numberOfSellers++;
+}
+
+void HM_Model::incrementNumberOfBidders()
 {
 	numberOfBidders++;
 }
 
-void HM_Model::decrementBidders()
+int HM_Model::getNumberOfSellers()
 {
-	numberOfBidders--;
+	return numberOfSellers;
 }
 
 int HM_Model::getNumberOfBidders()
@@ -1130,6 +1147,8 @@ void HM_Model::startImpl()
 
 	resume = config.ltParams.resume;
 	std::string  outputSchema = config.ltParams.currentOutputSchema;
+	BigSerial simYear = config.ltParams.year;
+	std::tm currentSimYear = getDateBySimDay(simYear,1);
 
 	if (conn.isConnected())
 	{
@@ -1141,13 +1160,13 @@ void HM_Model::startImpl()
 		PrintOutV("Initial Individuals: " << individuals.size() << std::endl);
 
 		IndividualDao indDao(conn);
-		primarySchoolIndList = indDao.getPrimarySchoolIndividual();
+		primarySchoolIndList = indDao.getPrimarySchoolIndividual(currentSimYear);
 		//Index all primary school inds.
 		for (IndividualList::iterator it = primarySchoolIndList.begin(); it != primarySchoolIndList.end(); it++) {
 			primarySchoolIndById.insert(std::make_pair((*it)->getId(), *it));
 		}
 
-		preSchoolIndList = indDao.getPreSchoolIndividual();
+		preSchoolIndList = indDao.getPreSchoolIndividual(currentSimYear);
 		//Index all pre school inds.
 		for (IndividualList::iterator it = preSchoolIndList.begin(); it != preSchoolIndList.end(); it++) {
 			preSchoolIndById.insert(std::make_pair((*it)->getId(), *it));
@@ -1387,7 +1406,7 @@ void HM_Model::startImpl()
 				hhAgent->getBidder()->setActive(true);
 				if(resumptionHH->getUnitPending())
 				{
-					hhAgent->getBidder()->setMovInWaitingTimeInDays(resumptionHH->getMoveInDate().tm_mday - startDay);
+					hhAgent->getBidder()->setMoveInWaitingTimeInDays(resumptionHH->getMoveInDate().tm_mday - startDay);
 					hhAgent->getBidder()->setUnitIdToBeOwned(unitIdToBeOwned);
 				}
 			}
@@ -1460,12 +1479,14 @@ void HM_Model::startImpl()
 	{
 		boost::gregorian::date saleDate = boost::gregorian::date_from_tm((*it)->getSaleFromDate());
 		boost::gregorian::date simulationDate = boost::gregorian::date(HITS_SURVEY_YEAR, 1, 1);
+		int unitStartDay = startDay;
+
 		if( saleDate > simulationDate )
 		{
-			startDay = (saleDate - simulationDate).days();
+			unitStartDay = (saleDate - simulationDate).days();
 		}
 
-		(*it)->setbiddingMarketEntryDay( startDay );
+		(*it)->setbiddingMarketEntryDay( unitStartDay );
 		(*it)->setTimeOnMarket(  1 + (float)rand() / RAND_MAX * config.ltParams.housingModel.timeOnMarket);
 		(*it)->setTimeOffMarket( 1 + (float)rand() / RAND_MAX * config.ltParams.housingModel.timeOffMarket);
 
@@ -1478,18 +1499,21 @@ void HM_Model::startImpl()
 
 				if( awakeningProbability < config.ltParams.housingModel.vacantUnitActivationProbability )
 				{
-					(*it)->setbiddingMarketEntryDay( startDay );
-
+					(*it)->setbiddingMarketEntryDay( unitStartDay );
 					onMarket++;
 				}
 				else
 				{
-					(*it)->setbiddingMarketEntryDay( startDay +( (float)rand() / RAND_MAX * 365) );
+					(*it)->setbiddingMarketEntryDay( unitStartDay +( (float)rand() / RAND_MAX * 365) );
 					offMarket++;
 				}
 
 				freelanceAgents[vacancies % numWorkers]->addUnitId((*it)->getId());
 				vacancies++;
+			}
+			else
+			{
+				(*it)->setbiddingMarketEntryDay( -1 );
 			}
 		}
 
@@ -1927,7 +1951,7 @@ void HM_Model::update(int day)
 		if (assignedUnits.find((*it)->getId()) == assignedUnits.end())
 		{
 			//If a unit is off the market and unoccupied, we should put it back on the market after its timeOffMarket value is exceeded.
-			if( (*it)->getbiddingMarketEntryDay() + (*it)->getTimeOnMarket() + (*it)->getTimeOffMarket() > day )
+			if( day > (*it)->getbiddingMarketEntryDay() + (*it)->getTimeOnMarket() + (*it)->getTimeOffMarket()  )
 			{
 				//PrintOutV("A unit is being re-awakened" << std::endl);
 				(*it)->setbiddingMarketEntryDay(day + 1);

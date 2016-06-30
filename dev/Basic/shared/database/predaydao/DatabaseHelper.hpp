@@ -19,7 +19,7 @@ const std::string EMPTY_STRING = "";
 const std::string MAIN_SCHEMA = "virtual_city.";
 const std::string CALIBRATION_SCHEMA = "calibration2012.";
 const std::string PUBLIC_SCHEMA = "public.";
-const std::string DEMAND_SCHEMA = "demand.";
+const std::string DEMAND_SCHEMA = "calibration2012.";
 
 /**
  * Tables

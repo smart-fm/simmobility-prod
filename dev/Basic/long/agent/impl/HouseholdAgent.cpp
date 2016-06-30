@@ -61,7 +61,7 @@ HouseholdAgent::HouseholdAgent(BigSerial _id, HM_Model* _model, Household* _hous
     	householdBiddingWindow = householdBiddingWindow - household->getTimeOnMarket();
     else
     {
-    	householdBiddingWindow =  config.ltParams.housingModel.housingMoveInDaysInterval + config.ltParams.housingModel.householdBiddingWindow * (double)rand() / RAND_MAX + 1;
+    	householdBiddingWindow = ( config.ltParams.housingModel.housingMoveInDaysInterval + config.ltParams.housingModel.householdBiddingWindow ) * (double)rand() / RAND_MAX + 1;
     }
 
 
@@ -160,27 +160,24 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 
 	if( buySellInterval == 0 )
 	{
-		if (seller)
+		if( seller->isActive() == false )
 		{
-			if( seller->isActive() == false )
+			ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+
+			for (vector<BigSerial>::const_iterator itr = unitIds.begin(); itr != unitIds.end(); itr++)
 			{
-				ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+				BigSerial unitId = *itr;
+				Unit* unit = const_cast<Unit*>(model->getUnitById(unitId));
 
-				for (vector<BigSerial>::const_iterator itr = unitIds.begin(); itr != unitIds.end(); itr++)
+				if( id < model->FAKE_IDS_START )
 				{
-					BigSerial unitId = *itr;
-					Unit* unit = const_cast<Unit*>(model->getUnitById(unitId));
-
-					if( id < model->FAKE_IDS_START )
-					{
-						unit->setbiddingMarketEntryDay(day + 1);
-						unit->setTimeOnMarket( config.ltParams.housingModel.timeOnMarket);
-					}
+					unit->setbiddingMarketEntryDay(day + 1);
+					unit->setTimeOnMarket( config.ltParams.housingModel.timeOnMarket);
 				}
 			}
-
-			seller->setActive(true);
 		}
+
+		seller->setActive(true);
 
 		buySellInterval--;
 	}
@@ -189,7 +186,6 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 	{
 		PrintExit( day, household, 0);
 		bidder->setActive(false);
-		model->decrementBidders();
 		model->incrementExits();
 	}
 
@@ -201,6 +197,8 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 
     if (seller && seller->isActive())
     {
+
+    	model->incrementNumberOfSellers();
         seller->update(now);
     }
 
@@ -288,14 +286,17 @@ void HouseholdAgent::processExternalEvent(const ExternalEventArgs& args)
         case ExternalEvent::NEW_JOB_LOCATION:
         case ExternalEvent::NEW_SCHOOL_LOCATION:
         {
-
             if (bidder)
             {
             	awakeningDay = day;
             	household->setAwakenedDay(day);
                 bidder->setActive(true);
-                model->incrementBidders();
-                model->incrementAwakeningCounter();
+
+                ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+
+                householdBiddingWindow = config.ltParams.housingModel.householdBiddingWindow * (double)rand() / RAND_MAX + 1;
+                bidder->setMoveInWaitingTimeInDays(-1);
+                buySellInterval = config.ltParams.housingModel.offsetBetweenUnitBuyingAndSelling;
             }
 
 			#ifdef VERBOSE

@@ -364,6 +364,8 @@ void HouseholdBidderRole::update(timeslice now)
 
     if (isActive())
     {
+    	getParent()->getModel()->incrementNumberOfBidders();
+
         if (!waitingForResponse && !bidOnCurrentDay && bidUnit(now))
         {
             waitingForResponse = true;
@@ -624,7 +626,7 @@ bool HouseholdBidderRole::pickEntryToBid()
         //Add x BTO units to the screenedUnit vector if the household is eligible for it
         for(int n = 0, m = 0; n < entries.size() && m < config.ltParams.housingModel.bidderBTOUnitsChoiceSet; n++ )
         {
-        	int offset = rand() / RAND_MAX * entries.size();
+        	int offset = (float)rand() / RAND_MAX * ( entries.size() - 1 );
 
          	HousingMarket::ConstEntryList::const_iterator itr = entries.begin() + offset;
            	const HousingMarket::Entry* entry = *itr;
@@ -676,9 +678,8 @@ bool HouseholdBidderRole::pickEntryToBid()
 
             bool flatEligibility = true;
 
-
-
             // chetan *must* add unit->getBTO() here after gishara merges her branch
+            /*
 			if( unit->getUnitType() == 2 && household->getTwoRoomHdbEligibility()  == false )
 				flatEligibility = false;
 
@@ -687,8 +688,7 @@ bool HouseholdBidderRole::pickEntryToBid()
 
 			if( unit->getUnitType() == 4 && household->getFourRoomHdbEligibility() == false )
 				flatEligibility = false;
-
-
+			*/
 
             if( stats && flatEligibility )
             {
@@ -737,7 +737,7 @@ bool HouseholdBidderRole::pickEntryToBid()
             	else
             		PrintOutV("Asking price is zero for unit " << entry->getUnitId() << std::endl );
 
-                	printHouseholdBiddingList( day, household->getId(), unit->getId(), oldPCStr, newPCStr, wp, entry->getAskingPrice(), maxAffordability, currentBid, currentSurplus);
+                printHouseholdBiddingList( day, household->getId(), unit->getId(), oldPCStr, newPCStr, wp, entry->getAskingPrice(), maxAffordability, currentBid, currentSurplus);
 
             	if( currentSurplus > maxSurplus && maxAffordability > entry->getAskingPrice() )
             	{
@@ -797,7 +797,7 @@ void HouseholdBidderRole::computeBidValueLogistic( double price, double wp, doub
 	finalSurplus = ( w - incrementScaledMax ) * price;
 }
 
-void HouseholdBidderRole::setMovInWaitingTimeInDays(int days)
+void HouseholdBidderRole::setMoveInWaitingTimeInDays(int days)
 {
 	this->moveInWaitingTimeInDays = days;
 }

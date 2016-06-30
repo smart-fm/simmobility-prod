@@ -65,6 +65,7 @@
 #include "message/MessageBus.hpp"
 #include "behavioral/PredayLT_Logsum.hpp"
 #include "util/PrintLog.hpp"
+#include "util/SharedFunctions.hpp"
 #include <random>
 #include <iostream>
 #include <boost/random/linear_congruential.hpp>
@@ -1130,6 +1131,8 @@ void HM_Model::startImpl()
 
 	resume = config.ltParams.resume;
 	std::string  outputSchema = config.ltParams.currentOutputSchema;
+	BigSerial simYear = config.ltParams.year;
+	std::tm currentSimYear = getDateBySimDay(simYear,1);
 
 	if (conn.isConnected())
 	{
@@ -1141,13 +1144,13 @@ void HM_Model::startImpl()
 		PrintOutV("Initial Individuals: " << individuals.size() << std::endl);
 
 		IndividualDao indDao(conn);
-		primarySchoolIndList = indDao.getPrimarySchoolIndividual();
+		primarySchoolIndList = indDao.getPrimarySchoolIndividual(currentSimYear);
 		//Index all primary school inds.
 		for (IndividualList::iterator it = primarySchoolIndList.begin(); it != primarySchoolIndList.end(); it++) {
 			primarySchoolIndById.insert(std::make_pair((*it)->getId(), *it));
 		}
 
-		preSchoolIndList = indDao.getPreSchoolIndividual();
+		preSchoolIndList = indDao.getPreSchoolIndividual(currentSimYear);
 		//Index all pre school inds.
 		for (IndividualList::iterator it = preSchoolIndList.begin(); it != preSchoolIndList.end(); it++) {
 			preSchoolIndById.insert(std::make_pair((*it)->getId(), *it));

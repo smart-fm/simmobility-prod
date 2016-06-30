@@ -36,6 +36,7 @@ namespace sim_mob
 
 		void AwakeningSubModel::InitialAwakenings(HM_Model *model, Household *household, HouseholdAgent *agent, int day)
 		{
+			boost::mutex::scoped_lock lock( mtx );
 
 			if( agent->getId() >= model->FAKE_IDS_START )
 				return;
@@ -151,10 +152,8 @@ namespace sim_mob
 			{
 				seller->setActive(true);
 				bidder->setActive(true);
-				agent->setAwakeningDay(day);
-				model->incrementBidders();
 
-			    printAwakening(day, household);
+				printAwakening(day, household);
 
 				#ifdef VERBOSE
 				PrintOutV("[day " << day << "] Lifestyle 1. Household " << getId() << " has been awakened." << model->getNumberOfBidders()  << std::endl);
@@ -171,7 +170,6 @@ namespace sim_mob
 				}
 
 				model->incrementAwakeningCounter();
-
 				model->incrementLifestyle1HHs();
 			}
 			else
@@ -179,8 +177,6 @@ namespace sim_mob
 			{
 				seller->setActive(true);
 				bidder->setActive(true);
-				agent->setAwakeningDay(day);
-				model->incrementBidders();
 
 				printAwakening(day, household);
 
@@ -200,7 +196,6 @@ namespace sim_mob
 				}
 
 				model->incrementAwakeningCounter();
-
 				model->incrementLifestyle2HHs();
 			}
 			else
@@ -208,8 +203,6 @@ namespace sim_mob
 			{
 				seller->setActive(true);
 				bidder->setActive(true);
-				agent->setAwakeningDay(day);
-				model->incrementBidders();
 
 				printAwakening(day, household);
 
@@ -293,6 +286,7 @@ namespace sim_mob
 					continue;
 				}
 
+                model->incrementAwakeningCounter();
 		    	printAwakening(day, potentialAwakening);
 
 		    	extEv.setDay( day + 1 );

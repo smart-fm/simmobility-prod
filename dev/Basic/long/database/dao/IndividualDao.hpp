@@ -41,8 +41,8 @@ namespace sim_mob
             void toRow(Individual& data, db::Parameters& outParams, bool update);
 
 		public:
-            std::vector<Individual*> getPrimarySchoolIndividual();
-            std::vector<Individual*> getPreSchoolIndividual();
+            std::vector<Individual*> getPrimarySchoolIndividual(std::tm currentSimYear);
+            std::vector<Individual*> getPreSchoolIndividual(std::tm currentSimYear);
 		};
 	}
 }

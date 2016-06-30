@@ -153,7 +153,7 @@ namespace sim_mob
 				seller->setActive(true);
 				bidder->setActive(true);
 
-			    printAwakening(day, household);
+				printAwakening(day, household);
 
 				#ifdef VERBOSE
 				PrintOutV("[day " << day << "] Lifestyle 1. Household " << getId() << " has been awakened." << model->getNumberOfBidders()  << std::endl);

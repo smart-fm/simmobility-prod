@@ -133,6 +133,8 @@
 	<vehicleOwnershipModel enabled='false'>
 		<vehicleBuyingWaitingTimeInDays value= "1"/>
 	</vehicleOwnershipModel>
+        <taxiAccessModel enabled='false'>
+	</taxiAccessModel>
 	<schoolAssignmentModel enabled = 'false'>
 		<schoolChangeWaitingTimeInDays value ="1" />
 	</schoolAssignmentModel>

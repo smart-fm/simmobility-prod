@@ -24,11 +24,11 @@ namespace sim_mob
 
 	}
 
-	const std::string LOG_TAXI_AVAILABILITY = "%1%";
+	const std::string LOG_TAXI_AVAILABILITY = "%1%, %2%, %3%";
 
-	inline void writeTaxiAvailabilityToFile(BigSerial hhId) {
+	inline void writeTaxiAvailabilityToFile(BigSerial hhId,double probabilityTaxiAccess,double randomNum) {
 
-		boost::format fmtr = boost::format(LOG_TAXI_AVAILABILITY) % hhId;
+		boost::format fmtr = boost::format(LOG_TAXI_AVAILABILITY) % hhId % probabilityTaxiAccess % randomNum;
 		AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_TAXI_AVAILABILITY,fmtr.str());
 
 	}

@@ -83,7 +83,7 @@ private:
 class SimmobSqlDao: public db::SqlAbstractDao<PersonParams>
 {
 public:
-	SimmobSqlDao(db::DB_Connection& connection);
+	SimmobSqlDao(db::DB_Connection& connection, const std::string& tableName);
 	virtual ~SimmobSqlDao();
 
 	/**

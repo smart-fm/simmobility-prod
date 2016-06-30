@@ -86,6 +86,7 @@ namespace sim_mob {
         const std::string DB_TABLE_TRAVEL_TIME = APPLY_SCHEMA(CALIBRATION_SCHEMA, "travel_time");
         const std::string DB_TABLE_PRE_SCHOOL = APPLY_SCHEMA(CALIBRATION_SCHEMA, "pre_schools");
         const std::string DB_TABLE_SCREENINGMODELCOEFFICIENT= APPLY_SCHEMA( CALIBRATION_SCHEMA, "screening_model_coefficients");
+        const std::string DB_TABLE_ROI_LIMITS = APPLY_SCHEMA(CALIBRATION_SCHEMA, "roi_limits");
 
 
         /**
@@ -177,8 +178,6 @@ namespace sim_mob {
         const std::string DB_FUNC_GET_PRIMARY_SCHOOL_INDS = APPLY_SCHEMA( MAIN_SCHEMA, "getPrimarySchoolIndivduals()");
         const std::string DB_FUNC_GET_PRE_SCHOOL_INDS = APPLY_SCHEMA( MAIN_SCHEMA, "getPreschoolIndivduals()");
         const std::string DB_FUNC_GET_ALTERNATIVE_HEDONIC_PRICE = APPLY_SCHEMA( MAIN_SCHEMA, "getAlternativeHedonicPrice()");
-
-
 
         /**
          * Fields
@@ -383,6 +382,7 @@ namespace sim_mob {
         const std::string DB_GETALL_ALTERNATIVE_HEDONIC_PRICE = "SELECT * FROM " + DB_FUNC_GET_ALTERNATIVE_HEDONIC_PRICE + LIMIT;
         const std::string DB_GETALL_SCREENINGMODELCOEFFICIENT = "SELECT * FROM " + DB_TABLE_SCREENINGMODELCOEFFICIENT + LIMIT;
         const std::string DB_GETALL_BUILDING_AGES = "SELECT * FROM "+ APPLY_SCHEMA(MAIN_SCHEMA, "fm_building_avg_age")+ LIMIT;
+        const std::string DB_GETALL_ROI_LIMITS = "SELECT * FROM "+ DB_TABLE_ROI_LIMITS + LIMIT;
         const std::string DB_GETALL_HH_PLANNING_AREA = "SELECT * FROM "+ DB_VIEW_HH_PLANNING_AREA + LIMIT;
         const std::string DB_GETALL_SCHOOL_ASSIGNMENT_COEFFICIENTS = "SELECT * FROM "+ DB_TABLE_SCHOOL_ASSIGNMENT_COEFFICIENTS + LIMIT;
         const std::string DB_GETALL_PRIMARY_SCHOOL = "SELECT * FROM " + DB_TABLE_PRIMARY_SCHOOL + LIMIT;

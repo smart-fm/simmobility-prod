@@ -60,7 +60,7 @@ namespace sim_mob {
          */
         class PotentialProject {
         public:
-            PotentialProject(const DevelopmentTypeTemplate* devTemplate = nullptr,const Parcel* parcel = nullptr, BigSerial fmParcelId = INVALID_ID, std::tm simulationDate = std::tm(), double constructionCost = 0,double grossArea = 0,double tempSelectProbability = 0,double investmentReturnRatio=0,double demolitionCost = 0, double expRatio=0,int totalUnits = 0,double acquisitionCost = 0, double landValue = 0);
+            PotentialProject(const DevelopmentTypeTemplate* devTemplate = nullptr,const Parcel* parcel = nullptr, BigSerial fmParcelId = INVALID_ID, std::tm simulationDate = std::tm(), double constructionCost = 0,double grossArea = 0,double tempSelectProbability = 0,double investmentReturnRatio=0,double demolitionCost = 0, double expRatio=0,int totalUnits = 0,double acquisitionCost = 0, double landValue = 0, BigSerial buildingTypeId = 0);
             virtual ~PotentialProject();
             
             PotentialProject( const PotentialProject &source);
@@ -102,6 +102,7 @@ namespace sim_mob {
             double getLandValue() const;
             BigSerial getFmParcelId() const;
             std::tm getSimulationDate() const;
+            BigSerial getBuildingTypeId() const;
 
             //Setters
             void setProfit(const double profit);
@@ -116,6 +117,7 @@ namespace sim_mob {
             void setAcquisitionCost(double acqCost);
             void setLandValue(double landVal);
             void setSimulationDate(std::tm simDate);
+            void setBuildingTypeId(BigSerial buildingType);
 
             std::vector<TemplateUnitType> templateUnitTypes;
 
@@ -140,6 +142,7 @@ namespace sim_mob {
             double acquisitionCost;
             double landValue;
             std::tm simulationDate;
+            BigSerial buildingTypeId;
 
         };
     }

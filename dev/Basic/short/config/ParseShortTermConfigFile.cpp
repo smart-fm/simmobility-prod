@@ -709,7 +709,6 @@ void ParseShortTermConfigFile::processTT_Update(xercesc::DOMElement* node)
 	else
 	{
 		cfg.getPathSetConf().interval = ParseInteger(GetNamedAttributeValue(node, "interval"), 300);
-		cfg.getPathSetConf().alpha = ParseFloat(GetNamedAttributeValue(node, "alpha"), 0.5);
 	}
 }
 

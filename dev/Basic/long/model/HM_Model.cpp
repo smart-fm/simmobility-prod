@@ -65,6 +65,10 @@
 #include "message/MessageBus.hpp"
 #include "behavioral/PredayLT_Logsum.hpp"
 #include "util/PrintLog.hpp"
+#include <random>
+#include <iostream>
+#include <boost/random/linear_congruential.hpp>
+#include <boost/random/uniform_01.hpp>
 
 using namespace sim_mob;
 using namespace sim_mob::long_term;
@@ -928,7 +932,7 @@ void HM_Model::setTaxiAccess(const Household *household)
 	if(getUnitById(household->getUnitId()) != nullptr)
 	{
 		unitTypeId = getUnitById(household->getUnitId())->getUnitType();
-	}
+
 
 	if( (unitTypeId>0) && (unitTypeId<=6))
 	{
@@ -939,6 +943,7 @@ void HM_Model::setTaxiAccess(const Household *household)
 	std::vector<BigSerial> individuals = household->getIndividuals();
 	int numIndividualsInAge5064 = 0;
 	int numIndividualsInAge65Up = 0;
+	int numIndividualsAge3549_2 = 0;
 	int numIndividualsAge1019 = 0;
 	int numSelfEmployedIndividuals = 0;
 	int numRetiredIndividuals = 0;
@@ -956,6 +961,11 @@ void HM_Model::setTaxiAccess(const Household *household)
 		if((ageCategoryId==2) || (ageCategoryId==3))
 		{
 			numIndividualsAge1019++;
+		}
+		//IndividualsInAge35_49
+		if((ageCategoryId >= 7) && (ageCategoryId <= 9))
+		{
+			numIndividualsAge3549_2++;
 		}
 		//IndividualsInAge5064
 		if((ageCategoryId >= 10)&& (ageCategoryId <= 12))
@@ -988,17 +998,17 @@ void HM_Model::setTaxiAccess(const Household *household)
 			numProfIndividuals++;
 		}
 		//Manager individuals
-		if(getIndividualById((*individualsItr))->getOccupationId() == 2)
+		if(getIndividualById((*individualsItr))->getOccupationId() == 1)
 		{
 			numManagerIndividuals++;
 		}
 		//Operator individuals
-		if(getIndividualById((*individualsItr))->getOccupationId() == 6)
+		if(getIndividualById((*individualsItr))->getOccupationId() == 7)
 		{
 			numOperatorIndividuals++;
 		}
-		//labour individuals : occupation type = other
-		if(getIndividualById((*individualsItr))->getOccupationId() == 7)
+		//labour individuals
+		if(getIndividualById((*individualsItr))->getOccupationId() == 8)
 		{
 			numLabourIndividuals++;
 		}
@@ -1012,6 +1022,7 @@ void HM_Model::setTaxiAccess(const Household *household)
 	{
 		valueTaxiAccess = valueTaxiAccess + getTaxiAccessCoeffsById(AGE5064_2)->getCoefficientEstimate();
 	}
+
 	if(numIndividualsInAge65Up == 1)
 	{
 		valueTaxiAccess = valueTaxiAccess + getTaxiAccessCoeffsById(AGE65UP_1)->getCoefficientEstimate();
@@ -1020,10 +1031,17 @@ void HM_Model::setTaxiAccess(const Household *household)
 	{
 		valueTaxiAccess = valueTaxiAccess + getTaxiAccessCoeffsById(AGE65UP_2)->getCoefficientEstimate();
 	}
+
 	if(numIndividualsAge1019 >=2 )
 	{
 		valueTaxiAccess = valueTaxiAccess + getTaxiAccessCoeffsById(AGE1019_2)->getCoefficientEstimate();
 	}
+
+	if(numIndividualsAge3549_2 >=2)
+	{
+		valueTaxiAccess = valueTaxiAccess + getTaxiAccessCoeffsById(AGE3549_2)->getCoefficientEstimate();
+	}
+
 	if(numSelfEmployedIndividuals == 1)
 	{
 		valueTaxiAccess = valueTaxiAccess + getTaxiAccessCoeffsById(EMPLOYED_SELF_1)->getCoefficientEstimate();
@@ -1092,20 +1110,22 @@ void HM_Model::setTaxiAccess(const Household *household)
 	double expTaxiAccess = exp(valueTaxiAccess);
 	double probabilityTaxiAccess = (expTaxiAccess) / (1 + expTaxiAccess);
 
-	/*generate a random number between 0-1
-	* time(0) is passed as an input to constructor in order to randomize the result
-	*/
+	//generate a random number with an unifrom real distribution.
 	boost::mt19937 randomNumbergenerator( time( 0 ) );
 	boost::random::uniform_real_distribution< > uniformDistribution( 0.0, 1.0 );
-	boost::variate_generator< boost::mt19937&, boost::random::uniform_real_distribution < > >generateRandomNumbers( randomNumbergenerator, uniformDistribution );
-	const double randomNum = generateRandomNumbers( );
+	boost::variate_generator< boost::mt19937&, boost::random::uniform_real_distribution < > >
+	generateRandomNumbers( randomNumbergenerator, uniformDistribution );
+	const double randomNum = generateRandomNumbers();
+
+
 	if(randomNum < probabilityTaxiAccess)
 	{
-		writeTaxiAvailabilityToFile(household->getId());
+		writeTaxiAvailabilityToFile(household->getId(),probabilityTaxiAccess,randomNum);
 		hasTaxiAccess = true;
 		AgentsLookup& lookup = AgentsLookupSingleton::getInstance();
 		const HouseholdAgent* householdAgent = lookup.getHouseholdAgentById(household->getId());
 		MessageBus::PostMessage(const_cast<HouseholdAgent*>(householdAgent), LTMID_HH_TAXI_AVAILABILITY, MessageBus::MessagePtr(new Message()));
+	}
 	}
 }
 
@@ -1163,7 +1183,7 @@ void HM_Model::startImpl()
 		loadData<PostcodeDao>(conn, postcodes, postcodesById,	&Postcode::getAddressId);
 		PrintOutV("Number of postcodes: " << postcodes.size() << std::endl );
 
-		loadData<VehicleOwnershipCoefficientsDao>(conn,vehicleOwnershipCoeffs,vehicleOwnershipCoeffsById, &VehicleOwnershipCoefficients::getParameterId);
+		loadData<VehicleOwnershipCoefficientsDao>(conn,vehicleOwnershipCoeffs,vehicleOwnershipCoeffsById, &VehicleOwnershipCoefficients::getVehicleOwnershipOptionId);
 		PrintOutV("Vehicle Ownership coefficients: " << vehicleOwnershipCoeffs.size() << std::endl );
 
 		loadData<TaxiAccessCoefficientsDao>(conn,taxiAccessCoeffs,taxiAccessCoeffsById, &TaxiAccessCoefficients::getParameterId);
@@ -1597,14 +1617,16 @@ void HM_Model::startImpl()
 			tempHH->setIndividual(individuals[n]->getId());
 	}
 
+
+	if(config.ltParams.taxiAccessModel.enabled)
+	{
 	for (size_t n = 0; n < households.size(); n++)
 	{
 		hdbEligibilityTest(n);
 		setTaxiAccess(households[n]);
-		//reconsiderVehicleOwnershipOption(households[n]);
-
 	}
-	//PrintOut("taxi access available for "<<count<<" number of hh"<<std::endl);
+	}
+
 
 	PrintOutV("The synthetic population contains " << household_stats.adultSingaporean_global << " adult Singaporeans." << std::endl);
 	PrintOutV("Minors. Male: " << household_stats.maleChild_global << " Female: " << household_stats.femaleChild_global << std::endl);

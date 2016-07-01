@@ -119,7 +119,7 @@ void TurningGroup::addTurningPath(TurningPath *turningPath)
 {
 	//Update the turning group length
 	const PolyPoint from = turningPath->getFromLane()->getPolyLine()->getLastPoint();
-	const PolyPoint to = turningPath->getToLane()->getPolyLine()->getLastPoint();
+	const PolyPoint to = turningPath->getToLane()->getPolyLine()->getFirstPoint();
 	
 	double distance = dist(from.getX(), from.getY(), to.getX(), to.getY());
 	length = ((length * numTurningPaths) + distance) / (numTurningPaths + 1);

@@ -1380,14 +1380,15 @@ void HM_Model::startImpl()
 		BigSerial unitIdToBeOwned = INVALID_ID;
 		if(resume)
 		{
-			if ((resumptionHH != nullptr) && (resumptionHH->getUnitPending())) //household has done an advanced purchase
+			if (resumptionHH != nullptr)
 			{
-				HouseholdUnit *hhUnit = getHouseholdUnitByHHId(resumptionHH->getId());
-				unitIdToBeOwned = hhUnit->getUnitId();
-				household->setTimeOnMarket(resumptionHH->getTimeOnMarket());
-			}
-			else
-			{
+				if(resumptionHH->getUnitPending())//household has done an advanced purchase
+				{
+					HouseholdUnit *hhUnit = getHouseholdUnitByHHId(resumptionHH->getId());
+					unitIdToBeOwned = hhUnit->getUnitId();
+					household->setTimeOnMarket(resumptionHH->getTimeOnMarket());
+				}
+
 				household->setUnitId(getResumptionHouseholdById(household->getId())->getUnitId());//update the unit id of the households moved to new units.
 			}
 
@@ -2186,12 +2187,10 @@ void HM_Model::addHouseholdsTo_OPSchema(boost::shared_ptr<Household> &houseHold)
 		}
 	}
 
-	//remove the household from hhWithBidsVector if it is already inserted to the vector; so we can add the updated household.
 	Household *hhWithBids = getHouseholdWithBidsById(houseHold->getId());
 	if(hhWithBids != nullptr)
 	{
-		boost::shared_ptr<Household> hhInDbSharedPtr = boost::make_shared<Household>(*hhWithBids);
-		hhWithBidsVector.erase(std::remove(hhWithBidsVector.begin(), hhWithBidsVector.end(), hhInDbSharedPtr), hhWithBidsVector.end());
+		houseHold->setExistInDB(true);
 	}
 
 	DBLock.lock();

@@ -57,7 +57,7 @@ HouseholdAgent::HouseholdAgent(BigSerial _id, HM_Model* _model, Household* _hous
 
     buySellInterval = config.ltParams.housingModel.offsetBetweenUnitBuyingAndSelling;
 
-    if(resume)
+    if(resume && household != nullptr)
     	householdBiddingWindow = householdBiddingWindow - household->getTimeOnMarket();
     else
     {

@@ -144,7 +144,7 @@ void HouseholdDao::insertHousehold(Household& houseHold,std::string schema)
 				+ "awakened_day"
 				+ "= :v26 WHERE "
 				+ DB_FIELD_ID + "=:v27";
-		insertViaQueryId(houseHold,DB_UPDATE_HOUSEHOLD,params);
+		executeQueryWithParams(houseHold,DB_UPDATE_HOUSEHOLD,params);
 	}
 
 	else

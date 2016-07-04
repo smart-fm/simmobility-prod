@@ -15,7 +15,7 @@
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
-HouseholdDao::HouseholdDao(DB_Connection& connection): SqlAbstractDao<Household>(connection, DB_TABLE_HOUSEHOLD,DB_INSERT_HOUSEHOLD, DB_UPDATE_HOUSEHOLD, DB_DELETE_HOUSEHOLD,DB_GETALL_HOUSEHOLD, DB_GETBYID_HOUSEHOLD)
+HouseholdDao::HouseholdDao(DB_Connection& connection): SqlAbstractDao<Household>(connection, DB_TABLE_HOUSEHOLD,DB_INSERT_HOUSEHOLD, EMPTY_STR, EMPTY_STR,DB_GETALL_HOUSEHOLD, DB_GETBYID_HOUSEHOLD)
 {}
 
 HouseholdDao::~HouseholdDao() {}
@@ -82,44 +82,80 @@ void HouseholdDao::toRow(Household& data, Parameters& outParams, bool update)
 
 void HouseholdDao::insertHousehold(Household& houseHold,std::string schema)
 {
+
 	if(houseHold.getExistInDB())
 	{
+
+		db::Parameters params;
+		params.push_back(houseHold.getLifestyleId());
+		params.push_back(houseHold.getUnitId());
+		params.push_back(houseHold.getEthnicityId());
+		params.push_back(houseHold.getVehicleCategoryId());
+		params.push_back(houseHold.getSize());
+		params.push_back(houseHold.getChildUnder4());
+		params.push_back(houseHold.getChildUnder15());
+		params.push_back(houseHold.getAdult());
+		params.push_back(houseHold.getIncome());
+		params.push_back(houseHold.getHousingDuration());
+		params.push_back(houseHold.getWorkers());
+		params.push_back(houseHold.getAgeOfHead());
+		params.push_back(houseHold.getPendingStatusId());
+		params.push_back(houseHold.getPendingFromDate());
+		params.push_back(houseHold.getUnitPending());
+		params.push_back(houseHold.getTaxiAvailability());
+		params.push_back(houseHold.getVehicleOwnershipOptionId());
+		params.push_back(houseHold.getTimeOnMarket());
+		params.push_back(houseHold.getTimeOffMarket());
+		params.push_back(houseHold.getIsBidder());
+		params.push_back(houseHold.getIsSeller());
+		params.push_back(houseHold.getBuySellInterval());
+		params.push_back(houseHold.getMoveInDate());
+		params.push_back(houseHold.getHasMoved());
+		params.push_back(houseHold.getTenureStatus());
+		params.push_back(houseHold.getAwaknedDay());
+		params.push_back(houseHold.getId());
+
 		const std::string DB_UPDATE_HOUSEHOLD = "UPDATE "	+ APPLY_SCHEMA(schema, ".household") + " SET "
-																	+ DB_FIELD_LIFESTYLE_ID+ "= :v2, "
-																	+ DB_FIELD_UNIT_ID + "= :v3, "
-																	+ DB_FIELD_VEHICLE_CATEGORY_ID + "= :v5, "
-																	+ DB_FIELD_SIZE + "= :v6, "
-																	+ DB_FIELD_CHILDUNDER4 + "= :v7, "
-																	+ DB_FIELD_CHILDUNDER15 + "= :v8, "
-																	+ "adult" + "= :v9, "
-																	+ DB_FIELD_INCOME + "= :v10, "
-																	+ DB_FIELD_HOUSING_DURATION + "= :v11, "
-																	+ DB_FIELD_WORKERS + "= :v12, "
-																	+ DB_FIELD_AGE_OF_HEAD + "= :v13, "
-																	+ "pending_status_id" + "= :v14, "
-																	+ "pending_from_date" + "= :v15, "
-																	+ "unit_pending" + "= :v16, "
-																	+ DB_FIELD_TAXI_AVAILABILITY + "= :v17, "
-																	+ "vehicle_ownership_option_id" + "= :v18, "
-																	+ "time_on_market" + "= :v19, "
-																	+ "is_bidder" + "= :v21, "
-																	+ "is_seller" + "= :v22, "
-																	+ "buy_sell_interval" + "= :v23, "
-																	+ "move_in_date" + "= :v24, "
-																	+ "tenure_status" + "= :v26, "
-																	+ "awakened_day"
-																	+ "= :v27 WHERE "
-																	+ DB_FIELD_ID + "=:v1";
-		insertViaQuery(houseHold,DB_UPDATE_HOUSEHOLD);
+				+ DB_FIELD_LIFESTYLE_ID+ "= :v1, "
+				+ DB_FIELD_UNIT_ID + "= :v2, "
+				+ "ethnicity_id" + "= :v3, "
+				+ DB_FIELD_VEHICLE_CATEGORY_ID + "= :v4, "
+				+ DB_FIELD_SIZE + "= :v5, "
+				+ DB_FIELD_CHILDUNDER4 + "= :v6, "
+				+ DB_FIELD_CHILDUNDER15 + "= :v7, "
+				+ "adult" + "= :v8, "
+				+ DB_FIELD_INCOME + "= :v9, "
+				+ DB_FIELD_HOUSING_DURATION + "= :v10, "
+				+ DB_FIELD_WORKERS + "= :v11, "
+				+ DB_FIELD_AGE_OF_HEAD + "= :v12, "
+				+ "pending_status_id" + "= :v13, "
+				+ "pending_from_date" + "= :v14, "
+				+ "unit_pending" + "= :v15, "
+				+ DB_FIELD_TAXI_AVAILABILITY + "= :v16, "
+				+ "vehicle_ownership_option_id" + "= :v17, "
+				+ "time_on_market" + "= :v18, "
+				+ "time_off_market"+ "= :v19, "
+				+ "is_bidder" + "= :v20, "
+				+ "is_seller" + "= :v21, "
+				+ "buy_sell_interval" + "= :v22, "
+				+ "move_in_date" + "= :v23, "
+				+ "has_moved" + "= :v24, "
+				+ "tenure_status" + "= :v25, "
+				+ "awakened_day"
+				+ "= :v26 WHERE "
+				+ DB_FIELD_ID + "=:v27";
+		insertViaQueryId(houseHold,DB_UPDATE_HOUSEHOLD,params);
 	}
+
 	else
 	{
-	const std::string DB_INSERT_HOUSEHOLD_OP = "INSERT INTO " + APPLY_SCHEMA(schema, ".household")
-					+ " (" + DB_FIELD_ID + ", "+ "lifestyle_id" + ", "+ DB_FIELD_UNIT_ID + ", "+ "ethnicity_id" + ", "+ "vehicle_category_id" + ", "+ DB_FIELD_SIZE + ", "+
-					DB_FIELD_CHILDUNDER4 + ", "+ DB_FIELD_CHILDUNDER15 + ", " + "adult" + ", "+ DB_FIELD_INCOME + ", "+ DB_FIELD_HOUSING_DURATION + ", " + "workers"+ ", "+
-					"age_of_head" + ", "+ "pending_status_id" + ", " + "pending_from_date" + ", "+ "unit_pending" + ", "+ "taxi_availability" + ", " + "vehicle_ownership_option_id"+ ", "+
-					+ "time_on_market" + ", " + "time_off_market"+ ", "+ "is_bidder" + ", " + "is_seller"+ ", "+ "buy_sell_interval" + ", "+ "move_in_date" + ", " + "has_moved"+ ", "+
-					+ "tenure_status"  ", " + "awakened_day" + ") VALUES (:v1, :v2, :v3, :v4, :v5, :v6, :v7 ,:v8, :v9, :v10, :v11, :v12, :v13, :v14, :v15, :v16, :v17, :v18, :v19, :v20, :v21, :v22, :v23, :v24, :V25, :v26, :v27)";
-	insertViaQuery(houseHold,DB_INSERT_HOUSEHOLD_OP);
+		const std::string DB_INSERT_HOUSEHOLD_OP = "INSERT INTO " + APPLY_SCHEMA(schema, ".household")
+							+ " (" + DB_FIELD_ID + ", "+ "lifestyle_id" + ", "+ DB_FIELD_UNIT_ID + ", "+ "ethnicity_id" + ", "+ "vehicle_category_id" + ", "+ DB_FIELD_SIZE + ", "+
+							DB_FIELD_CHILDUNDER4 + ", "+ DB_FIELD_CHILDUNDER15 + ", " + "adult" + ", "+ DB_FIELD_INCOME + ", "+ DB_FIELD_HOUSING_DURATION + ", " + "workers"+ ", "+
+							"age_of_head" + ", "+ "pending_status_id" + ", " + "pending_from_date" + ", "+ "unit_pending" + ", "+ "taxi_availability" + ", " + "vehicle_ownership_option_id"+ ", "+
+							+ "time_on_market" + ", " + "time_off_market"+ ", "+ "is_bidder" + ", " + "is_seller"+ ", "+ "buy_sell_interval" + ", "+ "move_in_date" + ", " + "has_moved"+ ", "+
+							+ "tenure_status"  ", " + "awakened_day" + ") VALUES (:v1, :v2, :v3, :v4, :v5, :v6, :v7 ,:v8, :v9, :v10, :v11, :v12, :v13, :v14, :v15, :v16, :v17, :v18, :v19, :v20, :v21, :v22, :v23, :v24, :V25, :v26, :v27)";
+		insertViaQuery(houseHold,DB_INSERT_HOUSEHOLD_OP);
 	}
+
 }

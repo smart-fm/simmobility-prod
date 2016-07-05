@@ -285,20 +285,6 @@ namespace sim_mob {
         const std::string DB_INSERT_RESIDENTIAL_STATUS = DB_EMPTY_QUERY;
         const std::string DB_INSERT_AWAKENING = DB_EMPTY_QUERY;
 
-
-        /**
-         * UPDATE
-         */
-        const std::string DB_UPDATE_HOUSEHOLD = "UPDATE "	+ DB_TABLE_HOUSEHOLD + " SET "
-															+ DB_FIELD_UNIT_ID + "= :v1, "
-															+ DB_FIELD_SIZE + "= :v2, "
-															+ DB_FIELD_CHILDUNDER4 + "= :v3, "
-															+ DB_FIELD_CHILDUNDER15 + "= :v4, "
-															+ DB_FIELD_INCOME + "= :v5, "
-															+ DB_FIELD_HOUSING_DURATION
-															+ "= :v6 WHERE "
-															+ DB_FIELD_ID + "=:v7";
-
         const std::string DB_UPDATE_BUILDING = DB_EMPTY_QUERY;
         const std::string DB_UPDATE_UNIT = DB_EMPTY_QUERY;
         const std::string DB_UPDATE_POSTCODE = DB_EMPTY_QUERY;
@@ -311,7 +297,6 @@ namespace sim_mob {
         /**
          * DELETE
          */
-        const std::string DB_DELETE_HOUSEHOLD 	= "SELECT * FROM " + DB_FUNC_DEL_HOUSEHOLD_BY_ID;
         const std::string DB_DELETE_BUILDING 	= "SELECT * FROM " + DB_FUNC_DEL_BUILDING_BY_ID;
         const std::string DB_DELETE_UNIT 		= "SELECT * FROM " + DB_FUNC_DEL_UNIT_BY_ID;
         const std::string DB_DELETE_POSTCODE 	= DB_EMPTY_QUERY;

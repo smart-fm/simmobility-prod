@@ -186,6 +186,47 @@ public:
 		return entity;
 	}
 
+	//run a given query with given params
+	virtual T& executeQueryWithParams(T& entity, std::string insertQuery, const Parameters& params,bool returning = false)
+		{
+			if (isConnected())
+			{
+
+				Transaction tr(connection.getSession<soci::session>());
+				Statement query(connection.getSession<soci::session>());
+				//append returning clause.
+				//Attention: this is only prepared for POSTGRES.
+				std::string upperQuery = boost::to_upper_copy(insertQuery);
+
+				if (returning)
+				{
+					size_t found = upperQuery.rfind(DB_RETURNING_CLAUSE);
+					if (found == std::string::npos)
+					{
+						upperQuery += DB_RETURNING_ALL_CLAUSE;
+					}
+				}
+
+				// prepare statement.
+				prepareStatement(upperQuery, params, query);
+				//TODO: POSTGRES ONLY for now
+				//execute and return data if (RETURNING clause is defined)
+				ResultSet rs(query);
+
+				if (returning)
+				{
+					ResultSet::const_iterator it = rs.begin();
+					if (it != rs.end())
+					{
+						fromRow((*it), entity);
+					}
+				}
+				tr.commit();
+			}
+			return entity;
+		}
+
+
 	virtual bool update(T& entity)
 	{
 		if (isConnected())

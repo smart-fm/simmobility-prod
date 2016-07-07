@@ -101,11 +101,11 @@ local beta_caravail_other_3 = 0
 local beta_motoravail_other_2 = 0.262
 local beta_motoravail_other_3 = 0
 
-local beta_logsum_other_2= 0.482
-local beta_logsum_other_3= 0.882
+local beta_logsum_other_2 = 0.482
+local beta_logsum_other_3 = 0.882
 
-local beta_cons_other_2=-7.32
-local beta_cons_other_3=-13.9
+local beta_cons_other_2 = -7.32
+local beta_cons_other_3 = -13.9
 
 
 

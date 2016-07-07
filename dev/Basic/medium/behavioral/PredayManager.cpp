@@ -806,7 +806,7 @@ void sim_mob::medium::PredayManager::loadPostcodeNodeMapping(BackendType dbType)
 		simmobConn.connect();
 		if (simmobConn.isConnected())
 		{
-			SimmobSqlDao simmobSqlDao(simmobConn);
+			SimmobSqlDao simmobSqlDao(simmobConn, "");
 			simmobSqlDao.getPostcodeNodeMap(PersonParams::getPostcodeNodeMap());
 		}
 		else
@@ -848,7 +848,7 @@ void sim_mob::medium::PredayManager::loadCosts(db::BackendType dbType)
 		simmobConn.connect();
 		if (simmobConn.isConnected())
 		{
-			SimmobSqlDao simmobSqlDao(simmobConn);
+			SimmobSqlDao simmobSqlDao(simmobConn, "");
 			CostSqlDao amCostDao(simmobConn, DB_GET_ALL_AM_COSTS);
 			amCostDao.getAll(amCostMap);
 			Print() << "AM costs loaded\n";
@@ -1061,15 +1061,16 @@ void sim_mob::medium::PredayManager::dispatchLT_Persons()
 		{
 			throw std::runtime_error("logsum db connection failure!");
 		}
-		SimmobSqlDao logsumSqlDao(logsumConn);
+		const std::string& logsumTableName = mtConfig.getLogsumTableName();
+		SimmobSqlDao logsumSqlDao(logsumConn, logsumTableName);
 		bool truncated = logsumSqlDao.erase(db::EMPTY_PARAMS);
 		if(truncated)
 		{
-			Print() << DB_TABLE_LOGSUMS << " truncated on " << logsumDatabase.dbName << std::endl;
+			Print() << logsumTableName << " truncated on " << logsumDatabase.dbName << std::endl;
 		}
 		else
 		{
-			Print() << DB_TABLE_LOGSUMS << " truncation failed!\n";
+			Print() << logsumTableName << " truncation failed!\n";
 		}
 	}
 
@@ -1603,7 +1604,8 @@ void sim_mob::medium::PredayManager::processPersonsForLT_Population(const LT_Per
 	{
 		throw std::runtime_error("logsum db connection failure!");
 	}
-	SimmobSqlDao logsumSqlDao(logsumConn);
+	const std::string& logsumTableName = mtConfig.getLogsumTableName();
+	SimmobSqlDao logsumSqlDao(logsumConn, logsumTableName);
 
 	// open log file for this thread
 	std::ofstream activityScheduleLogFile(activityScheduleLog.c_str(), std::ios::trunc | std::ios::out);
@@ -1770,7 +1772,8 @@ void sim_mob::medium::PredayManager::computeLogsumsForLT_Population(const LT_Per
 	{
 		throw std::runtime_error("logsum db connection failure!");
 	}
-	SimmobSqlDao logsumSqlDao(logsumConn);
+	const std::string& logsumTableName = mtConfig.getLogsumTableName();
+	SimmobSqlDao logsumSqlDao(logsumConn, logsumTableName);
 
 	// loop through all persons within the range and plan their day
 	for (LT_PersonIdList::iterator i = firstPersonIdIt; i != oneAfterLastPersonIdIt; i++)

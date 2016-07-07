@@ -12,7 +12,7 @@ using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
 HouseholdPlanningAreaDao::HouseholdPlanningAreaDao(DB_Connection& connection)
-: SqlAbstractDao<HouseholdPlanningArea>(connection, DB_VIEW_HH_PLANNING_AREA, EMPTY_STR, EMPTY_STR, EMPTY_STR, DB_GETALL_HH_PLANNING_AREA, EMPTY_STR)
+: SqlAbstractDao<HouseholdPlanningArea>(connection, EMPTY_STR, EMPTY_STR, EMPTY_STR, EMPTY_STR, DB_GETALL_HH_PLANNING_AREA, EMPTY_STR)
 {}
 
 HouseholdPlanningAreaDao::~HouseholdPlanningAreaDao() {

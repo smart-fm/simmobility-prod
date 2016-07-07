@@ -348,6 +348,19 @@ void MT_Config::setPopulationDb(const std::string& populationDb, const std::stri
 	}
 }
 
+const std::string& MT_Config::getLogsumTableName() const
+{
+	return logsumTableName;
+}
+
+void MT_Config::setLogsumTableName(const std::string& logsumTableName)
+{
+	if(!configSealed)
+	{
+		this->logsumTableName = logsumTableName;
+	}
+}
+
 bool MT_Config::RunningMidSupply() const {
     return (midTermRunMode == MT_Config::MT_SUPPLY);
 }
@@ -433,7 +446,7 @@ unsigned int sim_mob::medium::MT_Config::personWorkGroupSize() const
 	return workers.person.count;
 }
 
-std::pair<double, double> sim_mob::medium::MT_Config::getSpeedDensityParam(int linkCategory) const
+SpeedDensityParams sim_mob::medium::MT_Config::getSpeedDensityParam(int linkCategory) const
 {
 	if(linkCategory < 1 || linkCategory > 7)
 	{
@@ -442,7 +455,7 @@ std::pair<double, double> sim_mob::medium::MT_Config::getSpeedDensityParam(int l
 	return speedDensityParams[linkCategory-1];
 }
 
-void sim_mob::medium::MT_Config::setSpeedDensityParam(int linkCategory, double alpha, double beta)
+void sim_mob::medium::MT_Config::setSpeedDensityParam(int linkCategory, SpeedDensityParams sdParams)
 {
 	if(!configSealed)
 	{
@@ -450,7 +463,7 @@ void sim_mob::medium::MT_Config::setSpeedDensityParam(int linkCategory, double a
 		{
 			throw std::runtime_error("invalid link category passed to set speed density parameters");
 		}
-		speedDensityParams[linkCategory-1] = std::make_pair(alpha, beta);
+		speedDensityParams[linkCategory-1] = sdParams;
 	}
 }
 

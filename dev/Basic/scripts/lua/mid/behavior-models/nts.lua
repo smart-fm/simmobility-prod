@@ -50,8 +50,8 @@ local beta_income_shopping_2 = 0
 local beta_workathome_shopping_2 = 0
 local beta_caravail_shopping_2 = 1.32
 local beta_motoravail_shopping_2 = -0.361
-local beta_logsum_shopping_2= 0.135
-local beta_cons_shopping_2=-5.85
+local beta_logsum_shopping_2 = 0.135
+local beta_cons_shopping_2 = -5.85
 
 
 --choiceset

@@ -8,7 +8,7 @@ Authors - Rui Tan
 --Note: the betas that not estimated are fixed to zero.
 local beta_in_vehicle = -0.35
 local beta_walk = -0.65
-local beta_wait = -0.46
+local beta_wait = -5
 local beta_no_txf= -4.31
 local beta_cost = -0.16
 local beta_path_size = 0.8

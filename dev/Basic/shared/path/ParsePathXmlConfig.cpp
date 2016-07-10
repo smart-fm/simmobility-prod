@@ -76,6 +76,7 @@ void sim_mob::ParsePathXmlConfig::ProcessPathSetNode(xercesc::DOMElement* node){
 
 }
 
+
 ModelScriptsMap sim_mob::ParsePathXmlConfig::processModelScriptsNode(xercesc::DOMElement* node)
 {
 	std::string format = ParseString(GetNamedAttributeValue(node, "format"), "");
@@ -125,11 +126,14 @@ ModelScriptsMap sim_mob::ParsePathXmlConfig::processModelScriptsNode(xercesc::DO
 	}
 
 	/* will be removed later */
-	cfg.ptRouteChoiceScriptsMap = scriptsMap;
+
+
+	//cfg.ptRouteChoiceScriptsMap = scriptsMap;
 	return scriptsMap;
 
 
 }
+
 
 
 
@@ -175,11 +179,6 @@ void sim_mob::ParsePathXmlConfig::processPublicPathsetNode(xercesc::DOMElement* 
 								GetSingleElementByName(publicPathSetAlgoConf, "k_shortest_path"), "level"), 10);
 				cfg.simulationApproachIterations = ParseInteger(GetNamedAttributeValue(
 								GetSingleElementByName(publicPathSetAlgoConf, "simulation_approach"), "iterations"), 10);
-	}
-
-	if(cfg.publicPathSetMode == "normal")
-	{
-		cfg.ptRouteChoiceScriptsMap = processModelScriptsNode(GetSingleElementByName(publicConfNode, "model_scripts", true));
 	}
 }
 
@@ -309,11 +308,6 @@ void sim_mob::ParsePathXmlConfig::processPrivatePathsetNode(xercesc::DOMElement*
 	if (utility)
 	{
 		cfg.params.highwayBias = ParseFloat(GetNamedAttributeValue(GetSingleElementByName(utility, "highwayBias"), "value"), 0.5);
-	}
-
-	if(cfg.privatePathSetMode == "normal")
-	{
-		cfg.pvtRouteChoiceScriptsMap = processModelScriptsNode(GetSingleElementByName(pvtConfNode, "model_scripts", true));
 	}
 
 	//sanity check

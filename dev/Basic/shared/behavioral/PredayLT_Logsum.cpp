@@ -15,7 +15,7 @@
 #include "database/DB_Config.hpp"
 #include "database/DB_Connection.hpp"
 #include "database/predaydao/DatabaseHelper.hpp"
-#include "database/predaydao/LT_PopulationSqlDao.hpp"
+#include "database/predaydao/PopulationSqlDao.hpp"
 #include "database/predaydao/ZoneCostSqlDao.hpp"
 #include "logging/Log.hpp"
 
@@ -37,7 +37,7 @@ public:
 	/**
 	 * DAO for fetching individuals from db
 	 */
-	LT_PopulationSqlDao ltPopulationDao;
+	PopulationSqlDao ltPopulationDao;
 
 	LT_PopulationSqlDaoContext(const DB_Config& ltDbConfig) : ltDbConnection(sim_mob::db::POSTGRES, ltDbConfig), ltPopulationDao(ltDbConnection)
 	{
@@ -193,24 +193,24 @@ const PredayLT_LogsumManager& sim_mob::PredayLT_LogsumManager::getInstance()
 		logsumManager.loadCosts();
 
 		ensureContext();
-		LT_PopulationSqlDao& ltPopulationDao = threadContext.get()->ltPopulationDao;
-		ltPopulationDao.getIncomeCategories(PredayPersonParams::getIncomeCategoryLowerLimits());
-		ltPopulationDao.getVehicleCategories(PredayPersonParams::getVehicleCategoryLookup());
-		ltPopulationDao.getAddressTAZs(PredayPersonParams::getAddressTazLookup());
+		PopulationSqlDao& ltPopulationDao = threadContext.get()->ltPopulationDao;
+		ltPopulationDao.getIncomeCategories(PersonParams::getIncomeCategoryLowerLimits());
+		ltPopulationDao.getVehicleCategories(PersonParams::getVehicleCategoryLookup());
+		ltPopulationDao.getAddresses(PersonParams::getAddressLookup(), PersonParams::getZoneAddresses());
 		logsumManager.dataLoadReqd = false;
 	}
 	return logsumManager;
 }
 
-PredayPersonParams sim_mob::PredayLT_LogsumManager::computeLogsum(long individualId, int homeLocation, int workLocation, int vehicleOwnership) const
+PersonParams sim_mob::PredayLT_LogsumManager::computeLogsum(long individualId, int homeLocation, int workLocation, int vehicleOwnership) const
 {
 	ensureContext();
-	PredayPersonParams personParams;
-	LT_PopulationSqlDao& ltPopulationDao = threadContext.get()->ltPopulationDao;
+	PersonParams personParams;
+	PopulationSqlDao& ltPopulationDao = threadContext.get()->ltPopulationDao;
 	ltPopulationDao.getOneById(individualId, personParams);
 	if(personParams.getPersonId().empty())
 	{
-		return PredayPersonParams();
+		return PersonParams();
 	}
 
 	if(homeLocation > 0) { personParams.setHomeLocation(homeLocation); }
@@ -233,7 +233,7 @@ PredayPersonParams sim_mob::PredayLT_LogsumManager::computeLogsum(long individua
 	boost::unordered_map<int,int>::const_iterator zoneLookupItr = zoneIdLookup.find(homeLoc);
 	if( zoneLookupItr == zoneIdLookup.end())
 	{
-		return PredayPersonParams();
+		return PersonParams();
 	}
 
 	bool printedError = false;

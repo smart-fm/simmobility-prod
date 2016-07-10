@@ -6,6 +6,7 @@
 
 #include <string>
 #include <vector>
+#include "behavioral/params/PersonParams.hpp"
 #include "entities/Person.hpp"
 #include "geospatial/network/Lane.hpp"
 #include "geospatial/network/Link.hpp"
@@ -43,6 +44,9 @@ private:
 	/**Used by confluxes to move the person for his tick duration across link and sub-trip boundaries*/
 	double remainingTimeThisTick;
 
+	/**	struct containing additional pertinent information about this person */
+	PersonParams personInfo;
+
 	/**Alters trip chain in accordance to route choice for public transit trips*/
 	void convertPublicTransitODsToTrips(PT_Network& ptNetwork,const std::string& ptPathsetStoredProcName);
 
@@ -62,8 +66,9 @@ private:
 	/**
 	 * make new trip from current point
 	 * @param stationName is current station name
+	 * @param now is current time
 	 */
-	void changeToNewTrip(const std::string& stationName);
+	void EnRouteToNextTrip(const std::string& stationName, const DailyTime& now);
 	/**
 	 * Inherited from EventListener.
 	 * @param eventId
@@ -147,9 +152,9 @@ public:
 	std::vector<sim_mob::OD_Trip> splitMrtTrips(std::vector<std::string> railPath);
 	sim_mob::OD_Trip CreateMRTSubTrips(std::string src,std::string dest);
 	void  FindMrtTripsAndPerformRailTransitRoute(std::vector<sim_mob::OD_Trip>& matchedTrips);
-
 	std::string GetServiceLine(std::string src,std::string dest);
 
+	std::string chooseModeEnRoute(const Trip& trip, unsigned int originNode, const DailyTime& curTime) const;
 	/**
 	 * exposes the Log function to print in thread local output files
 	 */
@@ -203,6 +208,16 @@ public:
 	void setRemainingTimeThisTick(double remainingTimeThisTick)
 	{
 		this->remainingTimeThisTick = remainingTimeThisTick;
+	}
+
+	const PersonParams& getPersonInfo() const
+	{
+		return personInfo;
+	}
+
+	void setPersonInfo(const PersonParams& personInfo)
+	{
+		this->personInfo = personInfo;
 	}
 };
 } // namespace medium

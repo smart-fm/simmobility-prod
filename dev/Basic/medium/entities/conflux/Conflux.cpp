@@ -748,14 +748,14 @@ void Conflux::housekeep(PersonProps& beforeUpdate, PersonProps& afterUpdate, Per
 		afterUpdate.segStats->setPositionOfLastUpdatedAgentInLane(lengthToVehicleEnd, afterUpdate.lane);
 	}
 
-	if(isStuck(beforeUpdate, afterUpdate))
+	/*if(isStuck(beforeUpdate, afterUpdate))
 	{ // if the person was stuck at the same position in a segment in some lane
 		person->numTicksStuck++;
 	}
 	else
 	{
 		person->numTicksStuck = 0;
-	}
+	}*/
 }
 
 void Conflux::updateAgentContext(PersonProps& beforeUpdate, PersonProps& afterUpdate, Person_MT* person) const

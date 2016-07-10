@@ -13,6 +13,20 @@
 namespace sim_mob
 {
 /**
+ * the exception for pt pathset loading
+ * \author Zhang Huai Peng
+ */
+class PT_PathsetLoadException: public std::exception {
+public:
+	int originNode;
+	int destNode;
+	PT_PathsetLoadException(int sNode, int dNode):
+		originNode(sNode),destNode(dNode){}
+	virtual const char* what() const throw () {
+		return "the exception of pt pathset loading";
+	}
+};
+/**
  * public transit route choice model
  * \author Zhang Huai Peng
  * \author Harish Loganathan
@@ -28,42 +42,49 @@ public:
 	 * @param index the index in public path set
 	 * @return total time in vehicle
 	 */
-	double getTotalInVehicleTime(unsigned int index);
+	double getInVehicleTime(unsigned int index) const;
 
 	/**
 	 * interface function for Lua script to get total walking time
 	 * @param index the index in public path set
 	 * @return total walking time
 	 */
-	double getTotalWalkTime(unsigned int index);
+	double getWalkTime(unsigned int index) const;
 
 	/**
 	 * interface functions for Lua script to get total waiting time
 	 * @param index the index in public path set
 	 * @return total waiting time
 	 */
-	double getTotalWaitTime(unsigned int index);
+	double getWaitTime(unsigned int index) const;
 
 	/**
 	 * interface function for Lua script to get the size of path
 	 * @param index the index in public path set
 	 * @return the size of path
 	 */
-	double getTotalPathSize(unsigned int index);
+	double getPathSize(unsigned int index) const;
 
 	/**
 	 * interface function for Lua script to get total transfered time
 	 * @param index the index in public path set
 	 * @return total transfered time
 	 */
-	int getTotalNumTxf(unsigned int index);
+	int getNumTxf(unsigned int index) const;
 
 	/**
 	 * interface function for Lua script to get total cost
 	 * @param index the index in public path set
 	 * @return total total cost
 	 */
-	double getTotalCost(unsigned int index);
+	double getCost(unsigned int index) const;
+
+	/**
+	 * interface function for Lua script to get path distance in PT vehicle (Bus or MRT)
+	 * @param index the index in public path set
+	 * @return total total cost
+	 */
+	double getPtDistanceKms(unsigned int index) const;
 
 	/**
 	 * interface function for lua script to get the PT modes in a path
@@ -73,7 +94,7 @@ public:
 	 *         2 if path involves only MRT travel;
 	 *         3 if path involves both bus and MRT travel
 	 */
-	int getModes(unsigned int index);
+	int getModes(unsigned int index) const;
 
 	/**
 	 * finds the best path for the given OD for public transit commuters
@@ -83,6 +104,15 @@ public:
 	 * @return true if route choice was successful; false otherwise
 	 */
 	bool getBestPT_Path(int origin, int destination, unsigned int startTime, std::vector<sim_mob::OD_Trip>& odTrips, std::string dbid, unsigned int start_time, const std::string& ptPathsetStoredProcName);
+	/**
+	 * fetches the public transit pathset for a given OD from database
+	 * @param origin origin node id
+	 * @param destination destination node id
+	 * @param startTime time at which route choice is to be done
+	 *
+	 * @return public transit pathset for the supplied OD.
+	 */
+	PT_PathSet fetchPathset(int origin, int destination, const DailyTime& startTime, const std::string& ptPathsetStoredProcName) const;
 	/**
 	 * store chosen path in file
 	 */
@@ -109,14 +139,14 @@ private:
 	 * load public transit path set from database
 	 * @param origin is trip origin
 	 * @param dest is trip destination
+	 * @param curTime time at which routechoice is to be done
 	 * @param pathSet output parameter for path set retrieved from database
 	 */
-	void loadPT_PathSet(int origin, int dest, PT_PathSet& pathSet, const std::string& ptPathsetStoredProcName);
+	void loadPT_PathSet(int origin, int dest, const DailyTime& curTime, PT_PathSet& pathSet, const std::string& ptPathsetStoredProcName) const;
 	/**
 	 * Inherited from LuaModel
 	 */
 	void mapClasses();
-
 	/**
 	 * make public transit route choice from lua scripts.
 	 * @param origin is	trip origin
@@ -129,7 +159,7 @@ private:
 	 * get the size of current path set.
 	 * @return the size of current choice set
 	 */
-	unsigned int getSizeOfChoiceSet();
+	unsigned int getSizeOfChoiceSet() const;
 
 };
 

@@ -29,6 +29,11 @@
 
 using namespace luabridge;
 
+namespace
+{
+const double METERS_IN_UNIT_KM = 1000.0;
+const std::string TWIN_BUS_STOP_PREFIX = "twin_";
+}
 namespace sim_mob
 {
 
@@ -44,96 +49,111 @@ PT_RouteChoiceLuaModel::~PT_RouteChoiceLuaModel()
 	output.close();
 }
 
-unsigned int PT_RouteChoiceLuaModel::getSizeOfChoiceSet()
+unsigned int PT_RouteChoiceLuaModel::getSizeOfChoiceSet() const
 {
 	unsigned int size = 0;
-	if (publicTransitPathSet) {
+	if (publicTransitPathSet)
+	{
 		size = publicTransitPathSet->pathSet.size();
 	}
 	return size;
 }
 
-double PT_RouteChoiceLuaModel::getTotalInVehicleTime(unsigned int index)
+double PT_RouteChoiceLuaModel::getInVehicleTime(unsigned int index) const
 {
 	double ret = 0.0;
 	unsigned int sizeOfChoiceSet = getSizeOfChoiceSet();
 	if (publicTransitPathSet && index <= sizeOfChoiceSet && index > 0) {
-		std::set<PT_Path, cmp_path_vector>::iterator it = publicTransitPathSet->pathSet.begin();
+		std::set<PT_Path, cmp_path_vector>::const_iterator it = publicTransitPathSet->pathSet.begin();
 		std::advance(it, index - 1);
-		ret = it->getTotalInVehicleTravelTimeSecs();
+		ret = it->getInVehicleTravelTimeSecs();
 	}
 	return ret;
 }
 
-double PT_RouteChoiceLuaModel::getTotalWalkTime(unsigned int index)
+double PT_RouteChoiceLuaModel::getWalkTime(unsigned int index) const
 {
 	double ret = 0.0;
 	unsigned int sizeOfChoiceSet = getSizeOfChoiceSet();
 	if (publicTransitPathSet && index <= sizeOfChoiceSet && index > 0) {
-		std::set<PT_Path, cmp_path_vector>::iterator it = publicTransitPathSet->pathSet.begin();
+		std::set<PT_Path, cmp_path_vector>::const_iterator it = publicTransitPathSet->pathSet.begin();
 		std::advance(it, index - 1);
-		ret = it->getTotalWalkingTimeSecs();
+		ret = it->getWalkingTimeSecs();
 	}
 	return ret;
 }
 
-double PT_RouteChoiceLuaModel::getTotalWaitTime(unsigned int index)
+double PT_RouteChoiceLuaModel::getWaitTime(unsigned int index) const
 {
 	double ret = 0.0;
 	unsigned int sizeOfChoiceSet = getSizeOfChoiceSet();
 	if (publicTransitPathSet && index <= sizeOfChoiceSet && index > 0) {
-		std::set<PT_Path, cmp_path_vector>::iterator it = publicTransitPathSet->pathSet.begin();
+		std::set<PT_Path, cmp_path_vector>::const_iterator it = publicTransitPathSet->pathSet.begin();
 		std::advance(it, index - 1);
-		ret = it->getTotalWaitingTimeSecs();
+		ret = it->getWaitingTimeSecs();
 	}
 	return ret;
 }
 
-double PT_RouteChoiceLuaModel::getTotalPathSize(unsigned int index)
+double PT_RouteChoiceLuaModel::getPathSize(unsigned int index) const
 {
 	double ret = 0.0;
 	unsigned int sizeOfChoiceSet = getSizeOfChoiceSet();
 	if (publicTransitPathSet && index <= sizeOfChoiceSet && index > 0)
 	{
-		std::set<PT_Path, cmp_path_vector>::iterator it = publicTransitPathSet->pathSet.begin();
+		std::set<PT_Path, cmp_path_vector>::const_iterator it = publicTransitPathSet->pathSet.begin();
 		std::advance(it, index - 1);
 		ret = it->getPathSize();
 	}
 	return ret;
 }
 
-int PT_RouteChoiceLuaModel::getTotalNumTxf(unsigned int index)
+int PT_RouteChoiceLuaModel::getNumTxf(unsigned int index) const
 {
 	int ret = 0.0;
 	unsigned int sizeOfChoiceSet = getSizeOfChoiceSet();
 	if (publicTransitPathSet && index <= sizeOfChoiceSet && index > 0)
 	{
-		std::set<PT_Path, cmp_path_vector>::iterator it = publicTransitPathSet->pathSet.begin();
+		std::set<PT_Path, cmp_path_vector>::const_iterator it = publicTransitPathSet->pathSet.begin();
 		std::advance(it, index - 1);
-		ret = it->getTotalNumberOfTransfers();
+		ret = it->getNumTransfers();
 	}
 	return ret;
 }
 
-double PT_RouteChoiceLuaModel::getTotalCost(unsigned int index)
+double PT_RouteChoiceLuaModel::getCost(unsigned int index) const
 {
 	double ret = 0.0;
 	unsigned int sizeOfChoiceSet = getSizeOfChoiceSet();
-	if (publicTransitPathSet && index <= sizeOfChoiceSet && index > 0) {
-		std::set<PT_Path, cmp_path_vector>::iterator it = publicTransitPathSet->pathSet.begin();
+	if (publicTransitPathSet && index <= sizeOfChoiceSet && index > 0)
+	{
+		std::set<PT_Path, cmp_path_vector>::const_iterator it = publicTransitPathSet->pathSet.begin();
 		std::advance(it, index - 1);
-		ret = it->getTotalCost();
+		ret = it->getPathCost();
 	}
 	return ret;
 }
 
-int PT_RouteChoiceLuaModel::getModes(unsigned int index)
+double PT_RouteChoiceLuaModel::getPtDistanceKms(unsigned int index) const
+{
+	double ret = 0.0;
+	unsigned int sizeOfChoiceSet = getSizeOfChoiceSet();
+	if (publicTransitPathSet && index <= sizeOfChoiceSet && index > 0)
+	{
+		std::set<PT_Path, cmp_path_vector>::const_iterator it = publicTransitPathSet->pathSet.begin();
+		std::advance(it, index - 1);
+		ret = it->getPtDistanceKms();
+	}
+	return ret;
+}
+
+int PT_RouteChoiceLuaModel::getModes(unsigned int index) const
 {
 	int ret = 0;
 	unsigned int sizeOfChoiceSet = getSizeOfChoiceSet();
 	if(publicTransitPathSet && index <= sizeOfChoiceSet && index > 0)
 	{
-		std::set<PT_Path, cmp_path_vector>::iterator it = publicTransitPathSet->pathSet.begin();
+		std::set<PT_Path, cmp_path_vector>::const_iterator it = publicTransitPathSet->pathSet.begin();
 		std::advance(it, index - 1);
 		ret = it->getPathModesType();
 	}
@@ -197,15 +217,24 @@ std::vector<sim_mob::OD_Trip> PT_RouteChoiceLuaModel::makePT_RouteChoice(const s
 	return odTrips;
 }
 
+PT_PathSet PT_RouteChoiceLuaModel::fetchPathset(int origin, int destination, const DailyTime& startTime, const std::string& ptPathsetStoredProcName) const
+{
+	PT_PathSet pathSet;
+	loadPT_PathSet(origin, destination, startTime, pathSet,ptPathsetStoredProcName);
+	return pathSet;
+}
+
 bool PT_RouteChoiceLuaModel::getBestPT_Path(int origin, int dest, unsigned int startTime, std::vector<sim_mob::OD_Trip>& odTrips, std::string dbid, unsigned int start_time, const std::string& ptPathsetStoredProcName)
 {
 	bool ret = false;
 	PT_PathSet pathSet;
 	curStartTime = DailyTime(startTime);
-	loadPT_PathSet(origin, dest, pathSet,ptPathsetStoredProcName);
+	loadPT_PathSet(origin, dest, DailyTime(startTime), pathSet,ptPathsetStoredProcName);
 	if (pathSet.pathSet.empty())
 	{
-		Print() << "[PT pathset]load pathset failed:[" << origin << "]:[" << dest << "]" << std::endl;
+		sim_mob::BasicLogger& ptPathsetLogger  = sim_mob::Logger::log("pt_pathset_failed.csv");
+		ptPathsetLogger << origin << "," << dest << ","<<curStartTime.getStrRepr() << std::endl;
+		throw PT_PathsetLoadException(origin, dest);
 	}
 	else
 	{
@@ -214,7 +243,6 @@ bool PT_RouteChoiceLuaModel::getBestPT_Path(int origin, int dest, unsigned int s
 		std::string destId = boost::lexical_cast < std::string > (dest);
 		publicTransitPathSet = &pathSet;
 		odTrips = makePT_RouteChoice(originId, destId);
-		//printScenarioAndOD(odTrips, dbid, start_time);
 		ret = true;
 	}
 	return ret;
@@ -255,12 +283,13 @@ void PT_RouteChoiceLuaModel::storeBestPT_Path()
 void PT_RouteChoiceLuaModel::mapClasses()
 {
 	getGlobalNamespace(state.get()).beginClass <PT_RouteChoiceLuaModel> ("PT_RouteChoiceLuaModel")
-			.addFunction("total_in_vehicle_time",&PT_RouteChoiceLuaModel::getTotalInVehicleTime)
-			.addFunction("total_walk_time",&PT_RouteChoiceLuaModel::getTotalWalkTime)
-			.addFunction("total_wait_time",&PT_RouteChoiceLuaModel::getTotalWaitTime)
-			.addFunction("total_path_size",&PT_RouteChoiceLuaModel::getTotalPathSize)
-			.addFunction("total_no_txf", &PT_RouteChoiceLuaModel::getTotalNumTxf)
-			.addFunction("total_cost", &PT_RouteChoiceLuaModel::getTotalCost)
+			.addFunction("total_in_vehicle_time",&PT_RouteChoiceLuaModel::getInVehicleTime)
+			.addFunction("total_walk_time",&PT_RouteChoiceLuaModel::getWalkTime)
+			.addFunction("total_wait_time",&PT_RouteChoiceLuaModel::getWaitTime)
+			.addFunction("total_path_size",&PT_RouteChoiceLuaModel::getPathSize)
+			.addFunction("total_no_txf", &PT_RouteChoiceLuaModel::getNumTxf)
+			.addFunction("total_cost", &PT_RouteChoiceLuaModel::getCost)
+			.addFunction("pt_distance_km", &PT_RouteChoiceLuaModel::getPtDistanceKms)
 			.addFunction("path_pt_modes", &PT_RouteChoiceLuaModel::getModes)
 			.endClass();
 }
@@ -275,7 +304,7 @@ void loadPT_PathsetFromDB(soci::session& sql, const std::string& funcName, int o
 	}
 }
 
-void PT_RouteChoiceLuaModel::loadPT_PathSet(int origin, int dest, PT_PathSet& pathSet, const std::string& ptPathsetStoredProcName)
+void PT_RouteChoiceLuaModel::loadPT_PathSet(int origin, int dest, const DailyTime& curTime, PT_PathSet& pathSet, const std::string& ptPathsetStoredProcName) const
 {
 	const BusController* busController = BusController::GetInstance();
 	const TravelTimeManager* ttMgr = TravelTimeManager::getInstance();
@@ -289,7 +318,10 @@ void PT_RouteChoiceLuaModel::loadPT_PathSet(int origin, int dest, PT_PathSet& pa
 
 		//compute and set path travel time
 		double pathTravelTime = 0.0;
-		DailyTime nextStartTime = curStartTime;
+		double pathWaitingTime = 0.0;
+		double pathInVehicleTravelTime = 0.0;
+		double pathPtDistanceInMts = 0.0;
+		DailyTime nextStartTime = curTime;
 		bool invalidPath = false;
 		for(PT_NetworkEdge& edge : pathEdges)
 		{
@@ -332,7 +364,10 @@ void PT_RouteChoiceLuaModel::loadPT_PathSet(int origin, int dest, PT_PathSet& pa
 					originStop = originStop->getTwinStop(); // origin stop should not be a sink terminus
 				}
 
-				double waitingTime = ptStats->getWaitingTime((nextStartTime.getValue()/1000), originStop->getStopCode(), lines.front());
+				std::string originStopCode = originStop->getStopCode();
+				if(originStopCode.find(TWIN_BUS_STOP_PREFIX) != std::string::npos) {	originStopCode = originStop->getTwinStop()->getStopCode(); }
+
+				double waitingTime = ptStats->getWaitingTime((nextStartTime.getValue()/1000), originStopCode, lines.front());
 				if(waitingTime > 0)
 				{
 					edgeTravelTime = edgeTravelTime + waitingTime;
@@ -392,7 +427,9 @@ void PT_RouteChoiceLuaModel::loadPT_PathSet(int origin, int dest, PT_PathSet& pa
 					while(isBeforeDestStop && nextStop && nextStop->getParentSegment()->getParentLink() == currentLink)
 					{
 						isBeforeDestStop = !((nextStop == destinStop) || (nextStop->getTwinStop() == destinStop));
-						double dwellTime = ptStats->getDwellTime((nextStartTime.getValue()/1000), nextStop->getStopCode(), lines.front());
+						std::string nextStopCode = nextStop->getStopCode();
+						if(nextStopCode.find(TWIN_BUS_STOP_PREFIX) != std::string::npos) { nextStop->getTwinStop()->getStopCode(); }
+						double dwellTime = ptStats->getDwellTime((nextStartTime.getValue()/1000), nextStopCode, lines.front());
 						if(dwellTime > 0)
 						{
 							tt = tt + dwellTime;
@@ -403,6 +440,8 @@ void PT_RouteChoiceLuaModel::loadPT_PathSet(int origin, int dest, PT_PathSet& pa
 					}
 
 					edgeTravelTime = edgeTravelTime + tt;
+					pathInVehicleTravelTime = pathInVehicleTravelTime + tt;
+					pathPtDistanceInMts = pathPtDistanceInMts + currentLink->getLength();
 					nextStartTime = DailyTime(nextStartTime.getValue() + std::floor(tt*1000));
 
 					if(!isBeforeDestStop)
@@ -417,6 +456,7 @@ void PT_RouteChoiceLuaModel::loadPT_PathSet(int origin, int dest, PT_PathSet& pa
 
 				edge.setLinkTravelTimeSecs(edgeTravelTime);
 				pathTravelTime = pathTravelTime + edgeTravelTime;
+				pathWaitingTime = pathWaitingTime + waitingTime;
 				break;
 			}
 			case sim_mob::TRAIN_EDGE:
@@ -424,6 +464,9 @@ void PT_RouteChoiceLuaModel::loadPT_PathSet(int origin, int dest, PT_PathSet& pa
 				double edgeTravelTime =  edge.getLinkTravelTimeSecs() + edge.getWalkTimeSecs() + edge.getWaitTimeSecs();
 				edge.setLinkTravelTimeSecs(edgeTravelTime);
 				pathTravelTime = pathTravelTime + edgeTravelTime;
+				pathWaitingTime = pathWaitingTime + edge.getWaitTimeSecs();
+				pathInVehicleTravelTime = pathInVehicleTravelTime + edge.getLinkTravelTimeSecs();
+				pathPtDistanceInMts = pathPtDistanceInMts + (edge.getDistKms() * 1000);
 				nextStartTime = DailyTime(nextStartTime.getValue() + std::floor(edgeTravelTime*1000));
 				/*std::string startStop=edge.getStartStop();
 				std::string endStop=edge.getEndStop();
@@ -459,6 +502,9 @@ void PT_RouteChoiceLuaModel::loadPT_PathSet(int origin, int dest, PT_PathSet& pa
 		if(invalidPath) { continue; }
 		path.setPathEdges(pathEdges);
 		path.setPathTravelTime(pathTravelTime);
+		path.setWaitingTimeSecs(pathWaitingTime);
+		path.setInVehicleTravelTimeSecs(pathInVehicleTravelTime);
+		path.setPtDistanceKms(pathPtDistanceInMts/METERS_IN_UNIT_KM);
 		pathSet.pathSet.insert(path);
 	}
 	pathSet.computeAndSetPathSize();

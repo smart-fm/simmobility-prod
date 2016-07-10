@@ -4,6 +4,7 @@
 #include <map>
 #include <vector>
 #include "conf/NetworkPrinter.hpp"
+#include "conf/SimulationInfoPrinter.hpp"
 #include "entities/params/PT_NetworkEntities.hpp"
 #include "entities/BusController.hpp"
 #include "entities/BusControllerMT.hpp"
@@ -289,13 +290,18 @@ void ExpandMidTermConfigFile::printSettings()
     std::cout << "Network details loaded from database connection: " << cfg.getDatabaseConnectionString() << "\n";
 
     //Print the network (this will go to a different output file...)
-    std::cout << "------------------\n";
-    NetworkPrinter nwPrinter(cfg, cfg.outNetworkFileName);
+	std::cout << "------------------\n";
+	NetworkPrinter nwPrinter(cfg, cfg.outNetworkFileName);
 	nwPrinter.printNetwork(RoadNetwork::getInstance());
+
     std::cout << "------------------\n";
 
     //Print the train network
     if(cfg.trainController.enabled){
     	TrainController<Person_MT>::getInstance()->printTrainNetwork(cfg.outTrainNetworkFilename);
     }
+
+	SimulationInfoPrinter simInfoPrinter(cfg, cfg.outSimInfoFileName);
+	simInfoPrinter.printSimulationInfo();
+
 }

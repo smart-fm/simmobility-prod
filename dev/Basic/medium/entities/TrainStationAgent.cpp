@@ -20,9 +20,10 @@
 #include "event/SystemEvents.hpp"
 #include "event/args/ReRouteEventArgs.hpp"
 using namespace sim_mob::event;
+
 namespace
 {
-const double safeDistanceToAhead = 1000.0;
+const double safeDistanceToAhead = 140;
 }
 namespace sim_mob {
 namespace medium
@@ -127,17 +128,9 @@ void TrainStationAgent::HandleMessage(messaging::Message::MessageType type, cons
 		{
 			pendingTrainDriver[lineId] = std::list<TrainDriver*>();
 		}
-		if(pendingTrainDriver[lineId].size()>1)
-		{
-			messaging::MessageBus::PostMessage(TrainController<Person_MT>::getInstance(),
-										MSG_TRAIN_BACK_DEPOT, messaging::MessageBus::MessagePtr(new TrainMessage(msg.trainDriver->getParent())));
-		}
 
-		else
-		{
+		pendingTrainDriver[lineId].push_back(msg.trainDriver);
 
-			pendingTrainDriver[lineId].push_back(msg.trainDriver);
-		}
 		break;
 	}
 	case TRAIN_ARRIVAL_AT_ENDPOINT:
@@ -270,12 +263,13 @@ void TrainStationAgent::dispathPendingTrains(timeslice now)
 				{
 					ahead = iLastDriver->second;
 					sim_mob::medium::TrainMovement* trainMover = dynamic_cast<sim_mob::medium::TrainMovement*>(next->Movement());
-					double distanceToNextTrain = trainMover->getDistanceToNextTrain(ahead);
+					double distanceToNextTrain = trainMover->getDistanceToNextTrain(ahead,false);
 					if (distanceToNextTrain > safeDistanceToAhead)
 					{
 						success = true;
 					}
 				}
+
 				else
 				{
 
@@ -322,6 +316,7 @@ void TrainStationAgent::dispathPendingTrains(timeslice now)
 						trainDriverItr++;
 					}
 				}
+
 				if (success || !ahead)
 				{
 					trainDriver.push_back(next);
@@ -337,7 +332,6 @@ void TrainStationAgent::dispathPendingTrains(timeslice now)
 					}
 					Role<Person_MT> *tDriver=dynamic_cast<Role<Person_MT>*>(next);
 					TrainController<Person_MT>::getInstance()->AddToListOfActiveTrainsInLine(lineId,tDriver);
-
 				}
 			}
 		}
@@ -357,7 +351,7 @@ void TrainStationAgent::passengerLeaving(timeslice now)
 		}
 	}
 }
-void TrainStationAgent::triggerRerouting(const event::EventArgs& args)
+void TrainStationAgent::triggerRerouting(const event::EventArgs& args, timeslice now)
 {
 	std::list<Person_MT*> colPersons;
 	std::map<const Platform*, std::list<WaitTrainActivity*>>::iterator itWaiting;
@@ -376,10 +370,11 @@ void TrainStationAgent::triggerRerouting(const event::EventArgs& args)
 		}
 		persons.clear();
 	}
+	DailyTime current = DailyTime(ConfigManager::GetInstance().FullConfig().simStartTime().getValue()+now.ms());
 	for(std::list<Person_MT*>::iterator it = colPersons.begin(); it!=colPersons.end();it++){
 		messaging::MessageBus::SubscribeEvent(EVT_DISRUPTION_CHANGEROUTE, this, *it);
 		messaging::MessageBus::PublishInstantaneousEvent(EVT_DISRUPTION_CHANGEROUTE, this,
-				messaging::MessageBus::EventArgsPtr(new ChangeRouteEventArgs(stationName,0)));
+				messaging::MessageBus::EventArgsPtr(new ReRouteEventArgs(stationName,current.getValue())));
 		messaging::MessageBus::UnSubscribeEvent(EVT_DISRUPTION_CHANGEROUTE, this, *it);
 		messaging::MessageBus::PostMessage(parentConflux,
 							PASSENGER_LEAVE_FRM_PLATFORM, messaging::MessageBus::MessagePtr(new PersonMessage(*it)));
@@ -404,7 +399,7 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 {
 	dispathPendingTrains(now);
 	updateWaitPersons();
-	ConfigManager::GetInstance().FullConfig().simStartTime();
+	performDisruption(now);
 	double sysGran = ConfigManager::GetInstance().FullConfig().baseGranSecond();
 	std::list<TrainDriver*>::iterator it=trainDriver.begin();
 
@@ -434,6 +429,7 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 			{
 
 				bool isDisruptedPlat = false;
+				double dwellTimeInSecs = 0.0;
 				const Platform* platform = (*it)->getNextPlatform();
 				if(disruptionParam.get()&&platform)
 				{
@@ -477,6 +473,7 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 					}
 				}
 
+
 				if(!isDisruptedPlat)
 				{
 					if((*it)->GetTerminateStatus())
@@ -502,10 +499,12 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 						(*it)->calculateDwellTime(boardingNum,alightingNum,noOfPassengersInTrain,now);
 						(*it)->setNextRequested(TrainDriver::REQUESTED_WAITING_LEAVING);
 					}
+
 				}
-
+				DailyTime startTm = ConfigManager::GetInstance().FullConfig().simStartTime();
+				DailyTime current(now.ms() + startTm.getValue());
+				(*it)->setArrivalTime(current.getStrRepr());
 			}
-
 			else if ((*it)->getNextRequested() == TrainDriver::REQUESTED_LEAVING_PLATFORM)
 			{
 				std::string lineId = (*it)->getTrainLine();
@@ -571,11 +570,13 @@ void TrainStationAgent::performDisruption(timeslice now)
 					platformNames.push_back(platform->getPlatformNo());
 				}
 			}
+
 			for(it=platformNames.begin(); it!=platformNames.end(); it++)
 			{
 				if(TrainController<Person_MT>::checkPlatformIsExisted(this, *it))
 				{
-					triggerRerouting(DisruptionEventArgs(*disruptionParam));
+					triggerRerouting(DisruptionEventArgs(*disruptionParam),now);
+
 					break;
 				}
 			}

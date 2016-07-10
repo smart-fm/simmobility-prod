@@ -5,8 +5,12 @@
 #include "Person_MT.hpp"
 
 #include <boost/lexical_cast.hpp>
-#include <stdexcept>
+#include <map>
 #include <numeric>
+#include <stdexcept>
+#include "behavioral/lua/WithindayLuaModel.hpp"
+#include "behavioral/WithindayHelper.hpp"
+#include "behavioral/params/WithindayModeParams.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "config/MT_Config.hpp"
@@ -23,10 +27,44 @@
 #include "util/DailyTime.hpp"
 #include "geospatial/streetdir/RailTransit.hpp"
 #include "entities/params/PT_NetworkEntities.hpp"
+#include "entities/PT_Statistics.hpp"
 
 using namespace std;
 using namespace sim_mob;
 using namespace sim_mob::medium;
+
+namespace
+{
+std::map<int, std::string> setModeMap()
+{
+	// 1 for public bus; 2 for MRT/LRT; 3 for private bus; 4 for drive1;
+	// 5 for shared2; 6 for shared3+; 7 for motor; 8 for walk; 9 for taxi
+	//mode_idx_ref = { 1 : 3, 2 : 5, 3 : 3, 4 : 1, 5 : 6, 6 : 6, 7 : 8, 8 : 2, 9 : 4 }
+	std::map<int, std::string> res;
+	res[-1] = "Invalid";
+	res[1] = "BusTravel";
+	res[2] = "MRT";
+	res[3] = "PrivateBus";
+	res[4] = "Car";
+	res[5] = "Car Sharing 2";
+	res[6] = "Car Sharing 3";
+	res[7] = "Motorcycle";
+	res[8] = "Walk";
+	res[9] = "Taxi";
+	return res;
+}
+
+const std::map<int,std::string> modeMap = setModeMap();
+
+const std::string& getModeString(int idx)
+{
+	if((idx < 1 || idx > 9) && (idx != -1))
+	{
+		throw std::runtime_error("Invalid mode index");
+	}
+	return modeMap.find(idx)->second;
+}
+}
 
 Person_MT::Person_MT(const std::string& src, const MutexStrategy& mtxStrat, int id, std::string databaseID)
 : Person(src, mtxStrat, id, databaseID),
@@ -44,7 +82,11 @@ prevRole(nullptr), currRole(nullptr), nextRole(nullptr), numTicksStuck(0)
 {
 	ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
 	std::string ptPathsetStoredProcName = cfg.getDatabaseProcMappings().procedureMappings["pt_pathset"];
-	convertPublicTransitODsToTrips(PT_NetworkCreater::getInstance(), ptPathsetStoredProcName);
+	try{
+		convertPublicTransitODsToTrips(PT_NetworkCreater::getInstance(), ptPathsetStoredProcName);
+	} catch(PT_PathsetLoadException& exception){
+		Print()<<"[PT pathset]load pt pathset failed!"<<"["<<exception.originNode<<","<<exception.destNode<<"]"<<std::endl;
+	}
 	insertWaitingActivityToTrip();
 	assignSubtripIds();
 	if (!tripChain.empty())
@@ -70,8 +112,6 @@ void Person_MT::FindMrtTripsAndPerformRailTransitRoute(std::vector<sim_mob::OD_T
        {
            std::string src=(*itr).startStop;
            std::string end=(*itr).endStop;
-           //src="NE12/CC13";
-           //end="NS24/NE6/CC1";
            size_t pos = 0;
            if((pos=(src.find("/"))) != std::string::npos)
 		   {
@@ -164,8 +204,6 @@ void Person_MT::FindMrtTripsAndPerformRailTransitRoute(std::vector<sim_mob::OD_T
  std::vector<sim_mob::OD_Trip>  Person_MT::splitMrtTrips(std::vector<std::string> railPath)
 {
 	vector<std::string>::iterator it=railPath.begin();
-	//vector<std::string>::iterator itrEnd=railPath.end();
-	//vector<std::string>::iterator prev=railPath.begin();
 	std::string first=(*it);
     std::string second=*(it+1);
     sim_mob::TrainStop* firststop=sim_mob::PT_NetworkCreater::getInstance().MRTStopsMap[first];
@@ -228,27 +266,51 @@ void Person_MT::FindMrtTripsAndPerformRailTransitRoute(std::vector<sim_mob::OD_T
 }
 
 
-void Person_MT::changeToNewTrip(const std::string& stationName)
+void Person_MT::EnRouteToNextTrip(const std::string& stationName, const DailyTime& now)
 {
 	ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
-	std::string ptPathsetStoredProcName = cfg.getDatabaseProcMappings().procedureMappings["pt_pathset2"];
-	TripChainItem* trip = (*currTripChainItem);
+	std::string ptPathsetStoredProcName = cfg.getDatabaseProcMappings().procedureMappings["pt_pathset_dis"];
+	Trip* trip = dynamic_cast<Trip*>(*currTripChainItem);
 	sim_mob::TrainStop* stop = sim_mob::PT_NetworkCreater::getInstance2().findMRT_Stop(stationName);
-	if(stop){
+	if(stop && trip){
 		const Node* node = stop->getRandomStationSegment()->getParentLink()->getFromNode();
-		trip->origin = WayPoint(node);
 		std::vector<sim_mob::SubTrip>& subTrips = (dynamic_cast<sim_mob::Trip*>(trip))->getSubTripsRW();
 		sim_mob::SubTrip newSubTrip;
-		newSubTrip.origin = trip->origin;
+		newSubTrip.origin = WayPoint(node);
 		newSubTrip.destination = trip->destination;
 		newSubTrip.originType = trip->originType;
 		newSubTrip.destinationType = trip->destinationType;
-		newSubTrip.travelMode = "MRT";
+		newSubTrip.travelMode = chooseModeEnRoute(*trip, node->getNodeId(), now);
+		if(newSubTrip.travelMode=="Invalid"){
+			Print()<<"[mode choice]Invalid mode!["<<getDatabaseId()<<","<<trip->origin.node->getNodeId()<<","<<node->getNodeId()<<","<<trip->destination.node->getNodeId()<<","<<now.getStrRepr()<<"]"<<std::endl;
+			tripChain.clear();
+		}
 		subTrips.clear();
+		bool isLoaded=false;
 		subTrips.push_back(newSubTrip);
-		convertPublicTransitODsToTrips(PT_NetworkCreater::getInstance2(), ptPathsetStoredProcName);
-		insertWaitingActivityToTrip();
-		assignSubtripIds();
+		if(newSubTrip.travelMode=="BusTravel"){
+			try{
+				convertPublicTransitODsToTrips(PT_NetworkCreater::getInstance2(), ptPathsetStoredProcName);
+				isLoaded = true;
+			} catch(PT_PathsetLoadException& exception){
+				Print()<<"[PT pathset]load pt pathset failed!"<<"["<<exception.originNode<<","<<exception.destNode<<"]"<<std::endl;
+				isLoaded = false;
+			}
+			insertWaitingActivityToTrip();
+			assignSubtripIds();
+		}
+		PT_RerouteInfo rerouteInfo;
+		rerouteInfo.personId = this->getDatabaseId();
+		rerouteInfo.stopNo = stop->getStopName();
+		rerouteInfo.lastRoleType = this->getRole()->roleType;
+		rerouteInfo.travelMode = newSubTrip.travelMode;
+		rerouteInfo.originNodeId = trip->origin.node->getNodeId();
+		rerouteInfo.startNodeId = newSubTrip.origin.node->getNodeId();
+		rerouteInfo.destNodeId = newSubTrip.destination.node->getNodeId();
+		rerouteInfo.isPT_loaded = isLoaded;
+		rerouteInfo.currentTime = now.getStrRepr();
+		messaging::MessageBus::PostMessage(PT_Statistics::getInstance(),
+				STORE_PERSON_REROUTE, messaging::MessageBus::MessagePtr(new PT_RerouteInfoMessage(rerouteInfo)), true);
 		currSubTrip = subTrips.begin();
 		isFirstTick = true;
 	}
@@ -317,9 +379,9 @@ void Person_MT::convertPublicTransitODsToTrips(PT_Network& ptNetwork,const std::
 						{
 							itSubTrip->travelMode = "Sharing"; // modify mode name for RoleFactory
 						}
-
+						
 						const StreetDirectory& streetDirectory = StreetDirectory::Instance();
-						std::vector<WayPoint> wayPoints = streetDirectory.SearchShortestDrivingPath(*itSubTrip->origin.node, *itSubTrip->destination.node);
+						std::vector<WayPoint> wayPoints = streetDirectory.SearchShortestDrivingPath<Node, Node>(*itSubTrip->origin.node, *itSubTrip->destination.node);
 						double travelTime = 0.0;
 						const TravelTimeManager* ttMgr = TravelTimeManager::getInstance();
 						for (std::vector<WayPoint>::iterator it = wayPoints.begin(); it != wayPoints.end(); it++)
@@ -350,9 +412,10 @@ void Person_MT::onEvent(event::EventId eventId, sim_mob::event::Context ctxId, e
 	{
 	case EVT_DISRUPTION_CHANGEROUTE:
 	{
-		const ChangeRouteEventArgs& exArgs = MSG_CAST(ChangeRouteEventArgs, args);
+		const ReRouteEventArgs& exArgs = MSG_CAST(ReRouteEventArgs, args);
 		const std::string stationName = exArgs.getStationName();
-		changeToNewTrip(stationName);
+		unsigned int currentTime = exArgs.getCurrentTime();
+		EnRouteToNextTrip(stationName, DailyTime(currentTime));
 		break;
 	}
 	}
@@ -516,6 +579,23 @@ bool Person_MT::updatePersonRole()
 
 	changeRole();
 	return true;
+}
+
+std::string Person_MT::chooseModeEnRoute(const Trip& trip, unsigned int originNode, const DailyTime& curTime) const
+{
+	WithindayModelsHelper wdHelper;
+	ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
+	std::string ptPathsetStoredProcName = cfg.getDatabaseProcMappings().procedureMappings["pt_pathset_dis"];
+	WithindayModeParams modeParams = wdHelper.buildModeChoiceParams(trip, originNode, curTime,ptPathsetStoredProcName);
+	modeParams.unsetDrive1Availability();
+	modeParams.unsetMotorAvailability();
+	modeParams.unsetShare2Availability();
+	modeParams.unsetShare3Availability();
+	modeParams.unsetWalkAvailability();
+	modeParams.unsetPrivateBusAvailability();
+	modeParams.unsetMrtAvailability();
+	int chosenMode = WithindayLuaProvider::getWithindayModel().chooseMode(personInfo, modeParams);
+	return getModeString(chosenMode);
 }
 
 void Person_MT::setStartTime(unsigned int value)

@@ -116,42 +116,43 @@ public:
 	/*
 	 * This is the public transport graph vertex property. It uses vertexId as vertex_name
 	 */
-    typedef boost::property<boost::vertex_name_t, std::string> PT_VertexProperties;
+	typedef boost::property<boost::vertex_name_t, std::string> PT_VertexProperties;
 
-    /*
-     * Definition of public transport graph is a directed graph with above defined edge and vertex properties
-     */
-    typedef boost::adjacency_list<boost::vecS,
+	/*
+    	 * Definition of public transport graph is a directed graph with above defined edge and vertex properties
+    	 */
+    	typedef boost::adjacency_list<boost::vecS,
                                       boost::vecS,
                                       boost::directedS,
                                       PT_VertexProperties,
                                       PT_EdgeProperties> PublicTransitGraph;
 
-    typedef PublicTransitGraph::vertex_descriptor PT_Vertex;
+    	typedef PublicTransitGraph::vertex_descriptor PT_Vertex;
 
-    typedef PublicTransitGraph::edge_descriptor PT_Edge;
-
-    /*
-     * Its an abstract class for the public transport shortest path implementation .
-     * This class is extended by A_StarPublicTransitShortestPathImpl class in A_StarPublicTransitShortestPathImpl.hpp
-     */
-    class PublicTransitShortestPathImpl{
-    public:
-    	/*
-    	 * Pure virtual function to get shortest path in public transport network given pair of vertices
-    	 */
-    	virtual std::vector<PT_NetworkEdge> searchShortestPath(const PT_VertexId& from, const PT_VertexId& to,const PT_CostLabel cost)=0;
+    	typedef PublicTransitGraph::edge_descriptor PT_Edge;
 
     	/*
-    	 * Pure virtual function to get shortest path along with some blacklisted edges in public transport network given pair of vertices
+    	 * Its an abstract class for the public transport shortest path implementation .
+    	 * This class is extended by A_StarPublicTransitShortestPathImpl class in A_StarPublicTransitShortestPathImpl.hpp
     	 */
-    	virtual std::vector<PT_NetworkEdge> searchShortestPathWithBlacklist(const StreetDirectory::PT_VertexId& from,const StreetDirectory::PT_VertexId& to, const std::set<StreetDirectory::PT_EdgeId>& blackList, double& cost)=0;
-    	/*
-    	 * Pure virtual Function to get first K shortest paths in public transport network given pair of vertices.
-    	 */
-    	virtual void searchK_ShortestPaths(uint32_t k, const StreetDirectory::PT_VertexId& from,const StreetDirectory::PT_VertexId& to, std::vector< std::vector<PT_NetworkEdge> > & outPathList)=0;
-    	friend class StreetDirectory;
-    };
+    	class PublicTransitShortestPathImpl
+	{
+    	public:
+    		/*
+    	 	 * Pure virtual function to get shortest path in public transport network given pair of vertices
+    	 	 */
+    		virtual std::vector<PT_NetworkEdge> searchShortestPath(const PT_VertexId& from, const PT_VertexId& to,const PT_CostLabel cost)=0;
+
+    		/*
+    		 * Pure virtual function to get shortest path along with some blacklisted edges in public transport network given pair of vertices
+    		 */
+    		virtual std::vector<PT_NetworkEdge> searchShortestPathWithBlacklist(const StreetDirectory::PT_VertexId& from,const StreetDirectory::PT_VertexId& to, const std::set<StreetDirectory::PT_EdgeId>& blackList, double& cost)=0;
+    		/*
+    		 * Pure virtual Function to get first K shortest paths in public transport network given pair of vertices.
+    		 */
+    		virtual void searchK_ShortestPaths(uint32_t k, const StreetDirectory::PT_VertexId& from,const StreetDirectory::PT_VertexId& to, std::vector< std::vector<PT_NetworkEdge> > & outPathList)=0;
+    		friend class StreetDirectory;
+    	};
 
 public:
 	/**
@@ -224,19 +225,34 @@ public:
 		 * Retrieves a Vertex based on a Node. A flag in the return value is false to indicate failure.
 		 *
 		 * @param Node is a reference to the input Node
-		 *
+         	 * @param timeRange is time range, default value is peak time in the morning
+        	 * @param randomGraphId is random graph index, default value is 0.
+        	 *
 		 * @return a VertexDesc with a flag value to indicate success or failure
 		 */
-		virtual VertexDesc DrivingVertex(const Node& n) const = 0;
+        	virtual VertexDesc DrivingVertex(const Node& n, TimeRange timeRange = Default, int randomGraphIdx = 0) const = 0;
+
+        	/**
+        	 * Retrieves a Vertex based on a Link. A flag in the return value is false to indicate failure.
+        	 *
+        	 * @param link is a reference to the input Link
+        	 * @param timeRange is time range, default value is peak time in the morning
+        	 * @param randomGraphId is random graph index, default value is 0.
+        	 *
+        	 * @return a VertexDesc with a flag value to indicate success or failure
+        	 */
+        	virtual VertexDesc DrivingVertex(const Link& n, TimeRange timeRange = Default, int randomGraphIdx = 0) const = 0;
 
 		/**
 		 * Retrieve a Vertex based on a BusStop. A flag in the return value is false to indicate failure.
 		 *
 		 * @param BusStop is a reference to the input bus stop
-		 *
+        	 * @param timeRange is time range, default value is peak time in the morning
+        	 * @param randomGraphId is random graph index, default value is 0.
+        	 *
 		 * @return a VertexDesc with a flag value to indicate success or failure
 		 */
-		virtual VertexDesc DrivingVertex(const BusStop& b) const = 0;
+       		virtual VertexDesc DrivingVertex(const BusStop& b, TimeRange timeRange = Default, int randomGraphIdx = 0) const = 0;
 
 		/**
 		 * Retrieves shortest driving path from original point to destination
@@ -244,10 +260,13 @@ public:
 		 * @param from is original vertex in the graph
 		 * @param to is destination vertex in the graph
 		 * @param blackList is the black list to mask some edge in the graph
+        	 * @param timeRange is time range, default value is peak time in the morning
+        	 * @param randomGraphId is random graph index, default value is 0.
 		 *
 		 * @return the shortest path result.
 		 */
-		virtual std::vector<WayPoint> GetShortestDrivingPath(const VertexDesc &from, const VertexDesc &to, const std::vector<const Link *> &blackList) const = 0;
+        	virtual std::vector<WayPoint> GetShortestDrivingPath(const VertexDesc &from, const VertexDesc &to, const std::vector<const Link *> &blackList,
+                                                             TimeRange timeRange = Default, int randomGraphIdx = 0) const = 0;
 
 		/**
 		 * Prints the graph structure
@@ -298,31 +317,64 @@ public:
 	 * The resulting array contains LINK or NODE WayPoint types. NODES at the beginning or end
 	 * of the array can be ignored; NODES in the middle represent Link Connectors.
 	 *
-	 * @param from is a parameter to hold starting node
-	 * @param to is a parameter to hold ending node
+    	 * @param from is a parameter to hold starting node/link
+    	 * @param to is a parameter to hold ending node/link
 	 * @param blackList take black list when searching shortest path
 	 *
 	 * @return the shortest path result.
 	 */
-	std::vector<WayPoint> SearchShortestDrivingPath(const Node &from, const Node &to,
-													const std::vector<const Link*>& blackList = std::vector<const Link*>()) const;
+    	template<class OriginType, class DestinationType>
+    	std::vector<WayPoint> SearchShortestDrivingPath(const OriginType &from, const DestinationType &to,
+                                                    const std::vector<const Link*>& blackList = std::vector<const Link*>()) const
+    	{
+        	std::vector<WayPoint> res;
+        	if (!spImpl)
+       		{
+            		return res;
+        	}
+        	VertexDesc source = DrivingVertex(from);
+        	VertexDesc sink = DrivingVertex(to);
+        	res = spImpl->GetShortestDrivingPath(source, sink, blackList);
+        	return res;
+    	}
+
 	/**
 	 * Retrieves a vertex in the distance graph
 	 *
-	 * @param node is a parameter which is node
+    	 * @param item is a parameter which can be node/link
+    	 * @param timeRange is time range, default value is peak time in the morning
+    	 * @param randomGraphId is random graph index, default value is 0.
+    	 *
 	 * @return a VertexDesc which hold vertex in the graph
 	 */
-	VertexDesc DrivingVertex(const Node& node) const;
+    	template<class RoadItemType>
+    	VertexDesc DrivingVertex(const RoadItemType& item, TimeRange timeRange = Default, int randomGraphId = 0) const
+   	{
+        	if(!spImpl)
+        	{
+            		return VertexDesc(false);
+       		}
+        	return spImpl->DrivingVertex(item, timeRange, randomGraphId);
+    	}
+
 	/**
 	 * Retrieves a vertex in the time graph
 	 *
-	 * @param node
+     	 * @param item is a parameter which can be node/link
 	 * @param timeRange is time range, default value is peak time in the morning
 	 * @param randomGraphId is random graph index, default value is 0.
 	 *
 	 * @return a VertexDesc which hold vertex in the graph
 	 */
-	VertexDesc DrivingTimeVertex(const Node& node, TimeRange timeRange = MorningPeak, int randomGraphId = 0) const;
+    	template<class RoadItemType>
+    	VertexDesc DrivingTimeVertex(const RoadItemType& item, TimeRange timeRange = MorningPeak, int randomGraphId = 0) const
+    	{
+        	if(!sttpImpl)
+        	{
+            		return VertexDesc(false);
+        	}
+        	return sttpImpl->DrivingVertex(item, timeRange, randomGraphId);
+    	}
 	/**
 	 * Return the time-based shortest path to drive from to another. Performs a search (currently using
 	 *  the A* algorithm) from one to another.
@@ -333,10 +385,22 @@ public:
 	 * @param randomGraphId is random graph index, default value is 0.
 	 * @return the shortest path result.
 	 */
+    	template<class RoadItemType1, class RoadItemType2>
 	std::vector<sim_mob::WayPoint> SearchShortestDrivingTimePath(
-			const sim_mob::Node& from,	const sim_mob::Node& to,
-			const std::vector<const sim_mob::Link*>& blacklist =std::vector<const sim_mob::Link*>(),
-			TimeRange timeRange = MorningPeak,unsigned int randomGraphId = 0) const;
+            const RoadItemType1& from,	const RoadItemType1& to,
+	    const std::vector<const sim_mob::Link*>& blacklist =std::vector<const sim_mob::Link*>(),
+	    TimeRange timeRange = MorningPeak,unsigned int randomGraphIdx = 0) const
+    	{
+        	if (!sttpImpl) 
+		{
+            		return std::vector<sim_mob::WayPoint>();
+        	}
+        	VertexDesc source = DrivingTimeVertex(from, timeRange, randomGraphIdx);
+        	VertexDesc sink = DrivingTimeVertex(to, timeRange, randomGraphIdx);
+        	std::vector<sim_mob::WayPoint> res = sttpImpl->GetShortestDrivingPath(source, sink, blacklist, timeRange, randomGraphIdx);
+        	return res;
+    	}
+
 	/**
 	 * Initialize the StreetDirectory object (to be invoked by the simulator kernel).
 	 *
@@ -356,8 +420,8 @@ private:
 	/** shortest travel time path*/
 	ShortestPathImpl* sttpImpl;
 
-    /**Public Transit implementation*/
-    PublicTransitShortestPathImpl* ptImpl;
+    	/**Public Transit implementation*/
+    	PublicTransitShortestPathImpl* ptImpl;
 };
 }
 

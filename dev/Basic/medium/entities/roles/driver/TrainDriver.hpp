@@ -108,9 +108,13 @@ public:
 	void setWaitingTime(double val);
 	/**
 	 * computing dwell time
-	 * @param totalNum is the total number of boarding and alighting
+	 * @param boardingNum is the boarding number of passengers
+	 * @param alightingNum is alighting number of passengers
+	 * @return dwell time in seconds
 	 */
+
 	void calculateDwellTime(int boarding,int alighting,int noOfPassengerInTrain,timeslice now);
+
 	/**
 	 * get train line id
 	 * @return line id
@@ -177,6 +181,17 @@ public:
 	 * @param now is current time
 	 */
 	void storeWaitingTime(WaitTrainActivity* waitingActivity,timeslice now) const;
+	/**
+	 * store arrival time
+	 * @param currentTime is current time
+	 * @param waitTime is waiting time at current platform
+	 */
+	void storeArrivalTime(const std::string& currentTime, const std::string& waitTime);
+	/**
+	 * set arrival time
+	 * @param currentTime is current time when train arrive at platform
+	 */
+	void setArrivalTime(const std::string& currentTime);
 	/* to get traiId*/
 	int getTrainId() const;
 
@@ -277,6 +292,10 @@ private:
 	mutable boost::mutex restrictPassengersEntitiesLock;
 	mutable boost::mutex platformsToBeIgnoredLock;
 	mutable boost::mutex terminateTrainServiceLock;
+
+	/**sequence no for platforms*/
+	unsigned int platSequenceNumber;
+
 	TrainDriver *nextDriverInOppLine;
 	bool holdTrain=false;
 	bool stoppedAtPoint=false;
@@ -284,6 +303,8 @@ private:
 
 	/**recording disruption information*/
 	boost::shared_ptr<DisruptionParams> disruptionParam;
+	/**arrival time when stopping the platform*/
+	std::string arrivalTimeAtPlatform;
 
 private:
 	friend class TrainBehavior;

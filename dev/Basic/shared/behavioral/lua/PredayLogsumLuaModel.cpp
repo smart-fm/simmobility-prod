@@ -22,37 +22,37 @@ sim_mob::PredayLogsumLuaModel::~PredayLogsumLuaModel()
 void sim_mob::PredayLogsumLuaModel::mapClasses()
 {
 	getGlobalNamespace(state.get())
-			.beginClass <PredayPersonParams> ("PredayPersonParams")
-				.addProperty("person_id", &PredayPersonParams::getPersonId)
-				.addProperty("person_type_id", &PredayPersonParams::getPersonTypeId)
-				.addProperty("age_id", &PredayPersonParams::getAgeId)
-				.addProperty("universitystudent", &PredayPersonParams::getIsUniversityStudent)
-				.addProperty("female_dummy", &PredayPersonParams::getIsFemale)
-				.addProperty("student_dummy", &PredayPersonParams::isStudent) //not used in lua
-				.addProperty("worker_dummy", &PredayPersonParams::isWorker) //not used in lua
-				.addProperty("income_id", &PredayPersonParams::getIncomeId)
-				.addProperty("missing_income", &PredayPersonParams::getMissingIncome)
-				.addProperty("work_at_home_dummy", &PredayPersonParams::getWorksAtHome)
-				.addProperty("car_own", &PredayPersonParams::getCarOwn)
-				.addProperty("car_own_normal", &PredayPersonParams::getCarOwnNormal)
-				.addProperty("car_own_offpeak", &PredayPersonParams::getCarOwnOffpeak)
-				.addProperty("motor_own", &PredayPersonParams::getMotorOwn)
-				.addProperty("fixed_work_hour", &PredayPersonParams::getHasFixedWorkTiming) //not used in lua
-				.addProperty("homeLocation", &PredayPersonParams::getHomeLocation) //not used in lua
-				.addProperty("fixed_place", &PredayPersonParams::hasFixedWorkPlace)
-				.addProperty("fixedSchoolLocation", &PredayPersonParams::getFixedSchoolLocation) //not used in lua
-				.addProperty("only_adults", &PredayPersonParams::getHH_OnlyAdults)
-				.addProperty("only_workers", &PredayPersonParams::getHH_OnlyWorkers)
-				.addProperty("num_underfour", &PredayPersonParams::getHH_NumUnder4)
-				.addProperty("presence_of_under15", &PredayPersonParams::getHH_HasUnder15)
-				.addProperty("worklogsum", &PredayPersonParams::getWorkLogSum)
-				.addProperty("edulogsum", &PredayPersonParams::getEduLogSum)
-				.addProperty("shoplogsum", &PredayPersonParams::getShopLogSum)
-				.addProperty("otherlogsum", &PredayPersonParams::getOtherLogSum)
-				.addProperty("dptour_logsum", &PredayPersonParams::getDptLogsum)
-				.addProperty("dpstop_logsum", &PredayPersonParams::getDpsLogsum)
-				.addProperty("travel_probability", &PredayPersonParams::getTravelProbability)
-				.addProperty("num_expected_trips", &PredayPersonParams::getTripsExpected)
+			.beginClass <PersonParams> ("PredayPersonParams")
+				.addProperty("person_id", &PersonParams::getPersonId)
+				.addProperty("person_type_id", &PersonParams::getPersonTypeId)
+				.addProperty("age_id", &PersonParams::getAgeId)
+				.addProperty("universitystudent", &PersonParams::getIsUniversityStudent)
+				.addProperty("female_dummy", &PersonParams::getIsFemale)
+				.addProperty("student_dummy", &PersonParams::isStudent) //not used in lua
+				.addProperty("worker_dummy", &PersonParams::isWorker) //not used in lua
+				.addProperty("income_id", &PersonParams::getIncomeId)
+				.addProperty("missing_income", &PersonParams::getMissingIncome)
+				.addProperty("work_at_home_dummy", &PersonParams::getWorksAtHome)
+				.addProperty("car_own", &PersonParams::getCarOwn)
+				.addProperty("car_own_normal", &PersonParams::getCarOwnNormal)
+				.addProperty("car_own_offpeak", &PersonParams::getCarOwnOffpeak)
+				.addProperty("motor_own", &PersonParams::getMotorOwn)
+				.addProperty("fixed_work_hour", &PersonParams::getHasFixedWorkTiming) //not used in lua
+				.addProperty("homeLocation", &PersonParams::getHomeLocation) //not used in lua
+				.addProperty("fixed_place", &PersonParams::hasFixedWorkPlace)
+				.addProperty("fixedSchoolLocation", &PersonParams::getFixedSchoolLocation) //not used in lua
+				.addProperty("only_adults", &PersonParams::getHH_OnlyAdults)
+				.addProperty("only_workers", &PersonParams::getHH_OnlyWorkers)
+				.addProperty("num_underfour", &PersonParams::getHH_NumUnder4)
+				.addProperty("presence_of_under15", &PersonParams::getHH_HasUnder15)
+				.addProperty("worklogsum", &PersonParams::getWorkLogSum)
+				.addProperty("edulogsum", &PersonParams::getEduLogSum)
+				.addProperty("shoplogsum", &PersonParams::getShopLogSum)
+				.addProperty("otherlogsum", &PersonParams::getOtherLogSum)
+				.addProperty("dptour_logsum", &PersonParams::getDptLogsum)
+				.addProperty("dpstop_logsum", &PersonParams::getDpsLogsum)
+				.addProperty("travel_probability", &PersonParams::getTravelProbability)
+				.addProperty("num_expected_trips", &PersonParams::getTripsExpected)
 			.endClass()
 
 			.beginClass<LogsumTourModeParams>("TourModeParams")
@@ -123,7 +123,7 @@ void sim_mob::PredayLogsumLuaModel::mapClasses()
 			.endClass();
 }
 
-void sim_mob::PredayLogsumLuaModel::computeDayPatternLogsums(PredayPersonParams& personParams) const
+void sim_mob::PredayLogsumLuaModel::computeDayPatternLogsums(PersonParams& personParams) const
 {
 	LuaRef computeLogsumDPT = getGlobal(state.get(), "compute_logsum_dpt");
 	LuaRef dptRetVal = computeLogsumDPT(personParams);
@@ -142,7 +142,7 @@ void sim_mob::PredayLogsumLuaModel::computeDayPatternLogsums(PredayPersonParams&
 	personParams.setDpsLogsum(dpsLogsum.cast<double>());
 }
 
-void sim_mob::PredayLogsumLuaModel::computeDayPatternBinaryLogsums(PredayPersonParams& personParams) const
+void sim_mob::PredayLogsumLuaModel::computeDayPatternBinaryLogsums(PersonParams& personParams) const
 {
 	LuaRef computeLogsumDPB = getGlobal(state.get(), "compute_logsum_dpb");
 	LuaRef dpbRetVal = computeLogsumDPB(personParams);
@@ -157,7 +157,7 @@ void sim_mob::PredayLogsumLuaModel::computeDayPatternBinaryLogsums(PredayPersonP
 	}
 }
 
-void sim_mob::PredayLogsumLuaModel::computeTourModeLogsum(PredayPersonParams& personParams, LogsumTourModeParams& tourModeParams) const
+void sim_mob::PredayLogsumLuaModel::computeTourModeLogsum(PersonParams& personParams, LogsumTourModeParams& tourModeParams) const
 {
 	if(personParams.hasFixedWorkPlace())
 	{
@@ -167,7 +167,7 @@ void sim_mob::PredayLogsumLuaModel::computeTourModeLogsum(PredayPersonParams& pe
 	}
 }
 
-void sim_mob::PredayLogsumLuaModel::computeTourModeDestinationLogsum(PredayPersonParams& personParams, LogsumTourModeDestinationParams& tourModeDestinationParams) const
+void sim_mob::PredayLogsumLuaModel::computeTourModeDestinationLogsum(PersonParams& personParams, LogsumTourModeDestinationParams& tourModeDestinationParams) const
 {
 	if(!personParams.hasFixedWorkPlace())
 	{

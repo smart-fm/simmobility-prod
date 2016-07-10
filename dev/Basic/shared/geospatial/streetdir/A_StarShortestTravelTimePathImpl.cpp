@@ -56,10 +56,12 @@ A_StarShortestTravelTimePathImpl::A_StarShortestTravelTimePathImpl(const sim_mob
 {
 	//initialize random graph pool
 	int randomCount = sim_mob::ConfigManager::GetInstance().FullConfig().getPathSetConf().perturbationIteration;
-	for (int i = 0; i < randomCount; ++i) {
+    for (int i = 0; i < randomCount; ++i)
+    {
 		drivingMapRandomPool.push_back(StreetDirectory::Graph());
 		drivingNodeLookupRandomPool.push_back(NodeVertexLookup());
 		drivingLinkLookupRandomPool.push_back(LinkEdgeLookup());
+		drivingLinkVertexLookupRandomPool.push_back(LinkVertexLookup());
 	}
 	initDrivingNetwork(network);
 }
@@ -105,14 +107,14 @@ void A_StarShortestTravelTimePathImpl::initDrivingNetwork(const sim_mob::RoadNet
 //		procAddDrivingLinks(drivingMapMorningPeak, iter->second,nodeLookupMorningPeak, drivingLinkLookupMorningPeak,getEdgeWeight(iter->second,MorningPeak));
 //		procAddDrivingLinks(drivingMapEveningPeak, iter->second,nodeLookupEveningPeak, drivingLinkLookupEveningPeak,getEdgeWeight(iter->second,EveningPeak));
 //		procAddDrivingLinks(drivingMapNormalTime, iter->second,	nodeLookupNormalTime, drivingLinkLookupNormalTime,getEdgeWeight(iter->second,OffPeak));
-		procAddDrivingLinks(drivingMapDefault, iter->second, nodeLookupDefault,	drivingLinkLookupDefault, getEdgeWeight(iter->second,Default));
-		procAddDrivingLinks(drivingMapHighwayBiasDistance, iter->second,nodeLookupHighwayBiasDistance,drivingLinkLookupHighwayBiasDistance,	getEdgeWeight(iter->second,HighwayBiasDistance));
+		procAddDrivingLinks(drivingMapDefault, iter->second, nodeLookupDefault,	drivingLinkLookupDefault, drivingLinkVertexLookupDefault, getEdgeWeight(iter->second,Default));
+		procAddDrivingLinks(drivingMapHighwayBiasDistance, iter->second,nodeLookupHighwayBiasDistance,drivingLinkLookupHighwayBiasDistance,	drivingLinkVertexLookupHighwayBiasDistance, getEdgeWeight(iter->second,HighwayBiasDistance));
 //		procAddDrivingLinks(drivingMapHighwayBiasMorningPeak, iter->second,	nodeLookupHighwayBiasMorningPeak,drivingLinkLookupHighwayBiasMorningPeak,getEdgeWeight(iter->second,HighwayBiasMorningPeak));
 //		procAddDrivingLinks(drivingMapHighwayBiasEveningPeak, iter->second,	nodeLookupHighwayBiasEveningPeak,drivingLinkLookupHighwayBiasEveningPeak,getEdgeWeight(iter->second,HighwayBiasEveningPeak));
 //		procAddDrivingLinks(drivingMapHighwayBiasNormalTime, iter->second, nodeLookupHighwayBiasNormalTime,	drivingLinkLookupHighwayBiasNormalTime,getEdgeWeight(iter->second,HighwayBiasOffPeak));
-		procAddDrivingLinks(drivingMapHighwayBiasDefault, iter->second,	nodeLookupHighwayBiasDefault,drivingLinkLookupHighwayBiasDefault,getEdgeWeight(iter->second,HighwayBiasDefault));
+		procAddDrivingLinks(drivingMapHighwayBiasDefault, iter->second,	nodeLookupHighwayBiasDefault,drivingLinkLookupHighwayBiasDefault, drivingLinkVertexLookupHighwayBiasDefault, getEdgeWeight(iter->second,HighwayBiasDefault));
 		for (size_t i = 0; i < drivingMapRandomPool.size(); ++i) {
-			procAddDrivingLinks(drivingMapRandomPool[i], iter->second,nodeLookupRandomPool[i], drivingLinkLookupRandomPool[i],getEdgeWeight(iter->second,Random));
+		procAddDrivingLinks(drivingMapRandomPool[i], iter->second,nodeLookupRandomPool[i], drivingLinkLookupRandomPool[i], drivingLinkVertexLookupRandomPool[i], getEdgeWeight(iter->second,Random));
 		}
 	}
 
@@ -248,11 +250,45 @@ double A_StarShortestTravelTimePathImpl::getEdgeWeight(const sim_mob::Link* link
 	return edgeWeight;
 }
 
-StreetDirectory::VertexDesc A_StarShortestTravelTimePathImpl::DrivingVertex(const sim_mob::Node& n) const
+StreetDirectory::VertexDesc A_StarShortestTravelTimePathImpl::DrivingVertex(const sim_mob::Node& node, TimeRange timeRange, int randomGraphIdx) const
 {
 	StreetDirectory::VertexDesc res;
-	res = DrivingVertexDefault(n);
-	return res;
+	switch (timeRange)
+    	{
+    	case Default:
+        	res = DrivingVertexDefault(node);
+        	break;
+    	case HighwayBiasDefault:
+        	res = DrivingVertexHighwayBiasDefault(node);
+        	break;
+    	case HighwayBiasDistance:
+        	res = DrivingVertexHighwayBiasDistance(node);
+        	break;
+    	case Random:
+        	res = DrivingVertexRandom(node, randomGraphIdx);
+        	break;
+    	}
+    	return res;
+}
+StreetDirectory::VertexDesc A_StarShortestTravelTimePathImpl::DrivingVertex(const sim_mob::Link& link, TimeRange timeRange, int randomGraphIdx) const
+{
+	StreetDirectory::VertexDesc res;
+	switch (timeRange)
+	{
+		case Default:
+	        res = DrivingVertexDefault(link);
+        	break;
+    	case HighwayBiasDefault:
+        	res = DrivingVertexHighwayBiasDefault(link);
+        	break;
+    	case HighwayBiasDistance:
+        	res = DrivingVertexHighwayBiasDistance(link);
+        	break;
+    	case Random:
+       		res = DrivingVertexRandom(link, randomGraphIdx);
+        	break;
+    	}
+    	return res;
 }
 //StreetDirectory::VertexDesc A_StarShortestTravelTimePathImpl::DrivingVertexMorningPeak(const sim_mob::Node& n) const
 //{
@@ -294,25 +330,56 @@ StreetDirectory::VertexDesc A_StarShortestTravelTimePathImpl::DrivingVertexDefau
 {
 	StreetDirectory::VertexDesc res;
 	NodeVertexLookup::const_iterator vertexIt = drivingNodeLookupDefault.find(&n);
-	if (vertexIt != drivingNodeLookupDefault.end()) {
+    	if (vertexIt != drivingNodeLookupDefault.end())
+    	{
 		res.valid = true;
 		res.source = vertexIt->second.first;
 		res.sink = vertexIt->second.second;
 		return res;
 	}
-	return res;
+    	return res;
 }
+
+StreetDirectory::VertexDesc A_StarShortestTravelTimePathImpl::DrivingVertexDefault(const Link &link) const
+{
+    	StreetDirectory::VertexDesc res;
+    	LinkVertexLookup::const_iterator vertexIt = drivingLinkVertexLookupDefault.find(&link);
+    	if (vertexIt != drivingLinkVertexLookupDefault.end())
+    	{
+        	res.valid = true;
+        	res.source = vertexIt->second.first;
+        	res.sink = vertexIt->second.second;
+        	return res;
+    	}
+    	return res;
+}
+
 StreetDirectory::VertexDesc A_StarShortestTravelTimePathImpl::DrivingVertexHighwayBiasDistance(const sim_mob::Node& n) const
 {
 	StreetDirectory::VertexDesc res;
 	NodeVertexLookup::const_iterator vertexIt =	drivingNodeLookupHighwayBiasDistance.find(&n);
-	if (vertexIt != drivingNodeLookupHighwayBiasDistance.end()) {
+    	if (vertexIt != drivingNodeLookupHighwayBiasDistance.end())
+    	{
 		res.valid = true;
 		res.source = vertexIt->second.first;
 		res.sink = vertexIt->second.second;
 		return res;
 	}
-	return res;
+    	return res;
+}
+
+StreetDirectory::VertexDesc A_StarShortestTravelTimePathImpl::DrivingVertexHighwayBiasDistance(const Link &link) const
+{
+    	StreetDirectory::VertexDesc res;
+    	LinkVertexLookup::const_iterator vertexIt = drivingLinkVertexLookupHighwayBiasDistance.find(&link);
+    	if (vertexIt != drivingLinkVertexLookupHighwayBiasDistance.end())
+    	{
+        	res.valid = true;
+        	res.source = vertexIt->second.first;
+        	res.sink = vertexIt->second.second;
+        	return res;
+    	}
+    	return res;
 }
 //StreetDirectory::VertexDesc A_StarShortestTravelTimePathImpl::DrivingVertexHighwayBiasMorningPeak(const sim_mob::Node& n) const
 //{
@@ -356,35 +423,62 @@ StreetDirectory::VertexDesc A_StarShortestTravelTimePathImpl::DrivingVertexHighw
 {
 	StreetDirectory::VertexDesc res;
 	NodeVertexLookup::const_iterator vertexIt =	drivingNodeLookupHighwayBiasDefault.find(&n);
-	if (vertexIt != drivingNodeLookupHighwayBiasDefault.end()) {
+    	if (vertexIt != drivingNodeLookupHighwayBiasDefault.end())
+    	{
 		res.valid = true;
 		res.source = vertexIt->second.first;
 		res.sink = vertexIt->second.second;
 		return res;
 	}
-	return res;
+    	return res;
 }
+
+StreetDirectory::VertexDesc A_StarShortestTravelTimePathImpl::DrivingVertexHighwayBiasDefault(const sim_mob::Link &link) const
+{
+    	StreetDirectory::VertexDesc res;
+    	LinkVertexLookup::const_iterator vertexIt =	drivingLinkVertexLookupHighwayBiasDefault.find(&link);
+    	if (vertexIt != drivingLinkVertexLookupHighwayBiasDefault.end())
+    	{
+        	res.valid = true;
+        	res.source = vertexIt->second.first;
+        	res.sink = vertexIt->second.second;
+        	return res;
+    	}
+    	return res;
+}
+
 StreetDirectory::VertexDesc A_StarShortestTravelTimePathImpl::DrivingVertexRandom(const sim_mob::Node& node, unsigned int randomGraphId) const
 {
 	StreetDirectory::VertexDesc res;
 	if (randomGraphId < drivingNodeLookupRandomPool.size()) {
 		NodeVertexLookup::const_iterator vertexIt =	drivingNodeLookupRandomPool[randomGraphId].find(&node);
-		if (vertexIt != drivingNodeLookupRandomPool[randomGraphId].end()) {
+        if (vertexIt != drivingNodeLookupRandomPool[randomGraphId].end())
+        {
 			res.valid = true;
 			res.source = vertexIt->second.first;
 			res.sink = vertexIt->second.second;
 			return res;
 		}
 	}
-	return res;
+    	return res;
 }
 
-std::vector<sim_mob::WayPoint> A_StarShortestTravelTimePathImpl::GetShortestDrivingPath(
-		const StreetDirectory::VertexDesc& from, const StreetDirectory::VertexDesc& to,const std::vector<const sim_mob::Link*>& blacklist) const
+StreetDirectory::VertexDesc A_StarShortestTravelTimePathImpl::DrivingVertexRandom(const sim_mob::Link &link, unsigned int randomGraphId) const
 {
-	return GetShortestDrivingPath(from, to, blacklist, MorningPeak);
+    	StreetDirectory::VertexDesc res;
+    	if (randomGraphId < drivingLinkVertexLookupRandomPool.size())
+    	{
+        	LinkVertexLookup::const_iterator vertexIt =	drivingLinkVertexLookupRandomPool[randomGraphId].find(&link);
+        	if (vertexIt != drivingLinkVertexLookupRandomPool[randomGraphId].end())
+        	{
+            		res.valid = true;
+            		res.source = vertexIt->second.first;
+            		res.sink = vertexIt->second.second;
+            		return res;
+        	}
+    	}
+   	return res;
 }
-
 
 std::vector<WayPoint> A_StarShortestTravelTimePathImpl::searchShortestTTPathWithBlackList(const StreetDirectory::Graph& graph, const StreetDirectory::Vertex& fromVertex,
 																			  const StreetDirectory::Vertex& toVertex,
@@ -512,7 +606,8 @@ vector<WayPoint> A_StarShortestTravelTimePathImpl::searchShortestTTPath(const St
 }
 
 vector<sim_mob::WayPoint> A_StarShortestTravelTimePathImpl::GetShortestDrivingPath(
-		const StreetDirectory::VertexDesc& from, const StreetDirectory::VertexDesc& to,const vector<const sim_mob::Link*>& blacklist, TimeRange tmRange,unsigned int randomGraphId) const
+        const StreetDirectory::VertexDesc& from, const StreetDirectory::VertexDesc& to,
+        const vector<const sim_mob::Link*>& blacklist, TimeRange tmRange,unsigned int randomGraphId) const
 {
 	if (!(from.valid && to.valid))
 	{

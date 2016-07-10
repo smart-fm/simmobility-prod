@@ -1605,7 +1605,7 @@ long sim_mob::medium::PredaySystem::getRandomNodeInZone(const std::vector<ZoneNo
 	{
 		const ZoneNodeParams* znNdPrms = nodes.front();
 		if(znNdPrms->isSinkNode() || znNdPrms->isSourceNode() || znNdPrms->isBusTerminusNode()) { return 0; }
-		return znNdPrms->getAimsunNodeId();
+		return znNdPrms->getNodeId();
 	}
 
 	int offset = Utils::generateInt(0,numNodes-1);
@@ -1621,7 +1621,7 @@ long sim_mob::medium::PredaySystem::getRandomNodeInZone(const std::vector<ZoneNo
 			if(it==nodes.end()) { it = nodes.begin(); } // loop around
 			numAttempts++;
 		}
-		else { return znNdPrms->getAimsunNodeId(); }
+		else { return znNdPrms->getNodeId(); }
 	}
 	return 0;
 }
@@ -1633,7 +1633,7 @@ long sim_mob::medium::PredaySystem::getFirstNodeInZone(const std::vector<ZoneNod
 	{
 		const ZoneNodeParams* znNdPrms = nodes.front();
 		if(znNdPrms->isSinkNode() || znNdPrms->isSourceNode() || znNdPrms->isBusTerminusNode()) { return 0; }
-		return znNdPrms->getAimsunNodeId();
+		return znNdPrms->getNodeId();
 	}
 
 	std::vector<ZoneNodeParams*>::const_iterator it = nodes.begin();
@@ -1641,7 +1641,7 @@ long sim_mob::medium::PredaySystem::getFirstNodeInZone(const std::vector<ZoneNod
 	{
 		const ZoneNodeParams* znNdPrms = (*it);
 		if(znNdPrms->isSinkNode() || znNdPrms->isSourceNode() || znNdPrms->isBusTerminusNode()) { it++; }// check the next one
-		else { return znNdPrms->getAimsunNodeId(); }
+		else { return znNdPrms->getNodeId(); }
 	}
 	return 0;
 }

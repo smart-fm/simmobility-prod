@@ -10,11 +10,8 @@
 #include "database/dao/SqlAbstractDao.hpp"
 #include "database/DB_Connection.hpp"
 #include "behavioral/params/PersonParams.hpp"
-#include "behavioral/PredayClasses.hpp"
 
 namespace sim_mob
-{
-namespace medium
 {
 /**
  * Data access object for Population tables
@@ -57,7 +54,7 @@ public:
 	 * @param addressMap output parameter for storing address_id -> TAZ code map
 	 * @param zoneAddressesMap output parameter for storing list of addresses in each TAZ
 	 */
-	void getAddresses(std::map<long, sim_mob::medium::Address>& addressMap, std::map<int, std::vector<long> >& zoneAddressesMap);
+	void getAddresses(std::map<long, sim_mob::Address>& addressMap, std::map<int, std::vector<long> >& zoneAddressesMap);
 
 private:
 	/**
@@ -97,7 +94,7 @@ public:
 	void getLogsumById(long long id, PersonParams& outObj);
 
 	/**
-	 * fetches taz code for each address id in LT database
+	 * fetches taz code for each address id in simmobility database
 	 * @param outMap output parameter for storing address_id -> TAZ code map
 	 */
 	void getPostcodeToNodeMap(std::map<unsigned int, unsigned int>& outMap);
@@ -120,5 +117,4 @@ private:
 	 */
 	void toRow(PersonParams& data, db::Parameters& outParams, bool update);
 };
-} // end namespace medium
 } // end namespace sim_mib

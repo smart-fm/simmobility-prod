@@ -27,6 +27,12 @@ namespace
 const double distanceArrvingAtPlatform = 0.001;
 const double trainLengthMeter = 138;
 const double convertKmPerHourToMeterPerSec = 1000.0/3600.0;
+/**
+ * converts time from  seconds to milli-seconds
+ */
+inline unsigned int converToMilliseconds(double timeInSecs) {
+	return (timeInSecs*1000.0);
+}
 }
 
 namespace sim_mob
@@ -131,8 +137,12 @@ void TrainMovement::frame_init()
 	{
 		trainPathMover.setPath(trip->getTrainRoute());
 		trainPlatformMover.setPlatforms(trip->getTrainPlatform());
-		nextPlatform=trainPlatformMover.getNextPlatform(); //first platform
+		//nextPlatform=trainPlatformMover.getNextPlatform(); //first platform
 		trainPathMover.SetParentMovementFacet(this);
+		Platform* next = trainPlatformMover.getNextPlatform();
+		facetMutex.lock();
+		nextPlatform = next;
+		facetMutex.unlock();
 
 	}
 }
@@ -551,6 +561,7 @@ void TrainMovement::frame_tick()
 
 			else
 			{
+
 			bool isDisruptedPlatform = false;
 			if(parentDriver->disruptionParam.get())
 			{
@@ -576,13 +587,26 @@ void TrainMovement::frame_tick()
 						parentDriver->getParent()->setToBeRemoved();
 						arrivalAtEndPlatform();
 						isDisruptedPlatform = true;
+						double dwellTimeInSecs = parentDriver->initialDwellTime;
+						DailyTime dwellTime(converToMilliseconds(dwellTimeInSecs));
+						parentDriver->storeArrivalTime(parentDriver->arrivalTimeAtPlatform, dwellTime.getStrRepr());
 					}
 				}
 			}
 
+
 			if(!isDisruptedPlatform)
 			{
 
+				double dwellTimeInSecs=0.0;
+				
+				if(waitingTime<0.0){
+					dwellTimeInSecs = parentDriver->initialDwellTime-waitingTime;
+				} else {
+					dwellTimeInSecs = parentDriver->initialDwellTime;
+				}
+				DailyTime dwellTime(converToMilliseconds(dwellTimeInSecs));
+				parentDriver->storeArrivalTime(parentDriver->arrivalTimeAtPlatform, dwellTime.getStrRepr());				
 				if(parentDriver->GetTerminateStatus())
 				{
 					if(parentDriver->IsStoppedAtPoint()==false)
@@ -591,7 +615,7 @@ void TrainMovement::frame_tick()
 						parentDriver->getParent()->setToBeRemoved();
 						arrivalAtEndPlatform();
 					}
-				}
+			         }
 
 				else
 				{
@@ -745,7 +769,8 @@ bool TrainMovement::isStationCase(double disToTrain, double disToPlatform,double
 	return res;
 }
 
-double TrainMovement::getDistanceToNextTrain(const TrainDriver* nextDriver)
+double TrainMovement::getDistanceToNextTrain(const TrainDriver* nextDriver,bool isSafed)
+
 {
 	double distanceToNextTrain = 0.0;
 	if(nextDriver)
@@ -760,6 +785,7 @@ double TrainMovement::getDistanceToNextTrain(const TrainDriver* nextDriver)
 			if (nextMovement)
 			{
 				double dis = trainPathMover.getDifferentDistance(nextMovement->getPathMover());
+
 				if (dis > 0)
 				{
 					std::map<std::string,std::vector<std::string>> platformNames=TrainController<sim_mob::medium::Person_MT>::getInstance()->GetDisruptedPlatforms_ServiceController();
@@ -779,11 +805,12 @@ double TrainMovement::getDistanceToNextTrain(const TrainDriver* nextDriver)
 					safeDistanceLock.lock();
 					distanceToNextTrain = dis - safeDistance - trainLengthMeter;
 					safeDistanceLock.unlock();
-				}
+				
 			}
 		}
 	}
 	return distanceToNextTrain;
+}
 }
 
 double TrainMovement::getDistanceToNextPlatform(const TrainDriver* nextDriver)

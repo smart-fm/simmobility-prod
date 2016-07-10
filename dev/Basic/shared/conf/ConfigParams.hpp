@@ -100,6 +100,9 @@ public:
 	/// Output train network filename
 	std::string outTrainNetworkFilename;
 
+	/// Output simulation information file name
+	std::string outSimInfoFileName;
+
     /// Is the simulation run using MPI?
 	bool using_MPI;
 

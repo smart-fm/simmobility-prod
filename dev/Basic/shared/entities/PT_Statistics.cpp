@@ -10,6 +10,7 @@
 #include <fstream>
 #include <soci/soci.h>
 #include <soci/postgresql/soci-postgresql.h>
+#include "boost/algorithm/string.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "util/DailyTime.hpp"
@@ -52,9 +53,9 @@ void PT_Statistics::HandleMessage(Message::MessageType type, const Message& mess
 	{
 	case STORE_BUS_ARRIVAL:
 	{
-		const BusArrivalTimeMessage& msg = MSG_CAST(BusArrivalTimeMessage, message);
-		busJourneyTimes.push_back(msg.busArrivalInfo);
-		stopStatsMgr.addStopStats(msg.busArrivalInfo);
+		const PT_ArrivalTimeMessage& msg = MSG_CAST(PT_ArrivalTimeMessage, message);
+		journeyTimes.push_back(msg.arrivalInfo);
+		stopStatsMgr.addStopStats(msg.arrivalInfo);
 		break;
 	}
 	case STORE_PERSON_WAITING:
@@ -70,6 +71,12 @@ void PT_Statistics::HandleMessage(Message::MessageType type, const Message& mess
 	{
 		const PersonTravelTimeMessage& msg = MSG_CAST(PersonTravelTimeMessage, message);
 		personTravelTimes.push_back(msg.personTravelTime);
+		break;
+	}
+	case STORE_PERSON_REROUTE:
+	{
+		const PT_RerouteInfoMessage& msg = MSG_CAST(PT_RerouteInfoMessage, message);
+		personsReroutes.push_back(msg.rerouteInfo);
 		break;
 	}
 	case STORE_WAITING_PERSON_COUNT:
@@ -94,15 +101,15 @@ void PT_Statistics::storeStatistics()
 		std::ofstream outputFile(journeyStatsFilename.c_str());
 		if (outputFile.is_open())
 		{
-			std::vector<BusArrivalTime>::const_iterator it = busJourneyTimes.begin();
-			for (; it != busJourneyTimes.end(); it++)
+			std::vector<PT_ArrivalTime>::const_iterator it = journeyTimes.begin();
+			for (; it != journeyTimes.end(); it++)
 			{
 				outputFile << it->getCSV();
 			}
 			outputFile.close();
 		}
 	}
-	busJourneyTimes.clear();
+	journeyTimes.clear();
 
 	std::string waitingTimeStatsFilename = cfg.getWaitingTimeStatsFilename();
 	if (!waitingTimeStatsFilename.empty())
@@ -154,6 +161,23 @@ void PT_Statistics::storeStatistics()
 	}
 	personTravelTimes.clear();
 
+	std::string personRerouteFilename("pt_reroute.csv");
+	if (personRerouteFilename.size() > 0)
+	{
+		std::ofstream outputFile(personRerouteFilename.c_str());
+		if (outputFile.is_open())
+		{
+			outputFile <<"person_id, stop_id,last_role_type,mode_choice,origin_node,rerouting_node,dest_node,is_pt_loaded,current_time"<<std::endl;
+			std::vector<PT_RerouteInfo>::const_iterator itPerson = personsReroutes.begin();
+			for (; itPerson != personsReroutes.end(); itPerson++)
+			{
+				outputFile << itPerson->getCSV();
+			}
+			outputFile.close();
+		}
+	}
+	personsReroutes.clear();
+
 	stopStatsMgr.exportStopStats();
 }
 
@@ -184,12 +208,12 @@ std::string PersonWaitingTime::getCSV() const
 	return std::string(csvArray);
 }
 
-std::string BusArrivalTime::getCSV() const
+std::string PT_ArrivalTime::getCSV() const
 {
 	char csvArray[200];
 	sprintf(csvArray, "%s,%s,%s,%3.2f,%u,%s,%s\n",
-			busStopNo.c_str(),
-			busLine.c_str(),
+			stopNo.c_str(),
+			serviceLine.c_str(),
 			tripId.c_str(),
 			pctOccupancy,
 			sequenceNo,
@@ -197,7 +221,21 @@ std::string BusArrivalTime::getCSV() const
 			dwellTime.c_str());
 	return std::string(csvArray);
 }
-
+std::string PT_RerouteInfo::getCSV() const
+{
+	char csvArray[200];
+	sprintf(csvArray, "%s,%s,%u,%s,%u,%u,%u,%u,%s\n",
+			personId.c_str(),
+			stopNo.c_str(),
+			lastRoleType,
+			travelMode.c_str(),
+			originNodeId,
+			startNodeId,
+			destNodeId,
+			isPT_loaded,
+			currentTime.c_str());
+	return std::string(csvArray);
+}
 std::string PersonTravelTime::getCSV() const
 {
 	char csvArray[200];
@@ -248,19 +286,19 @@ unsigned int StopStatsManager::getTimeInSecs(const std::string& time) const
 	return (DailyTime(time).getValue() / 1000);
 }
 
-void StopStatsManager::addStopStats(const BusArrivalTime& busArrival)
+void StopStatsManager::addStopStats(const PT_ArrivalTime& arrivalInfo)
 {
-	unsigned int interval = getTimeInSecs(busArrival.arrivalTime) / intervalWidth;
-	StopStats& stats = stopStatsMap[interval][busArrival.busStopNo][busArrival.busLine]; //an entry to be created if not in the map already
+	unsigned int interval = getTimeInSecs(arrivalInfo.arrivalTime) / intervalWidth;
+	StopStats& stats = stopStatsMap[interval][arrivalInfo.stopNo][arrivalInfo.serviceLine]; //an entry to be created if not in the map already
 	if(stats.needsInitialization)
 	{
 		stats.interval = interval;
-		stats.stopCode = busArrival.busStopNo;
-		stats.serviceLine = busArrival.busLine;
+		stats.stopCode = arrivalInfo.stopNo;
+		stats.serviceLine = arrivalInfo.serviceLine;
 		stats.needsInitialization = false;
 	}
 	stats.numArrivals++;
-	stats.dwellTime = stats.dwellTime + busArrival.dwellTimeSecs;
+	stats.dwellTime = stats.dwellTime + arrivalInfo.dwellTimeSecs;
 }
 
 void StopStatsManager::addStopStats(const PersonWaitingTime& personWaiting)
@@ -281,22 +319,27 @@ void StopStatsManager::addStopStats(const PersonWaitingTime& personWaiting)
 	}
 	boardingStats.numBoarding++;
 
+	std::vector<std::string> lines;
+	boost::split(lines, personWaiting.busLines, boost::is_any_of("/"));
 	unsigned int personArrivalTime = personBoardingTime - personWaiting.waitingTime;
 	if(personArrivalTime > SECONDS_IN_DAY) // personWaiting.waitingTime > personWaiting.currentTime(from start of day)
 	{
 		throw std::runtime_error("invalid currentTime or waiting time passed with person waiting message");
 	}
 	unsigned int interval = personArrivalTime / intervalWidth;
-	StopStats& stats = stopStatsMap[interval][personWaiting.busStopNo][personWaiting.busLineBoarded]; //an entry to be created if not in the map already
-	if(stats.needsInitialization)
+	for(const std::string& line : lines)
 	{
-		stats.interval = interval;
-		stats.stopCode = personWaiting.busStopNo;
-		stats.serviceLine = personWaiting.busLineBoarded;
-		stats.needsInitialization = false;
+		StopStats& stats = stopStatsMap[interval][personWaiting.busStopNo][line]; //an entry to be created if not in the map already
+		if(stats.needsInitialization)
+		{
+			stats.interval = interval;
+			stats.stopCode = personWaiting.busStopNo;
+			stats.serviceLine = line;
+			stats.needsInitialization = false;
+		}
+		stats.waitingCount++;
+		stats.waitingTime = stats.waitingTime + personWaiting.waitingTime;
 	}
-	stats.waitingCount++;
-	stats.waitingTime = stats.waitingTime + personWaiting.waitingTime;
 }
 
 void StopStatsManager::loadHistoricalStopStats()
@@ -324,6 +367,7 @@ void StopStatsManager::loadHistoricalStopStats()
 		stats.waitingTime = r.get<double>(3);
 		stats.dwellTime = r.get<double>(4);
 		stats.numArrivals = r.get<double>(5);
+		stats.needsInitialization = false;
 		historicalStopStatsMap[stats.interval][stats.stopCode][stats.serviceLine] = stats;
 	}
 }
@@ -331,10 +375,10 @@ void StopStatsManager::loadHistoricalStopStats()
 double StopStatsManager::getDwellTime(unsigned int time, const std::string& stopCode, const std::string& serviceLine) const
 {
 	unsigned int interval = time / intervalWidth;
-	std::map<unsigned int, std::map<std::string, std::map<std::string, StopStats> > >::const_iterator histMapIt = historicalStopStatsMap.find(time);
+	std::map<unsigned int, std::map<std::string, std::map<std::string, StopStats> > >::const_iterator histMapIt = historicalStopStatsMap.find(interval);
 	if(histMapIt == historicalStopStatsMap.end())
 	{
-		return -1.0;
+		return -1;
 	}
 	const std::map<std::string, std::map<std::string, StopStats> >& stopLineStatsMap = histMapIt->second;
 	std::map<std::string, std::map<std::string, StopStats> >::const_iterator stopLineStatsMapIt = stopLineStatsMap.find(stopCode);
@@ -354,10 +398,10 @@ double StopStatsManager::getDwellTime(unsigned int time, const std::string& stop
 double StopStatsManager::getWaitingTime(unsigned int time, const std::string& stopCode, const std::string& serviceLine) const
 {
 	unsigned int interval = time / intervalWidth;
-	std::map<unsigned int, std::map<std::string, std::map<std::string, StopStats> > >::const_iterator histMapIt = historicalStopStatsMap.find(time);
+	std::map<unsigned int, std::map<std::string, std::map<std::string, StopStats> > >::const_iterator histMapIt = historicalStopStatsMap.find(interval);
 	if(histMapIt == historicalStopStatsMap.end())
 	{
-		return -1.0;
+		return -1;
 	}
 	const std::map<std::string, std::map<std::string, StopStats> >& stopLineStatsMap = histMapIt->second;
 	std::map<std::string, std::map<std::string, StopStats> >::const_iterator stopLineStatsMapIt = stopLineStatsMap.find(stopCode);

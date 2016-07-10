@@ -124,7 +124,8 @@ void ParseMidTermConfigFile::processSupplyNode(xercesc::DOMElement* node)
 	processBusCapactiyElement(GetSingleElementByName(node, "bus_default_capacity", true));
 	processSpeedDensityParamsNode(GetSingleElementByName(node, "speed_density_params", true));
 	/* temporary will be deleted and separte node for supply scripts*/
-	processModelScriptsNode(GetSingleElementByName(node, "model_scripts_supply", true));
+	processModelScriptsNode ( GetSingleElementByName(node, "model_scripts_supply", true) );
+	//temporarily
 }
 
 
@@ -364,12 +365,15 @@ void ParseMidTermConfigFile::processModelScriptsNode(xercesc::DOMElement* node)
 		filename=val;
 	}
 
-	if(boost::iequals(filename, "serv.lua"))
+	/*temporarity will be removed later */
+	if (boost::iequals(filename,  "serv.lua"))
 	{
-		mtCfg.setServiceControllerScriptsMap(scriptsMap);
-		return;
+
+		mtCfg.setServiceControllerScriptsMap( scriptsMap );
+		return ;
 	}
-	mtCfg.setModelScriptsMap(scriptsMap);
+	mtCfg.setModelScriptsMap(scriptsMap );
+	/* will be removed later */
 }
 
 void ParseMidTermConfigFile::processMongoCollectionsNode(xercesc::DOMElement* node)

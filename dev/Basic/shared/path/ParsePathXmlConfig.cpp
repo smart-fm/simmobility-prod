@@ -117,14 +117,17 @@ ModelScriptsMap sim_mob::ParsePathXmlConfig::processModelScriptsNode(xercesc::DO
 		filename=val;
 	}
 
-	if(boost::iequals(filename, "serv.lua"))
+	/*temporirily will be removed later */
+	if(boost::iequals(filename , "serv.lua"))
 	{
-		cfg.ServiceControllerScriptsMap=scriptsMap;
-		return scriptsMap;
+		cfg.ServiceControllerScriptsMap = scriptsMap;
+		return  scriptsMap;
 	}
 
+	/* will be removed later */
 	cfg.ptRouteChoiceScriptsMap = scriptsMap;
 	return scriptsMap;
+
 
 }
 

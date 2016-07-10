@@ -189,9 +189,9 @@
             <param category="7" alpha="3.0" beta="1.5"/>
         </speed_density_params>
 
-        <model_scripts_supply path="scripts/lua/mid/behavior-models/" format="lua">
-           <script name="serv" file="serv.lua"/> <!--Zone postcode assignment --> 
-        </model_scripts_supply>
+        <model_scripts_supply path="scripts/lua/mid/behavior-models/" format="lua" >
+           <script name="serv" file="serv.lua"/>  <!--Zone postcode assignment --> 
+        </model_scripts_supply >
         
     </supply>                                      
             

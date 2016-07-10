@@ -22,7 +22,8 @@ TrainTrip::~TrainTrip() {
 void TrainTrip::removeTrainRoute(const std::vector<std::string>& platforms)
 {
 	std::vector<Platform*>::iterator itPlatform = trainPlatform.begin();
-	while(itPlatform!=trainPlatform.end()){
+	while(itPlatform!=trainPlatform.end())
+	{
 		std::string platformNo = (*itPlatform)->getPlatformNo();
 		std::vector<std::string>::const_iterator i = std::find(platforms.begin(), platforms.end(), platformNo);
 		if(i!=platforms.end()){

@@ -46,6 +46,8 @@
 #include "util/Utils.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
+#include "behavioral/ServiceController.hpp"
+#include "behavioral/PT_ServiceControllerLuaProvider.hpp"
 //#include "DailyTime.cpp"
 using namespace boost;
 using namespace sim_mob;
@@ -74,7 +76,7 @@ void sim_mob::medium::sortPersonsDecreasingRemTime(std::deque<Person_MT*>& perso
 }
 
 unsigned Conflux::updateInterval = 0;
-
+int Conflux::currentframenumber =-1;
 Conflux::Conflux(Node* confluxNode, const MutexStrategy& mtxStrat, int id, bool isLoader) :
 		Agent(mtxStrat, id), confluxNode(confluxNode), parentWorkerAssigned(false), currFrame(0, 0), isLoader(isLoader), numUpdatesThisTick(0),
 		tickTimeInS(ConfigManager::GetInstance().FullConfig().baseGranSecond()), evadeVQ_Bounds(false)
@@ -352,7 +354,7 @@ UpdateStatus Conflux::update(timeslice frameNumber)
 		{
 			resetPositionOfLastUpdatedAgentOnLanes();
 			resetPersonRemTimes(); //reset the remaining times of persons in lane infinity and VQ if required.
-			processAgents(); //process all agents in this conflux for this tick
+			processAgents(frameNumber); //process all agents in this conflux for this tick
 			setLastUpdatedFrame(frameNumber.frame());
 			numUpdatesThisTick = 1;
 			return UpdateStatus::ContinueIncomplete;
@@ -402,7 +404,7 @@ void Conflux::loadPersons()
 	}
 }
 
-void Conflux::processAgents()
+void Conflux::processAgents(timeslice frameNumber)
 {
 	PersonList orderedPersons;
 	getAllPersonsUsingTopCMerge(orderedPersons); //merge on-road agents of this conflux into a single list
@@ -412,6 +414,14 @@ void Conflux::processAgents()
 		updateAgent(*personIt);
 	}
 	updateBusStopAgents(); //finally update bus stop agents in this conflux
+
+	const DailyTime dailyTime=ConfigManager::GetInstance().FullConfig().simStartTime()+DailyTime(frameNumber.ms());
+	if(currentframenumber==-1||frameNumber.frame()!=currentframenumber)
+	{
+		currentframenumber = frameNumber.frame();
+		PT_ServiceControllerLuaProvider::getPTRC_Model()->Use_ServiceController(dailyTime.getStrRepr());
+		isServiceControllerInvoked=true;
+	}
 	for(std::vector<Agent*>::iterator it=stationAgents.begin(); it!=stationAgents.end(); it++){
 		(*it)->currWorkerProvider = currWorkerProvider;
 		(*it)->update(currFrame);
@@ -2013,7 +2023,8 @@ Conflux* Conflux::findStartingConflux(Person_MT* person, unsigned int now)
 	case Role<Person_MT>::RL_TRAINDRIVER:
 	{
 		const medium::TrainMovement* trainMvt = dynamic_cast<const medium::TrainMovement*>(personRole->Movement());
-		if(trainMvt){
+		if(trainMvt)
+		{
 			trainMvt->arrivalAtStartPlaform();
 		}
 		return nullptr;

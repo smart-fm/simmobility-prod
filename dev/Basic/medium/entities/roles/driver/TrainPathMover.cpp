@@ -5,11 +5,14 @@
  *      Author: zhang huai peng
  */
 
-#include <entities/roles/driver/TrainPathMover.hpp>
+//#include <entities/roles/driver/TrainPathMover.hpp>
 #include <algorithm>
 #include <limits>
 #include <stdexcept>
 #include "util/GeomHelpers.hpp"
+#include "entities/roles/driver/TrainDriverFacets.hpp"
+#include <boost/algorithm/string/erase.hpp>
+#include <boost/algorithm/string.hpp>
 namespace{
 const double distanceMinimal = 0.001;
 }
@@ -25,6 +28,9 @@ TrainPlatformMover::~TrainPlatformMover()
 {
 
 }
+
+
+
 void TrainPlatformMover::setPlatforms(const std::vector<Platform*>& plats)
 {
 	platforms = plats;
@@ -46,22 +52,29 @@ Platform* TrainPlatformMover::getFirstPlatform() const
 
 Platform* TrainPlatformMover::getNextPlatform(bool updated)
 {
-	if(updated){
+	if(updated)
+	{
 		prevPlatforms.push_back(*currPlatformIt);
 		currPlatformIt++;
 	}
-	if(currPlatformIt!=platforms.end()){
+	if(currPlatformIt!=platforms.end())
+	{
 		return (*currPlatformIt);
-	} else {
+	}
+	else
+	{
 		return nullptr;
 	}
 }
 Platform* TrainPlatformMover::getPlatformByOffset(unsigned int offset)
 {
 	std::vector<Platform*>::iterator next = std::next(currPlatformIt, offset);
-	if(next!=platforms.end()){
+	if(next!=platforms.end())
+	{
 		return (*next);
-	} else {
+	}
+	else
+	{
 		return nullptr;
 	}
 }
@@ -82,10 +95,104 @@ TrainPathMover::~TrainPathMover() {
 
 }
 
+void TrainPathMover::SetParentMovementFacet(MovementFacet * movementFacet)
+{
+	parentMovementFacet=movementFacet;
+}
+
 double TrainPathMover::calcDistanceBetweenTwoPoints() const
 {
 	DynamicVector vector(*currPolyPointIt, *nextPolyPointIt);
 	return vector.getMagnitude();
+}
+
+double TrainPathMover::calcDistanceBetweenCurrentAndSubsequentPoint(Point a,Point b) const
+{
+	DynamicVector vector(a, b);
+	return vector.getMagnitude();
+}
+
+PolyPoint TrainPathMover::GetStopPoint(double distance) const
+{
+	std::vector<Block*>::const_iterator curr=drivingPath.begin();
+	double dis=0;
+	while(curr!=drivingPath.end())
+	{
+	      const PolyLine *polyLine=(*curr)->getPolyLine();
+	      const std::vector<PolyPoint> pointvector=polyLine->getPoints();
+	      std::vector<PolyPoint>::const_iterator itr=pointvector.begin();
+
+	      while(itr!=pointvector.end())
+	      {
+	    	  std::vector<PolyPoint>::const_iterator nextPolyPoint=itr+1;
+	    	  if(nextPolyPoint == pointvector.end())
+	    	  {
+	    		  (*curr+1)->getPolyLine();
+	    		  const PolyLine* nextPolyLine = (*curr+1)->getPolyLine();
+	    		  std::vector<PolyPoint>::const_iterator nextPolyPointItr = nextPolyLine->getPoints().begin();
+	    		  dis=dis+calcDistanceBetweenCurrentAndSubsequentPoint(*itr,(*nextPolyPointItr));
+	    	  }
+
+	    	  else
+	    	   dis=dis+calcDistanceBetweenCurrentAndSubsequentPoint(*itr,(*nextPolyPoint));
+
+	    	  if(dis>distance)
+	    		  return *itr;
+
+	    	  itr++;
+
+	      }
+
+	      curr++;
+	}
+}
+double TrainPathMover::calcDistanceBetweenTwoPoints(std::vector<PolyPoint>::const_iterator currPointItr,std::vector<PolyPoint>::iterator laterPoint)
+{
+
+	std::vector<Block*>::const_iterator curr=currBlockIt;
+	double dis=0;
+	bool startPointfound=false;
+	while(curr!=drivingPath.end())
+	{
+      const PolyLine *polyLine=(*curr)->getPolyLine();
+      const std::vector<PolyPoint> pointvector=polyLine->getPoints();
+      std::vector<PolyPoint>::const_iterator itr=pointvector.begin();
+      while(itr!=pointvector.end())
+      {
+    	  if(currPointItr==itr)
+    	  {
+    		  startPointfound=true;
+    	  }
+
+    	  if((*itr).getX()==(*laterPoint).getX() && (*itr).getY()==(*laterPoint).getY()&&(*itr).getZ()==(*laterPoint).getZ())
+    		  break;
+    	  if(startPointfound==true)
+    	  {
+			  std::vector<PolyPoint>::const_iterator nextPointItr = itr+1;
+			  if(nextPointItr == pointvector.end())
+			  {
+				  (*curr+1)->getPolyLine();
+				  const PolyLine* nextPolyLine = (*curr+1)->getPolyLine();
+				  std::vector<PolyPoint>::const_iterator nextPolyPointItr = nextPolyLine->getPoints().begin();
+				  dis=dis+calcDistanceBetweenCurrentAndSubsequentPoint(*itr,(*nextPolyPointItr));
+			  }
+			  else
+			  {
+			      dis=dis+calcDistanceBetweenCurrentAndSubsequentPoint(*itr,*nextPointItr);
+			  }
+    	  }
+    	  itr++;
+      }
+      curr++;
+
+	}
+
+	return dis;
+}
+
+std::vector<PolyPoint>::const_iterator TrainPathMover::GetCurrentStopPoint() const
+{
+	return currPolyPointIt;
 }
 
 int TrainPathMover::GetCurrentBlockId()
@@ -93,6 +200,11 @@ int TrainPathMover::GetCurrentBlockId()
   return (*currBlockIt)->getBlockId();
 }
 
+
+MovementFacet *TrainPathMover::GetParentMovementFacet()
+{
+	return parentMovementFacet;
+}
 double TrainPathMover::advance(double distance)
 {
 	if(drivingPath.empty())
@@ -116,9 +228,39 @@ double TrainPathMover::advance(double distance)
 	while(distanceMoveToNextPoint >= distBetwCurrAndNxtPt)
 	{
 		distanceMoveToNextPoint -= distBetwCurrAndNxtPt;
-		if(!advanceToNextPoint()){
+		if(!advanceToNextPoint())
+		{
 			break;
 		}
+
+		/*PolyPoint currPoint=(*currPolyPointIt);
+        MovementFacet *movementFacet=GetParentMovementFacet();
+        if(movementFacet)
+        {
+           medium::TrainMovement *trainMovFacet=dynamic_cast<medium::TrainMovement*>((movementFacet));
+           medium::TrainDriver *driver=trainMovFacet->getParentDriver();
+           std::vector<medium::StopPointEntity> stopPointEntities=driver->GetStopPoints();
+           std::vector<medium::StopPointEntity>::iterator it;
+           for(it=stopPointEntities.begin();it!=stopPointEntities.end();it++)
+           {
+        	  PolyPoint point = (*it).point;
+        	  double duration = (*it).duration;
+        	  int polyLineId=currPoint.getPolyLineId();
+        	  int seqNo=currPoint.getSequenceNumber();
+        	  if(polyLineId==point.getPolyLineId()&&seqNo==point.getSequenceNumber())
+        	  {
+
+        		  distMovedOnEntirePath=distMovedOnEntirePath-distanceMoveToNextPoint;
+        		  distanceMoveToNextPoint=0;
+        		  TrainUpdateParams& params=driver->getParams();
+        		  params.currentSpeed=0;
+        		  driver->SetStoppingParameters(point,duration);
+        		  break;
+        	  }
+           }
+        }*/
+
+
 		distBetwCurrAndNxtPt = calcDistanceBetweenTwoPoints();
 	}
 
@@ -128,8 +270,10 @@ double TrainPathMover::getDistanceToNextPlatform(Platform* platform) const
 {
 	bool res = false;
 	double distance = 0.0;
-	if (currBlockIt != drivingPath.end()) {
-		if ((*currBlockIt)->getAttachedPlatform() == platform) {
+	if (currBlockIt != drivingPath.end())
+	{
+		if ((*currBlockIt)->getAttachedPlatform() == platform)
+		{
 			distance = platform->getOffset() + platform->getLength()
 					- getDistCoveredOnCurrBlock();
 			res = true;
@@ -140,11 +284,15 @@ double TrainPathMover::getDistanceToNextPlatform(Platform* platform) const
 					- getDistCoveredOnCurrBlock();
 			std::vector<Block*>::const_iterator tempIt = currBlockIt + 1;
 
-			while (tempIt != drivingPath.end()) {
-				if ((*tempIt)->getAttachedPlatform() != platform) {
+			while (tempIt != drivingPath.end())
+			{
+				if ((*tempIt)->getAttachedPlatform() != platform)
+				{
 					distance += (*tempIt)->getLength();
 					tempIt++;
-				} else {
+				}
+				else
+				{
 					distance += platform->getOffset() + platform->getLength();
 					res = true;
 					break;
@@ -152,7 +300,8 @@ double TrainPathMover::getDistanceToNextPlatform(Platform* platform) const
 			}
 		}
 	}
-	if(!res || distance<distanceMinimal){
+	if(!res || distance<distanceMinimal)
+	{
 		distance = 0.0;
 	}
 	return distance;
@@ -162,14 +311,20 @@ double TrainPathMover::getDistanceToNextTrain(const TrainPathMover& other) const
 	double distance = 0.0;
 	std::vector<Block*>::const_iterator tempIt = currBlockIt;
 	std::vector<Block*>::const_iterator tempOtherIt = other.currBlockIt;
-	if ((*tempIt) == (*tempOtherIt)) {
+	if ((*tempIt) == (*tempOtherIt))
+	{
 		distance = other.getDistCoveredOnCurrBlock()-getDistCoveredOnCurrBlock();
-	} else if(tempOtherIt==other.drivingPath.end()) {
+	}
+	else if(tempOtherIt==other.drivingPath.end())
+	{
 		distance = 0.0;
-	} else {
+	}
+	else
+	{
 		distance = (*tempIt)->getLength() - getDistCoveredOnCurrBlock();
 		tempIt++;
-		while (tempIt!=drivingPath.end()&&(*tempIt) != (*tempOtherIt)) {
+		while (tempIt!=drivingPath.end()&&(*tempIt) != (*tempOtherIt))
+		{
 			distance += (*tempIt)->getLength();
 			tempIt++;
 		}
@@ -234,6 +389,32 @@ double TrainPathMover::getDistCoveredOnCurrBlock() const
 	return distanceMoveToNextPoint+distMovedOnCurrBlock;
 }
 
+double TrainPathMover::getDistanceMoveToNextPoint()
+{
+	return distanceMoveToNextPoint;
+}
+
+std::vector<PolyPoint>::iterator TrainPathMover::findNearestStopPoint(std::vector<PolyPoint> pointVector)
+{
+
+	std::vector<PolyPoint>::const_iterator currPointItr=currPolyPointIt;
+	std::vector<PolyPoint>::iterator itr=pointVector.begin();
+	std::vector<PolyPoint>::iterator nearestPoint;
+	double minDis=-1;
+	for(;itr!=pointVector.end();itr++)
+	{
+		double dis=calcDistanceBetweenTwoPoints(currPointItr,itr);
+
+		if((minDis==-1||dis<minDis)&&dis!=0)
+		{
+			nearestPoint=itr;
+			minDis=dis;
+		}
+	}
+	return nearestPoint;
+}
+
+
 bool TrainPathMover::advanceToNextPoint()
 {
 	bool ret = false;
@@ -267,6 +448,7 @@ void TrainPathMover::TeleportToOppositeLine(std::string station,std::string line
 		{
 			distance += (*tempIt)->getLength();
 			tempIt++;
+			currBlockIt++;
 		}
 		else
 		{
@@ -277,6 +459,7 @@ void TrainPathMover::TeleportToOppositeLine(std::string station,std::string line
 
 	}
 
+	distMovedOnEntirePath = distanceToBlock;
 	distanceMoveToNextPoint=distance-distanceToBlock;
 	currPolyLine = (*currBlockIt)->getPolyLine();
 	currPolyPointIt = currPolyLine->getPoints().begin();
@@ -368,6 +551,47 @@ void TrainPathMover::setPath(const std::vector<Block*> &path)
 		distanceMoveToNextPoint = 0;
 		distMovedOnCurrBlock = 0;
 		distMovedOnEntirePath = 0;
+	}
+}
+
+void TrainPathMover::teleportToPlatform(std::string platformName)
+{
+	std::vector<Block*>::const_iterator tempIt = currBlockIt;
+	double distance=0;
+	double distanceToBlock;
+	while (tempIt != drivingPath.end())
+	{
+		Platform *platform =(*tempIt)->getAttachedPlatform();
+		if (!boost::iequals(platform->getPlatformNo(), platformName))
+		{
+			distance += (*tempIt)->getLength();
+			tempIt++;
+			currBlockIt++;
+		}
+
+		else
+		{
+			distanceToBlock=distance;
+			distance += platform->getOffset() + platform->getLength();
+			break;
+		}
+
+	}
+
+	distMovedOnEntirePath = distance;
+	distanceMoveToNextPoint=distance-distanceToBlock;
+	currPolyLine = (*currBlockIt)->getPolyLine();
+	currPolyPointIt = currPolyLine->getPoints().begin();
+	nextPolyPointIt = currPolyPointIt + 1;
+	double distBetwCurrAndNxtPt=calcDistanceBetweenTwoPoints();
+	while(distanceMoveToNextPoint >= distBetwCurrAndNxtPt)
+	{
+		distanceMoveToNextPoint -= distBetwCurrAndNxtPt;
+		if(!advanceToNextPoint())
+		{
+			break;
+		}
+		distBetwCurrAndNxtPt = calcDistanceBetweenTwoPoints();
 	}
 }
 

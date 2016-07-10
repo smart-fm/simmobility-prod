@@ -30,6 +30,7 @@ public:
 	void setStation(const Station* station);
 	void setConflux(Conflux* conflux);
 	void setStationName(const std::string& name);
+	void setLines();
 
 protected:
 	virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
@@ -83,6 +84,8 @@ private:
 	 * @param now is current time
 	 */
 	void performDisruption(timeslice now);
+
+
 private:
 	/**the reference to the station*/
 	const Station* station;
@@ -107,6 +110,7 @@ private:
 
 	/**station name*/
 	std::string stationName;
+	std::map<std::string,bool> IsStartStation;
 
 };
 }

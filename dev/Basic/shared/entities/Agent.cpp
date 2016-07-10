@@ -162,6 +162,7 @@ UpdateStatus sim_mob::Agent::performUpdate(timeslice now)
 	checkFrameTimes(getId(), now.ms(), getStartTime(), calledFrameInit, isToBeRemoved());
 
 	//Perform the main update tick
+
 	frameTckRes = frame_tick(now);
 
 	//Save the output

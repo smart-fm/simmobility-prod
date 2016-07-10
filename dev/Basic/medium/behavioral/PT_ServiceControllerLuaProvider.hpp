@@ -18,7 +18,7 @@ namespace sim_mob
 				 *
 				 * @return Lua PT route choice model reference.
 				 */
-				static ServiceController& getPTRC_Model();
+				static ServiceController * getPTRC_Model();
         };
 	  }
 }

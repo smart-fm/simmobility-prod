@@ -42,6 +42,11 @@
                 <port value="5432"/>
                 <dbname value="simmobility_virtualcity"/>
             </database>
+            <database id="fm_hpc" dbtype="postgres">
+                    <host value="172.25.184.156"/>
+                    <port value="5432"/>
+                    <dbname value="simmobility"/>
+                </database>
         </databases>
     
         <!-- Login credentials to be used for database connections. These can be plaintext, -->
@@ -99,15 +104,20 @@
                 <username value="postgres"/>
                 <password value="d84dmiN"/>
             </plaintext-credential>
+
+                <plaintext-credential id="fm_hpc">
+                    <username value="postgres"/>
+                    <password value="d84dmiN"/>
+           </plaintext-credential>
         </credentials>
     </constructs>
 
     <simulation>
         <base_granularity   value="5"   units="seconds"/>
-        <total_runtime      value="60"      units="minutes" />
+        <total_runtime      value="30"      units="minutes" />
         <total_warmup       value="10"     units="seconds" />
        
-        <start_time         value="10:00:00"/>
+        <start_time         value="07:30:00"/>
 
         <!--Indicates the percentage of drivers that will use in-simulation travel times rather than the historical travel times-->
         <in_simulation_travel_time_usage value="100"/>

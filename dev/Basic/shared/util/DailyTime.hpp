@@ -21,7 +21,8 @@ namespace sim_mob
  * \author Seth N. Hetu
  * \author Harish Loganathan
  */
-class DailyTime {
+class DailyTime
+{
 public:
 	///Construct a new DailyTime from a given value. Subtract the "base" time (i.e., the day's start time).
 	explicit DailyTime(uint32_t value=0, uint32_t base=0);

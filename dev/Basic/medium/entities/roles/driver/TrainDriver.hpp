@@ -14,8 +14,42 @@
 #include "entities/roles/waitTrainActivity/WaitTrainActivity.hpp"
 #include "behavioral/ServiceController.hpp"
 #include "entities/incident/IncidentManager.hpp"
+#include "entities/misc/TrainTrip.hpp"
 namespace sim_mob{
 namespace medium{
+struct StopPointEntity
+{
+	PolyPoint point;
+	double duration;
+};
+
+struct PlatformHoldingTimeEntity
+{
+  std::string pltaformName;
+  double holdingTime;
+
+  bool operator ==(const PlatformHoldingTimeEntity &other)
+  {
+     if(this->pltaformName==other.pltaformName&&this->holdingTime==other.holdingTime)
+     {
+    	 return true;
+     }
+     return false;
+  }
+};
+
+enum passengerMovement
+{
+	BOARDING=0,
+	ALIGHTING,
+	BOTH
+};
+struct RestrictPassengersEntity
+{
+	std::string platformName;
+	passengerMovement type;
+};
+
 class TrainBehavior;
 class TrainMovement;
 
@@ -42,8 +76,8 @@ public:
 	virtual Role<Person_MT>* clone(Person_MT *parent) const;
 	virtual void make_frame_tick_params(timeslice now);
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
-	void setNextDriver(const TrainDriver* driver);
-	const TrainDriver* getNextDriver() const;
+	void setNextDriver(TrainDriver* driver);
+	 TrainDriver* getNextDriver() ; //needs to be checked
 	/**
 	 * leave from current platform
 	 */
@@ -117,13 +151,15 @@ public:
 	 */
 	void updatePassengers();
 
-
+	/* Force Alights all passengers in the train */
 	int AlightAllPassengers(std::list<Passenger*>& alightingPassenger);
 
-	void TeleportToOppositeLine(std::string station,std::string lineId);
-
+	/* stores the next train(ahead train ) in opposite direction before teleport*/
 	void SetTrainDriverInOpposite(TrainDriver *trainDriver);
+	/* gets the train driver in opposite line to assign it to next driver */
 	TrainDriver *GetDriverInOppositeLine();
+	const TrainTrip *getTrainTrip() const;
+
 
 	/**
 	 * alight all passengers
@@ -143,6 +179,68 @@ public:
 	void storeWaitingTime(WaitTrainActivity* waitingActivity,timeslice now) const;
 	/* to get traiId*/
 	int getTrainId() const;
+
+	/* inserts stop point that is the point where train has to be stopped as requested by service controller*/
+	void InsertStopPoint(PolyPoint point,double duration);
+
+	/* gets all the stop points of the train */
+	std::vector<StopPointEntity> GetStopPoints();
+
+	/* checks if the train is stopped at the point */
+	bool IsStoppedAtPoint();
+	/* Sets the parametrs of stop point Entities ,that is the POLypoint and duration of stopping */
+	void SetStoppingParameters(PolyPoint point,double duration);
+
+	/* reduces the stopping duration left after every frame tick */
+	double ReduceStoppingTime(double secsInframeTick);
+	/* sets stopping time of train at stop point */
+	void SetStoppingTime(double stoppingTime);
+	/* set the stopping status  of train ,that is whether train is stopped ta point */
+	void  SetStoppingStatus(bool);
+    /* sets flag to terminate train service */
+	void SetTerminateTrainService(bool terminate);
+	/* checks the staus whether the train is to be terminated or not */
+	bool GetTerminateStatus();
+	/* inserts the instances when the train is supposed to be held by platform as requested by service controller */
+
+	void InsertPlatformHoldEntities(std::string platformName,double duration);
+	/* Insert the Entities ,that is the passenger movement of train to restricted at particular platform
+	 * and type of restriction like boarding only(no alighting),alighting only(no boarding)
+	 * And boarding ,alighting both
+	 */
+	void InsertRestrictPassengerEntity(std::string platformName,int type);
+
+	/* checks if is boarding restricted by restricting passenger entity
+	 * The request given by service controller
+	 */
+	bool IsBoardingRestricted();
+	/* checks if is alighting restricted by restricting passenger entity
+		 * The request given by service controller
+		 */
+	bool IsAlightingRestricted();
+
+	/* The train is not supposed to stop at certain platforms as requested by service controller
+	 * This function returns those list of platforms
+	 */
+
+	std::vector<std::string> GetPlatformsToBeIgnored();
+
+	/* add platforms to ignore (where the train wont stop )
+	 * by service controller
+	 */
+	void AddPlatformsToIgnore(std::vector<std::string> PlatformsToIgnore);
+	/* mutex lock when modifying or calling the boarding alighting functions
+	 *
+	 */
+	void LockUnlockRestrictPassengerEntitiesLock(bool lockunlock);
+
+	/*
+	 * Resets the holding time at platform which is due to the request given by service controller
+	 * To override the dwell time calculated
+	 */
+	void ResetHoldingTime();
+
+
 	/**
 	 * Event handler which provides a chance to handle event transfered from parent agent.
 	 * @param sender pointer for the event producer.
@@ -154,18 +252,34 @@ public:
 
 private:
 	/**get next train driver*/
-	const TrainDriver* nextDriver;
+     TrainDriver* nextDriver;
 	/**next requested*/
 	TRAIN_NEXTREQUESTED nextRequested;
 	/**current waiting time*/
 	double waitingTimeSec;
 	double initialDwellTime;
+	double remainingStopTime;
+	double minDwellTimeRequired;
+	PolyPoint currStopPoint;
 	/**passengers list*/
 	std::list<Passenger*> passengerList;
+	std::vector<StopPointEntity> stopPointEntities;
+    bool shouldTerminateService=false;
+
+    std::vector<PlatformHoldingTimeEntity> platformHoldingTimeEntities;
+    std::map<std::string,passengerMovement> restrictPassengersEntities;
+    std::vector<std::string> platformsToBeIgnored;
 	/**the locker for this driver*/
 	mutable boost::mutex driverMutex;
+	mutable boost::mutex platformHoldingTimeEntitiesLock;;
+	mutable boost::mutex stopPointEntitiesLock;
+	mutable boost::mutex restrictEntitiesLock;
+	mutable boost::mutex restrictPassengersEntitiesLock;
+	mutable boost::mutex platformsToBeIgnoredLock;
+	mutable boost::mutex terminateTrainServiceLock;
 	TrainDriver *nextDriverInOppLine;
 	bool holdTrain=false;
+	bool stoppedAtPoint=false;
 	static int counter;
 
 	/**recording disruption information*/

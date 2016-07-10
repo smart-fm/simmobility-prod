@@ -9,7 +9,8 @@
 #include "geospatial/network/Block.hpp"
 #include "geospatial/network/Platform.hpp"
 #include "boost/thread/mutex.hpp"
-
+#include "entities/roles/RoleFacets.hpp"
+#include "TrainDriver.hpp"
 namespace sim_mob {
 class TrainPlatformMover {
 public:
@@ -127,6 +128,18 @@ public:
 	double GetDistanceFromStartToPlatform(std::string lineId,Platform *platform);
 
 	void TeleportToOppositeLine(std::string station,std::string lineId,Platform *platform);
+
+	void SetParentMovementFacet(MovementFacet * movementFacet);
+
+	std::vector<PolyPoint>::iterator findNearestStopPoint(std::vector<PolyPoint> pointVector);
+	double calcDistanceBetweenTwoPoints(std::vector<PolyPoint>::const_iterator a,std::vector<PolyPoint>::iterator b) ;
+	double calcDistanceBetweenCurrentAndSubsequentPoint(Point a,Point b) const;
+	double getDistanceMoveToNextPoint();
+	PolyPoint GetStopPoint(double distance) const;
+	std::vector<PolyPoint>::const_iterator GetCurrentStopPoint() const;
+	void teleportToPlatform(std::string platformName);
+
+	MovementFacet* GetParentMovementFacet();
 private:
 	/**
 	 * Calculates the distance between the current poly-point and the next poly-point
@@ -163,6 +176,7 @@ private:
 	double distMovedOnCurrBlock;
 	/**Stores the distance covered by driver on entire path*/
 	double distMovedOnEntirePath;
+	MovementFacet *parentMovementFacet;
 	/**the locker for this mover*/
 	mutable boost::mutex moverMutex;
 };

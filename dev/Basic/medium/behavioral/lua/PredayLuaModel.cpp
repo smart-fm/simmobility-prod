@@ -279,6 +279,7 @@ void sim_mob::medium::PredayLuaModel::predictDayPattern(PersonParams& personPara
 		LuaRef chooseDPT = getGlobal(state.get(), "choose_dpt");
 		LuaRef retValT = chooseDPT(&personParams);
 		if (retValT.isTable()) {
+
 			dayPattern["WorkT"] = retValT[1].cast<int>();
 			dayPattern["EduT"] = retValT[2].cast<int>();
 			dayPattern["ShopT"] = retValT[3].cast<int>();

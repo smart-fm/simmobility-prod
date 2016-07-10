@@ -56,6 +56,13 @@ std::string line;
 bool speedReset=false;
 };
 
+struct DisruptionEntity
+{
+	std::string startStation="";
+	std::string endStation="";
+	std::string disruptionTime="";
+};
+
 class ResetSpeedMessage: public messaging::Message
 {
 public:
@@ -196,22 +203,33 @@ public:
 	 * @param stationName is the station name
 	 */
 
+	/* Assigns the reset block speed entities,to store the speed reset information
+	 * And the timing
+	 */
 	void AssignResetBlocks(ResetBlockSpeeds resetSpeedBlocks);
 
+	/* adds to list of Active trains in Line when new train is created*/
 	void AddToListOfActiveTrainsInLine(std::string lineId,Role<PERSON> *driver);
-
+	/* Removes from list of Active Trains when train is sent to depot */
 	void RemoveFromListOfActiveTrainsInLine(std::string lineId,Role<PERSON> *driver);
 
+	/* returns the train route of blocks for particular line */
 	bool getTrainRoute(const std::string& lineId, std::vector<Block*>& route);
 
+	/* gives train platforms of particular line */
 	bool getTrainPlatforms(const std::string& lineId, std::vector<Platform*>& platforms);
 	std::vector<std::string> GetLinesBetweenTwoStations(std::string src,std::string dest);
 	typename std::vector <Role<PERSON>*> GetActiveTrainsForALine(std::string lineID);
 
+	/*This gives the next platform from current platform of particular line */
 	TrainPlatform  GetNextPlatform(std::string platformNo,std::string lineID);
+
 
 	static Platform* getPlatform(const std::string& lineId, const std::string& stationName);
 
+	/*
+	 * This the pointer to platform from pltaform name
+	 */
 	Platform* GetPlatformFromId(std::string platformNo);
 	/**
 	 * check whether platform is existed or not
@@ -231,17 +249,77 @@ public:
 	std::vector<Block*> GetBlocks(std::string lineId);
 	/* get station entity from ID*/
 	Station * GetStationFromId(std::string stationId);
+	/*
+	 * This gives the opposite lineId of a particular line
+	 *
+	 */
 	std::string GetOppositeLineId(std::string lineId);
 	Block * GetBlock(int blockId);
 
+	/* Pull out the train from InActive pool
+	 * To add to the Active pool
+	 *The Train is deleted from InActive pool
+	 * And Added to Active pool
+	 */
+
 	int pullOutTrainFromInActivePool(std::string lineID);
+
+	/*
+	 * This deletes the train from  active pool
+	 */
 	int DeleteTrainFromActivePool(std::string lineID);
+
+	/* adds the train to active pool */
 	void AddTrainToActivePool(std::string lineId,int trainId);
+
+	/* adds the train to inactive pool */
 	void AddTrainToInActivePool(std::string lineId,int trainId);
+
+	/* This deletes the train from  inactive pool
+	 *
+	 */
 	int DeleteTrainFromInActivePool(std::string lineID);
+
+	/*
+	 * This pushes the train to Active Pool from  InActive pool
+	 *The train is deleted from Active pool and added to InActive Pool
+	 */
 	void pushTrainIntoInActivePool(int trainId,std::string lineID);
+
+	/* Returns the minimum dwell time of a train depending on type of station
+	 * If its normal station then dwell time is 20 secs minimum
+	 * If its interchange then 40 secs minimum
+	 * If its terminal station(start and end station of line) then 60 secs minimum
+	 */
 	double GetMinDwellTime(std::string stationNo,std::string lineId);
 
+	/* just checks if the station is the first station for a given line */
+	bool IsFirstStation(std::string lineId,Platform *platform);
+	/*
+	 * This terminated the train service for entire train line
+	 * Stops the future dispatch of trains
+	 * The trains reach the nearest next platform where the they alight all passengers
+	 * and  then the train returns to depot
+	 */
+	void TerminateTrainService( std::string lineId);
+	std::vector<Platform*> GetPlatforms(std::string lineId,std::string startStation);
+	/* composes unscheduled train trip at a particular time stamp ,for a particular line
+	 * The trip can be starting somewhere at between platform not necessary at start station
+	 * The distance traveled is fast forwarded till that platform
+	 * Corressponding block and polyline of those platforms are adjusted
+	 */
+	void composeTrainTripUnScheduled(std::string lineId,std::string startTime,std::string startStation);
+	/* gets the list of disrupted platforms for service controller caused by service controller */
+	std::map<std::string,std::vector<std::string>> GetDisruptedPlatforms_ServiceController();
+	/*Gets all the train ids for active trains */
+    std::vector<int> GetActiveTrainIds();
+    /* performs disruptiopn.sets the disrupted platform list */
+    void PerformDisruption(std::string startStation,std::string endStation,timeslice now,std::string disruptionTime);
+    void SetDisruptionParams(std::string startStation,std::string endStation,std::string time);
+    /* gets the list of platforms between two stations for a particular line*/
+    std::vector<std::string> GetPlatformsBetweenStations(std::string lineId,std::string startStation,std::string endStation);
+    /* checks if train service is terminated for a particular line or not */
+    bool IsServiceTerminated(std::string lineId);
 
 protected:
 	/**
@@ -298,6 +376,7 @@ protected:
 	 * @param params is a pointer to disruption structure
 	 */
 	void changeTrainTrip(sim_mob::TrainTrip* trip, sim_mob::DisruptionParams* params);
+
 private:
 	/**
 	 * the function to load platforms from DB
@@ -340,6 +419,8 @@ private:
 	 * compose trips from schedules
 	 */
 	void composeTrainTrips();
+
+	void composeTrainTrip();
 	/**
 	 * print out blocks information
 	 * @param out is output stream
@@ -357,9 +438,9 @@ private:
 	int getTrainId(const std::string& lineId);
 
 	/** get the station entity from its Id */
-	void TerminateTrainService( std::string lineId);
 
-	bool IsServiceTerminated(std::string lineId);
+
+
 
 
 	void resetBlockSpeeds(timeslice now);
@@ -388,6 +469,7 @@ private:
 	std::map<std::string, std::vector<TrainSchedule>> mapOfIdvsSchedules;
 	/**the map from id to trip*/
 	std::map<std::string, TripStartTimePriorityQueue> mapOfIdvsTrip;
+	std::map<std::string,std::vector<TrainTrip*>> mapOfIdvsUnsheduledTrips;
 	/**the map from name to the station*/
 	std::map<std::string, Station*> mapOfIdvsStations;
 	/**the map from id to polyline object*/
@@ -398,11 +480,16 @@ private:
 	std::map< std::string,unsigned int>mapOfNoAvailableTrains;
     /* holds the status of train service ...true if terminated false if running*/
 	std::map<std::string,bool>mapOfTrainServiceTerminated;
+    std::map<std::string,std::vector<std::string>> disruptedPlatformsNamesMap_ServiceController;
 	std::vector<ResetBlockSpeeds> resetSpeedBlocks;
 	std::map<int, double> blockIdSpeed;
 	std::map<std::string, std::vector <Role<PERSON>*>> mapOfLineAndTrainDrivers;
 	std::map<std::string,std::vector<int>> mapOfInActivePoolInLine;
 	std::vector<int> trainsToBePushedToInactivePoolAfterTripCompletion;
+	mutable boost::mutex activeTrainsListLock;
+	mutable boost::mutex terminatedTrainServiceLock;
+
+
 
 
 	//std::map<std::string, std::vector <int>> mapOfLineAndTrainDrivers;
@@ -419,6 +506,9 @@ private:
 	static TrainController* pInstance;
 	mutable boost::mutex activePoolLock;
 	mutable boost::mutex inActivePoolLock;
+	bool disruptionPerformed=false;
+	 int maxTripId;
+	DisruptionEntity disruptionEntity;
 
 };
 

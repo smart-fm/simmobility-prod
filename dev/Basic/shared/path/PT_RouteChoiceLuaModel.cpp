@@ -160,7 +160,8 @@ std::vector<sim_mob::OD_Trip> PT_RouteChoiceLuaModel::makePT_RouteChoice(const s
 		throw std::runtime_error(errStrm.str());
 	}
 
-	if (publicTransitPathSet) {
+	if (publicTransitPathSet)
+	{
 		std::set<PT_Path, cmp_path_vector>::iterator it = publicTransitPathSet->pathSet.begin();
 		std::advance(it, index - 1);
 		const std::vector<PT_NetworkEdge>& pathEdges = it->getPathEdges();
@@ -168,12 +169,14 @@ std::vector<sim_mob::OD_Trip> PT_RouteChoiceLuaModel::makePT_RouteChoice(const s
 			sim_mob::OD_Trip trip;
 			trip.startStop = itEdge->getStartStop();
 			trip.sType = PT_NetworkCreater::getInstance().getVertexTypeFromStopId(trip.startStop);
-			if (trip.startStop.find("N_") != std::string::npos) {
+			if (trip.startStop.find("N_") != std::string::npos)
+			{
 				trip.startStop = trip.startStop.substr(2);
 			}
 			trip.endStop = itEdge->getEndStop();
 			trip.eType = PT_NetworkCreater::getInstance().getVertexTypeFromStopId(trip.endStop);
-			if (trip.endStop.find("N_") != std::string::npos) {
+			if (trip.endStop.find("N_") != std::string::npos)
+			{
 				trip.endStop = trip.endStop.substr(2);
 			}
 			trip.tType = itEdge->getType();

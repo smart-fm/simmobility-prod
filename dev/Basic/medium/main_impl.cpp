@@ -206,16 +206,22 @@ void assignStationAgentToConfluxes()
 {
 	std::map<std::string, TrainStop*>&  MRTStopMap = PT_NetworkCreater::getInstance().MRTStopsMap;
 	std::map<std::string, TrainStop*>::iterator trainStopIt;
-	for(trainStopIt = MRTStopMap.begin();trainStopIt!=MRTStopMap.end();trainStopIt++){
+	for(trainStopIt = MRTStopMap.begin();trainStopIt!=MRTStopMap.end();trainStopIt++)
+	{
 		TrainStationAgent* stationAgent = new TrainStationAgent();
 		TrainController<Person_MT>::registerStationAgent(trainStopIt->first, stationAgent);
+		TrainController<sim_mob::medium::Person_MT> *trainController=TrainController<sim_mob::medium::Person_MT>::getInstance();
+		Station *station=trainController->GetStationFromId(trainStopIt->first);
 		stationAgent->setStationName(trainStopIt->first);
+		stationAgent->setStation(station);
+		stationAgent->setLines();
 		const Node* node = trainStopIt->second->getRandomStationSegment()->getParentLink()->getFromNode();
 		ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
 		MT_Config& mtCfg = MT_Config::getInstance();
 		std::map<const Node*, Conflux*>& nodeConfluxesMap = mtCfg.getConfluxNodes();
 		std::map<const Node*, Conflux*>::iterator it = nodeConfluxesMap.find(node);
-		if(it!=nodeConfluxesMap.end()){
+		if(it!=nodeConfluxesMap.end())
+		{
 			it->second->addStationAgent(stationAgent);
 			stationAgent->setConflux(it->second);
 		}

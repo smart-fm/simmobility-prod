@@ -48,6 +48,7 @@ using namespace sim_mob::db;
 using namespace sim_mob::medium;
 using namespace boost::numeric::ublas;
 using namespace mongo;
+using namespace std;
 
 namespace
 {
@@ -890,7 +891,7 @@ void sim_mob::medium::PredayManager::loadUnavailableODs(db::BackendType dbType)
 
 		int origin = 0, destination = 0;
 		std::unique_ptr<mongo::DBClientCursor> cursorBus, cursorCar;
-		Query unavailabilityQuery = QUERY("info_unavailable" << true);
+		Query unavailabilityQuery = MONGO_QUERY("info_unavailable" << true);
 		BSONObj originDestinationQuery, tcostBusDocObj;
 
 		tcostBusDao.getMultiple(unavailabilityQuery, cursorBus);
@@ -1645,7 +1646,7 @@ void sim_mob::medium::PredayManager::updateLogsumsToMongoAfterCalibration(const 
 	for (PersonList::const_iterator i = firstPersonIt; i != oneAfterLastPersonIt; i++)
 	{
 		const PersonParams* personParams = (*i);
-		Query query = QUERY("_id" << personParams->getPersonId());
+		Query query = MONGO_QUERY("_id" << personParams->getPersonId());
 		BSONObj updateObj =
 				BSON(
 						"$set" << BSON( MONGO_FIELD_WORK_LOGSUM << personParams->getWorkLogSum() << MONGO_FIELD_SHOP_LOGSUM << personParams->getShopLogSum() << MONGO_FIELD_OTHER_LOGSUM << personParams->getOtherLogSum() << MONGO_FIELD_DPT_LOGSUM << personParams->getDptLogsum() << MONGO_FIELD_DPS_LOGSUM << personParams->getDpsLogsum() ));

@@ -1704,7 +1704,7 @@ void sim_mob::medium::PredaySystem::outputPredictionsToMongo() {
 
 void sim_mob::medium::PredaySystem::updateLogsumsToMongo()
 {
-	Query query = QUERY("_id" << personParams.getPersonId());
+	Query query = MONGO_QUERY("_id" << personParams.getPersonId());
 	BSONObj updateObj = BSON("$set" << BSON(
 			MONGO_FIELD_WORK_LOGSUM << personParams.getWorkLogSum() <<
 			MONGO_FIELD_SHOP_LOGSUM << personParams.getShopLogSum() <<

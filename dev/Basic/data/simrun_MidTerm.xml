@@ -4,37 +4,31 @@
 
 <config>
     <!-- Groupings of stored procedures, used for loading network data from certain tables. -->
-   <db_proc_groups>
-        <!-- SimMobility Virtual City Network -->
-        <proc_map id="simmobcity" format="aimsun">
-            <mapping name="nodes" procedure="get_nodes()"/>
-            <mapping name="links" procedure="get_links()"/>
-            <mapping name="turning_groups" procedure="get_turning_groups()"/>
-            <mapping name="turning_paths" procedure="get_turning_paths()"/>
-            <mapping name="turning_polylines" procedure="get_turning_polylines()"/>
-            <mapping name="turning_conflicts" procedure="get_turning_conflicts()"/>
-            <mapping name="road_segments" procedure="get_road_segments()"/>
-            <mapping name="segment_polylines" procedure="get_segment_polylines()"/>
-            <mapping name="lanes" procedure="get_lanes()"/>
-            <mapping name="lane_polylines" procedure="get_lane_polylines()"/>
-            <mapping name="lane_connectors" procedure="get_lane_connectors()"/>
-            <mapping name="bus_stops" procedure="get_bus_stops()"/>
-            <mapping name="pt_bus_dispatch_freq" procedure="get_pt_bus_frequency()"/>
-            <mapping name="pt_bus_routes" procedure="get_pt_bus_routes()"/>
-            <mapping name="pt_bus_stops" procedure="get_pt_bus_stops()"/>
-            <mapping name="pt_stop_stats" procedure="get_pt_stop_stats()"/>
-            <mapping name="pt_edges" procedure="get_pt_tr_edges()"/>
-            <mapping name="pt_vertices" procedure="get_pt_tr_vertices()"/>
-            <mapping name="pt_pathset" procedure="get_pt_pathset_tr"/>
-            <mapping name="mrt_road_segments" procedure="get_pt_mrt_segments()"/>
-            <mapping name="erp_gantry_zone" procedure="get_erp_gantry_zone()"/>
-            <mapping name="screen_line" procedure="get_screen_line_segments()"/>
-            <mapping name="erp_section" procedure="get_erp_section()"/>
+    <db_proc_groups>
+        <!-- Entire singapore network in old format -->
+        <proc_map id="withinday_old_network" format="aimsun">
+            <mapping name="node" procedure="get_node_sg()"/>
+            <mapping name="section" procedure="get_section_sg()"/>
+            <mapping name="turning" procedure="get_lane_connector_sg()"/>
+            <mapping name="busstop" procedure="get_bus_stop_location_interchange()"/>
+            <mapping name="polyline" procedure="get_section_polyline()"/>
+            <mapping name="pt_bus_dispatch_freq" procedure="get_pt_bus_dispatch_freq('weekday')"/>
+            <mapping name="pt_bus_routes" procedure="get_pt_bus_routes()"/>           
+            <mapping name="pt_bus_stops" procedure="get_pt_bus_stops()"/>             
             <mapping name="day_activity_schedule" procedure="get_persons_between"/>
-            <mapping name="freight_trips" procedure="get_freight_between"/>
+            <mapping name="pt_edges" procedure="get_pt_edges()"/>
+            <mapping name="pt_vertices" procedure="get_pt_vertices()"/>
+            <mapping name="mrt_road_segments" procedure="get_mrt_road_segments()"/>
+            <mapping name="pt_pathset" procedure="get_pt_pathset"/>
+            <mapping name="screen_line" procedure="get_screen_line_segments()"/>
+            <mapping name="erp_gantry_zone" procedure="get_erp_gantry_zone()"/>
+            <mapping name="erp_section" procedure="get_erp_section()"/>
             <mapping name="erp_surcharge" procedure="get_erp_surcharge()"/>
+            <mapping name="restricted_reg_segments" procedure="get_section_banned_area()"/>
+            <mapping name="restricted_reg_in_turning" procedure="get_banned_area_in_turning()"/>
+            <mapping name="restricted_reg_out_turning" procedure="get_banned_area_out_turning()"/>
+            <mapping name="restricted_reg_nodes" procedure="get_restricted_region_nodes()"/>
         </proc_map>
-
 
         <!-- Entire Singapore network in new format -->
         <proc_map id="withinday" format="aimsun">
@@ -51,39 +45,29 @@
             <mapping name="lane_connectors" procedure="get_test_singapore_lane_connectors()"/>
             <mapping name="bus_stops" procedure="get_singapore_bus_stops_17feb()"/>
             <mapping name="pt_bus_dispatch_freq" procedure="get_pt_bus_frequency()"/>
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> 5e9e6306df4e827aa626230b860dc409117651eb
-            <mapping name="pt_bus_routes" procedure="get_pt_bus_routes()"/>
-            <mapping name="pt_bus_stops" procedure="get_pt_bus_stops()"/>
-            <!-- MRT stored procedures-->
+            <mapping name="pt_bus_routes" procedure="get_pt_bus_routes_17feb()"/>
+            <mapping name="pt_bus_stops" procedure="get_pt_bus_stops_17feb()"/>
+            <mapping name="pt_stop_stats" procedure="get_pt_stop_stats()"/>
+            <!-- MRT specific store procedures -->
             <mapping name="pt_platform" procedure="get_pt_platforms()"/>
             <mapping name="pt_mrt_dispatch_freq" procedure="get_pt_mrt_dispatch_freq()"/>
             <mapping name="pt_block" procedure="get_pt_blocks()"/>
             <mapping name="pt_mrt_route" procedure="get_pt_mrt_route()"/>
             <mapping name="pt_mrt_platform" procedure="get_pt_mrt_platform()"/>
             <mapping name="pt_block_polyline" procedure="get_pt_block_polylines()"/>
-            <mapping name="pt_bus_routes" procedure="get_pt_bus_routes_17feb()"/>
-            <mapping name="pt_bus_stops" procedure="get_pt_bus_stops_17feb()"/>
-            <mapping name="pt_stop_stats" procedure="get_pt_stop_stats()"/>
-<<<<<<< HEAD
-
-=======
->>>>>>> master
->>>>>>> 5e9e6306df4e827aa626230b860dc409117651eb
             <!-- MT specific stored procedures -->
-            <mapping name="pt_vertices" procedure="get_pt_map_vertices()"/>
-            <mapping name="pt_edges" procedure="get_pt_map_edges()"/>
+            <mapping name="pt_vertices" procedure="get_pt_map_trvertices()"/>
+            <mapping name="pt_edges" procedure="get_pt_map_tr_2edges()"/>
             <mapping name="pt_pathset" procedure="get_pt_trpathset"/>
             <mapping name="mrt_road_segments" procedure="get_pt_mrt_segments()"/>
             <mapping name="rail_transit_edges" procedure="get_rail_transit_edges()"/>
             <mapping name="erp_gantry_zone" procedure="get_erp_gantry_zone()"/>
             <mapping name="erp_section" procedure="get_erp_section()"/>
             <mapping name="erp_surcharge" procedure="get_erp_surcharge()"/>
-            <mapping name="day_activity_schedule" procedure="get_persons_between_calib20"/>
+            <mapping name="day_activity_schedule" procedure="get_persons_between_new_mrt"/>
             <mapping name="freight_trips" procedure="get_testfreight_between"/>
             <mapping name="screen_line" procedure="get_screen_line_segments()"/>
+            <mapping name="rail_transit_edges" procedure="get_rail_transit_edges()"/>
             <!--<mapping name="restricted_reg_segments" procedure="get_section_banned_area()"/>
             <mapping name="restricted_reg_in_turning" procedure="get_banned_area_in_turning()"/>
             <mapping name="restricted_reg_out_turning" procedure="get_banned_area_out_turning()"/>
@@ -94,7 +78,7 @@
     <system>         
         <!-- If loading from the database, which database, proc_map, and credentials are used? -->
         <!-- <network_database database="fm_remote" credentials="vahid_cred" proc_map="bugis_small"/> -->
-        <network_database database="fm_hpchead" credentials="fm_hpchead" proc_map="withinday"/>
+        <network_database database="fm_hpc" credentials="fm_hpc" proc_map="withinday"/>
         <!-- <network_database database="fm_local" credentials="harish_cred" proc_map="bugis_large"/> -->
         <!--<network_database database="fm_remote" credentials="fm_remote" proc_map="withinday"/>-->
         
@@ -110,7 +94,7 @@
     <!-- List of all Worker types and their properties. -->
     <!-- granularity of each component must be a multiple of the "base" granularity -->
     <workers>
-        <person count="7" granularity="5 seconds"/> <!-- Person agents (with Roles) -->
+        <person count="1" granularity="5 seconds"/> <!-- Person agents (with Roles) -->
     </workers>
       
     <incidentsData enabled="false">
@@ -144,16 +128,15 @@
     <!-- To Disable Buses: user can simply comment the buscontroller in the <buscontrollers> -->
     <!-- The current control strategy for buses. Can be "headway_based", "evenheadway_based", "hybrid_based", or (default) "no_control" -->
     <busController enabled="true" busline_control_type="headway_based"/>
-    <!-- The current control strategy for train. Can be "fixed_block", "moving_block"-->
-    <trainController enabled="true" train_control_type="fixed_block"/>   
+    <!-- The current control strategy for train. Can be "fixed_block", "moving_block"-->   
     <path-set-config-file value="data/pathset_config.xml" />
     <!-- The current control strategy for train. Can be "fixed_block", "moving_block"-->
     <trainController enabled="true" train_control_type="moving_block">
-    	<safe_operation_distance_metre value="1000"/>
-    	<safe_operation_headway_sec value="0"/>
+    	<safe_operation_distance_metre value="50"/>
+    	<safe_operation_headway_sec value="90"/>
     	<dwell_time_params min_sec="30" max_sec="50"/>
     	<output_enabled value="true"/>
-    	<max_capacity value="1000"/>
+    	<max_capacity value="1600"/>
     </trainController>
 
     <CBD enabled="false"/>
@@ -183,7 +166,7 @@
         <pedestrian_walk_speed value="135"/>
         
         <!-- default capacity value -->
-        <bus_default_capacity value="80"/>
+        <bus_default_capacity value="120"/>
                 
         <!-- these parameters are used to assign filename for the storage of statistics -->   
         <!-- if the value is empty, no output file is generated, otherwise store to csv file -->     
@@ -206,10 +189,9 @@
             <param category="7" alpha="3.0" beta="1.5"/>
         </speed_density_params>
 
-        <model_scripts path="scripts/lua/mid/behavior-models/" format="lua">
-             <script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models-->
-             <script name="pvtrc" file="pvtrc.lua"/> <!--private traffic route choice -->
-        </model_scripts>
+        <model_scripts_supply path="scripts/lua/mid/behavior-models/" format="lua">
+           <script name="serv" file="serv.lua"/> <!--Zone postcode assignment --> 
+        </model_scripts_supply>
         
     </supply>                                      
             
@@ -232,8 +214,8 @@
          Value 'mongodb' is default for source. 
          Database and credentials attributes are required only for pgsql source.
          Valid ids from the list constructs list have to be specified -->
-        <population source="pgsql" database="fm_hpchead_lt" credential="fm_hpchead"/>
-        <simmob_mt source="pgsql" database="fm_hpchead" credential="fm_hpchead"/>
+        <population source="pgsql" database="fm_remote_lt" credential="lt_cred"/>
+        <simmob_mt source="pgsql" database="fm_hpc" credential="fm_hpc"/>
             
         <model_scripts path="scripts/lua/mid/behavior-models/" format="lua">
             <script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models-->
@@ -260,13 +242,14 @@
             <script name="imd" file="imd.lua"/> <!--Intermediate Stop Mode/Destination -->
             <script name="itd" file="itd.lua"/> <!--Intermediate Stop Time Of Day -->                      
             <script name="zpa" file="zpa.lua"/> <!--Zone postcode assignment --> 
+            <script name="zpa" file="zpa.lua"/> <!--Zone postcode assignment --> 
         </model_scripts>
             
         <!-- Names of MongoDB database and collections -->
         <mongo_collections db_name="preday">
             <mongo_collection name="population" collection="hits12_population_updated_zones"/>
-            <mongo_collection name="tcost_bus" collection="tcost_bus_2012"/>
-            <mongo_collection name="tcost_car" collection="tcost_car_2012"/>
+            <mongo_collection name="tcost_bus" collection="tcost_bus"/>
+            <mongo_collection name="tcost_car" collection="tcost_car"/>
             <mongo_collection name="AMCosts" collection="AMCosts_2012"/>
             <mongo_collection name="OPCosts" collection="OPCosts_2012"/>
             <mongo_collection name="PMCosts" collection="PMCosts_2012"/>
@@ -317,3 +300,4 @@
         </calibration>
     </preday>
 </config>
+

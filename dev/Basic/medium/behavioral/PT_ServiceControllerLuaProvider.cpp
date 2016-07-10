@@ -23,7 +23,11 @@ namespace
 {
     struct ServiceControllerModelContext
     {
-        ServiceController ptrcModel;
+        ServiceController *ptrcModel;
+        ServiceControllerModelContext()
+        {
+        	ptrcModel=ServiceController::getInstance();
+        }
     };
 
     boost::thread_specific_ptr<ServiceControllerModelContext> threadContext;
@@ -38,8 +42,8 @@ namespace
         		const std::string& scriptsPath = extScripts.getPath();
         		ServiceControllerModelContext* modelCtx = new ServiceControllerModelContext();
         		//modelCtx->ptrcModel.loadFile(scriptsPath + extScripts.getScriptFileName("logit"));
-        		modelCtx->ptrcModel.loadFile(scriptsPath + extScripts.getScriptFileName("serv"));
-        		modelCtx->ptrcModel.initialize();
+        		modelCtx->ptrcModel->loadFile(scriptsPath + extScripts.getScriptFileName("serv"));
+        		modelCtx->ptrcModel->initialize();
         		threadContext.reset(modelCtx);
         	}
         	catch (const std::out_of_range& oorx)
@@ -50,7 +54,7 @@ namespace
     }
 }
 
-ServiceController& PT_ServiceControllerLuaProvider::getPTRC_Model()
+ServiceController* PT_ServiceControllerLuaProvider::getPTRC_Model()
 {
     ensureContext();
     return threadContext.get()->ptrcModel;

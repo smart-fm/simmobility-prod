@@ -60,6 +60,15 @@ public:
 	int getTrainId() const{
 		return trainId;
 	}
+
+	bool isUnScheduledTrain() const
+	{
+		return isUnScheduled;
+	}
+	void SetScheduledStatus(bool status)
+	{
+		isUnScheduled=status;
+	}
 	/**
 	 * remove the platforms from route
 	 * @param platforms hold the list of platforms removed
@@ -77,6 +86,7 @@ private:
 	std::vector<Block*> trainRoute;
 	/**train platform include a list of platform*/
 	std::vector<Platform*> trainPlatform;
+	bool isUnScheduled=false;
 	/**start time*/
 	DailyTime startTime;
 };

@@ -66,7 +66,7 @@ Platform* TrainPlatformMover::getNextPlatform(bool updated)
 		return nullptr;
 	}
 }
-Platform* TrainPlatformMover::getPlatformByOffset(unsigned int offset)
+Platform* TrainPlatformMover::getPlatformByOffset(unsigned int offset) const
 {
 	std::vector<Platform*>::iterator next = std::next(currPlatformIt, offset);
 	if(next!=platforms.end())

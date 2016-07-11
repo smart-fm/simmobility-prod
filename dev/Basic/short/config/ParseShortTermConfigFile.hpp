@@ -70,6 +70,13 @@ private:
      * @param node node corresponding to the system element in the xml file
      */
     void processSystemNode(xercesc::DOMElement* node);
+	
+	/**
+     * Processes the model scripts element in config file
+     *
+	 * @param node node corresponding to model_scripts element inside the xml file
+	 */
+	ModelScriptsMap processModelScriptsNode(xercesc::DOMElement* node);
 
     /**
      * Processes the network element in the config file

@@ -24,11 +24,11 @@ namespace sim_mob
 
 	}
 
-	const std::string LOG_TAXI_AVAILABILITY = "%1%";
+	const std::string LOG_TAXI_AVAILABILITY = "%1%, %2%, %3%";
 
-	inline void writeTaxiAvailabilityToFile(BigSerial hhId) {
+	inline void writeTaxiAvailabilityToFile(BigSerial hhId,double probabilityTaxiAccess,double randomNum) {
 
-		boost::format fmtr = boost::format(LOG_TAXI_AVAILABILITY) % hhId;
+		boost::format fmtr = boost::format(LOG_TAXI_AVAILABILITY) % hhId % probabilityTaxiAccess % randomNum;
 		AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_TAXI_AVAILABILITY,fmtr.str());
 
 	}
@@ -56,7 +56,7 @@ namespace sim_mob
 
 	inline void printHouseholdHitsLogsum( std::string title, std::string hitsId, BigSerial householdId, BigSerial individualId, int paxId, vector<double> logsum )
 	{
-		boost::format fmtr = boost::format( "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%, %11%, %12%, %13%, %14%, %15%, %16%, %17%, %18%, %19%, %20%, %21%, %22%, %23%, %24%, %25%, %26%, %27%, %28%, %29%, %30%, %31%, %32%, %33%, %34%, %35%, %36%, %37%, %38%, %39%, %40%, %41%, %42%, "
+		boost::format fmtr = boost::format( "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%, %11%, %12%, %13%, %14%, %15%, %16%, %17%, %18%, %19%, %20%, %21%, %22%, %23%, %24%, %25%, %26%, %27%, %28%, %29%"/*, %30%, %31%, %32%, %33%, %34%, %35%, %36%, %37%, %38%, %39%, %40%, %41%, %42%, "
 											"%43%, %44%, %45%, %46%, %47%, %48%, %49%, %50%, %51%, %52%, %53%, %54%, %55%, %56%, %57%, %58%, %59%, %60%, %61%, %62%, %63%, %64%, %65%, %66%, %67%, %68%, %69%, %70%, %71%, %72%, %73%, %74%, %75%, %76%, %77%, %78%, %79%, %80%, %81%, %82%, "
 											"%83%, %84%, %85%, %86%, %87%, %88%, %89%, %90%, %91%, %92%, %93%, %94%, %95%, %96%, %97%, %98%, %99%, %100%, %101%, %102%, %103%, %104%, %105%, %106%, %107%, %108%, %109%, %110%, %111%, %112%, %113%, %114%, %115%, %116%, %117%, %118%, "
 											"%119%, %120%, %121%, %122%, %123%, %124%, %125%, %126%, %127%, %128%, %129%, %130%, %131%, %132%, %133%, %134%, %135%, %136%, %137%, %138%, %139%, %140%, %141%, %142%, %143%, %144%, %145%, %146%, %147%, %148%, %149%, %150%, %151%, "
@@ -97,7 +97,7 @@ namespace sim_mob
 											"%1232%, %1233%, %1234%, %1235%, %1236%, %1237%, %1238%, %1239%, %1240%, %1241%, %1242%, %1243%, %1244%, %1245%, %1246%, %1247%, %1248%, %1249%, %1250%, %1251%, %1252%, %1253%, %1254%, %1255%, %1256%, %1257%, %1258%, %1259%, "
 											"%1260%, %1261%, %1262%, %1263%, %1264%, %1265%, %1266%, %1267%, %1268%, %1269%, %1270%, %1271%, %1272%"*/) % title % hitsId % householdId % individualId % paxId
 											% logsum[0]  % logsum[1]  % logsum[2]  % logsum[3]  % logsum[4]  % logsum[5]  % logsum[6]  % logsum[7]  % logsum[8]  % logsum[9]  % logsum[10]  % logsum[11]  % logsum[12]  % logsum[13]
-											% logsum[14]  % logsum[15]  % logsum[16]  % logsum[17]  % logsum[18]  % logsum[19]  % logsum[20]  % logsum[21]  % logsum[22]  % logsum[23]  % logsum[24]  % logsum[25]  % logsum[26]  % logsum[27]
+											% logsum[14]  % logsum[15]  % logsum[16]  % logsum[17]  % logsum[18]  % logsum[19]  % logsum[20]  % logsum[21]  % logsum[22]  % logsum[23]  /*% logsum[24]  % logsum[25]  % logsum[26]  % logsum[27]
 											% logsum[28]  % logsum[29]  % logsum[30]  % logsum[31]  % logsum[32]  % logsum[33]  % logsum[34]  % logsum[35]  % logsum[36]  % logsum[37]  % logsum[38]  % logsum[39]  % logsum[40]  % logsum[41]
 											% logsum[42]  % logsum[43]  % logsum[44]  % logsum[45]  % logsum[46]  % logsum[47]  % logsum[48]  % logsum[49]  % logsum[50]  % logsum[51]  % logsum[52]  % logsum[53]  % logsum[54]  % logsum[55]
 											% logsum[56]  % logsum[57]  % logsum[58]  % logsum[59]  % logsum[60]  % logsum[61]  % logsum[62]  % logsum[63]  % logsum[64]  % logsum[65]  % logsum[66]  % logsum[67]  % logsum[68]  % logsum[69]
@@ -186,7 +186,7 @@ namespace sim_mob
 											% logsum[1127]  % logsum[1128]  % logsum[1129]  % logsum[1130]  % logsum[1131]  % logsum[1132]  % logsum[1133]  % logsum[1134]  % logsum[1135]  % logsum[1136]  % logsum[1137]  % logsum[1138]
 											% logsum[1139]  % logsum[1140]  % logsum[1141]  % logsum[1142]  % logsum[1143]  % logsum[1144]  % logsum[1145]  % logsum[1146]  % logsum[1147]  % logsum[1148]  % logsum[1149]  % logsum[1150]
 											% logsum[1151]  % logsum[1152]  % logsum[1153]  % logsum[1154]  % logsum[1155]  % logsum[1156]  % logsum[1157]  % logsum[1158]  % logsum[1159]  % logsum[1160]  % logsum[1161]  % logsum[1162]
-											% logsum[1163]  % logsum[1164]  % logsum[1165]  % logsum[1166]  % logsum[1167]  % logsum[1168]  % logsum[1169]/*% logsum[1170]  % logsum[1171]  % logsum[1172]  % logsum[1173]  % logsum[1174]
+											% logsum[1163]  % logsum[1164]  % logsum[1165]  % logsum[1166]  % logsum[1167]  % logsum[1168]  % logsum[1169]  % logsum[1170]  % logsum[1171]  % logsum[1172]  % logsum[1173]  % logsum[1174]
 											% logsum[1175]  % logsum[1176]  % logsum[1177]  % logsum[1178]  % logsum[1179]  % logsum[1180]  % logsum[1181]  % logsum[1182]  % logsum[1183]  % logsum[1184]  % logsum[1185]  % logsum[1186]
 											% logsum[1187]  % logsum[1188]  % logsum[1189]  % logsum[1190]  % logsum[1191]  % logsum[1192]  % logsum[1193]  % logsum[1194]  % logsum[1195]  % logsum[1196]  % logsum[1197]  % logsum[1198]
 											% logsum[1199]  % logsum[1200]  % logsum[1201]  % logsum[1202]  % logsum[1203]  % logsum[1204]  % logsum[1205]  % logsum[1206]  % logsum[1207]  % logsum[1208]  % logsum[1209]  % logsum[1210]

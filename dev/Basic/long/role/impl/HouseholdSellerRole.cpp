@@ -279,7 +279,9 @@ void HouseholdSellerRole::update(timeslice now)
 
             if(getCurrentExpectation(unit->getId(), firstExpectation) && entryDay )
             {
-                market->addEntry( HousingMarket::Entry( getParent(), unit->getId(), unit->getSlaAddressId(), tazId, firstExpectation.askingPrice, firstExpectation.hedonicPrice));
+            	bool bto = false;
+
+                market->addEntry( HousingMarket::Entry( getParent(), unit->getId(), unit->getSlaAddressId(), tazId, firstExpectation.askingPrice, firstExpectation.hedonicPrice, bto));
 				#ifdef VERBOSE
                 PrintOutV("[day " << currentTime.ms() << "] Household Seller " << getParent()->getId() << ". Adding entry to Housing market for unit " << unit->getId() << " with ap: " << firstExpectation.askingPrice << " hp: " << firstExpectation.hedonicPrice << " rp: " << firstExpectation.targetPrice << std::endl);
 				#endif
@@ -287,6 +289,11 @@ void HouseholdSellerRole::update(timeslice now)
 
             selling = true;
         }
+
+        //If a unit has nothing to sell, then its job it done
+        if( unitIds.size() == 0 )
+        	setActive( false );
+
     }
 }
 

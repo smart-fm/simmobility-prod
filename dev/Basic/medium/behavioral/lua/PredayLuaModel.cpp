@@ -14,6 +14,11 @@ using namespace sim_mob;
 using namespace sim_mob::medium;
 using namespace luabridge;
 
+namespace
+{
+const int NUM_ZONES = 1169;
+}
+
 sim_mob::medium::PredayLuaModel::PredayLuaModel()
 {}
 
@@ -395,16 +400,16 @@ void sim_mob::medium::PredayLuaModel::computeTourModeDestinationLogsum(PersonPar
 	if(!personParams.hasFixedWorkPlace())
 	{
 		LuaRef computeLogsumTMDW = getGlobal(state.get(), "compute_logsum_tmdw");
-		LuaRef workLogSum = computeLogsumTMDW(&personParams, &tourModeDestinationParams);
+		LuaRef workLogSum = computeLogsumTMDW(&personParams, &tourModeDestinationParams, NUM_ZONES);
 		personParams.setWorkLogSum(workLogSum.cast<double>());
 	}
 
 	LuaRef computeLogsumTMDS = getGlobal(state.get(), "compute_logsum_tmds");
-	LuaRef shopLogSum = computeLogsumTMDS(&personParams, &tourModeDestinationParams);
+	LuaRef shopLogSum = computeLogsumTMDS(&personParams, &tourModeDestinationParams, NUM_ZONES);
 	personParams.setShopLogSum(shopLogSum.cast<double>());
 
 	LuaRef computeLogsumTMDO = getGlobal(state.get(), "compute_logsum_tmdo");
-	LuaRef otherLogSum = computeLogsumTMDO(&personParams, &tourModeDestinationParams);
+	LuaRef otherLogSum = computeLogsumTMDO(&personParams, &tourModeDestinationParams, NUM_ZONES);
 	personParams.setOtherLogSum(otherLogSum.cast<double>());
 }
 

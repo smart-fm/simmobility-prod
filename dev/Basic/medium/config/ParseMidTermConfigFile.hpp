@@ -185,11 +185,11 @@ private:
     void processScreenLineNode(xercesc::DOMElement* node);
 
     /**
-     * processes the cbd element in config xml
+     * processes the region_restriction element in config xml
      *
      * @param node node corresponding to cbd element inside xml file
      */
-    void processCBDNode(xercesc::DOMElement* node);
+    void processRegionRestrictionNode(xercesc::DOMElement* node);
 
     /**
      * processes the generateBusRoutes element in config xml

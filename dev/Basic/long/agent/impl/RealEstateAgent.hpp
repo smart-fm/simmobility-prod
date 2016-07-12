@@ -50,6 +50,7 @@ namespace sim_mob
             
             //not-thread safe
             void addNewUnit (const BigSerial& unitId);
+            void addBTOUnit (const BigSerial& unitId);
             void removeUnitId (const BigSerial& unitId);
             const IdVector& getUnitIds() const;
             const IdVector& getPreferableZones() const;

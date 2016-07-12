@@ -11,7 +11,7 @@
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
-HHCoordinatesDao::HHCoordinatesDao(DB_Connection& connection): SqlAbstractDao<HHCoordinates>( connection, DB_VIEW_HH_COORDINATES, EMPTY_STR, EMPTY_STR, EMPTY_STR,DB_GETALL_HH_COORDINATES, EMPTY_STR ){}
+HHCoordinatesDao::HHCoordinatesDao(DB_Connection& connection): SqlAbstractDao<HHCoordinates>( connection, EMPTY_STR, EMPTY_STR, EMPTY_STR, EMPTY_STR,DB_GETALL_HH_COORDINATES, EMPTY_STR ){}
 
 HHCoordinatesDao::~HHCoordinatesDao(){}
 

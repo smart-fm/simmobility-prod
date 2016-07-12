@@ -35,6 +35,7 @@ namespace sim_mob {
             LTEID_HM_UNIT_ADDED,
             LTEID_HM_BUILDING_ADDED,
             LTEID_HM_UNIT_READY_FOR_SALE,
+			LTEID_HM_BTO_UNIT_ADDED,
             
             // External Events
             LTEID_EXT_NEW_JOB,
@@ -44,10 +45,11 @@ namespace sim_mob {
             LTEID_EXT_NEW_SCHOOL_LOCATION,
             LTEID_EXT_ZONING_RULE_CHANGE,
 
-            //developer agent events
-            LTEID_DEV_UNIT_ADDED,
-            LTEID_DEV_BUILDING_ADDED,
-            LTEID_DEV_PROJECT_ADDED,
+            //developer agent messages
+            LT_DEV_UNIT_ADDED,
+            LT_DEV_BUILDING_ADDED,
+            LT_DEV_PROJECT_ADDED,
+			LT_BTO_UNIT_ADDED,
 
             //developer model status changes events for developer agent
             //units
@@ -91,8 +93,6 @@ namespace sim_mob {
             LT_STATUS_ID_HM_COMPLETED_WITH_PREREQUISITES,
             LT_STATUS_ID_HM_BUILDING_DEMOLISHED,
 
-
-
         };
 
         /**
@@ -113,9 +113,12 @@ namespace sim_mob {
             //HH message for taxi availability
             LTMID_HH_TAXI_AVAILABILITY,
             //HH messages for vehicle ownership
-            LTMID_HH_NO_CAR,
-            LTMID_HH_ONE_CAR,
-            LTMID_HH_TWO_PLUS_CAR,
+            LTMID_HH_NO_VEHICLE,
+            LTMID_HH_PLUS1_MOTOR_ONLY,
+            LTMID_HH_OFF_PEAK_CAR_W_WO_MOTOR,
+			LTMID_HH_NORMAL_CAR_ONLY,
+		    LTMID_HH_NORMAL_CAR_1PLUS_MOTOR,
+		    LTMID_HH_NORMAL_CAR_W_WO_MOTOR
         };
 
         const int INTERNAL_MESSAGE_PRIORITY = 5;

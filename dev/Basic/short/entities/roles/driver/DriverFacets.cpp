@@ -131,7 +131,7 @@ void DriverMovement::frame_tick()
 			parentDriver->getParent()->handleAMODArrival();
 		}
 
-		if(parentDriver->roleType != sim_mob::Role<sim_mob::Person_ST>::RL_BUSDRIVER)
+		if(parentDriver->roleType != sim_mob::Role<sim_mob::Person_ST>::RL_BUSDRIVER && ConfigManager::GetInstance().FullConfig().odTTConfig.enabled)
 		{
 			TravelTimeManager::getInstance()->addODTravelTime(std::make_pair(parentDriver->origin->getNodeId(),
 					parentDriver->destination->getNodeId()),
@@ -569,7 +569,10 @@ bool DriverMovement::updateMovement()
 	
 	const Link *currLink = fwdDriverMovement.getCurrLink();
 	
-	if((prevLink && !currLink) || fwdDriverMovement.isDoneWithEntireRoute())
+	//If we were on a link previously and are now in an intersection OR
+	//If we were on a link previously and are on a different link now (turning path so small, that we crossed it in 1 tick) OR
+	//We're done with the route, then finalise the travel time
+	if((prevLink && !currLink) || (prevLink && currLink && prevLink != currLink) || fwdDriverMovement.isDoneWithEntireRoute())
 	{
 		double linkExitTimeSec = params.elapsedSeconds + (params.now.ms() / 1000);
 		
@@ -585,7 +588,11 @@ bool DriverMovement::updateMovement()
 			parentDriver->parent->currLinkTravelStats.reset();
 		}		
 	}
-	else if(!prevLink && currLink)
+	
+	//If we were in an intersection previously and are now on a link OR
+	//If we were on a link previously and are on a different link now (turning path so small, that we crossed it in 1 tick),
+	//then start collection of a new travel time
+	if(!prevLink && currLink || (prevLink && currLink && prevLink != currLink))
 	{
 		double linkEntryTimeSec = params.elapsedSeconds + (params.now.ms() / 1000);
 		parentDriver->parent->currLinkTravelStats.start(currLink, linkEntryTimeSec);
@@ -1442,7 +1449,7 @@ double DriverMovement::updatePosition(DriverUpdateParams &params)
 								false, false, false, nextLink, useInSimulationTT);
 					}
 					
-					if(!isPathFound || ConfigManager::GetInstance().FullConfig().PathSetMode())
+					if(!isPathFound || !ConfigManager::GetInstance().FullConfig().PathSetMode())
 					{
 						const StreetDirectory& stdir = StreetDirectory::Instance();						
 						path = stdir.SearchShortestDrivingPath<sim_mob::Link, sim_mob::Node>(*nextLink, *(parentDriver->destination));

@@ -39,7 +39,7 @@ namespace sim_mob
             
             enum VehicleOwnershipOption
             {
-            	NO_CAR, ONE_CAR, TWO_PLUS_CAR
+            	NO_VEHICLE = 1, PLUS1_MOTOR_ONLY,OFF_PEAK_CAR_W_WO_MOTOR,NORMAL_CAR_ONLY,NORMAL_CAR_1PLUS_MOTOR,NORMAL_CAR_W_WO_MOTOR
             };
             VehicleOwnershipOption vehicleOwnershipOption;
 
@@ -47,7 +47,6 @@ namespace sim_mob
             void addUnitId (const BigSerial& unitId);
             void removeUnitId (const BigSerial& unitId);
             const IdVector& getUnitIds() const;
-            const IdVector& getPreferableZones() const;
             HM_Model* getModel() const;
             HousingMarket* getMarket() const;
             Household* getHousehold() const;
@@ -57,6 +56,8 @@ namespace sim_mob
 
             void setHouseholdBiddingWindow(int value);
             int getAwakeningDay() const;
+
+            void setAwakeningDay(int _day);
 
             HouseholdBidderRole* getBidder();
             HouseholdSellerRole* getSeller();
@@ -111,7 +112,6 @@ namespace sim_mob
             Household* household;
 
             IdVector unitIds;
-            IdVector preferableZones;
 
             HouseholdBidderRole* bidder;
             HouseholdSellerRole* seller;

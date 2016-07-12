@@ -31,7 +31,7 @@ local beta_cost_taxi_2 = -0.113
 local beta_tt_bus_mrt = -2.78
 local beta_tt_private_bus = 0 
 local beta_tt_drive1 = -4.65
-local beta_tt_share2= -3.59
+local beta_tt_share2 = -3.59
 local beta_tt_share3= -2.14
 local beta_tt_motor = 0
 local beta_tt_walk = -5.05
@@ -60,13 +60,13 @@ local beta_distance_walk = 0
 local beta_distance_taxi = 0
 
 
-local beta_cons_bus = -1.204
-local beta_cons_mrt = -2.146
-local beta_cons_private_bus = -3.649
+local beta_cons_bus = -1.35
+local beta_cons_mrt = -2.45
+local beta_cons_private_bus = -4
 local beta_cons_drive1 = 4.399
 local beta_cons_share2 = -3.28
 local beta_cons_share3 = -4.28
-local beta_cons_motor = -2.538
+local beta_cons_motor = 6
 local beta_cons_walk = -6.77
 local beta_cons_taxi = -5.16
 

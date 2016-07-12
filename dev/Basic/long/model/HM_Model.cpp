@@ -65,6 +65,11 @@
 #include "message/MessageBus.hpp"
 #include "behavioral/PredayLT_Logsum.hpp"
 #include "util/PrintLog.hpp"
+#include "util/SharedFunctions.hpp"
+#include <random>
+#include <iostream>
+#include <boost/random/linear_congruential.hpp>
+#include <boost/random/uniform_01.hpp>
 
 using namespace sim_mob;
 using namespace sim_mob::long_term;
@@ -193,21 +198,37 @@ double HM_Model::TazStats::getAvgHHSize() const
 
 
 HM_Model::HM_Model(WorkGroup& workGroup) :	Model(MODEL_NAME, workGroup),numberOfBidders(0), initialHHAwakeningCounter(0), numLifestyle1HHs(0), numLifestyle2HHs(0), numLifestyle3HHs(0), hasTaxiAccess(false),
-											householdLogsumCounter(0), simulationStopCounter(0), developerModel(nullptr), startDay(0), bidId(0), numberOfBids(0), numberOfExits(0),	numberOfSuccessfulBids(0), unitSaleId(0){}
+											householdLogsumCounter(0), simulationStopCounter(0), developerModel(nullptr), startDay(0), bidId(0), numberOfBids(0), numberOfExits(0),	numberOfSuccessfulBids(0),
+											unitSaleId(0), numberOfSellers(0), resume(0), lastStoppedDay(0){}
 
 HM_Model::~HM_Model()
 {
 	stopImpl(); //for now
 }
 
-void HM_Model::incrementBidders()
+void HM_Model::setNumberOfBidders(int number)
+{
+	numberOfBidders = number;
+}
+
+void HM_Model::setNumberOfSellers(int number)
+{
+	numberOfSellers = number;
+}
+
+void HM_Model::incrementNumberOfSellers()
+{
+	numberOfSellers++;
+}
+
+void HM_Model::incrementNumberOfBidders()
 {
 	numberOfBidders++;
 }
 
-void HM_Model::decrementBidders()
+int HM_Model::getNumberOfSellers()
 {
-	numberOfBidders--;
+	return numberOfSellers;
 }
 
 int HM_Model::getNumberOfBidders()
@@ -912,7 +933,7 @@ void HM_Model::setTaxiAccess(const Household *household)
 	if(getUnitById(household->getUnitId()) != nullptr)
 	{
 		unitTypeId = getUnitById(household->getUnitId())->getUnitType();
-	}
+
 
 	if( (unitTypeId>0) && (unitTypeId<=6))
 	{
@@ -923,6 +944,7 @@ void HM_Model::setTaxiAccess(const Household *household)
 	std::vector<BigSerial> individuals = household->getIndividuals();
 	int numIndividualsInAge5064 = 0;
 	int numIndividualsInAge65Up = 0;
+	int numIndividualsAge3549_2 = 0;
 	int numIndividualsAge1019 = 0;
 	int numSelfEmployedIndividuals = 0;
 	int numRetiredIndividuals = 0;
@@ -940,6 +962,11 @@ void HM_Model::setTaxiAccess(const Household *household)
 		if((ageCategoryId==2) || (ageCategoryId==3))
 		{
 			numIndividualsAge1019++;
+		}
+		//IndividualsInAge35_49
+		if((ageCategoryId >= 7) && (ageCategoryId <= 9))
+		{
+			numIndividualsAge3549_2++;
 		}
 		//IndividualsInAge5064
 		if((ageCategoryId >= 10)&& (ageCategoryId <= 12))
@@ -972,17 +999,17 @@ void HM_Model::setTaxiAccess(const Household *household)
 			numProfIndividuals++;
 		}
 		//Manager individuals
-		if(getIndividualById((*individualsItr))->getOccupationId() == 2)
+		if(getIndividualById((*individualsItr))->getOccupationId() == 1)
 		{
 			numManagerIndividuals++;
 		}
 		//Operator individuals
-		if(getIndividualById((*individualsItr))->getOccupationId() == 6)
+		if(getIndividualById((*individualsItr))->getOccupationId() == 7)
 		{
 			numOperatorIndividuals++;
 		}
-		//labour individuals : occupation type = other
-		if(getIndividualById((*individualsItr))->getOccupationId() == 7)
+		//labour individuals
+		if(getIndividualById((*individualsItr))->getOccupationId() == 8)
 		{
 			numLabourIndividuals++;
 		}
@@ -996,6 +1023,7 @@ void HM_Model::setTaxiAccess(const Household *household)
 	{
 		valueTaxiAccess = valueTaxiAccess + getTaxiAccessCoeffsById(AGE5064_2)->getCoefficientEstimate();
 	}
+
 	if(numIndividualsInAge65Up == 1)
 	{
 		valueTaxiAccess = valueTaxiAccess + getTaxiAccessCoeffsById(AGE65UP_1)->getCoefficientEstimate();
@@ -1004,10 +1032,17 @@ void HM_Model::setTaxiAccess(const Household *household)
 	{
 		valueTaxiAccess = valueTaxiAccess + getTaxiAccessCoeffsById(AGE65UP_2)->getCoefficientEstimate();
 	}
+
 	if(numIndividualsAge1019 >=2 )
 	{
 		valueTaxiAccess = valueTaxiAccess + getTaxiAccessCoeffsById(AGE1019_2)->getCoefficientEstimate();
 	}
+
+	if(numIndividualsAge3549_2 >=2)
+	{
+		valueTaxiAccess = valueTaxiAccess + getTaxiAccessCoeffsById(AGE3549_2)->getCoefficientEstimate();
+	}
+
 	if(numSelfEmployedIndividuals == 1)
 	{
 		valueTaxiAccess = valueTaxiAccess + getTaxiAccessCoeffsById(EMPLOYED_SELF_1)->getCoefficientEstimate();
@@ -1076,20 +1111,22 @@ void HM_Model::setTaxiAccess(const Household *household)
 	double expTaxiAccess = exp(valueTaxiAccess);
 	double probabilityTaxiAccess = (expTaxiAccess) / (1 + expTaxiAccess);
 
-	/*generate a random number between 0-1
-	* time(0) is passed as an input to constructor in order to randomize the result
-	*/
+	//generate a random number with an unifrom real distribution.
 	boost::mt19937 randomNumbergenerator( time( 0 ) );
 	boost::random::uniform_real_distribution< > uniformDistribution( 0.0, 1.0 );
-	boost::variate_generator< boost::mt19937&, boost::random::uniform_real_distribution < > >generateRandomNumbers( randomNumbergenerator, uniformDistribution );
-	const double randomNum = generateRandomNumbers( );
+	boost::variate_generator< boost::mt19937&, boost::random::uniform_real_distribution < > >
+	generateRandomNumbers( randomNumbergenerator, uniformDistribution );
+	const double randomNum = generateRandomNumbers();
+
+
 	if(randomNum < probabilityTaxiAccess)
 	{
-		writeTaxiAvailabilityToFile(household->getId());
+		writeTaxiAvailabilityToFile(household->getId(),probabilityTaxiAccess,randomNum);
 		hasTaxiAccess = true;
 		AgentsLookup& lookup = AgentsLookupSingleton::getInstance();
 		const HouseholdAgent* householdAgent = lookup.getHouseholdAgentById(household->getId());
 		MessageBus::PostMessage(const_cast<HouseholdAgent*>(householdAgent), LTMID_HH_TAXI_AVAILABILITY, MessageBus::MessagePtr(new Message()));
+	}
 	}
 }
 
@@ -1110,6 +1147,8 @@ void HM_Model::startImpl()
 
 	resume = config.ltParams.resume;
 	std::string  outputSchema = config.ltParams.currentOutputSchema;
+	BigSerial simYear = config.ltParams.year;
+	std::tm currentSimYear = getDateBySimDay(simYear,1);
 
 	if (conn.isConnected())
 	{
@@ -1121,13 +1160,13 @@ void HM_Model::startImpl()
 		PrintOutV("Initial Individuals: " << individuals.size() << std::endl);
 
 		IndividualDao indDao(conn);
-		primarySchoolIndList = indDao.getPrimarySchoolIndividual();
+		primarySchoolIndList = indDao.getPrimarySchoolIndividual(currentSimYear);
 		//Index all primary school inds.
 		for (IndividualList::iterator it = primarySchoolIndList.begin(); it != primarySchoolIndList.end(); it++) {
 			primarySchoolIndById.insert(std::make_pair((*it)->getId(), *it));
 		}
 
-		preSchoolIndList = indDao.getPreSchoolIndividual();
+		preSchoolIndList = indDao.getPreSchoolIndividual(currentSimYear);
 		//Index all pre school inds.
 		for (IndividualList::iterator it = preSchoolIndList.begin(); it != preSchoolIndList.end(); it++) {
 			preSchoolIndById.insert(std::make_pair((*it)->getId(), *it));
@@ -1147,7 +1186,7 @@ void HM_Model::startImpl()
 		loadData<PostcodeDao>(conn, postcodes, postcodesById,	&Postcode::getAddressId);
 		PrintOutV("Number of postcodes: " << postcodes.size() << std::endl );
 
-		loadData<VehicleOwnershipCoefficientsDao>(conn,vehicleOwnershipCoeffs,vehicleOwnershipCoeffsById, &VehicleOwnershipCoefficients::getParameterId);
+		loadData<VehicleOwnershipCoefficientsDao>(conn,vehicleOwnershipCoeffs,vehicleOwnershipCoeffsById, &VehicleOwnershipCoefficients::getVehicleOwnershipOptionId);
 		PrintOutV("Vehicle Ownership coefficients: " << vehicleOwnershipCoeffs.size() << std::endl );
 
 		loadData<TaxiAccessCoefficientsDao>(conn,taxiAccessCoeffs,taxiAccessCoeffsById, &TaxiAccessCoefficients::getParameterId);
@@ -1341,14 +1380,15 @@ void HM_Model::startImpl()
 		BigSerial unitIdToBeOwned = INVALID_ID;
 		if(resume)
 		{
-			if ((resumptionHH != nullptr) && (resumptionHH->getUnitPending())) //household has done an advanced purchase
+			if (resumptionHH != nullptr)
 			{
-				HouseholdUnit *hhUnit = getHouseholdUnitByHHId(resumptionHH->getId());
-				unitIdToBeOwned = hhUnit->getUnitId();
-				household->setTimeOnMarket(resumptionHH->getTimeOnMarket());
-			}
-			else
-			{
+				if(resumptionHH->getUnitPending())//household has done an advanced purchase
+				{
+					HouseholdUnit *hhUnit = getHouseholdUnitByHHId(resumptionHH->getId());
+					unitIdToBeOwned = hhUnit->getUnitId();
+					household->setTimeOnMarket(resumptionHH->getTimeOnMarket());
+				}
+
 				household->setUnitId(getResumptionHouseholdById(household->getId())->getUnitId());//update the unit id of the households moved to new units.
 			}
 
@@ -1367,7 +1407,7 @@ void HM_Model::startImpl()
 				hhAgent->getBidder()->setActive(true);
 				if(resumptionHH->getUnitPending())
 				{
-					hhAgent->getBidder()->setMovInWaitingTimeInDays(resumptionHH->getMoveInDate().tm_mday - startDay);
+					hhAgent->getBidder()->setMoveInWaitingTimeInDays(resumptionHH->getMoveInDate().tm_mday - startDay);
 					hhAgent->getBidder()->setUnitIdToBeOwned(unitIdToBeOwned);
 				}
 			}
@@ -1438,7 +1478,16 @@ void HM_Model::startImpl()
 	//assign empty units to freelance housing agents
 	for (UnitList::const_iterator it = units.begin(); it != units.end(); it++)
 	{
-		(*it)->setbiddingMarketEntryDay( startDay );
+		boost::gregorian::date saleDate = boost::gregorian::date_from_tm((*it)->getSaleFromDate());
+		boost::gregorian::date simulationDate = boost::gregorian::date(HITS_SURVEY_YEAR, 1, 1);
+		int unitStartDay = startDay;
+
+		if( saleDate > simulationDate )
+		{
+			unitStartDay = (saleDate - simulationDate).days();
+		}
+
+		(*it)->setbiddingMarketEntryDay( unitStartDay );
 		(*it)->setTimeOnMarket(  1 + (float)rand() / RAND_MAX * config.ltParams.housingModel.timeOnMarket);
 		(*it)->setTimeOffMarket( 1 + (float)rand() / RAND_MAX * config.ltParams.housingModel.timeOffMarket);
 
@@ -1451,18 +1500,21 @@ void HM_Model::startImpl()
 
 				if( awakeningProbability < config.ltParams.housingModel.vacantUnitActivationProbability )
 				{
-					(*it)->setbiddingMarketEntryDay( startDay );
-
+					(*it)->setbiddingMarketEntryDay( unitStartDay );
 					onMarket++;
 				}
 				else
 				{
-					(*it)->setbiddingMarketEntryDay( startDay +( (float)rand() / RAND_MAX * 365) );
+					(*it)->setbiddingMarketEntryDay( unitStartDay +( (float)rand() / RAND_MAX * 365) );
 					offMarket++;
 				}
 
 				freelanceAgents[vacancies % numWorkers]->addUnitId((*it)->getId());
 				vacancies++;
+			}
+			else
+			{
+				(*it)->setbiddingMarketEntryDay( -1 );
 			}
 		}
 
@@ -1569,14 +1621,16 @@ void HM_Model::startImpl()
 			tempHH->setIndividual(individuals[n]->getId());
 	}
 
+
+	if(config.ltParams.taxiAccessModel.enabled)
+	{
 	for (size_t n = 0; n < households.size(); n++)
 	{
 		hdbEligibilityTest(n);
 		setTaxiAccess(households[n]);
-		//reconsiderVehicleOwnershipOption(households[n]);
-
 	}
-	//PrintOut("taxi access available for "<<count<<" number of hh"<<std::endl);
+	}
+
 
 	PrintOutV("The synthetic population contains " << household_stats.adultSingaporean_global << " adult Singaporeans." << std::endl);
 	PrintOutV("Minors. Male: " << household_stats.maleChild_global << " Female: " << household_stats.femaleChild_global << std::endl);
@@ -1628,27 +1682,16 @@ void HM_Model::getLogsumOfIndividuals(BigSerial id)
 }
 
 
-void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId2)
+void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId)
 {
-	BigSerial householdId = 0;
 	HouseHoldHitsSample *hitsSample = nullptr;
-
 	{
 		boost::mutex::scoped_lock lock( mtx3 );
-
-		householdId = householdLogsumCounter++;
 
 		hitsSample = this->getHouseHoldHitsById( householdId );
 
 		if( !hitsSample )
 			return;
-
-		std::string householdHitsIdStr = hitsSample->getHouseholdHitsId();
-
-		if( processedHouseholdHitsLogsum.find( householdHitsIdStr ) != processedHouseholdHitsLogsum.end() )
-			return;
-		else
-			processedHouseholdHitsLogsum.insert( householdHitsIdStr );
 	}
 
 	Household *currentHousehold = getHouseholdById( householdId );
@@ -1718,9 +1761,8 @@ void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId2)
 	}
 }
 
-void HM_Model::getLogsumOfHousehold(BigSerial householdId2)
+void HM_Model::getLogsumOfHousehold(BigSerial householdId)
 {
-	BigSerial householdId = 0;
 	HouseHoldHitsSample *hitsSample = nullptr;
 
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
@@ -1728,23 +1770,16 @@ void HM_Model::getLogsumOfHousehold(BigSerial householdId2)
 	{
 		boost::mutex::scoped_lock lock( mtx3 );
 
-		householdId = householdLogsumCounter++;
-
 		hitsSample = this->getHouseHoldHitsById( householdId );
 
 		if( !hitsSample )
 			return;
 
-		std::string householdHitsIdStr = hitsSample->getHouseholdHitsId();
+		Household *currentHousehold = getHouseholdById( householdId );
 
-		if( processedHouseholdHitsLogsum.find( householdHitsIdStr ) != processedHouseholdHitsLogsum.end() )
+		if( !currentHousehold )
 			return;
-		else
-			processedHouseholdHitsLogsum.insert( householdHitsIdStr );
-
-		PrintOutV("Logsum index: " << simulationStopCounter++ << std::endl);
 	}
-
 
 	Household *currentHousehold = getHouseholdById( householdId );
 
@@ -1758,7 +1793,6 @@ void HM_Model::getLogsumOfHousehold(BigSerial householdId2)
 
 		if( thisIndividual->getVehicleCategoryId() > 0)
 			vehicleOwnership = 1;
-
 
 		vector<double> logsum;
 		vector<double> travelProbability;
@@ -1778,7 +1812,6 @@ void HM_Model::getLogsumOfHousehold(BigSerial householdId2)
 			}
 		}
 
-
 		BigSerial tazWork = 0;
 		{
 			std::string tazStrWork;
@@ -1789,7 +1822,6 @@ void HM_Model::getLogsumOfHousehold(BigSerial householdId2)
 			tazWork = std::atoi( tazStrWork.c_str() );
 		}
 
-
 		BigSerial tazHome = 0;
 		{
 			std::string tazStrHome;
@@ -1799,7 +1831,6 @@ void HM_Model::getLogsumOfHousehold(BigSerial householdId2)
 
 			tazHome = std::atoi( tazStrHome.c_str() );
 		}
-
 
 		if( tazHome <= 0 )
 		{
@@ -1812,7 +1843,6 @@ void HM_Model::getLogsumOfHousehold(BigSerial householdId2)
 			PrintOutV( " individualId " << householdIndividualIds[n] << " has an empty work taz" << std::endl);
 			AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, (boost::format( "individualId %1% has an empty work taz.") % householdIndividualIds[n]).str());
 		}
-
 
 		for( int m = 1; m <= this->tazs.size(); m++)
 		{
@@ -1922,7 +1952,7 @@ void HM_Model::update(int day)
 		if (assignedUnits.find((*it)->getId()) == assignedUnits.end())
 		{
 			//If a unit is off the market and unoccupied, we should put it back on the market after its timeOffMarket value is exceeded.
-			if( (*it)->getbiddingMarketEntryDay() + (*it)->getTimeOnMarket() + (*it)->getTimeOffMarket() > day )
+			if( day > (*it)->getbiddingMarketEntryDay() + (*it)->getTimeOnMarket() + (*it)->getTimeOffMarket()  )
 			{
 				//PrintOutV("A unit is being re-awakened" << std::endl);
 				(*it)->setbiddingMarketEntryDay(day + 1);
@@ -1943,13 +1973,10 @@ void HM_Model::hdbEligibilityTest(int index)
 	{
 		const Individual* hhIndividual = getIndividualById(	households[index]->getIndividuals()[n]);
 
-		time_t now = time(0);
-		tm ltm = *(localtime(&now));
-		std::tm birthday = hhIndividual->getDateOfBirth();
-
-
-		boost::gregorian::date date1(birthday.tm_year + 1900, birthday.tm_mon + 1, birthday.tm_mday);
-		boost::gregorian::date date2(ltm.tm_year + 1900, ltm.tm_mon + 1, ltm.tm_mday);
+		boost::gregorian::date date1 = boost::gregorian::date_from_tm(hhIndividual->getDateOfBirth());
+		boost::gregorian::date date2(HITS_SURVEY_YEAR, 1, 1);
+		boost::gregorian::date_duration simulationDay(0); //we only check HDB eligibility on day 0 of simulation.
+		date2 = date2 + simulationDay;
 
 		int years = (date2 - date1).days() / YEAR;
 
@@ -2077,12 +2104,14 @@ void HM_Model::hdbEligibilityTest(int index)
 		{
 			households[index]->setTwoRoomHdbEligibility(true);
 		}
-		else if (households[index]->getIncome() < THREEBEDROOM && familyTypeGeneral == true)
+
+		if (households[index]->getIncome() < THREEBEDROOM && familyTypeGeneral == true)
 		{
-			households[index]->setTwoRoomHdbEligibility(true);
 			households[index]->setThreeRoomHdbEligibility(true);
+			households[index]->setFourRoomHdbEligibility(true);
 		}
-		else if (households[index]->getIncome() < THREEBEDROOMMATURE && familyTypeGeneral == true && familyType == Household::MULTIGENERATION)
+
+		if (households[index]->getIncome() < THREEBEDROOMMATURE && familyType == Household::MULTIGENERATION)
 		{
 			households[index]->setTwoRoomHdbEligibility(true);
 			households[index]->setThreeRoomHdbEligibility(true);
@@ -2158,12 +2187,10 @@ void HM_Model::addHouseholdsTo_OPSchema(boost::shared_ptr<Household> &houseHold)
 		}
 	}
 
-	//remove the household from hhWithBidsVector if it is already inserted to the vector; so we can add the updated household.
 	Household *hhWithBids = getHouseholdWithBidsById(houseHold->getId());
 	if(hhWithBids != nullptr)
 	{
-		boost::shared_ptr<Household> hhInDbSharedPtr = boost::make_shared<Household>(*hhWithBids);
-		hhWithBidsVector.erase(std::remove(hhWithBidsVector.begin(), hhWithBidsVector.end(), hhInDbSharedPtr), hhWithBidsVector.end());
+		houseHold->setExistInDB(true);
 	}
 
 	DBLock.lock();

@@ -25,8 +25,9 @@ public:
 	 *
 	 * @param personParams object containing person and household related variables. logsums will be updated in this object
 	 * @param tourModeDestinationParams parameters specific to tour mode-destination models
+	 * @param numZones total number of zones (possible destinations in the mode destination choice model)
 	 */
-	void computeTourModeDestinationLogsum(PersonParams& personParams, LogsumTourModeDestinationParams& tourModeDestinationParams) const;
+	void computeTourModeDestinationLogsum(PersonParams& personParams, LogsumTourModeDestinationParams& tourModeDestinationParams, int numZones) const;
 
 	/**
 	 * Computes logsums for work tours with fixed work location by invoking corresponding functions in tour mode (for work) model

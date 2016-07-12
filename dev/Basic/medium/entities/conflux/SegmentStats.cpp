@@ -64,21 +64,17 @@ bool GreaterDistToSegmentEnd::operator ()(const Person_MT* x, const Person_MT* y
 //		alpha(1.8), beta(1.9)
 //{}
 
-/*
- * The parameter values for min density, jam density, alpha and beta were suggested by Yang Lu on 11-Oct-14
- */
 SupplyParams::SupplyParams(const RoadSegment* rdSeg, double statsLength) :
 		freeFlowSpeed(rdSeg->getMaxSpeed()), minSpeed(0.2 * freeFlowSpeed), /*20% of free flow speed as suggested by Yang Lu*/
-		jamDensity(0.2), /*density during traffic jam in veh/meter*/
-		minDensity(0.2 * 0.2), /*minimum traffic density in veh/meter*/ /*20% of jam density as suggested by Adnan*/
-		capacity(rdSeg->getCapacity()), /*capacity in vehicles/s*/
-		alpha(0.0),
-		beta(0.0)
+		jamDensity(0.2), minDensity(0.2 * 0.2), capacity(rdSeg->getCapacity()),
+		alpha(0.0),	beta(0.0)
 {
 	int linkCategory = static_cast<int>(rdSeg->getParentLink()->getLinkCategory());
-	std::pair<double, double> speedDensityParams = MT_Config::getInstance().getSpeedDensityParam(linkCategory);
-	alpha = speedDensityParams.first;
-	beta = speedDensityParams.second;
+	SpeedDensityParams speedDensityParams = MT_Config::getInstance().getSpeedDensityParam(linkCategory);
+	alpha = speedDensityParams.getAlpha();
+	beta = speedDensityParams.getBeta();
+	jamDensity = speedDensityParams.getJamDensity();
+	minDensity = speedDensityParams.getMinDensity();
 
 	//TESTING ~ Harish
 //	unsigned int numLanes = rdSeg->getLanes().size();

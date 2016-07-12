@@ -153,6 +153,12 @@ namespace sim_mob {
 
             void setNewUnits(std::vector<boost::shared_ptr<Unit> > units);
 
+            void launchBTOUnits(std::tm currentDate);
+
+            bool isHasBto() const;
+
+            void setHasBto(bool hasBto);
+
         private:
             DeveloperModel* devModel;
             boost::shared_ptr<Parcel> parcel;
@@ -170,6 +176,7 @@ namespace sim_mob {
             int simYear;
             int currentTick;
             bool parcelDBStatus;
+            bool hasBTO;
 
         };
     }

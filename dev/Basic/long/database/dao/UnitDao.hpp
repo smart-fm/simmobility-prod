@@ -49,6 +49,17 @@ namespace sim_mob {
              * Get the units of given building id
              */
             std::vector<Unit*> getUnitsByBuildingId(const long long buildingId,std::string schema);
+
+            /*
+             * Get BTO units
+             */
+            std::vector<Unit*> getBTOUnits(std::tm currentSimYear);
+
+            /*
+             * Get ongoing BTO units
+             */
+            std::vector<Unit*> getOngoingBTOUnits(std::tm currentSimYear);
+
         };
     }
 }

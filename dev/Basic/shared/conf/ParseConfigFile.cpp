@@ -271,6 +271,7 @@ void sim_mob::ParseConfigFile::processLongTermParamsNode(xercesc::DOMElement* no
 	housingModel.housingMoveInDaysInterval = ParseFloat(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "housingMoveInDaysInterval"), "value"));
 	housingModel.offsetBetweenUnitBuyingAndSelling = ParseInteger(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "offsetBetweenUnitBuyingAndSelling"), "value"), static_cast<int>(0));
 	housingModel.bidderUnitsChoiceSet = ParseInteger(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "bidderUnitsChoiceSet"), "value"), static_cast<int>(0));
+	housingModel.bidderBTOUnitsChoiceSet = ParseInteger(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "bidderBTOUnitsChoiceSet"), "value"), static_cast<int>(0));
 	housingModel.householdBiddingWindow = ParseInteger(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "householdBiddingWindow"), "value"), static_cast<int>(0));
 	housingModel.dailyHouseholdAwakenings = ParseInteger(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "dailyHouseholdAwakenings"), "value"), static_cast<int>(0));
 	cfg.ltParams.housingModel = housingModel;
@@ -286,10 +287,14 @@ void sim_mob::ParseConfigFile::processLongTermParamsNode(xercesc::DOMElement* no
 	vehicleOwnershipModel.vehicleBuyingWaitingTimeInDays = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "vehicleOwnershipModel"), "vehicleBuyingWaitingTimeInDays"), "value"), static_cast<unsigned int>(0));
 	cfg.ltParams.vehicleOwnershipModel = vehicleOwnershipModel;
 
+	LongTermParams::TaxiAccessModel taxiAccessModel;
+	taxiAccessModel.enabled = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName( node, "taxiAccessModel"), "enabled"), false);
+	cfg.ltParams.vehicleOwnershipModel = vehicleOwnershipModel;
+
 	LongTermParams::SchoolAssignmentModel schoolAssignmentModel;
 	schoolAssignmentModel.enabled = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName( node, "schoolAssignmentModel"), "enabled"), false);
 	schoolAssignmentModel.schoolChangeWaitingTimeInDays = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "schoolAssignmentModel"), "schoolChangeWaitingTimeInDays"), "value"), static_cast<unsigned int>(0));
-	cfg.ltParams.schoolAssignmentModel = schoolAssignmentModel;
+	cfg.ltParams.taxiAccessModel = taxiAccessModel;
 }
 
 void sim_mob::ParseConfigFile::processSimulationNode(xercesc::DOMElement* node)

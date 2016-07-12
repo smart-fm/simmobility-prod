@@ -149,11 +149,11 @@ public:
 	 */
 	virtual std::vector<BufferedBase *> buildSubscriptionList();
 
+
 	std::vector<sim_mob::OD_Trip> splitMrtTrips(std::vector<std::string> railPath);
 	sim_mob::OD_Trip CreateMRTSubTrips(std::string src,std::string dest);
 	void  FindMrtTripsAndPerformRailTransitRoute(std::vector<sim_mob::OD_Trip>& matchedTrips);
 	std::string GetServiceLine(std::string src,std::string dest);
-
 	std::string chooseModeEnRoute(const Trip& trip, unsigned int originNode, const DailyTime& curTime) const;
 	/**
 	 * exposes the Log function to print in thread local output files

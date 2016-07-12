@@ -13,7 +13,7 @@ Authors - Siyu Li, Harish Loganathan, Olga Petrik
 -- ARR_1_sin2pi:
 local beta_ARR_1_1 = -5.26
 -- ARR_1_cos2pi:
-local beta_ARR_1_3 = 9.70
+local beta_ARR_1_3 = 9.7
 -- ARR_1_sin4pi:
 local beta_ARR_1_2 = 1.47
 -- ARR 1_cos4pi:

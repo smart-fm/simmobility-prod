@@ -57,15 +57,15 @@ local beta_distance_motor = 0.00259
 local beta_distance_walk = 0
 local beta_distance_taxi = 0.000622
 
-local beta_cons_bus = 5.607
-local beta_cons_mrt = 5.511
-local beta_cons_private_bus = 3.3
-local beta_cons_drive1 = 1.128
-local beta_cons_share2 = 4.29
-local beta_cons_share3 = 3.4
-local beta_cons_motor = -1.27
-local beta_cons_walk = -100
-local beta_cons_taxi = -4.10
+local beta_cons_bus = 5.450
+local beta_cons_mrt = 6.100
+local beta_cons_private_bus = 9.000
+local beta_cons_drive1 = -7.000
+local beta_cons_share2 = -3.200
+local beta_cons_share3 = -2.200
+local beta_cons_motor = 35.000
+local beta_cons_walk = -35.000
+local beta_cons_taxi = -1.480
 
 local beta_zero_drive1 = 0
 local beta_oneplus_drive1 = 3.83

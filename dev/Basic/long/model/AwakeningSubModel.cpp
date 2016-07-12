@@ -36,6 +36,7 @@ namespace sim_mob
 
 		void AwakeningSubModel::InitialAwakenings(HM_Model *model, Household *household, HouseholdAgent *agent, int day)
 		{
+			boost::mutex::scoped_lock lock( mtx );
 
 			if( agent->getId() >= model->FAKE_IDS_START )
 				return;
@@ -151,9 +152,8 @@ namespace sim_mob
 			{
 				seller->setActive(true);
 				bidder->setActive(true);
-				model->incrementBidders();
 
-			    printAwakening(day, household);
+				printAwakening(day, household);
 
 				#ifdef VERBOSE
 				PrintOutV("[day " << day << "] Lifestyle 1. Household " << getId() << " has been awakened." << model->getNumberOfBidders()  << std::endl);
@@ -170,7 +170,6 @@ namespace sim_mob
 				}
 
 				model->incrementAwakeningCounter();
-
 				model->incrementLifestyle1HHs();
 			}
 			else
@@ -178,7 +177,6 @@ namespace sim_mob
 			{
 				seller->setActive(true);
 				bidder->setActive(true);
-				model->incrementBidders();
 
 				printAwakening(day, household);
 
@@ -198,7 +196,6 @@ namespace sim_mob
 				}
 
 				model->incrementAwakeningCounter();
-
 				model->incrementLifestyle2HHs();
 			}
 			else
@@ -206,7 +203,6 @@ namespace sim_mob
 			{
 				seller->setActive(true);
 				bidder->setActive(true);
-				model->incrementBidders();
 
 				printAwakening(day, household);
 
@@ -266,7 +262,7 @@ namespace sim_mob
 
 			int dailyAwakenings = config.ltParams.housingModel.dailyHouseholdAwakenings;
 
-		    for( int n = 0; n < dailyAwakenings; n++ )
+		    for( int n = 0; n < dailyAwakenings; )
 		    {
 		    	ExternalEvent extEv;
 
@@ -278,6 +274,8 @@ namespace sim_mob
 		    	if( !potentialAwakening)
 		    		continue;
 
+		    	n++;
+
 		    	double movingRate = movingProbability(potentialAwakening, model ) / 100.0;
 
 		    	double randomDraw = (double)rand()/RAND_MAX;
@@ -288,6 +286,7 @@ namespace sim_mob
 					continue;
 				}
 
+                model->incrementAwakeningCounter();
 		    	printAwakening(day, potentialAwakening);
 
 		    	extEv.setDay( day + 1 );

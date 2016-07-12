@@ -26,6 +26,7 @@
 #include "database/entity/ParcelMatch.hpp"
 #include "database/entity/SlaParcel.hpp"
 #include "database/entity/BuildingAvgAgePerParcel.hpp"
+#include "database/entity/ROILimits.hpp"
 #include "database/dao/SlaParcelDao.hpp"
 #include "database/dao/UnitDao.hpp"
 #include "database/entity/UnitType.hpp"
@@ -42,6 +43,7 @@
 #include "database/dao/SimulationStoppedPointDao.hpp"
 #include "database/dao/ProjectDao.hpp"
 #include "database/dao/BuildingAvgAgePerParcelDao.hpp"
+#include "database/dao/ROILimitsDao.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "util/SharedFunctions.hpp"
@@ -106,23 +108,42 @@ void DeveloperModel::startImpl() {
 		loadData<ParcelAmenitiesDao>(conn,amenities,amenitiesById,&ParcelAmenities::getFmParcelId);
 
 		loadData<MacroEconomicsDao>(conn,macroEconomics,macroEconomicsById,&MacroEconomics::getExFactorId);
+
 		loadData<LogsumForDevModelDao>(conn,accessibilityList,accessibilityByTazId,&LogsumForDevModel::gettAZ2012Id);
+
 		loadData<ParcelsWithHDBDao>(conn,parcelsWithHDB,parcelsWithHDB_ById,&ParcelsWithHDB::getFmParcelId);
 		PrintOutV("Parcels with HDB loaded " << parcelsWithHDB.size() << std::endl);
+
 		loadData<TAO_Dao>(conn,taoList,taoByQuarterId,&TAO::getId);
 		PrintOutV("TAO by quarters loaded " << taoList.size() << std::endl);
+
 		loadData<UnitPriceSumDao>(conn,unitPriceSumList,unitPriceSumByParcelId,&UnitPriceSum::getFmParcelId);
 		PrintOutV("unit price sums loaded " << unitPriceSumList.size() << std::endl);
+
 		loadData<TazLevelLandPriceDao>(conn,tazLevelLandPriceList,tazLevelLandPriceByTazId,&TazLevelLandPrice::getTazId);
 		PrintOutV("land values loaded " << tazLevelLandPriceList.size() << std::endl);
+
 		loadData<BuildingAvgAgePerParcelDao>(conn,buildingAvgAgePerParcel,BuildingAvgAgeByParceld,&BuildingAvgAgePerParcel::getFmParcelId);
 		PrintOutV("building average age per parcel loaded " << buildingAvgAgePerParcel.size() << std::endl);
-
-		setRealEstateAgentIds(housingMarketModel->getRealEstateAgentIds());
-
+		loadData<ROILimitsDao>(conn,roiLimits,roiLimitsByBuildingTypeId,&ROILimits::getBuildingTypeId);
+		PrintOutV("roi limits loaded " << roiLimits.size() << std::endl);
 
 		ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 		bool resume = config.ltParams.resume;
+		simYear = config.ltParams.year;
+		minLotSize= config.ltParams.developerModel.minLotSize;
+
+		std::tm currentSimYear = getDateBySimDay(simYear,1);
+		UnitDao unitDao(conn);
+		btoUnits = unitDao.getBTOUnits(currentSimYear);
+		ongoingBtoUnits = unitDao.getOngoingBTOUnits(currentSimYear);
+		//set the BTO flag when the units are first loaded
+		for(Unit *unit : btoUnits)
+		{
+			unit->setBto(true);
+		}
+
+		setRealEstateAgentIds(housingMarketModel->getRealEstateAgentIds());
 
 		if(resume)
 		{
@@ -160,8 +181,6 @@ void DeveloperModel::startImpl() {
 			buildingIdForDevAgent = config.ltParams.developerModel.initialBuildingId;
 			projectIdForDevAgent = config.ltParams.developerModel.initialProjectId;
 		}
-		simYear = config.ltParams.year;
-		minLotSize= config.ltParams.developerModel.minLotSize;
 
 	}
 
@@ -170,6 +189,7 @@ void DeveloperModel::startImpl() {
 	processParcels();
 	createDeveloperAgents(developmentCandidateParcelList,false);
 	createDeveloperAgents(parcelsWithProjectsList,true);
+	createBTODeveloperAgents();
 	wakeUpDeveloperAgents(getDeveloperAgents());
 
 	PrintOutV("Time Interval " << timeInterval << std::endl);
@@ -179,6 +199,7 @@ void DeveloperModel::startImpl() {
 	PrintOutV("Initial DevelopmentTypeTemplates " << developmentTypeTemplates.size() << std::endl);
 	PrintOutV("Initial TemplateUnitTypes " << templateUnitTypes.size() << std::endl);
 	PrintOutV("Parcel Amenities " << parcelsWithHDB.size() << std::endl);
+	PrintOutV("BTO units " << btoUnits.size() << std::endl);
 
 	addMetadata("Time Interval", timeInterval);
 	addMetadata("Initial Developers", developers.size());
@@ -373,6 +394,22 @@ void DeveloperModel::createDeveloperAgents(ParcelList devCandidateParcelList, bo
 		PrintOut("total eligible parcels"<<agents.size());
 	}
 
+}
+
+void DeveloperModel::createBTODeveloperAgents()
+{
+
+	DeveloperAgent* devAgent = new DeveloperAgent(nullptr, this);
+	AgentsLookupSingleton::getInstance().addDeveloperAgent(devAgent);
+	RealEstateAgent* realEstateAgent = const_cast<RealEstateAgent*>(getRealEstateAgentForDeveloper());
+	devAgent->setRealEstateAgent(realEstateAgent);
+	devAgent->setHousingMarketModel(housingMarketModel);
+	devAgent->setSimYear(simYear);
+	devAgent->setHasBto(true);
+	devAgent->setActive(true);
+	agents.push_back(devAgent);
+	developers.push_back(devAgent);
+	workGroup.assignAWorker(devAgent);
 }
 
 void DeveloperModel::wakeUpDeveloperAgents(DeveloperList devAgentList)
@@ -790,4 +827,34 @@ void DeveloperModel::setStartDay(int day)
 int DeveloperModel::getStartDay() const
 {
 	return this->startDay;
+}
+
+
+DeveloperModel::ROILimitsList DeveloperModel::getROILimits() const
+{
+	return roiLimits;
+}
+
+const ROILimits* DeveloperModel::getROILimitsByBuildingTypeId(BigSerial buildingTypeId) const
+{
+	ROILimitsMap::const_iterator itr = roiLimitsByBuildingTypeId.find(buildingTypeId);
+	if (itr != roiLimitsByBuildingTypeId.end())
+	{
+		return itr->second;
+	}
+	return nullptr;
+}
+
+DeveloperModel::UnitList DeveloperModel::getBTOUnits(std::tm currentDate)
+{
+	DeveloperModel::UnitList btoUnitsForSale;
+	for(Unit *unit : btoUnits)
+	{
+
+		if(compareTMDates(unit->getSaleFromDate(),currentDate))
+			{
+				btoUnitsForSale.push_back(unit);
+			}
+	}
+	return btoUnitsForSale;
 }

@@ -45,7 +45,7 @@ void sim_mob::PathSetParam::getDataFromDB()
 	loadERP_GantryZone(dbSession);
 }
 
-void sim_mob::PathSetParam::storeSinglePath(soci::session& sql, std::set<sim_mob::SinglePath*, sim_mob::SinglePath>& spPool, const std::string pathSetTableName)
+void sim_mob::PathSetParam::storeSinglePath(std::set<sim_mob::SinglePath*, sim_mob::SinglePath>& spPool)
 {
 	if(ConfigManager::GetInstance().PathSetConfig().privatePathSetMode == "generation")
 	{

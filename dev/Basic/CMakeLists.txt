@@ -45,6 +45,11 @@ set (Basic_VERSION_MINOR 1)
 SET(CMAKE_CXX_FLAGS_RELEASE "-O2")
 SET(CMAKE_CXX_FLAGS_DEBUG  "-O0 -g")
 
+
+SET(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+#SET(BUILD_SHARED_LIBRARIES ON)
+#SET(CMAKE_EXE_LINKER_FLAGS "-static")
+
 #Function that turns on Unity builds. From:
 #   http://cheind.wordpress.com/2009/12/10/reducing-compilation-time-unity-builds/
 #Modified: This function expects absolute file paths.
@@ -272,14 +277,14 @@ ENDFOREACH()
 #Cflags for C++0x support via gcc
 IF (SIMMOB_LATEST_STANDARD)
   IF(CMAKE_COMPILER_IS_GNUCXX)
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11 -static-libgcc -static-libstdc++")
   ELSE() 
     #Just hope for the best
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -static-libgcc -static-libstdc++")
   ENDIF()
 ELSE (SIMMOB_LATEST_STANDARD)
   #Avoid "C++0x compatibility" warnings.
-  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-c++11-compat")
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-c++11-compat -static-libgcc -static-libstdc++")
 
   #Needed for profiling Agent updates (timing)
   #IF (${SIMMOB_AGENT_UPDATE_PROFILE} MATCHES "ON")
@@ -337,10 +342,11 @@ include_directories("/mingw/include")
 SET(LibraryList "")
 
 #Find boost
-set(Boost_ADDITIONAL_VERSIONS "1.47" "1.47.0" "1.48" "1.48.0" "1.49" "1.49.0" "1.50" "1.50.0" "1.51" "1.51.0" "1.52" "1.52.0" "1.53" "1.53.0" "1.54" "1.54.0")
-find_package(Boost COMPONENTS system thread filesystem serialization date_time chrono REQUIRED)
+set(Boost_ADDITIONAL_VERSIONS "1.47" "1.47.0" "1.48" "1.48.0" "1.49" "1.49.0" "1.50" "1.50.0" "1.51" "1.51.0" "1.52" "1.52.0" "1.53" "1.53.0" "1.54" "1.54.0" "1.55.0" "1.56.0" "1.57.0" "1.58.0" "1.59.0")
+find_package(Boost COMPONENTS system thread filesystem serialization date_time chrono random regex REQUIRED)
 include_directories(${Boost_INCLUDE_DIR})
-LIST(APPEND LibraryList ${Boost_LIBRARIES})
+LIST(APPEND LibraryList  -Wl,-Bstatic -lboost_system -lboost_thread -lboost_filesystem -lboost_serialization -lboost_date_time -lboost_chrono -lboost_random -lboost_regex  -lsoci_core -lsoci_postgresql)
+
 
 #Find TinyXML (optional; not used any more)
 find_package(TinyXML)
@@ -378,13 +384,6 @@ find_package(SOCIPostgreSQL REQUIRED)
 include_directories(${SOCIPOSTGRESQL_INCLUDE_DIRS})
 LIST(APPEND LibraryList ${SOCIPOSTGRESQL_LIBRARIES})
 
-#Find boost-regex
-find_package(Boost COMPONENTS regex REQUIRED)
-LIST(APPEND LibraryList ${Boost_LIBRARIES})
-
-#Find boost-random
-find_package(Boost COMPONENTS random REQUIRED)
-LIST(APPEND LibraryList ${Boost_LIBRARIES})
 
 #Find JsonCpp
 find_package(JsonCpp REQUIRED)
@@ -394,12 +393,12 @@ LIST(APPEND LibraryList ${JSONCPP_LIBRARY})
 #Find Lua
 find_package(Lua REQUIRED)
 include_directories(${LUA_INCLUDE_DIRS})
-LIST(APPEND LibraryList ${LUA_LIBRARIES} -ldl)
+LIST(APPEND LibraryList ${LUA_LIBRARIES})
 
 #Find MongoDB
 find_package(MongoClient REQUIRED)
 include_directories(${MONGOCLIENT_INCLUDE_DIRS})
-LIST(APPEND LibraryList ${MONGOCLIENT_LIBRARY} -lcrypto -lssl)
+LIST(APPEND LibraryList ${MONGOCLIENT_LIBRARY} -lcrypto -lssl -lpq -ldl )
 
 IF (${BUILD_SHORT} MATCHES "ON")
         #Find GLPK

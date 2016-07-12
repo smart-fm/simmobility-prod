@@ -176,20 +176,25 @@ private:
 /**
  * Represents the "Workers" section of the config file.
  */
-class WorkerParams {
+class WorkerParams
+{
 public:
-    struct WorkerConf {
-        WorkerConf() : count(0), granularityMs(0) {}
-        unsigned int count;
-        unsigned int granularityMs;
-    };
+	struct WorkerConf
+	{
+		WorkerConf() : count(0), granularityMs(0) {}
+		unsigned int count;
+		unsigned int granularityMs;
+	};
 
-    WorkerConf person;
+	WorkerConf person;
 };
 
 struct DB_Details
 {
-	DB_Details() : database(std::string()), credentials(std::string()) {}
+	DB_Details() :
+			database(std::string()), credentials(std::string())
+	{
+	}
 	std::string database;
 	std::string credentials;
 };
@@ -242,76 +247,134 @@ struct IncidentParams {
     std::vector<LaneParams> laneParams;
 };
 
+/**
+ * simple struct to hold speed density parameters
+ *
+ * \author Harish Loganathan
+ */
+struct SpeedDensityParams
+{
+public:
+	double getAlpha() const
+	{
+		return alpha;
+	}
+
+	double getBeta() const
+	{
+		return beta;
+	}
+
+	double getJamDensity() const
+	{
+		return jamDensity;
+	}
+
+	double getMinDensity() const
+	{
+		return minDensity;
+	}
+
+	void setAlpha(double alpha)
+	{
+		this->alpha = alpha;
+	}
+
+	void setBeta(double beta)
+	{
+		this->beta = beta;
+	}
+
+	void setJamDensity(double jamDensity)
+	{
+		this->jamDensity = jamDensity;
+	}
+
+	void setMinDensity(double minDensity)
+	{
+		this->minDensity = minDensity;
+	}
+
+private:
+	/** outer exponent in speed density function */
+	double alpha;
+	/** inner exponent in speed density function */
+	double beta;
+	/** upper limit of density beyond which the speed of the moving part will be min speed */
+	double jamDensity;
+	/** lower limit of density below which the speed of the moving part will be free flow speed */
+	double minDensity;
+};
 
 /**
- * represent disruption data section of the config file
+ * Singleton class to hold Mid-term related configurations
  */
-
 
 class MT_Config : private ProtectedCopyable
 {
 	friend class ParseMidTermConfigFile;
 public:
-    /**
-     * Destructor
-     */
+	/**
+	 * Destructor
+	 */
 	virtual ~MT_Config();
 
-    /**
-     * Retrieves the singleton instance of MT_Config
-     *
-     * @return reference to the singleton instance
-     */
+	/**
+	 * Retrieves the singleton instance of MT_Config
+	 *
+	 * @return reference to the singleton instance
+	 */
 	static MT_Config& getInstance();
 
-    /**
-     * Retrived pedestrian walk speed
-     *
-     * @return pedestrian walk speed
-     */
+	/**
+	 * Retrived pedestrian walk speed
+	 *
+	 * @return pedestrian walk speed
+	 */
 	double getPedestrianWalkSpeed() const;
 
-    /**
-     * Retrieves dwell time parameters
-     *
-     * @return dwell time params
-     */
+	/**
+	 * Retrieves dwell time parameters
+	 *
+	 * @return dwell time params
+	 */
 	std::vector<float>& getDwellTimeParams();
 
-    /**
-     * Sets pedestrian walk speed
-     *
-     * @param pedestrianWalkSpeed speed to be set
-     */
+	/**
+	 * Sets pedestrian walk speed
+	 *
+	 * @param pedestrianWalkSpeed speed to be set
+	 */
 	void setPedestrianWalkSpeed(double pedestrianWalkSpeed);
 
-    /**
-     * Retrieves number of threads allocated for Preday
-     *
-     * @return number of threads
-     */
+	/**
+	 * Retrieves number of threads allocated for Preday
+	 *
+	 * @return number of threads
+	 */
 	unsigned getNumPredayThreads() const;
 
-    /**
-     * Sets number of threads allocated for preday
-     *
-     * @param numPredayThreads number of threads
-     */
+	/**
+	 * Sets number of threads allocated for preday
+	 *
+	 * @param numPredayThreads number of threads
+	 */
 	void setNumPredayThreads(unsigned numPredayThreads);
 
-    /**
-     * Retrieves model scripts map
-     *
-     * @return model scritps map
-     */
+	/**
+	 * Retrieves model scripts map
+	 *
+	 * @return model scritps map
+	 */
 	const ModelScriptsMap& getModelScriptsMap() const;
 
-    /**
-     * Sets model scripts map
-     *
-     * @param modelScriptsMap model scripts map to be set
-     */
+	/**
+	 * Sets model scripts map
+	 *
+	 * @param modelScriptsMap model scripts map to be set
+	 */
 	void setModelScriptsMap(const ModelScriptsMap& modelScriptsMap);
+
 
 	void setServiceControllerScriptsMap(const ModelScriptsMap& modelScriptsMap);
 
@@ -322,267 +385,275 @@ public:
      *
      * @return mongo collections map
      */
+
+	/**
+	 * Retrieves Mongo Collection map
+	 *
+	 * @return mongo collections map
+	 */
+
 	const MongoCollectionsMap& getMongoCollectionsMap() const;
 
-    /**
-     * Sets mongo collection map
-     *
-     * @param mongoCollectionsMap mongo collections map to be set
-     */
+	/**
+	 * Sets mongo collection map
+	 *
+	 * @param mongoCollectionsMap mongo collections map to be set
+	 */
 	void setMongoCollectionsMap(const MongoCollectionsMap& mongoCollectionsMap);
 
-    /**
-     * the object of this class gets sealed when this function is called. No more changes will be allowed via the setters
-     */
+	/**
+	 * the object of this class gets sealed when this function is called. No more changes will be allowed via the setters
+	 */
 	void sealConfig();
 
-    /**
-     * Retrieves Preday calibration params
-     *
-     * @return preday calibration params
-     */
+	/**
+	 * Retrieves Preday calibration params
+	 *
+	 * @return preday calibration params
+	 */
 	const PredayCalibrationParams& getPredayCalibrationParams() const;
 
-    /**
-     * Retrieves SPSA Calibration params
-     *
-     * @return SPSA Calibration params
-     */
+	/**
+	 * Retrieves SPSA Calibration params
+	 *
+	 * @return SPSA Calibration params
+	 */
 	const PredayCalibrationParams& getSPSA_CalibrationParams() const;
 
-    /**
-     * Sets SPSA Calibration params
-     *
-     * @param spsaCalibrationParams SPSA calibration params to be set
-     */
-    void setSPSA_CalibrationParams(const PredayCalibrationParams& spsaCalibrationParams);
+	/**
+	 * Sets SPSA Calibration params
+	 *
+	 * @param spsaCalibrationParams SPSA calibration params to be set
+	 */
+	void setSPSA_CalibrationParams(const PredayCalibrationParams& spsaCalibrationParams);
 
-    /**
-     * Retrieves WSPSA Calibration params
-     *
-     * @return WSPSA Calibration params
-     */
+	/**
+	 * Retrieves WSPSA Calibration params
+	 *
+	 * @return WSPSA Calibration params
+	 */
 	const PredayCalibrationParams& getWSPSA_CalibrationParams() const;
 
-    /**
-     * Sets WSPSA Calibration params
-     *
-     * @param wspsaCalibrationParams WSPSA Calibration params to be set
-     */
-    void setWSPSA_CalibrationParams(const PredayCalibrationParams& wspsaCalibrationParams);
+	/**
+	 * Sets WSPSA Calibration params
+	 *
+	 * @param wspsaCalibrationParams WSPSA Calibration params to be set
+	 */
+	void setWSPSA_CalibrationParams(const PredayCalibrationParams& wspsaCalibrationParams);
 
-    /**
-     * Checks whether output to file is enabled
-     *
-     * @return true if enabled, else false
-     */
+	/**
+	 * Checks whether output to file is enabled
+	 *
+	 * @return true if enabled, else false
+	 */
 	bool isFileOutputEnabled() const;
 
-    /**
-     * Sets output file enabled/disabled status
-     *
-     * @param outputTripchains status to be set
-     */
+	/**
+	 * Sets output file enabled/disabled status
+	 *
+	 * @param outputTripchains status to be set
+	 */
 	void setFileOutputEnabled(bool outputTripchains);
 
-    /**
-     * Checks whether output predictions is enabled
-     *
-     * @return true if enabled, else false
-     */
+	/**
+	 * Checks whether output predictions is enabled
+	 *
+	 * @return true if enabled, else false
+	 */
 	bool isOutputPredictions() const;
 
-    /**
-     * Sets output predictions enabled/disabled status
-     *
-     * @param outputPredictions status to be set
-     */
+	/**
+	 * Sets output predictions enabled/disabled status
+	 *
+	 * @param outputPredictions status to be set
+	 */
 	void setOutputPredictions(bool outputPredictions);
 
-    /**
-     * Checks whether console output enabled/disabled status
-     *
-     * @return true if enabled, else false
-     */
+	/**
+	 * Checks whether console output enabled/disabled status
+	 *
+	 * @return true if enabled, else false
+	 */
 	bool isConsoleOutput() const;
 
-    /**
-     * Sets console output enabled/disabled status
-     *
-     * @param consoleOutput status to be set
-     */
+	/**
+	 * Sets console output enabled/disabled status
+	 *
+	 * @param consoleOutput status to be set
+	 */
 	void setConsoleOutput(bool consoleOutput);
 
-    /**
-     * Checks whether preday simulation is running
-     *
-     * @return true if preday simulation is running, else false
-     */
+	/**
+	 * Checks whether preday simulation is running
+	 *
+	 * @return true if preday simulation is running, else false
+	 */
 	bool runningPredaySimulation() const;
 
-    /**
-     * Checks whether preday calibration is running
-     *
-     * @return true if preday calibration is running, else false
-     */
+	/**
+	 * Checks whether preday calibration is running
+	 *
+	 * @return true if preday calibration is running, else false
+	 */
 	bool runningPredayCalibration() const;
 
-    /**
-     * Checks whether preday logsum computation is running
-     *
-     * @return true if preday logsum computation is running, else false
-     */
+	/**
+	 * Checks whether preday logsum computation is running
+	 *
+	 * @return true if preday logsum computation is running, else false
+	 */
 	bool runningPredayLogsumComputation() const;
 
-    /**
-     * Checks whether preday logsum computation for LT is running
-     *
-     * @return true if preday logsum computation for LT is running, else false
-     */
+	/**
+	 * Checks whether preday logsum computation for LT is running
+	 *
+	 * @return true if preday logsum computation for LT is running, else false
+	 */
 	bool runningPredayLogsumComputationForLT() const;
 
-    /**
-     * Sets the preday run mode
-     *
-     * @param runMode run mode to be set
-     */
+	/**
+	 * Sets the preday run mode
+	 *
+	 * @param runMode run mode to be set
+	 */
 	void setPredayRunMode(const std::string runMode);
 
-    /**
-     * Checks whether SPSA is running
-     *
-     * @return true if SPSA is running, else false
-     */
+	/**
+	 * Checks whether SPSA is running
+	 *
+	 * @return true if SPSA is running, else false
+	 */
 	bool runningSPSA() const;
 
-    /**
-     * Checks whether WSPSA is running
-     *
-     * @return true if WSPSA is running
-     */
+	/**
+	 * Checks whether WSPSA is running
+	 *
+	 * @return true if WSPSA is running
+	 */
 	bool runningWSPSA() const;
 
-    /**
-     * Sets calibration methodology
-     *
-     * @param calibrationMethod calibration method to be set
-     */
+	/**
+	 * Sets calibration methodology
+	 *
+	 * @param calibrationMethod calibration method to be set
+	 */
 	void setCalibrationMethodology(const std::string calibrationMethod);
 
-    /**
-     * Retrieves calibration output file name
-     *
-     * @return calibration output file name
-     */
+	/**
+	 * Retrieves calibration output file name
+	 *
+	 * @return calibration output file name
+	 */
 	const std::string& getCalibrationOutputFile() const;
 
-    /**
-     * Sets the calibration output file name
-     *
-     * @param calibrationOutputFile filname to be set
-     */
+	/**
+	 * Sets the calibration output file name
+	 *
+	 * @param calibrationOutputFile filname to be set
+	 */
 	void setCalibrationOutputFile(const std::string& calibrationOutputFile);
 
-    /**
-     * Retrieves logsum computation frequency
-     *
-     * @return logsum computation frequency
-     */
+	/**
+	 * Retrieves logsum computation frequency
+	 *
+	 * @return logsum computation frequency
+	 */
 	unsigned getLogsumComputationFrequency() const;
 
-    /**
-     * Sets logsum computation frequency
-     *
-     * @param logsumComputationFrequency logsum computation frequency to be set
-     */
+	/**
+	 * Sets logsum computation frequency
+	 *
+	 * @param logsumComputationFrequency logsum computation frequency to be set
+	 */
 	void setLogsumComputationFrequency(unsigned logsumComputationFrequency);
 
-    /**
-     * Retrieves activity schedule loading interval
-     *
-     * @return activity schedule load interval
-     */
+	/**
+	 * Retrieves activity schedule loading interval
+	 *
+	 * @return activity schedule load interval
+	 */
 	unsigned getActivityScheduleLoadInterval() const;
 
-    /**
-     * Sets activity schedule loading interval
-     *
-     * @param activityScheduleLoadInterval interval to be set
-     */
+	/**
+	 * Sets activity schedule loading interval
+	 *
+	 * @param activityScheduleLoadInterval interval to be set
+	 */
 	void setActivityScheduleLoadInterval(unsigned activityScheduleLoadInterval);
 
-    /**
-     * Retrieves supply update interval
-     *
-     * @return supply update interval
-     */
+	/**
+	 * Retrieves supply update interval
+	 *
+	 * @return supply update interval
+	 */
 	unsigned getSupplyUpdateInterval() const;
 
-    /**
-     * Sets supply update interval
-     *
-     * @param supplyUpdateInterval interval to be set
-     */
+	/**
+	 * Sets supply update interval
+	 *
+	 * @param supplyUpdateInterval interval to be set
+	 */
 	void setSupplyUpdateInterval(unsigned supplyUpdateInterval);
 
-    /**
-     * Retrieves bus capacity
-     *
-     * @return bus capacity
-     */
+	/**
+	 * Retrieves bus capacity
+	 *
+	 * @return bus capacity
+	 */
 	const unsigned int getBusCapacity() const;
 
-    /**
-     * Sets bus capacity
-     *
-     * @param busCapcacity bus capacity to be set
-     */
+	/**
+	 * Sets bus capacity
+	 *
+	 * @param busCapcacity bus capacity to be set
+	 */
 	void setBusCapacity(const unsigned int busCapcacity);
 
-    /**
-     * Retrieves population source database type
-     *
-     * @return population source database
-     */
+	/**
+	 * Retrieves population source database type
+	 *
+	 * @return population source database
+	 */
 	db::BackendType getPopulationSource() const;
 
-    /**
-     * Sets population source database
-     *
-     * @param src population source database to be set
-     */
+	/**
+	 * Sets population source database
+	 *
+	 * @param src population source database to be set
+	 */
 	void setPopulationSource(const std::string& src);
 
-    /**
-     * Retrieves simmobility database details
-     *
-     * @return simmobility db details
-     */
+	/**
+	 * Retrieves simmobility database details
+	 *
+	 * @return simmobility db details
+	 */
 	const DB_Details& getSimmobDb() const;
 
-    /**
-     * Sets logsum database details
-     *
-     * @param simmobDb simmobility database name
-     * @param simmobCred credentials for simmob database
-     */
+	/**
+	 * Sets logsum database details
+	 *
+	 * @param simmobDb simmobility database name
+	 * @param simmobCred credentials for simmob database
+	 */
 	void setSimmobDb(const std::string& simmobDb, const std::string& simmobCred);
 
-    /**
-     * Retrieves population database details
-     *
-     * @return population db details
-     */
+	/**
+	 * Retrieves population database details
+	 *
+	 * @return population db details
+	 */
 	const DB_Details& getPopulationDb() const;
 
-    /**
-     * Sets population database details
-     *
-     * @param populationDb population database name
-     * @param populationCred credentials for population database
-     */
+	/**
+	 * Sets population database details
+	 *
+	 * @param populationDb population database name
+	 * @param populationCred credentials for population database
+	 */
 	void setPopulationDb(const std::string& populationDb, const std::string& populationCred);
 
+<<<<<<< HEAD
     /**
      * Retrieves number of workers for handling agents
      *
@@ -690,147 +761,157 @@ public:
      */
     unsigned int personTimeStepInMilliSeconds() const;
 
+
 	const WorkerParams& getWorkerParams() const;
 
 	/**
 	 * returns speed density params for a given link category
 	 * @param linkCategory link category (1=A, 2=B, 3=C, 4=D, 5=E, 6=SLIPROAD, 7=ROUNDABOUT)
-	 * @return pair <alpha, beta> for the given link category
+	 * @return SpeedDensityParams for the given link category
 	 */
-	std::pair<double, double> getSpeedDensityParam(int linkCategory) const;
+	SpeedDensityParams getSpeedDensityParam(int linkCategory) const;
 
 	/**
 	 * sets speed density params for a given link category
 	 * @param linkCategory link category (1=A, 2=B, 3=C, 4=D, 5=E, 6=SLIPROAD, 7=ROUNDABOUT)
-	 * @param alpha speed density parameter alpha
-	 * @param beta speed density parameter beta
+	 * @param sdParams speed density parameters for the link category
 	 */
-	void setSpeedDensityParam(int linkCategory, double alpha, double beta);
+	void setSpeedDensityParam(int linkCategory, SpeedDensityParams sdParams);
 
 
 	/**
-     * Enumerator for mid term run mode
-     */
-    enum MidTermRunMode
-    {
-        MT_NONE,
-        MT_SUPPLY,
-        MT_PREDAY
-    };
+	 * get name of table storing logsums
+	 * @return name of table storing logsums
+	 */
+	const std::string& getLogsumTableName() const;
 
-    /// Mid term run mode identifier
-    MidTermRunMode midTermRunMode;
+	/**
+	 * sets name of table containing logsums
+	 * @param name of table storing logsums
+	 */
+	void setLogsumTableName(const std::string& logsumTableName);
 
-    /// screen line counts parameter
-    ScreenLineParams screenLineParams;
+	/**
+	 * Enumerator for mid term run mode
+	 */
+	enum MidTermRunMode
+	{
+		MT_NONE, MT_SUPPLY, MT_PREDAY
+	};
 
-    /// Number of ticks to wait before updating all Person agents.
+	/// Mid term run mode identifier
+	MidTermRunMode midTermRunMode;
+
+	/// screen line counts parameter
+	ScreenLineParams screenLineParams;
+
+	/// Number of ticks to wait before updating all Person agents.
 	unsigned int granPersonTicks;
 
-    /// Generic properties, for testing new features.
-    std::map<std::string, std::string> genericProps;
+	/// Generic properties, for testing new features.
+	std::map<std::string, std::string> genericProps;
 
 private:
-    /**
-     * Constructor
-     */
+	/**
+	 * Constructor
+	 */
 	MT_Config();
 
-    /// Singleton instance
+	/// Singleton instance
 	static MT_Config* instance;
 
-    /// protection for changes after config is loaded
+	/// protection for changes after config is loaded
 	bool configSealed;
 
-    /// store parameters for dwelling time calculation
+	/// store parameters for dwelling time calculation
 	std::vector<float> dwellTimeParams;
 
-    /// store parameters for pedestrian walking speed
+	/// store parameters for pedestrian walking speed
 	double pedestrianWalkSpeed;
 
-    /**
-     * control variable for running preday simulation/logsum computation
-     */
+	/**
+	 * control variable for running preday simulation/logsum computation
+	 */
 	enum PredayRunMode
 	{
-		PREDAY_NONE,
-		PREDAY_SIMULATION,
-		PREDAY_CALIBRATION,
-		PREDAY_LOGSUM_COMPUTATION,
-		PREDAY_LOGSUM_COMPUTATION_LT
+		PREDAY_NONE, PREDAY_SIMULATION, PREDAY_CALIBRATION, PREDAY_LOGSUM_COMPUTATION, PREDAY_LOGSUM_COMPUTATION_LT
 	};
 	PredayRunMode predayRunMode;
 
-    /// num of threads to run for preday
+	/// num of threads to run for preday
 	unsigned numPredayThreads;
 
-    /// flag to indicate whether output files need to be enabled
+	/// flag to indicate whether output files need to be enabled
 	bool fileOutputEnabled;
 
-    /// flag to indicate whether tours and stops need to be output in mongodb
+	/// flag to indicate whether tours and stops need to be output in mongodb
 	bool outputPredictions;
 
-    /// flag to indicate whether console output is required
+	/// flag to indicate whether console output is required
 	bool consoleOutput;
 
-    /// Container for lua scripts
+	/// Container for lua scripts
 	ModelScriptsMap modelScriptsMap;
+
 
 	ModelScriptsMap ServiceControllerScriptsMap;
 
-    /// container for mongo collections
+
 	MongoCollectionsMap mongoCollectionsMap;
 
 	/** default capacity for bus*/
 	unsigned int busCapacity;
 
-    /// supply update interval in frames
-    unsigned supplyUpdateInterval;
+	/// supply update interval in frames
+	unsigned supplyUpdateInterval;
 
-    /// activity schedule loading interval in seconds
-    unsigned activityScheduleLoadInterval;
+	/// activity schedule loading interval in seconds
+	unsigned activityScheduleLoadInterval;
 
-    /// population database type
+	/// population database type
 	db::BackendType populationSource;
 
-    /// poulation database details
+	/// poulation database details
 	DB_Details populationDB;
 
-    /// logsum database details
+	/// logsum database details
 	DB_Details simmobDB;
 
-    /// worker allocation details
-    WorkerParams workers;
+	/// name of table containing pre-computed values
+	std::string logsumTableName;
 
-    /**
-     * Enumerator for calibration methodology
-     */
-    enum CalibrationMethodology
-    {
-        SPSA,
-        WSPSA
-    };
+	/// worker allocation details
+	WorkerParams workers;
 
-    /// Calibration methodology identifier
+	/**
+	 * Enumerator for calibration methodology
+	 */
+	enum CalibrationMethodology
+	{
+		SPSA, WSPSA
+	};
+
+	/// Calibration methodology identifier
 	CalibrationMethodology calibrationMethodology;
 
-    /// SPSA Calibration params
+	/// SPSA Calibration params
 	PredayCalibrationParams spsaCalibrationParams;
 
-    /// WSPSA Calibration params
+	/// WSPSA Calibration params
 	PredayCalibrationParams wspsaCalibrationParams;
 
-    /// Calibration output file name
+	/// Calibration output file name
 	std::string calibrationOutputFile;
 
-    /// Logsum computation frequency
+	/// Logsum computation frequency
 	unsigned logsumComputationFrequency;
 
-    ///	is CBD area restriction enforced
-    bool regionRestrictionEnabled;
+	///	is CBD area restriction enforced
+	bool regionRestrictionEnabled;
 
-    ///setting for the incidents
-    std::vector<IncidentParams> incidents;
+	///setting for the incidents
+	std::vector<IncidentParams> incidents;
+
 
     ///setting for disruptions
     std::vector<DisruptionParams> disruptions;
@@ -838,14 +919,15 @@ private:
     /// set of confluxes
     std::set<Conflux*> confluxes;
 
-    /// key:value (MultiNode:Conflux) map
-    std::map<const Node*, Conflux*> multinode_confluxes;
 
-    /// set of segment stats with bus stops
-    std::set<SegmentStats*> segmentStatsWithBusStops;
+	/// key:value (MultiNode:Conflux) map
+	std::map<const Node*, Conflux*> multinode_confluxes;
 
-    /// map of link category to speed density function parameters <alpha, beta>
-    std::pair<double, double> speedDensityParams[7];
+	/// set of segment stats with bus stops
+	std::set<SegmentStats*> segmentStatsWithBusStops;
+
+	/// array of speed density function parameters indexed by link category
+	SpeedDensityParams speedDensityParams[7];
 };
 }
 }

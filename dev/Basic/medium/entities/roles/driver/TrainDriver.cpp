@@ -363,6 +363,21 @@ unsigned int TrainDriver::getEmptyOccupation()
 	return 0;
 }
 
+void TrainDriver::SetUnsetUturnFlag(bool set)
+{
+	uTurnFlag=set;
+}
+
+void TrainDriver::setForceAlightFlag(bool flag)
+{
+	forceAlightPassengers_ByServiceController = flag;
+}
+
+bool TrainDriver::getForceAlightFlag()
+{
+	return forceAlightPassengers_ByServiceController;
+}
+
 int TrainDriver::alightPassenger(std::list<Passenger*>& alightingPassenger,timeslice now)
 {
 	int num = 0;
@@ -578,7 +593,7 @@ bool TrainDriver::IsBoardingRestricted()
 		   if(movType==BOARDING||movType==BOTH)
 		   {
 			   restrictPassengersEntities.erase(it);
-			   restrictPassengersEntitiesLock.unlock();
+			   //restrictPassengersEntitiesLock.unlock();
 			   return true;
 
 		   }
@@ -603,7 +618,7 @@ bool TrainDriver::IsAlightingRestricted()
     	   if(movType==ALIGHTING||movType==BOTH)
     	   {
     		   restrictPassengersEntities.erase(it);
-    		   restrictPassengersEntitiesLock.unlock();
+    		   //restrictPassengersEntitiesLock.unlock();
     		   return true;
     	   }
 

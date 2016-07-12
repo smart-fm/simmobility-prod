@@ -193,6 +193,10 @@ public:
 	/* sets the route status which is set so later it need not to set */
 	void setRouteStatus(bool status);
 
+	void setUnsetIgnoreSafeDistanceByServiceController(bool ignore);
+
+	std::string getPlatformByOffset(int offset);
+
 protected:
 	virtual TravelMetric& startTravelTimeMetric();
 	virtual TravelMetric& finalizeTravelTimeMetric();
@@ -219,6 +223,7 @@ private:
 	boost::mutex safeHeadwayLock;
 	bool routeSet=false;
 	bool isUnscheduled=false;
+	bool ignoreSafeDistance_RequestServiceController=false;
 private:
 	/**
 	 * get current speed limit

@@ -16,7 +16,8 @@
  *****************************************************************/
 
 //Prototype declaration: this function is found in main_imple.cpp.
-int main_impl(int ARGC, char* ARGV[]);
+int main_impl(int ARGC
+		, char* ARGV[]);
 
 //The actual main method simply dispatches to main_impl() in main_impl.cpp
 int main(int ARGC, char* ARGV[])

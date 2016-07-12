@@ -79,7 +79,7 @@
             <mapping name="erp_section" procedure="get_erp_section()"/>
             <mapping name="erp_surcharge" procedure="get_erp_surcharge()"/>
 
-            <mapping name="day_activity_schedule" procedure="get_persons_between"/>
+            <mapping name="day_activity_schedule" procedure="get_persons_between_new_mrt"/>
             <mapping name="freight_trips" procedure="get_testfreight_between"/>
             <mapping name="screen_line" procedure="get_screen_line_segments()"/>
             <mapping name="rail_transit_edges" procedure="get_rail_transit_edges()"/>

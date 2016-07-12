@@ -93,6 +93,15 @@ class ServiceController:  public lua::LuaModel
     void InsertPlatformHoldEntities(std::string platformName,double duration,int trainId,std::string lineId);
     void restrictPassengers(std::string platformName,int trainId,std::string lineId,int type);
     void InsertUnScheduledTrain(std::string lineId,std::string startTime,std::string startStation);
+    void SetDisruptedPlatforms(std::string startStation,std::string endStation,std::string lineID);
+    std::string GetPlatformByOffset(int trainId,std::string lineId,int offset);
+    std::string GetDisruptedPlatformByIndex(std::string lineID,int index);
+    int GetDisruptedPlatformsSize(std::string lineID);
+    void MakeTrainTakeUturn(int trainId,std::string lineId);
+    int getTrainIdOfTrainAhead(int trainId,std::string lineId);
+    int getNextRequestedForTrain(int trainId,std::string lineId);
+    void setUnsetIgnoreSafeDistance(int trainId,std::string lineId,bool ignore);
+    //void setUnsetForceAlightPassengers(int trainId,std::string lineId,bool foreAlight)
 
 	private:
     mutable boost::mutex lineTrainDriversLock;

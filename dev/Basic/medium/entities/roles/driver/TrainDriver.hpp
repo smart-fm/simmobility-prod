@@ -255,6 +255,12 @@ public:
 	 */
 	void ResetHoldingTime();
 
+	void SetUnsetUturnFlag(bool set);
+
+	void setForceAlightFlag(bool flag);
+
+	bool getForceAlightFlag();
+
 
 	/**
 	 * Event handler which provides a chance to handle event transfered from parent agent.
@@ -275,12 +281,13 @@ private:
 	double initialDwellTime;
 	double remainingStopTime;
 	double minDwellTimeRequired;
+
 	PolyPoint currStopPoint;
 	/**passengers list*/
 	std::list<Passenger*> passengerList;
 	std::vector<StopPointEntity> stopPointEntities;
     bool shouldTerminateService=false;
-
+    bool forceAlightPassengers_ByServiceController=false;
     std::vector<PlatformHoldingTimeEntity> platformHoldingTimeEntities;
     std::map<std::string,passengerMovement> restrictPassengersEntities;
     std::vector<std::string> platformsToBeIgnored;
@@ -292,7 +299,7 @@ private:
 	mutable boost::mutex restrictPassengersEntitiesLock;
 	mutable boost::mutex platformsToBeIgnoredLock;
 	mutable boost::mutex terminateTrainServiceLock;
-
+	bool uTurnFlag=false;
 	/**sequence no for platforms*/
 	unsigned int platSequenceNumber;
 

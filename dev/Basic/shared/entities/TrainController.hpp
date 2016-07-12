@@ -315,6 +315,7 @@ public:
     std::vector<int> GetActiveTrainIds();
     /* performs disruptiopn.sets the disrupted platform list */
     void PerformDisruption(std::string startStation,std::string endStation,timeslice now,std::string disruptionTime);
+    void SetDisruptedPlatforms(std::string startStation,std::string endStation,std::string lineID);
     void SetDisruptionParams(std::string startStation,std::string endStation,std::string time);
     /* gets the list of platforms between two stations for a particular line*/
     std::vector<std::string> GetPlatformsBetweenStations(std::string lineId,std::string startStation,std::string endStation);

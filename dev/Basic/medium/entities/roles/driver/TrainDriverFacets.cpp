@@ -435,6 +435,11 @@ void TrainMovement::produceMoveInfo()
 	 routeSet=status;
  }
 
+ void TrainMovement::setUnsetIgnoreSafeDistanceByServiceController(bool ignore)
+ {
+	 ignoreSafeDistance_RequestServiceController = ignore;
+ }
+
 bool TrainMovement::IsStopPointPresent()
  {
 	const TrainPathMover &pathMover=getPathMover();
@@ -770,7 +775,6 @@ bool TrainMovement::isStationCase(double disToTrain, double disToPlatform,double
 }
 
 double TrainMovement::getDistanceToNextTrain(const TrainDriver* nextDriver,bool isSafed)
-
 {
 	double distanceToNextTrain = 0.0;
 	if(nextDriver)
@@ -785,6 +789,8 @@ double TrainMovement::getDistanceToNextTrain(const TrainDriver* nextDriver,bool 
 			if (nextMovement)
 			{
 				double dis = trainPathMover.getDifferentDistance(nextMovement->getPathMover());
+				if(ignoreSafeDistance_RequestServiceController)
+					return dis - trainLengthMeter;
 
 				if (dis > 0)
 				{
@@ -1011,6 +1017,13 @@ double TrainMovement::getEffectiveMovingDistance()
 		params.currentSpeed = params.currentSpeed+effectiveAcc*params.secondsInTick;
 	}
 	return movingDist;
+}
+
+std::string TrainMovement::getPlatformByOffset(int offset)
+{
+	Platform *platform=trainPlatformMover.getPlatformByOffset(offset);
+	if(platform)
+		return platform->getPlatformNo();
 }
 
 bool TrainMovement::isStopAtPlatform()

@@ -80,6 +80,18 @@ namespace sim_mob {
 	}
 
 	template<typename PERSON>
+	void TrainController<PERSON>::SetDisruptedPlatforms(std::string startStation,std::string endStation,std::string lineID)
+	{
+		if(disruptionPerformed==false)
+		{
+			std::vector<std::string> platforms=GetPlatformsBetweenStations(lineID,startStation,endStation);
+			disruptedPlatformsNamesMap_ServiceController[lineID] = std::vector<std::string>();
+			disruptedPlatformsNamesMap_ServiceController[lineID].insert(disruptedPlatformsNamesMap_ServiceController["NE_1"].end(),platforms.begin(),platforms.end());
+			disruptionPerformed=true;
+		}
+	}
+
+	template<typename PERSON>
 	Entity::UpdateStatus TrainController<PERSON>::frame_tick(timeslice now)
 	{
 

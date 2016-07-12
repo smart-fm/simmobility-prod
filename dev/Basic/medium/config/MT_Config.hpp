@@ -653,7 +653,7 @@ public:
 	 */
 	void setPopulationDb(const std::string& populationDb, const std::string& populationCred);
 
-<<<<<<< HEAD
+
     /**
      * Retrieves number of workers for handling agents
      *

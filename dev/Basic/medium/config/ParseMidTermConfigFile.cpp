@@ -73,25 +73,8 @@ void ParseMidTermConfigFile::processXmlFile(xercesc::XercesDOMParser& parser)
 	{
 		throw std::runtime_error("xml parse error: root node must be \"config\"");
 	}
-<<<<<<< HEAD
 
-    processProcMapNode(GetSingleElementByName(rootNode, "db_proc_groups", true));
-    processSystemNode(GetSingleElementByName(rootNode, "system", true));
-    processWorkersNode(GetSingleElementByName(rootNode, "workers", true));
-    processIncidentsNode(GetSingleElementByName(rootNode, "incidentsData", true));
-    processBusStopScheduledTimesNode(GetSingleElementByName(rootNode, "scheduledTimes", true));
-    processBusControllerNode(GetSingleElementByName(rootNode, "busController", true));
-    processTrainControllerNode(GetSingleElementByName(rootNode, "trainController", true));
-    processScreenLineNode(GetSingleElementByName(rootNode, "screen-line-count"));
-    processGenerateBusRoutesNode(GetSingleElementByName(rootNode, "generateBusRoutes"));
-    processTT_Update(GetSingleElementByName(rootNode, "travel_time_update", true));
-    processSubtripTravelMetricsOutputNode(GetSingleElementByName(rootNode, "subtrip_travel_metrics_output"));
-    processPublicTransit(GetSingleElementByName(rootNode, "public_transit", true));
-    processCBDNode(GetSingleElementByName(rootNode, "CBD"));
-    processPathSetFileName(GetSingleElementByName(rootNode, "path-set-config-file", true));
 
-=======
->>>>>>> master
 	processMidTermRunMode(GetSingleElementByName(rootNode, "mid_term_run_mode", true));
 	processProcMapNode(GetSingleElementByName(rootNode, "db_proc_groups", true));
 	processSystemNode(GetSingleElementByName(rootNode, "system", true));

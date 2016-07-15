@@ -1624,13 +1624,16 @@ void HM_Model::startImpl()
 
 	if(config.ltParams.taxiAccessModel.enabled)
 	{
+		for (size_t n = 0; n < households.size(); n++)
+		{
+			setTaxiAccess(households[n]);
+		}
+	}
+
 	for (size_t n = 0; n < households.size(); n++)
 	{
 		hdbEligibilityTest(n);
-		setTaxiAccess(households[n]);
 	}
-	}
-
 
 	PrintOutV("The synthetic population contains " << household_stats.adultSingaporean_global << " adult Singaporeans." << std::endl);
 	PrintOutV("Minors. Male: " << household_stats.maleChild_global << " Female: " << household_stats.femaleChild_global << std::endl);

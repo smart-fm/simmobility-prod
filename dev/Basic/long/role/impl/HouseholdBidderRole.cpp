@@ -535,6 +535,10 @@ bool HouseholdBidderRole::pickEntryToBid()
     const HM_LuaModel& luaModel = LuaProvider::getHM_Model();
     HM_Model* model = getParent()->getModel();
 
+    boost::gregorian::date simulationDate(HITS_SURVEY_YEAR, 1, 1);
+    boost::gregorian::date_duration dt(day);
+    simulationDate = simulationDate + dt;
+
     //get available entries (for preferable zones if exists)
     HousingMarket::ConstEntryList entries;
 
@@ -745,7 +749,13 @@ bool HouseholdBidderRole::pickEntryToBid()
             		maxEntry = entry;
             		maxWp = wp;
             		maxWtpe = wtp_e;
-            		isBTO = unit->isBto();
+
+                	boost::gregorian::date occupancydate = boost::gregorian::date_from_tm(unit->getOccupancyFromDate());
+
+                	if( simulationDate <  occupancydate )
+                	{
+                 		isBTO = true;
+                	}
             	}
             }
         }

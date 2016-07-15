@@ -74,12 +74,11 @@ void VehicleOwnershipModel::reconsiderVehicleOwnershipOption(const Household *ho
 			}
 
 			//generate a random number with uniform real distribution.
-			boost::mt19937 randomNumbergenerator( time( 0 ) );
-			boost::random::uniform_real_distribution< > uniformDistribution( 0.0, 1.0 );
-			boost::variate_generator< boost::mt19937&, boost::random::uniform_real_distribution < > >
-			generateRandomNumbers( randomNumbergenerator, uniformDistribution );
+			std::random_device rd;
+			std::mt19937 gen(rd());
+			std::uniform_real_distribution<> dis(0.0, 1.0);
 
-			const double randomNum = generateRandomNumbers();
+			const double randomNum = dis(gen);
 			double pTemp = 0;
 
 			BigSerial selecteVehicleOwnershipOtionId = 0;

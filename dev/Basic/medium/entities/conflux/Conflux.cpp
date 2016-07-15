@@ -72,7 +72,7 @@ unsigned Conflux::updateInterval = 0;
 
 Conflux::Conflux(Node* confluxNode, const MutexStrategy& mtxStrat, int id, bool isLoader) :
 		Agent(mtxStrat, id), confluxNode(confluxNode), parentWorkerAssigned(false), currFrame(0, 0), isLoader(isLoader), numUpdatesThisTick(0),
-		tickTimeInS(ConfigManager::GetInstance().FullConfig().baseGranSecond()), evadeVQ_Bounds(false)
+		tickTimeInS(ConfigManager::GetInstance().FullConfig().baseGranSecond()), evadeVQ_Bounds(false), segStatsOutput(std::string())
 {
 	if (!isLoader) {
 		multiUpdate = true;
@@ -340,6 +340,10 @@ UpdateStatus Conflux::update(timeslice frameNumber)
 			resetPositionOfLastUpdatedAgentOnLanes();
 			resetPersonRemTimes(); //reset the remaining times of persons in lane infinity and VQ if required.
 			processAgents(); //process all agents in this conflux for this tick
+			if(segStatsOutput.length() > 0)
+			{
+				writeOutputs(); //write outputs from previous update interval (if any)
+			}
 			setLastUpdatedFrame(frameNumber.frame());
 			numUpdatesThisTick = 1;
 			return UpdateStatus::ContinueIncomplete;
@@ -907,7 +911,7 @@ void Conflux::updateAndReportSupplyStats(timeslice frameNumber)
 		{
 			if (updateThisTick && outputEnabled)
 			{
-				Log() << (*segIt)->reportSegmentStats(frameNumber.frame() / updateInterval);
+				segStatsOutput.append((*segIt)->reportSegmentStats(frameNumber.frame() / updateInterval));
 			}
 			(*segIt)->updateLaneParams(frameNumber);
 		}
@@ -2040,6 +2044,12 @@ Conflux* Conflux::findStartingConflux(Person_MT* person, unsigned int now)
 Conflux* sim_mob::medium::Conflux::getConflux(const RoadSegment* rdSeg)
 {
 	return MT_Config::getInstance().getConfluxForNode(rdSeg->getParentLink()->getToNode());
+}
+
+void sim_mob::medium::Conflux::writeOutputs()
+{
+	Log() << segStatsOutput;
+	segStatsOutput = std::string();
 }
 
 void Conflux::insertIncident(SegmentStats* segStats, double newFlowRate)

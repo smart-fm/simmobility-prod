@@ -182,6 +182,11 @@ private:
 	bool evadeVQ_Bounds;
 
 	/**
+	 * temporary holder for outputs reported by segmentstats of this conflux at the end of each update interval
+	 */
+	std::string segStatsOutput;
+
+	/**
 	 * updates agents in this conflux
 	 */
 	void processAgents();
@@ -348,6 +353,11 @@ private:
 	 * @return true if person hasn't moved; false otherwise
 	 */
 	bool isStuck(Conflux::PersonProps& beforeUpdate, Conflux::PersonProps& afterUpdate) const;
+
+	/**
+	 * writes the output collected for the previous interval to the output files
+	 */
+	void writeOutputs();
 
 protected:
 	/**

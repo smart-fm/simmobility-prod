@@ -121,7 +121,7 @@ namespace
 
 	enum TaxiAccessParamId2012
 	{
-		INTERCEPT2012 = 1, AGE5064_1_2012, AGE5064_2_2012, AGE65UP_1_2012, AGE65UP_2_2012, AGE3549_1_2012,AGE3549_2_2012,EMPLOYED_SELF_1_2012, EMPLOYED_SELF_2_2012, LABOR_2_2012,
+		INTERCEPT2012 = 1, HDB_1_2012, NON_HDB_2012, AGE3549_1_2012,AGE3549_2_2012, AGE5064_1_2012, AGE5064_2_2012, AGE65UP_1_2012, AGE65UP_2_2012,EMPLOYED_SELF_1_2012, EMPLOYED_SELF_2_2012, LABOR_2_2012,
 		OPERATOR_1_2012, OPERATOR_2_2012, INC_LOW_2012, INC_HIGH_2012,INDIAN_TAXI_ACCESS2012, MALAY_TAXI_ACCESS2012, TRANSPORT_1_2012, TRANSPORT_2_2012, CONSTRUCTION_1_2012
 	};
 
@@ -1140,7 +1140,22 @@ void HM_Model::setTaxiAccess2008(const Household *household)
 void HM_Model::setTaxiAccess2012(const Household *household)
 {
 	double valueTaxiAccess = getTaxiAccessCoeffsById(INTERCEPT2012)->getCoefficientEstimate();
+	BigSerial unitTypeId = 0;
 
+	if(getUnitById(household->getUnitId()) != nullptr)
+		{
+			unitTypeId = getUnitById(household->getUnitId())->getUnitType();
+		}
+
+		if( (unitTypeId>0) && (unitTypeId<=6))
+		{
+
+			valueTaxiAccess = valueTaxiAccess + getTaxiAccessCoeffsById(HDB_1_2012)->getCoefficientEstimate();
+		}
+		else
+		{
+			valueTaxiAccess = valueTaxiAccess + getTaxiAccessCoeffsById(NON_HDB_2012)->getCoefficientEstimate();
+		}
 		std::vector<BigSerial> individuals = household->getIndividuals();
 		int numIndividualsInAge5064 = 0;
 		int numIndividualsInAge65Up = 0;
@@ -1225,6 +1240,15 @@ void HM_Model::setTaxiAccess2012(const Household *household)
 
 		}
 
+		if(numIndividualsAge3549_2 ==1)
+		{
+			valueTaxiAccess = valueTaxiAccess + getTaxiAccessCoeffsById(AGE3549_1_2012)->getCoefficientEstimate();
+		}
+		else if(numIndividualsAge3549_2 >=2)
+		{
+			valueTaxiAccess = valueTaxiAccess + getTaxiAccessCoeffsById(AGE3549_2_2012)->getCoefficientEstimate();
+		}
+
 		if(numIndividualsInAge5064 == 1)
 		{
 			valueTaxiAccess = valueTaxiAccess + getTaxiAccessCoeffsById(AGE5064_1_2012)->getCoefficientEstimate();
@@ -1242,17 +1266,6 @@ void HM_Model::setTaxiAccess2012(const Household *household)
 		{
 			valueTaxiAccess = valueTaxiAccess + getTaxiAccessCoeffsById(AGE65UP_2_2012)->getCoefficientEstimate();
 		}
-
-
-		if(numIndividualsAge3549_2 ==1)
-		{
-			valueTaxiAccess = valueTaxiAccess + getTaxiAccessCoeffsById(AGE3549_1_2012)->getCoefficientEstimate();
-		}
-		else if(numIndividualsAge3549_2 >=2)
-		{
-			valueTaxiAccess = valueTaxiAccess + getTaxiAccessCoeffsById(AGE3549_2_2012)->getCoefficientEstimate();
-		}
-
 
 		if(numSelfEmployedIndividuals == 1)
 		{

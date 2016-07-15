@@ -222,6 +222,10 @@ void loadDataToOutputSchema(db::DB_Connection& conn,std::string &currentOutputSc
 			{
 				if(((*houseHoldItr)->getIsBidder()) || ((*houseHoldItr)->getIsSeller()))
 				{
+					if(housingMarketModel.getResumptionHouseholdById((*houseHoldItr)->getId()) != nullptr)
+					{
+						(*houseHoldItr)->setExistInDB(true);
+					}
 					hhDao.insertHousehold(*(*houseHoldItr),currentOutputSchema);
 				}
 

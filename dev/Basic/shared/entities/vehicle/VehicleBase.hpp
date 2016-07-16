@@ -4,7 +4,8 @@
 
 #pragma once
 
-namespace sim_mob {
+namespace sim_mob
+{
 /**
  * Passenger car units.
  * TODO: Defining this as a global variable for now. Must make this
@@ -27,45 +28,50 @@ const double BUS_LENGTH = sim_mob::BUS_PCU * sim_mob::PASSENGER_CAR_UNIT; // 2 t
  *
  * \author Harish Loganathan
  */
-class VehicleBase {
+class VehicleBase
+{
 public:
-	enum VehicleType {
-		CAR,
-		BUS,
-		BIKE,
-		LGV,
-		HGV,
-		OTHER
+	enum VehicleType
+	{
+		CAR, BUS, TAXI, BIKE, LGV, HGV, OTHER
 	};
 
-	VehicleBase(const VehicleType vehType, const double length, const double width)
-	: vehicleType(vehType), lengthM(length), widthM(width), moving(true)
-	{}
+	VehicleBase(const VehicleType vehType, const double length, const double width) :
+			vehicleType(vehType), lengthM(length), widthM(width), moving(true)
+	{
+	}
 
-	VehicleBase(const VehicleBase& copy)
-	: vehicleType(copy.vehicleType), lengthM(copy.lengthM),
-	  widthM(copy.widthM), moving(copy.moving)
-	{}
+	VehicleBase(const VehicleBase& copy) :
+			vehicleType(copy.vehicleType), lengthM(copy.lengthM), widthM(copy.widthM), moving(copy.moving)
+	{
+	}
 
-	virtual ~VehicleBase() {}
+	virtual ~VehicleBase()
+	{
+	}
 
-	const double getLengthInM() const {
+	const double getLengthInM() const
+	{
 		return lengthM;
 	}
 
-	const double getWidthInM() const {
+	const double getWidthInM() const
+	{
 		return widthM;
 	}
 
-	const VehicleType getVehicleType() const {
+	const VehicleType getVehicleType() const
+	{
 		return vehicleType;
 	}
 
-	bool isMoving() const {
+	bool isMoving() const
+	{
 		return moving;
 	}
 
-	void setMoving(bool moving) {
+	void setMoving(bool moving)
+	{
 		this->moving = moving;
 	}
 
@@ -80,4 +86,4 @@ protected:
 	bool moving;
 };
 
-}// end namespace sim_mob
+} // end namespace sim_mob

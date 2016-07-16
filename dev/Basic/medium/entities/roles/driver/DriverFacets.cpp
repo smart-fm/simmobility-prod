@@ -114,7 +114,12 @@ void DriverMovement::frame_init()
 	bool pathInitialized = initializePath();
 	if (pathInitialized)
 	{
-		Vehicle* newVehicle = new Vehicle(Vehicle::CAR, PASSENGER_CAR_UNIT);
+		Vehicle::VehicleType vehicleType = Vehicle::CAR;
+		if((*parentDriver->parent->currTripChainItem)->getMode() == "Taxi")
+		{
+			vehicleType = Vehicle::TAXI;
+		}
+		Vehicle* newVehicle = new Vehicle(vehicleType, PASSENGER_CAR_UNIT);
 		VehicleBase* oldVehicle = parentDriver->getResource();
 		safe_delete_item(oldVehicle);
 		parentDriver->setResource(newVehicle);

@@ -104,10 +104,11 @@ void LinkStats::removeEntitiy(Person_MT* person)
 	}
 }
 
-std::string LinkStats::outputLinkStats() const
+std::string LinkStats::writeOutLinkStats(unsigned int updateNumber)
 {
 	char buf[200];
-	sprintf(buf, "%u,%.3f,%u,%u,%u,%u,%u,%u,%u",
+	sprintf(buf, "lnk,%u,%u,%.3f,%u,%u,%u,%u,%u,%u,%u\n",
+			updateNumber,
 			linkId,
 			density,
 			entryCount,
@@ -118,6 +119,7 @@ std::string LinkStats::outputLinkStats() const
 			busCount,
 			otherVehiclesCount
 			);
+	resetStats();
 	return std::string(buf);
 }
 

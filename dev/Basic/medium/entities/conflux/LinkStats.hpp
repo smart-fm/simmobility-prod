@@ -46,7 +46,7 @@ public:
 
 	void removeEntitiy(Person_MT* entity);
 
-	std::string outputLinkStats() const;
+	std::string writeOutLinkStats(unsigned int updateNumber);
 
 	void computeLinkDensity(double vehicleLength);
 };

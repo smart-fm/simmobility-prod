@@ -1,5 +1,6 @@
 #pragma once
 
+#include <mutex>
 #include <set>
 #include <string>
 
@@ -32,14 +33,18 @@ private:
 	 * this is the sum of (segment length * number of lanes) for each road segment of this link represented by this linkStats
 	 */
 	double totalLinkLaneLength;
+
 	double density;
 
 	std::set<const Person_MT*> linkEntities;
+
+	std::mutex linkStatsMutex;
 
 	void resetStats();
 
 public:
 	LinkStats(const Link* link);
+	LinkStats(const LinkStats& srcStats);
 	~LinkStats() {}
 
 	void addEntity(const Person_MT* entitiy);

@@ -34,7 +34,7 @@ private:
 	double totalLinkLaneLength;
 	double density;
 
-	std::set<Person_MT*> onLinkEntities;
+	std::set<const Person_MT*> linkEntities;
 
 	void resetStats();
 
@@ -42,9 +42,9 @@ public:
 	LinkStats(const Link* link);
 	~LinkStats() {}
 
-	void addEntity(Person_MT* entitiy);
+	void addEntity(const Person_MT* entitiy);
 
-	void removeEntitiy(Person_MT* entity);
+	void removeEntitiy(const Person_MT* entity);
 
 	std::string writeOutLinkStats(unsigned int updateNumber);
 

@@ -41,30 +41,30 @@ void LinkStats::resetStats()
 	density = 0;
 }
 
-void LinkStats::addEntity(Person_MT* person)
+void LinkStats::addEntity(const Person_MT* person)
 {
 	if(!person || !person->getRole() || !person->getRole()->getResource())
 	{
 		throw std::runtime_error("invalid person/role for link stats addition");
 	}
 
-	std::set<Person_MT*>::const_iterator personIt = onLinkEntities.find(person);
-	if(personIt == onLinkEntities.end())
+	std::set<const Person_MT*>::const_iterator personIt = linkEntities.find(person);
+	if(personIt == linkEntities.end())
 	{
-		onLinkEntities.insert(person);
+		linkEntities.insert(person);
 		++entryCount;
 	}
 	//else - we don't count an already counted person again
 }
 
-void LinkStats::removeEntitiy(Person_MT* person)
+void LinkStats::removeEntitiy(const Person_MT* person)
 {
 	if(!person)
 	{
 		throw std::runtime_error("invalid person for link stats addition");
 	}
 
-	size_t eraseCount = onLinkEntities.erase(person);
+	size_t eraseCount = linkEntities.erase(person);
 	if(eraseCount > 0)
 	{
 		++exitCount;

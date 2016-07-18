@@ -274,6 +274,7 @@ void sim_mob::ParseConfigFile::processLongTermParamsNode(xercesc::DOMElement* no
 	housingModel.bidderBTOUnitsChoiceSet = ParseInteger(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "bidderBTOUnitsChoiceSet"), "value"), static_cast<int>(0));
 	housingModel.householdBiddingWindow = ParseInteger(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "householdBiddingWindow"), "value"), static_cast<int>(0));
 	housingModel.dailyHouseholdAwakenings = ParseInteger(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "dailyHouseholdAwakenings"), "value"), static_cast<int>(0));
+	housingModel.householdAwakeningPercentageByBTO = ParseFloat(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "householdAwakeningPercentageByBTO"), "value"));
 	cfg.ltParams.housingModel = housingModel;
 
 	LongTermParams::OutputHouseholdLogsums outputHouseholdLogsums;

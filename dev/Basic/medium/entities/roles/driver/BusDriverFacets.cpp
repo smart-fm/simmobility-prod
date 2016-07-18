@@ -9,6 +9,7 @@
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "entities/BusStopAgent.hpp"
+#include "entities/conflux/LinkStats.hpp"
 #include "entities/Person.hpp"
 #include "entities/Vehicle.hpp"
 #include "geospatial/network/RoadSegment.hpp"

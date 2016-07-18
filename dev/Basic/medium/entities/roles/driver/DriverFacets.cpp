@@ -14,6 +14,7 @@
 #include "conf/ConfigParams.hpp"
 #include "config/MT_Config.hpp"
 #include "Driver.hpp"
+#include "entities/conflux/LinkStats.hpp"
 #include "entities/Person_MT.hpp"
 #include "entities/ScreenLineCounter.hpp"
 #include "entities/UpdateParams.hpp"

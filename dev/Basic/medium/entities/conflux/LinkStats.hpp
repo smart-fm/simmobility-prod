@@ -40,6 +40,7 @@ private:
 
 public:
 	LinkStats(const Link* link);
+	~LinkStats() {}
 
 	void addEntity(Person_MT* entitiy);
 

@@ -74,7 +74,8 @@ Conflux::Conflux(Node* confluxNode, const MutexStrategy& mtxStrat, int id, bool 
 		Agent(mtxStrat, id), confluxNode(confluxNode), parentWorkerAssigned(false), currFrame(0, 0), isLoader(isLoader), numUpdatesThisTick(0),
 		tickTimeInS(ConfigManager::GetInstance().FullConfig().baseGranSecond()), evadeVQ_Bounds(false), segStatsOutput(std::string())
 {
-	if (!isLoader) {
+	if (!isLoader)
+	{
 		multiUpdate = true;
 	}
 }
@@ -302,9 +303,6 @@ Entity::UpdateStatus Conflux::frame_init(timeslice now)
 			(*segIt)->initializeBusStops();
 		}
 	}
-	/**************test code insert incident *********************/
-
-	/*************************************************************/
 	return Entity::UpdateStatus::Continue;
 }
 
@@ -1041,6 +1039,21 @@ void Conflux::resetPositionOfLastUpdatedAgentOnLanes()
 const std::vector<SegmentStats*>& sim_mob::medium::Conflux::findSegStats(const RoadSegment* rdSeg) const
 {
 	return segmentAgents.find(rdSeg)->second;
+}
+
+LinkStats& Conflux::getLinkStats(const Link* lnk)
+{
+	if(!lnk)
+	{
+		throw std::runtime_error("cannot find LinkStats for nullptr");
+	}
+	LinkStatsMap::iterator lnkStatsIt = linkStatsMap.find(lnk);
+	if(lnkStatsIt==linkStatsMap.end())
+	{
+		throw std::runtime_error("link " + std::to_string(lnk->getLinkId())
+									+ " does not belong to conflux " + std::to_string(confluxNode->getNodeId()));
+	}
+	return lnkStatsIt->second;
 }
 
 SegmentStats* Conflux::findSegStats(const RoadSegment* rdSeg, uint16_t statsNum) const
@@ -2319,7 +2332,7 @@ void Conflux::CreateConfluxes()
 			{
 				const Link* lnk = (*lnkIt);
 				//lnk *ends* at the multinode of this conflux.
-				//lnk is upstream to the multinode and belongs to this conflux
+				//Therefore, lnk is upstream to the multinode and belongs to this conflux
 				std::vector<SegmentStats*> upSegStatsList;
 				const std::vector<RoadSegment*>& upSegs = lnk->getRoadSegments();
 				//set conflux pointer to the segments and create SegmentStats for the segment
@@ -2346,6 +2359,7 @@ void Conflux::CreateConfluxes()
 				}
 				conflux->upstreamSegStatsMap.insert(std::make_pair(lnk, upSegStatsList));
 				conflux->virtualQueuesMap.insert(std::make_pair(lnk, std::deque<Person_MT*>()));
+				conflux->linkStatsMap.insert(std::make_pair(lnk, LinkStats(lnk)));
 			} // end for
 
 			conflux->resetOutputBounds();

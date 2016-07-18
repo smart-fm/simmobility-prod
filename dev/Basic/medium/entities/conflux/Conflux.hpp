@@ -9,6 +9,7 @@
 #include <map>
 #include <vector>
 #include "entities/Agent.hpp"
+#include "entities/conflux/LinkStats.hpp"
 #include "entities/Person_MT.hpp"
 #include "geospatial/network/Node.hpp"
 #include "geospatial/network/Lane.hpp"
@@ -73,6 +74,7 @@ private:
 	typedef std::map<const Link*, const SegmentStatsList> UpstreamSegmentStatsMap;
 	typedef std::map<const Link*, PersonList> VirtualQueueMap;
 	typedef std::map<const RoadSegment*, SegmentStatsList> SegmentStatsMap;
+	typedef std::map<const Link*, LinkStats> LinkStatsMap;
 
 	/**
 	 * helper to capture the status of a person before and after update
@@ -123,6 +125,11 @@ private:
 	 *  The Segment stats in-turn contain LaneStats which contain the persons.
 	 */
 	SegmentStatsMap segmentAgents;
+
+	/**
+	 * Map to store link to LinkStats mapping.
+	 */
+	LinkStatsMap linkStatsMap;
 
 	/**
 	 *  flag to indicate whether this conflux belongs to some worker
@@ -273,37 +280,6 @@ private:
 	 */
 	void killAgent(Person_MT* person, PersonProps& beforeUpdate);
 
-/*	bool insertIncidentS(const std::string fileName)
-	{
-		ifstream in(fileName.c_str());
-		if (!in.is_open())
-		{
-			ostringstream out("");
-			out << "File " << fileName << " not found";
-			throw runtime_error(out.str());
-			//return false;
-		}
-		StreetDirectory & stDir = StreetDirectory::instance();
-		typedef tokenizer<escaped_list_separator<char> > Tokenizer;
-		vector < string > record;
-		string line;
-
-		while (getline(in, line))
-		{
-			Tokenizer record(line);
-			unsigned int sectionId = lexical_cast<unsigned int>(*(record.begin())); //first element
-			double newFlowRate = lexical_cast<double>(*(record.end())); //second element
-			const RoadSegment* rs = stDir.getRoadSegment(sectionId);
-			const std::vector<SegmentStats*>& stats = rs->getParentConflux()->findSegStats(rs);
-			SegmentStats* ss;
-			BOOST_FOREACH(ss,stats)
-			{
-				Conflux::insertIncident(ss, newFlowRate);
-			}
-		}
-		return true;
-	}*/
-
 	/**
 	 * Resets the remainingTime of persons who remain in
 	 * lane infinities and virtual queues across ticks
@@ -389,9 +365,16 @@ public:
 	Conflux(Node* confluxNode, const MutexStrategy& mtxStrat, int id=-1, bool isLoader=false);
 	virtual ~Conflux() ;
 
-	/** Confluxes are non-spatial in nature. */
+	/**
+	 * Confluxes are non-spatial in nature.
+	 * @return always true
+	 */
 	virtual bool isNonspatial();
 
+	/**
+	 * adds a person entitiy for loading, if isLoader is true
+	 * @params child entity to be added
+	 */
 	virtual void registerChild(Entity* child);
 
 	/**
@@ -468,6 +451,13 @@ public:
 	 * @return const list of segstats for rdSeg
 	 */
 	const std::vector<SegmentStats*>& findSegStats(const RoadSegment* rdSeg) const;
+
+	/**
+	 * fetches the LinkStats object corresponding to the supplied link
+	 * @param lnk the link for which LinkStats is required
+	 * @return LinkStats corresponding to lnk
+	 */
+	LinkStats& getLinkStats(const Link* lnk);
 
 	/**
 	 * gets current speed of segStats

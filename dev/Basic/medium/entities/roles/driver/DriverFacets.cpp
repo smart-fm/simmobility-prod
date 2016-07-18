@@ -1138,8 +1138,6 @@ void DriverMovement::updateLinkTravelTimes(const SegmentStats* prevSegStat, doub
 
 void DriverMovement::updateScreenlineCounts(const SegmentStats* prevSegStat, double segEnterExitTime)
 {
-	//if prevSeg is already in travelStats, update it's rdSegTT and add to rdSegTravelStatsMap
-	const RoadSegment* prevSeg = prevSegStat->getRoadSegment();
 	Person_MT *parent = parentDriver->parent;
 	const TripChainItem* tripChain = *(parent->currTripChainItem);
 	const std::string& travelMode = tripChain->getMode();

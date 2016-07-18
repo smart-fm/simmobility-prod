@@ -905,13 +905,21 @@ void Conflux::updateAndReportSupplyStats(timeslice frameNumber)
 	for (UpstreamSegmentStatsMap::iterator upstreamIt = upstreamSegStatsMap.begin(); upstreamIt != upstreamSegStatsMap.end(); upstreamIt++)
 	{
 		const SegmentStatsList& linkSegments = upstreamIt->second;
+		double lnkTotalVehicleLength = 0;
 		for (SegmentStatsList::const_iterator segIt = linkSegments.begin(); segIt != linkSegments.end(); segIt++)
 		{
+			SegmentStats* segStats = (*segIt);
 			if (updateThisTick && outputEnabled)
 			{
-				segStatsOutput.append((*segIt)->reportSegmentStats(frameNumber.frame() / updateInterval));
+				segStatsOutput.append(segStats->reportSegmentStats(frameNumber.frame() / updateInterval));
+				lnkTotalVehicleLength = lnkTotalVehicleLength + segStats->getTotalVehicleLength();
 			}
-			(*segIt)->updateLaneParams(frameNumber);
+			segStats->updateLaneParams(frameNumber);
+		}
+		if(updateThisTick && outputEnabled)
+		{
+			LinkStats& lnkStats = (linkStatsMap.find(upstreamIt->first))->second;
+			lnkStats.computeLinkDensity(lnkTotalVehicleLength);
 		}
 	}
 }

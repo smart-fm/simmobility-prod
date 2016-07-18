@@ -194,6 +194,11 @@ private:
 	std::string segStatsOutput;
 
 	/**
+	 * temporary holder for outputs reported by linkstats of this conflux at the end of each update interval
+	 */
+	std::string lnkStatsOutput;
+
+	/**
 	 * updates agents in this conflux
 	 */
 	void processAgents();

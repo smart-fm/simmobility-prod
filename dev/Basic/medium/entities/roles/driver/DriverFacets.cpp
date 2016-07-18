@@ -436,7 +436,6 @@ bool DriverMovement::moveToNextSegment(DriverUpdateParams& params)
 	currSegStat = pathMover.getCurrSegStats();
 	nxtSegStat = pathMover.getNextSegStats(!isNewLinkNext);
 
-
 	if (!nxtSegStat)
 	{
 		//vehicle is done
@@ -449,6 +448,7 @@ bool DriverMovement::moveToNextSegment(DriverUpdateParams& params)
 			TravelTimeManager::getInstance()->addTravelTime(parentDriver->parent->currLinkTravelStats); //in seconds
 			currSegStat->getParentConflux()->setLinkTravelTimes(linkExitTime, currLink);
 			parentDriver->parent->currLinkTravelStats.reset();
+			currSegStat->getParentConflux()->getLinkStats(currLink).removeEntitiy(parentDriver->parent);
 			setOutputCounter(currLane, (getOutputCounter(currLane, currSegStat) - 1), currSegStat);
 			currLane = nullptr;
 			parentDriver->parent->setToBeRemoved();
@@ -593,6 +593,9 @@ void DriverMovement::flowIntoNextLinkIfPossible(DriverUpdateParams& params)
 		{
 			// update link travel times
 			updateLinkTravelTimes(prevSegStats, linkExitTimeSec);
+
+			//update link stats
+			updateLinkStats(prevSegStats);
 
 			// update road segment screenline counts
 			updateScreenlineCounts(prevSegStats, linkExitTimeSec);
@@ -975,7 +978,6 @@ void DriverMovement::setOrigin(DriverUpdateParams& params)
 		}
 	}
 
-
 	params.elapsedSeconds = std::max(params.elapsedSeconds, departTime - (convertToSeconds(params.now.ms()))); //in seconds
 
 	const Link* nextLink = getNextLinkForLaneChoice(currSegStats);
@@ -998,6 +1000,7 @@ void DriverMovement::setOrigin(DriverUpdateParams& params)
 			//initialize some travel metrics for this subTrip
 			startTravelTimeMetric(); //not for bus drivers or any other role
 		}
+		updateLinkStats(nullptr);
 	}
 	else
 	{
@@ -1117,6 +1120,25 @@ const Lane* DriverMovement::getBestTargetLane(const SegmentStats* nextSegStats, 
 double DriverMovement::getInitialQueueLength(const Lane* lane)
 {
 	return pathMover.getCurrSegStats()->getInitialQueueLength(lane);
+}
+
+void DriverMovement::updateLinkStats(const SegmentStats* prevSegStat)
+{
+	if(prevSegStat)
+	{
+		const RoadSegment* prevSeg = prevSegStat->getRoadSegment();
+		const Link* prevLink = prevSeg->getParentLink();
+		LinkStats& prevLnkStats = prevSegStat->getParentConflux()->getLinkStats(prevLink);
+		prevLnkStats.removeEntitiy(parentDriver->getParent());
+	}
+
+	const SegmentStats* currSegStat = pathMover.getCurrSegStats();
+	if (currSegStat)
+	{
+		const Link* currLink = currSegStat ? currSegStat->getRoadSegment()->getParentLink() : nullptr;
+		LinkStats& currLnkStats = currSegStat->getParentConflux()->getLinkStats(currLink);
+		currLnkStats.addEntity(parentDriver->parent);
+	}
 }
 
 void DriverMovement::updateLinkTravelTimes(const SegmentStats* prevSegStat, double linkExitTimeSec)

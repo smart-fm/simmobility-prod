@@ -332,10 +332,17 @@ protected:
 	/**
 	 * Updates travel time for this driver for the link which he has just exited from.
 	 *
-	 * @param prevSeg the last segment in the link from which the driver has just exited
+	 * @param prevSegStat the last segment in the link from which the driver has just exited
 	 * @param linkExitTimeSec time at which the link was exited
 	 */
 	void updateLinkTravelTimes(const SegmentStats* prevSegStat, double linkExitTimeSec);
+
+	/**
+	 * Updates link stats. This function is expected to be called whenever the driver exits a link and (optionally) enters a new one
+	 * @param prevSegStat the last segment in the link from which the driver has just exited
+	 * @param currSegStat the first segment in the new link which the driver has just entered
+	 */
+	void updateLinkStats(const SegmentStats* prevSegStat);
 
 	/**
 	 * Updates travel time for this driver for the road segment which he has just exited from.

@@ -14,6 +14,7 @@
 #include "conf/ConfigParams.hpp"
 #include "config/MT_Config.hpp"
 #include "Driver.hpp"
+#include "entities/conflux/LinkStats.hpp"
 #include "entities/Person_MT.hpp"
 #include "entities/ScreenLineCounter.hpp"
 #include "entities/UpdateParams.hpp"
@@ -114,7 +115,12 @@ void DriverMovement::frame_init()
 	bool pathInitialized = initializePath();
 	if (pathInitialized)
 	{
-		Vehicle* newVehicle = new Vehicle(Vehicle::CAR, PASSENGER_CAR_UNIT);
+		Vehicle::VehicleType vehicleType = Vehicle::CAR;
+		if((*parentDriver->parent->currTripChainItem)->getMode() == "Taxi")
+		{
+			vehicleType = Vehicle::TAXI;
+		}
+		Vehicle* newVehicle = new Vehicle(vehicleType, PASSENGER_CAR_UNIT);
 		VehicleBase* oldVehicle = parentDriver->getResource();
 		safe_delete_item(oldVehicle);
 		parentDriver->setResource(newVehicle);
@@ -431,7 +437,6 @@ bool DriverMovement::moveToNextSegment(DriverUpdateParams& params)
 	currSegStat = pathMover.getCurrSegStats();
 	nxtSegStat = pathMover.getNextSegStats(!isNewLinkNext);
 
-
 	if (!nxtSegStat)
 	{
 		//vehicle is done
@@ -444,6 +449,7 @@ bool DriverMovement::moveToNextSegment(DriverUpdateParams& params)
 			TravelTimeManager::getInstance()->addTravelTime(parentDriver->parent->currLinkTravelStats); //in seconds
 			currSegStat->getParentConflux()->setLinkTravelTimes(linkExitTime, currLink);
 			parentDriver->parent->currLinkTravelStats.reset();
+			currSegStat->getParentConflux()->getLinkStats(currLink).removeEntitiy(parentDriver->parent);
 			setOutputCounter(currLane, (getOutputCounter(currLane, currSegStat) - 1), currSegStat);
 			currLane = nullptr;
 			parentDriver->parent->setToBeRemoved();
@@ -588,6 +594,9 @@ void DriverMovement::flowIntoNextLinkIfPossible(DriverUpdateParams& params)
 		{
 			// update link travel times
 			updateLinkTravelTimes(prevSegStats, linkExitTimeSec);
+
+			//update link stats
+			updateLinkStats(prevSegStats);
 
 			// update road segment screenline counts
 			updateScreenlineCounts(prevSegStats, linkExitTimeSec);
@@ -970,7 +979,6 @@ void DriverMovement::setOrigin(DriverUpdateParams& params)
 		}
 	}
 
-
 	params.elapsedSeconds = std::max(params.elapsedSeconds, departTime - (convertToSeconds(params.now.ms()))); //in seconds
 
 	const Link* nextLink = getNextLinkForLaneChoice(currSegStats);
@@ -993,6 +1001,7 @@ void DriverMovement::setOrigin(DriverUpdateParams& params)
 			//initialize some travel metrics for this subTrip
 			startTravelTimeMetric(); //not for bus drivers or any other role
 		}
+		updateLinkStats(nullptr);
 	}
 	else
 	{
@@ -1114,6 +1123,25 @@ double DriverMovement::getInitialQueueLength(const Lane* lane)
 	return pathMover.getCurrSegStats()->getInitialQueueLength(lane);
 }
 
+void DriverMovement::updateLinkStats(const SegmentStats* prevSegStat)
+{
+	if(prevSegStat)
+	{
+		const RoadSegment* prevSeg = prevSegStat->getRoadSegment();
+		const Link* prevLink = prevSeg->getParentLink();
+		LinkStats& prevLnkStats = prevSegStat->getParentConflux()->getLinkStats(prevLink);
+		prevLnkStats.removeEntitiy(parentDriver->getParent());
+	}
+
+	const SegmentStats* currSegStat = pathMover.getCurrSegStats();
+	if (currSegStat)
+	{
+		const Link* currLink = currSegStat ? currSegStat->getRoadSegment()->getParentLink() : nullptr;
+		LinkStats& currLnkStats = currSegStat->getParentConflux()->getLinkStats(currLink);
+		currLnkStats.addEntity(parentDriver->parent);
+	}
+}
+
 void DriverMovement::updateLinkTravelTimes(const SegmentStats* prevSegStat, double linkExitTimeSec)
 {
 	const RoadSegment* prevSeg = prevSegStat->getRoadSegment();
@@ -1133,8 +1161,6 @@ void DriverMovement::updateLinkTravelTimes(const SegmentStats* prevSegStat, doub
 
 void DriverMovement::updateScreenlineCounts(const SegmentStats* prevSegStat, double segEnterExitTime)
 {
-	//if prevSeg is already in travelStats, update it's rdSegTT and add to rdSegTravelStatsMap
-	const RoadSegment* prevSeg = prevSegStat->getRoadSegment();
 	Person_MT *parent = parentDriver->parent;
 	const TripChainItem* tripChain = *(parent->currTripChainItem);
 	const std::string& travelMode = tripChain->getMode();

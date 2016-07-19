@@ -18,21 +18,27 @@
 using namespace sim_mob;
 using namespace sim_mob::medium;
 
+namespace
+{
+const double METERS_IN_UNIT_KM = 1000.0;
+}
+
 LinkStats::LinkStats(const Link* link) : linkId(link->getLinkId()), carCount(0), busCount(0), motorcycleCount(0), taxiCount(0),
-		otherVehiclesCount(0), entryCount(0), exitCount(0), density(0), totalLinkLaneLength(0)
+		otherVehiclesCount(0), entryCount(0), exitCount(0), density(0), totalLinkLaneLength(0),
+		linkLengthKm(link->getLength()/METERS_IN_UNIT_KM)
 {
 	const std::vector<RoadSegment*>& lnkSegments = link->getRoadSegments();
 	for(const RoadSegment* seg : lnkSegments)
 	{
 		totalLinkLaneLength = totalLinkLaneLength + (seg->getLength() * seg->getNoOfLanes());
 	}
-	totalLinkLaneLength = totalLinkLaneLength / 1000.0; //convert to KM
+	totalLinkLaneLength = totalLinkLaneLength / METERS_IN_UNIT_KM; //convert to KM
 }
 
 LinkStats::LinkStats(const LinkStats& srcStats) : linkId(srcStats.linkId), carCount(srcStats.carCount), busCount(srcStats.busCount),
 		motorcycleCount(srcStats.motorcycleCount), taxiCount(srcStats.taxiCount), otherVehiclesCount(srcStats.otherVehiclesCount),
 		entryCount(srcStats.entryCount), exitCount(srcStats.exitCount), density(srcStats.density),
-		totalLinkLaneLength(srcStats.totalLinkLaneLength), linkStatsMutex()
+		totalLinkLaneLength(srcStats.totalLinkLaneLength), linkLengthKm(srcStats.linkLengthKm), linkStatsMutex()
 {
 }
 
@@ -125,9 +131,10 @@ void LinkStats::removeEntitiy(const Person_MT* person)
 std::string LinkStats::writeOutLinkStats(unsigned int updateNumber)
 {
 	char buf[200];
-	sprintf(buf, "lnk,%u,%u,%.3f,%u,%u,%u,%u,%u,%u,%u\n",
+	sprintf(buf, "lnk,%u,%u,%.3f,%.3f,%u,%u,%u,%u,%u,%u,%u\n",
 			updateNumber,
 			linkId,
+			linkLengthKm,
 			density,
 			entryCount,
 			exitCount,

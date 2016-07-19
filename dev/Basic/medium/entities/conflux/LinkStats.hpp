@@ -20,6 +20,7 @@ class LinkStats
 {
 private:
 	unsigned int linkId;
+	double linkLengthKm;
 	unsigned int carCount;
 	unsigned int busCount;
 	unsigned int motorcycleCount;

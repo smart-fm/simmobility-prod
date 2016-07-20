@@ -996,7 +996,7 @@ void DriverMovement::setOrigin(DriverUpdateParams& params)
 		setLastAccept(currLane, actualT, currSegStats);
 		setParentData(params);
 		parentDriver->parent->canMoveToNextSegment = Person_MT::NONE;
-		if (getParentDriver()->roleType == Role<Person_MT>::RL_DRIVER)
+		if (getParentDriver()->roleType != Role<Person_MT>::RL_BUSDRIVER)
 		{
 			//initialize some travel metrics for this subTrip
 			startTravelTimeMetric(); //not for bus drivers or any other role

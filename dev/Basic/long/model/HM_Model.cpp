@@ -1514,7 +1514,7 @@ void HM_Model::startImpl()
 			}
 			BidDao bidDao(conn);
 			db::Parameters params;
-		    params.push_back(lastStoppedDay);
+		    params.push_back(lastStoppedDay-1);
 			const std::string getResumptionBidsOnLastDay = "SELECT * FROM " + outputSchema+ "."+"bids" + " WHERE simulation_day = :v1;";
 			bidDao.getByQueryId(getResumptionBidsOnLastDay,params,resumptionBids);
 

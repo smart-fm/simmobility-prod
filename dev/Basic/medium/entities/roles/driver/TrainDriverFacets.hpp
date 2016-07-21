@@ -180,9 +180,13 @@ public:
 
 	/* gets the status of train whether it is in disrupted state or not */
 	bool GetDisruptedState();
+
+	/* checks if the train is stranded betwwen platform during disruption*/
+	bool IsStrandedBetweenPlatform();
+
 	/* checks if the current point is the point to be stopped as requested by service controller
-	 * Sets the stopping parameters like duration ,point
-	 * */
+		 * Sets the stopping parameters like duration ,point
+		 * */
 	bool IsStopPointPresent();
 
 	/* gets the safe distance of the train to be  maintained from the train ahead */
@@ -194,6 +198,7 @@ public:
 	void setRouteStatus(bool status);
 
 	void setUnsetIgnoreSafeDistanceByServiceController(bool ignore);
+	void setUnsetIgnoreSafeHeadwayByServiceController(bool ignore);
 
 	std::string getPlatformByOffset(int offset);
 
@@ -224,6 +229,7 @@ private:
 	bool routeSet=false;
 	bool isUnscheduled=false;
 	bool ignoreSafeDistance_RequestServiceController=false;
+	bool ignoreSafeHeadway_RequestServiceController=false;
 private:
 	/**
 	 * get current speed limit

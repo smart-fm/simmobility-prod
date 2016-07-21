@@ -63,7 +63,7 @@ class ServiceController:  public lua::LuaModel
 	void resetSafeHeadwaySec(double sec,int trainId,std::string lineId);
 	void resetSafeOperationDistance(double distance,int trainId,std::string lineId);
 	void resetMovingCase(int caseVal);
-	void forceReleasePassenegers(int trainId,std::string lineId);
+	void forceReleasePassenegers(int trainId,std::string lineId,bool action);
 	void resetHoldingTimeAtStation(std::string platformName,double duration,int trainId,std::string lineId);
 	void terminateTrainService(std::string lineId);
 	void Uturn(int trainId,std::string lineId);
@@ -97,10 +97,17 @@ class ServiceController:  public lua::LuaModel
     std::string GetPlatformByOffset(int trainId,std::string lineId,int offset);
     std::string GetDisruptedPlatformByIndex(std::string lineID,int index);
     int GetDisruptedPlatformsSize(std::string lineID);
-    void MakeTrainTakeUturn(int trainId,std::string lineId);
+    void SetUnsetUturnFlag(int trainId,std::string lineId,bool takeUturn);
     int getTrainIdOfTrainAhead(int trainId,std::string lineId);
     int getNextRequestedForTrain(int trainId,std::string lineId);
     void setUnsetIgnoreSafeDistance(int trainId,std::string lineId,bool ignore);
+    void setUnsetIgnoreSafeHeadway(int trainId,std::string lineId,bool ignore);
+    void ClearDisruption(std::string lineId);
+    bool getForceAlightStatus(int trainID,std::string lineId);
+    void setUnsetForceAlightStatus(int trainId,std::string lineId,bool status);
+    bool getDisruptedState(int trainId,std::string lineId);
+    bool IsStrandedDuringDisruption(int trainId,std::string lineId);
+    void setSubsequentNextRequested(int trainId,std::string lineId,int nextReq);
     //void setUnsetForceAlightPassengers(int trainId,std::string lineId,bool foreAlight)
 
 	private:

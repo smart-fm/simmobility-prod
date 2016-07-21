@@ -83,6 +83,7 @@ void ParseMidTermConfigFile::processXmlFile(xercesc::XercesDOMParser& parser)
 	processBusStopScheduledTimesNode(GetSingleElementByName(rootNode, "scheduledTimes", true));
 	processBusControllerNode(GetSingleElementByName(rootNode, "busController", true));
 	processGenerateBusRoutesNode(GetSingleElementByName(rootNode, "generateBusRoutes"));
+	processTrainControllerNode(GetSingleElementByName(rootNode, "trainController", true));
 	processTT_Update(GetSingleElementByName(rootNode, "travel_time_update", true));
 	processPublicTransit(GetSingleElementByName(rootNode, "public_transit", true));
 	processRegionRestrictionNode(GetSingleElementByName(rootNode, "region_restriction"));

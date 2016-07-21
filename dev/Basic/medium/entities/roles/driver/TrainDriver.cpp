@@ -27,12 +27,12 @@ TrainDriver::TrainDriver(Person_MT* parent,
 		sim_mob::medium::TrainMovement* movement,
 		std::string roleName, Role<Person_MT>::Type roleType) :
 	sim_mob::Role<Person_MT>::Role(parent, behavior, movement, roleName, roleType),
-	nextDriver(nullptr),nextRequested(NO_REQUESTED),waitingTimeSec(0.0),initialDwellTime(0.0),disruptionParam(nullptr),platSequenceNumber(0)
+	nextDriver(nullptr),nextRequested(NO_REQUESTED),subsequent_nextRequested(NO_REQUESTED),waitingTimeSec(0.0),initialDwellTime(0.0),disruptionParam(nullptr),platSequenceNumber(0)
 {
 	int trainId=getTrainId();
 	std::string lineId=getTrainLine();
 	Role<Person_MT> *trainDriver=dynamic_cast<Role<Person_MT>*>(this);
-	//ServiceController::getInstance()->InsertTrainIdAndTrainDriverInMap(trainId,lineId,trainDriver);
+	ServiceController::getInstance()->InsertTrainIdAndTrainDriverInMap(trainId,lineId,trainDriver);
 }
 
 TrainDriver::~TrainDriver()
@@ -52,6 +52,16 @@ void TrainDriver::onParentEvent(event::EventId eventId, sim_mob::event::Context 
 		break;
 	}
 	}
+}
+
+void TrainDriver::setForceAlightStatus(bool status)
+{
+	isForceAlighted=status;
+}
+
+bool TrainDriver::getForceAlightStatus()
+{
+	return isForceAlighted;
 }
 
 Role<Person_MT>* TrainDriver::clone(Person_MT *parent) const
@@ -368,9 +378,25 @@ void TrainDriver::SetUnsetUturnFlag(bool set)
 	uTurnFlag=set;
 }
 
+bool TrainDriver::GetUTurnFlag()
+{
+	return uTurnFlag;
+}
+
 void TrainDriver::setForceAlightFlag(bool flag)
 {
-	forceAlightPassengers_ByServiceController = flag;
+	if(!isForceAlighted||flag==false)
+		forceAlightPassengers_ByServiceController = flag;
+}
+
+TrainDriver::TRAIN_NEXTREQUESTED TrainDriver::getSubsequentNextRequested()
+{
+	return subsequent_nextRequested;
+}
+
+void TrainDriver::setSubsequentNextRequested(TrainDriver::TRAIN_NEXTREQUESTED nextReq)
+{
+	 subsequent_nextRequested = nextReq;
 }
 
 bool TrainDriver::getForceAlightFlag()

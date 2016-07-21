@@ -257,10 +257,19 @@ public:
 
 	void SetUnsetUturnFlag(bool set);
 
+	bool GetUTurnFlag();
+
 	void setForceAlightFlag(bool flag);
 
 	bool getForceAlightFlag();
 
+	void setForceAlightStatus(bool status);
+
+	bool getForceAlightStatus();
+
+	TrainDriver::TRAIN_NEXTREQUESTED getSubsequentNextRequested();
+
+	void setSubsequentNextRequested(TrainDriver::TRAIN_NEXTREQUESTED nextReq);
 
 	/**
 	 * Event handler which provides a chance to handle event transfered from parent agent.
@@ -276,6 +285,8 @@ private:
      TrainDriver* nextDriver;
 	/**next requested*/
 	TRAIN_NEXTREQUESTED nextRequested;
+
+	TRAIN_NEXTREQUESTED subsequent_nextRequested;
 	/**current waiting time*/
 	double waitingTimeSec;
 	double initialDwellTime;
@@ -288,6 +299,7 @@ private:
 	std::vector<StopPointEntity> stopPointEntities;
     bool shouldTerminateService=false;
     bool forceAlightPassengers_ByServiceController=false;
+    bool isForceAlighted=false;
     std::vector<PlatformHoldingTimeEntity> platformHoldingTimeEntities;
     std::map<std::string,passengerMovement> restrictPassengersEntities;
     std::vector<std::string> platformsToBeIgnored;

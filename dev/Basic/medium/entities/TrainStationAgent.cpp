@@ -403,7 +403,7 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 	double sysGran = ConfigManager::GetInstance().FullConfig().baseGranSecond();
 	std::list<TrainDriver*>::iterator it=trainDriver.begin();
 
-     if(now.ms()>=1080000&&trainDriver.size()>0)
+  /*   if(now.ms()>=1080000&&trainDriver.size()>0)
      {
     	 bool dr=true;
      }
@@ -415,7 +415,8 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
  			int t=89;
  		}
  		it++;
- 	}
+ 	}*/
+
  	it=trainDriver.begin();
 
 	while (it != trainDriver.end())
@@ -446,11 +447,14 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 
 				if((*it)->getForceAlightFlag())
 				{
+
 					(*it)->LockUnlockRestrictPassengerEntitiesLock(true);
+					(*it)->setForceAlightStatus(true); //will be unset by service controller
 					int alightingNum = (*it)->AlightAllPassengers(leavingPersons[platform], now);
 					(*it)->LockUnlockRestrictPassengerEntitiesLock(false);
 					(*it)->calculateDwellTime(0,alightingNum,0,now);
 					(*it)->setNextRequested(TrainDriver::REQUESTED_WAITING_LEAVING);
+					(*it)->setForceAlightFlag(false);
 					if(isDisruptedPlat)
 					continue;
 				}

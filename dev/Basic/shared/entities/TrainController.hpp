@@ -320,6 +320,7 @@ public:
     /* gets the list of platforms between two stations for a particular line*/
     std::vector<std::string> GetPlatformsBetweenStations(std::string lineId,std::string startStation,std::string endStation);
     /* checks if train service is terminated for a particular line or not */
+    void ClearDisruption(std::string lineId);
     bool IsServiceTerminated(std::string lineId);
 
 protected:

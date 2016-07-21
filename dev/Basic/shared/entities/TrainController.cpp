@@ -82,13 +82,17 @@ namespace sim_mob {
 	template<typename PERSON>
 	void TrainController<PERSON>::SetDisruptedPlatforms(std::string startStation,std::string endStation,std::string lineID)
 	{
-		if(disruptionPerformed==false)
-		{
+
 			std::vector<std::string> platforms=GetPlatformsBetweenStations(lineID,startStation,endStation);
 			disruptedPlatformsNamesMap_ServiceController[lineID] = std::vector<std::string>();
-			disruptedPlatformsNamesMap_ServiceController[lineID].insert(disruptedPlatformsNamesMap_ServiceController["NE_1"].end(),platforms.begin(),platforms.end());
-			disruptionPerformed=true;
-		}
+			disruptedPlatformsNamesMap_ServiceController[lineID].insert(disruptedPlatformsNamesMap_ServiceController[lineID].end(),platforms.begin(),platforms.end());
+
+	}
+
+	template<typename PERSON>
+	void TrainController<PERSON>::ClearDisruption(std::string lineID)
+	{
+		disruptedPlatformsNamesMap_ServiceController[lineID].erase(disruptedPlatformsNamesMap_ServiceController[lineID].begin(),disruptedPlatformsNamesMap_ServiceController[lineID].end());
 	}
 
 	template<typename PERSON>
@@ -96,7 +100,7 @@ namespace sim_mob {
 	{
 
 		//resetBlockSpeeds(now);
-		PerformDisruption(disruptionEntity.startStation,disruptionEntity.endStation,now,disruptionEntity.disruptionTime);
+		//PerformDisruption(disruptionEntity.startStation,disruptionEntity.endStation,now,disruptionEntity.disruptionTime);
 		if(disruptionParam.get())
         {
 			unsigned int baseGran = ConfigManager::GetInstance().FullConfig().baseGranMS();
@@ -1318,22 +1322,6 @@ namespace sim_mob {
 		}
 		}
 	}
-
-	/*template<typename PERSON>
-	std::vector<int> TrainController<PERSON>::GetActiveTrainIds(std::string lineId)
-	{
-		activeTrainsListLock.lock();
-		std::vector<TrainDriver*> trainDrivers=mapOfLineAndTrainDrivers[lineId];
-		std::vector<TrainDriver*>::iterator it= trainDrivers.begin();
-		for(;it!=trainDrivers.end();it++)
-		{
-
-		}
-		activeTrainsListLock.unlock();
-
-	}*/
-
-
 
 } /* namespace sim_mob */
 #endif

@@ -511,7 +511,21 @@ bool HouseholdBidderRole::bidUnit(timeslice now)
 				PrintOutV("[day " << day << "] Household " << std::dec << household->getId() << " submitted a bid of $" << biddingEntry.getBestBid() << "[wp:$" << biddingEntry.getWP() << ",bids:"  <<   biddingEntry.getTries() << ",ap:$" << entry->getAskingPrice() << "] on unit " << biddingEntry.getUnitId() << " to seller " <<  entry->getOwner()->getId() << "." << std::endl );
 				#endif
 
-				bid(entry->getOwner(), Bid(model->getBidId(),household->getUnitId(),entry->getUnitId(), household->getId(), getParent(), biddingEntry.getBestBid(), now.ms(), biddingEntry.getWP(), biddingEntry.getWtp_e(), biddingEntry.getAffordability()));
+				Bid newBid(model->getBidId(),household->getUnitId(),entry->getUnitId(), household->getId(), getParent(), biddingEntry.getBestBid(), now.ms(), biddingEntry.getWP(), biddingEntry.getWtp_e(), biddingEntry.getAffordability());
+				bid(entry->getOwner(), newBid);
+
+				ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+				//add the bids active on last day to op schema
+				if(now.ms() == (config.ltParams.days-1))
+				{
+					boost::shared_ptr<Bid> newBidPtr = boost::make_shared<Bid>(newBid);
+					newBidPtr->setMoveInDate(getDateBySimDay(1900,0)); // set the move in date to a default of 1900-01-01, since it is not decided at this stage.
+					newBidPtr->setAskingPrice(entry->getAskingPrice());
+					newBidPtr->setHedonicPrice(entry->getHedonicPrice());
+					newBidPtr->setSellerId(entry->getOwner()->getId());
+					model->addNewBids(newBidPtr);
+				}
+
 				model->incrementBids();
 				return true;
 			}

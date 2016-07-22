@@ -85,7 +85,7 @@ private:
 	/**Indicates the node from which this link begins*/
 	unsigned int fromNodeId;
 
-	/**The length of the link*/
+	/**The length of the link in meters*/
 	double length;
 
 	/**Indicates the link category*/

@@ -488,7 +488,7 @@ void sim_mob::Person::serializeSubTripChainItemTravelTimeMetrics(const TravelMet
 	} //sanity check
 	if (titleSubPredayTT.check())
 	{
-		csv << "person_id,trip_id,subtrip_id,origin,origin_taz,destination,destination_taz,mode,start_time,end_time,travel_time,total_distance,ptt_wt,pt_walk,cbd_entry_node,cbd_exit_node,cbd_entry_time,cbd_exit_time,cbd_travel_time,non_cbd_travel_time,cbd_distance,non_cbd_distance\n";
+		csv << "person_id,trip_id,subtrip_id,origin,origin_taz,destination,destination_taz,mode,start_time,end_time,travel_time,total_distance,cbd_entry_node,cbd_exit_node,cbd_entry_time,cbd_exit_time,cbd_travel_time,non_cbd_travel_time,cbd_distance,non_cbd_distance\n";
 	}
 
 	sim_mob::SubTrip &st = (*currSubTrip); //easy reading
@@ -620,8 +620,6 @@ void sim_mob::Person::serializeSubTripChainItemTravelTimeMetrics(const TravelMet
 			subtripMetrics.endTime.getStrRepr() << "," << //	end_time
 			subtripMetrics.travelTime << "," << //	travel_time
 			subtripMetrics.distance << "," << //	total_distance
-			"0" << "," << //placeholder for public transit's waiting time								//	ptt_wt
-			"0" << "," << //placeholder for public transit's walk time									//	pt_walk
 			restrictedRegion.str() << "\n"; /* MIXED CBD Information */
 
 	csv << res.str();

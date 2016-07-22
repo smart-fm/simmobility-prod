@@ -640,13 +640,12 @@ int main_impl(int ARGC, char* ARGV[])
 		resLogFiles.insert(resLogFiles.begin(), ConfigManager::GetInstance().FullConfig().outTrainNetworkFilename);
 		Utils::printAndDeleteLogFiles(resLogFiles);
 	}
-	std::system("rm out_0_*.txt out.network.txt");
+	int retVal = std::system("rm out_0_*.txt out.network.txt");
 
 	timeval simEndTime;
 	gettimeofday(&simEndTime, nullptr);
 
-	Print() << "Done" << endl;
-	cout << "Total simulation time: "<< (ProfileBuilder::diff_ms(simEndTime, simStartTime))/1000.0 << " seconds." << endl;
+	cout << "Done. \nTotal simulation time: "<< (ProfileBuilder::diff_ms(simEndTime, simStartTime))/1000.0 << " seconds." << endl;
 
 	return returnVal;
 }

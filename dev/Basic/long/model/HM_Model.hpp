@@ -317,11 +317,13 @@ namespace sim_mob
 
             void setNumberOfBidders(int number);
 			void setNumberOfSellers(int number);
+			void setNumberOfBTOAwakenings(int number);
 			void incrementNumberOfSellers();
 			void incrementNumberOfBidders();
+			void incrementNumberOfBTOAwakenings();
 			int getNumberOfSellers();
 			int getNumberOfBidders();
-
+			int getNumberOfBTOAwakenings();
 
             void incrementLifestyle1HHs();
             void incrementLifestyle2HHs();
@@ -408,6 +410,8 @@ namespace sim_mob
             boost::unordered_multimap<BigSerial, AlternativeHedonicPrice*>& getAlternativeHedonicPriceById();
 
             HouseholdUnit* getHouseholdUnitByHHId(BigSerial hhId) const;
+
+
 
         protected:
             /**
@@ -535,6 +539,7 @@ namespace sim_mob
             int numberOfBids;
             int numberOfExits;
             int numberOfSuccessfulBids;
+            int numberOfBTOAwakenings;
 
             DeveloperModel *developerModel;
             int startDay; //start tick of the simulation

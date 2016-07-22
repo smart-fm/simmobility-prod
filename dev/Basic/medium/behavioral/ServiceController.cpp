@@ -278,22 +278,22 @@ int ServiceController::getTrainIdOfTrainAhead(int trainId,std::string lineId)
 void ServiceController::SetUnsetUturnFlag(int trainId,std::string lineId,bool takeUturn)
 {
 	map<std::string,std::vector<Role<Person_MT> *>>::iterator it=mapOfLineAndTrainDrivers.find(lineId);
-		if(it != mapOfLineAndTrainDrivers.end())
+	if(it != mapOfLineAndTrainDrivers.end())
+	{
+		std::vector<Role<sim_mob::medium::Person_MT>*> vect = it->second;
+		for (typename std::vector<Role<sim_mob::medium::Person_MT>*>::iterator it = vect.begin() ; it != vect.end(); ++it)
 		{
-			std::vector<Role<sim_mob::medium::Person_MT>*> vect = it->second;
-			for (typename std::vector<Role<sim_mob::medium::Person_MT>*>::iterator it = vect.begin() ; it != vect.end(); ++it)
+			TrainDriver* driver= dynamic_cast<TrainDriver*>(*it);
+			if(driver)
 			{
-				TrainDriver* driver= dynamic_cast<TrainDriver*>(*it);
-				if(driver)
+				if(driver->getTrainId()==trainId)
 				{
-					if(driver->getTrainId()==trainId)
-					{
-						driver->SetUnsetUturnFlag(takeUturn);
-						break;
-					}
+					driver->SetUnsetUturnFlag(takeUturn);
+					break;
 				}
 			}
 		}
+	}
 }
 
 void ServiceController::InsertStopPoint(int trainId,std::string lineId,double distance,double duration)

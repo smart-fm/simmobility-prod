@@ -114,6 +114,11 @@ void TrainDriver::SetStoppingStatus(bool status)
 	stoppedAtPoint = status;
 }
 
+void TrainDriver::clearStopPoints()
+{
+	stopPointEntities.clear();
+}
+
 void TrainDriver::make_frame_tick_params(timeslice now)
 {
 	getParams().reset(now);
@@ -601,6 +606,25 @@ int TrainDriver::boardPassenger(std::list<WaitTrainActivity*>& boardingPassenger
 	}
 	return num;
   }
+
+int TrainDriver::boardForceAlightedPassengersPassenger(std::list<Passenger*>& forcealightedPassengers,timeslice now)
+{
+	int num = 0;
+	if(IsBoardingRestricted())
+	   return num;
+
+	int validNum = getEmptyOccupation();
+	std::list<Passenger*>::iterator i = forcealightedPassengers.begin();
+	while(i!=forcealightedPassengers.end()&&validNum>0)
+	{
+		passengerList.push_back(*i);
+		i = forcealightedPassengers.erase(i);
+		validNum--;
+		num++;
+	}
+
+    return num;
+}
 
 
 bool TrainDriver::IsBoardingRestricted()

@@ -7,24 +7,16 @@
 #include "boost/thread/mutex.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
-//#include "entities/params/PT_NetworkEntities.hpp"
 #include "logging/Log.hpp"
 #include "lua/LuaLibrary.hpp"
 #include "lua/third-party/luabridge/LuaBridge.h"
 #include "lua/third-party/luabridge/RefCountedObject.h"
-//#include "PT_PathSetManager.hpp"
-//#include "ServiceController.hpp"
-//#include "SOCI_Converters.hpp"
 #include "util/LangHelpers.hpp"
 #include "entities/roles/driver/TrainDriver.hpp"
 #include "entities/TrainController.hpp"
-#include "entities/roles/driver/TrainDriverFacets.hpp"
 #include "entities/TrainStationAgent.hpp"
+#include "behavioral/ServiceController.hpp"
 #include <iostream>
-
-//#ifndef _CLASS_TRAIN_CONTROLLER_FUNCTIONS
-//#include "entities/TrainController.hpp"
-
 using namespace std;
 using namespace sim_mob;
 using namespace luabridge;
@@ -90,6 +82,7 @@ ServiceController::~ServiceController()
 				.addFunction("isStranded_DuringDisruption",&ServiceController::IsStrandedDuringDisruption)
 				.addFunction("set_SubsequentNextRequested",&ServiceController::setSubsequentNextRequested)
 				.addFunction("get_DisruptedState",&ServiceController::getDisruptedState)
+				.addFunction("get_PrePlatform",&ServiceController::GetPrePlatfrom)
 	 			.endClass();
 
 
@@ -123,6 +116,12 @@ std::vector<TrainDriver*>  ServiceController::GetActiveTrainsInLine(std::string 
 
 }
 
+std::string ServiceController::GetPrePlatfrom(std::string lineId,std::string platformName)
+{
+	Platform *platform=TrainController<sim_mob::medium::Person_MT>::getInstance()->getPlatform(lineId,platformName);
+	return platform->getPlatformNo();
+}
+
 
 void ServiceController::setUnsetIgnoreSafeDistance(int trainId,std::string lineId,bool ignore)
 {
@@ -143,6 +142,27 @@ void ServiceController::setUnsetIgnoreSafeDistance(int trainId,std::string lineI
 						movement->setUnsetIgnoreSafeDistanceByServiceController(ignore);
 						break;
 					}
+				}
+			}
+		}
+	}
+}
+
+void ServiceController::clearStopPoints(int trainId,std::string lineId)
+{
+	map<std::string,std::vector<Role<Person_MT> *>>::iterator it=mapOfLineAndTrainDrivers.find(lineId);
+	if(it != mapOfLineAndTrainDrivers.end())
+	{
+		std::vector<Role<sim_mob::medium::Person_MT>*> vect = it->second;
+		for (typename std::vector<Role<sim_mob::medium::Person_MT>*>::iterator it = vect.begin() ; it != vect.end(); ++it)
+		{
+			TrainDriver* driver= dynamic_cast<TrainDriver*>(*it);
+			if(driver)
+			{
+				if(driver->getTrainId()==trainId)
+				{
+					//clear stop points
+					driver->clearStopPoints();
 				}
 			}
 		}
@@ -666,9 +686,28 @@ bool ServiceController::getDisruptedState(int trainId,std::string lineId)
 	}
  }
 
- void ServiceController::resetMovingCase(int caseVal)
+ void ServiceController::resetMovingCase(int trainId,std::string lineId,TRAINCASE caseVal)
  {
-
+	map<std::string,std::vector<Role<Person_MT> *>>::iterator it=mapOfLineAndTrainDrivers.find(lineId);
+	if(it != mapOfLineAndTrainDrivers.end())
+	{
+		std::vector<Role<sim_mob::medium::Person_MT>*> vect = it->second;
+		for (typename std::vector<Role<sim_mob::medium::Person_MT>*>::iterator it = vect.begin() ; it != vect.end(); ++it)
+		{
+			TrainDriver* driver= dynamic_cast<TrainDriver*>(*it);
+			if(driver)
+			{
+				if(driver->getTrainId()==trainId)
+				{
+					TrainMovement *movement=driver->GetMovement();
+					if(movement)
+					{
+						movement->ResetMovingCase(caseVal);
+					}
+				}
+			}
+		}
+	}
  }
 
  //namespace

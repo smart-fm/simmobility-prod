@@ -19,6 +19,7 @@
 #include "message/MessageHandler.hpp"
 #include "event/SystemEvents.hpp"
 #include "event/args/ReRouteEventArgs.hpp"
+#include "behavioral/ServiceController.hpp"
 using namespace sim_mob::event;
 
 namespace
@@ -400,22 +401,39 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 	dispathPendingTrains(now);
 	updateWaitPersons();
 	performDisruption(now);
+	if(arePassengersreRouted == false)
+	{
+		std::map<std::string, Platform*> linePlatformMap=station->getPlatforms();
+		std::map<std::string, Platform*>::iterator it;
+		std::map<std::string,std::vector<std::string>> platforms=TrainController<sim_mob::medium::Person_MT>::getInstance()->GetDisruptedPlatforms_ServiceController();
+		for(it=linePlatformMap.begin();it!=linePlatformMap.end();it++)
+		{
+			std::vector<std::string> platformNames=platforms[it->first];
+			std::vector<std::string>::iterator itr=platformNames.begin();
+			if(itr!=platformNames.end())
+			{
+				Platform *disruptedPlt=dynamic_cast<Platform*>(it->second);
+				if(disruptedPlt)
+				{
+					itr=std::find(platformNames.begin(),platformNames.end(),disruptedPlt->getPlatformNo());
+					//trigger rerouting
+					if(itr!=platformNames.end())
+					triggerRerouting(DisruptionEventArgs(*disruptionParam),now);
+					else
+					{
+						itr=platformNames.begin();
+						Platform *platform=TrainController<sim_mob::medium::Person_MT>::getInstance()->getPrePlatform(it->first,*itr);
+						if(disruptedPlt==platform)
+						{
+							triggerRerouting(DisruptionEventArgs(*disruptionParam),now);
+						}
+					}
+				}
+			}
+		}
+	}
 	double sysGran = ConfigManager::GetInstance().FullConfig().baseGranSecond();
 	std::list<TrainDriver*>::iterator it=trainDriver.begin();
-
-  /*   if(now.ms()>=1080000&&trainDriver.size()>0)
-     {
-    	 bool dr=true;
-     }
-
- 	while(it != trainDriver.end())
- 	{
- 		if((*it)->getTrainId()==10&&(*it)->getTripId()==1016)
- 		{
- 			int t=89;
- 		}
- 		it++;
- 	}*/
 
  	it=trainDriver.begin();
 
@@ -457,6 +475,31 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 					(*it)->setForceAlightFlag(false);
 					if(isDisruptedPlat)
 					continue;
+
+					else
+					{
+						//push the passengers to waiting persons list if this platform is not their actual alighting platform
+						// so that they board the next train
+						std::list<Passenger*> leavingPassengers=leavingPersons[platform];
+						for (std::list<Passenger*>::iterator it=leavingPassengers.begin(); it != leavingPassengers.end(); )
+						{
+							Passenger *pr=dynamic_cast<Passenger*>(*it);
+							const WayPoint endPoint=pr->getEndPoint();
+							const Platform * alightingPlatform=endPoint.platform;
+							if(alightingPlatform!=platform)
+							{
+								if(forceAlightedPersons.find(platform)==forceAlightedPersons.end())
+								{
+									forceAlightedPersons[platform]=std::list<Passenger*>();
+								}
+								forceAlightedPersons[platform].push_back(pr);
+								leavingPersons[platform].erase(it);
+							}
+							else
+								it++;
+						}
+
+					}
 				}
 
 
@@ -533,9 +576,10 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 							(*it)->LockUnlockRestrictPassengerEntitiesLock(true);
 							int alightingNum = (*it)->alightPassenger(leavingPersons[platform],now);
 							int noOfPassengersInTrain=(*it)->getPassengers().size();
+							int forcealightedboardingnum=(*it)->boardForceAlightedPassengersPassenger(forceAlightedPersons[platform],now);
 							int boardingNum = (*it)->boardPassenger(waitingPersons[platform], now);
 							(*it)->LockUnlockRestrictPassengerEntitiesLock(false);
-							(*it)->calculateDwellTime(boardingNum,alightingNum,noOfPassengersInTrain,now);
+							(*it)->calculateDwellTime(boardingNum+forcealightedboardingnum,alightingNum,noOfPassengersInTrain,now);
 						}
 						(*it)->setNextRequested(TrainDriver::REQUESTED_WAITING_LEAVING);
 					}
@@ -614,7 +658,7 @@ void TrainStationAgent::performDisruption(timeslice now)
 				if(TrainController<Person_MT>::checkPlatformIsExisted(this, *it))
 				{
 					triggerRerouting(DisruptionEventArgs(*disruptionParam),now);
-
+					arePassengersreRouted =true;
 					break;
 				}
 			}

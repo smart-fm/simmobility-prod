@@ -11,8 +11,10 @@
 #include <stdexcept>
 #include "util/GeomHelpers.hpp"
 #include "entities/roles/driver/TrainDriverFacets.hpp"
+#include "TrainPathMover.hpp"
 #include <boost/algorithm/string/erase.hpp>
 #include <boost/algorithm/string.hpp>
+#include "TrainDriver.hpp"
 namespace{
 const double distanceMinimal = 0.001;
 }

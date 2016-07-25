@@ -4,12 +4,13 @@
  *  Created on: Feb 17, 2016
  *      Author: zhang huai peng
  */
+#pragma once
 #include <atomic>
 #include "conf/settings/DisableMPI.h"
 #include "entities/roles/RoleFacets.hpp"
 #include "TrainPathMover.hpp"
-
 namespace sim_mob {
+//class TrainPathMover;
 namespace medium{
 class TrainDriver;
 
@@ -230,6 +231,8 @@ private:
 	bool isUnscheduled=false;
 	bool ignoreSafeDistance_RequestServiceController=false;
 	bool ignoreSafeHeadway_RequestServiceController=false;
+	TRAINCASE forceResetedCase;
+
 private:
 	/**
 	 * get current speed limit

@@ -7,12 +7,10 @@
 #pragma once
 #include <atomic>
 #include "entities/Person_MT.hpp"
-//#include "shared/entities/Person.hpp"
 #include "entities/roles/Role.hpp"
 #include "TrainUpdateParams.hpp"
 #include "entities/roles/passenger/Passenger.hpp"
 #include "entities/roles/waitTrainActivity/WaitTrainActivity.hpp"
-#include "behavioral/ServiceController.hpp"
 #include "entities/incident/IncidentManager.hpp"
 #include "entities/misc/TrainTrip.hpp"
 namespace sim_mob{
@@ -150,6 +148,9 @@ public:
 	 * @param boardingPassenger is the list of boarding person
 	 */
 	int boardPassenger(std::list<WaitTrainActivity*>& boardingPassenger,timeslice now);
+
+	int boardForceAlightedPassengersPassenger(std::list<Passenger*>& forcealightedPassengers,timeslice now);
+
 	/**
 	 * update passengers inside the train
 	 */
@@ -213,6 +214,8 @@ public:
 	/* set the stopping status  of train ,that is whether train is stopped ta point */
 	void  SetStoppingStatus(bool);
     /* sets flag to terminate train service */
+
+	void clearStopPoints();
 	void SetTerminateTrainService(bool terminate);
 	/* checks the staus whether the train is to be terminated or not */
 	bool GetTerminateStatus();

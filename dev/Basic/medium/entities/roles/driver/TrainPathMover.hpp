@@ -4,15 +4,16 @@
  *  Created on: Feb 17, 2016
  *      Author: zhang huai peng
  */
-
+#pragma once
 #include "geospatial/network/Point.hpp"
 #include "geospatial/network/Block.hpp"
 #include "geospatial/network/Platform.hpp"
 #include "boost/thread/mutex.hpp"
 #include "entities/roles/RoleFacets.hpp"
-#include "TrainDriver.hpp"
-namespace sim_mob {
-class TrainPlatformMover {
+namespace sim_mob
+{
+class TrainPlatformMover
+{
 public:
 	TrainPlatformMover();
 	virtual ~TrainPlatformMover();
@@ -55,7 +56,9 @@ private:
 	/**record previous platform*/
 	std::vector<Platform*> prevPlatforms;
 };
-class TrainPathMover {
+
+class TrainPathMover
+{
 public:
 	TrainPathMover();
 

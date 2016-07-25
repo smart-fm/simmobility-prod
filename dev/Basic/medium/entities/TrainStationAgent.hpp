@@ -101,6 +101,7 @@ private:
 	std::map<std::string, bool> lastUsage;
 	/**waiting person for boarding*/
 	std::map<const Platform*, std::list<WaitTrainActivity*>> waitingPersons;
+	std::map<const Platform*, std::list<Passenger*>> forceAlightedPersons;
 	/**alighting person for next trip*/
 	std::map<const Platform*, std::list<Passenger*>> leavingPersons;
 	/** parent conflux */
@@ -113,6 +114,7 @@ private:
 	/**station name*/
 	std::string stationName;
 	std::map<std::string,bool> IsStartStation;
+	bool arePassengersreRouted = false;
 
 };
 }

@@ -10,7 +10,8 @@
 #include "lua/LuaLibrary.hpp"
 #include "lua/third-party/luabridge/LuaBridge.h"
 #include "lua/third-party/luabridge/RefCountedObject.h"
-
+#include "entities/roles/driver/TrainDriverFacets.hpp"
+//
 //#include "Path.hpp"
 //#include "soci/soci.h"
 using namespace std;
@@ -41,7 +42,6 @@ using namespace medium;
 class ServiceController:  public lua::LuaModel
 {
 	public:
-
 	static ServiceController* pInstance;
 	explicit ServiceController();
 	virtual ~ServiceController();
@@ -62,7 +62,7 @@ class ServiceController:  public lua::LuaModel
 	void resetAcceleration(double accelerate,std::string lineId);
 	void resetSafeHeadwaySec(double sec,int trainId,std::string lineId);
 	void resetSafeOperationDistance(double distance,int trainId,std::string lineId);
-	void resetMovingCase(int caseVal);
+	void resetMovingCase(int trainId,std::string lineId,TRAINCASE caseVal);
 	void forceReleasePassenegers(int trainId,std::string lineId,bool action);
 	void resetHoldingTimeAtStation(std::string platformName,double duration,int trainId,std::string lineId);
 	void terminateTrainService(std::string lineId);
@@ -108,6 +108,8 @@ class ServiceController:  public lua::LuaModel
     bool getDisruptedState(int trainId,std::string lineId);
     bool IsStrandedDuringDisruption(int trainId,std::string lineId);
     void setSubsequentNextRequested(int trainId,std::string lineId,int nextReq);
+    std::string GetPrePlatfrom(std::string lineId,std::string platformName);
+    void clearStopPoints(int trainId,std::string lineId);
     //void setUnsetForceAlightPassengers(int trainId,std::string lineId,bool foreAlight)
 
 	private:

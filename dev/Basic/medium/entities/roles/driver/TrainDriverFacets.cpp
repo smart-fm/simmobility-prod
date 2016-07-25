@@ -19,7 +19,8 @@
 #include "stdlib.h"
 #include <boost/algorithm/string/erase.hpp>
 #include <boost/algorithm/string.hpp>
-//#include "shared/entities/Person.hpp"
+#include "TrainPathMover.hpp"
+
 using namespace std;
 
 namespace
@@ -931,7 +932,7 @@ double TrainMovement::getRealSpeedLimit()
 	}*/
 	//just for debugging
 
-if(forceResetMovingCase==true)
+/*if(forceResetMovingCase==true)
 {
    if(params.currCase == TrainUpdateParams::STATION_CASE)
    {
@@ -939,7 +940,7 @@ if(forceResetMovingCase==true)
 	   return speedLimit;
    }
 
-}
+}*/
 
 	/*if(parentDriver->getTrainId()==1)
 	{
@@ -947,7 +948,9 @@ if(forceResetMovingCase==true)
 	}*/
 
 //just for debugging
-	if (forceResetMovingCase==false&&isStationCase(distanceToNextTrain,distanceToNextPlatform,disToNextStopPoint, distanceToNextObject))
+if(forceResetMovingCase==false||forceResetedCase==TRAINCASE::STATION_CASE)
+{
+	if (isStationCase(distanceToNextTrain,distanceToNextPlatform,disToNextStopPoint, distanceToNextObject))
 	{
 		double decelerate = trainPathMover.getCurrentDecelerationRate();
 		speedLimit = std::sqrt(2.0 * decelerate * distanceToNextObject);
@@ -963,6 +966,7 @@ if(forceResetMovingCase==true)
 			return distanceToNextObject;
 		}
 	}
+}
 
 		params.currCase = TrainUpdateParams::NORMAL_CASE;
 		if(distanceToNextObject<0)
@@ -1197,16 +1201,8 @@ bool TrainMovement::UpdatePlatformsList()
 
 void TrainMovement::ResetMovingCase(TRAINCASE  trainCase)
 {
-	/*TrainUpdateParams& params = parentDriver->getParams();
-	if(trainCase!=params.currCase)
-	{
-       if(trainCase==NORMAL_CASE)
-       {
-    	   forceResetMovingCase =true;
-    	   params.currCase=STATION_CASE;
-       }
-	}*/
-// yet to be implemented
+	forceResetMovingCase =true;
+	forceResetedCase=trainCase;
 }
 void TrainMovement::PrepareForUTurn()
 {

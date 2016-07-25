@@ -32,6 +32,7 @@ public:
 	double currentAcelerate;
 	/**current case*/
 	CURRENTCASE currCase;
+
 	/**distance to next train*/
 	double disToNext;
 	double distanceToNextStopPoint;

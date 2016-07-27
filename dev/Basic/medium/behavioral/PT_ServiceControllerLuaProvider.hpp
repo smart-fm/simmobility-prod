@@ -1,7 +1,13 @@
+/*
+ * Copyright Singapore-MIT Alliance for Research and Technology
+ *
+ * File:   PT_ServiceController.hpp
+ * Author: Jabir <jabir@smart.mit.edu>
+ *
+ */
 
 #pragma once
-#include "entities/roles/driver/TrainDriver.hpp"
-
+#include "ServiceController.hpp"
 
 namespace sim_mob
 {
@@ -11,12 +17,12 @@ namespace sim_mob
         {
 			public:
 				/**
-				 * Gets the public transit route choice lua model.
+				 * Gets the ServiceController reference
 				 *
 				 * Attention: you should not hold this instance.
 				 * This provider will give you an instance based on current thread context.
 				 *
-				 * @return Lua PT route choice model reference.
+				 * @return Lua PT service controller reference.
 				 */
 				static ServiceController * getPTRC_Model();
         };

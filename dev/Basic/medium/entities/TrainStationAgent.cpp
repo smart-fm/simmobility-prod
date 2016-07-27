@@ -727,8 +727,8 @@ void TrainStationAgent::removeAheadTrain(TrainDriver* aheadDriver)
 
 		}
 	}
-	Role<sim_mob::medium::Person_MT> *aheadPerson_TrainDriver=dynamic_cast<Role<sim_mob::medium::Person_MT>*>(aheadDriver);
-	ServiceController::getInstance()->RemoveTrainIdAndTrainDriverInMap(trainId,lineId,aheadPerson_TrainDriver);
+
+	ServiceController::getInstance()->removeTrainIdAndTrainDriverInMap(trainId,lineId,aheadDriver);
 	TrainController<Person_MT>::getInstance()->RemoveFromListOfActiveTrainsInLine(lineId,aheadDriver);
 }
 

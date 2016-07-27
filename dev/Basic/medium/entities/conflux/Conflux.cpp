@@ -425,7 +425,7 @@ void Conflux::processAgents(timeslice frameNumber)
 	if(currentframenumber==-1||frameNumber.frame()!=currentframenumber)
 	{
 		currentframenumber = frameNumber.frame();
-		PT_ServiceControllerLuaProvider::getPTRC_Model()->Use_ServiceController(dailyTime.getStrRepr());
+		PT_ServiceControllerLuaProvider::getPTRC_Model()->useServiceController(dailyTime.getStrRepr());
 		isServiceControllerInvoked=true;
 	}
 	for(std::vector<Agent*>::iterator it=stationAgents.begin(); it!=stationAgents.end(); it++){

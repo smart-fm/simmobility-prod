@@ -837,7 +837,7 @@ double TrainMovement::getDistanceToNextTrain(const TrainDriver* nextDriver,bool 
 					distanceToNextTrain = dis - safeDistance - trainLengthMeter;
 					safeDistanceLock.unlock();
 				
-			}
+			   }
 		}
 	}
 }

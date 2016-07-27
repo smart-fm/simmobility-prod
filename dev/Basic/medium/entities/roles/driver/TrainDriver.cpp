@@ -31,8 +31,7 @@ TrainDriver::TrainDriver(Person_MT* parent,
 {
 	int trainId=getTrainId();
 	std::string lineId=getTrainLine();
-	Role<Person_MT> *trainDriver=dynamic_cast<Role<Person_MT>*>(this);
-	ServiceController::getInstance()->InsertTrainIdAndTrainDriverInMap(trainId,lineId,trainDriver);
+	ServiceController::getInstance()->insertTrainIdAndTrainDriverInMap(trainId,lineId,this);
 }
 
 TrainDriver::~TrainDriver()

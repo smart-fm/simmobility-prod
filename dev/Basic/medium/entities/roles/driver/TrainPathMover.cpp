@@ -5,13 +5,12 @@
  *      Author: zhang huai peng
  */
 
-//#include <entities/roles/driver/TrainPathMover.hpp>
 #include <algorithm>
 #include <limits>
 #include <stdexcept>
 #include "util/GeomHelpers.hpp"
 #include "entities/roles/driver/TrainDriverFacets.hpp"
-#include "TrainPathMover.hpp"
+#include <entities/roles/driver/TrainPathMover.hpp>
 #include <boost/algorithm/string/erase.hpp>
 #include <boost/algorithm/string.hpp>
 #include "TrainDriver.hpp"

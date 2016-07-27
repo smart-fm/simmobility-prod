@@ -245,12 +245,12 @@ namespace sim_mob
 	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_VEHICLE_OWNERSIP,fmtr.str());
 
 	    }
-	    									//day, hhId, uId, cPC, nPC, wp, ap, aff
+	    									//day, householdId, unitId, willingnessToPay, AskingPrice, Affordability, BidAmount, Surplus, currentPostcode, unitPostcode
 	    inline void printHouseholdBiddingList(  int day, BigSerial householdId, BigSerial unitId, std::string postcodeCurrent, std::string postcodeNew,
 	    										double wp, double askingPrice, double affordability, double currentBid, double currentSurplus)
 	    {
-	    	boost::format fmtr = boost::format("%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%") % day % householdId % unitId % postcodeCurrent % postcodeNew % wp % askingPrice
-	    										% affordability % currentBid % currentSurplus;
+	    	boost::format fmtr = boost::format("%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%") % day % householdId % unitId % wp % askingPrice
+	    										% affordability % currentBid % currentSurplus % postcodeCurrent % postcodeNew ;
 	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_HOUSEHOLDBIDLIST,fmtr.str());
 	    }
 
@@ -270,8 +270,8 @@ namespace sim_mob
 	    }
 
 
-	    //bid_timestamp, seller_id, bidder_id, unit_id, bidder wtp, bidder wp+wp_error, wp_error, affordability, currentUnitHP,target_price, hedonicprice, lagCoefficient, asking_price, bid_value, bids_counter (daily), bid_status, logsum, floor_area, type_id, HHPC, UPC
-	    const std::string LOG_BID = "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%, %11%, %12%, %13%, %14%, %15%, %16%, %17%, %18%, %19%, %20%, %21%";
+	    //bid_timestamp, seller_id, bidder_id, unit_id, bidder wtp, bidder wp+wp_error, wp_error, affordability, currentUnitHP,target_price, hedonicprice, lagCoefficient, asking_price, bid_value, bids_counter (daily), bid_status, logsum, floor_area, type_id, HHPC, UPC,sale_from_date,occupancy_from_date
+	    const std::string LOG_BID = "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%, %11%, %12%, %13%, %14%, %15%, %16%, %17%, %18%, %19%, %20%, %21%, %22%, %23%";
 
 	    /**
 	     * Print the current bid on the unit.
@@ -296,6 +296,8 @@ namespace sim_mob
 	        const Unit* thisUnit = model->getUnitById(thisBidder->getUnitId());
 	        Postcode* thisPostcode = model->getPostcodeById( thisUnit->getSlaAddressId() );
 
+	        string saleFromDate = to_string(unit->getSaleFromDate().tm_mday) + "-" + to_string(unit->getSaleFromDate().tm_mon + 1) + "-" + to_string(unit->getSaleFromDate().tm_year + 1900);
+	        string occupancyFromDate = to_string(unit->getOccupancyFromDate().tm_mday) + "-" + to_string(unit->getOccupancyFromDate().tm_mon + 1) + "-" + to_string(unit->getOccupancyFromDate().tm_year + 1900);
 
 	        boost::format fmtr = boost::format(LOG_BID) % bid.getSimulationDay()
 														% agent.getId()
@@ -317,7 +319,9 @@ namespace sim_mob
 														% floor_area
 														% type_id
 														% thisPostcode->getSlaPostcode()
-														% unitPostcode->getSlaPostcode();
+														% unitPostcode->getSlaPostcode()
+														% saleFromDate
+	        											% occupancyFromDate;
 
 	        AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::BIDS, fmtr.str());
 	        //PrintOut(fmtr.str() << endl);

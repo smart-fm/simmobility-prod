@@ -143,6 +143,11 @@ void DeveloperModel::startImpl() {
 			unit->setBto(true);
 		}
 
+		for(Unit *unit : ongoingBtoUnits)
+		{
+			unit->setBto(true);
+		}
+
 		setRealEstateAgentIds(housingMarketModel->getRealEstateAgentIds());
 
 		if(resume)

@@ -761,7 +761,7 @@ bool HouseholdBidderRole::pickEntryToBid()
         }
     }
 
-    if( isBTO )
+    if( maxEntry && model->getUnitById(maxEntry->getUnitId())->isBto() )
     {
     	//When bidding on BTO units, we cannot bid above the asking price. So it's basically the ceiling we cannot exceed.
     	finalBid = maxEntry->getAskingPrice();

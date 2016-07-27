@@ -384,7 +384,11 @@ void HouseholdAgent::onWorkerEnter()
         MessageBus::SubscribeEvent(LTEID_EXT_NEW_SCHOOL_LOCATION, this, this);
         MessageBus::SubscribeEvent(LTEID_EXT_NEW_JOB_LOCATION, this, this);
 
-        MessageBus::SubscribeEvent(LTEID_HM_BTO_UNIT_ADDED, this);
+        const Household *hh = this->getHousehold();
+        if( hh->getTwoRoomHdbEligibility() || hh->getThreeRoomHdbEligibility() || hh->getFourRoomHdbEligibility() )
+        {
+        	MessageBus::SubscribeEvent(LTEID_HM_BTO_UNIT_ADDED, this);
+        }
     }
 }
 

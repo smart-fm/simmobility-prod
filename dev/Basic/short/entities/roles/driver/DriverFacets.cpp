@@ -757,7 +757,8 @@ void DriverMovement::checkForStops(DriverUpdateParams &params)
 		return;
 	}
 	
-	if (distance < -10 && params.stopPointState == DriverUpdateParams::LEAVING_STOP_POINT)
+	//Reset
+	if ((distance < -10 && params.stopPointState == DriverUpdateParams::LEAVING_STOP_POINT) || distance == -100)
 	{
 		params.stopPointState = DriverUpdateParams::STOP_POINT_NOT_FOUND;
 	}

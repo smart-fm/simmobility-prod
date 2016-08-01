@@ -128,8 +128,7 @@ PolyPoint TrainPathMover::GetStopPoint(double distance) const
 	    	  std::vector<PolyPoint>::const_iterator nextPolyPoint=itr+1;
 	    	  if(nextPolyPoint == pointvector.end())
 	    	  {
-	    		  (*curr+1)->getPolyLine();
-	    		  const PolyLine* nextPolyLine = (*curr+1)->getPolyLine();
+	    		  const PolyLine* nextPolyLine = (*(curr+1))->getPolyLine();
 	    		  std::vector<PolyPoint>::const_iterator nextPolyPointItr = nextPolyLine->getPoints().begin();
 	    		  dis=dis+calcDistanceBetweenCurrentAndSubsequentPoint(*itr,(*nextPolyPointItr));
 	    	  }
@@ -147,12 +146,15 @@ PolyPoint TrainPathMover::GetStopPoint(double distance) const
 	      curr++;
 	}
 }
-double TrainPathMover::calcDistanceBetweenTwoPoints(std::vector<PolyPoint>::const_iterator currPointItr,std::vector<PolyPoint>::iterator laterPoint)
+double TrainPathMover::calcDistanceBetweenTwoPoints(std::vector<PolyPoint>::const_iterator& currPointItr,std::vector<PolyPoint>::iterator& laterPoint,std::vector<PolyPoint> &points)
 {
 
 	std::vector<Block*>::const_iterator curr=currBlockIt;
 	double dis=0;
 	bool startPointfound=false;
+	bool foundLaterPoint=false;
+	if(currPointItr==points.end()||laterPoint==points.end())
+		return dis;
 	while(curr!=drivingPath.end())
 	{
       const PolyLine *polyLine=(*curr)->getPolyLine();
@@ -160,20 +162,26 @@ double TrainPathMover::calcDistanceBetweenTwoPoints(std::vector<PolyPoint>::cons
       std::vector<PolyPoint>::const_iterator itr=pointvector.begin();
       while(itr!=pointvector.end())
       {
-    	  if(currPointItr==itr)
+    	  if((*currPointItr).getX()==(*itr).getX()&&(*currPointItr).getY()==(*itr).getY()&&(*currPointItr).getZ()==(*itr).getZ())
     	  {
     		  startPointfound=true;
     	  }
 
-    	  if((*itr).getX()==(*laterPoint).getX() && (*itr).getY()==(*laterPoint).getY()&&(*itr).getZ()==(*laterPoint).getZ())
+    	  if((*laterPoint).getX()==(*itr).getX()&&(*laterPoint).getY()==(*itr).getY()&&(*laterPoint).getZ()==(*itr).getZ())
+    	  {
+    		  foundLaterPoint=true;
     		  break;
+    	  }
     	  if(startPointfound==true)
     	  {
 			  std::vector<PolyPoint>::const_iterator nextPointItr = itr+1;
 			  if(nextPointItr == pointvector.end())
 			  {
-				  (*curr+1)->getPolyLine();
-				  const PolyLine* nextPolyLine = (*curr+1)->getPolyLine();
+				  if((curr+1)==drivingPath.end())
+				  {
+					  break;
+				  }
+				  const PolyLine* nextPolyLine = (*(curr+1))->getPolyLine();
 				  std::vector<PolyPoint>::const_iterator nextPolyPointItr = nextPolyLine->getPoints().begin();
 				  dis=dis+calcDistanceBetweenCurrentAndSubsequentPoint(*itr,(*nextPolyPointItr));
 			  }
@@ -184,6 +192,8 @@ double TrainPathMover::calcDistanceBetweenTwoPoints(std::vector<PolyPoint>::cons
     	  }
     	  itr++;
       }
+      if(foundLaterPoint==true)
+    	  break;
       curr++;
 
 	}
@@ -395,16 +405,16 @@ double TrainPathMover::getDistanceMoveToNextPoint()
 	return distanceMoveToNextPoint;
 }
 
-std::vector<PolyPoint>::iterator TrainPathMover::findNearestStopPoint(std::vector<PolyPoint> pointVector)
+std::vector<PolyPoint>::iterator TrainPathMover::findNearestStopPoint(std::vector<PolyPoint>& pointVector)
 {
 
 	std::vector<PolyPoint>::const_iterator currPointItr=currPolyPointIt;
 	std::vector<PolyPoint>::iterator itr=pointVector.begin();
-	std::vector<PolyPoint>::iterator nearestPoint;
+	std::vector<PolyPoint>::iterator nearestPoint=pointVector.end();
 	double minDis=-1;
 	for(;itr!=pointVector.end();itr++)
 	{
-		double dis=calcDistanceBetweenTwoPoints(currPointItr,itr);
+		double dis=calcDistanceBetweenTwoPoints(currPointItr,itr,pointVector);
 
 		if((minDis==-1||dis<minDis)&&dis!=0)
 		{

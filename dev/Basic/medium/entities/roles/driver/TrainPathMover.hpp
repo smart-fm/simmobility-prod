@@ -134,8 +134,8 @@ public:
 
 	void SetParentMovementFacet(MovementFacet * movementFacet);
 
-	std::vector<PolyPoint>::iterator findNearestStopPoint(std::vector<PolyPoint> pointVector);
-	double calcDistanceBetweenTwoPoints(std::vector<PolyPoint>::const_iterator a,std::vector<PolyPoint>::iterator b) ;
+	std::vector<PolyPoint>::iterator findNearestStopPoint(std::vector<PolyPoint>& pointVector);
+	double calcDistanceBetweenTwoPoints(std::vector<PolyPoint>::const_iterator& a,std::vector<PolyPoint>::iterator& b,std::vector<PolyPoint> &) ;
 	double calcDistanceBetweenCurrentAndSubsequentPoint(Point a,Point b) const;
 	double getDistanceMoveToNextPoint();
 	PolyPoint GetStopPoint(double distance) const;

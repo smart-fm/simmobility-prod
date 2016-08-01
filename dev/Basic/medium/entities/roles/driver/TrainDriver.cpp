@@ -210,7 +210,7 @@ void TrainDriver::calculateDwellTime(int boarding,int alighting,int noOfPassenge
 	waitingTimeSec = dwellTime;
 	initialDwellTime=dwellTime;
 
-	ptMRTMoveLogger<<getTrainId()<<","<<tm<<","<<boarding<<","<<alighting<<","<<noOfPassengerInTrain<<","<<initialDwellTime<<endl;
+	ptMRTMoveLogger<<getTrainId()<<","<<tm<<","<<boarding<<","<<alighting<<","<<noOfPassengerInTrain<<","<<initialDwellTime<<std::endl;
 }
 
 void TrainDriver::InsertPlatformHoldEntities(std::string platformName,double duration)
@@ -502,10 +502,12 @@ void TrainDriver::InsertRestrictPassengerEntity(std::string platformName,int mov
 	restrictEntitiesLock.unlock();
 }
 
-std::vector<StopPointEntity> TrainDriver::GetStopPoints()
+std::vector<StopPointEntity>& TrainDriver::GetStopPoints()
 {
 	return stopPointEntities;
 }
+
+
 
 void TrainDriver::storeWaitingTime(WaitTrainActivity* waitingActivity, timeslice now) const
 {

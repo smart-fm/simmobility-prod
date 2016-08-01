@@ -102,9 +102,9 @@ Person_MT::~Person_MT()
 	safe_delete_item(nextRole);
 }
 
-void Person_MT::FindMrtTripsAndPerformRailTransitRoute(std::vector<sim_mob::OD_Trip>& matchedTrips)
+void Person_MT::findMrtTripsAndPerformRailTransitRoute(std::vector<sim_mob::OD_Trip>& matchedTrips)
 {
-  typename std::vector<sim_mob::OD_Trip>::iterator itr=matchedTrips.begin();
+  std::vector<sim_mob::OD_Trip>::iterator itr=matchedTrips.begin();
   std::vector<sim_mob::OD_Trip> newODTrips;
   while(itr!=matchedTrips.end())
   {
@@ -125,14 +125,12 @@ void Person_MT::FindMrtTripsAndPerformRailTransitRoute(std::vector<sim_mob::OD_T
 
            std::vector<std::string> railPath=RailTransit::getInstance().fetchBoardAlightStopSeq(src,end);
            if(railPath.empty())
-        	   return;
-           std::vector<sim_mob::OD_Trip> odTrips=splitMrtTrips(railPath);
-           typename std::vector<sim_mob::OD_Trip>::iterator itrMrtODTrips=odTrips.begin();
-           while(itrMrtODTrips!=odTrips.end())
            {
-        	   newODTrips.push_back(*itrMrtODTrips);
-        	   itrMrtODTrips++;
+        	   return;
            }
+
+           std::vector<sim_mob::OD_Trip> odTrips=splitMrtTrips(railPath);
+           newODTrips.insert(newODTrips.end(),odTrips.begin(),odTrips.end());
 
        }
        else
@@ -344,7 +342,7 @@ void Person_MT::convertPublicTransitODsToTrips(PT_Network& ptNetwork,const std::
 						bool ret = sim_mob::PT_RouteChoiceLuaProvider::getPTRC_Model().getBestPT_Path(itSubTrip->origin.node->getNodeId(),
 																		itSubTrip->destination.node->getNodeId(),itSubTrip->startTime.getValue(), odTrips, dbid, start_time,ptPathsetStoredProcName);
 
-						FindMrtTripsAndPerformRailTransitRoute(odTrips);
+						findMrtTripsAndPerformRailTransitRoute(odTrips);
 
 						if (ret)
 						{

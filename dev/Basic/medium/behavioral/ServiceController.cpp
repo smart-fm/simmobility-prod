@@ -116,7 +116,7 @@ std::vector<TrainDriver*>  ServiceController::getActiveTrainsInLine(std::string 
 
 std::string ServiceController::getPrePlatfrom(std::string lineId,std::string platformName)
 {
-	Platform *platform=TrainController<sim_mob::medium::Person_MT>::getInstance()->getPlatform(lineId,platformName);
+	Platform *platform=TrainController<sim_mob::medium::Person_MT>::getInstance()->getPrePlatform(lineId,platformName);
 	return platform->getPlatformNo();
 }
 
@@ -426,30 +426,30 @@ std::string ServiceController::getPlatformByOffset(int trainId,std::string lineI
 {
 	std::string offsetPlatform="";
 	map<std::string,std::vector<TrainDriver*>>::iterator it=mapOfLineAndTrainDrivers.find(lineId);
-		if(it!=mapOfLineAndTrainDrivers.end())
+	if(it!=mapOfLineAndTrainDrivers.end())
+	{
+		std::vector<TrainDriver*> trainsInLine=it->second;
+		std::vector<TrainDriver*>::iterator itr= trainsInLine.begin();
+		while(itr!=trainsInLine.end())
 		{
-			std::vector<TrainDriver*> trainsInLine=it->second;
-			std::vector<TrainDriver*>::iterator itr= trainsInLine.begin();
-			while(itr!=trainsInLine.end())
+			TrainDriver *driver=(*itr);
+			if(driver&&driver->getTrainId()==trainId)
 			{
-				TrainDriver *driver=(*itr);
-				if(driver&&driver->getTrainId()==trainId)
+				TrainMovement *movement=driver->GetMovement();
+				if(movement)
 				{
-					TrainMovement *movement=driver->GetMovement();
-					if(movement)
+					TrainMovement *trainMovement=dynamic_cast<TrainMovement*>(movement);
+					if(trainMovement)
 					{
-						TrainMovement *trainMovement=dynamic_cast<TrainMovement*>(movement);
-						if(trainMovement)
-						{
-							offsetPlatform=trainMovement->getPlatformByOffset(offset);
-							break;
-						}
+						offsetPlatform=trainMovement->getPlatformByOffset(offset);
+						break;
 					}
 				}
-				itr++;
 			}
+			itr++;
 		}
-		return offsetPlatform;
+	}
+	return offsetPlatform;
 }
 
 void ServiceController::performDisruption(std::string startStation,std::string endStation,std::string time)
@@ -470,7 +470,9 @@ std::string ServiceController::getDisruptedPlatformByIndex(std::string lineID,in
 	{
 		std::vector<std::string> platformNames=platforms[lineID];
 		if(!platformNames.empty()&&index>=0&&index<platforms.size())
+		{
 			return platformNames.at(index);
+		}
 	}
 
 	return "";

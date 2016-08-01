@@ -403,29 +403,32 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 	performDisruption(now);
 	if(arePassengersreRouted == false)
 	{
-		std::map<std::string, Platform*> linePlatformMap=station->getPlatforms();
-		std::map<std::string, Platform*>::iterator it;
-		std::map<std::string,std::vector<std::string>> platforms=TrainController<sim_mob::medium::Person_MT>::getInstance()->GetDisruptedPlatforms_ServiceController();
-		for(it=linePlatformMap.begin();it!=linePlatformMap.end();it++)
+		if(station)
 		{
-			std::vector<std::string> platformNames=platforms[it->first];
-			std::vector<std::string>::iterator itr=platformNames.begin();
-			if(itr!=platformNames.end())
+			std::map<std::string, Platform*> linePlatformMap=station->getPlatforms();
+			std::map<std::string, Platform*>::iterator it;
+			std::map<std::string,std::vector<std::string>> platforms=TrainController<sim_mob::medium::Person_MT>::getInstance()->GetDisruptedPlatforms_ServiceController();
+			for(it=linePlatformMap.begin();it!=linePlatformMap.end();it++)
 			{
-				Platform *disruptedPlt=dynamic_cast<Platform*>(it->second);
-				if(disruptedPlt)
+				std::vector<std::string> platformNames=platforms[it->first];
+				std::vector<std::string>::iterator itr=platformNames.begin();
+				if(itr!=platformNames.end())
 				{
-					itr=std::find(platformNames.begin(),platformNames.end(),disruptedPlt->getPlatformNo());
-					//trigger rerouting
-					if(itr!=platformNames.end())
-					triggerRerouting(DisruptionEventArgs(*disruptionParam),now);
-					else
+					Platform *disruptedPlt=dynamic_cast<Platform*>(it->second);
+					if(disruptedPlt)
 					{
-						itr=platformNames.begin();
-						Platform *platform=TrainController<sim_mob::medium::Person_MT>::getInstance()->getPrePlatform(it->first,*itr);
-						if(disruptedPlt==platform)
+						itr=std::find(platformNames.begin(),platformNames.end(),disruptedPlt->getPlatformNo());
+						//trigger rerouting
+						if(itr!=platformNames.end())
+						triggerRerouting(DisruptionEventArgs(*disruptionParam),now);
+						else
 						{
-							triggerRerouting(DisruptionEventArgs(*disruptionParam),now);
+							itr=platformNames.begin();
+							Platform *platform=TrainController<sim_mob::medium::Person_MT>::getInstance()->getPrePlatform(it->first,*itr);
+							if(disruptedPlt==platform)
+							{
+								triggerRerouting(DisruptionEventArgs(*disruptionParam),now);
+							}
 						}
 					}
 				}

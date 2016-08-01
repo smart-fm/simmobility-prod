@@ -385,13 +385,6 @@ public:
      *
      * @return mongo collections map
      */
-
-	/**
-	 * Retrieves Mongo Collection map
-	 *
-	 * @return mongo collections map
-	 */
-
 	const MongoCollectionsMap& getMongoCollectionsMap() const;
 
 	/**
@@ -856,7 +849,7 @@ private:
 
 	ModelScriptsMap ServiceControllerScriptsMap;
 
-
+	/// container for mongo collections
 	MongoCollectionsMap mongoCollectionsMap;
 
 	/** default capacity for bus*/

@@ -200,7 +200,7 @@ public:
 	void InsertStopPoint(PolyPoint point,double duration);
 
 	/* gets all the stop points of the train */
-	std::vector<StopPointEntity> GetStopPoints();
+	std::vector<StopPointEntity>& GetStopPoints();
 
 	/* checks if the train is stopped at the point */
 	bool IsStoppedAtPoint();

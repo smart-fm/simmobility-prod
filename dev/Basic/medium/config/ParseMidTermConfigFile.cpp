@@ -343,8 +343,7 @@ void ParseMidTermConfigFile::processBusCapactiyElement(xercesc::DOMElement* node
 ModelScriptsMap ParseMidTermConfigFile::processModelScriptsNode(xercesc::DOMElement* node)
 {
 	std::string format = ParseString(GetNamedAttributeValue(node, "format"), "");
-	//std::string format = ParseString(GetNamedAttributeValue(node, "type"), "");
-		std::string filename="";
+	std::string filename="";
 	if (format.empty() || format != "lua")
 	{
 		throw std::runtime_error("Unsupported script format");
@@ -627,7 +626,8 @@ void ParseMidTermConfigFile::processPublicTransit(xercesc::DOMElement* node)
 	}
 }
 
-void ParseMidTermConfigFile::processTT_Update(xercesc::DOMElement* node){
+void ParseMidTermConfigFile::processTT_Update(xercesc::DOMElement* node)
+{
     if(!node)
     {
         throw std::runtime_error("pathset travel_time_interval not found\n");
@@ -641,7 +641,8 @@ void ParseMidTermConfigFile::processTT_Update(xercesc::DOMElement* node){
 
 void ParseMidTermConfigFile::processRegionRestrictionNode(xercesc::DOMElement* node){
 
-    if (!node) {
+    if (!node)
+    {
 
         mtCfg.regionRestrictionEnabled = false;
         return;
@@ -652,14 +653,17 @@ void ParseMidTermConfigFile::processRegionRestrictionNode(xercesc::DOMElement* n
 
 void ParseMidTermConfigFile::processBusStopScheduledTimesNode(xercesc::DOMElement* node)
 {
-    if (!node) {
+    if (!node)
+    {
         return;
     }
 
     ///Loop through all children
     int count=0;
-    for (DOMElement* item=node->getFirstElementChild(); item; item=item->getNextElementSibling()) {
-        if (TranscodeString(item->getNodeName())!="stop") {
+    for (DOMElement* item=node->getFirstElementChild(); item; item=item->getNextElementSibling())
+    {
+        if (TranscodeString(item->getNodeName())!="stop")
+        {
             Warn() <<"Invalid busStopScheduledTimes child node.\n";
             continue;
         }
@@ -674,17 +678,21 @@ void ParseMidTermConfigFile::processBusStopScheduledTimesNode(xercesc::DOMElemen
 
 void ParseMidTermConfigFile::processIncidentsNode(xercesc::DOMElement* node)
 {
-    if(!node) {
+    if(!node)
+    {
         return;
     }
 
     bool enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), false);
-    if(!enabled){
+    if(!enabled)
+    {
         return;
     }
 
-    for(DOMElement* item=node->getFirstElementChild(); item; item=item->getNextElementSibling()) {
-    	if(TranscodeString(item->getNodeName())=="incident"){
+    for(DOMElement* item=node->getFirstElementChild(); item; item=item->getNextElementSibling())
+    {
+    	if(TranscodeString(item->getNodeName())=="incident")
+    	{
 			IncidentParams incident;
 			incident.incidentId = ParseUnsignedInt(GetNamedAttributeValue(item, "id"));
 			incident.visibilityDistance = ParseFloat(GetNamedAttributeValue(item, "visibility"));
@@ -696,19 +704,23 @@ void ParseMidTermConfigFile::processIncidentsNode(xercesc::DOMElement* node)
 			incident.length = ParseFloat(GetNamedAttributeValue(item, "length") );
 			incident.compliance = ParseFloat(GetNamedAttributeValue(item, "compliance") );
 			incident.accessibility = ParseFloat(GetNamedAttributeValue(item, "accessibility") );
-			for(DOMElement* child=item->getFirstElementChild(); child; child=child->getNextElementSibling()){
+			for(DOMElement* child=item->getFirstElementChild(); child; child=child->getNextElementSibling())
+			{
 				IncidentParams::LaneParams lane;
 				lane.laneId = ParseUnsignedInt(GetNamedAttributeValue(child, "laneId"));
 				lane.speedLimit = ParseFloat(GetNamedAttributeValue(child, "speedLimitFactor") );
 				incident.laneParams.push_back(lane);
 			}
 			mtCfg.incidents.push_back(incident);
-    	} else if(TranscodeString(item->getNodeName())=="disruption"){
+    	}
+    	else if(TranscodeString(item->getNodeName())=="disruption")
+    	{
     		DisruptionParams disruption;
     		disruption.id = ParseUnsignedInt(GetNamedAttributeValue(item, "id"));
     		disruption.startTime = ParseDailyTime(GetNamedAttributeValue(item, "start_time") );
     		disruption.duration = ParseDailyTime(GetNamedAttributeValue(item, "duration") );
-    		for(DOMElement* child=item->getFirstElementChild(); child; child=child->getNextElementSibling()){
+    		for(DOMElement* child=item->getFirstElementChild(); child; child=child->getNextElementSibling())
+    		{
     			std::string val = ParseString(GetNamedAttributeValue(child, "name"), "");
     			disruption.platformNames.push_back(val);
     			val = ParseString(GetNamedAttributeValue(child, "lineId"), "");
@@ -737,7 +749,7 @@ void ParseMidTermConfigFile::processTrainControllerNode(xercesc::DOMElement *nod
         DOMElement* child = GetSingleElementByName(node, "safe_operation_distance_metre");
     	if (child == nullptr)
     	{
-    		throw std::runtime_error("load safe_operation_distance_metre errors in MT_Config");
+    		throw std::runtime_error("load safe_operation_distance_meter missing in simrun_MidTerm.xml");
     	}
     	double value = ParseFloat(GetNamedAttributeValue(child, "value"));
     	cfg.trainController.safeDistance = value;
@@ -745,7 +757,7 @@ void ParseMidTermConfigFile::processTrainControllerNode(xercesc::DOMElement *nod
         child = GetSingleElementByName(node, "safe_operation_headway_sec");
     	if (child == nullptr)
     	{
-    		throw std::runtime_error("load safe_operation_headway_sec errors in MT_Config");
+    		throw std::runtime_error("load safe_operation_headway_sec missing in simrun_MidTerm.xml");
     	}
     	value = ParseFloat(GetNamedAttributeValue(child, "value"));
     	cfg.trainController.safeHeadway = value;
@@ -753,7 +765,7 @@ void ParseMidTermConfigFile::processTrainControllerNode(xercesc::DOMElement *nod
         child = GetSingleElementByName(node, "dwell_time_params");
     	if (child == nullptr)
     	{
-    		throw std::runtime_error("load dwell_time_params errors in MT_Config");
+    		throw std::runtime_error("load dwell_time_params missing in simrun_MidTerm.xml");
     	}
     	value = ParseFloat(GetNamedAttributeValue(child, "min_sec"));
     	cfg.trainController.miniDwellTime = value;
@@ -762,13 +774,13 @@ void ParseMidTermConfigFile::processTrainControllerNode(xercesc::DOMElement *nod
     	child = GetSingleElementByName(node, "output_enabled");
     	if (child == nullptr)
     	{
-    		throw std::runtime_error("load output_enabled errors in MT_Config");
+    		throw std::runtime_error("load output_enabled missing in simrun_MidTerm.xml");
     	}
     	cfg.trainController.outputEnabled=ParseBoolean(GetNamedAttributeValue(child, "value"), false);
     	child = GetSingleElementByName(node, "max_capacity");
     	if (child == nullptr)
     	{
-    		throw std::runtime_error("load max_capacity errors in MT_Config");
+    		throw std::runtime_error("load max_capacity missing in simrun_MidTerm.xml");
     	}
     	cfg.trainController.maxCapacity=ParseUnsignedInt(GetNamedAttributeValue(child, "value"));
     }
@@ -776,7 +788,8 @@ void ParseMidTermConfigFile::processTrainControllerNode(xercesc::DOMElement *nod
 
 void ParseMidTermConfigFile::processPathSetFileName(xercesc::DOMElement* node)
 {
-    if (!node) {
+    if (!node)
+    {
         return;
     }
     cfg.pathsetFile = ParseString(GetNamedAttributeValue(node, "value"));

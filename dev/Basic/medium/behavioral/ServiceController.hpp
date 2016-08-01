@@ -19,7 +19,7 @@
 #include "lua/third-party/luabridge/RefCountedObject.h"
 #include "entities/roles/driver/TrainDriverFacets.hpp"
 
-using namespace std;
+
 namespace sim_mob
 {
 
@@ -31,11 +31,6 @@ struct TrainIdLineId
 	int trainId;
 	std::string lineId;
 };
-
-using namespace std;
-using namespace sim_mob;
-using namespace luabridge;
-using namespace medium;
 
 class ServiceController:  public lua::LuaModel
 {
@@ -71,7 +66,7 @@ class ServiceController:  public lua::LuaModel
     int getTrainIdByIndex(int index,std::string lineId);
     void performDisruption(std::string startStation,std::string endStation,std::string time);
     void insertStopPoint(int trainId,std::string lineId,double distance,double duration);
-    void updatePlatformList(int trainId,LuaRef platformsToBeIgnored,std::string lineId);
+    void updatePlatformList(int trainId,luabridge::LuaRef platformsToBeIgnored,std::string lineId);
     void insertPlatformHoldEntities(std::string platformName,double duration,int trainId,std::string lineId);
     void restrictPassengers(std::string platformName,int trainId,std::string lineId,int type);
     void insertUnScheduledTrain(std::string lineId,std::string startTime,std::string startStation);
@@ -95,7 +90,7 @@ class ServiceController:  public lua::LuaModel
 
 	private:
     mutable boost::mutex lineTrainDriversLock;
-    map<std::string, std::vector<TrainDriver*> > mapOfLineAndTrainDrivers;
+    std::map<std::string, std::vector<TrainDriver*> > mapOfLineAndTrainDrivers;
 };
 }
 }

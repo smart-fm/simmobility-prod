@@ -296,10 +296,11 @@ void ExpandMidTermConfigFile::printSettings()
 
     std::cout << "------------------\n";
 
-    //Print the train network
-    if(cfg.trainController.enabled){
+    //Print the train network only if necessary
+    /*if(cfg.trainController.enabled)
+    {
     	TrainController<Person_MT>::getInstance()->printTrainNetwork(cfg.outTrainNetworkFilename);
-    }
+    }*/
 
 	SimulationInfoPrinter simInfoPrinter(cfg, cfg.outSimInfoFileName);
 	simInfoPrinter.printSimulationInfo();

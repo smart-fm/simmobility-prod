@@ -452,7 +452,8 @@ bool TrainMovement::IsStopPointPresent()
 	std::vector<PolyPoint>::const_iterator pointItr=pathMover.GetCurrentStopPoint();
 	PolyPoint stopPoint = *pointItr;
 	PolyPoint nextPoint= *(pointItr+1);
-	std::vector<StopPointEntity> stopPointEntities=parentDriver->GetStopPoints();
+	std::vector<StopPointEntity> &stopPointEntities=parentDriver->GetStopPoints();
+	int index=0;
 	std::vector<StopPointEntity>::iterator stopPointItr=stopPointEntities.begin();
 	while(stopPointItr!=stopPointEntities.end())
 	{
@@ -461,6 +462,7 @@ bool TrainMovement::IsStopPointPresent()
 		if(stPoint.getX()==(*pointItr).getX()&&stPoint.getY()==(*pointItr).getY()&&stPoint.getZ()==(*pointItr).getZ())
 		{
 			parentDriver->SetStoppingParameters(stPoint,(*stopPointItr).duration);
+			stopPointEntities.erase(stopPointItr);
 			//remove stop point from list
 			return true;
 		}
@@ -474,6 +476,7 @@ bool TrainMovement::IsStopPointPresent()
 				if(params.distanceToNextStopPoint-params.movingDistance<distanceArrvingAtPlatform)
 				{
 					parentDriver->SetStoppingParameters(stPoint,(*stopPointItr).duration);
+					stopPointEntities.erase(stopPointItr);
 					//remove stop point from list
 				    return true;
 				}
@@ -482,6 +485,7 @@ bool TrainMovement::IsStopPointPresent()
 
 		}
 		stopPointItr++;
+		index++;
 	}
 	return false;
  }
@@ -510,18 +514,21 @@ void TrainMovement::frame_tick()
 		if(!parentDriver->IsStoppedAtPoint())
 		{
 		    //reset moving case if there is
+			if(parentDriver->getTrainId()==1&&((int)getTotalCoveredDistance())==11078)
+			{
+				//just debug
+				int r=9;
+			}
 			UpdatePlatformsList();
 			moveForward();
-
+			if(isStopAtPlatform())
+			{
+				forceResetMovingCase=false;
+				parentDriver->setNextRequested(TrainDriver::REQUESTED_AT_PLATFORM);
+			}
+			IsStopPointPresent();
 		}
 
-		if(isStopAtPlatform())
-		{
-			forceResetMovingCase=false;
-			parentDriver->setNextRequested(TrainDriver::REQUESTED_AT_PLATFORM);
-		}
-
-		IsStopPointPresent();
 		break;
 	}
 	case TrainDriver::REQUESTED_WAITING_LEAVING:
@@ -755,12 +762,12 @@ bool TrainMovement::isStationCase(double disToTrain, double disToPlatform,double
 		if(disToPlatform>0&&disToTrain>0&&disToStopPoint<disToPlatform&&disToStopPoint<disToTrain)
 		{
 			effectDis = disToStopPoint;
-			return false;
+			return true;
 		}
 		else if(disToTrain==0 &&disToPlatform>0&&disToStopPoint<disToPlatform)
 		{
 			effectDis = disToStopPoint;
-			return false;
+			return true;
 		}
 
 	}
@@ -854,10 +861,10 @@ double TrainMovement::getDistanceToNextPlatform(const TrainDriver* nextDriver)
 double TrainMovement::getRealSpeedLimit()
 {
 	TrainUpdateParams& params = parentDriver->getParams();
-/*	if(parentDriver->getTrainId()==1)
+	if(parentDriver->getTrainId()==1&&((int)getTotalCoveredDistance())==11)
 	{
 		int x=0;
-	}  just for debugging */
+	}
 	double distanceToNextTrain = 0.0;
 	double distanceToNextPlatform = 0.0;
 	double distanceToNextObject = 0.0;
@@ -874,14 +881,18 @@ double TrainMovement::getRealSpeedLimit()
 	while(itr!=stopPoints.end())
 	{
 		points.push_back((*itr).point);
+		itr++;
 	}
 
 	if(stopPoints.size()!=0)
 	{
-		std::vector<PolyPoint>::iterator stopPointItr=trainPathMover.findNearestStopPoint(points);
-		std::vector<PolyPoint>::const_iterator currStopPointItr=trainPathMover.GetCurrentStopPoint();
-		disToNextStopPoint=trainPathMover.calcDistanceBetweenTwoPoints(currStopPointItr,stopPointItr);
-		disToNextStopPoint=disToNextStopPoint-trainPathMover.getDistanceMoveToNextPoint();
+		std::vector<PolyPoint>::iterator stopPointItr=points.end();
+		stopPointItr=trainPathMover.findNearestStopPoint(points);
+		std::vector<PolyPoint>::const_iterator currStopPointItr=points.end();;
+		currStopPointItr=trainPathMover.GetCurrentStopPoint();
+		disToNextStopPoint=trainPathMover.calcDistanceBetweenTwoPoints(currStopPointItr,stopPointItr,points);
+		if(disToNextStopPoint!=0)
+			disToNextStopPoint=disToNextStopPoint-trainPathMover.getDistanceMoveToNextPoint();
 	}
 
 	if(disToNextStopPoint==0) /*means no stop point*/
@@ -1108,6 +1119,7 @@ bool TrainMovement::moveForward()
 		if(movingDistance>distanceToNextPlat&&movingDistance>params.distanceToNextStopPoint&&params.distanceToNextStopPoint!=0)
 		{
 			trainPathMover.advance(std::min(distanceToNextPlat,params.distanceToNextStopPoint));
+			params.disToNextPlatform = trainPathMover.getDistanceToNextPlatform(trainPlatformMover.getNextPlatform());
 		}
 
 		else if(movingDistance>distanceToNextPlat)
@@ -1119,6 +1131,7 @@ bool TrainMovement::moveForward()
 		else if (movingDistance>params.distanceToNextStopPoint&&params.distanceToNextStopPoint!=0)
 		{
 			trainPathMover.advance(params.distanceToNextStopPoint);
+			params.disToNextPlatform = trainPathMover.getDistanceToNextPlatform(trainPlatformMover.getNextPlatform());
 		}
 
 		else
@@ -1247,10 +1260,6 @@ void TrainMovement::arrivalAtStartPlaform() const
 {
 	Platform* next = trainPlatformMover.getFirstPlatform();
 	std::string stationNo = next->getStationNo();
-	/*std::vector<std::string> pltfms;
-	pltfms.push_back("NE5_1");
-	pltfms.push_back("NE7_1");
-	parentDriver->AddPlatformsToIgnore(pltfms);*/
 	//just for debugging
 	Agent* stationAgent = TrainController<Person_MT>::getAgentFromStation(stationNo);
 	messaging::MessageBus::PostMessage(stationAgent, TRAIN_ARRIVAL_AT_STARTPOINT,

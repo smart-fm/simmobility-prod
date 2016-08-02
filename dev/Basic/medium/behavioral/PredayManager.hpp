@@ -123,11 +123,9 @@ public:
 	void loadPersonIds(db::BackendType dbType);
 
 	/**
-	 * Gets details of all mtz zones
-	 *
-	 * @param dbType type of backend where the zone data is available
+	 * load details of all TAZ zones
 	 */
-	void loadZones(db::BackendType dbType);
+	void loadZones();
 
 	/**
 	 * Gets the list of nodes within each zone and stores them in a map
@@ -145,10 +143,8 @@ public:
 
 	/**
 	 * loads the AM, PM and off peak costs data
-	 *
-	 * @param dbType type of backend where the cost data is available
 	 */
-	void loadCosts(db::BackendType dbType);
+	void loadCosts();
 
 	/**
 	 * loads the un-available origin destination pairs

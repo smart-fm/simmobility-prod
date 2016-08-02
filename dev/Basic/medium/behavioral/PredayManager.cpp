@@ -715,46 +715,24 @@ void sim_mob::medium::PredayManager::loadPersonIds(BackendType dbType)
 	}
 }
 
-void sim_mob::medium::PredayManager::loadZones(db::BackendType dbType)
+void sim_mob::medium::PredayManager::loadZones()
 {
-	switch (dbType)
+	DB_Connection simmobConn = getDB_Connection(ConfigManager::GetInstance().FullConfig().networkDatabase);
+	simmobConn.connect();
+	if (simmobConn.isConnected())
 	{
-	case POSTGRES:
-	{
-		DB_Connection simmobConn = getDB_Connection(ConfigManager::GetInstance().FullConfig().networkDatabase);
-		simmobConn.connect();
-		if (simmobConn.isConnected())
-		{
-			ZoneSqlDao zoneDao(simmobConn);
-			zoneDao.getAll(zoneMap, &ZoneParams::getZoneId);
-			Print() << "MTZ Zones loaded\n";
-		}
-		else
-		{
-			throw std::runtime_error("connection failure. Could not MTZs zones");
-		}
-		break;
-	}
-	case MONGO_DB:
-	{
-		std::string zoneCollectionName = mtConfig.getMongoCollectionsMap().getCollectionName("Zone");
-		Database db = ConfigManager::GetInstance().FullConfig().constructs.databases.at("fm_mongo");
-		std::string emptyString;
-		db::DB_Config dbConfig(db.host, db.port, db.dbName, emptyString, emptyString);
-		ZoneMongoDao zoneDao(dbConfig, db.dbName, zoneCollectionName);
-		zoneDao.getAllZones(zoneMap);
+		ZoneSqlDao zoneDao(simmobConn);
+		zoneDao.getAll(zoneMap, &ZoneParams::getZoneId);
 		Print() << "MTZ Zones loaded\n";
-		break;
 	}
-	default:
+	else
 	{
-		throw std::runtime_error("Unsupported backend type. Only PostgreSQL and MongoDB are currently supported.");
-	}
+		throw std::runtime_error("connection failure. Could not MTZs zones");
 	}
 
-	for (ZoneMap::iterator i = zoneMap.begin(); i != zoneMap.end(); i++)
+	for (auto& zoneMapKeyVal : zoneMap)
 	{
-		zoneIdLookup[i->second->getZoneCode()] = i->first;
+		zoneIdLookup[zoneMapKeyVal.second->getZoneCode()] = zoneMapKeyVal.first;
 	}
 }
 
@@ -826,7 +804,7 @@ void sim_mob::medium::PredayManager::loadPostcodeNodeMapping(BackendType dbType)
 	}
 }
 
-void sim_mob::medium::PredayManager::loadCosts(db::BackendType dbType)
+void sim_mob::medium::PredayManager::loadCosts()
 {
 	ZoneMap::size_type nZones = zoneMap.size();
 	if (nZones > 0)
@@ -840,60 +818,26 @@ void sim_mob::medium::PredayManager::loadCosts(db::BackendType dbType)
 		opCostMap.rehash(ceil(mapSz / opCostMap.max_load_factor()));
 	}
 
-	switch (dbType)
+	DB_Connection simmobConn = getDB_Connection(ConfigManager::GetInstance().FullConfig().networkDatabase);
+	simmobConn.connect();
+	if (simmobConn.isConnected())
 	{
-	case POSTGRES:
-	{
-		DB_Connection simmobConn = getDB_Connection(ConfigManager::GetInstance().FullConfig().networkDatabase);
-		simmobConn.connect();
-		if (simmobConn.isConnected())
-		{
-			SimmobSqlDao simmobSqlDao(simmobConn, "");
-			CostSqlDao amCostDao(simmobConn, DB_GET_ALL_AM_COSTS);
-			amCostDao.getAll(amCostMap);
-			Print() << "AM costs loaded\n";
-
-			CostSqlDao pmCostDao(simmobConn, DB_GET_ALL_PM_COSTS);
-			pmCostDao.getAll(pmCostMap);
-			Print() << "PM costs loaded\n";
-
-			CostSqlDao opCostDao(simmobConn, DB_GET_ALL_OP_COSTS);
-			opCostDao.getAll(opCostMap);
-			Print() << "OP costs loaded\n";
-		}
-		else
-		{
-			throw std::runtime_error("simmob db connection failure!");
-		}
-		break;
-	}
-	case MONGO_DB:
-	{
-		const MongoCollectionsMap& mongoColl = mtConfig.getMongoCollectionsMap();
-		std::string amCostsCollName = mongoColl.getCollectionName("AMCosts");
-		std::string pmCostsCollName = mongoColl.getCollectionName("PMCosts");
-		std::string opCostsCollName = mongoColl.getCollectionName("OPCosts");
-		Database db = ConfigManager::GetInstance().FullConfig().constructs.databases.at("fm_mongo");
-		std::string emptyString;
-		db::DB_Config dbConfig(db.host, db.port, db.dbName, emptyString, emptyString);
-
-		CostMongoDao amCostDao(dbConfig, db.dbName, amCostsCollName);
+		SimmobSqlDao simmobSqlDao(simmobConn, "");
+		CostSqlDao amCostDao(simmobConn, DB_GET_ALL_AM_COSTS);
 		amCostDao.getAll(amCostMap);
-		Print() << "AM Costs Loaded\n";
+		Print() << "AM costs loaded\n";
 
-		CostMongoDao pmCostDao(dbConfig, db.dbName, pmCostsCollName);
+		CostSqlDao pmCostDao(simmobConn, DB_GET_ALL_PM_COSTS);
 		pmCostDao.getAll(pmCostMap);
-		Print() << "PM Costs Loaded\n";
+		Print() << "PM costs loaded\n";
 
-		CostMongoDao opCostDao(dbConfig, db.dbName, opCostsCollName);
+		CostSqlDao opCostDao(simmobConn, DB_GET_ALL_OP_COSTS);
 		opCostDao.getAll(opCostMap);
-		Print() << "OP Costs Loaded\n";
-		break;
+		Print() << "OP costs loaded\n";
 	}
-	default:
+	else
 	{
-		throw std::runtime_error("Unsupported backend type. Only PostgreSQL and MongoDB are currently supported.");
-	}
+		throw std::runtime_error("simmob db connection failure!");
 	}
 }
 

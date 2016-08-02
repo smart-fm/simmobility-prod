@@ -432,8 +432,8 @@ bool performMainDemand()
 	const MT_Config& mtConfig = MT_Config::getInstance();
 	const db::BackendType populationSource = mtConfig.getPopulationSource();
 	PredayManager predayManager;
-	predayManager.loadZones(db::MONGO_DB);
-	predayManager.loadCosts(db::MONGO_DB);
+	predayManager.loadZones();
+	predayManager.loadCosts();
 	predayManager.loadPersonIds(populationSource);
 	predayManager.loadUnavailableODs(db::MONGO_DB);
 	if(mtConfig.runningPredaySimulation() && mtConfig.isFileOutputEnabled())

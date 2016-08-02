@@ -193,6 +193,7 @@ void ParseShortTermConfigFile::processXmlFile(XercesDOMParser& parser)
 
 	processProcMapNode(GetSingleElementByName(rootNode, "db_proc_groups", true));
 	processSystemNode(GetSingleElementByName(rootNode, "system", true));
+	cfg.luaScriptsMap = processModelScriptsNode(GetSingleElementByName(rootNode, "model_scripts", true));
 	processWorkersNode(GetSingleElementByName(rootNode, "workers", true));
 	processAmodControllerNode(GetSingleElementByName(rootNode, "amodcontroller"));
 	processFmodControllerNode(GetSingleElementByName(rootNode, "fmodcontroller"));
@@ -265,7 +266,50 @@ void ParseShortTermConfigFile::processAmodControllerNode(DOMElement* node)
 	}
 }
 
-void ParseShortTermConfigFile::processFmodControllerNode(DOMElement* node)
+class FmodParser : public ParseConfigXmlBase
+{
+public:
+
+	FmodParser(std::map<std::string, TripChainItem*>& items, const std::string& configFileName) : allItems(items), ParseConfigXmlBase(configFileName)
+	{
+		parseXmlAndProcess();
+	}
+
+	virtual void processXmlFile(xercesc::XercesDOMParser& parser)
+	{
+		DOMElement* rootNode = parser.getDocument()->getDocumentElement();
+		if (TranscodeString(rootNode->getTagName()) != "requests")
+		{
+			throw std::runtime_error("xml parse error: root node must be \"requests\"");
+		}
+		for (DOMElement* item = rootNode->getFirstElementChild(); item; item = item->getNextElementSibling())
+		{
+			if (TranscodeString(item->getNodeName()) == "request")
+			{
+				TripChainItem* trip = new Trip();
+				trip->startTime = DailyTime(ParseString(GetNamedAttributeValue(item, "startTime"), ""));
+				trip->endTime = DailyTime(ParseString(GetNamedAttributeValue(item, "endTime"), ""));
+				trip->requestTime = ParseUnsignedInt(GetNamedAttributeValue(item, "timeWin"));
+				trip->sequenceNumber = ParseUnsignedInt(GetNamedAttributeValue(item, "frequency"));
+				trip->startLocationId = ParseString(GetNamedAttributeValue(item, "originNode"), "");
+				trip->endLocationId = ParseString(GetNamedAttributeValue(item, "destNode"), "");
+				std::string startId = ParseString(GetNamedAttributeValue(item, "startId"), "");
+				ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
+				DailyTime simStart = cfg.simulation.simStartTime;
+				DailyTime simEnd = DailyTime(simStart.getValue() + cfg.simulation.totalRuntimeMS);
+				DailyTime tripStart(trip->startTime);
+				if (tripStart.getValue() > simStart.getValue() && tripStart.getValue() < simEnd.getValue())
+				{
+					allItems[startId] = trip;
+				}
+			}
+		}
+	}
+public:
+	std::map<std::string, TripChainItem*>& allItems;
+};
+
+void sim_mob::ParseShortTermConfigFile::processFmodControllerNode(xercesc::DOMElement* node)
 {
 	if (!node)
 	{
@@ -281,23 +325,31 @@ void ParseShortTermConfigFile::processFmodControllerNode(DOMElement* node)
 		stCfg.fmod.port = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "port"), "value"), static_cast<unsigned int> (0));
 		stCfg.fmod.updateTimeMS = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "update_time_ms"), "value"), static_cast<unsigned int> (0));
 		stCfg.fmod.mapfile = ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "map_file"), "value"), "");
-		stCfg.fmod.blockingTimeSec = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "blocking_time_sec"), "value"),
-													static_cast<unsigned int> (0));
+		stCfg.fmod.blockingTimeSec = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "blocking_time_sec"), "value"), static_cast<unsigned int> (0));
 		xercesc::DOMElement* resNodes = GetSingleElementByName(node, "requests");
-		for (DOMElement* item = resNodes->getFirstElementChild(); item; item = item->getNextElementSibling())
+		if (resNodes)
 		{
-			if (TranscodeString(item->getNodeName()) == "trip")
+			for (DOMElement* item = resNodes->getFirstElementChild(); item; item = item->getNextElementSibling())
 			{
-				TripChainItem* trip = new Trip();
-				trip->startTime = DailyTime(ParseString(GetNamedAttributeValue(item, "startTime"), ""));
-				trip->endTime = DailyTime(ParseString(GetNamedAttributeValue(item, "endTime"), ""));
-				trip->requestTime = ParseUnsignedInt(GetNamedAttributeValue(item, "timeWinSec"));
-				trip->sequenceNumber = ParseUnsignedInt(GetNamedAttributeValue(item, "frequency"));
-				trip->startLocationId = ParseString(GetNamedAttributeValue(item, "originNode"), "");
-				trip->endLocationId = ParseString(GetNamedAttributeValue(item, "destNode"), "");
-				std::string startId = ParseString(GetNamedAttributeValue(item, "startId"), "");
-				stCfg.fmod.allItems[startId] = trip;
+				if (TranscodeString(item->getNodeName()) == "request")
+				{
+					TripChainItem* trip = new Trip();
+					trip->startTime = DailyTime(ParseString(GetNamedAttributeValue(item, "startTime"), ""));
+					trip->endTime = DailyTime(ParseString(GetNamedAttributeValue(item, "endTime"), ""));
+					trip->requestTime = ParseUnsignedInt(GetNamedAttributeValue(item, "timeWin"));
+					trip->sequenceNumber = ParseUnsignedInt(GetNamedAttributeValue(item, "frequency"));
+					trip->startLocationId = ParseString(GetNamedAttributeValue(item, "originNode"), "");
+					trip->endLocationId = ParseString(GetNamedAttributeValue(item, "destNode"), "");
+					std::string startId = ParseString(GetNamedAttributeValue(item, "startId"), "");
+					stCfg.fmod.allItems[startId] = trip;
+				}
 			}
+		}
+		DOMElement* element = GetSingleElementByName(node, "requests_file");
+		if (element)
+		{
+			std::string filename = ParseString(GetNamedAttributeValue(element, "value"), "");
+			FmodParser fmodParser(stCfg.fmod.allItems, filename);
 		}
 	}
 }
@@ -340,6 +392,47 @@ void ParseShortTermConfigFile::processSystemNode(DOMElement *node)
 	{
 		throw std::runtime_error("processSystemNode : System node not defined");
 	}
+}
+
+ModelScriptsMap ParseShortTermConfigFile::processModelScriptsNode(xercesc::DOMElement* node)
+{
+	std::string format = ParseString(GetNamedAttributeValue(node, "format"), "");
+	if (format.empty() || format != "lua")
+	{
+		throw std::runtime_error("Unsupported script format");
+	}
+
+	std::string scriptsDirectoryPath = ParseString(GetNamedAttributeValue(node, "path"), "");
+	if (scriptsDirectoryPath.empty())
+	{
+		throw std::runtime_error("path to scripts is not provided");
+	}
+	if ((*scriptsDirectoryPath.rbegin()) != '/')
+	{
+		//add a / to the end of the path string if it is not already there
+		scriptsDirectoryPath.push_back('/');
+	}
+	ModelScriptsMap scriptsMap(scriptsDirectoryPath, format);
+	for (DOMElement* item = node->getFirstElementChild(); item; item = item->getNextElementSibling())
+	{
+		std::string name = TranscodeString(item->getNodeName());
+		if (name != "script")
+		{
+			Warn() << "Invalid db_proc_groups child node.\n";
+			continue;
+		}
+
+		std::string key = ParseString(GetNamedAttributeValue(item, "name"), "");
+		std::string val = ParseString(GetNamedAttributeValue(item, "file"), "");
+		if (key.empty() || val.empty())
+		{
+			Warn() << "Invalid script; missing \"name\" or \"file\".\n";
+			continue;
+		}
+
+		scriptsMap.addScriptFileName(key, val);
+	}
+	return scriptsMap;
 }
 
 void ParseShortTermConfigFile::processNetworkNode(DOMElement *node)

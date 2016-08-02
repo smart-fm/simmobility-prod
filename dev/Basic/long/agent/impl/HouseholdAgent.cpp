@@ -270,8 +270,31 @@ void HouseholdAgent::processEvent(EventId eventId, Context ctxId, const EventArg
             break;
         }
         case LTEID_HM_BTO_UNIT_ADDED:
-        	//code to handle BTO units
+        {
+        	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+
+        	float montecarlo = (float)rand() /RAND_MAX;
+
+        	if( montecarlo < config.ltParams.housingModel.householdAwakeningPercentageByBTO )
+        	{
+        		if (bidder)
+				{
+        			getModel()->incrementNumberOfBTOAwakenings();
+
+					awakeningDay = day;
+					household->setAwakenedDay(day);
+					bidder->setActive(true);
+
+					ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+
+					householdBiddingWindow = config.ltParams.housingModel.householdBiddingWindow * (double)rand() / RAND_MAX + 1;
+					bidder->setMoveInWaitingTimeInDays(-1);
+					buySellInterval = config.ltParams.housingModel.offsetBetweenUnitBuyingAndSelling;
+				}
+        	}
+
             break;
+        }
         default:break;
     };
 }
@@ -286,18 +309,21 @@ void HouseholdAgent::processExternalEvent(const ExternalEventArgs& args)
         case ExternalEvent::NEW_JOB_LOCATION:
         case ExternalEvent::NEW_SCHOOL_LOCATION:
         {
-            if (bidder)
-            {
-            	awakeningDay = day;
-            	household->setAwakenedDay(day);
-                bidder->setActive(true);
+			if (bidder)
+			{
+				awakeningDay = day;
+				household->setAwakenedDay(day);
+				bidder->setActive(true);
 
-                ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+				ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 
-                householdBiddingWindow = config.ltParams.housingModel.householdBiddingWindow * (double)rand() / RAND_MAX + 1;
-                bidder->setMoveInWaitingTimeInDays(-1);
-                buySellInterval = config.ltParams.housingModel.offsetBetweenUnitBuyingAndSelling;
-            }
+				householdBiddingWindow = config.ltParams.housingModel.householdBiddingWindow * (double)rand() / RAND_MAX + 1;
+
+				//A value of -1 means that this unit is *not* waiting to move in. Any value above 0 implies that the bidder
+				//has successfully bid on a unit and will move in in the number of days specified by the value of this variable.
+				bidder->setMoveInWaitingTimeInDays(-1);
+				buySellInterval = config.ltParams.housingModel.offsetBetweenUnitBuyingAndSelling;
+			}
 
 			#ifdef VERBOSE
             PrintOutV("[day " << day << "] Household " << getId() << " has been awakened."<< std::endl);
@@ -359,7 +385,11 @@ void HouseholdAgent::onWorkerEnter()
         MessageBus::SubscribeEvent(LTEID_EXT_NEW_SCHOOL_LOCATION, this, this);
         MessageBus::SubscribeEvent(LTEID_EXT_NEW_JOB_LOCATION, this, this);
 
-        MessageBus::SubscribeEvent(LTEID_HM_BTO_UNIT_ADDED, this);
+        const Household *hh = this->getHousehold();
+        if( hh->getTwoRoomHdbEligibility() || hh->getThreeRoomHdbEligibility() || hh->getFourRoomHdbEligibility() )
+        {
+        	MessageBus::SubscribeEvent(LTEID_HM_BTO_UNIT_ADDED, this);
+        }
     }
 }
 

@@ -129,6 +129,7 @@
 	    <bidderUnitsChoiceSet value = "50"/>
 	    <bidderBTOUnitsChoiceSet value = "12"/>
 	    <householdBiddingWindow value = "30" />
+	    <householdAwakeningPercentageByBTO value = "0.00001" />
         </housingModel>
 	<vehicleOwnershipModel enabled='false'>
 		<vehicleBuyingWaitingTimeInDays value= "1"/>

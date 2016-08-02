@@ -535,6 +535,10 @@ bool HouseholdBidderRole::pickEntryToBid()
     const HM_LuaModel& luaModel = LuaProvider::getHM_Model();
     HM_Model* model = getParent()->getModel();
 
+    boost::gregorian::date simulationDate(HITS_SURVEY_YEAR, 1, 1);
+    boost::gregorian::date_duration dt(day);
+    simulationDate = simulationDate + dt;
+
     //get available entries (for preferable zones if exists)
     HousingMarket::ConstEntryList entries;
 
@@ -546,6 +550,7 @@ bool HouseholdBidderRole::pickEntryToBid()
     double maxWp	= 0;
     double maxWtpe  = 0;
     double maxAffordability = 0;
+    bool isBTO = false;
 
     ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
     float housingMarketSearchPercentage = config.ltParams.housingModel.housingMarketSearchPercentage;
@@ -678,17 +683,15 @@ bool HouseholdBidderRole::pickEntryToBid()
 
             bool flatEligibility = true;
 
-            // chetan *must* add unit->getBTO() here after gishara merges her branch
-            /*
-			if( unit->getUnitType() == 2 && household->getTwoRoomHdbEligibility()  == false )
+ 			if( unit->isBto() && unit->getUnitType() == 2 && household->getTwoRoomHdbEligibility()  == false )
 				flatEligibility = false;
 
-			if( unit->getUnitType() == 3 && household->getThreeRoomHdbEligibility() == false )
+			if( unit->isBto() && unit->getUnitType() == 3 && household->getThreeRoomHdbEligibility() == false )
 				flatEligibility = false;
 
-			if( unit->getUnitType() == 4 && household->getFourRoomHdbEligibility() == false )
+			if( unit->isBto() && unit->getUnitType() == 4 && household->getFourRoomHdbEligibility() == false )
 				flatEligibility = false;
-			*/
+
 
             if( stats && flatEligibility )
             {
@@ -746,9 +749,22 @@ bool HouseholdBidderRole::pickEntryToBid()
             		maxEntry = entry;
             		maxWp = wp;
             		maxWtpe = wtp_e;
+
+                	boost::gregorian::date occupancydate = boost::gregorian::date_from_tm(unit->getOccupancyFromDate());
+
+                	if( simulationDate <  occupancydate )
+                	{
+                 		isBTO = true;
+                	}
             	}
             }
         }
+    }
+
+    if( maxEntry && model->getUnitById(maxEntry->getUnitId())->isBto() )
+    {
+    	//When bidding on BTO units, we cannot bid above the asking price. So it's basically the ceiling we cannot exceed.
+    	finalBid = maxEntry->getAskingPrice();
     }
 
     biddingEntry = CurrentBiddingEntry( (maxEntry) ? maxEntry->getUnitId() : INVALID_ID, finalBid, maxWp, maxSurplus, maxWtpe, maxAffordability );

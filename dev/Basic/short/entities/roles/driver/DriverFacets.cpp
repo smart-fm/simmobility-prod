@@ -1449,7 +1449,7 @@ double DriverMovement::updatePosition(DriverUpdateParams &params)
 								false, false, false, nextLink, useInSimulationTT);
 					}
 					
-					if(!isPathFound || ConfigManager::GetInstance().FullConfig().PathSetMode())
+					if(!isPathFound || !ConfigManager::GetInstance().FullConfig().PathSetMode())
 					{
 						const StreetDirectory& stdir = StreetDirectory::Instance();						
 						path = stdir.SearchShortestDrivingPath<sim_mob::Link, sim_mob::Node>(*nextLink, *(parentDriver->destination));

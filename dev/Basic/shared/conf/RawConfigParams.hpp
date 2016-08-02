@@ -65,6 +65,7 @@ struct LongTermParams
 		int bidderUnitsChoiceSet;
 		int bidderBTOUnitsChoiceSet;
 		int householdBiddingWindow;
+		float householdAwakeningPercentageByBTO;
 	} housingModel;
 
 	struct OutputHouseholdLogsums

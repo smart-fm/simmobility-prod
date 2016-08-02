@@ -222,6 +222,10 @@ void loadDataToOutputSchema(db::DB_Connection& conn,std::string &currentOutputSc
 			{
 				if(((*houseHoldItr)->getIsBidder()) || ((*houseHoldItr)->getIsSeller()))
 				{
+					if(housingMarketModel.getResumptionHouseholdById((*houseHoldItr)->getId()) != nullptr)
+					{
+						(*houseHoldItr)->setExistInDB(true);
+					}
 					hhDao.insertHousehold(*(*houseHoldItr),currentOutputSchema);
 				}
 
@@ -414,6 +418,7 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
         PrintOutV("XML Config HousingModel timeOffMarket " << config.ltParams.housingModel.timeOffMarket << endl);
         PrintOutV("XML Config HousingModel timeOnMarket " << config.ltParams.housingModel.timeOnMarket << endl);
         PrintOutV("XML Config HousingModel vacantUnitActivationProbability " << config.ltParams.housingModel.vacantUnitActivationProbability << endl);
+        PrintOutV("XML Config HousingModel householdAwakeningPercentageByBTO " << config.ltParams.housingModel.householdAwakeningPercentageByBTO << endl);
         PrintOutV("XML Config mainSchemaVersion " << config.ltParams.mainSchemaVersion << endl);
         PrintOutV("XML Config maxIterations " << config.ltParams.maxIterations << endl);
         PrintOutV("XML Config opSchemaloadingInterval " << config.ltParams.opSchemaloadingInterval << endl);
@@ -499,11 +504,12 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
 				   << " Accepted: " << (dynamic_cast<HM_Model*>(models[0]))->getSuccessfulBids()
 				   << " Exits: " 	<< (dynamic_cast<HM_Model*>(models[0]))->getExits()
 				   << " Awaken: "	<< (dynamic_cast<HM_Model*>(models[0]))->getAwakeningCounter()
+				   << " AwakenByBTO: "	<< (dynamic_cast<HM_Model*>(models[0]))->getNumberOfBTOAwakenings()
 				   << " " << std::endl );
 
             (dynamic_cast<HM_Model*>(models[0]))->setNumberOfBidders(0);
             (dynamic_cast<HM_Model*>(models[0]))->setNumberOfSellers(0);
-
+            (dynamic_cast<HM_Model*>(models[0]))->setNumberOfBTOAwakenings(0);
             (dynamic_cast<HM_Model*>(models[0]))->resetBAEStatistics();
         }
 
@@ -591,3 +597,4 @@ int main_impl(int ARGC, char* ARGV[])
     
     return 0;
 }
+

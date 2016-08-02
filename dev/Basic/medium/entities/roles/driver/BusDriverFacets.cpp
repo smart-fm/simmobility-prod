@@ -9,6 +9,7 @@
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "entities/BusStopAgent.hpp"
+#include "entities/conflux/LinkStats.hpp"
 #include "entities/Person.hpp"
 #include "entities/Vehicle.hpp"
 #include "geospatial/network/RoadSegment.hpp"
@@ -445,6 +446,9 @@ void BusDriverMovement::flowIntoNextLinkIfPossible(DriverUpdateParams& params)
 			// update link travel times
 			updateLinkTravelTimes(prevSegStats, linkExitTimeSec);
 
+			// update link stats
+			updateLinkStats(prevSegStats);
+
 			// update road segment screenline counts
 			updateScreenlineCounts(prevSegStats, linkExitTimeSec);
 		}
@@ -638,6 +642,7 @@ bool BusDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 				TravelTimeManager::getInstance()->addTravelTime(parentBusDriver->parent->currLinkTravelStats); //in seconds
 				currSegStat->getParentConflux()->setLinkTravelTimes(linkExitTime, currLink);
 				parentBusDriver->parent->currLinkTravelStats.reset();
+				currSegStat->getParentConflux()->getLinkStats(currLink).removeEntitiy(parentBusDriver->parent);
 				setOutputCounter(currLane, (getOutputCounter(currLane, currSegStat) - 1), currSegStat);
 				currLane = nullptr;
 				parentBusDriver->parent->setToBeRemoved();

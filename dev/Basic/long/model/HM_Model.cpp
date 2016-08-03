@@ -1147,12 +1147,12 @@ void HM_Model::setTaxiAccess2012(const Household *household)
 			unitTypeId = getUnitById(household->getUnitId())->getUnitType();
 		}
 
-		if( (unitTypeId>0) && (unitTypeId<=6))
+		if(unitTypeId== 1)
 		{
 
 			valueTaxiAccess = valueTaxiAccess + getTaxiAccessCoeffsById(HDB_1_2012)->getCoefficientEstimate();
 		}
-		else
+		else if((unitTypeId>=7) && (unitTypeId <=36))
 		{
 			valueTaxiAccess = valueTaxiAccess + getTaxiAccessCoeffsById(NON_HDB_2012)->getCoefficientEstimate();
 		}

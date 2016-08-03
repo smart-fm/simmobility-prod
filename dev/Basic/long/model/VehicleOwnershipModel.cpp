@@ -45,7 +45,7 @@ void VehicleOwnershipModel::reconsiderVehicleOwnershipOption(const Household *ho
 		{
 			if(logsum != nullptr)
 			{
-				if(coeffsObj->getVehicleOwnershipOptionId() == 1)
+				if(coeffsObj->getVehicleOwnershipOptionId() == 0)
 				{
 					vehicleOwnershipLogsum = logsum->getLogsumTransit();
 					double value = vehicleOwnershipLogsum * coeffsObj->getLogsum();
@@ -54,7 +54,7 @@ void VehicleOwnershipModel::reconsiderVehicleOwnershipOption(const Household *ho
 					totalExp = totalExp + expVal;
 
 				}
-				else if(coeffsObj->getVehicleOwnershipOptionId() > 1)
+				else if(coeffsObj->getVehicleOwnershipOptionId() > 0)
 				{
 					vehicleOwnershipLogsum = logsum->getLogsumCar();
 					double expVal = getExp(unitTypeId,vehicleOwnershipLogsum,coeffsObj,household);

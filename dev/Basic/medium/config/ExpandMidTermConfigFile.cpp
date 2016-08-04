@@ -1,3 +1,4 @@
+#include <behavioral/MRTMovement_ServiceControllerLuaProvider.hpp>
 #include "ExpandMidTermConfigFile.hpp"
 
 #include <boost/lexical_cast.hpp>
@@ -21,7 +22,6 @@
 #include "path/PathSetManager.hpp"
 #include "path/PT_PathSetManager.hpp"
 #include "behavioral/ServiceController.hpp"
-#include "behavioral/PT_ServiceControllerLuaProvider.hpp"
 
 using namespace sim_mob;
 using namespace sim_mob::medium;
@@ -115,8 +115,6 @@ void ExpandMidTermConfigFile::processConfig()
 	if(cfg.trainController.enabled)
 	{
 		TrainController<Person_MT>::getInstance()->initTrainController();
-
-		//PT_ServiceControllerLuaProvider::getPTRC_Model()->Use_ServiceController("07:45:00");
 		TrainController<Person_MT>::getInstance()->assignTrainTripToPerson(active_agents);
 	}
 
@@ -157,6 +155,7 @@ void ExpandMidTermConfigFile::verifyIncidents()
 		const std::map<unsigned int, RoadSegment*>::const_iterator segIt = segLookup.find((*incIt).segmentId);
 		if (segIt == segLookup.end())
 		{
+			Print()<<"segment not found";
 			continue;
 		}
 		const RoadSegment* roadSeg = segIt->second;

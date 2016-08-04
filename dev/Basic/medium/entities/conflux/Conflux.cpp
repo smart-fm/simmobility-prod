@@ -2,6 +2,7 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
+#include <behavioral/MRTMovement_ServiceControllerLuaProvider.hpp>
 #include "Conflux.hpp"
 
 #include <algorithm>
@@ -47,7 +48,6 @@
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "behavioral/ServiceController.hpp"
-#include "behavioral/PT_ServiceControllerLuaProvider.hpp"
 //#include "DailyTime.cpp"
 using namespace boost;
 using namespace sim_mob;

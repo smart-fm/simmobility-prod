@@ -115,7 +115,7 @@ class ServiceController:  public lua::LuaModel
     /* This gives the trainId of the train ahead of the train specified */
     int getTrainIdOfTrainAhead(int trainId,std::string lineId);
     /* This gives the future next requested for the train */
-    int getNextRequestedForTrain(int trainId,std::string lineId);
+    int getNextRequestedMovementActionForTrain(int trainId,std::string lineId);
     /* This sets or clears the ignore safe distance flag for the train */
     void setUnsetIgnoreSafeDistance(int trainId,std::string lineId,bool ignore);
     /* This sets or clears the ignore safe headway flag for the train */

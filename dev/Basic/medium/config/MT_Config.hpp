@@ -375,8 +375,6 @@ public:
 	 */
 	void setModelScriptsMap(const ModelScriptsMap& modelScriptsMap);
 
-	void setServiceControllerScriptsMap(const ModelScriptsMap& modelScriptsMap);
-
 	const ModelScriptsMap& getServiceControllerScriptsMap();
 
     /**

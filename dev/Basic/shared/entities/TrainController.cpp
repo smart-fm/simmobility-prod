@@ -642,10 +642,10 @@ namespace sim_mob {
 	{
 		const ConfigParams& configParams = ConfigManager::GetInstance().FullConfig();
 		const std::map<std::string, std::string>& storedProcs = configParams.getDatabaseProcMappings().procedureMappings;
-		std::map<std::string, std::string>::const_iterator spIt = storedProcs.find("pt_block");
+		std::map<std::string, std::string>::const_iterator spIt = storedProcs.find("pt_mrt_block");
 		if(spIt == storedProcs.end())
 		{
-			Print() << "missing stored procedure for pt_block" << std::endl;
+			Print() << "missing stored procedure for pt_mrt_block" << std::endl;
 			return;
 		}
 		soci::session sql_(soci::postgresql, configParams.getDatabaseConnectionString(false));
@@ -867,10 +867,10 @@ namespace sim_mob {
 	{
 		const ConfigParams& configParams = ConfigManager::GetInstance().FullConfig();
 		const std::map<std::string, std::string>& storedProcs = configParams.getDatabaseProcMappings().procedureMappings;
-		std::map<std::string, std::string>::const_iterator spIt = storedProcs.find("pt_block_polyline");
+		std::map<std::string, std::string>::const_iterator spIt = storedProcs.find("pt_mrt_block_polyline");
 		if(spIt == storedProcs.end())
 		{
-			Print() << "missing stored procedure for pt_block_polyline" << std::endl;
+			Print() << "missing stored procedure for pt_mrt_block_polyline" << std::endl;
 			return;
 		}
 		soci::session sql_(soci::postgresql, configParams.getDatabaseConnectionString(false));

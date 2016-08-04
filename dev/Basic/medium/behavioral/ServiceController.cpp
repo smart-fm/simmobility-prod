@@ -79,7 +79,7 @@ ServiceController::~ServiceController()
 				.addFunction("get_disruptedplatformssize",&ServiceController::getDisruptedPlatformsSize)
 				.addFunction("get_platform_by_offset",&ServiceController::getPlatformByOffset)
 				.addFunction("setunset_uturn",&ServiceController::setUnsetUturnFlag)
-				.addFunction("get_nextrequested",&ServiceController::getNextRequestedForTrain)
+				.addFunction("get_nextrequested",&ServiceController::getNextRequestedMovementActionForTrain)
 				.addFunction("get_trainId_trainahead",&ServiceController::getTrainIdOfTrainAhead)
 				.addFunction("set_ignoresafedistance",&ServiceController::setUnsetIgnoreSafeDistance)
 				.addFunction("set_ignoresafeheadway",&ServiceController::setUnsetIgnoreSafeHeadway)
@@ -154,7 +154,7 @@ void ServiceController::clearStopPoints(int trainId,std::string lineId)
 		std::vector<TrainDriver*> vect = it->second;
 		for (typename std::vector<TrainDriver*>::iterator it = vect.begin() ; it != vect.end(); ++it)
 		{
-			TrainDriver* driver= dynamic_cast<TrainDriver*>(*it);
+			TrainDriver* driver= (*it);
 			if(driver)
 			{
 				if(driver->getTrainId()==trainId)
@@ -192,7 +192,7 @@ void ServiceController::setUnsetIgnoreSafeHeadway(int trainId,std::string lineId
 	}
 }
 
-int ServiceController::getNextRequestedForTrain(int trainId,std::string lineId)
+int ServiceController::getNextRequestedMovementActionForTrain(int trainId,std::string lineId)
 {
 	int nextRequested=-1;
 	map<std::string,std::vector<TrainDriver *>>::iterator it=mapOfLineAndTrainDrivers.find(lineId);
@@ -231,10 +231,10 @@ void ServiceController::setSubsequentNextRequested(int trainId,std::string lineI
 					{
 						switch(nextReq)
 						{
-						case 1:
+						case 1: //This is the number passed from lua script of service controller,1 means REQUESTED_AT_PLATFORM
 						driver->setSubsequentNextRequested(TrainDriver::REQUESTED_AT_PLATFORM);
 							break;
-						case 5:
+						case 5: //5 means REQUESTED_TO_PLATFROM
 							driver->setSubsequentNextRequested(TrainDriver::REQUESTED_TO_PLATFROM);
 							 break;
 						}
@@ -355,7 +355,7 @@ void ServiceController::restrictPassengers(std::string platformName,int trainId,
 		std::vector<TrainDriver*> vect = it->second;
 		for (typename std::vector<TrainDriver*>::iterator it = vect.begin() ; it != vect.end(); ++it)
 		{
-			TrainDriver* driver= dynamic_cast<TrainDriver*>(*it);
+			TrainDriver* driver= (*it);
 			if(driver)
 			{
 				if(driver->getTrainId()==trainId)
@@ -435,15 +435,12 @@ std::string ServiceController::getPlatformByOffset(int trainId,std::string lineI
 			TrainDriver *driver=(*itr);
 			if(driver&&driver->getTrainId()==trainId)
 			{
-				TrainMovement *movement=driver->GetMovement();
-				if(movement)
+				TrainMovement *trainMovement=driver->GetMovement();
+				if(trainMovement)
 				{
-					TrainMovement *trainMovement=dynamic_cast<TrainMovement*>(movement);
-					if(trainMovement)
-					{
-						offsetPlatform=trainMovement->getPlatformByOffset(offset);
-						break;
-					}
+
+					offsetPlatform=trainMovement->getPlatformByOffset(offset);
+					break;
 				}
 			}
 			itr++;
@@ -579,14 +576,11 @@ int ServiceController::getTrainIdByIndex(int index,std::string lineId)
 				{
 					if(driver->getTrainId()==trainId)
 					{
-						MovementFacet *movement=driver->Movement();
-						if(movement)
+						TrainMovement *trainMovement=driver->GetMovement();
+						if(trainMovement)
 						{
-							TrainMovement *trainMovement=dynamic_cast<TrainMovement*>(movement);
-							if(trainMovement)
-							{
-								return trainMovement->IsStrandedBetweenPlatform();
-							}
+
+							return trainMovement->IsStrandedBetweenPlatform();
 						}
 					}
 				}
@@ -607,14 +601,10 @@ bool ServiceController::getDisruptedState(int trainId,std::string lineId)
 			{
 				if(driver->getTrainId()==trainId)
 				{
-					MovementFacet *movement=driver->Movement();
-					if(movement)
+					TrainMovement *trainMovement=driver->GetMovement();
+					if(trainMovement)
 					{
-						TrainMovement *trainMovement=dynamic_cast<TrainMovement*>(movement);
-						if(trainMovement)
-						{
-							return trainMovement->GetDisruptedState();
-						}
+						return trainMovement->GetDisruptedState();
 					}
 				}
 			}
@@ -645,14 +635,10 @@ bool ServiceController::getDisruptedState(int trainId,std::string lineId)
 			{
 				if(driver->getTrainId()==trainId)
 				{
-					MovementFacet *movement=driver->Movement();
-					if(movement)
+					TrainMovement *trainMovement=driver->GetMovement();
+					if(trainMovement)
 					{
-						TrainMovement *trainMovement=dynamic_cast<TrainMovement*>(movement);
-						if(trainMovement)
-						{
-							trainMovement->ResetSafeHeadWay(sec);
-						}
+						trainMovement->ResetSafeHeadWay(sec);
 					}
 				}
 			}
@@ -675,21 +661,16 @@ bool ServiceController::getDisruptedState(int trainId,std::string lineId)
 			{
 				if(driver->getTrainId()==trainId)
 				{
-					MovementFacet *movement=driver->Movement();
-					if(movement)
+					TrainMovement *trainMovement=driver->GetMovement();
+					if(trainMovement)
 					{
-						TrainMovement *trainMovement=dynamic_cast<TrainMovement*>(movement);
-						if(trainMovement)
-						{
-							trainMovement->ResetSafeDistance(distance);
-							break;
-						}
+						trainMovement->ResetSafeDistance(distance);
+						break;
 					}
+
 				}
 			}
-
 		}
-
 	}
  }
 

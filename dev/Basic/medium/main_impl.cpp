@@ -437,6 +437,11 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 		cout<< "Pending Agents: " << (Agent::all_agents.size() + Agent::pending_agents.size()) << endl;
 	}
 
+	if(Agent::activeAgents.size()>0)
+	{
+		cout<<"Currently active agents are "<<Agent::activeAgents.size()<<endl;
+	}
+
 	PT_Statistics::getInstance()->storeStatistics();
 	PT_Statistics::resetInstance();
 

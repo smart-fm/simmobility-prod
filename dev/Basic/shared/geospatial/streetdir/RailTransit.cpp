@@ -73,10 +73,14 @@ vector<string> sim_mob::RailTransit::fetchBoardAlightStopSeq(string origin, stri
 
 	VertexStruct fromVertexStruct = findVertex(origin);
 	if(!fromVertexStruct.ifpresent)
+	{
 		return res;
+	}
 	VertexStruct toVertexStruct = findVertex(dest);
 	if(!toVertexStruct.ifpresent)
+	{
 			return res;
+	}
 
 	RT_Vertex fromVertex =fromVertexStruct.vertex;
 	RT_Vertex toVertex =toVertexStruct.vertex;

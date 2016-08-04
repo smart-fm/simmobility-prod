@@ -39,7 +39,7 @@ struct WayPoint
 		/**The way point is a turning group. turningGroup points to a TurningGroup object*/
 		TURNING_GROUP,
 
-		/**The way point is a platform, platform points to a Platform object*/
+		/**The way point is a MRT platform, platform points to a MRT Platform object*/
 		MRT_PLATFORM,
 
 		/**The way point is a bus stop. busStop points to a BusStop object*/

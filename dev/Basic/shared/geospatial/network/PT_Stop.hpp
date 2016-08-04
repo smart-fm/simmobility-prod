@@ -191,5 +191,6 @@ private:
 	std::map<std::string, Platform*> lineToPlatform;
 	/**parent agent*/
 	const Agent* stationAgent;
+	//map of platform name and rerouting state
 };
 }

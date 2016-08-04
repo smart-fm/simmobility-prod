@@ -41,6 +41,7 @@ using std::priority_queue;
 
 StartTimePriorityQueue sim_mob::Agent::pending_agents;
 std::set<Entity*> sim_mob::Agent::all_agents;
+std::map<std::string,Entity*>sim_mob::Agent::activeAgents;
 unsigned int sim_mob::Agent::nextAgentId = 0;
 
 unsigned int sim_mob::Agent::getAndIncrementID(int preferredID)

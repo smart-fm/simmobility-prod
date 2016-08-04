@@ -474,7 +474,13 @@ void Conflux::updateAgent(Person_MT* person)
 	//kill person if he's DONE
 	if (res.status == UpdateStatus::RS_DONE)
 	{
+		std::map<std::string,Entity*>::iterator itr=Agent::activeAgents.find(person->getDatabaseId());
+		if(itr!=Agent::activeAgents.end())
+		{
+			Agent::activeAgents.erase(person->getDatabaseId());
+		}
 		killAgent(person, beforeUpdate);
+
 		return;
 	}
 

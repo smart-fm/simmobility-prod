@@ -230,6 +230,13 @@ void sim_mob::WorkGroup::stageEntities()
 		if (ConfigManager::GetInstance().FullConfig().RunningMidTerm())
 		{
 			loadPerson(ag);
+			//push to currently active agents
+			Person *per=dynamic_cast<Person *>(ag);
+			if(per)
+			{
+				std::string id=per->getDatabaseId();
+				Agent::activeAgents[id]=per;
+			}
 		}
 		else // short or long term
 		{

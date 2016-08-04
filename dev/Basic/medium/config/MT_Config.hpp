@@ -375,7 +375,6 @@ public:
 	 */
 	void setModelScriptsMap(const ModelScriptsMap& modelScriptsMap);
 
-
 	void setServiceControllerScriptsMap(const ModelScriptsMap& modelScriptsMap);
 
 	const ModelScriptsMap& getServiceControllerScriptsMap();
@@ -395,7 +394,7 @@ public:
 	void setMongoCollectionsMap(const MongoCollectionsMap& mongoCollectionsMap);
 
 	/**
-	 * the object of this class gets sealed when this function is called. No more changes will be allowed via the setters
+	 * the object of this class gets sealed when this function is called. No more changes will be allowed via the  setters
 	 */
 	void sealConfig();
 

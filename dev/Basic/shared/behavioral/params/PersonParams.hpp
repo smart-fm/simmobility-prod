@@ -174,24 +174,64 @@ public:
 		this->ageId = ageId;
 	}
 
-	int getCarOwnNormal() const
+	int getNoVehicle() const
 	{
-		return carOwnNormal;
+		return noVehicle;
 	}
 
-	void setCarOwnNormal(int carOwnNormal)
+	void setNoVehicle(int noVehicle)
 	{
-		this->carOwnNormal = carOwnNormal;
+		this->noVehicle = noVehicle;
 	}
 
-	int getCarOwnOffpeak() const
+	int getMultMotorOnly() const
 	{
-		return carOwnOffpeak;
+		return multMotorOnly;
 	}
 
-	void setCarOwnOffpeak(int carOwnOffpeak)
+	void setMultMotorOnly(int multMotorOnly)
 	{
-		this->carOwnOffpeak = carOwnOffpeak;
+		this->multMotorOnly = multMotorOnly;
+	}
+
+	int getOneOffPeakW_WoMotor()
+	{
+		return oneOffPeakW_WoMotor;
+	}
+
+	void setOneOffPeakW_WoMotor(int oneOffPeakW_WoMotor)
+	{
+		this->oneOffPeakW_WoMotor = oneOffPeakW_WoMotor;
+	}
+
+	int getOneNormalCar()
+	{
+		return oneNormalCar;
+	}
+
+	void setOneNormalCar(int oneNormalCar)
+	{
+		this->oneNormalCar = oneNormalCar;
+	}
+
+	int getOneNormalCarMultMotor()
+	{
+		return oneNormalCarMultMotor;
+	}
+
+	void setOneNormalCarMultMotor(int oneNormalCarMultMotor)
+	{
+		this->oneNormalCarMultMotor = oneNormalCarMultMotor;
+	}
+
+	int getMultNormalCarW_WoMotor()
+	{
+		return multNormalCarW_WoMotor;
+	}
+
+	void setMultNormalCarW_WoMotor(int multNormalCarW_WoMotor)
+	{
+		this->multNormalCarW_WoMotor = multNormalCarW_WoMotor;
 	}
 
 	int getFixedWorkLocation() const
@@ -257,16 +297,6 @@ public:
 	void setIsUniversityStudent(int isUniversityStudent)
 	{
 		this->isUniversityStudent = isUniversityStudent;
-	}
-
-	int getMotorOwn() const
-	{
-		return motorOwn;
-	}
-
-	void setMotorOwn(int motorOwn)
-	{
-		this->motorOwn = motorOwn;
 	}
 
 	int getPersonTypeId() const
@@ -444,16 +474,6 @@ public:
 		this->missingIncome = missingIncome;
 	}
 
-	int getCarOwn() const
-	{
-		return carOwn;
-	}
-
-	void setCarOwn(int carOwn)
-	{
-		this->carOwn = carOwn;
-	}
-
 	double getDpsLogsum() const
 	{
 		return dpsLogsum;
@@ -629,7 +649,7 @@ public:
 		return incomeCategoryLowerLimits;
 	}
 
-	static std::map<int, std::bitset<4> >& getVehicleCategoryLookup()
+	static std::map<int, std::bitset<6> >& getVehicleCategoryLookup()
 	{
 		return vehicleCategoryLookup;
 	}
@@ -737,10 +757,12 @@ private:
 	int incomeId;
 	int missingIncome;
 	int worksAtHome;
-	int carOwn;
-	int carOwnNormal;
-	int carOwnOffpeak;
-	int motorOwn;
+	int noVehicle;
+	int multMotorOnly;
+	int oneOffPeakW_WoMotor;
+	int oneNormalCar;
+	int oneNormalCarMultMotor;
+	int multNormalCarW_WoMotor;
 	int hasFixedWorkTiming;
 	int homeLocation;
 	long homeAddressId;
@@ -791,9 +813,10 @@ private:
 	static double incomeCategoryLowerLimits[12];
 
 	/**
-	 * vehicle category map of id->bitset<4> (4 bits representing 0-carOwn, 1-carOwnNormal, 2-carOwnOffPeak and 3-motorOwn bit for the id)
+	 * vehicle category map of id->bitset<6> (6 bits representing 0-noVehicle, 1-multMotorOnly, 2-oneOffPeakW_WoMotor,
+	 * 3-oneNormalCar, 4-oneNormalCarMultMotor, and 5-multNormalCarW_WoMotor bit for the id)
 	 */
-	static std::map<int, std::bitset<4> > vehicleCategoryLookup;
+	static std::map<int, std::bitset<6> > vehicleCategoryLookup;
 
 	/**
 	 * address to taz map

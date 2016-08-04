@@ -54,7 +54,7 @@ TimeWindowAvailability::TimeWindowAvailability(double startTime, double endTime,
 const std::vector<TimeWindowAvailability> TimeWindowAvailability::timeWindowsLookup = insertAllTimeWindows();
 
 double PersonParams::incomeCategoryLowerLimits[] = {};
-std::map<int, std::bitset<4> > PersonParams::vehicleCategoryLookup = std::map<int, std::bitset<4> >();
+std::map<int, std::bitset<6> > PersonParams::vehicleCategoryLookup = std::map<int, std::bitset<6> >();
 std::map<long, Address> PersonParams::addressLookup = std::map<long, Address>();
 std::map<unsigned int, unsigned int> PersonParams::postCodeToNodeMapping = std::map<unsigned int, unsigned int>();
 std::map<int, std::vector<long> > PersonParams::zoneAddresses = std::map<int, std::vector<long> >();
@@ -140,16 +140,18 @@ void PersonParams::setIncomeIdFromIncome(double income)
 
 void PersonParams::setVehicleOwnershipFromCategoryId(int vehicleCategoryId)
 {
-	std::map<int, std::bitset<4> >::const_iterator it = vehicleCategoryLookup.find(vehicleCategoryId);
+	std::map<int, std::bitset<6> >::const_iterator it = vehicleCategoryLookup.find(vehicleCategoryId);
 	if (it == vehicleCategoryLookup.end())
 	{
 		throw std::runtime_error("Invalid vehicle category");
 	}
-	const std::bitset<4>& vehOwnershipBits = it->second;
-	setCarOwn(vehOwnershipBits[0]);
-	setCarOwnNormal(vehOwnershipBits[1]);
-	setCarOwnOffpeak(vehOwnershipBits[2]);
-	setMotorOwn(vehOwnershipBits[3]);
+	const std::bitset<6>& vehOwnershipBits = it->second;
+	setNoVehicle(vehOwnershipBits[0]);
+	setOnePlusMotor(vehOwnershipBits[1]);
+	setOneOffPeakW_WoMotor(vehOwnershipBits[2]);
+	setOneNormalCar(vehOwnershipBits[3]);
+	setOneNormalCarMultMotor(vehOwnershipBits[4]);
+	setMultNormalCarW_WoMotor(vehOwnershipBits[5]);
 }
 
 std::string PersonParams::print()

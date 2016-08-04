@@ -25,7 +25,7 @@ const std::string DEMAND_SCHEMA = "demand.";
  * Tables
  */
 const std::string DB_TABLE_INCOME_CATEGORIES = APPLY_SCHEMA(MAIN_SCHEMA, "income_category");
-const std::string DB_TABLE_VEHICLE_CATEGORIES = APPLY_SCHEMA(MAIN_SCHEMA, "vehicle_category");
+const std::string DB_TABLE_VEHICLE_OWNERSHIP_STATUS = APPLY_SCHEMA(MAIN_SCHEMA, "vehicle_ownership_status");
 const std::string DB_TABLE_AM_COSTS = APPLY_SCHEMA(DEMAND_SCHEMA, "amcosts");
 const std::string DB_TABLE_PM_COSTS = APPLY_SCHEMA(DEMAND_SCHEMA, "pmcosts");
 const std::string DB_TABLE_OP_COSTS = APPLY_SCHEMA(DEMAND_SCHEMA, "opcosts");
@@ -86,9 +86,12 @@ const std::string DB_FIELD_DISTANCE_MRT = "distance_mrt";
 const std::string DB_FIELD_DISTANCE_BUS = "distance_bus";
 const std::string DB_FIELD_NUM_ADDRESSES = "num_addresses";
 
-const std::string SEARCH_STRING_CAR_OWN_NORMAL = "car (normal time)";
-const std::string SEARCH_STRING_CAR_OWN_OFF_PEAK = "car (off peak time)";
-const std::string SEARCH_STRING_MOTORCYCLE = "motorcycle";
+const std::string SEARCH_STRING_NO_VEHICLE = "No vehicle";
+const std::string SEARCH_STRING_MULT_MOTORCYCLE_ONLY = "1+ Motor only";
+const std::string SEARCH_STRING_ONE_CAR_OFF_PEAK_W_WO_MC= "1 Off-peak Car w/wo Motor";
+const std::string SEARCH_STRING_ONE_NORMAL_CAR = "1 Normal Car only";
+const std::string SEARCH_STRING_ONE_CAR_PLUS_MULT_MC = "1 Normal Car & 1+ Motor";
+const std::string SEARCH_STRING_MULT_CAR_W_WO_MC = "2+ Normal Car w/wo Motor";
 
 /**
  * Fields for Zone data (in postgres db)
@@ -140,7 +143,7 @@ const std::string DB_GET_POSTCODE_NODE_MAP = "SELECT * FROM " + DB_SP_GET_POSTCO
 const std::string DB_GET_INCOME_CATEGORIES = "SELECT * FROM " + DB_TABLE_INCOME_CATEGORIES;
 
 /** load vehicle categories */
-const std::string DB_GET_VEHICLE_CATEGORIES = "SELECT * FROM " + DB_TABLE_VEHICLE_CATEGORIES;
+const std::string DB_GET_VEHICLE_OWNERSHIP_STATUS = "SELECT * FROM " + DB_TABLE_VEHICLE_OWNERSHIP_STATUS;
 
 /** load Costs */
 const std::string DB_GET_ALL_AM_COSTS = "SELECT * FROM " + DB_TABLE_AM_COSTS;

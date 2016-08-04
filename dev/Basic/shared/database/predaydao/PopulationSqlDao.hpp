@@ -47,7 +47,7 @@ public:
 	 * fetches lookup table for vehicle categories
 	 * @param outMap output parameter for storing ehicle category ids and values
 	 */
-	void getVehicleCategories(std::map<int, std::bitset<4> >& outMap);
+	void getVehicleCategories(std::map<int, std::bitset<6> >& outMap);
 
 	/**
 	 * fetches taz code for each address id in LT database

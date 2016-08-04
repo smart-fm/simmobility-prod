@@ -425,14 +425,8 @@ void Conflux::processAgents(timeslice frameNumber)
 	}
 	updateBusStopAgents(); //finally update bus stop agents in this conflux
 
-	const DailyTime dailyTime=ConfigManager::GetInstance().FullConfig().simStartTime()+DailyTime(frameNumber.ms());
-	if(currentframenumber==-1||frameNumber.frame()!=currentframenumber)
+	for(std::vector<Agent*>::iterator it=stationAgents.begin(); it!=stationAgents.end(); it++)
 	{
-		currentframenumber = frameNumber.frame();
-		PT_ServiceControllerLuaProvider::getPTRC_Model()->useServiceController(dailyTime.getStrRepr());
-		isServiceControllerInvoked=true;
-	}
-	for(std::vector<Agent*>::iterator it=stationAgents.begin(); it!=stationAgents.end(); it++){
 		(*it)->currWorkerProvider = currWorkerProvider;
 		(*it)->update(currFrame);
 	}

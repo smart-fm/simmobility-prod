@@ -430,6 +430,10 @@ namespace sim_mob {
 			platform->setOffset(r.get<double>(6));
 			platform->setLength(r.get<double>(7));
 			mapOfIdvsPlatforms[platformNo] = platform;
+			if(boost::iequals(stationNo,"EW10"))
+			{
+						int t=0;
+			}
 			if(mapOfIdvsStations.find(stationNo)==mapOfIdvsStations.end())
 			{
 				mapOfIdvsStations[stationNo] = new Station(stationNo);
@@ -437,6 +441,8 @@ namespace sim_mob {
 			Station* station = mapOfIdvsStations[stationNo];
 			station->addPlatform(platform->getLineId(), platform);
 		}
+ 		int size=mapOfIdvsStations.size();
+		int u=0;
 	}
 
 	template<typename PERSON>
@@ -957,12 +963,24 @@ namespace sim_mob {
 		}
 		return nullptr;
 	}
+
+	template<typename PERSON>
+	int TrainController<PERSON>::getMapPlatformsSize()
+	{
+		return mapOfIdvsStations.size();
+	}
+
 	template<typename PERSON>
 	Platform* TrainController<PERSON>::getPlatform(const std::string& lineId, const std::string& stationName)
 	{
 		Platform* platform = nullptr;
 		std::map<std::string, Station*>& mapOfIdvsStations = getInstance()->mapOfIdvsStations;
 		std::map<std::string, Station*>::const_iterator it = mapOfIdvsStations.find(stationName);
+		int size=mapOfIdvsStations.size();
+		if(boost::iequals(stationName,"EW10"))
+		{
+			int t=0;
+		}
 		if(it!=mapOfIdvsStations.end()){
 			Station* station = it->second;
 			platform = station->getPlatform(lineId);
@@ -1038,7 +1056,11 @@ namespace sim_mob {
 	template<typename PERSON>
 	Station *TrainController<PERSON>::GetStationFromId(std::string stationId)
 	{
-		Station *station=mapOfIdvsStations[stationId];
+		Station *station=nullptr;
+		if(mapOfIdvsStations.find(stationId)!=mapOfIdvsStations.end())
+		{
+			station=mapOfIdvsStations[stationId];
+		}
 		return station;
 	}
 

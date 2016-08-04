@@ -217,11 +217,11 @@
         </speed_density_params>
 
 
-
+       <!--
         <model_scripts_supply path="scripts/lua/mid/behavior-models/" format="lua" >
-           <script name="serv" file="serv.lua"/>  <!--Zone postcode assignment --> 
+           <script name="serv" file="serv.lua"/>  
         </model_scripts_supply >
-
+	-->
 
         <!-- lua scripts used in withinday --> 
 
@@ -232,6 +232,7 @@
              <script name="wdmw" file="wdmw.lua"/> <!--within-day mode choice for work trips-->
              <script name="wdme" file="wdme.lua"/> <!--within-day mode choice for education trips-->
              <script name="wdmso" file="wdmso.lua"/> <!--within-day mode choice for work shopping and other trips-->
+	     <script name="serv" file="serv.lua"/><!--for service controller -->
         </model_scripts>
 
         

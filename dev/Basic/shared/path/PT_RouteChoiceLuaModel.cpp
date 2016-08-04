@@ -261,9 +261,11 @@ void PT_RouteChoiceLuaModel::printScenarioAndOD(const std::vector<sim_mob::OD_Tr
 void PT_RouteChoiceLuaModel::storeBestPT_Path()
 {
 	std::ofstream outputFile("od_to_trips.csv");
-	if (outputFile.is_open()) {
+	if (outputFile.is_open())
+	{
 		std::vector<sim_mob::OD_Trip>::iterator odIt = odTripMapGen.begin();
-		for (; odIt != odTripMapGen.end(); odIt++) {
+		for (; odIt != odTripMapGen.end(); odIt++)
+		{
 			outputFile << odIt->startStop << ",";
 			outputFile << odIt->endStop << ",";
 			outputFile << odIt->sType << ",";
@@ -468,21 +470,6 @@ void PT_RouteChoiceLuaModel::loadPT_PathSet(int origin, int dest, const DailyTim
 				pathInVehicleTravelTime = pathInVehicleTravelTime + edge.getLinkTravelTimeSecs();
 				pathPtDistanceInMts = pathPtDistanceInMts + (edge.getDistKms() * 1000);
 				nextStartTime = DailyTime(nextStartTime.getValue() + std::floor(edgeTravelTime*1000));
-				/*std::string startStop=edge.getStartStop();
-				std::string endStop=edge.getEndStop();
-				std::vector<std::string> stopVector=RailTransit::getInstance().fetchBoardAlightStopSeq(startStop,endStop);
-				std::vector<std::string>::iterator it;
-				bool inter=true;
-				for(it=stopVector.begin() ; it < stopVector.end(); it++)
-				{
-                     if(inter==true)
-                     {
-
-                    	 inter=false;
-                     }
-                     else
-                         inter=true;
-				}*/
 				break;
 			}
 			case sim_mob::WALK_EDGE:

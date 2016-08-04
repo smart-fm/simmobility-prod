@@ -65,7 +65,8 @@
 #include "workers/Worker.hpp"
 #include "workers/WorkGroup.hpp"
 #include "workers/WorkGroupManager.hpp"
-
+#include "behavioral/ServiceController.hpp"
+#include "behavioral/PT_ServiceControllerLuaProvider.hpp"
 
 //If you want to force a header file to compile, you can put it here temporarily:
 //#include "entities/BusController.hpp"
@@ -212,10 +213,15 @@ void assignStationAgentToConfluxes()
 		TrainStationAgent* stationAgent = new TrainStationAgent();
 		TrainController<Person_MT>::registerStationAgent(trainStopIt->first, stationAgent);
 		TrainController<sim_mob::medium::Person_MT> *trainController=TrainController<sim_mob::medium::Person_MT>::getInstance();
+		int size=TrainController<sim_mob::medium::Person_MT>::getInstance()->getMapPlatformsSize();
 		Station *station=trainController->GetStationFromId(trainStopIt->first);
+		size=TrainController<sim_mob::medium::Person_MT>::getInstance()->getMapPlatformsSize();
 		stationAgent->setStationName(trainStopIt->first);
-		stationAgent->setStation(station);
-		stationAgent->setLines();
+		if(station)
+		{
+			stationAgent->setStation(station);
+			stationAgent->setLines();
+		}
 		const Node* node = trainStopIt->second->getRandomStationSegment()->getParentLink()->getFromNode();
 		ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
 		MT_Config& mtCfg = MT_Config::getInstance();
@@ -324,7 +330,9 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	assignConfluxToWorkers(personWorkers);
 
 	//distribute station agents among confluxes
+	int size=TrainController<sim_mob::medium::Person_MT>::getInstance()->getMapPlatformsSize();
 	assignStationAgentToConfluxes();
+	size=TrainController<sim_mob::medium::Person_MT>::getInstance()->getMapPlatformsSize();
 
 	//Anything in all_agents is starting on time 0, and should be added now.
 	for (std::set<Entity*>::iterator it = Agent::all_agents.begin(); it != Agent::all_agents.end(); it++)
@@ -369,6 +377,8 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	int lastTickPercent = 0; //So we have some idea how much time is left.
 	for (unsigned int currTick = 0; currTick < config.totalRuntimeTicks; currTick++)
 	{
+		const DailyTime dailyTime=ConfigManager::GetInstance().FullConfig().simStartTime()+DailyTime(currTick*5000);
+		PT_ServiceControllerLuaProvider::getPTRC_Model()->useServiceController(dailyTime.getStrRepr());
 		//Flag
 		bool warmupDone = (currTick >= config.totalWarmupTicks);
 

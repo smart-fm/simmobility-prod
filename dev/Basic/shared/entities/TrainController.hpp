@@ -323,6 +323,8 @@ public:
     void ClearDisruption(std::string lineId);
     bool IsServiceTerminated(std::string lineId);
 
+    int getMapPlatformsSize();
+
 protected:
 	/**
 	 * inherited from base class agent to initialize parameters for train controller

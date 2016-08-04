@@ -234,10 +234,7 @@ bool TrainMovement::CheckSafeHeadWayBeforeTeleport(std::string platformNo,std::s
                 	 std::string nextPlatformNo=nextPlatform->getPlatformNo();
                 	 if(boost::iequals(trainPlatform.platformNo,nextPlatformNo))
                 	 {
-                		     //const TrainPathMover &trainPathMover=trainMovement->getPathMover();
-                			 //double disCovered=trainPathMover.getTotalCoveredDistance();
 
-                             //double disOfPlatform=GetDistanceFromStartToPlatform(lineID,platform);
                         	 if(minDis==-1||(disCovered-disOfPlatform<minDis))
                         	 {
                         		 minDis=disCovered-disOfPlatform;

@@ -34,7 +34,8 @@ namespace
         {
         	try
         	{
-        		const ModelScriptsMap& extScripts = MT_Config::getInstance().getServiceControllerScriptsMap();
+        		//const ModelScriptsMap& extScripts = MT_Config::getInstance().getServiceControllerScriptsMap();
+        		const ModelScriptsMap& extScripts = MT_Config::getInstance().getModelScriptsMap();
         		const std::string& scriptsPath = extScripts.getPath();
         		ServiceControllerModelContext* modelCtx = new ServiceControllerModelContext();
         		modelCtx->ptrcModel->loadFile(scriptsPath + extScripts.getScriptFileName("serv"));

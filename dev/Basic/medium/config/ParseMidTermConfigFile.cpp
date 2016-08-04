@@ -124,7 +124,7 @@ void ParseMidTermConfigFile::processSupplyNode(xercesc::DOMElement* node)
 	processSpeedDensityParamsNode(GetSingleElementByName(node, "speed_density_params", true));
 
 	/* temporary will be deleted and separte node for supply scripts*/
-	processModelScriptsNode ( GetSingleElementByName(node, "model_scripts_supply", true) );
+	//processModelScriptsNode ( GetSingleElementByName(node, "model_scripts_supply", true) );
 	//temporarily
 	cfg.luaScriptsMap = processModelScriptsNode(GetSingleElementByName(node, "model_scripts", true));
 
@@ -383,12 +383,12 @@ ModelScriptsMap ParseMidTermConfigFile::processModelScriptsNode(xercesc::DOMElem
 
 
 	/*temporarity will be removed later */
-	if (boost::iequals(filename,  "serv.lua"))
+	/*if (boost::iequals(filename,  "serv.lua"))
 	{
 
 		mtCfg.setServiceControllerScriptsMap( scriptsMap );
 		return scriptsMap;
-	}
+	}*/
 	mtCfg.setModelScriptsMap(scriptsMap );
 	/* will be removed later */
 	return scriptsMap;

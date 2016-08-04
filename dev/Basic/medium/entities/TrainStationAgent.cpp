@@ -401,7 +401,7 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 	dispathPendingTrains(now);
 	updateWaitPersons();
 	performDisruption(now);
-	if(arePassengersreRouted == false)
+	/*if(arePassengersreRouted == false)
 	{
 		if(station)
 		{
@@ -434,7 +434,7 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 				}
 			}
 		}
-	}
+	}*/
 	double sysGran = ConfigManager::GetInstance().FullConfig().baseGranSecond();
 	std::list<TrainDriver*>::iterator it=trainDriver.begin();
 

@@ -23,7 +23,7 @@ public:
 	PT_PathsetLoadException(int sNode, int dNode):
 		originNode(sNode),destNode(dNode){}
 	virtual const char* what() const throw () {
-		return "the exception of pt pathset loading";
+		return "PT pathset load failed exception";
 	}
 };
 /**
@@ -112,6 +112,7 @@ public:
 	 *
 	 * @return public transit pathset for the supplied OD.
 	 */
+	// @ptPathsetStoredProcName is the store procedure to fetch pathsets.
 	PT_PathSet fetchPathset(int origin, int destination, const DailyTime& startTime, const std::string& ptPathsetStoredProcName) const;
 	/**
 	 * store chosen path in file

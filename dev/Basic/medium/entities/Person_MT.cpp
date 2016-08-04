@@ -81,17 +81,33 @@ requestedNextSegStats(nullptr), canMoveToNextSegment(NONE), currSegStats(nullptr
 prevRole(nullptr), currRole(nullptr), nextRole(nullptr), numTicksStuck(0)
 {
 	ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
+	int size=TrainController<sim_mob::medium::Person_MT>::getInstance()->getMapPlatformsSize();
+	if(size==161)
+	{
+		int r=8;
+	}
 	std::string ptPathsetStoredProcName = cfg.getDatabaseProcMappings().procedureMappings["pt_pathset"];
-	try{
+	try
+	{
+		size=TrainController<sim_mob::medium::Person_MT>::getInstance()->getMapPlatformsSize();
 		convertPublicTransitODsToTrips(PT_NetworkCreater::getInstance(), ptPathsetStoredProcName);
-	} catch(PT_PathsetLoadException& exception){
+	}
+
+	catch(PT_PathsetLoadException& exception)
+	{
 		Print()<<"[PT pathset]load pt pathset failed!"<<"["<<exception.originNode<<","<<exception.destNode<<"]"<<std::endl;
 	}
+	size=TrainController<sim_mob::medium::Person_MT>::getInstance()->getMapPlatformsSize();
 	insertWaitingActivityToTrip();
 	assignSubtripIds();
 	if (!tripChain.empty())
 	{
 		initTripChain();
+	}
+	int size_t=TrainController<sim_mob::medium::Person_MT>::getInstance()->getMapPlatformsSize();
+	if(size_t==161)
+	{
+		int e=78;
 	}
 }
 

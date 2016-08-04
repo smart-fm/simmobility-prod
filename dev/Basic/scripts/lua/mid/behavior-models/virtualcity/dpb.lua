@@ -13,7 +13,7 @@ UPDATED VERSION - Adnan
 --Estimated values for all betas
 --Note: the betas that not estimated are fixed to zero.
 --travel constants
-local cons_travel = 2.5
+local cons_travel = 2
 
 
 --Person type

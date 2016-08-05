@@ -110,42 +110,42 @@ Person_MT::~Person_MT()
 
 void Person_MT::findMrtTripsAndPerformRailTransitRoute(std::vector<sim_mob::OD_Trip>& matchedTrips)
 {
-  std::vector<sim_mob::OD_Trip>::iterator itr=matchedTrips.begin();
-  std::vector<sim_mob::OD_Trip> newODTrips;
-  while(itr!=matchedTrips.end())
-  {
-       if((*itr).tType==TRAIN_EDGE)
-       {
-           std::string src=(*itr).startStop;
-           std::string end=(*itr).endStop;
-           size_t pos = 0;
-           if((pos=(src.find("/"))) != std::string::npos)
-		   {
-        	   src = src.substr(0, pos);
-		   }
+	std::vector<sim_mob::OD_Trip>::iterator itr=matchedTrips.begin();
+	std::vector<sim_mob::OD_Trip> newODTrips;
+	while(itr!=matchedTrips.end())
+	{
+		if((*itr).tType==TRAIN_EDGE)
+		{
+			std::string src=(*itr).startStop;
+			std::string end=(*itr).endStop;
+			size_t pos = 0;
+			if((pos=(src.find("/"))) != std::string::npos)
+			{
+				src = src.substr(0, pos);
+			}
 
-           if((pos=(end.find("/"))) != std::string::npos)
-           {
-               end = end.substr(0, pos);
-           }
+			if((pos=(end.find("/"))) != std::string::npos)
+			{
+				end = end.substr(0, pos);
+			}
 
-           std::vector<std::string> railPath=RailTransit::getInstance().fetchBoardAlightStopSeq(src,end);
-           if(railPath.empty())
-           {
-        	   return;
-           }
+			std::vector<std::string> railPath=RailTransit::getInstance().fetchBoardAlightStopSeq(src,end);
+			if(railPath.empty())
+			{
+				return;
+			}
 
-           std::vector<sim_mob::OD_Trip> odTrips=splitMrtTrips(railPath);
-           newODTrips.insert(newODTrips.end(),odTrips.begin(),odTrips.end());
+			std::vector<sim_mob::OD_Trip> odTrips=splitMrtTrips(railPath);
+			newODTrips.insert(newODTrips.end(),odTrips.begin(),odTrips.end());
 
-       }
-       else
-       {
-          newODTrips.push_back(*itr);
-       }
-         itr++;
-  }
-  matchedTrips=newODTrips;
+        }
+        else
+        {
+    	    newODTrips.push_back(*itr);
+        }
+	    itr++;
+	}
+	matchedTrips=newODTrips;
 
 }
 

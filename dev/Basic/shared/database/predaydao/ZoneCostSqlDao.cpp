@@ -126,3 +126,90 @@ void ZoneNodeSqlDao::getZoneNodeMap(boost::unordered_map<int, std::vector<ZoneNo
 		}
 	}
 }
+
+TimeDependentTT_SqlDao::TimeDependentTT_SqlDao(db::DB_Connection& connection) :
+		SqlAbstractDao<TimeDependentTT_Params>(connection, "", "", "", "", "", "")
+{
+}
+
+TimeDependentTT_SqlDao::~TimeDependentTT_SqlDao()
+{
+}
+
+void TimeDependentTT_SqlDao::fromRow(db::Row& result, TimeDependentTT_Params& outObj)
+{
+	outObj.setOriginZone(result.get<int>(DB_FIELD_TCOST_ORIGIN));
+	outObj.setDestinationZone(result.get<int>(DB_FIELD_TCOST_DESTINATION));
+	outObj.setInfoUnavailable(result.get<int>(DB_FIELD_TCOST_INFO_UNAVAILABLE));
+	double* arrivalBasedTT = outObj.getArrivalBasedTT();
+	double* departureBasedTT = outObj.getDepartureBasedTT();
+	std::string colName = std::string();
+	for(int i=1; i<=NUM_30MIN_TIME_WINDOWS_IN_DAY; ++i)
+	{
+		colName = DB_FIELD_TCOST_TT_ARRIVAL_PREFIX + std::to_string(i);
+		*(arrivalBasedTT+i-1) = result.get<double>(colName);
+
+		colName = DB_FIELD_TCOST_TT_DEPARTURE_PREFIX + std::to_string(i);
+		*(arrivalBasedTT+i-1) = result.get<double>(colName);
+	}
+}
+
+void TimeDependentTT_SqlDao::toRow(TimeDependentTT_Params& data, db::Parameters& outParams, bool update)
+{
+}
+
+bool sim_mob::TimeDependentTT_SqlDao::getTT_ByOD(TravelTimeMode ttMode, int originZn, int destZn, TimeDependentTT_Params& outObj)
+{
+	db::Parameters params;
+	db::Parameter originParam(originZn);
+	params.push_back(originParam);
+	db::Parameter destParam(destZn);
+	params.push_back(destParam);
+	bool returnVal = false;
+	switch(ttMode)
+	{
+	case TravelTimeMode::TT_PRIVATE:
+	{
+		returnVal = getByValues(DB_GET_TCOST_PVT_FOR_OD, params, outObj);
+		break;
+	}
+	case TravelTimeMode::TT_PUBLIC:
+	{
+		returnVal = getByValues(DB_GET_TCOST_PT_FOR_OD, params, outObj);
+		break;
+	}
+	}
+	return returnVal;
+}
+
+void sim_mob::TimeDependentTT_SqlDao::getUnavailableODs(TravelTimeMode ttMode, std::vector<sim_mob::OD_Pair>& outVect)
+{
+	if (isConnected())
+	{
+		Statement query(connection.getSession<soci::session>());
+		switch(ttMode)
+		{
+		case TravelTimeMode::TT_PRIVATE:
+		{
+			prepareStatement(DB_GET_PVT_UNAVAILABLE_OD, db::EMPTY_PARAMS, query);
+			break;
+		}
+		case TravelTimeMode::TT_PUBLIC:
+		{
+			prepareStatement(DB_GET_PUB_UNAVAILABLE_OD, db::EMPTY_PARAMS, query);
+			break;
+		}
+		}
+		ResultSet rs(query);
+		int origin = 0;
+		int destination = 0;
+		for (ResultSet::const_iterator it = rs.begin(); it != rs.end(); ++it)
+		{
+			db::Row& row = *it;
+			origin = row.get<int>(DB_FIELD_TCOST_ORIGIN);
+			destination = row.get<int>(DB_FIELD_TCOST_DESTINATION);
+			OD_Pair(origin, destination);
+			outVect.push_back(OD_Pair(origin, destination));
+		}
+	}
+}

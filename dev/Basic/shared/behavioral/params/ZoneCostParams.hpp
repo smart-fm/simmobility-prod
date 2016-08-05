@@ -8,6 +8,7 @@
 
 namespace sim_mob
 {
+const unsigned int NUM_30MIN_TIME_WINDOWS_IN_DAY = 48;
 
 /**
  * Class to hold properties of a zone
@@ -367,6 +368,94 @@ private:
 	double pubIvt;
 	double avgTransfer;
 	double pubCost;
+};
+
+/**
+ * Class to hold time dependent travel times for one pair OD zones
+ *
+ * \author Harish Loganathan
+ */
+class TimeDependentTT_Params
+{
+public:
+	TimeDependentTT_Params() : originZone{0}, destinationZone{0}, infoUnavailable{false}, arrivalBasedTT{}, departureBasedTT{}
+	{
+	}
+
+	int getOriginZone() const
+	{
+		return originZone;
+	}
+
+	void setOriginZone(int originZone)
+	{
+		this->originZone = originZone;
+	}
+
+	int getDestinationZone() const
+	{
+		return destinationZone;
+	}
+
+	void setDestinationZone(int destinationZone)
+	{
+		this->destinationZone = destinationZone;
+	}
+
+	bool isInfoUnavailable() const
+	{
+		return infoUnavailable;
+	}
+
+	void setInfoUnavailable(bool infoUnavailable)
+	{
+		this->infoUnavailable = infoUnavailable;
+	}
+
+	double* getArrivalBasedTT()
+	{
+		return arrivalBasedTT;
+	}
+
+	double* getDepartureBasedTT()
+	{
+		return departureBasedTT;
+	}
+
+	/**
+	 * fetches i-th element of arrivalBasedTT
+	 * @param i index to fetch
+	 * @return arrivalBasedTT[i] if i is a valid index; -1 otherwise (invalid travel time)
+	 */
+	double getArrivalBasedTT_at(int i) const
+	{
+		if(i<0 || i>=NUM_30MIN_TIME_WINDOWS_IN_DAY)
+		{
+			return -1;
+		}
+		return arrivalBasedTT[i];
+	}
+
+	/**
+	 * fetches i-th element of departureBasedTT
+	 * @param i index to fetch
+	 * @return departureBasedTT[i] if i is a valid index; -1 otherwise (invalid travel time)
+	 */
+	double getDepartureBasedTT_at(int i) const
+	{
+		if(i<0 || i>=NUM_30MIN_TIME_WINDOWS_IN_DAY)
+		{
+			return -1;
+		}
+		return departureBasedTT[i];
+	}
+
+private:
+	int originZone;
+	int destinationZone;
+	bool infoUnavailable;
+	double arrivalBasedTT[NUM_30MIN_TIME_WINDOWS_IN_DAY];
+	double departureBasedTT[NUM_30MIN_TIME_WINDOWS_IN_DAY];
 };
 
 class ZoneNodeParams

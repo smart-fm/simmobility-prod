@@ -7,6 +7,8 @@
 namespace sim_mob
 {
 
+enum class TravelTimeMode { TT_PRIVATE, TT_PUBLIC };
+
 /**
  * simple helper class to store an OD pair
  *

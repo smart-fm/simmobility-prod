@@ -16,7 +16,7 @@ const std::string EMPTY_STRING = "";
 /**
  * Schemas
  */
-const std::string MAIN_SCHEMA = "main2012.";
+const std::string MAIN_SCHEMA = "virtual_city.";
 const std::string CALIBRATION_SCHEMA = "calibration2012.";
 const std::string PUBLIC_SCHEMA = "public.";
 const std::string DEMAND_SCHEMA = "demand.";
@@ -30,6 +30,8 @@ const std::string DB_TABLE_AM_COSTS = APPLY_SCHEMA(DEMAND_SCHEMA, "amcosts");
 const std::string DB_TABLE_PM_COSTS = APPLY_SCHEMA(DEMAND_SCHEMA, "pmcosts");
 const std::string DB_TABLE_OP_COSTS = APPLY_SCHEMA(DEMAND_SCHEMA, "opcosts");
 const std::string DB_TABLE_TAZ = APPLY_SCHEMA(DEMAND_SCHEMA, "taz_2012");
+const std::string DB_TABLE_TCOST_PVT = APPLY_SCHEMA(DEMAND_SCHEMA, "tcost_car");
+const std::string DB_TABLE_TCOST_PT = APPLY_SCHEMA(DEMAND_SCHEMA, "tcost_bus");
 const std::string DB_TABLE_NODE_ZONE_MAP = APPLY_SCHEMA(DEMAND_SCHEMA, "node_taz_map");
 
 /**
@@ -123,6 +125,15 @@ const std::string DB_FIELD_COST_AVG_TRANSFER = "avg_transfer";
 const std::string DB_FIELD_COST_PUB_COST = "pub_cost";
 
 /**
+ * Fields for time dependent zone-zone travel times data (in postgres db)
+ */
+const std::string DB_FIELD_TCOST_ORIGIN = "origin";
+const std::string DB_FIELD_TCOST_DESTINATION = "destination";
+const std::string DB_FIELD_TCOST_INFO_UNAVAILABLE = "info_unavailable";
+const std::string DB_FIELD_TCOST_TT_ARRIVAL_PREFIX = "tt_arrival_";
+const std::string DB_FIELD_TCOST_TT_DEPARTURE_PREFIX = "tt_departure_";
+
+/**
  * Fields for node to zone mapping data (in postgres db)
  */
 const std::string DB_FIELD_NODE_TYPE = "node_type";
@@ -159,6 +170,18 @@ const std::string DB_GET_VEHICLE_CATEGORIES = "SELECT * FROM " + DB_TABLE_VEHICL
 const std::string DB_GET_ALL_AM_COSTS = "SELECT * FROM " + DB_TABLE_AM_COSTS;
 const std::string DB_GET_ALL_PM_COSTS = "SELECT * FROM " + DB_TABLE_PM_COSTS;
 const std::string DB_GET_ALL_OP_COSTS = "SELECT * FROM " + DB_TABLE_OP_COSTS;
+
+/** load zone-zone tt data for a given OD zones **/
+const std::string DB_GET_TCOST_PT_FOR_OD = "SELECT * FROM " + DB_TABLE_TCOST_PT +
+		                                    " WHERE " + DB_FIELD_TCOST_ORIGIN + " = :origin"
+		                                    "   AND " + DB_FIELD_TCOST_DESTINATION + " = :dest";
+
+const std::string DB_GET_TCOST_PVT_FOR_OD = "SELECT * FROM " + DB_TABLE_TCOST_PVT +
+		                                    " WHERE " + DB_FIELD_TCOST_ORIGIN + " = :origin"
+		                                    "   AND " + DB_FIELD_TCOST_DESTINATION + " = :dest";
+
+const std::string DB_GET_PUB_UNAVAILABLE_OD = "SELECT origin, destination FROM " + DB_TABLE_TCOST_PT + " WHERE info_unavailable = TRUE";
+const std::string DB_GET_PVT_UNAVAILABLE_OD = "SELECT origin, destination FROM " + DB_TABLE_TCOST_PVT + " WHERE info_unavailable = TRUE";
 
 /** load zones */
 const std::string DB_GET_ALL_ZONES = "SELECT * FROM " + DB_TABLE_TAZ;

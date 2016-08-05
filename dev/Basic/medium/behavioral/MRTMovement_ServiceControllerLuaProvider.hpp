@@ -1,7 +1,8 @@
 /*
- * Copyright Singapore-MIT Alliance for Research and Technology
- *
- * File:   PT_ServiceController.hpp
+ * Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+ * Licensed under the terms of the MIT License, as described in the file:
+ * license.txt   (http://opensource.org/licenses/MIT)
+ * File:   MRTMovement_ServiceController.hpp
  * Author: Jabir <jabir@smart.mit.edu>
  *
  */
@@ -11,10 +12,10 @@
 
 namespace sim_mob
 {
-      namespace medium
-	  {
-      class MRTMovement_ServiceControllerLuaProvider
-        {
+	namespace medium
+	{
+		class MRTMovement_ServiceControllerLuaProvider
+		{
 			public:
 				/**
 				 * Gets the ServiceController reference
@@ -25,7 +26,7 @@ namespace sim_mob
 				 * @return Lua PT service controller reference.
 				 */
 				static ServiceController * getPTRC_Model();
-        };
-	  }
+		};
+	}
 }
 

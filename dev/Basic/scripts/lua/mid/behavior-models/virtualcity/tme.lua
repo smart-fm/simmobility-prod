@@ -257,17 +257,36 @@ local function computeUtilities(params,dbparams)
 	-- 0 if origin == destination
 	local average_transfer_number = dbparams.average_transfer_number
 
-	--params.car_own_normal is from household table
-	local zero_car = params.car_own_normal == 0 and 1 or 0
-	local one_plus_car = params.car_own_normal >= 1 and 1 or 0
-	local two_plus_car = params.car_own_normal >= 2 and 1 or 0
-	local three_plus_car = params.car_own_normal >= 3 and 1 or 0
-
-	--params.motor_own is from household table
-	local zero_motor = params.motor_own == 0 and 1 or 0
-	local one_plus_motor = params.motor_own >=1 and 1 or 0
-	local two_plus_motor = params.motor_own >=2 and 1 or 0
-	local three_plus_motor = params.motor_own >= 3 and 1 or 0
+	local zero_car,one_plus_car,two_plus_car,three_plus_car, zero_motor,one_plus_motor,two_plus_motor,three_plus_motor = 0,0,0,0,0,0,0,0
+	
+	if veh_own_cat == 1  then 
+		zero_car = 1 
+	
+	end
+	if veh_own_cat == 4 or 5 or 6  then 
+		one_plus_car = 1 
+	end
+	if veh_own_cat == 6  then 
+		two_plus_car = 1 
+	end
+	
+	if veh_own_cat == 6  then 
+		three_plus_car = 1 
+	end
+	if veh_own_cat == 1 or 4  then 
+		zero_motor = 1 
+	end
+	if veh_own_cat == 2 or 3 or 5 or 6  then 
+		one_plus_motor = 1 
+	end
+	
+	if veh_own_cat == 2 or 3 or 5 or 6  then 
+		two_plus_motor = 1 
+	end
+	
+	if veh_own_cat == 2 or 3 or 5 or 6  then 
+		three_plus_motor = 1 
+	end
 
 	--dbparams.resident_size = ZONE[origin]['resident workers']
 	--dbparams.education_op = ZONE[destination]['education_op'] --total student 

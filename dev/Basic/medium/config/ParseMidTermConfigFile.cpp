@@ -639,7 +639,8 @@ void ParseMidTermConfigFile::processTT_Update(xercesc::DOMElement* node)
 }
 
 
-void ParseMidTermConfigFile::processRegionRestrictionNode(xercesc::DOMElement* node){
+void ParseMidTermConfigFile::processRegionRestrictionNode(xercesc::DOMElement* node)
+{
 
     if (!node)
     {

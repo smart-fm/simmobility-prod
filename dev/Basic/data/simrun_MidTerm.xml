@@ -67,12 +67,14 @@
 
             <mapping name="pt_bus_routes" procedure="get_pt_bus_routes()"/>
             <mapping name="pt_bus_stops" procedure="get_pt_bus_stops()"/>
+            <!-- This procedure returns platforms from pt_platform table with many data fields -->
             <mapping name="pt_platform" procedure="get_pt_platforms()"/>
             <mapping name="pt_mrt_dispatch_freq" procedure="get_pt_mrt_dispatch_freq()"/>
-            <mapping name="pt_block" procedure="get_pt_blocks()"/>
+            <mapping name="pt_mrt_block" procedure="get_pt_blocks()"/>
             <mapping name="pt_mrt_route" procedure="get_pt_mrt_route()"/>
+	   <!-- This procedure returns platforms from pt_mrt_platform with only lineid,Sequenceno,platformNo fields -->
             <mapping name="pt_mrt_platform" procedure="get_pt_mrt_platform()"/>
-            <mapping name="pt_block_polyline" procedure="get_pt_block_polylines()"/>
+            <mapping name="pt_mrt_block_polyline" procedure="get_pt_block_polylines()"/>
 
             <mapping name="pt_bus_routes" procedure="get_pt_bus_routes_17feb()"/>
             <mapping name="pt_bus_stops" procedure="get_pt_bus_stops_17feb()"/>
@@ -90,7 +92,6 @@
             <mapping name="day_activity_schedule" procedure="get_persons_between_new_mrt"/>
             <mapping name="freight_trips" procedure="get_testfreight_between"/>
             <mapping name="screen_line" procedure="get_screen_line_segments()"/>
-            <mapping name="rail_transit_edges" procedure="get_rail_transit_edges()"/>
             <!--<mapping name="restricted_reg_segments" procedure="get_section_banned_area()"/>
             <mapping name="restricted_reg_in_turning" procedure="get_banned_area_in_turning()"/>
             <mapping name="restricted_reg_out_turning" procedure="get_banned_area_out_turning()"/>
@@ -100,7 +101,6 @@
     
     <system>         
         <!-- If loading from the database, which database, proc_map, and credentials are used? -->
-
         <network_database database="fm_hpchead" credentials="fm_hpchead" proc_map="withinday"/>
         <population_database  database="fm_hpchead_lt" credentials="fm_hpchead" proc_map=""/> 
 
@@ -190,11 +190,9 @@
         <pedestrian_walk_speed value="5"/>
         
         <!-- default capacity value -->
-
         <bus_default_capacity value="120"/>
-
-                
-        <!-- file names to output statistics from supply -->   
+               
+       <!-- file names to output statistics from supply -->   
         <output_statistics>                              
             <journey_time file="journeytime.csv"/>
             <waiting_time file="waitingtime.csv"/>
@@ -215,13 +213,6 @@
             <param category="6" alpha="3.0" beta="1.5" kmin="0.04" kjam="0.2"/>
             <param category="7" alpha="3.0" beta="1.5" kmin="0.04" kjam="0.2"/>
         </speed_density_params>
-
-
-       <!--
-        <model_scripts_supply path="scripts/lua/mid/behavior-models/" format="lua" >
-           <script name="serv" file="serv.lua"/>  
-        </model_scripts_supply >
-	-->
 
         <!-- lua scripts used in withinday --> 
 
@@ -297,8 +288,8 @@
         <!-- Names of MongoDB database and collections -->
         <mongo_collections db_name="preday">
             <mongo_collection name="population" collection="hits12_population_updated_zones"/>
-            <mongo_collection name="tcost_bus" collection="tcost_bus"/>
-            <mongo_collection name="tcost_car" collection="tcost_car"/>
+            <mongo_collection name="tcost_bus" collection="tcost_bus_2012"/>
+-           <mongo_collection name="tcost_car" collection="tcost_car_2012"/>
             <mongo_collection name="AMCosts" collection="AMCosts_2012"/>
             <mongo_collection name="OPCosts" collection="OPCosts_2012"/>
             <mongo_collection name="PMCosts" collection="PMCosts_2012"/>

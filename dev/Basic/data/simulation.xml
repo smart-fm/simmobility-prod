@@ -48,11 +48,6 @@
                 <port value="5432"/>
                 <dbname value="simmobility_virtualcity"/>
             </database>
-            <database id="fm_hpc" dbtype="postgres">
-                    <host value="172.25.184.156"/>
-                    <port value="5432"/>
-                    <dbname value="simmobility"/>
-                </database>
         </databases>
     
         <!-- Login credentials to be used for database connections. These can be plaintext, -->
@@ -110,17 +105,12 @@
                 <username value="postgres"/>
                 <password value="d84dmiN"/>
             </plaintext-credential>
-
-                <plaintext-credential id="fm_hpc">
-                    <username value="postgres"/>
-                    <password value="d84dmiN"/>
-           </plaintext-credential>
         </credentials>
     </constructs>
 
     <simulation>
         <base_granularity   value="5"   units="seconds"/>
-        <total_runtime      value="30"      units="minutes" />
+        <total_runtime      value="120"      units="minutes" />
         <total_warmup       value="10"     units="seconds" />
        
         <start_time         value="07:30:00"/>

@@ -430,16 +430,15 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 bool performMainDemand()
 {
 	const MT_Config& mtConfig = MT_Config::getInstance();
-	const db::BackendType populationSource = mtConfig.getPopulationSource();
 	PredayManager predayManager;
 	predayManager.loadZones();
 	predayManager.loadCosts();
-	predayManager.loadPersonIds(populationSource);
-	predayManager.loadUnavailableODs(db::MONGO_DB);
+	predayManager.loadPersonIds();
+	predayManager.loadUnavailableODs();
 	if(mtConfig.runningPredaySimulation() && mtConfig.isFileOutputEnabled())
 	{
-		predayManager.loadZoneNodes(db::MONGO_DB);
-		predayManager.loadPostcodeNodeMapping(db::POSTGRES);
+		predayManager.loadZoneNodes();
+		predayManager.loadPostcodeNodeMapping();
 	}
 
 	if(mtConfig.runningPredayCalibration())
@@ -450,8 +449,15 @@ bool performMainDemand()
 	else
 	{
 		Print() << "Preday mode: " << (mtConfig.runningPredaySimulation()? "simulation":"logsum computation")  << std::endl;
-		if(populationSource == db::POSTGRES) { predayManager.dispatchLT_Persons(); }
-		else { predayManager.dispatchMongodbPersons(); }
+//		const db::BackendType populationSource = mtConfig.getPopulationSource();
+//		if(populationSource == db::POSTGRES)
+//		{
+			predayManager.dispatchLT_Persons();
+//		}
+//		else
+//		{
+//			predayManager.dispatchMongodbPersons();
+//		}
 	}
 	return true;
 }

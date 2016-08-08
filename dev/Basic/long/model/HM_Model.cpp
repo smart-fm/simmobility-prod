@@ -206,7 +206,7 @@ double HM_Model::TazStats::getAvgHHSize() const
 
 HM_Model::HM_Model(WorkGroup& workGroup) :	Model(MODEL_NAME, workGroup),numberOfBidders(0), initialHHAwakeningCounter(0), numLifestyle1HHs(0), numLifestyle2HHs(0), numLifestyle3HHs(0), hasTaxiAccess(false),
 											householdLogsumCounter(0), simulationStopCounter(0), developerModel(nullptr), startDay(0), bidId(0), numberOfBids(0), numberOfExits(0),	numberOfSuccessfulBids(0),
-											unitSaleId(0), numberOfSellers(0), resume(0), lastStoppedDay(0){}
+											unitSaleId(0), numberOfSellers(0), resume(0), lastStoppedDay(0), numberOfBTOAwakenings(0){}
 
 HM_Model::~HM_Model()
 {
@@ -256,6 +256,21 @@ void HM_Model::incrementExits()
 void HM_Model::incrementSuccessfulBids()
 {
 	numberOfSuccessfulBids++;
+}
+
+int HM_Model::getNumberOfBTOAwakenings()
+{
+	return numberOfBTOAwakenings;
+}
+
+void HM_Model::setNumberOfBTOAwakenings(int number)
+{
+	numberOfBTOAwakenings = number;
+}
+
+void HM_Model::incrementNumberOfBTOAwakenings()
+{
+	numberOfBTOAwakenings++;
 }
 
 void HM_Model::resetBAEStatistics() //BAE is Bids, Awakenings and Exits
@@ -1842,7 +1857,6 @@ void HM_Model::startImpl()
 			tempHH->setIndividual(individuals[n]->getId());
 	}
 
-
 	for (size_t n = 0; n < households.size(); n++)
 	{
 		hdbEligibilityTest(n);
@@ -1858,7 +1872,6 @@ void HM_Model::startImpl()
 			}
 		}
 	}
-
 
 	PrintOutV("The synthetic population contains " << household_stats.adultSingaporean_global << " adult Singaporeans." << std::endl);
 	PrintOutV("Minors. Male: " << household_stats.maleChild_global << " Female: " << household_stats.femaleChild_global << std::endl);

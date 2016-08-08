@@ -53,7 +53,6 @@
 #include "entities/roles/Role.hpp"
 #include "entities/roles/waitBusActivityRole/WaitBusActivityRoleImpl.hpp"
 #include "entities/signal/Signal.hpp"
-#include "entities/TrafficWatch.hpp"
 #include "entities/TravelTimeManager.hpp"
 #include "entities/fmodController/FMOD_Controller.hpp"
 #include "geospatial/network/NetworkLoader.hpp"
@@ -311,12 +310,6 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 
 	Print() << "Initial agents dispatched or pushed to pending." << endl;
 
-	//
-	//  TODO: Do not delete this next line. Please read the comment in TrafficWatch.hpp
-	//        ~Seth
-	//
-	//TrafficWatch& trafficWatch = TrafficWatch::instance();
-
 	//Start work groups and all threads.
 	wgMgr.startAllWorkGroups();
 
@@ -413,12 +406,6 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 				Print() <<currTickPercent <<"0%" << ",agents:" << Agent::all_agents.size() <<std::endl;
 			}
 		}
-
-		//
-		//  TODO: Do not delete this next line. Please read the comment in TrafficWatch.hpp
-		//        ~Seth
-		//
-		//trafficWatch.update(currTick);
 
 		//Agent-based cycle, steps 1,2,3,4 of 4
 		wgMgr.waitAllGroups();

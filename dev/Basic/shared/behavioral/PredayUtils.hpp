@@ -40,4 +40,15 @@ public:
 		return origin;
 	}
 };
+
+enum class VehicleOwnershipOption
+{
+	INVALID,
+	NO_VEHICLE,
+	ONE_PLUS_MOTOR_ONLY,
+	ONE_OP_CAR_W_WO_MOTOR,
+	ONE_NORMAL_CAR_ONLY,
+	ONE_NORMAL_CAR_AND_ONE_PLUS_MOTOR,
+	TWO_PLUS_NORMAL_CAR_W_WO_MOTOR
+};
 }

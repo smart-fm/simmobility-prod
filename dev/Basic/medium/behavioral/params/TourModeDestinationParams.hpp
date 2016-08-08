@@ -96,8 +96,8 @@ public:
 
 private:
 	int homeZone;
-	int driveAvailable;
-	int motorAvailable;
+	bool driveAvailable;
+	bool motorAvailable;
 	int tourMode;
 	bool firstBound;
 };

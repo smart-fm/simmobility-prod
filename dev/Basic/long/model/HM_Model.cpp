@@ -1843,20 +1843,20 @@ void HM_Model::startImpl()
 	}
 
 
-	if(config.ltParams.taxiAccessModel.enabled)
-	{
 	for (size_t n = 0; n < households.size(); n++)
 	{
 		hdbEligibilityTest(n);
-		if(simYear == 2008)
+		if(config.ltParams.taxiAccessModel.enabled)
 		{
-			setTaxiAccess2008(households[n]);
+			if(simYear == 2008)
+			{
+				setTaxiAccess2008(households[n]);
+			}
+			else if(simYear == 2012)
+			{
+				setTaxiAccess2012(households[n]);
+			}
 		}
-		else if(simYear == 2012)
-		{
-			setTaxiAccess2012(households[n]);
-		}
-	}
 	}
 
 

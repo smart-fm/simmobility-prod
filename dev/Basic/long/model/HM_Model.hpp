@@ -49,6 +49,7 @@
 #include "database/entity/AlternativeHedonicPrice.hpp"
 #include "database/entity/ScreeningModelCoefficients.hpp"
 #include "database/entity/HouseholdUnit.hpp"
+#include "database/entity/IndvidualEmpSec.hpp"
 #include "core/HousingMarket.hpp"
 #include "boost/unordered_map.hpp"
 #include "DeveloperModel.hpp"
@@ -183,7 +184,8 @@ namespace sim_mob
             typedef std::vector<HouseholdUnit*> HouseholdUnitList;
             typedef boost::unordered_map<BigSerial, HouseholdUnit*> HouseholdUnitMap;
 
-
+            typedef std::vector<IndvidualEmpSec*> IndvidualEmpSecList;
+            typedef boost::unordered_map<BigSerial, IndvidualEmpSec*> IndvidualEmpSecMap;
 
             /**
              * Taz statistics
@@ -340,7 +342,8 @@ namespace sim_mob
             std::vector<BigSerial> getRealEstateAgentIds();
             VehicleOwnershipLogsumList getVehicleOwnershipLosums()const;
             LogSumVehicleOwnership* getVehicleOwnershipLogsumsById( BigSerial id) const;
-            void setTaxiAccess(const Household *household);
+            void setTaxiAccess2008(const Household *household);
+            void setTaxiAccess2012(const Household *household);
             DistMRTList getDistanceMRT()const;
             DistanceMRT* getDistanceMRTById( BigSerial id) const;
             HouseHoldHitsSampleList getHouseHoldHits()const;
@@ -410,6 +413,8 @@ namespace sim_mob
             boost::unordered_multimap<BigSerial, AlternativeHedonicPrice*>& getAlternativeHedonicPriceById();
 
             HouseholdUnit* getHouseholdUnitByHHId(BigSerial hhId) const;
+            IndvidualEmpSecList getIndvidualEmpSecList() const;
+            IndvidualEmpSec* getIndvidualEmpSecByIndId(BigSerial indId) const;
 
 
 
@@ -579,6 +584,8 @@ namespace sim_mob
             PreSchoolList preSchools;
             PreSchoolMap preSchoolById;
             bool resume ;
+            IndvidualEmpSecList indEmpSecList;
+            IndvidualEmpSecMap indEmpSecbyIndId;
 
         };
     }

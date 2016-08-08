@@ -179,6 +179,7 @@ namespace sim_mob {
         const std::string DB_FUNC_GET_ALTERNATIVE_HEDONIC_PRICE = APPLY_SCHEMA( MAIN_SCHEMA, "getAlternativeHedonicPrice()");
 
         const std::string DB_FUNC_GET_HH_PLANNING_AREA = APPLY_SCHEMA(MAIN_SCHEMA, "getHouseholdPlanningArea()");
+        const std::string DB_FUNC_GET_IND_EMP_SEC = APPLY_SCHEMA(MAIN_SCHEMA, "getIndividualEmpSecIds()");
 
         /**
          * Fields
@@ -376,6 +377,7 @@ namespace sim_mob {
         const std::string DB_GETALL_PRE_SCHOOL = "SELECT * FROM " + DB_TABLE_PRE_SCHOOL + LIMIT;
         const std::string DB_GETALL_PRIMARY_SCHOOL_INDIVIDUALS = "SELECT * FROM "+ DB_FUNC_GET_PRIMARY_SCHOOL_INDS + LIMIT;
         const std::string DB_GETALL_PRE_SCHOOL_INDIVIDUALS = "SELECT * FROM "+ DB_FUNC_GET_PRE_SCHOOL_INDS + LIMIT;
+        const std::string DB_GETALL_IND_EMP_SEC = "SELECT * FROM "+ DB_FUNC_GET_IND_EMP_SEC + LIMIT;
 
         /**
          * GET BY ID

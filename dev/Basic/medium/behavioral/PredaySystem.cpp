@@ -273,15 +273,11 @@ void PredaySystem::constructTourModeParams(TourModeParams& tmParams, int destina
 		tmParams.setAvgTransfer((amObj->getAvgTransfer() + pmObj->getAvgTransfer())/2);
 
 		//set availabilities
-		tmParams.setDrive1Available(personParams.hasDrivingLicence() * personParams.getCarOwnNormal());
-		tmParams.setShare2Available(1);
-		tmParams.setShare3Available(1);
+
 		tmParams.setPublicBusAvailable(amObj->getPubIvt() > 0 && pmObj->getPubIvt() > 0);
 		tmParams.setMrtAvailable(amObj->getPubIvt() > 0 && pmObj->getPubIvt() > 0);
 		tmParams.setPrivateBusAvailable(amObj->getPubIvt() > 0 && pmObj->getPubIvt() > 0);
 		tmParams.setWalkAvailable(amObj->getDistance() <= WALKABLE_DISTANCE && pmObj->getDistance() <= WALKABLE_DISTANCE);
-		tmParams.setTaxiAvailable(1);
-		tmParams.setMotorAvailable(personParams.getMotorLicense() * personParams.getMotorOwn());
 	}
 	else
 	{
@@ -305,15 +301,49 @@ void PredaySystem::constructTourModeParams(TourModeParams& tmParams, int destina
 		tmParams.setAvgTransfer(0);
 
 		//set availabilities
-		tmParams.setDrive1Available(personParams.hasDrivingLicence() * personParams.getCarOwnNormal());
-		tmParams.setShare2Available(1);
-		tmParams.setShare3Available(1);
 		tmParams.setPublicBusAvailable(1);
 		tmParams.setMrtAvailable(1);
 		tmParams.setPrivateBusAvailable(1);
 		tmParams.setWalkAvailable(1);
-		tmParams.setTaxiAvailable(1);
-		tmParams.setMotorAvailable(1);
+	}
+
+	tmParams.setShare2Available(1);
+	tmParams.setShare3Available(1);
+	tmParams.setTaxiAvailable(1);
+	switch(personParams.getVehicleOwnershipOption())
+	{
+	case VehicleOwnershipOption::NO_VEHICLE:
+	case VehicleOwnershipOption::INVALID:
+	{
+		tmParams.setDrive1Available(false);
+		tmParams.setMotorAvailable(false);
+		break;
+	}
+	case VehicleOwnershipOption::ONE_PLUS_MOTOR_ONLY:
+	{
+		tmParams.setDrive1Available(false);
+		tmParams.setMotorAvailable(personParams.getMotorLicense());
+		break;
+	}
+	case VehicleOwnershipOption::ONE_OP_CAR_W_WO_MOTOR:
+	{
+		tmParams.setDrive1Available(false);
+		tmParams.setMotorAvailable(personParams.getMotorLicense());
+		break;
+	}
+	case VehicleOwnershipOption::ONE_NORMAL_CAR_ONLY:
+	{
+		tmParams.setDrive1Available(personParams.hasDrivingLicence());
+		tmParams.setMotorAvailable(false);
+		break;
+	}
+	case VehicleOwnershipOption::ONE_NORMAL_CAR_AND_ONE_PLUS_MOTOR:
+	case VehicleOwnershipOption::TWO_PLUS_NORMAL_CAR_W_WO_MOTOR:
+	{
+		tmParams.setDrive1Available(personParams.hasDrivingLicence());
+		tmParams.setMotorAvailable(personParams.getMotorLicense());
+		break;
+	}
 	}
 }
 

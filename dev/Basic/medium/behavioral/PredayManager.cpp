@@ -680,7 +680,6 @@ void sim_mob::medium::PredayManager::loadPersonIds(BackendType dbType)
 		{
 			PopulationSqlDao populationDao(conn);
 			populationDao.getIncomeCategories(PersonParams::getIncomeCategoryLowerLimits());
-			populationDao.getVehicleCategories(PersonParams::getVehicleCategoryLookup());
 			populationDao.getAddresses(PersonParams::getAddressLookup(), PersonParams::getZoneAddresses());
 			populationDao.getAllIds(ltPersonIdList);
 		}

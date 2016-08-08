@@ -4,11 +4,29 @@
 
 #include "ZoneCostSqlDao.hpp"
 
+#include <vector>
 #include "DatabaseHelper.hpp"
 #include "logging/Log.hpp"
 
 using namespace sim_mob;
 using namespace sim_mob::db;
+
+namespace
+{
+
+std::vector<std::string> initTimeDependentTT_ColNames(const std::string& prefix)
+{
+	std::vector<std::string> columns;
+	for(int i=1; i<=NUM_30MIN_TIME_WINDOWS_IN_DAY; ++i)
+	{
+		columns.push_back(std::string(prefix + std::to_string(i)));
+	}
+	return columns; //RVO will take place
+}
+
+std::vector<std::string> ttArrivalBasedColumn = initTimeDependentTT_ColNames(DB_FIELD_TCOST_TT_ARRIVAL_PREFIX);
+std::vector<std::string> ttDepartureBasedColumn = initTimeDependentTT_ColNames(DB_FIELD_TCOST_TT_DEPARTURE_PREFIX);
+}
 
 CostSqlDao::CostSqlDao(DB_Connection& connection, const std::string& getAllQuery) :
 		SqlAbstractDao<CostParams>(connection, "", "", "", "", getAllQuery, "")
@@ -143,14 +161,10 @@ void TimeDependentTT_SqlDao::fromRow(db::Row& result, TimeDependentTT_Params& ou
 	outObj.setInfoUnavailable(result.get<int>(DB_FIELD_TCOST_INFO_UNAVAILABLE));
 	double* arrivalBasedTT = outObj.getArrivalBasedTT();
 	double* departureBasedTT = outObj.getDepartureBasedTT();
-	std::string colName = std::string();
-	for(int i=1; i<=NUM_30MIN_TIME_WINDOWS_IN_DAY; ++i)
+	for(int i=0; i<NUM_30MIN_TIME_WINDOWS_IN_DAY; ++i)
 	{
-		colName = DB_FIELD_TCOST_TT_ARRIVAL_PREFIX + std::to_string(i);
-		*(arrivalBasedTT+i-1) = result.get<double>(colName);
-
-		colName = DB_FIELD_TCOST_TT_DEPARTURE_PREFIX + std::to_string(i);
-		*(arrivalBasedTT+i-1) = result.get<double>(colName);
+		*(arrivalBasedTT+i) = result.get<double>(ttArrivalBasedColumn[i]);
+		*(departureBasedTT+i) = result.get<double>(ttDepartureBasedColumn[i]);
 	}
 }
 

@@ -319,7 +319,6 @@ private:
 	ZoneMap zoneMap;
 	ZoneNodeMap zoneNodeMap;
 	boost::unordered_map<int, int> zoneIdLookup;
-	std::map<int, int> MTZ12_MTZ08_Map;
 
 	/**
 	 * Map of AM Costs [origin zone, destination zone] -> CostParams*

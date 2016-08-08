@@ -1210,7 +1210,7 @@ void sim_mob::medium::PredayManager::processPersonsForCalibration(const PersonLi
 
 	for (PersonList::iterator i = firstPersonIt; i != oneAfterLastPersonIt; i++)
 	{
-		PredaySystem predaySystem(**i, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, tcostDao, unavailableODs, MTZ12_MTZ08_Map);
+		PredaySystem predaySystem(**i, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, tcostDao, unavailableODs);
 		predaySystem.planDay();
 		predaySystem.updateStatistics(simStats);
 		if (consoleOutput)
@@ -1394,7 +1394,7 @@ void sim_mob::medium::PredayManager::processPersonsForLT_Population(const LT_Per
 			continue;
 		} // some persons are not complete in the database
 		logsumSqlDao.getLogsumById(*i, personParams);
-		PredaySystem predaySystem(personParams, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, tcostDao, unavailableODs, MTZ12_MTZ08_Map);
+		PredaySystem predaySystem(personParams, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, tcostDao, unavailableODs);
 		predaySystem.planDay();
 
 		if (outputTripchains)
@@ -1426,7 +1426,7 @@ void sim_mob::medium::PredayManager::computeLogsumsForCalibration(const PersonLi
 	// loop through all persons within the range and plan their day
 	for (PersonList::iterator i = firstPersonIt; i != oneAfterLastPersonIt; i++)
 	{
-		PredaySystem predaySystem(**i, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, tcostDao, unavailableODs, MTZ12_MTZ08_Map);
+		PredaySystem predaySystem(**i, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, tcostDao, unavailableODs);
 		predaySystem.computeLogsums();
 		if (consoleOutput)
 		{
@@ -1511,7 +1511,7 @@ void sim_mob::medium::PredayManager::computeLogsumsForLT_Population(const LT_Per
 		{
 			continue;
 		} // some persons are not complete in the database
-		PredaySystem predaySystem(personParams, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, tcostDao, unavailableODs, MTZ12_MTZ08_Map);
+		PredaySystem predaySystem(personParams, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, tcostDao, unavailableODs);
 		predaySystem.computeLogsums();
 		logsumSqlDao.insert(personParams);
 		if (consoleOutput)

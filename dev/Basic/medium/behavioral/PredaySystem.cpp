@@ -191,8 +191,7 @@ PredaySystem::PredaySystem(PersonParams& personParams,
 		const ZoneMap& zoneMap, const boost::unordered_map<int,int>& zoneIdLookup,
 		const CostMap& amCostMap, const CostMap& pmCostMap, const CostMap& opCostMap,
 		TimeDependentTT_SqlDao& tcostDao,
-		const std::vector<OD_Pair>& unavailableODs,
-		const std::map<int, int>& mtz12_08Map)
+		const std::vector<OD_Pair>& unavailableODs)
 : personParams(personParams), zoneMap(zoneMap), zoneIdLookup(zoneIdLookup),
   amCostMap(amCostMap), pmCostMap(pmCostMap), opCostMap(opCostMap),
   tcostDao(tcostDao), unavailableODs(unavailableODs),

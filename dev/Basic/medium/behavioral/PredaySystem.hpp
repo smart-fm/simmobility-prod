@@ -289,7 +289,7 @@ private:
 public:
 	PredaySystem(PersonParams& personParams, const ZoneMap& zoneMap, const boost::unordered_map<int, int>& zoneIdLookup, const CostMap& amCostMap,
 			const CostMap& pmCostMap, const CostMap& opCostMap, TimeDependentTT_SqlDao& tcosDao,
-			const std::vector<OD_Pair>& unavailableODs, const std::map<int, int>& mtz12_08Map);
+			const std::vector<OD_Pair>& unavailableODs);
 
 	virtual ~PredaySystem();
 

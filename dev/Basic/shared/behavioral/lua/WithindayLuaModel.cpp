@@ -69,12 +69,7 @@ void sim_mob::WithindayLuaModel::mapClasses()
 				.addProperty("income_id", &PersonParams::getIncomeId)
 				.addProperty("missing_income", &PersonParams::getMissingIncome)
 				.addProperty("work_at_home_dummy", &PersonParams::getWorksAtHome)
-				.addProperty("no_vehicle", &PersonParams::getNoVehicle)
-				.addProperty("mult_motor_only", &PersonParams::getMultMotorOnly)
-				.addProperty("one_off_peak_car_w_wo_mc", &PersonParams::getOneOffPeakW_WoMotor)
-				.addProperty("one_normal_car_only", &PersonParams::getOneNormalCar)
-				.addProperty("one_normal_car_mult_mc", &PersonParams::getOneNormalCarMultMotor)
-				.addProperty("mult_normal_car_w_wo_mc", &PersonParams::getMultNormalCarW_WoMotor)
+				.addProperty("vehicle_ownership_category", &PersonParams::getVehicleOwnershipCategory)
 				.addProperty("fixed_work_hour", &PersonParams::getHasFixedWorkTiming) //not used in lua
 				.addProperty("homeLocation", &PersonParams::getHomeLocation) //not used in lua
 				.addProperty("fixed_place", &PersonParams::hasFixedWorkPlace)

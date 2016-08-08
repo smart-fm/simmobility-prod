@@ -14,7 +14,7 @@
 #include "CalibrationStatistics.hpp"
 #include "PredayClasses.hpp"
 #include "database/predaydao/PopulationSqlDao.hpp"
-#include "database/dao/MongoDao.hpp"
+#include "database/predaydao/ZoneCostSqlDao.hpp"
 
 namespace sim_mob
 {
@@ -43,7 +43,6 @@ private:
 	/**
 	 * For each work tour, if the person has a usual work location, this function predicts whether the person goes to his usual location or some other location.
 	 *
-	 * @param personParam object containing person and household related variables
 	 * @param firstOfMultiple indicator whether this tour is the first of multiple work tours
 	 * @return true if the tour is to a usual work location. false otherwise.
 	 */
@@ -206,42 +205,6 @@ private:
 	void constructTours();
 
 	/**
-	 * inserts day pattern level information for a person
-	 * This function will be called once after all predictions for every person in the population.
-	 */
-	void insertDayPattern();
-
-	/**
-	 * inserts tour level information for a person
-	 * This function will be called once for every tour of every person in the population.
-	 *
-	 * @param tour an object containing information pertinent to a tour
-	 * @param tourNumber the index of this tour among all tours of this person
-	 */
-	void insertTour(const Tour& tour, int tourNumber);
-
-	/**
-	 * inserts sub tour of a tour
-	 * This function will be called once for every sub-tour of a tour
-	 *
-	 * @param subTour the sub tour to insert
-	 * @param parentTour the parent tour of sub-tour
-	 * @param tourNumber the index of this tour among all tours of this person
-	 * @param subTourNumber the index of this subTour among all subTours for this tour
-	 */
-	void insertSubTour(const Tour& subTour, const Tour& parentTour, int tourNumber, int subTourNumber);
-
-	/**
-	 * inserts tour level information for a person
-	 * This function will be called once for every stop of every tour of every person in the population.
-	 *
-	 * @param stop an object containing information pertinent to a stop
-	 * @param stopNumber the index of this stop among all stops of this tour
-	 * @param tourNumber the index of the stop's parent tour among all tours of this person
-	 */
-	void insertStop(const Stop* stop, int stopNumber, int tourNumber);
-
-	/**
 	 * returns a random element from the list of nodes subject to some validity criteria
 	 *
 	 * @param nodes the list of nodes
@@ -309,9 +272,9 @@ private:
 	boost::unordered_map<std::string, int> numTours;
 
 	/**
-	 * Data access objects for mongo
+	 * Data access objects for time dependent travel times data
 	 */
-	std::map<std::string, db::MongoDao*> mongoDao;
+	TimeDependentTT_SqlDao& tcostDao;
 
 	/**
 	 * used for logging messages
@@ -325,7 +288,7 @@ private:
 
 public:
 	PredaySystem(PersonParams& personParams, const ZoneMap& zoneMap, const boost::unordered_map<int, int>& zoneIdLookup, const CostMap& amCostMap,
-			const CostMap& pmCostMap, const CostMap& opCostMap, const std::map<std::string, db::MongoDao*>& mongoDao,
+			const CostMap& pmCostMap, const CostMap& opCostMap, TimeDependentTT_SqlDao& tcosDao,
 			const std::vector<OD_Pair>& unavailableODs, const std::map<int, int>& mtz12_08Map);
 
 	virtual ~PredaySystem();
@@ -341,11 +304,6 @@ public:
 	void planDay();
 
 	/**
-	 * Writes the output of Preday to MongoDB
-	 */
-	void outputPredictionsToMongo();
-
-	/**
 	 * Invokes logsum computation for preday
 	 * Updates the logsums in personParams
 	 */
@@ -357,11 +315,6 @@ public:
 	 * @param outStream stringstream to write computed logsums
 	 */
 	void computeLogsumsForLT(std::stringstream& outStream);
-
-	/**
-	 * Writes the logsums to mongo
-	 */
-	void updateLogsumsToMongo();
 
 	/**
 	 * Writes of the predicted stops for each tour to the given stringstream

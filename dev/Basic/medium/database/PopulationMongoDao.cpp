@@ -77,10 +77,10 @@ void PopulationMongoDao::fromRow(mongo::BSONObj document, PersonParams& outParam
 	outParam.setHH_OnlyWorkers(document.getField(MONGO_FIELD_HH_ONLY_WORKERS).Int());
 	outParam.setHH_NumUnder4(document.getField(MONGO_FIELD_HH_NUM_UNDER_4).Int());
 	outParam.setHH_HasUnder15(document.getField(MONGO_FIELD_HH_UNDER_15).Int());
-	outParam.setCarOwn(document.getField(MONGO_FIELD_CAR_OWN).Int());
-	outParam.setCarOwnNormal(document.getField(MONGO_FIELD_CAR_OWN_NORMAL).Int());
-	outParam.setCarOwnOffpeak(document.getField(MONGO_FIELD_CAR_OWN_OFFPEAK).Int());
-	outParam.setMotorOwn(document.getField(MONGO_FIELD_MOTOR_OWN).Int());
+//	outParam.setCarOwn(document.getField(MONGO_FIELD_CAR_OWN).Int());
+//	outParam.setCarOwnNormal(document.getField(MONGO_FIELD_CAR_OWN_NORMAL).Int());
+//	outParam.setCarOwnOffpeak(document.getField(MONGO_FIELD_CAR_OWN_OFFPEAK).Int());
+//	outParam.setMotorOwn(document.getField(MONGO_FIELD_MOTOR_OWN).Int());
 	outParam.setWorkLogSum(document.getField(MONGO_FIELD_WORK_LOGSUM).Number());
 	outParam.setEduLogSum(document.getField(MONGO_FIELD_EDU_LOGSUM).Number());
 	outParam.setShopLogSum(document.getField(MONGO_FIELD_SHOP_LOGSUM).Number());

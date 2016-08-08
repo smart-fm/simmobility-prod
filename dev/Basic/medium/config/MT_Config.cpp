@@ -58,7 +58,6 @@ void MT_Config::setPredayRunMode(const std::string runMode)
 		if(runMode == "simulation") { predayRunMode = MT_Config::PREDAY_SIMULATION; }
 		else if(runMode == "logsum") { predayRunMode = MT_Config::PREDAY_LOGSUM_COMPUTATION; }
 		else if(runMode == "calibration") { predayRunMode = MT_Config::PREDAY_CALIBRATION; }
-		else if(runMode == "lt_logsum") { predayRunMode = MT_Config::PREDAY_LOGSUM_COMPUTATION_LT; }
 		else { throw std::runtime_error("Inadmissible value for preday run_mode"); }
 	}
 }
@@ -227,11 +226,6 @@ bool MT_Config::runningPredayCalibration() const
 bool MT_Config::runningPredayLogsumComputation() const
 {
 	return (predayRunMode == MT_Config::PREDAY_LOGSUM_COMPUTATION);
-}
-
-bool MT_Config::runningPredayLogsumComputationForLT() const
-{
-	return (predayRunMode == MT_Config::PREDAY_LOGSUM_COMPUTATION_LT);
 }
 
 bool MT_Config::runningSPSA() const

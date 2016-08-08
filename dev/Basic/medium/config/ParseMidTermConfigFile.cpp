@@ -136,7 +136,6 @@ void ParseMidTermConfigFile::processPredayNode(xercesc::DOMElement* node)
 		childNode = GetSingleElementByName(node, "output_activity_schedule", true);
 		mtCfg.setFileOutputEnabled(ParseBoolean(GetNamedAttributeValue(childNode, "enabled", true)));
 	}
-	else if(mtCfg.runningPredayLogsumComputationForLT()) { mtCfg.setFileOutputEnabled(true); }
 	childNode = GetSingleElementByName(node, "output_predictions", true);
 	mtCfg.setOutputPredictions(ParseBoolean(GetNamedAttributeValue(childNode, "enabled", true)));
 	childNode = GetSingleElementByName(node, "console_output", true);

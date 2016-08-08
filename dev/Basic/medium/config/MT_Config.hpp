@@ -497,13 +497,6 @@ public:
 	bool runningPredayLogsumComputation() const;
 
 	/**
-	 * Checks whether preday logsum computation for LT is running
-	 *
-	 * @return true if preday logsum computation for LT is running, else false
-	 */
-	bool runningPredayLogsumComputationForLT() const;
-
-	/**
 	 * Sets the preday run mode
 	 *
 	 * @param runMode run mode to be set
@@ -817,7 +810,7 @@ private:
 	 */
 	enum PredayRunMode
 	{
-		PREDAY_NONE, PREDAY_SIMULATION, PREDAY_CALIBRATION, PREDAY_LOGSUM_COMPUTATION, PREDAY_LOGSUM_COMPUTATION_LT
+		PREDAY_NONE, PREDAY_SIMULATION, PREDAY_CALIBRATION, PREDAY_LOGSUM_COMPUTATION
 	};
 	PredayRunMode predayRunMode;
 

@@ -4,6 +4,24 @@ import datetime
 import csv
 import psycopg2
 
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ constants ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+DB_NAME = 'simmobility_virtualcity'
+DB_HOST = '172.25.184.48'
+DB_PORT = '5432'
+DB_USER = 'postgres'
+DB_PASSWORD = '5M_S1mM0bility'
+DB_NAME = 'simmobility_virtualcity'
+
+ZONE_TABLE = 'demand.taz_2012'
+AM_COSTS_TABLE = 'demand.learned_amcosts'
+PM_COSTS_TABLE = 'demand.learned_pmcosts'
+OP_COSTS_TABLE = 'demand.learned_opcosts'
+TCOST_CAR_TABLE = 'demand.learned_tcost_car'
+TCOST_BUS_TABLE = 'demand.learned_tcost_bus'
+SUBTRIP_METRICS_TABLE = 'output.subtrip_metrics'
+
+HALF = 0.5
+
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ helper functions ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 #identify whether time is in AM peak period
 #AM Peak : 7:30:00 - 9:29:00 AM
@@ -61,44 +79,42 @@ def getWindowIdx(time):
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~TT_Aggregator class~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 class TT_Aggregator:
 	def __init__(self, csv_name):
-		conn = psycopg2.connect("dbname='simmobility' user='postgres' host='localhost' port='5433' password='secret'")
+		connection_string = "dbname='" + DB_NAME + "' user='" + DB_USER + "' host='" + DB_HOST + "' port='" + DB_PORT + "' password='" + DB_PASSWORD + "'"
+		conn = psycopg2.connect(connection_string)
 		cur = conn.cursor()
+		
+		# fetch zones
+		fetch_zones_query = "SELECT zone_id, zone_code FROM " + ZONE_TABLE
+		cur.execute(fetch_zones_query)
 
-		# truncate existing table
-		cur.execute("""truncate table output.subtrip_tt""")
+		self.NUM_ZONES = cur.rowcount #meant to be constant
+		self.zoneId = {} # dictionary of <zone_code> : <zone_id>
+		self.zoneCode = {} #dictionary of <zone_id> : <zone_code>
+		rows = cur.fetchall()
+
+		for row in rows:
+			zone_id = int(row[0])
+			zone_code = int(row[1])
+			self.zoneId[zone_code] = zone_id
+			self.zoneCode[zone_id] = zone_code
+
+		# truncate existing subtrip_metrics table
+		truncate_script = "truncate table " + SUBTRIP_METRICS_TABLE
+		cur.execute(truncate_script)
 		
 		# copy csv data into table 		
 		csvFile = open(str(args.csv_name), 'r')
-		cur.copy_from(csvFile, 'output.subtrip_tt', ',')
+		cur.copy_from(csvFile, SUBTRIP_METRICS_TABLE, ',')
 		csvFile.close()
 
-		# load aggregated records
-		cur.execute("""SELECT origin_taz, destination_taz, min(mode) as mode, min(start_time) as start_time, max(end_time) as end_time, sum(travel_time) as travel_time, 
-							sum(ptt_wt) as ptt_wt, sum(pt_walk) as pt_walk FROM output.subtrip_tt GROUP BY person_id, trip_id, origin_taz, destination_taz""")
+		# load aggregate records from copied table
+		fetch_agg_tt_query = "SELECT origin_taz, destination_taz, min(mode) as mode, min(start_time) as start_time, max(end_time) as end_time, sum(travel_time) as travel_time FROM " + SUBTRIP_METRICS_TABLE + " GROUP BY person_id, trip_id, origin_taz, destination_taz"
+		cur.execute(fetch_agg_tt_query)
 		self.inputCsv = cur.fetchall()
-		#self.inputCsv = csv.DictReader(open(str(args.csv_name)))
-		
-		#connect to local mongodb
-		self.client = MongoClient('localhost', 27017)
-		self.db = self.client.preday
-		
-		self.zone = self.db.Zone_2012
-		self.zone2012To2008Map = self.db.map_1169_to_1092_zones
-		self.amCosts = self.db.LearnedAMCosts
-		self.pmCosts = self.db.LearnedPMCosts
-		self.opCosts = self.db.LearnedOPCosts
-		self.ttCar = self.db.learned_tcost_car
-		self.ttBus = self.db.learned_tcost_bus
-		
-		self.zoneId = {} # dictionary of <zone_code> : <zone_id>
-		self.zoneCode = {} #dictionary of <zone_id> : <zone_code>
-		self.NUM_ZONES = self.zone.count() #meant to be constant
-		
-		for z in range(1, self.NUM_ZONES+1):
-			zoneDoc = self.zone.find_one({"zone_id" : z})
-			self.zoneId[int(zoneDoc["zone_code"])] = z
-			self.zoneCode[z] = int(zoneDoc["zone_code"])
-		
+
+		# close the cursor
+		cur.close()
+
 		##2-dimensional list structures for each OD zone pair
 		#to hold cumulative car in-vehicle travel time, in hours
 		self.amCarIvt = [[0 for j in xrange(self.NUM_ZONES)] for i in xrange(self.NUM_ZONES)]
@@ -152,10 +168,10 @@ class TT_Aggregator:
 		self.ttArrivalBusCount = [[[0 for k in xrange(48)] for j in xrange(self.NUM_ZONES)] for i in xrange(self.NUM_ZONES)]
 		self.ttDepartureBusCount = [[[0 for k in xrange(48)] for j in xrange(self.NUM_ZONES)] for i in xrange(self.NUM_ZONES)]
 
-	#fetch 2008 zone_code corresponding to 2012 zone_code
-	def get2008Zone(self, zn2012):
-		return int(self.zone2012To2008Map.find_one({"_id" : zn2012})["MTZ1092"])
-	
+		#connect to local mongodb
+		self.client = MongoClient('localhost', 27017)
+		self.db = self.client.simmobcity
+
 	##functions to add items into the data structures defined above
 	def addAMCarIvt(self, origin, destination, value):
 		orgZid = self.zoneId[origin] - 1
@@ -267,7 +283,7 @@ class TT_Aggregator:
 	def processInput(self):
 		#process each row of input csv
 		for row in self.inputCsv:
-			#origin_taz, destination_taz, mode, start_time, end_time, travel_time, ptt_wt, pt_walk
+			#origin_taz, destination_taz, mode, start_time, end_time, travel_time
 			orgZ = int(row[0])
 			desZ = int(row[1])
 			mode = str(row[2]).strip()
@@ -285,16 +301,16 @@ class TT_Aggregator:
 			elif mode == "BusTravel" or mode == "MRT":
 				if isAM(tripStartTime):
 					self.addAMPubIvt(orgZ, desZ, travelTime)
-					self.addAMPubWtt(orgZ, desZ, float(row[6]))
-					self.addAMPubWalkt(orgZ, desZ, float(row[7]))
+					#self.addAMPubWtt(orgZ, desZ, float(row[6]))
+					#self.addAMPubWalkt(orgZ, desZ, float(row[7]))
 				elif isPM(tripStartTime):
 					self.addPMPubIvt(orgZ, desZ, travelTime)
-					self.addPMPubWtt(orgZ, desZ, float(row[6]))
-					self.addPMPubWalkt(orgZ, desZ, float(row[7]))
+					#self.addPMPubWtt(orgZ, desZ, float(row[6]))
+					#self.addPMPubWalkt(orgZ, desZ, float(row[7]))
 				else:
 					self.addOPPubIvt(orgZ, desZ, travelTime)
-					self.addOPPubWtt(orgZ, desZ, float(row[6]))
-					self.addOPPubWalkt(orgZ, desZ, float(row[7]))
+					#self.addOPPubWtt(orgZ, desZ, float(row[6]))
+					#self.addOPPubWalkt(orgZ, desZ, float(row[7]))
 				self.addTTBus(orgZ, desZ, tripStartTime, tripEndTime, travelTime)
 			else:
 				print 'ignoring record with mode ' + mode
@@ -326,88 +342,186 @@ class TT_Aggregator:
 					self.ttDepartureBus[i][j][k] = (float(self.ttDepartureBus[i][j][k])/self.ttDepartureBusCount[i][j][k]) if self.ttDepartureBusCount[i][j][k] > 0 else 0
 		return
 
-	def updateMongo(self):
+	def updatePostgres(self):
+		connection_string = "dbname='" + DB_NAME + "' user='" + DB_USER + "' host='" + DB_HOST + "' port='" + DB_PORT + "' password='" + DB_PASSWORD + "'"
+		conn = psycopg2.connect(connection_string)
+		cur = conn.cursor()
 		for i in range(self.NUM_ZONES):
 			orgZ = self.zoneCode[i+1]
-			orgZ08 = self.get2008Zone(orgZ)
 			for j in range(self.NUM_ZONES):
 				desZ = self.zoneCode[j+1]
-				desZ08 = self.get2008Zone(desZ)
 				if orgZ == desZ: continue
-				query = { "origin" : orgZ, "destin" : desZ }
 				
 				# AM updates
-				updates = {}
 				newCarIvt = self.amCarIvt[i][j]
 				newPubIvt = self.amPubIvt[i][j]
 				newPubWtt = self.amPubWtt[i][j]
 				newPubWalkt = self.amPubWalkt[i][j]
 				if (newCarIvt+newPubIvt+newPubWtt+newPubWalkt) > 0: 
-					amDoc = self.amCosts.find_one(query)
-					if newCarIvt > 0: updates["car_ivt"] = (newCarIvt + toFloat(amDoc["car_ivt"]))/2
-					if newPubIvt > 0: updates["pub_ivt"] = (newPubIvt + toFloat(amDoc["pub_ivt"]))/2
-					if newPubWtt > 0: updates["pub_wtt"] = (newPubWtt + toFloat(amDoc["pub_wtt"]))/2
-					if newPubWalkt > 0: updates["pub_walkt"] = (newPubWalkt + toFloat(amDoc["pub_walkt"]))/2
-					self.amCosts.update(query, {"$set" : updates }, upsert=False, multi=False)
-				
+					comma_required = False
+					update_param_tuple = ()
+					update_query = "UPDATE " + AM_COSTS_TABLE + " SET" 
+					if newCarIvt > 0: 
+						update_query = update_query + " car_ivt=((%s + " + AM_COSTS_TABLE + ".car_ivt) * %s)" 
+						update_param_tuple = update_param_tuple + (newCarIvt, HALF)
+						comma_required = True
+					if newPubIvt > 0: 
+						if comma_required: 
+							update_query = update_query + ","
+						update_query = update_query + " pub_ivt=((%s + " + AM_COSTS_TABLE + ".pub_ivt) * %s)" 
+						update_param_tuple = update_param_tuple + (newPubIvt, HALF)
+						comma_required = True
+					if newPubWtt > 0: 
+						if comma_required: 
+							update_query = update_query + ","
+						update_query = update_query + " pub_wtt=((%s + " + AM_COSTS_TABLE + ".pub_wtt) * %s)" 
+						update_param_tuple = update_param_tuple + (newPubWtt, HALF)
+						comma_required = True
+					if newPubWalkt > 0: 
+						if comma_required: 
+							update_query = update_query + ","
+						update_query = update_query + " pub_walkt=((%s + " + AM_COSTS_TABLE + ".pub_walkt) * %s)" 
+						update_param_tuple = update_param_tuple + (newPubWalkt, HALF)
+					update_query = update_query + " WHERE origin_zone=%s and destination_zone=%s"
+					update_param_tuple = update_param_tuple + (orgZ, desZ)
+					cur.execute(update_query, update_param_tuple)
+					conn.commit()
+
 				# PM updates
-				updates = {}
 				newCarIvt = self.pmCarIvt[i][j]
 				newPubIvt = self.pmPubIvt[i][j]
 				newPubWtt = self.pmPubWtt[i][j]
 				newPubWalkt = self.pmPubWalkt[i][j]
 				if (newCarIvt+newPubIvt+newPubWtt+newPubWalkt) > 0: 
-					pmDoc = self.pmCosts.find_one(query)
-					if newCarIvt > 0: updates["car_ivt"] = (newCarIvt + toFloat(pmDoc["car_ivt"]))/2
-					if newPubIvt > 0: updates["pub_ivt"] = (newPubIvt + toFloat(pmDoc["pub_ivt"]))/2
-					if newPubWtt > 0: updates["pub_wtt"] = (newPubWtt + toFloat(pmDoc["pub_wtt"]))/2
-					if newPubWalkt > 0: updates["pub_walkt"] = (newPubWalkt + toFloat(pmDoc["pub_walkt"]))/2
-					self.pmCosts.update(query, {"$set" : updates }, upsert=False, multi=False)
-				
+					comma_required = False
+					update_param_tuple = ()
+					update_query = "UPDATE " + PM_COSTS_TABLE + " SET" 
+					if newCarIvt > 0: 
+						update_query = update_query + " car_ivt=((%s + " + PM_COSTS_TABLE + ".car_ivt) * %s)" 
+						update_param_tuple = update_param_tuple + (newCarIvt, HALF)
+						comma_required = True
+					if newPubIvt > 0: 
+						if comma_required: 
+							update_query = update_query + ","
+						update_query = update_query + " pub_ivt=((%s + " + PM_COSTS_TABLE + ".pub_ivt) * %s)" 
+						update_param_tuple = update_param_tuple + (newPubIvt, HALF)
+						comma_required = True
+					if newPubWtt > 0: 
+						if comma_required: 
+							update_query = update_query + ","
+						update_query = update_query + " pub_wtt=((%s + " + PM_COSTS_TABLE + ".pub_wtt) * %s)" 
+						update_param_tuple = update_param_tuple + (newPubWtt, HALF)
+						comma_required = True
+					if newPubWalkt > 0: 
+						if comma_required: 
+							update_query = update_query + ","
+						update_query = update_query + " pub_walkt=((%s + " + PM_COSTS_TABLE + ".pub_walkt) * %s)" 
+						update_param_tuple = update_param_tuple + (newPubWalkt, HALF)
+					update_query = update_query + " WHERE origin_zone=%s and destination_zone=%s"
+					update_param_tuple = update_param_tuple + (orgZ, desZ)
+					cur.execute(update_query, update_param_tuple)
+					conn.commit()	
+			
 				# OP updates
-				updates = {}
 				newCarIvt = self.opCarIvt[i][j]
 				newPubIvt = self.opPubIvt[i][j]
 				newPubWtt = self.opPubWtt[i][j]
 				newPubWalkt = self.opPubWalkt[i][j]
 				if (newCarIvt+newPubIvt+newPubWtt+newPubWalkt) > 0: 
-					opDoc = self.opCosts.find_one(query)
-					if newCarIvt > 0: updates["car_ivt"] = (newCarIvt + toFloat(opDoc["car_ivt"]))/2
-					if newPubIvt > 0: updates["pub_ivt"] = (newPubIvt + toFloat(opDoc["pub_ivt"]))/2
-					if newPubWtt > 0: updates["pub_wtt"] = (newPubWtt + toFloat(opDoc["pub_wtt"]))/2
-					if newPubWalkt > 0: updates["pub_walkt"] = (newPubWalkt + toFloat(opDoc["pub_walkt"]))/2
-					self.opCosts.update(query, {"$set" : updates }, upsert=False, multi=False)
+					comma_required = False
+					update_param_tuple = ()
+					update_query = "UPDATE " + OP_COSTS_TABLE + " SET" 
+					if newCarIvt > 0: 
+						update_query = update_query + " car_ivt=((%s + " + OP_COSTS_TABLE + ".car_ivt) * %s)" 
+						update_param_tuple = update_param_tuple + (newCarIvt, HALF)
+						comma_required = True
+					if newPubIvt > 0: 
+						if comma_required: 
+							update_query = update_query + ","
+						update_query = update_query + " pub_ivt=((%s + " + OP_COSTS_TABLE + ".pub_ivt) * %s)" 
+						update_param_tuple = update_param_tuple + (newPubIvt, HALF)
+						comma_required = True
+					if newPubWtt > 0: 
+						if comma_required: 
+							update_query = update_query + ","
+						update_query = update_query + " pub_wtt=((%s + " + OP_COSTS_TABLE + ".pub_wtt) * %s)" 
+						update_param_tuple = update_param_tuple + (newPubWtt, HALF)
+						comma_required = True
+					if newPubWalkt > 0: 
+						if comma_required: 
+							update_query = update_query + ","
+						update_query = update_query + " pub_walkt=((%s + " + OP_COSTS_TABLE + ".pub_walkt) * %s)" 
+						update_param_tuple = update_param_tuple + (newPubWalkt, HALF)
+					update_query = update_query + " WHERE origin_zone=%s and destination_zone=%s"
+					update_param_tuple = update_param_tuple + (orgZ, desZ)
+					cur.execute(update_query, update_param_tuple)
+					conn.commit()	
 				
 				#time dependent tt updates
-				if orgZ08 == desZ08: continue
-				query = { "origin" : orgZ08, "destination" : desZ08 }
-				updates = {}
+				updatesAvailable = False
+				update_query = "UPDATE " + TCOST_CAR_TABLE + " SET" 
+				update_param_tuple = ()
+				comma_required = False
 				for k in range(48):
 					newTTCarArr = self.ttArrivalCar[i][j][k]
 					newTTCarDep = self.ttDepartureCar[i][j][k]
+					arrival_col = "tt_arrival_" + str(k+1)
+					departure_col = "tt_departure_" + str(k+1)
 					if (newTTCarArr+newTTCarDep) > 0:
-						ttCarDoc = self.ttCar.find_one(query)
-						if newTTCarArr > 0: updates["TT_car_arrival_"+str(k+1)] = (newTTCarArr + toFloat(ttCarDoc["TT_car_arrival_"+str(k+1)]))/2
-						if newTTCarDep > 0: updates["TT_car_departure_"+str(k+1)] = (newTTCarDep + toFloat(ttCarDoc["TT_car_departure_"+str(k+1)]))/2
-				if updates: 
-					self.ttCar.update(query, {"$set" : updates }, upsert=False , multi=False)
+						updatesAvailable = True
+						if newTTCarArr > 0: 
+							if comma_required: 
+								update_query = update_query + ","
+							update_query = update_query + " " + arrival_col + "=((%s + " + TCOST_CAR_TABLE + "." + arrival_col + ") * %s)" 
+							update_param_tuple = update_param_tuple + (newTTCarArr, HALF)
+							comma_required = True
+						if newTTCarDep > 0: 
+							if comma_required: 
+								update_query = update_query + ","
+							update_query = update_query + " " + departure_col + "=((%s + " + TCOST_CAR_TABLE + "." + departure_col + ") * %s)" 
+							update_param_tuple = update_param_tuple + (newTTCarDep, HALF)
+							comma_required = True
+				if updatesAvailable:
+					update_query = update_query + " WHERE origin_zone=%s and destination_zone=%s"
+					update_param_tuple = update_param_tuple + (orgZ, desZ)
+					cur.execute(update_query, update_param_tuple)
+					conn.commit()							
 				
-				updates = {}
+				updatesAvailable = False
+				update_query = "UPDATE " + TCOST_BUS_TABLE + " SET" 
+				update_param_tuple = ()
+				comma_required = False
 				for k in range(48):
 					newTTBusArr = self.ttArrivalBus[i][j][k]
 					newTTBusDep = self.ttDepartureBus[i][j][k]
+					arrival_col = "tt_arrival_" + str(k+1)
+					departure_col = "tt_departure_" + str(k+1)
 					if (newTTBusArr+newTTBusDep) > 0:
-						ttBusDoc = self.ttBus.find_one(query)
-						if newTTBusArr > 0: updates["TT_bus_arrival_"+str(k+1)] = (newTTBusArr + toFloat(ttBusDoc["TT_bus_arrival_"+str(k+1)]))/2
-						if newTTBusDep > 0: updates["TT_bus_departure_"+str(k+1)] = (newTTBusDep + toFloat(ttBusDoc["TT_bus_departure_"+str(k+1)]))/2
-				if updates: 
-					self.ttBus.update(query, {"$set" : updates }, upsert=False , multi=False)
+						updatesAvailable = True
+						if newTTBusArr > 0: 
+							if comma_required: 
+								update_query = update_query + ","
+							update_query = update_query + " " + arrival_col + "=((%s + " + TCOST_BUS_TABLE + "." + arrival_col + ") * %s)" 
+							update_param_tuple = update_param_tuple + (newTTBusArr, HALF)
+							comma_required = True
+						if newTTBusDep > 0: 
+							if comma_required: 
+								update_query = update_query + ","
+							update_query = update_query + " " + departure_col + "=((%s + " + TCOST_BUS_TABLE + "." + departure_col + ") * %s)" 
+							update_param_tuple = update_param_tuple + (newTTBusDep, HALF)
+							comma_required = True
+				if updatesAvailable:
+					update_query = update_query + " WHERE origin_zone=%s and destination_zone=%s"
+					update_param_tuple = update_param_tuple + (orgZ, desZ)
+					cur.execute(update_query, update_param_tuple)
+					conn.commit()
 		return
+
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 s = datetime.datetime.now()
 parser = argparse.ArgumentParser()
-parser.add_argument("csv_name", default="tt.csv", help="travel times experienced by persons in withinday")
+parser.add_argument("csv_name", default="subtrip_metrics.csv", help="travel times experienced by persons in withinday")
 args = parser.parse_args()
 
 #1.
@@ -421,8 +535,8 @@ print "3. computing means"
 aggregator.computeMeans()
 
 #4.
-print "4. updating mongodb"
-aggregator.updateMongo()
+print "4. updating data in postgres db"
+aggregator.updatePostgres()
 
 print "Done. Exiting Main"
 

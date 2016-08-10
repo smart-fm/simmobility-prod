@@ -26,12 +26,12 @@ const std::string DEMAND_SCHEMA = "demand.";
  */
 const std::string DB_TABLE_INCOME_CATEGORIES = APPLY_SCHEMA(MAIN_SCHEMA, "income_category");
 const std::string DB_TABLE_VEHICLE_OWNERSHIP_STATUS = APPLY_SCHEMA(MAIN_SCHEMA, "vehicle_ownership_status");
-const std::string DB_TABLE_AM_COSTS = APPLY_SCHEMA(DEMAND_SCHEMA, "amcosts");
-const std::string DB_TABLE_PM_COSTS = APPLY_SCHEMA(DEMAND_SCHEMA, "pmcosts");
-const std::string DB_TABLE_OP_COSTS = APPLY_SCHEMA(DEMAND_SCHEMA, "opcosts");
+const std::string DB_TABLE_AM_COSTS = APPLY_SCHEMA(DEMAND_SCHEMA, "learned_amcosts");
+const std::string DB_TABLE_PM_COSTS = APPLY_SCHEMA(DEMAND_SCHEMA, "learned_pmcosts");
+const std::string DB_TABLE_OP_COSTS = APPLY_SCHEMA(DEMAND_SCHEMA, "learned_opcosts");
 const std::string DB_TABLE_TAZ = APPLY_SCHEMA(DEMAND_SCHEMA, "taz_2012");
-const std::string DB_TABLE_TCOST_PVT = APPLY_SCHEMA(DEMAND_SCHEMA, "tcost_car");
-const std::string DB_TABLE_TCOST_PT = APPLY_SCHEMA(DEMAND_SCHEMA, "tcost_bus");
+const std::string DB_TABLE_TCOST_PVT = APPLY_SCHEMA(DEMAND_SCHEMA, "learned_tcost_car");
+const std::string DB_TABLE_TCOST_PT = APPLY_SCHEMA(DEMAND_SCHEMA, "learned_tcost_bus");
 const std::string DB_TABLE_NODE_ZONE_MAP = APPLY_SCHEMA(DEMAND_SCHEMA, "node_taz_map");
 
 /**

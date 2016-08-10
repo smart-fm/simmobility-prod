@@ -130,8 +130,8 @@ const std::string DB_FIELD_COST_PUB_COST = "pub_cost";
 /**
  * Fields for time dependent zone-zone travel times data (in postgres db)
  */
-const std::string DB_FIELD_TCOST_ORIGIN = "origin";
-const std::string DB_FIELD_TCOST_DESTINATION = "destination";
+const std::string DB_FIELD_TCOST_ORIGIN = "origin_zone";
+const std::string DB_FIELD_TCOST_DESTINATION = "destination_zone";
 const std::string DB_FIELD_TCOST_INFO_UNAVAILABLE = "info_unavailable";
 const std::string DB_FIELD_TCOST_TT_ARRIVAL_PREFIX = "tt_arrival_";
 const std::string DB_FIELD_TCOST_TT_DEPARTURE_PREFIX = "tt_departure_";

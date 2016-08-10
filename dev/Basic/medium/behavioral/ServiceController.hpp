@@ -117,7 +117,7 @@ class ServiceController:  public lua::LuaModel
     /* This gives the future next requested for the train */
     int getNextRequestedMovementActionForTrain(int trainId,std::string lineId);
     /* This sets or clears the ignore safe distance flag for the train */
-    void setUnsetIgnoreSafeDistance(int trainId,std::string lineId,bool ignore);
+    void setIgnoreSafeDistance(int trainId,std::string lineId,bool ignore);
     /* This sets or clears the ignore safe headway flag for the train */
     void setUnsetIgnoreSafeHeadway(int trainId,std::string lineId,bool ignore);
     /*This clears disruption on the platforms */
@@ -136,6 +136,8 @@ class ServiceController:  public lua::LuaModel
     std::string getPrePlatfrom(std::string lineId,std::string platformName);
     /* This clears all the stop points of the train */
     void clearStopPoints(int trainId,std::string lineId);
+    /* connects trains after disruption */
+    void connectTrainsAfterDisruption(std::string lineId);
 
 	private:
     mutable boost::mutex lineTrainDriversLock;

@@ -202,6 +202,7 @@ public:
 	void setUnsetIgnoreSafeHeadwayByServiceController(bool ignore);
 
 	std::string getPlatformByOffset(int offset);
+	bool isUturnDueToDisruption();
 
 protected:
 	virtual TravelMetric& startTravelTimeMetric();
@@ -224,6 +225,7 @@ private:
 	boost::mutex facetMutex;
 	bool forceResetMovingCase=false;
 	bool isDisruptedState=false;
+	bool uTurnDueToDisruption=false;
 	bool isStrandedBetweenPlatforms_DisruptedState=false;
 	boost::mutex safeDistanceLock;
 	boost::mutex safeHeadwayLock;

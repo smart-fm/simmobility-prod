@@ -530,6 +530,7 @@ void TrainMovement::frame_tick()
 	}
 	case TrainDriver::REQUESTED_WAITING_LEAVING:
 	{
+		//need to handle the case when the is stopped at platform and stop point is given
 		parentDriver->reduceWaitingTime(params.secondsInTick);
 		parentDriver->ResetHoldingTime();
 		double waitingTime = parentDriver->getWaitingTime();
@@ -710,8 +711,17 @@ void TrainMovement::frame_tick()
 
 	case TrainDriver::REQUESTED_TAKE_UTURN:
 	{
-		//if possible
-		PrepareForUTurn();
+
+		if(!parentDriver->GetUTurnFlag())
+		{
+			//skip uturn
+			parentDriver->setNextRequested(TrainDriver::REQUESTED_AT_PLATFORM);
+
+		}
+		else
+		{
+			PrepareForUTurn();
+		}
         break;
 	}
 	}
@@ -940,20 +950,6 @@ double TrainMovement::getRealSpeedLimit()
 	}*/
 	//just for debugging
 
-/*if(forceResetMovingCase==true)
-{
-   if(params.currCase == TrainUpdateParams::STATION_CASE)
-   {
-	   params.currentSpeedLimit = speedLimit;
-	   return speedLimit;
-   }
-
-}*/
-
-	/*if(parentDriver->getTrainId()==1)
-	{
-		int w=9;
-	}*/
 
 //just for debugging
 if(forceResetMovingCase==false||forceResetedCase==TRAINCASE::STATION_CASE)
@@ -1068,6 +1064,11 @@ std::string TrainMovement::getPlatformByOffset(int offset)
 		platformName=platform->getPlatformNo();
 	}
 	return platformName;
+}
+
+bool TrainMovement::isUturnDueToDisruption()
+{
+  return uTurnDueToDisruption;
 }
 
 bool TrainMovement::isStopAtPlatform()

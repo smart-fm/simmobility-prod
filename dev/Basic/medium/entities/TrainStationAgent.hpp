@@ -31,6 +31,7 @@ public:
 	void setConflux(Conflux* conflux);
 	void setStationName(const std::string& name);
 	void setLines();
+	void setLastDriver(std::string lineId,TrainDriver *driver);
 
 protected:
 	virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);

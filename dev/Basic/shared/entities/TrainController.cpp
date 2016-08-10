@@ -304,7 +304,9 @@ namespace sim_mob {
 		if(it==mapOfIdvsTrainPlatforms.end())
 		{
 			res = false;
-		} else {
+		}
+		else
+		{
 			std::vector<TrainPlatform>& trainPlatform = it->second;
 			for(std::vector<TrainPlatform>::iterator i=trainPlatform.begin();i!=trainPlatform.end();i++) {
 				std::map<std::string, Platform*>::iterator iPlatform = mapOfIdvsPlatforms.find(i->platformNo);

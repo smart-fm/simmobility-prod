@@ -484,6 +484,84 @@ std::string ServiceController::getDisruptedPlatformByIndex(std::string lineID,in
 void ServiceController::clearDisruption(std::string lineId)
 {
 	TrainController<sim_mob::medium::Person_MT>::getInstance()->ClearDisruption(lineId);
+	//connect the trains to break the uTurn loop.
+
+}
+
+void ServiceController::connectTrainsAfterDisruption(std::string lineId)
+{
+	map<std::string,std::vector<TrainDriver*>>::iterator it=mapOfLineAndTrainDrivers.find(lineId);
+	std::vector<TrainDriver*> trainDrivers;
+	if(it != mapOfLineAndTrainDrivers.end())
+	{
+		std::vector<TrainDriver*> &vect = it->second;
+		for (typename std::vector<TrainDriver*>::iterator it = vect.begin() ; it != vect.end(); ++it)
+		{
+			TrainDriver *driver=(*it);
+			TrainMovement *movement=driver->GetMovement();
+			if(movement)
+			{
+				double dis=movement->getTotalCoveredDistance();
+				if(dis>0)
+				{
+					std::vector<TrainDriver*>::iterator itr = trainDrivers.begin();
+					for ( ; itr != trainDrivers.end(); ++itr)
+					{
+						TrainDriver *trainDriver=(*itr);
+						TrainMovement *mov=trainDriver->GetMovement();
+						if(mov)
+						{
+							double distance=mov->getTotalCoveredDistance();
+							if(distance>dis)
+							{
+								break;
+							}
+						}
+					}
+					trainDrivers.insert(itr-1,driver);
+				}
+			}
+
+		}
+
+		//after sorting connect
+		for(std::vector<TrainDriver*>::iterator it=trainDrivers.begin();it!=trainDrivers.end();it++)
+		{
+			TrainDriver *driver=(*it);
+			if(driver->getNextDriver()!=nullptr)
+			{
+				TrainDriver *dr=*(it+1);
+				if(driver->getNextDriver()!=dr)
+				{
+					driver->setNextDriver(dr);
+				}
+			}
+			else
+			{
+				if((it+1)!=trainDrivers.end())
+				{
+					driver->setNextDriver(*(it+1));
+				}
+			}
+		}
+
+		std::vector<Platform*> platforms;
+		TrainController<sim_mob::medium::Person_MT>::getInstance()->getTrainPlatforms(lineId, platforms);
+		if(platforms.size()>0)
+		{
+			Platform *platform=*(platforms.begin());
+			if(platform)
+			{
+				Agent *stationAgent=TrainController<sim_mob::medium::Person_MT>::getInstance()->getAgentFromStation(platform->getStationNo());
+				TrainStationAgent *trainStationAgent=dynamic_cast<TrainStationAgent*>(stationAgent);
+				if(trainStationAgent)
+				{
+					trainStationAgent->setLastDriver(lineId,(*trainDrivers.begin()));
+				}
+			}
+		}
+
+	}
 }
 
 int ServiceController::getDisruptedPlatformsSize(std::string lineID)

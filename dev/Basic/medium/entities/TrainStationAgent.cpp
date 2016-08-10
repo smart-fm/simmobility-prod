@@ -338,6 +338,11 @@ void TrainStationAgent::dispathPendingTrains(timeslice now)
 		}
 	}
 }
+
+void TrainStationAgent::setLastDriver(std::string lineId,TrainDriver *driver)
+{
+	lastTrainDriver[lineId]=driver;
+}
 void TrainStationAgent::passengerLeaving(timeslice now)
 {
 	std::map<const Platform*, std::list<Passenger*>>::iterator it;

@@ -40,7 +40,6 @@ const std::string DB_TABLE_NODE_ZONE_MAP = APPLY_SCHEMA(DEMAND_SCHEMA, "node_taz
 const std::string DB_SP_GET_INDIVIDUAL_IDS = APPLY_SCHEMA(MAIN_SCHEMA, "getindividualids()");
 const std::string DB_SP_GET_INDIVIDUAL_BY_ID_FOR_PREDAY = APPLY_SCHEMA(MAIN_SCHEMA, "getindividualbyidforpreday(:_id)");
 const std::string DB_SP_GET_ADDRESSES = APPLY_SCHEMA(MAIN_SCHEMA, "getaddresses()");
-const std::string DB_SP_GET_ZONE_ADDRESS_COUNTS= APPLY_SCHEMA(MAIN_SCHEMA, "getzoneaddresscounts()");
 const std::string DB_SP_GET_POSTCODE_NODE_MAP = APPLY_SCHEMA(PUBLIC_SCHEMA, "get_postcode_node_map()");
 
 /**
@@ -157,9 +156,6 @@ const std::string DB_GET_PERSON_BY_ID = "SELECT * FROM " + DB_SP_GET_INDIVIDUAL_
 /** load address taz mapping from LT database */
 const std::string DB_GET_ADDRESSES = "SELECT * FROM " + DB_SP_GET_ADDRESSES;
 
-/** load number of addresses in each taz from LT database */
-const std::string DB_GET_ZONE_ADDRESS_COUNTS = "SELECT * FROM " + DB_SP_GET_ZONE_ADDRESS_COUNTS;
-
 /** load postcode to simmobility node mapping */
 const std::string DB_GET_POSTCODE_NODE_MAP = "SELECT * FROM " + DB_SP_GET_POSTCODE_NODE_MAP;
 
@@ -183,8 +179,8 @@ const std::string DB_GET_TCOST_PVT_FOR_OD = "SELECT * FROM " + DB_TABLE_TCOST_PV
 		                                    " WHERE " + DB_FIELD_TCOST_ORIGIN + " = :origin"
 		                                    "   AND " + DB_FIELD_TCOST_DESTINATION + " = :dest";
 
-const std::string DB_GET_PUB_UNAVAILABLE_OD = "SELECT origin, destination FROM " + DB_TABLE_TCOST_PT + " WHERE info_unavailable = TRUE";
-const std::string DB_GET_PVT_UNAVAILABLE_OD = "SELECT origin, destination FROM " + DB_TABLE_TCOST_PVT + " WHERE info_unavailable = TRUE";
+const std::string DB_GET_PUB_UNAVAILABLE_OD = "SELECT "+ DB_FIELD_TCOST_ORIGIN + ", " + DB_FIELD_TCOST_DESTINATION + " FROM " + DB_TABLE_TCOST_PT + " WHERE info_unavailable = TRUE";
+const std::string DB_GET_PVT_UNAVAILABLE_OD = "SELECT "+ DB_FIELD_TCOST_ORIGIN + ", " + DB_FIELD_TCOST_DESTINATION + " FROM " + DB_TABLE_TCOST_PVT + " WHERE info_unavailable = TRUE";
 
 /** load zones */
 const std::string DB_GET_ALL_ZONES = "SELECT * FROM " + DB_TABLE_TAZ;

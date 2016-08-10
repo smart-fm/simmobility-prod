@@ -25,9 +25,9 @@ PredayCalibrationParams::PredayCalibrationParams() :
 
 MT_Config::MT_Config() :
        regionRestrictionEnabled(false), midTermRunMode(MT_Config::MT_NONE), pedestrianWalkSpeed(0), numPredayThreads(0),
-			configSealed(false), fileOutputEnabled(false), consoleOutput(false), predayRunMode(MT_Config::PREDAY_NONE), calibrationMethodology(MT_Config::WSPSA),
-			logsumComputationFrequency(0), supplyUpdateInterval(0), activityScheduleLoadInterval(0), busCapacity(0), outputPredictions(false),
-            populationSource(db::MONGO_DB), populationDB(), simmobDB(), granPersonTicks(0)
+			configSealed(false), fileOutputEnabled(false), consoleOutput(false), predayRunMode(MT_Config::PREDAY_NONE),
+			calibrationMethodology(MT_Config::WSPSA), logsumComputationFrequency(0), supplyUpdateInterval(0),
+			activityScheduleLoadInterval(0), busCapacity(0), populationSource(db::MONGO_DB), granPersonTicks(0)
 {
 }
 
@@ -187,19 +187,6 @@ void MT_Config::setFileOutputEnabled(bool outputTripchains)
 	}
 }
 
-bool MT_Config::isOutputPredictions() const
-{
-	return outputPredictions;
-}
-
-void MT_Config::setOutputPredictions(bool outputPredictions)
-{
-	if(!configSealed)
-	{
-		this->outputPredictions = outputPredictions;
-	}
-}
-
 bool MT_Config::isConsoleOutput() const
 {
 	return consoleOutput;
@@ -311,34 +298,6 @@ void MT_Config::setPopulationSource(const std::string& src)
 		std::string dataSourceStr = boost::to_upper_copy(src);
 		if(dataSourceStr == "PGSQL") { populationSource = db::POSTGRES; }
 		else { populationSource = db::MONGO_DB; } //default setting
-	}
-}
-
-const DB_Details& MT_Config::getSimmobDb() const
-{
-	return simmobDB;
-}
-
-void MT_Config::setSimmobDb(const std::string& simmobDb, const std::string& simmobCred)
-{
-	if(!configSealed)
-	{
-		simmobDB.database = simmobDb;
-		simmobDB.credentials = simmobCred;
-	}
-}
-
-const DB_Details& MT_Config::getPopulationDb() const
-{
-	return populationDB;
-}
-
-void MT_Config::setPopulationDb(const std::string& populationDb, const std::string& populationCred)
-{
-	if(!configSealed)
-	{
-		populationDB.database = populationDb;
-		populationDB.credentials = populationCred;
 	}
 }
 

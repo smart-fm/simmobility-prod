@@ -5,7 +5,7 @@
 <config>
     <!-- Determines whether to run SimMobility_Medium's demand simulator or the supply simulator -->
     <!-- Admissible values are "preday", "withinday" and "supply". Values "withinday" and "supply" runs the same code. Two different values are allowed just for convenience.-->
-    <mid_term_run_mode value="withinday"/>
+    <mid_term_run_mode value="preday"/>
 
     <!-- Groupings of stored procedures, used for loading network data from certain tables. -->
     <db_proc_groups>
@@ -203,19 +203,9 @@
         <threads value="6"/>
         <!-- outputs the preday predictions as activity schedule in CSV format if enabled with simulation run_mode -->
         <output_activity_schedule enabled="true"/>
-        <!-- outputs the preday's predicted tours and stops to mongodb if enabled -->
-        <output_predictions enabled="false"/>
         <!-- prints person ids and tour details in console for each person if enabled -->
         <console_output enabled="true"/>
         
-        <!-- Data source for population and logsums. 
-         Admissible values for source are 'pgsql' and 'mongodb' which points to LT database or local MongoDB respectively. 
-         Value 'mongodb' is default for source. 
-         Database and credentials attributes are required only for pgsql source.
-         Valid ids from the list constructs list have to be specified -->
-        <population source="pgsql" database="fm_remote_lt" credential="lt_cred"/>
-        <simmob_mt source="pgsql" database="fm_remote" credential="fm_remote"/>
-
         <!-- table containing logsums for each individual in the population. NOTE:  -->
         <logsum_table name="demand.preday_logsum"/>
 
@@ -246,23 +236,6 @@
             <script name="itd" file="itd.lua"/> <!--Intermediate Stop Time Of Day -->                      
             <script name="zpa" file="zpa.lua"/> <!--Zone postcode assignment --> 
         </model_scripts>
-            
-        <!-- Names of MongoDB database and collections -->
-        <mongo_collections db_name="preday">
-            <mongo_collection name="population" collection="hits12_population_updated_zones"/>
-            <mongo_collection name="tcost_bus" collection="tcost_bus_2012"/>
-            <mongo_collection name="tcost_car" collection="tcost_car_2012"/>
-            <mongo_collection name="AMCosts" collection="AMCosts_2012"/>
-            <mongo_collection name="OPCosts" collection="OPCosts_2012"/>
-            <mongo_collection name="PMCosts" collection="PMCosts_2012"/>
-            <mongo_collection name="Zone" collection="Zone_2012"/>
-            <mongo_collection name="zone_node" collection="node_taz_mapping_750m"/>
-            <mongo_collection name="zone_08_12" collection="map_1169_to_1092_zones"/>
-            <mongo_collection name="Output_DayPattern" collection="daypattern_0815"/>
-            <mongo_collection name="Output_Tour" collection="tour_0815"/>
-            <mongo_collection name="Output_Activity" collection="activity_0815"/>
-            <mongo_collection name="Output_SubTour" collection="wbst_0815"/>
-        </mongo_collections>
             
         <calibration enabled="false">
             <!-- variables to calibrate -->

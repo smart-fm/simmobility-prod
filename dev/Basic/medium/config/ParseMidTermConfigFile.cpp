@@ -136,31 +136,15 @@ void ParseMidTermConfigFile::processPredayNode(xercesc::DOMElement* node)
 		childNode = GetSingleElementByName(node, "output_activity_schedule", true);
 		mtCfg.setFileOutputEnabled(ParseBoolean(GetNamedAttributeValue(childNode, "enabled", true)));
 	}
-	childNode = GetSingleElementByName(node, "output_predictions", true);
-	mtCfg.setOutputPredictions(ParseBoolean(GetNamedAttributeValue(childNode, "enabled", true)));
 	childNode = GetSingleElementByName(node, "console_output", true);
 	mtCfg.setConsoleOutput(ParseBoolean(GetNamedAttributeValue(childNode, "enabled", true)));
-
-	childNode = GetSingleElementByName(node, "population", true);
-	mtCfg.setPopulationSource(ParseString(GetNamedAttributeValue(childNode, "source", false), EMPTY_STRING));
-	if(mtCfg.getPopulationSource() == db::POSTGRES)
-	{
-		std::string database = ParseString(GetNamedAttributeValue(childNode, "database", false), EMPTY_STRING);
-		std::string credential = ParseString(GetNamedAttributeValue(childNode, "credential", false), EMPTY_STRING);
-		mtCfg.setPopulationDb(database, credential);
-
-		childNode = GetSingleElementByName(node, "simmob_mt", true);
-		database = ParseString(GetNamedAttributeValue(childNode, "database", false), EMPTY_STRING);
-		credential = ParseString(GetNamedAttributeValue(childNode, "credential", false), EMPTY_STRING);
-		mtCfg.setSimmobDb(database, credential);
-	}
 
 	childNode = GetSingleElementByName(node, "logsum_table", true);
 	mtCfg.setLogsumTableName(ParseString(GetNamedAttributeValue(childNode, "name", true)));
 
 	ModelScriptsMap luaModelsMap = processModelScriptsNode(GetSingleElementByName(node, "model_scripts", true));
 	mtCfg.setModelScriptsMap(luaModelsMap);
-	processMongoCollectionsNode(GetSingleElementByName(node, "mongo_collections", true));
+
 	processCalibrationNode(GetSingleElementByName(node, "calibration", true));
 }
 

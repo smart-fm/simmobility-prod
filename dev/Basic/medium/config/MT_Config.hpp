@@ -448,20 +448,6 @@ public:
 	void setFileOutputEnabled(bool outputTripchains);
 
 	/**
-	 * Checks whether output predictions is enabled
-	 *
-	 * @return true if enabled, else false
-	 */
-	bool isOutputPredictions() const;
-
-	/**
-	 * Sets output predictions enabled/disabled status
-	 *
-	 * @param outputPredictions status to be set
-	 */
-	void setOutputPredictions(bool outputPredictions);
-
-	/**
 	 * Checks whether console output enabled/disabled status
 	 *
 	 * @return true if enabled, else false
@@ -607,36 +593,6 @@ public:
 	 * @param src population source database to be set
 	 */
 	void setPopulationSource(const std::string& src);
-
-	/**
-	 * Retrieves simmobility database details
-	 *
-	 * @return simmobility db details
-	 */
-	const DB_Details& getSimmobDb() const;
-
-	/**
-	 * Sets logsum database details
-	 *
-	 * @param simmobDb simmobility database name
-	 * @param simmobCred credentials for simmob database
-	 */
-	void setSimmobDb(const std::string& simmobDb, const std::string& simmobCred);
-
-	/**
-	 * Retrieves population database details
-	 *
-	 * @return population db details
-	 */
-	const DB_Details& getPopulationDb() const;
-
-	/**
-	 * Sets population database details
-	 *
-	 * @param populationDb population database name
-	 * @param populationCred credentials for population database
-	 */
-	void setPopulationDb(const std::string& populationDb, const std::string& populationCred);
 
 	/**
 	 * Retrieves number of workers for handling agents
@@ -820,9 +776,6 @@ private:
 	/// flag to indicate whether output files need to be enabled
 	bool fileOutputEnabled;
 
-	/// flag to indicate whether tours and stops need to be output in mongodb
-	bool outputPredictions;
-
 	/// flag to indicate whether console output is required
 	bool consoleOutput;
 
@@ -843,12 +796,6 @@ private:
 
 	/// population database type
 	db::BackendType populationSource;
-
-	/// poulation database details
-	DB_Details populationDB;
-
-	/// simmobility database details
-	DB_Details simmobDB;
 
 	/// name of table containing pre-computed values
 	std::string logsumTableName;

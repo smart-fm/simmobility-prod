@@ -395,10 +395,7 @@ find_package(Lua REQUIRED)
 include_directories(${LUA_INCLUDE_DIRS})
 LIST(APPEND LibraryList ${LUA_LIBRARIES})
 
-#Find MongoDB
-find_package(MongoClient REQUIRED)
-include_directories(${MONGOCLIENT_INCLUDE_DIRS})
-LIST(APPEND LibraryList ${MONGOCLIENT_LIBRARY} -lcrypto -lssl -lpq -ldl )
+LIST(APPEND LibraryList -lcrypto -lssl -lpq -ldl )
 
 IF (${BUILD_SHORT} MATCHES "ON")
         #Find GLPK

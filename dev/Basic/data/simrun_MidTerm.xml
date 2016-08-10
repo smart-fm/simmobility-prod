@@ -8,7 +8,7 @@
     <mid_term_run_mode value="withinday"/>
 
     <!-- Groupings of stored procedures, used for loading network data from certain tables. -->
-   <db_proc_groups>
+    <db_proc_groups>
         <!-- SimMobility Virtual City Network -->
         <proc_map id="simmobcity" format="aimsun">
             <mapping name="nodes" procedure="get_nodes()"/>

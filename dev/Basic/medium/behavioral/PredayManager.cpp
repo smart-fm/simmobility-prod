@@ -760,25 +760,18 @@ void sim_mob::medium::PredayManager::dispatchLT_Persons()
 	if(mtConfig.runningPredayLogsumComputation())
 	{
 		// logsum data source
-		const std::string& logsumDbId = mtConfig.getSimmobDb().database;
-		Database logsumDatabase = ConfigManager::GetInstance().FullConfig().constructs.databases.at(logsumDbId);
-		std::string cred_id = mtConfig.getSimmobDb().credentials;
-		Credential logsumCredentials = ConfigManager::GetInstance().FullConfig().constructs.credentials.at(cred_id);
-		std::string username = logsumCredentials.getUsername();
-		std::string password = logsumCredentials.getPassword(false);
-		DB_Config logsumDbConfig(logsumDatabase.host, logsumDatabase.port, logsumDatabase.dbName, username, password);
-		DB_Connection logsumConn(sim_mob::db::POSTGRES, logsumDbConfig);
-		logsumConn.connect();
-		if (!logsumConn.isConnected())
+		DB_Connection simmobConn = getDB_Connection(ConfigManager::GetInstance().FullConfig().networkDatabase);
+		simmobConn.connect();
+		if (!simmobConn.isConnected())
 		{
-			throw std::runtime_error("logsum db connection failure!");
+			throw std::runtime_error("simmobility db connection failure!");
 		}
 		const std::string& logsumTableName = mtConfig.getLogsumTableName();
-		SimmobSqlDao logsumSqlDao(logsumConn, logsumTableName);
+		SimmobSqlDao logsumSqlDao(simmobConn, logsumTableName);
 		bool truncated = logsumSqlDao.erase(db::EMPTY_PARAMS);
 		if(truncated)
 		{
-			Print() << logsumTableName << " truncated on " << logsumDatabase.dbName << std::endl;
+			Print() << logsumTableName << " truncated\n";
 		}
 		else
 		{
@@ -1203,7 +1196,6 @@ void sim_mob::medium::PredayManager::processPersonsForLT_Population(const LT_Per
 		const LT_PersonIdList::iterator& oneAfterLastPersonIdIt, const std::string& activityScheduleLog)
 {
 	bool outputTripchains = mtConfig.isFileOutputEnabled();
-	bool outputPredictions = mtConfig.isOutputPredictions();
 	bool consoleOutput = mtConfig.isConsoleOutput();
 
 	// construct population dao specially

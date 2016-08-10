@@ -146,11 +146,6 @@ public:
 	void loadUnavailableODs();
 
 	/**
-	 * Distributes mongodb persons to different threads and starts the threads which process the persons
-	 */
-	void dispatchMongodbPersons();
-
-	/**
 	 * Distributes long-term persons to different threads and starts the threads which process the persons
 	 */
 	void dispatchLT_Persons();
@@ -169,18 +164,6 @@ private:
 	typedef std::vector<long> LT_PersonIdList;
 
 	typedef void (PredayManager::*threadedFnPtr)(const PersonList::iterator&, const PersonList::iterator&, size_t);
-
-	/**
-	 * Threaded function loop for simulation.
-	 * Loops through all elements in personList within the specified range and
-	 * invokes the Preday system of models for each of them.
-	 *
-	 * @param first personIdList iterator corresponding to the first person to be
-	 * 				processed
-	 * @param last personIdList iterator corresponding to the person after the
-	 * 				last person to be processed
-	 */
-	void processPersons(const PersonIdList::iterator& first, const PersonIdList::iterator& last, const std::string& scheduleLog);
 
 	/**
 	 * Threaded function loop for simulation of LT population
@@ -211,18 +194,6 @@ private:
 	 * @param simStats the object to collect statistics into
 	 */
 	void processPersonsForCalibration(const PersonList::iterator& first, const PersonList::iterator& last, size_t threadNum);
-
-	/**
-	 * Threaded logsum computation
-	 * Loops through all elements in personIdList within the specified range and
-	 * invokes logsum computations for each of them.
-	 *
-	 * @param first personIdList iterator corresponding to the first person to be
-	 * 				processed
-	 * @param last personIdList iterator corresponding to the person after the
-	 * 				last person to be processed
-	 */
-	void computeLogsums(const PersonIdList::iterator& firstPersonIdIt, const PersonIdList::iterator& oneAfterLastPersonIdIt);
 
 	/**
 	 * Threaded logsum computation for LT population

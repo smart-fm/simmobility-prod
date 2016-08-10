@@ -2,13 +2,6 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
-/*
- * PredayManager.cpp
- *
- *  Created on: Nov 18, 2013
- *      Author: Harish Loganathan
- */
-
 #include "PredayManager.hpp"
 
 #include <algorithm>
@@ -30,7 +23,6 @@
 #include "conf/Constructs.hpp"
 #include "conf/RawConfigParams.hpp"
 #include "database/DB_Connection.hpp"
-#include "database/DatabaseHelper.hpp"
 #include "database/DB_Config.hpp"
 #include "database/predaydao/DatabaseHelper.hpp"
 #include "database/predaydao/PopulationSqlDao.hpp"

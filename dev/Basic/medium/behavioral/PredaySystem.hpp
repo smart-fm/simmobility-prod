@@ -141,7 +141,7 @@ private:
 	bool predictStopTimeOfDay(Stop* stop, int destinationLocation, bool isBeforePrimary);
 
 	/**
-	 * issues query to time dependent travel time collection in mongoDB to fetch travel time
+	 * issues query to time dependent travel time table to fetch travel time
 	 * @param origin the origin zone code of trip
 	 * @param destination the destination zone code of trip
 	 * @param mode the travel mode code for trip

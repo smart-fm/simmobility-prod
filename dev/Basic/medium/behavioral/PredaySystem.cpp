@@ -22,7 +22,6 @@
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "conf/Constructs.hpp"
-#include "database/DatabaseHelper.hpp"
 #include "database/DB_Connection.hpp"
 #include "logging/Log.hpp"
 #include "PredayClasses.hpp"

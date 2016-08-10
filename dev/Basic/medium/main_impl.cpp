@@ -449,10 +449,11 @@ bool performMainDemand()
 	else
 	{
 		Print() << "Preday mode: " << (mtConfig.runningPredaySimulation()? "simulation":"logsum computation")  << std::endl;
+		predayManager.dispatchLT_Persons();
 //		const db::BackendType populationSource = mtConfig.getPopulationSource();
 //		if(populationSource == db::POSTGRES)
 //		{
-			predayManager.dispatchLT_Persons();
+//			predayManager.dispatchLT_Persons();
 //		}
 //		else
 //		{

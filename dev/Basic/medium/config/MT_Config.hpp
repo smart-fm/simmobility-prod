@@ -309,7 +309,6 @@ private:
 /**
  * Singleton class to hold Mid-term related configurations
  */
-
 class MT_Config : private ProtectedCopyable
 {
 	friend class ParseMidTermConfigFile;
@@ -374,8 +373,6 @@ public:
 	 * @param modelScriptsMap model scripts map to be set
 	 */
 	void setModelScriptsMap(const ModelScriptsMap& modelScriptsMap);
-
-	const ModelScriptsMap& getServiceControllerScriptsMap();
 
     /**
      * Retrieves Mongo Collection map

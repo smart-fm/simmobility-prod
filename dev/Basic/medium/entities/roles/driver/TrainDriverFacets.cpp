@@ -188,7 +188,7 @@ bool TrainMovement::CheckIfTrainsAreApprochingOrAtPlatform(std::string platformN
     	TrainDriver *tDriver=dynamic_cast<TrainDriver*>(*(it));
     	if(tDriver)
     	{
-    		MovementFacet *moveFacet=tDriver->GetMovement();
+    		MovementFacet *moveFacet=tDriver->getMovement();
     		if(moveFacet)
     		{
     			TrainMovement* trainMovement=dynamic_cast<TrainMovement*>(moveFacet);
@@ -433,12 +433,12 @@ void TrainMovement::produceMoveInfo()
 	 routeSet=status;
  }
 
- void TrainMovement::setUnsetIgnoreSafeDistanceByServiceController(bool ignore)
+ void TrainMovement::setIgnoreSafeDistanceByServiceController(bool ignore)
  {
 	 ignoreSafeDistance_RequestServiceController = ignore;
  }
 
- void TrainMovement::setUnsetIgnoreSafeHeadwayByServiceController(bool ignore)
+ void TrainMovement::setIgnoreSafeHeadwayByServiceController(bool ignore)
  {
 	 ignoreSafeHeadway_RequestServiceController = ignore;
  }

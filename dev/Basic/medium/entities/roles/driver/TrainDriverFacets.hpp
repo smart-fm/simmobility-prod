@@ -198,8 +198,8 @@ public:
 	/* sets the route status which is set so later it need not to set */
 	void setRouteStatus(bool status);
 
-	void setUnsetIgnoreSafeDistanceByServiceController(bool ignore);
-	void setUnsetIgnoreSafeHeadwayByServiceController(bool ignore);
+	void setIgnoreSafeDistanceByServiceController(bool ignore);
+	void setIgnoreSafeHeadwayByServiceController(bool ignore);
 
 	std::string getPlatformByOffset(int offset);
 	bool isUturnDueToDisruption();

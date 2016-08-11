@@ -381,16 +381,7 @@ ModelScriptsMap ParseMidTermConfigFile::processModelScriptsNode(xercesc::DOMElem
 		filename=val;
 	}
 
-
-	/*temporarity will be removed later */
-	/*if (boost::iequals(filename,  "serv.lua"))
-	{
-
-		mtCfg.setServiceControllerScriptsMap( scriptsMap );
-		return scriptsMap;
-	}*/
 	mtCfg.setModelScriptsMap(scriptsMap );
-	/* will be removed later */
 	return scriptsMap;
 
 }
@@ -747,7 +738,7 @@ void ParseMidTermConfigFile::processTrainControllerNode(xercesc::DOMElement *nod
     {
         cfg.trainController.enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), "false");
         cfg.trainController.trainControlType = ParseString(GetNamedAttributeValue(node, "train_control_type"), "");
-        DOMElement* child = GetSingleElementByName(node, "safe_operation_distance_metre");
+        DOMElement* child = GetSingleElementByName(node, "safe_operation_distance_meter");
     	if (child == nullptr)
     	{
     		throw std::runtime_error("load safe_operation_distance_meter missing in simrun_MidTerm.xml");

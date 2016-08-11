@@ -18,7 +18,6 @@
 #include "entities/TrainController.hpp"
 #include "entities/TrainStationAgent.hpp"
 #include "behavioral/ServiceController.hpp"
-#include <iostream>
 
 using namespace std;
 using namespace sim_mob;
@@ -35,10 +34,10 @@ ServiceController::ServiceController()
 
 void ServiceController::useServiceController(std::string time)
 {
-		LuaRef useServiceControllerRef = getGlobal(state.get(), "use_servicecontroller");
-		lineTrainDriversLock.lock();
-		LuaRef retVal = useServiceControllerRef(this,time);
-		lineTrainDriversLock.unlock();
+	LuaRef useServiceControllerRef = getGlobal(state.get(), "use_servicecontroller");
+	lineTrainDriversLock.lock();
+	LuaRef retVal = useServiceControllerRef(this,time);
+	lineTrainDriversLock.unlock();
 }
 
 ServiceController::~ServiceController()

@@ -1,11 +1,9 @@
-from pymongo import MongoClient
 import argparse
 import datetime
 import csv
 import psycopg2
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ constants ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-DB_NAME = 'simmobility_virtualcity'
 DB_HOST = '172.25.184.48'
 DB_PORT = '5432'
 DB_USER = 'postgres'

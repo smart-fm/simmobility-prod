@@ -73,67 +73,6 @@ void sim_mob::ParsePathXmlConfig::ProcessPathSetNode(xercesc::DOMElement* node){
 
 }
 
-
-ModelScriptsMap sim_mob::ParsePathXmlConfig::processModelScriptsNode(xercesc::DOMElement* node)
-{
-	std::string format = ParseString(GetNamedAttributeValue(node, "format"), "");
-	std::string filename="";
-	if (format.empty() || format != "lua")
-	{
-		throw std::runtime_error("Unsupported script format");
-	}
-
-	std::string scriptsDirectoryPath = ParseString(GetNamedAttributeValue(node, "path"), "");
-	if (scriptsDirectoryPath.empty())
-	{
-		throw std::runtime_error("path to scripts is not provided");
-	}
-	if ((*scriptsDirectoryPath.rbegin()) != '/')
-	{
-		//add a / to the end of the path string if it is not already there
-		scriptsDirectoryPath.push_back('/');
-	}
-	ModelScriptsMap scriptsMap(scriptsDirectoryPath, format);
-	for (DOMElement* item = node->getFirstElementChild(); item; item = item->getNextElementSibling())
-	{
-		std::string name = TranscodeString(item->getNodeName());
-		if (name != "script")
-		{
-			Warn() << "Invalid db_proc_groups child node.\n";
-			continue;
-		}
-
-		std::string key = ParseString(GetNamedAttributeValue(item, "name"), "");
-		std::string val = ParseString(GetNamedAttributeValue(item, "file"), "");
-		if (key.empty() || val.empty())
-		{
-			Warn() << "Invalid script; missing \"name\" or \"file\".\n";
-			continue;
-		}
-
-		scriptsMap.addScriptFileName(key, val);
-		filename=val;
-	}
-
-	/*temporirily will be removed later */
-	if(boost::iequals(filename , "serv.lua"))
-	{
-		cfg.ServiceControllerScriptsMap = scriptsMap;
-		return  scriptsMap;
-	}
-
-	/* will be removed later */
-
-
-	//cfg.ptRouteChoiceScriptsMap = scriptsMap;
-	return scriptsMap;
-
-
-}
-
-
-
-
 void sim_mob::ParsePathXmlConfig::processPublicPathsetNode(xercesc::DOMElement* publicConfNode)
 {
 

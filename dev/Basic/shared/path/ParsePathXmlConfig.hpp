@@ -41,7 +41,6 @@ private:
 	 * @param node node corresponding to public pathset element inside xml file
 	 */
 	void processPublicPathsetNode(xercesc::DOMElement* node);
-    ModelScriptsMap processModelScriptsNode(xercesc::DOMElement* node);
 };
 
 }

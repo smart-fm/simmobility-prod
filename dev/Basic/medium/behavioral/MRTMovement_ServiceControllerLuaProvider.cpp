@@ -1,3 +1,6 @@
+//Copyright (c) 2016 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 /* 
  * Copyright Singapore-MIT Alliance for Research and Technology
  * 
@@ -19,10 +22,10 @@ namespace
 {
     struct ServiceControllerModelContext
     {
-        ServiceController *ptrcModel;
+        ServiceController *traincontrollerModel;
         ServiceControllerModelContext()
         {
-        	ptrcModel=ServiceController::getInstance();
+        	traincontrollerModel=ServiceController::getInstance();
         }
     };
 
@@ -34,12 +37,11 @@ namespace
         {
         	try
         	{
-        		//const ModelScriptsMap& extScripts = MT_Config::getInstance().getServiceControllerScriptsMap();
         		const ModelScriptsMap& extScripts = MT_Config::getInstance().getModelScriptsMap();
         		const std::string& scriptsPath = extScripts.getPath();
         		ServiceControllerModelContext* modelCtx = new ServiceControllerModelContext();
-        		modelCtx->ptrcModel->loadFile(scriptsPath + extScripts.getScriptFileName("serv"));
-        		modelCtx->ptrcModel->initialize();
+        		modelCtx->traincontrollerModel->loadFile(scriptsPath + extScripts.getScriptFileName("serv"));
+        		modelCtx->traincontrollerModel->initialize();
         		threadContext.reset(modelCtx);
         	}
         	catch (const std::out_of_range& oorx)
@@ -53,5 +55,5 @@ namespace
 ServiceController* MRTMovement_ServiceControllerLuaProvider::getPTRC_Model()
 {
     ensureContext();
-    return threadContext.get()->ptrcModel;
+    return threadContext.get()->traincontrollerModel;
 }

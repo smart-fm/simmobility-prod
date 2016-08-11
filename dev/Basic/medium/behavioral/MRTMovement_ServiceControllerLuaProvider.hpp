@@ -14,7 +14,10 @@ namespace sim_mob
 {
 	namespace medium
 	{
-		class MRTMovement_ServiceControllerLuaProvider
+		/*Class:   MRTMovement_ServiceController
+		 * Author: Jabir <jabir@smart.mit.edu>
+		 */
+	    class MRTMovement_ServiceControllerLuaProvider
 		{
 			public:
 				/**

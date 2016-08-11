@@ -115,7 +115,7 @@ class ServiceController:  public lua::LuaModel
     /* This returns the number of disrupted platforms */
     int getDisruptedPlatformsSize(std::string lineID);
     /* This sets or unsets the Uturn signal of the train */
-    void setUnsetUturnFlag(int trainId,std::string lineId,bool takeUturn);
+    void setUturnFlag(int trainId,std::string lineId,bool takeUturn);
     /* This gives the trainId of the train ahead of the train specified */
     int getTrainIdOfTrainAhead(int trainId,std::string lineId);
     /* This gives the future next requested for the train */
@@ -123,13 +123,13 @@ class ServiceController:  public lua::LuaModel
     /* This sets or clears the ignore safe distance flag for the train */
     void setIgnoreSafeDistance(int trainId,std::string lineId,bool ignore);
     /* This sets or clears the ignore safe headway flag for the train */
-    void setUnsetIgnoreSafeHeadway(int trainId,std::string lineId,bool ignore);
+    void setIgnoreSafeHeadway(int trainId,std::string lineId,bool ignore);
     /*This clears disruption on the platforms */
     void clearDisruption(std::string lineId);
     /* this gets the force alight status that is passengers have force alighted or not */
     bool getForceAlightStatus(int trainID,std::string lineId);
     /*This sets or unsets force alight status */
-    void setUnsetForceAlightStatus(int trainId,std::string lineId,bool status);
+    void setForceAlightStatus(int trainId,std::string lineId,bool status);
     /* This returns whether the train is in disrupted region or not */
     bool getDisruptedState(int trainId,std::string lineId);
     /*This returns if the train is stranded between platform in disrupted region or not */

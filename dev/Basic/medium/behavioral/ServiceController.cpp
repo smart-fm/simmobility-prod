@@ -48,44 +48,44 @@ ServiceController::~ServiceController()
  void ServiceController::mapClasses()
  {
 	 getGlobalNamespace(state.get()).beginClass <ServiceController> ("ServiceController")
-	 			.addFunction("reset_speedlimit",&ServiceController::resetSpeedLimit)
+	 			.addFunction("reset_speed_limit",&ServiceController::resetSpeedLimit)
 	 			.addFunction("reset_acceleration",&ServiceController::resetAcceleration)
-	 			.addFunction("reset_safeheadway_sec",&ServiceController::resetSafeHeadwaySec)
-	 			.addFunction("reset_safeoperation_distance",&ServiceController::resetSafeOperationDistance)
-	 			.addFunction("reset_movingcase", &ServiceController::resetMovingCase)
+	 			.addFunction("reset_safe_headway_sec",&ServiceController::resetSafeHeadwaySec)
+	 			.addFunction("reset_safe_operation_distance",&ServiceController::resetSafeOperationDistance)
+	 			.addFunction("reset_moving_case", &ServiceController::resetMovingCase)
 	 			.addFunction("force_release_passenegers", &ServiceController::forceReleasePassenegers)
 				.addFunction("restrict_passengers", &ServiceController::restrictPassengers)
-				.addFunction("reset_holdingTime_atstation", &ServiceController::resetHoldingTimeAtStation)
+				.addFunction("reset_holding_time_atstation", &ServiceController::resetHoldingTimeAtStation)
 				.addFunction("terminate_trainservice", &ServiceController::terminateTrainService)
 				.addFunction("get_dwelltime", &ServiceController::getDwellTime)
 				.addFunction("get_opposite_lineid", &ServiceController::getOppositeLineId)
 				.addFunction("get_LineId", &ServiceController::getLineId)
-				.addFunction("get_distancetoNextPlatform", &ServiceController::getDistanceToNextPlatform)
-				.addFunction("get_nextPlatform", &ServiceController::getNextPlatform)
-				.addFunction("get_activeTrains", &ServiceController::getActiveTrainIds)
-				.addFunction("get_activetrainssize", &ServiceController::getActiveTrainIdsSize)
-				.addFunction("get_activetrainbyindex", &ServiceController::getTrainIdByIndex)
+				.addFunction("get_distance_to_next_platform", &ServiceController::getDistanceToNextPlatform)
+				.addFunction("get_next_platform", &ServiceController::getNextPlatform)
+				.addFunction("get_active_trains", &ServiceController::getActiveTrainIds)
+				.addFunction("get_active_trains_size", &ServiceController::getActiveTrainIdsSize)
+				.addFunction("get_active_train_by_index", &ServiceController::getTrainIdByIndex)
 				.addFunction("perform_disruption",&ServiceController::performDisruption)
-				.addFunction("insert_stoppoint",&ServiceController::insertStopPoint)
-				.addFunction("update_platformlist",&ServiceController::updatePlatformList)
-				.addFunction("terminate_singletrainservice",&ServiceController::terminateTrainServiceForTrain)
-				.addFunction("insert_unscheduledtraintrip",&ServiceController::insertUnScheduledTrain)
-				.addFunction("set_disruptedplatforms",&ServiceController::setDisruptedPlatforms)
-				.addFunction("get_disruptedplatforms",&ServiceController::getDisruptedPlatformByIndex)
-				.addFunction("get_disruptedplatformssize",&ServiceController::getDisruptedPlatformsSize)
+				.addFunction("insert_stop_point",&ServiceController::insertStopPoint)
+				.addFunction("update_platform_list",&ServiceController::updatePlatformList)
+				.addFunction("terminate_single_train_service",&ServiceController::terminateTrainServiceForTrain)
+				.addFunction("insert_unscheduled_train_trip",&ServiceController::insertUnScheduledTrain)
+				.addFunction("set_disrupted_platforms",&ServiceController::setDisruptedPlatforms)
+				.addFunction("get_disrupted_platforms",&ServiceController::getDisruptedPlatformByIndex)
+				.addFunction("get_disrupted_platforms_size",&ServiceController::getDisruptedPlatformsSize)
 				.addFunction("get_platform_by_offset",&ServiceController::getPlatformByOffset)
-				.addFunction("setunset_uturn",&ServiceController::setUnsetUturnFlag)
-				.addFunction("get_nextrequested",&ServiceController::getNextRequestedMovementActionForTrain)
-				.addFunction("get_trainId_trainahead",&ServiceController::getTrainIdOfTrainAhead)
-				.addFunction("set_ignoresafedistance",&ServiceController::setIgnoreSafeDistance)
-				.addFunction("set_ignoresafeheadway",&ServiceController::setUnsetIgnoreSafeHeadway)
-				.addFunction("get_forcealightstatus",&ServiceController::getForceAlightStatus)
+				.addFunction("set_uturn",&ServiceController::setUturnFlag)
+				.addFunction("get_next_requested",&ServiceController::getNextRequestedMovementActionForTrain)
+				.addFunction("get_trainid_train_ahead",&ServiceController::getTrainIdOfTrainAhead)
+				.addFunction("set_ignore_safe_distance",&ServiceController::setIgnoreSafeDistance)
+				.addFunction("set_ignore_safe_headway",&ServiceController::setIgnoreSafeHeadway)
+				.addFunction("get_force_alight_status",&ServiceController::getForceAlightStatus)
 				.addFunction("clear_disruption",&ServiceController::clearDisruption)
-				.addFunction("setunset_forcealightstatus",&ServiceController::setUnsetForceAlightStatus)
-				.addFunction("isstranded_duringdisruption",&ServiceController::isStrandedDuringDisruption)
-				.addFunction("set_subsequentnextrequested",&ServiceController::setSubsequentNextRequested)
-				.addFunction("get_disruptedstate",&ServiceController::getDisruptedState)
-				.addFunction("get_preplatform",&ServiceController::getPrePlatfrom)
+				.addFunction("set_force_alight_status",&ServiceController::setForceAlightStatus)
+				.addFunction("is_stranded_during_disruption",&ServiceController::isStrandedDuringDisruption)
+				.addFunction("set_subsequent_next_requested",&ServiceController::setSubsequentNextRequested)
+				.addFunction("get_disrupted_state",&ServiceController::getDisruptedState)
+				.addFunction("get_prev_platform",&ServiceController::getPrePlatfrom)
 	 			.endClass();
 
  }
@@ -130,10 +130,10 @@ void ServiceController::setIgnoreSafeDistance(int trainId,std::string lineId,boo
 			{
 				if(driver->getTrainId()==trainId)
 				{
-					TrainMovement *movement=driver->GetMovement();
+					TrainMovement *movement=driver->getMovement();
 					if(movement)
 					{
-						movement->setUnsetIgnoreSafeDistanceByServiceController(ignore);
+						movement->setIgnoreSafeDistanceByServiceController(ignore);
 						break;
 					}
 				}
@@ -163,7 +163,7 @@ void ServiceController::clearStopPoints(int trainId,std::string lineId)
 	}
 }
 
-void ServiceController::setUnsetIgnoreSafeHeadway(int trainId,std::string lineId,bool ignore)
+void ServiceController::setIgnoreSafeHeadway(int trainId,std::string lineId,bool ignore)
 {
 	map<std::string,std::vector<TrainDriver*>>::iterator it=mapOfLineAndTrainDrivers.find(lineId);
 	if(it != mapOfLineAndTrainDrivers.end())
@@ -176,10 +176,10 @@ void ServiceController::setUnsetIgnoreSafeHeadway(int trainId,std::string lineId
 			{
 				if(driver->getTrainId()==trainId)
 				{
-					TrainMovement *movement=driver->GetMovement();
+					TrainMovement *movement=driver->getMovement();
 					if(movement)
 					{
-						movement->setUnsetIgnoreSafeHeadwayByServiceController(ignore);
+						movement->setIgnoreSafeHeadwayByServiceController(ignore);
 						break;
 					}
 				}
@@ -247,7 +247,7 @@ void ServiceController::setSubsequentNextRequested(int trainId,std::string lineI
 	}
 }
 
-void ServiceController::setUnsetForceAlightStatus(int trainId,std::string lineId,bool status)
+void ServiceController::setForceAlightStatus(int trainId,std::string lineId,bool status)
 {
 	map<std::string,std::vector<TrainDriver*>>::iterator it=mapOfLineAndTrainDrivers.find(lineId);
 	if(it != mapOfLineAndTrainDrivers.end())
@@ -295,7 +295,7 @@ int ServiceController::getTrainIdOfTrainAhead(int trainId,std::string lineId)
 	return nextDrivertrainId;
 }
 
-void ServiceController::setUnsetUturnFlag(int trainId,std::string lineId,bool takeUturn)
+void ServiceController::setUturnFlag(int trainId,std::string lineId,bool takeUturn)
 {
 	map<std::string,std::vector<TrainDriver *>>::iterator it=mapOfLineAndTrainDrivers.find(lineId);
 	if(it != mapOfLineAndTrainDrivers.end())
@@ -329,7 +329,7 @@ void ServiceController::insertStopPoint(int trainId,std::string lineId,double di
 			{
 				if(driver->getTrainId()==trainId)
 				{
-					TrainMovement *movement=driver->GetMovement();
+					TrainMovement *movement=driver->getMovement();
 					if(movement)
 					{
 						const TrainPathMover &pathMover=movement->getPathMover();
@@ -337,7 +337,6 @@ void ServiceController::insertStopPoint(int trainId,std::string lineId,double di
 						driver->InsertStopPoint(stopPoint,duration);
 						break;
 					}
-
 				}
 			}
 		}
@@ -437,7 +436,7 @@ std::string ServiceController::getPlatformByOffset(int trainId,std::string lineI
 			TrainDriver *driver=(*itr);
 			if(driver&&driver->getTrainId()==trainId)
 			{
-				TrainMovement *trainMovement=driver->GetMovement();
+				TrainMovement *trainMovement=driver->getMovement();
 				if(trainMovement)
 				{
 
@@ -494,7 +493,7 @@ void ServiceController::connectTrainsAfterDisruption(std::string lineId)
 		for (std::vector<TrainDriver*>::iterator it = vect.begin() ; it != vect.end(); ++it)
 		{
 			TrainDriver *driver=(*it);
-			TrainMovement *movement=driver->GetMovement();
+			TrainMovement *movement=driver->getMovement();
 			if(movement)
 			{
 				double dis=movement->getTotalCoveredDistance();
@@ -504,7 +503,7 @@ void ServiceController::connectTrainsAfterDisruption(std::string lineId)
 					for ( ; itr != trainDrivers.end(); ++itr)
 					{
 						TrainDriver *trainDriver=(*itr);
-						TrainMovement *mov=trainDriver->GetMovement();
+						TrainMovement *mov=trainDriver->getMovement();
 						if(mov)
 						{
 							double distance=mov->getTotalCoveredDistance();
@@ -655,7 +654,7 @@ int ServiceController::getTrainIdByIndex(int index,std::string lineId)
 			{
 				if(driver->getTrainId()==trainId)
 				{
-					TrainMovement *trainMovement=driver->GetMovement();
+					TrainMovement *trainMovement=driver->getMovement();
 					if(trainMovement)
 					{
 						return trainMovement->IsStrandedBetweenPlatform();
@@ -681,7 +680,7 @@ bool ServiceController::getDisruptedState(int trainId,std::string lineId)
 			{
 				if(driver->getTrainId()==trainId)
 				{
-					TrainMovement *trainMovement=driver->GetMovement();
+					TrainMovement *trainMovement=driver->getMovement();
 					if(trainMovement)
 					{
 						return trainMovement->GetDisruptedState();
@@ -715,7 +714,7 @@ bool ServiceController::getDisruptedState(int trainId,std::string lineId)
 			{
 				if(driver->getTrainId()==trainId)
 				{
-					TrainMovement *trainMovement=driver->GetMovement();
+					TrainMovement *trainMovement=driver->getMovement();
 					if(trainMovement)
 					{
 						trainMovement->ResetSafeHeadWay(sec);
@@ -741,7 +740,7 @@ bool ServiceController::getDisruptedState(int trainId,std::string lineId)
 			{
 				if(driver->getTrainId()==trainId)
 				{
-					TrainMovement *trainMovement=driver->GetMovement();
+					TrainMovement *trainMovement=driver->getMovement();
 					if(trainMovement)
 					{
 						trainMovement->ResetSafeDistance(distance);
@@ -767,7 +766,7 @@ bool ServiceController::getDisruptedState(int trainId,std::string lineId)
 			{
 				if(driver->getTrainId()==trainId)
 				{
-					TrainMovement *movement=driver->GetMovement();
+					TrainMovement *movement=driver->getMovement();
 					if(movement)
 					{
 						movement->ResetMovingCase(caseVal);
@@ -862,7 +861,7 @@ double  ServiceController::getDwellTime(int trainId,std::string lineId,std::stri
 					{
 						if(boost::iequals(platformNo,platform->getPlatformNo()))
 						{
-							TrainMovement *trainMovement=tDriver->GetMovement();
+							TrainMovement *trainMovement=tDriver->getMovement();
 							if(trainMovement)
 							{
 								if(trainMovement->getDistanceToNextPlatform(tDriver)==0)
@@ -991,7 +990,7 @@ double ServiceController::getDistanceToNextPlatform(std::string lineId,int train
 				   Platform *platform=tDriver->getNextPlatform();
 				   if(platform)
 				   {
-					   TrainMovement *trainMovement=tDriver->GetMovement();
+					   TrainMovement *trainMovement=tDriver->getMovement();
 					   if(trainMovement)
 					   {
 						   return trainMovement->getDistanceToNextPlatform(tDriver);

@@ -21,7 +21,6 @@
 #include "metrics/Length.hpp"
 #include "path/PathSetManager.hpp"
 #include "path/PT_PathSetManager.hpp"
-#include "behavioral/ServiceController.hpp"
 
 using namespace sim_mob;
 using namespace sim_mob::medium;

@@ -1,10 +1,6 @@
-/*
- * Copyright Singapore-MIT Alliance for Research and Technology
- *
- * File:   ServiceController.hpp
- * Author: Jabir <jabir@smart.mit.edu>
- *
- */
+//Copyright (c) 2016 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//license.txt   (http://opensource.org/licenses/MIT)
 
 #pragma once
 #include <boost/shared_ptr.hpp>
@@ -31,6 +27,14 @@ struct TrainIdLineId
 	int trainId;
 	std::string lineId;
 };
+
+/*
+ * Copyright Singapore-MIT Alliance for Research and Technology
+ *
+ * class:  ServiceController.hpp
+ * Author: Jabir <jabir@smart.mit.edu>
+ *
+ */
 
 class ServiceController:  public lua::LuaModel
 {

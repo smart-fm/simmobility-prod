@@ -52,11 +52,11 @@ void sim_mob::RailTransit::initGraph(const std::set<string>& vertices, const std
 	{
 		RT_Edge rtEdge;
 		bool edgeAdded = false;
-
-		VertexStruct vStruct=findVertex(rtNwEdge.getFromStationId());
-		RT_Vertex fromStnVertex =vStruct.vertex;
-		vStruct=findVertex(rtNwEdge.getToStationId());
-		RT_Vertex toStnVertex =vStruct.vertex;
+		RailTransit::RT_Vertex vertex;
+		bool vertexFound=findVertex(rtNwEdge.getFromStationId(),vertex);
+		RT_Vertex fromStnVertex =vertex;
+		vertexFound=findVertex(rtNwEdge.getToStationId(),vertex);
+		RT_Vertex toStnVertex =vertex;
 		boost::tie(rtEdge, edgeAdded) = boost::add_edge(fromStnVertex, toStnVertex, railTransitGraph);
 		boost::put(boost::edge_weight, railTransitGraph, rtEdge, rtNwEdge.getEdgeTravelTime());
 		boost::put(boost::edge_name, railTransitGraph, rtEdge, rtNwEdge.isTransferEdge()); //edge type is set as name
@@ -71,19 +71,20 @@ vector<string> sim_mob::RailTransit::fetchBoardAlightStopSeq(string origin, stri
 		return vector<string>();
 	}
 
-	VertexStruct fromVertexStruct = findVertex(origin);
-	if(!fromVertexStruct.ifpresent)
+	RailTransit::RT_Vertex fromVertex;
+	bool isFound = findVertex(origin,fromVertex);
+	if(!isFound)
 	{
 		return res;
 	}
-	VertexStruct toVertexStruct = findVertex(dest);
-	if(!toVertexStruct.ifpresent)
+
+	RT_Vertex toVertex;
+	isFound = findVertex(dest,toVertex);
+	if(!isFound)
 	{
 			return res;
 	}
 
-	RT_Vertex fromVertex =fromVertexStruct.vertex;
-	RT_Vertex toVertex =toVertexStruct.vertex;
 	vector<RT_Vertex> p(boost::num_vertices(railTransitGraph));
 	vector<double> d(boost::num_vertices(railTransitGraph));
 	list<RT_Vertex> partialRes;
@@ -145,20 +146,16 @@ vector<string> sim_mob::RailTransit::fetchBoardAlightStopSeq(string origin, stri
 	return res;
 }
 
-VertexStruct sim_mob::RailTransit::findVertex(const std::string& vertexName) const
+bool sim_mob::RailTransit::findVertex(const std::string& vertexName,RailTransit::RT_Vertex& vertex) const
 {
-	VertexStruct vStruct;
 	std::map<std::string, RT_Vertex>::const_iterator vertexIt = rtVertexLookup.find(vertexName);
 
 	if(vertexIt == rtVertexLookup.end())
 	{
 		char buf[100];
 		sprintf(buf, "cannot find stn:%s in rail transit graph", vertexName.c_str());
-		//throw std::runtime_error(buf);
-		vStruct.ifpresent=false;
-		return vStruct;
+		return false;
 	}
-	vStruct.ifpresent=true;
-	vStruct.vertex=vertexIt->second;
-	return vStruct;
+	vertex=vertexIt->second;
+	return true;
 }

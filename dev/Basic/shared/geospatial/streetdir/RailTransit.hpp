@@ -151,7 +151,7 @@ private:
      * @param vertexName station id
      * @return reference to RT_Vertex in rail transit graph;
      */
-    VertexStruct findVertex(const std::string& vertexName) const;
+    bool findVertex(const std::string& vertexName,RailTransit::RT_Vertex& vertex) const;
 
 public:
     RailTransit();
@@ -180,16 +180,6 @@ public:
      */
     std::vector<std::string> fetchBoardAlightStopSeq(std::string origin, std::string dest) const;
 
-friend VertexStruct;
-
 };
 
-class VertexStruct
-{
-public:
-
-	RailTransit::RT_Vertex vertex;
-	bool ifpresent;
-
-};
 }

@@ -79,7 +79,7 @@ local beta_DEP_2_4 = 0.282
 local beta_DEP_2_7 = 0.67 
 local beta_DEP_2_6 = 1.71
 local beta_DEP_2_8 = -0.455 
-local beta_C = -0.212
+local beta_C = 0.0
 
 local k = 4
 local n = 4
@@ -206,7 +206,7 @@ local availability = {}
 local function computeAvailabilities(params,dbparams)
 	local mode = dbparams.mode
 	for i = 1, 1176 do 
-		availability[i] = params:getTimeWindowAvailabilityTour(i, mode)
+		availability[i] = params:getTimeWindowAvailabilityTour(i,mode)
 	end
 end
 

@@ -1,20 +1,23 @@
-/*
- * Platform.hpp
- *
- *  Created on: Feb 5, 2016
- *      Author: zhang huai peng
- */
+//Copyright (c) 2016 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//license.txt   (http://opensource.org/licenses/MIT)
+
 
 #pragma once
 
 #include <string>
 
-namespace sim_mob {
+namespace sim_mob
+{
 
-class Platform {
-public:
-	Platform();
-	virtual ~Platform();
+
+/**
+ * This represents train platform in train station with its associated properties
+ * \Author: Zhang
+ */
+
+class Platform
+{
 private:
 	/**platform No for current platform*/
 	std::string platformNo;
@@ -33,52 +36,73 @@ private:
 	/**length for current platform*/
 	double length;
 public:
-	std::string getPlatformNo() const{
+	Platform::Platform():capacity(0),type(0),attachedBlockId(0),offset(0.0),length(0.0)
+	{
+		// TODO Auto-generated constructor stub
+
+	}
+	std::string getPlatformNo() const
+	{
 		return platformNo;
 	}
-	void setPlatformNo(const std::string& no){
+	void setPlatformNo(const std::string& no)
+	{
 		platformNo = no;
 	}
-	std::string getStationNo() const{
+	std::string getStationNo() const
+	{
 		return stationNo;
 	}
-	void setStationNo(const std::string& no){
+	void setStationNo(const std::string& no)
+	{
 		stationNo = no;
 	}
-	std::string getLineId() const{
+	std::string getLineId() const
+	{
 		return lineId;
 	}
-	void setLineId(const std::string& id){
+	void setLineId(const std::string& id)
+	{
 		lineId = id;
 	}
-	int getCapacity() const{
+	int getCapacity() const
+	{
 		return capacity;
 	}
-	void setCapactiy(int cap){
+	void setCapactiy(int cap)
+	{
 		capacity = cap;
 	}
-	int getType() const{
+	int getType() const
+	{
 		return type;
 	}
-	void setType(int t){
+	void setType(int t)
+	{
 		type = t;
 	}
-	int getAttachedBlockId() const{
+	int getAttachedBlockId() const
+	{
 		return attachedBlockId;
 	}
-	void setAttachedBlockId(const int id){
+	void setAttachedBlockId(const int id)
+	{
 		attachedBlockId = id;
 	}
-	double getOffset() const{
+	double getOffset() const
+	{
 		return offset;
 	}
-	void setOffset(double off){
+	void setOffset(double off)
+	{
 		offset = off;
 	}
-	double getLength() const{
+	double getLength() const
+	{
 		return length;
 	}
-	void setLength(double len){
+	void setLength(double len)
+	{
 		length = len;
 	}
 };

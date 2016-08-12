@@ -166,10 +166,6 @@ class TT_Aggregator:
 		self.ttArrivalBusCount = [[[0 for k in xrange(48)] for j in xrange(self.NUM_ZONES)] for i in xrange(self.NUM_ZONES)]
 		self.ttDepartureBusCount = [[[0 for k in xrange(48)] for j in xrange(self.NUM_ZONES)] for i in xrange(self.NUM_ZONES)]
 
-		#connect to local mongodb
-		self.client = MongoClient('localhost', 27017)
-		self.db = self.client.simmobcity
-
 	##functions to add items into the data structures defined above
 	def addAMCarIvt(self, origin, destination, value):
 		orgZid = self.zoneId[origin] - 1

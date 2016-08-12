@@ -101,8 +101,8 @@ public:
 	 * @param origin is trip origin
 	 * @param destination is trip destination
 	 * @param odTrips is list of trip legs in pt path
+	 * @param ptPathsetStoredProcName store procedure to fetch pathset
 	 * @return true if route choice was successful; false otherwise
-	 * @ptPathsetStoredProcName store procedure to fetch pathset
 	 */
 	bool getBestPT_Path(int origin, int destination, unsigned int startTime, std::vector<sim_mob::OD_Trip>& odTrips, std::string dbid, unsigned int start_time, const std::string& ptPathsetStoredProcName);
 	/**
@@ -110,10 +110,9 @@ public:
 	 * @param origin origin node id
 	 * @param destination destination node id
 	 * @param startTime time at which route choice is to be done
-	 *
+	 * @param ptPathsetStoredProcName is the store procedure to fetch pathsets.
 	 * @return public transit pathset for the supplied OD.
 	 */
-	// @ptPathsetStoredProcName is the store procedure to fetch pathsets.
 	PT_PathSet fetchPathset(int origin, int destination, const DailyTime& startTime, const std::string& ptPathsetStoredProcName) const;
 	/**
 	 * store chosen path in file
@@ -144,7 +143,7 @@ private:
 	 * @param curTime time at which routechoice is to be done
 	 * @param pathSet output parameter for path set retrieved from database
 	 * @param ptPathsetStoredProcName store procedure to fetch pathsets
-	 * */
+	 */
 	void loadPT_PathSet(int origin, int dest, const DailyTime& curTime, PT_PathSet& pathSet, const std::string& ptPathsetStoredProcName) const;
 	/**
 	 * Inherited from LuaModel

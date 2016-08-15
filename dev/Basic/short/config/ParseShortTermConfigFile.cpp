@@ -275,6 +275,7 @@ public:
 	virtual void processXmlFile(xercesc::XercesDOMParser& parser)
 	{
 		DOMElement* rootNode = parser.getDocument()->getDocumentElement();
+		
 		if (TranscodeString(rootNode->getTagName()) != "requests")
 		{
 			throw std::runtime_error("xml parse error: root node must be \"requests\"");
@@ -295,9 +296,14 @@ public:
 				DailyTime simStart = cfg.simulation.simStartTime;
 				DailyTime simEnd = DailyTime(simStart.getValue() + cfg.simulation.totalRuntimeMS);
 				DailyTime tripStart(trip->startTime);
+				
 				if (tripStart.getValue() > simStart.getValue() && tripStart.getValue() < simEnd.getValue())
 				{
 					allItems[startId] = trip;
+				}
+				else
+				{
+					delete trip;
 				}
 			}
 		}
@@ -324,6 +330,7 @@ void sim_mob::ParseShortTermConfigFile::processFmodControllerNode(xercesc::DOMEl
 		stCfg.fmod.mapfile = ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "map_file"), "value"), "");
 		stCfg.fmod.blockingTimeSec = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "blocking_time_sec"), "value"), static_cast<unsigned int> (0));
 		xercesc::DOMElement* resNodes = GetSingleElementByName(node, "requests");
+		
 		if (resNodes)
 		{
 			for (DOMElement* item = resNodes->getFirstElementChild(); item; item = item->getNextElementSibling())

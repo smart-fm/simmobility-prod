@@ -159,6 +159,12 @@ namespace sim_mob {
 
             void setHasBto(bool hasBto);
 
+            bool isIsDay0Project() const;
+
+            void setIsDay0Project(bool isDay0Project);
+
+            void launchOnGoingUnitsOnDay0();
+
         private:
             DeveloperModel* devModel;
             boost::shared_ptr<Parcel> parcel;
@@ -177,6 +183,7 @@ namespace sim_mob {
             int currentTick;
             bool parcelDBStatus;
             bool hasBTO;
+            bool onGoingProjectOnDay0;
 
         };
     }

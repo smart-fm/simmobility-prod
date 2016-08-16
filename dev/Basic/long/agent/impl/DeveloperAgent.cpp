@@ -532,7 +532,7 @@ inline void createPotentialProjects(BigSerial parcelId, DeveloperModel* model, P
 }
 
 DeveloperAgent::DeveloperAgent(boost::shared_ptr<Parcel> parcel, DeveloperModel* model)
-: Agent_LT(ConfigManager::GetInstance().FullConfig().mutexStategy(), (parcel) ? parcel->getId() : INVALID_ID), devModel(model),parcel(parcel),active(false),monthlyUnitCount(0),unitsRemain(true),realEstateAgent(nullptr),postcode(INVALID_ID),housingMarketModel(housingMarketModel),simYear(simYear),currentTick(currentTick),parcelDBStatus(false),hasBTO(false)
+: Agent_LT(ConfigManager::GetInstance().FullConfig().mutexStategy(), (parcel) ? parcel->getId() : INVALID_ID), devModel(model),parcel(parcel),active(false),monthlyUnitCount(0),unitsRemain(true),realEstateAgent(nullptr),postcode(INVALID_ID),housingMarketModel(housingMarketModel),simYear(simYear),currentTick(currentTick),parcelDBStatus(false),hasBTO(false),onGoingProjectOnDay0(false)
 {
 
 }
@@ -612,7 +612,14 @@ Entity::UpdateStatus DeveloperAgent::onFrameTick(timeslice now) {
     		int currTick = this->fmProject->getCurrTick();
     		currTick++;
     		this->fmProject->setCurrTick(currTick);
-    		processExistingProjects();
+    		if(onGoingProjectOnDay0)
+    		{
+    			launchOnGoingUnitsOnDay0();
+    		}
+    		else
+    		{
+    			processExistingProjects();
+    		}
     	}
     	}
     	else if(hasBTO)
@@ -811,7 +818,7 @@ void DeveloperAgent::processExistingProjects()
 				{
 					(*unitsItr)->setSaleStatus(UNIT_LAUNCHED_BUT_UNSOLD);
 					(*unitsItr)->setOccupancyStatus(UNIT_READY_FOR_OCCUPANCY_AND_VACANT);
-					MessageBus::PostMessage(this, LT_STATUS_ID_DEV_UNIT_LAUNCHED_BUT_UNSOLD,MessageBus::MessagePtr(new DEV_InternalMsg((*unitsItr)->getId())), true);
+					MessageBus::PostMessage(this, LT_STATUS_ID_DEV_NEW_UNIT_LAUNCHED_BUT_UNSOLD,MessageBus::MessagePtr(new DEV_InternalMsg((*unitsItr)->getId())), true);
 					MessageBus::PostMessage(this, LT_STATUS_ID_DEV_UNIT_READY_FOR_OCCUPANCY_AND_VACANT,MessageBus::MessagePtr(new DEV_InternalMsg((*unitsItr)->getId())), true);
 				}
 
@@ -856,7 +863,7 @@ void DeveloperAgent::launchBTOUnits(std::tm currentDate)
 	DeveloperModel::UnitList btoUnits = devModel->getBTOUnits(currentDate);
 	for(Unit *btoUnit : btoUnits)
 	{
-			MessageBus::PostMessage(realEstateAgent, LT_BTO_UNIT_ADDED, MessageBus::MessagePtr(new HM_ActionMessage((*btoUnit))), true);
+			MessageBus::PostMessage(realEstateAgent, LT_DEV_BTO_UNIT_ADDED, MessageBus::MessagePtr(new HM_ActionMessage((*btoUnit))), true);
 	}
 }
 
@@ -931,10 +938,16 @@ void DeveloperAgent::HandleMessage(Message::MessageType type, const Message& mes
 		        	MessageBus::PostMessage(realEstateAgent, LT_STATUS_ID_HM_UNIT_CONSTRUCTION_COMPLETED, MessageBus::MessagePtr(new HM_ActionMessage((devArgs.getUnitId()))), true);
 		        	break;
 		        }
-		        case LT_STATUS_ID_DEV_UNIT_LAUNCHED_BUT_UNSOLD:
+		        case LT_STATUS_ID_DEV_NEW_UNIT_LAUNCHED_BUT_UNSOLD:
 		        {
 		        	const DEV_InternalMsg& devArgs = MSG_CAST(DEV_InternalMsg, message);
-		        	MessageBus::PostMessage(realEstateAgent, LT_STATUS_ID_HM_UNIT_LAUNCHED_BUT_UNSOLD, MessageBus::MessagePtr(new HM_ActionMessage((devArgs.getUnitId()))), true);
+		        	MessageBus::PostMessage(realEstateAgent, LT_STATUS_ID_HM_NEW_UNIT_LAUNCHED_BUT_UNSOLD, MessageBus::MessagePtr(new HM_ActionMessage((devArgs.getUnitId()))), true);
+		        	break;
+		        }
+		        case LT_STATUS_ID_DEV_ONGOING_UNIT_LAUNCHED_BUT_UNSOLD:
+		        {
+		        	const DEV_InternalMsg& devArgs = MSG_CAST(DEV_InternalMsg, message);
+		        	MessageBus::PostMessage(realEstateAgent, LT_STATUS_ID_HM_ONGOING_UNIT_LAUNCHED_BUT_UNSOLD, MessageBus::MessagePtr(new HM_ActionMessage((devArgs.getUnitId()))), true);
 		        	break;
 		        }
 		        case LT_STATUS_ID_DEV_UNIT_READY_FOR_OCCUPANCY_AND_VACANT:
@@ -1069,4 +1082,30 @@ void DeveloperAgent::setNewBuildings(std::vector<boost::shared_ptr<Building> > b
 void DeveloperAgent::setNewUnits(std::vector<boost::shared_ptr<Unit> > units)
 {
 	this->newUnits = units;
+}
+
+bool  DeveloperAgent::isIsDay0Project() const
+{
+		return onGoingProjectOnDay0;
+}
+
+void  DeveloperAgent::setIsDay0Project(bool isDay0Project)
+{
+		this->onGoingProjectOnDay0 = isDay0Project;
+}
+
+void DeveloperAgent::launchOnGoingUnitsOnDay0()
+{
+	std::tm currentDate = getDateBySimDay(simYear,currentTick);
+	boost::gregorian::date currentDateGreg = boost::gregorian::date_from_tm(currentDate);
+	for(boost::shared_ptr<Unit> unit:this->newUnits)
+	{
+		boost::gregorian::date saleFromDate = boost::gregorian::date_from_tm(unit->getSaleFromDate());
+		if(currentDateGreg == saleFromDate)
+		{
+			MessageBus::PostMessage(realEstateAgent, LTEID_HM_UNIT_ADDED, MessageBus::MessagePtr(new HM_ActionMessage(*unit.get())), true);
+			MessageBus::PostMessage(this, LT_STATUS_ID_DEV_ONGOING_UNIT_LAUNCHED_BUT_UNSOLD,MessageBus::MessagePtr(new DEV_InternalMsg(unit->getId())), true);
+			PrintOutV("On going unit launched to market");
+		}
+	}
 }

@@ -37,6 +37,14 @@ struct TrainIdLineId
  *
  */
 
+class TrainDistanceSorter
+{
+	TrainDistanceSorter();
+	void sortTrainsByDistanceTravelled()
+	{
+
+	}
+};
 class ServiceController:  public lua::LuaModel
 {
 	public:
@@ -354,7 +362,7 @@ class ServiceController:  public lua::LuaModel
     /** mutex lock to lock the mapOfLineAndTrainDrivers **/
     mutable boost::mutex lineTrainDriversLock;
     /** is the map of line and the corresponding train drivers in it **/
-    std::map<std::string, std::vector<TrainDriver*> > mapOfLineAndTrainDrivers;
+    std::map<std::string, std::map<int,TrainDriver*> > mapOfLineAndTrainDrivers;
 };
 }
 }

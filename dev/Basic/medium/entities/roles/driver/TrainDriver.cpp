@@ -53,6 +53,21 @@ void TrainDriver::onParentEvent(event::EventId eventId, sim_mob::event::Context 
 	}
 }
 
+bool TrainDriver::operator< (TrainDriver * &other)
+{
+	TrainMovement *movement=getMovement();
+	if(movement)
+	{
+		double totalDistance=movement->getTotalCoveredDistance();
+		TrainMovement *otherMovement=other->getMovement();
+		if(totalDistance<otherMovement->getTotalCoveredDistance())
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
 void TrainDriver::setForceAlightStatus(bool status)
 {
 	isForceAlighted=status;

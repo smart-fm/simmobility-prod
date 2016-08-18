@@ -75,6 +75,9 @@ public:
 	virtual void make_frame_tick_params(timeslice now);
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
 	void setNextDriver(TrainDriver* driver);
+
+	bool operator< (TrainDriver * &other);
+
 	 TrainDriver* getNextDriver() ; //needs to be checked
 	/**
 	 * leave from current platform

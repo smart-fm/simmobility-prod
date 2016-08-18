@@ -208,14 +208,14 @@ void TrainStationAgent::dispathPendingTrains(timeslice now)
             	   std::vector <Role<Person_MT>*> trainDriverVector=trainController->GetActiveTrainsForALine(lineId);
             	   std::vector<Role<Person_MT>*>::iterator it;
 
-				   next->GetMovement()->teleportToPlatform(stationAgentPlatform->getPlatformNo());
+				   next->getMovement()->teleportToPlatform(stationAgentPlatform->getPlatformNo());
             	   bool isTrainApproachingClose=false;
             	       for(it=trainDriverVector.begin();it!=trainDriverVector.end();it++)
             	       {
 							TrainDriver *tDriver=dynamic_cast<TrainDriver*>(*(it));
 							if(tDriver)
 							{
-								MovementFacet *moveFacet=tDriver->GetMovement();
+								MovementFacet *moveFacet=tDriver->getMovement();
 								if(moveFacet)
 								{
 									TrainMovement* trainMovement=dynamic_cast<TrainMovement*>(moveFacet);
@@ -286,19 +286,19 @@ void TrainStationAgent::dispathPendingTrains(timeslice now)
 						TrainDriver *trainDriver =dynamic_cast<TrainDriver*>(*trainDriverItr);
 						if(trainDriver&&trainDriver!=next)
 						{
-							TrainMovement *movement=trainDriver->GetMovement();
+							TrainMovement *movement=trainDriver->getMovement();
 							double totalDisCoverdByOtherTrain=movement->getTotalCoveredDistance();
-							if(totalDisCoverdByOtherTrain - (next->GetMovement()->getTotalCoveredDistance())<0)
+							if(totalDisCoverdByOtherTrain - (next->getMovement()->getTotalCoveredDistance())<0)
 							{
-								if(minDisBehindDriver==-1||((next->GetMovement()->getTotalCoveredDistance())-totalDisCoverdByOtherTrain)<minDisBehindDriver)
+								if(minDisBehindDriver==-1||((next->getMovement()->getTotalCoveredDistance())-totalDisCoverdByOtherTrain)<minDisBehindDriver)
 								{
 									behindDriver=trainDriver;
-									minDisBehindDriver=((next->GetMovement()->getTotalCoveredDistance())-totalDisCoverdByOtherTrain);
+									minDisBehindDriver=((next->getMovement()->getTotalCoveredDistance())-totalDisCoverdByOtherTrain);
 								}
 								trainDriverItr++;
 								continue;
 							}
-							double differentDistance=totalDisCoverdByOtherTrain - (next->GetMovement()->getTotalCoveredDistance())-138-(movement->getSafeDistance());
+							double differentDistance=totalDisCoverdByOtherTrain - (next->getMovement()->getTotalCoveredDistance())-138-(movement->getSafeDistance());
 							if(differentDistance<0)
 							{
 								success=false;
@@ -466,7 +466,7 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 				std::vector<std::string>::iterator itr=std::find(disruptedPlatformNames.begin(),disruptedPlatformNames.end(),platform->getPlatformNo());
 				if(itr!=disruptedPlatformNames.end())
 				{
-					(*it)->GetMovement()->SetDisruptedState(true);
+					(*it)->getMovement()->SetDisruptedState(true);
 					isDisruptedPlat=true;
 				}
 
@@ -549,7 +549,7 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 					std::vector<std::string>::iterator itr=std::find(disruptedPlatformNames.begin(),disruptedPlatformNames.end(),platform->getPlatformNo());
 					if(itr!=disruptedPlatformNames.end())
 					{
-						(*it)->GetMovement()->SetDisruptedState(true);
+						(*it)->getMovement()->SetDisruptedState(true);
 						if(!(*it)->getForceAlightFlag())
 						{
 							(*it)->LockUnlockRestrictPassengerEntitiesLock(true);

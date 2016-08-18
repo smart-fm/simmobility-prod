@@ -147,7 +147,7 @@ void TrainDriver::leaveFromCurrentPlatform()
 	}
 }
 
-TrainMovement* TrainDriver::GetMovement()
+TrainMovement* TrainDriver::getMovement()
 {
 	TrainMovement* movement = dynamic_cast<TrainMovement*>(movementFacet);
 	return movement;
@@ -190,7 +190,7 @@ void TrainDriver::calculateDwellTime(int boarding,int alighting,int noOfPassenge
 	sim_mob::BasicLogger& ptMRTMoveLogger  = sim_mob::Logger::log(fileName);
 	std::string tm=(DailyTime(now.ms())+DailyTime(ConfigManager::GetInstance().FullConfig().simStartTime())).getStrRepr();
 	double dwellTime = 12.22 + 2.27*boarding/24 + 1.82*alighting/24; //+ 0.00062*(noOfPassengerInTrain/24)*(noOfPassengerInTrain/24)*(noOfPassengerInTrain/24)*(boarding/24);
-	Platform *currentPlatform=GetMovement()->getNextPlatform();
+	Platform *currentPlatform=getMovement()->getNextPlatform();
 	if(currentPlatform)
 	{
       std::string stationNo=currentPlatform->getStationNo();
@@ -237,7 +237,7 @@ void TrainDriver::ResetHoldingTime()
 {
 	platformHoldingTimeEntitiesLock.lock();
 	std::vector<PlatformHoldingTimeEntity>::iterator it=platformHoldingTimeEntities.begin();
-	Platform *currentPlatform=GetMovement()->getNextPlatform();
+	Platform *currentPlatform=getMovement()->getNextPlatform();
 	while(it!=platformHoldingTimeEntities.end())
 	{
 		if(boost::iequals(currentPlatform->getPlatformNo(),(*it).pltaformName))

@@ -1,4 +1,3 @@
-#include <behavioral/MRTMovement_ServiceControllerLuaProvider.hpp>
 #include "ExpandMidTermConfigFile.hpp"
 
 #include <boost/lexical_cast.hpp>

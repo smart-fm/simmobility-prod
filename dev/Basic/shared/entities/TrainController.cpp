@@ -80,13 +80,60 @@ namespace sim_mob {
 	}
 
 	template<typename PERSON>
+	void TrainController<PERSON>::loadOppositeLines()
+	{
+		const ConfigParams& configParams = ConfigManager::GetInstance().FullConfig();
+		const std::map<std::string, std::string>& storedProcs = configParams.getDatabaseProcMappings().procedureMappings;
+		std::map<std::string, std::string>::const_iterator spIt = storedProcs.find("pt_opposite_lines");
+		if(spIt == storedProcs.end())
+		{
+			Print() << "missing stored procedure for get_pt_opposite_lines" << std::endl;
+			return;
+		}
+		soci::session sql_(soci::postgresql, configParams.getDatabaseConnectionString(false));
+		soci::rowset<soci::row> rs = (sql_.prepare << "select * from " + spIt->second);
+		for (soci::rowset<soci::row>::const_iterator it=rs.begin(); it!=rs.end(); ++it)
+		{
+			const soci::row& r = (*it);
+			std::string lineId = r.get<std::string>(0);
+			std::string opp_lineId = r.get<std::string>(1);
+			mapOfOppositeLines[lineId]=opp_lineId;
+		}
+
+	}
+
+	template<typename PERSON>
+	void TrainController<PERSON>::loadTrainAvailabilities()
+	{
+		const ConfigParams& configParams = ConfigManager::GetInstance().FullConfig();
+		const std::map<std::string, std::string>& storedProcs = configParams.getDatabaseProcMappings().procedureMappings;
+		std::map<std::string, std::string>::const_iterator spIt = storedProcs.find("get_train_fleet");
+		if(spIt == storedProcs.end())
+		{
+			Print() << "missing stored procedure for get_train_fleet" << std::endl;
+			return;
+		}
+		soci::session sql_(soci::postgresql, configParams.getDatabaseConnectionString(false));
+		soci::rowset<soci::row> rs = (sql_.prepare << "select * from " + spIt->second);
+		for (soci::rowset<soci::row>::const_iterator it=rs.begin(); it!=rs.end(); ++it)
+		{
+			const soci::row& r = (*it);
+			std::string lineId = r.get<std::string>(0);
+			int min_id = r.get<int>(1);
+			int max_id = r.get<int>(2);
+			std::list<int> trainIdsRange;
+			trainIdsRange.push_back(min_id);
+			trainIdsRange.push_back(max_id);
+			mapOfTrainMaxMinIds[lineId]=trainIdsRange;
+		}
+	}
+
+	template<typename PERSON>
 	void TrainController<PERSON>::SetDisruptedPlatforms(std::string startStation,std::string endStation,std::string lineID)
 	{
-
 			std::vector<std::string> platforms=GetPlatformsBetweenStations(lineID,startStation,endStation);
 			disruptedPlatformsNamesMap_ServiceController[lineID] = std::vector<std::string>();
 			disruptedPlatformsNamesMap_ServiceController[lineID].insert(disruptedPlatformsNamesMap_ServiceController[lineID].end(),platforms.begin(),platforms.end());
-
 	}
 
 	template<typename PERSON>
@@ -340,28 +387,19 @@ namespace sim_mob {
 	template<typename PERSON>
 	void TrainController<PERSON>::InitializeTrainIds(std::string lineId)
 	{
-		int noOfTrains=0,startId=0;
 
-		if(boost::iequals(lineId, "NE_1")) //to be pushed into database when other train lines are implemented
+
+		std::list<int> &listOfTrainMaxMinIds=mapOfTrainMaxMinIds[lineId];
+		std::list<int>::iterator itr=listOfTrainMaxMinIds.begin();
+		int minId=*itr;
+		int maxId=(*(++itr));
+		int count=0;
+
+		std::vector<int> trainIds=std::vector<int>();
+		for(int i=minId;i<=maxId;i++)
 		{
-			noOfTrains=14;
-			startId=1;
-			mapOfNoAvailableTrains["NE_1"]=14;
+			trainIds.push_back(i);
 		}
-
-		else if(boost::iequals(lineId, "NE_2"))
-		{
-			noOfTrains=14;
-			startId=15;
-			mapOfNoAvailableTrains["NE_2"]=14;
-			//mapOfNoAvailableTrains["NE_2"]=0;
-		}
-
-		 std::vector<int> trainIds=std::vector<int>();
-			for(int i=startId;i<=noOfTrains+startId-1;i++)
-			{
-				trainIds.push_back(i);
-			}
 
 			recycleTrainId[lineId] = trainIds;
 	}

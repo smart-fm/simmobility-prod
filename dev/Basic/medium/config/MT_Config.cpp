@@ -134,11 +134,6 @@ void MT_Config::setModelScriptsMap(const ModelScriptsMap& modelScriptsMap)
 }
 
 
-const ModelScriptsMap& MT_Config::getServiceControllerScriptsMap()
-{
-	 return this->ServiceControllerScriptsMap;
-}
-
 const MongoCollectionsMap& MT_Config::getMongoCollectionsMap() const
 {
 	return mongoCollectionsMap;

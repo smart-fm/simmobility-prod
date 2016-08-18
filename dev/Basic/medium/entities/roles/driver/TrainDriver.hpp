@@ -175,7 +175,7 @@ public:
 	int AlightAllPassengers(std::list<Passenger*>& alightingPassenger,timeslice now);
 
 
-	TrainMovement * GetMovement();
+	TrainMovement * getMovement();
 	/**
 	 * store waiting time
 	 * @param waitingActivity is pointer to the waiting people

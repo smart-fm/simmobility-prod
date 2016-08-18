@@ -66,7 +66,7 @@
 #include "workers/WorkGroup.hpp"
 #include "workers/WorkGroupManager.hpp"
 #include "behavioral/ServiceController.hpp"
-#include "behavioral/MRTMovement_ServiceControllerLuaProvider.hpp"
+#include "behavioral/TrainServiceControllerLuaProvider.hpp"
 
 //If you want to force a header file to compile, you can put it here temporarily:
 //#include "entities/BusController.hpp"
@@ -378,7 +378,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	for (unsigned int currTick = 0; currTick < config.totalRuntimeTicks; currTick++)
 	{
 		const DailyTime dailyTime=ConfigManager::GetInstance().FullConfig().simStartTime()+DailyTime(currTick*5000);
-		MRTMovement_ServiceControllerLuaProvider::getPTRC_Model()->useServiceController(dailyTime.getStrRepr());
+		TrainServiceControllerLuaProvider::getTrainControllerModel()->useServiceController(dailyTime.getStrRepr());
 		//Flag
 		bool warmupDone = (currTick >= config.totalWarmupTicks);
 

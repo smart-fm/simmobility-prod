@@ -543,6 +543,10 @@ void TrainMovement::frame_tick()
 		if(waitingTime<params.secondsInTick)
 		{
 
+			if(parentDriver->getTrainLine()=="SC_2")
+			{
+				int x=0;
+			}
 			if(parentDriver->getSubsequentNextRequested()!=TrainDriver::NO_REQUESTED)
 			{
 				parentDriver->setNextRequested(parentDriver->getSubsequentNextRequested());

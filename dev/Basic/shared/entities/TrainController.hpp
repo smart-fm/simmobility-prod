@@ -322,6 +322,8 @@ public:
     /* checks if train service is terminated for a particular line or not */
     void ClearDisruption(std::string lineId);
     bool IsServiceTerminated(std::string lineId);
+    void loadOppositeLines();
+    void loadTrainAvailabilities();
 
     int getMapPlatformsSize();
 
@@ -492,14 +494,8 @@ private:
 	std::vector<int> trainsToBePushedToInactivePoolAfterTripCompletion;
 	mutable boost::mutex activeTrainsListLock;
 	mutable boost::mutex terminatedTrainServiceLock;
-
-
-
-
-	//std::map<std::string, std::vector <int>> mapOfLineAndTrainDrivers;
-	//sim_mob::Role<PERSON>*
-    //std::map< std::vector<Block*> blockVectorOfRessetedSpeeds>;
-
+	std::map<std::string,std::list<int>> mapOfTrainMaxMinIds;
+	std::map<std::string,std::string> mapOfOppositeLines;
 
 	int lastTrainId;
 

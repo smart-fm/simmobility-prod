@@ -501,10 +501,11 @@ inline void createPotentialProjects(BigSerial parcelId, DeveloperModel* model, P
                 		(projectIt)->setTempSelectProbability(probability);
                 	}
 
-                	//generate a normally distributed random number
-                	boost::mt19937 igen(time(0));
-                	boost::variate_generator<boost::mt19937, boost::normal_distribution<> >gen(igen,boost::normal_distribution<>(0.0, 1.0 ));
-                	const double randomNum = gen();
+                	//generate a unifromly distributed random number
+                	std::random_device rd;
+                	std::mt19937 gen(rd());
+                	std::uniform_real_distribution<> dis(0.0, 1.0);
+                	const double randomNum = dis(gen);
                 	double pTemp = 0.0;
 
                 	if(projects.size()>0)

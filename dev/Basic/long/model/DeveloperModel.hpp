@@ -91,7 +91,7 @@ namespace sim_mob {
             /*
              * create developer agents for each parcel in the given ParcelList
              */
-            void createDeveloperAgents(ParcelList initParcelList, bool onGoingProject);
+            void createDeveloperAgents(ParcelList initParcelList, bool onGoingProject, bool day0Project);
 
             /*
              * create developer agent for BTO launching
@@ -272,7 +272,8 @@ namespace sim_mob {
             ParcelList developmentCandidateParcelList;
             ParcelList nonEligibleParcelList;
             ParcelList emptyParcels;
-            ParcelList parcelsWithOngoingProjects;
+            ParcelList parcelsWithOngoingProjects; //this is loaded when the simulation is resumed from a previous run
+            ParcelList parcelsWithDay0Projects;
             BuildingList buildings;
             DevelopmentTypeTemplateList developmentTypeTemplates;
             TemplateUnitTypeList templateUnitTypes;

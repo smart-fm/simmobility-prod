@@ -3,6 +3,7 @@
  * 
  * File:   DeveloperModel.cpp
  * Author: Pedro Gandola <pedrogandola@smart.mit.edu>
+ *         Gishara Premarathne <gishara@smart.mi.edu>
  * 
  * Created on March 11, 2014, 3:08 PM
  */
@@ -133,7 +134,7 @@ void DeveloperModel::startImpl() {
 		simYear = config.ltParams.year;
 		minLotSize= config.ltParams.developerModel.minLotSize;
 
-		std::tm currentSimYear = getDateBySimDay(simYear,1);
+		std::tm currentSimYear = getDateBySimDay(simYear,0);
 		UnitDao unitDao(conn);
 		btoUnits = unitDao.getBTOUnits(currentSimYear);
 		ongoingBtoUnits = unitDao.getOngoingBTOUnits(currentSimYear);
@@ -192,8 +193,9 @@ void DeveloperModel::startImpl() {
 
 	PrintOut("minLotSize"<<minLotSize<<std::endl);
 	processParcels();
-	createDeveloperAgents(developmentCandidateParcelList,false);
-	createDeveloperAgents(parcelsWithProjectsList,true);
+	createDeveloperAgents(developmentCandidateParcelList,false,false);
+	createDeveloperAgents(parcelsWithProjectsList,true,false);
+	createDeveloperAgents(parcelsWithDay0Projects,false,true);
 	createBTODeveloperAgents();
 	wakeUpDeveloperAgents(getDeveloperAgents());
 
@@ -205,6 +207,7 @@ void DeveloperModel::startImpl() {
 	PrintOutV("Initial TemplateUnitTypes " << templateUnitTypes.size() << std::endl);
 	PrintOutV("Parcel Amenities " << parcelsWithHDB.size() << std::endl);
 	PrintOutV("BTO units " << btoUnits.size() << std::endl);
+	PrintOutV("Parcels with units to launch on Day 0 " << parcelsWithDay0Projects.size() << std::endl);
 
 	addMetadata("Time Interval", timeInterval);
 	addMetadata("Initial Developers", developers.size());
@@ -212,6 +215,7 @@ void DeveloperModel::startImpl() {
 	addMetadata("Initial Parcels", initParcelList.size());
 	addMetadata("Initial DevelopmentTypeTemplates",developmentTypeTemplates.size());
 	PrintOutV("Initial Developer,Agents"<< developmentCandidateParcelList.size() << std::endl );
+	PrintOut("total eligible parcels"<<developmentCandidateParcelList.size()<< std::endl);
 }
 
 void DeveloperModel::stopImpl() {
@@ -327,7 +331,7 @@ const DeveloperModel::TemplateUnitTypeList& DeveloperModel::getTemplateUnitType(
     return templateUnitTypes;
 }
 
-void DeveloperModel::createDeveloperAgents(ParcelList devCandidateParcelList, bool onGoingProject)
+void DeveloperModel::createDeveloperAgents(ParcelList devCandidateParcelList, bool onGoingProject, bool day0Project)
 {
 
 	if (!devCandidateParcelList.empty()) {
@@ -343,6 +347,14 @@ void DeveloperModel::createDeveloperAgents(ParcelList devCandidateParcelList, bo
 				devAgent->setPostcode(getPostcodeForDeveloperAgent());
 				devAgent->setHousingMarketModel(housingMarketModel);
 				devAgent->setSimYear(simYear);
+
+				std::tm currentSimYear = getDateBySimDay(simYear,0);
+				DB_Config dbConfig(LT_DB_CONFIG_FILE);
+				dbConfig.load();
+				// Connect to database
+				DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
+				conn.connect();
+
 				if(onGoingProject)
 				{
 					devAgent->setParcelDBStatus(true);
@@ -351,15 +363,12 @@ void DeveloperModel::createDeveloperAgents(ParcelList devCandidateParcelList, bo
 					{
 						boost::shared_ptr<Project> projectPtr (new Project(*project));
 						devAgent->setProject(projectPtr);
+						projectPtr->setCurrTick(startDay);
 						devAgent->getParcel().get()->setStatus(1);
 					}
 
 					BuildingList buildingsInOngoingProjects;
-					DB_Config dbConfig(LT_DB_CONFIG_FILE);
-					dbConfig.load();
-					// Connect to database
-					DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
-					conn.connect();
+
 					if (conn.isConnected())
 					{
 						BuildingDao buildingDao(conn);
@@ -387,6 +396,30 @@ void DeveloperModel::createDeveloperAgents(ParcelList devCandidateParcelList, bo
 					unitsInOngoingProjects.clear();
 					devAgent->setNewUnits(unitsInOngoingProjectsSharedVec);
 				}
+				else if(day0Project)
+				{
+					if (conn.isConnected())
+					{
+						UnitDao unitDao(conn);
+						std::tm lastDayOfCurrentSimYear = getDateBySimDay(simYear,364);
+						UnitList unitsOnDay0 = unitDao.loadUnitsToLaunchOnDay0(currentSimYear,lastDayOfCurrentSimYear,devCandidateParcelList[i]->getId());
+						std::vector< boost::shared_ptr<Unit> > unitsOnDay0SharedVec;
+						unitsOnDay0SharedVec.reserve(unitsOnDay0.size());
+						std::transform(unitsOnDay0.begin(), unitsOnDay0.end(), std::back_inserter(unitsOnDay0SharedVec),to_shared_ptr<Unit>);
+						unitsOnDay0.clear();
+						devAgent->setNewUnits(unitsOnDay0SharedVec);
+						devAgent->setIsDay0Project(true);
+
+					}
+
+					Project *project = new Project();
+					project->setParcelId(devCandidateParcelList[i]->getId());
+					boost::shared_ptr<Project> projectPtr (new Project(*project));
+					devAgent->setProject(projectPtr);
+					projectPtr->setCurrTick(startDay);
+					devAgent->getParcel().get()->setStatus(1);
+				}
+
 				agents.push_back(devAgent);
 				developers.push_back(devAgent);
 				workGroup.assignAWorker(devAgent);
@@ -396,7 +429,6 @@ void DeveloperModel::createDeveloperAgents(ParcelList devCandidateParcelList, bo
 				throw runtime_error("Invalid parcel.");
 			}
 		}
-		PrintOut("total eligible parcels"<<agents.size());
 	}
 
 }
@@ -452,39 +484,43 @@ void DeveloperModel::processParcels()
 			}
 			else
 			{
-			//unitPrice sum null means that the parcel has buildings without units or buildings with HDB units.
-			if ((parcel->getStatus()==1) || ((!isEmptyParcel(parcel->getId())) && (getUnitPriceSumByParcelId(parcel->getId())==nullptr)))
-			{
-				nonEligibleParcelList.push_back(parcel);
-			}
-			else
-			{
-				if((parcel->getDevelopmentAllowed()!=2)||(parcel->getLotSize()< minLotSize)|| getParcelsWithHDB_ByParcelId(parcel->getId())!= nullptr)
+				if(parcel->getStatus()==1)
+				{
+					parcelsWithDay0Projects.push_back(parcel);
+				}
+				//unitPrice sum null means that the parcel has buildings without units or buildings with HDB units.
+				else if ((!isEmptyParcel(parcel->getId())) && (getUnitPriceSumByParcelId(parcel->getId())==nullptr))
 				{
 					nonEligibleParcelList.push_back(parcel);
 				}
 				else
 				{
-
-					float actualGpr = getBuildingSpaceByParcelId(parcel->getId())/parcel->getLotSize();
-//TODO:: consider the use_restriction field of parcel as well in the future
-					if ( actualGpr >= 0 && actualGpr < getAllowedGpr(*parcel))
-					{
-						developmentCandidateParcelList.push_back(parcel);
-						int newDevelopment = 0;
-						if(isEmptyParcel(parcel->getId()))
-							{
-								newDevelopment = 1;
-							}
-						devCandidateParcelsById.insert(std::make_pair(parcel->getId(), parcel));
-					}
-					else
+					if((parcel->getDevelopmentAllowed()!=2)||(parcel->getLotSize()< minLotSize)|| (getParcelsWithHDB_ByParcelId(parcel->getId())!= nullptr))
 					{
 						nonEligibleParcelList.push_back(parcel);
 					}
+					else
+					{
+						//TODO:: consider the use_restriction field of parcel as well in the future
+						float allowdGpr = getAllowedGpr(*parcel);
+						float actualGpr = getBuildingSpaceByParcelId(parcel->getId())/parcel->getLotSize();
+						if ( actualGpr >= 0 && actualGpr < allowdGpr)
+						{
+							developmentCandidateParcelList.push_back(parcel);
+							int newDevelopment = 0;
+							if(isEmptyParcel(parcel->getId()))
+							{
+								newDevelopment = 1;
+							}
+							devCandidateParcelsById.insert(std::make_pair(parcel->getId(), parcel));
+						}
+						else
+						{
+							nonEligibleParcelList.push_back(parcel);
+						}
 
+					}
 				}
-			}
 
 			}
 		}
@@ -581,7 +617,7 @@ float DeveloperModel::getAllowedGpr(Parcel &parcel)
 	{
 		return atof(parcel.getGpr().c_str());
 	}
-		return 0;
+		return -1;
 }
 
 const bool DeveloperModel::isEmptyParcel(BigSerial id) const {

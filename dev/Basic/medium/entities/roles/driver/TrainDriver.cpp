@@ -211,7 +211,7 @@ void TrainDriver::calculateDwellTime(int boarding,int alighting,int noOfPassenge
       std::string stationNo=currentPlatform->getStationNo();
       std::string trainLine=getTrainLine();
       TrainController<sim_mob::medium::Person_MT> *trainController=TrainController<sim_mob::medium::Person_MT>::getInstance();
-      double minDwellTime=trainController->GetMinDwellTime(stationNo,trainLine);
+      double minDwellTime=trainController->getMinDwellTime(stationNo,trainLine);
       if(dwellTime<minDwellTime)
       {
     	  dwellTime=minDwellTime;

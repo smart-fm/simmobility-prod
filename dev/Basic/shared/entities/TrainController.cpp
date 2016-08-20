@@ -15,10 +15,12 @@
 #ifndef _CLASS_TRAIN_CONTROLLER_FUNCTIONS
 #include "entities/TrainController.hpp"
 #else
-namespace{
+namespace
+{
 const double MILLISECS_CONVERT_UNIT = 1000.0;
 }
-namespace sim_mob {
+namespace sim_mob
+{
 	template<typename PERSON>
 	TrainController<PERSON>* TrainController<PERSON>::pInstance=nullptr;
 	template<typename PERSON>
@@ -29,54 +31,55 @@ namespace sim_mob {
 
 	}
 	template<typename PERSON>
-	TrainController<PERSON>::~TrainController() {
+	TrainController<PERSON>::~TrainController()
+	{
 		for (std::map<std::string, Platform*>::iterator it =
-				mapOfIdvsPlatforms.begin(); it != mapOfIdvsPlatforms.end(); it++) {
+				mapOfIdvsPlatforms.begin(); it != mapOfIdvsPlatforms.end(); it++)
+		{
 			delete it->second;
 		}
 		for (std::map<unsigned int, Block*>::iterator it =
-				mapOfIdvsBlocks.begin(); it != mapOfIdvsBlocks.end(); it++) {
+				mapOfIdvsBlocks.begin(); it != mapOfIdvsBlocks.end(); it++)
+		{
 			delete it->second;
 		}
 		for (std::map<unsigned int, PolyLine*>::iterator it =
-				mapOfIdvsPolylines.begin(); it != mapOfIdvsPolylines.end(); it++) {
+				mapOfIdvsPolylines.begin(); it != mapOfIdvsPolylines.end(); it++)
+		{
 			delete it->second;
 		}
-		if(pInstance) {
+		if(pInstance)
+		{
 			delete pInstance;
 		}
 	}
 
 
 	template<typename PERSON>
-	void TrainController<PERSON>::SetDisruptionParams(std::string startStation,std::string endStation,std::string time)
+	void TrainController<PERSON>::setDisruptionParams(std::string startStation,std::string endStation,std::string time)
 	{
 		disruptionEntity.startStation=startStation;
 		disruptionEntity.endStation=endStation;
 		disruptionEntity.disruptionTime=time;
-
 	}
+
 	template<typename PERSON>
-	void TrainController<PERSON>::PerformDisruption(std::string startStation,std::string endStation,timeslice now,std::string disruptionTime)
+	void TrainController<PERSON>::performDisruption(std::string startStation,std::string endStation,timeslice now,std::string disruptionTime)
 	{
 		DailyTime currentTime=ConfigManager::GetInstance().FullConfig().simStartTime()+DailyTime(now.ms());
 		DailyTime nextInterval=ConfigManager::GetInstance().FullConfig().simStartTime()+DailyTime(now.ms()+5000);
 		std::string currentTimeStr=currentTime.getStrRepr();
 		std::string nextIntervalStr=nextInterval.getStrRepr();
-		//||nextIntervalStr>disruptionTime
 		if((boost::iequals(currentTimeStr,disruptionTime)||nextIntervalStr>disruptionTime)&&disruptionPerformed==false)
 		{
-
-			std::vector<std::string> platforms=GetPlatformsBetweenStations("NE_1",startStation,endStation);
-			//std::vector<std::string> a,b;
-			 disruptedPlatformsNamesMap_ServiceController["NE_1"]=std::vector<std::string>();
-			 disruptedPlatformsNamesMap_ServiceController["NE_1"].insert(disruptedPlatformsNamesMap_ServiceController["NE_1"].end(),platforms.begin(),platforms.end());
-			 platforms=GetPlatformsBetweenStations("NE_2",endStation,startStation);
-			 disruptedPlatformsNamesMap_ServiceController["NE_2"]=std::vector<std::string>();
-			 disruptedPlatformsNamesMap_ServiceController["NE_2"].insert(disruptedPlatformsNamesMap_ServiceController["NE_2"].end(),platforms.begin(),platforms.end());
-			 disruptionPerformed=true;
+			std::vector<std::string> platforms=getPlatformsBetweenStations("NE_1",startStation,endStation);
+			disruptedPlatformsNamesMap_ServiceController["NE_1"]=std::vector<std::string>();
+			disruptedPlatformsNamesMap_ServiceController["NE_1"].insert(disruptedPlatformsNamesMap_ServiceController["NE_1"].end(),platforms.begin(),platforms.end());
+			platforms=getPlatformsBetweenStations("NE_2",endStation,startStation);
+			disruptedPlatformsNamesMap_ServiceController["NE_2"]=std::vector<std::string>();
+			disruptedPlatformsNamesMap_ServiceController["NE_2"].insert(disruptedPlatformsNamesMap_ServiceController["NE_2"].end(),platforms.begin(),platforms.end());
+			disruptionPerformed=true;
 		}
-
 	}
 
 	template<typename PERSON>
@@ -99,7 +102,6 @@ namespace sim_mob {
 			std::string opp_lineId = r.get<std::string>(1);
 			mapOfOppositeLines[lineId]=opp_lineId;
 		}
-
 	}
 
 	template<typename PERSON>
@@ -129,15 +131,15 @@ namespace sim_mob {
 	}
 
 	template<typename PERSON>
-	void TrainController<PERSON>::SetDisruptedPlatforms(std::string startStation,std::string endStation,std::string lineID)
+	void TrainController<PERSON>::setDisruptedPlatforms(std::string startStation,std::string endStation,std::string lineID)
 	{
-			std::vector<std::string> platforms=GetPlatformsBetweenStations(lineID,startStation,endStation);
-			disruptedPlatformsNamesMap_ServiceController[lineID] = std::vector<std::string>();
-			disruptedPlatformsNamesMap_ServiceController[lineID].insert(disruptedPlatformsNamesMap_ServiceController[lineID].end(),platforms.begin(),platforms.end());
+		std::vector<std::string> platforms=getPlatformsBetweenStations(lineID,startStation,endStation);
+		disruptedPlatformsNamesMap_ServiceController[lineID] = std::vector<std::string>();
+		disruptedPlatformsNamesMap_ServiceController[lineID].insert(disruptedPlatformsNamesMap_ServiceController[lineID].end(),platforms.begin(),platforms.end());
 	}
 
 	template<typename PERSON>
-	void TrainController<PERSON>::ClearDisruption(std::string lineID)
+	void TrainController<PERSON>::clearDisruption(std::string lineID)
 	{
 		disruptedPlatformsNamesMap_ServiceController[lineID].erase(disruptedPlatformsNamesMap_ServiceController[lineID].begin(),disruptedPlatformsNamesMap_ServiceController[lineID].end());
 	}
@@ -162,7 +164,6 @@ namespace sim_mob {
 			}
 		}
 
-
 		std::map<std::string,std::vector<TrainTrip*>>::iterator unscheduledTripItr;
 		for(unscheduledTripItr=mapOfIdvsUnsheduledTrips.begin();unscheduledTripItr!=mapOfIdvsUnsheduledTrips.end();unscheduledTripItr++)
 		{
@@ -177,7 +178,7 @@ namespace sim_mob {
 				std::vector<TripChainItem*> tripChain;
 				TrainTrip* top = *trItr;
 				std::string lineId = top->getLineId();
-				if(!IsServiceTerminated(lineId))
+				if(!isServiceTerminated(lineId))
 				{
 					int trainId=getTrainId(lineId);
 					if(trainId!=-1)
@@ -212,7 +213,7 @@ namespace sim_mob {
 				std::vector<TripChainItem*> tripChain;
 				TrainTrip* top = trainTrips.top();
 				std::string lineId = top->getLineId();
-				if(!IsServiceTerminated(lineId))  //This can be checked before
+				if(!isServiceTerminated(lineId))  //This can be checked before
 				{
 					int trainId=getTrainId(lineId);
 					if(trainId!=-1)
@@ -248,7 +249,8 @@ namespace sim_mob {
 		std::string lineId = trip->getLineId();
 		std::map<std::string, std::vector<std::string>>::iterator it;
 		it = platformsInline.find(lineId);
-		if(it!=platformsInline.end()){
+		if(it!=platformsInline.end())
+		{
 			trip->removeTrainRoute(it->second);
 		}
 	}
@@ -256,18 +258,17 @@ namespace sim_mob {
 	int TrainController<PERSON>::getTrainId(const std::string& lineID)
 	{
 		int trainId = 0;
-		trainId=DeleteTrainFromActivePool(lineID);
+		trainId=deleteTrainFromActivePool(lineID);
 
 		if(trainId==-1)
 	    {
-			//trainId = ++lastTrainId;
 			return -1;
 		}
 		return trainId;
 	}
 
 	template<typename PERSON>
-	void TrainController<PERSON>::AddToListOfActiveTrainsInLine(std::string lineId,Role<PERSON> *driver)
+	void TrainController<PERSON>::addToListOfActiveTrainsInLine(std::string lineId,Role<PERSON> *driver)
 	{
 		activeTrainsListLock.lock();
 		mapOfLineAndTrainDrivers[lineId].push_back(driver);
@@ -275,20 +276,18 @@ namespace sim_mob {
 	}
 
 	template<typename PERSON>
-	void TrainController<PERSON>::RemoveFromListOfActiveTrainsInLine(std::string lineId,Role<PERSON> *driver)
+	void TrainController<PERSON>::removeFromListOfActiveTrainsInLine(std::string lineId,Role<PERSON> *driver)
 	{
 		activeTrainsListLock.lock();
 		std::vector <Role<PERSON>*> vect=mapOfLineAndTrainDrivers[lineId];
 		typename std::vector <sim_mob::Role<PERSON>*>::iterator it=vect.begin();
 		it=find(vect.begin(),vect.end(),driver);
 		int pos=std::distance (vect.begin (), it);
-		//vect.erase(vect.begin()+pos,vect.begin()+pos+1);
-		//mapOfLineAndTrainDrivers[lineId]=vect;
 		activeTrainsListLock.unlock();
 	}
 
 	template<typename PERSON>
-	typename  std::vector <Role<PERSON>*> TrainController<PERSON>::GetActiveTrainsForALine(std::string lineID)
+	typename  std::vector <Role<PERSON>*> TrainController<PERSON>::getActiveTrainsForALine(std::string lineID)
 	{
 		activeTrainsListLock.lock();
 		std::vector <Role<PERSON>*> activeTrains=mapOfLineAndTrainDrivers[lineID];
@@ -304,12 +303,13 @@ namespace sim_mob {
 	}
 
 	template<typename PERSON>
-	std::string TrainController<PERSON>::GetOppositeLineId(std::string lineId)
+	std::string TrainController<PERSON>::getOppositeLineId(std::string lineId)
 	{
-        if(boost::iequals(lineId, "NE_1"))
-        	return "NE_2";
-        else if (boost::iequals(lineId, "NE_2"))
-        	return "NE_1";
+		std::map<std::string,std::string>::iterator it=mapOfOppositeLines.find(lineId);
+		if(it!=mapOfOppositeLines.end())
+		{
+			return it->second;
+		}
 	}
 	template<typename PERSON>
 	void TrainController<PERSON>::frame_output(timeslice now)
@@ -325,18 +325,25 @@ namespace sim_mob {
 	{
 		bool res = true;
 		std::map<std::string, std::vector<TrainRoute>>::iterator it = mapOfIdvsTrainRoutes.find(lineId);
-		if(it==mapOfIdvsTrainRoutes.end()) {
+		if(it==mapOfIdvsTrainRoutes.end())
+		{
 			res = false;
-		} else {
+		}
+		else
+		{
 			std::vector<TrainRoute>& trainRoute = it->second;
-			for(std::vector<TrainRoute>::iterator i=trainRoute.begin();i!=trainRoute.end();i++) {
+			for(std::vector<TrainRoute>::iterator i=trainRoute.begin();i!=trainRoute.end();i++)
+			{
 
 				std::map<unsigned int, Block*>::iterator iBlock = mapOfIdvsBlocks.find(i->blockId);
 
-				if(iBlock==mapOfIdvsBlocks.end()) {
+				if(iBlock==mapOfIdvsBlocks.end())
+				{
 					res = false;
 					break;
-				} else {
+				}
+				else
+				{
 					route.push_back(iBlock->second);
 				}
 			}
@@ -355,12 +362,16 @@ namespace sim_mob {
 		else
 		{
 			std::vector<TrainPlatform>& trainPlatform = it->second;
-			for(std::vector<TrainPlatform>::iterator i=trainPlatform.begin();i!=trainPlatform.end();i++) {
+			for(std::vector<TrainPlatform>::iterator i=trainPlatform.begin();i!=trainPlatform.end();i++)
+			{
 				std::map<std::string, Platform*>::iterator iPlatform = mapOfIdvsPlatforms.find(i->platformNo);
-				if(iPlatform==mapOfIdvsPlatforms.end()) {
+				if(iPlatform==mapOfIdvsPlatforms.end())
+				{
 					res = false;
 					break;
-				} else {
+				}
+				else
+				{
 					platforms.push_back(iPlatform->second);
 				}
 			}
@@ -379,16 +390,12 @@ namespace sim_mob {
 		composeBlocksAndPolyline();
 		loadSchedules();
 		composeTrainTrips();
-		//InitializeTrainIds();
-
 	}
 
 	//Initialize Train ids function
 	template<typename PERSON>
 	void TrainController<PERSON>::InitializeTrainIds(std::string lineId)
 	{
-
-
 		std::list<int> &listOfTrainMaxMinIds=mapOfTrainMaxMinIds[lineId];
 		std::list<int>::iterator itr=listOfTrainMaxMinIds.begin();
 		int minId=*itr;
@@ -400,42 +407,49 @@ namespace sim_mob {
 		{
 			trainIds.push_back(i);
 		}
-
-			recycleTrainId[lineId] = trainIds;
+		recycleTrainId[lineId] = trainIds;
 	}
 
 
 	template<typename PERSON>
 	void TrainController<PERSON>::composeBlocksAndPolyline()
 	{
-		for (std::map<unsigned int, Block*>::iterator it = mapOfIdvsBlocks.begin();it != mapOfIdvsBlocks.end(); it++) {
+		for (std::map<unsigned int, Block*>::iterator it = mapOfIdvsBlocks.begin();it != mapOfIdvsBlocks.end(); it++)
+		{
 			std::map<unsigned int, PolyLine*>::iterator itLine =mapOfIdvsPolylines.find(it->first);
-			if (itLine != mapOfIdvsPolylines.end()) {
+			if (itLine != mapOfIdvsPolylines.end())
+			{
 				it->second->setPloyLine((*itLine).second);
-			} else {
+			}
+			else
+			{
 				Print()<< "Block not find polyline:"<<it->first<<std::endl;
 			}
 		}
 
-		for(std::map<std::string, Platform*>::iterator it = mapOfIdvsPlatforms.begin(); it!=mapOfIdvsPlatforms.end(); it++) {
+		for(std::map<std::string, Platform*>::iterator it = mapOfIdvsPlatforms.begin(); it!=mapOfIdvsPlatforms.end(); it++)
+		{
 			std::map<unsigned int, Block*>::iterator itBlock=mapOfIdvsBlocks.find(it->second->getAttachedBlockId());
-			if(itBlock!=mapOfIdvsBlocks.end()) {
+			if(itBlock!=mapOfIdvsBlocks.end())
+			{
 				itBlock->second->setAttachedPlatform(it->second);
-			} else {
+			}
+			else
+			{
 				Print()<< "Platform not find corresponding block:"<<it->first<<std::endl;
 			}
 		}
 	}
+
 	template<typename PERSON>
 	TrainController<PERSON>* TrainController<PERSON>::getInstance()
 	{
-		if(!pInstance) {
+		if(!pInstance)
+		{
 			pInstance = new TrainController<PERSON>();
 		}
 		return pInstance;
 	}
-
-
 
 	template<typename PERSON>
 	bool TrainController<PERSON>::HasTrainController()
@@ -481,12 +495,10 @@ namespace sim_mob {
 			Station* station = mapOfIdvsStations[stationNo];
 			station->addPlatform(platform->getLineId(), platform);
 		}
- 		int size=mapOfIdvsStations.size();
-		int u=0;
 	}
 
 	template<typename PERSON>
-	double TrainController<PERSON>::GetMinDwellTime(std::string stationNo,std::string lineId)
+	double TrainController<PERSON>::getMinDwellTime(std::string stationNo,std::string lineId)
 	{
          double minDwellTime=20;
          if(stationNo.find("/")!= std::string::npos)
@@ -516,7 +528,7 @@ namespace sim_mob {
 	}
 
 	template<typename PERSON>
-	bool TrainController<PERSON>::IsFirstStation(std::string lineId,Platform *platform)
+	bool TrainController<PERSON>::isFirstStation(std::string lineId,Platform *platform)
 	{
 		std::map<std::string, std::vector<TrainPlatform>>::iterator it = mapOfIdvsTrainPlatforms.find(lineId);
 		std::vector<TrainPlatform> TrainPlatforms=it->second;
@@ -611,7 +623,7 @@ namespace sim_mob {
 		int tripId=++maxTripId;
 		trainTrip->setTripId(tripId);
 		trainTrip->setTrainRoute(route);
-		std::vector<Platform*> platforms=GetPlatforms(lineId,startStation);
+		std::vector<Platform*> platforms=getPlatforms(lineId,startStation);
 		trainTrip->setTrainPlatform(platforms);
 		DailyTime start(startTime);
 		DailyTime offset(start.offsetMS_From(ConfigManager::GetInstance().FullConfig().simStartTime()));
@@ -640,19 +652,17 @@ namespace sim_mob {
 
 		if(flag==false)
 			mapOfIdvsUnsheduledTrips[lineId].push_back(trainTrip);
-
 	}
 
 	template<typename PERSON>
-	std::vector<Platform*> TrainController<PERSON>::GetPlatforms(std::string lineId,std::string startStation)
+	std::vector<Platform*> TrainController<PERSON>::getPlatforms(std::string lineId,std::string startStation)
 	{
 		Station *station=mapOfIdvsStations[startStation];
 		std::vector<Platform*> platforms;
 		if(station)
 		{
               Platform *platform=station->getPlatform(lineId);
-              std::vector<TrainPlatform> trainPlatforms=mapOfIdvsTrainPlatforms[lineId];
-              //std::vector<TrainPlatform>::iterator it=trainPlatforms.find(trainPlatforms.begin(),trainPlatforms.end(),platform->platformNo());
+              std::vector<TrainPlatform>& trainPlatforms=mapOfIdvsTrainPlatforms[lineId];
               std::vector<TrainPlatform>::iterator it=trainPlatforms.begin();
 
               if(it!=trainPlatforms.end())
@@ -705,7 +715,7 @@ namespace sim_mob {
 	}
 
 	template<typename PERSON>
-	TrainPlatform TrainController<PERSON>::GetNextPlatform(std::string platformNo,std::string lineID)
+	TrainPlatform TrainController<PERSON>::getNextPlatform(std::string platformNo,std::string lineID)
 	{
 		std::vector<TrainPlatform> trainPlatforms=mapOfIdvsTrainPlatforms[lineID];
 		typename std::vector<TrainPlatform>::iterator it=trainPlatforms.begin();
@@ -728,13 +738,13 @@ namespace sim_mob {
 	}
 
 	template<typename PERSON>
-	Platform* TrainController<PERSON>::GetPlatformFromId(std::string platformNo)
+	Platform* TrainController<PERSON>::getPlatformFromId(std::string platformNo)
 	{
 	   return mapOfIdvsPlatforms[platformNo];
 	}
 
 	template<typename PERSON>
-	std::vector<Block*> TrainController<PERSON>::GetBlocks(std::string lineId)
+	std::vector<Block*> TrainController<PERSON>::getBlocks(std::string lineId)
 	{
 		std::map<std::string, std::vector<TrainRoute>>::iterator it = mapOfIdvsTrainRoutes.find(lineId);
 		std::vector<Block*> blockVector;
@@ -753,13 +763,12 @@ namespace sim_mob {
 				std::map<unsigned int, Block*>::iterator iBlock = mapOfIdvsBlocks.find(i->blockId);
 				blockVector.push_back(iBlock->second);
 			}
-
 		}
 		return blockVector;
 	}
 
 	template<typename PERSON>
-    Block* TrainController<PERSON>::GetBlock(int blockId)
+    Block* TrainController<PERSON>::getBlock(int blockId)
 	{
 		std::map<unsigned int, Block*>::iterator iBlock = mapOfIdvsBlocks.find(blockId);
 		return iBlock->second;
@@ -767,7 +776,7 @@ namespace sim_mob {
 
 
 	template<typename PERSON>
-	std::vector<std::string> TrainController<PERSON>::GetLinesBetweenTwoStations(std::string src,std::string dest)
+	std::vector<std::string> TrainController<PERSON>::getLinesBetweenTwoStations(std::string src,std::string dest)
 	{
 		typename std::map<std::string, std::vector<TrainRoute>>::iterator it=mapOfIdvsTrainRoutes.begin();
 		std::vector<std::string> lines;
@@ -794,12 +803,12 @@ namespace sim_mob {
             			lines.push_back((*tritr).lineId);
             			break;
             		}
-
             	}
             }
 		}
- return lines;
+		return lines;
 	}
+
 	template<typename PERSON>
 	void TrainController<PERSON>::loadTrainRoutes()
 	{
@@ -821,15 +830,16 @@ namespace sim_mob {
 			route.lineId = lineId;
 			route.blockId = r.get<int>(1);
 			route.sequenceNo = r.get<int>(2);
-			if(mapOfIdvsTrainRoutes.find(lineId)==mapOfIdvsTrainRoutes.end()) {
+			if(mapOfIdvsTrainRoutes.find(lineId)==mapOfIdvsTrainRoutes.end())
+			{
 				mapOfIdvsTrainRoutes[lineId] = std::vector<TrainRoute>();
 			}
 			mapOfIdvsTrainRoutes[lineId].push_back(route);
 			mapOfTrainServiceTerminated[lineId]=false;
 			InitializeTrainIds(lineId);
 		}
-
 	}
+
 	template<typename PERSON>
 	void TrainController<PERSON>::loadTrainPlatform()
 	{
@@ -851,12 +861,14 @@ namespace sim_mob {
 			platform.lineId = lineId;
 			platform.platformNo = r.get<std::string>(1);
 			platform.sequenceNo = r.get<int>(2);
-			if(mapOfIdvsTrainPlatforms.find(lineId)==mapOfIdvsTrainPlatforms.end()) {
+			if(mapOfIdvsTrainPlatforms.find(lineId)==mapOfIdvsTrainPlatforms.end())
+			{
 				mapOfIdvsTrainPlatforms[lineId] = std::vector<TrainPlatform>();
 			}
 			mapOfIdvsTrainPlatforms[lineId].push_back(platform);
 		}
 	}
+
 	template<typename PERSON>
 	void TrainController<PERSON>::loadTransferedTimes()
 	{
@@ -864,44 +876,44 @@ namespace sim_mob {
 	}
 
 	template<typename PERSON>
-	std::vector<std::string> TrainController<PERSON>::GetPlatformsBetweenStations(std::string lineId,std::string startStation,std::string endStation)
+	std::vector<std::string> TrainController<PERSON>::getPlatformsBetweenStations(std::string lineId,std::string startStation,std::string endStation)
 	{
 		Station *station=mapOfIdvsStations[startStation];
 		Station *eStation=mapOfIdvsStations[endStation];
 		std::vector<std::string> platforms;
 		if(station&&eStation)
 		{
-			  Platform *platform=station->getPlatform(lineId);
-			  Platform *endPlatform=eStation->getPlatform(lineId);
-			  std::vector<TrainPlatform> trainPlatforms=mapOfIdvsTrainPlatforms[lineId];
-			  std::vector<TrainPlatform>::iterator it=trainPlatforms.begin();
-			  if(it!=trainPlatforms.end())
-			  {
-				  bool foundStartPlatform=false;
-				  while(it!=trainPlatforms.end())
-				 {
-						std::string platformNo=(*it).platformNo;
-						if(boost::iequals(platformNo,platform->getPlatformNo()))
-						{
-							foundStartPlatform =true;
-						}
-						if(foundStartPlatform)
-						{
-							Platform *plt = mapOfIdvsPlatforms[platformNo];
-							platforms.push_back(plt->getPlatformNo());
-						}
+			Platform *platform=station->getPlatform(lineId);
+			Platform *endPlatform=eStation->getPlatform(lineId);
+			std::vector<TrainPlatform> trainPlatforms=mapOfIdvsTrainPlatforms[lineId];
+			std::vector<TrainPlatform>::iterator it=trainPlatforms.begin();
+			if(it!=trainPlatforms.end())
+			{
+				bool foundStartPlatform=false;
+				while(it!=trainPlatforms.end())
+				{
+					std::string platformNo=(*it).platformNo;
+					if(boost::iequals(platformNo,platform->getPlatformNo()))
+					{
+						foundStartPlatform =true;
+					}
+					if(foundStartPlatform)
+					{
+						Platform *plt = mapOfIdvsPlatforms[platformNo];
+						platforms.push_back(plt->getPlatformNo());
+					}
 
-						if(boost::iequals(platformNo,endPlatform->getPlatformNo()))
-						{
-							break;
-						}
-						it++;
-				 }
-			  }
+					if(boost::iequals(platformNo,endPlatform->getPlatformNo()))
+					{
+						break;
+					}
+					it++;
+				}
+			}
 		}
 		return platforms;
-
 	}
+
 	template<typename PERSON>
 	void TrainController<PERSON>::loadBlockPolylines()
 	{
@@ -927,20 +939,23 @@ namespace sim_mob {
 			point.setY(r.get<double>(2));
 			point.setZ(r.get<double>(3));
 			point.setSequenceNumber(r.get<int>(4));
-			if(mapOfIdvsPolylines.find(polylineId)==mapOfIdvsPolylines.end()) {
+			if(mapOfIdvsPolylines.find(polylineId)==mapOfIdvsPolylines.end())
+			{
 				mapOfIdvsPolylines[polylineId] = new PolyLine();
 				mapOfIdvsPolylines[polylineId]->setPolyLineId(polylineId);
 			}
 			mapOfIdvsPolylines[polylineId]->addPoint(point);
 		}
 	}
+
 	template<typename PERSON>
 	void TrainController<PERSON>::printBlocks(std::ofstream& out) const
 	{
 		std::stringstream outStream;
 		outStream << std::setprecision(8);
 		outStream << "Print train network(blocks)" << std::endl;
-		for (std::map<unsigned int, Block*>::const_iterator it = mapOfIdvsBlocks.begin();it != mapOfIdvsBlocks.end(); it++) {
+		for (std::map<unsigned int, Block*>::const_iterator it = mapOfIdvsBlocks.begin();it != mapOfIdvsBlocks.end(); it++)
+		{
 			outStream << "(\"block\", " << it->second->getBlockId() << ", {";
 			outStream << "\"length\":\"" << it->second->getLength() << "\",";
 			outStream << "\"speedlimit\":\"" << it->second->getSpeedLimit() << "\",";
@@ -957,13 +972,15 @@ namespace sim_mob {
 		}
 		out << outStream.str() << std::endl;
 	}
+
 	template<typename PERSON>
 	void TrainController<PERSON>::printPlatforms(std::ofstream& out) const
 	{
 		std::stringstream outStream;
 		outStream << std::setprecision(8);
 		outStream << "Print train network(platforms)" << std::endl;
-		for(std::map<std::string, Platform*>::const_iterator it = mapOfIdvsPlatforms.begin(); it!=mapOfIdvsPlatforms.end(); it++) {
+		for(std::map<std::string, Platform*>::const_iterator it = mapOfIdvsPlatforms.begin(); it!=mapOfIdvsPlatforms.end(); it++)
+		{
 			const Platform *platform = it->second;
 			outStream << "(\"platform\", " << platform->getPlatformNo() << ", {";
 			outStream << "\"station\":\"" << platform->getStationNo() << "\",";
@@ -975,6 +992,7 @@ namespace sim_mob {
 		}
 		out << outStream.str() << std::endl;
 	}
+
 	template<typename PERSON>
 	void TrainController<PERSON>::printTrainNetwork(const std::string& outFileName) const
 	{
@@ -982,22 +1000,27 @@ namespace sim_mob {
 		printBlocks(out);
 		printPlatforms(out);
 	}
+
 	template<typename PERSON>
 	void TrainController<PERSON>::assignTrainTripToPerson(std::set<Entity*>& activeAgents)
 	{
 	}
+
 	template<typename PERSON>
 	void TrainController<PERSON>::unregisterChild(Entity* child)
 	{
 
 	}
+
 	template<typename PERSON>
 	Agent* TrainController<PERSON>::getAgentFromStation(const std::string& nameStation)
 	{
 		std::map<std::string, Station*>& mapOfIdvsStations = getInstance()->mapOfIdvsStations;
 		std::map<std::string, Station*>::const_iterator it = mapOfIdvsStations.find(nameStation);
-		if(it!=mapOfIdvsStations.end()) {
-			if(allStationAgents.find(it->second)!=allStationAgents.end()) {
+		if(it!=mapOfIdvsStations.end())
+		{
+			if(allStationAgents.find(it->second)!=allStationAgents.end())
+			{
 				return allStationAgents[it->second];
 			}
 		}
@@ -1017,16 +1040,14 @@ namespace sim_mob {
 		std::map<std::string, Station*>& mapOfIdvsStations = getInstance()->mapOfIdvsStations;
 		std::map<std::string, Station*>::const_iterator it = mapOfIdvsStations.find(stationName);
 		int size=mapOfIdvsStations.size();
-		if(boost::iequals(stationName,"EW10"))
+		if(it!=mapOfIdvsStations.end())
 		{
-			int t=0;
-		}
-		if(it!=mapOfIdvsStations.end()){
 			Station* station = it->second;
 			platform = station->getPlatform(lineId);
 		}
 		return platform;
 	}
+
 	template<typename PERSON>
 	Platform* TrainController<PERSON>::getPrePlatform(const std::string& lineId, const std::string& curPlatform)
 	{
@@ -1055,25 +1076,27 @@ namespace sim_mob {
 		return platform;
 	}
 
-
 	template<typename PERSON>
-	std::map<std::string,std::vector<std::string>> TrainController<PERSON>::GetDisruptedPlatforms_ServiceController()
+	std::map<std::string,std::vector<std::string>> TrainController<PERSON>::getDisruptedPlatforms_ServiceController()
 	{
         return disruptedPlatformsNamesMap_ServiceController;
 	}
-
 
 	template<typename PERSON>
 	bool TrainController<PERSON>::checkPlatformIsExisted(const Agent* stationAgent, const std::string& platformNo)
 	{
 		bool res = false;
 		boost::unordered_map<const Station*, Agent*>::const_iterator it;
-		for(it=allStationAgents.begin();it!=allStationAgents.end(); it++){
-			if((*it).second==stationAgent){
+		for(it=allStationAgents.begin();it!=allStationAgents.end(); it++)
+		{
+			if((*it).second==stationAgent)
+			{
 				const std::map<std::string, Platform*>& platforms = (*it).first->getPlatforms();
 				std::map<std::string, Platform*>::const_iterator ii;
-				for(ii=platforms.begin(); ii!=platforms.end(); ii++){
-					if((*ii).second->getPlatformNo()==platformNo){
+				for(ii=platforms.begin(); ii!=platforms.end(); ii++)
+				{
+					if((*ii).second->getPlatformNo()==platformNo)
+					{
 						res = true;
 						break;
 					}
@@ -1083,18 +1106,20 @@ namespace sim_mob {
 		}
 		return res;
 	}
+
 	template<typename PERSON>
 	void TrainController<PERSON>::registerStationAgent(const std::string& nameStation, Agent* stationAgent)
 	{
 		std::map<std::string, Station*>& mapOfIdvsStations = getInstance()->mapOfIdvsStations;
 		std::map<std::string, Station*>::const_iterator it = mapOfIdvsStations.find(nameStation);
-		if(it!=mapOfIdvsStations.end()) {
+		if(it!=mapOfIdvsStations.end())
+		{
 			allStationAgents[it->second]=stationAgent;
 		}
 	}
 
 	template<typename PERSON>
-	Station *TrainController<PERSON>::GetStationFromId(std::string stationId)
+	Station *TrainController<PERSON>::getStationFromId(std::string stationId)
 	{
 		Station *station=nullptr;
 		if(mapOfIdvsStations.find(stationId)!=mapOfIdvsStations.end())
@@ -1105,7 +1130,7 @@ namespace sim_mob {
 	}
 
 	template<typename PERSON>
-	void TrainController<PERSON>::TerminateTrainService(std::string lineId)
+	void TrainController<PERSON>::terminateTrainService(std::string lineId)
 	{
 		terminatedTrainServiceLock.lock();
 		mapOfTrainServiceTerminated[lineId]=true;
@@ -1113,7 +1138,7 @@ namespace sim_mob {
 	}
 
 	template<typename PERSON>
-	bool TrainController<PERSON>::IsServiceTerminated(std::string lineId)
+	bool TrainController<PERSON>::isServiceTerminated(std::string lineId)
 	{
 		bool isTerminated=false;
 		terminatedTrainServiceLock.lock();
@@ -1125,16 +1150,15 @@ namespace sim_mob {
 	template<typename PERSON>
 	void TrainController<PERSON>::pushTrainIntoInActivePool(int trainId,std::string lineId)
 	{
-		trainId=DeleteTrainFromActivePool(lineId);
+		trainId=deleteTrainFromActivePool(lineId);
 		if(trainId!=-1)
 		{
-			AddTrainToInActivePool(lineId, trainId);
+			addTrainToInActivePool(lineId, trainId);
 		}
-
 	}
 
 	template<typename PERSON>
-	int  TrainController<PERSON>::DeleteTrainFromInActivePool(std::string lineID)
+	int  TrainController<PERSON>::deleteTrainFromInActivePool(std::string lineID)
 	{
 		inActivePoolLock.lock();
 		int trainId=-1;
@@ -1143,23 +1167,19 @@ namespace sim_mob {
 		if(it!=mapOfInActivePoolInLine.end())
 		{
 			std::vector<int>& trainIds = it->second;
-
-
-		if(trainIds.size())
-		{
-						//getting the train Id
-			trainId = trainIds[0];
-			trainIds.erase(trainIds.begin());
-			//return trainId;
+			if(trainIds.size())
+			{
+				//getting the train Id
+				trainId = trainIds[0];
+				trainIds.erase(trainIds.begin());
+			}
+			inActivePoolLock.unlock();
+			return trainId;
 		}
-		inActivePoolLock.unlock();
-		return trainId;
-		}
-
 	}
 
 	template<typename PERSON>
-	int TrainController<PERSON>::DeleteTrainFromActivePool(std::string lineID)
+	int TrainController<PERSON>::deleteTrainFromActivePool(std::string lineID)
 	{
 		activePoolLock.lock();
 		int trainId=-1;
@@ -1188,7 +1208,7 @@ namespace sim_mob {
 	}
 
 	template<typename PERSON>
-	void TrainController<PERSON>::AddTrainToActivePool(std::string lineId,int trainId)
+	void TrainController<PERSON>::addTrainToActivePool(std::string lineId,int trainId)
 	{
 		activePoolLock.lock();
 		std::map<std::string, std::vector<int>>::iterator it;
@@ -1201,11 +1221,10 @@ namespace sim_mob {
 		recycleTrainId[lineId].push_back(trainId);
 		mapOfNoAvailableTrains[lineId]=mapOfNoAvailableTrains[lineId]+1;
 		activePoolLock.unlock();
-
 	}
 
 	template<typename PERSON>
-	void TrainController<PERSON>::AddTrainToInActivePool(std::string lineID,int trainId)
+	void TrainController<PERSON>::addTrainToInActivePool(std::string lineID,int trainId)
 	{
 		inActivePoolLock.lock();
 		std::map<std::string, std::vector<int>>::iterator it;
@@ -1224,11 +1243,9 @@ namespace sim_mob {
 
 		int trainId=-1;
 
-		trainId=DeleteTrainFromInActivePool(lineID);
+		trainId=deleteTrainFromInActivePool(lineID);
 		if(trainId!=-1)
-			AddTrainToActivePool(lineID,trainId);
-
-
+			addTrainToActivePool(lineID,trainId);
         return trainId;
 	}
 
@@ -1250,16 +1267,16 @@ namespace sim_mob {
 					{
 						int trainId = front->getTrainId();
 						std::string lineId = front->getLineId();
-						std::string oppLineId=GetOppositeLineId(lineId);
+						std::string oppLineId=getOppositeLineId(lineId);
 						std::vector<int>::iterator it=std::find(trainsToBePushedToInactivePoolAfterTripCompletion.begin(), trainsToBePushedToInactivePoolAfterTripCompletion.end(), trainId);
 						if(it!=trainsToBePushedToInactivePoolAfterTripCompletion.end())
 						{
 							trainsToBePushedToInactivePoolAfterTripCompletion.erase(it);
-							AddTrainToInActivePool(lineId, trainId);
+							addTrainToInActivePool(lineId, trainId);
 						}
 						else
 						{
-						   AddTrainToActivePool(lineId, trainId);
+						   addTrainToActivePool(lineId, trainId);
 						}
 
 
@@ -1278,7 +1295,7 @@ namespace sim_mob {
 	}
 
 	template<typename PERSON>
-	void TrainController<PERSON>::AssignResetBlocks(ResetBlockSpeeds resetSpeedBlocksEntity)
+	void TrainController<PERSON>::assignResetBlocks(ResetBlockSpeeds resetSpeedBlocksEntity)
 	{
 		resetSpeedBlocks.push_back(resetSpeedBlocksEntity);
 	}
@@ -1301,8 +1318,6 @@ namespace sim_mob {
                std::string endStation =(*it).endStation;
                std::string lineId=(*it).line;
                double speedLimit=(*it).speedLimit;
-
-			   //=TrainController<sim_mob::medium::Person_MT>::getInstance()->GetBlocks(lineId);
                std::vector<Platform*> platforms;
                getTrainPlatforms(lineId,platforms);
                bool startSeq=false;
@@ -1348,7 +1363,7 @@ namespace sim_mob {
 			  {
 				  if(boost::iequals((*itpl)->getStationNo(), startStation))
 				  {
-					   startSeq=true;
+					  startSeq=true;
 				  }
 				  else if (boost::iequals((*itpl)->getStationNo(), endStation))
 				  {
@@ -1356,18 +1371,16 @@ namespace sim_mob {
 				  }
 				  if(startSeq==true)
 				  {
-				   int blockId=(*itpl)->getAttachedBlockId();
-				   std::map<unsigned int, Block*>::iterator iBlock = mapOfIdvsBlocks.find(blockId);
-				   Block *block=iBlock->second;
-				   double defaultSpeed=blockIdSpeed[block->getBlockId()];
-				   block->setSpeedLimit(defaultSpeed);
+					  int blockId=(*itpl)->getAttachedBlockId();
+					  std::map<unsigned int, Block*>::iterator iBlock = mapOfIdvsBlocks.find(blockId);
+					  Block *block=iBlock->second;
+					  double defaultSpeed=blockIdSpeed[block->getBlockId()];
+					  block->setSpeedLimit(defaultSpeed);
 				  }
 			  }
         	  resetSpeedBlocks[count].speedReset=false;
            }
-
 		}
-
 	}
 
 	template<typename PERSON>
@@ -1375,13 +1388,13 @@ namespace sim_mob {
 	{
 		switch(eventId)
 		{
-		case event::EVT_CORE_MRT_DISRUPTION:
-		{
-			const event::DisruptionEventArgs& exArgs = MSG_CAST(event::DisruptionEventArgs, args);
-			const DisruptionParams& disruption = exArgs.getDisruption();
-			disruptionParam.reset(new DisruptionParams(disruption));
-			break;
-		}
+			case event::EVT_CORE_MRT_DISRUPTION:
+			{
+				const event::DisruptionEventArgs& exArgs = MSG_CAST(event::DisruptionEventArgs, args);
+				const DisruptionParams& disruption = exArgs.getDisruption();
+				disruptionParam.reset(new DisruptionParams(disruption));
+				break;
+			}
 		}
 	}
 

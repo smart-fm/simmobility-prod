@@ -65,7 +65,7 @@ void TrainStationAgent::setLines()
 		{
 			  Platform *platform=it->second;
 			  std::string lineId=it->first;
-			  if(trainController->IsFirstStation(lineId,platform))
+			  if(trainController->isFirstStation(lineId,platform))
 			  {
 				  IsStartStation[lineId]=true;
 			  }
@@ -169,7 +169,7 @@ void TrainStationAgent::dispathPendingTrains(timeslice now)
 	{
 		std::list<TrainDriver*>& pendingDrivers = (*iPending).second;
 		std::string lineId = iPending->first;
-		bool isTrainServiceTerminated = TrainController<sim_mob::medium::Person_MT>::getInstance()->IsServiceTerminated(lineId);
+		bool isTrainServiceTerminated = TrainController<sim_mob::medium::Person_MT>::getInstance()->isServiceTerminated(lineId);
 		if(isTrainServiceTerminated)
 		{
 			std::list<TrainDriver*>::iterator itr=pendingDrivers.begin();
@@ -205,7 +205,7 @@ void TrainStationAgent::dispathPendingTrains(timeslice now)
 
             	   Platform *stationAgentPlatform=station->getPlatform(lineId);
             	   TrainController<sim_mob::medium::Person_MT> *trainController=TrainController<sim_mob::medium::Person_MT>::getInstance();
-            	   std::vector <Role<Person_MT>*> trainDriverVector=trainController->GetActiveTrainsForALine(lineId);
+            	   std::vector <Role<Person_MT>*> trainDriverVector=trainController->getActiveTrainsForALine(lineId);
             	   std::vector<Role<Person_MT>*>::iterator it;
 
 				   next->getMovement()->teleportToPlatform(stationAgentPlatform->getPlatformNo());
@@ -275,7 +275,7 @@ void TrainStationAgent::dispathPendingTrains(timeslice now)
 				{
 
 					TrainController<sim_mob::medium::Person_MT> *trainController=TrainController<sim_mob::medium::Person_MT>::getInstance();
-					std::vector <Role<Person_MT>*> trainDriverVector=trainController->GetActiveTrainsForALine(lineId);
+					std::vector <Role<Person_MT>*> trainDriverVector=trainController->getActiveTrainsForALine(lineId);
 					std::vector <Role<Person_MT>*>::iterator trainDriverItr=trainDriverVector.begin();
 					double minDis=-1;
 					success=true;
@@ -332,7 +332,7 @@ void TrainStationAgent::dispathPendingTrains(timeslice now)
 						behindDriver->setNextDriver(next);
 					}
 					Role<Person_MT> *tDriver=dynamic_cast<Role<Person_MT>*>(next);
-					TrainController<Person_MT>::getInstance()->AddToListOfActiveTrainsInLine(lineId,tDriver);
+					TrainController<Person_MT>::getInstance()->addToListOfActiveTrainsInLine(lineId,tDriver);
 				}
 			}
 		}
@@ -461,7 +461,7 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 				(*it)->setArrivalTime(current.getStrRepr());
 				bool isDisruptedPlat = false;
 				std::string trainLine=(*it)->getTrainLine();
-				std::map<std::string,std::vector<std::string>> platformNames = TrainController<sim_mob::medium::Person_MT>::getInstance()->GetDisruptedPlatforms_ServiceController();
+				std::map<std::string,std::vector<std::string>> platformNames = TrainController<sim_mob::medium::Person_MT>::getInstance()->getDisruptedPlatforms_ServiceController();
 				std::vector<std::string> disruptedPlatformNames=platformNames[trainLine];
 				std::vector<std::string>::iterator itr=std::find(disruptedPlatformNames.begin(),disruptedPlatformNames.end(),platform->getPlatformNo());
 				if(itr!=disruptedPlatformNames.end())
@@ -544,7 +544,7 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 				else
 				{
 					std::string trainLine=(*it)->getTrainLine();
-				    std::map<std::string,std::vector<std::string>> platformNames = TrainController<sim_mob::medium::Person_MT>::getInstance()->GetDisruptedPlatforms_ServiceController();
+				    std::map<std::string,std::vector<std::string>> platformNames = TrainController<sim_mob::medium::Person_MT>::getInstance()->getDisruptedPlatforms_ServiceController();
 					std::vector<std::string> disruptedPlatformNames=platformNames[trainLine];
 					std::vector<std::string>::iterator itr=std::find(disruptedPlatformNames.begin(),disruptedPlatformNames.end(),platform->getPlatformNo());
 					if(itr!=disruptedPlatformNames.end())
@@ -737,7 +737,7 @@ void TrainStationAgent::removeAheadTrain(TrainDriver* aheadDriver)
 	}
 
 	ServiceController::getInstance()->removeTrainIdAndTrainDriverInMap(trainId,lineId,aheadDriver);
-	TrainController<Person_MT>::getInstance()->RemoveFromListOfActiveTrainsInLine(lineId,aheadDriver);
+	TrainController<Person_MT>::getInstance()->removeFromListOfActiveTrainsInLine(lineId,aheadDriver);
 }
 
 Entity::UpdateStatus TrainStationAgent::callMovementFrameTick(timeslice now, TrainDriver* driver)

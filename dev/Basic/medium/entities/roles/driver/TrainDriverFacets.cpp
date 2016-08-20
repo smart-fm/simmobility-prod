@@ -154,7 +154,7 @@ void TrainMovement::ChangeTrip()
 	std::string lineId=parentDriver->getTrainLine();
 	Platform *platform=getNextPlatform();
 	TrainController<sim_mob::medium::Person_MT> *trainController=TrainController<sim_mob::medium::Person_MT>::getInstance();
-	std::string oppLineId=trainController->GetOppositeLineId(lineId);
+	std::string oppLineId=trainController->getOppositeLineId(lineId);
 	TrainTrip* trip = dynamic_cast<TrainTrip*>(*(person->currTripChainItem));
 	trip->setLineId(oppLineId);
 	std::vector<Block*>route;
@@ -165,7 +165,7 @@ void TrainMovement::ChangeTrip()
 	trip->setTrainPlatform(platforms);
 	trainPlatformMover.setPlatforms(platforms);
 	std::string stationName=platform->getStationNo();
-	Station *stn=trainController->GetStationFromId(stationName);
+	Station *stn=trainController->getStationFromId(stationName);
 	Platform *oppPlatform=stn->getPlatform(oppLineId);
 	Platform *inroutePlaform=nullptr;
 	while(oppPlatform!=inroutePlaform)
@@ -180,7 +180,7 @@ bool TrainMovement::CheckIfTrainsAreApprochingOrAtPlatform(std::string platformN
 {
    //get the vector of train drivers for that line
 	TrainController<sim_mob::medium::Person_MT> *trainController=TrainController<sim_mob::medium::Person_MT>::getInstance();
-	typename  std::vector <Role<Person_MT>*> trainDriverVector=trainController->GetActiveTrainsForALine(lineID);
+	typename  std::vector <Role<Person_MT>*> trainDriverVector=trainController->getActiveTrainsForALine(lineID);
 	//std::vector<Role<Person_MT>*> trainDriverVector;
     std::vector<Role<Person_MT>*>::iterator it;
     for(it=trainDriverVector.begin();it!=trainDriverVector.end();it++)
@@ -210,9 +210,9 @@ return false;
 bool TrainMovement::CheckSafeHeadWayBeforeTeleport(std::string platformNo,std::string lineID)
 {
 	TrainController<sim_mob::medium::Person_MT> *trainController=TrainController<sim_mob::medium::Person_MT>::getInstance();
-	typename  std::vector <Role<Person_MT>*> trainDriverVector=trainController->GetActiveTrainsForALine(lineID);
-    TrainPlatform trainPlatform=trainController->GetNextPlatform(platformNo,lineID);
-    Platform *platform=trainController->GetPlatformFromId(platformNo);
+	typename  std::vector <Role<Person_MT>*> trainDriverVector=trainController->getActiveTrainsForALine(lineID);
+    TrainPlatform trainPlatform=trainController->getNextPlatform(platformNo,lineID);
+    Platform *platform=trainController->getPlatformFromId(platformNo);
     typename std::vector <Role<Person_MT>*>::iterator it=trainDriverVector.begin();
     double minDis=-1;
     TrainDriver *nextDriverInOppLine=nullptr;
@@ -302,7 +302,7 @@ void TrainMovement::TakeUTurn(std::string stationName)
     std::string lineId=trip->getLineId();
     Platform *platform=parentDriver->getNextPlatform();
     std::string stationId=platform->getStationNo();
-    Station *station=trainController->GetStationFromId(stationId);
+    Station *station=trainController->getStationFromId(stationId);
     Platform *oppPlatform=station->getPlatform(lineId);
     std::vector<Block *> blocks=trip->getTrainRoute();
     trainPathMover.setPath(trip->getTrainRoute());
@@ -311,10 +311,10 @@ void TrainMovement::TakeUTurn(std::string stationName)
     nextPlatform = oppPlatform;
     facetMutex.unlock();
     TrainDriver *parentDriver=getParentDriver();
-    std::string prevLine=TrainController<Person_MT>::getInstance()->GetOppositeLineId(lineId);
-    TrainController<Person_MT>::getInstance()->RemoveFromListOfActiveTrainsInLine(prevLine,parentDriver);
-    TrainController<Person_MT>::getInstance()->AddToListOfActiveTrainsInLine(lineId,parentDriver);
-    typename  std::vector <Role<Person_MT>*> trainDriverVector=TrainController<Person_MT>::getInstance()->GetActiveTrainsForALine(prevLine);
+    std::string prevLine=TrainController<Person_MT>::getInstance()->getOppositeLineId(lineId);
+    TrainController<Person_MT>::getInstance()->removeFromListOfActiveTrainsInLine(prevLine,parentDriver);
+    TrainController<Person_MT>::getInstance()->addToListOfActiveTrainsInLine(lineId,parentDriver);
+    typename  std::vector <Role<Person_MT>*> trainDriverVector=TrainController<Person_MT>::getInstance()->getActiveTrainsForALine(prevLine);
     std::vector<Role<Person_MT>*>::iterator it;
 	for(it=trainDriverVector.begin();it!=trainDriverVector.end();it++)
 	{
@@ -558,7 +558,7 @@ void TrainMovement::frame_tick()
 			else if(isDisruptedState&&!isStrandedBetweenPlatforms_DisruptedState)
 			{
 				std::string trainLine=parentDriver->getTrainLine();
-				std::map<std::string,std::vector<std::string>> platformNames = TrainController<sim_mob::medium::Person_MT>::getInstance()->GetDisruptedPlatforms_ServiceController();
+				std::map<std::string,std::vector<std::string>> platformNames = TrainController<sim_mob::medium::Person_MT>::getInstance()->getDisruptedPlatforms_ServiceController();
 				std::vector<std::string> disruptedPlatformNames=platformNames[trainLine];
 				Platform *platform=trainPlatformMover.getPlatformByOffset(0);
 				std::vector<std::string>::iterator it=std::find(disruptedPlatformNames.begin(),disruptedPlatformNames.end(),platform->getPlatformNo());
@@ -574,7 +574,7 @@ void TrainMovement::frame_tick()
 			else if(isStrandedBetweenPlatforms_DisruptedState)
 			{
 				std::string trainLine=parentDriver->getTrainLine();
-				std::map<std::string,std::vector<std::string>> platformNames = TrainController<sim_mob::medium::Person_MT>::getInstance()->GetDisruptedPlatforms_ServiceController();
+				std::map<std::string,std::vector<std::string>> platformNames = TrainController<sim_mob::medium::Person_MT>::getInstance()->getDisruptedPlatforms_ServiceController();
 				std::vector<std::string> disruptedPlatformNames=platformNames[trainLine];
 				Platform *platform=trainPlatformMover.getPlatformByOffset(0);
 				std::vector<std::string>::iterator it=std::find(disruptedPlatformNames.begin(),disruptedPlatformNames.end(),platform->getPlatformNo());
@@ -671,7 +671,7 @@ void TrainMovement::frame_tick()
 						   {
 							   Platform *nextPlatform=trainPlatformMover.getPlatformByOffset(1);
 							   std::string trainLine=parentDriver->getTrainLine();
-							   std::map<std::string,std::vector<std::string>> platformNames = TrainController<sim_mob::medium::Person_MT>::getInstance()->GetDisruptedPlatforms_ServiceController();
+							   std::map<std::string,std::vector<std::string>> platformNames = TrainController<sim_mob::medium::Person_MT>::getInstance()->getDisruptedPlatforms_ServiceController();
 							   std::vector<std::string> disruptedPlatformNames=platformNames[trainLine];
 							   std::vector<std::string>::iterator it=std::find(disruptedPlatformNames.begin(),disruptedPlatformNames.end(),nextPlatform->getPlatformNo());
 							   bool nextplatformDisrupted=false;
@@ -837,7 +837,7 @@ double TrainMovement::getDistanceToNextTrain(const TrainDriver* nextDriver,bool 
 
 				if (dis > 0)
 				{
-					std::map<std::string,std::vector<std::string>> platformNames=TrainController<sim_mob::medium::Person_MT>::getInstance()->GetDisruptedPlatforms_ServiceController();
+					std::map<std::string,std::vector<std::string>> platformNames=TrainController<sim_mob::medium::Person_MT>::getInstance()->getDisruptedPlatforms_ServiceController();
 					std::string trainLine=parentDriver->getTrainLine();
 					std::vector<std::string> disruptedPlatformNames=platformNames[trainLine];
 					Platform *platform=trainPlatformMover.getPlatformByOffset(0);
@@ -1078,7 +1078,7 @@ bool TrainMovement::isUturnDueToDisruption()
 bool TrainMovement::isStopAtPlatform()
 {
 
-	std::map<std::string,std::vector<std::string>> platformNames=TrainController<sim_mob::medium::Person_MT>::getInstance()->GetDisruptedPlatforms_ServiceController();
+	std::map<std::string,std::vector<std::string>> platformNames=TrainController<sim_mob::medium::Person_MT>::getInstance()->getDisruptedPlatforms_ServiceController();
 	std::string trainLine=parentDriver->getTrainLine();
 	std::vector<std::string> disruptedPlatformNames=platformNames[trainLine];
 	Platform *platform=trainPlatformMover.getPlatformByOffset(0);
@@ -1224,9 +1224,9 @@ void TrainMovement::PrepareForUTurn()
 	Platform *pltform=getNextPlatform();
 	std::string trainLine=parentDriver->getTrainLine();
 	TrainController<sim_mob::medium::Person_MT> *trainController=TrainController<sim_mob::medium::Person_MT>::getInstance();
-	std::string oppLineId=trainController->GetOppositeLineId(trainLine);
+	std::string oppLineId=trainController->getOppositeLineId(trainLine);
 	std::string stationId=pltform->getStationNo();
-	Station *station=trainController->GetStationFromId(stationId);
+	Station *station=trainController->getStationFromId(stationId);
 	Platform *oppPlatform=station->getPlatform(oppLineId);
 
 	if(!CheckIfTrainsAreApprochingOrAtPlatform(oppPlatform->getPlatformNo(),oppLineId))

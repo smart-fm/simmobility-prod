@@ -214,7 +214,7 @@ void assignStationAgentToConfluxes()
 		TrainController<Person_MT>::registerStationAgent(trainStopIt->first, stationAgent);
 		TrainController<sim_mob::medium::Person_MT> *trainController=TrainController<sim_mob::medium::Person_MT>::getInstance();
 		int size=TrainController<sim_mob::medium::Person_MT>::getInstance()->getMapPlatformsSize();
-		Station *station=trainController->GetStationFromId(trainStopIt->first);
+		Station *station=trainController->getStationFromId(trainStopIt->first);
 		size=TrainController<sim_mob::medium::Person_MT>::getInstance()->getMapPlatformsSize();
 		stationAgent->setStationName(trainStopIt->first);
 		if(station)

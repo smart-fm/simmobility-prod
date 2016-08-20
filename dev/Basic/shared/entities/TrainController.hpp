@@ -206,23 +206,23 @@ public:
 	/* Assigns the reset block speed entities,to store the speed reset information
 	 * And the timing
 	 */
-	void AssignResetBlocks(ResetBlockSpeeds resetSpeedBlocks);
+	void assignResetBlocks(ResetBlockSpeeds resetSpeedBlocks);
 
 	/* adds to list of Active trains in Line when new train is created*/
-	void AddToListOfActiveTrainsInLine(std::string lineId,Role<PERSON> *driver);
+	void addToListOfActiveTrainsInLine(std::string lineId,Role<PERSON> *driver);
 	/* Removes from list of Active Trains when train is sent to depot */
-	void RemoveFromListOfActiveTrainsInLine(std::string lineId,Role<PERSON> *driver);
+	void removeFromListOfActiveTrainsInLine(std::string lineId,Role<PERSON> *driver);
 
 	/* returns the train route of blocks for particular line */
 	bool getTrainRoute(const std::string& lineId, std::vector<Block*>& route);
 
 	/* gives train platforms of particular line */
 	bool getTrainPlatforms(const std::string& lineId, std::vector<Platform*>& platforms);
-	std::vector<std::string> GetLinesBetweenTwoStations(std::string src,std::string dest);
-	typename std::vector <Role<PERSON>*> GetActiveTrainsForALine(std::string lineID);
+	std::vector<std::string> getLinesBetweenTwoStations(std::string src,std::string dest);
+	typename std::vector <Role<PERSON>*> getActiveTrainsForALine(std::string lineID);
 
 	/*This gives the next platform from current platform of particular line */
-	TrainPlatform  GetNextPlatform(std::string platformNo,std::string lineID);
+	TrainPlatform  getNextPlatform(std::string platformNo,std::string lineID);
 
 
 	static Platform* getPlatform(const std::string& lineId, const std::string& stationName);
@@ -230,7 +230,7 @@ public:
 	/*
 	 * This the pointer to platform from pltaform name
 	 */
-	Platform* GetPlatformFromId(std::string platformNo);
+	Platform* getPlatformFromId(std::string platformNo);
 	/**
 	 * check whether platform is existed or not
 	 * @param stationAgent is a pointer to station agent
@@ -246,15 +246,15 @@ public:
 	 */
 	static Platform* getPrePlatform(const std::string& lineId, const std::string& curPlatform);
 	/* get vector of blocks from lineId*/
-	std::vector<Block*> GetBlocks(std::string lineId);
+	std::vector<Block*> getBlocks(std::string lineId);
 	/* get station entity from ID*/
-	Station * GetStationFromId(std::string stationId);
+	Station * getStationFromId(std::string stationId);
 	/*
 	 * This gives the opposite lineId of a particular line
 	 *
 	 */
-	std::string GetOppositeLineId(std::string lineId);
-	Block * GetBlock(int blockId);
+	std::string getOppositeLineId(std::string lineId);
+	Block * getBlock(int blockId);
 
 	/* Pull out the train from InActive pool
 	 * To add to the Active pool
@@ -267,18 +267,18 @@ public:
 	/*
 	 * This deletes the train from  active pool
 	 */
-	int DeleteTrainFromActivePool(std::string lineID);
+	int deleteTrainFromActivePool(std::string lineID);
 
 	/* adds the train to active pool */
-	void AddTrainToActivePool(std::string lineId,int trainId);
+	void addTrainToActivePool(std::string lineId,int trainId);
 
 	/* adds the train to inactive pool */
-	void AddTrainToInActivePool(std::string lineId,int trainId);
+	void addTrainToInActivePool(std::string lineId,int trainId);
 
 	/* This deletes the train from  inactive pool
 	 *
 	 */
-	int DeleteTrainFromInActivePool(std::string lineID);
+	int deleteTrainFromInActivePool(std::string lineID);
 
 	/*
 	 * This pushes the train to Active Pool from  InActive pool
@@ -291,18 +291,18 @@ public:
 	 * If its interchange then 40 secs minimum
 	 * If its terminal station(start and end station of line) then 60 secs minimum
 	 */
-	double GetMinDwellTime(std::string stationNo,std::string lineId);
+	double getMinDwellTime(std::string stationNo,std::string lineId);
 
 	/* just checks if the station is the first station for a given line */
-	bool IsFirstStation(std::string lineId,Platform *platform);
+	bool isFirstStation(std::string lineId,Platform *platform);
 	/*
 	 * This terminated the train service for entire train line
 	 * Stops the future dispatch of trains
 	 * The trains reach the nearest next platform where the they alight all passengers
 	 * and  then the train returns to depot
 	 */
-	void TerminateTrainService( std::string lineId);
-	std::vector<Platform*> GetPlatforms(std::string lineId,std::string startStation);
+	void terminateTrainService( std::string lineId);
+	std::vector<Platform*> getPlatforms(std::string lineId,std::string startStation);
 	/* composes unscheduled train trip at a particular time stamp ,for a particular line
 	 * The trip can be starting somewhere at between platform not necessary at start station
 	 * The distance traveled is fast forwarded till that platform
@@ -310,18 +310,18 @@ public:
 	 */
 	void composeTrainTripUnScheduled(std::string lineId,std::string startTime,std::string startStation);
 	/* gets the list of disrupted platforms for service controller caused by service controller */
-	std::map<std::string,std::vector<std::string>> GetDisruptedPlatforms_ServiceController();
+	std::map<std::string,std::vector<std::string>> getDisruptedPlatforms_ServiceController();
 	/*Gets all the train ids for active trains */
     std::vector<int> GetActiveTrainIds();
     /* performs disruptiopn.sets the disrupted platform list */
-    void PerformDisruption(std::string startStation,std::string endStation,timeslice now,std::string disruptionTime);
-    void SetDisruptedPlatforms(std::string startStation,std::string endStation,std::string lineID);
-    void SetDisruptionParams(std::string startStation,std::string endStation,std::string time);
+    void performDisruption(std::string startStation,std::string endStation,timeslice now,std::string disruptionTime);
+    void setDisruptedPlatforms(std::string startStation,std::string endStation,std::string lineID);
+    void setDisruptionParams(std::string startStation,std::string endStation,std::string time);
     /* gets the list of platforms between two stations for a particular line*/
-    std::vector<std::string> GetPlatformsBetweenStations(std::string lineId,std::string startStation,std::string endStation);
+    std::vector<std::string> getPlatformsBetweenStations(std::string lineId,std::string startStation,std::string endStation);
     /* checks if train service is terminated for a particular line or not */
-    void ClearDisruption(std::string lineId);
-    bool IsServiceTerminated(std::string lineId);
+    void clearDisruption(std::string lineId);
+    bool isServiceTerminated(std::string lineId);
     void loadOppositeLines();
     void loadTrainAvailabilities();
 

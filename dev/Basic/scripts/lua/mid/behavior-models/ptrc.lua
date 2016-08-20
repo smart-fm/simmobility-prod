@@ -58,4 +58,3 @@ function choose_PT_path(params, N_choice)
 	return make_final_choice(probability)
 end
 
-

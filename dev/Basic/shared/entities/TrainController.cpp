@@ -354,17 +354,17 @@ namespace sim_mob
 	bool TrainController<PERSON>::getTrainPlatforms(const std::string& lineId, std::vector<Platform*>& platforms)
 	{
 		bool res = true;
-		std::map<std::string, std::vector<TrainPlatform>>::iterator it = mapOfIdvsTrainPlatforms.find(lineId);
+		std::map<std::string, std::vector<TrainPlatform>>::const_iterator it = mapOfIdvsTrainPlatforms.find(lineId);
 		if(it==mapOfIdvsTrainPlatforms.end())
 		{
 			res = false;
 		}
 		else
 		{
-			std::vector<TrainPlatform>& trainPlatform = it->second;
-			for(std::vector<TrainPlatform>::iterator i=trainPlatform.begin();i!=trainPlatform.end();i++)
+			const std::vector<TrainPlatform>& trainPlatform = it->second;
+			for(std::vector<TrainPlatform>::const_iterator i=trainPlatform.begin();i!=trainPlatform.end();i++)
 			{
-				std::map<std::string, Platform*>::iterator iPlatform = mapOfIdvsPlatforms.find(i->platformNo);
+				std::map<std::string, Platform*>::const_iterator iPlatform = mapOfIdvsPlatforms.find(i->platformNo);
 				if(iPlatform==mapOfIdvsPlatforms.end())
 				{
 					res = false;
@@ -506,9 +506,9 @@ namespace sim_mob
             minDwellTime=40;
          }
 
-         std::map<std::string, std::vector<TrainPlatform>>::iterator it = mapOfIdvsTrainPlatforms.find(lineId);
-         std::vector<TrainPlatform> TrainPlatforms=it->second;
-         std::vector<TrainPlatform>::iterator itTrainPlatforms=TrainPlatforms.begin();
+         std::map<std::string, std::vector<TrainPlatform>>::const_iterator it = mapOfIdvsTrainPlatforms.find(lineId);
+         const std::vector<TrainPlatform> TrainPlatforms=it->second;
+         std::vector<TrainPlatform>::const_iterator itTrainPlatforms=TrainPlatforms.begin();
          Platform *platform=mapOfIdvsPlatforms[(*itTrainPlatforms).platformNo];
          if(boost::iequals(platform->getStationNo(),stationNo))
          {
@@ -517,7 +517,7 @@ namespace sim_mob
 
          else
          {
-        	 std::vector<TrainPlatform>::iterator itTrainPlatforms=TrainPlatforms.end()-1;
+        	 std::vector<TrainPlatform>::const_iterator itTrainPlatforms=TrainPlatforms.end()-1;
         	 Platform *platform=mapOfIdvsPlatforms[(*itTrainPlatforms).platformNo];
         	 if(boost::iequals(platform->getStationNo(),stationNo))
         	 {
@@ -530,9 +530,9 @@ namespace sim_mob
 	template<typename PERSON>
 	bool TrainController<PERSON>::isFirstStation(std::string lineId,Platform *platform)
 	{
-		std::map<std::string, std::vector<TrainPlatform>>::iterator it = mapOfIdvsTrainPlatforms.find(lineId);
-		std::vector<TrainPlatform> TrainPlatforms=it->second;
-		std::vector<TrainPlatform>::iterator itTrainPlatforms=TrainPlatforms.begin();
+		std::map<std::string, std::vector<TrainPlatform>>::const_iterator it = mapOfIdvsTrainPlatforms.find(lineId);
+		const std::vector<TrainPlatform> TrainPlatforms=it->second;
+		std::vector<TrainPlatform>::const_iterator itTrainPlatforms=TrainPlatforms.begin();
 		if(boost::iequals((*itTrainPlatforms).platformNo,platform->getPlatformNo()))
 		{
 			return true;
@@ -661,28 +661,29 @@ namespace sim_mob
 		std::vector<Platform*> platforms;
 		if(station)
 		{
-              Platform *platform=station->getPlatform(lineId);
-              std::vector<TrainPlatform>& trainPlatforms=mapOfIdvsTrainPlatforms[lineId];
-              std::vector<TrainPlatform>::iterator it=trainPlatforms.begin();
+			Platform *platform=station->getPlatform(lineId);
+			std::vector<TrainPlatform>& trainPlatforms=mapOfIdvsTrainPlatforms[lineId];
+			std::vector<TrainPlatform>::const_iterator it=trainPlatforms.begin();
 
-              if(it!=trainPlatforms.end())
-              {
-                  bool foundStartPlatform=false;
-            	  while(it!=trainPlatforms.end())
-                 {
-                        std::string platformNo=(*it).platformNo;
-                        if(boost::iequals(platformNo,platform->getPlatformNo()))
-                        {
-                        	foundStartPlatform =true;
-                        }
-                        if(foundStartPlatform)
-                        {
-							Platform *plt = mapOfIdvsPlatforms[platformNo];
-							platforms.push_back(plt);
-                        }
-                        it++;
-                 }
-              }
+			if(it!=trainPlatforms.end())
+			{
+				bool foundStartPlatform=false;
+				while(it!=trainPlatforms.end())
+				{
+					std::string platformNo=(*it).platformNo;
+					if(boost::iequals(platformNo,platform->getPlatformNo()))
+					{
+						foundStartPlatform =true;
+					}
+					if(foundStartPlatform)
+					{
+						Platform *plt = mapOfIdvsPlatforms[platformNo];
+						platforms.push_back(plt);
+					}
+
+					it++;
+				}
+			}
 		}
         return platforms;
 	}
@@ -717,8 +718,8 @@ namespace sim_mob
 	template<typename PERSON>
 	TrainPlatform TrainController<PERSON>::getNextPlatform(std::string platformNo,std::string lineID)
 	{
-		std::vector<TrainPlatform> trainPlatforms=mapOfIdvsTrainPlatforms[lineID];
-		typename std::vector<TrainPlatform>::iterator it=trainPlatforms.begin();
+		std::vector<TrainPlatform>& trainPlatforms=mapOfIdvsTrainPlatforms[lineID];
+		typename std::vector<TrainPlatform>::const_iterator it=trainPlatforms.begin();
 		while(it!=trainPlatforms.end())
 		{
            if(boost::iequals((*it).platformNo,platformNo))
@@ -746,7 +747,7 @@ namespace sim_mob
 	template<typename PERSON>
 	std::vector<Block*> TrainController<PERSON>::getBlocks(std::string lineId)
 	{
-		std::map<std::string, std::vector<TrainRoute>>::iterator it = mapOfIdvsTrainRoutes.find(lineId);
+		std::map<std::string, std::vector<TrainRoute>>::const_iterator it = mapOfIdvsTrainRoutes.find(lineId);
 		std::vector<Block*> blockVector;
 
 		if(it==mapOfIdvsTrainRoutes.end())
@@ -756,8 +757,8 @@ namespace sim_mob
 
 		else
 		{
-			std::vector<TrainRoute>& trainRoute = it->second;
-			for(std::vector<TrainRoute>::iterator i=trainRoute.begin();i!=trainRoute.end();i++)
+			const std::vector<TrainRoute>& trainRoute = it->second;
+			for(std::vector<TrainRoute>::const_iterator i=trainRoute.begin();i!=trainRoute.end();i++)
 			{
 
 				std::map<unsigned int, Block*>::iterator iBlock = mapOfIdvsBlocks.find(i->blockId);
@@ -778,17 +779,17 @@ namespace sim_mob
 	template<typename PERSON>
 	std::vector<std::string> TrainController<PERSON>::getLinesBetweenTwoStations(std::string src,std::string dest)
 	{
-		typename std::map<std::string, std::vector<TrainRoute>>::iterator it=mapOfIdvsTrainRoutes.begin();
+		typename std::map<std::string, std::vector<TrainRoute>>::const_iterator it=mapOfIdvsTrainRoutes.begin();
 		std::vector<std::string> lines;
 		while(it!=mapOfIdvsTrainRoutes.end())
 		{
-			std::vector<TrainRoute> route=it->second;
-			std::vector<TrainRoute> ::iterator tritr=route.begin();
+			const std::vector<TrainRoute>& route=it->second;
+			std::vector<TrainRoute> ::const_iterator tritr=route.begin();
 			bool originFound=false;
             while(tritr!=route.end())
             {
             	int blockId=(*tritr).blockId;
-            	typename std::map<unsigned int, Block*>::iterator iBlock =mapOfIdvsBlocks.find(blockId);
+            	typename std::map<unsigned int, Block*>::const_iterator iBlock =mapOfIdvsBlocks.find(blockId);
             	Block *block=(iBlock)->second;
             	Platform *plt=block->getAttachedPlatform();
             	if(plt)
@@ -885,8 +886,8 @@ namespace sim_mob
 		{
 			Platform *platform=station->getPlatform(lineId);
 			Platform *endPlatform=eStation->getPlatform(lineId);
-			std::vector<TrainPlatform> trainPlatforms=mapOfIdvsTrainPlatforms[lineId];
-			std::vector<TrainPlatform>::iterator it=trainPlatforms.begin();
+			std::vector<TrainPlatform> &trainPlatforms=mapOfIdvsTrainPlatforms[lineId];
+			std::vector<TrainPlatform>::const_iterator it=trainPlatforms.begin();
 			if(it!=trainPlatforms.end())
 			{
 				bool foundStartPlatform=false;
@@ -1015,7 +1016,7 @@ namespace sim_mob
 	template<typename PERSON>
 	Agent* TrainController<PERSON>::getAgentFromStation(const std::string& nameStation)
 	{
-		std::map<std::string, Station*>& mapOfIdvsStations = getInstance()->mapOfIdvsStations;
+		const std::map<std::string, Station*>& mapOfIdvsStations = getInstance()->mapOfIdvsStations;
 		std::map<std::string, Station*>::const_iterator it = mapOfIdvsStations.find(nameStation);
 		if(it!=mapOfIdvsStations.end())
 		{
@@ -1056,7 +1057,7 @@ namespace sim_mob
 		std::vector<Platform*> platforms;
 		if(self->getTrainPlatforms(lineId, platforms))
 		{
-			std::vector<Platform*>::iterator it = platforms.begin();
+			std::vector<Platform*>::const_iterator it = platforms.begin();
 			Platform* prev = nullptr;
 			while(it!=platforms.end())
 			{

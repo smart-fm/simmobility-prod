@@ -265,7 +265,7 @@ bool TrainMovement::CheckSafeHeadWayBeforeTeleport(std::string platformNo,std::s
   TrainDriver * trainDriver=this->getParentDriver();
   if(trainDriver)
   {
-	trainDriver->SetTrainDriverInOpposite(nextDriverInOppLine);
+	trainDriver->setTrainDriverInOpposite(nextDriverInOppLine);
   }
 return true;
 }
@@ -328,8 +328,8 @@ void TrainMovement::TakeUTurn(std::string stationName)
 		}
 	}
 
-	parentDriver->setNextDriver(parentDriver->GetDriverInOppositeLine());
-    parentDriver->SetUnsetUturnFlag(false);
+	parentDriver->setNextDriver(parentDriver->getDriverInOppositeLine());
+    parentDriver->setUturnFlag(false);
 }
 
 void TrainMovement::setNextPlatform(Platform *platform)
@@ -449,7 +449,7 @@ bool TrainMovement::IsStopPointPresent()
 	std::vector<PolyPoint>::const_iterator pointItr=pathMover.GetCurrentStopPoint();
 	PolyPoint stopPoint = *pointItr;
 	PolyPoint nextPoint= *(pointItr+1);
-	std::vector<StopPointEntity> &stopPointEntities=parentDriver->GetStopPoints();
+	std::vector<StopPointEntity> &stopPointEntities=parentDriver->getStopPoints();
 	int index=0;
 	std::vector<StopPointEntity>::iterator stopPointItr=stopPointEntities.begin();
 	while(stopPointItr!=stopPointEntities.end())
@@ -458,7 +458,7 @@ bool TrainMovement::IsStopPointPresent()
 		PolyPoint stPoint=stEntity.point;
 		if(stPoint.getX()==(*pointItr).getX()&&stPoint.getY()==(*pointItr).getY()&&stPoint.getZ()==(*pointItr).getZ())
 		{
-			parentDriver->SetStoppingParameters(stPoint,(*stopPointItr).duration);
+			parentDriver->setStoppingParameters(stPoint,(*stopPointItr).duration);
 			stopPointEntities.erase(stopPointItr);
 			//remove stop point from list
 			return true;
@@ -472,7 +472,7 @@ bool TrainMovement::IsStopPointPresent()
 				TrainUpdateParams& params = parentDriver->getParams();
 				if(params.distanceToNextStopPoint-params.movingDistance<distanceArrvingAtPlatform)
 				{
-					parentDriver->SetStoppingParameters(stPoint,(*stopPointItr).duration);
+					parentDriver->setStoppingParameters(stPoint,(*stopPointItr).duration);
 					stopPointEntities.erase(stopPointItr);
 					//remove stop point from list
 				    return true;
@@ -493,13 +493,13 @@ void TrainMovement::frame_tick()
 	produceMoveInfo();
 	TrainUpdateParams& params = parentDriver->getParams();
     parentDriver->updatePassengers();
-    if(getParentDriver()->IsStoppedAtPoint())
+    if(getParentDriver()->isStoppedAtPoint())
     {
-    	double remainingTime=parentDriver->ReduceStoppingTime(params.secondsInTick);
+    	double remainingTime=parentDriver->reduceStoppingTime(params.secondsInTick);
     	if(remainingTime<params.secondsInTick)
     	{
-            parentDriver->SetStoppingTime(0);
-    		parentDriver->SetStoppingStatus(false);
+            parentDriver->setStoppingTime(0);
+    		parentDriver->setStoppingStatus(false);
     	}
     }
 	TrainDriver::TRAIN_NEXTREQUESTED requested = parentDriver->getNextRequested();
@@ -508,7 +508,7 @@ void TrainMovement::frame_tick()
 	{
 	case TrainDriver::REQUESTED_TO_PLATFROM:
 	{
-		if(!parentDriver->IsStoppedAtPoint())
+		if(!parentDriver->isStoppedAtPoint())
 		{
 		    //reset moving case if there is
 			if(parentDriver->getTrainId()==1&&((int)getTotalCoveredDistance())==11078)
@@ -532,7 +532,7 @@ void TrainMovement::frame_tick()
 	{
 		//need to handle the case when the is stopped at platform and stop point is given
 		parentDriver->reduceWaitingTime(params.secondsInTick);
-		parentDriver->ResetHoldingTime();
+		parentDriver->resetHoldingTime();
 		double waitingTime = parentDriver->getWaitingTime();
 		params.currentSpeed = 0.0;
 		params.currentAcelerate = 0.0;
@@ -543,10 +543,6 @@ void TrainMovement::frame_tick()
 		if(waitingTime<params.secondsInTick)
 		{
 
-			if(parentDriver->getTrainLine()=="SC_2")
-			{
-				int x=0;
-			}
 			if(parentDriver->getSubsequentNextRequested()!=TrainDriver::NO_REQUESTED)
 			{
 				parentDriver->setNextRequested(parentDriver->getSubsequentNextRequested());
@@ -629,16 +625,19 @@ void TrainMovement::frame_tick()
 
 				double dwellTimeInSecs=0.0;
 				
-				if(waitingTime<0.0){
+				if(waitingTime<0.0)
+				{
 					dwellTimeInSecs = parentDriver->initialDwellTime-waitingTime;
-				} else {
+				}
+				else
+				{
 					dwellTimeInSecs = parentDriver->initialDwellTime;
 				}
 				DailyTime dwellTime(converToMilliseconds(dwellTimeInSecs));
 				parentDriver->storeArrivalTime(parentDriver->arrivalTimeAtPlatform, dwellTime.getStrRepr());				
-				if(parentDriver->GetTerminateStatus())
+				if(parentDriver->getTerminateStatus())
 				{
-					if(parentDriver->IsStoppedAtPoint()==false)
+					if(parentDriver->isStoppedAtPoint()==false)
 					{
 						parentDriver->setNextRequested(TrainDriver::REQUESTED_LEAVING_PLATFORM);
 						parentDriver->getParent()->setToBeRemoved();
@@ -649,7 +648,7 @@ void TrainMovement::frame_tick()
 				else
 				{
 
-					if(!parentDriver->IsStoppedAtPoint())
+					if(!parentDriver->isStoppedAtPoint())
 					{
 					 parentDriver->setNextRequested(TrainDriver::REQUESTED_LEAVING_PLATFORM);
 					}
@@ -658,10 +657,10 @@ void TrainMovement::frame_tick()
 						params.elapsedSeconds = waitingTime;
 						parentDriver->setWaitingTime(0.0);
 
-						if(!parentDriver->IsStoppedAtPoint())
+						if(!parentDriver->isStoppedAtPoint())
 						{
 
-						   if(parentDriver->GetUTurnFlag())
+						   if(parentDriver->getUTurnFlag())
 						   {
 							   parentDriver->setNextRequested(TrainDriver::REQUESTED_TAKE_UTURN);
 							   PrepareForUTurn();
@@ -698,7 +697,7 @@ void TrainMovement::frame_tick()
 
 					else
 					{
-						if(!parentDriver->IsStoppedAtPoint())
+						if(!parentDriver->isStoppedAtPoint())
 						{
 							parentDriver->getParent()->setToBeRemoved();
 							arrivalAtEndPlatform();
@@ -716,7 +715,7 @@ void TrainMovement::frame_tick()
 	case TrainDriver::REQUESTED_TAKE_UTURN:
 	{
 
-		if(!parentDriver->GetUTurnFlag())
+		if(!parentDriver->getUTurnFlag())
 		{
 			//skip uturn
 			parentDriver->setNextRequested(TrainDriver::REQUESTED_AT_PLATFORM);
@@ -886,7 +885,7 @@ double TrainMovement::getRealSpeedLimit()
 	distanceToNextPlatform = trainPathMover.getDistanceToNextPlatform(trainPlatformMover.getNextPlatform());
 	const TrainDriver* nextDriver = parentDriver->getNextDriver();
 	distanceToNextTrain = getDistanceToNextTrain(nextDriver);
-	std::vector<StopPointEntity> stopPoints=parentDriver->GetStopPoints();
+	std::vector<StopPointEntity> stopPoints=parentDriver->getStopPoints();
 	std::vector<StopPointEntity>::iterator itr=stopPoints.begin();
 	std::vector<PolyPoint> points;
 	while(itr!=stopPoints.end())
@@ -1173,7 +1172,7 @@ bool TrainMovement::leaveFromPlaform()
 
 bool TrainMovement::UpdatePlatformsList()
 {
-	std::vector<std::string> platformsToBeIgnored=parentDriver->GetPlatformsToBeIgnored();
+	std::vector<std::string> platformsToBeIgnored=parentDriver->getPlatformsToBeIgnored();
 	Platform *nextPlt=trainPlatformMover.getPlatformByOffset(0);
 	int offset=0;
 	while(nextPlt!=nullptr)

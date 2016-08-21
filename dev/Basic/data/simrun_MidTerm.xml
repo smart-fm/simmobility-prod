@@ -43,32 +43,20 @@
             <mapping name="restricted_reg_in_turning" procedure="get_banned_area_in_turning()"/>
             <mapping name="restricted_reg_out_turning" procedure="get_banned_area_out_turning()"/>
             <mapping name="restricted_reg_nodes" procedure="get_restricted_region_nodes()"/>
-<<<<<<< Updated upstream
-=======
-	 <!--<mapping name="pt_platform" procedure="get_pt_platforms()"/> --> 
-	   <mapping name="pt_platform" procedure="get_pt_train_platforms()"/> 
-             <!--<mapping name="pt_mrt_dispatch_freq" procedure="get_pt_mrt_dispatch_freq()"/>--> 
-            <mapping name="pt_mrt_dispatch_freq" procedure="get_pt_train_dispatch_freq()"/> 
-	   <!-- <mapping name="pt_mrt_block" procedure="get_pt_blocks()"/> --> 
-	 <mapping name="pt_mrt_block" procedure="get_pt_train_blocks()"/>
-           <!--  <mapping name="pt_mrt_route" procedure="get_pt_mrt_route()"/> --> 
-    	 <mapping name="pt_mrt_route" procedure="get_pt_train_route()"/> 
-	   <!-- This procedure returns platforms from pt_mrt_platform with only lineid,Sequenceno,platformNo fields -->
-            <!-- <mapping name="pt_mrt_platform" procedure="get_pt_mrt_platform()"/> --> 
-	    <mapping name="pt_mrt_platform" procedure="get_pt_train_route_platform()"/> 
-            <!-- <mapping name="pt_mrt_block_polyline" procedure="get_pt_block_polylines()"/> --> 
-	     <mapping name="pt_mrt_block_polyline" procedure="get_pt_train_block_polylines()"/>
-	 <mapping name="pt_opposite_lines" procedure="get_pt_opposite_lines()"/>
-	<mapping name="get_train_fleet" procedure="get_train_fleet()"/>
-<!-- <mapping name="mrt_road_segments" procedure="get_pt_mrt_segments()"/> -->
+	    <mapping name="pt_platform" procedure="get_pt_train_platforms()"/>             
+            <mapping name="pt_mrt_dispatch_freq" procedure="get_pt_train_dispatch_freq()"/> 	  
+	    <mapping name="pt_mrt_block" procedure="get_pt_train_blocks()"/>
+    	    <mapping name="pt_mrt_route" procedure="get_pt_train_route()"/> 
+	   <!-- This procedure returns platforms from pt_mrt_platform with only lineid,Sequenceno,platformNo fields -->       
+	    <mapping name="pt_mrt_platform" procedure="get_pt_train_route_platform()"/>       
+	    <mapping name="pt_mrt_block_polyline" procedure="get_pt_train_block_polylines()"/>
+	    <mapping name="pt_opposite_lines" procedure="get_pt_opposite_lines()"/>
+	    <mapping name="get_train_fleet" procedure="get_train_fleet()"/>
 	    <mapping name="mrt_road_segments" procedure="get_pt_train_segments()"/>
 	    <mapping name="day_activity_schedule" procedure="get_persons_between"/>
             <mapping name="freight_trips" procedure="get_freight_between"/>
             <mapping name="erp_surcharge" procedure="get_erp_surcharge()"/>
->>>>>>> Stashed changes
         </proc_map>
-
-
 
         <!-- Singapore network -->
 
@@ -237,7 +225,6 @@
         </speed_density_params>
 
         <!-- lua scripts used in withinday --> 
-
         <model_scripts path="scripts/lua/mid/behavior-models/" format="lua">
              <script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models-->
              <script name="pvtrc" file="pvtrc.lua"/> <!--private traffic route choice-->
@@ -245,7 +232,7 @@
              <script name="wdmw" file="wdmw.lua"/> <!--within-day mode choice for work trips-->
              <script name="wdme" file="wdme.lua"/> <!--within-day mode choice for education trips-->
              <script name="wdmso" file="wdmso.lua"/> <!--within-day mode choice for work shopping and other trips-->
-	     <script name="serv" file="serv.lua"/><!--for service controller -->
+	     <script name="rsc" file="rsc.lua"/><!-- rail service controller -->
         </model_scripts>
 
         
@@ -264,7 +251,6 @@
         <output_predictions enabled="false"/>
         <!-- prints person ids and tour details in console for each person if enabled -->
         <console_output enabled="true"/>
-<<<<<<< Updated upstream
         
         <!-- Data source for population and logsums. 
          Admissible values for source are 'pgsql' and 'mongodb' which points to LT database or local MongoDB respectively. 
@@ -272,11 +258,9 @@
          Database and credentials attributes are required only for pgsql source.
          Valid ids from the list constructs list have to be specified -->
         <population source="pgsql" database="fm_remote_lt" credential="lt_cred"/>
-
         <simmob_mt source="pgsql" database="fm_remote" credential="fm_remote"/>
 
-=======
->>>>>>> Stashed changes
+
         <!-- table containing logsums for each individual in the population. NOTE:  -->
         <logsum_table name="demand.preday_logsum"/>
 
@@ -310,7 +294,6 @@
             <script name="zpa" file="zpa.lua"/> <!--Zone postcode assignment --> 
         </model_scripts>
             
-<<<<<<< Updated upstream
         <!-- Names of MongoDB database and collections -->
         <mongo_collections db_name="preday">
             <mongo_collection name="population" collection="hits12_population_updated_zones"/>
@@ -328,8 +311,7 @@
             <mongo_collection name="Output_SubTour" collection="wbst_0815"/>
         </mongo_collections>
             
-=======
->>>>>>> Stashed changes
+
         <calibration enabled="false">
             <!-- variables to calibrate -->
             <!-- expected csv format: variable_name,lua_file_name,initial_value,lower_limit,upper_limit -->

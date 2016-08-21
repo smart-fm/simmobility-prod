@@ -310,7 +310,7 @@ void ServiceController::setUturnFlag(int trainId,std::string lineId,bool takeUtu
 			{
 				if(driver->getTrainId()==trainId)
 				{
-					driver->SetUnsetUturnFlag(takeUturn);
+					driver->setUturnFlag(takeUturn);
 
 				}
 			}
@@ -337,7 +337,7 @@ void ServiceController::insertStopPoint(int trainId,std::string lineId,double di
 					{
 						const TrainPathMover &pathMover=movement->getPathMover();
 						PolyPoint stopPoint=pathMover.GetStopPoint(distance);
-						driver->InsertStopPoint(stopPoint,duration);
+						driver->insertStopPoint(stopPoint,duration);
 					}
 				}
 			}
@@ -364,7 +364,7 @@ void ServiceController::restrictPassengers(std::string platformName,int trainId,
 			{
 				if(driver->getTrainId()==trainId)
 				{
-					driver->InsertRestrictPassengerEntity(platformName,type);
+					driver->insertRestrictPassengerEntity(platformName,type);
 				}
 			}
 		}
@@ -382,7 +382,7 @@ void ServiceController::resetHoldingTimeAtStation(std::string platformName,doubl
 		{
 			if(driver->getTrainId()==trainId)
 			{
-				driver->InsertPlatformHoldEntities(platformName,duration);
+				driver->insertPlatformHoldEntities(platformName,duration);
 			}
 		}
 	}
@@ -799,7 +799,7 @@ void ServiceController::forceReleasePassenegers(int trainID,std::string lineId,b
 			TrainDriver *trainDriver=itr->second;
 			if(trainDriver)
 			{
-				trainDriver->SetTerminateTrainService(true);
+				trainDriver->setTerminateTrainService(true);
 			}
 			itr++;
 		}
@@ -1002,7 +1002,7 @@ void ServiceController::terminateTrainServiceForTrain(int trainId,std::string li
 			{
 				if(trainDriver->getTrainId()==trainId)
 				{
-					trainDriver->SetTerminateTrainService(true);
+					trainDriver->setTerminateTrainService(true);
 				}
 			}
 		}

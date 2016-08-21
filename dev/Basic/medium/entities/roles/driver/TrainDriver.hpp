@@ -160,12 +160,12 @@ public:
 	void updatePassengers();
 
 	/* Force Alights all passengers in the train */
-	int AlightAllPassengers(std::list<Passenger*>& alightingPassenger);
+	int alightAllPassengers(std::list<Passenger*>& alightingPassenger);
 
 	/* stores the next train(ahead train ) in opposite direction before teleport*/
-	void SetTrainDriverInOpposite(TrainDriver *trainDriver);
+	void setTrainDriverInOpposite(TrainDriver *trainDriver);
 	/* gets the train driver in opposite line to assign it to next driver */
-	TrainDriver *GetDriverInOppositeLine();
+	TrainDriver *getDriverInOppositeLine();
 	const TrainTrip *getTrainTrip() const;
 
 
@@ -175,7 +175,7 @@ public:
 	 * @param now is current time
 	 * @return the number of alighting persons
 	 */
-	int AlightAllPassengers(std::list<Passenger*>& alightingPassenger,timeslice now);
+	int alightAllPassengers(std::list<Passenger*>& alightingPassenger,timeslice now);
 
 
 	TrainMovement * getMovement();
@@ -200,51 +200,51 @@ public:
 	int getTrainId() const;
 
 	/* inserts stop point that is the point where train has to be stopped as requested by service controller*/
-	void InsertStopPoint(PolyPoint point,double duration);
+	void insertStopPoint(PolyPoint point,double duration);
 
 	/* gets all the stop points of the train */
-	std::vector<StopPointEntity>& GetStopPoints();
+	std::vector<StopPointEntity>& getStopPoints();
 
 	/* checks if the train is stopped at the point */
-	bool IsStoppedAtPoint();
+	bool isStoppedAtPoint();
 	/* Sets the parametrs of stop point Entities ,that is the POLypoint and duration of stopping */
-	void SetStoppingParameters(PolyPoint point,double duration);
+	void setStoppingParameters(PolyPoint point,double duration);
 
 	/* reduces the stopping duration left after every frame tick */
-	double ReduceStoppingTime(double secsInframeTick);
+	double reduceStoppingTime(double secsInframeTick);
 	/* sets stopping time of train at stop point */
-	void SetStoppingTime(double stoppingTime);
+	void setStoppingTime(double stoppingTime);
 	/* set the stopping status  of train ,that is whether train is stopped ta point */
-	void  SetStoppingStatus(bool);
+	void  setStoppingStatus(bool);
     /* sets flag to terminate train service */
 
 	void clearStopPoints();
-	void SetTerminateTrainService(bool terminate);
+	void setTerminateTrainService(bool terminate);
 	/* checks the staus whether the train is to be terminated or not */
-	bool GetTerminateStatus();
+	bool getTerminateStatus();
 	/* inserts the instances when the train is supposed to be held by platform as requested by service controller */
 
-	void InsertPlatformHoldEntities(std::string platformName,double duration);
+	void insertPlatformHoldEntities(std::string platformName,double duration);
 	/* Insert the Entities ,that is the passenger movement of train to restricted at particular platform
 	 * and type of restriction like boarding only(no alighting),alighting only(no boarding)
 	 * And boarding ,alighting both
 	 */
-	void InsertRestrictPassengerEntity(std::string platformName,int type);
+	void insertRestrictPassengerEntity(std::string platformName,int type);
 
 	/* checks if is boarding restricted by restricting passenger entity
 	 * The request given by service controller
 	 */
-	bool IsBoardingRestricted();
+	bool isBoardingRestricted();
 	/* checks if is alighting restricted by restricting passenger entity
 		 * The request given by service controller
 		 */
-	bool IsAlightingRestricted();
+	bool isAlightingRestricted();
 
 	/* The train is not supposed to stop at certain platforms as requested by service controller
 	 * This function returns those list of platforms
 	 */
 
-	std::vector<std::string> GetPlatformsToBeIgnored();
+	std::vector<std::string> getPlatformsToBeIgnored();
 
 	/* add platforms to ignore (where the train wont stop )
 	 * by service controller
@@ -253,17 +253,17 @@ public:
 	/* mutex lock when modifying or calling the boarding alighting functions
 	 *
 	 */
-	void LockUnlockRestrictPassengerEntitiesLock(bool lockunlock);
+	void lockUnlockRestrictPassengerEntitiesLock(bool lockunlock);
 
 	/*
 	 * Resets the holding time at platform which is due to the request given by service controller
 	 * To override the dwell time calculated
 	 */
-	void ResetHoldingTime();
+	void resetHoldingTime();
 
-	void SetUnsetUturnFlag(bool set);
+	void setUturnFlag(bool set);
 
-	bool GetUTurnFlag();
+	bool getUTurnFlag();
 
 	void setForceAlightFlag(bool flag);
 

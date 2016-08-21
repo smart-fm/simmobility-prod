@@ -474,10 +474,10 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 				if((*it)->getForceAlightFlag())
 				{
 
-					(*it)->LockUnlockRestrictPassengerEntitiesLock(true);
+					(*it)->lockUnlockRestrictPassengerEntitiesLock(true);
 					(*it)->setForceAlightStatus(true); //will be unset by service controller
-					int alightingNum = (*it)->AlightAllPassengers(leavingPersons[platform], now);
-					(*it)->LockUnlockRestrictPassengerEntitiesLock(false);
+					int alightingNum = (*it)->alightAllPassengers(leavingPersons[platform], now);
+					(*it)->lockUnlockRestrictPassengerEntitiesLock(false);
 					(*it)->calculateDwellTime(0,alightingNum,0,now);
 					(*it)->setNextRequested(TrainDriver::REQUESTED_WAITING_LEAVING);
 					(*it)->setForceAlightFlag(false);
@@ -527,13 +527,11 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 					auto itPlat = std::find(platformNames.begin(), platformNames.end(), platform->getPlatformNo());
 					if (itPlat != platformNames.end())
 					{
-						//(*it)->GetMovement()->SetDisruptedState(true);
-
-						if(!(*it)->getForceAlightFlag())
+						if(!(*it)->getForceAlightStatus())
 						{
-							(*it)->LockUnlockRestrictPassengerEntitiesLock(true);
-							int alightingNum = (*it)->AlightAllPassengers(leavingPersons[platform], now);
-							(*it)->LockUnlockRestrictPassengerEntitiesLock(false);
+							(*it)->lockUnlockRestrictPassengerEntitiesLock(true);
+							int alightingNum = (*it)->alightAllPassengers(leavingPersons[platform], now);
+							(*it)->lockUnlockRestrictPassengerEntitiesLock(false);
 							(*it)->calculateDwellTime(0,alightingNum,0,now);
 						}
 						(*it)->setNextRequested(TrainDriver::REQUESTED_WAITING_LEAVING);
@@ -552,9 +550,9 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 						(*it)->getMovement()->SetDisruptedState(true);
 						if(!(*it)->getForceAlightFlag())
 						{
-							(*it)->LockUnlockRestrictPassengerEntitiesLock(true);
-							int alightingNum = (*it)->AlightAllPassengers(leavingPersons[platform], now);
-							(*it)->LockUnlockRestrictPassengerEntitiesLock(false);
+							(*it)->lockUnlockRestrictPassengerEntitiesLock(true);
+							int alightingNum = (*it)->alightAllPassengers(leavingPersons[platform], now);
+							(*it)->lockUnlockRestrictPassengerEntitiesLock(false);
 							(*it)->calculateDwellTime(0,alightingNum,0,now);
 						}
 						(*it)->setNextRequested(TrainDriver::REQUESTED_WAITING_LEAVING);
@@ -565,28 +563,27 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 
 				if(!isDisruptedPlat)
 				{
-					if((*it)->GetTerminateStatus())
+					if((*it)->getTerminateStatus())
 					{
-						if(!(*it)->getForceAlightFlag())
+						if(!(*it)->getForceAlightStatus())
 						{
-							(*it)->LockUnlockRestrictPassengerEntitiesLock(true);
-							int alightingNum = (*it)->AlightAllPassengers(leavingPersons[platform],now);
-							(*it)->LockUnlockRestrictPassengerEntitiesLock(false);
+							(*it)->lockUnlockRestrictPassengerEntitiesLock(true);
+							int alightingNum = (*it)->alightAllPassengers(leavingPersons[platform],now);
+							(*it)->lockUnlockRestrictPassengerEntitiesLock(false);
 							(*it)->calculateDwellTime(0,alightingNum,0,now);
 						}
 						(*it)->setNextRequested(TrainDriver::REQUESTED_WAITING_LEAVING);
-
 					}
 					else
 					{
-						if(!(*it)->getForceAlightFlag())
+						if(!(*it)->getForceAlightStatus())
 						{
-							(*it)->LockUnlockRestrictPassengerEntitiesLock(true);
+							(*it)->lockUnlockRestrictPassengerEntitiesLock(true);
 							int alightingNum = (*it)->alightPassenger(leavingPersons[platform],now);
 							int noOfPassengersInTrain=(*it)->getPassengers().size();
 							int forcealightedboardingnum=(*it)->boardForceAlightedPassengersPassenger(forceAlightedPersons[platform],now);
 							int boardingNum = (*it)->boardPassenger(waitingPersons[platform], now);
-							(*it)->LockUnlockRestrictPassengerEntitiesLock(false);
+							(*it)->lockUnlockRestrictPassengerEntitiesLock(false);
 							(*it)->calculateDwellTime(boardingNum+forcealightedboardingnum,alightingNum,noOfPassengersInTrain,now);
 						}
 						(*it)->setNextRequested(TrainDriver::REQUESTED_WAITING_LEAVING);

@@ -196,7 +196,7 @@
             
     <!-- config specific to preday simulator -->
     <preday>
-        <!-- Control variable to run simulation, calibration or logsum computation. Admissible values are "simulation", "calibration", "logsum" and "lt_logsum" -->
+        <!-- Control variable to run simulation or logsum computation. Admissible values are "simulation" and "logsum" -->
         <run_mode value="simulation"/>
         <!-- Number of threads to create for processing the population in-->
         <!-- the preday demand simulator -->

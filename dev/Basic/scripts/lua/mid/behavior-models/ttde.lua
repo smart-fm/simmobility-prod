@@ -17,7 +17,7 @@ local beta_ARR_2_1 = -0.502
 local beta_ARR_2_2 = -0.306 
 local beta_ARR_2_3 = -0.105
 local beta_C = -0.0933
-local beta_DUR_1 = -0.77
+local beta_DUR_1 = -0.770
 local beta_DUR_3 = 0.00223 
 local beta_DUR_2 = -0.115 
 local beta_ARR_1_3 = -3.25 
@@ -149,9 +149,9 @@ end
 --the logic to determine availability is the same with current implementation
 local availability = {}
 local function computeAvailabilities(params,dbparams)
-        local mode = dbparams.mode
+	local mode = dbparams.mode
 	for i = 1, 1176 do 
-		availability[i] = params:getTimeWindowAvailabilityTour(i, mode)
+		availability[i] = params:getTimeWindowAvailabilityTour(i,mode)
 	end
 end
 

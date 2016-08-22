@@ -60,15 +60,15 @@ local beta_distance_motor = -0.0319
 local beta_distance_walk = 0
 local beta_distance_taxi = 0
 
-local beta_cons_bus = 1.20
-local beta_cons_mrt = 1.30
-local beta_cons_private_bus = 1.00
-local beta_cons_drive1 = -1.40
-local beta_cons_share2 = -3.30
-local beta_cons_share3 = -3.10
-local beta_cons_motor = 25.00
-local beta_cons_walk = -75.00
-local beta_cons_taxi = -1.20
+local beta_cons_bus = 2.30
+local beta_cons_mrt = 2.30
+local beta_cons_private_bus = 1.35
+local beta_cons_drive1 = 0.79
+local beta_cons_share2 = -2.02
+local beta_cons_share3 = -1.74
+local beta_cons_motor = 4.27
+local beta_cons_walk = -149.60
+local beta_cons_taxi = -0.41
 
 local beta_zero_bus = 0
 local beta_oneplus_bus = -3.20
@@ -147,19 +147,40 @@ local function computeUtilities(params,dbparams)
 	local income_id = params.income_id
 	local income_cat = {500,1250,1750,2250,2750,3500,4500,5500,6500,7500,8500,0,99999,99999}
 	local income_mid = income_cat[income_id]
-	local missing_income = (params.income_id >= 12) and 1 or 0 -- Vishnu 14th April 2016- Changed from the previous value of 12
 
-	--params.car_own_normal is from household table
-	local zero_car = params.car_own_normal == 0 and 1 or 0
-	local one_plus_car = params.car_own_normal >= 1 and 1 or 0
-	local two_plus_car = params.car_own_normal >= 2 and 1 or 0
-	local three_plus_car = params.car_own_normal >= 3 and 1 or 0
+	local missing_income = (params.income_id >= 12) and 1 or 0
 
-	--params.motor_own is from household table
-	local zero_motor = params.motor_own == 0 and 1 or 0
-	local one_plus_motor = params.motor_own >=1 and 1 or 0
-	local two_plus_motor = params.motor_own >=2 and 1 or 0
-	local three_plus_motor = params.motor_own >= 3 and 1 or 0
+
+	local zero_car,one_plus_car,two_plus_car,three_plus_car, zero_motor,one_plus_motor,two_plus_motor,three_plus_motor = 0,0,0,0,0,0,0,0
+	local veh_own_cat = params.vehicle_ownership_category
+	if veh_own_cat == 1  then 
+		zero_car = 1 
+	
+	end
+	if veh_own_cat == 4 or 5 or 6  then 
+		one_plus_car = 1 
+	end
+	if veh_own_cat == 6  then 
+		two_plus_car = 1 
+	end
+	
+	if veh_own_cat == 6  then 
+		three_plus_car = 1 
+	end
+	if veh_own_cat == 1 or 4  then 
+		zero_motor = 1 
+	end
+	if veh_own_cat == 2 or 3 or 5 or 6  then 
+		one_plus_motor = 1 
+	end
+	
+	if veh_own_cat == 2 or 3 or 5 or 6  then 
+		two_plus_motor = 1 
+	end
+	
+	if veh_own_cat == 2 or 3 or 5 or 6  then 
+		three_plus_motor = 1 
+	end
 
 
 	local cost_public_first = {}

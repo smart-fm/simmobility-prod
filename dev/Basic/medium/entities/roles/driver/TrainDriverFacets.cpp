@@ -551,7 +551,7 @@ void TrainMovement::frame_tick()
 				parentDriver->setSubsequentNextRequested(TrainDriver::NO_REQUESTED);
 			}
 
-			else if(isDisruptedState&&!isStrandedBetweenPlatforms_DisruptedState)
+			else if(isDisruptedState&&!isStrandedBetweenPlatforms_DisruptedState&&!parentDriver->getUTurnFlag())
 			{
 				std::string trainLine=parentDriver->getTrainLine();
 				std::map<std::string,std::vector<std::string>> platformNames = TrainController<sim_mob::medium::Person_MT>::getInstance()->getDisruptedPlatforms_ServiceController();
@@ -618,6 +618,38 @@ void TrainMovement::frame_tick()
 					}
 				}
 			}
+			else
+			{
+				if(!isDisruptedState)
+				{
+					std::string trainLine=parentDriver->getTrainLine();
+					std::map<std::string,std::vector<std::string>> platformNames = TrainController<sim_mob::medium::Person_MT>::getInstance()->getDisruptedPlatforms_ServiceController();
+					std::vector<std::string> disruptedPlatformNames=platformNames[trainLine];
+					Platform *platform=trainPlatformMover.getPlatformByOffset(0);
+					std::vector<std::string>::iterator it=std::find(disruptedPlatformNames.begin(),disruptedPlatformNames.end(),platform->getPlatformNo());
+					if(it!=disruptedPlatformNames.end())
+					{
+						isDisruptedState=true;
+						isDisruptedPlatform =true;
+						//compute new dwell time
+						//set to requested at platform to board new passengers after disruption is over.
+						//parentDriver->setNextRequested(TrainDriver::REQUESTED_AT_PLATFORM);
+					}
+					else
+					{
+						Platform *platform=trainPlatformMover.getPlatformByOffset(1);
+						std::vector<std::string>::iterator it=std::find(disruptedPlatformNames.begin(),disruptedPlatformNames.end(),platform->getPlatformNo());
+						if(it!=disruptedPlatformNames.end())
+						{
+							//for uturn force alight compute dwell time
+							//set to requested at platform to board new passengers after disruption is over.
+							//parentDriver->setNextRequested(TrainDriver::REQUESTED_AT_PLATFORM);
+							isDisruptedState=true;
+							isDisruptedPlatform =true;
+						}
+					}
+				}
+			}
 
 
 			if(!isDisruptedPlatform)
@@ -662,6 +694,7 @@ void TrainMovement::frame_tick()
 
 						   if(parentDriver->getUTurnFlag())
 						   {
+							   isDisruptedState=false;
 							   parentDriver->setNextRequested(TrainDriver::REQUESTED_TAKE_UTURN);
 							   PrepareForUTurn();
 						   }

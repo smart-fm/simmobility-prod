@@ -175,16 +175,16 @@ local function computeUtilities(params)
 
 	-- other variables
 	local zero_car,one_car,twoplus_car,motoravail = 0,0,0,0
-	if veh_own_cat == 1  then 
+	if veh_own_cat == 0  then 
 		zero_car = 1 
 	end
-	if veh_own_cat == 2 or 3 or 5 or 6  then 
+	if veh_own_cat == 1 or 2 or 3 or 4  then 
 		motoravail = 1 
 	end
-	if veh_own_cat == 3 or 4 or 5  then 
+	if veh_own_cat == 2 or 3 or 4  then 
 		one_car = 1 
 	end
-	if veh_own_cat == 6  then 
+	if veh_own_cat == 5  then 
 		twoplus_car = 1 
 	end
 			

@@ -22,10 +22,7 @@ using std::vector;
 
 using namespace sim_mob;
 
-namespace
-{
-bool firstTick = true;
-}
+
 
 WorkGroupManager::~WorkGroupManager()
 {
@@ -130,6 +127,14 @@ void sim_mob::WorkGroupManager::initAllGroups()
 		{
 			(*it)->initializeBarriers(frameTickBarr, buffFlipBarr, msgBusBarr);
 		}
+	}
+}
+
+void sim_mob::WorkGroupManager::waitForFrameTickBar()
+{
+	if (frameTickBarr)
+	{
+		frameTickBarr->wait();
 	}
 }
 

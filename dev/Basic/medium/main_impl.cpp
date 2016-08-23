@@ -375,10 +375,10 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	int loop_start_offset = ProfileBuilder::diff_ms(loop_start_time, start_time_med);
 
 	int lastTickPercent = 0; //So we have some idea how much time is left.
+	bool firstTick = true;
 	for (unsigned int currTick = 0; currTick < config.totalRuntimeTicks; currTick++)
 	{
 		const DailyTime dailyTime=ConfigManager::GetInstance().FullConfig().simStartTime()+DailyTime(currTick*5000);
-		TrainServiceControllerLuaProvider::getTrainControllerModel()->useServiceController(dailyTime.getStrRepr());
 		//Flag
 		bool warmupDone = (currTick >= config.totalWarmupTicks);
 
@@ -414,7 +414,33 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 		}
 
 		//Agent-based cycle, steps 1,2,3,4
-		wgMgr.waitAllGroups();
+		{
+			std::set<Entity*> removedEntities;
+
+			//Call each function in turn.
+			//NOTE: Each sub-function tests the current state.
+			if (firstTick && ConfigManager::GetInstance().FullConfig().RunningMidTerm())
+			{
+				TrainServiceControllerLuaProvider::getTrainControllerModel()->useServiceController(dailyTime.getStrRepr());
+				//first tick has two frameTickBarr
+				wgMgr.waitForFrameTickBar();
+				firstTick = false;
+			}
+
+			wgMgr.waitAllGroups_FrameTick();
+			wgMgr.waitAllGroups_FlipBuffers(&removedEntities);
+			TrainServiceControllerLuaProvider::getTrainControllerModel()->useServiceController(dailyTime.getStrRepr());
+			wgMgr.waitAllGroups_DistributeMessages(removedEntities);
+			wgMgr.waitAllGroups_MacroTimeTick();
+
+			//Delete all collected entities:
+			while (!removedEntities.empty())
+			{
+				Entity* ag = *removedEntities.begin();
+				removedEntities.erase(removedEntities.begin());
+				delete ag;
+			}
+		}
 	}
 
 	BusStopAgent::removeAllBusStopAgents();

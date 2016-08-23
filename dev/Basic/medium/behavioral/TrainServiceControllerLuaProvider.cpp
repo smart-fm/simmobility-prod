@@ -34,7 +34,7 @@ namespace
         		const ModelScriptsMap& extScripts = MT_Config::getInstance().getModelScriptsMap();
         		const std::string& scriptsPath = extScripts.getPath();
         		RailServiceControllerModelContext* modelCtx = new RailServiceControllerModelContext();
-        		modelCtx->traincontrollerModel->loadFile(scriptsPath + extScripts.getScriptFileName("serv"));
+        		modelCtx->traincontrollerModel->loadFile(scriptsPath + extScripts.getScriptFileName("rsc"));
         		modelCtx->traincontrollerModel->initialize();
         		threadContext.reset(modelCtx);
         	}

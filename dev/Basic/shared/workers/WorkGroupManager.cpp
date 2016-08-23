@@ -159,15 +159,17 @@ void sim_mob::WorkGroupManager::waitAllGroups()
 
 	//Call each function in turn.
 	//NOTE: Each sub-function tests the current state.
-	if (ConfigManager::GetInstance().FullConfig().RunningMidTerm() && firstTick)
+	/*if (ConfigManager::GetInstance().FullConfig().RunningMidTerm() && firstTick)
 	{
 		//first tick has two frameTickBarr
+
 		if (frameTickBarr)
 		{
 			frameTickBarr->wait();
 		}
 		firstTick = false;
-	}
+
+	}*/
 
 	waitAllGroups_FrameTick();
 	waitAllGroups_FlipBuffers(&removedEntities);

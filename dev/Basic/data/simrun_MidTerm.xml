@@ -103,6 +103,8 @@
             <mapping name="day_activity_schedule" procedure="get_persons_between_new_mrt"/>
             <mapping name="freight_trips" procedure="get_testfreight_between"/>
             <mapping name="screen_line" procedure="get_screen_line_segments()"/>
+	    <mapping name="pt_opposite_lines" procedure="get_pt_opposite_lines()"/>
+	    <mapping name="get_train_fleet" procedure="get_train_fleet()"/>
             <!--<mapping name="restricted_reg_segments" procedure="get_section_banned_area()"/>
             <mapping name="restricted_reg_in_turning" procedure="get_banned_area_in_turning()"/>
             <mapping name="restricted_reg_out_turning" procedure="get_banned_area_out_turning()"/>

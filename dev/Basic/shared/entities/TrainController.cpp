@@ -383,6 +383,8 @@ namespace sim_mob
 	{
 		loadPlatforms();
 		loadBlocks();
+		loadOppositeLines();
+		loadTrainAvailabilities();
 		loadTrainRoutes();
 		loadTrainPlatform();
 		loadTransferedTimes();

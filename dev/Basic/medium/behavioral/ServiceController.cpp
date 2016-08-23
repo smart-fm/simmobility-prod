@@ -508,10 +508,12 @@ void ServiceController::connectTrainsAfterDisruption(std::string lineId)
 			}
 		}
 
-		std::vector<Platform*> platforms=TrainController<sim_mob::medium::Person_MT>::getInstance()->getTrainPlatforms(lineId, platforms);
+		std::vector<Platform*> platforms;
+		TrainController<sim_mob::medium::Person_MT>::getInstance()->getTrainPlatforms(lineId, platforms);
 		if(platforms.size()>0)
 		{
 			Platform *platform=*(platforms.begin());
+
 			if(platform)
 			{
 				Agent *stationAgent=TrainController<sim_mob::medium::Person_MT>::getInstance()->getAgentFromStation(platform->getStationNo());

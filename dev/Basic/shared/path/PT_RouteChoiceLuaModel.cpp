@@ -189,13 +189,13 @@ std::vector<sim_mob::OD_Trip> PT_RouteChoiceLuaModel::makePT_RouteChoice(const s
 			sim_mob::OD_Trip trip;
 			trip.startStop = itEdge->getStartStop();
 			trip.sType = PT_NetworkCreater::getInstance().getVertexTypeFromStopId(trip.startStop);
-			if (itEdge->getType()==sim_mob::TRAIN_EDGE)
+			if (trip.startStop.find("N_") != std::string::npos)
 			{
 				trip.startStop = trip.startStop.substr(2);
 			}
 			trip.endStop = itEdge->getEndStop();
 			trip.eType = PT_NetworkCreater::getInstance().getVertexTypeFromStopId(trip.endStop);
-			if (itEdge->getType()==sim_mob::TRAIN_EDGE)
+			if (trip.endStop.find("N_") != std::string::npos)
 			{
 				trip.endStop = trip.endStop.substr(2);
 			}

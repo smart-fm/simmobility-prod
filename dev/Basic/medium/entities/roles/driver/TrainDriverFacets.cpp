@@ -251,7 +251,7 @@ bool TrainMovement::CheckSafeHeadWayBeforeTeleport(std::string platformNo,std::s
                 	 }
                 	 else
                 	 {
-                		 if(minDis==-1||disCovered-disOfPlatform)
+                		 if(minDis==-1||disCovered-disOfPlatform<minDis)
                 		 {
                 			 minDis=disCovered-disOfPlatform;
                 			 nextDriverInOppLine = dynamic_cast<TrainDriver*>((*it));

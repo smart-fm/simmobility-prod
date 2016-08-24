@@ -205,7 +205,7 @@ local function computeUtilities(params)
 	-- other variables
 	local workathome,caravail,motoravail = 0,0,0
 	if work_at_home_dummy == 1 then workathome = 1 end
-	if veh_own_cat == 1 or 3 or 4 or 5 then caravail = 1 end
+	if veh_own_cat == 2 or 3 or 4 or 5 then caravail = 1 end
 	if veh_own_cat == 1 or 2 or 4 or 5 then motoravail = 1 end
 	
 	utility[1] = 0

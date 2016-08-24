@@ -429,7 +429,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 
 			wgMgr.waitAllGroups_FrameTick();
 			wgMgr.waitAllGroups_FlipBuffers(&removedEntities);
-			//TrainServiceControllerLuaProvider::getTrainControllerModel()->useServiceController(dailyTime.getStrRepr());
+			TrainServiceControllerLuaProvider::getTrainControllerModel()->useServiceController(dailyTime.getStrRepr());
 			wgMgr.waitAllGroups_DistributeMessages(removedEntities);
 			wgMgr.waitAllGroups_MacroTimeTick();
 

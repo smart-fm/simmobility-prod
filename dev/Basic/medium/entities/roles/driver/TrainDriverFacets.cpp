@@ -638,14 +638,17 @@ void TrainMovement::frame_tick()
 					else
 					{
 						Platform *platform=trainPlatformMover.getPlatformByOffset(1);
-						std::vector<std::string>::iterator it=std::find(disruptedPlatformNames.begin(),disruptedPlatformNames.end(),platform->getPlatformNo());
-						if(it!=disruptedPlatformNames.end())
+						if(platform)
 						{
-							//for uturn force alight compute dwell time
-							//set to requested at platform to board new passengers after disruption is over.
-							//parentDriver->setNextRequested(TrainDriver::REQUESTED_AT_PLATFORM);
-							isDisruptedState=true;
-							isDisruptedPlatform =true;
+							std::vector<std::string>::iterator it=std::find(disruptedPlatformNames.begin(),disruptedPlatformNames.end(),platform->getPlatformNo());
+							if(it!=disruptedPlatformNames.end())
+							{
+								//for uturn force alight compute dwell time
+								//set to requested at platform to board new passengers after disruption is over.
+								//parentDriver->setNextRequested(TrainDriver::REQUESTED_AT_PLATFORM);
+								isDisruptedState=true;
+								isDisruptedPlatform =true;
+							}
 						}
 					}
 				}

@@ -403,13 +403,15 @@ namespace sim_mob
 		int minId=*itr;
 		int maxId=(*(++itr));
 		int count=0;
-
 		std::vector<int> trainIds=std::vector<int>();
 		for(int i=minId;i<=maxId;i++)
 		{
 			trainIds.push_back(i);
+			count++;
 		}
+
 		recycleTrainId[lineId] = trainIds;
+		mapOfNoAvailableTrains[lineId]=count;
 	}
 
 

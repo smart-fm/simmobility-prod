@@ -88,6 +88,8 @@ private:
 	 */
 	void performDisruption(timeslice now);
 
+	void checkAndInsertUnscheduledTrain(TrainDriver * next);
+
 
 private:
 	/**the reference to the station*/
@@ -98,6 +100,8 @@ private:
 	std::map<std::string, TrainDriver*> lastTrainDriver;
 	/**record pending trains in each line*/
 	std::map<std::string, std::list<TrainDriver*>> pendingTrainDriver;
+	/**record pending unscheduled trains in each line*/
+	std::map<std::string, std::list<TrainDriver*>> pendingUnscheduledTrainDriver;
 	/**record usage in each line*/
 	std::map<std::string, bool> lastUsage;
 	/**waiting person for boarding*/

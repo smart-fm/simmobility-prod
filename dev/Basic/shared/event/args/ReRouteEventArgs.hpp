@@ -9,13 +9,16 @@
 #include "event/args/EventArgs.hpp"
 #include "conf/RawConfigParams.hpp"
 
-namespace sim_mob {
-namespace event {
+namespace sim_mob
+{
+namespace event
+{
 
 /**
  * The event arguments for EVT_CORE_COMMSIM_REROUTING_REQUEST. Contains a Region to blacklist when re-routing.
  */
-class ReRouteEventArgs : public sim_mob::event::EventArgs {
+class ReRouteEventArgs : public sim_mob::event::EventArgs
+{
 public:
 	/// \param blacklistRegion The ID of the Region to blacklist. No Segments in this Region will be included in the
 	///        new Route, if possible.
@@ -27,20 +30,30 @@ public:
 private:
 	std::string blacklistRegion;
 };
-class DisruptionEventArgs : public sim_mob::event::EventArgs {
+
+class DisruptionEventArgs : public sim_mob::event::EventArgs
+{
 public:
-	DisruptionEventArgs(const sim_mob::DisruptionParams& disruption):disruption(disruption){;}
-    virtual ~DisruptionEventArgs(){;}
+	DisruptionEventArgs(const sim_mob::DisruptionParams& disruption):disruption(disruption)
+	{
+
+	}
+    virtual ~DisruptionEventArgs()
+    {
+
+    }
 
     /**
      * Getters for disruption object
      */
-    const sim_mob::DisruptionParams& getDisruption() const{
+    const sim_mob::DisruptionParams& getDisruption() const
+    {
     	return disruption;
     }
 private:
     sim_mob::DisruptionParams disruption;
 };
 
-}}
+}
+}
 

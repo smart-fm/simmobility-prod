@@ -241,8 +241,7 @@ const std::map<std::string, Platform*>& Station::getPlatforms() const
 Platform* Station::getPlatform(const std::string& lineId) const
 {
 	Platform* platform = nullptr;
-	std::map<std::string, Platform*>::const_iterator it;
-	it = lineToPlatform.find(lineId);
+	std::map<std::string, Platform*>::const_iterator it = lineToPlatform.find(lineId);
 	if(it!=lineToPlatform.end()){
 		platform = it->second;
 	}

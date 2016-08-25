@@ -1,21 +1,28 @@
-/*
- * Block.hpp
- *
- *  Created on: Feb 5, 2016
- *      Author: zhang huai peng
- */
-#ifndef BLOCKT_HPP_
-#define BLOCKT_HPP_
+#pragma once
 #include "PolyLine.hpp"
 #include "Point.hpp"
 #include "Platform.hpp"
 
-namespace sim_mob {
+namespace sim_mob
+{
 
-class Block {
+/*
+ * Copyright Singapore-MIT Alliance for Research and Technology
+ * Block.hpp is a class which define block attributes
+ * Author:zhang huai peng
+ */
+class Block
+{
 public:
-	Block();
-	virtual ~Block();
+	Block():blockId(0),length(0.0),speedLimit(0.0),accelerateRate(0.0),decelerateRate(0.0),polyLine(nullptr),attachedPlatform(nullptr)
+	{
+
+	}
+
+	~Block()
+	{
+
+	}
 private:
 	/**block id*/
 	int blockId;
@@ -32,50 +39,63 @@ private:
 	/**attached platform*/
 	Platform* attachedPlatform;
 public:
-	int getBlockId() const{
+	int getBlockId() const
+	{
 		return blockId;
 	}
-	void setBlockId(int id){
+	void setBlockId(int id)
+	{
 		blockId = id;
 	}
-	double getLength() const{
+	double getLength() const
+	{
 		return length;
 	}
-	void setLength(double len){
+	void setLength(double len)
+	{
 		length = len;
 	}
-	double getSpeedLimit() const{
+	double getSpeedLimit() const
+	{
 		return speedLimit;
 	}
-	void setSpeedLimit(double limit){
+	void setSpeedLimit(double limit)
+	{
 		speedLimit = limit;
 	}
-	double getAccelerateRate() const{
+	double getAccelerateRate() const
+	{
 		return accelerateRate;
 	}
-	void setAccelerateRate(double rate){
+	void setAccelerateRate(double rate)
+	{
 		accelerateRate = rate;
 	}
-	double getDecelerateRate() const{
+	double getDecelerateRate() const
+	{
 		return decelerateRate;
 	}
-	void setDecelerateRate(double rate){
+	void setDecelerateRate(double rate)
+	{
 		decelerateRate = rate;
 	}
-	const PolyLine* getPolyLine() const{
+	const PolyLine* getPolyLine() const
+	{
 		return polyLine;
 	}
-	void setPloyLine(PolyLine* line){
+	void setPloyLine(PolyLine* line)
+	{
 		polyLine = line;
 	}
-	Platform* getAttachedPlatform() const{
+	Platform* getAttachedPlatform() const
+	{
 		return attachedPlatform;
 	}
-	void setAttachedPlatform(Platform* platform){
+	void setAttachedPlatform(Platform* platform)
+	{
 		attachedPlatform = platform;
 	}
 };
 
 } /* namespace sim_mob */
 
-#endif

@@ -288,15 +288,10 @@ public:
 	std::map<int, PT_NetworkEdge> PT_NetworkEdgeMap;
 	std::map<std::string, PT_NetworkVertex> PT_NetworkVertexMap;
 	std::map<std::string, TrainStop*> MRTStopsMap;
-
     std::map<std::string ,std::map<std::string ,std::vector<PT_NetworkEdge>>> MRTStopdgesMap;
-	
-        void init();
+    void init();
 	void init(const std::string& storedProcForVertex, const std::string& storeProceForEdges);
-
-
 	TrainStop* findMRT_Stop(const std::string& stopId) const;
-
 	int getVertexTypeFromStopId(std::string stopId);
 };
 class PT_NetworkCreater
@@ -308,12 +303,12 @@ public:
 	{
 		return instance;
 	}
-	static PT_Network& getInstance2()
+	/*static PT_Network& getInstance2()
 	{
 		return instance2;
-	}
+	}*/
 private:
 	static PT_Network instance;
-	static PT_Network instance2;
+	//static PT_Network instance2;
 };
 }//End of namespace sim_mob

@@ -275,7 +275,7 @@ void Person_MT::EnRouteToNextTrip(const std::string& stationName, const DailyTim
 	ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
 	std::string ptPathsetStoredProcName = cfg.getDatabaseProcMappings().procedureMappings["pt_pathset_dis"];
 	Trip* trip = dynamic_cast<Trip*>(*currTripChainItem);
-	sim_mob::TrainStop* stop = sim_mob::PT_NetworkCreater::getInstance2().findMRT_Stop(stationName);
+	sim_mob::TrainStop* stop = sim_mob::PT_NetworkCreater::getInstance().findMRT_Stop(stationName);
 	if(stop && trip){
 		const Node* node = stop->getRandomStationSegment()->getParentLink()->getFromNode();
 		std::vector<sim_mob::SubTrip>& subTrips = (dynamic_cast<sim_mob::Trip*>(trip))->getSubTripsRW();
@@ -294,7 +294,7 @@ void Person_MT::EnRouteToNextTrip(const std::string& stationName, const DailyTim
 		subTrips.push_back(newSubTrip);
 		if(newSubTrip.travelMode=="BusTravel"){
 			try{
-				convertPublicTransitODsToTrips(PT_NetworkCreater::getInstance2(), ptPathsetStoredProcName);
+				convertPublicTransitODsToTrips(PT_NetworkCreater::getInstance(), ptPathsetStoredProcName);
 				isLoaded = true;
 			} catch(PT_PathsetLoadException& exception){
 				Print()<<"[PT pathset]load pt pathset failed!"<<"["<<exception.originNode<<","<<exception.destNode<<"]"<<std::endl;
@@ -348,7 +348,7 @@ void Person_MT::convertPublicTransitODsToTrips(PT_Network& ptNetwork,const std::
 						bool ret = sim_mob::PT_RouteChoiceLuaProvider::getPTRC_Model().getBestPT_Path(itSubTrip->origin.node->getNodeId(),
 																		itSubTrip->destination.node->getNodeId(),itSubTrip->startTime.getValue(), odTrips, dbid, start_time,ptPathsetStoredProcName);
 
-						//findMrtTripsAndPerformRailTransitRoute(odTrips);
+						findMrtTripsAndPerformRailTransitRoute(odTrips);
 
 						if (ret)
 						{

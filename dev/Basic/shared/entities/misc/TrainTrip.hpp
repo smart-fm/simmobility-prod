@@ -4,60 +4,78 @@
  *  Created on: Feb 19, 2016
  *      Author: zhang huai peng
  */
-#ifndef TRAINTRIP_HPP_
-#define TRAINTRIP_HPP_
+
+#pragma once
 #include <vector>
 #include <map>
 #include <string>
-
-
 #include "buffering/Shared.hpp"
 #include "conf/settings/DisableMPI.h"
 #include "entities/misc/TripChain.hpp"
 #include "util/DailyTime.hpp"
 
-namespace sim_mob {
+namespace sim_mob
+{
 class Block;
 class Platform;
 
-class TrainTrip : public sim_mob::Trip {
+/*
+ * Copyright Singapore-MIT Alliance for Research and Technology
+ * This class holds the attributes of Train trip
+ * Author: zhang huai peng
+ */
+
+class TrainTrip : public sim_mob::Trip
+{
 public:
 	TrainTrip();
 	virtual ~TrainTrip();
-	void setLineId(const std::string& id){
+	void setLineId(const std::string& id)
+	{
 		lineId = id;
 	}
-	std::string getLineId() const{
+	std::string getLineId() const
+	{
 		return lineId;
 	}
-	void setTripId(int id){
+	void setTripId(int id)
+	{
 		tripId = id;
 	}
-	int getTripId() const{
+	int getTripId() const
+	{
 		return tripId;
 	}
-	void setTrainRoute(const std::vector<Block*>& route){
+	void setTrainRoute(const std::vector<Block*>& route)
+	{
 		trainRoute = route;
 	}
-	const std::vector<Block*>& getTrainRoute() const{
+	const std::vector<Block*>& getTrainRoute() const
+	{
 		return trainRoute;
 	}
-	void setTrainPlatform(const std::vector<Platform*>& platform){
+	void setTrainPlatform(const std::vector<Platform*>& platform)
+	{
 		trainPlatform = platform;
 	}
-	const std::vector<Platform*>& getTrainPlatform() const{
+	const std::vector<Platform*>& getTrainPlatform() const
+	{
 		return trainPlatform;
 	}
-	void setStartTime(const DailyTime& time){
+	void setStartTime(const DailyTime& time)
+	{
 		startTime = time;
 	}
-	unsigned int getStartTime() const{
+	unsigned int getStartTime() const
+	{
 		return startTime.getValue();
 	}
-	void setTrainId(int id){
+	void setTrainId(int id)
+	{
 		trainId = id;
 	}
-	int getTrainId() const{
+	int getTrainId() const
+	{
 		return trainId;
 	}
 
@@ -93,4 +111,4 @@ private:
 
 } /* namespace sim_mob */
 
-#endif
+

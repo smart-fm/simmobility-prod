@@ -105,16 +105,22 @@ void TrainStationAgent::HandleMessage(messaging::Message::MessageType type, cons
 
 	case  TRAIN_MOVE_AT_UTURN_PLATFORM:
 	{
-		std::list<TrainDriver*>::iterator it=(trainDriver.begin());
-		std::string trainLine=(*it)->getTrainLine();
-		const TrainDriverMessage& msg = MSG_CAST(TrainDriverMessage, message);
-		it=find(trainDriver.begin(),trainDriver.end(),*it);
-        if(it==trainDriver.end())
-        {
-        	msg.trainDriver->getParent()->currWorkerProvider = currWorkerProvider;
-        	trainDriver.push_back(msg.trainDriver);
-        }
 
+		const TrainDriverMessage& msg = MSG_CAST(TrainDriverMessage, message);
+		TrainDriver *driver=msg.trainDriver;
+        if(driver->getUTurnFlag())
+        {
+        	driver->setNextRequested(TrainDriver::REQUESTED_TAKE_UTURN);
+        	TrainMovement *movement=driver->getMovement();
+			if(movement)
+			{
+				movement->PrepareForUTurn();
+			}
+        }
+        else
+        {
+        	driver->setNextRequested(TrainDriver::REQUESTED_AT_PLATFORM);
+        }
 		//msg.trainDriver->setNextRequested(TrainDriver::REQUESTED_AT_PLATFORM);
 		break;
 	}
@@ -327,6 +333,8 @@ void TrainStationAgent::checkAndInsertUnscheduledTrains()
  }
 	unscheduledTrainLines.clear();
 }
+
+
 
 void TrainStationAgent::dispathPendingTrains(timeslice now)
 {

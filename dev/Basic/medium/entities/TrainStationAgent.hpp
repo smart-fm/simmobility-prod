@@ -90,6 +90,8 @@ private:
 
 	void checkAndInsertUnscheduledTrains();
 
+	void prepareForUturn(TrainDriver *driver);
+
 
 private:
 	/**the reference to the station*/

@@ -633,7 +633,7 @@ void TrainMovement::frame_tick()
 						isDisruptedPlatform =true;
 						//compute new dwell time
 						//set to requested at platform to board new passengers after disruption is over.
-						//parentDriver->setNextRequested(TrainDriver::REQUESTED_AT_PLATFORM);
+						parentDriver->setNextRequested(TrainDriver::REQUESTED_AT_PLATFORM);
 					}
 					else
 					{
@@ -645,7 +645,7 @@ void TrainMovement::frame_tick()
 							{
 								//for uturn force alight compute dwell time
 								//set to requested at platform to board new passengers after disruption is over.
-								//parentDriver->setNextRequested(TrainDriver::REQUESTED_AT_PLATFORM);
+								parentDriver->setNextRequested(TrainDriver::REQUESTED_AT_PLATFORM);
 								isDisruptedState=true;
 								isDisruptedPlatform =true;
 							}
@@ -698,8 +698,13 @@ void TrainMovement::frame_tick()
 						   if(parentDriver->getUTurnFlag())
 						   {
 							   isDisruptedState=false;
-							   parentDriver->setNextRequested(TrainDriver::REQUESTED_TAKE_UTURN);
-							   PrepareForUTurn();
+							   //parentDriver->setNextRequested(TrainDriver::REQUESTED_TAKE_UTURN);
+							   Platform *platform=getNextPlatform();
+								std::string stationNo=platform->getStationNo();
+								Agent* stationAgent = TrainController<Person_MT>::getAgentFromStation(stationNo);
+							   messaging::MessageBus::PostMessage(stationAgent,TRAIN_MOVE_AT_UTURN_PLATFORM,
+										messaging::MessageBus::MessagePtr(new TrainDriverMessage(parentDriver,true)));
+							   //pass message fo Uturn
 						   }
 
 						   else
@@ -751,7 +756,14 @@ void TrainMovement::frame_tick()
 	case TrainDriver::REQUESTED_TAKE_UTURN:
 	{
 
-		if(!parentDriver->getUTurnFlag())
+		//pass message to Uturn
+		Platform *platform=getNextPlatform();
+		std::string stationNo=platform->getStationNo();
+		Agent* stationAgent = TrainController<Person_MT>::getAgentFromStation(stationNo);
+		messaging::MessageBus::PostMessage(stationAgent,TRAIN_MOVE_AT_UTURN_PLATFORM,
+						messaging::MessageBus::MessagePtr(new TrainDriverMessage(parentDriver,true)));
+
+		/*if(!parentDriver->getUTurnFlag())
 		{
 			//skip uturn
 			parentDriver->setNextRequested(TrainDriver::REQUESTED_AT_PLATFORM);
@@ -760,7 +772,7 @@ void TrainMovement::frame_tick()
 		else
 		{
 			PrepareForUTurn();
-		}
+		}*/
         break;
 	}
 	}

@@ -88,7 +88,7 @@ private:
 	 */
 	void performDisruption(timeslice now);
 
-	void checkAndInsertUnscheduledTrain(TrainDriver * next);
+	void checkAndInsertUnscheduledTrains();
 
 
 private:
@@ -107,6 +107,7 @@ private:
 	/**waiting person for boarding*/
 	std::map<const Platform*, std::list<WaitTrainActivity*>> waitingPersons;
 	std::map<const Platform*, std::list<Passenger*>> forceAlightedPersons;
+	std::vector<std::string> unscheduledTrainLines;
 	/**alighting person for next trip*/
 	std::map<const Platform*, std::list<Passenger*>> leavingPersons;
 	/** parent conflux */

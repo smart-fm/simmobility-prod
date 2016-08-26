@@ -38,7 +38,6 @@ private:
 public:
 	Platform():capacity(0),type(0),attachedBlockId(0),offset(0.0),length(0.0)
 	{
-		// TODO Auto-generated constructor stub
 
 	}
 	std::string getPlatformNo() const

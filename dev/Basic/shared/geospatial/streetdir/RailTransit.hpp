@@ -81,8 +81,6 @@ private:
  *
  * \author Harish Loganathan
  */
-
-
 struct VertexStruct;
 
 
@@ -92,17 +90,17 @@ private:
 	/** station name is the only property of vertices */
 	typedef boost::property<boost::vertex_name_t, std::string> RT_VertexProperties;
 
-		/** travel time in seconds is the only property of edges*/
-		typedef boost::property<boost::edge_weight_t, double, boost::property<boost::edge_name_t, bool> > RT_EdgeProperties;
+	/** travel time in seconds is the only property of edges*/
+	typedef boost::property<boost::edge_weight_t, double, boost::property<boost::edge_name_t, bool> > RT_EdgeProperties;
 
-	    /**
-	     * The rail transit graph is a directed graph with above defined edge and vertex properties
-	     */
-	    typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS, RT_VertexProperties, RT_EdgeProperties> RailTransitGraph;
+	/**
+	 * The rail transit graph is a directed graph with above defined edge and vertex properties
+	 */
+	typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS, RT_VertexProperties, RT_EdgeProperties> RailTransitGraph;
 
-	    typedef RailTransitGraph::vertex_descriptor RT_Vertex;
+	typedef RailTransitGraph::vertex_descriptor RT_Vertex;
 
-	    typedef RailTransitGraph::edge_descriptor RT_Edge;
+	typedef RailTransitGraph::edge_descriptor RT_Edge;
 
     /** the adjacency list representing the rail transit system*/
     RailTransitGraph railTransitGraph;

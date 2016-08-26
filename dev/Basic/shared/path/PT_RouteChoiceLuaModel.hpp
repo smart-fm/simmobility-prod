@@ -16,7 +16,8 @@ namespace sim_mob
  * the exception for pt pathset loading
  * \author Zhang Huai Peng
  */
-class PT_PathsetLoadException: public std::exception {
+class PT_PathsetLoadException: public std::exception
+{
 public:
 	int originNode;
 	int destNode;

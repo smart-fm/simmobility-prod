@@ -229,7 +229,7 @@ bool PT_RouteChoiceLuaModel::getBestPT_Path(int origin, int dest, unsigned int s
 	bool ret = false;
 	PT_PathSet pathSet;
 	curStartTime = DailyTime(startTime);
-	loadPT_PathSet(origin, dest, DailyTime(startTime), pathSet,ptPathsetStoredProcName);
+	loadPT_PathSet(origin, dest, curStartTime, pathSet,ptPathsetStoredProcName);
 	if (pathSet.pathSet.empty())
 	{
 		sim_mob::BasicLogger& ptPathsetLogger  = sim_mob::Logger::log("pt_pathset_failed.csv");

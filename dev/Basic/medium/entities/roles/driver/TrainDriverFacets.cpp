@@ -416,8 +416,6 @@ void TrainMovement::produceMoveInfo()
 		 ptMRTMoveLogger << DailyTime(params.now.ms()+startTime.getValue()).getStrRepr() << ","<<(*it)->getParent()->GetId()<<","<<getParentDriver()->getTrainId()<<","<<getParentDriver()->getTripId()<<","<<(*it)->getParent()->currSubTrip->origin.platform->getPlatformNo()<<","<<(*it)->getParent()->currSubTrip->destination.platform->getPlatformNo()<<std::endl;
 		 it++;
 	 }
-
-
  }
 
 
@@ -1274,7 +1272,7 @@ void TrainMovement::PrepareForUTurn()
 	std::string oppLineId=trainController->getOppositeLineId(trainLine);
 	std::string stationId=pltform->getStationNo();
 	Station *station=trainController->getStationFromId(stationId);
-	Platform *oppPlatform=station->getPlatform(oppLineId);
+	const Platform *oppPlatform=station->getPlatform(oppLineId);
 
 	if(!CheckIfTrainsAreApprochingOrAtPlatform(oppPlatform->getPlatformNo(),oppLineId))
 	{

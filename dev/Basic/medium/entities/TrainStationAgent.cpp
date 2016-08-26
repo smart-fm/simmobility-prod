@@ -184,7 +184,7 @@ void TrainStationAgent::checkAndInsertUnscheduledTrains()
 	if(itr!=unscheduledTrainLines.end())
 	{
 
-    	   Platform *stationAgentPlatform=station->getPlatform(lineId);
+    	   const Platform *stationAgentPlatform=station->getPlatform(lineId);
     	   TrainController<sim_mob::medium::Person_MT> *trainController=TrainController<sim_mob::medium::Person_MT>::getInstance();
     	   std::vector <Role<Person_MT>*> trainDriverVector=trainController->getActiveTrainsForALine(lineId);
     	   std::vector<Role<Person_MT>*>::iterator it;

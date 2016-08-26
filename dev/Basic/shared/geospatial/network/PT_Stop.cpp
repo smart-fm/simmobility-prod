@@ -238,6 +238,7 @@ const std::map<std::string, Platform*>& Station::getPlatforms() const
 {
 	return lineToPlatform;
 }
+
 Platform* Station::getPlatform(const std::string& lineId) const
 {
 	Platform* platform = nullptr;

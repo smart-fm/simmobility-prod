@@ -38,18 +38,18 @@ public:
 	{
 
 	}
-    virtual ~DisruptionEventArgs()
-    {
+	virtual ~DisruptionEventArgs()
+	{
 
-    }
+	}
 
-    /**
-     * Getters for disruption object
-     */
-    const sim_mob::DisruptionParams& getDisruption() const
-    {
-    	return disruption;
-    }
+	/**
+	 * Getters for disruption object
+	 */
+	const sim_mob::DisruptionParams& getDisruption() const
+	{
+		return disruption;
+	}
 private:
     sim_mob::DisruptionParams disruption;
 };

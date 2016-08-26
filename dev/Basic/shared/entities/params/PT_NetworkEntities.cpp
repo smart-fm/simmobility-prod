@@ -24,15 +24,11 @@ PT_Network sim_mob::PT_NetworkCreater::instance;
 
 void PT_NetworkCreater::init()
 {
+	const std::string DB_STORED_PROC_PT_EDGES = ConfigManager::GetInstanceRW().FullConfig().getDatabaseProcMappings().procedureMappings["pt_edges"];
+	const std::string DB_STORED_PROC_PT_VERTICES = ConfigManager::GetInstanceRW().FullConfig().getDatabaseProcMappings().procedureMappings["pt_vertices"];
+	if(!DB_STORED_PROC_PT_EDGES.empty()&&!DB_STORED_PROC_PT_VERTICES.empty())
 	{
-		const std::string DB_STORED_PROC_PT_EDGES = ConfigManager::GetInstanceRW().FullConfig().getDatabaseProcMappings().procedureMappings["pt_edges"];
-		const std::string DB_STORED_PROC_PT_VERTICES = ConfigManager::GetInstanceRW().FullConfig().getDatabaseProcMappings().procedureMappings["pt_vertices"];
-		if(!DB_STORED_PROC_PT_EDGES.empty()&&!DB_STORED_PROC_PT_VERTICES.empty()){
-			instance.init(DB_STORED_PROC_PT_VERTICES, DB_STORED_PROC_PT_EDGES);
-		}
-	}
-	{
-
+		instance.init(DB_STORED_PROC_PT_VERTICES, DB_STORED_PROC_PT_EDGES);
 	}
 }
 namespace

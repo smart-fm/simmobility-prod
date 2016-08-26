@@ -303,12 +303,7 @@ public:
 	{
 		return instance;
 	}
-	/*static PT_Network& getInstance2()
-	{
-		return instance2;
-	}*/
 private:
 	static PT_Network instance;
-	//static PT_Network instance2;
 };
 }//End of namespace sim_mob

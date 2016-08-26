@@ -1,10 +1,3 @@
-/*
- * TrainTrip.hpp
- *
- *  Created on: Feb 19, 2016
- *      Author: zhang huai peng
- */
-
 #pragma once
 #include <vector>
 #include <map>

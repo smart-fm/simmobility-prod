@@ -665,7 +665,7 @@ namespace sim_mob
 		std::vector<Platform*> platforms;
 		if(station)
 		{
-			Platform *platform=station->getPlatform(lineId);
+			const Platform *platform=station->getPlatform(lineId);
 			std::vector<TrainPlatform>& trainPlatforms=mapOfIdvsTrainPlatforms[lineId];
 			std::vector<TrainPlatform>::const_iterator it=trainPlatforms.begin();
 

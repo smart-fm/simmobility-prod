@@ -11,49 +11,47 @@
 
 namespace sim_mob
 {
-namespace event
-{
-
-/**
- * The event arguments for EVT_CORE_COMMSIM_REROUTING_REQUEST. Contains a Region to blacklist when re-routing.
- */
-class ReRouteEventArgs : public sim_mob::event::EventArgs
-{
-public:
-	/// \param blacklistRegion The ID of the Region to blacklist. No Segments in this Region will be included in the
-	///        new Route, if possible.
-	ReRouteEventArgs(const std::string& blacklistRegion);
-	virtual ~ReRouteEventArgs();
-
-	std::string getBlacklistRegion() const;
-
-private:
-	std::string blacklistRegion;
-};
-
-class DisruptionEventArgs : public sim_mob::event::EventArgs
-{
-public:
-	DisruptionEventArgs(const sim_mob::DisruptionParams& disruption):disruption(disruption)
+	namespace event
 	{
+		/**
+		 * The event arguments for EVT_CORE_COMMSIM_REROUTING_REQUEST. Contains a Region to blacklist when re-routing.
+		 */
+		class ReRouteEventArgs : public sim_mob::event::EventArgs
+		{
+			public:
+				/// \param blacklistRegion The ID of the Region to blacklist. No Segments in this Region will be included in the
+				///        new Route, if possible.
+				ReRouteEventArgs(const std::string& blacklistRegion);
+				virtual ~ReRouteEventArgs();
 
+				std::string getBlacklistRegion() const;
+
+			private:
+				std::string blacklistRegion;
+		};
+
+		class DisruptionEventArgs : public sim_mob::event::EventArgs
+		{
+			public:
+				DisruptionEventArgs(const sim_mob::DisruptionParams& disruption):disruption(disruption)
+				{
+
+				}
+				virtual ~DisruptionEventArgs()
+				{
+
+				}
+
+				/**
+				 * Getters for disruption object
+				 */
+				const sim_mob::DisruptionParams& getDisruption() const
+				{
+					return disruption;
+				}
+			private:
+				sim_mob::DisruptionParams disruption;
+		};
 	}
-	virtual ~DisruptionEventArgs()
-	{
-
-	}
-
-	/**
-	 * Getters for disruption object
-	 */
-	const sim_mob::DisruptionParams& getDisruption() const
-	{
-		return disruption;
-	}
-private:
-    sim_mob::DisruptionParams disruption;
-};
-
-}
 }
 

@@ -146,6 +146,7 @@ private:
 	 * @param ptPathsetStoredProcName store procedure to fetch pathsets
 	 */
 	void loadPT_PathSet(int origin, int dest, const DailyTime& curTime, PT_PathSet& pathSet, const std::string& ptPathsetStoredProcName) const;
+
 	/**
 	 * Inherited from LuaModel
 	 */

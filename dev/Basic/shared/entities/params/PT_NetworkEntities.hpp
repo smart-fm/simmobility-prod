@@ -285,13 +285,36 @@ class PT_Network
 public:
 	virtual ~PT_Network();
 
+	/* map of edge id and edge */
 	std::map<int, PT_NetworkEdge> PT_NetworkEdgeMap;
+
+	/* map of vertex id and vertex */
 	std::map<std::string, PT_NetworkVertex> PT_NetworkVertexMap;
+
+	/* map of stop id and TrainStop */
 	std::map<std::string, TrainStop*> MRTStopsMap;
+
+	/* map of mrt stop and edges,the edge between train stops*/
     std::map<std::string ,std::map<std::string ,std::vector<PT_NetworkEdge>>> MRTStopdgesMap;
-    void init();
+
+    /*
+     * This function creates the public transit network with edges and vertices
+     * @param storedProcForVertex is store procedure for vertex
+     * @param storeProceForEdges is store procedure for edges
+     */
 	void init(const std::string& storedProcForVertex, const std::string& storeProceForEdges);
+
+	/* this function gets the pointer to a particular train stop by its stop id
+	 * @param stopId is the id of the stop
+	 * @return  the pointer to train stop
+	 */
 	TrainStop* findMRT_Stop(const std::string& stopId) const;
+
+	/*
+	 * This function returns vertex type from stop is
+	 * @param stopId is the id of the stop
+	 * @return type of vertex
+	 */
 	int getVertexTypeFromStopId(std::string stopId);
 };
 class PT_NetworkCreater

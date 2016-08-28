@@ -15,6 +15,11 @@ namespace sim_mob
  * This represents train platform in train station with its associated properties
  * \Author: Zhang
  */
+enum PlatformType
+{
+	NONTERMINAL=0,
+	TERMINAL
+};
 
 class Platform
 {
@@ -28,7 +33,7 @@ private:
 	/**capacity for current platform*/
 	int capacity;
 	/**the type for current platform*/
-	int type;
+	PlatformType type;
 	/**attached block id*/
 	int attachedBlockId;
 	/**offset for attached block*/
@@ -36,7 +41,7 @@ private:
 	/**length for current platform*/
 	double length;
 public:
-	Platform():capacity(0),type(0),attachedBlockId(0),offsetMts(0.0),length(0.0)
+	Platform():capacity(0),type(NONTERMINAL),attachedBlockId(0),offsetMts(0.0),length(0.0)
 	{
 
 	}
@@ -72,11 +77,11 @@ public:
 	{
 		capacity = cap;
 	}
-	int getType() const
+	PlatformType getType() const
 	{
 		return type;
 	}
-	void setType(int t)
+	void setType(PlatformType t)
 	{
 		type = t;
 	}

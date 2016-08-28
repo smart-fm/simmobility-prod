@@ -231,12 +231,8 @@ void sim_mob::WorkGroup::stageEntities()
 		{
 			loadPerson(ag);
 			//push to currently active agents
-			Person *per=dynamic_cast<Person *>(ag);
-			if(per)
-			{
-				std::string id=per->getDatabaseId();
-				Agent::activeAgents[id]=per;
-			}
+			Agent::activeAgents.push_back(ag);
+
 		}
 		else // short or long term
 		{

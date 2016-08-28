@@ -483,7 +483,7 @@ namespace sim_mob
 			platform->setStationNo(stationNo);
 			platform->setLineId(r.get<std::string>(2));
 			platform->setCapactiy(r.get<int>(3));
-			platform->setType(r.get<int>(4));
+			platform->setType(PlatformType(r.get<int>(4)));
 			platform->setAttachedBlockId(r.get<int>(5));
 			platform->setOffset(r.get<double>(6));
 			platform->setLength(r.get<double>(7));

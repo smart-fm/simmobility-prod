@@ -101,6 +101,9 @@ public:
 	 */
 	void waitAllGroups_MacroTimeTick();
 
+	/**
+	 * wait for frame tick barrier
+	 */
 	void waitForFrameTickBar();
 
 private:

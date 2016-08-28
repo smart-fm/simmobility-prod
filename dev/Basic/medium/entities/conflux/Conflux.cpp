@@ -473,13 +473,7 @@ void Conflux::updateAgent(Person_MT* person)
 	//kill person if he's DONE
 	if (res.status == UpdateStatus::RS_DONE)
 	{
-		std::map<std::string,Entity*>::iterator itr=Agent::activeAgents.find(person->getDatabaseId());
-		if(itr!=Agent::activeAgents.end())
-		{
-			Agent::activeAgents.erase(person->getDatabaseId());
-		}
 		killAgent(person, beforeUpdate);
-
 		return;
 	}
 
@@ -1066,6 +1060,9 @@ void Conflux::killAgent(Person_MT* person, PersonProps& beforeUpdate)
 	person->currWorkerProvider = nullptr;
 	messaging::MessageBus::UnRegisterHandler(person);
 	person->onWorkerExit();
+	Agent *ag=dynamic_cast<Agent*>(person);
+	std::vector<Entity*>::iterator itr=std::find(Agent::activeAgents.begin(),Agent::activeAgents.end(),ag);
+	Agent::activeAgents.erase(itr);
 	safe_delete_item(person);
 }
 

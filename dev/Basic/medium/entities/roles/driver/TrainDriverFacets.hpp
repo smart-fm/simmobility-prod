@@ -95,7 +95,7 @@ public:
 	 * Then it checks the safe Distance of train ahead in the opposite line afetr the platform
 	 * If everything is positive then it prepares to take U turn
 	 */
-	void PrepareForUTurn();
+	void prepareForUTurn();
 	/**
 	 * get distance to next train
 	 * @param next is a pointer to next TrainDriver
@@ -110,10 +110,10 @@ public:
 	double getDistanceToNextPlatform(const TrainDriver* nextDriver);
 
 	/* resets the safe Headway (speed limit of train based on train ahead) as requested by service controller */
-	void ResetSafeHeadWay(double safeHeadWay);
+	void resetSafeHeadWay(double safeHeadWay);
 
 	/* resets the safe Distance (Distance of train to be maintained from the train ahead to be safe ) as requested by service controller */
-	void ResetSafeDistance(double safeDistance);
+	void resetSafeDistance(double safeDistance);
 	/*makes the train take Uturn ,that is the train gets teleported to the opposite platform on the same station and continues
 	 * its journey in reverse direction..This can happen in case of disruption when the train is at last platform before disrupted region.
 	 */
@@ -125,7 +125,7 @@ public:
 	 *
 	 */
 
-	bool CheckIfTrainsAreApprochingOrAtPlatform(std::string pltaformName,std::string lineID);
+	bool checkIfTrainsAreApprochingOrAtPlatform(std::string pltaformName,std::string lineID);
 
 
 	/*
@@ -134,10 +134,10 @@ public:
 	 * As the train will initially be at rest when it is teleported
 	 */
 
-	bool CheckSafeHeadWayBeforeTeleport(std::string platformNo,std::string lineID);
+	bool checkSafeHeadWayBeforeTeleport(std::string platformNo,std::string lineID);
 
 	/* gets the distance from start of line to particular platform */
-	double GetDistanceFromStartToPlatform(std::string lineID,Platform *platform);
+	double getDistanceFromStartToPlatform(std::string lineID,Platform *platform);
    /* GETS TOTAL DISTANCE COVERED BY THE TRAIN */
 	double getTotalCoveredDistance();
 
@@ -168,27 +168,27 @@ public:
 	 * The corressponding platforms in the route are set
 	 * Also the platform where the train will be teleported is set
 	 */
-	void ChangeTrip();
+	void changeTrip();
 
 	/* updates the platform list ,that is platform list to be ignored */
-	bool UpdatePlatformsList(); //can be done by firing an event as well
+	bool updatePlatformsList(); //can be done by firing an event as well
 
 	/* resets from Station case to norma case and vice versa,yet to be implemented */
-	void ResetMovingCase(TRAINCASE trainCase);
+	void resetMovingCase(TRAINCASE trainCase);
 
 	/* sets the train status if it is in disrupted region irrespective of whether it is on platform or not */
-	void SetDisruptedState(bool disruptedState);
+	void setDisruptedState(bool disruptedState);
 
 	/* gets the status of train whether it is in disrupted state or not */
-	bool GetDisruptedState();
+	bool getDisruptedState();
 
 	/* checks if the train is stranded betwwen platform during disruption*/
-	bool IsStrandedBetweenPlatform();
+	bool isStrandedBetweenPlatform();
 
 	/* checks if the current point is the point to be stopped as requested by service controller
 		 * Sets the stopping parameters like duration ,point
 		 * */
-	bool IsStopPointPresent();
+	bool isStopPointPresent();
 
 	/* gets the safe distance of the train to be  maintained from the train ahead */
 	double getSafeDistance();

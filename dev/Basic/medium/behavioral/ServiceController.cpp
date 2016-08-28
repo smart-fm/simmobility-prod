@@ -628,7 +628,7 @@ int ServiceController::getTrainIdByIndex(int index,std::string lineId) const
 					TrainMovement *trainMovement=driver->getMovement();
 					if(trainMovement)
 					{
-						return trainMovement->IsStrandedBetweenPlatform();
+						return trainMovement->isStrandedBetweenPlatform();
 					}
 				}
 			}
@@ -654,7 +654,7 @@ bool ServiceController::getDisruptedState(int trainId,std::string lineId) const
 					TrainMovement *trainMovement=driver->getMovement();
 					if(trainMovement)
 					{
-						return trainMovement->GetDisruptedState();
+						return trainMovement->getDisruptedState();
 					}
 				}
 			}
@@ -688,7 +688,7 @@ bool ServiceController::getDisruptedState(int trainId,std::string lineId) const
 					TrainMovement *trainMovement=driver->getMovement();
 					if(trainMovement)
 					{
-						trainMovement->ResetSafeHeadWay(sec);
+						trainMovement->resetSafeHeadWay(sec);
 					}
 				}
 			}
@@ -713,7 +713,7 @@ bool ServiceController::getDisruptedState(int trainId,std::string lineId) const
 					TrainMovement *trainMovement=driver->getMovement();
 					if(trainMovement)
 					{
-						trainMovement->ResetSafeDistance(distance);
+						trainMovement->resetSafeDistance(distance);
 
 					}
 				}
@@ -739,7 +739,7 @@ bool ServiceController::getDisruptedState(int trainId,std::string lineId) const
 					TrainMovement *movement=driver->getMovement();
 					if(movement)
 					{
-						movement->ResetMovingCase(caseVal);
+						movement->resetMovingCase(caseVal);
 					}
 				}
 			}

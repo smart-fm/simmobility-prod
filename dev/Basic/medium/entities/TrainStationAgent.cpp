@@ -114,7 +114,7 @@ void TrainStationAgent::HandleMessage(messaging::Message::MessageType type, cons
         	TrainMovement *movement=driver->getMovement();
 			if(movement)
 			{
-				movement->PrepareForUTurn();
+				movement->prepareForUTurn();
 			}
         }
         else
@@ -553,7 +553,7 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 				std::vector<std::string>::iterator itr=std::find(disruptedPlatformNames.begin(),disruptedPlatformNames.end(),platform->getPlatformNo());
 				if(itr!=disruptedPlatformNames.end())
 				{
-					(*it)->getMovement()->SetDisruptedState(true);
+					(*it)->getMovement()->setDisruptedState(true);
 					isDisruptedPlat=true;
 				}
 
@@ -634,7 +634,7 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 					std::vector<std::string>::iterator itr=std::find(disruptedPlatformNames.begin(),disruptedPlatformNames.end(),platform->getPlatformNo());
 					if(itr!=disruptedPlatformNames.end())
 					{
-						(*it)->getMovement()->SetDisruptedState(true);
+						(*it)->getMovement()->setDisruptedState(true);
 						if(!(*it)->getForceAlightFlag())
 						{
 							(*it)->lockUnlockRestrictPassengerEntitiesLock(true);

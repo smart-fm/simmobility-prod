@@ -1290,12 +1290,6 @@ namespace sim_mob
 				break;
 		}
 
-		case MSG_REGISTER_BLOCKS_CHANGE_SPEEDLIMIT:
-		{
-			const ResetSpeedMessage& msg = MSG_CAST(ResetSpeedMessage, message);
-			resetSpeedBlocks.push_back(msg.ResetSpeedBlock);
-		}
-
 		}
 	}
 

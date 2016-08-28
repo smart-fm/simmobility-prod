@@ -1,11 +1,8 @@
-/*
- * TrainController.hpp
- *
- *  Created on: Feb 11, 2016
- *      Author: zhang huai peng
- */
-#ifndef _CLASS_TRAIN_CONTROLLER
-#define _CLASS_TRAIN_CONTROLLER
+//Copyright (c) <2016> Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
+#pragma once
 #include <string>
 #include <map>
 #include <type_traits>
@@ -44,18 +41,24 @@ public:
 	Agent* trainAgent;
 };
 
+/*
+ * This structure is an entity which stores the attributes of a reset block speed action
+ */
 struct ResetBlockSpeeds
 {
-std::string startStation;
-std::string endStation;
-double speedLimit;;
-double defaultSpeed;
-std::string startTime;
-std::string endTime;
-std::string line;
-bool speedReset=false;
+	std::string startStation;
+	std::string endStation;
+	double speedLimit;;
+	double defaultSpeed;
+	std::string startTime;
+	std::string endTime;
+	std::string line;
+	bool speedReset=false;
 };
 
+/**
+ * This structure holds the attributes of disruption to be performed by service controller Api call
+ */
 struct DisruptionEntity
 {
 	std::string startStation="";
@@ -63,30 +66,20 @@ struct DisruptionEntity
 	std::string disruptionTime="";
 };
 
-class ResetSpeedMessage: public messaging::Message
-{
-public:
-	ResetSpeedMessage(ResetBlockSpeeds resetSpeedBlock)
-	{
-		ResetSpeedBlock = resetSpeedBlock;
-	}
-	virtual ~ResetSpeedMessage()
-	{
-	}
-	ResetBlockSpeeds ResetSpeedBlock;
-};
 /**
  * the structure to store the train route
  */
-struct TrainRoute {
+struct TrainRoute
+{
 	TrainRoute() :
-			sequenceNo(0), blockId(0) {
+			sequenceNo(0), blockId(0)
+	{
 	}
-	;
 	std::string lineId;
 	int blockId;
 	int sequenceNo;
 };
+
 /**
  * the structure to store the train stops
  */
@@ -116,11 +109,12 @@ struct TrainSchedule {
 /**
  * the structure to store transfered time between platforms
  */
-struct TransferTimeInPlatform {
+struct TransferTimeInPlatform
+{
 	TransferTimeInPlatform() :
-			transferedTimeSec(0) {
+			transferedTimeSec(0)
+	{
 	}
-	;
 	std::string stationNo;
 	std::string platformFirst;
 	std::string platformSecond;
@@ -147,9 +141,18 @@ struct cmp_trip_start : public std::less<TrainTrip*>
 class TripStartTimePriorityQueue : public std::priority_queue<TrainTrip*, std::vector<TrainTrip*>, cmp_trip_start>
 {
 };
+
+/*
+ * This class loads train schedules,train routes,platforms,stations
+ * It also receives to do actions from service controller
+ * This class is also an interface to access non changing entities like platforms,train routes
+ * blocks,stations.
+ * Author: zhang huai peng
+ */
 template<typename PERSON>
 class TrainController: public sim_mob::Agent
 {
+
 	BOOST_STATIC_ASSERT_MSG(
 			(boost::is_base_of<sim_mob::Person, PERSON>::value),
 			"PERSON must be a descendant of sim_mob::Person"
@@ -350,6 +353,7 @@ protected:
 	 * unregister child item from children list
 	 */
 	virtual void unregisterChild(Entity* child);
+
 	/**
 	 * get block list for a particular line
 	 * @param lineId is line id
@@ -357,6 +361,7 @@ protected:
 	 * @return true if successfully get the list of blocks
 	 */
 	//bool getTrainRoute(const std::string& lineId, std::vector<Block*>& route);
+
 	/**
 	 * get platform list for a particular line
 	 * @param lineId is line id
@@ -364,10 +369,12 @@ protected:
 	 * @return true if successfully get the list of platforms
 	 */
 	//bool getTrainPlatforms(const std::string& lineId, std::vector<Platform*>& platforms);
+
 	/**
 	 * handle messages
 	 */
 	virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
+
 	/**
 	 * Inherited from EventListener.
 	 * @param eventId
@@ -376,6 +383,7 @@ protected:
 	 * @param args
 	 */
 	virtual void onEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args);
+
 	/**
 	 * change train trip when disruption happen
 	 * @param trip is a pointer to the train trip
@@ -388,75 +396,72 @@ private:
 	 * the function to load platforms from DB
 	 */
 	void loadPlatforms();
+
 	/**
 	 * the function to load schedules from DB
 	 */
 	void loadSchedules();
+
 	/**
 	 * the function to load blocks from DB
 	 */
 	void loadBlocks();
+
 	/**
-	 * the function to load routes from DB
+	 * function to get blocks for particular train route
 	 */
-
-
-
-	/** function to get blocks for particular train route*/
-
 	void loadTrainRoutes();
+
 	/**
 	 * the function to load train platforms from DB
 	 */
 	void loadTrainPlatform();
+
 	/**
 	 * the function to load transfered time between platforms from DB
 	 */
 	void loadTransferedTimes();
+
 	/**
 	 * the function to load polylines from DB
 	 */
 	void loadBlockPolylines();
+
 	/**
 	 * compose the train blocks with poly-line
 	 */
 	void composeBlocksAndPolyline();
+
 	/**
 	 * compose trips from schedules
 	 */
 	void composeTrainTrips();
 
 	void composeTrainTrip();
+
 	/**
 	 * print out blocks information
 	 * @param out is output stream
 	 */
 	void printBlocks(std::ofstream& out) const;
+
 	/**
 	 * print out platforms information
 	 * @param out is output stream
 	 */
 	void printPlatforms(std::ofstream& out) const;
+
 	/**
 	 * get Train Id
 	 * @param lineId is refer to train line
 	 */
 	int getTrainId(const std::string& lineId);
 
-	/** get the station entity from its Id */
-
-
-
-
-
+	/**
+	 * resets the speed limits of the stretch of blocks
+	 * @param now is the current time slice
+	 */
 	void resetBlockSpeeds(timeslice now);
-
-
-
-
-
-
-    /** gives opposite line Id */
 
 private:
 	/**recording disruption information*/
@@ -517,4 +522,4 @@ private:
 
 #define _CLASS_TRAIN_CONTROLLER_FUNCTIONS
 #include "TrainController.cpp"
-#endif
+

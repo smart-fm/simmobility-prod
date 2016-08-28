@@ -1,3 +1,7 @@
+//Copyright (c) <2016> Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
 #pragma once
 #include <vector>
 #include <map>
@@ -13,7 +17,6 @@ class Block;
 class Platform;
 
 /*
- * Copyright Singapore-MIT Alliance for Research and Technology
  * This class holds the attributes of Train trip
  * Author: zhang huai peng
  */

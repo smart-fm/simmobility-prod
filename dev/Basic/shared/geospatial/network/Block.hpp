@@ -14,7 +14,7 @@ namespace sim_mob
 class Block
 {
 public:
-	Block():blockId(0),length(0.0),speedLimit(0.0),accelerateRate(0.0),decelerateRate(0.0),polyLine(nullptr),attachedPlatform(nullptr)
+	Block():blockId(0),lengthMts(0.0),speedLimitKmph(0.0),accelerateMtsSecSquare(0.0),decelerateRateMtsSecSquare(0.0),polyLine(nullptr),attachedPlatform(nullptr)
 	{
 
 	}
@@ -27,13 +27,13 @@ private:
 	/**block id*/
 	int blockId;
 	/**block length*/
-	double length;
+	double lengthMts;
 	/**speed limit*/
-	double speedLimit;
+	double speedLimitKmph;
 	/**acceleration rate*/
-	double accelerateRate;
+	double accelerateMtsSecSquare;
 	/**deceleration rate*/
-	double decelerateRate;
+	double decelerateRateMtsSecSquare;
 	/**polyline*/
 	PolyLine* polyLine;
 	/**attached platform*/
@@ -49,35 +49,35 @@ public:
 	}
 	double getLength() const
 	{
-		return length;
+		return lengthMts;
 	}
 	void setLength(double len)
 	{
-		length = len;
+		lengthMts = len;
 	}
 	double getSpeedLimit() const
 	{
-		return speedLimit;
+		return speedLimitKmph;
 	}
 	void setSpeedLimit(double limit)
 	{
-		speedLimit = limit;
+		speedLimitKmph = limit;
 	}
 	double getAccelerateRate() const
 	{
-		return accelerateRate;
+		return accelerateMtsSecSquare;
 	}
 	void setAccelerateRate(double rate)
 	{
-		accelerateRate = rate;
+		accelerateMtsSecSquare = rate;
 	}
 	double getDecelerateRate() const
 	{
-		return decelerateRate;
+		return decelerateRateMtsSecSquare;
 	}
 	void setDecelerateRate(double rate)
 	{
-		decelerateRate = rate;
+		decelerateRateMtsSecSquare = rate;
 	}
 	const PolyLine* getPolyLine() const
 	{

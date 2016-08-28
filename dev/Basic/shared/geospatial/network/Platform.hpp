@@ -32,11 +32,11 @@ private:
 	/**attached block id*/
 	int attachedBlockId;
 	/**offset for attached block*/
-	double offset;
+	double offsetMts;
 	/**length for current platform*/
 	double length;
 public:
-	Platform():capacity(0),type(0),attachedBlockId(0),offset(0.0),length(0.0)
+	Platform():capacity(0),type(0),attachedBlockId(0),offsetMts(0.0),length(0.0)
 	{
 
 	}
@@ -90,11 +90,11 @@ public:
 	}
 	double getOffset() const
 	{
-		return offset;
+		return offsetMts;
 	}
 	void setOffset(double off)
 	{
-		offset = off;
+		offsetMts = off;
 	}
 	double getLength() const
 	{

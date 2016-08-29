@@ -75,7 +75,7 @@ namespace sim_mob
 			this->parentDriver = parentDriver;
 		}
 
-		TrainMovement::TrainMovement():MovementFacet(),parentDriver(nullptr),safeDistance(0),safeHeadway(0),nextPlatform(nullptr)
+		TrainMovement::TrainMovement():MovementFacet(),parentDriver(nullptr),safeDistance(0),safeHeadway(0),nextPlatform(nullptr),forceResetMovingCase(false)
 		{
 			const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
 			safeDistanceLock.lock();

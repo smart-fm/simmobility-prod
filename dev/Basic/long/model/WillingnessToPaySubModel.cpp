@@ -342,8 +342,7 @@ namespace sim_mob
 
 			GetIncomeAndEthnicity(model, household, unit);
 
-			DataManager *datamanager;
-			const PostcodeAmenities *amenities = datamanager->getAmenitiesById( unitPostcode->getAddressId() );
+			const PostcodeAmenities *amenities = DataManagerSingleton::getInstance().getAmenitiesById( unitPostcode->getAddressId() );
 
 			int busDistanceBool = 0;
 			if( amenities->getDistanceToBus() > 200 && amenities->getDistanceToBus() < 400 )

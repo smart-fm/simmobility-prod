@@ -416,6 +416,9 @@ namespace sim_mob
             IndvidualEmpSecList getIndvidualEmpSecList() const;
             IndvidualEmpSec* getIndvidualEmpSecByIndId(BigSerial indId) const;
 
+			vector<double> getlogSqrtFloorAreahdb() const{ return logSqrtFloorAreahdb;}
+            vector<double> getlogSqrtFloorAreacondo() const { return logSqrtFloorAreacondo;}
+
 
 
         protected:
@@ -506,6 +509,9 @@ namespace sim_mob
             boost::mutex DBLock;
             boost::unordered_map<BigSerial, double>tazLevelLogsum;
             boost::unordered_map<BigSerial, double>vehicleOwnershipLogsum;
+
+            vector<double> logSqrtFloorAreahdb;
+            vector<double> logSqrtFloorAreacondo;
 
             boost::unordered_map<BigSerial, BigSerial> assignedUnits;
             VehicleOwnershipCoeffList vehicleOwnershipCoeffs;

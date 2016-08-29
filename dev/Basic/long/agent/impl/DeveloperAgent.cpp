@@ -1019,18 +1019,18 @@ BigSerial DeveloperAgent::getQuarterIdByQuarterStr(std::string quarterStr)
 	{
 		if (quarterStr == "Y2012Q1")
 		{
-			return 68;
+			return 45;
 		}
 		else if(quarterStr == "Y2012Q2"){
-			return 69;
+			return 46;
 		}
 		else if(quarterStr == "Y2012Q3")
 		{
-			return 70;
+			return 47;
 		}
 		else if (quarterStr == "Y2012Q4")
 		{
-			return 71;
+			return 48;
 		}
 	}
 	return 0;

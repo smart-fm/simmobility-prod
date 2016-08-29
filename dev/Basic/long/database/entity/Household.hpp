@@ -75,7 +75,7 @@ namespace sim_mob
 			void 	setTaxiAvailability(bool taxiAvailable);
 			bool 	getTaxiAvailability() const;
 			void 	setVehicleOwnershipOptionId(int vehicleOwnershipOption);
-			int 	getVehicleOwnershipOptionId();
+			int 	getVehicleOwnershipOptionId() const;
 
 			void 	setAffordabilityAmount( double value );
 			double	getAffordabilityAmount() const;

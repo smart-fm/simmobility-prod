@@ -21,10 +21,10 @@
             </database>
             
 	    <!-- internal ip for remote midterm server -->
-            <database id="fm_remote_mt1" dbtype="postgres">
+            <database id="fm_remote_mt" dbtype="postgres">
                 <host value="172.25.184.48"/>
                 <port value="5432"/>
-                <dbname value="SimMobility_DB_2015"/>
+                <dbname value="simmobility"/>
             </database>
 
             <!-- localhost for midterm server -->
@@ -45,7 +45,7 @@
 	    <database id="fm_remote_mt4" dbtype="postgres">
 	        <host value="fmhpchead"/>
 	        <port value="5432"/> <!--old port: 15025 -->
-	        <dbname value="SimMobility_DB_2015"/>
+	        <dbname value="Simmobility"/>
 	    </database>
 
 		<!-- longterm localhost server hosting midterm data -->

@@ -43,7 +43,7 @@ local function computeUtilities(params,dbparams)
 		zero_car = 1 
 	end
 	
-	if veh_own_cat == 2 or 3 or 4 or 5 then 
+	if veh_own_cat == 2 or veh_own_cat == 3 or veh_own_cat == 4 or veh_own_cat == 5 then 
 		car_avail = 1 
 	end
 	-- if this work tour is made by public transporation

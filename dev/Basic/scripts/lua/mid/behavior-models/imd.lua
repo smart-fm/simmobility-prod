@@ -134,7 +134,7 @@ local function computeUtilities(params,dbparams)
 		zero_car = 1 	
 	end
 
-	if veh_own_cat == 2 or 3 or 4 or 5  then 
+	if veh_own_cat == 2 or veh_own_cat == 3 or veh_own_cat == 4 or veh_own_cat == 5  then 
 		one_plus_car = 1 
 	end
 
@@ -146,19 +146,19 @@ local function computeUtilities(params,dbparams)
 		three_plus_car = 1 
 	end
 
-	if veh_own_cat == 0 or 3  then 
+	if veh_own_cat == 0 or veh_own_cat == 3  then 
 		zero_motor = 1 
 	end
 
-	if veh_own_cat == 1 or 2 or 4 or 5  then 
+	if veh_own_cat == 1 or veh_own_cat == 2 or veh_own_cat == 4 or veh_own_cat == 5  then 
 		one_plus_motor = 1 
 	end
 	
-	if veh_own_cat == 1 or 2 or 4 or 5  then 
+	if veh_own_cat == 1 or veh_own_cat == 2 or veh_own_cat == 4 or veh_own_cat == 5  then 
 		two_plus_motor = 1 
 	end
 	
-	if veh_own_cat == 1 or 2 or 4 or 5  then 
+	if veh_own_cat == 1 or veh_own_cat == 2 or veh_own_cat == 4 or veh_own_cat == 5  then 
 		three_plus_motor = 1 
 	end
 	

@@ -325,10 +325,10 @@ local function computeUtilities(params)
 	if veh_own_cat == 0  then 
 		zero_car = 1 
 	end
-	if veh_own_cat == 1 or 2 or 4 or 5  then 
+	if veh_own_cat == 1 or veh_own_cat == 2 or veh_own_cat == 4 or veh_own_cat == 5  then 
 		motoravail = 1 
 	end
-	if veh_own_cat == 3 or 4  then 
+	if veh_own_cat == 3 or veh_own_cat == 4  then 
 		one_car = 1 
 	end
 	if veh_own_cat == 5  then 

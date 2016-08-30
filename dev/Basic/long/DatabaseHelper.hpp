@@ -63,7 +63,7 @@ namespace sim_mob {
         const std::string DB_TABLE_TAZ_LOGUM_WEIGHT= APPLY_SCHEMA(CALIBRATION_SCHEMA, "taz_logsum_hedonic_price");
         const std::string DB_TABLE_HH_HITS_SAMPLE = APPLY_SCHEMA(MAIN_SCHEMA, "household_hits_sample");
         const std::string DB_TABLE_TAO = APPLY_SCHEMA(CALIBRATION_SCHEMA, "tao_hedonic_price");
-        const std::string DB_TABLE_LOGSUMMTZV2 = APPLY_SCHEMA(CALIBRATION_SCHEMA, "logsum_mtz_v2");
+        const std::string DB_TABLE_LOGSUMMTZV2 = APPLY_SCHEMA(CALIBRATION_SCHEMA, "hedonic_logsums");
         const std::string DB_TABLE_PLANNING_AREA = APPLY_SCHEMA(MAIN_SCHEMA, "planning_area");
         const std::string DB_TABLE_PLANNING_SUBZONE = APPLY_SCHEMA(MAIN_SCHEMA, "planning_subzone");
         const std::string DB_TABLE_MTZ = APPLY_SCHEMA(MAIN_SCHEMA, "mtz");
@@ -402,7 +402,7 @@ namespace sim_mob {
         const std::string DB_GETBYID_TAZ = "SELECT * FROM " + DB_TABLE_TAZ + " WHERE id = :v1;";
         const std::string DB_GETBYID_TAZ_LOGSUM_WEIGHT = "SELECT * FROM " + DB_TABLE_TAZ_LOGUM_WEIGHT + " WHERE id = :v1;";
         const std::string DB_GETBYID_HH_HITS_SAMPLE = "SELECT * FROM " + DB_TABLE_HH_HITS_SAMPLE + " WHERE household_id = :v1;";
-        const std::string DB_GETBYID_LOGSUMMTZV2 = "SELECT * FROM " + DB_TABLE_LOGSUMMTZV2 + " WHERE taz = :v1;";
+        const std::string DB_GETBYID_LOGSUMMTZV2 = "SELECT * FROM " + DB_TABLE_LOGSUMMTZV2 + " WHERE taz_id = :v1;";
         const std::string DB_GETBYID_PLANNING_AREA = "SELECT * FROM " + DB_TABLE_PLANNING_AREA + " WHERE id = :v1;";
         const std::string DB_GETBYID_PLANNING_SUBZONE = "SELECT * FROM " + DB_TABLE_PLANNING_SUBZONE + " WHERE id = :v1;";
         const std::string DB_GETBYID_MTZ = "SELECT * FROM " + DB_TABLE_MTZ + " WHERE id = :v1;";

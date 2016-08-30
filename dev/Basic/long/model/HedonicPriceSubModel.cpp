@@ -163,6 +163,7 @@ void HedonicPrice_SubModel::ComputeExpectation( int numExpectations, std::vector
 	const HM_LuaModel& luaModel = LuaProvider::getHM_Model();
 
 	BigSerial tazId = hmModel->getUnitTazId( unit->getId() );
+	/*
 	Taz *tazObj = hmModel->getTazById( tazId );
 
 	std::string tazStr;
@@ -170,9 +171,10 @@ void HedonicPrice_SubModel::ComputeExpectation( int numExpectations, std::vector
 		tazStr = tazObj->getName();
 
 	BigSerial taz = std::atoi( tazStr.c_str() );
+	*/
 
 	//double logsum =  model->ComputeHedonicPriceLogsumFromMidterm( taz );
-	double logsum = hmModel->ComputeHedonicPriceLogsumFromDatabase( taz );
+	double logsum = hmModel->ComputeHedonicPriceLogsumFromDatabase( tazId );
 
 	lagCoefficient = ComputeLagCoefficient();
 

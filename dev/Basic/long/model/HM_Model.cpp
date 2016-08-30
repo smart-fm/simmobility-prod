@@ -477,9 +477,9 @@ const HM_Model::TazStats* HM_Model::getTazStats(BigSerial tazId) const
 }
 
 
-double HM_Model::ComputeHedonicPriceLogsumFromDatabase( BigSerial taz) const
+double HM_Model::ComputeHedonicPriceLogsumFromDatabase( BigSerial tazId) const
 {
-	LogsumMtzV2Map::const_iterator itr = logsumMtzV2ById.find(taz);
+	LogsumMtzV2Map::const_iterator itr = logsumMtzV2ById.find(tazId);
 
 	if (itr != logsumMtzV2ById.end())
 	{
@@ -1385,6 +1385,9 @@ void HM_Model::startImpl()
 
 	if (conn.isConnected())
 	{
+		loadData<LogsumMtzV2Dao>( conn, logsumMtzV2, logsumMtzV2ById, &LogsumMtzV2::getTazId );
+		PrintOutV("Number of LogsumMtzV2: " << logsumMtzV2.size() << std::endl );
+
 		loadData<ScreeningModelCoefficientsDao>( conn, screeningModelCoefficientsList, screeningModelCoefficicientsMap, &ScreeningModelCoefficients::getId );
 		PrintOutV("Number of screening Model Coefficients: " << screeningModelCoefficientsList.size() << std::endl );
 
@@ -1448,9 +1451,6 @@ void HM_Model::startImpl()
 
 		loadData<TazLogsumWeightDao>( conn, tazLogsumWeights, tazLogsumWeightById, &TazLogsumWeight::getGroupLogsum );
 		PrintOutV("Number of tazLogsumWeights: " << tazLogsumWeights.size() << std::endl );
-
-		loadData<LogsumMtzV2Dao>( conn, logsumMtzV2, logsumMtzV2ById, &LogsumMtzV2::getV2 );
-		PrintOutV("Number of LogsumMtzV2: " << logsumMtzV2.size() << std::endl );
 
 		loadData<PlanningAreaDao>( conn, planningArea, planningAreaById, &PlanningArea::getId );
 		PrintOutV("Number of planning areas: " << planningArea.size() << std::endl );

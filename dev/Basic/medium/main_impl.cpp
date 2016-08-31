@@ -421,7 +421,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 			//NOTE: Each sub-function tests the current state.
 			if (firstTick && ConfigManager::GetInstance().FullConfig().RunningMidTerm())
 			{
-				//TrainServiceControllerLuaProvider::getTrainControllerModel()->useServiceController(dailyTime.getStrRepr());
+				TrainServiceControllerLuaProvider::getTrainControllerModel()->useServiceController(dailyTime.getStrRepr());
 				//first tick has two frameTickBarr
 				wgMgr.waitForFrameTickBar();
 				firstTick = false;
@@ -429,7 +429,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 
 			wgMgr.waitAllGroups_FrameTick();
 			wgMgr.waitAllGroups_FlipBuffers(&removedEntities);
-			TrainServiceControllerLuaProvider::getTrainControllerModel()->useServiceController(dailyTime.getStrRepr());
+			TrainServiceControllerLuaProvider::getTrainControllerModel()->useServiceController((dailyTime+DailyTime(5000)).getStrRepr());
 			wgMgr.waitAllGroups_DistributeMessages(removedEntities);
 			wgMgr.waitAllGroups_MacroTimeTick();
 

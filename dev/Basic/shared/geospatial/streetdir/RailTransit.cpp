@@ -52,14 +52,16 @@ void sim_mob::RailTransit::initGraph(const std::set<string>& vertices, const std
 	{
 		RT_Edge rtEdge;
 		bool edgeAdded = false;
-		RailTransit::RT_Vertex vertex;
-		bool vertexFound=findVertex(rtNwEdge.getFromStationId(),vertex);
-		RT_Vertex fromStnVertex =vertex;
-		vertexFound=findVertex(rtNwEdge.getToStationId(),vertex);
-		RT_Vertex toStnVertex =vertex;
-		boost::tie(rtEdge, edgeAdded) = boost::add_edge(fromStnVertex, toStnVertex, railTransitGraph);
-		boost::put(boost::edge_weight, railTransitGraph, rtEdge, rtNwEdge.getEdgeTravelTime());
-		boost::put(boost::edge_name, railTransitGraph, rtEdge, rtNwEdge.isTransferEdge()); //edge type is set as name
+		RT_Vertex fromStnVertex;
+		bool srcVertexFound=findVertex(rtNwEdge.getFromStationId(),fromStnVertex);
+		RT_Vertex toStnVertex;
+		bool destVertexFound=findVertex(rtNwEdge.getToStationId(),toStnVertex);
+		if(srcVertexFound&&destVertexFound)
+		{
+			boost::tie(rtEdge, edgeAdded) = boost::add_edge(fromStnVertex, toStnVertex, railTransitGraph);
+			boost::put(boost::edge_weight, railTransitGraph, rtEdge, rtNwEdge.getEdgeTravelTime());
+			boost::put(boost::edge_name, railTransitGraph, rtEdge, rtNwEdge.isTransferEdge()); //edge type is set as name
+		}
 	}
 }
 

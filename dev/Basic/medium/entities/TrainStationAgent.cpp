@@ -76,6 +76,11 @@ void TrainStationAgent::setLines()
 	}
 }
 
+std::list<TrainDriver*>& TrainStationAgent::getTrains()
+{
+	return trainDriver;
+}
+
 void TrainStationAgent::onEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args)
 {
 	switch(eventId)
@@ -98,7 +103,11 @@ void TrainStationAgent::HandleMessage(messaging::Message::MessageType type, cons
 	{
 		const TrainDriverMessage& msg = MSG_CAST(TrainDriverMessage, message);
 		msg.trainDriver->getParent()->currWorkerProvider = currWorkerProvider;
-		trainDriver.push_back(msg.trainDriver);
+		std::list<TrainDriver*> &trains=this->getTrains();
+		if(std::find(trains.begin(),trains.end(),msg.trainDriver)==trains.end())
+		{
+			trainDriver.push_back(msg.trainDriver);
+		}
 		msg.trainDriver->setNextRequested(TrainDriver::REQUESTED_TO_PLATFROM);
 		break;
 	}
@@ -430,6 +439,11 @@ void TrainStationAgent::setLastDriver(std::string lineId,TrainDriver *driver)
 {
 	lastTrainDriver[lineId]=driver;
 }
+
+void TrainStationAgent::addTrainDriverInToStationAgent(TrainDriver * driver)
+{
+	pendingTrainDriver[driver->getTrainLine()].push_back(driver);
+}
 void TrainStationAgent::passengerLeaving(timeslice now)
 {
 	std::map<const Platform*, std::list<Passenger*>>::iterator it;
@@ -493,6 +507,14 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 	dispathPendingTrains(now);
 	updateWaitPersons();
 	performDisruption(now);
+	if(boost::iequals(stationName.substr(0,2),"NE"))
+	{
+		int s=9;
+	}
+	if(boost::iequals(stationName,"NE4_1"))
+	{
+		std::string s="NE4_1";
+	}
 	/*if(arePassengersreRouted == false)
 	{
 		if(station)
@@ -532,8 +554,11 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 
  	it=trainDriver.begin();
 
+
 	while (it != trainDriver.end())
 	{
+		//if(boost::iequals((*it)->getNextPlatform()->getStationNo(),stationName))
+		//{
 		double tickInSec = 0.0;
 		do
 		{
@@ -716,7 +741,9 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 
 		}while (tickInSec < sysGran);
 		it++;
+		//}
 	}
+
 	passengerLeaving(now);
 	return UpdateStatus::Continue;
 }

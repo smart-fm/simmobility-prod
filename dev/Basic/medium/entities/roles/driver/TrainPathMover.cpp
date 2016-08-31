@@ -42,6 +42,11 @@ const std::vector<Platform*>& TrainPlatformMover::getPrevPlatforms() const
 	return prevPlatforms;
 }
 
+const std::vector<Platform*>& TrainPlatformMover::getPlatforms() const
+{
+	return platforms;
+}
+
 Platform* TrainPlatformMover::getFirstPlatform() const
 {
 	if(platforms.size()>0){
@@ -51,6 +56,15 @@ Platform* TrainPlatformMover::getFirstPlatform() const
 	}
 }
 
+void TrainPlatformMover::clearPrevPlatforms()
+{
+	prevPlatforms.clear();
+}
+
+void TrainPlatformMover::resetPlatformItr()
+{
+	currPlatformIt = platforms.begin();
+}
 Platform* TrainPlatformMover::getNextPlatform(bool updated)
 {
 	if(updated)
@@ -490,7 +504,7 @@ void TrainPathMover::TeleportToOppositeLine(std::string station,std::string line
 
 double TrainPathMover::GetDistanceFromStartToPlatform(std::string lineId,Platform *platform)
 {
-	std::vector<Block*>::const_iterator tempIt = currBlockIt;
+	std::vector<Block*>::const_iterator tempIt = drivingPath.begin();
 		double distance=0;
 		double distanceToBlock;
 		while (tempIt != drivingPath.end())

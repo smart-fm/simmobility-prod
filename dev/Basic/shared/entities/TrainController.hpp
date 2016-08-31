@@ -125,7 +125,7 @@ struct TransferTimeInPlatform
 
 
 
-struct cmp_trip_start : public std::less<TrainTrip*>
+struct CompTripStart : public std::less<TrainTrip*>
 {
 	bool operator()(const TrainTrip* x, const TrainTrip* y) const
 	{
@@ -138,7 +138,7 @@ struct cmp_trip_start : public std::less<TrainTrip*>
 };
 
 /**C++ static constructors*/
-class TripStartTimePriorityQueue : public std::priority_queue<TrainTrip*, std::vector<TrainTrip*>, cmp_trip_start>
+class TripStartTimePriorityQueue : public std::priority_queue<TrainTrip*, std::vector<TrainTrip*>, CompTripStart>
 {
 };
 

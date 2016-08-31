@@ -48,6 +48,9 @@ public:
 	 * @return empty if offset is beyond last item
 	 */
 	Platform* getPlatformByOffset(unsigned int offset) const;
+	void clearPrevPlatforms();
+	void resetPlatformItr();
+	const std::vector<Platform*>& getPlatforms() const;
 private:
 	/**driving platforms*/
 	std::vector<Platform*> platforms;
@@ -141,6 +144,7 @@ public:
 	PolyPoint GetStopPoint(double distance) const;
 	std::vector<PolyPoint>::const_iterator GetCurrentStopPoint() const;
 	void teleportToPlatform(std::string platformName);
+
 
 	MovementFacet* GetParentMovementFacet();
 private:

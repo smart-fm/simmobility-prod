@@ -1062,7 +1062,10 @@ void Conflux::killAgent(Person_MT* person, PersonProps& beforeUpdate)
 	person->onWorkerExit();
 	Agent *ag=dynamic_cast<Agent*>(person);
 	std::vector<Entity*>::iterator itr=std::find(Agent::activeAgents.begin(),Agent::activeAgents.end(),ag);
-	Agent::activeAgents.erase(itr);
+	if(itr!=Agent::activeAgents.end())
+	{
+		Agent::activeAgents.erase(itr);
+	}
 	safe_delete_item(person);
 }
 

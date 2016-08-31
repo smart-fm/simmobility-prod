@@ -20,6 +20,7 @@
 #include <boost/algorithm/string/erase.hpp>
 #include <boost/algorithm/string.hpp>
 #include "TrainPathMover.hpp"
+#include "entities/TrainStationAgent.hpp"
 
 using namespace std;
 
@@ -142,6 +143,7 @@ namespace sim_mob
 			{
 				trainPathMover.setPath(trip->getTrainRoute());
 				trainPlatformMover.setPlatforms(trip->getTrainPlatform());
+				trainPlatformMover_accpos.setPlatforms(trip->getTrainPlatform());
 				//nextPlatform=trainPlatformMover.getNextPlatform(); //first platform
 				trainPathMover.SetParentMovementFacet(this);
 				Platform* next = trainPlatformMover.getNextPlatform();
@@ -509,11 +511,24 @@ namespace sim_mob
 					if(!parentDriver->isStoppedAtPoint())
 					{
 						updatePlatformsList();
+						Platform *nextPlatformAccordingToPosition=trainPlatformMover_accpos.getNextPlatform(false);
 						moveForward();
+						double distance=trainPathMover.GetDistanceFromStartToPlatform(parentDriver->getTrainLine(),nextPlatformAccordingToPosition);
 						if(isStopAtPlatform())
 						{
+							if(boost::iequals(parentDriver->getNextPlatform()->getPlatformNo(),"NE3_1")||boost::iequals(parentDriver->getNextPlatform()->getPlatformNo(),"NE4_1"))
+							{
+								bool stophere=true;
+							}
 							forceResetMovingCase=false;
 							parentDriver->setNextRequested(TrainDriver::REQUESTED_AT_PLATFORM);
+						}
+						else
+						{
+							if(distance<getTotalCoveredDistance())
+							{
+								trainPlatformMover_accpos.getNextPlatform(true);
+							}
 						}
 						isStopPointPresent();
 					}
@@ -976,7 +991,12 @@ namespace sim_mob
 			params.disToNextTrain = distanceToNextTrain;
 			params.distanceToNextStopPoint=disToNextStopPoint;
 
-			if(forceResetMovingCase==false||forceResetedCase==TRAINCASE::STATION_CASE)
+			if(forceResetMovingCase==true && forceResetedCase==TRAINCASE::NORMAL_CASE)
+			{
+				params.currCase = TrainUpdateParams::NORMAL_CASE;
+			}
+
+			else
 			{
 				if (isStationCase(distanceToNextTrain,distanceToNextPlatform,disToNextStopPoint, distanceToNextObject))
 				{
@@ -1170,12 +1190,10 @@ namespace sim_mob
 			{
 				moveForward();
 				Platform *next=trainPlatformMover.getNextPlatform(true);
+				Platform *u=trainPlatformMover_accpos.getNextPlatform(true);
 				facetMutex.lock();
 				nextPlatform = next;
 				facetMutex.unlock();
-				/*if(boost::iequals(nextPlatform->getPlatformNo(),"NE4_1"))
-				   parentDriver->SetTerminateTrainService(true);*/
-
 				std::string stationNo = next->getStationNo();
 				Agent* stationAgent = TrainController<Person_MT>::getAgentFromStation(stationNo);
 				messaging::MessageBus::PostMessage(stationAgent,TRAIN_MOVETO_NEXT_PLATFORM,
@@ -1187,19 +1205,26 @@ namespace sim_mob
 
 		bool TrainMovement::updatePlatformsList()
 		{
+
+			if(parentDriver->getTrainId()==1)
+			{
+				int a=9;
+			}
 			std::vector<std::string> platformsToBeIgnored=parentDriver->getPlatformsToBeIgnored();
 			Platform *nextPlt=trainPlatformMover.getPlatformByOffset(0);
+			Platform *oldPlatform=nextPlt;
+			Platform *nextPltAccPos=trainPlatformMover_accpos.getPlatformByOffset(0);
 			int offset=0;
-			while(nextPlt!=nullptr)
+			while(nextPltAccPos!=nullptr)
 			{
 				std::vector<std::string>::iterator it= platformsToBeIgnored.begin();
 				bool flag=false;
 				while(it!=platformsToBeIgnored.end())
 				{
-					if(boost::iequals(nextPlt->getPlatformNo(),*it))
+					if(boost::iequals(nextPltAccPos->getPlatformNo(),*it))
 					{
 						offset++;
-						nextPlt=trainPlatformMover.getPlatformByOffset(offset);
+						nextPltAccPos=trainPlatformMover_accpos.getPlatformByOffset(offset);
 						flag=true;
 						break;
 					}
@@ -1209,24 +1234,54 @@ namespace sim_mob
 					break;
 			}
 
-			if(nextPlt==nullptr)
+			if(nextPltAccPos==nullptr)
 			{
 			   return false;
 			}
-
-			int nextoffset=0;
-			Platform* next =nullptr;
-			while(nextoffset<offset)
+			else
 			{
-			   next = trainPlatformMover.getNextPlatform(true);
-			   nextoffset++;
+				const std::vector<Platform*> &platforms=trainPlatformMover.getPlatforms();
+				trainPlatformMover.resetPlatformItr();
+				trainPlatformMover.clearPrevPlatforms();
+				std::vector<Platform*>::const_iterator itr=std::find(platforms.begin(),platforms.end(),nextPltAccPos);
+				if(itr!=platforms.end())
+				{
+					Platform* next = *(platforms.begin()) ;
+					while(next!=nextPltAccPos)
+					{
+						next=trainPlatformMover.getNextPlatform(true);
+					}
+
+					if(next!=nullptr)
+					{
+						facetMutex.lock();
+						nextPlatform = next;
+						facetMutex.unlock();
+						//remove train from station agent and add to appropriate station agent
+						Agent *stationAgent=TrainController<sim_mob::medium::Person_MT>::getInstance()->getAgentFromStation(next->getStationNo());
+						TrainStationAgent *trainStationAgent = dynamic_cast<TrainStationAgent*>(stationAgent);
+						if(trainStationAgent)
+						{
+							std::list<TrainDriver*> &trains=trainStationAgent->getTrains();
+							if(std::find(trains.begin(),trains.end(),parentDriver)==trains.end())
+							{
+								trainStationAgent->addTrainDriverInToStationAgent(parentDriver);
+								Agent *stationAgentOld=TrainController<sim_mob::medium::Person_MT>::getInstance()->getAgentFromStation(oldPlatform->getStationNo());
+								TrainStationAgent *trainStationAgentOld = dynamic_cast<TrainStationAgent*>(stationAgentOld);
+								std::list<TrainDriver*> &trainsoldSt=trainStationAgent->getTrains();
+								std::list<TrainDriver*>::iterator oldStTrainListItr=std::find(trainsoldSt.begin(),trainsoldSt.end(),parentDriver);
+								if(oldStTrainListItr!=trainsoldSt.end())
+								{
+									trainsoldSt.erase(oldStTrainListItr);
+								}
+							}
+						}
+					}
+				}
 			}
-
-			if(next!=nullptr)
+			if(parentDriver->getTrainId()==1)
 			{
-				facetMutex.lock();
-				nextPlatform = next;
-				facetMutex.unlock();
+				int a=9;
 			}
 		}
 

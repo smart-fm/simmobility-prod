@@ -32,6 +32,8 @@ public:
 	void setStationName(const std::string& name);
 	void setLines();
 	void setLastDriver(std::string lineId,TrainDriver *driver);
+	void addTrainDriverInToStationAgent(TrainDriver * driver);
+	std::list<TrainDriver*>& getTrains();
 
 protected:
 	virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);

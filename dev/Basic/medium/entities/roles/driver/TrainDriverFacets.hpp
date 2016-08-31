@@ -215,6 +215,8 @@ private:
 	TrainPathMover trainPathMover;
 	/**Train platform mover*/
 	TrainPlatformMover trainPlatformMover;
+
+	TrainPlatformMover trainPlatformMover_accpos;
 	/**safe distance*/
 	double safeDistance;
 	/**safe headway*/

@@ -56,6 +56,8 @@ public:
 	 */
 	template<typename T> T& getSession();
 
+	std::string getConnectionStr();
+
 private:
 	void* currentSession;
 	std::string connectionStr;

@@ -229,7 +229,7 @@ void RealEstateAgent::HandleMessage(Message::MessageType type, const Message& me
 	        	changeUnitStatus(hmMessage.getUnitId(),UNIT_CONSTRUCTION_COMPLETED);
 	            break;
 	        }
-	        case LT_STATUS_ID_HM_UNIT_LAUNCHED_BUT_UNSOLD:
+	        case LT_STATUS_ID_HM_NEW_UNIT_LAUNCHED_BUT_UNSOLD:
 	        {
 	         	const HM_ActionMessage& hmMessage = MSG_CAST(HM_ActionMessage, message);
 	            BigSerial unitId = hmMessage.getUnitId();
@@ -243,8 +243,22 @@ void RealEstateAgent::HandleMessage(Message::MessageType type, const Message& me
 	            		(itr->second)->setbiddingMarketEntryDay(day);
 	            	}
 	            changeUnitSaleStatus(hmMessage.getUnitId(),UNIT_LAUNCHED_BUT_UNSOLD);
-	            //PrintOutV("unit added to housing market" << std::endl);
 	            break;
+	        }
+	        case LT_STATUS_ID_HM_ONGOING_UNIT_LAUNCHED_BUT_UNSOLD:
+	        {
+	        	const HM_ActionMessage& hmMessage = MSG_CAST(HM_ActionMessage, message);
+	        	BigSerial unitId = hmMessage.getUnitId();
+	        	boost::unordered_map<BigSerial,Unit*>::const_iterator itr = unitsById.find(unitId);
+	        	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+	        	if (itr != unitsById.end())
+	        	{
+	        		(itr->second)->setTimeOffMarket(1 + config.ltParams.housingModel.timeOnMarket * (float)rand() / RAND_MAX );
+	        		(itr->second)->setTimeOnMarket(1 + config.ltParams.housingModel.timeOffMarket * (float)rand() / RAND_MAX);
+	        		(itr->second)->setbiddingMarketEntryDay(day);
+	        	}
+	        	changeUnitSaleStatus(hmMessage.getUnitId(),UNIT_LAUNCHED_BUT_UNSOLD);
+	        	break;
 	        }
 	        case LT_STATUS_ID_HM_UNIT_READY_FOR_OCCUPANCY_AND_VACANT:
 	        {
@@ -287,7 +301,7 @@ void RealEstateAgent::HandleMessage(Message::MessageType type, const Message& me
 				changeBuildingStatus(hmMessage.getBuildingId(),BUILDING_LAUNCHED_BUT_UNSOLD);
 				break;
 			}
-			case LT_BTO_UNIT_ADDED:
+			case LT_DEV_BTO_UNIT_ADDED:
 			{
 				const HM_ActionMessage& hmMessage = MSG_CAST(HM_ActionMessage, message);
 				Unit *unit = hmMessage.getUnit();

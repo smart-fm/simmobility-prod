@@ -107,3 +107,17 @@ std::vector<Unit*> UnitDao::getOngoingBTOUnits(std::tm currentSimYear)
 	getByQueryId(DB_GETALL_ONGOING_BTO_UNITS,params, OngoingBTOUnitList);
 	return OngoingBTOUnitList;
 }
+
+std::vector<Unit*> UnitDao::loadUnitsToLaunchOnDay0(std::tm currentSimYear,std::tm lastDayOfCurrentSimYear,BigSerial fmParcelId)
+{
+	const std::string DB_GETALL_UNITS_TO_LOAD_ON_DAY0 = "SELECT U.* FROM " + APPLY_SCHEMA(MAIN_SCHEMA, "fm_unit_res") + " U, " + APPLY_SCHEMA(MAIN_SCHEMA, "fm_building") + " B, " +
+			APPLY_SCHEMA(MAIN_SCHEMA, "fm_parcel") + " P" +
+			" WHERE  U.construction_status = 2 and U.unit_type >=7 and U.unit_type <=36  and U.sale_from_date  >= :v1 and sale_from_date < :v2 and U.fm_building_id = B.fm_building_id and B.fm_parcel_id = P.fm_parcel_id and P.fm_parcel_id = :v3;";
+	db::Parameters params;
+	params.push_back(currentSimYear);
+	params.push_back(lastDayOfCurrentSimYear);
+	params.push_back(fmParcelId);
+	std::vector<Unit*> day0UnitList;
+	getByQueryId(DB_GETALL_UNITS_TO_LOAD_ON_DAY0,params,day0UnitList);
+	return day0UnitList;
+}

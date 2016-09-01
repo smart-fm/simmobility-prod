@@ -132,10 +132,7 @@ namespace sim_mob {
              * set the housing market model for this developer agent
              */
             void setHousingMarketModel(HM_Model *housingModel);
-            /*
-             * get the quarter id by the quarter string to get TAO for each quarter
-             */
-            BigSerial getQuarterIdByQuarterStr(std::string quarterStr);
+
             /*
              * set the simulation year
              */
@@ -164,6 +161,8 @@ namespace sim_mob {
             void setIsDay0Project(bool isDay0Project);
 
             void launchOnGoingUnitsOnDay0();
+
+            void createPotentialProjects( PotentialProject& outProject);
 
         private:
             DeveloperModel* devModel;

@@ -21,22 +21,6 @@ namespace
 
 using namespace sim_mob;
 
-//ReactionTimeDist* GenerateReactionTimeDistribution(SimulationParams::ReactionTimeDistDescription rdist)
-//{
-//    if (rdist.typeId == 0)
-//    {
-//	return new NormalReactionTimeDist(rdist.mean, rdist.stdev);
-//    }
-//    else if (rdist.typeId == 1)
-//    {
-//	return new LognormalReactionTimeDist(rdist.mean, rdist.stdev);
-//    }
-//    else
-//    {
-//	throw std::runtime_error("Unknown reaction time magic number.");
-//    }
-//}
-
 void informLoadOrder(const std::vector<LoadAgentsOrderOption>& order)
 {
 	std::cout << "Agent Load order: ";
@@ -132,6 +116,30 @@ Trip* MakePseudoTrip(unsigned int personId, const Node *origin, const Node *dest
 	return res;
 }
 
+SubTrip makeSubTrip(soci::row &r)
+{
+	SubTrip subtrip;
+	subtrip.itemType = TripChainItem::IT_TRIP;
+	subtrip.tripID = r.get<string>(0);	
+	subtrip.sequenceNumber = r.get<unsigned int>(10);
+	subtrip.travelMode = r.get<string>(11);
+	subtrip.ptLineId = r.get<string>(12);
+	subtrip.cbdTraverseType = (TravelMetric::CDB_TraverseType)r.get<int>(13);
+	subtrip.originType = (TripChainItem::LocationType)r.get<int>(14);
+	subtrip.destinationType = (TripChainItem::LocationType)r.get<int>(15);
+	subtrip.startLocationId = r.get<string>(16);
+	subtrip.endLocationId = r.get<string>(17);
+
+	unsigned int nodeId = atoi(subtrip.startLocationId.c_str());
+	const RoadNetwork *rdNetwork = RoadNetwork::getInstance();
+
+	subtrip.origin = WayPoint(rdNetwork->getById(rdNetwork->getMapOfIdvsNodes(), nodeId));
+	nodeId = atoi(subtrip.endLocationId.c_str());
+	subtrip.destination = WayPoint(rdNetwork->getById(rdNetwork->getMapOfIdvsNodes(), nodeId));
+	
+	return subtrip;
+}
+
 Trip* makeTrip(soci::row &r)
 {
 	//Create a new trip
@@ -146,56 +154,16 @@ Trip* makeTrip(soci::row &r)
 	trip->endLocationId = r.get<string>(8);
 	trip->load_factor = r.get<unsigned int>(9);
 	trip->travelMode = r.get<string>(11);
-	
-	if (trip->originType == TripChainItem::LT_NODE)
-	{
-		unsigned int nodeId = atoi(trip->startLocationId.c_str());
-		const RoadNetwork *rdNetwork = RoadNetwork::getInstance();
 
-		trip->origin = WayPoint(rdNetwork->getById(rdNetwork->getMapOfIdvsNodes(), nodeId));
-	}
-	else if (trip->originType == TripChainItem::LT_PUBLIC_TRANSIT_STOP)
-	{
-		trip->origin = WayPoint(BusStop::findBusStop(trip->startLocationId));
-	}
+	unsigned int nodeId = atoi(trip->startLocationId.c_str());
+	const RoadNetwork *rdNetwork = RoadNetwork::getInstance();
 
-	if (trip->destinationType == TripChainItem::LT_NODE)
-	{
-		unsigned int nodeId = atoi(trip->endLocationId.c_str());
-		const RoadNetwork *rdNetwork = RoadNetwork::getInstance();
-
-		trip->destination = WayPoint(rdNetwork->getById(rdNetwork->getMapOfIdvsNodes(), nodeId));
-	}
-	else if (trip->destinationType == TripChainItem::LT_PUBLIC_TRANSIT_STOP)
-	{
-		trip->destination = WayPoint(BusStop::findBusStop(trip->endLocationId));
-	}
+	trip->origin = WayPoint(rdNetwork->getById(rdNetwork->getMapOfIdvsNodes(), nodeId));
+	nodeId = atoi(trip->endLocationId.c_str());
+	trip->destination = WayPoint(rdNetwork->getById(rdNetwork->getMapOfIdvsNodes(), nodeId));
 	
 	//Create the sub-trip with-in the trip
-	SubTrip subtrip;
-	subtrip.itemType = TripChainItem::IT_TRIP;
-	subtrip.tripID = trip->tripID;
-	subtrip.startTime = trip->startTime;
-	subtrip.originType = trip->originType;
-	subtrip.origin = trip->origin;
-	subtrip.sequenceNumber = r.get<unsigned int>(10);
-	subtrip.travelMode = r.get<string>(11);
-	subtrip.ptLineId = r.get<string>(12);
-	subtrip.cbdTraverseType = (TravelMetric::CDB_TraverseType)r.get<int>(13);
-	subtrip.destinationType = (TripChainItem::LocationType)r.get<int>(15);
-	subtrip.endLocationId = r.get<string>(17);
-	
-	if (subtrip.destinationType == TripChainItem::LT_NODE)
-	{
-		unsigned int nodeId = atoi(subtrip.endLocationId.c_str());
-		const RoadNetwork *rdNetwork = RoadNetwork::getInstance();
-
-		subtrip.destination = WayPoint(rdNetwork->getById(rdNetwork->getMapOfIdvsNodes(), nodeId));
-	}
-	else if (subtrip.destinationType == TripChainItem::LT_PUBLIC_TRANSIT_STOP)
-	{
-		subtrip.destination = WayPoint(BusStop::findBusStop(subtrip.endLocationId));
-	}
+	SubTrip subtrip = makeSubTrip(r);
 	
 	//Add the sub-trip
 	trip->addSubTrip(subtrip);
@@ -212,60 +180,12 @@ Activity* makeActivity(soci::row &r)
 	activity->endTime = DailyTime(r.get<string>(4));
 	activity->destinationType = (TripChainItem::LocationType)r.get<int>(6);
 	activity->endLocationId = r.get<string>(8);
-	
-	if (activity->destinationType == TripChainItem::LT_NODE)
-	{
-		unsigned int nodeId = atoi(activity->endLocationId.c_str());
-		const RoadNetwork *rdNetwork = RoadNetwork::getInstance();
-		activity->destination = WayPoint(rdNetwork->getById(rdNetwork->getMapOfIdvsNodes(), nodeId));
-	}
-	else if (activity->destinationType == TripChainItem::LT_PUBLIC_TRANSIT_STOP)
-	{
-		activity->destination = WayPoint(BusStop::findBusStop(activity->endLocationId));
-	}
+
+	unsigned int nodeId = atoi(activity->endLocationId.c_str());
+	const RoadNetwork *rdNetwork = RoadNetwork::getInstance();
+	activity->destination = WayPoint(rdNetwork->getById(rdNetwork->getMapOfIdvsNodes(), nodeId));
 	
 	return activity;
-}
-
-SubTrip* makeSubTrip(soci::row &r)
-{
-	SubTrip *subtrip = new SubTrip();
-	subtrip->itemType = TripChainItem::IT_TRIP;
-	subtrip->tripID = r.get<string>(0);	
-	subtrip->sequenceNumber = r.get<unsigned int>(10);
-	subtrip->travelMode = r.get<string>(11);
-	subtrip->ptLineId = r.get<string>(12);
-	subtrip->cbdTraverseType = (TravelMetric::CDB_TraverseType)r.get<int>(13);
-	subtrip->originType = (TripChainItem::LocationType)r.get<int>(14);
-	subtrip->destinationType = (TripChainItem::LocationType)r.get<int>(15);
-	subtrip->startLocationId = r.get<string>(16);
-	subtrip->endLocationId = r.get<string>(17);
-	
-	if (subtrip->originType == TripChainItem::LT_NODE)
-	{
-		unsigned int nodeId = atoi(subtrip->startLocationId.c_str());
-		const RoadNetwork *rdNetwork = RoadNetwork::getInstance();
-
-		subtrip->origin = WayPoint(rdNetwork->getById(rdNetwork->getMapOfIdvsNodes(), nodeId));
-	}
-	else if (subtrip->originType == TripChainItem::LT_PUBLIC_TRANSIT_STOP)
-	{
-		subtrip->origin = WayPoint(BusStop::findBusStop(subtrip->startLocationId));
-	}
-
-	if (subtrip->destinationType == TripChainItem::LT_NODE)
-	{
-		unsigned int nodeId = atoi(subtrip->endLocationId.c_str());
-		const RoadNetwork *rdNetwork = RoadNetwork::getInstance();
-
-		subtrip->destination = WayPoint(rdNetwork->getById(rdNetwork->getMapOfIdvsNodes(), nodeId));
-	}
-	else if (subtrip->destinationType == TripChainItem::LT_PUBLIC_TRANSIT_STOP)
-	{
-		subtrip->destination = WayPoint(BusStop::findBusStop(subtrip->endLocationId));
-	}
-	
-	return subtrip;
 }
 
 } //End un-named namespace
@@ -501,15 +421,16 @@ void ExpandShortTermConfigFile::generateAgentsFromTripChain(ConfigParams::AgentC
 
 				//The trip belonging to the person
 				vector<TripChainItem *> &personTripChain = tripChains[personId][tripId];
-
+				
+				//Check if a trip of the same id is already associated with this person
 				if(personTripChain.empty())
 				{
-					//Create a trip and the corresponding activity
+					//Create a trip and the corresponding activity (if any)
 					Trip *trip = makeTrip(*itRows);
 					personTripChain.push_back(trip);
 
 					//Create activity if end time is provided
-					if(!(*itRows).get<string>(4).empty())
+					if (!(*itRows).get<string>(4).empty())
 					{
 						Activity *activity = makeActivity(*itRows);
 						personTripChain.push_back(activity);
@@ -517,11 +438,12 @@ void ExpandShortTermConfigFile::generateAgentsFromTripChain(ConfigParams::AgentC
 				}
 				else
 				{
-					//Create a sub-trip and add it to the trip
-					SubTrip *subTrip = makeSubTrip(*itRows);
-
-					Trip *trip = dynamic_cast<Trip *>(personTripChain[0]);
-					trip->addSubTrip(*subTrip);
+					//A trip of the same id has been previously added. This means that this is a sub-trip in the sequence
+					//Vector structure-> [Trip[Sub-trip][...][Sub-trip]][Activity]
+					//So create the sub-trip
+					SubTrip subtrip = makeSubTrip(*itRows);
+					Trip *trip = static_cast<Trip *>(personTripChain.front());
+					trip->addSubTrip(subtrip);
 				}
 				
 				//If the person is not created, create it and add it to the map

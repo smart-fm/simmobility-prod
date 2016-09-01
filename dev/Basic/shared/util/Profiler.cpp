@@ -115,10 +115,12 @@ sim_mob::Sentry::~Sentry()
 
 sim_mob::BasicLogger::BasicLogger(std::string id_){
 	id = id_;
-	//simple check to see if the id can be used like a file name with a 3 letter extension, else append .txt
-	std::string path = (id_[id.size() - 4] == '.' ? id_ : (id_ + ".txt"));
-	if(path.size()){
-		initLogFile(path);
+	if(!id_.empty()){
+		//simple check to see if the id can be used like a file name with a 3 letter extension, else append .txt
+		std::string path = (id_[id.size() - 4] == '.' ? id_ : (id_ + ".txt"));
+		if(path.size()){
+			initLogFile(path);
+		}
 	}
 }
 

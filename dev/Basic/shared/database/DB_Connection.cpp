@@ -150,5 +150,10 @@ template<typename T> T& DB_Connection::getSession()
 	return ((DB_Session<T>*) (currentSession))->getSession();
 }
 
+std::string DB_Connection::getConnectionStr()
+{
+	return this->connectionStr;
+}
+
 template soci::session& DB_Connection::getSession<soci::session>();
 template mongo::DBClientConnection& DB_Connection::getSession<mongo::DBClientConnection>();

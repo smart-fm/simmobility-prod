@@ -33,6 +33,8 @@
 #include "database/entity/DevelopmentPlan.hpp"
 #include "database/entity/BuildingAvgAgePerParcel.hpp"
 #include "database/entity/ROILimits.hpp"
+#include "database/entity/HedonicCoeffs.hpp"
+#include "database/entity/LagPrivateT.hpp"
 #include "agent/impl/DeveloperAgent.hpp"
 #include "agent/impl/RealEstateAgent.hpp"
 #include "model/HM_Model.hpp"
@@ -67,6 +69,8 @@ namespace sim_mob {
             typedef std::vector<BuildingAvgAgePerParcel*>BuildingAvgAgePerParcelList;
             typedef std::vector<ROILimits*>ROILimitsList;
             typedef std::vector<Unit*>UnitList;
+            typedef std::vector<HedonicCoeffs*>HedonicCoeffsList;
+            typedef std::vector<LagPrivateT*>LagPrivateTList;
 
             //maps
             typedef boost::unordered_map<BigSerial,Parcel*> ParcelMap;
@@ -76,12 +80,14 @@ namespace sim_mob {
             typedef boost::unordered_map<BigSerial,MacroEconomics*> MacroEconomicsMap;
             typedef boost::unordered_map<BigSerial,LogsumForDevModel*> AccessibilityLogsumMap;
             typedef boost::unordered_map<BigSerial,ParcelsWithHDB*> ParcelsWithHDBMap;
-            typedef boost::unordered_map<BigSerial,TAO*> TAOMap;
+            typedef boost::unordered_map<std::string,TAO*> TAOMap;
             typedef boost::unordered_map<BigSerial,UnitPriceSum*> UnitPriceSumMap;
             typedef boost::unordered_map<BigSerial,TazLevelLandPrice*> TazLevelLandPriceMap;
             typedef boost::unordered_map<BigSerial,Project*> ProjectMap;
             typedef boost::unordered_map<BigSerial,BuildingAvgAgePerParcel*> BuildingAvgAgePerParcelMap;
             typedef boost::unordered_map<BigSerial,ROILimits*> ROILimitsMap;
+            typedef boost::unordered_map<BigSerial,HedonicCoeffs*>HedonicCoeffsMap;
+            typedef boost::unordered_map<BigSerial,LagPrivateT*>LagPrivateTMap;
 
         public:
             DeveloperModel(WorkGroup& workGroup);
@@ -127,10 +133,21 @@ namespace sim_mob {
             const MacroEconomics* getMacroEconById(BigSerial id) const;
             float getBuildingSpaceByParcelId(BigSerial id) const;
             ParcelList getDevelopmentCandidateParcels(bool isInitial);
+
+            /*
+             * these logsums are only used in 2008.
+             */
             const LogsumForDevModel* getAccessibilityLogsumsByTAZId(BigSerial fmParcelId) const;
+
+            /*
+             * get the 2012 logsums from HM_Model
+             */
+            double getHedonicPriceLogsum(BigSerial tazId) const;
+
             const ParcelsWithHDB* getParcelsWithHDB_ByParcelId(BigSerial fmParcelId) const;
             DeveloperList getDeveloperAgents();
-            const TAO* getTaoByQuarter(BigSerial id);
+            const TAO* getTaoByQuarter(std::string& quarterStr);
+
 
             /*
              * @param days number of days the simulation runs
@@ -251,11 +268,20 @@ namespace sim_mob {
             void setStartDay(int day);
 
             int getStartDay() const;
+
             ROILimitsList getROILimits() const;
+
             const ROILimits* getROILimitsByBuildingTypeId(BigSerial buildingTypeId) const;
 
-
             UnitList getBTOUnits(std::tm currentDate);
+
+            void loadHedonicCoeffs(DB_Connection &conn);
+
+            const HedonicCoeffs* getHedonicCoeffsByPropertyTypeId(BigSerial propertyId) const;
+
+            void loadPrivateLagT(DB_Connection &conn);
+
+            const LagPrivateT* getLagPrivateTByPropertyTypeId(BigSerial propertyId) const;
 
         protected:
             /**
@@ -313,7 +339,7 @@ namespace sim_mob {
             ParcelsWithHDBList parcelsWithHDB;
             ParcelsWithHDBMap parcelsWithHDB_ById;
             TAOList taoList;
-            TAOMap taoByQuarterId;
+            TAOMap taoByQuarterStr;
             int devAgentCount;
             double minLotSize;
             UnitPriceSumList unitPriceSumList;
@@ -347,6 +373,10 @@ namespace sim_mob {
             ROILimitsMap roiLimitsByBuildingTypeId;
             UnitList btoUnits;
             UnitList ongoingBtoUnits;
+            HedonicCoeffsList hedonicCoefficientsList;
+            HedonicCoeffsMap hedonicCoefficientsByPropertyTypeId;
+            LagPrivateTList privateLagsList;
+            LagPrivateTMap privateLagsByPropertyTypeId;
         };
     }
 }

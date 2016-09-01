@@ -28,6 +28,7 @@
 #include "database/entity/SlaParcel.hpp"
 #include "database/entity/BuildingAvgAgePerParcel.hpp"
 #include "database/entity/ROILimits.hpp"
+#include "database/entity/HedonicCoeffs.hpp"
 #include "database/dao/SlaParcelDao.hpp"
 #include "database/dao/UnitDao.hpp"
 #include "database/entity/UnitType.hpp"
@@ -48,6 +49,7 @@
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "util/SharedFunctions.hpp"
+#include "SOCI_ConvertersLong.hpp"
 
 using namespace sim_mob;
 using namespace sim_mob::long_term;
@@ -115,7 +117,7 @@ void DeveloperModel::startImpl() {
 		loadData<ParcelsWithHDBDao>(conn,parcelsWithHDB,parcelsWithHDB_ById,&ParcelsWithHDB::getFmParcelId);
 		PrintOutV("Parcels with HDB loaded " << parcelsWithHDB.size() << std::endl);
 
-		loadData<TAO_Dao>(conn,taoList,taoByQuarterId,&TAO::getId);
+		loadData<TAO_Dao>(conn,taoList,taoByQuarterStr,&TAO::getQuarter);
 		PrintOutV("TAO by quarters loaded " << taoList.size() << std::endl);
 
 		loadData<UnitPriceSumDao>(conn,unitPriceSumList,unitPriceSumByParcelId,&UnitPriceSum::getFmParcelId);
@@ -188,10 +190,13 @@ void DeveloperModel::startImpl() {
 			projectIdForDevAgent = config.ltParams.developerModel.initialProjectId;
 		}
 
+		loadHedonicCoeffs(conn);
+		loadPrivateLagT(conn);
 	}
 
 
-	PrintOut("minLotSize"<<minLotSize<<std::endl);
+
+	PrintOutV("minLotSize"<<minLotSize<<std::endl);
 	processParcels();
 	createDeveloperAgents(developmentCandidateParcelList,false,false);
 	createDeveloperAgents(parcelsWithProjectsList,true,false);
@@ -227,7 +232,7 @@ void DeveloperModel::stopImpl() {
 	buildingSpacesByParcelId.clear();
 	macroEconomicsById.clear();
 	parcelsWithHDB_ById.clear();
-	taoByQuarterId.clear();
+	taoByQuarterStr.clear();
 
 	clear_delete_vector(templates);
 	clear_delete_vector(developmentTypeTemplates);
@@ -303,6 +308,12 @@ const LogsumForDevModel* DeveloperModel::getAccessibilityLogsumsByTAZId(BigSeria
 	return nullptr;
 }
 
+double DeveloperModel::getHedonicPriceLogsum(BigSerial tazId) const
+{
+	double logsum = housingMarketModel->ComputeHedonicPriceLogsumFromDatabase(tazId);
+	return logsum;
+}
+
 const ParcelsWithHDB* DeveloperModel::getParcelsWithHDB_ByParcelId(BigSerial fmParcelId) const
 {
 	ParcelsWithHDBMap::const_iterator itr = parcelsWithHDB_ById.find(fmParcelId);
@@ -313,10 +324,10 @@ const ParcelsWithHDB* DeveloperModel::getParcelsWithHDB_ByParcelId(BigSerial fmP
 	return nullptr;
 }
 
-const TAO* DeveloperModel::getTaoByQuarter(BigSerial id)
+const TAO* DeveloperModel::getTaoByQuarter(std::string& quarterStr)
 {
-	TAOMap::const_iterator itr = taoByQuarterId.find(id);
-		if (itr != taoByQuarterId.end())
+	TAOMap::const_iterator itr = taoByQuarterStr.find(quarterStr);
+		if (itr != taoByQuarterStr.end())
 		{
 			return itr->second;
 		}
@@ -421,8 +432,12 @@ void DeveloperModel::createDeveloperAgents(ParcelList devCandidateParcelList, bo
 				}
 
 				agents.push_back(devAgent);
-				developers.push_back(devAgent);
+
 				workGroup.assignAWorker(devAgent);
+				if((!onGoingProject) && (!day0Project))
+				{
+					developers.push_back(devAgent);
+				}
 			}
 			else
 			{
@@ -570,18 +585,26 @@ void DeveloperModel::processProjects()
 DeveloperModel::DeveloperList DeveloperModel::getDeveloperAgents(){
 
 	const int poolSize = developers.size();
-	const float dailyParcelPercentage = 0.1; //we are examining 10% of the pool everyday
+	const float dailyParcelPercentage = 0.006; //we are examining 0.6% of the pool everyday
 	const int dailyAgentFraction = poolSize * dailyParcelPercentage;
 	std::set<int> indexes;
 	DeveloperList dailyDevAgents;
-	int max_index = developers.size();
-	while (indexes.size() < std::min(dailyAgentFraction, max_index))
+	int max_index = developers.size() - 1;
+	//while (indexes.size() < std::min(dailyAgentFraction, max_index))
+		for(unsigned int i = 0; i < dailyAgentFraction ; i++)
 	{
-	    int random_index = rand() % max_index;
+	    //int random_index = rand() % max_index;
+		std::random_device rd;
+		std::mt19937 gen(rd());
+		std::uniform_int_distribution<int> dis(0, max_index);
+		const unsigned int random_index = dis(gen);
 	    if (indexes.find(random_index) == indexes.end())
 	    {
-	    	dailyDevAgents.push_back(developers[random_index]);
-	        indexes.insert(random_index);
+	    	if(!(developers[random_index]->isActive()))
+	    	{
+	    		dailyDevAgents.push_back(developers[random_index]);
+	    		indexes.insert(random_index);
+	    	}
 	    }
 	}
 	return dailyDevAgents;
@@ -898,4 +921,64 @@ DeveloperModel::UnitList DeveloperModel::getBTOUnits(std::tm currentDate)
 			}
 	}
 	return btoUnitsForSale;
+}
+
+void DeveloperModel::loadHedonicCoeffs(DB_Connection &conn)
+{
+	soci::session sql;
+	//sql = conn.getSession<soci::session>();
+	sql.open(soci::postgresql, conn.getConnectionStr());
+
+	const std::string storedProc = "main2012.getHedonicCoeffs()";
+	//SQL statement
+	soci::rowset<HedonicCoeffs> hedonicCoeffs = (sql.prepare << "select * from " + storedProc);
+	for (soci::rowset<HedonicCoeffs>::const_iterator itCoeffs = hedonicCoeffs.begin(); itCoeffs != hedonicCoeffs.end(); ++itCoeffs)
+	{
+		//Create new node and add it in the map of nodes
+		HedonicCoeffs* coeef = new HedonicCoeffs(*itCoeffs);
+		hedonicCoefficientsList.push_back(coeef);
+		hedonicCoefficientsByPropertyTypeId.insert(std::make_pair(coeef->getPropertyTypeId(), coeef));
+
+	}
+}
+
+const HedonicCoeffs* DeveloperModel::getHedonicCoeffsByPropertyTypeId(BigSerial propertyId) const
+{
+
+	HedonicCoeffsMap::const_iterator itr = hedonicCoefficientsByPropertyTypeId.find(propertyId);
+	if (itr != hedonicCoefficientsByPropertyTypeId.end())
+	{
+		return itr->second;
+	}
+	return nullptr;
+}
+
+void  DeveloperModel::loadPrivateLagT(DB_Connection &conn)
+{
+	soci::session sql;
+	//sql = conn.getSession<soci::session>();
+	sql.open(soci::postgresql, conn.getConnectionStr());
+
+	const std::string storedProc = "main2012.getLagPrivateT()";
+	//SQL statement
+	soci::rowset<LagPrivateT> privateLags = (sql.prepare << "select * from " + storedProc);
+	for (soci::rowset<LagPrivateT>::const_iterator itPrivateLags = privateLags.begin(); itPrivateLags != privateLags.end(); ++itPrivateLags)
+	{
+		//Create new node and add it in the map of nodes
+		LagPrivateT* lag = new LagPrivateT(*itPrivateLags);
+		privateLagsList.push_back(lag);
+		privateLagsByPropertyTypeId.insert(std::make_pair(lag->getPropertyTypeId(), lag));
+
+	}
+
+}
+
+const LagPrivateT* DeveloperModel::getLagPrivateTByPropertyTypeId(BigSerial propertyId) const
+{
+	LagPrivateTMap::const_iterator itr = privateLagsByPropertyTypeId.find(propertyId);
+		if (itr != privateLagsByPropertyTypeId.end())
+		{
+			return itr->second;
+		}
+		return nullptr;
 }

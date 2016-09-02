@@ -60,6 +60,8 @@ namespace sim_mob {
              */
             std::vector<Unit*> getOngoingBTOUnits(std::tm currentSimYear);
 
+            std::vector<Unit*> loadUnitsToLaunchOnDay0(std::tm currentSimYear, std::tm lastDayOfCurrentSimYear,BigSerial fmParcelId);
+
         };
     }
 }

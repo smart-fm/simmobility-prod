@@ -45,6 +45,21 @@ private:
 
 	/**Stores the configuration properties of the agent loaded from the XML configuration file*/
 	std::map<std::string, std::string> configProperties;
+	
+	/**
+	 * Converts the trips that have travel mode as bus travel into a trip chain than contains the detailed public transit trip
+	 */
+	void convertPublicTransitODsToTrips();
+	
+	/**
+	 * Inserts a waiting activity before bus travel
+	 */
+	void insertWaitingActivityToTrip();
+
+	/**
+	 * Assigns id to sub-trips
+	 */
+	void assignSubtripIds();
 
 	/**
 	 * Advances the current trip chain item to the next item if all the sub-trips in the trip have been completed.

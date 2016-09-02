@@ -11,8 +11,9 @@
 #include "entities/roles/activityRole/ActivityPerformer.hpp"
 #include "event/args/ReRouteEventArgs.hpp"
 #include "geospatial/network/RoadNetwork.hpp"
-#include "message/MessageBus.hpp"
 #include "logging/Log.hpp"
+#include "message/MessageBus.hpp"
+#include "path/PT_RouteChoiceLuaProvider.hpp"
 
 using namespace std;
 using namespace sim_mob;
@@ -32,6 +33,10 @@ prevRole(NULL), currRole(NULL), nextRole(NULL), commEventRegistered(false), amod
 amodPickUpSegmentStr("-1"), startSegmentId(-1), segmentStartOffset(0), initialSpeed(0), amodSegmLength(0.0), amodSegmLength2(0.0),
 rsTravelStats(nullptr)
 {
+	convertPublicTransitODsToTrips();
+	insertWaitingActivityToTrip();
+	assignSubtripIds();
+	
 	if (!tripChain.empty())
 	{
 		initTripChain();
@@ -127,14 +132,6 @@ void Person_ST::initTripChain()
 	if ((*currTripChainItem)->itemType == TripChainItem::IT_TRIP)
 	{
 		currSubTrip = ((dynamic_cast<Trip*> (*currTripChainItem))->getSubTripsRW()).begin();
-		
-		// if the first trip chain item is passenger, create waitBusActivityRole
-		if (currSubTrip->travelMode == "BusTravel")
-		{
-			const RoleFactory<Person_ST> *rf = RoleFactory<Person_ST>::getInstance();
-			currRole = rf->createRole("waitBusActivity", this);
-			nextRole = rf->createRole("passenger", this);
-		}
 		
 		if (!updateOD(*currTripChainItem))
 		{ 
@@ -460,6 +457,125 @@ bool Person_ST::advanceCurrentTripChainItem()
 	}
 
 	return true;
+}
+
+void Person_ST::convertPublicTransitODsToTrips()
+{
+	vector<TripChainItem *>::iterator tripChainItemIt;
+	
+	//Iterate over the trip-chain to identify the public transit trips
+	for (tripChainItemIt = tripChain.begin(); tripChainItemIt != tripChain.end(); ++tripChainItemIt)
+	{
+		if ((*tripChainItemIt)->itemType == TripChainItem::IT_TRIP)
+		{
+			unsigned int start_time = ((*tripChainItemIt)->startTime.offsetMS_From(ConfigManager::GetInstance().FullConfig().simStartTime()) / 1000); // start time in seconds
+			TripChainItem *trip = (*tripChainItemIt);
+			string originId = boost::lexical_cast<string>(trip->origin.node->getNodeId());
+			string destId = boost::lexical_cast<string>(trip->destination.node->getNodeId());
+			trip->startLocationId = originId;
+			trip->endLocationId = destId;
+			vector<SubTrip> &subTrips = (dynamic_cast<Trip *> (*tripChainItemIt))->getSubTripsRW();
+			vector<SubTrip>::iterator itSubTrip = subTrips.begin();
+			vector<SubTrip> newSubTrips;
+			
+			while (itSubTrip != subTrips.end())
+			{
+				if (itSubTrip->origin.type == WayPoint::NODE && itSubTrip->destination.type == WayPoint::NODE)
+				{
+					if (itSubTrip->getMode() == "BusTravel")
+					{
+						vector<OD_Trip> odTrips;
+
+						string dbid = this->getDatabaseId();
+						bool ret = PT_RouteChoiceLuaProvider::getPTRC_Model().getBestPT_Path(itSubTrip->origin.node->getNodeId(), 
+								itSubTrip->destination.node->getNodeId(), itSubTrip->startTime, odTrips, dbid, start_time);
+						
+						if (ret)
+						{
+							ret = makeODsToTrips(&(*itSubTrip), newSubTrips, odTrips);
+						}
+
+						if (!ret)
+						{
+							tripChain.clear();
+							return;
+						}
+					}
+				}
+				++itSubTrip;
+			}
+
+			if (!newSubTrips.empty())
+			{
+				subTrips.clear();
+				subTrips = newSubTrips;
+			}
+		}
+	}
+}
+
+void Person_ST::insertWaitingActivityToTrip()
+{
+	vector<TripChainItem *>::iterator tripChainItem;
+	for (tripChainItem = tripChain.begin(); tripChainItem != tripChain.end(); ++tripChainItem)
+	{
+		if ((*tripChainItem)->itemType == TripChainItem::IT_TRIP)
+		{
+			vector<SubTrip>::iterator itSubTrip[2];
+			vector<SubTrip> &subTrips = (dynamic_cast<Trip *> (*tripChainItem))->getSubTripsRW();
+
+			itSubTrip[1] = subTrips.begin();
+			itSubTrip[0] = subTrips.begin();
+			while (itSubTrip[1] != subTrips.end())
+			{
+				if (itSubTrip[1]->getMode() == "BusTravel" && itSubTrip[0]->getMode() != "WaitingBusActivity")
+				{
+					if (itSubTrip[1]->origin.type == WayPoint::BUS_STOP)
+					{
+						SubTrip subTrip;
+						subTrip.itemType = TripChainItem::getItemType("WaitingBusActivity");
+						subTrip.origin = itSubTrip[1]->origin;
+						subTrip.originType = itSubTrip[1]->originType;
+						subTrip.destination = itSubTrip[1]->destination;
+						subTrip.destinationType = itSubTrip[1]->destinationType;
+						subTrip.startLocationId = itSubTrip[1]->origin.busStop->getStopCode();
+						subTrip.endLocationId = itSubTrip[1]->destination.busStop->getStopCode();
+						subTrip.startLocationType = "BUS_STOP";
+						subTrip.endLocationType = "BUS_STOP";
+						subTrip.travelMode = "WaitingBusActivity";
+						subTrip.ptLineId = itSubTrip[1]->ptLineId;
+						subTrip.edgeId = itSubTrip[1]->edgeId;
+						itSubTrip[1] = subTrips.insert(itSubTrip[1], subTrip);
+					}
+				}
+
+				itSubTrip[0] = itSubTrip[1];
+				itSubTrip[1]++;
+			}
+		}
+	}
+}
+
+void Person_ST::assignSubtripIds()
+{
+	for (vector<TripChainItem *>::iterator tcIt = tripChain.begin(); tcIt != tripChain.end(); tcIt++)
+	{
+		if ((*tcIt)->itemType == TripChainItem::IT_TRIP)
+		{
+			Trip *trip = dynamic_cast<Trip *> (*tcIt);
+			string tripId = trip->tripID;
+			stringstream stIdstream;
+			vector<SubTrip> &subTrips = trip->getSubTripsRW();
+			int stNo = 0;
+			for (vector<SubTrip>::iterator stIt = subTrips.begin(); stIt != subTrips.end(); stIt++)
+			{
+				stNo++;
+				stIdstream << tripId << "_" << stNo;
+				(*stIt).tripID = stIdstream.str();
+				stIdstream.str(string());
+			}
+		}
+	}
 }
 
 void Person_ST::onEvent(event::EventId eventId, event::Context ctxId, event::EventPublisher *sender, const event::EventArgs &args)

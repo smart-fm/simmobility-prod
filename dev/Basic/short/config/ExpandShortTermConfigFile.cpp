@@ -130,10 +130,11 @@ SubTrip makeSubTrip(soci::row &r)
 	subtrip.startLocationId = r.get<string>(16);
 	subtrip.endLocationId = r.get<string>(17);
 
-	unsigned int nodeId = atoi(subtrip.startLocationId.c_str());
 	const RoadNetwork *rdNetwork = RoadNetwork::getInstance();
 
+	unsigned int nodeId = atoi(subtrip.startLocationId.c_str());
 	subtrip.origin = WayPoint(rdNetwork->getById(rdNetwork->getMapOfIdvsNodes(), nodeId));
+	
 	nodeId = atoi(subtrip.endLocationId.c_str());
 	subtrip.destination = WayPoint(rdNetwork->getById(rdNetwork->getMapOfIdvsNodes(), nodeId));
 	
@@ -154,11 +155,12 @@ Trip* makeTrip(soci::row &r)
 	trip->endLocationId = r.get<string>(8);
 	trip->load_factor = r.get<unsigned int>(9);
 	trip->travelMode = r.get<string>(11);
-
-	unsigned int nodeId = atoi(trip->startLocationId.c_str());
+	
 	const RoadNetwork *rdNetwork = RoadNetwork::getInstance();
 
+	unsigned int nodeId = atoi(trip->startLocationId.c_str());
 	trip->origin = WayPoint(rdNetwork->getById(rdNetwork->getMapOfIdvsNodes(), nodeId));
+	
 	nodeId = atoi(trip->endLocationId.c_str());
 	trip->destination = WayPoint(rdNetwork->getById(rdNetwork->getMapOfIdvsNodes(), nodeId));
 	

@@ -112,7 +112,8 @@ void DeveloperModel::startImpl() {
 
 		loadData<MacroEconomicsDao>(conn,macroEconomics,macroEconomicsById,&MacroEconomics::getExFactorId);
 
-		loadData<LogsumForDevModelDao>(conn,accessibilityList,accessibilityByTazId,&LogsumForDevModel::gettAZ2012Id);
+		//commented as this is not used in 2012 now.
+		//loadData<LogsumForDevModelDao>(conn,accessibilityList,accessibilityByTazId,&LogsumForDevModel::gettAZ2012Id);
 
 		loadData<ParcelsWithHDBDao>(conn,parcelsWithHDB,parcelsWithHDB_ById,&ParcelsWithHDB::getFmParcelId);
 		PrintOutV("Parcels with HDB loaded " << parcelsWithHDB.size() << std::endl);
@@ -348,7 +349,7 @@ void DeveloperModel::createDeveloperAgents(ParcelList devCandidateParcelList, bo
 	if (!devCandidateParcelList.empty()) {
 		for (size_t i = 0; i < devCandidateParcelList.size(); i++)
 		{
-			if (devCandidateParcelList[i])
+			if (devCandidateParcelList[i] != nullptr)
 			{
 				boost::shared_ptr<Parcel> parcelToDevelop (new Parcel(*devCandidateParcelList[i]));
 				DeveloperAgent* devAgent = new DeveloperAgent(parcelToDevelop, this);

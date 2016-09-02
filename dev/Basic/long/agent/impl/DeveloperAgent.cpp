@@ -471,118 +471,117 @@ inline void createPotentialUnits(PotentialProject& project,const DeveloperModel*
         }
 
     }
-}
 
-/**
- * Create all potential projects.
- * @param parcelsToProcess parcel Ids to process.
- * @param model Developer model.
- * @param outProjects (out parameter) list to receive all projects;
- */
-void DeveloperAgent::createPotentialProjects(PotentialProject& outProject)
-{
-    const DeveloperModel::DevelopmentTypeTemplateList& devTemplates = devModel->getDevelopmentTypeTemplates();
-    const DeveloperModel::TemplateUnitTypeList& unitTemplates = devModel->getTemplateUnitType();
     /**
-     *  Iterates over all development type templates and
-     *  get all potential projects which have a density <= GPR.
+     * Create all potential projects.
+     * @param parcelsToProcess parcel Ids to process.
+     * @param model Developer model.
+     * @param outProjects (out parameter) list to receive all projects;
      */
-        const Parcel* parcel = devModel->getParcelById(parcel->getId());
-        std::tm currentDate = getDateBySimDay(simYear,currentTick);
-        if (parcel)
-        {
-        	std::vector<PotentialProject> projects;
-            DeveloperModel::DevelopmentTypeTemplateList::const_iterator it;
-
-            for (it = devTemplates.begin(); it != devTemplates.end(); it++)
+    inline void createPotentialProjects(BigSerial parcelId, DeveloperModel* model, PotentialProject& outProject,int quarter, const TAO *tao, std::tm &currentDate, int currentTick)
+    {
+        const DeveloperModel::DevelopmentTypeTemplateList& devTemplates = model->getDevelopmentTypeTemplates();
+        const DeveloperModel::TemplateUnitTypeList& unitTemplates = model->getTemplateUnitType();
+        /**
+         *  Iterates over all development type templates and
+         *  get all potential projects which have a density <= GPR.
+         */
+            const Parcel* parcel = model->getParcelById(parcelId);
+            if (parcel)
             {
-            	if ((*it)->getLandUseTypeId() == parcel->getLandUseTypeId())
+            	std::vector<PotentialProject> projects;
+                DeveloperModel::DevelopmentTypeTemplateList::const_iterator it;
 
+                for (it = devTemplates.begin(); it != devTemplates.end(); it++)
                 {
-            		PotentialProject project((*it), parcel,parcel->getId(),currentDate);
-            		addUnitTemplates(project, unitTemplates);
-            		createPotentialUnits(project,devModel);
-            		/*
-            		 * This is not used in 2012
-            		 * int quarter = ((currentDate.tm_mon)/3) + 1; //get the current month of the simulation and divide it by 3 to determine the quarter
-            		 *
-            		 */
-            		const int quarter = 4;
-            		std::string quarterStr = boost::lexical_cast<std::string>(simYear)+"Q"+boost::lexical_cast<std::string>(4);
-            		const TAO *tao = devModel->getTaoByQuarter(quarterStr);
-                    calculateProjectProfit(project,devModel,tao,currentTick);
+                	if ((*it)->getLandUseTypeId() == parcel->getLandUseTypeId())
 
-                    int newDevelopment = 0;
-                    if(devModel->isEmptyParcel(parcel->getId()))
-                    	{
-                    		newDevelopment = 1;
-                    	}
-
-                    const ROILimits *roiLimit = devModel->getROILimitsByBuildingTypeId(project.getBuildingTypeId());
-
-                    double thresholdInvestmentReturnRatio = 0;
-                    if(roiLimit != nullptr)
                     {
-                    	thresholdInvestmentReturnRatio = roiLimit->getRoiLimit();
-                    }
+                		PotentialProject project((*it), parcel,parcel->getId(),currentDate);
+                		addUnitTemplates(project, unitTemplates);
+                		createPotentialUnits(project,model);
+                		/*
+                		 * This is not used in 2012
+                		 * int quarter = ((currentDate.tm_mon)/3) + 1; //get the current month of the simulation and divide it by 3 to determine the quarter
+                		 *
+                		 */
+                		const int quarter = 4;
 
-                    if(project.getInvestmentReturnRatio()> thresholdInvestmentReturnRatio)
-                    {
-                    	if(&project != nullptr)
-                    	{
-                    		projects.push_back(project);
-                    	}
+                        calculateProjectProfit(project,model,tao,currentTick);
+
+                        int newDevelopment = 0;
+                        if(model->isEmptyParcel(parcel->getId()))
+                        	{
+                        		newDevelopment = 1;
+                        	}
+
+                        const ROILimits *roiLimit = model->getROILimitsByBuildingTypeId(project.getBuildingTypeId());
+
+                        double thresholdInvestmentReturnRatio = 0;
+                        if(roiLimit != nullptr)
+                        {
+                        	thresholdInvestmentReturnRatio = roiLimit->getRoiLimit();
+                        }
+
+                        if(project.getInvestmentReturnRatio()> thresholdInvestmentReturnRatio)
+                        {
+                        	if(&project != nullptr)
+                        	{
+                        		projects.push_back(project);
+                        	}
+                        }
                     }
                 }
+
+                if(projects.size()>0)
+                {
+                	std::vector<PotentialProject>::iterator projectIt;
+                	//calculate the probability of being selected for each project
+                	double totalExpRatio = 0.0;
+                	for (projectIt = projects.begin(); projectIt != projects.end(); projectIt++)
+                	{
+                		double expRatio = exp((projectIt)->getInvestmentReturnRatio());
+                		(projectIt)->setExpRatio(expRatio);
+                		totalExpRatio = totalExpRatio + expRatio;
+                	}
+
+                	for (projectIt = projects.begin(); projectIt != projects.end(); projectIt++)
+                	{
+                		const double probability = (projectIt)->getExpRatio() / (totalExpRatio);
+                		(projectIt)->setTempSelectProbability(probability);
+                	}
+
+                	//generate a unifromly distributed random number
+                	std::random_device rd;
+                	std::mt19937 gen(rd());
+                	std::uniform_real_distribution<> dis(0.0, 1.0);
+                	const double randomNum = dis(gen);
+                	double pTemp = 0.0;
+
+                	if(projects.size()>0)
+                	{
+                		for (projectIt = projects.begin(); projectIt != projects.end(); projectIt++)
+                		{
+                			if( (pTemp < randomNum) && ( randomNum < ((projectIt)->getTempSelectProbability() + pTemp)))
+                			{
+
+                					outProject = (*projectIt);
+
+                			}
+                			else
+                			{
+                				pTemp = pTemp + (projectIt)->getTempSelectProbability();
+                			}
+
+                		}
+
+                	}
+                }
+
             }
-
-            if(projects.size()>0)
-            {
-            	std::vector<PotentialProject>::iterator projectIt;
-            	//calculate the probability of being selected for each project
-            	double totalExpRatio = 0.0;
-            	for (projectIt = projects.begin(); projectIt != projects.end(); projectIt++)
-            	{
-            		double expRatio = exp((projectIt)->getInvestmentReturnRatio());
-            		(projectIt)->setExpRatio(expRatio);
-            		totalExpRatio = totalExpRatio + expRatio;
-            	}
-
-            	for (projectIt = projects.begin(); projectIt != projects.end(); projectIt++)
-            	{
-            		const double probability = (projectIt)->getExpRatio() / (totalExpRatio);
-            		(projectIt)->setTempSelectProbability(probability);
-            	}
-
-            	//generate a unifromly distributed random number
-            	std::random_device rd;
-            	std::mt19937 gen(rd());
-            	std::uniform_real_distribution<> dis(0.0, 1.0);
-            	const double randomNum = dis(gen);
-            	double pTemp = 0.0;
-
-            	if(projects.size()>0)
-            	{
-            		for (projectIt = projects.begin(); projectIt != projects.end(); projectIt++)
-            		{
-            			if( (pTemp < randomNum) && ( randomNum < ((projectIt)->getTempSelectProbability() + pTemp)))
-            			{
-
-            					outProject = (*projectIt);
-
-            			}
-            			else
-            			{
-            				pTemp = pTemp + (projectIt)->getTempSelectProbability();
-            			}
-
-            		}
-
-            	}
-            }
-
         }
-    }
+}
+
 
 DeveloperAgent::DeveloperAgent(boost::shared_ptr<Parcel> parcel, DeveloperModel* model)
 : Agent_LT(ConfigManager::GetInstance().FullConfig().mutexStategy(), (parcel) ? parcel->getId() : INVALID_ID), devModel(model),parcel(parcel),active(false),monthlyUnitCount(0),unitsRemain(true),realEstateAgent(nullptr),postcode(INVALID_ID),housingMarketModel(housingMarketModel),simYear(simYear),currentTick(currentTick),parcelDBStatus(false),hasBTO(false),onGoingProjectOnDay0(false)
@@ -615,10 +614,11 @@ Entity::UpdateStatus DeveloperAgent::onFrameTick(timeslice now) {
     	{
     	if(this->parcel->getStatus()== 0)
     	{
-
-
+    		int quarter = ((currentDate.tm_mon)/4) + 1; //get the current month of the simulation and divide it by 4 to determine the quarter
+    		std::string quarterStr = boost::lexical_cast<std::string>(simYear)+"Q"+boost::lexical_cast<std::string>(4);
+    		const TAO *tao = devModel->getTaoByQuarter(quarterStr);
     		PotentialProject project;
-    		createPotentialProjects(project);
+    		createPotentialProjects(this->parcel->getId(),devModel,project,quarter,tao,currentDate,currentTick);
     		if(project.getUnits().size()>0)
     		{
     			std::vector<PotentialUnit>::iterator unitsItr;

@@ -97,18 +97,6 @@ CAR_CATEGORIES = readOnlyTable {[1]=true, [6]=true, [7]=true, [8]=true, [9]=true
 --[[****************************************************************************
     SELLER FUNCTIONS
 ******************************************************************************]]
-function getStoreyEstimation(storey)
-    if storey >= 0 and storey <= 5 then return storey
-    elseif storey >= 6 and storey <= 10 then return 177.50
-    elseif storey >= 11 and storey <= 15 then return 299.00
-    elseif storey >= 16 and storey <= 20 then return 581.90
-    elseif storey >= 21 and storey <= 25 then return 921.30
-    elseif storey >= 26 and storey <= 30 then return 1109.00
-    elseif storey >= 31 and storey <= 35 then return 1800.00
-    elseif storey >= 36 and storey <= 41 then return 1936.00
-    else return 1936.00
-    end
-end
 
 --[[
     Calculates the hedonic price for the given HDB Unit.
@@ -122,7 +110,7 @@ end
 ]]
 function calculateHDB_HedonicPrice(unit, building, postcode, amenities, logsum, lagCoefficient)
 	local simulationYear = CONSTANTS.SIMULATION_YEAR;
-	local hedonicPrice = 0; --getStoreyEstimation(unit.storey) + ((building ~= nil) and ((simulationYear - building.builtYear) * -23.26) or 0)
+	local hedonicPrice = 0;
 
 	local ZZ_pms1km   = 0;
 	local ZZ_mrt_200m = 0;
@@ -152,7 +140,7 @@ function calculateHDB_HedonicPrice(unit, building, postcode, amenities, logsum, 
 
 	local ageSquared = age * age;
 
-	local DD_logarea  = math.log(unit.floorArea);
+	local DD_logsqrtarea  = math.log( math.sqrt(unit.floorArea));
 	local ZZ_dis_cbd  = amenities.distanceToCBD;
 	local ZZ_dis_mall = amenities.distanceToMall;	
 
@@ -199,70 +187,70 @@ function calculateHDB_HedonicPrice(unit, building, postcode, amenities, logsum, 
 	-----------------------------
 	-----------------------------
 	if (ZZ_hdb12 == 1) then
-		hedonicPrice =   6.848847355 	+ 
-				 0.436454323	*	DD_logarea 	+ 
-				 1.425775446	*	ZZ_logsum 	+ 
-				-0.001812507	*	ZZ_pms1km 	+ 
-				-0.017356589	*	ZZ_dis_mall 	+ 
-				 0.12593333	*	ZZ_mrt_200m 	+ 
-				 0.008691113	*	ZZ_mrt_400m 	+ 
-				-0.012386765	*	ZZ_express_200m + 
-				 0.045913095	*	ZZ_bus_400m 	+ 
-				-0.00112725	*	age 		+ 
-				 3.52E-05	*	ageSquared	+ 
-				 0.018782865	*	age30m;
+		hedonicPrice =   6.5310301021 	+ 
+				0.8613773963 	*	DD_logsqrtarea 	+ 
+				0.811106545	*	ZZ_logsum 	+ 
+				-0.0085074262	*	ZZ_pms1km 	+ 
+				-0.0185456553	*	ZZ_dis_mall 	+ 
+				0.1399868038	*	ZZ_mrt_200m 	+ 
+				0.0020759659	*	ZZ_mrt_400m 	+ 
+				-0.0097096656	*	ZZ_express_200m + 
+				0.0478981975	*	ZZ_bus_400m 	+ 
+				0.0059314792	*	age 		+ 
+				-0.000180216	*	ageSquared	+ 
+				0.0256555013	*	age30m;
 	elseif (ZZ_hdb3 == 1) then
-		hedonicPrice = -6.621078298 	+ 
-				0.770612786	*	DD_logarea	+ 
-				6.043678591	*	ZZ_logsum 	+ 
-				4.46E-05	*	ZZ_pms1km 	+ 
-				-0.012916874	*	ZZ_dis_mall 	+ 
-				0.040907994	*	ZZ_mrt_200m 	+ 
-				0.039269537	*	ZZ_mrt_400m 	+ 
-				-0.016480515	*	ZZ_express_200m + 
-				-0.003329949	*	ZZ_bus_400m 	+ 
-				-0.022220604	*	age 		+ 
-				0.000376281	*	ageSquared	+ 
-				0.00442484	*	age30m;
+		hedonicPrice = -7.7081045831 	+ 
+				1.4930459921	*	DD_logsqrtarea	+ 
+				3.4191163546	*	ZZ_logsum 	+ 
+				0.0023263321	*	ZZ_pms1km 	+ 
+				-0.0125945483	*	ZZ_dis_mall 	+ 
+				0.0342745237	*	ZZ_mrt_200m 	+ 
+				0.041827739	*	ZZ_mrt_400m 	+ 
+				-0.0180291611	*	ZZ_express_200m + 
+				0.0061175243	*	ZZ_bus_400m 	+ 
+				-0.0273719681	*	age 		+ 
+				0.0005123315	*	ageSquared	+ 
+				-0.0008655069	*	age30m;
 	elseif (ZZ_hdb4 == 1) then
-		hedonicPrice =  -11.05822938 	+ 
-				0.555391977	*	DD_logarea 	+ 
-				8.068356026	*	ZZ_logsum 	+ 
-				-0.007935505	*	ZZ_pms1km 	+ 
-				-0.015869669	*	ZZ_dis_mall 	+ 
-				0.071967105	*	ZZ_mrt_200m 	+ 
-			       	0.051345789	*	ZZ_mrt_400m 	+ 
-				-0.017976885	*	ZZ_express_200m	+ 
-				0.011143845	*	ZZ_bus_400m 	+ 
-				-0.027661065	*	age 		+ 
-				0.000529645	*	ageSquared	+ 
-				0.016603561	*	age30m;
+		hedonicPrice =  -16.3580567974 	+ 
+				1.1291639931	*	DD_logsqrtarea 	+ 
+				5.2761687931	*	ZZ_logsum 	+ 
+				-0.0152024747	*	ZZ_pms1km 	+ 
+				-0.0206065721	*	ZZ_dis_mall 	+ 
+				0.0745057374	*	ZZ_mrt_200m 	+ 
+			       	0.0528127462	*	ZZ_mrt_400m 	+ 
+				-0.0122772939	*	ZZ_express_200m	+ 
+				0.0063767898	*	ZZ_bus_400m 	+ 
+				-0.0296133112	*	age 		+ 
+				0.0005875112	*	ageSquared	+ 
+				0.0085068925	*	age30m;
 	elseif (ZZ_hdb5m == 1) then
-		hedonicPrice = -15.92090409 	+ 
-				0.931672979	*	DD_logarea 	+ 
-				9.238094212	*	ZZ_logsum 	+ 
-				0.00557408	*	ZZ_pms1km 	+	 
-				-0.013448111	*	ZZ_dis_mall 	+ 
-				0.082384142	*	ZZ_mrt_200m 	+ 
-				0.040629054	*	ZZ_mrt_400m 	+ 
-				-0.017177823	*	ZZ_express_200m + 
-				0.019294964	*	ZZ_bus_400m 	+ 
-				-0.032293775	*	age 		+ 
-				0.000655319	*	ageSquared	+ 
-				0.082523075	*	age30m;
+		hedonicPrice =  -24.2858586299	+ 
+				1.8321634334	*	DD_logsqrtarea 	+ 
+				6.5150029612	*	ZZ_logsum 	+ 
+				-0.0109540359	*	ZZ_pms1km 	+	 
+				-0.0240467625	*	ZZ_dis_mall 	+ 
+				0.0753225202	*	ZZ_mrt_200m 	+ 
+				0.0433853548	*	ZZ_mrt_400m 	+ 
+				-0.016361304	*	ZZ_express_200m + 
+				0.0080894577	*	ZZ_bus_400m 	+ 
+				-0.0323315744	*	age 		+ 
+				0.0006491499	*	ageSquared	+ 
+				0.0905129581	*	age30m;
 	else 
-		hedonicPrice = -10.56097603 	+ 
-				0.770965021	*	DD_logarea 	+ 
-				7.454534834	*	ZZ_logsum 	+ 
-				0.003687724	*	ZZ_pms1km 	+ 
-				-0.023468107	*	ZZ_dis_mall 	+	 
-				0.078803451	*	ZZ_mrt_200m 	+ 
-				0.028197726	*	ZZ_mrt_400m 	+ 
-				-0.018227609	*	ZZ_express_200m	+ 
-				0.004238152	*	ZZ_bus_400m 	+ 
-				-0.000741825	*	age 		+ 
-				-5.07E-05	*	ageSquared	+ 
-				0.075272042	*	age30m;
+		hedonicPrice =  -20.691291483	+ 
+				1.5644794951	*	DD_logsqrtarea 	+ 
+				5.9059531807	*	ZZ_logsum 	+ 
+				-0.0167737991	*	ZZ_pms1km 	+ 
+				-0.0322549823	*	ZZ_dis_mall 	+	 
+				0.0597935913	*	ZZ_mrt_200m 	+ 
+				0.0370877628	*	ZZ_mrt_400m 	+ 
+				-0.0179136868	*	ZZ_express_200m	+ 
+				0.0020874191	*	ZZ_bus_400m 	+ 
+				-0.0045397274	*	age 		+ 
+				3.76468245285355E-006	*	ageSquared	+ 
+				0.0632305412	*	age30m;
 	end
 
 	hedonicPrice = hedonicPrice + lagCoefficient;
@@ -327,7 +315,7 @@ function calculatePrivate_HedonicPrice(unit, building, postcode, amenities, logs
 
 	local misage = 0;
 
-	DD_logarea  = math.log(unit.floorArea);
+	DD_logsqrtarea  = math.log(math.sqrt(unit.floorArea));
 	ZZ_dis_cbd  = amenities.distanceToCBD;
 	ZZ_dis_mall = amenities.distanceToMall;
 
@@ -356,107 +344,107 @@ function calculatePrivate_HedonicPrice(unit, building, postcode, amenities, logs
 	-----------------------------
 	-----------------------------
 	if( (unit.unitType >= 12 and unit.unitType  <= 16 ) or ( unit.unitType >= 32 and unit.unitType  <= 36 ) or ( unit.unitType >= 37 and unit.unitType  <= 51 )) then -- Executive Condominium and Condominium
-		hedonicPrice = -25.54928193 	+ 
-				0.969230027	*	DD_logarea 	+ 
-				0.178603032	*	ZZ_freehold 	+ 
-				12.91048136	*	ZZ_logsum 	+ 
-				-0.002453952	*	ZZ_pms1km 	+ 
-				-0.041115924	*	ZZ_dis_mall 	+ 
-				-0.08167267	*	ZZ_mrt_200m 	+ 
-				-0.022713371	*	ZZ_mrt_400m 	+ 
-				0.053584268	*	ZZ_express_200m + 
-				-0.370359	*	ZZ_bus_400m 	+ 
-				0.348895837	*	ZZ_bus_gt400m 	+ 
-				-0.016519062	*	age 		+ 
-				-0.00012883	*	ageSquared	+ 
-				0.134831364	*	agem25_50 	+ 
-				0.474173547	*	agem50 		+ 
-				-0.105709958	*	misage;
+		hedonicPrice =  -34.2789715238	+ 
+				1.9543593824	*	DD_logsqrtarea 	+ 
+				0.185534802	*	ZZ_freehold 	+ 
+				8.4725633834	*	ZZ_logsum 	+ 
+				-0.0013503645	*	ZZ_pms1km 	+ 
+				-0.0502499853	*	ZZ_dis_mall 	+ 
+				-0.0646248265	*	ZZ_mrt_200m 	+ 
+				0.0060583414	*	ZZ_mrt_400m 	+ 
+				-0.0035296068	*	ZZ_express_200m + 
+				0.06315713	*	ZZ_bus_400m 	+ 
+				0.4625580825	*	ZZ_bus_gt400m 	+ 
+				-0.0162262035	*	age 		+ 
+				-6.31981518179487E-005	*	ageSquared	+ 
+				0.0663360651	*	agem25_50 	+ 
+				0.3712294323	*	agem50 		+ 
+				-0.1140053991	*	misage;
 	elseif (unit.unitType >= 7 and unit.unitType  <= 11 or unit.unitType == 64) then --"Apartment"
-		hedonicPrice = -23.08166378 	+ 
-				0.838905717	*	DD_logarea 	+ 
-				0.036665412	*	ZZ_freehold 	+ 
-				12.19561161	*	ZZ_logsum 	+ 
-				0.041185213	*	ZZ_pms1km 	+ 
-				-0.108448088	*	ZZ_dis_mall 	+ 
-				-0.071465284	*	ZZ_mrt_200m 	+ 
-				0.106852355	*	ZZ_mrt_400m 	+ 
-				-0.037059068	*	ZZ_express_200m	+ 
-				0.096846927	*	ZZ_bus_400m 	+ 
-				0.224145375	*	ZZ_bus_gt400m 	+ 
-				-0.02603531	*	age 		+ 
-				0.0000867	*	ageSquared	+ 
-				0.076709586	*	agem25_50 	+ 
-				0.523295627	*	agem50 		+ 
-				-0.124793173	*	misage;
+		hedonicPrice =  -35.6211083477	+ 
+				1.6860172196	*	DD_logsqrtarea 	+ 
+				-0.0196072352	*	ZZ_freehold 	+ 
+				8.8540731181	*	ZZ_logsum 	+ 
+				0.012462911	*	ZZ_pms1km 	+ 
+				-0.1266819716	*	ZZ_dis_mall 	+ 
+				-0.0533271461	*	ZZ_mrt_200m 	+ 
+				0.0627437655	*	ZZ_mrt_400m 	+ 
+				-0.0315005106	*	ZZ_express_200m	+ 
+				0.1039117015	*	ZZ_bus_400m 	+ 
+				0.2514717677	*	ZZ_bus_gt400m 	+ 
+				-0.026829631	*	age 		+ 
+				7.55894896563371E-006	*	ageSquared	+ 
+				0.1206055026	*	agem25_50 	+ 
+				0.5266551424	*	agem50 		+ 
+				-0.1323187713	*	misage;
 	elseif (unit.unitType >= 17 and unit.unitType  <= 21 ) then --"Terrace House"
-		hedonicPrice = 	2.115617129 	+ 
-				0.468612265	*	DD_logarea 	+ 
-				0.135114204	*	ZZ_freehold 	+ 
-				3.591528177	*	ZZ_logsum 	+ 
-				0.029715641	*	ZZ_pms1km 	+ 
-				-0.0026513	*	ZZ_dis_mall 	+ 
-				0.008829052	*	ZZ_mrt_200m 	+ 
-				0.00153972	*	ZZ_mrt_400m 	+ 
-				0.004728968	*	ZZ_express_200m + 
-				0.028124909	*	ZZ_bus_400m 	+ 
-				0.220693908	*	ZZ_bus_gt400m 	+ 
-				-0.031700344	*	age 		+ 
-				0.001123349	*	ageSquared	+ 
-				-0.165532208	*	agem25_50 	+ 
-				0.044950323	*	agem50 		+ 
-				-0.1407557	*	misage;
+		hedonicPrice = 	 -1.6212198517	+ 
+				0.9416459241	*	DD_logsqrtarea 	+ 
+				0.1214265597	*	ZZ_freehold 	+ 
+				2.5867788111	*	ZZ_logsum 	+ 
+				0.0411811851	*	ZZ_pms1km 	+ 
+				0.0001729015	*	ZZ_dis_mall 	+ 
+				0.0199178025	*	ZZ_mrt_200m 	+ 
+				0.0389471014	*	ZZ_mrt_400m 	+ 
+				-0.0003068885	*	ZZ_express_200m + 
+				0.0283373806	*	ZZ_bus_400m 	+ 
+				0.2513888642	*	ZZ_bus_gt400m 	+ 
+				-0.0346296891	*	age 		+ 
+				0.0012772858	*	ageSquared	+ 
+				-0.1818059452	*	agem25_50 	+ 
+				-0.0309336844	*	agem50 		+ 
+				-0.1607324746	*	misage;
 	elseif ( unit.unitType >= 22 and unit.unitType  <= 26 ) then --"Semi-Detached House"	
-		hedonicPrice = -19.1340235 	+ 
-				0.439412904	*	DD_logarea 	+ 
-				0.078858977	*	ZZ_freehold 	+ 
-				11.59805493	*	ZZ_logsum 	+ 
-				0.019830039	*	ZZ_pms1km 	+ 
-				0.00781082	*	ZZ_dis_mall 	+ 
-				-0.228086333	*	ZZ_mrt_200m 	+ 
-				-0.046377882	*	ZZ_mrt_400m 	+ 
-				-0.164674723	*	ZZ_express_200m	+ 
-				0.023352674	*	ZZ_bus_400m 	+ 
-				0.150093763	*	ZZ_bus_gt400m 	+ 
-				-0.025372566	*	age 		+ 
-				0.000807147	*	ageSquared	+ 
-				-0.166701637	*	agem25_50 	+ 
-				0.023981051	*	agem50 		+ 
-				-0.088263362	*	misage;
+		hedonicPrice = 	-30.0681862696 + 
+				0.8777324717	*	DD_logsqrtarea 	+ 
+				0.1019885308	*	ZZ_freehold 	+ 
+				8.1682835293	*	ZZ_logsum 	+ 
+				0.0237208034	*	ZZ_pms1km 	+ 
+				0.0043264369	*	ZZ_dis_mall 	+ 
+				-0.2410773909	*	ZZ_mrt_200m 	+ 
+				-0.0319380609	*	ZZ_mrt_400m 	+ 
+				-0.1530572891	*	ZZ_express_200m	+ 
+				0.0193466592	*	ZZ_bus_400m 	+ 
+				0.1250873123	*	ZZ_bus_gt400m 	+ 
+				-0.0178160326	*	age 		+ 
+				0.0006145903	*	ageSquared	+ 
+				-0.0996274123	*	agem25_50 	+ 
+				0.0426239642	*	agem50 		+ 
+				-0.0166359598	*	misage;
 	elseif ( unit.unitType >= 27 and unit.unitType  <= 31 ) then --"Detached House"	
-		hedonicPrice = -26.03977798 	+ 
-				0.811576331	*	DD_logarea 	+	 
-				-0.053529572	*	ZZ_freehold 	+ 
-				13.39605601	*	ZZ_logsum 	+ 
-				-0.003305346	*	ZZ_pms1km 	+ 
-				0.01970628	*	ZZ_dis_mall 	+ 
-				0.035937868	*	ZZ_mrt_200m 	+ 
-				-0.07363059	*	ZZ_mrt_400m 	+ 
-				-0.109209837	*	ZZ_express_200m + 
-				0.106419072	*	ZZ_bus_400m 	+ 
-				0.254100391	*	ZZ_bus_gt400m 	+ 
-				-0.023193191	*	age 		+ 
-				0.000394237	*	ageSquared	+ 
-				-0.077718103	*	agem25_50 	+ 
-				-0.068276746	*	agem50 		+ 
-				-0.221324717	*	misage;
+		hedonicPrice =  -25.3009448577	+ 
+				1.6490660756	*	DD_logsqrtarea 	+	 
+				-0.1042343778	*	ZZ_freehold 	+ 
+				6.8924682898	*	ZZ_logsum 	+ 
+				0.0018250513	*	ZZ_pms1km 	+ 
+				0.0299415055	*	ZZ_dis_mall 	+ 
+				0.0885906365	*	ZZ_mrt_200m 	+ 
+				-0.0451837299	*	ZZ_mrt_400m 	+ 
+				-0.1107422172	*	ZZ_express_200m + 
+				0.1002593268	*	ZZ_bus_400m 	+ 
+				0.2618344592	*	ZZ_bus_gt400m 	+ 
+				-0.0634903837	*	age 		+ 
+				0.0016315979	*	ageSquared	+ 
+				-0.0122258749	*	agem25_50 	+ 
+				-0.182327548	*	agem50 		+ 
+				-0.4809821641	*	misage;
 	else 
-		hedonicPrice = 	 1.608609087 	+ 
-				 0.732167784 	* DD_logarea 		+ 
-				 0 		* ZZ_freehold 		+ 
-				 3.062183727 	* ZZ_logsum 		+ 
-				-0.040562506 	* ZZ_pms1km 		+ 
-				-0.02150639  	* ZZ_dis_mall 		+ 
-			         0 		* ZZ_mrt_200m 		+ 
-				 0.001145249 	* ZZ_mrt_400m 	 	+ 
-				-0.043523853 	* ZZ_express_200m 	+ 
-				-0.014385463 	* ZZ_bus_400m  		+ 
-			        -0.033681751 	* ZZ_bus_gt400m 	+ 
-				 0.005228958 	* age 			+ 
-				-0.000607114 	* ageSquared		+ 
-			         0 		* agem25_50 		+ 
-				 0 		* agem50 		+ 
-				-0.074834872 	* misage;
+		hedonicPrice = 	-3.4472485261	+ 
+				 1.4596477362	* DD_logsqrtarea 		+ 
+				 0		* ZZ_freehold 		+ 
+				 2.61076717	* ZZ_logsum 		+ 
+				-0.0440980377	* ZZ_pms1km 		+ 
+				-0.0180586911	* ZZ_dis_mall 		+ 
+			         0		* ZZ_mrt_200m 		+ 
+				 0.0031080858	* ZZ_mrt_400m 	 	+ 
+				-0.0472882479	* ZZ_express_200m 	+ 
+				-0.0306430166	* ZZ_bus_400m  		+ 
+			        -0.0664221756	* ZZ_bus_gt400m 	+ 
+				 0.0050404258 	* age 			+ 
+				-0.0005512869	* ageSquared		+ 
+			         0		* agem25_50 		+ 
+				 0		* agem50 		+ 
+				-0.0709370628	* misage;
 	end
 	------------------------------------------
 	------------------------------------------

@@ -42,37 +42,50 @@ namespace sim_mob
 			//
 			/* willingness to pay in million of dollars*/
 			double sde		=  0.1;
-			double barea	=  0.6922591951;
-			double blogsum	=  0.0184661069;
-			double bchin	= -0.0727597459;
-			double bmalay	= -0.3067308978;
-			double bHighInc =  0.0558738418;
-			const double bHIncChildApart  	=  0.085270578;
-			const double bHIncChildCondo  	= -0.0496929496;
-			const double bapartment 		= -3.1147976249;
-			const double bcondo 			= -2.9582377947;
-			const double bdetachedAndSemiDetached = -2.6753868759;
-			const double terrace 			= -2.9801756451;
-			const double bageOfUnit25		= -0.0432841653;
-			const double bageOfUnit25Squared= -0.0164360119;
-			const double bageGreaterT25LessT50 =  0.1883170202;
-			const double bageGreaterT50 	=  0.3565907423;
-			const double bmissingAge 		= -0.1679748285;
-			const double bfreeholdAppartm 	=  0.599136353;
-			const double bfreeholdCondo 	=  0.4300148333;
-			const double fbreeholdTerrace 	=  0.3999045196;
+			double barea	=  1.2776236855;
+			double blogsum	=  2.3681113961;
+			//double bchin	= -0.0727597459;
+			//double bmalay	= -0.3067308978;
+			//double bHighInc =  0.0558738418;
+			//const double bHIncChildApart  	=  0.085270578;
+			//const double bHIncChildCondo  	= -0.0496929496;
 
-			const double midIncChildHDB3 = -0.0044485643;
-			const double midIncChildHDB4 = -0.0068614137;
-			const double midIncChildHDB5 = -0.0090473027;
+			double bsizearea	= -0.0610034134;
 
-			const double bhdb12	=	-3.7770973415;
-			const double bhdb3  =  	-3.4905971667;
-			const double bhdb4 	=	-3.4851295051;
-			const double bhdb5	=	-3.5070548459;
-			const double bageOfUnit30 = -0.7012864149;
-			const double bageOfUnit30Squared = 0.1939266362;
-			const double bageOfUnitGreater30 = 0.0521622428;
+			const double bapartment 		= -14.9893687574;
+			const double bcondo 			= -14.7980902811;
+			const double bdetachedAndSemiDetached = -14.528510128;
+			const double terrace 			= -14.618082738;
+
+			const double bageOfUnit25		= -0.1476932304;
+			const double bageOfUnit25Squared= 0.050642294;
+			const double bageGreaterT25LessT50 =  0.0635278571;
+			const double bageGreaterT50 	=  -0.062726675;
+			const double bmissingAge 		= -0.1776297021;
+			const double bfreeholdAppartm 	=  0.4831018545;
+			const double bfreeholdCondo 	=  0.336248634;
+			const double fbreeholdTerrace 	=  0.1650851857;
+
+			double bcar		= -14.5903636209;
+			double bcarlgs	= 2.8686016209;
+
+			const double bbus2400	= 0.0498768836;
+
+
+			//const double midIncChildHDB3 = -0.0044485643;
+			//const double midIncChildHDB4 = -0.0068614137;
+			//const double midIncChildHDB5 = -0.0090473027;
+
+			const double bhdb12	=	-24.2878264656;
+			const double bhdb3  =  	-23.9620528917;
+			const double bhdb4 	=	-23.9722760927;
+			const double bhdb5	=	-24.032472028;
+			const double bageOfUnit30 = -0.4840396953;
+			const double bageOfUnit30Squared = 0.1153256697;
+			const double bageOfUnitGreater30 = 0.0263396528;
+
+			const double bmall	= -0.0283429623;
+			const double bmrt2400m	= 0.028740817;
 
 			double Apartment	= 0;
 			double Condo		= 0;
@@ -111,6 +124,7 @@ namespace sim_mob
 
 			int chineseHousehold = 0;
 			int malayHousehold   = 0;
+			int carOwnershipBoolean = 0;
 
 		};
 	}

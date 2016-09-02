@@ -220,7 +220,7 @@ namespace sim_mob
 
 				if( ZZ_logsumhh == -1 )
 				{
-					PersonParams personParam = PredayLT_LogsumManager::getInstance().computeLogsum( headOfHousehold->getId(), homeTaz, workTaz );
+					PersonParams personParam = PredayLT_LogsumManager::getInstance().computeLogsum( headOfHousehold->getId(), homeTaz, workTaz, 1 );
 					ZZ_logsumhh = personParam.getDpbLogsum();
 
 					BigSerial groupId = hitssample->getGroupId();
@@ -280,6 +280,9 @@ namespace sim_mob
 
 			if( household->getEthnicityId() == 2 )
 				malayHousehold = 1;
+
+			if( household->getVehicleOwnershipOptionId() > 0)
+				carOwnershipBoolean = 1;
 		}
 
 
@@ -291,36 +294,81 @@ namespace sim_mob
 
 			int unitType = unit->getUnitType();
 
+			int sizeAreaQuantileHDB = 0;
+			int sizeAreaQuantileCondo = 0;
+			double lgsqrtArea = log(sqrt(unit->getFloorArea()));
+			double lowerQuantileCondo = model->getlogSqrtFloorAreahdb()[ model->getlogSqrtFloorAreahdb().size() * 0.3 ];
+			double upperQuantileCondo = model->getlogSqrtFloorAreahdb()[ model->getlogSqrtFloorAreahdb().size() * 0.5 ];
+			double lowerQuantileHDB = model->getlogSqrtFloorAreahdb()[ model->getlogSqrtFloorAreahdb().size() * 0.4 ];
+			double upperQuantileHDB = model->getlogSqrtFloorAreahdb()[ model->getlogSqrtFloorAreahdb().size() * 0.6 ];
+
+			if( lgsqrtArea >=  lowerQuantileCondo && lgsqrtArea < upperQuantileCondo )
+			{
+				sizeAreaQuantileCondo = 0;
+			}
+
+			if( lgsqrtArea >=  lowerQuantileHDB && lgsqrtArea < upperQuantileHDB )
+			{
+				sizeAreaQuantileHDB = 0;
+			}
+
 			//We use a separate list of coefficients for HDB units.
 			if( unitType <= 6  || unitType == 65 )
 			{
 				sde 	 = 0.05;
-				barea 	 = 0.8095874824;
-				blogsum	 = 0.0035517989;
-				bchin 	 = 0.0555546991;
-				bmalay 	 = -0.0056135472;
-				bHighInc = 0.0229342784;
+				barea 	 = 1.8015720108;
+				blogsum	 = 3.9195477998;
+				bsizearea=-0.0169852462;
+				//bchin 	 = 0.0555546991;
+				//bmalay 	 = -0.0056135472;
+				//bHighInc = 0.0229342784;
+
+				bcar	= -5.9210886427;
+				bcarlgs	= 1.1602061059;
 			}
 
 			FindHDBType(unitType);
 			FindHouseholdSize(household);
 
-			DD_area = log( unit->getFloorArea() );
+			DD_area = log( sqrt(unit->getFloorArea()) );
 
 			FindAgeOfUnit( unit, day);
 
-			GetLogsum(model, household, day);
+			//GetLogsum(model, household, day);
+			Postcode *unitPostcode = model->getPostcodeById(	unit->getSlaAddressId() );
+			ZZ_logsumhh = model->ComputeHedonicPriceLogsumFromDatabase( unitPostcode->getTazId() );
+			Household* householdT = const_cast<Household*>(household);
+			householdT->setLogsum(ZZ_logsumhh);
 
 			GetIncomeAndEthnicity(model, household, unit);
 
+			const PostcodeAmenities *amenities = DataManagerSingleton::getInstance().getAmenitiesById( unitPostcode->getAddressId() );
+
+			int busDistanceBool = 0;
+			if( amenities->getDistanceToBus() > 200 && amenities->getDistanceToBus() < 400 )
+				busDistanceBool = 1;
+
+			double mallDistance = amenities->getDistanceToMall();
+
+			int mallDistanceBool = 0;
+
+			if( amenities->getDistanceToMall() > 200 && amenities->getDistanceToMall() < 400 )
+				mallDistanceBool = 1;
 
 			double Vpriv = 	(barea		*  DD_area 		) +
 							(blogsum	* ZZ_logsumhh 	) +
-							(bchin	  	* ZZ_hhchinese 	* chineseHousehold ) +
-							(bmalay		* ZZ_hhmalay 	* malayHousehold   ) +
-							(bHighInc   * ZZ_highInc 	) +
-							(bHIncChildApart * ZZ_children * ZZ_highInc	* Apartment 	) +
-							(bHIncChildCondo * ZZ_children * ZZ_highInc	* Condo 		) +
+
+							//(bchin	  	* ZZ_hhchinese 	* chineseHousehold ) +
+							//(bmalay		* ZZ_hhmalay 	* malayHousehold   ) +
+							//(bHighInc   * ZZ_highInc 	) +
+							//(bHIncChildApart * ZZ_children * ZZ_highInc	* Apartment 	) +
+							//(bHIncChildCondo * ZZ_children * ZZ_highInc	* Condo 		) +
+
+							(bsizearea	 * sizeAreaQuantileCondo) +
+							(bcar * carOwnershipBoolean ) +
+							(bcarlgs * carOwnershipBoolean  * ZZ_logsumhh ) +
+							(bbus2400 * busDistanceBool) +
+
 							(bapartment  * Apartment ) +
 							(bcondo 	 * Condo 	 ) +
 							(bdetachedAndSemiDetached * DetachedAndSemidetaced ) +
@@ -337,12 +385,21 @@ namespace sim_mob
 
 			double Vhdb = 	(barea		*  DD_area 		) +
 							(blogsum	* ZZ_logsumhh 	) +
-							(bchin	  	* ZZ_hhchinese 	* chineseHousehold ) +
-							(bmalay		* ZZ_hhmalay 	* malayHousehold   ) +
-							(bHighInc   * ZZ_highInc 	) +
-							(midIncChildHDB3 * ZZ_children * ZZ_middleInc 	* HDB3	) +
-							(midIncChildHDB4 * ZZ_children * ZZ_middleInc 	* HDB4	) +
-							(midIncChildHDB5 * ZZ_children * ZZ_middleInc 	* HDB5	) +
+
+							//(bchin	  	* ZZ_hhchinese 	* chineseHousehold ) +
+							//(bmalay		* ZZ_hhmalay 	* malayHousehold   ) +
+							//(bHighInc   * ZZ_highInc 	) +
+							///(midIncChildHDB3 * ZZ_children * ZZ_middleInc 	* HDB3	) +
+							//(midIncChildHDB4 * ZZ_children * ZZ_middleInc 	* HDB4	) +
+							//(midIncChildHDB5 * ZZ_children * ZZ_middleInc 	* HDB5	) +
+
+							(bsizearea	 * sizeAreaQuantileHDB) +
+							(bcar * carOwnershipBoolean ) +
+							(bcarlgs * carOwnershipBoolean  * ZZ_logsumhh ) +
+							(bmall * mallDistance) +
+							(bmrt2400m * mallDistanceBool ) +
+
+
 							(bhdb12  * HDB12 ) +
 							(bhdb3   * HDB3  ) +
 							(bhdb4 	 * HDB4	 ) +

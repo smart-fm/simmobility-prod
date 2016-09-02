@@ -722,8 +722,8 @@ bool HouseholdBidderRole::pickEntryToBid()
             	double wtp_e = 0;
 
             	//The willingness to pay is in millions of dollars
-            	WillingnessToPaySubModel x;
-            	double wp = x.CalculateWillingnessToPay(unit, household, wtp_e,day, model);
+            	WillingnessToPaySubModel wtp_m;
+            	double wp = wtp_m.CalculateWillingnessToPay(unit, household, wtp_e,day, model);
 
             	wtp_e = wtp_e * entry->getAskingPrice(); //wtp error is a fraction of the asking price.
 

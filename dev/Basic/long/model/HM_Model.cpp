@@ -477,9 +477,9 @@ const HM_Model::TazStats* HM_Model::getTazStats(BigSerial tazId) const
 }
 
 
-double HM_Model::ComputeHedonicPriceLogsumFromDatabase( BigSerial taz) const
+double HM_Model::ComputeHedonicPriceLogsumFromDatabase( BigSerial tazId) const
 {
-	LogsumMtzV2Map::const_iterator itr = logsumMtzV2ById.find(taz);
+	LogsumMtzV2Map::const_iterator itr = logsumMtzV2ById.find(tazId);
 
 	if (itr != logsumMtzV2ById.end())
 	{
@@ -1385,6 +1385,9 @@ void HM_Model::startImpl()
 
 	if (conn.isConnected())
 	{
+		loadData<LogsumMtzV2Dao>( conn, logsumMtzV2, logsumMtzV2ById, &LogsumMtzV2::getTazId );
+		PrintOutV("Number of LogsumMtzV2: " << logsumMtzV2.size() << std::endl );
+
 		loadData<ScreeningModelCoefficientsDao>( conn, screeningModelCoefficientsList, screeningModelCoefficicientsMap, &ScreeningModelCoefficients::getId );
 		PrintOutV("Number of screening Model Coefficients: " << screeningModelCoefficientsList.size() << std::endl );
 
@@ -1448,9 +1451,6 @@ void HM_Model::startImpl()
 
 		loadData<TazLogsumWeightDao>( conn, tazLogsumWeights, tazLogsumWeightById, &TazLogsumWeight::getGroupLogsum );
 		PrintOutV("Number of tazLogsumWeights: " << tazLogsumWeights.size() << std::endl );
-
-		loadData<LogsumMtzV2Dao>( conn, logsumMtzV2, logsumMtzV2ById, &LogsumMtzV2::getV2 );
-		PrintOutV("Number of LogsumMtzV2: " << logsumMtzV2.size() << std::endl );
 
 		loadData<PlanningAreaDao>( conn, planningArea, planningAreaById, &PlanningArea::getId );
 		PrintOutV("Number of planning areas: " << planningArea.size() << std::endl );
@@ -1658,6 +1658,11 @@ void HM_Model::startImpl()
 		{
 			hhAgent->addUnitId(unit->getId());
 			assignedUnits.insert(std::make_pair(unit->getId(), unit->getId()));
+
+			if( unit->getUnitType() <= 6  || unit->getUnitType() == 65 )
+				logSqrtFloorAreahdb.push_back( log(sqrt(unit->getFloorArea())));
+			else
+				logSqrtFloorAreacondo.push_back( log(sqrt(unit->getFloorArea())));
 		}
 		else
 		{
@@ -1682,6 +1687,8 @@ void HM_Model::startImpl()
 		workGroup.assignAWorker(hhAgent);
 	}
 
+	sort(logSqrtFloorAreahdb.begin(), logSqrtFloorAreahdb.end());
+	sort(logSqrtFloorAreacondo.begin(), logSqrtFloorAreacondo.end());
 
 	int totalPopulation = 0;
 	for ( StatsMap::iterator it = stats.begin(); it != stats.end(); ++it )
@@ -1991,13 +1998,47 @@ void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId)
 		travelProbability.push_back(travelProbV);
 		tripsExpected.push_back(tripsExpectedV);
 
+		PersonParams personParams3 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 2 );
+		logsumVehicle	= personParams3.getDpbLogsum();
+		travelProbV		= personParams3.getTravelProbability();
+		tripsExpectedV 	= personParams3.getTripsExpected();
+		logsum.push_back(logsumVehicle);
+		travelProbability.push_back(travelProbV);
+		tripsExpected.push_back(tripsExpectedV);
+
+		PersonParams personParams4 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 3 );
+		logsumVehicle	= personParams4.getDpbLogsum();
+		travelProbV		= personParams4.getTravelProbability();
+		tripsExpectedV 	= personParams4.getTripsExpected();
+		logsum.push_back(logsumVehicle);
+		travelProbability.push_back(travelProbV);
+		tripsExpected.push_back(tripsExpectedV);
+
+		PersonParams personParams5 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 4 );
+		logsumVehicle	= personParams5.getDpbLogsum();
+		travelProbV		= personParams5.getTravelProbability();
+		tripsExpectedV 	= personParams5.getTripsExpected();
+		logsum.push_back(logsumVehicle);
+		travelProbability.push_back(travelProbV);
+		tripsExpected.push_back(tripsExpectedV);
+
+		PersonParams personParams6 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 5 );
+		logsumVehicle	= personParams6.getDpbLogsum();
+		travelProbV		= personParams6.getTravelProbability();
+		tripsExpectedV 	= personParams6.getTripsExpected();
+		logsum.push_back(logsumVehicle);
+		travelProbability.push_back(travelProbV);
+		tripsExpected.push_back(tripsExpectedV);
+
 		simulationStopCounter++;
 
 		printHouseholdHitsLogsumFVO( hitsSample->getHouseholdHitsId(), paxId, householdId, householdIndividualIds[n], thisIndividual->getMemberId(), tazH, tazW, logsum, travelProbability, tripsExpected );
 		PrintOutV( simulationStopCounter << ". " << hitsIndividualLogsum[p]->getHitsId() << ", " << paxId << ", " << hitsSample->getHouseholdHitsId() << ", " << householdId << ", " << thisIndividual->getMemberId()
 										 << ", " << householdIndividualIds[n] << ", " << tazH << ", " << tazW << ", "
-										 << std::setprecision(5)	<< logsum[0]  << ", " << logsum[1] << ", " << tripsExpected[0] << ", " << tripsExpected[1]
-										 << ", " << travelProbability[0] << ", " << travelProbability[1] <<std::endl );
+										 << std::setprecision(5)
+										 << logsum[0]  << ", " << logsum[1] << ", " << logsum[2] << ", " << logsum[3] << ", "<< logsum[4]  << ", " << logsum[5] << ", "
+										 << tripsExpected[0] << ", " << tripsExpected[1] << ", " << tripsExpected[2] << ", " << tripsExpected[3] << ", "<< tripsExpected[4] << ", " << tripsExpected[5] << ", "
+										 << travelProbability[0] << ", " << travelProbability[1] << travelProbability[2] << ", " << travelProbability[3] << travelProbability[4] << ", " << travelProbability[5] <<std::endl );
 
 	}
 }

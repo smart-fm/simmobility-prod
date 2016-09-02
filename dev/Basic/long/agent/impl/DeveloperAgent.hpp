@@ -162,8 +162,6 @@ namespace sim_mob {
 
             void launchOnGoingUnitsOnDay0();
 
-            void createPotentialProjects( PotentialProject& outProject);
-
         private:
             DeveloperModel* devModel;
             boost::shared_ptr<Parcel> parcel;

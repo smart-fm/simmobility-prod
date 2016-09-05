@@ -117,57 +117,33 @@ public:
 
 	/**
 	 * Gets person ids of each person in the population data
-	 *
-	 * @param dbType type of backend where the population data is available
 	 */
-	void loadPersonIds(db::BackendType dbType);
+	void loadPersonIds();
 
 	/**
-	 * Gets details of all mtz zones
-	 *
-	 * @param dbType type of backend where the zone data is available
+	 * load details of all TAZ zones
 	 */
-	void loadZones(db::BackendType dbType);
+	void loadZones();
 
 	/**
 	 * Gets the list of nodes within each zone and stores them in a map
-	 *
-	 * @param dbType type of backend where the zone node mapping data is available
 	 */
-	void loadZoneNodes(db::BackendType dbType);
+	void loadZoneNodes();
 
 	/**
 	 * Gets mapping of postcode to nearest node
-	 *
-	 * @param dbType type of backend where the zone node mapping data is available
 	 */
-	void loadPostcodeNodeMapping(db::BackendType dbType);
-
-	/**
-	 * gets the mapping of zones from data for 2012 back to data for 2008
-	 *
-	 * @param dbType type of backend where the zone node mapping data is available
-	 */
-	void load2012_2008ZoneMapping(db::BackendType dbType);
+	void loadPostcodeNodeMapping();
 
 	/**
 	 * loads the AM, PM and off peak costs data
-	 *
-	 * @param dbType type of backend where the cost data is available
 	 */
-	void loadCosts(db::BackendType dbType);
+	void loadCosts();
 
 	/**
 	 * loads the un-available origin destination pairs
-	 *
-	 * @param dbType type of backend where the cost data is available
 	 */
-	void loadUnavailableODs(db::BackendType dbType);
-
-	/**
-	 * Distributes mongodb persons to different threads and starts the threads which process the persons
-	 */
-	void dispatchMongodbPersons();
+	void loadUnavailableODs();
 
 	/**
 	 * Distributes long-term persons to different threads and starts the threads which process the persons
@@ -188,18 +164,6 @@ private:
 	typedef std::vector<long> LT_PersonIdList;
 
 	typedef void (PredayManager::*threadedFnPtr)(const PersonList::iterator&, const PersonList::iterator&, size_t);
-
-	/**
-	 * Threaded function loop for simulation.
-	 * Loops through all elements in personList within the specified range and
-	 * invokes the Preday system of models for each of them.
-	 *
-	 * @param first personIdList iterator corresponding to the first person to be
-	 * 				processed
-	 * @param last personIdList iterator corresponding to the person after the
-	 * 				last person to be processed
-	 */
-	void processPersons(const PersonIdList::iterator& first, const PersonIdList::iterator& last, const std::string& scheduleLog);
 
 	/**
 	 * Threaded function loop for simulation of LT population
@@ -232,18 +196,6 @@ private:
 	void processPersonsForCalibration(const PersonList::iterator& first, const PersonList::iterator& last, size_t threadNum);
 
 	/**
-	 * Threaded logsum computation
-	 * Loops through all elements in personIdList within the specified range and
-	 * invokes logsum computations for each of them.
-	 *
-	 * @param first personIdList iterator corresponding to the first person to be
-	 * 				processed
-	 * @param last personIdList iterator corresponding to the person after the
-	 * 				last person to be processed
-	 */
-	void computeLogsums(const PersonIdList::iterator& firstPersonIdIt, const PersonIdList::iterator& oneAfterLastPersonIdIt);
-
-	/**
 	 * Threaded logsum computation for LT population
 	 * Loops through all elements in personIdList within the specified range and
 	 * invokes logsum computations for each of them.
@@ -254,36 +206,6 @@ private:
 	 * 				last person to be processed
 	 */
 	void computeLogsumsForLT_Population(const LT_PersonIdList::iterator& firstPersonIdIt, const LT_PersonIdList::iterator& oneAfterLastPersonIdIt);
-
-	/**
-	 * Threaded logsum computation for LT feedback.
-	 * Loops through all elements in personIdList within the specified range and
-	 * invokes logsum computations for each of them.
-	 *
-	 * @param first personIdList iterator corresponding to the first person to be
-	 * 				processed
-	 * @param last personIdList iterator corresponding to the person after the
-	 * 				last person to be processed
-	 *
-	 * \NOTE: This function must be removed when we are able to fully feedback LT population's logsums
-	 */
-	void computeLT_FeedbackLogsums(const PersonIdList::iterator& firstPersonIdIt, const PersonIdList::iterator& oneAfterLastPersonIdIt,
-			const std::string& logsumOutputFileName);
-
-	/**
-	 * Threaded logsum computation for LT feedback.
-	 * Loops through all elements in personIdList within the specified range and
-	 * invokes logsum computations for each of them.
-	 *
-	 * @param first personIdList iterator corresponding to the first person to be
-	 * 				processed
-	 * @param last personIdList iterator corresponding to the person after the
-	 * 				last person to be processed
-	 *
-	 * \NOTE: This function must be removed when we are able to fully feedback LT population's logsums
-	 */
-	void computeLT_PopulationFeedbackLogsums(const LT_PersonIdList::iterator& firstPersonIdIt, const LT_PersonIdList::iterator& oneAfterLastPersonIdIt,
-			const std::string& logsumOutputFileName);
 
 	/**
 	 * Threaded logsum computation for calibration
@@ -297,11 +219,6 @@ private:
 	 * 				last person to be processed
 	 */
 	void computeLogsumsForCalibration(const PersonList::iterator& firstPersonIt, const PersonList::iterator& oneAfterLastPersonIt, size_t threadNum);
-
-	/**
-	 * updates logsums in mongodb
-	 */
-	void updateLogsumsToMongoAfterCalibration(const PersonList::iterator& firstPersonIt, const PersonList::iterator& oneAfterLastPersonIt, size_t threadNum);
 
 	/**
 	 * loads csv containing calibration variables for preday
@@ -373,7 +290,6 @@ private:
 	ZoneMap zoneMap;
 	ZoneNodeMap zoneNodeMap;
 	boost::unordered_map<int, int> zoneIdLookup;
-	std::map<int, int> MTZ12_MTZ08_Map;
 
 	/**
 	 * Map of AM Costs [origin zone, destination zone] -> CostParams*

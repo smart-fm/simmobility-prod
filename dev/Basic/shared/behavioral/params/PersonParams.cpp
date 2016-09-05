@@ -54,18 +54,17 @@ TimeWindowAvailability::TimeWindowAvailability(double startTime, double endTime,
 const std::vector<TimeWindowAvailability> TimeWindowAvailability::timeWindowsLookup = insertAllTimeWindows();
 
 double PersonParams::incomeCategoryLowerLimits[] = {};
-std::map<int, std::bitset<4> > PersonParams::vehicleCategoryLookup = std::map<int, std::bitset<4> >();
 std::map<long, Address> PersonParams::addressLookup = std::map<long, Address>();
 std::map<unsigned int, unsigned int> PersonParams::postCodeToNodeMapping = std::map<unsigned int, unsigned int>();
 std::map<int, std::vector<long> > PersonParams::zoneAddresses = std::map<int, std::vector<long> >();
 
 PersonParams::PersonParams() :
 		personId(""), hhId(""), personTypeId(-1), ageId(-1), isUniversityStudent(-1), studentTypeId(-1), isFemale(-1), incomeId(-1), worksAtHome(-1),
-			carOwn(-1), carOwnNormal(-1), carOwnOffpeak(-1), motorOwn(-1), hasFixedWorkTiming(-1), homeLocation(-1), fixedWorkLocation(-1),
-			fixedSchoolLocation(-1), stopType(-1), drivingLicence(-1), hhOnlyAdults(-1), hhOnlyWorkers(-1), hhNumUnder4(-1), hasUnder15(-1), workLogSum(0),
-			eduLogSum(0), shopLogSum(0), otherLogSum(0), dptLogsum(0), dpsLogsum(0), dpbLogsum(0), genderId(-1), missingIncome(-1), homeAddressId(-1),
-			activityAddressId(-1), carLicense(false), motorLicense(false), vanbusLicense(false), fixedWorkplace(false), student(false), hhSize(-1),
-			hhNumAdults(-1), hhNumWorkers(-1), hhNumUnder15(-1), householdFactor(-1)
+			hasFixedWorkTiming(-1), homeLocation(-1), fixedWorkLocation(-1), fixedSchoolLocation(-1), stopType(-1), drivingLicence(-1),
+			hhOnlyAdults(-1), hhOnlyWorkers(-1), hhNumUnder4(-1), hasUnder15(-1), vehicleOwnershipCategory(VehicleOwnershipOption::INVALID),
+			workLogSum(0), eduLogSum(0), shopLogSum(0), otherLogSum(0), dptLogsum(0), dpsLogsum(0), dpbLogsum(0),
+			genderId(-1), missingIncome(-1), homeAddressId(-1), activityAddressId(-1), carLicense(false), motorLicense(false),
+			vanbusLicense(false), fixedWorkplace(false), student(false), hhSize(-1), hhNumAdults(-1), hhNumWorkers(-1), hhNumUnder15(-1), householdFactor(-1)
 {
 	initTimeWindows();
 }
@@ -73,6 +72,16 @@ PersonParams::PersonParams() :
 PersonParams::~PersonParams()
 {
 	timeWindowAvailability.clear();
+}
+
+void PersonParams::setVehicleOwnershipCategory(int vehicleOwnershipCategory)
+{
+	if(vehicleOwnershipCategory<0 || vehicleOwnershipCategory>5)
+	{
+		throw std::runtime_error("invalid vehicle ownership category: " + std::to_string(vehicleOwnershipCategory));
+	}
+	VehicleOwnershipOption vehOwnOption = static_cast<VehicleOwnershipOption>(vehicleOwnershipCategory);
+	this->vehicleOwnershipCategory = vehOwnOption;
 }
 
 void PersonParams::initTimeWindows()
@@ -138,26 +147,12 @@ void PersonParams::setIncomeIdFromIncome(double income)
 	setIncomeId((i > 0) ? i : NUM_VALID_INCOME_CATEGORIES); //lua models expect 12 to be the id for no income
 }
 
-void PersonParams::setVehicleOwnershipFromCategoryId(int vehicleCategoryId)
-{
-	std::map<int, std::bitset<4> >::const_iterator it = vehicleCategoryLookup.find(vehicleCategoryId);
-	if (it == vehicleCategoryLookup.end())
-	{
-		throw std::runtime_error("Invalid vehicle category");
-	}
-	const std::bitset<4>& vehOwnershipBits = it->second;
-	setCarOwn(vehOwnershipBits[0]);
-	setCarOwnNormal(vehOwnershipBits[1]);
-	setCarOwnOffpeak(vehOwnershipBits[2]);
-	setMotorOwn(vehOwnershipBits[3]);
-}
-
 std::string PersonParams::print()
 {
 	std::stringstream printStrm;
 	printStrm << personId << "," << personTypeId << "," << ageId << "," << isUniversityStudent << "," << hhOnlyAdults << "," << hhOnlyWorkers << ","
-			<< hhNumUnder4 << "," << hasUnder15 << "," << isFemale << "," << incomeId << "," << missingIncome << "," << worksAtHome << "," << carOwn << ","
-			<< carOwnNormal << "," << carOwnOffpeak << "," << motorOwn << "," << workLogSum << "," << eduLogSum << "," << shopLogSum << "," << otherLogSum
+			<< hhNumUnder4 << "," << hasUnder15 << "," << isFemale << "," << incomeId << "," << missingIncome << "," << worksAtHome << ","
+			<< static_cast<int>(vehicleOwnershipCategory) << "," << workLogSum << "," << eduLogSum << "," << shopLogSum << "," << otherLogSum
 			<< std::endl;
 	return printStrm.str();
 }

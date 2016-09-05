@@ -129,7 +129,7 @@ local function computeUtilities(params,dbparams)
 	--params.car_own_normal is from household table
 	--imd use all cars (car_normal + car_offpeak) to calculate zero car...
 	local zero_car,one_plus_car,two_plus_car,three_plus_car, zero_motor,one_plus_motor,two_plus_motor,three_plus_motor = 0,0,0,0,0,0,0,0
-	
+	local veh_own_cat = params.vehicle_ownership_category
 	if veh_own_cat == 1  then 
 		zero_car = 1 
 		

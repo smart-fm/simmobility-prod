@@ -154,7 +154,7 @@ local availability = {}
 local function computeAvailabilities(params,dbparams)
 	local mode = dbparams.mode
 	for i = 1, 1176 do 
-		availability[i] = params:getTimeWindowAvailabilityTour(i, mode)
+		availability[i] = params:getTimeWindowAvailabilityTour(i,mode)
 	end
 end
 

@@ -11,15 +11,15 @@ Authors - Siyu Li, Harish Loganathan
 --Note: the betas that not estimated are fixed to zero.
 
 --!! see the documentation on the definition of AM,PM and OP table!!
-local beta_cons_bus = -2.000
-local beta_cons_mrt = -2.500
-local beta_cons_privatebus = -1.500
-local beta_cons_drive1 = -3.000
-local beta_cons_share2 = -11.000
-local beta_cons_share3 = -7.000
-local beta_cons_motor = 10.000
-local beta_cons_walk = 2.757
-local beta_cons_taxi = -3.000
+local beta_cons_bus = -1.897
+local beta_cons_mrt = -2.078
+local beta_cons_privatebus = -1.155
+local beta_cons_drive1 = -3.712
+local beta_cons_share2 = -11.069
+local beta_cons_share3 = -7.039
+local beta_cons_motor = 10.914
+local beta_cons_walk = 3.047
+local beta_cons_taxi = -2.909
 
 local beta1_1_tt = -0.687
 local beta1_2_tt = -0.690
@@ -257,17 +257,36 @@ local function computeUtilities(params,dbparams)
 	-- 0 if origin == destination
 	local average_transfer_number = dbparams.average_transfer_number
 
-	--params.car_own_normal is from household table
-	local zero_car = params.car_own_normal == 0 and 1 or 0
-	local one_plus_car = params.car_own_normal >= 1 and 1 or 0
-	local two_plus_car = params.car_own_normal >= 2 and 1 or 0
-	local three_plus_car = params.car_own_normal >= 3 and 1 or 0
-
-	--params.motor_own is from household table
-	local zero_motor = params.motor_own == 0 and 1 or 0
-	local one_plus_motor = params.motor_own >=1 and 1 or 0
-	local two_plus_motor = params.motor_own >=2 and 1 or 0
-	local three_plus_motor = params.motor_own >= 3 and 1 or 0
+	local zero_car,one_plus_car,two_plus_car,three_plus_car, zero_motor,one_plus_motor,two_plus_motor,three_plus_motor = 0,0,0,0,0,0,0,0
+	local veh_own_cat = params.vehicle_ownership_category
+	if veh_own_cat == 0  then 
+		zero_car = 1 
+	
+	end
+	if veh_own_cat == 3 or veh_own_cat == 4 or veh_own_cat == 5  then 
+		one_plus_car = 1 
+	end
+	if veh_own_cat == 5  then 
+		two_plus_car = 1 
+	end
+	
+	if veh_own_cat == 5  then 
+		three_plus_car = 1 
+	end
+	if veh_own_cat == 0 or veh_own_cat == 3  then 
+		zero_motor = 1 
+	end
+	if veh_own_cat == 1 or veh_own_cat == 2 or veh_own_cat == 4 or veh_own_cat == 5  then 
+		one_plus_motor = 1 
+	end
+	
+	if veh_own_cat == 1 or veh_own_cat == 2 or veh_own_cat == 4 or veh_own_cat == 5  then 
+		two_plus_motor = 1 
+	end
+	
+	if veh_own_cat == 1 or veh_own_cat == 2 or veh_own_cat == 4 or veh_own_cat == 5  then 
+		three_plus_motor = 1 
+	end
 
 	--dbparams.resident_size = ZONE[origin]['resident workers']
 	--dbparams.education_op = ZONE[destination]['education_op'] --total student 
@@ -325,13 +344,4 @@ function choose_tme(params,dbparams)
 	computeAvailabilities(params,dbparams)
 	local probability = calculate_probability("nl", choice, utility, availability, scale)
 	return make_final_choice(probability)
-end
-
--- function to call from C++ preday simulator for logsums computation
--- params and dbparams tables contain data passed from C++
--- to check variable bindings in params or dbparams, refer PredayLuaModel::mapClasses() function in dev/Basic/medium/behavioral/lua/PredayLuaModel.cpp
-function compute_logsum_tmw(params,dbparams)
-	computeUtilities(params,dbparams) 
-	computeAvailabilities(params,dbparams)
-	return compute_nl_logsum(choice, utility, availability, scale)
 end

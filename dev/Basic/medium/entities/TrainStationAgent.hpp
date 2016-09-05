@@ -34,6 +34,7 @@ public:
 	void setLastDriver(std::string lineId,TrainDriver *driver);
 	void addTrainDriverInToStationAgent(TrainDriver * driver);
 	std::list<TrainDriver*>& getTrains();
+	std::map<std::string, TrainDriver*> getLastDriver();
 
 protected:
 	virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
@@ -125,7 +126,7 @@ private:
 	std::string stationName;
 	std::map<std::string,bool> IsStartStation;
 	bool arePassengersreRouted = false;
-
+	boost::mutex insertTrainOrUturnlock;
 };
 }
 } /* namespace sim_mob */

@@ -423,6 +423,16 @@ void TrainDriver::setSubsequentNextRequested(TrainDriver::TRAIN_NEXTREQUESTED ne
 	 subsequent_nextRequested = nextReq;
 }
 
+bool TrainDriver::getIsToBeRemoved()
+{
+	return isToBeRemovedFromStationAgent;
+}
+
+void TrainDriver::setIsToBeRemoved(bool isToBeRemoved)
+{
+	isToBeRemovedFromStationAgent = isToBeRemoved;
+}
+
 bool TrainDriver::getForceAlightFlag()
 {
 	return forceAlightPassengers_ByServiceController;

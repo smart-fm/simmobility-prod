@@ -1277,13 +1277,12 @@ namespace sim_mob
 						if(it!=trainsToBePushedToInactivePoolAfterTripCompletion.end())
 						{
 							trainsToBePushedToInactivePoolAfterTripCompletion.erase(it);
-							addTrainToInActivePool(lineId, trainId);
+							addTrainToInActivePool(oppLineId, trainId);
 						}
 						else
 						{
-						   addTrainToActivePool(lineId, trainId);
+						   addTrainToActivePool(oppLineId, trainId);
 						}
-
 
 					}
 				}

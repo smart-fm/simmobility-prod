@@ -259,8 +259,8 @@
          Value 'mongodb' is default for source. 
          Database and credentials attributes are required only for pgsql source.
          Valid ids from the list constructs list have to be specified -->
-        <population source="pgsql" database="fm_remote_lt" credential="lt_cred"/>
-        <simmob_mt source="pgsql" database="fm_remote" credential="fm_remote"/>
+        <population source="pgsql" database="fm_hpchead" credential="fm_hpchead"/>
+        <simmob_mt source="pgsql" database="fm_hpc" credential="fm_hpchead"/>
 
 
         <!-- table containing logsums for each individual in the population. NOTE:  -->

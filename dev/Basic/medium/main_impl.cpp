@@ -67,6 +67,7 @@
 #include "workers/WorkGroupManager.hpp"
 #include "behavioral/ServiceController.hpp"
 #include "behavioral/TrainServiceControllerLuaProvider.hpp"
+#include "entities/TrainRemoval.h"
 
 //If you want to force a header file to compile, you can put it here temporarily:
 //#include "entities/BusController.hpp"
@@ -429,6 +430,8 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 
 			wgMgr.waitAllGroups_FrameTick();
 			wgMgr.waitAllGroups_FlipBuffers(&removedEntities);
+			TrainRemoval *trainRemovalInstance=TrainRemoval::getInstance();
+			trainRemovalInstance->removeTrainsBeforeNextFrameTick();
 			TrainServiceControllerLuaProvider::getTrainControllerModel()->useServiceController((dailyTime+DailyTime(5000)).getStrRepr());
 			wgMgr.waitAllGroups_DistributeMessages(removedEntities);
 			wgMgr.waitAllGroups_MacroTimeTick();

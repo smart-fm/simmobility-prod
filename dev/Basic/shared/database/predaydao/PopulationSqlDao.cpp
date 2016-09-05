@@ -31,7 +31,7 @@ void PopulationSqlDao::fromRow(Row& result, PersonParams& outObj)
 	outObj.setPersonTypeId(result.get<BigInt>(DB_FIELD_PERSON_TYPE_ID));
 	outObj.setGenderId(result.get<BigInt>(DB_FIELD_GENDER_ID));
 	outObj.setStudentTypeId(result.get<BigInt>(DB_FIELD_STUDENT_TYPE_ID));
-	outObj.setVehicleOwnershipFromCategoryId(result.get<BigInt>(DB_FIELD_VEHICLE_CATEGORY_ID));
+	outObj.setVehicleOwnershipFromCategoryId(result.get<int>(DB_FIELD_VEHICLE_CATEGORY_ID));
 	outObj.setAgeId(result.get<BigInt>(DB_FIELD_AGE_CATEGORY_ID));
 	outObj.setIncomeIdFromIncome(result.get<double>(DB_FIELD_INCOME));
 	outObj.setWorksAtHome(result.get<int>(DB_FIELD_WORK_AT_HOME));

@@ -123,7 +123,9 @@ void TrainStationAgent::HandleMessage(messaging::Message::MessageType type, cons
         	TrainMovement *movement=driver->getMovement();
 			if(movement)
 			{
+				insertTrainOrUturnlock.lock();
 				movement->prepareForUTurn();
+				insertTrainOrUturnlock.unlock();
 			}
         }
         else
@@ -195,6 +197,7 @@ void TrainStationAgent::checkAndInsertUnscheduledTrains()
 
     	   const Platform *stationAgentPlatform=station->getPlatform(lineId);
     	   TrainController<sim_mob::medium::Person_MT> *trainController=TrainController<sim_mob::medium::Person_MT>::getInstance();
+    	   insertTrainOrUturnlock.lock();
     	   std::vector <Role<Person_MT>*> trainDriverVector=trainController->getActiveTrainsForALine(lineId);
     	   std::vector<Role<Person_MT>*>::iterator it;
     	   TrainDriver* next = pendingDrivers.front();
@@ -338,12 +341,15 @@ void TrainStationAgent::checkAndInsertUnscheduledTrains()
 	}
   }
 
-
+	insertTrainOrUturnlock.unlock();
  }
 	unscheduledTrainLines.clear();
 }
 
-
+std::map<std::string, TrainDriver*> TrainStationAgent::getLastDriver()
+{
+	return lastTrainDriver;
+}
 
 void TrainStationAgent::dispathPendingTrains(timeslice now)
 {
@@ -442,7 +448,7 @@ void TrainStationAgent::setLastDriver(std::string lineId,TrainDriver *driver)
 
 void TrainStationAgent::addTrainDriverInToStationAgent(TrainDriver * driver)
 {
-	pendingTrainDriver[driver->getTrainLine()].push_back(driver);
+	trainDriver.push_back(driver);
 }
 void TrainStationAgent::passengerLeaving(timeslice now)
 {
@@ -565,7 +571,13 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 			callMovementFrameTick(now, *it);
 			tickInSec += (*it)->getParams().secondsInTick;
 			const Platform* platform = (*it)->getNextPlatform();
-			if ((*it)->getNextRequested() == TrainDriver::REQUESTED_AT_PLATFORM)
+			if((*it)->getIsToBeRemoved()&&!boost::iequals((*it)->getMovement()->getNextPlatform()->getStationNo(),stationName))
+			{
+				(*it)->setIsToBeRemoved(false);
+				it = trainDriver.erase(it);
+				it--;
+			}
+			else if ((*it)->getNextRequested() == TrainDriver::REQUESTED_AT_PLATFORM)
 			{
 
 				DailyTime startTm = ConfigManager::GetInstance().FullConfig().simStartTime();
@@ -710,10 +722,13 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 				lastUsage[lineId] = false;
 				if((*it)->getParent()->isToBeRemoved())
 				{
-					removeAheadTrain(*it);
-					(*it)->setNextRequested(TrainDriver::REQUESTED_TO_DEPOT);
-					messaging::MessageBus::PostMessage(TrainController<Person_MT>::getInstance(),
-							MSG_TRAIN_BACK_DEPOT, messaging::MessageBus::MessagePtr(new TrainMessage((*it)->getParent())));
+
+					messaging::MessageBus::PostMessage(this,TRAIN_ARRIVAL_AT_ENDPOINT,
+											messaging::MessageBus::MessagePtr(new TrainDriverMessage((*it))));
+					//removeAheadTrain(*it);
+					//(*it)->setNextRequested(TrainDriver::REQUESTED_TO_DEPOT);
+					//messaging::MessageBus::PostMessage(TrainController<Person_MT>::getInstance(),
+							//MSG_TRAIN_BACK_DEPOT, messaging::MessageBus::MessagePtr(new TrainMessage((*it)->getParent())));
 				}
 				it = trainDriver.erase(it);
 				it--;
@@ -829,13 +844,19 @@ void TrainStationAgent::removeAheadTrain(TrainDriver* aheadDriver)
 	{
 		if((*it)->getNextDriver()==aheadDriver)
 		{
-			(*it)->setNextDriver(nullptr);
-			//Role<Person_MT> *tDriver=dynamic_cast<Role<Person_MT>*>(aheadDriver);
+			TrainDriver *nextDriver=aheadDriver->getNextDriver();
+			if(nextDriver)
+			{
+				(*it)->setNextDriver(nextDriver);
+			}
+			else
+			{
+				(*it)->setNextDriver(nullptr);
+			}
 
 		}
 		it++;
 	}
-
 
 	std::map<std::string, TrainDriver*>::iterator iLastDriver = lastTrainDriver.find(lineId);
 	if(iLastDriver!=lastTrainDriver.end())
@@ -846,6 +867,7 @@ void TrainStationAgent::removeAheadTrain(TrainDriver* aheadDriver)
 
 		}
 	}
+
 
 	ServiceController::getInstance()->removeTrainIdAndTrainDriverInMap(trainId,lineId,aheadDriver);
 	TrainController<Person_MT>::getInstance()->removeFromListOfActiveTrainsInLine(lineId,aheadDriver);
@@ -860,6 +882,7 @@ Entity::UpdateStatus TrainStationAgent::callMovementFrameTick(timeslice now, Tra
 			bool dr=true;
 		}
 		driver->make_frame_tick_params(now);
+		bool isToBeRemoved=false;
 		driver->Movement()->frame_tick();
 	}
 	return UpdateStatus::Continue;

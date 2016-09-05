@@ -21,6 +21,7 @@
 #include <boost/algorithm/string.hpp>
 #include "TrainPathMover.hpp"
 #include "entities/TrainStationAgent.hpp"
+#include "entities/TrainRemoval.h"
 
 using namespace std;
 
@@ -152,6 +153,11 @@ namespace sim_mob
 				facetMutex.unlock();
 
 			}
+		}
+
+		TrainPlatformMover& TrainMovement::getTrainPlatformMover()
+		{
+			return trainPlatformMover;
 		}
 
 		void TrainMovement::changeTrip()
@@ -487,6 +493,21 @@ namespace sim_mob
 			return false;
 		 }
 
+		bool  TrainMovement::getToMove()
+		{
+			return toMove;
+		}
+
+		void  TrainMovement::setToMove(bool toMove)
+		{
+			this->toMove=toMove;
+		}
+
+		void TrainMovement::setNoMoveTimeslice(int ts)
+		{
+			noMoveTimeSlice=ts;
+		}
+
 		void TrainMovement::frame_tick()
 		{
 
@@ -503,14 +524,29 @@ namespace sim_mob
 				}
 			}
 			TrainDriver::TRAIN_NEXTREQUESTED requested = parentDriver->getNextRequested();
+			if(parentDriver->getTrainId()==1)
+			{
+				int d=8;
+			}
+			if(!toMove&&params.now.ms()==noMoveTimeSlice)
+			{
+				toMove=true;
+			}
 
+			else
+			{
 			switch(requested)
 			{
 				case TrainDriver::REQUESTED_TO_PLATFROM:
 				{
 					if(!parentDriver->isStoppedAtPoint())
 					{
-						updatePlatformsList();
+						bool isToBeRemoved=false;
+						updatePlatformsList(isToBeRemoved);
+						if(isToBeRemoved)
+						{
+							parentDriver->setIsToBeRemoved(isToBeRemoved);
+						}
 						Platform *nextPlatformAccordingToPosition=trainPlatformMover_accpos.getNextPlatform(false);
 						moveForward();
 						double distance=trainPathMover.GetDistanceFromStartToPlatform(parentDriver->getTrainLine(),nextPlatformAccordingToPosition);
@@ -769,6 +805,7 @@ namespace sim_mob
 
 					break;
 				}
+			}
 			}
 		}
 		std::string TrainMovement::frame_tick_output()
@@ -1203,7 +1240,7 @@ namespace sim_mob
 		}
 
 
-		bool TrainMovement::updatePlatformsList()
+		bool TrainMovement::updatePlatformsList(bool &isToBeRemoved)
 		{
 
 			if(parentDriver->getTrainId()==1)
@@ -1265,14 +1302,19 @@ namespace sim_mob
 							std::list<TrainDriver*> &trains=trainStationAgent->getTrains();
 							if(std::find(trains.begin(),trains.end(),parentDriver)==trains.end())
 							{
-								trainStationAgent->addTrainDriverInToStationAgent(parentDriver);
+								setToMove(false);
+								TrainUpdateParams& params = parentDriver->getParams();
+								setNoMoveTimeslice(params.now.ms());
+								messaging::MessageBus::PostMessage(trainStationAgent,TRAIN_MOVETO_NEXT_PLATFORM,
+										messaging::MessageBus::MessagePtr(new TrainDriverMessage(parentDriver,true)));
 								Agent *stationAgentOld=TrainController<sim_mob::medium::Person_MT>::getInstance()->getAgentFromStation(oldPlatform->getStationNo());
 								TrainStationAgent *trainStationAgentOld = dynamic_cast<TrainStationAgent*>(stationAgentOld);
-								std::list<TrainDriver*> &trainsoldSt=trainStationAgent->getTrains();
+								std::list<TrainDriver*> &trainsoldSt=trainStationAgentOld->getTrains();
 								std::list<TrainDriver*>::iterator oldStTrainListItr=std::find(trainsoldSt.begin(),trainsoldSt.end(),parentDriver);
 								if(oldStTrainListItr!=trainsoldSt.end())
 								{
-									trainsoldSt.erase(oldStTrainListItr);
+									isToBeRemoved = true;
+									int t=9;
 								}
 							}
 						}
@@ -1339,16 +1381,20 @@ namespace sim_mob
 
 		void TrainMovement::arrivalAtEndPlatform() const
 		{
-			std::vector<Platform*>::const_iterator it;
-			const std::vector<Platform*>& prevs = trainPlatformMover.getPrevPlatforms();
+
+			TrainRemoval *trainRemovalInstance=TrainRemoval::getInstance();
+			trainRemovalInstance->addToTrainRemovalList(parentDriver);
+			//std::vector<Platform*>::const_iterator it;
+
+			/*const std::vector<Platform*>& prevs = trainPlatformMover.getPrevPlatforms();
 			for (it = prevs.begin(); it != prevs.end(); it++)
 			{
 				Platform* prev = (*it);
 				std::string stationNo = prev->getStationNo();
 				Agent* stationAgent = TrainController<Person_MT>::getAgentFromStation(stationNo);
-				messaging::MessageBus::PostMessage(stationAgent,TRAIN_ARRIVAL_AT_ENDPOINT,
-						messaging::MessageBus::MessagePtr(new TrainDriverMessage(parentDriver)));
-			}
+				//messaging::MessageBus::PostMessage(stationAgent,TRAIN_ARRIVAL_AT_ENDPOINT,
+						//messaging::MessageBus::MessagePtr(new TrainDriverMessage(parentDriver)));
+			}*/
 		}
 	}
 } /* namespace sim_mob */

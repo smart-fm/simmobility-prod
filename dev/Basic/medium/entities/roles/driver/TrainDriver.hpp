@@ -371,6 +371,10 @@ public:
 	 */
 	void setSubsequentNextRequested(TrainDriver::TRAIN_NEXTREQUESTED nextReq);
 
+	bool getIsToBeRemoved();
+
+	void setIsToBeRemoved(bool);
+
 	/**
 	 * Event handler which provides a chance to handle event transfered from parent agent.
 	 * @param sender pointer for the event producer.
@@ -439,6 +443,8 @@ private:
 	boost::shared_ptr<DisruptionParams> disruptionParam;
 	/**arrival time when stopping the platform*/
 	std::string arrivalTimeAtPlatform;
+	bool isToBeRemovedFromStationAgent=false;
+
 
 private:
 	friend class TrainBehavior;

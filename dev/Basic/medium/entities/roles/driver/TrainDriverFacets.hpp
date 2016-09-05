@@ -171,7 +171,7 @@ public:
 	void changeTrip();
 
 	/* updates the platform list ,that is platform list to be ignored */
-	bool updatePlatformsList(); //can be done by firing an event as well
+	bool updatePlatformsList(bool &isToBeRemoved); //can be done by firing an event as well
 
 	/* resets from Station case to norma case and vice versa,yet to be implemented */
 	void resetMovingCase(TRAINCASE trainCase);
@@ -203,6 +203,11 @@ public:
 
 	std::string getPlatformByOffset(int offset);
 	bool isUturnDueToDisruption();
+	void setToMove(bool toMove);
+	bool getToMove();
+	void  setNoMoveTimeslice(int ts);
+
+	TrainPlatformMover& getTrainPlatformMover();
 
 protected:
 	virtual TravelMetric& startTravelTimeMetric();
@@ -236,6 +241,8 @@ private:
 	bool ignoreSafeDistance_RequestServiceController=false;
 	bool ignoreSafeHeadway_RequestServiceController=false;
 	TRAINCASE forceResetedCase;
+	bool toMove=true;
+	int noMoveTimeSlice;
 
 private:
 	/**

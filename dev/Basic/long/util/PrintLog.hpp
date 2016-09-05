@@ -341,5 +341,12 @@ namespace sim_mob
 
 	    }
 
+	    inline void writeRandomNumsToFile(double randomNum)
+	    {
+	    	boost::format fmtr = boost::format("%1%") % randomNum;
+	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_RANDOM_NUMS,fmtr.str());
+
+	    }
+
 	}
 }

@@ -449,10 +449,7 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
         	{
         		createOutputSchema(conn,currentOutputSchema);
         	}
-        	if((currTick > 0) && ((currTick+1)%opSchemaloadingInterval == 0))
-        	{
-        		loadDataToOutputSchema(conn,currentOutputSchema,simVersionId,simStoppedTick,*developerModel,*housingMarketModel);
-        	}
+
             if( currTick == 0 )
             {
 				PrintOutV(" Lifestyle1: " << (dynamic_cast<HM_Model*>(models[0]))->getLifestyle1HHs() <<
@@ -490,12 +487,12 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
 
             wgMgr.waitAllGroups();
 
+
+
             DeveloperModel::ParcelList parcels;
             DeveloperModel::DeveloperList developerAgents;
             developerAgents = developerModel->getDeveloperAgents();
             developerModel->wakeUpDeveloperAgents(developerAgents);
-
-            sleep(1);
 
             PrintOutV("Day " << currTick << " HUnits: " << std::dec << (dynamic_cast<HM_Model*>(models[0]))->getMarket()->getEntrySize()
 				   << " Bidders: " 	<< (dynamic_cast<HM_Model*>(models[0]))->getNumberOfBidders() << " "
@@ -506,6 +503,12 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
 				   << " Awaken: "	<< (dynamic_cast<HM_Model*>(models[0]))->getAwakeningCounter()
 				   << " AwakenByBTO: "	<< (dynamic_cast<HM_Model*>(models[0]))->getNumberOfBTOAwakenings()
 				   << " " << std::endl );
+
+            if((currTick > 0) && ((currTick+1)%opSchemaloadingInterval == 0))
+            {
+            	loadDataToOutputSchema(conn,currentOutputSchema,simVersionId,simStoppedTick,*developerModel,*housingMarketModel);
+            }
+
 
             (dynamic_cast<HM_Model*>(models[0]))->setNumberOfBidders(0);
             (dynamic_cast<HM_Model*>(models[0]))->setNumberOfSellers(0);

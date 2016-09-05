@@ -702,7 +702,7 @@ void sim_mob::medium::PredayManager::loadCosts()
 	{
 		// if the zone data was loaded already we can reserve space for costs to speed up the loading
 		// Cost data will be available for every pair (a,b) of zones where a!=b
-		CostMap::size_type mapSz = nZones * nZones - nZones;
+		CostMap::size_type mapSz = (nZones * nZones) - nZones;
 
 		amCostMap.rehash(ceil(mapSz / amCostMap.max_load_factor()));
 		pmCostMap.rehash(ceil(mapSz / pmCostMap.max_load_factor()));

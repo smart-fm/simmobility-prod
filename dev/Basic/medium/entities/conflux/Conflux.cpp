@@ -76,6 +76,8 @@ void sim_mob::medium::sortPersonsDecreasingRemTime(std::deque<Person_MT*>& perso
 
 unsigned Conflux::updateInterval = 0;
 int Conflux::currentframenumber =-1;
+boost::mutex Conflux::activeAgentsLock;
+
 Conflux::Conflux(Node* confluxNode, const MutexStrategy& mtxStrat, int id, bool isLoader) :
 		Agent(mtxStrat, id), confluxNode(confluxNode), parentWorkerAssigned(false), currFrame(0, 0), isLoader(isLoader), numUpdatesThisTick(0),
 		tickTimeInS(ConfigManager::GetInstance().FullConfig().baseGranSecond()), evadeVQ_Bounds(false), segStatsOutput(std::string()),
@@ -1061,11 +1063,13 @@ void Conflux::killAgent(Person_MT* person, PersonProps& beforeUpdate)
 	messaging::MessageBus::UnRegisterHandler(person);
 	person->onWorkerExit();
 	Agent *ag=dynamic_cast<Agent*>(person);
+	activeAgentsLock.lock();
 	std::vector<Entity*>::iterator itr=std::find(Agent::activeAgents.begin(),Agent::activeAgents.end(),ag);
 	if(itr!=Agent::activeAgents.end())
 	{
 		Agent::activeAgents.erase(itr);
 	}
+	activeAgentsLock.unlock();
 	safe_delete_item(person);
 }
 

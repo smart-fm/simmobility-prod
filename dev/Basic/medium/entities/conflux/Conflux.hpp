@@ -664,6 +664,7 @@ public:
 	void addStationAgent(Agent* stationAgent);
 
 	void log(std::string line) const;
+	static boost::mutex activeAgentsLock;
 
 };
 

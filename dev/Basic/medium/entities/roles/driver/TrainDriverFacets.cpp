@@ -516,11 +516,14 @@ namespace sim_mob
 			parentDriver->updatePassengers();
 			if(getParentDriver()->isStoppedAtPoint())
 			{
+				params.currentSpeed = 0.0;
+				params.currentAcelerate = 0.0;
 				double remainingTime=parentDriver->reduceStoppingTime(params.secondsInTick);
 				if(remainingTime<params.secondsInTick)
 				{
 					parentDriver->setStoppingTime(0);
 					parentDriver->setStoppingStatus(false);
+					return;
 				}
 			}
 			TrainDriver::TRAIN_NEXTREQUESTED requested = parentDriver->getNextRequested();

@@ -1950,6 +1950,13 @@ void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId)
 	{
 		Individual *thisIndividual = this->getIndividualById(householdIndividualIds[n]);
 
+		string customId = to_string(hitsSample->getHouseholdHitsId()) + "-" + to_string(thisIndividual->getMemberId());
+
+		if(logsumUniqueCounter.find(customId) == logsumUniqueCounter.end())
+			logsumUniqueCounter.insert(customId);
+		else
+			continue;
+
 		vector<double> logsum;
 		vector<double> travelProbability;
 		vector<double> tripsExpected;
@@ -2038,12 +2045,12 @@ void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId)
 										 << std::setprecision(5)
 										 << logsum[0]  << ", " << logsum[1] << ", " << logsum[2] << ", " << logsum[3] << ", "<< logsum[4]  << ", " << logsum[5] << ", "
 										 << tripsExpected[0] << ", " << tripsExpected[1] << ", " << tripsExpected[2] << ", " << tripsExpected[3] << ", "<< tripsExpected[4] << ", " << tripsExpected[5] << ", "
-										 << travelProbability[0] << ", " << travelProbability[1] << travelProbability[2] << ", " << travelProbability[3] << travelProbability[4] << ", " << travelProbability[5] <<std::endl );
+										 << travelProbability[0] << ", " << travelProbability[1] << ", "  << travelProbability[2] << ", " << travelProbability[3] << ", "  << travelProbability[4] << ", " << travelProbability[5] <<std::endl );
 
 	}
 }
 
-void HM_Model::getLogsumOfHousehold(BigSerial householdId)
+void HM_Model::getLogsumOfVaryingHomeOrWork(BigSerial householdId)
 {
 	HouseHoldHitsSample *hitsSample = nullptr;
 
@@ -2070,6 +2077,13 @@ void HM_Model::getLogsumOfHousehold(BigSerial householdId)
 	for( int n = 0; n < householdIndividualIds.size(); n++ )
 	{
 		Individual *thisIndividual = this->getIndividualById(householdIndividualIds[n]);
+
+		string customId = to_string(hitsSample->getHouseholdHitsId()) + "-" + to_string(thisIndividual->getMemberId());
+
+		if(logsumUniqueCounter.find(customId) == logsumUniqueCounter.end())
+			logsumUniqueCounter.insert(customId);
+		else
+			continue;
 
 		int vehicleOwnership = 0;
 

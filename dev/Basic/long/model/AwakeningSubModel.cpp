@@ -110,25 +110,63 @@ namespace sim_mob
 			}
 
 			//We will awaken a specific number of households on day 1 as dictated by the long term XML file.
-			if( model->getAwakeningCounter() > config.ltParams.housingModel.initialHouseholdsOnMarket)
+
+			if( model->getAwakeningCounter() > config.ltParams.housingModel.awakeningModel.initialHouseholdsOnMarket)
 				return;
 
 			Awakening *awakening = model->getAwakeningById( household->getId() );
 
-			if( awakening == nullptr )
-			{
-				AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, (boost::format( "The awakening is null.")).str());
-				return;
-			}
-
 			//These 6 variables are the 3 classes that we believe households fall into.
 			//And the 3 probabilities that we believe these 3 classes will have of awakening.
-			float class1 = awakening->getClass1();
-			float class2 = awakening->getClass2();
-			float class3 = awakening->getClass3();
-			float awaken_class1 = awakening->getAwakenClass1();
-			float awaken_class2 = awakening->getAwakenClass2();
-			float awaken_class3 = awakening->getAwakenClass3();
+			float class1 = 0;
+			float class2 = 0;
+			float class3 = 0;
+			float awaken_class1 = 0;
+			float awaken_class2 = 0;
+			float awaken_class3 = 0;
+
+			if( config.ltParams.housingModel.awakeningModel.awakenModelRandom == true )
+			{
+				class1 = 0.33;
+				class2 = 0.33;
+				class3 = 0.33;
+				awaken_class1 = (double)rand()/RAND_MAX;
+				awaken_class2 = (double)rand()/RAND_MAX;
+				awaken_class3 = (double)rand()/RAND_MAX;
+			}
+			else
+			if( config.ltParams.housingModel.awakeningModel.awakenModelShan == true )
+			{
+				if( awakening == nullptr )
+				{
+					AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, (boost::format( "The awakening object is null for household %1%. We'll set it to the average.") % household->getId()).str());
+
+					class1 = 0.33;
+					class2 = 0.33;
+					class3 = 0.33;
+					awaken_class1 = 0.02;
+					awaken_class2 = 0.02;
+					awaken_class3 = 0.02;
+				}
+				else
+				{
+					class1 = awakening->getClass1();
+					class2 = awakening->getClass2();
+					class3 = awakening->getClass3();
+					awaken_class1 = awakening->getAwakenClass1();
+					awaken_class2 = awakening->getAwakenClass2();
+					awaken_class3 = awakening->getAwakenClass3();
+				}
+			}
+			if( config.ltParams.housingModel.awakeningModel.awakenModelJingsi== true )
+			{
+				class1 = 0;
+				class2 = 0;
+				class3 = 0;
+				awaken_class1 = 0;
+				awaken_class2 = 0;
+				awaken_class3 = 0;
+			}
 
 			float r1 = (float)rand() / RAND_MAX;
 			int lifestyle = 1;
@@ -260,7 +298,8 @@ namespace sim_mob
 			std::vector<ExternalEvent> events;
 			ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 
-			int dailyAwakenings = config.ltParams.housingModel.dailyHouseholdAwakenings;
+
+			int dailyAwakenings = config.ltParams.housingModel.awakeningModel.dailyHouseholdAwakenings;
 
 		    for( int n = 0; n < dailyAwakenings; )
 		    {

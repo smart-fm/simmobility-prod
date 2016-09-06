@@ -292,7 +292,7 @@ namespace sim_mob
             void incrementAwakeningCounter();
             int  getAwakeningCounter() const;
             void getLogsumOfIndividuals(BigSerial id);
-            void getLogsumOfHousehold(BigSerial id);
+            void getLogsumOfVaryingHomeOrWork(BigSerial id);
             void getLogsumOfHouseholdVO(BigSerial householdId);
 
             HousingMarket* getMarket();
@@ -419,6 +419,8 @@ namespace sim_mob
 			vector<double> getlogSqrtFloorAreahdb() const{ return logSqrtFloorAreahdb;}
             vector<double> getlogSqrtFloorAreacondo() const { return logSqrtFloorAreacondo;}
 
+
+            set<string> logsumUniqueCounter;
 
 
         protected:

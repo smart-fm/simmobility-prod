@@ -28,7 +28,7 @@
             </database>
 
             <!-- localhost for midterm server -->
-            <database id="fm_remote_mt" dbtype="postgres">
+            <database id="fm_remote_mt2" dbtype="postgres">
                 <host value="localhost"/>
                 <port value="5432"/>
                 <dbname value="sim_mob_lt"/>
@@ -113,15 +113,21 @@
 		<minLotSize value = "100.00" />
     	</developerModel>
 	<outputHouseholdLogsums enabled="false">
+	    <vehicleOwnershipLogsum value ="true"/>
 	    <fixedHomeVariableWork value ="true"/>
 	    <fixedWorkVariableHome value ="false"/>
 	</outputHouseholdLogsums>
-    <housingModel enabled="true"> 	    
+    	<housingModel enabled="true"> 	    
             <timeOnMarket value="90"/>
             <timeOffMarket value="150"/>
             <timeInterval value="7"/>
-	    <InitialHouseholdsOnMarket value="15000"/>
-	    <dailyHouseholdAwakenings value="400"/>
+	    <awakeningModel enabled="true">
+		    <initialHouseholdsOnMarket value="15000"/>
+		    <dailyHouseholdAwakenings value="400"/>
+		    <awakenModelShan value="true"/>
+		    <awakenModelRandom value="false"/>
+		    <awakenModelJingsi value="false"/>		
+	    </awakeningModel>
 	    <vacantUnitActivationProbability value="0.375"/>
 	    <housingMarketSearchPercentage value="0.15"/>
 	    <housingMoveInDaysInterval value="30"/>

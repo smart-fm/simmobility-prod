@@ -266,21 +266,26 @@ void sim_mob::ParseConfigFile::processLongTermParamsNode(xercesc::DOMElement* no
 	housingModel.timeOnMarket = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "timeOnMarket"), "value"), static_cast<unsigned int>(0));
 	housingModel.timeOffMarket = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "timeOffMarket"), "value"), static_cast<unsigned int>(0));
 	housingModel.vacantUnitActivationProbability = ParseFloat(GetNamedAttributeValue(GetSingleElementByName(node, "vacantUnitActivationProbability"), "value"));
-	housingModel.initialHouseholdsOnMarket = ParseInteger(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "InitialHouseholdsOnMarket"), "value"), static_cast<int>(0));
 	housingModel.housingMarketSearchPercentage = ParseFloat(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "housingMarketSearchPercentage"), "value"));
 	housingModel.housingMoveInDaysInterval = ParseFloat(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "housingMoveInDaysInterval"), "value"));
 	housingModel.offsetBetweenUnitBuyingAndSelling = ParseInteger(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "offsetBetweenUnitBuyingAndSelling"), "value"), static_cast<int>(0));
 	housingModel.bidderUnitsChoiceSet = ParseInteger(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "bidderUnitsChoiceSet"), "value"), static_cast<int>(0));
 	housingModel.bidderBTOUnitsChoiceSet = ParseInteger(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "bidderBTOUnitsChoiceSet"), "value"), static_cast<int>(0));
 	housingModel.householdBiddingWindow = ParseInteger(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "householdBiddingWindow"), "value"), static_cast<int>(0));
-	housingModel.dailyHouseholdAwakenings = ParseInteger(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "dailyHouseholdAwakenings"), "value"), static_cast<int>(0));
 	housingModel.householdAwakeningPercentageByBTO = ParseFloat(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "householdAwakeningPercentageByBTO"), "value"));
+	housingModel.awakeningModel.initialHouseholdsOnMarket = ParseInteger(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "awakeningModel"), "initialHouseholdsOnMarket"), "value"), static_cast<int>(0));
+	housingModel.awakeningModel.dailyHouseholdAwakenings = ParseInteger(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "awakeningModel"), "dailyHouseholdAwakenings"), "value"), static_cast<int>(0));
+	housingModel.awakeningModel.awakenModelRandom =ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "awakeningModel"), "awakenModelRandom"), "value"), false);
+	housingModel.awakeningModel.awakenModelShan =ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "awakeningModel"), "awakenModelShan"), "value"), false);
+	housingModel.awakeningModel.awakenModelJingsi =ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "awakeningModel"), "awakenModelJingsi"), "value"), false);
+
 	cfg.ltParams.housingModel = housingModel;
 
 	LongTermParams::OutputHouseholdLogsums outputHouseholdLogsums;
 	outputHouseholdLogsums.enabled = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName( node, "outputHouseholdLogsums"), "enabled"), false);
 	outputHouseholdLogsums.fixedHomeVariableWork = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "outputHouseholdLogsums"), "fixedHomeVariableWork"), "value"), false);
 	outputHouseholdLogsums.fixedWorkVariableHome = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "outputHouseholdLogsums"), "fixedWorkVariableHome"), "value"), false);
+	outputHouseholdLogsums.vehicleOwnership = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "outputHouseholdLogsums"), "vehicleOwnershipLogsum"), "value"), false);
 	cfg.ltParams.outputHouseholdLogsums = outputHouseholdLogsums;
 
 	LongTermParams::VehicleOwnershipModel vehicleOwnershipModel;

@@ -80,7 +80,7 @@ class ServiceController:  public lua::LuaModel
 	 *@param lineId is the id of the line where the train with given train id whose moving case is the be reset
 	 *@param caseVal is the value of reset ,it can be Station case or Normal case
 	 */
-	void resetMovingCase(int trainId,std::string lineId,TRAINCASE caseVal);
+	void resetMovingCase(int trainId,std::string lineId,int caseVal);
 
 	/*Interface to set flag to force release the passengers from a given train
 	 *@param trainId is the train id of the train whose passengers are to be force released

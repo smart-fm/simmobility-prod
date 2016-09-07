@@ -722,7 +722,7 @@ bool ServiceController::getDisruptedState(int trainId,std::string lineId) const
 	}
  }
 
- void ServiceController::resetMovingCase(int trainId,std::string lineId,TRAINCASE caseVal)
+ void ServiceController::resetMovingCase(int trainId,std::string lineId,int caseVal)
  {
 	map<std::string,std::map<int,TrainDriver *>>::const_iterator it=mapOfLineAndTrainDrivers.find(lineId);
 	if(it != mapOfLineAndTrainDrivers.end())
@@ -739,7 +739,8 @@ bool ServiceController::getDisruptedState(int trainId,std::string lineId) const
 					TrainMovement *movement=driver->getMovement();
 					if(movement)
 					{
-						movement->resetMovingCase(caseVal);
+						std::string platformNo=movement->getNextPlatform()->getPlatformNo();
+						movement->resetMovingCase(TRAINCASE(caseVal));
 					}
 				}
 			}

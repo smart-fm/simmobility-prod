@@ -14,6 +14,7 @@
 #include <boost/algorithm/string/erase.hpp>
 #include <boost/algorithm/string.hpp>
 #include "TrainDriver.hpp"
+#include "entities/TrainController.hpp"
 namespace{
 const double distanceMinimal = 0.001;
 }
@@ -484,7 +485,7 @@ void TrainPathMover::TeleportToOppositeLine(std::string station,std::string line
 
 	}
 
-	distMovedOnEntirePath = distanceToBlock;
+	distMovedOnEntirePath = distance;
 	distanceMoveToNextPoint=distance-distanceToBlock;
 	currPolyLine = (*currBlockIt)->getPolyLine();
 	currPolyPointIt = currPolyLine->getPoints().begin();
@@ -504,10 +505,12 @@ void TrainPathMover::TeleportToOppositeLine(std::string station,std::string line
 
 double TrainPathMover::GetDistanceFromStartToPlatform(std::string lineId,Platform *platform)
 {
-	std::vector<Block*>::const_iterator tempIt = drivingPath.begin();
+	std::vector<Block*> route;
+	TrainController<sim_mob::medium::Person_MT>::getInstance()->getTrainRoute(lineId,route);
+	std::vector<Block*>::const_iterator tempIt = route.begin();
 		double distance=0;
 		double distanceToBlock;
-		while (tempIt != drivingPath.end())
+		while (tempIt != route.end())
 		{
 			if ((*tempIt)->getAttachedPlatform() != platform)
 			{

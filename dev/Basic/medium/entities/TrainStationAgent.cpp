@@ -588,7 +588,12 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 				std::map<std::string,std::vector<std::string>> platformNames = TrainController<sim_mob::medium::Person_MT>::getInstance()->getDisruptedPlatforms_ServiceController();
 				std::vector<std::string> disruptedPlatformNames=platformNames[trainLine];
 				std::vector<std::string>::iterator itr=std::find(disruptedPlatformNames.begin(),disruptedPlatformNames.end(),platform->getPlatformNo());
-				if(itr!=disruptedPlatformNames.end())
+				TrainPlatformMover &platformMover=(*it)->getMovement()->getTrainPlatformMover();
+				Platform *nextPlatform = platformMover.getPlatformByOffset(1);
+				std::vector<std::string>::iterator itr_next = disruptedPlatformNames.end();
+				if(nextPlatform)
+					itr_next=std::find(disruptedPlatformNames.begin(),disruptedPlatformNames.end(),nextPlatform->getPlatformNo());
+				if(itr!=disruptedPlatformNames.end()||itr_next!=disruptedPlatformNames.end())
 				{
 					(*it)->getMovement()->setDisruptedState(true);
 					isDisruptedPlat=true;
@@ -669,7 +674,13 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 				    std::map<std::string,std::vector<std::string>> platformNames = TrainController<sim_mob::medium::Person_MT>::getInstance()->getDisruptedPlatforms_ServiceController();
 					std::vector<std::string> disruptedPlatformNames=platformNames[trainLine];
 					std::vector<std::string>::iterator itr=std::find(disruptedPlatformNames.begin(),disruptedPlatformNames.end(),platform->getPlatformNo());
-					if(itr!=disruptedPlatformNames.end())
+					TrainPlatformMover &platformMover=(*it)->getMovement()->getTrainPlatformMover();
+					Platform *nextPlatform = platformMover.getPlatformByOffset(1);
+					if(nextPlatform)
+					{
+						itr_next=std::find(disruptedPlatformNames.begin(),disruptedPlatformNames.end(),nextPlatform->getPlatformNo());
+					}
+					if(itr!=disruptedPlatformNames.end()||itr_next!=disruptedPlatformNames.end())
 					{
 						(*it)->getMovement()->setDisruptedState(true);
 						if(!(*it)->getForceAlightFlag())
@@ -682,6 +693,7 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 						(*it)->setNextRequested(TrainDriver::REQUESTED_WAITING_LEAVING);
 						isDisruptedPlat = true;
 					}
+
 				}
 
 

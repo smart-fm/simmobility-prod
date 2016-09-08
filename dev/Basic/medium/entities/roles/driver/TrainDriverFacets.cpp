@@ -176,13 +176,15 @@ namespace sim_mob
 			trainController->getTrainPlatforms(oppLineId,platforms);
 			trip->setTrainPlatform(platforms);
 			trainPlatformMover.setPlatforms(platforms);
+			trainPlatformMover_accpos.setPlatforms(platforms);
 			std::string stationName=platform->getStationNo();
 			Station *stn=trainController->getStationFromId(stationName);
 			Platform *oppPlatform=stn->getPlatform(oppLineId);
 			Platform *inroutePlaform=nullptr;
 			while(oppPlatform!=inroutePlaform)
 			{
-				inroutePlaform=trainPlatformMover.getNextPlatform(true);
+				inroutePlaform = trainPlatformMover.getNextPlatform(true);
+				trainPlatformMover_accpos.getNextPlatform(true);
 			}
 			TakeUTurn(stationName);
 		}
@@ -551,6 +553,10 @@ namespace sim_mob
 							parentDriver->setIsToBeRemoved(isToBeRemoved);
 						}
 						Platform *nextPlatformAccordingToPosition=trainPlatformMover_accpos.getNextPlatform(false);
+						if(parentDriver->getTrainId()==2 && boost::iequals(getNextPlatform()->getPlatformNo(),"NE14_2"))
+						{
+							int debug=1;
+						}
 						moveForward();
 						double distance=trainPathMover.GetDistanceFromStartToPlatform(parentDriver->getTrainLine(),nextPlatformAccordingToPosition);
 						if(isStopAtPlatform())
@@ -590,6 +596,10 @@ namespace sim_mob
 
 					if(waitingTime<params.secondsInTick)
 					{
+						if(parentDriver->getTrainId()==2 && boost::iequals(getNextPlatform()->getPlatformNo(),"NE14_2"))
+						{
+							int debug=1;
+						}
 						if(parentDriver->getSubsequentNextRequested()!=TrainDriver::NO_REQUESTED)
 						{
 							parentDriver->setNextRequested(parentDriver->getSubsequentNextRequested());
@@ -743,13 +753,13 @@ namespace sim_mob
 											if(parentDriver->getUTurnFlag())
 											{
 											   isDisruptedState=false;
-											   //parentDriver->setNextRequested(TrainDriver::REQUESTED_TAKE_UTURN);
 											   Platform *platform=getNextPlatform();
 												std::string stationNo=platform->getStationNo();
+												parentDriver->setNextRequested(TrainDriver::REQUESTED_TAKE_UTURN);
 												Agent* stationAgent = TrainController<Person_MT>::getAgentFromStation(stationNo);
 											   messaging::MessageBus::PostMessage(stationAgent,TRAIN_MOVE_AT_UTURN_PLATFORM,
 														messaging::MessageBus::MessagePtr(new TrainDriverMessage(parentDriver,true)));
-											   //pass message fo Uturn
+											   //pass message for Uturn
 											}
 
 											else
@@ -767,7 +777,11 @@ namespace sim_mob
 												if(nextplatformDisrupted)
 												{
 													parentDriver->setNextRequested(TrainDriver::REQUESTED_TAKE_UTURN);
-													prepareForUTurn();
+													Platform *platform=getNextPlatform();
+													std::string stationNo=platform->getStationNo();
+													Agent* stationAgent = TrainController<Person_MT>::getAgentFromStation(stationNo);
+													messaging::MessageBus::PostMessage(stationAgent,TRAIN_MOVE_AT_UTURN_PLATFORM,
+															messaging::MessageBus::MessagePtr(new TrainDriverMessage(parentDriver,true)));
 												}
 												else
 												{
@@ -1317,16 +1331,11 @@ namespace sim_mob
 								if(oldStTrainListItr!=trainsoldSt.end())
 								{
 									isToBeRemoved = true;
-									int t=9;
 								}
 							}
 						}
 					}
 				}
-			}
-			if(parentDriver->getTrainId()==1)
-			{
-				int a=9;
 			}
 		}
 
@@ -1351,9 +1360,6 @@ namespace sim_mob
 
 					changeTrip();
 					parentDriver->setNextRequested(TrainDriver::REQUESTED_AT_PLATFORM);
-					Agent* stationAgent = TrainController<Person_MT>::getAgentFromStation(stationId);
-					messaging::MessageBus::PostMessage(stationAgent,TRAIN_MOVE_AT_UTURN_PLATFORM,
-					messaging::MessageBus::MessagePtr(new TrainDriverMessage(parentDriver,true)));
 				}
 			}
 		}

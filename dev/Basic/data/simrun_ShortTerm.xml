@@ -23,6 +23,7 @@
 			<mapping name="pt_bus_routes" procedure="get_pt_bus_routes()"/>
 			<mapping name="pt_bus_stops" procedure="get_pt_bus_stops()"/>
 			<!--Stored procedures for route-choice-->
+			<mapping name="pvt_pathset" procedure="get_pvt_pathset"/>
 			<mapping name="erp_gantry_zone" procedure="get_erp_gantry_zone()"/>
 			<mapping name="erp_section" procedure="get_erp_section()"/>
 			<mapping name="erp_surcharge" procedure="get_erp_surcharge()"/>			
@@ -46,6 +47,7 @@
 			<mapping name="pt_bus_routes" procedure="get_pt_bus_routes()"/>
 			<mapping name="pt_bus_stops" procedure="get_pt_bus_stops()"/>
 			<!--Stored procedures for route-choice-->
+			<mapping name="pvt_pathset" procedure="get_pvt_pathset_small_cbd"/>
 			<mapping name="erp_gantry_zone" procedure="get_erp_gantry_zone()"/>
 			<mapping name="erp_section" procedure="get_erp_section()"/>
 			<mapping name="erp_surcharge" procedure="get_erp_surcharge()"/>
@@ -69,6 +71,7 @@
 			<mapping name="pt_bus_routes" procedure="get_pt_bus_routes_extcbd()"/>
 			<mapping name="pt_bus_stops" procedure="get_pt_bus_stops_extcbd()"/>
 			<!--Stored procedures for route-choice-->
+			<mapping name="pvt_pathset" procedure="get_pvt_pathset_extcbd"/>
 			<mapping name="erp_gantry_zone" procedure="get_erp_gantry_zone()"/>
 			<mapping name="erp_section" procedure="get_erp_section()"/>
 			<mapping name="erp_surcharge" procedure="get_erp_surcharge()"/>
@@ -94,6 +97,7 @@
 			<mapping name="pt_bus_routes" procedure="get_pt_bus_routes()"/>
 			<mapping name="pt_bus_stops" procedure="get_pt_bus_stops()"/>
 			<!--Stored procedures for route-choice-->
+			<mapping name="pvt_pathset" procedure="get_pvt_pathset_changi"/>
 			<mapping name="erp_gantry_zone" procedure="get_erp_gantry_zone()"/>
 			<mapping name="erp_section" procedure="get_erp_section()"/>
 			<mapping name="erp_surcharge" procedure="get_erp_surcharge()"/>
@@ -177,6 +181,11 @@
 		<intersection_manager count="0" granularity="1 second"/> <!-- Intersection managers -->
 		<communication count="0" granularity="100 ms"/>  <!-- Communication simulator -->
 	</workers>
+
+	<model_scripts path="scripts/lua/mid/behavior-models/" format="lua">
+		<script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models-->
+		<script name="pvtrc" file="pvtrc.lua"/> <!--private traffic route choice-->		
+	</model_scripts>
 
 	<!-- FMOD controller settings. This is for FMOD extention -->
 	<fmodcontroller enabled="false">

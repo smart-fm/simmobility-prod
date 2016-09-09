@@ -429,7 +429,7 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
         PrintOutV("XML Config maxIterations " << config.ltParams.maxIterations << endl);
         PrintOutV("XML Config opSchemaloadingInterval " << config.ltParams.opSchemaloadingInterval << endl);
         PrintOutV("XML Config outputHouseholdLogsums " << config.ltParams.outputHouseholdLogsums.enabled << endl);
-        PrintOutV("XML Config outputHouseholdLogsums fixedHomeVariableWork " << config.ltParams.outputHouseholdLogsums.vehicleOwnership << endl);
+        PrintOutV("XML Config outputHouseholdLogsums vehicleOwnership " << config.ltParams.outputHouseholdLogsums.vehicleOwnership << endl);
         PrintOutV("XML Config outputHouseholdLogsums fixedHomeVariableWork " << config.ltParams.outputHouseholdLogsums.fixedHomeVariableWork << endl);
         PrintOutV("XML Config outputHouseholdLogsums fixedWorkVariableHome " << config.ltParams.outputHouseholdLogsums.fixedWorkVariableHome << endl);
         PrintOutV("XML Config Simulation resumption " << config.ltParams.resume << endl);

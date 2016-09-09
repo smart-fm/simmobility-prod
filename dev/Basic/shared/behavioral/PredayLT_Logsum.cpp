@@ -201,12 +201,16 @@ const PredayLT_LogsumManager& sim_mob::PredayLT_LogsumManager::getInstance()
 	return logsumManager;
 }
 
-PersonParams sim_mob::PredayLT_LogsumManager::computeLogsum(long individualId, int homeLocation, int workLocation, int vehicleOwnership) const
+PersonParams sim_mob::PredayLT_LogsumManager::computeLogsum(long individualId, int homeLocation, int workLocation, int vehicleOwnership, PersonParams *personParamsFromLT) const
 {
 	ensureContext();
 	PersonParams personParams;
 	PopulationSqlDao& ltPopulationDao = threadContext.get()->ltPopulationDao;
 	ltPopulationDao.getOneById(individualId, personParams);
+
+	if( personParamsFromLT != nullptr)
+		personParams = *personParamsFromLT;
+
 	if(personParams.getPersonId().empty())
 	{
 		return PersonParams();

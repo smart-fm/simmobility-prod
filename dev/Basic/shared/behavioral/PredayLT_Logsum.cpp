@@ -205,11 +205,16 @@ PersonParams sim_mob::PredayLT_LogsumManager::computeLogsum(long individualId, i
 {
 	ensureContext();
 	PersonParams personParams;
-	PopulationSqlDao& ltPopulationDao = threadContext.get()->ltPopulationDao;
-	ltPopulationDao.getOneById(individualId, personParams);
 
 	if( personParamsFromLT != nullptr)
+	{
 		personParams = *personParamsFromLT;
+	}
+	else
+	{
+		PopulationSqlDao& ltPopulationDao = threadContext.get()->ltPopulationDao;
+		ltPopulationDao.getOneById(individualId, personParams);
+	}
 
 	if(personParams.getPersonId().empty())
 	{

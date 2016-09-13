@@ -500,6 +500,17 @@ namespace sim_mob
 			return toMove;
 		}
 
+		double TrainMovement::getCurrentSpeed()
+		{
+			TrainUpdateParams& params = parentDriver->getParams();
+			return params.currentSpeed;
+		}
+
+		double TrainMovement::getSafeHeadWay()
+		{
+			return safeHeadway;
+		}
+
 		void  TrainMovement::setToMove(bool toMove)
 		{
 			this->toMove=toMove;
@@ -516,6 +527,11 @@ namespace sim_mob
 			produceMoveInfo();
 			TrainUpdateParams& params = parentDriver->getParams();
 			parentDriver->updatePassengers();
+			TrainDriver::TRAIN_NEXTREQUESTED requested = parentDriver->getNextRequested();
+			if(!getParentDriver()->isStoppedAtPoint()&&requested==TrainDriver::REQUESTED_WAITING_LEAVING)
+			{
+				isStopPointPresent();
+			}
 			if(getParentDriver()->isStoppedAtPoint())
 			{
 				params.currentSpeed = 0.0;
@@ -525,10 +541,10 @@ namespace sim_mob
 				{
 					parentDriver->setStoppingTime(0);
 					parentDriver->setStoppingStatus(false);
+					if(requested!=TrainDriver::REQUESTED_WAITING_LEAVING)
 					return;
 				}
 			}
-			TrainDriver::TRAIN_NEXTREQUESTED requested = parentDriver->getNextRequested();
 			if(parentDriver->getTrainId()==1)
 			{
 				int d=8;
@@ -1359,6 +1375,11 @@ namespace sim_mob
 				{
 
 					changeTrip();
+					parentDriver->setForceAlightStatus(false);
+					if(parentDriver->getTrainId()==4)
+					{
+						int debug = 1;
+					}
 					parentDriver->setNextRequested(TrainDriver::REQUESTED_AT_PLATFORM);
 				}
 			}

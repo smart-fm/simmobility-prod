@@ -1255,6 +1255,12 @@ namespace sim_mob
 	}
 
 	template<typename PERSON>
+	void TrainController<PERSON>::pushToInactivePoolAfterTripCompletion(int trainId,std::string lineId)
+	{
+		trainsToBePushedToInactivePoolAfterTripCompletion[lineId].push_back(trainId);
+	}
+
+	template<typename PERSON>
 	void TrainController<PERSON>::HandleMessage(messaging::Message::MessageType type, const messaging::Message& message)
 	{
 		switch (type)
@@ -1273,11 +1279,20 @@ namespace sim_mob
 						int trainId = front->getTrainId();
 						std::string lineId = front->getLineId();
 						std::string oppLineId=getOppositeLineId(lineId);
-						std::vector<int>::iterator it=std::find(trainsToBePushedToInactivePoolAfterTripCompletion.begin(), trainsToBePushedToInactivePoolAfterTripCompletion.end(), trainId);
-						if(it!=trainsToBePushedToInactivePoolAfterTripCompletion.end())
+						std::map<std::string,std::vector<int>>::iterator itr=trainsToBePushedToInactivePoolAfterTripCompletion.find(lineId);
+						if(itr!=trainsToBePushedToInactivePoolAfterTripCompletion.end())
 						{
-							trainsToBePushedToInactivePoolAfterTripCompletion.erase(it);
-							addTrainToInActivePool(oppLineId, trainId);
+							std::vector<int> &trainIds=trainsToBePushedToInactivePoolAfterTripCompletion[lineId];
+							std::vector<int>::iterator it=std::find(trainIds.begin(), trainIds.end(), trainId);
+							if(it!=trainIds.end())
+							{
+								trainIds.erase(it);
+								addTrainToInActivePool(oppLineId, trainId);
+							}
+							else
+							{
+								addTrainToActivePool(oppLineId, trainId);
+							}
 						}
 						else
 						{

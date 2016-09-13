@@ -95,6 +95,8 @@ private:
 
 	void prepareForUturn(TrainDriver *driver);
 
+	void pushForceAlightedPassengersToWaitingQueue(const Platform *platform);
+
 
 private:
 	/**the reference to the station*/

@@ -201,6 +201,10 @@ public:
 	void setIgnoreSafeDistanceByServiceController(bool ignore);
 	void setIgnoreSafeHeadwayByServiceController(bool ignore);
 
+	double getCurrentSpeed();
+
+	double getSafeHeadWay();
+
 	std::string getPlatformByOffset(int offset);
 	bool isUturnDueToDisruption();
 	void setToMove(bool toMove);

@@ -327,6 +327,7 @@ public:
     bool isServiceTerminated(std::string lineId);
     void loadOppositeLines();
     void loadTrainAvailabilities();
+    void pushToInactivePoolAfterTripCompletion(int trainId,std::string lineId);
 
     int getMapPlatformsSize();
 
@@ -463,6 +464,8 @@ private:
 	 */
 	void resetBlockSpeeds(timeslice now);
 
+
+
 private:
 	/**recording disruption information*/
 	boost::shared_ptr<DisruptionParams> disruptionParam;
@@ -496,7 +499,7 @@ private:
 	std::map<int, double> blockIdSpeed;
 	std::map<std::string, std::vector <Role<PERSON>*>> mapOfLineAndTrainDrivers;
 	std::map<std::string,std::vector<int>> mapOfInActivePoolInLine;
-	std::vector<int> trainsToBePushedToInactivePoolAfterTripCompletion;
+	std::map<std::string,std::vector<int>> trainsToBePushedToInactivePoolAfterTripCompletion;
 	mutable boost::mutex activeTrainsListLock;
 	mutable boost::mutex terminatedTrainServiceLock;
 	std::map<std::string,std::list<int>> mapOfTrainMaxMinIds;

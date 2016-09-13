@@ -450,6 +450,8 @@ int TrainDriver::alightPassenger(std::list<Passenger*>& alightingPassenger,times
     {
     	std::string ptName=platform->getPlatformNo();
     }
+
+    std::string lineId= platform->getLineId();
 	std::list<Passenger*>::iterator i = passengerList.begin();
 	std::string tm=(DailyTime(now.ms())+DailyTime(ConfigManager::GetInstance().FullConfig().simStartTime())).getStrRepr();
 	sim_mob::BasicLogger& ptMRTLogger  = sim_mob::Logger::log("PersonsAlighting.csv");
@@ -465,6 +467,20 @@ int TrainDriver::alightPassenger(std::list<Passenger*>& alightingPassenger,times
 				i = passengerList.erase(i);
 				num++;
 				continue;
+			}
+
+			else
+			{
+				std::string stationNo = platform->getStationNo();
+				std::vector<Platform*> platforms=TrainController<sim_mob::medium::Person_MT>::getInstance()->getPlatforms(lineId,stationNo);
+				std::vector<Platform*>::iterator itr=std::find(platforms.begin(),platforms.end(),endPoint.platform);
+				if(itr==platforms.end())
+				{
+					alightingPassenger.push_back(*i);
+					i = passengerList.erase(i);
+					num++;
+					continue;
+				}
 			}
 		}
 		else

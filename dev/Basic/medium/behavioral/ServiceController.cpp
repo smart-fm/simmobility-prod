@@ -459,7 +459,7 @@ std::string ServiceController::getDisruptedPlatformByIndex(std::string lineID,in
 	if(itr!=platforms.end())
 	{
 		const std::vector<std::string> &platformNames=itr->second;
-		if(!platformNames.empty()&&index>=0&&index<platforms.size())
+		if(!platformNames.empty()&&index>=0&&index<platformNames.size())
 		{
 			return platformNames.at(index);
 		}
@@ -472,7 +472,28 @@ void ServiceController::clearDisruption(std::string lineId)
 {
 	TrainController<sim_mob::medium::Person_MT>::getInstance()->clearDisruption(lineId);
 	//connect the trains to break the uTurn loop.
+	connectTrainsAfterDisruption(lineId);
+}
 
+void ServiceController::addTrainIdToInactivePoolOnJourneyCompletion(int trainId,std::string lineId)
+{
+	map<std::string,std::map<int,TrainDriver *>>::iterator it=mapOfLineAndTrainDrivers.find(lineId);
+	if(it != mapOfLineAndTrainDrivers.end())
+	{
+		std::map<int,TrainDriver*> &mapOfIdsVsTrainDrivers = it->second;
+		std::map<int,TrainDriver*>::iterator itr=mapOfIdsVsTrainDrivers.find(trainId);
+		if(itr!=mapOfIdsVsTrainDrivers.end())
+		{
+			TrainDriver* driver=itr->second;
+			if(driver)
+			{
+				if(driver->getTrainId()==trainId)
+				{
+					TrainController<sim_mob::medium::Person_MT>::getInstance()->pushToInactivePoolAfterTripCompletion(trainId,lineId);
+				}
+			}
+		}
+	}
 }
 
 void ServiceController::connectTrainsAfterDisruption(std::string lineId)
@@ -508,6 +529,7 @@ void ServiceController::connectTrainsAfterDisruption(std::string lineId)
 			}
 		}
 
+		//set the last driver for the first station agent so the subsequent trains coming can be connected to it as next driver
 		std::vector<Platform*> platforms;
 		TrainController<sim_mob::medium::Person_MT>::getInstance()->getTrainPlatforms(lineId, platforms);
 		if(platforms.size()>0)

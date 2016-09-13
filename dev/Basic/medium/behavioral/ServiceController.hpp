@@ -377,6 +377,8 @@ class ServiceController:  public lua::LuaModel
 	 */
 	void connectTrainsAfterDisruption(std::string lineId);
 
+	void addTrainIdToInactivePoolOnJourneyCompletion(int trainId,std::string lineId);
+
 	private:
     /** mutex lock to lock the mapOfLineAndTrainDrivers **/
     mutable boost::mutex lineTrainDriversLock;

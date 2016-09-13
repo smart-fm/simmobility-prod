@@ -222,10 +222,22 @@ void TrainStationAgent::checkAndInsertUnscheduledTrains()
 								   {
 									   const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
 									   double safeDistance = config.trainController.safeDistance;
-									   if(trainMovement->getDistanceToNextPlatform(tDriver)-platform->getLength()-safeDistance-138<0)
+									   double distanceToTrainAhead=trainMovement->getDistanceToNextPlatform(tDriver)-platform->getLength()-safeDistance;
+									   if(distanceToTrainAhead-138<0)
 									   {
 										   isTrainApproachingClose=true;
 										   break;
+									   }
+									   else
+									   {
+										   //also check for safe headway ...
+										   double currentSpeed=trainMovement->getCurrentSpeed();
+										   double safeHeadWay=trainMovement->getSafeHeadWay();
+										   if((distanceToTrainAhead-safeDistance)/currentSpeed<safeHeadWay)
+										   {
+											   isTrainApproachingClose=true;
+											   break;
+										   }
 									   }
 								   }
 							  }
@@ -580,6 +592,10 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 			else if ((*it)->getNextRequested() == TrainDriver::REQUESTED_AT_PLATFORM)
 			{
 
+				if((*it)->getTrainId()==9 && (*it)->getTrainLine()=="NE_2")
+				{
+					int debug=1;
+				}
 				DailyTime startTm = ConfigManager::GetInstance().FullConfig().simStartTime();
 				DailyTime current(now.ms() + startTm.getValue());
 				(*it)->setArrivalTime(current.getStrRepr());
@@ -774,6 +790,60 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 	passengerLeaving(now);
 	return UpdateStatus::Continue;
 }
+
+void TrainStationAgent::pushForceAlightedPassengersToWaitingQueue(const Platform *platform)
+{
+	std::list<Passenger*> leavingPassengers=leavingPersons[platform];
+	for (std::list<Passenger*>::iterator it=leavingPassengers.begin(); it != leavingPassengers.end(); )
+	{
+		Passenger *pr=dynamic_cast<Passenger*>(*it);
+		const WayPoint endPoint=pr->getEndPoint();
+		const Platform * alightingPlatform=endPoint.platform;
+		std::string lineId = platform->getLineId();
+		std::string stationNo = platform->getStationNo();
+		std::vector<Platform*> platforms=TrainController<sim_mob::medium::Person_MT>::getInstance()->getPlatforms(lineId,stationNo);
+		std::vector<Platform*>::iterator itr = std::find(platforms.begin(),platforms.end(),alightingPlatform);
+		if(alightingPlatform==platform)
+		{
+			it++;
+		}
+		else if(itr!=platforms.end())
+		{
+
+			if(forceAlightedPersons.find(platform)==forceAlightedPersons.end())
+			{
+				forceAlightedPersons[platform]=std::list<Passenger*>();
+			}
+			forceAlightedPersons[platform].push_back(pr);
+			it=leavingPersons[platform].erase(it);
+
+		}
+		else
+		{
+			std::string oppLineId=TrainController<sim_mob::medium::Person_MT>::getInstance()->getOppositeLineId(lineId);
+			std::vector<Platform*> oppPlatforms = TrainController<sim_mob::medium::Person_MT>::getInstance()->getPlatforms(oppLineId,stationNo);
+			std::string alightingPlatformStationNo = alightingPlatform->getStationNo();
+			Station *alightingPlatformStation = TrainController<sim_mob::medium::Person_MT>::getInstance()->getStationFromId(alightingPlatformStationNo);
+			Platform *oppAlightingPlatform = alightingPlatformStation->getPlatform(oppLineId);
+
+			itr = std::find(oppPlatforms.begin(),oppPlatforms.end(),oppAlightingPlatform);
+			if(itr!=oppPlatforms.end())
+			{
+				Station *station = TrainController<sim_mob::medium::Person_MT>::getInstance()->getStationFromId(stationNo);
+				Platform *oppPlatform = station->getPlatform(oppLineId);
+				if(forceAlightedPersons.find(oppPlatform)==forceAlightedPersons.end())
+				{
+					forceAlightedPersons[oppPlatform]=std::list<Passenger*>();
+				}
+				forceAlightedPersons[oppPlatform].push_back(pr);
+				sim_mob::WayPoint wayPoint(oppAlightingPlatform);
+				pr->setEndPoint(wayPoint);
+				it=leavingPersons[platform].erase(it);
+			}
+		}
+	}
+}
+
 
 void TrainStationAgent::performDisruption(timeslice now)
 {

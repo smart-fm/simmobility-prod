@@ -113,9 +113,9 @@
 		<minLotSize value = "100.00" />
     	</developerModel>
 	<outputHouseholdLogsums enabled="false">
-	    <vehicleOwnershipLogsum value ="true"/>
-	    <fixedHomeVariableWork value ="true"/>
-	    <fixedWorkVariableHome value ="false"/>
+	    <vehicleOwnershipLogsum value ="false"/>
+	    <fixedHomeVariableWork value ="false"/>
+	    <fixedWorkVariableHome value ="true"/>
 	</outputHouseholdLogsums>
     	<housingModel enabled="true"> 	    
             <timeOnMarket value="90"/>

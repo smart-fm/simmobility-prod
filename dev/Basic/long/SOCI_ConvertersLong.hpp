@@ -18,6 +18,7 @@
 #include <string>
 #include "database/entity/HedonicCoeffs.hpp"
 #include "database/entity/LagPrivateT.hpp"
+#include "database/entity/LtVersion.hpp"
 
 using namespace sim_mob;
 using namespace long_term;
@@ -68,6 +69,25 @@ struct type_conversion<sim_mob::long_term::LagPrivateT>
 
     }
 };
+
+
+template<>
+struct type_conversion<sim_mob::long_term::LtVersion>
+{
+    typedef values base_type;
+
+    static void
+    from_base(soci::values const & values, soci::indicator & indicator, sim_mob::long_term::LtVersion& ltVersion)
+    {
+    	ltVersion.setId(values.get<long long>("id", INVALID_ID));
+    	ltVersion.setBase_version(values.get<string>("base_version", ""));
+    	ltVersion.setChange_date(values.get<std::tm>("change_date", tm()));
+    	ltVersion.setComments(values.get<string>("comments", ""));
+    	ltVersion.setUser_id(values.get<string>("userid", ""));
+    }
+};
+
+
 
 } //namespace soci
 

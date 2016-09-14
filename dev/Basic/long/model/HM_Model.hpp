@@ -50,6 +50,7 @@
 #include "database/entity/ScreeningModelCoefficients.hpp"
 #include "database/entity/HouseholdUnit.hpp"
 #include "database/entity/IndvidualEmpSec.hpp"
+#include "database/entity/LtVersion.hpp"
 #include "core/HousingMarket.hpp"
 #include "boost/unordered_map.hpp"
 #include "DeveloperModel.hpp"
@@ -186,6 +187,9 @@ namespace sim_mob
 
             typedef std::vector<IndvidualEmpSec*> IndvidualEmpSecList;
             typedef boost::unordered_map<BigSerial, IndvidualEmpSec*> IndvidualEmpSecMap;
+
+            typedef std::vector<LtVersion*> LtVersionList;
+            typedef boost::unordered_map<BigSerial, LtVersion*> LtVersionMap;
 
             /**
              * Taz statistics
@@ -422,6 +426,8 @@ namespace sim_mob
 
             set<string> logsumUniqueCounter;
 
+            void  loadLTVersion(DB_Connection &conn);
+
 
         protected:
             /**
@@ -594,6 +600,11 @@ namespace sim_mob
             bool resume ;
             IndvidualEmpSecList indEmpSecList;
             IndvidualEmpSecMap indEmpSecbyIndId;
+
+            LtVersionList ltVersionList;
+            LtVersionMap ltVersionById;
+
+
 
         };
     }

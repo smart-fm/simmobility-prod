@@ -72,11 +72,14 @@
 #include <boost/random/linear_congruential.hpp>
 #include <boost/random/uniform_01.hpp>
 #include <random>
+#include "SOCI_ConvertersLong.hpp"
+#include <DatabaseHelper.hpp>
 
 using namespace sim_mob;
 using namespace sim_mob::long_term;
 using namespace sim_mob::db;
 using namespace sim_mob::messaging;
+using namespace std;
 using std::vector;
 using std::map;
 using boost::unordered_map;
@@ -1385,6 +1388,8 @@ void HM_Model::startImpl()
 
 	if (conn.isConnected())
 	{
+		loadLTVersion(conn);
+
 		loadData<LogsumMtzV2Dao>( conn, logsumMtzV2, logsumMtzV2ById, &LogsumMtzV2::getTazId );
 		PrintOutV("Number of LogsumMtzV2: " << logsumMtzV2.size() << std::endl );
 
@@ -1895,6 +1900,32 @@ void HM_Model::startImpl()
 
 }
 
+
+void  HM_Model::loadLTVersion(DB_Connection &conn)
+{
+	soci::session sql;
+	sql.open(soci::postgresql, conn.getConnectionStr());
+
+	std::string storedProc = MAIN_SCHEMA + "lt_version";
+
+	//SQL statement
+	soci::rowset<LtVersion> lt_version = (sql.prepare << "select * from " + storedProc);
+
+	for (soci::rowset<LtVersion>::const_iterator itLtVersion = lt_version.begin(); itLtVersion != lt_version.end(); ++itLtVersion)
+	{
+		LtVersion* ltver = new LtVersion(*itLtVersion);
+		ltVersionList.push_back(ltver);
+		ltVersionById.insert(std::make_pair(ltver->getId(), ltver));
+	}
+
+	PrintOutV("Number of Lt Version rows: " << ltVersionList.size() << std::endl );
+	PrintOutV("LT Database Baseline Version: " << ltVersionList.back()->getBase_version() << endl);
+	PrintOutV("LT Database Baseline Date: " << ltVersionList.back()->getChange_date().tm_mday << "/" << ltVersionList.back()->getChange_date().tm_mon << "/" << ltVersionList.back()->getChange_date().tm_year  + 1900 << endl);
+	PrintOutV("LT Database Baseline Comment: " << ltVersionList.back()->getComments() << endl);
+	PrintOutV("LT Database Baseline user id: " << ltVersionList.back()->getUser_id() << endl);
+}
+
+
 HM_Model::ScreeningModelCoefficientsList HM_Model::getScreeningModelCoefficientsList()
 {
 	return screeningModelCoefficientsList;
@@ -2301,7 +2332,17 @@ void HM_Model::hdbEligibilityTest(int index)
 	{
 		const Individual* hhIndividual = getIndividualById(	households[index]->getIndividuals()[n]);
 
-		boost::gregorian::date date1 = boost::gregorian::date_from_tm(hhIndividual->getDateOfBirth());
+		boost::gregorian::date date1;
+
+		if( hhIndividual->getDateOfBirth().tm_year != 0 )
+			date1 = boost::gregorian::date_from_tm(hhIndividual->getDateOfBirth());
+		else
+		{
+			date1 = boost::gregorian::date(2012, 1, 1);
+			//There will be a model soon for this. chetan. 14 Sept 2016
+		}
+
+
 		boost::gregorian::date date2(HITS_SURVEY_YEAR, 1, 1);
 		boost::gregorian::date_duration simulationDay(0); //we only check HDB eligibility on day 0 of simulation.
 		date2 = date2 + simulationDay;

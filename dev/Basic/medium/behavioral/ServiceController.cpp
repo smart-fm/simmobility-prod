@@ -512,6 +512,7 @@ void ServiceController::connectTrainsAfterDisruption(std::string lineId)
 		for(std::vector<TrainDriver*>::iterator it=trainDrivers.begin();it!=trainDrivers.end();it++)
 		{
 			TrainDriver *driver=(*it);
+			int id=driver->getTrainId();
 			if(driver->getNextDriver()!=nullptr)
 			{
 				TrainDriver *dr=*(it+1);

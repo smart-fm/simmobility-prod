@@ -12,6 +12,7 @@
 #include "entities/roles/driver/TrainPathMover.hpp"
 #include "entities/TrainStationAgent.hpp"
 #include "entities/roles/driver/TrainDriverFacets.hpp"
+#include "behavioral/ServiceController.hpp"
 using namespace std;
 namespace sim_mob
 {
@@ -103,6 +104,7 @@ namespace sim_mob
 				}
 
 				trainController->removeFromListOfActiveTrainsInLine(trainLine,personMT);
+				ServiceController::getInstance()->removeTrainIdAndTrainDriverInMap(trainId,trainLine,(*itr));
 				trainsToBeRemoved.erase(itr);
 				messaging::MessageBus::PostMessage(TrainController<Person_MT>::getInstance(),
 											MSG_TRAIN_BACK_DEPOT, messaging::MessageBus::MessagePtr(new TrainMessage((*itr)->getParent())));

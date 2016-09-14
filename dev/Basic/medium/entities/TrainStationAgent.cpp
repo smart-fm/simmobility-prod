@@ -611,6 +611,10 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 					itr_next=std::find(disruptedPlatformNames.begin(),disruptedPlatformNames.end(),nextPlatform->getPlatformNo());
 				if(itr!=disruptedPlatformNames.end()||itr_next!=disruptedPlatformNames.end())
 				{
+					if((*it)->getTrainId()==4)
+					{
+						int debug=1;
+					}
 					(*it)->getMovement()->setDisruptedState(true);
 					isDisruptedPlat=true;
 				}
@@ -696,8 +700,12 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 					{
 						itr_next=std::find(disruptedPlatformNames.begin(),disruptedPlatformNames.end(),nextPlatform->getPlatformNo());
 					}
-					if(itr!=disruptedPlatformNames.end()||itr_next!=disruptedPlatformNames.end())
+					if(itr!=disruptedPlatformNames.end()||(nextPlatform&&itr_next!=disruptedPlatformNames.end()))
 					{
+						if((*it)->getTrainId()==4)
+						{
+							int debug=1;
+						}
 						(*it)->getMovement()->setDisruptedState(true);
 						if(!(*it)->getForceAlightFlag())
 						{

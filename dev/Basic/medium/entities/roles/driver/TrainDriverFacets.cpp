@@ -21,6 +21,7 @@
 #include <boost/algorithm/string.hpp>
 #include "TrainPathMover.hpp"
 #include "entities/TrainStationAgent.hpp"
+#include "behavioral/ServiceController.hpp"
 #include "entities/TrainRemoval.h"
 
 using namespace std;
@@ -329,6 +330,9 @@ namespace sim_mob
 			std::string prevLine=TrainController<Person_MT>::getInstance()->getOppositeLineId(lineId);
 			TrainController<Person_MT>::getInstance()->removeFromListOfActiveTrainsInLine(prevLine,parentDriver);
 			TrainController<Person_MT>::getInstance()->addToListOfActiveTrainsInLine(lineId,parentDriver);
+			int trainId=parentDriver->getTrainId();
+			ServiceController::getInstance()->removeTrainIdAndTrainDriverInMap(trainId,prevLine,parentDriver);
+			ServiceController::getInstance()->insertTrainIdAndTrainDriverInMap(trainId,lineId,parentDriver);
 			typename  std::vector <Role<Person_MT>*> trainDriverVector=TrainController<Person_MT>::getInstance()->getActiveTrainsForALine(prevLine);
 			std::vector<Role<Person_MT>*>::iterator it;
 			for(it=trainDriverVector.begin();it!=trainDriverVector.end();it++)
@@ -612,7 +616,7 @@ namespace sim_mob
 
 					if(waitingTime<params.secondsInTick)
 					{
-						if(parentDriver->getTrainId()==2 && boost::iequals(getNextPlatform()->getPlatformNo(),"NE14_2"))
+						if(parentDriver->getTrainId()==4)
 						{
 							int debug=1;
 						}
@@ -701,6 +705,10 @@ namespace sim_mob
 									std::vector<std::string>::iterator it=std::find(disruptedPlatformNames.begin(),disruptedPlatformNames.end(),platform->getPlatformNo());
 									if(it!=disruptedPlatformNames.end())
 									{
+										if(parentDriver->getTrainId()==4)
+										{
+											int debug =1 ;
+										}
 										isDisruptedState=true;
 										isDisruptedPlatform =true;
 										//compute new dwell time
@@ -717,6 +725,10 @@ namespace sim_mob
 											{
 												//for uturn force alight compute dwell time
 												//set to requested at platform to board new passengers after disruption is over.
+												if(parentDriver->getTrainId()==4)
+												{
+													int debug =1 ;
+												}
 												parentDriver->setNextRequested(TrainDriver::REQUESTED_AT_PLATFORM);
 												isDisruptedState=true;
 												isDisruptedPlatform =true;
@@ -784,7 +796,11 @@ namespace sim_mob
 												std::string trainLine=parentDriver->getTrainLine();
 												std::map<std::string,std::vector<std::string>> platformNames = TrainController<sim_mob::medium::Person_MT>::getInstance()->getDisruptedPlatforms_ServiceController();
 												std::vector<std::string> disruptedPlatformNames=platformNames[trainLine];
-												std::vector<std::string>::iterator it=std::find(disruptedPlatformNames.begin(),disruptedPlatformNames.end(),nextPlatform->getPlatformNo());
+												std::vector<std::string>::iterator it=disruptedPlatformNames.end();
+												if(nextPlatform)
+												{
+													std::vector<std::string>::iterator it=std::find(disruptedPlatformNames.begin(),disruptedPlatformNames.end(),nextPlatform->getPlatformNo());
+												}
 												bool nextplatformDisrupted=false;
 												if(it!=disruptedPlatformNames.end())
 												{
@@ -801,6 +817,11 @@ namespace sim_mob
 												}
 												else
 												{
+													if(parentDriver->getTrainId()==4&&((boost::iequals(nextPlatform->getPlatformNo(),"NE1_2"))||(boost::iequals(nextPlatform->getPlatformNo(),"NE1_2"))))
+													//if(parentDriver->getTrainId()==4)
+													{
+														int debug=1;
+													}
 													if(!leaveFromPlaform())
 													{
 													   parentDriver->getParent()->setToBeRemoved();
@@ -815,6 +836,10 @@ namespace sim_mob
 									{
 										if(!parentDriver->isStoppedAtPoint())
 										{
+											if(parentDriver->getTrainId()==4)
+											{
+												int debug=1;
+											}
 											parentDriver->getParent()->setToBeRemoved();
 											arrivalAtEndPlatform();
 										}

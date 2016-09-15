@@ -232,13 +232,20 @@ namespace sim_mob
 			typename std::vector <Role<Person_MT>*>::iterator it=trainDriverVector.begin();
 			double minDis=-1;
 			TrainDriver *nextDriverInOppLine=nullptr;
+			int trId=parentDriver->getTrainId();
+			if(trId==21||trId==4)
+			{
+				int debug=1;
+			}
 			while(it!=trainDriverVector.end())
 			{
 
 				MovementFacet *movementFacet=(*it)->Movement();
+
 				if(movementFacet)
 				{
 					TrainMovement *trainMovement=dynamic_cast<TrainMovement*>(movementFacet);
+					int trainIdinLine = trainMovement->getParentDriver()->getTrainId();
 					if(trainMovement)
 					{
 						Platform *nextPlatform=trainMovement->getNextPlatform();
@@ -266,7 +273,7 @@ namespace sim_mob
 							}
 							else
 							{
-								if(minDis==-1||disCovered-disOfPlatform<minDis)
+								if((disCovered-disOfPlatform>0)&&(minDis==-1||(disCovered-disOfPlatform<minDis)))
 								{
 								 minDis=disCovered-disOfPlatform;
 								 nextDriverInOppLine = dynamic_cast<TrainDriver*>((*it));
@@ -278,6 +285,7 @@ namespace sim_mob
 				it++;
 		  }
 		  TrainDriver * trainDriver=this->getParentDriver();
+		  int oppTrId=nextDriverInOppLine->getTrainId();
 		  if(trainDriver)
 		  {
 			trainDriver->setTrainDriverInOpposite(nextDriverInOppLine);
@@ -342,6 +350,10 @@ namespace sim_mob
 				{
 					if(tDriver->getNextDriver()==parentDriver)
 					{
+						if(tDriver->getTrainId()==17)
+						{
+							int debug=1;
+						}
 						tDriver->setNextDriver(nullptr);
 					}
 				}

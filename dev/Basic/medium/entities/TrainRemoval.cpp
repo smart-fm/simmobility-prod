@@ -53,6 +53,11 @@ namespace sim_mob
 			for(;itr!=trainsToBeRemoved.end();)
 			{
 				std::string trainLine=(*itr)->getTrainLine();
+				int trainId=(*itr)->getTrainId();
+				if(trainId==17)
+				{
+					int degub=1;
+				}
 				TrainDriver *nextDriver=(*itr)->getNextDriver();
 				TrainController<Person_MT> *trainController=TrainController<Person_MT>::getInstance();
 				std::vector <Role<Person_MT>*> activeTrains = trainController->getActiveTrainsForALine(trainLine);

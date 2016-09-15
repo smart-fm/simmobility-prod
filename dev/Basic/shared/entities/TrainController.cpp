@@ -279,10 +279,13 @@ namespace sim_mob
 	void TrainController<PERSON>::removeFromListOfActiveTrainsInLine(std::string lineId,Role<PERSON> *driver)
 	{
 		activeTrainsListLock.lock();
-		std::vector <Role<PERSON>*> vect=mapOfLineAndTrainDrivers[lineId];
+		std::vector <Role<PERSON>*> &vect=mapOfLineAndTrainDrivers[lineId];
 		typename std::vector <sim_mob::Role<PERSON>*>::iterator it=vect.begin();
 		it=find(vect.begin(),vect.end(),driver);
-		int pos=std::distance (vect.begin (), it);
+		if(it!=vect.end())
+		{
+			vect.erase(it);
+		}
 		activeTrainsListLock.unlock();
 	}
 

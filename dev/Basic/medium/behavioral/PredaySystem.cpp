@@ -41,6 +41,7 @@ using namespace sim_mob;
 using namespace sim_mob::medium;
 using namespace mongo;
 
+
 namespace {
 	const double HIGH_TRAVEL_TIME = 999.0;
 	const double PEDESTRIAN_WALK_SPEED = 5.0; //kmph

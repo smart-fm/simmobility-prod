@@ -413,6 +413,7 @@ void TrainStationAgent::dispathPendingTrains(timeslice now)
 			{
 				if (!isUsed)
 				{
+					insertTrainOrUturnlock.lock();
 					TrainDriver* next = pendingDrivers.front();
 					TrainDriver* ahead = nullptr;
 					TrainDriver *behindDriver=nullptr;
@@ -446,6 +447,7 @@ void TrainStationAgent::dispathPendingTrains(timeslice now)
 						Role<Person_MT> *tDriver=dynamic_cast<Role<Person_MT>*>(next);
 						TrainController<Person_MT>::getInstance()->addToListOfActiveTrainsInLine(lineId,tDriver);
 					}
+					insertTrainOrUturnlock.unlock();
 				}
 			}
 		}

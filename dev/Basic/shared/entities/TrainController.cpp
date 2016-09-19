@@ -206,6 +206,11 @@ namespace sim_mob
 		for(it=mapOfIdvsTrip.begin(); it!=mapOfIdvsTrip.end(); it++)
 		{
 			TripStartTimePriorityQueue& trainTrips = it->second;
+			std::string lineId=it->first;
+			if(boost::iequals(lineId,"EW_1"))
+			{
+				int debug=1;
+			}
 			while(!trainTrips.empty()&&trainTrips.top()->getStartTime()<=now.ms())
 			{
 				const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
@@ -603,6 +608,10 @@ namespace sim_mob
 					TrainTrip* trainTrip = new TrainTrip();
 					trainTrip->setTrainRoute(route);
 					trainTrip->setTrainPlatform(platforms);
+					if(boost::iequals(lineId,"EW_1"))
+					{
+						int debug=1;
+					}
 					trainTrip->setLineId(lineId);
 					trainTrip->setTripId(tripId++);
 					DailyTime start(time.offsetMS_From(ConfigManager::GetInstance().FullConfig().simStartTime()));

@@ -267,7 +267,7 @@ public:
 			throw std::runtime_error("connection to LT population database failed");
 		}
 		PopulationSqlDao populationDao(populationConn);
-
+		int sz= tripChainList.size();
 		for (size_t i = 0; i < tripChainList.size(); i++)
 		{
 			std::vector<TripChainItem*>& personTripChain = tripChainList[i];
@@ -469,6 +469,7 @@ void MT_PersonLoader::loadPersonDemand()
 	ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
 	unsigned actCtr = 0;
 	map<string, vector<TripChainItem*> > tripchains;
+
 	for (soci::rowset<soci::row>::const_iterator it=rs.begin(); it!=rs.end(); ++it)
 	{
 		const soci::row& r = (*it);
@@ -483,6 +484,8 @@ void MT_PersonLoader::loadPersonDemand()
 		if(!isLastInSchedule) { personTripChain.push_back(makeActivity(r, ++seqNo)); }
 		actCtr++;
 	}
+
+	int sz= tripchains.size();
 
 	if (freightStoredProcName.empty()) { return; }
 	//Our SQL statement

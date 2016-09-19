@@ -348,7 +348,7 @@ void Person_MT::convertPublicTransitODsToTrips(PT_Network& ptNetwork,const std::
 						bool ret = sim_mob::PT_RouteChoiceLuaProvider::getPTRC_Model().getBestPT_Path(itSubTrip->origin.node->getNodeId(),
 																		itSubTrip->destination.node->getNodeId(),itSubTrip->startTime.getValue(), odTrips, dbid, start_time,ptPathsetStoredProcName);
 
-						//findMrtTripsAndPerformRailTransitRoute(odTrips);
+						findMrtTripsAndPerformRailTransitRoute(odTrips);
 
 						if (ret)
 						{

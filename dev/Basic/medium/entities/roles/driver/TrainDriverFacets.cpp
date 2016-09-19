@@ -143,6 +143,10 @@ namespace sim_mob
 			}
 			else
 			{
+				if(boost::iequals(parentDriver->getTrainLine(),"EW_1"))
+				{
+					int debug=1;
+				}
 				trainPathMover.setPath(trip->getTrainRoute());
 				trainPlatformMover.setPlatforms(trip->getTrainPlatform());
 				trainPlatformMover_accpos.setPlatforms(trip->getTrainPlatform());
@@ -1255,6 +1259,10 @@ namespace sim_mob
 		{
 			if(!isStopAtPlatform())
 			{
+				if(boost::iequals(parentDriver->getTrainLine(),"EW_1"))
+				{
+					int debug=1;
+				}
 				double movingDistance = getEffectiveMovingDistance();
 				double distanceToNextPlat = trainPathMover.getDistanceToNextPlatform(trainPlatformMover.getNextPlatform());
 				TrainUpdateParams& params = parentDriver->getParams();

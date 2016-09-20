@@ -407,12 +407,18 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
         PrintOutV("XML Config geometrySchemaVersion " << config.ltParams.geometrySchemaVersion << endl);
         PrintOutV("XML Config HousingModel bidderBTOUnitsChoiceSet " << config.ltParams.housingModel.bidderBTOUnitsChoiceSet << endl);
         PrintOutV("XML Config HousingModel bidderUnitsChoiceSet " << config.ltParams.housingModel.bidderUnitsChoiceSet << endl);
-        PrintOutV("XML Config HousingModel dailyHouseholdAwakenings " << config.ltParams.housingModel.dailyHouseholdAwakenings << endl);
+
+        PrintOutV("XML Config HousingModel AwakeningSubModel dailyHouseholdAwakenings " << config.ltParams.housingModel.awakeningModel.dailyHouseholdAwakenings << endl);
+        PrintOutV("XML Config HousingModel AwakeningSubModel initialHouseholdsOnMarket " << config.ltParams.housingModel.awakeningModel.initialHouseholdsOnMarket << endl);
+        PrintOutV("XML Config HousingModel AwakeningSubModel AwakenModelRandom " << config.ltParams.housingModel.awakeningModel.awakenModelRandom << endl);
+        PrintOutV("XML Config HousingModel AwakeningSubModel AwakenModelShan " << config.ltParams.housingModel.awakeningModel.awakenModelShan << endl);
+        PrintOutV("XML Config HousingModel AwakeningSubModel AwakenModelJingsi " << config.ltParams.housingModel.awakeningModel.awakenModelJingsi << endl);
+
         PrintOutV("XML Config HousingModel enabled " << config.ltParams.housingModel.enabled << endl);
         PrintOutV("XML Config HousingModel householdBiddingWindow " << config.ltParams.housingModel.householdBiddingWindow << endl);
         PrintOutV("XML Config HousingModel housingMarketSearchPercentage " << config.ltParams.housingModel.housingMarketSearchPercentage << endl);
         PrintOutV("XML Config HousingModel housingMoveInDaysInterval " << config.ltParams.housingModel.housingMoveInDaysInterval << endl);
-        PrintOutV("XML Config HousingModel initialHouseholdsOnMarket " << config.ltParams.housingModel.initialHouseholdsOnMarket << endl);
+
         PrintOutV("XML Config HousingModel offsetBetweenUnitBuyingAndSelling " << config.ltParams.housingModel.offsetBetweenUnitBuyingAndSelling << endl);
         PrintOutV("XML Config HousingModel timeInterval " << config.ltParams.housingModel.timeInterval << endl);
         PrintOutV("XML Config HousingModel timeOffMarket " << config.ltParams.housingModel.timeOffMarket << endl);
@@ -423,6 +429,7 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
         PrintOutV("XML Config maxIterations " << config.ltParams.maxIterations << endl);
         PrintOutV("XML Config opSchemaloadingInterval " << config.ltParams.opSchemaloadingInterval << endl);
         PrintOutV("XML Config outputHouseholdLogsums " << config.ltParams.outputHouseholdLogsums.enabled << endl);
+        PrintOutV("XML Config outputHouseholdLogsums vehicleOwnership " << config.ltParams.outputHouseholdLogsums.vehicleOwnership << endl);
         PrintOutV("XML Config outputHouseholdLogsums fixedHomeVariableWork " << config.ltParams.outputHouseholdLogsums.fixedHomeVariableWork << endl);
         PrintOutV("XML Config outputHouseholdLogsums fixedWorkVariableHome " << config.ltParams.outputHouseholdLogsums.fixedWorkVariableHome << endl);
         PrintOutV("XML Config Simulation resumption " << config.ltParams.resume << endl);

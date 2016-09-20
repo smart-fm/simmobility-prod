@@ -152,8 +152,8 @@ local function computeUtilities(params)
 	-- other variables
 	local workathome,caravail,motoravail = 0,0,0
 	if work_at_home_dummy == 1 then workathome = 1 end
-	if veh_own_cat == 3 or 4 or 5 or 6 then caravail = 1 end
-	if veh_own_cat == 2 or 3 or 5 or 6 then motoravail = 1 end
+	if veh_own_cat == 2 or veh_own_cat == 3 or veh_own_cat == 4 or veh_own_cat == 5 then caravail = 1 end
+	if veh_own_cat == 1 or veh_own_cat == 2 or veh_own_cat == 4 or veh_own_cat == 5 then motoravail = 1 end
 	
 	utility[1] = 0
 	utility[2] = beta_cons_edu_2+beta_parttime_edu_2*parttime+beta_selfemployed_edu_2*selfemployed+beta_universitystudent_edu_2*universitystudent+beta_homemaker_edu_2*homemaker+beta_retired_edu_2*retired+beta_unemployed_edu_2*unemployed+beta_nationalservice_edu_2*nationalservice+beta_voluntary_edu_2*voluntary+beta_domestic_edu_2*domestic+beta_otherworker_edu_2*otherworker+beta_student16_edu_2*student16+beta_student515_edu_2*student515+beta_child4_edu_2*child4+beta_age2025_edu_2*age2025+beta_age2635_edu_2*age2635+beta_age5165_edu_2*age5165+beta_maleage4_edu_2*maleage4+beta_maleage515_edu_2*maleage515+beta_femalenone_edu_2*femalenone+beta_femaleage4_edu_2*femaleage4+beta_femaleage515_edu_2*femaleage515+beta_onlyadults_edu_2*onlyadults+beta_onlyworkers_edu_2*onlyworkers+beta_income_edu_2*income+beta_workathome_edu_2*workathome+beta_caravail_edu_2*caravail+beta_motoravail_edu_2*motoravail+beta_logsum_edu_2*edulogsum

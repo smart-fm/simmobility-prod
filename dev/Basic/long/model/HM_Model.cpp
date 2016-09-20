@@ -72,11 +72,14 @@
 #include <boost/random/linear_congruential.hpp>
 #include <boost/random/uniform_01.hpp>
 #include <random>
+#include "SOCI_ConvertersLong.hpp"
+#include <DatabaseHelper.hpp>
 
 using namespace sim_mob;
 using namespace sim_mob::long_term;
 using namespace sim_mob::db;
 using namespace sim_mob::messaging;
+using namespace std;
 using std::vector;
 using std::map;
 using boost::unordered_map;
@@ -1385,6 +1388,8 @@ void HM_Model::startImpl()
 
 	if (conn.isConnected())
 	{
+		loadLTVersion(conn);
+
 		loadData<LogsumMtzV2Dao>( conn, logsumMtzV2, logsumMtzV2ById, &LogsumMtzV2::getTazId );
 		PrintOutV("Number of LogsumMtzV2: " << logsumMtzV2.size() << std::endl );
 
@@ -1895,6 +1900,32 @@ void HM_Model::startImpl()
 
 }
 
+
+void  HM_Model::loadLTVersion(DB_Connection &conn)
+{
+	soci::session sql;
+	sql.open(soci::postgresql, conn.getConnectionStr());
+
+	std::string storedProc = MAIN_SCHEMA + "lt_version";
+
+	//SQL statement
+	soci::rowset<LtVersion> lt_version = (sql.prepare << "select * from " + storedProc);
+
+	for (soci::rowset<LtVersion>::const_iterator itLtVersion = lt_version.begin(); itLtVersion != lt_version.end(); ++itLtVersion)
+	{
+		LtVersion* ltver = new LtVersion(*itLtVersion);
+		ltVersionList.push_back(ltver);
+		ltVersionById.insert(std::make_pair(ltver->getId(), ltver));
+	}
+
+	PrintOutV("Number of Lt Version rows: " << ltVersionList.size() << std::endl );
+	PrintOutV("LT Database Baseline Version: " << ltVersionList.back()->getBase_version() << endl);
+	PrintOutV("LT Database Baseline Date: " << ltVersionList.back()->getChange_date().tm_mday << "/" << ltVersionList.back()->getChange_date().tm_mon << "/" << ltVersionList.back()->getChange_date().tm_year  + 1900 << endl);
+	PrintOutV("LT Database Baseline Comment: " << ltVersionList.back()->getComments() << endl);
+	PrintOutV("LT Database Baseline user id: " << ltVersionList.back()->getUser_id() << endl);
+}
+
+
 HM_Model::ScreeningModelCoefficientsList HM_Model::getScreeningModelCoefficientsList()
 {
 	return screeningModelCoefficientsList;
@@ -1949,6 +1980,13 @@ void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId)
 	for( int n = 0; n < householdIndividualIds.size(); n++ )
 	{
 		Individual *thisIndividual = this->getIndividualById(householdIndividualIds[n]);
+
+		string customId = to_string(hitsSample->getHouseholdHitsId()) + "-" + to_string(thisIndividual->getMemberId());
+
+		if(logsumUniqueCounter.find(customId) == logsumUniqueCounter.end())
+			logsumUniqueCounter.insert(customId);
+		else
+			continue;
 
 		vector<double> logsum;
 		vector<double> travelProbability;
@@ -2038,12 +2076,12 @@ void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId)
 										 << std::setprecision(5)
 										 << logsum[0]  << ", " << logsum[1] << ", " << logsum[2] << ", " << logsum[3] << ", "<< logsum[4]  << ", " << logsum[5] << ", "
 										 << tripsExpected[0] << ", " << tripsExpected[1] << ", " << tripsExpected[2] << ", " << tripsExpected[3] << ", "<< tripsExpected[4] << ", " << tripsExpected[5] << ", "
-										 << travelProbability[0] << ", " << travelProbability[1] << travelProbability[2] << ", " << travelProbability[3] << travelProbability[4] << ", " << travelProbability[5] <<std::endl );
+										 << travelProbability[0] << ", " << travelProbability[1] << ", "  << travelProbability[2] << ", " << travelProbability[3] << ", "  << travelProbability[4] << ", " << travelProbability[5] <<std::endl );
 
 	}
 }
 
-void HM_Model::getLogsumOfHousehold(BigSerial householdId)
+void HM_Model::getLogsumOfVaryingHomeOrWork(BigSerial householdId)
 {
 	HouseHoldHitsSample *hitsSample = nullptr;
 
@@ -2070,6 +2108,13 @@ void HM_Model::getLogsumOfHousehold(BigSerial householdId)
 	for( int n = 0; n < householdIndividualIds.size(); n++ )
 	{
 		Individual *thisIndividual = this->getIndividualById(householdIndividualIds[n]);
+
+		string customId = to_string(hitsSample->getHouseholdHitsId()) + "-" + to_string(thisIndividual->getMemberId());
+
+		if(logsumUniqueCounter.find(customId) == logsumUniqueCounter.end())
+			logsumUniqueCounter.insert(customId);
+		else
+			continue;
 
 		int vehicleOwnership = 0;
 
@@ -2145,11 +2190,43 @@ void HM_Model::getLogsumOfHousehold(BigSerial householdId)
 
 			PersonParams personParams;
 
+			Job *job = this->getJobById(thisIndividual->getJobId());
+			Establishment *establishment = this->getEstablishmentById(	job->getEstablishmentId());
+			const Unit *unit = this->getUnitById(currentHousehold->getUnitId());
+
+			personParams.setPersonId(boost::lexical_cast<std::string>(thisIndividual->getId()));
+			personParams.setPersonTypeId(thisIndividual->getEmploymentStatusId());
+			personParams.setGenderId(thisIndividual->getGenderId());
+			personParams.setStudentTypeId(thisIndividual->getEducationId());
+			personParams.setVehicleOwnershipCategory(currentHousehold->getVehicleOwnershipOptionId());
+			personParams.setAgeId(thisIndividual->getAgeCategoryId());
+			personParams.setIncomeIdFromIncome(thisIndividual->getIncome());
+			personParams.setWorksAtHome(thisIndividual->getWorkAtHome());
+			personParams.setCarLicense(thisIndividual->getCarLicense());
+			personParams.setMotorLicense(thisIndividual->getMotorLicense());
+			personParams.setVanbusLicense(thisIndividual->getVanBusLicense());
+			personParams.setHasFixedWorkTiming(job->getTimeRestriction());
+			personParams.setHasWorkplace( job->getFixedWorkplace() );
+			personParams.setIsStudent(job->getIsStudent());
+			personParams.setActivityAddressId( establishment->getSlaAddressId() );
+
+			//household related
+			personParams.setHhId(boost::lexical_cast<std::string>( currentHousehold->getId() ));
+			personParams.setHomeAddressId( unit->getSlaAddressId() );
+			personParams.setHH_Size( currentHousehold->getSize() );
+			personParams.setHH_NumUnder4( currentHousehold->getChildUnder4());
+			personParams.setHH_NumUnder15( currentHousehold->getChildUnder15());
+			personParams.setHH_NumAdults( currentHousehold->getAdult());
+			personParams.setHH_NumWorkers( currentHousehold->getWorkers());
+
+			//infer params
+			personParams.fixUpParamsForLtPerson();
+
 			if( config.ltParams.outputHouseholdLogsums.fixedHomeVariableWork )
-				personParams = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazHome, tazList, vehicleOwnership );
+				personParams = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazHome, tazList, vehicleOwnership , &personParams );
 			else
 			if( config.ltParams.outputHouseholdLogsums.fixedWorkVariableHome )
-				personParams = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazList, tazWork, vehicleOwnership );
+				personParams = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazList, tazWork, vehicleOwnership , &personParams );
 
 			double logsumD 				= personParams.getDpbLogsum();
  			double travelProbabilityD	= personParams.getTravelProbability();
@@ -2255,7 +2332,17 @@ void HM_Model::hdbEligibilityTest(int index)
 	{
 		const Individual* hhIndividual = getIndividualById(	households[index]->getIndividuals()[n]);
 
-		boost::gregorian::date date1 = boost::gregorian::date_from_tm(hhIndividual->getDateOfBirth());
+		boost::gregorian::date date1;
+
+		if( hhIndividual->getDateOfBirth().tm_year != 0 )
+			date1 = boost::gregorian::date_from_tm(hhIndividual->getDateOfBirth());
+		else
+		{
+			date1 = boost::gregorian::date(2012, 1, 1);
+			//There will be a model soon for this. chetan. 14 Sept 2016
+		}
+
+
 		boost::gregorian::date date2(HITS_SURVEY_YEAR, 1, 1);
 		boost::gregorian::date_duration simulationDay(0); //we only check HDB eligibility on day 0 of simulation.
 		date2 = date2 + simulationDay;

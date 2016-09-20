@@ -220,7 +220,7 @@ namespace sim_mob
 
 				if( ZZ_logsumhh == -1 )
 				{
-					PersonParams personParam = PredayLT_LogsumManager::getInstance().computeLogsum( headOfHousehold->getId(), homeTaz, workTaz, 1 );
+					PersonParams personParam = PredayLT_LogsumManager::getInstance().computeLogsum( headOfHousehold->getId(), homeTaz, workTaz, household->getVehicleOwnershipOptionId() );
 					ZZ_logsumhh = personParam.getDpbLogsum();
 
 					BigSerial groupId = hitssample->getGroupId();

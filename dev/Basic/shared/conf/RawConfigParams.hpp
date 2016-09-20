@@ -57,8 +57,6 @@ struct LongTermParams
 		unsigned int timeOnMarket; //for units on the housing market
 		unsigned int timeOffMarket;//for units on the housing market
 		float vacantUnitActivationProbability;
-		int initialHouseholdsOnMarket;
-		int dailyHouseholdAwakenings;
 		float housingMarketSearchPercentage;
 		float housingMoveInDaysInterval;
 		int offsetBetweenUnitBuyingAndSelling;
@@ -66,12 +64,23 @@ struct LongTermParams
 		int bidderBTOUnitsChoiceSet;
 		int householdBiddingWindow;
 		float householdAwakeningPercentageByBTO;
+
+		struct AwakeningModel
+		{
+			AwakeningModel();
+			int initialHouseholdsOnMarket;
+			int dailyHouseholdAwakenings;
+			bool awakenModelJingsi;
+			bool awakenModelShan;
+			bool awakenModelRandom;
+		} awakeningModel;
 	} housingModel;
 
 	struct OutputHouseholdLogsums
 	{
 		OutputHouseholdLogsums();
 		bool enabled;
+		bool vehicleOwnership;
 		bool fixedHomeVariableWork;
 		bool fixedWorkVariableHome;
 	} outputHouseholdLogsums;

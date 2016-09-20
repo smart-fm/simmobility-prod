@@ -125,11 +125,14 @@ namespace sim_mob
 			float awaken_class2 = 0;
 			float awaken_class3 = 0;
 
+			const float equalClassProb = 0.33;
+			const float baseAwakeningProb = 0.02;
+
 			if( config.ltParams.housingModel.awakeningModel.awakenModelRandom == true )
 			{
-				class1 = 0.33;
-				class2 = 0.33;
-				class3 = 0.33;
+				class1 = equalClassProb;
+				class2 = equalClassProb;
+				class3 = equalClassProb;
 				awaken_class1 = (double)rand()/RAND_MAX;
 				awaken_class2 = (double)rand()/RAND_MAX;
 				awaken_class3 = (double)rand()/RAND_MAX;
@@ -141,12 +144,12 @@ namespace sim_mob
 				{
 					AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, (boost::format( "The awakening object is null for household %1%. We'll set it to the average.") % household->getId()).str());
 
-					class1 = 0.33;
-					class2 = 0.33;
-					class3 = 0.33;
-					awaken_class1 = 0.02;
-					awaken_class2 = 0.02;
-					awaken_class3 = 0.02;
+					class1 = equalClassProb;
+					class2 = equalClassProb;
+					class3 = equalClassProb;
+					awaken_class1 = baseAwakeningProb;
+					awaken_class2 = baseAwakeningProb;
+					awaken_class3 = baseAwakeningProb;
 				}
 				else
 				{

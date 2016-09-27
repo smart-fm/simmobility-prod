@@ -712,10 +712,10 @@ bool DriverMovement::updatePostMovement()
 	return true;
 }
 
-void DriverMovement::checkForStoppingPoints(DriverUpdateParams &params)
+void DriverMovement::checkForStops(DriverUpdateParams &params)
 {
 	//Get the distance to stopping point in the current link
-	double distance = getDistanceToStopPoint(params.stopVisibilityDistance);
+	double distance = getDistanceToStopLocation(params.stopVisibilityDistance);
 
 	if (parentDriver->getParent()->amodId != "-1" && abs(distance) < 50)
 	{
@@ -773,7 +773,7 @@ void DriverMovement::applyDrivingModels(DriverUpdateParams &params)
 	//for private cars and taxis will be a burden.
 	if (parentDriver->getParent()->amodId != "-1" || parentDriver->IsBusDriver())
 	{
-		checkForStoppingPoints(params);
+		checkForStops(params);
 	}
 
 	if(!fwdDriverMovement.isInIntersection())
@@ -1000,7 +1000,7 @@ Point DriverMovement::getPosition()
 	return origPos;
 }
 
-double DriverMovement::getDistanceToStopPoint(double perceptionDistance)
+double DriverMovement::getDistanceToStopLocation(double perceptionDistance)
 {
 	//Distance to stopping point
 	double distance = -100;

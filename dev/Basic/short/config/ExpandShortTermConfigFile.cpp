@@ -227,6 +227,11 @@ void ExpandShortTermConfigFile::processConfig()
 	{
 		TravelTimeManager::getInstance()->loadTravelTimes();
 	}
+	
+	if (cfg.isPublicTransitEnabled())
+    {
+        loadPublicTransitNetworkFromDatabase();
+    }
 
 	//Set PartitionManager instance (if using MPI and it's enabled).
 	if (cfg.MPI_Enabled() && cfg.using_MPI)
@@ -241,6 +246,7 @@ void ExpandShortTermConfigFile::processConfig()
 
 	//Initialize the street directory.
 	StreetDirectory::Instance().Init(*(RoadNetwork::getInstance()));
+	
 	//Instantiating K_ShortestPathImpl before any thread is spawned (in path-set generation)
 	K_ShortestPathImpl::getInstance();
 	std::cout << "Street Directory initialized  " << std::endl;
@@ -323,6 +329,11 @@ void ExpandShortTermConfigFile::loadNetworkFromDatabase()
 		Print() << "Loading Road Network from XML not yet implemented\n";
 		exit(-1);
 	}
+}
+
+void ExpandShortTermConfigFile::loadPublicTransitNetworkFromDatabase()
+{
+    PT_Network::getInstance().init();
 }
 
 void ExpandShortTermConfigFile::loadAMOD_Controller()
@@ -510,19 +521,7 @@ void ExpandShortTermConfigFile::generateXMLAgents(const std::vector<EntityTempla
 	if (xmlItems.begin()->agentId != 0)
 	{
 		agentId = xmlItems.begin()->agentId;
-	}
-	
-	//Create the Person agent with that given ID (or an auto-generated one)
-	Person_ST *person = new Person_ST("XML_Def", cfg.mutexStategy(), agentId);	
-	person->setStartTime(xmlItems.begin()->startTimeMs);
-	
-	//Set the usage of in-simulation travel times
-	int randomInt = Utils::generateInt(0, 100);
-
-	if (randomInt < cfg.simulation.inSimulationTTUsage)
-	{
-		person->setUseInSimulationTravelTime(true);
-	}
+	}	
 	
 	std::vector<TripChainItem*> tripChain;
 	const RoadNetwork *rn = RoadNetwork::getInstance();
@@ -530,11 +529,7 @@ void ExpandShortTermConfigFile::generateXMLAgents(const std::vector<EntityTempla
 	//Loop through all agents of this type.
 	for (std::vector<EntityTemplate>::const_iterator it = xmlItems.begin(); it != xmlItems.end(); ++it)
 	{
-		std::string mode = it->mode;
-		person->startLaneIndex = it->startLaneIndex;
-		person->startSegmentId = it->startSegmentId;
-		person->segmentStartOffset = it->segmentStartOffset;
-		person->initialSpeed = it->initialSpeed;
+		std::string mode = it->mode;		
 		
 		//Set the origin and destination nodes		
 		const Node *originNd = rn->getById(rn->getMapOfIdvsNodes(), it->originNode);
@@ -554,9 +549,26 @@ void ExpandShortTermConfigFile::generateXMLAgents(const std::vector<EntityTempla
 		}
 	}
 	
+	//Create the Person agent with that given ID (or an auto-generated one)
+	Person_ST *person = new Person_ST("XML_Def", cfg.mutexStategy(), tripChain);
+	person->setStartTime(xmlItems.begin()->startTimeMs);
+	
+	//Set the start locations for the first sub-trip only (rest of are ignored)
+	std::vector<EntityTemplate>::const_iterator it = xmlItems.begin();
+	person->startLaneIndex = it->startLaneIndex;
+	person->startSegmentId = it->startSegmentId;
+	person->segmentStartOffset = it->segmentStartOffset;
+	person->initialSpeed = it->initialSpeed;
+	
+	//Set the usage of in-simulation travel times
+	int randomInt = Utils::generateInt(0, 100);
+
+	if (randomInt < cfg.simulation.inSimulationTTUsage)
+	{
+		person->setUseInSimulationTravelTime(true);
+	}
+	
 	person->setNextPathPlanned(false);
-	person->setTripChain(tripChain);
-	person->initTripChain();
 	
 	//Add it or stash it
 	addOrStashEntity(person, active_agents, pending_agents);

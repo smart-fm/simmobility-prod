@@ -19,6 +19,7 @@ class DriverUpdateParams;
 class PackageUtils;
 class UnPackageUtils;
 class BusStop;
+class BusStopAgent;
 class Person_ST;
 class Passenger;
 class BusDriverBehavior;
@@ -27,7 +28,12 @@ class BusDriverMovement;
 class BusDriver : public Driver
 {
 private:
-
+	/**Passengers in the bus*/
+	std::list<Passenger *> passengerList;
+	
+	/**Id of the bus line driven by the driver*/
+	std::string busLineId;
+	
 public:
 	BusDriver(Person_ST *parent, MutexStrategy mtxStrat, BusDriverBehavior *behavior = nullptr, BusDriverMovement *movement = nullptr,
 			Role<Person_ST>::Type roleType_ = Role<Person_ST>::RL_BUSDRIVER);
@@ -55,9 +61,35 @@ public:
 	 * @return the driver request parameters
 	 */
 	virtual DriverRequestParams getDriverRequestParams();
+	
+	/**
+	 * Check whether the bus is full
+	 * 
+	 * @return true if bus is full, else false
+	 */
+	bool isBusFull();
+	
+	/**
+	 * Adds passenger to the bus
+	 * 
+	 * @param passenger passenger to be added to the bus
+	 */
+	void addPassenger(Passenger *passenger);
+	
+	/**
+	 * Allows alighting of passengers at the bus stop
+	 * 
+	 * @param stopAgent the bus stop agent to which the alighting passengers will be transferred
+	 * 
+	 * @return total time required for alighting 
+	 */
+	double alightPassengers(BusStopAgent *stopAgent);
 
 	double getPositionX() const;
 	double getPositionY() const;
+	
+	const std::string& getBusLineId() const;
+	void setBusLineId(const std::string &busLine);
 
 	friend class BusDriverBehavior;
 	friend class BusDriverMovement;

@@ -443,6 +443,7 @@ public:
 	/// Generic properties, for testing new features.
 	std::map<std::string, std::string> genericProps;
 
+	unsigned int defaultBusCapacity; ///<Number of passengers that can be carried by the buses
 	unsigned int granPersonTicks; ///<Number of ticks to wait before updating all Person agents.
 	unsigned int granSignalsTicks; ///<Number of ticks to wait before updating all signals.
 	unsigned int granIntMgrTicks; ///<Number of ticks to wait before updating all intersection managers.

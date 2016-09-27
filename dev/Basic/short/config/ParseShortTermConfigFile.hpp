@@ -235,7 +235,21 @@ private:
      * @param node node corresponding to the busController element in the config file
      */
     void processBusControllerNode(xercesc::DOMElement* node);
+	
+	/**
+     * Processes the bus capacity element in the config file
+     *
+     * @param node node corresponding to the bus capacity element in the config file
+     */
+	void processBusCapacityNode(xercesc::DOMElement* node);
 
+	/**
+     * Processes the publicTransit element in config xml
+     *
+     * @param node node corresponding to the publicTransit element inside xml file
+     */
+    void processPublicTransit(xercesc::DOMElement* node);
+	
     /**
      * Processes the pathSet element in the config file
      *

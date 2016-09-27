@@ -22,8 +22,13 @@
 			<mapping name="pt_bus_dispatch_freq" procedure="get_pt_bus_frequency()"/>
 			<mapping name="pt_bus_routes" procedure="get_pt_bus_routes()"/>
 			<mapping name="pt_bus_stops" procedure="get_pt_bus_stops()"/>
+			<mapping name="mrt_road_segments" procedure="get_pt_mrt_segments()"/>
+			<mapping name="rail_transit_edges" procedure="get_rail_transit_edges()"/>
 			<!--Stored procedures for route-choice-->
+			<mapping name="pt_edges" procedure="get_pt_edges()"/>
+			<mapping name="pt_vertices" procedure="get_pt_vertices()"/>
 			<mapping name="pvt_pathset" procedure="get_pvt_pathset"/>
+			<mapping name="pt_pathset" procedure="get_pt_pathset"/>
 			<mapping name="erp_gantry_zone" procedure="get_erp_gantry_zone()"/>
 			<mapping name="erp_section" procedure="get_erp_section()"/>
 			<mapping name="erp_surcharge" procedure="get_erp_surcharge()"/>			
@@ -184,7 +189,8 @@
 
 	<model_scripts path="scripts/lua/mid/behavior-models/" format="lua">
 		<script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models-->
-		<script name="pvtrc" file="pvtrc.lua"/> <!--private traffic route choice-->		
+		<script name="pvtrc" file="pvtrc.lua"/> <!--private traffic route choice-->
+		<script name="ptrc" file="ptrc.lua"/> <!--public transit route choice-->
 	</model_scripts>
 
 	<!-- FMOD controller settings. This is for FMOD extention -->
@@ -199,6 +205,7 @@
 	<vehicleTypes>
 		<vehicleType name="Car" length="4.0" width="2.0" capacity="4"/>
 		<vehicleType name="Truck" length="6.0" width="2.0" capacity="8"/>
+		<vehicleType name="BusTravel" length="12.0" width="3.0" capacity="100"/>
 	</vehicleTypes>
 
 	<tripFiles>
@@ -207,10 +214,12 @@
 	</tripFiles>
 
 	<person_characteristics>
-		<person lowerAge="20" upperAge="30" lowerSecs="3" upperSecs="7"/>
-		<person lowerAge="30" upperAge="40" lowerSecs="4" upperSecs="8"/>
-		<person lowerAge="40" upperAge="50" lowerSecs="5" upperSecs="9"/>
-		<person lowerAge="50" upperAge="60" lowerSecs="6" upperSecs="10"/>
+		<person lowerAge="0" upperAge="5" lowerSecs="5" upperSecs="10" walkSpeed_kmph="3"/>
+		<person lowerAge="5" upperAge="30" lowerSecs="3" upperSecs="7" walkSpeed_kmph="5"/>
+		<person lowerAge="30" upperAge="40" lowerSecs="4" upperSecs="8" walkSpeed_kmph="4.5"/>
+		<person lowerAge="40" upperAge="50" lowerSecs="5" upperSecs="9" walkSpeed_kmph="4"/>
+		<person lowerAge="50" upperAge="60" lowerSecs="6" upperSecs="10" walkSpeed_kmph="3"/>
+		<person lowerAge="60" upperAge="100" lowerSecs="8" upperSecs="15" walkSpeed_kmph="2.5"/>
 	</person_characteristics>
     
 	<!-- To Enable Buses: make sure the following stored procedures in your <proc_map> not empty and valid -->
@@ -220,6 +229,12 @@
 	<!-- With the above three procedures present and valid, enable buses with "<busController enabled="true" />" in the <busController> -->
 	<!-- The current control strategy for buses. Can be "headway_based", "evenheadway_based", "hybrid_based", or (default) "no_control" -->
 	<busController enabled="true" busline_control_type="headway_based"/>
+	
+	<!-- default capacity value -->
+	<bus_default_capacity value="100"/>
+
+	<!-- flag to control if PT graph should be loaded -->
+	<public_transit enabled="true"/>
 	
 	<!--If enabled, outputs the vehicles counted by every loop detector, accumulated over the given period length (in milliseconds)
 	i.e. count of vehicles passing a loop detector in every "600,000" milliseconds -->

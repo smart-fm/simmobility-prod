@@ -48,10 +48,10 @@
 #include "entities/roles/driver/BusDriver.hpp"
 #include "entities/roles/driver/driverCommunication/DriverComm.hpp"
 #include "entities/roles/passenger/Passenger.hpp"
-#include "entities/roles/pedestrian/Pedestrian2.hpp"
+#include "entities/roles/pedestrian/Pedestrian.hpp"
 #include "entities/roles/RoleFactory.hpp"
 #include "entities/roles/Role.hpp"
-#include "entities/roles/waitBusActivityRole/WaitBusActivityRoleImpl.hpp"
+#include "entities/roles/waitBusActivity/WaitBusActivity.hpp"
 #include "entities/signal/Signal.hpp"
 #include "entities/TravelTimeManager.hpp"
 #include "entities/fmodController/FMOD_Controller.hpp"
@@ -165,11 +165,11 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 		rf->registerRole("driver", new Driver(nullptr, mtx));
 	}
 
-	rf->registerRole("pedestrian", new Pedestrian2(nullptr));
-	rf->registerRole("passenger",new Passenger(nullptr, mtx));
+	rf->registerRole("pedestrian", new Pedestrian(nullptr));
+	rf->registerRole("passenger",new Passenger(nullptr));
 	rf->registerRole("busdriver", new BusDriver(nullptr, mtx));
 	rf->registerRole("activityRole", new ActivityPerformer<Person_ST>(nullptr));
-	rf->registerRole("waitBusActivity", new WaitBusActivityRoleImpl(nullptr));
+	rf->registerRole("waitBusActivity", new WaitBusActivity(nullptr));
 	rf->registerRole("taxidriver", new Driver(nullptr, mtx));
 
 	//Loader params for our Agents
@@ -265,10 +265,16 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 		Broker *broker =  new Broker(MtxStrat_Buffered);
 		Broker::SetSingleBroker(broker);
 		communicationWorkers->assignAWorker(broker);
-	}	
+	}
 
-	//Assign all BusStopAgents
-	BusStopAgent::AssignAllBusStopAgents(*personWorkers);
+	//Create and register bus stop agents
+	const std::map<unsigned int, BusStop *> &busStops = RoadNetwork::getInstance()->getMapOfIdvsBusStops();
+	
+	for(std::map<unsigned int, BusStop *>::const_iterator itStops = busStops.begin(); itStops != busStops.end(); ++itStops)
+	{
+		BusStopAgent *busStopAgent = new BusStopAgent(mtx, -1, itStops->second);
+		BusStopAgent::registerBusStopAgent(busStopAgent, *personWorkers);
+	}
 
 	//Assign all signals to the signals worker
 	const std::map<unsigned int, Signal *> &signals = Signal::getMapOfIdVsSignals();
@@ -278,7 +284,7 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 		Signal_SCATS *signalScats = dynamic_cast<Signal_SCATS *>(it->second);
 		
 		//Create and initialise loop detectors
-		LoopDetectorEntity *loopDetectorEntity = new LoopDetectorEntity(mtx );
+		LoopDetectorEntity *loopDetectorEntity = new LoopDetectorEntity(mtx);
 		loopDetectorEntity->init(*signalScats);
 		Agent::all_agents.insert(loopDetectorEntity);
 		signalScats->setLoopDetector(loopDetectorEntity);
@@ -474,7 +480,7 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 					numDriver++;
 				}
 				
-				if (dynamic_cast<Pedestrian2*> (person->getRole()))
+				if (dynamic_cast<Pedestrian*> (person->getRole()))
 				{
 					numPedestrian++;
 				}

@@ -67,6 +67,13 @@ class BusDriverMovement : public DriverMovement
 private:
 	/**The bus stops*/
 	std::vector<const BusStop *> busStops;
+	
+	/**Iterator pointing to the next bus stop*/
+	std::vector<const BusStop *>::const_iterator busStopTracker;
+	
+	/**Indicates whether the bus stop has been notified of the arrival of the bus*/
+	bool isBusStopNotified;
+	
 	/**
 	 * Initialises the bus path using the bus route information
 	 * 
@@ -88,6 +95,22 @@ protected:
 	/**The bus driver*/
 	BusDriver *parentBusDriver;
 	
+	/**
+	 * Checks if we need to stop ahead (Bus stop/AMOD pick-up/AMOD Drop-off)
+	 * 
+     * @param params
+     */
+	virtual void checkForStops(DriverUpdateParams &params);
+	
+	/**
+	 * Finds the nearest stop with in the perception distance and returns the distance to it
+	 *
+     * @param perceptionDistance the look ahead distance
+     * 
+	 * @return the distance to the nearest stop
+     */
+	virtual double getDistanceToStopLocation(double perceptionDistance);
+	
 public:
 	explicit BusDriverMovement();
 	virtual ~BusDriverMovement();
@@ -108,7 +131,7 @@ public:
 	 * This method outputs the parameters that changed at the end of the tick
      */
 	virtual std::string frame_tick_output();
-
+	
 	void setParentBusDriver(BusDriver *parentBusDriver)
 	{
 		if (!parentBusDriver)

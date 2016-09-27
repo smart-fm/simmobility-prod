@@ -126,28 +126,36 @@ struct IncidentParams {
 /**
  * Represents a Person's Characteristic in the config file. (NOTE: Further documentation needed.)
  */
-struct PersonCharacteristics {
-	PersonCharacteristics() : lowerAge(0), upperAge(0), lowerSecs(0), upperSecs(0) {}
+struct PersonCharacteristics
+{
+	PersonCharacteristics() : lowerAge(0), upperAge(0), lowerSecs(0), upperSecs(0), walkSpeed(0.0)
+	{
+	}
 
 	unsigned int lowerAge; // lowerAge
 	unsigned int upperAge; // upperAge
-	int lowerSecs;// lowerSecs
-	int upperSecs;// upperSecs
-};
+	int lowerSecs; // lowerSecs
+	int upperSecs; // upperSecs
+	double walkSpeed; //walking speed in m/s
+} ;
 
 /**
  * represent the person characteristics data section of the config file
  */
-struct PersonCharacteristicsParams {
+struct PersonCharacteristicsParams
+{
+	PersonCharacteristicsParams() : lowestAge(100), highestAge(0), DEFAULT_LOWER_SECS(3), DEFAULT_UPPER_SECS(10)
+	{
+	}
 
-	PersonCharacteristicsParams() : lowestAge(100), highestAge(0), DEFAULT_LOWER_SECS(3), DEFAULT_UPPER_SECS(10) {}
 	int lowestAge;
 	int highestAge;
 	const int DEFAULT_LOWER_SECS;
 	const int DEFAULT_UPPER_SECS;
-    ///Some settings for person characteristics(age range, boarding alighting secs)
+	
+	///Some settings for person characteristics(age range, boarding alighting secs)
 	std::map<int, PersonCharacteristics> personCharacteristics;
-};
+} ;
 
 /**
  * Represents the "Constructs" section of the config file.

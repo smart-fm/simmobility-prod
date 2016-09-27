@@ -9,16 +9,17 @@
 #include "entities/BusStopAgent.hpp"
 #include "entities/Person.hpp"
 #include "entities/roles/driver/models/LaneChangeModel.hpp"
-#include "entities/roles/waitBusActivityRole/WaitBusActivityRole.hpp"
+#include "entities/roles/waitBusActivity/WaitBusActivity.hpp"
 #include "entities/UpdateParams.hpp"
 #include "logging/Log.hpp"
 #include "path/PathSetManager.hpp"
+#include "util/Utils.hpp"
 
 using namespace sim_mob;
 using namespace std;
 
 BusDriverMovement::BusDriverMovement() :
-DriverMovement(), parentBusDriver(nullptr)
+DriverMovement(), parentBusDriver(nullptr), isBusStopNotified(false)
 {
 }
 
@@ -129,8 +130,11 @@ void BusDriverMovement::frame_init()
 		}
 
 		//Use the vehicle to build a bus, then delete the old vehicle.
-
-		Vehicle *bus = new Bus(nullRoute, newVehicle, busTrip->getBusLine()->getBusLineID());
+		
+		const string &busLine = busTrip->getBusLine()->getBusLineID();
+		
+		Vehicle *bus = new Bus(nullRoute, newVehicle, busLine);
+		parentBusDriver->setBusLineId(busLine);
 		parentBusDriver->setVehicle(bus);
 		delete newVehicle;
 
@@ -139,25 +143,48 @@ void BusDriverMovement::frame_init()
 
 		//Retrieve the bus stops for the bus
 		busStops = busTrip->getBusRouteInfo().getBusStops();
+		
+		//Track the bus stops. Ignore the starting bus stop as the bus enters the simulation from this stop
+		//and doesn't have to stop here separately
+		busStopTracker = busStops.begin() + 1;
 
 		//Set initial speed of bus to 0
 		parentBusDriver->getParams().initialSpeed = 0;
-	}
-
-	//Add the bus stops to the stop point pool (ignore the starting bus-stop as the bus enters the simulation from this
-	//point and doesn't have to stop here separately)
-	for (int i = 1; i < busStops.size(); ++i)
-	{
-		const BusStop *stop = busStops[i];
-		double dwelltime = 10;
-		StopPoint stopPoint(stop->getParentSegment()->getRoadSegmentId(), stop->getOffset(), dwelltime);
-		parentBusDriver->getParams().insertStopPoint(stopPoint);
 	}
 }
 
 void BusDriverMovement::frame_tick()
 {
 	DriverMovement::frame_tick();
+	
+	DriverUpdateParams &params = parentBusDriver->getParams();
+	
+	//If the bus has arrived at the stop and the bus stop agent has not been notified, notify it
+	if(params.stopPointState == DriverUpdateParams::ARRIVED_AT_STOP_POINT && !isBusStopNotified)
+	{
+		//Get the bus stop agent
+		BusStopAgent *stopAg = BusStopAgent::getBusStopAgentForStop(*busStopTracker);
+		
+		//Signal the bus driver to allow alighting passengers
+		double alightingTime = parentBusDriver->alightPassengers(stopAg);
+		
+		//Signal the bus stop agent to handle the bus arrival
+		double boardingTime = stopAg->boardWaitingPersons(parentBusDriver);
+		
+		params.currentStopPoint.dwellTime = max(boardingTime, alightingTime) + Utils::nRandom(10, 2);
+		
+		//Set bus stop notified as true
+		isBusStopNotified = true;		
+	}
+	
+	if(params.stopPointState == DriverUpdateParams::LEAVING_STOP_POINT && isBusStopNotified)
+	{
+		//Reset
+		isBusStopNotified = false;
+		
+		//Next bus stop
+		++busStopTracker;
+	}
 }
 
 std::string BusDriverMovement::frame_tick_output()
@@ -204,4 +231,104 @@ std::string BusDriverMovement::frame_tick_output()
 		
 		return output.str();
 	}
+}
+
+void BusDriverMovement::checkForStops(DriverUpdateParams& params)
+{
+	//Get the distance to stopping point in the current link
+	double distance = getDistanceToStopLocation(params.stopVisibilityDistance);
+	params.distanceToStoppingPt = distance;
+
+	if (distance > -10 || params.stopPointState == DriverUpdateParams::ARRIVED_AT_STOP_POINT)
+	{
+		//Leaving the stopping point
+		if (distance < 0 && params.stopPointState == DriverUpdateParams::LEAVING_STOP_POINT)
+		{
+			return;
+		}
+		
+		//Change state to Approaching stop point
+		if (params.stopPointState == DriverUpdateParams::STOP_POINT_NOT_FOUND)
+		{
+			params.stopPointState = DriverUpdateParams::STOP_POINT_FOUND;
+		}
+		
+		//Change state to stopping point is close
+		if (distance >= 10 && distance <= 50)
+		{ 
+			// 10m-50m
+			params.stopPointState = DriverUpdateParams::ARRIVING_AT_STOP_POINT;
+		}
+		
+		//Change state to arrived at stop point
+		if (params.stopPointState == DriverUpdateParams::ARRIVING_AT_STOP_POINT && abs(distance) < 10)
+		{ 
+			// 0m-10m
+			params.stopPointState = DriverUpdateParams::ARRIVED_AT_STOP_POINT;
+		}
+
+		params.distToStop = distance;
+		
+		return;
+	}
+	
+	if (distance < -10 && params.stopPointState == DriverUpdateParams::LEAVING_STOP_POINT)
+	{
+		params.stopPointState = DriverUpdateParams::STOP_POINT_NOT_FOUND;
+	}
+}
+
+double BusDriverMovement::getDistanceToStopLocation(double perceptionDistance)
+{
+	//Distance to stop
+	double distance = -100;
+	
+	double scannedDist = 0;
+	bool isStopFound = false;
+	DriverUpdateParams &params = parentBusDriver->getParams();
+
+	std::vector<WayPoint>::const_iterator wayPtIt = fwdDriverMovement.getCurrWayPointIt();
+	std::vector<WayPoint>::const_iterator endOfPath = fwdDriverMovement.getDrivingPath().end();
+
+	//Find the next road segment of the next stop
+	const RoadSegment *rdSegWithStop = (*busStopTracker)->getParentSegment();
+	
+	//Check if the stop is in the current segment
+	if(wayPtIt->type == WayPoint::ROAD_SEGMENT && wayPtIt->roadSegment == rdSegWithStop)
+	{
+		//Distance to stop is offset - distance covered on the way point;
+		distance = (*busStopTracker)->getOffset() - fwdDriverMovement.getDistCoveredOnCurrWayPt();
+		isStopFound = true;
+	}
+	
+	scannedDist = fwdDriverMovement.getDistToEndOfCurrWayPt();
+
+	//Iterate through the path till the perception distance or the end (whichever is before)
+	while (!isStopFound && wayPtIt != endOfPath && scannedDist < perceptionDistance)
+	{
+		if (wayPtIt->type == WayPoint::ROAD_SEGMENT)
+		{
+			//If the way point is a road segment, check if it contains the next stop
+			if (wayPtIt->roadSegment == rdSegWithStop)
+			{
+				//Distance to the bus stop is the scanned distance plus the distance to the bus stop from start of the segment (offset)
+				distance = scannedDist + (*busStopTracker)->getOffset();
+				break;
+			}
+			else
+			{
+				//Segment doesn't contain the bus stop, just increment scanned distance with length of segment
+				scannedDist += wayPtIt->roadSegment->getLength();
+			}
+		}
+		else
+		{
+			//No bus stops on turning groups, just add the length to scanned distance
+			scannedDist += wayPtIt->turningGroup->getLength();
+		}
+		
+		++wayPtIt;
+	}
+
+	return distance;
 }

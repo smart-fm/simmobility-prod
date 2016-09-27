@@ -4,108 +4,107 @@
 
 #pragma once
 
-#include "conf/settings/DisableMPI.h"
 #include "entities/Person_ST.hpp"
-#include "entities/roles/driver/BusDriver.hpp"
-#include "entities/roles/pedestrian/Pedestrian2.hpp"
-#include "buffering/BufferedDataManager.hpp"
-#include "PassengerFacets.hpp"
+#include "entities/roles/Role.hpp"
+#include "entities/roles/waitBusActivity/WaitBusActivity.hpp"
+#include "geospatial/network/WayPoint.hpp"
 
 namespace sim_mob
 {
 
-/**
- * A Person in the Passenger role is likely just waiting for his or her bus stop.
- * \author Meenu
- */
-class BusStop;
+class Agent;
 class Person;
-class Bus;
-class Passenger;
+class BusStop;
 class PassengerBehavior;
 class PassengerMovement;
-class PackageUtils;
-class UnPackageUtils;
+class Driver;
 
-struct PassengerUpdateParams : public UpdateParams
+class Passenger : public Role<Person_ST>
 {
+private:
+	/** Driver who is driving the vehicle of this passenger*/
+	const Driver* driver;
 
-	PassengerUpdateParams() : UpdateParams()
-	{
-	}
+	/**flag to indicate whether the passenger has decided to alight the bus*/
+	bool alightBus;
 
-	explicit PassengerUpdateParams(boost::mt19937& gen) : UpdateParams(gen)
-	{
-	}
+	/** starting point of passenger - for travel time storage */
+	WayPoint startPoint;
 
-	virtual ~PassengerUpdateParams()
-	{
-	}
-
-	virtual void reset(timeslice now)
-	{
-		UpdateParams::reset(now);
-	}
-
-#ifndef SIMMOB_DISABLE_MPI
-	static void pack(PackageUtils& package, const PassengerUpdateParams* params);
-	static void unpack(UnPackageUtils& unpackage, PassengerUpdateParams* params);
-#endif
-};
-
-class Passenger : public Role<Person_ST>, public UpdateWrapper<PassengerUpdateParams>
-{
+	/** ending node of passenger - for travel time storage */
+	WayPoint endPoint;
+	
 public:
-	Passenger(Person_ST *parent, MutexStrategy mtxStrat, PassengerBehavior* behavior = nullptr, PassengerMovement* movement = nullptr,
-			Role::Type roleType_ = RL_PASSENGER, std::string roleName_ = "passenger");
+	explicit Passenger(Person_ST *parent, PassengerBehavior *behavior = nullptr, PassengerMovement *movement = nullptr,
+					std::string roleName = std::string("Passenger_"), Role<Person_ST>::Type roleType = Role<Person_ST>::RL_PASSENGER);
+
 	virtual ~Passenger()
 	{
 	}
 
+	//Virtual overrides
 	virtual Role<Person_ST>* clone(Person_ST *parent) const;
-	void make_frame_tick_params(timeslice now);
+	
 	virtual std::vector<BufferedBase*> getSubscriptionParams();
+	
+	/**
+	 * Make alighting decision
+	 * 
+	 * @param nextStop is the stop at which the bus will arrive at next
+	 */
+	void makeAlightingDecision(const BusStop* nextStop);
 
-	const uint32_t getWaitingTimeAtStop() const
-	{
-		return waitingTimeAtStop;
-	}
-
-	void setWaitingTimeAtStop(uint32_t waitingTime)
-	{
-		waitingTimeAtStop = waitingTime;
-	}
-
-	//Serialization
-#ifndef SIMMOB_DISABLE_MPI
-public:
-
-	virtual void pack(PackageUtils& packageUtil)
+	/**
+	 * Collect travel time for current role
+	 */
+	virtual void collectTravelTime();
+	
+	virtual void make_frame_tick_params(timeslice now)
 	{
 	}
 
-	virtual void unpack(UnPackageUtils& unpackageUtil)
+	bool canAlightBus() const
 	{
+		return alightBus;
 	}
 
-	virtual void packProxy(PackageUtils& packageUtil)
+	void setAlightBus(bool alightBus)
 	{
+		this->alightBus = alightBus;
 	}
 
-	virtual void unpackProxy(UnPackageUtils& unpackageUtil)
+	const Driver* getDriver() const
 	{
+		return driver;
 	}
-#endif
 
-public:
-	Shared<Driver*> busdriver; ///passenger should have info about the driver
-	Shared<bool> BoardedBus;
-	Shared<bool> AlightedBus;
-	uint32_t waitingTimeAtStop;
-private:
-	PassengerUpdateParams params;
+	void setDriver(const Driver* driver)
+	{
+		this->driver = driver;
+	}
 
+	const WayPoint& getEndPoint() const
+	{
+		return endPoint;
+	}
+
+	void setEndPoint(const WayPoint& endPoint)
+	{
+		this->endPoint = endPoint;
+	}
+
+	const WayPoint& getStartPoint() const
+	{
+		return startPoint;
+	}
+
+	void setStartPoint(const WayPoint& startPoint)
+	{
+		this->startPoint = startPoint;
+	}
+	
 	friend class PassengerBehavior;
 	friend class PassengerMovement;
 };
+
 }

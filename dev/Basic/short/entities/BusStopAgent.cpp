@@ -3,295 +3,295 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 #include "BusStopAgent.hpp"
-
+#include "message/ST_Message.hpp"
+#include "entities/PT_Statistics.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
-#include "entities/AuraManager.hpp"
-#include "entities/Person_ST.hpp"
-#include "entities/roles/waitBusActivityRole/WaitBusActivityRole.hpp"
-#include "entities/roles/waitBusActivityRole/WaitBusActivityRoleFacets.hpp"
-#include "geospatial/network/PT_Stop.hpp"
-#include "workers/WorkGroup.hpp"
 
-using std::vector;
+using namespace std;
 using namespace sim_mob;
 
-typedef Entity::UpdateStatus UpdateStatus;
+namespace
+{
+	const unsigned int ONE_HOUR_IN_MS = 3600000;
+}
 
 BusStopAgent::BusStopAgentsMap BusStopAgent::allBusstopAgents;
 
-size_t BusStopAgent::AllBusStopAgentsCount()
+void BusStopAgent::registerBusStopAgent(BusStopAgent *busStopAgent, WorkGroup &workGroup)
 {
-	return allBusstopAgents.size();
+	allBusstopAgents[busStopAgent->getBusStop()] = busStopAgent;
+	workGroup.assignAWorker(busStopAgent);
 }
 
-void BusStopAgent::AssignAllBusStopAgents(WorkGroup& wg)
+BusStopAgent* BusStopAgent::getBusStopAgentForStop(const BusStop *busStop)
 {
-	for (BusStopAgentsMap::iterator it = allBusstopAgents.begin();
-			it != allBusstopAgents.end(); ++it)
-	{
-		wg.assignAWorker(it->second);
-	}
-}
-
-void BusStopAgent::RegisterNewBusStopAgent(BusStop& busstop, const MutexStrategy& mtxStrat)
-{
-	BusStopAgent* sig_ag = new BusStopAgent(busstop, mtxStrat);
-	//sig_ag->setBusStopAgentNo(busstop.getRoadItemId());
-	//allBusstopAgents[busstop.getRoadItemId()] = sig_ag;
-}
-
-bool BusStopAgent::HasBusStopAgents()
-{
-	return !allBusstopAgents.empty();
-}
-
-void BusStopAgent::createBusStopAgents(const std::set<BusStop*>& stopsList, const MutexStrategy& mtxStrat)
-{
-	for (std::set<BusStop*>::const_iterator stopIt = stopsList.begin();
-			stopIt != stopsList.end(); ++stopIt)
-	{
-		RegisterNewBusStopAgent(**stopIt, mtxStrat);
-	}
-}
-
-bool BusStopAgent::isNonspatial()
-{
-	return true;
-}
-
-void BusStopAgent::PlaceAllBusStopAgents(std::vector<Entity*>& agents_list)
-{
-	std::cout << "all_BusStopAgents size: " << allBusstopAgents.size() << std::endl;
-	//Push every BusStopAgent on the list into the agents array as an active agent
-	for (BusStopAgentsMap::iterator it = allBusstopAgents.begin();
-			it != allBusstopAgents.end(); ++it)
-	{
-		agents_list.push_back(it->second);
-	}
-}
-
-BusStopAgent* BusStopAgent::findBusStopAgentByBusStop(const BusStop* busstop)
-{
-	try
-	{
-		return nullptr; // allBusstopAgents.at(busstop->getRoadItemId());
-	}
-	catch (const std::out_of_range& oor)
+	BusStopAgentsMap::const_iterator stpAgIt = allBusstopAgents.find(busStop);
+	
+	if(stpAgIt == allBusstopAgents.end())
 	{
 		return nullptr;
 	}
+	
+	return stpAgIt->second;
 }
 
-BusStopAgent* BusStopAgent::findBusStopAgentByBusStopNo(const std::string& busstopno)
+void BusStopAgent::removeAllBusStopAgents()
 {
-	try
+	BusStopAgent::BusStopAgentsMap::iterator busStopAgIt = allBusstopAgents.begin();
+	
+	while(busStopAgIt != allBusstopAgents.end())
 	{
-		return allBusstopAgents.at(busstopno);
+		safe_delete_item( (*busStopAgIt).second);
+		busStopAgIt++;
 	}
-	catch (const std::out_of_range& oor)
+	
+	allBusstopAgents.clear();
+}
+
+BusStopAgent::BusStopAgent(const MutexStrategy &mtxStrat, int id, const BusStop *stop) :
+Agent(mtxStrat, id), busStop(stop), currentTimeMS(0)
+{
+}
+
+BusStopAgent::~BusStopAgent()
+{
+	for(list<WaitBusActivity*>::iterator i= waitingPersons.begin(); i!=waitingPersons.end();i++)
 	{
-		return nullptr;
+		(*i)->getParent()->currWorkerProvider=nullptr;
+	}
+
+	for(list<Passenger*>::iterator i = alightingPersons.begin(); i!=alightingPersons.end(); i++)
+	{
+		(*i)->getParent()->currWorkerProvider=nullptr;
 	}
 }
 
-std::vector<BufferedBase*> BusStopAgent::buildSubscriptionList()
+void BusStopAgent::onEvent(event::EventId eventId, event::Context ctxId, event::EventPublisher *sender, const event::EventArgs &args)
 {
-	return Agent::buildSubscriptionList();
+	Agent::onEvent(eventId, ctxId, sender, args);
+}
+
+void BusStopAgent::registerWaitingPerson(WaitBusActivity *waitingPerson)
+{
+	if(busStop->getTerminusType() == SINK_TERMINUS)
+	{
+		throw runtime_error("Attempt to add waiting person at SINK_TERMINUS");
+	}
+	
+	messaging::MessageBus::ReRegisterHandler(waitingPerson->getParent(), GetContext());
+	waitingPersons.push_back(waitingPerson);
+	waitingPerson->setStop(busStop);
+}
+
+void BusStopAgent::removeWaitingPerson(WaitBusActivity *waitingPerson)
+{
+	list<WaitBusActivity*>::iterator itPerson;
+	itPerson = find(waitingPersons.begin(), waitingPersons.end(), waitingPerson);
+	
+	if (itPerson != waitingPersons.end())
+	{
+		waitingPersons.erase(itPerson);
+	}
+}
+
+void BusStopAgent::addAlightingPerson(Passenger *passenger)
+{
+	Person_ST *person = passenger->getParent();
+	person->getRole()->collectTravelTime();
+	alightingPersons.push_back(passenger);
+}
+
+const BusStop* BusStopAgent::getBusStop() const
+{
+	return busStop;
 }
 
 Entity::UpdateStatus BusStopAgent::frame_init(timeslice now)
 {
-	return Entity::UpdateStatus::Continue;
-}
-
-void BusStopAgent::frame_output(timeslice now)
-{
-	if (now.ms() % busStopUpdateFrequencyMS == 0)
-	{// every 5000ms output
-		LogOut("(\"BusStopAgent\""
-			<< "," << now.frame()
-			<< "," << getId()
-			<< ",{" << "\"BusStopAgent no\":\"" << busstopAgentno_
-			<< "\"})" << std::endl);
-	}
-	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
-	uint32_t currMS = (config.simStartTime() + DailyTime(now.ms())).offsetMS_From(DailyTime("00:00:00")); // transfered to ms based on midnight
-	// record 3 hours' information
-	if (now.frame() == 108000)
+	if(!GetContext())
 	{
-		std::stringstream currReachedMSOut;
-		std::map<std::string, std::vector<uint32_t> >::const_iterator it;
-		buslineIdCurrReachedMSs.clear();
-		for (it = buslineIdCurrReachedMSs.begin(); it != buslineIdCurrReachedMSs.end(); ++it)
-		{
-			// #print 857_1 information
-			if ((it->first) == "857_1")
-			{
-				currReachedMSOut << "currReachedMsInformation for buslineId " << (it->first) << std::endl;
-				for (int i = 0; i < it->second.size(); i++)
-				{
-					currReachedMSOut << now.frame() << " "
-							<< "at stop " << this->busstop_.getStopCode() << " "
-							<< (it->first) << " "
-							<< (it->second)[i] << std::endl;
-				}
-				currReachedMSOut << std::endl;
-			}
-		}
-
-		buslineIdAlightingNum.clear();
-		for (it = buslineIdAlightingNum.begin(); it != buslineIdAlightingNum.end(); ++it)
-		{
-			// #print 857_1 information
-			if ((it->first) == "857_1")
-			{
-				currReachedMSOut << "AlightingInformation for buslineId " << (it->first) << std::endl;
-				for (int j = 0; j < it->second.size(); j++)
-				{
-					currReachedMSOut << now.frame() << " "
-							<< "alightingNum " << this->busstop_.getStopCode() << " "
-							<< (it->first) << " "
-							<< (it->second)[j] << std::endl;
-				}
-				currReachedMSOut << std::endl;
-			}
-		}
-
-		buslineIdBoardingNum.clear();
-		for (it = buslineIdBoardingNum.begin(); it != buslineIdBoardingNum.end(); ++it)
-		{
-			// #print 857_1 information
-			if ((it->first) == "857_1")
-			{
-				currReachedMSOut << "BoardingInformation for buslineId " << (it->first) << std::endl;
-				for (int k = 0; k < it->second.size(); k++)
-				{
-					currReachedMSOut << now.frame() << " "
-							<< "boardingNum " << this->busstop_.getStopCode() << " "
-							<< (it->first) << " "
-							<< (it->second)[k] << std::endl;
-				}
-				currReachedMSOut << std::endl;
-			}
-		}
-
-		std::map<std::string, std::vector<double> >::const_iterator it1;
-		buslineIdBoardingAlightingSecs.clear();
-		for (it1 = buslineIdBoardingAlightingSecs.begin(); it1 != buslineIdBoardingAlightingSecs.end(); ++it1)
-		{
-			// #print 857_1 information
-			if ((it1->first) == "857_1")
-			{
-				currReachedMSOut << "BoardingAlightingSecs_Information for buslineId " << (it1->first) << std::endl;
-				for (int m = 0; m < it1->second.size(); m++)
-				{
-					currReachedMSOut << now.frame() << " "
-							<< "boardingAlightingSecs " << this->busstop_.getStopCode() << " "
-							<< (it1->first) << " "
-							<< (it1->second)[m] << std::endl;
-				}
-				currReachedMSOut << std::endl;
-			}
-		}
-
-		std::map<std::string, std::vector<int> >::const_iterator it2;
-		buslineIdBusTripRunSequenceNums.clear();
-		for (it2 = buslineIdBusTripRunSequenceNums.begin(); it2 != buslineIdBusTripRunSequenceNums.end(); ++it2)
-		{
-			// #print 857_1 information
-			if ((it2->first) == "857_1")
-			{
-				currReachedMSOut << "BusTripRunSequenceNumInformation for buslineId " << (it2->first) << std::endl;
-				for (int n = 0; n < it2->second.size(); n++)
-				{
-					currReachedMSOut << now.frame() << " "
-							<< "bustripRunSequenceNum " << this->busstop_.getStopCode() << " "
-							<< (it2->first) << " "
-							<< (it2->second)[n] << std::endl;
-				}
-				currReachedMSOut << std::endl;
-			}
-		}
-
-		buslineIdPassengerCounts.clear();
-		for (it2 = buslineIdPassengerCounts.begin(); it2 != buslineIdPassengerCounts.end(); ++it2)
-		{
-			// #print 857_1 information
-			if ((it2->first) == "857_1")
-			{
-				currReachedMSOut << "PassengerCountsInformation for buslineId " << (it2->first) << std::endl;
-				for (int s = 0; s < it2->second.size(); s++)
-				{
-					currReachedMSOut << now.frame() << " "
-							<< "passengerCounts " << this->busstop_.getStopCode() << " "
-							<< (it2->first) << " "
-							<< (it2->second)[s] << std::endl;
-				}
-				currReachedMSOut << std::endl;
-				HeadwayAtBusStopInfoPrint() << currReachedMSOut.str();
-			}
-		}
-
-		// #print all busline information
-		//		for (it = buslineId_CurrReachedMSs.begin(); it != buslineId_CurrReachedMSs.end(); ++it) {
-		//			currReachedMSOut << "(\"BusStopAgent\""
-		//							<<" frame no:" << now.frame()
-		//							<< " bus stop no:" << this->busstop_.busstopno_ << std::endl;
-		//			currReachedMSOut << " (\"buslineID\""
-		//							<< ": " << (it->first)
-		//							<< " currReachedMS size: " << (it->second).size()
-		//							<< std::endl;
-		//			for(int i = 0; i < it->second.size(); i++) {
-		////				currReachedMSOut << " (\"currReachedMS\""
-		////								<< ": " << (it->second)[i];
-		////				currReachedMSOut << "\"})" << std::endl;
-		//				currReachedMSOut << (it->second)[i];
-		//				currReachedMSOut << std::endl;
-		//			}
-		//			currReachedMSOut << std::endl;
-		//		}
-		//		HeadwayAtBusStopInfoPrint() << currReachedMSOut.str();
+		messaging::MessageBus::RegisterHandler(this);
 	}
-
+	
+	return Entity::UpdateStatus::Continue;
 }
 
 Entity::UpdateStatus BusStopAgent::frame_tick(timeslice now)
 {
-	if (now.ms() % busStopUpdateFrequencyMS == 0)
-	{// every 5000ms check AuraManager
-		vector<const Agent*> nearby_agents =
-				AuraManager::instance().agentsInRect(Point((busstop_.getStopLocation().getX() - 3500),
-														   (busstop_.getStopLocation().getY() - 3500)),
-													 Point((busstop_.getStopLocation().getX() + 3500), (busstop_.getStopLocation().getY() + 3500)), this);
-
-		for (vector<const Agent*>::iterator it = nearby_agents.begin(); it != nearby_agents.end(); ++it)
+	currentTimeMS = now.ms()+ConfigManager::GetInstance().FullConfig().simStartTime().getValue();
+	list<Passenger *>::iterator personIt = alightingPersons.begin();
+	
+	while (personIt != alightingPersons.end())
+	{	
+		Person_ST *person = (*personIt)->getParent();
+		
+		if (person)
 		{
-			//Retrieve only agents with WaitBusActivityRoles.
-			const Person_ST* person = dynamic_cast<const Person_ST *> (*it);
-			Person_ST* p = const_cast<Person_ST *> (person);
-			WaitBusActivityRole* waitbusactivityRole = p ? dynamic_cast<WaitBusActivityRole*> (p->getRole()) : nullptr;
-			if (waitbusactivityRole)
+			person->setToBeRemoved();
+			personIt = alightingPersons.erase(personIt);			
+		}
+		else
+		{
+			personIt++;
+		}
+	}
+
+	WaitingCount waitingCnt;
+	waitingCnt.busStopNo = busStop->getStopCode();
+	waitingCnt.currTime = DailyTime(now.ms()).getStrRepr();
+	waitingCnt.count = waitingPersons.size();
+	
+	messaging::MessageBus::PostMessage(PT_Statistics::getInstance(), STORE_WAITING_PERSON_COUNT,
+											messaging::MessageBus::MessagePtr(new WaitingCountMessage(waitingCnt)));
+
+	return UpdateStatus::Continue;
+}
+
+void BusStopAgent::frame_output(timeslice now)
+{
+}
+
+bool BusStopAgent::isNonspatial()
+{
+	return false;
+}
+
+void BusStopAgent::load(const map<string, string> &configProps)
+{
+}
+
+void BusStopAgent::HandleMessage(messaging::Message::MessageType type, const messaging::Message &message)
+{
+	switch (type)
+	{			
+	case MSG_WAITING_PERSON_ARRIVAL:
+		const ArrivalAtStopMessage &msg = MSG_CAST(ArrivalAtStopMessage, message);
+		Person_ST *person = msg.waitingPerson;
+		Role<Person_ST> *role = person->getRole();
+		
+		if (role)
+		{
+			WaitBusActivity *waitPerson = dynamic_cast<WaitBusActivity *>(role);
+			
+			if (waitPerson)
 			{
-				WaitBusActivityRoleMovement* waitbusactivityRoleMovement = dynamic_cast<WaitBusActivityRoleMovement*> (waitbusactivityRole->Movement());
-				if ((!waitbusactivityRoleMovement->getRegisteredFlag()) && (waitbusactivityRoleMovement->getBusStopAgent() == this))
-				{// not registered and waiting in this BusStopAgent
-					boardingWaitBusActivities.push_back(waitbusactivityRole);
-					waitbusactivityRoleMovement->setRegisteredFlag(true); // set this person's role to be registered
-				}
+				registerWaitingPerson(waitPerson);
 			}
 		}
-		if (!boardingWaitBusActivities.empty())
-			sort(boardingWaitBusActivities.begin(), boardingWaitBusActivities.end(), less_than_TimeOfReachingBusStop());
+		
+		break;
 	}
-	for (int i = 0; i < boardingWaitBusActivities.size(); i++)
+}
+
+void BusStopAgent::storeWaitingTime(WaitBusActivity *waitingActivity, const string &busLine) const
+{
+	if(!waitingActivity)
 	{
-		WaitBusActivityRoleMovement* waitbusactivityRoleMovement = dynamic_cast<WaitBusActivityRoleMovement*> (boardingWaitBusActivities[i]->Movement());
-		if (waitbusactivityRoleMovement->isBoarded)
+		return;
+	}
+	
+	Person_ST *person = waitingActivity->getParent();
+	PersonWaitingTime personWaitInfo;
+	personWaitInfo.busStopNo = (busStop->isVirtualStop()? busStop->getTwinStop()->getStopCode() : busStop->getStopCode());
+	personWaitInfo.personId  = person->getId();
+	personWaitInfo.personIddb = person->getDatabaseId();
+	personWaitInfo.originNode = (*(person->currTripChainItem))->origin.node->getNodeId();
+	personWaitInfo.destNode = (*(person->currTripChainItem))->destination.node->getNodeId();
+	personWaitInfo.endstop = person->currSubTrip->endLocationId;
+	personWaitInfo.currentTime = DailyTime(currentTimeMS + ConfigManager::GetInstance().FullConfig().simulation.baseGranMS).getStrRepr(); //person is boarded at the end of tick
+	personWaitInfo.waitingTime = ((double) waitingActivity->getWaitingTime())/1000.0; //convert ms to second
+	personWaitInfo.busLineBoarded = busLine;
+	personWaitInfo.busLines = waitingActivity->getBusLines();
+	personWaitInfo.deniedBoardingCount = waitingActivity->getDeniedBoardingCount();
+	
+	messaging::MessageBus::PostMessage(PT_Statistics::getInstance(), STORE_PERSON_WAITING,
+			messaging::MessageBus::MessagePtr(new PersonWaitingTimeMessage(personWaitInfo)));
+}
+
+double BusStopAgent::boardWaitingPersons(BusDriver *busDriver)
+{
+	double boardingTime = 0;
+	unsigned int numBoarding = 0;
+	
+	list<WaitBusActivity *>::iterator itWaitingPerson;
+	
+	for (itWaitingPerson = waitingPersons.begin(); itWaitingPerson != waitingPersons.end(); itWaitingPerson++)
+	{
+		(*itWaitingPerson)->makeBoardingDecision(busDriver);
+	}
+
+	itWaitingPerson = waitingPersons.begin();
+	
+	while (itWaitingPerson != waitingPersons.end())
+	{
+		WaitBusActivity *waitingRole = *itWaitingPerson;
+		Person_ST *person = waitingRole->getParent();
+
+		if ((*itWaitingPerson)->canBoardBus())
 		{
-			boardingWaitBusActivities.erase(boardingWaitBusActivities.begin() + i);
+			bool ret = false;
+			
+			if (!busDriver->isBusFull())
+			{
+				waitingRole->collectTravelTime();
+				storeWaitingTime(waitingRole, busDriver->getBusLineId());
+				
+				DailyTime current(DailyTime(currentTimeMS).offsetMS_From(ConfigManager::GetInstance().FullConfig().simStartTime()));
+				person->checkTripChain(current.getValue());
+				
+				Role<Person_ST> *curRole = person->getRole();
+				
+				curRole->setArrivalTime(currentTimeMS);
+				
+				Passenger *passenger = dynamic_cast<Passenger *>(curRole);
+				
+				if (passenger)
+				{
+					busDriver->addPassenger(passenger);
+					ret = true;
+				}
+				else
+				{
+					stringstream msg;
+					msg << "Role after wait bus activity is not passenger for Person: " << person->getDatabaseId();
+					throw runtime_error(msg.str());
+				}
+			}
+			else
+			{
+				waitingRole->incrementDeniedBoardingCount();
+			}
+
+			if (ret)
+			{
+				itWaitingPerson = waitingPersons.erase(itWaitingPerson);
+				boardingTime += (*itWaitingPerson)->getParent()->getBoardingCharacteristics();
+				numBoarding++;
+			}
+			else
+			{
+				(*itWaitingPerson)->setBoardBus(false);
+				itWaitingPerson++;
+			}
+		}
+		else
+		{
+			itWaitingPerson++;
 		}
 	}
 
-	return Entity::UpdateStatus::Continue;
+	lastBoardingRecorder[busDriver] = numBoarding;
+}
+
+unsigned int BusStopAgent::getBoardingNum(BusDriver* busDriver) const
+{
+	map<BusDriver*, unsigned int>::const_iterator lbrIt = lastBoardingRecorder.find(busDriver);
+	if(lbrIt == lastBoardingRecorder.end()) { return 0; }
+	else { return lbrIt->second; }
+}
+
+unsigned int BusStopAgent::getWaitingCount() const
+{
+	return waitingPersons.size();
 }

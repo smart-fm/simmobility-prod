@@ -236,7 +236,7 @@ protected:
 	 * 
      * @param params
      */
-	void checkForStoppingPoints(DriverUpdateParams &params);
+	virtual void checkForStops(DriverUpdateParams &params);
 
 	/**
 	 * Finds the nearest stopping point with in the perception distance and returns the distance to it
@@ -245,7 +245,7 @@ protected:
      * 
 	 * @return the distance to the nearest stopping point
      */
-	double getDistanceToStopPoint(double perceptionDistance);
+	virtual double getDistanceToStopLocation(double perceptionDistance);
 
 	/**
 	 * Drives to the new position based on its current location, speed and acceleration. Also updates the speed and acceleration
@@ -257,7 +257,7 @@ protected:
 	double drive(DriverUpdateParams &params);
 
 	/**
-	 * Calculates the dwell time of a vehicle at a location (eg. bus at a bus stop)
+	 * Calculates the dwell time of a vehicle at a location 
 	 * 
      * @param A
      * @param B

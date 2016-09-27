@@ -27,6 +27,9 @@ private:
 
 	/**Time taken by the person to alight from a bus*/
 	double alightingTimeSecs;
+	
+	/**The walking speed of the person (in m/s)*/
+	double walkingSpeed;
 
 	/**The previous role that was played by the person.*/
 	Role<Person_ST>* prevRole;
@@ -68,6 +71,11 @@ private:
 	 * @return true, if the trip chain item is advanced
      */
 	bool advanceCurrentTripChainItem();
+	
+	/**
+	 * Assigns a person waiting at a bus stop to the bus stop agent
+	 */
+	void assignPersonToBusStopAgent();
 
 	/**
 	 * Enable Region support
@@ -237,6 +245,11 @@ public:
 	
 	void handleAMODEvent(event::EventId id, event::Context ctxId, event::EventPublisher *sender, const amod::AMODEventArgs& args);
 
+	double getWalkingSpeed() const
+	{
+		return walkingSpeed;
+	}
+	
 	double getBoardingCharacteristics() const
 	{
 		return boardingTimeSecs;

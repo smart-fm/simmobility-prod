@@ -9,7 +9,9 @@
 #include <iostream>
 #include <cmath>
 
+#include "config/ST_Config.hpp"
 #include "DriverUpdateParams.hpp"
+#include "entities/BusStopAgent.hpp"
 #include "entities/Person_ST.hpp"
 #include "entities/vehicle/BusRoute.hpp"
 #include "entities/vehicle/Bus.hpp"
@@ -19,7 +21,7 @@
 #include "logging/Log.hpp"
 #include "partitions/PackageUtils.hpp"
 #include "partitions/UnPackageUtils.hpp"
-#include "entities/roles/waitBusActivityRole/WaitBusActivityRole.hpp"
+#include "entities/roles/waitBusActivity/WaitBusActivity.hpp"
 
 using namespace sim_mob;
 
@@ -54,6 +56,55 @@ DriverRequestParams BusDriver::getDriverRequestParams()
 	return DriverRequestParams();
 }
 
+bool BusDriver::isBusFull()
+{
+	return (passengerList.size() < ST_Config::getInstance().defaultBusCapacity) ? false : true;
+}
+
+void BusDriver::addPassenger(Passenger* passenger)
+{
+	passengerList.push_back(passenger);
+}
+
+double BusDriver::alightPassengers(BusStopAgent *stopAgent)
+{
+	double alightingTime = 0;
+	const BusStop *stop = stopAgent->getBusStop();
+	std::list<Passenger*>::iterator itPassenger = passengerList.begin();
+	
+	if (stop->isVirtualStop())
+	{
+		stop = stop->getTwinStop();
+		
+		if (stop->isVirtualStop())
+		{
+			stringstream msg;
+			msg << "Both stops are virtual! Stop code " << stop->getStopCode();
+			throw std::runtime_error(msg.str());
+		}
+		
+		stopAgent = BusStopAgent::getBusStopAgentForStop(stop);
+	}
+
+	while (itPassenger != passengerList.end())
+	{
+		(*itPassenger)->makeAlightingDecision(stopAgent->getBusStop());
+
+		if ((*itPassenger)->canAlightBus())
+		{
+			stopAgent->addAlightingPerson(*itPassenger);
+			itPassenger = passengerList.erase(itPassenger);
+			alightingTime += (*itPassenger)->getParent()->getAlightingCharacteristics();
+		}
+		else
+		{
+			itPassenger++;
+		}
+	}
+	
+	return alightingTime;
+}
+
 double BusDriver::getPositionX() const
 {
 	return currPos.getX();
@@ -62,4 +113,14 @@ double BusDriver::getPositionX() const
 double BusDriver::getPositionY() const
 {
 	return currPos.getY();
+}
+
+const std::string& BusDriver::getBusLineId() const
+{
+	return busLineId;
+}
+
+void BusDriver::setBusLineId(const std::string& busLine)
+{
+	busLineId = busLine;
 }

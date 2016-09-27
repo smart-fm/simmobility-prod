@@ -201,6 +201,8 @@ void ParseShortTermConfigFile::processXmlFile(XercesDOMParser& parser)
 	processTripFilesNode(GetSingleElementByName(rootNode, "tripFiles"));
 	processPersonCharacteristicsNode(GetSingleElementByName(rootNode, "person_characteristics"));
 	processBusControllerNode(GetSingleElementByName(rootNode, "busController"));
+	processBusCapacityNode(GetSingleElementByName(rootNode, "bus_default_capacity"));
+	processPublicTransit(GetSingleElementByName(rootNode, "public_transit", true));
 	processLoopDetectorCountNode(GetSingleElementByName(rootNode, "loop-detector_counts"));
 	processPathSetFileName(GetSingleElementByName(rootNode, "path-set-config-file"));
 	processTT_Update(GetSingleElementByName(rootNode, "travel_time_update", true));
@@ -684,10 +686,16 @@ void ParseShortTermConfigFile::processPersonCharacteristicsNode(DOMElement *node
 		res.upperAge = ParseUnsignedInt(GetNamedAttributeValue(item, "upperAge"), static_cast<unsigned int> (0));
 		res.lowerSecs = ParseInteger(GetNamedAttributeValue(item, "lowerSecs"), static_cast<int> (0));
 		res.upperSecs = ParseInteger(GetNamedAttributeValue(item, "upperSecs"), static_cast<int> (0));
+		res.walkSpeed = ParseFloat(GetNamedAttributeValue(item, "walkSpeed_kmph"), static_cast<float> (0));
+		
+		//Convert walking speed to m/s (from km/h)
+		res.walkSpeed *= 0.277778;
+		
 		cfg.personCharacteristicsParams.personCharacteristics[count++] = res;
 	}
 
 	std::map<int, PersonCharacteristics> personCharacteristics = cfg.personCharacteristicsParams.personCharacteristics;
+	
 	/// calculate lowest age and highest age in the ranges
 	for (std::map<int, PersonCharacteristics>::const_iterator iter = personCharacteristics.begin(); iter != personCharacteristics.end(); ++iter)
 	{
@@ -781,6 +789,35 @@ void ParseShortTermConfigFile::processBusControllerNode(DOMElement *node)
 	{
 		cfg.busController.enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), "false");
 		cfg.busController.busLineControlType = ParseString(GetNamedAttributeValue(node, "busline_control_type"), "");
+	}
+}
+
+void ParseShortTermConfigFile::processBusCapacityNode(xercesc::DOMElement* node)
+{
+	if(node)
+	{
+		stCfg.defaultBusCapacity = ParseUnsignedInt(GetNamedAttributeValue(node, "value"), 50);
+	}
+}
+
+void ParseShortTermConfigFile::processPublicTransit(xercesc::DOMElement* node)
+{
+	if (!node)
+	{
+		cfg.setPublicTransitEnabled(false);
+	}
+	else
+	{
+		cfg.setPublicTransitEnabled(ParseBoolean(GetNamedAttributeValue(node, "enabled"), false));
+		if (cfg.isPublicTransitEnabled())
+		{
+			const std::string& key = cfg.networkDatabase.procedures;
+			std::map<std::string, StoredProcedureMap>::const_iterator procMapIt = cfg.procedureMaps.find(key);
+			if (procMapIt->second.procedureMappings.count("pt_vertices") == 0 || procMapIt->second.procedureMappings.count("pt_edges") == 0)
+			{
+				throw std::runtime_error("Public transit is enabled , but stored procedures not defined");
+			}
+		}
 	}
 }
 

@@ -22,6 +22,7 @@ namespace sim_mob
 namespace medium
 {
 int TrainDriver::counter=0;
+long TrainDriver::boardPassengerCount = 0;
 TrainDriver::TrainDriver(Person_MT* parent,
 		sim_mob::medium::TrainBehavior* behavior,
 		sim_mob::medium::TrainMovement* movement,
@@ -640,7 +641,9 @@ int TrainDriver::boardPassenger(std::list<WaitTrainActivity*>& boardingPassenger
 			passenger->setStartPoint(person->currSubTrip->origin);
 			passenger->setEndPoint(person->currSubTrip->destination);
 			passenger->Movement()->startTravelTimeMetric();
-
+			boardPassengerLock.lock();
+			boardPassengerCount=boardPassengerCount+1;
+			boardPassengerLock.unlock();
 			ptMRTLogger<<person->getDatabaseId()<<","<<tm<<","<<getTrainId()<<","<<getTripId()<<","<<person->currSubTrip->origin.platform->getPlatformNo()<<","<<person->currSubTrip->destination.platform->getPlatformNo()<<std::endl;
             passengerList.push_back(passenger);
 			i = boardingPassenger.erase(i);

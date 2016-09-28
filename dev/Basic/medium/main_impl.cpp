@@ -69,6 +69,7 @@
 #include "behavioral/TrainServiceControllerLuaProvider.hpp"
 #include "entities/TrainRemoval.h"
 
+
 //If you want to force a header file to compile, you can put it here temporarily:
 //#include "entities/BusController.hpp"
 
@@ -506,7 +507,20 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 		Agent::pending_agents.pop();
 		safe_delete_item(topAg);
 	}
+
+	int boardCount=sim_mob::medium::TrainDriver::boardPassengerCount;
+	const std::string& fileName("CoardingCount.csv");
+	sim_mob::BasicLogger& ptMRTMoveLogger  = sim_mob::Logger::log(fileName);
+	ptMRTMoveLogger<<boardCount<<endl;
+	cout<<"The number of passengers boarding are"<<boardCount<<endl;
 	safe_delete_item(periodicPersonLoader);
+
+	cout<<"The number of trips in NE line"<<Person::NECount<<endl;
+	ptMRTMoveLogger<<Person::NECount<<endl;
+	cout<<"The number of trips in EW line"<<Person::EWCount<<endl;
+	ptMRTMoveLogger<<Person::EWCount<<endl;
+	cout<<"The number of trips in NS line"<<Person::NSCount<<endl;
+	ptMRTMoveLogger<<Person::NSCount<<endl;
 	cout << "Simulation complete; closing worker threads." << endl;
 
 	//Delete our profile pointer (if it exists)

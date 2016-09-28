@@ -207,7 +207,7 @@ namespace sim_mob
 		{
 			TripStartTimePriorityQueue& trainTrips = it->second;
 			std::string lineId=it->first;
-			if(boost::iequals(lineId,"EW_1"))
+			if(boost::iequals(lineId,"NS_1"))
 			{
 				int debug=1;
 			}
@@ -571,6 +571,14 @@ namespace sim_mob
 			std::string lineId = r.get<std::string>(1);
 			TrainSchedule schedule;
 			schedule.lineId = lineId;
+			if(boost::iequals(lineId,"NS_1"))
+			{
+				int debug =1;
+			}
+			if(boost::iequals(lineId,"EW_1"))
+			{
+				int deg=1;
+			}
 			schedule.scheduleId = r.get<std::string>(0);
 			schedule.startTime = r.get<std::string>(2);
 			schedule.endTime = r.get<std::string>(3);
@@ -608,7 +616,7 @@ namespace sim_mob
 					TrainTrip* trainTrip = new TrainTrip();
 					trainTrip->setTrainRoute(route);
 					trainTrip->setTrainPlatform(platforms);
-					if(boost::iequals(lineId,"EW_1"))
+					if(boost::iequals(lineId,"NS_1"))
 					{
 						int debug=1;
 					}

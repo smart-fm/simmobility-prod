@@ -43,13 +43,20 @@ ParseParamFile::ParseParamFile(const std::string& paramFileName,ParameterManager
 	parser.setErrorHandler(&handBase);
 
 	//Attempt to parse the XML file.
-	try {
+	try
+	{
 		parser.parse(paramFileName.c_str());
-	} catch (const XMLException& error) {
+	}
+	catch (const XMLException& error)
+	{
 		throw std::runtime_error( TranscodeString(error.getMessage()).c_str());
-	} catch (const DOMException& error) {
+	}
+	catch (const DOMException& error)
+	{
 		throw std::runtime_error(TranscodeString(error.getMessage()).c_str());
-	} catch (...) {
+	}
+	catch (...)
+	{
 		throw std::runtime_error( "Unexpected Exception parsing config file.\n" );
 	}
 

@@ -162,6 +162,13 @@ void PT_Network::init(const std::string& storedProcForVertex, const std::string&
 		if((*ptEdgeIt).getType()==TRAIN_EDGE)
 		{
 			MRTStopdgesMap[(*ptEdgeIt).getStartStop()][(*ptEdgeIt).getEndStop()].push_back((*ptEdgeIt));
+			if((*ptEdgeIt).getStartStop().find("NE12")!=std::string::npos&&(*ptEdgeIt).getStartStop().find("NE4")!=std::string::npos)
+			{
+				if((*ptEdgeIt).getServiceLine().find("CC")!=std::string::npos||(*ptEdgeIt).getServiceLine().find("CE")!=std::string::npos)
+				{
+					int debug =1 ;
+				}
+			}
 		}
 	}
 

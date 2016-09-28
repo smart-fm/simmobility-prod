@@ -63,6 +63,9 @@ public:
 		REQUESTED_TO_PLATFROM,
 		REQUESTED_TO_DEPOT
 	};
+
+	static long boardPassengerCount;
+	mutable boost::mutex boardPassengerLock;
 	virtual ~TrainDriver();
 
 	TrainDriver(Person_MT* parent,
@@ -444,6 +447,8 @@ private:
 	/**arrival time when stopping the platform*/
 	std::string arrivalTimeAtPlatform;
 	bool isToBeRemovedFromStationAgent=false;
+
+	/* board passenger count */
 
 
 private:

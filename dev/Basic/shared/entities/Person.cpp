@@ -51,6 +51,12 @@ const int DEFAULT_LOWEST_AGE = 20;
 const int DEFAULT_HIGHEST_AGE = 60;
 } //End unnamed namespace
 
+long Person::NECount=0;
+long Person::EWCount=0;
+long Person::NSCount=0;
+boost::mutex Person::NELock;
+boost::mutex Person::EWLock;
+boost::mutex Person::NSLock;
 sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, int id, std::string databaseID)
 : Agent(mtxStrat, id), databaseID(databaseID), agentSrc(src), age(0), resetParamsRequired(false), isFirstTick(true), useInSimulationTravelTime(false), 
 nextPathPlanned(false), originNode(), destNode(), currLinkTravelStats(nullptr)
@@ -133,7 +139,8 @@ bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::S
 	bool invalidFlag = false;
 	if (!matchedTrips.empty())
 	{
-		sim_mob::BasicLogger& ptMRTMoveLogger  = sim_mob::Logger::log("ODSNorthEast.csv");
+		sim_mob::BasicLogger& ptMRTMoveLogger  = sim_mob::Logger::log("ODSNorthEast_ValidEdge.csv");
+		sim_mob::BasicLogger& ptMRTMoveLogger1  = sim_mob::Logger::log("ODSNorthEast.csv");
 		sim_mob::BasicLogger& ptMRTPathsetFailed  = sim_mob::Logger::log("PathsetFailed.csv");
 		std::vector<sim_mob::OD_Trip>::const_iterator it = matchedTrips.begin();
 		while (it != matchedTrips.end())
@@ -308,13 +315,37 @@ bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::S
 				ret = false;
 				break;
 			}
-			++it;
-			//if(sSrc.find("NE")!=-1&&sEnd.find("NE")!=-1)
-			//{
+
+			if(sSrc.find("NE")!= std::string::npos&&sEnd.find("NE")!= std::string::npos&&it->tType == sim_mob::TRAIN_EDGE)
+			{
 
 				ptMRTMoveLogger << getDatabaseId() <<","<<(subTrip.startTime).getStrRepr()<<","<<(subTrip.endTime).getStrRepr()<<","<<sSrc<<","<<sEnd<<","<<subTrip.travelMode<<std::endl;
+				NELock.lock();
+				NECount = NECount +1;
+				NELock.unlock();
 				//Print() <<"dest is"<<dest;
-			//}
+			}
+
+			else if(sSrc.find("EW")!= std::string::npos&&sEnd.find("EW")!= std::string::npos&&it->tType == sim_mob::TRAIN_EDGE)
+			{
+
+								//Print() <<"dest is"<<dest;
+				ptMRTMoveLogger << getDatabaseId() <<","<<(subTrip.startTime).getStrRepr()<<","<<(subTrip.endTime).getStrRepr()<<","<<sSrc<<","<<sEnd<<","<<subTrip.travelMode<<std::endl;
+				EWLock.lock();
+				EWCount = EWCount +1;
+				EWLock.unlock();
+			}
+
+			else if(sSrc.find("NS")!= std::string::npos&&sEnd.find("NS")!= std::string::npos&&it->tType == sim_mob::TRAIN_EDGE)
+			{
+
+				ptMRTMoveLogger << getDatabaseId() <<","<<(subTrip.startTime).getStrRepr()<<","<<(subTrip.endTime).getStrRepr()<<","<<sSrc<<","<<sEnd<<","<<subTrip.travelMode<<std::endl;
+				NSLock.lock();
+				NSCount = NSCount +1;
+				NSLock.unlock();
+			}
+			ptMRTMoveLogger1 << getDatabaseId() <<","<<(subTrip.startTime).getStrRepr()<<","<<(subTrip.endTime).getStrRepr()<<","<<sSrc<<","<<sEnd<<","<<subTrip.travelMode<<std::endl;
+			++it;
 		}
 	}
 	return ret;

@@ -128,7 +128,7 @@ private:
 	std::string stationName;
 	std::map<std::string,bool> IsStartStation;
 	bool arePassengersreRouted = false;
-	boost::mutex insertTrainOrUturnlock;
+	static boost::mutex insertTrainOrUturnlock;
 };
 }
 } /* namespace sim_mob */

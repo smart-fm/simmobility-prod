@@ -30,6 +30,7 @@ namespace sim_mob {
 namespace medium
 {
 
+boost::mutex TrainStationAgent::insertTrainOrUturnlock;
 TrainStationAgent::TrainStationAgent():station(nullptr),Agent(MutexStrategy::MtxStrat_Buffered, -1), parentConflux(nullptr),disruptionParam(nullptr)
 {
 	// TODO Auto-generated constructor stub

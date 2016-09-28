@@ -79,13 +79,13 @@
             <mapping name="pt_bus_routes" procedure="get_pt_bus_routes()"/>
             <mapping name="pt_bus_stops" procedure="get_pt_bus_stops()"/>
             <!-- This procedure returns platforms from pt_platform table with many data fields -->
-            <mapping name="pt_platform" procedure="get_pt_platforms()"/>
+            <mapping name="pt_platform" procedure="get_pt_platforms_test()"/>
             <mapping name="pt_mrt_dispatch_freq" procedure="get_pt_mrt_dispatch_freq()"/>
-            <mapping name="pt_mrt_block" procedure="get_pt_blocks()"/>
-            <mapping name="pt_mrt_route" procedure="get_pt_mrt_route()"/>
+            <mapping name="pt_mrt_block" procedure="get_pt_blocks_test()"/>
+            <mapping name="pt_mrt_route" procedure="get_pt_mrt_route_test()"/>
 	   <!-- This procedure returns platforms from pt_mrt_platform with only lineid,Sequenceno,platformNo fields -->
-            <mapping name="pt_mrt_platform" procedure="get_pt_mrt_platform()"/>
-            <mapping name="pt_mrt_block_polyline" procedure="get_pt_block_polylines()"/>
+            <mapping name="pt_mrt_platform" procedure="get_pt_mrt_platform_test()"/>
+            <mapping name="pt_mrt_block_polyline" procedure="get_pt_block_polylines_test()"/>
 
             <mapping name="pt_bus_routes" procedure="get_pt_bus_routes_17feb()"/>
             <mapping name="pt_bus_stops" procedure="get_pt_bus_stops_17feb()"/>
@@ -100,7 +100,7 @@
             <mapping name="erp_section" procedure="get_erp_section()"/>
             <mapping name="erp_surcharge" procedure="get_erp_surcharge()"/>
 
-            <mapping name="day_activity_schedule" procedure="get_persons_between"/>
+            <mapping name="day_activity_schedule" procedure="get_persons_between_new_mrt_1"/>
             <mapping name="freight_trips" procedure="get_testfreight_between"/>
             <mapping name="screen_line" procedure="get_screen_line_segments()"/>
 	    <mapping name="pt_opposite_lines" procedure="get_pt_opposite_lines()"/>
@@ -127,7 +127,7 @@
     <!-- List of all Worker types and their properties. -->
     <!-- granularity of each component must be a multiple of the "base" granularity -->
     <workers>
-        <person count="1" granularity="5 seconds"/> <!-- Person agents (with Roles) -->
+        <person count="7" granularity="5 seconds"/> <!-- Person agents (with Roles) -->
     </workers>
       
     <incidentsData enabled="false">

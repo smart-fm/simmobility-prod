@@ -55,7 +55,8 @@ namespace sim_mob
 				LOG_SCHOOL_ASSIGNMENT,
 				LOG_PRE_SCHOOL_ASSIGNMENT,
 				LOG_HH_AWAKENING,
-				LOG_HH_EXIT
+				LOG_HH_EXIT,
+				LOG_RANDOM_NUMS
             };
 
             LoggerAgent();

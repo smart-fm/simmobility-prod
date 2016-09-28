@@ -277,14 +277,14 @@ ENDFOREACH()
 #Cflags for C++0x support via gcc
 IF (SIMMOB_LATEST_STANDARD)
   IF(CMAKE_COMPILER_IS_GNUCXX)
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11 -static-libgcc -static-libstdc++")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
   ELSE() 
     #Just hope for the best
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -static-libgcc -static-libstdc++")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
   ENDIF()
 ELSE (SIMMOB_LATEST_STANDARD)
   #Avoid "C++0x compatibility" warnings.
-  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-c++11-compat -static-libgcc -static-libstdc++")
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-c++11-compat")
 
   #Needed for profiling Agent updates (timing)
   #IF (${SIMMOB_AGENT_UPDATE_PROFILE} MATCHES "ON")
@@ -395,10 +395,7 @@ find_package(Lua REQUIRED)
 include_directories(${LUA_INCLUDE_DIRS})
 LIST(APPEND LibraryList ${LUA_LIBRARIES})
 
-#Find MongoDB
-find_package(MongoClient REQUIRED)
-include_directories(${MONGOCLIENT_INCLUDE_DIRS})
-LIST(APPEND LibraryList ${MONGOCLIENT_LIBRARY} -lcrypto -lssl -lpq -ldl )
+LIST(APPEND LibraryList -lcrypto -lssl -lpq -ldl )
 
 IF (${BUILD_SHORT} MATCHES "ON")
         #Find GLPK

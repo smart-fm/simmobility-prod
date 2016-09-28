@@ -4,6 +4,7 @@
 
 #include "ModeDestinationParams.hpp"
 #include "LogsumTourModeDestinationParams.hpp"
+#include "behavioral/PredayUtils.hpp"
 
 #include <algorithm>
 #include <stdio.h>
@@ -18,6 +19,46 @@ const double WALKABLE_DISTANCE = 3.0; //km
 const double OPERATIONAL_COST = 0.147;
 
 const std::vector<OD_Pair> unavailableODsDummy;
+
+/**
+ * function to set drive1 and motorcycle availability for tours
+ * @param personParams person parameters to infer license and vehicle ownership info
+ * @param driveAvailable output param for car availability
+ * @param motorAvailable output param for motorcycle availability
+ */
+void setTourCarAndMotorAvailability(const PersonParams& personParams, bool& driveAvailable, bool& motorAvailable)
+{
+	switch(personParams.getVehicleOwnershipOption())
+	{
+	case VehicleOwnershipOption::NO_VEHICLE:
+	case VehicleOwnershipOption::INVALID:
+	{
+		driveAvailable = false;
+		motorAvailable = false;
+		break;
+	}
+	case VehicleOwnershipOption::ONE_PLUS_MOTOR_ONLY:
+	case VehicleOwnershipOption::ONE_OP_CAR_W_WO_MOTOR:
+	{
+		driveAvailable = false;
+		motorAvailable = personParams.getMotorLicense();
+		break;
+	}
+	case VehicleOwnershipOption::ONE_NORMAL_CAR_ONLY:
+	{
+		driveAvailable = personParams.hasDrivingLicence();
+		motorAvailable = false;
+		break;
+	}
+	case VehicleOwnershipOption::ONE_NORMAL_CAR_AND_ONE_PLUS_MOTOR:
+	case VehicleOwnershipOption::TWO_PLUS_NORMAL_CAR_W_WO_MOTOR:
+	{
+		driveAvailable = personParams.hasDrivingLicence();
+		motorAvailable = personParams.getMotorLicense();
+		break;
+	}
+	}
+}
 }
 
 ModeDestinationParams::ModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap,
@@ -67,10 +108,9 @@ bool sim_mob::ModeDestinationParams::isUnavailable(int origin, int destination) 
 LogsumTourModeDestinationParams::LogsumTourModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap,
 		const PersonParams& personParams, StopType tourType) :
 		ModeDestinationParams(zoneMap, amCostsMap, pmCostsMap, tourType, personParams.getHomeLocation(), unavailableODsDummy),
-			drive1Available(personParams.hasDrivingLicence() * personParams.getCarOwn()),
-			motorAvailable(personParams.getMotorLicense() * personParams.getMotorOwn()),
-			modeForParentWorkTour(0), costIncrease(1)
+			drive1Available(false), motorAvailable(false), modeForParentWorkTour(0), costIncrease(1)
 {
+	setTourCarAndMotorAvailability(personParams, drive1Available, motorAvailable);
 }
 
 LogsumTourModeDestinationParams::~LogsumTourModeDestinationParams()
@@ -664,7 +704,6 @@ sim_mob::LogsumTourModeParams::LogsumTourModeParams(const ZoneParams* znOrgObj, 
 		avgTransfer = (amObj->getAvgTransfer() + pmObj->getAvgTransfer()) / 2;
 
 		//set availabilities
-		drive1Available = personParams.hasDrivingLicence() * personParams.getCarOwnNormal();
 		share2Available = 1;
 		share3Available = 1;
 		publicBusAvailable = (amObj->getPubIvt() > 0 && pmObj->getPubIvt() > 0);
@@ -672,7 +711,7 @@ sim_mob::LogsumTourModeParams::LogsumTourModeParams(const ZoneParams* znOrgObj, 
 		privateBusAvailable = (amObj->getPubIvt() > 0 && pmObj->getPubIvt() > 0);
 		walkAvailable = (amObj->getPubIvt() <= WALKABLE_DISTANCE && pmObj->getPubIvt() <= WALKABLE_DISTANCE);
 		taxiAvailable = 1;
-		motorAvailable = 1;
+		setTourCarAndMotorAvailability(personParams, drive1Available, motorAvailable);
 	}
 	else
 	{
@@ -695,7 +734,6 @@ sim_mob::LogsumTourModeParams::LogsumTourModeParams(const ZoneParams* znOrgObj, 
 		avgTransfer = 0;
 
 		//set availabilities
-		drive1Available = personParams.hasDrivingLicence() * personParams.getCarOwnNormal();
 		share2Available = 1;
 		share3Available = 1;
 		publicBusAvailable = 1;
@@ -703,7 +741,7 @@ sim_mob::LogsumTourModeParams::LogsumTourModeParams(const ZoneParams* znOrgObj, 
 		privateBusAvailable = 1;
 		walkAvailable = 1;
 		taxiAvailable = 1;
-		motorAvailable = 1;
+		setTourCarAndMotorAvailability(personParams, drive1Available, motorAvailable);
 	}
 }
 

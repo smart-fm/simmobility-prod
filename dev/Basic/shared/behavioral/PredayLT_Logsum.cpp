@@ -195,19 +195,27 @@ const PredayLT_LogsumManager& sim_mob::PredayLT_LogsumManager::getInstance()
 		ensureContext();
 		PopulationSqlDao& ltPopulationDao = threadContext.get()->ltPopulationDao;
 		ltPopulationDao.getIncomeCategories(PersonParams::getIncomeCategoryLowerLimits());
-		ltPopulationDao.getVehicleCategories(PersonParams::getVehicleCategoryLookup());
 		ltPopulationDao.getAddresses(PersonParams::getAddressLookup(), PersonParams::getZoneAddresses());
 		logsumManager.dataLoadReqd = false;
 	}
 	return logsumManager;
 }
 
-PersonParams sim_mob::PredayLT_LogsumManager::computeLogsum(long individualId, int homeLocation, int workLocation, int vehicleOwnership) const
+PersonParams sim_mob::PredayLT_LogsumManager::computeLogsum(long individualId, int homeLocation, int workLocation, int vehicleOwnership, PersonParams *personParamsFromLT) const
 {
 	ensureContext();
 	PersonParams personParams;
-	PopulationSqlDao& ltPopulationDao = threadContext.get()->ltPopulationDao;
-	ltPopulationDao.getOneById(individualId, personParams);
+
+	if( personParamsFromLT != nullptr)
+	{
+		personParams = *personParamsFromLT;
+	}
+	else
+	{
+		PopulationSqlDao& ltPopulationDao = threadContext.get()->ltPopulationDao;
+		ltPopulationDao.getOneById(individualId, personParams);
+	}
+
 	if(personParams.getPersonId().empty())
 	{
 		return PersonParams();
@@ -220,14 +228,7 @@ PersonParams sim_mob::PredayLT_LogsumManager::computeLogsum(long individualId, i
 		personParams.setFixedWorkLocation(workLocation);
 	}
 
-	if( vehicleOwnership == 1)
-	{
-		personParams.setCarOwnNormal(1);
-	}
-	else if( vehicleOwnership == 0 )
-	{
-		personParams.setCarOwnNormal(0);
-	}
+	personParams.setVehicleOwnershipCategory(vehicleOwnership);
 
 	int homeLoc = personParams.getHomeLocation();
 	boost::unordered_map<int,int>::const_iterator zoneLookupItr = zoneIdLookup.find(homeLoc);

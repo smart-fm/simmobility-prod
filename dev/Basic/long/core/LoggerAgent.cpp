@@ -119,6 +119,10 @@ LoggerAgent::LoggerAgent() : Entity(-1)
     std::ofstream* hhexitsFile = new std::ofstream("HH_Exits.csv");
     streams.insert(std::make_pair(LOG_HH_EXIT, hhexitsFile));
 
+    //random nums
+    std::ofstream* randomNumFile = new std::ofstream("randomNums.csv");
+    streams.insert(std::make_pair(LOG_RANDOM_NUMS, randomNumFile));
+
 }
 
 LoggerAgent::~LoggerAgent()

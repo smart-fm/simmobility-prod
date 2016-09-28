@@ -204,47 +204,52 @@ struct DB_Details
  */
 struct ScreenLineParams
 {
-    ScreenLineParams() : interval(0), outputEnabled(false), fileName("") {}
+	ScreenLineParams() : interval(0), outputEnabled(false), fileName("") {}
 
-    ///The frequency of aggregating the vehicle counts at the loop detector
-    unsigned int interval;
+	///The frequency of aggregating the vehicle counts at the loop detector
+	unsigned int interval;
 
-    ///Indicates whether the counts have to be output to a file
-    bool outputEnabled;
+	///Indicates whether the counts have to be output to a file
+	bool outputEnabled;
 
-    ///Name of the output file
-    std::string fileName;
+	///Name of the output file
+	std::string fileName;
 };
 
 /**
  * represent the incident data section of the config file
  */
-struct IncidentParams {
-    IncidentParams() : incidentId(-1), visibilityDistance(0), segmentId(-1), position(0), severity(0),
-            capFactor(0), startTime(0), duration(0), length(0),	compliance(0), accessibility(0){}
+struct IncidentParams
+{
+	IncidentParams() : incidentId(-1), visibilityDistance(0), segmentId(-1), position(0), severity(0), capFactor(0), startTime(0),
+			duration(0), length(0), compliance(0), accessibility(0)
+	{}
 
-    struct LaneParams {
-        LaneParams() : laneId(0), speedLimit(0), xLaneStartPos(0), yLaneStartPos(0), xLaneEndPos(0),yLaneEndPos(0){}
-        unsigned int laneId;
-        float speedLimit;
-        float xLaneStartPos;
-        float yLaneStartPos;
-        float xLaneEndPos;
-        float yLaneEndPos;
-    };
+	struct LaneParams
+	{
+		LaneParams() : laneId(0), speedLimit(0), xLaneStartPos(0), yLaneStartPos(0), xLaneEndPos(0), yLaneEndPos(0)
+		{}
 
-    unsigned int incidentId;
-    float visibilityDistance;
-    unsigned int segmentId;
-    float position;
-    unsigned int severity;
-    float capFactor;
-    unsigned int startTime;
-    unsigned int duration;
-    float length;
-    float compliance;
-    float accessibility;
-    std::vector<LaneParams> laneParams;
+		unsigned int laneId;
+		float speedLimit;
+		float xLaneStartPos;
+		float yLaneStartPos;
+		float xLaneEndPos;
+		float yLaneEndPos;
+	};
+
+	unsigned int incidentId;
+	float visibilityDistance;
+	unsigned int segmentId;
+	float position;
+	unsigned int severity;
+	float capFactor;
+	unsigned int startTime;
+	unsigned int duration;
+	float length;
+	float compliance;
+	float accessibility;
+	std::vector<LaneParams> laneParams;
 };
 
 /**
@@ -443,20 +448,6 @@ public:
 	void setFileOutputEnabled(bool outputTripchains);
 
 	/**
-	 * Checks whether output predictions is enabled
-	 *
-	 * @return true if enabled, else false
-	 */
-	bool isOutputPredictions() const;
-
-	/**
-	 * Sets output predictions enabled/disabled status
-	 *
-	 * @param outputPredictions status to be set
-	 */
-	void setOutputPredictions(bool outputPredictions);
-
-	/**
 	 * Checks whether console output enabled/disabled status
 	 *
 	 * @return true if enabled, else false
@@ -490,13 +481,6 @@ public:
 	 * @return true if preday logsum computation is running, else false
 	 */
 	bool runningPredayLogsumComputation() const;
-
-	/**
-	 * Checks whether preday logsum computation for LT is running
-	 *
-	 * @return true if preday logsum computation for LT is running, else false
-	 */
-	bool runningPredayLogsumComputationForLT() const;
 
 	/**
 	 * Sets the preday run mode
@@ -611,35 +595,25 @@ public:
 	void setPopulationSource(const std::string& src);
 
 	/**
-	 * Retrieves simmobility database details
+	 * Checks whether CBD area restriction enforced
 	 *
-	 * @return simmobility db details
+	 * @return true if restriction enforced, else false
 	 */
-	const DB_Details& getSimmobDb() const;
+	bool isRegionRestrictionEnabled() const;
 
 	/**
-	 * Sets logsum database details
+	 * Retrives the confluxes
 	 *
-	 * @param simmobDb simmobility database name
-	 * @param simmobCred credentials for simmob database
+	 * @return confluxes
 	 */
-	void setSimmobDb(const std::string& simmobDb, const std::string& simmobCred);
+	std::set<Conflux*>& getConfluxes();
 
 	/**
-	 * Retrieves population database details
+	 * Retrives the confluxes
 	 *
-	 * @return population db details
+	 * @return confluxes (const reference)
 	 */
-	const DB_Details& getPopulationDb() const;
-
-	/**
-	 * Sets population database details
-	 *
-	 * @param populationDb population database name
-	 * @param populationCred credentials for population database
-	 */
-	void setPopulationDb(const std::string& populationDb, const std::string& populationCred);
-
+	const std::set<Conflux*>& getConfluxes() const;
 
     /**
      * Retrieves number of workers for handling agents
@@ -655,33 +629,12 @@ public:
      */
     unsigned int personWorkGroupSize() const;
 
-    /**
-     * Checks whether CBD area restriction enforced
-     *
-     * @return true if restriction enforced, else false
-     */
-    bool isRegionRestrictionEnabled() const;
-
     void setPublicTransitEnabled(bool val);
 
     /**
      * Retrives the confluxes
      *
-     * @return confluxes
-     */
-    std::set<Conflux*>& getConfluxes();
-
-    /**
-     * Retrives the confluxes
-     *
      * @return confluxes (const reference)
-     */
-    const std::set<Conflux*>& getConfluxes() const;
-
-    /**
-     * Retrieves conflux nodes
-     *
-     * @return conflux nodes
      */
     std::map<const Node*, Conflux*>& getConfluxNodes();
 
@@ -821,7 +774,7 @@ private:
 	 */
 	enum PredayRunMode
 	{
-		PREDAY_NONE, PREDAY_SIMULATION, PREDAY_CALIBRATION, PREDAY_LOGSUM_COMPUTATION, PREDAY_LOGSUM_COMPUTATION_LT
+		PREDAY_NONE, PREDAY_SIMULATION, PREDAY_CALIBRATION, PREDAY_LOGSUM_COMPUTATION
 	};
 	PredayRunMode predayRunMode;
 
@@ -830,9 +783,6 @@ private:
 
 	/// flag to indicate whether output files need to be enabled
 	bool fileOutputEnabled;
-
-	/// flag to indicate whether tours and stops need to be output in mongodb
-	bool outputPredictions;
 
 	/// flag to indicate whether console output is required
 	bool consoleOutput;
@@ -857,12 +807,6 @@ private:
 
 	/// population database type
 	db::BackendType populationSource;
-
-	/// poulation database details
-	DB_Details populationDB;
-
-	/// logsum database details
-	DB_Details simmobDB;
 
 	/// name of table containing pre-computed values
 	std::string logsumTableName;

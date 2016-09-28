@@ -31,7 +31,8 @@ void PopulationSqlDao::fromRow(Row& result, PersonParams& outObj)
 	outObj.setPersonTypeId(result.get<BigInt>(DB_FIELD_PERSON_TYPE_ID));
 	outObj.setGenderId(result.get<BigInt>(DB_FIELD_GENDER_ID));
 	outObj.setStudentTypeId(result.get<BigInt>(DB_FIELD_STUDENT_TYPE_ID));
-	outObj.setVehicleOwnershipFromCategoryId(result.get<int>(DB_FIELD_VEHICLE_CATEGORY_ID));
+	outObj.setVehicleOwnershipCategory(result.get<int>(DB_FIELD_VEHICLE_CATEGORY_ID));
+
 	outObj.setAgeId(result.get<BigInt>(DB_FIELD_AGE_CATEGORY_ID));
 	outObj.setIncomeIdFromIncome(result.get<double>(DB_FIELD_INCOME));
 	outObj.setWorksAtHome(result.get<int>(DB_FIELD_WORK_AT_HOME));
@@ -128,32 +129,43 @@ void PopulationSqlDao::getIncomeCategories(double incomeLowerLimits[])
 	}
 }
 
-void PopulationSqlDao::getVehicleCategories(std::map<int, std::bitset<4> >& vehicleCategories)
+void PopulationSqlDao::getVehicleCategories(std::map<int, std::bitset<6> >& vehicleCategories)
 {
 	if (isConnected())
 	{
 		vehicleCategories.clear();
 		Statement query(connection.getSession<soci::session>());
-		prepareStatement(DB_GET_VEHICLE_CATEGORIES, db::EMPTY_PARAMS, query);
+		prepareStatement(DB_GET_VEHICLE_OWNERSHIP_STATUS, db::EMPTY_PARAMS, query);
 		ResultSet rs(query);
 		for (ResultSet::const_iterator it = rs.begin(); it != rs.end(); ++it)
 		{
-			std::bitset<4> vehOwnershipBits;
+			std::bitset<6> vehOwnershipBits;
 			std::string categoryDescription = (*it).get<std::string>(DB_FIELD_VEHICLE_CATEGORY_NAME);
-			if (categoryDescription.find(SEARCH_STRING_CAR_OWN_NORMAL) != std::string::npos)
+			if (categoryDescription.find(SEARCH_STRING_NO_VEHICLE) != std::string::npos)
 			{
 				vehOwnershipBits[0] = 1;
+			}
+			if (categoryDescription.find(SEARCH_STRING_MULT_MOTORCYCLE_ONLY) != std::string::npos)
+			{
 				vehOwnershipBits[1] = 1;
 			}
-			if (categoryDescription.find(SEARCH_STRING_CAR_OWN_OFF_PEAK) != std::string::npos)
+			if (categoryDescription.find(SEARCH_STRING_ONE_CAR_OFF_PEAK_W_WO_MC) != std::string::npos)
 			{
-				vehOwnershipBits[0] = 1;
 				vehOwnershipBits[2] = 1;
 			}
-			if (categoryDescription.find(SEARCH_STRING_MOTORCYCLE) != std::string::npos)
+			if (categoryDescription.find(SEARCH_STRING_ONE_NORMAL_CAR) != std::string::npos)
 			{
 				vehOwnershipBits[3] = 1;
 			}
+			if(categoryDescription.find(SEARCH_STRING_ONE_CAR_PLUS_MULT_MC) != std::string::npos)
+			{
+				vehOwnershipBits[4] = 1;
+			}
+			if(categoryDescription.find(SEARCH_STRING_MULT_CAR_W_WO_MC) != std::string::npos)
+			{
+				vehOwnershipBits[5] = 1;
+			}
+
 			vehicleCategories[(*it).get<BigInt>(DB_FIELD_ID)] = vehOwnershipBits;
 		}
 	}
@@ -211,7 +223,7 @@ void SimmobSqlDao::getLogsumById(long long id, PersonParams& outObj)
 	getById(params, outObj);
 }
 
-void SimmobSqlDao::getPostcodeToNodeMap(std::map<unsigned int, unsigned int>& postcodeNodeMap)
+void SimmobSqlDao::getPostcodeNodeMap(std::map<unsigned int, unsigned int>& postcodeNodeMap)
 {
 	if (isConnected())
 	{

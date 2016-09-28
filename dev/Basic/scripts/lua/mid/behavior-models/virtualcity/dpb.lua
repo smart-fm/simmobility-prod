@@ -87,10 +87,7 @@ local function computeUtilities(params)
 	local income_mid = {500.5,1250,1749.5,2249.5,2749.5,3499.5,4499.5,5499.5,6499.5,7499.5,8500,0,99999,99999}
 	local missing_income = params.missing_income
 	local workathome = params.work_at_home_dummy
-	local car_own = params.car_own
-	local car_own_normal = params.car_own_normal
-	local car_own_offpeak = params.car_own_offpeak
-	local motor_own = params.motor_own
+	local veh_own_cat = params.vehicle_ownership_category
 	local worklogsum = params.worklogsum
 	local edulogsum = params.edulogsum
 	local shoplogsum = params.shoplogsum
@@ -179,17 +176,17 @@ local function computeUtilities(params)
 
 	-- other variables
 	local zero_car,one_car,twoplus_car,motoravail = 0,0,0,0
-	if car_own == 0  then 
+	if veh_own_cat == 0  then 
 		zero_car = 1 
 	end
-	if car_own >= 1  then 
+	if veh_own_cat == 1 or veh_own_cat == 2 or veh_own_cat == 4 or veh_own_cat == 5  then 
+		motoravail = 1 
+	end
+	if veh_own_cat == 2 or veh_own_cat == 3 or veh_own_cat == 4  then 
 		one_car = 1 
 	end
-	if car_own >= 2  then 
+	if veh_own_cat == 5  then 
 		twoplus_car = 1 
-	end
-	if motor_own >= 1 then 
-		motoravail = 1 
 	end
 			
 	utility[1] = 0

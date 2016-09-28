@@ -407,21 +407,29 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
         PrintOutV("XML Config geometrySchemaVersion " << config.ltParams.geometrySchemaVersion << endl);
         PrintOutV("XML Config HousingModel bidderBTOUnitsChoiceSet " << config.ltParams.housingModel.bidderBTOUnitsChoiceSet << endl);
         PrintOutV("XML Config HousingModel bidderUnitsChoiceSet " << config.ltParams.housingModel.bidderUnitsChoiceSet << endl);
-        PrintOutV("XML Config HousingModel dailyHouseholdAwakenings " << config.ltParams.housingModel.dailyHouseholdAwakenings << endl);
+
+        PrintOutV("XML Config HousingModel AwakeningSubModel dailyHouseholdAwakenings " << config.ltParams.housingModel.awakeningModel.dailyHouseholdAwakenings << endl);
+        PrintOutV("XML Config HousingModel AwakeningSubModel initialHouseholdsOnMarket " << config.ltParams.housingModel.awakeningModel.initialHouseholdsOnMarket << endl);
+        PrintOutV("XML Config HousingModel AwakeningSubModel AwakenModelRandom " << config.ltParams.housingModel.awakeningModel.awakenModelRandom << endl);
+        PrintOutV("XML Config HousingModel AwakeningSubModel AwakenModelShan " << config.ltParams.housingModel.awakeningModel.awakenModelShan << endl);
+        PrintOutV("XML Config HousingModel AwakeningSubModel AwakenModelJingsi " << config.ltParams.housingModel.awakeningModel.awakenModelJingsi << endl);
+
         PrintOutV("XML Config HousingModel enabled " << config.ltParams.housingModel.enabled << endl);
         PrintOutV("XML Config HousingModel householdBiddingWindow " << config.ltParams.housingModel.householdBiddingWindow << endl);
         PrintOutV("XML Config HousingModel housingMarketSearchPercentage " << config.ltParams.housingModel.housingMarketSearchPercentage << endl);
         PrintOutV("XML Config HousingModel housingMoveInDaysInterval " << config.ltParams.housingModel.housingMoveInDaysInterval << endl);
-        PrintOutV("XML Config HousingModel initialHouseholdsOnMarket " << config.ltParams.housingModel.initialHouseholdsOnMarket << endl);
+
         PrintOutV("XML Config HousingModel offsetBetweenUnitBuyingAndSelling " << config.ltParams.housingModel.offsetBetweenUnitBuyingAndSelling << endl);
         PrintOutV("XML Config HousingModel timeInterval " << config.ltParams.housingModel.timeInterval << endl);
         PrintOutV("XML Config HousingModel timeOffMarket " << config.ltParams.housingModel.timeOffMarket << endl);
         PrintOutV("XML Config HousingModel timeOnMarket " << config.ltParams.housingModel.timeOnMarket << endl);
         PrintOutV("XML Config HousingModel vacantUnitActivationProbability " << config.ltParams.housingModel.vacantUnitActivationProbability << endl);
+        PrintOutV("XML Config HousingModel householdAwakeningPercentageByBTO " << config.ltParams.housingModel.householdAwakeningPercentageByBTO << endl);
         PrintOutV("XML Config mainSchemaVersion " << config.ltParams.mainSchemaVersion << endl);
         PrintOutV("XML Config maxIterations " << config.ltParams.maxIterations << endl);
         PrintOutV("XML Config opSchemaloadingInterval " << config.ltParams.opSchemaloadingInterval << endl);
         PrintOutV("XML Config outputHouseholdLogsums " << config.ltParams.outputHouseholdLogsums.enabled << endl);
+        PrintOutV("XML Config outputHouseholdLogsums vehicleOwnership " << config.ltParams.outputHouseholdLogsums.vehicleOwnership << endl);
         PrintOutV("XML Config outputHouseholdLogsums fixedHomeVariableWork " << config.ltParams.outputHouseholdLogsums.fixedHomeVariableWork << endl);
         PrintOutV("XML Config outputHouseholdLogsums fixedWorkVariableHome " << config.ltParams.outputHouseholdLogsums.fixedWorkVariableHome << endl);
         PrintOutV("XML Config Simulation resumption " << config.ltParams.resume << endl);
@@ -448,10 +456,7 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
         	{
         		createOutputSchema(conn,currentOutputSchema);
         	}
-        	if((currTick > 0) && ((currTick+1)%opSchemaloadingInterval == 0))
-        	{
-        		loadDataToOutputSchema(conn,currentOutputSchema,simVersionId,simStoppedTick,*developerModel,*housingMarketModel);
-        	}
+
             if( currTick == 0 )
             {
 				PrintOutV(" Lifestyle1: " << (dynamic_cast<HM_Model*>(models[0]))->getLifestyle1HHs() <<
@@ -489,12 +494,12 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
 
             wgMgr.waitAllGroups();
 
+
+
             DeveloperModel::ParcelList parcels;
             DeveloperModel::DeveloperList developerAgents;
             developerAgents = developerModel->getDeveloperAgents();
             developerModel->wakeUpDeveloperAgents(developerAgents);
-
-            sleep(1);
 
             PrintOutV("Day " << currTick << " HUnits: " << std::dec << (dynamic_cast<HM_Model*>(models[0]))->getMarket()->getEntrySize()
 				   << " Bidders: " 	<< (dynamic_cast<HM_Model*>(models[0]))->getNumberOfBidders() << " "
@@ -503,11 +508,18 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
 				   << " Accepted: " << (dynamic_cast<HM_Model*>(models[0]))->getSuccessfulBids()
 				   << " Exits: " 	<< (dynamic_cast<HM_Model*>(models[0]))->getExits()
 				   << " Awaken: "	<< (dynamic_cast<HM_Model*>(models[0]))->getAwakeningCounter()
+				   << " AwakenByBTO: "	<< (dynamic_cast<HM_Model*>(models[0]))->getNumberOfBTOAwakenings()
 				   << " " << std::endl );
+
+            if((currTick > 0) && ((currTick+1)%opSchemaloadingInterval == 0))
+            {
+            	loadDataToOutputSchema(conn,currentOutputSchema,simVersionId,simStoppedTick,*developerModel,*housingMarketModel);
+            }
+
 
             (dynamic_cast<HM_Model*>(models[0]))->setNumberOfBidders(0);
             (dynamic_cast<HM_Model*>(models[0]))->setNumberOfSellers(0);
-
+            (dynamic_cast<HM_Model*>(models[0]))->setNumberOfBTOAwakenings(0);
             (dynamic_cast<HM_Model*>(models[0]))->resetBAEStatistics();
         }
 
@@ -595,3 +607,4 @@ int main_impl(int ARGC, char* ARGV[])
     
     return 0;
 }
+

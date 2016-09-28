@@ -63,7 +63,7 @@ namespace sim_mob {
         const std::string DB_TABLE_TAZ_LOGUM_WEIGHT= APPLY_SCHEMA(CALIBRATION_SCHEMA, "taz_logsum_hedonic_price");
         const std::string DB_TABLE_HH_HITS_SAMPLE = APPLY_SCHEMA(MAIN_SCHEMA, "household_hits_sample");
         const std::string DB_TABLE_TAO = APPLY_SCHEMA(CALIBRATION_SCHEMA, "tao_hedonic_price");
-        const std::string DB_TABLE_LOGSUMMTZV2 = APPLY_SCHEMA(CALIBRATION_SCHEMA, "logsum_mtz_v2");
+        const std::string DB_TABLE_LOGSUMMTZV2 = APPLY_SCHEMA(CALIBRATION_SCHEMA, "hedonic_logsums");
         const std::string DB_TABLE_PLANNING_AREA = APPLY_SCHEMA(MAIN_SCHEMA, "planning_area");
         const std::string DB_TABLE_PLANNING_SUBZONE = APPLY_SCHEMA(MAIN_SCHEMA, "planning_subzone");
         const std::string DB_TABLE_MTZ = APPLY_SCHEMA(MAIN_SCHEMA, "mtz");
@@ -137,7 +137,6 @@ namespace sim_mob {
         const std::string DB_FUNC_GET_PROJECTS = APPLY_SCHEMA(MAIN_SCHEMA, "getProjects()");
         const std::string DB_FUNC_GET_PARCEL_MATCHES = APPLY_SCHEMA(MAIN_SCHEMA, "getParcelMatches()");
         const std::string DB_FUNC_GET_SLA_PARCELS = APPLY_SCHEMA(MAIN_SCHEMA, "getSlaParcels()");
-        const std::string DB_FUNC_GET_AWAKENING = APPLY_SCHEMA( MAIN_SCHEMA, "getHouseholdAwakeningProbability()");
         const std::string DB_FUNC_GET_MACRO_ECONOMICS = APPLY_SCHEMA( MAIN_SCHEMA, "getMacroEconomics()");
         const std::string DB_FUNC_GET_VEHICLE_OWNERSHIP_COEFFICIENTS = APPLY_SCHEMA( MAIN_SCHEMA, "getVehicleOwnershipCoefficients()");
         const std::string DB_FUNC_GET_TAXI_ACCESS_COEFFICIENTS = APPLY_SCHEMA( MAIN_SCHEMA, "getTaxiAccessCoefficients()");
@@ -179,6 +178,7 @@ namespace sim_mob {
         const std::string DB_FUNC_GET_ALTERNATIVE_HEDONIC_PRICE = APPLY_SCHEMA( MAIN_SCHEMA, "getAlternativeHedonicPrice()");
 
         const std::string DB_FUNC_GET_HH_PLANNING_AREA = APPLY_SCHEMA(MAIN_SCHEMA, "getHouseholdPlanningArea()");
+        const std::string DB_FUNC_GET_IND_EMP_SEC = APPLY_SCHEMA(MAIN_SCHEMA, "getIndividualEmpSecIds()");
 
         /**
          * Fields
@@ -331,7 +331,7 @@ namespace sim_mob {
         const std::string DB_GETALL_EMPTY_PARCELS = "SELECT * FROM "+ DB_FUNC_GET_EMPTY_PARCELS + LIMIT;
         const std::string DB_GETALL_TOTAL_BUILDING_SPACE = "SELECT * FROM "+ DB_FUNC_GET_TOTAL_BUILDING_SPACE + LIMIT;
         const std::string DB_GETALL_PARCEL_AMENITIES = "SELECT * FROM "+ DB_FUNC_GET_PARCEL_AMENITIES + LIMIT;
-        const std::string DB_GETALL_AWAKENING = "SELECT * FROM " + DB_FUNC_GET_AWAKENING + LIMIT;
+        const std::string DB_GETALL_AWAKENING = "SELECT * FROM " + DB_TABLE_AWAKENING + LIMIT;
         const std::string DB_GETALL_MACRO_ECONOMICS = "SELECT * FROM " + DB_FUNC_GET_MACRO_ECONOMICS + LIMIT;
         const std::string DB_GETALL_VEHCILE_OWNERSHIP_COEFFICIENTS = "SELECT * FROM " + DB_FUNC_GET_VEHICLE_OWNERSHIP_COEFFICIENTS + LIMIT;
         const std::string DB_GETALL_TAXI_ACCESS_COEFFICIENTS = "SELECT * FROM " + DB_FUNC_GET_TAXI_ACCESS_COEFFICIENTS + LIMIT;
@@ -376,6 +376,7 @@ namespace sim_mob {
         const std::string DB_GETALL_PRE_SCHOOL = "SELECT * FROM " + DB_TABLE_PRE_SCHOOL + LIMIT;
         const std::string DB_GETALL_PRIMARY_SCHOOL_INDIVIDUALS = "SELECT * FROM "+ DB_FUNC_GET_PRIMARY_SCHOOL_INDS + LIMIT;
         const std::string DB_GETALL_PRE_SCHOOL_INDIVIDUALS = "SELECT * FROM "+ DB_FUNC_GET_PRE_SCHOOL_INDS + LIMIT;
+        const std::string DB_GETALL_IND_EMP_SEC = "SELECT * FROM "+ DB_FUNC_GET_IND_EMP_SEC + LIMIT;
 
         /**
          * GET BY ID
@@ -393,14 +394,13 @@ namespace sim_mob {
         const std::string DB_GETBYID_DEVELOPMENT_TYPE_TEMPLATE = "SELECT * FROM " + DB_FUNC_GET_DEVELOPMENT_TYPE_TEMPLATE_BY_ID;
         const std::string DB_GETBYID_INDIVIDUAL = "SELECT * FROM " + DB_FUNC_GET_INDIVIDUAL_BY_ID;
         const std::string DB_GETBYID_RESIDENTIAL_STATUS = "SELECT * FROM " + DB_FUNC_GET_RESIDENTIAL_STATUS_BY_ID;
-        const std::string DB_GETBYID_AWAKENING = "SELECT * FROM " + DB_FUNC_GET_AWAKENING_BY_ID;
         const std::string DB_GETBYID_ESTABLISHMENT = "SELECT * FROM " + DB_FUNC_GET_ESTABLISHMENT_BY_ID;
         const std::string DB_GETBYID_JOB = "SELECT * FROM " + DB_FUNC_GET_JOB_BY_ID;
         const std::string DB_GETBYID_HIR = "SELECT * FROM " + DB_FUNC_GET_HIR_BY_ID;
         const std::string DB_GETBYID_TAZ = "SELECT * FROM " + DB_TABLE_TAZ + " WHERE id = :v1;";
         const std::string DB_GETBYID_TAZ_LOGSUM_WEIGHT = "SELECT * FROM " + DB_TABLE_TAZ_LOGUM_WEIGHT + " WHERE id = :v1;";
         const std::string DB_GETBYID_HH_HITS_SAMPLE = "SELECT * FROM " + DB_TABLE_HH_HITS_SAMPLE + " WHERE household_id = :v1;";
-        const std::string DB_GETBYID_LOGSUMMTZV2 = "SELECT * FROM " + DB_TABLE_LOGSUMMTZV2 + " WHERE taz = :v1;";
+        const std::string DB_GETBYID_LOGSUMMTZV2 = "SELECT * FROM " + DB_TABLE_LOGSUMMTZV2 + " WHERE taz_id = :v1;";
         const std::string DB_GETBYID_PLANNING_AREA = "SELECT * FROM " + DB_TABLE_PLANNING_AREA + " WHERE id = :v1;";
         const std::string DB_GETBYID_PLANNING_SUBZONE = "SELECT * FROM " + DB_TABLE_PLANNING_SUBZONE + " WHERE id = :v1;";
         const std::string DB_GETBYID_MTZ = "SELECT * FROM " + DB_TABLE_MTZ + " WHERE id = :v1;";
@@ -411,7 +411,7 @@ namespace sim_mob {
         const std::string DB_GETBYID_POPULATION_PER_PLANNING_AREA = "SELECT * FROM " + DB_FUNC_GET_POPULATION_PER_PLANNING_AREA + " WHERE planning_area_id = :v1;";
         const std::string DB_GETBYID_HITSINDIVIDUALLOGSUM = "SELECT * FROM " + DB_TABLE_HITSINDIVIDUALLOGSUM + " WHERE id = :v1;";
         const std::string DB_GET_INDIVIDUAL_VEHICLEOWNERSHIP_LOGSUM_BY_HHID = "SELECT * FROM " + DB_TABLE_INDIVIDUAL_LEVEL_VEHICLEOWNERSHIP_LOGSUM + " WHERE household_id = :v1;";
-        //const std::string DB_GETBYID_AWAKENING      = "SELECT * FROM " + DB_TABLE_AWAKENING + " WHERE h1_hhid = :v1;";
+        const std::string DB_GETBYID_AWAKENING      = "SELECT * FROM " + DB_TABLE_AWAKENING + " WHERE syn12 = :v1;";
         const std::string DB_GETBYID_ACCESSIBILITYFIXEDPZID = "SELECT * FROM "+ DB_TABLE_ACCESSIBILITYFIXEDPZID + " WHERE planning_area_id = :v1;";
         const std::string DB_GETBYID_SCREENINGCOSTTIME = "SELECT * FROM "+ DB_TABLE_SCREENINGCOSTTIME + " WHERE id = :v1;";
         const std::string DB_GETBYID_OWNERTENANTMOVINGRATE = "SELECT * FROM "+ DB_TABLE_OWNERTENANTMOVINGRATE + " WHERE id = :v1;";

@@ -49,13 +49,14 @@ namespace sim_mob {
             LT_DEV_UNIT_ADDED,
             LT_DEV_BUILDING_ADDED,
             LT_DEV_PROJECT_ADDED,
-			LT_BTO_UNIT_ADDED,
+			LT_DEV_BTO_UNIT_ADDED,
 
             //developer model status changes events for developer agent
             //units
             LT_STATUS_ID_DEV_UNIT_NOT_LAUNCHED,
-            LT_STATUS_ID_DEV_UNIT_LAUNCHED_BUT_UNSOLD,
-            LT_STATUS_ID_DEV_UNIT_LAUNCHED_AND_SOLD,
+            LT_STATUS_ID_DEV_NEW_UNIT_LAUNCHED_BUT_UNSOLD,
+            LT_STATUS_ID_DEV_NEW_UNIT_LAUNCHED_AND_SOLD,
+			LT_STATUS_ID_DEV_ONGOING_UNIT_LAUNCHED_BUT_UNSOLD,
             LT_STATUS_ID_DEV_UNIT_NOT_READY_FOR_OCCUPANCY,
             LT_STATUS_ID_DEV_UNIT_READY_FOR_OCCUPANCY_AND_VACANT,
             LT_STATUS_ID_DEV_UNIT_READY_FOR_OCCUPANCY_AND_OCCUPIED,
@@ -75,7 +76,8 @@ namespace sim_mob {
             //developer model status changes events for housing market
             //units
             LT_STATUS_ID_HM_UNIT_NOT_LAUNCHED,
-            LT_STATUS_ID_HM_UNIT_LAUNCHED_BUT_UNSOLD,
+            LT_STATUS_ID_HM_NEW_UNIT_LAUNCHED_BUT_UNSOLD,
+			LT_STATUS_ID_HM_ONGOING_UNIT_LAUNCHED_BUT_UNSOLD,
             LT_STATUS_ID_HM_UNIT_ST_LAUNCHED_AND_SOLD,
             LT_STATUS_ID_HM_UNIT_NOT_READY_FOR_OCCUPANCY,
             LT_STATUS_ID_HM_UNIT_READY_FOR_OCCUPANCY_AND_VACANT,
@@ -142,7 +144,7 @@ namespace sim_mob {
         const int TIME_UNIT = TIME_UNIT_WEEKLY;
 
         const int HITS_SURVEY_YEAR = 2012;
-        const int TAO_YEAR_INDEX = 68; // The 68th index of the calibration2012.tao_hedonic_price table represents the 1st quarter of 2012 (our starting simulation year)
+        const int TAO_YEAR_INDEX = 45; // The 68th index of the calibration2012.tao_hedonic_price table represents the 1st quarter of 2012 (our starting simulation year)
 
 
         const int ID_HDB1 = 1;

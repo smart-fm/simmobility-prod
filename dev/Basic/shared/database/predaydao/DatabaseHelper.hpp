@@ -16,7 +16,7 @@ const std::string EMPTY_STRING = "";
 /**
  * Schemas
  */
-const std::string MAIN_SCHEMA = "virtual_city.";
+const std::string MAIN_SCHEMA = "main2012.";
 const std::string CALIBRATION_SCHEMA = "calibration2012.";
 const std::string PUBLIC_SCHEMA = "public.";
 const std::string DEMAND_SCHEMA = "demand.";
@@ -25,11 +25,14 @@ const std::string DEMAND_SCHEMA = "demand.";
  * Tables
  */
 const std::string DB_TABLE_INCOME_CATEGORIES = APPLY_SCHEMA(MAIN_SCHEMA, "income_category");
-const std::string DB_TABLE_VEHICLE_CATEGORIES = APPLY_SCHEMA(MAIN_SCHEMA, "vehicle_category");
-const std::string DB_TABLE_AM_COSTS = APPLY_SCHEMA(DEMAND_SCHEMA, "amcosts");
-const std::string DB_TABLE_PM_COSTS = APPLY_SCHEMA(DEMAND_SCHEMA, "pmcosts");
-const std::string DB_TABLE_OP_COSTS = APPLY_SCHEMA(DEMAND_SCHEMA, "opcosts");
+const std::string DB_TABLE_VEHICLE_OWNERSHIP_STATUS = APPLY_SCHEMA(MAIN_SCHEMA, "vehicle_ownership_status");
+const std::string DB_TABLE_AM_COSTS = APPLY_SCHEMA(DEMAND_SCHEMA, "learned_amcosts");
+const std::string DB_TABLE_PM_COSTS = APPLY_SCHEMA(DEMAND_SCHEMA, "learned_pmcosts");
+const std::string DB_TABLE_OP_COSTS = APPLY_SCHEMA(DEMAND_SCHEMA, "learned_opcosts");
 const std::string DB_TABLE_TAZ = APPLY_SCHEMA(DEMAND_SCHEMA, "taz_2012");
+const std::string DB_TABLE_TCOST_PVT = APPLY_SCHEMA(DEMAND_SCHEMA, "learned_tcost_car");
+const std::string DB_TABLE_TCOST_PT = APPLY_SCHEMA(DEMAND_SCHEMA, "learned_tcost_bus");
+const std::string DB_TABLE_NODE_ZONE_MAP = APPLY_SCHEMA(DEMAND_SCHEMA, "node_taz_map");
 
 /**
  * Stored procedures for long-term population database
@@ -37,7 +40,6 @@ const std::string DB_TABLE_TAZ = APPLY_SCHEMA(DEMAND_SCHEMA, "taz_2012");
 const std::string DB_SP_GET_INDIVIDUAL_IDS = APPLY_SCHEMA(MAIN_SCHEMA, "getindividualids()");
 const std::string DB_SP_GET_INDIVIDUAL_BY_ID_FOR_PREDAY = APPLY_SCHEMA(MAIN_SCHEMA, "getindividualbyidforpreday(:_id)");
 const std::string DB_SP_GET_ADDRESSES = APPLY_SCHEMA(MAIN_SCHEMA, "getaddresses()");
-const std::string DB_SP_GET_ZONE_ADDRESS_COUNTS= APPLY_SCHEMA(MAIN_SCHEMA, "getzoneaddresscounts()");
 const std::string DB_SP_GET_POSTCODE_NODE_MAP = APPLY_SCHEMA(PUBLIC_SCHEMA, "get_postcode_node_map()");
 
 /**
@@ -86,9 +88,12 @@ const std::string DB_FIELD_DISTANCE_MRT = "distance_mrt";
 const std::string DB_FIELD_DISTANCE_BUS = "distance_bus";
 const std::string DB_FIELD_NUM_ADDRESSES = "num_addresses";
 
-const std::string SEARCH_STRING_CAR_OWN_NORMAL = "car (normal time)";
-const std::string SEARCH_STRING_CAR_OWN_OFF_PEAK = "car (off peak time)";
-const std::string SEARCH_STRING_MOTORCYCLE = "motorcycle";
+const std::string SEARCH_STRING_NO_VEHICLE = "No vehicle";
+const std::string SEARCH_STRING_MULT_MOTORCYCLE_ONLY = "1+ Motor only";
+const std::string SEARCH_STRING_ONE_CAR_OFF_PEAK_W_WO_MC= "1 Off-peak Car w/wo Motor";
+const std::string SEARCH_STRING_ONE_NORMAL_CAR = "1 Normal Car only";
+const std::string SEARCH_STRING_ONE_CAR_PLUS_MULT_MC = "1 Normal Car & 1+ Motor";
+const std::string SEARCH_STRING_MULT_CAR_W_WO_MC = "2+ Normal Car w/wo Motor";
 
 /**
  * Fields for Zone data (in postgres db)
@@ -121,6 +126,27 @@ const std::string DB_FIELD_COST_PUB_IVT = "pub_ivt";
 const std::string DB_FIELD_COST_AVG_TRANSFER = "avg_transfer";
 const std::string DB_FIELD_COST_PUB_COST = "pub_cost";
 
+/**
+ * Fields for time dependent zone-zone travel times data (in postgres db)
+ */
+const std::string DB_FIELD_TCOST_ORIGIN = "origin_zone";
+const std::string DB_FIELD_TCOST_DESTINATION = "destination_zone";
+const std::string DB_FIELD_TCOST_INFO_UNAVAILABLE = "info_unavailable";
+const std::string DB_FIELD_TCOST_TT_ARRIVAL_PREFIX = "tt_arrival_";
+const std::string DB_FIELD_TCOST_TT_DEPARTURE_PREFIX = "tt_departure_";
+
+/**
+ * Fields for node to zone mapping data (in postgres db)
+ */
+const std::string DB_FIELD_NODE_TYPE = "node_type";
+const std::string DB_FIELD_TRAFFIC_LIGHT = "traffic_light";
+const std::string DB_FIELD_SOURCE = "source";
+const std::string DB_FIELD_SINK = "sink";
+const std::string DB_FIELD_EXPWAY = "expressway";
+const std::string DB_FIELD_INTERSECT = "intersection";
+const std::string DB_FIELD_BUS_TERMINUS = "bus_terminus_node";
+const std::string DB_FIELD_TAZ = "taz";
+
 /** get all individual ids from long-term population database */
 const std::string DB_GET_ALL_PERSON_IDS = "SELECT * FROM " + DB_SP_GET_INDIVIDUAL_IDS;
 
@@ -130,9 +156,6 @@ const std::string DB_GET_PERSON_BY_ID = "SELECT * FROM " + DB_SP_GET_INDIVIDUAL_
 /** load address taz mapping from LT database */
 const std::string DB_GET_ADDRESSES = "SELECT * FROM " + DB_SP_GET_ADDRESSES;
 
-/** load number of addresses in each taz from LT database */
-const std::string DB_GET_ZONE_ADDRESS_COUNTS = "SELECT * FROM " + DB_SP_GET_ZONE_ADDRESS_COUNTS;
-
 /** load postcode to simmobility node mapping */
 const std::string DB_GET_POSTCODE_NODE_MAP = "SELECT * FROM " + DB_SP_GET_POSTCODE_NODE_MAP;
 
@@ -140,14 +163,29 @@ const std::string DB_GET_POSTCODE_NODE_MAP = "SELECT * FROM " + DB_SP_GET_POSTCO
 const std::string DB_GET_INCOME_CATEGORIES = "SELECT * FROM " + DB_TABLE_INCOME_CATEGORIES;
 
 /** load vehicle categories */
-const std::string DB_GET_VEHICLE_CATEGORIES = "SELECT * FROM " + DB_TABLE_VEHICLE_CATEGORIES;
+const std::string DB_GET_VEHICLE_OWNERSHIP_STATUS = "SELECT * FROM " + DB_TABLE_VEHICLE_OWNERSHIP_STATUS;
 
 /** load Costs */
 const std::string DB_GET_ALL_AM_COSTS = "SELECT * FROM " + DB_TABLE_AM_COSTS;
 const std::string DB_GET_ALL_PM_COSTS = "SELECT * FROM " + DB_TABLE_PM_COSTS;
 const std::string DB_GET_ALL_OP_COSTS = "SELECT * FROM " + DB_TABLE_OP_COSTS;
 
+/** load zone-zone tt data for a given OD zones **/
+const std::string DB_GET_TCOST_PT_FOR_OD = "SELECT * FROM " + DB_TABLE_TCOST_PT +
+		                                    " WHERE " + DB_FIELD_TCOST_ORIGIN + " = :origin"
+		                                    "   AND " + DB_FIELD_TCOST_DESTINATION + " = :dest";
+
+const std::string DB_GET_TCOST_PVT_FOR_OD = "SELECT * FROM " + DB_TABLE_TCOST_PVT +
+		                                    " WHERE " + DB_FIELD_TCOST_ORIGIN + " = :origin"
+		                                    "   AND " + DB_FIELD_TCOST_DESTINATION + " = :dest";
+
+const std::string DB_GET_PUB_UNAVAILABLE_OD = "SELECT "+ DB_FIELD_TCOST_ORIGIN + ", " + DB_FIELD_TCOST_DESTINATION + " FROM " + DB_TABLE_TCOST_PT + " WHERE info_unavailable = TRUE";
+const std::string DB_GET_PVT_UNAVAILABLE_OD = "SELECT "+ DB_FIELD_TCOST_ORIGIN + ", " + DB_FIELD_TCOST_DESTINATION + " FROM " + DB_TABLE_TCOST_PVT + " WHERE info_unavailable = TRUE";
+
 /** load zones */
 const std::string DB_GET_ALL_ZONES = "SELECT * FROM " + DB_TABLE_TAZ;
+
+/** load node to zone mapping */
+const std::string DB_GET_ALL_NODE_ZONE_MAP = "SELECT * FROM " + DB_TABLE_NODE_ZONE_MAP;
 
 } // end namespace sim_mob

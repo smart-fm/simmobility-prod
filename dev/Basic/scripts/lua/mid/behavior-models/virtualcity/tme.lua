@@ -11,15 +11,15 @@ Authors - Siyu Li, Harish Loganathan
 --Note: the betas that not estimated are fixed to zero.
 
 --!! see the documentation on the definition of AM,PM and OP table!!
-local beta_cons_bus = -3.0
-local beta_cons_mrt = -3.7
-local beta_cons_privatebus= -2.074
-local beta_cons_drive1= -0.3
+local beta_cons_bus = -3.139
+local beta_cons_mrt = -5.000
+local beta_cons_privatebus= -1.906
+local beta_cons_drive1= -0.211
 local beta_cons_share2= -4.0
 local beta_cons_share3= -3.0
-local beta_cons_motor= -7.309
-local beta_cons_walk= 2.583
-local beta_cons_taxi= -4.865
+local beta_cons_motor= 24
+local beta_cons_walk= 2.559
+local beta_cons_taxi= -4.833
 
 local beta1_1_tt = -0.687
 local beta1_2_tt = -0.690
@@ -257,17 +257,36 @@ local function computeUtilities(params,dbparams)
 	-- 0 if origin == destination
 	local average_transfer_number = dbparams.average_transfer_number
 
-	--params.car_own_normal is from household table
-	local zero_car = params.car_own_normal == 0 and 1 or 0
-	local one_plus_car = params.car_own_normal >= 1 and 1 or 0
-	local two_plus_car = params.car_own_normal >= 2 and 1 or 0
-	local three_plus_car = params.car_own_normal >= 3 and 1 or 0
-
-	--params.motor_own is from household table
-	local zero_motor = params.motor_own == 0 and 1 or 0
-	local one_plus_motor = params.motor_own >=1 and 1 or 0
-	local two_plus_motor = params.motor_own >=2 and 1 or 0
-	local three_plus_motor = params.motor_own >= 3 and 1 or 0
+	local zero_car,one_plus_car,two_plus_car,three_plus_car, zero_motor,one_plus_motor,two_plus_motor,three_plus_motor = 0,0,0,0,0,0,0,0
+	local veh_own_cat = params.vehicle_ownership_category
+	if veh_own_cat == 0  then 
+		zero_car = 1 
+	
+	end
+	if veh_own_cat == 3 or veh_own_cat == 4 or veh_own_cat == 5  then 
+		one_plus_car = 1 
+	end
+	if veh_own_cat == 5  then 
+		two_plus_car = 1 
+	end
+	
+	if veh_own_cat == 5  then 
+		three_plus_car = 1 
+	end
+	if veh_own_cat == 0 or veh_own_cat == 3  then 
+		zero_motor = 1 
+	end
+	if veh_own_cat == 1 or veh_own_cat == 2 or veh_own_cat == 4 or veh_own_cat == 5  then 
+		one_plus_motor = 1 
+	end
+	
+	if veh_own_cat == 1 or veh_own_cat == 2 or veh_own_cat == 4 or veh_own_cat == 5  then 
+		two_plus_motor = 1 
+	end
+	
+	if veh_own_cat == 1 or veh_own_cat == 2 or veh_own_cat == 4 or veh_own_cat == 5  then 
+		three_plus_motor = 1 
+	end
 
 	--dbparams.resident_size = ZONE[origin]['resident workers']
 	--dbparams.education_op = ZONE[destination]['education_op'] --total student 

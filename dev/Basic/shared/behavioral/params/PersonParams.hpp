@@ -8,6 +8,7 @@
 #include <map>
 #include <stdint.h>
 #include <string>
+#include "behavioral/PredayUtils.hpp"
 
 namespace sim_mob
 {
@@ -174,26 +175,6 @@ public:
 		this->ageId = ageId;
 	}
 
-	int getCarOwnNormal() const
-	{
-		return carOwnNormal;
-	}
-
-	void setCarOwnNormal(int carOwnNormal)
-	{
-		this->carOwnNormal = carOwnNormal;
-	}
-
-	int getCarOwnOffpeak() const
-	{
-		return carOwnOffpeak;
-	}
-
-	void setCarOwnOffpeak(int carOwnOffpeak)
-	{
-		this->carOwnOffpeak = carOwnOffpeak;
-	}
-
 	int getFixedWorkLocation() const
 	{
 		return fixedWorkLocation;
@@ -257,16 +238,6 @@ public:
 	void setIsUniversityStudent(int isUniversityStudent)
 	{
 		this->isUniversityStudent = isUniversityStudent;
-	}
-
-	int getMotorOwn() const
-	{
-		return motorOwn;
-	}
-
-	void setMotorOwn(int motorOwn)
-	{
-		this->motorOwn = motorOwn;
 	}
 
 	int getPersonTypeId() const
@@ -444,16 +415,6 @@ public:
 		this->missingIncome = missingIncome;
 	}
 
-	int getCarOwn() const
-	{
-		return carOwn;
-	}
-
-	void setCarOwn(int carOwn)
-	{
-		this->carOwn = carOwn;
-	}
-
 	double getDpsLogsum() const
 	{
 		return dpsLogsum;
@@ -624,14 +585,21 @@ public:
 		this->tripsExpected = tripsExpected;
 	}
 
+	int getVehicleOwnershipCategory() const
+	{
+		return (static_cast<int>(vehicleOwnershipCategory));
+	}
+
+	VehicleOwnershipOption getVehicleOwnershipOption() const
+	{
+		return vehicleOwnershipCategory;
+	}
+
+	void setVehicleOwnershipCategory(int vehicleOwnershipCategory);
+
 	static double* getIncomeCategoryLowerLimits()
 	{
 		return incomeCategoryLowerLimits;
-	}
-
-	static std::map<int, std::bitset<4> >& getVehicleCategoryLookup()
-	{
-		return vehicleCategoryLookup;
 	}
 
 	static std::map<long, sim_mob::Address>& getAddressLookup()
@@ -737,10 +705,7 @@ private:
 	int incomeId;
 	int missingIncome;
 	int worksAtHome;
-	int carOwn;
-	int carOwnNormal;
-	int carOwnOffpeak;
-	int motorOwn;
+	VehicleOwnershipOption vehicleOwnershipCategory;
 	int hasFixedWorkTiming;
 	int homeLocation;
 	long homeAddressId;
@@ -789,11 +754,6 @@ private:
 	 * index 0 corresponds no income.
 	 */
 	static double incomeCategoryLowerLimits[12];
-
-	/**
-	 * vehicle category map of id->bitset<4> (4 bits representing 0-carOwn, 1-carOwnNormal, 2-carOwnOffPeak and 3-motorOwn bit for the id)
-	 */
-	static std::map<int, std::bitset<4> > vehicleCategoryLookup;
 
 	/**
 	 * address to taz map

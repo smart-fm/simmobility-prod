@@ -132,10 +132,7 @@ namespace sim_mob {
              * set the housing market model for this developer agent
              */
             void setHousingMarketModel(HM_Model *housingModel);
-            /*
-             * get the quarter id by the quarter string to get TAO for each quarter
-             */
-            BigSerial getQuarterIdByQuarterStr(std::string quarterStr);
+
             /*
              * set the simulation year
              */
@@ -159,6 +156,12 @@ namespace sim_mob {
 
             void setHasBto(bool hasBto);
 
+            bool isIsDay0Project() const;
+
+            void setIsDay0Project(bool isDay0Project);
+
+            void launchOnGoingUnitsOnDay0();
+
         private:
             DeveloperModel* devModel;
             boost::shared_ptr<Parcel> parcel;
@@ -177,6 +180,7 @@ namespace sim_mob {
             int currentTick;
             bool parcelDBStatus;
             bool hasBTO;
+            bool onGoingProjectOnDay0;
 
         };
     }

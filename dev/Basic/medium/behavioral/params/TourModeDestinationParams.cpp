@@ -9,14 +9,62 @@ using namespace std;
 using namespace sim_mob;
 using namespace medium;
 
+namespace
+{
+/**
+ * function to set drive1 and motorcycle availability for tours/stops
+ * @param stop whether this availability is being set for an intermediate stop (false implies it is being set for a tour)
+ * @param personParams person parameters to infer license and vehicle ownership info
+ * @param driveAvailable output param for car availability
+ * @param motorAvailable output param for motorcycle availability
+ */
+void setCarAndMotorAvailability(bool stop, const PersonParams& personParams, bool& driveAvailable, bool& motorAvailable)
+{
+	switch(personParams.getVehicleOwnershipOption())
+	{
+	case VehicleOwnershipOption::NO_VEHICLE:
+	case VehicleOwnershipOption::INVALID:
+	{
+		driveAvailable = false;
+		motorAvailable = false;
+		break;
+	}
+	case VehicleOwnershipOption::ONE_PLUS_MOTOR_ONLY:
+	{
+		driveAvailable = false;
+		motorAvailable = personParams.getMotorLicense();
+		break;
+	}
+	case VehicleOwnershipOption::ONE_OP_CAR_W_WO_MOTOR:
+	{
+		driveAvailable = stop * personParams.hasDrivingLicence();
+		motorAvailable = personParams.getMotorLicense();
+		break;
+	}
+	case VehicleOwnershipOption::ONE_NORMAL_CAR_ONLY:
+	{
+		driveAvailable = personParams.hasDrivingLicence();
+		motorAvailable = false;
+		break;
+	}
+	case VehicleOwnershipOption::ONE_NORMAL_CAR_AND_ONE_PLUS_MOTOR:
+	case VehicleOwnershipOption::TWO_PLUS_NORMAL_CAR_W_WO_MOTOR:
+	{
+		driveAvailable = personParams.hasDrivingLicence();
+		motorAvailable = personParams.getMotorLicense();
+		break;
+	}
+	}
+}
+} // end anonymous namespace
+
 TourModeDestinationParams::TourModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap,
 		const PersonParams& personParams, StopType tourType,
 		const std::vector<OD_Pair>& unavailableODs) :
 		ModeDestinationParams(zoneMap, amCostsMap, pmCostsMap, tourType, personParams.getHomeLocation(), unavailableODs),
-			drive1Available(personParams.hasDrivingLicence() * personParams.getCarOwn()),
-			motorAvailable(personParams.getMotorLicense() * personParams.getMotorOwn()),
-			modeForParentWorkTour(0), costIncrease(0)
+			drive1Available(false), motorAvailable(false), modeForParentWorkTour(0), costIncrease(0)
 {
+	setCarAndMotorAvailability(false, personParams, drive1Available, motorAvailable);
 }
 
 TourModeDestinationParams::~TourModeDestinationParams()
@@ -317,11 +365,10 @@ StopModeDestinationParams::StopModeDestinationParams(const ZoneMap& zoneMap, con
 		const PersonParams& personParams, const Stop* stop, int originCode,
 		const std::vector<OD_Pair>& unavailableODs) :
 		ModeDestinationParams(zoneMap, amCostsMap, pmCostsMap, stop->getStopType(), originCode, unavailableODs), homeZone(personParams.getHomeLocation()),
-			driveAvailable(personParams.hasDrivingLicence() * personParams.getCarOwn()),
-			motorAvailable(personParams.getMotorLicense() * personParams.getMotorOwn()),
-			tourMode(stop->getParentTour().getTourMode()),
+			driveAvailable(false), motorAvailable(false), tourMode(stop->getParentTour().getTourMode()),
 			firstBound(stop->isInFirstHalfTour())
 {
+	setCarAndMotorAvailability(true, personParams, driveAvailable, motorAvailable);
 }
 
 StopModeDestinationParams::~StopModeDestinationParams()

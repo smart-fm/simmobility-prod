@@ -36,11 +36,16 @@ local function computeUtilities(params,dbparams)
 	--tour of many work tours modeled for an agent, else first of multiple =0
 	local first_of_multiple = dbparams.first_of_multiple
 	local subsequent_of_multiple = dbparams.subsequent_of_multiple
-
-	-- if household has no car available
-	local zero_car = (params.car_own==0 and 1 or 0)
-	--if household has car availability
-	local car_avail= (zero_car==0 and 1 or 0)
+	local veh_own_cat = params.vehicle_ownership_category
+	
+	local zero_car,car_avail = 0,0
+	if veh_own_cat == 0  then 
+		zero_car = 1 
+	end
+	
+	if veh_own_cat == 2 or veh_own_cat == 3 or veh_own_cat == 4 or veh_own_cat == 5 then 
+		car_avail = 1 
+	end
 	-- if this work tour is made by public transporation
 	-- PT_dummy = 1 * (mode_choice == 1 or mode_choice == 2)
 	local PT_dummy = 0

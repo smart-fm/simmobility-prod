@@ -21,14 +21,14 @@
             </database>
             
 	    <!-- internal ip for remote midterm server -->
-            <database id="fm_remote_mt1" dbtype="postgres">
+            <database id="fm_remote_mt" dbtype="postgres">
                 <host value="172.25.184.48"/>
                 <port value="5432"/>
-                <dbname value="SimMobility_DB_2015"/>
+                <dbname value="simmobility"/>
             </database>
 
             <!-- localhost for midterm server -->
-            <database id="fm_remote_mt" dbtype="postgres">
+            <database id="fm_remote_mt2" dbtype="postgres">
                 <host value="localhost"/>
                 <port value="5432"/>
                 <dbname value="sim_mob_lt"/>
@@ -45,7 +45,7 @@
 	    <database id="fm_remote_mt4" dbtype="postgres">
 	        <host value="fmhpchead"/>
 	        <port value="5432"/> <!--old port: 15025 -->
-	        <dbname value="SimMobility_DB_2015"/>
+	        <dbname value="Simmobility"/>
 	    </database>
 
 		<!-- longterm localhost server hosting midterm data -->
@@ -113,15 +113,21 @@
 		<minLotSize value = "100.00" />
     	</developerModel>
 	<outputHouseholdLogsums enabled="false">
-	    <fixedHomeVariableWork value ="true"/>
-	    <fixedWorkVariableHome value ="false"/>
+	    <vehicleOwnershipLogsum value ="false"/>
+	    <fixedHomeVariableWork value ="false"/>
+	    <fixedWorkVariableHome value ="true"/>
 	</outputHouseholdLogsums>
-    <housingModel enabled="true"> 	    
+    	<housingModel enabled="true"> 	    
             <timeOnMarket value="90"/>
             <timeOffMarket value="150"/>
             <timeInterval value="7"/>
-	    <InitialHouseholdsOnMarket value="15000"/>
-	    <dailyHouseholdAwakenings value="400"/>
+	    <awakeningModel enabled="true">
+		    <initialHouseholdsOnMarket value="15000"/>
+		    <dailyHouseholdAwakenings value="400"/>
+		    <awakenModelShan value="true"/>
+		    <awakenModelRandom value="false"/>
+		    <awakenModelJingsi value="false"/>		
+	    </awakeningModel>
 	    <vacantUnitActivationProbability value="0.375"/>
 	    <housingMarketSearchPercentage value="0.15"/>
 	    <housingMoveInDaysInterval value="30"/>
@@ -129,6 +135,7 @@
 	    <bidderUnitsChoiceSet value = "50"/>
 	    <bidderBTOUnitsChoiceSet value = "12"/>
 	    <householdBiddingWindow value = "30" />
+	    <householdAwakeningPercentageByBTO value = "0.00001" />
         </housingModel>
 	<vehicleOwnershipModel enabled='false'>
 		<vehicleBuyingWaitingTimeInDays value= "1"/>

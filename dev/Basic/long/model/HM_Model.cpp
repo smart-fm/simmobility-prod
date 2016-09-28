@@ -54,6 +54,7 @@
 #include "database/dao/PreSchoolDao.hpp"
 #include "database/dao/HHCoordinatesDao.hpp"
 #include "database/dao/HouseholdUnitDao.hpp"
+#include "database/dao/IndvidualEmpSecDao.hpp"
 #include "agent/impl/HouseholdAgent.hpp"
 #include "event/SystemEvents.hpp"
 #include "core/DataManager.hpp"
@@ -70,11 +71,15 @@
 #include <iostream>
 #include <boost/random/linear_congruential.hpp>
 #include <boost/random/uniform_01.hpp>
+#include <random>
+#include "SOCI_ConvertersLong.hpp"
+#include <DatabaseHelper.hpp>
 
 using namespace sim_mob;
 using namespace sim_mob::long_term;
 using namespace sim_mob::db;
 using namespace sim_mob::messaging;
+using namespace std;
 using std::vector;
 using std::map;
 using boost::unordered_map;
@@ -111,15 +116,20 @@ namespace
 		TWOBEDROOM = 5000, THREEBEDROOM = 10000, THREEBEDROOMMATURE = 15000
 	};
 
-	enum TaxiAccessParamId
+	enum TaxiAccessParamId2008
 	{
 		INTERCEPT = 1, HDB1, AGE5064_1, AGE5064_2, AGE65UP_1, AGE65UP_2, AGE3549_2, AGE1019_2, EMPLOYED_SELF_1, EMPLOYED_SELF_2, INC_LOW, INC_HIGH, RETIRED_1, RETIRED_2, OPERATOR_1,
 	    OPERATOR_2, SERVICE_2, PROF_1, LABOR_1, MANAGER_1, INDIAN_TAXI_ACCESS, MALAY_TAXI_ACCESS
 	};
 
+	enum TaxiAccessParamId2012
+	{
+		INTERCEPT2012 = 1, HDB_1_2012, NON_HDB_2012, AGE3549_1_2012,AGE3549_2_2012, AGE5064_1_2012, AGE5064_2_2012, AGE65UP_1_2012, AGE65UP_2_2012,EMPLOYED_SELF_1_2012, EMPLOYED_SELF_2_2012, LABOR_2_2012,
+		OPERATOR_1_2012, OPERATOR_2_2012, INC_LOW_2012, INC_HIGH_2012,INDIAN_TAXI_ACCESS2012, MALAY_TAXI_ACCESS2012, TRANSPORT_1_2012, TRANSPORT_2_2012, CONSTRUCTION_1_2012
+	};
+
 	const int YEAR = 365;
 	
-
 	//These three units are from the unit_type table
 	//"7";"less than 70 Apartment"
 	//"52";"larger than 379 Mixed R and C"
@@ -199,7 +209,7 @@ double HM_Model::TazStats::getAvgHHSize() const
 
 HM_Model::HM_Model(WorkGroup& workGroup) :	Model(MODEL_NAME, workGroup),numberOfBidders(0), initialHHAwakeningCounter(0), numLifestyle1HHs(0), numLifestyle2HHs(0), numLifestyle3HHs(0), hasTaxiAccess(false),
 											householdLogsumCounter(0), simulationStopCounter(0), developerModel(nullptr), startDay(0), bidId(0), numberOfBids(0), numberOfExits(0),	numberOfSuccessfulBids(0),
-											unitSaleId(0), numberOfSellers(0), resume(0), lastStoppedDay(0){}
+											unitSaleId(0), numberOfSellers(0), resume(0), lastStoppedDay(0), numberOfBTOAwakenings(0){}
 
 HM_Model::~HM_Model()
 {
@@ -249,6 +259,21 @@ void HM_Model::incrementExits()
 void HM_Model::incrementSuccessfulBids()
 {
 	numberOfSuccessfulBids++;
+}
+
+int HM_Model::getNumberOfBTOAwakenings()
+{
+	return numberOfBTOAwakenings;
+}
+
+void HM_Model::setNumberOfBTOAwakenings(int number)
+{
+	numberOfBTOAwakenings = number;
+}
+
+void HM_Model::incrementNumberOfBTOAwakenings()
+{
+	numberOfBTOAwakenings++;
 }
 
 void HM_Model::resetBAEStatistics() //BAE is Bids, Awakenings and Exits
@@ -455,9 +480,9 @@ const HM_Model::TazStats* HM_Model::getTazStats(BigSerial tazId) const
 }
 
 
-double HM_Model::ComputeHedonicPriceLogsumFromDatabase( BigSerial taz) const
+double HM_Model::ComputeHedonicPriceLogsumFromDatabase( BigSerial tazId) const
 {
-	LogsumMtzV2Map::const_iterator itr = logsumMtzV2ById.find(taz);
+	LogsumMtzV2Map::const_iterator itr = logsumMtzV2ById.find(tazId);
 
 	if (itr != logsumMtzV2ById.end())
 	{
@@ -924,7 +949,7 @@ void HM_Model::addHouseholdGroupByGroupId(HouseholdGroup* hhGroup)
 	mtx2.unlock();
 }
 
-void HM_Model::setTaxiAccess(const Household *household)
+void HM_Model::setTaxiAccess2008(const Household *household)
 {
 	double valueTaxiAccess = getTaxiAccessCoeffsById(INTERCEPT)->getCoefficientEstimate();
 	//finds out whether the household is an HDB or not
@@ -1130,6 +1155,217 @@ void HM_Model::setTaxiAccess(const Household *household)
 	}
 }
 
+void HM_Model::setTaxiAccess2012(const Household *household)
+{
+	double valueTaxiAccess = getTaxiAccessCoeffsById(INTERCEPT2012)->getCoefficientEstimate();
+	BigSerial unitTypeId = 0;
+
+	if(getUnitById(household->getUnitId()) != nullptr)
+		{
+			unitTypeId = getUnitById(household->getUnitId())->getUnitType();
+		}
+
+		if(unitTypeId== 1)
+		{
+
+			valueTaxiAccess = valueTaxiAccess + getTaxiAccessCoeffsById(HDB_1_2012)->getCoefficientEstimate();
+		}
+		else if((unitTypeId>=7) && (unitTypeId <=36))
+		{
+			valueTaxiAccess = valueTaxiAccess + getTaxiAccessCoeffsById(NON_HDB_2012)->getCoefficientEstimate();
+		}
+		std::vector<BigSerial> individuals = household->getIndividuals();
+		int numIndividualsInAge5064 = 0;
+		int numIndividualsInAge65Up = 0;
+		int numIndividualsAge3549_2 = 0;
+		int numIndividualsAge1019 = 0;
+		int numIndividualsAge4_9 = 0;
+		int numSelfEmployedIndividuals = 0;
+		int numRetiredIndividuals = 0;
+		int numOperatorIndividuals = 0;
+		int numLaborIndviduals = 0;
+		int numTransportIndividuals = 0;
+		int numConstructionIndividuals = 0;
+
+		std::vector<BigSerial>::iterator individualsItr;
+		for(individualsItr = individuals.begin(); individualsItr != individuals.end(); individualsItr++)
+		{
+			int ageCategoryId = getIndividualById((*individualsItr))->getAgeCategoryId();
+			//IndividualsAge1019
+			if((ageCategoryId==2) || (ageCategoryId==3))
+			{
+				numIndividualsAge1019++;
+			}
+			//IndividualsInAge35_49
+			if((ageCategoryId >= 7) && (ageCategoryId <= 9))
+			{
+				numIndividualsAge3549_2++;
+			}
+			//IndividualsInAge5064
+			if((ageCategoryId >= 10)&& (ageCategoryId <= 12))
+			{
+				numIndividualsInAge5064++;
+			}
+			//IndividualsInAge65Up
+			if((ageCategoryId >= 13) && (ageCategoryId <= 17))
+			{
+				numIndividualsInAge65Up++;
+			}
+
+			//IndividualsInAge4-9
+			if(ageCategoryId == 1 )
+			{
+				numIndividualsAge4_9++;
+			}
+
+			//SelfEmployedIndividuals
+			if(getIndividualById((*individualsItr))->getEmploymentStatusId()==3)
+			{
+				numSelfEmployedIndividuals++;
+			}
+			//RetiredIndividuals
+			if(getIndividualById((*individualsItr))->getEmploymentStatusId()==6)
+			{
+				numRetiredIndividuals++;
+			}
+
+			//operators
+			if(getIndividualById((*individualsItr))->getOccupationId()== 7)
+			{
+				numOperatorIndividuals++;
+			}
+
+			//Laborers
+			if(getIndividualById((*individualsItr))->getOccupationId()== 8)
+			{
+				numLaborIndviduals++;
+
+			}
+
+			//transport
+			if(getIndvidualEmpSecByIndId((*individualsItr))->getEmpSecId() == 4)
+			{
+				numTransportIndividuals++;
+
+			}
+
+			//construction
+			if(getIndvidualEmpSecByIndId((*individualsItr))->getEmpSecId() == 2)
+			{
+				numConstructionIndividuals++;
+
+			}
+
+		}
+
+		if(numIndividualsAge3549_2 ==1)
+		{
+			valueTaxiAccess = valueTaxiAccess + getTaxiAccessCoeffsById(AGE3549_1_2012)->getCoefficientEstimate();
+		}
+		else if(numIndividualsAge3549_2 >=2)
+		{
+			valueTaxiAccess = valueTaxiAccess + getTaxiAccessCoeffsById(AGE3549_2_2012)->getCoefficientEstimate();
+		}
+
+		if(numIndividualsInAge5064 == 1)
+		{
+			valueTaxiAccess = valueTaxiAccess + getTaxiAccessCoeffsById(AGE5064_1_2012)->getCoefficientEstimate();
+		}
+		else if (numIndividualsInAge5064 >= 2)
+		{
+			valueTaxiAccess = valueTaxiAccess + getTaxiAccessCoeffsById(AGE5064_2_2012)->getCoefficientEstimate();
+		}
+
+		if(numIndividualsInAge65Up == 1)
+		{
+			valueTaxiAccess = valueTaxiAccess + getTaxiAccessCoeffsById(AGE65UP_1_2012)->getCoefficientEstimate();
+		}
+		else if (numIndividualsInAge65Up >= 2 )
+		{
+			valueTaxiAccess = valueTaxiAccess + getTaxiAccessCoeffsById(AGE65UP_2_2012)->getCoefficientEstimate();
+		}
+
+		if(numSelfEmployedIndividuals == 1)
+		{
+			valueTaxiAccess = valueTaxiAccess + getTaxiAccessCoeffsById(EMPLOYED_SELF_1_2012)->getCoefficientEstimate();
+		}
+		else if(numSelfEmployedIndividuals >= 2)
+		{
+			valueTaxiAccess = valueTaxiAccess + getTaxiAccessCoeffsById(EMPLOYED_SELF_2_2012)->getCoefficientEstimate();
+		}
+
+		if(numLaborIndviduals >=2)
+		{
+			valueTaxiAccess = valueTaxiAccess + getTaxiAccessCoeffsById(LABOR_2_2012)->getCoefficientEstimate();
+		}
+
+		if(numOperatorIndividuals ==1)
+		{
+			valueTaxiAccess = valueTaxiAccess + getTaxiAccessCoeffsById(OPERATOR_1_2012)->getCoefficientEstimate();
+		}
+		else if(numOperatorIndividuals >= 2)
+		{
+			valueTaxiAccess = valueTaxiAccess + getTaxiAccessCoeffsById(OPERATOR_2_2012)->getCoefficientEstimate();
+		}
+
+		const double incomeLaw = 3000;
+		const double incomeHigh = 10000;
+		if(household->getIncome() < incomeLaw)
+		{
+			valueTaxiAccess = valueTaxiAccess + getTaxiAccessCoeffsById(INC_LOW_2012)->getCoefficientEstimate();
+		}
+		else if (household->getIncome() >= incomeHigh)
+		{
+			valueTaxiAccess = valueTaxiAccess + getTaxiAccessCoeffsById(INC_HIGH_2012)->getCoefficientEstimate();
+		}
+
+
+		//Indian
+		if(household->getEthnicityId() == 3)
+		{
+			valueTaxiAccess = valueTaxiAccess + getTaxiAccessCoeffsById(INDIAN_TAXI_ACCESS2012)->getCoefficientEstimate();
+		}
+		//Malay
+		if(household->getEthnicityId() == 2)
+		{
+			valueTaxiAccess = valueTaxiAccess + getTaxiAccessCoeffsById(MALAY_TAXI_ACCESS2012)->getCoefficientEstimate();
+		}
+
+		if(numTransportIndividuals == 1)
+		{
+			valueTaxiAccess = valueTaxiAccess + getTaxiAccessCoeffsById(TRANSPORT_1_2012)->getCoefficientEstimate();
+		}
+		else if(numTransportIndividuals >=2 )
+		{
+			valueTaxiAccess = valueTaxiAccess + getTaxiAccessCoeffsById(TRANSPORT_2_2012)->getCoefficientEstimate();
+		}
+
+		if(numConstructionIndividuals >= 1)
+		{
+			valueTaxiAccess = valueTaxiAccess + getTaxiAccessCoeffsById(CONSTRUCTION_1_2012)->getCoefficientEstimate();
+		}
+
+		double expTaxiAccess = exp(valueTaxiAccess);
+		double probabilityTaxiAccess = (expTaxiAccess) / (1 + expTaxiAccess);
+
+		std::random_device rd;
+		std::mt19937 gen(rd());
+		std::uniform_real_distribution<> dis(0.0, 1.0);
+		const double randomNum = dis(gen);
+
+		writeRandomNumsToFile(randomNum);
+
+		if(randomNum < probabilityTaxiAccess)
+		{
+			writeTaxiAvailabilityToFile(household->getId(),probabilityTaxiAccess,randomNum);
+			hasTaxiAccess = true;
+			AgentsLookup& lookup = AgentsLookupSingleton::getInstance();
+			const HouseholdAgent* householdAgent = lookup.getHouseholdAgentById(household->getId());
+			MessageBus::PostMessage(const_cast<HouseholdAgent*>(householdAgent), LTMID_HH_TAXI_AVAILABILITY, MessageBus::MessagePtr(new Message()));
+		}
+}
+
+
 void HM_Model::startImpl()
 {
 	PredayLT_LogsumManager::getInstance();
@@ -1152,6 +1388,11 @@ void HM_Model::startImpl()
 
 	if (conn.isConnected())
 	{
+		loadLTVersion(conn);
+
+		loadData<LogsumMtzV2Dao>( conn, logsumMtzV2, logsumMtzV2ById, &LogsumMtzV2::getTazId );
+		PrintOutV("Number of LogsumMtzV2: " << logsumMtzV2.size() << std::endl );
+
 		loadData<ScreeningModelCoefficientsDao>( conn, screeningModelCoefficientsList, screeningModelCoefficicientsMap, &ScreeningModelCoefficients::getId );
 		PrintOutV("Number of screening Model Coefficients: " << screeningModelCoefficientsList.size() << std::endl );
 
@@ -1216,9 +1457,6 @@ void HM_Model::startImpl()
 		loadData<TazLogsumWeightDao>( conn, tazLogsumWeights, tazLogsumWeightById, &TazLogsumWeight::getGroupLogsum );
 		PrintOutV("Number of tazLogsumWeights: " << tazLogsumWeights.size() << std::endl );
 
-		loadData<LogsumMtzV2Dao>( conn, logsumMtzV2, logsumMtzV2ById, &LogsumMtzV2::getV2 );
-		PrintOutV("Number of LogsumMtzV2: " << logsumMtzV2.size() << std::endl );
-
 		loadData<PlanningAreaDao>( conn, planningArea, planningAreaById, &PlanningArea::getId );
 		PrintOutV("Number of planning areas: " << planningArea.size() << std::endl );
 
@@ -1281,6 +1519,9 @@ void HM_Model::startImpl()
 		loadData<AlternativeHedonicPriceDao>( conn, alternativeHedonicPrice, alternativeHedonicPriceById, &AlternativeHedonicPrice::getId );
 		PrintOutV("Number of Alternative Hedonic Price rows: " << alternativeHedonicPrice.size() << std::endl );
 
+		loadData<IndvidualEmpSecDao>( conn, indEmpSecList, indEmpSecbyIndId, &IndvidualEmpSec::getIndvidualId );
+		PrintOutV("Number of Indvidual Emp Sec rows: " << indEmpSecList.size() << std::endl );
+
 		if(resume)
 		{
 			SimulationStoppedPointDao simStoppedPointDao(conn);
@@ -1293,7 +1534,7 @@ void HM_Model::startImpl()
 			}
 			BidDao bidDao(conn);
 			db::Parameters params;
-		    params.push_back(lastStoppedDay);
+		    params.push_back(lastStoppedDay-1);
 			const std::string getResumptionBidsOnLastDay = "SELECT * FROM " + outputSchema+ "."+"bids" + " WHERE simulation_day = :v1;";
 			bidDao.getByQueryId(getResumptionBidsOnLastDay,params,resumptionBids);
 
@@ -1422,6 +1663,11 @@ void HM_Model::startImpl()
 		{
 			hhAgent->addUnitId(unit->getId());
 			assignedUnits.insert(std::make_pair(unit->getId(), unit->getId()));
+
+			if( unit->getUnitType() <= 6  || unit->getUnitType() == 65 )
+				logSqrtFloorAreahdb.push_back( log(sqrt(unit->getFloorArea())));
+			else
+				logSqrtFloorAreacondo.push_back( log(sqrt(unit->getFloorArea())));
 		}
 		else
 		{
@@ -1446,6 +1692,8 @@ void HM_Model::startImpl()
 		workGroup.assignAWorker(hhAgent);
 	}
 
+	sort(logSqrtFloorAreahdb.begin(), logSqrtFloorAreahdb.end());
+	sort(logSqrtFloorAreacondo.begin(), logSqrtFloorAreacondo.end());
 
 	int totalPopulation = 0;
 	for ( StatsMap::iterator it = stats.begin(); it != stats.end(); ++it )
@@ -1621,16 +1869,21 @@ void HM_Model::startImpl()
 			tempHH->setIndividual(individuals[n]->getId());
 	}
 
-
-	if(config.ltParams.taxiAccessModel.enabled)
-	{
 	for (size_t n = 0; n < households.size(); n++)
 	{
 		hdbEligibilityTest(n);
-		setTaxiAccess(households[n]);
+		if(config.ltParams.taxiAccessModel.enabled)
+		{
+			if(simYear == 2008)
+			{
+				setTaxiAccess2008(households[n]);
+			}
+			else if(simYear == 2012)
+			{
+				setTaxiAccess2012(households[n]);
+			}
+		}
 	}
-	}
-
 
 	PrintOutV("The synthetic population contains " << household_stats.adultSingaporean_global << " adult Singaporeans." << std::endl);
 	PrintOutV("Minors. Male: " << household_stats.maleChild_global << " Female: " << household_stats.femaleChild_global << std::endl);
@@ -1646,6 +1899,32 @@ void HM_Model::startImpl()
 	PrintOutV("Multigenerational " << household_stats.multigeneration << std::endl );
 
 }
+
+
+void  HM_Model::loadLTVersion(DB_Connection &conn)
+{
+	soci::session sql;
+	sql.open(soci::postgresql, conn.getConnectionStr());
+
+	std::string storedProc = MAIN_SCHEMA + "lt_version";
+
+	//SQL statement
+	soci::rowset<LtVersion> lt_version = (sql.prepare << "select * from " + storedProc);
+
+	for (soci::rowset<LtVersion>::const_iterator itLtVersion = lt_version.begin(); itLtVersion != lt_version.end(); ++itLtVersion)
+	{
+		LtVersion* ltver = new LtVersion(*itLtVersion);
+		ltVersionList.push_back(ltver);
+		ltVersionById.insert(std::make_pair(ltver->getId(), ltver));
+	}
+
+	PrintOutV("Number of Lt Version rows: " << ltVersionList.size() << std::endl );
+	PrintOutV("LT Database Baseline Version: " << ltVersionList.back()->getBase_version() << endl);
+	PrintOutV("LT Database Baseline Date: " << ltVersionList.back()->getChange_date().tm_mday << "/" << ltVersionList.back()->getChange_date().tm_mon << "/" << ltVersionList.back()->getChange_date().tm_year  + 1900 << endl);
+	PrintOutV("LT Database Baseline Comment: " << ltVersionList.back()->getComments() << endl);
+	PrintOutV("LT Database Baseline user id: " << ltVersionList.back()->getUser_id() << endl);
+}
+
 
 HM_Model::ScreeningModelCoefficientsList HM_Model::getScreeningModelCoefficientsList()
 {
@@ -1702,6 +1981,13 @@ void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId)
 	{
 		Individual *thisIndividual = this->getIndividualById(householdIndividualIds[n]);
 
+		string customId = to_string(hitsSample->getHouseholdHitsId()) + "-" + to_string(thisIndividual->getMemberId());
+
+		if(logsumUniqueCounter.find(customId) == logsumUniqueCounter.end())
+			logsumUniqueCounter.insert(customId);
+		else
+			continue;
+
 		vector<double> logsum;
 		vector<double> travelProbability;
 		vector<double> tripsExpected;
@@ -1750,18 +2036,52 @@ void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId)
 		travelProbability.push_back(travelProbV);
 		tripsExpected.push_back(tripsExpectedV);
 
+		PersonParams personParams3 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 2 );
+		logsumVehicle	= personParams3.getDpbLogsum();
+		travelProbV		= personParams3.getTravelProbability();
+		tripsExpectedV 	= personParams3.getTripsExpected();
+		logsum.push_back(logsumVehicle);
+		travelProbability.push_back(travelProbV);
+		tripsExpected.push_back(tripsExpectedV);
+
+		PersonParams personParams4 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 3 );
+		logsumVehicle	= personParams4.getDpbLogsum();
+		travelProbV		= personParams4.getTravelProbability();
+		tripsExpectedV 	= personParams4.getTripsExpected();
+		logsum.push_back(logsumVehicle);
+		travelProbability.push_back(travelProbV);
+		tripsExpected.push_back(tripsExpectedV);
+
+		PersonParams personParams5 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 4 );
+		logsumVehicle	= personParams5.getDpbLogsum();
+		travelProbV		= personParams5.getTravelProbability();
+		tripsExpectedV 	= personParams5.getTripsExpected();
+		logsum.push_back(logsumVehicle);
+		travelProbability.push_back(travelProbV);
+		tripsExpected.push_back(tripsExpectedV);
+
+		PersonParams personParams6 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 5 );
+		logsumVehicle	= personParams6.getDpbLogsum();
+		travelProbV		= personParams6.getTravelProbability();
+		tripsExpectedV 	= personParams6.getTripsExpected();
+		logsum.push_back(logsumVehicle);
+		travelProbability.push_back(travelProbV);
+		tripsExpected.push_back(tripsExpectedV);
+
 		simulationStopCounter++;
 
 		printHouseholdHitsLogsumFVO( hitsSample->getHouseholdHitsId(), paxId, householdId, householdIndividualIds[n], thisIndividual->getMemberId(), tazH, tazW, logsum, travelProbability, tripsExpected );
 		PrintOutV( simulationStopCounter << ". " << hitsIndividualLogsum[p]->getHitsId() << ", " << paxId << ", " << hitsSample->getHouseholdHitsId() << ", " << householdId << ", " << thisIndividual->getMemberId()
 										 << ", " << householdIndividualIds[n] << ", " << tazH << ", " << tazW << ", "
-										 << std::setprecision(5)	<< logsum[0]  << ", " << logsum[1] << ", " << tripsExpected[0] << ", " << tripsExpected[1]
-										 << ", " << travelProbability[0] << ", " << travelProbability[1] <<std::endl );
+										 << std::setprecision(5)
+										 << logsum[0]  << ", " << logsum[1] << ", " << logsum[2] << ", " << logsum[3] << ", "<< logsum[4]  << ", " << logsum[5] << ", "
+										 << tripsExpected[0] << ", " << tripsExpected[1] << ", " << tripsExpected[2] << ", " << tripsExpected[3] << ", "<< tripsExpected[4] << ", " << tripsExpected[5] << ", "
+										 << travelProbability[0] << ", " << travelProbability[1] << ", "  << travelProbability[2] << ", " << travelProbability[3] << ", "  << travelProbability[4] << ", " << travelProbability[5] <<std::endl );
 
 	}
 }
 
-void HM_Model::getLogsumOfHousehold(BigSerial householdId)
+void HM_Model::getLogsumOfVaryingHomeOrWork(BigSerial householdId)
 {
 	HouseHoldHitsSample *hitsSample = nullptr;
 
@@ -1788,6 +2108,13 @@ void HM_Model::getLogsumOfHousehold(BigSerial householdId)
 	for( int n = 0; n < householdIndividualIds.size(); n++ )
 	{
 		Individual *thisIndividual = this->getIndividualById(householdIndividualIds[n]);
+
+		string customId = to_string(hitsSample->getHouseholdHitsId()) + "-" + to_string(thisIndividual->getMemberId());
+
+		if(logsumUniqueCounter.find(customId) == logsumUniqueCounter.end())
+			logsumUniqueCounter.insert(customId);
+		else
+			continue;
 
 		int vehicleOwnership = 0;
 
@@ -1863,11 +2190,43 @@ void HM_Model::getLogsumOfHousehold(BigSerial householdId)
 
 			PersonParams personParams;
 
+			Job *job = this->getJobById(thisIndividual->getJobId());
+			Establishment *establishment = this->getEstablishmentById(	job->getEstablishmentId());
+			const Unit *unit = this->getUnitById(currentHousehold->getUnitId());
+
+			personParams.setPersonId(boost::lexical_cast<std::string>(thisIndividual->getId()));
+			personParams.setPersonTypeId(thisIndividual->getEmploymentStatusId());
+			personParams.setGenderId(thisIndividual->getGenderId());
+			personParams.setStudentTypeId(thisIndividual->getEducationId());
+			personParams.setVehicleOwnershipCategory(currentHousehold->getVehicleOwnershipOptionId());
+			personParams.setAgeId(thisIndividual->getAgeCategoryId());
+			personParams.setIncomeIdFromIncome(thisIndividual->getIncome());
+			personParams.setWorksAtHome(thisIndividual->getWorkAtHome());
+			personParams.setCarLicense(thisIndividual->getCarLicense());
+			personParams.setMotorLicense(thisIndividual->getMotorLicense());
+			personParams.setVanbusLicense(thisIndividual->getVanBusLicense());
+			personParams.setHasFixedWorkTiming(job->getTimeRestriction());
+			personParams.setHasWorkplace( job->getFixedWorkplace() );
+			personParams.setIsStudent(job->getIsStudent());
+			personParams.setActivityAddressId( establishment->getSlaAddressId() );
+
+			//household related
+			personParams.setHhId(boost::lexical_cast<std::string>( currentHousehold->getId() ));
+			personParams.setHomeAddressId( unit->getSlaAddressId() );
+			personParams.setHH_Size( currentHousehold->getSize() );
+			personParams.setHH_NumUnder4( currentHousehold->getChildUnder4());
+			personParams.setHH_NumUnder15( currentHousehold->getChildUnder15());
+			personParams.setHH_NumAdults( currentHousehold->getAdult());
+			personParams.setHH_NumWorkers( currentHousehold->getWorkers());
+
+			//infer params
+			personParams.fixUpParamsForLtPerson();
+
 			if( config.ltParams.outputHouseholdLogsums.fixedHomeVariableWork )
-				personParams = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazHome, tazList, vehicleOwnership );
+				personParams = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazHome, tazList, vehicleOwnership , &personParams );
 			else
 			if( config.ltParams.outputHouseholdLogsums.fixedWorkVariableHome )
-				personParams = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazList, tazWork, vehicleOwnership );
+				personParams = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazList, tazWork, vehicleOwnership , &personParams );
 
 			double logsumD 				= personParams.getDpbLogsum();
  			double travelProbabilityD	= personParams.getTravelProbability();
@@ -1973,7 +2332,17 @@ void HM_Model::hdbEligibilityTest(int index)
 	{
 		const Individual* hhIndividual = getIndividualById(	households[index]->getIndividuals()[n]);
 
-		boost::gregorian::date date1 = boost::gregorian::date_from_tm(hhIndividual->getDateOfBirth());
+		boost::gregorian::date date1;
+
+		if( hhIndividual->getDateOfBirth().tm_year != 0 )
+			date1 = boost::gregorian::date_from_tm(hhIndividual->getDateOfBirth());
+		else
+		{
+			date1 = boost::gregorian::date(2012, 1, 1);
+			//There will be a model soon for this. chetan. 14 Sept 2016
+		}
+
+
 		boost::gregorian::date date2(HITS_SURVEY_YEAR, 1, 1);
 		boost::gregorian::date_duration simulationDay(0); //we only check HDB eligibility on day 0 of simulation.
 		date2 = date2 + simulationDay;
@@ -2410,6 +2779,23 @@ HouseholdUnit* HM_Model::getHouseholdUnitByHHId(BigSerial hhId) const
 	HouseholdUnitMap::const_iterator itr = householdUnitByHHId.find(hhId);
 
 	if (itr != householdUnitByHHId.end())
+	{
+		return (*itr).second;
+	}
+
+	return nullptr;
+}
+
+HM_Model::IndvidualEmpSecList HM_Model::getIndvidualEmpSecList() const
+{
+	return this->indEmpSecList;
+}
+
+IndvidualEmpSec* HM_Model::getIndvidualEmpSecByIndId(BigSerial indId) const
+{
+	IndvidualEmpSecMap::const_iterator itr = indEmpSecbyIndId.find(indId);
+
+	if (itr != indEmpSecbyIndId.end())
 	{
 		return (*itr).second;
 	}

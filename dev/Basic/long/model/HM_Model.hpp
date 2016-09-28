@@ -49,6 +49,8 @@
 #include "database/entity/AlternativeHedonicPrice.hpp"
 #include "database/entity/ScreeningModelCoefficients.hpp"
 #include "database/entity/HouseholdUnit.hpp"
+#include "database/entity/IndvidualEmpSec.hpp"
+#include "database/entity/LtVersion.hpp"
 #include "core/HousingMarket.hpp"
 #include "boost/unordered_map.hpp"
 #include "DeveloperModel.hpp"
@@ -183,7 +185,11 @@ namespace sim_mob
             typedef std::vector<HouseholdUnit*> HouseholdUnitList;
             typedef boost::unordered_map<BigSerial, HouseholdUnit*> HouseholdUnitMap;
 
+            typedef std::vector<IndvidualEmpSec*> IndvidualEmpSecList;
+            typedef boost::unordered_map<BigSerial, IndvidualEmpSec*> IndvidualEmpSecMap;
 
+            typedef std::vector<LtVersion*> LtVersionList;
+            typedef boost::unordered_map<BigSerial, LtVersion*> LtVersionMap;
 
             /**
              * Taz statistics
@@ -290,7 +296,7 @@ namespace sim_mob
             void incrementAwakeningCounter();
             int  getAwakeningCounter() const;
             void getLogsumOfIndividuals(BigSerial id);
-            void getLogsumOfHousehold(BigSerial id);
+            void getLogsumOfVaryingHomeOrWork(BigSerial id);
             void getLogsumOfHouseholdVO(BigSerial householdId);
 
             HousingMarket* getMarket();
@@ -317,11 +323,13 @@ namespace sim_mob
 
             void setNumberOfBidders(int number);
 			void setNumberOfSellers(int number);
+			void setNumberOfBTOAwakenings(int number);
 			void incrementNumberOfSellers();
 			void incrementNumberOfBidders();
+			void incrementNumberOfBTOAwakenings();
 			int getNumberOfSellers();
 			int getNumberOfBidders();
-
+			int getNumberOfBTOAwakenings();
 
             void incrementLifestyle1HHs();
             void incrementLifestyle2HHs();
@@ -338,7 +346,8 @@ namespace sim_mob
             std::vector<BigSerial> getRealEstateAgentIds();
             VehicleOwnershipLogsumList getVehicleOwnershipLosums()const;
             LogSumVehicleOwnership* getVehicleOwnershipLogsumsById( BigSerial id) const;
-            void setTaxiAccess(const Household *household);
+            void setTaxiAccess2008(const Household *household);
+            void setTaxiAccess2012(const Household *household);
             DistMRTList getDistanceMRT()const;
             DistanceMRT* getDistanceMRTById( BigSerial id) const;
             HouseHoldHitsSampleList getHouseHoldHits()const;
@@ -408,6 +417,17 @@ namespace sim_mob
             boost::unordered_multimap<BigSerial, AlternativeHedonicPrice*>& getAlternativeHedonicPriceById();
 
             HouseholdUnit* getHouseholdUnitByHHId(BigSerial hhId) const;
+            IndvidualEmpSecList getIndvidualEmpSecList() const;
+            IndvidualEmpSec* getIndvidualEmpSecByIndId(BigSerial indId) const;
+
+			vector<double> getlogSqrtFloorAreahdb() const{ return logSqrtFloorAreahdb;}
+            vector<double> getlogSqrtFloorAreacondo() const { return logSqrtFloorAreacondo;}
+
+
+            set<string> logsumUniqueCounter;
+
+            void  loadLTVersion(DB_Connection &conn);
+
 
         protected:
             /**
@@ -498,6 +518,9 @@ namespace sim_mob
             boost::unordered_map<BigSerial, double>tazLevelLogsum;
             boost::unordered_map<BigSerial, double>vehicleOwnershipLogsum;
 
+            vector<double> logSqrtFloorAreahdb;
+            vector<double> logSqrtFloorAreacondo;
+
             boost::unordered_map<BigSerial, BigSerial> assignedUnits;
             VehicleOwnershipCoeffList vehicleOwnershipCoeffs;
             VehicleOwnershipCoeffMap vehicleOwnershipCoeffsById;
@@ -535,6 +558,7 @@ namespace sim_mob
             int numberOfBids;
             int numberOfExits;
             int numberOfSuccessfulBids;
+            int numberOfBTOAwakenings;
 
             DeveloperModel *developerModel;
             int startDay; //start tick of the simulation
@@ -574,6 +598,13 @@ namespace sim_mob
             PreSchoolList preSchools;
             PreSchoolMap preSchoolById;
             bool resume ;
+            IndvidualEmpSecList indEmpSecList;
+            IndvidualEmpSecMap indEmpSecbyIndId;
+
+            LtVersionList ltVersionList;
+            LtVersionMap ltVersionById;
+
+
 
         };
     }

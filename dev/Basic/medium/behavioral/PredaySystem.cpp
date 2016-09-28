@@ -2,13 +2,6 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
-/*
- * SystemOfModels.cpp
- *
- *  Created on: Nov 7, 2013
- *      Author: Harish Loganathan
- */
-
 #include "PredaySystem.hpp"
 
 #include <algorithm>
@@ -29,17 +22,14 @@
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "conf/Constructs.hpp"
-#include "database/DatabaseHelper.hpp"
 #include "database/DB_Connection.hpp"
 #include "logging/Log.hpp"
-#include "mongo/client/dbclient.h"
 #include "PredayClasses.hpp"
 #include "util/Utils.hpp"
 
 using namespace std;
 using namespace sim_mob;
 using namespace sim_mob::medium;
-using namespace mongo;
 
 namespace {
 	const double HIGH_TRAVEL_TIME = 999.0;
@@ -199,12 +189,11 @@ namespace {
 PredaySystem::PredaySystem(PersonParams& personParams,
 		const ZoneMap& zoneMap, const boost::unordered_map<int,int>& zoneIdLookup,
 		const CostMap& amCostMap, const CostMap& pmCostMap, const CostMap& opCostMap,
-		const std::map<std::string, db::MongoDao*>& mongoDao,
-		const std::vector<OD_Pair>& unavailableODs,
-		const std::map<int, int>& mtz12_08Map)
+		TimeDependentTT_SqlDao& tcostDao,
+		const std::vector<OD_Pair>& unavailableODs)
 : personParams(personParams), zoneMap(zoneMap), zoneIdLookup(zoneIdLookup),
   amCostMap(amCostMap), pmCostMap(pmCostMap), opCostMap(opCostMap),
-  mongoDao(mongoDao), unavailableODs(unavailableODs),
+  tcostDao(tcostDao), unavailableODs(unavailableODs),
   firstAvailableTimeIndex(FIRST_INDEX), logStream(std::stringstream::out)
 {}
 
@@ -273,15 +262,11 @@ void PredaySystem::constructTourModeParams(TourModeParams& tmParams, int destina
 		tmParams.setAvgTransfer((amObj->getAvgTransfer() + pmObj->getAvgTransfer())/2);
 
 		//set availabilities
-		tmParams.setDrive1Available(personParams.hasDrivingLicence() * personParams.getCarOwnNormal());
-		tmParams.setShare2Available(1);
-		tmParams.setShare3Available(1);
+
 		tmParams.setPublicBusAvailable(amObj->getPubIvt() > 0 && pmObj->getPubIvt() > 0);
 		tmParams.setMrtAvailable(amObj->getPubIvt() > 0 && pmObj->getPubIvt() > 0);
 		tmParams.setPrivateBusAvailable(amObj->getPubIvt() > 0 && pmObj->getPubIvt() > 0);
 		tmParams.setWalkAvailable(amObj->getDistance() <= WALKABLE_DISTANCE && pmObj->getDistance() <= WALKABLE_DISTANCE);
-		tmParams.setTaxiAvailable(1);
-		tmParams.setMotorAvailable(personParams.getMotorLicense() * personParams.getMotorOwn());
 	}
 	else
 	{
@@ -305,15 +290,49 @@ void PredaySystem::constructTourModeParams(TourModeParams& tmParams, int destina
 		tmParams.setAvgTransfer(0);
 
 		//set availabilities
-		tmParams.setDrive1Available(personParams.hasDrivingLicence() * personParams.getCarOwnNormal());
-		tmParams.setShare2Available(1);
-		tmParams.setShare3Available(1);
 		tmParams.setPublicBusAvailable(1);
 		tmParams.setMrtAvailable(1);
 		tmParams.setPrivateBusAvailable(1);
 		tmParams.setWalkAvailable(1);
-		tmParams.setTaxiAvailable(1);
-		tmParams.setMotorAvailable(1);
+	}
+
+	tmParams.setShare2Available(1);
+	tmParams.setShare3Available(1);
+	tmParams.setTaxiAvailable(1);
+	switch(personParams.getVehicleOwnershipOption())
+	{
+	case VehicleOwnershipOption::NO_VEHICLE:
+	case VehicleOwnershipOption::INVALID:
+	{
+		tmParams.setDrive1Available(false);
+		tmParams.setMotorAvailable(false);
+		break;
+	}
+	case VehicleOwnershipOption::ONE_PLUS_MOTOR_ONLY:
+	{
+		tmParams.setDrive1Available(false);
+		tmParams.setMotorAvailable(personParams.getMotorLicense());
+		break;
+	}
+	case VehicleOwnershipOption::ONE_OP_CAR_W_WO_MOTOR:
+	{
+		tmParams.setDrive1Available(false);
+		tmParams.setMotorAvailable(personParams.getMotorLicense());
+		break;
+	}
+	case VehicleOwnershipOption::ONE_NORMAL_CAR_ONLY:
+	{
+		tmParams.setDrive1Available(personParams.hasDrivingLicence());
+		tmParams.setMotorAvailable(false);
+		break;
+	}
+	case VehicleOwnershipOption::ONE_NORMAL_CAR_AND_ONE_PLUS_MOTOR:
+	case VehicleOwnershipOption::TWO_PLUS_NORMAL_CAR_W_WO_MOTOR:
+	{
+		tmParams.setDrive1Available(personParams.hasDrivingLicence());
+		tmParams.setMotorAvailable(personParams.getMotorLicense());
+		break;
+	}
 	}
 }
 
@@ -419,13 +438,15 @@ TimeWindowAvailability PredaySystem::predictSubTourTimeOfDay(Tour& subTour, SubT
 	return TimeWindowAvailability::timeWindowsLookup.at(timeWndw - 1); //timeWndw ranges from 1 - 1176. Vector starts from 0.
 }
 
-TimeWindowAvailability PredaySystem::predictTourTimeOfDay(Tour& tour) {
+TimeWindowAvailability PredaySystem::predictTourTimeOfDay(Tour& tour)
+{
 	int timeWndw;
-	if(tour.isSubTour()) { throw std::runtime_error("predictTourTimeOfDay() is not meant for sub tours"); }
+	if(tour.isSubTour())
+	{
+		throw std::runtime_error("predictTourTimeOfDay() is not meant for sub tours");
+	}
 	int origin = personParams.getHomeLocation();
 	int destination = tour.getTourDestination();
-	//int origin = MTZ12_MTZ08_Map.at(origin_2012);
-	//int destination = MTZ12_MTZ08_Map.at(destination_2012);
 	TourTimeOfDayParams todParams;
 	todParams.setTourMode(tour.getTourMode());
 	todParams.setCbdOrgZone(zoneMap.at(zoneIdLookup.at(origin))->getCbdDummy());
@@ -433,97 +454,89 @@ TimeWindowAvailability PredaySystem::predictTourTimeOfDay(Tour& tour) {
 	std::vector<double>& ttFirstHalfTour = todParams.travelTimesFirstHalfTour;
 	std::vector<double>& ttSecondHalfTour = todParams.travelTimesSecondHalfTour;
 
-	if(origin != destination) {
-		for (uint32_t i=FIRST_INDEX; i<=LAST_INDEX; i++) {
+	if(origin != destination)
+	{
+		//load tcost data from the appropriate table
+		TimeDependentTT_Params todBasedTT;
+		double amTT = 0;
+		double pmTT = 0;
+		double opTT = 0;
+		switch (tour.getTourMode())
+		{
+		case 1: // Fall through
+		case 2:
+		case 3:
+		{
+			tcostDao.getTT_ByOD(TravelTimeMode::TT_PUBLIC, origin, destination, todBasedTT);
+			break;
+		}
+		case 4: // Fall through
+		case 5:
+		case 6:
+		case 7:
+		case 9:
+		{
+			tcostDao.getTT_ByOD(TravelTimeMode::TT_PRIVATE, origin, destination, todBasedTT);
+			break;
+		}
+		case 8:
+		{
+			CostParams* costObj = amCostMap.at(origin).at(destination);
+			amTT = costObj->getDistance()/PEDESTRIAN_WALK_SPEED;
+
+			costObj = pmCostMap.at(origin).at(destination);
+			pmTT = costObj->getDistance()/PEDESTRIAN_WALK_SPEED;
+
+			costObj = opCostMap.at(origin).at(destination);
+			opTT = costObj->getDistance()/PEDESTRIAN_WALK_SPEED;
+			break;
+		}
+		}
+
+		for (int i=FIRST_INDEX; i<=LAST_INDEX; i++)
+		{
 			switch (tour.getTourMode())
 			{
 			case 1: // Fall through
 			case 2:
 			case 3:
-			{
-				BSONObj bsonObjTT = BSON("origin" << origin << "destination" << destination);
-				BSONObj tCostBusDoc;
-				mongoDao["tcost_bus"]->getOne(bsonObjTT, tCostBusDoc);
-
-				std::stringstream arrivalField, departureField;
-				arrivalField << "TT_bus_arrival_" << i;
-				departureField << "TT_bus_departure_" << i;
-				if(tCostBusDoc.getField(arrivalField.str()).isNumber())
-				{
-					ttFirstHalfTour.push_back(tCostBusDoc.getField(arrivalField.str()).Number());
-				}
-				else
-				{
-					ttFirstHalfTour.push_back(HIGH_TRAVEL_TIME);
-				}
-				if(tCostBusDoc.getField(departureField.str()).isNumber())
-				{
-					ttSecondHalfTour.push_back(tCostBusDoc.getField(departureField.str()).Number());
-				}
-				else
-				{
-					ttSecondHalfTour.push_back(HIGH_TRAVEL_TIME);
-				}
-				break;
-			}
-			case 4: // Fall through
+			case 4:
 			case 5:
 			case 6:
 			case 7:
 			case 9:
 			{
-				BSONObj bsonObjTT = BSON("origin" << origin << "destination" << destination);
-				BSONObj tCostCarDoc;
-				mongoDao["tcost_car"]->getOne(bsonObjTT, tCostCarDoc);
-				std::stringstream arrivalField, departureField;
-				arrivalField << "TT_car_arrival_" << i;
-				departureField << "TT_car_departure_" << i;
-				if(tCostCarDoc.getField(arrivalField.str()).isNumber())
-				{
-					ttFirstHalfTour.push_back(tCostCarDoc.getField(arrivalField.str()).Number());
-				}
-				else
-				{
-					ttFirstHalfTour.push_back(HIGH_TRAVEL_TIME);
-				}
-				if(tCostCarDoc.getField(departureField.str()).isNumber())
-				{
-					ttSecondHalfTour.push_back(tCostCarDoc.getField(departureField.str()).Number());
-				}
-				else
-				{
-					ttSecondHalfTour.push_back(HIGH_TRAVEL_TIME);
-				}
+				//todBasedTT is from tcost_bus for modes 1, 2 & 3 and is from tcost_car for modes 4, 5, 6, 7 & 9
+				ttFirstHalfTour.push_back(todBasedTT.getArrivalBasedTT_at(i));
+				ttSecondHalfTour.push_back(todBasedTT.getDepartureBasedTT_at(i));
 				break;
 			}
 			case 8:
 			{
-				double travelTime = 0.0;
 				if(i>=AM_PEAK_LOW && i<=AM_PEAK_HIGH) // if i is in AM peak period
 				{
-					CostParams* amDistanceObj = amCostMap.at(origin).at(destination);
-					travelTime = amDistanceObj->getDistance()/PEDESTRIAN_WALK_SPEED;
+					ttFirstHalfTour.push_back(amTT);
+					ttSecondHalfTour.push_back(amTT);
 				}
 				else if(i>=PM_PEAK_LOW && i<=PM_PEAK_HIGH) // if i is in PM peak period
 				{
-					CostParams* pmDistanceObj = pmCostMap.at(origin).at(destination);
-					travelTime = pmDistanceObj->getDistance()/PEDESTRIAN_WALK_SPEED;
+					ttFirstHalfTour.push_back(pmTT);
+					ttSecondHalfTour.push_back(pmTT);
 				}
 				else // if i is in off-peak period
 				{
-					CostParams* opDistanceObj = opCostMap.at(origin).at(destination);
-					travelTime = opDistanceObj->getDistance()/PEDESTRIAN_WALK_SPEED;
+					ttFirstHalfTour.push_back(opTT);
+					ttSecondHalfTour.push_back(opTT);
 				}
-
-				ttFirstHalfTour.push_back(travelTime);
-				ttSecondHalfTour.push_back(travelTime);
 				break;
 			}
 			}
 		}
 	}
-	else {
-		for (uint32_t i = FIRST_INDEX; i <= LAST_INDEX; i++) {
+	else
+	{
+		for (uint32_t i = FIRST_INDEX; i <= LAST_INDEX; i++)
+		{
 			ttFirstHalfTour.push_back(0);
 			ttSecondHalfTour.push_back(0);
 		}
@@ -995,51 +1008,76 @@ bool PredaySystem::predictStopTimeOfDay(Stop* stop, int destination, bool isBefo
 	}
 	else
 	{
-		BSONObj bsonObjTT = BSON("origin" << origin << "destination" << destination);
-		BSONObj tCostBusDoc, tCostCarDoc;
-		mongoDao["tcost_bus"]->getOne(bsonObjTT, tCostBusDoc);
-		mongoDao["tcost_car"]->getOne(bsonObjTT, tCostCarDoc);
-		std::stringstream fieldName;
+		//load tcost data from the appropriate table
+		TimeDependentTT_Params todBasedTT;
+		double amTravelTime = 0;
+		double pmTravelTime = 0;
+		double opTravelTime = 0;
+		switch (stop->getStopMode())
+		{
+		case 1: // Fall through
+		case 2:
+		case 3:
+		{
+			tcostDao.getTT_ByOD(TravelTimeMode::TT_PUBLIC, origin, destination, todBasedTT);
+			break;
+		}
+		case 4: // Fall through
+		case 5:
+		case 6:
+		case 7:
+		case 9:
+		{
+			tcostDao.getTT_ByOD(TravelTimeMode::TT_PRIVATE, origin, destination, todBasedTT);
+			break;
+		}
+		case 8:
+		{
+			amTravelTime = amCostMap.at(origin).at(destination)->getDistance()/PEDESTRIAN_WALK_SPEED;
+			pmTravelTime = pmCostMap.at(origin).at(destination)->getDistance()/PEDESTRIAN_WALK_SPEED;
+			opTravelTime = opCostMap.at(origin).at(destination)->getDistance()/PEDESTRIAN_WALK_SPEED;
+			break;
+		}
+		}
 
-		for (uint32_t i = FIRST_INDEX; i <= LAST_INDEX; i++)
+		for (int i = FIRST_INDEX; i <= LAST_INDEX; i++)
 		{
 			switch (stop->getStopMode())
 			{
 			case 1: // Fall through
 			case 2:
 			case 3:
-			{
-
-				if(stodParams.getFirstBound()) { fieldName << "TT_bus_arrival_" << i; }
-				else { fieldName << "TT_bus_departure_" << i; }
-				if(tCostBusDoc.getField(fieldName.str()).isNumber()) { stodParams.travelTimes.push_back(tCostBusDoc.getField(fieldName.str()).Number()); }
-				else { stodParams.travelTimes.push_back(HIGH_TRAVEL_TIME); }
-				fieldName.str(std::string());
-				break;
-			}
-			case 4: // Fall through
+			case 4:
 			case 5:
 			case 6:
 			case 7:
 			case 9:
 			{
-				if(stodParams.getFirstBound()) { fieldName << "TT_car_arrival_" << i; }
-				else { fieldName << "TT_car_departure_" << i; }
-				if(tCostCarDoc.getField(fieldName.str()).isNumber()) { stodParams.travelTimes.push_back(tCostCarDoc.getField(fieldName.str()).Number()); }
-				else { stodParams.travelTimes.push_back(HIGH_TRAVEL_TIME); }
-				fieldName.str(std::string());
+				//todBasedTT is from tcost_bus for modes 1, 2 & 3 and is from tcost_car for modes 4, 5, 6, 7 & 9
+				if(stodParams.getFirstBound())
+				{
+					stodParams.travelTimes.push_back(todBasedTT.getArrivalBasedTT_at(i));
+				}
+				else
+				{
+					stodParams.travelTimes.push_back(todBasedTT.getDepartureBasedTT_at(i));
+				}
 				break;
 			}
 			case 8:
 			{
-				double travelTime = 0.0;
 				if(i>=AM_PEAK_LOW && i<=AM_PEAK_HIGH) /*if i is in AM peak period*/
-				{ travelTime = amCostMap.at(origin).at(destination)->getDistance()/PEDESTRIAN_WALK_SPEED; }
+				{
+					stodParams.travelTimes.push_back(amTravelTime);
+				}
 				else if(i>=PM_PEAK_LOW && i<=PM_PEAK_HIGH) // if i is in PM peak period
-				{ travelTime = pmCostMap.at(origin).at(destination)->getDistance()/PEDESTRIAN_WALK_SPEED; }
+				{
+					stodParams.travelTimes.push_back(pmTravelTime);
+				}
 				else // if i is in off-peak period
-				{ travelTime = opCostMap.at(origin).at(destination)->getDistance()/PEDESTRIAN_WALK_SPEED; }
-				stodParams.travelTimes.push_back(travelTime);
+				{
+					stodParams.travelTimes.push_back(opTravelTime);
+				}
 				break;
 			}
 			}
@@ -1211,23 +1249,26 @@ bool PredaySystem::predictStopTimeOfDay(Stop* stop, int destination, bool isBefo
 	return true;
 }
 
-double PredaySystem::fetchTravelTime(int origin, int destination, int mode,  bool isArrivalBased, double timeIdx)
+double PredaySystem::fetchTravelTime(int origin, int destination, int mode,  bool arrivalBased, double timeIdx)
 {
 	double travelTime = 0.0;
 	if(origin != destination)
 	{
-		switch(mode) {
+		switch(mode)
+		{
 		case 1: // Fall through
 		case 2:
 		case 3:
 		{
-			BSONObj bsonObj = BSON("origin" << origin << "destination" << destination);
-			BSONObj tCostBusDoc;
-			mongoDao["tcost_bus"]->getOne(bsonObj, tCostBusDoc);
-			std::stringstream fieldName;
-			fieldName << (isArrivalBased? "TT_bus_arrival_":"TT_bus_departure_") << timeIdx;
-			if(tCostBusDoc.getField(fieldName.str()).isNumber()) {
-				travelTime = tCostBusDoc.getField(fieldName.str()).Number();
+			TimeDependentTT_Params todBasedTT;
+			tcostDao.getTT_ByOD(TravelTimeMode::TT_PUBLIC, origin, destination, todBasedTT);
+			if(arrivalBased)
+			{
+				travelTime = todBasedTT.getArrivalBasedTT_at(timeIdx);
+			}
+			else
+			{
+				travelTime = todBasedTT.getDepartureBasedTT_at(timeIdx);
 			}
 			break;
 		}
@@ -1237,33 +1278,34 @@ double PredaySystem::fetchTravelTime(int origin, int destination, int mode,  boo
 		case 7:
 		case 9:
 		{
-			BSONObj bsonObj = BSON("origin" << origin << "destination" << destination);
-			BSONObj tCostCarDoc;
-			mongoDao["tcost_car"]->getOne(bsonObj, tCostCarDoc);
-			std::stringstream fieldName;
-			fieldName << (isArrivalBased? "TT_car_arrival_":"TT_car_departure_") << timeIdx;
-			if(tCostCarDoc.getField(fieldName.str()).isNumber()) {
-				travelTime = tCostCarDoc.getField(fieldName.str()).Number();
+			TimeDependentTT_Params todBasedTT;
+			tcostDao.getTT_ByOD(TravelTimeMode::TT_PRIVATE, origin, destination, todBasedTT);
+			if(arrivalBased)
+			{
+				travelTime = todBasedTT.getArrivalBasedTT_at(timeIdx);
+			}
+			else
+			{
+				travelTime = todBasedTT.getDepartureBasedTT_at(timeIdx);
 			}
 			break;
 		}
 		case 8:
 		{
+			CostParams* costObj = nullptr;
 			if(timeIdx>=AM_PEAK_LOW && timeIdx<=AM_PEAK_HIGH) // if i is in AM peak period
 			{
-				CostParams* amDistanceObj = amCostMap.at(origin).at(destination);
-				travelTime = amDistanceObj->getDistance()/PEDESTRIAN_WALK_SPEED;
+				costObj = amCostMap.at(origin).at(destination);
 			}
 			else if(timeIdx>=PM_PEAK_LOW && timeIdx<=PM_PEAK_HIGH) // if i is in PM peak period
 			{
-				CostParams* pmDistanceObj = pmCostMap.at(origin).at(destination);
-				travelTime = pmDistanceObj->getDistance()/PEDESTRIAN_WALK_SPEED;
+				costObj = pmCostMap.at(origin).at(destination);
 			}
 			else // if i is in off-peak period
 			{
-				CostParams* opDistanceObj = opCostMap.at(origin).at(destination);
-				travelTime = opDistanceObj->getDistance()/PEDESTRIAN_WALK_SPEED;
+				costObj = opCostMap.at(origin).at(destination);
 			}
+			travelTime = costObj->getDistance()/PEDESTRIAN_WALK_SPEED;
 			break;
 		}
 		default:
@@ -1275,7 +1317,8 @@ double PredaySystem::fetchTravelTime(int origin, int destination, int mode,  boo
 	return travelTime;
 }
 
-void PredaySystem::calculateArrivalTime(Stop* currStop,  Stop* nextStop) {
+void PredaySystem::calculateArrivalTime(Stop* currStop,  Stop* nextStop)
+{
 	// person will arrive at the next stop from the current stop
 	// this function sets the arrival time for next stop
 	double currActivityDepartureIndex = currStop->getDepartureTime();
@@ -1288,7 +1331,8 @@ void PredaySystem::calculateArrivalTime(Stop* currStop,  Stop* nextStop) {
 	nextStop->setArrivalTime(nextStopArrTime);
 }
 
-void PredaySystem::calculateDepartureTime(Stop* currStop,  Stop* prevStop, double prevTourEndTimeIdx) {
+void PredaySystem::calculateDepartureTime(Stop* currStop,  Stop* prevStop, double prevTourEndTimeIdx)
+{
 	// person will arrive at the current stop from the previous stop
 	// this function sets the departure time for the prevStop
 	double currActivityArrivalIndex = currStop->getArrivalTime();
@@ -1521,83 +1565,6 @@ void PredaySystem::planDay()
 	logStream << "\n";
 }
 
-void sim_mob::medium::PredaySystem::insertDayPattern()
-{
-	int tourCount = numTours["WorkT"] + numTours["EduT"] + numTours["ShopT"] + numTours["OthersT"];
-	std::stringstream dpStream;
-	dpStream << dayPattern["WorkT"] << "," << dayPattern["EduT"] << "," << dayPattern["ShopT"] << "," << dayPattern["OthersT"]
-	        << "," << dayPattern["WorkI"] << "," << dayPattern["EduI"] << "," << dayPattern["ShopI"] << "," << dayPattern["OthersI"];
-	BSONObj dpDoc = BSON(
-					"_id" << personParams.getPersonId() <<
-					"num_tours" << tourCount <<
-					"day_pattern" << dpStream.str() <<
-					"person_type_id" << personParams.getPersonTypeId() <<
-					"hhfactor" << personParams.getHouseholdFactor()
-					);
-	mongoDao["Output_DayPattern"]->insert(dpDoc);
-}
-
-void sim_mob::medium::PredaySystem::insertTour(const Tour& tour, int tourNumber) {
-	int tourCount = numTours["WorkT"] + numTours["EduT"] + numTours["ShopT"] + numTours["OthersT"];
-	BSONObj tourDoc = BSON(
-		"person_type_id" << personParams.getPersonTypeId() <<
-		"num_stops" << (int)tour.stops.size() <<
-		"prim_arr" << tour.getPrimaryStop()->getArrivalTime() <<
-		"start_time" << tour.getStartTime() <<
-		"destination" << tour.getTourDestination() <<
-		"tour_type" << tour.getTourTypeStr() <<
-		"num_tours" << tourCount <<
-		"prim_dept" << tour.getPrimaryStop()->getDepartureTime() <<
-		"end_time" << tour.getEndTime() <<
-		"person_id" << personParams.getPersonId() <<
-		"tour_mode" << tour.getTourMode() <<
-		"tour_num" << tourNumber <<
-		"usual_location" << (tour.isUsualLocation()? 1 : 0) <<
-		"hhfactor" << personParams.getHouseholdFactor()
-	);
-	mongoDao["Output_Tour"]->insert(tourDoc);
-}
-
-void sim_mob::medium::PredaySystem::insertSubTour(const Tour& subTour, const Tour& parentTour, int tourNumber, int subTourNumber) {
-	BSONObj tourDoc = BSON(
-		"person_id" << personParams.getPersonId() <<
-		"person_type_id" << personParams.getPersonTypeId() <<
-		"parent_tour_num" << tourNumber <<
-		"parent_tour_destination" << parentTour.getTourDestination() <<
-		"parent_tour_mode" << parentTour.getTourMode() <<
-		"parent_activity_arr" << parentTour.getPrimaryStop()->getArrivalTime() <<
-		"parent_activity_dep" << parentTour.getPrimaryStop()->getDepartureTime() <<
-		"sub_tour_type" << subTour.getTourTypeStr() <<
-		"sub_tour_num" << subTourNumber <<
-		"mode" << subTour.getTourMode() <<
-		"destination" << subTour.getTourDestination() <<
-		"sub_tour_activity_arr" << subTour.getPrimaryStop()->getArrivalTime() <<
-		"sub_tour_activity_dep" << subTour.getPrimaryStop()->getDepartureTime() <<
-		"start_time" << subTour.getStartTime() <<
-		"end_time" << subTour.getEndTime() <<
-		"hhfactor" << personParams.getHouseholdFactor()
-	);
-	mongoDao["Output_SubTour"]->insert(tourDoc);
-}
-
-void sim_mob::medium::PredaySystem::insertStop(const Stop* stop, int stopNumber, int tourNumber)
-{
-	BSONObj stopDoc = BSON(
-	"arrival" << stop->getArrivalTime() <<
-	"destination" << stop->getStopLocation() <<
-	"primary" << stop->isPrimaryActivity() <<
-	"departure" << stop->getDepartureTime() <<
-	"stop_ctr" << stopNumber <<
-	"stop_type" << stop->getStopTypeStr() <<
-	"person_id" << personParams.getPersonId() <<
-	"tour_num" << tourNumber <<
-	"stop_mode" << stop->getStopMode() <<
-	"hhfactor" << personParams.getHouseholdFactor() <<
-	"first_bound" << stop->isInFirstHalfTour()
-	);
-	mongoDao["Output_Activity"]->insert(stopDoc);
-}
-
 long sim_mob::medium::PredaySystem::getRandomNodeInZone(const std::vector<ZoneNodeParams*>& nodes) const {
 	size_t numNodes = nodes.size();
 	if(numNodes == 0) { return 0; }
@@ -1678,41 +1645,6 @@ void sim_mob::medium::PredaySystem::computeLogsumsForLT(std::stringstream& outSt
 			<< "," << personParams.getHhId()
 			<< "," << personParams.getDpbLogsum()
 			<< "\n";
-}
-
-void sim_mob::medium::PredaySystem::outputPredictionsToMongo() {
-	insertDayPattern();
-	int tourNum=0;
-	for(TourList::iterator tourIt=tours.begin(); tourIt!=tours.end(); tourIt++) {
-		tourNum++;
-		const Tour& currTour = *tourIt;
-		insertTour(currTour, tourNum);
-		int subTourNum=0;
-		const TourList& subTourLst = currTour.subTours;
-		for(TourList::const_iterator subTourIt=subTourLst.begin(); subTourIt!=subTourLst.end(); subTourIt++) {
-			subTourNum++;
-			insertSubTour(*subTourIt, currTour, tourNum, subTourNum);
-		}
-		int stopNum=0;
-		const StopList& stopLst = currTour.stops;
-		for(StopList::const_iterator stopIt=stopLst.begin(); stopIt!=stopLst.end(); stopIt++) {
-			stopNum++;
-			insertStop(*stopIt, stopNum, tourNum);
-		}
-	}
-}
-
-void sim_mob::medium::PredaySystem::updateLogsumsToMongo()
-{
-	Query query = QUERY("_id" << personParams.getPersonId());
-	BSONObj updateObj = BSON("$set" << BSON(
-			MONGO_FIELD_WORK_LOGSUM << personParams.getWorkLogSum() <<
-			MONGO_FIELD_SHOP_LOGSUM << personParams.getShopLogSum() <<
-			MONGO_FIELD_OTHER_LOGSUM << personParams.getOtherLogSum() <<
-			MONGO_FIELD_DPT_LOGSUM << personParams.getDptLogsum() <<
-			MONGO_FIELD_DPS_LOGSUM << personParams.getDpsLogsum()
-			));
-	mongoDao["population"]->update(query, updateObj);
 }
 
 void sim_mob::medium::PredaySystem::outputActivityScheduleToStream(const ZoneNodeMap& zoneNodeMap, std::stringstream& outStream)

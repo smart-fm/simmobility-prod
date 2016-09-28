@@ -7,6 +7,8 @@
 namespace sim_mob
 {
 
+enum class TravelTimeMode { TT_PRIVATE, TT_PUBLIC };
+
 /**
  * simple helper class to store an OD pair
  *
@@ -37,5 +39,16 @@ public:
 	{
 		return origin;
 	}
+};
+
+enum class VehicleOwnershipOption
+{
+	NO_VEHICLE,
+	ONE_PLUS_MOTOR_ONLY,
+	ONE_OP_CAR_W_WO_MOTOR,
+	ONE_NORMAL_CAR_ONLY,
+	ONE_NORMAL_CAR_AND_ONE_PLUS_MOTOR,
+	TWO_PLUS_NORMAL_CAR_W_WO_MOTOR,
+	INVALID
 };
 }

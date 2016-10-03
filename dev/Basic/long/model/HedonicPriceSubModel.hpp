@@ -40,11 +40,12 @@ namespace sim_mob
 
 			double CalculateSpeculation(ExpectationEntry entry, double unitBids);
 
-			vector<ExpectationEntry> CalulateUnitExpectations (Unit *unit, double timeOnMarket, double logsum, double lagCoefficient, Building *building, Postcode *postcode, PostcodeAmenities *amenities);
+			vector<ExpectationEntry> CalculateUnitExpectations (Unit *unit, double timeOnMarket, double logsum, double lagCoefficient, const Building *building, const Postcode *postcode, const PostcodeAmenities *amenities);
 
-			double CalculateHDB_HedonicPrice(Unit *unit, Building *building, Postcode *postcode, PostcodeAmenities *amenities, double logsum, double lagCoefficient);
-			double CalculatePrivate_HedonicPrice( Unit *unit, Building *building, Postcode *postcode, PostcodeAmenities *amenities, double logsum, double lagCoefficient);
-			double CalculateHedonicPrice( Unit *unit, Building *building, Postcode *postcode, PostcodeAmenities *amenities, double logsum, double lagCoefficient );
+			double CalculateHDB_HedonicPrice(Unit *unit, const Building *building, const Postcode *postcode, const PostcodeAmenities *amenities, double logsum, double lagCoefficient);
+			double CalculatePrivate_HedonicPrice( Unit *unit,const  Building *building, const Postcode *postcode, const PostcodeAmenities *amenities, double logsum, double lagCoefficient);
+			double CalculateHedonicPrice( Unit *unit, const Building *building, const Postcode *postcode, const PostcodeAmenities *amenities, double logsum, double lagCoefficient );
+
 
 			double sqfToSqm(double sqfValue);
 			double sqmToSqf(double sqmValue);

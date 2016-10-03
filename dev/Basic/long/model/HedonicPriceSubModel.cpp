@@ -13,6 +13,7 @@
 #include <model/HedonicPriceSubModel.hpp>
 #include "model/lua/LuaProvider.hpp"
 #include <limits>
+#include "core/DataManager.hpp"
 
 using namespace sim_mob::long_term;
 
@@ -183,7 +184,11 @@ void HedonicPrice_SubModel::ComputeExpectation( int numExpectations, std::vector
 	if( logsum < 0.0000001)
 		AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, (boost::format( "LOGSUM FOR UNIT %1% is 0.") %  unit->getId()).str());
 
-	//luaModel.calulateUnitExpectations(*unit, numExpectations, logsum, lagCoefficient, expectations );
+	const Building *building = DataManagerSingleton::getInstance().getBuildingById(unit->getBuildingId());
+	const Postcode *postcode = DataManagerSingleton::getInstance().getPostcodeById(unit->getSlaAddressId());
+	const PostcodeAmenities *amenities = DataManagerSingleton::getInstance().getAmenitiesById(unit->getSlaAddressId());
+
+	expectations = CalculateUnitExpectations(unit, numExpectations, logsum, lagCoefficient, building, postcode, amenities);
 }
 
 /*
@@ -302,7 +307,7 @@ CAR_CATEGORIES = readOnlyTable {[1]=true, [6]=true, [7]=true, [8]=true, [9]=true
 
 */
 
-double HedonicPrice_SubModel::CalculateHDB_HedonicPrice(Unit *unit, Building *building, Postcode *postcode, PostcodeAmenities *amenities, double logsum, double lagCoefficient)
+double HedonicPrice_SubModel::CalculateHDB_HedonicPrice(Unit *unit, const Building *building, const Postcode *postcode, const PostcodeAmenities *amenities, double logsum, double lagCoefficient)
 {
 	int simulationYear = HITS_SURVEY_YEAR;
 	float hedonicPrice = 0;
@@ -374,70 +379,38 @@ double HedonicPrice_SubModel::CalculateHDB_HedonicPrice(Unit *unit, Building *bu
 		ZZ_hdb5m = 1;
 
 
+	HedonicCoeffs *coeffs = nullptr;
+
+	/*
 	//-----------------------------
 	//-----------------------------
 	if (ZZ_hdb12 == 1)
-		hedonicPrice =   0 	+
-				 	0 *	DD_logsqrtarea 	+
-					0 *	ZZ_logsum 	+
-					0 *	ZZ_pms1km 	+
-					0 *	ZZ_dis_mall 	+
-					0 *	ZZ_mrt_200m 	+
-					0 *	ZZ_mrt_400m 	+
-					0 * ZZ_express_200m +
-					0 *	ZZ_bus_400m 	+
-					0 *	age 		+
-					0 *	ageSquared;
+		coeffs = devModel->getHedonicCoeffsByPropertyTypeId(7);
 	else
 	if (ZZ_hdb3 == 1)
-		hedonicPrice = 0   	+
-					0 *	DD_logsqrtarea	+
-					0 *	ZZ_logsum 	+
-					0 *	ZZ_pms1km 	+
-					0 *	ZZ_dis_mall +
-					0 *	ZZ_mrt_200m +
-					0 *	ZZ_mrt_400m +
-					0 *	ZZ_express_200m +
-					0 * ZZ_bus_400m 	+
-					0 *	age 		+
-					0 *	ageSquared;
-	else if (ZZ_hdb4 == 1)
-		hedonicPrice =   0 	+
-					0 *	DD_logsqrtarea 	+
-					0 *	ZZ_logsum 	+
-					0 *	ZZ_pms1km 	+
-					0 *	ZZ_dis_mall 	+
-					0 *	ZZ_mrt_200m 	+
-					0 *	ZZ_mrt_400m 	+
-					0 *	ZZ_express_200m	+
-					0 *	ZZ_bus_400m 	+
-					0 *	age 		+
-					0 *	ageSquared;
+		coeffs = devModel->getHedonicCoeffsByPropertyTypeId(8);
+	else
+	if (ZZ_hdb4 == 1)
+		coeffs = devModel->getHedonicCoeffsByPropertyTypeId(9);
 	else
 	if (ZZ_hdb5m == 1)
-		hedonicPrice = 0  	+
-					0 *	DD_logsqrtarea 	+
-					0 *	ZZ_logsum 	+
-					0 *	ZZ_pms1km 	+
-					0 *	ZZ_dis_mall 	+
-					0 *	ZZ_mrt_200m 	+
-					0 *	ZZ_mrt_400m 	+
-					0 *	ZZ_express_200m +
-					0 *	ZZ_bus_400m 	+
-					0 *	age 		+
-					0 *	ageSquared;
+		coeffs = devModel->getHedonicCoeffsByPropertyTypeId(10);
 	else
-		hedonicPrice = 0  	+
-					0 *	DD_logsqrtarea 	+
-					0 *	ZZ_logsum 	+
-					0 *	ZZ_pms1km 	+
-					0 *	ZZ_dis_mall 	+
-					0 *	ZZ_mrt_200m 	+
-					0 *	ZZ_mrt_400m 	+
-					0 * ZZ_express_200m	+
-					0 *	ZZ_bus_400m 	+
-					0 *	age 		+
-					0 *	ageSquared;
+		coeffs = devModel->getHedonicCoeffsByPropertyTypeId(11);
+
+	hedonicPrice =  coeffs->getIntercept() 	+
+					coeffs->getLogSqrtArea() 	*	DD_logsqrtarea 	+
+					coeffs->getLogsumWeighted() *	ZZ_logsum 		+
+					coeffs->getPms1km() 		*	ZZ_pms1km 		+
+					coeffs->getDistanceMallKm() *	ZZ_dis_mall 	+
+					coeffs->getMrt200m() 		*	ZZ_mrt_200m 	+
+					coeffs->getMrt_2_400m() 	*	ZZ_mrt_400m 	+
+					coeffs->getExpress200m() 	* 	ZZ_express_200m	+
+					coeffs->getBus400m() 		*	ZZ_bus_400m 	+
+					coeffs->getAge() 			*	age 			+
+					coeffs->getLogAgeSquared() 	*	ageSquared;
+	*/
+
 
 	hedonicPrice = hedonicPrice + lagCoefficient;
 
@@ -461,7 +434,7 @@ double HedonicPrice_SubModel::CalculateHDB_HedonicPrice(Unit *unit, Building *bu
 ]]
 */
 
-double HedonicPrice_SubModel::CalculatePrivate_HedonicPrice( Unit *unit, Building *building, Postcode *postcode, PostcodeAmenities *amenities, double logsum, double lagCoefficient)
+double HedonicPrice_SubModel::CalculatePrivate_HedonicPrice( Unit *unit, const Building *building, const Postcode *postcode, const PostcodeAmenities *amenities, double logsum, double lagCoefficient)
 {
 	double hedonicPrice = 0;
 	double DD_logarea  = 0;
@@ -519,116 +492,43 @@ double HedonicPrice_SubModel::CalculatePrivate_HedonicPrice( Unit *unit, Buildin
 		ZZ_bus_gt400m = 1;
 
 
+	HedonicCoeffs *coeffs = nullptr;
+
 	//-----------------------------
 	//-----------------------------
 	if( (unit->getUnitType() >= 12 && unit->getUnitType()  <= 16 ) ||
 		(unit->getUnitType() >= 32 && unit->getUnitType()  <= 36 ) ||
-		(unit->getUnitType() >= 37 && unit->getUnitType()  <= 51 ))
-	{
-		hedonicPrice =  -34.2789715238	+
-				1.9543593824	*	DD_logarea 	+
-				0.185534802		*	ZZ_freehold 	+
-				8.4725633834	*	ZZ_logsum 	+
-				-0.0013503645	*	ZZ_pms1km 	+
-				-0.0502499853	*	ZZ_dis_mall 	+
-				-0.0646248265	*	ZZ_mrt_200m 	+
-				0.0060583414	*	ZZ_mrt_400m 	+
-				-0.0035296068	*	ZZ_express_200m +
-				0.06315713		*	ZZ_bus_400m 	+
-				0.4625580825	*	ZZ_bus_gt400m 	+
-				-0.0162262035	*	age 		+
-				-6.31981518179487E-005	*	ageSquared	+
-				-0.1140053991	*	misage;
-	}
+		(unit->getUnitType() >= 37 && unit->getUnitType()  <= 51 ))		//condo
+		coeffs = const_cast<HedonicCoeffs*>(devModel->getHedonicCoeffsByPropertyTypeId(1));
 	else
 	if( (unit->getUnitType() >= 7 && unit->getUnitType()  <= 11) || unit->getUnitType() == 64) //then --"Apartment"
-	{
-		hedonicPrice =  -35.6211083477	+
-				1.6860172196	*	DD_logarea 	+
-				-0.0196072352	*	ZZ_freehold 	+
-				8.8540731181	*	ZZ_logsum 	+
-				0.012462911		*	ZZ_pms1km 	+
-				-0.1266819716	*	ZZ_dis_mall 	+
-				-0.0533271461	*	ZZ_mrt_200m 	+
-				0.0627437655	*	ZZ_mrt_400m 	+
-				-0.0315005106	*	ZZ_express_200m	+
-				0.1039117015	*	ZZ_bus_400m 	+
-				0.2514717677	*	ZZ_bus_gt400m 	+
-				-0.026829631	*	age 		+
-				7.55894896563371E-006	*	ageSquared	+
-				-0.1323187713	*	misage;
-	}
+		coeffs = const_cast<HedonicCoeffs*>(devModel->getHedonicCoeffsByPropertyTypeId(2));
 	else
 	if (unit->getUnitType() >= 17 && unit->getUnitType()  <= 21 ) //then --"Terrace House"
-	{
-		hedonicPrice = -1.6212198517	+
-						0.9416459241	*	DD_logarea 	+
-						0.1214265597	*	ZZ_freehold 	+
-						2.5867788111	*	ZZ_logsum 	+
-						0.0411811851	*	ZZ_pms1km 	+
-						0.0001729015	*	ZZ_dis_mall 	+
-						0.0199178025	*	ZZ_mrt_200m 	+
-						0.0389471014	*	ZZ_mrt_400m 	+
-						-0.0003068885	*	ZZ_express_200m +
-						0.0283373806	*	ZZ_bus_400m 	+
-						0.2513888642	*	ZZ_bus_gt400m 	+
-						-0.0346296891	*	age 		+
-						0.0012772858	*	ageSquared	+
-						-0.1607324746	*	misage;
-	}
+		coeffs = const_cast<HedonicCoeffs*>(devModel->getHedonicCoeffsByPropertyTypeId(3));
 	else
 	if ( unit->getUnitType() >= 22 && unit->getUnitType() <= 26 ) //then --"Semi-Detached House"
-	{
-		hedonicPrice = 	-30.0681862696 +
-						0.8777324717	*	DD_logarea 	+
-						0.1019885308	*	ZZ_freehold 	+
-						8.1682835293	*	ZZ_logsum 	+
-						0.0237208034	*	ZZ_pms1km 	+
-						0.0043264369	*	ZZ_dis_mall 	+
-						-0.2410773909	*	ZZ_mrt_200m 	+
-						-0.0319380609	*	ZZ_mrt_400m 	+
-						-0.1530572891	*	ZZ_express_200m	+
-						0.0193466592	*	ZZ_bus_400m 	+
-						0.1250873123	*	ZZ_bus_gt400m 	+
-						-0.0178160326	*	age 		+
-						0.0006145903	*	ageSquared	+
-						-0.0166359598	*	misage;
-	}
+		coeffs = const_cast<HedonicCoeffs*>(devModel->getHedonicCoeffsByPropertyTypeId(4));
 	else
 	if ( unit->getUnitType() >= 27 && unit->getUnitType()  <= 31 ) ///then --"Detached House"
-	{
-		hedonicPrice =  -25.3009448577	+
-				1.6490660756	*	DD_logarea 	+
-				-0.1042343778	*	ZZ_freehold 	+
-				6.8924682898	*	ZZ_logsum 	+
-				0.0018250513	*	ZZ_pms1km 	+
-				0.0299415055	*	ZZ_dis_mall 	+
-				0.0885906365	*	ZZ_mrt_200m 	+
-				-0.0451837299	*	ZZ_mrt_400m 	+
-				-0.1107422172	*	ZZ_express_200m +
-				0.1002593268	*	ZZ_bus_400m 	+
-				0.2618344592	*	ZZ_bus_gt400m 	+
-				-0.0634903837	*	age 		+
-				0.0016315979	*	ageSquared	+
-				-0.4809821641	*	misage;
-	}
+		coeffs = const_cast<HedonicCoeffs*>(devModel->getHedonicCoeffsByPropertyTypeId(5));
 	else
-	{
-		hedonicPrice = 	-3.4472485261	+
-				 1.4596477362	* DD_logarea 		+
-				 0				* ZZ_freehold 		+
-				 2.61076717		* ZZ_logsum 		+
-				-0.0440980377	* ZZ_pms1km 		+
-				-0.0180586911	* ZZ_dis_mall 		+
-			     0				* ZZ_mrt_200m 		+
-				 0.0031080858	* ZZ_mrt_400m 	 	+
-				-0.0472882479	* ZZ_express_200m 	+
-				-0.0306430166	* ZZ_bus_400m  		+
-			    -0.0664221756	* ZZ_bus_gt400m 	+
-				 0.0050404258 	* age 			+
-				-0.0005512869	* ageSquared		+
-				-0.0709370628	* misage;
-	}
+		coeffs = const_cast<HedonicCoeffs*>(devModel->getHedonicCoeffsByPropertyTypeId(6));
+
+	hedonicPrice =  coeffs->getIntercept() 	+
+					coeffs->getLogSqrtArea() 	*	DD_logarea	 	+
+					coeffs->getFreehold()		* 	ZZ_freehold 	+
+					coeffs->getLogsumWeighted() *	ZZ_logsum 		+
+					coeffs->getPms1km() 		*	ZZ_pms1km 		+
+					coeffs->getDistanceMallKm() *	ZZ_dis_mall 	+
+					coeffs->getMrt200m() 		*	ZZ_mrt_200m 	+
+					coeffs->getMrt_2_400m() 	*	ZZ_mrt_400m 	+
+					coeffs->getExpress200m() 	* 	ZZ_express_200m	+
+					coeffs->getBus400m() 		*	ZZ_bus_400m 	+
+					coeffs->getAge() 			*	age 			+
+					coeffs->getLogAgeSquared() 	*	ageSquared		+
+					coeffs->getMisage()			*	misage;
+
 
 	//------------------------------------------
 	//------------------------------------------
@@ -650,7 +550,7 @@ double HedonicPrice_SubModel::CalculatePrivate_HedonicPrice( Unit *unit, Buildin
 ]]
 */
 
-double HedonicPrice_SubModel::CalculateHedonicPrice( Unit *unit, Building *building, Postcode *postcode, PostcodeAmenities *amenities, double logsum, double lagCoefficient )
+double HedonicPrice_SubModel::CalculateHedonicPrice( Unit *unit, const Building *building, const Postcode *postcode, const PostcodeAmenities *amenities, double logsum, double lagCoefficient )
 {
     if( unit != nullptr && building != nullptr && postcode != nullptr && amenities != nullptr )
     {
@@ -713,7 +613,7 @@ static double CalculateExpectation(double price, double v, double a, double b, d
 ]]
 */
 
-vector<ExpectationEntry> HedonicPrice_SubModel::CalulateUnitExpectations (Unit *unit, double timeOnMarket, double logsum, double lagCoefficient, Building *building, Postcode *postcode, PostcodeAmenities *amenities)
+vector<ExpectationEntry> HedonicPrice_SubModel::CalculateUnitExpectations (Unit *unit, double timeOnMarket, double logsum, double lagCoefficient, const Building *building, const Postcode *postcode, const PostcodeAmenities *amenities)
 {
     vector<ExpectationEntry> expectations;
     //-- HEDONIC PRICE in SGD in thousands with average hedonic price (500)
@@ -907,7 +807,14 @@ double HedonicPrice_SubModel::FindMaxArgConstrained(double (*f)(double , double 
     {
         derivative1 = Numerical1Derivative(f, x0, p1, p2, p3, p4, crit);
         derivative2 = Numerical2Derivative(f, x0, p1, p2, p3, p4, crit);
-        x1 = x0 - (derivative2 == 0 and 0 or (derivative1 / derivative2));
+
+        double x_dash = 0;
+
+        if(derivative2 != 0)
+        	x_dash = (derivative1 / derivative2);
+
+        x1 = x0 - x_dash;
+
         //-- We are searching for a maximum within the range [lowerLimit, highLimit]
         //-- if x1 >  highLimit better we have a new maximum.
         //-- if x1 <  lowerLimit then we need to re-start with a value within the range [lowerLimit, highLimit]

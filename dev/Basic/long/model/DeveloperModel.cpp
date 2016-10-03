@@ -193,6 +193,7 @@ void DeveloperModel::startImpl() {
 
 		loadHedonicCoeffs(conn);
 		loadPrivateLagT(conn);
+		loadHedonicLogsums(conn);
 	}
 
 
@@ -307,12 +308,6 @@ const LogsumForDevModel* DeveloperModel::getAccessibilityLogsumsByTAZId(BigSeria
 		return itr->second;
 	}
 	return nullptr;
-}
-
-double DeveloperModel::getHedonicPriceLogsum(BigSerial tazId) const
-{
-	double logsum = housingMarketModel->ComputeHedonicPriceLogsumFromDatabase(tazId);
-	return logsum;
 }
 
 const ParcelsWithHDB* DeveloperModel::getParcelsWithHDB_ByParcelId(BigSerial fmParcelId) const
@@ -978,6 +973,35 @@ const LagPrivateT* DeveloperModel::getLagPrivateTByPropertyTypeId(BigSerial prop
 {
 	LagPrivateTMap::const_iterator itr = privateLagsByPropertyTypeId.find(propertyId);
 		if (itr != privateLagsByPropertyTypeId.end())
+		{
+			return itr->second;
+		}
+		return nullptr;
+}
+
+void DeveloperModel::loadHedonicLogsums(DB_Connection &conn)
+{
+	soci::session sql;
+		//sql = conn.getSession<soci::session>();
+		sql.open(soci::postgresql, conn.getConnectionStr());
+
+		const std::string storedProc = "main2012.getHedonicLogsums()";
+		//SQL statement
+		soci::rowset<HedonicLogsums> hedonicLogsums = (sql.prepare << "select * from " + storedProc);
+		for (soci::rowset<HedonicLogsums>::const_iterator itLogsums = hedonicLogsums.begin(); itLogsums != hedonicLogsums.end(); ++itLogsums)
+		{
+			//Create new node and add it in the map of nodes
+			HedonicLogsums* logsum = new HedonicLogsums(*itLogsums);
+			hedonicLogsumsList.push_back(logsum);
+			hedonicLogsumsByTazId.insert(std::make_pair(logsum->getTazId(), logsum));
+
+		}
+}
+
+const HedonicLogsums* DeveloperModel::getHedonicLogsumsByTazId(BigSerial tazId) const
+{
+	HedonicLogsumsMap::const_iterator itr = hedonicLogsumsByTazId.find(tazId);
+		if (itr != hedonicLogsumsByTazId.end())
 		{
 			return itr->second;
 		}

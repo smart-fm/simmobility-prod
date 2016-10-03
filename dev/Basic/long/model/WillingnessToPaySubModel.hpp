@@ -107,14 +107,11 @@ namespace sim_mob
 			double ZZ_hhsize	= 0;
 			int ageOfUnitPrivate = 0;
 			double ZZ_ageOfUnitPrivate	 = 0;
-			int ZZ_ageBet25And50 = 0;
-			int ZZ_ageGreater50  = 0;
 			int ZZ_missingAge    = 0;
 			int ZZ_freehold 	 = 0;
 
 			int ageOfUnitHDB = 0;
 			double ZZ_ageOfUnitHDB = 0;
-			int ZZ_ageGreater30  = 0;
 
 			double ZZ_highInc = 0;
 			double ZZ_middleInc = 0;

@@ -92,40 +92,28 @@ namespace sim_mob
 			ageOfUnitPrivate = HITS_SURVEY_YEAR  - 1900 + ( day / 365 ) - unit->getOccupancyFromDate().tm_year;
 
 			ZZ_ageOfUnitPrivate	 = ageOfUnitPrivate;
-			ZZ_ageBet25And50 = 0;
-			ZZ_ageGreater50  = 0;
 			ZZ_missingAge    = 0;
 			ZZ_freehold 	 = 0;
 
-			if( ageOfUnitPrivate > 25 )
-				ZZ_ageOfUnitPrivate = 25;
+			if( ageOfUnitPrivate > 50 )
+				ZZ_ageOfUnitPrivate = 50;
 
 			if( ageOfUnitPrivate < 0 )
 				ZZ_ageOfUnitPrivate = 0;
 
 			ZZ_ageOfUnitPrivate = ZZ_ageOfUnitPrivate / 10.0;
 
-			if( ageOfUnitPrivate > 25 && ageOfUnitPrivate < 50)
-				ZZ_ageBet25And50 = 1;
-
-			if( ageOfUnitPrivate > 50 )
-				ZZ_ageGreater50 = 1;
-
-
 			ageOfUnitHDB = HITS_SURVEY_YEAR - 1900 + ( day / 365 ) - unit->getOccupancyFromDate().tm_year;
 			ZZ_ageOfUnitHDB	 = ageOfUnitHDB;
-			ZZ_ageGreater30  = 0;
 
-			if( ageOfUnitHDB > 30 )
-				ZZ_ageOfUnitHDB = 30;
+			if( ageOfUnitHDB > 40 )
+				ZZ_ageOfUnitHDB = 40;
 
 			if( ageOfUnitHDB  < 0 )
 				ZZ_ageOfUnitHDB = 0;
 
 			ZZ_ageOfUnitHDB = ZZ_ageOfUnitHDB / 10.0;
 
-			if( ageOfUnitHDB > 30 )
-				ZZ_ageGreater30 = 1;
 		}
 
 		void WillingnessToPaySubModel::GetLogsum(HM_Model *model, const Household *household, int day)
@@ -330,7 +318,7 @@ namespace sim_mob
 			FindHDBType(unitType);
 			FindHouseholdSize(household);
 
-			DD_area = log( sqrt(unit->getFloorArea()) );
+			DD_area = log(unit->getFloorArea()/10) ;
 
 			FindAgeOfUnit( unit, day);
 
@@ -375,8 +363,8 @@ namespace sim_mob
 							(terrace	* Terrace		) +
 							(bageOfUnit25 * ZZ_ageOfUnitPrivate 	) +
 							(bageOfUnit25Squared 	* ZZ_ageOfUnitPrivate * ZZ_ageOfUnitPrivate ) +
-							(bageGreaterT25LessT50  * ZZ_ageBet25And50 	) +
-							(bageGreaterT50  		* ZZ_ageGreater50 	) +
+							//(bageGreaterT25LessT50  * ZZ_ageBet25And50 	) +
+							//(bageGreaterT50  		* ZZ_ageGreater50 	) +
 							(bmissingAge  			* ZZ_missingAge 	) +
 							(bfreeholdAppartm  		* ZZ_freehold * Apartment 	) +
 							(bfreeholdCondo  		* ZZ_freehold * Condo 		) +
@@ -405,8 +393,8 @@ namespace sim_mob
 							(bhdb4 	 * HDB4	 ) +
 							(bhdb5 	 * HDB5	 ) +
 							(bageOfUnit30 * ZZ_ageOfUnitHDB ) +
-							(bageOfUnit30Squared * ZZ_ageOfUnitHDB * ZZ_ageOfUnitHDB ) +
-							(bageOfUnitGreater30 * ZZ_ageGreater30 );
+							(bageOfUnit30Squared * ZZ_ageOfUnitHDB * ZZ_ageOfUnitHDB );
+							//(bageOfUnitGreater30 * ZZ_ageGreater30 );
 
 			if( unit->getUnitType() <= 6 || unitType == 65 )
 				V = Vhdb;

@@ -12,6 +12,7 @@
 
 #include <model/HedonicPriceSubModel.hpp>
 #include "model/lua/LuaProvider.hpp"
+#include <limits>
 
 using namespace sim_mob::long_term;
 
@@ -182,7 +183,763 @@ void HedonicPrice_SubModel::ComputeExpectation( int numExpectations, std::vector
 	if( logsum < 0.0000001)
 		AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, (boost::format( "LOGSUM FOR UNIT %1% is 0.") %  unit->getId()).str());
 
-	luaModel.calulateUnitExpectations(*unit, numExpectations, logsum, lagCoefficient, expectations );
+	//luaModel.calulateUnitExpectations(*unit, numExpectations, logsum, lagCoefficient, expectations );
+}
+
+/*
+ *
+--ATTENTION requies cant be used with c++ (for now)
+
+package.path = package.path .. ";scripts/lua/long/?.lua;../?.lua"
+require "common"
+
+--[[****************************************************************************
+    OBJECTS INFORMATION
+******************************************************************************]]
+
+--[[
+    Household fields:
+        - id (long integer)                : Household identifier.
+        - lifestyleId (long integer)       : Lifestyle identifier.
+        - unitId (long integer)            : Unit identifier.
+        - ethnicityId (long integer)       : Ethnicity identifier.
+        - vehicleCategoryId (long integer) : Vehicle Category identifier.
+        - size (integer)                   : Number of individuals.
+        - children (integer)               : Number of children.
+        - income (real)                    : Montly income value.
+        - housingDuration (integer)        : Number of days living in the unit.
+        - workers (integer)                : Number of workers.
+        - ageOfHead (integer)              : Age of the hh head individual.
+
+    Unit fields:
+        - id (long integer)                : Household identifier.
+        - buildingId (long integer)        : Building identifier.
+        - typeId (long integer)            : Unit type identifier.
+        - postcodeId (long integer)        : Postcode identifier.
+        - floorArea (real)                 : Floor area.
+        - storey (integer)                 : Number of storeys.
+        - rent (real)                      : Montly rent.
+
+    Entry fields:
+        - unit (Unit)                      : Unit object.
+        - hedonicPrice (real)              : Unit hedonic price.
+        - askingPrice (real)               : Unit asking price.
+        - unitId (long integer)            : Unit identifier.
+
+    Building fields:
+        - id (long integer)                : Building identifier.
+        - builtYear (integer)              : Year when the building was built.
+        - landedArea (real)                : Building area.
+        - parcelId (long integer)          : Parcel identifier.
+        - parkingSpaces (long integer)     : Number of parking spaces available.
+        - tenureId (long integer)          : Tenure identifier.
+        - typeId (long integer)            : Type identifier.
+
+    Postcode fields:
+        - id (long integer)                : Postcode internal identifier.
+        - code (string)                    : Real postcode
+        - location (Location)              : Location object with location
+            - latitude (real)              : Latitude value.
+            - longitude (real)             : Longitude value.
+        - tazId (long integer)             : Taz id.
+
+    PostcodeAmenities fields:
+        - postcode (string)                : Real postcode
+        - buildingName (string)            : Building name associated to the postcode.
+        - unitBlock (string)               : Block associated to the postcode.
+        - roadName (string)                : Road name where the postcode is located.
+        - mtzNumber (string)               : MTZ number.
+        - mrtStation (string)              : MRT station.
+        - distanceToMRT (real)             : Distance to the nearest MRT.
+        - distanceToBus (real)             : Distance to the nearest Bus Stop.
+        - distanceToExpress (real)         : Distance to the nearest Highway.
+        - distanceToPMS30 (real)           : Distance to the nearest Primary school.
+        - distanceToCBD (real)             : Distance to the nearest CBD.
+        - distanceToMall (real)            : Distance to the nearest Mall.
+        - distanceToJob (real)             : Distance to JOB by car.
+        - mrt_200m (boolean)               : Tells if postcode has MRT within 200 meters
+        - mrt_400m (boolean)               : Tells if postcode has MRT within 400 meters
+        - express_200m (boolean)           : Tells if postcode has Highway within 200 meters
+        - bus_200m (boolean)               : Tells if postcode has Bus Stop within 200 meters
+        - bus_400m (boolean)               : Tells if postcode has Bus Stop within 400 meters
+        - pms_1km (boolean)                : Tells if postcode has Primary School within 1 KM
+        - apartment (boolean)              : Tells if postcode is an apartament.
+        - condo (boolean)                  : Tells if postcode is a condominium.
+        - terrace (boolean)                : Tells if postcode is/has a terrace.
+        - semi (boolean)                   : Tells if postcode is a semi
+        - ec (boolean)                     : Tells if postcode is a ec
+        - private (boolean)                : Tells if postcode is a private unit
+        - hdb (boolean)                    : Tells if postcode is a HDB unit
+]]
+
+--[[****************************************************************************
+    GLOBAL STATIC LOOKUP DATA
+******************************************************************************]]
+
+--Simulation constants.
+CONSTANTS = readOnlyTable {
+  SIMULATION_YEAR   = 2008,
+}
+
+CAR_CATEGORIES = readOnlyTable {[1]=true, [6]=true, [7]=true, [8]=true, [9]=true, [16]=true,
+                                [17]=true, [18]=true, [22]=true, [23]=true, [24]=true,
+                                [25]=true, [27]=true }
+--[[****************************************************************************
+    SELLER FUNCTIONS
+******************************************************************************]]
+
+--[[
+    Calculates the hedonic price for the given HDB Unit.
+    Following the documentation prices are in (SGD per sqm).
+
+    @param unit to calculate the hedonic price.
+    @param building where the unit belongs
+    @param postcode of the unit.
+    @param amenities close to the unit.
+    @return hedonic price value.
+]]
+
+
+*/
+
+double HedonicPrice_SubModel::CalculateHDB_HedonicPrice(Unit *unit, Building *building, Postcode *postcode, PostcodeAmenities *amenities, double logsum, double lagCoefficient)
+{
+	int simulationYear = HITS_SURVEY_YEAR;
+	float hedonicPrice = 0;
+
+	float ZZ_pms1km   = 0;
+	float ZZ_mrt_200m = 0;
+	float ZZ_mrt_400m = 0;
+	float ZZ_bus_200m = 0;
+	float ZZ_bus_400m = 0;
+	float ZZ_express_200m = 0;
+
+	float ZZ_logsum = logsum;
+
+	float ZZ_hdb12 = 0;
+	float ZZ_hdb3  = 0;
+	float ZZ_hdb4  = 0;
+	float ZZ_hdb5m = 0;
+
+	float age = (HITS_SURVEY_YEAR - 1900) - unit->getOccupancyFromYear();
+
+	if( age < 0 )
+		age = 0;
+
+
+	float ageSquared = age * age;
+
+	double DD_logsqrtarea = log( unit->getFloorArea());
+	double ZZ_dis_cbd  = amenities->getDistanceToCBD();
+	double ZZ_dis_mall = amenities->getDistanceToMall();
+
+
+	if( amenities->hasPms_1km() == true )
+		ZZ_pms1km = 1;
+
+
+	if( amenities->hasMRT_200m() == true )
+		ZZ_mrt_200m = 1;
+
+
+	if( amenities->hasMRT_400m() == true )
+		ZZ_mrt_400m = 1;
+
+
+	if( amenities->hasExpress_200m() == true )
+		ZZ_express_200m = 1;
+
+
+	if( amenities->hasBus_200m() == true )
+		ZZ_bus_200m = 1;
+
+
+	if( amenities->hasBus_400m() == true)
+		ZZ_bus_400m = 1;
+
+
+	if( unit->getUnitType() <= 2 || unit->getUnitType() == 65 )
+		ZZ_hdb12 = 1;
+
+
+	if( unit->getUnitType() == 3 )
+		ZZ_hdb3 = 1;
+
+
+	if( unit->getUnitType() == 4 )
+		ZZ_hdb4 = 1;
+
+
+	if( unit->getUnitType() == 5 )
+		ZZ_hdb5m = 1;
+
+
+	//-----------------------------
+	//-----------------------------
+	if (ZZ_hdb12 == 1)
+		hedonicPrice =   0 	+
+				 	0 *	DD_logsqrtarea 	+
+					0 *	ZZ_logsum 	+
+					0 *	ZZ_pms1km 	+
+					0 *	ZZ_dis_mall 	+
+					0 *	ZZ_mrt_200m 	+
+					0 *	ZZ_mrt_400m 	+
+					0 * ZZ_express_200m +
+					0 *	ZZ_bus_400m 	+
+					0 *	age 		+
+					0 *	ageSquared;
+	else
+	if (ZZ_hdb3 == 1)
+		hedonicPrice = 0   	+
+					0 *	DD_logsqrtarea	+
+					0 *	ZZ_logsum 	+
+					0 *	ZZ_pms1km 	+
+					0 *	ZZ_dis_mall +
+					0 *	ZZ_mrt_200m +
+					0 *	ZZ_mrt_400m +
+					0 *	ZZ_express_200m +
+					0 * ZZ_bus_400m 	+
+					0 *	age 		+
+					0 *	ageSquared;
+	else if (ZZ_hdb4 == 1)
+		hedonicPrice =   0 	+
+					0 *	DD_logsqrtarea 	+
+					0 *	ZZ_logsum 	+
+					0 *	ZZ_pms1km 	+
+					0 *	ZZ_dis_mall 	+
+					0 *	ZZ_mrt_200m 	+
+					0 *	ZZ_mrt_400m 	+
+					0 *	ZZ_express_200m	+
+					0 *	ZZ_bus_400m 	+
+					0 *	age 		+
+					0 *	ageSquared;
+	else
+	if (ZZ_hdb5m == 1)
+		hedonicPrice = 0  	+
+					0 *	DD_logsqrtarea 	+
+					0 *	ZZ_logsum 	+
+					0 *	ZZ_pms1km 	+
+					0 *	ZZ_dis_mall 	+
+					0 *	ZZ_mrt_200m 	+
+					0 *	ZZ_mrt_400m 	+
+					0 *	ZZ_express_200m +
+					0 *	ZZ_bus_400m 	+
+					0 *	age 		+
+					0 *	ageSquared;
+	else
+		hedonicPrice = 0  	+
+					0 *	DD_logsqrtarea 	+
+					0 *	ZZ_logsum 	+
+					0 *	ZZ_pms1km 	+
+					0 *	ZZ_dis_mall 	+
+					0 *	ZZ_mrt_200m 	+
+					0 *	ZZ_mrt_400m 	+
+					0 * ZZ_express_200m	+
+					0 *	ZZ_bus_400m 	+
+					0 *	age 		+
+					0 *	ageSquared;
+
+	hedonicPrice = hedonicPrice + lagCoefficient;
+
+
+//--print(string.format("HDB Price: %d, dist_job: %s, dist_cdb: %s, pms1KM: %s, dist_mall: %s, mrt_200m: %s, mrt_400m: %s, dist_express_200m: %s, bus_200m: %s"
+//--, hedonicPrice, (amenities.distanceToJob * (0.001966)), (amenities.distanceToCBD * (-80.4)), (amenities.pms_1km and 25.67 or 0), (amenities.distanceToMall * (-56.46)), (amenities.mrt_200m and 462.90 or 0),
+//-- menities.mrt_400m and 274.60 or 0), (amenities.express_200m and -140.10 or 0), (amenities.bus_200m and 62.43 or 0)))
+    return hedonicPrice;
+}
+
+/*
+--[[
+    Calculates the hedonic price for the given private Unit.
+    Following the documentation prices are in (SGD per sqm).
+
+    @param unit to calculate the hedonic price.
+    @param building where the unit belongs
+    @param postcode of the unit.
+    @param amenities close to the unit.
+    @return hedonic price value.
+]]
+*/
+
+double HedonicPrice_SubModel::CalculatePrivate_HedonicPrice( Unit *unit, Building *building, Postcode *postcode, PostcodeAmenities *amenities, double logsum, double lagCoefficient)
+{
+	double hedonicPrice = 0;
+	double DD_logarea  = 0;
+	double ZZ_dis_cbd  = 0;
+	double ZZ_pms1km   = 0;
+	double ZZ_dis_mall = 0;
+	double ZZ_mrt_200m = 0;
+	double ZZ_mrt_400m = 0;
+	double ZZ_express_200m = 0;
+	double ZZ_bus_200m = 0;
+
+
+	double ZZ_freehold = 0;
+	double ZZ_logsum = logsum;
+	double ZZ_bus_400m = 0;
+	double ZZ_bus_gt400m = 0;
+
+	double age = ( HITS_SURVEY_YEAR - 1900 ) - unit->getOccupancyFromYear();
+
+	if( age > 25 )
+	    age = 25;
+
+	if( age < 0 )
+	    age = 0;
+
+	double  ageSquared =  age *  age;
+
+	double misage = 0;
+
+	DD_logarea  = log(unit->getFloorArea());
+	ZZ_dis_cbd  = amenities->getDistanceToCBD();
+	ZZ_dis_mall = amenities->getDistanceToMall();
+
+	if( amenities->getDistanceToPMS30() < 1 )
+		ZZ_pms1km = 1;
+
+
+	if( amenities->getDistanceToMRT() < 0.200 )
+		ZZ_mrt_200m = 1;
+	else
+	if( amenities->getDistanceToMRT() < 0.400 )
+		ZZ_mrt_400m = 1;
+
+
+	if( amenities->getDistanceToExpress() < 0.200 )
+		ZZ_express_200m = 1;
+
+
+	if( amenities->getDistanceToBus() < 0.200 )
+		ZZ_bus_200m = 1;
+	else
+	if( amenities->getDistanceToBus() < 0.400 )
+		ZZ_bus_400m = 1;
+	else
+		ZZ_bus_gt400m = 1;
+
+
+	//-----------------------------
+	//-----------------------------
+	if( (unit->getUnitType() >= 12 && unit->getUnitType()  <= 16 ) ||
+		(unit->getUnitType() >= 32 && unit->getUnitType()  <= 36 ) ||
+		(unit->getUnitType() >= 37 && unit->getUnitType()  <= 51 ))
+	{
+		hedonicPrice =  -34.2789715238	+
+				1.9543593824	*	DD_logarea 	+
+				0.185534802		*	ZZ_freehold 	+
+				8.4725633834	*	ZZ_logsum 	+
+				-0.0013503645	*	ZZ_pms1km 	+
+				-0.0502499853	*	ZZ_dis_mall 	+
+				-0.0646248265	*	ZZ_mrt_200m 	+
+				0.0060583414	*	ZZ_mrt_400m 	+
+				-0.0035296068	*	ZZ_express_200m +
+				0.06315713		*	ZZ_bus_400m 	+
+				0.4625580825	*	ZZ_bus_gt400m 	+
+				-0.0162262035	*	age 		+
+				-6.31981518179487E-005	*	ageSquared	+
+				-0.1140053991	*	misage;
+	}
+	else
+	if( (unit->getUnitType() >= 7 && unit->getUnitType()  <= 11) || unit->getUnitType() == 64) //then --"Apartment"
+	{
+		hedonicPrice =  -35.6211083477	+
+				1.6860172196	*	DD_logarea 	+
+				-0.0196072352	*	ZZ_freehold 	+
+				8.8540731181	*	ZZ_logsum 	+
+				0.012462911		*	ZZ_pms1km 	+
+				-0.1266819716	*	ZZ_dis_mall 	+
+				-0.0533271461	*	ZZ_mrt_200m 	+
+				0.0627437655	*	ZZ_mrt_400m 	+
+				-0.0315005106	*	ZZ_express_200m	+
+				0.1039117015	*	ZZ_bus_400m 	+
+				0.2514717677	*	ZZ_bus_gt400m 	+
+				-0.026829631	*	age 		+
+				7.55894896563371E-006	*	ageSquared	+
+				-0.1323187713	*	misage;
+	}
+	else
+	if (unit->getUnitType() >= 17 && unit->getUnitType()  <= 21 ) //then --"Terrace House"
+	{
+		hedonicPrice = -1.6212198517	+
+						0.9416459241	*	DD_logarea 	+
+						0.1214265597	*	ZZ_freehold 	+
+						2.5867788111	*	ZZ_logsum 	+
+						0.0411811851	*	ZZ_pms1km 	+
+						0.0001729015	*	ZZ_dis_mall 	+
+						0.0199178025	*	ZZ_mrt_200m 	+
+						0.0389471014	*	ZZ_mrt_400m 	+
+						-0.0003068885	*	ZZ_express_200m +
+						0.0283373806	*	ZZ_bus_400m 	+
+						0.2513888642	*	ZZ_bus_gt400m 	+
+						-0.0346296891	*	age 		+
+						0.0012772858	*	ageSquared	+
+						-0.1607324746	*	misage;
+	}
+	else
+	if ( unit->getUnitType() >= 22 && unit->getUnitType() <= 26 ) //then --"Semi-Detached House"
+	{
+		hedonicPrice = 	-30.0681862696 +
+						0.8777324717	*	DD_logarea 	+
+						0.1019885308	*	ZZ_freehold 	+
+						8.1682835293	*	ZZ_logsum 	+
+						0.0237208034	*	ZZ_pms1km 	+
+						0.0043264369	*	ZZ_dis_mall 	+
+						-0.2410773909	*	ZZ_mrt_200m 	+
+						-0.0319380609	*	ZZ_mrt_400m 	+
+						-0.1530572891	*	ZZ_express_200m	+
+						0.0193466592	*	ZZ_bus_400m 	+
+						0.1250873123	*	ZZ_bus_gt400m 	+
+						-0.0178160326	*	age 		+
+						0.0006145903	*	ageSquared	+
+						-0.0166359598	*	misage;
+	}
+	else
+	if ( unit->getUnitType() >= 27 && unit->getUnitType()  <= 31 ) ///then --"Detached House"
+	{
+		hedonicPrice =  -25.3009448577	+
+				1.6490660756	*	DD_logarea 	+
+				-0.1042343778	*	ZZ_freehold 	+
+				6.8924682898	*	ZZ_logsum 	+
+				0.0018250513	*	ZZ_pms1km 	+
+				0.0299415055	*	ZZ_dis_mall 	+
+				0.0885906365	*	ZZ_mrt_200m 	+
+				-0.0451837299	*	ZZ_mrt_400m 	+
+				-0.1107422172	*	ZZ_express_200m +
+				0.1002593268	*	ZZ_bus_400m 	+
+				0.2618344592	*	ZZ_bus_gt400m 	+
+				-0.0634903837	*	age 		+
+				0.0016315979	*	ageSquared	+
+				-0.4809821641	*	misage;
+	}
+	else
+	{
+		hedonicPrice = 	-3.4472485261	+
+				 1.4596477362	* DD_logarea 		+
+				 0				* ZZ_freehold 		+
+				 2.61076717		* ZZ_logsum 		+
+				-0.0440980377	* ZZ_pms1km 		+
+				-0.0180586911	* ZZ_dis_mall 		+
+			     0				* ZZ_mrt_200m 		+
+				 0.0031080858	* ZZ_mrt_400m 	 	+
+				-0.0472882479	* ZZ_express_200m 	+
+				-0.0306430166	* ZZ_bus_400m  		+
+			    -0.0664221756	* ZZ_bus_gt400m 	+
+				 0.0050404258 	* age 			+
+				-0.0005512869	* ageSquared		+
+				-0.0709370628	* misage;
+	}
+
+	//------------------------------------------
+	//------------------------------------------
+
+	hedonicPrice = hedonicPrice + lagCoefficient;
+
+	return hedonicPrice;
+}
+
+/*
+--[[
+    Calculates the hedonic price for the given Unit.
+    Following the documentation prices are in (SGD per sqm).
+
+    @param unit to calculate the hedonic price.
+    @param building where the unit belongs
+    @param postcode of the unit.
+    @param amenities close to the unit.
+]]
+*/
+
+double HedonicPrice_SubModel::CalculateHedonicPrice( Unit *unit, Building *building, Postcode *postcode, PostcodeAmenities *amenities, double logsum, double lagCoefficient )
+{
+    if( unit != nullptr && building != nullptr && postcode != nullptr && amenities != nullptr )
+    {
+		if(unit->getUnitType() <= 6 || unit->getUnitType() == 65 )
+			return CalculateHDB_HedonicPrice(unit, building, postcode, amenities, logsum, lagCoefficient);
+		 else
+			return CalculatePrivate_HedonicPrice(unit, building, postcode, amenities, logsum, lagCoefficient);
+    }
+
+    return -1;
+
+}
+
+/*
+--[[
+    Calculates a single expectation based on given params.
+
+    @param price of the unit.
+    @param v is the last expectation.
+    @param a is the ratio of events expected by the seller.
+    @param b is the importance of the price for seller.
+    @param cost
+    @return expectation value.
+]]
+*/
+
+static double CalculateExpectation(double price, double v, double a, double b, double cost)
+{
+    double E = exp(1.0);
+
+    double rateOfBuyers = a - (b * price);
+
+    //--local expectation = price
+    //--                    + (math.pow(E,-rateOfBuyers*(price-v)/price)-1 + rateOfBuyers)*price/rateOfBuyers
+    //--                    + math.pow(E,-rateOfBuyers)*v
+    //--                    - cost
+
+    if (rateOfBuyers > 0)
+    {
+        double expectation = price + (pow(E,-rateOfBuyers * (price - v) / price) - 1) * price / rateOfBuyers - cost;
+        return expectation;
+    }
+
+
+    return v;
 }
 
 
+/*
+--[[
+    Calculates seller expectations for given unit based on timeOnMarket
+    that the seller is able to wait until sell the unit.
+
+    @param unit to sell.
+    @param timeOnMarket number of expectations which are necessary to calculate.
+    @param building where the unit belongs
+    @param postcode of the unit.
+    @param amenities close to the unit.
+    @return array of ExpectationEntry's with N expectations (N should be equal to timeOnMarket).
+]]
+*/
+
+vector<ExpectationEntry> HedonicPrice_SubModel::CalulateUnitExpectations (Unit *unit, double timeOnMarket, double logsum, double lagCoefficient, Building *building, Postcode *postcode, PostcodeAmenities *amenities)
+{
+    vector<ExpectationEntry> expectations;
+    //-- HEDONIC PRICE in SGD in thousands with average hedonic price (500)
+
+    double  hedonicPrice = CalculateHedonicPrice(unit, building, postcode, amenities, logsum, lagCoefficient);
+    hedonicPrice = exp( hedonicPrice ) / 1000000.0;
+
+    if (hedonicPrice > 0)
+    {
+        double reservationPrice = hedonicPrice * 0.8; //  -- IMPORTANT : The reservation price should be less than the hedonic price and the asking price
+        double a = 0; // -- ratio of events expected by the seller per (considering that the price is 0)
+        double b = 1; // -- Importance of the price for seller.
+        double cost = 0.0; // -- Cost of being in the market
+        double x0 = 0; // -- starting point for price search
+        double crit = 0.0001; // -- criteria
+        double maxIterations = 20; // --number of iterations
+
+        for(int i=1; i < timeOnMarket; i++)
+        {
+            a = 1.5 * reservationPrice;
+            x0 = 1.4 * reservationPrice;
+            ExpectationEntry entry = ExpectationEntry(); //--entry is a class initialized to 0, that will hold the hedonic, asking and target prices.
+            entry.hedonicPrice = hedonicPrice;
+            entry.askingPrice = FindMaxArgConstrained(CalculateExpectation, x0, reservationPrice, a, b, cost, crit, maxIterations, reservationPrice, 1.2 * reservationPrice );
+            entry.targetPrice = CalculateExpectation(entry.askingPrice, reservationPrice, a, b, cost );
+            reservationPrice = entry.targetPrice;
+            expectations[i] = entry;
+    	}
+    }
+
+    return expectations;
+}
+
+
+/*
+--[[****************************************************************************
+    BIDDER FUNCTIONS
+******************************************************************************]]
+
+--[[
+    Calculates the speculation for the given unit.
+
+    @param entry market entry.
+    @param unitBids number of bids (attempts) to this unit.
+    @return the surplus for the given unit.
+]]
+*/
+
+double HedonicPrice_SubModel::CalculateSpeculation(ExpectationEntry entry, double unitBids)
+{
+    double maximumBids = 20;
+    double a = 800000; //--a is the ratio of events expected by the seller.
+    double b = 0.3;    //--b is the importance of the price for seller.
+    double c = 1000;   //--c is the offset of the speculation price in thousands of dollars.
+
+    return (maximumBids-unitBids) * entry.askingPrice / (a - (b * entry.askingPrice)) * c;
+}
+
+/*
+--[[
+    Calculates the willingness to pay based on Household attributes
+    (and importance) and unit attributes.
+
+    This method calculates the willingness to pay following this formula:
+
+    wp = theta0 + (theta1 * UNIT_AREA * (NUMBER_OF_MEMBERS/INCOME)) +
+        (theta2 * INCOME) + (theta3 (IF HH has cars))
+
+    @param household.
+    @param unit to calculate the wp.
+    @param tazStats with statictics about taz.
+    @param amenities postcode amenities information.
+    @return value of the willingness to pay of the given household.
+]]
+*/
+
+/*
+void HedonicPrice_SubModel::CalculateWP(Household household, Unit unit, TazStats tazStats, PostcodeAmenities amenities)
+{
+    double b1 = 2.459;
+    double b2 = 7.116;
+    double b3 = -0.066;
+    double b4 = -0.050;
+    double hasCar = (CAR_CATEGORIES[household.vehicleCategoryId] and 1 or 0);
+	double distanceToCBD = 0;
+
+    if(amenities != nullptr )
+		distanceToCBD = amenities.getDistanceToCBD();
+
+
+    double x = ((b1 * sqfToSqm(unit.floorArea) * log(household.size))                             //--  b1 * Area_Per_Unit  *ln(HouseHold_Size) +
+           +    (b2 * ((household.income / 1000) / household.size) * (tazStats.hhAvgIncome / 1000))   //--  b2 * HouseHold_Income / HouseHold_Size * Zone_Average_Income +
+           +    (b3 * (distanceToCBD) * hasCar)                                             		  //--  b3 * Distance_to_CBD*(Dummie_if_car) +
+           +    (b4 * (distanceToCBD) * (1-hasCar)));	                                    		  //--  b4 * Distance_to_CBD*(1-Dummie_if_car)
+    //--print("WP: " .. x)
+    //--Area_Per_Unit, HouseHold_Size,HouseHold_Income,Distance_to_CBD, Zone_Average_Income, HasCar, WP
+    //--print ("HH_ID: " .. household.id .."," .. unit.floorArea..",".. household.size .. "," .. household.income .. ","..amenities.distanceToCBD .. ","..tazStats.hhAvgIncome .. ",".. hasCar .."," .. x)
+    return x;
+}
+
+
+*/
+
+/*
+--[[****************************************************************************
+    GLOBAL STATIC LOOKUP DATA
+******************************************************************************]]
+--[[
+    Helper function to mark tables as read-only.
+]]
+*/
+
+/*
+void readOnlyTable(table)
+{
+   return setmetatable({}, {
+     __index = table,
+     __newindex = function(table, key, value)
+                    error("Attempt to modify read-only table")
+                  end,
+     __metatable = false
+   });
+}
+
+
+--[[
+    Math helpers
+]]
+
+
+Math = setmetatable({}, {
+    __index = function(_, index)
+        return math[index]
+    end;
+    __metatable = "The metatable is locked";
+})
+
+Math.E = math.exp(1) -- euler's number
+Math.PHI = (1 + Math.sqrt(5))/2 -- golden ratio
+
+Math.nan = function(x) -- tests if value is nan
+    return (x ~= x)
+end
+
+Math.infinite = function(x) -- tests if value is infinite
+    return (x == -math.huge or x == math.huge)
+end
+
+Math.finite = function(x) -- tests if value is finite
+    return (x == x and x > -math.huge and x < math.huge)
+end
+
+Math.ln = function(x)
+    return math.log(x) / math.log(Math.E)
+end
+*/
+
+//--
+//--F'(x) = (f(x + crit) - f(x - crit)) / 2*crit
+//--
+double HedonicPrice_SubModel::Numerical1Derivative( double (*f)(double , double , double , double , double ), double x0, double p1, double p2, double p3, double p4, double crit)
+{
+    return ((f((x0 + crit), p1, p2, p3, p4) - f((x0 - crit), p1, p2, p3, p4)) / (2 * crit));
+}
+
+//--
+//-- F''(x) = (f(x + crit) - (2 * f(x)) + f(x - crit)) / crit^2
+//--
+//-- returns nan or infinite if some error occurs.
+//--
+double HedonicPrice_SubModel::Numerical2Derivative(double (*f)(double , double , double , double , double ), double x0, double p1, double p2, double p3, double p4, double crit)
+{
+    return ((f((x0 + crit), p1, p2, p3, p4) - (2 * f((x0), p1, p2, p3, p4)) + (f((x0 - crit), p1, p2, p3, p4))) / (crit * crit));
+}
+
+double HedonicPrice_SubModel::FindMaxArg(double (*f)(double , double , double , double , double ), double x0, double p1, double p2, double p3, double p4, double crit, double maxIterations)
+{
+	double inf = std::numeric_limits<double>::infinity();
+    return FindMaxArgConstrained( f, x0, p1, p2, p3, p4, crit, maxIterations, -inf, inf);
+}
+
+double HedonicPrice_SubModel::FindMaxArgConstrained(double (*f)(double , double , double , double , double ), double x0, double p1, double p2, double p3, double p4, double crit, double maxIterations, double lowerLimit, double highLimit)
+{
+    double x1 = 0;
+	double delta = 0;
+	double iters = 0;
+	double derivative1 = 0;
+	double derivative2 = 0;
+
+    do
+    {
+        derivative1 = Numerical1Derivative(f, x0, p1, p2, p3, p4, crit);
+        derivative2 = Numerical2Derivative(f, x0, p1, p2, p3, p4, crit);
+        x1 = x0 - (derivative2 == 0 and 0 or (derivative1 / derivative2));
+        //-- We are searching for a maximum within the range [lowerLimit, highLimit]
+        //-- if x1 >  highLimit better we have a new maximum.
+        //-- if x1 <  lowerLimit then we need to re-start with a value within the range [lowerLimit, highLimit]
+        delta = abs(x1 - x0);
+
+        if (x1 <= lowerLimit and x1 > highLimit)
+           x0 = lowerLimit + ( rand() / (float)RAND_MAX) * ( highLimit - lowerLimit);
+        else
+           x0 = x1;
+
+        iters= iters + 1;
+    }
+    while( delta <= crit or iters >= maxIterations or derivative1 == 0 or derivative2 == 0);
+
+    return x0;
+}
+
+//--[[
+//    Converts the given square meters value to square foot value.
+//    @param sqmValue value in square meters.
+//]]
+double HedonicPrice_SubModel::sqmToSqf(double sqmValue)
+{
+    return sqmValue * 10.7639;
+}
+
+//--[[
+//    Converts the given square foot value to square meter value.
+//    @param sqfValue value in square foot.
+//]]
+
+double HedonicPrice_SubModel::sqfToSqm(double sqfValue)
+{
+    return sqfValue / 10.7639;
+}

@@ -381,22 +381,22 @@ double HedonicPrice_SubModel::CalculateHDB_HedonicPrice(Unit *unit, const Buildi
 
 	HedonicCoeffs *coeffs = nullptr;
 
-	/*
+
 	//-----------------------------
 	//-----------------------------
 	if (ZZ_hdb12 == 1)
-		coeffs = devModel->getHedonicCoeffsByPropertyTypeId(7);
+		coeffs = const_cast<HedonicCoeffs*>(devModel->getHedonicCoeffsByPropertyTypeId(7));
 	else
 	if (ZZ_hdb3 == 1)
-		coeffs = devModel->getHedonicCoeffsByPropertyTypeId(8);
+		coeffs = const_cast<HedonicCoeffs*>(devModel->getHedonicCoeffsByPropertyTypeId(8));
 	else
 	if (ZZ_hdb4 == 1)
-		coeffs = devModel->getHedonicCoeffsByPropertyTypeId(9);
+		coeffs = const_cast<HedonicCoeffs*>(devModel->getHedonicCoeffsByPropertyTypeId(9));
 	else
 	if (ZZ_hdb5m == 1)
-		coeffs = devModel->getHedonicCoeffsByPropertyTypeId(10);
+		coeffs = const_cast<HedonicCoeffs*>(devModel->getHedonicCoeffsByPropertyTypeId(10));
 	else
-		coeffs = devModel->getHedonicCoeffsByPropertyTypeId(11);
+		coeffs = const_cast<HedonicCoeffs*>(devModel->getHedonicCoeffsByPropertyTypeId(11));
 
 	hedonicPrice =  coeffs->getIntercept() 	+
 					coeffs->getLogSqrtArea() 	*	DD_logsqrtarea 	+
@@ -409,7 +409,7 @@ double HedonicPrice_SubModel::CalculateHDB_HedonicPrice(Unit *unit, const Buildi
 					coeffs->getBus400m() 		*	ZZ_bus_400m 	+
 					coeffs->getAge() 			*	age 			+
 					coeffs->getLogAgeSquared() 	*	ageSquared;
-	*/
+
 
 
 	hedonicPrice = hedonicPrice + lagCoefficient;
@@ -631,7 +631,7 @@ vector<ExpectationEntry> HedonicPrice_SubModel::CalculateUnitExpectations (Unit 
         double crit = 0.0001; // -- criteria
         double maxIterations = 20; // --number of iterations
 
-        for(int i=1; i < timeOnMarket; i++)
+        for(int i=1; i <= timeOnMarket; i++)
         {
             a = 1.5 * reservationPrice;
             x0 = 1.4 * reservationPrice;
@@ -640,7 +640,7 @@ vector<ExpectationEntry> HedonicPrice_SubModel::CalculateUnitExpectations (Unit 
             entry.askingPrice = FindMaxArgConstrained(CalculateExpectation, x0, reservationPrice, a, b, cost, crit, maxIterations, reservationPrice, 1.2 * reservationPrice );
             entry.targetPrice = CalculateExpectation(entry.askingPrice, reservationPrice, a, b, cost );
             reservationPrice = entry.targetPrice;
-            expectations[i] = entry;
+            expectations.push_back(entry);
     	}
     }
 
@@ -820,14 +820,14 @@ double HedonicPrice_SubModel::FindMaxArgConstrained(double (*f)(double , double 
         //-- if x1 <  lowerLimit then we need to re-start with a value within the range [lowerLimit, highLimit]
         delta = abs(x1 - x0);
 
-        if (x1 <= lowerLimit and x1 > highLimit)
+        if (x1 <= lowerLimit && x1 > highLimit)
            x0 = lowerLimit + ( rand() / (float)RAND_MAX) * ( highLimit - lowerLimit);
         else
            x0 = x1;
 
         iters= iters + 1;
     }
-    while( delta <= crit or iters >= maxIterations or derivative1 == 0 or derivative2 == 0);
+    while( delta > crit && iters < maxIterations && derivative1 != 0 && derivative2 != 0);
 
     return x0;
 }

@@ -68,63 +68,84 @@ double HedonicPrice_SubModel::ComputeLagCoefficient()
 	{
 		lagCoefficient =  devModel->getTaoByQuarter(quarterStr)->getHdb12();
 
-		finalCoefficient = (lagCoefficient * 1.1243467576) + -0.0114921331;
+		const LagPrivateT *lag = devModel->getLagPrivateTByPropertyTypeId(7);
+
+		finalCoefficient = (lagCoefficient * lag->getT4()) + lag->getIntercept();
 	}
 
 	else if( unit->getUnitType() == ID_HDB3 )
 	{
 		lagCoefficient =  devModel->getTaoByQuarter(quarterStr)->getHdb3();
 
-		finalCoefficient = (lagCoefficient * 1.0915954607) + -0.0103070265;
+		const LagPrivateT *lag = devModel->getLagPrivateTByPropertyTypeId(8);
+
+		finalCoefficient = (lagCoefficient * lag->getT4()) + lag->getIntercept();
 	}
 	else if( unit->getUnitType() == ID_HDB4 )
 	{
 		lagCoefficient = devModel->getTaoByQuarter(quarterStr)->getHdb4();
 
-		finalCoefficient = (lagCoefficient * 1.0524144295) + -0.0080131248;
+		const LagPrivateT *lag = devModel->getLagPrivateTByPropertyTypeId(9);
+
+		finalCoefficient = (lagCoefficient * lag->getT4()) + lag->getIntercept();
 	}
 	else if( unit->getUnitType() == ID_HDB5 || unit->getUnitType() == 6 || unit->getUnitType() == 65 )
 	{
 		lagCoefficient = devModel->getTaoByQuarter(quarterStr)->getHdb5();
 
-		finalCoefficient = (lagCoefficient * 0.9472149081) + -0.0007253017;
+		const LagPrivateT *lag = devModel->getLagPrivateTByPropertyTypeId(10);
+
+		finalCoefficient = (lagCoefficient * lag->getT4()) + lag->getIntercept();
 	}
 	else if( unit->getUnitType() >= ID_EC85 and unit->getUnitType()  <= ID_EC144 )  //Executive Condominium
 	{
 		lagCoefficient = devModel->getTaoByQuarter(quarterStr)->getEc();
 
-		finalCoefficient = (lagCoefficient * 1.0021356273) + 0.0106708337;
+		const LagPrivateT *lag = devModel->getLagPrivateTByPropertyTypeId(11);
+
+		finalCoefficient = (lagCoefficient * lag->getT4()) + lag->getIntercept();
 	}
 	else if( ( unit->getUnitType() >= ID_CONDO60 && unit->getUnitType()  <= ID_CONDO134 ) ||
 			 ( unit->getUnitType() >= 37 && unit->getUnitType() <= 51 ) || unit->getUnitType() == 64 ) //Condominium and mixed use
 	{
 		lagCoefficient = devModel->getTaoByQuarter(quarterStr)->getCondo();
 
-		finalCoefficient = (lagCoefficient * 0.9851333667) + 0.0141260488;
+		const LagPrivateT *lag = devModel->getLagPrivateTByPropertyTypeId(1);
+
+		finalCoefficient = (lagCoefficient * lag->getT4()) + lag->getIntercept();
+
 	}
 	else if(unit->getUnitType() >= ID_APARTM70 && unit->getUnitType()  <= ID_APARTM159 ) //"Apartment"
 	{
 		lagCoefficient = devModel->getTaoByQuarter(quarterStr)->getApartment();
 
-		finalCoefficient = (lagCoefficient * 0.9814937536) + 0.0185078196;
+		const LagPrivateT *lag = devModel->getLagPrivateTByPropertyTypeId(2);
+
+		finalCoefficient = (lagCoefficient * lag->getT4()) + lag->getIntercept();
 	}
 	else if(unit->getUnitType() >= ID_TERRACE180 && unit->getUnitType()  <= ID_TERRACE379 )  //"Terrace House"
 	{
 		lagCoefficient = devModel->getTaoByQuarter(quarterStr)->getTerrace();
 
-		finalCoefficient = (lagCoefficient * 1.010724741) + 0.0158062593;
+		const LagPrivateT *lag = devModel->getLagPrivateTByPropertyTypeId(3);
+
+		finalCoefficient = (lagCoefficient * lag->getT4()) + lag->getIntercept();
 	}
 	else if( unit->getUnitType() >= ID_SEMID230 && unit->getUnitType()  <= ID_SEMID499 )  //"Semi-Detached House"
 	{
 		lagCoefficient = devModel->getTaoByQuarter(quarterStr)->getSemi();
 
-		finalCoefficient = (lagCoefficient * 1.0227129467) + 0.0162892364;
+		const LagPrivateT *lag = devModel->getLagPrivateTByPropertyTypeId(4);
+
+		finalCoefficient = (lagCoefficient * lag->getT4()) + lag->getIntercept();
 	}
 	else if( unit->getUnitType() >= ID_DETACHED480 && unit->getUnitType()  <= ID_DETACHED1199 )  //"Detached House"
 	{
 		lagCoefficient =  devModel->getTaoByQuarter(quarterStr)->getDetached();
 
-		finalCoefficient = (lagCoefficient * 0.9798658328) + 0.0274840189;
+		const LagPrivateT *lag = devModel->getLagPrivateTByPropertyTypeId(5);
+
+		finalCoefficient = (lagCoefficient * lag->getT4()) + lag->getIntercept();
 	}
 
 	return finalCoefficient;
@@ -191,121 +212,7 @@ void HedonicPrice_SubModel::ComputeExpectation( int numExpectations, std::vector
 	expectations = CalculateUnitExpectations(unit, numExpectations, logsum, lagCoefficient, building, postcode, amenities);
 }
 
-/*
- *
---ATTENTION requies cant be used with c++ (for now)
 
-package.path = package.path .. ";scripts/lua/long/?.lua;../?.lua"
-require "common"
-
---[[****************************************************************************
-    OBJECTS INFORMATION
-******************************************************************************]]
-
---[[
-    Household fields:
-        - id (long integer)                : Household identifier.
-        - lifestyleId (long integer)       : Lifestyle identifier.
-        - unitId (long integer)            : Unit identifier.
-        - ethnicityId (long integer)       : Ethnicity identifier.
-        - vehicleCategoryId (long integer) : Vehicle Category identifier.
-        - size (integer)                   : Number of individuals.
-        - children (integer)               : Number of children.
-        - income (real)                    : Montly income value.
-        - housingDuration (integer)        : Number of days living in the unit.
-        - workers (integer)                : Number of workers.
-        - ageOfHead (integer)              : Age of the hh head individual.
-
-    Unit fields:
-        - id (long integer)                : Household identifier.
-        - buildingId (long integer)        : Building identifier.
-        - typeId (long integer)            : Unit type identifier.
-        - postcodeId (long integer)        : Postcode identifier.
-        - floorArea (real)                 : Floor area.
-        - storey (integer)                 : Number of storeys.
-        - rent (real)                      : Montly rent.
-
-    Entry fields:
-        - unit (Unit)                      : Unit object.
-        - hedonicPrice (real)              : Unit hedonic price.
-        - askingPrice (real)               : Unit asking price.
-        - unitId (long integer)            : Unit identifier.
-
-    Building fields:
-        - id (long integer)                : Building identifier.
-        - builtYear (integer)              : Year when the building was built.
-        - landedArea (real)                : Building area.
-        - parcelId (long integer)          : Parcel identifier.
-        - parkingSpaces (long integer)     : Number of parking spaces available.
-        - tenureId (long integer)          : Tenure identifier.
-        - typeId (long integer)            : Type identifier.
-
-    Postcode fields:
-        - id (long integer)                : Postcode internal identifier.
-        - code (string)                    : Real postcode
-        - location (Location)              : Location object with location
-            - latitude (real)              : Latitude value.
-            - longitude (real)             : Longitude value.
-        - tazId (long integer)             : Taz id.
-
-    PostcodeAmenities fields:
-        - postcode (string)                : Real postcode
-        - buildingName (string)            : Building name associated to the postcode.
-        - unitBlock (string)               : Block associated to the postcode.
-        - roadName (string)                : Road name where the postcode is located.
-        - mtzNumber (string)               : MTZ number.
-        - mrtStation (string)              : MRT station.
-        - distanceToMRT (real)             : Distance to the nearest MRT.
-        - distanceToBus (real)             : Distance to the nearest Bus Stop.
-        - distanceToExpress (real)         : Distance to the nearest Highway.
-        - distanceToPMS30 (real)           : Distance to the nearest Primary school.
-        - distanceToCBD (real)             : Distance to the nearest CBD.
-        - distanceToMall (real)            : Distance to the nearest Mall.
-        - distanceToJob (real)             : Distance to JOB by car.
-        - mrt_200m (boolean)               : Tells if postcode has MRT within 200 meters
-        - mrt_400m (boolean)               : Tells if postcode has MRT within 400 meters
-        - express_200m (boolean)           : Tells if postcode has Highway within 200 meters
-        - bus_200m (boolean)               : Tells if postcode has Bus Stop within 200 meters
-        - bus_400m (boolean)               : Tells if postcode has Bus Stop within 400 meters
-        - pms_1km (boolean)                : Tells if postcode has Primary School within 1 KM
-        - apartment (boolean)              : Tells if postcode is an apartament.
-        - condo (boolean)                  : Tells if postcode is a condominium.
-        - terrace (boolean)                : Tells if postcode is/has a terrace.
-        - semi (boolean)                   : Tells if postcode is a semi
-        - ec (boolean)                     : Tells if postcode is a ec
-        - private (boolean)                : Tells if postcode is a private unit
-        - hdb (boolean)                    : Tells if postcode is a HDB unit
-]]
-
---[[****************************************************************************
-    GLOBAL STATIC LOOKUP DATA
-******************************************************************************]]
-
---Simulation constants.
-CONSTANTS = readOnlyTable {
-  SIMULATION_YEAR   = 2008,
-}
-
-CAR_CATEGORIES = readOnlyTable {[1]=true, [6]=true, [7]=true, [8]=true, [9]=true, [16]=true,
-                                [17]=true, [18]=true, [22]=true, [23]=true, [24]=true,
-                                [25]=true, [27]=true }
---[[****************************************************************************
-    SELLER FUNCTIONS
-******************************************************************************]]
-
---[[
-    Calculates the hedonic price for the given HDB Unit.
-    Following the documentation prices are in (SGD per sqm).
-
-    @param unit to calculate the hedonic price.
-    @param building where the unit belongs
-    @param postcode of the unit.
-    @param amenities close to the unit.
-    @return hedonic price value.
-]]
-
-
-*/
 
 double HedonicPrice_SubModel::CalculateHDB_HedonicPrice(Unit *unit, const Building *building, const Postcode *postcode, const PostcodeAmenities *amenities, double logsum, double lagCoefficient)
 {
@@ -414,10 +321,6 @@ double HedonicPrice_SubModel::CalculateHDB_HedonicPrice(Unit *unit, const Buildi
 
 	hedonicPrice = hedonicPrice + lagCoefficient;
 
-
-//--print(string.format("HDB Price: %d, dist_job: %s, dist_cdb: %s, pms1KM: %s, dist_mall: %s, mrt_200m: %s, mrt_400m: %s, dist_express_200m: %s, bus_200m: %s"
-//--, hedonicPrice, (amenities.distanceToJob * (0.001966)), (amenities.distanceToCBD * (-80.4)), (amenities.pms_1km and 25.67 or 0), (amenities.distanceToMall * (-56.46)), (amenities.mrt_200m and 462.90 or 0),
-//-- menities.mrt_400m and 274.60 or 0), (amenities.express_200m and -140.10 or 0), (amenities.bus_200m and 62.43 or 0)))
     return hedonicPrice;
 }
 

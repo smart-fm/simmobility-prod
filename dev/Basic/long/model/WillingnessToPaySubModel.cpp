@@ -341,13 +341,6 @@ namespace sim_mob
 
 			double Vpriv = 	(barea		*  DD_area 		) +
 							(blogsum	* ZZ_logsumhh 	) +
-
-							//(bchin	  	* ZZ_hhchinese 	* chineseHousehold ) +
-							//(bmalay		* ZZ_hhmalay 	* malayHousehold   ) +
-							//(bHighInc   * ZZ_highInc 	) +
-							//(bHIncChildApart * ZZ_children * ZZ_highInc	* Apartment 	) +
-							//(bHIncChildCondo * ZZ_children * ZZ_highInc	* Condo 		) +
-
 							(bsizearea	 * sizeAreaQuantileCondo) +
 							(bcar * carOwnershipBoolean ) +
 							(bcarlgs * carOwnershipBoolean  * ZZ_logsumhh ) +
@@ -357,10 +350,6 @@ namespace sim_mob
 							(bcondo 	 * Condo 	 ) +
 							(bdetachedAndSemiDetached * DetachedAndSemidetaced ) +
 							(terrace	* Terrace		) +
-							(bageOfUnit25 * ZZ_ageOfUnitPrivate 	) +
-							(bageOfUnit25Squared 	* ZZ_ageOfUnitPrivate * ZZ_ageOfUnitPrivate ) +
-							//(bageGreaterT25LessT50  * ZZ_ageBet25And50 	) +
-							//(bageGreaterT50  		* ZZ_ageGreater50 	) +
 							(bmissingAge  			* ZZ_missingAge 	) +
 							(bfreeholdAppartm  		* ZZ_freehold * Apartment 	) +
 							(bfreeholdCondo  		* ZZ_freehold * Condo 		) +
@@ -369,28 +358,17 @@ namespace sim_mob
 
 			double Vhdb = 	(barea		*  DD_area 		) +
 							(blogsum	* ZZ_logsumhh 	) +
-
-							//(bchin	  	* ZZ_hhchinese 	* chineseHousehold ) +
-							//(bmalay		* ZZ_hhmalay 	* malayHousehold   ) +
-							//(bHighInc   * ZZ_highInc 	) +
-							///(midIncChildHDB3 * ZZ_children * ZZ_middleInc 	* HDB3	) +
-							//(midIncChildHDB4 * ZZ_children * ZZ_middleInc 	* HDB4	) +
-							//(midIncChildHDB5 * ZZ_children * ZZ_middleInc 	* HDB5	) +
-
 							(bsizearea	 * sizeAreaQuantileHDB) +
 							(bcar * carOwnershipBoolean ) +
 							(bcarlgs * carOwnershipBoolean  * ZZ_logsumhh ) +
 							(bmall * mallDistance) +
 							(bmrt2400m * mallDistanceBool ) +
-
-
 							(bhdb12  * HDB12 ) +
 							(bhdb3   * HDB3  ) +
 							(bhdb4 	 * HDB4	 ) +
 							(bhdb5 	 * HDB5	 ) +
 							(bageOfUnit30 * ZZ_ageOfUnitHDB ) +
 							(bageOfUnit30Squared * ZZ_ageOfUnitHDB * ZZ_ageOfUnitHDB );
-							//(bageOfUnitGreater30 * ZZ_ageGreater30 );
 
 			if( unit->getUnitType() <= 6 || unitType == 65 )
 				V = Vhdb;

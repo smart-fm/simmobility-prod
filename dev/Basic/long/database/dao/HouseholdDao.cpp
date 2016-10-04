@@ -30,7 +30,7 @@ void HouseholdDao::fromRow(Row& result, Household& outObj)
     outObj.size = result.get<int>(DB_FIELD_SIZE, 0);
     outObj.childUnder4  = result.get<int>(DB_FIELD_CHILDUNDER4, 0);
     outObj.childUnder15 = result.get<int>(DB_FIELD_CHILDUNDER15, 0);
-    outObj.adult = result.get<int>("adult", 0);
+    outObj.adult = result.get<int>("num_adults", 0);
     outObj.income = result.get<double>(DB_FIELD_INCOME, 0);
     outObj.housingDuration = result.get<int>(DB_FIELD_HOUSING_DURATION, 0);
     outObj.workers = result.get<int>(DB_FIELD_WORKERS, 0);

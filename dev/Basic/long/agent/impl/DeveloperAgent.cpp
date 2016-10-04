@@ -233,7 +233,12 @@ inline void calculateProjectProfit(PotentialProject& project,DeveloperModel* mod
 		//		}
 
 		BigSerial tazId = project.getParcel()->getTazId();
-		double logsum = model->getHedonicPriceLogsum(tazId);
+		double logsum = 0;
+		const HedonicLogsums *logsumPtr = model->getHedonicLogsumsByTazId(tazId);
+		if(logsumPtr != nullptr)
+			{
+				logsum = logsumPtr->getLogsumWeighted();
+			}
 
 		if(isEmptyParcel)
 		{
@@ -288,25 +293,13 @@ inline void calculateProjectProfit(PotentialProject& project,DeveloperModel* mod
 		    HPI = privateLagTObj->getIntercept() + ( privateLagTObj->getT4() * taoValue);
 
 			int ageCapped = 0;
-			if(unitAge > 25 )
+			if(unitAge > 50 )
 			{
-				ageCapped = 25;
+				ageCapped = 50;
 			}
 			else
 			{
 				ageCapped = unitAge;
-			}
-
-			int agem_25_50 = 0;
-			if ( (unitAge >= 25) && (unitAge <= 50))
-				{
-					 agem_25_50 = 1;
-				}
-
-			int agem50 = 0;
-			if(unitAge > 50)
-			{
-				agem50 = 1;
 			}
 
 			double floorArea = (*unitsItr).getFloorArea();
@@ -314,11 +307,10 @@ inline void calculateProjectProfit(PotentialProject& project,DeveloperModel* mod
 
 			if(hedonicCoeffObj!=nullptr)
 			{
-				revenue  = hedonicCoeffObj->getIntercept() + (hedonicCoeffObj->getLogSqrtArea() * log(sqrt(floorArea)))+ (hedonicCoeffObj->getFreehold() * (*unitsItr).isFreehold()) +
+				revenue  = hedonicCoeffObj->getIntercept() + (hedonicCoeffObj->getLogSqrtArea() * log(floorArea))+ (hedonicCoeffObj->getFreehold() * (*unitsItr).isFreehold()) +
 					(hedonicCoeffObj->getLogsumWeighted() * logsum ) + (hedonicCoeffObj->getPms1km() * amenities->hasPms_1km()) + (hedonicCoeffObj->getDistanceMallKm() * amenities->getDistanceToMall()) +
 					(hedonicCoeffObj->getMrt200m()* amenities->hasMRT_200m()) + (hedonicCoeffObj->getMrt_2_400m() * amenities->hasMRT_400m()) + (hedonicCoeffObj->getExpress200m() * amenities->hasExpress_200m()) +
-				    (hedonicCoeffObj->getBus400m() * amenities->hasBus_200m()) + (hedonicCoeffObj->getBusGt400m() * amenities->hasBus_400m()) + (hedonicCoeffObj->getAge() * ageCapped) + (hedonicCoeffObj->getLogAgeSquared() * log(sqrt(ageCapped))) +
-					(hedonicCoeffObj->getAgem25_50() * agem_25_50) + (hedonicCoeffObj->getAgem50() * agem50);
+				    (hedonicCoeffObj->getBus400m() * amenities->hasBus_200m()) + (hedonicCoeffObj->getBusGt400m() * amenities->hasBus_400m()) + (hedonicCoeffObj->getAge() * ageCapped) + (hedonicCoeffObj->getLogAgeSquared() * (ageCapped*ageCapped));
 			}
 
 			double revenuePerUnit = exp(revenue+HPI);

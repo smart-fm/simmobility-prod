@@ -19,6 +19,7 @@
 #include "database/entity/HedonicCoeffs.hpp"
 #include "database/entity/LagPrivateT.hpp"
 #include "database/entity/LtVersion.hpp"
+#include "database/entity/HedonicLogsums.hpp"
 
 using namespace sim_mob;
 using namespace long_term;
@@ -35,7 +36,7 @@ struct type_conversion<sim_mob::long_term::HedonicCoeffs>
     {
     	hedonicCoeffs.setPropertyTypeId(values.get<BigSerial>("property_type_id", INVALID_ID));
     	hedonicCoeffs.setIntercept(values.get<double>("intercept", 0));
-    	hedonicCoeffs.setLogSqrtArea(values.get<double>("log_sqrt_area", 0));
+    	hedonicCoeffs.setLogSqrtArea(values.get<double>("log_area", 0));
     	hedonicCoeffs.setFreehold( values.get<double>("freehold", 0));
     	hedonicCoeffs.setLogsumWeighted(values.get<double>("logsum_weighted", 0));
     	hedonicCoeffs.setPms1km(values.get<double>("pms_1km", 0));
@@ -46,11 +47,8 @@ struct type_conversion<sim_mob::long_term::HedonicCoeffs>
     	hedonicCoeffs.setBus400m(values.get<double>("bus2_400m", 0));
     	hedonicCoeffs.setBusGt400m(values.get<double>("bus_gt400m", 0));
     	hedonicCoeffs.setAge(values.get<double>("age", 0));
-    	hedonicCoeffs.setLogAgeSquared(values.get<double>("log_age_squared", 0));
-    	hedonicCoeffs.setAgem25_50(values.get<double>("agem25_50", 0));
-    	hedonicCoeffs.setAgem50(values.get<double>("agem50", 0));
+    	hedonicCoeffs.setLogAgeSquared(values.get<double>("age_squared", 0));
     	hedonicCoeffs.setMisage(values.get<double>("misage", 0));
-    	hedonicCoeffs.setAge30m(values.get<double>("age_30_m", 0));
 
     }
 };
@@ -84,6 +82,19 @@ struct type_conversion<sim_mob::long_term::LtVersion>
     	ltVersion.setChange_date(values.get<std::tm>("change_date", tm()));
     	ltVersion.setComments(values.get<string>("comments", ""));
     	ltVersion.setUser_id(values.get<string>("userid", ""));
+    }
+};
+
+template<>
+struct type_conversion<sim_mob::long_term::HedonicLogsums>
+{
+    typedef values base_type;
+
+    static void
+    from_base(soci::values const & values, soci::indicator & indicator, sim_mob::long_term::HedonicLogsums& hedonicLogsums)
+    {
+    	hedonicLogsums.setTazId(values.get<long long>("taz_id", INVALID_ID));
+    	hedonicLogsums.setLogsumWeighted(values.get<double>("logsum_weighted", 0));
     }
 };
 

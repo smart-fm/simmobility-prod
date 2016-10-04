@@ -211,7 +211,7 @@ class ServiceController:  public lua::LuaModel
 	 *@param distance is the distance from the start of the path of given train where the stop point is to be inserted
 	 *@param duration is the duration required for the train specified to stop
 	 */
-	void insertStopPoint(int trainId,std::string lineId,double distance,double duration);
+	void insertStopPoint(int trainId,std::string lineId,double distance,double duration,double maxDeceleration);
 
 	/**
 	 *Interface to update the platform list,basically currently it just specifies the platforms to be ignored as there is only one line
@@ -221,6 +221,8 @@ class ServiceController:  public lua::LuaModel
 	 *@param platformsToBeIgnored is the list of platforms to be ignored on th etrains route
 	 */
 	void updatePlatformList(int trainId,luabridge::LuaRef platformsToBeIgnored,std::string lineId);
+
+	void addPlatformToList(int trainId,luabridge::LuaRef platformsToBeIgnored,std::string lineId);
 
 	void insertPlatformHoldEntities(std::string platformName,double duration,int trainId,std::string lineId);
 
@@ -272,13 +274,20 @@ class ServiceController:  public lua::LuaModel
 	 */
 	int getDisruptedPlatformsSize(std::string lineID) const;
 
+	int getUturnPlatformsSize(std::string lineID) const;
+
+	std::string getUturnPlatformByIndex(std::string lineId,int index) const;
+
 	/**
 	 *Interface to set unset the Uturn signal to the train
 	 *@param trainId is the id of the train whose uturn flag is to be set
 	 *@param lineId is the id of the line where the train with given id is to be looked for
 	 *@param takeUturn is the bool action whether to set or unset the Uturn signal
 	 */
-	void setUturnFlag(int trainId,std::string lineId,bool takeUturn);
+	void setUturnFlag(int trainId,std::string lineId,bool takeUturn,double timeforUturn);
+
+
+	bool getUturnFlag(int trainId,std::string lineId);
 
 	/*Interface that gives the trainId of the train ahead of the train specified
 	 *@param trainId is the id of the train whose next train's id is to be fetched
@@ -377,7 +386,17 @@ class ServiceController:  public lua::LuaModel
 	 */
 	void connectTrainsAfterDisruption(std::string lineId);
 
+	bool shouldStopDueToDisruption(int trainId,std::string lineId);
+
+	bool isUTurnPlatformOnTheWay(int trainId,std::string lineId);
+
+	bool isUTurnPlatform(std::string platformName,std::string lineId);
+
+	bool isDisruptedPlatform(std::string platformName,std::string lineId);
+
 	void addTrainIdToInactivePoolOnJourneyCompletion(int trainId,std::string lineId);
+
+	void setDisruptedState(int trainId,std::string lineId,bool state);
 
 	private:
     /** mutex lock to lock the mapOfLineAndTrainDrivers **/

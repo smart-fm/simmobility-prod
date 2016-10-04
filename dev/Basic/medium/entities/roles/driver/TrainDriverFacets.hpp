@@ -9,6 +9,7 @@
 #include "conf/settings/DisableMPI.h"
 #include "entities/roles/RoleFacets.hpp"
 #include "TrainPathMover.hpp"
+#include "TrainDriver.hpp"
 namespace sim_mob {
 //class TrainPathMover;
 namespace medium{
@@ -205,11 +206,19 @@ public:
 
 	double getSafeHeadWay();
 
+	void setUserSpecifiedTimeToTakeUturn(double time);
+
 	std::string getPlatformByOffset(int offset);
 	bool isUturnDueToDisruption();
 	void setToMove(bool toMove);
 	bool getToMove();
 	void  setNoMoveTimeslice(int ts);
+	bool shouldStopDueToDisruption(TrainDriver *aheadDriver);
+	std::string shouldTrainAheadStopDueToDisruption(TrainDriver *aheadDriver);
+	bool isUTurnPlatformOnTheWay();
+	bool isUturnPlatform();
+
+	void findNearestStopPoint(std::vector<StopPointEntity> &stopPoints,double &distance);
 
 	TrainPlatformMover& getTrainPlatformMover();
 
@@ -247,6 +256,10 @@ private:
 	TRAINCASE forceResetedCase;
 	bool toMove=true;
 	int noMoveTimeSlice;
+	double waitingTimeRemainingBeforeUturn=0;
+	double userSpecifiedUturnTime=0;
+	bool isWaitingForUturn=false;
+
 
 private:
 	/**
@@ -270,7 +283,9 @@ private:
 	 */
 	bool isStationCase(double disToTrain, double disToPlatform,double disToStopPoint, double& effectDis);
 
+	bool isStationCase_1(double disToTrain, double disToPlatform,double& effectDis);
 
+	void eraseStopPoint(std::vector<PolyPoint>::iterator pointItr);
 
 	void produceDwellTimeInfo();
 };

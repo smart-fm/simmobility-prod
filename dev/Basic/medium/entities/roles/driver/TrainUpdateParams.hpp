@@ -31,12 +31,14 @@ public:
 	/**current effective acceleration*/
 	double currentAcelerate;
 	/**current case*/
+	double maxDecelerationToStopPoint;
 	CURRENTCASE currCase;
 
 	/**distance to next train*/
 	double disToNext;
 	double distanceToNextStopPoint;
 	double movingDistance;
+
 	/**
 	 * resets this update params.
 	 * @param now current timeslice in which reset is called

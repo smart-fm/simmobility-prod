@@ -19,6 +19,8 @@ struct StopPointEntity
 {
 	PolyPoint point;
 	double duration;
+	double maxDecerationRate;
+	double distance;
 };
 
 struct PlatformHoldingTimeEntity
@@ -216,7 +218,7 @@ public:
 	 * @param point is the polypoint where the train is to be stopped
 	 * @param duration is the duration for which it has  be stopped
 	 */
-	void insertStopPoint(PolyPoint point,double duration);
+	void insertStopPoint(PolyPoint point,double duration,double maxDecerationRate,double distance);
 
 	/**
 	 * Interface that gets all the stop current points of the train
@@ -314,6 +316,8 @@ public:
 	 */
 	void AddPlatformsToIgnore(std::vector<std::string> PlatformsToIgnore);
 
+	void AddPlatforms(std::vector<std::string> PlatformsToAdd);
+
 	/**
 	 * mutex lock when modifying or calling the boarding alighting functions
 	 * @param lockunlock is to lock unlock boarding alighting operation
@@ -325,6 +329,10 @@ public:
 	 * To override the dwell time calculated
 	 */
 	void resetHoldingTime();
+
+	void resetMaximumHoldingTime(std::string platformName,double duration);
+
+	void resetMinimumHoldingTime(std::string platformName,double duration);
 
 	/**
 	 * function which sets or unsets U-turn signal
@@ -378,6 +386,10 @@ public:
 
 	void setIsToBeRemoved(bool);
 
+	bool hasForceAlightedInDisruption();
+
+	void setHasForceAlightedInDisruption(bool hasForceAlighted);
+
 	/**
 	 * Event handler which provides a chance to handle event transfered from parent agent.
 	 * @param sender pointer for the event producer.
@@ -415,7 +427,9 @@ private:
     /** The bool which indicates whether passengers have force alighted **/
     bool isForceAlighted=false;
     /** vector which holds the data about overriding the default dwell time calculated at platform  as requested by service controller**/
-    std::vector<PlatformHoldingTimeEntity> platformHoldingTimeEntities;
+    std::map<std::string,double> platformHoldingTimeEntities;
+    std::map<std::string,double> platformMaxHoldingTimeEntities;
+    std::map<std::string,double> platformMinHoldingTimeEntities;
     /** map which holds the data for restricting passenger movement at certain platforms along train route **/
     std::map<std::string,passengerMovement> restrictPassengersEntities;
     /** vector which specifies the platforms to be ignored by the train on its route as specified by service controller **/
@@ -447,6 +461,7 @@ private:
 	/**arrival time when stopping the platform*/
 	std::string arrivalTimeAtPlatform;
 	bool isToBeRemovedFromStationAgent=false;
+	bool hasforceAlightedInDisruption = false;
 
 	/* board passenger count */
 

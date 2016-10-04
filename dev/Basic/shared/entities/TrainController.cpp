@@ -105,6 +105,28 @@ namespace sim_mob
 	}
 
 	template<typename PERSON>
+	void TrainController<PERSON>::loadUTurnPlatforms()
+	{
+		const ConfigParams& configParams = ConfigManager::GetInstance().FullConfig();
+		const std::map<std::string, std::string>& storedProcs = configParams.getDatabaseProcMappings().procedureMappings;
+		std::map<std::string, std::string>::const_iterator spIt = storedProcs.find("pt_uturn_platforms");
+		if(spIt == storedProcs.end())
+		{
+			Print() << "missing stored procedure for get_pt_opposite_lines" << std::endl;
+			return;
+		}
+		soci::session sql_(soci::postgresql, configParams.getDatabaseConnectionString(false));
+		soci::rowset<soci::row> rs = (sql_.prepare << "select * from " + spIt->second);
+		for (soci::rowset<soci::row>::const_iterator it=rs.begin(); it!=rs.end(); ++it)
+		{
+			const soci::row& r = (*it);
+			std::string platformNo = r.get<std::string>(0);
+			std::string lineId = r.get<std::string>(1);
+			mapOfUturnPlatformsLines[lineId].push_back(platformNo);
+		}
+	}
+
+	template<typename PERSON>
 	void TrainController<PERSON>::loadTrainAvailabilities()
 	{
 		const ConfigParams& configParams = ConfigManager::GetInstance().FullConfig();
@@ -278,6 +300,12 @@ namespace sim_mob
 		activeTrainsListLock.lock();
 		mapOfLineAndTrainDrivers[lineId].push_back(driver);
 		activeTrainsListLock.unlock();
+	}
+
+	template<typename PERSON>
+	double TrainController<PERSON>::getMaximumDwellTime()
+	{
+		return 120;
 	}
 
 	template<typename PERSON>
@@ -765,7 +793,14 @@ namespace sim_mob
 	template<typename PERSON>
 	Platform* TrainController<PERSON>::getPlatformFromId(std::string platformNo)
 	{
-	   return mapOfIdvsPlatforms[platformNo];
+		if(mapOfIdvsPlatforms.find(platformNo)!=mapOfIdvsPlatforms.end())
+		{
+			return mapOfIdvsPlatforms[platformNo];
+		}
+		else
+		{
+			return nullptr;
+		}
 	}
 
 	template<typename PERSON>
@@ -1074,6 +1109,28 @@ namespace sim_mob
 	}
 
 	template<typename PERSON>
+	bool TrainController<PERSON>::isUturnPlatform(std::string platformName,std::string lineId)
+	{
+		std::vector<std::string> platforms=mapOfUturnPlatformsLines[lineId];
+		if(std::find(platforms.begin(),platforms.end(),platformName)!=platforms.end())
+		{
+			return true;
+		}
+		return false;
+	}
+
+	template<typename PERSON>
+	bool TrainController<PERSON>::isDisruptedPlatform(std::string platformName,std::string lineId)
+	{
+		std::vector<std::string> disruptedplatforms=disruptedPlatformsNamesMap_ServiceController[lineId];
+		if(std::find(disruptedplatforms.begin(),disruptedplatforms.end(),platformName)!=disruptedplatforms.end())
+		{
+			return true;
+		}
+		return false;
+	}
+
+	template<typename PERSON>
 	Platform* TrainController<PERSON>::getPrePlatform(const std::string& lineId, const std::string& curPlatform)
 	{
 		Platform* platform = nullptr;
@@ -1102,9 +1159,42 @@ namespace sim_mob
 	}
 
 	template<typename PERSON>
+	bool TrainController<PERSON>::isPlatformBeforeAnother(std::string firstPlatfrom ,std::string secondPlatform,std::string lineId)
+	{
+		std::vector<Platform*> platforms;
+		getTrainPlatforms(lineId, platforms);
+		bool foundFirstPlatfrom = false;
+		std::vector<Platform*>::const_iterator it = platforms.begin();
+		while(it!=platforms.end())
+		{
+			if((*it)->getPlatformNo()==firstPlatfrom)
+			{
+				foundFirstPlatfrom =true;
+				continue;
+			}
+
+			if((*it)->getPlatformNo()==secondPlatform)
+			{
+				if(foundFirstPlatfrom ==true)
+				{
+					return true;
+				}
+				return false;
+			}
+		}
+		return false;
+	}
+
+	template<typename PERSON>
 	std::map<std::string,std::vector<std::string>> TrainController<PERSON>::getDisruptedPlatforms_ServiceController()
 	{
         return disruptedPlatformsNamesMap_ServiceController;
+	}
+
+	template<typename PERSON>
+	std::map<std::string,std::vector<std::string>> TrainController<PERSON>::getUturnPlatforms()
+	{
+		return mapOfUturnPlatformsLines;
 	}
 
 	template<typename PERSON>

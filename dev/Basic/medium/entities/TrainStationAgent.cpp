@@ -133,7 +133,6 @@ void TrainStationAgent::HandleMessage(messaging::Message::MessageType type, cons
         {
         	driver->setNextRequested(TrainDriver::REQUESTED_AT_PLATFORM);
         }
-		//msg.trainDriver->setNextRequested(TrainDriver::REQUESTED_AT_PLATFORM);
 		break;
 	}
 	case TRAIN_ARRIVAL_AT_STARTPOINT:
@@ -528,14 +527,6 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 	dispathPendingTrains(now);
 	updateWaitPersons();
 	performDisruption(now);
-	if(boost::iequals(stationName.substr(0,2),"NE"))
-	{
-		int s=9;
-	}
-	if(boost::iequals(stationName,"NE4_1"))
-	{
-		std::string s="NE4_1";
-	}
 	/*if(arePassengersreRouted == false)
 	{
 		if(station)
@@ -595,14 +586,10 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 			else if ((*it)->getNextRequested() == TrainDriver::REQUESTED_AT_PLATFORM)
 			{
 
-				if((*it)->getTrainId()==9 && (*it)->getTrainLine()=="NE_2")
-				{
-					int debug=1;
-				}
 				DailyTime startTm = ConfigManager::GetInstance().FullConfig().simStartTime();
 				DailyTime current(now.ms() + startTm.getValue());
 				(*it)->setArrivalTime(current.getStrRepr());
-				bool isDisruptedPlat = false;
+				bool isDisruptedState = false;
 				std::string trainLine=(*it)->getTrainLine();
 				std::map<std::string,std::vector<std::string>> platformNames = TrainController<sim_mob::medium::Person_MT>::getInstance()->getDisruptedPlatforms_ServiceController();
 				std::vector<std::string> disruptedPlatformNames=platformNames[trainLine];
@@ -619,7 +606,7 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 						int debug=1;
 					}
 					(*it)->getMovement()->setDisruptedState(true);
-					isDisruptedPlat=true;
+					isDisruptedState=true;
 				}
 
 
@@ -633,8 +620,13 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 					(*it)->calculateDwellTime(0,alightingNum,0,now);
 					(*it)->setNextRequested(TrainDriver::REQUESTED_WAITING_LEAVING);
 					(*it)->setForceAlightFlag(false);
-					if(isDisruptedPlat)
-					continue;
+
+					if((*it)->getMovement()->getDisruptedState())
+					{
+						(*it)->setHasForceAlightedInDisruption(true);
+						//if(isDisruptedPlat)
+						continue;
+					}
 
 					else
 					{
@@ -687,13 +679,13 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 							(*it)->calculateDwellTime(0,alightingNum,0,now);
 						}
 						(*it)->setNextRequested(TrainDriver::REQUESTED_WAITING_LEAVING);
-						isDisruptedPlat = true;
+						isDisruptedState = true;
 					}
 				}
 
 				else
 				{
-					std::string trainLine=(*it)->getTrainLine();
+					/*std::string trainLine=(*it)->getTrainLine();
 				    std::map<std::string,std::vector<std::string>> platformNames = TrainController<sim_mob::medium::Person_MT>::getInstance()->getDisruptedPlatforms_ServiceController();
 					std::vector<std::string> disruptedPlatformNames=platformNames[trainLine];
 					std::vector<std::string>::iterator itr=std::find(disruptedPlatformNames.begin(),disruptedPlatformNames.end(),platform->getPlatformNo());
@@ -710,6 +702,7 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 							int debug=1;
 						}
 						(*it)->getMovement()->setDisruptedState(true);
+						//if disrupted state and or uturn flag is set
 						if(!(*it)->getForceAlightFlag())
 						{
 							(*it)->lockUnlockRestrictPassengerEntitiesLock(true);
@@ -717,14 +710,24 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 							(*it)->lockUnlockRestrictPassengerEntitiesLock(false);
 							(*it)->calculateDwellTime(0,alightingNum,0,now);
 						}
-						(*it)->setNextRequested(TrainDriver::REQUESTED_WAITING_LEAVING);
+
 						isDisruptedPlat = true;
+					}*/
+
+					if((!(*it)->getForceAlightFlag())&&((*it)->getMovement()->getDisruptedState()||(*it)->getUTurnFlag()))
+					{
+						(*it)->lockUnlockRestrictPassengerEntitiesLock(true);
+						int alightingNum = (*it)->alightAllPassengers(leavingPersons[platform], now);
+						(*it)->lockUnlockRestrictPassengerEntitiesLock(false);
+						(*it)->calculateDwellTime(0,alightingNum,0,now);
+						(*it)->setNextRequested(TrainDriver::REQUESTED_WAITING_LEAVING);
+						isDisruptedState = true;
 					}
 
 				}
 
 
-				if(!isDisruptedPlat)
+				if(!isDisruptedState)
 				{
 					if((*it)->getTerminateStatus())
 					{

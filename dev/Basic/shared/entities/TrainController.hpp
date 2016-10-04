@@ -296,6 +296,11 @@ public:
 	 */
 	double getMinDwellTime(std::string stationNo,std::string lineId);
 
+	/* Returns the maximum dwell time of a train irrespective of type of station
+	 * For any station it is 120 secs
+	 */
+	double getMaximumDwellTime();
+
 	/* just checks if the station is the first station for a given line */
 	bool isFirstStation(std::string lineId,Platform *platform);
 	/*
@@ -314,6 +319,7 @@ public:
 	void composeTrainTripUnScheduled(std::string lineId,std::string startTime,std::string startStation);
 	/* gets the list of disrupted platforms for service controller caused by service controller */
 	std::map<std::string,std::vector<std::string>> getDisruptedPlatforms_ServiceController();
+	std::map<std::string,std::vector<std::string>> getUturnPlatforms();
 	/*Gets all the train ids for active trains */
     std::vector<int> GetActiveTrainIds();
     /* performs disruptiopn.sets the disrupted platform list */
@@ -322,13 +328,16 @@ public:
     void setDisruptionParams(std::string startStation,std::string endStation,std::string time);
     /* gets the list of platforms between two stations for a particular line*/
     std::vector<std::string> getPlatformsBetweenStations(std::string lineId,std::string startStation,std::string endStation);
+    bool isPlatformBeforeAnother(std::string firstPlatfrom ,std::string secondPlatform,std::string lineId);
     /* checks if train service is terminated for a particular line or not */
     void clearDisruption(std::string lineId);
     bool isServiceTerminated(std::string lineId);
     void loadOppositeLines();
     void loadTrainAvailabilities();
+    void loadUTurnPlatforms();
+    bool isDisruptedPlatform(std::string platformName,std::string lineId);
     void pushToInactivePoolAfterTripCompletion(int trainId,std::string lineId);
-
+    bool isUturnPlatform(std::string platformName,std::string lineId);
     int getMapPlatformsSize();
 
 protected:
@@ -504,6 +513,7 @@ private:
 	mutable boost::mutex terminatedTrainServiceLock;
 	std::map<std::string,std::list<int>> mapOfTrainMaxMinIds;
 	std::map<std::string,std::string> mapOfOppositeLines;
+	std::map<std::string,std::vector<std::string>> mapOfUturnPlatformsLines;
 
 	int lastTrainId;
 

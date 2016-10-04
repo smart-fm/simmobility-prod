@@ -219,9 +219,9 @@ void TrainDriver::calculateDwellTime(int boarding,int alighting,int noOfPassenge
 		{
 			dwellTime=minDwellTime;
 		}
-		else if(dwellTime>120)
+		else if(dwellTime>trainController->getMaximumDwellTime())
 		{
-			dwellTime =120;
+			dwellTime = trainController->getMaximumDwellTime();
 		}
 	}
 	minDwellTimeRequired =dwellTime; /*minDwellTimeRequired is the min dwell time calculated so that all passengers can board and alight */
@@ -233,46 +233,38 @@ void TrainDriver::calculateDwellTime(int boarding,int alighting,int noOfPassenge
 
 void TrainDriver::insertPlatformHoldEntities(std::string platformName,double duration)
 {
-
-	std::vector<PlatformHoldingTimeEntity>::iterator it= platformHoldingTimeEntities.begin();
-	PlatformHoldingTimeEntity platformHoldEntity;
-	platformHoldEntity.pltaformName=platformName;
-	platformHoldEntity.holdingTime=duration;
 	platformHoldingTimeEntitiesLock.lock();
-	it=std::find(it,platformHoldingTimeEntities.end(),platformHoldEntity);
-	if(it!=platformHoldingTimeEntities.end())
-	{
-		platformHoldingTimeEntities.erase(it);
-	}
-
-	platformHoldingTimeEntities.push_back(platformHoldEntity);
+	platformHoldingTimeEntities[platformName]=duration;
 	platformHoldingTimeEntitiesLock.unlock();
-
 }
 
 
 void TrainDriver::resetHoldingTime()
 {
 	platformHoldingTimeEntitiesLock.lock();
-	std::vector<PlatformHoldingTimeEntity>::iterator it=platformHoldingTimeEntities.begin();
 	Platform *currentPlatform=getMovement()->getNextPlatform();
-	while(it!=platformHoldingTimeEntities.end())
+	if(platformHoldingTimeEntities.find(currentPlatform->getPlatformNo())!=platformHoldingTimeEntities.end())
 	{
-		if(boost::iequals(currentPlatform->getPlatformNo(),(*it).pltaformName))
+		double holdingTime=platformHoldingTimeEntities[currentPlatform->getPlatformNo()];
+		if(holdingTime>minDwellTimeRequired)
 		{
-			double holdingTime=(*it).holdingTime;
-			if(holdingTime>minDwellTimeRequired)
-			{
-				waitingTimeSec=holdingTime-(initialDwellTime-waitingTimeSec);
-				initialDwellTime=holdingTime;
-			}
-			platformHoldingTimeEntities.erase(it);
-			break;
+			waitingTimeSec=holdingTime-(initialDwellTime-waitingTimeSec);
+			initialDwellTime=holdingTime;
 		}
-		it++;
+		platformHoldingTimeEntities.erase(currentPlatform->getPlatformNo());
 	}
 	platformHoldingTimeEntitiesLock.unlock();
 
+}
+
+void TrainDriver::resetMaximumHoldingTime(std::string platformName,double duration)
+{
+	platformMaxHoldingTimeEntities[platformName]=duration;
+}
+
+void TrainDriver::resetMinimumHoldingTime(std::string platformName,double duration)
+{
+	platformMinHoldingTimeEntities[platformName]=duration;
 }
 
 double TrainDriver::getWaitingTime() const
@@ -308,6 +300,22 @@ void TrainDriver::AddPlatformsToIgnore(std::vector<std::string> PlatformsToIgnor
 		if(findelement==platformsToBeIgnored.end())
 		{
 			platformsToBeIgnored.push_back((*it));
+		}
+		it++;
+	}
+	platformsToBeIgnoredLock.unlock();
+}
+
+void TrainDriver::AddPlatforms(std::vector<std::string> PlatformsToAdd)
+{
+	std::vector<std::string>::iterator it=PlatformsToAdd.begin();
+	platformsToBeIgnoredLock.lock();
+	while(it!=PlatformsToAdd.end())
+	{
+		std::vector<std::string>::iterator findelement=std::find(platformsToBeIgnored.begin(),platformsToBeIgnored.end(),*it);
+		if(findelement!=platformsToBeIgnored.end())
+		{
+			platformsToBeIgnored.erase(findelement);
 		}
 		it++;
 	}
@@ -516,14 +524,17 @@ void TrainDriver::updatePassengers()
 }
 
 
-void TrainDriver::insertStopPoint(PolyPoint point,double duration)
+void TrainDriver::insertStopPoint(PolyPoint point,double duration,double maxDecerationRate,double distance)
 {
 	StopPointEntity stopPointEntity;
 	stopPointEntity.point=point;
 	stopPointEntity.duration=duration;
+	stopPointEntity.maxDecerationRate=maxDecerationRate;
+	stopPointEntity.distance=distance;
 	stopPointEntitiesLock.lock();
 	stopPointEntities.push_back(stopPointEntity);
 	stopPointEntitiesLock.unlock();
+
 }
 
 
@@ -703,6 +714,16 @@ bool TrainDriver::isBoardingRestricted()
 			}
 		}
 	}
+}
+
+void TrainDriver::setHasForceAlightedInDisruption(bool hasForceAlighted)
+{
+	hasforceAlightedInDisruption = hasForceAlighted;
+}
+
+bool TrainDriver::hasForceAlightedInDisruption()
+{
+	return hasforceAlightedInDisruption;
 }
 
 bool TrainDriver::isAlightingRestricted()

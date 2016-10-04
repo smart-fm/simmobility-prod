@@ -73,6 +73,7 @@ ServiceController::~ServiceController()
 				.addFunction("get_disrupted_platforms",&ServiceController::getDisruptedPlatformByIndex)
 				.addFunction("get_disrupted_platforms_size",&ServiceController::getDisruptedPlatformsSize)
 				.addFunction("get_platform_by_offset",&ServiceController::getPlatformByOffset)
+				.addFunction("get_uturn_flag",&ServiceController::getUturnFlag)
 				.addFunction("set_uturn",&ServiceController::setUturnFlag)
 				.addFunction("get_next_requested",&ServiceController::getNextRequestedMovementActionForTrain)
 				.addFunction("get_trainid_train_ahead",&ServiceController::getTrainIdOfTrainAhead)
@@ -85,6 +86,14 @@ ServiceController::~ServiceController()
 				.addFunction("set_subsequent_next_requested",&ServiceController::setSubsequentNextRequested)
 				.addFunction("get_disrupted_state",&ServiceController::getDisruptedState)
 				.addFunction("get_prev_platform",&ServiceController::getPrePlatfrom)
+				.addFunction("get_uturn_platforms_size",&ServiceController::getUturnPlatformsSize)
+				.addFunction("get_uturn_platform_by_index",&ServiceController::getUturnPlatformByIndex)
+				.addFunction("should_stop_due_to_disruption",&ServiceController::shouldStopDueToDisruption)
+				.addFunction("is_disrupted_platform",&ServiceController::isDisruptedPlatform)
+				.addFunction("set_disrupted_state",&ServiceController::setDisruptedState)
+				.addFunction("is_uturn_platform_on_the_way",&ServiceController::isUTurnPlatformOnTheWay)
+				.addFunction("is_uturn_platform",&ServiceController::isUTurnPlatform)
+				.addFunction("add_platform",&ServiceController::addPlatformToList)
 	 			.endClass();
 
  }
@@ -296,7 +305,7 @@ int ServiceController::getTrainIdOfTrainAhead(int trainId,std::string lineId) co
 	return nextDrivertrainId;
 }
 
-void ServiceController::setUturnFlag(int trainId,std::string lineId,bool takeUturn)
+void ServiceController::setUturnFlag(int trainId,std::string lineId,bool takeUturn,double timeForUturn)
 {
 	map<std::string,std::map<int,TrainDriver *>>::iterator it=mapOfLineAndTrainDrivers.find(lineId);
 	if(it != mapOfLineAndTrainDrivers.end())
@@ -311,14 +320,37 @@ void ServiceController::setUturnFlag(int trainId,std::string lineId,bool takeUtu
 				if(driver->getTrainId()==trainId)
 				{
 					driver->setUturnFlag(takeUturn);
-
+					TrainMovement *trainMovement = driver->getMovement();
+					if(trainMovement)
+					{
+						trainMovement->setUserSpecifiedTimeToTakeUturn(timeForUturn);
+					}
 				}
 			}
 		}
 	}
 }
 
-void ServiceController::insertStopPoint(int trainId,std::string lineId,double distance,double duration)
+bool ServiceController::getUturnFlag(int trainId,std::string lineId)
+{
+	map<std::string,std::map<int,TrainDriver *>>::iterator it=mapOfLineAndTrainDrivers.find(lineId);
+	if(it != mapOfLineAndTrainDrivers.end())
+	{
+		std::map<int,TrainDriver*> &mapOfTrainIdsVsDrivers = it->second;
+		std::map<int,TrainDriver*>::iterator itr=mapOfTrainIdsVsDrivers.find(trainId);
+		if(itr!=mapOfTrainIdsVsDrivers.end())
+		{
+			TrainDriver* driver=itr->second;
+			if(driver)
+			{
+				return driver->getUTurnFlag();
+			}
+		}
+	}
+	return false;
+}
+
+void ServiceController::insertStopPoint(int trainId,std::string lineId,double distance,double duration,double maxDeceleration)
 {
 	map<std::string,std::map<int,TrainDriver *>>::const_iterator it=mapOfLineAndTrainDrivers.find(lineId);
 	if(it != mapOfLineAndTrainDrivers.end())
@@ -337,7 +369,7 @@ void ServiceController::insertStopPoint(int trainId,std::string lineId,double di
 					{
 						const TrainPathMover &pathMover=movement->getPathMover();
 						PolyPoint stopPoint=pathMover.GetStopPoint(distance);
-						driver->insertStopPoint(stopPoint,duration);
+						driver->insertStopPoint(stopPoint,duration,maxDeceleration,distance);
 					}
 				}
 			}
@@ -416,6 +448,33 @@ void ServiceController::updatePlatformList(int trainId,LuaRef platformsToBeIgnor
 	}
 }
 
+void ServiceController::addPlatformToList(int trainId,LuaRef platformsToBeAdded,std::string lineId)
+{
+	map<std::string,std::map<int,TrainDriver *>>::iterator it=mapOfLineAndTrainDrivers.find(lineId);
+	if(it != mapOfLineAndTrainDrivers.end())
+	{
+		std::map<int,TrainDriver*> &mapOfTrainIdsVsDrivers = it->second;
+		TrainDriver* driver=mapOfTrainIdsVsDrivers[trainId];
+		if(driver)
+		{
+			if(driver->getTrainId()==trainId)
+			{
+
+				if(platformsToBeAdded.isTable())
+				{
+					int length=platformsToBeAdded.length();
+					std::vector<std::string> addPlatforms;
+					for(int i=1;i<=length;i++)
+					{
+						addPlatforms.push_back(platformsToBeAdded[i].cast<std::string>());
+					}
+					driver->AddPlatforms(platformsToBeAdded);
+				}
+			}
+		}
+	}
+}
+
 std::string ServiceController::getPlatformByOffset(int trainId,std::string lineId,int offset) const
 {
 	std::string offsetPlatform="";
@@ -465,6 +524,21 @@ std::string ServiceController::getDisruptedPlatformByIndex(std::string lineID,in
 		}
 	}
 
+	return "";
+}
+
+std::string ServiceController::getUturnPlatformByIndex(std::string lineId,int index) const
+{
+	const std::map<std::string,std::vector<std::string>> &platforms=TrainController<sim_mob::medium::Person_MT>::getInstance()->getUturnPlatforms();
+	std::map<std::string,std::vector<std::string>>::const_iterator itr= platforms.find(lineId);
+	if(itr!=platforms.end())
+	{
+		const std::vector<std::string> &platformNames=itr->second;
+		if(!platformNames.empty()&&index>=0&&index<platformNames.size())
+		{
+			return platformNames.at(index);
+		}
+	}
 	return "";
 }
 
@@ -563,6 +637,19 @@ int ServiceController::getDisruptedPlatformsSize(std::string lineID) const
 	}
 	return 0;
 }
+
+int ServiceController::getUturnPlatformsSize(std::string lineID) const
+{
+	std::map<std::string,std::vector<std::string>> platforms=TrainController<sim_mob::medium::Person_MT>::getInstance()->getUturnPlatforms();
+	if(platforms.find(lineID)!=platforms.end())
+	{
+		const std::vector<std::string>& platformNames=platforms[lineID];
+		return platformNames.size();
+	}
+	return 0;
+}
+
+
 std::vector<int>   ServiceController::getActiveTrainIds(std::string lineId)
 {
 	std::vector<int> trainIds;
@@ -968,6 +1055,96 @@ std::string ServiceController::getNextPlatform(int trainId,std::string lineId)
 	}
 
 	return nextPlatform;
+}
+
+bool ServiceController::shouldStopDueToDisruption(int trainId,std::string lineId)
+{
+	map<std::string,std::map<int,TrainDriver *>>::iterator it=mapOfLineAndTrainDrivers.find(lineId);
+	std::string nextPlatform="";
+	if(it != mapOfLineAndTrainDrivers.end())
+	{
+		std::map<int,TrainDriver*>& trainDrivers = it->second;
+		std::map<int,TrainDriver*>::iterator itr=trainDrivers.find(trainId);
+		if(itr!=trainDrivers.end())
+		{
+			TrainDriver *tDriver=itr->second;
+			if(tDriver)
+			{
+				if(tDriver->getTrainId()==trainId&&tDriver->getTrainLine()==lineId)
+				{
+					TrainMovement *movement=tDriver->getMovement();
+					if(movement)
+					{
+						return movement->shouldStopDueToDisruption(tDriver);
+					}
+				}
+			}
+		}
+	}
+	return false;
+}
+
+bool ServiceController::isUTurnPlatformOnTheWay(int trainId,std::string lineId)
+{
+	map<std::string,std::map<int,TrainDriver *>>::iterator it=mapOfLineAndTrainDrivers.find(lineId);
+	std::string nextPlatform="";
+	if(it != mapOfLineAndTrainDrivers.end())
+	{
+		std::map<int,TrainDriver*>& trainDrivers = it->second;
+		std::map<int,TrainDriver*>::iterator itr=trainDrivers.find(trainId);
+		if(itr!=trainDrivers.end())
+		{
+			TrainDriver *tDriver=itr->second;
+			if(tDriver)
+			{
+				if(tDriver->getTrainId()==trainId&&tDriver->getTrainLine()==lineId)
+				{
+					TrainMovement *movement=tDriver->getMovement();
+					if(movement)
+					{
+						return movement->isUTurnPlatformOnTheWay();
+					}
+				}
+			}
+		}
+	}
+	return false;
+}
+
+bool ServiceController::isUTurnPlatform(std::string platformName,std::string lineId)
+{
+	return TrainController<sim_mob::medium::Person_MT>::getInstance()->isUturnPlatform(platformName,lineId);
+}
+
+bool ServiceController::isDisruptedPlatform(std::string platformName,std::string lineId)
+{
+	return TrainController<sim_mob::medium::Person_MT>::getInstance()->isDisruptedPlatform(platformName,lineId);
+}
+
+void ServiceController::setDisruptedState(int trainId,std::string lineId,bool state)
+{
+	map<std::string,std::map<int,TrainDriver *>>::iterator it=mapOfLineAndTrainDrivers.find(lineId);
+	std::string nextPlatform="";
+	if(it != mapOfLineAndTrainDrivers.end())
+	{
+		std::map<int,TrainDriver*>& trainDrivers = it->second;
+		std::map<int,TrainDriver*>::iterator itr=trainDrivers.find(trainId);
+		if(itr!=trainDrivers.end())
+		{
+			TrainDriver *tDriver=itr->second;
+			if(tDriver)
+			{
+				if(tDriver->getTrainId()==trainId&&tDriver->getTrainLine()==lineId)
+				{
+					TrainMovement *movement=tDriver->getMovement();
+					if(movement)
+					{
+						movement->setDisruptedState(state);
+					}
+				}
+			}
+		}
+	}
 }
 
 double ServiceController::getDistanceToNextPlatform(std::string lineId,int trainId)

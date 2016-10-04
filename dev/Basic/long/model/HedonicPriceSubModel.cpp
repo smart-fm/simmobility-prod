@@ -648,20 +648,6 @@ vector<ExpectationEntry> HedonicPrice_SubModel::CalculateUnitExpectations (Unit 
 }
 
 
-/*
---[[****************************************************************************
-    BIDDER FUNCTIONS
-******************************************************************************]]
-
---[[
-    Calculates the speculation for the given unit.
-
-    @param entry market entry.
-    @param unitBids number of bids (attempts) to this unit.
-    @return the surplus for the given unit.
-]]
-*/
-
 double HedonicPrice_SubModel::CalculateSpeculation(ExpectationEntry entry, double unitBids)
 {
     double maximumBids = 20;
@@ -672,104 +658,7 @@ double HedonicPrice_SubModel::CalculateSpeculation(ExpectationEntry entry, doubl
     return (maximumBids-unitBids) * entry.askingPrice / (a - (b * entry.askingPrice)) * c;
 }
 
-/*
---[[
-    Calculates the willingness to pay based on Household attributes
-    (and importance) and unit attributes.
 
-    This method calculates the willingness to pay following this formula:
-
-    wp = theta0 + (theta1 * UNIT_AREA * (NUMBER_OF_MEMBERS/INCOME)) +
-        (theta2 * INCOME) + (theta3 (IF HH has cars))
-
-    @param household.
-    @param unit to calculate the wp.
-    @param tazStats with statictics about taz.
-    @param amenities postcode amenities information.
-    @return value of the willingness to pay of the given household.
-]]
-*/
-
-/*
-void HedonicPrice_SubModel::CalculateWP(Household household, Unit unit, TazStats tazStats, PostcodeAmenities amenities)
-{
-    double b1 = 2.459;
-    double b2 = 7.116;
-    double b3 = -0.066;
-    double b4 = -0.050;
-    double hasCar = (CAR_CATEGORIES[household.vehicleCategoryId] and 1 or 0);
-	double distanceToCBD = 0;
-
-    if(amenities != nullptr )
-		distanceToCBD = amenities.getDistanceToCBD();
-
-
-    double x = ((b1 * sqfToSqm(unit.floorArea) * log(household.size))                             //--  b1 * Area_Per_Unit  *ln(HouseHold_Size) +
-           +    (b2 * ((household.income / 1000) / household.size) * (tazStats.hhAvgIncome / 1000))   //--  b2 * HouseHold_Income / HouseHold_Size * Zone_Average_Income +
-           +    (b3 * (distanceToCBD) * hasCar)                                             		  //--  b3 * Distance_to_CBD*(Dummie_if_car) +
-           +    (b4 * (distanceToCBD) * (1-hasCar)));	                                    		  //--  b4 * Distance_to_CBD*(1-Dummie_if_car)
-    //--print("WP: " .. x)
-    //--Area_Per_Unit, HouseHold_Size,HouseHold_Income,Distance_to_CBD, Zone_Average_Income, HasCar, WP
-    //--print ("HH_ID: " .. household.id .."," .. unit.floorArea..",".. household.size .. "," .. household.income .. ","..amenities.distanceToCBD .. ","..tazStats.hhAvgIncome .. ",".. hasCar .."," .. x)
-    return x;
-}
-
-
-*/
-
-/*
---[[****************************************************************************
-    GLOBAL STATIC LOOKUP DATA
-******************************************************************************]]
---[[
-    Helper function to mark tables as read-only.
-]]
-*/
-
-/*
-void readOnlyTable(table)
-{
-   return setmetatable({}, {
-     __index = table,
-     __newindex = function(table, key, value)
-                    error("Attempt to modify read-only table")
-                  end,
-     __metatable = false
-   });
-}
-
-
---[[
-    Math helpers
-]]
-
-
-Math = setmetatable({}, {
-    __index = function(_, index)
-        return math[index]
-    end;
-    __metatable = "The metatable is locked";
-})
-
-Math.E = math.exp(1) -- euler's number
-Math.PHI = (1 + Math.sqrt(5))/2 -- golden ratio
-
-Math.nan = function(x) -- tests if value is nan
-    return (x ~= x)
-end
-
-Math.infinite = function(x) -- tests if value is infinite
-    return (x == -math.huge or x == math.huge)
-end
-
-Math.finite = function(x) -- tests if value is finite
-    return (x == x and x > -math.huge and x < math.huge)
-end
-
-Math.ln = function(x)
-    return math.log(x) / math.log(Math.E)
-end
-*/
 
 //--
 //--F'(x) = (f(x + crit) - f(x - crit)) / 2*crit

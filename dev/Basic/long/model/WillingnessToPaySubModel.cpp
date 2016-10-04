@@ -303,16 +303,12 @@ namespace sim_mob
 			//We use a separate list of coefficients for HDB units.
 			if( unitType <= 6  || unitType == 65 )
 			{
-				sde 	 = 0.05;
-				barea 	 = 1.8015720108;
-				blogsum	 = 3.9195477998;
-				bsizearea=-0.0169852462;
-				//bchin 	 = 0.0555546991;
-				//bmalay 	 = -0.0056135472;
-				//bHighInc = 0.0229342784;
-
-				bcar	= -5.9210886427;
-				bcarlgs	= 1.1602061059;
+				sde			=  0.2079816511;
+				barea		=  1.3174741336;
+				blogsum		=  5.6119278112;
+				bsizearea	=  0.0182733682;
+				bcar		= -2.9867669658;
+				bcarlgs		=  0.5766951069;
 			}
 
 			FindHDBType(unitType);

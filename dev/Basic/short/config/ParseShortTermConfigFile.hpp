@@ -250,6 +250,13 @@ private:
      */
     void processPublicTransit(xercesc::DOMElement* node);
 	
+	/**
+     * Processes the output_statistics element in config xml
+     *
+     * @param node node corresponding to the output_statistics element inside xml file
+     */
+    void processOutputStatistics(xercesc::DOMElement* node);
+	
     /**
      * Processes the pathSet element in the config file
      *
@@ -263,13 +270,41 @@ private:
      * @param node node corresponding to trave_time element inside xml file
      */
     void processTT_Update(xercesc::DOMElement* node);
-
-    /**
-     * processes the subtrip_travel_metrics_output element in config xml
+	
+	/**
+     * processes the journey_time element in config xml
      *
-     * @param node node corresponding to subtrip_travel_metrics_output element inside xml file
+     * @param node node corresponding to journey_time element inside xml file
      */
-    void processSubtripTravelMetricsOutputNode(xercesc::DOMElement* node);
+    void processJourneyTimeNode(xercesc::DOMElement* node);
+	
+	/**
+     * processes the waiting_time element in config xml
+     *
+     * @param node node corresponding to waiting_time element inside xml file
+     */
+	void processWaitingTimeNode(xercesc::DOMElement* node);
+	
+	/**
+     * processes the waiting_counts element in config xml
+     *
+     * @param node node corresponding to waiting_counts element inside xml file
+     */
+	void processWaitingCountsNode(xercesc::DOMElement* node);
+	
+	/**
+     * processes the travel_time element in config xml
+     *
+     * @param node node corresponding to travel_time element inside xml file
+     */
+	void processTravelTimeNode(xercesc::DOMElement* node);
+	
+	/**
+     * processes the pt_stop_stats element in config xml
+     *
+     * @param node node corresponding to pt_stop_stats element inside xml file
+     */
+	void processPT_StopStatsNode(xercesc::DOMElement* node);
 
     /**
      * processes the assignment_matrix element in config xml

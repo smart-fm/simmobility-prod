@@ -236,22 +236,25 @@
 	<!-- flag to control if PT graph should be loaded -->
 	<public_transit enabled="true"/>
 	
-	<!--If enabled, outputs the vehicles counted by every loop detector, accumulated over the given period length (in milliseconds)
-	i.e. count of vehicles passing a loop detector in every "600,000" milliseconds -->
-	<loop-detector_counts frequency="900000" outputEnabled="true" file-name="VehicleCounts.csv"/>
+	<!-- file names to output statistics-->   
+	<output_statistics>                              
+		<journey_time file="journey_time.csv"/>
+		<waiting_time file="waiting_time.csv"/>
+		<waiting_count file="waiting_count.csv"/>
+		<travel_time file="travel_time.csv"/>
+		<pt_stop_stats file="pt_stop_stats.csv"/>		
+		<od_travel_time enabled="false" file-name="od_travel_time.csv" interval="900000"/>
+		<segment_travel_time enabled="false" file-name="segment_travel_time.csv" interval="300000"/>
+		<!--If enabled, outputs the density at every road segment present at the end of the 
+		update interval (in milliseconds)-->
+		<segment_density updateInterval="300000" outputEnabled="false" file-name="density_map.csv"/>
+		<!--If enabled, outputs the vehicles counted by every loop detector, accumulated over the given period length (in milliseconds)
+		i.e. count of vehicles passing a loop detector in every "600,000" milliseconds -->
+		<loop-detector_counts frequency="900000" outputEnabled="true" file-name="VehicleCounts.csv"/>
+		<assignment_matrix enabled="false" file-name="assignment_matrix.csv"/>
+	</output_statistics>	
 
 	<path-set-config-file value="data/pathset_config.xml" />
-	<travel_time_update interval="300" alpha="0.5" />
-	<subtrip_travel_metrics_output enabled="true" file="subtrip_level_travel_metrics.csv" />
-
-	<amodcontroller enabled="false"/>
-
-	<assignment_matrix enabled="true" file-name="assignment_matrix.csv"/>
-	<od_travel_time enabled="true" file-name="od_travel_time.csv" interval="900000"/>
-	<segment_travel_time enabled="true" file-name="segment_travel_time.csv" interval="300000"/>
-
-	<!--(Short-term only) If enabled, outputs the density at every road segment present at the end of the 
-	update interval (in milliseconds)-->
-	<short-term_density-map updateInterval="300000" outputEnabled="true" file-name="private/DensityMap.csv"/>  
+	<travel_time_update interval="300" alpha="0.5" />	
 </config>
 

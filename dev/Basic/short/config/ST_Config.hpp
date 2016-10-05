@@ -129,10 +129,8 @@ struct Commsim
 class WorkerParams
 {
 public:
-
 	struct WorkerConf
 	{
-
 		WorkerConf() :
 		count(0), granularityMs(0)
 		{
@@ -161,7 +159,6 @@ enum NetworkSource
  */
 struct LoopDetectorCounts
 {
-
 	LoopDetectorCounts() : frequency(0), outputEnabled(false), fileName("")
 	{
 	}
@@ -181,7 +178,6 @@ struct LoopDetectorCounts
  */
 struct SegmentDensityMap
 {
-
 	SegmentDensityMap() : updateInterval(0), outputEnabled(false), fileName("")
 	{
 	}
@@ -196,12 +192,35 @@ struct SegmentDensityMap
 	std::string fileName;
 };
 
+struct AssignmentMatrixConfig
+{
+	AssignmentMatrixConfig() : enabled(false), fileName("") {}
+
+	std::string fileName;
+
+	bool enabled;
+};
+
+/**
+ * Represents the output statistics section of the configuration file
+ */
+struct OutputStatistics
+{
+	///Settings for the loop detector counts
+	LoopDetectorCounts loopDetectorCounts;
+
+	///Settings for the short-term density map
+	SegmentDensityMap segDensityMap;
+	
+	///Setting for assignment matrix
+	AssignmentMatrixConfig assignmentMatrix; 
+};
+
 /**
  * Represents the FMOD controller section of the config file.
  */
 struct FMOD_ControllerParams
 {
-
 	FMOD_ControllerParams() :
 	enabled(false), port(0), updateTimeMS(0), blockingTimeSec(0)
 	{
@@ -222,15 +241,6 @@ struct FMOD_ControllerParams
 struct AMOD_ControllerParams
 {
 	AMOD_ControllerParams() : enabled(false), fileName("") {}
-
-	std::string fileName;
-
-	bool enabled;
-};
-
-struct AssignmentMatrixConfig
-{
-	AssignmentMatrixConfig() : enabled(false), fileName("") {}
 
 	std::string fileName;
 
@@ -420,13 +430,7 @@ public:
 	std::string networkXmlOutputFile;
 
 	/// Valid path to a schema file for loading XML road network files.
-	std::string roadNetworkXsdSchemaFile;
-
-	///Settings for the loop detector counts
-	LoopDetectorCounts loopDetectorCounts;
-
-	///Settings for the short-term density map
-	SegmentDensityMap segDensityMap;
+	std::string roadNetworkXsdSchemaFile;	
 
 	///Settings for the FMOD controller.
 	FMOD_ControllerParams fmod;
@@ -436,9 +440,9 @@ public:
 
 	///Settings used for generation/retrieval of paths
 	PathSetConf pathset;
-
-	///Setting for assignment matrix
-	AssignmentMatrixConfig assignmentMatrix;
+	
+	///Settings used for the statistics to be output
+	OutputStatistics outputStats;
 
 	/// Generic properties, for testing new features.
 	std::map<std::string, std::string> genericProps;

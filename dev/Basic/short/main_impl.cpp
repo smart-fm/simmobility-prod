@@ -44,6 +44,7 @@
 #include "entities/IntersectionManager.hpp"
 #include "entities/Person_ST.hpp"
 #include "entities/profile/ProfileBuilder.hpp"
+#include "entities/PT_Statistics.hpp"
 #include "entities/roles/activityRole/ActivityPerformer.hpp"
 #include "entities/roles/driver/BusDriver.hpp"
 #include "entities/roles/driver/driverCommunication/DriverComm.hpp"
@@ -417,9 +418,9 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 		wgMgr.waitAllGroups();
 		
 		unsigned long currTimeMS = currTick * config.baseGranMS();
-		if(stCfg.segDensityMap.outputEnabled && ((currTimeMS + config.baseGranMS()) % stCfg.segDensityMap.updateInterval == 0))
+		if(stCfg.outputStats.segDensityMap.outputEnabled && ((currTimeMS + config.baseGranMS()) % stCfg.outputStats.segDensityMap.updateInterval == 0))
 		{
-			DriverMovement::outputDensityMap(currTimeMS / stCfg.segDensityMap.updateInterval);
+			DriverMovement::outputDensityMap(currTimeMS / stCfg.outputStats.segDensityMap.updateInterval);
 		}
 	}
 
@@ -511,6 +512,9 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 				<< " Agents waiting to be scheduled; next start time is: "
 				<< Agent::pending_agents.top()->getStartTime() << " ms\n";
 	}
+	
+	PT_Statistics::getInstance()->storeStatistics();
+	PT_Statistics::resetInstance();
 
 	//Save our output files if we are merging them later.
     if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled() && config.mergeLogFiles)

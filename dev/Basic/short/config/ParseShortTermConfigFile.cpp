@@ -203,14 +203,9 @@ void ParseShortTermConfigFile::processXmlFile(XercesDOMParser& parser)
 	processBusControllerNode(GetSingleElementByName(rootNode, "busController"));
 	processBusCapacityNode(GetSingleElementByName(rootNode, "bus_default_capacity"));
 	processPublicTransit(GetSingleElementByName(rootNode, "public_transit", true));
-	processLoopDetectorCountNode(GetSingleElementByName(rootNode, "loop-detector_counts"));
+	processOutputStatistics(GetSingleElementByName(rootNode, "output_statistics", true));
 	processPathSetFileName(GetSingleElementByName(rootNode, "path-set-config-file"));
-	processTT_Update(GetSingleElementByName(rootNode, "travel_time_update", true));
-	processSubtripTravelMetricsOutputNode(GetSingleElementByName(rootNode, "subtrip_travel_metrics_output"));
-	processAssignmentMatrixNode(GetSingleElementByName(rootNode, "assignment_matrix"));
-	processSegmentDensityNode(GetSingleElementByName(rootNode, "short-term_density-map"));
-	processODTravelTimeNode(GetSingleElementByName(rootNode, "od_travel_time"));
-	processSegmentTravelTimeNode(GetSingleElementByName(rootNode, "segment_travel_time"));
+	processTT_Update(GetSingleElementByName(rootNode, "travel_time_update", true));	
 	
 	//Take care of path-set manager configuration in here
     ParsePathXmlConfig(cfg.pathsetFile, cfg.getPathSetConf());
@@ -360,18 +355,18 @@ void ParseShortTermConfigFile::processSegmentDensityNode(DOMElement* node)
 {
 	if (node)
 	{
-		stCfg.segDensityMap.outputEnabled = ParseBoolean(GetNamedAttributeValue(node, "outputEnabled"), "false");
-		if (stCfg.segDensityMap.outputEnabled)
+		stCfg.outputStats.segDensityMap.outputEnabled = ParseBoolean(GetNamedAttributeValue(node, "outputEnabled"), "false");
+		if (stCfg.outputStats.segDensityMap.outputEnabled)
 		{
-			stCfg.segDensityMap.updateInterval = ParseUnsignedInt(GetNamedAttributeValue(node, "updateInterval"), 1000);
-			stCfg.segDensityMap.fileName = ParseString(GetNamedAttributeValue(node, "file-name"), "private/DensityMap.csv");
+			stCfg.outputStats.segDensityMap.updateInterval = ParseUnsignedInt(GetNamedAttributeValue(node, "updateInterval"), 1000);
+			stCfg.outputStats.segDensityMap.fileName = ParseString(GetNamedAttributeValue(node, "file-name"), "private/DensityMap.csv");
 
-			if (stCfg.segDensityMap.updateInterval == 0)
+			if (stCfg.outputStats.segDensityMap.updateInterval == 0)
 			{
 				throw std::runtime_error("ParseConfigFile::ProcessShortDensityMapNode - Update interval for aggregating density is 0");
 			}
 
-			if (stCfg.segDensityMap.fileName.empty())
+			if (stCfg.outputStats.segDensityMap.fileName.empty())
 			{
 				throw std::runtime_error("ParseConfigFile::ProcessShortDensityMapNode - File name is empty");
 			}
@@ -532,19 +527,19 @@ void ParseShortTermConfigFile::processLoopDetectorCountNode(DOMElement *node)
 {
 	if (node)
 	{
-		stCfg.loopDetectorCounts.outputEnabled = ParseBoolean(GetNamedAttributeValue(node, "outputEnabled"), "false");
-		if (stCfg.loopDetectorCounts.outputEnabled)
+		stCfg.outputStats.loopDetectorCounts.outputEnabled = ParseBoolean(GetNamedAttributeValue(node, "outputEnabled"), "false");
+		if (stCfg.outputStats.loopDetectorCounts.outputEnabled)
 		{
-			stCfg.loopDetectorCounts.frequency = ParseUnsignedInt(GetNamedAttributeValue(node, "frequency"), 600000);
-			stCfg.loopDetectorCounts.fileName = ParseString(GetNamedAttributeValue(node, "file-name"), "private/VehCounts.csv");
+			stCfg.outputStats.loopDetectorCounts.frequency = ParseUnsignedInt(GetNamedAttributeValue(node, "frequency"), 600000);
+			stCfg.outputStats.loopDetectorCounts.fileName = ParseString(GetNamedAttributeValue(node, "file-name"), "private/VehCounts.csv");
 
-			if (stCfg.loopDetectorCounts.frequency == 0)
+			if (stCfg.outputStats.loopDetectorCounts.frequency == 0)
 			{
 				throw std::runtime_error("ParseConfigFile::ProcessLoopDetectorCountsNode - "
 										 "Update frequency for aggregating vehicle counts is 0");
 			}
 
-			if (stCfg.loopDetectorCounts.fileName.empty())
+			if (stCfg.outputStats.loopDetectorCounts.fileName.empty())
 			{
 				throw std::runtime_error("ParseConfigFile::ProcessLoopDetectorCountsNode - File name is empty");
 			}
@@ -821,6 +816,23 @@ void ParseShortTermConfigFile::processPublicTransit(xercesc::DOMElement* node)
 	}
 }
 
+void ParseShortTermConfigFile::processOutputStatistics(xercesc::DOMElement* node)
+{
+	if(node)
+	{
+		processJourneyTimeNode(GetSingleElementByName(node, "journey_time"));
+		processWaitingTimeNode(GetSingleElementByName(node, "waiting_time"));
+		processWaitingCountsNode(GetSingleElementByName(node, "waiting_count"));
+		processTravelTimeNode(GetSingleElementByName(node, "travel_time"));
+		processPT_StopStatsNode(GetSingleElementByName(node, "pt_stop_stats"));
+		processODTravelTimeNode(GetSingleElementByName(node, "od_travel_time"));
+		processSegmentTravelTimeNode(GetSingleElementByName(node, "segment_travel_time"));
+		processSegmentDensityNode(GetSingleElementByName(node, "segment_density"));
+		processLoopDetectorCountNode(GetSingleElementByName(node, "loop-detector_counts"));
+		processAssignmentMatrixNode(GetSingleElementByName(node, "assignment_matrix"));
+	}
+}
+
 void ParseShortTermConfigFile::processPathSetFileName(DOMElement* node)
 {
 	if (!node)
@@ -842,17 +854,43 @@ void ParseShortTermConfigFile::processTT_Update(xercesc::DOMElement* node)
 	}
 }
 
-void ParseShortTermConfigFile::processSubtripTravelMetricsOutputNode(xercesc::DOMElement* node)
+void ParseShortTermConfigFile::processJourneyTimeNode(xercesc::DOMElement* node)
 {
-	//subtrip output for preday
-	if (node)
+	if(node)
+	{		
+		cfg.setJourneyTimeStatsFilename(ParseString(GetNamedAttributeValue(node, "file"), "journey_time.csv"));
+	}
+}
+
+void ParseShortTermConfigFile::processWaitingTimeNode(xercesc::DOMElement* node)
+{
+	if(node)
 	{
-		bool enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"));
-		if (enabled)
-		{
-			cfg.subTripTravelTimeEnabled = true;
-			cfg.subTripLevelTravelTimeOutput = ParseString(GetNamedAttributeValue(node, "file"), "subtrip_travel_times.csv");
-		}
+		cfg.setWaitingTimeStatsFilename(ParseString(GetNamedAttributeValue(node, "file"), "waiting_time.csv"));
+	}
+}
+
+void ParseShortTermConfigFile::processWaitingCountsNode(xercesc::DOMElement* node)
+{
+	if(node)
+	{
+		cfg.setWaitingCountStatsFilename(ParseString(GetNamedAttributeValue(node, "file"), "waiting_count.csv"));
+	}
+}
+
+void ParseShortTermConfigFile::processTravelTimeNode(xercesc::DOMElement* node)
+{
+	if(node)
+	{
+		cfg.setTravelTimeStatsFilename(ParseString(GetNamedAttributeValue(node, "file"), "travel_time.csv"));
+	}
+}
+
+void ParseShortTermConfigFile::processPT_StopStatsNode(xercesc::DOMElement* node)
+{
+	if(node)
+	{
+		cfg.setPT_StopStatsFilename(ParseString(GetNamedAttributeValue(node, "file"), "pt_stop_stats.csv"));
 	}
 }
 
@@ -863,8 +901,8 @@ void ParseShortTermConfigFile::processAssignmentMatrixNode(xercesc::DOMElement* 
 		bool enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"));
 		if (enabled)
 		{
-			stCfg.assignmentMatrix.enabled = true;
-			stCfg.assignmentMatrix.fileName = ParseString(GetNamedAttributeValue(node, "file-name"), "assignment_matrix.csv");
+			stCfg.outputStats.assignmentMatrix.enabled = true;
+			stCfg.outputStats.assignmentMatrix.fileName = ParseString(GetNamedAttributeValue(node, "file-name"), "assignment_matrix.csv");
 		}
 	}
 }

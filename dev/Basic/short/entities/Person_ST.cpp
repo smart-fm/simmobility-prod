@@ -28,6 +28,7 @@ amodPickUpSegmentStr("-1"), startSegmentId(-1), segmentStartOffset(0), initialSp
 amodSegmLength(0.0), amodSegmLength2(0.0), client_id(0), isPositionValid(false), isVehicleInLoadingQueue(false),
 rsTravelStats(nullptr)
 {
+	setPersonCharacteristics();
 }
 
 Person_ST::Person_ST(const std::string &src, const MutexStrategy &mtxStrat, const std::vector<TripChainItem *> &tc)
@@ -44,6 +45,8 @@ rsTravelStats(nullptr)
 	{
 		initTripChain();
 	}
+	
+	setPersonCharacteristics();
 }
 
 Person_ST::~Person_ST()
@@ -125,7 +128,7 @@ void Person_ST::initTripChain()
 	currTripChainItem = tripChain.begin();
 	
 	const std::string& src = getAgentSrc();
-	if (src == "XML_TripChain" || src == "DAS_TripChain" || src == "AMOD_TripChain" || src == "BusController")
+	if (src == "DAS_TripChain" || src == "AMOD_TripChain" || src == "BusController")
 	{
 		setStartTime((*currTripChainItem)->startTime.offsetMS_From(ConfigManager::GetInstance().FullConfig().simStartTime()));
 	}
@@ -430,6 +433,7 @@ bool Person_ST::advanceCurrentTripChainItem()
 	// current role (activity or sub-trip level role)[for now: only subtrip] is about to change, time to collect its movement metrics(even activity performer)
 	if (currRole != nullptr)
 	{
+		currRole->collectTravelTime();
 		TravelMetric currRoleMetrics = currRole->Movement()->finalizeTravelTimeMetric();
 		currRole->Movement()->resetTravelTimeMetric(); //sorry for manual reset, just a precaution for now
 		serializeSubTripChainItemTravelTimeMetrics(currRoleMetrics, currTripChainItem, currSubTrip);
@@ -476,24 +480,14 @@ void Person_ST::convertPublicTransitODsToTrips()
 	{
 		if ((*tripChainItemIt)->itemType == TripChainItem::IT_TRIP)
 		{			
-			unsigned int start_time = 0;
-			const string &src = getAgentSrc();
-			
-			if(src == "XML_TripChain" || src == "DAS_TripChain" || src == "AMOD_TripChain" || src == "BusController")
-			{
-				// start time in seconds
-				start_time = ((*tripChainItemIt)->startTime.offsetMS_From(ConfigManager::GetInstance().FullConfig().simStartTime()) / 1000);
-			}
-			else
-			{
-				start_time = (ConfigManager::GetInstance().FullConfig().simStartTime().getValue() + (*tripChainItemIt)->startTime.getValue()) / 1000;
-			}
-			
 			TripChainItem *trip = (*tripChainItemIt);
+			
 			string originId = boost::lexical_cast<string>(trip->origin.node->getNodeId());
 			string destId = boost::lexical_cast<string>(trip->destination.node->getNodeId());
+			
 			trip->startLocationId = originId;
 			trip->endLocationId = destId;
+			
 			vector<SubTrip> &subTrips = (dynamic_cast<Trip *> (*tripChainItemIt))->getSubTripsRW();
 			vector<SubTrip>::iterator itSubTrip = subTrips.begin();
 			vector<SubTrip> newSubTrips;
@@ -502,13 +496,21 @@ void Person_ST::convertPublicTransitODsToTrips()
 			{
 				if (itSubTrip->origin.type == WayPoint::NODE && itSubTrip->destination.type == WayPoint::NODE)
 				{
-					if (itSubTrip->getMode() == "BusTravel")
+					if (itSubTrip->getMode() == "BusTravel" || itSubTrip->getMode() == "MRT")
 					{
 						vector<OD_Trip> odTrips;
-
-						string dbid = this->getDatabaseId();
+						const string &dbid = this->getDatabaseId();
+						
+						const string &src = getAgentSrc();
+						DailyTime subTripStartTime = itSubTrip->startTime;
+						
+						if (src == "XML_TripChain")
+						{
+							subTripStartTime = subTripStartTime + ConfigManager::GetInstance().FullConfig().simStartTime();
+						}
+						
 						bool ret = PT_RouteChoiceLuaProvider::getPTRC_Model().getBestPT_Path(itSubTrip->origin.node->getNodeId(), 
-								itSubTrip->destination.node->getNodeId(), itSubTrip->startTime, odTrips, dbid, start_time);
+								itSubTrip->destination.node->getNodeId(), subTripStartTime, odTrips, dbid, itSubTrip->startTime.getValue());
 						
 						if (ret)
 						{

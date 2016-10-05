@@ -289,11 +289,8 @@ void ExpandShortTermConfigFile::processConfig()
 
 	loadAMOD_Controller();
 	loadFMOD_Controller();
-
-	//Load Agents, Pedestrians, and Trip Chains as specified in loadAgentOrder
-	loadAgentsInOrder(constraints);
-
-	//Register and initialize BusController
+	
+	//Register and initialise BusController
 	if (cfg.busController.enabled)
 	{
 		BusControllerST::RegisterBusController(-1, cfg.mutexStategy());
@@ -301,6 +298,9 @@ void ExpandShortTermConfigFile::processConfig()
 		busController->initializeBusController(active_agents);
 		active_agents.insert(busController);
 	}
+
+	//Load Agents, Pedestrians, and Trip Chains as specified in loadAgentOrder
+	loadAgentsInOrder(constraints);
 
 	printSettings();
 }
@@ -462,7 +462,7 @@ void ExpandShortTermConfigFile::generateAgentsFromTripChain(ConfigParams::AgentC
 				//If the person is not created, create it and add it to the map
 				if(persons.find(personId) == persons.end())
 				{
-					Person_ST *person = new Person_ST("XML_TripChain", cfg.mutexStategy(), -1);
+					Person_ST *person = new Person_ST("DAS_TripChain", cfg.mutexStategy(), -1);
 					person->setDatabaseId(personId);
 					//Set the usage of in-simulation travel times
 					//Generate random number between 0 and 100 (indicates percentage)
@@ -550,8 +550,9 @@ void ExpandShortTermConfigFile::generateXMLAgents(const std::vector<EntityTempla
 	}
 	
 	//Create the Person agent with that given ID (or an auto-generated one)
-	Person_ST *person = new Person_ST("XML_Def", cfg.mutexStategy(), tripChain);
-	person->setStartTime(xmlItems.begin()->startTimeMs);
+	Person_ST *person = new Person_ST("XML_TripChain", cfg.mutexStategy(), tripChain);
+	string id = boost::lexical_cast<std::string>(person->GetId());
+	person->setDatabaseId(id);
 	
 	//Set the start locations for the first sub-trip only (rest of are ignored)
 	std::vector<EntityTemplate>::const_iterator it = xmlItems.begin();

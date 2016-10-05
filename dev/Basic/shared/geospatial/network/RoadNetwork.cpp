@@ -512,7 +512,7 @@ void RoadNetwork::addBusStop(BusStop* stop)
 			}
 			
 			//Insert the stop into the map
-			mapOfIdvsBusStops.insert(std::make_pair(stop->getRoadItemId(), stop));
+			mapOfIdvsBusStops.insert(std::make_pair(stop->getStopId(), stop));
 			BusStop::registerBusStop(stop);
 		}
 		else

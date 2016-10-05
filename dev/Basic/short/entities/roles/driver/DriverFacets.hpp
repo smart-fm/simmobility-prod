@@ -225,6 +225,14 @@ protected:
 	virtual double updatePosition(DriverUpdateParams &params);
 
 	/**
+	 * Finds an alternate path and re-routes the vehicle from current location to the destination
+	 * 
+	 * @param params the driver parameters
+	 * @param currLane the current lane
+	 */
+	virtual void reRouteToDestination(DriverUpdateParams &params, const Lane *currLane);
+
+	/**
 	 * Applies the driving behaviour models and gets the acceleration
      * 
 	 * @param params the update parameters
@@ -370,20 +378,15 @@ public:
 	std::vector<WayPoint> buildPath(std::vector<WayPoint> &wayPoints);
 
 	/**
-	 * Replaces the path with the given path
-	 * 
-     * @param path the new path
-     */
-	void resetPath(std::vector<WayPoint> path);	
-
-	/**
 	 * Checks if the current segment is the last segment in the link
      *
 	 * @return true if the segment is the last in the link, else false
      */
 	bool isLastSegmentInLink() const;
 
-	/**Returns the current position of the driver*/
+	/**
+	 * @return the current position of the driver
+	 */
 	Point getPosition();	
 
 	/**
@@ -428,8 +431,10 @@ public:
 	 * Reroutes the vehicle from its current position with the given path.
 	 *
      * @param path the new path
+	 * @param isPathBuild indicates whether the given path is a path consisting of road-segments and turning groups 
+	 * that can be directly used
      */
-	void rerouteWithPath(const std::vector<WayPoint>& path);
+	void rerouteWithPath(const std::vector<WayPoint>& path, bool isPathBuilt = false);
 
 	Driver* getParentDriver() const
 	{

@@ -437,7 +437,7 @@ void DriverMovement::outputDensityMap(unsigned int tick)
 	const ConfigParams &cfg = ConfigManager::GetInstance().FullConfig();
 
 	//Get the logger instance
-	BasicLogger &logger = Logger::log(config.segDensityMap.fileName);
+	BasicLogger &logger = Logger::log(config.outputStats.segDensityMap.fileName);
 
 	//Iterator to access all elements in the map
 	map<const RoadSegment *, unsigned long>::iterator itDensityMap = rdSegDensityMap.begin();
@@ -446,7 +446,7 @@ void DriverMovement::outputDensityMap(unsigned int tick)
 	while (itDensityMap != rdSegDensityMap.end())
 	{
 		//Get collection time
-		unsigned int period = config.segDensityMap.updateInterval / cfg.baseGranMS();
+		unsigned int period = config.outputStats.segDensityMap.updateInterval / cfg.baseGranMS();
 
 		//Get the average vehicle count
 		double avgVehCount = (double) itDensityMap->second / period;
@@ -560,7 +560,7 @@ bool DriverMovement::updateMovement()
 	params.overflowIntoIntersection = drive(params);
 
 	//Update the road segment density map
-	if (ST_Config::getInstance().segDensityMap.outputEnabled)
+	if (ST_Config::getInstance().outputStats.segDensityMap.outputEnabled)
 	{
 		updateDensityMap();
 	}
@@ -1488,7 +1488,8 @@ double DriverMovement::updatePosition(DriverUpdateParams &params)
 		else
 		{
 			stringstream msg;
-			msg << "Bus driver on incorrect lane " << ex.fromLane->getLaneId() << " trying to go to segment " << ex.toSegment->getRoadSegmentId();
+			const BusDriver *busDriver = static_cast<BusDriver *>(parentDriver);
+			msg << "Bus driver [" << busDriver->getBusLineId() << "] on incorrect lane " << ex.fromLane->getLaneId() << " trying to go to segment " << ex.toSegment->getRoadSegmentId();
 			msg << " Frame: [" << params.now.frame() << "]";
 			throw runtime_error(msg.str());
 		}

@@ -8,12 +8,15 @@
 #include "conf/ConfigParams.hpp"
 #include "entities/BusStopAgent.hpp"
 #include "entities/Person.hpp"
+#include "entities/PT_Statistics.hpp"
 #include "entities/roles/driver/models/LaneChangeModel.hpp"
 #include "entities/roles/waitBusActivity/WaitBusActivity.hpp"
 #include "entities/UpdateParams.hpp"
 #include "logging/Log.hpp"
+#include "message/MessageBus.hpp"
 #include "path/PathSetManager.hpp"
 #include "util/Utils.hpp"
+#include "config/ST_Config.hpp"
 
 using namespace sim_mob;
 using namespace std;
@@ -161,7 +164,7 @@ void BusDriverMovement::frame_tick()
 	
 	//If the bus has arrived at the stop and the bus stop agent has not been notified, notify it
 	if(params.stopPointState == DriverUpdateParams::ARRIVED_AT_STOP_POINT && !isBusStopNotified)
-	{
+	{				
 		//Get the bus stop agent
 		BusStopAgent *stopAg = BusStopAgent::getBusStopAgentForStop(*busStopTracker);
 		
@@ -171,10 +174,28 @@ void BusDriverMovement::frame_tick()
 		//Signal the bus stop agent to handle the bus arrival
 		double boardingTime = stopAg->boardWaitingPersons(parentBusDriver);
 		
-		params.currentStopPoint.dwellTime = max(boardingTime, alightingTime) + Utils::nRandom(10, 2);
+		params.currentStopPoint.dwellTime = max(boardingTime, alightingTime) + Utils::nRandom(10, 2);		
 		
 		//Set bus stop notified as true
-		isBusStopNotified = true;		
+		isBusStopNotified = true;
+		
+		BusArrivalTime busArrivalInfo;
+		busArrivalInfo.busLine = parentBusDriver->getBusLineId();
+		
+		BusTrip *busTrip = static_cast<BusTrip *>(*(parentBusDriver->getParent()->currTripChainItem));
+		busArrivalInfo.tripId = busTrip->tripID;
+		
+		busArrivalInfo.sequenceNo = parentBusDriver->sequenceNum++;
+		
+		DailyTime currTime(params.now.ms() + (params.elapsedSeconds * 1000) + ConfigManager::GetInstance().FullConfig().simStartTime().getValue());		
+		busArrivalInfo.arrivalTime = currTime.getStrRepr();
+		busArrivalInfo.dwellTime = params.currentStopPoint.dwellTime;
+		busArrivalInfo.dwellTimeSecs = (DailyTime(params.currentStopPoint.dwellTime)).getValue() / 1000.0;
+		busArrivalInfo.pctOccupancy = (((double) parentBusDriver->passengerList.size()) / ST_Config::getInstance().defaultBusCapacity) * 100.0;
+		busArrivalInfo.busStopNo = (*busStopTracker)->getStopCode();
+		
+		messaging::MessageBus::PostMessage(PT_Statistics::getInstance(), STORE_BUS_ARRIVAL, 
+				messaging::MessageBus::MessagePtr(new BusArrivalTimeMessage(busArrivalInfo)));
 	}
 	
 	if(params.stopPointState == DriverUpdateParams::LEAVING_STOP_POINT && isBusStopNotified)
@@ -235,46 +256,49 @@ std::string BusDriverMovement::frame_tick_output()
 
 void BusDriverMovement::checkForStops(DriverUpdateParams& params)
 {
-	//Get the distance to stopping point in the current link
-	double distance = getDistanceToStopLocation(params.stopVisibilityDistance);
-	params.distanceToStoppingPt = distance;
-
-	if (distance > -10 || params.stopPointState == DriverUpdateParams::ARRIVED_AT_STOP_POINT)
+	if(busStopTracker != busStops.end())
 	{
-		//Leaving the stopping point
-		if (distance < 0 && params.stopPointState == DriverUpdateParams::LEAVING_STOP_POINT)
+		//Get the distance to stopping point in the current link
+		double distance = getDistanceToStopLocation(params.stopVisibilityDistance);
+		params.distanceToStoppingPt = distance;
+
+		if (distance > -10 || params.stopPointState == DriverUpdateParams::ARRIVED_AT_STOP_POINT)
 		{
+			//Leaving the stopping point
+			if (distance < 0 && params.stopPointState == DriverUpdateParams::LEAVING_STOP_POINT)
+			{
+				return;
+			}
+
+			//Change state to Approaching stop point
+			if (params.stopPointState == DriverUpdateParams::STOP_POINT_NOT_FOUND)
+			{
+				params.stopPointState = DriverUpdateParams::STOP_POINT_FOUND;
+			}
+
+			//Change state to stopping point is close
+			if (distance >= 10 && distance <= 50)
+			{
+				// 10m-50m
+				params.stopPointState = DriverUpdateParams::ARRIVING_AT_STOP_POINT;
+			}
+
+			//Change state to arrived at stop point
+			if (params.stopPointState == DriverUpdateParams::ARRIVING_AT_STOP_POINT && abs(distance) < 10)
+			{
+				// 0m-10m
+				params.stopPointState = DriverUpdateParams::ARRIVED_AT_STOP_POINT;
+			}
+
+			params.distToStop = distance;
+
 			return;
 		}
-		
-		//Change state to Approaching stop point
-		if (params.stopPointState == DriverUpdateParams::STOP_POINT_NOT_FOUND)
-		{
-			params.stopPointState = DriverUpdateParams::STOP_POINT_FOUND;
-		}
-		
-		//Change state to stopping point is close
-		if (distance >= 10 && distance <= 50)
-		{ 
-			// 10m-50m
-			params.stopPointState = DriverUpdateParams::ARRIVING_AT_STOP_POINT;
-		}
-		
-		//Change state to arrived at stop point
-		if (params.stopPointState == DriverUpdateParams::ARRIVING_AT_STOP_POINT && abs(distance) < 10)
-		{ 
-			// 0m-10m
-			params.stopPointState = DriverUpdateParams::ARRIVED_AT_STOP_POINT;
-		}
 
-		params.distToStop = distance;
-		
-		return;
-	}
-	
-	if (distance < -10 && params.stopPointState == DriverUpdateParams::LEAVING_STOP_POINT)
-	{
-		params.stopPointState = DriverUpdateParams::STOP_POINT_NOT_FOUND;
+		if (distance < -10 && params.stopPointState == DriverUpdateParams::LEAVING_STOP_POINT)
+		{
+			params.stopPointState = DriverUpdateParams::STOP_POINT_NOT_FOUND;
+		}
 	}
 }
 

@@ -34,6 +34,9 @@ private:
 	/**Id of the bus line driven by the driver*/
 	std::string busLineId;
 	
+	/**Sequence number of the bus*/
+	unsigned int sequenceNum;
+	
 public:
 	BusDriver(Person_ST *parent, MutexStrategy mtxStrat, BusDriverBehavior *behavior = nullptr, BusDriverMovement *movement = nullptr,
 			Role<Person_ST>::Type roleType_ = Role<Person_ST>::RL_BUSDRIVER);

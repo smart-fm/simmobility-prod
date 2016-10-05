@@ -26,7 +26,7 @@
 using namespace sim_mob;
 
 BusDriver::BusDriver(Person_ST *parent, MutexStrategy mtxStrat, BusDriverBehavior *behavior, BusDriverMovement *movement, Role<Person_ST>::Type roleType_) :
-Driver(parent, mtxStrat, behavior, movement, roleType_)
+Driver(parent, mtxStrat, behavior, movement, roleType_), sequenceNum(1)
 {
 	isBusDriver = true;
 }
@@ -90,7 +90,7 @@ double BusDriver::alightPassengers(BusStopAgent *stopAgent)
 	{
 		(*itPassenger)->makeAlightingDecision(stopAgent->getBusStop());
 
-		if ((*itPassenger)->canAlightBus())
+		if ((*itPassenger)->canAlightVehicle())
 		{
 			stopAgent->addAlightingPerson(*itPassenger);
 			itPassenger = passengerList.erase(itPassenger);

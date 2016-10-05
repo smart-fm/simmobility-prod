@@ -25,8 +25,8 @@ private:
 	/** Driver who is driving the vehicle of this passenger*/
 	const Driver* driver;
 
-	/**flag to indicate whether the passenger has decided to alight the bus*/
-	bool alightBus;
+	/**Indicates whether the passenger has decided to alight*/
+	bool alightVehicle;
 
 	/** starting point of passenger - for travel time storage */
 	WayPoint startPoint;
@@ -52,25 +52,33 @@ public:
 	 * 
 	 * @param nextStop is the stop at which the bus will arrive at next
 	 */
-	void makeAlightingDecision(const BusStop* nextStop);
+	void makeAlightingDecision(const BusStop *nextStop);
 
 	/**
 	 * Collect travel time for current role
 	 */
 	virtual void collectTravelTime();
 	
+	/**
+	 * Message handler which provides a chance to handle message transfered from parent agent.
+	 * 
+	 * @param type of the message.
+	 * @param message data received.
+	 */
+	virtual void HandleParentMessage(messaging::Message::MessageType type, const messaging::Message& message);
+	
 	virtual void make_frame_tick_params(timeslice now)
 	{
 	}
 
-	bool canAlightBus() const
+	bool canAlightVehicle() const
 	{
-		return alightBus;
+		return alightVehicle;
 	}
 
-	void setAlightBus(bool alightBus)
+	void setAlightVehicle(bool alight)
 	{
-		this->alightBus = alightBus;
+		this->alightVehicle = alight;
 	}
 
 	const Driver* getDriver() const

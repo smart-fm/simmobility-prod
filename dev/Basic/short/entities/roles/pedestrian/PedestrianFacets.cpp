@@ -27,17 +27,25 @@ void PedestrianMovement::frame_init()
 	
 	SubTrip &subTrip = *(parentPedestrian->parent->currSubTrip);
 	
+	const Node *originNode = nullptr;
 	const Point *origin = nullptr;
 	const Point *destination = nullptr;
 	
 	switch(subTrip.origin.type)
 	{
 	case WayPoint::NODE: 
-		origin = &(subTrip.origin.node->getLocation());
+		originNode = subTrip.origin.node;
+		origin = &(originNode->getLocation());
 		break;
 		
 	case WayPoint::BUS_STOP:
+		originNode = subTrip.origin.busStop->getParentSegment()->getParentLink()->getFromNode();
 		origin = &(subTrip.origin.busStop->getStopLocation());
+		break;
+		
+	case WayPoint::TRAIN_STOP:
+		originNode = subTrip.origin.trainStop->getRandomStationSegment()->getParentLink()->getFromNode();
+		origin = &(originNode->getLocation());
 		break;
 		
 	default:
@@ -57,6 +65,10 @@ void PedestrianMovement::frame_init()
 		destination = &(subTrip.destination.busStop->getStopLocation());
 		break;
 		
+	case WayPoint::TRAIN_STOP:
+		destination = &(subTrip.destination.trainStop->getStationSegmentForNode(originNode)->getParentLink()->getToNode()->getLocation());
+		break;
+		
 	default:
 		stringstream msg;
 		msg << "Destination type for pedestrian is invalid!\n";
@@ -64,21 +76,21 @@ void PedestrianMovement::frame_init()
 		throw runtime_error(msg.str());
 	}
 	
-	//Get the distance between the origin and destination
-	
+	//Get the distance between the origin and destination	
 	DynamicVector distVector(*origin, *destination);
 	distanceToBeCovered = distVector.getMagnitude();
+	
+	//Set the travel time in milli-seconds
+	parentPedestrian->setTravelTime((distanceToBeCovered / parentPedestrian->parent->getWalkingSpeed()) * 1000);
 }
 
 void PedestrianMovement::frame_tick()
 {
-	if(distanceToBeCovered > 0)
-	{
-		double elapsedTime = ConfigManager::GetInstance().FullConfig().baseGranSecond();
-		double distanceCovered = parentPedestrian->parent->getWalkingSpeed() * elapsedTime;
-		distanceToBeCovered -= distanceCovered;
-	}
-	else
+	double elapsedTime = ConfigManager::GetInstance().FullConfig().baseGranSecond();
+	double distanceCovered = parentPedestrian->parent->getWalkingSpeed() * elapsedTime;
+	distanceToBeCovered -= distanceCovered;
+	
+	if(distanceToBeCovered <= 0)
 	{
 		parentPedestrian->getParent()->setToBeRemoved();
 	}

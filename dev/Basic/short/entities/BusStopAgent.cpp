@@ -97,8 +97,6 @@ void BusStopAgent::removeWaitingPerson(WaitBusActivity *waitingPerson)
 
 void BusStopAgent::addAlightingPerson(Passenger *passenger)
 {
-	Person_ST *person = passenger->getParent();
-	person->getRole()->collectTravelTime();
 	alightingPersons.push_back(passenger);
 }
 
@@ -123,18 +121,9 @@ Entity::UpdateStatus BusStopAgent::frame_tick(timeslice now)
 	list<Passenger *>::iterator personIt = alightingPersons.begin();
 	
 	while (personIt != alightingPersons.end())
-	{	
-		Person_ST *person = (*personIt)->getParent();
-		
-		if (person)
-		{
-			person->setToBeRemoved();
-			personIt = alightingPersons.erase(personIt);			
-		}
-		else
-		{
-			personIt++;
-		}
+	{
+		(*personIt)->setAlightVehicle(true);
+		personIt = alightingPersons.erase(personIt);
 	}
 
 	WaitingCount waitingCnt;
@@ -213,21 +202,17 @@ double BusStopAgent::boardWaitingPersons(BusDriver *busDriver)
 {
 	double boardingTime = 0;
 	unsigned int numBoarding = 0;
-	
-	list<WaitBusActivity *>::iterator itWaitingPerson;
-	
-	for (itWaitingPerson = waitingPersons.begin(); itWaitingPerson != waitingPersons.end(); itWaitingPerson++)
-	{
-		(*itWaitingPerson)->makeBoardingDecision(busDriver);
-	}
-
-	itWaitingPerson = waitingPersons.begin();
+	list<WaitBusActivity *>::iterator itWaitingPerson = waitingPersons.begin();
 	
 	while (itWaitingPerson != waitingPersons.end())
 	{
+		//Make boarding decision
+		(*itWaitingPerson)->makeBoardingDecision(busDriver);
+		
 		WaitBusActivity *waitingRole = *itWaitingPerson;
 		Person_ST *person = waitingRole->getParent();
 
+		//Check if the person can board the bus
 		if ((*itWaitingPerson)->canBoardBus())
 		{
 			bool ret = false;

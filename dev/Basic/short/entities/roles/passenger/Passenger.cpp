@@ -13,7 +13,7 @@ using std::vector;
 using namespace sim_mob;
 
 Passenger::Passenger(Person_ST *parent, PassengerBehavior *behavior, PassengerMovement *movement, std::string roleName, Role<Person_ST>::Type roleType) :
-Role<Person_ST>(parent, behavior, movement, roleName, roleType), driver(nullptr), alightBus(false)
+Role<Person_ST>(parent, behavior, movement, roleName, roleType), driver(nullptr), alightVehicle(false)
 {
 }
 
@@ -26,6 +26,10 @@ Role<Person_ST>* Passenger::clone(Person_ST *parent) const
 	if (parent->currSubTrip->getMode() == "BusTravel")
 	{
 		personRoleType = Role<Person_ST>::RL_PASSENGER;
+	}
+	else if(parent->currSubTrip->getMode() == "MRT")
+	{
+		personRoleType = Role<Person_ST>::RL_TRAINPASSENGER;
 	}
 	else
 	{
@@ -48,7 +52,7 @@ void Passenger::makeAlightingDecision(const BusStop *nextStop)
 {
 	if (parent->destNode.type == WayPoint::BUS_STOP && parent->destNode.busStop == nextStop)
 	{
-		setAlightBus(true);
+		setAlightVehicle(true);
 		setDriver(nullptr);
 	}
 }
@@ -72,8 +76,24 @@ void Passenger::collectTravelTime()
 	{
 		personTravelTime.mode = "BUS_TRAVEL";
 	}
+	else if(roleType == Role<Person_ST>::RL_TRAINPASSENGER)
+	{
+		personTravelTime.mode = "MRT_TRAVEL";
+	}
 
 	messaging::MessageBus::PostMessage(PT_Statistics::getInstance(), STORE_PERSON_TRAVEL_TIME,
 			messaging::MessageBus::MessagePtr(new PersonTravelTimeMessage(personTravelTime)), true);
+}
+
+void Passenger::HandleParentMessage(messaging::Message::MessageType type, const messaging::Message& message)
+{
+	switch(type)
+	{
+	case MSG_WAKEUP_MRT_PAX:
+		setAlightVehicle(true);
+		break;
+	default:
+		break;
+	}
 }
 

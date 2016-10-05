@@ -71,7 +71,7 @@ void WaitBusActivity::incrementDeniedBoardingCount()
 
 void WaitBusActivity::makeBoardingDecision(BusDriver *driver)
 {
-	TripChainItem *tripChainItem = *(parent->currTripChainItem);
+	TripChainItem *tripChainItem = *(driver->getParent()->currTripChainItem);
 	BusTrip *busTrip = dynamic_cast<BusTrip *> (tripChainItem);
 	const vector<const BusStop *> &stopsVec = busTrip->getBusRouteInfo().getBusStops();
 	
@@ -81,9 +81,10 @@ void WaitBusActivity::makeBoardingDecision(BusDriver *driver)
 		return;
 	}
 
-	const string busLineID = busTrip->getBusLine()->getBusLineID();
-	SubTrip& subTrip = *(parent->currSubTrip);
-	const string tripLineID = subTrip.getBusLineID();
+	const string &busLineID = driver->getBusLineId();
+	SubTrip &subTrip = *(parent->currSubTrip);
+	const string &tripLineID = subTrip.getBusLineID();
+	
 	vector<string> lines;
 	boost::split(lines, tripLineID, boost::is_any_of("/"));
 	

@@ -26,6 +26,11 @@ public:
 	virtual void make_frame_tick_params(timeslice now);
 
 	virtual std::vector<BufferedBase *> getSubscriptionParams();
+	
+	/**
+	 * Collect travel time for current role
+	 */
+	virtual void collectTravelTime();
 
 	friend class PedestrianBehaviour;
 	friend class PedestrianMovement;

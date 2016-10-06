@@ -996,10 +996,28 @@ void ParseShortTermTripFile::processTrips(DOMElement *node)
 				ent.tripId = std::make_pair(defaultTripId, defaultSubTripId);
 				ent.mode = ParseString(GetNamedAttributeValue(*stIter, "mode"), "");
 				
-				std::vector<VehicleType>::iterator vehTypeIter = std::find(cfg.vehicleTypes.begin(), cfg.vehicleTypes.end(), ent.mode);
-				if (ent.mode.empty() || vehTypeIter == cfg.vehicleTypes.end())
+				if(!ent.mode.empty())
 				{
-					throw std::runtime_error("ProcessTrips : Unknown Mode");
+					//Check if travel mode is public transport
+					if(ent.mode != "PT")
+					{
+						//Identify vehicle type from the mode of travel
+						std::vector<VehicleType>::iterator vehTypeIter = std::find(cfg.vehicleTypes.begin(), cfg.vehicleTypes.end(), ent.mode);
+
+						if (vehTypeIter == cfg.vehicleTypes.end())
+						{
+							std::stringstream msg;
+							msg << "Travel mode '" << ent.mode << "' specifed in file '" << inFilePath
+									<< "' for trip '" << defaultTripId << "' is not defined";
+							throw std::runtime_error(msg.str());
+						}
+					}
+				}
+				else
+				{
+					std::stringstream msg;
+					msg << "Travel mode not specifed in file '" << inFilePath << "' for trip '" << defaultTripId << "'";
+					throw std::runtime_error(msg.str());
 				}
 				
 				cfg.futureAgents[tripIdStr.str()].push_back(ent);

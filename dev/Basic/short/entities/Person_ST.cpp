@@ -496,7 +496,7 @@ void Person_ST::convertPublicTransitODsToTrips()
 			{
 				if (itSubTrip->origin.type == WayPoint::NODE && itSubTrip->destination.type == WayPoint::NODE)
 				{
-					if (itSubTrip->getMode() == "BusTravel" || itSubTrip->getMode() == "MRT")
+					if (itSubTrip->getMode() == "PT" || itSubTrip->getMode() == "BusTravel" || itSubTrip->getMode() == "MRT")
 					{
 						vector<OD_Trip> odTrips;
 						const string &dbid = this->getDatabaseId();

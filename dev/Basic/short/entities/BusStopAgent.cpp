@@ -250,8 +250,8 @@ double BusStopAgent::boardWaitingPersons(BusDriver *busDriver)
 
 			if (ret)
 			{
-				itWaitingPerson = waitingPersons.erase(itWaitingPerson);
 				boardingTime += (*itWaitingPerson)->getParent()->getBoardingCharacteristics();
+				itWaitingPerson = waitingPersons.erase(itWaitingPerson);
 				numBoarding++;
 			}
 			else

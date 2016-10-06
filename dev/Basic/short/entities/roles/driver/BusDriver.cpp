@@ -93,8 +93,8 @@ double BusDriver::alightPassengers(BusStopAgent *stopAgent)
 		if ((*itPassenger)->canAlightVehicle())
 		{
 			stopAgent->addAlightingPerson(*itPassenger);
-			itPassenger = passengerList.erase(itPassenger);
 			alightingTime += (*itPassenger)->getParent()->getAlightingCharacteristics();
+			itPassenger = passengerList.erase(itPassenger);
 		}
 		else
 		{

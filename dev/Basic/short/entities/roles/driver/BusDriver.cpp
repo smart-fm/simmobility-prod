@@ -61,9 +61,10 @@ bool BusDriver::isBusFull()
 	return (passengerList.size() < ST_Config::getInstance().defaultBusCapacity) ? false : true;
 }
 
-void BusDriver::addPassenger(Passenger* passenger)
+void BusDriver::addPassenger(Passenger *passenger)
 {
 	passengerList.push_back(passenger);
+	passenger->setDriver(this);
 }
 
 double BusDriver::alightPassengers(BusStopAgent *stopAgent)

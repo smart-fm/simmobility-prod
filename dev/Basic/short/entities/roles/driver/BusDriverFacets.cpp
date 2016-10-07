@@ -189,8 +189,8 @@ void BusDriverMovement::frame_tick()
 		
 		DailyTime currTime(params.now.ms() + (params.elapsedSeconds * 1000) + ConfigManager::GetInstance().FullConfig().simStartTime().getValue());		
 		busArrivalInfo.arrivalTime = currTime.getStrRepr();
-		busArrivalInfo.dwellTime = params.currentStopPoint.dwellTime;
-		busArrivalInfo.dwellTimeSecs = (DailyTime(params.currentStopPoint.dwellTime)).getValue() / 1000.0;
+		busArrivalInfo.dwellTimeSecs = params.currentStopPoint.dwellTime;
+		busArrivalInfo.dwellTime = (DailyTime(params.currentStopPoint.dwellTime)).getStrRepr();
 		busArrivalInfo.pctOccupancy = (((double) parentBusDriver->passengerList.size()) / ST_Config::getInstance().defaultBusCapacity) * 100.0;
 		busArrivalInfo.busStopNo = (*busStopTracker)->getStopCode();
 		

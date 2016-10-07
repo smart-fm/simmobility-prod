@@ -249,6 +249,8 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 
 	//Initialise all work groups (this creates barriers, and locks down creation of new groups).
 	wgMgr.initAllGroups();
+	
+	messaging::MessageBus::RegisterHandler(PT_Statistics::getInstance());
 
 	//Initialise each work group individually
 	personWorkers->initWorkers(&entLoader);

@@ -251,7 +251,7 @@ DB_Connection getDB_Connection(const DatabaseDetails& dbInfo)
 class CellLoader
 {
 public:
-	CellLoader() {}
+	CellLoader():isLoadPersonInfo(false) {}
 
 	/**
 	 * function executed by each CellLoader thread
@@ -260,13 +260,6 @@ public:
 	{
 		id = boost::this_thread::get_id();
 		ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
-		DB_Connection populationConn = getDB_Connection(cfg.populationDatabase);
-		populationConn.connect();
-		if (!populationConn.isConnected())
-		{
-			throw std::runtime_error("connection to LT population database failed");
-		}
-		PopulationSqlDao populationDao(populationConn);
 
 		for (size_t i = 0; i < tripChainList.size(); i++)
 		{
@@ -283,14 +276,24 @@ public:
 					person->setUseInSimulationTravelTime(true);
 				}
 
-				if(person->getDatabaseId().find_first_not_of("0123456789-") == std::string::npos)
-				{   // to eliminate any dummy persons we include for background traffic
-					// person ids from long-term population are numeric
-					std::string::size_type sz;
-					long long personId = std::stol(person->getDatabaseId(), &sz); //gets the numerical part before '-' from the person id
-					PersonParams personInfo;
-					populationDao.getOneById(personId, personInfo);
-					person->setPersonInfo(personInfo);
+				if(isLoadPersonInfo)
+				{
+					if(person->getDatabaseId().find_first_not_of("0123456789-") == std::string::npos)
+					{   // to eliminate any dummy persons we include for background traffic
+						// person ids from long-term population are numeric
+						std::string::size_type sz;
+						DB_Connection populationConn = getDB_Connection(cfg.populationDatabase);
+						populationConn.connect();
+						if (!populationConn.isConnected())
+						{
+							throw std::runtime_error("connection to LT population database failed");
+						}
+						PopulationSqlDao populationDao(populationConn);
+						long long personId = std::stol(person->getDatabaseId(), &sz); //gets the numerical part before '-' from the person id
+						PersonParams personInfo;
+						populationDao.getOneById(personId, personInfo);
+						person->setPersonInfo(personInfo);
+					}
 				}
 				persons.push_back(person);
 			}
@@ -328,10 +331,11 @@ private:
 	std::vector<std::vector<TripChainItem*> > tripChainList;
 	static const int numThreads = 6;
 	boost::thread::id id;
+	bool isLoadPersonInfo;
 };
 
 MT_PersonLoader::MT_PersonLoader(std::set<sim_mob::Entity*>& activeAgents, StartTimePriorityQueue& pendinAgents)
-	: PeriodicPersonLoader(activeAgents, pendinAgents)
+	: PeriodicPersonLoader(activeAgents, pendinAgents),isLoadPersonInfo(false)
 {
 	ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
 	dataLoadInterval = SECONDS_IN_ONE_HOUR; //1 hour by default. TODO: must be configurable.
@@ -340,15 +344,17 @@ MT_PersonLoader::MT_PersonLoader(std::set<sim_mob::Entity*>& activeAgents, Start
 	storedProcName = cfg.getDatabaseProcMappings().procedureMappings["day_activity_schedule"];
 	freightStoredProcName = cfg.getDatabaseProcMappings().procedureMappings["freight_trips"];
 
-	DB_Connection populationConn = getDB_Connection(cfg.populationDatabase);
-	populationConn.connect();
-	if (!populationConn.isConnected())
-	{
-		throw std::runtime_error("connection to LT population database failed");
+	if(isLoadPersonInfo){
+		DB_Connection populationConn = getDB_Connection(cfg.populationDatabase);
+		populationConn.connect();
+		if (!populationConn.isConnected())
+		{
+			throw std::runtime_error("connection to LT population database failed");
+		}
+		PopulationSqlDao populationDao(populationConn);
+		populationDao.getIncomeCategories(PersonParams::getIncomeCategoryLowerLimits());
+		populationDao.getAddresses(PersonParams::getAddressLookup(), PersonParams::getZoneAddresses());
 	}
-	PopulationSqlDao populationDao(populationConn);
-	populationDao.getIncomeCategories(PersonParams::getIncomeCategoryLowerLimits());
-	populationDao.getAddresses(PersonParams::getAddressLookup(), PersonParams::getZoneAddresses());
 }
 
 MT_PersonLoader::~MT_PersonLoader()

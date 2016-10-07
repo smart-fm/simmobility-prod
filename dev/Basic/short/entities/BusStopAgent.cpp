@@ -208,14 +208,12 @@ double BusStopAgent::boardWaitingPersons(BusDriver *busDriver)
 			
 			if (!busDriver->isBusFull())
 			{
-				waitingRole->collectTravelTime();
 				storeWaitingTime(waitingRole, busDriver->getBusLineId());
 				
 				DailyTime current(DailyTime(currentTimeMS).offsetMS_From(ConfigManager::GetInstance().FullConfig().simStartTime()));
 				person->checkTripChain(current.getValue());
 				
 				Role<Person_ST> *curRole = person->getRole();
-				
 				curRole->setArrivalTime(currentTimeMS);
 				
 				Passenger *passenger = dynamic_cast<Passenger *>(curRole);

@@ -66,13 +66,6 @@ public:
 	void registerWaitingPerson(WaitBusActivity *waitingActivity);
 
 	/**
-	 * Removes a waiting people from this bus stop.
-	 * 
-	 * @param person person to be removed from this bus stop
-	 */
-	void removeWaitingPerson(WaitBusActivity *waitingActivity);
-
-	/**
 	 * Adds a person who is alighting at this stop
 	 * 
 	 * @param person person who is alighting at this bus stop

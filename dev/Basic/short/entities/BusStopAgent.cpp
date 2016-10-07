@@ -84,17 +84,6 @@ void BusStopAgent::registerWaitingPerson(WaitBusActivity *waitingPerson)
 	waitingPerson->setStop(busStop);
 }
 
-void BusStopAgent::removeWaitingPerson(WaitBusActivity *waitingPerson)
-{
-	list<WaitBusActivity*>::iterator itPerson;
-	itPerson = find(waitingPersons.begin(), waitingPersons.end(), waitingPerson);
-	
-	if (itPerson != waitingPersons.end())
-	{
-		waitingPersons.erase(itPerson);
-	}
-}
-
 void BusStopAgent::addAlightingPerson(Passenger *passenger)
 {
 	alightingPersons.push_back(passenger);
@@ -128,7 +117,7 @@ Entity::UpdateStatus BusStopAgent::frame_tick(timeslice now)
 
 	WaitingCount waitingCnt;
 	waitingCnt.busStopNo = busStop->getStopCode();
-	waitingCnt.currTime = DailyTime(now.ms()).getStrRepr();
+	waitingCnt.currTime = DailyTime(now.ms() + ConfigManager::GetInstance().FullConfig().simulation.baseGranMS).getStrRepr();
 	waitingCnt.count = waitingPersons.size();
 	
 	messaging::MessageBus::PostMessage(PT_Statistics::getInstance(), STORE_WAITING_PERSON_COUNT,

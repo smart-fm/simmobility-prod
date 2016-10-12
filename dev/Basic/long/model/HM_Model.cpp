@@ -1971,6 +1971,11 @@ void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId)
 
 		if( !hitsSample )
 			return;
+
+		if(logsumUniqueCounter.find(hitsSample->getHouseholdHitsId()) == logsumUniqueCounter.end())
+			logsumUniqueCounter.insert(hitsSample->getHouseholdHitsId());
+		else
+			return;
 	}
 
 	Household *currentHousehold = getHouseholdById( householdId );
@@ -1980,13 +1985,6 @@ void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId)
 	for( int n = 0; n < householdIndividualIds.size(); n++ )
 	{
 		Individual *thisIndividual = this->getIndividualById(householdIndividualIds[n]);
-
-		string customId = to_string(hitsSample->getHouseholdHitsId()) + "-" + to_string(thisIndividual->getMemberId());
-
-		if(logsumUniqueCounter.find(customId) == logsumUniqueCounter.end())
-			logsumUniqueCounter.insert(customId);
-		else
-			continue;
 
 		vector<double> logsum;
 		vector<double> travelProbability;
@@ -2020,7 +2018,108 @@ void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId)
 			tazStrH = tazObjH->getName();
 		BigSerial tazH = std::atoi( tazStrH.c_str() );
 
+
+		{
+			PersonParams personParams;
+
+			Job *job = this->getJobById(thisIndividual->getJobId());
+			Establishment *establishment = this->getEstablishmentById(	job->getEstablishmentId());
+			const Unit *unit = this->getUnitById(currentHousehold->getUnitId());
+
+			personParams.setPersonId(boost::lexical_cast<std::string>(thisIndividual->getId()));
+			personParams.setPersonTypeId(thisIndividual->getEmploymentStatusId());
+			personParams.setGenderId(thisIndividual->getGenderId());
+			personParams.setStudentTypeId(thisIndividual->getEducationId());
+			personParams.setVehicleOwnershipCategory(currentHousehold->getVehicleOwnershipOptionId());
+			personParams.setAgeId(thisIndividual->getAgeCategoryId());
+			personParams.setIncomeIdFromIncome(thisIndividual->getIncome());
+			personParams.setWorksAtHome(thisIndividual->getWorkAtHome());
+			personParams.setCarLicense(thisIndividual->getCarLicense());
+			personParams.setMotorLicense(thisIndividual->getMotorLicense());
+			personParams.setVanbusLicense(thisIndividual->getVanBusLicense());
+			personParams.setHasFixedWorkTiming(job->getTimeRestriction());
+			personParams.setHasWorkplace( job->getFixedWorkplace() );
+			personParams.setIsStudent(job->getIsStudent());
+			personParams.setActivityAddressId( establishment->getSlaAddressId() );
+
+			//household related
+			personParams.setHhId(boost::lexical_cast<std::string>( currentHousehold->getId() ));
+			personParams.setHomeAddressId( unit->getSlaAddressId() );
+			personParams.setHH_Size( currentHousehold->getSize() );
+			personParams.setHH_NumUnder4( currentHousehold->getChildUnder4());
+			personParams.setHH_NumUnder15( currentHousehold->getChildUnder15());
+			personParams.setHH_NumAdults( currentHousehold->getAdult());
+			personParams.setHH_NumWorkers( currentHousehold->getWorkers());
+
+			//infer params
+			personParams.fixUpParamsForLtPerson();
+
+			PersonParams personParams0 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 0 , &personParams );
+			PersonParams personParams1 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 1 , &personParams );
+			PersonParams personParams2 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 2 , &personParams );
+			PersonParams personParams3 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 3 , &personParams );
+			PersonParams personParams4 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 4 , &personParams );
+			PersonParams personParams5 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 5 , &personParams );
+
+			logsum.push_back( personParams0.getDpbLogsum());
+			travelProbability.push_back(personParams0.getTravelProbability());
+			tripsExpected.push_back(personParams0.getTripsExpected());
+
+			logsum.push_back( personParams1.getDpbLogsum());
+			travelProbability.push_back(personParams1.getTravelProbability());
+			tripsExpected.push_back(personParams1.getTripsExpected());
+
+			logsum.push_back( personParams2.getDpbLogsum());
+			travelProbability.push_back(personParams2.getTravelProbability());
+			tripsExpected.push_back(personParams2.getTripsExpected());
+
+			logsum.push_back( personParams3.getDpbLogsum());
+			travelProbability.push_back(personParams3.getTravelProbability());
+			tripsExpected.push_back(personParams3.getTripsExpected());
+
+			logsum.push_back( personParams4.getDpbLogsum());
+			travelProbability.push_back(personParams4.getTravelProbability());
+			tripsExpected.push_back(personParams4.getTripsExpected());
+
+			logsum.push_back( personParams5.getDpbLogsum());
+			travelProbability.push_back(personParams5.getTravelProbability());
+			tripsExpected.push_back(personParams5.getTripsExpected());
+		}
+
+		/*
 		PersonParams personParams1 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 0 );
+
+		Job *job = this->getJobById(thisIndividual->getJobId());
+		Establishment *establishment = this->getEstablishmentById(	job->getEstablishmentId());
+		const Unit *unit = this->getUnitById(currentHousehold->getUnitId());
+		personParams1.setPersonId(boost::lexical_cast<std::string>(thisIndividual->getId()));
+		personParams1.setPersonTypeId(thisIndividual->getEmploymentStatusId());
+		personParams1.setGenderId(thisIndividual->getGenderId());
+		personParams1.setStudentTypeId(thisIndividual->getEducationId());
+		personParams1.setVehicleOwnershipCategory(currentHousehold->getVehicleOwnershipOptionId());
+		personParams1.setAgeId(thisIndividual->getAgeCategoryId());
+		personParams1.setIncomeIdFromIncome(thisIndividual->getIncome());
+		personParams1.setWorksAtHome(thisIndividual->getWorkAtHome());
+		personParams1.setCarLicense(thisIndividual->getCarLicense());
+		personParams1.setMotorLicense(thisIndividual->getMotorLicense());
+		personParams1.setVanbusLicense(thisIndividual->getVanBusLicense());
+		personParams1.setHasFixedWorkTiming(job->getTimeRestriction());
+		personParams1.setHasWorkplace( job->getFixedWorkplace() );
+		personParams1.setIsStudent(job->getIsStudent());
+		personParams1.setActivityAddressId( establishment->getSlaAddressId() );
+		//household related
+		personParams1.setHhId(boost::lexical_cast<std::string>( currentHousehold->getId() ));
+		personParams1.setHomeAddressId( unit->getSlaAddressId() );
+		personParams1.setHH_Size( currentHousehold->getSize() );
+		personParams1.setHH_NumUnder4( currentHousehold->getChildUnder4());
+		personParams1.setHH_NumUnder15( currentHousehold->getChildUnder15());
+		personParams1.setHH_NumAdults( currentHousehold->getAdult());
+		personParams1.setHH_NumWorkers( currentHousehold->getWorkers());
+		//infer params
+		personParams1.fixUpParamsForLtPerson();
+
+
+
 		double logsumNoVehicle	= personParams1.getDpbLogsum();
 		double travelProbNV		= personParams1.getTravelProbability();
 		double tripsExpectedNV 	= personParams1.getTripsExpected();
@@ -2067,6 +2166,7 @@ void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId)
 		logsum.push_back(logsumVehicle);
 		travelProbability.push_back(travelProbV);
 		tripsExpected.push_back(tripsExpectedV);
+		*/
 
 		simulationStopCounter++;
 

@@ -7,6 +7,7 @@
  *
  *  Created on: 29 Jan 2016
  *  Author: Chetan Rogbeer <chetan.rogbeer@smart.mit.edu>
+ *  Modelling constants:    Roberto Lopez <rponcelo@mit.edu> 	
  */
 
 #include "database/entity/PostcodeAmenities.hpp"
@@ -314,7 +315,7 @@ namespace sim_mob
 			FindHDBType(unitType);
 			FindHouseholdSize(household);
 
-			DD_area = log(unit->getFloorArea()/10) ;
+			DD_area = log(unit->getFloorArea()/10);
 
 			FindAgeOfUnit( unit, day);
 

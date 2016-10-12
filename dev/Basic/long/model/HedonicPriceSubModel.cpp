@@ -553,10 +553,10 @@ vector<ExpectationEntry> HedonicPrice_SubModel::CalculateUnitExpectations (Unit 
 
 double HedonicPrice_SubModel::CalculateSpeculation(ExpectationEntry entry, double unitBids)
 {
-    double maximumBids = 20;
-    double a = 800000; //--a is the ratio of events expected by the seller.
-    double b = 0.3;    //--b is the importance of the price for seller.
-    double c = 1000;   //--c is the offset of the speculation price in thousands of dollars.
+    const double maximumBids = 20;
+    const double a = 800000; //--a is the ratio of events expected by the seller.
+    const double b = 0.3;    //--b is the importance of the price for seller.
+    const double c = 1000;   //--c is the offset of the speculation price in thousands of dollars.
 
     return (maximumBids-unitBids) * entry.askingPrice / (a - (b * entry.askingPrice)) * c;
 }

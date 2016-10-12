@@ -94,6 +94,20 @@ Platform* TrainPlatformMover::getPlatformByOffset(unsigned int offset) const
 		return nullptr;
 	}
 }
+
+void TrainPlatformMover::setPlatformIteratorToEnd()
+{
+	while(currPlatformIt!=platforms.end())
+	{
+		prevPlatforms.push_back(*currPlatformIt);
+		currPlatformIt++;
+	}
+}
+
+Platform *TrainPlatformMover::getLastPlatformOnRoute() const
+{
+	return *(platforms.end() - 1);
+}
 bool TrainPlatformMover::isLastPlatform()
 {
 	if((currPlatformIt+1)==platforms.end()){
@@ -102,7 +116,8 @@ bool TrainPlatformMover::isLastPlatform()
 		return false;
 	}
 }
-TrainPathMover::TrainPathMover():distanceMoveToNextPoint(0),currPolyLine(nullptr),distMovedOnCurrBlock(0),distMovedOnEntirePath(0) {
+TrainPathMover::TrainPathMover():distanceMoveToNextPoint(0),currPolyLine(nullptr),distMovedOnCurrBlock(0),distMovedOnEntirePath(0)
+{
 
 }
 
@@ -296,6 +311,10 @@ double TrainPathMover::getDistanceToNextPlatform(Platform* platform) const
 {
 	bool res = false;
 	double distance = 0.0;
+	if(platform==nullptr)
+	{
+		return -1;
+	}
 	if (currBlockIt != drivingPath.end())
 	{
 		if ((*currBlockIt)->getAttachedPlatform() == platform)

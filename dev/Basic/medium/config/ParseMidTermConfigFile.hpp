@@ -247,6 +247,8 @@ private:
      */
     void processTrainControllerNode(xercesc::DOMElement *node);
 
+    void processTrainPropertiesNode(xercesc::DOMElement *node);
+
     void processPathSetFileName(xercesc::DOMElement* node);
 
     /// The config we are currently loading

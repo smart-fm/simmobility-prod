@@ -715,13 +715,58 @@ void ParseMidTermConfigFile::processBusControllerNode(DOMElement *node)
     }
 }
 
+void ParseMidTermConfigFile::processTrainPropertiesNode(xercesc::DOMElement *node)
+{
+	xercesc::DOMElement *trainPropertiesNode=GetSingleElementByName(node, "trainProperties", true);
+	std::string childNodeName="trainLine";
+	XMLCh* keyX = XMLString::transcode(childNodeName.c_str());
+	DOMNodeList* res = trainPropertiesNode->getElementsByTagName(keyX);
+	XMLString::release(&keyX);
+	int length=res->getLength();
+	if(res->getLength()==0)
+	{
+		throw std::runtime_error("no configuration present for any line");
+	}
+	for(int i=0;i<length;i++)
+	{
+		xercesc::DOMElement* trainLineElement=NodeToElement(res->item(i));
+		std::string lineId=ParseString(GetNamedAttributeValue(trainLineElement, "lineid"), "");
+		TrainProperties trainProperties;
+		DOMElement* child = GetSingleElementByName(trainLineElement, "safe_operation_distance_meter");
+
+		if(child==nullptr)
+		{
+			throw std::runtime_error("load safe_operation_distance_meter missing in simrun_MidTerm.xml");
+		}
+		trainProperties.safeDistance = ParseFloat(GetNamedAttributeValue(child, "value"));
+
+		child = GetSingleElementByName(trainLineElement, "safe_operation_headway_sec");
+		if (child == nullptr)
+		{
+			throw std::runtime_error("load safe_operation_headway_sec missing in simrun_MidTerm.xml");
+		}
+
+		trainProperties.safeHeadway = ParseFloat(GetNamedAttributeValue(child, "value"));
+		child = GetSingleElementByName(trainLineElement, "max_capacity");
+		if (child == nullptr)
+		{
+			throw std::runtime_error("load max_capacity missing in simrun_MidTerm.xml for");
+		}
+
+		trainProperties.maxCapacity = ParseFloat(GetNamedAttributeValue(child, "value"));
+		cfg.trainController.trainLinePropertiesMap[lineId]=trainProperties;
+	}
+}
+
 void ParseMidTermConfigFile::processTrainControllerNode(xercesc::DOMElement *node)
 {
     if(node)
     {
         cfg.trainController.enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), "false");
         cfg.trainController.trainControlType = ParseString(GetNamedAttributeValue(node, "train_control_type"), "");
-        DOMElement* child = GetSingleElementByName(node, "safe_operation_distance_meter");
+        processTrainPropertiesNode(node);
+
+        /*DOMElement* child = GetSingleElementByName(node, "safe_operation_distance_meter");
     	if (child == nullptr)
     	{
     		throw std::runtime_error("load safe_operation_distance_meter missing in simrun_MidTerm.xml");
@@ -746,18 +791,21 @@ void ParseMidTermConfigFile::processTrainControllerNode(xercesc::DOMElement *nod
     	cfg.trainController.miniDwellTime = value;
     	value = ParseFloat(GetNamedAttributeValue(child, "max_sec"));
     	cfg.trainController.maxDwellTime = value;
-    	child = GetSingleElementByName(node, "output_enabled");
+    	*/
+        DOMElement* child  = GetSingleElementByName(node, "output_enabled");
     	if (child == nullptr)
     	{
     		throw std::runtime_error("load output_enabled missing in simrun_MidTerm.xml");
     	}
+
     	cfg.trainController.outputEnabled=ParseBoolean(GetNamedAttributeValue(child, "value"), false);
-    	child = GetSingleElementByName(node, "max_capacity");
+    	/*child = GetSingleElementByName(node, "max_capacity");
     	if (child == nullptr)
     	{
     		throw std::runtime_error("load max_capacity missing in simrun_MidTerm.xml");
     	}
     	cfg.trainController.maxCapacity=ParseUnsignedInt(GetNamedAttributeValue(child, "value"));
+	*/
     }
 }
 

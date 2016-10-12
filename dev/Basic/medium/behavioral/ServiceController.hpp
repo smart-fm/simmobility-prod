@@ -61,6 +61,8 @@ class ServiceController:  public lua::LuaModel
 	 */
 	void resetAcceleration(double accelerate,std::string lineId);
 
+	void resetAccelerationLimit(double speedLimit,std::string startStation,std::string endStation,std::string lineId,std::string startTime,std::string endTime);
+
 	/*interface to  reset the safe headway of a particular train
 	 *@param sec is the safe headway sec to be set
 	 *@param trainId is the train id of the train whose headway sec is to be reset
@@ -96,6 +98,10 @@ class ServiceController:  public lua::LuaModel
 	 *@param lineId is the id of the line where the train with given train id's holding time is to be reset
 	 */
 	void resetHoldingTimeAtStation(std::string platformName,double duration,int trainId,std::string lineId);
+
+	void resetMaxHoldingTimeAtStation(std::string platformName,double duration,int trainId,std::string lineId);
+
+	void resetMinHoldingTimeAtStation(std::string platformName,double duration,int trainId,std::string lineId);
 
 	/*Interface to terminate the service of all trains currently running on the line specified and stops the future schedule dispatch of trains
 	 *@param lineId is the id of the line where train service is to be terminated

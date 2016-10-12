@@ -171,6 +171,7 @@ namespace sim_mob
 	{
 
 		//resetBlockSpeeds(now);
+		//resetBlockAccelerations(now);
 		//PerformDisruption(disruptionEntity.startStation,disruptionEntity.endStation,now,disruptionEntity.disruptionTime);
 		if(disruptionParam.get())
         {
@@ -1418,21 +1419,21 @@ namespace sim_mob
 	}
 
 	template<typename PERSON>
-	void TrainController<PERSON>::assignResetBlocks(ResetBlockSpeeds resetSpeedBlocksEntity)
+	void TrainController<PERSON>::assignResetBlockSpeeds(ResetBlockSpeeds resetSpeedBlocksEntity)
 	{
 		resetSpeedBlocks.push_back(resetSpeedBlocksEntity);
 	}
 
 	template<typename PERSON>
-	void TrainController<PERSON>::resetBlockSpeeds(timeslice now)
+	void TrainController<PERSON>::resetBlockSpeeds(DailyTime now)
 	{
 		std::vector<ResetBlockSpeeds>::iterator it;
-		DailyTime currentTime=ConfigManager::GetInstance().FullConfig().simStartTime()+DailyTime(now.ms());
-		DailyTime nextFrameTickTime=ConfigManager::GetInstance().FullConfig().simStartTime()+DailyTime(now.ms()+5000);
-		//map<int, double> blockIdSpeed;
-		//std::vector<Block*> blockVector;
+		//DailyTime currentTime=ConfigManager::GetInstance().FullConfig().simStartTime()+DailyTime(now.ms());
+		DailyTime currentTime=now;
+		//DailyTime nextFrameTickTime=ConfigManager::GetInstance().FullConfig().simStartTime()+DailyTime(now.ms()+5000);
+		DailyTime nextFrameTickTime=now+DailyTime(5000);
 		int count=-1;
-		for(it=resetSpeedBlocks.begin() ; it < resetSpeedBlocks.end(); it++ )
+		for(it=resetSpeedBlocks.begin() ; it < resetSpeedBlocks.end(); )
 		{
            count++;
 		   if((*it).startTime>=currentTime.getStrRepr()&&(*it).startTime<nextFrameTickTime.getStrRepr()&&(*it).speedReset==false)
@@ -1462,7 +1463,7 @@ namespace sim_mob
                 	   int blockId=(*itpl)->getAttachedBlockId();
                 	   std::map<unsigned int, Block*>::iterator iBlock = mapOfIdvsBlocks.find(blockId);
                        Block *block=iBlock->second;
-                       blockIdSpeed[blockId]=block->getSpeedLimit();
+                       blockIdSpeed[(*itpl)->getLineId()][blockId]=block->getSpeedLimit();
                        block->setSpeedLimit(speedLimit);
                        //blockVectorOfRessetedSpeeds.push_back(block);
                    }
@@ -1472,7 +1473,7 @@ namespace sim_mob
 
            }
 		   //&&(*it).speedReset==true
-           else if((*it).endTime<currentTime.getStrRepr())
+           else if((*it).endTime<=currentTime.getStrRepr())
            {
 
         	  std::vector<Platform *>::iterator itpl;
@@ -1497,12 +1498,109 @@ namespace sim_mob
 					  int blockId=(*itpl)->getAttachedBlockId();
 					  std::map<unsigned int, Block*>::iterator iBlock = mapOfIdvsBlocks.find(blockId);
 					  Block *block=iBlock->second;
-					  double defaultSpeed=blockIdSpeed[block->getBlockId()];
+					  double defaultSpeed=blockIdSpeed[(*itpl)->getLineId()][block->getBlockId()];
 					  block->setSpeedLimit(defaultSpeed);
 				  }
 			  }
         	  resetSpeedBlocks[count].speedReset=false;
+        	  resetSpeedBlocks.erase(it);
+        	  continue;
            }
+		   it++;
+		}
+	}
+
+	template<typename PERSON>
+	void TrainController<PERSON>::assignResetBlockAccelerations(ResetBlockAccelerations resetAccelerationBlocksEntity)
+	{
+		resetAccelerationBlocks.push_back(resetAccelerationBlocksEntity);
+	}
+
+	template<typename PERSON>
+	void TrainController<PERSON>::resetBlockAccelerations(DailyTime now)
+	{
+		std::vector<ResetBlockAccelerations>::iterator it;
+		//DailyTime currentTime=ConfigManager::GetInstance().FullConfig().simStartTime()+DailyTime(now.ms());
+		//DailyTime nextFrameTickTime=ConfigManager::GetInstance().FullConfig().simStartTime()+DailyTime(now.ms()+5000);
+		DailyTime currentTime=now;
+		DailyTime nextFrameTickTime=now+DailyTime(5000);
+		int count=-1;
+		for(it=resetAccelerationBlocks.begin() ; it < resetAccelerationBlocks.end(); )
+		{
+           count++;
+		   if((*it).startTime>=currentTime.getStrRepr()&&(*it).startTime<nextFrameTickTime.getStrRepr()&&(*it).accelerationReset==false)
+           {
+               std::string startStation=(*it).startStation;
+               std::string endStation =(*it).endStation;
+               std::string lineId=(*it).line;
+               double accLimit=(*it).accLimit;
+               std::vector<Platform*> platforms;
+               getTrainPlatforms(lineId,platforms);
+               bool startSeq=false;
+
+               std::vector<Platform *>::iterator itpl;
+               for(itpl=platforms.begin() ; itpl < platforms.end(); itpl++)
+               {
+            	   //boost::iequals((*itpl)->getStationNo(), startStation)
+            	   if(boost::iequals((*itpl)->getStationNo(), startStation))
+                   {
+                        startSeq=true;
+                   }
+                   else if (boost::iequals((*itpl)->getStationNo(), endStation))
+                   {
+                       break;
+                   }
+                   if(startSeq==true)
+                   {
+                	   int blockId=(*itpl)->getAttachedBlockId();
+                	   std::map<unsigned int, Block*>::iterator iBlock = mapOfIdvsBlocks.find(blockId);
+                       Block *block=iBlock->second;
+                       blockIdAcceleration[(*itpl)->getLineId()][blockId]=block->getAccelerateRate();
+                       block->setAccelerateRate(accLimit);
+                       block->setDecelerateRate(accLimit);
+                       //blockVectorOfRessetedSpeeds.push_back(block);
+                   }
+               }
+               //resetSpeedBlocks[count].speedReset=true;
+               //(*it).speedReset=true;
+
+           }
+		   //&&(*it).speedReset==true
+           else if((*it).endTime<=currentTime.getStrRepr())
+           {
+
+        	  std::vector<Platform *>::iterator itpl;
+        	  std::string startStation=(*it).startStation;
+        	  std::string endStation =(*it).endStation;
+        	  std::string lineId=(*it).line;
+        	  std::vector<Platform*> platforms;
+        	  getTrainPlatforms(lineId,platforms);
+        	  bool startSeq=false;
+        	  for(itpl=platforms.begin() ; itpl < platforms.end(); itpl++)
+			  {
+				  if(boost::iequals((*itpl)->getStationNo(), startStation))
+				  {
+					  startSeq=true;
+				  }
+				  else if (boost::iequals((*itpl)->getStationNo(), endStation))
+				  {
+					  break;
+				  }
+				  if(startSeq==true)
+				  {
+					  int blockId=(*itpl)->getAttachedBlockId();
+					  std::map<unsigned int, Block*>::iterator iBlock = mapOfIdvsBlocks.find(blockId);
+					  Block *block=iBlock->second;
+					  double defaultAcceleration=blockIdAcceleration[(*itpl)->getLineId()][block->getBlockId()];
+					  block->setAccelerateRate(defaultAcceleration);
+					  block->setDecelerateRate(defaultAcceleration);
+				  }
+			  }
+        	  resetAccelerationBlocks[count].accelerationReset=false;
+        	  resetAccelerationBlocks.erase(it);
+        	  continue;
+           }
+		   it++;
 		}
 	}
 

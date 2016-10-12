@@ -56,6 +56,18 @@ struct ResetBlockSpeeds
 	bool speedReset=false;
 };
 
+struct ResetBlockAccelerations
+{
+	std::string startStation;
+	std::string endStation;
+	double accLimit;;
+	double defaultAcceleration;
+	std::string startTime;
+	std::string endTime;
+	std::string line;
+	bool accelerationReset=false;
+};
+
 /**
  * This structure holds the attributes of disruption to be performed by service controller Api call
  */
@@ -209,7 +221,9 @@ public:
 	/* Assigns the reset block speed entities,to store the speed reset information
 	 * And the timing
 	 */
-	void assignResetBlocks(ResetBlockSpeeds resetSpeedBlocks);
+	void assignResetBlockSpeeds(ResetBlockSpeeds resetSpeedBlocks);
+
+	void assignResetBlockAccelerations(ResetBlockAccelerations resetSpeedBlocks);
 
 	/* adds to list of Active trains in Line when new train is created*/
 	void addToListOfActiveTrainsInLine(std::string lineId,Role<PERSON> *driver);
@@ -339,6 +353,8 @@ public:
     void pushToInactivePoolAfterTripCompletion(int trainId,std::string lineId);
     bool isUturnPlatform(std::string platformName,std::string lineId);
     int getMapPlatformsSize();
+    void resetBlockSpeeds(DailyTime now);
+    void resetBlockAccelerations(DailyTime now);
 
 protected:
 	/**
@@ -471,7 +487,7 @@ private:
 	 * resets the speed limits of the stretch of blocks
 	 * @param now is the current time slice
 	 */
-	void resetBlockSpeeds(timeslice now);
+
 
 
 
@@ -505,7 +521,9 @@ private:
 	std::map<std::string,bool>mapOfTrainServiceTerminated;
     std::map<std::string,std::vector<std::string>> disruptedPlatformsNamesMap_ServiceController;
 	std::vector<ResetBlockSpeeds> resetSpeedBlocks;
-	std::map<int, double> blockIdSpeed;
+	std::vector<ResetBlockAccelerations> resetAccelerationBlocks;
+	std::map<std::string,std::map<int, double>> blockIdAcceleration;
+	std::map<std::string,std::map<int, double>> blockIdSpeed;
 	std::map<std::string, std::vector <Role<PERSON>*>> mapOfLineAndTrainDrivers;
 	std::map<std::string,std::vector<int>> mapOfInActivePoolInLine;
 	std::map<std::string,std::vector<int>> trainsToBePushedToInactivePoolAfterTripCompletion;

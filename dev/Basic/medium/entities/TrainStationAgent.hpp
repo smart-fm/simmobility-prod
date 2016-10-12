@@ -114,6 +114,7 @@ private:
 	/**waiting person for boarding*/
 	std::map<const Platform*, std::list<WaitTrainActivity*>> waitingPersons;
 	std::map<const Platform*, std::list<Passenger*>> forceAlightedPersons;
+	std::list<Person_MT*> personsForcedAlighted;
 	std::vector<std::string> unscheduledTrainLines;
 	/**alighting person for next trip*/
 	std::map<const Platform*, std::list<Passenger*>> leavingPersons;

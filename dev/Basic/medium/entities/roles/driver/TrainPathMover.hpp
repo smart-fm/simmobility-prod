@@ -48,8 +48,10 @@ public:
 	 * @return empty if offset is beyond last item
 	 */
 	Platform* getPlatformByOffset(unsigned int offset) const;
+	Platform * getLastPlatformOnRoute() const;
 	void clearPrevPlatforms();
 	void resetPlatformItr();
+	void setPlatformIteratorToEnd();
 	const std::vector<Platform*>& getPlatforms() const;
 private:
 	/**driving platforms*/

@@ -32,6 +32,10 @@ TrainDriver::TrainDriver(Person_MT* parent,
 {
 	int trainId=getTrainId();
 	std::string lineId=getTrainLine();
+	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
+	std::map<std::string,TrainProperties> trainLinePropertiesMap = config.trainController.trainLinePropertiesMap;
+	TrainProperties trainProperties = trainLinePropertiesMap[lineId];
+	maxCapacity=trainProperties.maxCapacity;
 	ServiceController::getInstance()->insertTrainIdAndTrainDriverInMap(trainId,lineId,this);
 }
 
@@ -82,11 +86,22 @@ bool TrainDriver::getForceAlightStatus()
 Role<Person_MT>* TrainDriver::clone(Person_MT *parent) const
 {
 	TrainBehavior* behavior = new TrainBehavior();
-	TrainMovement* movement = new TrainMovement();
-	TrainDriver* driver = new TrainDriver(parent, behavior, movement, "TrainDriver_");
-	behavior->setParentDriver(driver);
-	movement->setParentDriver(driver);
-	return driver;
+	if(parent)
+	{
+		std::string lineId;
+		std::vector<TripChainItem *>::iterator currTrip = parent->currTripChainItem;
+		const TrainTrip* trip = dynamic_cast<const TrainTrip*>(*currTrip);
+		if(trip)
+		{
+			lineId = trip->getLineId();
+		}
+
+		TrainMovement* movement = new TrainMovement(lineId);
+		TrainDriver* driver = new TrainDriver(parent, behavior, movement, "TrainDriver_");
+		behavior->setParentDriver(driver);
+		movement->setParentDriver(driver);
+		return driver;
+	}
 }
 
 void TrainDriver::setNextDriver(TrainDriver* driver)
@@ -214,14 +229,87 @@ void TrainDriver::calculateDwellTime(int boarding,int alighting,int noOfPassenge
 		std::string stationNo=currentPlatform->getStationNo();
 		std::string trainLine=getTrainLine();
 		TrainController<sim_mob::medium::Person_MT> *trainController=TrainController<sim_mob::medium::Person_MT>::getInstance();
-		double minDwellTime=trainController->getMinDwellTime(stationNo,trainLine);
-		if(dwellTime<minDwellTime)
+		Platform *platform = getNextPlatform();
+		double maxDwellTime=0.0,minDwellTime=0.0;
+		bool useMaxDwellTime = false,useMinDwellTime = false;
+		if(getTrainId()==31 &&boost::iequals(getTrainLine(),"EW_2")==true)
 		{
-			dwellTime=minDwellTime;
+			int debug =1;
 		}
-		else if(dwellTime>trainController->getMaximumDwellTime())
+		if(platformHoldingTimeEntities.find(platform->getPlatformNo())!=platformHoldingTimeEntities.end())
 		{
-			dwellTime = trainController->getMaximumDwellTime();
+			dwellTime = platformHoldingTimeEntities[platform->getPlatformNo()];
+		}
+
+		else
+		{
+
+			if(platformMaxHoldingTimeEntities.find(platform->getPlatformNo())!=platformMaxHoldingTimeEntities.end())
+			{
+				maxDwellTime = platformMaxHoldingTimeEntities[platform->getPlatformNo()];
+				useMaxDwellTime = true;
+			}
+			else
+			{
+				maxDwellTime = trainController->getMaximumDwellTime();
+			}
+
+			if(platformMinHoldingTimeEntities.find(platform->getPlatformNo())!=platformMinHoldingTimeEntities.end())
+			{
+				minDwellTime = platformMinHoldingTimeEntities[platform->getPlatformNo()];
+				useMinDwellTime = true;
+			}
+			else
+			{
+				minDwellTime = trainController->getMinDwellTime(stationNo,trainLine);
+			}
+
+			if(useMaxDwellTime)
+			{
+				if(dwellTime>maxDwellTime)
+				{
+					dwellTime = maxDwellTime;
+				}
+
+				if(dwellTime<minDwellTime&&minDwellTime<=maxDwellTime)
+				{
+					dwellTime = minDwellTime;
+				}
+				else if(dwellTime<minDwellTime&&minDwellTime>maxDwellTime)
+				{
+					dwellTime = maxDwellTime;
+				}
+
+			}
+
+			else if (useMinDwellTime)
+			{
+				if(dwellTime<minDwellTime)
+				{
+					dwellTime=minDwellTime;
+				}
+
+				if(dwellTime>maxDwellTime&&maxDwellTime>=minDwellTime)
+				{
+					dwellTime = maxDwellTime;
+				}
+				else if (dwellTime>maxDwellTime&&maxDwellTime<minDwellTime)
+				{
+					dwellTime = minDwellTime;
+				}
+			}
+
+			else
+			{
+				if(dwellTime<minDwellTime)
+				{
+					dwellTime = minDwellTime;
+				}
+				else if (dwellTime>maxDwellTime)
+				{
+					dwellTime = maxDwellTime;
+				}
+			}
 		}
 	}
 	minDwellTimeRequired =dwellTime; /*minDwellTimeRequired is the min dwell time calculated so that all passengers can board and alight */
@@ -234,6 +322,20 @@ void TrainDriver::calculateDwellTime(int boarding,int alighting,int noOfPassenge
 void TrainDriver::insertPlatformHoldEntities(std::string platformName,double duration)
 {
 	platformHoldingTimeEntitiesLock.lock();
+	if(platformMaxHoldingTimeEntities.find(platformName)!=platformMaxHoldingTimeEntities.end())
+	{
+		if(duration>platformMaxHoldingTimeEntities[platformName])
+		{
+			return;
+		}
+	}
+	if(platformMinHoldingTimeEntities.find(platformName)!=platformMinHoldingTimeEntities.end())
+	{
+		if(duration<platformMinHoldingTimeEntities[platformName])
+		{
+			return;
+		}
+	}
 	platformHoldingTimeEntities[platformName]=duration;
 	platformHoldingTimeEntitiesLock.unlock();
 }
@@ -246,11 +348,8 @@ void TrainDriver::resetHoldingTime()
 	if(platformHoldingTimeEntities.find(currentPlatform->getPlatformNo())!=platformHoldingTimeEntities.end())
 	{
 		double holdingTime=platformHoldingTimeEntities[currentPlatform->getPlatformNo()];
-		if(holdingTime>minDwellTimeRequired)
-		{
-			waitingTimeSec=holdingTime-(initialDwellTime-waitingTimeSec);
-			initialDwellTime=holdingTime;
-		}
+		waitingTimeSec=holdingTime-(initialDwellTime-waitingTimeSec);
+		initialDwellTime=holdingTime;
 		platformHoldingTimeEntities.erase(currentPlatform->getPlatformNo());
 	}
 	platformHoldingTimeEntitiesLock.unlock();
@@ -259,11 +358,25 @@ void TrainDriver::resetHoldingTime()
 
 void TrainDriver::resetMaximumHoldingTime(std::string platformName,double duration)
 {
+	/*if(platformHoldingTimeEntities.find(platformName)!=platformHoldingTimeEntities.end())
+	{
+		if(platformHoldingTimeEntities[platformName]>duration)
+		{
+			return;
+		}
+	}*/
 	platformMaxHoldingTimeEntities[platformName]=duration;
 }
 
 void TrainDriver::resetMinimumHoldingTime(std::string platformName,double duration)
 {
+	/*if(platformHoldingTimeEntities.find(platformName)!=platformHoldingTimeEntities.end())
+	{
+		if(platformHoldingTimeEntities[platformName]<duration)
+		{
+			return;
+		}
+	}*/
 	platformMinHoldingTimeEntities[platformName]=duration;
 }
 
@@ -316,6 +429,11 @@ void TrainDriver::AddPlatforms(std::vector<std::string> PlatformsToAdd)
 		if(findelement!=platformsToBeIgnored.end())
 		{
 			platformsToBeIgnored.erase(findelement);
+			TrainMovement *movement = getMovement();
+			if(movement)
+			{
+				movement->setShouldIgnoreAllPlatforms(false);
+			}
 		}
 		it++;
 	}
@@ -397,9 +515,9 @@ std::list<Passenger*>& TrainDriver::getPassengers()
 unsigned int TrainDriver::getEmptyOccupation()
 {
 	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
-	if(passengerList.size()<config.trainController.maxCapacity)
+	if(passengerList.size()<maxCapacity)
 	{
-		return config.trainController.maxCapacity-passengerList.size();
+		return maxCapacity-passengerList.size();
 	}
 	return 0;
 }
@@ -620,7 +738,7 @@ void TrainDriver::storeArrivalTime(const std::string& currentTime, const std::st
 		arrivalInfo.dwellTime = waitTime;
 		arrivalInfo.dwellTimeSecs = (DailyTime(waitTime)).getValue() / 1000.0;
 		const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
-		arrivalInfo.pctOccupancy = (((double)passengerList.size())/config.trainController.maxCapacity) * 100.0;
+		arrivalInfo.pctOccupancy = (((double)passengerList.size())/maxCapacity) * 100.0;
 		arrivalInfo.stopNo = platform->getPlatformNo();
 		messaging::MessageBus::PostMessage(PT_Statistics::getInstance(), STORE_BUS_ARRIVAL, messaging::MessageBus::MessagePtr(new PT_ArrivalTimeMessage(arrivalInfo)));
 	}
@@ -687,7 +805,8 @@ int TrainDriver::boardForceAlightedPassengersPassenger(std::list<Passenger*>& fo
 	std::list<Passenger*>::iterator i = forcealightedPassengers.begin();
 	while(i!=forcealightedPassengers.end()&&validNum>0)
 	{
-		passengerList.push_back(*i);
+		Passenger *pr=dynamic_cast<Passenger*>(*i);
+		passengerList.push_back(pr);
 		i = forcealightedPassengers.erase(i);
 		validNum--;
 		num++;

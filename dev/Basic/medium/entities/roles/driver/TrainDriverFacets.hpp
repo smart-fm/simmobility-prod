@@ -40,7 +40,7 @@ enum TRAINCASE{NORMAL_CASE,STATION_CASE};
 class TrainMovement : public MovementFacet
 {
 public:
-	explicit TrainMovement();
+	explicit TrainMovement(std::string lineId);
 	virtual ~TrainMovement();
 
 	//virtual overrides
@@ -220,6 +220,8 @@ public:
 
 	void findNearestStopPoint(std::vector<StopPointEntity> &stopPoints,double &distance);
 
+	void setShouldIgnoreAllPlatforms(bool action);
+
 	TrainPlatformMover& getTrainPlatformMover();
 
 protected:
@@ -259,6 +261,7 @@ private:
 	double waitingTimeRemainingBeforeUturn=0;
 	double userSpecifiedUturnTime=0;
 	bool isWaitingForUturn=false;
+	bool shouldIgnoreAllPlatforms=false;
 
 
 private:
@@ -286,6 +289,8 @@ private:
 	bool isStationCase_1(double disToTrain, double disToPlatform,double& effectDis);
 
 	void eraseStopPoint(std::vector<PolyPoint>::iterator pointItr);
+
+	void reAssignTrainsToStationAgent(Platform *prevPlatfrom,Platform *newPlatform,bool &isToBERemoved);
 
 	void produceDwellTimeInfo();
 };

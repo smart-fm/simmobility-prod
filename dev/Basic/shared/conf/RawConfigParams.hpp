@@ -428,6 +428,21 @@ struct BusControllerParams
 /**
  * Represents train controller parameter section
  */
+
+struct TrainProperties
+{
+	TrainProperties() :safeDistance(0), safeHeadway(0),maxCapacity(0)
+	{
+
+	}
+	/// safe operation distance;
+	double safeDistance;
+	/// safe operation headway
+	double safeHeadway;
+	/// train capacity
+	unsigned int maxCapacity;
+};
+
 struct TrainControllerParams
 {
     /**
@@ -455,6 +470,7 @@ struct TrainControllerParams
     bool outputEnabled;
     /// train capacity
     unsigned int maxCapacity;
+    std::map<std::string,TrainProperties> trainLinePropertiesMap;
 };
 
 /**

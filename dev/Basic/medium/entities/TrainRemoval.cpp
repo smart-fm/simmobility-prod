@@ -95,16 +95,21 @@ namespace sim_mob
 						}
 					}
 				}
-				std::string stationNo = (*itr)->getNextPlatform()->getStationNo();
-				Agent* stationAgent = TrainController<Person_MT>::getAgentFromStation(stationNo);
-				TrainStationAgent *trainStationAgent=dynamic_cast<TrainStationAgent*>(stationAgent);
-				std::map<std::string, TrainDriver*> lastTrainDriver=trainStationAgent->getLastDriver();
-				std::map<std::string, TrainDriver*>::iterator ilastTrainDriver=lastTrainDriver.find(trainLine);
-				if(ilastTrainDriver!=lastTrainDriver.end())
+
+				Platform *lastPlatform=(*itr)->getNextPlatform();
+				if(lastPlatform!=nullptr)
 				{
-					if(ilastTrainDriver->second==(*itr))
+					std::string stationNo = lastPlatform->getStationNo();
+					Agent* stationAgent = TrainController<Person_MT>::getAgentFromStation(stationNo);
+					TrainStationAgent *trainStationAgent=dynamic_cast<TrainStationAgent*>(stationAgent);
+					std::map<std::string, TrainDriver*> lastTrainDriver=trainStationAgent->getLastDriver();
+					std::map<std::string, TrainDriver*>::iterator ilastTrainDriver=lastTrainDriver.find(trainLine);
+					if(ilastTrainDriver!=lastTrainDriver.end())
 					{
-						lastTrainDriver[trainLine]=nullptr;
+						if(ilastTrainDriver->second==(*itr))
+						{
+							lastTrainDriver[trainLine]=nullptr;
+						}
 					}
 				}
 

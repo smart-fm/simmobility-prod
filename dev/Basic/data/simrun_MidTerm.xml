@@ -5,7 +5,7 @@
 <config>
     <!-- Determines whether to run SimMobility_Medium's demand simulator or the supply simulator -->
     <!-- Admissible values are "preday", "withinday" and "supply". Values "withinday" and "supply" runs the same code. Two different values are allowed just for convenience.-->
-    <mid_term_run_mode value="preday"/>
+    <mid_term_run_mode value="withinday"/>
 
     <!-- Groupings of stored procedures, used for loading network data from certain tables. -->
 
@@ -115,8 +115,8 @@
     <system>         
         <!-- If loading from the database, which database, proc_map, and credentials are used? -->
 
-        <network_database database="fm_remote" credentials="fm_remote" proc_map="simmobcity"/>
-        <population_database  database="fm_remote_lt" credentials="lt_cred" proc_map=""/> 
+        <network_database database="fm_hpchead" credentials="fm_hpchead" proc_map="withinday"/>
+        <population_database  database="fm_hpchead" credentials="fm_hpchead" proc_map=""/> 
 
         <!-- The parser will simply load everything in "generic_props" section into "SystemParams.genericProps".  -->
         <!-- In other words, you DO NOT need to update the parser just to add a simple string-based configuration parameter to -->
@@ -129,7 +129,7 @@
     <!-- List of all Worker types and their properties. -->
     <!-- granularity of each component must be a multiple of the "base" granularity -->
     <workers>
-        <person count="7" granularity="5 seconds"/> <!-- Person agents (with Roles) -->
+        <person count="1" granularity="5 seconds"/> <!-- Person agents (with Roles) -->
     </workers>
       
     <incidentsData enabled="false">
@@ -160,19 +160,54 @@
     <!-- 2. "pt_bus_routes" -->
     <!-- 3. "pt_bus_stops" -->
     <!-- The current control strategy for buses. Can be "headway_based", "evenheadway_based", "hybrid_based", or (default) "no_control" -->
-    <busController enabled="true" busline_control_type="headway_based"/>
+    <busController enabled="false" busline_control_type="headway_based"/>
 
     <!-- The current control strategy for train. Can be "fixed_block", "moving_block"-->   
     <path-set-config-file value="data/pathset_config.xml" />
     <!-- The current control strategy for train. Can be "fixed_block", "moving_block"-->
     <trainController enabled="true" train_control_type="moving_block">
-    	<safe_operation_distance_meter value="50"/>
-    	<safe_operation_headway_sec value="90"/>
+    	<!-- <safe_operation_distance_meter value="50"/> -->
+    	<!-- <safe_operation_headway_sec value="90"/> -->
     	<dwell_time_params min_sec="30" max_sec="50"/>
     	<output_enabled value="true"/>
-    	<max_capacity value="1600"/>
+    	<!-- <max_capacity value="1600"/> -->
+
+	<trainProperties>
+	    <trainLine lineid="NE_1">
+	       <safe_operation_distance_meter value="50"/>
+	       <safe_operation_headway_sec value="90"/>
+	       <max_capacity value="1600"/>
+	    </trainLine>
+	    <trainLine lineid="NE_2">
+		<safe_operation_distance_meter value="50"/>
+		<safe_operation_headway_sec value="90"/>
+		<max_capacity value="1600"/>
+	    </trainLine>
+	    <trainLine lineid="EW_1">
+		<safe_operation_distance_meter value="50"/>
+		<safe_operation_headway_sec value="90"/>
+		<max_capacity value="1600"/>
+	    </trainLine>
+	    <trainLine lineid="EW_2">
+		<safe_operation_distance_meter value="50"/>
+		<safe_operation_headway_sec value="90"/>
+		<max_capacity value="1600"/>
+	    </trainLine>
+	    <trainLine lineid="NS_1">
+		<safe_operation_distance_meter value="50"/>
+		<safe_operation_headway_sec value="90"/>
+		<max_capacity value="1600"/>
+	    </trainLine>
+	    <trainLine lineid="NS_2">
+		<safe_operation_distance_meter value="50"/>
+		<safe_operation_headway_sec value="90"/>
+		<max_capacity value="1600"/>
+	    </trainLine>
+	</trainProperties>
+
     </trainController>
 
+    
 
     <!-- location of the config file for loading pathset generation or route choice related info -->
     <pathset_config_file value="data/pathset_config.xml" />

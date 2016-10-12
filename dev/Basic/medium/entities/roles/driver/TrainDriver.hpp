@@ -462,7 +462,7 @@ private:
 	std::string arrivalTimeAtPlatform;
 	bool isToBeRemovedFromStationAgent=false;
 	bool hasforceAlightedInDisruption = false;
-
+	int maxCapacity=0;
 	/* board passenger count */
 
 

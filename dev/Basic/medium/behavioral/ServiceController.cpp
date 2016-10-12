@@ -37,7 +37,11 @@ void ServiceController::useServiceController(std::string time)
 	LuaRef useServiceControllerRef = getGlobal(state.get(), "use_servicecontroller");
 	lineTrainDriversLock.lock();
 	LuaRef retVal = useServiceControllerRef(this,time);
+	DailyTime now(time);
 	lineTrainDriversLock.unlock();
+	TrainController<sim_mob::medium::Person_MT>::getInstance()->resetBlockAccelerations(now);
+	TrainController<sim_mob::medium::Person_MT>::getInstance()->resetBlockSpeeds(now);
+
 }
 
 ServiceController::~ServiceController()
@@ -48,13 +52,16 @@ ServiceController::~ServiceController()
  {
 	 getGlobalNamespace(state.get()).beginClass <ServiceController> ("ServiceController")
 	 			.addFunction("reset_speed_limit",&ServiceController::resetSpeedLimit)
-	 			.addFunction("reset_acceleration",&ServiceController::resetAcceleration)
+				.addFunction("reset_acceleration",&ServiceController::resetAccelerationLimit)
+	 			.addFunction("reset_acceleration_all_blocks",&ServiceController::resetAcceleration)
 	 			.addFunction("reset_safe_headway_sec",&ServiceController::resetSafeHeadwaySec)
 	 			.addFunction("reset_safe_operation_distance",&ServiceController::resetSafeOperationDistance)
 	 			.addFunction("reset_moving_case", &ServiceController::resetMovingCase)
 	 			.addFunction("force_release_passenegers", &ServiceController::forceReleasePassenegers)
 				.addFunction("restrict_passengers", &ServiceController::restrictPassengers)
 				.addFunction("reset_holding_time_at_station", &ServiceController::resetHoldingTimeAtStation)
+				.addFunction("reset_max_holding_time_at_station", &ServiceController::resetMaxHoldingTimeAtStation)
+				.addFunction("reset_min_holding_time_at_station", &ServiceController::resetMinHoldingTimeAtStation)
 				.addFunction("terminate_trainservice", &ServiceController::terminateTrainService)
 				.addFunction("get_dwelltime", &ServiceController::getDwellTime)
 				.addFunction("get_opposite_lineid", &ServiceController::getOppositeLineId)
@@ -420,6 +427,40 @@ void ServiceController::resetHoldingTimeAtStation(std::string platformName,doubl
 	}
 }
 
+void ServiceController::resetMaxHoldingTimeAtStation(std::string platformName,double duration,int trainId,std::string lineId)
+{
+	map<std::string,std::map<int,TrainDriver *>>::iterator it=mapOfLineAndTrainDrivers.find(lineId);
+	if(it != mapOfLineAndTrainDrivers.end())
+	{
+		std::map<int,TrainDriver*> &mapOfTrainIdsVsDrivers = it->second;
+		TrainDriver* driver = mapOfTrainIdsVsDrivers[trainId];
+		if(driver)
+		{
+			if(driver->getTrainId()==trainId)
+			{
+				driver->resetMaximumHoldingTime(platformName,duration);
+			}
+		}
+	}
+}
+
+void ServiceController::resetMinHoldingTimeAtStation(std::string platformName,double duration,int trainId,std::string lineId)
+{
+	map<std::string,std::map<int,TrainDriver *>>::iterator it=mapOfLineAndTrainDrivers.find(lineId);
+	if(it != mapOfLineAndTrainDrivers.end())
+	{
+		std::map<int,TrainDriver*> &mapOfTrainIdsVsDrivers = it->second;
+		TrainDriver* driver = mapOfTrainIdsVsDrivers[trainId];
+		if(driver)
+		{
+			if(driver->getTrainId()==trainId)
+			{
+				driver->resetMinimumHoldingTime(platformName,duration);
+			}
+		}
+	}
+}
+
 void ServiceController::updatePlatformList(int trainId,LuaRef platformsToBeIgnored,std::string lineId)
 {
 
@@ -468,7 +509,7 @@ void ServiceController::addPlatformToList(int trainId,LuaRef platformsToBeAdded,
 					{
 						addPlatforms.push_back(platformsToBeAdded[i].cast<std::string>());
 					}
-					driver->AddPlatforms(platformsToBeAdded);
+					driver->AddPlatforms(addPlatforms);
 				}
 			}
 		}
@@ -717,13 +758,23 @@ int ServiceController::getTrainIdByIndex(int index,std::string lineId) const
 	 resetSpeedBlocks.speedLimit=speedLimit;
 	 resetSpeedBlocks.startTime=startTime;
 	 resetSpeedBlocks.endTime=endTime;
-
-	 //Pass the message
-	 TrainController<Person_MT>::getInstance()->assignResetBlocks(resetSpeedBlocks);
-	 //messaging::MessageBus::PostMessage(TrainController<Person_MT>::getInstance(),
-	//		 84099002, messaging::MessageBus::MessagePtr(new ResetSpeedMessage(resetSpeedBlocks)));
-
+	 TrainController<Person_MT>::getInstance()->assignResetBlockSpeeds(resetSpeedBlocks);
  }
+
+ void ServiceController::resetAccelerationLimit(double speedLimit,std::string startStation,std::string endStation,std::string lineId,std::string startTime,std::string endTime)
+  {
+
+ 	 ResetBlockAccelerations resetSpeedBlocks;
+ 	 resetSpeedBlocks.endStation=endStation;
+ 	 resetSpeedBlocks.startStation=startStation;
+ 	 resetSpeedBlocks.line = lineId;
+ 	 resetSpeedBlocks.accelerationReset=false;
+ 	 resetSpeedBlocks.accLimit=speedLimit;
+ 	 resetSpeedBlocks.startTime=startTime;
+ 	 resetSpeedBlocks.endTime=endTime;
+ 	 TrainController<Person_MT>::getInstance()->assignResetBlockAccelerations(resetSpeedBlocks);
+  }
+
  bool ServiceController::isStrandedDuringDisruption(int trainId,std::string lineId) const
  {
 	std::map<std::string,std::map<int,TrainDriver *>>::const_iterator it=mapOfLineAndTrainDrivers.find(lineId);

@@ -276,7 +276,7 @@ void TrainStationAgent::checkAndInsertUnscheduledTrains()
 		bool success = false;
 		std::map<std::string, TrainDriver*>::iterator iLastDriver;
 		iLastDriver = lastTrainDriver.find(lineId);
-		if (iLastDriver != lastTrainDriver.end())
+		/*if (iLastDriver != lastTrainDriver.end())
 		{
 			ahead = iLastDriver->second;
 			sim_mob::medium::TrainMovement* trainMover = dynamic_cast<sim_mob::medium::TrainMovement*>(next->Movement());
@@ -285,10 +285,10 @@ void TrainStationAgent::checkAndInsertUnscheduledTrains()
 			{
 				success = true;
 			}
-		}
+		}*/
 
-		else
-		{
+		//else
+		//{
 
 			TrainController<sim_mob::medium::Person_MT> *trainController=TrainController<sim_mob::medium::Person_MT>::getInstance();
 			std::vector <Role<Person_MT>*> trainDriverVector=trainController->getActiveTrainsForALine(lineId);
@@ -332,7 +332,7 @@ void TrainStationAgent::checkAndInsertUnscheduledTrains()
 				}
 				trainDriverItr++;
 			}
-		}
+		//}
 
 		if (success || !ahead)
 		{
@@ -420,7 +420,7 @@ void TrainStationAgent::dispathPendingTrains(timeslice now)
 					bool success = false;
 					std::map<std::string, TrainDriver*>::iterator iLastDriver;
 					iLastDriver = lastTrainDriver.find(lineId);
-					if (iLastDriver != lastTrainDriver.end())
+					/*if (iLastDriver != lastTrainDriver.end())
 					{
 						ahead = iLastDriver->second;
 						sim_mob::medium::TrainMovement* trainMover = dynamic_cast<sim_mob::medium::TrainMovement*>(next->Movement());
@@ -429,8 +429,51 @@ void TrainStationAgent::dispathPendingTrains(timeslice now)
 						{
 							success = true;
 						}
+
+					}*/
+
+					//check for nearest train ahead
+					TrainController<sim_mob::medium::Person_MT> *trainController=TrainController<sim_mob::medium::Person_MT>::getInstance();
+					std::vector <Role<Person_MT>*> trainDriverVector=trainController->getActiveTrainsForALine(lineId);
+					std::vector <Role<Person_MT>*>::iterator trainDriverItr=trainDriverVector.begin();
+					double minDis=-1;
+					success=true;
+
+					double minDisBehindDriver=-1;
+					while(trainDriverItr!=trainDriverVector.end())
+					{
+						TrainDriver *trainDriver =dynamic_cast<TrainDriver*>(*trainDriverItr);
+						if(trainDriver&&trainDriver!=next)
+						{
+							TrainMovement *movement=trainDriver->getMovement();
+							double totalDisCoverdByOtherTrain=movement->getTotalCoveredDistance();
+							if(totalDisCoverdByOtherTrain - (next->getMovement()->getTotalCoveredDistance())<0)
+							{
+								continue;
+							}
+							else
+							{
+								double differentDistance=totalDisCoverdByOtherTrain - (next->getMovement()->getTotalCoveredDistance())-(movement->getSafeDistance());
+								if(differentDistance<0)
+								{
+									success=false;
+									ahead=trainDriver;
+									break;
+								}
+								else
+								{
+									if(minDis==-1||differentDistance<minDis)
+									{
+										minDis=differentDistance;
+										ahead=trainDriver;
+									}
+								}
+							}
+						}
+						trainDriverItr++;
 					}
 
+					//end
 					if (success || !ahead)
 					{
 						trainDriver.push_back(next);
@@ -513,7 +556,8 @@ void TrainStationAgent::updateWaitPersons()
 	for(it=waitingPersons.begin(); it!=waitingPersons.end(); it++){
 		std::list<WaitTrainActivity*>& persons = it->second;
 		for(std::list<WaitTrainActivity*>::iterator i=persons.begin(); i!=persons.end(); i++){
-			(*i)->Movement()->frame_tick();
+			MovementFacet *facet=(*i)->Movement();
+			facet->frame_tick();
 		}
 	}
 }
@@ -527,6 +571,7 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 	dispathPendingTrains(now);
 	updateWaitPersons();
 	performDisruption(now);
+
 	/*if(arePassengersreRouted == false)
 	{
 		if(station)
@@ -561,23 +606,53 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 			}
 		}
 	}*/
+
+	std::map<const Platform*, std::list<Passenger*>>::iterator forceAlightedPersonsItr=forceAlightedPersons.begin();
+	while(forceAlightedPersonsItr!=forceAlightedPersons.end())
+	{
+		const Platform *forceAlightPlatform=(forceAlightedPersonsItr)->first;
+		std::list<Person_MT*>::iterator personsFAIt=personsForcedAlighted.begin();
+		/*while(personsFAIt!=personsForcedAlighted.end())
+		{
+			Person_MT *perFA=dynamic_cast<Person_MT*>(*personsFAIt);
+
+		}*/
+		std::list<Passenger*> passengersForceAlighted =(forceAlightedPersonsItr)->second;
+		std::list<Passenger*>::iterator passengerItr=passengersForceAlighted.begin();
+		while(passengerItr!=passengersForceAlighted.end())
+		{
+
+			if((*passengerItr))
+			{
+
+				(*passengerItr)->Movement()->frame_tick();
+			}
+			passengerItr++;
+		}
+		forceAlightedPersonsItr++;
+	}
 	double sysGran = ConfigManager::GetInstance().FullConfig().baseGranSecond();
 	std::list<TrainDriver*>::iterator it=trainDriver.begin();
 
  	it=trainDriver.begin();
-
-
 	while (it != trainDriver.end())
 	{
 		//if(boost::iequals((*it)->getNextPlatform()->getStationNo(),stationName))
 		//{
+		const Platform* platform = (*it)->getNextPlatform();
 		double tickInSec = 0.0;
 		do
 		{
 			callMovementFrameTick(now, *it);
 			tickInSec += (*it)->getParams().secondsInTick;
-			const Platform* platform = (*it)->getNextPlatform();
-			if((*it)->getIsToBeRemoved()&&!boost::iequals((*it)->getMovement()->getNextPlatform()->getStationNo(),stationName))
+			if(forceAlightedPersons.find(platform)!=forceAlightedPersons.end())
+			{
+				if(forceAlightedPersons[platform].size()>0)
+				{
+					int debug =1;
+				}
+			}
+			if((*it)->getIsToBeRemoved()&&((*it)->getMovement()->getNextPlatform()==nullptr||!boost::iequals((*it)->getMovement()->getNextPlatform()->getStationNo(),stationName)))
 			{
 				(*it)->setIsToBeRemoved(false);
 				it = trainDriver.erase(it);
@@ -632,7 +707,7 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 					{
 						//push the passengers to waiting persons list if this platform is not their actual alighting platform
 						// so that they board the next train
-						std::list<Passenger*> leavingPassengers=leavingPersons[platform];
+						/*std::list<Passenger*> leavingPassengers=leavingPersons[platform];
 						for (std::list<Passenger*>::iterator it=leavingPassengers.begin(); it != leavingPassengers.end(); )
 						{
 							Passenger *pr=dynamic_cast<Passenger*>(*it);
@@ -650,7 +725,8 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 							else
 								it++;
 						}
-
+						*/
+						//pushForceAlightedPassengersToWaitingQueue(platform);
 					}
 				}
 
@@ -747,7 +823,11 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 							(*it)->lockUnlockRestrictPassengerEntitiesLock(true);
 							int alightingNum = (*it)->alightPassenger(leavingPersons[platform],now);
 							int noOfPassengersInTrain=(*it)->getPassengers().size();
-							int forcealightedboardingnum=(*it)->boardForceAlightedPassengersPassenger(forceAlightedPersons[platform],now);
+							int forcealightedboardingnum=0;
+							if(forceAlightedPersons.find(platform)!=forceAlightedPersons.end())
+							{
+								forcealightedboardingnum=(*it)->boardForceAlightedPassengersPassenger(forceAlightedPersons[platform],now);
+							}
 							int boardingNum = (*it)->boardPassenger(waitingPersons[platform], now);
 							(*it)->lockUnlockRestrictPassengerEntitiesLock(false);
 							(*it)->calculateDwellTime(boardingNum+forcealightedboardingnum,alightingNum,noOfPassengersInTrain,now);
@@ -797,8 +877,10 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 			}*/
 
 		}while (tickInSec < sysGran);
-		it++;
+
 		//}
+		pushForceAlightedPassengersToWaitingQueue(platform);
+		it++;
 	}
 
 	passengerLeaving(now);
@@ -807,7 +889,7 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 
 void TrainStationAgent::pushForceAlightedPassengersToWaitingQueue(const Platform *platform)
 {
-	std::list<Passenger*> leavingPassengers=leavingPersons[platform];
+	std::list<Passenger*> &leavingPassengers=leavingPersons[platform];
 	for (std::list<Passenger*>::iterator it=leavingPassengers.begin(); it != leavingPassengers.end(); )
 	{
 		Passenger *pr=dynamic_cast<Passenger*>(*it);
@@ -829,6 +911,7 @@ void TrainStationAgent::pushForceAlightedPassengersToWaitingQueue(const Platform
 				forceAlightedPersons[platform]=std::list<Passenger*>();
 			}
 			forceAlightedPersons[platform].push_back(pr);
+			personsForcedAlighted.push_back(pr->getParent());
 			it=leavingPersons[platform].erase(it);
 
 		}

@@ -489,24 +489,24 @@ void MT_PersonLoader::loadPersonDemand()
 		actCtr++;
 	}
 
-	if (freightStoredProcName.empty()) { return; }
-	//Our SQL statement
-	stringstream freightQuery;
-	freightQuery << "select * from " << freightStoredProcName << "(" << nextLoadStart << "," << end << ")";
-	std::string freightSql_str = freightQuery.str();
+	if (!freightStoredProcName.empty()) {
+		//Our SQL statement
+		stringstream freightQuery;
+		freightQuery << "select * from " << freightStoredProcName << "(" << nextLoadStart << "," << end << ")";
+		std::string freightSql_str = freightQuery.str();
 
-	soci::rowset<soci::row> rsFreight = (sql_.prepare << freightSql_str);
-	for (soci::rowset<soci::row>::const_iterator it=rsFreight.begin(); it!=rsFreight.end(); ++it)
-	{
-		const soci::row& r = (*it);
-		std::string freightTripId = r.get<string>(0);
-		std::vector<TripChainItem*>& personTripChain = tripchains[freightTripId];
-		//add trip and activity
-		sim_mob::Trip* constructedTrip = makeFreightTrip(r);
-		if(constructedTrip) { personTripChain.push_back(constructedTrip); }
-		else { continue; }
+		soci::rowset<soci::row> rsFreight = (sql_.prepare << freightSql_str);
+		for (soci::rowset<soci::row>::const_iterator it=rsFreight.begin(); it!=rsFreight.end(); ++it)
+		{
+			const soci::row& r = (*it);
+			std::string freightTripId = r.get<string>(0);
+			std::vector<TripChainItem*>& personTripChain = tripchains[freightTripId];
+			//add trip and activity
+			sim_mob::Trip* constructedTrip = makeFreightTrip(r);
+			if(constructedTrip) { personTripChain.push_back(constructedTrip); }
+			else { continue; }
+		}
 	}
-
 	vector<Person_MT*> persons;
 	int personsLoaded = CellLoader::load(tripchains, persons);
 	for(vector<Person_MT*>::iterator i=persons.begin(); i!=persons.end(); i++)

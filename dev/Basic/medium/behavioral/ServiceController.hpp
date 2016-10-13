@@ -404,6 +404,18 @@ class ServiceController:  public lua::LuaModel
 
 	void setDisruptedState(int trainId,std::string lineId,bool state);
 
+	void restoreDefaults(int trainId,std::string lineId);
+
+	void removeRestrictPassengersEntity(int trainId,std::string lineId);
+
+	void removeMaximumHoldingTimeEntity(int trainId,std::string lineId);
+
+	void removeMinimumHoldingTimeEntity(int trainId,std::string lineId);
+
+	void removePlatformHoldingTimeEntity(int trainId,std::string lineId);
+
+	void clearAllPlatformsToIgnore(int trainId,std::string lineId);
+
 	private:
     /** mutex lock to lock the mapOfLineAndTrainDrivers **/
     mutable boost::mutex lineTrainDriversLock;

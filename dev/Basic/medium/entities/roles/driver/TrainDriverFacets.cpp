@@ -1306,10 +1306,11 @@ namespace sim_mob
 			}
 		}
 
-		void TrainMovement::findNearestStopPoint(std::vector<StopPointEntity> &stopPoints,double &distance)
+		std::vector<StopPointEntity>::iterator  TrainMovement::findNearestStopPoint(std::vector<StopPointEntity> &stopPoints,double &distance,double &maxDeceleration)
 		{
 			std::vector<StopPointEntity>::iterator stopPointItr=stopPoints.begin();
-			double minDis=0;
+			std::vector<StopPointEntity>::iterator minStopPointItr = stopPoints.end();
+			double minDis=0,deceleration=0.0;
 			StopPointEntity stopPoint;
 			while(stopPointItr!=stopPoints.end())
 			{
@@ -1319,10 +1320,13 @@ namespace sim_mob
 				{
 					stopPoint=(*stopPointItr);
 					minDis = distance;
+					maxDeceleration = (*stopPointItr).maxDecerationRate;
+					minStopPointItr = stopPointItr;
 				}
 				stopPointItr++;
 			}
 			distance = minDis;
+			return minStopPointItr;
 		}
 
 		double TrainMovement::getRealSpeedLimit()
@@ -1337,6 +1341,7 @@ namespace sim_mob
 			double distanceToNextPlatform = 0.0;
 			double distanceToNextObject = 0.0;
 			double disToNextStopPoint=0;
+			double maxDecelerationToStopPoint = 0.0;
 			double speedLimit = 0.0;
 			double speedLimit2 = 0.0;
 			Point stopPoint;
@@ -1355,6 +1360,9 @@ namespace sim_mob
 			distanceToNextTrain = getDistanceToNextTrain(nextDriver);
 			while(!stationCaseDecisionConfirmed)
 			{
+				distanceToNextObject = 0.0;
+				disToNextStopPoint=0;
+				maxDecelerationToStopPoint = 0.0;
 				std::vector<StopPointEntity> &stopPoints=parentDriver->getStopPoints();
 				std::vector<StopPointEntity>::iterator itr=stopPoints.begin();
 				std::vector<PolyPoint> points;
@@ -1369,7 +1377,8 @@ namespace sim_mob
 				{
 
 					stopPointItr=trainPathMover.findNearestStopPoint(points);
-					findNearestStopPoint(stopPoints,disToNextStopPoint);
+					itr = findNearestStopPoint(stopPoints,disToNextStopPoint,maxDecelerationToStopPoint);
+
 					//std::vector<PolyPoint>::const_iterator currStopPointItr=points.end();;
 					//currStopPointItr=trainPathMover.GetCurrentStopPoint();
 					//disToNextStopPoint=trainPathMover.calcDistanceBetweenTwoPoints(currStopPointItr,stopPointItr,points);
@@ -1451,6 +1460,7 @@ namespace sim_mob
 				params.disToNextPlatform = distanceToNextPlatform;
 				params.disToNextTrain = distanceToNextTrain;
 				params.distanceToNextStopPoint=disToNextStopPoint;
+				params.maxDecelerationToStopPoint = maxDecelerationToStopPoint;
 				saveDistancetoNextObj=distanceToNextObject;
 				if(forceResetMovingCase==true && forceResetedCase==TRAINCASE::NORMAL_CASE)
 				{
@@ -1484,7 +1494,8 @@ namespace sim_mob
 								else
 								{
 									//erase stop point
-									eraseStopPoint(stopPointItr);
+									stopPoints.erase(itr);
+									params.distanceToNextStopPoint = 0;
 								}
 							}
 							else

@@ -334,6 +334,16 @@ public:
 
 	void resetMinimumHoldingTime(std::string platformName,double duration);
 
+	void removeAllRestrictPassengersEnties();
+
+	void removeAllMaximumHoldingTimeEntities();
+
+	void removeAllMinimumHoldingTimeEntities();
+
+	void removeAllPlatformHoldingTimeEntities();
+
+	void clearAllPlatformsToIgnore();
+
 	/**
 	 * function which sets or unsets U-turn signal
 	 * @param set sets the signal to U turn

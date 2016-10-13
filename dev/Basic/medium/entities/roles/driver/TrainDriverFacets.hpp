@@ -218,7 +218,7 @@ public:
 	bool isUTurnPlatformOnTheWay();
 	bool isUturnPlatform();
 
-	void findNearestStopPoint(std::vector<StopPointEntity> &stopPoints,double &distance);
+	std::vector<StopPointEntity>::iterator findNearestStopPoint(std::vector<StopPointEntity> &stopPoints,double &distance,double &maxDeceleration);
 
 	void setShouldIgnoreAllPlatforms(bool action);
 

@@ -101,6 +101,7 @@ ServiceController::~ServiceController()
 				.addFunction("is_uturn_platform_on_the_way",&ServiceController::isUTurnPlatformOnTheWay)
 				.addFunction("is_uturn_platform",&ServiceController::isUTurnPlatform)
 				.addFunction("add_platform",&ServiceController::addPlatformToList)
+				.addFunction("restore_defaults",&ServiceController::restoreDefaults)
 	 			.endClass();
 
  }
@@ -259,6 +260,123 @@ void ServiceController::setSubsequentNextRequested(int trainId,std::string lineI
 					}
 
 				}
+			}
+		}
+	}
+}
+
+void ServiceController::restoreDefaults(int trainId,std::string lineId)
+{
+
+	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
+	std::map<std::string,TrainProperties> trainPropertiesMap=config.trainController.trainLinePropertiesMap;
+	if(trainPropertiesMap.find(lineId)!=trainPropertiesMap.end())
+	{
+		TrainProperties trainProperties=trainPropertiesMap[lineId];
+		double safeDistance = trainProperties.safeDistance;
+		resetSafeOperationDistance(safeDistance,trainId,lineId);
+		double safeHeadwaySec = trainProperties.safeHeadway;
+		resetSafeHeadwaySec(safeHeadwaySec,trainId,lineId);
+	}
+	setUturnFlag(trainId,lineId,false,0);
+	clearAllPlatformsToIgnore(trainId,lineId);
+	forceReleasePassenegers(trainId,lineId,false);
+	setForceAlightStatus(trainId,lineId,false);
+	clearStopPoints(trainId,lineId);
+	terminateTrainServiceForTrain(trainId,lineId);
+	removeRestrictPassengersEntity(trainId,lineId);
+	removeMaximumHoldingTimeEntity(trainId,lineId);
+	removeRestrictPassengersEntity(trainId,lineId);
+	removeMinimumHoldingTimeEntity(trainId,lineId);
+	setIgnoreSafeDistance(trainId,lineId,false);
+	setIgnoreSafeHeadway(trainId,lineId,false);
+}
+
+void ServiceController::clearAllPlatformsToIgnore(int trainId,std::string lineId)
+{
+	map<std::string,std::map<int,TrainDriver*>>::const_iterator it=mapOfLineAndTrainDrivers.find(lineId);
+	if(it != mapOfLineAndTrainDrivers.end())
+	{
+		const std::map<int,TrainDriver*> &mapOfTrainIdsVsDrivers = it->second;
+		std::map<int,TrainDriver*>::const_iterator itr=mapOfTrainIdsVsDrivers.find(trainId);
+		if(itr!=mapOfTrainIdsVsDrivers.end())
+		{
+			TrainDriver* driver = itr->second;
+			if(driver)
+			{
+				driver->clearAllPlatformsToIgnore();
+			}
+		}
+	}
+}
+
+void ServiceController::removeRestrictPassengersEntity(int trainId,std::string lineId)
+{
+	map<std::string,std::map<int,TrainDriver*>>::const_iterator it=mapOfLineAndTrainDrivers.find(lineId);
+	if(it != mapOfLineAndTrainDrivers.end())
+	{
+		const std::map<int,TrainDriver*> &mapOfTrainIdsVsDrivers = it->second;
+		std::map<int,TrainDriver*>::const_iterator itr=mapOfTrainIdsVsDrivers.find(trainId);
+		if(itr!=mapOfTrainIdsVsDrivers.end())
+		{
+			TrainDriver* driver = itr->second;
+			if(driver)
+			{
+				driver->removeAllRestrictPassengersEnties();
+			}
+		}
+	}
+}
+
+void ServiceController::removeMaximumHoldingTimeEntity(int trainId,std::string lineId)
+{
+	map<std::string,std::map<int,TrainDriver*>>::const_iterator it=mapOfLineAndTrainDrivers.find(lineId);
+	if(it != mapOfLineAndTrainDrivers.end())
+	{
+		const std::map<int,TrainDriver*> &mapOfTrainIdsVsDrivers = it->second;
+		std::map<int,TrainDriver*>::const_iterator itr=mapOfTrainIdsVsDrivers.find(trainId);
+		if(itr!=mapOfTrainIdsVsDrivers.end())
+		{
+			TrainDriver* driver = itr->second;
+			if(driver)
+			{
+				driver->removeAllRestrictPassengersEnties();
+			}
+		}
+	}
+}
+
+void ServiceController::removeMinimumHoldingTimeEntity(int trainId,std::string lineId)
+{
+	map<std::string,std::map<int,TrainDriver*>>::const_iterator it=mapOfLineAndTrainDrivers.find(lineId);
+	if(it != mapOfLineAndTrainDrivers.end())
+	{
+		const std::map<int,TrainDriver*> &mapOfTrainIdsVsDrivers = it->second;
+		std::map<int,TrainDriver*>::const_iterator itr=mapOfTrainIdsVsDrivers.find(trainId);
+		if(itr!=mapOfTrainIdsVsDrivers.end())
+		{
+			TrainDriver* driver = itr->second;
+			if(driver)
+			{
+				driver->removeAllRestrictPassengersEnties();
+			}
+		}
+	}
+}
+
+void ServiceController::removePlatformHoldingTimeEntity(int trainId,std::string lineId)
+{
+	map<std::string,std::map<int,TrainDriver*>>::const_iterator it=mapOfLineAndTrainDrivers.find(lineId);
+	if(it != mapOfLineAndTrainDrivers.end())
+	{
+		const std::map<int,TrainDriver*> &mapOfTrainIdsVsDrivers = it->second;
+		std::map<int,TrainDriver*>::const_iterator itr=mapOfTrainIdsVsDrivers.find(trainId);
+		if(itr!=mapOfTrainIdsVsDrivers.end())
+		{
+			TrainDriver* driver = itr->second;
+			if(driver)
+			{
+				driver->removeAllRestrictPassengersEnties();
 			}
 		}
 	}

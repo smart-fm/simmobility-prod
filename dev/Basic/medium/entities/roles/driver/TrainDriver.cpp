@@ -687,7 +687,30 @@ std::vector<StopPointEntity>& TrainDriver::getStopPoints()
 	return stopPointEntities;
 }
 
+void TrainDriver::removeAllRestrictPassengersEnties()
+{
+	restrictPassengersEntities.erase(restrictPassengersEntities.begin(),restrictPassengersEntities.end());
+}
 
+void TrainDriver::removeAllMaximumHoldingTimeEntities()
+{
+	platformMaxHoldingTimeEntities.erase(platformMaxHoldingTimeEntities.begin(),platformMaxHoldingTimeEntities.end());
+}
+
+void TrainDriver::removeAllMinimumHoldingTimeEntities()
+{
+	platformMinHoldingTimeEntities.erase(platformMinHoldingTimeEntities.begin(),platformMinHoldingTimeEntities.end());
+}
+
+void TrainDriver::removeAllPlatformHoldingTimeEntities()
+{
+	platformHoldingTimeEntities.erase(platformHoldingTimeEntities.begin(),platformHoldingTimeEntities.end());
+}
+
+void TrainDriver::clearAllPlatformsToIgnore()
+{
+	platformsToBeIgnored.erase(platformsToBeIgnored.begin(),platformsToBeIgnored.end());
+}
 
 void TrainDriver::storeWaitingTime(WaitTrainActivity* waitingActivity, timeslice now) const
 {

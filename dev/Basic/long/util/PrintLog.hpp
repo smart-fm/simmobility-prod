@@ -203,11 +203,11 @@ namespace sim_mob
 		std::cout << fmtr.str() << std::endl;
 	}
 
-	//hitsId , paxId , householdId , individualId , memberId , tazH , tazW , logsum[0] , logsum[1] , travelProbability[0] , travelProbability[1] , tripsExpected[0] , tripsExpected[1]
+	//hitsId , paxId , householdId , individualId , memberId , tazH , tazW , logsum[0] , logsum[1] ,logsum[2] , logsum[3] ,logsum[4] , logsum[5] ,travelProbability[0] , travelProbability[1] , travelProbability[2] , travelProbability[3] ,travelProbability[4] , travelProbability[5] ,tripsExpected[0] , tripsExpected[1], tripsExpected[2] , tripsExpected[3], tripsExpected[4] , tripsExpected[5]
 	inline void printHouseholdHitsLogsumFVO( std::string hitsId, int paxId, BigSerial householdId, BigSerial individualId, int memberId, int tazH, int tazW, vector<double> logsum, vector<double> travelProbability, vector<double> tripsExpected )
 	{
 
-		boost::format fmtr = boost::format( "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%, %11%, %12%, %13% %14% %15% %16% %17% %18% %19% %20% %21% %22% %23% %24% %25% ")
+		boost::format fmtr = boost::format( "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%, %11%, %12%, %13%, %14%, %15%, %16%, %17%, %18%, %19%, %20%, %21%, %22%, %23%, %24%, %25% ")
 											 % hitsId % paxId % householdId % individualId % memberId % tazH % tazW
 											 % logsum[0] % logsum[1] % logsum[2] % logsum[3] % logsum[4] % logsum[5]
 											 % travelProbability[0] % travelProbability[1] % travelProbability[2] % travelProbability[3] % travelProbability[4] % travelProbability[5]

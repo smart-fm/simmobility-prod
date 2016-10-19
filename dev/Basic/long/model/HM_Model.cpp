@@ -1723,38 +1723,53 @@ void HM_Model::startImpl()
 	int vacancies = 0;
 	int onMarket  = 0;
 	int offMarket = 0;
+	int my_counter = 0;
 	//assign empty units to freelance housing agents
 	for (UnitList::const_iterator it = units.begin(); it != units.end(); it++)
 	{
+		boost::gregorian::date occupancyDate = boost::gregorian::date_from_tm((*it)->getOccupancyFromDate());
 		boost::gregorian::date saleDate = boost::gregorian::date_from_tm((*it)->getSaleFromDate());
 		boost::gregorian::date simulationDate = boost::gregorian::date(HITS_SURVEY_YEAR, 1, 1);
 		int unitStartDay = startDay;
-
-		if( saleDate > simulationDate )
-		{
-			unitStartDay = (saleDate - simulationDate).days();
-		}
 
 		(*it)->setbiddingMarketEntryDay( unitStartDay );
 		(*it)->setTimeOnMarket(  1 + (float)rand() / RAND_MAX * config.ltParams.housingModel.timeOnMarket);
 		(*it)->setTimeOffMarket( 1 + (float)rand() / RAND_MAX * config.ltParams.housingModel.timeOffMarket);
 
 		//this unit is a vacancy
-		if (assignedUnits.find((*it)->getId()) == assignedUnits.end())
+		if( assignedUnits.find((*it)->getId()) == assignedUnits.end())
 		{
 			if( (*it)->getUnitType() != NON_RESIDENTIAL_PROPERTY )
 			{
 				float awakeningProbability = (float)rand() / RAND_MAX;
 
-				if( awakeningProbability < config.ltParams.housingModel.vacantUnitActivationProbability )
+				if( saleDate > simulationDate )
 				{
+					unitStartDay = (saleDate - simulationDate).days();
+
 					(*it)->setbiddingMarketEntryDay( unitStartDay );
-					onMarket++;
+				}
+				else if( occupancyDate > simulationDate )
+				{
+					my_counter++;
+
+					unitStartDay += 15 + (30 * int(my_counter/60628.0 * 12));
+
+					(*it)->setStaggeredBto(true);
+					(*it)->setbiddingMarketEntryDay( unitStartDay );
 				}
 				else
 				{
-					(*it)->setbiddingMarketEntryDay( unitStartDay +( (float)rand() / RAND_MAX * 365) );
-					offMarket++;
+					if( awakeningProbability < config.ltParams.housingModel.vacantUnitActivationProbability )
+					{
+						(*it)->setbiddingMarketEntryDay( unitStartDay );
+						onMarket++;
+					}
+					else
+					{
+						(*it)->setbiddingMarketEntryDay( unitStartDay +( (float)rand() / RAND_MAX * 365) );
+						offMarket++;
+					}
 				}
 
 				freelanceAgents[vacancies % numWorkers]->addUnitId((*it)->getId());
@@ -1762,9 +1777,11 @@ void HM_Model::startImpl()
 			}
 			else
 			{
-				(*it)->setbiddingMarketEntryDay( -1 );
+				(*it)->setbiddingMarketEntryDay( 999999 );
 			}
 		}
+
+
 
 		{
 			Unit *thisUnit = (*it);
@@ -2199,6 +2216,11 @@ void HM_Model::getLogsumOfVaryingHomeOrWork(BigSerial householdId)
 
 		if( !currentHousehold )
 			return;
+
+		if(logsumUniqueCounter.find(hitsSample->getHouseholdHitsId()) == logsumUniqueCounter.end())
+			logsumUniqueCounter.insert(hitsSample->getHouseholdHitsId());
+		else
+			return;
 	}
 
 	Household *currentHousehold = getHouseholdById( householdId );
@@ -2208,13 +2230,6 @@ void HM_Model::getLogsumOfVaryingHomeOrWork(BigSerial householdId)
 	for( int n = 0; n < householdIndividualIds.size(); n++ )
 	{
 		Individual *thisIndividual = this->getIndividualById(householdIndividualIds[n]);
-
-		string customId = to_string(hitsSample->getHouseholdHitsId()) + "-" + to_string(thisIndividual->getMemberId());
-
-		if(logsumUniqueCounter.find(customId) == logsumUniqueCounter.end())
-			logsumUniqueCounter.insert(customId);
-		else
-			continue;
 
 		int vehicleOwnership = 0;
 

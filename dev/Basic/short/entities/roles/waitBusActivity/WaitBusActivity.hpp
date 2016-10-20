@@ -22,13 +22,19 @@ private:
 	unsigned int waitingTime;
 	
 	/**The bus stop at which the person is waiting*/
-	const BusStop *stop;
+	//const BusStop *stop;
 	
 	/**Indicates whether the waiting person has decided to board*/
-	bool boardBus;
+	bool decidedToBoardBus;
+	
+	/**Indicates whether the person has boarded the bus*/
+	bool hasBoardedBus;
 	
 	/**Counts the number of times the person failed to board*/
 	unsigned int failedToBoardCount;
+	
+	/**The driver of the bus that the waiting person has decided to board*/
+	const BusDriver *busDriver;
 	
 public:
 	explicit WaitBusActivity(Person_ST *parent, WaitBusActivityBehavior *behavior = nullptr,
@@ -60,12 +66,19 @@ public:
 	 *
 	 * @param The driver of the arriving bus
 	 */
-	void makeBoardingDecision(BusDriver *driver);
+	void makeBoardingDecision(const BusDriver *driver);
 
 	/**
 	 * Increments the denied boarding count 
 	 */
 	void incrementDeniedBoardingCount();
+	
+	/**
+	 * Stores the waiting time
+	 * 
+	 * @param waitingActivity is pointer to the waiting people
+	 */
+	void storeWaitingTime(const std::string &busLine);
 
 	/**
 	 * Message handler to handle messages transfered from the parent agent.
@@ -80,7 +93,7 @@ public:
 		return parent->currSubTrip->getBusLineID();
 	}
 
-	const BusStop* getStop() const
+	/*const BusStop* getStop() const
 	{
 		return stop;
 	}	
@@ -88,16 +101,16 @@ public:
 	void setStop(const BusStop* busStop)
 	{
 		stop = busStop;
+	}*/
+
+	bool hasDecidedToBoardBus() const
+	{
+		return decidedToBoardBus;
 	}
 
-	bool canBoardBus() const
+	void setDecidedToBoardBus(bool boardBus)
 	{
-		return boardBus;
-	}
-
-	void setBoardBus(bool boardBus)
-	{
-		this->boardBus = boardBus;
+		this->decidedToBoardBus = boardBus;
 	}
 
 	unsigned int getWaitingTime() const

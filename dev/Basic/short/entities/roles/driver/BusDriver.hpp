@@ -29,13 +29,28 @@ class BusDriver : public Driver
 {
 private:
 	/**Passengers in the bus*/
-	std::list<Passenger *> passengerList;
+	std::list<Person_ST *> passengerList;
 	
 	/**Id of the bus line driven by the driver*/
 	std::string busLineId;
 	
 	/**Sequence number of the bus*/
 	unsigned int sequenceNum;
+	
+	/**The boarding time at the current bus stop*/
+	double currBoardingTime;
+	
+	/**The alighting time at the current bus stop*/
+	double currAlightingTime;
+	
+	/**The current bus stop agent*/
+	BusStopAgent *currBusStopAgent;
+	
+	/**Indicates whether boarding is complete*/
+	bool isBoardingComplete;
+	
+	/**Indicates whether alighting is complete*/
+	bool isAlightingComplete;
 	
 public:
 	BusDriver(Person_ST *parent, MutexStrategy mtxStrat, BusDriverBehavior *behavior = nullptr, BusDriverMovement *movement = nullptr,
@@ -66,6 +81,14 @@ public:
 	virtual DriverRequestParams getDriverRequestParams();
 	
 	/**
+	 * Message handler to handle messages transfered from the parent agent.
+	 * 
+	 * @param type of the message.
+	 * @param message data received.
+	 */
+	virtual void HandleParentMessage(messaging::Message::MessageType type, const messaging::Message& message);
+	
+	/**
 	 * Check whether the bus is full
 	 * 
 	 * @return true if bus is full, else false
@@ -73,26 +96,27 @@ public:
 	bool isBusFull();
 	
 	/**
-	 * Adds passenger to the bus
+	 * Allows a boarding passenger into the bus if there is enough space and sends it the boarding success message, 
+	 * else sends out a denied boarding message to the person
 	 * 
-	 * @param passenger passenger to be added to the bus
+	 * @param passenger the person attempting to board the bus
 	 */
-	void addPassenger(Passenger *passenger);
+	void tryBoardingPassenger(Person_ST *passenger);
 	
 	/**
 	 * Allows alighting of passengers at the bus stop
 	 * 
-	 * @param stopAgent the bus stop agent to which the alighting passengers will be transferred
-	 * 
-	 * @return total time required for alighting 
+	 * @param passenger the person attempting to alight the bus
 	 */
-	double alightPassengers(BusStopAgent *stopAgent);
+	void alightPassenger(Person_ST *passenger);
 
 	double getPositionX() const;
 	double getPositionY() const;
 	
 	const std::string& getBusLineId() const;
 	void setBusLineId(const std::string &busLine);
+
+	BusStopAgent* getCurrBusStopAgent() const;
 
 	friend class BusDriverBehavior;
 	friend class BusDriverMovement;

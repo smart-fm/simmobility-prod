@@ -27,19 +27,10 @@ private:
 	static BusStopAgentsMap allBusstopAgents;
 	
 	/**List of persons waiting at this stop*/
-	std::list<WaitBusActivity *> waitingPersons;
-	
-	/**List of persons who alighted in the current tick at this stop*/
-	std::list<Passenger *> alightingPersons;
+	std::list<Person_ST *> waitingPersons;
 	
 	/**Bus stop managed by this agent*/
 	const BusStop *busStop;
-	
-	/**Record last boarding number for a given bus*/
-	std::map<BusDriver *, unsigned int> lastBoardingRecorder;
-	
-	/**Current time in milliseconds from start of simulation*/
-	unsigned int currentTimeMS;
 	
 protected:
 	
@@ -61,47 +52,9 @@ public:
 	/**
 	 * Registers a new waiting person.
 	 * 
-	 * @param person person who wants to enter this bus stop
+	 * @param waitingPerson person who wants to enter this bus stop
 	 */
-	void registerWaitingPerson(WaitBusActivity *waitingActivity);
-
-	/**
-	 * Adds a person who is alighting at this stop
-	 * 
-	 * @param person person who is alighting at this bus stop
-	 */
-	void addAlightingPerson(Passenger *passenger);
-
-	/**
-	 * Gets the number of boarding people
-	 * 
-	 * @param busDriver the driver associated with the bus, which the waiting people will board
-	 * 
-	 * @returns number of boarding people
-	 */
-	unsigned int getBoardingNum(BusDriver *busDriver) const;
-
-	/**
-	 * For all persons waiting at the bus stop, this method checks which persons need to board the bus
-	 * and begin the boarding process
-	 * 
-	 * @param busDriver the driver associated with the bus, which the waiting people will board
-	 * 
-	 * @return total time taken for boarding
-	 */
-	double boardWaitingPersons(BusDriver *busDriver);
-
-	/**
-	 * Stores the waiting time
-	 * 
-	 * @param waitingActivity is pointer to the waiting people
-	 */
-	void storeWaitingTime(WaitBusActivity *waitingActivity, const std::string &busLine) const;
-
-	/**
-	 * Returns number of people waiting for buses in this stop
-	 */
-	unsigned int getWaitingCount() const;
+	void registerWaitingPerson(Person_ST *waitingPerson);
 
 	/**
 	 * Finds the BusStopAgent corresponding to a bus stop.

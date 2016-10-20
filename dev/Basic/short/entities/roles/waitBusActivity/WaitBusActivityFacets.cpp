@@ -8,12 +8,14 @@
 #include "conf/ConfigParams.hpp"
 #include "entities/BusStopAgent.hpp"
 #include "geospatial/network/PT_Stop.hpp"
+#include "message/MessageBus.hpp"
+#include "message/ST_Message.hpp"
 #include "WaitBusActivity.hpp"
 
 using namespace sim_mob;
 
 WaitBusActivityMovement::WaitBusActivityMovement() :
-MovementFacet(), parentWaitBusActivity(nullptr)
+MovementFacet(), parentWaitBusActivity(nullptr), isMessageSent(false)
 {
 }
 
@@ -40,11 +42,28 @@ void WaitBusActivityMovement::frame_tick()
 {
 	unsigned int tickMS = ConfigManager::GetInstance().FullConfig().baseGranMS();
 	
-	if(parentWaitBusActivity)
+	if(!parentWaitBusActivity->hasBoardedBus)
 	{
-		parentWaitBusActivity->increaseWaitingTime(tickMS);
-		parentWaitBusActivity->setTravelTime(parentWaitBusActivity->getWaitingTime());
-	}	
+		if (!parentWaitBusActivity->decidedToBoardBus)
+		{
+			//Waiting person can't board bus, continue to wait
+			parentWaitBusActivity->increaseWaitingTime(tickMS);
+			parentWaitBusActivity->setTravelTime(parentWaitBusActivity->getWaitingTime());
+		}
+		else if(!isMessageSent)
+		{
+			//Waiting person has decided to board the bus, send attempting to board message to bus driver
+			messaging::MessageBus::PostMessage(parentWaitBusActivity->busDriver->getParent(), MSG_ATTEMPT_BOARD_BUS,
+					messaging::MessageBus::MessagePtr(new PersonMessage(parentWaitBusActivity->getParent())));
+			
+			isMessageSent = true;
+		}
+	}
+	else
+	{
+		//Waiting role complete
+		parentWaitBusActivity->parent->setToBeRemoved();
+	}
 }
 
 std::string WaitBusActivityMovement::frame_tick_output()

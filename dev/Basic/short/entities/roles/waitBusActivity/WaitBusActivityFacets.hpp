@@ -56,6 +56,9 @@ class WaitBusActivityMovement: public MovementFacet
 protected:
 	WaitBusActivity *parentWaitBusActivity;
 	
+	/**Indicates whether the attempt to board bus message is sent*/
+	bool isMessageSent;
+	
 public:
 	explicit WaitBusActivityMovement();
 	virtual ~WaitBusActivityMovement();

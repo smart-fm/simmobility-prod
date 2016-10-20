@@ -17,6 +17,7 @@
 #include "path/PathSetManager.hpp"
 #include "util/Utils.hpp"
 #include "config/ST_Config.hpp"
+#include "message/ST_Message.hpp"
 
 using namespace sim_mob;
 using namespace std;
@@ -164,33 +165,47 @@ void BusDriverMovement::frame_tick()
 	
 	//If the bus has arrived at the stop and the bus stop agent has not been notified, notify it
 	if(params.stopPointState == DriverUpdateParams::ARRIVED_AT_STOP_POINT && !isBusStopNotified)
-	{				
-		//Get the bus stop agent
-		BusStopAgent *stopAg = BusStopAgent::getBusStopAgentForStop(*busStopTracker);
-		
-		//Signal the bus driver to allow alighting passengers
-		double alightingTime = parentBusDriver->alightPassengers(stopAg);
+	{
+		//Send bus arrival message to all passengers in the bus
+		for(Person_ST *person : parentBusDriver->passengerList)
+		{
+			messaging::MessageBus::PostMessage(person, MSG_WAKEUP_BUS_PAX, 
+					messaging::MessageBus::MessagePtr(new BusStopMessage(*busStopTracker, parentBusDriver)));
+		}
 		
 		//Signal the bus stop agent to handle the bus arrival
-		double boardingTime = stopAg->boardWaitingPersons(parentBusDriver);
+		parentBusDriver->currBusStopAgent = BusStopAgent::getBusStopAgentForStop(*busStopTracker);
+		messaging::MessageBus::PostMessage(parentBusDriver->currBusStopAgent, MSG_WAKEUP_WAITING_PERSON, 
+				messaging::MessageBus::MessagePtr(new BusDriverMessage(parentBusDriver)));
 		
-		params.currentStopPoint.dwellTime = max(boardingTime, alightingTime) + Utils::nRandom(10, 2);		
+		//Set default random dwell time and reset the current boarding & alighting times
+		params.currentStopPoint.dwellTime = Utils::nRandom(10, 2);
+		parentBusDriver->currBoardingTime = 0;
+		parentBusDriver->currAlightingTime = 0;
 		
 		//Set bus stop notified as true
 		isBusStopNotified = true;
 		
-		BusArrivalTime busArrivalInfo;
-		busArrivalInfo.busLine = parentBusDriver->getBusLineId();
+		//Store bus arrival time
+		DailyTime currTime(params.now.ms() + (params.elapsedSeconds * 1000) + ConfigManager::GetInstance().FullConfig().simStartTime().getValue());
+		busArrivalTime = currTime.getStrRepr();
+	}
+	
+	if(parentBusDriver->isBoardingComplete && parentBusDriver->isAlightingComplete)
+	{
+		//Compute dwell time
+		params.currentStopPoint.dwellTime += std::max(parentBusDriver->currBoardingTime, parentBusDriver->currAlightingTime);
 		
 		BusTrip *busTrip = static_cast<BusTrip *>(*(parentBusDriver->getParent()->currTripChainItem));
+		
+		//Send bus arrival message
+		BusArrivalTime busArrivalInfo;
+		busArrivalInfo.busLine = parentBusDriver->getBusLineId();
 		busArrivalInfo.tripId = busTrip->tripID;
-		
 		busArrivalInfo.sequenceNo = parentBusDriver->sequenceNum++;
-		
-		DailyTime currTime(params.now.ms() + (params.elapsedSeconds * 1000) + ConfigManager::GetInstance().FullConfig().simStartTime().getValue());		
-		busArrivalInfo.arrivalTime = currTime.getStrRepr();
+		busArrivalInfo.arrivalTime = busArrivalTime;
 		busArrivalInfo.dwellTimeSecs = params.currentStopPoint.dwellTime;
-		busArrivalInfo.dwellTime = (DailyTime(params.currentStopPoint.dwellTime)).getStrRepr();
+		busArrivalInfo.dwellTime = (DailyTime(1000 * params.currentStopPoint.dwellTime)).getStrRepr();
 		busArrivalInfo.pctOccupancy = (((double) parentBusDriver->passengerList.size()) / ST_Config::getInstance().defaultBusCapacity) * 100.0;
 		busArrivalInfo.busStopNo = (*busStopTracker)->getStopCode();
 		
@@ -202,6 +217,8 @@ void BusDriverMovement::frame_tick()
 	{
 		//Reset
 		isBusStopNotified = false;
+		parentBusDriver->isBoardingComplete = false;
+		parentBusDriver->isAlightingComplete = false;
 		
 		//Next bus stop
 		++busStopTracker;

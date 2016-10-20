@@ -5,6 +5,7 @@
 #include "Passenger.hpp"
 #include "entities/PT_Statistics.hpp"
 #include "entities/roles/driver/Driver.hpp"
+#include "entities/roles/driver/BusDriver.hpp"
 #include "message/ST_Message.hpp"
 #include "message/ST_Message.hpp"
 #include "PassengerFacets.hpp"
@@ -13,7 +14,7 @@ using std::vector;
 using namespace sim_mob;
 
 Passenger::Passenger(Person_ST *parent, PassengerBehavior *behavior, PassengerMovement *movement, std::string roleName, Role<Person_ST>::Type roleType) :
-Role<Person_ST>(parent, behavior, movement, roleName, roleType), driver(nullptr), alightVehicle(false)
+Role<Person_ST>(parent, behavior, movement, roleName, roleType), alightVehicle(false)
 {
 }
 
@@ -48,12 +49,14 @@ std::vector<BufferedBase*> Passenger::getSubscriptionParams()
 	return vector<BufferedBase*>();
 }
 
-void Passenger::makeAlightingDecision(const BusStop *nextStop)
+void Passenger::makeAlightingDecision(const BusStop *nextStop, BusDriver *driver)
 {
-	if (parent->destNode.type == WayPoint::BUS_STOP && parent->destNode.busStop == nextStop)
+	if (endPoint.type == WayPoint::BUS_STOP && endPoint.busStop == nextStop)
 	{
 		setAlightVehicle(true);
-		setDriver(nullptr);
+		
+		//Send alighting message to the bus driver
+		messaging::MessageBus::PostMessage(driver->getParent(), MSG_ALIGHT_BUS, messaging::MessageBus::MessagePtr(new PersonMessage(parent)));
 	}
 }
 
@@ -90,10 +93,17 @@ void Passenger::HandleParentMessage(messaging::Message::MessageType type, const 
 	switch(type)
 	{
 	case MSG_WAKEUP_MRT_PAX:
+	{
 		setAlightVehicle(true);
 		break;
-	default:
+	}
+	
+	case MSG_WAKEUP_BUS_PAX:
+	{
+		const BusStopMessage &busStopMsg = MSG_CAST(BusStopMessage, message);
+		makeAlightingDecision(busStopMsg.nextStop, busStopMsg.busDriver);
 		break;
+	}
 	}
 }
 

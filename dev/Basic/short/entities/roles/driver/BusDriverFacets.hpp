@@ -74,6 +74,9 @@ private:
 	/**Indicates whether the bus stop has been notified of the arrival of the bus*/
 	bool isBusStopNotified;
 	
+	/**Stores the bus arrival time at a bus stop*/
+	std::string busArrivalTime;
+	
 	/**
 	 * Initialises the bus path using the bus route information
 	 * 

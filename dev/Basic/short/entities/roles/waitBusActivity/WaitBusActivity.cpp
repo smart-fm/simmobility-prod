@@ -6,10 +6,12 @@
 
 #include <boost/algorithm/string.hpp>
 
+#include "entities/BusStopAgent.hpp"
 #include "entities/Person_ST.hpp"
 #include "entities/PT_Statistics.hpp"
 #include "entities/roles/driver/BusDriver.hpp"
 #include "geospatial/network/PT_Stop.hpp"
+#include "message/ST_Message.hpp"
 #include "WaitBusActivityFacets.hpp"
 
 using namespace std;
@@ -17,7 +19,8 @@ using namespace sim_mob;
 
 WaitBusActivity::WaitBusActivity(Person_ST *parent, WaitBusActivityBehavior *behavior,
 		WaitBusActivityMovement *movement, string roleName, Role<Person_ST>::Type roleType) :
-		Role<Person_ST>::Role(parent, behavior, movement, roleName, roleType), waitingTime(0), stop(nullptr), boardBus(false), failedToBoardCount(0)
+Role<Person_ST>::Role(parent, behavior, movement, roleName, roleType), waitingTime(0), decidedToBoardBus(false), hasBoardedBus(false),
+failedToBoardCount(0), busDriver(nullptr)
 {
 }
 
@@ -69,7 +72,7 @@ void WaitBusActivity::incrementDeniedBoardingCount()
 	failedToBoardCount++;
 }
 
-void WaitBusActivity::makeBoardingDecision(BusDriver *driver)
+void WaitBusActivity::makeBoardingDecision(const BusDriver *driver)
 {
 	TripChainItem *tripChainItem = *(driver->getParent()->currTripChainItem);
 	BusTrip *busTrip = dynamic_cast<BusTrip *> (tripChainItem);
@@ -77,7 +80,7 @@ void WaitBusActivity::makeBoardingDecision(BusDriver *driver)
 	
 	if (stopsVec.empty())
 	{
-		boardBus = false;
+		decidedToBoardBus = false;
 		return;
 	}
 
@@ -90,12 +93,13 @@ void WaitBusActivity::makeBoardingDecision(BusDriver *driver)
 	
 	if (find(lines.begin(), lines.end(), busLineID) != lines.end())
 	{
-		boardBus = true;
+		decidedToBoardBus = true;
+		busDriver = driver;
 		return;
 	}
 	else
 	{
-		boardBus = false;
+		decidedToBoardBus = false;
 		return;
 	}
 
@@ -108,7 +112,7 @@ void WaitBusActivity::makeBoardingDecision(BusDriver *driver)
 
 	if (!destStop)
 	{
-		boardBus = false;
+		decidedToBoardBus = false;
 		return;
 	}
 
@@ -116,12 +120,61 @@ void WaitBusActivity::makeBoardingDecision(BusDriver *driver)
 	
 	if (itStop != stopsVec.end())
 	{
-		boardBus = true;
+		decidedToBoardBus = true;
+		busDriver = driver;
 	}
 }
 
 void WaitBusActivity::HandleParentMessage(messaging::Message::MessageType type, const messaging::Message& message)
 {
+	switch(type)
+	{
+	case MSG_WAKEUP_WAITING_PERSON:
+	{
+		const BusDriverMessage &busDriverMsg = MSG_CAST(BusDriverMessage, message);
+		makeBoardingDecision(busDriverMsg.busDriver);
+		break;
+	}
+
+	case MSG_BOARD_BUS_SUCCESS:
+	{
+		hasBoardedBus = true;
+		storeWaitingTime(busDriver->getBusLineId());
+		messaging::MessageBus::PostMessage(busDriver->getCurrBusStopAgent(), MSG_BOARD_BUS_SUCCESS,
+				messaging::MessageBus::MessagePtr(new PersonMessage(parent)));
+		break;
+	}
+
+	case MSG_BOARD_BUS_FAIL:
+	{
+		hasBoardedBus = false;
+		setDecidedToBoardBus(false);
+		incrementDeniedBoardingCount();
+		break;
+	}
+	}
+}
+
+void WaitBusActivity::storeWaitingTime(const std::string &busLine)
+{
+	const BusStop *busStop = busDriver->getCurrBusStopAgent()->getBusStop();
+	const unsigned int currMS = getParams().now.ms();
+	
+	PersonWaitingTime personWaitInfo;
+	personWaitInfo.busStopNo = (busStop->isVirtualStop()? busStop->getTwinStop()->getStopCode() : busStop->getStopCode());
+	personWaitInfo.personId  = parent->getId();
+	personWaitInfo.personIddb = parent->getDatabaseId();
+	personWaitInfo.originNode = (*(parent->currTripChainItem))->origin.node->getNodeId();
+	personWaitInfo.destNode = (*(parent->currTripChainItem))->destination.node->getNodeId();
+	personWaitInfo.endstop = parent->currSubTrip->endLocationId;
+	personWaitInfo.waitingTime = ((double) this->getWaitingTime())/1000.0; //convert ms to second
+	personWaitInfo.busLineBoarded = busLine;
+	personWaitInfo.busLines = this->getBusLines();
+	personWaitInfo.deniedBoardingCount = this->getDeniedBoardingCount();
+	personWaitInfo.currentTime = DailyTime(currMS + ConfigManager::GetInstance().FullConfig().simStartTime().getValue()).getStrRepr();
+	
+	messaging::MessageBus::PostMessage(PT_Statistics::getInstance(), STORE_PERSON_WAITING,
+			messaging::MessageBus::MessagePtr(new PersonWaitingTimeMessage(personWaitInfo)));
 }
 
 vector<BufferedBase *> WaitBusActivity::getSubscriptionParams()

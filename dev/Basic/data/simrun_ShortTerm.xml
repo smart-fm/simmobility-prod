@@ -23,10 +23,10 @@
 			<mapping name="pt_bus_routes" procedure="get_pt_bus_routes()"/>
 			<mapping name="pt_bus_stops" procedure="get_pt_bus_stops()"/>
 			<mapping name="mrt_road_segments" procedure="get_pt_mrt_segments()"/>
-			<mapping name="rail_transit_edges" procedure="get_rail_transit_edges()"/>
 			<!--Stored procedures for route-choice-->
 			<mapping name="pt_edges" procedure="get_pt_edges()"/>
 			<mapping name="pt_vertices" procedure="get_pt_vertices()"/>
+			<mapping name="rail_transit_edges" procedure="get_rail_transit_edges()"/>
 			<mapping name="pvt_pathset" procedure="get_pvt_pathset"/>
 			<mapping name="pt_pathset" procedure="get_pt_pathset"/>
 			<mapping name="erp_gantry_zone" procedure="get_erp_gantry_zone()"/>

@@ -41,6 +41,12 @@ private:
 
 class PassengerMovement : public sim_mob::MovementFacet
 {
+private:
+	Passenger* parentPassenger;
+	
+	/**Stores the total time to complete the trip*/
+	unsigned int totalTimeToComplete;
+	
 public:
 	explicit PassengerMovement();
 	virtual ~PassengerMovement();
@@ -69,9 +75,6 @@ public:
 	{
 		this->parentPassenger = parentPassenger;
 	}
-
-private:
-	Passenger* parentPassenger;
-	
 };
+
 }

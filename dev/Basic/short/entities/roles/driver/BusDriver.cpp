@@ -16,17 +16,20 @@
 #include "entities/vehicle/BusRoute.hpp"
 #include "entities/vehicle/Bus.hpp"
 #include "entities/BusController.hpp"
+#include "entities/roles/waitBusActivity/WaitBusActivity.hpp"
 #include "geospatial/network/Point.hpp"
 #include "geospatial/network/PT_Stop.hpp"
 #include "logging/Log.hpp"
 #include "partitions/PackageUtils.hpp"
 #include "partitions/UnPackageUtils.hpp"
-#include "entities/roles/waitBusActivity/WaitBusActivity.hpp"
+#include "message/MessageBus.hpp"
+#include "message/ST_Message.hpp"
 
 using namespace sim_mob;
 
 BusDriver::BusDriver(Person_ST *parent, MutexStrategy mtxStrat, BusDriverBehavior *behavior, BusDriverMovement *movement, Role<Person_ST>::Type roleType_) :
-Driver(parent, mtxStrat, behavior, movement, roleType_), sequenceNum(1)
+Driver(parent, mtxStrat, behavior, movement, roleType_), sequenceNum(1), currBoardingTime(0), currAlightingTime(0), currBusStopAgent(nullptr), 
+isBoardingComplete(false), isAlightingComplete(false)
 {
 	isBusDriver = true;
 }
@@ -56,54 +59,61 @@ DriverRequestParams BusDriver::getDriverRequestParams()
 	return DriverRequestParams();
 }
 
+void BusDriver::HandleParentMessage(messaging::Message::MessageType type, const messaging::Message& message)
+{
+	switch(type)
+	{
+	case MSG_ATTEMPT_BOARD_BUS:
+	{
+		const PersonMessage &personMsg = MSG_CAST(PersonMessage, message);
+		tryBoardingPassenger(personMsg.person);
+		break;
+	}
+
+	case MSG_ALIGHT_BUS:
+	{
+		const PersonMessage &personMsg = MSG_CAST(PersonMessage, message);
+		alightPassenger(personMsg.person);
+		break;
+	}
+	}
+}
+
 bool BusDriver::isBusFull()
 {
 	return (passengerList.size() < ST_Config::getInstance().defaultBusCapacity) ? false : true;
 }
 
-void BusDriver::addPassenger(Passenger *passenger)
+void BusDriver::tryBoardingPassenger(Person_ST* passenger)
 {
-	passengerList.push_back(passenger);
-	passenger->setDriver(this);
+	if(!isBusFull())
+	{
+		//Add person to the passenger list
+		passengerList.push_back(passenger);
+		
+		//Increment the boarding time by the persons boarding time
+		currBoardingTime += passenger->getBoardingCharacteristics();
+		
+		//Send boarding success message to waiting person
+		messaging::MessageBus::PostMessage(passenger, MSG_BOARD_BUS_SUCCESS, messaging::MessageBus::MessagePtr(new BusDriverMessage(this)));
+	}
+	else
+	{
+		//Send boarding failed message to the waiting person
+		messaging::MessageBus::PostMessage(passenger, MSG_BOARD_BUS_FAIL, messaging::MessageBus::MessagePtr(new BusDriverMessage(this)));
+	}
+	
+	isBoardingComplete = true;
 }
 
-double BusDriver::alightPassengers(BusStopAgent *stopAgent)
+void BusDriver::alightPassenger(Person_ST *passenger)
 {
-	double alightingTime = 0;
-	const BusStop *stop = stopAgent->getBusStop();
-	std::list<Passenger*>::iterator itPassenger = passengerList.begin();
+	//Remove person from passenger list
+	passengerList.remove(passenger);
 	
-	if (stop->isVirtualStop())
-	{
-		stop = stop->getTwinStop();
-		
-		if (stop->isVirtualStop())
-		{
-			stringstream msg;
-			msg << "Both stops are virtual! Stop code " << stop->getStopCode();
-			throw std::runtime_error(msg.str());
-		}
-		
-		stopAgent = BusStopAgent::getBusStopAgentForStop(stop);
-	}
-
-	while (itPassenger != passengerList.end())
-	{
-		(*itPassenger)->makeAlightingDecision(stopAgent->getBusStop());
-
-		if ((*itPassenger)->canAlightVehicle())
-		{
-			stopAgent->addAlightingPerson(*itPassenger);
-			alightingTime += (*itPassenger)->getParent()->getAlightingCharacteristics();
-			itPassenger = passengerList.erase(itPassenger);
-		}
-		else
-		{
-			itPassenger++;
-		}
-	}
+	currAlightingTime += passenger->getAlightingCharacteristics();
 	
-	return alightingTime;
+	isAlightingComplete = true;
 }
 
 double BusDriver::getPositionX() const
@@ -125,3 +135,9 @@ void BusDriver::setBusLineId(const std::string& busLine)
 {
 	busLineId = busLine;
 }
+
+BusStopAgent* BusDriver::getCurrBusStopAgent() const
+{
+	return currBusStopAgent;
+}
+

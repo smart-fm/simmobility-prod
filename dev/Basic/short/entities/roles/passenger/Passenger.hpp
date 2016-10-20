@@ -22,9 +22,6 @@ class Driver;
 class Passenger : public Role<Person_ST>
 {
 private:
-	/** Driver who is driving the vehicle of this passenger*/
-	const Driver* driver;
-
 	/**Indicates whether the passenger has decided to alight*/
 	bool alightVehicle;
 
@@ -51,8 +48,9 @@ public:
 	 * Make alighting decision
 	 * 
 	 * @param nextStop is the stop at which the bus will arrive at next
+	 * @param driver is the driver of the bus
 	 */
-	void makeAlightingDecision(const BusStop *nextStop);
+	void makeAlightingDecision(const BusStop *nextStop, BusDriver *driver);
 
 	/**
 	 * Collect travel time for current role
@@ -79,16 +77,6 @@ public:
 	void setAlightVehicle(bool alight)
 	{
 		this->alightVehicle = alight;
-	}
-
-	const Driver* getDriver() const
-	{
-		return driver;
-	}
-
-	void setDriver(const Driver* driver)
-	{
-		this->driver = driver;
 	}
 
 	const WayPoint& getEndPoint() const

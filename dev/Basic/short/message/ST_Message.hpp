@@ -16,6 +16,12 @@ class BusDriver;
 
 const messaging::Message::MessageType MSG_WAITING_PERSON_ARRIVAL = 1000000;
 const messaging::Message::MessageType MSG_WAKEUP_MRT_PAX = 1000001;
+const messaging::Message::MessageType MSG_WAKEUP_BUS_PAX = 1000002;
+const messaging::Message::MessageType MSG_WAKEUP_WAITING_PERSON = 1000003;
+const messaging::Message::MessageType MSG_ATTEMPT_BOARD_BUS = 1000004;
+const messaging::Message::MessageType MSG_BOARD_BUS_SUCCESS = 1000005;
+const messaging::Message::MessageType MSG_BOARD_BUS_FAIL = 1000006;
+const messaging::Message::MessageType MSG_ALIGHT_BUS = 1000007;
 
 /**
  * Message to wrap a Person
@@ -53,5 +59,42 @@ public:
 	{
 	}
 };
+
+/**
+ * Message holding a pointer to BusStop
+ */
+class BusStopMessage: public messaging::Message
+{
+public:
+	const BusStop *nextStop;
+	BusDriver *busDriver;
+	
+	BusStopMessage(const BusStop *stop, BusDriver *busDriver) :
+	nextStop(stop), busDriver(busDriver)
+	{
+	}
+
+	virtual ~BusStopMessage()
+	{
+	}
+} ;
+
+/**
+ * Message holding a pointer to BusDriver
+ */
+class BusDriverMessage: public messaging::Message
+{
+public:
+	const BusDriver *busDriver;
+	
+	BusDriverMessage(const BusDriver *busDriver) :
+	busDriver(busDriver)
+	{
+	}
+
+	virtual ~BusDriverMessage()
+	{
+	}
+} ;
 
 }

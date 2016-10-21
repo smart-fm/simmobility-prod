@@ -46,12 +46,6 @@ private:
 	/**The current bus stop agent*/
 	BusStopAgent *currBusStopAgent;
 	
-	/**Indicates whether boarding is complete*/
-	bool isBoardingComplete;
-	
-	/**Indicates whether alighting is complete*/
-	bool isAlightingComplete;
-	
 public:
 	BusDriver(Person_ST *parent, MutexStrategy mtxStrat, BusDriverBehavior *behavior = nullptr, BusDriverMovement *movement = nullptr,
 			Role<Person_ST>::Type roleType_ = Role<Person_ST>::RL_BUSDRIVER);

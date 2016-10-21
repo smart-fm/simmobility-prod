@@ -22,8 +22,10 @@
 using namespace sim_mob;
 using namespace std;
 
+const unsigned int ticksToProcessBoardingAlighting = 5;
+
 BusDriverMovement::BusDriverMovement() :
-DriverMovement(), parentBusDriver(nullptr), isBusStopNotified(false)
+DriverMovement(), parentBusDriver(nullptr), isBusStopNotified(false), tickCountBoardingAlighting(0)
 {
 }
 
@@ -191,7 +193,18 @@ void BusDriverMovement::frame_tick()
 		busArrivalTime = currTime.getStrRepr();
 	}
 	
-	if(parentBusDriver->isBoardingComplete && parentBusDriver->isAlightingComplete)
+	//Boarding and alighting times can be computed only after processing messages from boarding persons and alighting passengers
+	//This takes at-most 3 frame ticks, so maintain count when bus arrives at stop or is waiting
+	if((params.stopPointState == DriverUpdateParams::ARRIVED_AT_STOP_POINT || params.stopPointState == DriverUpdateParams::WAITING_AT_STOP_POINT) 
+			&& tickCountBoardingAlighting <= ticksToProcessBoardingAlighting)
+	{
+		tickCountBoardingAlighting++;
+	}
+	
+	//Compute the dwell time and send the bus arrival message for statistics collection.
+	//Note: Sending the message out at this point only because dwell time was previously unknown. Also not the arrival time
+	//used is the one stored when the bus actually arrived
+	if(tickCountBoardingAlighting == ticksToProcessBoardingAlighting)
 	{
 		//Compute dwell time
 		params.currentStopPoint.dwellTime += std::max(parentBusDriver->currBoardingTime, parentBusDriver->currAlightingTime);
@@ -217,8 +230,7 @@ void BusDriverMovement::frame_tick()
 	{
 		//Reset
 		isBusStopNotified = false;
-		parentBusDriver->isBoardingComplete = false;
-		parentBusDriver->isAlightingComplete = false;
+		tickCountBoardingAlighting = 0;
 		
 		//Next bus stop
 		++busStopTracker;

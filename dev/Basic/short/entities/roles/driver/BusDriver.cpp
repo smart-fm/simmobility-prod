@@ -28,8 +28,7 @@
 using namespace sim_mob;
 
 BusDriver::BusDriver(Person_ST *parent, MutexStrategy mtxStrat, BusDriverBehavior *behavior, BusDriverMovement *movement, Role<Person_ST>::Type roleType_) :
-Driver(parent, mtxStrat, behavior, movement, roleType_), sequenceNum(1), currBoardingTime(0), currAlightingTime(0), currBusStopAgent(nullptr), 
-isBoardingComplete(false), isAlightingComplete(false)
+Driver(parent, mtxStrat, behavior, movement, roleType_), sequenceNum(1), currBoardingTime(0), currAlightingTime(0), currBusStopAgent(nullptr)
 {
 	isBusDriver = true;
 }
@@ -101,9 +100,7 @@ void BusDriver::tryBoardingPassenger(Person_ST* passenger)
 	{
 		//Send boarding failed message to the waiting person
 		messaging::MessageBus::PostMessage(passenger, MSG_BOARD_BUS_FAIL, messaging::MessageBus::MessagePtr(new BusDriverMessage(this)));
-	}
-	
-	isBoardingComplete = true;
+	}	
 }
 
 void BusDriver::alightPassenger(Person_ST *passenger)
@@ -112,8 +109,6 @@ void BusDriver::alightPassenger(Person_ST *passenger)
 	passengerList.remove(passenger);
 	
 	currAlightingTime += passenger->getAlightingCharacteristics();
-	
-	isAlightingComplete = true;
 }
 
 double BusDriver::getPositionX() const

@@ -77,6 +77,12 @@ private:
 	/**Stores the bus arrival time at a bus stop*/
 	std::string busArrivalTime;
 	
+	/**The bus driver can estimate the dwell only after it knows the number of passengers alighting and boarding.
+	 * This is gathered through messages and it takes at-most 3 frame ticks to process all relevant messages. This counter is used 
+	 * to count the elapsed ticks
+	 */
+	unsigned int tickCountBoardingAlighting;
+	
 	/**
 	 * Initialises the bus path using the bus route information
 	 * 

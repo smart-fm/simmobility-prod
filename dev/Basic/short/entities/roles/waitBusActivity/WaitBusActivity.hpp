@@ -15,17 +15,29 @@ class BusDriver;
 class WaitBusActivityBehavior;
 class WaitBusActivityMovement;
 
+enum WaitBusActivityState
+{
+	/**Indicates that the person is waiting for the bus*/
+	WAITBUS_STATE_WAITING = 0,
+	
+	/**Indicates that the person has decided to board the bus that has arrived*/
+	WAITBUS_STATE_DECIDED_BOARD_BUS,
+	
+	/**Indicates that the person has attempted to board the bus by sending a message to the driver*/
+	WAITBUS_STATE_ATTEMPTED_BOARD_BUS,
+	
+	/**Indicates the the person has boarded the bus successfully*/
+	WAITBUS_STATE_WAIT_COMPLETE
+};
+
 class WaitBusActivity: public Role<Person_ST>, public UpdateWrapper<UpdateParams>
 {
 private:
 	/**Records the waiting time (in milliseconds) at the bus stop*/
 	unsigned int waitingTime;
 	
-	/**Indicates whether the waiting person has decided to board*/
-	bool decidedToBoardBus;
-	
-	/**Indicates whether the person has boarded the bus*/
-	bool hasBoardedBus;
+	/**Stores the current state of the waiting activity*/
+	WaitBusActivityState activityState;
 	
 	/**Counts the number of times the person failed to board*/
 	unsigned int failedToBoardCount;
@@ -88,17 +100,7 @@ public:
 	const std::string getBusLines() const
 	{
 		return parent->currSubTrip->getBusLineID();
-	}
-
-	bool hasDecidedToBoardBus() const
-	{
-		return decidedToBoardBus;
-	}
-
-	void setDecidedToBoardBus(bool boardBus)
-	{
-		this->decidedToBoardBus = boardBus;
-	}
+	}	
 
 	unsigned int getWaitingTime() const
 	{

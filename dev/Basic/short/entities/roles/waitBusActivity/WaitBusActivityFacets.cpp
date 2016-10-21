@@ -15,7 +15,7 @@
 using namespace sim_mob;
 
 WaitBusActivityMovement::WaitBusActivityMovement() :
-MovementFacet(), parentWaitBusActivity(nullptr), isMessageSent(false)
+MovementFacet(), parentWaitBusActivity(nullptr)
 {
 }
 
@@ -42,28 +42,30 @@ void WaitBusActivityMovement::frame_tick()
 {
 	unsigned int tickMS = ConfigManager::GetInstance().FullConfig().baseGranMS();
 	
-	if(!parentWaitBusActivity->hasBoardedBus)
+	switch(parentWaitBusActivity->activityState)
 	{
-		if (!parentWaitBusActivity->decidedToBoardBus)
-		{
-			//Waiting person can't board bus, continue to wait
-			parentWaitBusActivity->increaseWaitingTime(tickMS);
-			parentWaitBusActivity->setTravelTime(parentWaitBusActivity->getWaitingTime());
-		}
-		else if(!isMessageSent)
-		{
-			//Waiting person has decided to board the bus, send attempting to board message to bus driver
-			messaging::MessageBus::PostMessage(parentWaitBusActivity->busDriver->getParent(), MSG_ATTEMPT_BOARD_BUS,
-					messaging::MessageBus::MessagePtr(new PersonMessage(parentWaitBusActivity->getParent())));
-			
-			isMessageSent = true;
-		}
-	}
-	else
-	{
+	case WAITBUS_STATE_WAITING:		
+		parentWaitBusActivity->increaseWaitingTime(tickMS);
+		parentWaitBusActivity->setTravelTime(parentWaitBusActivity->getWaitingTime());
+		
+		break;
+
+	case WAITBUS_STATE_DECIDED_BOARD_BUS:		
+		//Waiting person has decided to board the bus, send attempting to board message to bus driver
+		parentWaitBusActivity->activityState = WAITBUS_STATE_ATTEMPTED_BOARD_BUS;
+		messaging::MessageBus::PostMessage(parentWaitBusActivity->busDriver->getParent(), MSG_ATTEMPT_BOARD_BUS,
+				messaging::MessageBus::MessagePtr(new PersonMessage(parentWaitBusActivity->getParent())));				
+		break;
+		
+	case WAITBUS_STATE_ATTEMPTED_BOARD_BUS:
+		//Do nothing, wait for bus driver's response
+		break;
+		
+	case WAITBUS_STATE_WAIT_COMPLETE:
 		//Waiting role complete
 		parentWaitBusActivity->parent->setToBeRemoved();
-	}
+		break;
+	}	
 }
 
 std::string WaitBusActivityMovement::frame_tick_output()

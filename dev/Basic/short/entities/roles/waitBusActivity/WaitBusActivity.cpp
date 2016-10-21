@@ -19,7 +19,7 @@ using namespace sim_mob;
 
 WaitBusActivity::WaitBusActivity(Person_ST *parent, WaitBusActivityBehavior *behavior,
 		WaitBusActivityMovement *movement, string roleName, Role<Person_ST>::Type roleType) :
-Role<Person_ST>::Role(parent, behavior, movement, roleName, roleType), waitingTime(0), decidedToBoardBus(false), hasBoardedBus(false),
+Role<Person_ST>::Role(parent, behavior, movement, roleName, roleType), waitingTime(0), activityState(WAITBUS_STATE_WAITING),
 failedToBoardCount(0), busDriver(nullptr)
 {
 }
@@ -79,8 +79,7 @@ void WaitBusActivity::makeBoardingDecision(const BusDriver *driver)
 	const vector<const BusStop *> &stopsVec = busTrip->getBusRouteInfo().getBusStops();
 	
 	if (stopsVec.empty())
-	{
-		decidedToBoardBus = false;
+	{		
 		return;
 	}
 
@@ -93,13 +92,12 @@ void WaitBusActivity::makeBoardingDecision(const BusDriver *driver)
 	
 	if (find(lines.begin(), lines.end(), busLineID) != lines.end())
 	{
-		decidedToBoardBus = true;
+		activityState = WAITBUS_STATE_DECIDED_BOARD_BUS;	
 		busDriver = driver;
 		return;
 	}
 	else
 	{
-		decidedToBoardBus = false;
 		return;
 	}
 
@@ -112,7 +110,6 @@ void WaitBusActivity::makeBoardingDecision(const BusDriver *driver)
 
 	if (!destStop)
 	{
-		decidedToBoardBus = false;
 		return;
 	}
 
@@ -120,7 +117,7 @@ void WaitBusActivity::makeBoardingDecision(const BusDriver *driver)
 	
 	if (itStop != stopsVec.end())
 	{
-		decidedToBoardBus = true;
+		activityState = WAITBUS_STATE_DECIDED_BOARD_BUS;
 		busDriver = driver;
 	}
 }
@@ -138,7 +135,7 @@ void WaitBusActivity::HandleParentMessage(messaging::Message::MessageType type, 
 
 	case MSG_BOARD_BUS_SUCCESS:
 	{
-		hasBoardedBus = true;
+		activityState = WAITBUS_STATE_WAIT_COMPLETE;
 		storeWaitingTime(busDriver->getBusLineId());
 		messaging::MessageBus::PostMessage(busDriver->getCurrBusStopAgent(), MSG_BOARD_BUS_SUCCESS,
 				messaging::MessageBus::MessagePtr(new PersonMessage(parent)));
@@ -147,8 +144,7 @@ void WaitBusActivity::HandleParentMessage(messaging::Message::MessageType type, 
 
 	case MSG_BOARD_BUS_FAIL:
 	{
-		hasBoardedBus = false;
-		setDecidedToBoardBus(false);
+		activityState = WAITBUS_STATE_WAITING;
 		incrementDeniedBoardingCount();
 		break;
 	}

@@ -21,9 +21,6 @@ private:
 	/**Records the waiting time (in milliseconds) at the bus stop*/
 	unsigned int waitingTime;
 	
-	/**The bus stop at which the person is waiting*/
-	//const BusStop *stop;
-	
 	/**Indicates whether the waiting person has decided to board*/
 	bool decidedToBoardBus;
 	
@@ -92,16 +89,6 @@ public:
 	{
 		return parent->currSubTrip->getBusLineID();
 	}
-
-	/*const BusStop* getStop() const
-	{
-		return stop;
-	}	
-
-	void setStop(const BusStop* busStop)
-	{
-		stop = busStop;
-	}*/
 
 	bool hasDecidedToBoardBus() const
 	{

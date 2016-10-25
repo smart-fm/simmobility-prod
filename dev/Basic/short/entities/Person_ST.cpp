@@ -21,6 +21,17 @@
 using namespace std;
 using namespace sim_mob;
 
+namespace
+{
+const string dataSourceDAS = "DAS_TripChain";
+const string dataSourceXML = "XML_TripChain";
+const string dataSourceAMOD = "AMOD_TripChain";
+const string dataSourceBusController = "BusController";
+const string transitModeBus = "BusTravel";
+const string transitModeTrain = "MRT";
+const string transitModeUnknown = "PT";
+}
+
 Person_ST::Person_ST(const std::string &src, const MutexStrategy &mtxStrat, int id, std::string databaseID)
 : Person(src, mtxStrat, id, databaseID), startLaneIndex(-1), boardingTimeSecs(0), alightingTimeSecs(0), 
 prevRole(NULL), currRole(NULL), nextRole(NULL), commEventRegistered(false), amodId("-1"),
@@ -128,7 +139,7 @@ void Person_ST::initTripChain()
 	currTripChainItem = tripChain.begin();
 	
 	const std::string& src = getAgentSrc();
-	if (src == "DAS_TripChain" || src == "AMOD_TripChain" || src == "BusController")
+	if (src == dataSourceDAS || src == dataSourceAMOD || src == dataSourceBusController)
 	{
 		setStartTime((*currTripChainItem)->startTime.offsetMS_From(ConfigManager::GetInstance().FullConfig().simStartTime()));
 	}
@@ -496,7 +507,7 @@ void Person_ST::convertPublicTransitODsToTrips()
 			{
 				if (itSubTrip->origin.type == WayPoint::NODE && itSubTrip->destination.type == WayPoint::NODE)
 				{
-					if (itSubTrip->getMode() == "PT" || itSubTrip->getMode() == "BusTravel" || itSubTrip->getMode() == "MRT")
+					if (itSubTrip->getMode() == transitModeUnknown || itSubTrip->getMode() == transitModeBus || itSubTrip->getMode() == transitModeTrain)
 					{
 						vector<OD_Trip> odTrips;
 						const string &dbid = this->getDatabaseId();
@@ -504,7 +515,7 @@ void Person_ST::convertPublicTransitODsToTrips()
 						const string &src = getAgentSrc();
 						DailyTime subTripStartTime = itSubTrip->startTime;
 						
-						if (src == "XML_TripChain")
+						if (src == dataSourceXML)
 						{
 							subTripStartTime = subTripStartTime + ConfigManager::GetInstance().FullConfig().simStartTime();
 						}
@@ -550,7 +561,7 @@ void Person_ST::insertWaitingActivityToTrip()
 			itSubTrip[0] = subTrips.begin();
 			while (itSubTrip[1] != subTrips.end())
 			{
-				if (itSubTrip[1]->getMode() == "BusTravel" && itSubTrip[0]->getMode() != "WaitingBusActivity")
+				if (itSubTrip[1]->getMode() == transitModeBus && itSubTrip[0]->getMode() != "WaitingBusActivity")
 				{
 					if (itSubTrip[1]->origin.type == WayPoint::BUS_STOP)
 					{

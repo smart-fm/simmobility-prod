@@ -21,6 +21,28 @@ namespace
 
 using namespace sim_mob;
 
+enum TripChainColumn
+{
+	COLUMN_TRIP_ID = 0,
+	COLUMN_PERSON_ID = 1,
+	COLUMN_TRIP_START_TIME = 2,
+	COLUMN_ACTIVITY_START_TIME = 3,
+	COLUMN_ACTIVITY_END_TIME = 4,
+	COLUMN_ORIGIN_TYPE = 5,
+	COLUMN_DESTINATION_TYPE = 6,
+	COLUMN_ORIGIN_ID = 7,
+	COLUMN_DESTINATION_ID = 8,
+	COLUMN_LOAD_FACTOR = 9,
+	COLUMN_SEQUENCE_NUMBER = 10,
+	COLUMN_MODE = 11,
+	COLUMN_PT_LINE_ID = 12,
+	COLUMN_CBD_TRAVERSE_TYPE = 13,
+	COLUMN_SUBTRIP_ORIGIN_TYPE = 14,
+	COLUMN_SUBTRIP_DESTINATION_TYPE = 15,
+	COLUMN_SUBTRIP_ORIGIN_ID = 16,
+	COLUMN_SUBTRIP_DESTINATION_ID = 17
+} ;
+
 void informLoadOrder(const std::vector<LoadAgentsOrderOption>& order)
 {
 	std::cout << "Agent Load order: ";
@@ -121,14 +143,14 @@ SubTrip makeSubTrip(soci::row &r)
 	SubTrip subtrip;
 	subtrip.itemType = TripChainItem::IT_TRIP;
 	subtrip.tripID = r.get<string>(0);	
-	subtrip.sequenceNumber = r.get<unsigned int>(10);
-	subtrip.travelMode = r.get<string>(11);
-	subtrip.ptLineId = r.get<string>(12);
-	subtrip.cbdTraverseType = (TravelMetric::CDB_TraverseType)r.get<int>(13);
-	subtrip.originType = (TripChainItem::LocationType)r.get<int>(14);
-	subtrip.destinationType = (TripChainItem::LocationType)r.get<int>(15);
-	subtrip.startLocationId = r.get<string>(16);
-	subtrip.endLocationId = r.get<string>(17);
+	subtrip.sequenceNumber = r.get<unsigned int>(COLUMN_SEQUENCE_NUMBER);
+	subtrip.travelMode = r.get<string>(COLUMN_MODE);
+	subtrip.ptLineId = r.get<string>(COLUMN_PT_LINE_ID);
+	subtrip.cbdTraverseType = (TravelMetric::CDB_TraverseType)r.get<int>(COLUMN_CBD_TRAVERSE_TYPE);
+	subtrip.originType = (TripChainItem::LocationType)r.get<int>(COLUMN_SUBTRIP_ORIGIN_TYPE);
+	subtrip.destinationType = (TripChainItem::LocationType)r.get<int>(COLUMN_SUBTRIP_DESTINATION_TYPE);
+	subtrip.startLocationId = r.get<string>(COLUMN_SUBTRIP_ORIGIN_ID);
+	subtrip.endLocationId = r.get<string>(COLUMN_SUBTRIP_DESTINATION_ID);
 
 	const RoadNetwork *rdNetwork = RoadNetwork::getInstance();
 
@@ -146,15 +168,15 @@ Trip* makeTrip(soci::row &r)
 	//Create a new trip
 	Trip *trip = new Trip();
 	trip->itemType = TripChainItem::IT_TRIP;
-	trip->tripID = r.get<string>(0);
-	trip->setPersonID(r.get<string>(1));
-	trip->startTime = DailyTime(r.get<string>(2));
-	trip->originType = (TripChainItem::LocationType)r.get<int>(5);
-	trip->destinationType = (TripChainItem::LocationType)r.get<int>(6);
-	trip->startLocationId = r.get<string>(7);
-	trip->endLocationId = r.get<string>(8);
-	trip->load_factor = r.get<unsigned int>(9);
-	trip->travelMode = r.get<string>(11);
+	trip->tripID = r.get<string>(COLUMN_TRIP_ID);
+	trip->setPersonID(r.get<string>(COLUMN_PERSON_ID));
+	trip->startTime = DailyTime(r.get<string>(COLUMN_TRIP_START_TIME));
+	trip->originType = (TripChainItem::LocationType)r.get<int>(COLUMN_ORIGIN_TYPE);
+	trip->destinationType = (TripChainItem::LocationType)r.get<int>(COLUMN_DESTINATION_TYPE);
+	trip->startLocationId = r.get<string>(COLUMN_ORIGIN_ID);
+	trip->endLocationId = r.get<string>(COLUMN_DESTINATION_ID);
+	trip->load_factor = r.get<unsigned int>(COLUMN_LOAD_FACTOR);
+	trip->travelMode = r.get<string>(COLUMN_MODE);
 	
 	const RoadNetwork *rdNetwork = RoadNetwork::getInstance();
 
@@ -177,11 +199,11 @@ Activity* makeActivity(soci::row &r)
 {
 	Activity *activity = new Activity();
 	activity->itemType = TripChainItem::IT_ACTIVITY;
-	activity->setPersonID(r.get<string>(1));
-	activity->startTime = DailyTime(r.get<string>(3));
-	activity->endTime = DailyTime(r.get<string>(4));
-	activity->destinationType = (TripChainItem::LocationType)r.get<int>(6);
-	activity->endLocationId = r.get<string>(8);
+	activity->setPersonID(r.get<string>(COLUMN_PERSON_ID));
+	activity->startTime = DailyTime(r.get<string>(COLUMN_ACTIVITY_START_TIME));
+	activity->endTime = DailyTime(r.get<string>(COLUMN_ACTIVITY_END_TIME));
+	activity->destinationType = (TripChainItem::LocationType)r.get<int>(COLUMN_DESTINATION_TYPE);
+	activity->endLocationId = r.get<string>(COLUMN_DESTINATION_ID);
 
 	unsigned int nodeId = atoi(activity->endLocationId.c_str());
 	const RoadNetwork *rdNetwork = RoadNetwork::getInstance();
@@ -426,11 +448,11 @@ void ExpandShortTermConfigFile::generateAgentsFromTripChain(ConfigParams::AgentC
 		for (soci::rowset<soci::row>::const_iterator itRows = rows.begin(); itRows != rows.end(); ++itRows)
 		{
 			//Load only if the load factor is 1
-			if((*itRows).get<unsigned int>(9) == 1)
+			if((*itRows).get<unsigned int>(COLUMN_LOAD_FACTOR) == 1)
 			{
 				//Get the person id and trip id
-				const string tripId = (*itRows).get<string>(0);
-				const string personId = (*itRows).get<string>(1);
+				const string tripId = (*itRows).get<string>(COLUMN_TRIP_ID);
+				const string personId = (*itRows).get<string>(COLUMN_PERSON_ID);
 
 				//The trip belonging to the person
 				vector<TripChainItem *> &personTripChain = tripChains[personId][tripId];
@@ -443,7 +465,7 @@ void ExpandShortTermConfigFile::generateAgentsFromTripChain(ConfigParams::AgentC
 					personTripChain.push_back(trip);
 
 					//Create activity if end time is provided
-					if (!(*itRows).get<string>(4).empty())
+					if (!(*itRows).get<string>(COLUMN_ACTIVITY_END_TIME).empty())
 					{
 						Activity *activity = makeActivity(*itRows);
 						personTripChain.push_back(activity);

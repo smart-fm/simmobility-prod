@@ -217,8 +217,10 @@ void BusDriverMovement::frame_tick()
 		busArrivalInfo.tripId = busTrip->tripID;
 		busArrivalInfo.sequenceNo = parentBusDriver->sequenceNum++;
 		busArrivalInfo.arrivalTime = busArrivalTime;
-		busArrivalInfo.dwellTimeSecs = params.currentStopPoint.dwellTime;
-		busArrivalInfo.dwellTime = (DailyTime(1000 * params.currentStopPoint.dwellTime)).getStrRepr();
+		busArrivalInfo.dwellTimeSecs = params.currentStopPoint.dwellTime;		
+		//DailyTime requires time in milli-seconds to create proper string representation, so convert to milli-seconds
+		busArrivalInfo.dwellTime = (DailyTime(1000 * params.currentStopPoint.dwellTime)).getStrRepr();		
+		//Compute percentage of occupancy
 		busArrivalInfo.pctOccupancy = (((double) parentBusDriver->passengerList.size()) / ST_Config::getInstance().defaultBusCapacity) * 100.0;
 		busArrivalInfo.busStopNo = (*busStopTracker)->getStopCode();
 		

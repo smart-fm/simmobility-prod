@@ -2,39 +2,42 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
-/*
- * Passenger.cpp
- * Created on: 2012-12-20
- * Author: Meenu
- */
 #include "Passenger.hpp"
+#include "entities/PT_Statistics.hpp"
+#include "entities/roles/driver/Driver.hpp"
+#include "entities/roles/driver/BusDriver.hpp"
+#include "message/ST_Message.hpp"
+#include "message/ST_Message.hpp"
 #include "PassengerFacets.hpp"
-#include "entities/Person_ST.hpp"
-#include "entities/vehicle/Bus.hpp"
 
-using namespace sim_mob;
 using std::vector;
-using std::cout;
-using std::map;
-using std::string;
+using namespace sim_mob;
 
-Passenger::Passenger(Person_ST *parent, MutexStrategy mtxStrat, PassengerBehavior* behavior, PassengerMovement* movement, Role<Person_ST>::Type roleType_, std::string roleName) :
-Role(parent, behavior, movement, roleName, roleType_), BoardedBus(mtxStrat, false), AlightedBus(mtxStrat, false), busdriver(mtxStrat, nullptr),
-waitingTimeAtStop(0)
+Passenger::Passenger(Person_ST *parent, PassengerBehavior *behavior, PassengerMovement *movement, std::string roleName, Role<Person_ST>::Type roleType) :
+Role<Person_ST>(parent, behavior, movement, roleName, roleType), alightVehicle(false)
 {
-}
-
-void Passenger::make_frame_tick_params(timeslice now)
-{
-	getParams().reset(now);
 }
 
 Role<Person_ST>* Passenger::clone(Person_ST *parent) const
 {
 	PassengerBehavior* behavior = new PassengerBehavior();
 	PassengerMovement* movement = new PassengerMovement();
-	Passenger* passenger = new Passenger(parent, parent->getMutexStrategy(), behavior, movement);
+	Role<Person_ST>::Type personRoleType = Role<Person_ST>::RL_UNKNOWN;
 	
+	if (parent->currSubTrip->getMode() == "BusTravel")
+	{
+		personRoleType = Role<Person_ST>::RL_PASSENGER;
+	}
+	else if(parent->currSubTrip->getMode() == "MRT")
+	{
+		personRoleType = Role<Person_ST>::RL_TRAINPASSENGER;
+	}
+	else
+	{
+		throw std::runtime_error("Unknown mode for passenger role");
+	}
+	
+	Passenger *passenger = new Passenger(parent, behavior, movement, "Passenger_", personRoleType);
 	behavior->setParentPassenger(passenger);
 	movement->setParentPassenger(passenger);
 	
@@ -43,9 +46,64 @@ Role<Person_ST>* Passenger::clone(Person_ST *parent) const
 
 std::vector<BufferedBase*> Passenger::getSubscriptionParams()
 {
-	std::vector<BufferedBase*> res;
-	res.push_back(&(BoardedBus));
-	res.push_back(&(AlightedBus));
-	res.push_back(&(busdriver));
-	return res;
+	return vector<BufferedBase*>();
 }
+
+void Passenger::makeAlightingDecision(const BusStop *nextStop, BusDriver *driver)
+{
+	if (endPoint.type == WayPoint::BUS_STOP && endPoint.busStop == nextStop)
+	{
+		setAlightVehicle(true);
+		
+		//Send alighting message to the bus driver
+		messaging::MessageBus::PostMessage(driver->getParent(), MSG_ALIGHT_BUS, messaging::MessageBus::MessagePtr(new PersonMessage(parent)));
+	}
+}
+
+void Passenger::collectTravelTime()
+{
+	PersonTravelTime personTravelTime;
+	personTravelTime.personId = parent->getDatabaseId();
+	personTravelTime.tripStartPoint = (*(parent->currTripChainItem))->startLocationId;
+	personTravelTime.tripEndPoint = (*(parent->currTripChainItem))->endLocationId;
+	personTravelTime.subStartPoint = parent->currSubTrip->startLocationId;
+	personTravelTime.subEndPoint = parent->currSubTrip->endLocationId;
+	personTravelTime.subStartType = parent->currSubTrip->startLocationType;
+	personTravelTime.subEndType = parent->currSubTrip->endLocationType;
+	personTravelTime.mode = parent->currSubTrip->getMode();
+	personTravelTime.service = parent->currSubTrip->ptLineId;
+	personTravelTime.travelTime = ((double)parent->getRole()->getTravelTime()) / 1000.0; //convert to seconds
+	personTravelTime.arrivalTime = DailyTime(parent->getRole()->getArrivalTime()).getStrRepr();
+	
+	if (roleType == Role<Person_ST>::RL_PASSENGER)
+	{
+		personTravelTime.mode = "BUS_TRAVEL";
+	}
+	else if(roleType == Role<Person_ST>::RL_TRAINPASSENGER)
+	{
+		personTravelTime.mode = "MRT_TRAVEL";
+	}
+
+	messaging::MessageBus::PostMessage(PT_Statistics::getInstance(), STORE_PERSON_TRAVEL_TIME,
+			messaging::MessageBus::MessagePtr(new PersonTravelTimeMessage(personTravelTime)), true);
+}
+
+void Passenger::HandleParentMessage(messaging::Message::MessageType type, const messaging::Message& message)
+{
+	switch(type)
+	{
+	case MSG_WAKEUP_MRT_PAX:
+	{
+		setAlightVehicle(true);
+		break;
+	}
+	
+	case MSG_WAKEUP_BUS_PAX:
+	{
+		const BusStopMessage &busStopMsg = MSG_CAST(BusStopMessage, message);
+		makeAlightingDecision(busStopMsg.nextStop, busStopMsg.busDriver);
+		break;
+	}
+	}
+}
+

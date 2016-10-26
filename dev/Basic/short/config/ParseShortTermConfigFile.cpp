@@ -201,14 +201,11 @@ void ParseShortTermConfigFile::processXmlFile(XercesDOMParser& parser)
 	processTripFilesNode(GetSingleElementByName(rootNode, "tripFiles"));
 	processPersonCharacteristicsNode(GetSingleElementByName(rootNode, "person_characteristics"));
 	processBusControllerNode(GetSingleElementByName(rootNode, "busController"));
-	processLoopDetectorCountNode(GetSingleElementByName(rootNode, "loop-detector_counts"));
+	processBusCapacityNode(GetSingleElementByName(rootNode, "bus_default_capacity"));
+	processPublicTransit(GetSingleElementByName(rootNode, "public_transit", true));
+	processOutputStatistics(GetSingleElementByName(rootNode, "output_statistics", true));
 	processPathSetFileName(GetSingleElementByName(rootNode, "path-set-config-file"));
-	processTT_Update(GetSingleElementByName(rootNode, "travel_time_update", true));
-	processSubtripTravelMetricsOutputNode(GetSingleElementByName(rootNode, "subtrip_travel_metrics_output"));
-	processAssignmentMatrixNode(GetSingleElementByName(rootNode, "assignment_matrix"));
-	processSegmentDensityNode(GetSingleElementByName(rootNode, "short-term_density-map"));
-	processODTravelTimeNode(GetSingleElementByName(rootNode, "od_travel_time"));
-	processSegmentTravelTimeNode(GetSingleElementByName(rootNode, "segment_travel_time"));
+	processTT_Update(GetSingleElementByName(rootNode, "travel_time_update", true));	
 	
 	//Take care of path-set manager configuration in here
     ParsePathXmlConfig(cfg.pathsetFile, cfg.getPathSetConf());
@@ -278,6 +275,7 @@ public:
 	virtual void processXmlFile(xercesc::XercesDOMParser& parser)
 	{
 		DOMElement* rootNode = parser.getDocument()->getDocumentElement();
+		
 		if (TranscodeString(rootNode->getTagName()) != "requests")
 		{
 			throw std::runtime_error("xml parse error: root node must be \"requests\"");
@@ -298,9 +296,14 @@ public:
 				DailyTime simStart = cfg.simulation.simStartTime;
 				DailyTime simEnd = DailyTime(simStart.getValue() + cfg.simulation.totalRuntimeMS);
 				DailyTime tripStart(trip->startTime);
+				
 				if (tripStart.getValue() > simStart.getValue() && tripStart.getValue() < simEnd.getValue())
 				{
 					allItems[startId] = trip;
+				}
+				else
+				{
+					delete trip;
 				}
 			}
 		}
@@ -327,6 +330,7 @@ void sim_mob::ParseShortTermConfigFile::processFmodControllerNode(xercesc::DOMEl
 		stCfg.fmod.mapfile = ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "map_file"), "value"), "");
 		stCfg.fmod.blockingTimeSec = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "blocking_time_sec"), "value"), static_cast<unsigned int> (0));
 		xercesc::DOMElement* resNodes = GetSingleElementByName(node, "requests");
+		
 		if (resNodes)
 		{
 			for (DOMElement* item = resNodes->getFirstElementChild(); item; item = item->getNextElementSibling())
@@ -358,18 +362,18 @@ void ParseShortTermConfigFile::processSegmentDensityNode(DOMElement* node)
 {
 	if (node)
 	{
-		stCfg.segDensityMap.outputEnabled = ParseBoolean(GetNamedAttributeValue(node, "outputEnabled"), "false");
-		if (stCfg.segDensityMap.outputEnabled)
+		stCfg.outputStats.segDensityMap.outputEnabled = ParseBoolean(GetNamedAttributeValue(node, "outputEnabled"), "false");
+		if (stCfg.outputStats.segDensityMap.outputEnabled)
 		{
-			stCfg.segDensityMap.updateInterval = ParseUnsignedInt(GetNamedAttributeValue(node, "updateInterval"), 1000);
-			stCfg.segDensityMap.fileName = ParseString(GetNamedAttributeValue(node, "file-name"), "private/DensityMap.csv");
+			stCfg.outputStats.segDensityMap.updateInterval = ParseUnsignedInt(GetNamedAttributeValue(node, "updateInterval"), 1000);
+			stCfg.outputStats.segDensityMap.fileName = ParseString(GetNamedAttributeValue(node, "file-name"), "private/DensityMap.csv");
 
-			if (stCfg.segDensityMap.updateInterval == 0)
+			if (stCfg.outputStats.segDensityMap.updateInterval == 0)
 			{
 				throw std::runtime_error("ParseConfigFile::ProcessShortDensityMapNode - Update interval for aggregating density is 0");
 			}
 
-			if (stCfg.segDensityMap.fileName.empty())
+			if (stCfg.outputStats.segDensityMap.fileName.empty())
 			{
 				throw std::runtime_error("ParseConfigFile::ProcessShortDensityMapNode - File name is empty");
 			}
@@ -530,19 +534,19 @@ void ParseShortTermConfigFile::processLoopDetectorCountNode(DOMElement *node)
 {
 	if (node)
 	{
-		stCfg.loopDetectorCounts.outputEnabled = ParseBoolean(GetNamedAttributeValue(node, "outputEnabled"), "false");
-		if (stCfg.loopDetectorCounts.outputEnabled)
+		stCfg.outputStats.loopDetectorCounts.outputEnabled = ParseBoolean(GetNamedAttributeValue(node, "outputEnabled"), "false");
+		if (stCfg.outputStats.loopDetectorCounts.outputEnabled)
 		{
-			stCfg.loopDetectorCounts.frequency = ParseUnsignedInt(GetNamedAttributeValue(node, "frequency"), 600000);
-			stCfg.loopDetectorCounts.fileName = ParseString(GetNamedAttributeValue(node, "file-name"), "private/VehCounts.csv");
+			stCfg.outputStats.loopDetectorCounts.frequency = ParseUnsignedInt(GetNamedAttributeValue(node, "frequency"), 600000);
+			stCfg.outputStats.loopDetectorCounts.fileName = ParseString(GetNamedAttributeValue(node, "file-name"), "private/VehCounts.csv");
 
-			if (stCfg.loopDetectorCounts.frequency == 0)
+			if (stCfg.outputStats.loopDetectorCounts.frequency == 0)
 			{
 				throw std::runtime_error("ParseConfigFile::ProcessLoopDetectorCountsNode - "
 										 "Update frequency for aggregating vehicle counts is 0");
 			}
 
-			if (stCfg.loopDetectorCounts.fileName.empty())
+			if (stCfg.outputStats.loopDetectorCounts.fileName.empty())
 			{
 				throw std::runtime_error("ParseConfigFile::ProcessLoopDetectorCountsNode - File name is empty");
 			}
@@ -684,10 +688,16 @@ void ParseShortTermConfigFile::processPersonCharacteristicsNode(DOMElement *node
 		res.upperAge = ParseUnsignedInt(GetNamedAttributeValue(item, "upperAge"), static_cast<unsigned int> (0));
 		res.lowerSecs = ParseInteger(GetNamedAttributeValue(item, "lowerSecs"), static_cast<int> (0));
 		res.upperSecs = ParseInteger(GetNamedAttributeValue(item, "upperSecs"), static_cast<int> (0));
+		res.walkSpeed = ParseFloat(GetNamedAttributeValue(item, "walkSpeed_kmph"), static_cast<float> (0));
+		
+		//Convert walking speed to m/s (from km/h)
+		res.walkSpeed *= 0.277778;
+		
 		cfg.personCharacteristicsParams.personCharacteristics[count++] = res;
 	}
 
 	std::map<int, PersonCharacteristics> personCharacteristics = cfg.personCharacteristicsParams.personCharacteristics;
+	
 	/// calculate lowest age and highest age in the ranges
 	for (std::map<int, PersonCharacteristics>::const_iterator iter = personCharacteristics.begin(); iter != personCharacteristics.end(); ++iter)
 	{
@@ -784,6 +794,52 @@ void ParseShortTermConfigFile::processBusControllerNode(DOMElement *node)
 	}
 }
 
+void ParseShortTermConfigFile::processBusCapacityNode(xercesc::DOMElement* node)
+{
+	if(node)
+	{
+		stCfg.defaultBusCapacity = ParseUnsignedInt(GetNamedAttributeValue(node, "value"), 50);
+	}
+}
+
+void ParseShortTermConfigFile::processPublicTransit(xercesc::DOMElement* node)
+{
+	if (!node)
+	{
+		cfg.setPublicTransitEnabled(false);
+	}
+	else
+	{
+		cfg.setPublicTransitEnabled(ParseBoolean(GetNamedAttributeValue(node, "enabled"), false));
+		if (cfg.isPublicTransitEnabled())
+		{
+			const std::string& key = cfg.networkDatabase.procedures;
+			std::map<std::string, StoredProcedureMap>::const_iterator procMapIt = cfg.procedureMaps.find(key);
+			if (procMapIt->second.procedureMappings.count("pt_vertices") == 0 || procMapIt->second.procedureMappings.count("pt_edges") == 0)
+			{
+				throw std::runtime_error("Public transit is enabled , but stored procedures not defined");
+			}
+		}
+	}
+}
+
+void ParseShortTermConfigFile::processOutputStatistics(xercesc::DOMElement* node)
+{
+	if(node)
+	{
+		processJourneyTimeNode(GetSingleElementByName(node, "journey_time"));
+		processWaitingTimeNode(GetSingleElementByName(node, "waiting_time"));
+		processWaitingCountsNode(GetSingleElementByName(node, "waiting_count"));
+		processTravelTimeNode(GetSingleElementByName(node, "travel_time"));
+		processPT_StopStatsNode(GetSingleElementByName(node, "pt_stop_stats"));
+		processODTravelTimeNode(GetSingleElementByName(node, "od_travel_time"));
+		processSegmentTravelTimeNode(GetSingleElementByName(node, "segment_travel_time"));
+		processSegmentDensityNode(GetSingleElementByName(node, "segment_density"));
+		processLoopDetectorCountNode(GetSingleElementByName(node, "loop-detector_counts"));
+		processAssignmentMatrixNode(GetSingleElementByName(node, "assignment_matrix"));
+	}
+}
+
 void ParseShortTermConfigFile::processPathSetFileName(DOMElement* node)
 {
 	if (!node)
@@ -805,17 +861,43 @@ void ParseShortTermConfigFile::processTT_Update(xercesc::DOMElement* node)
 	}
 }
 
-void ParseShortTermConfigFile::processSubtripTravelMetricsOutputNode(xercesc::DOMElement* node)
+void ParseShortTermConfigFile::processJourneyTimeNode(xercesc::DOMElement* node)
 {
-	//subtrip output for preday
-	if (node)
+	if(node)
+	{		
+		cfg.setJourneyTimeStatsFilename(ParseString(GetNamedAttributeValue(node, "file"), "journey_time.csv"));
+	}
+}
+
+void ParseShortTermConfigFile::processWaitingTimeNode(xercesc::DOMElement* node)
+{
+	if(node)
 	{
-		bool enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"));
-		if (enabled)
-		{
-			cfg.subTripTravelTimeEnabled = true;
-			cfg.subTripLevelTravelTimeOutput = ParseString(GetNamedAttributeValue(node, "file"), "subtrip_travel_times.csv");
-		}
+		cfg.setWaitingTimeStatsFilename(ParseString(GetNamedAttributeValue(node, "file"), "waiting_time.csv"));
+	}
+}
+
+void ParseShortTermConfigFile::processWaitingCountsNode(xercesc::DOMElement* node)
+{
+	if(node)
+	{
+		cfg.setWaitingCountStatsFilename(ParseString(GetNamedAttributeValue(node, "file"), "waiting_count.csv"));
+	}
+}
+
+void ParseShortTermConfigFile::processTravelTimeNode(xercesc::DOMElement* node)
+{
+	if(node)
+	{
+		cfg.setTravelTimeStatsFilename(ParseString(GetNamedAttributeValue(node, "file"), "travel_time.csv"));
+	}
+}
+
+void ParseShortTermConfigFile::processPT_StopStatsNode(xercesc::DOMElement* node)
+{
+	if(node)
+	{
+		cfg.setPT_StopStatsFilename(ParseString(GetNamedAttributeValue(node, "file"), "pt_stop_stats.csv"));
 	}
 }
 
@@ -826,8 +908,8 @@ void ParseShortTermConfigFile::processAssignmentMatrixNode(xercesc::DOMElement* 
 		bool enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"));
 		if (enabled)
 		{
-			stCfg.assignmentMatrix.enabled = true;
-			stCfg.assignmentMatrix.fileName = ParseString(GetNamedAttributeValue(node, "file-name"), "assignment_matrix.csv");
+			stCfg.outputStats.assignmentMatrix.enabled = true;
+			stCfg.outputStats.assignmentMatrix.fileName = ParseString(GetNamedAttributeValue(node, "file-name"), "assignment_matrix.csv");
 		}
 	}
 }
@@ -914,10 +996,28 @@ void ParseShortTermTripFile::processTrips(DOMElement *node)
 				ent.tripId = std::make_pair(defaultTripId, defaultSubTripId);
 				ent.mode = ParseString(GetNamedAttributeValue(*stIter, "mode"), "");
 				
-				std::vector<VehicleType>::iterator vehTypeIter = std::find(cfg.vehicleTypes.begin(), cfg.vehicleTypes.end(), ent.mode);
-				if (ent.mode.empty() || vehTypeIter == cfg.vehicleTypes.end())
+				if(!ent.mode.empty())
 				{
-					throw std::runtime_error("ProcessTrips : Unknown Mode");
+					//Check if travel mode is public transport
+					if(ent.mode != "PT")
+					{
+						//Identify vehicle type from the mode of travel
+						std::vector<VehicleType>::iterator vehTypeIter = std::find(cfg.vehicleTypes.begin(), cfg.vehicleTypes.end(), ent.mode);
+
+						if (vehTypeIter == cfg.vehicleTypes.end())
+						{
+							std::stringstream msg;
+							msg << "Travel mode '" << ent.mode << "' specifed in file '" << inFilePath
+									<< "' for trip '" << defaultTripId << "' is not defined";
+							throw std::runtime_error(msg.str());
+						}
+					}
+				}
+				else
+				{
+					std::stringstream msg;
+					msg << "Travel mode not specifed in file '" << inFilePath << "' for trip '" << defaultTripId << "'";
+					throw std::runtime_error(msg.str());
 				}
 				
 				cfg.futureAgents[tripIdStr.str()].push_back(ent);

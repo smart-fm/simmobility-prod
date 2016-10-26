@@ -251,7 +251,7 @@ private:
 
 LoopDetectorEntity::Impl::Impl(Signal const &signal, LoopDetectorEntity &entity) : parent(&entity),
 		stCfg(ST_Config::getInstance()),
-		assignmentMatrixLogger(Logger::log(ST_Config::getInstance().assignmentMatrix.fileName))
+		assignmentMatrixLogger(Logger::log(ST_Config::getInstance().outputStats.assignmentMatrix.fileName))
 {
 	// Assume that each loop-detector is 4 meters in length.  This will be the inner monitoring
 	// area.  Any vehicle whose (central) position is within this area will be considered to be
@@ -424,7 +424,7 @@ bool LoopDetectorEntity::Impl::check(timeslice now)
 		std::vector<Vehicle const *> vehsInLoopDetector;
 		iter->second->check(vehicles, vehsInLoopDetector);
 
-		if(stCfg.assignmentMatrix.enabled)
+		if(stCfg.outputStats.assignmentMatrix.enabled)
 		{
 			for (std::vector<Vehicle const *>::const_iterator vehIter = vehsInLoopDetector.begin();
 					vehIter != vehsInLoopDetector.end(); vehIter++)

@@ -27,6 +27,9 @@ private:
 
 	/**Time taken by the person to alight from a bus*/
 	double alightingTimeSecs;
+	
+	/**The walking speed of the person (in m/s)*/
+	double walkingSpeed;
 
 	/**The previous role that was played by the person.*/
 	Role<Person_ST>* prevRole;
@@ -45,6 +48,21 @@ private:
 
 	/**Stores the configuration properties of the agent loaded from the XML configuration file*/
 	std::map<std::string, std::string> configProperties;
+	
+	/**
+	 * Converts the trips that have travel mode as bus travel into a trip chain than contains the detailed public transit trip
+	 */
+	void convertPublicTransitODsToTrips();
+	
+	/**
+	 * Inserts a waiting activity before bus travel
+	 */
+	void insertWaitingActivityToTrip();
+
+	/**
+	 * Assigns id to sub-trips
+	 */
+	void assignSubtripIds();
 
 	/**
 	 * Advances the current trip chain item to the next item if all the sub-trips in the trip have been completed.
@@ -53,6 +71,11 @@ private:
 	 * @return true, if the trip chain item is advanced
      */
 	bool advanceCurrentTripChainItem();
+	
+	/**
+	 * Assigns a person waiting at a bus stop to the bus stop agent
+	 */
+	void assignPersonToBusStopAgent();
 
 	/**
 	 * Enable Region support
@@ -222,6 +245,11 @@ public:
 	
 	void handleAMODEvent(event::EventId id, event::Context ctxId, event::EventPublisher *sender, const amod::AMODEventArgs& args);
 
+	double getWalkingSpeed() const
+	{
+		return walkingSpeed;
+	}
+	
 	double getBoardingCharacteristics() const
 	{
 		return boardingTimeSecs;

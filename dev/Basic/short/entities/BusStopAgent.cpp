@@ -74,7 +74,6 @@ void BusStopAgent::registerWaitingPerson(Person_ST *waitingPerson)
 		throw runtime_error("Attempt to add waiting person at SINK_TERMINUS");
 	}
 	
-	messaging::MessageBus::ReRegisterHandler(waitingPerson, GetContext());
 	waitingPersons.push_back(waitingPerson);
 }
 

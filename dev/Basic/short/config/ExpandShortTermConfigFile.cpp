@@ -96,53 +96,65 @@ void addOrStashEntity(Agent* p, std::set<Entity*>& active_agents, StartTimePrior
 
 Trip* MakePseudoTrip(unsigned int personId, const Node *origin, const Node *destination, unsigned int startTimeMS, const std::string &mode)
 {
-	//Make sure we have something to work with
-	if (!(origin && destination))
+	//Validate origin and destination
+	if (origin && destination)
 	{
-		std::stringstream msg;
-		msg << "Can't make a pseudo-trip for an Agent with no origin and destination nodes!";
-		throw std::runtime_error(msg.str().c_str());
+		//Make the trip itself
+		Trip *res = new Trip();
+		res->setPersonID(personId);
+		res->itemType = TripChainItem::getItemType("Trip");
+		res->sequenceNumber = 1;
+		res->startTime = DailyTime(startTimeMS);
+		res->endTime = res->startTime; //No estimated end time.
+		res->tripID = "";
+		res->origin = WayPoint(origin);
+		res->originType = TripChainItem::getLocationType("node");
+		res->destination = WayPoint(destination);
+		res->destinationType = res->originType;
+		res->travelMode = mode;
+
+		//Make and assign a single sub-trip
+		SubTrip subTrip;
+		subTrip.setPersonID(-1);
+		subTrip.itemType = TripChainItem::getItemType("Trip");
+		subTrip.sequenceNumber = 1;
+		subTrip.startTime = res->startTime;
+		subTrip.endTime = res->startTime;
+		subTrip.origin = res->origin;
+		subTrip.originType = res->originType;
+		subTrip.destination = res->destination;
+		subTrip.destinationType = res->destinationType;
+		subTrip.tripID = "";
+		subTrip.travelMode = mode;
+		subTrip.ptLineId = "";
+
+		//Add it to the Trip; return this value.
+		res->addSubTrip(subTrip);
+		return res;
 	}
-
-	//Make the trip itself
-	Trip *res = new Trip();
-	res->setPersonID(personId);
-	res->itemType = TripChainItem::getItemType("Trip");
-	res->sequenceNumber = 1;
-	res->startTime = DailyTime(startTimeMS);
-	res->endTime = res->startTime; //No estimated end time.
-	res->tripID = "";
-	res->origin = WayPoint(origin);
-	res->originType = TripChainItem::getLocationType("node");
-	res->destination = WayPoint(destination);
-	res->destinationType = res->originType;
-	res->travelMode = mode;
-
-	//Make and assign a single sub-trip
-	SubTrip subTrip;
-	subTrip.setPersonID(-1);
-	subTrip.itemType = TripChainItem::getItemType("Trip");
-	subTrip.sequenceNumber = 1;
-	subTrip.startTime = res->startTime;
-	subTrip.endTime = res->startTime;
-	subTrip.origin = res->origin;
-	subTrip.originType = res->originType;
-	subTrip.destination = res->destination;
-	subTrip.destinationType = res->destinationType;
-	subTrip.tripID = "";
-	subTrip.travelMode = mode;
-	subTrip.ptLineId = "";
-
-	//Add it to the Trip; return this value.
-	res->addSubTrip(subTrip);
-	return res;
+	else
+	{
+		if(!origin)
+		{
+			std::stringstream msg;
+			msg << "Invalid origin specified for person " << personId;
+			throw std::runtime_error(msg.str());
+		}
+		
+		if(!destination)
+		{
+			std::stringstream msg;
+			msg << "Invalid destination specified for person " << personId;
+			throw std::runtime_error(msg.str());
+		}
+	}
 }
 
 SubTrip makeSubTrip(soci::row &r)
 {
 	SubTrip subtrip;
 	subtrip.itemType = TripChainItem::IT_TRIP;
-	subtrip.tripID = r.get<string>(0);	
+	subtrip.tripID = r.get<string>(COLUMN_TRIP_ID);
 	subtrip.sequenceNumber = r.get<unsigned int>(COLUMN_SEQUENCE_NUMBER);
 	subtrip.travelMode = r.get<string>(COLUMN_MODE);
 	subtrip.ptLineId = r.get<string>(COLUMN_PT_LINE_ID);
@@ -157,10 +169,30 @@ SubTrip makeSubTrip(soci::row &r)
 	unsigned int nodeId = atoi(subtrip.startLocationId.c_str());
 	subtrip.origin = WayPoint(rdNetwork->getById(rdNetwork->getMapOfIdvsNodes(), nodeId));
 	
-	nodeId = atoi(subtrip.endLocationId.c_str());
-	subtrip.destination = WayPoint(rdNetwork->getById(rdNetwork->getMapOfIdvsNodes(), nodeId));
-	
-	return subtrip;
+	//Validate the origin
+	if(subtrip.origin.node)
+	{
+		nodeId = atoi(subtrip.endLocationId.c_str());
+		subtrip.destination = WayPoint(rdNetwork->getById(rdNetwork->getMapOfIdvsNodes(), nodeId));
+		
+		//Validate the destination
+		if(subtrip.destination.node)
+		{
+			return subtrip;
+		}
+		else
+		{
+			std::stringstream msg;
+			msg << "Invalid destination specified for sub-trip " << subtrip.tripID << " sequence " << subtrip.sequenceNumber;
+			throw std::runtime_error(msg.str());
+		}
+	}
+	else
+	{
+		std::stringstream msg;
+		msg << "Invalid origin specified for sub-trip " << subtrip.tripID << " sequence " << subtrip.sequenceNumber;
+		throw std::runtime_error(msg.str());
+	}
 }
 
 Trip* makeTrip(soci::row &r)
@@ -179,20 +211,45 @@ Trip* makeTrip(soci::row &r)
 	trip->travelMode = r.get<string>(COLUMN_MODE);
 	
 	const RoadNetwork *rdNetwork = RoadNetwork::getInstance();
-
+	const Node *node = nullptr;
+	
 	unsigned int nodeId = atoi(trip->startLocationId.c_str());
 	trip->origin = WayPoint(rdNetwork->getById(rdNetwork->getMapOfIdvsNodes(), nodeId));
 	
-	nodeId = atoi(trip->endLocationId.c_str());
-	trip->destination = WayPoint(rdNetwork->getById(rdNetwork->getMapOfIdvsNodes(), nodeId));
-	
-	//Create the sub-trip with-in the trip
-	SubTrip subtrip = makeSubTrip(r);
-	
-	//Add the sub-trip
-	trip->addSubTrip(subtrip);
-	
-	return trip;
+	//Validate the origin
+	if(trip->origin.node)
+	{
+		nodeId = atoi(trip->endLocationId.c_str());
+		trip->destination = WayPoint(rdNetwork->getById(rdNetwork->getMapOfIdvsNodes(), nodeId));
+		
+		//Validate the destination
+		if(trip->destination.node)
+		{
+			//Create the sub-trip with-in the trip
+			SubTrip subtrip = makeSubTrip(r);
+
+			//Add the sub-trip
+			trip->addSubTrip(subtrip);
+
+			return trip;
+		}
+		else
+		{
+			delete trip;
+			
+			std::stringstream msg;
+			msg << "Invalid destination specified for trip " << trip->tripID;
+			throw std::runtime_error(msg.str());
+		}
+	}
+	else
+	{
+		delete trip;
+		
+		std::stringstream msg;
+		msg << "Invalid origin specified for trip " << trip->tripID;
+		throw std::runtime_error(msg.str());
+	}
 }
 
 Activity* makeActivity(soci::row &r)
@@ -462,7 +519,11 @@ void ExpandShortTermConfigFile::generateAgentsFromTripChain(ConfigParams::AgentC
 				{
 					//Create a trip and the corresponding activity (if any)
 					Trip *trip = makeTrip(*itRows);
-					personTripChain.push_back(trip);
+					
+					if(trip)
+					{
+						personTripChain.push_back(trip);
+					}
 
 					//Create activity if end time is provided
 					if (!(*itRows).get<string>(COLUMN_ACTIVITY_END_TIME).empty())
@@ -557,18 +618,9 @@ void ExpandShortTermConfigFile::generateXMLAgents(const std::vector<EntityTempla
 		const Node *originNd = rn->getById(rn->getMapOfIdvsNodes(), it->originNode);
 		const Node *destinNd = rn->getById(rn->getMapOfIdvsNodes(), it->destNode);
 		
-		if(originNd && destinNd)
-		{
-			//Make the trip item
-			Trip *trip = MakePseudoTrip(agentId, originNd, destinNd, it->startTimeMs, mode);
-			tripChain.push_back(trip);
-		}
-		else
-		{
-			std::stringstream msg;
-			msg << "Invalid nodes specified... Origin: " << it->originNode << ", Destination: " << it->destNode;
-			throw std::runtime_error(msg.str());
-		}
+		//Make the trip item
+		Trip *trip = MakePseudoTrip(agentId, originNd, destinNd, it->startTimeMs, mode);
+		tripChain.push_back(trip);
 	}
 	
 	//Create the Person agent with that given ID (or an auto-generated one)

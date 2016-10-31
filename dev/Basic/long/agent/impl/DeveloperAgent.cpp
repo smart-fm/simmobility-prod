@@ -226,11 +226,12 @@ inline void calculateProjectProfit(PotentialProject& project,DeveloperModel* mod
 		const ParcelAmenities *amenities = model->getAmenitiesById(fmParcelId);
 		//commented the below code in 2012 data as we are now getting logsum per taz id.
 		//double logsum = model->getAccessibilityLogsumsByFmParcelId(project.getParcel()->getId())->getAccessibility();
-		//const LogsumForDevModel *logsumDev = model->getAccessibilityLogsumsByTAZId(project.getParcel()->getTazId());
-		//if(logsumDev != nullptr)
-		//		{
-		//			logsum = logsumDev->getAccessibility();
-		//		}
+//		double logsum = 0;
+//		const LogsumForDevModel *logsumDev = model->getAccessibilityLogsumsByTAZId(project.getParcel()->getTazId());
+//		if(logsumDev != nullptr)
+//				{
+//					logsum = logsumDev->getAccessibility();
+//				}
 
 		BigSerial tazId = project.getParcel()->getTazId();
 		double logsum = 0;
@@ -372,14 +373,14 @@ inline void calculateProjectProfit(PotentialProject& project,DeveloperModel* mod
 			acqusitionCost = unitPriceSum->getUnitPriceSum() * 1000000; // unit price in the table is in millions
 		}
 	}
-	else
-	{
+	//else
+	//{
 		const TazLevelLandPrice* landPrice = model->getTazLevelLandPriceByTazId(project.getParcel()->getTazId());
 		if(landPrice != nullptr)
 		{
 			landCost = project.getParcel()->getLotSize() * getGpr(project.getParcel()) * landPrice->getLandValue();
 		}
-	}
+	//}
 
 	project.setAcquisitionCost(acqusitionCost);
 	project.setLandValue(landCost);
@@ -507,7 +508,7 @@ inline void createPotentialUnits(PotentialProject& project,const DeveloperModel*
                         		newDevelopment = 1;
                         	}
 
-                        const ROILimits *roiLimit = model->getROILimitsByBuildingTypeId(project.getBuildingTypeId());
+                        const ROILimits *roiLimit = model->getROILimitsByDevelopmentTypeId(project.getDevTemplate()->getDevelopmentTypeId());
 
                         double thresholdInvestmentReturnRatio = 0;
                         if(roiLimit != nullptr)
@@ -543,7 +544,7 @@ inline void createPotentialUnits(PotentialProject& project,const DeveloperModel*
                 		(projectIt)->setTempSelectProbability(probability);
                 	}
 
-                	//generate a unifromly distributed random number
+                	//generate a uniformly distributed random number
                 	std::random_device rd;
                 	std::mt19937 gen(rd());
                 	std::uniform_real_distribution<> dis(0.0, 1.0);

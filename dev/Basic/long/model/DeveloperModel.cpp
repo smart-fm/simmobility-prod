@@ -129,7 +129,7 @@ void DeveloperModel::startImpl() {
 
 		loadData<BuildingAvgAgePerParcelDao>(conn,buildingAvgAgePerParcel,BuildingAvgAgeByParceld,&BuildingAvgAgePerParcel::getFmParcelId);
 		PrintOutV("building average age per parcel loaded " << buildingAvgAgePerParcel.size() << std::endl);
-		loadData<ROILimitsDao>(conn,roiLimits,roiLimitsByBuildingTypeId,&ROILimits::getBuildingTypeId);
+		loadData<ROILimitsDao>(conn,roiLimits,roiLimitsByDevTypeId,&ROILimits::getDevelopmentTypeId);
 		PrintOutV("roi limits loaded " << roiLimits.size() << std::endl);
 
 		ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
@@ -506,7 +506,11 @@ void DeveloperModel::processParcels()
 				}
 				else
 				{
-					if((parcel->getDevelopmentAllowed()!=2)||(parcel->getLotSize()< minLotSize)|| (getParcelsWithHDB_ByParcelId(parcel->getId())!= nullptr))
+					if((parcel->getDevelopmentAllowed()!=2)||(parcel->getLotSize()< minLotSize))
+					{
+						nonEligibleParcelList.push_back(parcel);
+					}
+					else if(getParcelsWithHDB_ByParcelId(parcel->getId())!= nullptr)
 					{
 						nonEligibleParcelList.push_back(parcel);
 					}
@@ -895,10 +899,10 @@ DeveloperModel::ROILimitsList DeveloperModel::getROILimits() const
 	return roiLimits;
 }
 
-const ROILimits* DeveloperModel::getROILimitsByBuildingTypeId(BigSerial buildingTypeId) const
+const ROILimits* DeveloperModel::getROILimitsByDevelopmentTypeId(BigSerial devTypeId) const
 {
-	ROILimitsMap::const_iterator itr = roiLimitsByBuildingTypeId.find(buildingTypeId);
-	if (itr != roiLimitsByBuildingTypeId.end())
+	ROILimitsMap::const_iterator itr = roiLimitsByDevTypeId.find(devTypeId);
+	if (itr != roiLimitsByDevTypeId.end())
 	{
 		return itr->second;
 	}

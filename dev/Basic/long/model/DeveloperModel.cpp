@@ -506,11 +506,7 @@ void DeveloperModel::processParcels()
 				}
 				else
 				{
-					if((parcel->getDevelopmentAllowed()!=2)||(parcel->getLotSize()< minLotSize))
-					{
-						nonEligibleParcelList.push_back(parcel);
-					}
-					else if(getParcelsWithHDB_ByParcelId(parcel->getId())!= nullptr)
+					if((parcel->getDevelopmentAllowed()!=2)||(parcel->getLotSize()< minLotSize) || (getParcelsWithHDB_ByParcelId(parcel->getId())!= nullptr))
 					{
 						nonEligibleParcelList.push_back(parcel);
 					}

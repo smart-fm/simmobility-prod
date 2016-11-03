@@ -195,6 +195,27 @@ void NetworkLoader::loadTurningPolyLines(const std::string& storedProc)
 	}
 }
 
+void NetworkLoader::loadTaxiStands(const std::string& storedProc)
+{
+	sim_mob::ConfigParams& config = sim_mob::ConfigManager::GetInstanceRW().FullConfig();
+	if(storedProc.empty())
+	{
+		Print() << "Stored procedure to load taxi stands not specified in the configuration file."
+				<< "\nTaxi stands not loaded..." << std::endl;
+		return;
+	}
+
+	//SQL statement
+	soci::rowset<sim_mob::TaxiStand> stands = (sql.prepare << "select * from " + storedProc);
+
+	for (soci::rowset<TaxiStand>::const_iterator itStand = stands.begin(); itStand != stands.end(); ++itStand)
+	{
+		//Create new taxi stand and add it to road network
+		TaxiStand* stand = new TaxiStand(*itStand);
+		roadNetwork->addTaxiStand(stand);
+	}
+}
+
 void NetworkLoader::loadBusStops(const std::string& storedProc)
 {
 	sim_mob::ConfigParams& config = sim_mob::ConfigManager::GetInstanceRW().FullConfig();
@@ -318,7 +339,9 @@ void NetworkLoader::loadNetwork(const string& connectionStr, const map<string, s
 		loadTurningConflicts(getStoredProcedure(storedProcs, "turning_conflicts"));
 		
 		loadBusStops(getStoredProcedure(storedProcs, "bus_stops", false));
-		
+
+		loadTaxiStands(getStoredProcedure(storedProcs, "taxi_stands", false));
+
 		//Close the connection
 		sql.close();
 

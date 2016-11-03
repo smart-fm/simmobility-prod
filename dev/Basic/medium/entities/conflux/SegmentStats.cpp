@@ -572,6 +572,14 @@ void SegmentStats::addBusStop(const BusStop* stop)
 	}
 }
 
+void SegmentStats::addTaxiStand(const TaxiStand* stand)
+{
+	if(stand)
+	{
+		taxiStands.push_back(stand);
+	}
+}
+
 unsigned int LaneStats::getQueuingAgentsCount() const
 {
 	return queueCount;

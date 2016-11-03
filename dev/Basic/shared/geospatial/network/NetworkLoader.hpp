@@ -123,6 +123,13 @@ private:
 	 */
 	void loadBusStops(const std::string& storedProc);
 
+	/**
+	 * Loads taxi stands associated with parent road segment using the given stored procedure
+	 *
+	 * @param storedProc - the stored procedure to be executed in order to retrieve the data
+	 */
+	void loadTaxiStands(const std::string& storedProc);
+
 public:
 	virtual ~NetworkLoader();
 

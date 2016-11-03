@@ -2126,13 +2126,21 @@ void Conflux::CreateSegmentStats(const RoadSegment* rdSeg, Conflux* conflux, std
 	for (std::map<double, RoadItem*>::const_iterator obsIt = obstacles.begin(); obsIt != obstacles.end(); obsIt++)
 	{
 		const BusStop* busStop = dynamic_cast<const BusStop*>(obsIt->second);
-		if (busStop)
+		const TaxiStand* taxiStand = dynamic_cast<const TaxiStand*>(obsIt->second);
+		if (busStop || taxiStand)
 		{
 			double stopOffset = obsIt->first;
 			if (stopOffset <= 0)
 			{
 				SegmentStats* segStats = new SegmentStats(rdSeg, conflux, rdSegmentLength);
-				segStats->addBusStop(busStop);
+				if(busStop)
+				{
+					segStats->addBusStop(busStop);
+				}
+				if(taxiStand)
+				{
+					segStats->addTaxiStand(taxiStand);
+				}
 				//add the current stop and the remaining stops (if any) to the end of the segment as well
 				while (++obsIt != obstacles.end())
 				{
@@ -2140,6 +2148,11 @@ void Conflux::CreateSegmentStats(const RoadSegment* rdSeg, Conflux* conflux, std
 					if (busStop)
 					{
 						segStats->addBusStop(busStop);
+					}
+					taxiStand = dynamic_cast<const TaxiStand*>(obsIt->second);
+					if(taxiStand)
+					{
+						segStats->addTaxiStand(taxiStand);
 					}
 				}
 				splitSegmentStats.push_back(segStats);
@@ -2159,7 +2172,14 @@ void Conflux::CreateSegmentStats(const RoadSegment* rdSeg, Conflux* conflux, std
 				segStatLength = rdSegmentLength - lengthCoveredInSeg;
 				lengthCoveredInSeg = rdSegmentLength;
 				SegmentStats* segStats = new SegmentStats(rdSeg, conflux, segStatLength);
-				segStats->addBusStop(busStop);
+				if(busStop)
+				{
+					segStats->addBusStop(busStop);
+				}
+				if(taxiStand)
+				{
+					segStats->addTaxiStand(taxiStand);
+				}
 				//add the current stop and the remaining stops (if any) to the end of the segment as well
 				while (++obsIt != obstacles.end())
 				{
@@ -2167,6 +2187,11 @@ void Conflux::CreateSegmentStats(const RoadSegment* rdSeg, Conflux* conflux, std
 					if (busStop)
 					{
 						segStats->addBusStop(busStop);
+					}
+					taxiStand = dynamic_cast<const TaxiStand*>(obsIt->second);
+					if(taxiStand)
+					{
+						segStats->addTaxiStand(taxiStand);
 					}
 				}
 				splitSegmentStats.push_back(segStats);
@@ -2176,7 +2201,14 @@ void Conflux::CreateSegmentStats(const RoadSegment* rdSeg, Conflux* conflux, std
 			segStatLength = stopOffset - lengthCoveredInSeg;
 			lengthCoveredInSeg = stopOffset;
 			SegmentStats* segStats = new SegmentStats(rdSeg, conflux, segStatLength);
-			segStats->addBusStop(busStop);
+			if(busStop)
+			{
+				segStats->addBusStop(busStop);
+			}
+			if(taxiStand)
+			{
+				segStats->addTaxiStand(taxiStand);
+			}
 			splitSegmentStats.push_back(segStats);
 		}
 	}
@@ -2252,6 +2284,10 @@ void Conflux::CreateSegmentStats(const RoadSegment* rdSeg, Conflux* conflux, std
 						{
 							nextStats->addBusStop(*stopIt);
 						}
+						for(std::vector<const TaxiStand*>::iterator standIt = currStats->taxiStands.begin(); standIt != currStats->taxiStands.end(); standIt++)
+						{
+							nextStats->addTaxiStand(*standIt);
+						}
 						statsIt = splitSegmentStats.erase(statsIt);
 						safe_delete_item(currStats);
 						continue;
@@ -2275,6 +2311,10 @@ void Conflux::CreateSegmentStats(const RoadSegment* rdSeg, Conflux* conflux, std
 						stopIt++)
 				{
 					lastSegStats->addBusStop(*stopIt);
+				}
+				for (std::vector<const TaxiStand*>::iterator standIt = lastButOneSegStats->taxiStands.begin(); standIt != lastButOneSegStats->taxiStands.end(); standIt++)
+				{
+					lastSegStats->addTaxiStand(*standIt);
 				}
 				splitSegmentStats.erase(statsIt);
 				safe_delete_item(lastButOneSegStats);

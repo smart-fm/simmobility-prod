@@ -12,6 +12,7 @@
 #include "geospatial/network/Lane.hpp"
 #include "geospatial/network/Link.hpp"
 #include "geospatial/network/PT_Stop.hpp"
+#include "geospatial/network/TaxiStand.hpp"
 
 namespace sim_mob
 {
@@ -390,6 +391,7 @@ protected:
 	typedef std::deque<Person_MT*> PersonList;
 	typedef std::map<const Lane*, LaneStats*> LaneStatsMap;
 	typedef std::vector<const BusStop*> BusStopList;
+	typedef std::vector<const TaxiStand*> TaxiStandList;
 	typedef std::vector<BusStopAgent*> BusStopAgentList;
 	typedef std::map<const BusStop*, PersonList> StopBusDriversMap;
 
@@ -406,6 +408,11 @@ protected:
 	 * eliminates the need for splitting the segment into very short segments.
 	 */
 	BusStopList busStops;
+
+	/**
+	 * List of Taxi Stands in this SegmentStats.
+	 */
+	TaxiStandList taxiStands;
 
 	/** BusStopAgents for bus stops in this segment stats */
 	BusStopAgentList busStopAgents;
@@ -561,6 +568,12 @@ public:
 	 * @param stop bus stop to be added
 	 */
 	void addBusStop(const BusStop* stop);
+
+	/**
+	 * adds taxi-stand to the list of taxi-stands
+	 * @param stand is the pointer to a taxi-stand
+	 */
+	void addTaxiStand(const TaxiStand* stand);
 
 	/**
 	 * adds bus stop agent

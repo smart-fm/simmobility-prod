@@ -352,9 +352,11 @@ public:
     bool isDisruptedPlatform(std::string platformName,std::string lineId);
     void pushToInactivePoolAfterTripCompletion(int trainId,std::string lineId);
     bool isUturnPlatform(std::string platformName,std::string lineId);
+    std::string getNextUturnPlatform(std::string platformName,std::string lineId);
     int getMapPlatformsSize();
     void resetBlockSpeeds(DailyTime now);
     void resetBlockAccelerations(DailyTime now);
+    bool isTerminalPlatform(std::string platformNo,std::string lineID);
 
 protected:
 	/**

@@ -91,6 +91,8 @@ class ServiceController:  public lua::LuaModel
 	 */
 	void forceReleasePassenegers(int trainId,std::string lineId,bool action);
 
+	bool hasForceAlightedInDisruption(int trainID,std::string lineId);
+
 	/*Interface to override the default waiting time of a train at station if the holding time is more than calculated waiting time
 	 *@param platformName is the name of the platform where we need to reset the holding time
 	 *@param duration is the duration of reset
@@ -395,6 +397,8 @@ class ServiceController:  public lua::LuaModel
 	bool shouldStopDueToDisruption(int trainId,std::string lineId);
 
 	bool isUTurnPlatformOnTheWay(int trainId,std::string lineId);
+
+	std::string getNextUturnPlatform(int trainId,std::string lineId);
 
 	bool isUTurnPlatform(std::string platformName,std::string lineId);
 

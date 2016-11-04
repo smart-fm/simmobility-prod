@@ -82,8 +82,24 @@ Platform* TrainPlatformMover::getNextPlatform(bool updated)
 		return nullptr;
 	}
 }
-Platform* TrainPlatformMover::getPlatformByOffset(unsigned int offset) const
+Platform* TrainPlatformMover::getPlatformByOffset(int offset) const
 {
+
+	if(offset<0)
+	{
+		std::vector<Platform*>::iterator prev =currPlatformIt;
+		int offsetneg = -offset;
+		while(offsetneg>0)
+		{
+			prev--;
+			offsetneg--;
+		}
+		if(prev!=platforms.end())
+		{
+			return (*prev);
+		}
+		return nullptr;
+	}
 	std::vector<Platform*>::iterator next = std::next(currPlatformIt, offset);
 	if(next!=platforms.end())
 	{

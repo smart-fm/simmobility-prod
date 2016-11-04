@@ -217,7 +217,17 @@ void TrainDriver::setNextRequested(TRAIN_NEXTREQUESTED res)
 	driverMutex.unlock();
 }
 
-void TrainDriver::calculateDwellTime(int boarding,int alighting,int noOfPassengerInTrain,timeslice now)
+int TrainDriver::getInitialNumberOfPassengers()
+{
+	return initialnumberofpassengers;
+}
+
+void TrainDriver::setInitialNumberOfPassengers(int initialnumberofpassengers)
+{
+	this->initialnumberofpassengers = initialnumberofpassengers;
+}
+
+void TrainDriver::calculateDwellTime(int boarding,int alighting,int noOfPassengerInTrain,timeslice now,bool forceAlightwhileWaiting)
 {
 	const std::string& fileName("pt_mrt_Boarding_Alighting_DwellTime.csv");
 	sim_mob::BasicLogger& ptMRTMoveLogger  = sim_mob::Logger::log(fileName);
@@ -312,9 +322,21 @@ void TrainDriver::calculateDwellTime(int boarding,int alighting,int noOfPassenge
 			}
 		}
 	}
-	minDwellTimeRequired =dwellTime; /*minDwellTimeRequired is the min dwell time calculated so that all passengers can board and alight */
-	waitingTimeSec = dwellTime;
-	initialDwellTime=dwellTime;
+
+	if(forceAlightwhileWaiting)
+	{
+		dwellTime = dwellTime-(initialDwellTime - waitingTimeSec);
+		minDwellTimeRequired =dwellTime; /*minDwellTimeRequired is the min dwell time calculated so that all passengers can board and alight */
+		waitingTimeSec = dwellTime;
+
+	}
+	else
+	{
+		initialDwellTime=dwellTime;
+		minDwellTimeRequired =dwellTime; /*minDwellTimeRequired is the min dwell time calculated so that all passengers can board and alight */
+		waitingTimeSec = dwellTime;
+	}
+
 
 	ptMRTMoveLogger<<getTrainId()<<","<<tm<<","<<boarding<<","<<alighting<<","<<noOfPassengerInTrain<<","<<initialDwellTime<<std::endl;
 }
@@ -351,6 +373,7 @@ void TrainDriver::resetHoldingTime()
 		waitingTimeSec=holdingTime-(initialDwellTime-waitingTimeSec);
 		initialDwellTime=holdingTime;
 		platformHoldingTimeEntities.erase(currentPlatform->getPlatformNo());
+		isHoldingTimeReset = true;
 	}
 	platformHoldingTimeEntitiesLock.unlock();
 
@@ -590,7 +613,7 @@ int TrainDriver::alightPassenger(std::list<Passenger*>& alightingPassenger,times
 			if(endPoint.platform==platform)
 			{
 				alightingPassenger.push_back(*i);
-				ptMRTLogger <<(*i)->getParent()->getDatabaseId()<<","<<tm<<","<<getTrainId()<<","<<getTripId()<<","<<(*i)->getParent()->currSubTrip->origin.platform->getPlatformNo()<<","<<(*i)->getParent()->currSubTrip->destination.platform->getPlatformNo()<<std::endl;
+				ptMRTLogger <<(*i)->getParent()->getDatabaseId()<<","<<tm<<","<<getTrainId()<<","<<getTripId()<<","<<platform->getPlatformNo()<<","<<(*i)->getParent()->currSubTrip->origin.platform->getPlatformNo()<<","<<(*i)->getParent()->currSubTrip->destination.platform->getPlatformNo()<<std::endl;
 				i = passengerList.erase(i);
 				num++;
 				continue;
@@ -604,6 +627,7 @@ int TrainDriver::alightPassenger(std::list<Passenger*>& alightingPassenger,times
 				if(itr==platforms.end())
 				{
 					alightingPassenger.push_back(*i);
+					ptMRTLogger <<(*i)->getParent()->getDatabaseId()<<","<<tm<<","<<getTrainId()<<","<<getTripId()<<platform->getPlatformNo()<<","<<(*i)->getParent()->currSubTrip->origin.platform->getPlatformNo()<<","<<(*i)->getParent()->currSubTrip->destination.platform->getPlatformNo()<<std::endl;
 					i = passengerList.erase(i);
 					num++;
 					continue;
@@ -796,8 +820,18 @@ int TrainDriver::boardPassenger(std::list<WaitTrainActivity*>& boardingPassenger
 			boardPassengerLock.lock();
 			boardPassengerCount=boardPassengerCount+1;
 			boardPassengerLock.unlock();
-			ptMRTLogger<<person->getDatabaseId()<<","<<tm<<","<<getTrainId()<<","<<getTripId()<<","<<person->currSubTrip->origin.platform->getPlatformNo()<<","<<person->currSubTrip->destination.platform->getPlatformNo()<<std::endl;
-            passengerList.push_back(passenger);
+			ptMRTLogger<<person->getDatabaseId()<<","<<tm<<","<<getTrainId()<<","<<getTripId()<<",";
+			if(getNextPlatform())
+			{
+				ptMRTLogger<<getNextPlatform()->getPlatformNo();
+			}
+			else
+			{
+				ptMRTLogger<<" ";
+			}
+
+			ptMRTLogger<<","<<person->currSubTrip->origin.platform->getPlatformNo()<<","<<person->currSubTrip->destination.platform->getPlatformNo()<<std::endl;
+			passengerList.push_back(passenger);
 			i = boardingPassenger.erase(i);
 			validNum--;
 			num++;
@@ -881,7 +915,10 @@ bool TrainDriver::isAlightingRestricted()
 			restrictPassengersEntitiesLock.unlock();
 			if(movType==ALIGHTING||movType==BOTH)
 			{
-				restrictPassengersEntities.erase(it);
+				if(movType==ALIGHTING)
+				{
+					restrictPassengersEntities.erase(it);
+				}
 				return true;
 			}
 		}

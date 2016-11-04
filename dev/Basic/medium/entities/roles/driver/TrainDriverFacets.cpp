@@ -152,9 +152,8 @@ namespace sim_mob
 				trainPathMover.setPath(trip->getTrainRoute());
 				trainPlatformMover.setPlatforms(trip->getTrainPlatform());
 				trainPlatformMover_accpos.setPlatforms(trip->getTrainPlatform());
-				//nextPlatform=trainPlatformMover.getNextPlatform(); //first platform
 				trainPathMover.SetParentMovementFacet(this);
-				Platform* next = trainPlatformMover.getNextPlatform();
+				Platform* next = trainPlatformMover.getNextPlatform();//first platform
 				facetMutex.lock();
 				nextPlatform = next;
 				facetMutex.unlock();
@@ -291,7 +290,7 @@ namespace sim_mob
 				it++;
 		  }
 		  TrainDriver * trainDriver=this->getParentDriver();
-		  int oppTrId=nextDriverInOppLine->getTrainId();
+
 		  if(trainDriver)
 		  {
 			trainDriver->setTrainDriverInOpposite(nextDriverInOppLine);
@@ -356,16 +355,37 @@ namespace sim_mob
 				{
 					if(tDriver->getNextDriver()==parentDriver)
 					{
-						if(tDriver->getTrainId()==17)
-						{
-							int debug=1;
-						}
-						tDriver->setNextDriver(nullptr);
+						tDriver->setNextDriver(parentDriver->getNextDriver());
 					}
 				}
 			}
+			std::vector <Role<Person_MT>*> newLinetrainDriverVector=TrainController<Person_MT>::getInstance()->getActiveTrainsForALine(lineId);
+			double maxDistanceBehindTrain=-1;
+			double totalDisCoveredByTrain=getTotalCoveredDistance();
+			TrainDriver *behindDriver=nullptr;
+			for(it=newLinetrainDriverVector.begin();it!=newLinetrainDriverVector.end();it++)
+			{
+				TrainDriver *tDriver=dynamic_cast<TrainDriver*>(*(it));
+				if(tDriver)
+				{
+					double distanceCoveredByBehindTrain=tDriver->getMovement()->getTotalCoveredDistance();
 
+					if(distanceCoveredByBehindTrain<totalDisCoveredByTrain)
+					{
+						if(maxDistanceBehindTrain==-1||distanceCoveredByBehindTrain>maxDistanceBehindTrain)
+						{
+							maxDistanceBehindTrain = distanceCoveredByBehindTrain;
+							behindDriver = tDriver;
+						}
+					}
+				}
+			}
+			if(behindDriver!=nullptr)
+			{
+				behindDriver->setNextDriver(parentDriver);
+			}
 			parentDriver->setNextDriver(parentDriver->getDriverInOppositeLine());
+
 			parentDriver->setUturnFlag(false);
 		}
 
@@ -494,14 +514,6 @@ namespace sim_mob
 			{
 				StopPointEntity stEntity=*stopPointItr;
 				PolyPoint stPoint=stEntity.point;
-				/*if(stPoint.getX()==(*pointItr).getX()&&stPoint.getY()==(*pointItr).getY()&&stPoint.getZ()==(*pointItr).getZ())
-				{
-					parentDriver->setStoppingParameters(stPoint,(*stopPointItr).duration);
-					stopPointEntities.erase(stopPointItr);
-					//remove stop point from list
-					return true;
-				}*/
-
 				if((*stopPointItr).distance==getTotalCoveredDistance())
 				{
 					parentDriver->setStoppingParameters(stPoint,(*stopPointItr).duration);
@@ -565,6 +577,10 @@ namespace sim_mob
 		void TrainMovement::frame_tick()
 		{
 
+			if(parentDriver->getTrainId()==3)
+			{
+				int debug =1;
+			}
 			produceMoveInfo();
 			TrainUpdateParams& params = parentDriver->getParams();
 			parentDriver->updatePassengers();
@@ -614,25 +630,13 @@ namespace sim_mob
 						double distance=trainPathMover.GetDistanceFromStartToPlatform(parentDriver->getTrainLine(),nextPlatformAccordingToPosition);
 						if(isStopAtPlatform())
 						{
-
-							if(boost::iequals(parentDriver->getNextPlatform()->getPlatformNo(),"NE3_1")||boost::iequals(parentDriver->getNextPlatform()->getPlatformNo(),"NE4_1"))
-							{
-								bool stophere=true;
-							}
+							parentDriver->setInitialNumberOfPassengers(parentDriver->getPassengers().size());
 							forceResetMovingCase=false;
 							parentDriver->setNextRequested(TrainDriver::REQUESTED_AT_PLATFORM);
 
 						}
 						else
 						{
-							if(parentDriver->getTrainId()==2&&boost::iequals(parentDriver->getTrainLine(),"NE_1"))
-							{
-								if(boost::iequals(trainPlatformMover_accpos.getNextPlatform(false)->getPlatformNo(),"NE16_1"))
-								{
-									Platform *lPlt=trainPlatformMover_accpos.getLastPlatformOnRoute();
-									int debg =1;
-								}
-							}
 							if(distance<getTotalCoveredDistance())
 							{
 								if(shouldIgnoreAllPlatforms&&trainPlatformMover_accpos.getLastPlatformOnRoute()==trainPlatformMover_accpos.getNextPlatform(false))
@@ -642,6 +646,31 @@ namespace sim_mob
 								}
 								else
 								{
+
+									TrainUpdateParams& params = parentDriver->getParams();
+									DailyTime startTime = ConfigManager::GetInstance().FullConfig().simStartTime();
+									int traveTime=params.now.ms()- startTimeOfNextStationStretch;
+									std::string prevPlatformName = " ";
+									//log travelTime
+									sim_mob::BasicLogger& ptMRTtraveltimeLogger  = sim_mob::Logger::log("TravelTimeBEtweenStations.csv");
+									if(getNextPlatform() == trainPlatformMover_accpos.getFirstPlatform())
+									{
+										prevPlatformName = " ";
+									}
+									else
+									{
+										Platform *prevPlatform =trainPlatformMover_accpos.getPlatformByOffset(-1);
+										if(prevPlatform!=nullptr)
+										{
+											prevPlatformName = prevPlatform->getStationNo();
+										}
+										else
+										{
+											prevPlatformName = " ";
+										}
+									}
+									ptMRTtraveltimeLogger<<parentDriver->getTrainLine()<<","<<prevPlatformName<<","<<trainPlatformMover_accpos.getNextPlatform()->getStationNo()<<","<<traveTime<<endl;
+									startTimeOfNextStationStretch = params.now.ms();
 									trainPlatformMover_accpos.getNextPlatform(true);
 								}
 							}
@@ -665,22 +694,19 @@ namespace sim_mob
 						parentDriver->setWaitingTime(0.0);
 					}
 
+					if(parentDriver->getSubsequentNextRequested()!=TrainDriver::NO_REQUESTED)
+					{
+						parentDriver->setForceAlightStatus(false);
+						parentDriver->setNextRequested(parentDriver->getSubsequentNextRequested());
+						isDisruptedState =false;
+						isStrandedBetweenPlatforms_DisruptedState =false;
+						parentDriver->setSubsequentNextRequested(TrainDriver::NO_REQUESTED);
+					}
+
 					if(waitingTime<params.secondsInTick)
 					{
 						parentDriver->setForceAlightStatus(false);
-						if(parentDriver->getTrainId()==4)
-						{
-							int debug=1;
-						}
-						if(parentDriver->getSubsequentNextRequested()!=TrainDriver::NO_REQUESTED)
-						{
-							parentDriver->setNextRequested(parentDriver->getSubsequentNextRequested());
-							isDisruptedState =false;
-							isStrandedBetweenPlatforms_DisruptedState =false;
-							parentDriver->setSubsequentNextRequested(TrainDriver::NO_REQUESTED);
-						}
-
-						else if(isDisruptedState&&!isStrandedBetweenPlatforms_DisruptedState&&!parentDriver->getUTurnFlag())
+						if(isDisruptedState&&!isStrandedBetweenPlatforms_DisruptedState&&!parentDriver->getUTurnFlag())
 						{
 
 							if(shouldStopDueToDisruption(parentDriver)&&!isUTurnPlatformOnTheWay())
@@ -690,13 +716,13 @@ namespace sim_mob
 								{
 									if(!parentDriver->hasForceAlightedInDisruption())
 									{
-										parentDriver->setNextRequested(TrainDriver::REQUESTED_LEAVING_PLATFORM);
+										parentDriver->setNextRequested(TrainDriver::REQUESTED_AT_PLATFORM);
 									}
 								}
 							}
 							else if(!shouldStopDueToDisruption(parentDriver))
 							{
-								parentDriver->setNextRequested(TrainDriver::REQUESTED_LEAVING_PLATFORM);
+								parentDriver->setNextRequested(TrainDriver::REQUESTED_AT_PLATFORM);
 								isDisruptedState =false;
 							}
 
@@ -710,16 +736,26 @@ namespace sim_mob
 								isStrandedBetweenPlatforms_DisruptedState=false;
 								//move train ahead
 								parentDriver->setNextRequested(TrainDriver::REQUESTED_TO_PLATFROM);
-
 							}
 						}
 
 						else if(parentDriver->getUTurnFlag())
 						{
-							if(shouldStopDueToDisruption(parentDriver)&&!isUTurnPlatformOnTheWay())
+							if(parentDriver->getPassengers().size()>0)
 							{
-								parentDriver->setUturnFlag(false);
-								parentDriver->setNextRequested(TrainDriver::REQUESTED_TO_PLATFROM);
+
+								parentDriver->setNextRequested(TrainDriver::REQUESTED_AT_PLATFORM);
+							}
+							else
+							{
+
+								Platform *platform=getNextPlatform();
+								std::string stationNo=platform->getStationNo();
+								Agent* stationAgent = TrainController<Person_MT>::getAgentFromStation(stationNo);
+								messaging::MessageBus::PostMessage(stationAgent,TRAIN_MOVE_AT_UTURN_PLATFORM,
+												messaging::MessageBus::MessagePtr(new TrainDriverMessage(parentDriver,true)));
+
+								parentDriver->setNextRequested(TrainDriver::REQUESTED_TAKE_UTURN);
 							}
 						}
 
@@ -873,13 +909,9 @@ namespace sim_mob
 													std::string stationNo=platform->getStationNo();
 													parentDriver->setNextRequested(TrainDriver::REQUESTED_TAKE_UTURN);
 													Agent* stationAgent = TrainController<Person_MT>::getAgentFromStation(stationNo);
-													waitingTimeRemainingBeforeUturn=userSpecifiedUturnTime;
-													isWaitingForUturn =true;
-													if(waitingTimeRemainingBeforeUturn<=5)
-													{
-														messaging::MessageBus::PostMessage(stationAgent,TRAIN_MOVE_AT_UTURN_PLATFORM,
-																messaging::MessageBus::MessagePtr(new TrainDriverMessage(parentDriver,true)));
-													}
+													messaging::MessageBus::PostMessage(stationAgent,TRAIN_MOVE_AT_UTURN_PLATFORM,
+															messaging::MessageBus::MessagePtr(new TrainDriverMessage(parentDriver,true)));
+
 												   //pass message for Uturn
 
 												}
@@ -920,102 +952,42 @@ namespace sim_mob
 				{
 
 					//pass message to Uturn
-					if(!isWaitingForUturn)
+					if(!parentDriver->getUTurnFlag())
 					{
-						waitingTimeRemainingBeforeUturn=userSpecifiedUturnTime;
-						isWaitingForUturn =true;
-					}
-					else
-					{
-						waitingTimeRemainingBeforeUturn=waitingTimeRemainingBeforeUturn-5;
+						bool shldStop=shouldStopDueToDisruption(parentDriver);
+						bool isUturnPlatform=TrainController<Person_MT>::getInstance()->isUturnPlatform(getNextPlatform()->getPlatformNo(),parentDriver->getTrainLine());
+						if(!(shldStop&&!isUTurnPlatformOnTheWay()&&isUturnPlatform))
+						{
+							parentDriver->setNextRequested(TrainDriver::REQUESTED_AT_PLATFORM);
+							break;
+						}
 					}
 
-					if(waitingTimeRemainingBeforeUturn<=5)
-					{
-						;
+
 						Platform *platform=getNextPlatform();
 						std::string stationNo=platform->getStationNo();
 						Agent* stationAgent = TrainController<Person_MT>::getAgentFromStation(stationNo);
 						messaging::MessageBus::PostMessage(stationAgent,TRAIN_MOVE_AT_UTURN_PLATFORM,
 										messaging::MessageBus::MessagePtr(new TrainDriverMessage(parentDriver,true)));
-					}
+					break;
+				}
 
+				case TrainDriver::WAIT_AFTER_UTURN:
+				{
+					waitingTimeRemainingBeforeUturn=waitingTimeRemainingBeforeUturn-5;
+					if(waitingTimeRemainingBeforeUturn<5)
+					{
+						userSpecifiedUturnTime = 0;
+						waitingTimeRemainingBeforeUturn = 0;
+						isWaitingForUturn = false;
+						parentDriver->setNextRequested(TrainDriver::REQUESTED_AT_PLATFORM);
+					}
 					break;
 				}
 			}
 			}
 		}
 
-		/*bool TrainMovement::shouldStopDueToDisruption()
-		{
-			TrainController<sim_mob::medium::Person_MT> *trainController=TrainController<sim_mob::medium::Person_MT>::getInstance();
-			typename  std::vector <Role<Person_MT>*> activeTrains = trainController->getActiveTrainsForALine(parentDriver->getTrainLine());
-			std::vector <Role<Person_MT>*>::iterator itr= activeTrains.begin();
-			for(;itr!=activeTrains.end();itr++)
-			{
-				TrainDriver *driver=dynamic_cast<TrainDriver*>(*itr);
-				int offset =1;
-				Platform *nextPlt=driver->getMovement()->getPlatformByOffset(offset);
-				int noOfTrainsWithSameNextPlat=0;
-				while(true)
-				{
-					TrainDriver *nextDriver=driver->getNextDriver();
-					if(nextDriver)
-					{
-						if(nextDriver->getNextPlatform() == nextPlt)
-						{
-							//nextPlt is a uturn platform then return false
-
-							//check if it is one platform before disruption
-							noOfTrainsWithSameNextPlat++;
-							continue;
-						}
-						else
-						{
-							offset++;
-							Platform *nextplt=driver->getMovement()->getPlatformByOffset(offset);
-							if(nextDriver->getNextPlatform() == nextPlt)
-							{
-								//nextPlt is a uturn platform then return false
-
-								//check if it is one platform before disruption
-								if()
-								continue;
-							}
-							else
-							{
-								//check if that many number of platforms are empty before disrupted platforms
-								int k =offset+1;
-								int n=0;
-								while()
-								{
-									Platform *kthPlatform = driver->getMovement()->getPlatformByOffset(k);
-									Platform *k1thPlatform=trainController->getNextPlatform(kthPlatform,driver->getTrainLine());
-									//if(kthPlatform) is in disrupted region
-									{
-										k++;
-										n++;
-
-									}
-									//else
-									{
-										k++;
-										n++;
-									}
-								}
-
-								return false;
-							}
-						}
-					}
-					else
-					{
-						return false;
-					}
-
-				}
-			}
-		}*/
 
 		bool TrainMovement::isUTurnPlatformOnTheWay()
 		{
@@ -1027,14 +999,62 @@ namespace sim_mob
 			while(nextplatformPlt!=nullptr)
 			{
 
+				std::string platformNo=nextplatformPlt->getPlatformNo();
+				if(trainController->isTerminalPlatform(platformNo,line))
+				{
+					return false;
+				}
 				TrainPlatform nextTrainplatformPlt=trainController->getNextPlatform(nextplatformPlt->getPlatformNo(),line);
 				if(std::find(uTurnPlatformList.begin(),uTurnPlatformList.end(),nextTrainplatformPlt.platformNo)!=uTurnPlatformList.end())
 				{
+					std::map<std::string,std::vector<std::string>> disruptPlatformsMap = trainController->getInstance()->getDisruptedPlatforms_ServiceController();
+					std::vector<std::string> disruptPlatforms = disruptPlatformsMap[line];
+					std::string firstDisruptPlatform = disruptPlatforms[0];
+					if(boost::iequals(firstDisruptPlatform,nextTrainplatformPlt.platformNo))
+					{
+						return false;
+					}
+					else
+					{
+						if(trainController->isPlatformBeforeAnother(firstDisruptPlatform,nextTrainplatformPlt.platformNo,line)== true)
+						{
+							return false;
+						}
+					}
 					return true;
 				}
 				nextplatformPlt=trainController->getPlatformFromId(nextTrainplatformPlt.platformNo);
 			}
+
 			return false;
+		}
+
+		std::string TrainMovement::getNextUturnPlatform()
+		{
+			Platform *nextplatformPlt=parentDriver->getNextPlatform();
+			std::string line=parentDriver->getTrainLine();
+			TrainController<sim_mob::medium::Person_MT> *trainController=TrainController<sim_mob::medium::Person_MT>::getInstance();
+			std::map<std::string,std::vector<std::string>> uTurnPlatforms=trainController->getUturnPlatforms();
+			std::vector<std::string> uTurnPlatformList=uTurnPlatforms[line];
+
+			while(nextplatformPlt!=nullptr)
+			{
+
+				std::string platformNo=nextplatformPlt->getPlatformNo();
+				if(trainController->isTerminalPlatform(platformNo,line))
+				{
+					return "";
+				}
+
+				if(std::find(uTurnPlatformList.begin(),uTurnPlatformList.end(),nextplatformPlt->getPlatformNo())!=uTurnPlatformList.end())
+				{
+					return nextplatformPlt->getPlatformNo();
+				}
+				TrainPlatform nextTrainplatformPlt=trainController->getNextPlatform(nextplatformPlt->getPlatformNo(),line);
+				nextplatformPlt=trainController->getPlatformFromId(nextTrainplatformPlt.platformNo);
+			}
+
+			return "";
 		}
 
 		bool TrainMovement::shouldStopDueToDisruption(TrainDriver *aheadDriver)
@@ -1043,12 +1063,24 @@ namespace sim_mob
 			TrainController<sim_mob::medium::Person_MT> *trainController=TrainController<sim_mob::medium::Person_MT>::getInstance();
 			std::string trainLine=parentDriver->getTrainLine();
 			std::map<std::string,std::vector<std::string>> disruptedPlatformsMap=trainController->getDisruptedPlatforms_ServiceController();
-			if(disruptedPlatformsMap.size()==0||disruptedPlatformsMap.find(trainLine)!=disruptedPlatformsMap.end())
+			if(disruptedPlatformsMap.size()==0||disruptedPlatformsMap.find(trainLine)==disruptedPlatformsMap.end())
 			{
 				return false;
 			}
 
+			int trainId=aheadDriver->getTrainId();
+			Platform *commingPlatform = parentDriver->getNextPlatform();
+			std::vector<std::string> disruptedPlatformNames = disruptedPlatformsMap[trainLine];
+			std::string lastDisruptedPlatform = *(disruptedPlatformNames.end()-1);
+			if(trainController->isPlatformBeforeAnother(lastDisruptedPlatform,commingPlatform->getPlatformNo(),trainLine))
+			{
+				return false;
+			}
+
+
+			std::string pNo= aheadDriver->getNextPlatform()->getPlatformNo();
 			std::string maxPlatform=shouldTrainAheadStopDueToDisruption(aheadDriver);
+
 			if(trainController->isPlatformBeforeAnother(aheadDriver->getNextPlatform()->getPlatformNo(),maxPlatform,aheadDriver->getTrainLine()))
 			{
 				return false;
@@ -1077,18 +1109,27 @@ namespace sim_mob
 					std::string maxPlatform=shouldTrainAheadStopDueToDisruption(aheadDriver);
 					if(trainController->isPlatformBeforeAnother(maxPlatform,aheadDriver->getNextPlatform()->getPlatformNo(),parentDriver->getTrainLine()))
 					{
-						 Platform *prePlatform=trainController->getPrePlatform(aheadDriver->getNextPlatform()->getPlatformNo(),parentDriver->getTrainLine());
+						 Platform *prePlatform=trainController->getPrePlatform(parentDriver->getTrainLine(),aheadDriver->getNextPlatform()->getPlatformNo());
 						 return prePlatform->getPlatformNo();
 					}
 					else
 					{
-						trainController->getPrePlatform(maxPlatform,parentDriver->getTrainLine());
+						Platform *platformBeforeMax = trainController->getPrePlatform(parentDriver->getTrainLine(),maxPlatform);
+						return platformBeforeMax->getPlatformNo();
 					}
 
 				}
 				else
 				{
-					return firstDisruptedPlatfrom;
+					if(boost::iequals(aheadDriver->getNextPlatform()->getPlatformNo(),firstDisruptedPlatfrom))
+					{
+						Platform *platformBeforeMax = trainController->getPrePlatform(parentDriver->getTrainLine(),firstDisruptedPlatfrom);
+						return platformBeforeMax->getPlatformNo();
+					}
+					else
+					{
+						return firstDisruptedPlatfrom;
+					}
 				}
 
 			}
@@ -1179,13 +1220,13 @@ namespace sim_mob
 				const TrainDriver* next = parentDriver->getNextDriver();
 				if (next)
 				{
-					if (disToPlatform > 0.0
+					/*if (disToPlatform > 0.0
 							&& next->getNextPlatform() != parentDriver->getNextPlatform())
 					{
 						effectDis = disToPlatform;
 						res = true;
-					}
-					else if (disToTrain > 0.0 && disToTrain < disToPlatform
+					}*/
+					 if (disToTrain > 0.0 && disToTrain < disToPlatform
 							&& next->getNextRequested() == TrainDriver::REQUESTED_WAITING_LEAVING
 							&& next->getNextPlatform() == parentDriver->getNextPlatform())
 					{
@@ -1452,7 +1493,7 @@ namespace sim_mob
 							else
 							{
 								distanceToNextObject = std::min(distanceToNextTrain, distanceToNextPlatform);
-								distanceToNextObject=std::min(distanceToNextObject,disToNextStopPoint);
+								distanceToNextObject = std::min(distanceToNextObject,disToNextStopPoint);
 							}
 						}
 					}
@@ -1465,6 +1506,7 @@ namespace sim_mob
 				if(forceResetMovingCase==true && forceResetedCase==TRAINCASE::NORMAL_CASE)
 				{
 					params.currCase = TrainUpdateParams::NORMAL_CASE;
+					break;
 				}
 
 				else
@@ -1507,6 +1549,7 @@ namespace sim_mob
 						}
 						else
 						{
+
 							break;
 						}
 					}
@@ -1519,7 +1562,11 @@ namespace sim_mob
 
 			params.currCase = TrainUpdateParams::NORMAL_CASE;
 			distanceToNextObject = saveDistancetoNextObj;
-			if(distanceToNextObject<0&&!shouldIgnoreAllPlatforms&&distanceToNextObject!=distanceToNextTrain)
+			if(distanceToNextObject<0&&!shouldIgnoreAllPlatforms&&distanceToNextObject==distanceToNextPlatform)
+			{
+				speedLimit = 0.0;
+			}
+			else if(distanceToNextObject<0&&distanceToNextObject==distanceToNextTrain)
 			{
 				speedLimit = 0.0;
 			}
@@ -1546,7 +1593,7 @@ namespace sim_mob
 
 			if(!ignoreSafeHeadway_RequestServiceController)
 			{
-				if (!isStationCaseVar&&distanceToNextTrain > 0 && safeHeadway > 0)
+				if (distanceToNextTrain > 0 && safeHeadway > 0)
 				{
 					speedLimit2 = distanceToNextTrain / safeHeadway;
 				}
@@ -1554,6 +1601,49 @@ namespace sim_mob
 				if (speedLimit2 > 0)
 				{
 					speedLimit = std::min(speedLimit, speedLimit2);
+				}
+			}
+
+			if(isStationCaseVar)
+			{
+
+				if(params.currentSpeed>0)
+				{
+					double accRate = (speedLimit - params.currentSpeed)/params.secondsInTick;
+					if(accRate<0)
+					{
+						if(accRate<(-trainPathMover.getCurrentAccelerationRate()))
+						{
+							accRate = -trainPathMover.getCurrentAccelerationRate();
+						}
+					}
+					else
+					{
+						if(accRate>(trainPathMover.getCurrentAccelerationRate()))
+						{
+							accRate = trainPathMover.getCurrentAccelerationRate();
+						}
+					}
+					double distanceCoveredInNextFrameTick = params.currentSpeed*(params.secondsInTick)+0.5*(accRate)*(params.secondsInTick)*(params.secondsInTick);
+					double distanceRemaining = distanceToNextObject - distanceCoveredInNextFrameTick;
+					double speedInNextFrameTick =  params.currentSpeed + accRate*params.secondsInTick;
+
+					if(distanceToNextObject==params.distanceToNextStopPoint)
+					{
+						if(distanceRemaining<0||speedInNextFrameTick>=std::sqrt(2.0*params.maxDecelerationToStopPoint*distanceRemaining))
+						{
+							params.currCase=TrainUpdateParams::STATION_CASE;
+							return distanceToNextObject;
+						}
+					}
+					else if (distanceToNextObject==params.disToNextPlatform)
+					{
+						if(distanceRemaining<0||speedInNextFrameTick>std::sqrt(2.0*trainPathMover.getCurrentAccelerationRate()*distanceRemaining))
+						{
+							params.currCase=TrainUpdateParams::STATION_CASE;
+							return distanceToNextObject;
+						}
+					}
 				}
 			}
 			params.currentSpeedLimit = speedLimit;
@@ -1664,6 +1754,35 @@ namespace sim_mob
 			double distanceToNextPlatform = trainPathMover.getDistanceToNextPlatform(trainPlatformMover.getNextPlatform());
 			if(distanceToNextPlatform<distanceArrvingAtPlatform)
 			{
+				if(!calculatedTravelTime)
+				{
+					TrainUpdateParams& params = parentDriver->getParams();
+					std::string prevPlatform=" ";
+					uint32_t travelTimebetweenStations = params.now.ms()+5000-startTimeOfNextStationStretch;
+					sim_mob::BasicLogger& ptMRTtraveltimeLogger  = sim_mob::Logger::log("TravelTimeBEtweenStations.csv");
+					if(getNextPlatform() == trainPlatformMover_accpos.getFirstPlatform())
+					{
+						prevPlatform = " ";
+					}
+					else
+					{
+						Platform *previousPlatform = trainPlatformMover_accpos.getPlatformByOffset(-1);
+						if(previousPlatform==nullptr)
+						{
+							prevPlatform = " ";
+						}
+						else
+						{
+							prevPlatform = previousPlatform->getStationNo();
+						}
+					}
+					ptMRTtraveltimeLogger<<parentDriver->getTrainLine()<<","<<parentDriver->getTrainId()<<","<<prevPlatform<<","<<getNextPlatform()->getStationNo()<<","<<travelTimebetweenStations<<endl;
+					calculatedTravelTime = true;
+				}
+				else
+				{
+					calculatedTravelTime=false;
+				}
 				return true;
 			}
 			else
@@ -1677,9 +1796,15 @@ namespace sim_mob
 			if(!isStopAtPlatform())
 			{
 
+				TrainUpdateParams& params = parentDriver->getParams();
+				if(isFirstMove)
+				{
+					startTimeOfNextStationStretch = params.now.ms();
+					isFirstMove=false;
+				}
 				double movingDistance = getEffectiveMovingDistance();
 				double distanceToNextPlat = trainPathMover.getDistanceToNextPlatform(trainPlatformMover.getNextPlatform());
-				TrainUpdateParams& params = parentDriver->getParams();
+
 				params.movingDistance=movingDistance;
 				if(movingDistance>distanceToNextPlat&&movingDistance>params.distanceToNextStopPoint&&params.distanceToNextStopPoint!=0)
 				{
@@ -1738,6 +1863,10 @@ namespace sim_mob
 				Agent* stationAgent = TrainController<Person_MT>::getAgentFromStation(stationNo);
 				messaging::MessageBus::PostMessage(stationAgent,TRAIN_MOVETO_NEXT_PLATFORM,
 						messaging::MessageBus::MessagePtr(new TrainDriverMessage(parentDriver,true)));
+				//log start time to next stretch to platform
+				TrainUpdateParams& params = parentDriver->getParams();
+				startTimeOfNextStationStretch = params.now.ms()+5000;
+				//ptMRTMoveLogger << DailyTime(params.now.ms()+startTime.getValue()).getStrRepr() << ",";
 				return true;
 			}
 		}
@@ -1860,14 +1989,9 @@ namespace sim_mob
 
 					changeTrip();
 					parentDriver->setForceAlightStatus(false);
-					if(parentDriver->getTrainId()==4)
-					{
-						int debug = 1;
-					}
-					isWaitingForUturn = false;
-					waitingTimeRemainingBeforeUturn=0;
-					userSpecifiedUturnTime=0;
-					parentDriver->setNextRequested(TrainDriver::REQUESTED_AT_PLATFORM);
+					isWaitingForUturn = true;
+					waitingTimeRemainingBeforeUturn = userSpecifiedUturnTime;
+					parentDriver->setNextRequested(TrainDriver::WAIT_AFTER_UTURN);
 				}
 			}
 		}

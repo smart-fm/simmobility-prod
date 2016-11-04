@@ -216,6 +216,7 @@ public:
 	bool shouldStopDueToDisruption(TrainDriver *aheadDriver);
 	std::string shouldTrainAheadStopDueToDisruption(TrainDriver *aheadDriver);
 	bool isUTurnPlatformOnTheWay();
+	std::string getNextUturnPlatform();
 	bool isUturnPlatform();
 
 	std::vector<StopPointEntity>::iterator findNearestStopPoint(std::vector<StopPointEntity> &stopPoints,double &distance,double &maxDeceleration);
@@ -262,6 +263,9 @@ private:
 	double userSpecifiedUturnTime=0;
 	bool isWaitingForUturn=false;
 	bool shouldIgnoreAllPlatforms=false;
+	bool calculatedTravelTime = false;
+	bool isFirstMove = true;
+	uint32_t startTimeOfNextStationStretch=0;
 
 
 private:

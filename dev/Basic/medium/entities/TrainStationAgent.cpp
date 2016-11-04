@@ -572,51 +572,12 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 	updateWaitPersons();
 	performDisruption(now);
 
-	/*if(arePassengersreRouted == false)
-	{
-		if(station)
-		{
-			std::map<std::string, Platform*> linePlatformMap=station->getPlatforms();
-			std::map<std::string, Platform*>::iterator it;
-			std::map<std::string,std::vector<std::string>> platforms=TrainController<sim_mob::medium::Person_MT>::getInstance()->GetDisruptedPlatforms_ServiceController();
-			for(it=linePlatformMap.begin();it!=linePlatformMap.end();it++)
-			{
-				std::vector<std::string> platformNames=platforms[it->first];
-				std::vector<std::string>::iterator itr=platformNames.begin();
-				if(itr!=platformNames.end())
-				{
-					Platform *disruptedPlt=dynamic_cast<Platform*>(it->second);
-					if(disruptedPlt)
-					{
-						itr=std::find(platformNames.begin(),platformNames.end(),disruptedPlt->getPlatformNo());
-						//trigger rerouting
-						if(itr!=platformNames.end())
-						triggerRerouting(DisruptionEventArgs(*disruptionParam),now);
-						else
-						{
-							itr=platformNames.begin();
-							Platform *platform=TrainController<sim_mob::medium::Person_MT>::getInstance()->getPrePlatform(it->first,*itr);
-							if(disruptedPlt==platform)
-							{
-								triggerRerouting(DisruptionEventArgs(*disruptionParam),now);
-							}
-						}
-					}
-				}
-			}
-		}
-	}*/
 
 	std::map<const Platform*, std::list<Passenger*>>::iterator forceAlightedPersonsItr=forceAlightedPersons.begin();
 	while(forceAlightedPersonsItr!=forceAlightedPersons.end())
 	{
 		const Platform *forceAlightPlatform=(forceAlightedPersonsItr)->first;
 		std::list<Person_MT*>::iterator personsFAIt=personsForcedAlighted.begin();
-		/*while(personsFAIt!=personsForcedAlighted.end())
-		{
-			Person_MT *perFA=dynamic_cast<Person_MT*>(*personsFAIt);
-
-		}*/
 		std::list<Passenger*> passengersForceAlighted =(forceAlightedPersonsItr)->second;
 		std::list<Passenger*>::iterator passengerItr=passengersForceAlighted.begin();
 		while(passengerItr!=passengersForceAlighted.end())
@@ -637,12 +598,22 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
  	it=trainDriver.begin();
 	while (it != trainDriver.end())
 	{
-		//if(boost::iequals((*it)->getNextPlatform()->getStationNo(),stationName))
-		//{
 		const Platform* platform = (*it)->getNextPlatform();
 		double tickInSec = 0.0;
 		do
 		{
+
+			if((*it)->getNextRequested()==TrainDriver::REQUESTED_WAITING_LEAVING&&(*it)->getForceAlightFlag()==true)
+			{
+				(*it)->alightAllPassengers(leavingPersons[platform], now);
+				int initialnumberofpassengers=(*it)->getInitialNumberOfPassengers();
+				(*it)->calculateDwellTime(0,initialnumberofpassengers,initialnumberofpassengers,now,true);
+				(*it)->setForceAlightFlag(false);
+				if((*it)->getMovement()->getDisruptedState()== true)
+				{
+					(*it)->setHasForceAlightedInDisruption(true);
+				}
+			}
 			callMovementFrameTick(now, *it);
 			tickInSec += (*it)->getParams().secondsInTick;
 			if(forceAlightedPersons.find(platform)!=forceAlightedPersons.end())
@@ -670,11 +641,7 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 				std::vector<std::string> disruptedPlatformNames=platformNames[trainLine];
 				std::vector<std::string>::iterator itr=std::find(disruptedPlatformNames.begin(),disruptedPlatformNames.end(),platform->getPlatformNo());
 				TrainPlatformMover &platformMover=(*it)->getMovement()->getTrainPlatformMover();
-				Platform *nextPlatform = platformMover.getPlatformByOffset(1);
-				std::vector<std::string>::iterator itr_next = disruptedPlatformNames.end();
-				if(nextPlatform)
-					itr_next=std::find(disruptedPlatformNames.begin(),disruptedPlatformNames.end(),nextPlatform->getPlatformNo());
-				if(itr!=disruptedPlatformNames.end()||itr_next!=disruptedPlatformNames.end())
+				if(itr!=disruptedPlatformNames.end())
 				{
 					if((*it)->getTrainId()==4)
 					{
@@ -692,14 +659,13 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 					(*it)->setForceAlightStatus(true); //will be unset by service controller
 					int alightingNum = (*it)->alightAllPassengers(leavingPersons[platform], now);
 					(*it)->lockUnlockRestrictPassengerEntitiesLock(false);
-					(*it)->calculateDwellTime(0,alightingNum,0,now);
+					(*it)->calculateDwellTime(0,alightingNum,0,now,false);
 					(*it)->setNextRequested(TrainDriver::REQUESTED_WAITING_LEAVING);
 					(*it)->setForceAlightFlag(false);
 
-					if((*it)->getMovement()->getDisruptedState())
+					if((*it)->getMovement()->getDisruptedState()||(*it)->getUTurnFlag()==true)
 					{
 						(*it)->setHasForceAlightedInDisruption(true);
-						//if(isDisruptedPlat)
 						continue;
 					}
 
@@ -752,7 +718,7 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 							(*it)->lockUnlockRestrictPassengerEntitiesLock(true);
 							int alightingNum = (*it)->alightAllPassengers(leavingPersons[platform], now);
 							(*it)->lockUnlockRestrictPassengerEntitiesLock(false);
-							(*it)->calculateDwellTime(0,alightingNum,0,now);
+							(*it)->calculateDwellTime(0,alightingNum,0,now,false);
 						}
 						(*it)->setNextRequested(TrainDriver::REQUESTED_WAITING_LEAVING);
 						isDisruptedState = true;
@@ -795,7 +761,7 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 						(*it)->lockUnlockRestrictPassengerEntitiesLock(true);
 						int alightingNum = (*it)->alightAllPassengers(leavingPersons[platform], now);
 						(*it)->lockUnlockRestrictPassengerEntitiesLock(false);
-						(*it)->calculateDwellTime(0,alightingNum,0,now);
+						(*it)->calculateDwellTime(0,alightingNum,0,now,false);
 						(*it)->setNextRequested(TrainDriver::REQUESTED_WAITING_LEAVING);
 						isDisruptedState = true;
 					}
@@ -812,7 +778,18 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 							(*it)->lockUnlockRestrictPassengerEntitiesLock(true);
 							int alightingNum = (*it)->alightAllPassengers(leavingPersons[platform],now);
 							(*it)->lockUnlockRestrictPassengerEntitiesLock(false);
-							(*it)->calculateDwellTime(0,alightingNum,0,now);
+							(*it)->calculateDwellTime(0,alightingNum,0,now,false);
+						}
+						(*it)->setNextRequested(TrainDriver::REQUESTED_WAITING_LEAVING);
+					}
+					if((*it)->getUTurnFlag())
+					{
+						if(!(*it)->getForceAlightStatus())
+						{
+							(*it)->lockUnlockRestrictPassengerEntitiesLock(true);
+							int alightingNum = (*it)->alightAllPassengers(leavingPersons[platform],now);
+							(*it)->lockUnlockRestrictPassengerEntitiesLock(false);
+							(*it)->calculateDwellTime(0,alightingNum,0,now,false);
 						}
 						(*it)->setNextRequested(TrainDriver::REQUESTED_WAITING_LEAVING);
 					}
@@ -830,7 +807,7 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 							}
 							int boardingNum = (*it)->boardPassenger(waitingPersons[platform], now);
 							(*it)->lockUnlockRestrictPassengerEntitiesLock(false);
-							(*it)->calculateDwellTime(boardingNum+forcealightedboardingnum,alightingNum,noOfPassengersInTrain,now);
+							(*it)->calculateDwellTime(boardingNum+forcealightedboardingnum,alightingNum,noOfPassengersInTrain,now,false);
 						}
 						(*it)->setNextRequested(TrainDriver::REQUESTED_WAITING_LEAVING);
 					}
@@ -1056,10 +1033,6 @@ Entity::UpdateStatus TrainStationAgent::callMovementFrameTick(timeslice now, Tra
 {
 	if(driver)
 	{
-		if(driver->getTrainId()==10&&driver->getTripId()==1016)
-		{
-			bool dr=true;
-		}
 		driver->make_frame_tick_params(now);
 		bool isToBeRemoved=false;
 		driver->Movement()->frame_tick();

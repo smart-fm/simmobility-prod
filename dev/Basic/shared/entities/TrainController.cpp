@@ -109,7 +109,7 @@ namespace sim_mob
 	{
 		const ConfigParams& configParams = ConfigManager::GetInstance().FullConfig();
 		const std::map<std::string, std::string>& storedProcs = configParams.getDatabaseProcMappings().procedureMappings;
-		std::map<std::string, std::string>::const_iterator spIt = storedProcs.find("pt_uturn_platforms");
+		std::map<std::string, std::string>::const_iterator spIt = storedProcs.find("get_uturn_platforms");
 		if(spIt == storedProcs.end())
 		{
 			Print() << "missing stored procedure for get_pt_opposite_lines" << std::endl;
@@ -164,15 +164,13 @@ namespace sim_mob
 	void TrainController<PERSON>::clearDisruption(std::string lineID)
 	{
 		disruptedPlatformsNamesMap_ServiceController[lineID].erase(disruptedPlatformsNamesMap_ServiceController[lineID].begin(),disruptedPlatformsNamesMap_ServiceController[lineID].end());
+		disruptedPlatformsNamesMap_ServiceController.erase(lineID);
 	}
 
 	template<typename PERSON>
 	Entity::UpdateStatus TrainController<PERSON>::frame_tick(timeslice now)
 	{
 
-		//resetBlockSpeeds(now);
-		//resetBlockAccelerations(now);
-		//PerformDisruption(disruptionEntity.startStation,disruptionEntity.endStation,now,disruptionEntity.disruptionTime);
 		if(disruptionParam.get())
         {
 			unsigned int baseGran = ConfigManager::GetInstance().FullConfig().baseGranMS();
@@ -419,6 +417,7 @@ namespace sim_mob
 	void TrainController<PERSON>::initTrainController()
 	{
 		loadPlatforms();
+		loadUTurnPlatforms();
 		loadBlocks();
 		loadOppositeLines();
 		loadTrainAvailabilities();
@@ -780,6 +779,7 @@ namespace sim_mob
               break;
            }
            it++;
+
 		}
         if(it!=trainPlatforms.end())
         {
@@ -788,8 +788,26 @@ namespace sim_mob
 			{
 				return (*it);
 			}
+
         }
 	}
+
+	template<typename PERSON>
+	bool TrainController<PERSON>::isTerminalPlatform(std::string platformNo,std::string lineID)
+	{
+		if(mapOfIdvsTrainPlatforms.find(lineID)==mapOfIdvsTrainPlatforms.end())
+		{
+			return false;
+		}
+		std::vector<TrainPlatform>& trainPlatforms=mapOfIdvsTrainPlatforms[lineID];
+		TrainPlatform endPlt=*(trainPlatforms.end()-1);
+		if(boost::iequals(platformNo,endPlt.platformNo)==true)
+		{
+			return true;
+		}
+		return false;
+	}
+
 
 	template<typename PERSON>
 	Platform* TrainController<PERSON>::getPlatformFromId(std::string platformNo)
@@ -1113,6 +1131,14 @@ namespace sim_mob
 	bool TrainController<PERSON>::isUturnPlatform(std::string platformName,std::string lineId)
 	{
 		std::vector<std::string> platforms=mapOfUturnPlatformsLines[lineId];
+		if(disruptedPlatformsNamesMap_ServiceController.find(lineId)!= disruptedPlatformsNamesMap_ServiceController.end())
+		{
+			std::vector<std::string> platformNames=disruptedPlatformsNamesMap_ServiceController[lineId];
+			if(std::find(platformNames.begin(),platformNames.end(),platformName)!=platformNames.end())
+			{
+				return false;
+			}
+		}
 		if(std::find(platforms.begin(),platforms.end(),platformName)!=platforms.end())
 		{
 			return true;
@@ -1171,6 +1197,7 @@ namespace sim_mob
 			if((*it)->getPlatformNo()==firstPlatfrom)
 			{
 				foundFirstPlatfrom =true;
+				it++;
 				continue;
 			}
 
@@ -1182,6 +1209,7 @@ namespace sim_mob
 				}
 				return false;
 			}
+			it++;
 		}
 		return false;
 	}

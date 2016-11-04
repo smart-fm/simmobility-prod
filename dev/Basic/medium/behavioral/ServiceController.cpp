@@ -57,7 +57,7 @@ ServiceController::~ServiceController()
 	 			.addFunction("reset_safe_headway_sec",&ServiceController::resetSafeHeadwaySec)
 	 			.addFunction("reset_safe_operation_distance",&ServiceController::resetSafeOperationDistance)
 	 			.addFunction("reset_moving_case", &ServiceController::resetMovingCase)
-	 			.addFunction("force_release_passenegers", &ServiceController::forceReleasePassenegers)
+	 			.addFunction("force_release_passengers", &ServiceController::forceReleasePassenegers)
 				.addFunction("restrict_passengers", &ServiceController::restrictPassengers)
 				.addFunction("reset_holding_time_at_station", &ServiceController::resetHoldingTimeAtStation)
 				.addFunction("reset_max_holding_time_at_station", &ServiceController::resetMaxHoldingTimeAtStation)
@@ -102,6 +102,8 @@ ServiceController::~ServiceController()
 				.addFunction("is_uturn_platform",&ServiceController::isUTurnPlatform)
 				.addFunction("add_platform",&ServiceController::addPlatformToList)
 				.addFunction("restore_defaults",&ServiceController::restoreDefaults)
+				.addFunction("has_force_alighted_disruption",&ServiceController::hasForceAlightedInDisruption)
+				.addFunction("get_next_uturn_platform",&ServiceController::getNextUturnPlatform)
 	 			.endClass();
 
  }
@@ -1069,6 +1071,25 @@ void ServiceController::forceReleasePassenegers(int trainID,std::string lineId,b
 	}
 }
 
+bool ServiceController::hasForceAlightedInDisruption(int trainID,std::string lineId)
+{
+	std::map<std::string,std::map<int,TrainDriver *>>::const_iterator it=mapOfLineAndTrainDrivers.find(lineId);
+	if(it != mapOfLineAndTrainDrivers.end())
+	{
+		const std::map<int,TrainDriver*> &mapOfIdsVsTrainDrivers = it->second;
+		std::map<int,TrainDriver*>::const_iterator itr=mapOfIdsVsTrainDrivers.find(trainID);
+		if(itr!=mapOfIdsVsTrainDrivers.end())
+		{
+			TrainDriver* driver= itr->second;
+			if(driver&&driver->getTrainId()==trainID)
+			{
+				return driver->hasForceAlightedInDisruption();
+			}
+		}
+	}
+	return false;
+}
+
  void  ServiceController::terminateTrainService(std::string lineId)
  {
 	 //Terminates train service
@@ -1278,6 +1299,29 @@ bool ServiceController::isUTurnPlatformOnTheWay(int trainId,std::string lineId)
 		}
 	}
 	return false;
+}
+
+std::string ServiceController::getNextUturnPlatform(int trainId,std::string lineId)
+{
+	map<std::string,std::map<int,TrainDriver *>>::iterator it=mapOfLineAndTrainDrivers.find(lineId);
+	std::string nextPlatform="";
+	if(it != mapOfLineAndTrainDrivers.end())
+	{
+		std::map<int,TrainDriver*>& trainDrivers = it->second;
+		std::map<int,TrainDriver*>::iterator itr=trainDrivers.find(trainId);
+		if(itr!=trainDrivers.end())
+		{
+			TrainDriver *tDriver=itr->second;
+			if(tDriver)
+			{
+				if(tDriver->getTrainId()==trainId&&tDriver->getTrainLine()==lineId)
+				{
+					return tDriver->getMovement()->getNextUturnPlatform();
+				}
+			}
+		}
+	}
+	return "";
 }
 
 bool ServiceController::isUTurnPlatform(std::string platformName,std::string lineId)

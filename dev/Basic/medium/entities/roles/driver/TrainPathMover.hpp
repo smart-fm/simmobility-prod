@@ -47,7 +47,7 @@ public:
 	 * @param offset is the shifted offset from current platform
 	 * @return empty if offset is beyond last item
 	 */
-	Platform* getPlatformByOffset(unsigned int offset) const;
+	Platform* getPlatformByOffset(int offset) const;
 	Platform * getLastPlatformOnRoute() const;
 	void clearPrevPlatforms();
 	void resetPlatformItr();

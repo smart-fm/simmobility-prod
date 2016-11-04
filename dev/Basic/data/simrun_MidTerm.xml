@@ -105,6 +105,7 @@
             <mapping name="screen_line" procedure="get_screen_line_segments()"/>
 	    <mapping name="pt_opposite_lines" procedure="get_pt_opposite_lines()"/>
 	    <mapping name="get_train_fleet" procedure="get_train_fleet()"/>
+	    <mapping name="get_uturn_platforms" procedure="get_pt_uturn_platforms()"/>
             <!--<mapping name="restricted_reg_segments" procedure="get_section_banned_area()"/>
             <mapping name="restricted_reg_in_turning" procedure="get_banned_area_in_turning()"/>
             <mapping name="restricted_reg_out_turning" procedure="get_banned_area_out_turning()"/>
@@ -160,7 +161,7 @@
     <!-- 2. "pt_bus_routes" -->
     <!-- 3. "pt_bus_stops" -->
     <!-- The current control strategy for buses. Can be "headway_based", "evenheadway_based", "hybrid_based", or (default) "no_control" -->
-    <busController enabled="false" busline_control_type="headway_based"/>
+    <busController enabled="true" busline_control_type="headway_based"/>
 
     <!-- The current control strategy for train. Can be "fixed_block", "moving_block"-->   
     <path-set-config-file value="data/pathset_config.xml" />
@@ -176,31 +177,43 @@
 	    <trainLine lineid="NE_1">
 	       <safe_operation_distance_meter value="50"/>
 	       <safe_operation_headway_sec value="90"/>
+		<mintrainid value="1"/>	       
+		<maxtrainid value="14"/>
 	       <max_capacity value="1600"/>
 	    </trainLine>
 	    <trainLine lineid="NE_2">
 		<safe_operation_distance_meter value="50"/>
 		<safe_operation_headway_sec value="90"/>
+		<mintrainid value="15"/>	       
+		<maxtrainid value="28"/>		
 		<max_capacity value="1600"/>
 	    </trainLine>
 	    <trainLine lineid="EW_1">
 		<safe_operation_distance_meter value="50"/>
 		<safe_operation_headway_sec value="90"/>
+		<mintrainid value="1"/>	       
+		<maxtrainid value="25"/>
 		<max_capacity value="1600"/>
 	    </trainLine>
 	    <trainLine lineid="EW_2">
 		<safe_operation_distance_meter value="50"/>
 		<safe_operation_headway_sec value="90"/>
+		<mintrainid value="26"/>	       
+		<maxtrainid value="50"/>
 		<max_capacity value="1600"/>
 	    </trainLine>
 	    <trainLine lineid="NS_1">
 		<safe_operation_distance_meter value="50"/>
 		<safe_operation_headway_sec value="90"/>
+		<mintrainid value="1"/>	       
+		<maxtrainid value="21"/>
 		<max_capacity value="1600"/>
 	    </trainLine>
 	    <trainLine lineid="NS_2">
 		<safe_operation_distance_meter value="50"/>
 		<safe_operation_headway_sec value="90"/>
+		<mintrainid value="22"/>	       
+		<maxtrainid value="42"/>
 		<max_capacity value="1600"/>
 	    </trainLine>
 	</trainProperties>

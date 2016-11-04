@@ -63,7 +63,8 @@ public:
 		REQUESTED_LEAVING_PLATFORM,
 		REQUESTED_TAKE_UTURN,
 		REQUESTED_TO_PLATFROM,
-		REQUESTED_TO_DEPOT
+		REQUESTED_TO_DEPOT,
+		WAIT_AFTER_UTURN
 	};
 
 	static long boardPassengerCount;
@@ -124,7 +125,7 @@ public:
 	 * @return dwell time in seconds
 	 */
 
-	void calculateDwellTime(int boarding,int alighting,int noOfPassengerInTrain,timeslice now);
+	void calculateDwellTime(int boarding,int alighting,int noOfPassengerInTrain,timeslice now,bool forAlightwhileWaiting);
 
 	/**
 	 * get train line id
@@ -399,6 +400,8 @@ public:
 	bool hasForceAlightedInDisruption();
 
 	void setHasForceAlightedInDisruption(bool hasForceAlighted);
+	int getInitialNumberOfPassengers();
+	void setInitialNumberOfPassengers(int initialnumberofpassengers);
 
 	/**
 	 * Event handler which provides a chance to handle event transfered from parent agent.
@@ -473,6 +476,8 @@ private:
 	bool isToBeRemovedFromStationAgent=false;
 	bool hasforceAlightedInDisruption = false;
 	int maxCapacity=0;
+	bool isHoldingTimeReset =false;
+	int initialnumberofpassengers=0;
 	/* board passenger count */
 
 

@@ -1373,8 +1373,10 @@ namespace sim_mob
 		double TrainMovement::getRealSpeedLimit()
 		{
 			TrainUpdateParams& params = parentDriver->getParams();
-			if(parentDriver->getTrainId()==1&&((int)getTotalCoveredDistance())==11)
+			double disNE=trainPathMover.getDistanceToNextPlatform(trainPlatformMover.getNextPlatform());
+			if(parentDriver->getTrainId()==1&&boost::iequals(parentDriver->getNextPlatform()->getPlatformNo(),"NE17_1"))
 			{
+				double lim=trainPathMover.getCurrentSpeedLimit()*convertKmPerHourToMeterPerSec;
 				int x=0;
 			}
 			bool stationCaseDecisionConfirmed=false;
@@ -1612,9 +1614,9 @@ namespace sim_mob
 					double accRate = (speedLimit - params.currentSpeed)/params.secondsInTick;
 					if(accRate<0)
 					{
-						if(accRate<(-trainPathMover.getCurrentAccelerationRate()))
+						if(accRate<(-trainPathMover.getCurrentDecelerationRate()))
 						{
-							accRate = -trainPathMover.getCurrentAccelerationRate();
+							accRate = -trainPathMover.getCurrentDecelerationRate();
 						}
 					}
 					else
@@ -1638,7 +1640,7 @@ namespace sim_mob
 					}
 					else if (distanceToNextObject==params.disToNextPlatform)
 					{
-						if(distanceRemaining<0||speedInNextFrameTick>std::sqrt(2.0*trainPathMover.getCurrentAccelerationRate()*distanceRemaining))
+						if(distanceRemaining<0||speedInNextFrameTick>std::sqrt(2.0*trainPathMover.getCurrentDecelerationRate()*distanceRemaining))
 						{
 							params.currCase=TrainUpdateParams::STATION_CASE;
 							return distanceToNextObject;

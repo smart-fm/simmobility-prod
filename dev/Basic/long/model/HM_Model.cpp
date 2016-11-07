@@ -2369,7 +2369,10 @@ void HM_Model::getLogsumOfVaryingHomeOrWork(BigSerial householdId)
 		}
 
 
-		printHouseholdHitsLogsum( "logsum", hitsSample->getHouseholdHitsId() , to_string(householdId), to_string(householdIndividualIds[n]), to_string(thisIndividual->getMemberId()), logsum  );
+		{
+			boost::mutex::scoped_lock lock( mtx5 );
+			printHouseholdHitsLogsum( "logsum", hitsSample->getHouseholdHitsId() , to_string(householdId), to_string(householdIndividualIds[n]), to_string(thisIndividual->getMemberId()), logsum  );
+		}
 		//printHouseholdHitsLogsum( "travelProbability", hitsSample->getHouseholdHitsId() , householdId, householdIndividualIds[n], thisIndividual->getMemberId(), travelProbability );
 		//printHouseholdHitsLogsum( "tripsExpected", hitsSample->getHouseholdHitsId() , householdId, householdIndividualIds[n], thisIndividual->getMemberId(), tripsExpected );
 	}

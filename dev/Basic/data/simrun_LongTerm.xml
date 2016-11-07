@@ -124,8 +124,8 @@
 	    <awakeningModel enabled="true">
 		    <initialHouseholdsOnMarket value="15000"/>
 		    <dailyHouseholdAwakenings value="400"/>
-		    <awakenModelShan value="true"/>
-		    <awakenModelRandom value="false"/>
+		    <awakenModelShan value="false"/>
+		    <awakenModelRandom value="true"/>
 		    <awakenModelJingsi value="false"/>		
 	    </awakeningModel>
 	    <vacantUnitActivationProbability value="0.375"/>

@@ -2236,6 +2236,9 @@ void HM_Model::getLogsumOfVaryingHomeOrWork(BigSerial householdId)
 		if( thisIndividual->getVehicleCategoryId() > 0)
 			vehicleOwnership = 1;
 
+		if( thisIndividual->getEmploymentStatusId() > 3 )
+			continue;
+
 		vector<double> logsum;
 		vector<double> travelProbability;
 		vector<double> tripsExpected;

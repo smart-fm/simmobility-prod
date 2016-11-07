@@ -2217,10 +2217,12 @@ void HM_Model::getLogsumOfVaryingHomeOrWork(BigSerial householdId)
 		if( !currentHousehold )
 			return;
 
+		/*
 		if(logsumUniqueCounter.find(hitsSample->getHouseholdHitsId()) == logsumUniqueCounter.end())
 			logsumUniqueCounter.insert(hitsSample->getHouseholdHitsId());
 		else
 			return;
+		*/
 	}
 
 	Household *currentHousehold = getHouseholdById( householdId );
@@ -2289,6 +2291,8 @@ void HM_Model::getLogsumOfVaryingHomeOrWork(BigSerial householdId)
 			AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, (boost::format( "individualId %1% has an empty work taz.") % householdIndividualIds[n]).str());
 		}
 
+		vector<double>tazIds;
+
 		for( int m = 1; m <= this->tazs.size(); m++)
 		{
 			Taz *tazObjList = getTazById( m );
@@ -2305,6 +2309,8 @@ void HM_Model::getLogsumOfVaryingHomeOrWork(BigSerial householdId)
 
 			if( tazObjList->getStatus0812() == 3)
 				continue;
+			else
+				tazIds.push_back( tazObjList->getId() );
 
 			PersonParams personParams;
 
@@ -2355,9 +2361,17 @@ void HM_Model::getLogsumOfVaryingHomeOrWork(BigSerial householdId)
 			tripsExpected.push_back(tripsExpectedD);
 		}
 
-		printHouseholdHitsLogsum( "logsum", hitsSample->getHouseholdHitsId() , householdId, householdIndividualIds[n], thisIndividual->getMemberId(), logsum  );
-		printHouseholdHitsLogsum( "travelProbability", hitsSample->getHouseholdHitsId() , householdId, householdIndividualIds[n], thisIndividual->getMemberId(), travelProbability );
-		printHouseholdHitsLogsum( "tripsExpected", hitsSample->getHouseholdHitsId() , householdId, householdIndividualIds[n], thisIndividual->getMemberId(), tripsExpected );
+		static bool printTitle = true;
+		if(printTitle)
+		{
+			printTitle = false;
+			printHouseholdHitsLogsum("title", "hitsId", "householdId", "individualId", "paxId", tazIds);
+		}
+
+
+		printHouseholdHitsLogsum( "logsum", hitsSample->getHouseholdHitsId() , to_string(householdId), to_string(householdIndividualIds[n]), to_string(thisIndividual->getMemberId()), logsum  );
+		//printHouseholdHitsLogsum( "travelProbability", hitsSample->getHouseholdHitsId() , householdId, householdIndividualIds[n], thisIndividual->getMemberId(), travelProbability );
+		//printHouseholdHitsLogsum( "tripsExpected", hitsSample->getHouseholdHitsId() , householdId, householdIndividualIds[n], thisIndividual->getMemberId(), tripsExpected );
 	}
 }
 

@@ -1015,28 +1015,33 @@ double DriverMovement::getDistanceToStopLocation(double perceptionDistance)
 	
 	//Distance along which we have scanned for the stopping points
 	double scannedDist = distToEndOfWayPt;
+		
+	std::map<unsigned int, std::vector<StopPoint> >::iterator itStopPtPool = params.stopPointPool.end();
 	
 	//Find the stop points in the current segment
-	std::map<unsigned int, std::vector<StopPoint> >::iterator itStopPtPool = params.stopPointPool.find(wayPtIt->roadSegment->getRoadSegmentId());	
-	
-	//Check if the current segment has any stop-points
-	if(itStopPtPool != params.stopPointPool.end())
+	if(wayPtIt->type == WayPoint::ROAD_SEGMENT)
 	{
-		double distCovered = fwdDriverMovement.getDistCoveredOnCurrWayPt();
-		
-		//Look for the first stop-point in front of us, but within the perception distance
-		std::vector<StopPoint>::const_iterator itStopPts = itStopPtPool->second.begin();
-		while(itStopPts != itStopPtPool->second.end() && (itStopPts->distance - distCovered) <= perceptionDistance)
+		itStopPtPool = params.stopPointPool.find(wayPtIt->roadSegment->getRoadSegmentId());
+
+		//Check if the current segment has any stop-points
+		if (itStopPtPool != params.stopPointPool.end())
 		{
-			if(itStopPts->distance >= distCovered)
+			double distCovered = fwdDriverMovement.getDistCoveredOnCurrWayPt();
+
+			//Look for the first stop-point in front of us, but within the perception distance
+			std::vector<StopPoint>::const_iterator itStopPts = itStopPtPool->second.begin();
+			while (itStopPts != itStopPtPool->second.end() && (itStopPts->distance - distCovered) <= perceptionDistance)
 			{
-				params.currentStopPoint = *itStopPts;
-				distance = params.currentStopPoint.distance - distCovered;
-				isStopPointFound = true;
-				break;
+				if (itStopPts->distance >= distCovered)
+				{
+					params.currentStopPoint = *itStopPts;
+					distance = params.currentStopPoint.distance - distCovered;
+					isStopPointFound = true;
+					break;
+				}
+
+				++itStopPts;
 			}
-			
-			++itStopPts;
 		}
 	}
 	

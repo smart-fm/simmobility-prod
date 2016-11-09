@@ -2240,13 +2240,6 @@ void HM_Model::getLogsumOfVaryingHomeOrWork(BigSerial householdId)
 			return;
 
 
-		auto groupId = workersGrpByLogsumParamsById.find(householdId);
-
-		if( logsumUniqueCounter.find(groupId->second->getLogsumCharacteristicsGroupId()) == logsumUniqueCounter.end())
-			logsumUniqueCounter.insert( groupId->second->getLogsumCharacteristicsGroupId() );
-		else
-			return;
-
 		/*
 		if(logsumUniqueCounter.find(hitsSample->getHouseholdHitsId()) == logsumUniqueCounter.end())
 			logsumUniqueCounter.insert(hitsSample->getHouseholdHitsId());
@@ -2262,6 +2255,16 @@ void HM_Model::getLogsumOfVaryingHomeOrWork(BigSerial householdId)
 	for( int n = 0; n < householdIndividualIds.size(); n++ )
 	{
 		Individual *thisIndividual = this->getIndividualById(householdIndividualIds[n]);
+
+		auto groupId = workersGrpByLogsumParamsById.find(thisIndividual->getId());
+
+		if( groupId == workersGrpByLogsumParamsById.end())
+			continue;
+
+		if( logsumUniqueCounter.find(groupId->second->getLogsumCharacteristicsGroupId()) == logsumUniqueCounter.end())
+			logsumUniqueCounter.insert( groupId->second->getLogsumCharacteristicsGroupId() );
+		else
+			continue;
 
 		int vehicleOwnership = 0;
 
@@ -2311,13 +2314,13 @@ void HM_Model::getLogsumOfVaryingHomeOrWork(BigSerial householdId)
 
 		if( tazHome <= 0 )
 		{
-			PrintOutV( " individualId " << householdIndividualIds[n] << " has an empty home taz" << std::endl);
+			//PrintOutV( " individualId " << householdIndividualIds[n] << " has an empty home taz" << std::endl);
 			AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, (boost::format( "individualId %1% has an empty home taz.") % householdIndividualIds[n]).str());
 		}
 
 		if( tazWork <= 0 )
 		{
-			PrintOutV( " individualId " << householdIndividualIds[n] << " has an empty work taz" << std::endl);
+			//PrintOutV( " individualId " << householdIndividualIds[n] << " has an empty work taz" << std::endl);
 			AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, (boost::format( "individualId %1% has an empty work taz.") % householdIndividualIds[n]).str());
 		}
 

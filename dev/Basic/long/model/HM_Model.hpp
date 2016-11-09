@@ -518,6 +518,7 @@ namespace sim_mob
             boost::mutex mtx3;
             boost::mutex mtx4;
             boost::mutex mtx5;
+            boost::mutex mtx6;
             boost::mutex idLock;
             boost::mutex DBLock;
             boost::unordered_map<BigSerial, double>tazLevelLogsum;

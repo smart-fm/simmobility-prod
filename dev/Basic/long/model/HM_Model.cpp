@@ -2256,15 +2256,25 @@ void HM_Model::getLogsumOfVaryingHomeOrWork(BigSerial householdId)
 	{
 		Individual *thisIndividual = this->getIndividualById(householdIndividualIds[n]);
 
-		auto groupId = workersGrpByLogsumParamsById.find(thisIndividual->getId());
+        {
 
-		if( groupId == workersGrpByLogsumParamsById.end())
-			continue;
+			if(!( thisIndividual->getId() >= 0 && thisIndividual->getId() < 10000000 ))
+				continue;
 
-		if( logsumUniqueCounter.find(groupId->second->getLogsumCharacteristicsGroupId()) == logsumUniqueCounter.end())
-			logsumUniqueCounter.insert( groupId->second->getLogsumCharacteristicsGroupId() );
-		else
-			continue;
+			boost::mutex::scoped_lock lock( mtx6 );
+
+			auto groupId = workersGrpByLogsumParamsById.find(thisIndividual->getId());
+
+			if( groupId == workersGrpByLogsumParamsById.end())
+					continue;
+
+			if( logsumUniqueCounter.find(groupId->second->getLogsumCharacteristicsGroupId()) == logsumUniqueCounter.end())
+					logsumUniqueCounter.insert( groupId->second->getLogsumCharacteristicsGroupId() );
+			else
+					continue;
+        }
+
+
 
 		int vehicleOwnership = 0;
 

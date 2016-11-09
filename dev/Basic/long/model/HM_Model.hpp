@@ -8,6 +8,7 @@
  * Created on October 21, 2013, 3:08 PM
  */
 #pragma once
+#include <database/entity/WorkersGrpByLogsumParams.hpp>
 #include "Model.hpp"
 #include "database/entity/Household.hpp"
 #include "database/entity/Unit.hpp"
@@ -190,6 +191,9 @@ namespace sim_mob
 
             typedef std::vector<LtVersion*> LtVersionList;
             typedef boost::unordered_map<BigSerial, LtVersion*> LtVersionMap;
+
+            typedef std::vector<WorkersGrpByLogsumParams*> WorkersGrpByLogsumParamsList;
+            typedef boost::unordered_map<BigSerial, WorkersGrpByLogsumParams*> WorkersGrpByLogsumParamsMap;
 
             /**
              * Taz statistics
@@ -424,7 +428,7 @@ namespace sim_mob
             vector<double> getlogSqrtFloorAreacondo() const { return logSqrtFloorAreacondo;}
 
 
-            set<string> logsumUniqueCounter;
+            set<int> logsumUniqueCounter;
 
             void  loadLTVersion(DB_Connection &conn);
 
@@ -604,6 +608,9 @@ namespace sim_mob
 
             LtVersionList ltVersionList;
             LtVersionMap ltVersionById;
+
+            WorkersGrpByLogsumParamsList workersGrpByLogsumParams;
+			WorkersGrpByLogsumParamsMap workersGrpByLogsumParamsById;
 
 
 

@@ -1390,6 +1390,28 @@ void HM_Model::startImpl()
 	{
 		loadLTVersion(conn);
 
+		{
+			soci::session sql;
+			sql.open(soci::postgresql, conn.getConnectionStr());
+
+			std::string storedProc = CALIBRATION_SCHEMA + "workers_grp_by_logsum_params";
+
+			//SQL statement
+			soci::rowset<WorkersGrpByLogsumParams> workers_grp_by_logsum_params = (sql.prepare << "select * from " + storedProc);
+
+			for (soci::rowset<WorkersGrpByLogsumParams>::const_iterator itWorkersGrpByLogsumParams = workers_grp_by_logsum_params.begin();
+																		itWorkersGrpByLogsumParams  != workers_grp_by_logsum_params.end();
+																		++itWorkersGrpByLogsumParams )
+			{
+				WorkersGrpByLogsumParams* this_row = new WorkersGrpByLogsumParams(*itWorkersGrpByLogsumParams );
+				workersGrpByLogsumParams.push_back(this_row);
+				workersGrpByLogsumParamsById.insert(std::make_pair(this_row->getIndividualId(), this_row));
+			}
+
+			PrintOutV("Number of WorkersGrpByLogsumParams: " << workersGrpByLogsumParams.size() << std::endl );
+		}
+
+
 		loadData<LogsumMtzV2Dao>( conn, logsumMtzV2, logsumMtzV2ById, &LogsumMtzV2::getTazId );
 		PrintOutV("Number of LogsumMtzV2: " << logsumMtzV2.size() << std::endl );
 
@@ -1989,10 +2011,10 @@ void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId)
 		if( !hitsSample )
 			return;
 
-		if(logsumUniqueCounter.find(hitsSample->getHouseholdHitsId()) == logsumUniqueCounter.end())
-			logsumUniqueCounter.insert(hitsSample->getHouseholdHitsId());
-		else
-			return;
+		//if(logsumUniqueCounter.find(hitsSample->getHouseholdHitsId()) == logsumUniqueCounter.end())
+		//	logsumUniqueCounter.insert(hitsSample->getHouseholdHitsId());
+		//else
+		//	return;
 	}
 
 	Household *currentHousehold = getHouseholdById( householdId );
@@ -2215,6 +2237,14 @@ void HM_Model::getLogsumOfVaryingHomeOrWork(BigSerial householdId)
 		Household *currentHousehold = getHouseholdById( householdId );
 
 		if( !currentHousehold )
+			return;
+
+
+		auto groupId = workersGrpByLogsumParamsById.find(householdId);
+
+		if( logsumUniqueCounter.find(groupId->second->getLogsumCharacteristicsGroupId()) == logsumUniqueCounter.end())
+			logsumUniqueCounter.insert( groupId->second->getLogsumCharacteristicsGroupId() );
+		else
 			return;
 
 		/*

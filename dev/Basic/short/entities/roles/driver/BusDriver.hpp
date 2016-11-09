@@ -10,7 +10,6 @@
 #include "BusDriverFacets.hpp"
 #include "entities/misc/BusTrip.hpp"
 #include "entities/Person_ST.hpp"
-#include "entities/vehicle/BusRoute.hpp"
 
 namespace sim_mob
 {

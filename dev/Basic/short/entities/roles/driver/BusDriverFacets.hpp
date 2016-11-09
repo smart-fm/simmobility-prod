@@ -11,7 +11,6 @@
 #include "conf/settings/DisableMPI.h"
 #include "entities/roles/passenger/Passenger.hpp"
 #include "entities/roles/RoleFacets.hpp"
-#include "entities/vehicle/Bus.hpp"
 
 namespace sim_mob
 {

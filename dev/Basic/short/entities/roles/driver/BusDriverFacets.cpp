@@ -126,7 +126,6 @@ void BusDriverMovement::frame_init()
 
 	if (newVehicle)
 	{
-		BusRoute nullRoute;
 		TripChainItem *tripChainItem = *(parent->currTripChainItem);
 		BusTrip *busTrip = dynamic_cast<BusTrip *> (tripChainItem);
 
@@ -139,10 +138,8 @@ void BusDriverMovement::frame_init()
 		
 		const string &busLine = busTrip->getBusLine()->getBusLineID();
 		
-		Vehicle *bus = new Bus(nullRoute, newVehicle, busLine);
 		parentBusDriver->setBusLineId(busLine);
-		parentBusDriver->setVehicle(bus);
-		delete newVehicle;
+		parentBusDriver->setVehicle(newVehicle);
 
 		//Set the initial values of the parameters
 		setOrigin(parentBusDriver->getParams());
@@ -259,13 +256,7 @@ std::string BusDriverMovement::frame_tick_output()
 			addLine << "\",\"fake\":\"" << (parentBusDriver->getParent()->isFake ? "true" : "false");
 		}
 
-		Bus *bus = dynamic_cast<Bus *> (parentBusDriver->getVehicle());
-		unsigned int passengerCount = 0;
-
-		if (bus)
-		{
-			passengerCount = bus->getPassengerCount();
-		}
+		Vehicle *bus = parentBusDriver->getVehicle();
 
 		stringstream output;
 		output << setprecision(8);
@@ -275,8 +266,8 @@ std::string BusDriverMovement::frame_tick_output()
 				<< "\",\"angle\":\"" << (360 - (baseAngle * 180 / M_PI))
 				<< "\",\"length\":\"" << bus->getLengthInM()
 				<< "\",\"width\":\"" << bus->getWidthInM()
-				<< "\",\"passengers\":\"" << passengerCount				
-				<< "\",\"buslineID\":\"" << bus->getBusLineID()
+				<< "\",\"passengers\":\"" << parentBusDriver->passengerList.size()
+				<< "\",\"buslineID\":\"" << parentBusDriver->getBusLineId()
 				<< addLine.str()
 				<< "\",\"info\":\"" << params.debugInfo
 				<< "\"})" << std::endl;

@@ -240,7 +240,7 @@
 	<output_statistics>                              
 		<journey_time file="journey_time.csv"/>
 		<waiting_time file="waiting_time.csv"/>
-		<waiting_count file="waiting_count.csv"/>
+		<waiting_count file="waiting_count.csv" interval="900000"/>
 		<travel_time file="travel_time.csv"/>
 		<pt_stop_stats file="pt_stop_stats.csv"/>		
 		<od_travel_time enabled="false" file-name="od_travel_time.csv" interval="900000"/>

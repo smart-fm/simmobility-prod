@@ -882,6 +882,7 @@ void ParseShortTermConfigFile::processWaitingCountsNode(xercesc::DOMElement* nod
 	if(node)
 	{
 		cfg.setWaitingCountStatsFilename(ParseString(GetNamedAttributeValue(node, "file"), "waiting_count.csv"));
+		cfg.setWaitingCountStatsInterval(ParseUnsignedInt(GetNamedAttributeValue(node, "interval"), 900000));
 	}
 }
 

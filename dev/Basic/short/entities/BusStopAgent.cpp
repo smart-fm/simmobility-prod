@@ -94,14 +94,17 @@ Entity::UpdateStatus BusStopAgent::frame_init(timeslice now)
 
 Entity::UpdateStatus BusStopAgent::frame_tick(timeslice now)
 {
-	WaitingCount waitingCnt;
-	waitingCnt.busStopNo = busStop->getStopCode();
-	waitingCnt.currTime = DailyTime(now.ms() + ConfigManager::GetInstance().FullConfig().simulation.baseGranMS).getStrRepr();
-	waitingCnt.count = waitingPersons.size();
-	
-	messaging::MessageBus::PostMessage(PT_Statistics::getInstance(), STORE_WAITING_PERSON_COUNT,
-											messaging::MessageBus::MessagePtr(new WaitingCountMessage(waitingCnt)));
+	if(now.ms() % ConfigManager::GetInstance().FullConfig().getWaitingCountStatsInterval() == 0)
+	{
+		WaitingCount waitingCnt;
+		waitingCnt.busStopNo = busStop->getStopCode();
+		waitingCnt.currTime = DailyTime(now.ms() + ConfigManager::GetInstance().FullConfig().simulation.baseGranMS).getStrRepr();
+		waitingCnt.count = waitingPersons.size();
 
+		messaging::MessageBus::PostMessage(PT_Statistics::getInstance(), STORE_WAITING_PERSON_COUNT,
+				messaging::MessageBus::MessagePtr(new WaitingCountMessage(waitingCnt)));
+	}
+	
 	return UpdateStatus::Continue;
 }
 

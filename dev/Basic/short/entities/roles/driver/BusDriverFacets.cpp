@@ -186,7 +186,7 @@ void BusDriverMovement::frame_tick()
 		isBusStopNotified = true;
 		
 		//Store bus arrival time
-		DailyTime currTime(params.now.ms() + (params.elapsedSeconds * 1000) + ConfigManager::GetInstance().FullConfig().simStartTime().getValue());
+		DailyTime currTime(params.now.ms() + (params.elapsedSeconds / 1000) + ConfigManager::GetInstance().FullConfig().simStartTime().getValue());
 		busArrivalTime = currTime.getStrRepr();
 	}
 	

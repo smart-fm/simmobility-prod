@@ -306,6 +306,12 @@ void StopStatsManager::addStopStats(const PersonWaitingTime& personWaiting)
 void StopStatsManager::loadHistoricalStopStats()
 {
 	const sim_mob::ConfigParams& cfg = ConfigManager::GetInstance().FullConfig();
+
+	if(!cfg.isPublicTransitEnabled())
+	{
+		return;
+	}
+
 	std::string dbStr(cfg.getDatabaseConnectionString(false));
 	soci::session dbSession(soci::postgresql, dbStr);
 

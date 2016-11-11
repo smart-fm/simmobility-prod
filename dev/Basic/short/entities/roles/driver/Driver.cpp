@@ -13,7 +13,7 @@
 #include "entities/UpdateParams.hpp"
 #include "entities/misc/TripChain.hpp"
 #include "entities/roles/driver/BusDriver.hpp"
-#include "entities/roles/pedestrian/Pedestrian2.hpp"
+#include "entities/roles/pedestrian/Pedestrian.hpp"
 #include "logging/Log.hpp"
 #include "partitions/PartitionManager.hpp"
 #include "util/DebugFlags.hpp"

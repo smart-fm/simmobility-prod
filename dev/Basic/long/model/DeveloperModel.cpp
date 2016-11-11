@@ -129,7 +129,7 @@ void DeveloperModel::startImpl() {
 
 		loadData<BuildingAvgAgePerParcelDao>(conn,buildingAvgAgePerParcel,BuildingAvgAgeByParceld,&BuildingAvgAgePerParcel::getFmParcelId);
 		PrintOutV("building average age per parcel loaded " << buildingAvgAgePerParcel.size() << std::endl);
-		loadData<ROILimitsDao>(conn,roiLimits,roiLimitsByBuildingTypeId,&ROILimits::getBuildingTypeId);
+		loadData<ROILimitsDao>(conn,roiLimits,roiLimitsByDevTypeId,&ROILimits::getDevelopmentTypeId);
 		PrintOutV("roi limits loaded " << roiLimits.size() << std::endl);
 
 		ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
@@ -193,6 +193,7 @@ void DeveloperModel::startImpl() {
 
 		loadHedonicCoeffs(conn);
 		loadPrivateLagT(conn);
+		loadHedonicLogsums(conn);
 	}
 
 
@@ -307,12 +308,6 @@ const LogsumForDevModel* DeveloperModel::getAccessibilityLogsumsByTAZId(BigSeria
 		return itr->second;
 	}
 	return nullptr;
-}
-
-double DeveloperModel::getHedonicPriceLogsum(BigSerial tazId) const
-{
-	double logsum = housingMarketModel->ComputeHedonicPriceLogsumFromDatabase(tazId);
-	return logsum;
 }
 
 const ParcelsWithHDB* DeveloperModel::getParcelsWithHDB_ByParcelId(BigSerial fmParcelId) const
@@ -511,7 +506,7 @@ void DeveloperModel::processParcels()
 				}
 				else
 				{
-					if((parcel->getDevelopmentAllowed()!=2)||(parcel->getLotSize()< minLotSize)|| (getParcelsWithHDB_ByParcelId(parcel->getId())!= nullptr))
+					if((parcel->getDevelopmentAllowed()!=2)||(parcel->getLotSize()< minLotSize) || (getParcelsWithHDB_ByParcelId(parcel->getId())!= nullptr))
 					{
 						nonEligibleParcelList.push_back(parcel);
 					}
@@ -900,10 +895,10 @@ DeveloperModel::ROILimitsList DeveloperModel::getROILimits() const
 	return roiLimits;
 }
 
-const ROILimits* DeveloperModel::getROILimitsByBuildingTypeId(BigSerial buildingTypeId) const
+const ROILimits* DeveloperModel::getROILimitsByDevelopmentTypeId(BigSerial devTypeId) const
 {
-	ROILimitsMap::const_iterator itr = roiLimitsByBuildingTypeId.find(buildingTypeId);
-	if (itr != roiLimitsByBuildingTypeId.end())
+	ROILimitsMap::const_iterator itr = roiLimitsByDevTypeId.find(devTypeId);
+	if (itr != roiLimitsByDevTypeId.end())
 	{
 		return itr->second;
 	}
@@ -978,6 +973,35 @@ const LagPrivateT* DeveloperModel::getLagPrivateTByPropertyTypeId(BigSerial prop
 {
 	LagPrivateTMap::const_iterator itr = privateLagsByPropertyTypeId.find(propertyId);
 		if (itr != privateLagsByPropertyTypeId.end())
+		{
+			return itr->second;
+		}
+		return nullptr;
+}
+
+void DeveloperModel::loadHedonicLogsums(DB_Connection &conn)
+{
+	soci::session sql;
+		//sql = conn.getSession<soci::session>();
+		sql.open(soci::postgresql, conn.getConnectionStr());
+
+		const std::string storedProc = "main2012.getHedonicLogsums()";
+		//SQL statement
+		soci::rowset<HedonicLogsums> hedonicLogsums = (sql.prepare << "select * from " + storedProc);
+		for (soci::rowset<HedonicLogsums>::const_iterator itLogsums = hedonicLogsums.begin(); itLogsums != hedonicLogsums.end(); ++itLogsums)
+		{
+			//Create new node and add it in the map of nodes
+			HedonicLogsums* logsum = new HedonicLogsums(*itLogsums);
+			hedonicLogsumsList.push_back(logsum);
+			hedonicLogsumsByTazId.insert(std::make_pair(logsum->getTazId(), logsum));
+
+		}
+}
+
+const HedonicLogsums* DeveloperModel::getHedonicLogsumsByTazId(BigSerial tazId) const
+{
+	HedonicLogsumsMap::const_iterator itr = hedonicLogsumsByTazId.find(tazId);
+		if (itr != hedonicLogsumsByTazId.end())
 		{
 			return itr->second;
 		}

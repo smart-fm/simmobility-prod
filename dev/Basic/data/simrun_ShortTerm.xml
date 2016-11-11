@@ -22,7 +22,13 @@
 			<mapping name="pt_bus_dispatch_freq" procedure="get_pt_bus_frequency()"/>
 			<mapping name="pt_bus_routes" procedure="get_pt_bus_routes()"/>
 			<mapping name="pt_bus_stops" procedure="get_pt_bus_stops()"/>
+			<mapping name="mrt_road_segments" procedure="get_pt_mrt_segments()"/>
 			<!--Stored procedures for route-choice-->
+			<mapping name="pt_edges" procedure="get_pt_edges()"/>
+			<mapping name="pt_vertices" procedure="get_pt_vertices()"/>
+			<mapping name="rail_transit_edges" procedure="get_rail_transit_edges()"/>
+			<mapping name="pvt_pathset" procedure="get_pvt_pathset"/>
+			<mapping name="pt_pathset" procedure="get_pt_pathset"/>
 			<mapping name="erp_gantry_zone" procedure="get_erp_gantry_zone()"/>
 			<mapping name="erp_section" procedure="get_erp_section()"/>
 			<mapping name="erp_surcharge" procedure="get_erp_surcharge()"/>			
@@ -46,6 +52,7 @@
 			<mapping name="pt_bus_routes" procedure="get_pt_bus_routes()"/>
 			<mapping name="pt_bus_stops" procedure="get_pt_bus_stops()"/>
 			<!--Stored procedures for route-choice-->
+			<mapping name="pvt_pathset" procedure="get_pvt_pathset_small_cbd"/>
 			<mapping name="erp_gantry_zone" procedure="get_erp_gantry_zone()"/>
 			<mapping name="erp_section" procedure="get_erp_section()"/>
 			<mapping name="erp_surcharge" procedure="get_erp_surcharge()"/>
@@ -69,6 +76,7 @@
 			<mapping name="pt_bus_routes" procedure="get_pt_bus_routes_extcbd()"/>
 			<mapping name="pt_bus_stops" procedure="get_pt_bus_stops_extcbd()"/>
 			<!--Stored procedures for route-choice-->
+			<mapping name="pvt_pathset" procedure="get_pvt_pathset_extcbd"/>
 			<mapping name="erp_gantry_zone" procedure="get_erp_gantry_zone()"/>
 			<mapping name="erp_section" procedure="get_erp_section()"/>
 			<mapping name="erp_surcharge" procedure="get_erp_surcharge()"/>
@@ -94,6 +102,7 @@
 			<mapping name="pt_bus_routes" procedure="get_pt_bus_routes()"/>
 			<mapping name="pt_bus_stops" procedure="get_pt_bus_stops()"/>
 			<!--Stored procedures for route-choice-->
+			<mapping name="pvt_pathset" procedure="get_pvt_pathset_changi"/>
 			<mapping name="erp_gantry_zone" procedure="get_erp_gantry_zone()"/>
 			<mapping name="erp_section" procedure="get_erp_section()"/>
 			<mapping name="erp_surcharge" procedure="get_erp_surcharge()"/>
@@ -178,6 +187,12 @@
 		<communication count="0" granularity="100 ms"/>  <!-- Communication simulator -->
 	</workers>
 
+	<model_scripts path="scripts/lua/mid/behavior-models/" format="lua">
+		<script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models-->
+		<script name="pvtrc" file="pvtrc.lua"/> <!--private traffic route choice-->
+		<script name="ptrc" file="ptrc.lua"/> <!--public transit route choice-->
+	</model_scripts>
+
 	<!-- FMOD controller settings. This is for FMOD extention -->
 	<fmodcontroller enabled="false">
 		<ip_address value="127.0.0.1"/>
@@ -190,6 +205,7 @@
 	<vehicleTypes>
 		<vehicleType name="Car" length="4.0" width="2.0" capacity="4"/>
 		<vehicleType name="Truck" length="6.0" width="2.0" capacity="8"/>
+		<vehicleType name="BusTravel" length="12.0" width="3.0" capacity="100"/>
 	</vehicleTypes>
 
 	<tripFiles>
@@ -198,10 +214,12 @@
 	</tripFiles>
 
 	<person_characteristics>
-		<person lowerAge="20" upperAge="30" lowerSecs="3" upperSecs="7"/>
-		<person lowerAge="30" upperAge="40" lowerSecs="4" upperSecs="8"/>
-		<person lowerAge="40" upperAge="50" lowerSecs="5" upperSecs="9"/>
-		<person lowerAge="50" upperAge="60" lowerSecs="6" upperSecs="10"/>
+		<person lowerAge="0" upperAge="5" lowerSecs="5" upperSecs="10" walkSpeed_kmph="3"/>
+		<person lowerAge="5" upperAge="30" lowerSecs="3" upperSecs="7" walkSpeed_kmph="5"/>
+		<person lowerAge="30" upperAge="40" lowerSecs="4" upperSecs="8" walkSpeed_kmph="4.5"/>
+		<person lowerAge="40" upperAge="50" lowerSecs="5" upperSecs="9" walkSpeed_kmph="4"/>
+		<person lowerAge="50" upperAge="60" lowerSecs="6" upperSecs="10" walkSpeed_kmph="3"/>
+		<person lowerAge="60" upperAge="100" lowerSecs="8" upperSecs="15" walkSpeed_kmph="2.5"/>
 	</person_characteristics>
     
 	<!-- To Enable Buses: make sure the following stored procedures in your <proc_map> not empty and valid -->
@@ -212,22 +230,31 @@
 	<!-- The current control strategy for buses. Can be "headway_based", "evenheadway_based", "hybrid_based", or (default) "no_control" -->
 	<busController enabled="true" busline_control_type="headway_based"/>
 	
-	<!--If enabled, outputs the vehicles counted by every loop detector, accumulated over the given period length (in milliseconds)
-	i.e. count of vehicles passing a loop detector in every "600,000" milliseconds -->
-	<loop-detector_counts frequency="900000" outputEnabled="true" file-name="VehicleCounts.csv"/>
+	<!-- default capacity value -->
+	<bus_default_capacity value="100"/>
+
+	<!-- flag to control if PT graph should be loaded -->
+	<public_transit enabled="true"/>
+	
+	<!-- file names to output statistics-->   
+	<output_statistics>                              
+		<journey_time file="journey_time.csv"/>
+		<waiting_time file="waiting_time.csv"/>
+		<waiting_count file="waiting_count.csv" interval="900000"/>
+		<travel_time file="travel_time.csv"/>
+		<pt_stop_stats file="pt_stop_stats.csv"/>		
+		<od_travel_time enabled="false" file-name="od_travel_time.csv" interval="900000"/>
+		<segment_travel_time enabled="false" file-name="segment_travel_time.csv" interval="300000"/>
+		<!--If enabled, outputs the density at every road segment present at the end of the 
+		update interval (in milliseconds)-->
+		<segment_density updateInterval="300000" outputEnabled="false" file-name="density_map.csv"/>
+		<!--If enabled, outputs the vehicles counted by every loop detector, accumulated over the given period length (in milliseconds)
+		i.e. count of vehicles passing a loop detector in every "600,000" milliseconds -->
+		<loop-detector_counts frequency="900000" outputEnabled="true" file-name="VehicleCounts.csv"/>
+		<assignment_matrix enabled="false" file-name="assignment_matrix.csv"/>
+	</output_statistics>	
 
 	<path-set-config-file value="data/pathset_config.xml" />
-	<travel_time_update interval="300" alpha="0.5" />
-	<subtrip_travel_metrics_output enabled="true" file="subtrip_level_travel_metrics.csv" />
-
-	<amodcontroller enabled="false"/>
-
-	<assignment_matrix enabled="true" file-name="assignment_matrix.csv"/>
-	<od_travel_time enabled="true" file-name="od_travel_time.csv" interval="900000"/>
-	<segment_travel_time enabled="true" file-name="segment_travel_time.csv" interval="300000"/>
-
-	<!--(Short-term only) If enabled, outputs the density at every road segment present at the end of the 
-	update interval (in milliseconds)-->
-	<short-term_density-map updateInterval="300000" outputEnabled="true" file-name="private/DensityMap.csv"/>  
+	<travel_time_update interval="300" alpha="0.5" />	
 </config>
 

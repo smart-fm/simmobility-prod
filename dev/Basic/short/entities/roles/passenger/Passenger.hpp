@@ -4,108 +4,103 @@
 
 #pragma once
 
-#include "conf/settings/DisableMPI.h"
 #include "entities/Person_ST.hpp"
-#include "entities/roles/driver/BusDriver.hpp"
-#include "entities/roles/pedestrian/Pedestrian2.hpp"
-#include "buffering/BufferedDataManager.hpp"
-#include "PassengerFacets.hpp"
+#include "entities/roles/Role.hpp"
+#include "entities/roles/waitBusActivity/WaitBusActivity.hpp"
+#include "geospatial/network/WayPoint.hpp"
 
 namespace sim_mob
 {
 
-/**
- * A Person in the Passenger role is likely just waiting for his or her bus stop.
- * \author Meenu
- */
-class BusStop;
+class Agent;
 class Person;
-class Bus;
-class Passenger;
+class BusStop;
 class PassengerBehavior;
 class PassengerMovement;
-class PackageUtils;
-class UnPackageUtils;
+class Driver;
 
-struct PassengerUpdateParams : public UpdateParams
+class Passenger : public Role<Person_ST>
 {
+private:
+	/**Indicates whether the passenger has decided to alight*/
+	bool alightVehicle;
 
-	PassengerUpdateParams() : UpdateParams()
-	{
-	}
+	/** starting point of passenger - for travel time storage */
+	WayPoint startPoint;
 
-	explicit PassengerUpdateParams(boost::mt19937& gen) : UpdateParams(gen)
-	{
-	}
-
-	virtual ~PassengerUpdateParams()
-	{
-	}
-
-	virtual void reset(timeslice now)
-	{
-		UpdateParams::reset(now);
-	}
-
-#ifndef SIMMOB_DISABLE_MPI
-	static void pack(PackageUtils& package, const PassengerUpdateParams* params);
-	static void unpack(UnPackageUtils& unpackage, PassengerUpdateParams* params);
-#endif
-};
-
-class Passenger : public Role<Person_ST>, public UpdateWrapper<PassengerUpdateParams>
-{
+	/** ending node of passenger - for travel time storage */
+	WayPoint endPoint;
+	
 public:
-	Passenger(Person_ST *parent, MutexStrategy mtxStrat, PassengerBehavior* behavior = nullptr, PassengerMovement* movement = nullptr,
-			Role::Type roleType_ = RL_PASSENGER, std::string roleName_ = "passenger");
+	explicit Passenger(Person_ST *parent, PassengerBehavior *behavior = nullptr, PassengerMovement *movement = nullptr,
+					std::string roleName = std::string("Passenger_"), Role<Person_ST>::Type roleType = Role<Person_ST>::RL_PASSENGER);
+
 	virtual ~Passenger()
 	{
 	}
 
+	//Virtual overrides
 	virtual Role<Person_ST>* clone(Person_ST *parent) const;
-	void make_frame_tick_params(timeslice now);
+	
 	virtual std::vector<BufferedBase*> getSubscriptionParams();
+	
+	/**
+	 * Make alighting decision
+	 * 
+	 * @param nextStop is the stop at which the bus will arrive at next
+	 * @param driver is the driver of the bus
+	 */
+	void makeAlightingDecision(const BusStop *nextStop, BusDriver *driver);
 
-	const uint32_t getWaitingTimeAtStop() const
-	{
-		return waitingTimeAtStop;
-	}
-
-	void setWaitingTimeAtStop(uint32_t waitingTime)
-	{
-		waitingTimeAtStop = waitingTime;
-	}
-
-	//Serialization
-#ifndef SIMMOB_DISABLE_MPI
-public:
-
-	virtual void pack(PackageUtils& packageUtil)
-	{
-	}
-
-	virtual void unpack(UnPackageUtils& unpackageUtil)
-	{
-	}
-
-	virtual void packProxy(PackageUtils& packageUtil)
-	{
-	}
-
-	virtual void unpackProxy(UnPackageUtils& unpackageUtil)
+	/**
+	 * Collect travel time for current role
+	 */
+	virtual void collectTravelTime();
+	
+	/**
+	 * Message handler which provides a chance to handle message transfered from parent agent.
+	 * 
+	 * @param type of the message.
+	 * @param message data received.
+	 */
+	virtual void HandleParentMessage(messaging::Message::MessageType type, const messaging::Message& message);
+	
+	virtual void make_frame_tick_params(timeslice now)
 	{
 	}
-#endif
 
-public:
-	Shared<Driver*> busdriver; ///passenger should have info about the driver
-	Shared<bool> BoardedBus;
-	Shared<bool> AlightedBus;
-	uint32_t waitingTimeAtStop;
-private:
-	PassengerUpdateParams params;
+	bool canAlightVehicle() const
+	{
+		return alightVehicle;
+	}
 
+	void setAlightVehicle(bool alight)
+	{
+		this->alightVehicle = alight;
+	}
+
+	const WayPoint& getEndPoint() const
+	{
+		return endPoint;
+	}
+
+	void setEndPoint(const WayPoint& endPoint)
+	{
+		this->endPoint = endPoint;
+	}
+
+	const WayPoint& getStartPoint() const
+	{
+		return startPoint;
+	}
+
+	void setStartPoint(const WayPoint& startPoint)
+	{
+		this->startPoint = startPoint;
+	}
+	
 	friend class PassengerBehavior;
 	friend class PassengerMovement;
 };
+
 }

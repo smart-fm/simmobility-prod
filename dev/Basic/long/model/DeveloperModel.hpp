@@ -35,6 +35,7 @@
 #include "database/entity/ROILimits.hpp"
 #include "database/entity/HedonicCoeffs.hpp"
 #include "database/entity/LagPrivateT.hpp"
+#include "database/entity/HedonicLogsums.hpp"
 #include "agent/impl/DeveloperAgent.hpp"
 #include "agent/impl/RealEstateAgent.hpp"
 #include "model/HM_Model.hpp"
@@ -71,6 +72,7 @@ namespace sim_mob {
             typedef std::vector<Unit*>UnitList;
             typedef std::vector<HedonicCoeffs*>HedonicCoeffsList;
             typedef std::vector<LagPrivateT*>LagPrivateTList;
+            typedef std::vector<HedonicLogsums*>HedonicLogsumsList;
 
             //maps
             typedef boost::unordered_map<BigSerial,Parcel*> ParcelMap;
@@ -88,6 +90,7 @@ namespace sim_mob {
             typedef boost::unordered_map<BigSerial,ROILimits*> ROILimitsMap;
             typedef boost::unordered_map<BigSerial,HedonicCoeffs*>HedonicCoeffsMap;
             typedef boost::unordered_map<BigSerial,LagPrivateT*>LagPrivateTMap;
+            typedef boost::unordered_map<BigSerial,HedonicLogsums*>HedonicLogsumsMap;
 
         public:
             DeveloperModel(WorkGroup& workGroup);
@@ -138,11 +141,6 @@ namespace sim_mob {
              * these logsums are only used in 2008.
              */
             const LogsumForDevModel* getAccessibilityLogsumsByTAZId(BigSerial fmParcelId) const;
-
-            /*
-             * get the 2012 logsums from HM_Model
-             */
-            double getHedonicPriceLogsum(BigSerial tazId) const;
 
             const ParcelsWithHDB* getParcelsWithHDB_ByParcelId(BigSerial fmParcelId) const;
             DeveloperList getDeveloperAgents();
@@ -271,7 +269,7 @@ namespace sim_mob {
 
             ROILimitsList getROILimits() const;
 
-            const ROILimits* getROILimitsByBuildingTypeId(BigSerial buildingTypeId) const;
+            const ROILimits* getROILimitsByDevelopmentTypeId(BigSerial devTypeId) const;
 
             UnitList getBTOUnits(std::tm currentDate);
 
@@ -282,6 +280,11 @@ namespace sim_mob {
             void loadPrivateLagT(DB_Connection &conn);
 
             const LagPrivateT* getLagPrivateTByPropertyTypeId(BigSerial propertyId) const;
+
+            void loadHedonicLogsums(DB_Connection &conn);
+
+            const HedonicLogsums* getHedonicLogsumsByTazId(BigSerial tazId) const;
+
 
         protected:
             /**
@@ -370,13 +373,15 @@ namespace sim_mob {
             BuildingAvgAgePerParcelMap BuildingAvgAgeByParceld;
             std::string  outputSchema;
             ROILimitsList roiLimits;
-            ROILimitsMap roiLimitsByBuildingTypeId;
+            ROILimitsMap roiLimitsByDevTypeId;
             UnitList btoUnits;
             UnitList ongoingBtoUnits;
             HedonicCoeffsList hedonicCoefficientsList;
             HedonicCoeffsMap hedonicCoefficientsByPropertyTypeId;
             LagPrivateTList privateLagsList;
             LagPrivateTMap privateLagsByPropertyTypeId;
+            HedonicLogsumsList hedonicLogsumsList;
+            HedonicLogsumsMap hedonicLogsumsByTazId;
         };
     }
 }

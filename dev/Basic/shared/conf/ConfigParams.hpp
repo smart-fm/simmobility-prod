@@ -222,6 +222,9 @@ private:
 
 	/** name of file to store waiting count statistics*/
 	std::string waitingCountStatsFilename;
+	
+	/** interval (ms) of storage of the waiting count statistics*/
+	unsigned int waitingCountStatsStorageInterval;
 
 	/** name of file to store travel time statistics*/
 	std::string travelTimeStatsFilename;
@@ -396,6 +399,20 @@ public:
      * @param str waiting count stats file name to be set
      */
 	void setWaitingCountStatsFilename(const std::string& str);
+	
+	/**
+	 * Retrieves the storage interval for waiting counts
+	 * 
+	 * @return storage interval for waiting counts
+	 */
+	unsigned int getWaitingCountStatsInterval() const;
+	
+	/**
+	 * Sets the storage interval for the waiting counts statistics
+	 * 
+	 * @param interval the interval in milli-seconds
+	 */
+	void setWaitingCountStatsInterval(unsigned int interval);
 
     /**
      * Retrieves travel time stats file name

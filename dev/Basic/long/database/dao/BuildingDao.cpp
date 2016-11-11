@@ -37,7 +37,7 @@ void BuildingDao::fromRow(Row& result, Building& outObj)
     outObj.freehold = result.get<int>("freehold", 0);
     outObj.floorSpace =  result.get<double>(		"floor_space", 		0.0);
     outObj.buildingType =  result.get<std::string>(	"building_type", std::string());
-    outObj.slaAddressId =  result.get<BigSerial>(		"sla_address_id", INVALID_ID);
+    outObj.slaAddressId =  0;//result.get<BigSerial>(		"sla_address_id", INVALID_ID);
 }
 
 void BuildingDao::toRow(Building& data, Parameters& outParams, bool update)

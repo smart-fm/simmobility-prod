@@ -12,6 +12,7 @@
 #include <iostream>
 #include <fstream>
 #include <boost/unordered_map.hpp>
+#include <boost/thread/mutex.hpp>
 
 namespace sim_mob
 {
@@ -91,6 +92,9 @@ namespace sim_mob
         private:
             typedef boost::unordered_map<LogFile, std::ofstream*> Files;
             boost::unordered_map<LogFile, std::ofstream*> streams; 
+
+            boost::mutex mtx;
+
         };
     }
 }

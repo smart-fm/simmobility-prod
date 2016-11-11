@@ -22,7 +22,7 @@
             <mapping name="lanes" procedure="get_lanes()"/>
             <mapping name="lane_polylines" procedure="get_lane_polylines()"/>
             <mapping name="lane_connectors" procedure="get_lane_connectors()"/>
-            <mapping name="pvt_pathset" procedure="get_pvt_pathset"/>
+            <mapping name="pvt_pathset" procedure="get_pvt_pathset_full"/>
             <mapping name="bus_stops" procedure="get_bus_stops()"/>
             <mapping name="pt_bus_dispatch_freq" procedure="get_pt_bus_frequency()"/>
             <mapping name="pt_bus_routes" procedure="get_pt_bus_routes()"/>
@@ -30,9 +30,9 @@
             <mapping name="pt_stop_stats" procedure="get_pt_stop_stats()"/>
             <mapping name="pt_edges" procedure="get_pt_tr_edges()"/>
             <mapping name="pt_vertices" procedure="get_pt_tr_vertices()"/>
-            <mapping name="pt_pathset" procedure="get_pt_pathset_tr"/>
-            <mapping name="mrt_road_segments" procedure="get_pt_train_segments()"/>
-            <mapping name="rail_transit_edges" procedure="get_rail_transit_edges()"/>
+            <mapping name="pt_pathset" procedure="get_pt_pathset_full"/>
+            <mapping name="mrt_road_segments" procedure="get_pt_mrt_segments()"/>
+	    <mapping name="rail_transit_edges" procedure="get_rail_transit_edges()"/>
             <mapping name="erp_gantry_zone" procedure="get_erp_gantry_zone()"/>
             <mapping name="screen_line" procedure="get_screen_line_segments()"/>
             <mapping name="erp_section" procedure="get_erp_section()"/>

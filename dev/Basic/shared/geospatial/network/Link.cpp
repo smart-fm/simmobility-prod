@@ -30,7 +30,7 @@ void Link::setLinkId(unsigned int linkId)
 	this->linkId = linkId;
 }
 
-const Node* Link::getFromNode() const
+Node* Link::getFromNode() const
 {
 	return fromNode;
 }
@@ -100,7 +100,7 @@ int Link::getRoadSegmentIndex(const RoadSegment * seg)const
 	return index;
 }
 
-const Node* Link::getToNode() const
+Node* Link::getToNode() const
 {
 	return toNode;
 }

@@ -4,7 +4,8 @@
 
 #include "Node.hpp"
 #include "TurningGroup.hpp"
-
+#include "Link.hpp"
+#include "entities/Person.hpp"
 using namespace sim_mob;
 
 namespace
@@ -90,6 +91,21 @@ unsigned int Node::getTrafficLightId() const
 	return trafficLightId;
 }
 
+std::vector<Node*> Node::getNeighbouringNodes()
+{
+	std::map<unsigned int,Link*> mapOfDownStreamLinks = getDownStreamLinks();
+	std::map<unsigned int,Link*>::iterator itr = mapOfDownStreamLinks.begin();
+	std::vector<Node*> nodeVector;
+	while(itr!=mapOfDownStreamLinks.end())
+	{
+		Link *link = (*itr).second;
+		Node *toNode = link->getToNode();
+		nodeVector.push_back(toNode);
+		itr++;
+	}
+	return nodeVector;
+}
+
 void Node::addTurningGroup(TurningGroup* turningGroup)
 {
 	//Find the map entry having the key given by the "from link" of the turning group
@@ -113,6 +129,31 @@ void Node::addTurningGroup(TurningGroup* turningGroup)
 		//Make a new entry into the outer map
 		turningGroups.insert(std::make_pair(turningGroup->getFromLinkId(), innerMap));
 	}
+}
+
+std::map<unsigned int,Link*> Node::getDownStreamLinks()
+{
+	return mapOfDownStreamLinks;
+}
+
+std::map<unsigned int,Link*> Node::getUpStreamLinks()
+{
+	return mapOfUpStreamLinks;
+}
+
+void Node::addDownStreamlink(Link *link)
+{
+	mapOfDownStreamLinks[link->getLinkId()] = link;
+}
+
+std::vector<Person*> Node::personsWaitingForTaxi()
+{
+	return waitingPersons;
+}
+
+void Node::addUpStreamLink(Link *link)
+{
+	mapOfUpStreamLinks[link->getLinkId()] = link;
 }
 
 const TurningGroup* Node::getTurningGroup(unsigned int fromLinkId, unsigned int toLinkId) const

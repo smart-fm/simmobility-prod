@@ -6,14 +6,13 @@
 
 #include <map>
 #include <string>
-
 #include "Point.hpp"
 #include "TurningGroup.hpp"
 
 namespace sim_mob
 {
 class TurningGroup;
-
+class Link;
 /**Defines the various types of nodes supported by the SimMobility network*/
 enum NodeType
 {
@@ -38,6 +37,7 @@ enum NodeType
  * \author Neeraj D
  * \author Harish L
  */
+class Person;
 class Node
 {
 private:
@@ -63,6 +63,11 @@ private:
 	 */
 	std::map<unsigned int, std::map<unsigned int, TurningGroup *> > turningGroups;
 
+	std::map<unsigned int,Link*> mapOfDownStreamLinks;
+	std::map<unsigned int,Link*> mapOfUpStreamLinks;
+	std::vector<Person*> waitingPersons;
+
+
 public:
 
 	Node();
@@ -79,6 +84,16 @@ public:
 
 	unsigned int getTrafficLightId() const;
 	void setTrafficLightId(unsigned int trafficLightId);
+
+	std::map<unsigned int,Link*> getDownStreamLinks();
+	std::map<unsigned int,Link*> getUpStreamLinks();
+
+	void addUpStreamLink(Link *link);
+	void addDownStreamlink(Link *link);
+
+	std::vector<Person*> personsWaitingForTaxi();
+
+	std::vector<Node*> getNeighbouringNodes();
 
     const std::map<unsigned int, std::map<unsigned int, TurningGroup *> >& getTurningGroups() const;
 
@@ -109,5 +124,7 @@ public:
      * @return pointer to the map of turning groups with 'to link id' as the key
      */
 	const std::map<unsigned int, TurningGroup *>& getTurningGroups(unsigned int fromLinkId) const;
+
+
 };
 }

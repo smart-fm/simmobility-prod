@@ -115,7 +115,7 @@ public:
 	unsigned int getLinkId() const;
 	void setLinkId(unsigned int linkId);
 
-	const Node* getFromNode() const;
+	Node* getFromNode() const;
 	void setFromNode(Node *fromNode);
 
 	unsigned int getFromNodeId() const;
@@ -135,7 +135,7 @@ public:
 
 	int getRoadSegmentIndex(const RoadSegment * seg)const;
 
-	const Node* getToNode() const;
+	Node* getToNode() const;
 	void setToNode(Node *toNode);
 
 	unsigned int getToNodeId() const;

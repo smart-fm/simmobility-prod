@@ -247,7 +247,7 @@ void Person_MT::initTripChain()
 	currTripChainItem = tripChain.begin();
 	const std::string& src = getAgentSrc();
 	DailyTime startTime = (*currTripChainItem)->startTime;
-	if (src == "XML_TripChain" || src == "DAS_TripChain" || src == "AMOD_TripChain" || src == "BusController")
+	if (src == "DAS_TripChain" || src == "AMOD_TripChain" || src == "BusController")
 	{
 		startTime = DailyTime((*currTripChainItem)->startTime.offsetMS_From(ConfigManager::GetInstance().FullConfig().simStartTime()));
 		setStartTime((*currTripChainItem)->startTime.offsetMS_From(ConfigManager::GetInstance().FullConfig().simStartTime()));

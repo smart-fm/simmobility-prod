@@ -11,7 +11,6 @@
 #include "conf/settings/DisableMPI.h"
 #include "entities/roles/passenger/Passenger.hpp"
 #include "entities/roles/RoleFacets.hpp"
-#include "entities/vehicle/Bus.hpp"
 
 namespace sim_mob
 {
@@ -67,6 +66,22 @@ class BusDriverMovement : public DriverMovement
 private:
 	/**The bus stops*/
 	std::vector<const BusStop *> busStops;
+	
+	/**Iterator pointing to the next bus stop*/
+	std::vector<const BusStop *>::const_iterator busStopTracker;
+	
+	/**Indicates whether the bus stop has been notified of the arrival of the bus*/
+	bool isBusStopNotified;
+	
+	/**Stores the bus arrival time at a bus stop*/
+	std::string busArrivalTime;
+	
+	/**The bus driver can estimate the dwell only after it knows the number of passengers alighting and boarding.
+	 * This is gathered through messages and it takes at-most 3 frame ticks to process all relevant messages. This counter is used 
+	 * to count the elapsed ticks
+	 */
+	unsigned int tickCountBoardingAlighting;
+	
 	/**
 	 * Initialises the bus path using the bus route information
 	 * 
@@ -88,6 +103,22 @@ protected:
 	/**The bus driver*/
 	BusDriver *parentBusDriver;
 	
+	/**
+	 * Checks if we need to stop ahead (Bus stop/AMOD pick-up/AMOD Drop-off)
+	 * 
+     * @param params
+     */
+	virtual void checkForStops(DriverUpdateParams &params);
+	
+	/**
+	 * Finds the nearest stop with in the perception distance and returns the distance to it
+	 *
+     * @param perceptionDistance the look ahead distance
+     * 
+	 * @return the distance to the nearest stop
+     */
+	virtual double getDistanceToStopLocation(double perceptionDistance);
+	
 public:
 	explicit BusDriverMovement();
 	virtual ~BusDriverMovement();
@@ -108,7 +139,7 @@ public:
 	 * This method outputs the parameters that changed at the end of the tick
      */
 	virtual std::string frame_tick_output();
-
+	
 	void setParentBusDriver(BusDriver *parentBusDriver)
 	{
 		if (!parentBusDriver)

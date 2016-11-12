@@ -30,7 +30,7 @@ void HouseholdDao::fromRow(Row& result, Household& outObj)
     outObj.size = result.get<int>(DB_FIELD_SIZE, 0);
     outObj.childUnder4  = result.get<int>(DB_FIELD_CHILDUNDER4, 0);
     outObj.childUnder15 = result.get<int>(DB_FIELD_CHILDUNDER15, 0);
-    outObj.adult = result.get<int>("adult", 0);
+    outObj.adult = result.get<int>("num_adults", 0);
     outObj.income = result.get<double>(DB_FIELD_INCOME, 0);
     outObj.housingDuration = result.get<int>(DB_FIELD_HOUSING_DURATION, 0);
     outObj.workers = result.get<int>(DB_FIELD_WORKERS, 0);
@@ -123,7 +123,7 @@ void HouseholdDao::insertHousehold(Household& houseHold,std::string schema)
 				+ DB_FIELD_SIZE + "= :v5, "
 				+ DB_FIELD_CHILDUNDER4 + "= :v6, "
 				+ DB_FIELD_CHILDUNDER15 + "= :v7, "
-				+ "adult" + "= :v8, "
+				+ "num_adults" + "= :v8, "
 				+ DB_FIELD_INCOME + "= :v9, "
 				+ DB_FIELD_HOUSING_DURATION + "= :v10, "
 				+ DB_FIELD_WORKERS + "= :v11, "
@@ -151,7 +151,7 @@ void HouseholdDao::insertHousehold(Household& houseHold,std::string schema)
 	{
 		const std::string DB_INSERT_HOUSEHOLD_OP = "INSERT INTO " + APPLY_SCHEMA(schema, ".household")
 							+ " (" + DB_FIELD_ID + ", "+ "lifestyle_id" + ", "+ DB_FIELD_UNIT_ID + ", "+ "ethnicity_id" + ", "+ "vehicle_category_id" + ", "+ DB_FIELD_SIZE + ", "+
-							DB_FIELD_CHILDUNDER4 + ", "+ DB_FIELD_CHILDUNDER15 + ", " + "adult" + ", "+ DB_FIELD_INCOME + ", "+ DB_FIELD_HOUSING_DURATION + ", " + "workers"+ ", "+
+							DB_FIELD_CHILDUNDER4 + ", "+ DB_FIELD_CHILDUNDER15 + ", " + "num_adults" + ", "+ DB_FIELD_INCOME + ", "+ DB_FIELD_HOUSING_DURATION + ", " + "workers"+ ", "+
 							"age_of_head" + ", "+ "pending_status_id" + ", " + "pending_from_date" + ", "+ "unit_pending" + ", "+ "taxi_availability" + ", " + "vehicle_ownership_option_id"+ ", "+
 							+ "time_on_market" + ", " + "time_off_market"+ ", "+ "is_bidder" + ", " + "is_seller"+ ", "+ "buy_sell_interval" + ", "+ "move_in_date" + ", " + "has_moved"+ ", "+
 							+ "tenure_status"  ", " + "awakened_day" + ") VALUES (:v1, :v2, :v3, :v4, :v5, :v6, :v7 ,:v8, :v9, :v10, :v11, :v12, :v13, :v14, :v15, :v16, :v17, :v18, :v19, :v20, :v21, :v22, :v23, :v24, :V25, :v26, :v27)";

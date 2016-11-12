@@ -28,6 +28,7 @@ void loadMRTData(soci::session& sql_, std::map<std::string, TrainStop*>& mrtStop
 {
 	//Reading the MRT data
 	std::string storedProc = sim_mob::ConfigManager::GetInstance().FullConfig().getDatabaseProcMappings().procedureMappings["mrt_road_segments"];
+	if(storedProc.empty()) { return; }
 	std::stringstream query;
 	query << "select * from " << storedProc;
 	soci::rowset<soci::row> rs = (sql_.prepare << query.str());

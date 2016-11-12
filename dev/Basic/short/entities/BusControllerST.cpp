@@ -117,7 +117,6 @@ void sim_mob::BusControllerST::assignBusTripChainWithPerson(std::set<sim_mob::En
 			if (tripIt->startTime.isAfterEqual(config.simStartTime()))
 			{
 				Person* person = new Person_ST("BusController", config.mutexStategy(), -1, tripIt->getPersonID());
-				person->setPersonCharacteristics();
 				vector<TripChainItem*> tripChain;
 				tripChain.push_back(const_cast<BusTrip*>(&(*tripIt)));
 				person->setTripChain(tripChain);

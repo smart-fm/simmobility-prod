@@ -16,7 +16,7 @@ const std::string EMPTY_STRING = "";
 /**
  * Schemas
  */
-const std::string MAIN_SCHEMA = "main2012.";
+const std::string MAIN_SCHEMA = "virtual_city.";
 const std::string CALIBRATION_SCHEMA = "calibration2012.";
 const std::string PUBLIC_SCHEMA = "public.";
 const std::string DEMAND_SCHEMA = "demand.";
@@ -25,7 +25,7 @@ const std::string DEMAND_SCHEMA = "demand.";
  * Tables
  */
 const std::string DB_TABLE_INCOME_CATEGORIES = APPLY_SCHEMA(MAIN_SCHEMA, "income_category");
-const std::string DB_TABLE_VEHICLE_OWNERSHIP_STATUS = APPLY_SCHEMA(MAIN_SCHEMA, "vehicle_ownership_status");
+const std::string DB_TABLE_VEHICLE_OWNERSHIP_STATUS = APPLY_SCHEMA(MAIN_SCHEMA, "vehicle_ownership_options");
 const std::string DB_TABLE_AM_COSTS = APPLY_SCHEMA(DEMAND_SCHEMA, "learned_amcosts");
 const std::string DB_TABLE_PM_COSTS = APPLY_SCHEMA(DEMAND_SCHEMA, "learned_pmcosts");
 const std::string DB_TABLE_OP_COSTS = APPLY_SCHEMA(DEMAND_SCHEMA, "learned_opcosts");

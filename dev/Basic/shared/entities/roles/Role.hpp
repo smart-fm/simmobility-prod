@@ -112,7 +112,8 @@ public:
 		RL_CARPASSENGER,
 		RL_PRIVATEBUSPASSENGER,
 		RL_TRUCKER_LGV,
-		RL_TRUCKER_HGV
+		RL_TRUCKER_HGV,
+		RL_TAXIDRIVER
 	};
 
 	/**Defines the various types of requests*/

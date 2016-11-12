@@ -146,6 +146,7 @@ const SegmentStats* MesoPathMover::getFirstSegStatsInNextLink(const SegmentStats
 
 bool MesoPathMover::hasNextSegStats(bool inSameLink) const
 {
+
 	if (currSegStatIt == path.end() || (currSegStatIt + 1) == path.end())
 	{
 		return false;
@@ -158,6 +159,14 @@ bool MesoPathMover::hasNextSegStats(bool inSameLink) const
 	else
 	{
 		return ((*currSegStatIt)->getRoadSegment()->getParentLink() != (*nextStatIt)->getRoadSegment()->getParentLink());
+	}
+}
+
+bool MesoPathMover::isEndOfPath()
+{
+	if (currSegStatIt == path.end()-1)
+	{
+		return true;
 	}
 }
 

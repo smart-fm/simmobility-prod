@@ -407,18 +407,6 @@ namespace sim_mob
 				const Lane* laneInNextSegment = getBestTargetLane(nxtSegStat, nextToNextSegStat);
 
 				double departTime = getLastAccept(laneInNextSegment, nxtSegStat);
-		/*		if(!nxtSegStat->isShortSegment())
-				{
-					if(nxtSegStat->hasQueue())
-					{
-						departTime += getAcceptRate(laneInNextSegment, nxtSegStat); //in seconds
-					}
-					else
-					{
-						departTime += (PASSENGER_CAR_UNIT / (nxtSegStat->getNumVehicleLanes() * nxtSegStat->getSegSpeed(true)));
-					}
-				}
-		*/
 				params.elapsedSeconds = std::max(params.elapsedSeconds, departTime - (params.now.ms()/1000.0)); //in seconds
 
 				const Link* nextLink = getNextLinkForLaneChoice(nxtSegStat);
@@ -473,53 +461,20 @@ namespace sim_mob
 		{
 			DriverUpdateParams& params = parentDriver->getParams();
 			TaxiDriver::DriverMode mode = parentDriver->getDriverMode();
-			/*if(mode == TaxiDriver::DRIVE_TO_TAXISTAND)
+			if(mode == TaxiDriver::DRIVE_TO_TAXISTAND)
 			{
-				if (parentDriver->parent->canMoveToNextSegment == Person_MT::GRANTED)
-				{
-					reachNextLinkIfPossible(params);
-				}
-				else if (parentDriver->parent->canMoveToNextSegment == Person_MT::DENIED)
-				{
-					if (parentDriver->getResource()->isMoving())
-					{
-						if (currLane)
-						{
-							if (parentDriver->parent->isQueuing)
-							{
-								moveInQueue();
-							}
-							else
-							{
-								addToQueue(); // adds to queue if not already in queue
-							}
 
-							params.elapsedSeconds = params.secondsInTick;
-							setParentData(params);
-						}
-					}
-					else
-					{
-						params.elapsedSeconds = params.secondsInTick;
-						pathMover.setPositionInSegment(0);
-						setParentData(params);
-					}
-					parentDriver->parent->canMoveToNextSegment = Person_MT::NONE;
-				}
 			}
 
 			else if(mode == TaxiDriver::QUEUING_AT_TAXISTAND)
 			{
-				//waiting for passenger
+
 			}
 
 			else if (mode == TaxiDriver::DRIVE_WITH_PASSENGER)
 			{
-				/*if(!parentDriver->hasPersonBoarded())
-				{
-					parentDriver->boardPassenger()
-				}
-			}*/
+
+			}
 
 			if (mode == TaxiDriver::CRUISE)
 			{
@@ -553,39 +508,7 @@ namespace sim_mob
 					}
 					parentDriver->parent->canMoveToNextSegment = Person_MT::NONE;
 				}
-				/*double pos;
-				if(pos == 0)
-				{
-					//get next node
-					Node * nextNode;
-					parentDriver->setCurrentNode(parentDriver->getDestinationNode());
-					parentDriver->setDestinationNode(nextNode);
-					SubTrip currSubTrip;
-					//currSubTrip.origin = WayPoint(parentDriver->getCurrentNode());
-					//currSubTrip.destination = WayPoint(parentDriver->getDestinationNode());
-					//parentDriver->driveToNode(parentDriver->getDestinationNode());
-					Node *currNode = parentDriver->getCurrentNode();
-					Node *destNode = parentDriver->getDestinationNode();
-					std::map<unsigned int,Link*> mapOfDownStreamLinks = currNode->getDownStreamLinks();
-					std::map<unsigned int,Link*>::iterator linkItr = mapOfDownStreamLinks.begin();
-					while(linkItr!=mapOfDownStreamLinks.end())
-					{
-						Link *link = (*linkItr).second;
-						Node *toNode = link->getToNode();
-						if(toNode == destNode)
-						{
-							link->getRoadSegments();
-							break;
-						}
-						linkItr++;
-					}
 
-				}
-				else
-				{
-					// move in the segment
-					// it has crossed the end of the link go to next node
-				}*/
 				if (!parentDriver->parent->requestedNextSegStats && params.elapsedSeconds < params.secondsInTick)
 				{
 					DriverMovement::frame_tick();

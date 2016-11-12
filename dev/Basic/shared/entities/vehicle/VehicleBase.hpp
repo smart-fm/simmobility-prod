@@ -23,6 +23,8 @@ const double BUS_PCU = 2;
  */
 const double BUS_LENGTH = sim_mob::BUS_PCU * sim_mob::PASSENGER_CAR_UNIT; // 2 times PASSENGER_CAR_UNIT
 
+const double TAXI_LENGTH = sim_mob::PASSENGER_CAR_UNIT;
+
 /**
  * A simple base class for all Vehicles
  *

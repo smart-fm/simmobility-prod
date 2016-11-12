@@ -103,6 +103,8 @@ public:
 	 */
 	bool hasNextSegStats(bool inSameLink) const;
 
+	bool isEndOfPath();
+
 	/**
 	 * increments the currSegStatIt
 	 */

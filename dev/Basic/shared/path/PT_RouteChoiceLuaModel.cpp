@@ -306,6 +306,12 @@ void loadPT_PathsetFromDB(soci::session& sql, const std::string& funcName, int o
 
 void PT_RouteChoiceLuaModel::loadPT_PathSet(int origin, int dest, const DailyTime& curTime, PT_PathSet& pathSet) const
 {
+	sim_mob::ConfigParams& config = sim_mob::ConfigManager::GetInstanceRW().FullConfig();
+	if(!config.isPublicTransitEnabled())
+	{
+		return;
+	}
+
 	const BusController* busController = BusController::GetInstance();
 	const TravelTimeManager* ttMgr = TravelTimeManager::getInstance();
 	const PT_Statistics* ptStats = PT_Statistics::getInstance();

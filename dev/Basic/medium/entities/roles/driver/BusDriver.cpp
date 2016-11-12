@@ -41,6 +41,7 @@ BusDriver::BusDriver(Person_MT* parent, const MutexStrategy& mtxStrat, BusDriver
 		BusDriverMovement* movement, std::string roleName, Role<Person_MT>::Type roleType) :
 		Driver(parent, behavior, movement, roleName, roleType),  waitingTimeAtbusStop(0.0), busSequenceNumber(1)
 {
+	int degug = 1;
 }
 
 BusDriver::~BusDriver(){}

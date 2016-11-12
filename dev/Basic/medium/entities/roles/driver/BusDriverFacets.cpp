@@ -113,7 +113,7 @@ void BusDriverMovement::frame_tick()
 			}
 		}
 		else
-		{
+		{	//how can it can be denied when serving bus stop??
 			params.elapsedSeconds = params.secondsInTick;
 			pathMover.setPositionInSegment(0);
 			setParentData(params);

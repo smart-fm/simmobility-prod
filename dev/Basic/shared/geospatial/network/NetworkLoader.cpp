@@ -100,6 +100,10 @@ void NetworkLoader::loadLinks(const std::string& storedProc)
 	{
 		//Create new node and add it in the map of nodes
 		Link* link = new Link(*itLinks);
+		Node *fromNode = link->getFromNode();
+		Node *toNode = link->getToNode();
+		fromNode->addDownStreamlink(link);
+		toNode->addUpStreamLink(link);
 		roadNetwork->addLink(link);
 	}
 }
@@ -197,6 +201,13 @@ void NetworkLoader::loadTurningPolyLines(const std::string& storedProc)
 
 void NetworkLoader::loadBusStops(const std::string& storedProc)
 {
+	sim_mob::ConfigParams& config = sim_mob::ConfigManager::GetInstanceRW().FullConfig();
+	if(!config.isPublicTransitEnabled())
+	{
+		sim_mob::Print() << "\nWARNING: public-transit is not enabled in the config file " << std::endl;
+		return;
+	}
+
 	if (storedProc.empty())
 	{
 		Print() << "Stored procedure to load bus stops not specified in the configuration file." 

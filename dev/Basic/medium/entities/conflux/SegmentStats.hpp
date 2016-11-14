@@ -16,6 +16,8 @@
 
 namespace sim_mob
 {
+class TaxiStandAgent;
+
 namespace medium
 {
 
@@ -432,6 +434,9 @@ protected:
 	 */
 	LaneStatsMap laneStatsMap;
 
+	/**taxiStandAgents for taxi-stand agents in this segment stats*/
+	std::vector<TaxiStandAgent*> taxiStandAgents;
+
 	/**
 	 * outermost lane in this segment stats.
 	 * This is a proper lane in the segment which is chosen by buses, taxis and
@@ -580,7 +585,17 @@ public:
 	 * @param busStopAgent is a pointer to a bus stop agent
 	 */
 	void addBusStopAgent(BusStopAgent* busStopAgent);
+	/**
+	 * get taxi-stands
+	 * @return taxi-stands list
+	 */
+	std::vector<const TaxiStand*>& getTaxiStand();
 
+	/**
+	 * add taxi-stand agent
+	 * @param taxiStandAgent is a pointer to a taxi-stand agent
+	 */
+	void addTaxiStandAgent(TaxiStandAgent* taxiStandAgent);
 	/**
 	 * Initializes all the bus stops in this segment stats.
 	 * The bus stop agents corresponding to the stops in this segment stats are

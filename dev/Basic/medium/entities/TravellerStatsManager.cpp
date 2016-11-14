@@ -23,12 +23,11 @@ TravellerStatsManager* TravellerStatsManager::getInstance()
 }
 
 TravellerStatsManager::TravellerStatsManager() {
-	// TODO Auto-generated constructor stub
 
 }
 
 TravellerStatsManager::~TravellerStatsManager() {
-	// TODO Auto-generated destructor stub
+
 }
 
 void TravellerStatsManager::loadHistoricalData()

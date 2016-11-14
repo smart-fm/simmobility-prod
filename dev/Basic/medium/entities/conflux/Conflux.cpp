@@ -2330,6 +2330,7 @@ void Conflux::CreateSegmentStats(const RoadSegment* rdSeg, Conflux* conflux, std
 
 	uint16_t statsNum = 1;
 	std::set<SegmentStats*>& segmentStatsWithStops = MT_Config::getInstance().getSegmentStatsWithBusStops();
+	std::set<SegmentStats*>& segmentStatsWithStands = MT_Config::getInstance().getSegmentStatsWithTaxiStands();
 	for (std::list<SegmentStats*>::iterator statsIt = splitSegmentStats.begin(); statsIt != splitSegmentStats.end(); statsIt++)
 	{
 		SegmentStats* stats = *statsIt;
@@ -2341,6 +2342,10 @@ void Conflux::CreateSegmentStats(const RoadSegment* rdSeg, Conflux* conflux, std
 		if (!(stats->getBusStops().empty()))
 		{
 			segmentStatsWithStops.insert(stats);
+		}
+		if(!(stats->getTaxiStand().empty()))
+		{
+			segmentStatsWithStands.insert(stats);
 		}
 	}
 }

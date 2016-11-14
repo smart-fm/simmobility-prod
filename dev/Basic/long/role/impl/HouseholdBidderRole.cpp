@@ -425,6 +425,7 @@ void HouseholdBidderRole::HandleMessage(Message::MessageType type, const Message
                 	vehicleBuyingWaitingTimeInDays = config.ltParams.vehicleOwnershipModel.vehicleBuyingWaitingTimeInDays;
                 	int simulationEndDay = config.ltParams.days;
                 	year = config.ltParams.year;
+                	getParent()->getHousehold()->setLastBidStatus(1);
 
                 	if(simulationEndDay < (moveInWaitingTimeInDays))
 
@@ -438,6 +439,8 @@ void HouseholdBidderRole::HandleMessage(Message::MessageType type, const Message
                 		houseHold->setMoveInDate(getDateBySimDay(year,moveInWaitingTimeInDays));
                 		HM_Model* model = getParent()->getModel();
                 		model->addHouseholdsTo_OPSchema(houseHold);
+
+                		getParent()->setAcceptedBid(true);
                 	}
 
                     break;
@@ -445,6 +448,7 @@ void HouseholdBidderRole::HandleMessage(Message::MessageType type, const Message
                 case NOT_ACCEPTED:
                 {
                     biddingEntry.incrementTries();
+                    getParent()->getHousehold()->setLastBidStatus(2);
                     break;
                 }
                 case BETTER_OFFER:
@@ -763,13 +767,6 @@ bool HouseholdBidderRole::pickEntryToBid()
             		maxEntry = entry;
             		maxWp = wp;
             		maxWtpe = wtp_e;
-
-                	boost::gregorian::date occupancydate = boost::gregorian::date_from_tm(unit->getOccupancyFromDate());
-
-                	if( simulationDate <  occupancydate )
-                	{
-                 		isBTO = true;
-                	}
             	}
             }
         }

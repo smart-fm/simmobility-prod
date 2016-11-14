@@ -76,8 +76,8 @@
 	-->
 
 	<file-based-credential id="fm_remote_mt">
-	<!-- <file path="private/fm_remote.cred"/> -->
-	     <file path="private/fm_local.cred"/>
+	 <file path="private/fm_remote.cred"/>
+	   <!--  <file path="private/fm_local.cred"/> -->
 	</file-based-credential>
 
 	<plaintext-credential id="LT_cred">
@@ -91,7 +91,7 @@
               
     <!-- Long Term Configurations parameters -->
     <longTermParams enabled ="true">
-    	<days value="5"/>
+    	<days value="365"/>
     	<maxIterations value="1"/>
     	<workers value="8"/>
     	<tickStep value="1"/>  
@@ -112,8 +112,8 @@
 		<initialProjectId value = "200000" />
 		<minLotSize value = "100.00" />
     	</developerModel>
-	<outputHouseholdLogsums enabled="true">
-	    <vehicleOwnershipLogsum value ="true"/>
+	<outputHouseholdLogsums enabled="false">
+	    <vehicleOwnershipLogsum value ="false"/>
 	    <fixedHomeVariableWork value ="false"/>
 	    <fixedWorkVariableHome value ="false"/>
 	</outputHouseholdLogsums>
@@ -122,10 +122,10 @@
             <timeOffMarket value="150"/>
             <timeInterval value="7"/>
 	    <awakeningModel enabled="true">
-		    <initialHouseholdsOnMarket value="150"/>
-		    <dailyHouseholdAwakenings value="40"/>
-		    <awakenModelShan value="true"/>
-		    <awakenModelRandom value="false"/>
+		    <initialHouseholdsOnMarket value="15000"/>
+		    <dailyHouseholdAwakenings value="400"/>
+		    <awakenModelShan value="false"/>
+		    <awakenModelRandom value="true"/>
 		    <awakenModelJingsi value="false"/>		
 	    </awakeningModel>
 	    <vacantUnitActivationProbability value="0.375"/>
@@ -135,7 +135,8 @@
 	    <bidderUnitsChoiceSet value = "50"/>
 	    <bidderBTOUnitsChoiceSet value = "12"/>
 	    <householdBiddingWindow value = "30" />
-	    <householdAwakeningPercentageByBTO value = "0.00001" />
+	    <householdAwakeningPercentageByBTO value = "0.1" />
+            <offsetBetweenUnitBuyingAndSellingAdvancedPurchase value = "30" />
         </housingModel>
 	<vehicleOwnershipModel enabled='false'>
 		<vehicleBuyingWaitingTimeInDays value= "1"/>

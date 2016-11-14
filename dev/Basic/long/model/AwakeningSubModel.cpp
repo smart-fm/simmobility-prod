@@ -18,6 +18,7 @@
 #include <stdlib.h>
 #include <vector>
 #include "util/PrintLog.hpp"
+#include "util/SharedFunctions.hpp"
 
 using namespace std;
 
@@ -191,7 +192,7 @@ namespace sim_mob
 
 			if( lifestyle == 1 && r2 < awaken_class1)
 			{
-				seller->setActive(true);
+				//seller->setActive(true);
 				bidder->setActive(true);
 
 				printAwakening(day, household);
@@ -210,13 +211,14 @@ namespace sim_mob
 					unit->setTimeOffMarket( 1 + config.ltParams.housingModel.timeOffMarket * (float)rand() / RAND_MAX);
 				}
 
+				household->setLastAwakenedDate(getDateBySimDay(HITS_SURVEY_YEAR,day));
 				model->incrementAwakeningCounter();
 				model->incrementLifestyle1HHs();
 			}
 			else
 			if( lifestyle == 2 && r2 < awaken_class2)
 			{
-				seller->setActive(true);
+				//seller->setActive(true);
 				bidder->setActive(true);
 
 				printAwakening(day, household);
@@ -236,13 +238,14 @@ namespace sim_mob
 					unit->setTimeOffMarket( 1 + config.ltParams.housingModel.timeOffMarket * (float)rand() / RAND_MAX);
 				}
 
+				household->setLastAwakenedDate(getDateBySimDay(HITS_SURVEY_YEAR,day));
 				model->incrementAwakeningCounter();
 				model->incrementLifestyle2HHs();
 			}
 			else
 			if( lifestyle == 3 && r2 < awaken_class3)
 			{
-				seller->setActive(true);
+				//seller->setActive(true);
 				bidder->setActive(true);
 
 				printAwakening(day, household);
@@ -261,6 +264,7 @@ namespace sim_mob
 					unit->setTimeOffMarket( 1 + config.ltParams.housingModel.timeOffMarket * (float)rand() / RAND_MAX);
 				}
 
+				household->setLastAwakenedDate(getDateBySimDay(HITS_SURVEY_YEAR,day));
 				model->incrementAwakeningCounter();
 				model->incrementLifestyle3HHs();
 			}
@@ -316,6 +320,24 @@ namespace sim_mob
 		    	if( !potentialAwakening)
 		    		continue;
 
+
+
+		    	boost::gregorian::date awakenDate = boost::gregorian::date_from_tm(potentialAwakening->getLastAwakenedDate());
+				boost::gregorian::date simulationDate(HITS_SURVEY_YEAR, 1, 1);
+				boost::gregorian::date_duration dt(day);
+				simulationDate = simulationDate + dt;
+
+				if(( potentialAwakening->getLastBidStatus() == 1 && simulationDate < config.ltParams.housingModel.awakeningModel.offMarketSucessfulBid + awakenDate ))
+				{
+					continue;
+				}
+
+				if(( potentialAwakening->getLastBidStatus() == 2 && simulationDate < config.ltParams.housingModel.awakeningModel.offMarketUnsucessfulBid + awakenDate ))
+				{
+					continue;
+
+				}
+
 		    	n++;
 
 		    	double movingRate = movingProbability(potentialAwakening, model ) / 100.0;
@@ -328,6 +350,7 @@ namespace sim_mob
 					continue;
 				}
 
+		    	potentialAwakening->setLastAwakenedDate(getDateBySimDay(HITS_SURVEY_YEAR,day));
                 model->incrementAwakeningCounter();
 		    	printAwakening(day, potentialAwakening);
 

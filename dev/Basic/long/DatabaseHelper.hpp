@@ -196,7 +196,7 @@ namespace sim_mob {
         const std::string DB_FIELD_POSTCODE_ID = "postcode_id";
         const std::string DB_FIELD_TAZ_ID = "taz_id";
         const std::string DB_FIELD_LIFESTYLE_ID = "lifestyle_id";
-        const std::string DB_FIELD_VEHICLE_CATEGORY_ID = "vehicle_category_id";
+        const std::string DB_FIELD_VEHICLE_CATEGORY_ID = "vehicle_hitscategory_id";
         const std::string DB_FIELD_ETHNICITY_ID = "ethnicity_id";
         const std::string DB_FIELD_TENURE_ID = "tenure_id";
         const std::string DB_FIELD_INCOME = "hh_income";

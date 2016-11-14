@@ -432,7 +432,7 @@ Awakening* HM_Model::getAwakeningById( BigSerial id) const
 	return nullptr;
 }
 
-const Unit* HM_Model::getUnitById(BigSerial id) const
+Unit* HM_Model::getUnitById(BigSerial id) const
 {
 	UnitMap::const_iterator itr = unitsById.find(id);
 	if (itr != unitsById.end())
@@ -1353,7 +1353,7 @@ void HM_Model::setTaxiAccess2012(const Household *household)
 		std::uniform_real_distribution<> dis(0.0, 1.0);
 		const double randomNum = dis(gen);
 
-		writeRandomNumsToFile(randomNum);
+		//writeRandomNumsToFile(randomNum);
 
 		if(randomNum < probabilityTaxiAccess)
 		{
@@ -2610,6 +2610,13 @@ void HM_Model::addHouseholdUnits(boost::shared_ptr<HouseholdUnit> &newHouseholdU
 	DBLock.unlock();
 }
 
+void HM_Model::addUpdatedUnits(boost::shared_ptr<Unit> &updatedUnit)
+{
+	DBLock.lock();
+	updatedUnits.push_back(updatedUnit);
+	DBLock.unlock();
+}
+
 std::vector<boost::shared_ptr<UnitSale> > HM_Model::getUnitSales()
 {
 	return this->unitSales;
@@ -2623,6 +2630,11 @@ std::vector<boost::shared_ptr<Bid> > HM_Model::getNewBids()
 std::vector<boost::shared_ptr<HouseholdUnit> > HM_Model::getNewHouseholdUnits()
 {
 	return this->newHouseholdUnits;
+}
+
+std::vector<boost::shared_ptr<Unit> > HM_Model::getUpdatedUnits()
+{
+	return this->updatedUnits;
 }
 
 BigSerial HM_Model::getBidId()

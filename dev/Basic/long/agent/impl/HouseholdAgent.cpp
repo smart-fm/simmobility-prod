@@ -36,9 +36,9 @@ using std::string;
 using std::map;
 using std::endl;
 
-HouseholdAgent::HouseholdAgent(BigSerial _id, HM_Model* _model, Household* _household, HousingMarket* _market, bool _marketSeller, int _day, int _householdBiddingWindow, int awakeningDay)
+HouseholdAgent::HouseholdAgent(BigSerial _id, HM_Model* _model, Household* _household, HousingMarket* _market, bool _marketSeller, int _day, int _householdBiddingWindow, int awakeningDay, bool acceptedBid)
 							 : Agent_LT(ConfigManager::GetInstance().FullConfig().mutexStategy(), _id), model(_model), market(_market), household(_household), marketSeller(_marketSeller), bidder (nullptr), seller(nullptr), day(_day),
-							   vehicleOwnershipOption(NO_VEHICLE), householdBiddingWindow(_householdBiddingWindow),awakeningDay(awakeningDay)
+							   vehicleOwnershipOption(NO_VEHICLE), householdBiddingWindow(_householdBiddingWindow),awakeningDay(awakeningDay),acceptedBid(acceptedBid)
 							{
 
     seller = new HouseholdSellerRole(this);
@@ -154,11 +154,13 @@ HouseholdSellerRole* HouseholdAgent::getSeller()
 Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 {
 	day = now.frame();
+	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 
-	if( bidder && bidder->isActive() && buySellInterval > 0 )
-		buySellInterval--;
+	//if( bidder && bidder->isActive() && buySellInterval > 0 )
+		//buySellInterval--;
 
-	if( buySellInterval == 0 )
+	//if( buySellInterval == 0 )
+	if((acceptedBid && !btoUnit ) || ( acceptedBid && btoUnit && bidder->getMoveInWaitingTimeInDays() <= config.ltParams.housingModel.offsetBetweenUnitBuyingAndSellingAdvancedPurchase))
 	{
 		if( seller->isActive() == false )
 		{
@@ -179,7 +181,7 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 
 		seller->setActive(true);
 
-		buySellInterval--;
+		//buySellInterval--;
 	}
 
 	if( bidder && bidder->isActive() && ( householdBiddingWindow == 0 || bidder->getMoveInWaitingTimeInDays() == 0) )
@@ -202,7 +204,7 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
         seller->update(now);
     }
 
-    ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+
     int startDay = 0;
     if(config.ltParams.resume)
     {
@@ -273,7 +275,16 @@ void HouseholdAgent::processEvent(EventId eventId, Context ctxId, const EventArg
         {
         	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 
-        	float montecarlo = (float)rand() /RAND_MAX;
+        	//double montecarlo = (double)rand() /RAND_MAX;
+        	//generate a unifromly distributed random number
+        	std::random_device rd;
+        	std::mt19937 gen(rd());
+        	std::uniform_real_distribution<> dis(0.0, 1.0);
+        	const double montecarlo = dis(gen);
+
+        	static int counter = 0;
+        	counter++;
+
 
         	if( montecarlo < config.ltParams.housingModel.householdAwakeningPercentageByBTO )
         	{
@@ -292,9 +303,13 @@ void HouseholdAgent::processEvent(EventId eventId, Context ctxId, const EventArg
 					buySellInterval = config.ltParams.housingModel.offsetBetweenUnitBuyingAndSelling;
 				}
         	}
-
+        	//PrintOutV("counter " << counter << " "  << household->getId() <<std::endl);
+        	writeRandomNumsToFile(counter,household->getId(),montecarlo);
             break;
+
         }
+
+
         default:break;
     };
 }
@@ -339,6 +354,11 @@ void HouseholdAgent::processExternalEvent(const ExternalEventArgs& args)
 bool HouseholdAgent::getFutureTransitionOwn()
 {
 	return futureTransitionOwn;
+}
+
+void HouseholdAgent::setAcceptedBid(bool isAccepted)
+{
+	acceptedBid = isAccepted;
 }
 
 void HouseholdAgent::onWorkerEnter()

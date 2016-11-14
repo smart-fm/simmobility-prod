@@ -126,7 +126,9 @@
 		    <dailyHouseholdAwakenings value="400"/>
 		    <awakenModelShan value="false"/>
 		    <awakenModelRandom value="true"/>
-		    <awakenModelJingsi value="false"/>		
+		    <awakenModelJingsi value="false"/>	
+                    <awakeningOffMarketSuccessfulBid value="100"/>
+ 	             <awakeningOffMarketUnsuccessfulBid value="200"/>
 	    </awakeningModel>
 	    <vacantUnitActivationProbability value="0.375"/>
 	    <housingMarketSearchPercentage value="0.15"/>
@@ -135,7 +137,7 @@
 	    <bidderUnitsChoiceSet value = "50"/>
 	    <bidderBTOUnitsChoiceSet value = "12"/>
 	    <householdBiddingWindow value = "30" />
-	    <householdAwakeningPercentageByBTO value = "0.1" />
+	    <householdAwakeningPercentageByBTO value = "0.05" />
             <offsetBetweenUnitBuyingAndSellingAdvancedPurchase value = "30" />
         </housingModel>
 	<vehicleOwnershipModel enabled='false'>

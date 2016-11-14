@@ -74,7 +74,13 @@ namespace
         	int moveInWaitingTimeInDays = config.ltParams.housingModel.housingMoveInDaysInterval;
         	boost::shared_ptr<Bid> newBid = boost::make_shared<Bid>(bid);
         	HM_Model* model = agent.getModel();
-        	const Unit* unit  = model->getUnitById(bid.getNewUnitId());
+        	Unit* unit  = model->getUnitById(bid.getNewUnitId());
+        	boost::shared_ptr<Unit> updatedUnit = boost::make_shared<Unit>((*unit));
+        	updatedUnit->setSaleStatus(3);
+        	updatedUnit->setOccupancyStatus(3);
+        	updatedUnit->setOccupancyFromDate(getDateBySimDay(config.ltParams.year,(bid.getSimulationDay())));
+        	model->addUpdatedUnits(updatedUnit);
+
         	int UnitslaId = unit->getSlaAddressId();
         	Household *thisBidder = model->getHouseholdById(bid.getBidderId());
         	const Unit* thisUnit = model->getUnitById(thisBidder->getUnitId());
@@ -279,9 +285,7 @@ void HouseholdSellerRole::update(timeslice now)
 
             if(getCurrentExpectation(unit->getId(), firstExpectation) && entryDay )
             {
-            	bool bto = false;
-
-                market->addEntry( HousingMarket::Entry( getParent(), unit->getId(), unit->getSlaAddressId(), tazId, firstExpectation.askingPrice, firstExpectation.hedonicPrice, bto));
+                market->addEntry( HousingMarket::Entry( getParent(), unit->getId(), unit->getSlaAddressId(), tazId, firstExpectation.askingPrice, firstExpectation.hedonicPrice, unit->isBto()));
 				#ifdef VERBOSE
                 PrintOutV("[day " << currentTime.ms() << "] Household Seller " << getParent()->getId() << ". Adding entry to Housing market for unit " << unit->getId() << " with ap: " << firstExpectation.askingPrice << " hp: " << firstExpectation.hedonicPrice << " rp: " << firstExpectation.targetPrice << std::endl);
 				#endif

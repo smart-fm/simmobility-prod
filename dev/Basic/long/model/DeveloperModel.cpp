@@ -140,17 +140,17 @@ void DeveloperModel::startImpl() {
 		std::tm currentSimYear = getDateBySimDay(simYear,0);
 		UnitDao unitDao(conn);
 		btoUnits = unitDao.getBTOUnits(currentSimYear);
-		ongoingBtoUnits = unitDao.getOngoingBTOUnits(currentSimYear);
+		//ongoingBtoUnits = unitDao.getOngoingBTOUnits(currentSimYear);
 		//set the BTO flag when the units are first loaded
 		for(Unit *unit : btoUnits)
 		{
 			unit->setBto(true);
 		}
 
-		for(Unit *unit : ongoingBtoUnits)
-		{
-			unit->setBto(true);
-		}
+//		for(Unit *unit : ongoingBtoUnits)
+//		{
+//			unit->setBto(true);
+//		}
 
 		setRealEstateAgentIds(housingMarketModel->getRealEstateAgentIds());
 
@@ -905,15 +905,14 @@ const ROILimits* DeveloperModel::getROILimitsByBuildingTypeId(BigSerial building
 	return nullptr;
 }
 
-DeveloperModel::UnitList DeveloperModel::getBTOUnits(std::tm currentDate)
+std::vector<BigSerial> DeveloperModel::getBTOUnits(std::tm currentDate)
 {
-	DeveloperModel::UnitList btoUnitsForSale;
+	std::vector<BigSerial> btoUnitsForSale;
 	for(Unit *unit : btoUnits)
 	{
-
 		if(compareTMDates(unit->getSaleFromDate(),currentDate))
 			{
-				btoUnitsForSale.push_back(unit);
+				btoUnitsForSale.push_back(unit->getId());
 			}
 	}
 	return btoUnitsForSale;

@@ -864,10 +864,10 @@ void DeveloperAgent::setUnitsRemain (bool unitRemain)
 
 void DeveloperAgent::launchBTOUnits(std::tm currentDate)
 {
-	DeveloperModel::UnitList btoUnits = devModel->getBTOUnits(currentDate);
-	for(Unit *btoUnit : btoUnits)
+	std::vector<BigSerial>  btoUnits = devModel->getBTOUnits(currentDate);
+	if(btoUnits.size()>0)
 	{
-			MessageBus::PostMessage(realEstateAgent, LT_DEV_BTO_UNIT_ADDED, MessageBus::MessagePtr(new HM_ActionMessage((*btoUnit))), true);
+		MessageBus::PostMessage(realEstateAgent, LT_DEV_BTO_UNIT_ADDED, MessageBus::MessagePtr(new HM_ActionMessage((btoUnits))), true);
 	}
 }
 

@@ -165,6 +165,7 @@ void loadDataToOutputSchema(db::DB_Connection& conn,std::string &currentOutputSc
 			unitDao.insertUnit(*(*unitsItr),currentOutputSchema);
 		}
 
+
 		std::vector<boost::shared_ptr<Project> > projects = developerModel.getProjectsVec();
 		std::vector<boost::shared_ptr<Project> >::iterator projectsItr;
 		ProjectDao projectDao(conn);
@@ -238,6 +239,14 @@ void loadDataToOutputSchema(db::DB_Connection& conn,std::string &currentOutputSc
 		{
 			hhUnitDao.insertHouseholdUnit(*hhUnit,currentOutputSchema);
 		}
+
+		std::vector<boost::shared_ptr<Unit> > updatedUnits = housingMarketModel.getUpdatedUnits();
+		std::vector<boost::shared_ptr<Unit> >::iterator updatedUnitsItr;
+		for(updatedUnitsItr = units.begin(); updatedUnitsItr != updatedUnits.end(); ++updatedUnitsItr)
+		{
+			unitDao.insertUnit(*(*updatedUnitsItr),currentOutputSchema);
+		}
+
 		SimulationStoppedPointDao simStoppedPointDao(conn);
 		simStoppedPointDao.insertSimulationStoppedPoints(*(developerModel.getSimStoppedPointObj(simVersionId)).get(),currentOutputSchema);
 //		developerModel.getBuildingsVec().clear();

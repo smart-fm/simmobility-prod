@@ -346,9 +346,9 @@ namespace sim_mob
 
 	    }
 
-	    inline void writeRandomNumsToFile(double randomNum)
+	    inline void writeRandomNumsToFile(int counter,BigSerial hhId, float montecarlo)
 	    {
-	    	boost::format fmtr = boost::format("%1%") % randomNum;
+	    	boost::format fmtr = boost::format("%1%, %2%, %3%") % counter % hhId % montecarlo;
 	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_RANDOM_NUMS,fmtr.str());
 
 	    }

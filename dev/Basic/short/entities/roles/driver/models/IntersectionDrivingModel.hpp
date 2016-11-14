@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "conf/params/ParameterManager.hpp"
+#include "config/params/ParameterManager.hpp"
 #include "conf/settings/DisableMPI.h"
 #include "entities/roles/driver/DriverUpdateParams.hpp"
 #include "geospatial/network/TurningPath.hpp"

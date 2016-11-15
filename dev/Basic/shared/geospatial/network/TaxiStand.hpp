@@ -2,7 +2,7 @@
  * TaxiStand.hpp
  *
  *  Created on: Oct 24, 2016
- *      Author: fm-simmobility
+ *      Author: zhang huai peng
  */
 
 #ifndef TAXISTAND_HPP_

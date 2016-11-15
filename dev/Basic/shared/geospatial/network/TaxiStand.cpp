@@ -2,7 +2,7 @@
  * TaxiStand.cpp
  *
  *  Created on: Oct 24, 2016
- *      Author: fm-simmobility
+ *      Author: zhang huai peng
  */
 
 #include <geospatial/network/TaxiStand.hpp>

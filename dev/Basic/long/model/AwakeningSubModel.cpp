@@ -211,7 +211,7 @@ namespace sim_mob
 					unit->setTimeOffMarket( 1 + config.ltParams.housingModel.timeOffMarket * (float)rand() / RAND_MAX);
 				}
 
-				household->setLastAwakenedDate(getDateBySimDay(HITS_SURVEY_YEAR,day));
+				household->setLastAwakenedDay(day);
 				model->incrementAwakeningCounter();
 				model->incrementLifestyle1HHs();
 			}
@@ -238,7 +238,7 @@ namespace sim_mob
 					unit->setTimeOffMarket( 1 + config.ltParams.housingModel.timeOffMarket * (float)rand() / RAND_MAX);
 				}
 
-				household->setLastAwakenedDate(getDateBySimDay(HITS_SURVEY_YEAR,day));
+				household->setLastAwakenedDay(day);
 				model->incrementAwakeningCounter();
 				model->incrementLifestyle2HHs();
 			}
@@ -264,7 +264,7 @@ namespace sim_mob
 					unit->setTimeOffMarket( 1 + config.ltParams.housingModel.timeOffMarket * (float)rand() / RAND_MAX);
 				}
 
-				household->setLastAwakenedDate(getDateBySimDay(HITS_SURVEY_YEAR,day));
+				household->setLastAwakenedDay(day);
 				model->incrementAwakeningCounter();
 				model->incrementLifestyle3HHs();
 			}
@@ -322,17 +322,14 @@ namespace sim_mob
 
 
 
-		    	boost::gregorian::date awakenDate = boost::gregorian::date_from_tm(potentialAwakening->getLastAwakenedDate());
-				boost::gregorian::date simulationDate(HITS_SURVEY_YEAR, 1, 1);
-				boost::gregorian::date_duration dt(day);
-				simulationDate = simulationDate + dt;
+		    	int awakenDay = potentialAwakening->getLastAwakenedDay();
 
-				if(( potentialAwakening->getLastBidStatus() == 1 && simulationDate < config.ltParams.housingModel.awakeningModel.offMarketSucessfulBid + awakenDate ))
+				if(( potentialAwakening->getLastBidStatus() == 1 && day < config.ltParams.housingModel.awakeningModel.awakeningOffMarketSuccessfulBid + awakenDay ))
 				{
 					continue;
 				}
 
-				if(( potentialAwakening->getLastBidStatus() == 2 && simulationDate < config.ltParams.housingModel.awakeningModel.offMarketUnsucessfulBid + awakenDate ))
+				if(( potentialAwakening->getLastBidStatus() == 2 && day < config.ltParams.housingModel.awakeningModel.awakeningOffMarketUnsuccessfulBid + awakenDay ))
 				{
 					continue;
 
@@ -350,7 +347,7 @@ namespace sim_mob
 					continue;
 				}
 
-		    	potentialAwakening->setLastAwakenedDate(getDateBySimDay(HITS_SURVEY_YEAR,day));
+		    	potentialAwakening->setLastAwakenedDay(day);
                 model->incrementAwakeningCounter();
 		    	printAwakening(day, potentialAwakening);
 

@@ -17,24 +17,23 @@
 
 #include "ParameterManager.hpp"
 
-namespace sim_mob {
+namespace sim_mob
+{
 using namespace xercesc;
 
 class ParameterManager;
 
-class ParseParamFile {
+class ParseParamFile
+{
 public:
-	ParseParamFile(const std::string& paramFileName,ParameterManager* paramMgr);
-	virtual ~ParseParamFile();
-
-public:
-	void parseElement(DOMElement* e);
-
-public:
-	ParameterManager* paramMgr;
+	ParameterManager *paramMgr;
 	std::string fileName;
 	std::string modelName;
+	
+	ParseParamFile(const std::string& paramFileName, ParameterManager *paramMgr);
+	virtual ~ParseParamFile();
+	void parseElement(DOMElement *e);
 };
 
-} /* namespace sim_mob */
+}
 

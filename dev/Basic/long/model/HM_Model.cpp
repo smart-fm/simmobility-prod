@@ -1753,6 +1753,11 @@ void HM_Model::startImpl()
 		boost::gregorian::date simulationDate = boost::gregorian::date(HITS_SURVEY_YEAR, 1, 1);
 		int unitStartDay = startDay;
 
+		if( saleDate > simulationDate )
+		{
+			unitStartDay = (saleDate - simulationDate).days();
+		}
+
 		(*it)->setbiddingMarketEntryDay( unitStartDay );
 		(*it)->setTimeOnMarket(  1 + (float)rand() / RAND_MAX * config.ltParams.housingModel.timeOnMarket);
 		(*it)->setTimeOffMarket( 1 + (float)rand() / RAND_MAX * config.ltParams.housingModel.timeOffMarket);
@@ -2266,8 +2271,9 @@ void HM_Model::getLogsumOfVaryingHomeOrWork(BigSerial householdId)
 		if( thisIndividual->getVehicleCategoryId() > 0)
 			vehicleOwnership = 1;
 
-		if( thisIndividual->getEmploymentStatusId() > 3 )
-			continue;
+		//only uncomment this for worker logsums
+		//if( thisIndividual->getEmploymentStatusId() > 3 )
+		//	continue;
 
 		vector<double> logsum;
 		vector<double> travelProbability;

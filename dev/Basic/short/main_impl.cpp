@@ -128,16 +128,12 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 	if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled()) 
 	{
 		Warn::Init("warn.log");
-		Print::Init("<stdout>");
-		PassengerInfoPrint::Init("PassengerInfo.txt");
-		HeadwayAtBusStopInfoPrint::Init("HeadwayAtBusStopInfo.txt");
+		Print::Init("<stdout>");		
 	}
 	else 
 	{
 		Warn::Ignore();
-		Print::Ignore();
-		PassengerInfoPrint::Ignore();
-		HeadwayAtBusStopInfoPrint::Ignore();
+		Print::Ignore();		
 	}
 
 	ProfileBuilder* prof = nullptr;

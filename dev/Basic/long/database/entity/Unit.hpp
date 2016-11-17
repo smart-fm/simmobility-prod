@@ -66,7 +66,6 @@ namespace sim_mob
             double getTotalPrice() const;
             const std::tm& getValueDate() const;
             void setBto(bool bto);
-            void setStaggeredBto(bool bto);
 
             /*
              * setters

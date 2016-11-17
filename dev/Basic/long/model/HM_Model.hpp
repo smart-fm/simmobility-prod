@@ -428,6 +428,7 @@ namespace sim_mob
             vector<double> getlogSqrtFloorAreacondo() const { return logSqrtFloorAreacondo;}
 
 
+            set<string> logsumUniqueCounter_str;
             set<int> logsumUniqueCounter;
 
             void  loadLTVersion(DB_Connection &conn);

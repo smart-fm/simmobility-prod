@@ -1745,7 +1745,6 @@ void HM_Model::startImpl()
 	int vacancies = 0;
 	int onMarket  = 0;
 	int offMarket = 0;
-	int my_counter = 0;
 	//assign empty units to freelance housing agents
 	for (UnitList::const_iterator it = units.begin(); it != units.end(); it++)
 	{
@@ -1765,33 +1764,15 @@ void HM_Model::startImpl()
 			{
 				float awakeningProbability = (float)rand() / RAND_MAX;
 
-				if( saleDate > simulationDate )
+				if( awakeningProbability < config.ltParams.housingModel.vacantUnitActivationProbability )
 				{
-					unitStartDay = (saleDate - simulationDate).days();
-
 					(*it)->setbiddingMarketEntryDay( unitStartDay );
-				}
-				else if( occupancyDate > simulationDate )
-				{
-					my_counter++;
-
-					unitStartDay += 15 + (30 * int(my_counter/60628.0 * 12));
-
-					(*it)->setStaggeredBto(true);
-					(*it)->setbiddingMarketEntryDay( unitStartDay );
+					onMarket++;
 				}
 				else
 				{
-					if( awakeningProbability < config.ltParams.housingModel.vacantUnitActivationProbability )
-					{
-						(*it)->setbiddingMarketEntryDay( unitStartDay );
-						onMarket++;
-					}
-					else
-					{
-						(*it)->setbiddingMarketEntryDay( unitStartDay +( (float)rand() / RAND_MAX * 365) );
-						offMarket++;
-					}
+					(*it)->setbiddingMarketEntryDay( unitStartDay +( (float)rand() / RAND_MAX * 365) );
+					offMarket++;
 				}
 
 				freelanceAgents[vacancies % numWorkers]->addUnitId((*it)->getId());
@@ -2011,10 +1992,10 @@ void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId)
 		if( !hitsSample )
 			return;
 
-		//if(logsumUniqueCounter.find(hitsSample->getHouseholdHitsId()) == logsumUniqueCounter.end())
-		//	logsumUniqueCounter.insert(hitsSample->getHouseholdHitsId());
-		//else
-		//	return;
+		if(logsumUniqueCounter_str.find(hitsSample->getHouseholdHitsId()) == logsumUniqueCounter_str.end())
+			logsumUniqueCounter_str.insert(hitsSample->getHouseholdHitsId());
+		else
+			return;
 	}
 
 	Household *currentHousehold = getHouseholdById( householdId );
@@ -2256,6 +2237,9 @@ void HM_Model::getLogsumOfVaryingHomeOrWork(BigSerial householdId)
 	{
 		Individual *thisIndividual = this->getIndividualById(householdIndividualIds[n]);
 
+
+		/*
+		 *This commented code lumps individuals by their person param unique characteristics to speed up logsum computation
         {
 
 			if(!( thisIndividual->getId() >= 0 && thisIndividual->getId() < 10000000 ))
@@ -2273,6 +2257,7 @@ void HM_Model::getLogsumOfVaryingHomeOrWork(BigSerial householdId)
 			else
 					continue;
         }
+        */
 
 
 

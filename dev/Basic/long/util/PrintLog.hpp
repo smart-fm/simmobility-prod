@@ -304,11 +304,6 @@ namespace sim_mob
 	        string saleFromDate = to_string(unit->getSaleFromDate().tm_mday) + "-" + to_string(unit->getSaleFromDate().tm_mon + 1) + "-" + to_string(unit->getSaleFromDate().tm_year + 1900);
 	        string occupancyFromDate = to_string(unit->getOccupancyFromDate().tm_mday) + "-" + to_string(unit->getOccupancyFromDate().tm_mon + 1) + "-" + to_string(unit->getOccupancyFromDate().tm_year + 1900);
 
-	        string isStaggeredBTO = "0";
-
-	        if( unit->isStaggeredBto() == true )
-	        	isStaggeredBTO = "1";
-
 	        boost::format fmtr = boost::format(LOG_BID) % bid.getSimulationDay()
 														% agent.getId()
 														% bid.getBidderId()
@@ -331,8 +326,7 @@ namespace sim_mob
 														% thisPostcode->getSlaPostcode()
 														% unitPostcode->getSlaPostcode()
 														% saleFromDate
-	        											% occupancyFromDate
-														% isStaggeredBTO;
+	        											% occupancyFromDate;
 
 	        AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::BIDS, fmtr.str());
 	        //PrintOut(fmtr.str() << endl);

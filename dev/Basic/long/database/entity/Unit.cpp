@@ -18,12 +18,12 @@ using namespace sim_mob::long_term;
 Unit::Unit( BigSerial id, BigSerial building_id, BigSerial sla_address_id, int unit_type, int storey_range, int constructionStatus, double floor_area, int storey,
 			double monthlyRent, std::tm sale_from_date, std::tm occupancyFromDate, int sale_status, int occupancyStatus, std::tm lastChangedDate,
 			double totalPrice,std::tm valueDate,int tenureStatus,int biddingMarketEntryDay, int timeOnMarket, int timeOffMarket, double lagCoefficient, int zoneHousingType,
-			int dwellingType, bool isBTO, bool _isStaggeredBTO)
+			int dwellingType, bool isBTO)
 		   : id(id), building_id(building_id), sla_address_id(sla_address_id), unit_type(unit_type), storey_range(storey_range), constructionStatus(constructionStatus),
 		     floor_area(floor_area), storey(storey), monthlyRent(monthlyRent), sale_from_date(sale_from_date), occupancyFromDate(occupancyFromDate),
 			 sale_status(sale_status), occupancyStatus(occupancyStatus), lastChangedDate(lastChangedDate),totalPrice(totalPrice),valueDate(valueDate),tenureStatus(tenureStatus),
 			 biddingMarketEntryDay(biddingMarketEntryDay),timeOnMarket(timeOnMarket), timeOffMarket(timeOffMarket), lagCoefficient(lagCoefficient),
-			 zoneHousingType(zoneHousingType), dwellingType(dwellingType), isBTO(isBTO), isStaggeredBTO(_isStaggeredBTO){}
+			 zoneHousingType(zoneHousingType), dwellingType(dwellingType), isBTO(isBTO){}
 
 
 Unit::Unit(const Unit& source)
@@ -52,8 +52,6 @@ Unit::Unit(const Unit& source)
     this->zoneHousingType = source.zoneHousingType;
     this->dwellingType = source.dwellingType;
     this->isBTO = source.isBTO;
-    this->isStaggeredBTO = source.isStaggeredBTO;
-
 }
 
 Unit::~Unit() {}
@@ -84,7 +82,6 @@ Unit& Unit::operator=(const Unit& source)
     this->zoneHousingType = source.zoneHousingType;
     this->dwellingType = source.dwellingType;
     this->isBTO = source.isBTO;
-    this->isStaggeredBTO = source.isStaggeredBTO;
 
     return *this;
 }
@@ -322,18 +319,6 @@ void  Unit::setBto(bool bto)
 {
 		isBTO = bto;
 }
-
-
-bool  Unit::isStaggeredBto() const
-{
-	return isStaggeredBTO;
-}
-
-void  Unit::setStaggeredBto(bool bto)
-{
-	isStaggeredBTO = bto;
-}
-
 
 namespace sim_mob
 {

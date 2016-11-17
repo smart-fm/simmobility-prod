@@ -112,9 +112,9 @@
 		<initialProjectId value = "200000" />
 		<minLotSize value = "100.00" />
     	</developerModel>
-	<outputHouseholdLogsums enabled="true">
-	    <vehicleOwnershipLogsum value ="false"/>
-	    <fixedHomeVariableWork value ="true"/>
+	<outputHouseholdLogsums enabled="false">
+	    <vehicleOwnershipLogsum value ="true"/>
+	    <fixedHomeVariableWork value ="false"/>
 	    <fixedWorkVariableHome value ="false"/>
 	</outputHouseholdLogsums>
     	<housingModel enabled="true"> 	    

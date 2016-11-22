@@ -8,7 +8,7 @@
 #include <map>
 #include <string>
 
-
+#include <boost/lexical_cast.hpp>
 #include "buffering/Shared.hpp"
 #include "conf/settings/DisableMPI.h"
 #include "entities/misc/TripChain.hpp"

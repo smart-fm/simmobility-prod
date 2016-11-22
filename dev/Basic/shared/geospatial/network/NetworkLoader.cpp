@@ -100,10 +100,6 @@ void NetworkLoader::loadLinks(const std::string& storedProc)
 	{
 		//Create new node and add it in the map of nodes
 		Link* link = new Link(*itLinks);
-		Node *fromNode = link->getFromNode();
-		Node *toNode = link->getToNode();
-		fromNode->addDownStreamlink(link);
-		toNode->addUpStreamLink(link);
 		roadNetwork->addLink(link);
 	}
 }

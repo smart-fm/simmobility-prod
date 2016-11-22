@@ -403,6 +403,7 @@ protected:
 	 * @return next link for driver
 	 */
 	const Link* getNextLinkForLaneChoice(const SegmentStats* nextSegStats) const;
+	void setPath(std::vector<const SegmentStats*> &path,Node *toNode,std::vector<RoadSegment*>);
 	friend class MesoReroute;
 
 };

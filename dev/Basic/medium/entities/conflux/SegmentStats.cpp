@@ -514,6 +514,10 @@ double SegmentStats::getDensity(bool hasVehicle)
 	double queueLength = getQueueLength();
 	double movingPartLength = length * numVehicleLanes - queueLength;
 	double movingPCUs = getMovingLength() / PASSENGER_CAR_UNIT;
+	if(movingPCUs>0&&getRoadSegment()->getRoadSegmentId()==5414)
+	{
+		int debug =1 ;
+	}
 	if (movingPartLength > PASSENGER_CAR_UNIT)
 	{
 		density = movingPCUs / movingPartLength;
@@ -876,7 +880,12 @@ std::string SegmentStats::reportSegmentStats(uint32_t frameNumber)
 				getQueueLength(),
 				numVehicleLanes,
 				length);
+		if(getTotalDensity(true)>0)
+		{
+			int debug =1 ;
+		}
 		return std::string(segStatBuf);
+
 	}
 	else
 	{

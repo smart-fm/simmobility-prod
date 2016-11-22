@@ -6,6 +6,8 @@
 
 #include <algorithm>
 #include <boost/foreach.hpp>
+#include <boost/algorithm/string/erase.hpp>
+#include <boost/algorithm/string.hpp>
 #include <cmath>
 #include <cstdio>
 #include <ostream>
@@ -37,6 +39,7 @@
 #include "path/PathSetManager.hpp"
 #include "util/DebugFlags.hpp"
 #include "util/Utils.hpp"
+#include "geospatial/network/RoadNetwork.hpp"
 
 using namespace sim_mob;
 using namespace sim_mob::medium;
@@ -110,29 +113,66 @@ DriverMovement::~DriverMovement()
 	}*/
 }
 
+void DriverMovement::setPath(std::vector<const SegmentStats*> &path,Node *toNode,std::vector<RoadSegment*> segs)
+{
+	MT_Config& mtCfg = MT_Config::getInstance();
+	const Conflux* confluxForLnk = mtCfg.getConfluxForNode(toNode);
+	for(std::vector<RoadSegment *>::iterator itr=segs.begin();itr!=segs.end();itr++)
+	{
+		const vector<SegmentStats*>& statsInSegment = confluxForLnk->findSegStats(*itr);
+		path.insert(path.end(), statsInSegment.begin(), statsInSegment.end());
+
+	}
+}
 void DriverMovement::frame_init()
 {
-	bool pathInitialized = initializePath();
-	if (pathInitialized)
+	/*if(boost::iequals(parentDriver->parent->getDatabaseId(),"Taxi123"))
 	{
-		Vehicle::VehicleType vehicleType = Vehicle::CAR;
-		if((*parentDriver->parent->currTripChainItem)->getMode() == "Taxi")
-		{
-			vehicleType = Vehicle::TAXI;
-		}
-		Vehicle* newVehicle = new Vehicle(vehicleType, PASSENGER_CAR_UNIT);
-		VehicleBase* oldVehicle = parentDriver->getResource();
-		safe_delete_item(oldVehicle);
-		parentDriver->setResource(newVehicle);
+		sim_mob::RoadNetwork *roadNetwork = sim_mob::RoadNetwork::getInstance_1();
+		Node *firstNode = roadNetwork->getFirstNode();
+		std::map<unsigned int,Link*> mapOfDownstreamLinks = firstNode->getDownStreamLinks();
+		std::map<unsigned int,Link*>::iterator itr = mapOfDownstreamLinks.begin();
+		Link *link= itr->second;
+		Node *toNode =link->getToNode();
+		std::vector<RoadSegment*> segs;
+		segs.insert(segs.end(),link->getRoadSegments_1().begin(),link->getRoadSegments_1().end());
+		std::vector<const SegmentStats*> path;
+		setPath(path,toNode,segs);
+		pathMover.setPath(path);
+		const SegmentStats* firstSegStat = path.front();
+		parentDriver->parent->setCurrSegStats(firstSegStat);
+		parentDriver->parent->setCurrLane(firstSegStat->laneInfinity);
+		parentDriver->parent->distanceToEndOfSegment = firstSegStat->getLength();
+		parentDriver->parent->setNextPathPlanned(true);
 	}
 	else
-	{
-		parentDriver->parent->setToBeRemoved();
-	}
+	{*/
+		bool pathInitialized = initializePath();
+		if (pathInitialized)
+		{
+			Vehicle::VehicleType vehicleType = Vehicle::CAR;
+			if((*parentDriver->parent->currTripChainItem)->getMode() == "Taxi")
+			{
+				vehicleType = Vehicle::TAXI;
+			}
+			Vehicle* newVehicle = new Vehicle(vehicleType, PASSENGER_CAR_UNIT);
+			VehicleBase* oldVehicle = parentDriver->getResource();
+			safe_delete_item(oldVehicle);
+			parentDriver->setResource(newVehicle);
+		}
+		else
+		{
+			parentDriver->parent->setToBeRemoved();
+		}
+	//}
 }
 
 void DriverMovement::frame_tick()
 {
+	if(boost::iequals(getParentDriver()->parent->getDatabaseId(),"Taxi123"))
+	{
+		int debug =1 ;
+	}
 	DriverUpdateParams& params = parentDriver->getParams();
 	const SegmentStats* currSegStats = pathMover.getCurrSegStats();
 	if (!currSegStats)
@@ -186,7 +226,7 @@ void DriverMovement::frame_tick()
 				char logbuf[1000];
 				sprintf(logbuf, "%s,%s,%u,seg:%u-%u,ln:%u,d:%f,q:%c,elpsd:%fs\n",
 						parentDriver->getRoleName().c_str(),
-						person->getDatabaseId().c_str(),
+						person->ge#include <boost/algorithm/string/config.hpp>tDatabaseId().c_str(),
 						parentDriver->getParams().now.frame(),
 						segId,
 						statsNum,
@@ -583,7 +623,16 @@ void DriverMovement::flowIntoNextLinkIfPossible(DriverUpdateParams& params)
 		}
 
 		currLane = laneInNextSegment;
+		const SegmentStats * lastSegSt = parentDriver->parent->lastReqSegStats;
+		parentDriver->parent->lastReqSegStats = nullptr;
+		std::string dbId=parentDriver->parent->getDatabaseId();
+		if(boost::iequals(dbId,"Taxi123"))
+		{
+			int debug =1 ;
+		}
 		pathMover.advanceInPath();
+		sim_mob::BasicLogger& ptTaxiMoveLogger = sim_mob::Logger::log("TaxiSegmentsPath.csv");
+		ptTaxiMoveLogger<<parentDriver->parent->getDatabaseId()<<","<<nextSegStats->getRoadSegment()->getRoadSegmentId()<<","<<nextSegStats->getRoadSegment()->getLinkId()<<std::endl;
 		pathMover.setPositionInSegment(nextSegStats->getLength());
 
 		//todo: consider supplying milliseconds to be consistent with short-term
@@ -682,7 +731,10 @@ bool DriverMovement::canGoToNextRdSeg(DriverUpdateParams& params, const SegmentS
 	
 
 	bool hasSpaceInNextStats = ((maxAllowed - total) >= enteringVehicleLength);
-	if (hasSpaceInNextStats && nextLink)
+
+	Driver::DriverMode mode = parentDriver->getDriveMode();
+
+	if (( hasSpaceInNextStats && nextLink) || ( hasSpaceInNextStats && mode == Driver::CRUISE))
 	{
 		//additionally check if the length of vehicles in the lanegroup is not too long to accommodate this driver
 		double maxAllowedInLG = nextSegStats->getAllowedVehicleLengthForLaneGroup(nextLink);
@@ -996,7 +1048,9 @@ void DriverMovement::setOrigin(DriverUpdateParams& params)
 		setLastAccept(currLane, actualT, currSegStats);
 		setParentData(params);
 		parentDriver->parent->canMoveToNextSegment = Person_MT::NONE;
-		if (getParentDriver()->roleType != Role<Person_MT>::RL_BUSDRIVER)
+		const Role<Person_MT>::Type  rType = getParentDriver()->roleType;
+		std::string dbId=parentDriver->getParent()->getDatabaseId();
+		if (getParentDriver()->roleType != Role<Person_MT>::RL_BUSDRIVER&&getParentDriver()->roleType != Role<Person_MT>::RL_TAXIDRIVER)
 		{
 			//initialize some travel metrics for this subTrip
 			startTravelTimeMetric(); //not for bus drivers or any other role
@@ -1231,7 +1285,7 @@ TravelMetric& DriverMovement::finalizeTravelTimeMetric()
 
 TravelMetric& DriverMovement::processCBD_TravelMetrics(const Link* completedLink, const Link* nextLink)
 {
-	if(parentDriver->roleType == Role<Person_MT>::Type::RL_BUSDRIVER)
+	if(parentDriver->roleType == Role<Person_MT>::Type::RL_BUSDRIVER||parentDriver->roleType == Role<Person_MT>::Type::RL_TAXIDRIVER)
 	{
 		travelMetric.cbdTraverseType = TravelMetric::CBD_NONE;
 		return travelMetric;

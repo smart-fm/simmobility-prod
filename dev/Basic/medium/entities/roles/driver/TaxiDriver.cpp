@@ -13,7 +13,22 @@ namespace sim_mob
 	namespace medium
 	{
 
-	 	void TaxiDriver::addPassenger(Passenger *passenger)
+
+		TaxiDriver::TaxiDriver(Person_MT* parent, const MutexStrategy& mtxStrat,TaxiDriverBehavior* behavior,
+					TaxiDriverMovement* movement, std::string roleName, Role<Person_MT>::Type roleType) :
+					Driver(parent, behavior, movement, roleName, roleType)
+		{
+				taxiPassenger = nullptr;
+				taxiDriverMovement=movement;
+				taxiDriverBehaviour = behavior;
+		}
+
+		TaxiDriver::TaxiDriver(Person_MT* parent, const MutexStrategy& mtx):Driver(parent,nullptr,nullptr,"",RL_TAXIDRIVER)
+		{
+
+		}
+
+		void TaxiDriver::addPassenger(Passenger *passenger)
 	 	{
 	 		taxiPassenger = passenger;
 	 	}
@@ -98,7 +113,13 @@ namespace sim_mob
 	 	void TaxiDriver::setDriveMode(DriverMode mode)
 	 	{
 	 		driverMode = mode;
+	 		Driver::setDriveMode(sim_mob::medium::Driver::DriverMode(mode));
 	 	}
+
+	 	sim_mob::medium::TaxiDriver::DriverMode TaxiDriver::getDriverMode()
+		{
+			return driverMode;
+		}
 
 	 	Person *TaxiDriver::getParent()
 	 	{
@@ -137,10 +158,15 @@ namespace sim_mob
 	 		std::vector<WayPoint> currentRoute = PrivateTrafficRouteChoice::getInstance()->getPath(currSubTrip,false, nullptr, useInSimulationTT);
 	 	}
 
+	 	TaxiDriverMovement *TaxiDriver::getMovementFacet()
+	 	{
+	 		return taxiDriverMovement;
+	 	}
+
 	 	void TaxiDriver::checkPersonsAndPickUpAtNode(timeslice now)
 	 	{
 	 		//pick up the first person from the node and advance its trip chain
-	 		std::vector<Person*> personsWaiting = currentNode->personsWaitingForTaxi();
+	 		std::vector<Person*> personsWaiting = getMovementFacet()->getCurrentNode()->personsWaitingForTaxi();
 	 		if(personsWaiting.size()>0)
 	 		{
 				Person *personToPickUp = personsWaiting[0];
@@ -158,6 +184,20 @@ namespace sim_mob
 					passenger->Movement()->startTravelTimeMetric();
 				}
 	 		}
+	 	}
+
+	 	Role<Person_MT>* TaxiDriver::clone(Person_MT *parent) const
+	 	{
+	 		if(parent)
+			{
+	 			TaxiDriverBehavior* behavior = new TaxiDriverBehavior();
+	 			TaxiDriverMovement* movement = new TaxiDriverMovement();
+				TaxiDriver* driver = new TaxiDriver(parent, parent->getMutexStrategy(),behavior, movement, "TaxiDriver_");
+				behavior->setParentDriver(driver);
+				movement->setParentDriver(driver);
+				movement->setParentTaxiDriver(driver);
+				return driver;
+			}
 	 	}
 
 	 	bool TaxiDriver::hasPersonBoarded()
@@ -183,6 +223,16 @@ namespace sim_mob
 	 	Node * TaxiDriver::getCurrentNode()
 	 	{
 	 		return currentNode;
+	 	}
+
+	 	void TaxiDriver::make_frame_tick_params(timeslice now)
+	 	{
+	 		getParams().reset(now);
+	 	}
+
+	 	std::vector<BufferedBase*> TaxiDriver::getSubscriptionParams()
+	 	{
+	 		return std::vector<BufferedBase*>();
 	 	}
 
 		TaxiDriver::~TaxiDriver()

@@ -143,7 +143,10 @@ std::map<unsigned int,Link*> Node::getUpStreamLinks()
 
 void Node::addDownStreamlink(Link *link)
 {
-	mapOfDownStreamLinks[link->getLinkId()] = link;
+	if(link&&mapOfDownStreamLinks.find(link->getLinkId())==mapOfDownStreamLinks.end())
+	{
+		mapOfDownStreamLinks[link->getLinkId()] = link;
+	}
 }
 
 std::vector<Person*> Node::personsWaitingForTaxi()

@@ -263,7 +263,7 @@ bool BusDriverMovement::initializePath()
 					<< (*(person->currTripChainItem))->itemType << std::endl;
 		}
 
-		//For now, empty paths aren't supported.
+		//For now, empty paths aren't supporteda.
 		if (routeTracker.getRoadSegments().empty()) {
 			throw std::runtime_error("Can't initializePath(); path is empty.");
 		}

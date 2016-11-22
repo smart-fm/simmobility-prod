@@ -69,7 +69,7 @@
             <mapping name="erp_gantry_zone" procedure="get_erp_gantry_zone()"/>
             <mapping name="erp_section" procedure="get_erp_section()"/>
             <mapping name="erp_surcharge" procedure="get_erp_surcharge()"/>
-            <mapping name="day_activity_schedule" procedure="get_persons_between"/>
+            <mapping name="day_activity_schedule" procedure="get_persons_between_new_mrt_2"/>
             <mapping name="freight_trips" procedure="get_testfreight_between"/>
             <mapping name="screen_line" procedure="get_screen_line_segments()"/>
             <!--<mapping name="restricted_reg_segments" procedure="get_section_banned_area()"/>
@@ -95,7 +95,7 @@
     <!-- List of all Worker types and their properties. -->
     <!-- granularity of each component must be a multiple of the "base" granularity -->
     <workers>
-        <person count="7" granularity="5 seconds"/> <!-- Person agents (with Roles) -->
+        <person count="1" granularity="5 seconds"/> <!-- Person agents (with Roles) -->
     </workers>
       
     <incidentsData enabled="false">
@@ -146,7 +146,7 @@
     <!-- config specific to supply simulator -->                    
     <supply>
         <!-- frequency of segment density, speed and flow output -->
-        <update_interval value="1" units="minute" />
+        <update_interval value="5" units="second" />
         
         <!-- these parameters are used to calculate dwell time of buses at bus stops-->
         <dwell_time_parameters>

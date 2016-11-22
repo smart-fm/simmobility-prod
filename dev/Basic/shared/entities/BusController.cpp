@@ -24,6 +24,7 @@
 #include "workers/Worker.hpp"
 #include "workers/WorkGroup.hpp"
 #include "util/LangHelpers.hpp"
+#include "entities/misc/TripChain.hpp"
 
 using std::vector;
 using std::string;
@@ -804,6 +805,8 @@ Entity::UpdateStatus BusController::frame_tick(timeslice now)
 		Entity* child = pendingChildren.top();
 		pendingChildren.pop();
 		child->parentEntity = this;
+		Person *per=dynamic_cast<Person*>(child);
+		vector<TripChainItem*> tripChain=per->getTripChain();
 		currWorkerProvider->scheduleForBred(child);
 		busDrivers.push_back(child);
 	}

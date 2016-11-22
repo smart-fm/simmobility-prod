@@ -11,6 +11,7 @@
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "entities/misc/BusTrip.hpp"
+#include "entities/misc/TaxiTrip.hpp"
 #include "entities/roles/DriverRequestParams.hpp"
 #include "Person_MT.hpp"
 
@@ -98,6 +99,8 @@ void BusControllerMT::assignBusTripChainWithPerson(std::set<Entity*>& activeAgen
 {
 	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
 	const map<string, BusLine*>& buslines = ptSchedule.getBusLines();
+	BusLine *someBusLine = nullptr;
+	vector<BusTrip>::const_iterator sometripIt;
 	if (buslines.empty())
 	{
 		throw std::runtime_error("Error:  No busline in the ptSchedule, please check the setPTSchedule.");
@@ -112,7 +115,9 @@ void BusControllerMT::assignBusTripChainWithPerson(std::set<Entity*>& activeAgen
 		{
 			if (tripIt->startTime.isAfterEqual(config.simStartTime()))
 			{
-				Person_MT* person = new Person_MT("BusController", config.mutexStategy(), -1, tripIt->getPersonID());
+				/*Person_MT* person = new Person_MT("BusController", config.mutexStategy(), -1, tripIt->getPersonID());
+				someBusLine = busline;
+				sometripIt = tripIt;
 				person->busLine = busline->getBusLineID();
 				person->setDatabaseId(std::to_string(person->getId()));
 				person->setPersonCharacteristics();
@@ -120,14 +125,49 @@ void BusControllerMT::assignBusTripChainWithPerson(std::set<Entity*>& activeAgen
 				tripChain.push_back(const_cast<BusTrip*>(&(*tripIt)));
 				person->setTripChain(tripChain);
 				person->initTripChain();
-				addOrStashBuses(person, activeAgents);
+				addOrStashBuses(person, activeAgents);*/
 			}
 		}
 	}
 
+	/*Person_MT* person = new Person_MT("BusController", config.mutexStategy(), -1, sometripIt->getPersonID());
+	person->busLine = someBusLine->getBusLineID();
+	person->setDatabaseId(std::to_string(person->getId()));
+	person->setPersonCharacteristics();
+	vector<TripChainItem*> tripChain;
+	tripChain.push_back(const_cast<BusTrip*>(&(*sometripIt)));
+	person->setTripChain(tripChain);
+	person->initTripChain();
+	addOrStashBuses(person, activeAgents);*/
+	std::string Taxis[] ={"Taxi1","Taxi2","Taxi3","Taxi4","Taxi5","Taxi6","Taxi7","Taxi8","Taxi9","taxi10"};
+
+	for(int i=0;i<10;i++)
+	{
+		Person_MT* person = new Person_MT("TaxiController", config.mutexStategy(), -1, Taxis[i]);
+		person->setDatabaseId(Taxis[i]);
+		person->setPersonCharacteristics();
+		vector<TripChainItem*> tripChain;
+		//creating a dummy TaxiTrip for now
+		TaxiTrip *taxiTrip =new TaxiTrip("0","TaxiTrip",0,-1, DailyTime(), DailyTime(),0,nullptr,"node",nullptr,"node");
+		tripChain.push_back(taxiTrip);
+		person->setTripChain(tripChain);
+		addOrStashBuses(person, activeAgents);
+	}
+
+	/*Person_MT* person = new Person_MT("DAS_TripChain", config.mutexStategy(), -1, "Taxi123");
+	person->setDatabaseId("Taxi123");
+	person->setPersonCharacteristics();
+	vector<TripChainItem*> tripChain;
+	//creating a dummy TaxiTrip for now
+	Trip *taxiTrip =new Trip("0","Trip",0,-1, DailyTime(), DailyTime()+DailyTime(50000),"",nullptr,"node",nullptr,"node","","");
+	tripChain.push_back(taxiTrip);
+	person->setTripChain(tripChain);
+	addOrStashBuses(person, activeAgents);*/
+
+
 	for (std::set<Entity*>::iterator it = activeAgents.begin(); it != activeAgents.end(); it++)
 	{
-		(*it)->parentEntity = this;
-		busDrivers.push_back(*it);
+		/*(*it)->parentEntity = this;
+		busDrivers.push_back(*it);*/
 	}
 }

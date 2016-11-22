@@ -24,25 +24,31 @@ namespace sim_mob
 			virtual void frame_tick();
 			TaxiDriver * getParentDriver()
 			{
-				return parentDriver;
+				return parentTaxiDriver;
 			}
+			void setParentTaxiDriver(TaxiDriver * taxiDriver);
+			Node* getCurrentNode();
+			Node* getDestinationNode();
 		private:
-			TaxiDriver *parentDriver;
-			Node * destinationNode;
-			Node *originNode;
-			Node *currentNode;
+			TaxiDriver *parentTaxiDriver = nullptr;
+			Node * destinationNode=nullptr;
+			Node *originNode=nullptr;
+			Node *currentNode=nullptr;
 			RoadSegment *currSegment;
 			bool personBoarded = false;
-			std::vector<RoadSegment *> currentRoute;
+			bool isPathInitialized = false;
+			std::map<const Link*,int> mapOfLinksAndVisitedCounts;
+			std::vector<RoadSegment *> currentRoute= std::vector<RoadSegment *>();
 			std::vector<WayPoint> currentRouteChoice;
 			void driveToDestinationNode(Node * destinationNode);
 			void runRouteChoiceModel(Node *origin,Node *destination);
+			void assignFirstNode();
 			void setCruisingMode();
 			void driveToTaxiStand();
 			void setCurrentNode(Node *currNode);
 			void setDestinationNode(Node *destinationNode);
-			Node* getDestinationNode();
-			Node* getCurrentNode();
+
+
 			void driveToNode(Node *destinationNode);
 			void getLinkAndRoadSegments(Node * start ,Node *end,std::vector<RoadSegment*>& segments);
 			void reachNextLinkIfPossible(DriverUpdateParams& params);
@@ -50,6 +56,8 @@ namespace sim_mob
 			bool canGoToNextRdSeg(DriverUpdateParams& params, const SegmentStats* nextSegStats, const Link* nextLink) const;
 			bool moveToNextSegment(DriverUpdateParams& params);
 			void selectNextNodeAndLinksWhileCruising();
+			void setPath(std::vector<const SegmentStats*>&path);
+			Conflux * getPrevConflux();
 
 		};
 

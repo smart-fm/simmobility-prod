@@ -5,6 +5,7 @@
 #include "Person_MT.hpp"
 
 #include <boost/lexical_cast.hpp>
+#include <boost/algorithm/string.hpp>
 #include <map>
 #include <numeric>
 #include <stdexcept>
@@ -23,6 +24,7 @@
 #include "geospatial/network/WayPoint.hpp"
 #include "path/PT_RouteChoiceLuaProvider.hpp"
 #include "util/DailyTime.hpp"
+#include "geospatial/network/RoadNetwork.hpp"
 
 using namespace std;
 using namespace sim_mob;
@@ -249,23 +251,39 @@ void Person_MT::initTripChain()
 	DailyTime startTime = (*currTripChainItem)->startTime;
 	if (src == "DAS_TripChain" || src == "AMOD_TripChain" || src == "BusController")
 	{
-		startTime = DailyTime((*currTripChainItem)->startTime.offsetMS_From(ConfigManager::GetInstance().FullConfig().simStartTime()));
-		setStartTime((*currTripChainItem)->startTime.offsetMS_From(ConfigManager::GetInstance().FullConfig().simStartTime()));
+		if(boost::iequals(getDatabaseId(),"Taxi123"))
+		{
+			int debug =1 ;
+			setStartTime(0);
+		}
+		else
+		{
+			startTime = DailyTime((*currTripChainItem)->startTime.offsetMS_From(ConfigManager::GetInstance().FullConfig().simStartTime()));
+			setStartTime((*currTripChainItem)->startTime.offsetMS_From(ConfigManager::GetInstance().FullConfig().simStartTime()));
+		}
+
 	}
 	else
 	{
 		setStartTime((*currTripChainItem)->startTime.getValue());
 	}
 	
-	if ((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP)
+	if(boost::iequals(getDatabaseId(),"Taxi123"))
 	{
-		currSubTrip = ((dynamic_cast<sim_mob::Trip*> (*currTripChainItem))->getSubTripsRW()).begin();
-		currSubTrip->startTime = startTime;
+		int degub =1;
+	}
+	else
+	{
+		if ((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP)
+		{
+			currSubTrip = ((dynamic_cast<sim_mob::Trip*> (*currTripChainItem))->getSubTripsRW()).begin();
+			currSubTrip->startTime = startTime;
 
-		if (!updateOD(*currTripChainItem))
-		{ 
-			//Offer some protection
-			throw std::runtime_error("Trip/Activity mismatch, or unknown TripChainItem subclass.");
+			if (!updateOD(*currTripChainItem))
+			{
+				//Offer some protection
+				throw std::runtime_error("Trip/Activity mismatch, or unknown TripChainItem subclass.");
+			}
 		}
 	}
 
@@ -398,15 +416,19 @@ Entity::UpdateStatus Person_MT::checkTripChain(unsigned int currentTime)
 	}
 
 	//advance the trip, sub-trip or activity....
-	if (!isFirstTick)
+	TripChainItem *chainItem=*(tripChain.begin());
+	if(chainItem->itemType!=TripChainItem::IT_TAXITRIP)
 	{
-		if (!(advanceCurrentTripChainItem()))
+		if (!isFirstTick)
 		{
-			return UpdateStatus::Done;
-		}
-		if(isTripValid())
-		{
-			currSubTrip->startTime = DailyTime(currentTime);
+			if (!(advanceCurrentTripChainItem()))
+			{
+				return UpdateStatus::Done;
+			}
+			if(isTripValid())
+			{
+				currSubTrip->startTime = DailyTime(currentTime);
+			}
 		}
 	}
 	
@@ -417,7 +439,7 @@ Entity::UpdateStatus Person_MT::checkTripChain(unsigned int currentTime)
 	updatePersonRole();
 
 	//Update our origin/destination pair.
-	if ((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP)
+	if (!boost::iequals(getDatabaseId(),"Taxi123")&&(*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP)
 	{ 
 		//put if to avoid & evade bus trips, can be removed when everything is ok
 		updateOD(*currTripChainItem, &(*currSubTrip));

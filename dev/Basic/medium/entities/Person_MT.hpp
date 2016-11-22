@@ -12,7 +12,7 @@
 #include "geospatial/network/Link.hpp"
 #include "entities/roles/Role.hpp"
 #include "buffering/BufferedDataManager.hpp"
-
+#include <boost/algorithm/string.hpp>
 namespace sim_mob
 {
 
@@ -87,6 +87,7 @@ public:
 	Permission canMoveToNextSegment;
 
 	short numTicksStuck;
+	const SegmentStats *lastReqSegStats = nullptr;
 
 	Person_MT(const std::string& src, const MutexStrategy& mtxStrat, int id = -1, std::string databaseID = "");
 	Person_MT(const std::string& src, const MutexStrategy& mtxStrat, const std::vector<TripChainItem*>& tc);
@@ -166,6 +167,10 @@ public:
 
 	void setCurrSegStats(const SegmentStats* currSegStats)
 	{
+		if(boost::iequals(getDatabaseId(),"Taxi123"))
+		{
+			int debug = 1;
+		}
 		this->currSegStats = currSegStats;
 	}
 

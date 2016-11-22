@@ -131,6 +131,7 @@ public:
 	void setRoadName(std::string roadName);
 
 	const std::vector<RoadSegment *>& getRoadSegments() const;
+	std::vector<RoadSegment*>& getRoadSegments_1();
 	const RoadSegment* getRoadSegment(int index) const;
 
 	int getRoadSegmentIndex(const RoadSegment * seg)const;

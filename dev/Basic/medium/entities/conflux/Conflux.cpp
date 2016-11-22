@@ -11,6 +11,7 @@
 #include <stdexcept>
 #include <stdint.h>
 #include <string>
+#include <boost/algorithm/string.hpp>
 #include <sstream>
 #include <vector>
 #include "conf/ConfigManager.hpp"
@@ -22,6 +23,7 @@
 #include "entities/misc/TripChain.hpp"
 #include "entities/roles/activityRole/ActivityPerformer.hpp"
 #include "entities/roles/driver/DriverVariantFacets.hpp"
+#include "entities/roles/driver/TaxiDriverFacets.hpp"
 #include "entities/roles/driver/BusDriverFacets.hpp"
 #include "entities/roles/driver/DriverFacets.hpp"
 #include "entities/roles/passenger/PassengerFacets.hpp"
@@ -248,6 +250,10 @@ void Conflux::addAgent(Person_MT* person)
 		case Role<Person_MT>::RL_BUSDRIVER:
 		case Role<Person_MT>::RL_BIKER:
 		case Role<Person_MT>::RL_TRUCKER_LGV:
+		case Role<Person_MT>::RL_TAXIDRIVER:
+		{
+			int debug =1 ;
+		}
 		case Role<Person_MT>::RL_TRUCKER_HGV:
 		{
 			SegmentStats* rdSegStats = const_cast<SegmentStats*>(person->getCurrSegStats()); // person->currSegStats is set when frame_init of role is called
@@ -378,6 +384,10 @@ void Conflux::loadPersons()
 	{
 		Person_MT* person = loadingQueue.front();
 		loadingQueue.pop_front();
+		if(boost::iequals(person->getDatabaseId(),"Taxi123"))
+		{
+			int debug =1 ;
+		}
 		Conflux* conflux = Conflux::findStartingConflux(person, nextTickMS);
 		if (conflux)
 		{
@@ -815,13 +825,37 @@ unsigned int Conflux::resetOutputBounds()
 	boost::unique_lock<boost::recursive_mutex> lock(mutexOfVirtualQueue);
 	unsigned int vqCount = 0;
 	vqBounds.clear();
-	const Link* lnk = nullptr;
+	Conflux *confluxThis = this;
+	const Node*confluxNode = confluxThis->getConfluxNode();
 	SegmentStats* segStats = nullptr;
 	int outputEstimate = 0;
 	for (VirtualQueueMap::iterator i = virtualQueuesMap.begin(); i != virtualQueuesMap.end(); i++)
 	{
-		lnk = i->first;
-		segStats = upstreamSegStatsMap.at(lnk).front();
+		const Link* lnk = i->first;
+		if(lnk->getLinkId()==7983)
+		{
+			int debug =1;
+		}
+
+		if (upstreamSegStatsMap.find(lnk) == upstreamSegStatsMap.end())
+		{
+			//std::cout << "Bam!!\n";
+			for (auto item : upstreamSegStatsMap)
+			{
+				if (item.first->getLinkId() == lnk->getLinkId())
+				{
+					if(item.first == lnk)
+					{
+						std::cout << "Are you serious?\n";
+						const SegmentStatsList sec=item.second;
+						int stop =9;
+					}
+				}
+			}
+		}
+
+		const SegmentStatsList &temp = upstreamSegStatsMap.at(lnk);
+		segStats = temp.front();
 
 		outputEstimate = segStats->computeExpectedOutputPerTick();
 
@@ -914,6 +948,10 @@ void Conflux::updateAndReportSupplyStats(timeslice frameNumber)
 			{
 				segStatsOutput.append(segStats->reportSegmentStats(frameNumber.frame() / updateInterval));
 				lnkTotalVehicleLength = lnkTotalVehicleLength + segStats->getTotalVehicleLength();
+				if(segStats->getTotalVehicleLength()>0)
+				{
+					int debug = 1;
+				}
 			}
 			segStats->updateLaneParams(frameNumber);
 		}
@@ -928,6 +966,11 @@ void Conflux::updateAndReportSupplyStats(timeslice frameNumber)
 
 void Conflux::killAgent(Person_MT* person, PersonProps& beforeUpdate)
 {
+	if(boost::iequals(person->getDatabaseId(),"Taxi123"))
+	{
+		int debug = 1;
+	}
+
 	SegmentStats* prevSegStats = beforeUpdate.segStats;
 	const Lane* prevLane = beforeUpdate.lane;
 	bool wasQueuing = beforeUpdate.isQueuing;
@@ -1410,7 +1453,12 @@ Entity::UpdateStatus Conflux::callMovementFrameTick(timeslice now, Person_MT* pe
 				if (nxtConflux->hasSpaceInVirtualQueue(nxtSegment->getParentLink(), person->numTicksStuck) && currLnParams->getOutputCounter() > 0)
 				{
 					currLnParams->decrementOutputCounter();
+					if(boost::iequals(person->getDatabaseId(),"Taxi123"))
+					{
+						int debug = 1;
+					}
 					person->setCurrSegStats(person->requestedNextSegStats);
+					person->lastReqSegStats = person->requestedNextSegStats;
 					person->setCurrLane(nullptr); // so that the updateAgent function will add this agent to the virtual queue
 					person->requestedNextSegStats = nullptr;
 
@@ -1951,6 +1999,8 @@ Conflux* Conflux::findStartingConflux(Person_MT* person, unsigned int now)
 							+ ((*person->currTripChainItem)->endTime.getValue() - (*person->currTripChainItem)->startTime.getValue())));
 	}
 
+	sim_mob::RoadNetwork *roadNetwork = sim_mob::RoadNetwork::getInstance_1();
+	Node *firstNode = roadNetwork->getFirstNode();
 	//Now that the Role<Person_MT> has been fully constructed, initialize it.
 	personRole->Movement()->frame_init();
 	if (person->isToBeRemoved())
@@ -1964,6 +2014,10 @@ Conflux* Conflux::findStartingConflux(Person_MT* person, unsigned int now)
 	case Role<Person_MT>::RL_DRIVER:
 	{
 		const medium::DriverMovement* driverMvt = dynamic_cast<const medium::DriverMovement*>(personRole->Movement());
+		if(boost::iequals((driverMvt->getParentDriver()->parent->getDatabaseId()),"Taxi123"))
+		{
+			int debug =1 ;
+		}
 		if(driverMvt)
 		{
 			return driverMvt->getStartingConflux();
@@ -2024,6 +2078,22 @@ Conflux* Conflux::findStartingConflux(Person_MT* person, unsigned int now)
 		else
 		{
 			throw std::runtime_error("Bus-Driver role facets not/incorrectly initialized");
+		}
+		break;
+	}
+
+	case Role<Person_MT>::RL_TAXIDRIVER:
+	{
+		const medium::TaxiDriverMovement *taxiDriverMvt = dynamic_cast<const medium::TaxiDriverMovement*>(personRole->Movement());
+		if(taxiDriverMvt)
+		{
+			Conflux *startConflux=taxiDriverMvt->getStartingConflux();
+
+			return taxiDriverMvt->getStartingConflux();
+		}
+		else
+		{
+			throw std::runtime_error("Taxi-Driver role facets not/incorrectly initialized");
 		}
 		break;
 	}

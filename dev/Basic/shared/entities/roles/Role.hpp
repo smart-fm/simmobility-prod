@@ -182,6 +182,7 @@ public:
 		{
 		case RL_UNKNOWN: return "NA";
 		case RL_DRIVER: return "Car";
+		case RL_TAXIDRIVER:return "Taxi";
 		case RL_BIKER: return "Motorcycle";
 		case RL_PEDESTRIAN: return "Walk";
 		case RL_BUSDRIVER: return "Bus";

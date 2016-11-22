@@ -8,6 +8,7 @@
 #include <stdexcept>
 #include <string>
 #include "entities/misc/TripChain.hpp"
+#include <boost/algorithm/string.hpp>
 
 namespace sim_mob
 {
@@ -119,7 +120,9 @@ public:
 	 */
 	Role<PERSON>* createRole(const TripChainItem *tripChainItem, const SubTrip *subTrip, PERSON *parent) const
 	{
-		std::string roleName = RoleFactory::getTripChainItemRoleName(tripChainItem, *subTrip);
+		std::string roleName;
+		std::string id =parent->getDatabaseId();
+		roleName = RoleFactory::getTripChainItemRoleName(tripChainItem, *subTrip);
 		return createRole(roleName, parent);
 	}
 
@@ -140,6 +143,10 @@ public:
 		if (mode == "Bus")
 		{
 			return "busdriver";
+		}
+		if (mode =="Taxi")
+		{
+			return "taxiDriver";
 		}
 		if (mode == "BusTravel" || mode == "MRT" || mode == "Sharing" || mode == "PrivateBus")
 		{
@@ -194,6 +201,11 @@ public:
 		else if (tripChainItem->itemType == TripChainItem::IT_BUSTRIP)
 		{
 			return "busdriver";
+		}
+
+		else if (tripChainItem->itemType == TripChainItem::IT_TAXITRIP)
+		{
+			return "taxidriver";
 		}
 
 		throw std::runtime_error("unknown TripChainItem type");

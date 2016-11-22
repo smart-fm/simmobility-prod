@@ -62,7 +62,18 @@ public:
 	virtual void make_frame_tick_params(timeslice now);
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
 	virtual void HandleParentMessage(messaging::Message::MessageType type, const messaging::Message& message);
+	enum DriverMode
+	{
+		DRIVE_TO_NODE =0,
+		DRIVE_TO_TAXISTAND,
+		CRUISE,
+		DRIVE_WITH_PASSENGER,
+		QUEUING_AT_TAXISTAND
+	};
 
+	Driver::DriverMode driverMode;
+	sim_mob::medium::Driver::DriverMode getDriveMode();
+	void setDriveMode(sim_mob::medium::Driver::DriverMode driveMode);
 	//to be moved to a DriverUpdateParam later
 	const Lane* currLane;
 
@@ -72,7 +83,8 @@ protected:
 
 	friend class DriverBehavior;
 	friend class DriverMovement;
-
+	//remove this immediately after debug
+	friend Conflux;
 };
 
 

@@ -49,7 +49,7 @@ public:
 	 * @param path the path to be set
 	 */
 	void setPath(const std::vector<const SegmentStats*>& path);
-	const std::vector<const SegmentStats*> & getPath() const;
+	const std::vector<const SegmentStats*>  getPath() const;
 
 	/**
 	 * resets the path. used when the path changes enroute.
@@ -66,6 +66,8 @@ public:
 	 * 		or nullptr if currSegStatIt points to the end of the path
 	 */
 	const SegmentStats* getCurrSegStats() const;
+
+	void setSegmentStatIterator(const SegmentStats* currSegStats);
 
 	/**
 	 * gets the SegmentStats* corresponding to the element in path next to currSegStatIt

@@ -110,3 +110,13 @@ void sim_mob::medium::Driver::HandleParentMessage(messaging::Message::MessageTyp
 	}
 	}
 }
+
+sim_mob::medium::Driver::DriverMode sim_mob::medium::Driver::getDriveMode()
+{
+	return Driver::driverMode;
+}
+
+void sim_mob::medium::Driver::setDriveMode(sim_mob::medium::Driver::DriverMode driveMode)
+{
+	sim_mob::medium::Driver::driverMode = driveMode;
+}

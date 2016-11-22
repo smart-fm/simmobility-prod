@@ -130,6 +130,13 @@ void RoadNetwork::addLaneConnector(LaneConnector* connector)
 	}
 }
 
+Node* RoadNetwork:: getFirstNode()
+{
+	std::map<unsigned int, Node *>::iterator itNodes = mapOfIdvsNodes.begin();
+	Node *node=(itNodes)->second;
+	return itNodes->second;
+}
+
 void RoadNetwork::addLanePolyLine(PolyPoint point)
 {
 	//Find the lane to which the poly-line belongs
@@ -209,6 +216,14 @@ void RoadNetwork::addLink(Link *link)
 		msg << "\nLink " << link->getLinkId() << " refers to an invalid toNode " << link->getToNodeId();
 		safe_delete_item(link);
 		throw std::runtime_error(msg.str());
+	}
+
+	Node *fromNode = link->getFromNode();
+	Node *toNode = link->getToNode();
+	if(fromNode&&toNode)
+	{
+		fromNode->addDownStreamlink(link);
+		toNode->addUpStreamLink(link);
 	}
 }
 
@@ -526,6 +541,15 @@ void RoadNetwork::addBusStop(BusStop* stop)
 }
 
 const RoadNetwork* sim_mob::RoadNetwork::getInstance()
+{
+	if(!roadNetwork)
+	{
+		roadNetwork = new RoadNetwork();
+	}
+	return roadNetwork;
+}
+
+RoadNetwork* sim_mob::RoadNetwork::getInstance_1()
 {
 	if(!roadNetwork)
 	{

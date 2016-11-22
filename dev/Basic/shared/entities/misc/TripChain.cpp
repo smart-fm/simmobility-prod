@@ -50,6 +50,7 @@ sim_mob::TripChainItem::TripChainItem(
 		personID(entId), itemType(getItemType(type)), purpose(getItemPurpose(purpose)), startTime(start), endTime(end),
 		sequenceNumber(seqNumber), requestTime(requestTm), travelMode(mode),edgeId(edge)
 {
+	int debug = 1;
 }
 
 sim_mob::TripChainItem::~TripChainItem()
@@ -234,6 +235,10 @@ TripChainItem::ItemType sim_mob::TripChainItem::getItemType(std::string itemType
 	else if (itemType == "BusTrip")
 	{
 		return IT_BUSTRIP;
+	}
+	else if (itemType =="TaxiTrip")
+	{
+		return IT_TAXITRIP;
 	}
 	else if (itemType == "WaitingBusActivity")
 	{

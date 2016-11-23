@@ -123,7 +123,7 @@ void HouseholdDao::insertHousehold(Household& houseHold,std::string schema)
 				+ DB_FIELD_SIZE + "= :v5, "
 				+ DB_FIELD_CHILDUNDER4 + "= :v6, "
 				+ DB_FIELD_CHILDUNDER15 + "= :v7, "
-				+ "adult" + "= :v8, "
+				+ "num_adults" + "= :v8, "
 				+ DB_FIELD_INCOME + "= :v9, "
 				+ DB_FIELD_HOUSING_DURATION + "= :v10, "
 				+ DB_FIELD_WORKERS + "= :v11, "

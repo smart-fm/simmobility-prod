@@ -172,6 +172,14 @@ Conflux::PersonProps::PersonProps(const Person_MT* person, const Conflux* cnflx)
 		conflux = cnflx;
 		segStats = nullptr;
 	}
+
+	if (roleType == Role<Person_MT>::RL_TRAVELPEDESTRIAN) {
+		const medium::PedestrianMovement* pedestrianMvt = dynamic_cast<const medium::PedestrianMovement*>(role->Movement());
+		if (pedestrianMvt) {
+			conflux = pedestrianMvt->getStartConflux();
+		}
+	}
+
 	distanceToSegEnd = person->distanceToEndOfSegment;
 }
 
@@ -265,6 +273,11 @@ void Conflux::addAgent(Person_MT* person)
 		case Role<Person_MT>::RL_WAITBUSACTIVITY:
 		{
 			assignPersonToBusStopAgent(person);
+			break;
+		}
+		case Role<Person_MT>::RL_TRAVELPEDESTRIAN:
+		{
+			travelingPersons.push_back(person);
 			break;
 		}
 		case Role<Person_MT>::RL_TRAINPASSENGER:
@@ -395,6 +408,7 @@ void Conflux::processAgents()
 	PersonList orderedPersons;
 	getAllPersonsUsingTopCMerge(orderedPersons); //merge on-road agents of this conflux into a single list
 	orderedPersons.insert(orderedPersons.end(), activityPerformers.begin(), activityPerformers.end()); // append activity performers
+	orderedPersons.insert(orderedPersons.end(), travelingPersons.begin(), travelingPersons.end());
 	for (PersonList::iterator personIt = orderedPersons.begin(); personIt != orderedPersons.end(); personIt++) //iterate and update all persons
 	{
 		updateAgent(*personIt);
@@ -573,6 +587,16 @@ void Conflux::housekeep(PersonProps& beforeUpdate, PersonProps& afterUpdate, Per
 	{
 		// if the role was ActivityPerformer before the update as well, do nothing.
 		// It is also possible that the person has changed from one activity to another. Do nothing even in this case.
+		return;
+	}
+	case Role<Person_MT>::RL_TRAVELPEDESTRIAN:
+	{
+		if (beforeUpdate.conflux != afterUpdate.conflux) {
+			auto it = std::find(travelingPersons.begin(), travelingPersons.end(), person);
+			if (it != travelingPersons.end()) {
+				travelingPersons.erase(it);
+			}
+		}
 		return;
 	}
 	case Role<Person_MT>::RL_BUSDRIVER:
@@ -1165,6 +1189,12 @@ void Conflux::HandleMessage(messaging::Message::MessageType type, const messagin
 	{
 		const PersonMessage& msg = MSG_CAST(PersonMessage, message);
 		assignPersonToPedestrianlist(msg.person);
+		break;
+	}
+	case MSG_TRAVELER_TRANSFER:
+	{
+		const PersonMessage& msg = MSG_CAST(PersonMessage, message);
+		travelingPersons.push_back(msg.person);
 		break;
 	}
 	case MSG_INSERT_INCIDENT:
@@ -2007,6 +2037,19 @@ Conflux* Conflux::findStartingConflux(Person_MT* person, unsigned int now)
 		if(pedestrianMvt)
 		{
 			return pedestrianMvt->getDestinationConflux();
+		}
+		else
+		{
+			throw std::runtime_error("Pedestrian role facets not/incorrectly initialized");
+		}
+		break;
+	}
+	case Role<Person_MT>::RL_TRAVELPEDESTRIAN:
+	{
+		const medium::PedestrianMovement* pedestrianMvt = dynamic_cast<const medium::PedestrianMovement*>(personRole->Movement());
+		if(pedestrianMvt)
+		{
+			return pedestrianMvt->getStartConflux();
 		}
 		else
 		{

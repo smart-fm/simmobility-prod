@@ -44,7 +44,7 @@ public:
 	std::vector<T const *> objectsInBox(const R_Point &lowerLeft, const R_Point &upperRight) const;
 
 private:
-	/**internal r-tree to store objects*/
+	/**Internal r-tree to store objects*/
 	R_Tree<T>* rTree;
 };
 

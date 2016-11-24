@@ -9,24 +9,24 @@
 
 namespace sim_mob
 {
-	namespace medium
+namespace medium
+{
+	/*Class:   TrainServiceControllerLuaProvider
+	 * Author: Jabir <jabir@smart.mit.edu>
+	 */
+	class TrainServiceControllerLuaProvider
 	{
-		/*Class:   TrainServiceControllerLuaProvider
-		 * Author: Jabir <jabir@smart.mit.edu>
-		 */
-	    class TrainServiceControllerLuaProvider
-		{
-			public:
-				/**
-				 * Gets the ServiceController reference
-				 *
-				 * Attention: you should not hold this instance.
-				 * This provider will give you an instance based on current thread context.
-				 *
-				 * @return Lua Train controller reference.
-				 */
-				static ServiceController * getTrainControllerModel();
-		};
-	}
+		public:
+			/**
+			 * Gets the ServiceController reference
+			 *
+			 * Attention: you should not hold this instance.
+			 * This provider will give you an instance based on current thread context.
+			 *
+			 * @return Lua Train controller reference.
+			 */
+			static ServiceController * getTrainControllerModel();
+	};
+}
 }
 

@@ -9,21 +9,32 @@
 class TrainDriver;
 namespace sim_mob
 {
-	namespace medium
+namespace medium
+{
+	class TrainRemoval
 	{
-		class TrainRemoval
-		{
-			public:
-				TrainRemoval();
-				virtual ~TrainRemoval();
-				static TrainRemoval *getInstance();
-				void addToTrainRemovalList(TrainDriver *driver);
-				void removeTrainsBeforeNextFrameTick();
-			private:
-			    std::vector<TrainDriver*> trainsToBeRemoved;
-				static TrainRemoval *instance;
-				boost::mutex trainRemovalListLock;
-		};
-	}
+		public:
+			TrainRemoval();
+			virtual ~TrainRemoval();
+			static TrainRemoval *getInstance();
+
+			/**
+			 * This interface adds the trains to be removed to the "trainsToBeRemoved" vector
+			 */
+			void addToTrainRemovalList(TrainDriver *driver);
+
+			/**
+			 * This interface removes the trains before the next frame tick after all
+			 * the workers have synchronized at the end of frame tick
+			 */
+			void removeTrainsBeforeNextFrameTick();
+		private:
+			/*list which maintains the trains to be removed */
+			std::vector<TrainDriver*> trainsToBeRemoved;
+			static TrainRemoval *instance;
+			/* lock for trainsToBeRemoved vector */
+			boost::mutex trainRemovalListLock;
+	};
+}
 }
 

@@ -235,18 +235,20 @@ private:
 
     /**
      * Processes the busController element in config xml
-     *
      * @param node node corresponding to the busController element inside xml file
      */
     void processBusControllerNode(xercesc::DOMElement *node);
 
     /**
      * Processes the trainController element in config xml
-     *
-     * @param node node corresponding to the trainController element inside xml file
+     * @param node is the node corresponding to the trainController element inside simrun_Midterm.xml file
      */
     void processTrainControllerNode(xercesc::DOMElement *node);
 
+    /**
+     * Process the train properties node in simrun_MidTerm.xml
+     * @param node is the node corresponding to the trainProperties element inside simrun_Midterm.xml file
+     */
     void processTrainPropertiesNode(xercesc::DOMElement *node);
 
     void processPathSetFileName(xercesc::DOMElement* node);

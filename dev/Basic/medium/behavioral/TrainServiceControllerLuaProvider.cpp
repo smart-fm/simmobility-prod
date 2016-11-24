@@ -40,7 +40,7 @@ namespace
         	}
         	catch (const std::out_of_range& oorx)
         	{
-        		throw std::runtime_error("missing service controller script");
+        		throw std::runtime_error("missing service controller script rsc.lua");
         	}
         }
     }

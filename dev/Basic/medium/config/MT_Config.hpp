@@ -693,7 +693,7 @@ public:
      * Retrieve the disruption params
      * @return disruption definition
      */
-    std::vector<DisruptionParams>& getDisruption();
+    std::vector<DisruptionParams>& getDisruption_rw();
 
     /**
      * get person timestep in milliseconds
@@ -790,7 +790,7 @@ private:
 	/// Container for lua scripts
 	ModelScriptsMap modelScriptsMap;
 
-
+	/// Container for service controller script
 	ModelScriptsMap ServiceControllerScriptsMap;
 
 	/// container for mongo collections

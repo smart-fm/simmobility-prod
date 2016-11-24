@@ -333,7 +333,7 @@ public:
 	void composeTrainTripUnScheduled(std::string lineId,std::string startTime,std::string startStation);
 	/* gets the list of disrupted platforms for service controller caused by service controller */
 	std::map<std::string,std::vector<std::string>> getDisruptedPlatforms_ServiceController();
-	std::map<std::string,std::vector<std::string>> getUturnPlatforms();
+	std::map<std::string,std::vector<std::string>>& getUturnPlatforms();
 	/*Gets all the train ids for active trains */
     std::vector<int> GetActiveTrainIds();
     /* performs disruptiopn.sets the disrupted platform list */

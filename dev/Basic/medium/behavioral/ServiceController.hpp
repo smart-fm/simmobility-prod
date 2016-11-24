@@ -46,7 +46,7 @@ class ServiceController:  public lua::LuaModel
 	/* starting function to invoke to use service controller */
 	void useServiceController(std::string time);
 
-	/*interface function reset the speed limit of a stretch of blocks
+	/**interface function reset the speed limit of a stretch of blocks
 	 *@param speedLimit is the speedlimit in the blocks to be set
 	 *@param startStation is the start station of the stretch from where blocks are to be reset
 	 *@param endStation is the end station of the stretch till where the blocks are to be reset
@@ -61,6 +61,13 @@ class ServiceController:  public lua::LuaModel
 	 */
 	void resetAcceleration(double accelerate,std::string lineId);
 
+	/**interface function reset the acceleration limit of a stretch of blocks
+	 *@param accelerationLimit is the speedlimit in the blocks to be set
+	 *@param startStation is the start station of the stretch from where blocks are to be reset
+	 *@param endStation is the end station of the stretch till where the blocks are to be reset
+	 *@param startTime is time at which the speedLimit should reset
+	 *@param endTime is time at which speed limit should to set back to default
+	 */
 	void resetAccelerationLimit(double speedLimit,std::string startStation,std::string endStation,std::string lineId,std::string startTime,std::string endTime);
 
 	/*interface to  reset the safe headway of a particular train
@@ -93,7 +100,7 @@ class ServiceController:  public lua::LuaModel
 
 	bool hasForceAlightedInDisruption(int trainID,std::string lineId);
 
-	/*Interface to override the default waiting time of a train at station if the holding time is more than calculated waiting time
+	/*Interface to override the default waiting time of a train at station
 	 *@param platformName is the name of the platform where we need to reset the holding time
 	 *@param duration is the duration of reset
 	 *@param trainId is the train id of the train whose holding time is to be reset
@@ -101,8 +108,20 @@ class ServiceController:  public lua::LuaModel
 	 */
 	void resetHoldingTimeAtStation(std::string platformName,double duration,int trainId,std::string lineId);
 
+	/*Interface to override the default maximum waiting time of a train at station
+	 *@param platformName is the name of the platform where we need to reset the holding time
+	 *@param duration is the duration of reset
+	 *@param trainId is the train id of the train whose holding time is to be reset
+	 *@param lineId is the id of the line where the train with given train id's holding time is to be reset
+	 */
 	void resetMaxHoldingTimeAtStation(std::string platformName,double duration,int trainId,std::string lineId);
 
+	/*Interface to override the default minimum waiting time of a train at station
+	 *@param platformName is the name of the platform where we need to reset the holding time
+	 *@param duration is the duration of reset
+	 *@param trainId is the train id of the train whose holding time is to be reset
+	 *@param lineId is the id of the line where the train with given train id's holding time is to be reset
+	 */
 	void resetMinHoldingTimeAtStation(std::string platformName,double duration,int trainId,std::string lineId);
 
 	/*Interface to terminate the service of all trains currently running on the line specified and stops the future schedule dispatch of trains
@@ -230,9 +249,13 @@ class ServiceController:  public lua::LuaModel
 	 */
 	void updatePlatformList(int trainId,luabridge::LuaRef platformsToBeIgnored,std::string lineId);
 
-	void addPlatformToList(int trainId,luabridge::LuaRef platformsToBeIgnored,std::string lineId);
-
-	void insertPlatformHoldEntities(std::string platformName,double duration,int trainId,std::string lineId);
+	/**
+	 * This interface adds the platform to the list if it was ignored previously by service controller
+	 * @param trainId is the id of the train
+	 * @param lineId is the id of the line
+	 * @param platformsToBeAdded is the list of platforms to be added back
+	 */
+	void addPlatformToList(int trainId,luabridge::LuaRef platformsToBeAdded,std::string lineId);
 
 	/**
 	 *Interface to restrict the passenger movement type.ie boarding,alighting or both
@@ -282,8 +305,18 @@ class ServiceController:  public lua::LuaModel
 	 */
 	int getDisruptedPlatformsSize(std::string lineID) const;
 
+	/**
+	 * This interface returns the size of Uturn platforms for a particular line
+	 * @param lineId is the id of the line
+	 */
 	int getUturnPlatformsSize(std::string lineID) const;
 
+	/**
+	 * This interface returns Uturn platform by index,its purpose
+	 * is for iterating over the list of uturn platforms in lua script by service controller
+	 * @param is the id of the string
+	 * @param is the index of the platform in the list
+	 */
 	std::string getUturnPlatformByIndex(std::string lineId,int index) const;
 
 	/**
@@ -294,7 +327,12 @@ class ServiceController:  public lua::LuaModel
 	 */
 	void setUturnFlag(int trainId,std::string lineId,bool takeUturn,double timeforUturn);
 
-
+	/**
+	 * This interface returns whether the uturn flag is set for a train or not
+	 * @param trainId is the id of the train
+	 * @param lineId is the id of the line
+	 * @return is the bool whether the uturn flag is set or not
+	 */
 	bool getUturnFlag(int trainId,std::string lineId);
 
 	/*Interface that gives the trainId of the train ahead of the train specified
@@ -332,7 +370,7 @@ class ServiceController:  public lua::LuaModel
 	 *Interface that clears disruption on the platforms
 	 *@param lineId is the id of the line where disruption is to be cleared
 	 */
-	void clearDisruption(std::string lineId);
+	void clearDisruptionAndConnectTheTrains(std::string lineId);
 
 	/**
 	 *Interface gets the force alight status that is passengers have force alighted or not
@@ -394,30 +432,104 @@ class ServiceController:  public lua::LuaModel
 	 */
 	void connectTrainsAfterDisruption(std::string lineId);
 
+	/**
+	 * This interface indicates whether the trains should stop when there is disruption
+	 * depending on its position whether its before or after disrupted region as the
+	 * trains queue up from the disrupted platforms till the first uturn platform behind disrupted region
+	 * @param trainId is the id of the train
+	 * @param lineId is the id of the trainline
+	 * @return is the bool whether to stop or not
+	 */
 	bool shouldStopDueToDisruption(int trainId,std::string lineId);
 
+	/**
+	 * This interface indicates if the uturn platform is on the way before the disrupted region along
+	 * the path of the train
+	 * @param trainId is the id of the train
+	 * @param lineId is the id of the line
+	 * @return is the bool whether the uturn platform is on the way or not
+	 */
 	bool isUTurnPlatformOnTheWay(int trainId,std::string lineId);
 
+	/**
+	 * This interface returns the coming or next uturn platform for the train
+	 * @param trainId is the id of the train
+	 * @param lineId is the id of the line
+	 * @return returns the next uturn platform
+	 */
 	std::string getNextUturnPlatform(int trainId,std::string lineId);
 
+	/**
+	 * This interface indicates whether the given platform is Uturn platform
+	 * @param platformName is the name of the platform
+	 * @param lineId is the id of the line
+	 * @return is the bool whether its a uturn platform or not
+	 */
 	bool isUTurnPlatform(std::string platformName,std::string lineId);
 
+	/**
+	 * This interface indicates whether the given platform is disrupted platform
+	 * @param platformName is the name of the platform
+	 * @param lineId is the id of the line
+	 * @return bool is the whether is disrupted platform or not
+	 */
 	bool isDisruptedPlatform(std::string platformName,std::string lineId);
 
+	/**
+	 * This interface adds the train into inactive pool after the completion of journey
+	 * @param trainId returns the id of the train
+	 * @param lineId is the id of the line
+	 */
 	void addTrainIdToInactivePoolOnJourneyCompletion(int trainId,std::string lineId);
 
+	/**
+	 * This interface sets the disrupted state of the train
+	 * @param trainId is the id of the train
+	 * @param lineId is the id of the line
+	 * @state is the state whether its disrupted or not
+	 */
 	void setDisruptedState(int trainId,std::string lineId,bool state);
 
+	/**
+	 * This interface restores the defaults of the parameters changes by service controller
+	 * @param trainId is the id of the train
+	 * @param lineId is the id of the line
+	 */
 	void restoreDefaults(int trainId,std::string lineId);
 
+	/**
+	 * This interface deletes the all requests to restrict passengers
+	 * @param trainId is the id of the train
+	 * @lineId is the id of the line
+	 */
 	void removeRestrictPassengersEntity(int trainId,std::string lineId);
 
+	/**
+	 * This interface deletes all the requests to reset MaximumHoldingTime at station
+	 * @param trainId is the id of the train
+	 * @param lineId is the id of the line
+	 */
 	void removeMaximumHoldingTimeEntity(int trainId,std::string lineId);
 
+	/**
+	 * This interface deletes all the requests to reset MinimumHoldingTime at station
+	 * @param trainId is the id of the train
+	 * @param lineId is the id of the line
+	 */
 	void removeMinimumHoldingTimeEntity(int trainId,std::string lineId);
 
+	/**
+	 * This interface deletes all the requests to reset holdingTime at station
+	 * @param trainId is the id of the train
+	 * @param lineId is the id of the line
+	 */
 	void removePlatformHoldingTimeEntity(int trainId,std::string lineId);
 
+	/*
+	 * This interface deletes all the requests to ignore platforms
+	 * @param trainId is the id of the train
+	 * @param lineId is the id of the line
+	 */
 	void clearAllPlatformsToIgnore(int trainId,std::string lineId);
 
 	private:

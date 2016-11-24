@@ -191,13 +191,6 @@ void Person_MT::findMrtTripsAndPerformRailTransitRoute(std::vector<sim_mob::OD_T
 				{
 					selServiceLine=serviceLine;
 					selEdge=*iter;
-					if(odTrip.startStop.find("NE12")!=std::string::npos&&odTrip.endStop.find("NE4")!=std::string::npos)
-					{
-						if(selServiceLine.find("CC_1")!=std::string::npos||selServiceLine.find("CE_1")!=std::string::npos)
-						{
-							int degug =1;
-						}
-					}
 				}
 				iter++;
 			}
@@ -206,14 +199,6 @@ void Person_MT::findMrtTripsAndPerformRailTransitRoute(std::vector<sim_mob::OD_T
 		odTrip.id=selEdge.getEdgeId();
 		odTrip.serviceLine=selEdge.getServiceLine();
 		odTrip.serviceLines=selEdge.getServiceLines();
-		if(odTrip.startStop.find("NE12")!=std::string::npos&&odTrip.endStop.find("NE4")!=std::string::npos)
-		{
-			if(odTrip.serviceLine.find("CC_1")!=std::string::npos||odTrip.serviceLine.find("CE_1")!=std::string::npos)
-			{
-				int degug =1;
-			}
-		}
-
 	}
 
 	return odTrip;
@@ -430,17 +415,18 @@ void Person_MT::onEvent(event::EventId eventId, sim_mob::event::Context ctxId, e
 {
 	switch(eventId)
 	{
-	case EVT_DISRUPTION_CHANGEROUTE:
-	{
-		const ReRouteEventArgs& exArgs = MSG_CAST(ReRouteEventArgs, args);
-		const std::string stationName = exArgs.getStationName();
-		unsigned int currentTime = exArgs.getCurrentTime();
-		EnRouteToNextTrip(stationName, DailyTime(currentTime));
-		break;
-	}
+		case EVT_DISRUPTION_CHANGEROUTE:
+		{
+			const ReRouteEventArgs& exArgs = MSG_CAST(ReRouteEventArgs, args);
+			const std::string stationName = exArgs.getStationName();
+			unsigned int currentTime = exArgs.getCurrentTime();
+			EnRouteToNextTrip(stationName, DailyTime(currentTime));
+			break;
+		}
 	}
 
-	if(currRole){
+	if(currRole)
+	{
 		currRole->onParentEvent(eventId, ctxId, sender, args);
 	}
 }
@@ -486,18 +472,8 @@ void Person_MT::insertWaitingActivityToTrip()
 						subTrip.itemType = TripChainItem::getItemType("WaitingTrainActivity");
 						const std::string& firstStationName = itSubTrip[1]->origin.trainStop->getStopName();
 						std::string lineId = itSubTrip[1]->serviceLine;
-						if(boost::iequals(firstStationName,"CC13/NE12"))
-						{
-
-							const std::string& secondStationName = itSubTrip[1]->destination.trainStop->getStopName();
-							int debug = 1;
-						}
 						Platform* platform =TrainController<Person_MT>::getInstance()->getPlatform(lineId, firstStationName);
 						WayPoint pt=itSubTrip[1]->destination;
-						if(pt.type!=WayPoint::TRAIN_STOP)
-						{
-							int debug=1;
-						}
 						//subTrip.
 						if (platform && itSubTrip[1]->destination.type == WayPoint::TRAIN_STOP)
 						{
@@ -530,20 +506,12 @@ void Person_MT::insertWaitingActivityToTrip()
 							else
 							{
 								Print() << "[PT pathset] train trip failed:[" << firstStationName << "]|[" << secondStationName << "]--["<< lineId<<"] - Invalid start/end stop for PT edge" << std::endl;
-								if(firstStationName.find("NE")!=std::string::npos&&secondStationName.find("NE")!=std::string::npos)
-								{
-									int debug =1;
-								}
 							}
 
 						}
 						else
 						{
 							const std::string& secondStationName = itSubTrip[1]->destination.trainStop->getStopName();
-							if(firstStationName.find("NE")!=std::string::npos&&secondStationName.find("NE")!=std::string::npos)
-							{
-								int debug =1;
-							}
 						}
 
 					}

@@ -12,6 +12,7 @@
 #include "message/MessageBus.hpp"
 #include "event/SystemEvents.hpp"
 #include "event/args/ReRouteEventArgs.hpp"
+#include "util/Profiler.hpp"
 #ifndef _CLASS_TRAIN_CONTROLLER_FUNCTIONS
 #include "entities/TrainController.hpp"
 #else
@@ -599,14 +600,6 @@ namespace sim_mob
 			std::string lineId = r.get<std::string>(1);
 			TrainSchedule schedule;
 			schedule.lineId = lineId;
-			if(boost::iequals(lineId,"NS_1"))
-			{
-				int debug =1;
-			}
-			if(boost::iequals(lineId,"EW_1"))
-			{
-				int deg=1;
-			}
 			schedule.scheduleId = r.get<std::string>(0);
 			schedule.startTime = r.get<std::string>(2);
 			schedule.endTime = r.get<std::string>(3);
@@ -1221,7 +1214,7 @@ namespace sim_mob
 	}
 
 	template<typename PERSON>
-	std::map<std::string,std::vector<std::string>> TrainController<PERSON>::getUturnPlatforms()
+	std::map<std::string,std::vector<std::string>>& TrainController<PERSON>::getUturnPlatforms()
 	{
 		return mapOfUturnPlatformsLines;
 	}
@@ -1342,6 +1335,8 @@ namespace sim_mob
 					trainIds.erase(trainIds.begin());
 					mapOfNoAvailableTrains[lineID]=mapOfNoAvailableTrains[lineID]-1;
 					activePoolLock.unlock();
+					sim_mob::BasicLogger& ptMRTMoveLogger  = sim_mob::Logger::log("pulledTrainId.csv");
+					ptMRTMoveLogger<<trainId<<","<<lineID<<std::endl;
 					return trainId;
 				}
 
@@ -1365,6 +1360,8 @@ namespace sim_mob
 		recycleTrainId[lineId].push_back(trainId);
 		mapOfNoAvailableTrains[lineId]=mapOfNoAvailableTrains[lineId]+1;
 		activePoolLock.unlock();
+		sim_mob::BasicLogger& ptMRTMoveLogger  = sim_mob::Logger::log("returnedTrainId.csv");
+		ptMRTMoveLogger<<trainId<<","<<lineId<<std::endl;
 	}
 
 	template<typename PERSON>
@@ -1496,11 +1493,9 @@ namespace sim_mob
                        //blockVectorOfRessetedSpeeds.push_back(block);
                    }
                }
-               //resetSpeedBlocks[count].speedReset=true;
-               //(*it).speedReset=true;
 
            }
-		   //&&(*it).speedReset==true
+
            else if((*it).endTime<=currentTime.getStrRepr())
            {
 

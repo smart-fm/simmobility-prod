@@ -280,27 +280,30 @@ void sim_mob::medium::PredayLuaModel::predictDayPattern(PersonParams& personPara
 		//Day pattern stops
 		LuaRef chooseDPT = getGlobal(state.get(), "choose_dpt");
 		LuaRef retValT = chooseDPT(&personParams);
-		if (retValT.isTable()) {
-
+		if (retValT.isTable())
+		{
 			dayPattern["WorkT"] = retValT[1].cast<int>();
 			dayPattern["EduT"] = retValT[2].cast<int>();
 			dayPattern["ShopT"] = retValT[3].cast<int>();
 			dayPattern["OthersT"] = retValT[4].cast<int>();
 		}
-		else {
+		else
+		{
 			throw std::runtime_error("Error in day pattern tours prediction. Unexpected return value");
 		}
 
 		//Day pattern tours
 		LuaRef chooseDPS = getGlobal(state.get(), "choose_dps");
 		LuaRef retValS = chooseDPS(&personParams);
-		if (retValS.isTable()) {
+		if (retValS.isTable())
+		{
 			dayPattern["WorkI"] = retValS[1].cast<int>();
 			dayPattern["EduI"] = retValS[2].cast<int>();
 			dayPattern["ShopI"] = retValS[3].cast<int>();
 			dayPattern["OthersI"] = retValS[4].cast<int>();
 		}
-		else {
+		else
+		{
 			throw std::runtime_error("Error in day pattern stops prediction. Unexpected return value");
 		}
 	}
@@ -352,7 +355,8 @@ bool sim_mob::medium::PredayLuaModel::predictUsualWorkLocation(PersonParams& per
 {
 	LuaRef chooseUW = getGlobal(state.get(), "choose_uw"); // choose usual work location
 	LuaRef retVal = chooseUW(&personParams, &usualWorkParams);
-	if (!retVal.isNumber()) {
+	if (!retVal.isNumber())
+	{
 		throw std::runtime_error("Error in usual work location model. Unexpected return value");
 	}
 	return retVal.cast<bool>();
@@ -360,25 +364,26 @@ bool sim_mob::medium::PredayLuaModel::predictUsualWorkLocation(PersonParams& per
 
 int sim_mob::medium::PredayLuaModel::predictTourMode(PersonParams& personParams, TourModeParams& tourModeParams) const
 {
-	switch (tourModeParams.getStopType()) {
-	case WORK:
+	switch (tourModeParams.getStopType())
 	{
-		LuaRef chooseTMW = getGlobal(state.get(), "choose_tmw");
-		LuaRef retVal = chooseTMW(&personParams, &tourModeParams);
-		return retVal.cast<int>();
-		break;
-	}
-	case EDUCATION:
-	{
-		LuaRef chooseTME = getGlobal(state.get(), "choose_tme");
-		LuaRef retVal = chooseTME(&personParams, &tourModeParams);
-		return retVal.cast<int>();
-		break;
-	}
-	default:
-	{
-		throw std::runtime_error("Tour mode model cannot be invoked for Shopping and Other tour types");
-	}
+		case WORK:
+		{
+			LuaRef chooseTMW = getGlobal(state.get(), "choose_tmw");
+			LuaRef retVal = chooseTMW(&personParams, &tourModeParams);
+			return retVal.cast<int>();
+			break;
+		}
+		case EDUCATION:
+		{
+			LuaRef chooseTME = getGlobal(state.get(), "choose_tme");
+			LuaRef retVal = chooseTME(&personParams, &tourModeParams);
+			return retVal.cast<int>();
+			break;
+		}
+		default:
+		{
+			throw std::runtime_error("Tour mode model cannot be invoked for Shopping and Other tour types");
+		}
 	}
 }
 
@@ -414,31 +419,31 @@ int sim_mob::medium::PredayLuaModel::predictTourModeDestination(PersonParams& pe
 {
 	switch (tourModeDestinationParams.getTourPurpose())
 	{
-	case WORK:
-	{
-		LuaRef chooseTMD = getGlobal(state.get(), "choose_tmdw");
-		LuaRef retVal = chooseTMD(&personParams, &tourModeDestinationParams);
-		return retVal.cast<int>();
-		break;
-	}
-	case SHOP:
-	{
-		LuaRef chooseTMD = getGlobal(state.get(), "choose_tmds");
-		LuaRef retVal = chooseTMD(&personParams, &tourModeDestinationParams);
-		return retVal.cast<int>();
-		break;
-	}
-	case OTHER:
-	{
-		LuaRef chooseTMD = getGlobal(state.get(), "choose_tmdo");
-		LuaRef retVal = chooseTMD(&personParams, &tourModeDestinationParams);
-		return retVal.cast<int>();
-		break;
-	}
-	default:
-	{
-		throw std::runtime_error("Tour mode model cannot be invoked for Shopping and Other tour types");
-	}
+		case WORK:
+		{
+			LuaRef chooseTMD = getGlobal(state.get(), "choose_tmdw");
+			LuaRef retVal = chooseTMD(&personParams, &tourModeDestinationParams);
+			return retVal.cast<int>();
+			break;
+		}
+		case SHOP:
+		{
+			LuaRef chooseTMD = getGlobal(state.get(), "choose_tmds");
+			LuaRef retVal = chooseTMD(&personParams, &tourModeDestinationParams);
+			return retVal.cast<int>();
+			break;
+		}
+		case OTHER:
+		{
+			LuaRef chooseTMD = getGlobal(state.get(), "choose_tmdo");
+			LuaRef retVal = chooseTMD(&personParams, &tourModeDestinationParams);
+			return retVal.cast<int>();
+			break;
+		}
+		default:
+		{
+			throw std::runtime_error("Tour mode model cannot be invoked for Shopping and Other tour types");
+		}
 	}
 }
 
@@ -446,28 +451,28 @@ int sim_mob::medium::PredayLuaModel::predictTourTimeOfDay(PersonParams& personPa
 {
 	switch (tourType)
 	{
-	case WORK:
-	{
-		LuaRef chooseTTDW = getGlobal(state.get(), "choose_ttdw");
-		LuaRef retVal = chooseTTDW(&personParams, &tourTimeOfDayParams);
-		return retVal.cast<int>();
-		break;
-	}
-	case EDUCATION:
-	{
-		LuaRef chooseTTDE = getGlobal(state.get(), "choose_ttde");
-		LuaRef retVal = chooseTTDE(&personParams, &tourTimeOfDayParams);
-		return retVal.cast<int>();
-		break;
-	}
-	case SHOP: // Fall through
-	case OTHER:
-	{
-		LuaRef chooseTTDO = getGlobal(state.get(), "choose_ttdo");
-		LuaRef retVal = chooseTTDO(&personParams, &tourTimeOfDayParams);
-		return retVal.cast<int>();
-		break;
-	}
+		case WORK:
+		{
+			LuaRef chooseTTDW = getGlobal(state.get(), "choose_ttdw");
+			LuaRef retVal = chooseTTDW(&personParams, &tourTimeOfDayParams);
+			return retVal.cast<int>();
+			break;
+		}
+		case EDUCATION:
+		{
+			LuaRef chooseTTDE = getGlobal(state.get(), "choose_ttde");
+			LuaRef retVal = chooseTTDE(&personParams, &tourTimeOfDayParams);
+			return retVal.cast<int>();
+			break;
+		}
+		case SHOP: // Fall through
+		case OTHER:
+		{
+			LuaRef chooseTTDO = getGlobal(state.get(), "choose_ttdo");
+			LuaRef retVal = chooseTTDO(&personParams, &tourTimeOfDayParams);
+			return retVal.cast<int>();
+			break;
+		}
 	}
 }
 

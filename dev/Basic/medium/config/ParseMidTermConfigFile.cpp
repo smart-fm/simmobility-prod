@@ -24,35 +24,40 @@ unsigned int ProcessTimegranUnits(xercesc::DOMElement* node)
 	return ParseTimegranAsSecond(GetNamedAttributeValue(node, "value"), GetNamedAttributeValue(node, "units"), NUM_SECONDS_IN_AN_HOUR);
 }
 
-unsigned int ParseGranularitySingle(const XMLCh* srcX, unsigned int* defValue) {
-	if (srcX) {
+unsigned int ParseGranularitySingle(const XMLCh* srcX, unsigned int* defValue)
+{
+	if (srcX)
+	{
         ///Search for "[0-9]+ ?[^0-9]+), roughly.
 		std::string src = TranscodeString(srcX);
 		size_t digStart = src.find_first_of("1234567890");
 		size_t digEnd = src.find_first_not_of("1234567890", digStart+1);
 		size_t unitStart = src.find_first_not_of(" ", digEnd);
-		if (digStart!=0 || digStart==std::string::npos || digEnd==std::string::npos || unitStart==std::string::npos) {
+		if (digStart!=0 || digStart==std::string::npos || digEnd==std::string::npos || unitStart==std::string::npos)
+		{
 			throw std::runtime_error("Badly formatted single-granularity string.");
 		}
 
         ///Now split/parse it.
 		double value = boost::lexical_cast<double>(src.substr(digStart, (digEnd-digStart)));
 		std::string units = src.substr(unitStart, std::string::npos);
-
 		return GetValueInMs(value, units, defValue);
 	}
 
     ///Wasn't found.
-	if (!defValue) {
+	if (!defValue)
+	{
 		throw std::runtime_error("Mandatory integer (granularity) variable; no default available.");
 	}
 	return *defValue;
 }
 
-unsigned int ParseGranularitySingle(const XMLCh* src, unsigned int defValue) {
+unsigned int ParseGranularitySingle(const XMLCh* src, unsigned int defValue)
+{
 	return ParseGranularitySingle(src, &defValue);
 }
-unsigned int ParseGranularitySingle(const XMLCh* src) { //No default
+unsigned int ParseGranularitySingle(const XMLCh* src)
+{ 	//No default
 	return ParseGranularitySingle(src, nullptr);
 }
 
@@ -122,12 +127,7 @@ void ParseMidTermConfigFile::processSupplyNode(xercesc::DOMElement* node)
 	processStatisticsOutputNode(GetSingleElementByName(node, "output_statistics", true));
 	processBusCapactiyElement(GetSingleElementByName(node, "bus_default_capacity", true));
 	processSpeedDensityParamsNode(GetSingleElementByName(node, "speed_density_params", true));
-
-	/* temporary will be deleted and separte node for supply scripts*/
-	//processModelScriptsNode ( GetSingleElementByName(node, "model_scripts_supply", true) );
-	//temporarily
 	cfg.luaScriptsMap = processModelScriptsNode(GetSingleElementByName(node, "model_scripts", true));
-
 }
 
 
@@ -136,7 +136,6 @@ void ParseMidTermConfigFile::processPredayNode(xercesc::DOMElement* node)
 	DOMElement* childNode = nullptr;
 	childNode = GetSingleElementByName(node, "run_mode", true);
 	mtCfg.setPredayRunMode(ParseString(GetNamedAttributeValue(childNode, "value", true), "simulation"));
-
 	childNode = GetSingleElementByName(node, "threads", true);
 	mtCfg.setNumPredayThreads(ParseUnsignedInt(GetNamedAttributeValue(childNode, "value", true), DEFAULT_NUM_THREADS_DEMAND));
 	if(mtCfg.runningPredaySimulation())
@@ -232,7 +231,8 @@ void ParseMidTermConfigFile::processDwellTimeElement(xercesc::DOMElement* node)
 		{
 			float val = boost::lexical_cast<float>(*it);
 			dwellTimeParams.push_back(val);
-		} catch (...)
+		}
+		catch (...)
 		{
 			throw std::runtime_error("load dwelling-time parameters errors in MT_Config");
 		}
@@ -326,7 +326,6 @@ void ParseMidTermConfigFile::processBusCapactiyElement(xercesc::DOMElement* node
 ModelScriptsMap ParseMidTermConfigFile::processModelScriptsNode(xercesc::DOMElement* node)
 {
 	std::string format = ParseString(GetNamedAttributeValue(node, "format"), "");
-	std::string filename="";
 	if (format.empty() || format != "lua")
 	{
 		throw std::runtime_error("Unsupported script format");
@@ -361,12 +360,10 @@ ModelScriptsMap ParseMidTermConfigFile::processModelScriptsNode(xercesc::DOMElem
 		}
 
 		scriptsMap.addScriptFileName(key, val);
-		filename=val;
 	}
 
 	mtCfg.setModelScriptsMap(scriptsMap );
 	return scriptsMap;
-
 }
 
 
@@ -496,7 +493,8 @@ void ParseMidTermConfigFile::processDatabaseNode(DOMElement *node, DatabaseDetai
 
 void ParseMidTermConfigFile::processGenericPropsNode(DOMElement *node)
 {
-    if (!node) {
+    if (!node)
+    {
         return;
     }
 
@@ -615,10 +613,8 @@ void ParseMidTermConfigFile::processTT_Update(xercesc::DOMElement* node)
 
 void ParseMidTermConfigFile::processRegionRestrictionNode(xercesc::DOMElement* node)
 {
-
     if (!node)
     {
-
         mtCfg.regionRestrictionEnabled = false;
         return;
     }
@@ -765,33 +761,6 @@ void ParseMidTermConfigFile::processTrainControllerNode(xercesc::DOMElement *nod
         cfg.trainController.enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), "false");
         cfg.trainController.trainControlType = ParseString(GetNamedAttributeValue(node, "train_control_type"), "");
         processTrainPropertiesNode(node);
-
-        /*DOMElement* child = GetSingleElementByName(node, "safe_operation_distance_meter");
-    	if (child == nullptr)
-    	{
-    		throw std::runtime_error("load safe_operation_distance_meter missing in simrun_MidTerm.xml");
-    	}
-    	double value = ParseFloat(GetNamedAttributeValue(child, "value"));
-    	cfg.trainController.safeDistance = value;
-
-        child = GetSingleElementByName(node, "safe_operation_headway_sec");
-    	if (child == nullptr)
-    	{
-    		throw std::runtime_error("load safe_operation_headway_sec missing in simrun_MidTerm.xml");
-    	}
-    	value = ParseFloat(GetNamedAttributeValue(child, "value"));
-    	cfg.trainController.safeHeadway = value;
-
-        child = GetSingleElementByName(node, "dwell_time_params");
-    	if (child == nullptr)
-    	{
-    		throw std::runtime_error("load dwell_time_params missing in simrun_MidTerm.xml");
-    	}
-    	value = ParseFloat(GetNamedAttributeValue(child, "min_sec"));
-    	cfg.trainController.miniDwellTime = value;
-    	value = ParseFloat(GetNamedAttributeValue(child, "max_sec"));
-    	cfg.trainController.maxDwellTime = value;
-    	*/
         DOMElement* child  = GetSingleElementByName(node, "output_enabled");
     	if (child == nullptr)
     	{
@@ -799,13 +768,6 @@ void ParseMidTermConfigFile::processTrainControllerNode(xercesc::DOMElement *nod
     	}
 
     	cfg.trainController.outputEnabled=ParseBoolean(GetNamedAttributeValue(child, "value"), false);
-    	/*child = GetSingleElementByName(node, "max_capacity");
-    	if (child == nullptr)
-    	{
-    		throw std::runtime_error("load max_capacity missing in simrun_MidTerm.xml");
-    	}
-    	cfg.trainController.maxCapacity=ParseUnsignedInt(GetNamedAttributeValue(child, "value"));
-	*/
     }
 }
 

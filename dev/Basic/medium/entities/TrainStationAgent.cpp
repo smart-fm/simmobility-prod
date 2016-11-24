@@ -24,7 +24,8 @@ using namespace sim_mob::event;
 
 namespace
 {
-const double safeDistanceToAhead = 140;
+const double distanceBehingToMakeUpToSafeDistance = 200;
+
 }
 namespace sim_mob {
 namespace medium
@@ -178,8 +179,6 @@ void TrainStationAgent::HandleMessage(messaging::Message::MessageType type, cons
 	{
 		checkAndInsertUnscheduledTrains();
 	}
-
-
 	}
 }
 
@@ -189,22 +188,22 @@ void TrainStationAgent::checkAndInsertUnscheduledTrains()
 	for (iPending = pendingTrainDriver.begin();
 				iPending != pendingTrainDriver.end(); iPending++)
 	{
-	std::list<TrainDriver*>& pendingDrivers = (*iPending).second;
-	std::string lineId = iPending->first;
-	std::vector<std::string>::iterator itr=find(unscheduledTrainLines.begin(),unscheduledTrainLines.end(),lineId);
-	if(itr!=unscheduledTrainLines.end())
-	{
+		std::list<TrainDriver*>& pendingDrivers = (*iPending).second;
+		std::string lineId = iPending->first;
+		std::vector<std::string>::iterator itr=find(unscheduledTrainLines.begin(),unscheduledTrainLines.end(),lineId);
+		if(itr!=unscheduledTrainLines.end())
+		{
 
-    	   const Platform *stationAgentPlatform=station->getPlatform(lineId);
-    	   TrainController<sim_mob::medium::Person_MT> *trainController=TrainController<sim_mob::medium::Person_MT>::getInstance();
-    	   insertTrainOrUturnlock.lock();
-    	   std::vector <Role<Person_MT>*> trainDriverVector=trainController->getActiveTrainsForALine(lineId);
-    	   std::vector<Role<Person_MT>*>::iterator it;
-    	   TrainDriver* next = pendingDrivers.front();
-		   next->getMovement()->teleportToPlatform(stationAgentPlatform->getPlatformNo());
-    	   bool isTrainApproachingClose=false;
-		   for(it=trainDriverVector.begin();it!=trainDriverVector.end();it++)
-		   {
+			const Platform *stationAgentPlatform=station->getPlatform(lineId);
+			TrainController<sim_mob::medium::Person_MT> *trainController=TrainController<sim_mob::medium::Person_MT>::getInstance();
+			insertTrainOrUturnlock.lock();
+			std::vector <Role<Person_MT>*> trainDriverVector=trainController->getActiveTrainsForALine(lineId);
+			std::vector<Role<Person_MT>*>::iterator it;
+			TrainDriver* next = pendingDrivers.front();
+			next->getMovement()->teleportToPlatform(stationAgentPlatform->getPlatformNo());
+			bool isTrainApproachingClose=false;
+			for(it=trainDriverVector.begin();it!=trainDriverVector.end();it++)
+			{
 				TrainDriver *tDriver=dynamic_cast<TrainDriver*>(*(it));
 				if(tDriver)
 				{
@@ -212,148 +211,125 @@ void TrainStationAgent::checkAndInsertUnscheduledTrains()
 					if(moveFacet)
 					{
 						TrainMovement* trainMovement=dynamic_cast<TrainMovement*>(moveFacet);
-						   if(trainMovement)
-						   {
-							  Platform *platform=trainMovement->getNextPlatform();
-							  if(platform)
-							  {
-
-								   if(stationAgentPlatform==platform)
-								   {
-									   const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
-									   double safeDistance = config.trainController.safeDistance;
-									   double distanceToTrainAhead=trainMovement->getDistanceToNextPlatform(tDriver)-platform->getLength()-safeDistance;
-									   if(distanceToTrainAhead-138<0)
-									   {
-										   isTrainApproachingClose=true;
-										   break;
-									   }
-									   else
-									   {
-										   //also check for safe headway ...
-										   double currentSpeed=trainMovement->getCurrentSpeed();
-										   double safeHeadWay=trainMovement->getSafeHeadWay();
-										   if((distanceToTrainAhead-safeDistance)/currentSpeed<safeHeadWay)
-										   {
-											   isTrainApproachingClose=true;
-											   break;
-										   }
-									   }
-								   }
-							  }
-						   }
+						if(trainMovement)
+						{
+							Platform *platform=trainMovement->getNextPlatform();
+							if(platform)
+							{
+								if(stationAgentPlatform==platform)
+								{
+									const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
+									double safeDistance = config.trainController.safeDistance;
+									//checking safe distance from the ned of platform
+									double distanceToTrainAhead=trainMovement->getDistanceToNextPlatform(tDriver)-platform->getLength()-safeDistance;
+									if(distanceToTrainAhead-distanceBehingToMakeUpToSafeDistance<0)
+									{
+										isTrainApproachingClose=true;
+										break;
+									}
+									else
+									{
+										//also check for safe headway ...
+										double currentSpeed=trainMovement->getCurrentSpeed();
+										double safeHeadWay=trainMovement->getSafeHeadWay();
+										if((distanceToTrainAhead-safeDistance)/currentSpeed<safeHeadWay)
+										{
+											isTrainApproachingClose=true;
+											break;
+										}
+									}
+								}
+							}
+						}
 					}
-
 				}
 
-			   if(isTrainApproachingClose)
-				   continue;
-			   else
-			   {
-				   //advance the train route to that platform.
-				   next->setNextRequested(TrainDriver::REQUESTED_AT_PLATFORM);
-
-			   }
-		   }
-
-
-	std::map<std::string, bool>::iterator iUsed = lastUsage.find(lineId);
-	bool isUsed=false;
-	if(iUsed!=lastUsage.end())
-	{
-		isUsed = iUsed->second;
-	}
-	else
-	{
-		lastUsage[lineId] = false;
-	}
-
-	if (!isUsed)
-	{
-		TrainDriver* next = pendingDrivers.front();
-		TrainDriver* ahead = nullptr;
-		TrainDriver *behindDriver=nullptr;
-		bool success = false;
-		std::map<std::string, TrainDriver*>::iterator iLastDriver;
-		iLastDriver = lastTrainDriver.find(lineId);
-		/*if (iLastDriver != lastTrainDriver.end())
-		{
-			ahead = iLastDriver->second;
-			sim_mob::medium::TrainMovement* trainMover = dynamic_cast<sim_mob::medium::TrainMovement*>(next->Movement());
-			double distanceToNextTrain = trainMover->getDistanceToNextTrain(ahead,false);
-			if (distanceToNextTrain > safeDistanceToAhead)
+			if(isTrainApproachingClose)
 			{
-				success = true;
+				continue;
 			}
-		}*/
-
-		//else
-		//{
-
-			TrainController<sim_mob::medium::Person_MT> *trainController=TrainController<sim_mob::medium::Person_MT>::getInstance();
-			std::vector <Role<Person_MT>*> trainDriverVector=trainController->getActiveTrainsForALine(lineId);
-			std::vector <Role<Person_MT>*>::iterator trainDriverItr=trainDriverVector.begin();
-			double minDis=-1;
-			success=true;
-
-			double minDisBehindDriver=-1;
-			while(trainDriverItr!=trainDriverVector.end())
+			}
+			std::map<std::string, bool>::iterator iUsed = lastUsage.find(lineId);
+			bool isUsed=false;
+			if(iUsed!=lastUsage.end())
 			{
-				TrainDriver *trainDriver =dynamic_cast<TrainDriver*>(*trainDriverItr);
-				if(trainDriver&&trainDriver!=next)
+				isUsed = iUsed->second;
+			}
+			else
+			{
+				lastUsage[lineId] = false;
+			}
+
+			if (!isUsed)
+			{
+				TrainDriver* next = pendingDrivers.front();
+				TrainDriver* ahead = nullptr;
+				TrainDriver *behindDriver=nullptr;
+				bool success = false;
+				std::map<std::string, TrainDriver*>::iterator iLastDriver;
+				iLastDriver = lastTrainDriver.find(lineId);
+				TrainController<sim_mob::medium::Person_MT> *trainController=TrainController<sim_mob::medium::Person_MT>::getInstance();
+				std::vector <Role<Person_MT>*> trainDriverVector=trainController->getActiveTrainsForALine(lineId);
+				std::vector <Role<Person_MT>*>::iterator trainDriverItr=trainDriverVector.begin();
+				double minDis=-1;
+				success=true;
+
+				double minDisBehindDriver=-1;
+				while(trainDriverItr!=trainDriverVector.end())
 				{
-					TrainMovement *movement=trainDriver->getMovement();
-					double totalDisCoverdByOtherTrain=movement->getTotalCoveredDistance();
-					if(totalDisCoverdByOtherTrain - (next->getMovement()->getTotalCoveredDistance())<0)
+					TrainDriver *trainDriver =dynamic_cast<TrainDriver*>(*trainDriverItr);
+					if(trainDriver&&trainDriver!=next)
 					{
-						if(minDisBehindDriver==-1||((next->getMovement()->getTotalCoveredDistance())-totalDisCoverdByOtherTrain)<minDisBehindDriver)
+						TrainMovement *movement=trainDriver->getMovement();
+						double totalDisCoverdByOtherTrain=movement->getTotalCoveredDistance();
+						if(totalDisCoverdByOtherTrain - (next->getMovement()->getTotalCoveredDistance())<0)
 						{
-							behindDriver=trainDriver;
-							minDisBehindDriver=((next->getMovement()->getTotalCoveredDistance())-totalDisCoverdByOtherTrain);
+							if(minDisBehindDriver==-1||((next->getMovement()->getTotalCoveredDistance())-totalDisCoverdByOtherTrain)<minDisBehindDriver)
+							{
+								behindDriver=trainDriver;
+								minDisBehindDriver=((next->getMovement()->getTotalCoveredDistance())-totalDisCoverdByOtherTrain);
+							}
+							trainDriverItr++;
+							continue;
 						}
-						trainDriverItr++;
-						continue;
-					}
-					double differentDistance=totalDisCoverdByOtherTrain - (next->getMovement()->getTotalCoveredDistance())-138-(movement->getSafeDistance());
-					if(differentDistance<0)
-					{
-						success=false;
-						ahead=trainDriver;
-						break;
-					}
-					else
-					{
-						if(minDis==-1||differentDistance<minDis)
+						double differentDistance=totalDisCoverdByOtherTrain - (next->getMovement()->getTotalCoveredDistance())-distanceBehingToMakeUpToSafeDistance-(movement->getSafeDistance());
+						if(differentDistance<0)
 						{
-							minDis=differentDistance;
+							success=false;
 							ahead=trainDriver;
+							break;
+						}
+						else
+						{
+							if(minDis==-1||differentDistance<minDis)
+							{
+								minDis=differentDistance;
+								ahead=trainDriver;
+							}
 						}
 					}
+					trainDriverItr++;
 				}
-				trainDriverItr++;
-			}
-		//}
 
-		if (success || !ahead)
-		{
-			trainDriver.push_back(next);
-			pendingDrivers.pop_front();
-			lastUsage[lineId] = true;
-			lastTrainDriver[lineId] = next;
-			next->setNextDriver(ahead);
-			if(behindDriver!=nullptr)
-			{
-				int id=behindDriver->getTrainId();
-				int x=id;
-				behindDriver->setNextDriver(next);
+				if (success || !ahead)
+				{
+					trainDriver.push_back(next);
+					pendingDrivers.pop_front();
+					lastUsage[lineId] = true;
+					lastTrainDriver[lineId] = next;
+					next->setNextDriver(ahead);
+					if(behindDriver!=nullptr)
+					{
+						behindDriver->setNextDriver(next);
+					}
+					next->setNextRequested(TrainDriver::REQUESTED_AT_PLATFORM);
+					Role<Person_MT> *tDriver=dynamic_cast<Role<Person_MT>*>(next);
+					TrainController<Person_MT>::getInstance()->addToListOfActiveTrainsInLine(lineId,tDriver);
+				}
 			}
-			Role<Person_MT> *tDriver=dynamic_cast<Role<Person_MT>*>(next);
-			TrainController<Person_MT>::getInstance()->addToListOfActiveTrainsInLine(lineId,tDriver);
-		}
-	}
-  }
+	  }
 
-	insertTrainOrUturnlock.unlock();
+		insertTrainOrUturnlock.unlock();
  }
 	unscheduledTrainLines.clear();
 }
@@ -420,18 +396,6 @@ void TrainStationAgent::dispathPendingTrains(timeslice now)
 					bool success = false;
 					std::map<std::string, TrainDriver*>::iterator iLastDriver;
 					iLastDriver = lastTrainDriver.find(lineId);
-					/*if (iLastDriver != lastTrainDriver.end())
-					{
-						ahead = iLastDriver->second;
-						sim_mob::medium::TrainMovement* trainMover = dynamic_cast<sim_mob::medium::TrainMovement*>(next->Movement());
-						double distanceToNextTrain = trainMover->getDistanceToNextTrain(ahead,false);
-						if (distanceToNextTrain > safeDistanceToAhead)
-						{
-							success = true;
-						}
-
-					}*/
-
 					//check for nearest train ahead
 					TrainController<sim_mob::medium::Person_MT> *trainController=TrainController<sim_mob::medium::Person_MT>::getInstance();
 					std::vector <Role<Person_MT>*> trainDriverVector=trainController->getActiveTrainsForALine(lineId);
@@ -483,8 +447,6 @@ void TrainStationAgent::dispathPendingTrains(timeslice now)
 						next->setNextDriver(ahead);
 						if(behindDriver!=nullptr)
 						{
-							int id=behindDriver->getTrainId();
-							int x=id;
 							behindDriver->setNextDriver(next);
 						}
 						Role<Person_MT> *tDriver=dynamic_cast<Role<Person_MT>*>(next);
@@ -616,13 +578,6 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 			}
 			callMovementFrameTick(now, *it);
 			tickInSec += (*it)->getParams().secondsInTick;
-			if(forceAlightedPersons.find(platform)!=forceAlightedPersons.end())
-			{
-				if(forceAlightedPersons[platform].size()>0)
-				{
-					int debug =1;
-				}
-			}
 			if((*it)->getIsToBeRemoved()&&((*it)->getMovement()->getNextPlatform()==nullptr||!boost::iequals((*it)->getMovement()->getNextPlatform()->getStationNo(),stationName)))
 			{
 				(*it)->setIsToBeRemoved(false);
@@ -667,32 +622,6 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 					{
 						(*it)->setHasForceAlightedInDisruption(true);
 						continue;
-					}
-
-					else
-					{
-						//push the passengers to waiting persons list if this platform is not their actual alighting platform
-						// so that they board the next train
-						/*std::list<Passenger*> leavingPassengers=leavingPersons[platform];
-						for (std::list<Passenger*>::iterator it=leavingPassengers.begin(); it != leavingPassengers.end(); )
-						{
-							Passenger *pr=dynamic_cast<Passenger*>(*it);
-							const WayPoint endPoint=pr->getEndPoint();
-							const Platform * alightingPlatform=endPoint.platform;
-							if(alightingPlatform!=platform)
-							{
-								if(forceAlightedPersons.find(platform)==forceAlightedPersons.end())
-								{
-									forceAlightedPersons[platform]=std::list<Passenger*>();
-								}
-								forceAlightedPersons[platform].push_back(pr);
-								leavingPersons[platform].erase(it);
-							}
-							else
-								it++;
-						}
-						*/
-						//pushForceAlightedPassengersToWaitingQueue(platform);
 					}
 				}
 
@@ -842,20 +771,8 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 			   break;
 			}
 
-			/*else if((*it)->getNextRequested() == TrainDriver::REQUESTED_TO_DEPOT)
-			{
-				std::string lineId = (*it)->getTrainLine();
-				lastUsage[lineId] = false;
-				removeAheadTrain(*it);
-				messaging::MessageBus::PostMessage(TrainController<Person_MT>::getInstance(),
-				MSG_TRAIN_BACK_DEPOT, messaging::MessageBus::MessagePtr(new TrainMessage((*it)->getParent())));
-				it = trainDriver.erase(it);
-				break;
-			}*/
-
 		}while (tickInSec < sysGran);
 
-		//}
 		pushForceAlightedPassengersToWaitingQueue(platform);
 		it++;
 	}
@@ -1023,7 +940,6 @@ void TrainStationAgent::removeAheadTrain(TrainDriver* aheadDriver)
 
 		}
 	}
-
 
 	ServiceController::getInstance()->removeTrainIdAndTrainDriverInMap(trainId,lineId,aheadDriver);
 	TrainController<Person_MT>::getInstance()->removeFromListOfActiveTrainsInLine(lineId,aheadDriver);

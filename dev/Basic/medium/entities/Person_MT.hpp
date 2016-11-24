@@ -149,11 +149,32 @@ public:
 	 */
 	virtual std::vector<BufferedBase *> buildSubscriptionList();
 
-
+	/**
+	 * This interface splits the MRT trips into different trips of different line
+	 * after the entire station list is given by rail transit graph
+	 * @param railPath is the station list of the train given by rail transit graph
+	 * @return is the vector of OD trips created
+	 */
 	std::vector<sim_mob::OD_Trip> splitMrtTrips(std::vector<std::string> railPath);
+
+	/**
+	 * This interface creates creates MRT sub trips for various intermediate trips splitted
+	 * @param src is the source of subtrip
+	 * @param dest is the destination of subtrip
+	 * @return is the OD trip created
+	 */
 	sim_mob::OD_Trip CreateMRTSubTrips(std::string src,std::string dest);
+
+	/**
+	 * This interface finds the MRT trips after route choice and performs RailTransitRoute choice
+	 * to give the full route consisting of station names  and then splitting various intermediate
+	 * trips and creating subtrips out of them
+	 * @param matchedTrips is the trips given after performing route choice.
+	 * The result of splitted trips into subtrips is appended in matchedTrips as well
+	 * as matchedTrips is passed by reference
+	 */
 	void  findMrtTripsAndPerformRailTransitRoute(std::vector<sim_mob::OD_Trip>& matchedTrips);
-	std::string GetServiceLine(std::string src,std::string dest);
+
 	std::string chooseModeEnRoute(const Trip& trip, unsigned int originNode, const DailyTime& curTime) const;
 	/**
 	 * exposes the Log function to print in thread local output files

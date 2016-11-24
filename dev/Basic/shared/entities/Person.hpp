@@ -162,13 +162,6 @@ public:
 	/**The next sub-trip in the current trip (if the current item is a trip)*/
 	std::vector<SubTrip>::const_iterator nextSubTrip;
 
-	static long NECount;
-	static long EWCount;
-	static long NSCount;
-	static boost::mutex NELock;
-	static boost::mutex EWLock;
-	static boost::mutex NSLock;
-
 	/**
 	 * The bus line taken by the person
 	 * tmp addition for debugging ~ Harish

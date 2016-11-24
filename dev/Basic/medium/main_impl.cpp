@@ -514,13 +514,6 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	ptMRTMoveLogger<<boardCount<<endl;
 	cout<<"The number of passengers boarding are"<<boardCount<<endl;
 	safe_delete_item(periodicPersonLoader);
-
-	cout<<"The number of trips in NE line"<<Person::NECount<<endl;
-	ptMRTMoveLogger<<Person::NECount<<endl;
-	cout<<"The number of trips in EW line"<<Person::EWCount<<endl;
-	ptMRTMoveLogger<<Person::EWCount<<endl;
-	cout<<"The number of trips in NS line"<<Person::NSCount<<endl;
-	ptMRTMoveLogger<<Person::NSCount<<endl;
 	cout << "Simulation complete; closing worker threads." << endl;
 
 	//Delete our profile pointer (if it exists)

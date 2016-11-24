@@ -196,7 +196,7 @@ void ExpandMidTermConfigFile::verifyIncidents()
 		}
 	}
 
-	IncidentManager::getInstance()->setDisruptions(MT_Config::getInstance().getDisruption());
+	IncidentManager::getInstance()->setDisruptions(MT_Config::getInstance().getDisruption_rw());
 }
 
 void ExpandMidTermConfigFile::setRestrictedRegionSupport()
@@ -293,5 +293,4 @@ void ExpandMidTermConfigFile::printSettings()
     std::cout << "------------------\n";
 	SimulationInfoPrinter simInfoPrinter(cfg, cfg.outSimInfoFileName);
 	simInfoPrinter.printSimulationInfo();
-
 }

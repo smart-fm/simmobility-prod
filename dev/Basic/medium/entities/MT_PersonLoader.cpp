@@ -267,7 +267,6 @@ public:
 			throw std::runtime_error("connection to LT population database failed");
 		}
 		PopulationSqlDao populationDao(populationConn);
-		int sz= tripChainList.size();
 		for (size_t i = 0; i < tripChainList.size(); i++)
 		{
 			std::vector<TripChainItem*>& personTripChain = tripChainList[i];

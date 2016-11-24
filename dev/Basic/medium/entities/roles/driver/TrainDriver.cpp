@@ -242,10 +242,6 @@ void TrainDriver::calculateDwellTime(int boarding,int alighting,int noOfPassenge
 		Platform *platform = getNextPlatform();
 		double maxDwellTime=0.0,minDwellTime=0.0;
 		bool useMaxDwellTime = false,useMinDwellTime = false;
-		if(getTrainId()==31 &&boost::iequals(getTrainLine(),"EW_2")==true)
-		{
-			int debug =1;
-		}
 		if(platformHoldingTimeEntities.find(platform->getPlatformNo())!=platformHoldingTimeEntities.end())
 		{
 			dwellTime = platformHoldingTimeEntities[platform->getPlatformNo()];

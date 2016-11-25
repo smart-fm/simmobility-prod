@@ -31,7 +31,7 @@ private:
 	const RoadSegment *parentSegment;
 
 public:
-	ParkingSlot(unsigned int id, unsigned int roadSegmentId);
+	ParkingSlot();
 	virtual ~ParkingSlot();
 
 	double getOffset() const;

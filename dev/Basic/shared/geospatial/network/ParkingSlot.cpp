@@ -8,8 +8,10 @@
 
 using namespace sim_mob;
 
-ParkingSlot::ParkingSlot(unsigned int id, unsigned int roadSegmentId) : RoadItem(id, 0, 0 , roadSegmentId)
+ParkingSlot::ParkingSlot() : RoadItem(), offset(0), length(0), isOccupied(false), parentSegment(nullptr)
 {
+	roadItemId = 0;
+	roadSegmentId = 0;
 }
 
 ParkingSlot::~ParkingSlot()

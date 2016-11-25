@@ -426,6 +426,8 @@ void HouseholdBidderRole::HandleMessage(Message::MessageType type, const Message
                 	int simulationEndDay = config.ltParams.days;
                 	year = config.ltParams.year;
                 	getParent()->getHousehold()->setLastBidStatus(1);
+            		getParent()->setAcceptedBid(true);
+            		getParent()->setBTOUnit(newUnit->isBto());
 
                 	if(simulationEndDay < (moveInWaitingTimeInDays))
 
@@ -439,8 +441,6 @@ void HouseholdBidderRole::HandleMessage(Message::MessageType type, const Message
                 		houseHold->setMoveInDate(getDateBySimDay(year,moveInWaitingTimeInDays));
                 		HM_Model* model = getParent()->getModel();
                 		model->addHouseholdsTo_OPSchema(houseHold);
-
-                		getParent()->setAcceptedBid(true);
                 	}
 
                     break;
@@ -776,6 +776,7 @@ bool HouseholdBidderRole::pickEntryToBid()
     {
     	//When bidding on BTO units, we cannot bid above the asking price. So it's basically the ceiling we cannot exceed.
     	finalBid = maxEntry->getAskingPrice();
+    	PrintOutV("finalBid  "<<finalBid<<"unit Id  " << maxEntry->getUnitId()<<std::endl);
     }
 
     biddingEntry = CurrentBiddingEntry( (maxEntry) ? maxEntry->getUnitId() : INVALID_ID, finalBid, maxWp, maxSurplus, maxWtpe, maxAffordability );

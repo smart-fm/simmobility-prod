@@ -15,6 +15,7 @@ namespace sim_mob
 class Link;
 class NetworkLoader;
 class Node;
+class ParkingSlot;
 class Point;
 class PolyPoint;
 class PolyLine;
@@ -58,6 +59,9 @@ private:
 	/**This map stores all the bus stops in the network with bus stop id as the key*/
 	std::map<unsigned int, BusStop *> mapOfIdvsBusStops;
 
+	/**This map stores all the parking slots in the network with the id as the key*/
+	std::map<unsigned int, ParkingSlot *> mapOfIdVsParkingSlots;
+
 	/**Private constructor as the class is a singleton*/
 	RoadNetwork();
 
@@ -90,6 +94,8 @@ public:
 	const std::map<unsigned int, TurningConflict *>& getMapOfIdvsTurningConflicts() const;
 
 	const std::map<unsigned int, BusStop *>& getMapOfIdvsBusStops() const;
+
+	const std::map<unsigned int, ParkingSlot *>& getMapOfIdVsParkingSlots() const;
 	
 	/**
 	 * Adds a lane to the road network
@@ -162,6 +168,12 @@ public:
 	 * @param stop - the pointer to bus stop
 	 */
 	void addBusStop(BusStop *stop);
+
+	/**
+	 * Adds a parking slot to the road network
+	 * @param parkingSlot - the pointer to the parking slot
+	 */
+	 void addParkingSlot(ParkingSlot *parkingSlot);
 
 	/**
 	 * Template class to lookup any map with an unsigned int id

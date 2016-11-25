@@ -9,13 +9,15 @@
 #include <map>
 #include <soci/soci.h>
 #include <string>
-#include "PT_Stop.hpp"
+
 #include "entities/misc/PublicTransit.hpp"
 #include "Lane.hpp"
 #include "LaneConnector.hpp"
 #include "Link.hpp"
 #include "Node.hpp"
+#include "ParkingSlot.hpp"
 #include "Point.hpp"
+#include "PT_Stop.hpp"
 #include "RoadItem.hpp"
 #include "TurningGroup.hpp"
 #include "TurningPath.hpp"
@@ -248,6 +250,19 @@ template<> struct type_conversion<sim_mob::BusStop>
 		double z = vals.get<double>("z", 0);
 		Point location(x, y, z);
 		res.setStopLocation(location);
+	}
+};
+
+template<> struct type_conversion<sim_mob::ParkingSlot>
+{
+	typedef values base_type;
+
+	static void from_base(const soci::values& vals, soci::indicator& ind, sim_mob::ParkingSlot& res)
+	{		
+		res.setRoadItemId(vals.get<unsigned int>("id", 0));
+		res.setRoadSegmentId(vals.get<unsigned int>("segment_id", 0));
+		res.setOffset(vals.get<double>("segment_offset", 0.0));
+		res.setLength(vals.get<double>("length", 0.0));
 	}
 };
 

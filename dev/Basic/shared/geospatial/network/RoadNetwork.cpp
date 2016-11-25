@@ -11,6 +11,7 @@
 #include "Link.hpp"
 #include "logging/Log.hpp"
 #include "Node.hpp"
+#include "ParkingSlot.hpp"
 #include "Point.hpp"
 #include "PolyLine.hpp"
 #include "RoadItem.hpp"
@@ -40,6 +41,7 @@ RoadNetwork::~RoadNetwork()
 	mapOfIdvsTurningGroups.clear();
 	mapOfIdvsTurningPaths.clear();
 	mapOfIdvsBusStops.clear();
+	mapOfIdVsParkingSlots.clear();
 
 	roadNetwork = NULL;
 }
@@ -82,6 +84,11 @@ const std::map<unsigned int, TurningConflict *>& RoadNetwork::getMapOfIdvsTurnin
 const std::map<unsigned int, BusStop *>& RoadNetwork::getMapOfIdvsBusStops() const
 {
 	return mapOfIdvsBusStops;
+}
+
+const std::map<unsigned int, ParkingSlot *>& RoadNetwork::getMapOfIdVsParkingSlots() const
+{
+	return mapOfIdVsParkingSlots;
 }
 
 void RoadNetwork::addLane(Lane* lane)
@@ -500,9 +507,12 @@ void RoadNetwork::addBusStop(BusStop* stop)
 			if ((offset + stopHalfLength) > stopSegment->getLength())
 			{
 				offset = stopSegment->getLength() - stopHalfLength;
-				if (offset > 0) {
+				if (offset > 0)
+				{
 					stop->setOffset(offset);
-				} else {
+				}
+				else
+				{
 					offset = stop->getOffset();
 				}
 			}
@@ -528,6 +538,63 @@ void RoadNetwork::addBusStop(BusStop* stop)
 			safe_delete_item(stop);
 			throw std::runtime_error(msg.str());
 		}
+	}
+}
+
+void RoadNetwork::addParkingSlot(ParkingSlot *parkingSlot)
+{
+	//Check if the parking slot has already been added to the network
+	std::map<unsigned int, ParkingSlot *>::iterator itParking = mapOfIdVsParkingSlots.find(parkingSlot->getRoadItemId());
+
+	if(itParking == mapOfIdVsParkingSlots.end())
+	{
+		//Get the road segment to which the parking slot belongs
+		std::map<unsigned int, RoadSegment *>::iterator itSegments = mapOfIdVsRoadSegments.find(parkingSlot->getRoadSegmentId());
+
+		if (itSegments != mapOfIdVsRoadSegments.end())
+		{
+			RoadSegment *parkingSegment = itSegments->second;
+			double offset = parkingSlot->getOffset();
+			double parkingSlotHalfLength = parkingSlot->getLength() / 2;
+			
+			//Ensure that the parking slot doesn't go beyond the road segment
+			if ((offset + parkingSlotHalfLength) > parkingSegment->getLength())
+			{
+				offset = parkingSegment->getLength() - parkingSlotHalfLength;
+				
+				if (offset > 0)
+				{
+					parkingSlot->setOffset(offset);
+				}
+				else
+				{
+					offset = parkingSlot->getOffset();
+				}
+			}
+
+			//Set the parent segment of the parkingSlot
+			parkingSlot->setParentSegment(parkingSegment);
+
+			//Add the parkingSlot to the segment
+			parkingSegment->addObstacle(offset, parkingSlot);
+
+			//Add the parking slot to the network
+			mapOfIdVsParkingSlots.insert(std::make_pair(parkingSlot->getRoadItemId(), parkingSlot));
+		}
+		else
+		{
+			std::stringstream msg;
+			msg << "Parking slot " << parkingSlot->getRoadItemId() << " refers to an invalid road segment " << parkingSlot->getRoadSegmentId();
+			safe_delete_item(parkingSlot);
+			throw std::runtime_error(msg.str());
+		}
+	}
+	else
+	{
+		std::stringstream msg;
+		msg << "Parking slot " << parkingSlot->getRoadItemId() << " has already been added!";
+		safe_delete_item(parkingSlot);
+		throw std::runtime_error(msg.str());
 	}
 }
 

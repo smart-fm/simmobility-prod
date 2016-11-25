@@ -327,9 +327,10 @@ void TrainStationAgent::checkAndInsertUnscheduledTrains()
 					TrainController<Person_MT>::getInstance()->addToListOfActiveTrainsInLine(lineId,tDriver);
 				}
 			}
+			insertTrainOrUturnlock.unlock();
 	  }
 
-		insertTrainOrUturnlock.unlock();
+
  }
 	unscheduledTrainLines.clear();
 }

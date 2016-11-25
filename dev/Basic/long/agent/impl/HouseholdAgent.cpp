@@ -150,6 +150,11 @@ HouseholdSellerRole* HouseholdAgent::getSeller()
 
 }
 
+void HouseholdAgent::setBTOUnit(bool value)
+{
+	btoUnit = value;
+}
+
 
 Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 {

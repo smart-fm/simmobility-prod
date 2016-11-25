@@ -7,19 +7,20 @@
 #include <map>
 
 #include "PT_Stop.hpp"
-#include "Link.hpp"
-#include "Node.hpp"
-#include "Point.hpp"
-#include "PolyLine.hpp"
-#include "TurningGroup.hpp"
-#include "TurningPath.hpp"
 #include "NetworkLoader.hpp"
 
 namespace sim_mob
 {
-class NetworkLoader;
 
+class Link;
 class NetworkLoader;
+class Node;
+class Point;
+class PolyPoint;
+class PolyLine;
+class TurningGroup;
+class TurningPath;
+
 /**
  * class for holding the network for simulation
  * \author Neeraj D

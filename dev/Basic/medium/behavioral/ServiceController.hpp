@@ -98,7 +98,7 @@ class ServiceController:  public lua::LuaModel
 	 */
 	void forceReleasePassenegers(int trainId,std::string lineId,bool action);
 
-	bool hasForceAlightedInDisruption(int trainID,std::string lineId);
+	bool hasForceAlightedInDisruption(int trainID,std::string lineId) const;
 
 	/*Interface to override the default waiting time of a train at station
 	 *@param platformName is the name of the platform where we need to reset the holding time
@@ -158,29 +158,29 @@ class ServiceController:  public lua::LuaModel
 	 *@param trainDriver is the pointer to train driver
 	 *@return is the id of the train driver passed
 	 **/
-	int getTrainId(TrainDriver *trainDriver);
+	int getTrainId(TrainDriver *trainDriver) const;
 
 	/*Interface to get the lineId of the train from the train driver passed
 	 *@param trainDriver is the pointer to the train driver
 	 *@return lineId of the train driver*/
-	std::string getLineId(TrainDriver *trainDriver);
+	std::string getLineId(TrainDriver *trainDriver) const;
 
 	/* interface to get  line id of the opposite line eg for NE_1 it gives NE_2 and vice versa
 	 *@param lineId is the id of the line whose opposite line id is needed
 	 */
-	std::string getOppositeLineId(std::string lineId);
+	std::string getOppositeLineId(std::string lineId) const;
 
 	/*Interface to get nearest coming platform for a train
 	 *@param trainId is the id of the train whose nearest coming platform is needed
 	 *@param lineId is the id of the line where the train id whose nearest coming platform is needed
 	 */
-	std::string getNextPlatform(int trainId,std::string lineID);
+	std::string getNextPlatform(int trainId,std::string lineID) const;
 
 	/*Interface to return the distance to coming platform for the train specified
 	 *@param trainId is the id of the train whose distance to nearest platform is needed
 	 *@param line id is the id of the line where the train id of interest is to be searched
 	 */
-	double getDistanceToNextPlatform(std::string lineId,int trainId);
+	double getDistanceToNextPlatform(std::string lineId,int trainId) const;
 
 	/*Interface to push the train into inactive pool from inactive pool
 	 *@param trainId is the id of the train which has to be pushed into active pool
@@ -203,13 +203,13 @@ class ServiceController:  public lua::LuaModel
 	 *@param lineId is the id of the line
 	 *@return returns the vector of trains
 	 **/
-	std::vector<TrainDriver*> getActiveTrainsInLine(std::string lineId);
+	std::vector<TrainDriver*> getActiveTrainsInLine_Rw(std::string lineId);
 
 	/*Interface to get all the ids of all active trains in line running or waiting to be dispatched
 	 *@param lineId is the id of the line
 	 *@return is the vector of ids
 	 */
-	std::vector<int>  getActiveTrainIds(std::string lineId);
+	std::vector<int>  getActiveTrainIds(std::string lineId) const;
 
 	/*Interface to get the number of active trains in the line
 	 *@param lineId is the id of the line where we need the number of active trains
@@ -333,7 +333,7 @@ class ServiceController:  public lua::LuaModel
 	 * @param lineId is the id of the line
 	 * @return is the bool whether the uturn flag is set or not
 	 */
-	bool getUturnFlag(int trainId,std::string lineId);
+	bool getUturnFlag(int trainId,std::string lineId) const;
 
 	/*Interface that gives the trainId of the train ahead of the train specified
 	 *@param trainId is the id of the train whose next train's id is to be fetched
@@ -430,7 +430,7 @@ class ServiceController:  public lua::LuaModel
 	 *As the there will be no longer any looping and all trains in a line are connected in the order of their position in the train line
 	 *@param lineId is the id of the line of interest
 	 */
-	void connectTrainsAfterDisruption(std::string lineId);
+	void connectTrainsAfterDisruption(std::string lineId) const;
 
 	/**
 	 * This interface indicates whether the trains should stop when there is disruption
@@ -440,7 +440,7 @@ class ServiceController:  public lua::LuaModel
 	 * @param lineId is the id of the trainline
 	 * @return is the bool whether to stop or not
 	 */
-	bool shouldStopDueToDisruption(int trainId,std::string lineId);
+	bool shouldStopDueToDisruption(int trainId,std::string lineId) const;
 
 	/**
 	 * This interface indicates if the uturn platform is on the way before the disrupted region along
@@ -449,7 +449,7 @@ class ServiceController:  public lua::LuaModel
 	 * @param lineId is the id of the line
 	 * @return is the bool whether the uturn platform is on the way or not
 	 */
-	bool isUTurnPlatformOnTheWay(int trainId,std::string lineId);
+	bool isUTurnPlatformOnTheWay(int trainId,std::string lineId) const;
 
 	/**
 	 * This interface returns the coming or next uturn platform for the train
@@ -457,7 +457,7 @@ class ServiceController:  public lua::LuaModel
 	 * @param lineId is the id of the line
 	 * @return returns the next uturn platform
 	 */
-	std::string getNextUturnPlatform(int trainId,std::string lineId);
+	std::string getNextUturnPlatform(int trainId,std::string lineId) const;
 
 	/**
 	 * This interface indicates whether the given platform is Uturn platform
@@ -465,7 +465,7 @@ class ServiceController:  public lua::LuaModel
 	 * @param lineId is the id of the line
 	 * @return is the bool whether its a uturn platform or not
 	 */
-	bool isUTurnPlatform(std::string platformName,std::string lineId);
+	bool isUTurnPlatform(std::string platformName,std::string lineId) const;
 
 	/**
 	 * This interface indicates whether the given platform is disrupted platform
@@ -473,7 +473,7 @@ class ServiceController:  public lua::LuaModel
 	 * @param lineId is the id of the line
 	 * @return bool is the whether is disrupted platform or not
 	 */
-	bool isDisruptedPlatform(std::string platformName,std::string lineId);
+	bool isDisruptedPlatform(std::string platformName,std::string lineId) const;
 
 	/**
 	 * This interface adds the train into inactive pool after the completion of journey

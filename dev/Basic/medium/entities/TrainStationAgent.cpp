@@ -599,10 +599,6 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 				TrainPlatformMover &platformMover=(*it)->getMovement()->getTrainPlatformMover();
 				if(itr!=disruptedPlatformNames.end())
 				{
-					if((*it)->getTrainId()==4)
-					{
-						int debug=1;
-					}
 					(*it)->getMovement()->setDisruptedState(true);
 					isDisruptedState=true;
 				}

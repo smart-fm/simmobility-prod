@@ -89,7 +89,7 @@ public:
 
 	bool operator< (TrainDriver * &other);
 
-	 TrainDriver* getNextDriver() ; //needs to be checked
+	 TrainDriver* getNextDriver() const; //needs to be checked
 	/**
 	 * leave from current platform
 	 */
@@ -176,7 +176,7 @@ public:
 	/* stores the next train(ahead train ) in opposite direction before teleport*/
 	void setTrainDriverInOpposite(TrainDriver *trainDriver);
 	/* gets the train driver in opposite line to assign it to next driver */
-	TrainDriver *getDriverInOppositeLine();
+	TrainDriver *getDriverInOppositeLine() const;
 	const TrainTrip *getTrainTrip() const;
 
 
@@ -189,7 +189,7 @@ public:
 	int alightAllPassengers(std::list<Passenger*>& alightingPassenger,timeslice now);
 
 
-	TrainMovement * getMovement();
+	TrainMovement * getMovement() const;
 	/**
 	 * store waiting time
 	 * @param waitingActivity is pointer to the waiting people

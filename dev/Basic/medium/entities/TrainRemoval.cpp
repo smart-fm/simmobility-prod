@@ -5,7 +5,7 @@
  *      Author: jabir
  */
 
-#include <entities/TrainRemoval.h>
+#include <entities/TrainRemoval.hpp>
 #include "entities/TrainController.hpp"
 #include "entities/Person_MT.hpp"
 #include "entities/roles/Role.hpp"
@@ -51,16 +51,16 @@ namespace medium
 		std::vector<TrainDriver*>::iterator itr=trainsToBeRemoved.begin();
 		for(;itr!=trainsToBeRemoved.end();)
 		{
-			std::string trainLine=(*itr)->getTrainLine();
-			int trainId=(*itr)->getTrainId();
-			TrainDriver *nextDriver=(*itr)->getNextDriver();
-			TrainController<Person_MT> *trainController=TrainController<Person_MT>::getInstance();
+			std::string trainLine = (*itr)->getTrainLine();
+			int trainId = (*itr)->getTrainId();
+			TrainDriver *nextDriver = (*itr)->getNextDriver();
+			TrainController<Person_MT> *trainController = TrainController<Person_MT>::getInstance();
 			std::vector <Role<Person_MT>*> activeTrains = trainController->getActiveTrainsForALine(trainLine);
-			std::vector<Role<Person_MT>*>::iterator it= activeTrains.begin();
+			std::vector<Role<Person_MT>*>::iterator it = activeTrains.begin();
 			for(;it!=activeTrains.end();it++)
 			{
 				TrainDriver *driver= dynamic_cast<TrainDriver*>(*it);
-				if(driver->getNextDriver()==(*itr))
+				if(driver->getNextDriver() == (*itr))
 				{
 					if(nextDriver)
 					{
@@ -70,20 +70,20 @@ namespace medium
 						driver->setNextDriver(nullptr);
 				}
 			}
-			const TrainPlatformMover &pathMover=(*itr)->getMovement()->getTrainPlatformMover();
-			const std::vector<Platform*>& prevPlatforms=pathMover.getPrevPlatforms();
+			const TrainPlatformMover &pathMover = (*itr)->getMovement()->getTrainPlatformMover();
+			const std::vector<Platform*>& prevPlatforms = pathMover.getPrevPlatforms();
 			std::vector<Platform*>::const_iterator platfromItr;
 			for (platfromItr = prevPlatforms.begin(); platfromItr != prevPlatforms.end(); platfromItr++)
 			{
 				Platform* prev = (*platfromItr);
 				std::string stationNo = prev->getStationNo();
 				Agent* stationAgent = TrainController<Person_MT>::getAgentFromStation(stationNo);
-				TrainStationAgent *trainStationAgent=dynamic_cast<TrainStationAgent*>(stationAgent);
+				TrainStationAgent *trainStationAgent = dynamic_cast<TrainStationAgent*>(stationAgent);
 				std::map<std::string, TrainDriver*> lastTrainDriver=trainStationAgent->getLastDriver();
 				std::map<std::string, TrainDriver*>::iterator ilastTrainDriver=lastTrainDriver.find(trainLine);
 				if(ilastTrainDriver!=lastTrainDriver.end())
 				{
-					if(ilastTrainDriver->second==(*itr))
+					if(ilastTrainDriver->second == (*itr))
 					{
 						lastTrainDriver[trainLine]=nullptr;
 					}
@@ -98,9 +98,9 @@ namespace medium
 				TrainStationAgent *trainStationAgent=dynamic_cast<TrainStationAgent*>(stationAgent);
 				std::map<std::string, TrainDriver*> lastTrainDriver=trainStationAgent->getLastDriver();
 				std::map<std::string, TrainDriver*>::iterator ilastTrainDriver=lastTrainDriver.find(trainLine);
-				if(ilastTrainDriver!=lastTrainDriver.end())
+				if(ilastTrainDriver != lastTrainDriver.end())
 				{
-					if(ilastTrainDriver->second==(*itr))
+					if(ilastTrainDriver->second == (*itr))
 					{
 						lastTrainDriver[trainLine]=nullptr;
 					}

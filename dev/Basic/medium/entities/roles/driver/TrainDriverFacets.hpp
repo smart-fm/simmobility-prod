@@ -97,13 +97,13 @@ public:
 	 * If everything is positive then it prepares to take U turn
 	 */
 	void prepareForUTurn();
+
 	/**
 	 * get distance to next train
 	 * @param next is a pointer to next TrainDriver
 	 * @param isSafed indicate whether conside safe distance
 	 * @return the distance to next train
 	 */
-
 	double getDistanceToNextTrain(const TrainDriver* next, bool isSafed=true) ;
 
 
@@ -115,17 +115,17 @@ public:
 
 	/* resets the safe Distance (Distance of train to be maintained from the train ahead to be safe ) as requested by service controller */
 	void resetSafeDistance(double safeDistance);
+
 	/*makes the train take Uturn ,that is the train gets teleported to the opposite platform on the same station and continues
 	 * its journey in reverse direction..This can happen in case of disruption when the train is at last platform before disrupted region.
 	 */
-	void TakeUTurn(std::string stationName);
+	void takeUTurn(std::string stationName);
 
 	/* Safe check of before taking Uturn
 	 * To see if the any trains are approaching the opposite platform when uturn is to be taken
 	 * If any trains are approaching the opposite platform then wait till the trains get cleared
 	 *
 	 */
-
 	bool checkIfTrainsAreApprochingOrAtPlatform(std::string pltaformName,std::string lineID);
 
 
@@ -134,7 +134,6 @@ public:
 	 * Checking safe distance is only enough,safe headway not required
 	 * As the train will initially be at rest when it is teleported
 	 */
-
 	bool checkSafeHeadWayBeforeTeleport(std::string platformNo,std::string lineID);
 
 	/* gets the distance from start of line to particular platform */

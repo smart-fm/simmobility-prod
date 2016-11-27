@@ -483,8 +483,6 @@ void MT_PersonLoader::loadPersonDemand()
 		actCtr++;
 	}
 
-	int sz= tripchains.size();
-
 	if (freightStoredProcName.empty()) { return; }
 	//Our SQL statement
 	stringstream freightQuery;

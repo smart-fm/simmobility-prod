@@ -109,7 +109,7 @@ void TrainDriver::setNextDriver(TrainDriver* driver)
 	nextDriver = driver;
 }
 
-TrainDriver* TrainDriver::getNextDriver()
+TrainDriver* TrainDriver::getNextDriver() const
 {
 	return nextDriver;
 }
@@ -181,7 +181,7 @@ void TrainDriver::leaveFromCurrentPlatform()
 	}
 }
 
-TrainMovement* TrainDriver::getMovement()
+TrainMovement* TrainDriver::getMovement() const
 {
 	TrainMovement* movement = dynamic_cast<TrainMovement*>(movementFacet);
 	return movement;
@@ -196,7 +196,7 @@ bool TrainDriver::isStoppedAtPoint()
 {
 	return stoppedAtPoint;
 }
-TrainDriver * TrainDriver::getDriverInOppositeLine()
+TrainDriver * TrainDriver::getDriverInOppositeLine() const
 {
     return nextDriverInOppLine;
 }
@@ -377,25 +377,11 @@ void TrainDriver::resetHoldingTime()
 
 void TrainDriver::resetMaximumHoldingTime(std::string platformName,double duration)
 {
-	/*if(platformHoldingTimeEntities.find(platformName)!=platformHoldingTimeEntities.end())
-	{
-		if(platformHoldingTimeEntities[platformName]>duration)
-		{
-			return;
-		}
-	}*/
 	platformMaxHoldingTimeEntities[platformName]=duration;
 }
 
 void TrainDriver::resetMinimumHoldingTime(std::string platformName,double duration)
 {
-	/*if(platformHoldingTimeEntities.find(platformName)!=platformHoldingTimeEntities.end())
-	{
-		if(platformHoldingTimeEntities[platformName]<duration)
-		{
-			return;
-		}
-	}*/
 	platformMinHoldingTimeEntities[platformName]=duration;
 }
 

@@ -67,7 +67,7 @@
 #include "workers/WorkGroupManager.hpp"
 #include "behavioral/ServiceController.hpp"
 #include "behavioral/TrainServiceControllerLuaProvider.hpp"
-#include "entities/TrainRemoval.h"
+#include "entities/TrainRemoval.hpp"
 
 
 //If you want to force a header file to compile, you can put it here temporarily:
@@ -215,9 +215,7 @@ void assignStationAgentToConfluxes()
 		TrainStationAgent* stationAgent = new TrainStationAgent();
 		TrainController<Person_MT>::registerStationAgent(trainStopIt->first, stationAgent);
 		TrainController<sim_mob::medium::Person_MT> *trainController=TrainController<sim_mob::medium::Person_MT>::getInstance();
-		int size=TrainController<sim_mob::medium::Person_MT>::getInstance()->getMapPlatformsSize();
 		Station *station=trainController->getStationFromId(trainStopIt->first);
-		size=TrainController<sim_mob::medium::Person_MT>::getInstance()->getMapPlatformsSize();
 		stationAgent->setStationName(trainStopIt->first);
 		if(station)
 		{
@@ -332,9 +330,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	assignConfluxToWorkers(personWorkers);
 
 	//distribute station agents among confluxes
-	int size=TrainController<sim_mob::medium::Person_MT>::getInstance()->getMapPlatformsSize();
 	assignStationAgentToConfluxes();
-	size=TrainController<sim_mob::medium::Person_MT>::getInstance()->getMapPlatformsSize();
 
 	//Anything in all_agents is starting on time 0, and should be added now.
 	for (std::set<Entity*>::iterator it = Agent::all_agents.begin(); it != Agent::all_agents.end(); it++)

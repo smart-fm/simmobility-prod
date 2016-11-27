@@ -108,7 +108,7 @@ ServiceController::~ServiceController()
 
  }
 
-std::vector<TrainDriver*>  ServiceController::getActiveTrainsInLine(std::string lineId)
+std::vector<TrainDriver*>  ServiceController::getActiveTrainsInLine_Rw(std::string lineId)
 {
 	std::vector <Role<Person_MT>*> activeTrains=TrainController<sim_mob::medium::Person_MT>::getInstance()->getActiveTrainsForALine(lineId);
 	std::vector <Role<Person_MT>*>::iterator itr=activeTrains.begin();
@@ -453,12 +453,12 @@ void ServiceController::setUturnFlag(int trainId,std::string lineId,bool takeUtu
 	}
 }
 
-bool ServiceController::getUturnFlag(int trainId,std::string lineId)
+bool ServiceController::getUturnFlag(int trainId,std::string lineId) const
 {
-	map<std::string,std::map<int,TrainDriver *>>::iterator it=mapOfLineAndTrainDrivers.find(lineId);
+	map<std::string,std::map<int,TrainDriver *>>::const_iterator it=mapOfLineAndTrainDrivers.find(lineId);
 	if(it != mapOfLineAndTrainDrivers.end())
 	{
-		std::map<int,TrainDriver*> &mapOfTrainIdsVsDrivers = it->second;
+		std::map<int,TrainDriver*> mapOfTrainIdsVsDrivers = it->second;
 		std::map<int,TrainDriver*>::iterator itr=mapOfTrainIdsVsDrivers.find(trainId);
 		if(itr!=mapOfTrainIdsVsDrivers.end())
 		{
@@ -727,14 +727,14 @@ void ServiceController::addTrainIdToInactivePoolOnJourneyCompletion(int trainId,
 	}
 }
 
-void ServiceController::connectTrainsAfterDisruption(std::string lineId)
+void ServiceController::connectTrainsAfterDisruption(std::string lineId) const
 {
-	std::map<std::string,std::map<int,TrainDriver*>>::iterator it = mapOfLineAndTrainDrivers.find(lineId);
+	const std::map<std::string,std::map<int,TrainDriver*>>::const_iterator it = mapOfLineAndTrainDrivers.find(lineId);
 	std::vector<TrainDriver*> trainDrivers;
 	if(it != mapOfLineAndTrainDrivers.end())
 	{
-		std::map<int,TrainDriver*> &mapOfTrainIdsVsDrivers = it->second;
-		for(std::map<int,TrainDriver*>::iterator itr = mapOfTrainIdsVsDrivers.begin();itr!=mapOfTrainIdsVsDrivers.end();itr++)
+		const std::map<int,TrainDriver*> &mapOfTrainIdsVsDrivers = it->second;
+		for(std::map<int,TrainDriver*>::const_iterator itr = mapOfTrainIdsVsDrivers.begin();itr!=mapOfTrainIdsVsDrivers.end();itr++)
 		{
 			trainDrivers.push_back(itr->second);
 		}
@@ -761,10 +761,10 @@ void ServiceController::connectTrainsAfterDisruption(std::string lineId)
 
 int ServiceController::getDisruptedPlatformsSize(std::string lineID) const
 {
-	std::map<std::string,std::vector<std::string>> platforms = TrainController<sim_mob::medium::Person_MT>::getInstance()->getDisruptedPlatforms_ServiceController();
+	const std::map<std::string,std::vector<std::string>> &platforms = TrainController<sim_mob::medium::Person_MT>::getInstance()->getDisruptedPlatforms_ServiceController();
 	if(platforms.find(lineID) != platforms.end())
 	{
-		const std::vector<std::string>& platformNames = platforms[lineID];
+		const std::vector<std::string>& platformNames = platforms.at(lineID);
 		return platformNames.size();
 	}
 	return 0;
@@ -781,15 +781,14 @@ int ServiceController::getUturnPlatformsSize(std::string lineID) const
 	return 0;
 }
 
-std::vector<int>  ServiceController::getActiveTrainIds(std::string lineId)
+std::vector<int>  ServiceController::getActiveTrainIds(std::string lineId) const
 {
 	std::vector<int> trainIds;
-	lineTrainDriversLock.lock();
-	map<std::string,std::map<int,TrainDriver *>>::iterator it = mapOfLineAndTrainDrivers.find(lineId);
+	map<std::string,std::map<int,TrainDriver *>>::const_iterator it = mapOfLineAndTrainDrivers.find(lineId);
 	if(it!=mapOfLineAndTrainDrivers.end())
 	{
-		std::map<int,TrainDriver*>trainsInLine = mapOfLineAndTrainDrivers[lineId];
-		std::map<int,TrainDriver *>::iterator itr = trainsInLine.begin();
+		const std::map<int,TrainDriver*>&trainsInLine = it->second;
+		std::map<int,TrainDriver *>::const_iterator itr = trainsInLine.begin();
 		while(itr!=trainsInLine.end())
 		{
 			TrainDriver *driver = (itr)->second;
@@ -800,7 +799,6 @@ std::vector<int>  ServiceController::getActiveTrainIds(std::string lineId)
 			itr++;
 		}
 	}
-	lineTrainDriversLock.unlock();
 	return trainIds;
 }
 
@@ -1026,7 +1024,7 @@ void ServiceController::forceReleasePassenegers(int trainID,std::string lineId,b
 	}
 }
 
-bool ServiceController::hasForceAlightedInDisruption(int trainID,std::string lineId)
+bool ServiceController::hasForceAlightedInDisruption(int trainID,std::string lineId) const
 {
 	std::map<std::string,std::map<int,TrainDriver *>>::const_iterator it = mapOfLineAndTrainDrivers.find(lineId);
 	if(it != mapOfLineAndTrainDrivers.end())
@@ -1152,30 +1150,30 @@ void ServiceController::removeTrainIdAndTrainDriverInMap(int trainId,std::string
 	lineTrainDriversLock.unlock();
 }
 
-int ServiceController::getTrainId(TrainDriver *trainDriver)
+int ServiceController::getTrainId(TrainDriver *trainDriver) const
 {
 	return trainDriver->getTrainId();
 }
 
-std::string ServiceController::getLineId(TrainDriver *trainDriver)
+std::string ServiceController::getLineId(TrainDriver *trainDriver) const
 {
     return trainDriver->getTrainLine();
 }
 
-std::string ServiceController::getOppositeLineId(std::string lineId)
+std::string ServiceController::getOppositeLineId(std::string lineId) const
 {
 	return TrainController<sim_mob::medium::Person_MT>::getInstance()->getOppositeLineId(lineId);
 }
 
-std::string ServiceController::getNextPlatform(int trainId,std::string lineId)
+std::string ServiceController::getNextPlatform(int trainId,std::string lineId) const
 {
 
-	map<std::string,std::map<int,TrainDriver *>>::iterator it = mapOfLineAndTrainDrivers.find(lineId);
+	map<std::string,std::map<int,TrainDriver *>>::const_iterator it = mapOfLineAndTrainDrivers.find(lineId);
 	std::string nextPlatform="";
 	if(it != mapOfLineAndTrainDrivers.end())
 	{
-		std::map<int,TrainDriver*>& trainDrivers = it->second;
-		std::map<int,TrainDriver*>::iterator itr = trainDrivers.find(trainId);
+		const std::map<int,TrainDriver*>&trainDrivers = it->second;
+		std::map<int,TrainDriver*>::const_iterator itr = trainDrivers.find(trainId);
 		if(itr!=trainDrivers.end())
 		{
 			TrainDriver *tDriver = itr->second;
@@ -1190,14 +1188,14 @@ std::string ServiceController::getNextPlatform(int trainId,std::string lineId)
 	return nextPlatform;
 }
 
-bool ServiceController::shouldStopDueToDisruption(int trainId,std::string lineId)
+bool ServiceController::shouldStopDueToDisruption(int trainId,std::string lineId) const
 {
-	map<std::string,std::map<int,TrainDriver *>>::iterator it = mapOfLineAndTrainDrivers.find(lineId);
+	map<std::string,std::map<int,TrainDriver *>>::const_iterator it = mapOfLineAndTrainDrivers.find(lineId);
 	std::string nextPlatform = "";
 	if(it != mapOfLineAndTrainDrivers.end())
 	{
-		std::map<int,TrainDriver*>& trainDrivers = it->second;
-		std::map<int,TrainDriver*>::iterator itr = trainDrivers.find(trainId);
+		const std::map<int,TrainDriver*> &trainDrivers = it->second;
+		std::map<int,TrainDriver*>::const_iterator itr = trainDrivers.find(trainId);
 		if(itr!=trainDrivers.end())
 		{
 			TrainDriver *tDriver = itr->second;
@@ -1214,14 +1212,14 @@ bool ServiceController::shouldStopDueToDisruption(int trainId,std::string lineId
 	return false;
 }
 
-bool ServiceController::isUTurnPlatformOnTheWay(int trainId,std::string lineId)
+bool ServiceController::isUTurnPlatformOnTheWay(int trainId,std::string lineId) const
 {
-	map<std::string,std::map<int,TrainDriver *>>::iterator it = mapOfLineAndTrainDrivers.find(lineId);
+	map<std::string,std::map<int,TrainDriver *>>::const_iterator it = mapOfLineAndTrainDrivers.find(lineId);
 	std::string nextPlatform = "";
 	if(it != mapOfLineAndTrainDrivers.end())
 	{
-		std::map<int,TrainDriver*>& trainDrivers = it->second;
-		std::map<int,TrainDriver*>::iterator itr = trainDrivers.find(trainId);
+		const std::map<int,TrainDriver*>& trainDrivers = it->second;
+		std::map<int,TrainDriver*>::const_iterator itr = trainDrivers.find(trainId);
 		if(itr!=trainDrivers.end())
 		{
 			TrainDriver *tDriver=itr->second;
@@ -1238,18 +1236,18 @@ bool ServiceController::isUTurnPlatformOnTheWay(int trainId,std::string lineId)
 	return false;
 }
 
-std::string ServiceController::getNextUturnPlatform(int trainId,std::string lineId)
+std::string ServiceController::getNextUturnPlatform(int trainId,std::string lineId) const
 {
-	map<std::string,std::map<int,TrainDriver *>>::iterator it = mapOfLineAndTrainDrivers.find(lineId);
+	map<std::string,std::map<int,TrainDriver *>>::const_iterator it = mapOfLineAndTrainDrivers.find(lineId);
 	std::string nextPlatform = "";
 	if(it != mapOfLineAndTrainDrivers.end())
 	{
-		std::map<int,TrainDriver*>& trainDrivers = it->second;
-		std::map<int,TrainDriver*>::iterator itr=trainDrivers.find(trainId);
-		if(itr!=trainDrivers.end())
+		const std::map<int,TrainDriver*>& trainDrivers = it->second;
+		std::map<int,TrainDriver*>::const_iterator itr = trainDrivers.find(trainId);
+		if(itr != trainDrivers.end())
 		{
-			TrainDriver *tDriver=itr->second;
-			if(tDriver&&tDriver->getTrainId() == trainId&&tDriver->getTrainLine() == lineId)
+			TrainDriver *tDriver = itr->second;
+			if(tDriver&&tDriver->getTrainId() == trainId && tDriver->getTrainLine() == lineId)
 			{
 				return tDriver->getMovement()->getNextUturnPlatform();
 			}
@@ -1258,12 +1256,12 @@ std::string ServiceController::getNextUturnPlatform(int trainId,std::string line
 	return "";
 }
 
-bool ServiceController::isUTurnPlatform(std::string platformName,std::string lineId)
+bool ServiceController::isUTurnPlatform(std::string platformName,std::string lineId) const
 {
 	return TrainController<sim_mob::medium::Person_MT>::getInstance()->isUturnPlatform(platformName,lineId);
 }
 
-bool ServiceController::isDisruptedPlatform(std::string platformName,std::string lineId)
+bool ServiceController::isDisruptedPlatform(std::string platformName,std::string lineId) const
 {
 	return TrainController<sim_mob::medium::Person_MT>::getInstance()->isDisruptedPlatform(platformName,lineId);
 }
@@ -1271,7 +1269,6 @@ bool ServiceController::isDisruptedPlatform(std::string platformName,std::string
 void ServiceController::setDisruptedState(int trainId,std::string lineId,bool state)
 {
 	map<std::string,std::map<int,TrainDriver *>>::iterator it = mapOfLineAndTrainDrivers.find(lineId);
-	std::string nextPlatform="";
 	if(it != mapOfLineAndTrainDrivers.end())
 	{
 		std::map<int,TrainDriver*>& trainDrivers = it->second;
@@ -1291,14 +1288,14 @@ void ServiceController::setDisruptedState(int trainId,std::string lineId,bool st
 	}
 }
 
-double ServiceController::getDistanceToNextPlatform(std::string lineId,int trainId)
+double ServiceController::getDistanceToNextPlatform(std::string lineId,int trainId) const
 {
-	std::map<std::string,std::map<int,TrainDriver *>>::iterator it=mapOfLineAndTrainDrivers.find(lineId);
+	std::map<std::string,std::map<int,TrainDriver *>>::const_iterator it=mapOfLineAndTrainDrivers.find(lineId);
 	double distance=-1.0;
 	if(it != mapOfLineAndTrainDrivers.end())
 	{
 		std::map<int,TrainDriver*> trainDrivers = it->second;
-		std::map<int,TrainDriver*>::iterator itr = trainDrivers.find(trainId);
+		std::map<int,TrainDriver*>::const_iterator itr = trainDrivers.find(trainId);
 		if(itr!=trainDrivers.end())
 		{
 			TrainDriver *tDriver = itr->second;

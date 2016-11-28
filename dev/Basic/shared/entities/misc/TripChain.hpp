@@ -266,6 +266,9 @@ public:
 	bool isPT_Walk;
 	double walkTime;
 
+
+	bool isTT_Walk;
+
 } ;
 
 //Non-member comparison functions

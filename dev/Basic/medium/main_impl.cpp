@@ -44,6 +44,7 @@
 #include "entities/roles/waitBusActivity/WaitBusActivity.hpp"
 #include "entities/ScreenLineCounter.hpp"
 #include "entities/TravelTimeManager.hpp"
+#include "entities/TaxiStandAgent.hpp"
 #include "geospatial/aimsun/Loader.hpp"
 #include "geospatial/network/RoadNetwork.hpp"
 #include "geospatial/network/RoadSegment.hpp"
@@ -255,6 +256,15 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 			sim_mob::medium::BusStopAgent* busStopAgent = new sim_mob::medium::BusStopAgent(mtx, -1, stop, stats);
 			stats->addBusStopAgent(busStopAgent);
 			BusStopAgent::registerBusStopAgent(busStopAgent);
+		}
+	}
+	auto& segmentStatsWithStands = MT_Config::getInstance().getSegmentStatsWithTaxiStands();
+	for (auto i = segmentStatsWithStands.begin(); i != segmentStatsWithStands.end(); i++) {
+		auto& taxiStands = (*i)->getTaxiStand();
+		for (auto iStand = taxiStands.begin(); iStand != taxiStands.end(); iStand++) {
+			sim_mob::TaxiStandAgent* taxiStandAgent = new sim_mob::TaxiStandAgent(mtx, -1, *iStand);
+			(*i)->addTaxiStandAgent(taxiStandAgent);
+			TaxiStandAgent::registerTaxiStandAgent(taxiStandAgent);
 		}
 	}
 	//Save handles to definition of configurations.

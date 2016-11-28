@@ -12,9 +12,12 @@
 #include "geospatial/network/Lane.hpp"
 #include "geospatial/network/Link.hpp"
 #include "geospatial/network/PT_Stop.hpp"
+#include "geospatial/network/TaxiStand.hpp"
 
 namespace sim_mob
 {
+class TaxiStandAgent;
+
 namespace medium
 {
 
@@ -390,6 +393,7 @@ protected:
 	typedef std::deque<Person_MT*> PersonList;
 	typedef std::map<const Lane*, LaneStats*> LaneStatsMap;
 	typedef std::vector<const BusStop*> BusStopList;
+	typedef std::vector<const TaxiStand*> TaxiStandList;
 	typedef std::vector<BusStopAgent*> BusStopAgentList;
 	typedef std::map<const BusStop*, PersonList> StopBusDriversMap;
 
@@ -406,6 +410,11 @@ protected:
 	 * eliminates the need for splitting the segment into very short segments.
 	 */
 	BusStopList busStops;
+
+	/**
+	 * List of Taxi Stands in this SegmentStats.
+	 */
+	TaxiStandList taxiStands;
 
 	/** BusStopAgents for bus stops in this segment stats */
 	BusStopAgentList busStopAgents;
@@ -424,6 +433,9 @@ protected:
 	 * This map includes lane infinity.
 	 */
 	LaneStatsMap laneStatsMap;
+
+	/**taxiStandAgents for taxi-stand agents in this segment stats*/
+	std::vector<TaxiStandAgent*> taxiStandAgents;
 
 	/**
 	 * outermost lane in this segment stats.
@@ -563,11 +575,27 @@ public:
 	void addBusStop(const BusStop* stop);
 
 	/**
+	 * adds taxi-stand to the list of taxi-stands
+	 * @param stand is the pointer to a taxi-stand
+	 */
+	void addTaxiStand(const TaxiStand* stand);
+
+	/**
 	 * adds bus stop agent
 	 * @param busStopAgent is a pointer to a bus stop agent
 	 */
 	void addBusStopAgent(BusStopAgent* busStopAgent);
+	/**
+	 * get taxi-stands
+	 * @return taxi-stands list
+	 */
+	std::vector<const TaxiStand*>& getTaxiStand();
 
+	/**
+	 * add taxi-stand agent
+	 * @param taxiStandAgent is a pointer to a taxi-stand agent
+	 */
+	void addTaxiStandAgent(TaxiStandAgent* taxiStandAgent);
 	/**
 	 * Initializes all the bus stops in this segment stats.
 	 * The bus stop agents corresponding to the stops in this segment stats are

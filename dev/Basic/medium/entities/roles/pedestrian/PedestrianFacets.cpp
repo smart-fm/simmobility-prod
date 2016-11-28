@@ -17,6 +17,7 @@
 #include "Pedestrian.hpp"
 #include "entities/params/PT_NetworkEntities.hpp"
 #include "util/Utils.hpp"
+#include "message/MessageBus.hpp"
 
 using namespace sim_mob;
 using namespace sim_mob::medium;
@@ -72,6 +73,29 @@ void PedestrianMovement::frame_init()
 	if(subTrip.isPT_Walk)
 	{
 		walkTime = subTrip.walkTime; //walk time comes from db for PT pedestrians
+	}
+	else if(subTrip.isTT_Walk)
+	{
+		if (subTrip.origin.type != WayPoint::NODE && subTrip.destination.type != WayPoint::TAXI_STAND) {
+			throw std::runtime_error("taxi trip is not correct");
+		}
+		const Node* source = subTrip.origin.node;
+		const TaxiStand* stand = subTrip.destination.taxiStand;
+		const Node* destination = stand->getRoadSegment()->getParentLink()->getFromNode();
+		std::vector<WayPoint> path = StreetDirectory::Instance().SearchShortestDrivingPath<Node, Node>(*(source), *(destination));
+		for (auto itWayPts = path.begin(); itWayPts != path.end(); ++itWayPts) {
+			if (itWayPts->type == WayPoint::LINK) {
+				const Node* srcNode = itWayPts->link->getFromNode();
+				const Node* destNode = itWayPts->link->getToNode();
+				DynamicVector distVector(srcNode->getLocation().getX(),	srcNode->getLocation().getY(),
+						destNode->getLocation().getX(), destNode->getLocation().getY());
+				double distance = distVector.getMagnitude();
+				TravelTimeAtNode item;
+				item.node = destNode;
+				item.travelTime = distance / walkSpeed;
+				travelPath.push(item);
+			}
+		}
 	}
 	else // both origin and destination must be nodes
 	{
@@ -138,11 +162,38 @@ const Node* PedestrianMovement::getDestNode()
 void PedestrianMovement::frame_tick()
 {
 	parentPedestrian->parent->setRemainingTimeThisTick(0);
+	if (parentPedestrian->roleType == Role<Person_MT>::RL_TRAVELPEDESTRIAN) {
+		double tickSec = ConfigManager::GetInstance().FullConfig().baseGranSecond();
+		TravelTimeAtNode& front = travelPath.front();
+		if (front.travelTime < tickSec) {
+			travelPath.pop();
+			Conflux* start = this->getStartConflux();
+			if (start) {
+				messaging::MessageBus::PostMessage(start, MSG_TRAVELER_TRANSFER,
+						messaging::MessageBus::MessagePtr(new PersonMessage(parentPedestrian->parent)));
+			}
+		} else {
+			front.travelTime -= tickSec;
+		}
+		if (travelPath.size() == 0) {
+			parentPedestrian->parent->setToBeRemoved();
+		}
+	}
 }
 
 std::string PedestrianMovement::frame_tick_output()
 {
 	return std::string();
+}
+
+Conflux* PedestrianMovement::getStartConflux() const
+{
+	if (parentPedestrian->roleType
+			== Role < Person_MT > ::RL_TRAVELPEDESTRIAN && travelPath.size()>0) {
+		const TravelTimeAtNode& front = travelPath.front();
+		return MT_Config::getInstance().getConfluxForNode(front.node);
+	}
+	return nullptr;
 }
 
 Conflux* PedestrianMovement::getDestinationConflux() const

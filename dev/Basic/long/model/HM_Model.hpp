@@ -568,6 +568,7 @@ namespace sim_mob
             std::vector<boost::shared_ptr<UnitSale> > unitSales;
             std::vector<boost::shared_ptr<HouseholdUnit> > newHouseholdUnits;
             std::vector<boost::shared_ptr<Unit> > updatedUnits;
+            boost::unordered_map<BigSerial,boost::shared_ptr<Unit> > updatedUnitsMap;
             BigSerial bidId;
             BigSerial unitSaleId;
             std::vector<boost::shared_ptr<Household> > hhWithBidsVector;

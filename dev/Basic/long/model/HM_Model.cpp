@@ -2612,9 +2612,17 @@ void HM_Model::addHouseholdUnits(boost::shared_ptr<HouseholdUnit> &newHouseholdU
 
 void HM_Model::addUpdatedUnits(boost::shared_ptr<Unit> &updatedUnit)
 {
-	DBLock.lock();
+	BigSerial unitId =  updatedUnit->getId();
+	auto it = find_if(updatedUnits.begin(), updatedUnits.end(), [&unitId](const boost::shared_ptr<Unit> &unit) {return unit->getId() == unitId;});
+
+	if (it != updatedUnits.end())
+	{
+		updatedUnits.erase(it);
+	}
+
+	//DBLock.lock();
 	updatedUnits.push_back(updatedUnit);
-	DBLock.unlock();
+	//DBLock.unlock();
 }
 
 std::vector<boost::shared_ptr<UnitSale> > HM_Model::getUnitSales()

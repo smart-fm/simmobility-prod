@@ -66,6 +66,7 @@ namespace sim_mob
             double getTotalPrice() const;
             const std::tm& getValueDate() const;
             void setBto(bool bto);
+            void setExistInDb(bool existInDb);
 
             /*
              * setters
@@ -101,6 +102,7 @@ namespace sim_mob
             int  getZoneHousingType() const;
             int getDwellingType() const;
             bool isBto() const;
+            bool isExistInDb() const ;
 
 
             /**
@@ -139,6 +141,7 @@ namespace sim_mob
             int zoneHousingType;
             int dwellingType;
             bool isBTO;
+            bool existInDB;
         };
     }
 }

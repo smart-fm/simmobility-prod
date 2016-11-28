@@ -130,10 +130,10 @@ void RoadNetwork::addLaneConnector(LaneConnector* connector)
 	}
 }
 
-Node* RoadNetwork:: getFirstNode()
+Node* RoadNetwork:: getFirstNode() const
 {
-	std::map<unsigned int, Node *>::iterator itNodes = mapOfIdvsNodes.begin();
-	Node *node=(itNodes)->second;
+	std::map<unsigned int, Node *>::const_iterator itNodes = mapOfIdvsNodes.begin();
+	Node *node = (itNodes)->second;
 	return itNodes->second;
 }
 
@@ -541,15 +541,6 @@ void RoadNetwork::addBusStop(BusStop* stop)
 }
 
 const RoadNetwork* sim_mob::RoadNetwork::getInstance()
-{
-	if(!roadNetwork)
-	{
-		roadNetwork = new RoadNetwork();
-	}
-	return roadNetwork;
-}
-
-RoadNetwork* sim_mob::RoadNetwork::getInstance_1()
 {
 	if(!roadNetwork)
 	{

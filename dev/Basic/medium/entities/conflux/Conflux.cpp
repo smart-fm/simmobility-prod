@@ -1999,8 +1999,6 @@ Conflux* Conflux::findStartingConflux(Person_MT* person, unsigned int now)
 							+ ((*person->currTripChainItem)->endTime.getValue() - (*person->currTripChainItem)->startTime.getValue())));
 	}
 
-	sim_mob::RoadNetwork *roadNetwork = sim_mob::RoadNetwork::getInstance_1();
-	Node *firstNode = roadNetwork->getFirstNode();
 	//Now that the Role<Person_MT> has been fully constructed, initialize it.
 	personRole->Movement()->frame_init();
 	if (person->isToBeRemoved())

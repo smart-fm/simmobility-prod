@@ -126,45 +126,23 @@ void DriverMovement::setPath(std::vector<const SegmentStats*> &path,Node *toNode
 }
 void DriverMovement::frame_init()
 {
-	/*if(boost::iequals(parentDriver->parent->getDatabaseId(),"Taxi123"))
+	bool pathInitialized = initializePath();
+	if (pathInitialized)
 	{
-		sim_mob::RoadNetwork *roadNetwork = sim_mob::RoadNetwork::getInstance_1();
-		Node *firstNode = roadNetwork->getFirstNode();
-		std::map<unsigned int,Link*> mapOfDownstreamLinks = firstNode->getDownStreamLinks();
-		std::map<unsigned int,Link*>::iterator itr = mapOfDownstreamLinks.begin();
-		Link *link= itr->second;
-		Node *toNode =link->getToNode();
-		std::vector<RoadSegment*> segs;
-		segs.insert(segs.end(),link->getRoadSegments_1().begin(),link->getRoadSegments_1().end());
-		std::vector<const SegmentStats*> path;
-		setPath(path,toNode,segs);
-		pathMover.setPath(path);
-		const SegmentStats* firstSegStat = path.front();
-		parentDriver->parent->setCurrSegStats(firstSegStat);
-		parentDriver->parent->setCurrLane(firstSegStat->laneInfinity);
-		parentDriver->parent->distanceToEndOfSegment = firstSegStat->getLength();
-		parentDriver->parent->setNextPathPlanned(true);
+		Vehicle::VehicleType vehicleType = Vehicle::CAR;
+		if((*parentDriver->parent->currTripChainItem)->getMode() == "Taxi")
+		{
+			vehicleType = Vehicle::TAXI;
+		}
+		Vehicle* newVehicle = new Vehicle(vehicleType, PASSENGER_CAR_UNIT);
+		VehicleBase* oldVehicle = parentDriver->getResource();
+		safe_delete_item(oldVehicle);
+		parentDriver->setResource(newVehicle);
 	}
 	else
-	{*/
-		bool pathInitialized = initializePath();
-		if (pathInitialized)
-		{
-			Vehicle::VehicleType vehicleType = Vehicle::CAR;
-			if((*parentDriver->parent->currTripChainItem)->getMode() == "Taxi")
-			{
-				vehicleType = Vehicle::TAXI;
-			}
-			Vehicle* newVehicle = new Vehicle(vehicleType, PASSENGER_CAR_UNIT);
-			VehicleBase* oldVehicle = parentDriver->getResource();
-			safe_delete_item(oldVehicle);
-			parentDriver->setResource(newVehicle);
-		}
-		else
-		{
-			parentDriver->parent->setToBeRemoved();
-		}
-	//}
+	{
+		parentDriver->parent->setToBeRemoved();
+	}
 }
 
 void DriverMovement::frame_tick()
@@ -626,13 +604,9 @@ void DriverMovement::flowIntoNextLinkIfPossible(DriverUpdateParams& params)
 		const SegmentStats * lastSegSt = parentDriver->parent->lastReqSegStats;
 		parentDriver->parent->lastReqSegStats = nullptr;
 		std::string dbId=parentDriver->parent->getDatabaseId();
-		if(boost::iequals(dbId,"Taxi123"))
-		{
-			int debug =1 ;
-		}
 		pathMover.advanceInPath();
-		sim_mob::BasicLogger& ptTaxiMoveLogger = sim_mob::Logger::log("TaxiSegmentsPath.csv");
-		ptTaxiMoveLogger<<parentDriver->parent->getDatabaseId()<<","<<nextSegStats->getRoadSegment()->getRoadSegmentId()<<","<<nextSegStats->getRoadSegment()->getLinkId()<<std::endl;
+		//sim_mob::BasicLogger& ptTaxiMoveLogger = sim_mob::Logger::log("TaxiSegmentsPath.csv");
+		//ptTaxiMoveLogger<<parentDriver->parent->getDatabaseId()<<","<<nextSegStats->getRoadSegment()->getRoadSegmentId()<<","<<nextSegStats->getRoadSegment()->getLinkId()<<std::endl;
 		pathMover.setPositionInSegment(nextSegStats->getLength());
 
 		//todo: consider supplying milliseconds to be consistent with short-term

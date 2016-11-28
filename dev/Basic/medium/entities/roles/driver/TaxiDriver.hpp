@@ -29,16 +29,12 @@ namespace sim_mob
 			void boardPassenger(Passenger *passenger);
 			void driveToDestinationNode(Node * destinationNode);
 			void runRouteChoiceModel(Node *origin,Node *destination);
-			void setCruisingMode();
-			void driveToTaxiStand();
 			bool hasPersonBoarded();
 			void setCurrentNode(Node *currNode);
 			void setDestinationNode(Node *destinationNode);
 			Node* getDestinationNode();
 			Person* getParent();
 			Node* getCurrentNode();
-			void driveToNode(Node *destinationNode);
-			void getLinkAndRoadSegments(Node * start ,Node *end,std::vector<RoadSegment*>& segments);
 			void checkPersonsAndPickUpAtNode(timeslice now);
 			TaxiDriverMovement * getMovementFacet();
 			virtual Role<Person_MT>* clone(Person_MT *parent) const;
@@ -65,11 +61,9 @@ namespace sim_mob
 			TaxiDriverMovement *taxiDriverMovement;
 			TaxiDriverBehavior *taxiDriverBehaviour;
 			bool personBoarded = false;
-			std::vector<RoadSegment *> currentRoute;
 			std::vector<WayPoint> currentRouteChoice;
 			DriverMode driverMode;
 			public:
-
 
 
 			friend class TaxiDriverBehavior;

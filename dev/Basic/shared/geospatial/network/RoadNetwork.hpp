@@ -73,7 +73,6 @@ public:
 
 	/**Returns pointer to the singleton instance of RoadNetwork*/
 	static const RoadNetwork* getInstance();
-	static RoadNetwork* getInstance_1();
 
 	const std::map<unsigned int, Link *>& getMapOfIdVsLinks() const;
 
@@ -91,7 +90,7 @@ public:
 
 	const std::map<unsigned int, BusStop *>& getMapOfIdvsBusStops() const;
 	
-	Node* getFirstNode();
+	Node* getFirstNode() const;
 
 	/**
 	 * Adds a lane to the road network

@@ -2071,15 +2071,29 @@ int MITSIM_LC_Model::isLaneConnectedToStopPoint(DriverUpdateParams &params, set<
 		{
 			return result;
 		}
-
-		//Only the left most target lane is target lane as the stop point is on the left side of the road
+		
 		unsigned int leftmostLaneIdx = 99;
-		for(set<const Lane *>::const_iterator itTgtLanes = params.targetLanes.begin(); itTgtLanes != params.targetLanes.end(); ++itTgtLanes)
+		
+		//If the stop is on the current link, we can directly set the target lane (as the left most lane is
+		//the lane with index 0
+		//If the stop is on the next link, we may need to do a right turn to reach the next link. Hence, 
+		//we must select the left-most lane from the target lanes (as the target lanes are connected to the next link)
+		
+		//If distance to stop is less than distance to end of the current link, it means that the stop is 
+		//on the current link
+		if(distance < fwdDriverMovement->getDistToEndOfCurrLink())
 		{
-			//Choose the leftmost target lane
-			if((*itTgtLanes)->getLaneIndex() < leftmostLaneIdx)
+			leftmostLaneIdx = 0;
+		}
+		else
+		{
+			for (set<const Lane *>::const_iterator itTgtLanes = params.targetLanes.begin(); itTgtLanes != params.targetLanes.end(); ++itTgtLanes)
 			{
-				leftmostLaneIdx = (*itTgtLanes)->getLaneIndex();
+				//Choose the leftmost target lane
+				if ((*itTgtLanes)->getLaneIndex() < leftmostLaneIdx)
+				{
+					leftmostLaneIdx = (*itTgtLanes)->getLaneIndex();
+				}
 			}
 		}
 		

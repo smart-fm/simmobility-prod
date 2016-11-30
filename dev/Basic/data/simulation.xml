@@ -135,9 +135,6 @@
     </simulation>
 
     <generic_props>
-        <!--Specifies the location of the dirver behaviour parameter files-->
-        <property key="driver_behaviour_file" value="data/driver_behavior_model/driver_param.xml"/>
-        <property key="amod_behaviour_file" value="data/driver_behavior_model/amod_driver_param.xml"/>
     </generic_props>
 
     <merge_log_files value="true"/>

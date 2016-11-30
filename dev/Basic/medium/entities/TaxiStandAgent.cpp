@@ -10,6 +10,8 @@
 
 namespace sim_mob
 {
+namespace medium
+{
 std::map<const TaxiStand*, TaxiStandAgent*> TaxiStandAgent::allTaxiStandAgents;
 
 TaxiStandAgent::TaxiStandAgent(const MutexStrategy& mtxStrat, int id, const TaxiStand* stand):taxiStand(stand),Agent(mtxStrat, id)
@@ -68,5 +70,5 @@ void TaxiStandAgent::registerTaxiStandAgent(TaxiStandAgent* agent)
 		allTaxiStandAgents[agent->getTaxiStand()] = agent;
 	}
 }
-
+}
 }

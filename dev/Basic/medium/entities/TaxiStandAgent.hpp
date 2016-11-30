@@ -13,6 +13,8 @@
 #include <map>
 namespace sim_mob
 {
+namespace medium
+{
 class TaxiStandAgent : public sim_mob::Agent {
 public:
 	TaxiStandAgent(const MutexStrategy& mtxStrat, int id, const TaxiStand* stand);
@@ -58,5 +60,6 @@ protected:
 	virtual void frame_output(timeslice now);
 	virtual bool isNonspatial();
 };
+}
 }
 #endif /* TAXISTANDAGENT_HPP_ */

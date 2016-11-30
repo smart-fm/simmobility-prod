@@ -260,7 +260,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	for (auto i = segmentStatsWithStands.begin(); i != segmentStatsWithStands.end(); i++) {
 		auto& taxiStands = (*i)->getTaxiStand();
 		for (auto iStand = taxiStands.begin(); iStand != taxiStands.end(); iStand++) {
-			sim_mob::TaxiStandAgent* taxiStandAgent = new sim_mob::TaxiStandAgent(mtx, -1, *iStand);
+			sim_mob::medium::TaxiStandAgent* taxiStandAgent = new sim_mob::medium::TaxiStandAgent(mtx, -1, *iStand);
 			(*i)->addTaxiStandAgent(taxiStandAgent);
 			TaxiStandAgent::registerTaxiStandAgent(taxiStandAgent);
 		}

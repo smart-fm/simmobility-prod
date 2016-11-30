@@ -260,9 +260,11 @@ template<> struct type_conversion<sim_mob::ParkingSlot>
 	static void from_base(const soci::values& vals, soci::indicator& ind, sim_mob::ParkingSlot& res)
 	{		
 		res.setRoadItemId(vals.get<unsigned int>("id", 0));
-		res.setRoadSegmentId(vals.get<unsigned int>("segment_id", 0));
+		res.setAccessSegmentId(vals.get<unsigned int>("access_segment", 0));
+		res.setEgressSegmentId(vals.get<unsigned int>("egress_segment", 0));
 		res.setOffset(vals.get<double>("segment_offset", 0.0));
 		res.setLength(vals.get<double>("length", 0.0));
+		res.setCapacity(vals.get<unsigned int>("capacity", 0));
 	}
 };
 

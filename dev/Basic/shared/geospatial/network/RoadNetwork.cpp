@@ -94,16 +94,16 @@ const std::map<unsigned int, ParkingSlot *>& RoadNetwork::getMapOfIdVsParkingSlo
 void RoadNetwork::addLane(Lane* lane)
 {
 	//Find the segment to which the lane belongs
-	std::map<unsigned int, RoadSegment *>::iterator itSegments = mapOfIdVsRoadSegments.find(lane->getRoadSegmentId());
+	std::map<unsigned int, RoadSegment *>::iterator itAccSegments = mapOfIdVsRoadSegments.find(lane->getRoadSegmentId());
 
 	//Check if the segment exists in the map
-	if (itSegments != mapOfIdVsRoadSegments.end())
+	if (itAccSegments != mapOfIdVsRoadSegments.end())
 	{
 		//Link the lane and its parent segment
-		lane->setParentSegment(itSegments->second);
+		lane->setParentSegment(itAccSegments->second);
 		
 		//Add the lane to the road segment
-		itSegments->second->addLane(lane);
+		itAccSegments->second->addLane(lane);
 
 		//Add the lane to the map of lanes
 		mapOfIdVsLanes.insert(std::make_pair(lane->getLaneId(), lane));
@@ -259,13 +259,13 @@ void RoadNetwork::addRoadSegment(RoadSegment* segment)
 void RoadNetwork::addSegmentPolyLine(PolyPoint point)
 {
 	//Find the road segment to which the poly-line belongs
-	std::map<unsigned int, RoadSegment *>::iterator itSegments = mapOfIdVsRoadSegments.find(point.getPolyLineId());
+	std::map<unsigned int, RoadSegment *>::iterator itAccSegments = mapOfIdVsRoadSegments.find(point.getPolyLineId());
 
 	//Check if the segment exists in the map
-	if (itSegments != mapOfIdVsRoadSegments.end())
+	if (itAccSegments != mapOfIdVsRoadSegments.end())
 	{
 		//Check if the poly-line exists for this segment
-		PolyLine *polyLine = itSegments->second->getPolyLine();
+		PolyLine *polyLine = itAccSegments->second->getPolyLine();
 
 		if (polyLine == NULL)
 		{
@@ -274,7 +274,7 @@ void RoadNetwork::addSegmentPolyLine(PolyPoint point)
 			polyLine->setPolyLineId(point.getPolyLineId());
 
 			//Add poly-line to the map
-			itSegments->second->setPolyLine(polyLine);
+			itAccSegments->second->setPolyLine(polyLine);
 		}
 		else
 		{
@@ -495,11 +495,11 @@ void RoadNetwork::addBusStop(BusStop* stop)
 	else
 	{			
 		//Get the road segment to which the bus stop belongs
-		std::map<unsigned int, RoadSegment *>::iterator itSegments = mapOfIdVsRoadSegments.find(stop->getRoadSegmentId());
+		std::map<unsigned int, RoadSegment *>::iterator itAccSegments = mapOfIdVsRoadSegments.find(stop->getRoadSegmentId());
 
-		if (itSegments != mapOfIdVsRoadSegments.end())
+		if (itAccSegments != mapOfIdVsRoadSegments.end())
 		{
-			RoadSegment* stopSegment = itSegments->second;
+			RoadSegment* stopSegment = itAccSegments->second;
 			double offset = stop->getOffset();
 			double stopHalfLength = stop->getLength() / 2;
 			
@@ -548,35 +548,23 @@ void RoadNetwork::addParkingSlot(ParkingSlot *parkingSlot)
 
 	if(itParking == mapOfIdVsParkingSlots.end())
 	{
-		//Get the road segment to which the parking slot belongs
-		std::map<unsigned int, RoadSegment *>::iterator itSegments = mapOfIdVsRoadSegments.find(parkingSlot->getRoadSegmentId());
+		//Get the road segments to which the parking slot belongs
+		std::map<unsigned int, RoadSegment *>::iterator itAccSegments = mapOfIdVsRoadSegments.find(parkingSlot->getAccessSegmentId());
+		std::map<unsigned int, RoadSegment *>::iterator itEgrSegments = mapOfIdVsRoadSegments.find(parkingSlot->getEgressSegmentId());
 
-		if (itSegments != mapOfIdVsRoadSegments.end())
+		if (itAccSegments != mapOfIdVsRoadSegments.end() && itEgrSegments != mapOfIdVsRoadSegments.end())
 		{
-			RoadSegment *parkingSegment = itSegments->second;
-			double offset = parkingSlot->getOffset();
-			double parkingSlotHalfLength = parkingSlot->getLength() / 2;
-			
-			//Ensure that the parking slot doesn't go beyond the road segment
-			if ((offset + parkingSlotHalfLength) > parkingSegment->getLength())
-			{
-				offset = parkingSegment->getLength() - parkingSlotHalfLength;
-				
-				if (offset > 0)
-				{
-					parkingSlot->setOffset(offset);
-				}
-				else
-				{
-					offset = parkingSlot->getOffset();
-				}
-			}
+			RoadSegment *accessSegment = itAccSegments->second;
+			RoadSegment *egressSegment = itEgrSegments->second;
 
-			//Set the parent segment of the parkingSlot
-			parkingSlot->setParentSegment(parkingSegment);
+			//Set the access segment of the parkingSlot
+			parkingSlot->setAccessSegment(accessSegment);
 
 			//Add the parkingSlot to the segment
-			parkingSegment->addObstacle(offset, parkingSlot);
+			accessSegment->addObstacle(parkingSlot->getOffset(), parkingSlot);
+
+			//Set the egress segment of the parking slot
+			parkingSlot->setEgressSegment(egressSegment);
 
 			//Add the parking slot to the network
 			mapOfIdVsParkingSlots.insert(std::make_pair(parkingSlot->getRoadItemId(), parkingSlot));
@@ -584,7 +572,8 @@ void RoadNetwork::addParkingSlot(ParkingSlot *parkingSlot)
 		else
 		{
 			std::stringstream msg;
-			msg << "Parking slot " << parkingSlot->getRoadItemId() << " refers to an invalid road segment " << parkingSlot->getRoadSegmentId();
+			unsigned int invId = (itAccSegments == mapOfIdVsRoadSegments.end()) ? parkingSlot->getAccessSegmentId() : parkingSlot->getEgressSegmentId();			
+			msg << "Parking slot " << parkingSlot->getRoadItemId() << " refers to an invalid road segment " << invId;
 			safe_delete_item(parkingSlot);
 			throw std::runtime_error(msg.str());
 		}

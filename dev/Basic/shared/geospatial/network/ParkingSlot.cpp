@@ -8,7 +8,8 @@
 
 using namespace sim_mob;
 
-ParkingSlot::ParkingSlot() : RoadItem(), offset(0), length(0), isOccupied(false), parentSegment(nullptr)
+ParkingSlot::ParkingSlot() : RoadItem(), accessSegmentId(0), egressSegmentId(0), offset(0), length(0), capacity(0), isOccupied(false), 
+accessSegment(nullptr), egressSegment(nullptr)
 {
 	roadItemId = 0;
 	roadSegmentId = 0;
@@ -16,6 +17,31 @@ ParkingSlot::ParkingSlot() : RoadItem(), offset(0), length(0), isOccupied(false)
 
 ParkingSlot::~ParkingSlot()
 {
+}
+
+const unsigned int ParkingSlot::getParkingSlotId() const
+{
+	return roadItemId;
+}
+
+const unsigned int ParkingSlot::getAccessSegmentId() const
+{
+	return accessSegmentId;
+}
+
+void ParkingSlot::setAccessSegmentId(unsigned int segmentId)
+{
+	accessSegmentId = roadSegmentId = segmentId;	
+}
+
+const unsigned int ParkingSlot::getEgressSegmentId() const
+{
+	return egressSegmentId;
+}
+
+void ParkingSlot::setEgressSegmentId(unsigned int segmentId)
+{
+	egressSegmentId = segmentId;
 }
 
 double ParkingSlot::getOffset() const
@@ -38,6 +64,16 @@ void ParkingSlot::setLength(double length)
 	this->length = length;
 }
 
+const unsigned int ParkingSlot::getCapacity() const
+{
+	return this->capacity;
+}
+
+void ParkingSlot::setCapacity(unsigned int capacityPCU)
+{
+	this->capacity = capacity;
+}
+
 bool ParkingSlot::isVacant() const
 {
 	return !(this->isOccupied);
@@ -48,12 +84,22 @@ void ParkingSlot::setIsOccupied(bool occupied)
 	this->isOccupied = occupied;
 }
 
-const RoadSegment* ParkingSlot::getParentSegment() const
+const RoadSegment* ParkingSlot::getAccessSegment() const
 {
-	return this->parentSegment;
+	return this->accessSegment;
 }
 
-void ParkingSlot::setParentSegment(const RoadSegment *rdSegment)
+void ParkingSlot::setAccessSegment(const RoadSegment *rdSegment)
 {
-	this->parentSegment = rdSegment;
+	this->accessSegment = rdSegment;
+}
+
+const RoadSegment* ParkingSlot::getEgressSegment() const
+{
+	return this->egressSegment;
+}
+
+void ParkingSlot::setEgressSegment(const RoadSegment *rdSegment)
+{
+	this->egressSegment = rdSegment;
 }

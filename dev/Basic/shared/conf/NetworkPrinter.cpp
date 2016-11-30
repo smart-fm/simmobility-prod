@@ -292,10 +292,12 @@ void NetworkPrinter::printParkingSlots(const std::map<unsigned int, ParkingSlot 
 	for(std::map<unsigned int, ParkingSlot *>::const_iterator it = parkingSlots.begin(); it != parkingSlots.end(); ++it)
 	{
 		const ParkingSlot *pkSlot = it->second;
-		out << "(\"parking\", 0, " << pkSlot->getRoadItemId() << ", {";
-		out << "\"segment\":\"" << pkSlot->getRoadSegmentId() << "\",";
+		out << "(\"parking\", 0, " << pkSlot->getParkingSlotId() << ", {";
+		out << "\"access\":\"" << pkSlot->getAccessSegmentId() << "\",";
+		out << "\"egress\":\"" << pkSlot->getEgressSegmentId() << "\",";
 		out << "\"offset\":\"" << pkSlot->getOffset() << "\",";
 		out << "\"length\":\"" << pkSlot->getLength() << "\",";
+		out << "\"capacity\":\"" << pkSlot->getCapacity() << "\",";
 		out << "})\n";
 	}
 

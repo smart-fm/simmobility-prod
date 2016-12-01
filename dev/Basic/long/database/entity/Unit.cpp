@@ -18,12 +18,12 @@ using namespace sim_mob::long_term;
 Unit::Unit( BigSerial id, BigSerial building_id, BigSerial sla_address_id, int unit_type, int storey_range, int constructionStatus, double floor_area, int storey,
 
 			double monthlyRent, std::tm sale_from_date, std::tm occupancyFromDate, int sale_status, int occupancyStatus, std::tm lastChangedDate,
-			double totalPrice,std::tm valueDate,int tenureStatus,int biddingMarketEntryDay, int timeOnMarket, int timeOffMarket, double lagCoefficient, int zoneHousingType, int dwellingType, bool isBTO)
+			double totalPrice,std::tm valueDate,int tenureStatus,int biddingMarketEntryDay, int timeOnMarket, int timeOffMarket, double lagCoefficient, int zoneHousingType, int dwellingType)
 		   : id(id), building_id(building_id), sla_address_id(sla_address_id), unit_type(unit_type), storey_range(storey_range), constructionStatus(constructionStatus),
 		     floor_area(floor_area), storey(storey), monthlyRent(monthlyRent), sale_from_date(sale_from_date), occupancyFromDate(occupancyFromDate),
 			 sale_status(sale_status), occupancyStatus(occupancyStatus), lastChangedDate(lastChangedDate),totalPrice(totalPrice),valueDate(valueDate),tenureStatus(tenureStatus),
 			 biddingMarketEntryDay(biddingMarketEntryDay),timeOnMarket(timeOnMarket), timeOffMarket(timeOffMarket), lagCoefficient(lagCoefficient),
-			 zoneHousingType(zoneHousingType), dwellingType(dwellingType), isBTO(isBTO), existInDB(existInDB){}
+			 zoneHousingType(zoneHousingType), dwellingType(dwellingType), existInDB(existInDB){}
 
 
 Unit::Unit(const Unit& source)
@@ -51,7 +51,6 @@ Unit::Unit(const Unit& source)
     this->lagCoefficient = source.lagCoefficient;
     this->zoneHousingType = source.zoneHousingType;
     this->dwellingType = source.dwellingType;
-    this->isBTO = source.isBTO;
     this->existInDB = source.existInDB;
 
 }
@@ -83,7 +82,6 @@ Unit& Unit::operator=(const Unit& source)
     this->lagCoefficient = source.lagCoefficient;
     this->zoneHousingType = source.zoneHousingType;
     this->dwellingType = source.dwellingType;
-    this->isBTO = source.isBTO;
     this->existInDB = source.existInDB;
 
     return *this;
@@ -313,16 +311,6 @@ void Unit::setDwellingType( int value)
 	dwellingType = value;
 }
 
-bool  Unit::isBto() const
-{
-	return isBTO;
-}
-
-void  Unit::setBto(bool bto)
-{
-		isBTO = bto;
-}
-
 bool Unit::isExistInDb() const
 {
 	return existInDB;
@@ -360,7 +348,6 @@ namespace sim_mob
 						<< "\"lagCoefficient\":\"" << data.lagCoefficient << "\","
 						<< "\"zoneHousingType\":\"" << data.zoneHousingType << "\","
 						<< "\"dwellingType\":\"" << data.dwellingType << "\""
-						<< "\"isBTO\":\"" << data.isBTO << "\""
 						<< "}";
         }
     }

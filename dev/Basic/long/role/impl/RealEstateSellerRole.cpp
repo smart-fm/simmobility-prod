@@ -193,7 +193,7 @@ void RealEstateSellerRole::update(timeslice now)
 
             if(getCurrentExpectation(unit->getId(), firstExpectation))
             {
-                market->addEntry( HousingMarket::Entry( getParent(), unit->getId(), unit->getSlaAddressId(), tazId, firstExpectation.askingPrice, firstExpectation.hedonicPrice, unit->isBto()));
+                market->addEntry( HousingMarket::Entry( getParent(), unit->getId(), unit->getSlaAddressId(), tazId, firstExpectation.askingPrice, firstExpectation.hedonicPrice, unit->getTenureStatus()==0));
 				#ifdef VERBOSE
                 PrintOutV("[day " << currentTime.ms() << "] RealEstate Agent " <<  this->getParent()->getId() << ". Adding entry to Housing market for unit " << unit->getId() << " with asking price: " << firstExpectation.askingPrice << std::endl);
 				#endif
@@ -353,6 +353,8 @@ void RealEstateSellerRole::notifyWinnerBidders()
 
 void RealEstateSellerRole::calculateUnitExpectations(const Unit& unit)
 {
+	HM_Model* model = dynamic_cast<RealEstateAgent*>(getParent())->getModel();
+
 	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
 	unsigned int timeInterval = config.ltParams.housingModel.timeInterval;
 	unsigned int timeOnMarket = config.ltParams.housingModel.timeOnMarket;

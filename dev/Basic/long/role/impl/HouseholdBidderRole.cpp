@@ -427,7 +427,7 @@ void HouseholdBidderRole::HandleMessage(Message::MessageType type, const Message
                 	year = config.ltParams.year;
                 	getParent()->getHousehold()->setLastBidStatus(1);
             		getParent()->setAcceptedBid(true);
-            		getParent()->setBTOUnit(newUnit->isBto());
+            		//getParent()->setBTOUnit(newUnit->isBto());
 
                 	if(simulationEndDay < (moveInWaitingTimeInDays))
 
@@ -701,13 +701,13 @@ bool HouseholdBidderRole::pickEntryToBid()
 
             bool flatEligibility = true;
 
- 			if( unit->isBto() && unit->getUnitType() == 2 && household->getTwoRoomHdbEligibility()  == false )
+ 			if( unit->getTenureStatus() == 0 && unit->getUnitType() == 2 && household->getTwoRoomHdbEligibility()  == false )
 				flatEligibility = false;
 
-			if( unit->isBto() && unit->getUnitType() == 3 && household->getThreeRoomHdbEligibility() == false )
+			if( unit->getTenureStatus() == 0 && unit->getUnitType() == 3 && household->getThreeRoomHdbEligibility() == false )
 				flatEligibility = false;
 
-			if( unit->isBto() && unit->getUnitType() == 4 && household->getFourRoomHdbEligibility() == false )
+			if( unit->getTenureStatus() == 0 && unit->getUnitType() == 4 && household->getFourRoomHdbEligibility() == false )
 				flatEligibility = false;
 
 
@@ -772,7 +772,7 @@ bool HouseholdBidderRole::pickEntryToBid()
         }
     }
 
-    if( maxEntry && model->getUnitById(maxEntry->getUnitId())->isBto() )
+    if( maxEntry && model->getUnitById(maxEntry->getUnitId())->getTenureStatus()==0 )
     {
     	//When bidding on BTO units, we cannot bid above the asking price. So it's basically the ceiling we cannot exceed.
     	finalBid = maxEntry->getAskingPrice();

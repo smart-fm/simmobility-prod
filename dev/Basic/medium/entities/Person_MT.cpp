@@ -415,6 +415,7 @@ Entity::UpdateStatus Person_MT::checkTripChain(unsigned int currentTime)
 		return UpdateStatus::Done;
 	}
 
+
 	//advance the trip, sub-trip or activity....
 	TripChainItem *chainItem=*(tripChain.begin());
 	if(chainItem->itemType!=TripChainItem::IT_TAXITRIP)
@@ -439,7 +440,7 @@ Entity::UpdateStatus Person_MT::checkTripChain(unsigned int currentTime)
 	updatePersonRole();
 
 	//Update our origin/destination pair.
-	if (!boost::iequals(getDatabaseId(),"Taxi123")&&(*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP)
+	if ((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP)
 	{ 
 		//put if to avoid & evade bus trips, can be removed when everything is ok
 		updateOD(*currTripChainItem, &(*currSubTrip));

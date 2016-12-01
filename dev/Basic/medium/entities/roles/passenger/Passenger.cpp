@@ -47,6 +47,10 @@ Role<Person_MT>* sim_mob::medium::Passenger::clone(Person_MT *parent) const
 	{
 		personRoleType = Role<Person_MT>::RL_PASSENGER;
 	}
+	else if (parent->currSubTrip->getMode() == "TaxiTravel")
+	{
+		personRoleType = Role<Person_MT>::RL_TAXIPASSENGER;
+	}
 	else
 	{
 		throw std::runtime_error("Unknown mode for passenger role");

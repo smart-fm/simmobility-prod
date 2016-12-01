@@ -17,6 +17,7 @@ namespace sim_mob
 {
 	namespace medium
 	{
+
 		class TaxiDriver : public Driver
 		{
 		public:
@@ -24,45 +25,41 @@ namespace sim_mob
 					TaxiDriverMovement* movement, std::string roleName, Role<Person_MT>::Type roleType=Role<Person_MT>::RL_TAXIDRIVER);
 
 			TaxiDriver(Person_MT* parent, const MutexStrategy& mtx);
-			void addPassenger(Passenger* passenger);
+			bool addPassenger(Passenger* passenger);
 			Passenger * alightPassenger();
 			void boardPassenger(Passenger *passenger);
 			void driveToDestinationNode(Node * destinationNode);
-			void runRouteChoiceModel(Node *origin,Node *destination);
-			bool hasPersonBoarded();
-			void setCurrentNode(Node *currNode);
-			void setDestinationNode(Node *destinationNode);
-			Node* getDestinationNode();
+			void runRouteChoiceModel(const Node *origin,const Node *destination,SubTrip &currSubTrip,std::vector<WayPoint> &currentRouteChoice);
+			void setCurrentNode(const Node *currNode);
+			void setDestinationNode(const Node *destinationNode);
+			const Node* getDestinationNode();
 			Person* getParent();
-			Node* getCurrentNode();
-			void checkPersonsAndPickUpAtNode(timeslice now);
+			const Node* getCurrentNode();
+
+			void checkPersonsAndPickUpAtNode(timeslice now,Conflux *parentConflux);
 			TaxiDriverMovement * getMovementFacet();
 			virtual Role<Person_MT>* clone(Person_MT *parent) const;
 			virtual ~TaxiDriver();
 			void make_frame_tick_params(timeslice now);
 			std::vector<BufferedBase*> getSubscriptionParams();
-			enum DriverMode
+			void setTaxiDriveMode(const DriverMode &mode)
 			{
-				DRIVE_TO_NODE =0,
-				DRIVE_TO_TAXISTAND,
-				CRUISE,
-				DRIVE_WITH_PASSENGER,
-				QUEUING_AT_TAXISTAND
-			};
-			void setDriveMode(DriverMode mode);
-			sim_mob::medium::TaxiDriver::DriverMode getDriverMode();
+				taxiDriverMode = mode;
+				driverMode = mode;
+			}
+			const DriverMode & getDriverMode() const;
 
 		private:
 			Passenger *taxiPassenger;
-			Node * destinationNode;
-			Node *originNode;
-			Node *currentNode;
+			const Node * destinationNode;
+			const Node *originNode;
+			const Node *currentNode;
 			RoadSegment *currSegment;
 			TaxiDriverMovement *taxiDriverMovement;
 			TaxiDriverBehavior *taxiDriverBehaviour;
 			bool personBoarded = false;
 			std::vector<WayPoint> currentRouteChoice;
-			DriverMode driverMode;
+			DriverMode taxiDriverMode;
 			public:
 
 

@@ -230,6 +230,7 @@ public:
 		std::string toLocType = "node",
 		std::string mode = std::string(),
 		std::string purpose = std::string());
+
 	virtual ~Trip();
 
 	void addSubTrip(const sim_mob::SubTrip& aSubTrip);

@@ -53,6 +53,7 @@ public:
 	unsigned int busDrivers;
 	unsigned int busWaiters;
 	unsigned int activityPerformers;
+	unsigned int taxiDrivers;
 
 	PersonCount();
 	const PersonCount& operator+=(const PersonCount& dailytime);
@@ -378,6 +379,11 @@ public:
 	 * @return always true
 	 */
 	virtual bool isNonspatial();
+
+	std::deque<Person_MT*>& getTravellingPersons()
+	{
+		return travelingPersons;
+	}
 
 	/**
 	 * adds a person entitiy for loading, if isLoader is true

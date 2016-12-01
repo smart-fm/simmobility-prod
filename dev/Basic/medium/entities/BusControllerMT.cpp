@@ -130,40 +130,20 @@ void BusControllerMT::assignBusTripChainWithPerson(std::set<Entity*>& activeAgen
 		}
 	}
 
-	/*Person_MT* person = new Person_MT("BusController", config.mutexStategy(), -1, sometripIt->getPersonID());
-	person->busLine = someBusLine->getBusLineID();
-	person->setDatabaseId(std::to_string(person->getId()));
-	person->setPersonCharacteristics();
-	vector<TripChainItem*> tripChain;
-	tripChain.push_back(const_cast<BusTrip*>(&(*sometripIt)));
-	person->setTripChain(tripChain);
-	person->initTripChain();
-	addOrStashBuses(person, activeAgents);*/
-	std::string Taxis[] ={"Taxi1","Taxi2","Taxi3","Taxi4","Taxi5","Taxi6","Taxi7","Taxi8","Taxi9","taxi10"};
+	std::string Taxis[] ={"Taxi1","Taxi2","Taxi3","Taxi4","Taxi5","Taxi6","Taxi7","Taxi8","Taxi9","Taxi10"};
 
-	for(int i=0;i<10;i++)
+	for(int i=0;i<1;i++)
 	{
 		Person_MT* person = new Person_MT("TaxiController", config.mutexStategy(), -1, Taxis[i]);
 		person->setDatabaseId(Taxis[i]);
 		person->setPersonCharacteristics();
 		vector<TripChainItem*> tripChain;
-		//creating a dummy TaxiTrip for now
+		//creating a dummy TaxiTrip for now to test
 		TaxiTrip *taxiTrip =new TaxiTrip("0","TaxiTrip",0,-1, DailyTime(), DailyTime(),0,nullptr,"node",nullptr,"node");
 		tripChain.push_back(taxiTrip);
 		person->setTripChain(tripChain);
 		addOrStashBuses(person, activeAgents);
 	}
-
-	/*Person_MT* person = new Person_MT("DAS_TripChain", config.mutexStategy(), -1, "Taxi123");
-	person->setDatabaseId("Taxi123");
-	person->setPersonCharacteristics();
-	vector<TripChainItem*> tripChain;
-	//creating a dummy TaxiTrip for now
-	Trip *taxiTrip =new Trip("0","Trip",0,-1, DailyTime(), DailyTime()+DailyTime(50000),"",nullptr,"node",nullptr,"node","","");
-	tripChain.push_back(taxiTrip);
-	person->setTripChain(tripChain);
-	addOrStashBuses(person, activeAgents);*/
-
 
 	for (std::set<Entity*>::iterator it = activeAgents.begin(); it != activeAgents.end(); it++)
 	{

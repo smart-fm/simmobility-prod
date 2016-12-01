@@ -111,12 +111,12 @@ void sim_mob::medium::Driver::HandleParentMessage(messaging::Message::MessageTyp
 	}
 }
 
-sim_mob::medium::Driver::DriverMode sim_mob::medium::Driver::getDriveMode()
+const sim_mob::medium::DriverMode & sim_mob::medium::Driver::getDriveMode() const
 {
 	return Driver::driverMode;
 }
 
-void sim_mob::medium::Driver::setDriveMode(sim_mob::medium::Driver::DriverMode driveMode)
+void sim_mob::medium::Driver::setDriveMode(const DriverMode &driveMode)
 {
 	sim_mob::medium::Driver::driverMode = driveMode;
 }

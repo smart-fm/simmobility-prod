@@ -114,7 +114,9 @@ public:
 		RL_PRIVATEBUSPASSENGER,
 		RL_TRUCKER_LGV,
 		RL_TRUCKER_HGV,
-		RL_TAXIDRIVER
+		RL_TAXIDRIVER,
+		RL_TAXIPASSENGER,
+		RL_TAXITRAVELLER
 	};
 
 	/**Defines the various types of requests*/

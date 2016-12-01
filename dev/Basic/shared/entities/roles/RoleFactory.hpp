@@ -134,7 +134,7 @@ public:
 	 *
 	 * @return the role name
 	 */
-	static std::string getRoleName(const std::string mode)
+	static std::string getRoleName(const std::string mode,bool isTTWalk)
 	{
 		if (mode == "Walk")
 		{
@@ -172,10 +172,22 @@ public:
 		{
 			return "activityRole";
 		}
+		if (mode == "TaxiTravel")
+		{
+			if(isTTWalk)
+			{
+				return "pedestrian";
+			}
+			else
+			{
+				return "passenger";
+			}
+		}
 		if (!mode.empty())
 		{
 			return "driver";
 		}
+
 
 		throw std::runtime_error("unknown SubTrip mode: " + mode);
 	}
@@ -192,7 +204,7 @@ public:
 	{
 		if (tripChainItem->itemType == TripChainItem::IT_TRIP)
 		{
-			return getRoleName(subTrip.getMode());
+			return getRoleName(subTrip.getMode(),subTrip.isTT_Walk);
 		}
 		else if (tripChainItem->itemType == TripChainItem::IT_ACTIVITY)
 		{

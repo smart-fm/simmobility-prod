@@ -45,6 +45,14 @@ class DriverMovement;
  * \author Melani Jayasuriya
  * \author Harish Loganathan
  */
+enum DriverMode
+{
+	DRIVE_TO_NODE =0,
+	DRIVE_TO_TAXISTAND,
+	CRUISE,
+	DRIVE_WITH_PASSENGER,
+	QUEUING_AT_TAXISTAND
+};
 
 class Driver : public sim_mob::Role<Person_MT>, public UpdateWrapper<DriverUpdateParams>
 {
@@ -62,18 +70,11 @@ public:
 	virtual void make_frame_tick_params(timeslice now);
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
 	virtual void HandleParentMessage(messaging::Message::MessageType type, const messaging::Message& message);
-	enum DriverMode
-	{
-		DRIVE_TO_NODE =0,
-		DRIVE_TO_TAXISTAND,
-		CRUISE,
-		DRIVE_WITH_PASSENGER,
-		QUEUING_AT_TAXISTAND
-	};
 
-	Driver::DriverMode driverMode;
-	sim_mob::medium::Driver::DriverMode getDriveMode();
-	void setDriveMode(sim_mob::medium::Driver::DriverMode driveMode);
+
+	DriverMode driverMode;
+	const DriverMode & getDriveMode() const;
+	void setDriveMode(const DriverMode &driveMode);
 	//to be moved to a DriverUpdateParam later
 	const Lane* currLane;
 

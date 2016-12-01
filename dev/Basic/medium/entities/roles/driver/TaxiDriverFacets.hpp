@@ -29,6 +29,7 @@ namespace sim_mob
 			void setParentTaxiDriver(TaxiDriver * taxiDriver);
 			Node* getCurrentNode();
 			Node* getDestinationNode();
+			void addRouteChoicePath(std::vector<WayPoint> &currentRouteChoice,Conflux *);
 		private:
 			TaxiDriver *parentTaxiDriver = nullptr;
 			Node * destinationNode=nullptr;

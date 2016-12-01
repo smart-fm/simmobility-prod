@@ -47,6 +47,8 @@ private:
 	/**	struct containing additional pertinent information about this person */
 	PersonParams personInfo;
 
+	Conflux * currentConflux;
+
 	/**Alters trip chain in accordance to route choice for public transit trips*/
 	void convertPublicTransitODsToTrips();
 
@@ -77,6 +79,8 @@ public:
 
 	//Used by confluxes and movement facet of roles to move this person in the medium term
 	const SegmentStats* requestedNextSegStats;
+
+
 
 	enum Permission //to be renamed later
 	{

@@ -141,16 +141,6 @@ void DeveloperModel::startImpl() {
 		UnitDao unitDao(conn);
 		btoUnits = unitDao.getBTOUnits(currentSimYear);
 		//ongoingBtoUnits = unitDao.getOngoingBTOUnits(currentSimYear);
-		//set the BTO flag when the units are first loaded
-		for(Unit *unit : btoUnits)
-		{
-			unit->setBto(true);
-		}
-
-//		for(Unit *unit : ongoingBtoUnits)
-//		{
-//			unit->setBto(true);
-//		}
 
 		setRealEstateAgentIds(housingMarketModel->getRealEstateAgentIds());
 

@@ -1742,7 +1742,7 @@ void HM_Model::startImpl()
 		//this unit is a vacancy
 		if (assignedUnits.find((*it)->getId()) == assignedUnits.end())
 		{
-			if( (*it)->getUnitType() != NON_RESIDENTIAL_PROPERTY )
+			if( (*it)->getUnitType() != NON_RESIDENTIAL_PROPERTY && (*it)->getTenureStatus() == 0 )
 			{
 				float awakeningProbability = (float)rand() / RAND_MAX;
 

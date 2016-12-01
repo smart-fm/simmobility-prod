@@ -818,13 +818,13 @@ void DeveloperAgent::processExistingProjects()
 				PrintOutV(unitsToSale.size()<<" number of units launched for selling by developer agent "<<this->GetId()<<"on day "<<currentTick<<std::endl);
 				#endif
 
-				for(unitsItr = unitsToSale.begin(); unitsItr != unitsToSale.end(); unitsItr++)
-				{
-					(*unitsItr)->setSaleStatus(UNIT_LAUNCHED_BUT_UNSOLD);
-					(*unitsItr)->setOccupancyStatus(UNIT_READY_FOR_OCCUPANCY_AND_VACANT);
-					MessageBus::PostMessage(this, LT_STATUS_ID_DEV_NEW_UNIT_LAUNCHED_BUT_UNSOLD,MessageBus::MessagePtr(new DEV_InternalMsg((*unitsItr)->getId())), true);
-					MessageBus::PostMessage(this, LT_STATUS_ID_DEV_UNIT_READY_FOR_OCCUPANCY_AND_VACANT,MessageBus::MessagePtr(new DEV_InternalMsg((*unitsItr)->getId())), true);
-				}
+//				for(unitsItr = unitsToSale.begin(); unitsItr != unitsToSale.end(); unitsItr++)
+//				{
+//					(*unitsItr)->setSaleStatus(UNIT_LAUNCHED_BUT_UNSOLD);
+//					(*unitsItr)->setOccupancyStatus(UNIT_READY_FOR_OCCUPANCY_AND_VACANT);
+//					MessageBus::PostMessage(this, LT_STATUS_ID_DEV_NEW_UNIT_LAUNCHED_BUT_UNSOLD,MessageBus::MessagePtr(new DEV_InternalMsg((*unitsItr)->getId())), true);
+//					MessageBus::PostMessage(this, LT_STATUS_ID_DEV_UNIT_READY_FOR_OCCUPANCY_AND_VACANT,MessageBus::MessagePtr(new DEV_InternalMsg((*unitsItr)->getId())), true);
+//				}
 
 			}
 		break;

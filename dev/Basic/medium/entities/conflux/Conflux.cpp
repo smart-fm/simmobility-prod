@@ -1594,6 +1594,24 @@ void Conflux::assignPersonToPedestrianlist(Person_MT* person)
 	}
 }
 
+void Conflux::dropOffTaxiTraveler(Person_MT* person)
+{
+	if(person){
+		person->setToBeRemoved();
+	}
+}
+
+Person_MT* Conflux::pickupTaxiTraveler()
+{
+	Person_MT* res = nullptr;
+	if(travelingPersons.size()>0)
+	{
+		res = travelingPersons.front();
+		travelingPersons.pop_front();
+	}
+	return res;
+}
+
 void Conflux::assignPersonToMRT(Person_MT* person)
 {
 	Role<Person_MT>* role = person->getRole();

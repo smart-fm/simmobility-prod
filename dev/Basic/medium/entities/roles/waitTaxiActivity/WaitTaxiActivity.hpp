@@ -12,9 +12,9 @@
 #include "entities/Person_MT.hpp"
 namespace sim_mob
 {
+class TaxiStand;
 namespace medium
 {
-class TaxiStand;
 class WaitTaxiActivityBehavior;
 class WaitTaxiActivityMovement;
 class WaitTaxiActivity: public sim_mob::Role<Person_MT>, public UpdateWrapper<UpdateParams>

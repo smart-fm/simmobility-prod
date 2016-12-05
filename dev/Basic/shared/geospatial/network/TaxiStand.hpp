@@ -14,6 +14,7 @@
 
 #include "RoadItem.hpp"
 #include "RoadSegment.hpp"
+#include "spatial_trees/GeneralR_TreeManager.hpp"
 
 namespace sim_mob
 {
@@ -22,7 +23,8 @@ class TaxiStand : public RoadItem {
 public:
 	TaxiStand();
 	virtual ~TaxiStand();
-
+	/**store all taxi-stands into a global r-tree*/
+	static GeneralR_TreeManager<TaxiStand> allTaxiStandMap;
 private:
 	/**Taxi stand location*/
 	Point location;
@@ -60,6 +62,10 @@ public:
 	void setStandId(int id);
 	/**get the id of taxi-stand*/
 	int getStandId() const;
+	/**get x position*/
+	double getPosX() const;
+	/**get y position*/
+	double getPosY() const;
 };
 
 };

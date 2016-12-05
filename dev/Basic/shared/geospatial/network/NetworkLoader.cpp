@@ -207,13 +207,15 @@ void NetworkLoader::loadTaxiStands(const std::string& storedProc)
 
 	//SQL statement
 	soci::rowset<sim_mob::TaxiStand> stands = (sql.prepare << "select * from " + storedProc);
-
+	std::set<sim_mob::TaxiStand*> standSet;
 	for (soci::rowset<TaxiStand>::const_iterator itStand = stands.begin(); itStand != stands.end(); ++itStand)
 	{
 		//Create new taxi stand and add it to road network
 		TaxiStand* stand = new TaxiStand(*itStand);
 		roadNetwork->addTaxiStand(stand);
+		standSet.insert(stand);
 	}
+	TaxiStand::allTaxiStandMap.update(standSet);
 }
 
 void NetworkLoader::loadBusStops(const std::string& storedProc)

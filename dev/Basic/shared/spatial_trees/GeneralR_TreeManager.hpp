@@ -43,10 +43,19 @@ public:
 	 */
 	std::vector<T const *> objectsInBox(const R_Point &lowerLeft, const R_Point &upperRight) const;
 
+	/**
+	 * Return nearest object
+	 * @param location is central location
+	 * @return nearest object if existed. otherwise nullptr
+	 */
+	const T* searchNearestObject(const R_Point& location) const;
+
 private:
 	/**Internal r-tree to store objects*/
 	R_Tree<T>* rTree;
 };
 
 }
+#define _CLASS_RTREE_GENERAL_FUNCTIONS
+#include "GeneralR_TreeManager.cpp"
 #endif /* GENERALRTREEMANAGER_HPP_ */

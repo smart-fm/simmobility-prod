@@ -9,6 +9,7 @@
 
 namespace sim_mob
 {
+GeneralR_TreeManager<TaxiStand> TaxiStand::allTaxiStandMap;
 TaxiStand::TaxiStand():roadSegment(nullptr),length(0),offset(0),id(0){
 	// TODO Auto-generated constructor stub
 
@@ -68,5 +69,14 @@ int TaxiStand::getStandId() const
 	return id;
 }
 
+double TaxiStand::getPosX() const
+{
+	return getLocation().getX();
+}
+
+double TaxiStand::getPosY() const
+{
+	return getLocation().getY();
+}
 }
 

@@ -50,6 +50,9 @@ private:
 	/**Alters trip chain in accordance to route choice for public transit trips*/
 	void convertPublicTransitODsToTrips();
 
+	/**Alters trip chain in accordance to route choice for taxi trip*/
+	void convertToTaxiTrips();
+
 	/**Inserts a waiting activity before bus travel*/
 	void insertWaitingActivityToTrip();
 

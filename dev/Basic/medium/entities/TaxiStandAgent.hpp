@@ -8,16 +8,17 @@
 #ifndef TAXISTANDAGENT_HPP_
 #define TAXISTANDAGENT_HPP_
 #include "entities/Agent.hpp"
-#include "geospatial/network/TaxiStand.hpp"
 #include "Person_MT.hpp"
 #include <map>
+#include <queue>
 namespace sim_mob
 {
+class TaxiStand;
 namespace medium
 {
 class TaxiStandAgent : public sim_mob::Agent {
 public:
-	TaxiStandAgent(const MutexStrategy& mtxStrat, int id, const TaxiStand* stand);
+	TaxiStandAgent(const MutexStrategy& mtxStrat, int id, const TaxiStand* stand, SegmentStats* stats);
 	virtual ~TaxiStandAgent();
 	/**
 	 * set a taxi-stand pointer to taxiStand
@@ -44,15 +45,37 @@ public:
 	 * @param stand is a pointer to a taxi-stand
 	 */
 	static TaxiStandAgent* getTaxiStandAgent(const TaxiStand* stand);
-
+	/**
+	 * accept a queuing taxi-driver inside current stand
+	 * @param driver is pointer to the person who drive this taxi
+	 * @return true if current stand has space for taxi, otherwise false
+	 */
+	bool acceptTaxiDriver(Person_MT* driver);
+	/**
+	 * pick up a waiting person at current stand
+	 * @return a available person.
+	 */
+	Person_MT* pickupOneWaitingPerson();
+	/**
+	 * store waiting time at current stand
+	 * @param person is a pointer to a person with waiting activity role
+	 */
+	void storeWaitingTime(Person_MT* waitingPerson) const;
 private:
 	/**record associated taxi-stand*/
 	const TaxiStand* taxiStand;
 	/**record the waiting people at this stand*/
-	std::queue<medium::Person_MT*> waitingPeople;
+	std::deque<Person_MT*> waitingPeople;
+	/**record the queuing taxi-drivers at current stand*/
+	std::deque<Person_MT*> queuingDrivers;
 	/** global static taxi stand agents lookup table*/
 	static std::map<const TaxiStand*, TaxiStandAgent*> allTaxiStandAgents;
-
+	/**segment stats containing this taxi stand*/
+	SegmentStats* parentSegmentStats;
+	/**current time in milliseconds*/
+	unsigned int currentTimeMS;
+	/**default capacity for queuing drivers*/
+	const unsigned int capacity;
 protected:
 	//Virtual overrides
 	virtual Entity::UpdateStatus frame_init(timeslice now);

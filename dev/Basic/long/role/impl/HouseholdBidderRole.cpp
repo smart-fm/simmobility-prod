@@ -647,7 +647,7 @@ bool HouseholdBidderRole::pickEntryToBid()
     else
     {
         //Add x BTO units to the screenedUnit vector if the household is eligible for it
-        for(int n = 0, m = 0; n < entries.size() && m < config.ltParams.housingModel.bidderBTOUnitsChoiceSet; n++ )
+        for(int n = 0, m = 0; m < config.ltParams.housingModel.bidderBTOUnitsChoiceSet; n++)
         {
         	int offset = (float)rand() / RAND_MAX * ( entries.size() - 1 );
 
@@ -659,6 +659,10 @@ bool HouseholdBidderRole::pickEntryToBid()
         		screenedEntries.push_back(entry);
         		m++;
         	}
+
+        	//let's break if we really cannot find any BTOs after 1 million tries
+        	if( n > 1000000)
+        		break;
         }
 
     	std::string choiceset(" ");

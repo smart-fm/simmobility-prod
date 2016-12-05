@@ -49,7 +49,7 @@ namespace
      */
     inline bool decide(const Bid& bid, const ExpectationEntry& entry)
     {
-        return bid.getBidValue() > entry.targetPrice;
+        return bid.getBidValue() >= entry.targetPrice;
     }
 
     /**

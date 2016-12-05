@@ -2031,18 +2031,10 @@ void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId)
 			}
 		}
 
-		Taz *tazObjW = getTazById( tazIdW );
-	    std::string tazStrW;
-		if( tazObjW != NULL )
-			tazStrW = tazObjW->getName();
-		BigSerial tazW = std::atoi( tazStrW.c_str() );
 
-		Taz *tazObjH = getTazById( tazIdH );
-	    std::string tazStrH;
-		if( tazObjH != NULL )
-			tazStrH = tazObjH->getName();
-		BigSerial tazH = std::atoi( tazStrH.c_str() );
 
+		BigSerial tazW = 0;
+		BigSerial tazH = 0;
 
 		{
 			PersonParams personParams;
@@ -2050,6 +2042,21 @@ void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId)
 			Job *job = this->getJobById(thisIndividual->getJobId());
 			Establishment *establishment = this->getEstablishmentById(	job->getEstablishmentId());
 			const Unit *unit = this->getUnitById(currentHousehold->getUnitId());
+
+
+			int work_taz_id = this->getEstablishmentTazId( establishment->getId() );
+			Taz *tazObjW = getTazById( work_taz_id );
+			std::string tazStrW;
+			if( tazObjW != NULL )
+				tazStrW = tazObjW->getName();
+			tazW = std::atoi( tazStrW.c_str() );
+
+			Postcode *postcode = this->getPostcodeById( unit->getSlaAddressId());
+			Taz *tazObjH = getTazById( postcode->getTazId() );
+			std::string tazStrH;
+			if( tazObjH != NULL )
+				tazStrH = tazObjH->getName();
+			tazH = std::atoi( tazStrH.c_str() );
 
 			personParams.setPersonId(boost::lexical_cast<std::string>(thisIndividual->getId()));
 			personParams.setPersonTypeId(thisIndividual->getEmploymentStatusId());
@@ -2195,8 +2202,8 @@ void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId)
 
 		simulationStopCounter++;
 
-		printHouseholdHitsLogsumFVO( hitsSample->getHouseholdHitsId(), paxId, householdId, householdIndividualIds[n], thisIndividual->getMemberId(), tazH, tazW, logsum, travelProbability, tripsExpected );
-		PrintOutV( simulationStopCounter << ". " << hitsIndividualLogsum[p]->getHitsId() << ", " << paxId << ", " << hitsSample->getHouseholdHitsId() << ", " << householdId << ", " << thisIndividual->getMemberId()
+		printHouseholdHitsLogsumFVO( hitsSample->getHouseholdHitsId(), paxId, currentHousehold->getId(), householdIndividualIds[n], thisIndividual->getMemberId(), tazH, tazW, logsum, travelProbability, tripsExpected );
+		PrintOutV( simulationStopCounter << ". " << hitsIndividualLogsum[p]->getHitsId() << ", " << paxId << ", " << hitsSample->getHouseholdHitsId() << ", " << currentHousehold->getId() << ", " << thisIndividual->getMemberId()
 										 << ", " << householdIndividualIds[n] << ", " << tazH << ", " << tazW << ", "
 										 << std::setprecision(5)
 										 << logsum[0]  << ", " << logsum[1] << ", " << logsum[2] << ", " << logsum[3] << ", "<< logsum[4]  << ", " << logsum[5] << ", "

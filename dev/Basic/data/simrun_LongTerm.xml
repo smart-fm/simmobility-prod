@@ -21,8 +21,15 @@
             </database>
             
 	    <!-- internal ip for remote midterm server -->
-            <database id="fm_remote_mt" dbtype="postgres">
+            <database id="fm_remote_mt6" dbtype="postgres">
                 <host value="172.25.184.48"/>
+                <port value="5432"/>
+                <dbname value="simmobility"/>
+            </database>
+
+	    <!-- hpc ip for remote midterm server -->
+            <database id="fm_remote_mt" dbtype="postgres">
+                <host value="172.25.184.156"/>
                 <port value="5432"/>
                 <dbname value="simmobility"/>
             </database>

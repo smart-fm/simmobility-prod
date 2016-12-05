@@ -776,7 +776,6 @@ bool HouseholdBidderRole::pickEntryToBid()
     {
     	//When bidding on BTO units, we cannot bid above the asking price. So it's basically the ceiling we cannot exceed.
     	finalBid = maxEntry->getAskingPrice();
-    	PrintOutV("finalBid  "<<finalBid<<"unit Id  " << maxEntry->getUnitId()<<std::endl);
     }
 
     biddingEntry = CurrentBiddingEntry( (maxEntry) ? maxEntry->getUnitId() : INVALID_ID, finalBid, maxWp, maxSurplus, maxWtpe, maxAffordability );

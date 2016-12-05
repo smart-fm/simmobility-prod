@@ -646,6 +646,9 @@ bool HouseholdBidderRole::pickEntryToBid()
     }
     else
     {
+    	//Temporary set to make sure we are entering unique entries to the BTO list
+    	std::set<int> btoEntriesMap;
+
         //Add x BTO units to the screenedUnit vector if the household is eligible for it
         for(int n = 0, m = 0; m < config.ltParams.housingModel.bidderBTOUnitsChoiceSet; n++)
         {
@@ -654,8 +657,9 @@ bool HouseholdBidderRole::pickEntryToBid()
          	HousingMarket::ConstEntryList::const_iterator itr = entries.begin() + offset;
            	const HousingMarket::Entry* entry = *itr;
 
-        	if( entry->isBTO() == true )
+        	if( entry->isBTO() == true && btoEntriesMap.find(entry->getUnitId()) == btoEntriesMap.end())
         	{
+        		btoEntriesMap.insert(entry->getUnitId());
         		screenedEntries.push_back(entry);
         		m++;
         	}

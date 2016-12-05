@@ -522,6 +522,7 @@ vector<ExpectationEntry> HedonicPrice_SubModel::CalculateUnitExpectations (Unit 
     //-- HEDONIC PRICE in SGD in thousands with average hedonic price (500)
 
     double  hedonicPrice = CalculateHedonicPrice(unit, building, postcode, amenities, logsum, lagCoefficient);
+
     hedonicPrice = exp( hedonicPrice ) / 1000000.0;
 
     if (hedonicPrice > 0)
@@ -536,14 +537,26 @@ vector<ExpectationEntry> HedonicPrice_SubModel::CalculateUnitExpectations (Unit 
 
         for(int i=1; i <= timeOnMarket; i++)
         {
-            a = 1.5 * reservationPrice;
-            x0 = 1.4 * reservationPrice;
-            ExpectationEntry entry = ExpectationEntry(); //--entry is a class initialized to 0, that will hold the hedonic, asking and target prices.
-            entry.hedonicPrice = hedonicPrice;
-            entry.askingPrice = FindMaxArgConstrained(CalculateExpectation, x0, reservationPrice, a, b, cost, crit, maxIterations, reservationPrice, 1.2 * reservationPrice );
-            entry.targetPrice = CalculateExpectation(entry.askingPrice, reservationPrice, a, b, cost );
-            reservationPrice = entry.targetPrice;
-            expectations.push_back(entry);
+        	ExpectationEntry entry = ExpectationEntry(); //--entry is a class initialized to 0, that will hold the hedonic, asking and target prices.
+
+            if( unit->getTenureStatus() == 0 )
+            {
+            	entry.hedonicPrice = unit->getTotalPrice();
+  	            entry.askingPrice = unit->getTotalPrice();
+                entry.targetPrice = unit->getTotalPrice();
+            }
+            else
+            {
+                 a = 1.5 * reservationPrice;
+                 x0 = 1.4 * reservationPrice;
+
+                 entry.hedonicPrice = hedonicPrice;
+                 entry.askingPrice = FindMaxArgConstrained(CalculateExpectation, x0, reservationPrice, a, b, cost, crit, maxIterations, reservationPrice, 1.2 * reservationPrice );
+                 entry.targetPrice = CalculateExpectation(entry.askingPrice, reservationPrice, a, b, cost );
+
+                 reservationPrice = entry.targetPrice;
+                 expectations.push_back(entry);
+            }
     	}
     }
 

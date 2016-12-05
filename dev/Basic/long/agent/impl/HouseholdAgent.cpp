@@ -150,6 +150,11 @@ HouseholdSellerRole* HouseholdAgent::getSeller()
 
 }
 
+void HouseholdAgent::setBTOUnit(bool value)
+{
+	//btoUnit = value;
+}
+
 
 Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 {
@@ -303,8 +308,6 @@ void HouseholdAgent::processEvent(EventId eventId, Context ctxId, const EventArg
 					buySellInterval = config.ltParams.housingModel.offsetBetweenUnitBuyingAndSelling;
 				}
         	}
-        	//PrintOutV("counter " << counter << " "  << household->getId() <<std::endl);
-        	writeRandomNumsToFile(counter,household->getId(),montecarlo);
             break;
 
         }

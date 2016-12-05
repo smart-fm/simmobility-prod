@@ -65,6 +65,8 @@ namespace sim_mob
             bool getFutureTransitionOwn();
 
             void setAcceptedBid(bool isAccepted);
+
+            void setBTOUnit(bool value);
         
         protected:
             /**
@@ -106,7 +108,7 @@ namespace sim_mob
              * @param args
              */
             void processExternalEvent(const ExternalEventArgs& args);
-            
+
 
         private:
             HM_Model* model;

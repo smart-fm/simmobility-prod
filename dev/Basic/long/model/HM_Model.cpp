@@ -1742,7 +1742,7 @@ void HM_Model::startImpl()
 		//this unit is a vacancy
 		if (assignedUnits.find((*it)->getId()) == assignedUnits.end())
 		{
-			if( (*it)->getUnitType() != NON_RESIDENTIAL_PROPERTY )
+			if( (*it)->getUnitType() != NON_RESIDENTIAL_PROPERTY && (*it)->getTenureStatus() == 0 )
 			{
 				float awakeningProbability = (float)rand() / RAND_MAX;
 
@@ -2612,11 +2612,28 @@ void HM_Model::addHouseholdUnits(boost::shared_ptr<HouseholdUnit> &newHouseholdU
 
 void HM_Model::addUpdatedUnits(boost::shared_ptr<Unit> &updatedUnit)
 {
+	Unit *unit = getUpdatedUnitById(updatedUnit->getId());
+	if(unit != nullptr)
+	{
+		unit->setExistInDb(true);
+	}
+
 	DBLock.lock();
 	updatedUnits.push_back(updatedUnit);
+	updatedUnitsById.insert(std::make_pair((updatedUnit)->getId(), updatedUnit.get()));
 	DBLock.unlock();
 }
 
+Unit* HM_Model::getUpdatedUnitById(BigSerial unitId)
+{
+	UnitMap::const_iterator itr = updatedUnitsById.find(unitId);
+
+	if (itr != updatedUnitsById.end())
+	{
+		return itr->second;
+	}
+	return nullptr;
+}
 std::vector<boost::shared_ptr<UnitSale> > HM_Model::getUnitSales()
 {
 	return this->unitSales;

@@ -373,6 +373,7 @@ namespace sim_mob
             void addNewBids(boost::shared_ptr<Bid> &newBid);
             void addHouseholdUnits(boost::shared_ptr<HouseholdUnit> &newHouseholdUnit);
             void addUpdatedUnits(boost::shared_ptr<Unit> &updatedUnit);
+            Unit* getUpdatedUnitById(BigSerial unitId);
             BigSerial getBidId();
             BigSerial getUnitSaleId();
             std::vector<boost::shared_ptr<Bid> > getNewBids();
@@ -568,6 +569,7 @@ namespace sim_mob
             std::vector<boost::shared_ptr<UnitSale> > unitSales;
             std::vector<boost::shared_ptr<HouseholdUnit> > newHouseholdUnits;
             std::vector<boost::shared_ptr<Unit> > updatedUnits;
+            UnitMap updatedUnitsById;
             BigSerial bidId;
             BigSerial unitSaleId;
             std::vector<boost::shared_ptr<Household> > hhWithBidsVector;

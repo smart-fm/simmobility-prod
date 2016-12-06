@@ -449,6 +449,7 @@ bool performMainDemand()
 	{
 		predayManager.loadZoneNodes();
 		predayManager.loadPostcodeNodeMapping();
+		predayManager.removeInvalidAddresses();
 	}
 
 	if(mtConfig.runningPredayCalibration())

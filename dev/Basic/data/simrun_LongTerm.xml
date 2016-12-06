@@ -135,7 +135,7 @@
 	    <housingMoveInDaysInterval value="30"/>
 	    <offsetBetweenUnitBuyingAndSelling value ="7"/>
 	    <bidderUnitsChoiceSet value = "50"/>
-	    <bidderBTOUnitsChoiceSet value = "12"/>
+	    <bidderBTOUnitsChoiceSet value = "10"/>
 	    <householdBiddingWindow value = "30" />
 	    <householdAwakeningPercentageByBTO value = "0.05" />
             <offsetBetweenUnitBuyingAndSellingAdvancedPurchase value = "30" />

@@ -309,12 +309,15 @@ void RealEstateAgent::HandleMessage(Message::MessageType type, const Message& me
 				for(BigSerial unitId : btoUnitIdVec)
 				{
 					Unit *unit = houseingMarketModel->getUnitById(unitId);
+
+					unit->setTimeOnMarket(1 + config.ltParams.housingModel.timeOnMarket * (float)rand() / RAND_MAX );
+					unit->setTimeOffMarket(1 + config.ltParams.housingModel.timeOffMarket * (float)rand() / RAND_MAX);
+					unit->setbiddingMarketEntryDay(day);
+
 					units.push_back(unit);
 					unitsById.insert(std::make_pair((unit)->getId(), unit));
+
 					addBTOUnit(unit->getId());
-					unit->setTimeOffMarket(1 + config.ltParams.housingModel.timeOnMarket * (float)rand() / RAND_MAX );
-					unit->setTimeOnMarket(1 + config.ltParams.housingModel.timeOffMarket * (float)rand() / RAND_MAX);
-					unit->setbiddingMarketEntryDay(day);
 				}
 
 

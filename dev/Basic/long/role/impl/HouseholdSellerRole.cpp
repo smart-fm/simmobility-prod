@@ -64,7 +64,7 @@ namespace
         MessageBus::PostMessage(bid.getBidder(), LTMID_BID_RSP, MessageBus::MessagePtr(new BidMessage(bid, response)));
 
         //print bid.
-        if( entry.askingPrice > 0.0001 )
+        if( response != NOT_AVAILABLE )
         	printBid(agent, bid, entry, bidsCounter, (response == ACCEPTED));
 
         //save accepted bids to a vector, to be saved in op schema later.

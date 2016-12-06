@@ -91,7 +91,7 @@
               
     <!-- Long Term Configurations parameters -->
     <longTermParams enabled ="true">
-    	<days value="5"/>
+    	<days value="365"/>
     	<maxIterations value="1"/>
     	<workers value="8"/>
     	<tickStep value="1"/>  
@@ -112,7 +112,7 @@
 		<initialProjectId value = "200000" />
 		<minLotSize value = "100.00" />
     	</developerModel>
-	<outputHouseholdLogsums enabled="true">
+	<outputHouseholdLogsums enabled="false">
 	    <vehicleOwnershipLogsum value ="true"/>
 	    <fixedHomeVariableWork value ="false"/>
 	    <fixedWorkVariableHome value ="false"/>
@@ -122,10 +122,10 @@
             <timeOffMarket value="150"/>
             <timeInterval value="7"/>
 	    <awakeningModel enabled="true">
-		    <initialHouseholdsOnMarket value="150"/>
-		    <dailyHouseholdAwakenings value="40"/>
-		    <awakenModelShan value="true"/>
-		    <awakenModelRandom value="false"/>
+		    <initialHouseholdsOnMarket value="15000"/>
+		    <dailyHouseholdAwakenings value="400"/>
+		    <awakenModelShan value="false"/>
+		    <awakenModelRandom value="true"/>
 		    <awakenModelJingsi value="false"/>		
 	    </awakeningModel>
 	    <vacantUnitActivationProbability value="0.375"/>

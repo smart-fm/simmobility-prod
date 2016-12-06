@@ -252,7 +252,16 @@ private:
 	 * @param person with pedestrian role
 	 */
 	void assignPersonToPedestrianlist(Person_MT* person);
-
+	/**
+	 * drop off taxi-traveler at current conflux.
+	 * @param person with taxi-passenger role
+	 */
+	void dropOffTaxiTraveler(Person_MT* person);
+	/**
+	 * pick up taxi-traveler at current conflux.
+	 * @return person who successfully get boarding. if result is null, means no traveler exist.
+	 */
+	Person_MT* pickupTaxiTraveler();
 	/**
 	 * assign person to car
 	 * @param person is going to board car

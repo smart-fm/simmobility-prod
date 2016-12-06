@@ -8,10 +8,10 @@
 #include <map>
 #include <set>
 
-#include "Agent.hpp"
-#include "conf/params/ParameterManager.hpp"
+#include "entities/Agent.hpp"
+#include "entities/Person.hpp"
+#include "config/params/ParameterManager.hpp"
 #include "geospatial/network/Node.hpp"
-#include "Person.hpp"
 
 using namespace std;
 using namespace sim_mob::messaging;

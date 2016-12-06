@@ -16,7 +16,6 @@
 
 namespace sim_mob
 {
-class TaxiStandAgent;
 
 namespace medium
 {
@@ -24,7 +23,7 @@ namespace medium
 class BusStopAgent;
 class Conflux;
 class SegmentStats;
-
+class TaxiStandAgent;
 /**
  * helper to compare two persons by distance to end of segment
  */

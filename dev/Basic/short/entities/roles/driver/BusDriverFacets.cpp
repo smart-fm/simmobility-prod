@@ -201,8 +201,7 @@ void BusDriverMovement::frame_tick()
 		//This takes at-most 3 frame ticks, so maintain count when bus arrives at stop or is waiting
 		if (tickCountBoardingAlighting <= ticksToProcessBoardingAlighting)
 		{
-			tickCountBoardingAlighting++;
-			break;
+			tickCountBoardingAlighting++;			
 		}
 
 		//Compute the dwell time and send the bus arrival message for statistics collection.

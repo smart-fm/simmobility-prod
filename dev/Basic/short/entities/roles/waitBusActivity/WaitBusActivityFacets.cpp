@@ -47,7 +47,6 @@ void WaitBusActivityMovement::frame_tick()
 	case WAITBUS_STATE_WAITING:		
 		parentWaitBusActivity->increaseWaitingTime(tickMS);
 		parentWaitBusActivity->setTravelTime(parentWaitBusActivity->getWaitingTime());
-		
 		break;
 
 	case WAITBUS_STATE_DECIDED_BOARD_BUS:		

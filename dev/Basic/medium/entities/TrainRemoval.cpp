@@ -59,7 +59,7 @@ namespace medium
 			std::vector<Role<Person_MT>*>::iterator it = activeTrains.begin();
 			for(;it!=activeTrains.end();it++)
 			{
-				TrainDriver *driver= dynamic_cast<TrainDriver*>(*it);
+				TrainDriver *driver = dynamic_cast<TrainDriver*>(*it);
 				if(driver->getNextDriver() == (*itr))
 				{
 					if(nextDriver)
@@ -81,7 +81,7 @@ namespace medium
 				TrainStationAgent *trainStationAgent = dynamic_cast<TrainStationAgent*>(stationAgent);
 				std::map<std::string, TrainDriver*> lastTrainDriver=trainStationAgent->getLastDriver();
 				std::map<std::string, TrainDriver*>::iterator ilastTrainDriver=lastTrainDriver.find(trainLine);
-				if(ilastTrainDriver!=lastTrainDriver.end())
+				if(ilastTrainDriver != lastTrainDriver.end())
 				{
 					if(ilastTrainDriver->second == (*itr))
 					{
@@ -90,7 +90,7 @@ namespace medium
 				}
 			}
 
-			Platform *lastPlatform=(*itr)->getNextPlatform();
+			Platform *lastPlatform = (*itr)->getNextPlatform();
 			if(lastPlatform!=nullptr)
 			{
 				std::string stationNo = lastPlatform->getStationNo();

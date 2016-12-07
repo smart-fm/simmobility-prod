@@ -160,7 +160,7 @@ public:
 	 * @param platform is the pointer to the platform whose distance is to be known
 	 * @return distance
 	 */
-	double getDistanceFromStartToPlatform(std::string lineId,Platform *platform);
+	double getDistanceFromStartToPlatform(std::string lineId,Platform *platform) const;
 
 	/**
 	 * This interface teleports the train to opposite platform that is it

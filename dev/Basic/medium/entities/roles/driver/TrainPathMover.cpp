@@ -516,7 +516,7 @@ void TrainPathMover::teleportToOppositeLine(std::string station,std::string line
 
 }
 
-double TrainPathMover::getDistanceFromStartToPlatform(std::string lineId,Platform *platform)
+double TrainPathMover::getDistanceFromStartToPlatform(std::string lineId,Platform *platform) const
 {
 	std::vector<Block*> route;
 	TrainController<sim_mob::medium::Person_MT>::getInstance()->getTrainRoute(lineId,route);

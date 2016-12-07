@@ -12,7 +12,8 @@
 #include "entities/roles/waitTrainActivity/WaitTrainActivity.hpp"
 #include "geospatial/network/PT_Stop.hpp"
 #include "entities/incident/IncidentManager.hpp"
-namespace sim_mob {
+namespace sim_mob
+{
 namespace medium
 {
 
@@ -27,13 +28,54 @@ class TrainStationAgent : public sim_mob::Agent {
 public:
 	TrainStationAgent();
 	virtual ~TrainStationAgent();
+
+	/**
+	 * This interface sets the station for the train station agent
+	 * @param station is the pointer to the station
+	 */
 	void setStation(const Station* station);
+
+	/**
+	 * This interface sets the conflux for the train station agent
+	 * @param conflux is the pointer to the conflux
+	 */
 	void setConflux(Conflux* conflux);
+
+	/**
+	 * This interface sets the station name for the train station agent
+	 * @param name is the reference name of the station
+	 */
 	void setStationName(const std::string& name);
+
+	/**
+	 * This interface sets the lines for the train station agent
+	 */
 	void setLines();
+
+	/**
+	 * This function sets the last train driver arrived at the station for a particular line
+	 * @param lineId is the id of the line in whose station the driver has arrived
+	 * @param driver is the pointer to the train driver which arrived last at the station
+	 */
 	void setLastDriver(std::string lineId,TrainDriver *driver);
+
+	/**
+	 * This function adds the train driver to the train station agent so that its movement frame tick
+	 * is called by it
+	 * @param driver is the pointer to the train driver to be added to the train station agent
+	 */
 	void addTrainDriverInToStationAgent(TrainDriver * driver);
+
+	/**
+	 * This function gets the list of trains from train statin agent
+	 * @return list of trains from train station agent
+	 */
 	std::list<TrainDriver*>& getTrains();
+
+	/**
+	 * This function gets the last train driver
+	 * @return the map of last train drivers with their corresponding lines
+	 */
 	std::map<std::string, TrainDriver*> getLastDriver();
 
 protected:
@@ -65,36 +107,55 @@ private:
 	 * @param now current time slice
 	 */
 	void dispathPendingTrains(timeslice now);
+
 	/**
 	 * remove ahead train
 	 * @param aheadTrain is pointer to the ahead train
 	 */
 	void removeAheadTrain(TrainDriver* aheadDriver);
+
 	/**
 	 * alighting passenger leave platform
 	 * @param now current time slice
 	 */
 	void passengerLeaving(timeslice now);
+
 	/**
 	 * update wait persons
 	 */
 	void updateWaitPersons();
+
 	/**
 	 * trigger reroute event
 	 * @param args is event parameter
 	 * @param now current time slice
 	 */
 	void triggerRerouting(const event::EventArgs& args, timeslice now);
+
 	/**
 	 * perform disruption processing
 	 * @param now is current time
 	 */
 	void performDisruption(timeslice now);
 
+	/**
+	 * This interface checks and inserts any unscheduled trains in all the platforms of all the lines in the station
+	 */
 	void checkAndInsertUnscheduledTrains();
 
+	/**
+	 * This interface sets the route and platforms for opposite line for Uturn
+	 */
 	void prepareForUturn(TrainDriver *driver);
 
+	/**
+	 * This interface pushes the force alighted passengers into waiting queue of the corresponding platforms
+	 * depending upon whether they alighted before their alighting station or after they alighting station.
+	 * If they alighted before their alighting station then they are pushed into waiting queue of they same platform they alighted.
+	 * If they alighted after their alighting station then they are pushed into opposite platform queue so that they can take the train in
+	 * opposite direction
+	 * @param platform is the pointer to the platform where they alighted from the train
+	 */
 	void pushForceAlightedPassengersToWaitingQueue(const Platform *platform);
 
 
@@ -122,9 +183,6 @@ private:
 	Conflux* parentConflux;
 	/**recording disruption information*/
 	boost::shared_ptr<DisruptionParams> disruptionParam;
-
-	std::vector<ForceReleaseEntity> forceReleaseEntities;
-
 	/**station name*/
 	std::string stationName;
 	std::map<std::string,bool> IsStartStation;

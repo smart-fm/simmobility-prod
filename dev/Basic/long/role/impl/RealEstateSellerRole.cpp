@@ -178,7 +178,7 @@ void RealEstateSellerRole::update(timeslice now)
             	continue;
             }
 
-            if( currentTime.ms() != unit->getbiddingMarketEntryDay() )
+            if( currentTime.ms() < unit->getbiddingMarketEntryDay() )
             {
             	continue;
             }

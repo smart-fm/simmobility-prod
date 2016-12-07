@@ -178,14 +178,10 @@ void RealEstateSellerRole::update(timeslice now)
             	continue;
             }
 
-            if( currentTime.ms() < unit->getbiddingMarketEntryDay() )
+            if( currentTime.ms() != unit->getbiddingMarketEntryDay() + 1 )
             {
             	continue;
             }
-
-            BigSerial rand_tazId = BigSerial((float)rand() / RAND_MAX * 110524);
-            unit->setSlaAddressId(rand_tazId);
-
 
             BigSerial tazId = model->getUnitTazId(unitId);
             calculateUnitExpectations(*unit);

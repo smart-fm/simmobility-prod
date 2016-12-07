@@ -137,37 +137,36 @@ void Person_MT::findMrtTripsAndPerformRailTransitRoute(std::vector<sim_mob::OD_T
 
 			std::vector<sim_mob::OD_Trip> odTrips=splitMrtTrips(railPath);
 			newODTrips.insert(newODTrips.end(),odTrips.begin(),odTrips.end());
-
-        }
-        else
-        {
-    	    newODTrips.push_back(*itr);
-        }
-	    itr++;
+		}
+		else
+		{
+			newODTrips.push_back(*itr);
+		}
+		itr++;
 	}
 	matchedTrips=newODTrips;
 
 }
 
 
- sim_mob::OD_Trip Person_MT::CreateMRTSubTrips(std::string src,std::string dest)
+sim_mob::OD_Trip Person_MT::CreateMRTSubTrips(std::string src,std::string dest)
 {
-
-	 sim_mob::OD_Trip odTrip;
-	 sim_mob::TrainStop* destStop = sim_mob::PT_NetworkCreater::getInstance().findMRT_Stop(dest);
+	sim_mob::OD_Trip odTrip;
+	sim_mob::TrainStop* destStop = sim_mob::PT_NetworkCreater::getInstance().findMRT_Stop(dest);
 	WayPoint wayPointDestStop;//=WayPoint(destStop);
 	WayPoint wayPointSrcStop;
-     if (destStop)
-	 {
-    	 wayPointDestStop = WayPoint(destStop);
-	 }
+	if (destStop)
+	{
+		wayPointDestStop = WayPoint(destStop);
+	}
 
- 	sim_mob::TrainStop* srcStop = sim_mob::PT_NetworkCreater::getInstance().findMRT_Stop(src);
- 	//WayPoint wayPointDestStop;//=WayPoint(destStop);
-      if (srcStop)
- 	 {
-     	 wayPointSrcStop = WayPoint(srcStop);
- 	 }
+	sim_mob::TrainStop* srcStop = sim_mob::PT_NetworkCreater::getInstance().findMRT_Stop(src);
+
+	if (srcStop)
+	{
+		wayPointSrcStop = WayPoint(srcStop);
+	}
+
 	sim_mob::SubTrip subTrip;
 	odTrip.startStop=srcStop->getStopName();;
 	odTrip.endStop=destStop->getStopName();
@@ -178,10 +177,10 @@ void Person_MT::findMrtTripsAndPerformRailTransitRoute(std::vector<sim_mob::OD_T
 	std::vector<PT_NetworkEdge> edgeVector=mrtEdgeMap[odTrip.startStop][odTrip.endStop];
 	typename std::vector<PT_NetworkEdge>::iterator iter=edgeVector.begin();
 	std::string selServiceLine="";
+
 	if(iter!=edgeVector.end())
 	{
 		PT_NetworkEdge selEdge=*iter;
-
 		if(edgeVector.size()>1)
 		{
 			while(iter!=edgeVector.end())
@@ -205,28 +204,27 @@ void Person_MT::findMrtTripsAndPerformRailTransitRoute(std::vector<sim_mob::OD_T
 
 }
 
- std::vector<sim_mob::OD_Trip>  Person_MT::splitMrtTrips(std::vector<std::string> railPath)
+std::vector<sim_mob::OD_Trip>  Person_MT::splitMrtTrips(std::vector<std::string> railPath)
 {
 	vector<std::string>::iterator it=railPath.begin();
 	std::string first=(*it);
-    std::string second=*(it+1);
-    sim_mob::TrainStop* firststop=sim_mob::PT_NetworkCreater::getInstance().MRTStopsMap[first];
-    sim_mob::TrainStop* nextstop=sim_mob::PT_NetworkCreater::getInstance().MRTStopsMap[second];
-    if((boost::iequals(firststop->getStopName(),nextstop->getStopName())))
-    {
-    	railPath.erase(it);
-    	it=railPath.begin();
-    }
-    vector<std::string>::iterator itrEnd=railPath.end();
-    std::string last=*(itrEnd-1);
-    std::string seclast=*(itrEnd-2);
-    firststop=sim_mob::PT_NetworkCreater::getInstance().MRTStopsMap[seclast];
-    nextstop=sim_mob::PT_NetworkCreater::getInstance().MRTStopsMap[last];
-    if((boost::iequals(firststop->getStopName(),nextstop->getStopName())))
-    {
-    	railPath.erase(itrEnd-1);
-
-    }
+	std::string second=*(it+1);
+	sim_mob::TrainStop* firststop=sim_mob::PT_NetworkCreater::getInstance().MRTStopsMap[first];
+	sim_mob::TrainStop* nextstop=sim_mob::PT_NetworkCreater::getInstance().MRTStopsMap[second];
+	if((boost::iequals(firststop->getStopName(),nextstop->getStopName())))
+	{
+		railPath.erase(it);
+		it=railPath.begin();
+	}
+	vector<std::string>::iterator itrEnd=railPath.end();
+	std::string last=*(itrEnd-1);
+	std::string seclast=*(itrEnd-2);
+	firststop=sim_mob::PT_NetworkCreater::getInstance().MRTStopsMap[seclast];
+	nextstop=sim_mob::PT_NetworkCreater::getInstance().MRTStopsMap[last];
+	if((boost::iequals(firststop->getStopName(),nextstop->getStopName())))
+	{
+		railPath.erase(itrEnd-1);
+	}
 
 	std::vector<sim_mob::OD_Trip> odTrips;
 	std::string src=(*it);
@@ -234,40 +232,39 @@ void Person_MT::findMrtTripsAndPerformRailTransitRoute(std::vector<sim_mob::OD_T
 	std::string prev="";
 	while(it!=railPath.end())
 	{
-		if((*it).find("NE")!= std::string::npos)
-		//if((*it).find("NE")!= std::string::npos||(*it).find("EW")!= std::string::npos||(*it).find("CG")!= std::string::npos)
-       {
-          if(!boost::iequals(prev, ""))
-          {
-    	    end=prev;
-          //make subtrip of start and end
-    	    odTrips.push_back(CreateMRTSubTrips(src,end));
-          }
-          src=(*it);
-          end=*(++it);
-          //make NE subtrip;
-          odTrips.push_back(CreateMRTSubTrips(src,end));
-          ++it;
-          if(it==railPath.end())
-        	  break;
-          src=(*it);
-          prev="";
-          continue;
-       }
+		if((*it).find("NE")!= std::string::npos||(*it).find("EW")!= std::string::npos||(*it).find("CG")!= std::string::npos)
+		{
+			if(!boost::iequals(prev, ""))
+			{
+				end=prev;
+				//make subtrip of start and end
+				odTrips.push_back(CreateMRTSubTrips(src,end));
+			}
+			src=(*it);
+			end=*(++it);
+			//make subtrip;
+			odTrips.push_back(CreateMRTSubTrips(src,end));
+			++it;
+			if(it==railPath.end())
+			{
+				break;
+			}
+			src=(*it);
+			prev="";
+			continue;
+		}
 
-       if(it+1==railPath.end())
-       {
-    	   end=(*it);
-    	   //make subtrip
-    	   odTrips.push_back(CreateMRTSubTrips(src,end));
-       }
-
-       prev=(*it);
-       it++;
+		if(it+1==railPath.end())
+		{
+			end=(*it);
+			//make subtrip
+			odTrips.push_back(CreateMRTSubTrips(src,end));
+		}
+		prev=(*it);
+		it++;
 
 	}
 	return odTrips;
-
 }
 
 
@@ -277,7 +274,8 @@ void Person_MT::EnRouteToNextTrip(const std::string& stationName, const DailyTim
 	std::string ptPathsetStoredProcName = cfg.getDatabaseProcMappings().procedureMappings["pt_pathset_dis"];
 	Trip* trip = dynamic_cast<Trip*>(*currTripChainItem);
 	sim_mob::TrainStop* stop = sim_mob::PT_NetworkCreater::getInstance().findMRT_Stop(stationName);
-	if(stop && trip){
+	if(stop && trip)
+	{
 		const Node* node = stop->getRandomStationSegment()->getParentLink()->getFromNode();
 		std::vector<sim_mob::SubTrip>& subTrips = (dynamic_cast<sim_mob::Trip*>(trip))->getSubTripsRW();
 		sim_mob::SubTrip newSubTrip;
@@ -286,18 +284,23 @@ void Person_MT::EnRouteToNextTrip(const std::string& stationName, const DailyTim
 		newSubTrip.originType = trip->originType;
 		newSubTrip.destinationType = trip->destinationType;
 		newSubTrip.travelMode = chooseModeEnRoute(*trip, node->getNodeId(), now);
-		if(newSubTrip.travelMode=="Invalid"){
+		if(newSubTrip.travelMode=="Invalid")
+		{
 			Print()<<"[mode choice]Invalid mode!["<<getDatabaseId()<<","<<trip->origin.node->getNodeId()<<","<<node->getNodeId()<<","<<trip->destination.node->getNodeId()<<","<<now.getStrRepr()<<"]"<<std::endl;
 			tripChain.clear();
 		}
 		subTrips.clear();
 		bool isLoaded=false;
 		subTrips.push_back(newSubTrip);
-		if(newSubTrip.travelMode=="BusTravel"){
-			try{
+		if(newSubTrip.travelMode=="BusTravel")
+		{
+			try
+			{
 				convertPublicTransitODsToTrips(PT_NetworkCreater::getInstance(), ptPathsetStoredProcName);
 				isLoaded = true;
-			} catch(PT_PathsetLoadException& exception){
+			}
+			catch(PT_PathsetLoadException& exception)
+			{
 				Print()<<"[PT pathset]load pt pathset failed!"<<"["<<exception.originNode<<","<<exception.destNode<<"]"<<std::endl;
 				isLoaded = false;
 			}

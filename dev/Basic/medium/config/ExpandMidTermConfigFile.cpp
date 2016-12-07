@@ -290,7 +290,7 @@ void ExpandMidTermConfigFile::printSettings()
 	std::cout << "------------------\n";
 	NetworkPrinter nwPrinter(cfg, cfg.outNetworkFileName);
 	nwPrinter.printNetwork(RoadNetwork::getInstance());
-    std::cout << "------------------\n";
+	std::cout << "------------------\n";
 	SimulationInfoPrinter simInfoPrinter(cfg, cfg.outSimInfoFileName);
 	simInfoPrinter.printSimulationInfo();
 }

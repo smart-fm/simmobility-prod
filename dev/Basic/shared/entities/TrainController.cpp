@@ -1467,7 +1467,7 @@ namespace sim_mob
 		for(it = resetSpeedBlocks.begin() ; it < resetSpeedBlocks.end(); )
 		{
 			count++;
-			if((*it).startTime>=currentTime.getStrRepr() && (*it).startTime<nextFrameTickTime.getStrRepr() && (*it).speedReset == false)
+			if((*it).startTime>=currentTime.getStrRepr() && (*it).startTime < nextFrameTickTime.getStrRepr() && (*it).speedReset == false)
 			{
 				std::string startStation = (*it).startStation;
 				std::string endStation = (*it).endStation;

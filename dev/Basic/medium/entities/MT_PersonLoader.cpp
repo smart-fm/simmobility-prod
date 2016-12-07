@@ -329,7 +329,7 @@ public:
 private:
 	std::vector<Person_MT*> persons;
 	std::vector<std::vector<TripChainItem*> > tripChainList;
-	static const int numThreads = 6;
+	static const int numThreads = 1;
 	boost::thread::id id;
 	bool isLoadPersonInfo;
 };

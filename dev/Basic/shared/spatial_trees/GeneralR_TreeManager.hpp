@@ -45,10 +45,11 @@ public:
 
 	/**
 	 * Return nearest object
-	 * @param location is central location
+	 * @param xLocation is x coordinate of central location
+	 * @param yLocation is y coordinate of central location
 	 * @return nearest object if existed. otherwise nullptr
 	 */
-	const T* searchNearestObject(const R_Point& location) const;
+	const T* searchNearestObject(double xLocation, double yLocation) const;
 
 private:
 	/**Internal r-tree to store objects*/

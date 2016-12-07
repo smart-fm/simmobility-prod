@@ -82,6 +82,7 @@ protected:
 	virtual Entity::UpdateStatus frame_tick(timeslice now);
 	virtual void frame_output(timeslice now);
 	virtual bool isNonspatial();
+	virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
 };
 }
 }

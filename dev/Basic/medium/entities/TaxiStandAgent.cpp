@@ -7,6 +7,7 @@
 
 #include "entities/TaxiStandAgent.hpp"
 #include "message/MessageBus.hpp"
+#include "message/MT_Message.hpp"
 #include "roles/waitTaxiActivity/WaitTaxiActivity.hpp"
 #include "entities/PT_Statistics.hpp"
 #include "geospatial/network/TaxiStand.hpp"
@@ -83,6 +84,15 @@ void TaxiStandAgent::registerTaxiStandAgent(TaxiStandAgent* agent)
 	}
 }
 
+TaxiStandAgent* TaxiStandAgent::getTaxiStandAgent(const TaxiStand* stand)
+{
+	auto it = allTaxiStandAgents.find(stand);
+	if(it!=allTaxiStandAgents.end()){
+		return (*it).second;
+	}
+	return nullptr;
+}
+
 bool TaxiStandAgent::acceptTaxiDriver(Person_MT* driver)
 {
 	if (queuingDrivers.size() < capacity) {
@@ -100,9 +110,40 @@ Person_MT* TaxiStandAgent::pickupOneWaitingPerson()
 		res = waitingPeople.front();
 		waitingPeople.pop_front();
 		storeWaitingTime(res);
+		UpdateStatus status = res->checkTripChain(currentTimeMS);
+		if (status.status == UpdateStatus::RS_DONE)
+		{
+			return nullptr;
+		}
 	}
 	return res;
 }
+void TaxiStandAgent::HandleMessage(messaging::Message::MessageType type, const messaging::Message& message)
+{
+	switch (type)
+	{
+	case MSG_WAITING_PERSON_ARRIVAL:
+	{
+		const ArrivalAtStopMessage& msg = MSG_CAST(ArrivalAtStopMessage, message);
+		Person_MT* person = msg.waitingPerson;
+		Role<Person_MT>* role = person->getRole();
+		if (role)
+		{
+			WaitTaxiActivity* waitPerson = dynamic_cast<WaitTaxiActivity*>(role);
+			if (waitPerson)
+			{
+				addWaitingPerson(person);
+			}
+		}
+		break;
+	}
+	default:
+	{
+		break;
+	}
+	}
+}
+
 void TaxiStandAgent::storeWaitingTime(Person_MT* waitingPerson) const
 {
 	if(waitingPerson){

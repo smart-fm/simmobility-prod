@@ -133,7 +133,7 @@ public:
 	 */
 	static std::string getRoleName(const std::string mode)
 	{
-		if (mode == "Walk")
+		if (mode == "Walk" || mode == "TravelPedestrian")
 		{
 			return "pedestrian";
 		}
@@ -141,13 +141,17 @@ public:
 		{
 			return "busdriver";
 		}
-		if (mode == "BusTravel" || mode == "MRT" || mode == "Sharing" || mode == "PrivateBus")
+		if (mode == "BusTravel" || mode == "MRT" || mode == "Sharing" || mode == "PrivateBus" || mode == "TaxiTraveler")
 		{
 			return "passenger";
 		}
 		if (mode == "WaitingBusActivity")
 		{
 			return "waitBusActivity";
+		}
+		if (mode == "WaitingTaxiActivity")
+		{
+			return "waitTaxiActivity";
 		}
 		if (mode == "Motorcycle")
 		{

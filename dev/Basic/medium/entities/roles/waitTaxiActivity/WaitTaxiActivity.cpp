@@ -18,9 +18,10 @@ namespace medium
 {
 WaitTaxiActivity::WaitTaxiActivity(Person_MT* parent,
 		WaitTaxiActivityBehavior* behavior, WaitTaxiActivityMovement* movement,
+		const TaxiStand* stand,
 		std::string roleName, Role<Person_MT>::Type roleType) :
 		sim_mob::Role<Person_MT>::Role(parent, behavior, movement, roleName,
-				roleType), stand(nullptr), waitingTime(0)
+				roleType), stand(stand), waitingTime(0)
 {
 }
 
@@ -30,9 +31,13 @@ WaitTaxiActivity::~WaitTaxiActivity() {
 
 sim_mob::Role<Person_MT>* WaitTaxiActivity::clone(Person_MT *parent) const
 {
+	SubTrip& subTrip = *(parent->currSubTrip);
+	if(subTrip.origin.type!=WayPoint::TAXI_STAND){
+		throw std::runtime_error("Waiting taxi activity do not have stand!");
+	}
 	WaitTaxiActivityBehavior* behavior = new WaitTaxiActivityBehavior();
 	WaitTaxiActivityMovement* movement = new WaitTaxiActivityMovement();
-	WaitTaxiActivity* waitTaxiActivity = new WaitTaxiActivity(parent, behavior,	movement);
+	WaitTaxiActivity* waitTaxiActivity = new WaitTaxiActivity(parent, behavior,	movement, subTrip.origin.taxiStand);
 	behavior->setWaitTaxiActivity(waitTaxiActivity);
 	movement->setWaitTaxiActivity(waitTaxiActivity);
 	return waitTaxiActivity;
@@ -77,6 +82,10 @@ void WaitTaxiActivity::increaseWaitingTime(unsigned int timeMs)
 unsigned int WaitTaxiActivity::getWaitingTime() const
 {
 	return waitingTime;
+}
+const TaxiStand* WaitTaxiActivity::getTaxiStand() const
+{
+	return stand;
 }
 }
 }

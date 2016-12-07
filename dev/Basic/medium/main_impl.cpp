@@ -41,6 +41,7 @@
 #include "entities/roles/passenger/Passenger.hpp"
 #include "entities/roles/pedestrian/Pedestrian.hpp"
 #include "entities/roles/waitBusActivity/WaitBusActivity.hpp"
+#include "entities/roles/waitTaxiActivity/WaitTaxiActivity.hpp"
 #include "entities/ScreenLineCounter.hpp"
 #include "entities/TravelTimeManager.hpp"
 #include "entities/TaxiStandAgent.hpp"
@@ -231,6 +232,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	rf->registerRole("busdriver", new sim_mob::medium::BusDriver(nullptr, mtx));
 	rf->registerRole("waitBusActivity", new sim_mob::medium::WaitBusActivity(nullptr));
 	rf->registerRole("pedestrian", new sim_mob::medium::Pedestrian(nullptr));
+	rf->registerRole("waitTaxiActivity", new sim_mob::medium::WaitTaxiActivity(nullptr));
 	rf->registerRole("passenger", new sim_mob::medium::Passenger(nullptr));
 	rf->registerRole("biker", new sim_mob::medium::Biker(nullptr));
 	rf->registerRole("truckerLGV", new sim_mob::medium::TruckerLGV(nullptr));

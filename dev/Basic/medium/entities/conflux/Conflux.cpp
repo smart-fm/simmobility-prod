@@ -17,6 +17,7 @@
 #include "conf/ConfigParams.hpp"
 #include "config/MT_Config.hpp"
 #include "entities/BusStopAgent.hpp"
+#include "entities/TaxiStandAgent.hpp"
 #include "entities/conflux/SegmentStats.hpp"
 #include "entities/Entity.hpp"
 #include "entities/misc/TripChain.hpp"
@@ -27,6 +28,7 @@
 #include "entities/roles/passenger/PassengerFacets.hpp"
 #include "entities/roles/pedestrian/PedestrianFacets.hpp"
 #include "entities/roles/waitBusActivity/WaitBusActivityFacets.hpp"
+#include "entities/roles/waitTaxiActivity/WaitTaxiActivity.hpp"
 #include "entities/vehicle/VehicleBase.hpp"
 #include "event/args/EventArgs.hpp"
 #include "event/EventPublisher.hpp"
@@ -514,6 +516,14 @@ bool Conflux::handleRoleChange(PersonProps& beforeUpdate, PersonProps& afterUpda
 		}
 		break;
 	}
+	case Role<Person_MT>::RL_TRAVELPEDESTRIAN:
+	{
+		auto it = std::find(travelingPersons.begin(), travelingPersons.end(), person);
+		if (it != travelingPersons.end()) {
+			travelingPersons.erase(it);
+		}
+		break;
+	}
 	}
 
 	switch(afterUpdate.roleType)
@@ -534,6 +544,17 @@ bool Conflux::handleRoleChange(PersonProps& beforeUpdate, PersonProps& afterUpda
 	case Role<Person_MT>::RL_BUSDRIVER:
 	{
 		throw std::runtime_error("Bus drivers are created and dispatched by bus controller. Cannot change role to Bus driver");
+		break;
+	}
+	case Role<Person_MT>::RL_WAITTAXIACTIVITY:
+	{
+		WaitTaxiActivity* activity = dynamic_cast<WaitTaxiActivity*>(person->getRole());
+		if(activity){
+			TaxiStandAgent* taxiStandAgent = TaxiStandAgent::getTaxiStandAgent(activity->getTaxiStand());
+			if(taxiStandAgent){
+				messaging::MessageBus::SendMessage(taxiStandAgent, MSG_WAITING_PERSON_ARRIVAL, messaging::MessageBus::MessagePtr(new ArrivalAtStopMessage(person)));
+			}
+		}
 		break;
 	}
 	case Role<Person_MT>::RL_DRIVER: //fall through
@@ -1608,6 +1629,12 @@ Person_MT* Conflux::pickupTaxiTraveler()
 	{
 		res = travelingPersons.front();
 		travelingPersons.pop_front();
+		UpdateStatus status = res->checkTripChain(currFrame.ms());
+		status = res->checkTripChain(currFrame.ms());
+		if (status.status == UpdateStatus::RS_DONE)
+		{
+			return nullptr;
+		}
 	}
 	return res;
 }

@@ -57,12 +57,10 @@ std::vector<T const *> GeneralR_TreeManager<T>::objectsInBox(const R_Point &lowe
 }
 
 template<typename T>
-const T* GeneralR_TreeManager<T>::searchNearestObject(const R_Point& location) const
+const T* GeneralR_TreeManager<T>::searchNearestObject(double x, double y) const
 {
-	//searching region is inside 1km
-	const double distance = 1000;
-	double x = location.get<0>();
-	double y = location.get<1>();
+	//searching region is inside 5km
+	const double distance = 5000;
 	R_Point lowerLeft(x-distance,y-distance);
 	R_Point upperRight(x+distance,y+distance);
 	const T* res = nullptr;

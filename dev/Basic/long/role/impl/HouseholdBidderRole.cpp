@@ -666,7 +666,10 @@ bool HouseholdBidderRole::pickEntryToBid()
 
         	//let's break if we really cannot find any BTOs after 1 million tries
         	if( n > 1000000)
+        	{
+        		PrintOutV("[day " << day<< "] 1 million iterations reached for agent" << getParent()->getId() );
         		break;
+        	}
         }
 
     	std::string choiceset(" ");

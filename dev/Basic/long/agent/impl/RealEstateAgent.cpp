@@ -310,8 +310,8 @@ void RealEstateAgent::HandleMessage(Message::MessageType type, const Message& me
 				{
 					Unit *unit = houseingMarketModel->getUnitById(unitId);
 
-					unit->setTimeOnMarket(1 + config.ltParams.housingModel.timeOnMarket * (float)rand() / RAND_MAX );
-					unit->setTimeOffMarket(1 + config.ltParams.housingModel.timeOffMarket * (float)rand() / RAND_MAX);
+					unit->setTimeOnMarket(config.ltParams.housingModel.timeOnMarket / 2 + config.ltParams.housingModel.timeOnMarket / 2 * (float)rand() / RAND_MAX );
+					unit->setTimeOffMarket( config.ltParams.housingModel.timeOffMarket / 2 + config.ltParams.housingModel.timeOffMarket / 2 * (float)rand() / RAND_MAX);
 					unit->setbiddingMarketEntryDay(day);
 
 					units.push_back(unit);

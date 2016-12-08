@@ -196,7 +196,7 @@ void RealEstateSellerRole::update(timeslice now)
                 PrintOutV("[day " << currentTime.ms() << "] RealEstate Agent " <<  this->getParent()->getId() << ". Adding entry to Housing market for unit " << unit->getId() << " with asking price: " << firstExpectation.askingPrice << std::endl);
 				#endif
 
-                printNewUnitsInMarket(unit->getId());
+                printNewUnitsInMarket(unit->getId(), unit->getTimeOnMarket(), unit->getTimeOffMarket());
             }
 
             selling = true;
@@ -338,7 +338,6 @@ void RealEstateSellerRole::notifyWinnerBidders()
         PrintOutV("[day " << currentTime.ms() << "] RealEstate Agent. Seller " << std::dec << getParent()->getId() << " accepted the bid of " << maxBidOfDay.getBidderId() << " for unit " << maxBidOfDay.getUnitId() << " at $" << maxBidOfDay.getValue() << std::endl );
 		#endif
 
-        printNewUnitsInMarket(maxBidOfDay.getNewUnitId());
         dynamic_cast<RealEstateAgent*>(getParent())->getModel()->incrementSuccessfulBids();
         market->removeEntry(maxBidOfDay.getNewUnitId());
         dynamic_cast<RealEstateAgent*>(getParent())->removeUnitId(maxBidOfDay.getNewUnitId());

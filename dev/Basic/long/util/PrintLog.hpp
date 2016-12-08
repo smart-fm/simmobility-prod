@@ -414,9 +414,9 @@ namespace sim_mob
 	     * @param unit to be written.
 	     *
 	     */
-	    inline void printNewUnitsInMarket(BigSerial unitId) {
+	    inline void printNewUnitsInMarket(BigSerial unitId, int timeOnMarket, int timeOffMarket) {
 
-	    	boost::format fmtr = boost::format("%1%") % unitId;
+	    	boost::format fmtr = boost::format("%1%, %2%, %3%") % unitId % timeOnMarket % timeOffMarket;
 	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::UNITS_IN_MARKET,fmtr.str());
 	    }
 

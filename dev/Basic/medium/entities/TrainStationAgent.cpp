@@ -63,7 +63,7 @@ void TrainStationAgent::setLines()
 	{
 		std::map<std::string,Platform*> platformLineMap=station->getPlatforms();
 		std::map<std::string,Platform*>::iterator it=platformLineMap.begin();
-		TrainController<sim_mob::medium::Person_MT> *trainController=TrainController<sim_mob::medium::Person_MT>::getInstance();
+		TrainController<Person_MT> *trainController=TrainController<Person_MT>::getInstance();
 		while(it!=platformLineMap.end())
 		{
 			Platform *platform=it->second;
@@ -401,7 +401,7 @@ void TrainStationAgent::dispathPendingTrains(timeslice now)
 					std::map<std::string, TrainDriver*>::iterator iLastDriver;
 					iLastDriver = lastTrainDriver.find(lineId);
 					//check for nearest train ahead
-					TrainController<sim_mob::medium::Person_MT> *trainController=TrainController<sim_mob::medium::Person_MT>::getInstance();
+					TrainController<Person_MT> *trainController=TrainController<Person_MT>::getInstance();
 					std::vector <Role<Person_MT>*> trainDriverVector=trainController->getActiveTrainsForALine(lineId);
 					std::vector <Role<Person_MT>*>::iterator trainDriverItr=trainDriverVector.begin();
 					double minDis=-1;

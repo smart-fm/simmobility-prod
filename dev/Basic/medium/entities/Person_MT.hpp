@@ -63,12 +63,14 @@ private:
 	 * @return true, if the trip chain item is advanced
      */
 	bool advanceCurrentTripChainItem();
+
 	/**
 	 * make new trip from current point
 	 * @param stationName is current station name
 	 * @param now is current time
 	 */
 	void EnRouteToNextTrip(const std::string& stationName, const DailyTime& now);
+
 	/**
 	 * Inherited from EventListener.
 	 * @param eventId

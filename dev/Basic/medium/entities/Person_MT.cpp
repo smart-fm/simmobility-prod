@@ -207,60 +207,61 @@ sim_mob::OD_Trip Person_MT::CreateMRTSubTrips(std::string src,std::string dest)
 std::vector<sim_mob::OD_Trip>  Person_MT::splitMrtTrips(std::vector<std::string> railPath)
 {
 	vector<std::string>::iterator it=railPath.begin();
-	std::string first=(*it);
-	std::string second=*(it+1);
-	sim_mob::TrainStop* firststop=sim_mob::PT_NetworkCreater::getInstance().MRTStopsMap[first];
-	sim_mob::TrainStop* nextstop=sim_mob::PT_NetworkCreater::getInstance().MRTStopsMap[second];
+	std::string first = (*it);
+	std::string second =* (it+1);
+	sim_mob::TrainStop* firststop = sim_mob::PT_NetworkCreater::getInstance().MRTStopsMap[first];
+	sim_mob::TrainStop* nextstop = sim_mob::PT_NetworkCreater::getInstance().MRTStopsMap[second];
 	if((boost::iequals(firststop->getStopName(),nextstop->getStopName())))
 	{
 		railPath.erase(it);
-		it=railPath.begin();
+		it = railPath.begin();
 	}
 	vector<std::string>::iterator itrEnd=railPath.end();
-	std::string last=*(itrEnd-1);
-	std::string seclast=*(itrEnd-2);
-	firststop=sim_mob::PT_NetworkCreater::getInstance().MRTStopsMap[seclast];
-	nextstop=sim_mob::PT_NetworkCreater::getInstance().MRTStopsMap[last];
+	std::string last = *(itrEnd-1);
+	std::string seclast = *(itrEnd-2);
+	firststop = sim_mob::PT_NetworkCreater::getInstance().MRTStopsMap[seclast];
+	nextstop = sim_mob::PT_NetworkCreater::getInstance().MRTStopsMap[last];
 	if((boost::iequals(firststop->getStopName(),nextstop->getStopName())))
 	{
 		railPath.erase(itrEnd-1);
 	}
 
 	std::vector<sim_mob::OD_Trip> odTrips;
-	std::string src=(*it);
-	std::string end="";
-	std::string prev="";
-	while(it!=railPath.end())
+	std::string src = (*it);
+	std::string end = "";
+	std::string prev = "";
+	while(it != railPath.end())
 	{
-		if((*it).find("NE")!= std::string::npos||(*it).find("EW")!= std::string::npos||(*it).find("CG")!= std::string::npos)
+		/** hardcoding the line now since all lines are not implemented */
+		if((*it).find("NE") != std::string::npos || (*it).find("EW") !=  std::string::npos||(*it).find("CG") !=  std::string::npos)
 		{
-			if(!boost::iequals(prev, ""))
+			if( !boost::iequals(prev, "") )
 			{
 				end=prev;
 				//make subtrip of start and end
 				odTrips.push_back(CreateMRTSubTrips(src,end));
 			}
-			src=(*it);
-			end=*(++it);
+			src = (*it);
+			end = *(++it);
 			//make subtrip;
 			odTrips.push_back(CreateMRTSubTrips(src,end));
 			++it;
-			if(it==railPath.end())
+			if(it == railPath.end())
 			{
 				break;
 			}
-			src=(*it);
-			prev="";
+			src = (*it);
+			prev = "";
 			continue;
 		}
 
-		if(it+1==railPath.end())
+		if(it+1 == railPath.end())
 		{
-			end=(*it);
+			end = (*it);
 			//make subtrip
-			odTrips.push_back(CreateMRTSubTrips(src,end));
+			odTrips.push_back( CreateMRTSubTrips(src,end) );
 		}
-		prev=(*it);
+		prev = (*it);
 		it++;
 
 	}
@@ -284,15 +285,15 @@ void Person_MT::EnRouteToNextTrip(const std::string& stationName, const DailyTim
 		newSubTrip.originType = trip->originType;
 		newSubTrip.destinationType = trip->destinationType;
 		newSubTrip.travelMode = chooseModeEnRoute(*trip, node->getNodeId(), now);
-		if(newSubTrip.travelMode=="Invalid")
+		if(newSubTrip.travelMode == "Invalid")
 		{
 			Print()<<"[mode choice]Invalid mode!["<<getDatabaseId()<<","<<trip->origin.node->getNodeId()<<","<<node->getNodeId()<<","<<trip->destination.node->getNodeId()<<","<<now.getStrRepr()<<"]"<<std::endl;
 			tripChain.clear();
 		}
 		subTrips.clear();
-		bool isLoaded=false;
+		bool isLoaded = false;
 		subTrips.push_back(newSubTrip);
-		if(newSubTrip.travelMode=="BusTravel")
+		if(newSubTrip.travelMode == "BusTravel")
 		{
 			try
 			{

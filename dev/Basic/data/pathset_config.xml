@@ -1,3 +1,4 @@
+
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Copyright Singapore-MIT Alliance for Research and Technology -->
 <pathset enabled="true">
@@ -5,6 +6,8 @@
     <private_pathset enabled="true" mode="normal"> <!--"normal" and "generation" are supported modes -->
         <od_source table="routechoice.pvt_od"/>
         <bulk_generation_output_file name="pvt-pathset.csv" />
+        <tables historical_traveltime="supply.link_travel_time" default_traveltime="supply.link_default_travel_time"/>
+        <functions pathset_without_banned_area="get_path_set_woba"/>
         <recursive_pathset_generation value="false"/>
         <reroute enabled="false" />
         <utility_parameters>
@@ -15,10 +18,6 @@
             <link_elimination types="default,highway" />    <!-- unused for now. only default and highway are used in the code-->
             <random_perturbation modes="time" iterations="100" uniform_range="1,100" /> <!-- for 'modes' attribute, only "time" is supported for now -->
         </path_generators>
-        <model_scripts path="scripts/lua/mid/behavior-models/" format="lua">
-            <script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models-->
-            <script name="pvtrc" file="pvtrc.lua"/> <!--private traffic route choice -->
-        </model_scripts>
     </private_pathset>
 
     <public_pathset enabled="true" mode="normal"> <!-- "normal" and "generation" modes are supported -->
@@ -28,9 +27,5 @@
             <k_shortest_path level="10" />
             <simulation_approach iterations="100"/>
         </pathset_generation_algorithms>
-        <model_scripts path="scripts/lua/mid/behavior-models/" format="lua">
-            <script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models-->
-            <script name="ptrc" file="ptrc.lua"/> <!--public transit route choice -->
-        </model_scripts>
     </public_pathset>
 </pathset>

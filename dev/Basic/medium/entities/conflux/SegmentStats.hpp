@@ -608,6 +608,9 @@ public:
 	 */
 	void addBusDriverToStop(Person_MT* driver, const BusStop* stop);
 
+
+	bool hasTaxiStand(const TaxiStand *taxiStand) const;
+
 	/**
 	 * remove bus driver from stop
 	 * @param driver the bus driver to be removed

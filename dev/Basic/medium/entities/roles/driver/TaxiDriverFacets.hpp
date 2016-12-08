@@ -27,29 +27,34 @@ namespace sim_mob
 				return parentTaxiDriver;
 			}
 			void setParentTaxiDriver(TaxiDriver * taxiDriver);
-			Node* getCurrentNode();
-			Node* getDestinationNode();
+			const Node* getCurrentNode();
+			const Node* getDestinationNode();
 			void addRouteChoicePath(std::vector<WayPoint> &currentRouteChoice,Conflux *);
+			void setCurrentNode(const Node * node);
+			void setDestinationNode(const Node * node);
 		private:
 			TaxiDriver *parentTaxiDriver = nullptr;
-			Node * destinationNode=nullptr;
+			const Node * destinationNode = nullptr;
 			Node *originNode=nullptr;
-			Node *currentNode=nullptr;
+			bool isQueuingTaxiStand = false;
+			const Node *currentNode=nullptr;
 			RoadSegment *currSegment;
 			bool personBoarded = false;
 			bool isPathInitialized = false;
+			double waitingTimeAtTaxiStand = -1;
+			bool isFirstFrameTick = true;
+			TaxiStand *destinationTaxiStand = nullptr;
+			TaxiStand *previousTaxiStand = nullptr;
 			std::map<const Link*,int> mapOfLinksAndVisitedCounts;
 			std::vector<RoadSegment *> currentRoute= std::vector<RoadSegment *>();
 			std::vector<WayPoint> currentRouteChoice;
 			void driveToDestinationNode(Node * destinationNode);
-			void runRouteChoiceModel(Node *origin,Node *destination);
+			void addTaxiStandPath(std::vector<WayPoint> &routeToTaxiStand);
 			void assignFirstNode();
 			void setCruisingMode();
 			void driveToTaxiStand();
 			void setCurrentNode(Node *currNode);
 			void setDestinationNode(Node *destinationNode);
-
-
 			void driveToNode(Node *destinationNode);
 			void getLinkAndRoadSegments(Node * start ,Node *end,std::vector<RoadSegment*>& segments);
 			void reachNextLinkIfPossible(DriverUpdateParams& params);
@@ -57,6 +62,8 @@ namespace sim_mob
 			bool canGoToNextRdSeg(DriverUpdateParams& params, const SegmentStats* nextSegStats, const Link* nextLink) const;
 			bool moveToNextSegment(DriverUpdateParams& params);
 			void selectNextNodeAndLinksWhileCruising();
+			void flowIntoNextLinkIfPossible(DriverUpdateParams& params);
+			void departFromTaxiStand();
 			void setPath(std::vector<const SegmentStats*>&path);
 			Conflux * getPrevConflux();
 

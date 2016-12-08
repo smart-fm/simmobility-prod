@@ -959,6 +959,16 @@ bool SegmentStats::hasBusStop(const BusStop* busStop) const
 	return !(stopIt == busStops.end());
 }
 
+bool SegmentStats::hasTaxiStand(const TaxiStand *taxiStand) const
+{
+	if(!taxiStand)
+	{
+		return false;
+	}
+	TaxiStandList::const_iterator taxiStandItr = std::find(taxiStands.begin(),taxiStands.end(),taxiStand);
+	return !(taxiStandItr != taxiStands.end());
+}
+
 bool SegmentStats::hasBusStop() const
 {
 	return !(busStops.empty());

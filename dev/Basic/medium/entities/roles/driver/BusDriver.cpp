@@ -184,7 +184,8 @@ const std::string BusDriver::getBusLineID() const
 }
 
 
-void BusDriver::openBusDoors(const std::string& current, BusStopAgent* busStopAgent) {
+void BusDriver::openBusDoors(const std::string& current, BusStopAgent* busStopAgent)
+{
 	if(!busStopAgent)
 	{
 		throw std::runtime_error("openBusDoors(): NusStopAgent is NULL");
@@ -211,10 +212,12 @@ void BusDriver::openBusDoors(const std::string& current, BusStopAgent* busStopAg
 	int boardNum = std::max(numAlighting, numBoarding);
 	const std::vector<float>& dwellTimeParams = MT_Config::getInstance().getDwellTimeParams();
 	const float fixedTime = Utils::generateFloat(dwellTimeParams[0],dwellTimeParams[1]);
-	if(boardNum==0){
+	if(boardNum==0)
+	{
 		waitingTimeAtbusStop=fixedTime;
 	}
-	else{
+	else
+	{
 		const float individualTime = Utils::generateFloat(dwellTimeParams[2], dwellTimeParams[3]);
 		waitingTimeAtbusStop = fixedTime+boardNum*individualTime;
 	}
@@ -225,7 +228,8 @@ void BusDriver::openBusDoors(const std::string& current, BusStopAgent* busStopAg
 	currResource->setMoving(false);
 }
 
-void BusDriver::closeBusDoors(BusStopAgent* busStopAgent) {
+void BusDriver::closeBusDoors(BusStopAgent* busStopAgent)
+{
 	if(!busStopAgent)
 	{
 		throw std::runtime_error("openBusDoors(): NusStopAgent is NULL");

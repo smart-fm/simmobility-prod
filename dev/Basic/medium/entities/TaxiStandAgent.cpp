@@ -7,6 +7,7 @@
 
 #include "entities/TaxiStandAgent.hpp"
 #include "message/MessageBus.hpp"
+#include "entities/roles/driver/TaxiDriver.hpp"
 
 namespace sim_mob
 {
@@ -53,6 +54,15 @@ void TaxiStandAgent::setTaxiStand(const TaxiStand* stand)
 	taxiStand = stand;
 }
 
+TaxiStandAgent* TaxiStandAgent::getTaxiStandAgent(const TaxiStand * taxiStand)
+{
+	if(taxiStand)
+	{
+		std::map<const TaxiStand*, TaxiStandAgent*>::const_iterator itr = allTaxiStandAgents.find(taxiStand);
+		return itr->second;
+	}
+}
+
 const TaxiStand* TaxiStandAgent::getTaxiStand() const
 {
 	return taxiStand;
@@ -69,6 +79,11 @@ void TaxiStandAgent::registerTaxiStandAgent(TaxiStandAgent* agent)
 	{
 		allTaxiStandAgents[agent->getTaxiStand()] = agent;
 	}
+}
+
+void TaxiStandAgent::acceptTaxiDriver(TaxiDriver *taxiDriver)
+{
+	//check for available length in taxi stand and add to list of queuing drivers
 }
 }
 }

@@ -5,6 +5,7 @@
 #pragma once
 #include <vector>
 #include "entities/conflux/SegmentStats.hpp"
+#include "entities/conflux/Conflux.hpp"
 
 namespace sim_mob
 {
@@ -123,6 +124,10 @@ public:
 	 * @param fwdDisplacement distance by which the driver has moved forward in segment stat
 	 */
 	void moveFwdInSegStats(double fwdDisplacement);
+	void addPathFromCurrentSegmentToEndNodeOfLink();
+	void erasePathAfterCurrenrLink();
+	void appendRoute(std::vector<WayPoint> &routeToTaxiStand);
+	void appendSegmentStats(const std::vector<RoadSegment*>& roadSegments,Conflux *conflux);
 
 	/**
 	 * prints the seg stats path. useful for debugging

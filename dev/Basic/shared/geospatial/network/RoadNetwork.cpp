@@ -522,6 +522,11 @@ void RoadNetwork::addTaxiStand(TaxiStand* stand)
 	}
 }
 
+const Node* RoadNetwork::getNodeById(int id) const
+{
+	return mapOfIdvsNodes.find(id)->second;
+}
+
 void RoadNetwork::addBusStop(BusStop* stop)
 {
 	//Check if the bus stop has already been added to the map

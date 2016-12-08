@@ -91,10 +91,10 @@ unsigned int Node::getTrafficLightId() const
 	return trafficLightId;
 }
 
-std::vector<Node*> Node::getNeighbouringNodes()
+std::vector<Node*> Node::getNeighbouringNodes() const
 {
-	std::map<unsigned int,Link*> mapOfDownStreamLinks = getDownStreamLinks();
-	std::map<unsigned int,Link*>::iterator itr = mapOfDownStreamLinks.begin();
+	const std::map<unsigned int,Link*> mapOfDownStreamLinks = getDownStreamLinks();
+	std::map<unsigned int,Link*>::const_iterator itr = mapOfDownStreamLinks.begin();
 	std::vector<Node*> nodeVector;
 	while(itr!=mapOfDownStreamLinks.end())
 	{
@@ -131,7 +131,7 @@ void Node::addTurningGroup(TurningGroup* turningGroup)
 	}
 }
 
-std::map<unsigned int,Link*> Node::getDownStreamLinks()
+std::map<unsigned int,Link*> Node::getDownStreamLinks() const
 {
 	return mapOfDownStreamLinks;
 }

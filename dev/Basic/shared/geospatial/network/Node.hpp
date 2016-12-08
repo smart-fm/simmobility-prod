@@ -85,7 +85,7 @@ public:
 	unsigned int getTrafficLightId() const;
 	void setTrafficLightId(unsigned int trafficLightId);
 
-	std::map<unsigned int,Link*> getDownStreamLinks();
+	std::map<unsigned int,Link*> getDownStreamLinks() const ;
 	std::map<unsigned int,Link*> getUpStreamLinks();
 
 	void addUpStreamLink(Link *link);
@@ -93,7 +93,7 @@ public:
 
 	std::vector<Person*> personsWaitingForTaxi();
 
-	std::vector<Node*> getNeighbouringNodes();
+	std::vector<Node*> getNeighbouringNodes() const ;
 
     const std::map<unsigned int, std::map<unsigned int, TurningGroup *> >& getTurningGroups() const;
 

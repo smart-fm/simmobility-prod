@@ -10,6 +10,7 @@
 #include "path/PathSetManager.hpp"
 #include "geospatial/network/RoadNetwork.hpp"
 #include "config/MT_Config.hpp"
+#include "entities/TaxiStandAgent.hpp"
 
 namespace sim_mob
 {
@@ -161,6 +162,123 @@ namespace medium
 		}
 	}
 
+	void TaxiDriverMovement::departFromTaxiStand()
+	{
+		//call the taxi stand agent to remove from taxi stand
+		//get previous taxi stand and remove from that taxi stand
+		//previousTaxiStand->removeFromTaxiStand(parentDriver);
+		//destinationTaxiStand = nullptr;
+	}
+
+	void TaxiDriverMovement::setCurrentNode(const Node *node)
+	{
+		currentNode = node;
+	}
+
+	void TaxiDriverMovement::setDestinationNode(const Node *node)
+	{
+		destinationNode = node;
+	}
+
+	void TaxiDriverMovement::flowIntoNextLinkIfPossible(DriverUpdateParams& params)
+	{
+		//This function gets called for 2 cases.
+		//1. Driver is added to virtual queue
+		//2. Driver is in previous segment trying to add to the next
+		const SegmentStats* nextSegStats = pathMover.getNextSegStats(false);
+		const SegmentStats* nextToNextSegStats = pathMover.getSecondSegStatsAhead();
+		const Lane* laneInNextSegment = getBestTargetLane(nextSegStats, nextToNextSegStats);
+
+		double departTime = getLastAccept(laneInNextSegment, nextSegStats);
+		params.elapsedSeconds = std::max(params.elapsedSeconds, departTime - (params.now.ms()/1000.0)); //in seconds
+
+		const Link* nextLink = getNextLinkForLaneChoice(nextSegStats);
+		if (canGoToNextRdSeg(params, nextSegStats, nextLink))
+		{
+			if (parentTaxiDriver->getResource()->isMoving())
+			{
+				if (isQueuing)
+				{
+					removeFromQueue();
+				}
+			}
+			else
+			{
+				//departFromTaxiStand()
+			}
+
+			currLane = laneInNextSegment;
+			pathMover.advanceInPath();
+			pathMover.setPositionInSegment(nextSegStats->getLength());
+
+			//todo: consider supplying milliseconds to be consistent with short-term
+			double linkExitTimeSec = params.elapsedSeconds + (params.now.ms()/1000.0);
+			//set Link Travel time for previous link
+			const SegmentStats* prevSegStats = pathMover.getPrevSegStats(false);
+			if (prevSegStats)
+			{
+				// update link travel times
+				updateLinkTravelTimes(prevSegStats, linkExitTimeSec);
+
+				// update link stats
+				updateLinkStats(prevSegStats);
+
+				// update road segment screenline counts
+				updateScreenlineCounts(prevSegStats, linkExitTimeSec);
+			}
+			setLastAccept(currLane, linkExitTimeSec, nextSegStats);
+
+			if (!parentTaxiDriver->getResource()->isMoving())
+			{
+				//departFromTaxiStand();
+			}
+
+			setParentData(params);
+			parentTaxiDriver->parent->canMoveToNextSegment = Person_MT::NONE;
+		}
+		else
+		{
+			if (parentTaxiDriver->getResource()->isMoving())
+			{
+				//Person is in previous segment (should be added to queue if canGoTo failed)
+				if (pathMover.getCurrSegStats() == parentTaxiDriver->parent->getCurrSegStats())
+				{
+					if (currLane)
+					{
+						if (parentTaxiDriver->parent->isQueuing)
+						{
+							moveInQueue();
+						}
+						else
+						{
+							addToQueue(); // adds to queue if not already in queue
+						}
+						parentTaxiDriver->parent->canMoveToNextSegment = Person_MT::NONE; // so that advance() and setParentData() is called subsequently
+					}
+				}
+				else if (pathMover.getNextSegStats(false) == parentTaxiDriver->parent->getCurrSegStats())
+				{
+					//Person is in virtual queue (should remain in virtual queues if canGoTo failed)
+					//do nothing
+				}
+				else
+				{
+
+					throw ::std::runtime_error(DebugStream.str());
+				}
+				params.elapsedSeconds = params.secondsInTick;
+				parentTaxiDriver->parent->setRemainingTimeThisTick(0.0); //(elapsed - seconds this tick)
+			}
+			else
+			{
+				//the bus driver is currently serving a stop
+				params.elapsedSeconds = params.secondsInTick; //remain in bus stop
+				parentTaxiDriver->parent->setRemainingTimeThisTick(0.0); //(elapsed - seconds this tick)
+				parentTaxiDriver->parent->canMoveToNextSegment = Person_MT::NONE; // so that in the next tick, flowIntoNextLinkIfPossible() is not called in the next tick without requesting for permission again
+			}
+		}
+	}
+
 	bool TaxiDriverMovement::canGoToNextRdSeg(DriverUpdateParams& params, const SegmentStats* nextSegStats, const Link* nextLink) const
 	{
 		//return false if the Driver cannot be added during this time tick
@@ -269,18 +387,92 @@ namespace medium
 
 	bool TaxiDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 	{
-
 		const SegmentStats* currSegStat = pathMover.getCurrSegStats();
 		bool res = false;
 		bool isEndOfLink_CruiseMode = false;
-		bool isNewLinkNext = (!pathMover.hasNextSegStats(true) && pathMover.hasNextSegStats(false));
+		if(parentTaxiDriver->getDriveMode() == DRIVE_TO_TAXISTAND)
+		{
+			const SegmentStats* currSegStat = pathMover.getCurrSegStats();
+			if( destinationTaxiStand && currSegStat->hasTaxiStand(destinationTaxiStand))
+			{
+				TaxiStandAgent* taxiStandAgent = TaxiStandAgent::getTaxiStandAgent(destinationTaxiStand);
+				if(taxiStandAgent)
+				{
+					bool canAccomodate = true;
+
+					if(canAccomodate)
+					{
+						//add to taxi stand
+						if (parentTaxiDriver->getResource()->isMoving())
+						{
+							if (isQueuing)
+							{
+								removeFromQueue();
+							}
+
+						}
+						else
+						{
+							//depart from current Taxi Stand
+						}
+						//add to taxi stand
+						taxiStandAgent->acceptTaxiDriver(parentTaxiDriver);
+						//check if it is in beginning of queue and its possible for pickup
+						bool pickUp = false;
+						if(pickUp)
+						{
+							//move to destination with passenger
+							//run the route choice for destination
+							bool movedToNextSegStat = moveToNextSegment(params);
+							destinationTaxiStand = nullptr;
+						}
+						else
+						{
+							params.elapsedSeconds = params.secondsInTick;
+						}
+
+					}
+					else
+					{
+						destinationTaxiStand = nullptr;
+						//choose some other taxi stand
+						//destinationTaxiStand = ?? based on the model
+						getMesoPathMover().addPathFromCurrentSegmentToEndNodeOfLink();
+						driveToTaxiStand();
+						return moveToNextSegment(params);
+					}
+			}
+			}
+		}
 		if(parentTaxiDriver->getDriverMode() == CRUISE)
 		{
 			if(pathMover.isEndOfPath())
 			{
 				isEndOfLink_CruiseMode = true;
 			}
+			if(isEndOfLink_CruiseMode)
+			{
+				//selectNextNodeAndLinksWhileCruising();
+				Conflux *parentConflux = currSegStat->getParentConflux();
+				parentTaxiDriver->checkPersonsAndPickUpAtNode(parentConflux);
+				if(parentTaxiDriver->personBoarded == false)
+				{
+					selectNextNodeAndLinksWhileCruising();
+				}
+			}
 		}
+		else if( parentTaxiDriver->getDriverMode() == DRIVE_WITH_PASSENGER && pathMover.isEndOfPath())
+		{
+			//drop off the passenger
+			//change the mode to cruise
+			//select the neighboring link
+			parentTaxiDriver->alightPassenger();
+			const DriverMode &mode = CRUISE;
+			parentTaxiDriver->taxiDriverMode = mode;
+			selectNextNodeAndLinksWhileCruising();
+			return true;
+		}
+		bool isNewLinkNext = (!pathMover.hasNextSegStats(true) && pathMover.hasNextSegStats(false));
 
 		currSegStat = pathMover.getCurrSegStats();
 		const SegmentStats* nxtSegStat = pathMover.getNextSegStats(!isNewLinkNext);
@@ -291,13 +483,9 @@ namespace medium
 			onSegmentCompleted(curRs, nxtRs);
 		}
 
-		if (isNewLinkNext ||  isEndOfLink_CruiseMode)
+		if (isNewLinkNext)
 		{
 			onLinkCompleted(curRs->getParentLink(), (nxtRs ? nxtRs->getParentLink() : nullptr));
-			if(isEndOfLink_CruiseMode)
-			{
-				selectNextNodeAndLinksWhileCruising();
-			}
 		}
 
 		//reset these local variables in case path has been changed in onLinkCompleted
@@ -308,17 +496,6 @@ namespace medium
 		if (!nxtSegStat)
 		{
 			//vehicle is done
-			if( parentTaxiDriver->getDriverMode() == DRIVE_WITH_PASSENGER && pathMover.isEndOfPath())
-			{
-				//drop off the passenger
-				//change the mode to cruise
-				//select the neighboring link
-				parentTaxiDriver->alightPassenger();
-				const DriverMode &mode = CRUISE;
-				parentTaxiDriver->taxiDriverMode = mode;
-				selectNextNodeAndLinksWhileCruising();
-				return true;
-			}
 			pathMover.advanceInPath();
 			if (pathMover.isPathCompleted())
 			{
@@ -338,16 +515,10 @@ namespace medium
 			return true;
 		}
 
-		if (isNewLinkNext||isEndOfLink_CruiseMode)
+		if (isNewLinkNext)
 		{
 			parentTaxiDriver->parent->requestedNextSegStats = nxtSegStat;
 			parentTaxiDriver->parent->canMoveToNextSegment = Person_MT::NONE;
-			if(isEndOfLink_CruiseMode)
-			{
-				//select the next cruising node and link
-				Conflux *parentConflux = currSegStat->getParentConflux();
-				parentTaxiDriver->checkPersonsAndPickUpAtNode(params.now,parentConflux);
-			}
 			return false; // return whenever a new link is to be entered. Seek permission from Conflux.
 		}
 
@@ -406,32 +577,73 @@ namespace medium
 		return res;
 	}
 
+
 	void TaxiDriverMovement::frame_tick()
 	{
 		DriverUpdateParams& params = parentTaxiDriver->getParams();
 		const DriverMode &mode = parentTaxiDriver->getDriverMode();
 		if(parentTaxiDriver->taxiPassenger != nullptr)
 		{
-			parentTaxiDriver->taxiPassenger->Movement()->frame_tick();
-		}
-		if(mode == DRIVE_TO_TAXISTAND)
-		{
-
+			//parentTaxiDriver->taxiPassenger->Movement()->frame_tick();
 		}
 
 		else if(mode == QUEUING_AT_TAXISTAND)
 		{
 
+			//TaxiStand *currentTaxiStand =
+			bool isWaitingForTooLong = false;
+			bool isPickUp = false;
+			if(isWaitingForTooLong)
+			{
+				//choose some other Taxi Stand
+				//run the route choice model for that
+				previousTaxiStand = destinationTaxiStand;
+				destinationTaxiStand = nullptr;
+				isQueuingTaxiStand = false;
+				TaxiStand * newTaxiStand = nullptr;
+				destinationTaxiStand = newTaxiStand;
+
+				parentDriver->setDriveMode(DRIVE_TO_TAXISTAND);
+				getMesoPathMover().addPathFromCurrentSegmentToEndNodeOfLink();
+				driveToTaxiStand();
+				bool  movedToNextSegment = moveToNextSegment(params);
+				if(movedToNextSegment)
+				{
+					if(parentTaxiDriver->getDriverMode() == QUEUING_AT_TAXISTAND)
+					{
+						//it could be possible that the taxi got added to other taxi stand
+						if(destinationTaxiStand)
+						{
+							parentTaxiDriver->getResource()->setMoving(false);
+						}
+					}
+				}
+			}
+			else if(isPickUp)
+			{
+				previousTaxiStand = destinationTaxiStand;
+				destinationTaxiStand = nullptr;
+				isQueuingTaxiStand = false;
+				//go to destination with passenger
+				//run the route choice model for that
+				parentDriver->setDriveMode(DRIVE_WITH_PASSENGER);
+				moveToNextSegment(params);
+			}
+
+			waitingTimeAtTaxiStand = waitingTimeAtTaxiStand + params.secondsInTick;
+			params.elapsedSeconds = params.secondsInTick;
 		}
 
-		else if (mode == DRIVE_WITH_PASSENGER)
-		{
-
-		}
-
-		if (mode == CRUISE)
+		else if (mode == CRUISE || mode == DRIVE_WITH_PASSENGER ||mode == DRIVE_TO_TAXISTAND)
 		{
 			//if it has reached at the end of the segment
+			if(isFirstFrameTick)
+			{
+
+				Conflux *conflux = Conflux::getConfluxFromNode(currentNode);
+				parentTaxiDriver->checkPersonsAndPickUpAtNode(conflux);
+				isFirstFrameTick = false;
+			}
 
 			if (parentTaxiDriver->parent->canMoveToNextSegment == Person_MT::GRANTED)
 			{
@@ -521,7 +733,7 @@ namespace medium
 
 	}
 
-	Node* TaxiDriverMovement::getCurrentNode()
+	const Node* TaxiDriverMovement::getCurrentNode()
 	{
 		return currentNode;
 	}
@@ -531,10 +743,12 @@ namespace medium
 		if(!currentNode)
 		{
 			currentNode = originNode;
+			parentTaxiDriver->currentNode = currentNode;
 		}
 		else
 		{
 			currentNode = destinationNode;
+			parentTaxiDriver->currentNode = currentNode;
 		}
 
 		const SegmentStats* currSegStats = parentTaxiDriver->parent->getCurrSegStats();
@@ -562,7 +776,7 @@ namespace medium
 		{
 			std::vector<Node*>::iterator itr = nodeVector.begin();
 			Node *destNode = (*(itr));
-			Node *originNode = currentNode;
+			const Node *originNode = currentNode;
 			std::map<unsigned int,Link*> mapOfDownStreamLinks = originNode->getDownStreamLinks();
 			std::map<unsigned int,Link*>::iterator linkItr = mapOfDownStreamLinks.begin();
 			Link *selectedLink = nullptr;
@@ -586,6 +800,7 @@ namespace medium
 				linkItr++;
 			}
 			destinationNode = selectedLink->getToNode();
+			parentTaxiDriver->destinationNode = destinationNode;
 			currentRoute.erase(currentRoute.begin(),currentRoute.end());
 			currentRoute.insert(currentRoute.end(),selectedLink->getRoadSegments().begin(),selectedLink->getRoadSegments().end());
 			std::vector<const SegmentStats*> path= getMesoPathMover().getPath();
@@ -612,10 +827,12 @@ namespace medium
 		for(std::vector<WayPoint>::const_iterator itr = currentRouteChoice.begin();itr != currentRouteChoice.end();itr++)
 		{
 			const Link *link = (*itr).link;
+			Node *toNode = link->getToNode();
+			Conflux *nodeConflux = Conflux::getConfluxFromNode(toNode);
 			const std::vector<RoadSegment*>& roadSegments = link->getRoadSegments();
 			for(std::vector<RoadSegment*>::const_iterator segItr = roadSegments.begin(); segItr != roadSegments.end() ;segItr++)
 			{
-				const std::vector<SegmentStats*>& segStatsVector = parentConflux->findSegStats(*segItr);
+				const std::vector<SegmentStats*>& segStatsVector = nodeConflux->findSegStats(*segItr);
 				path.insert(path.end(),segStatsVector.begin(),segStatsVector.end());
 			}
 		}
@@ -645,24 +862,44 @@ namespace medium
 		selectNextNodeAndLinksWhileCruising();
 	}
 
-	void TaxiDriverMovement::driveToTaxiStand(/*TaxiStand *stand */)
+	void TaxiDriverMovement::driveToTaxiStand()
 	{
 		const DriverMode &mode = DRIVE_TO_TAXISTAND;
 		parentTaxiDriver->setDriveMode(mode);
 		SubTrip currSubTrip;
-		//currSubTrip.origin = assign node or segment
 		bool useInSimulationTT = parentTaxiDriver->getParent()->usesInSimulationTravelTime();
-		RoadSegment *taxiStandSegment;
-		//RoadSegment taxiStandSegment = TaxiStand->getSegment();
+		const RoadSegment *taxiStandSegment = destinationTaxiStand->getRoadSegment();
 		const Link *taxiStandLink = taxiStandSegment->getParentLink();
 		Node *destForRouteChoice = taxiStandLink->getFromNode();
 		//get the current segment
-		const Link *currSegmentParentLink = currSegment->getParentLink();
+		const SegmentStats* currSegStat = pathMover.getCurrSegStats();
+		const Link *currSegmentParentLink = currSegStat->getRoadSegment()->getParentLink();
 		Node *originNode = currSegmentParentLink->getToNode();
 		//set origin and destination node
 		currSubTrip.origin = WayPoint(originNode);
 		currSubTrip.destination = WayPoint(destForRouteChoice);
-		PrivateTrafficRouteChoice::getInstance()->getPath(currSubTrip,false, nullptr, useInSimulationTT);
+		vector<WayPoint> routeToTaxiStand;
+		routeToTaxiStand = PrivateTrafficRouteChoice::getInstance()->getPath(currSubTrip,false, nullptr, useInSimulationTT);
+		addTaxiStandPath(routeToTaxiStand);
+	}
+
+	void TaxiDriverMovement::addTaxiStandPath(vector<WayPoint> &routeToTaxiStand)
+	{
+		const SegmentStats* currSegStat = pathMover.getCurrSegStats();
+		const Link *currSegmentParentLink = currSegStat->getRoadSegment()->getParentLink();
+		const RoadSegment * currRoadSegment = currSegStat->getRoadSegment();
+		const std::vector<const SegmentStats*> currPathSegs = pathMover.getPath();
+		pathMover.erasePathAfterCurrenrLink();
+		pathMover.appendRoute(routeToTaxiStand);
+		const RoadSegment *roadSegment = destinationTaxiStand->getRoadSegment();
+		const Link * parentLink = roadSegment->getParentLink();
+		Node * toNode = parentLink->getToNode();
+		Conflux *conflux = Conflux::getConfluxFromNode(toNode);
+		const std::vector<RoadSegment*>& roadSegments = parentLink->getRoadSegments();
+		std::vector<RoadSegment*> roadSegmentTillTaxiStand;
+		std::vector<RoadSegment*>::const_iterator rdSegItr = std::find(roadSegments.begin(),roadSegments.end(),roadSegment);
+		roadSegmentTillTaxiStand.insert(roadSegmentTillTaxiStand.end(),roadSegments.begin(),rdSegItr+1);
+		pathMover.appendSegmentStats(roadSegmentTillTaxiStand,conflux);
 	}
 
 

@@ -71,17 +71,26 @@ void sim_mob::medium::sortPersonsDecreasingRemTime(std::deque<Person_MT*>& perso
 }
 
 unsigned Conflux::updateInterval = 0;
-
+std::map<const Node *,Conflux *> Conflux::nodeConfluxMap;
 Conflux::Conflux(Node* confluxNode, const MutexStrategy& mtxStrat, int id, bool isLoader) :
 		Agent(mtxStrat, id), confluxNode(confluxNode), parentWorkerAssigned(false), currFrame(0, 0), isLoader(isLoader), numUpdatesThisTick(0),
 		tickTimeInS(ConfigManager::GetInstance().FullConfig().baseGranSecond()), evadeVQ_Bounds(false), segStatsOutput(std::string()),
 		lnkStatsOutput(std::string())
 {
+
+	nodeConfluxMap[confluxNode] = this;
 	if (!isLoader)
 	{
 		multiUpdate = true;
 	}
 }
+
+Conflux *  Conflux::getConfluxFromNode(const Node * node)
+{
+	std::map<const Node *,Conflux *>::const_iterator itr = nodeConfluxMap.find(node);
+	return itr->second;
+}
+
 
 Conflux::~Conflux()
 {
@@ -604,6 +613,7 @@ void Conflux::housekeep(PersonProps& beforeUpdate, PersonProps& afterUpdate, Per
 		}
 		return;
 	}
+	case Role<Person_MT>::RL_TAXIDRIVER: //fall through
 	case Role<Person_MT>::RL_BUSDRIVER:
 	{
 		if (beforeUpdate.isMoving && !afterUpdate.isMoving)

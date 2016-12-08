@@ -15,6 +15,7 @@ namespace sim_mob
 {
 namespace medium
 {
+class TaxiDriver;
 class TaxiStandAgent : public sim_mob::Agent {
 public:
 	TaxiStandAgent(const MutexStrategy& mtxStrat, int id, const TaxiStand* stand);
@@ -43,7 +44,9 @@ public:
 	 * get taxi-stand agent from a given taxi-stand
 	 * @param stand is a pointer to a taxi-stand
 	 */
-	static TaxiStandAgent* getTaxiStandAgent(const TaxiStand* stand);
+	static  TaxiStandAgent* getTaxiStandAgent(const TaxiStand* stand);
+
+	void acceptTaxiDriver(TaxiDriver *taxiDriver);
 
 private:
 	/**record associated taxi-stand*/

@@ -76,15 +76,19 @@ void PedestrianMovement::frame_init()
 	}
 	else if(subTrip.isTT_Walk)
 	{
-		if (subTrip.origin.type != WayPoint::NODE && subTrip.destination.type != WayPoint::TAXI_STAND) {
+		if (subTrip.origin.type != WayPoint::NODE && subTrip.destination.type != WayPoint::TAXI_STAND)
+		{
 			throw std::runtime_error("taxi trip is not correct");
 		}
 		const Node* source = subTrip.origin.node;
-		const TaxiStand* stand = subTrip.destination.taxiStand;
-		const Node* destination = stand->getRoadSegment()->getParentLink()->getFromNode();
+		const Node * destination = subTrip.destination.node;
+		//const TaxiStand* stand = subTrip.destination.taxiStand;
+		//const Node* destination = stand->getRoadSegment()->getParentLink()->getFromNode();
 		std::vector<WayPoint> path = StreetDirectory::Instance().SearchShortestDrivingPath<Node, Node>(*(source), *(destination));
-		for (auto itWayPts = path.begin(); itWayPts != path.end(); ++itWayPts) {
-			if (itWayPts->type == WayPoint::LINK) {
+		for (auto itWayPts = path.begin(); itWayPts != path.end(); ++itWayPts)
+		{
+			if (itWayPts->type == WayPoint::LINK)
+			{
 				const Node* srcNode = itWayPts->link->getFromNode();
 				const Node* destNode = itWayPts->link->getToNode();
 				DynamicVector distVector(srcNode->getLocation().getX(),	srcNode->getLocation().getY(),
@@ -92,7 +96,8 @@ void PedestrianMovement::frame_init()
 				double distance = distVector.getMagnitude();
 				TravelTimeAtNode item;
 				item.node = destNode;
-				item.travelTime = distance / walkSpeed;
+				//item.travelTime = distance / walkSpeed;
+				item.travelTime = 50000;
 				travelPath.push(item);
 			}
 		}
@@ -162,20 +167,26 @@ const Node* PedestrianMovement::getDestNode()
 void PedestrianMovement::frame_tick()
 {
 	parentPedestrian->parent->setRemainingTimeThisTick(0);
-	if (parentPedestrian->roleType == Role<Person_MT>::RL_TRAVELPEDESTRIAN) {
+	if (parentPedestrian->roleType == Role<Person_MT>::RL_TRAVELPEDESTRIAN)
+	{
 		double tickSec = ConfigManager::GetInstance().FullConfig().baseGranSecond();
 		TravelTimeAtNode& front = travelPath.front();
-		if (front.travelTime < tickSec) {
+		if (front.travelTime < tickSec)
+		{
 			travelPath.pop();
 			Conflux* start = this->getStartConflux();
-			if (start) {
+			if (start)
+			{
 				messaging::MessageBus::PostMessage(start, MSG_TRAVELER_TRANSFER,
 						messaging::MessageBus::MessagePtr(new PersonMessage(parentPedestrian->parent)));
 			}
-		} else {
+		}
+		else
+		{
 			front.travelTime -= tickSec;
 		}
-		if (travelPath.size() == 0) {
+		if (travelPath.size() == 0)
+		{
 			parentPedestrian->parent->setToBeRemoved();
 		}
 	}
@@ -189,7 +200,8 @@ std::string PedestrianMovement::frame_tick_output()
 Conflux* PedestrianMovement::getStartConflux() const
 {
 	if (parentPedestrian->roleType
-			== Role < Person_MT > ::RL_TRAVELPEDESTRIAN && travelPath.size()>0) {
+			== Role < Person_MT > ::RL_TRAVELPEDESTRIAN && travelPath.size()>0)
+	{
 		const TravelTimeAtNode& front = travelPath.front();
 		return MT_Config::getInstance().getConfluxForNode(front.node);
 	}

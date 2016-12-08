@@ -76,7 +76,7 @@ private:
 	typedef std::map<const Link*, PersonList> VirtualQueueMap;
 	typedef std::map<const RoadSegment*, SegmentStatsList> SegmentStatsMap;
 	typedef std::map<const Link*, LinkStats> LinkStatsMap;
-
+	static std::map<const Node *,Conflux *> nodeConfluxMap;
 	/**
 	 * helper to capture the status of a person before and after update
 	 */
@@ -252,16 +252,8 @@ private:
 	 * @param person with pedestrian role
 	 */
 	void assignPersonToPedestrianlist(Person_MT* person);
-	/**
-	 * drop off taxi-traveler at current conflux.
-	 * @param person with taxi-passenger role
-	 */
-	void dropOffTaxiTraveler(Person_MT* person);
-	/**
-	 * pick up taxi-traveler at current conflux.
-	 * @return person who successfully get boarding. if result is null, means no traveler exist.
-	 */
-	Person_MT* pickupTaxiTraveler();
+
+
 	/**
 	 * assign person to car
 	 * @param person is going to board car
@@ -516,6 +508,18 @@ public:
 	void processVirtualQueues();
 
 	/**
+	 * pick up taxi-traveler at current conflux.
+	 * @return person who successfully get boarding. if result is null, means no traveler exist.
+	 */
+	Person_MT* pickupTaxiTraveler();
+
+	/**
+	 * drop off taxi-traveler at current conflux.
+	 * @param person with taxi-passenger role
+	 */
+	void dropOffTaxiTraveler(Person_MT* person);
+
+	/**
 	 * helper struct to maintain sum of travel times experienced by drivers crossing a link along with the count of those drivers
 	 */
 	struct LinkTravelTimes
@@ -661,6 +665,8 @@ public:
 	 * exposes the Log() function for printing in output files
 	 */
 	void log(std::string line) const;
+
+	static  Conflux * getConfluxFromNode(const Node * node) ;
 };
 
 /**

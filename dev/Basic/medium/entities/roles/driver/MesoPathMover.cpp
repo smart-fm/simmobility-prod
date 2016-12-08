@@ -120,6 +120,76 @@ const SegmentStats* MesoPathMover::getPrevSegStats(bool inSameLink) const
 	return prevSegStats;
 }
 
+void MesoPathMover::erasePathAfterCurrenrLink()
+{
+	const SegmentStats* currSegStat = getCurrSegStats();
+	const Link *currSegmentParentLink = currSegStat->getRoadSegment()->getParentLink();
+	std::vector<const SegmentStats*>::iterator itr = std::find(path.begin(),path.end(),currSegStat);
+	if(itr != path.end())
+	{
+		itr++;
+		while(itr != path.end() && (*itr)->getRoadSegment()->getParentLink() != currSegmentParentLink)
+		{
+			itr++;
+		}
+
+		if(itr != path.end())
+		{
+			path.erase(itr,path.end());
+		}
+	}
+}
+
+void MesoPathMover::appendRoute(std::vector<WayPoint> &routeToTaxiStand)
+{
+	std::vector<WayPoint>::iterator itr = routeToTaxiStand.begin();
+	while(itr != routeToTaxiStand.end())
+	{
+		const Link *link = (*itr).link;
+		const std::vector<RoadSegment*>& roadSegments = link->getRoadSegments();
+		std::vector<RoadSegment*>::const_iterator segItr = roadSegments.begin();
+		const Node *linkToNode = link->getToNode();
+		Conflux *conflux = Conflux::getConfluxFromNode(linkToNode);
+		while(segItr != roadSegments.end())
+		{
+			const std::vector<SegmentStats*>&  segStats = conflux->findSegStats((*segItr));
+			path.insert(path.end(),segStats.begin(),segStats.end());
+			segItr++;
+		}
+		itr++;
+	}
+}
+
+void MesoPathMover::addPathFromCurrentSegmentToEndNodeOfLink()
+{
+	const SegmentStats *currStats = getCurrSegStats();
+	const RoadSegment *roadSegment = currStats->getRoadSegment();
+	std::vector<const SegmentStats*>::iterator itr = std::find(path.begin(),path.end(),currStats);
+	path.erase(itr+1,path.end());
+	const Link *parentLink = currStats->getRoadSegment()->getParentLink();
+	Node *toNode = parentLink->getToNode();
+	Conflux * conflux = Conflux::getConfluxFromNode(toNode);
+	const std::vector<RoadSegment*>& roadSegments =  parentLink->getRoadSegments();
+	std::vector<RoadSegment*>::const_iterator segItr = std::find(roadSegments.begin(),roadSegments.end(),roadSegment);
+	++segItr;
+	while(segItr != roadSegments.end())
+	{
+		const std::vector<SegmentStats*> &segStats = conflux->findSegStats(*segItr);
+		path.insert(path.end(),segStats.begin(),segStats.end());
+		segItr++;
+	}
+}
+void MesoPathMover::appendSegmentStats(const std::vector<RoadSegment*>& roadSegments,Conflux *conflux)
+{
+	std::vector<RoadSegment*>::const_iterator itr = roadSegments.begin();
+	while(itr != roadSegments.end())
+	{
+		const std::vector<SegmentStats*>& segStats = conflux->findSegStats(*itr);
+		path.insert(path.end(),segStats.begin(),segStats.end());
+		itr++;
+	}
+}
+
 const SegmentStats* MesoPathMover::getFirstSegStatsInNextLink(const SegmentStats* segStats) const
 {
 	if (!segStats || currSegStatIt == path.end())

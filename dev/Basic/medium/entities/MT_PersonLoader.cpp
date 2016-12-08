@@ -488,8 +488,43 @@ void MT_PersonLoader::loadPersonDemand()
 		if(!isLastInSchedule) { personTripChain.push_back(makeActivity(r, ++seqNo)); }
 		actCtr++;
 	}
+	/** just a dummy person for testing
+	 *
+	 *
+	 */
+	std::vector<TripChainItem*>& personTripChain = tripchains["TestPerson"];
+	Trip* trip = new Trip();
+	trip->sequenceNumber = 1;
+	trip->tripID = "TestPerson";
+	trip->itemType = TripChainItem::IT_TRIP;
+	//trip->purpose = "";
+	const RoadNetwork* rn = RoadNetwork::getInstance();
+	const Node* node = rn->getNodeById(10001);
+	trip->origin = WayPoint(node);
+	node = rn->getNodeById(15691);
+	trip->destination = WayPoint(node);
+	trip->originType = TripChainItem::LT_NODE;
+	trip->destinationType = TripChainItem::LT_NODE;
+	trip->travelMode = "TaxiTravel";
+	SubTrip *subTrip = new SubTrip();
+	subTrip->sequenceNumber = 1;
+	subTrip->tripID = "TestPerson";
+	subTrip->itemType = TripChainItem::IT_TRIP;
+	//trip->purpose = "";
+	node = rn->getNodeById(10001);
+	subTrip->origin = WayPoint(node);
+	node = rn->getNodeById(15691);
+	subTrip->destination = WayPoint(node);
+	subTrip->originType = TripChainItem::LT_NODE;
+	subTrip->destinationType = TripChainItem::LT_NODE;
+	subTrip->travelMode = "TaxiTravel";
+	subTrip->isTT_Walk = true;
+	trip->addSubTrip(*subTrip);
+	trip->startTime = DailyTime(27000000);//DailyTime(getRandomTimeInWindow(7.75,false));
+	personTripChain.push_back(trip);
 
-	if (!freightStoredProcName.empty()) {
+	if (!freightStoredProcName.empty())
+	{
 		//Our SQL statement
 		stringstream freightQuery;
 		freightQuery << "select * from " << freightStoredProcName << "(" << nextLoadStart << "," << end << ")";
@@ -503,8 +538,14 @@ void MT_PersonLoader::loadPersonDemand()
 			std::vector<TripChainItem*>& personTripChain = tripchains[freightTripId];
 			//add trip and activity
 			sim_mob::Trip* constructedTrip = makeFreightTrip(r);
-			if(constructedTrip) { personTripChain.push_back(constructedTrip); }
-			else { continue; }
+			if(constructedTrip)
+			{
+				personTripChain.push_back(constructedTrip);
+			}
+			else
+			{
+				continue;
+			}
 		}
 	}
 	vector<Person_MT*> persons;

@@ -147,10 +147,7 @@ void DriverMovement::frame_init()
 
 void DriverMovement::frame_tick()
 {
-	if(boost::iequals(getParentDriver()->parent->getDatabaseId(),"Taxi123"))
-	{
-		int debug =1 ;
-	}
+
 	DriverUpdateParams& params = parentDriver->getParams();
 	const SegmentStats* currSegStats = pathMover.getCurrSegStats();
 	if (!currSegStats)

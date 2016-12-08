@@ -181,6 +181,8 @@ public:
 	 * @param id the id to look-up in map
 	 * @return value mapped to id in map, if found; NULL otherwise
 	 */
+
+	const Node *getNodeById(int id) const;
 	template<class T>
 	const T* getById(const std::map<unsigned int, T*>& lookup, unsigned int id) const
 	{

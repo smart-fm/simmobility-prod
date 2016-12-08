@@ -21,14 +21,14 @@
             </database>
             
 	    <!-- internal ip for remote midterm server -->
-            <database id="fm_remote_mt6" dbtype="postgres">
+            <database id="fm_remote_mt" dbtype="postgres">
                 <host value="172.25.184.48"/>
                 <port value="5432"/>
                 <dbname value="simmobility"/>
             </database>
 
 	    <!-- hpc ip for remote midterm server -->
-            <database id="fm_remote_mt" dbtype="postgres">
+            <database id="fm_remote_mt6" dbtype="postgres">
                 <host value="172.25.184.156"/>
                 <port value="5432"/>
                 <dbname value="simmobility"/>
@@ -83,8 +83,8 @@
 	-->
 
 	<file-based-credential id="fm_remote_mt">
-	<!-- <file path="private/fm_remote.cred"/> -->
-	     <file path="private/fm_local.cred"/>
+	 <file path="private/fm_remote.cred"/> 
+	  <!--   <file path="private/fm_local.cred"/>-->
 	</file-based-credential>
 
 	<plaintext-credential id="LT_cred">

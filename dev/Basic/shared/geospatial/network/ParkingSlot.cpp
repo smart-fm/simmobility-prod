@@ -71,7 +71,27 @@ const unsigned int ParkingSlot::getCapacity() const
 
 void ParkingSlot::setCapacity(unsigned int capacityPCU)
 {
-	this->capacity = capacity;
+	this->capacity = capacityPCU;
+}
+
+const unsigned int ParkingSlot::getParkingAreaId() const
+{
+	return parkingAreaId;
+}
+
+void ParkingSlot::setParkingAreaId(unsigned int pkAreaId)
+{
+	parkingAreaId = pkAreaId;	
+}
+
+const unsigned int ParkingSlot::getSequenceNumber() const
+{
+	return sequenceNumber;
+}
+
+void ParkingSlot::setSequenceNumber(unsigned int seqNumber)
+{
+	sequenceNumber = seqNumber;
 }
 
 bool ParkingSlot::isVacant() const

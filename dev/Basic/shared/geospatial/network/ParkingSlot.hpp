@@ -35,6 +35,12 @@ private:
 	/**The capacity of the parking slot in PCU (passenger car units)*/
 	unsigned int capacity;
 
+	/**The id of the parking area to which the parking slot belongs*/
+	unsigned int parkingAreaId;
+
+	/**Indicates the sequence number of the parking slot from the starting of the segment*/
+	unsigned int sequenceNumber;
+
 	/**Indicates whether the parking slot is occupied*/
 	bool isOccupied;
 
@@ -49,6 +55,12 @@ public:
 	virtual ~ParkingSlot();
 
 	const unsigned int getParkingSlotId() const;
+
+	const unsigned int getParkingAreaId() const;
+	void setParkingAreaId(unsigned int pkAreaId);
+
+	const unsigned int getSequenceNumber() const;
+	void setSequenceNumber(unsigned int seqNumber);
 
 	const unsigned int getAccessSegmentId() const;
 	void setAccessSegmentId(unsigned int segmentId);

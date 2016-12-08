@@ -298,7 +298,7 @@ void NetworkLoader::loadParkingSlots(const std::string& storedProc)
 	{
 		//Create new parking slot and add it to the netowrk
 		ParkingSlot *parkingSlot = new ParkingSlot(*itPkSlots);
-		roadNetwork->addParkingSlot(parkingSlot);
+		roadNetwork->addParking(parkingSlot);
 	}
 }
 

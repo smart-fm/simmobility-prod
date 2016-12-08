@@ -11,6 +11,7 @@
 #include "Link.hpp"
 #include "logging/Log.hpp"
 #include "Node.hpp"
+#include "ParkingArea.hpp"
 #include "ParkingSlot.hpp"
 #include "Point.hpp"
 #include "PolyLine.hpp"
@@ -33,6 +34,7 @@ RoadNetwork::~RoadNetwork()
 	clear_delete_map(mapOfIdvsNodes);
 	clear_delete_map(mapOfIdVsLinks);
 	clear_delete_map(mapOfIdVsTurningConflicts);
+	clear_delete_map(mapOfIdVsParkingAreas);
 
 	//All other maps can simply be cleared as the 'Node' and 'Link' classes contain the others.
 	//So, when they get destroyed, the objects contained within them will be destroyed 
@@ -89,6 +91,11 @@ const std::map<unsigned int, BusStop *>& RoadNetwork::getMapOfIdvsBusStops() con
 const std::map<unsigned int, ParkingSlot *>& RoadNetwork::getMapOfIdVsParkingSlots() const
 {
 	return mapOfIdVsParkingSlots;
+}
+
+const std::map<unsigned int, ParkingArea *>& RoadNetwork::getMapOfIdVsParkingAreas() const
+{
+	return mapOfIdVsParkingAreas;
 }
 
 void RoadNetwork::addLane(Lane* lane)
@@ -541,13 +548,13 @@ void RoadNetwork::addBusStop(BusStop* stop)
 	}
 }
 
-void RoadNetwork::addParkingSlot(ParkingSlot *parkingSlot)
+void RoadNetwork::addParking(ParkingSlot *parkingSlot)
 {
 	//Check if the parking slot has already been added to the network
 	std::map<unsigned int, ParkingSlot *>::iterator itParking = mapOfIdVsParkingSlots.find(parkingSlot->getRoadItemId());
 
 	if(itParking == mapOfIdVsParkingSlots.end())
-	{
+	{		
 		//Get the road segments to which the parking slot belongs
 		std::map<unsigned int, RoadSegment *>::iterator itAccSegments = mapOfIdVsRoadSegments.find(parkingSlot->getAccessSegmentId());
 		std::map<unsigned int, RoadSegment *>::iterator itEgrSegments = mapOfIdVsRoadSegments.find(parkingSlot->getEgressSegmentId());
@@ -565,6 +572,26 @@ void RoadNetwork::addParkingSlot(ParkingSlot *parkingSlot)
 
 			//Set the egress segment of the parking slot
 			parkingSlot->setEgressSegment(egressSegment);
+
+			//Check if the Parking area for this slot exists
+			ParkingArea *pkArea = nullptr;
+			std::map<unsigned int, ParkingArea *>::iterator itPkAreas = mapOfIdVsParkingAreas.find(parkingSlot->getParkingAreaId());
+
+			//Create a new Parking Area if it does not exist
+			if (itPkAreas == mapOfIdVsParkingAreas.end())
+			{
+			    pkArea = new ParkingArea(parkingSlot->getParkingAreaId());
+
+				//Add the parking area to the network
+				mapOfIdVsParkingAreas.insert(std::make_pair(pkArea->getParkingAreaId(), pkArea));			
+			}
+			else
+			{
+				pkArea = itPkAreas->second;
+			}
+
+			//Add parking slot to the parking area
+			pkArea->addParkingSlot(parkingSlot);
 
 			//Add the parking slot to the network
 			mapOfIdVsParkingSlots.insert(std::make_pair(parkingSlot->getRoadItemId(), parkingSlot));

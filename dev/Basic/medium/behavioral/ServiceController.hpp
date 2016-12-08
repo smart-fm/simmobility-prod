@@ -426,7 +426,7 @@ class ServiceController:  public lua::LuaModel
 	void clearStopPoints(int trainId,std::string lineId);
 
 	/**
-	 * Interface that connects the trains after disruption(sets the next driver for trains)
+	 *Interface that connects the trains after disruption(sets the next driver for trains)
 	 *As the there will be no longer any looping and all trains in a line are connected in the order of their position in the train line
 	 *@param lineId is the id of the line of interest
 	 */
@@ -533,10 +533,10 @@ class ServiceController:  public lua::LuaModel
 	void clearAllPlatformsToIgnore(int trainId,std::string lineId);
 
 	private:
-    /** mutex lock to lock the mapOfLineAndTrainDrivers **/
-    mutable boost::mutex lineTrainDriversLock;
-    /** is the map of line and the corresponding train drivers in it **/
-    std::map<std::string, std::map<int,TrainDriver*> > mapOfLineAndTrainDrivers;
+	/** mutex lock to lock the mapOfLineAndTrainDrivers **/
+	mutable boost::mutex lineTrainDriversLock;
+	/** is the map of line and the corresponding train drivers in it **/
+	std::map<std::string, std::map<int,TrainDriver*> > mapOfLineAndTrainDrivers;
 };
 }
 }

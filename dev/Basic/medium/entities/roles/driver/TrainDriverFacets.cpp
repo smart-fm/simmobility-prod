@@ -249,7 +249,7 @@ namespace medium
 						const TrainPathMover &trainPathMover = trainMovement->getPathMover();
 						double disCovered = trainPathMover.getTotalCoveredDistance();
 						double disOfPlatform = getDistanceFromStartToPlatform(lineID,platform);
-						std::string nextPlatformNo=nextPlatform->getPlatformNo();
+						std::string nextPlatformNo = nextPlatform->getPlatformNo();
 						if(boost::iequals(trainPlatform.platformNo,nextPlatformNo))
 						{
 							if(minDis == -1 || (disCovered-disOfPlatform<minDis))
@@ -258,7 +258,7 @@ namespace medium
 								nextDriverInOppLine = dynamic_cast<TrainDriver*>((*it));
 							}
 
-							if(disCovered-disOfPlatform-trainLengthMeter<=safeDistance)
+							if(disCovered - disOfPlatform - trainLengthMeter<=safeDistance)
 							{
 								return false;
 							}
@@ -350,7 +350,7 @@ namespace medium
 		double maxDistanceBehindTrain = -1;
 		double totalDisCoveredByTrain = getTotalCoveredDistance();
 		TrainDriver *behindDriver = nullptr;
-		for(it = newLinetrainDriverVector.begin(); it!=newLinetrainDriverVector.end(); it++)
+		for(it = newLinetrainDriverVector.begin(); it != newLinetrainDriverVector.end(); it++)
 		{
 			TrainDriver *tDriver = dynamic_cast<TrainDriver*>(*(it));
 			if(tDriver)
@@ -403,7 +403,7 @@ namespace medium
 		const TrainTrip* trip = dynamic_cast<const TrainTrip*>(*(parentDriver->getParent()->currTripChainItem));
 		if (trip&&trainPlatformMover.getNextPlatform(false)&&trainPathMover.getDistanceToNextPlatform(trainPlatformMover.getNextPlatform())==0)
 		{
-			ptMRTMoveLogger << DailyTime(params.now.ms()+startTime.getValue()).getStrRepr() << ",";
+			ptMRTMoveLogger << DailyTime(params.now.ms() + startTime.getValue()).getStrRepr() << ",";
 			ptMRTMoveLogger << trip->getTrainId() << ",";
 			ptMRTMoveLogger <<trip->getTripId()<<",";
 			ptMRTMoveLogger << trainPlatformMover.getNextPlatform()->getStationNo()<<",";
@@ -557,7 +557,7 @@ namespace medium
 		TrainUpdateParams& params = parentDriver->getParams();
 		parentDriver->updatePassengers();
 		TrainDriver::TRAIN_NEXTREQUESTED requested = parentDriver->getNextRequested();
-		if(!getParentDriver()->isStoppedAtPoint()&&requested==TrainDriver::REQUESTED_WAITING_LEAVING)
+		if(!getParentDriver()->isStoppedAtPoint() && requested == TrainDriver::REQUESTED_WAITING_LEAVING)
 		{
 			isStopPointPresent();
 		}
@@ -570,7 +570,7 @@ namespace medium
 			{
 				parentDriver->setStoppingTime(0);
 				parentDriver->setStoppingStatus(false);
-				if(requested!=TrainDriver::REQUESTED_WAITING_LEAVING)
+				if(requested != TrainDriver::REQUESTED_WAITING_LEAVING)
 				return;
 			}
 		}
@@ -738,7 +738,7 @@ namespace medium
 							if(cur)
 							{
 								auto it = std::find(platformNames.begin(), platformNames.end(), cur->getPlatformNo());
-								if(it!=platformNames.end())
+								if(it != platformNames.end())
 								{
 									isDisruptedPlatform = true;
 								}
@@ -954,7 +954,7 @@ namespace medium
 			}
 
 			TrainPlatform nextTrainplatformPlt = trainController->getNextPlatform(nextplatformPlt->getPlatformNo(),line);
-			if(std::find(uTurnPlatformList.begin(),uTurnPlatformList.end(),nextTrainplatformPlt.platformNo)!=uTurnPlatformList.end())
+			if(std::find(uTurnPlatformList.begin(),uTurnPlatformList.end(),nextTrainplatformPlt.platformNo) != uTurnPlatformList.end())
 			{
 				std::map<std::string,std::vector<std::string>> disruptPlatformsMap = trainController->getInstance()->getDisruptedPlatforms_ServiceController();
 				std::vector<std::string> disruptPlatforms = disruptPlatformsMap[line];
@@ -990,14 +990,14 @@ namespace medium
 			{
 
 				std::string platformNo = nextplatformPlt->getPlatformNo();
+				if(std::find(uTurnPlatformList.begin(),uTurnPlatformList.end(),nextplatformPlt->getPlatformNo()) != uTurnPlatformList.end())
+				{
+					return nextplatformPlt->getPlatformNo();
+				}
+
 				if(trainController->isTerminalPlatform(platformNo,line))
 				{
 					return "";
-				}
-
-				if(std::find(uTurnPlatformList.begin(),uTurnPlatformList.end(),nextplatformPlt->getPlatformNo())!=uTurnPlatformList.end())
-				{
-					return nextplatformPlt->getPlatformNo();
 				}
 				TrainPlatform nextTrainplatformPlt = trainController->getNextPlatform(nextplatformPlt->getPlatformNo(),line);
 				nextplatformPlt = trainController->getPlatformFromId(nextTrainplatformPlt.platformNo);
@@ -1012,7 +1012,7 @@ namespace medium
 		TrainController<sim_mob::medium::Person_MT> *trainController = TrainController<sim_mob::medium::Person_MT>::getInstance();
 		std::string trainLine = parentDriver->getTrainLine();
 		std::map<std::string,std::vector<std::string>> disruptedPlatformsMap=trainController->getDisruptedPlatforms_ServiceController();
-		if(disruptedPlatformsMap.size() == 0||disruptedPlatformsMap.find(trainLine)==disruptedPlatformsMap.end())
+		if(disruptedPlatformsMap.size() == 0||disruptedPlatformsMap.find(trainLine) == disruptedPlatformsMap.end())
 		{
 			return false;
 		}

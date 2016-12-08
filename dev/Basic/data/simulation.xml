@@ -9,7 +9,7 @@
             <database id="fm_remote" dbtype="postgres">
                 <host value="172.25.184.48"/>
                 <port value="5432"/>
-                <dbname value="simmobility_virtualcity"/>
+                <dbname value="simmobility"/>
             </database>
 
             <database id="fm_hpchead" dbtype="postgres">
@@ -111,10 +111,10 @@
     <simulation>
         <base_granularity   value="5"   units="seconds"/>
 
-        <total_runtime      value="15"      units="minutes" />
+        <total_runtime      value="1439"      units="minutes" />
         <total_warmup       value="10"     units="seconds" />
        
-        <start_time         value="07:30:00"/>
+        <start_time         value="00:00:00"/>
 
 
         <!--Indicates the percentage of drivers that will use in-simulation travel times rather than the historical travel times-->

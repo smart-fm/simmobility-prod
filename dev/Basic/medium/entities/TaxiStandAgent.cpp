@@ -110,6 +110,7 @@ Person_MT* TaxiStandAgent::pickupOneWaitingPerson()
 		res = waitingPeople.front();
 		waitingPeople.pop_front();
 		storeWaitingTime(res);
+		res->getRole()->collectTravelTime();
 		UpdateStatus status = res->checkTripChain(currentTimeMS);
 		if (status.status == UpdateStatus::RS_DONE)
 		{

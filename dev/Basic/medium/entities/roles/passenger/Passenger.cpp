@@ -110,23 +110,23 @@ void sim_mob::medium::Passenger::collectTravelTime()
 	personTravelTime.arrivalTime = DailyTime(parent->getRole()->getArrivalTime()).getStrRepr();
 	if (roleType == Role<Person_MT>::RL_TRAINPASSENGER)
 	{
-		personTravelTime.mode = "MRT_TRAVEL";
+		personTravelTime.mode = "MRT_PASSENGER";
 	}
 	else if (roleType == Role<Person_MT>::RL_CARPASSENGER)
 	{
-		personTravelTime.mode = "CAR_SHARING_TRAVEL";
+		personTravelTime.mode = "CAR_SHARING_PASSENGER";
 	}
 	else if (roleType == Role<Person_MT>::RL_PRIVATEBUSPASSENGER)
 	{
-		personTravelTime.mode = "PRIVATE_BUS_TRAVEL";
+		personTravelTime.mode = "PRIVATE_BUS_PASSENGER";
 	}
 	else if (roleType == Role<Person_MT>::RL_TAXIPASSENGER)
 	{
-		personTravelTime.mode = "TAXI_TRAVEL";
+		personTravelTime.mode = "TAXI_PASSENGER";
 	}
 	else
 	{
-		personTravelTime.mode = "BUS_TRAVEL";
+		personTravelTime.mode = "BUS_PASSNEGER";
 	}
 
 	messaging::MessageBus::PostMessage(PT_Statistics::getInstance(),

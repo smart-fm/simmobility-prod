@@ -112,7 +112,7 @@ void Person_MT::convertToTaxiTrips()
 						double y = itSubTrip->origin.node->getLocation().getY();
 						const TaxiStand* stand = TaxiStand::allTaxiStandMap.searchNearestObject(x,y);
 						if(!stand){
-							Print()<<"[Taxi Trip]no existed taxi-stand nearby!"<<itSubTrip->origin.node->getNodeId()<<std::endl;
+							Print()<<"[Taxi Trip] no nearby taxi-stand exists! "<<itSubTrip->origin.node->getNodeId()<<std::endl;
 							break;
 						}
 						SubTrip subTrip;
@@ -124,22 +124,22 @@ void Person_MT::convertToTaxiTrips()
 						subTrip.startLocationId = boost::lexical_cast<std::string>(itSubTrip->origin.node->getNodeId());
 						subTrip.startLocationType = "NODE";
 						subTrip.endLocationId = boost::lexical_cast<std::string>(stand->getStandId());
-						subTrip.endLocationType = "STAND";
+						subTrip.endLocationType = "TAXI_STAND";
 						subTrip.travelMode = "TravelPedestrian";
 						subTrip.isTT_Walk = true;
 						taxiTrip.push_back(subTrip);
 						subTrip.origin = WayPoint(stand);
 						subTrip.destination = itSubTrip->destination;
 						subTrip.startLocationId = boost::lexical_cast<std::string>(stand->getStandId());
-						subTrip.startLocationType = "STAND";
+						subTrip.startLocationType = "TAXI_STAND";
 						subTrip.endLocationId = boost::lexical_cast<std::string>(stand->getStandId());
-						subTrip.endLocationType = "STAND";
+						subTrip.endLocationType = "TAXI_STAND";
 						subTrip.travelMode = "WaitingTaxiActivity";
 						taxiTrip.push_back(subTrip);
 						subTrip.origin = WayPoint(stand);
 						subTrip.destination = itSubTrip->destination;
 						subTrip.startLocationId = boost::lexical_cast<std::string>(stand->getStandId());
-						subTrip.startLocationType = "STAND";
+						subTrip.startLocationType = "TAXI_STAND";
 						subTrip.endLocationId = boost::lexical_cast<std::string>(itSubTrip->destination.node->getNodeId());
 						subTrip.endLocationType = "NODE";
 						subTrip.travelMode = "TaxiTraveler";

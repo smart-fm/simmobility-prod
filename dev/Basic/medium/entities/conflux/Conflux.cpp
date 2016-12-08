@@ -1618,7 +1618,7 @@ void Conflux::assignPersonToPedestrianlist(Person_MT* person)
 void Conflux::dropOffTaxiTraveler(Person_MT* person)
 {
 	if(person){
-		person->setToBeRemoved();
+		switchTripChainItem(person);
 	}
 }
 
@@ -1629,6 +1629,7 @@ Person_MT* Conflux::pickupTaxiTraveler()
 	{
 		res = travelingPersons.front();
 		travelingPersons.pop_front();
+		res->getRole()->collectTravelTime();
 		UpdateStatus status = res->checkTripChain(currFrame.ms());
 		status = res->checkTripChain(currFrame.ms());
 		if (status.status == UpdateStatus::RS_DONE)

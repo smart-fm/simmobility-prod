@@ -150,8 +150,7 @@ void HouseholdDao::insertHousehold(Household& houseHold,std::string schema)
 	else
 	{
 		const std::string DB_INSERT_HOUSEHOLD_OP = "INSERT INTO " + APPLY_SCHEMA(schema, ".household")
-
-							+ " (" + DB_FIELD_ID + ", "+ "lifestyle_id" + ", "+ DB_FIELD_UNIT_ID + ", "+ "ethnicity_id" + ", "+ "vehicle_category_id" + ", "+ DB_FIELD_SIZE + ", "+
+							+ " (" + DB_FIELD_ID + ", "+ "lifestyle_id" + ", "+ DB_FIELD_UNIT_ID + ", "+ "ethnicity_id" + ", "+ DB_FIELD_VEHICLE_CATEGORY_ID + ", "+ DB_FIELD_SIZE + ", "+
 							DB_FIELD_CHILDUNDER4 + ", "+ DB_FIELD_CHILDUNDER15 + ", " + "num_adults" + ", "+ DB_FIELD_INCOME + ", "+ DB_FIELD_HOUSING_DURATION + ", " + "workers"+ ", "+
 							"age_of_head" + ", "+ "pending_status_id" + ", " + "pending_from_date" + ", "+ "unit_pending" + ", "+ "taxi_availability" + ", " + "vehicle_ownership_option_id"+ ", "+
 							+ "time_on_market" + ", " + "time_off_market"+ ", "+ "is_bidder" + ", " + "is_seller"+ ", "+ "buy_sell_interval" + ", "+ "move_in_date" + ", " + "has_moved"+ ", "+

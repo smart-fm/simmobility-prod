@@ -83,8 +83,8 @@
 	-->
 
 	<file-based-credential id="fm_remote_mt">
-	 <file path="private/fm_remote.cred"/>
-	   <!--  <file path="private/fm_local.cred"/> -->
+	 <file path="private/fm_remote.cred"/> 
+	  <!--   <file path="private/fm_local.cred"/>-->
 	</file-based-credential>
 
 	<plaintext-credential id="LT_cred">

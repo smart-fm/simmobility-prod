@@ -175,6 +175,10 @@
 			Note: Both, slot-based and conflict-based require the stored procedures for turnings and conflicts. If these are not specified, 
 			there is no intersection driving behaviour i.e. vehicles collide with each other in the intersection-->
 			<property key="intersection_driving_model" value="conflict-based"/>
+
+			<!--Specifies the location of the dirver behaviour parameter files-->
+			<property key="driver_behaviour_file" value="data/driver_behavior_model/driver_param.xml"/>
+			<property key="amod_behaviour_file" value="data/driver_behavior_model/amod_driver_param.xml"/>
 		</generic_props>
 	</system>
 
@@ -240,7 +244,7 @@
 	<output_statistics>                              
 		<journey_time file="journey_time.csv"/>
 		<waiting_time file="waiting_time.csv"/>
-		<waiting_count file="waiting_count.csv"/>
+		<waiting_count file="waiting_count.csv" interval="900000"/>
 		<travel_time file="travel_time.csv"/>
 		<pt_stop_stats file="pt_stop_stats.csv"/>		
 		<od_travel_time enabled="false" file-name="od_travel_time.csv" interval="900000"/>

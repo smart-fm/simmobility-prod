@@ -192,7 +192,6 @@ namespace sim_mob
 
 			if( lifestyle == 1 && r2 < awaken_class1)
 			{
-				//seller->setActive(true);
 				bidder->setActive(true);
 
 				printAwakening(day, household);
@@ -218,7 +217,6 @@ namespace sim_mob
 			else
 			if( lifestyle == 2 && r2 < awaken_class2)
 			{
-				//seller->setActive(true);
 				bidder->setActive(true);
 
 				printAwakening(day, household);
@@ -245,7 +243,6 @@ namespace sim_mob
 			else
 			if( lifestyle == 3 && r2 < awaken_class3)
 			{
-				//seller->setActive(true);
 				bidder->setActive(true);
 
 				printAwakening(day, household);

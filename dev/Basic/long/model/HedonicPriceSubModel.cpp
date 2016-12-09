@@ -14,34 +14,9 @@
 #include "model/lua/LuaProvider.hpp"
 #include <limits>
 #include "core/DataManager.hpp"
+#include <util/PrintLog.hpp>
 
 using namespace sim_mob::long_term;
-
-//bid_timestamp, day_to_apply, seller_id, unit_id, hedonic_price, asking_price, target_price
- const std::string LOG_EXPECTATION = "%1%, %2%, %3%, %4%, %5%, %6%, %7%";
-
- /**
-  * Print the current expectation on the unit.
-  * @param the current day
-  * @param the day on which the bid was made
-  * @param the unit id
-  * @param agent to received the bid
-  * @param struct containing the hedonic, asking and target price.
-  *
-  */
- inline void printExpectation(int day, int dayToApply, BigSerial unitId, BigSerial agentId, const ExpectationEntry& exp)
- {
-     boost::format fmtr = boost::format(LOG_EXPECTATION) 	% day
-															% dayToApply
-															% agentId
-															% unitId
-															% exp.hedonicPrice
-															% exp.askingPrice
-															% exp.targetPrice;
-
-     AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::EXPECTATIONS, fmtr.str());
-     //PrintOut(fmtr.str() << endl);
- }
 
 
 HedonicPrice_SubModel::HedonicPrice_SubModel(double _hedonicPrice, double _lagCoefficient, double _day, HM_Model *_hmModel,DeveloperModel * _devModel, Unit *_unit, double logsum)

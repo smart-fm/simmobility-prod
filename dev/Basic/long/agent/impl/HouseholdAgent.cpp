@@ -161,10 +161,6 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 	day = now.frame();
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 
-	//if( bidder && bidder->isActive() && buySellInterval > 0 )
-		//buySellInterval--;
-
-	//if( buySellInterval == 0 )
 	if((acceptedBid && !btoUnit ) || ( acceptedBid && btoUnit && bidder->getMoveInWaitingTimeInDays() <= config.ltParams.housingModel.offsetBetweenUnitBuyingAndSellingAdvancedPurchase))
 	{
 		if( seller->isActive() == false )
@@ -185,8 +181,6 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 		}
 
 		seller->setActive(true);
-
-		//buySellInterval--;
 	}
 
 	if( bidder && bidder->isActive() && ( householdBiddingWindow == 0 || bidder->getMoveInWaitingTimeInDays() == 0) )
@@ -280,7 +274,6 @@ void HouseholdAgent::processEvent(EventId eventId, Context ctxId, const EventArg
         {
         	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 
-        	//double montecarlo = (double)rand() /RAND_MAX;
         	//generate a unifromly distributed random number
         	std::random_device rd;
         	std::mt19937 gen(rd());

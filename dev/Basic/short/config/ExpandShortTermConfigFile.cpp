@@ -308,9 +308,9 @@ void ExpandShortTermConfigFile::processConfig()
 	}
 	
 	if (cfg.isPublicTransitEnabled())
-    {
-        loadPublicTransitNetworkFromDatabase();
-    }
+	{
+		loadPublicTransitNetworkFromDatabase();
+	}
 
 	//Set PartitionManager instance (if using MPI and it's enabled).
 	if (cfg.MPI_Enabled() && cfg.using_MPI)

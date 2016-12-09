@@ -1390,6 +1390,28 @@ void HM_Model::startImpl()
 	{
 		loadLTVersion(conn);
 
+		{
+			soci::session sql;
+			sql.open(soci::postgresql, conn.getConnectionStr());
+
+			std::string storedProc = CALIBRATION_SCHEMA + "workers_grp_by_logsum_params";
+
+			//SQL statement
+			soci::rowset<WorkersGrpByLogsumParams> workers_grp_by_logsum_params = (sql.prepare << "select * from " + storedProc);
+
+			for (soci::rowset<WorkersGrpByLogsumParams>::const_iterator itWorkersGrpByLogsumParams = workers_grp_by_logsum_params.begin();
+																		itWorkersGrpByLogsumParams  != workers_grp_by_logsum_params.end();
+																		++itWorkersGrpByLogsumParams )
+			{
+				WorkersGrpByLogsumParams* this_row = new WorkersGrpByLogsumParams(*itWorkersGrpByLogsumParams );
+				workersGrpByLogsumParams.push_back(this_row);
+				workersGrpByLogsumParamsById.insert(std::make_pair(this_row->getIndividualId(), this_row));
+			}
+
+			PrintOutV("Number of WorkersGrpByLogsumParams: " << workersGrpByLogsumParams.size() << std::endl );
+		}
+
+
 		loadData<LogsumMtzV2Dao>( conn, logsumMtzV2, logsumMtzV2ById, &LogsumMtzV2::getTazId );
 		PrintOutV("Number of LogsumMtzV2: " << logsumMtzV2.size() << std::endl );
 
@@ -1519,8 +1541,9 @@ void HM_Model::startImpl()
 		loadData<AlternativeHedonicPriceDao>( conn, alternativeHedonicPrice, alternativeHedonicPriceById, &AlternativeHedonicPrice::getId );
 		PrintOutV("Number of Alternative Hedonic Price rows: " << alternativeHedonicPrice.size() << std::endl );
 
-		loadData<IndvidualEmpSecDao>( conn, indEmpSecList, indEmpSecbyIndId, &IndvidualEmpSec::getIndvidualId );
-		PrintOutV("Number of Indvidual Emp Sec rows: " << indEmpSecList.size() << std::endl );
+		//::TODO::uncomment after Diem finalized job and emp sec tables. gishara
+		//loadData<IndvidualEmpSecDao>( conn, indEmpSecList, indEmpSecbyIndId, &IndvidualEmpSec::getIndvidualId );
+		//PrintOutV("Number of Indvidual Emp Sec rows: " << indEmpSecList.size() << std::endl );
 
 		if(resume)
 		{
@@ -1726,6 +1749,7 @@ void HM_Model::startImpl()
 	//assign empty units to freelance housing agents
 	for (UnitList::const_iterator it = units.begin(); it != units.end(); it++)
 	{
+		boost::gregorian::date occupancyDate = boost::gregorian::date_from_tm((*it)->getOccupancyFromDate());
 		boost::gregorian::date saleDate = boost::gregorian::date_from_tm((*it)->getSaleFromDate());
 		boost::gregorian::date simulationDate = boost::gregorian::date(HITS_SURVEY_YEAR, 1, 1);
 		int unitStartDay = startDay;
@@ -1740,7 +1764,7 @@ void HM_Model::startImpl()
 		(*it)->setTimeOffMarket( 1 + (float)rand() / RAND_MAX * config.ltParams.housingModel.timeOffMarket);
 
 		//this unit is a vacancy
-		if (assignedUnits.find((*it)->getId()) == assignedUnits.end())
+		if( assignedUnits.find((*it)->getId()) == assignedUnits.end())
 		{
 			if( (*it)->getUnitType() != NON_RESIDENTIAL_PROPERTY && (*it)->getTenureStatus() != 0 )
 			{
@@ -1762,9 +1786,11 @@ void HM_Model::startImpl()
 			}
 			else
 			{
-				(*it)->setbiddingMarketEntryDay( -1 );
+				(*it)->setbiddingMarketEntryDay( 999999 );
 			}
 		}
+
+
 
 		{
 			Unit *thisUnit = (*it);
@@ -1972,8 +1998,8 @@ void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId)
 		if( !hitsSample )
 			return;
 
-		if(logsumUniqueCounter.find(hitsSample->getHouseholdHitsId()) == logsumUniqueCounter.end())
-			logsumUniqueCounter.insert(hitsSample->getHouseholdHitsId());
+		if(logsumUniqueCounter_str.find(hitsSample->getHouseholdHitsId()) == logsumUniqueCounter_str.end())
+			logsumUniqueCounter_str.insert(hitsSample->getHouseholdHitsId());
 		else
 			return;
 	}
@@ -2006,18 +2032,10 @@ void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId)
 			}
 		}
 
-		Taz *tazObjW = getTazById( tazIdW );
-	    std::string tazStrW;
-		if( tazObjW != NULL )
-			tazStrW = tazObjW->getName();
-		BigSerial tazW = std::atoi( tazStrW.c_str() );
 
-		Taz *tazObjH = getTazById( tazIdH );
-	    std::string tazStrH;
-		if( tazObjH != NULL )
-			tazStrH = tazObjH->getName();
-		BigSerial tazH = std::atoi( tazStrH.c_str() );
 
+		BigSerial tazW = 0;
+		BigSerial tazH = 0;
 
 		{
 			PersonParams personParams;
@@ -2025,6 +2043,21 @@ void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId)
 			Job *job = this->getJobById(thisIndividual->getJobId());
 			Establishment *establishment = this->getEstablishmentById(	job->getEstablishmentId());
 			const Unit *unit = this->getUnitById(currentHousehold->getUnitId());
+
+
+			int work_taz_id = this->getEstablishmentTazId( establishment->getId() );
+			Taz *tazObjW = getTazById( work_taz_id );
+			std::string tazStrW;
+			if( tazObjW != NULL )
+				tazStrW = tazObjW->getName();
+			tazW = std::atoi( tazStrW.c_str() );
+
+			Postcode *postcode = this->getPostcodeById( unit->getSlaAddressId());
+			Taz *tazObjH = getTazById( postcode->getTazId() );
+			std::string tazStrH;
+			if( tazObjH != NULL )
+				tazStrH = tazObjH->getName();
+			tazH = std::atoi( tazStrH.c_str() );
 
 			personParams.setPersonId(boost::lexical_cast<std::string>(thisIndividual->getId()));
 			personParams.setPersonTypeId(thisIndividual->getEmploymentStatusId());
@@ -2170,8 +2203,8 @@ void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId)
 
 		simulationStopCounter++;
 
-		printHouseholdHitsLogsumFVO( hitsSample->getHouseholdHitsId(), paxId, householdId, householdIndividualIds[n], thisIndividual->getMemberId(), tazH, tazW, logsum, travelProbability, tripsExpected );
-		PrintOutV( simulationStopCounter << ". " << hitsIndividualLogsum[p]->getHitsId() << ", " << paxId << ", " << hitsSample->getHouseholdHitsId() << ", " << householdId << ", " << thisIndividual->getMemberId()
+		printHouseholdHitsLogsumFVO( hitsSample->getHouseholdHitsId(), paxId, currentHousehold->getId(), householdIndividualIds[n], thisIndividual->getMemberId(), tazH, tazW, logsum, travelProbability, tripsExpected );
+		PrintOutV( simulationStopCounter << ". " << hitsIndividualLogsum[p]->getHitsId() << ", " << paxId << ", " << hitsSample->getHouseholdHitsId() << ", " << currentHousehold->getId() << ", " << thisIndividual->getMemberId()
 										 << ", " << householdIndividualIds[n] << ", " << tazH << ", " << tazW << ", "
 										 << std::setprecision(5)
 										 << logsum[0]  << ", " << logsum[1] << ", " << logsum[2] << ", " << logsum[3] << ", "<< logsum[4]  << ", " << logsum[5] << ", "
@@ -2199,6 +2232,14 @@ void HM_Model::getLogsumOfVaryingHomeOrWork(BigSerial householdId)
 
 		if( !currentHousehold )
 			return;
+
+
+		/*
+		if(logsumUniqueCounter.find(hitsSample->getHouseholdHitsId()) == logsumUniqueCounter.end())
+			logsumUniqueCounter.insert(hitsSample->getHouseholdHitsId());
+		else
+			return;
+		*/
 	}
 
 	Household *currentHousehold = getHouseholdById( householdId );
@@ -2209,17 +2250,38 @@ void HM_Model::getLogsumOfVaryingHomeOrWork(BigSerial householdId)
 	{
 		Individual *thisIndividual = this->getIndividualById(householdIndividualIds[n]);
 
-		string customId = to_string(hitsSample->getHouseholdHitsId()) + "-" + to_string(thisIndividual->getMemberId());
 
-		if(logsumUniqueCounter.find(customId) == logsumUniqueCounter.end())
-			logsumUniqueCounter.insert(customId);
-		else
-			continue;
+		/*
+		 *This commented code lumps individuals by their person param unique characteristics to speed up logsum computation
+        {
+
+			if(!( thisIndividual->getId() >= 0 && thisIndividual->getId() < 10000000 ))
+				continue;
+
+			boost::mutex::scoped_lock lock( mtx6 );
+
+			auto groupId = workersGrpByLogsumParamsById.find(thisIndividual->getId());
+
+			if( groupId == workersGrpByLogsumParamsById.end())
+					continue;
+
+			if( logsumUniqueCounter.find(groupId->second->getLogsumCharacteristicsGroupId()) == logsumUniqueCounter.end())
+					logsumUniqueCounter.insert( groupId->second->getLogsumCharacteristicsGroupId() );
+			else
+					continue;
+        }
+        */
+
+
 
 		int vehicleOwnership = 0;
 
 		if( thisIndividual->getVehicleCategoryId() > 0)
 			vehicleOwnership = 1;
+
+		//only uncomment this for worker logsums
+		//if( thisIndividual->getEmploymentStatusId() > 3 )
+		//	continue;
 
 		vector<double> logsum;
 		vector<double> travelProbability;
@@ -2261,15 +2323,17 @@ void HM_Model::getLogsumOfVaryingHomeOrWork(BigSerial householdId)
 
 		if( tazHome <= 0 )
 		{
-			PrintOutV( " individualId " << householdIndividualIds[n] << " has an empty home taz" << std::endl);
+			//PrintOutV( " individualId " << householdIndividualIds[n] << " has an empty home taz" << std::endl);
 			AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, (boost::format( "individualId %1% has an empty home taz.") % householdIndividualIds[n]).str());
 		}
 
 		if( tazWork <= 0 )
 		{
-			PrintOutV( " individualId " << householdIndividualIds[n] << " has an empty work taz" << std::endl);
+			//PrintOutV( " individualId " << householdIndividualIds[n] << " has an empty work taz" << std::endl);
 			AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, (boost::format( "individualId %1% has an empty work taz.") % householdIndividualIds[n]).str());
 		}
+
+		vector<double>tazIds;
 
 		for( int m = 1; m <= this->tazs.size(); m++)
 		{
@@ -2287,6 +2351,8 @@ void HM_Model::getLogsumOfVaryingHomeOrWork(BigSerial householdId)
 
 			if( tazObjList->getStatus0812() == 3)
 				continue;
+			else
+				tazIds.push_back( tazObjList->getId() );
 
 			PersonParams personParams;
 
@@ -2337,9 +2403,20 @@ void HM_Model::getLogsumOfVaryingHomeOrWork(BigSerial householdId)
 			tripsExpected.push_back(tripsExpectedD);
 		}
 
-		printHouseholdHitsLogsum( "logsum", hitsSample->getHouseholdHitsId() , householdId, householdIndividualIds[n], thisIndividual->getMemberId(), logsum  );
-		printHouseholdHitsLogsum( "travelProbability", hitsSample->getHouseholdHitsId() , householdId, householdIndividualIds[n], thisIndividual->getMemberId(), travelProbability );
-		printHouseholdHitsLogsum( "tripsExpected", hitsSample->getHouseholdHitsId() , householdId, householdIndividualIds[n], thisIndividual->getMemberId(), tripsExpected );
+		static bool printTitle = true;
+		if(printTitle)
+		{
+			printTitle = false;
+			printHouseholdHitsLogsum("title", "hitsId", "householdId", "individualId", "paxId", tazIds);
+		}
+
+
+		{
+			boost::mutex::scoped_lock lock( mtx5 );
+			printHouseholdHitsLogsum( "logsum", hitsSample->getHouseholdHitsId() , to_string(householdId), to_string(householdIndividualIds[n]), to_string(thisIndividual->getMemberId()), logsum  );
+		}
+		//printHouseholdHitsLogsum( "travelProbability", hitsSample->getHouseholdHitsId() , householdId, householdIndividualIds[n], thisIndividual->getMemberId(), travelProbability );
+		//printHouseholdHitsLogsum( "tripsExpected", hitsSample->getHouseholdHitsId() , householdId, householdIndividualIds[n], thisIndividual->getMemberId(), tripsExpected );
 	}
 }
 

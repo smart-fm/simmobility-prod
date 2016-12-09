@@ -269,7 +269,7 @@ namespace sim_mob {
 
             ROILimitsList getROILimits() const;
 
-            const ROILimits* getROILimitsByBuildingTypeId(BigSerial buildingTypeId) const;
+            const ROILimits* getROILimitsByDevelopmentTypeId(BigSerial devTypeId) const;
 
             std::vector<BigSerial> getBTOUnits(std::tm currentDate);
 
@@ -373,7 +373,7 @@ namespace sim_mob {
             BuildingAvgAgePerParcelMap BuildingAvgAgeByParceld;
             std::string  outputSchema;
             ROILimitsList roiLimits;
-            ROILimitsMap roiLimitsByBuildingTypeId;
+            ROILimitsMap roiLimitsByDevTypeId;
             UnitList btoUnits;
             UnitList ongoingBtoUnits;
             HedonicCoeffsList hedonicCoefficientsList;

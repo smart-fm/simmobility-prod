@@ -67,7 +67,6 @@ namespace
         if( response != NOT_AVAILABLE )
         	printBid(agent, bid, entry, bidsCounter, (response == ACCEPTED));
 
-        //save accepted bids to a vector, to be saved in op schema later.
         if(response == ACCEPTED)
         {
         	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
@@ -76,9 +75,12 @@ namespace
         	HM_Model* model = agent.getModel();
         	Unit* unit  = model->getUnitById(bid.getNewUnitId());
         	boost::shared_ptr<Unit> updatedUnit = boost::make_shared<Unit>((*unit));
+        	//set the sale status to "Launched and sold".
         	updatedUnit->setSaleStatus(3);
+        	//set the occupancy status to "Ready for occupancy and occupied"
         	updatedUnit->setOccupancyStatus(3);
         	updatedUnit->setOccupancyFromDate(getDateBySimDay(config.ltParams.year,(bid.getSimulationDay())));
+        	 //save accepted bids to a vector, to be saved in op schema later.
         	model->addUpdatedUnits(updatedUnit);
 
         	int UnitslaId = unit->getSlaAddressId();

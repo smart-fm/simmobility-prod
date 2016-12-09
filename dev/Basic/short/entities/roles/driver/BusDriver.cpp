@@ -13,8 +13,6 @@
 #include "DriverUpdateParams.hpp"
 #include "entities/BusStopAgent.hpp"
 #include "entities/Person_ST.hpp"
-#include "entities/vehicle/BusRoute.hpp"
-#include "entities/vehicle/Bus.hpp"
 #include "entities/BusController.hpp"
 #include "entities/roles/waitBusActivity/WaitBusActivity.hpp"
 #include "geospatial/network/Point.hpp"

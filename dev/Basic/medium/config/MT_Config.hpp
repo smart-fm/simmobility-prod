@@ -662,6 +662,12 @@ public:
 	std::set<SegmentStats*>& getSegmentStatsWithBusStops();
 
 	/**
+	 * Retrieves the segment stats with taxi stands
+	 * @return segment stats with taxi-stands
+	 */
+	std::set<SegmentStats*>& getSegmentStatsWithTaxiStands();
+
+	/**
 	 * Checks whether mid term supply is running
 	 *
 	 * @return true if mid term supply is running, else false
@@ -843,6 +849,9 @@ private:
 
 	/// array of speed density function parameters indexed by link category
 	SpeedDensityParams speedDensityParams[7];
+
+	/**set of segment stats with taxi-stands*/
+	std::set<SegmentStats*> segmentStatsWithTaxiStands;
 };
 }
 }

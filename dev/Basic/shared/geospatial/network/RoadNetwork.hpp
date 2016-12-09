@@ -14,6 +14,7 @@
 #include "TurningGroup.hpp"
 #include "TurningPath.hpp"
 #include "NetworkLoader.hpp"
+#include "TaxiStand.hpp"
 
 namespace sim_mob
 {
@@ -56,6 +57,9 @@ private:
 
 	/**This map stores all the bus stops in the network with bus stop id as the key*/
 	std::map<unsigned int, BusStop *> mapOfIdvsBusStops;
+
+	/**This map stores all the taxi stands in the network with taxi-stand id as the key*/
+	std::map<unsigned int, TaxiStand *> mapOfIdvsTaxiStand;
 
 	/**Private constructor as the class is a singleton*/
 	RoadNetwork();
@@ -161,6 +165,12 @@ public:
 	 * @param stop - the pointer to bus stop
 	 */
 	void addBusStop(BusStop *stop);
+
+	/**
+	 * Adds a taxi stand to the road network
+	 * @param stand - the pointer to taxi-stand
+	 */
+	void addTaxiStand(TaxiStand* stand);
 
 	/**
 	 * Template class to lookup any map with an unsigned int id

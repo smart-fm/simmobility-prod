@@ -66,6 +66,13 @@ public:
 	virtual Conflux* getDestinationConflux() const;
 
 	/**
+	 *get starting conflux
+	 *@return the starting conflux
+	 */
+	Conflux* getStartConflux() const;
+
+
+	/**
 	 * set parent reference to pedestrian.
 	 * @param parentPedestrian is pointer to parent pedestrian
 	 */
@@ -95,6 +102,18 @@ protected:
 
 	/**seconds in tick*/
 	double secondsInTick;
+
+	/**structure to store travel time for taxi trip*/
+	struct TravelTimeAtNode
+	{
+		/**record travel time at current link*/
+		double travelTime;
+		/**record position at node*/
+		const Node* node;
+	};
+
+	/**record the path from node to taxi-stand*/
+	std::queue<TravelTimeAtNode> travelPath;
 };
 
 }

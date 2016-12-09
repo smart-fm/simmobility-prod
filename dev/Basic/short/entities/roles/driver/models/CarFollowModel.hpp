@@ -9,7 +9,7 @@
 #include <set>
 #include <string>
 
-#include "conf/params/ParameterManager.hpp"
+#include "config/params/ParameterManager.hpp"
 #include "entities/models/Constants.hpp"
 #include "entities/roles/driver/Driver.hpp"
 #include "entities/roles/driver/DriverPathMover.hpp"

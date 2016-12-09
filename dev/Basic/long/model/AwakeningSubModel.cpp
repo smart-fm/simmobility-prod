@@ -18,6 +18,7 @@
 #include <stdlib.h>
 #include <vector>
 #include "util/PrintLog.hpp"
+#include "util/SharedFunctions.hpp"
 
 using namespace std;
 
@@ -191,7 +192,6 @@ namespace sim_mob
 
 			if( lifestyle == 1 && r2 < awaken_class1)
 			{
-				seller->setActive(true);
 				bidder->setActive(true);
 
 				printAwakening(day, household);
@@ -210,13 +210,13 @@ namespace sim_mob
 					unit->setTimeOffMarket( 1 + config.ltParams.housingModel.timeOffMarket * (float)rand() / RAND_MAX);
 				}
 
+				household->setLastAwakenedDay(day);
 				model->incrementAwakeningCounter();
 				model->incrementLifestyle1HHs();
 			}
 			else
 			if( lifestyle == 2 && r2 < awaken_class2)
 			{
-				seller->setActive(true);
 				bidder->setActive(true);
 
 				printAwakening(day, household);
@@ -236,13 +236,13 @@ namespace sim_mob
 					unit->setTimeOffMarket( 1 + config.ltParams.housingModel.timeOffMarket * (float)rand() / RAND_MAX);
 				}
 
+				household->setLastAwakenedDay(day);
 				model->incrementAwakeningCounter();
 				model->incrementLifestyle2HHs();
 			}
 			else
 			if( lifestyle == 3 && r2 < awaken_class3)
 			{
-				seller->setActive(true);
 				bidder->setActive(true);
 
 				printAwakening(day, household);
@@ -261,6 +261,7 @@ namespace sim_mob
 					unit->setTimeOffMarket( 1 + config.ltParams.housingModel.timeOffMarket * (float)rand() / RAND_MAX);
 				}
 
+				household->setLastAwakenedDay(day);
 				model->incrementAwakeningCounter();
 				model->incrementLifestyle3HHs();
 			}
@@ -316,6 +317,21 @@ namespace sim_mob
 		    	if( !potentialAwakening)
 		    		continue;
 
+
+
+		    	int awakenDay = potentialAwakening->getLastAwakenedDay();
+
+				if(( potentialAwakening->getLastBidStatus() == 1 && day < config.ltParams.housingModel.awakeningModel.awakeningOffMarketSuccessfulBid + awakenDay ))
+				{
+					continue;
+				}
+
+				if(( potentialAwakening->getLastBidStatus() == 2 && day < config.ltParams.housingModel.awakeningModel.awakeningOffMarketUnsuccessfulBid + awakenDay ))
+				{
+					continue;
+
+				}
+
 		    	n++;
 
 		    	double movingRate = movingProbability(potentialAwakening, model ) / 100.0;
@@ -328,6 +344,7 @@ namespace sim_mob
 					continue;
 				}
 
+		    	potentialAwakening->setLastAwakenedDay(day);
                 model->incrementAwakeningCounter();
 		    	printAwakening(day, potentialAwakening);
 

@@ -278,7 +278,7 @@ namespace sim_mob
             /**
              * Getters & Setters 
              */
-            const Unit* getUnitById(BigSerial id) const;
+            Unit* getUnitById(BigSerial id) const;
             BigSerial getUnitTazId(BigSerial unitId) const;
             BigSerial getEstablishmentTazId(BigSerial establishmentId) const;
             const TazStats* getTazStats(BigSerial tazId) const;
@@ -376,10 +376,13 @@ namespace sim_mob
             int getStartDay() const;
             void addNewBids(boost::shared_ptr<Bid> &newBid);
             void addHouseholdUnits(boost::shared_ptr<HouseholdUnit> &newHouseholdUnit);
+            void addUpdatedUnits(boost::shared_ptr<Unit> &updatedUnit);
+            Unit* getUpdatedUnitById(BigSerial unitId);
             BigSerial getBidId();
             BigSerial getUnitSaleId();
             std::vector<boost::shared_ptr<Bid> > getNewBids();
             std::vector<boost::shared_ptr<HouseholdUnit> > getNewHouseholdUnits();
+            std::vector<boost::shared_ptr<Unit> > getUpdatedUnits();
             void addUnitSales(boost::shared_ptr<UnitSale> &unitSale);
             std::vector<boost::shared_ptr<UnitSale> > getUnitSales();
             void addHouseholdsTo_OPSchema(boost::shared_ptr<Household> &houseHold);
@@ -572,6 +575,8 @@ namespace sim_mob
             std::vector<boost::shared_ptr<Bid> > newBids;
             std::vector<boost::shared_ptr<UnitSale> > unitSales;
             std::vector<boost::shared_ptr<HouseholdUnit> > newHouseholdUnits;
+            std::vector<boost::shared_ptr<Unit> > updatedUnits;
+            UnitMap updatedUnitsById;
             BigSerial bidId;
             BigSerial unitSaleId;
             std::vector<boost::shared_ptr<Household> > hhWithBidsVector;

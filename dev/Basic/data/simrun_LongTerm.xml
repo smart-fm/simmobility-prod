@@ -21,21 +21,21 @@
             </database>
             
 	    <!-- internal ip for remote midterm server -->
-            <database id="fm_remote_mt6" dbtype="postgres">
+            <database id="fm_remote_mt" dbtype="postgres">
                 <host value="172.25.184.48"/>
                 <port value="5432"/>
                 <dbname value="simmobility"/>
             </database>
 
 	    <!-- hpc ip for remote midterm server -->
-            <database id="fm_remote_mt" dbtype="postgres">
+            <database id="fm_remote_mt2" dbtype="postgres">
                 <host value="172.25.184.156"/>
                 <port value="5432"/>
                 <dbname value="simmobility"/>
             </database>
 
             <!-- localhost for midterm server -->
-            <database id="fm_remote_mt2" dbtype="postgres">
+            <database id="fm_remote_mt6" dbtype="postgres">
                 <host value="localhost"/>
                 <port value="5432"/>
                 <dbname value="sim_mob_lt"/>
@@ -83,8 +83,8 @@
 	-->
 
 	<file-based-credential id="fm_remote_mt">
-	<!-- <file path="private/fm_remote.cred"/> -->
-	     <file path="private/fm_local.cred"/>
+	 <file path="private/fm_remote.cred"/>
+	   <!--  <file path="private/fm_local.cred"/> -->
 	</file-based-credential>
 
 	<plaintext-credential id="LT_cred">
@@ -120,7 +120,7 @@
 		<minLotSize value = "100.00" />
     	</developerModel>
 	<outputHouseholdLogsums enabled="false">
-	    <vehicleOwnershipLogsum value ="true"/>
+	    <vehicleOwnershipLogsum value ="false"/>
 	    <fixedHomeVariableWork value ="false"/>
 	    <fixedWorkVariableHome value ="false"/>
 	</outputHouseholdLogsums>
@@ -133,16 +133,19 @@
 		    <dailyHouseholdAwakenings value="400"/>
 		    <awakenModelShan value="false"/>
 		    <awakenModelRandom value="true"/>
-		    <awakenModelJingsi value="false"/>		
+		    <awakenModelJingsi value="false"/>	
+                    <awakeningOffMarketSuccessfulBid value="100"/>
+ 	             <awakeningOffMarketUnsuccessfulBid value="200"/>
 	    </awakeningModel>
 	    <vacantUnitActivationProbability value="0.375"/>
 	    <housingMarketSearchPercentage value="0.15"/>
 	    <housingMoveInDaysInterval value="30"/>
 	    <offsetBetweenUnitBuyingAndSelling value ="7"/>
 	    <bidderUnitsChoiceSet value = "50"/>
-	    <bidderBTOUnitsChoiceSet value = "12"/>
+	    <bidderBTOUnitsChoiceSet value = "10"/>
 	    <householdBiddingWindow value = "30" />
-	    <householdAwakeningPercentageByBTO value = "0.00001" />
+	    <householdAwakeningPercentageByBTO value = "0.05" />
+            <offsetBetweenUnitBuyingAndSellingAdvancedPurchase value = "30" />
         </housingModel>
 	<vehicleOwnershipModel enabled='false'>
 		<vehicleBuyingWaitingTimeInDays value= "1"/>

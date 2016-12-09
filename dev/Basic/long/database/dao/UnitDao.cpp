@@ -64,15 +64,62 @@ void UnitDao::toRow(Unit& data, Parameters& outParams, bool update)
 
 void UnitDao::insertUnit(Unit& unit,std::string schema)
 {
+	if(unit.isExistInDb())
+	{
 
-	const std::string DB_INSERT_UNIT_OP = "INSERT INTO " + APPLY_SCHEMA(schema, ".fm_unit_res")
-                		+ " (" + "fm_unit_id" + ", " + "fm_building_id" + ", " + "sla_address_id"
-                		+ ", " + "unit_type" + ", " + "storey_range" + ", "
-                		+ "construction_status" + ", " + "floor_area"  + ", "+ "storey" + ", " + "monthly_rent" + ", "
-                		+ "sale_from_date" + ", " + "occupancy_from_date"  + ", " + "sale_status"
-                		+ ", "+ "occupancy_status"  + ", " + "last_changed_date" + ", " + "total_price"+ ", " + "value_date" + ", " + "tenure_status"
-                		+ ") VALUES (:v1, :v2, :v3, :v4, :v5, :v6, :v7, :v8, :v9, :v10, :v11, :v12, :v13, :v14, :v15, :v16, :v17)";
-	insertViaQuery(unit,DB_INSERT_UNIT_OP);
+		db::Parameters outParams;
+		outParams.push_back(unit.getId());
+		outParams.push_back(unit.getBuildingId());
+		outParams.push_back(unit.getSlaAddressId());
+		outParams.push_back(unit.getUnitType());
+		outParams.push_back(unit.getStoreyRange());
+		outParams.push_back(unit.getConstructionStatus());
+		outParams.push_back(unit.getFloorArea());
+		outParams.push_back(unit.getStorey());
+		outParams.push_back(unit.getMonthlyRent());
+		outParams.push_back(unit.getSaleFromDate());
+		outParams.push_back(unit.getOccupancyFromDate());
+		outParams.push_back(unit.getSaleStatus());
+		outParams.push_back(unit.getOccupancyStatus());
+		outParams.push_back(unit.getLastChangedDate());
+		outParams.push_back(unit.getTotalPrice());
+		outParams.push_back(unit.getValueDate());
+		outParams.push_back(unit.getTenureStatus());
+
+		const std::string DB_UPDATE_UNIT = "UPDATE "	+ APPLY_SCHEMA(schema, ".fm_unit_res") + " SET "
+				+ "fm_building_id" + "= :v1, "
+				+ "sla_address_id" + "= :v2, "
+				+ "unit_type"  + "= :v3, "
+				+ "storey_range" + "= :v4, "
+				+ "construction_status" + "= :v5, "
+				+ "floor_area" + "= :v6, "
+				+ "storey" + "= :v7, "
+				+ "monthly_rent" + "= :v8, "
+				+ "sale_from_date" + "= :v9, "
+				+ "occupancy_from_date" + "= :v10, "
+				+ "sale_status" + "= :v11, "
+				+ "occupancy_status" + "= :v12, "
+				+ "last_changed_date" + "= :v13, "
+				+ "total_price" + "= :v14, "
+				+ "value_date" + "= :v15, "
+				+ "tenure_status"
+				+ "= :v16 WHERE "
+				+ "fm_unit_id" + "=:v17";
+		executeQueryWithParams(unit,DB_UPDATE_UNIT,outParams);
+	}
+
+	else
+	{
+
+		const std::string DB_INSERT_UNIT_OP = "INSERT INTO " + APPLY_SCHEMA(schema, ".fm_unit_res")
+                				+ " (" + "fm_unit_id" + ", " + "fm_building_id" + ", " + "sla_address_id"
+								+ ", " + "unit_type" + ", " + "storey_range" + ", "
+								+ "construction_status" + ", " + "floor_area"  + ", "+ "storey" + ", " + "monthly_rent" + ", "
+								+ "sale_from_date" + ", " + "occupancy_from_date"  + ", " + "sale_status"
+								+ ", "+ "occupancy_status"  + ", " + "last_changed_date" + ", " + "total_price"+ ", " + "value_date" + ", " + "tenure_status"
+								+ ") VALUES (:v1, :v2, :v3, :v4, :v5, :v6, :v7, :v8, :v9, :v10, :v11, :v12, :v13, :v14, :v15, :v16, :v17)";
+		insertViaQuery(unit,DB_INSERT_UNIT_OP);
+		}
 
 }
 
@@ -89,11 +136,9 @@ std::vector<Unit*> UnitDao::getUnitsByBuildingId(const long long buildingId,std:
 
 std::vector<Unit*> UnitDao::getBTOUnits(std::tm currentSimYear)
 {
-	const std::string DB_GETALL_BTO_UNITS = "SELECT * FROM " + APPLY_SCHEMA(MAIN_SCHEMA, "fm_unit_res") + " WHERE  occupancy_from_date > sale_from_date and sale_from_date > :v1;";
-	db::Parameters params;
-	params.push_back(currentSimYear);
+	const std::string DB_GETALL_BTO_UNITS = "select * from  synpop12.fm_unit_res where unit_type <=5 and to_char(sale_from_date, 'yyyymmdd') > '20050101' and to_char(sale_from_date, 'yyyymmdd') <> '99990101' and sale_status=2 and occupancy_status =1;";
 	std::vector<Unit*> BTOUnitList;
-	getByQueryId(DB_GETALL_BTO_UNITS,params, BTOUnitList);
+	getByQuery(DB_GETALL_BTO_UNITS,BTOUnitList);
 	return BTOUnitList;
 }
 

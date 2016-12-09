@@ -64,6 +64,7 @@ struct LongTermParams
 		int bidderBTOUnitsChoiceSet;
 		int householdBiddingWindow;
 		float householdAwakeningPercentageByBTO;
+		int offsetBetweenUnitBuyingAndSellingAdvancedPurchase;
 
 		struct AwakeningModel
 		{
@@ -73,6 +74,8 @@ struct LongTermParams
 			bool awakenModelJingsi;
 			bool awakenModelShan;
 			bool awakenModelRandom;
+			int awakeningOffMarketSuccessfulBid;
+			int awakeningOffMarketUnsuccessfulBid;
 		} awakeningModel;
 	} housingModel;
 

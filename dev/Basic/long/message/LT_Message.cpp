@@ -62,7 +62,10 @@ HM_ActionMessage::HM_ActionMessage(Building &building)
 
 HM_ActionMessage::HM_ActionMessage(BigSerial unitId)
 :unitId(unitId),buildingId(INVALID_ID), buildingFutureDemolitionDate(std::tm()), unit(nullptr),building(nullptr){
+}
 
+HM_ActionMessage::HM_ActionMessage(std::vector<BigSerial> btoUnitIds)
+:unitId(unitId),buildingId(INVALID_ID), buildingFutureDemolitionDate(std::tm()), unit(nullptr),building(nullptr),btoUnitIdVec(btoUnitIds){
 }
 
 HM_ActionMessage::~HM_ActionMessage() {
@@ -88,4 +91,9 @@ Unit *HM_ActionMessage::getUnit() const
 Building  *HM_ActionMessage::getBuilding() const
 {
 	return building;
+}
+
+std::vector<BigSerial> HM_ActionMessage::getBtoUnitIdVec() const
+{
+	return btoUnitIdVec;
 }

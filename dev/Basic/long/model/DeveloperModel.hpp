@@ -271,7 +271,7 @@ namespace sim_mob {
 
             const ROILimits* getROILimitsByDevelopmentTypeId(BigSerial devTypeId) const;
 
-            UnitList getBTOUnits(std::tm currentDate);
+            std::vector<BigSerial> getBTOUnits(std::tm currentDate);
 
             void loadHedonicCoeffs(DB_Connection &conn);
 

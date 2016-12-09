@@ -34,7 +34,7 @@ namespace sim_mob
         class HouseholdAgent : public Agent_LT
         {
         public:
-            HouseholdAgent(BigSerial id, HM_Model* model, Household* hh, HousingMarket* market, bool marketSeller = false, int day = 0, int householdBiddingWindow = 0, int awakeningDay = 0);
+            HouseholdAgent(BigSerial id, HM_Model* model, Household* hh, HousingMarket* market, bool marketSeller = false, int day = 0, int householdBiddingWindow = 0, int awakeningDay = 0, bool acceptedBid = false);
             virtual ~HouseholdAgent();
             
             enum VehicleOwnershipOption
@@ -63,6 +63,10 @@ namespace sim_mob
             HouseholdSellerRole* getSeller();
 
             bool getFutureTransitionOwn();
+
+            void setAcceptedBid(bool isAccepted);
+
+            void setBTOUnit(bool value);
         
         protected:
             /**
@@ -104,7 +108,7 @@ namespace sim_mob
              * @param args
              */
             void processExternalEvent(const ExternalEventArgs& args);
-            
+
 
         private:
             HM_Model* model;
@@ -126,6 +130,8 @@ namespace sim_mob
             bool futureTransitionOwn; //If awakened, will the household choose to rent or own a unit? If true, this household will choose to own.
 
             int awakeningDay;
+            bool acceptedBid;
+            bool btoUnit;
 
         };
     }

@@ -432,7 +432,7 @@ Awakening* HM_Model::getAwakeningById( BigSerial id) const
 	return nullptr;
 }
 
-const Unit* HM_Model::getUnitById(BigSerial id) const
+Unit* HM_Model::getUnitById(BigSerial id) const
 {
 	UnitMap::const_iterator itr = unitsById.find(id);
 	if (itr != unitsById.end())
@@ -1353,7 +1353,7 @@ void HM_Model::setTaxiAccess2012(const Household *household)
 		std::uniform_real_distribution<> dis(0.0, 1.0);
 		const double randomNum = dis(gen);
 
-		writeRandomNumsToFile(randomNum);
+		//writeRandomNumsToFile(randomNum);
 
 		if(randomNum < probabilityTaxiAccess)
 		{
@@ -1541,8 +1541,9 @@ void HM_Model::startImpl()
 		loadData<AlternativeHedonicPriceDao>( conn, alternativeHedonicPrice, alternativeHedonicPriceById, &AlternativeHedonicPrice::getId );
 		PrintOutV("Number of Alternative Hedonic Price rows: " << alternativeHedonicPrice.size() << std::endl );
 
-		loadData<IndvidualEmpSecDao>( conn, indEmpSecList, indEmpSecbyIndId, &IndvidualEmpSec::getIndvidualId );
-		PrintOutV("Number of Indvidual Emp Sec rows: " << indEmpSecList.size() << std::endl );
+		//::TODO::uncomment after Diem finalized job and emp sec tables. gishara
+		//loadData<IndvidualEmpSecDao>( conn, indEmpSecList, indEmpSecbyIndId, &IndvidualEmpSec::getIndvidualId );
+		//PrintOutV("Number of Indvidual Emp Sec rows: " << indEmpSecList.size() << std::endl );
 
 		if(resume)
 		{
@@ -1765,7 +1766,7 @@ void HM_Model::startImpl()
 		//this unit is a vacancy
 		if( assignedUnits.find((*it)->getId()) == assignedUnits.end())
 		{
-			if( (*it)->getUnitType() != NON_RESIDENTIAL_PROPERTY )
+			if( (*it)->getUnitType() != NON_RESIDENTIAL_PROPERTY && (*it)->getTenureStatus() != 0 )
 			{
 				float awakeningProbability = (float)rand() / RAND_MAX;
 
@@ -2686,6 +2687,30 @@ void HM_Model::addHouseholdUnits(boost::shared_ptr<HouseholdUnit> &newHouseholdU
 	DBLock.unlock();
 }
 
+void HM_Model::addUpdatedUnits(boost::shared_ptr<Unit> &updatedUnit)
+{
+	Unit *unit = getUpdatedUnitById(updatedUnit->getId());
+	if(unit != nullptr)
+	{
+		unit->setExistInDb(true);
+	}
+
+	DBLock.lock();
+	updatedUnits.push_back(updatedUnit);
+	updatedUnitsById.insert(std::make_pair((updatedUnit)->getId(), updatedUnit.get()));
+	DBLock.unlock();
+}
+
+Unit* HM_Model::getUpdatedUnitById(BigSerial unitId)
+{
+	UnitMap::const_iterator itr = updatedUnitsById.find(unitId);
+
+	if (itr != updatedUnitsById.end())
+	{
+		return itr->second;
+	}
+	return nullptr;
+}
 std::vector<boost::shared_ptr<UnitSale> > HM_Model::getUnitSales()
 {
 	return this->unitSales;
@@ -2699,6 +2724,11 @@ std::vector<boost::shared_ptr<Bid> > HM_Model::getNewBids()
 std::vector<boost::shared_ptr<HouseholdUnit> > HM_Model::getNewHouseholdUnits()
 {
 	return this->newHouseholdUnits;
+}
+
+std::vector<boost::shared_ptr<Unit> > HM_Model::getUpdatedUnits()
+{
+	return this->updatedUnits;
 }
 
 BigSerial HM_Model::getBidId()

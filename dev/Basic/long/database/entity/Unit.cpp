@@ -23,7 +23,7 @@ Unit::Unit( BigSerial id, BigSerial building_id, BigSerial sla_address_id, int u
 		     floor_area(floor_area), storey(storey), monthlyRent(monthlyRent), sale_from_date(sale_from_date), occupancyFromDate(occupancyFromDate),
 			 sale_status(sale_status), occupancyStatus(occupancyStatus), lastChangedDate(lastChangedDate),totalPrice(totalPrice),valueDate(valueDate),tenureStatus(tenureStatus),
 			 biddingMarketEntryDay(biddingMarketEntryDay),timeOnMarket(timeOnMarket), timeOffMarket(timeOffMarket), lagCoefficient(lagCoefficient),
-			 zoneHousingType(zoneHousingType), dwellingType(dwellingType), isBTO(isBTO){}
+			 zoneHousingType(zoneHousingType), dwellingType(dwellingType),isBTO(isBTO),existInDB(existInDB){}
 
 
 Unit::Unit(const Unit& source)
@@ -51,6 +51,7 @@ Unit::Unit(const Unit& source)
     this->lagCoefficient = source.lagCoefficient;
     this->zoneHousingType = source.zoneHousingType;
     this->dwellingType = source.dwellingType;
+    this->existInDB = source.existInDB;
     this->isBTO = source.isBTO;
 }
 
@@ -81,6 +82,7 @@ Unit& Unit::operator=(const Unit& source)
     this->lagCoefficient = source.lagCoefficient;
     this->zoneHousingType = source.zoneHousingType;
     this->dwellingType = source.dwellingType;
+    this->existInDB = source.existInDB;
     this->isBTO = source.isBTO;
 
     return *this;
@@ -316,8 +318,20 @@ bool  Unit::isBto() const
 }
 
 void  Unit::setBto(bool bto)
+
 {
-		isBTO = bto;
+	isBTO = bto;
+
+}
+
+bool Unit::isExistInDb() const
+{
+	return existInDB;
+}
+
+void Unit::setExistInDb(bool existInDb)
+{
+	existInDB = existInDb;
 }
 
 namespace sim_mob
@@ -347,7 +361,6 @@ namespace sim_mob
 						<< "\"lagCoefficient\":\"" << data.lagCoefficient << "\","
 						<< "\"zoneHousingType\":\"" << data.zoneHousingType << "\","
 						<< "\"dwellingType\":\"" << data.dwellingType << "\""
-						<< "\"isBTO\":\"" << data.isBTO << "\""
 						<< "}";
         }
     }

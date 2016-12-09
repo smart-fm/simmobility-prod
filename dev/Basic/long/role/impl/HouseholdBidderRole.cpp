@@ -425,6 +425,9 @@ void HouseholdBidderRole::HandleMessage(Message::MessageType type, const Message
                 	vehicleBuyingWaitingTimeInDays = config.ltParams.vehicleOwnershipModel.vehicleBuyingWaitingTimeInDays;
                 	int simulationEndDay = config.ltParams.days;
                 	year = config.ltParams.year;
+                	getParent()->getHousehold()->setLastBidStatus(1);
+            		getParent()->setAcceptedBid(true);
+            		//getParent()->setBTOUnit(newUnit->isBto());
 
                 	if(simulationEndDay < (moveInWaitingTimeInDays))
 
@@ -445,6 +448,7 @@ void HouseholdBidderRole::HandleMessage(Message::MessageType type, const Message
                 case NOT_ACCEPTED:
                 {
                     biddingEntry.incrementTries();
+                    getParent()->getHousehold()->setLastBidStatus(2);
                     break;
                 }
                 case BETTER_OFFER:
@@ -642,18 +646,29 @@ bool HouseholdBidderRole::pickEntryToBid()
     }
     else
     {
+    	//Temporary set to make sure we are entering unique entries to the BTO list
+    	std::set<int> btoEntriesMap;
+
         //Add x BTO units to the screenedUnit vector if the household is eligible for it
-        for(int n = 0, m = 0; n < entries.size() && m < config.ltParams.housingModel.bidderBTOUnitsChoiceSet; n++ )
+        for(int n = 0, m = 0; m < config.ltParams.housingModel.bidderBTOUnitsChoiceSet; n++)
         {
         	int offset = (float)rand() / RAND_MAX * ( entries.size() - 1 );
 
          	HousingMarket::ConstEntryList::const_iterator itr = entries.begin() + offset;
            	const HousingMarket::Entry* entry = *itr;
 
-        	if( entry->isBTO() == true )
+        	if( entry->isBTO() == true && btoEntriesMap.find(entry->getUnitId()) == btoEntriesMap.end())
         	{
+        		btoEntriesMap.insert(entry->getUnitId());
         		screenedEntries.push_back(entry);
         		m++;
+        	}
+
+        	//let's break if we really cannot find any BTOs after 1 million tries
+        	if( n > 1000000)
+        	{
+        		PrintOutV("[day " << day<< "] 1 million iterations reached for agent" << getParent()->getId() );
+        		break;
         	}
         }
 
@@ -697,13 +712,13 @@ bool HouseholdBidderRole::pickEntryToBid()
 
             bool flatEligibility = true;
 
- 			if( unit->isBto() && unit->getUnitType() == 2 && household->getTwoRoomHdbEligibility()  == false )
+ 			if( unit->getTenureStatus() == 0 && unit->getUnitType() == 2 && household->getTwoRoomHdbEligibility()  == false )
 				flatEligibility = false;
 
-			if( unit->isBto() && unit->getUnitType() == 3 && household->getThreeRoomHdbEligibility() == false )
+			if( unit->getTenureStatus() == 0 && unit->getUnitType() == 3 && household->getThreeRoomHdbEligibility() == false )
 				flatEligibility = false;
 
-			if( unit->isBto() && unit->getUnitType() == 4 && household->getFourRoomHdbEligibility() == false )
+			if( unit->getTenureStatus() == 0 && unit->getUnitType() == 4 && household->getFourRoomHdbEligibility() == false )
 				flatEligibility = false;
 
 
@@ -763,19 +778,12 @@ bool HouseholdBidderRole::pickEntryToBid()
             		maxEntry = entry;
             		maxWp = wp;
             		maxWtpe = wtp_e;
-
-                	boost::gregorian::date occupancydate = boost::gregorian::date_from_tm(unit->getOccupancyFromDate());
-
-                	if( simulationDate <  occupancydate )
-                	{
-                 		isBTO = true;
-                	}
             	}
             }
         }
     }
 
-    if( maxEntry && model->getUnitById(maxEntry->getUnitId())->isBto() )
+    if( maxEntry && model->getUnitById(maxEntry->getUnitId())->getTenureStatus()==0 )
     {
     	//When bidding on BTO units, we cannot bid above the asking price. So it's basically the ceiling we cannot exceed.
     	finalBid = maxEntry->getAskingPrice();

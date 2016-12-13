@@ -1709,6 +1709,8 @@ Person_MT* Conflux::pickupTaxiTraveler()
 	{
 		res = travelingPersons.front();
 		travelingPersons.pop_front();
+		res->currSubTrip->endLocationId = boost::lexical_cast<std::string>(this->getConfluxNode()->getNodeId());
+		res->currSubTrip->endLocationType = "NODE";
 		res->getRole()->collectTravelTime();
 		UpdateStatus status = res->checkTripChain(currFrame.ms());
 		status = res->checkTripChain(currFrame.ms());
@@ -1716,6 +1718,8 @@ Person_MT* Conflux::pickupTaxiTraveler()
 		{
 			return nullptr;
 		}
+		res->currSubTrip->startLocationId = boost::lexical_cast<std::string>(this->getConfluxNode()->getNodeId());
+		res->currSubTrip->startLocationType = "NODE";
 	}
 	return res;
 }

@@ -15,8 +15,8 @@
 namespace
 {
 const int DEFAULT_NUM_THREADS_DEMAND = 2; // default number of threads for demand
-const unsigned NUM_METERS_IN_KM = 1000;
-const unsigned NUM_SECONDS_IN_AN_HOUR = 3600;
+const float NUM_METERS_IN_KM = 1000;
+const float NUM_SECONDS_IN_AN_HOUR = 3600;
 const std::string EMPTY_STRING = std::string();
 
 unsigned int ProcessTimegranUnits(xercesc::DOMElement* node)

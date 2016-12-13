@@ -18,17 +18,20 @@
 #include "conf/ConfigParams.hpp"
 #include "config/MT_Config.hpp"
 #include "entities/BusStopAgent.hpp"
+#include "entities/TaxiStandAgent.hpp"
 #include "entities/conflux/SegmentStats.hpp"
 #include "entities/Entity.hpp"
 #include "entities/misc/TripChain.hpp"
 #include "entities/roles/activityRole/ActivityPerformer.hpp"
 #include "entities/roles/driver/DriverVariantFacets.hpp"
 #include "entities/roles/driver/TaxiDriverFacets.hpp"
+#include "entities/roles/driver/TaxiDriver.hpp"
 #include "entities/roles/driver/BusDriverFacets.hpp"
 #include "entities/roles/driver/DriverFacets.hpp"
 #include "entities/roles/passenger/PassengerFacets.hpp"
 #include "entities/roles/pedestrian/PedestrianFacets.hpp"
 #include "entities/roles/waitBusActivity/WaitBusActivityFacets.hpp"
+#include "entities/roles/waitTaxiActivity/WaitTaxiActivity.hpp"
 #include "entities/vehicle/VehicleBase.hpp"
 #include "event/args/EventArgs.hpp"
 #include "event/EventPublisher.hpp"
@@ -450,38 +453,65 @@ void  Conflux::processStartingAgents()
 	}
 }
 
-
+void Conflux::updateQueuingTaxiDriverAgent(Person_MT* person)
+{
+	updateAgent(person);
+}
 void Conflux::updateAgent(Person_MT* person)
 {
-	if (person->getLastUpdatedFrame() < currFrame.frame())
-	{	//if the person is being moved for the first time in this tick, reset person's remaining time to full tick size
-		person->remainingTimeThisTick = tickTimeInS;
-	}
-
-	//let the person know which worker is (indirectly) managing him
-	person->currWorkerProvider = currWorkerProvider;
-
-	//capture person info before update
-	PersonProps beforeUpdate(person, this);
-
-	//let the person move
-	UpdateStatus res = movePerson(currFrame, person);
-
-	//kill person if he's DONE
-	if (res.status == UpdateStatus::RS_DONE)
+	bool toMove = false;
+	if (person->getRole()->roleType == Role<Person_MT>::RL_TAXIDRIVER)
 	{
-		killAgent(person, beforeUpdate);
-		return;
+		TaxiDriver *taxiDriver = dynamic_cast<TaxiDriver*>(person->getRole());
+		if(taxiDriver)
+		{
+			if (taxiDriver->getDriveMode() != QUEUING_AT_TAXISTAND)
+			{
+				toMove = true;
+			}
+			else if(taxiDriver->getMovementFacet()->getToCallMovementTick())
+			{
+				toMove = true;
+			}
+		}
+	}
+	else
+	{
+		toMove = false;
 	}
 
-	//capture person info after update
-	PersonProps afterUpdate(person, this);
+	if(toMove == true)
+	{
+		if (person->getLastUpdatedFrame() < currFrame.frame())
+		{	//if the person is being moved for the first time in this tick, reset person's remaining time to full tick size
+			person->remainingTimeThisTick = tickTimeInS;
+		}
 
-	//perform house keeping
-	housekeep(beforeUpdate, afterUpdate, person);
+		//let the person know which worker is (indirectly) managing him
+		person->currWorkerProvider = currWorkerProvider;
 
-	//update person's handler registration with MessageBus, if required
-	updateAgentContext(beforeUpdate, afterUpdate, person);
+		//capture person info before update
+		PersonProps beforeUpdate(person, this);
+
+		//let the person move
+		UpdateStatus res = movePerson(currFrame, person);
+		//kill person if he's DONE
+		if (res.status == UpdateStatus::RS_DONE)
+		{
+			killAgent(person, beforeUpdate);
+			return;
+		}
+
+
+		//capture person info after update
+		PersonProps afterUpdate(person, this);
+
+		//perform house keeping
+		housekeep(beforeUpdate, afterUpdate, person);
+
+		//update person's handler registration with MessageBus, if required
+		updateAgentContext(beforeUpdate, afterUpdate, person);
+	}
 
 //	if(!(beforeUpdate.roleType == 5 && afterUpdate.roleType == 5))
 //	{
@@ -526,6 +556,14 @@ bool Conflux::handleRoleChange(PersonProps& beforeUpdate, PersonProps& afterUpda
 		}
 		break;
 	}
+	case Role<Person_MT>::RL_TRAVELPEDESTRIAN:
+	{
+		auto it = std::find(travelingPersons.begin(), travelingPersons.end(), person);
+		if (it != travelingPersons.end()) {
+			travelingPersons.erase(it);
+		}
+		break;
+	}
 	}
 
 	switch(afterUpdate.roleType)
@@ -546,6 +584,17 @@ bool Conflux::handleRoleChange(PersonProps& beforeUpdate, PersonProps& afterUpda
 	case Role<Person_MT>::RL_BUSDRIVER:
 	{
 		throw std::runtime_error("Bus drivers are created and dispatched by bus controller. Cannot change role to Bus driver");
+		break;
+	}
+	case Role<Person_MT>::RL_WAITTAXIACTIVITY:
+	{
+		WaitTaxiActivity* activity = dynamic_cast<WaitTaxiActivity*>(person->getRole());
+		if(activity){
+			TaxiStandAgent* taxiStandAgent = TaxiStandAgent::getTaxiStandAgent(activity->getTaxiStand());
+			if(taxiStandAgent){
+				messaging::MessageBus::SendMessage(taxiStandAgent, MSG_WAITING_PERSON_ARRIVAL, messaging::MessageBus::MessagePtr(new ArrivalAtStopMessage(person)));
+			}
+		}
 		break;
 	}
 	case Role<Person_MT>::RL_DRIVER: //fall through
@@ -1450,6 +1499,13 @@ Entity::UpdateStatus Conflux::callMovementFrameTick(timeslice now, Person_MT* pe
 	 */
 	while (person->remainingTimeThisTick > 0.0)
 	{
+
+		//if person is Taxi Driver and has just entered into Taxi Stand then break this loop
+		if(person->getHasEnteredTaxiStand())
+		{
+
+			return retVal;
+		}
 		if (!person->isToBeRemoved())
 		{
 			personRole->Movement()->frame_tick();
@@ -1642,7 +1698,7 @@ void Conflux::assignPersonToPedestrianlist(Person_MT* person)
 void Conflux::dropOffTaxiTraveler(Person_MT* person)
 {
 	if(person){
-		person->setToBeRemoved();
+		switchTripChainItem(person);
 	}
 }
 
@@ -1653,6 +1709,13 @@ Person_MT* Conflux::pickupTaxiTraveler()
 	{
 		res = travelingPersons.front();
 		travelingPersons.pop_front();
+		res->getRole()->collectTravelTime();
+		UpdateStatus status = res->checkTripChain(currFrame.ms());
+		status = res->checkTripChain(currFrame.ms());
+		if (status.status == UpdateStatus::RS_DONE)
+		{
+			return nullptr;
+		}
 	}
 	return res;
 }

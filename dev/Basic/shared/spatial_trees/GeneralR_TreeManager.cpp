@@ -4,9 +4,9 @@
  *  Created on: Nov 14, 2016
  *      Author: zhang huai peng
  */
-
+#ifndef _CLASS_RTREE_GENERAL_FUNCTIONS
 #include "spatial_trees/GeneralR_TreeManager.hpp"
-
+#else
 namespace sim_mob {
 template<typename T>
 GeneralR_TreeManager<T>::GeneralR_TreeManager() : rTree(nullptr)
@@ -31,7 +31,7 @@ void GeneralR_TreeManager<T>::update(const std::set<T*> &objectsForR_Tree)
 
 	std::vector<R_Value<T>> objects;
 	for (auto itr = objectsForR_Tree.begin(); itr != objectsForR_Tree.end(); ++itr) {
-		R_Point location((*itr)->xPos, (*itr)->yPos);
+		R_Point location((*itr)->getPosX(), (*itr)->getPosY());
 		R_Box box(location, location);
 		objects.push_back(std::make_pair(box, (*itr)));
 	}
@@ -56,6 +56,24 @@ std::vector<T const *> GeneralR_TreeManager<T>::objectsInBox(const R_Point &lowe
 	return objectsInBox;
 }
 
-
+template<typename T>
+const T* GeneralR_TreeManager<T>::searchNearestObject(double x, double y) const
+{
+	//searching region is inside 5km
+	const double distance = 5000;
+	R_Point lowerLeft(x-distance,y-distance);
+	R_Point upperRight(x+distance,y+distance);
+	const T* res = nullptr;
+	double dis = distance*distance;
+	std::vector<T const *> objects = objectsInBox(lowerLeft, upperRight);
+	for(auto it=objects.begin(); it!=objects.end(); it++) {
+		double r = ((*it)->getPosX()-x)*((*it)->getPosX()-x)+((*it)->getPosY()-y)*((*it)->getPosY()-y);
+		if(r<dis) {
+			dis = r;
+			res = (*it);
+		}
+	}
+	return res;
 }
-
+}
+#endif

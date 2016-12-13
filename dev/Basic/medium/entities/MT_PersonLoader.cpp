@@ -329,7 +329,7 @@ public:
 private:
 	std::vector<Person_MT*> persons;
 	std::vector<std::vector<TripChainItem*> > tripChainList;
-	static const int numThreads = 6;
+	static const int numThreads = 1;
 	boost::thread::id id;
 	bool isLoadPersonInfo;
 };
@@ -483,45 +483,17 @@ void MT_PersonLoader::loadPersonDemand()
 		//add trip and activity
 		unsigned int seqNo = personTripChain.size(); //seqNo of last trip chain item
 		sim_mob::Trip* constructedTrip = makeTrip(r, ++seqNo);
+		if(constructedTrip && constructedTrip->getMode() == "Taxi")
+		{
+			//just for unit testing setting the start time to 09:00:00am
+			constructedTrip->startTime = DailyTime(32400000);
+		}
+
 		if(constructedTrip) { personTripChain.push_back(constructedTrip); }
 		else { continue; }
 		if(!isLastInSchedule) { personTripChain.push_back(makeActivity(r, ++seqNo)); }
 		actCtr++;
 	}
-	/** just a dummy person for testing
-	 *
-	 *
-	 */
-	std::vector<TripChainItem*>& personTripChain = tripchains["TestPerson"];
-	Trip* trip = new Trip();
-	trip->sequenceNumber = 1;
-	trip->tripID = "TestPerson";
-	trip->itemType = TripChainItem::IT_TRIP;
-	//trip->purpose = "";
-	const RoadNetwork* rn = RoadNetwork::getInstance();
-	const Node* node = rn->getNodeById(10001);
-	trip->origin = WayPoint(node);
-	node = rn->getNodeById(15691);
-	trip->destination = WayPoint(node);
-	trip->originType = TripChainItem::LT_NODE;
-	trip->destinationType = TripChainItem::LT_NODE;
-	trip->travelMode = "TaxiTravel";
-	SubTrip *subTrip = new SubTrip();
-	subTrip->sequenceNumber = 1;
-	subTrip->tripID = "TestPerson";
-	subTrip->itemType = TripChainItem::IT_TRIP;
-	//trip->purpose = "";
-	node = rn->getNodeById(10001);
-	subTrip->origin = WayPoint(node);
-	node = rn->getNodeById(15691);
-	subTrip->destination = WayPoint(node);
-	subTrip->originType = TripChainItem::LT_NODE;
-	subTrip->destinationType = TripChainItem::LT_NODE;
-	subTrip->travelMode = "TaxiTravel";
-	subTrip->isTT_Walk = true;
-	trip->addSubTrip(*subTrip);
-	trip->startTime = DailyTime(27000000);//DailyTime(getRandomTimeInWindow(7.75,false));
-	personTripChain.push_back(trip);
 
 	if (!freightStoredProcName.empty())
 	{

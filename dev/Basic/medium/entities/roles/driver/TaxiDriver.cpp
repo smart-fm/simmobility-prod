@@ -44,13 +44,18 @@ namespace medium
 		}
 	}
 
+	Passenger* TaxiDriver::getPassenger()
+	{
+		return taxiPassenger;
+	}
+
 	Passenger * TaxiDriver::alightPassenger()
 	{
 		if(taxiPassenger != nullptr)
 		{
 			Passenger *passenger = taxiPassenger;
 			taxiPassenger = nullptr;
-			Person_MT *parentPerson = taxiPassenger->getParent();
+			Person_MT *parentPerson = passenger->getParent();
 			if(parentPerson)
 			{
 				MesoPathMover &pathMover = taxiDriverMovement->getMesoPathMover();
@@ -76,7 +81,7 @@ namespace medium
 		return taxiDriverMode;
 	}
 
-	Person *TaxiDriver::getParent()
+	Person_MT *TaxiDriver::getParent()
 	{
 		return parent;
 	}
@@ -90,51 +95,38 @@ namespace medium
 	{
 		//pick up the first person from the node and advance its trip chain
 		std::deque<Person_MT*> & travellingPersons = parentConflux->getTravellingPersons();
-		//if(travellingPersons.size()>0)
-		//{
-
-		    /*Person_MT *personToPickUp = *(travellingPersons.begin());
-			//DailyTime current(DailyTime(now.ms()));//.offsetMS_From(ConfigManager::GetInstance().FullConfig().simStartTime()));
-			personToPickUp->checkTripChain(now.ms());
+		Person_MT *personToPickUp = parentConflux->pickupTaxiTraveler();
+		if(personToPickUp)
+		{
 			Role<Person_MT>* curRole = personToPickUp->getRole();
-			//curRole->setArrivalTime(now.ms());
-			 *
-			 * */
-			Person_MT *personToPickUp = parentConflux->pickupTaxiTraveler();
-			if(personToPickUp)
+			sim_mob::medium::Passenger* passenger = dynamic_cast<sim_mob::medium::Passenger*>(curRole);
+			if (passenger)
 			{
-				Role<Person_MT>* curRole = personToPickUp->getRole();
-				sim_mob::medium::Passenger* passenger = dynamic_cast<sim_mob::medium::Passenger*>(curRole);
-				//if (passenger)
+				bool isAdded = addPassenger(passenger);
+				if(isAdded)
 				{
-					bool isAdded = addPassenger(passenger);
-					if(isAdded)
-					{
-						std::vector<SubTrip>::iterator subTripItr = personToPickUp->currSubTrip;
-						WayPoint personTravelDestination = (*subTripItr).destination;
-						const Node * personDestinationNode = personTravelDestination.node;
-						currentNode = destinationNode;
-						destinationNode = personDestinationNode;
-						const RoadNetwork* rn = RoadNetwork::getInstance();
-						const Node* node = rn->getNodeById(10021);
-						destinationNode = node;
-						std::vector<WayPoint> currentRouteChoice;
-						runRouteChoiceModel(currentNode,destinationNode,*subTripItr,currentRouteChoice);
-						taxiDriverMovement->addRouteChoicePath(currentRouteChoice,parentConflux);
-						taxiDriverMovement->setCurrentNode(currentNode);
-						taxiDriverMovement->setDestinationNode(destinationNode);
-						//passenger->setStartPoint(WayPoint(currentNode));
-						//passenger->Movement()->startTravelTimeMetric();
-						const DriverMode &mode = DRIVE_WITH_PASSENGER;
-						taxiDriverMode = mode;
-						driverMode = mode;
-					}
+					std::vector<SubTrip>::iterator subTripItr = personToPickUp->currSubTrip;
+					WayPoint personTravelDestination = (*subTripItr).destination;
+					const Node * personDestinationNode = personTravelDestination.node;
+					currentNode = destinationNode;
+					destinationNode = personDestinationNode;
+					//const RoadNetwork* rn = RoadNetwork::getInstance();
+					//const Node* node = rn->getNodeById(10021);
+					//destinationNode = node;
+					std::vector<WayPoint> currentRouteChoice;
+					runRouteChoiceModel(currentNode,destinationNode,*subTripItr,currentRouteChoice);
+					taxiDriverMovement->addRouteChoicePath(currentRouteChoice,parentConflux);
+					taxiDriverMovement->setCurrentNode(currentNode);
+					taxiDriverMovement->setDestinationNode(destinationNode);
+					//passenger->setStartPoint(WayPoint(currentNode));
+					//passenger->Movement()->startTravelTimeMetric();
+					const DriverMode &mode = DRIVE_WITH_PASSENGER;
+					taxiDriverMode = mode;
+					driverMode = mode;
 				}
 			}
-		//}
+		}
 	}
-
-
 
 	Role<Person_MT>* TaxiDriver::clone(Person_MT *parent) const
 	{

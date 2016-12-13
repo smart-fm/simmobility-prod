@@ -81,23 +81,17 @@ void PedestrianMovement::frame_init()
 			throw std::runtime_error("taxi trip is not correct");
 		}
 		const Node* source = subTrip.origin.node;
-		const Node * destination = subTrip.destination.node;
-		//const TaxiStand* stand = subTrip.destination.taxiStand;
-		//const Node* destination = stand->getRoadSegment()->getParentLink()->getFromNode();
+		const TaxiStand* stand = subTrip.destination.taxiStand;
+		const Node* destination = stand->getRoadSegment()->getParentLink()->getFromNode();
 		std::vector<WayPoint> path = StreetDirectory::Instance().SearchShortestDrivingPath<Node, Node>(*(source), *(destination));
+
 		for (auto itWayPts = path.begin(); itWayPts != path.end(); ++itWayPts)
 		{
 			if (itWayPts->type == WayPoint::LINK)
 			{
-				const Node* srcNode = itWayPts->link->getFromNode();
-				const Node* destNode = itWayPts->link->getToNode();
-				DynamicVector distVector(srcNode->getLocation().getX(),	srcNode->getLocation().getY(),
-						destNode->getLocation().getX(), destNode->getLocation().getY());
-				double distance = distVector.getMagnitude();
 				TravelTimeAtNode item;
-				item.node = destNode;
-				//item.travelTime = distance / walkSpeed;
-				item.travelTime = 50000;
+				item.node = itWayPts->link->getToNode();
+				item.travelTime = itWayPts->link->getLength() / walkSpeed;
 				travelPath.push(item);
 			}
 		}
@@ -160,6 +154,11 @@ const Node* PedestrianMovement::getDestNode()
 		destNd = subTrip.destination.busStop->getParentSegment()->getParentLink()->getToNode();
 		break;
 	}
+	case WayPoint::TAXI_STAND:
+	{
+		destNd = subTrip.destination.taxiStand->getRoadSegment()->getParentLink()->getFromNode();
+		break;
+	}
 	}
 	return destNd;
 }
@@ -167,8 +166,11 @@ const Node* PedestrianMovement::getDestNode()
 void PedestrianMovement::frame_tick()
 {
 	parentPedestrian->parent->setRemainingTimeThisTick(0);
+
 	if (parentPedestrian->roleType == Role<Person_MT>::RL_TRAVELPEDESTRIAN)
 	{
+		unsigned int tickMS = ConfigManager::GetInstance().FullConfig().baseGranMS();
+		parentPedestrian->setTravelTime(parentPedestrian->getTravelTime()+tickMS);
 		double tickSec = ConfigManager::GetInstance().FullConfig().baseGranSecond();
 		TravelTimeAtNode& front = travelPath.front();
 		if (front.travelTime < tickSec)

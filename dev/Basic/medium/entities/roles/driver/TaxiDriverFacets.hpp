@@ -32,6 +32,7 @@ namespace sim_mob
 			void addRouteChoicePath(std::vector<WayPoint> &currentRouteChoice,Conflux *);
 			void setCurrentNode(const Node * node);
 			void setDestinationNode(const Node * node);
+			bool isToBeRemovedFromTaxiStand();
 		private:
 			TaxiDriver *parentTaxiDriver = nullptr;
 			const Node * destinationNode = nullptr;
@@ -43,8 +44,10 @@ namespace sim_mob
 			bool isPathInitialized = false;
 			double waitingTimeAtTaxiStand = -1;
 			bool isFirstFrameTick = true;
-			TaxiStand *destinationTaxiStand = nullptr;
-			TaxiStand *previousTaxiStand = nullptr;
+			const TaxiStand *destinationTaxiStand = nullptr;
+			const TaxiStand *previousTaxiStand = nullptr;
+			bool toBeRemovedFromTaxiStand = false;
+			bool toCallMovTickInTaxiStand = false;
 			std::map<const Link*,int> mapOfLinksAndVisitedCounts;
 			std::vector<RoadSegment *> currentRoute= std::vector<RoadSegment *>();
 			std::vector<WayPoint> currentRouteChoice;
@@ -66,6 +69,10 @@ namespace sim_mob
 			void departFromTaxiStand();
 			void setPath(std::vector<const SegmentStats*>&path);
 			Conflux * getPrevConflux();
+
+		public:
+			void setToCallMovementTick(bool toCall);
+			bool getToCallMovementTick();
 
 		};
 

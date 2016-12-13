@@ -223,6 +223,7 @@ private:
 	 */
 	void updateAgent(Person_MT* person);
 
+
 	/**
 	 * calls frame_tick() of the movement facet for the person's role
 	 * @param now current time slice
@@ -660,6 +661,8 @@ public:
 	 * Lane groups are elicited based on the lane connections (turnings) of the last segment of the link.
 	 */
 	static void CreateLaneGroups();
+
+	void updateQueuingTaxiDriverAgent(Person_MT* person);
 
 	/**
 	 * exposes the Log() function for printing in output files

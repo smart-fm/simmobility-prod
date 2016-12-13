@@ -33,7 +33,7 @@ namespace sim_mob
 			void setCurrentNode(const Node *currNode);
 			void setDestinationNode(const Node *destinationNode);
 			const Node* getDestinationNode();
-			Person* getParent();
+			Person_MT* getParent();
 			const Node* getCurrentNode();
 			void checkPersonsAndPickUpAtNode(Conflux *parentConflux);
 			TaxiDriverMovement * getMovementFacet();
@@ -47,6 +47,8 @@ namespace sim_mob
 				driverMode = mode;
 			}
 			const DriverMode & getDriverMode() const;
+			Passenger* getPassenger();
+
 
 		private:
 			Passenger *taxiPassenger;

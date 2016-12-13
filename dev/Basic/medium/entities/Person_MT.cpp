@@ -78,6 +78,7 @@ requestedNextSegStats(nullptr), canMoveToNextSegment(NONE), currSegStats(nullptr
 prevRole(nullptr), currRole(nullptr), nextRole(nullptr), numTicksStuck(0)
 {
 	convertPublicTransitODsToTrips();
+	convertToTaxiTrips();
 	insertWaitingActivityToTrip();
 	assignSubtripIds();
 	if (!tripChain.empty())
@@ -91,6 +92,71 @@ Person_MT::~Person_MT()
 	safe_delete_item(prevRole);
 	safe_delete_item(currRole);
 	safe_delete_item(nextRole);
+}
+
+void Person_MT::convertToTaxiTrips()
+{
+	for (auto tripChainItemIt = tripChain.begin(); tripChainItemIt != tripChain.end(); ++tripChainItemIt) {
+		if ((*tripChainItemIt)->itemType == sim_mob::TripChainItem::IT_TRIP) {
+			TripChainItem* trip = (*tripChainItemIt);
+			std::string originId = boost::lexical_cast<std::string>(trip->origin.node->getNodeId());
+			std::string destId = boost::lexical_cast<std::string>(trip->destination.node->getNodeId());
+			trip->startLocationId = originId;
+			trip->endLocationId = destId;
+			auto& subTrips = (dynamic_cast<sim_mob::Trip*>(*tripChainItemIt))->getSubTripsRW();
+			auto itSubTrip = subTrips.begin();
+			std::vector<sim_mob::SubTrip> taxiTrip;
+			while (itSubTrip != subTrips.end())
+			{
+				if (itSubTrip->origin.type == WayPoint::NODE && itSubTrip->destination.type == WayPoint::NODE) {
+					if (itSubTrip->getMode() == "Taxi") {
+						double x = itSubTrip->origin.node->getLocation().getX();
+						double y = itSubTrip->origin.node->getLocation().getY();
+						const TaxiStand* stand = TaxiStand::allTaxiStandMap.searchNearestObject(x,y);
+						if(!stand)
+						{
+							Print()<<"[Taxi Trip] no nearby taxi-stand exists! "<<itSubTrip->origin.node->getNodeId()<<std::endl;
+							break;
+						}
+						SubTrip subTrip;
+						subTrip.setPersonID(-1);
+						subTrip.itemType = TripChainItem::getItemType("Trip");
+						subTrip.startTime = itSubTrip->startTime;
+						subTrip.origin = itSubTrip->origin;
+						subTrip.destination = WayPoint(stand);
+						subTrip.startLocationId = boost::lexical_cast<std::string>(itSubTrip->origin.node->getNodeId());
+						subTrip.startLocationType = "NODE";
+						subTrip.endLocationId = boost::lexical_cast<std::string>(stand->getStandId());
+						subTrip.endLocationType = "TAXI_STAND";
+						subTrip.travelMode = "TravelPedestrian";
+						subTrip.isTT_Walk = true;
+						taxiTrip.push_back(subTrip);
+						subTrip.origin = WayPoint(stand);
+						subTrip.destination = itSubTrip->destination;
+						subTrip.startLocationId = boost::lexical_cast<std::string>(stand->getStandId());
+						subTrip.startLocationType = "TAXI_STAND";
+						subTrip.endLocationId = boost::lexical_cast<std::string>(stand->getStandId());
+						subTrip.endLocationType = "TAXI_STAND";
+						subTrip.travelMode = "WaitingTaxiActivity";
+						taxiTrip.push_back(subTrip);
+						subTrip.origin = WayPoint(stand);
+						subTrip.destination = itSubTrip->destination;
+						subTrip.startLocationId = boost::lexical_cast<std::string>(stand->getStandId());
+						subTrip.startLocationType = "TAXI_STAND";
+						subTrip.endLocationId = boost::lexical_cast<std::string>(itSubTrip->destination.node->getNodeId());
+						subTrip.endLocationType = "NODE";
+						subTrip.travelMode = "TaxiTraveler";
+						taxiTrip.push_back(subTrip);
+					}
+				}
+				++itSubTrip;
+			}
+			if (!taxiTrip.empty()) {
+				subTrips = taxiTrip;
+			}
+		}
+	}
+
 }
 
 void Person_MT::convertPublicTransitODsToTrips()

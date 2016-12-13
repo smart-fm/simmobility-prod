@@ -128,7 +128,7 @@ void MesoPathMover::erasePathAfterCurrenrLink()
 	if(itr != path.end())
 	{
 		itr++;
-		while(itr != path.end() && (*itr)->getRoadSegment()->getParentLink() != currSegmentParentLink)
+		while(itr != path.end() && (*itr)->getRoadSegment()->getParentLink() == currSegmentParentLink)
 		{
 			itr++;
 		}

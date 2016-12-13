@@ -12,16 +12,16 @@
 #include "entities/Person_MT.hpp"
 namespace sim_mob
 {
+class TaxiStand;
 namespace medium
 {
-class TaxiStand;
 class WaitTaxiActivityBehavior;
 class WaitTaxiActivityMovement;
 class WaitTaxiActivity: public sim_mob::Role<Person_MT>, public UpdateWrapper<UpdateParams>
 {
 public:
 	explicit WaitTaxiActivity(Person_MT* parent, WaitTaxiActivityBehavior* behavior = nullptr,
-			WaitTaxiActivityMovement* movement = nullptr, std::string roleName = std::string("WaitTaxiActivity_"),
+			WaitTaxiActivityMovement* movement = nullptr, const TaxiStand* stand=nullptr, std::string roleName = std::string("WaitTaxiActivity_"),
 			Role<Person_MT>::Type roleType = Role<Person_MT>::RL_WAITTAXIACTIVITY);
 
 	virtual ~WaitTaxiActivity();
@@ -58,6 +58,11 @@ public:
 	 * @return waiting time
 	 */
 	unsigned int getWaitingTime() const;
+	/**
+	 * get referred taxi-stand
+	 * @return taxi-stand
+	 */
+	const TaxiStand* getTaxiStand() const;
 private:
 	friend class WaitTaxiActivityBehavior;
 	friend class WaitTaxiActivityMovement;

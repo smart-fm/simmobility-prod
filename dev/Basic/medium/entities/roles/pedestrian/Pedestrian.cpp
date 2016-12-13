@@ -31,7 +31,7 @@ Role<Person_MT>* sim_mob::medium::Pedestrian::clone(Person_MT *parent) const
 {
 	double walkSpeed = MT_Config::getInstance().getPedestrianWalkSpeed();
 	Role<Person_MT>::Type personRoleType = Role<Person_MT>::RL_PEDESTRIAN;
-	if (parent->currSubTrip->getMode() == "TaxiTravel")
+	if (parent->currSubTrip->getMode() == "TravelPedestrian")
 	{
 		personRoleType = Role<Person_MT>::RL_TRAVELPEDESTRIAN;
 	}

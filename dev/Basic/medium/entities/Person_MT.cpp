@@ -317,26 +317,12 @@ void Person_MT::initTripChain()
 	DailyTime startTime = (*currTripChainItem)->startTime;
 	if (src == "DAS_TripChain" || src == "AMOD_TripChain" || src == "BusController")
 	{
-		if(boost::iequals(getDatabaseId(),"Taxi123"))
-		{
-			int debug =1 ;
-			setStartTime(0);
-		}
-		else
-		{
-			startTime = DailyTime((*currTripChainItem)->startTime.offsetMS_From(ConfigManager::GetInstance().FullConfig().simStartTime()));
-			setStartTime((*currTripChainItem)->startTime.offsetMS_From(ConfigManager::GetInstance().FullConfig().simStartTime()));
-		}
-
+		startTime = DailyTime((*currTripChainItem)->startTime.offsetMS_From(ConfigManager::GetInstance().FullConfig().simStartTime()));
+		setStartTime((*currTripChainItem)->startTime.offsetMS_From(ConfigManager::GetInstance().FullConfig().simStartTime()));
 	}
 	else
 	{
 		setStartTime((*currTripChainItem)->startTime.getValue());
-	}
-	
-	if(boost::iequals(getDatabaseId(),"Taxi123"))
-	{
-		int degub =1;
 	}
 	else
 	{

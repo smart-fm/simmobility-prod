@@ -176,10 +176,6 @@ public:
 
 	void setCurrSegStats(const SegmentStats* currSegStats)
 	{
-		if(boost::iequals(getDatabaseId(),"Taxi123"))
-		{
-			int debug = 1;
-		}
 		this->currSegStats = currSegStats;
 	}
 

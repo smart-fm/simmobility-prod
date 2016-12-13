@@ -667,7 +667,6 @@ bool HouseholdBidderRole::pickEntryToBid()
         	//let's break if we really cannot find any BTOs after 1 million tries
         	if( n > 1000000)
         	{
-        		PrintOutV("[day " << day<< "] 1 million iterations reached for agent" << getParent()->getId() );
         		break;
         	}
         }
@@ -765,7 +764,18 @@ bool HouseholdBidderRole::pickEntryToBid()
             	double currentSurplus = 0;
 
             	if( entry->getAskingPrice() != 0 )
-            		computeBidValueLogistic( entry->getAskingPrice(), wp, currentBid, currentSurplus );
+            	{
+            		if( unit->getTenureStatus() == 0)
+            		{
+            			currentBid = entry->getAskingPrice();
+            			currentSurplus = wp - entry->getAskingPrice();
+
+            		}
+            		else
+			{
+            			computeBidValueLogistic( entry->getAskingPrice(), wp, currentBid, currentSurplus );
+			}
+            	}
             	else
             		PrintOutV("Asking price is zero for unit " << entry->getUnitId() << std::endl );
 

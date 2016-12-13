@@ -130,7 +130,7 @@
     <!-- List of all Worker types and their properties. -->
     <!-- granularity of each component must be a multiple of the "base" granularity -->
     <workers>
-        <person count="1" granularity="5 seconds"/> <!-- Person agents (with Roles) -->
+        <person count="7" granularity="5 seconds"/> <!-- Person agents (with Roles) -->
     </workers>
       
     <incidentsData enabled="false">

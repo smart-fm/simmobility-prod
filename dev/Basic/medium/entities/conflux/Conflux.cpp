@@ -424,6 +424,10 @@ void Conflux::processAgents()
 	getAllPersonsUsingTopCMerge(orderedPersons); //merge on-road agents of this conflux into a single list
 	orderedPersons.insert(orderedPersons.end(), activityPerformers.begin(), activityPerformers.end()); // append activity performers
 	orderedPersons.insert(orderedPersons.end(), travelingPersons.begin(), travelingPersons.end());
+	if(travelingPersons.size()>0)
+	{
+		int debug =1 ;
+	}
 	for (PersonList::iterator personIt = orderedPersons.begin(); personIt != orderedPersons.end(); personIt++) //iterate and update all persons
 	{
 		updateAgent(*personIt);
@@ -477,7 +481,7 @@ void Conflux::updateAgent(Person_MT* person)
 	}
 	else
 	{
-		toMove = false;
+		toMove = true;
 	}
 
 	if(toMove == true)
@@ -522,8 +526,13 @@ void Conflux::updateAgent(Person_MT* person)
 
 bool Conflux::handleRoleChange(PersonProps& beforeUpdate, PersonProps& afterUpdate, Person_MT* person)
 {
+
 	if(beforeUpdate.roleType == afterUpdate.roleType)
 	{
+		if(beforeUpdate.roleType == Role<Person_MT>::RL_TAXIPASSENGER)
+		{
+			return true;
+		}
 		return false; //no role change took place; simply return
 	}
 
@@ -556,6 +565,7 @@ bool Conflux::handleRoleChange(PersonProps& beforeUpdate, PersonProps& afterUpda
 		}
 		break;
 	}
+
 	case Role<Person_MT>::RL_TRAVELPEDESTRIAN:
 	{
 		auto it = std::find(travelingPersons.begin(), travelingPersons.end(), person);
@@ -756,6 +766,7 @@ void Conflux::housekeep(PersonProps& beforeUpdate, PersonProps& afterUpdate, Per
 				// we push this person back to the same virtual queue and let him update in the next tick.
 				person->distanceToEndOfSegment = afterUpdate.segStats->getLength();
 				afterUpdate.segStats->getParentConflux()->pushBackOntoVirtualQueue(afterUpdate.segment->getParentLink(), person);
+
 			}
 		}
 	}
@@ -1501,6 +1512,7 @@ Entity::UpdateStatus Conflux::callMovementFrameTick(timeslice now, Person_MT* pe
 	{
 
 		//if person is Taxi Driver and has just entered into Taxi Stand then break this loop
+		std::string id = person->getDatabaseId();
 		if(person->getHasEnteredTaxiStand())
 		{
 

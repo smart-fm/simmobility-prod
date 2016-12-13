@@ -49,6 +49,7 @@ void PassengerMovement::frame_tick()
 	unsigned int tickMS = ConfigManager::GetInstance().FullConfig().baseGranMS();
 	totalTimeToCompleteMS += tickMS;
 	parentPassenger->setTravelTime(totalTimeToCompleteMS);
+	parentPassenger->getParent()->setRemainingTimeThisTick(0);
 }
 
 std::string PassengerMovement::frame_tick_output()

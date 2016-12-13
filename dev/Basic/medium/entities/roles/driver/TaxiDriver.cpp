@@ -98,6 +98,7 @@ namespace medium
 		Person_MT *personToPickUp = parentConflux->pickupTaxiTraveler();
 		if(personToPickUp)
 		{
+			std::string id = personToPickUp->getDatabaseId();
 			Role<Person_MT>* curRole = personToPickUp->getRole();
 			sim_mob::medium::Passenger* passenger = dynamic_cast<sim_mob::medium::Passenger*>(curRole);
 			if (passenger)

@@ -317,6 +317,8 @@ void Person_MT::initTripChain()
 	DailyTime startTime = (*currTripChainItem)->startTime;
 	if (src == "DAS_TripChain" || src == "AMOD_TripChain" || src == "BusController")
 	{
+
+
 		startTime = DailyTime((*currTripChainItem)->startTime.offsetMS_From(ConfigManager::GetInstance().FullConfig().simStartTime()));
 		setStartTime((*currTripChainItem)->startTime.offsetMS_From(ConfigManager::GetInstance().FullConfig().simStartTime()));
 	}
@@ -324,21 +326,18 @@ void Person_MT::initTripChain()
 	{
 		setStartTime((*currTripChainItem)->startTime.getValue());
 	}
-	else
-	{
-		if ((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP)
-		{
-			currSubTrip = ((dynamic_cast<sim_mob::Trip*> (*currTripChainItem))->getSubTripsRW()).begin();
-			currSubTrip->startTime = startTime;
 
-			if (!updateOD(*currTripChainItem))
-			{
-				//Offer some protection
-				throw std::runtime_error("Trip/Activity mismatch, or unknown TripChainItem subclass.");
-			}
+	if ((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP)
+	{
+		currSubTrip = ((dynamic_cast<sim_mob::Trip*> (*currTripChainItem))->getSubTripsRW()).begin();
+		currSubTrip->startTime = startTime;
+
+		if (!updateOD(*currTripChainItem))
+		{
+			//Offer some protection
+			throw std::runtime_error("Trip/Activity mismatch, or unknown TripChainItem subclass.");
 		}
 	}
-
 	setNextPathPlanned(false);
 	isFirstTick = true;
 }

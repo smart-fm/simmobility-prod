@@ -646,29 +646,22 @@ bool HouseholdBidderRole::pickEntryToBid()
     }
     else
     {
-    	//Temporary set to make sure we are entering unique entries to the BTO list
-    	std::set<int> btoEntriesMap;
+    	HousingMarket *market = model->getMarket();
+    	set<BigSerial> btoEntries = market->getBTOEntries();
 
         //Add x BTO units to the screenedUnit vector if the household is eligible for it
-        for(int n = 0, m = 0; m < config.ltParams.housingModel.bidderBTOUnitsChoiceSet; n++)
+        for(int n = 0; m < config.ltParams.housingModel.bidderBTOUnitsChoiceSet && btoEntries.size() != 0; n++)
         {
-        	int offset = (float)rand() / RAND_MAX * ( entries.size() - 1 );
+        	int offset = (float)rand() / RAND_MAX * ( btoEntries.size() - 1 );
 
-         	HousingMarket::ConstEntryList::const_iterator itr = entries.begin() + offset;
-           	const HousingMarket::Entry* entry = *itr;
+        	auto itr =  btoEntries.begin();
+         	std::advance( itr, offset);
 
-        	if( entry->isBTO() == true && btoEntriesMap.find(entry->getUnitId()) == btoEntriesMap.end())
-        	{
-        		btoEntriesMap.insert(entry->getUnitId());
-        		screenedEntries.push_back(entry);
-        		m++;
-        	}
+         	const HousingMarket::Entry* entry = market->getEntryById(*itr);
 
-        	//let's break if we really cannot find any BTOs after 1 million tries
-        	if( n > 1000000)
-        	{
-        		break;
-        	}
+        	screenedEntries.push_back(entry);
+
+		btoEntries.erase(*itr);
         }
 
     	std::string choiceset(" ");
@@ -677,7 +670,7 @@ bool HouseholdBidderRole::pickEntryToBid()
     		choiceset += std::to_string( screenedEntries[n]->getUnitId() )  + ", ";
     	}
 
-    	printChoiceset(household->getId(), choiceset);
+    	printChoiceset(day, household->getId(), choiceset);
     }
 
    //PrintOutV("Screening  entries is now: " << screenedEntries.size() << std::endl );
@@ -769,12 +762,11 @@ bool HouseholdBidderRole::pickEntryToBid()
             		{
             			currentBid = entry->getAskingPrice();
             			currentSurplus = wp - entry->getAskingPrice();
-
             		}
             		else
-			{
+            		{
             			computeBidValueLogistic( entry->getAskingPrice(), wp, currentBid, currentSurplus );
-			}
+            		}
             	}
             	else
             		PrintOutV("Asking price is zero for unit " << entry->getUnitId() << std::endl );
@@ -791,12 +783,6 @@ bool HouseholdBidderRole::pickEntryToBid()
             	}
             }
         }
-    }
-
-    if( maxEntry && model->getUnitById(maxEntry->getUnitId())->getTenureStatus()==0 )
-    {
-    	//When bidding on BTO units, we cannot bid above the asking price. So it's basically the ceiling we cannot exceed.
-    	finalBid = maxEntry->getAskingPrice();
     }
 
     biddingEntry = CurrentBiddingEntry( (maxEntry) ? maxEntry->getUnitId() : INVALID_ID, finalBid, maxWp, maxSurplus, maxWtpe, maxAffordability );

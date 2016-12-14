@@ -214,6 +214,16 @@ size_t HousingMarket::getEntrySize()
 {
 	return entriesById.size();
 }
+
+size_t HousingMarket::getBTOEntrySize()
+{
+	return btoEntries.size();
+}
+
+std::set<BigSerial> HousingMarket::getBTOEntries()
+{
+	return btoEntries;
+}
             
 const HousingMarket::Entry* HousingMarket::getEntryById(const BigSerial& unitId)
 {
@@ -261,6 +271,9 @@ void HousingMarket::HandleMessage(Message::MessageType type, const Message& mess
                 //notify subscribers. FOR NOW we are not using this.
                 //MessageBus::PublishEvent(LTEID_HM_UNIT_ADDED, this,
                 //MessageBus::EventArgsPtr(new HM_ActionEventArgs(unitId)));
+
+               if( newEntry->isBTO() )
+            	   btoEntries.insert(unitId);
             }
             break;
         }
@@ -270,6 +283,9 @@ void HousingMarket::HandleMessage(Message::MessageType type, const Message& mess
             Entry* entry = getEntry(entriesById, msg.unitId);
             if (entry)
             {
+                if( entry->isBTO() )
+                	btoEntries.erase(entry->getUnitId());
+
                 BigSerial tazId = entry->getTazId();
                 //remove from the map by Taz.
                 if (mapContains(entriesByTazId, tazId))

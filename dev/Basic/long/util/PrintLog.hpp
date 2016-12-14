@@ -356,7 +356,7 @@ namespace sim_mob
 	    }
 
 
-	    inline void printChoiceset( BigSerial householdId, std::string choiceset)
+	    inline void printChoiceset( int day, BigSerial householdId, std::string choiceset)
 	    {
 	        static bool printHeader = true;
 
@@ -366,7 +366,7 @@ namespace sim_mob
 	        	printHeader = false;
 	        }
 
-	    	boost::format fmtr = boost::format("%1%, %2% ")% householdId % choiceset;
+	    	boost::format fmtr = boost::format("%1%, %2%, %3% ")% day % householdId % choiceset;
 
 	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_HHCHOICESET,fmtr.str());
 	    }

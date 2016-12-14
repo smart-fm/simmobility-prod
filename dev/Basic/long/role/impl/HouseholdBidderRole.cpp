@@ -650,7 +650,7 @@ bool HouseholdBidderRole::pickEntryToBid()
     	set<BigSerial> btoEntries = market->getBTOEntries();
 
         //Add x BTO units to the screenedUnit vector if the household is eligible for it
-        for(int n = 0; m < config.ltParams.housingModel.bidderBTOUnitsChoiceSet && btoEntries.size() != 0; n++)
+        for(int n = 0; n < config.ltParams.housingModel.bidderBTOUnitsChoiceSet && btoEntries.size() != 0; n++)
         {
         	int offset = (float)rand() / RAND_MAX * ( btoEntries.size() - 1 );
 

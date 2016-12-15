@@ -22,7 +22,7 @@ namespace sim_mob
 		{
 		public:
 			Establishment(BigSerial id =INVALID_ID, BigSerial firmId =INVALID_ID, BigSerial buildingId=INVALID_ID, BigSerial lifestyleId=INVALID_ID,
-						  BigSerial businessTypeId=INVALID_ID, int size=0, double revenue=0, double grossSqM=0, BigSerial slaAddressId =INVALID_ID);
+						  BigSerial businessTypeId=INVALID_ID, int size=0, double revenue=0, double grossSqM=0, BigSerial slaAddressId =INVALID_ID, int sectorId = 0);
 			~Establishment();
 
 			Establishment( const Establishment& source);
@@ -38,6 +38,7 @@ namespace sim_mob
 			void setRevenue(double val);
 			void setGrossSqM(double val);
 			void setSlaAddressId(BigSerial val);
+			void setSectorId(int val);
 
 			BigSerial getId() const;
 			BigSerial getFirmId() const;
@@ -48,6 +49,7 @@ namespace sim_mob
 			double	  getRevenue() const;
 			double	  getGrossSqM() const;
 			BigSerial getSlaAddressId() const;
+			int		  getSectorId() const;
 
 		   /**
 		    * Operator to print the Household data.
@@ -66,6 +68,7 @@ namespace sim_mob
 			double 		revenue;
 			double 		grossSqM;
 			BigSerial 	slaAddressId;
+			int			sectorId;
 		};
 	}
 }

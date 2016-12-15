@@ -362,11 +362,11 @@ namespace sim_mob
 
 	        if(printHeader)
 	        {
-	        	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_HHCHOICESET,"householdId, unitId1, unitId2, unitId3, unitId4, unitId5, unitId6, unitId7, unitId8, unitId9, unitId10, unitId11, unitId12, unitId13, unitId14, unitId15, unitId16, unitId17, unitId18, unitId19, unitId20, unitId21, unitId22, unitId23, unitId24, unitId25, unitId26, unitId27, unitId28, unitId29, unitId30, unitId31, unitId32, unitId33, unitId34, unitId35, unitId36, unitId37, unitId38, unitId39, unitId40, unitId41, unitId42, unitId43, unitId44, unitId45, unitId46, unitId47, unitId48, unitId49, unitId50, unitId51, unitId52, unitId53, unitId54, unitId55, unitId56, unitId57, unitId58, unitId59, unitId60, unitId61, unitId62, unitId63, unitId64, unitId65, unitId66, unitId67, unitId68, unitId69, unitId70");
+	        	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_HHCHOICESET,"day, householdId, unitId1, unitId2, unitId3, unitId4, unitId5, unitId6, unitId7, unitId8, unitId9, unitId10, unitId11, unitId12, unitId13, unitId14, unitId15, unitId16, unitId17, unitId18, unitId19, unitId20, unitId21, unitId22, unitId23, unitId24, unitId25, unitId26, unitId27, unitId28, unitId29, unitId30, unitId31, unitId32, unitId33, unitId34, unitId35, unitId36, unitId37, unitId38, unitId39, unitId40, unitId41, unitId42, unitId43, unitId44, unitId45, unitId46, unitId47, unitId48, unitId49, unitId50, unitId51, unitId52, unitId53, unitId54, unitId55, unitId56, unitId57, unitId58, unitId59, unitId60, unitId61, unitId62, unitId63, unitId64, unitId65, unitId66, unitId67, unitId68, unitId69, unitId70");
 	        	printHeader = false;
 	        }
 
-	    	boost::format fmtr = boost::format("%1%, %2%, %3% ")% day % householdId % choiceset;
+	    	boost::format fmtr = boost::format("%1%, %2%, %3%")% day % householdId % choiceset;
 
 	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_HHCHOICESET,fmtr.str());
 	    }

@@ -612,8 +612,6 @@ bool HouseholdBidderRole::pickEntryToBid()
     	HousingMarket::ConstEntryList::const_iterator itr = entries.begin() + offset;
     	const HousingMarket::Entry* entry = *itr;
 
-    	//std::multimap<BigSerial, Unit*>  unitByZHT = model->getUnitsByZoneHousingType();
-
         const Unit* thisUnit = model->getUnitById( entry->getUnitId() );
 
         if( thisUnit->getZoneHousingType() == zoneHousingType )
@@ -661,7 +659,7 @@ bool HouseholdBidderRole::pickEntryToBid()
 
         	screenedEntries.push_back(entry);
 
-		btoEntries.erase(*itr);
+        	btoEntries.erase(*itr);
         }
 
     	std::string choiceset(" ");

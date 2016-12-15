@@ -10,6 +10,7 @@
  */
 
 #include "core/AgentsLookup.hpp"
+#include <boost/date_time/gregorian/gregorian.hpp>
 
 namespace sim_mob
 {
@@ -414,8 +415,8 @@ namespace sim_mob
 	        const Unit* thisUnit = model->getUnitById(thisBidder->getUnitId());
 	        Postcode* thisPostcode = model->getPostcodeById( thisUnit->getSlaAddressId() );
 
-	        string saleFromDate = to_string(unit->getSaleFromDate().tm_mday) + "-" + to_string(unit->getSaleFromDate().tm_mon + 1) + "-" + to_string(unit->getSaleFromDate().tm_year + 1900);
-	        string occupancyFromDate = to_string(unit->getOccupancyFromDate().tm_mday) + "-" + to_string(unit->getOccupancyFromDate().tm_mon + 1) + "-" + to_string(unit->getOccupancyFromDate().tm_year + 1900);
+	        boost::gregorian::date saleFromDate 	 = boost::gregorian::date_from_tm(unit->getSaleFromDate());
+	        boost::gregorian::date occupancyFromDate = boost::gregorian::date_from_tm(unit->getOccupancyFromDate());
 
 	        boost::format fmtr = boost::format(LOG_BID) % bid.getSimulationDay()
 														% agent.getId()
@@ -438,8 +439,8 @@ namespace sim_mob
 														% type_id
 														% thisPostcode->getSlaPostcode()
 														% unitPostcode->getSlaPostcode()
-														% saleFromDate
-	        											% occupancyFromDate;
+														% boost::gregorian::to_iso_extended_string(saleFromDate)
+	        											% boost::gregorian::to_iso_extended_string(occupancyFromDate);
 
 	        AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::BIDS, fmtr.str());
 	        //PrintOut(fmtr.str() << endl);
@@ -478,9 +479,8 @@ namespace sim_mob
 	        const Unit* currentHHUnit = model->getUnitById(thisBidder->getUnitId());
 	        Postcode* thisPostcode = model->getPostcodeById( currentHHUnit->getSlaAddressId() );
 
-	        string saleFromDate = to_string(unit->getSaleFromDate().tm_mday) + "-" + to_string(unit->getSaleFromDate().tm_mon + 1) + "-" + to_string(unit->getSaleFromDate().tm_year + 1900);
-	        string occupancyFromDate = to_string(unit->getOccupancyFromDate().tm_mday) + "-" + to_string(unit->getOccupancyFromDate().tm_mon + 1) + "-" + to_string(unit->getOccupancyFromDate().tm_year + 1900);
-
+	        boost::gregorian::date saleFromDate 	 = boost::gregorian::date_from_tm(unit->getSaleFromDate());
+	        boost::gregorian::date occupancyFromDate = boost::gregorian::date_from_tm(unit->getOccupancyFromDate());
 
 	        boost::format fmtr = boost::format(LOG_BID) % bid.getSimulationDay()
 														% agent.getId()
@@ -503,8 +503,8 @@ namespace sim_mob
 														% type_id
 														% thisPostcode->getSlaPostcode()
 														% unitPostcode->getSlaPostcode()
-														% saleFromDate
-	        											% occupancyFromDate;
+														% boost::gregorian::to_iso_extended_string(saleFromDate)
+														% boost::gregorian::to_iso_extended_string(occupancyFromDate);
 
 	        AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::BIDS, fmtr.str());
 	    }

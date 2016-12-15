@@ -334,10 +334,12 @@ void Person_MT::convertPublicTransitODsToTrips(PT_Network& ptNetwork,const std::
 		{
 			unsigned int start_time = ((*tripChainItemIt)->startTime.offsetMS_From(ConfigManager::GetInstance().FullConfig().simStartTime())/1000); // start time in seconds
 			TripChainItem* trip = (*tripChainItemIt);
+			if(trip->origin.type == WayPoint::NODE && trip->destination.type== WayPoint::NODE){
 			std::string originId = boost::lexical_cast<std::string>(trip->origin.node->getNodeId());
 			std::string destId = boost::lexical_cast<std::string>(trip->destination.node->getNodeId());
 			trip->startLocationId = originId;
 			trip->endLocationId = destId;
+			}
 			std::vector<sim_mob::SubTrip>& subTrips = (dynamic_cast<sim_mob::Trip*>(*tripChainItemIt))->getSubTripsRW();
 			std::vector<SubTrip>::iterator itSubTrip = subTrips.begin();
 			std::vector<sim_mob::SubTrip> newSubTrips;

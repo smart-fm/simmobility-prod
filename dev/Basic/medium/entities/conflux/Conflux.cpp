@@ -529,10 +529,6 @@ bool Conflux::handleRoleChange(PersonProps& beforeUpdate, PersonProps& afterUpda
 
 	if(beforeUpdate.roleType == afterUpdate.roleType)
 	{
-		if(beforeUpdate.roleType == Role<Person_MT>::RL_TAXIPASSENGER)
-		{
-			return true;
-		}
 		return false; //no role change took place; simply return
 	}
 
@@ -655,6 +651,7 @@ void Conflux::housekeep(PersonProps& beforeUpdate, PersonProps& afterUpdate, Per
 	switch (afterUpdate.roleType)
 	{
 	case Role<Person_MT>::RL_ACTIVITY:
+	case Role<Person_MT>::RL_TAXIPASSENGER:
 	{
 		// if the role was ActivityPerformer before the update as well, do nothing.
 		// It is also possible that the person has changed from one activity to another. Do nothing even in this case.
@@ -1732,6 +1729,7 @@ Person_MT* Conflux::pickupTaxiTraveler()
 		}
 		res->currSubTrip->startLocationId = boost::lexical_cast<std::string>(this->getConfluxNode()->getNodeId());
 		res->currSubTrip->startLocationType = "NODE";
+		res->getRole()->setArrivalTime(currFrame.ms()+ConfigManager::GetInstance().FullConfig().simStartTime().getValue());
 	}
 	return res;
 }

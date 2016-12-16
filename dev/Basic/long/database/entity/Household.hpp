@@ -18,6 +18,76 @@ namespace sim_mob
 {
     namespace long_term
     {
+		class HouseholdStatistics
+		{
+			public:
+				HouseholdStatistics(): 	 maleChild(0),
+										 femaleChild(0),
+										 maleAdultYoung(0),
+										 femaleAdultYoung(0),
+										 maleAdultMiddleAged(0),
+										 femaleAdultMiddleAged(0),
+										 maleAdultElderly(0),
+										 femaleAdultElderly(0),
+										 adultSingaporean(0),
+										 maleChild_global(0),
+										 femaleChild_global(0),
+										 maleAdultYoung_global(0),
+										 femaleAdultYoung_global(0),
+										 maleAdultMiddleAged_global(0),
+										 femaleAdultMiddleAged_global(0),
+										 maleAdultElderly_global(0),
+										 femaleAdultElderly_global(0),
+										 adultSingaporean_global(0),
+										 coupleAndChild(0),
+										 siblingsAndParents(0),
+										 singleParent(0),
+										 engagedCouple(0),
+										 orphanSiblings(0),
+										 multigeneration(0)
+										{}
+
+				void ResetLocal()
+				{
+					maleChild = 0;
+					femaleChild = 0;
+					maleAdultYoung = 0;
+					femaleAdultYoung = 0;
+					maleAdultMiddleAged = 0;
+					femaleAdultMiddleAged = 0;
+					maleAdultElderly = 0;
+					femaleAdultElderly = 0;
+					adultSingaporean = 0;
+				}
+
+				int maleChild;
+				int femaleChild;
+				int maleAdultYoung;
+				int femaleAdultYoung;
+				int maleAdultMiddleAged;
+				int femaleAdultMiddleAged;
+				int maleAdultElderly;
+				int femaleAdultElderly;
+				int adultSingaporean;
+				int maleChild_global;
+				int femaleChild_global;
+				int maleAdultYoung_global;
+				int femaleAdultYoung_global;
+				int maleAdultMiddleAged_global;
+				int femaleAdultMiddleAged_global;
+				int maleAdultElderly_global;
+				int femaleAdultElderly_global;
+				int adultSingaporean_global;
+
+				int coupleAndChild;
+				int siblingsAndParents;
+				int singleParent;
+				int engagedCouple;
+				int orphanSiblings;
+				int multigeneration;
+		};
+
+
         class Household
         {
         public:
@@ -122,6 +192,9 @@ namespace sim_mob
 			int getLastBidStatus() const;
 			void setLastBidStatus(int lastBidStatus);
 
+			void setHouseholdStats(HouseholdStatistics stats);
+			HouseholdStatistics getHouseholdStats();
+
 
 			enum FAMILY_TYPE
 			{
@@ -187,76 +260,8 @@ namespace sim_mob
 			int lastAwakenedDay;
 			int lastBidStatus;
 
-        };
+			HouseholdStatistics householdStats;
 
-
-        class HouseholdStatistics
-        {
-        	public:
-        		HouseholdStatistics(): 	 maleChild(0),
-										 femaleChild(0),
-										 maleAdultYoung(0),
-										 femaleAdultYoung(0),
-										 maleAdultMiddleAged(0),
-										 femaleAdultMiddleAged(0),
-										 maleAdultElderly(0),
-										 femaleAdultElderly(0),
-										 adultSingaporean(0),
-										 maleChild_global(0),
-										 femaleChild_global(0),
-										 maleAdultYoung_global(0),
-										 femaleAdultYoung_global(0),
-										 maleAdultMiddleAged_global(0),
-										 femaleAdultMiddleAged_global(0),
-										 maleAdultElderly_global(0),
-										 femaleAdultElderly_global(0),
-										 adultSingaporean_global(0),
-										 coupleAndChild(0),
-										 siblingsAndParents(0),
-										 singleParent(0),
-										 engagedCouple(0),
-										 orphanSiblings(0),
-										 multigeneration(0)
-        								{}
-
-        		void ResetLocal()
-        		{
-        			maleChild = 0;
-        			femaleChild = 0;
-        			maleAdultYoung = 0;
-        			femaleAdultYoung = 0;
-        			maleAdultMiddleAged = 0;
-        			femaleAdultMiddleAged = 0;
-        			maleAdultElderly = 0;
-        			femaleAdultElderly = 0;
-        			adultSingaporean = 0;
-        		}
-
-				int maleChild;
-				int femaleChild;
-				int maleAdultYoung;
-				int femaleAdultYoung;
-				int maleAdultMiddleAged;
-				int femaleAdultMiddleAged;
-				int maleAdultElderly;
-				int femaleAdultElderly;
-				int adultSingaporean;
-				int maleChild_global;
-				int femaleChild_global;
-				int maleAdultYoung_global;
-				int femaleAdultYoung_global;
-				int maleAdultMiddleAged_global;
-				int femaleAdultMiddleAged_global;
-				int maleAdultElderly_global;
-				int femaleAdultElderly_global;
-				int adultSingaporean_global;
-
-				int coupleAndChild;
-				int siblingsAndParents;
-				int singleParent;
-				int engagedCouple;
-				int orphanSiblings;
-				int multigeneration;
         };
     }
 }

@@ -2664,6 +2664,10 @@ void HM_Model::hdbEligibilityTest(int index)
 			households[index]->setFourRoomHdbEligibility(true);
 		}
 	}
+
+	households[index]->setHouseholdStats(household_stats);
+
+	printHouseholdEligibility(households[index]);
 }
 
 void HM_Model::addNewBids(boost::shared_ptr<Bid> &newBid)

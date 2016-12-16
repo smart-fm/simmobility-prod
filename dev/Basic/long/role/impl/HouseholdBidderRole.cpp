@@ -684,7 +684,7 @@ bool HouseholdBidderRole::pickEntryToBid()
     	if(sucessfulScreening == true)
     		offset = n;
 
-    	if( n > config.ltParams.housingModel.bidderUnitsChoiceSet)
+    	if( n > config.ltParams.housingModel.bidderUnitsChoiceSet + config.ltParams.housingModel.bidderBTOUnitsChoiceSet )
     		break;
 
     	HousingMarket::ConstEntryList::const_iterator itr = screenedEntries.begin() + offset;
@@ -779,6 +779,10 @@ bool HouseholdBidderRole::pickEntryToBid()
             		maxWp = wp;
             		maxWtpe = wtp_e;
             	}
+            }
+            else
+            {
+            	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR,"Could not compute bid value for unit");
             }
         }
     }

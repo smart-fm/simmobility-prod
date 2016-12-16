@@ -2158,9 +2158,9 @@ Conflux* Conflux::findStartingConflux(Person_MT* person, unsigned int now)
 	}
 	case Role<Person_MT>::RL_WAITTRAINACTIVITY:
 	{
-		/*if(MT_Config::getInstance().getConfluxNodes().size()>0){
+		if(MT_Config::getInstance().getConfluxNodes().size()>0){
 			return MT_Config::getInstance().getConfluxNodes().begin()->second;
-		}*/
+		}
 	}
 	}
 }

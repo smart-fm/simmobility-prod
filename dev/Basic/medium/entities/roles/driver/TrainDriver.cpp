@@ -30,8 +30,8 @@ TrainDriver::TrainDriver(Person_MT* parent,
 	sim_mob::Role<Person_MT>::Role(parent, behavior, movement, roleName, roleType),
 	nextDriver(nullptr),nextRequested(NO_REQUESTED),subsequent_nextRequested(NO_REQUESTED),waitingTimeSec(0.0),initialDwellTime(0.0),disruptionParam(nullptr),platSequenceNumber(0)
 {
-	int trainId=getTrainId();
-	std::string lineId=getTrainLine();
+	int trainId = getTrainId();
+	std::string lineId = getTrainLine();
 	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
 	std::map<std::string,TrainProperties> trainLinePropertiesMap = config.trainController.trainLinePropertiesMap;
 	TrainProperties trainProperties = trainLinePropertiesMap[lineId];
@@ -116,28 +116,28 @@ TrainDriver* TrainDriver::getNextDriver() const
 
 double TrainDriver::reduceStoppingTime(double secondsinTick)
 {
-	remainingStopTime=remainingStopTime-secondsinTick;
+	remainingStopTime = remainingStopTime-secondsinTick;
 	return remainingStopTime;
 }
 
 void TrainDriver::setTerminateTrainService(bool terminate)
 {
 	terminateTrainServiceLock.lock();
-	shouldTerminateService=terminate;
+	shouldTerminateService = terminate;
 	terminateTrainServiceLock.unlock();
 }
 
 bool TrainDriver::getTerminateStatus()
 {
 	terminateTrainServiceLock.lock();
-	bool terminateservice=shouldTerminateService;
+	bool terminateservice = shouldTerminateService;
 	terminateTrainServiceLock.unlock();
 	return terminateservice;
 }
 
 void TrainDriver::setStoppingTime(double secondsinTick)
 {
-	remainingStopTime=secondsinTick;
+	remainingStopTime = secondsinTick;
 }
 
 void TrainDriver::setStoppingStatus(bool status)
@@ -232,7 +232,12 @@ void TrainDriver::calculateDwellTime(int boarding,int alighting,int noOfPassenge
 	const std::string& fileName("pt_mrt_Boarding_Alighting_DwellTime.csv");
 	sim_mob::BasicLogger& ptMRTMoveLogger  = sim_mob::Logger::log(fileName);
 	std::string tm=(DailyTime(now.ms())+DailyTime(ConfigManager::GetInstance().FullConfig().simStartTime())).getStrRepr();
-	double dwellTime = 12.22 + 2.27*boarding/24 + 1.82*alighting/24; //+ 0.00062*(noOfPassengerInTrain/24)*(noOfPassengerInTrain/24)*(noOfPassengerInTrain/24)*(boarding/24);
+	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
+	std::map<std::string,TrainProperties> trainLinePropertiesMap = config.trainController.trainLinePropertiesMap;
+	TrainProperties trainProperties = trainLinePropertiesMap[getTrainLine()];
+	TrainDwellTimeInfo dwellTimeInfo = trainProperties.dwellTimeInfo;	
+	//double dwellTime = 12.22 + 2.27*boarding/24 + 1.82*alighting/24; //+ 0.00062*(noOfPassengerInTrain/24)*(noOfPassengerInTrain/24)*(noOfPassengerInTrain/24)*(boarding/24);
+	double dwellTime = dwellTimeInfo.firstCoeff + dwellTimeInfo.secondCoeff*boarding/24 + dwellTimeInfo.thirdCoeff*alighting/24;
 	Platform *currentPlatform=getMovement()->getNextPlatform();
 	if(currentPlatform)
 	{
@@ -277,11 +282,11 @@ void TrainDriver::calculateDwellTime(int boarding,int alighting,int noOfPassenge
 					dwellTime = maxDwellTime;
 				}
 
-				if(dwellTime<minDwellTime&&minDwellTime<=maxDwellTime)
+				if(dwellTime < minDwellTime&&minDwellTime <= maxDwellTime)
 				{
 					dwellTime = minDwellTime;
 				}
-				else if(dwellTime<minDwellTime&&minDwellTime>maxDwellTime)
+				else if(dwellTime < minDwellTime && minDwellTime > maxDwellTime)
 				{
 					dwellTime = maxDwellTime;
 				}
@@ -290,16 +295,16 @@ void TrainDriver::calculateDwellTime(int boarding,int alighting,int noOfPassenge
 
 			else if (useMinDwellTime)
 			{
-				if(dwellTime<minDwellTime)
+				if(dwellTime < minDwellTime)
 				{
-					dwellTime=minDwellTime;
+					dwellTime = minDwellTime;
 				}
 
-				if(dwellTime>maxDwellTime&&maxDwellTime>=minDwellTime)
+				if(dwellTime > maxDwellTime && maxDwellTime >= minDwellTime)
 				{
 					dwellTime = maxDwellTime;
 				}
-				else if (dwellTime>maxDwellTime&&maxDwellTime<minDwellTime)
+				else if (dwellTime > maxDwellTime && maxDwellTime < minDwellTime)
 				{
 					dwellTime = minDwellTime;
 				}
@@ -307,11 +312,11 @@ void TrainDriver::calculateDwellTime(int boarding,int alighting,int noOfPassenge
 
 			else
 			{
-				if(dwellTime<minDwellTime)
+				if(dwellTime < minDwellTime)
 				{
 					dwellTime = minDwellTime;
 				}
-				else if (dwellTime>maxDwellTime)
+				else if (dwellTime > maxDwellTime)
 				{
 					dwellTime = maxDwellTime;
 				}
@@ -322,7 +327,7 @@ void TrainDriver::calculateDwellTime(int boarding,int alighting,int noOfPassenge
 	if(forceAlightwhileWaiting)
 	{
 		dwellTime = dwellTime-(initialDwellTime - waitingTimeSec);
-		minDwellTimeRequired =dwellTime; /*minDwellTimeRequired is the min dwell time calculated so that all passengers can board and alight */
+		minDwellTimeRequired = dwellTime; /*minDwellTimeRequired is the min dwell time calculated so that all passengers can board and alight */
 		waitingTimeSec = dwellTime;
 
 	}
@@ -340,21 +345,21 @@ void TrainDriver::calculateDwellTime(int boarding,int alighting,int noOfPassenge
 void TrainDriver::insertPlatformHoldEntities(std::string platformName,double duration)
 {
 	platformHoldingTimeEntitiesLock.lock();
-	if(platformMaxHoldingTimeEntities.find(platformName)!=platformMaxHoldingTimeEntities.end())
+	if(platformMaxHoldingTimeEntities.find(platformName) != platformMaxHoldingTimeEntities.end())
 	{
 		if(duration>platformMaxHoldingTimeEntities[platformName])
 		{
 			return;
 		}
 	}
-	if(platformMinHoldingTimeEntities.find(platformName)!=platformMinHoldingTimeEntities.end())
+	if(platformMinHoldingTimeEntities.find(platformName) != platformMinHoldingTimeEntities.end())
 	{
-		if(duration<platformMinHoldingTimeEntities[platformName])
+		if(duration < platformMinHoldingTimeEntities[platformName])
 		{
 			return;
 		}
 	}
-	platformHoldingTimeEntities[platformName]=duration;
+	platformHoldingTimeEntities[platformName] = duration;
 	platformHoldingTimeEntitiesLock.unlock();
 }
 
@@ -362,12 +367,12 @@ void TrainDriver::insertPlatformHoldEntities(std::string platformName,double dur
 void TrainDriver::resetHoldingTime()
 {
 	platformHoldingTimeEntitiesLock.lock();
-	Platform *currentPlatform=getMovement()->getNextPlatform();
-	if(platformHoldingTimeEntities.find(currentPlatform->getPlatformNo())!=platformHoldingTimeEntities.end())
+	Platform *currentPlatform = getMovement()->getNextPlatform();
+	if(platformHoldingTimeEntities.find(currentPlatform->getPlatformNo()) != platformHoldingTimeEntities.end())
 	{
 		double holdingTime=platformHoldingTimeEntities[currentPlatform->getPlatformNo()];
-		waitingTimeSec=holdingTime-(initialDwellTime-waitingTimeSec);
-		initialDwellTime=holdingTime;
+		waitingTimeSec = holdingTime-(initialDwellTime-waitingTimeSec);
+		initialDwellTime = holdingTime;
 		platformHoldingTimeEntities.erase(currentPlatform->getPlatformNo());
 		isHoldingTimeReset = true;
 	}
@@ -377,12 +382,12 @@ void TrainDriver::resetHoldingTime()
 
 void TrainDriver::resetMaximumHoldingTime(std::string platformName,double duration)
 {
-	platformMaxHoldingTimeEntities[platformName]=duration;
+	platformMaxHoldingTimeEntities[platformName] = duration;
 }
 
 void TrainDriver::resetMinimumHoldingTime(std::string platformName,double duration)
 {
-	platformMinHoldingTimeEntities[platformName]=duration;
+	platformMinHoldingTimeEntities[platformName] = duration;
 }
 
 double TrainDriver::getWaitingTime() const
@@ -403,19 +408,19 @@ std::vector<std::string> TrainDriver::getPlatformsToBeIgnored()
 {
 
 	platformsToBeIgnoredLock.lock();
-	std::vector<std::string> platforms=platformsToBeIgnored;
+	std::vector<std::string> platforms = platformsToBeIgnored;
 	platformsToBeIgnoredLock.unlock();
 	return platforms;
 }
 
 void TrainDriver::AddPlatformsToIgnore(std::vector<std::string> PlatformsToIgnore)
 {
-	std::vector<std::string>::iterator it=PlatformsToIgnore.begin();
+	std::vector<std::string>::iterator it = PlatformsToIgnore.begin();
 	platformsToBeIgnoredLock.lock();
 	while(it!=PlatformsToIgnore.end())
 	{
-		std::vector<std::string>::iterator findelement=std::find(platformsToBeIgnored.begin(),platformsToBeIgnored.end(),*it);
-		if(findelement==platformsToBeIgnored.end())
+		std::vector<std::string>::iterator findelement = std::find(platformsToBeIgnored.begin(),platformsToBeIgnored.end(),*it);
+		if(findelement == platformsToBeIgnored.end())
 		{
 			platformsToBeIgnored.push_back((*it));
 		}
@@ -426,12 +431,12 @@ void TrainDriver::AddPlatformsToIgnore(std::vector<std::string> PlatformsToIgnor
 
 void TrainDriver::AddPlatforms(std::vector<std::string> PlatformsToAdd)
 {
-	std::vector<std::string>::iterator it=PlatformsToAdd.begin();
+	std::vector<std::string>::iterator it = PlatformsToAdd.begin();
 	platformsToBeIgnoredLock.lock();
 	while(it!=PlatformsToAdd.end())
 	{
 		std::vector<std::string>::iterator findelement=std::find(platformsToBeIgnored.begin(),platformsToBeIgnored.end(),*it);
-		if(findelement!=platformsToBeIgnored.end())
+		if(findelement != platformsToBeIgnored.end())
 		{
 			platformsToBeIgnored.erase(findelement);
 			TrainMovement *movement = getMovement();
@@ -529,7 +534,7 @@ unsigned int TrainDriver::getEmptyOccupation()
 
 void TrainDriver::setUturnFlag(bool set)
 {
-	uTurnFlag=set;
+	uTurnFlag = set;
 }
 
 bool TrainDriver::getUTurnFlag()
@@ -539,7 +544,7 @@ bool TrainDriver::getUTurnFlag()
 
 void TrainDriver::setForceAlightFlag(bool flag)
 {
-	if(!isForceAlighted||flag==false)
+	if(!isForceAlighted||flag == false)
 	{
 		forceAlightPassengers_ByServiceController = flag;
 	}
@@ -590,9 +595,9 @@ int TrainDriver::alightPassenger(std::list<Passenger*>& alightingPassenger,times
 	while(i!=passengerList.end())
 	{
 		const WayPoint& endPoint = (*i)->getEndPoint();
-		if(endPoint.type==WayPoint::MRT_PLATFORM)
+		if(endPoint.type == WayPoint::MRT_PLATFORM)
 		{
-			if(endPoint.platform==platform)
+			if(endPoint.platform == platform)
 			{
 				alightingPassenger.push_back(*i);
 				ptMRTLogger <<(*i)->getParent()->getDatabaseId()<<","<<tm<<","<<getTrainId()<<","<<getTripId()<<","<<platform->getPlatformNo()<<","<<(*i)->getParent()->currSubTrip->origin.platform->getPlatformNo()<<","<<(*i)->getParent()->currSubTrip->destination.platform->getPlatformNo()<<std::endl;
@@ -606,7 +611,7 @@ int TrainDriver::alightPassenger(std::list<Passenger*>& alightingPassenger,times
 				std::string stationNo = platform->getStationNo();
 				std::vector<Platform*> platforms=TrainController<sim_mob::medium::Person_MT>::getInstance()->getPlatforms(lineId,stationNo);
 				std::vector<Platform*>::iterator itr=std::find(platforms.begin(),platforms.end(),endPoint.platform);
-				if(itr==platforms.end())
+				if(itr == platforms.end())
 				{
 					alightingPassenger.push_back(*i);
 					ptMRTLogger <<(*i)->getParent()->getDatabaseId()<<","<<tm<<","<<getTrainId()<<","<<getTripId()<<platform->getPlatformNo()<<","<<(*i)->getParent()->currSubTrip->origin.platform->getPlatformNo()<<","<<(*i)->getParent()->currSubTrip->destination.platform->getPlatformNo()<<std::endl;
@@ -680,7 +685,7 @@ void TrainDriver::insertRestrictPassengerEntity(std::string platformName,int mov
 
 	restrictEntitiesLock.lock();
 	std::map<std::string,passengerMovement>::iterator itr = restrictPassengersEntities.find(platformName);
-	if(itr!=restrictPassengersEntities.end())
+	if(itr != restrictPassengersEntities.end())
 	{
 		restrictPassengersEntities.erase(itr);
 	}
@@ -824,7 +829,7 @@ int TrainDriver::boardPassenger(std::list<WaitTrainActivity*>& boardingPassenger
 		}
 	}
 	i = boardingPassenger.begin();
-	while(i!=boardingPassenger.end())
+	while(i != boardingPassenger.end())
 	{
 		(*i)->incrementDeniedBoardingCount();
 		i++;
@@ -842,9 +847,9 @@ int TrainDriver::boardForceAlightedPassengersPassenger(std::list<Passenger*>& fo
 
 	int validNum = getEmptyOccupation();
 	std::list<Passenger*>::iterator i = forcealightedPassengers.begin();
-	while(i!=forcealightedPassengers.end()&&validNum>0)
+	while(i != forcealightedPassengers.end()&&validNum>0)
 	{
-		Passenger *pr=dynamic_cast<Passenger*>(*i);
+		Passenger *pr = dynamic_cast<Passenger*>(*i);
 		passengerList.push_back(pr);
 		i = forcealightedPassengers.erase(i);
 		validNum--;
@@ -857,15 +862,15 @@ int TrainDriver::boardForceAlightedPassengersPassenger(std::list<Passenger*>& fo
 
 bool TrainDriver::isBoardingRestricted()
 {
-	std::map<std::string,passengerMovement>::iterator it=restrictPassengersEntities.begin();
+	std::map<std::string,passengerMovement>::iterator it = restrictPassengersEntities.begin();
 	const Platform* platform = this->getNextPlatform();
 	if(platform)
 	{
 		it=restrictPassengersEntities.find(platform->getPlatformNo());
-		if(it!=restrictPassengersEntities.end())
+		if(it!= restrictPassengersEntities.end())
 		{
 			passengerMovement movType=restrictPassengersEntities[platform->getPlatformNo()];
-			if(movType==BOARDING||movType==BOTH)
+			if(movType == BOARDING || movType == BOTH)
 			{
 			   restrictPassengersEntities.erase(it);
 			   return true;
@@ -895,9 +900,9 @@ bool TrainDriver::isAlightingRestricted()
 		{
 			passengerMovement movType=restrictPassengersEntities[platform->getPlatformNo()];
 			restrictPassengersEntitiesLock.unlock();
-			if(movType==ALIGHTING||movType==BOTH)
+			if(movType == ALIGHTING || movType == BOTH)
 			{
-				if(movType==ALIGHTING)
+				if(movType == ALIGHTING)
 				{
 					restrictPassengersEntities.erase(it);
 				}
@@ -910,9 +915,9 @@ bool TrainDriver::isAlightingRestricted()
 
 void TrainDriver::setStoppingParameters(PolyPoint point,double duration)
 {
-	remainingStopTime=duration;
-	currStopPoint =point;
-	stoppedAtPoint=true;
+	remainingStopTime = duration;
+	currStopPoint = point;
+	stoppedAtPoint = true;
 }
 }
 } /* namespace sim_mob */

@@ -748,7 +748,44 @@ void ParseMidTermConfigFile::processTrainPropertiesNode(xercesc::DOMElement *nod
 			throw std::runtime_error("load max_capacity missing in simrun_MidTerm.xml for");
 		}
 
-		trainProperties.maxCapacity = ParseFloat(GetNamedAttributeValue(child, "value"));
+		trainProperties.maxCapacity = ParseFloat(GetNamedAttributeValue(child, "value"));		
+		child = GetSingleElementByName(trainLineElement, "minDistance_TrainBehind_For_Unscheduled_Train");
+		double minDisTrainBehind = ParseFloat(GetNamedAttributeValue(child, "value"));
+		trainProperties.minDistanceTrainBehindForUnscheduledTrain = minDisTrainBehind;
+		//dwell time params
+		//xercesc::DOMElement *dwellTimeParamsNode = GetSingleElementByName(node, "", true);
+		std::string childNodeName="dwell_time_parameters";
+		XMLCh* keyX = XMLString::transcode(childNodeName.c_str());
+		DOMNodeList* dwellTimeList = trainLineElement->getElementsByTagName(keyX);
+		XMLString::release(&keyX);
+		if( res->getLength() == 0)
+		{
+			throw std::runtime_error("no configuration present for dwell time");
+		}
+		xercesc::DOMElement* dwellTimeElement=NodeToElement(dwellTimeList->item(0));
+		DOMElement* dwellTimeTypeElement = GetSingleElementByName(dwellTimeElement, "min_dwell_time_normal");
+		double minDwellTimeNormal = ParseFloat(GetNamedAttributeValue(dwellTimeTypeElement, "value"));
+		dwellTimeTypeElement = GetSingleElementByName(dwellTimeElement, "min_dwell_time_interchange");
+		double minDwellTimeInterchange = ParseFloat(GetNamedAttributeValue(dwellTimeTypeElement, "value"));
+		dwellTimeTypeElement = GetSingleElementByName(dwellTimeElement, "min_dwell_time_terminal");
+		double minDwellTimeTerminal = ParseFloat(GetNamedAttributeValue(dwellTimeTypeElement, "value"));
+		dwellTimeTypeElement = GetSingleElementByName(dwellTimeElement, "max_dwell_time");
+		double maxDwellTime = ParseFloat(GetNamedAttributeValue(dwellTimeTypeElement, "value"));
+		DOMElement* coeff = GetSingleElementByName(dwellTimeElement, "first_coeff");
+		double firstCoeff = ParseFloat(GetNamedAttributeValue(coeff, "value"));
+		coeff = GetSingleElementByName(dwellTimeElement, "second_coeff");
+		double secondCoeff = ParseFloat(GetNamedAttributeValue(coeff, "value"));
+		coeff = GetSingleElementByName(dwellTimeElement, "third_coeff");
+		double thirdCoeff = ParseFloat(GetNamedAttributeValue(coeff, "value"));
+		TrainDwellTimeInfo dwellTimeInfo;
+		dwellTimeInfo.dwellTimeAtNormalStation = minDwellTimeNormal;
+		dwellTimeInfo.dwellTimeAtInterchanges = minDwellTimeInterchange;
+		dwellTimeInfo.dwellTimeAtTerminalStaions = minDwellTimeTerminal;
+		dwellTimeInfo.maxDwellTime = maxDwellTime;
+		dwellTimeinfo.firstCoeff = firstCoeff;
+		dwellTimeInfo.secondCoeff = secondCoeff;
+		dwellTimeInfo.thirdCoeff = thirdCoeff;
+		trainProperties.dwellTimeInfo = dwellTimeInfo;
 		cfg.trainController.trainLinePropertiesMap[lineId]=trainProperties;
 	}
 }

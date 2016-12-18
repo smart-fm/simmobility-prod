@@ -174,48 +174,113 @@
     	<!-- <max_capacity value="1600"/> -->
 
 	<trainProperties>
-	    <trainLine lineid="NE_1">
-	       <safe_operation_distance_meter value="50"/>
-	       <safe_operation_headway_sec value="90"/>
-		<mintrainid value="1"/>	       
-		<maxtrainid value="14"/>
-	       <max_capacity value="1600"/>
+		<trainLine lineid="NE_1">
+			<safe_operation_distance_meter value="50"/>
+			<safe_operation_headway_sec value="90"/>
+			<mintrainid value="1"/>	       
+			<maxtrainid value="14"/>
+			<max_capacity value="1600"/>
+			<dwell_time_parameters>
+				<min_dwell_time_normal value="20"/>
+				<min_dwell_time_interchange value="40"/>
+				<min_dwell_time_terminal value="60"/>
+				<max_dwell_time value = "120"/>
+				<first_coeff value = "12.22"/>
+				<second_coeff value = "2.27"/>
+				<third_coeff value = "1.82"/>				
+			</dwell_time_parameters>
+			<minDistanceTrainBehindForUnscheduledTrain>200</minDistanceTrainBehindForUnscheduledTrain>
 	    </trainLine>
+		
 	    <trainLine lineid="NE_2">
-		<safe_operation_distance_meter value="50"/>
-		<safe_operation_headway_sec value="90"/>
-		<mintrainid value="15"/>	       
-		<maxtrainid value="28"/>		
-		<max_capacity value="1600"/>
+			<safe_operation_distance_meter value="50"/>
+			<safe_operation_headway_sec value="90"/>
+			<mintrainid value="15"/>	       
+			<maxtrainid value="28"/>		
+			<max_capacity value="1600"/>
+			<dwell_time_parameters>
+				<min_dwell_time_normal value="20"/>
+				<min_dwell_time_interchange value="40"/>
+				<min_dwell_time_terminal value="60"/>
+				<max_dwell_time value = "120"/>
+				<first_coeff value = "12.22"/>
+				<second_coeff value = "2.27"/>
+				<third_coeff value = "1.82"/>
+			</dwell_time_parameters>
+			<minDistanceTrainBehindForUnscheduledTrain>200</minDistanceTrainBehindForUnscheduledTrain>
 	    </trainLine>
+		
 	    <trainLine lineid="EW_1">
-		<safe_operation_distance_meter value="50"/>
-		<safe_operation_headway_sec value="90"/>
-		<mintrainid value="1"/>	       
-		<maxtrainid value="25"/>
-		<max_capacity value="1600"/>
+			<safe_operation_distance_meter value="50"/>
+			<safe_operation_headway_sec value="90"/>
+			<mintrainid value="1"/>	       
+			<maxtrainid value="25"/>
+			<max_capacity value="1600"/>
+			<dwell_time_parameters>
+				<min_dwell_time_normal value="20"/>
+				<min_dwell_time_interchange value="40"/>
+				<min_dwell_time_terminal value="60"/>
+				<max_dwell_time value = "120"/>
+				<first_coeff value = "12.22"/>
+				<second_coeff value = "2.27"/>
+				<third_coeff value = "1.82"/>
+			</dwell_time_parameters>
+			<minDistance_TrainBehind_For_Unscheduled_Train>200</minDistance_TrainBehind_For_UnscheduledTrain>
 	    </trainLine>
+		
 	    <trainLine lineid="EW_2">
-		<safe_operation_distance_meter value="50"/>
-		<safe_operation_headway_sec value="90"/>
-		<mintrainid value="26"/>	       
-		<maxtrainid value="50"/>
-		<max_capacity value="1600"/>
+			<safe_operation_distance_meter value="50"/>
+			<safe_operation_headway_sec value="90"/>
+			<mintrainid value="26"/>	       
+			<maxtrainid value="50"/>
+			<max_capacity value="1600"/>
+			<dwell_time_parameters>
+				<min_dwell_time_normal value="20"/>
+				<min_dwell_time_interchange value="40"/>
+				<min_dwell_time_terminal value="60"/>
+				<max_dwell_time value = "120"/>
+				<first_coeff value = "12.22"/>
+				<second_coeff value = "2.27"/>
+				<third_coeff value = "1.82"/>
+			</dwell_time_parameters>
+			<minDistanceTrainBehindForUnscheduledTrain>200</minDistanceTrainBehindForUnscheduledTrain>
+		</trainLine>
+		
+		<trainLine lineid="NS_1">
+			<safe_operation_distance_meter value="50"/>
+			<safe_operation_headway_sec value="90"/>
+			<mintrainid value="1"/>	       
+			<maxtrainid value="21"/>
+			<max_capacity value="1600"/>
+			<dwell_time_parameters>
+				<min_dwell_time_normal value="20"/>
+				<min_dwell_time_interchange value="40"/>
+				<min_dwell_time_terminal value="60"/>
+				<max_dwell_time value = "120"/>
+				<first_coeff value = "12.22"/>
+				<second_coeff value = "2.27"/>
+				<third_coeff value = "1.82"/>
+			</dwell_time_parameters>
+			<minDistanceTrainBehindForUnscheduledTrain>200</minDistanceTrainBehindForUnscheduledTrain>
 	    </trainLine>
-	    <trainLine lineid="NS_1">
-		<safe_operation_distance_meter value="50"/>
-		<safe_operation_headway_sec value="90"/>
-		<mintrainid value="1"/>	       
-		<maxtrainid value="21"/>
-		<max_capacity value="1600"/>
-	    </trainLine>
+		
 	    <trainLine lineid="NS_2">
-		<safe_operation_distance_meter value="50"/>
-		<safe_operation_headway_sec value="90"/>
-		<mintrainid value="22"/>	       
-		<maxtrainid value="42"/>
-		<max_capacity value="1600"/>
+			<safe_operation_distance_meter value="50"/>
+			<safe_operation_headway_sec value="90"/>
+			<mintrainid value="22"/>	       
+			<maxtrainid value="42"/>
+			<max_capacity value="1600"/>
+			<dwell_time_parameters>
+				<min_dwell_time_normal value="20"/>
+				<min_dwell_time_interchange value="40"/>
+				<min_dwell_time_terminal value="60"/>
+				<max_dwell_time value = "120"/>
+				<first_coeff value = "12.22"/>
+				<second_coeff value = "2.27"/>
+				<third_coeff value = "1.82"/>
+			</dwell_time_parameters>
 	    </trainLine>
+		<minDistanceTrainBehindForUnscheduledTrain>200</minDistanceTrainBehindForUnscheduledTrain>
 	</trainProperties>
 
     </trainController>

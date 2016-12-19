@@ -196,7 +196,7 @@ void RealEstateSellerRole::update(timeslice now)
                 PrintOutV("[day " << currentTime.ms() << "] RealEstate Agent " <<  this->getParent()->getId() << ". Adding entry to Housing market for unit " << unit->getId() << " with asking price: " << firstExpectation.askingPrice << std::endl);
 				#endif
 
-                printNewUnitsInMarket(unit->getId(), unit->getbiddingMarketEntryDay(), unit->getTimeOnMarket(), unit->getTimeOffMarket());
+                printNewUnitsInMarket(getParent()->getId(), unit->getId(), unit->getbiddingMarketEntryDay(), unit->getTimeOnMarket(), unit->getTimeOffMarket());
             }
 
             selling = true;

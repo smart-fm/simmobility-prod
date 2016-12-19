@@ -158,7 +158,6 @@ void HM_Model::TazStats::updateStats(const Household& household)
 		numIndian++;
 
 	householdSize += household.getSize();
-
 }
 
 BigSerial HM_Model::TazStats::getTazId() const
@@ -1713,6 +1712,22 @@ void HM_Model::startImpl()
 		AgentsLookupSingleton::getInstance().addHouseholdAgent(hhAgent);
 		agents.push_back(hhAgent);
 		workGroup.assignAWorker(hhAgent);
+	}
+
+
+	for(int n  = 0; n < units.size(); n++)
+	{
+		BigSerial tazId = getUnitTazId(units[n]->getId());
+
+		if (tazId != INVALID_ID)
+		{
+			const HM_Model::TazStats* tazStats = getTazStatsByUnitId( units[n]->getId() );
+			if (!tazStats)
+			{
+				tazStats = new TazStats(tazId);
+				stats.insert( std::make_pair(tazId,	const_cast<HM_Model::TazStats*>(tazStats)));
+			}
+		}
 	}
 
 	sort(logSqrtFloorAreahdb.begin(), logSqrtFloorAreahdb.end());

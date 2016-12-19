@@ -150,18 +150,12 @@ HouseholdSellerRole* HouseholdAgent::getSeller()
 
 }
 
-void HouseholdAgent::setBTOUnit(bool value)
-{
-	//btoUnit = value;
-}
-
-
 Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 {
 	day = now.frame();
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 
-	if((acceptedBid && !btoUnit ) || ( acceptedBid && btoUnit && bidder->getMoveInWaitingTimeInDays() <= config.ltParams.housingModel.offsetBetweenUnitBuyingAndSellingAdvancedPurchase))
+	if((acceptedBid ) && ( bidder->getMoveInWaitingTimeInDays() <= config.ltParams.housingModel.offsetBetweenUnitBuyingAndSellingAdvancedPurchase))
 	{
 		if( seller->isActive() == false )
 		{
@@ -183,7 +177,7 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 		seller->setActive(true);
 	}
 
-	if( bidder && bidder->isActive() && ( householdBiddingWindow == 0 || bidder->getMoveInWaitingTimeInDays() == 0) )
+	if( bidder && bidder->isActive() &&  bidder->getMoveInWaitingTimeInDays() <=  0 && householdBiddingWindow == 0 )
 	{
 		PrintExit( day, household, 0);
 		bidder->setActive(false);

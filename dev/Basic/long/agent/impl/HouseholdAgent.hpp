@@ -66,7 +66,6 @@ namespace sim_mob
 
             void setAcceptedBid(bool isAccepted);
 
-            void setBTOUnit(bool value);
         
         protected:
             /**
@@ -131,8 +130,6 @@ namespace sim_mob
 
             int awakeningDay;
             bool acceptedBid;
-            bool btoUnit;
-
         };
     }
 }

@@ -773,12 +773,12 @@ bool HouseholdBidderRole::pickEntryToBid()
             }
             else
             {
-            	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, (boost::format("Could not compute bid value for unit %1%. Eligibility: %2% Stats: %3%") % unit->getId() % flatEligibility % stats ).str() );
+            	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, (boost::format("[day %1%]Could not compute bid value for unit %2%. Eligibility: %3% Stats: %4%") % day % unit->getId() % flatEligibility % stats ).str() );
             }
         }
         else
         {
-        	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, (boost::format("Entry is invalid for index %1%") % n ).str() );
+        	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, (boost::format("[day %1%] Entry is invalid for index %2%") % day % n ).str() );
         }
     }
 

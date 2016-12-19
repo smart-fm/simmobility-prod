@@ -636,13 +636,6 @@ bool HouseholdBidderRole::pickEntryToBid()
         }
     }
 
-    bool sucessfulScreening = true;
-    if( screenedEntries.size() == 0 )
-    {
-    	sucessfulScreening = false;
-    	screenedEntries = entries;
-    }
-    else
     {
     	HousingMarket *market = model->getMarket();
     	set<BigSerial> btoEntries = market->getBTOEntries();
@@ -678,16 +671,7 @@ bool HouseholdBidderRole::pickEntryToBid()
     // This is done to replicate the real life scenario where a household will only visit a certain percentage of vacant units before settling on one.
     for(int n = 0; n < screenedEntries.size(); n++)
     {
-    	int offset = (float)rand() / RAND_MAX * ( entries.size() - 1 );
-
-    	//if we have a good choiceset, let's iterate linearly
-    	if(sucessfulScreening == true)
-    		offset = n;
-
-    	if( n > config.ltParams.housingModel.bidderUnitsChoiceSet + config.ltParams.housingModel.bidderBTOUnitsChoiceSet )
-    		break;
-
-    	HousingMarket::ConstEntryList::const_iterator itr = screenedEntries.begin() + offset;
+      	HousingMarket::ConstEntryList::const_iterator itr = screenedEntries.begin() + n;
         const HousingMarket::Entry* entry = *itr;
 
         if( entry->getAskingPrice() < 0.01 )
@@ -695,7 +679,7 @@ bool HouseholdBidderRole::pickEntryToBid()
         	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, (boost::format( "[unit %1%] Asking price is suspiciously low at %2%.") % entry->getUnitId() % entry->getAskingPrice() ).str());
         }
 
-        if(entry && entry->getOwner() != getParent() )
+        if(entry && entry->getOwner()->getId() != getParent()->getId() )
         {
             const Unit* unit = model->getUnitById(entry->getUnitId());
             const HM_Model::TazStats* stats = model->getTazStatsByUnitId(entry->getUnitId());
@@ -764,6 +748,13 @@ bool HouseholdBidderRole::pickEntryToBid()
             		else
             		{
             			computeBidValueLogistic( entry->getAskingPrice(), wp, currentBid, currentSurplus );
+
+            			//If you can't find the optimal bid, just bid the asking price.
+            			if( currentBid == 0)
+            			{
+							currentBid = entry->getAskingPrice();
+							currentSurplus = wp - entry->getAskingPrice();
+            			}
             		}
             	}
             	else
@@ -771,7 +762,7 @@ bool HouseholdBidderRole::pickEntryToBid()
 
                 printHouseholdBiddingList( day, household->getId(), unit->getId(), oldPCStr, newPCStr, wp, entry->getAskingPrice(), maxAffordability, currentBid, currentSurplus);
 
-            	if( currentSurplus > maxSurplus && maxAffordability > entry->getAskingPrice() )
+            	if( currentSurplus > maxSurplus && maxAffordability > currentBid )
             	{
             		maxSurplus = currentSurplus;
             		finalBid = currentBid;
@@ -782,8 +773,12 @@ bool HouseholdBidderRole::pickEntryToBid()
             }
             else
             {
-            	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR,"Could not compute bid value for unit");
+            	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, (boost::format("Could not compute bid value for unit %1%. Eligibility: %2% Stats: %3%") % unit->getId() % flatEligibility % stats ).str() );
             }
+        }
+        else
+        {
+        	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, (boost::format("Entry is invalid for index %1%") % n ).str() );
         }
     }
 

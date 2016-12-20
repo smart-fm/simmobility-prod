@@ -155,6 +155,7 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 	day = now.frame();
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 
+	//the bid has been accepted and the waiting time is less than the BTO BuySell interval, we can activate the sellers
 	if(acceptedBid  && ( bidder->getMoveInWaitingTimeInDays() <= config.ltParams.housingModel.offsetBetweenUnitBuyingAndSellingAdvancedPurchase))
 	{
 		if( seller->isActive() == false )
@@ -177,6 +178,9 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 		seller->setActive(true);
 	}
 
+
+	//If 1) the bidder is active and 2) it is not waiting to move into a unit and 3) it has exceeded it's bidding time frame,
+	//Then it can now go inactive. However if any one of the above three conditions are not true, the bidder has to remain active
 	if( bidder && bidder->isActive() &&  bidder->getMoveInWaitingTimeInDays() <=  0 && householdBiddingWindow == 0 )
 	{
 		PrintExit( day, household, 0);

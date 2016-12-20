@@ -740,6 +740,7 @@ bool HouseholdBidderRole::pickEntryToBid()
 
             	if( entry->getAskingPrice() != 0 )
             	{
+            		//tenure_status = 0 mean it is a BTO unit
             		if( unit->getTenureStatus() == 0)
             		{
             			currentBid = entry->getAskingPrice();

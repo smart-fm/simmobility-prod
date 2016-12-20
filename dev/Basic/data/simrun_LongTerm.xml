@@ -21,7 +21,7 @@
             </database>
             
 	    <!-- internal ip for remote midterm server -->
-            <database id="fm_remote_mt" dbtype="postgres">
+            <database id="fm_remote_mt1" dbtype="postgres">
                 <host value="172.25.184.48"/>
                 <port value="5432"/>
                 <dbname value="simmobility"/>
@@ -42,7 +42,7 @@
             </database>
 
 		<!-- public ip for remote midterm server -->
-	    <database id="fm_remote_mt3" dbtype="postgres">
+	    <database id="fm_remote_mt" dbtype="postgres">
 	        <host value="137.132.22.82"/>
 	        <port value="15061"/> <!--old port: 15025 -->
 	        <dbname value="simmobility"/>

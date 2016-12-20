@@ -13,8 +13,10 @@
 
 using namespace sim_mob::long_term;
 
-Establishment::Establishment(BigSerial id, BigSerial firmId, BigSerial buildingId, BigSerial lifestyleId, BigSerial businessTypeId, int size, double revenue, double grossSqM, BigSerial slaAddressId)
-							:id(id), firmId(firmId), buildingId(buildingId), lifestyleId(lifestyleId), businessTypeId(businessTypeId), size(size), revenue(revenue), grossSqM(grossSqM), slaAddressId(slaAddressId){}
+Establishment::Establishment(BigSerial id, BigSerial firmId, BigSerial buildingId, BigSerial lifestyleId, BigSerial businessTypeId, int size, double revenue,
+							 double grossSqM, BigSerial slaAddressId, int sectorId)
+							:id(id), firmId(firmId), buildingId(buildingId), lifestyleId(lifestyleId), businessTypeId(businessTypeId), size(size), revenue(revenue),
+							 grossSqM(grossSqM), slaAddressId(slaAddressId), sectorId(sectorId){}
 
 Establishment::~Establishment(){}
 
@@ -29,6 +31,7 @@ Establishment::Establishment(const Establishment& source)
 	this->revenue 		= source.revenue;
 	this->grossSqM 		= source.grossSqM;
 	this->slaAddressId 	= source.slaAddressId;
+	this->sectorId		= source.sectorId;
 }
 
 
@@ -43,6 +46,7 @@ Establishment& Establishment::operator=(const Establishment& source)
 	this->revenue 		= source.revenue;
 	this->grossSqM 		= source.grossSqM;
 	this->slaAddressId 	= source.slaAddressId;
+	this->sectorId		= source.sectorId;
 
 	return *this;
 }
@@ -92,6 +96,12 @@ void Establishment::setSlaAddressId(BigSerial val)
 	slaAddressId = val;
 }
 
+void Establishment::setSectorId(int val)
+{
+	sectorId = val;
+}
+
+
 BigSerial Establishment::getId() const
 {
 	return id;
@@ -138,6 +148,11 @@ BigSerial Establishment::getSlaAddressId() const
 }
 
 
+int Establishment::getSectorId() const
+{
+	return sectorId;
+}
+
 namespace sim_mob
 {
     namespace long_term
@@ -154,6 +169,7 @@ namespace sim_mob
 						<< "\"revenue \":\"" 		<< data.revenue 		<< "\","
 						<< "\"grossSqM \":\"" 		<< data.grossSqM 		<< "\","
 						<< "\"slaAddressId \":\"" 	<< data.slaAddressId 	<< "\""
+						<< "\"sectorId \":\"" 		<< data.sectorId 	<< "\""
 						<< "}";
         }
     }

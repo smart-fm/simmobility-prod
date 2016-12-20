@@ -10,13 +10,49 @@
  */
 
 #include "core/AgentsLookup.hpp"
+#include <boost/date_time/gregorian/gregorian.hpp>
 
 namespace sim_mob
 {
 	namespace long_term
 	{
 
+	inline void printHouseholdEligibility(Household *household)
+	{
+		static bool printHeader = true;
 
+		 if(printHeader)
+		 {
+			printHeader = false;
+			AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_HOUSEHOLD_STATISTICS,"householdId, TwoRoomHdbEligibility, ThreeRoomHdbEligibility, FourRoomHdbEligibility, FamilyType, hhSize, adultSingaporean, coupleAndChild, engagedCouple, femaleAdultElderly, femaleAdultMiddleAged, femaleAdultYoung, femaleChild, maleAdultElderly, maleAdultMiddleAged, maleAdultYoung, maleChild, multigeneration, orphanSiblings, siblingsAndParents, singleParent");
+		 }
+
+	     boost::format fmtr = boost::format("%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%, "
+	    		 	 	 	 	 	 	 	"%11%, %12%, %13%, %14%, %15%, %16%, %17%, %18%, %19%, %20%, %21% ")
+	     	 	 	 	 	 	 	 	 	 	 	 	 	 % household->getId()
+															 % household->getTwoRoomHdbEligibility()
+															 % household->getThreeRoomHdbEligibility()
+															 % household->getFourRoomHdbEligibility()
+															 % household->getFamilyType()
+															 % household->getSize()
+															 % household->getHouseholdStats().adultSingaporean
+															 % household->getHouseholdStats().coupleAndChild
+															 % household->getHouseholdStats().engagedCouple
+															 % household->getHouseholdStats().femaleAdultElderly
+															 % household->getHouseholdStats().femaleAdultMiddleAged
+															 % household->getHouseholdStats().femaleAdultYoung
+															 % household->getHouseholdStats().femaleChild
+															 % household->getHouseholdStats().maleAdultElderly
+															 % household->getHouseholdStats().maleAdultMiddleAged
+															 % household->getHouseholdStats().maleAdultYoung
+															 % household->getHouseholdStats().maleChild
+															 % household->getHouseholdStats().multigeneration
+															 % household->getHouseholdStats().orphanSiblings
+															 % household->getHouseholdStats().siblingsAndParents
+															 % household->getHouseholdStats().singleParent;
+
+	     AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_HOUSEHOLD_STATISTICS, fmtr.str());
+	}
 
 	 /**
 	  * Print the current expectation on the unit.
@@ -356,17 +392,17 @@ namespace sim_mob
 	    }
 
 
-	    inline void printChoiceset( BigSerial householdId, std::string choiceset)
+	    inline void printChoiceset( int day, BigSerial householdId, std::string choiceset)
 	    {
 	        static bool printHeader = true;
 
 	        if(printHeader)
 	        {
-	        	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_HHCHOICESET,"householdId, unitId1, unitId2, unitId3, unitId4, unitId5, unitId6, unitId7, unitId8, unitId9, unitId10, unitId11, unitId12, unitId13, unitId14, unitId15, unitId16, unitId17, unitId18, unitId19, unitId20, unitId21, unitId22, unitId23, unitId24, unitId25, unitId26, unitId27, unitId28, unitId29, unitId30, unitId31, unitId32, unitId33, unitId34, unitId35, unitId36, unitId37, unitId38, unitId39, unitId40, unitId41, unitId42, unitId43, unitId44, unitId45, unitId46, unitId47, unitId48, unitId49, unitId50, unitId51, unitId52, unitId53, unitId54, unitId55, unitId56, unitId57, unitId58, unitId59, unitId60, unitId61, unitId62, unitId63, unitId64, unitId65, unitId66, unitId67, unitId68, unitId69, unitId70");
+	        	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_HHCHOICESET,"day, householdId, unitId1, unitId2, unitId3, unitId4, unitId5, unitId6, unitId7, unitId8, unitId9, unitId10, unitId11, unitId12, unitId13, unitId14, unitId15, unitId16, unitId17, unitId18, unitId19, unitId20, unitId21, unitId22, unitId23, unitId24, unitId25, unitId26, unitId27, unitId28, unitId29, unitId30, unitId31, unitId32, unitId33, unitId34, unitId35, unitId36, unitId37, unitId38, unitId39, unitId40, unitId41, unitId42, unitId43, unitId44, unitId45, unitId46, unitId47, unitId48, unitId49, unitId50, unitId51, unitId52, unitId53, unitId54, unitId55, unitId56, unitId57, unitId58, unitId59, unitId60, unitId61, unitId62, unitId63, unitId64, unitId65, unitId66, unitId67, unitId68, unitId69, unitId70");
 	        	printHeader = false;
 	        }
 
-	    	boost::format fmtr = boost::format("%1%, %2% ")% householdId % choiceset;
+	    	boost::format fmtr = boost::format("%1%, %2%, %3%")% day % householdId % choiceset;
 
 	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_HHCHOICESET,fmtr.str());
 	    }
@@ -390,19 +426,17 @@ namespace sim_mob
 	    //bid_timestamp, seller_id, bidder_id, unit_id, bidder wtp, bidder wp+wp_error, wp_error, affordability, currentUnitHP,target_price, hedonicprice, lagCoefficient, asking_price, bid_value, bids_counter (daily), bid_status, logsum, floor_area, type_id, HHPC, UPC,sale_from_date,occupancy_from_date
 	    const std::string LOG_BID = "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%, %11%, %12%, %13%, %14%, %15%, %16%, %17%, %18%, %19%, %20%, %21%, %22%, %23%";
 
-
-	    /**
-	     * Print the current bid on the unit.
-	     * @param agent to received the bid
-	     * @param bid to send.
-	     * @param struct containing the hedonic, asking and target price.
-	     * @param number of bids for this unit
-	     * @param boolean indicating if the bid was successful
-	     *
-	     */
-	    inline void printBid(const RealEstateAgent& agent, const Bid& bid, const ExpectationEntry& entry, unsigned int bidsCounter, bool accepted)
+	    inline void printBidGeneric(HM_Model* model, int id, const Bid& bid, const ExpectationEntry& entry, unsigned int bidsCounter, bool accepted)
 	    {
-	    	HM_Model* model = agent.getModel();
+
+	        static bool printHeader = true;
+
+	        if(printHeader)
+	        {
+	        	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::BIDS, "bid_timestamp, seller_id, bidder_id, unit_id, bidder wtp, bidder wp+wp_error, wp_error, affordability, currentUnitHP,target_price, hedonicprice, lagCoefficient, asking_price, bid_value, bids_counter (daily), bid_status, logsum, floor_area, type_id, HHPC, UPC,sale_from_date,occupancy_from_date" );
+	        	printHeader = false;
+	        }
+
 	    	const Unit* unit  = model->getUnitById(bid.getNewUnitId());
 	        double floor_area = unit->getFloorArea();
 	        BigSerial type_id = unit->getUnitType();
@@ -411,14 +445,14 @@ namespace sim_mob
 
 
 	        Household *thisBidder = model->getHouseholdById(bid.getBidderId());
-	        const Unit* thisUnit = model->getUnitById(thisBidder->getUnitId());
-	        Postcode* thisPostcode = model->getPostcodeById( thisUnit->getSlaAddressId() );
+	        const Unit* currentHHUnit = model->getUnitById(thisBidder->getUnitId());
+	        Postcode* thisPostcode = model->getPostcodeById( currentHHUnit->getSlaAddressId() );
 
-	        string saleFromDate = to_string(unit->getSaleFromDate().tm_mday) + "-" + to_string(unit->getSaleFromDate().tm_mon + 1) + "-" + to_string(unit->getSaleFromDate().tm_year + 1900);
-	        string occupancyFromDate = to_string(unit->getOccupancyFromDate().tm_mday) + "-" + to_string(unit->getOccupancyFromDate().tm_mon + 1) + "-" + to_string(unit->getOccupancyFromDate().tm_year + 1900);
+	        boost::gregorian::date saleFromDate 	 = boost::gregorian::date_from_tm(unit->getSaleFromDate());
+	        boost::gregorian::date occupancyFromDate = boost::gregorian::date_from_tm(unit->getOccupancyFromDate());
 
 	        boost::format fmtr = boost::format(LOG_BID) % bid.getSimulationDay()
-														% agent.getId()
+														% id
 														% bid.getBidderId()
 														% bid.getNewUnitId()
 														% (bid.getWillingnessToPay() - bid.getWtpErrorTerm())
@@ -438,11 +472,30 @@ namespace sim_mob
 														% type_id
 														% thisPostcode->getSlaPostcode()
 														% unitPostcode->getSlaPostcode()
-														% saleFromDate
-	        											% occupancyFromDate;
+														% boost::gregorian::to_iso_extended_string(saleFromDate)
+														% boost::gregorian::to_iso_extended_string(occupancyFromDate);
 
 	        AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::BIDS, fmtr.str());
-	        //PrintOut(fmtr.str() << endl);
+	    }
+
+
+
+	    /**
+	     * Print the current bid on the unit.
+	     * @param agent to received the bid
+	     * @param bid to send.
+	     * @param struct containing the hedonic, asking and target price.
+	     * @param number of bids for this unit
+	     * @param boolean indicating if the bid was successful
+	     *
+	     */
+	    inline void printBid(const RealEstateAgent& agent, const Bid& bid, const ExpectationEntry& entry, unsigned int bidsCounter, bool accepted)
+	    {
+	    	HM_Model* model = agent.getModel();
+
+	    	int id = agent.getId();
+
+	    	printBidGeneric( model,  id, bid, entry,bidsCounter,  accepted);
 	    }
 
 
@@ -457,56 +510,11 @@ namespace sim_mob
 	     */
 	    inline void printBid(const HouseholdAgent& agent, const Bid& bid, const ExpectationEntry& entry, unsigned int bidsCounter, bool accepted)
 	    {
-	        static bool printHeader = true;
-
-	        if(printHeader)
-	        {
-	        	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::BIDS, "bid_timestamp, seller_id, bidder_id, unit_id, bidder wtp, bidder wp+wp_error, wp_error, affordability, currentUnitHP,target_price, hedonicprice, lagCoefficient, asking_price, bid_value, bids_counter (daily), bid_status, logsum, floor_area, type_id, HHPC, UPC,sale_from_date,occupancy_from_date" );
-	        	printHeader = false;
-	        }
-
 
 	    	HM_Model* model = agent.getModel();
-	    	const Unit* unit  = model->getUnitById(bid.getNewUnitId());
-	        double floor_area = unit->getFloorArea();
-	        BigSerial type_id = unit->getUnitType();
-	        int UnitslaId = unit->getSlaAddressId();
-	        Postcode *unitPostcode = model->getPostcodeById(UnitslaId);
+	    	int id = agent.getId();
 
-
-	        Household *thisBidder = model->getHouseholdById(bid.getBidderId());
-	        const Unit* currentHHUnit = model->getUnitById(thisBidder->getUnitId());
-	        Postcode* thisPostcode = model->getPostcodeById( currentHHUnit->getSlaAddressId() );
-
-	        string saleFromDate = to_string(unit->getSaleFromDate().tm_mday) + "-" + to_string(unit->getSaleFromDate().tm_mon + 1) + "-" + to_string(unit->getSaleFromDate().tm_year + 1900);
-	        string occupancyFromDate = to_string(unit->getOccupancyFromDate().tm_mday) + "-" + to_string(unit->getOccupancyFromDate().tm_mon + 1) + "-" + to_string(unit->getOccupancyFromDate().tm_year + 1900);
-
-
-	        boost::format fmtr = boost::format(LOG_BID) % bid.getSimulationDay()
-														% agent.getId()
-														% bid.getBidderId()
-														% bid.getNewUnitId()
-														% (bid.getWillingnessToPay() - bid.getWtpErrorTerm())
-														% bid.getWillingnessToPay()
-														% bid.getWtpErrorTerm()
-														% thisBidder->getAffordabilityAmount()
-														% thisBidder->getCurrentUnitPrice()
-														% entry.targetPrice
-														% entry.hedonicPrice
-														% unit->getLagCoefficient()
-														% entry.askingPrice
-														% bid.getBidValue()
-														% bidsCounter
-														% ((accepted) ? 1 : 0)
-														% thisBidder->getLogsum()
-														% floor_area
-														% type_id
-														% thisPostcode->getSlaPostcode()
-														% unitPostcode->getSlaPostcode()
-														% saleFromDate
-	        											% occupancyFromDate;
-
-	        AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::BIDS, fmtr.str());
+	    	printBidGeneric( model,  id, bid, entry,bidsCounter,  accepted);
 	    }
 
 	    inline void writePreSchoolAssignmentsToFile(BigSerial hhId,BigSerial individualId,BigSerial schoolId)
@@ -559,9 +567,9 @@ namespace sim_mob
 	     * @param unit to be written.
 	     *
 	     */
-	    inline void printNewUnitsInMarket(BigSerial unitId, int timeOnMarket, int timeOffMarket) {
-
-	    	boost::format fmtr = boost::format("%1%, %2%, %3%") % unitId % timeOnMarket % timeOffMarket;
+	    inline void printNewUnitsInMarket(BigSerial sellerId, BigSerial unitId, int entryday, int timeOnMarket, int timeOffMarket)
+	    {
+	    	boost::format fmtr = boost::format("%1%, %2%, %3%, %4%, %5%") % sellerId % unitId % entryday % timeOnMarket % timeOffMarket;
 	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::UNITS_IN_MARKET,fmtr.str());
 	    }
 

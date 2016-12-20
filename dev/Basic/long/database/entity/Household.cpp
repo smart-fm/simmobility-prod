@@ -455,6 +455,18 @@ void Household::setLastBidStatus(int lastBidStatus)
 	this->lastBidStatus = lastBidStatus;
 }
 
+
+void Household::setHouseholdStats(HouseholdStatistics stats)
+{
+	householdStats = stats;
+}
+
+HouseholdStatistics Household::getHouseholdStats()
+{
+	return householdStats;
+}
+
+
 namespace sim_mob
 {
     namespace long_term

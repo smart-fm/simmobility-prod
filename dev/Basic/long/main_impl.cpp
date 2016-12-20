@@ -510,7 +510,9 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
             developerAgents = developerModel->getDeveloperAgents();
             developerModel->wakeUpDeveloperAgents(developerAgents);
 
-            PrintOutV("Day " << currTick << " HUnits: " << std::dec << (dynamic_cast<HM_Model*>(models[0]))->getMarket()->getEntrySize()
+            PrintOutV(" Day " << currTick
+            	   << " HUnits: " << std::dec << (dynamic_cast<HM_Model*>(models[0]))->getMarket()->getEntrySize()
+				   << " BTO_Units: " << std::dec << (dynamic_cast<HM_Model*>(models[0])->getMarket()->getBTOEntrySize())
 				   << " Bidders: " 	<< (dynamic_cast<HM_Model*>(models[0]))->getNumberOfBidders() << " "
 				   << " Sellers: " 	<< (dynamic_cast<HM_Model*>(models[0]))->getNumberOfSellers() << " "		
 				   << " Bids: " 	<< (dynamic_cast<HM_Model*>(models[0]))->getBids()

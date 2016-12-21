@@ -81,7 +81,7 @@ namespace medium
 	TrainMovement::TrainMovement(std::string lineId):MovementFacet(),parentDriver(nullptr),safeDistance(0),safeHeadway(0),nextPlatform(nullptr),forceResetMovingCase(false)
 	{
 		const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
-		std::map<std::string,TrainProperties> trainLinePropertiesMap = config.trainController.trainLinePropertiesMap;
+		std::map<const std::string,TrainProperties> trainLinePropertiesMap = config.trainController.trainLinePropertiesMap;
 		TrainProperties trainProperties = trainLinePropertiesMap[lineId];
 		safeDistanceLock.lock();
 		safeDistance = trainProperties.safeDistance;

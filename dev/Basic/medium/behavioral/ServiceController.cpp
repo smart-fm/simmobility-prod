@@ -103,6 +103,7 @@ ServiceController::~ServiceController()
 				.addFunction("restore_defaults",&ServiceController::restoreDefaults)
 				.addFunction("has_force_alighted_disruption",&ServiceController::hasForceAlightedInDisruption)
 				.addFunction("get_next_uturn_platform",&ServiceController::getNextUturnPlatform)
+				.addFunction("modify_passenger_number_coefficients",&ServiceController::changeNumberOfPassengerCoefficients)
 	 			.endClass();
 
  }
@@ -252,10 +253,10 @@ void ServiceController::restoreDefaults(int trainId,std::string lineId)
 {
 
 	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
-	std::map<std::string,TrainProperties> trainPropertiesMap=config.trainController.trainLinePropertiesMap;
+	const std::map<const std::string,TrainProperties> trainPropertiesMap=config.trainController.trainLinePropertiesMap;
 	if(trainPropertiesMap.find(lineId)!=trainPropertiesMap.end())
 	{
-		TrainProperties trainProperties=trainPropertiesMap[lineId];
+		TrainProperties trainProperties=trainPropertiesMap.find(lineId)->second;
 		resetSafeOperationDistance(trainProperties.safeDistance,trainId,lineId);
 		resetSafeHeadwaySec(trainProperties.safeHeadway,trainId,lineId);
 	}
@@ -1308,6 +1309,11 @@ void ServiceController::terminateTrainServiceForTrain(int trainId,std::string li
 			}
 		}
 	}
+}
+
+void ServiceController::changeNumberOfPassengerCoefficients(std::string stationName,std::string platformName,double coefficientA,double coefficientB,double coefficientC)
+{
+	TrainController<sim_mob::medium::Person_MT>::getInstance()->changeNumberOfPersonsCoefficients(stationName,platformName,coefficientA,coefficientB,coefficientC);
 }
 
 

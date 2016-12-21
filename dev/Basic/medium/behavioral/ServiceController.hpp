@@ -525,14 +525,23 @@ class ServiceController:  public lua::LuaModel
 	 */
 	void removePlatformHoldingTimeEntity(int trainId,std::string lineId);
 
-	/*
+	/**
 	 * This interface deletes all the requests to ignore platforms
 	 * @param trainId is the id of the train
 	 * @param lineId is the id of the line
 	 */
 	void clearAllPlatformsToIgnore(int trainId,std::string lineId);
 
-	void changeWalkTimeToTheStation(std::string stationName,std::string platformName,double walkTime);
+	/**
+	 * This interface changes the passenger number (boarding ,alighting ,passengers in train)
+	 * for a station and platform
+	 * @param stationName is the name of the station
+	 * @param platformName is the name of the platform
+	 * coefficientA is the boarding coefficient
+	 * coefficientB is the alighting coefficient
+	 * coefficientC is the number of persons in train coefficient
+	 */
+	void changeNumberOfPassengerCoefficients(std::string stationName,std::string platformName,double coefficientA,double coefficientB,double coefficientC);
 
 	private:
 	/** mutex lock to lock the mapOfLineAndTrainDrivers **/

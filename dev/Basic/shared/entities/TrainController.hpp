@@ -406,7 +406,7 @@ public:
 	 * For any station it is 120 secs
 	 * @return the maximum dwell time
 	 */
-	double getMaximumDwellTime() const;
+	double getMaximumDwellTime(std::string lineId) const;
 
 	/**
 	 * just checks if the station is the first station for a given line

@@ -429,6 +429,16 @@ struct BusControllerParams
  * Represents train controller parameter section
  */
 
+ struct TrainDwellTimeInfo
+ {
+	 double dwellTimeAtNormalStation;
+	 double dwellTimeAtInterchanges;
+	 double dwellTimeAtTerminalStaions;
+	 double maxDwellTime;
+	 double firstCoeff;
+	 double secondCoeff;
+	 double thirdCoeff;
+ };
 struct TrainProperties
 {
 	TrainProperties() :safeDistance(0), safeHeadway(0),maxCapacity(0)
@@ -441,6 +451,8 @@ struct TrainProperties
 	double safeHeadway;
 	/// train capacity
 	unsigned int maxCapacity;
+	double minDistanceTrainBehindForUnscheduledTrain;
+	TrainDwellTimeInfo dwellTimeInfo;
 };
 
 struct TrainControllerParams
@@ -470,7 +482,7 @@ struct TrainControllerParams
     bool outputEnabled;
     /// train capacity
     unsigned int maxCapacity;
-    std::map<std::string,TrainProperties> trainLinePropertiesMap;
+    std::map<const std::string,TrainProperties> trainLinePropertiesMap;
 };
 
 /**

@@ -295,7 +295,7 @@ namespace sim_mob
 		int trainId = 0;
 		trainId=deleteTrainFromActivePool(lineID);
 		if(trainId==-1)
-	    {
+	    	{
 			return -1;
 		}
 		return trainId;
@@ -310,9 +310,12 @@ namespace sim_mob
 	}
 
 	template<typename PERSON>
-	double TrainController<PERSON>::getMaximumDwellTime() const
+	double TrainController<PERSON>::getMaximumDwellTime(std::string lineId) const
 	{
-		return maxDwellTimeForAllStations;
+		const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
+		const std::map<const std::string,TrainProperties> &trainLinePropertiesMap = config.trainController.trainLinePropertiesMap;
+		const TrainProperties &trainProperties = trainLinePropertiesMap.find(lineId)->second;
+		return trainProperties.dwellTimeInfo.maxDwellTime;
 	}
 
 	template<typename PERSON>
@@ -545,31 +548,34 @@ namespace sim_mob
 	template<typename PERSON>
 	double TrainController<PERSON>::getMinDwellTime(std::string stationNo,std::string lineId) const
 	{
-         double minDwellTime = minDwellTimeForAllStation;
-         if(stationNo.find("/")!= std::string::npos)
-         {
-            minDwellTime = minDwellTimeForInterchanges;
-         }
+		const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
+		const std::map<const std::string,TrainProperties> &trainLinePropertiesMap = config.trainController.trainLinePropertiesMap;
+		const TrainProperties &trainProperties = trainLinePropertiesMap.find(lineId)->second;
+		double minDwellTime = trainProperties.dwellTimeInfo.dwellTimeAtNormalStation;
+		if(stationNo.find("/")!= std::string::npos)
+		{
+			minDwellTime = trainProperties.dwellTimeInfo.dwellTimeAtInterchanges;
+		}
 
-         std::map<std::string, std::vector<TrainPlatform>>::const_iterator it = mapOfIdvsTrainPlatforms.find(lineId);
-         const std::vector<TrainPlatform> TrainPlatforms = it->second;
-         std::vector<TrainPlatform>::const_iterator itTrainPlatforms = TrainPlatforms.begin();
-         Platform *platform = mapOfIdvsPlatforms.find((*itTrainPlatforms).platformNo)->second;
-         if(boost::iequals(platform->getStationNo(),stationNo))
-         {
-             minDwellTime = minDwellTimeForTerminalStations;
-         }
+		std::map<std::string, std::vector<TrainPlatform>>::const_iterator it = mapOfIdvsTrainPlatforms.find(lineId);
+		const std::vector<TrainPlatform> TrainPlatforms = it->second;
+		std::vector<TrainPlatform>::const_iterator itTrainPlatforms = TrainPlatforms.begin();
+		Platform *platform = mapOfIdvsPlatforms.find((*itTrainPlatforms).platformNo)->second;
+		if(boost::iequals(platform->getStationNo(),stationNo))
+		{
+			minDwellTime = trainProperties.dwellTimeInfo.dwellTimeAtTerminalStaions;
+		}
 
-         else
-         {
-        	 std::vector<TrainPlatform>::const_iterator itTrainPlatforms = TrainPlatforms.end()-1;
-        	 Platform *platform = mapOfIdvsPlatforms.find((*itTrainPlatforms).platformNo)->second;
-        	 if(boost::iequals(platform->getStationNo(),stationNo))
-        	 {
-        		 minDwellTime = minDwellTimeForTerminalStations;
-        	 }
-         }
-         return minDwellTime;
+		else
+		{
+			std::vector<TrainPlatform>::const_iterator itTrainPlatforms = TrainPlatforms.end()-1;
+			Platform *platform = mapOfIdvsPlatforms.find((*itTrainPlatforms).platformNo)->second;
+			if(boost::iequals(platform->getStationNo(),stationNo))
+			{
+				minDwellTime = minDwellTimeForTerminalStations;
+			}
+		}
+		return minDwellTime;
 	}
 
 	template<typename PERSON>

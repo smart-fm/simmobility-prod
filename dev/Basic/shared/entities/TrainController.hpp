@@ -574,6 +574,8 @@ public:
      * @return bool true if it is the last platform
      */
     bool isTerminalPlatform(std::string platformNo,std::string lineId);
+    const std::vector<double> getNumberOfPersonsCoefficients(const Station *station,const Platform *platformName) const;
+	void changeNumberOfPersonsCoefficients(std::string stationName,std::string platformName,double coefficientA,double coefficientB,double coefficientC);
 
 protected:
 	/**
@@ -619,6 +621,7 @@ protected:
 	 * @param params is a pointer to disruption structure
 	 */
 	void changeTrainTrip(sim_mob::TrainTrip* trip, sim_mob::DisruptionParams* params);
+
 
 private:
 	/**
@@ -715,34 +718,35 @@ private:
 	StartTimePriorityQueue pendingChildren;
 	/**last train id*/
 	std::map< std::string,unsigned int>mapOfNoAvailableTrains;
-    /* holds the status of train service ...true if terminated false if running*/
+    /** holds the status of train service ...true if terminated false if running*/
 	std::map<std::string,bool>mapOfTrainServiceTerminated;
-	/* holds the disrupted platforms per line */
+	/** holds the disrupted platforms per line */
     std::map<std::string,std::vector<std::string>> disruptedPlatformsNamesMap_ServiceController;
-    /* entities which hold information for resetting the block speeds*/
+    /** entities which hold information for resetting the block speeds*/
 	std::vector<ResetBlockSpeeds> resetSpeedBlocks;
-	/* entities which hold information for resetting the block accelerations*/
+	/** entities which hold information for resetting the block accelerations*/
 	std::vector<ResetBlockAccelerations> resetAccelerationBlocks;
-	/* map which saves the default accelerations when the accelerations are reset by service controller */
+	/** map which saves the default accelerations when the accelerations are reset by service controller */
 	std::map<std::string,std::map<int, double>> blockIdAcceleration;
-	/* map which saves the default block speeds when the accelerations are reset by service controller */
+	/** map which saves the default block speeds when the accelerations are reset by service controller */
 	std::map<std::string,std::map<int, double>> blockIdSpeed;
-	/* map that holds the active train lines in the system */
+	/** map that holds the active train lines in the system */
 	std::map<std::string, std::vector <Role<PERSON>*>> mapOfLineAndTrainDrivers;
-	/* holds the train ids in inactive pool per train line*/
+	/** holds the train ids in inactive pool per train line*/
 	std::map<std::string,std::vector<int>> mapOfInActivePoolInLine;
-	/* holds the train ids to be pushed to inactive pool after the completion of their trip*/
+	/** holds the train ids to be pushed to inactive pool after the completion of their trip*/
 	std::map<std::string,std::vector<int>> trainsToBePushedToInactivePoolAfterTripCompletion;
-	/* lock of "mapOfLineAndTrainDrivers" */
+	/** lock of "mapOfLineAndTrainDrivers" */
 	mutable boost::mutex activeTrainsListLock;
-	/* lock of "mapOfTrainServiceTerminated" */
+	/** lock of "mapOfTrainServiceTerminated" */
 	mutable boost::mutex terminatedTrainServiceLock;
-	/* map which holds the ids range for train lines*/
+	/** map which holds the ids range for train lines*/
 	std::map<std::string,std::list<int>> mapOfTrainMaxMinIds;
-	/* map which holds the opposite pairs of train lines eg "NE_1,NE_2","EW_1,EW_2"*/
+	/** map which holds the opposite pairs of train lines eg "NE_1,NE_2","EW_1,EW_2"*/
 	std::map<std::string,std::string> mapOfOppositeLines;
-	/* map which holds the uturn platforms for evry train line */
+	/** map which holds the uturn platforms for evry train line */
 	std::map<std::string,std::vector<std::string>> mapOfUturnPlatformsLines;
+	std::map<const Station*,std::map<const Platform*,std::vector<double>>> mapOfCoefficientsOfNumberOfPersons;
 
 	int lastTrainId;
 

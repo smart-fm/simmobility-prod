@@ -104,5 +104,19 @@ const std::string& sim_mob::medium::WaitTrainActivity::getTrainLine() const
 {
 	return parent->currSubTrip->serviceLine;
 }
+double sim_mob::medium::WaitTrainActivity::getWalkTimeToPlatform() const
+{
+	return walkingTimeToPlatform;
+}
+
+void sim_mob::medium::WaitTrainActivity::setWalkTimeToPlatform(double walkTime)
+{
+	walkingTimeToPlatform = walkTime;
+}
+
+void sim_mob::medium::WaitTrainActivity::reduceWalkingTime()
+{
+	walkingTimeToPlatform = walkingTimeToPlatform - 5;
+}
 }
 }

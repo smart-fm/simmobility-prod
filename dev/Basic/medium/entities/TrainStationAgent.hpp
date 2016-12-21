@@ -174,6 +174,7 @@ private:
 	std::map<std::string, bool> lastUsage;
 	/**waiting person for boarding*/
 	std::map<const Platform*, std::list<WaitTrainActivity*>> waitingPersons;
+	std::map<const Platform*, std::list<WaitTrainActivity*>> walkingPersons;
 	std::map<const Platform*, std::list<Passenger*>> forceAlightedPersons;
 	std::list<Person_MT*> personsForcedAlighted;
 	std::vector<std::string> unscheduledTrainLines;

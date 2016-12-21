@@ -78,10 +78,16 @@ public:
 	 * @return the train line
 	 */
 	const std::string& getTrainLine() const;
+
+	double getWalkTimeToPlatform() const;
+	void setWalkTimeToPlatform(double walkTime);
+
+	void reduceWalkingTime();
 private:
 	friend class WaitTrainActivityBehavior;
 	friend class WaitTrainActivityMovement;
 
+	unsigned int walkingTimeToPlatform;
 	/**record waiting time (in milliseconds) in the bus stop*/
 	unsigned int waitingTime;
 	/**pointer to waiting bus stop*/

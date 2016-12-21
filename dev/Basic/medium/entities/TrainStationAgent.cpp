@@ -167,7 +167,10 @@ void TrainStationAgent::HandleMessage(messaging::Message::MessageType type, cons
 				const Platform* platform = waitingPerson->getStartPlatform();
 				if(platform)
 				{
-					waitingPersons[platform].push_back(waitingPerson);
+					TrainController<sim_mob::medium::Person_MT> *trainController = TrainController<sim_mob::medium::Person_MT>::getInstance();
+					double walkTime;
+					waitingPerson->setWalkTimeToPlatform(walkTime);
+					walkingPersons[platform].push_back(waitingPerson);
 				}
 				else
 				{
@@ -518,11 +521,46 @@ void TrainStationAgent::triggerRerouting(const event::EventArgs& args, timeslice
 void TrainStationAgent::updateWaitPersons()
 {
 	std::map<const Platform*, std::list<WaitTrainActivity*>>::iterator it;
-	for(it = waitingPersons.begin(); it != waitingPersons.end(); it++){
+	for(it = waitingPersons.begin(); it != waitingPersons.end(); it++)
+	{
 		std::list<WaitTrainActivity*>& persons = it->second;
-		for(std::list<WaitTrainActivity*>::iterator i=persons.begin(); i!=persons.end(); i++){
+		for(std::list<WaitTrainActivity*>::iterator i=persons.begin(); i!=persons.end(); i++)
+		{
 			MovementFacet *facet = (*i)->Movement();
 			facet->frame_tick();
+		}
+	}
+	for(it = walkingPersons.begin(); it != walkingPersons.end(); it++)
+	{
+		std::list<WaitTrainActivity*>& persons = it->second;
+		for(std::list<WaitTrainActivity*>::iterator i=persons.begin(); i!=persons.end(); i++)
+		{
+			MovementFacet *facet = (*i)->Movement();
+			facet->frame_tick();
+			double walkTime = (*i)->getWalkTimeToPlatform();
+			if(walkTime < 5)
+			{
+				const Platform *platform = (it)->first;
+				if(platform)
+				{
+					waitingPersons[platform].push_back(*i);
+					i = persons.erase(i);
+				}
+			}
+			else
+			{
+				(*i)->reduceWalkingTime();
+				double walkTime = (*i)->getWalkTimeToPlatform();
+				if(walkTime < 5)
+				{
+					const Platform *platform = (it)->first;
+					if(platform)
+					{
+						waitingPersons[platform].push_back(*i);
+						i = persons.erase(i);
+					}
+				}
+			}
 		}
 	}
 }
@@ -762,7 +800,6 @@ void TrainStationAgent::pushForceAlightedPassengersToWaitingQueue(const Platform
 		}
 		else if(itr != platforms.end())
 		{
-
 			if(forceAlightedPersons.find(platform) == forceAlightedPersons.end())
 			{
 				forceAlightedPersons[platform] = std::list<Passenger*>();

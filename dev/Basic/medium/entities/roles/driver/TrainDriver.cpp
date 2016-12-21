@@ -30,12 +30,12 @@ TrainDriver::TrainDriver(Person_MT* parent,
 	sim_mob::Role<Person_MT>::Role(parent, behavior, movement, roleName, roleType),
 	nextDriver(nullptr),nextRequested(NO_REQUESTED),subsequent_nextRequested(NO_REQUESTED),waitingTimeSec(0.0),initialDwellTime(0.0),disruptionParam(nullptr),platSequenceNumber(0)
 {
-	int trainId=getTrainId();
-	std::string lineId=getTrainLine();
+	int trainId = getTrainId();
+	std::string lineId = getTrainLine();
 	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
 	std::map<std::string,TrainProperties> trainLinePropertiesMap = config.trainController.trainLinePropertiesMap;
 	TrainProperties trainProperties = trainLinePropertiesMap[lineId];
-	maxCapacity=trainProperties.maxCapacity;
+	maxCapacity = trainProperties.maxCapacity;
 	ServiceController::getInstance()->insertTrainIdAndTrainDriverInMap(trainId,lineId,this);
 }
 
@@ -75,7 +75,7 @@ bool TrainDriver::operator< (TrainDriver * &other)
 
 void TrainDriver::setForceAlightStatus(bool status)
 {
-	isForceAlighted=status;
+	isForceAlighted = status;
 }
 
 bool TrainDriver::getForceAlightStatus()
@@ -231,15 +231,26 @@ void TrainDriver::calculateDwellTime(int boarding,int alighting,int noOfPassenge
 {
 	const std::string& fileName("pt_mrt_Boarding_Alighting_DwellTime.csv");
 	sim_mob::BasicLogger& ptMRTMoveLogger  = sim_mob::Logger::log(fileName);
-	std::string tm=(DailyTime(now.ms())+DailyTime(ConfigManager::GetInstance().FullConfig().simStartTime())).getStrRepr();
-	double dwellTime = 12.22 + 2.27*boarding/24 + 1.82*alighting/24; //+ 0.00062*(noOfPassengerInTrain/24)*(noOfPassengerInTrain/24)*(noOfPassengerInTrain/24)*(boarding/24);
-	Platform *currentPlatform=getMovement()->getNextPlatform();
-	if(currentPlatform)
+	std::string tm = (DailyTime(now.ms())+DailyTime(ConfigManager::GetInstance().FullConfig().simStartTime())).getStrRepr();
+	TrainController<sim_mob::medium::Person_MT> *trainController = TrainController<sim_mob::medium::Person_MT>::getInstance();
+	Platform *platform = getMovement()->getNextPlatform();
+	std::string stationNo = platform->getStationNo();
+	Station *station = trainController->getStationFromId(stationNo);
+	const std::vector<double> personCountCoefficients = trainController->getNumberOfPersonsCoefficients(station,platform);
+	double dwellTime = -1;
+	if(personCountCoefficients.size() == 3)
 	{
-		std::string stationNo=currentPlatform->getStationNo();
+		noOfPassengerInTrain = noOfPassengerInTrain*personCountCoefficients[2];
+		dwellTime = 12.22 + 2.27*personCountCoefficients[0]*boarding/24 + 1.82*personCountCoefficients[1]*alighting/24 + 0.00062*(noOfPassengerInTrain/24)*(noOfPassengerInTrain/24)*(noOfPassengerInTrain/24)*(boarding/24);
+	}
+	else
+	{
+		dwellTime = 12.22 + 2.27*boarding/24 + 1.82*alighting/24 + 0.00062*(noOfPassengerInTrain/24)*(noOfPassengerInTrain/24)*(noOfPassengerInTrain/24)*(boarding/24);
+	}
+
+	if(platform)
+	{
 		std::string trainLine=getTrainLine();
-		TrainController<sim_mob::medium::Person_MT> *trainController=TrainController<sim_mob::medium::Person_MT>::getInstance();
-		Platform *platform = getNextPlatform();
 		double maxDwellTime=0.0,minDwellTime=0.0;
 		bool useMaxDwellTime = false,useMinDwellTime = false;
 		if(platformHoldingTimeEntities.find(platform->getPlatformNo())!=platformHoldingTimeEntities.end())

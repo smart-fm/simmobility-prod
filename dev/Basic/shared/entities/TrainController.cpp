@@ -1634,5 +1634,39 @@ namespace sim_mob
 		}
 	}
 
+	template<typename PERSON>
+	void TrainController<PERSON>::changeNumberOfPersonsCoefficients(std::string stationName,std::string platformName,double coefficientA,double coefficientB,double coefficientC)
+	{
+		std::map<std::string, Platform*>::const_iterator itr =  mapOfIdvsPlatforms.find(platformName);
+		if(itr != mapOfIdvsPlatforms.end())
+		{
+			const Platform *platform = itr->second;
+			const std::string stationNo = platform->getStationNo();
+			std::map<std::string, Station*>::const_iterator it = mapOfIdvsStations.find(stationNo);
+			if(it != mapOfIdvsStations.end())
+			{
+				mapOfCoefficientsOfNumberOfPersons[it->second][itr->second].push_back(coefficientA);
+				mapOfCoefficientsOfNumberOfPersons[it->second][itr->second].push_back(coefficientB);
+				mapOfCoefficientsOfNumberOfPersons[it->second][itr->second].push_back(coefficientC);
+			}
+		}
+	}
+
+	template<typename PERSON>
+	const std::vector<double> TrainController<PERSON>::getNumberOfPersonsCoefficients(const Station *station,const Platform *platform) const
+	{
+		std::map<const Station*,std::map<const Platform*,std::vector<double>>>::const_iterator itr = mapOfCoefficientsOfNumberOfPersons.find(station);
+		if(itr != mapOfCoefficientsOfNumberOfPersons.end())
+		{
+			const std::map<const Platform*,std::vector<double>> &mapOfPlatformVsCoefficients = itr->second;
+			std::map<const Platform*,std::vector<double>>::const_iterator it = mapOfPlatformVsCoefficients.find(platform);
+			if(it != mapOfPlatformVsCoefficients.end())
+			{
+				return it->second;
+			}
+		}
+		return std::vector<double>();
+	}
+
 } /* namespace sim_mob */
 #endif

@@ -532,6 +532,8 @@ class ServiceController:  public lua::LuaModel
 	 */
 	void clearAllPlatformsToIgnore(int trainId,std::string lineId);
 
+	void changeWalkTimeToTheStation(std::string stationName,std::string platformName,double walkTime);
+
 	private:
 	/** mutex lock to lock the mapOfLineAndTrainDrivers **/
 	mutable boost::mutex lineTrainDriversLock;

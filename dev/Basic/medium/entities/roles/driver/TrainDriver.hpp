@@ -13,8 +13,10 @@
 #include "entities/roles/waitTrainActivity/WaitTrainActivity.hpp"
 #include "entities/incident/IncidentManager.hpp"
 #include "entities/misc/TrainTrip.hpp"
-namespace sim_mob{
-namespace medium{
+namespace sim_mob
+{
+namespace medium
+{
 struct StopPointEntity
 {
 	PolyPoint point;
@@ -54,9 +56,11 @@ class TrainBehavior;
 class TrainMovement;
 
 
-class TrainDriver : public sim_mob::Role<Person_MT>, public UpdateWrapper<TrainUpdateParams> {
+class TrainDriver : public sim_mob::Role<Person_MT>, public UpdateWrapper<TrainUpdateParams>
+{
 public:
-	enum TRAIN_NEXTREQUESTED{
+	enum TRAIN_NEXTREQUESTED
+	{
 		NO_REQUESTED=0,
 		REQUESTED_AT_PLATFORM,
 		REQUESTED_WAITING_LEAVING,
@@ -274,7 +278,7 @@ public:
 	 * Function that checks the status whether the train is to be terminated or not
 	 * @return true if the train service of that train is to be terminated else false
 	 */
-	bool getTerminateStatus();
+	bool getTerminateStatus() const;
 
 	/**
 	 * Function that inserts the instances when the train is supposed to be held by platform as requested by service controller
@@ -297,13 +301,13 @@ public:
 	 * checks if is boarding restricted by restricting passenger entity as requested by service controller
 	 * @return true if boarding is restricted else false
 	 */
-	bool isBoardingRestricted();
+	bool isBoardingRestricted() const;
 
 	/**
 	 * checks if is alighting restricted by restricting passenger entity as requested by service controller
 	 * @return true if boarding is restricted else false
 	 */
-	bool isAlightingRestricted();
+	bool isAlightingRestricted() const;
 
 	/**
 	 * This function returns those list of platforms where the train is not supposed to stop at certain platforms as requested by service controller
@@ -355,7 +359,7 @@ public:
 	 * function which gets the status of uturn flag
 	 * @return bool returns true if U-turn flag is set
 	 */
-	bool getUTurnFlag();
+	bool getUTurnFlag() const;
 
 	/**
 	 * function to set the force alight flag that is the signal when the train is supposed to force alight
@@ -367,7 +371,7 @@ public:
 	 * function to know if force alight flag is set
 	 * @return true if force alight flag is set.
 	 */
-	bool getForceAlightFlag();
+	bool getForceAlightFlag() const;
 
 	/**
 	 * function which sets the status of force alighted ,that is it is set to true if the passenegers have already force alighted
@@ -379,7 +383,7 @@ public:
 	 * function which return the status of force alighted whether the passengers have force alighted or not
 	 * @return the status of force alighted
 	 */
-	bool getForceAlightStatus();
+	bool getForceAlightStatus() const;
 
 	/*
 	 * function which gets the subsequent next requested for the train ,that is the next requested in future
@@ -473,12 +477,17 @@ private:
 	boost::shared_ptr<DisruptionParams> disruptionParam;
 	/**arrival time when stopping the platform*/
 	std::string arrivalTimeAtPlatform;
-	bool isToBeRemovedFromStationAgent=false;
+	/** indicates if the train is to be removed from current train station agent and pushed to another **/
+	bool isToBeRemovedFromStationAgent = false;
+	/** indicates whether the passenegers have force alighted after disruption **/
 	bool hasforceAlightedInDisruption = false;
-	int maxCapacity=0;
-	bool isHoldingTimeReset =false;
-	int initialnumberofpassengers=0;
-	/* board passenger count */
+	/** indicates the maximum capacity of the train **/
+	int maxCapacity = 0;
+	/** bool which indicates whether reset holding time is set **/
+	bool isHoldingTimeReset = false;
+	/** initial number of passenegers in the train **/
+	int initialnumberofpassengers = 0;
+	
 
 
 private:

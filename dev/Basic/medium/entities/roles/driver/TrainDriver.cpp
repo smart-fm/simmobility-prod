@@ -78,7 +78,7 @@ void TrainDriver::setForceAlightStatus(bool status)
 	isForceAlighted = status;
 }
 
-bool TrainDriver::getForceAlightStatus()
+bool TrainDriver::getForceAlightStatus() const
 {
 	return isForceAlighted;
 }
@@ -127,7 +127,7 @@ void TrainDriver::setTerminateTrainService(bool terminate)
 	terminateTrainServiceLock.unlock();
 }
 
-bool TrainDriver::getTerminateStatus()
+bool TrainDriver::getTerminateStatus() const
 {
 	terminateTrainServiceLock.lock();
 	bool terminateservice = shouldTerminateService;
@@ -238,9 +238,9 @@ void TrainDriver::calculateDwellTime(int boarding,int alighting,int noOfPassenge
 	Station *station = trainController->getStationFromId(stationNo);
 	const std::vector<double> personCountCoefficients = trainController->getNumberOfPersonsCoefficients(station,platform);
 	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
-	std::map<const std::string,TrainProperties> trainLinePropertiesMap = config.trainController.trainLinePropertiesMap;
-	TrainProperties trainProperties = trainLinePropertiesMap[getTrainLine()];
-	TrainDwellTimeInfo dwellTimeInfo = trainProperties.dwellTimeInfo;
+	const std::map<std::string,TrainProperties> &trainLinePropertiesMap = config.trainController.trainLinePropertiesMap;
+	const TrainProperties &trainProperties = trainLinePropertiesMap->find(getTrainLine())->second;
+	const TrainDwellTimeInfo &dwellTimeInfo = trainProperties.dwellTimeInfo;
 	double dwellTime = -1;
 	if(personCountCoefficients.size() == 3)
 	{
@@ -267,7 +267,7 @@ void TrainDriver::calculateDwellTime(int boarding,int alighting,int noOfPassenge
 		else
 		{
 
-			if(platformMaxHoldingTimeEntities.find(platform->getPlatformNo())!=platformMaxHoldingTimeEntities.end())
+			if(platformMaxHoldingTimeEntities.find(platform->getPlatformNo()) != platformMaxHoldingTimeEntities.end())
 			{
 				maxDwellTime = platformMaxHoldingTimeEntities[platform->getPlatformNo()];
 				useMaxDwellTime = true;
@@ -277,7 +277,7 @@ void TrainDriver::calculateDwellTime(int boarding,int alighting,int noOfPassenge
 				maxDwellTime = trainController->getMaximumDwellTime(trainLine);
 			}
 
-			if(platformMinHoldingTimeEntities.find(platform->getPlatformNo())!=platformMinHoldingTimeEntities.end())
+			if(platformMinHoldingTimeEntities.find(platform->getPlatformNo()) != platformMinHoldingTimeEntities.end())
 			{
 				minDwellTime = platformMinHoldingTimeEntities[platform->getPlatformNo()];
 				useMinDwellTime = true;
@@ -338,15 +338,15 @@ void TrainDriver::calculateDwellTime(int boarding,int alighting,int noOfPassenge
 
 	if(forceAlightwhileWaiting)
 	{
-		dwellTime = dwellTime-(initialDwellTime - waitingTimeSec);
+		dwellTime = dwellTime - (initialDwellTime - waitingTimeSec);
 		minDwellTimeRequired = dwellTime; /*minDwellTimeRequired is the min dwell time calculated so that all passengers can board and alight */
 		waitingTimeSec = dwellTime;
 
 	}
 	else
 	{
-		initialDwellTime=dwellTime;
-		minDwellTimeRequired =dwellTime; /*minDwellTimeRequired is the min dwell time calculated so that all passengers can board and alight */
+		initialDwellTime = dwellTime;
+		minDwellTimeRequired = dwellTime; /*minDwellTimeRequired is the min dwell time calculated so that all passengers can board and alight */
 		waitingTimeSec = dwellTime;
 	}
 
@@ -359,7 +359,7 @@ void TrainDriver::insertPlatformHoldEntities(std::string platformName,double dur
 	platformHoldingTimeEntitiesLock.lock();
 	if(platformMaxHoldingTimeEntities.find(platformName) != platformMaxHoldingTimeEntities.end())
 	{
-		if(duration>platformMaxHoldingTimeEntities[platformName])
+		if(duration > platformMaxHoldingTimeEntities[platformName])
 		{
 			return;
 		}
@@ -382,8 +382,8 @@ void TrainDriver::resetHoldingTime()
 	Platform *currentPlatform = getMovement()->getNextPlatform();
 	if(platformHoldingTimeEntities.find(currentPlatform->getPlatformNo()) != platformHoldingTimeEntities.end())
 	{
-		double holdingTime=platformHoldingTimeEntities[currentPlatform->getPlatformNo()];
-		waitingTimeSec = holdingTime-(initialDwellTime-waitingTimeSec);
+		double holdingTime = platformHoldingTimeEntities[currentPlatform->getPlatformNo()];
+		waitingTimeSec = holdingTime - (initialDwellTime - waitingTimeSec);
 		initialDwellTime = holdingTime;
 		platformHoldingTimeEntities.erase(currentPlatform->getPlatformNo());
 		isHoldingTimeReset = true;
@@ -549,7 +549,7 @@ void TrainDriver::setUturnFlag(bool set)
 	uTurnFlag = set;
 }
 
-bool TrainDriver::getUTurnFlag()
+bool TrainDriver::getUTurnFlag() const
 {
 	return uTurnFlag;
 }
@@ -582,7 +582,7 @@ void TrainDriver::setIsToBeRemoved(bool isToBeRemoved)
 	isToBeRemovedFromStationAgent = isToBeRemoved;
 }
 
-bool TrainDriver::getForceAlightFlag()
+bool TrainDriver::getForceAlightFlag() const
 {
 	return forceAlightPassengers_ByServiceController;
 }
@@ -872,7 +872,7 @@ int TrainDriver::boardForceAlightedPassengersPassenger(std::list<Passenger*>& fo
 }
 
 
-bool TrainDriver::isBoardingRestricted()
+bool TrainDriver::isBoardingRestricted() const
 {
 	std::map<std::string,passengerMovement>::iterator it = restrictPassengersEntities.begin();
 	const Platform* platform = this->getNextPlatform();
@@ -901,7 +901,7 @@ bool TrainDriver::hasForceAlightedInDisruption()
 	return hasforceAlightedInDisruption;
 }
 
-bool TrainDriver::isAlightingRestricted()
+bool TrainDriver::isAlightingRestricted() const
 {
 	std::map<std::string,passengerMovement>::iterator it=restrictPassengersEntities.begin();
 	const Platform* platform = this->getNextPlatform();

@@ -171,6 +171,8 @@
     	<!-- <safe_operation_headway_sec value="90"/> -->
     	<dwell_time_params min_sec="30" max_sec="50"/>
     	<output_enabled value="true"/>
+		<train_length value ="138"/>
+		<distance_arriving_at_platform value ="0.001/>"
     	<!-- <max_capacity value="1600"/> -->
 
 	<trainProperties>

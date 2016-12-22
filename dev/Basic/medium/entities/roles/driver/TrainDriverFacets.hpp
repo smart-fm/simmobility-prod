@@ -10,9 +10,10 @@
 #include "entities/roles/RoleFacets.hpp"
 #include "TrainPathMover.hpp"
 #include "TrainDriver.hpp"
-namespace sim_mob {
-//class TrainPathMover;
-namespace medium{
+namespace sim_mob
+{
+namespace medium
+{
 class TrainDriver;
 
 class TrainBehavior : public BehaviorFacet
@@ -207,24 +208,28 @@ public:
 	 */
 	void changeTrip();
 
-	/* This function updates the platform list ,that is platform list to be ignored
+	/** 
+	 * This function updates the platform list ,that is platform list to be ignored
 	 * @param isToBeRemoved is the bool  to indicate whether the train is to be removed from current station agent
 	 * or not
      */
 	bool updatePlatformsList(bool &isToBeRemoved); //can be done by firing an event as well
 
-	/* resets from Station case to normal case and vice versa
+	/** 
+	 * resets from Station case to normal case and vice versa
 	 * @param trainCase is the enum to which the moving case has to be resetted to
 	 */
 	void resetMovingCase(TRAINCASE trainCase);
 
-	/* This function sets the train status if it is in disrupted region or if it cannot move ahead to
+	/** 
+	 * This function sets the train status if it is in disrupted region or if it cannot move ahead to
 	 * next platform due to disruption,irrespective of whether it is on platform or not
 	 * @param disruptedState is the bool indicatind disruption or not
 	 */
 	void setDisruptedState(bool disruptedState);
 
-	/* This function gets the status of train whether it is in disrupted state or not
+	/** 
+	 * This function gets the status of train whether it is in disrupted state or not
 	 * @return bool indicated whether its disrupted state or not
 	 */
 	bool getDisruptedState() const;
@@ -254,7 +259,10 @@ public:
 	 */
 	bool isRouteSet() const;
 
-	/* sets the route status which is set so later it need not to set */
+	/** 
+	 * sets the route status which is set so later it need not to set
+	 * @param status indicates whether the route is set or not
+	 */
 	void setRouteStatus(bool status);
 
 	/**
@@ -283,7 +291,7 @@ public:
 
 	/**
 	 * This function sets the user specified time for uturn by service controller
-	 * @parm time is the user specified time for uturn
+	 * @param time is the user specified time for uturn
 	 */
 	void setUserSpecifiedTimeToTakeUturn(double time) ;
 

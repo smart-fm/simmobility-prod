@@ -28,8 +28,6 @@ using namespace std;
 
 namespace
 {
-	const double distanceArrvingAtPlatform = 0.001;
-	const double trainLengthMeter = 138;
 	const double convertKmPerHourToMeterPerSec = 1000.0/3600.0;
 	/**
 	 * converts time from  seconds to milli-seconds
@@ -42,6 +40,9 @@ namespace
 
 namespace sim_mob
 {
+const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
+const double trainLengthMeter = config.trainController.trainLength;
+const double distanceArrvingAtPlatform = config.trainController.distanceArrvingAtPlatform;
 namespace medium
 {
 	bool TrainMovement::areColumnNamesAdded=false;
@@ -1279,7 +1280,7 @@ namespace medium
 		double distanceToNextTrain = 0.0;
 		double distanceToNextPlatform = 0.0;
 		double distanceToNextObject = 0.0;
-		double disToNextStopPoint=0;
+		double disToNextStopPoint = 0;
 		double maxDecelerationToStopPoint = 0.0;
 		double speedLimit = 0.0;
 		double speedLimit2 = 0.0;
@@ -1356,7 +1357,7 @@ namespace medium
 				{
 					if(distanceToNextTrain == 0)
 					{
-						if(distanceToNextPlatform ==-1)
+						if(distanceToNextPlatform == -1)
 						{
 							distanceToNextObject = disToNextStopPoint;
 						}

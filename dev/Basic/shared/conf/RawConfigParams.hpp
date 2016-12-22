@@ -482,6 +482,8 @@ struct TrainControllerParams
     bool outputEnabled;
     /// train capacity
     unsigned int maxCapacity;
+	unsigned int trainLength;
+	double distanceArrivingAtPlatform;
     std::map<const std::string,TrainProperties> trainLinePropertiesMap;
 };
 

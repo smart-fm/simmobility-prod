@@ -22,10 +22,10 @@
 #include "behavioral/ServiceController.hpp"
 using namespace sim_mob::event;
 
-namespace
-{
-	const double distanceBehingToMakeUpToSafeDistance = 200;
-}
+//namespace
+//{
+//	const double distanceBehingToMakeUpToSafeDistance = 200;
+//}
 namespace sim_mob
 {
 namespace medium
@@ -234,7 +234,7 @@ namespace medium
 										const std::map<const std::string,TrainProperties> &trainLinePropertiesMap = config.trainController.trainLinePropertiesMap;
 										const TrainProperties &trainProperties = trainLinePropertiesMap.find(lineId)->second;										
 										double minDisBehindTrain = trainProperties.minDistanceTrainBehindForUnscheduledTrain;
-										if(distanceToTrainAhead-distanceBehingToMakeUpToSafeDistance-minDisBehindTrain<0)
+										if(distanceToTrainAhead - minDisBehindTrain<0)
 										{
 											isTrainApproachingClose = true;
 											break;
@@ -283,8 +283,8 @@ namespace medium
 					TrainController<sim_mob::medium::Person_MT> *trainController = TrainController<sim_mob::medium::Person_MT>::getInstance();
 					std::vector <Role<Person_MT>*> trainDriverVector = trainController->getActiveTrainsForALine(lineId);
 					std::vector <Role<Person_MT>*>::iterator trainDriverItr = trainDriverVector.begin();
-					double minDis=-1;
-					success=true;
+					double minDis = -1;
+					success = true;
 					double minDisBehindDriver = -1;
 					while(trainDriverItr != trainDriverVector.end())
 					{
@@ -306,16 +306,16 @@ namespace medium
 							double differentDistance = totalDisCoverdByOtherTrain - (next->getMovement()->getTotalCoveredDistance())-distanceBehingToMakeUpToSafeDistance-(movement->getSafeDistance());
 							if(differentDistance<0)
 							{
-								success=false;
-								ahead=trainDriver;
+								success = false;
+								ahead = trainDriver;
 								break;
 							}
 							else
 							{
 								if(minDis == -1 || differentDistance<minDis)
 								{
-									minDis=differentDistance;
-									ahead=trainDriver;
+									minDis = differentDistance;
+									ahead = trainDriver;
 								}
 							}
 						}
@@ -329,12 +329,12 @@ namespace medium
 						lastUsage[lineId] = true;
 						lastTrainDriver[lineId] = next;
 						next->setNextDriver(ahead);
-						if(behindDriver!=nullptr)
+						if(behindDriver != nullptr)
 						{
 							behindDriver->setNextDriver(next);
 						}
 						next->setNextRequested(TrainDriver::REQUESTED_AT_PLATFORM);
-						Role<Person_MT> *tDriver=dynamic_cast<Role<Person_MT>*>(next);
+						Role<Person_MT> *tDriver = dynamic_cast<Role<Person_MT>*>(next);
 						TrainController<Person_MT>::getInstance()->addToListOfActiveTrainsInLine(lineId,tDriver);
 					}
 				}
@@ -364,7 +364,7 @@ namespace medium
 			bool isTrainServiceTerminated = TrainController<sim_mob::medium::Person_MT>::getInstance()->isServiceTerminated(lineId);
 			if(isTrainServiceTerminated)
 			{
-				std::list<TrainDriver*>::iterator itr=pendingDrivers.begin();
+				std::list<TrainDriver*>::iterator itr = pendingDrivers.begin();
 				while(itr!=pendingDrivers.end())
 				{
 					(*itr)->setNextRequested(TrainDriver::REQUESTED_TO_DEPOT);
@@ -430,8 +430,8 @@ namespace medium
 									double differentDistance = totalDisCoverdByOtherTrain - (next->getMovement()->getTotalCoveredDistance())-(movement->getSafeDistance());
 									if(differentDistance<0)
 									{
-										success=false;
-										ahead=trainDriver;
+										success = false;
+										ahead = trainDriver;
 										break;
 									}
 									else
@@ -455,7 +455,7 @@ namespace medium
 							lastUsage[lineId] = true;
 							lastTrainDriver[lineId] = next;
 							next->setNextDriver(ahead);
-							if(behindDriver!=nullptr)
+							if(behindDriver != nullptr)
 							{
 								behindDriver->setNextDriver(next);
 							}

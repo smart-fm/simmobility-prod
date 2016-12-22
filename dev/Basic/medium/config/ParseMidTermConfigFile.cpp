@@ -803,7 +803,11 @@ void ParseMidTermConfigFile::processTrainControllerNode(xercesc::DOMElement *nod
 			throw std::runtime_error("load output_enabled missing in simrun_MidTerm.xml");
 		}
 
-		cfg.trainController.outputEnabled=ParseBoolean(GetNamedAttributeValue(child, "value"), false);
+		cfg.trainController.outputEnabled = ParseBoolean(GetNamedAttributeValue(child, "value"), false);
+		child  = GetSingleElementByName(node, "train_length");
+		cfg.trainController.trainLength = ParseBoolean(GetNamedAttributeValue(child, "value"), false);
+		child  = GetSingleElementByName(node, "distance_arriving_at_platform");
+		cfg.trainController.distanceArrivingAtPlatform = ParseBoolean(GetNamedAttributeValue(child, "value"), false);
 	}
 }
 

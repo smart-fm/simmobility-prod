@@ -21,13 +21,9 @@
 #include "event/args/ReRouteEventArgs.hpp"
 #include "behavioral/ServiceController.hpp"
 using namespace sim_mob::event;
-
-//namespace
-//{
-//	const double distanceBehingToMakeUpToSafeDistance = 200;
-//}
 namespace sim_mob
 {
+const double trainLengthMeter = config.trainController.trainLength;
 namespace medium
 {
 
@@ -230,7 +226,7 @@ namespace medium
 										const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
 										double safeDistance = config.trainController.safeDistance;
 										//checking safe distance from the ned of platform
-										double distanceToTrainAhead = trainMovement->getDistanceToNextPlatform(tDriver)-platform->getLength()-safeDistance;
+										double distanceToTrainAhead = trainMovement->getDistanceToNextPlatform(tDriver) - platform->getLength() - safeDistance;
 										const std::map<const std::string,TrainProperties> &trainLinePropertiesMap = config.trainController.trainLinePropertiesMap;
 										const TrainProperties &trainProperties = trainLinePropertiesMap.find(lineId)->second;										
 										double minDisBehindTrain = trainProperties.minDistanceTrainBehindForUnscheduledTrain;
@@ -289,13 +285,13 @@ namespace medium
 					while(trainDriverItr != trainDriverVector.end())
 					{
 						TrainDriver *trainDriver = dynamic_cast<TrainDriver*>(*trainDriverItr);
-						if(trainDriver&&trainDriver != next)
+						if(trainDriver && trainDriver != next)
 						{
 							TrainMovement *movement = trainDriver->getMovement();
 							double totalDisCoverdByOtherTrain = movement->getTotalCoveredDistance();
 							if(totalDisCoverdByOtherTrain - (next->getMovement()->getTotalCoveredDistance())<0)
 							{
-								if(minDisBehindDriver == -1||((next->getMovement()->getTotalCoveredDistance())-totalDisCoverdByOtherTrain)<minDisBehindDriver)
+								if(minDisBehindDriver == -1||((next->getMovement()->getTotalCoveredDistance()) - totalDisCoverdByOtherTrain) < minDisBehindDriver)
 								{
 									behindDriver = trainDriver;
 									minDisBehindDriver = ((next->getMovement()->getTotalCoveredDistance())-totalDisCoverdByOtherTrain);
@@ -303,7 +299,7 @@ namespace medium
 								trainDriverItr++;
 								continue;
 							}
-							double differentDistance = totalDisCoverdByOtherTrain - (next->getMovement()->getTotalCoveredDistance())-distanceBehingToMakeUpToSafeDistance-(movement->getSafeDistance());
+							double differentDistance = totalDisCoverdByOtherTrain - (next->getMovement()->getTotalCoveredDistance()) - trainLengthMeter - (movement->getSafeDistance());
 							if(differentDistance<0)
 							{
 								success = false;
@@ -312,7 +308,7 @@ namespace medium
 							}
 							else
 							{
-								if(minDis == -1 || differentDistance<minDis)
+								if(minDis == -1 || differentDistance < minDis)
 								{
 									minDis = differentDistance;
 									ahead = trainDriver;

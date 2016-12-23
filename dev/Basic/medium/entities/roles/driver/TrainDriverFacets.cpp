@@ -42,7 +42,7 @@ namespace sim_mob
 {
 const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
 const double trainLengthMeter = config.trainController.trainLength;
-const double distanceArrvingAtPlatform = config.trainController.distanceArrvingAtPlatform;
+const double distanceArrvingAtPlatform = config.trainController.distanceArrivingAtPlatform;
 namespace medium
 {
 	bool TrainMovement::areColumnNamesAdded=false;

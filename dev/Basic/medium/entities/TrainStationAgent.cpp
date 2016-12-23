@@ -23,6 +23,7 @@
 using namespace sim_mob::event;
 namespace sim_mob
 {
+const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
 const double trainLengthMeter = config.trainController.trainLength;
 namespace medium
 {

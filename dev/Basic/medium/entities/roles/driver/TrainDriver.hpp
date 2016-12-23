@@ -301,13 +301,13 @@ public:
 	 * checks if is boarding restricted by restricting passenger entity as requested by service controller
 	 * @return true if boarding is restricted else false
 	 */
-	bool isBoardingRestricted() const;
+	bool isBoardingRestricted();
 
 	/**
 	 * checks if is alighting restricted by restricting passenger entity as requested by service controller
 	 * @return true if boarding is restricted else false
 	 */
-	bool isAlightingRestricted() const;
+	bool isAlightingRestricted();
 
 	/**
 	 * This function returns those list of platforms where the train is not supposed to stop at certain platforms as requested by service controller

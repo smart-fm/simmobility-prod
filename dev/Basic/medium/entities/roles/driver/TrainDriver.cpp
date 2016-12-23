@@ -238,8 +238,8 @@ void TrainDriver::calculateDwellTime(int boarding,int alighting,int noOfPassenge
 	Station *station = trainController->getStationFromId(stationNo);
 	const std::vector<double> personCountCoefficients = trainController->getNumberOfPersonsCoefficients(station,platform);
 	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
-	const std::map<std::string,TrainProperties> &trainLinePropertiesMap = config.trainController.trainLinePropertiesMap;
-	const TrainProperties &trainProperties = trainLinePropertiesMap->find(getTrainLine())->second;
+	const std::map<const std::string,TrainProperties>& trainLinePropertiesMap = config.trainController.trainLinePropertiesMap;
+	const TrainProperties &trainProperties = trainLinePropertiesMap.find(getTrainLine())->second;
 	const TrainDwellTimeInfo &dwellTimeInfo = trainProperties.dwellTimeInfo;
 	double dwellTime = -1;
 	if(personCountCoefficients.size() == 3)
@@ -872,7 +872,7 @@ int TrainDriver::boardForceAlightedPassengersPassenger(std::list<Passenger*>& fo
 }
 
 
-bool TrainDriver::isBoardingRestricted() const
+bool TrainDriver::isBoardingRestricted()
 {
 	std::map<std::string,passengerMovement>::iterator it = restrictPassengersEntities.begin();
 	const Platform* platform = this->getNextPlatform();
@@ -901,7 +901,7 @@ bool TrainDriver::hasForceAlightedInDisruption()
 	return hasforceAlightedInDisruption;
 }
 
-bool TrainDriver::isAlightingRestricted() const
+bool TrainDriver::isAlightingRestricted()
 {
 	std::map<std::string,passengerMovement>::iterator it=restrictPassengersEntities.begin();
 	const Platform* platform = this->getNextPlatform();

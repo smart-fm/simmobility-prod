@@ -805,9 +805,9 @@ void ParseMidTermConfigFile::processTrainControllerNode(xercesc::DOMElement *nod
 
 		cfg.trainController.outputEnabled = ParseBoolean(GetNamedAttributeValue(child, "value"), false);
 		child  = GetSingleElementByName(node, "train_length");
-		cfg.trainController.trainLength = ParseBoolean(GetNamedAttributeValue(child, "value"), false);
+		cfg.trainController.trainLength = ParseFloat(GetNamedAttributeValue(child, "value"));
 		child  = GetSingleElementByName(node, "distance_arriving_at_platform");
-		cfg.trainController.distanceArrivingAtPlatform = ParseBoolean(GetNamedAttributeValue(child, "value"), false);
+		cfg.trainController.distanceArrivingAtPlatform = ParseFloat(GetNamedAttributeValue(child, "value"));
 	}
 }
 

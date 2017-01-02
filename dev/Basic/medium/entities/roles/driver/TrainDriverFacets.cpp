@@ -253,22 +253,22 @@ namespace medium
 						std::string nextPlatformNo = nextPlatform->getPlatformNo();
 						if(boost::iequals(trainPlatform.platformNo,nextPlatformNo))
 						{
-							if(minDis == -1 || (disCovered-disOfPlatform<minDis))
+							if(minDis == -1 || (disCovered - disOfPlatform < minDis))
 							{
-								minDis = disCovered-disOfPlatform;
+								minDis = disCovered - disOfPlatform;
 								nextDriverInOppLine = dynamic_cast<TrainDriver*>((*it));
 							}
 
-							if(disCovered - disOfPlatform - trainLengthMeter<=safeDistance)
+							if(disCovered - disOfPlatform - trainLengthMeter <= safeDistance)
 							{
 								return false;
 							}
 						}
 						else
 						{
-							if(( disCovered-disOfPlatform>0 ) && (minDis == -1 || ( disCovered-disOfPlatform < minDis )))
+							if(( disCovered - disOfPlatform > 0 ) && (minDis == -1 || ( disCovered-disOfPlatform < minDis )))
 							{
-								minDis = disCovered-disOfPlatform;
+								minDis = disCovered - disOfPlatform;
 								nextDriverInOppLine = dynamic_cast<TrainDriver*>((*it));
 							}
 						}
@@ -657,7 +657,7 @@ namespace medium
 				double waitingTime = parentDriver->getWaitingTime();
 				params.currentSpeed = 0.0;
 				params.currentAcelerate = 0.0;
-				if(waitingTime<0)
+				if(waitingTime < 0)
 				{
 					parentDriver->setWaitingTime(0.0);
 				}
@@ -676,19 +676,18 @@ namespace medium
 					parentDriver->setForceAlightStatus(false);
 					if(isDisruptedState && !isStrandedBetweenPlatforms_DisruptedState && !parentDriver->getUTurnFlag())
 					{
-
 						if(shouldStopDueToDisruption(parentDriver) && !isUTurnPlatformOnTheWay())
 						{
 							bool isUturnPlatform = TrainController<Person_MT>::getInstance()->isUturnPlatform(getNextPlatform()->getPlatformNo(),parentDriver->getTrainLine());
-							if(!isUturnPlatform)
+							if( !isUturnPlatform )
 							{
-								if(!parentDriver->hasForceAlightedInDisruption())
+								if( !parentDriver->hasForceAlightedInDisruption() )
 								{
 									parentDriver->setNextRequested(TrainDriver::REQUESTED_AT_PLATFORM);
 								}
 							}
 						}
-						else if(!shouldStopDueToDisruption(parentDriver))
+						else if( !shouldStopDueToDisruption(parentDriver) )
 						{
 							parentDriver->setNextRequested(TrainDriver::REQUESTED_AT_PLATFORM);
 							isDisruptedState = false;
@@ -711,7 +710,6 @@ namespace medium
 					{
 						if(parentDriver->getPassengers().size()>0)
 						{
-
 							parentDriver->setNextRequested(TrainDriver::REQUESTED_AT_PLATFORM);
 						}
 						else
@@ -814,7 +812,7 @@ namespace medium
 						{
 
 							double dwellTimeInSecs = 0.0;
-							if(waitingTime<0.0)
+							if(waitingTime < 0.0)
 							{
 								dwellTimeInSecs = parentDriver->initialDwellTime-waitingTime;
 							}

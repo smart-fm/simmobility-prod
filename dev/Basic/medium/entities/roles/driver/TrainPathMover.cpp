@@ -180,7 +180,7 @@ PolyPoint TrainPathMover::GetStopPoint(double distance) const
 			{
 				if((curr+1) == drivingPath.end())
 				{
-					return;
+					break;
 				}
 				const PolyLine* nextPolyLine = (*(curr+1))->getPolyLine();
 				nextPolyPoint = nextPolyLine->getPoints().begin();
@@ -197,7 +197,7 @@ PolyPoint TrainPathMover::GetStopPoint(double distance) const
 			}
 			else if(dis == distance)
 			{
-				return nextPolyPoint;
+				return *nextPolyPoint;
 			}
 			itr++;
 		}

@@ -44,7 +44,7 @@ namespace medium
 {
 	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
 	const double trainLengthMeter = config.trainController.trainLength;
-	const double distanceArrvingAtPlatform = config.trainController.distanceArrivingAtPlatform;
+	const double distanceArrvingAtPlatform = 0.001;
 	bool TrainMovement::areColumnNamesAdded=false;
 	TrainBehavior::TrainBehavior():BehaviorFacet(),parentDriver(nullptr)
 	{

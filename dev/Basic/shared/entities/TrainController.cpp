@@ -19,10 +19,6 @@
 namespace
 {
 const double MILLISECS_CONVERT_UNIT = 1000.0;
-const double maxDwellTimeForAllStations = 120.0;
-const double minDwellTimeForAllStation = 20.0;
-const double minDwellTimeForInterchanges = 40.0;
-const double minDwellTimeForTerminalStations = 60.0;
 }
 namespace sim_mob
 {
@@ -572,7 +568,7 @@ namespace sim_mob
 			Platform *platform = mapOfIdvsPlatforms.find((*itTrainPlatforms).platformNo)->second;
 			if(boost::iequals(platform->getStationNo(),stationNo))
 			{
-				minDwellTime = minDwellTimeForTerminalStations;
+				minDwellTime = trainProperties.dwellTimeInfo.dwellTimeAtTerminalStaions;
 			}
 		}
 		return minDwellTime;

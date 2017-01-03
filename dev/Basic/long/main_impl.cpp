@@ -498,8 +498,12 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
 
             DeveloperModel::ParcelList parcels;
             DeveloperModel::DeveloperList developerAgents;
-            developerAgents = developerModel->getDeveloperAgents();
-            developerModel->wakeUpDeveloperAgents(developerAgents);
+            //sample projects weekly.::TODO::
+           // if((currTick+1)%7 == 0)
+           // {
+            	developerAgents = developerModel->getDeveloperAgents();
+            	developerModel->wakeUpDeveloperAgents(developerAgents);
+            //}
 
             PrintOutV("Day " << currTick << " HUnits: " << std::dec << (dynamic_cast<HM_Model*>(models[0]))->getMarket()->getEntrySize()
 				   << " Bidders: " 	<< (dynamic_cast<HM_Model*>(models[0]))->getNumberOfBidders() << " "

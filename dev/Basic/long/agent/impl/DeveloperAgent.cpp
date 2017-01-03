@@ -29,6 +29,7 @@
 #include "database/entity/ROILimits.hpp"
 #include "behavioral/PredayLT_Logsum.hpp"
 #include "util/SharedFunctions.hpp"
+#include "util/PrintLog.hpp"
 
 using namespace sim_mob::long_term;
 using namespace sim_mob::event;
@@ -122,7 +123,7 @@ const std::string LOG_POTENTIAL_PROJECT = "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8
  * @param parcel to be written.
  *
  */
-inline void writeParcelDataToFile(Parcel &parcel, int newDevelopment,double profit) {
+inline void writeParcelDataToFile(const Parcel &parcel, int newDevelopment,double profit) {
 
 	boost::format fmtr = boost::format(LOG_PARCEL) % parcel.getId()
 			% parcel.getLotSize() % parcel.getGpr() % parcel.getLandUseTypeId()
@@ -516,6 +517,8 @@ inline void createPotentialUnits(PotentialProject& project,const DeveloperModel*
                         	thresholdInvestmentReturnRatio = roiLimit->getRoiLimit();
                         }
 
+                        writeROIDataToFile(*parcel,newDevelopment,project.getProfit(),project.getDevTemplate()->getDevelopmentTypeId(), thresholdInvestmentReturnRatio, project.getInvestmentReturnRatio());
+
                         if(project.getInvestmentReturnRatio()> thresholdInvestmentReturnRatio)
                         {
                         	if(&project != nullptr)
@@ -681,7 +684,6 @@ void DeveloperAgent::createUnitsAndBuildings(PotentialProject &project,BigSerial
 		devModel->addProfitableParcels(profitableParcel);
 	}
 	writeParcelDataToFile(*parcel,newDevelopment,project.getProfit());
-	//Parcel *parcel1 = new Parcel(*this->parcel);
 
 	//check whether the parcel is empty; if not send a message to HM model with building id and future demolition date about the units that are going to be demolished.
 	if (!(devModel->isEmptyParcel(parcel->getId()))) {

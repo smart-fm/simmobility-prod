@@ -123,6 +123,11 @@ LoggerAgent::LoggerAgent() : Entity(-1)
     std::ofstream* randomNumFile = new std::ofstream("randomNums.csv");
     streams.insert(std::make_pair(LOG_RANDOM_NUMS, randomNumFile));
 
+    //dev roi
+    std::ofstream* roiFile = new std::ofstream("rdevROI.csv");
+    streams.insert(std::make_pair(LOG_DEV_ROI, roiFile));
+
+
 }
 
 LoggerAgent::~LoggerAgent()

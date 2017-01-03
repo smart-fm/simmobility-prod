@@ -346,10 +346,17 @@ namespace sim_mob
 
 	    }
 
-	    inline void writeRandomNumsToFile(double randomNum)
+	    inline void writeRandomNumsToFile(BigSerial randomNum, std::string reason)
 	    {
-	    	boost::format fmtr = boost::format("%1%") % randomNum;
+	    	boost::format fmtr = boost::format("%1%, %2%") % randomNum % reason;
 	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_RANDOM_NUMS,fmtr.str());
+
+	    }
+
+	    inline void writeROIDataToFile(const Parcel &parcel, int newDevelopment, double profit, int devType, float threshold_roi, float roi)
+	    {
+	    	boost::format fmtr = boost::format("%1%, %2%, %3%, %4%, %5%, %6%") % parcel.getId() % newDevelopment % profit % devType % threshold_roi % roi;
+	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_DEV_ROI,fmtr.str());
 
 	    }
 

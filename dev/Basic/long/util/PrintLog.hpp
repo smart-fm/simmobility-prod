@@ -547,6 +547,7 @@ namespace sim_mob
 
 	    }
 
+
 	    inline void writeRandomNumsToFile(int counter,BigSerial hhId, float montecarlo)
 	    {
 	    	boost::format fmtr = boost::format("%1%, %2%, %3%") % counter % hhId % montecarlo;
@@ -560,6 +561,13 @@ namespace sim_mob
 	    	}
 	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_RANDOM_NUMS,fmtr.str());
 
+	    }
+
+
+	    inline void writeROIDataToFile(const Parcel &parcel, int newDevelopment, double profit, int devType, float threshold_roi, float roi)
+	    {
+	    	boost::format fmtr = boost::format("%1%, %2%, %3%, %4%, %5%, %6%") % parcel.getId() % newDevelopment % profit % devType % threshold_roi % roi;
+	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_DEV_ROI,fmtr.str());
 	    }
 
 	    /**

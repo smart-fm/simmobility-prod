@@ -8,6 +8,7 @@
  * Created on October 21, 2013, 3:08 PM
  */
 #pragma once
+#include <database/entity/WorkersGrpByLogsumParams.hpp>
 #include "Model.hpp"
 #include "database/entity/Household.hpp"
 #include "database/entity/Unit.hpp"
@@ -191,6 +192,9 @@ namespace sim_mob
             typedef std::vector<LtVersion*> LtVersionList;
             typedef boost::unordered_map<BigSerial, LtVersion*> LtVersionMap;
 
+            typedef std::vector<WorkersGrpByLogsumParams*> WorkersGrpByLogsumParamsList;
+            typedef boost::unordered_map<BigSerial, WorkersGrpByLogsumParams*> WorkersGrpByLogsumParamsMap;
+
             /**
              * Taz statistics
              */
@@ -274,7 +278,7 @@ namespace sim_mob
             /**
              * Getters & Setters 
              */
-            const Unit* getUnitById(BigSerial id) const;
+            Unit* getUnitById(BigSerial id) const;
             BigSerial getUnitTazId(BigSerial unitId) const;
             BigSerial getEstablishmentTazId(BigSerial establishmentId) const;
             const TazStats* getTazStats(BigSerial tazId) const;
@@ -372,10 +376,13 @@ namespace sim_mob
             int getStartDay() const;
             void addNewBids(boost::shared_ptr<Bid> &newBid);
             void addHouseholdUnits(boost::shared_ptr<HouseholdUnit> &newHouseholdUnit);
+            void addUpdatedUnits(boost::shared_ptr<Unit> &updatedUnit);
+            Unit* getUpdatedUnitById(BigSerial unitId);
             BigSerial getBidId();
             BigSerial getUnitSaleId();
             std::vector<boost::shared_ptr<Bid> > getNewBids();
             std::vector<boost::shared_ptr<HouseholdUnit> > getNewHouseholdUnits();
+            std::vector<boost::shared_ptr<Unit> > getUpdatedUnits();
             void addUnitSales(boost::shared_ptr<UnitSale> &unitSale);
             std::vector<boost::shared_ptr<UnitSale> > getUnitSales();
             void addHouseholdsTo_OPSchema(boost::shared_ptr<Household> &houseHold);
@@ -424,7 +431,8 @@ namespace sim_mob
             vector<double> getlogSqrtFloorAreacondo() const { return logSqrtFloorAreacondo;}
 
 
-            set<string> logsumUniqueCounter;
+            set<string> logsumUniqueCounter_str;
+            set<int> logsumUniqueCounter;
 
             void  loadLTVersion(DB_Connection &conn);
 
@@ -513,6 +521,8 @@ namespace sim_mob
             boost::mutex mtx2;
             boost::mutex mtx3;
             boost::mutex mtx4;
+            boost::mutex mtx5;
+            boost::mutex mtx6;
             boost::mutex idLock;
             boost::mutex DBLock;
             boost::unordered_map<BigSerial, double>tazLevelLogsum;
@@ -565,6 +575,8 @@ namespace sim_mob
             std::vector<boost::shared_ptr<Bid> > newBids;
             std::vector<boost::shared_ptr<UnitSale> > unitSales;
             std::vector<boost::shared_ptr<HouseholdUnit> > newHouseholdUnits;
+            std::vector<boost::shared_ptr<Unit> > updatedUnits;
+            UnitMap updatedUnitsById;
             BigSerial bidId;
             BigSerial unitSaleId;
             std::vector<boost::shared_ptr<Household> > hhWithBidsVector;
@@ -603,6 +615,9 @@ namespace sim_mob
 
             LtVersionList ltVersionList;
             LtVersionMap ltVersionById;
+
+            WorkersGrpByLogsumParamsList workersGrpByLogsumParams;
+			WorkersGrpByLogsumParamsMap workersGrpByLogsumParamsById;
 
 
 

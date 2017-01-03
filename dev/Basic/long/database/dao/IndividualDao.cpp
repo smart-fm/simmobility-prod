@@ -32,7 +32,6 @@ void IndividualDao::fromRow(Row& result, Individual& outObj)
 	outObj.genderId				= result.get<BigSerial>(	"gender_id", 			INVALID_ID);
 	outObj.educationId			= result.get<BigSerial>(	"education_id", 		INVALID_ID);
 	outObj.occupationId			= result.get<BigSerial>(	"occupation_id", 		INVALID_ID);
-	outObj.vehicleCategoryId	= result.get<BigSerial>(	"vehicle_category_id",  INVALID_ID);
 	outObj.transitCategoryId	= result.get<BigSerial>(	"transit_category_id", 	INVALID_ID);
 	outObj.ageCategoryId		= result.get<BigSerial>(	"age_category_id", 		INVALID_ID);
 	outObj.residentialStatusId	= result.get<BigSerial>(	"residential_status_id",INVALID_ID);

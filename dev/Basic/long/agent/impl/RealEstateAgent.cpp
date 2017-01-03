@@ -31,7 +31,7 @@ using std::map;
 using std::endl;
 
 RealEstateAgent::RealEstateAgent(BigSerial id, HM_Model* model, const Household* household, HousingMarket* market, bool marketSeller, int day)
-: Agent_LT(ConfigManager::GetInstance().FullConfig().mutexStategy(), id), model(model), market(market), household(household), marketSeller(marketSeller), seller(nullptr), day(day)
+: Agent_LT(ConfigManager::GetInstance().FullConfig().mutexStategy(), id), houseingMarketModel(model), market(market), household(household), marketSeller(marketSeller), seller(nullptr), day(day)
 {
     seller = new RealEstateSellerRole(this);
     seller->setActive(marketSeller);
@@ -46,7 +46,7 @@ void RealEstateAgent::addNewUnit(const BigSerial& unitId)
 {
     unitIds.push_back(unitId);
     boost::unordered_map<BigSerial,Unit*>::const_iterator unitItr = unitsById.find(unitId);
-    model->addUnit( unitItr->second);
+    houseingMarketModel->addUnit( unitItr->second);
 }
 
 void  RealEstateAgent::addBTOUnit (const BigSerial& unitId)
@@ -71,7 +71,7 @@ const IdVector& RealEstateAgent::getPreferableZones() const
 
 HM_Model* RealEstateAgent::getModel() const
 {
-    return model;
+    return houseingMarketModel;
 }
 
 HousingMarket* RealEstateAgent::getMarket() const
@@ -304,14 +304,23 @@ void RealEstateAgent::HandleMessage(Message::MessageType type, const Message& me
 			case LT_DEV_BTO_UNIT_ADDED:
 			{
 				const HM_ActionMessage& hmMessage = MSG_CAST(HM_ActionMessage, message);
-				Unit *unit = hmMessage.getUnit();
-				units.push_back(unit);
-				unitsById.insert(std::make_pair((unit)->getId(), unit));
-				addBTOUnit(unit->getId());
+				std::vector<BigSerial> btoUnitIdVec  = hmMessage.getBtoUnitIdVec();
 				ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
-				unit->setTimeOffMarket(1 + config.ltParams.housingModel.timeOnMarket * (float)rand() / RAND_MAX );
-				unit->setTimeOnMarket(1 + config.ltParams.housingModel.timeOffMarket * (float)rand() / RAND_MAX);
-				unit->setbiddingMarketEntryDay(day);
+				for(BigSerial unitId : btoUnitIdVec)
+				{
+					Unit *unit = houseingMarketModel->getUnitById(unitId);
+
+					unit->setTimeOnMarket(config.ltParams.housingModel.timeOnMarket / 2 + config.ltParams.housingModel.timeOnMarket / 2 * (float)rand() / RAND_MAX );
+					unit->setTimeOffMarket( config.ltParams.housingModel.timeOffMarket / 2 + config.ltParams.housingModel.timeOffMarket / 2 * (float)rand() / RAND_MAX);
+					unit->setbiddingMarketEntryDay(day);
+
+					units.push_back(unit);
+					unitsById.insert(std::make_pair((unit)->getId(), unit));
+
+					addBTOUnit(unit->getId());
+				}
+
+
 				MessageBus::PublishEvent(LTEID_HM_BTO_UNIT_ADDED,MessageBus::EventArgsPtr(new EventArgs()));
 				break;
 			}

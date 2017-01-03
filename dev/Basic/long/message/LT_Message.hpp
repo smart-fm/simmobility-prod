@@ -65,6 +65,7 @@ namespace sim_mob {
             HM_ActionMessage(Unit &unit);
             HM_ActionMessage(Building &building);
             HM_ActionMessage(BigSerial unitId);
+            HM_ActionMessage(std::vector<BigSerial> btoUnitIds);
             virtual ~HM_ActionMessage();
 
             /**
@@ -80,6 +81,7 @@ namespace sim_mob {
             std::tm getFutureDemolitionDate() const;
             Unit  *getUnit() const;
             Building  *getBuilding() const;
+            std::vector<BigSerial> getBtoUnitIdVec() const;
 
         private:
             BigSerial unitId;
@@ -87,6 +89,8 @@ namespace sim_mob {
             std::tm buildingFutureDemolitionDate;
             Unit *unit;
             Building *building;
+            std::vector<BigSerial> btoUnitIdVec;
+
        };
     }
 

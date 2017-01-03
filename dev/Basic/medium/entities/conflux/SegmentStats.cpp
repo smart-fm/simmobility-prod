@@ -16,6 +16,7 @@
 #include "entities/vehicle/VehicleBase.hpp"
 #include "logging/Log.hpp"
 #include "message/MessageBus.hpp"
+#include "entities/TaxiStandAgent.hpp"
 
 using std::string;
 using namespace sim_mob;
@@ -146,6 +147,11 @@ void SegmentStats::updateBusStopAgents(timeslice now)
 	{
 		(*i)->update(now);
 	}
+
+	for(auto it = taxiStandAgents.begin(); it != taxiStandAgents.end(); it++)
+	{
+		(*it)->update(now);
+	}
 }
 
 void SegmentStats::addAgent(const Lane* lane, Person_MT* p)
@@ -204,6 +210,15 @@ void SegmentStats::addBusStopAgent(BusStopAgent* busStopAgent)
 		return;
 	}
 	busStopAgents.push_back(busStopAgent);
+}
+
+void SegmentStats::addTaxiStandAgent(TaxiStandAgent* taxiStandAgent)
+{
+	if(!taxiStandAgent)
+	{
+		return;
+	}
+	taxiStandAgents.push_back(taxiStandAgent);
 }
 
 void SegmentStats::initializeBusStops()
@@ -570,6 +585,19 @@ void SegmentStats::addBusStop(const BusStop* stop)
 	{
 		throw std::runtime_error("addBusStop(): stop to be added is NULL");
 	}
+}
+
+void SegmentStats::addTaxiStand(const TaxiStand* stand)
+{
+	if(stand)
+	{
+		taxiStands.push_back(stand);
+	}
+}
+
+std::vector<const TaxiStand*>& SegmentStats::getTaxiStand()
+{
+	return taxiStands;
 }
 
 unsigned int LaneStats::getQueuingAgentsCount() const

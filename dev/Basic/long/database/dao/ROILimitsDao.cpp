@@ -22,6 +22,7 @@ ROILimitsDao::~ROILimitsDao() {}
 
 void ROILimitsDao::fromRow(Row& result, ROILimits& outObj)
 {
+
     outObj.developmentTypeId 	= result.get<BigSerial>(	"development_type_id", 		INVALID_ID);
     outObj.roiLimit = result.get<double>(	"roi_limit", 	.0);
 }

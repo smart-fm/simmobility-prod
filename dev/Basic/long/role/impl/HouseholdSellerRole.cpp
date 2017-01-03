@@ -49,7 +49,7 @@ namespace
      */
     inline bool decide(const Bid& bid, const ExpectationEntry& entry)
     {
-        return bid.getBidValue() > entry.targetPrice;
+        return bid.getBidValue() >= entry.targetPrice;
     }
 
     /**
@@ -64,17 +64,25 @@ namespace
         MessageBus::PostMessage(bid.getBidder(), LTMID_BID_RSP, MessageBus::MessagePtr(new BidMessage(bid, response)));
 
         //print bid.
-        if( entry.askingPrice > 0.0001 )
+        if( response != NOT_AVAILABLE )
         	printBid(agent, bid, entry, bidsCounter, (response == ACCEPTED));
 
-        //save accepted bids to a vector, to be saved in op schema later.
         if(response == ACCEPTED)
         {
         	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
         	int moveInWaitingTimeInDays = config.ltParams.housingModel.housingMoveInDaysInterval;
         	boost::shared_ptr<Bid> newBid = boost::make_shared<Bid>(bid);
         	HM_Model* model = agent.getModel();
-        	const Unit* unit  = model->getUnitById(bid.getNewUnitId());
+        	Unit* unit  = model->getUnitById(bid.getNewUnitId());
+        	boost::shared_ptr<Unit> updatedUnit = boost::make_shared<Unit>((*unit));
+        	//set the sale status to "Launched and sold".
+        	updatedUnit->setSaleStatus(3);
+        	//set the occupancy status to "Ready for occupancy and occupied"
+        	updatedUnit->setOccupancyStatus(3);
+        	updatedUnit->setOccupancyFromDate(getDateBySimDay(config.ltParams.year,(bid.getSimulationDay())));
+        	 //save accepted bids to a vector, to be saved in op schema later.
+        	model->addUpdatedUnits(updatedUnit);
+
         	int UnitslaId = unit->getSlaAddressId();
         	Household *thisBidder = model->getHouseholdById(bid.getBidderId());
         	const Unit* thisUnit = model->getUnitById(thisBidder->getUnitId());
@@ -279,9 +287,7 @@ void HouseholdSellerRole::update(timeslice now)
 
             if(getCurrentExpectation(unit->getId(), firstExpectation) && entryDay )
             {
-            	bool bto = false;
-
-                market->addEntry( HousingMarket::Entry( getParent(), unit->getId(), unit->getSlaAddressId(), tazId, firstExpectation.askingPrice, firstExpectation.hedonicPrice, bto));
+                market->addEntry( HousingMarket::Entry( getParent(), unit->getId(), unit->getSlaAddressId(), tazId, firstExpectation.askingPrice, firstExpectation.hedonicPrice, unit->getTenureStatus()==0));
 				#ifdef VERBOSE
                 PrintOutV("[day " << currentTime.ms() << "] Household Seller " << getParent()->getId() << ". Adding entry to Housing market for unit " << unit->getId() << " with ap: " << firstExpectation.askingPrice << " hp: " << firstExpectation.hedonicPrice << " rp: " << firstExpectation.targetPrice << std::endl);
 				#endif

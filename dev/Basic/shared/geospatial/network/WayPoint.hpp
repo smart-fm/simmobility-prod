@@ -9,6 +9,7 @@
 #include "RoadSegment.hpp"
 #include "TurningGroup.hpp"
 #include "PT_Stop.hpp"
+#include "TaxiStand.hpp"
 
 namespace sim_mob
 {
@@ -42,7 +43,10 @@ struct WayPoint
 		BUS_STOP,
 
 		/**The way point is an MRT stop. trainStop points to an TrainStop object*/
-		TRAIN_STOP
+		TRAIN_STOP,
+
+		/**The way point is an taxi-stand. taxiStand points to an TaxiStand object*/
+		TAXI_STAND
 	} type;
 
 	union
@@ -55,6 +59,7 @@ struct WayPoint
 		const TurningGroup *turningGroup;
 		const BusStop *busStop;
 		const TrainStop *trainStop;
+		const TaxiStand* taxiStand;
 	};
 
 	WayPoint() :
@@ -102,6 +107,11 @@ struct WayPoint
 	{
 	}
 
+	explicit WayPoint(const TaxiStand* taxiStand) :
+	type(TAXI_STAND), taxiStand(taxiStand)
+	{
+	}
+
 	WayPoint(const WayPoint& orig)
 	{
 		type = orig.type;
@@ -143,6 +153,10 @@ struct WayPoint
 		case TRAIN_STOP:
 			trainStop = orig.trainStop;
 			break;
+
+		case TAXI_STAND:
+			taxiStand = orig.taxiStand;
+			break;
 		}
 	}
 
@@ -156,7 +170,8 @@ struct WayPoint
 				turningPath == rhs.turningPath &&
 				turningGroup == rhs.turningGroup &&
 				busStop == rhs.busStop &&
-				trainStop == rhs.trainStop);
+				trainStop == rhs.trainStop &&
+				taxiStand == rhs.taxiStand);
 	}
 
 	bool operator!=(const WayPoint& rhs) const
@@ -205,6 +220,10 @@ struct WayPoint
 
 		case TRAIN_STOP:
 			trainStop = rhs.trainStop;
+			break;
+
+		case TAXI_STAND:
+			taxiStand = rhs.taxiStand;
 			break;
 		}
 

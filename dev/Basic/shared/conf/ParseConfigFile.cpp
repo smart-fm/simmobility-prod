@@ -278,6 +278,9 @@ void sim_mob::ParseConfigFile::processLongTermParamsNode(xercesc::DOMElement* no
 	housingModel.awakeningModel.awakenModelRandom =ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "awakeningModel"), "awakenModelRandom"), "value"), false);
 	housingModel.awakeningModel.awakenModelShan =ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "awakeningModel"), "awakenModelShan"), "value"), false);
 	housingModel.awakeningModel.awakenModelJingsi =ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "awakeningModel"), "awakenModelJingsi"), "value"), false);
+	housingModel.offsetBetweenUnitBuyingAndSellingAdvancedPurchase = ParseInteger(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "offsetBetweenUnitBuyingAndSellingAdvancedPurchase"), "value"), static_cast<int>(0));
+	housingModel.awakeningModel.awakeningOffMarketSuccessfulBid = ParseInteger(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "awakeningModel"), "awakeningOffMarketSuccessfulBid"), "value"), static_cast<int>(0));
+	housingModel.awakeningModel.awakeningOffMarketUnsuccessfulBid = ParseInteger(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "awakeningModel"), "awakeningOffMarketUnsuccessfulBid"), "value"), static_cast<int>(0));
 
 	cfg.ltParams.housingModel = housingModel;
 

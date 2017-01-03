@@ -14,34 +14,9 @@
 #include "model/lua/LuaProvider.hpp"
 #include <limits>
 #include "core/DataManager.hpp"
+#include <util/PrintLog.hpp>
 
 using namespace sim_mob::long_term;
-
-//bid_timestamp, day_to_apply, seller_id, unit_id, hedonic_price, asking_price, target_price
- const std::string LOG_EXPECTATION = "%1%, %2%, %3%, %4%, %5%, %6%, %7%";
-
- /**
-  * Print the current expectation on the unit.
-  * @param the current day
-  * @param the day on which the bid was made
-  * @param the unit id
-  * @param agent to received the bid
-  * @param struct containing the hedonic, asking and target price.
-  *
-  */
- inline void printExpectation(int day, int dayToApply, BigSerial unitId, BigSerial agentId, const ExpectationEntry& exp)
- {
-     boost::format fmtr = boost::format(LOG_EXPECTATION) 	% day
-															% dayToApply
-															% agentId
-															% unitId
-															% exp.hedonicPrice
-															% exp.askingPrice
-															% exp.targetPrice;
-
-     AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::EXPECTATIONS, fmtr.str());
-     //PrintOut(fmtr.str() << endl);
- }
 
 
 HedonicPrice_SubModel::HedonicPrice_SubModel(double _hedonicPrice, double _lagCoefficient, double _day, HM_Model *_hmModel,DeveloperModel * _devModel, Unit *_unit, double logsum)
@@ -522,6 +497,7 @@ vector<ExpectationEntry> HedonicPrice_SubModel::CalculateUnitExpectations (Unit 
     //-- HEDONIC PRICE in SGD in thousands with average hedonic price (500)
 
     double  hedonicPrice = CalculateHedonicPrice(unit, building, postcode, amenities, logsum, lagCoefficient);
+
     hedonicPrice = exp( hedonicPrice ) / 1000000.0;
 
     if (hedonicPrice > 0)
@@ -536,14 +512,26 @@ vector<ExpectationEntry> HedonicPrice_SubModel::CalculateUnitExpectations (Unit 
 
         for(int i=1; i <= timeOnMarket; i++)
         {
-            a = 1.5 * reservationPrice;
-            x0 = 1.4 * reservationPrice;
-            ExpectationEntry entry = ExpectationEntry(); //--entry is a class initialized to 0, that will hold the hedonic, asking and target prices.
-            entry.hedonicPrice = hedonicPrice;
-            entry.askingPrice = FindMaxArgConstrained(CalculateExpectation, x0, reservationPrice, a, b, cost, crit, maxIterations, reservationPrice, 1.2 * reservationPrice );
-            entry.targetPrice = CalculateExpectation(entry.askingPrice, reservationPrice, a, b, cost );
-            reservationPrice = entry.targetPrice;
-            expectations.push_back(entry);
+        	ExpectationEntry entry = ExpectationEntry(); //--entry is a class initialized to 0, that will hold the hedonic, asking and target prices.
+
+            if( unit->getTenureStatus() == 0 )
+            {
+            	entry.hedonicPrice = unit->getTotalPrice();
+  	            entry.askingPrice = unit->getTotalPrice();
+                entry.targetPrice = unit->getTotalPrice();
+            }
+            else
+            {
+                 a = 1.5 * reservationPrice;
+                 x0 = 1.4 * reservationPrice;
+
+                 entry.hedonicPrice = hedonicPrice;
+                 entry.askingPrice = FindMaxArgConstrained(CalculateExpectation, x0, reservationPrice, a, b, cost, crit, maxIterations, reservationPrice, 1.2 * reservationPrice );
+                 entry.targetPrice = CalculateExpectation(entry.askingPrice, reservationPrice, a, b, cost );
+
+                 reservationPrice = entry.targetPrice;
+                 expectations.push_back(entry);
+            }
     	}
     }
 

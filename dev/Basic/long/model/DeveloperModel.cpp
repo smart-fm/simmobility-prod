@@ -50,6 +50,7 @@
 #include "conf/ConfigParams.hpp"
 #include "util/SharedFunctions.hpp"
 #include "SOCI_ConvertersLong.hpp"
+#include "DatabaseHelper.hpp"
 
 using namespace sim_mob;
 using namespace sim_mob::long_term;
@@ -140,17 +141,7 @@ void DeveloperModel::startImpl() {
 		std::tm currentSimYear = getDateBySimDay(simYear,0);
 		UnitDao unitDao(conn);
 		btoUnits = unitDao.getBTOUnits(currentSimYear);
-		ongoingBtoUnits = unitDao.getOngoingBTOUnits(currentSimYear);
-		//set the BTO flag when the units are first loaded
-		for(Unit *unit : btoUnits)
-		{
-			unit->setBto(true);
-		}
-
-		for(Unit *unit : ongoingBtoUnits)
-		{
-			unit->setBto(true);
-		}
+		//ongoingBtoUnits = unitDao.getOngoingBTOUnits(currentSimYear);
 
 		setRealEstateAgentIds(housingMarketModel->getRealEstateAgentIds());
 
@@ -905,15 +896,14 @@ const ROILimits* DeveloperModel::getROILimitsByDevelopmentTypeId(BigSerial devTy
 	return nullptr;
 }
 
-DeveloperModel::UnitList DeveloperModel::getBTOUnits(std::tm currentDate)
+std::vector<BigSerial> DeveloperModel::getBTOUnits(std::tm currentDate)
 {
-	DeveloperModel::UnitList btoUnitsForSale;
+	std::vector<BigSerial> btoUnitsForSale;
 	for(Unit *unit : btoUnits)
 	{
-
 		if(compareTMDates(unit->getSaleFromDate(),currentDate))
 			{
-				btoUnitsForSale.push_back(unit);
+				btoUnitsForSale.push_back(unit->getId());
 			}
 	}
 	return btoUnitsForSale;
@@ -925,7 +915,8 @@ void DeveloperModel::loadHedonicCoeffs(DB_Connection &conn)
 	//sql = conn.getSession<soci::session>();
 	sql.open(soci::postgresql, conn.getConnectionStr());
 
-	const std::string storedProc = "main2012.getHedonicCoeffs()";
+
+	const std::string storedProc = MAIN_SCHEMA + "getHedonicCoeffs()";
 	//SQL statement
 	soci::rowset<HedonicCoeffs> hedonicCoeffs = (sql.prepare << "select * from " + storedProc);
 	for (soci::rowset<HedonicCoeffs>::const_iterator itCoeffs = hedonicCoeffs.begin(); itCoeffs != hedonicCoeffs.end(); ++itCoeffs)
@@ -955,7 +946,7 @@ void  DeveloperModel::loadPrivateLagT(DB_Connection &conn)
 	//sql = conn.getSession<soci::session>();
 	sql.open(soci::postgresql, conn.getConnectionStr());
 
-	const std::string storedProc = "main2012.getLagPrivateT()";
+	const std::string storedProc = MAIN_SCHEMA + "getLagPrivateT()";
 	//SQL statement
 	soci::rowset<LagPrivateT> privateLags = (sql.prepare << "select * from " + storedProc);
 	for (soci::rowset<LagPrivateT>::const_iterator itPrivateLags = privateLags.begin(); itPrivateLags != privateLags.end(); ++itPrivateLags)
@@ -985,7 +976,7 @@ void DeveloperModel::loadHedonicLogsums(DB_Connection &conn)
 		//sql = conn.getSession<soci::session>();
 		sql.open(soci::postgresql, conn.getConnectionStr());
 
-		const std::string storedProc = "main2012.getHedonicLogsums()";
+		const std::string storedProc = MAIN_SCHEMA + "getHedonicLogsums()";
 		//SQL statement
 		soci::rowset<HedonicLogsums> hedonicLogsums = (sql.prepare << "select * from " + storedProc);
 		for (soci::rowset<HedonicLogsums>::const_iterator itLogsums = hedonicLogsums.begin(); itLogsums != hedonicLogsums.end(); ++itLogsums)

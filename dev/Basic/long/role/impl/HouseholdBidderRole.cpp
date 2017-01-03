@@ -425,6 +425,9 @@ void HouseholdBidderRole::HandleMessage(Message::MessageType type, const Message
                 	vehicleBuyingWaitingTimeInDays = config.ltParams.vehicleOwnershipModel.vehicleBuyingWaitingTimeInDays;
                 	int simulationEndDay = config.ltParams.days;
                 	year = config.ltParams.year;
+                	getParent()->getHousehold()->setLastBidStatus(1);
+            		getParent()->setAcceptedBid(true);
+            		//getParent()->setBTOUnit(newUnit->isBto());
 
                 	if(simulationEndDay < (moveInWaitingTimeInDays))
 
@@ -445,6 +448,7 @@ void HouseholdBidderRole::HandleMessage(Message::MessageType type, const Message
                 case NOT_ACCEPTED:
                 {
                     biddingEntry.incrementTries();
+                    getParent()->getHousehold()->setLastBidStatus(2);
                     break;
                 }
                 case BETTER_OFFER:
@@ -608,8 +612,6 @@ bool HouseholdBidderRole::pickEntryToBid()
     	HousingMarket::ConstEntryList::const_iterator itr = entries.begin() + offset;
     	const HousingMarket::Entry* entry = *itr;
 
-    	//std::multimap<BigSerial, Unit*>  unitByZHT = model->getUnitsByZoneHousingType();
-
         const Unit* thisUnit = model->getUnitById( entry->getUnitId() );
 
         if( thisUnit->getZoneHousingType() == zoneHousingType )
@@ -634,27 +636,23 @@ bool HouseholdBidderRole::pickEntryToBid()
         }
     }
 
-    bool sucessfulScreening = true;
-    if( screenedEntries.size() == 0 )
     {
-    	sucessfulScreening = false;
-    	screenedEntries = entries;
-    }
-    else
-    {
+    	HousingMarket *market = model->getMarket();
+    	set<BigSerial> btoEntries = market->getBTOEntries();
+
         //Add x BTO units to the screenedUnit vector if the household is eligible for it
-        for(int n = 0, m = 0; n < entries.size() && m < config.ltParams.housingModel.bidderBTOUnitsChoiceSet; n++ )
+        for(int n = 0; n < config.ltParams.housingModel.bidderBTOUnitsChoiceSet && btoEntries.size() != 0; n++)
         {
-        	int offset = (float)rand() / RAND_MAX * ( entries.size() - 1 );
+        	int offset = (float)rand() / RAND_MAX * ( btoEntries.size() - 1 );
 
-         	HousingMarket::ConstEntryList::const_iterator itr = entries.begin() + offset;
-           	const HousingMarket::Entry* entry = *itr;
+        	auto itr =  btoEntries.begin();
+         	std::advance( itr, offset);
 
-        	if( entry->isBTO() == true )
-        	{
-        		screenedEntries.push_back(entry);
-        		m++;
-        	}
+         	const HousingMarket::Entry* entry = market->getEntryById(*itr);
+
+        	screenedEntries.push_back(entry);
+
+        	btoEntries.erase(*itr);
         }
 
     	std::string choiceset(" ");
@@ -663,7 +661,7 @@ bool HouseholdBidderRole::pickEntryToBid()
     		choiceset += std::to_string( screenedEntries[n]->getUnitId() )  + ", ";
     	}
 
-    	printChoiceset(household->getId(), choiceset);
+    	printChoiceset(day, household->getId(), choiceset);
     }
 
    //PrintOutV("Screening  entries is now: " << screenedEntries.size() << std::endl );
@@ -673,16 +671,7 @@ bool HouseholdBidderRole::pickEntryToBid()
     // This is done to replicate the real life scenario where a household will only visit a certain percentage of vacant units before settling on one.
     for(int n = 0; n < screenedEntries.size(); n++)
     {
-    	int offset = (float)rand() / RAND_MAX * ( entries.size() - 1 );
-
-    	//if we have a good choiceset, let's iterate linearly
-    	if(sucessfulScreening == true)
-    		offset = n;
-
-    	if( n > config.ltParams.housingModel.bidderUnitsChoiceSet)
-    		break;
-
-    	HousingMarket::ConstEntryList::const_iterator itr = screenedEntries.begin() + offset;
+      	HousingMarket::ConstEntryList::const_iterator itr = screenedEntries.begin() + n;
         const HousingMarket::Entry* entry = *itr;
 
         if( entry->getAskingPrice() < 0.01 )
@@ -690,20 +679,20 @@ bool HouseholdBidderRole::pickEntryToBid()
         	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, (boost::format( "[unit %1%] Asking price is suspiciously low at %2%.") % entry->getUnitId() % entry->getAskingPrice() ).str());
         }
 
-        if(entry && entry->getOwner() != getParent() )
+        if(entry && entry->getOwner()->getId() != getParent()->getId() )
         {
             const Unit* unit = model->getUnitById(entry->getUnitId());
             const HM_Model::TazStats* stats = model->getTazStatsByUnitId(entry->getUnitId());
 
             bool flatEligibility = true;
 
- 			if( unit->isBto() && unit->getUnitType() == 2 && household->getTwoRoomHdbEligibility()  == false )
+ 			if( unit->getTenureStatus() == 0 && unit->getUnitType() == 2 && household->getTwoRoomHdbEligibility()  == false )
 				flatEligibility = false;
 
-			if( unit->isBto() && unit->getUnitType() == 3 && household->getThreeRoomHdbEligibility() == false )
+			if( unit->getTenureStatus() == 0 && unit->getUnitType() == 3 && household->getThreeRoomHdbEligibility() == false )
 				flatEligibility = false;
 
-			if( unit->isBto() && unit->getUnitType() == 4 && household->getFourRoomHdbEligibility() == false )
+			if( unit->getTenureStatus() == 0 && unit->getUnitType() == 4 && household->getFourRoomHdbEligibility() == false )
 				flatEligibility = false;
 
 
@@ -750,35 +739,48 @@ bool HouseholdBidderRole::pickEntryToBid()
             	double currentSurplus = 0;
 
             	if( entry->getAskingPrice() != 0 )
-            		computeBidValueLogistic( entry->getAskingPrice(), wp, currentBid, currentSurplus );
+            	{
+            		//tenure_status = 0 mean it is a BTO unit
+            		if( unit->getTenureStatus() == 0)
+            		{
+            			currentBid = entry->getAskingPrice();
+            			currentSurplus = wp - entry->getAskingPrice();
+            		}
+            		else
+            		{
+            			computeBidValueLogistic( entry->getAskingPrice(), wp, currentBid, currentSurplus );
+
+            			//If you can't find the optimal bid, just bid the asking price.
+            			if( currentBid == 0)
+            			{
+							currentBid = entry->getAskingPrice();
+							currentSurplus = wp - entry->getAskingPrice();
+            			}
+            		}
+            	}
             	else
             		PrintOutV("Asking price is zero for unit " << entry->getUnitId() << std::endl );
 
                 printHouseholdBiddingList( day, household->getId(), unit->getId(), oldPCStr, newPCStr, wp, entry->getAskingPrice(), maxAffordability, currentBid, currentSurplus);
 
-            	if( currentSurplus > maxSurplus && maxAffordability > entry->getAskingPrice() )
+            	if( currentSurplus > maxSurplus && maxAffordability > currentBid )
             	{
             		maxSurplus = currentSurplus;
             		finalBid = currentBid;
             		maxEntry = entry;
             		maxWp = wp;
             		maxWtpe = wtp_e;
-
-                	boost::gregorian::date occupancydate = boost::gregorian::date_from_tm(unit->getOccupancyFromDate());
-
-                	if( simulationDate <  occupancydate )
-                	{
-                 		isBTO = true;
-                	}
             	}
             }
+            else
+            {
+            	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, (boost::format("[day %1%]Could not compute bid value for unit %2%. Eligibility: %3% Stats: %4%") % day % unit->getId() % flatEligibility % stats ).str() );
+            }
         }
-    }
-
-    if( maxEntry && model->getUnitById(maxEntry->getUnitId())->isBto() )
-    {
-    	//When bidding on BTO units, we cannot bid above the asking price. So it's basically the ceiling we cannot exceed.
-    	finalBid = maxEntry->getAskingPrice();
+        else
+        {
+        	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, (boost::format("[day %1%] Entry is invalid for index %2%") % day % n ).str() );
+        }
     }
 
     biddingEntry = CurrentBiddingEntry( (maxEntry) ? maxEntry->getUnitId() : INVALID_ID, finalBid, maxWp, maxSurplus, maxWtpe, maxAffordability );

@@ -13,6 +13,7 @@
 
 #include <boost/algorithm/string.hpp>
 #include <boost/tokenizer.hpp>
+#include <database/entity/WorkersGrpByLogsumParams.hpp>
 #include <map>
 #include <soci/soci.h>
 #include <string>
@@ -98,6 +99,20 @@ struct type_conversion<sim_mob::long_term::HedonicLogsums>
     }
 };
 
+
+
+template<>
+struct type_conversion<sim_mob::long_term::WorkersGrpByLogsumParams>
+{
+    typedef values base_type;
+
+    static void
+    from_base(soci::values const & values, soci::indicator & indicator, sim_mob::long_term::WorkersGrpByLogsumParams& workersGrpByLogsumParams)
+    {
+    	workersGrpByLogsumParams.setIndividualId(values.get<long long>("id", INVALID_ID));
+    	workersGrpByLogsumParams.setLogsumCharacteristicsGroupId(values.get<int>("rowid", 0));
+    }
+};
 
 
 } //namespace soci

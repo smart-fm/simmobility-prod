@@ -127,6 +127,9 @@ LoggerAgent::LoggerAgent() : Entity(-1)
     std::ofstream* roiFile = new std::ofstream("rdevROI.csv");
     streams.insert(std::make_pair(LOG_DEV_ROI, roiFile));
 
+    //household statistics
+    std::ofstream* householdStatisticsFile = new std::ofstream("householdStatistics.csv");
+    streams.insert(std::make_pair(LOG_HOUSEHOLD_STATISTICS, householdStatisticsFile));
 
 }
 

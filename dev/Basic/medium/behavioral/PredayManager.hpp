@@ -151,6 +151,11 @@ public:
 	void dispatchLT_Persons();
 
 	/**
+	 * Removes the invalid/incomplete addresses from the look up
+	 */
+	void removeInvalidAddresses();
+
+	/**
 	 * preday calibration function
 	 */
 	void calibratePreday();

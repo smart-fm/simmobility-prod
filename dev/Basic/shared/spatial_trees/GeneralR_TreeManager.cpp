@@ -5,8 +5,12 @@
  *      Author: zhang huai peng
  */
 #ifndef _CLASS_RTREE_GENERAL_FUNCTIONS
-#include "spatial_trees/GeneralR_TreeManager.hpp"
+#include "GeneralR_TreeManager.hpp"
 #else
+namespace{
+//searching region is inside 5km
+const double SERACH_DISTANCE = 5000.0;
+}
 namespace sim_mob {
 template<typename T>
 GeneralR_TreeManager<T>::GeneralR_TreeManager() : rTree(nullptr)
@@ -24,7 +28,6 @@ template<typename T>
 void GeneralR_TreeManager<T>::update(const std::set<T*> &objectsForR_Tree)
 {
 	if (rTree) {
-		rTree->clear();
 		delete rTree;
 		rTree = nullptr;
 	}
@@ -59,8 +62,7 @@ std::vector<T const *> GeneralR_TreeManager<T>::objectsInBox(const R_Point &lowe
 template<typename T>
 const T* GeneralR_TreeManager<T>::searchNearestObject(double x, double y) const
 {
-	//searching region is inside 5km
-	const double distance = 5000;
+	const double distance = SERACH_DISTANCE;
 	R_Point lowerLeft(x-distance,y-distance);
 	R_Point upperRight(x+distance,y+distance);
 	const T* res = nullptr;

@@ -104,6 +104,39 @@ struct LongTermParams
 		bool enabled;
 		unsigned int schoolChangeWaitingTimeInDays;
 	}schoolAssignmentModel;
+
+
+	struct OutputFiles{
+
+		OutputFiles();
+        bool bids;
+        bool expectations;
+        bool parcels;
+        bool units;
+        bool projects;
+        bool hh_pc;
+        bool units_in_market;
+        bool log_taxi_availability;
+        bool log_vehicle_ownership;
+        bool log_taz_level_logsum;
+        bool log_householdgrouplogsum;
+        bool log_individual_hits_logsum;
+        bool log_householdbidlist;
+        bool log_individual_logsum_vo;
+        bool log_screeningprobabilities;
+        bool log_hhchoiceset;
+        bool log_error;
+        bool log_school_assignment;
+        bool log_pre_school_assignment;
+        bool log_hh_awakening;
+        bool log_hh_exit;
+        bool log_random_nums;
+        bool log_dev_roi;
+        bool log_household_statistics;
+        bool enabled;
+
+	}outputFiles;
+
 };
 
 ///represent the incident data section of the config file

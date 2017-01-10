@@ -408,11 +408,11 @@ int ServiceController::getTrainIdOfTrainAhead(int trainId,std::string lineId) co
 
 void ServiceController::setUturnFlag(int trainId,std::string lineId,bool takeUturn,double timeForUturn)
 {
-	map<std::string,std::map<int,TrainDriver *>>::iterator it = mapOfLineAndTrainDrivers.find(lineId);
+	map<std::string,std::map<int,TrainDriver *>>::const_iterator it = mapOfLineAndTrainDrivers.find(lineId);
 	if(it != mapOfLineAndTrainDrivers.end())
 	{
-		std::map<int,TrainDriver*> &mapOfTrainIdsVsDrivers = it->second;
-		std::map<int,TrainDriver*>::iterator itr = mapOfTrainIdsVsDrivers.find(trainId);
+		const std::map<int,TrainDriver*> &mapOfTrainIdsVsDrivers = it->second;
+		const std::map<int,TrainDriver*>::const_iterator itr = mapOfTrainIdsVsDrivers.find(trainId);
 		if(itr!=mapOfTrainIdsVsDrivers.end())
 		{
 			TrainDriver* driver = itr->second;
@@ -434,8 +434,8 @@ bool ServiceController::getUturnFlag(int trainId,std::string lineId) const
 	map<std::string,std::map<int,TrainDriver *>>::const_iterator it = mapOfLineAndTrainDrivers.find(lineId);
 	if(it != mapOfLineAndTrainDrivers.end())
 	{
-		std::map<int,TrainDriver*> mapOfTrainIdsVsDrivers = it->second;
-		std::map<int,TrainDriver*>::iterator itr = mapOfTrainIdsVsDrivers.find(trainId);
+		const std::map<int,TrainDriver*> &mapOfTrainIdsVsDrivers = it->second;
+		const std::map<int,TrainDriver*>::const_iterator itr = mapOfTrainIdsVsDrivers.find(trainId);
 		if(itr!=mapOfTrainIdsVsDrivers.end())
 		{
 			TrainDriver* driver = itr->second;

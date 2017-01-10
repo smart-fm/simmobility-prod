@@ -42,9 +42,6 @@ namespace sim_mob
 {
 namespace medium
 {
-	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
-	const double trainLengthMeter = config.trainController.trainLength;
-	const double distanceArrvingAtPlatform = 0.001;
 	bool TrainMovement::areColumnNamesAdded=false;
 	TrainBehavior::TrainBehavior():BehaviorFacet(),parentDriver(nullptr)
 	{
@@ -229,10 +226,12 @@ namespace medium
 	{
 		TrainController<sim_mob::medium::Person_MT> *trainController = TrainController<sim_mob::medium::Person_MT>::getInstance();
 		typename  std::vector <Role<Person_MT>*> trainDriverVector = trainController->getActiveTrainsForALine(lineID);
-		TrainPlatform trainPlatform=trainController->getNextPlatform(platformNo,lineID);
-		Platform *platform=trainController->getPlatformFromId(platformNo);
+		TrainPlatform trainPlatform = trainController->getNextPlatform(platformNo,lineID);
+		Platform *platform = trainController->getPlatformFromId(platformNo);
+		const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
+		const double trainLengthMeter = config.trainController.trainLength;
 		typename std::vector <Role<Person_MT>*>::iterator it = trainDriverVector.begin();
-		double minDis=-1;
+		double minDis = -1;
 		TrainDriver *nextDriverInOppLine = nullptr;
 		while(it!=trainDriverVector.end())
 		{
@@ -486,7 +485,9 @@ namespace medium
 	 }
 
 	bool TrainMovement::isStopPointPresent()
-	 {
+	{
+		const ConfigParams& configParams = ConfigManager::GetInstance().FullConfig();
+		const double distanceArrvingAtPlatform = configParams.trainController.distanceArrivingAtPlatform;
 		const TrainPathMover &pathMover=getPathMover();
 		std::vector<PolyPoint>::const_iterator pointItr=pathMover.GetCurrentStopPoint();
 		std::vector<StopPointEntity> &stopPointEntities=parentDriver->getStopPoints();
@@ -506,7 +507,7 @@ namespace medium
 			else
 			{
 				TrainUpdateParams& params = parentDriver->getParams();
-				if((*stopPointItr).distance-getTotalCoveredDistance()<distanceArrvingAtPlatform)
+				if((*stopPointItr).distance - getTotalCoveredDistance() < distanceArrvingAtPlatform)
 				{
 					parentDriver->setStoppingParameters(stPoint,(*stopPointItr).duration);
 					stopPointEntities.erase(stopPointItr);
@@ -1089,6 +1090,8 @@ namespace medium
 	{
 		TrainUpdateParams& params = parentDriver->getParams();
 		const ConfigParams& configParams = ConfigManager::GetInstance().FullConfig();
+		const double trainLengthMeter = configParams.trainController.trainLength;
+
 		if (!configParams.trainController.outputEnabled)
 		{
 			return std::string();
@@ -1184,6 +1187,8 @@ namespace medium
 	double TrainMovement::getDistanceToNextTrain(const TrainDriver* nextDriver,bool isSafed)
 	{
 		double distanceToNextTrain = 0.0;
+		const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
+		const double trainLengthMeter = config.trainController.trainLength;
 		if(nextDriver)
 		{
 			if (nextDriver->getNextRequested() == TrainDriver::REQUESTED_TO_DEPOT)
@@ -1610,6 +1615,8 @@ namespace medium
 		{
 			return false;
 		}
+		const ConfigParams& configParams = ConfigManager::GetInstance().FullConfig();
+		const double distanceArrvingAtPlatform = configParams.trainController.distanceArrivingAtPlatform;
 		std::map<std::string,std::vector<std::string>> platformNames = TrainController<sim_mob::medium::Person_MT>::getInstance()->getDisruptedPlatforms_ServiceController();
 		std::string trainLine = parentDriver->getTrainLine();
 		std::vector<std::string> disruptedPlatformNames = platformNames[trainLine];

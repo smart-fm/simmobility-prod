@@ -21,10 +21,10 @@
 #include "event/args/ReRouteEventArgs.hpp"
 #include "behavioral/ServiceController.hpp"
 using namespace sim_mob::event;
+using namespace std;
 namespace sim_mob
 {
-const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
-const double trainLengthMeter = config.trainController.trainLength;
+
 namespace medium
 {
 
@@ -207,7 +207,7 @@ namespace medium
 				std::vector<Role<Person_MT>*>::iterator it;
 				TrainDriver* next = pendingDrivers.front();
 				next->getMovement()->teleportToPlatform(stationAgentPlatform->getPlatformNo());
-				bool isTrainApproachingClose=false;
+				bool isTrainApproachingClose = false;
 				for(it = trainDriverVector.begin();it != trainDriverVector.end();it++)
 				{
 					TrainDriver *tDriver = dynamic_cast<TrainDriver*>(*(it));
@@ -300,6 +300,9 @@ namespace medium
 								trainDriverItr++;
 								continue;
 							}
+
+							const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
+							const double trainLengthMeter = config.trainController.trainLength;
 							double differentDistance = totalDisCoverdByOtherTrain - (next->getMovement()->getTotalCoveredDistance()) - trainLengthMeter - (movement->getSafeDistance());
 							if(differentDistance<0)
 							{
@@ -413,8 +416,8 @@ namespace medium
 						double minDisBehindDriver=-1;
 						while(trainDriverItr != trainDriverVector.end())
 						{
-							TrainDriver *trainDriver =dynamic_cast<TrainDriver*>(*trainDriverItr);
-							if(trainDriver&&trainDriver!=next)
+							TrainDriver *trainDriver = dynamic_cast<TrainDriver*>(*trainDriverItr);
+							if(trainDriver && trainDriver!=next)
 							{
 								TrainMovement *movement = trainDriver->getMovement();
 								double totalDisCoverdByOtherTrain = movement->getTotalCoveredDistance();

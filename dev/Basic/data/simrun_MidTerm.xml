@@ -189,7 +189,8 @@
 				<max_dwell_time value = "120"/>
 				<first_coeff value = "12.22"/>
 				<second_coeff value = "2.27"/>
-				<third_coeff value = "1.82"/>				
+				<third_coeff value = "1.82"/>
+				<fourth_coeff value = "0.00062"/>				
 			</dwell_time_parameters>
 			<minDistanceTrainBehindForUnscheduledTrain value = "200"/>
 	    </trainLine>
@@ -208,6 +209,7 @@
 				<first_coeff value = "12.22"/>
 				<second_coeff value = "2.27"/>
 				<third_coeff value = "1.82"/>
+				<fourth_coeff value = "0.00062"/>
 			</dwell_time_parameters>
 			<minDistanceTrainBehindForUnscheduledTrain value = "200"/>
 	    </trainLine>
@@ -226,6 +228,7 @@
 				<first_coeff value = "12.22"/>
 				<second_coeff value = "2.27"/>
 				<third_coeff value = "1.82"/>
+				<fourth_coeff value = "0.00062"/>
 			</dwell_time_parameters>
 			<minDistanceTrainBehindForUnscheduledTrain value = "200"/>
 	    </trainLine>
@@ -244,6 +247,7 @@
 				<first_coeff value = "12.22"/>
 				<second_coeff value = "2.27"/>
 				<third_coeff value = "1.82"/>
+				<fourth_coeff value = "0.00062"/>
 			</dwell_time_parameters>
 			<minDistanceTrainBehindForUnscheduledTrain value = "200"/>
 		</trainLine>
@@ -262,6 +266,7 @@
 				<first_coeff value = "12.22"/>
 				<second_coeff value = "2.27"/>
 				<third_coeff value = "1.82"/>
+				<fourth_coeff value = "0.00062"/>
 			</dwell_time_parameters>
 			<minDistanceTrainBehindForUnscheduledTrain value = "200"/>
 	    </trainLine>
@@ -280,6 +285,7 @@
 				<first_coeff value = "12.22"/>
 				<second_coeff value = "2.27"/>
 				<third_coeff value = "1.82"/>
+				<fourth_coeff value = "0.00062"/>
 			</dwell_time_parameters>
 			<minDistanceTrainBehindForUnscheduledTrain value = "200"/>
 	    </trainLine>		

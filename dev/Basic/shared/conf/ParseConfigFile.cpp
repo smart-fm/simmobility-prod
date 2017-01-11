@@ -333,7 +333,7 @@ void sim_mob::ParseConfigFile::processLongTermParamsNode(xercesc::DOMElement* no
 	outputFiles.log_random_nums = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "outputFiles"), "log_random_nums"), "value"), false);
 	outputFiles.log_dev_roi = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "outputFiles"), "log_dev_roi"), "value"), false);
 	outputFiles.log_household_statistics = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "outputFiles"), "log_household_statistics"), "value"), false);
-	outputFiles.log_out_xx_files = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "outputFiles"), "log_out_xx_files"), "value"), false);
+	outputFiles.log_out_xx_files = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "outputFiles"), "log_out_xx_files"), "value"), true);
 
 	cfg.ltParams.outputFiles = outputFiles;
 }

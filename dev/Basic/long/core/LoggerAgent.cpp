@@ -93,6 +93,7 @@ LoggerAgent::LoggerAgent() : Entity(-1)
 	PrintOutV("Output CSV generation. log_random_nums: " << log_random_nums << std::endl);
 	PrintOutV("Output CSV generation. log_dev_roi: " << log_dev_roi << std::endl);
 	PrintOutV("Output CSV generation. log_household_statistics: " << log_household_statistics << std::endl);
+	PrintOutV("Output CSV generation. log_out_xx_files: " << config.ltParams.outputFiles.log_out_xx_files << std::endl);
 	PrintOutV(">>>>>>>>>>>>>>>" << std::endl);
 
 

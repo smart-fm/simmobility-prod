@@ -181,6 +181,7 @@
 		<log_random_nums value = 'true' />
 		<log_dev_roi value = 'true' />
 		<log_household_statistics value = 'true' />
+		<log_out_xx_files value='false' />
         </outputFiles>
     </longTermParams>
 

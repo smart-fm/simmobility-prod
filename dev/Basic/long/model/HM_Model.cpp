@@ -2339,13 +2339,13 @@ void HM_Model::getLogsumOfVaryingHomeOrWork(BigSerial householdId)
 		if( tazHome <= 0 )
 		{
 			//PrintOutV( " individualId " << householdIndividualIds[n] << " has an empty home taz" << std::endl);
-			AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, (boost::format( "individualId %1% has an empty home taz.") % householdIndividualIds[n]).str());
+			printError( (boost::format( "individualId %1% has an empty home taz.") % householdIndividualIds[n]).str());
 		}
 
 		if( tazWork <= 0 )
 		{
 			//PrintOutV( " individualId " << householdIndividualIds[n] << " has an empty work taz" << std::endl);
-			AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, (boost::format( "individualId %1% has an empty work taz.") % householdIndividualIds[n]).str());
+			printError( (boost::format( "individualId %1% has an empty work taz.") % householdIndividualIds[n]).str());
 		}
 
 		vector<double>tazIds;

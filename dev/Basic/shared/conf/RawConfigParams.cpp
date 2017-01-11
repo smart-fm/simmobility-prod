@@ -55,6 +55,7 @@ sim_mob::LongTermParams::OutputFiles::OutputFiles(): bids(false),
 													 log_random_nums(false),
 													 log_dev_roi(false),
 													 log_household_statistics(false),
+													 log_out_xx_files(false),
 													 enabled(false){}
 
 ModelScriptsMap::ModelScriptsMap(const std::string& scriptFilesPath, const std::string& scriptsLang) : path(scriptFilesPath), scriptLanguage(scriptsLang) {}

@@ -133,6 +133,7 @@ struct LongTermParams
         bool log_random_nums;
         bool log_dev_roi;
         bool log_household_statistics;
+        bool log_out_xx_files;
         bool enabled;
 
 	}outputFiles;

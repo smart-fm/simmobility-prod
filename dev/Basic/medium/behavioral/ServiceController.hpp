@@ -541,7 +541,7 @@ class ServiceController:  public lua::LuaModel
 	 * coefficientB is the alighting coefficient
 	 * coefficientC is the number of persons in train coefficient
 	 */
-	void changeNumberOfPassengerCoefficients(std::string stationName,std::string platformName,double coefficientA,double coefficientB,double coefficientC);
+	void changeNumberOfPassengerCoefficients(std::string stationName,std::string platformName,double coefficientA,double coefficientB,double coefficientC,double coefficientD);
 
 	private:
 	/** mutex lock to lock the mapOfLineAndTrainDrivers **/

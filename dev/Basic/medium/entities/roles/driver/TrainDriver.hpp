@@ -407,6 +407,9 @@ public:
 	int getInitialNumberOfPassengers();
 	void setInitialNumberOfPassengers(int initialnumberofpassengers);
 
+	void getMovementMutex();
+	void movementMutexUnlock();
+
 	/**
 	 * Event handler which provides a chance to handle event transfered from parent agent.
 	 * @param sender pointer for the event producer.
@@ -453,6 +456,8 @@ private:
     std::vector<std::string> platformsToBeIgnored;
 	/**the locker for this driver*/
 	mutable boost::mutex driverMutex;
+	/** the locker for movementMutex **/
+	mutable boost::mutex movementMutex;
 	/** lock for platformHoldingTimeEntities **/
 	mutable boost::mutex platformHoldingTimeEntitiesLock;
 	/** lock for stop point entities **/
@@ -465,11 +470,13 @@ private:
 	/** lock for terminate train service **/
 	mutable boost::mutex terminateTrainServiceLock;
 	/** the flag or signal for U Turn **/
-	bool uTurnFlag=false;
+	bool uTurnFlag = false;
 	/**sequence no for platforms*/
 	unsigned int platSequenceNumber;
 	/** the nearest train driver in opposite line after the opposite platform,it is required for U-Turn **/
-	TrainDriver *nextDriverInOppLine;
+	TrainDriver *nextDriverInOppLine = nullptr;
+	/** the nearest train driver in opposite line before the opposite platform,it is required for U-Turn **/
+	TrainDriver *prevDriverInOppLine = nullptr;
 	/** indicated whether train is stopped at stop point **/
 	bool stoppedAtPoint=false;
 	static int counter;

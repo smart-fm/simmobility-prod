@@ -200,7 +200,7 @@ namespace medium
 			std::vector<std::string>::iterator itr = find(unscheduledTrainLines.begin(),unscheduledTrainLines.end(),lineId);
 			if(itr!=unscheduledTrainLines.end())
 			{
-				const Platform *stationAgentPlatform=station->getPlatform(lineId);
+				Platform *stationAgentPlatform = station->getPlatform(lineId);
 				TrainController<sim_mob::medium::Person_MT> *trainController = TrainController<sim_mob::medium::Person_MT>::getInstance();
 				insertTrainOrUturnlock.lock();
 				std::vector <Role<Person_MT>*> trainDriverVector = trainController->getActiveTrainsForALine(lineId);
@@ -208,6 +208,8 @@ namespace medium
 				TrainDriver* next = pendingDrivers.front();
 				next->getMovement()->teleportToPlatform(stationAgentPlatform->getPlatformNo());
 				bool isTrainApproachingClose = false;
+				TrainDriver *prevNewDriver = nullptr;
+				double minDis = -1;
 				for(it = trainDriverVector.begin();it != trainDriverVector.end();it++)
 				{
 					TrainDriver *tDriver = dynamic_cast<TrainDriver*>(*(it));
@@ -219,33 +221,36 @@ namespace medium
 							TrainMovement* trainMovement = dynamic_cast<TrainMovement*>(moveFacet);
 							if(trainMovement)
 							{
-								Platform *platform = trainMovement->getNextPlatform();
-								if(platform)
+								double disToNextPlat = trainMovement->getDistanceFromStartToPlatform(lineId,stationAgentPlatform) -  trainMovement->getTotalCoveredDistance();
+								const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
+								double safeDistance = config.trainController.safeDistance;
+								//checking safe distance from the need of platform
+
+								if(disToNextPlat >=0 )
 								{
-									if(stationAgentPlatform == platform)
+									if(minDis == -1 || disToNextPlat < minDis)
 									{
-										const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
-										double safeDistance = config.trainController.safeDistance;
-										//checking safe distance from the ned of platform
-										double distanceToTrainAhead = trainMovement->getDistanceToNextPlatform(tDriver) - platform->getLength() - safeDistance;
-										const std::map<const std::string,TrainProperties> &trainLinePropertiesMap = config.trainController.trainLinePropertiesMap;
-										const TrainProperties &trainProperties = trainLinePropertiesMap.find(lineId)->second;										
-										double minDisBehindTrain = trainProperties.minDistanceTrainBehindForUnscheduledTrain;
-										if(distanceToTrainAhead - minDisBehindTrain<0)
+										minDis = disToNextPlat;
+										prevNewDriver = tDriver;
+									}
+									double distanceToTrainAhead = disToNextPlat - stationAgentPlatform->getLength() - safeDistance;
+									const std::map<const std::string,TrainProperties> &trainLinePropertiesMap = config.trainController.trainLinePropertiesMap;
+									const TrainProperties &trainProperties = trainLinePropertiesMap.find(lineId)->second;
+									double minDisBehindTrain = trainProperties.minDistanceTrainBehindForUnscheduledTrain;
+									if(distanceToTrainAhead - minDisBehindTrain < 0)
+									{
+										isTrainApproachingClose = true;
+										break;
+									}
+									else
+									{
+										//also check for safe headway ...
+										double currentSpeed = trainMovement->getCurrentSpeed();
+										double safeHeadWay = trainMovement->getSafeHeadWay();
+										if((distanceToTrainAhead-safeDistance)/currentSpeed<safeHeadWay)
 										{
-											isTrainApproachingClose = true;
+											isTrainApproachingClose=true;
 											break;
-										}
-										else
-										{
-											//also check for safe headway ...
-											double currentSpeed = trainMovement->getCurrentSpeed();
-											double safeHeadWay = trainMovement->getSafeHeadWay();
-											if((distanceToTrainAhead-safeDistance)/currentSpeed<safeHeadWay)
-											{
-												isTrainApproachingClose=true;
-												break;
-											}
 										}
 									}
 								}
@@ -257,6 +262,10 @@ namespace medium
 					{
 						continue;
 					}
+				}
+				if(prevNewDriver != nullptr)
+				{
+					prevNewDriver->getMovementMutex();
 				}
 				std::map<std::string, bool>::iterator iUsed = lastUsage.find(lineId);
 				bool isUsed=false;
@@ -290,13 +299,8 @@ namespace medium
 						{
 							TrainMovement *movement = trainDriver->getMovement();
 							double totalDisCoverdByOtherTrain = movement->getTotalCoveredDistance();
-							if(totalDisCoverdByOtherTrain - (next->getMovement()->getTotalCoveredDistance())<0)
+							if(totalDisCoverdByOtherTrain - (next->getMovement()->getTotalCoveredDistance()) < 0)
 							{
-								if(minDisBehindDriver == -1||((next->getMovement()->getTotalCoveredDistance()) - totalDisCoverdByOtherTrain) < minDisBehindDriver)
-								{
-									behindDriver = trainDriver;
-									minDisBehindDriver = ((next->getMovement()->getTotalCoveredDistance())-totalDisCoverdByOtherTrain);
-								}
 								trainDriverItr++;
 								continue;
 							}
@@ -304,7 +308,7 @@ namespace medium
 							const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
 							const double trainLengthMeter = config.trainController.trainLength;
 							double differentDistance = totalDisCoverdByOtherTrain - (next->getMovement()->getTotalCoveredDistance()) - trainLengthMeter - (movement->getSafeDistance());
-							if(differentDistance<0)
+							if(differentDistance < 0)
 							{
 								success = false;
 								ahead = trainDriver;
@@ -329,14 +333,18 @@ namespace medium
 						lastUsage[lineId] = true;
 						lastTrainDriver[lineId] = next;
 						next->setNextDriver(ahead);
-						if(behindDriver != nullptr)
+						if(prevNewDriver != nullptr)
 						{
-							behindDriver->setNextDriver(next);
+							prevNewDriver->setNextDriver(next);
 						}
 						next->setNextRequested(TrainDriver::REQUESTED_AT_PLATFORM);
 						Role<Person_MT> *tDriver = dynamic_cast<Role<Person_MT>*>(next);
 						TrainController<Person_MT>::getInstance()->addToListOfActiveTrainsInLine(lineId,tDriver);
 					}
+				}
+				if(prevNewDriver != nullptr)
+				{
+					prevNewDriver->movementMutexUnlock();
 				}
 				insertTrainOrUturnlock.unlock();
 		  }

@@ -217,6 +217,16 @@ void TrainDriver::setNextRequested(TRAIN_NEXTREQUESTED res)
 	driverMutex.unlock();
 }
 
+void TrainDriver::getMovementMutex()
+{
+	movementMutex.lock();
+}
+
+void TrainDriver::movementMutexUnlock()
+{
+	movementMutex.unlock();
+}
+
 int TrainDriver::getInitialNumberOfPassengers()
 {
 	return initialnumberofpassengers;
@@ -242,14 +252,14 @@ void TrainDriver::calculateDwellTime(int boarding,int alighting,int noOfPassenge
 	const TrainProperties &trainProperties = trainLinePropertiesMap.find(getTrainLine())->second;
 	const TrainDwellTimeInfo &dwellTimeInfo = trainProperties.dwellTimeInfo;
 	double dwellTime = -1;
-	if(personCountCoefficients.size() == 3)
+	if(personCountCoefficients.size() == 4)
 	{
 		noOfPassengerInTrain = noOfPassengerInTrain*personCountCoefficients[2];
-		dwellTime = dwellTimeInfo.firstCoeff + dwellTimeInfo.secondCoeff*personCountCoefficients[0]*boarding/24 + dwellTimeInfo.thirdCoeff*personCountCoefficients[1]*alighting/24;
+		dwellTime = dwellTimeInfo.firstCoeff + (dwellTimeInfo.secondCoeff*personCountCoefficients[0]*boarding + dwellTimeInfo.thirdCoeff*personCountCoefficients[1]*alighting + dwellTimeInfo.fourthCoeff*personCountCoefficients[2]*noOfPassengerInTrain)/24;
 	}
 	else
 	{
-		dwellTime = dwellTimeInfo.firstCoeff + dwellTimeInfo.secondCoeff*boarding/24 + dwellTimeInfo.thirdCoeff*alighting/24;
+		dwellTime = dwellTimeInfo.firstCoeff + (dwellTimeInfo.secondCoeff*boarding + dwellTimeInfo.thirdCoeff*alighting + dwellTimeInfo.fourthCoeff*noOfPassengerInTrain)/24;
 	}
 		
 	//double dwellTime = 12.22 + 2.27*boarding/24 + 1.82*alighting/24; //+ 0.00062*(noOfPassengerInTrain/24)*(noOfPassengerInTrain/24)*(noOfPassengerInTrain/24)*(boarding/24);

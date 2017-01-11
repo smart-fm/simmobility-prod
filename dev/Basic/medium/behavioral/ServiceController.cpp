@@ -1311,7 +1311,7 @@ void ServiceController::terminateTrainServiceForTrain(int trainId,std::string li
 	}
 }
 
-void ServiceController::changeNumberOfPassengerCoefficients(std::string stationName,std::string platformName,double coefficientA,double coefficientB,double coefficientC)
+void ServiceController::changeNumberOfPassengerCoefficients(std::string stationName,std::string platformName,double coefficientA,double coefficientB,double coefficientC,double D)
 {
 	TrainController<sim_mob::medium::Person_MT>::getInstance()->changeNumberOfPersonsCoefficients(stationName,platformName,coefficientA,coefficientB,coefficientC);
 }

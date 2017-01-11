@@ -196,6 +196,8 @@ namespace medium
 		typename  std::vector <Role<Person_MT>*> trainDriverVector=trainController->getActiveTrainsForALine(lineID);
 		//std::vector<Role<Person_MT>*> trainDriverVector;
 		std::vector<Role<Person_MT>*>::iterator it;
+		double minDis = -1;
+		Platform *savePlat =nullptr;
 		for(it = trainDriverVector.begin(); it != trainDriverVector.end(); it++)
 		{
 			TrainDriver *tDriver = dynamic_cast<TrainDriver*>(*(it));
@@ -207,19 +209,43 @@ namespace medium
 					TrainMovement* trainMovement = dynamic_cast<TrainMovement*>(moveFacet);
 					if(trainMovement)
 					{
-						Platform *platform = trainMovement->getNextPlatform();
-						if(platform)
+						Platform *platform = trainController->getPlatformFromId(platformNo);
+						int tID = tDriver->getTrainId();
+						double disToNextPlatform = trainMovement->getDistanceFromStartToPlatform(lineID,platform) - trainMovement->getTotalCoveredDistance();
+						if(disToNextPlatform>=0 && (minDis == -1 || disToNextPlatform < minDis))
 						{
-							if(boost::iequals(platform->getPlatformNo(),platformNo))
-							{
-								return true;
-							}
+							parentDriver->prevDriverInOppLine = tDriver;
+							minDis = disToNextPlatform ;
+							savePlat = platform;
 						}
 					}
 				}
 			}
 		}
-	return false;
+
+		if(parentDriver->prevDriverInOppLine != nullptr)
+		{
+			parentDriver->prevDriverInOppLine->getMovementMutex();
+			TrainDriver *tDriverPrev = parentDriver->prevDriverInOppLine;
+			const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
+			const double trainLengthMeter = config.trainController.trainLength;
+			const std::map<const std::string,TrainProperties> &trainLinePropertiesMap = config.trainController.trainLinePropertiesMap;
+			const TrainProperties &trainProperties = trainLinePropertiesMap.find(parentDriver->getTrainLine())->second;
+			double minDisBehindTrain = trainProperties.minDistanceTrainBehindForUnscheduledTrain;
+			double disPrev = tDriverPrev->getMovement()->getDistanceToNextPlatform(tDriverPrev);
+			int tID = parentDriver->prevDriverInOppLine->getTrainId();
+			int pTid = parentDriver->getTrainId();
+			TrainMovement *tMov = parentDriver->prevDriverInOppLine->getMovement();
+			double disToNextPlatform = tMov->getDistanceFromStartToPlatform(lineID,savePlat) - tMov->getTotalCoveredDistance();
+			if(disToNextPlatform - tDriverPrev->getMovement()->getSafeDistance() - trainLengthMeter - minDisBehindTrain < 0)
+			{
+
+				parentDriver->prevDriverInOppLine->movementMutexUnlock();
+				parentDriver->prevDriverInOppLine = nullptr;
+				return true;
+			}
+		}
+		return false;
 	}
 
 	bool TrainMovement::checkSafeDistanceAheadBeforeTeleport(std::string platformNo,std::string lineID) const
@@ -342,11 +368,14 @@ namespace medium
 			{
 				if(tDriver->getNextDriver() == parentDriver)
 				{
+					tDriver->getMovementMutex();
 					tDriver->setNextDriver(parentDriver->getNextDriver());
+					tDriver->movementMutexUnlock();
+					break;
 				}
 			}
 		}
-		std::vector <Role<Person_MT>*> newLinetrainDriverVector = TrainController<Person_MT>::getInstance()->getActiveTrainsForALine(lineId);
+		/*std::vector <Role<Person_MT>*> newLinetrainDriverVector = TrainController<Person_MT>::getInstance()->getActiveTrainsForALine(lineId);
 		double maxDistanceBehindTrain = -1;
 		double totalDisCoveredByTrain = getTotalCoveredDistance();
 		TrainDriver *behindDriver = nullptr;
@@ -369,10 +398,15 @@ namespace medium
 		}
 		if(behindDriver != nullptr)
 		{
+			behindDriver->getMovementMutex();
 			behindDriver->setNextDriver(parentDriver);
-		}
+			behindDriver->movementMutexUnlock();
+		}*/
 		parentDriver->setNextDriver(parentDriver->getDriverInOppositeLine());
-
+		if(parentDriver->prevDriverInOppLine != nullptr)
+		{
+			parentDriver->prevDriverInOppLine->nextDriver = parentDriver;
+		}
 		parentDriver->setUturnFlag(false);
 	}
 
@@ -1543,7 +1577,12 @@ namespace medium
 	{
 		TrainUpdateParams& params = parentDriver->getParams();
 		double effectiveSpeed = params.currentSpeed;
+		parentDriver->getMovementMutex();
 		double realSpeedLimitordistanceToNextObj = getRealSpeedLimit();
+		int tid = parentDriver->getTrainId();
+		Platform *nPlt = parentDriver->getNextPlatform();
+		parentDriver->movementMutexUnlock();
+
 		if(params.currCase == TrainUpdateParams::STATION_CASE)
 		{
 			double effectiveAccelerate = -(effectiveSpeed*effectiveSpeed)/(2.0*realSpeedLimitordistanceToNextObj);
@@ -1867,7 +1906,24 @@ namespace medium
 				isWaitingForUturn = true;
 				waitingTimeRemainingBeforeUturn = userSpecifiedUturnTime;
 				parentDriver->setNextRequested(TrainDriver::WAIT_AFTER_UTURN);
+				if(parentDriver->prevDriverInOppLine)
+				{
+					parentDriver->prevDriverInOppLine->movementMutexUnlock();
+					parentDriver->prevDriverInOppLine = nullptr;
+				}
 			}
+			else
+			{
+				if(parentDriver->prevDriverInOppLine)
+				{
+					parentDriver->prevDriverInOppLine->movementMutexUnlock();
+					parentDriver->prevDriverInOppLine = nullptr;
+				}
+			}
+		}
+		else
+		{
+			int debug = 1;
 		}
 	}
 

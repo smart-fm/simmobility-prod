@@ -438,6 +438,7 @@ struct BusControllerParams
 	 double firstCoeff;
 	 double secondCoeff;
 	 double thirdCoeff;
+	 double fourthCoeff;
  };
 struct TrainProperties
 {

@@ -159,6 +159,9 @@
         
         <!-- default capacity value -->
         <bus_default_capacity value="100"/>
+        
+        <!-- the threads number for person loader -->
+        <thread_number_in_person_loader value="10"/>
                 
         <!-- file names to output statistics from supply -->   
         <output_statistics>                              

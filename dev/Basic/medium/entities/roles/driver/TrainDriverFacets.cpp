@@ -337,11 +337,27 @@ namespace medium
 
 	void TrainMovement::takeUTurn(std::string stationName)
 	{
-		//std::string platformName=getNextPlatform();
-		TrainController<sim_mob::medium::Person_MT> *trainController = TrainController<sim_mob::medium::Person_MT>::getInstance();
+		TrainDriver * prevDriveInSameLine = nullptr;
 		Person_MT* person = parentDriver->parent;
 		TrainTrip* trip = dynamic_cast<TrainTrip*>(*(person->currTripChainItem));
 		std::string lineId = trip->getLineId();
+		std::string prevLine = TrainController<Person_MT>::getInstance()->getOppositeLineId(lineId);
+		typename  std::vector <Role<Person_MT>*> trainDriverVector=TrainController<Person_MT>::getInstance()->getActiveTrainsForALine(prevLine);
+		std::vector<Role<Person_MT>*>::iterator it;
+		for(it = trainDriverVector.begin(); it != trainDriverVector.end(); it++)
+		{
+			TrainDriver *tDriver = dynamic_cast<TrainDriver*>(*(it));
+			if(tDriver)
+			{
+				if(tDriver->getNextDriver() == parentDriver)
+				{
+					   tDriver->getMovementMutex();
+					   prevDriveInSameLine = tDriver;
+					   break;
+				}
+			}
+		}
+		TrainController<sim_mob::medium::Person_MT> *trainController = TrainController<sim_mob::medium::Person_MT>::getInstance();
 		Platform *platform = parentDriver->getNextPlatform();
 		std::string stationId = platform->getStationNo();
 		Station *station = trainController->getStationFromId(stationId);
@@ -353,55 +369,16 @@ namespace medium
 		nextPlatform = oppPlatform;
 		facetMutex.unlock();
 		TrainDriver *parentDriver = getParentDriver();
-		std::string prevLine = TrainController<Person_MT>::getInstance()->getOppositeLineId(lineId);
 		TrainController<Person_MT>::getInstance()->removeFromListOfActiveTrainsInLine(prevLine,parentDriver);
 		TrainController<Person_MT>::getInstance()->addToListOfActiveTrainsInLine(lineId,parentDriver);
 		int trainId = parentDriver->getTrainId();
 		ServiceController::getInstance()->removeTrainIdAndTrainDriverInMap(trainId,prevLine,parentDriver);
 		ServiceController::getInstance()->insertTrainIdAndTrainDriverInMap(trainId,lineId,parentDriver);
-		typename  std::vector <Role<Person_MT>*> trainDriverVector=TrainController<Person_MT>::getInstance()->getActiveTrainsForALine(prevLine);
-		std::vector<Role<Person_MT>*>::iterator it;
-		for(it = trainDriverVector.begin(); it != trainDriverVector.end(); it++)
+		if(prevDriveInSameLine != nullptr)
 		{
-			TrainDriver *tDriver = dynamic_cast<TrainDriver*>(*(it));
-			if(tDriver)
-			{
-				if(tDriver->getNextDriver() == parentDriver)
-				{
-					tDriver->getMovementMutex();
-					tDriver->setNextDriver(parentDriver->getNextDriver());
-					tDriver->movementMutexUnlock();
-					break;
-				}
-			}
+			prevDriveInSameLine->setNextDriver(parentDriver->getNextDriver());
+			prevDriveInSameLine->movementMutexUnlock();
 		}
-		/*std::vector <Role<Person_MT>*> newLinetrainDriverVector = TrainController<Person_MT>::getInstance()->getActiveTrainsForALine(lineId);
-		double maxDistanceBehindTrain = -1;
-		double totalDisCoveredByTrain = getTotalCoveredDistance();
-		TrainDriver *behindDriver = nullptr;
-		for(it = newLinetrainDriverVector.begin(); it != newLinetrainDriverVector.end(); it++)
-		{
-			TrainDriver *tDriver = dynamic_cast<TrainDriver*>(*(it));
-			if(tDriver)
-			{
-				double distanceCoveredByBehindTrain = tDriver->getMovement()->getTotalCoveredDistance();
-
-				if(distanceCoveredByBehindTrain < totalDisCoveredByTrain)
-				{
-					if(maxDistanceBehindTrain == -1||distanceCoveredByBehindTrain > maxDistanceBehindTrain)
-					{
-						maxDistanceBehindTrain = distanceCoveredByBehindTrain;
-						behindDriver = tDriver;
-					}
-				}
-			}
-		}
-		if(behindDriver != nullptr)
-		{
-			behindDriver->getMovementMutex();
-			behindDriver->setNextDriver(parentDriver);
-			behindDriver->movementMutexUnlock();
-		}*/
 		parentDriver->setNextDriver(parentDriver->getDriverInOppositeLine());
 		if(parentDriver->prevDriverInOppLine != nullptr)
 		{
@@ -629,7 +606,9 @@ namespace medium
 						parentDriver->setIsToBeRemoved(isToBeRemoved);
 					}
 					Platform *nextPlatformAccordingToPosition = trainPlatformMover_accpos.getNextPlatform(false);
+					parentDriver->getMovementMutex();
 					moveForward();
+					parentDriver->movementMutexUnlock();
 					double distance = trainPathMover.getDistanceFromStartToPlatform(parentDriver->getTrainLine(),nextPlatformAccordingToPosition);
 					if(isStopAtPlatform())
 					{
@@ -1577,12 +1556,9 @@ namespace medium
 	{
 		TrainUpdateParams& params = parentDriver->getParams();
 		double effectiveSpeed = params.currentSpeed;
-		parentDriver->getMovementMutex();
 		double realSpeedLimitordistanceToNextObj = getRealSpeedLimit();
 		int tid = parentDriver->getTrainId();
 		Platform *nPlt = parentDriver->getNextPlatform();
-		parentDriver->movementMutexUnlock();
-
 		if(params.currCase == TrainUpdateParams::STATION_CASE)
 		{
 			double effectiveAccelerate = -(effectiveSpeed*effectiveSpeed)/(2.0*realSpeedLimitordistanceToNextObj);
@@ -1774,7 +1750,9 @@ namespace medium
 	{
 		if (!isAtLastPlaform())
 		{
+			parentDriver->getMovementMutex();
 			moveForward();
+			parentDriver->movementMutexUnlock();
 			Platform *next = trainPlatformMover.getNextPlatform(true);
 			Platform *u = trainPlatformMover_accpos.getNextPlatform(true);
 			facetMutex.lock();

@@ -14,7 +14,7 @@
 
 #include <fstream>
 #include <stdexcept>
-
+#include <proj_api.h>
 #include <boost/random.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/thread/thread.hpp>
@@ -137,6 +137,26 @@ void Utils::printAndDeleteLogFiles(const std::list<std::string>& logFileNames,st
 	std::cout <<"Files merged; took " <<sw.getTime() <<"s\n";
 }
 
+void Utils::convertWGS84_ToUTM(double& x, double& y)
+{
+	projPJ pj_latlong, pj_utm;
+
+	if (!(pj_latlong = pj_init_plus("+proj=longlat +datum=WGS84")))
+	{
+		Print() << ("pj_init_plus error: longlat\n") << std::endl;
+		return;
+	}
+	if (!(pj_utm = pj_init_plus("+proj=utm +zone=48 +ellps=WGS84")))
+	{
+		Print() << "pj_init_plus error: utm\n" << std::endl;
+		return;
+	}
+
+	x *= DEG_TO_RAD;
+	y *= DEG_TO_RAD;
+
+	pj_transform(pj_latlong, pj_utm, 1, 1, &x, &y, NULL);
+}
 
 std::pair<double, double> Utils::parseScaleMinmax(const std::string& src)
 {

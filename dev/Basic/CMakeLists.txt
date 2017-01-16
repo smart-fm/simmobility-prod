@@ -376,6 +376,11 @@ find_package(JsonCpp REQUIRED)
 include_directories(${JSONCPP_INCLUDE_DIR})
 LIST(APPEND LibraryList ${JSONCPP_LIBRARY})
 
+#Find PROJ4
+find_package(PROJ4 REQUIRED)
+include_directories(${PROJ4_INCLUDE_DIR})
+LIST(APPEND LibraryList ${PROJ4_LIBRARY})
+
 #Find PQ
 find_package(PostgreSQL REQUIRED)
 include_directories(${PostgreSQL_INCLUDE_DIRS})

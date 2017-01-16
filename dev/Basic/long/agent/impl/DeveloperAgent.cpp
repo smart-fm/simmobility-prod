@@ -108,62 +108,6 @@ namespace
 }
 namespace {
 
-//id,lot_size, gpr, land_use_type_id, owner_name, owner_category, last_transaction_date, last_transaction_type_total, psm_per_gps, lease_type, lease_start_date, centroid_x, centroid_y,
-//award_date,award_status,use_restriction,development_type_code,successful_tender_id,successful_tender_price,tender_closing_date,lease,status,developmentAllowed,nextAvailableDate
-const std::string LOG_PARCEL = "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%, %11%, %12%, %13%, %14%, %15%, %16%, %17%, %18%, %19%, %20%, %21%, %22%, %23%, %24%,%25%, %26%, %27%";
-
-const std::string LOG_UNIT = "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%, %11%, %12%, %13%, %14%, %15%, %16%, %17%, %18%";
-
-//projectId,parcelId,developerId,templateId,projectName,constructionDate,completionDate,constructionCost,demolitionCost,totalCost,fmLotSize,grossRatio,grossArea
-const std::string LOG_PROJECT = "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%, %11%, %12%, %13%";
-
-const std::string LOG_POTENTIAL_PROJECT = "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%";
-/**
- * Write the data of profitable parcels to a csv.
- * @param parcel to be written.
- *
- */
-inline void writeParcelDataToFile(const Parcel &parcel, int newDevelopment,double profit) {
-
-	boost::format fmtr = boost::format(LOG_PARCEL) % parcel.getId()
-			% parcel.getLotSize() % parcel.getGpr() % parcel.getLandUseTypeId()
-			% parcel.getOwnerName() % parcel.getOwnerCategory()
-			% parcel.getLastTransactionDate().tm_year % parcel.getLastTransationTypeTotal() % parcel.getPsmPerGps() % parcel.getLeaseType()
-			% parcel.getLeaseStartDate().tm_year % parcel.getCentroidX() % parcel.getCentroidY() % parcel.getAwardDate().tm_year % parcel.getAwardStatus()
-			% parcel.getUseRestriction()%parcel.getDevelopmentTypeCode()% parcel.getSuccessfulTenderId() % parcel.getSuccessfulTenderPrice()
-			% parcel.getTenderClosingDate().tm_year% parcel.getLease() % parcel.getStatus() % parcel.getDevelopmentAllowed() % parcel.getNextAvailableDate().tm_year % parcel.getTazId() % newDevelopment % profit;
-
-	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::PARCELS,fmtr.str());
-
-}
-
-/**
- * Write the data of units to a csv.
- * @param unit to be written.
- *
- */
-inline void writeUnitDataToFile(Unit &unit, double unitProfit,BigSerial parcelId,double demolitionCost,int quarter) {
-
-	boost::format fmtr = boost::format(LOG_UNIT) % unit.getId() % unit.getBuildingId() % unit.getSlaAddressId() % unit.getUnitType() % unit.getStoreyRange() % unit.getConstructionStatus() % unit.getFloorArea() % unit.getStorey() % unit.getMonthlyRent()
-			% unit.getSaleFromDate().tm_year % unit.getOccupancyFromDate().tm_year % unit.getSaleStatus() % unit.getOccupancyStatus() % unit.getLastChangedDate().tm_year % unitProfit % parcelId % demolitionCost % quarter;
-	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::UNITS,fmtr.str());
-
-}
-
-
-/**
- * Write the data of projects to a csv.
- * @param project to be written.
- *
- */
-inline void writeProjectDataToFile(boost::shared_ptr<Project>project) {
-
-	boost::format fmtr = boost::format(LOG_PROJECT) % project->getProjectId() % project->getParcelId()%project->getDeveloperId()%project->getTemplateId()%project->getProjectName()
-			             %project->getConstructionDate().tm_year%project->getCompletionDate().tm_year%project->getConstructionCost()%project->getDemolitionCost()%project->getTotalCost()
-			             %project->getFmLotSize()%project->getGrossRatio()%project->getGrossArea();
-	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::PROJECTS,fmtr.str());
-
-}
 
 inline void formatDate(int &month, int &year)
 {

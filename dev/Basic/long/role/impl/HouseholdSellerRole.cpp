@@ -518,7 +518,7 @@ bool HouseholdSellerRole::getCurrentExpectation(const BigSerial& unitId, Expecta
             }
             else
             {
-            	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, (boost::format( "[unit %1%] Invalid Asking price.") % unitId).str());
+            	printError( (boost::format( "[unit %1%] Invalid Asking price.") % unitId).str());
             }
         }
     }

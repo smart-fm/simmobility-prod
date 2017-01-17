@@ -35,10 +35,10 @@ public:
 	static TaxiFleetManager* getInstance();
 	/**
 	 * get taxi fleet at current time
-	 * @param current is current time in milliseconds
+	 * @param currentTimeSec is current time in seconds
 	 * @return a list include all taxi which need be dispatched currently
 	 */
-	std::vector<TaxiFleet> dispatchTaxiAtCurrentTime(const unsigned int current);
+	std::vector<TaxiFleet> dispatchTaxiAtCurrentTime(const unsigned int currentTimeSec);
 private:
 	/**store taxi fleet information*/
 	std::vector<TaxiFleet> taxiFleets;

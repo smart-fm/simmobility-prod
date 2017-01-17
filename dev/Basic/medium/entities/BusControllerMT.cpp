@@ -13,6 +13,7 @@
 #include "entities/misc/BusTrip.hpp"
 #include "entities/roles/DriverRequestParams.hpp"
 #include "Person_MT.hpp"
+#include "TaxiFleetManager.hpp"
 
 using namespace std;
 using namespace sim_mob;
@@ -129,5 +130,10 @@ void BusControllerMT::assignBusTripChainWithPerson(std::set<Entity*>& activeAgen
 	{
 		(*it)->parentEntity = this;
 		busDrivers.push_back(*it);
+	}
+
+	std::vector<TaxiFleetManager::TaxiFleet> taxiFleets = TaxiFleetManager::getInstance()->dispatchTaxiAtCurrentTime(0);
+	for(auto i=taxiFleets.begin(); i!=taxiFleets.end(); i++){
+		TaxiFleetManager::TaxiFleet& taxi = (*i);
 	}
 }

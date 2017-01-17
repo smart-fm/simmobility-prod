@@ -19,10 +19,13 @@ namespace sim_mob
 {
 TaxiFleetManager* TaxiFleetManager::instance = nullptr;
 
-std::time_t getSecondFrmTime(const bt::ptime& pt)
+double getSecondFrmTimeString(const std::string& startTime)
 {
-	std::cout<<pt.time_of_day().hours()<<","<<pt.time_of_day().minutes()<<std::endl;
-	return pt.time_of_day().ticks() / bt::time_duration::rep_type::ticks_per_second;
+	std::istringstream is(startTime);
+	is.imbue(std::locale(is.getloc(),new bt::time_input_facet("%d-%m-%Y %H:%M")));
+	bt::ptime pt;
+	is >> pt;
+	return (double)pt.time_of_day().ticks() / (double)bt::time_duration::rep_type::ticks_per_second;
 }
 
 TaxiFleetManager::TaxiFleetManager()
@@ -67,24 +70,26 @@ void TaxiFleetManager::LoadTaxiDemandFrmDB()
 		double y = r.get<double>(3);
 		Utils::convertWGS84_ToUTM(x, y);
 		taxiFleet.startNode = Node::allNodesMap.searchNearestObject(x, y);
-		bt::ptime pt;
 		std::string startTime = r.get<std::string>(4);
-		std::istringstream is(startTime);
-		is.imbue(std::locale(is.getloc(),new bt::time_input_facet("%d-%m-%Y %H:%M")));
-		is >> pt;
-		taxiFleet.startTime = getSecondFrmTime(pt);
+		taxiFleet.startTime = getSecondFrmTimeString(startTime);
 		taxiFleets.push_back(taxiFleet);
 	}
 }
 
-std::vector<TaxiFleetManager::TaxiFleet> TaxiFleetManager::dispatchTaxiAtCurrentTime(const unsigned int current)
+std::vector<TaxiFleetManager::TaxiFleet> TaxiFleetManager::dispatchTaxiAtCurrentTime(const unsigned int currentTimeSec)
 {
 	std::vector<TaxiFleet> res;
-	for(auto i=taxiFleets.begin(); i!=taxiFleets.end(); i++)
+	auto i=taxiFleets.begin();
+	while(i!=taxiFleets.end())
 	{
-		if(i->startTime > current)
+		if(i->startTime <= currentTimeSec)
 		{
 			res.push_back(*i);
+			i = taxiFleets.erase(i);
+		}
+		else
+		{
+			i++;
 		}
 	}
 	return res;

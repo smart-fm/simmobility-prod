@@ -22,12 +22,12 @@ void EstablishmentDao::fromRow(Row& result, Establishment& outObj)
     outObj.firmId 		= result.get<BigSerial>("firm_id", INVALID_ID);
     outObj.buildingId 	= result.get<BigSerial>("fm_building_id", INVALID_ID);
     outObj.revenue 		= result.get<double>("revenue", 0);
-    outObj.lifestyleId 	= result.get<BigSerial>("life_style_id", 0);
-    outObj.businessTypeId = result.get<BigSerial>("business_type_id", 0);
-    outObj.size 		= result.get<int>("size", 0);
-    outObj.slaAddressId = result.get<BigSerial>("sla_address_id", 0);
-    outObj.grossSqM 	= result.get<double>("gross_sq_m", 0);
-    outObj.sectorId 	= result.get<int>("sector_id",0);
+    outObj.lifestyleId 	= result.get<BigSerial>("establishment_lifestyle_id", 0);
+    //outObj.businessTypeId = result.get<BigSerial>("business_type_id", 0);
+    //outObj.size 		= result.get<int>("size", 0);
+    //outObj.slaAddressId = result.get<BigSerial>("sla_address_id", 0);
+    //outObj.grossSqM 	= result.get<double>("gross_sq_m", 0);
+    //outObj.sectorId 	= result.get<int>("sector_id",0);
 
 }
 

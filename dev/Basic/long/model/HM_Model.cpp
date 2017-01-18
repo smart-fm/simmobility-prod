@@ -1411,6 +1411,50 @@ void HM_Model::startImpl()
 		}
 
 
+		{
+			soci::session sql;
+			sql.open(soci::postgresql, conn.getConnectionStr());
+
+			std::string storedProc = MAIN_SCHEMA + "building_match";
+
+			//SQL statement
+			soci::rowset<BuildingMatch> buildingMatchsql = (sql.prepare << "select * from " + storedProc);
+
+			for (soci::rowset<BuildingMatch>::const_iterator itBuildingMatch   = buildingMatchsql.begin();
+															 itBuildingMatch  != buildingMatchsql.end();
+														   ++itBuildingMatch )
+			{
+				BuildingMatch* this_row = new BuildingMatch(*itBuildingMatch );
+				buildingMatch.push_back(this_row);
+				buildingMatchById.insert(std::make_pair(this_row->getFm_building(), this_row));
+			}
+
+			PrintOutV("Number of BuildingMatch: " << buildingMatch.size() << std::endl );
+		}
+
+
+		{
+			soci::session sql;
+			sql.open(soci::postgresql, conn.getConnectionStr());
+
+			std::string storedProc = MAIN_SCHEMA + "sla_building";
+
+			//SQL statement
+			soci::rowset<SlaBuilding> slaBuildingsql = (sql.prepare << "select * from " + storedProc);
+
+			for (soci::rowset<SlaBuilding>::const_iterator itBuildingMatch   = slaBuildingsql.begin();
+										 				   itBuildingMatch  != slaBuildingsql.end();
+														 ++itBuildingMatch )
+			{
+				SlaBuilding* this_row = new SlaBuilding(*itBuildingMatch );
+				slaBuilding.push_back(this_row);
+				slaBuildingById.insert(std::make_pair(this_row->getSla_address_id(), this_row));
+			}
+
+			PrintOutV("Number of Sla Buildings: " << slaBuilding.size() << std::endl );
+		}
+
+
 		loadData<LogsumMtzV2Dao>( conn, logsumMtzV2, logsumMtzV2ById, &LogsumMtzV2::getTazId );
 		PrintOutV("Number of LogsumMtzV2: " << logsumMtzV2.size() << std::endl );
 

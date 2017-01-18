@@ -160,6 +160,11 @@ namespace medium
 		return trainPlatformMover;
 	}
 
+	TrainPlatformMover& TrainMovement::getTrainPlatformMover_AccPos()
+	{
+		return trainPlatformMover_accpos;
+	}
+
 	void TrainMovement::changeTrip()
 	{
 		Person_MT* person = parentDriver->parent;
@@ -228,7 +233,8 @@ namespace medium
 			parentDriver->prevDriverInOppLine->getMovementMutex();
 			TrainDriver *tDriverPrev = parentDriver->prevDriverInOppLine;
 			const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
-			const double trainLengthMeter = config.trainController.trainLength;
+			const std::map<const std::string,TrainProperties> &trainProps = config.trainController.trainLinePropertiesMap;
+			const double trainLengthMeter = (trainProps.find(parentDriver->getTrainLine())->second).trainLength;
 			const std::map<const std::string,TrainProperties> &trainLinePropertiesMap = config.trainController.trainLinePropertiesMap;
 			const TrainProperties &trainProperties = trainLinePropertiesMap.find(parentDriver->getTrainLine())->second;
 			double minDisBehindTrain = trainProperties.minDistanceTrainBehindForUnscheduledTrain;
@@ -255,7 +261,8 @@ namespace medium
 		TrainPlatform trainPlatform = trainController->getNextPlatform(platformNo,lineID);
 		Platform *platform = trainController->getPlatformFromId(platformNo);
 		const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
-		const double trainLengthMeter = config.trainController.trainLength;
+		const std::map<const std::string,TrainProperties> &trainProps = config.trainController.trainLinePropertiesMap;
+		const double trainLengthMeter = (trainProps.find(parentDriver->getTrainLine())->second).trainLength;
 		typename std::vector <Role<Person_MT>*>::iterator it = trainDriverVector.begin();
 		double minDis = -1;
 		TrainDriver *nextDriverInOppLine = nullptr;
@@ -1103,7 +1110,8 @@ namespace medium
 	{
 		TrainUpdateParams& params = parentDriver->getParams();
 		const ConfigParams& configParams = ConfigManager::GetInstance().FullConfig();
-		const double trainLengthMeter = configParams.trainController.trainLength;
+		const std::map<const std::string,TrainProperties> &trainProps = configParams.trainController.trainLinePropertiesMap;
+		const double trainLengthMeter = (trainProps.find(parentDriver->getTrainLine())->second).trainLength;
 
 		if (!configParams.trainController.outputEnabled)
 		{
@@ -1185,9 +1193,10 @@ namespace medium
 			if (next)
 			{
 
+				TrainPlatformMover &TrainPlatformMover_AccPos = getTrainPlatformMover_AccPos();
 				if (disToTrain > 0.0 && disToTrain < disToPlatform
-						&& next->getNextRequested() == TrainDriver::REQUESTED_WAITING_LEAVING
-						&& next->getNextPlatform() == parentDriver->getNextPlatform())
+						&& (next->getNextRequested() == TrainDriver::REQUESTED_WAITING_LEAVING || next->getNextRequested() == TrainDriver::REQUESTED_AT_PLATFORM)
+						&& next->getNextPlatform() == TrainPlatformMover_AccPos.getNextPlatform())
 				{
 					effectDis = disToTrain;
 					res = true;
@@ -1201,7 +1210,8 @@ namespace medium
 	{
 		double distanceToNextTrain = 0.0;
 		const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
-		const double trainLengthMeter = config.trainController.trainLength;
+		const std::map<const std::string,TrainProperties> &trainProps = config.trainController.trainLinePropertiesMap;
+		const double trainLengthMeter = (trainProps.find(parentDriver->getTrainLine())->second).trainLength;
 		if(nextDriver)
 		{
 			if (nextDriver->getNextRequested() == TrainDriver::REQUESTED_TO_DEPOT)
@@ -1538,7 +1548,7 @@ namespace medium
 						return distanceToNextObject;
 					}
 				}
-				else if (distanceToNextObject == params.disToNextPlatform)
+				else if (distanceToNextObject == params.disToNextPlatform || distanceToNextObject == params.disToNextTrain)
 				{
 					if(distanceRemaining <0 || speedInNextFrameTick > std::sqrt(2.0*trainPathMover.getCurrentDecelerationRate()*distanceRemaining))
 					{

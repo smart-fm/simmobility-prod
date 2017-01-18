@@ -106,6 +106,7 @@
 	    <mapping name="pt_opposite_lines" procedure="get_pt_opposite_lines()"/>
 	    <mapping name="get_train_fleet" procedure="get_train_fleet()"/>
 	    <mapping name="get_uturn_platforms" procedure="get_pt_uturn_platforms()"/>
+	    <mapping name="get_train_line_properties" procedure="get_pt_train_line_properties()"/>
             <!--<mapping name="restricted_reg_segments" procedure="get_section_banned_area()"/>
             <mapping name="restricted_reg_in_turning" procedure="get_banned_area_in_turning()"/>
             <mapping name="restricted_reg_out_turning" procedure="get_banned_area_out_turning()"/>

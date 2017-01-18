@@ -650,6 +650,11 @@ private:
 	void loadTrainPlatform();
 
 	/**
+	 * loads the properties of train lines
+	 */
+	void loadTrainLineProperties();
+
+	/**
 	 * the function to load transfered time between platforms from DB
 	 */
 	void loadTransferedTimes();

@@ -368,6 +368,12 @@ public:
 	 */
 	TrainPlatformMover& getTrainPlatformMover();
 
+	/**
+	 * This function gets the train platform mover across position for the train
+	 * @return reference to the trainPlatformMover_accpos for the train
+	 */
+	TrainPlatformMover& getTrainPlatformMover_AccPos();
+
 protected:
 	virtual TravelMetric& startTravelTimeMetric();
 	virtual TravelMetric& finalizeTravelTimeMetric();

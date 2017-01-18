@@ -786,7 +786,7 @@ void ParseMidTermConfigFile::processTrainPropertiesNode(xercesc::DOMElement *nod
 		dwellTimeInfo.secondCoeff = secondCoeff;
 		dwellTimeInfo.thirdCoeff = thirdCoeff;
 		trainProperties.dwellTimeInfo = dwellTimeInfo;
-		cfg.trainController.trainLinePropertiesMap[lineId]=trainProperties;
+		cfg.trainController.trainLinePropertiesMap[lineId] = trainProperties;
 	}
 }
 

@@ -222,8 +222,6 @@ namespace medium
 							if(trainMovement)
 							{
 								double disToNextPlat = trainMovement->getDistanceFromStartToPlatform(lineId,stationAgentPlatform) -  trainMovement->getTotalCoveredDistance();
-								const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
-								double safeDistance = config.trainController.safeDistance;
 								//checking safe distance from the need of platform
 
 								if(disToNextPlat >=0 )
@@ -233,40 +231,41 @@ namespace medium
 										minDis = disToNextPlat;
 										prevNewDriver = tDriver;
 									}
-									double distanceToTrainAhead = disToNextPlat - stationAgentPlatform->getLength() - safeDistance;
-									const std::map<const std::string,TrainProperties> &trainLinePropertiesMap = config.trainController.trainLinePropertiesMap;
-									const TrainProperties &trainProperties = trainLinePropertiesMap.find(lineId)->second;
-									double minDisBehindTrain = trainProperties.minDistanceTrainBehindForUnscheduledTrain;
-									if(distanceToTrainAhead - minDisBehindTrain < 0)
-									{
-										isTrainApproachingClose = true;
-										break;
-									}
-									else
-									{
-										//also check for safe headway ...
-										double currentSpeed = trainMovement->getCurrentSpeed();
-										double safeHeadWay = trainMovement->getSafeHeadWay();
-										if((distanceToTrainAhead-safeDistance)/currentSpeed<safeHeadWay)
-										{
-											isTrainApproachingClose=true;
-											break;
-										}
-									}
+
 								}
 							}
 						}
-					}
-
-					if(isTrainApproachingClose)
-					{
-						continue;
 					}
 				}
 				if(prevNewDriver != nullptr)
 				{
 					prevNewDriver->getMovementMutex();
 				}
+				const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
+				double safeDistance = config.trainController.safeDistance;
+				double distanceToTrainAhead = minDis - stationAgentPlatform->getLength() - safeDistance;
+				const std::map<const std::string,TrainProperties> &trainLinePropertiesMap = config.trainController.trainLinePropertiesMap;
+				const TrainProperties &trainProperties = trainLinePropertiesMap.find(lineId)->second;
+				double minDisBehindTrain = trainProperties.minDistanceTrainBehindForUnscheduledTrain;
+				if(distanceToTrainAhead - minDisBehindTrain < 0)
+				{
+					isTrainApproachingClose = true;
+					prevNewDriver->movementMutexUnlock();
+					continue;
+				}
+				else
+				{
+					//also check for safe headway ...
+					double currentSpeed = prevNewDriver->getMovement()->getCurrentSpeed();
+					double safeHeadWay = prevNewDriver->getMovement()->getSafeHeadWay();
+					if((distanceToTrainAhead-safeDistance)/currentSpeed<safeHeadWay)
+					{
+						isTrainApproachingClose=true;
+						prevNewDriver->movementMutexUnlock();
+						continue;
+					}
+				}
+
 				std::map<std::string, bool>::iterator iUsed = lastUsage.find(lineId);
 				bool isUsed=false;
 				if(iUsed != lastUsage.end())
@@ -306,7 +305,8 @@ namespace medium
 							}
 
 							const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
-							const double trainLengthMeter = config.trainController.trainLength;
+							const std::map<const std::string,TrainProperties> &trainProps = config.trainController.trainLinePropertiesMap;
+							const double trainLengthMeter = (trainProps.find(next->getTrainLine())->second).trainLength;
 							double differentDistance = totalDisCoverdByOtherTrain - (next->getMovement()->getTotalCoveredDistance()) - trainLengthMeter - (movement->getSafeDistance());
 							if(differentDistance < 0)
 							{

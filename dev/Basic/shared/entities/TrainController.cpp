@@ -290,8 +290,8 @@ namespace sim_mob
 	{
 		int trainId = 0;
 		trainId=deleteTrainFromActivePool(lineID);
-		if(trainId==-1)
-	    	{
+		if(trainId == -1)
+	    {
 			return -1;
 		}
 		return trainId;
@@ -436,6 +436,7 @@ namespace sim_mob
 		composeBlocksAndPolyline();
 		loadSchedules();
 		composeTrainTrips();
+		loadTrainLineProperties();
 	}
 
 	//Initialize Train ids function
@@ -1540,6 +1541,44 @@ namespace sim_mob
 	void TrainController<PERSON>::assignResetBlockAccelerations(ResetBlockAccelerations resetAccelerationBlocksEntity)
 	{
 		resetAccelerationBlocks.push_back(resetAccelerationBlocksEntity);
+	}
+
+	template<typename PERSON>
+	void TrainController<PERSON>::loadTrainLineProperties()
+	{
+		const ConfigParams& configParams = ConfigManager::GetInstance().FullConfig();
+		const std::map<std::string, std::string>& storedProcs = configParams.getDatabaseProcMappings().procedureMappings;
+		std::map<std::string, std::string>::const_iterator spIt = storedProcs.find("get_train_line_properties");
+		if(spIt == storedProcs.end())
+		{
+			Print() << "missing stored procedure for get_train_line_properties" << std::endl;
+			return;
+		}
+		soci::session sql_(soci::postgresql, configParams.getDatabaseConnectionString(false));
+		soci::rowset<soci::row> rs = (sql_.prepare << "select * from " + spIt->second);
+		for (soci::rowset<soci::row>::const_iterator it=rs.begin(); it!=rs.end(); ++it)
+		{
+			TrainProperties trainProperties;
+			TrainDwellTimeInfo dwellTimeInfo;
+			const soci::row& r = (*it);
+			const std::string lineId = r.get<std::string>(0);
+			dwellTimeInfo.dwellTimeAtNormalStation = r.get<double>(1);
+			dwellTimeInfo.dwellTimeAtTerminalStaions = r.get<double>(2);
+			dwellTimeInfo.dwellTimeAtInterchanges = r.get<double>(3);
+			dwellTimeInfo.maxDwellTime = r.get<double>(4);
+			dwellTimeInfo.firstCoeff = r.get<double>(5);
+			dwellTimeInfo.secondCoeff = r.get<double>(6);
+			dwellTimeInfo.thirdCoeff = r.get<double>(7);
+			dwellTimeInfo.fourthCoeff = r.get<double>(8);
+			trainProperties.safeDistance = r.get<double>(9);
+			trainProperties.safeHeadway = r.get<double>(10);
+			trainProperties.minDistanceTrainBehindForUnscheduledTrain = r.get<double>(11);
+			trainProperties.trainLength = r.get<double>(12);
+			trainProperties.maxCapacity = r.get<int>(13);
+			trainProperties.dwellTimeInfo = dwellTimeInfo;
+			ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+			config.trainController.trainLinePropertiesMap[lineId] = trainProperties;
+		}
 	}
 
 	template<typename PERSON>

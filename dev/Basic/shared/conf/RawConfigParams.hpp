@@ -452,6 +452,8 @@ struct TrainProperties
 	double safeHeadway;
 	/// train capacity
 	unsigned int maxCapacity;
+    /// train length
+	double trainLength;
 	double minDistanceTrainBehindForUnscheduledTrain;
 	TrainDwellTimeInfo dwellTimeInfo;
 };

@@ -448,7 +448,43 @@ BigSerial HM_Model::getEstablishmentTazId(BigSerial establishmentId) const
 
 	if (establishment)
 	{
-		tazId = DataManagerSingleton::getInstance().getPostcodeTazId(establishment->getSlaAddressId());
+		BigSerial establishmentSlaAddressId = getEstablishmentSlaAddressId(establishment->getBuildingId());
+
+		tazId = DataManagerSingleton::getInstance().getPostcodeTazId(establishmentSlaAddressId);
+	}
+
+	return tazId;
+}
+
+BigSerial HM_Model::getEstablishmentSlaAddressId(BigSerial establishmentId) const
+{
+	const Establishment* establishment = getEstablishmentById(establishmentId);
+
+	BigSerial buildingId = establishment->getBuildingId();
+	string slaBuildingId = "";
+	BigSerial slaAddressId = 0;
+
+	for( auto n : buildingMatch )
+	{
+		if( n->getFm_building() == buildingId && n->getMatch_code() == 1 )
+		{
+			slaBuildingId = n->getSla_building_id();
+		}
+	}
+
+	for( auto n : slaBuilding )
+	{
+		if( n->getSla_building_id() == slaBuildingId)
+		{
+			slaAddressId = n->getSla_address_id();
+		}
+	}
+
+	BigSerial tazId = INVALID_ID;
+
+	if (establishment)
+	{
+		tazId = DataManagerSingleton::getInstance().getPostcodeTazId(slaAddressId);
 	}
 
 	return tazId;
@@ -2118,6 +2154,9 @@ void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId)
 				tazStrH = tazObjH->getName();
 			tazH = std::atoi( tazStrH.c_str() );
 
+			BigSerial establishmentSlaAddressId = getEstablishmentSlaAddressId(establishment->getBuildingId());
+
+
 			personParams.setPersonId(boost::lexical_cast<std::string>(thisIndividual->getId()));
 			personParams.setPersonTypeId(thisIndividual->getEmploymentStatusId());
 			personParams.setGenderId(thisIndividual->getGenderId());
@@ -2132,7 +2171,7 @@ void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId)
 			personParams.setHasFixedWorkTiming(job->getTimeRestriction());
 			personParams.setHasWorkplace( job->getFixedWorkplace() );
 			personParams.setIsStudent(job->getIsStudent());
-			personParams.setActivityAddressId( establishment->getSlaAddressId() );
+			personParams.setActivityAddressId( establishmentSlaAddressId );
 
 			//household related
 			personParams.setHhId(boost::lexical_cast<std::string>( currentHousehold->getId() ));
@@ -2419,6 +2458,8 @@ void HM_Model::getLogsumOfVaryingHomeOrWork(BigSerial householdId)
 			Establishment *establishment = this->getEstablishmentById(	job->getEstablishmentId());
 			const Unit *unit = this->getUnitById(currentHousehold->getUnitId());
 
+			BigSerial establishmentSlaAddressId = getEstablishmentSlaAddressId(establishment->getBuildingId());
+
 			personParams.setPersonId(boost::lexical_cast<std::string>(thisIndividual->getId()));
 			personParams.setPersonTypeId(thisIndividual->getEmploymentStatusId());
 			personParams.setGenderId(thisIndividual->getGenderId());
@@ -2433,7 +2474,7 @@ void HM_Model::getLogsumOfVaryingHomeOrWork(BigSerial householdId)
 			personParams.setHasFixedWorkTiming(job->getTimeRestriction());
 			personParams.setHasWorkplace( job->getFixedWorkplace() );
 			personParams.setIsStudent(job->getIsStudent());
-			personParams.setActivityAddressId( establishment->getSlaAddressId() );
+			personParams.setActivityAddressId( establishmentSlaAddressId );
 
 			//household related
 			personParams.setHhId(boost::lexical_cast<std::string>( currentHousehold->getId() ));

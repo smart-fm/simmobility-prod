@@ -20,9 +20,9 @@ void JobDao::fromRow(Row& result, Job& outObj)
 {
     outObj.id = result.get<BigSerial>("id", INVALID_ID);
     outObj.establishmentId = result.get<BigSerial>("establishment_id", INVALID_ID);;
-    outObj.timeRestriction = result.get<int>("time_restriction", INVALID_ID);;
-    outObj.isStudent = result.get<int>("is_student", INVALID_ID);;
-    outObj.fixedWorkplace = result.get<int>("fixed_workplace", INVALID_ID);;
+    outObj.timeRestriction = 0;//result.get<int>("time_restriction", INVALID_ID);;
+    outObj.isStudent = 0;//result.get<int>("is_student", INVALID_ID);;
+    outObj.fixedWorkplace = 0;//result.get<int>("fixed_workplace", INVALID_ID);;
 }
 
 void JobDao::toRow(Job& data, Parameters& outParams, bool update) {}

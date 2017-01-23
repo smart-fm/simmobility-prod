@@ -24,7 +24,7 @@ void EstablishmentDao::fromRow(Row& result, Establishment& outObj)
     outObj.firmFoundationYear 	= result.get<BigSerial>("firm_foundation_year",0);
     outObj.industryTypeId 	= result.get<int>("industry_type_id",0);
     outObj.floorArea 		= result.get<double>("floor_area",0);
-    outObj.jobSize 			= result.get<BigSerial>("job_size",0);
+    outObj.jobSize 			= result.get<int>("job_size",0);
     outObj.revenue 			= result.get<double>("revenue",0);
     outObj.capital 			= result.get<double>("capital",0);
     outObj.establishmentLifestyleId = result.get<BigSerial>("establishment_lifestyle_id", 0);

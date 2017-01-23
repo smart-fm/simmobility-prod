@@ -13,31 +13,40 @@
 
 using namespace sim_mob::long_term;
 
-Establishment::Establishment(BigSerial id, BigSerial firmId,
-  			     BigSerial buildingId,
-			     BigSerial lifestyleId,
-			     double revenue)
-			    :id(id), firmId(firmId), buildingId(buildingId), lifestyleId(lifestyleId), revenue(revenue){}
+Establishment::Establishment(BigSerial 	id,	BigSerial buildingId,BigSerial firmId,BigSerial	firmFoundationYear,int	industryTypeId,
+							 double floorArea,BigSerial jobSize,double revenue,double capital,BigSerial	establishmentLifestyleId):
+							id(id),buildingId(buildingId),	firmId(firmId),firmFoundationYear(firmFoundationYear),industryTypeId(industryTypeId),
+							floorArea(floorArea),jobSize(jobSize),revenue(revenue),capital(capital),establishmentLifestyleId(establishmentLifestyleId){}
 
 Establishment::~Establishment(){}
 
 Establishment::Establishment(const Establishment& source)
 {
-	this->id 			= source.id;
-	this->firmId 		= source.firmId;
-	this->buildingId 	= source.buildingId;
-	this->lifestyleId 	= source.lifestyleId;
-	this->revenue 		= source.revenue;
+	this->id = source.id;
+	this->buildingId = source.buildingId;
+	this->firmId = source.firmId;
+	this->firmFoundationYear = source.firmFoundationYear;
+	this->industryTypeId = source.industryTypeId;
+	this->floorArea = source.floorArea;
+	this->jobSize = source.jobSize;
+	this->revenue = source.revenue;
+	this->capital = source.capital;
+	this->establishmentLifestyleId = source.establishmentLifestyleId;
 }
 
 
 Establishment& Establishment::operator=(const Establishment& source)
 {
-	this->id 			= source.id;
-	this->firmId 		= source.firmId;
-	this->buildingId 	= source.buildingId;
-	this->lifestyleId 	= source.lifestyleId;
-	this->revenue 		= source.revenue;
+	this->id = source.id;
+	this->buildingId = source.buildingId;
+	this->firmId = source.firmId;
+	this->firmFoundationYear = source.firmFoundationYear;
+	this->industryTypeId = source.industryTypeId;
+	this->floorArea = source.floorArea;
+	this->jobSize = source.jobSize;
+	this->revenue = source.revenue;
+	this->capital = source.capital;
+	this->establishmentLifestyleId = source.establishmentLifestyleId;
 
 	return *this;
 }
@@ -47,24 +56,45 @@ void Establishment::setId(BigSerial val)
 	id = val;
 }
 
-void Establishment::setFirmId(BigSerial val)
-{
-	firmId = val;
-}
-
 void Establishment::setBuildingId(BigSerial val)
 {
 	buildingId = val;
 }
 
-void Establishment::setLifestyleId(BigSerial val)
+void Establishment::setFirmId(BigSerial val)
 {
-	lifestyleId = val;
+	firmId = val;
 }
+
+void Establishment::setFirmFoundationYear(BigSerial val)
+{
+	firmFoundationYear = val;
+}
+
+void Establishment::setIndustryTypeId(int val)
+{
+	industryTypeId = val;
+}
+
+void Establishment::setFloorArea(double val)
+{
+	floorArea = val;
+}
+
+void Establishment::setJobSize(BigSerial  val)
+{
+	jobSize = val;
+}
+
 
 void Establishment::setRevenue(double val)
 {
 	revenue = val;
+}
+
+void Establishment::setEstablishmentLifestyleId(BigSerial val)
+{
+	establishmentLifestyleId = val;
 }
 
 BigSerial Establishment::getId() const
@@ -72,24 +102,45 @@ BigSerial Establishment::getId() const
 	return id;
 }
 
-BigSerial Establishment::getFirmId() const
-{
-	return firmId;
-}
-
 BigSerial Establishment::getBuildingId() const
 {
 	return buildingId;
 }
 
-BigSerial Establishment::getLifestyleId() const
+BigSerial Establishment::getFirmId() const
 {
-	return lifestyleId;
+	return firmId;
+}
+
+BigSerial Establishment::getFirmFoundationYear() const
+{
+	return firmFoundationYear;
+}
+
+int	Establishment::getIndustryTypeId() const
+{
+	return industryTypeId;
+}
+
+
+double Establishment::getFloorArea() const
+{
+	return floorArea;
+}
+
+BigSerial Establishment::getJobSize() const
+{
+	return jobSize;
 }
 
 double Establishment::getRevenue() const
 {
 	return revenue;
+}
+
+BigSerial Establishment::getEstablishmentLifestyleId() const
+{
+	return establishmentLifestyleId;
 }
 
 namespace sim_mob
@@ -102,7 +153,6 @@ namespace sim_mob
 						<< "\"id \":\"" 			<< data.id 				<< "\","
 						<< "\"firmId \":\"" 		<< data.firmId 			<< "\","
 						<< "\"buildingId \":\"" 	<< data.buildingId 		<< "\","
-						<< "\"lifestyleId \":\"" 	<< data.lifestyleId 	<< "\","
 						<< "\"revenue \":\"" 		<< data.revenue 		<< "\","
 						<< "}";
         }

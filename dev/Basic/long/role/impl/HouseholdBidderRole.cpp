@@ -574,7 +574,6 @@ bool HouseholdBidderRole::pickEntryToBid()
     float housingMarketSearchPercentage = config.ltParams.housingModel.housingMarketSearchPercentage;
 
     HouseHoldHitsSample *householdHits = model->getHouseHoldHitsById( household->getId() );
-    std::string hitsId = householdHits->getHouseholdHitsId();
 
     std::vector<double>householdScreeningProbabilities;
 

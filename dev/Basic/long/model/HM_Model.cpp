@@ -2168,9 +2168,27 @@ void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId)
 			personParams.setCarLicense(thisIndividual->getCarLicense());
 			personParams.setMotorLicense(thisIndividual->getMotorLicense());
 			personParams.setVanbusLicense(thisIndividual->getVanBusLicense());
-			personParams.setHasFixedWorkTiming(job->getTimeRestriction());
-			personParams.setHasWorkplace( job->getFixedWorkplace() );
-			personParams.setIsStudent(job->getIsStudent());
+
+			bool fixedHours = false;
+			if( thisIndividual->getFixed_hours() == 1)
+				fixedHours = true;
+
+			personParams.setHasFixedWorkTiming(fixedHours);
+
+			bool fixedWorkplace = false;
+
+			if( thisIndividual->getFixed_workplace() == 1 )
+				fixedWorkplace = true;
+
+			personParams.setHasWorkplace( fixedWorkplace );
+
+			bool isStudent = false;
+
+			if( thisIndividual->getStudentId() > 0)
+				isStudent = true;
+
+			personParams.setIsStudent(isStudent);
+
 			personParams.setActivityAddressId( establishmentSlaAddressId );
 
 			//household related
@@ -2471,9 +2489,28 @@ void HM_Model::getLogsumOfVaryingHomeOrWork(BigSerial householdId)
 			personParams.setCarLicense(thisIndividual->getCarLicense());
 			personParams.setMotorLicense(thisIndividual->getMotorLicense());
 			personParams.setVanbusLicense(thisIndividual->getVanBusLicense());
-			personParams.setHasFixedWorkTiming(job->getTimeRestriction());
-			personParams.setHasWorkplace( job->getFixedWorkplace() );
-			personParams.setIsStudent(job->getIsStudent());
+
+			bool fixedHours = false;
+			if( thisIndividual->getFixed_hours() == 1)
+				fixedHours = true;
+
+			personParams.setHasFixedWorkTiming(fixedHours);
+
+			bool fixedWorkplace = false;
+
+			if( thisIndividual->getFixed_workplace() == 1 )
+				fixedWorkplace = true;
+
+			personParams.setHasWorkplace( fixedWorkplace );
+
+			bool isStudent = false;
+
+			if( thisIndividual->getStudentId() > 0)
+				isStudent = true;
+
+			personParams.setIsStudent(isStudent);
+
+
 			personParams.setActivityAddressId( establishmentSlaAddressId );
 
 			//household related

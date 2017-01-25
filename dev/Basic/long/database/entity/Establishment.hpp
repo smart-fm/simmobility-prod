@@ -21,8 +21,16 @@ namespace sim_mob
 		class Establishment
 		{
 		public:
-			Establishment(BigSerial id =INVALID_ID, BigSerial firmId =INVALID_ID, BigSerial buildingId=INVALID_ID, BigSerial lifestyleId=INVALID_ID,
-						  BigSerial businessTypeId=INVALID_ID, int size=0, double revenue=0, double grossSqM=0, BigSerial slaAddressId =INVALID_ID, int sectorId = 0);
+			Establishment(	BigSerial 	id = 0,
+							BigSerial 	buildingId = 0,
+							BigSerial 	firmId = 0,
+							BigSerial	firmFoundationYear = 0,
+							int			industryTypeId = 0,
+							double		floorArea = 0,
+							BigSerial 	jobSize = 0,
+							double 		revenue = 0,
+							double		capital = 0,
+							BigSerial	establishmentLifestyleId = 0);
 			~Establishment();
 
 			Establishment( const Establishment& source);
@@ -30,26 +38,24 @@ namespace sim_mob
 			Establishment& operator=(const Establishment& source);
 
 			void setId(BigSerial val);
-			void setFirmId(BigSerial val);
 			void setBuildingId(BigSerial val);
-			void setLifestyleId(BigSerial val);
-			void setBusinessTypeId(BigSerial val);
-			void setSize(int val);
+			void setFirmId(BigSerial val);
+			void setFirmFoundationYear(BigSerial val);
+			void setIndustryTypeId(int val);
+			void setFloorArea(double val);
+			void setJobSize(BigSerial  val);
 			void setRevenue(double val);
-			void setGrossSqM(double val);
-			void setSlaAddressId(BigSerial val);
-			void setSectorId(int val);
+			void setEstablishmentLifestyleId(BigSerial val);
 
 			BigSerial getId() const;
-			BigSerial getFirmId() const;
 			BigSerial getBuildingId() const;
-			BigSerial getLifestyleId() const;
-			BigSerial getBusinessTypeId() const;
-			int		  getSize() const;
+			BigSerial getFirmId() const;
+			BigSerial getFirmFoundationYear() const;
+			int		  getIndustryTypeId() const;
+			double	  getFloorArea() const;
+			BigSerial getJobSize() const;
 			double	  getRevenue() const;
-			double	  getGrossSqM() const;
-			BigSerial getSlaAddressId() const;
-			int		  getSectorId() const;
+			BigSerial getEstablishmentLifestyleId() const;
 
 		   /**
 		    * Operator to print the Household data.
@@ -60,15 +66,16 @@ namespace sim_mob
 		   friend class EstablishmentDao;
 
 			BigSerial 	id;
-			BigSerial 	firmId;
 			BigSerial 	buildingId;
-			BigSerial 	lifestyleId;
-			BigSerial 	businessTypeId;
-			int 		size;
+			BigSerial 	firmId;
+			BigSerial	firmFoundationYear;
+			int			industryTypeId;
+			double		floorArea;
+			BigSerial 	jobSize;
 			double 		revenue;
-			double 		grossSqM;
-			BigSerial 	slaAddressId;
-			int			sectorId;
+			double		capital;
+			BigSerial	establishmentLifestyleId;
+
 		};
 	}
 }

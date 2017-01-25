@@ -574,7 +574,6 @@ bool HouseholdBidderRole::pickEntryToBid()
     float housingMarketSearchPercentage = config.ltParams.housingModel.housingMarketSearchPercentage;
 
     HouseHoldHitsSample *householdHits = model->getHouseHoldHitsById( household->getId() );
-    std::string hitsId = householdHits->getHouseholdHitsId();
 
     std::vector<double>householdScreeningProbabilities;
 
@@ -714,7 +713,7 @@ bool HouseholdBidderRole::pickEntryToBid()
             	WillingnessToPaySubModel wtp_m;
             	double wp = wtp_m.CalculateWillingnessToPay(unit, household, wtp_e,day, model);
 
-            	wtp_e = wtp_e * entry->getAskingPrice(); //wtp error is a fraction of the asking price.
+            	//wtp_e = wtp_e * entry->getAskingPrice(); //wtp error is a fraction of the asking price.
 
             	wp += wtp_e; // adjusted willingness to pay in millions of dollars
 

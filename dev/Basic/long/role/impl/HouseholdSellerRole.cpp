@@ -184,6 +184,23 @@ void HouseholdSellerRole::setActive(bool activeArg)
     if( getParent()->getHousehold() != nullptr)
     {
     	getParent()->getHousehold()->setIsSeller(activeArg);
+
+    	if( activeArg == false )
+    	{
+			if( getParent()->getId() < getParent()->getModel()->FAKE_IDS_START )
+			{
+				int currentSellers = getParent()->getModel()->getNumberOfSellers();
+				getParent()->getModel()->setNumberOfSellers( --currentSellers);
+			}
+    	}
+    	else
+    	{
+			if( getParent()->getId() < getParent()->getModel()->FAKE_IDS_START )
+			{
+				int currentSellers = getParent()->getModel()->getNumberOfSellers();
+				getParent()->getModel()->setNumberOfSellers( ++currentSellers);
+			}
+    	}
     }
 }
 

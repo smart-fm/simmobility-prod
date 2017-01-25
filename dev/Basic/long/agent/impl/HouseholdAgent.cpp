@@ -196,8 +196,6 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 
     if (seller && seller->isActive())
     {
-
-    	model->incrementNumberOfSellers();
         seller->update(now);
     }
 

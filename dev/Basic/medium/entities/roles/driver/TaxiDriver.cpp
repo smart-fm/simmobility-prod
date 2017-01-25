@@ -92,7 +92,7 @@ namespace medium
 		return taxiDriverMovement;
 	}
 
-	void TaxiDriver::checkPersonsAndPickUpAtNode(Conflux *parentConflux,bool isFirstPickupAttempt)
+	void TaxiDriver::checkPersonsAndPickUpAtNode(Conflux *parentConflux)
 	{
 		//pick up the first person from the node and advance its trip chain
 		if(!parentConflux)
@@ -110,44 +110,27 @@ namespace medium
 			sim_mob::medium::Passenger* passenger = dynamic_cast<sim_mob::medium::Passenger*>(curRole);
 			if (passenger)
 			{
-
-
 					std::vector<SubTrip>::iterator subTripItr = personToPickUp->currSubTrip;
 					WayPoint personTravelDestination = (*subTripItr).destination;
 					const Node * personDestinationNode = personTravelDestination.node;
 					std::vector<WayPoint> currentRouteChoice;
-					if(!isFirstPickupAttempt)
+					currentNode = destinationNode;
+					destinationNode = personDestinationNode;
+					if (currentNode == destinationNode)
 					{
-						currentNode = destinationNode;
-						destinationNode = personDestinationNode;
-						if (currentNode == destinationNode)
-						{
-							return;
-						}
-						taxiDriverMovement->setCurrentNode(currentNode);
-						taxiDriverMovement->setDestinationNode(destinationNode);
-						runRouteChoiceModel(currentNode,destinationNode,*subTripItr,currentRouteChoice);
+						return;
 					}
-					else
-					{
-						if( currentNode == destinationNode)
-						{
-							return;
-						}
-						destinationNode = personDestinationNode;
-						taxiDriverMovement->setDestinationNode(destinationNode);
-						taxiDriverMovement->eraseEntirePath();
-						runRouteChoiceModel(currentNode,destinationNode,*subTripItr,currentRouteChoice);
-					}
-
+					taxiDriverMovement->setCurrentNode(currentNode);
+					taxiDriverMovement->setDestinationNode(destinationNode);
+					runRouteChoiceModel(currentNode,destinationNode,*subTripItr,currentRouteChoice);
 					if(currentRouteChoice.size() > 0)
 					{
 						bool isAdded = addPassenger(passenger);
 						if(isAdded)
 						{
 							taxiDriverMovement->addRouteChoicePath(currentRouteChoice,parentConflux);
-							//passenger->setStartPoint(WayPoint(currentNode));
-							//passenger->Movement()->startTravelTimeMetric();
+							passenger->setStartPoint(WayPoint(currentNode));
+							passenger->setEndPoint(WayPoint(destinationNode));
 							const DriverMode &mode = DRIVE_WITH_PASSENGER;
 							taxiDriverMode = mode;
 							driverMode = mode;

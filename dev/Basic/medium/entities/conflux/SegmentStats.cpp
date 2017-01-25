@@ -18,6 +18,7 @@
 #include "message/MessageBus.hpp"
 #include "entities/TaxiStandAgent.hpp"
 #include "entities/roles/driver/TaxiDriverFacets.hpp"
+#include "entities/roles/driver/TaxiDriver.hpp"
 
 using std::string;
 using namespace sim_mob;
@@ -1222,6 +1223,12 @@ void LaneStats::printAgents() const
 				}
 				debugMsgs << ")(currStats:"<<pathMover.getCurrSegStats()->getRoadSegment()->getRoadSegmentId()<<")";
 				debugMsgs<< "(" << "posSeg:" << pathMover.getPositionInSegment() << " )" ;
+				TaxiDriver* driver = dynamic_cast<TaxiDriver*>((*i)->getRole());
+				if(driver && driver->getPassenger())
+				{
+					debugMsgs<< "(" << "passenger:" << driver->getPassenger() <<"|"<<driver->getPassenger()->getStartPoint().node->getNodeId()
+							<<"|"<<driver->getPassenger()->getEndPoint().node->getNodeId()<< " )" ;
+				}
 			}
 		}
 		if((*i)->getPrevRole()){
@@ -1288,7 +1295,7 @@ Person_MT* SegmentStats::dequeue(const Person_MT* person, const Lane* lane, bool
 	{
 		printAgents();
 		std::stringstream debugMsgs;
-		debugMsgs << "Error: Person " << person->getId() << "|" << person->getDatabaseId() << " (" << person->getRole()->getRoleName() << ")"
+		debugMsgs << "Error: Person " << person->getDatabaseId() << " (" << person->getRole()->getRoleName() << ")"
 				<< " was not found in lane " << lane->getLaneId() << std::endl;
 		throw std::runtime_error(debugMsgs.str());
 	}
@@ -1341,15 +1348,6 @@ Person_MT* LaneStats::dequeue(const Person_MT* person, bool isQueuingBfrUpdate, 
 				Print() << debugMsgs.str();
 				throw std::runtime_error(debugMsgs.str());
 			}
-		}
-	}
-	if(dequeuedPerson == nullptr)
-	{
-		PersonList::iterator it;
-		for (it = laneAgents.begin(); it != laneAgents.end(); it++)
-		{
-			Person *per = (*it);
-			int debug = 1 ;
 		}
 	}
 	return dequeuedPerson;

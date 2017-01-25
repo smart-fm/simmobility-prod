@@ -63,10 +63,10 @@ namespace sim_mob
 			void getLinkAndRoadSegments(Node * start ,Node *end,std::vector<RoadSegment*>& segments);
 			void reachNextLinkIfPossible(DriverUpdateParams& params);
 			const Lane* getBestTargetLane(const SegmentStats* nextSegStats, const SegmentStats* nextToNextSegStats);
-			bool canGoToNextRdSeg(DriverUpdateParams& params, const SegmentStats* nextSegStats, const Link* nextLink) const;
+			//bool canGoToNextRdSeg(DriverUpdateParams& params, const SegmentStats* nextSegStats, const Link* nextLink) const;
 			bool moveToNextSegment(DriverUpdateParams& params);
 			void selectNextNodeAndLinksWhileCruising();
-			void flowIntoNextLinkIfPossible(DriverUpdateParams& params);
+			//void flowIntoNextLinkIfPossible(DriverUpdateParams& params);
 			void departFromTaxiStand();
 			void setPath(std::vector<const SegmentStats*>&path);
 			Conflux * getPrevConflux();

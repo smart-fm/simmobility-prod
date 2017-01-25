@@ -94,16 +94,10 @@ namespace medium
 								continue;
 							}
 						}
-						else
-						{
-
-							continue;
-						}
-
 					}
 					else
 					{
-						if(nextToNextSegStats||parentTaxiDriver->getDriverMode() != CRUISE)
+						if(!nextToNextSegStats && parentTaxiDriver->getDriverMode() != CRUISE)
 						{
 							continue;
 						}
@@ -137,7 +131,7 @@ namespace medium
 				//TODO: if minLane is null, there is probably no lane connection from any lane in next segment stats to
 				// the lanes in the nextToNextSegmentStats. The code in this block is a hack to avoid errors due to this reason.
 				//This code must be removed and an error must be thrown here in future.
-				for (std::vector<Lane* >::const_iterator lnIt=lanes.begin(); lnIt!=lanes.end(); ++lnIt)
+				for (vector<Lane* >::const_iterator lnIt=lanes.begin(); lnIt!=lanes.end(); ++lnIt)
 				{
 					if (!((*lnIt)->isPedestrianLane()))
 					{
@@ -196,7 +190,7 @@ namespace medium
 		return toCallMovTickInTaxiStand;
 	}
 
-	void TaxiDriverMovement::flowIntoNextLinkIfPossible(DriverUpdateParams& params)
+	/*void TaxiDriverMovement::flowIntoNextLinkIfPossible(DriverUpdateParams& params)
 	{
 		//This function gets called for 2 cases.
 		//1. Driver is added to virtual queue
@@ -319,8 +313,15 @@ namespace medium
 		}
 
 		bool hasSpaceInNextStats = ((maxAllowed - total) >= enteringVehicleLength);
+		if (( hasSpaceInNextStats && nextLink) || ( hasSpaceInNextStats && parentDriver->getDriveMode() == CRUISE))
+		{
+			//additionally check if the length of vehicles in the lanegroup is not too long to accommodate this driver
+			double maxAllowedInLG = nextSegStats->getAllowedVehicleLengthForLaneGroup(nextLink);
+			double totalInLG = nextSegStats->getVehicleLengthForLaneGroup(nextLink);
+			return (totalInLG < maxAllowedInLG);
+		}
 		return hasSpaceInNextStats;
-	}
+	}*/
 
 	void TaxiDriverMovement::reachNextLinkIfPossible(DriverUpdateParams& params)
 	{
@@ -448,7 +449,7 @@ namespace medium
 			if(pathMover.isEndOfPath())
 			{
 				Conflux *parentConflux = currSegStat->getParentConflux();
-				parentTaxiDriver->checkPersonsAndPickUpAtNode(parentConflux,false);
+				parentTaxiDriver->checkPersonsAndPickUpAtNode(parentConflux);
 				//if no passengers are found then select the next link from the intersection in cruising mode
 				if(parentTaxiDriver->getPassenger() == nullptr)
 				{
@@ -465,6 +466,9 @@ namespace medium
 			parentTaxiDriver->taxiDriverMode = CRUISE;
 			selectNextNodeAndLinksWhileCruising();
 		}
+
+		return DriverMovement::moveToNextSegment(params);
+
 		bool isNewLinkNext = (!pathMover.hasNextSegStats(true) && pathMover.hasNextSegStats(false));
 
 		currSegStat = pathMover.getCurrSegStats();
@@ -643,7 +647,8 @@ namespace medium
 
 		else if (mode == CRUISE || mode == DRIVE_WITH_PASSENGER ||mode == DRIVE_TO_TAXISTAND)
 		{
-			if (!parentTaxiDriver->parent->requestedNextSegStats && params.elapsedSeconds < params.secondsInTick)
+			DriverMovement::frame_tick();
+			/*if (!parentTaxiDriver->parent->requestedNextSegStats && params.elapsedSeconds < params.secondsInTick)
 			{
 				DriverMovement::frame_tick();
 			}
@@ -653,7 +658,7 @@ namespace medium
 				// If canMoveToNextSegment is not NONE at this point, the bus driver must have remained in VQ
 				// Set parent data must not be called if the driver remained in VQ.
 				setParentData(params);
-			}
+			}*/
 		}
 	}
 

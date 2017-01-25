@@ -8,6 +8,7 @@
 #include <string>
 #include "Point.hpp"
 #include "TurningGroup.hpp"
+#include "spatial_trees/GeneralR_TreeManager.hpp"
 
 namespace sim_mob
 {
@@ -125,6 +126,15 @@ public:
      */
 	const std::map<unsigned int, TurningGroup *>& getTurningGroups(unsigned int fromLinkId) const;
 
-
+	/**store all nodes into a global r-tree*/
+	static GeneralR_TreeManager<Node> allNodesMap;
+	/**
+	 * get x position
+	 */
+	double getPosX() const;
+	/**
+	 * get y position
+	 */
+	double getPosY() const;
 };
 }

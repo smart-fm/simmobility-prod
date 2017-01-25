@@ -11,6 +11,7 @@
 #include "geospatial/network/RoadNetwork.hpp"
 #include "config/MT_Config.hpp"
 #include "entities/TaxiStandAgent.hpp"
+#include "entities/misc/TaxiTrip.hpp"
 
 namespace sim_mob
 {
@@ -53,7 +54,10 @@ namespace medium
 		const std::map<unsigned int, Node *>& mapOfIdsVsNode = roadNetwork->getMapOfIdvsNodes();
 		Node *firstNode = roadNetwork->getFirstNode();
 		Node *first = (mapOfIdsVsNode.find(1380005716))->second;
-		originNode = first;
+		const std::vector<TripChainItem *>&tripChain = parentDriver->getParent()->getTripChain();
+		const TaxiTrip *taxiTrip = dynamic_cast<const TaxiTrip*>(tripChain[0]);
+		originNode = const_cast<Node*>(taxiTrip->origin.node);
+		//originNode = first;
 	}
 
 	const Lane* TaxiDriverMovement::getBestTargetLane(const SegmentStats* nextSegStats, const SegmentStats* nextToNextSegStats)
@@ -443,12 +447,8 @@ namespace medium
 		{
 			if(pathMover.isEndOfPath())
 			{
-				isEndOfLink_CruiseMode = true;
-			}
-			if(isEndOfLink_CruiseMode)
-			{
 				Conflux *parentConflux = currSegStat->getParentConflux();
-				parentTaxiDriver->checkPersonsAndPickUpAtNode(parentConflux);
+				parentTaxiDriver->checkPersonsAndPickUpAtNode(parentConflux,false);
 				//if no passengers are found then select the next link from the intersection in cruising mode
 				if(parentTaxiDriver->getPassenger() == nullptr)
 				{
@@ -462,8 +462,7 @@ namespace medium
 			//change the mode to cruise
 			//select the neighboring link
 			parentTaxiDriver->alightPassenger();
-			const DriverMode &mode = CRUISE;
-			parentTaxiDriver->taxiDriverMode = mode;
+			parentTaxiDriver->taxiDriverMode = CRUISE;
 			selectNextNodeAndLinksWhileCruising();
 		}
 		bool isNewLinkNext = (!pathMover.hasNextSegStats(true) && pathMover.hasNextSegStats(false));
@@ -644,46 +643,6 @@ namespace medium
 
 		else if (mode == CRUISE || mode == DRIVE_WITH_PASSENGER ||mode == DRIVE_TO_TAXISTAND)
 		{
-			if(isFirstFrameTick == true && mode ==CRUISE)
-			{
-
-				Conflux *conflux = Conflux::getConfluxFromNode(currentNode);
-				parentTaxiDriver->checkPersonsAndPickUpAtNode(conflux);
-				std::string dbId = parentTaxiDriver->getParent()->getDatabaseId();
-				isFirstFrameTick = false;
-			}
-
-			//This is just for unit testing to select a arbitart taxi stand at arbitarty fram tick
-			/*if(params.now.ms() == 15000)
-			{
-				const sim_mob::RoadNetwork *roadNetwork = sim_mob::RoadNetwork::getInstance();
-				const std::map<unsigned int, RoadSegment*>& mapOfidsVsRds = roadNetwork->getMapOfIdVsRoadSegments();
-				const RoadSegment *rd = mapOfidsVsRds.find(7144)->second;
-				const Conflux *parentConflux = Conflux::getConflux(rd);
-				const std::vector<SegmentStats*> &sStats = parentConflux->findSegStats(rd);
-				std::vector<SegmentStats*>::const_iterator itr = sStats.begin();
-				while(itr != sStats.end())
-				{
-					std::vector<const TaxiStand*>& taxiStands = (*itr)->getTaxiStand();
-					if(taxiStands.size() > 0)
-					{
-						destinationTaxiStand = *(taxiStands.begin());
-						break;
-					}
-					itr++;
-				}
-				getMesoPathMover().addPathFromCurrentSegmentToEndNodeOfLink();
-				driveToTaxiStand();
-			}*/
-
-			if (parentTaxiDriver->parent->canMoveToNextSegment == Person_MT::GRANTED)
-			{
-			}
-
-			else if (parentTaxiDriver->parent->canMoveToNextSegment == Person_MT::DENIED)
-			{
-			}
-
 			if (!parentTaxiDriver->parent->requestedNextSegStats && params.elapsedSeconds < params.secondsInTick)
 			{
 				DriverMovement::frame_tick();
@@ -696,6 +655,12 @@ namespace medium
 				setParentData(params);
 			}
 		}
+	}
+
+	void TaxiDriverMovement::eraseEntirePath()
+	{
+		pathMover.eraseFullPath();
+		isPathInitialized = false;
 	}
 
 	void TaxiDriverMovement::getLinkAndRoadSegments(Node * start ,Node *end,std::vector<RoadSegment*>& segments)
@@ -801,20 +766,6 @@ namespace medium
 			}
 		}
 
-		//This code is for unit testing when it is the first node selected a known link where there are taxi passenegrs present
-		if(currentNode->getNodeId() == 1380005716)
-		{
-			const sim_mob::RoadNetwork *roadNetwork = sim_mob::RoadNetwork::getInstance();
-			const std::map<unsigned int, Link *>& mapOfIdsVsLink = roadNetwork->getMapOfIdVsLinks();
-			Link *link = (mapOfIdsVsLink.find(11399))->second;
-			destinationNode = link->getToNode();
-			parentTaxiDriver->destinationNode = destinationNode;
-			currentRoute.erase(currentRoute.begin(),currentRoute.end());
-			currentRoute.insert(currentRoute.end(),link->getRoadSegments().begin(),link->getRoadSegments().end());
-			std::vector<const SegmentStats*> path = getMesoPathMover().getPath();
-			setPath(path);
-		}
-		else
 		{
 			std::vector<Node*> nodeVector = currentNode->getNeighbouringNodes();
 			if(nodeVector.size()>0)
@@ -825,30 +776,61 @@ namespace medium
 				std::map<unsigned int,Link*>::iterator linkItr = mapOfDownStreamLinks.begin();
 				Link *selectedLink = nullptr;
 				unsigned int minNumOfVisits = -1;
-				while(linkItr != mapOfDownStreamLinks.end())
+				const Lane *currLane = getCurrentlane();
+				const RoadNetwork* rdNetwork = RoadNetwork::getInstance();
+				const std::map<const Lane*,std::map<const Lane*,const TurningPath *>>&turningPathsFromLanes = rdNetwork->getTurningPathsFromLanes();
+				std::map<const Lane*,std::map<const Lane*,const TurningPath *>>::const_iterator turningPathsLaneitr = turningPathsFromLanes.find(currLane);
+				if(!currLane || turningPathsLaneitr != turningPathsFromLanes.end())
 				{
-					Link *link = (*linkItr).second;
-					if(mapOfLinksAndVisitedCounts.find(link) == mapOfLinksAndVisitedCounts.end())
+
+					while(linkItr != mapOfDownStreamLinks.end())
 					{
-						selectedLink = link;
-						break;
-					}
-					else
-					{
-						if(minNumOfVisits == -1|| mapOfLinksAndVisitedCounts[link] < minNumOfVisits)
+						Link *link = (*linkItr).second;
+						if(currLane)
 						{
-							minNumOfVisits = mapOfLinksAndVisitedCounts[link];
-							selectedLink = link;
+							std::map<const Lane*,const TurningPath *> mapOfLaneTurningPath = turningPathsLaneitr->second;
+							const std::vector<RoadSegment*>& rdSegments = link->getRoadSegments();
+							const RoadSegment* rdSegment = rdSegments.front();
+							const std::vector<Lane*> &segLanes = rdSegment->getLanes();
+							bool foundTurningPath =false;
+							for(std::vector<Lane*>::const_iterator laneItr = segLanes.begin(); laneItr != segLanes.end() ;laneItr++)
+							{
+								if( mapOfLaneTurningPath.find(*laneItr) != mapOfLaneTurningPath.end())
+								{
+									foundTurningPath = true;
+									break;
+								}
+							}
+
+							if(foundTurningPath == false)
+							{
+								linkItr++;
+								continue;
+							}
 						}
+
+						if(mapOfLinksAndVisitedCounts.find(link) == mapOfLinksAndVisitedCounts.end())
+						{
+							selectedLink = link;
+							break;
+						}
+						else
+						{
+							if(minNumOfVisits == -1|| mapOfLinksAndVisitedCounts[link] < minNumOfVisits)
+							{
+								minNumOfVisits = mapOfLinksAndVisitedCounts[link];
+								selectedLink = link;
+							}
+						}
+						linkItr++;
 					}
-					linkItr++;
+					destinationNode = selectedLink->getToNode();
+					parentTaxiDriver->destinationNode = destinationNode;
+					currentRoute.erase(currentRoute.begin(),currentRoute.end());
+					currentRoute.insert(currentRoute.end(),selectedLink->getRoadSegments().begin(),selectedLink->getRoadSegments().end());
+					std::vector<const SegmentStats*> path= getMesoPathMover().getPath();
+					setPath(path);
 				}
-				destinationNode = selectedLink->getToNode();
-				parentTaxiDriver->destinationNode = destinationNode;
-				currentRoute.erase(currentRoute.begin(),currentRoute.end());
-				currentRoute.insert(currentRoute.end(),selectedLink->getRoadSegments().begin(),selectedLink->getRoadSegments().end());
-				std::vector<const SegmentStats*> path= getMesoPathMover().getPath();
-				setPath(path);
 			}
 		}
 		//depth first or breath first

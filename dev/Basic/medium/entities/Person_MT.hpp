@@ -84,7 +84,12 @@ public:
 
 	//Used by confluxes and movement facet of roles to move this person in the medium term
 	const SegmentStats* requestedNextSegStats;
-
+	bool laneUpdated = false;
+	const Lane * updatedLane = nullptr;
+	const SegmentStats * beforeUpdateSegStat = nullptr;
+	double beforeUpdateDistoSegEnd = -1;
+	double latestUpdatedFrameTick=-1;
+	double beforeUpdateSpeed = -1;
 
 
 	enum Permission //to be renamed later

@@ -128,6 +128,7 @@ public:
 	void erasePathAfterCurrenrLink();
 	void appendRoute(std::vector<WayPoint> &routeToTaxiStand);
 	void appendSegmentStats(const std::vector<RoadSegment*>& roadSegments,Conflux *conflux);
+	void eraseFullPath();
 
 	/**
 	 * prints the seg stats path. useful for debugging

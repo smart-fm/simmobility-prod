@@ -190,6 +190,11 @@ void MesoPathMover::appendSegmentStats(const std::vector<RoadSegment*>& roadSegm
 	}
 }
 
+void MesoPathMover::eraseFullPath()
+{
+	path.erase(path.begin(),path.end());
+}
+
 const SegmentStats* MesoPathMover::getFirstSegStatsInNextLink(const SegmentStats* segStats) const
 {
 	if (!segStats || currSegStatIt == path.end())
@@ -198,12 +203,14 @@ const SegmentStats* MesoPathMover::getFirstSegStatsInNextLink(const SegmentStats
 	}
 
 	Path::iterator it = currSegStatIt;
+	int x =0 ;
 	for (; it != path.end(); it++) // locate segStats in downstream path
 	{
 		if ((*it) == segStats)
 		{
 			break;
 		}
+		x++;
 	}
 	if (it == path.end())
 	{

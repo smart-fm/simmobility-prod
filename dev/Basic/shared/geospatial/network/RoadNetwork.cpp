@@ -417,6 +417,15 @@ void RoadNetwork::addTurningPath(TurningPath* turningPath)
 
 			//Add the turning path to the map of turning paths
 			mapOfIdvsTurningPaths.insert(std::make_pair(turningPath->getTurningPathId(), turningPath));
+			const Lane *fromLane = turningPath->getFromLane();
+			const Lane *toLane = turningPath->getToLane();
+			if (turningPathFromLanes.find(fromLane) == turningPathFromLanes.end())
+			{
+				std::map<const Lane*,const TurningPath*> mapOfLaneTurningGroup;
+				turningPathFromLanes[fromLane] = mapOfLaneTurningGroup;
+			}
+			std::map<const Lane*,const TurningPath*> &mapOfLanetoTurningGroups = turningPathFromLanes[fromLane];
+			mapOfLanetoTurningGroups[toLane] = turningPath;
 		}
 		else
 		{
@@ -434,6 +443,11 @@ void RoadNetwork::addTurningPath(TurningPath* turningPath)
 		safe_delete_item(turningPath);
 		throw std::runtime_error(msg.str());
 	}
+}
+
+const std::map<const Lane*,std::map<const Lane*,const TurningPath *>> & RoadNetwork::getTurningPathsFromLanes() const
+{
+	return turningPathFromLanes;
 }
 
 void RoadNetwork::addTurningPolyLine(PolyPoint point)

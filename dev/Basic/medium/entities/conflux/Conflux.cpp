@@ -46,6 +46,7 @@
 #include "metrics/Length.hpp"
 #include "path/PathSetManager.hpp"
 #include "util/Utils.hpp"
+#include "entities/roles/driver/TaxiDriver.hpp"
 
 using namespace boost;
 using namespace sim_mob;
@@ -431,6 +432,7 @@ void Conflux::processAgents()
 	for (PersonList::iterator personIt = orderedPersons.begin(); personIt != orderedPersons.end(); personIt++) //iterate and update all persons
 	{
 		updateAgent(*personIt);
+		(*personIt)->latestUpdatedFrameTick = currFrame.frame();
 	}
 	updateBusStopAgents(); //finally update bus stop agents in this conflux
 }
@@ -495,7 +497,34 @@ void Conflux::updateAgent(Person_MT* person)
 		person->currWorkerProvider = currWorkerProvider;
 
 		//capture person info before update
+
 		PersonProps beforeUpdate(person, this);
+		//just debug
+		const SegmentStats * segStats = person->getCurrSegStats();
+		//simmob::Role *currRole = person->getRole();
+		double posOflastUpAgenet = -1;
+		double outputCounter = -1;
+		TaxiDriver *taxiDriver = dynamic_cast<TaxiDriver*>(person->getRole());
+		if(taxiDriver)
+		{
+			if(taxiDriver->getMovementFacet())
+			{
+				const MesoPathMover pathMover = taxiDriver->getMovementFacet()->getMesoPathMover();
+				person->beforeUpdateDistoSegEnd = pathMover.getPositionInSegment();
+				person->beforeUpdateSegStat = segStats;
+				person->beforeUpdateSpeed = segStats->getSegSpeed(true);
+				const std::map<const Lane*, LaneStats*> laMap = segStats->getLaneStats();
+				if(person->getCurrLane())
+				{
+					const LaneStats *laneInLaneStat =  laMap.find(person->getCurrLane())->second;
+					if(laneInLaneStat)
+					{
+						posOflastUpAgenet = laneInLaneStat->getPositionOfLastUpdatedAgent();
+						outputCounter = segStats->getLaneParams(person->getCurrLane())->getOutputCounter();;
+					}
+				}
+			}
+		}
 
 		//let the person move
 		UpdateStatus res = movePerson(currFrame, person);
@@ -741,6 +770,7 @@ void Conflux::housekeep(PersonProps& beforeUpdate, PersonProps& afterUpdate, Per
 		if (afterUpdate.lane)
 		{ 	//if the person has moved to another lane (possibly even to laneInfinity if he was performing activity) in some segment
 			afterUpdate.segStats->addAgent(afterUpdate.lane, person);
+			person->laneUpdated = true;
 		}
 		else
 		{
@@ -784,10 +814,14 @@ void Conflux::housekeep(PersonProps& beforeUpdate, PersonProps& afterUpdate, Per
 		{
 			// the person could have been an activity performer in which case beforeUpdate.segStats would be null
 			beforeUpdate.segStats->dequeue(person, beforeUpdate.lane, beforeUpdate.isQueuing, beforeUpdate.vehicleLength);
+			person->laneUpdated = false;
+
 		}
 		if (afterUpdate.lane)
 		{
 			afterUpdate.segStats->addAgent(afterUpdate.lane, person);
+			person->laneUpdated = true;
+			person->updatedLane = afterUpdate.lane;
 		}
 		else
 		{
@@ -802,12 +836,17 @@ void Conflux::housekeep(PersonProps& beforeUpdate, PersonProps& afterUpdate, Per
 		//it's possible for some persons to start a new trip on the same segment where they ended the previous trip.
 		beforeUpdate.segStats->dequeue(person, beforeUpdate.lane, beforeUpdate.isQueuing, beforeUpdate.vehicleLength);
 		//adding the person to lane infinity for the new trip
+		person->laneUpdated = false;
 		afterUpdate.segStats->addAgent(afterUpdate.lane, person);
+		person->laneUpdated = true;
+		person->updatedLane = afterUpdate.lane;
 	}
 	else if (beforeUpdate.isQueuing != afterUpdate.isQueuing)
 	{
 		//the person has joined the queuing part of the same segment stats
 		afterUpdate.segStats->updateQueueStatus(afterUpdate.lane, person);
+		person->laneUpdated = true;
+		person->updatedLane = afterUpdate.lane;
 	}
 
 	// set the position of the last updated Person in his current lane (after update)
@@ -816,6 +855,8 @@ void Conflux::housekeep(PersonProps& beforeUpdate, PersonProps& afterUpdate, Per
 		//if the person did not end up in a VQ and his lane is not lane infinity of segAfterUpdate
 		double lengthToVehicleEnd = person->distanceToEndOfSegment + person->getRole()->getResource()->getLengthInM();
 		afterUpdate.segStats->setPositionOfLastUpdatedAgentInLane(lengthToVehicleEnd, afterUpdate.lane);
+		person->laneUpdated = true;
+		person->updatedLane = afterUpdate.lane;
 	}
 
 	/*if(isStuck(beforeUpdate, afterUpdate))
@@ -2221,7 +2262,6 @@ Conflux* Conflux::findStartingConflux(Person_MT* person, unsigned int now)
 			const medium::TaxiDriverMovement *taxiDriverMvt = dynamic_cast<const medium::TaxiDriverMovement*>(personRole->Movement());
 			if(taxiDriverMvt)
 			{
-				Conflux *startConflux=taxiDriverMvt->getStartingConflux();
 				return taxiDriverMvt->getStartingConflux();
 			}
 			else

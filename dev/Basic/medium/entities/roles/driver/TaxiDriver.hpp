@@ -35,7 +35,7 @@ namespace sim_mob
 			const Node* getDestinationNode();
 			Person_MT* getParent();
 			const Node* getCurrentNode();
-			void checkPersonsAndPickUpAtNode(Conflux *parentConflux);
+			void checkPersonsAndPickUpAtNode(Conflux *parentConflux,bool firstPickup);
 			TaxiDriverMovement * getMovementFacet();
 			virtual Role<Person_MT>* clone(Person_MT *parent) const;
 			virtual ~TaxiDriver();
@@ -51,11 +51,12 @@ namespace sim_mob
 
 
 		private:
-			Passenger *taxiPassenger;
-			const Node * destinationNode;
-			const Node *originNode;
-			const Node *currentNode;
-			RoadSegment *currSegment;
+			Passenger *taxiPassenger = nullptr;
+			const Node * destinationNode = nullptr;
+			const Node *originNode = nullptr;
+			const Node *currentNode = nullptr;
+			const Node *pickupNode = nullptr;
+			RoadSegment *currSegment = nullptr;
 			TaxiDriverMovement *taxiDriverMovement;
 			TaxiDriverBehavior *taxiDriverBehaviour;
 			bool personBoarded = false;

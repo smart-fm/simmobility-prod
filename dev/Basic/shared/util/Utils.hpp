@@ -168,6 +168,13 @@ namespace sim_mob {
         static int brandom(double p);
     	///	extract id string from aimsun id
     	static std::string getNumberFromAimsunId(std::string &aimsunid);
+
+    	/**
+    	 * convert longitude,latitude into x,y coordinate in WGS84
+    	 * @param x hold longitude as input and also store final x coordinate after conversion
+    	 * @param y hold latitude as input and also store final y coordinate after conversion
+    	 */
+    	static void convertWGS84_ToUTM(double& x, double& y);
     };
 
     /**

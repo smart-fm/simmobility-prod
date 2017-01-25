@@ -934,6 +934,8 @@ public:
 	 * to put the persons from laneInfinity on moving/queuing vehicle lists on appropriate real lane.
 	 */
 	Lane* laneInfinity;
+
+	std::map<const Lane*, LaneStats*> getLaneStats() const ;
 };
 } // namespace medium
 } // namespace sim_mob

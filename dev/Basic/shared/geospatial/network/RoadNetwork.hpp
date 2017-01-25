@@ -61,6 +61,8 @@ private:
 	/**This map stores all the taxi stands in the network with taxi-stand id as the key*/
 	std::map<unsigned int, TaxiStand *> mapOfIdvsTaxiStand;
 
+	std::map<const Lane*,std::map<const Lane*,const TurningPath *>> turningPathFromLanes;
+
 	/**Private constructor as the class is a singleton*/
 	RoadNetwork();
 
@@ -94,6 +96,8 @@ public:
 
 	const std::map<unsigned int, BusStop *>& getMapOfIdvsBusStops() const;
 	
+	const std::map<const Lane*,std::map<const Lane*,const TurningPath *>> &getTurningPathsFromLanes() const;
+
 	Node* getFirstNode() const;
 
 	/**
@@ -207,4 +211,3 @@ public:
 	Node* locateNearestNode(const Point& position) const;
 };
 }
-

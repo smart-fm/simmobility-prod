@@ -33,6 +33,7 @@ namespace sim_mob
 			void setCurrentNode(const Node * node);
 			void setDestinationNode(const Node * node);
 			bool isToBeRemovedFromTaxiStand();
+			void eraseEntirePath();
 		private:
 			TaxiDriver *parentTaxiDriver = nullptr;
 			const Node * destinationNode = nullptr;

@@ -108,13 +108,16 @@ void NetworkLoader::loadNodes(const std::string& storedProc)
 {
 	//SQL statement
 	soci::rowset<Node> nodes = (sql.prepare << "select * from " + storedProc);
-
+	std::set<sim_mob::Node*> nodesSet;
 	for (soci::rowset<Node>::const_iterator itNodes = nodes.begin(); itNodes != nodes.end(); ++itNodes)
 	{
 		//Create new node and add it in the map of nodes
 		Node* node = new Node(*itNodes);
 		roadNetwork->addNode(node);
+		nodesSet.insert(node);
 	}
+
+	Node::allNodesMap.update(nodesSet);
 }
 
 void NetworkLoader::loadRoadSegments(const std::string& storedProc)

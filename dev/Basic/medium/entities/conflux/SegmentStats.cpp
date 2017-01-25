@@ -17,6 +17,7 @@
 #include "logging/Log.hpp"
 #include "message/MessageBus.hpp"
 #include "entities/TaxiStandAgent.hpp"
+#include "entities/roles/driver/TaxiDriverFacets.hpp"
 
 using std::string;
 using namespace sim_mob;
@@ -994,6 +995,11 @@ void SegmentStats::setPositionOfLastUpdatedAgentInLane(double positionOfLastUpda
 	laneIt->second->setPositionOfLastUpdatedAgent(positionOfLastUpdatedAgentInLane);
 }
 
+std::map<const Lane*, LaneStats*> SegmentStats::getLaneStats() const
+{
+	return laneStatsMap;
+}
+
 double SegmentStats::getInitialQueueLength(const Lane* lane) const
 {
 	LaneStatsMap::const_iterator laneIt = laneStatsMap.find(lane);
@@ -1196,7 +1202,28 @@ void LaneStats::printAgents() const
 	debugMsgs << "Lane: " << lane->getLaneId();
 	for (PersonList::const_iterator i = laneAgents.begin(); i != laneAgents.end(); i++)
 	{
-		debugMsgs << "|" << (*i)->getId() ;
+		debugMsgs << "|" << (*i)->getDatabaseId() ;
+		if ( (*i)->isQueuing)
+		{
+			debugMsgs<< "(" << "queuing" << ")";
+		}
+		if ( (*i)->getRole())
+		{
+			MovementFacet *movFacet = (*i)->getRole()->Movement();
+			TaxiDriverMovement *mov = dynamic_cast<TaxiDriverMovement*>(movFacet);
+			if(mov)
+			{
+				const MesoPathMover pathMover = mov->getMesoPathMover();
+				const std::vector<const SegmentStats*>& path = pathMover.getPath();
+				debugMsgs << "(pathStats:";
+				for(auto i = path.begin(); i!=path.end(); i++)
+				{
+					debugMsgs << (*i)->getRoadSegment()->getRoadSegmentId()<<"|";
+				}
+				debugMsgs << ")(currStats:"<<pathMover.getCurrSegStats()->getRoadSegment()->getRoadSegmentId()<<")";
+				debugMsgs<< "(" << "posSeg:" << pathMover.getPositionInSegment() << " )" ;
+			}
+		}
 		if((*i)->getPrevRole()){
 			debugMsgs << "(" << (*i)->getPrevRole()->getRoleName() << ")";
 		}
@@ -1206,6 +1233,7 @@ void LaneStats::printAgents() const
 		if((*i)->getNextRole()){
 			debugMsgs << "(" << (*i)->getNextRole()->getRoleName() << ")";
 		}
+
 	}
 	debugMsgs << std::endl;
 	Print() << debugMsgs.str();
@@ -1313,6 +1341,15 @@ Person_MT* LaneStats::dequeue(const Person_MT* person, bool isQueuingBfrUpdate, 
 				Print() << debugMsgs.str();
 				throw std::runtime_error(debugMsgs.str());
 			}
+		}
+	}
+	if(dequeuedPerson == nullptr)
+	{
+		PersonList::iterator it;
+		for (it = laneAgents.begin(); it != laneAgents.end(); it++)
+		{
+			Person *per = (*it);
+			int debug = 1 ;
 		}
 	}
 	return dequeuedPerson;

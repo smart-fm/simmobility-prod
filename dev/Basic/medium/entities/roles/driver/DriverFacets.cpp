@@ -1001,7 +1001,7 @@ void DriverMovement::setOrigin(DriverUpdateParams& params)
 	}
 
 	params.elapsedSeconds = std::max(params.elapsedSeconds, departTime - (convertToSeconds(params.now.ms()))); //in seconds
-
+	const std::string id = parentDriver->getParent()->getDatabaseId();
 	const Link* nextLink = getNextLinkForLaneChoice(currSegStats);
 	if (canGoToNextRdSeg(params, currSegStats, nextLink))
 	{
@@ -1013,7 +1013,6 @@ void DriverMovement::setOrigin(DriverUpdateParams& params)
 		currLane = laneInNextSegment;
 		double actualT = params.elapsedSeconds + (convertToSeconds(params.now.ms()));
 		parentDriver->parent->currLinkTravelStats.start(currSegStats->getRoadSegment()->getParentLink(), actualT);
-
 		setLastAccept(currLane, actualT, currSegStats);
 		setParentData(params);
 		parentDriver->parent->canMoveToNextSegment = Person_MT::NONE;
@@ -1544,6 +1543,10 @@ void DriverMovement::reroute(const InsertIncidentMessage &msg)
 Conflux* DriverMovement::getStartingConflux() const
 {
 	const SegmentStats* firstSegStats = pathMover.getCurrSegStats(); //first segstats of the remaining path.
+	if(!firstSegStats)
+	{
+		return nullptr;
+	}
 	return firstSegStats->getParentConflux();
 }
 
@@ -1564,6 +1567,7 @@ void DriverMovement::handleMessage(messaging::Message::MessageType type, const m
 const Link* DriverMovement::getNextLinkForLaneChoice(const SegmentStats* nextSegStats) const
 {
 	const Link* nextLink = nullptr;
+
 	const SegmentStats* firstStatsInNextLink = pathMover.getFirstSegStatsInNextLink(nextSegStats);
 	if (firstStatsInNextLink)
 	{

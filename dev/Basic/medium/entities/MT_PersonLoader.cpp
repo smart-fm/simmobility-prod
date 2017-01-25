@@ -18,6 +18,7 @@
 #include <vector>
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
+#include "config/MT_Config.hpp"
 #include "conf/Constructs.hpp"
 #include "conf/RawConfigParams.hpp"
 #include "database/DB_Connection.hpp"
@@ -306,6 +307,7 @@ public:
 
 	static int load(std::map<std::string, std::vector<TripChainItem*> >& tripChainMap, std::vector<Person_MT*>& outPersonsLoaded)
 	{
+		unsigned int numThreads = MT_Config::getInstance().getThreadsNumInPersonLoader();
 		int personsPerThread = tripChainMap.size() / numThreads;
 		CellLoader thread[numThreads];
 		boost::thread_group threadGroup;
@@ -329,7 +331,6 @@ public:
 private:
 	std::vector<Person_MT*> persons;
 	std::vector<std::vector<TripChainItem*> > tripChainList;
-	static const int numThreads = 1;
 	boost::thread::id id;
 	bool isLoadPersonInfo;
 };
@@ -483,12 +484,6 @@ void MT_PersonLoader::loadPersonDemand()
 		//add trip and activity
 		unsigned int seqNo = personTripChain.size(); //seqNo of last trip chain item
 		sim_mob::Trip* constructedTrip = makeTrip(r, ++seqNo);
-		if(constructedTrip && constructedTrip->getMode() == "Taxi")
-		{
-			//just for unit testing setting the start time to 09:00:00am
-			constructedTrip->startTime = DailyTime(32400000);
-		}
-
 		if(constructedTrip) { personTripChain.push_back(constructedTrip); }
 		else { continue; }
 		if(!isLastInSchedule) { personTripChain.push_back(makeActivity(r, ++seqNo)); }

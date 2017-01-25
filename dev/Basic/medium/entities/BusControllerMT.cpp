@@ -14,6 +14,7 @@
 #include "entities/misc/TaxiTrip.hpp"
 #include "entities/roles/DriverRequestParams.hpp"
 #include "Person_MT.hpp"
+#include "TaxiFleetManager.hpp"
 
 using namespace std;
 using namespace sim_mob;
@@ -130,24 +131,27 @@ void BusControllerMT::assignBusTripChainWithPerson(std::set<Entity*>& activeAgen
 		}
 	}
 
-	std::string Taxis[] ={"Taxi1","Taxi2","Taxi3","Taxi4","Taxi5","Taxi6","Taxi7","Taxi8","Taxi9","Taxi10"};
-
-	for(int i=0;i<1;i++)
-	{
-		Person_MT* person = new Person_MT("TaxiController", config.mutexStategy(), -1, Taxis[i]);
-		person->setDatabaseId(Taxis[i]);
-		person->setPersonCharacteristics();
-		vector<TripChainItem*> tripChain;
-		//creating a dummy TaxiTrip for now to test
-		TaxiTrip *taxiTrip =new TaxiTrip("0","TaxiTrip",0,-1, DailyTime(), DailyTime(),0,nullptr,"node",nullptr,"node");
-		tripChain.push_back(taxiTrip);
-		person->setTripChain(tripChain);
-		addOrStashBuses(person, activeAgents);
-	}
-
 	for (std::set<Entity*>::iterator it = activeAgents.begin(); it != activeAgents.end(); it++)
 	{
 		/*(*it)->parentEntity = this;
 		busDrivers.push_back(*it);*/
+	}
+
+	std::vector<TaxiFleetManager::TaxiFleet> taxiFleets = TaxiFleetManager::getInstance()->dispatchTaxiAtCurrentTime(24*3600);
+	for(auto i=taxiFleets.begin(); i!=taxiFleets.end(); i++){
+		TaxiFleetManager::TaxiFleet& taxi = (*i);
+		Person_MT* person = new Person_MT("TaxiController", config.mutexStategy(), -1, taxi.vehicleNo);
+		person->setDatabaseId(taxi.vehicleNo);
+		person->setPersonCharacteristics();
+		vector<TripChainItem*> tripChain;
+		//creating a dummy TaxiTrip for now to test
+		if(taxi.startNode)
+		{
+			//continue;
+			TaxiTrip *taxiTrip =new TaxiTrip("0","TaxiTrip",0,-1, DailyTime(taxi.startTime*1000.0), DailyTime(),0,const_cast<Node*>(taxi.startNode),"node",nullptr,"node");
+			tripChain.push_back(taxiTrip);
+			person->setTripChain(tripChain);
+			addOrStashBuses(person, activeAgents);
+		}
 	}
 }

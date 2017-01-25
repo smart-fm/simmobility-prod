@@ -13,6 +13,8 @@ namespace
 const std::map<unsigned int, TurningGroup *> EMPTY_MAP;
 }
 
+GeneralR_TreeManager<Node> Node::allNodesMap;
+
 Node::Node() :
 nodeId(0), location(), nodeType(DEFAULT_NODE), trafficLightId(0)
 {
@@ -64,6 +66,16 @@ void Node::setLocation(Point location)
 const Point& Node::getLocation() const
 {
 	return location;
+}
+
+double Node::getPosX() const
+{
+	return location.getX();
+}
+
+double Node::getPosY() const
+{
+	return location.getY();
 }
 
 void Node::setNodeType(NodeType nodeType)

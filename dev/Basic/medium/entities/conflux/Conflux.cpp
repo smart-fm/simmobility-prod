@@ -465,92 +465,37 @@ void Conflux::updateQueuingTaxiDriverAgent(Person_MT* person)
 }
 void Conflux::updateAgent(Person_MT* person)
 {
-	bool toMove = false;
-	if (person->getRole()->roleType == Role<Person_MT>::RL_TAXIDRIVER)
-	{
-		TaxiDriver *taxiDriver = dynamic_cast<TaxiDriver*>(person->getRole());
-		if(taxiDriver)
-		{
-			if (taxiDriver->getDriveMode() != QUEUING_AT_TAXISTAND)
-			{
-				toMove = true;
-			}
-			else if(taxiDriver->getMovementFacet()->getToCallMovementTick())
-			{
-				toMove = true;
-			}
-		}
-	}
-	else
-	{
-		toMove = true;
+	if (person->getLastUpdatedFrame() < currFrame.frame())
+	{	//if the person is being moved for the first time in this tick, reset person's remaining time to full tick size
+		person->remainingTimeThisTick = tickTimeInS;
 	}
 
-	if(toMove == true)
+	//let the person know which worker is (indirectly) managing him
+	person->currWorkerProvider = currWorkerProvider;
+
+	//capture person info before update
+
+	PersonProps beforeUpdate(person, this);
+
+	//let the person move
+	UpdateStatus res = movePerson(currFrame, person);
+	//kill person if he's DONE
+	if (res.status == UpdateStatus::RS_DONE)
 	{
-		if (person->getLastUpdatedFrame() < currFrame.frame())
-		{	//if the person is being moved for the first time in this tick, reset person's remaining time to full tick size
-			person->remainingTimeThisTick = tickTimeInS;
-		}
-
-		//let the person know which worker is (indirectly) managing him
-		person->currWorkerProvider = currWorkerProvider;
-
-		//capture person info before update
-
-		PersonProps beforeUpdate(person, this);
-		//just debug
-		const SegmentStats * segStats = person->getCurrSegStats();
-		//simmob::Role *currRole = person->getRole();
-		double posOflastUpAgenet = -1;
-		double outputCounter = -1;
-		TaxiDriver *taxiDriver = dynamic_cast<TaxiDriver*>(person->getRole());
-		if(taxiDriver)
-		{
-			if(taxiDriver->getMovementFacet())
-			{
-				const MesoPathMover pathMover = taxiDriver->getMovementFacet()->getMesoPathMover();
-				person->beforeUpdateDistoSegEnd = pathMover.getPositionInSegment();
-				person->beforeUpdateSegStat = segStats;
-				person->beforeUpdateSpeed = segStats->getSegSpeed(true);
-				const std::map<const Lane*, LaneStats*> laMap = segStats->getLaneStats();
-				if(person->getCurrLane())
-				{
-					const LaneStats *laneInLaneStat =  laMap.find(person->getCurrLane())->second;
-					if(laneInLaneStat)
-					{
-						posOflastUpAgenet = laneInLaneStat->getPositionOfLastUpdatedAgent();
-						outputCounter = segStats->getLaneParams(person->getCurrLane())->getOutputCounter();;
-					}
-				}
-			}
-		}
-
-		//let the person move
-		UpdateStatus res = movePerson(currFrame, person);
-		//kill person if he's DONE
-		if (res.status == UpdateStatus::RS_DONE)
-		{
-			killAgent(person, beforeUpdate);
-			return;
-		}
-
-
-		//capture person info after update
-		PersonProps afterUpdate(person, this);
-
-		//perform house keeping
-		housekeep(beforeUpdate, afterUpdate, person);
-
-		//update person's handler registration with MessageBus, if required
-		updateAgentContext(beforeUpdate, afterUpdate, person);
+		killAgent(person, beforeUpdate);
+		return;
 	}
 
-//	if(!(beforeUpdate.roleType == 5 && afterUpdate.roleType == 5))
-//	{
-//		beforeUpdate.printProps(person->getDatabaseId(), currFrame.frame(), std::to_string(confluxNode->getNodeId()) + ",before");
-//		afterUpdate.printProps(person->getDatabaseId(), currFrame.frame(), std::to_string(confluxNode->getNodeId()) + ",after");
-//	}
+
+	//capture person info after update
+	PersonProps afterUpdate(person, this);
+
+	//perform house keeping
+	housekeep(beforeUpdate, afterUpdate, person);
+
+	//update person's handler registration with MessageBus, if required
+	updateAgentContext(beforeUpdate, afterUpdate, person);
+
 }
 
 bool Conflux::handleRoleChange(PersonProps& beforeUpdate, PersonProps& afterUpdate, Person_MT* person)
@@ -1143,6 +1088,7 @@ void Conflux::killAgent(Person_MT* person, PersonProps& beforeUpdate)
 	}
 	case Role<Person_MT>::RL_DRIVER:
 	case Role<Person_MT>::RL_BIKER:
+	case Role<Person_MT>::RL_TAXIDRIVER:
 	case Role<Person_MT>::RL_TRUCKER_LGV:
 	case Role<Person_MT>::RL_TRUCKER_HGV:
 	{

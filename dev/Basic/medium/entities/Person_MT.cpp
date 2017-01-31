@@ -483,6 +483,13 @@ Entity::UpdateStatus Person_MT::checkTripChain(unsigned int currentTime)
 			}
 		}
 	}
+	else
+	{
+		if (!isFirstTick)
+		{
+			return UpdateStatus::Done;
+		}
+	}
 	
 	//must be set to false whenever trip chain item changes. And it has to happen before a probable creation of (or changing to) a new role
 	setNextPathPlanned(false);

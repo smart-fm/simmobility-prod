@@ -362,16 +362,15 @@ void HouseholdBidderRole::update(timeslice now)
         bidOnCurrentDay = false;
     }
 
-    if (isActive())
-    {
-    	getParent()->getModel()->incrementNumberOfBidders();
 
-        if (!waitingForResponse && !bidOnCurrentDay && bidUnit(now))
-        {
-            waitingForResponse = true;
-            bidOnCurrentDay = true;
-        }
-    }
+	getParent()->getModel()->incrementNumberOfBidders();
+
+	if (!waitingForResponse && !bidOnCurrentDay && bidUnit(now))
+	{
+		waitingForResponse = true;
+		bidOnCurrentDay = true;
+	}
+
 
     lastTime = now;
 }

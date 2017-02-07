@@ -139,12 +139,12 @@
 	    </awakeningModel>
 	    <vacantUnitActivationProbability value="0.375"/>
 	    <housingMarketSearchPercentage value="0.15"/>
-	    <housingMoveInDaysInterval value="30"/>
-	    <offsetBetweenUnitBuyingAndSelling value ="7"/>
+	    <housingMoveInDaysInterval value="30"/>	   
 	    <bidderUnitsChoiceSet value = "50"/>
 	    <bidderBTOUnitsChoiceSet value = "10"/>
 	    <householdBiddingWindow value = "30" />
 	    <householdAwakeningPercentageByBTO value = "0.05" />
+	    <offsetBetweenUnitBuyingAndSelling value ="7"/>
             <offsetBetweenUnitBuyingAndSellingAdvancedPurchase value = "30" />
         </housingModel>
 	<vehicleOwnershipModel enabled='false'>

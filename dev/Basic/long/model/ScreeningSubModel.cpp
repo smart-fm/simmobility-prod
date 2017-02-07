@@ -442,7 +442,10 @@ namespace sim_mob
 									 otherHousingHhSizeOne		<< " l " << DWL800  << std::endl);
 				*/
 
-				if( std::isnan(probability) )
+				if( isnan(probability) )
+					probability = 0.0;
+
+				if( isinf( probability) )
 					probability = 0.0;
 
 				probabilities.push_back(probability);

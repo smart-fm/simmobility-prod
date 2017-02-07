@@ -185,6 +185,7 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 	{
 		PrintExit( day, household, 0);
 		bidder->setActive(false);
+		seller->setActive(false);
 		model->incrementExits();
 	}
 

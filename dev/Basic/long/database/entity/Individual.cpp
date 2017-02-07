@@ -15,11 +15,13 @@ using namespace sim_mob::long_term;
 
 Individual::Individual( BigSerial id, BigSerial individualTypeId, BigSerial householdId, BigSerial jobId, BigSerial ethnicityId, BigSerial employmentStatusId,
 						BigSerial genderId, BigSerial educationId, BigSerial occupationId, BigSerial vehicleCategoryId, BigSerial transitCategoryId,
-						BigSerial ageCategoryId, BigSerial residentialStatusId, bool householdHead, float income, int memberId, bool workerAtHome, bool carLicense,	bool motorLicense, bool vanbusLicense, std::tm dateOfBirth) :
+						BigSerial ageCategoryId, BigSerial residentialStatusId, bool householdHead, float income, int memberId, bool workerAtHome, bool carLicense,
+						bool motorLicense, bool vanbusLicense, std::tm dateOfBirth,	BigSerial studentId, BigSerial industryId, BigSerial ageDetailedCategory, int taxiDriver, int fixed_workplace, int fixed_hours) :
 						id(id), individualTypeId(individualTypeId), householdId(householdId), jobId(jobId), ethnicityId(ethnicityId), employmentStatusId(employmentStatusId),
 						genderId(genderId), educationId(educationId), occupationId(occupationId), vehicleCategoryId(vehicleCategoryId), transitCategoryId(transitCategoryId),
 						ageCategoryId(ageCategoryId), residentialStatusId(residentialStatusId), householdHead(householdHead), income(income), memberId(memberId), workAtHome(workAtHome),
-						carLicense(carLicense), motorLicense(motorLicense), vanbusLicense(vanbusLicense), dateOfBirth(dateOfBirth) {}
+						carLicense(carLicense), motorLicense(motorLicense), vanbusLicense(vanbusLicense), dateOfBirth(dateOfBirth),
+						 studentId(studentId), industryId(industryId), ageDetailedCategory(ageDetailedCategory), taxiDriver(taxiDriver), fixed_workplace(fixed_workplace), fixed_hours(fixed_hours){}
 
 Individual::~Individual() {}
 
@@ -46,6 +48,12 @@ Individual& Individual::operator=(const Individual& source)
 	this->motorLicense = source.motorLicense;
 	this->vanbusLicense = source.vanbusLicense;
 	this->dateOfBirth = source.dateOfBirth;
+	this->studentId = source.studentId;
+	this->industryId = source.industryId;
+	this->ageDetailedCategory = source.taxiDriver;
+	this->taxiDriver = source.taxiDriver;
+	this->fixed_workplace = source.fixed_workplace;
+	this->fixed_hours = source.fixed_hours;
 
 	return *this;
 }
@@ -164,6 +172,40 @@ bool Individual::getIsPrimarySchoolWithin5Km(BigSerial primarySchoolId) const
 		return true;
 	}
 	return false;
+}
+
+
+BigSerial Individual::getStudentId() const
+{
+	return studentId;
+}
+
+BigSerial Individual::getIndustryId() const
+{
+	return industryId;
+}
+
+BigSerial Individual::getAgeDetailedCategory() const
+{
+	return ageDetailedCategory;
+}
+
+
+int		  Individual::getTaxiDriver() const
+{
+	return taxiDriver;
+}
+
+
+int		  Individual::getFixed_workplace() const
+{
+	return fixed_workplace;
+}
+
+
+int		  Individual::getFixed_hours() const
+{
+	return fixed_hours;
 }
 
 void Individual::setDateOfBirth( std::tm dob )

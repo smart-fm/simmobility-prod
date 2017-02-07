@@ -31,4 +31,31 @@ sim_mob::LongTermParams::VehicleOwnershipModel::VehicleOwnershipModel():enabled(
 sim_mob::LongTermParams::TaxiAccessModel::TaxiAccessModel():enabled(false){}
 sim_mob::LongTermParams::SchoolAssignmentModel::SchoolAssignmentModel():enabled(false), schoolChangeWaitingTimeInDays(0){}
 
+sim_mob::LongTermParams::OutputFiles::OutputFiles(): bids(false),
+													 expectations(false),
+													 parcels(false),
+													 units(false),
+													 projects(false),
+													 hh_pc(false),
+													 units_in_market(false),
+													 log_taxi_availability(false),
+													 log_vehicle_ownership(false),
+													 log_taz_level_logsum(false),
+													 log_householdgrouplogsum(false),
+													 log_individual_hits_logsum(false),
+													 log_householdbidlist(false),
+													 log_individual_logsum_vo(false),
+													 log_screeningprobabilities(false),
+													 log_hhchoiceset(false),
+													 log_error(false),
+													 log_school_assignment(false),
+													 log_pre_school_assignment(false),
+													 log_hh_awakening(false),
+													 log_hh_exit(false),
+													 log_random_nums(false),
+													 log_dev_roi(false),
+													 log_household_statistics(false),
+													 log_out_xx_files(true),
+													 enabled(false){}
+
 ModelScriptsMap::ModelScriptsMap(const std::string& scriptFilesPath, const std::string& scriptsLang) : path(scriptFilesPath), scriptLanguage(scriptsLang) {}

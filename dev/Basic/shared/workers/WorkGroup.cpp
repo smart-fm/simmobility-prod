@@ -138,7 +138,10 @@ void sim_mob::WorkGroup::initWorkers(EntityLoadParams* loader)
 		std::stringstream outFilePath;
 		outFilePath << prefix << i << ".txt";
 		std::ofstream* logFile = nullptr;
-		if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled())
+
+		ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+
+		if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled() && config.ltParams.outputFiles.log_out_xx_files)
 		{
 			//TODO: Handle error case more gracefully.
 			logFileNames.push_back(outFilePath.str());

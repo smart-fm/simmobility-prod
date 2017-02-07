@@ -574,7 +574,6 @@ bool HouseholdBidderRole::pickEntryToBid()
     float housingMarketSearchPercentage = config.ltParams.housingModel.housingMarketSearchPercentage;
 
     HouseHoldHitsSample *householdHits = model->getHouseHoldHitsById( household->getId() );
-    std::string hitsId = householdHits->getHouseholdHitsId();
 
     std::vector<double>householdScreeningProbabilities;
 
@@ -676,7 +675,7 @@ bool HouseholdBidderRole::pickEntryToBid()
 
         if( entry->getAskingPrice() < 0.01 )
         {
-        	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, (boost::format( "[unit %1%] Asking price is suspiciously low at %2%.") % entry->getUnitId() % entry->getAskingPrice() ).str());
+        	printError( (boost::format( "[unit %1%] Asking price is suspiciously low at %2%.") % entry->getUnitId() % entry->getAskingPrice() ).str());
         }
 
         if(entry && entry->getOwner()->getId() != getParent()->getId() )
@@ -714,7 +713,7 @@ bool HouseholdBidderRole::pickEntryToBid()
             	WillingnessToPaySubModel wtp_m;
             	double wp = wtp_m.CalculateWillingnessToPay(unit, household, wtp_e,day, model);
 
-            	wtp_e = wtp_e * entry->getAskingPrice(); //wtp error is a fraction of the asking price.
+            	//wtp_e = wtp_e * entry->getAskingPrice(); //wtp error is a fraction of the asking price.
 
             	wp += wtp_e; // adjusted willingness to pay in millions of dollars
 
@@ -774,12 +773,12 @@ bool HouseholdBidderRole::pickEntryToBid()
             }
             else
             {
-            	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, (boost::format("[day %1%]Could not compute bid value for unit %2%. Eligibility: %3% Stats: %4%") % day % unit->getId() % flatEligibility % stats ).str() );
+            	printError( (boost::format("[day %1%]Could not compute bid value for unit %2%. Eligibility: %3% Stats: %4%") % day % unit->getId() % flatEligibility % stats ).str() );
             }
         }
         else
         {
-        	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, (boost::format("[day %1%] Entry is invalid for index %2%") % day % n ).str() );
+        	printError( (boost::format("[day %1%] Entry is invalid for index %2%") % day % n ).str() );
         }
     }
 

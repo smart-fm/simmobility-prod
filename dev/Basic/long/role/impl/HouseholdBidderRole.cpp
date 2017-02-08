@@ -353,6 +353,8 @@ void HouseholdBidderRole::update(timeslice now)
 			#endif
 		}
 			vehicleBuyingWaitingTimeInDays--;
+
+		return;
 	}
 
     //can bid another house if it is not waiting for any 

@@ -179,6 +179,13 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 	}
 
 
+    if (bidder && bidder->isActive() && householdBiddingWindow > 0 )
+    {
+        bidder->update(now);
+        householdBiddingWindow--;
+       	buySellInterval--;
+    }
+
 	//If 1) the bidder is active and 2) it is not waiting to move into a unit and 3) it has exceeded it's bidding time frame,
 	//Then it can now go inactive. However if any one of the above three conditions are not true, the bidder has to remain active
 	if( bidder && bidder->isActive() &&  bidder->getMoveInWaitingTimeInDays() <=  0 && householdBiddingWindow == 0 )
@@ -188,13 +195,6 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 		seller->setActive(false);
 		model->incrementExits();
 	}
-
-    if (bidder && bidder->isActive() && householdBiddingWindow > 0 )
-    {
-        bidder->update(now);
-        householdBiddingWindow--;
-       	buySellInterval--;
-    }
 
     if (seller && seller->isActive())
     {

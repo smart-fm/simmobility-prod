@@ -168,6 +168,13 @@ namespace sim_mob {
             * @param id of the given parcel
             */
             const bool isEmptyParcel(BigSerial id) const;
+
+            /**
+             * check whether a given parcel is empty or not
+             * @param id of the given parcel
+             */
+            const int isFreeholdParcel(BigSerial id) const;
+
             /*
              * increment the id of the last project in db
              * @return next projectId
@@ -301,6 +308,7 @@ namespace sim_mob {
             ParcelList developmentCandidateParcelList;
             ParcelList nonEligibleParcelList;
             ParcelList emptyParcels;
+            ParcelList freeholdParcels;
             ParcelList parcelsWithOngoingProjects; //this is loaded when the simulation is resumed from a previous run
             ParcelList parcelsWithDay0Projects;
             BuildingList buildings;
@@ -313,6 +321,7 @@ namespace sim_mob {
             ParcelMap emptyParcelsById;
             ParcelMap devCandidateParcelsById;
             ParcelMap parcelsWithOngoingProjectsById;
+            ParcelMap freeholdParcelsById;
             unsigned int timeInterval;
             std::vector<BigSerial> existingProjectIds;
             std::vector<BigSerial> newBuildingIdList;

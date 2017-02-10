@@ -23,7 +23,7 @@ void UnitDao::fromRow(Row& result, Unit& outObj)
 {
     outObj.id  = result.get<BigSerial>("fm_unit_id", INVALID_ID);
     outObj.building_id  = result.get<BigSerial>("fm_building_id", INVALID_ID);
-    outObj.sla_address_id  = result.get<BigSerial>("sla_address_id", INVALID_ID);
+    //outObj.sla_address_id  = result.get<BigSerial>("sla_address_id", INVALID_ID);
     outObj.unit_type  = result.get<int>("unit_type", INVALID_ID);
     outObj.storey_range  = result.get<int>("storey_range", 0);
     outObj.constructionStatus  = result.get<int>("construction_status", 0);
@@ -37,7 +37,7 @@ void UnitDao::fromRow(Row& result, Unit& outObj)
     outObj.lastChangedDate = result.get<std::tm>("last_changed_date", std::tm());
     outObj.totalPrice = result.get<double>("total_price", .0);
     outObj.valueDate = result.get<std::tm>("value_date", std::tm());
-    outObj.tenureStatus = result.get<int>("tenure_status", 0);
+    //outObj.tenureStatus = result.get<int>("tenure_status", 0);
 }
 
 void UnitDao::toRow(Unit& data, Parameters& outParams, bool update)
@@ -136,9 +136,11 @@ std::vector<Unit*> UnitDao::getUnitsByBuildingId(const long long buildingId,std:
 
 std::vector<Unit*> UnitDao::getBTOUnits(std::tm currentSimYear)
 {
-	const std::string DB_GETALL_BTO_UNITS = "select * from  synpop12.fm_unit_res where unit_type <=5 and to_char(sale_from_date, 'yyyymmdd') > '20050101' and to_char(sale_from_date, 'yyyymmdd') <> '99990101' and sale_status=2 and occupancy_status =1;";
+	const std::string DB_GETALL_BTO_UNITS = "SELECT * FROM " + APPLY_SCHEMA(MAIN_SCHEMA, "fm_unit_res") + " WHERE  sale_from_date > :v1";
+	db::Parameters params;
+	params.push_back(currentSimYear);
 	std::vector<Unit*> BTOUnitList;
-	getByQuery(DB_GETALL_BTO_UNITS,BTOUnitList);
+	getByQueryId(DB_GETALL_BTO_UNITS,params,BTOUnitList);
 	return BTOUnitList;
 }
 

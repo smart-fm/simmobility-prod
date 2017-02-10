@@ -23,7 +23,7 @@ Unit::Unit( BigSerial id, BigSerial building_id, BigSerial sla_address_id, int u
 		     floor_area(floor_area), storey(storey), monthlyRent(monthlyRent), sale_from_date(sale_from_date), occupancyFromDate(occupancyFromDate),
 			 sale_status(sale_status), occupancyStatus(occupancyStatus), lastChangedDate(lastChangedDate),totalPrice(totalPrice),valueDate(valueDate),tenureStatus(tenureStatus),
 			 biddingMarketEntryDay(biddingMarketEntryDay),timeOnMarket(timeOnMarket), timeOffMarket(timeOffMarket), lagCoefficient(lagCoefficient),
-			 zoneHousingType(zoneHousingType), dwellingType(dwellingType),isBTO(isBTO),existInDB(existInDB){}
+			 zoneHousingType(zoneHousingType), dwellingType(dwellingType),isBTO(isBTO),existInDB(0){}
 
 
 Unit::Unit(const Unit& source)

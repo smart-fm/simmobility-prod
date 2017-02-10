@@ -23,7 +23,7 @@ IndividualDao::~IndividualDao() {}
 
 void IndividualDao::fromRow(Row& result, Individual& outObj)
 {
-	outObj.id  					= result.get<BigSerial>(	"id", 					INVALID_ID);
+	outObj.id  					= result.get<BigSerial>(	"individual_id", 					INVALID_ID);
 	outObj.individualTypeId		= result.get<BigSerial>(	"individual_type_id", 	INVALID_ID);
 	outObj.householdId			= result.get<BigSerial>(	"household_id", 		INVALID_ID);
 	outObj.jobId				= result.get<BigSerial>(	"job_id", 				INVALID_ID);
@@ -38,7 +38,6 @@ void IndividualDao::fromRow(Row& result, Individual& outObj)
 	outObj.householdHead		= result.get<int>(			"household_head", 		0);
 	outObj.income				= result.get<double>(		"income", 				0.0);
 	outObj.memberId				= result.get<int>(			"member_id", 			0);
-	outObj.workAtHome			= result.get<int>(			"work_at_home", 		0);
 	outObj.carLicense			= result.get<int>(			"car_license", 			0);
 	outObj.motorLicense			= result.get<int>(			"motor_license", 		0);
 	outObj.vanbusLicense		= result.get<int>(			"vanbus_license", 		0);

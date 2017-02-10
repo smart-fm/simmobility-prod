@@ -111,3 +111,12 @@ void ParcelDao::insertParcel(Parcel& parcel,std::string schema)
 	insertViaQuery(parcel,DB_INSERT_PARCEL_OP);
 
 }
+
+std::vector<Parcel*> ParcelDao::getFreeholdParcels()
+{
+	const std::string queryStr = "SELECT P.* FROM " + APPLY_SCHEMA(MAIN_SCHEMA, "fm_parcel P,") +  APPLY_SCHEMA(MAIN_SCHEMA, "fm_building B") +
+			" WHERE p.fm_parcel_id = b.fm_parcel_id and freehold = 1";
+	std::vector<Parcel*> freeholdParcelsList;
+	getByQuery(queryStr,freeholdParcelsList);
+	return freeholdParcelsList;
+}

@@ -581,5 +581,23 @@ namespace sim_mob
 	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::UNITS_IN_MARKET,fmtr.str());
 	    }
 
+	    inline void writeNonEligibleParcelsToFile(BigSerial parcelId, std::string reason)
+	    {
+	    	boost::format fmtr = boost::format("%1%, %2%") % parcelId % reason;
+	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_NON_ELIGIBLE_PARCELS,fmtr.str());
+	    }
+
+	    inline void writeEligibleParcelsToFile(BigSerial parcelId, int newDevelopment)
+	    {
+	    	boost::format fmtr = boost::format("%1%, %2%") % parcelId % newDevelopment;
+	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ELIGIBLE_PARCELS,fmtr.str());
+	    }
+
+	    inline void writeGPRToFile(double parcelId, double parcelGPR, double actualGPR, double gap)
+	    {
+	    	boost::format fmtr = boost::format("%1%, %2%, %3%, %4%") % parcelId % parcelGPR % actualGPR % gap;
+	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_GPR,fmtr.str());
+	    }
+
 	}
 }

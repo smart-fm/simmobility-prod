@@ -313,6 +313,7 @@ void RealEstateAgent::HandleMessage(Message::MessageType type, const Message& me
 					unit->setTimeOnMarket(config.ltParams.housingModel.timeOnMarket / 2 + config.ltParams.housingModel.timeOnMarket / 2 * (float)rand() / RAND_MAX );
 					unit->setTimeOffMarket( config.ltParams.housingModel.timeOffMarket / 2 + config.ltParams.housingModel.timeOffMarket / 2 * (float)rand() / RAND_MAX);
 					unit->setbiddingMarketEntryDay(day);
+					unit->setBto(true);
 
 					units.push_back(unit);
 					unitsById.insert(std::make_pair((unit)->getId(), unit));

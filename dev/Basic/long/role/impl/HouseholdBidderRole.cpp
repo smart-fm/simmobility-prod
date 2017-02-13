@@ -616,7 +616,11 @@ bool HouseholdBidderRole::pickEntryToBid()
 
         if( thisUnit->getZoneHousingType() == zoneHousingType )
         {
-			if( thisUnit->getTenureStatus() == 2 && getParent()->getFutureTransitionOwn() == false ) //rented
+        	/*
+        	 * Chetan has temporarily commented this out until we figure out who to determine rental units
+        	 * 13 Feb 2017
+        	 *
+			if( thisUnit->getTenureStatus() == 1 && getParent()->getFutureTransitionOwn() == false ) //rented
 			{
 				std::vector<const HousingMarket::Entry*>::iterator screenedEntriesItr;
 				screenedEntriesItr = std::find(screenedEntries.begin(), screenedEntries.end(), entry );
@@ -625,7 +629,8 @@ bool HouseholdBidderRole::pickEntryToBid()
 					screenedEntries.push_back(entry);
 			}
 			else
-			if( thisUnit->getTenureStatus() == 1) //owner-occupied
+			if( thisUnit->getTenureStatus() == 2) //owner-occupied
+			*/
 			{
 				std::vector<const HousingMarket::Entry*>::iterator screenedEntriesItr;
 				screenedEntriesItr = std::find(screenedEntries.begin(), screenedEntries.end(), entry );
@@ -686,13 +691,13 @@ bool HouseholdBidderRole::pickEntryToBid()
 
             bool flatEligibility = true;
 
- 			if( unit->getTenureStatus() == 0 && unit->getUnitType() == 2 && household->getTwoRoomHdbEligibility()  == false )
+ 			if( household->getTenureStatus() == 0 && unit->getUnitType() == 2 && household->getTwoRoomHdbEligibility()  == false )
 				flatEligibility = false;
 
-			if( unit->getTenureStatus() == 0 && unit->getUnitType() == 3 && household->getThreeRoomHdbEligibility() == false )
+			if( household->getTenureStatus() == 0 && unit->getUnitType() == 3 && household->getThreeRoomHdbEligibility() == false )
 				flatEligibility = false;
 
-			if( unit->getTenureStatus() == 0 && unit->getUnitType() == 4 && household->getFourRoomHdbEligibility() == false )
+			if( household->getTenureStatus() == 0 && unit->getUnitType() == 4 && household->getFourRoomHdbEligibility() == false )
 				flatEligibility = false;
 
 
@@ -741,7 +746,7 @@ bool HouseholdBidderRole::pickEntryToBid()
             	if( entry->getAskingPrice() != 0 )
             	{
             		//tenure_status = 0 mean it is a BTO unit
-            		if( unit->getTenureStatus() == 0)
+            		if( unit->isBto() )
             		{
             			currentBid = entry->getAskingPrice();
             			currentSurplus = wp - entry->getAskingPrice();

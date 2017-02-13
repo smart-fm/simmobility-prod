@@ -514,7 +514,7 @@ vector<ExpectationEntry> HedonicPrice_SubModel::CalculateUnitExpectations (Unit 
         {
         	ExpectationEntry entry = ExpectationEntry(); //--entry is a class initialized to 0, that will hold the hedonic, asking and target prices.
 
-            if( unit->getTenureStatus() == 0 )
+            if( unit->isBto() )
             {
             	entry.hedonicPrice = unit->getTotalPrice();
   	            entry.askingPrice = unit->getTotalPrice();

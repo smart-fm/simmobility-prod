@@ -269,6 +269,20 @@ namespace sim_mob
 
 				ZonalLanduseVariableValues *zonalLanduseVariableValues = model->getZonalLandUseByAlternativeId(n + 1);
 
+				double income = household->getIncome();
+
+				/*
+				 * If the income is zero. We'll try to deduce an income for that household base on the
+				 * current value of its property. We'll assume one third of the salary of that household
+				 * was used to get a 30 year mortgage and that the household has been fully paid for.
+				 */
+				if( income ==  0 )
+				{
+					//multiple by a million cos the currentUnitPrice is expressed in millions. Divide by 30 * 12 assumming a 30 year mortgage
+					//multiply by 3 cos only a third of the income was used to pay the mortgage.
+					income = 3.0 * 1000000.0 * household->getCurrentUnitPrice() / ( 30 * 12 );
+				}
+
 				double logPopulationByHousingType	= log((double)unitTypeCounter);	//1 logarithm of population by housing type in the zone 	persons
 				double populationDensity			= (double)unitTypeCounter / (double)sumFloorArea * 100.0;	//2 population density	persons per hectare
 				double commercialLandFraction		= zonalLanduseVariableValues->getFLocCom();	//3 zonal average fraction of commercial land within a 500-meter buffer area from a residential postcode (weighted by no. of residential unit within the buffer)	percentage point
@@ -284,7 +298,7 @@ namespace sim_mob
 				double fractionOfMalay				= ( populationChinese / populationTotal ) * bHouseholdEthnicityMalay;	//14 zonal fraction of Malay population x  dummy if household is Malay (=1, yes; =0, no)	percentage point
 				double fractionOfIndian				= ( populationChinese / populationTotal ) * bHouseholdEthnicityIndian;	//15 zonal fraction of Indian population x  dummy if household is Indian (=1, yes; =0, no)	percentage point
 				double householdSizeMinusZoneAvg	= fabs( avgHouseholdSize - household->getSize());	//16 absolute difference between zonal average household size by housing type
-				double logHouseholdInconeMinusZoneAvg= fabs( log(avgHouseholdIncome ) - log(household->getIncome() ) );	//17 absolute difference between logarithm of the zonal median household montly income by housing type and logarithm of the household income	SGD
+				double logHouseholdInconeMinusZoneAvg= fabs( log(avgHouseholdIncome ) - log( income ) );	//17 absolute difference between logarithm of the zonal median household montly income by housing type and logarithm of the household income	SGD
 				double logZonalMedianHousingPrice	= 0.0;	//18 logarithm of the zonal median housing price by housing type	in (2005) SGD
 				double privateCondoHhSizeOne		= 0.0;	//19 = 1, if household size is 1, living in private condo/apartment
 				double landedPropertyHhSizeOne		= 0.0;	//20 = 1, if household size is 1, living in landed property
@@ -443,6 +457,9 @@ namespace sim_mob
 				*/
 
 				if( std::isnan(probability) )
+					probability = 0.0;
+
+				if( std::isinf( probability) )
 					probability = 0.0;
 
 				probabilities.push_back(probability);

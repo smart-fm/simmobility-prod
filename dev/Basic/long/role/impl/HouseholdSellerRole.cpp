@@ -184,29 +184,11 @@ void HouseholdSellerRole::setActive(bool activeArg)
     if( getParent()->getHousehold() != nullptr)
     {
     	getParent()->getHousehold()->setIsSeller(activeArg);
-
-    	if( activeArg == false )
-    	{
-			if( getParent()->getId() < getParent()->getModel()->FAKE_IDS_START )
-			{
-				int currentSellers = getParent()->getModel()->getNumberOfSellers();
-				getParent()->getModel()->setNumberOfSellers( --currentSellers);
-			}
-    	}
-    	else
-    	{
-			if( getParent()->getId() < getParent()->getModel()->FAKE_IDS_START )
-			{
-				int currentSellers = getParent()->getModel()->getNumberOfSellers();
-				getParent()->getModel()->setNumberOfSellers( ++currentSellers);
-			}
-    	}
     }
 }
 
 void HouseholdSellerRole::update(timeslice now)
 {
-
 	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
 	bool resume = config.ltParams.resume;
 	if(resume && runOnce)
@@ -304,7 +286,7 @@ void HouseholdSellerRole::update(timeslice now)
 
             if(getCurrentExpectation(unit->getId(), firstExpectation) && entryDay )
             {
-                market->addEntry( HousingMarket::Entry( getParent(), unit->getId(), unit->getSlaAddressId(), tazId, firstExpectation.askingPrice, firstExpectation.hedonicPrice, unit->getTenureStatus()==0));
+                market->addEntry( HousingMarket::Entry( getParent(), unit->getId(), unit->getSlaAddressId(), tazId, firstExpectation.askingPrice, firstExpectation.hedonicPrice, unit->isBto()));
 				#ifdef VERBOSE
                 PrintOutV("[day " << currentTime.ms() << "] Household Seller " << getParent()->getId() << ". Adding entry to Housing market for unit " << unit->getId() << " with ap: " << firstExpectation.askingPrice << " hp: " << firstExpectation.hedonicPrice << " rp: " << firstExpectation.targetPrice << std::endl);
 				#endif
@@ -316,6 +298,8 @@ void HouseholdSellerRole::update(timeslice now)
         //If a unit has nothing to sell, then its job it done
         if( unitIds.size() == 0 )
         	setActive( false );
+        else
+        	getParent()->getModel()->incrementNumberOfSellers();
 
     }
 }

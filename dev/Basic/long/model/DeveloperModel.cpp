@@ -499,14 +499,8 @@ void DeveloperModel::processParcels()
 					parcelsWithDay0Projects.push_back(parcel);
 					writeNonEligibleParcelsToFile(parcel->getId(),"on going project");
 				}
-				//unitPrice sum null means that the parcel has buildings without units or buildings with HDB units.
-//				else if ((!isEmptyParcel(parcel->getId())) && (getUnitPriceSumByParcelId(parcel->getId())==nullptr))
-//				{
-//					nonEligibleParcelList.push_back(parcel);
-//				}
 				else
 				{
-					//if((parcel->getDevelopmentAllowed()!=2)||(parcel->getLotSize()< minLotSize) || (getParcelsWithHDB_ByParcelId(parcel->getId())!= nullptr))
 					if(parcel->getDevelopmentAllowed()!=2)
 					{
 						nonEligibleParcelList.push_back(parcel);
@@ -526,10 +520,6 @@ void DeveloperModel::processParcels()
 					{
 						//TODO:: consider the use_restriction field of parcel as well in the future
 						float allowdGpr = getAllowedGpr(*parcel);
-//						float actualGpr = getBuildingSpaceByParcelId(parcel->getId())/parcel->getLotSize();
-//						writeGPRToFile(parcel->getId(),allowdGpr,actualGpr,(actualGpr - allowdGpr) );
-//						if ( actualGpr >= 0 && actualGpr < allowdGpr)
-//						{
 						if(allowdGpr > 0)
 						{
 						developmentCandidateParcelList.push_back(parcel);
@@ -604,25 +594,23 @@ DeveloperModel::DeveloperList DeveloperModel::getDeveloperAgents(){
 	std::set<int> indexes;
 	DeveloperList dailyDevAgents;
 	int max_index = developers.size() - 1;
-	//while (indexes.size() < std::min(dailyAgentFraction, max_index))
-		for(unsigned int i = 0; i < dailyAgentFraction ; i++)
+
+	for(unsigned int i = 0; i < dailyAgentFraction ; i++)
 	{
-	    //int random_index = rand() % max_index;
 		std::random_device rd;
 		std::mt19937 gen(rd());
 		std::uniform_int_distribution<int> dis(0, max_index);
 		const unsigned int random_index = dis(gen);
-	    if (indexes.find(random_index) == indexes.end())
-	    {
-	    	if(!(developers[random_index]->isActive()))
-	    	{
-	    		dailyDevAgents.push_back(developers[random_index]);
-	    		indexes.insert(random_index);
-	    	}
-	    }
+		if (indexes.find(random_index) == indexes.end())
+		{
+			if(!(developers[random_index]->isActive()))
+			{
+				dailyDevAgents.push_back(developers[random_index]);
+				indexes.insert(random_index);
+			}
+		}
 	}
 	return dailyDevAgents;
-	//return developers;
 }
 
 void DeveloperModel::setDays(int days)

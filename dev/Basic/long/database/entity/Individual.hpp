@@ -29,7 +29,8 @@ namespace sim_mob
 					   BigSerial ethnicityId = INVALID_ID, BigSerial employmentStatusId = INVALID_ID, BigSerial genderId = INVALID_ID,
 					   BigSerial educationId = INVALID_ID, BigSerial occupationId = INVALID_ID, BigSerial vehicleCategoryId = INVALID_ID,
 					   BigSerial transitCategoryId = INVALID_ID, BigSerial ageCategoryId = INVALID_ID, BigSerial residentialStatusId = INVALID_ID,
-					   bool householdHead = false, float income = false, int memberId = 0, bool workerAtHome = false,bool carLicence = false, bool motorLicence = false, bool vanbusLicence = false, std::tm dateOfBirth = std::tm());
+					   bool householdHead = false, float income = false, int memberId = 0, bool workerAtHome = false,bool carLicence = false, bool motorLicence = false, bool vanbusLicence = false,
+					   std::tm dateOfBirth = std::tm(),	BigSerial studentId = 0,BigSerial industryId = 0,BigSerial ageDetailedCategory = 0,	int taxiDriver = 0,	int fixed_workplace = 0,int fixed_hours = 0);
 			virtual ~Individual();
 
 			BigSerial getId() const;
@@ -54,6 +55,13 @@ namespace sim_mob
 			bool	  getVanBusLicense() const;
 			std::tm   getDateOfBirth() const;
 			bool getIsPrimarySchoolWithin5Km(BigSerial primarySchoolId) const;
+
+			BigSerial getStudentId() const;
+			BigSerial getIndustryId() const;
+			BigSerial getAgeDetailedCategory() const;
+			int		  getTaxiDriver() const;
+			int		  getFixed_workplace() const;
+			int		  getFixed_hours() const;
 
 			void	  setDateOfBirth(std::tm);
 			void addprimarySchoolIdWithin5km(BigSerial schoolId,PrimarySchool *primarySchool);
@@ -87,6 +95,13 @@ namespace sim_mob
 			bool	  vanbusLicense;
 			std::tm	  dateOfBirth;
 			boost::unordered_map<BigSerial,PrimarySchool*> primarySchoolsWithin5KmById;
+
+			BigSerial studentId;
+			BigSerial industryId;
+			BigSerial ageDetailedCategory;
+			int taxiDriver;
+			int fixed_workplace;
+			int fixed_hours;
 
 		};
 	}

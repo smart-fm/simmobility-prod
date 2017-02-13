@@ -184,6 +184,23 @@ void HouseholdSellerRole::setActive(bool activeArg)
     if( getParent()->getHousehold() != nullptr)
     {
     	getParent()->getHousehold()->setIsSeller(activeArg);
+
+    	if( activeArg == false )
+    	{
+			if( getParent()->getId() < getParent()->getModel()->FAKE_IDS_START )
+			{
+				int currentSellers = getParent()->getModel()->getNumberOfSellers();
+				getParent()->getModel()->setNumberOfSellers( --currentSellers);
+			}
+    	}
+    	else
+    	{
+			if( getParent()->getId() < getParent()->getModel()->FAKE_IDS_START )
+			{
+				int currentSellers = getParent()->getModel()->getNumberOfSellers();
+				getParent()->getModel()->setNumberOfSellers( ++currentSellers);
+			}
+    	}
     }
 }
 
@@ -518,7 +535,7 @@ bool HouseholdSellerRole::getCurrentExpectation(const BigSerial& unitId, Expecta
             }
             else
             {
-            	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, (boost::format( "[unit %1%] Invalid Asking price.") % unitId).str());
+            	printError( (boost::format( "[unit %1%] Invalid Asking price.") % unitId).str());
             }
         }
     }

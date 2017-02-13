@@ -23,15 +23,18 @@ IndividualDao::~IndividualDao() {}
 
 void IndividualDao::fromRow(Row& result, Individual& outObj)
 {
+
 	outObj.id  					= result.get<BigSerial>(	"individual_id", 					INVALID_ID);
+	outObj.jobId				= result.get<BigSerial>(	"job_id", 				INVALID_ID);
+	outObj.studentId			= result.get<BigSerial>(	"student_id", 			INVALID_ID);
 	outObj.individualTypeId		= result.get<BigSerial>(	"individual_type_id", 	INVALID_ID);
 	outObj.householdId			= result.get<BigSerial>(	"household_id", 		INVALID_ID);
-	outObj.jobId				= result.get<BigSerial>(	"job_id", 				INVALID_ID);
 	outObj.ethnicityId			= result.get<BigSerial>(	"ethnicity_id", 		INVALID_ID);
 	outObj.employmentStatusId	= result.get<BigSerial>(	"employment_status_id", INVALID_ID);
 	outObj.genderId				= result.get<BigSerial>(	"gender_id", 			INVALID_ID);
 	outObj.educationId			= result.get<BigSerial>(	"education_id", 		INVALID_ID);
 	outObj.occupationId			= result.get<BigSerial>(	"occupation_id", 		INVALID_ID);
+	outObj.industryId			= result.get<BigSerial>(	"industry_id", 			INVALID_ID);
 	outObj.transitCategoryId	= result.get<BigSerial>(	"transit_category_id", 	INVALID_ID);
 	outObj.ageCategoryId		= result.get<BigSerial>(	"age_category_id", 		INVALID_ID);
 	outObj.residentialStatusId	= result.get<BigSerial>(	"residential_status_id",INVALID_ID);
@@ -42,6 +45,11 @@ void IndividualDao::fromRow(Row& result, Individual& outObj)
 	outObj.motorLicense			= result.get<int>(			"motor_license", 		0);
 	outObj.vanbusLicense		= result.get<int>(			"vanbus_license", 		0);
 	outObj.dateOfBirth			= result.get<std::tm>(		"date_of_birth", 		std::tm());
+	outObj.ageDetailedCategory  = result.get<BigSerial>(	"age_detailed_category",INVALID_ID);
+	outObj.taxiDriver			= result.get<int>(			"taxi_driver", 		0);
+	outObj.fixed_workplace		= result.get<int>(			"fixed_workplace", 	0);
+	outObj.fixed_hours			= result.get<int>(			"fixed_hours", 		0);
+
 }
 
 void IndividualDao::toRow(Individual& data, Parameters& outParams, bool update) {}

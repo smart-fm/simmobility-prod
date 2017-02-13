@@ -627,8 +627,10 @@ bool DriverMovement::updateMovement()
 			}
 			else if (startWayPoint.type == WayPoint::TURNING_GROUP && currWayPoint.type == WayPoint::ROAD_SEGMENT)
 			{
+				//Include the current waypoint into the segmentsPassed vector as we need to start the collection of travel time for this segment
+				//[As the previous way-point was a turning group, we have not started the collection for the segment yet]
 				segmentsPassed.insert(segmentsPassed.begin(), currLink->getRoadSegments().begin(),
-									  currLink->getRoadSegments().begin() + currWayPoint.roadSegment->getSequenceNumber());
+									  currLink->getRoadSegments().begin() + currWayPoint.roadSegment->getSequenceNumber() + 1);
 			}
 
 			updateRoadSegmentTravelTime(segmentsPassed);

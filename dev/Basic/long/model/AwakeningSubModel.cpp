@@ -47,7 +47,7 @@ namespace sim_mob
 
 			if( bidder == nullptr || seller == nullptr )
 			{
-				AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, (boost::format( "The bidder or seller classes is null.")).str());
+				printError((boost::format( "The bidder or seller classes is null.")).str());
 				return;
 			}
 
@@ -55,7 +55,7 @@ namespace sim_mob
 
 			if(household == nullptr)
 			{
-				AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, (boost::format( "household  of agent %1% is null.") %  agent->getId()).str());
+				printError((boost::format( "household  of agent %1% is null.") %  agent->getId()).str());
 				return;
 			}
 
@@ -143,7 +143,7 @@ namespace sim_mob
 			{
 				if( awakening == nullptr )
 				{
-					AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, (boost::format( "The awakening object is null for household %1%. We'll set it to the average.") % household->getId()).str());
+					printError((boost::format( "The awakening object is null for household %1%. We'll set it to the average.") % household->getId()).str());
 
 					class1 = equalClassProb;
 					class2 = equalClassProb;

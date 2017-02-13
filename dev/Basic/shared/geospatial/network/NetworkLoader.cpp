@@ -221,13 +221,13 @@ void NetworkLoader::loadBusStops(const std::string& storedProc)
 	sim_mob::ConfigParams& config = sim_mob::ConfigManager::GetInstanceRW().FullConfig();
 	if(!config.isPublicTransitEnabled())
 	{
-		sim_mob::Print() << "\nWARNING: public-transit is not enabled in the config file " << std::endl;
+		Warn() << "\nPublic-transit is not enabled in the config file " << std::endl;
 		return;
 	}
 
 	if (storedProc.empty())
 	{
-		Print() << "Stored procedure to load bus stops not specified in the configuration file." 
+		Warn() << "Stored procedure to load bus stops not specified in the configuration file." 
 				<< "\nBus Stops not loaded..." << std::endl;
 		return;
 	}

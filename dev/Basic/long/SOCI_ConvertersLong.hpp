@@ -114,6 +114,38 @@ struct type_conversion<sim_mob::long_term::WorkersGrpByLogsumParams>
     }
 };
 
+template<>
+struct type_conversion<sim_mob::long_term::BuildingMatch>
+{
+    typedef values base_type;
+
+    static void
+    from_base(soci::values const & values, soci::indicator & indicator, sim_mob::long_term::BuildingMatch& buildingMatch)
+    {
+    	buildingMatch.setFm_building(values.get<long long>("fm_building_id", INVALID_ID));
+    	buildingMatch.setFm_building_id_2008(values.get<long long>("fm_building_id_2008", INVALID_ID));
+    	buildingMatch.setSla_building_id(values.get<string>("sla_building_id", ""));
+    	buildingMatch.setSla_inc_cnc(values.get<string>("sla_inc_cnc",""));
+    	buildingMatch.setMatch_code(values.get<int>("match_code",0));
+    	buildingMatch.setMatch_date(values.get<tm>("match_date",tm()));
+    }
+};
+
+
+template<>
+struct type_conversion<sim_mob::long_term::SlaBuilding>
+{
+    typedef values base_type;
+
+    static void
+    from_base(soci::values const & values, soci::indicator & indicator, sim_mob::long_term::SlaBuilding& slaBuilding)
+    {
+    	slaBuilding.setSla_address_id(values.get<long long>("sla_address_id",0));
+    	slaBuilding.setSla_building_id(values.get<string>("sla_building_id",""));
+    	slaBuilding.setSla_inc_crc(values.get<string>("sla_inc_crc",""));
+    }
+};
+
 
 } //namespace soci
 

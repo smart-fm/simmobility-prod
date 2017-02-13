@@ -29,7 +29,10 @@ namespace sim_mob
 		{
 				Job  *headOfHhJob = model->getJobById( (headOfHousehold)->getJobId());
 				Establishment *headOfHhEstablishment = model->getEstablishmentById(headOfHhJob->getEstablishmentId());
-				Postcode *slaAddressWork = model->getPostcodeById( headOfHhEstablishment->getSlaAddressId());
+
+				BigSerial establishmentSlaAddressId = model->getEstablishmentSlaAddressId(headOfHhJob->getEstablishmentId());
+
+				Postcode *slaAddressWork = model->getPostcodeById(establishmentSlaAddressId);
 
 				int tazIdWork = slaAddressWork->getTazId();
 				Taz *tazWork  = model->getTazById(tazIdWork);

@@ -240,12 +240,12 @@ void loadDataToOutputSchema(db::DB_Connection& conn,std::string &currentOutputSc
 			hhUnitDao.insertHouseholdUnit(*hhUnit,currentOutputSchema);
 		}
 
-		std::vector<boost::shared_ptr<Unit> > updatedUnits = housingMarketModel.getUpdatedUnits();
-		std::vector<boost::shared_ptr<Unit> >::iterator updatedUnitsItr;
-		for(updatedUnitsItr = units.begin(); updatedUnitsItr != updatedUnits.end(); ++updatedUnitsItr)
-		{
-			unitDao.insertUnit(*(*updatedUnitsItr),currentOutputSchema);
-		}
+//		std::vector<boost::shared_ptr<Unit> > updatedUnits = housingMarketModel.getUpdatedUnits();
+//		std::vector<boost::shared_ptr<Unit> >::iterator updatedUnitsItr;
+//		for(updatedUnitsItr = units.begin(); updatedUnitsItr != updatedUnits.end(); ++updatedUnitsItr)
+//		{
+//			unitDao.insertUnit(*(*updatedUnitsItr),currentOutputSchema);
+//		}
 
 		SimulationStoppedPointDao simStoppedPointDao(conn);
 		simStoppedPointDao.insertSimulationStoppedPoints(*(developerModel.getSimStoppedPointObj(simVersionId)).get(),currentOutputSchema);
@@ -507,12 +507,11 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
 
             DeveloperModel::ParcelList parcels;
             DeveloperModel::DeveloperList developerAgents;
-            //sample projects weekly.::TODO::
-           // if((currTick+1)%7 == 0)
-           // {
+            if((currTick+1)%7 == 0)
+            {
             	developerAgents = developerModel->getDeveloperAgents();
             	developerModel->wakeUpDeveloperAgents(developerAgents);
-            //}
+            }
 
             PrintOutV(" Day " << currTick
             	   << " HUnits: " << std::dec << (dynamic_cast<HM_Model*>(models[0]))->getMarket()->getEntrySize()

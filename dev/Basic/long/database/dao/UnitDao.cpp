@@ -23,7 +23,7 @@ void UnitDao::fromRow(Row& result, Unit& outObj)
 {
     outObj.id  = result.get<BigSerial>("fm_unit_id", INVALID_ID);
     outObj.building_id  = result.get<BigSerial>("fm_building_id", INVALID_ID);
-    outObj.sla_address_id  = result.get<BigSerial>("sla_address_id", INVALID_ID);
+    //outObj.sla_address_id  = result.get<BigSerial>("sla_address_id", INVALID_ID);
     outObj.unit_type  = result.get<int>("unit_type", INVALID_ID);
     outObj.storey_range  = result.get<int>("storey_range", 0);
     outObj.constructionStatus  = result.get<int>("construction_status", 0);
@@ -37,7 +37,7 @@ void UnitDao::fromRow(Row& result, Unit& outObj)
     outObj.lastChangedDate = result.get<std::tm>("last_changed_date", std::tm());
     outObj.totalPrice = result.get<double>("total_price", .0);
     outObj.valueDate = result.get<std::tm>("value_date", std::tm());
-    outObj.tenureStatus = result.get<int>("tenure_status", 0);
+    //outObj.tenureStatus = result.get<int>("tenure_status", 0);
 }
 
 void UnitDao::toRow(Unit& data, Parameters& outParams, bool update)

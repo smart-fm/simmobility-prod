@@ -251,9 +251,10 @@ inline void calculateProjectProfit(PotentialProject& project,DeveloperModel* mod
 			double floorArea = (*unitsItr).getFloorArea();
 			double revenue = 0;
 
+			int freehold = model->isFreeholdParcel(fmParcelId);
 			if(hedonicCoeffObj!=nullptr)
 			{
-				revenue  = hedonicCoeffObj->getIntercept() + (hedonicCoeffObj->getLogSqrtArea() * log(floorArea))+ (hedonicCoeffObj->getFreehold() * (*unitsItr).isFreehold()) +
+				revenue  = hedonicCoeffObj->getIntercept() + (hedonicCoeffObj->getLogSqrtArea() * log(floorArea))+ (hedonicCoeffObj->getFreehold() * freehold) +
 					(hedonicCoeffObj->getLogsumWeighted() * logsum ) + (hedonicCoeffObj->getPms1km() * amenities->hasPms_1km()) + (hedonicCoeffObj->getDistanceMallKm() * amenities->getDistanceToMall()) +
 					(hedonicCoeffObj->getMrt200m()* amenities->hasMRT_200m()) + (hedonicCoeffObj->getMrt_2_400m() * amenities->hasMRT_400m()) + (hedonicCoeffObj->getExpress200m() * amenities->hasExpress_200m()) +
 				    (hedonicCoeffObj->getBus400m() * amenities->hasBus_200m()) + (hedonicCoeffObj->getBusGt400m() * amenities->hasBus_400m()) + (hedonicCoeffObj->getAge() * ageCapped) + (hedonicCoeffObj->getLogAgeSquared() * (ageCapped*ageCapped));
@@ -465,6 +466,7 @@ inline void createPotentialUnits(PotentialProject& project,const DeveloperModel*
 
                         if(project.getInvestmentReturnRatio()> thresholdInvestmentReturnRatio)
                         {
+
                         	if(&project != nullptr)
                         	{
                         		projects.push_back(project);

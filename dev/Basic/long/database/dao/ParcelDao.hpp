@@ -55,6 +55,11 @@ namespace sim_mob {
             std::vector<Parcel*> getParcelsWithOngoingProjects(std::string schema);
 
             void insertParcel(Parcel& parcel,std::string schema);
+
+            /*
+             * Get the parcels with freehold buildings as a vector
+             */
+            std::vector<Parcel*> getFreeholdParcels();
         };
     }
 }

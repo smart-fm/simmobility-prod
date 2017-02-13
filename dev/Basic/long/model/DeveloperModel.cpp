@@ -49,6 +49,7 @@
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "util/SharedFunctions.hpp"
+#include "util/PrintLog.hpp"
 #include "SOCI_ConvertersLong.hpp"
 #include "DatabaseHelper.hpp"
 
@@ -91,6 +92,12 @@ void DeveloperModel::startImpl() {
 		//Index all empty parcels.
 		for (ParcelList::iterator it = emptyParcels.begin(); it != emptyParcels.end(); it++) {
 			emptyParcelsById.insert(std::make_pair((*it)->getId(), *it));
+		}
+
+		freeholdParcels = parcelDao.getFreeholdParcels();
+		//Index all freehold parcels.
+		for (ParcelList::iterator it = freeholdParcels.begin(); it != freeholdParcels.end(); it++) {
+			freeholdParcelsById.insert(std::make_pair((*it)->getId(), *it));
 		}
 
 		//load DevelopmentType-Templates
@@ -194,7 +201,7 @@ void DeveloperModel::startImpl() {
 	createDeveloperAgents(developmentCandidateParcelList,false,false);
 	createDeveloperAgents(parcelsWithProjectsList,true,false);
 	createDeveloperAgents(parcelsWithDay0Projects,false,true);
-	createBTODeveloperAgents();
+	//createBTODeveloperAgents();
 	wakeUpDeveloperAgents(getDeveloperAgents());
 
 	PrintOutV("Time Interval " << timeInterval << std::endl);
@@ -471,7 +478,7 @@ void DeveloperModel::processParcels()
 {
 	/**
 	 *  Iterates over all developer parcels and
-	 *  get all potential projects which have a density <= GPR.
+	 *  get all potential projects.
 	 */
 	for (size_t i = 0; i < initParcelList.size(); i++)
 	{
@@ -483,42 +490,52 @@ void DeveloperModel::processParcels()
 			if(getParcelWithOngoingProjectById(parcel->getId())!= nullptr)
 			{
 				parcelsWithProjectsList.push_back(parcel);
+				writeNonEligibleParcelsToFile(parcel->getId(),"on going project");
 			}
 			else
 			{
 				if(parcel->getStatus()==1)
 				{
 					parcelsWithDay0Projects.push_back(parcel);
-				}
-				//unitPrice sum null means that the parcel has buildings without units or buildings with HDB units.
-				else if ((!isEmptyParcel(parcel->getId())) && (getUnitPriceSumByParcelId(parcel->getId())==nullptr))
-				{
-					nonEligibleParcelList.push_back(parcel);
+					writeNonEligibleParcelsToFile(parcel->getId(),"on going project");
 				}
 				else
 				{
-					if((parcel->getDevelopmentAllowed()!=2)||(parcel->getLotSize()< minLotSize) || (getParcelsWithHDB_ByParcelId(parcel->getId())!= nullptr))
+					if(parcel->getDevelopmentAllowed()!=2)
 					{
 						nonEligibleParcelList.push_back(parcel);
+						writeNonEligibleParcelsToFile(parcel->getId(),"development not allowed");
+					}
+					else if(parcel->getLotSize()< minLotSize)
+					{
+						nonEligibleParcelList.push_back(parcel);
+						writeNonEligibleParcelsToFile(parcel->getId(),"lot size less than 100");
+					}
+					else if (getParcelsWithHDB_ByParcelId(parcel->getId())!= nullptr)
+					{
+						nonEligibleParcelList.push_back(parcel);
+						writeNonEligibleParcelsToFile(parcel->getId(),"parcel with HDB");
 					}
 					else
 					{
 						//TODO:: consider the use_restriction field of parcel as well in the future
 						float allowdGpr = getAllowedGpr(*parcel);
-						float actualGpr = getBuildingSpaceByParcelId(parcel->getId())/parcel->getLotSize();
-						if ( actualGpr >= 0 && actualGpr < allowdGpr)
+						if(allowdGpr > 0)
 						{
-							developmentCandidateParcelList.push_back(parcel);
+						developmentCandidateParcelList.push_back(parcel);
+
 							int newDevelopment = 0;
 							if(isEmptyParcel(parcel->getId()))
 							{
 								newDevelopment = 1;
 							}
+							writeEligibleParcelsToFile(parcel->getId(),newDevelopment);
 							devCandidateParcelsById.insert(std::make_pair(parcel->getId(), parcel));
 						}
 						else
 						{
 							nonEligibleParcelList.push_back(parcel);
+							writeNonEligibleParcelsToFile(parcel->getId(),"parcel gpr is not present");
 						}
 
 					}
@@ -572,27 +589,26 @@ void DeveloperModel::processProjects()
 DeveloperModel::DeveloperList DeveloperModel::getDeveloperAgents(){
 
 	const int poolSize = developers.size();
-	const float dailyParcelPercentage = 0.006; //we are examining 0.6% of the pool everyday
+	const float dailyParcelPercentage = 0.001; //we are examining 0.6% of the pool everyday
 	const int dailyAgentFraction = poolSize * dailyParcelPercentage;
 	std::set<int> indexes;
 	DeveloperList dailyDevAgents;
 	int max_index = developers.size() - 1;
-	//while (indexes.size() < std::min(dailyAgentFraction, max_index))
-		for(unsigned int i = 0; i < dailyAgentFraction ; i++)
+
+	for(unsigned int i = 0; i < dailyAgentFraction ; i++)
 	{
-	    //int random_index = rand() % max_index;
 		std::random_device rd;
 		std::mt19937 gen(rd());
 		std::uniform_int_distribution<int> dis(0, max_index);
 		const unsigned int random_index = dis(gen);
-	    if (indexes.find(random_index) == indexes.end())
-	    {
-	    	if(!(developers[random_index]->isActive()))
-	    	{
-	    		dailyDevAgents.push_back(developers[random_index]);
-	    		indexes.insert(random_index);
-	    	}
-	    }
+		if (indexes.find(random_index) == indexes.end())
+		{
+			if(!(developers[random_index]->isActive()))
+			{
+				dailyDevAgents.push_back(developers[random_index]);
+				indexes.insert(random_index);
+			}
+		}
 	}
 	return dailyDevAgents;
 }
@@ -636,6 +652,15 @@ const bool DeveloperModel::isEmptyParcel(BigSerial id) const {
         return true;
     }
     return false;
+}
+
+const int DeveloperModel::isFreeholdParcel(BigSerial id) const
+{
+	ParcelMap::const_iterator itr = freeholdParcelsById.find(id);
+	if (itr != freeholdParcelsById.end()) {
+		return true;
+	}
+	return false;
 }
 
 BigSerial DeveloperModel::getProjectIdForDeveloperAgent()

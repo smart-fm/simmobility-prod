@@ -23,7 +23,8 @@ IndividualDao::~IndividualDao() {}
 
 void IndividualDao::fromRow(Row& result, Individual& outObj)
 {
-	outObj.id  					= result.get<BigSerial>(	"id", 					INVALID_ID);
+
+	outObj.id  					= result.get<BigSerial>(	"individual_id", 					INVALID_ID);
 	outObj.jobId				= result.get<BigSerial>(	"job_id", 				INVALID_ID);
 	outObj.studentId			= result.get<BigSerial>(	"student_id", 			INVALID_ID);
 	outObj.individualTypeId		= result.get<BigSerial>(	"individual_type_id", 	INVALID_ID);

@@ -59,7 +59,10 @@ namespace sim_mob
 				LOG_HH_EXIT,
 				LOG_RANDOM_NUMS,
 				LOG_DEV_ROI,
-				LOG_HOUSEHOLD_STATISTICS
+				LOG_HOUSEHOLD_STATISTICS,
+				LOG_NON_ELIGIBLE_PARCELS,
+				LOG_ELIGIBLE_PARCELS,
+				LOG_GPR
             };
 
             LoggerAgent();

@@ -271,8 +271,15 @@ namespace sim_mob
 
 				double income = household->getIncome();
 
+				/*
+				 * If the income is zero. We'll try to deduce an income for that household base on the
+				 * current value of its property. We'll assume one third of the salary of that household
+				 * was used to get a 30 year mortgage and that the household has been fully paid for.
+				 */
 				if( income ==  0 )
 				{
+					//multiple by a million cos the currentUnitPrice is expressed in millions. Divide by 30 * 12 assumming a 30 year mortgage
+					//multiply by 3 cos only a third of the income was used to pay the mortgage.
 					income = 3.0 * 1000000.0 * household->getCurrentUnitPrice() / ( 30 * 12 );
 				}
 

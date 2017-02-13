@@ -573,6 +573,7 @@ public:
      * @param lineId is the id of the line
      * @return bool true if it is the last platform
      */
+    void handleTrainReturnAfterTripCompletition(PERSON *person);
     bool isTerminalPlatform(std::string platformNo,std::string lineId);
     const std::vector<double> getNumberOfPersonsCoefficients(const Station *station,const Platform *platformName) const;
 	void changeNumberOfPersonsCoefficients(std::string stationName,std::string platformName,double coefficientA,double coefficientB,double coefficientC);

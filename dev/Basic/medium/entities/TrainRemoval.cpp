@@ -109,9 +109,10 @@ namespace medium
 
 			trainController->removeFromListOfActiveTrainsInLine(trainLine,*itr);
 			ServiceController::getInstance()->removeTrainIdAndTrainDriverInMap(trainId,trainLine,(*itr));
-			trainsToBeRemoved.erase(itr);
-			messaging::MessageBus::PostMessage(TrainController<Person_MT>::getInstance(),
-										MSG_TRAIN_BACK_DEPOT, messaging::MessageBus::MessagePtr(new TrainMessage((*itr)->getParent())));
+			trainController->handleTrainReturnAfterTripCompletition((*itr)->getParent());
+			itr = trainsToBeRemoved.erase(itr);
+			//messaging::MessageBus::PostMessage(TrainController<Person_MT>::getInstance(),
+										//MSG_TRAIN_BACK_DEPOT, messaging::MessageBus::MessagePtr(new TrainMessage((*itr)->getParent())));
 		}
 	}
 }

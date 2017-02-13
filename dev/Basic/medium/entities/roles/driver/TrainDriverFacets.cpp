@@ -1420,7 +1420,10 @@ namespace medium
 			if(forceResetMovingCase == true && forceResetedCase == TRAINCASE::NORMAL_CASE)
 			{
 				params.currCase = TrainUpdateParams::NORMAL_CASE;
-				break;
+				if(distanceToNextObject == distanceToNextPlatform)
+				{
+					break;
+				}
 			}
 
 			else
@@ -1517,7 +1520,7 @@ namespace medium
 			}
 		}
 
-		if(isStationCaseVar)
+		if(isStationCaseVar&& !((distanceToNextObject == distanceToNextPlatform) && params.currCase == TrainUpdateParams::NORMAL_CASE && forceResetMovingCase))
 		{
 			if(params.currentSpeed>0)
 			{

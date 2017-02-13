@@ -456,6 +456,42 @@ BigSerial HM_Model::getEstablishmentTazId(BigSerial establishmentId) const
 	return tazId;
 }
 
+
+BigSerial HM_Model::getUnitSlaAddressId(BigSerial unitId) const
+{
+	const Unit* unit = getUnitById(unitId);
+
+	BigSerial buildingId = unit->getBuildingId();
+	string slaBuildingId = "";
+	BigSerial slaAddressId = 0;
+
+	for( auto n : buildingMatch )
+	{
+		if( n->getFm_building() == buildingId && n->getMatch_code() == 1 )
+		{
+			slaBuildingId = n->getSla_building_id();
+		}
+	}
+
+	for( auto n : slaBuilding )
+	{
+		if( n->getSla_building_id() == slaBuildingId)
+		{
+			slaAddressId = n->getSla_address_id();
+		}
+	}
+
+	BigSerial addressId = INVALID_ID;
+
+	if (unit)
+	{
+		addressId = DataManagerSingleton::getInstance().getPostcodeTazId(slaAddressId);
+	}
+
+	return addressId;
+}
+
+
 BigSerial HM_Model::getEstablishmentSlaAddressId(BigSerial establishmentId) const
 {
 	const Establishment* establishment = getEstablishmentById(establishmentId);
@@ -480,14 +516,14 @@ BigSerial HM_Model::getEstablishmentSlaAddressId(BigSerial establishmentId) cons
 		}
 	}
 
-	BigSerial tazId = INVALID_ID;
+	BigSerial addressId = INVALID_ID;
 
 	if (establishment)
 	{
-		tazId = DataManagerSingleton::getInstance().getPostcodeTazId(slaAddressId);
+		addressId = DataManagerSingleton::getInstance().getPostcodeTazId(slaAddressId);
 	}
 
-	return tazId;
+	return addressId;
 }
 
 
@@ -1543,8 +1579,8 @@ void HM_Model::startImpl()
 		loadData<HousingInterestRateDao>( conn, housingInterestRates, housingInterestRatesById, &HousingInterestRate::getId);
 		PrintOutV("Number of interest rate quarters: " << housingInterestRates.size() << std::endl );
 
-		loadData<LogSumVehicleOwnershipDao>( conn, vehicleOwnershipLogsums, vehicleOwnershipLogsumById, &LogSumVehicleOwnership::getHouseholdId);
-		PrintOutV("Number of vehicle ownership logsums: " << vehicleOwnershipLogsums.size() << std::endl );
+		//loadData<LogSumVehicleOwnershipDao>( conn, vehicleOwnershipLogsums, vehicleOwnershipLogsumById, &LogSumVehicleOwnership::getHouseholdId);
+		//PrintOutV("Number of vehicle ownership logsums: " << vehicleOwnershipLogsums.size() << std::endl );
 
 		loadData<DistanceMRTDao>( conn, mrtDistances, mrtDistancesById, &DistanceMRT::getHouseholdId);
 		PrintOutV("Number of mrt distances: " << mrtDistances.size() << std::endl );
@@ -1665,6 +1701,12 @@ void HM_Model::startImpl()
 				householdUnitByHHId.insert(std::make_pair((*it)->getHouseHoldId(), *it));
 			}
 		}
+	}
+
+
+	for( int n = 0; n < units.size(); n++)
+	{
+		units[n]->setSlaAddressId( getUnitSlaAddressId(units[n]->getId()));
 	}
 
 

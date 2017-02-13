@@ -287,6 +287,7 @@ namespace sim_mob
              */
             Unit* getUnitById(BigSerial id) const;
             BigSerial getUnitTazId(BigSerial unitId) const;
+            BigSerial getUnitSlaAddressId(BigSerial unitId) const;
             BigSerial getEstablishmentTazId(BigSerial establishmentId) const;
             BigSerial getEstablishmentSlaAddressId(BigSerial establishmentId) const;
             const TazStats* getTazStats(BigSerial tazId) const;

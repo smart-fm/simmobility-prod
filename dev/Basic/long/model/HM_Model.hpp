@@ -200,7 +200,7 @@ namespace sim_mob
             typedef boost::unordered_map<BigSerial, BuildingMatch*> BuildingMatchMap;
 
             typedef std::vector<SlaBuilding*> SlaBuildingList;
-            typedef boost::unordered_map<BigSerial, SlaBuilding*> SlaBuildingMap;
+            typedef boost::unordered_map<string, SlaBuilding*> SlaBuildingMap;
 
             /**
              * Taz statistics

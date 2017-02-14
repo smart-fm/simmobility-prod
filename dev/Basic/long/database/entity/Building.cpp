@@ -15,10 +15,10 @@ using namespace sim_mob::long_term;
 
 Building::Building( BigSerial fmBuildingId, BigSerial fmProjectId, BigSerial fmParcelId, int storeysAboveGround, int storeysBelowGround,
 					std::tm fromDate, std::tm toDate, int buildingStatus, float	grossSqMRes, float grossSqMOffice,
-					float grossSqMRetail, float grossSqMOther, std::tm lastChangedDate,int freehold,float floorSpace,std::string buildingType,BigSerial slaAddressId) :
+					float grossSqMRetail, float grossSqMOther, std::tm lastChangedDate,int freehold,float floorSpace,std::string buildingType) :
 					fmBuildingId(fmBuildingId), fmProjectId(fmProjectId), fmParcelId(fmParcelId), storeysAboveGround(storeysAboveGround),storeysBelowGround(storeysBelowGround), fromDate(fromDate),
 					toDate(toDate), buildingStatus(buildingStatus),grossSqMRes(grossSqMRes),grossSqMOffice(grossSqMOffice), grossSqMRetail(grossSqMRetail), grossSqMOther(grossSqMOther),
-					lastChangedDate(lastChangedDate),freehold(freehold),floorSpace(floorSpace),buildingType(buildingType),slaAddressId(slaAddressId){}
+					lastChangedDate(lastChangedDate),freehold(freehold),floorSpace(floorSpace),buildingType(buildingType){}
 
 Building::~Building() {}
 
@@ -40,7 +40,6 @@ Building::Building( const Building &source)
 	this->freehold              = source.freehold;
 	this->floorSpace            = source.freehold;
 	this->buildingType          = source.buildingType;
-	this->slaAddressId          = source.slaAddressId;
 }
 
 Building& Building::operator=(const Building& source)
@@ -61,7 +60,6 @@ Building& Building::operator=(const Building& source)
 	this->freehold              = source.freehold;
 	this->floorSpace            = source.freehold;
 	this->buildingType          = source.buildingType;
-	this->slaAddressId          = source.slaAddressId;
 
     return *this;
 }
@@ -208,16 +206,6 @@ int Building::getFreehold() const
 void Building::setFreehold(int freehold)
 {
 	this->freehold = freehold;
-}
-
-BigSerial Building::getSlaAddressId() const
-{
-	return slaAddressId;
-}
-
-void Building::setSlaAddressId(BigSerial slaAddressId)
-{
-	this->slaAddressId = slaAddressId;
 }
 
 

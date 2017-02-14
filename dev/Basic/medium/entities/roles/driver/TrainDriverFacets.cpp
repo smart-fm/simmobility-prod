@@ -620,6 +620,7 @@ namespace medium
 					if(isStopAtPlatform())
 					{
 						parentDriver->setInitialNumberOfPassengers(parentDriver->getPassengers().size());
+						//once the train has reached the platform reset of the moving case is set to false
 						forceResetMovingCase = false;
 						parentDriver->setNextRequested(TrainDriver::REQUESTED_AT_PLATFORM);
 
@@ -672,7 +673,6 @@ namespace medium
 
 			case TrainDriver::REQUESTED_WAITING_LEAVING:
 			{
-				//need to handle the case when the is stopped at platform and stop point is given
 				parentDriver->reduceWaitingTime(params.secondsInTick);
 				parentDriver->resetHoldingTime();
 				double waitingTime = parentDriver->getWaitingTime();
@@ -1417,65 +1417,73 @@ namespace medium
 			params.distanceToNextStopPoint = disToNextStopPoint;
 			params.maxDecelerationToStopPoint = maxDecelerationToStopPoint;
 			saveDistancetoNextObj = distanceToNextObject;
+			 
 			if(forceResetMovingCase == true && forceResetedCase == TRAINCASE::NORMAL_CASE)
 			{
 				params.currCase = TrainUpdateParams::NORMAL_CASE;
 				if(distanceToNextObject == distanceToNextPlatform)
 				{
+					//if the moving case is set to set NORMAL case by service controller forcefully then if the nearest object is platform then break
+					//cannot provide stopping deceleration in NORMAL case
 					break;
 				}
 			}
-
-			else
+			
+			isStationCaseVar = isStationCase(distanceToNextTrain,distanceToNextPlatform,disToNextStopPoint, distanceToNextObject);
+			if (isStationCaseVar)
 			{
-				isStationCaseVar = isStationCase(distanceToNextTrain,distanceToNextPlatform,disToNextStopPoint, distanceToNextObject);
-				if (isStationCaseVar)
+				double decelerate = trainPathMover.getCurrentDecelerationRate();
+				if(distanceToNextObject == params.distanceToNextStopPoint)
 				{
-					double decelerate = trainPathMover.getCurrentDecelerationRate();
+					if(decelerate>params.maxDecelerationToStopPoint)
+					{
+						decelerate = params.maxDecelerationToStopPoint;
+					}
+				}
+				speedLimit = std::sqrt(2.0 * decelerate * distanceToNextObject);
+				if (params.currentSpeed > speedLimit)
+				{
 					if(distanceToNextObject == params.distanceToNextStopPoint)
 					{
-						if(decelerate>params.maxDecelerationToStopPoint)
+						if((params.currentSpeed*params.currentSpeed)/(2*distanceToNextObject)<=params.maxDecelerationToStopPoint)
 						{
-							decelerate = params.maxDecelerationToStopPoint;
-						}
-					}
-					speedLimit = std::sqrt(2.0 * decelerate * distanceToNextObject);
-					if (params.currentSpeed > speedLimit)
-					{
-						if(distanceToNextObject == params.distanceToNextStopPoint)
-						{
-							if((params.currentSpeed*params.currentSpeed)/(2*distanceToNextObject)<=params.maxDecelerationToStopPoint)
-							{
-								params.currCase = TrainUpdateParams::STATION_CASE;
-								params.currentSpeedLimit = speedLimit;
-								return distanceToNextObject;
-							}
-							else
-							{
-								//erase stop point
-								stopPoints.erase(itr);
-								params.distanceToNextStopPoint = 0;
-							}
-						}
-						else
-						{
+							//even if it Normal case ,just a hack to set station case to make the train stop at stop point.
+							//normal case is only applied for not stopping at station but it can stop at stop point
 							params.currCase = TrainUpdateParams::STATION_CASE;
 							params.currentSpeedLimit = speedLimit;
 							return distanceToNextObject;
 						}
+						else
+						{
+							//erase stop point
+							stopPoints.erase(itr);
+							params.distanceToNextStopPoint = 0;
+						}
 					}
 					else
 					{
-						break;
+						//for stopping at station in station case
+						params.currCase = TrainUpdateParams::STATION_CASE;
+						params.currentSpeedLimit = speedLimit;
+						return distanceToNextObject;
 					}
 				}
 				else
 				{
+					// does not satify any station case or stop point stopping condition
 					break;
 				}
 			}
+			else
+			{
+				// does not satisfy any station case or stop point stopping condition
+				//as the stop point or station is not the nearest object
+				break;
+			}
+			
 		}
-
+		//if there is no stop point or station as nearest object then by default its NORMAL case.Even if the case is forcefully set by
+		//service controller to station case it is not taken into account if it does not satify station case condition
 		params.currCase = TrainUpdateParams::NORMAL_CASE;
 		distanceToNextObject = saveDistancetoNextObj;
 		if(distanceToNextObject <0 && !shouldIgnoreAllPlatforms && distanceToNextObject == distanceToNextPlatform)

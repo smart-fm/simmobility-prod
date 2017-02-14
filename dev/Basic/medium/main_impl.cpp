@@ -427,6 +427,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 
 			wgMgr.waitAllGroups_FrameTick();
 			wgMgr.waitAllGroups_FlipBuffers(&removedEntities);
+			//removing the trains from the simulation which are to be removed after the finish of frame tick barrier and flip buffer barrier for thread safety
 			TrainRemoval *trainRemovalInstance=TrainRemoval::getInstance();
 			trainRemovalInstance->removeTrainsBeforeNextFrameTick();
 			TrainServiceControllerLuaProvider::getTrainControllerModel()->useServiceController((dailyTime+DailyTime(5000)).getStrRepr());

@@ -271,6 +271,7 @@ void TrainDriver::calculateDwellTime(int boarding,int alighting,int noOfPassenge
 		bool useMaxDwellTime = false,useMinDwellTime = false;
 		if(platformHoldingTimeEntities.find(platform->getPlatformNo()) != platformHoldingTimeEntities.end())
 		{
+			//if service controller asks to reset holding time(dwell time) it is at highest priority no other conditions are checked
 			dwellTime = platformHoldingTimeEntities[platform->getPlatformNo()];
 		}
 
@@ -279,6 +280,7 @@ void TrainDriver::calculateDwellTime(int boarding,int alighting,int noOfPassenge
 
 			if(platformMaxHoldingTimeEntities.find(platform->getPlatformNo()) != platformMaxHoldingTimeEntities.end())
 			{
+				//if maximum holding time is set by service controller then that has to be maximum limit for the dwell time calculated
 				maxDwellTime = platformMaxHoldingTimeEntities[platform->getPlatformNo()];
 				useMaxDwellTime = true;
 			}
@@ -289,6 +291,7 @@ void TrainDriver::calculateDwellTime(int boarding,int alighting,int noOfPassenge
 
 			if(platformMinHoldingTimeEntities.find(platform->getPlatformNo()) != platformMinHoldingTimeEntities.end())
 			{
+				//if minimum holding time is set by service controller then that has to be minimum limit for the dwell time calculated
 				minDwellTime = platformMinHoldingTimeEntities[platform->getPlatformNo()];
 				useMinDwellTime = true;
 			}
@@ -297,19 +300,27 @@ void TrainDriver::calculateDwellTime(int boarding,int alighting,int noOfPassenge
 				minDwellTime = trainController->getMinDwellTime(stationNo,trainLine);
 			}
 
+			//always maximum dwell time is taken as more priority in case of conflicting values when both maximum and minimum dwell time are set 
+			//ie if minimum dwell time value set is more than maximum dwell time
 			if(useMaxDwellTime)
 			{
 				if(dwellTime>maxDwellTime)
 				{
 					dwellTime = maxDwellTime;
 				}
-
+				
 				if(dwellTime < minDwellTime&&minDwellTime <= maxDwellTime)
 				{
+					//if dwell time is less than min dwell time and mindwell time is < than max dwell time its straight forward
+					//just use min dwell time 
 					dwellTime = minDwellTime;
 				}
 				else if(dwellTime < minDwellTime && minDwellTime > maxDwellTime)
 				{
+					//conflicting case mindwellTime =Time>maxdwellTime
+					//if dwell time is less than minDwellTime then maximum dwell time can be set to is max dwell since 
+					//that is the minimum limit it can go below minimum dwell time
+					//since max dwell time is in priority
 					dwellTime = maxDwellTime;
 				}
 
@@ -324,10 +335,15 @@ void TrainDriver::calculateDwellTime(int boarding,int alighting,int noOfPassenge
 
 				if(dwellTime > maxDwellTime && maxDwellTime >= minDwellTime)
 				{
+					//if dwell time is greater max dwell time and maxDwellTime>=minDwellTime then its ok
+					//just take maxdwelltime as dwell time 
 					dwellTime = maxDwellTime;
 				}
 				else if (dwellTime > maxDwellTime && maxDwellTime < minDwellTime)
 				{
+					//if conflicting case maxDwellTime<minDwellTime
+					// then take minDwell time as the dwell time since it is the minimum limit it can go beyond maxdwelltime
+					//that is minimum dwell time is in priority
 					dwellTime = minDwellTime;
 				}
 			}

@@ -48,6 +48,9 @@ namespace medium
 
 	void TrainRemoval::removeTrainsBeforeNextFrameTick()
 	{
+		//This function loops through the trains to be removed sequentially ,detached the pointers of the train before it and attached it to
+		//to its next traindriver
+		//eg A->B->C.If B is to be removed then A's next driver will be pointing to B 
 		std::vector<TrainDriver*>::iterator itr=trainsToBeRemoved.begin();
 		for(;itr!=trainsToBeRemoved.end();)
 		{
@@ -83,13 +86,14 @@ namespace medium
 				std::map<std::string, TrainDriver*>::iterator ilastTrainDriver=lastTrainDriver.find(trainLine);
 				if(ilastTrainDriver != lastTrainDriver.end())
 				{
+					//checking for the last driver at that platform .If it is the same driver which is being removed then set it to null ptr
 					if(ilastTrainDriver->second == (*itr))
 					{
 						lastTrainDriver[trainLine]=nullptr;
 					}
 				}
 			}
-
+			//Also checking if it is 
 			Platform *lastPlatform = (*itr)->getNextPlatform();
 			if(lastPlatform!=nullptr)
 			{
@@ -109,6 +113,8 @@ namespace medium
 
 			trainController->removeFromListOfActiveTrainsInLine(trainLine,*itr);
 			ServiceController::getInstance()->removeTrainIdAndTrainDriverInMap(trainId,trainLine,(*itr));
+			//This function returns the train id back to train controller.Instead of passing message ,directly calling the function in train controller
+			//as it is done after the end of frame tick so no agent is performing its action,hence its thread safe. 
 			trainController->handleTrainReturnAfterTripCompletition((*itr)->getParent());
 			itr = trainsToBeRemoved.erase(itr);
 			//messaging::MessageBus::PostMessage(TrainController<Person_MT>::getInstance(),

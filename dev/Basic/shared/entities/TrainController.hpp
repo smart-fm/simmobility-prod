@@ -573,9 +573,32 @@ public:
      * @param lineId is the id of the line
      * @return bool true if it is the last platform
      */
-    void handleTrainReturnAfterTripCompletition(PERSON *person);
     bool isTerminalPlatform(std::string platformNo,std::string lineId);
-    const std::vector<double> getNumberOfPersonsCoefficients(const Station *station,const Platform *platformName) const;
+	
+	/**
+	 * Handles the return of train id after the completion of trip to train controller
+	 * putting it respectively in active or inactive pool
+	 * @param person is the parent person of train driver
+	 */
+    void handleTrainReturnAfterTripCompletition(PERSON *person);
+	
+	/**
+	 * This function returns the scaling factors of boarding,alighting and number of persons in train as set by service controller 
+	 * @param station is the pointer to the station
+	 * @param platform is the pointer to the platform
+	 * @return the vector of scaling coefficients of boarding,alighting and number of persons in train
+	 */
+	const std::vector<double> getNumberOfPersonsCoefficients(const Station *station,const Platform *platform) const;
+	
+	/**
+	 * This function changes the scaling factors of boarding,alighting and number of persons in train as set by service controller
+	 * by default the the scaling factors are 1 ,if not changed by service controller
+	 * @param stationName is the name of the station
+	 * @param platformName is the name to the platform
+	 * @param coefficientA is the value of scaling factor of boarding
+	 * @param coefficient B is the value of scaling factor of alighting
+	 * @param coefficient C is the value of scaling factor of number of persons in train
+	 */
 	void changeNumberOfPersonsCoefficients(std::string stationName,std::string platformName,double coefficientA,double coefficientB,double coefficientC);
 
 protected:

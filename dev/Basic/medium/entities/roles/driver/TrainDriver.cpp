@@ -252,7 +252,7 @@ void TrainDriver::calculateDwellTime(int boarding,int alighting,int noOfPassenge
 	const TrainProperties &trainProperties = trainLinePropertiesMap.find(getTrainLine())->second;
 	const TrainDwellTimeInfo &dwellTimeInfo = trainProperties.dwellTimeInfo;
 	double dwellTime = -1;
-	if(personCountCoefficients.size() == 4)
+	if(personCountCoefficients.size() == 3)
 	{
 		noOfPassengerInTrain = noOfPassengerInTrain*personCountCoefficients[2];
 		dwellTime = dwellTimeInfo.firstCoeff + (dwellTimeInfo.secondCoeff*personCountCoefficients[0]*boarding + dwellTimeInfo.thirdCoeff*personCountCoefficients[1]*alighting + dwellTimeInfo.fourthCoeff*personCountCoefficients[2]*noOfPassengerInTrain)/24;

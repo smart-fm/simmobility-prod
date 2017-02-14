@@ -348,6 +348,10 @@ void TrainDriver::calculateDwellTime(int boarding,int alighting,int noOfPassenge
 
 	if(forceAlightwhileWaiting)
 	{
+		//if the train is already serving the platform boarding alighting then it is asked to force alight passengers 
+		//the dwell time is re calculated .The total dwell time is calculated if it had to force alight initially before boarding or alighting
+		//then you subtract the time elapsed till now in serving the platform.The remaining time left is new dwell time
+		//as suggested by Ken
 		dwellTime = dwellTime - (initialDwellTime - waitingTimeSec);
 		minDwellTimeRequired = dwellTime; /*minDwellTimeRequired is the min dwell time calculated so that all passengers can board and alight */
 		waitingTimeSec = dwellTime;

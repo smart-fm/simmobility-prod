@@ -626,6 +626,8 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 			{
 				(*it)->alightAllPassengers(leavingPersons[platform], now);
 				int initialnumberofpassengers=(*it)->getInitialNumberOfPassengers();
+				//recalculate the dwell time in case the train is waiting at the platform boarding ,alighting.Since now all
+				//passengers will be alighting so dwell time will be different.
 				(*it)->calculateDwellTime(0,initialnumberofpassengers,initialnumberofpassengers,now,true);
 				(*it)->setForceAlightFlag(false);
 				if((*it)->getMovement()->getDisruptedState()== true)
@@ -662,15 +664,18 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 
 				if((*it)->getForceAlightFlag())
 				{
-
+					//if force alight flag is set by service controller then alight all passengers and set force alight status
+					//which is the indication that the train is force alighting passengers or already force alighted so no need to 
+					//set the force alight flag again
 					(*it)->lockUnlockRestrictPassengerEntitiesLock(true);
-					(*it)->setForceAlightStatus(true); //will be unset by service controller
+					(*it)->setForceAlightStatus(true); 
 					int alightingNum = (*it)->alightAllPassengers(leavingPersons[platform], now);
 					(*it)->lockUnlockRestrictPassengerEntitiesLock(false);
 					(*it)->calculateDwellTime(0,alightingNum,0,now,false);
 					(*it)->setNextRequested(TrainDriver::REQUESTED_WAITING_LEAVING);
 					(*it)->setForceAlightFlag(false);
-
+					//either the train can be in disrupted state, meaning that it cannot move ahead of the point where it is
+					// or if the uturn flag is set if it has to take uturn but before that force alight of passengers takes place
 					if((*it)->getMovement()->getDisruptedState() || (*it)->getUTurnFlag()==true)
 					{
 						(*it)->setHasForceAlightedInDisruption(true);
@@ -711,6 +716,8 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 				{
 					if((!(*it)->getForceAlightFlag())&&((*it)->getMovement()->getDisruptedState()||(*it)->getUTurnFlag()))
 					{
+						//other case if disruption is not done through service controller so force alight flag is not set.
+						//hence need to explicitly force alight passengers.Not important now
 						(*it)->lockUnlockRestrictPassengerEntitiesLock(true);
 						int alightingNum = (*it)->alightAllPassengers(leavingPersons[platform], now);
 						(*it)->lockUnlockRestrictPassengerEntitiesLock(false);
@@ -737,6 +744,7 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 					}
 					if((*it)->getUTurnFlag())
 					{
+						//if the train has to take a uturn at current platform then it has to force alight all its passengers
 						if(!(*it)->getForceAlightStatus())
 						{
 							(*it)->lockUnlockRestrictPassengerEntitiesLock(true);

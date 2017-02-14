@@ -1527,7 +1527,11 @@ namespace medium
 				speedLimit = std::min(speedLimit, speedLimit2);
 			}
 		}
-
+		
+		// checking in advance one frame tick before whether the the speed acceleration and distance calculated will cause any problems
+		// in stopping at stop point or at station in next frame tick ie will it overshoot the deceleration limit?,if so then start decelerating right now
+		//calculate the required deceleration to stop at stop point or station
+		//but if it is forcefully set to normal case and the nearest object is station then no need to decelerate to stop
 		if(isStationCaseVar&& !((distanceToNextObject == distanceToNextPlatform) && params.currCase == TrainUpdateParams::NORMAL_CASE && forceResetMovingCase))
 		{
 			if(params.currentSpeed>0)
@@ -1553,6 +1557,7 @@ namespace medium
 
 				if(distanceToNextObject == params.distanceToNextStopPoint)
 				{
+					//check if it does not overshoot the deceleration limit for stop point in next frame tick
 					if(distanceRemaining<0||speedInNextFrameTick>=std::sqrt(2.0*params.maxDecelerationToStopPoint*distanceRemaining))
 					{
 						params.currCase = TrainUpdateParams::STATION_CASE;
@@ -1561,6 +1566,7 @@ namespace medium
 				}
 				else if (distanceToNextObject == params.disToNextPlatform || distanceToNextObject == params.disToNextTrain)
 				{
+					//check if it does not overshoot the deceleration limit for station in next frame tick
 					if(distanceRemaining <0 || speedInNextFrameTick > std::sqrt(2.0*trainPathMover.getCurrentDecelerationRate()*distanceRemaining))
 					{
 						params.currCase = TrainUpdateParams::STATION_CASE;

@@ -1821,6 +1821,8 @@ namespace medium
 
 	bool TrainMovement::updatePlatformsList(bool &isToBeRemoved)
 	{
+		//This function is called every frame tick to check if any platforms are to be ignored(skipped not stop) by the service controller
+		//or if any platforms ignored are to added back by service controller
 		std::vector<std::string> platformsToBeIgnored = parentDriver->getPlatformsToBeIgnored();
 		Platform *nextPlt = trainPlatformMover.getPlatformByOffset(0);
 		Platform *oldPlatform = nextPlt;
@@ -1828,12 +1830,15 @@ namespace medium
 		int offset=0;
 		while(nextPltAccPos != nullptr)
 		{
+			//iterate the platforms from the upcoming platform on the route
 			std::vector<std::string>::iterator it = platformsToBeIgnored.begin();
 			bool flag=false;
 			while(it != platformsToBeIgnored.end())
 			{
+				//iterate over the entire list of platforms ignored to check if the upcoming platform on the route is present or not in that list
 				if(boost::iequals(nextPltAccPos->getPlatformNo(),*it))
 				{
+					//if present then skip it and go on to next platform on the route
 					offset++;
 					nextPltAccPos=trainPlatformMover_accpos.getPlatformByOffset(offset);
 					flag=true;
@@ -1842,11 +1847,17 @@ namespace medium
 				it++;
 			}
 			if(flag == false)
+			{
+				//if that platform is not found in the list of platforms to be ignored then consider it as the next platform to stop at.
 				break;
+			}
 		}
 
 		if(nextPltAccPos == nullptr)
 		{
+		   //if the platform is null ptr that is all the platforms are skipped there will be no next platform to stop at .Hence the train is
+		   //transferred to last train station agent which will pull the train to itself (just so that it cover the entire route without stopping at any platform) 
+		   //it will not even stop at last station
 		   //get last station and push it to that station agent
 			Platform *lastPlatform = trainPlatformMover.getLastPlatformOnRoute();
 			trainPlatformMover.setPlatformIteratorToEnd();
@@ -1860,14 +1871,26 @@ namespace medium
 		else
 		{
 			const std::vector<Platform*> &platforms = trainPlatformMover.getPlatforms();
+			//reset the iterator to the next platform
 			trainPlatformMover.resetPlatformItr();
+			//clear all the previous platform list 
 			trainPlatformMover.clearPrevPlatforms();
+			//need to reset the iterator the clear the platform list because the platforms may also be added back which are ignored
+			//so need to remove them from prevPlatform list and also need to adjust the position of the next platform iterator
+			//as it might have gone ahead if a platform was ignored 
+			//eg A->B->C->D
+			//lets say the next platform position wise is B ,then if B and C are ignored,the next platform where it will stop will be D
+			//but then if you want add back C ,then next platform the train will stop at will be C
+			//need to readjust the iterator to point at C as it was pointing to D previously and even the prev platform list have to only
+			//contain platforms till B as it was previous till C
+			//so the easiest way is to reiterate over the list from beginning till you reach the respective platform
 			std::vector<Platform*>::const_iterator itr = std::find(platforms.begin(),platforms.end(),nextPltAccPos);
 			if(itr != platforms.end())
 			{
 				Platform* next = *(platforms.begin()) ;
 				while(next != nextPltAccPos)
 				{
+					//iterate over again the list of train platform mover and set the iterator at the respective platform 
 					next = trainPlatformMover.getNextPlatform(true);
 				}
 

@@ -629,20 +629,29 @@ namespace medium
 					{
 						if(distance<getTotalCoveredDistance())
 						{
+							//if it has to ignore all platforms and last next position position wise is the last platform on its route
 							if(shouldIgnoreAllPlatforms && trainPlatformMover_accpos.getLastPlatformOnRoute() == trainPlatformMover_accpos.getNextPlatform(false))
 							{
+								// if the train has reached the end of route ,that is if the train has overshoot the distance due to the 5 sec frame tick 
+								//meaning to say in last frame tick it was before the end of route and now its after the end of route 
+								//then it is to be removed
+								
+								//when it overshoots the distance it is true that there are no block or poly points for train to update its position
+								//but thats ok the train's position will be last block and last poly point,only distance travelled will be updated
+								//If the distance travelled in next frame tick overshoots ,its better not to terminate the train early since we will losing
+								//certain distance the train travels ,ideally the full path should be covered by the train 
 								parentDriver->getParent()->setToBeRemoved();
 								arrivalAtEndPlatform();
 							}
 							else
 							{
-
+								//record the travel time statistics between the platform
 								TrainUpdateParams& params = parentDriver->getParams();
 								DailyTime startTime = ConfigManager::GetInstance().FullConfig().simStartTime();
 								int traveTime=params.now.ms()- startTimeOfNextStationStretch;
 								std::string prevPlatformName = " ";
 								//log travelTime
-								sim_mob::BasicLogger& ptMRTtraveltimeLogger  = sim_mob::Logger::log("TravelTimeBEtweenStations.csv");
+								sim_mob::BasicLogger& ptMRTtraveltimeLogger  = sim_mob::Logger::log("TravelTimeBetweenStations.csv");
 								if(getNextPlatform() == trainPlatformMover_accpos.getFirstPlatform())
 								{
 									prevPlatformName = " ";
@@ -661,6 +670,7 @@ namespace medium
 								}
 								ptMRTtraveltimeLogger<<parentDriver->getTrainLine()<<","<<prevPlatformName<<","<<trainPlatformMover_accpos.getNextPlatform()->getStationNo()<<","<<traveTime<<endl;
 								startTimeOfNextStationStretch = params.now.ms();
+								//update the next platform position wise
 								trainPlatformMover_accpos.getNextPlatform(true);
 							}
 						}
@@ -1324,6 +1334,13 @@ namespace medium
 
 		const TrainDriver* nextDriver = parentDriver->getNextDriver();
 		distanceToNextTrain = getDistanceToNextTrain(nextDriver);
+		//As long as station case decision is not confirmed keep iterating through the loop
+		//It is possible that there are several stop points on the way one after the other
+		//if a stop point is the nearest object then it is unable to stop at that point due to limited deceleration available ,but the train has 
+		//got too close to the stop point then no attempt is made to stop at stop point
+		//rather next  nearest object is chosen and if it a stop point then again it stop point then check the deceleration requirement and availability for
+		//that stop point ,if still not enough deceleration to stop it then likewise keeping checking for other stop points if they are nearest
+		//finally if platform is nearest object just stop there with whatever deceleration it requires.
 		while(!stationCaseDecisionConfirmed)
 		{
 			distanceToNextObject = 0.0;
@@ -1350,6 +1367,8 @@ namespace medium
 				{
 					if(distanceToNextPlatform == -1)
 					{
+						//This means there is no train ahead and no platfrom to stop(skipped all platform) and no stop point
+						//so train will go till last platform and return to depot without stopping anywhere
 						distanceToNextObject = -1;
 					}
 					else
@@ -1376,6 +1395,7 @@ namespace medium
 
 				if(distanceToNextTrain == 0.0 && distanceToNextPlatform == 0.0)
 				{
+					//the relevant next object is the stop point
 					distanceToNextObject = std::max(distanceToNextTrain, distanceToNextPlatform);
 					distanceToNextObject = std::max(distanceToNextObject,disToNextStopPoint);
 				}
@@ -1383,7 +1403,7 @@ namespace medium
 				{
 					if(distanceToNextTrain == 0)
 					{
-						if(distanceToNextPlatform == -1)
+						if(distanceToNextPlatform == -1) /*this means the train will skip all platforms ahead ,so no next platform*/
 						{
 							distanceToNextObject = disToNextStopPoint;
 						}
@@ -1400,7 +1420,7 @@ namespace medium
 
 					else
 					{
-						if(distanceToNextPlatform == -1)
+						if(distanceToNextPlatform == -1) /*this means the train will skip all platforms ahead ,so no next platform*/
 						{
 							distanceToNextObject = std::min(distanceToNextTrain,disToNextStopPoint);
 						}
@@ -1506,6 +1526,8 @@ namespace medium
 			}
 			if(distanceToNextObject == -1 && shouldIgnoreAllPlatforms)
 			{
+				//if the train has to ignore all the platforms and no train ahead of it ,it can go till the max speed permitted by the blocks
+				//till the depot
 				speedLimit = trainPathMover.getCurrentSpeedLimit()*convertKmPerHourToMeterPerSec;
 			}
 			else

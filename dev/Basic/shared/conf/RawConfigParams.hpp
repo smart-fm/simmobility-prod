@@ -213,6 +213,23 @@ public:
 };
 
 /**
+ * Defines the configuration settings for the closed loop manager
+ */
+struct ClosedLoopParams
+{
+	bool enabled;
+	int sensorStepSize;
+	std::string guidanceFile;
+	std::string tollFile;
+	std::string incentivesFile;
+	std::string sensorOutputFile;
+
+	ClosedLoopParams() : enabled(false), sensorStepSize(0), guidanceFile(""), tollFile(""), incentivesFile(""), sensorOutputFile("")
+	{
+	}
+};
+
+/**
  * Represents the "Simulation" section of the config file.
  */
 class SimulationParams {
@@ -248,6 +265,9 @@ public:
 
     /// Locking strategy for Shared<> properties.
     sim_mob::MutexStrategy mutexStategy;
+
+	/// The settings for the closed loop manager
+	ClosedLoopParams closedLoop;
 };
 
 /**

@@ -353,13 +353,13 @@ void sim_mob::ParseConfigFile::processSimulationNode(xercesc::DOMElement* node)
     processWorkgroupAssignmentNode(GetSingleElementByName(node, "workgroup_assignment"));
     cfg.simulation.startingAutoAgentID = ProcessValueInteger2(GetSingleElementByName(node, "auto_id_start"), 0);
     processMutexEnforcementNode(GetSingleElementByName(node, "mutex_enforcement"));
+    processClosedLoopPropertiesNode(GetSingleElementByName(node, "closed_loop"));
 }
 
 void sim_mob::ParseConfigFile::processMergeLogFilesNode(xercesc::DOMElement* node)
 {
 	cfg.mergeLogFiles = ParseBoolean(GetNamedAttributeValue(node, "value"), false);
 }
-
 
 void sim_mob::ParseConfigFile::processGenericPropsNode(xercesc::DOMElement* node)
 {
@@ -412,6 +412,16 @@ unsigned int sim_mob::ParseConfigFile::processInSimulationTTUsage(xercesc::DOMEl
 void sim_mob::ParseConfigFile::processWorkgroupAssignmentNode(xercesc::DOMElement* node)
 {
     cfg.simulation.workGroupAssigmentStrategy = ParseWrkGrpAssignEnum(GetNamedAttributeValue(node, "value"), WorkGroup::ASSIGN_SMALLEST);
+}
+
+void sim_mob::ParseConfigFile::processClosedLoopPropertiesNode(xercesc::DOMElement *node)
+{
+    cfg.simulation.closedLoop.enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"));
+    cfg.simulation.closedLoop.guidanceFile = ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "closed_loop_guidance"), "file"));
+    cfg.simulation.closedLoop.tollFile = ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "closed_loop_toll"), "file"));
+    cfg.simulation.closedLoop.incentivesFile = ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "closed_loop_incentives"), "file"));
+    cfg.simulation.closedLoop.sensorOutputFile = ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "sensor_output"), "file"));
+    cfg.simulation.closedLoop.sensorStepSize = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "sensor_output"), "step_size"));
 }
 
 void sim_mob::ParseConfigFile::processMutexEnforcementNode(xercesc::DOMElement* node)

@@ -39,6 +39,7 @@
 #include "conf/ParseConfigFile.hpp"
 #include "entities/AuraManager.hpp"
 #include "entities/BusStopAgent.hpp"
+#include "entities/ClosedLoopRunManager.h"
 #include "entities/commsim/broker/Broker.hpp"
 #include "entities/LoopDetectorEntity.hpp"
 #include "entities/IntersectionManager.hpp"
@@ -90,7 +91,8 @@ timeval start_time;
 //Current software version.
 const string SIMMOB_VERSION = string(SIMMOB_VERSION_MAJOR) + ":" + SIMMOB_VERSION_MINOR;
 
-
+//Declare method
+void waitForDynaMIT(const ConfigParams &config);
 
 /**
  * Main simulation loop.
@@ -313,6 +315,12 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 		personWorkers->assignAWorker(FMOD::FMOD_Controller::instance());
 	}
 
+	if(config.simulation.closedLoop.enabled)
+	{
+		const ClosedLoopParams &params = config.simulation.closedLoop;
+		ClosedLoopRunManager::initialise(params.guidanceFile, params.tollFile, params.incentivesFile);
+	}
+
 	Print() << "Initial agents dispatched or pushed to pending." << endl;
 
 	//Start work groups and all threads.
@@ -416,6 +424,13 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 		wgMgr.waitAllGroups();
 		
 		unsigned long currTimeMS = currTick * config.baseGranMS();
+
+		//Check if we are running in closed loop with DynaMIT
+		if(config.simulation.closedLoop.enabled && (currTimeMS + config.baseGranMS()) % (config.simulation.closedLoop.sensorStepSize * 1000) == 0)
+		{
+			waitForDynaMIT(config);
+		}
+
 		if(stCfg.outputStats.segDensityMap.outputEnabled && ((currTimeMS + config.baseGranMS()) % stCfg.outputStats.segDensityMap.updateInterval == 0))
 		{
 			DriverMovement::outputDensityMap(currTimeMS / stCfg.outputStats.segDensityMap.updateInterval);
@@ -709,5 +724,68 @@ int main_impl(int ARGC, char* ARGV[])
 
 	Print() << "Done" << endl;
 	return returnVal;
+}
+
+void waitForDynaMIT(const ConfigParams &config)
+{
+	if(!config.simulation.closedLoop.guidanceFile.empty())
+	{
+		ClosedLoopRunManager &guidanceMgr = ClosedLoopRunManager::getInstance(CLOSED_LOOP_GUIDANCE);
+
+		//Keep testing till file is ready
+		while(guidanceMgr.checkRunStatus());
+
+		int fd = guidanceMgr.getFileLock();
+
+		//Update path table
+		//theGuidedRoute->updatePathTable(guidanceMgr.getFileName());
+
+		//if (isSpFlag(INFO_FLAG_UPDATE_PATHS))
+		//{
+		//	tsNetwork->guidedVehiclesUpdatePaths();
+		//}
+
+		guidanceMgr.removeFileLock();
+	}
+
+	if(!config.simulation.closedLoop.tollFile.empty())
+	{
+		ClosedLoopRunManager &tollMgr = ClosedLoopRunManager::getInstance(CLOSED_LOOP_TOLL);
+
+		//Keep testing till file is ready
+		while(tollMgr.checkRunStatus());
+
+		int fd = tollMgr.getFileLock();
+
+		//Update path table
+		//theGuidedRoute->updatePathTable(guidanceMgr.getFileName());
+
+		//if (isSpFlag(INFO_FLAG_UPDATE_PATHS))
+		//{
+		//	tsNetwork->guidedVehiclesUpdatePaths();
+		//}
+
+		tollMgr.removeFileLock();
+	}
+
+	if(!config.simulation.closedLoop.incentivesFile.empty())
+	{
+		ClosedLoopRunManager &incentivesMgr = ClosedLoopRunManager::getInstance(CLOSED_LOOP_INCENTIVES);
+
+		//Keep testing till file is ready
+		while(incentivesMgr.checkRunStatus());
+
+		int fd = incentivesMgr.getFileLock();
+
+		//Update path table
+		//theGuidedRoute->updatePathTable(guidanceMgr.getFileName());
+
+		//if (isSpFlag(INFO_FLAG_UPDATE_PATHS))
+		//{
+		//	tsNetwork->guidedVehiclesUpdatePaths();
+		//}
+
+		incentivesMgr.removeFileLock();
+	}
 }
 

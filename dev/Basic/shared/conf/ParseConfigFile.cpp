@@ -416,12 +416,15 @@ void sim_mob::ParseConfigFile::processWorkgroupAssignmentNode(xercesc::DOMElemen
 
 void sim_mob::ParseConfigFile::processClosedLoopPropertiesNode(xercesc::DOMElement *node)
 {
-    cfg.simulation.closedLoop.enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"));
-    cfg.simulation.closedLoop.guidanceFile = ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "closed_loop_guidance"), "file"));
-    cfg.simulation.closedLoop.tollFile = ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "closed_loop_toll"), "file"));
-    cfg.simulation.closedLoop.incentivesFile = ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "closed_loop_incentives"), "file"));
-    cfg.simulation.closedLoop.sensorOutputFile = ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "sensor_output"), "file"));
-    cfg.simulation.closedLoop.sensorStepSize = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "sensor_output"), "step_size"));
+	if(node)
+	{
+		cfg.simulation.closedLoop.enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"));
+		cfg.simulation.closedLoop.guidanceFile = ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "closed_loop_guidance"), "file"));
+		cfg.simulation.closedLoop.tollFile = ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "closed_loop_toll"), "file"));
+		cfg.simulation.closedLoop.incentivesFile = ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "closed_loop_incentives"), "file"));
+		cfg.simulation.closedLoop.sensorOutputFile = ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "sensor_output"), "file"));
+		cfg.simulation.closedLoop.sensorStepSize = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "sensor_output"), "step_size"));
+	}
 }
 
 void sim_mob::ParseConfigFile::processMutexEnforcementNode(xercesc::DOMElement* node)

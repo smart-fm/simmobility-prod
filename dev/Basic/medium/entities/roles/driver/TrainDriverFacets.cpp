@@ -1882,7 +1882,7 @@ namespace medium
 			//lets say the next platform position wise is B ,then if B and C are ignored,the next platform where it will stop will be D
 			//but then if you want add back C ,then next platform the train will stop at will be C
 			//need to readjust the iterator to point at C as it was pointing to D previously and even the prev platform list have to only
-			//contain platforms till B as it was previous till C
+			//contain platforms till B as it was previously till C
 			//so the easiest way is to reiterate over the list from beginning till you reach the respective platform
 			std::vector<Platform*>::const_iterator itr = std::find(platforms.begin(),platforms.end(),nextPltAccPos);
 			if(itr != platforms.end())
@@ -1891,6 +1891,8 @@ namespace medium
 				while(next != nextPltAccPos)
 				{
 					//iterate over again the list of train platform mover and set the iterator at the respective platform 
+					//passing true will push the prev platform to previous platform list
+					//see the function in "getnextplatform()" in trainplatform mover
 					next = trainPlatformMover.getNextPlatform(true);
 				}
 

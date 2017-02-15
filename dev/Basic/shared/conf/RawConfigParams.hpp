@@ -217,16 +217,16 @@ public:
  */
 struct ClosedLoopParams
 {
-	bool enabled;
-	int sensorStepSize;
-	std::string guidanceFile;
-	std::string tollFile;
-	std::string incentivesFile;
-	std::string sensorOutputFile;
+    bool enabled;
+    int sensorStepSize;
+    std::string guidanceFile;
+    std::string tollFile;
+    std::string incentivesFile;
+    std::string sensorOutputFile;
 
-	ClosedLoopParams() : enabled(false), sensorStepSize(0), guidanceFile(""), tollFile(""), incentivesFile(""), sensorOutputFile("")
-	{
-	}
+    ClosedLoopParams() : enabled(false), sensorStepSize(0), guidanceFile(""), tollFile(""), incentivesFile(""), sensorOutputFile("")
+    {
+    }
 };
 
 /**
@@ -237,7 +237,7 @@ public:
     /**
      * Constructor
      */
-	SimulationParams();
+    SimulationParams();
 
     /// Base system granularity, in milliseconds. Each "tick" is this long.
     unsigned int baseGranMS;
@@ -266,8 +266,8 @@ public:
     /// Locking strategy for Shared<> properties.
     sim_mob::MutexStrategy mutexStategy;
 
-	/// The settings for the closed loop manager
-	ClosedLoopParams closedLoop;
+    /// The settings for the closed loop manager
+    ClosedLoopParams closedLoop;
 };
 
 /**

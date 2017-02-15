@@ -707,10 +707,10 @@ bool HouseholdBidderRole::pickEntryToBid()
 
             	BigSerial postcodeCurrent = 0;
             	if( hhUnit != NULL )
-            		postcodeCurrent = hhUnit->getSlaAddressId();
+            		postcodeCurrent = model->getUnitSlaAddressId( hhUnit->getId() );
 
             	Postcode *oldPC = model->getPostcodeById(postcodeCurrent);
-            	Postcode *newPC = model->getPostcodeById(unit->getSlaAddressId());
+            	Postcode *newPC = model->getPostcodeById( model->getUnitSlaAddressId( unit->getId() ) );
 
                //double wp_old = luaModel.calulateWP(*household, *unit, *stats);
             	double wtp_e = 0;

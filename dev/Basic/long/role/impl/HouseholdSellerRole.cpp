@@ -83,7 +83,7 @@ namespace
         	 //save accepted bids to a vector, to be saved in op schema later.
         	model->addUpdatedUnits(updatedUnit);
 
-        	int UnitslaId = unit->getSlaAddressId();
+        	int UnitslaId = model->getUnitSlaAddressId( unit->getId() );
         	Household *thisBidder = model->getHouseholdById(bid.getBidderId());
         	const Unit* thisUnit = model->getUnitById(thisBidder->getUnitId());
 
@@ -96,7 +96,7 @@ namespace
         	newBid->setHedonicPrice(entry.hedonicPrice);
         	newBid->setAskingPrice(entry.askingPrice);
         	newBid->setTargetPrice(entry.targetPrice);
-        	newBid->setCurrentPostcode(thisUnit->getSlaAddressId());
+        	newBid->setCurrentPostcode( model->getUnitSlaAddressId( thisUnit->getId()) );
         	newBid->setNewPostcode(UnitslaId);
         	newBid->setUnitFloorArea(unit->getFloorArea());
         	newBid->setUnitTypeId(unit->getUnitType());
@@ -286,7 +286,7 @@ void HouseholdSellerRole::update(timeslice now)
 
             if(getCurrentExpectation(unit->getId(), firstExpectation) && entryDay )
             {
-                market->addEntry( HousingMarket::Entry( getParent(), unit->getId(), unit->getSlaAddressId(), tazId, firstExpectation.askingPrice, firstExpectation.hedonicPrice, unit->isBto()));
+                market->addEntry( HousingMarket::Entry( getParent(), unit->getId(), model->getUnitSlaAddressId( unit->getId() ), tazId, firstExpectation.askingPrice, firstExpectation.hedonicPrice, unit->isBto()));
 				#ifdef VERBOSE
                 PrintOutV("[day " << currentTime.ms() << "] Household Seller " << getParent()->getId() << ". Adding entry to Housing market for unit " << unit->getId() << " with ap: " << firstExpectation.askingPrice << " hp: " << firstExpectation.hedonicPrice << " rp: " << firstExpectation.targetPrice << std::endl);
 				#endif

@@ -201,7 +201,7 @@ void DeveloperModel::startImpl() {
 	createDeveloperAgents(developmentCandidateParcelList,false,false);
 	createDeveloperAgents(parcelsWithProjectsList,true,false);
 	createDeveloperAgents(parcelsWithDay0Projects,false,true);
-	//createBTODeveloperAgents();
+	createBTODeveloperAgents();
 	wakeUpDeveloperAgents(getDeveloperAgents());
 
 	PrintOutV("Time Interval " << timeInterval << std::endl);

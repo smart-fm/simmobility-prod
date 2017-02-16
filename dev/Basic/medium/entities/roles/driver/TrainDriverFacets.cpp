@@ -1400,7 +1400,9 @@ namespace medium
 					}
 					else
 					{
-
+						//ideally distance to platform or train cannot be zero if they exist and there is no error ,since due to floating point
+						//computation.If distance to train is 0 that means that no train ahead is existing or if distance to platform is 0 then 
+						//no valid platform is existing
 						distanceToNextObject = std::max(distanceToNextTrain, distanceToNextPlatform);
 					}
 				}

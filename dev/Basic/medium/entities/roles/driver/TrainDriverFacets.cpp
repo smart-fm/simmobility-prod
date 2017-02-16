@@ -577,6 +577,10 @@ namespace medium
 		TrainUpdateParams& params = parentDriver->getParams();
 		parentDriver->updatePassengers();
 		TrainDriver::TRAIN_NEXTREQUESTED requested = parentDriver->getNextRequested();
+		//here we check for the condition that whether a stop point has been inserted when train is waiting at the platform.
+		//since when the train was moving and and the stop point is inserted ,those conditions are handles separately 
+		//as it could be possible that when the train's speed is not 0 then the stop point is inserted by service controller in the beginning of frame tick
+		//at the same position of train ,so those points have to be ignored as it cannot stop 
 		if(!getParentDriver()->isStoppedAtPoint() && requested == TrainDriver::REQUESTED_WAITING_LEAVING)
 		{
 			isStopPointPresent();
@@ -585,13 +589,17 @@ namespace medium
 		{
 			params.currentSpeed = 0.0;
 			params.currentAcelerate = 0.0;
+			//every frame tick reduce the stopping time 
 			double remainingTime = parentDriver->reduceStoppingTime(params.secondsInTick);
+			//if the remaining time is less than seconds in frame tick and next requested is not WAITING_LEAVING then return ie(already reduced the stopping time this frame tick)
 			if(remainingTime<params.secondsInTick)
 			{
 				parentDriver->setStoppingTime(0);
 				parentDriver->setStoppingStatus(false);
 				if(requested != TrainDriver::REQUESTED_WAITING_LEAVING)
-				return;
+				{
+					return;
+				}
 			}
 		}
 		if(!toMove&&params.now.ms() == noMoveTimeSlice)
@@ -627,6 +635,12 @@ namespace medium
 					}
 					else
 					{
+						//check for the condition that whether the train has crossed the limit for platform ,so then the next platform position wise
+						//has to be updated.
+						//here ,not checking for the case when the train crosses more than one platform in a frame tick when it has to skip consective 
+						//platforms.Its ideally not possible for train to cross two or more consecutive platforms in one frame tick
+						//so when the train crosses the limit of its upcoming(next) platform after it has moved in the frame tick ,the next platform 
+						//is just updated by one in the list.
 						if(distance<getTotalCoveredDistance())
 						{
 							//if it has to ignore all platforms and last next position position wise is the last platform on its route
@@ -675,6 +689,7 @@ namespace medium
 							}
 						}
 					}
+					//This function checks whether the stop point is present,if so then set the required stopping time and stopping status
 					isStopPointPresent();
 				}
 
@@ -931,7 +946,7 @@ namespace medium
 
 			case TrainDriver::REQUESTED_TAKE_UTURN:
 			{
-				//pass message to Uturn
+				
 				if(!parentDriver->getUTurnFlag())
 				{
 					bool shldStop = shouldStopDueToDisruption(parentDriver);
@@ -942,7 +957,7 @@ namespace medium
 						break;
 					}
 				}
-
+				//pass message to Uturn
 				Platform *platform = getNextPlatform();
 				std::string stationNo = platform->getStationNo();
 				Agent* stationAgent = TrainController<Person_MT>::getAgentFromStation(stationNo);
@@ -1291,6 +1306,7 @@ namespace medium
 		std::vector<StopPointEntity>::iterator minStopPointItr = stopPoints.end();
 		double minDis = 0,deceleration = 0.0;
 		StopPointEntity stopPoint;
+		//finds the nearest stop point considering the stop points with positive distance ahead from the position of the train
 		while(stopPointItr != stopPoints.end())
 		{
 			double discovered = getTotalCoveredDistance();
@@ -1358,6 +1374,17 @@ namespace medium
 			std::vector<PolyPoint>::const_iterator stopPointItr = points.end();
 			if(stopPoints.size() != 0)
 			{
+				//this function gets the stop point nearest to the train which is not at distance 0 from the train.If the stop point is at distance 0 ,then
+				//just ignore it.if the distance is 0 then that means the stop point is inserted by service controller just in this frame tick at the same
+				//position of the train so its not possible to make the velocity of train instantaneously to 0.
+				//When it is at certain distance from stop point and it reaches the stop point at the end of frame tick ,the distance will be 0 to it 
+				//then it that case immediately stopping status is set and stop time is calculated. And stop point is deleted so that it does not come into picture
+				//with 0 distance when in future its needed to find the nearest stop point.
+				//There is a minor bug ,lets say when the train is stopped due to train ahead of it is very close and at that time stop point is inserted
+				//so only  now the train is closer to the stop point considering the value of safe distance(if the train has crossed safety limit) but is 
+				//still at some distance of train ahead so if the train has just stopped at the end of frame tick and in next frame tick the train ahead of it
+				//moves some distance such that it is at safe distance(since its multi threaded) so then the stop point will not be considered as it is at 0 distance from the train stopped
+				//and the train will now start moving ,but if the train has to wait for at least one frame tick then it checks that stop point is present and it honours it.
 				itr = findNearestStopPoint(stopPoints,disToNextStopPoint,maxDecelerationToStopPoint);
 			}
 
@@ -1475,7 +1502,7 @@ namespace medium
 						}
 						else
 						{
-							//erase stop point
+							//erase stop point if not able to stop at it
 							stopPoints.erase(itr);
 							params.distanceToNextStopPoint = 0;
 						}

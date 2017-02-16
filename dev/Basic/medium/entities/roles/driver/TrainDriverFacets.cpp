@@ -167,6 +167,10 @@ namespace medium
 
 	void TrainMovement::changeTrip()
 	{
+		//This function changes the trip of the train
+		//when it has to take Uturn then it has to get teleported to opposite platform
+		//so the new trip will have new platforms ,blocks ,the line is changes to opposite lineetc
+		//
 		Person_MT* person = parentDriver->parent;
 		std::string lineId = parentDriver->getTrainLine();
 		Platform *platform = getNextPlatform();
@@ -177,6 +181,7 @@ namespace medium
 		std::vector<Block*>route;
 		std::vector<Platform*> platforms;
 		trainController->getTrainRoute(oppLineId,route);
+		//this sets the blocks of the train
 		trip->setTrainRoute(route);
 		trainController->getTrainPlatforms(oppLineId,platforms);
 		trip->setTrainPlatform(platforms);
@@ -188,9 +193,13 @@ namespace medium
 		Platform *inroutePlaform = trainPlatformMover.getNextPlatform();
 		while(oppPlatform != inroutePlaform)
 		{
+			//iterates from start to the respective platform it has to get teleported to in the opposite line
+			//since when the trainplatform mover and train platform mover across pos are set the iterator is always at the beginning
+			//so all the previous platforms are skipped and train is teleported to the required platform
 			inroutePlaform = trainPlatformMover.getNextPlatform(true);
 			trainPlatformMover_accpos.getNextPlatform(true);
 		}
+		//finally the train takes Uturn ,physically moves to opposite platform
 		takeUTurn(stationName);
 	}
 
@@ -219,6 +228,7 @@ namespace medium
 						double disToNextPlatform = trainMovement->getDistanceFromStartToPlatform(lineID,platform) - trainMovement->getTotalCoveredDistance();
 						if(disToNextPlatform>=0 && (minDis == -1 || disToNextPlatform < minDis))
 						{
+							//finding the nearest train behind this train whose next driver is this train
 							parentDriver->prevDriverInOppLine = tDriver;
 							minDis = disToNextPlatform ;
 							savePlat = platform;
@@ -230,6 +240,8 @@ namespace medium
 
 		if(parentDriver->prevDriverInOppLine != nullptr)
 		{
+			//lock this train as we don't want it to move until it takes uturn ,so as to be sure of the distance behind it 
+			//and prevent it from accessing the next driver driver as it will be modified(just to avoid race condition)
 			parentDriver->prevDriverInOppLine->getMovementMutex();
 			TrainDriver *tDriverPrev = parentDriver->prevDriverInOppLine;
 			const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
@@ -237,6 +249,7 @@ namespace medium
 			const double trainLengthMeter = (trainProps.find(parentDriver->getTrainLine())->second).trainLength;
 			const std::map<const std::string,TrainProperties> &trainLinePropertiesMap = config.trainController.trainLinePropertiesMap;
 			const TrainProperties &trainProperties = trainLinePropertiesMap.find(parentDriver->getTrainLine())->second;
+			//getting the value for minimum distance required for behind train to be when it is going to take U turn
 			double minDisBehindTrain = trainProperties.minDistanceTrainBehindForUnscheduledTrain;
 			double disPrev = tDriverPrev->getMovement()->getDistanceToNextPlatform(tDriverPrev);
 			int tID = parentDriver->prevDriverInOppLine->getTrainId();
@@ -245,7 +258,10 @@ namespace medium
 			double disToNextPlatform = tMov->getDistanceFromStartToPlatform(lineID,savePlat) - tMov->getTotalCoveredDistance();
 			if(disToNextPlatform - tDriverPrev->getMovement()->getSafeDistance() - trainLengthMeter - minDisBehindTrain < 0)
 			{
-
+				//unlocking the train if the distance is too less ,behind less than minimum distance required
+				//One thing to note is that we lock the train before as so to just prevent the train from moving ahead 
+				//and then we check the distance requirement ,else as it is multi threaded then it can possibly cross the safety distance required
+				//while checking the distance (just to be sure that the distance will be the same as checked)
 				parentDriver->prevDriverInOppLine->movementMutexUnlock();
 				parentDriver->prevDriverInOppLine = nullptr;
 				return true;
@@ -258,6 +274,7 @@ namespace medium
 	{
 		TrainController<sim_mob::medium::Person_MT> *trainController = TrainController<sim_mob::medium::Person_MT>::getInstance();
 		typename  std::vector <Role<Person_MT>*> trainDriverVector = trainController->getActiveTrainsForALine(lineID);
+		//getting the next platform in the opposite line (platfrom after the platform where the train will be after U turn)
 		TrainPlatform trainPlatform = trainController->getNextPlatform(platformNo,lineID);
 		Platform *platform = trainController->getPlatformFromId(platformNo);
 		const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
@@ -283,8 +300,10 @@ namespace medium
 						double disCovered = trainPathMover.getTotalCoveredDistance();
 						double disOfPlatform = getDistanceFromStartToPlatform(lineID,platform);
 						std::string nextPlatformNo = nextPlatform->getPlatformNo();
+						//check if the train ahead's next platform will be the one after the platform where this train after Uturn will go
 						if(boost::iequals(trainPlatform.platformNo,nextPlatformNo))
 						{
+							//find the train in opposite line which will be the closet train ahead of  it when it takes Uturn to opposite line
 							if(minDis == -1 || (disCovered - disOfPlatform < minDis))
 							{
 								minDis = disCovered - disOfPlatform;
@@ -293,6 +312,7 @@ namespace medium
 
 							if(disCovered - disOfPlatform - trainLengthMeter <= safeDistance)
 							{
+								//if the distance is going to be less than safe distance then return false (not possible to take uturn)
 								return false;
 							}
 						}
@@ -300,6 +320,7 @@ namespace medium
 						{
 							if(( disCovered - disOfPlatform > 0 ) && (minDis == -1 || ( disCovered-disOfPlatform < minDis )))
 							{
+								//just saving the train with minimum distance difference
 								minDis = disCovered - disOfPlatform;
 								nextDriverInOppLine = dynamic_cast<TrainDriver*>((*it));
 							}
@@ -313,6 +334,7 @@ namespace medium
 
 		if(trainDriver)
 		{
+			//saving the next train driver in opposite line
 			trainDriver->setTrainDriverInOpposite(nextDriverInOppLine);
 		}
 		return true;
@@ -353,6 +375,7 @@ namespace medium
 		std::vector<Role<Person_MT>*>::iterator it;
 		for(it = trainDriverVector.begin(); it != trainDriverVector.end(); it++)
 		{
+			//find the train driver right behind it and lock it so that it cannot access the train driver which is going to take U turn
 			TrainDriver *tDriver = dynamic_cast<TrainDriver*>(*(it));
 			if(tDriver)
 			{
@@ -370,27 +393,38 @@ namespace medium
 		Station *station = trainController->getStationFromId(stationId);
 		Platform *oppPlatform = station->getPlatform(lineId);
 		std::vector<Block *> blocks = trip->getTrainRoute();
+		//set the blocks in train platform mover entity which sets its route.
+		//This is done after locking the train in before it in previous line as the train before it may be accessing the
+		//this particular train to know its distance which actually uses the train path mover entity as it has the distance moved on entire path ,block etc
+		//so to avoid getting the wrong information we modify the trainPathmover later after locking the train before it.
 		trainPathMover.setPath(trip->getTrainRoute());
+		//set the opposite platform that is teleport till the platform where it has to take U turn
 		trainPathMover.teleportToOppositeLine(stationId,lineId,oppPlatform);
+		//set the new platform after U turn
 		facetMutex.lock();
 		nextPlatform = oppPlatform;
 		facetMutex.unlock();
 		TrainDriver *parentDriver = getParentDriver();
+		//removing from list of active trains in train controller and from service controller.
 		TrainController<Person_MT>::getInstance()->removeFromListOfActiveTrainsInLine(prevLine,parentDriver);
 		TrainController<Person_MT>::getInstance()->addToListOfActiveTrainsInLine(lineId,parentDriver);
 		int trainId = parentDriver->getTrainId();
+		//adding to list of active trains in opposite line in both train controller and service controller data structure list
 		ServiceController::getInstance()->removeTrainIdAndTrainDriverInMap(trainId,prevLine,parentDriver);
 		ServiceController::getInstance()->insertTrainIdAndTrainDriverInMap(trainId,lineId,parentDriver);
 		if(prevDriveInSameLine != nullptr)
 		{
+			//unlock the train driver after U turn
 			prevDriveInSameLine->setNextDriver(parentDriver->getNextDriver());
 			prevDriveInSameLine->movementMutexUnlock();
 		}
 		parentDriver->setNextDriver(parentDriver->getDriverInOppositeLine());
 		if(parentDriver->prevDriverInOppLine != nullptr)
 		{
+			//reassign the next driver of the train behind in previous line to the train driver ahead of it
 			parentDriver->prevDriverInOppLine->nextDriver = parentDriver;
 		}
+		//the train took the uturn ,now unset the uturn flag
 		parentDriver->setUturnFlag(false);
 	}
 

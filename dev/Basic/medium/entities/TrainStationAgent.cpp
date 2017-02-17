@@ -587,6 +587,139 @@ namespace medium
 		return UpdateStatus::Continue;
 	}
 
+void TrainStationAgent::handleRequestedAtPlatformStatus(TrainDriver *trainDriver,timeslice now)
+{
+	DailyTime startTm = ConfigManager::GetInstance().FullConfig().simStartTime();
+	DailyTime current(now.ms() + startTm.getValue());
+	trainDriver->setArrivalTime(current.getStrRepr());
+	bool isDisruptedState = false;
+	std::string trainLine = trainDriver->getTrainLine();
+	std::map<std::string,std::vector<std::string>> platformNames = TrainController<sim_mob::medium::Person_MT>::getInstance()->getDisruptedPlatforms_ServiceController();
+	std::vector<std::string> disruptedPlatformNames = platformNames[trainLine];
+	const Platform* platform = trainDriver->getNextPlatform();
+	std::vector<std::string>::iterator itr = std::find(disruptedPlatformNames.begin(),disruptedPlatformNames.end(),platform->getPlatformNo());
+	TrainPlatformMover &platformMover = trainDriver->getMovement()->getTrainPlatformMover();
+	if(itr != disruptedPlatformNames.end())
+	{
+		trainDriver->getMovement()->setDisruptedState(true);
+		isDisruptedState = true;
+	}
+
+
+	if(trainDriver->getForceAlightFlag())
+	{
+		//if force alight flag is set by service controller then alight all passengers and set force alight status
+		//which is the indication that the train is force alighting passengers or already force alighted so no need to
+		//set the force alight flag again
+		trainDriver->lockUnlockRestrictPassengerEntitiesLock(true);
+		trainDriver->setForceAlightStatus(true);
+		int alightingNum = trainDriver->alightAllPassengers(leavingPersons[platform], now);
+		trainDriver->lockUnlockRestrictPassengerEntitiesLock(false);
+		trainDriver->calculateDwellTime(0,alightingNum,0,now,false);
+		trainDriver->setNextRequested(TrainDriver::REQUESTED_WAITING_LEAVING);
+		trainDriver->setForceAlightFlag(false);
+		//either the train can be in disrupted state, meaning that it cannot move ahead of the point where it is
+		// or if the uturn flag is set if it has to take uturn but before that force alight of passengers takes place
+		if(trainDriver->getMovement()->getDisruptedState() || trainDriver->getUTurnFlag()==true)
+		{
+			trainDriver->setHasForceAlightedInDisruption(true);
+			return ;
+		}
+	}
+
+
+	double dwellTimeInSecs = 0.0;
+
+	if(disruptionParam.get()&&platform)
+	{
+		std::vector<std::string> platformNames = disruptionParam->platformNames;
+		if(platformNames.size()>0 && disruptionParam->platformLineIds.size()>0)
+		{
+			Platform* platform = TrainController<Person_MT>::getPrePlatform(disruptionParam->platformLineIds.front(),platformNames.front());
+			if(platform)
+			{
+				platformNames.push_back(platform->getPlatformNo());
+			}
+		}
+		auto itPlat = std::find(platformNames.begin(), platformNames.end(), platform->getPlatformNo());
+		if (itPlat != platformNames.end())
+		{
+			if(!trainDriver->getForceAlightStatus())
+			{
+				trainDriver->lockUnlockRestrictPassengerEntitiesLock(true);
+				int alightingNum = trainDriver->alightAllPassengers(leavingPersons[platform], now);
+				trainDriver->lockUnlockRestrictPassengerEntitiesLock(false);
+				trainDriver->calculateDwellTime(0,alightingNum,0,now,false);
+			}
+			trainDriver->setNextRequested(TrainDriver::REQUESTED_WAITING_LEAVING);
+			isDisruptedState = true;
+		}
+	}
+
+	else
+	{
+		if((!trainDriver->getForceAlightFlag())&&(trainDriver->getMovement()->getDisruptedState()||trainDriver->getUTurnFlag()))
+		{
+			//other case if disruption is not done through service controller so force alight flag is not set.
+			//hence need to explicitly force alight passengers.Not important now
+			trainDriver->lockUnlockRestrictPassengerEntitiesLock(true);
+			int alightingNum = trainDriver->alightAllPassengers(leavingPersons[platform], now);
+			trainDriver->lockUnlockRestrictPassengerEntitiesLock(false);
+			trainDriver->calculateDwellTime(0,alightingNum,0,now,false);
+			trainDriver->setNextRequested(TrainDriver::REQUESTED_WAITING_LEAVING);
+			isDisruptedState = true;
+		}
+
+	}
+
+
+	if(!isDisruptedState)
+	{
+		if(trainDriver->getTerminateStatus())
+		{
+			if(!trainDriver->getForceAlightStatus())
+			{
+				trainDriver->lockUnlockRestrictPassengerEntitiesLock(true);
+				int alightingNum = trainDriver->alightAllPassengers(leavingPersons[platform],now);
+				trainDriver->lockUnlockRestrictPassengerEntitiesLock(false);
+				trainDriver->calculateDwellTime(0,alightingNum,0,now,false);
+			}
+			trainDriver->setNextRequested(TrainDriver::REQUESTED_WAITING_LEAVING);
+		}
+		if(trainDriver->getUTurnFlag())
+		{
+			//if the train has to take a uturn at current platform then it has to force alight all its passengers
+			if(!trainDriver->getForceAlightStatus())
+			{
+				trainDriver->lockUnlockRestrictPassengerEntitiesLock(true);
+				int alightingNum = trainDriver->alightAllPassengers(leavingPersons[platform],now);
+				trainDriver->lockUnlockRestrictPassengerEntitiesLock(false);
+				trainDriver->calculateDwellTime(0,alightingNum,0,now,false);
+			}
+			trainDriver->setNextRequested(TrainDriver::REQUESTED_WAITING_LEAVING);
+		}
+		else
+		{
+			if( !trainDriver->getForceAlightStatus() )
+			{
+				trainDriver->lockUnlockRestrictPassengerEntitiesLock(true);
+				int alightingNum = trainDriver->alightPassenger(leavingPersons[platform],now);
+				int noOfPassengersInTrain = trainDriver->getPassengers().size();
+				int forcealightedboardingnum = 0;
+				if(forceAlightedPersons.find(platform) != forceAlightedPersons.end())
+				{
+					forcealightedboardingnum = trainDriver->boardForceAlightedPassengersPassenger(forceAlightedPersons[platform],now);
+				}
+				int boardingNum = trainDriver->boardPassenger(waitingPersons[platform], now);
+				trainDriver->lockUnlockRestrictPassengerEntitiesLock(false);
+				trainDriver->calculateDwellTime(boardingNum+forcealightedboardingnum,alightingNum,noOfPassengersInTrain,now,false);
+			}
+			trainDriver->setNextRequested(TrainDriver::REQUESTED_WAITING_LEAVING);
+		}
+
+	}
+}
+
 Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 {
 	dispathPendingTrains(now);
@@ -635,6 +768,11 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 					(*it)->setHasForceAlightedInDisruption(true);
 				}
 			}
+
+			if ((*it)->getNextRequested() == TrainDriver::REQUESTED_AT_PLATFORM)
+			{
+				handleRequestedAtPlatformStatus(*it,now);
+			}
 			callMovementFrameTick(now, *it);
 			tickInSec += (*it)->getParams().secondsInTick;
 			if((*it)->getIsToBeRemoved() && ((*it)->getMovement()->getNextPlatform() == nullptr || !boost::iequals((*it)->getMovement()->getNextPlatform()->getStationNo(),stationName)))
@@ -645,7 +783,8 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 			}
 			else if ((*it)->getNextRequested() == TrainDriver::REQUESTED_AT_PLATFORM)
 			{
-
+				handleRequestedAtPlatformStatus(*it,now);
+				/*
 				DailyTime startTm = ConfigManager::GetInstance().FullConfig().simStartTime();
 				DailyTime current(now.ms() + startTm.getValue());
 				(*it)->setArrivalTime(current.getStrRepr());
@@ -774,7 +913,7 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 					}
 
 				}
-
+				*/
 			}
 			else if ((*it)->getNextRequested() == TrainDriver::REQUESTED_LEAVING_PLATFORM)
 			{

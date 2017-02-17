@@ -1499,6 +1499,7 @@ namespace sim_mob
 	{
 		std::vector<ResetBlockSpeeds>::iterator it;
 		DailyTime currentTime = now;
+		//mention 5000 as one frame tick
 		DailyTime nextFrameTickTime = now + DailyTime(5000);
 		int count=-1;
 		for(it = resetSpeedBlocks.begin() ; it < resetSpeedBlocks.end(); )
@@ -1522,7 +1523,10 @@ namespace sim_mob
 					}
 					else if (boost::iequals((*itpl)->getStationNo(), endStation))
 					{
-						break;
+						if(!isTerminalPlatform((*itpl)->getPlatformNo(),lineId))
+						{
+							break;
+						}
 					}
 					if(startSeq == true)
 					{
@@ -1553,7 +1557,10 @@ namespace sim_mob
 					}
 					else if (boost::iequals((*itpl)->getStationNo(), endStation))
 					{
-						break;
+						if(!isTerminalPlatform((*itpl)->getPlatformNo(),lineId))
+						{
+							break;
+						}
 					}
 					if(startSeq == true)
 					{

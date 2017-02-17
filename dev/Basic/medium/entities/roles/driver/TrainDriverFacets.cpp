@@ -615,7 +615,7 @@ namespace medium
 		//since when the train was moving and and the stop point is inserted ,those conditions are handles separately 
 		//as it could be possible that when the train's speed is not 0 then the stop point is inserted by service controller in the beginning of frame tick
 		//at the same position of train ,so those points have to be ignored as it cannot stop 
-		if(!getParentDriver()->isStoppedAtPoint() && requested == TrainDriver::REQUESTED_WAITING_LEAVING)
+		if(!getParentDriver()->isStoppedAtPoint() && (requested == TrainDriver::REQUESTED_WAITING_LEAVING || params.currentSpeed == 0))
 		{
 			isStopPointPresent();
 		}

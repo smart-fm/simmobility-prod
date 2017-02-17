@@ -158,6 +158,8 @@ private:
 	 */
 	void pushForceAlightedPassengersToWaitingQueue(const Platform *platform);
 
+	void handleRequestedAtPlatformStatus(TrainDriver *trainDriver,timeslice now);
+
 
 private:
 	/**the reference to the station*/

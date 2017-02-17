@@ -226,8 +226,10 @@ namespace medium
 
 								if(disToNextPlat >=0 )
 								{
+									//only consider that trains which are behind the platform (ie whose distance to platform is greater than 0)
 									if(minDis == -1 || disToNextPlat < minDis)
 									{
+										//keep track of the train with minimum distance behind the train to be inserted
 										minDis = disToNextPlat;
 										prevNewDriver = tDriver;
 									}
@@ -239,6 +241,7 @@ namespace medium
 				}
 				if(prevNewDriver != nullptr)
 				{
+					//lock the train driver right behind it
 					prevNewDriver->getMovementMutex();
 				}
 				const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
@@ -246,16 +249,18 @@ namespace medium
 				double distanceToTrainAhead = minDis - stationAgentPlatform->getLength() - safeDistance;
 				const std::map<const std::string,TrainProperties> &trainLinePropertiesMap = config.trainController.trainLinePropertiesMap;
 				const TrainProperties &trainProperties = trainLinePropertiesMap.find(lineId)->second;
+				//get the minimum distance requirement for the train behind for unscheduled train from config
 				double minDisBehindTrain = trainProperties.minDistanceTrainBehindForUnscheduledTrain;
 				if(distanceToTrainAhead - minDisBehindTrain < 0)
 				{
+					//if the distance is less the required distance then the unscheduled train cannot be inserted
 					isTrainApproachingClose = true;
 					prevNewDriver->movementMutexUnlock();
 					continue;
 				}
 				else
 				{
-					//also check for safe headway ...
+					//also check for safe headway for the train behind
 					double currentSpeed = prevNewDriver->getMovement()->getCurrentSpeed();
 					double safeHeadWay = prevNewDriver->getMovement()->getSafeHeadWay();
 					if((distanceToTrainAhead-safeDistance)/currentSpeed<safeHeadWay)
@@ -300,6 +305,8 @@ namespace medium
 							double totalDisCoverdByOtherTrain = movement->getTotalCoveredDistance();
 							if(totalDisCoverdByOtherTrain - (next->getMovement()->getTotalCoveredDistance()) < 0)
 							{
+								//if the train is behind the required train to be inserted then continue.We only need the trains which are ahead of the
+								//the train to be inserted to check for safe distance to it
 								trainDriverItr++;
 								continue;
 							}
@@ -308,6 +315,8 @@ namespace medium
 							const std::map<const std::string,TrainProperties> &trainProps = config.trainController.trainLinePropertiesMap;
 							const double trainLengthMeter = (trainProps.find(next->getTrainLine())->second).trainLength;
 							double differentDistance = totalDisCoverdByOtherTrain - (next->getMovement()->getTotalCoveredDistance()) - trainLengthMeter - (movement->getSafeDistance());
+							//if the train ahead is at a distance less than safe distance from the end of platform where the unscheduled train will be inserted
+							//then cannot insert the train
 							if(differentDistance < 0)
 							{
 								success = false;
@@ -318,6 +327,7 @@ namespace medium
 							{
 								if(minDis == -1 || differentDistance < minDis)
 								{
+									//keep track of the train with minimum distance ahead
 									minDis = differentDistance;
 									ahead = trainDriver;
 								}
@@ -332,18 +342,23 @@ namespace medium
 						pendingDrivers.pop_front();
 						lastUsage[lineId] = true;
 						lastTrainDriver[lineId] = next;
+						//set the next driver of the train to be inserted as the the one with minimum ahead distance saved
 						next->setNextDriver(ahead);
 						if(prevNewDriver != nullptr)
 						{
+							//set the next driver of the train with minimum distance behind saved as the train driver to be inserted
 							prevNewDriver->setNextDriver(next);
 						}
 						next->setNextRequested(TrainDriver::REQUESTED_AT_PLATFORM);
 						Role<Person_MT> *tDriver = dynamic_cast<Role<Person_MT>*>(next);
+						//finally add to list of active trains in train controller 
+						//the train would have already been added to list of active trains by service controller when it was created itself
 						TrainController<Person_MT>::getInstance()->addToListOfActiveTrainsInLine(lineId,tDriver);
 					}
 				}
 				if(prevNewDriver != nullptr)
 				{
+					//after the train has been inserted unlock the mutex of the train behind it
 					prevNewDriver->movementMutexUnlock();
 				}
 				insertTrainOrUturnlock.unlock();

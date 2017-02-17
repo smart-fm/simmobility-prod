@@ -1753,6 +1753,10 @@ namespace medium
 		{
 			if(nextDriver->getMovement()->getDisruptedState()&&(nextDriver->getNextRequested()==TrainDriver::REQUESTED_AT_PLATFORM||nextDriver->getNextRequested()==TrainDriver::REQUESTED_WAITING_LEAVING)&&nextDriver->getNextPlatform()==getNextPlatform())
 			{
+				//This condition applies in case of disruption where if a train has already occupied a platform and it cannot move ahead due to disruption
+				//and if there is a train behind it which is between the two platforms then that train will arrive as close as possible to train on platform
+				//if the distance to that train is 0 then ,it is taken as the the train behind has already arrived at platform and it will start
+				//force alighting the passengers ,so it is considered as stop at platform.The condition below checks for it
 				double distanceToNextTrain = getDistanceToNextTrain(nextDriver);
 				if(distanceToNextTrain < distanceArrvingAtPlatform)
 				{
@@ -1767,12 +1771,13 @@ namespace medium
 		double distanceToNextPlatform = trainPathMover.getDistanceToNextPlatform(trainPlatformMover.getNextPlatform());
 		if(distanceToNextPlatform < distanceArrvingAtPlatform)
 		{
+			//just to record the travel time between the platform statistics,when it reaches the platform ,the travel time from previous platform is recorded
 			if(!calculatedTravelTime)
 			{
 				TrainUpdateParams& params = parentDriver->getParams();
 				std::string prevPlatform = " ";
 				uint32_t travelTimebetweenStations = params.now.ms()+5000-startTimeOfNextStationStretch;
-				sim_mob::BasicLogger& ptMRTtraveltimeLogger  = sim_mob::Logger::log("TravelTimeBEtweenStations.csv");
+				sim_mob::BasicLogger& ptMRTtraveltimeLogger  = sim_mob::Logger::log("TravelTimeBetweenStations.csv");
 				if(getNextPlatform() == trainPlatformMover_accpos.getFirstPlatform())
 				{
 					prevPlatform = " ";
@@ -1821,12 +1826,15 @@ namespace medium
 			params.movingDistance = movingDistance;
 			if(movingDistance>distanceToNextPlat&&movingDistance>params.distanceToNextStopPoint&&params.distanceToNextStopPoint!=0)
 			{
+				//in case if the train has overshoot the distance to next platform and distance to next stop point 
 				if(distanceToNextPlat == -1)
 				{
+					//if the train has to skip all the platforms the distance to next platform will be -1 then advance till the distance to stop point
 					trainPathMover.advance(params.distanceToNextStopPoint);
 				}
 				else
 				{
+					//check the nearest entity ,stop point or platform and advance according to the minimum distance
 					trainPathMover.advance(std::min(distanceToNextPlat,params.distanceToNextStopPoint));
 					params.disToNextPlatform = trainPathMover.getDistanceToNextPlatform(trainPlatformMover.getNextPlatform());
 				}
@@ -1834,18 +1842,21 @@ namespace medium
 
 			else if(movingDistance > distanceToNextPlat && distanceToNextPlat != -1)
 			{
+				//just check if the train overshot the distance to next platform 
 				trainPathMover.advance(distanceToNextPlat);
 				params.disToNextPlatform = 0.0;
 			}
 
 			else if (movingDistance > params.distanceToNextStopPoint && params.distanceToNextStopPoint != 0)
 			{
+				//just check if the train overshot the distance to next stop point
 				trainPathMover.advance(params.distanceToNextStopPoint);
 				params.disToNextPlatform = trainPathMover.getDistanceToNextPlatform(trainPlatformMover.getNextPlatform());
 			}
 
 			else
 			{
+				//just move according to the moving distance calculated
 				trainPathMover.advance(movingDistance);
 				params.disToNextPlatform = trainPathMover.getDistanceToNextPlatform(trainPlatformMover.getNextPlatform());
 			}

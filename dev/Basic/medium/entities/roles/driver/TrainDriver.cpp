@@ -633,6 +633,7 @@ int TrainDriver::alightPassenger(std::list<Passenger*>& alightingPassenger,times
     std::string lineId= platform->getLineId();
 	std::list<Passenger*>::iterator i = passengerList.begin();
 	std::string tm=(DailyTime(now.ms())+DailyTime(ConfigManager::GetInstance().FullConfig().simStartTime())).getStrRepr();
+	//log all the persons alighting
 	sim_mob::BasicLogger& ptMRTLogger  = sim_mob::Logger::log("PersonsAlighting.csv");
 	while(i!=passengerList.end())
 	{
@@ -641,6 +642,8 @@ int TrainDriver::alightPassenger(std::list<Passenger*>& alightingPassenger,times
 		{
 			if(endPoint.platform == platform)
 			{
+				//if the platform where the passenger is alighting is same as the alighting platform then just alight the passenger
+				//by pushing back to alightingPassenger list
 				alightingPassenger.push_back(*i);
 				ptMRTLogger <<(*i)->getParent()->getDatabaseId()<<","<<tm<<","<<getTrainId()<<","<<getTripId()<<","<<platform->getPlatformNo()<<","<<(*i)->getParent()->currSubTrip->origin.platform->getPlatformNo()<<","<<(*i)->getParent()->currSubTrip->destination.platform->getPlatformNo()<<std::endl;
 				i = passengerList.erase(i);
@@ -652,15 +655,20 @@ int TrainDriver::alightPassenger(std::list<Passenger*>& alightingPassenger,times
 			{
 				std::string stationNo = platform->getStationNo();
 				std::vector<Platform*> platforms=TrainController<sim_mob::medium::Person_MT>::getInstance()->getPlatforms(lineId,stationNo);
+				//check whether the platform is present from the ahead on the route from where the current platform of train is
 				std::vector<Platform*>::iterator itr=std::find(platforms.begin(),platforms.end(),endPoint.platform);
 				if(itr == platforms.end())
 				{
+					//check if the platform where the passenger is supposed to alight is already crossed ,may be due to
+					//the fact that the particular platform was skipped or alighting was restricted at that platform,so even then alight the passenger.
+					//so that he can take the train in opposite direction
 					alightingPassenger.push_back(*i);
 					ptMRTLogger <<(*i)->getParent()->getDatabaseId()<<","<<tm<<","<<getTrainId()<<","<<getTripId()<<platform->getPlatformNo()<<","<<(*i)->getParent()->currSubTrip->origin.platform->getPlatformNo()<<","<<(*i)->getParent()->currSubTrip->destination.platform->getPlatformNo()<<std::endl;
 					i = passengerList.erase(i);
 					num++;
 					continue;
 				}
+				//any other condition meaning that the train is yet to arrive at the platform where the passenger is supposed to alight
 			}
 		}
 		else
@@ -886,7 +894,7 @@ int TrainDriver::boardForceAlightedPassengersPassenger(std::list<Passenger*>& fo
 	{
 		return num;
 	}
-
+	//This function also boards the force alighted passengers 
 	int validNum = getEmptyOccupation();
 	std::list<Passenger*>::iterator i = forcealightedPassengers.begin();
 	while(i != forcealightedPassengers.end()&&validNum>0)

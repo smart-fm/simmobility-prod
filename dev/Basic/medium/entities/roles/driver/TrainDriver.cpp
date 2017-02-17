@@ -246,19 +246,23 @@ void TrainDriver::calculateDwellTime(int boarding,int alighting,int noOfPassenge
 	Platform *platform = getMovement()->getNextPlatform();
 	std::string stationNo = platform->getStationNo();
 	Station *station = trainController->getStationFromId(stationNo);
+	//gets the scaling coefficients if set by service controller
 	const std::vector<double> personCountCoefficients = trainController->getNumberOfPersonsCoefficients(station,platform);
 	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
 	const std::map<const std::string,TrainProperties>& trainLinePropertiesMap = config.trainController.trainLinePropertiesMap;
 	const TrainProperties &trainProperties = trainLinePropertiesMap.find(getTrainLine())->second;
+	//getting the dwell time ,its coefficients from config ,the coefficients are line speciific
 	const TrainDwellTimeInfo &dwellTimeInfo = trainProperties.dwellTimeInfo;
 	double dwellTime = -1;
 	if(personCountCoefficients.size() == 3)
 	{
+		//considering the scaling factors in person count(boarding,alighting,no of passengers in train) for calculating dwell time
 		noOfPassengerInTrain = noOfPassengerInTrain*personCountCoefficients[2];
 		dwellTime = dwellTimeInfo.firstCoeff + (dwellTimeInfo.secondCoeff*personCountCoefficients[0]*boarding + dwellTimeInfo.thirdCoeff*personCountCoefficients[1]*alighting + dwellTimeInfo.fourthCoeff*personCountCoefficients[2]*noOfPassengerInTrain)/24;
 	}
 	else
 	{
+		//normal without scaling,by default scaling factors are 1
 		dwellTime = dwellTimeInfo.firstCoeff + (dwellTimeInfo.secondCoeff*boarding + dwellTimeInfo.thirdCoeff*alighting + dwellTimeInfo.fourthCoeff*noOfPassengerInTrain)/24;
 	}
 		
@@ -286,6 +290,7 @@ void TrainDriver::calculateDwellTime(int boarding,int alighting,int noOfPassenge
 			}
 			else
 			{
+				//take the maximum dwell time in config
 				maxDwellTime = trainController->getMaximumDwellTime(trainLine);
 			}
 
@@ -297,6 +302,7 @@ void TrainDriver::calculateDwellTime(int boarding,int alighting,int noOfPassenge
 			}
 			else
 			{
+				//take the minimum dwell time in config
 				minDwellTime = trainController->getMinDwellTime(stationNo,trainLine);
 			}
 
@@ -350,12 +356,16 @@ void TrainDriver::calculateDwellTime(int boarding,int alighting,int noOfPassenge
 
 			else
 			{
+				//if neither max dwell time or minimum dwell time is set by service controller ,then whatever dwell is calculated is just compared
+				//with the predefined values in config 
 				if(dwellTime < minDwellTime)
 				{
+					//if the dwell time is less than minimum dwell time in config ,then the minimum dwell time in config is taken as dwell time
 					dwellTime = minDwellTime;
 				}
 				else if (dwellTime > maxDwellTime)
 				{
+					//if the dwell time is more than maximum dwell time in config ,then the maximum dwell time in config is taken as dwell time
 					dwellTime = maxDwellTime;
 				}
 			}
@@ -586,6 +596,7 @@ bool TrainDriver::getUTurnFlag() const
 
 void TrainDriver::setForceAlightFlag(bool flag)
 {
+	//if it has already force alighted then cannot set the force alight flag again
 	if(!isForceAlighted||flag == false)
 	{
 		forceAlightPassengers_ByServiceController = flag;
@@ -705,6 +716,7 @@ void TrainDriver::updatePassengers()
 
 void TrainDriver::insertStopPoint(PolyPoint point,double duration,double maxDecerationRate,double distance)
 {
+	//saves the information of a new stop point,the point ,stopping duration ,max deceleration rate available for stopping 
 	StopPointEntity stopPointEntity;
 	stopPointEntity.point=point;
 	stopPointEntity.duration=duration;
@@ -732,13 +744,15 @@ void TrainDriver::lockUnlockRestrictPassengerEntitiesLock(bool lock)
 
 void TrainDriver::insertRestrictPassengerEntity(std::string platformName,int movType)
 {
-
+	//This functions saves the information about restrict passenger movement for the train at particular platform
 	restrictEntitiesLock.lock();
 	std::map<std::string,passengerMovement>::iterator itr = restrictPassengersEntities.find(platformName);
 	if(itr != restrictPassengersEntities.end())
 	{
+		//if the information saved previously is existing then erase it
 		restrictPassengersEntities.erase(itr);
 	}
+	//save the new information about restriction at the platform
 	restrictPassengersEntities[platformName]=passengerMovement(movType);
 	restrictEntitiesLock.unlock();
 }
@@ -832,7 +846,8 @@ int TrainDriver::boardPassenger(std::list<WaitTrainActivity*>& boardingPassenger
 	int num = 0;
     if(isBoardingRestricted())
     {
-    	return num;
+    	//if boarding is restricted then just return 0
+		return num;
     }
 
 	int validNum = getEmptyOccupation();
@@ -840,6 +855,7 @@ int TrainDriver::boardPassenger(std::list<WaitTrainActivity*>& boardingPassenger
 	std::list<WaitTrainActivity*>::iterator i = boardingPassenger.begin();
 	while(i!=boardingPassenger.end()&&validNum>0)
 	{
+		//if valid boarding passenger and empty space is greater than 0,then board the passenger
 		(*i)->collectTravelTime();
 		storeWaitingTime((*i), now);
 		Person_MT* person = (*i)->getParent();
@@ -850,6 +866,7 @@ int TrainDriver::boardPassenger(std::list<WaitTrainActivity*>& boardingPassenger
 		sim_mob::medium::Passenger* passenger = dynamic_cast<sim_mob::medium::Passenger*>(curRole);
 		if(passenger)
 		{
+			//set the start point,travel metric ,end point ,arrival time
 			passenger->setArrivalTime(now.ms()+(ConfigManager::GetInstance().FullConfig().simStartTime()).getValue());
 			passenger->setStartPoint(person->currSubTrip->origin);
 			passenger->setEndPoint(person->currSubTrip->destination);
@@ -866,7 +883,7 @@ int TrainDriver::boardPassenger(std::list<WaitTrainActivity*>& boardingPassenger
 			{
 				ptMRTLogger<<" ";
 			}
-
+		
 			ptMRTLogger<<","<<person->currSubTrip->origin.platform->getPlatformNo()<<","<<person->currSubTrip->destination.platform->getPlatformNo()<<std::endl;
 			passengerList.push_back(passenger);
 			i = boardingPassenger.erase(i);
@@ -894,7 +911,7 @@ int TrainDriver::boardForceAlightedPassengersPassenger(std::list<Passenger*>& fo
 	{
 		return num;
 	}
-	//This function also boards the force alighted passengers 
+	//This function also boards the force alighted passengers along with other passengers.
 	int validNum = getEmptyOccupation();
 	std::list<Passenger*>::iterator i = forcealightedPassengers.begin();
 	while(i != forcealightedPassengers.end()&&validNum>0)
@@ -919,9 +936,11 @@ bool TrainDriver::isBoardingRestricted()
 		it=restrictPassengersEntities.find(platform->getPlatformNo());
 		if(it!= restrictPassengersEntities.end())
 		{
+			//checks if there is any restriction to passenger movement
 			passengerMovement movType=restrictPassengersEntities[platform->getPlatformNo()];
 			if(movType == BOARDING || movType == BOTH)
 			{
+			   //if the restriction is either boarding or both boarding and alighting then return true and erase the restriction entity
 			   restrictPassengersEntities.erase(it);
 			   return true;
 			}
@@ -948,12 +967,17 @@ bool TrainDriver::isAlightingRestricted()
 		it=restrictPassengersEntities.find(platform->getPlatformNo());
 		if(it!=restrictPassengersEntities.end())
 		{
+			//checks if there is any restriction to passenger movement
 			passengerMovement movType=restrictPassengersEntities[platform->getPlatformNo()];
 			restrictPassengersEntitiesLock.unlock();
 			if(movType == ALIGHTING || movType == BOTH)
 			{
+				//if the restriction is either boarding or both boarding and alighting then return true
 				if(movType == ALIGHTING)
 				{
+					//if restriction is just alighting then erase it,else if it is both then let it be there it will be deleted after the check of boarding restriction 
+					//since if both boarding and alighting restriction is there ,first alighting resting is checked as alighting takes place and then boarding restriction is checked
+					//as then boarding takes place after alighting
 					restrictPassengersEntities.erase(it);
 				}
 				return true;

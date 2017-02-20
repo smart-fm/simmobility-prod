@@ -152,7 +152,7 @@ void sim_mob::WorkGroup::initWorkers(EntityLoadParams* loader)
 		std::vector<Entity*>* entWorker = &entToBeRemovedPerWorker.at(i);
 		std::vector<Entity*>* entBredPerWorker = &entToBeBredPerWorker.at(i);
 
-		workers.push_back(new Worker(this, logFile, frame_tick_barr, buff_flip_barr, msg_bus_barr, macro_tick_barr, entWorker, entBredPerWorker, numSimTicks, tickStep,simulationStart));
+		workers.push_back(new Worker(this, logFile, frame_tick_barr, buff_flip_barr, msg_bus_barr, macro_tick_barr, entWorker, entBredPerWorker, numSimTicks, tickStep,simulationStart,i));
 	}
 }
 

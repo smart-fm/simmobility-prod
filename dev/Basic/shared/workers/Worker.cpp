@@ -75,6 +75,36 @@ sim_mob::Worker::Worker(WorkGroup* parent, std::ostream* logFile,  FlexiBarrier*
 	//thread_id = auto_matical_thread_id;
 	//auto_matical_thread_id++;
 	srand(std::time(0));
+
+	id = -1;
+}
+
+
+
+sim_mob::Worker::Worker(WorkGroup* parent, std::ostream* logFile,  FlexiBarrier* frame_tick, FlexiBarrier* buff_flip, FlexiBarrier* aura_mgr, boost::barrier* macro_tick,
+						std::vector<Entity*>* entityRemovalList, std::vector<Entity*>* entityBredList, uint32_t endTick, uint32_t tickStep, uint32_t _simulationStartDay, int _id)
+					   :logFile(logFile), frame_tick_barr(frame_tick), buff_flip_barr(buff_flip), aura_mgr_barr(aura_mgr), macro_tick_barr(macro_tick),
+					    endTick(endTick), tickStep(tickStep), parent(parent), entityRemovalList(entityRemovalList), entityBredList(entityBredList),
+					    profile(nullptr),pathSetMgr(nullptr), simulationStartDay(_simulationStartDay), id(_id)
+{
+	//Initialize our profile builder, if applicable.
+	if (ConfigManager::GetInstance().CMakeConfig().ProfileWorkerUpdates()) {
+		profile = new ProfileBuilder();
+	}
+	//thread_id = auto_matical_thread_id;
+	//auto_matical_thread_id++;
+	srand(std::time(0));
+}
+
+
+int sim_mob::Worker::getId()
+{
+	return id;
+}
+
+void sim_mob::Worker::setId( int _id)
+{
+	id = _id;
 }
 
 
@@ -285,9 +315,44 @@ void sim_mob::Worker::perform_frame_tick()
 
 	//Add Agents as required.
 	addPendingEntities();
+
+	time_t  start_clock   = time(0);
+	clock_t start_process = clock();
+
         
 	//Perform all our Agent updates, etc.
 	update_entities(timeslice(par.currTick, par.currTick*par.msPerFrame));
+
+
+	if( getId() >= 0 )
+	{
+		time_t end_clock = time(0);
+		double time_clock = difftime( end_clock, start_clock );
+
+		clock_t end_process = clock();
+		double time_process = (double) ( end_process - start_process ) / CLOCKS_PER_SEC;
+
+		std::cout << getId() << " Wall clock time passed: ";
+		if( time_clock > 60 )
+		{
+			std::cout << (int)(time_clock / 60) << " minutes ";
+		}
+
+		std::cout << time_clock - ( (int)( time_clock / 60 ) * 60 )<< " seconds." << std::endl;
+
+		std::cout  << getId() <<  " CPU time used: ";
+		if( time_process > 60 )
+		{
+			std::cout << (int)time_process / 60 << " minutes ";
+		}
+
+		std::cout << (int)( time_process - ( (int)(time_process / 60)  * 60 ) ) << " seconds" << std::endl;
+	}
+
+
+
+
+
 
 	//Remove Agents as requires
 	removePendingEntities();
@@ -421,39 +486,40 @@ struct EntityUpdater
 	virtual void operator()(sim_mob::Entity* entity)
 	{
 		UpdateStatus res = entity->update(currTime);
+
 		if (ConfigManager::GetInstance().FullConfig().isWorkerPublisherEnabled())
 		{
 			Worker::GetUpdatePublisher().publish(event::EVT_CORE_AGENT_UPDATED, (void*) event::CXT_CORE_AGENT_UPDATE, UpdateEventArgs(entity));
 		}
 		switch(res.status)
 		{
-		case UpdateStatus::RS_DONE:
-		{
-			//This Entity is done; schedule for deletion.
-			wrk.scheduleForRemoval(entity);
-			break;
-		}
-		case UpdateStatus::RS_CONTINUE:
-		{
-			//Still going, but we may have properties to start/stop managing
-			for (set<BufferedBase*>::iterator it = res.toRemove.begin(); it != res.toRemove.end(); it++)
+			case UpdateStatus::RS_DONE:
 			{
-				wrk.stopManaging(*it);
+				//This Entity is done; schedule for deletion.
+				wrk.scheduleForRemoval(entity);
+				break;
 			}
-			for (set<BufferedBase*>::iterator it = res.toAdd.begin(); it != res.toAdd.end(); it++)
+			case UpdateStatus::RS_CONTINUE:
 			{
-				wrk.beginManaging(*it);
+				//Still going, but we may have properties to start/stop managing
+				for (set<BufferedBase*>::iterator it = res.toRemove.begin(); it != res.toRemove.end(); it++)
+				{
+					wrk.stopManaging(*it);
+				}
+				for (set<BufferedBase*>::iterator it = res.toAdd.begin(); it != res.toAdd.end(); it++)
+				{
+					wrk.beginManaging(*it);
+				}
+				break;
 			}
-			break;
-		}
-		case UpdateStatus::RS_CONTINUE_INCOMPLETE:
-		{
-			break;
-		}
-		default:
-		{
-			throw std::runtime_error("Unknown/unexpected update() return status.");
-		}
+			case UpdateStatus::RS_CONTINUE_INCOMPLETE:
+			{
+				break;
+			}
+			default:
+			{
+				throw std::runtime_error("Unknown/unexpected update() return status.");
+			}
 		}
 	}
 };

@@ -168,7 +168,6 @@ private:
 	 */
 	void pushForceAlightedPassengersToWaitingQueue(const Platform *platform);
 
-
 private:
 	/**record the walking time parameters at current station*/
 	const WalkingTimeParams* walkingTimeParams = nullptr;

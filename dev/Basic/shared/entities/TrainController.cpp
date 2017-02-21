@@ -1450,6 +1450,40 @@ namespace sim_mob
 	}
 
 	template<typename PERSON>
+	void TrainController<PERSON>::handleTrainReturnAfterTripCompletition(PERSON *person)
+	{
+		if(person)
+		{
+			const std::vector<TripChainItem *>& tripChain = person->getTripChain();
+			TrainTrip* front = dynamic_cast<TrainTrip*>(tripChain.front());
+			if(front)
+			{
+				int trainId = front->getTrainId();
+				std::string lineId = front->getLineId();
+				std::string oppLineId = getOppositeLineId(lineId);
+				std::map<std::string,std::vector<int>>::iterator itr=trainsToBePushedToInactivePoolAfterTripCompletion.find(lineId);
+				if(itr != trainsToBePushedToInactivePoolAfterTripCompletion.end())
+				{
+					std::vector<int> &trainIds = trainsToBePushedToInactivePoolAfterTripCompletion[lineId];
+					std::vector<int>::iterator it=std::find(trainIds.begin(), trainIds.end(), trainId);
+					if(it != trainIds.end())
+					{
+						trainIds.erase(it);
+						addTrainToInActivePool(oppLineId, trainId);
+					}
+					else
+					{
+						addTrainToActivePool(oppLineId, trainId);
+					}
+				}
+				else
+				{
+					addTrainToActivePool(oppLineId, trainId);
+				}
+			}
+		}
+	}
+	template<typename PERSON>
 	void TrainController<PERSON>::HandleMessage(messaging::Message::MessageType type, const messaging::Message& message)
 	{
 		switch (type)
@@ -1505,6 +1539,7 @@ namespace sim_mob
 	{
 		std::vector<ResetBlockSpeeds>::iterator it;
 		DailyTime currentTime = now;
+		//mention 5000 as one frame tick
 		DailyTime nextFrameTickTime = now + DailyTime(5000);
 		int count=-1;
 		for(it = resetSpeedBlocks.begin() ; it < resetSpeedBlocks.end(); )
@@ -1528,7 +1563,10 @@ namespace sim_mob
 					}
 					else if (boost::iequals((*itpl)->getStationNo(), endStation))
 					{
-						break;
+						if(!isTerminalPlatform((*itpl)->getPlatformNo(),lineId))
+						{
+							break;
+						}
 					}
 					if(startSeq == true)
 					{
@@ -1559,7 +1597,10 @@ namespace sim_mob
 					}
 					else if (boost::iequals((*itpl)->getStationNo(), endStation))
 					{
-						break;
+						if(!isTerminalPlatform((*itpl)->getPlatformNo(),lineId))
+						{
+							break;
+						}
 					}
 					if(startSeq == true)
 					{
@@ -1726,9 +1767,11 @@ namespace sim_mob
 			std::map<std::string, Station*>::const_iterator it = mapOfIdvsStations.find(stationNo);
 			if(it != mapOfIdvsStations.end())
 			{
-				mapOfCoefficientsOfNumberOfPersons[it->second][itr->second].push_back(coefficientA);
-				mapOfCoefficientsOfNumberOfPersons[it->second][itr->second].push_back(coefficientB);
-				mapOfCoefficientsOfNumberOfPersons[it->second][itr->second].push_back(coefficientC);
+				std::vector<double> vectorOfCoefficients;
+				vectorOfCoefficients.push_back(coefficientA);
+				vectorOfCoefficients.push_back(coefficientB);
+				vectorOfCoefficients.push_back(coefficientC);
+				mapOfCoefficientsOfNumberOfPersons[it->second][itr->second] = vectorOfCoefficients;
 			}
 		}
 	}

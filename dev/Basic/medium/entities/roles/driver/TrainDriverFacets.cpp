@@ -167,6 +167,10 @@ namespace medium
 
 	void TrainMovement::changeTrip()
 	{
+		//This function changes the trip of the train
+		//when it has to take Uturn then it has to get teleported to opposite platform
+		//so the new trip will have new platforms ,blocks ,the line is changes to opposite lineetc
+		//
 		Person_MT* person = parentDriver->parent;
 		std::string lineId = parentDriver->getTrainLine();
 		Platform *platform = getNextPlatform();
@@ -177,6 +181,7 @@ namespace medium
 		std::vector<Block*>route;
 		std::vector<Platform*> platforms;
 		trainController->getTrainRoute(oppLineId,route);
+		//this sets the blocks of the train
 		trip->setTrainRoute(route);
 		trainController->getTrainPlatforms(oppLineId,platforms);
 		trip->setTrainPlatform(platforms);
@@ -188,9 +193,13 @@ namespace medium
 		Platform *inroutePlaform = trainPlatformMover.getNextPlatform();
 		while(oppPlatform != inroutePlaform)
 		{
+			//iterates from start to the respective platform it has to get teleported to in the opposite line
+			//since when the trainplatform mover and train platform mover across pos are set the iterator is always at the beginning
+			//so all the previous platforms are skipped and train is teleported to the required platform
 			inroutePlaform = trainPlatformMover.getNextPlatform(true);
 			trainPlatformMover_accpos.getNextPlatform(true);
 		}
+		//finally the train takes Uturn ,physically moves to opposite platform
 		takeUTurn(stationName);
 	}
 
@@ -219,6 +228,7 @@ namespace medium
 						double disToNextPlatform = trainMovement->getDistanceFromStartToPlatform(lineID,platform) - trainMovement->getTotalCoveredDistance();
 						if(disToNextPlatform>=0 && (minDis == -1 || disToNextPlatform < minDis))
 						{
+							//finding the nearest train behind this train whose next driver is this train
 							parentDriver->prevDriverInOppLine = tDriver;
 							minDis = disToNextPlatform ;
 							savePlat = platform;
@@ -230,6 +240,8 @@ namespace medium
 
 		if(parentDriver->prevDriverInOppLine != nullptr)
 		{
+			//lock this train as we don't want it to move until it takes uturn ,so as to be sure of the distance behind it 
+			//and prevent it from accessing the next driver driver as it will be modified(just to avoid race condition)
 			parentDriver->prevDriverInOppLine->getMovementMutex();
 			TrainDriver *tDriverPrev = parentDriver->prevDriverInOppLine;
 			const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
@@ -237,6 +249,7 @@ namespace medium
 			const double trainLengthMeter = (trainProps.find(parentDriver->getTrainLine())->second).trainLength;
 			const std::map<const std::string,TrainProperties> &trainLinePropertiesMap = config.trainController.trainLinePropertiesMap;
 			const TrainProperties &trainProperties = trainLinePropertiesMap.find(parentDriver->getTrainLine())->second;
+			//getting the value for minimum distance required for behind train to be when it is going to take U turn
 			double minDisBehindTrain = trainProperties.minDistanceTrainBehindForUnscheduledTrain;
 			double disPrev = tDriverPrev->getMovement()->getDistanceToNextPlatform(tDriverPrev);
 			int tID = parentDriver->prevDriverInOppLine->getTrainId();
@@ -245,7 +258,10 @@ namespace medium
 			double disToNextPlatform = tMov->getDistanceFromStartToPlatform(lineID,savePlat) - tMov->getTotalCoveredDistance();
 			if(disToNextPlatform - tDriverPrev->getMovement()->getSafeDistance() - trainLengthMeter - minDisBehindTrain < 0)
 			{
-
+				//unlocking the train if the distance is too less ,behind less than minimum distance required
+				//One thing to note is that we lock the train before as so to just prevent the train from moving ahead 
+				//and then we check the distance requirement ,else as it is multi threaded then it can possibly cross the safety distance required
+				//while checking the distance (just to be sure that the distance will be the same as checked)
 				parentDriver->prevDriverInOppLine->movementMutexUnlock();
 				parentDriver->prevDriverInOppLine = nullptr;
 				return true;
@@ -258,6 +274,7 @@ namespace medium
 	{
 		TrainController<sim_mob::medium::Person_MT> *trainController = TrainController<sim_mob::medium::Person_MT>::getInstance();
 		typename  std::vector <Role<Person_MT>*> trainDriverVector = trainController->getActiveTrainsForALine(lineID);
+		//getting the next platform in the opposite line (platfrom after the platform where the train will be after U turn)
 		TrainPlatform trainPlatform = trainController->getNextPlatform(platformNo,lineID);
 		Platform *platform = trainController->getPlatformFromId(platformNo);
 		const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
@@ -283,8 +300,10 @@ namespace medium
 						double disCovered = trainPathMover.getTotalCoveredDistance();
 						double disOfPlatform = getDistanceFromStartToPlatform(lineID,platform);
 						std::string nextPlatformNo = nextPlatform->getPlatformNo();
+						//check if the train ahead's next platform will be the one after the platform where this train after Uturn will go
 						if(boost::iequals(trainPlatform.platformNo,nextPlatformNo))
 						{
+							//find the train in opposite line which will be the closet train ahead of  it when it takes Uturn to opposite line
 							if(minDis == -1 || (disCovered - disOfPlatform < minDis))
 							{
 								minDis = disCovered - disOfPlatform;
@@ -293,6 +312,7 @@ namespace medium
 
 							if(disCovered - disOfPlatform - trainLengthMeter <= safeDistance)
 							{
+								//if the distance is going to be less than safe distance then return false (not possible to take uturn)
 								return false;
 							}
 						}
@@ -300,6 +320,7 @@ namespace medium
 						{
 							if(( disCovered - disOfPlatform > 0 ) && (minDis == -1 || ( disCovered-disOfPlatform < minDis )))
 							{
+								//just saving the train with minimum distance difference
 								minDis = disCovered - disOfPlatform;
 								nextDriverInOppLine = dynamic_cast<TrainDriver*>((*it));
 							}
@@ -313,6 +334,7 @@ namespace medium
 
 		if(trainDriver)
 		{
+			//saving the next train driver in opposite line
 			trainDriver->setTrainDriverInOpposite(nextDriverInOppLine);
 		}
 		return true;
@@ -353,6 +375,7 @@ namespace medium
 		std::vector<Role<Person_MT>*>::iterator it;
 		for(it = trainDriverVector.begin(); it != trainDriverVector.end(); it++)
 		{
+			//find the train driver right behind it and lock it so that it cannot access the train driver which is going to take U turn
 			TrainDriver *tDriver = dynamic_cast<TrainDriver*>(*(it));
 			if(tDriver)
 			{
@@ -370,27 +393,38 @@ namespace medium
 		Station *station = trainController->getStationFromId(stationId);
 		Platform *oppPlatform = station->getPlatform(lineId);
 		std::vector<Block *> blocks = trip->getTrainRoute();
+		//set the blocks in train platform mover entity which sets its route.
+		//This is done after locking the train in before it in previous line as the train before it may be accessing the
+		//this particular train to know its distance which actually uses the train path mover entity as it has the distance moved on entire path ,block etc
+		//so to avoid getting the wrong information we modify the trainPathmover later after locking the train before it.
 		trainPathMover.setPath(trip->getTrainRoute());
+		//set the opposite platform that is teleport till the platform where it has to take U turn
 		trainPathMover.teleportToOppositeLine(stationId,lineId,oppPlatform);
+		//set the new platform after U turn
 		facetMutex.lock();
 		nextPlatform = oppPlatform;
 		facetMutex.unlock();
 		TrainDriver *parentDriver = getParentDriver();
+		//removing from list of active trains in train controller and from service controller.
 		TrainController<Person_MT>::getInstance()->removeFromListOfActiveTrainsInLine(prevLine,parentDriver);
 		TrainController<Person_MT>::getInstance()->addToListOfActiveTrainsInLine(lineId,parentDriver);
 		int trainId = parentDriver->getTrainId();
+		//adding to list of active trains in opposite line in both train controller and service controller data structure list
 		ServiceController::getInstance()->removeTrainIdAndTrainDriverInMap(trainId,prevLine,parentDriver);
 		ServiceController::getInstance()->insertTrainIdAndTrainDriverInMap(trainId,lineId,parentDriver);
 		if(prevDriveInSameLine != nullptr)
 		{
+			//unlock the train driver after U turn
 			prevDriveInSameLine->setNextDriver(parentDriver->getNextDriver());
 			prevDriveInSameLine->movementMutexUnlock();
 		}
 		parentDriver->setNextDriver(parentDriver->getDriverInOppositeLine());
 		if(parentDriver->prevDriverInOppLine != nullptr)
 		{
+			//reassign the next driver of the train behind in previous line to the train driver ahead of it
 			parentDriver->prevDriverInOppLine->nextDriver = parentDriver;
 		}
+		//the train took the uturn ,now unset the uturn flag
 		parentDriver->setUturnFlag(false);
 	}
 
@@ -577,7 +611,11 @@ namespace medium
 		TrainUpdateParams& params = parentDriver->getParams();
 		parentDriver->updatePassengers();
 		TrainDriver::TRAIN_NEXTREQUESTED requested = parentDriver->getNextRequested();
-		if(!getParentDriver()->isStoppedAtPoint() && requested == TrainDriver::REQUESTED_WAITING_LEAVING)
+		//here we check for the condition that whether a stop point has been inserted when train is waiting at the platform.
+		//since when the train was moving and and the stop point is inserted ,those conditions are handles separately 
+		//as it could be possible that when the train's speed is not 0 then the stop point is inserted by service controller in the beginning of frame tick
+		//at the same position of train ,so those points have to be ignored as it cannot stop 
+		if(!getParentDriver()->isStoppedAtPoint() && (requested == TrainDriver::REQUESTED_WAITING_LEAVING || params.currentSpeed == 0))
 		{
 			isStopPointPresent();
 		}
@@ -585,13 +623,17 @@ namespace medium
 		{
 			params.currentSpeed = 0.0;
 			params.currentAcelerate = 0.0;
+			//every frame tick reduce the stopping time 
 			double remainingTime = parentDriver->reduceStoppingTime(params.secondsInTick);
+			//if the remaining time is less than seconds in frame tick and next requested is not WAITING_LEAVING then return ie(already reduced the stopping time this frame tick)
 			if(remainingTime<params.secondsInTick)
 			{
 				parentDriver->setStoppingTime(0);
 				parentDriver->setStoppingStatus(false);
 				if(requested != TrainDriver::REQUESTED_WAITING_LEAVING)
-				return;
+				{
+					return;
+				}
 			}
 		}
 		if(!toMove&&params.now.ms() == noMoveTimeSlice)
@@ -620,28 +662,44 @@ namespace medium
 					if(isStopAtPlatform())
 					{
 						parentDriver->setInitialNumberOfPassengers(parentDriver->getPassengers().size());
+						//once the train has reached the platform reset of the moving case is set to false
 						forceResetMovingCase = false;
 						parentDriver->setNextRequested(TrainDriver::REQUESTED_AT_PLATFORM);
 
 					}
 					else
 					{
+						//check for the condition that whether the train has crossed the limit for platform ,so then the next platform position wise
+						//has to be updated.
+						//here ,not checking for the case when the train crosses more than one platform in a frame tick when it has to skip consective 
+						//platforms.Its ideally not possible for train to cross two or more consecutive platforms in one frame tick
+						//so when the train crosses the limit of its upcoming(next) platform after it has moved in the frame tick ,the next platform 
+						//is just updated by one in the list.
 						if(distance<getTotalCoveredDistance())
 						{
+							//if it has to ignore all platforms and last next position position wise is the last platform on its route
 							if(shouldIgnoreAllPlatforms && trainPlatformMover_accpos.getLastPlatformOnRoute() == trainPlatformMover_accpos.getNextPlatform(false))
 							{
+								// if the train has reached the end of route ,that is if the train has overshoot the distance due to the 5 sec frame tick 
+								//meaning to say in last frame tick it was before the end of route and now its after the end of route 
+								//then it is to be removed
+								
+								//when it overshoots the distance it is true that there are no block or poly points for train to update its position
+								//but thats ok the train's position will be last block and last poly point,only distance travelled will be updated
+								//If the distance travelled in next frame tick overshoots ,its better not to terminate the train early since we will losing
+								//certain distance the train travels ,ideally the full path should be covered by the train 
 								parentDriver->getParent()->setToBeRemoved();
 								arrivalAtEndPlatform();
 							}
 							else
 							{
-
+								//record the travel time statistics between the platform
 								TrainUpdateParams& params = parentDriver->getParams();
 								DailyTime startTime = ConfigManager::GetInstance().FullConfig().simStartTime();
 								int traveTime=params.now.ms()- startTimeOfNextStationStretch;
 								std::string prevPlatformName = " ";
 								//log travelTime
-								sim_mob::BasicLogger& ptMRTtraveltimeLogger  = sim_mob::Logger::log("TravelTimeBEtweenStations.csv");
+								sim_mob::BasicLogger& ptMRTtraveltimeLogger  = sim_mob::Logger::log("TravelTimeBetweenStations.csv");
 								if(getNextPlatform() == trainPlatformMover_accpos.getFirstPlatform())
 								{
 									prevPlatformName = " ";
@@ -660,10 +718,12 @@ namespace medium
 								}
 								ptMRTtraveltimeLogger<<parentDriver->getTrainLine()<<","<<prevPlatformName<<","<<trainPlatformMover_accpos.getNextPlatform()->getStationNo()<<","<<traveTime<<endl;
 								startTimeOfNextStationStretch = params.now.ms();
+								//update the next platform position wise
 								trainPlatformMover_accpos.getNextPlatform(true);
 							}
 						}
 					}
+					//This function checks whether the stop point is present,if so then set the required stopping time and stopping status
 					isStopPointPresent();
 				}
 
@@ -672,7 +732,6 @@ namespace medium
 
 			case TrainDriver::REQUESTED_WAITING_LEAVING:
 			{
-				//need to handle the case when the is stopped at platform and stop point is given
 				parentDriver->reduceWaitingTime(params.secondsInTick);
 				parentDriver->resetHoldingTime();
 				double waitingTime = parentDriver->getWaitingTime();
@@ -921,7 +980,7 @@ namespace medium
 
 			case TrainDriver::REQUESTED_TAKE_UTURN:
 			{
-				//pass message to Uturn
+				
 				if(!parentDriver->getUTurnFlag())
 				{
 					bool shldStop = shouldStopDueToDisruption(parentDriver);
@@ -932,7 +991,7 @@ namespace medium
 						break;
 					}
 				}
-
+				//pass message to Uturn
 				Platform *platform = getNextPlatform();
 				std::string stationNo = platform->getStationNo();
 				Agent* stationAgent = TrainController<Person_MT>::getAgentFromStation(stationNo);
@@ -1281,6 +1340,7 @@ namespace medium
 		std::vector<StopPointEntity>::iterator minStopPointItr = stopPoints.end();
 		double minDis = 0,deceleration = 0.0;
 		StopPointEntity stopPoint;
+		//finds the nearest stop point considering the stop points with positive distance ahead from the position of the train
 		while(stopPointItr != stopPoints.end())
 		{
 			double discovered = getTotalCoveredDistance();
@@ -1324,6 +1384,13 @@ namespace medium
 
 		const TrainDriver* nextDriver = parentDriver->getNextDriver();
 		distanceToNextTrain = getDistanceToNextTrain(nextDriver);
+		//As long as station case decision is not confirmed keep iterating through the loop
+		//It is possible that there are several stop points on the way one after the other
+		//if a stop point is the nearest object then it is unable to stop at that point due to limited deceleration available ,but the train has 
+		//got too close to the stop point then no attempt is made to stop at stop point
+		//rather next  nearest object is chosen and if it a stop point then again it stop point then check the deceleration requirement and availability for
+		//that stop point ,if still not enough deceleration to stop it then likewise keeping checking for other stop points if they are nearest
+		//finally if platform is nearest object just stop there with whatever deceleration it requires.
 		while(!stationCaseDecisionConfirmed)
 		{
 			distanceToNextObject = 0.0;
@@ -1341,6 +1408,17 @@ namespace medium
 			std::vector<PolyPoint>::const_iterator stopPointItr = points.end();
 			if(stopPoints.size() != 0)
 			{
+				//this function gets the stop point nearest to the train which is not at distance 0 from the train.If the stop point is at distance 0 ,then
+				//just ignore it.if the distance is 0 then that means the stop point is inserted by service controller just in this frame tick at the same
+				//position of the train so its not possible to make the velocity of train instantaneously to 0.
+				//When it is at certain distance from stop point and it reaches the stop point at the end of frame tick ,the distance will be 0 to it 
+				//then it that case immediately stopping status is set and stop time is calculated. And stop point is deleted so that it does not come into picture
+				//with 0 distance when in future its needed to find the nearest stop point.
+				//There is a minor bug ,lets say when the train is stopped due to train ahead of it is very close and at that time stop point is inserted
+				//so only  now the train is closer to the stop point considering the value of safe distance(if the train has crossed safety limit) but is 
+				//still at some distance of train ahead so if the train has just stopped at the end of frame tick and in next frame tick the train ahead of it
+				//moves some distance such that it is at safe distance(since its multi threaded) so then the stop point will not be considered as it is at 0 distance from the train stopped
+				//and the train will now start moving ,but if the train has to wait for at least one frame tick then it checks that stop point is present and it honours it.
 				itr = findNearestStopPoint(stopPoints,disToNextStopPoint,maxDecelerationToStopPoint);
 			}
 
@@ -1350,11 +1428,15 @@ namespace medium
 				{
 					if(distanceToNextPlatform == -1)
 					{
+						//This means there is no train ahead and no platfrom to stop(skipped all platform) and no stop point
+						//so train will go till last platform and return to depot without stopping anywhere
 						distanceToNextObject = -1;
 					}
 					else
 					{
-
+						//ideally distance to platform or train cannot be zero if they exist and there is no error ,since due to floating point
+						//computation.If distance to train is 0 that means that no train ahead is existing or if distance to platform is 0 then 
+						//no valid platform is existing
 						distanceToNextObject = std::max(distanceToNextTrain, distanceToNextPlatform);
 					}
 				}
@@ -1376,6 +1458,7 @@ namespace medium
 
 				if(distanceToNextTrain == 0.0 && distanceToNextPlatform == 0.0)
 				{
+					//the relevant next object is the stop point
 					distanceToNextObject = std::max(distanceToNextTrain, distanceToNextPlatform);
 					distanceToNextObject = std::max(distanceToNextObject,disToNextStopPoint);
 				}
@@ -1383,7 +1466,7 @@ namespace medium
 				{
 					if(distanceToNextTrain == 0)
 					{
-						if(distanceToNextPlatform == -1)
+						if(distanceToNextPlatform == -1) /*this means the train will skip all platforms ahead ,so no next platform*/
 						{
 							distanceToNextObject = disToNextStopPoint;
 						}
@@ -1400,7 +1483,7 @@ namespace medium
 
 					else
 					{
-						if(distanceToNextPlatform == -1)
+						if(distanceToNextPlatform == -1) /*this means the train will skip all platforms ahead ,so no next platform*/
 						{
 							distanceToNextObject = std::min(distanceToNextTrain,disToNextStopPoint);
 						}
@@ -1417,62 +1500,73 @@ namespace medium
 			params.distanceToNextStopPoint = disToNextStopPoint;
 			params.maxDecelerationToStopPoint = maxDecelerationToStopPoint;
 			saveDistancetoNextObj = distanceToNextObject;
+			 
 			if(forceResetMovingCase == true && forceResetedCase == TRAINCASE::NORMAL_CASE)
 			{
 				params.currCase = TrainUpdateParams::NORMAL_CASE;
-				break;
-			}
-
-			else
-			{
-				isStationCaseVar = isStationCase(distanceToNextTrain,distanceToNextPlatform,disToNextStopPoint, distanceToNextObject);
-				if (isStationCaseVar)
+				if(distanceToNextObject == distanceToNextPlatform)
 				{
-					double decelerate = trainPathMover.getCurrentDecelerationRate();
+					//if the moving case is set to set NORMAL case by service controller forcefully then if the nearest object is platform then break
+					//cannot provide stopping deceleration in NORMAL case
+					break;
+				}
+			}
+			
+			isStationCaseVar = isStationCase(distanceToNextTrain,distanceToNextPlatform,disToNextStopPoint, distanceToNextObject);
+			if (isStationCaseVar)
+			{
+				double decelerate = trainPathMover.getCurrentDecelerationRate();
+				if(distanceToNextObject == params.distanceToNextStopPoint)
+				{
+					if(decelerate>params.maxDecelerationToStopPoint)
+					{
+						decelerate = params.maxDecelerationToStopPoint;
+					}
+				}
+				speedLimit = std::sqrt(2.0 * decelerate * distanceToNextObject);
+				if (params.currentSpeed > speedLimit)
+				{
 					if(distanceToNextObject == params.distanceToNextStopPoint)
 					{
-						if(decelerate>params.maxDecelerationToStopPoint)
+						if((params.currentSpeed*params.currentSpeed)/(2*distanceToNextObject)<=params.maxDecelerationToStopPoint)
 						{
-							decelerate = params.maxDecelerationToStopPoint;
-						}
-					}
-					speedLimit = std::sqrt(2.0 * decelerate * distanceToNextObject);
-					if (params.currentSpeed > speedLimit)
-					{
-						if(distanceToNextObject == params.distanceToNextStopPoint)
-						{
-							if((params.currentSpeed*params.currentSpeed)/(2*distanceToNextObject)<=params.maxDecelerationToStopPoint)
-							{
-								params.currCase = TrainUpdateParams::STATION_CASE;
-								params.currentSpeedLimit = speedLimit;
-								return distanceToNextObject;
-							}
-							else
-							{
-								//erase stop point
-								stopPoints.erase(itr);
-								params.distanceToNextStopPoint = 0;
-							}
-						}
-						else
-						{
+							//even if it Normal case ,just a hack to set station case to make the train stop at stop point.
+							//normal case is only applied for not stopping at station but it can stop at stop point
 							params.currCase = TrainUpdateParams::STATION_CASE;
 							params.currentSpeedLimit = speedLimit;
 							return distanceToNextObject;
 						}
+						else
+						{
+							//erase stop point if not able to stop at it
+							stopPoints.erase(itr);
+							params.distanceToNextStopPoint = 0;
+						}
 					}
 					else
 					{
-						break;
+						//for stopping at station in station case
+						params.currCase = TrainUpdateParams::STATION_CASE;
+						params.currentSpeedLimit = speedLimit;
+						return distanceToNextObject;
 					}
 				}
 				else
 				{
+					// does not satify any station case or stop point stopping condition
 					break;
 				}
 			}
+			else
+			{
+				// does not satisfy any station case or stop point stopping condition
+				//as the stop point or station is not the nearest object
+				break;
+			}
+			
 		}
-
+		//if there is no stop point or station as nearest object then by default its NORMAL case.Even if the case is forcefully set by
+		//service controller to station case it is not taken into account if it does not satify station case condition
 		params.currCase = TrainUpdateParams::NORMAL_CASE;
 		distanceToNextObject = saveDistancetoNextObj;
 		if(distanceToNextObject <0 && !shouldIgnoreAllPlatforms && distanceToNextObject == distanceToNextPlatform)
@@ -1495,6 +1589,8 @@ namespace medium
 			}
 			if(distanceToNextObject == -1 && shouldIgnoreAllPlatforms)
 			{
+				//if the train has to ignore all the platforms and no train ahead of it ,it can go till the max speed permitted by the blocks
+				//till the depot
 				speedLimit = trainPathMover.getCurrentSpeedLimit()*convertKmPerHourToMeterPerSec;
 			}
 			else
@@ -1516,8 +1612,12 @@ namespace medium
 				speedLimit = std::min(speedLimit, speedLimit2);
 			}
 		}
-
-		if(isStationCaseVar)
+		
+		// checking in advance one frame tick before whether the the speed acceleration and distance calculated will cause any problems
+		// in stopping at stop point or at station in next frame tick ie will it overshoot the deceleration limit?,if so then start decelerating right now
+		//calculate the required deceleration to stop at stop point or station
+		//but if it is forcefully set to normal case and the nearest object is station then no need to decelerate to stop
+		if(isStationCaseVar&& !((distanceToNextObject == distanceToNextPlatform) && params.currCase == TrainUpdateParams::NORMAL_CASE && forceResetMovingCase))
 		{
 			if(params.currentSpeed>0)
 			{
@@ -1542,6 +1642,7 @@ namespace medium
 
 				if(distanceToNextObject == params.distanceToNextStopPoint)
 				{
+					//check if it does not overshoot the deceleration limit for stop point in next frame tick
 					if(distanceRemaining<0||speedInNextFrameTick>=std::sqrt(2.0*params.maxDecelerationToStopPoint*distanceRemaining))
 					{
 						params.currCase = TrainUpdateParams::STATION_CASE;
@@ -1550,6 +1651,7 @@ namespace medium
 				}
 				else if (distanceToNextObject == params.disToNextPlatform || distanceToNextObject == params.disToNextTrain)
 				{
+					//check if it does not overshoot the deceleration limit for station in next frame tick
 					if(distanceRemaining <0 || speedInNextFrameTick > std::sqrt(2.0*trainPathMover.getCurrentDecelerationRate()*distanceRemaining))
 					{
 						params.currCase = TrainUpdateParams::STATION_CASE;
@@ -1651,6 +1753,10 @@ namespace medium
 		{
 			if(nextDriver->getMovement()->getDisruptedState()&&(nextDriver->getNextRequested()==TrainDriver::REQUESTED_AT_PLATFORM||nextDriver->getNextRequested()==TrainDriver::REQUESTED_WAITING_LEAVING)&&nextDriver->getNextPlatform()==getNextPlatform())
 			{
+				//This condition applies in case of disruption where if a train has already occupied a platform and it cannot move ahead due to disruption
+				//and if there is a train behind it which is between the two platforms then that train will arrive as close as possible to train on platform
+				//if the distance to that train is 0 then ,it is taken as the the train behind has already arrived at platform and it will start
+				//force alighting the passengers ,so it is considered as stop at platform.The condition below checks for it
 				double distanceToNextTrain = getDistanceToNextTrain(nextDriver);
 				if(distanceToNextTrain < distanceArrvingAtPlatform)
 				{
@@ -1665,12 +1771,13 @@ namespace medium
 		double distanceToNextPlatform = trainPathMover.getDistanceToNextPlatform(trainPlatformMover.getNextPlatform());
 		if(distanceToNextPlatform < distanceArrvingAtPlatform)
 		{
+			//just to record the travel time between the platform statistics,when it reaches the platform ,the travel time from previous platform is recorded
 			if(!calculatedTravelTime)
 			{
 				TrainUpdateParams& params = parentDriver->getParams();
 				std::string prevPlatform = " ";
 				uint32_t travelTimebetweenStations = params.now.ms()+5000-startTimeOfNextStationStretch;
-				sim_mob::BasicLogger& ptMRTtraveltimeLogger  = sim_mob::Logger::log("TravelTimeBEtweenStations.csv");
+				sim_mob::BasicLogger& ptMRTtraveltimeLogger  = sim_mob::Logger::log("TravelTimeBetweenStations.csv");
 				if(getNextPlatform() == trainPlatformMover_accpos.getFirstPlatform())
 				{
 					prevPlatform = " ";
@@ -1719,12 +1826,15 @@ namespace medium
 			params.movingDistance = movingDistance;
 			if(movingDistance>distanceToNextPlat&&movingDistance>params.distanceToNextStopPoint&&params.distanceToNextStopPoint!=0)
 			{
+				//in case if the train has overshoot the distance to next platform and distance to next stop point 
 				if(distanceToNextPlat == -1)
 				{
+					//if the train has to skip all the platforms the distance to next platform will be -1 then advance till the distance to stop point
 					trainPathMover.advance(params.distanceToNextStopPoint);
 				}
 				else
 				{
+					//check the nearest entity ,stop point or platform and advance according to the minimum distance
 					trainPathMover.advance(std::min(distanceToNextPlat,params.distanceToNextStopPoint));
 					params.disToNextPlatform = trainPathMover.getDistanceToNextPlatform(trainPlatformMover.getNextPlatform());
 				}
@@ -1732,18 +1842,21 @@ namespace medium
 
 			else if(movingDistance > distanceToNextPlat && distanceToNextPlat != -1)
 			{
+				//just check if the train overshot the distance to next platform 
 				trainPathMover.advance(distanceToNextPlat);
 				params.disToNextPlatform = 0.0;
 			}
 
 			else if (movingDistance > params.distanceToNextStopPoint && params.distanceToNextStopPoint != 0)
 			{
+				//just check if the train overshot the distance to next stop point
 				trainPathMover.advance(params.distanceToNextStopPoint);
 				params.disToNextPlatform = trainPathMover.getDistanceToNextPlatform(trainPlatformMover.getNextPlatform());
 			}
 
 			else
 			{
+				//just move according to the moving distance calculated
 				trainPathMover.advance(movingDistance);
 				params.disToNextPlatform = trainPathMover.getDistanceToNextPlatform(trainPlatformMover.getNextPlatform());
 			}
@@ -1782,6 +1895,8 @@ namespace medium
 
 	bool TrainMovement::updatePlatformsList(bool &isToBeRemoved)
 	{
+		//This function is called every frame tick to check if any platforms are to be ignored(skipped not stop) by the service controller
+		//or if any platforms ignored are to added back by service controller
 		std::vector<std::string> platformsToBeIgnored = parentDriver->getPlatformsToBeIgnored();
 		Platform *nextPlt = trainPlatformMover.getPlatformByOffset(0);
 		Platform *oldPlatform = nextPlt;
@@ -1789,12 +1904,15 @@ namespace medium
 		int offset=0;
 		while(nextPltAccPos != nullptr)
 		{
+			//iterate the platforms from the upcoming platform on the route
 			std::vector<std::string>::iterator it = platformsToBeIgnored.begin();
 			bool flag=false;
 			while(it != platformsToBeIgnored.end())
 			{
+				//iterate over the entire list of platforms ignored to check if the upcoming platform on the route is present or not in that list
 				if(boost::iequals(nextPltAccPos->getPlatformNo(),*it))
 				{
+					//if present then skip it and go on to next platform on the route
 					offset++;
 					nextPltAccPos=trainPlatformMover_accpos.getPlatformByOffset(offset);
 					flag=true;
@@ -1803,11 +1921,17 @@ namespace medium
 				it++;
 			}
 			if(flag == false)
+			{
+				//if that platform is not found in the list of platforms to be ignored then consider it as the next platform to stop at.
 				break;
+			}
 		}
 
 		if(nextPltAccPos == nullptr)
 		{
+		   //if the platform is null ptr that is all the platforms are skipped there will be no next platform to stop at .Hence the train is
+		   //transferred to last train station agent which will pull the train to itself (just so that it cover the entire route without stopping at any platform) 
+		   //it will not even stop at last station
 		   //get last station and push it to that station agent
 			Platform *lastPlatform = trainPlatformMover.getLastPlatformOnRoute();
 			trainPlatformMover.setPlatformIteratorToEnd();
@@ -1821,14 +1945,28 @@ namespace medium
 		else
 		{
 			const std::vector<Platform*> &platforms = trainPlatformMover.getPlatforms();
+			//reset the iterator to the next platform
 			trainPlatformMover.resetPlatformItr();
+			//clear all the previous platform list 
 			trainPlatformMover.clearPrevPlatforms();
+			//need to reset the iterator the clear the platform list because the platforms may also be added back which are ignored
+			//so need to remove them from prevPlatform list and also need to adjust the position of the next platform iterator
+			//as it might have gone ahead if a platform was ignored 
+			//eg A->B->C->D
+			//lets say the next platform position wise is B ,then if B and C are ignored,the next platform where it will stop will be D
+			//but then if you want add back C ,then next platform the train will stop at will be C
+			//need to readjust the iterator to point at C as it was pointing to D previously and even the prev platform list have to only
+			//contain platforms till B as it was previously till C
+			//so the easiest way is to reiterate over the list from beginning till you reach the respective platform
 			std::vector<Platform*>::const_iterator itr = std::find(platforms.begin(),platforms.end(),nextPltAccPos);
 			if(itr != platforms.end())
 			{
 				Platform* next = *(platforms.begin()) ;
 				while(next != nextPltAccPos)
 				{
+					//iterate over again the list of train platform mover and set the iterator at the respective platform 
+					//passing true will push the prev platform to previous platform list
+					//see the function in "getnextplatform()" in trainplatform mover
 					next = trainPlatformMover.getNextPlatform(true);
 				}
 

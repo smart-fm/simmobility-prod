@@ -397,17 +397,53 @@ public:
 	 */
 	void setSubsequentNextRequested(TrainDriver::TRAIN_NEXTREQUESTED nextReq);
 
+	/**
+	 * This function returns whether the train is to be removed or not from train station agent.
+	 * @return whether the train to be removed or not
+	 */
 	bool getIsToBeRemoved();
 
+	/**
+	 * This function sets to remove the train
+	 * @param bool to remove the train
+	 */
 	void setIsToBeRemoved(bool);
 
+	/**
+	 * This function return if the train has force alighted the passenegers when it is stranded or going to take uturn due to disruption
+	 * This function is mainly used when the train was already serving the platform boarding alighting and disruption occurs
+	 * so then it has to force alight all its passengers hence it to recompute the remaining dwell time
+	 */
 	bool hasForceAlightedInDisruption();
 
+	/**
+	* This function sets the bool whether the train has force alighted its passengers during disruption or not
+	* @param is the bool set whether it has force alighted passengers or not
+	*/
 	void setHasForceAlightedInDisruption(bool hasForceAlighted);
+	
+	/**
+	 * This function gets number of passengers in the train before boarding alighting while waiting at station.
+	 * @return the number of passengers in the train before start of its dwell time
+	 */
 	int getInitialNumberOfPassengers();
+	
+	/**
+	 * This function saves number of passengers in the train before boarding alighting while waiting at station.
+	 * @param initialnumberofpassengers is the number of passengers in the train before start of its dwell time
+	 */
 	void setInitialNumberOfPassengers(int initialnumberofpassengers);
-
+	/**
+	 * This function gets the movement mutex ,whether the train is supposed to move or not
+	 * The train lock their movement mutexes,due to U turn case or insert unscheduled train ,if the train is taking uturn to opposite platform
+	 * It has to change the pointers to the train before it in its current line and new line.To avoid race condition
+	 * it locks the train before it current and the opposite line or even when before it is moving
+	 */
 	void getMovementMutex();
+	
+   /**
+	* This function unlocks the train after it has moved ,taken uturn or the unscheduled train has been inserted ,
+	*/
 	void movementMutexUnlock();
 
 	/**

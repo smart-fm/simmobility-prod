@@ -65,10 +65,13 @@ void TrainPlatformMover::clearPrevPlatforms()
 
 void TrainPlatformMover::resetPlatformItr()
 {
+	//resets the iterator to beginning position
 	currPlatformIt = platforms.begin();
 }
 Platform* TrainPlatformMover::getNextPlatform(bool updated)
 {
+	//return the next platform on the route.
+	//If updated value passed is true then the iterator is moved forward
 	if(updated)
 	{
 		prevPlatforms.push_back(*currPlatformIt);
@@ -85,7 +88,8 @@ Platform* TrainPlatformMover::getNextPlatform(bool updated)
 }
 Platform* TrainPlatformMover::getPlatformByOffset(int offset) const
 {
-
+	//This function returns the platform by offset .The offset can also be negative in which case it will
+	//return the platform behind it
 	if(offset < 0)
 	{
 		std::vector<Platform*>::iterator prev = currPlatformIt;
@@ -114,6 +118,7 @@ Platform* TrainPlatformMover::getPlatformByOffset(int offset) const
 
 void TrainPlatformMover::setPlatformIteratorToEnd()
 {
+	//setting the iterator to the end of the list
 	while(currPlatformIt != platforms.end())
 	{
 		prevPlatforms.push_back(*currPlatformIt);
@@ -165,6 +170,7 @@ double TrainPathMover::calcDistanceBetweenCurrentAndSubsequentPoint(Point a,Poin
 
 PolyPoint TrainPathMover::GetStopPoint(double distance) const
 {
+	//this function gets the stop point at a particular distance from the current position of the train
 	std::vector<Block*>::const_iterator curr = drivingPath.begin();
 	double dis=0;
 	while(curr != drivingPath.end())
@@ -178,6 +184,7 @@ PolyPoint TrainPathMover::GetStopPoint(double distance) const
 			std::vector<PolyPoint>::const_iterator nextPolyPoint = itr + 1;
 			if( nextPolyPoint == pointvector.end() )
 			{
+				//move on to next block
 				if((curr+1) == drivingPath.end())
 				{
 					break;
@@ -189,10 +196,12 @@ PolyPoint TrainPathMover::GetStopPoint(double distance) const
 
 			else
 			{
+				// calculate the distance between current and subsequent stop point
 				dis = dis + calcDistanceBetweenCurrentAndSubsequentPoint(*itr,(*nextPolyPoint));
 			}
 			if(dis > distance)
 			{
+				//if the distance ends up between two points then take the before point as the stop point
 				return *itr;
 			}
 			else if(dis == distance)
@@ -223,11 +232,13 @@ double TrainPathMover::calcDistanceBetweenTwoPoints(std::vector<PolyPoint>::cons
 		{
 			if((*currPointItr).getX() == (*itr).getX()&&(*currPointItr).getY() == (*itr).getY()&&(*currPointItr).getZ() == (*itr).getZ())
 			{
+				//if all x ,y ,z coordinates of the point are compared and equal then that is the start point
 				startPointfound = true;
 			}
 
 			if((*laterPoint).getX() == (*itr).getX()&&(*laterPoint).getY() == (*itr).getY()&&(*laterPoint).getZ()==(*itr).getZ())
 			{
+				//same for the later point
 				foundLaterPoint = true;
 				break;
 			}
@@ -236,12 +247,15 @@ double TrainPathMover::calcDistanceBetweenTwoPoints(std::vector<PolyPoint>::cons
 				std::vector<PolyPoint>::const_iterator nextPointItr = itr + 1;
 				if(nextPointItr == pointvector.end())
 				{
+					//if the end of current block and move on to next block
 					if((curr+1) == drivingPath.end())
 					{
 						break;
 					}
 					const PolyLine* nextPolyLine = (*(curr+1))->getPolyLine();
+					//pick up the first point from next block
 					std::vector<PolyPoint>::const_iterator nextPolyPointItr = nextPolyLine->getPoints().begin();
+					//calculating the distance between current and subsequent point
 					dis = dis + calcDistanceBetweenCurrentAndSubsequentPoint(*itr,(*nextPolyPointItr));
 				}
 				else
@@ -291,6 +305,9 @@ double TrainPathMover::advance(double distance)
 		throw std::runtime_error("path already completed in the train");
 	}
 
+	//Also add the previous saved distance to next point ,when its between 2 points and then calculate the distance required to move
+	//so the total distance to move will be the ()distance required + the prev saved distance to next point ) from the current point 
+    //as if the train is between 2 points then the before point is taken as current point	
 	distanceMoveToNextPoint += distance;
 	moverMutex.lock();
 	double temp = distMovedOnEntirePath;
@@ -306,6 +323,7 @@ double TrainPathMover::advance(double distance)
 		{
 			break;
 		}
+		//calculates the distance between two points next to each other on straight line
 		distBetwCurrAndNxtPt = calcDistanceBetweenTwoPoints();
 	}
 
@@ -608,6 +626,8 @@ void TrainPathMover::setPath(const std::vector<Block*> &path)
 
 void TrainPathMover::teleportToPlatform(std::string platformName)
 {
+	//teleports the train to a particular platform ahead of it from the start of the route
+	//used in case of train U-turn
 	std::vector<Block*>::const_iterator tempIt = currBlockIt;
 	double distance = 0;
 	double distanceToBlock;
@@ -616,6 +636,7 @@ void TrainPathMover::teleportToPlatform(std::string platformName)
 		Platform *platform = (*tempIt)->getAttachedPlatform();
 		if( !boost::iequals(platform->getPlatformNo(), platformName) )
 		{
+			//jump to next block and add the length of the block to distance travelled  
 			distance += (*tempIt)->getLength();
 			tempIt++;
 			currBlockIt++;
@@ -623,6 +644,7 @@ void TrainPathMover::teleportToPlatform(std::string platformName)
 
 		else
 		{
+			//if it the block of the platform then ,add the platform offset distance in the block and the length of the platform to distance travelled
 			distanceToBlock = distance;
 			distance += platform->getOffset() + platform->getLength();
 			break;
@@ -638,9 +660,15 @@ void TrainPathMover::teleportToPlatform(std::string platformName)
 	double distBetwCurrAndNxtPt = calcDistanceBetweenTwoPoints();
 	while(distanceMoveToNextPoint >= distBetwCurrAndNxtPt)
 	{
+		//keep iterating the points in current block till  the respective distance to the platform is reached 
+		//after crossing every point reduce the remaining distance 
+		//if the distance to subsequent point is less than the distance remaining keep iterating
 		distanceMoveToNextPoint -= distBetwCurrAndNxtPt;
 		if(!advanceToNextPoint())
 		{
+			//when distance to next point is more than distance remaining.That tell its between the two points 
+			//so the first one is taken as the relevant point.
+			//and the remaining distance is saved for future use
 			break;
 		}
 		distBetwCurrAndNxtPt = calcDistanceBetweenTwoPoints();

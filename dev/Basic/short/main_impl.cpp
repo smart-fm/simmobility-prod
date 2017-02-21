@@ -39,7 +39,7 @@
 #include "conf/ParseConfigFile.hpp"
 #include "entities/AuraManager.hpp"
 #include "entities/BusStopAgent.hpp"
-#include "entities/ClosedLoopRunManager.h"
+#include "entities/ClosedLoopRunManager.hpp"
 #include "entities/commsim/broker/Broker.hpp"
 #include "entities/LoopDetectorEntity.hpp"
 #include "entities/IntersectionManager.hpp"

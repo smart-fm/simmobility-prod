@@ -143,6 +143,18 @@
     <!-- flag to control if PT graph should be loaded -->
     <public_transit enabled="true"/>
 
+    <travel_modes>
+	    <mode name="BusTravel"/>
+	    <mode name="MRT"/>
+	    <mode name="PrivateBus"/>
+	    <mode name="Car"/>
+	    <mode name="Car Sharing 2"/>
+	    <mode name="Car Sharing 3"/>
+	    <mode name="Motorcycle"/>
+	    <mode name="Walk"/>
+	    <mode name="Taxi"/>
+    </travel_modes>
+
     <!-- config specific to supply simulator -->                    
     <supply>
         <!-- frequency of segment density, speed and flow output -->
@@ -235,8 +247,15 @@
             <script name="imd" file="imd.lua"/> <!--Intermediate Stop Mode/Destination -->
             <script name="itd" file="itd.lua"/> <!--Intermediate Stop Time Of Day -->                      
             <script name="zpa" file="zpa.lua"/> <!--Zone postcode assignment --> 
-        </model_scripts>
-            
+	</model_scripts>
+
+	<activity_types>
+		<activity_types name="Work"/>
+		<activity_type name="Education"/>
+		<activity_type name="Shop"/>
+		<activity_type name="Other"/>
+	</activity_types>
+
         <calibration enabled="false">
             <!-- variables to calibrate -->
             <!-- expected csv format: variable_name,lua_file_name,initial_value,lower_limit,upper_limit -->

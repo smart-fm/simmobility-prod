@@ -107,6 +107,37 @@
 			<mapping name="erp_section" procedure="get_erp_section()"/>
 			<mapping name="erp_surcharge" procedure="get_erp_surcharge()"/>
 		</proc_map> 
+
+		<!-- Virtual City network -->
+                <proc_map id="virtual_city" format="aimsun">
+                        <mapping name="nodes" procedure="get_nodes()"/>
+                        <mapping name="links" procedure="get_links()"/>
+                        <mapping name="turning_groups" procedure="get_turning_groups()"/>
+                        <mapping name="turning_paths" procedure="get_turning_paths()"/>
+                        <mapping name="turning_polylines" procedure="get_turning_polylines()"/>
+                        <mapping name="turning_conflicts" procedure="get_turning_conflicts()"/>
+                        <mapping name="road_segments" procedure="get_road_segments()"/>
+                        <mapping name="segment_polylines" procedure="get_segment_polylines()"/>
+                        <mapping name="lanes" procedure="get_lanes()"/>
+                        <mapping name="lane_polylines" procedure="get_lane_polylines()"/>
+                        <mapping name="lane_connectors" procedure="get_lane_connectors()"/>
+                        <mapping name="bus_stops" procedure="get_bus_stops()"/>
+                        <mapping name="pt_bus_dispatch_freq" procedure="get_pt_bus_frequency()"/>
+                        <mapping name="pt_bus_routes" procedure="get_pt_bus_routes()"/>
+                        <mapping name="pt_bus_stops" procedure="get_pt_bus_stops()"/>
+                        <mapping name="mrt_road_segments" procedure="get_pt_train_segments()"/>
+                        <!--Stored procedures for route-choice-->
+                        <mapping name="pt_edges" procedure="get_pt_tr_edges()"/>
+                        <mapping name="pt_vertices" procedure="get_pt_tr_vertices()"/>
+                        <mapping name="rail_transit_edges" procedure="get_rail_transit_edges()"/>
+                        <mapping name="pvt_pathset" procedure="get_pvt_pathset"/>
+                        <mapping name="pt_pathset" procedure="get_pt_pathset_tr"/>
+                        <mapping name="erp_gantry_zone" procedure="get_erp_gantry_zone()"/>
+                        <mapping name="erp_section" procedure="get_erp_section()"/>
+                        <mapping name="erp_surcharge" procedure="get_erp_surcharge()"/>
+			<!--Stored procedure for trip-chains-->
+			<mapping name="trip_chains" procedure="get_trip_chains"/>
+                </proc_map>
 	</db_proc_groups>
 
 	<!-- System configuration properties -->
@@ -153,8 +184,8 @@
 			<!-- Where to find our Road Network schema files. -->
 			<!-- The first valid path is used. -->
 			<road_network>
-				<option value="shared/geospatial/xmlLoader/geo10.xsd"/>     <!-- Running from dev/Basic or from Eclipse -->
-				<option value="../shared/geospatial/xmlLoader/geo10.xsd"/>  <!-- Running from dev/Basic/Debug or dev/Basic/Release -->
+				<option value="test/data/geo10.xsd"/>     <!-- Running from dev/Basic or from Eclipse -->
+				<option value="..test/data/geo10.xsd"/>  <!-- Running from dev/Basic/Debug or dev/Basic/Release -->
 			</road_network>
 		</xsd_schema_files>
         
@@ -191,7 +222,7 @@
 		<communication count="0" granularity="100 ms"/>  <!-- Communication simulator -->
 	</workers>
 
-	<model_scripts path="scripts/lua/mid/behavior-models/" format="lua">
+	<model_scripts path="scripts/lua/mid/behavior_vc/" format="lua">
 		<script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models-->
 		<script name="pvtrc" file="pvtrc.lua"/> <!--private traffic route choice-->
 		<script name="ptrc" file="ptrc.lua"/> <!--public transit route choice-->

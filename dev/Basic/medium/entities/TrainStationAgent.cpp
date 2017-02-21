@@ -20,6 +20,7 @@
 #include "event/SystemEvents.hpp"
 #include "event/args/ReRouteEventArgs.hpp"
 #include "behavioral/ServiceController.hpp"
+#include "util/Utils.hpp"
 using namespace sim_mob::event;
 using namespace std;
 namespace sim_mob
@@ -31,7 +32,6 @@ namespace medium
 	boost::mutex TrainStationAgent::insertTrainOrUturnlock;
 	TrainStationAgent::TrainStationAgent():station(nullptr),Agent(MutexStrategy::MtxStrat_Buffered, -1), parentConflux(nullptr),disruptionParam(nullptr)
 	{
-		// TODO Auto-generated constructor stub
 
 	}
 
@@ -43,6 +43,7 @@ namespace medium
 	void TrainStationAgent::setStationName(const std::string& name)
 	{
 		stationName = name;
+		walkingTimeParams = TrainController<Person_MT>::getInstance()->getWalkingTimeParams(stationName);
 	}
 	void TrainStationAgent::setStation(const Station* station)
 	{
@@ -160,20 +161,19 @@ namespace medium
 				WaitTrainActivity* waitingPerson = dynamic_cast<WaitTrainActivity*>(msg.person->getRole());
 				if(waitingPerson)
 				{
-
 					TrainController<sim_mob::medium::Person_MT> *trainController = TrainController<sim_mob::medium::Person_MT>::getInstance();
-					double walkTime = 0.0;
+					double walkTime = calculateWalkingTime();
 					waitingPerson->setWalkTimeToPlatform(walkTime);
 					const Platform* platform = waitingPerson->getStartPlatform();
 					if(platform)
 					{
-						walkingPersons[platform].push_back(waitingPerson);
+						entryPersons[platform].push_back(waitingPerson);
 					}
 					else
 					{
 						throw std::runtime_error("the waiting person don't know starting platform.");
 					}
-
+					waitingPerson->collectWalkingTime();
 				}
 				else
 				{
@@ -187,6 +187,17 @@ namespace medium
 				checkAndInsertUnscheduledTrains();
 			}
 		}
+	}
+
+	double TrainStationAgent::calculateWalkingTime()
+	{
+		double walkTime = 0.0;
+		if(walkingTimeParams)
+		{
+			double Z = Utils::generateFloat(0,1.0);
+			walkTime = exp(-(walkingTimeParams->alpha + walkingTimeParams->beta*Z));
+		}
+		return walkTime;
 	}
 
 	void TrainStationAgent::checkAndInsertUnscheduledTrains()
@@ -537,8 +548,7 @@ namespace medium
 	}
 	void TrainStationAgent::updateWaitPersons()
 	{
-		std::map<const Platform*, std::list<WaitTrainActivity*>>::iterator it;
-		for(it = waitingPersons.begin(); it != waitingPersons.end(); it++)
+		for(auto it = waitingPersons.begin(); it != waitingPersons.end(); it++)
 		{
 			std::list<WaitTrainActivity*>& persons = it->second;
 			for(std::list<WaitTrainActivity*>::iterator i=persons.begin(); i!=persons.end(); i++)
@@ -547,40 +557,58 @@ namespace medium
 				facet->frame_tick();
 			}
 		}
-		for(it = walkingPersons.begin(); it != walkingPersons.end(); it++)
+		double frameTick = ConfigManager::GetInstance().FullConfig().simulation.baseGranSecond;
+		for(auto it = entryPersons.begin(); it != entryPersons.end(); it++)
 		{
 			std::list<WaitTrainActivity*>& persons = it->second;
-			for(std::list<WaitTrainActivity*>::iterator i = persons.begin(); i != persons.end(); i++)
+			auto i = persons.begin();
+			while(i != persons.end())
 			{
-				MovementFacet *facet = (*i)->Movement();
-				facet->frame_tick();
-				double walkTime = (*i)->getWalkTimeToPlatform();
-				if(walkTime < 5)
+				double walkTime = (*i)->reduceWalkingTime(frameTick);
+				if(walkTime < frameTick)
 				{
 					const Platform *platform = (it)->first;
 					if(platform)
 					{
 						waitingPersons[platform].push_back(*i);
 						i = persons.erase(i);
+						continue;
 					}
 				}
-				else
+				i++;
+			}
+		}
+		for(auto it = exitPersons.begin(); it != exitPersons.end(); it++)
+		{
+			std::list<Passenger*>& persons = it->second;
+			auto i = persons.begin();
+			while(i != persons.end())
+			{
+				double walkTime = (*i)->reduceWalkingTime(frameTick);
+				if(walkTime < frameTick)
 				{
-					(*i)->reduceWalkingTime();
-					double walkTime = (*i)->getWalkTimeToPlatform();
-					if(walkTime < 5)
+					const Platform *platform = (it)->first;
+					if(platform)
 					{
-						const Platform *platform = (it)->first;
-						if(platform)
-						{
-							waitingPersons[platform].push_back(*i);
-							i = persons.erase(i);
-						}
+						leavingPersons[platform].push_back(*i);
+						i = persons.erase(i);
+						continue;
 					}
 				}
+				i++;
 			}
 		}
 	}
+
+	void TrainStationAgent::collectExitTime(std::list<Passenger*>& exitPassengers)
+	{
+		for(auto i=exitPassengers.begin(); i!=exitPassengers.end(); i++)
+		{
+			double walkTime = calculateWalkingTime();
+			(*i)->setWalkTimeToPlatform(walkTime);
+		}
+	}
+
 	Entity::UpdateStatus TrainStationAgent::frame_init(timeslice now)
 	{
 		messaging::MessageBus::SubscribeEvent(event::EVT_CORE_MRT_DISRUPTION, this);
@@ -601,10 +629,8 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 		std::list<Passenger*>::iterator passengerItr = passengersForceAlighted.begin();
 		while(passengerItr != passengersForceAlighted.end())
 		{
-
 			if((*passengerItr))
 			{
-
 				(*passengerItr)->Movement()->frame_tick();
 			}
 			passengerItr++;
@@ -706,7 +732,6 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 						isDisruptedState = true;
 					}
 				}
-
 				else
 				{
 					if((!(*it)->getForceAlightFlag())&&((*it)->getMovement()->getDisruptedState()||(*it)->getUTurnFlag()))
@@ -751,7 +776,11 @@ Entity::UpdateStatus TrainStationAgent::frame_tick(timeslice now)
 						if( !(*it)->getForceAlightStatus() )
 						{
 							(*it)->lockUnlockRestrictPassengerEntitiesLock(true);
-							int alightingNum = (*it)->alightPassenger(leavingPersons[platform],now);
+							//int alightingNum = (*it)->alightPassenger(leavingPersons[platform],now);
+							std::list<Passenger*> exitPassengers;
+							int alightingNum = (*it)->alightPassenger(exitPassengers,now);
+							collectExitTime(exitPassengers);
+							exitPersons[platform].insert(exitPersons[platform].end(), exitPassengers.begin(), exitPassengers.end());
 							int noOfPassengersInTrain = (*it)->getPassengers().size();
 							int forcealightedboardingnum = 0;
 							if(forceAlightedPersons.find(platform) != forceAlightedPersons.end())

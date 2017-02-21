@@ -796,7 +796,7 @@ void ParseMidTermConfigFile::processTrainControllerNode(xercesc::DOMElement *nod
 	{
 		cfg.trainController.enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), "false");
 		cfg.trainController.trainControlType = ParseString(GetNamedAttributeValue(node, "train_control_type"), "");
-		processTrainPropertiesNode(node);
+		//processTrainPropertiesNode(node);
 		DOMElement* child  = GetSingleElementByName(node, "output_enabled");
 		if (child == nullptr)
 		{

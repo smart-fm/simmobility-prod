@@ -100,13 +100,13 @@
             <mapping name="erp_section" procedure="get_erp_section()"/>
             <mapping name="erp_surcharge" procedure="get_erp_surcharge()"/>
 
-            <mapping name="day_activity_schedule" procedure="get_persons_between_new_mrt_1"/>
+            <!--<mapping name="day_activity_schedule" procedure="get_persons_between_new_mrt_1"/>-->
             <mapping name="freight_trips" procedure="get_testfreight_between"/>
             <mapping name="screen_line" procedure="get_screen_line_segments()"/>
-	    <mapping name="pt_opposite_lines" procedure="get_pt_opposite_lines()"/>
-	    <mapping name="get_train_fleet" procedure="get_train_fleet()"/>
-	    <mapping name="get_uturn_platforms" procedure="get_pt_uturn_platforms()"/>
-	    <mapping name="get_train_line_properties" procedure="get_pt_train_line_properties()"/>
+	    	<mapping name="pt_opposite_lines" procedure="get_pt_opposite_lines()"/>
+	    	<mapping name="get_train_fleet" procedure="get_train_fleet()"/>
+	    	<mapping name="get_uturn_platforms" procedure="get_pt_uturn_platforms()"/>
+	    	<mapping name="get_train_line_properties" procedure="get_pt_train_line_properties()"/>
             <!--<mapping name="restricted_reg_segments" procedure="get_section_banned_area()"/>
             <mapping name="restricted_reg_in_turning" procedure="get_banned_area_in_turning()"/>
             <mapping name="restricted_reg_out_turning" procedure="get_banned_area_out_turning()"/>
@@ -175,122 +175,6 @@
 		<train_length value ="138"/>
 		<distance_arriving_at_platform value ="0.001"/>
     	<!-- <max_capacity value="1600"/> -->
-
-	<trainProperties>
-		<trainLine value ="NE_1">
-			<safe_operation_distance_meter value="50"/>
-			<safe_operation_headway_sec value="90"/>
-			<mintrainid value="1"/>	       
-			<maxtrainid value="14"/>
-			<max_capacity value="1600"/>
-			<dwell_time_parameters>
-				<min_dwell_time_normal value="20"/>
-				<min_dwell_time_interchange value="40"/>
-				<min_dwell_time_terminal value="60"/>
-				<max_dwell_time value = "120"/>
-				<first_coeff value = "12.22"/>
-				<second_coeff value = "2.27"/>
-				<third_coeff value = "1.82"/>
-				<fourth_coeff value = "0.00062"/>				
-			</dwell_time_parameters>
-			<minDistanceTrainBehindForUnscheduledTrain value = "200"/>
-	    </trainLine>
-		
-	    <trainLine value ="NE_2">
-			<safe_operation_distance_meter value="50"/>
-			<safe_operation_headway_sec value="90"/>
-			<mintrainid value="15"/>	       
-			<maxtrainid value="28"/>		
-			<max_capacity value="1600"/>
-			<dwell_time_parameters>
-				<min_dwell_time_normal value="20"/>
-				<min_dwell_time_interchange value="40"/>
-				<min_dwell_time_terminal value="60"/>
-				<max_dwell_time value = "120"/>
-				<first_coeff value = "12.22"/>
-				<second_coeff value = "2.27"/>
-				<third_coeff value = "1.82"/>
-				<fourth_coeff value = "0.00062"/>
-			</dwell_time_parameters>
-			<minDistanceTrainBehindForUnscheduledTrain value = "200"/>
-	    </trainLine>
-		
-	    <trainLine value ="EW_1">
-			<safe_operation_distance_meter value="50"/>
-			<safe_operation_headway_sec value="90"/>
-			<mintrainid value="1"/>	       
-			<maxtrainid value="25"/>
-			<max_capacity value="1600"/>
-			<dwell_time_parameters>
-				<min_dwell_time_normal value="20"/>
-				<min_dwell_time_interchange value="40"/>
-				<min_dwell_time_terminal value="60"/>
-				<max_dwell_time value = "120"/>
-				<first_coeff value = "12.22"/>
-				<second_coeff value = "2.27"/>
-				<third_coeff value = "1.82"/>
-				<fourth_coeff value = "0.00062"/>
-			</dwell_time_parameters>
-			<minDistanceTrainBehindForUnscheduledTrain value = "200"/>
-	    </trainLine>
-		
-	    <trainLine value ="EW_2">
-			<safe_operation_distance_meter value="50"/>
-			<safe_operation_headway_sec value="90"/>
-			<mintrainid value="26"/>	       
-			<maxtrainid value="50"/>
-			<max_capacity value="1600"/>
-			<dwell_time_parameters>
-				<min_dwell_time_normal value="20"/>
-				<min_dwell_time_interchange value="40"/>
-				<min_dwell_time_terminal value="60"/>
-				<max_dwell_time value = "120"/>
-				<first_coeff value = "12.22"/>
-				<second_coeff value = "2.27"/>
-				<third_coeff value = "1.82"/>
-				<fourth_coeff value = "0.00062"/>
-			</dwell_time_parameters>
-			<minDistanceTrainBehindForUnscheduledTrain value = "200"/>
-		</trainLine>
-		
-		<trainLine value ="NS_1">
-			<safe_operation_distance_meter value="50"/>
-			<safe_operation_headway_sec value="90"/>
-			<mintrainid value="1"/>	       
-			<maxtrainid value="21"/>
-			<max_capacity value="1600"/>
-			<dwell_time_parameters>
-				<min_dwell_time_normal value="20"/>
-				<min_dwell_time_interchange value="40"/>
-				<min_dwell_time_terminal value="60"/>
-				<max_dwell_time value = "120"/>
-				<first_coeff value = "12.22"/>
-				<second_coeff value = "2.27"/>
-				<third_coeff value = "1.82"/>
-				<fourth_coeff value = "0.00062"/>
-			</dwell_time_parameters>
-			<minDistanceTrainBehindForUnscheduledTrain value = "200"/>
-	    </trainLine>
-		
-	    <trainLine value="NS_2">
-			<safe_operation_distance_meter value="50"/>
-			<safe_operation_headway_sec value="90"/>
-			<mintrainid value="22"/>	       
-			<maxtrainid value="42"/>
-			<max_capacity value="1600"/>
-			<dwell_time_parameters>
-				<min_dwell_time_normal value="20"/>
-				<min_dwell_time_interchange value="40"/>
-				<min_dwell_time_terminal value="60"/>
-				<max_dwell_time value = "120"/>
-				<first_coeff value = "12.22"/>
-				<second_coeff value = "2.27"/>
-				<third_coeff value = "1.82"/>
-				<fourth_coeff value = "0.00062"/>
-			</dwell_time_parameters>
-			<minDistanceTrainBehindForUnscheduledTrain value = "200"/>
-	    </trainLine>		
-	</trainProperties>
     </trainController>
 
     
@@ -357,7 +241,7 @@
              <script name="wdmw" file="wdmw.lua"/> <!--within-day mode choice for work trips-->
              <script name="wdme" file="wdme.lua"/> <!--within-day mode choice for education trips-->
              <script name="wdmso" file="wdmso.lua"/> <!--within-day mode choice for work shopping and other trips-->
-	     <script name="rsc" file="rsc.lua"/><!-- rail service controller -->
+	     	 <script name="rsc" file="rsc_scaling.lua"/><!-- rail service controller -->
         </model_scripts>
 
         

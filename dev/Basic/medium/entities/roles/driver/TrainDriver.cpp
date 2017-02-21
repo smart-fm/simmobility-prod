@@ -252,9 +252,8 @@ void TrainDriver::calculateDwellTime(int boarding,int alighting,int noOfPassenge
 	const TrainProperties &trainProperties = trainLinePropertiesMap.find(getTrainLine())->second;
 	const TrainDwellTimeInfo &dwellTimeInfo = trainProperties.dwellTimeInfo;
 	double dwellTime = -1;
-	if(personCountCoefficients.size() == 4)
+	if(personCountCoefficients.size() == 3)
 	{
-		noOfPassengerInTrain = noOfPassengerInTrain*personCountCoefficients[2];
 		dwellTime = dwellTimeInfo.firstCoeff + (dwellTimeInfo.secondCoeff*personCountCoefficients[0]*boarding + dwellTimeInfo.thirdCoeff*personCountCoefficients[1]*alighting + dwellTimeInfo.fourthCoeff*personCountCoefficients[2]*noOfPassengerInTrain)/24;
 	}
 	else
@@ -262,7 +261,6 @@ void TrainDriver::calculateDwellTime(int boarding,int alighting,int noOfPassenge
 		dwellTime = dwellTimeInfo.firstCoeff + (dwellTimeInfo.secondCoeff*boarding + dwellTimeInfo.thirdCoeff*alighting + dwellTimeInfo.fourthCoeff*noOfPassengerInTrain)/24;
 	}
 		
-	//double dwellTime = 12.22 + 2.27*boarding/24 + 1.82*alighting/24; //+ 0.00062*(noOfPassengerInTrain/24)*(noOfPassengerInTrain/24)*(noOfPassengerInTrain/24)*(boarding/24);
 	Platform *currentPlatform=getMovement()->getNextPlatform();
 	if(currentPlatform)
 	{
@@ -273,10 +271,8 @@ void TrainDriver::calculateDwellTime(int boarding,int alighting,int noOfPassenge
 		{
 			dwellTime = platformHoldingTimeEntities[platform->getPlatformNo()];
 		}
-
 		else
 		{
-
 			if(platformMaxHoldingTimeEntities.find(platform->getPlatformNo()) != platformMaxHoldingTimeEntities.end())
 			{
 				maxDwellTime = platformMaxHoldingTimeEntities[platform->getPlatformNo()];
@@ -312,9 +308,7 @@ void TrainDriver::calculateDwellTime(int boarding,int alighting,int noOfPassenge
 				{
 					dwellTime = maxDwellTime;
 				}
-
 			}
-
 			else if (useMinDwellTime)
 			{
 				if(dwellTime < minDwellTime)
@@ -331,7 +325,6 @@ void TrainDriver::calculateDwellTime(int boarding,int alighting,int noOfPassenge
 					dwellTime = minDwellTime;
 				}
 			}
-
 			else
 			{
 				if(dwellTime < minDwellTime)
@@ -351,7 +344,6 @@ void TrainDriver::calculateDwellTime(int boarding,int alighting,int noOfPassenge
 		dwellTime = dwellTime - (initialDwellTime - waitingTimeSec);
 		minDwellTimeRequired = dwellTime; /*minDwellTimeRequired is the min dwell time calculated so that all passengers can board and alight */
 		waitingTimeSec = dwellTime;
-
 	}
 	else
 	{
@@ -359,7 +351,6 @@ void TrainDriver::calculateDwellTime(int boarding,int alighting,int noOfPassenge
 		minDwellTimeRequired = dwellTime; /*minDwellTimeRequired is the min dwell time calculated so that all passengers can board and alight */
 		waitingTimeSec = dwellTime;
 	}
-
 
 	ptMRTMoveLogger<<getTrainId()<<","<<tm<<","<<boarding<<","<<alighting<<","<<noOfPassengerInTrain<<","<<initialDwellTime<<std::endl;
 }
@@ -627,7 +618,6 @@ int TrainDriver::alightPassenger(std::list<Passenger*>& alightingPassenger,times
 				num++;
 				continue;
 			}
-
 			else
 			{
 				std::string stationNo = platform->getStationNo();

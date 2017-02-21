@@ -123,7 +123,26 @@ void sim_mob::medium::Passenger::collectTravelTime()
 
 	messaging::MessageBus::PostMessage(PT_Statistics::getInstance(),
 			STORE_PERSON_TRAVEL_TIME, messaging::MessageBus::MessagePtr(new PersonTravelTimeMessage(personTravelTime)), true);
+	collectWalkingTime();
 }
 
+void sim_mob::medium::Passenger::collectWalkingTime()
+{
+	PersonTravelTime personTravelTime;
+	personTravelTime.personId = parent->getDatabaseId();
+	personTravelTime.tripStartPoint = (*(parent->currTripChainItem))->startLocationId;
+	personTravelTime.tripEndPoint = (*(parent->currTripChainItem))->endLocationId;
+	personTravelTime.subStartPoint = parent->currSubTrip->startLocationId;
+	personTravelTime.subEndPoint = parent->currSubTrip->endLocationId;
+	personTravelTime.subStartType = parent->currSubTrip->startLocationType;
+	personTravelTime.subEndType = parent->currSubTrip->endLocationType;
+	personTravelTime.mode = "EXIT_PT";
+	personTravelTime.service = parent->currSubTrip->ptLineId;
+	personTravelTime.travelTime = originalWalkTime;
+	unsigned int arriveTime = parent->getRole()->getArrivalTime()+parent->getRole()->getTravelTime();
+	personTravelTime.arrivalTime = DailyTime(arriveTime).getStrRepr();
+	messaging::MessageBus::PostMessage(PT_Statistics::getInstance(),
+					STORE_PERSON_TRAVEL_TIME, messaging::MessageBus::MessagePtr(new PersonTravelTimeMessage(personTravelTime)), true);
+}
 }
 }

@@ -70,6 +70,27 @@ void sim_mob::medium::WaitTrainActivity::collectTravelTime()
 					STORE_PERSON_TRAVEL_TIME, messaging::MessageBus::MessagePtr(new PersonTravelTimeMessage(personTravelTime)), true);
 }
 
+void sim_mob::medium::WaitTrainActivity::collectWalkingTime()
+{
+	PersonTravelTime personTravelTime;
+	personTravelTime.personId = parent->getDatabaseId();
+	personTravelTime.tripStartPoint = (*(parent->currTripChainItem))->startLocationId;
+	personTravelTime.tripEndPoint = (*(parent->currTripChainItem))->endLocationId;
+	personTravelTime.subStartPoint = parent->currSubTrip->startLocationId;
+	personTravelTime.subEndPoint = parent->currSubTrip->endLocationId;
+	personTravelTime.subStartType = parent->currSubTrip->startLocationType;
+	personTravelTime.subEndType = parent->currSubTrip->endLocationType;
+	personTravelTime.mode = "ENTRY_PT";
+	personTravelTime.service = parent->currSubTrip->ptLineId;
+	personTravelTime.travelTime = walkingTimeToPlatform;
+	unsigned int arriveTime = parent->getRole()->getArrivalTime();
+	personTravelTime.arrivalTime = DailyTime(arriveTime).getStrRepr();
+	messaging::MessageBus::PostMessage(PT_Statistics::getInstance(),
+					STORE_PERSON_TRAVEL_TIME, messaging::MessageBus::MessagePtr(new PersonTravelTimeMessage(personTravelTime)), true);
+	arriveTime += walkingTimeToPlatform*1000;
+	parent->getRole()->setArrivalTime(arriveTime);
+}
+
 void sim_mob::medium::WaitTrainActivity::incrementDeniedBoardingCount()
 {
 	failedToBoardCount++;
@@ -114,9 +135,9 @@ void sim_mob::medium::WaitTrainActivity::setWalkTimeToPlatform(double walkTime)
 	walkingTimeToPlatform = walkTime;
 }
 
-void sim_mob::medium::WaitTrainActivity::reduceWalkingTime()
+double sim_mob::medium::WaitTrainActivity::reduceWalkingTime(double value)
 {
-	walkingTimeToPlatform = walkingTimeToPlatform - 5;
+	return walkingTimeToPlatform = walkingTimeToPlatform - value;
 }
 }
 }

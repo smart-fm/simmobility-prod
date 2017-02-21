@@ -149,6 +149,16 @@ private:
 	void prepareForUturn(TrainDriver *driver);
 
 	/**
+	 * calculate walking time
+	 */
+	double calculateWalkingTime();
+
+	/**
+	 * collect passengers' exit time
+	 */
+	void collectExitTime(std::list<Passenger*>& exitPassenger);
+
+	/**
 	 * This interface pushes the force alighted passengers into waiting queue of the corresponding platforms
 	 * depending upon whether they alighted before their alighting station or after they alighting station.
 	 * If they alighted before their alighting station then they are pushed into waiting queue of they same platform they alighted.
@@ -160,6 +170,8 @@ private:
 
 
 private:
+	/**record the walking time parameters at current station*/
+	const WalkingTimeParams* walkingTimeParams = nullptr;
 	/**the reference to the station*/
 	const Station* station;
 	/**the reference */
@@ -174,12 +186,14 @@ private:
 	std::map<std::string, bool> lastUsage;
 	/**waiting person for boarding*/
 	std::map<const Platform*, std::list<WaitTrainActivity*>> waitingPersons;
-	std::map<const Platform*, std::list<WaitTrainActivity*>> walkingPersons;
+	std::map<const Platform*, std::list<WaitTrainActivity*>> entryPersons;
 	std::map<const Platform*, std::list<Passenger*>> forceAlightedPersons;
 	std::list<Person_MT*> personsForcedAlighted;
 	std::vector<std::string> unscheduledTrainLines;
 	/**alighting person for next trip*/
 	std::map<const Platform*, std::list<Passenger*>> leavingPersons;
+	/**alighting person to exit from platform */
+	std::map<const Platform*, std::list<Passenger*>> exitPersons;
 	/** parent conflux */
 	Conflux* parentConflux;
 	/**recording disruption information*/

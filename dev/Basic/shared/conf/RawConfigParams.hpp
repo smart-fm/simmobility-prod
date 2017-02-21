@@ -143,6 +143,14 @@ struct DisruptionParams{
 	std::vector<std::string> platformLineIds;
 };
 /**
+ * represent walking time in the train station
+ */
+struct WalkingTimeParams{
+	std::string stationName;
+	double alpha = 0.0;
+	double beta = 0.0;
+};
+/**
  * Represents a Person's Characteristic in the config file. (NOTE: Further documentation needed.)
  */
 struct PersonCharacteristics {

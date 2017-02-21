@@ -39,6 +39,10 @@ public:
 	 */
 	virtual void collectTravelTime();
 	/**
+	 * collect walking time
+	 */
+	void collectWalkingTime();
+	/**
 	 * increase waiting time every frame tick.
 	 * @param incrementMs is accumulation time in milli-seconds
 	 */
@@ -82,12 +86,12 @@ public:
 	double getWalkTimeToPlatform() const;
 	void setWalkTimeToPlatform(double walkTime);
 
-	void reduceWalkingTime();
+	double reduceWalkingTime(double value);
 private:
 	friend class WaitTrainActivityBehavior;
 	friend class WaitTrainActivityMovement;
 
-	unsigned int walkingTimeToPlatform;
+	double walkingTimeToPlatform;
 	/**record waiting time (in milliseconds) in the bus stop*/
 	unsigned int waitingTime;
 	/**pointer to waiting bus stop*/

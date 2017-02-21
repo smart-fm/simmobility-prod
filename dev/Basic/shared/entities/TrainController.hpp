@@ -333,6 +333,13 @@ public:
 	Station * getStationFromId(std::string stationId);
 
 	/**
+	 * get walking time at station
+	 * @param station is the name of a given station
+	 * @return a pointer to the structure of walking time
+	 */
+	const WalkingTimeParams* getWalkingTimeParams(const std::string& station) const;
+
+	/**
 	 * This gives the opposite lineId of a particular line
 	 * @param lineId is the id of the line specified
 	 * @param the opposite line id required
@@ -622,7 +629,6 @@ protected:
 	 */
 	void changeTrainTrip(sim_mob::TrainTrip* trip, sim_mob::DisruptionParams* params);
 
-
 private:
 	/**
 	 * the function to load platforms from DB
@@ -670,6 +676,11 @@ private:
 	void composeBlocksAndPolyline();
 
 	/**
+	 * load walking time at each station
+	 */
+	void loadWalkingTimeParams();
+
+	/**
 	 * compose trips from schedules
 	 */
 	void composeTrainTrips();
@@ -691,11 +702,6 @@ private:
 	 * @param lineId is refer to train line
 	 */
 	int getTrainId(const std::string& lineId);
-
-	/**
-	 * resets the speed limits of the stretch of blocks
-	 * @param now is the current time slice
-	 */
 
 private:
 	/**recording disruption information*/
@@ -752,18 +758,16 @@ private:
 	/** map which holds the uturn platforms for evry train line */
 	std::map<std::string,std::vector<std::string>> mapOfUturnPlatformsLines;
 	std::map<const Station*,std::map<const Platform*,std::vector<double>>> mapOfCoefficientsOfNumberOfPersons;
-
-	int lastTrainId;
-
-
 	/**reused train Ids*/
 	std::map<std::string, std::vector<int>> recycleTrainId;
+	/**record walking time parameters at each staion*/
+	std::map<std::string, WalkingTimeParams> walkingTimeAtStation;
 private:
 	static TrainController* pInstance;
 	mutable boost::mutex activePoolLock;
 	mutable boost::mutex inActivePoolLock;
 	bool disruptionPerformed=false;
-	 int maxTripId;
+	int maxTripId=0;
 	DisruptionEntity disruptionEntity;
 
 };

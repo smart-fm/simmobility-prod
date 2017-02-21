@@ -62,11 +62,11 @@ class ServiceController:  public lua::LuaModel
 	void resetAcceleration(double accelerate,std::string lineId);
 
 	/**interface function reset the acceleration limit of a stretch of blocks
-	 *@param accelerationLimit is the speedlimit in the blocks to be set
+	 *@param accelerationLimit is the acceleration limit in the blocks to be set
 	 *@param startStation is the start station of the stretch from where blocks are to be reset
 	 *@param endStation is the end station of the stretch till where the blocks are to be reset
-	 *@param startTime is time at which the speedLimit should reset
-	 *@param endTime is time at which speed limit should to set back to default
+	 *@param startTime is time at which the acceleration Limit should reset
+	 *@param endTime is time at which acceleration limit should to set back to default
 	 */
 	void resetAccelerationLimit(double speedLimit,std::string startStation,std::string endStation,std::string lineId,std::string startTime,std::string endTime);
 
@@ -541,7 +541,7 @@ class ServiceController:  public lua::LuaModel
 	 * coefficientB is the alighting coefficient
 	 * coefficientC is the number of persons in train coefficient
 	 */
-	void changeNumberOfPassengerCoefficients(std::string stationName,std::string platformName,double coefficientA,double coefficientB,double coefficientC,double coefficientD);
+	void changeNumberOfPassengerCoefficients(std::string stationName,std::string platformName,double coefficientA,double coefficientB,double coefficientC);
 
 	private:
 	/** mutex lock to lock the mapOfLineAndTrainDrivers **/

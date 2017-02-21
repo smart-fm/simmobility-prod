@@ -13,6 +13,7 @@
 #include "event/SystemEvents.hpp"
 #include "event/args/ReRouteEventArgs.hpp"
 #include "util/Profiler.hpp"
+#include "util/CSVReader.hpp"
 #ifndef _CLASS_TRAIN_CONTROLLER_FUNCTIONS
 #include "entities/TrainController.hpp"
 #else
@@ -27,7 +28,7 @@ namespace sim_mob
 	template<typename PERSON>
 	boost::unordered_map<const Station*, Agent*> TrainController<PERSON>::allStationAgents;
 	template<typename PERSON>
-	TrainController<PERSON>::TrainController(int id, const MutexStrategy& mtxStrat):Agent(mtxStrat, id),lastTrainId(0),disruptionParam(nullptr)
+	TrainController<PERSON>::TrainController(int id, const MutexStrategy& mtxStrat):Agent(mtxStrat, id),disruptionParam(nullptr)
 	{
 
 	}
@@ -150,6 +151,32 @@ namespace sim_mob
 			trainIdsRange.push_back(min_id);
 			trainIdsRange.push_back(max_id);
 			mapOfTrainMaxMinIds[lineId]=trainIdsRange;
+		}
+	}
+
+	template<typename PERSON>
+	void TrainController<PERSON>::loadWalkingTimeParams()
+	{
+		std::string filename = "walkingTimeParams.csv";
+		CSV_Reader variablesReader(filename, true);
+		boost::unordered_map<std::string, std::string> variableRow;
+		variablesReader.getNextRow(variableRow, false);
+		while (!variableRow.empty())
+		{
+			try
+			{
+				WalkingTimeParams walkingParams;
+				walkingParams.stationName = variableRow.at("name");
+				walkingParams.alpha = boost::lexical_cast<double>(variableRow.at("alpha"));
+				walkingParams.beta = boost::lexical_cast<double>(variableRow.at("beta"));
+				walkingTimeAtStation[walkingParams.stationName] = walkingParams;
+			} catch (const std::out_of_range& oor) {
+				throw std::runtime_error("Header mis-match while reading walking Time params csv");
+			} catch (boost::bad_lexical_cast const&) {
+				throw std::runtime_error("Invalid value found in walking time csv");
+			}
+			variableRow.clear();
+			variablesReader.getNextRow(variableRow, false);
 		}
 	}
 
@@ -298,6 +325,18 @@ namespace sim_mob
 	}
 
 	template<typename PERSON>
+	const WalkingTimeParams* TrainController<PERSON>::getWalkingTimeParams(const std::string& station) const
+	{
+		const WalkingTimeParams* res = nullptr;
+		auto it = walkingTimeAtStation.find(station);
+		if(it!=walkingTimeAtStation.end())
+		{
+			res = &it->second;
+		}
+		return res;
+	}
+
+	template<typename PERSON>
 	void TrainController<PERSON>::addToListOfActiveTrainsInLine(std::string lineId,Role<PERSON> *driver)
 	{
 		activeTrainsListLock.lock();
@@ -437,6 +476,7 @@ namespace sim_mob
 		loadSchedules();
 		composeTrainTrips();
 		loadTrainLineProperties();
+		loadWalkingTimeParams();
 	}
 
 	//Initialize Train ids function

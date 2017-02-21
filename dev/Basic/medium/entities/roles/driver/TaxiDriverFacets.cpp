@@ -54,10 +54,8 @@ void TaxiDriverMovement::assignFirstNode()
 
 const Lane* TaxiDriverMovement::getBestTargetLane(const SegmentStats* nextSegStats,const SegmentStats* nextToNextSegStats)
 {
-	const BusStop* nextTaxiStand; //= routeTracker.getNextStop();
 	DriverMode mode = parentTaxiDriver->getDriverMode();
-	//if it is Taxi Stand lane
-	if (mode == DRIVE_TO_TAXISTAND && nextTaxiStand && nextSegStats->hasBusStop(nextTaxiStand))
+	if (mode == DRIVE_TO_TAXISTAND && destinationTaxiStand && nextSegStats->hasTaxiStand(destinationTaxiStand))
 	{
 		return nextSegStats->getOutermostLane();
 	}
@@ -72,7 +70,7 @@ const Lane* TaxiDriverMovement::getBestTargetLane(const SegmentStats* nextSegSta
 		const std::vector<Lane*>& lanes = nextSegStats->getRoadSegment()->getLanes();
 		if (!minLane)
 		{
-			for (vector<Lane*>::const_iterator lnIt = lanes.begin(); lnIt != lanes.end(); ++lnIt)
+			for (vector<Lane*>::const_iterator lnIt = lanes.begin();lnIt != lanes.end(); ++lnIt)
 			{
 				if (!((*lnIt)->isPedestrianLane()))
 				{
@@ -85,8 +83,7 @@ const Lane* TaxiDriverMovement::getBestTargetLane(const SegmentStats* nextSegSta
 						minLength = total;
 						minQueueLength = que;
 						minLane = lane;
-					}
-					else if (minLength == total)
+					} else if (minLength == total)
 					{
 						//if total length of vehicles is equal to current minLength
 						if (minQueueLength > que)
@@ -108,29 +105,56 @@ void TaxiDriverMovement::setCurrentNode(const Node *node)
 	currentNode = node;
 }
 
+const Node* TaxiDriverMovement::getCurrentNode()
+{
+	return currentNode;
+}
+
 void TaxiDriverMovement::setDestinationNode(const Node *node)
 {
 	destinationNode = node;
 }
 
-void TaxiDriverMovement::setToCallMovementTick(bool toCall)
+const Node* TaxiDriverMovement::getDestinationNode()
 {
-	toCallMovTickInTaxiStand = toCall;
+	return destinationNode;
 }
-
-bool TaxiDriverMovement::getToCallMovementTick()
-{
-	return toCallMovTickInTaxiStand;
-}
-
 
 bool TaxiDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 {
+
 	const SegmentStats* currSegStat = pathMover.getCurrSegStats();
+	const SegmentStats* nxtSegStat = pathMover.getNextSegStats(false);
 	bool res = false;
-	bool passengerDropped = false;
-	bool isEndOfLink_CruiseMode = false;
-	if (parentTaxiDriver->getDriveMode() == DRIVE_TO_TAXISTAND)
+
+	/*sim_mob::BasicLogger& ptMoveLogger = sim_mob::Logger::log("DriversMovePath.csv");
+	ptMoveLogger<<parentTaxiDriver->parent->getDatabaseId()<<","<<currSegStat->getRoadSegment()->getRoadSegmentId()<<"-"<<currSegStat->getStatsNumberInSegment()<<","<<currSegStat->getRoadSegment()->getLinkId();
+	if(nxtSegStat){
+		ptMoveLogger<<","<<nxtSegStat->getRoadSegment()->getRoadSegmentId()<<"-"<<nxtSegStat->getStatsNumberInSegment()<<","<<nxtSegStat->getRoadSegment()->getLinkId()<<",";
+	} else {
+		ptMoveLogger<<","<<"0"<<","<<"0"<<",";
+	}
+	ptMoveLogger<<parentTaxiDriver->parent->distanceToEndOfSegment<<",";
+	ptMoveLogger<<DailyTime(params.now.ms()).getStrRepr()<<","<<parentTaxiDriver->getDriverMode()<<","<<parentTaxiDriver->taxiPassenger<<std::endl;*/
+
+	/*parentTaxiDriver->parent->routeStr<<parentTaxiDriver->parent->getDatabaseId()<<",";
+	parentTaxiDriver->parent->routeStr<<DailyTime(params.now.ms()).getStrRepr()<<",";
+	parentTaxiDriver->parent->routeStr<<currSegStat->getRoadSegment()->getRoadSegmentId()<<"-"<<currSegStat->getStatsNumberInSegment()<<",";
+	parentTaxiDriver->parent->routeStr<<currSegStat->getRoadSegment()->getLinkId()<<",";
+	parentTaxiDriver->parent->routeStr<<"before nodes"<<",";
+	if(this->currentNode)
+		parentTaxiDriver->parent->routeStr<<this->currentNode->getNodeId()<<",";
+	else
+		parentTaxiDriver->parent->routeStr<<"0"<<",";
+	if(this->destinationNode)
+		parentTaxiDriver->parent->routeStr<<this->destinationNode->getNodeId()<<",";
+	else
+		parentTaxiDriver->parent->routeStr<<"0"<<",";
+
+	parentTaxiDriver->parent->routeStr<<"before conflux,"<<currSegStat->getParentConflux()->getConfluxNode()->getNodeId()<<","<<parentTaxiDriver->getDriverMode()<<std::endl;
+	*/
+
+	if (parentTaxiDriver->getDriverMode() == DRIVE_TO_TAXISTAND)
 	{
 		const SegmentStats* currSegStat = pathMover.getCurrSegStats();
 		if (destinationTaxiStand && currSegStat->hasTaxiStand(destinationTaxiStand))
@@ -151,20 +175,15 @@ bool TaxiDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 					}
 					parentTaxiDriver->setTaxiDriveMode(QUEUING_AT_TAXISTAND);
 					parentTaxiDriver->getResource()->setMoving(false);
-					parentTaxiDriver->parent->setEnteredTaxiStand(true);
+					params.elapsedSeconds = params.secondsInTick;
+					parentTaxiDriver->parent->setRemainingTimeThisTick(0.0);
+					toBeRemovedFromTaxiStand = false;
 					return res;
 				}
 				else
 				{
-					destinationTaxiStand = nullptr;
-					//choose some other taxi stand
-					//destinationTaxiStand = ?? based on the model
-					if (destinationTaxiStand)
-					{
-						getMesoPathMover().addPathFromCurrentSegmentToEndNodeOfLink();
-						driveToTaxiStand();
-						return moveToNextSegment(params);
-					}
+					setCruisingMode();
+					return moveToNextSegment(params);
 				}
 			}
 			return res;
@@ -173,11 +192,20 @@ bool TaxiDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 
 	if (parentTaxiDriver->getDriverMode() == CRUISE)
 	{
-		if (pathMover.isEndOfPath())
+		if(cruisingTooLongTime > 15*60)
+		{
+			cruisingTooLongTime = 0.0;
+			const PolyPoint point = currSegStat->getRoadSegment()->getPolyLine()->getLastPoint();
+			destinationTaxiStand = TaxiStand::allTaxiStandMap.searchNearestObject(point.getX(), point.getY());
+			if(destinationTaxiStand)
+			{
+				driveToTaxiStand();
+			}
+		}
+		else if (pathMover.isEndOfPath())
 		{
 			Conflux *parentConflux = currSegStat->getParentConflux();
 			parentTaxiDriver->checkPersonsAndPickUpAtNode(parentConflux);
-			//if no passengers are found then select the next link from the intersection in cruising mode
 			if (parentTaxiDriver->getPassenger() == nullptr)
 			{
 				selectNextNodeAndLinksWhileCruising();
@@ -186,15 +214,31 @@ bool TaxiDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 	}
 	else if (parentTaxiDriver->getDriverMode() == DRIVE_WITH_PASSENGER && pathMover.isEndOfPath())
 	{
-		//drop off the passenger
-		//change the mode to cruise
-		//select the neighboring link
 		parentTaxiDriver->alightPassenger();
 		parentTaxiDriver->taxiDriverMode = CRUISE;
 		selectNextNodeAndLinksWhileCruising();
 	}
 
-	return DriverMovement::moveToNextSegment(params);
+	res = DriverMovement::moveToNextSegment(params);
+
+	/*parentTaxiDriver->parent->routeStr<<parentTaxiDriver->parent->getDatabaseId()<<",";
+	parentTaxiDriver->parent->routeStr<<DailyTime(params.now.ms()).getStrRepr()<<",";
+	parentTaxiDriver->parent->routeStr<<currSegStat->getRoadSegment()->getRoadSegmentId()<<"-"<<currSegStat->getStatsNumberInSegment()<<",";
+	parentTaxiDriver->parent->routeStr<<currSegStat->getRoadSegment()->getLinkId()<<",";
+	parentTaxiDriver->parent->routeStr<<"after nodes"<<",";
+	if(this->currentNode)
+		parentTaxiDriver->parent->routeStr<<this->currentNode->getNodeId()<<",";
+	else
+		parentTaxiDriver->parent->routeStr<<"0"<<",";
+	if(this->destinationNode)
+		parentTaxiDriver->parent->routeStr<<this->destinationNode->getNodeId()<<",";
+	else
+		parentTaxiDriver->parent->routeStr<<"0"<<",";
+
+	parentTaxiDriver->parent->routeStr<<"after conflux,"<<currSegStat->getParentConflux()->getConfluxNode()->getNodeId()<<","<<parentTaxiDriver->getDriverMode()<<std::endl;
+	*/
+
+	return res;
 }
 
 void TaxiDriverMovement::frame_tick()
@@ -206,65 +250,76 @@ void TaxiDriverMovement::frame_tick()
 		parentTaxiDriver->taxiPassenger->Movement()->frame_tick();
 	}
 
+	if( mode == CRUISE)
+	{
+		cruisingTooLongTime += params.secondsInTick;
+	}
 	if (mode == QUEUING_AT_TAXISTAND)
 	{
-		bool isWaitingForTooLong = false;
-		bool isPickUp = false;
+		queuingTooLongTime += params.secondsInTick;
 		TaxiStandAgent *agent = TaxiStandAgent::getTaxiStandAgent(destinationTaxiStand);
 		if (agent->isTaxiFirstInQueue(parentTaxiDriver))
 		{
 			Person_MT * personPickedUp = agent->pickupOneWaitingPerson();
 			if (personPickedUp != nullptr)
 			{
-				//move to destination with passenger
-				//run the route choice for destination
-				previousTaxiStand = destinationTaxiStand;
-				destinationTaxiStand = nullptr;
-				isQueuingTaxiStand = false;
-				//go to destination with passenger
-				//run the route choice model for that
-				parentDriver->setDriveMode(DRIVE_WITH_PASSENGER);
-				bool movedToNextSegStat = moveToNextSegment(params);
-				toBeRemovedFromTaxiStand = true;
-			}
-			else
-			{
-				params.elapsedSeconds = params.secondsInTick;
-				parentTaxiDriver->parent->setRemainingTimeThisTick(0.0);
-			}
-		}
-		else if (isWaitingForTooLong)
-		{
-			//choose some other Taxi Stand
-			//run the route choice model for that
-			previousTaxiStand = destinationTaxiStand;
-			destinationTaxiStand = nullptr;
-			isQueuingTaxiStand = false;
-			TaxiStand * newTaxiStand = nullptr;
-			destinationTaxiStand = newTaxiStand;
-			parentDriver->setDriveMode(DRIVE_TO_TAXISTAND);
-			getMesoPathMover().addPathFromCurrentSegmentToEndNodeOfLink();
-			driveToTaxiStand();
-			bool movedToNextSegment = moveToNextSegment(params);
-			if (movedToNextSegment)
-			{
-				if (parentTaxiDriver->getDriverMode() == QUEUING_AT_TAXISTAND)
+				std::string id = personPickedUp->getDatabaseId();
+				Role<Person_MT>* curRole = personPickedUp->getRole();
+				sim_mob::medium::Passenger* passenger = dynamic_cast<sim_mob::medium::Passenger*>(curRole);
+				if (passenger)
 				{
-					//it could be possible that the taxi got added to other taxi stand
-					if (destinationTaxiStand)
+					std::vector<SubTrip>::iterator subTripItr = personPickedUp->currSubTrip;
+					WayPoint personTravelDestination = (*subTripItr).destination;
+					const Node * personDestinationNode = personTravelDestination.node;
+					std::vector<WayPoint> currentRouteChoice;
+					currentNode = destinationNode;
+					if (currentNode != personDestinationNode)
 					{
-						parentTaxiDriver->getResource()->setMoving(false);
+						const Link* link = destinationTaxiStand->getRoadSegment()->getParentLink();
+						SubTrip currSubTrip;
+						currSubTrip.origin = WayPoint(link->getFromNode());
+						currSubTrip.destination = WayPoint(personDestinationNode);
+						currentRouteChoice = PrivateTrafficRouteChoice::getInstance()->getPath(currSubTrip, false, link, parentTaxiDriver->parent->usesInSimulationTravelTime());
+						if (currentRouteChoice.size() > 0)
+						{
+							bool isAdded = parentTaxiDriver->addPassenger(passenger);
+							if (isAdded)
+							{
+								destinationNode = personDestinationNode;
+								setCurrentNode(currentNode);
+								setDestinationNode(destinationNode);
+								addTaxiStandPath(currentRouteChoice);
+								passenger->setStartPoint(WayPoint(destinationTaxiStand));
+								passenger->setEndPoint(WayPoint(destinationNode));
+								passenger->setService(currentRouteChoice);
+								parentTaxiDriver->setTaxiDriveMode(DRIVE_WITH_PASSENGER);
+								parentTaxiDriver->getResource()->setMoving(true);
+								toBeRemovedFromTaxiStand = true;
+								previousTaxiStand = destinationTaxiStand;
+								destinationTaxiStand = nullptr;
+								isQueuingTaxiStand = false;
+							}
+						} else {
+							sim_mob::BasicLogger& ptMoveLogger = sim_mob::Logger::log("nopathAfterPickupInStand.csv");
+							ptMoveLogger << passenger->getParent()->getDatabaseId()<<",";
+							ptMoveLogger << link->getLinkId()<<",";
+							ptMoveLogger << destinationTaxiStand->getRoadSegmentId()<<",";
+							ptMoveLogger << link->getFromNode()->getNodeId()<<",";
+							ptMoveLogger << personDestinationNode->getNodeId()<<std::endl;
+						}
 					}
 				}
 			}
-			toBeRemovedFromTaxiStand = true;
+			else if(queuingTooLongTime>15*60)
+			{
+				setCruisingMode();
+				parentTaxiDriver->getResource()->setMoving(true);
+				toBeRemovedFromTaxiStand = true;
+				isQueuingTaxiStand = true;
+			}
 		}
-		else
-		{
-			waitingTimeAtTaxiStand = waitingTimeAtTaxiStand + params.secondsInTick;
-			params.elapsedSeconds = params.secondsInTick;
-			parentTaxiDriver->parent->setRemainingTimeThisTick(0.0);
-		}
+		params.elapsedSeconds = params.secondsInTick;
+		parentTaxiDriver->parent->setRemainingTimeThisTick(0.0);
 	}
 	else if (mode == CRUISE || mode == DRIVE_WITH_PASSENGER || mode == DRIVE_TO_TAXISTAND)
 	{
@@ -272,26 +327,12 @@ void TaxiDriverMovement::frame_tick()
 	}
 }
 
-void TaxiDriverMovement::getLinkAndRoadSegments(Node * start, Node *end,std::vector<RoadSegment*>& segments)
-{
-	std::map<unsigned int, Link*> downStreamLinks = start->getDownStreamLinks();
-	std::map<unsigned int, Link*>::iterator itr = downStreamLinks.begin();
-	while (itr != downStreamLinks.end())
-	{
-		Link *link = itr->second;
-		Node *toNode = link->getToNode();
-		if (toNode == end)
-		{
-			segments = link->getRoadSegments();
-			break;
-		}
-		itr++;
-	}
-}
-
-void TaxiDriverMovement::setPath(std::vector<const SegmentStats*>& path)
+void TaxiDriverMovement::addCruisingPath(const Link* selectedLink)
 {
 	MT_Config& mtCfg = MT_Config::getInstance();
+	std::vector<const SegmentStats*> path = getMesoPathMover().getPath();
+	std::vector<RoadSegment *> currentRoute;
+	currentRoute.insert(currentRoute.end(),selectedLink->getRoadSegments().begin(),selectedLink->getRoadSegments().end());
 	const Conflux* confluxForLnk = mtCfg.getConfluxForNode(destinationNode);
 	if (!isPathInitialized)
 	{
@@ -327,11 +368,6 @@ void TaxiDriverMovement::setPath(std::vector<const SegmentStats*>& path)
 	}
 }
 
-const Node* TaxiDriverMovement::getCurrentNode()
-{
-	return currentNode;
-}
-
 TaxiDriver* TaxiDriverMovement::getParentDriver()
 {
 	return parentTaxiDriver;
@@ -341,12 +377,10 @@ void TaxiDriverMovement::selectNextNodeAndLinksWhileCruising()
 	if (!currentNode)
 	{
 		currentNode = originNode;
-		parentTaxiDriver->currentNode = currentNode;
 	}
 	else
 	{
 		currentNode = destinationNode;
-		parentTaxiDriver->currentNode = currentNode;
 	}
 
 	const SegmentStats* currSegStats = parentTaxiDriver->parent->getCurrSegStats();
@@ -370,6 +404,8 @@ void TaxiDriverMovement::selectNextNodeAndLinksWhileCruising()
 		}
 	}
 
+	std::stringstream msg;
+	selectedNextLinkInCrusing = nullptr;
 	std::vector<Node*> nodeVector = currentNode->getNeighbouringNodes();
 	if (nodeVector.size() > 0)
 	{
@@ -377,8 +413,31 @@ void TaxiDriverMovement::selectNextNodeAndLinksWhileCruising()
 		Node *destNode = (*(itr));
 		std::map<unsigned int, Link*> mapOfDownStreamLinks = currentNode->getDownStreamLinks();
 		std::map<unsigned int, Link*>::iterator linkItr = mapOfDownStreamLinks.begin();
-		Link *selectedLink = nullptr;
-		unsigned int minNumOfVisits = -1;
+		const SegmentStats* currSegStats = pathMover.getCurrSegStats();
+		/*int minNumOfVisits = -1;
+		for(auto itLink=mapOfDownStreamLinks.begin();itLink!=mapOfDownStreamLinks.end(); itLink++)
+		{
+			if(currSegStats)
+			{
+				std::map<const Link*, std::vector<LaneStats*> >::const_iterator lnGpIt = currSegStats->getLaneGroup().find(itLink->second);
+				if (lnGpIt == currSegStats->getLaneGroup().end())
+				{
+					msg << "no connect, "<<currSegStats->getRoadSegment()->getRoadSegmentId()<<","<<currSegStats->getRoadSegment()->getLinkId()<<","<<itLink->second->getLinkId()<<std::endl;
+					continue;
+				}
+			}
+			if (mapOfLinksAndVisitedCounts.find(itLink->second)== mapOfLinksAndVisitedCounts.end())
+			{
+				selectedNextLinkInCrusing = itLink->second;
+				break;
+			}
+			else if (minNumOfVisits == -1|| mapOfLinksAndVisitedCounts[itLink->second] < minNumOfVisits)
+			{
+				minNumOfVisits = mapOfLinksAndVisitedCounts[itLink->second];
+				selectedNextLinkInCrusing = itLink->second;
+			}
+		}*/
+		int minNumOfVisits = -1;
 		const Lane *currLane = getCurrentlane();
 		const RoadNetwork* rdNetwork = RoadNetwork::getInstance();
 		const std::map<const Lane*, std::map<const Lane*, const TurningPath *>>&turningPathsFromLanes = rdNetwork->getTurningPathsFromLanes();
@@ -418,30 +477,38 @@ void TaxiDriverMovement::selectNextNodeAndLinksWhileCruising()
 
 				if (mapOfLinksAndVisitedCounts.find(link)== mapOfLinksAndVisitedCounts.end())
 				{
-					selectedLink = link;
+					selectedNextLinkInCrusing = link;
 					break;
 				}
 				else if (minNumOfVisits == -1|| mapOfLinksAndVisitedCounts[link] < minNumOfVisits)
 				{
 					minNumOfVisits = mapOfLinksAndVisitedCounts[link];
-					selectedLink = link;
+					selectedNextLinkInCrusing = link;
 				}
 				linkItr++;
 			}
-			if (selectedLink)
-			{
-				destinationNode = selectedLink->getToNode();
-				parentTaxiDriver->destinationNode = destinationNode;
-				currentRoute.erase(currentRoute.begin(), currentRoute.end());
-				currentRoute.insert(currentRoute.end(),selectedLink->getRoadSegments().begin(),	selectedLink->getRoadSegments().end());
-				std::vector<const SegmentStats*> path =	getMesoPathMover().getPath();
-				setPath(path);
-			}
+		}
+	}
+
+	if (selectedNextLinkInCrusing)
+	{
+		destinationNode = selectedNextLinkInCrusing->getToNode();
+		addCruisingPath(selectedNextLinkInCrusing);
+	}
+
+	if(!selectedNextLinkInCrusing){
+		sim_mob::BasicLogger& ptMoveLogger = sim_mob::Logger::log("nopathInCruising.csv");
+		const SegmentStats* currentStats = getMesoPathMover().getCurrSegStats();
+		if(currentStats){
+			ptMoveLogger << parentTaxiDriver->parent->getDatabaseId()<<",";
+			ptMoveLogger << currentStats->getRoadSegment()->getLinkId()<<",";
+			ptMoveLogger << currentStats->getRoadSegment()->getRoadSegmentId()<<",";
+			ptMoveLogger << currentNode->getNodeId()<<std::endl;
 		}
 	}
 }
 
-void TaxiDriverMovement::addRouteChoicePath(std::vector<WayPoint> &currentRouteChoice, Conflux *parentConflux)
+void TaxiDriverMovement::addRouteChoicePath(std::vector<WayPoint> &currentRouteChoice)
 {
 	std::vector<const SegmentStats*> path = getMesoPathMover().getPath();
 	if (!isPathInitialized)
@@ -457,14 +524,16 @@ void TaxiDriverMovement::addRouteChoicePath(std::vector<WayPoint> &currentRouteC
 	}
 	for (std::vector<WayPoint>::const_iterator itr = currentRouteChoice.begin();itr != currentRouteChoice.end(); itr++)
 	{
-		const Link *link = (*itr).link;
-		Node *toNode = link->getToNode();
-		Conflux *nodeConflux = Conflux::getConfluxFromNode(toNode);
-		const std::vector<RoadSegment*>& roadSegments = link->getRoadSegments();
-		for (std::vector<RoadSegment*>::const_iterator segItr =	roadSegments.begin(); segItr != roadSegments.end(); segItr++)
-		{
-			const std::vector<SegmentStats*>& segStatsVector = nodeConflux->findSegStats(*segItr);
-			path.insert(path.end(), segStatsVector.begin(),	segStatsVector.end());
+		if((*itr).type==WayPoint::LINK){
+			const Link *link = (*itr).link;
+			Node *toNode = link->getToNode();
+			Conflux *nodeConflux = Conflux::getConfluxFromNode(toNode);
+			const std::vector<RoadSegment*>& roadSegments = link->getRoadSegments();
+			for (std::vector<RoadSegment*>::const_iterator segItr =	roadSegments.begin(); segItr != roadSegments.end(); segItr++)
+			{
+				const std::vector<SegmentStats*>& segStatsVector = nodeConflux->findSegStats(*segItr);
+				path.insert(path.end(), segStatsVector.begin(),	segStatsVector.end());
+			}
 		}
 	}
 
@@ -487,33 +556,64 @@ void TaxiDriverMovement::addRouteChoicePath(std::vector<WayPoint> &currentRouteC
 
 void TaxiDriverMovement::setCruisingMode()
 {
+	previousTaxiStand = destinationTaxiStand;
+	destinationTaxiStand = nullptr;
 	parentTaxiDriver->taxiDriverMode = CRUISE;
 	parentDriver->driverMode = CRUISE;
-	selectNextNodeAndLinksWhileCruising();
+	if(pathMover.isEndOfPath()){
+		selectNextNodeAndLinksWhileCruising();
+	}
 }
 
 void TaxiDriverMovement::driveToTaxiStand()
 {
-	parentTaxiDriver->setDriveMode(DRIVE_TO_TAXISTAND);
 	bool useInSimulationTT = parentTaxiDriver->getParent()->usesInSimulationTravelTime();
 	const RoadSegment *taxiStandSegment = destinationTaxiStand->getRoadSegment();
 	const Link *taxiStandLink = taxiStandSegment->getParentLink();
-	Node *destForRouteChoice = taxiStandLink->getFromNode();
 	//get the current segment
 	const SegmentStats* currSegStat = pathMover.getCurrSegStats();
 	const Link *currSegmentParentLink = currSegStat->getRoadSegment()->getParentLink();
-	Node *originNode = currSegmentParentLink->getToNode();
+	Node *originNode = currSegmentParentLink->getFromNode();
+	Node *destForRouteChoice = taxiStandLink->getToNode();
 	//set origin and destination node
 	SubTrip currSubTrip;
 	currSubTrip.origin = WayPoint(originNode);
 	currSubTrip.destination = WayPoint(destForRouteChoice);
-	vector<WayPoint> routeToTaxiStand = PrivateTrafficRouteChoice::getInstance()->getPath(currSubTrip, false, nullptr, useInSimulationTT);
-	addTaxiStandPath(routeToTaxiStand);
+	vector<WayPoint> routeToTaxiStand = PrivateTrafficRouteChoice::getInstance()->getPathWhereToStand(currSubTrip, false, currSegmentParentLink, nullptr, taxiStandLink, useInSimulationTT);
+	if(routeToTaxiStand.empty()||currSegmentParentLink==taxiStandLink)
+	{
+		setCruisingMode();
+	}
+	else
+	{
+		queuingTooLongTime = 0.0;
+		parentTaxiDriver->setTaxiDriveMode(DRIVE_TO_TAXISTAND);
+		destinationNode = destForRouteChoice;
+		addTaxiStandPath(routeToTaxiStand);
+	}
 }
 
 void TaxiDriverMovement::addTaxiStandPath(vector<WayPoint> &routeToTaxiStand)
 {
 	const SegmentStats* currSegStat = pathMover.getCurrSegStats();
+	std::vector<const SegmentStats*> path;
+	for (std::vector<WayPoint>::const_iterator itr = routeToTaxiStand.begin();itr != routeToTaxiStand.end(); itr++)
+	{
+		if((*itr).type==WayPoint::LINK){
+			const Link *link = (*itr).link;
+			Node *toNode = link->getToNode();
+			Conflux *nodeConflux = Conflux::getConfluxFromNode(toNode);
+			const std::vector<RoadSegment*>& roadSegments = link->getRoadSegments();
+			for (std::vector<RoadSegment*>::const_iterator segItr =	roadSegments.begin(); segItr != roadSegments.end(); segItr++)
+			{
+				const std::vector<SegmentStats*>& segStatsVector = nodeConflux->findSegStats(*segItr);
+				path.insert(path.end(), segStatsVector.begin(),	segStatsVector.end());
+			}
+		}
+	}
+	pathMover.setPath(path);
+	pathMover.setSegmentStatIterator(currSegStat);
+	/*const SegmentStats* currSegStat = pathMover.getCurrSegStats();
 	const Link *currSegmentParentLink = currSegStat->getRoadSegment()->getParentLink();
 	const RoadSegment * currRoadSegment = currSegStat->getRoadSegment();
 	const std::vector<const SegmentStats*> currPathSegs = pathMover.getPath();
@@ -528,7 +628,7 @@ void TaxiDriverMovement::addTaxiStandPath(vector<WayPoint> &routeToTaxiStand)
 	std::vector<RoadSegment*>::const_iterator rdSegItr = std::find(roadSegments.begin(), roadSegments.end(), roadSegment);
 	roadSegmentTillTaxiStand.insert(roadSegmentTillTaxiStand.end(),roadSegments.begin(), rdSegItr + 1);
 	pathMover.appendSegmentStats(roadSegmentTillTaxiStand, conflux);
-	pathMover.setSegmentStatIterator(currSegStat);
+	pathMover.setSegmentStatIterator(currSegStat);*/
 }
 
 bool TaxiDriverMovement::isToBeRemovedFromTaxiStand()

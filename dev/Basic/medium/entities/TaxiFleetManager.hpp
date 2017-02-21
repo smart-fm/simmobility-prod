@@ -9,6 +9,7 @@
 #define TAXIFLEETMANAGER_HPP_
 #include <map>
 #include <vector>
+#include <queue>
 namespace sim_mob
 {
 class Node;
@@ -22,6 +23,19 @@ public:
 		std::string driverId;
 		double startTime;
 		const Node* startNode;
+	};
+
+	struct cmp_fleet_start: public std::less<TaxiFleet>
+	{
+		bool operator()(const TaxiFleet& x, const TaxiFleet& y) const
+		{
+			return x.startTime > y.startTime;
+		}
+	};
+
+	class FleetTimePriorityQueue: public std::priority_queue<TaxiFleet,
+			std::vector<TaxiFleet>, cmp_fleet_start>
+	{
 	};
 public:
 	/**
@@ -39,6 +53,10 @@ public:
 	 * @return a list include all taxi which need be dispatched currently
 	 */
 	std::vector<TaxiFleet> dispatchTaxiAtCurrentTime(const unsigned int currentTimeSec);
+	/**
+	 * get all taxi fleet information
+	 */
+	const std::vector<TaxiFleet>& getAllTaxiFleet() const;
 private:
 	/**store taxi fleet information*/
 	std::vector<TaxiFleet> taxiFleets;

@@ -69,11 +69,11 @@
             <mapping name="erp_gantry_zone" procedure="get_erp_gantry_zone()"/>
             <mapping name="erp_section" procedure="get_erp_section()"/>
             <mapping name="erp_surcharge" procedure="get_erp_surcharge()"/>
-            <mapping name="day_activity_schedule" procedure="get_persons_between_ta"/>
+            <mapping name="day_activity_schedule" procedure="get_persons_between_ta2"/>
             <mapping name="freight_trips" procedure="get_testfreight_between"/>
             <mapping name="screen_line" procedure="get_screen_line_segments()"/>
             <mapping name="taxi_fleet" procedure="get_taxi_fleet()"/>
-	   <mapping name="taxi_stands" procedure="get_singapore_taxi_stands()"/>
+	   		<mapping name="taxi_stands" procedure="get_singapore_taxi_stands()"/>
             <!--<mapping name="restricted_reg_segments" procedure="get_section_banned_area()"/>
             <mapping name="restricted_reg_in_turning" procedure="get_banned_area_in_turning()"/>
             <mapping name="restricted_reg_out_turning" procedure="get_banned_area_out_turning()"/>
@@ -148,7 +148,7 @@
     <!-- config specific to supply simulator -->                    
     <supply>
         <!-- frequency of segment density, speed and flow output -->
-        <update_interval value="5" units="second" />
+        <update_interval value="1" units="minute" />
         
         <!-- these parameters are used to calculate dwell time of buses at bus stops-->
         <dwell_time_parameters>

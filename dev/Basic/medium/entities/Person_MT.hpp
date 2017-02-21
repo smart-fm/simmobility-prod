@@ -49,7 +49,8 @@ private:
 
 	Conflux * currentConflux;
 
-	bool hasJustEnteredTaxiStand = false;
+	/**store vehicle no*/
+	std::string vehicleNo;
 
 	/**Alters trip chain in accordance to route choice for public transit trips*/
 	void convertPublicTransitODsToTrips();
@@ -91,6 +92,7 @@ public:
 	double latestUpdatedFrameTick=-1;
 	double beforeUpdateSpeed = -1;
 
+	std::stringstream routeStr;
 
 	enum Permission //to be renamed later
 	{
@@ -224,14 +226,14 @@ public:
 		this->personInfo = personInfo;
 	}
 
-	void setEnteredTaxiStand(bool hasEntered)
+	void setVehicleNo(const std::string& vehicleNo)
 	{
-		hasJustEnteredTaxiStand = hasEntered;
+		this->vehicleNo = vehicleNo;
 	}
 
-	bool getHasEnteredTaxiStand()
+	std::string getVehicleNo() const
 	{
-		return hasJustEnteredTaxiStand;
+		return vehicleNo;
 	}
 };
 } // namespace medium

@@ -57,7 +57,7 @@ public:
 	/// Record a fresh key-value pair in the cache
 	void insert(const KeyType& k,const ValueType& v)
 	{
-		boost::unique_lock<boost::shared_mutex> lock(mutex_);		
+		boost::unique_lock<boost::shared_mutex> lock(mutex_);
 
 		// Make space if necessary
 		if (keyToValue.size()==capacity)

@@ -508,6 +508,10 @@ public:
 		return numVehicleLanes;
 	}
 
+	const std::map<const Link*, std::vector<LaneStats*> >& getLaneGroup() const
+	{
+		return laneGroup;
+	}
 	double getLength() const
 	{
 		return length;

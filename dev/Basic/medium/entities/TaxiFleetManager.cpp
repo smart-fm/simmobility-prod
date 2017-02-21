@@ -94,4 +94,10 @@ std::vector<TaxiFleetManager::TaxiFleet> TaxiFleetManager::dispatchTaxiAtCurrent
 	}
 	return res;
 }
+
+const std::vector<TaxiFleetManager::TaxiFleet>& TaxiFleetManager::getAllTaxiFleet() const
+{
+	return taxiFleets;
+}
+
 }

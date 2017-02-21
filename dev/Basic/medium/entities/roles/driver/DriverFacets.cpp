@@ -706,9 +706,17 @@ bool DriverMovement::canGoToNextRdSeg(DriverUpdateParams& params, const SegmentS
 	if (( hasSpaceInNextStats && nextLink) || ( hasSpaceInNextStats && parentDriver->getDriveMode() == CRUISE))
 	{
 		//additionally check if the length of vehicles in the lanegroup is not too long to accommodate this driver
-		double maxAllowedInLG = nextSegStats->getAllowedVehicleLengthForLaneGroup(nextLink);
-		double totalInLG = nextSegStats->getVehicleLengthForLaneGroup(nextLink);
-		return (totalInLG < maxAllowedInLG);
+		try{
+			double maxAllowedInLG = nextSegStats->getAllowedVehicleLengthForLaneGroup(nextLink);
+			double totalInLG = nextSegStats->getVehicleLengthForLaneGroup(nextLink);
+			return (totalInLG < maxAllowedInLG);
+		} catch(...){
+			const SegmentStats* curStats = pathMover.getCurrSegStats();
+			std::string path = pathMover.printPath();
+			std::cout<<"curr stats:"<<curStats->getRoadSegment()->getRoadSegmentId()
+					<<"-"<<curStats->getStatsNumberInSegment()<<" path:"<< path <<std::endl;
+			throw;
+		}
 	}
 	return hasSpaceInNextStats;
 }

@@ -45,8 +45,12 @@ public:
 	 * get taxi-stand agent from a given taxi-stand
 	 * @param stand is a pointer to a taxi-stand
 	 */
-
 	static  TaxiStandAgent* getTaxiStandAgent(const TaxiStand* stand);
+	/**
+	 * get taxi-stand from a given taxi-stand id
+	 * @param stand is a pointer to a taxi-stand
+	 */
+	static const TaxiStand* getTaxiStand(int standId);
 	/**
 	 * accept a queuing taxi-driver inside current stand
 	 * @param driver is pointer to the person who drive this taxi

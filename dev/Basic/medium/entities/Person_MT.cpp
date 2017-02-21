@@ -115,8 +115,8 @@ void Person_MT::convertToTaxiTrips()
 						const TaxiStand* stand = TaxiStand::allTaxiStandMap.searchNearestObject(x,y);
 						if(!stand)
 						{
-							Print()<<"[Taxi Trip] no nearby taxi-stand exists! "<<itSubTrip->origin.node->getNodeId()<<std::endl;
-							break;
+							tripChain.clear();
+							return;
 						}
 						SubTrip subTrip;
 						subTrip.setPersonID(-1);

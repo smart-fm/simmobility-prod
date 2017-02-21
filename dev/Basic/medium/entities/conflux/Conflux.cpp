@@ -1497,11 +1497,6 @@ Entity::UpdateStatus Conflux::callMovementFrameTick(timeslice now, Person_MT* pe
 
 		//if person is Taxi Driver and has just entered into Taxi Stand then break this loop
 		std::string id = person->getDatabaseId();
-		if(person->getHasEnteredTaxiStand())
-		{
-
-			return retVal;
-		}
 		if (!person->isToBeRemoved())
 		{
 			personRole->Movement()->frame_tick();

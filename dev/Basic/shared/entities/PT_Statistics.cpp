@@ -199,19 +199,19 @@ std::string BusArrivalTime::getCSV() const
 
 std::string PersonTravelTime::getCSV() const
 {
-	char csvArray[200];
-	sprintf(csvArray, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%.2f\n",
-			personId.c_str(),
-			tripStartPoint.c_str(),
-			tripEndPoint.c_str(),
-			subStartPoint.c_str(),
-			subEndPoint.c_str(),
-			subStartType.c_str(),
-			subEndType.c_str(),
-			mode.c_str(),
-			arrivalTime.c_str(),
-			travelTime);
-	return std::string(csvArray);
+	std::stringstream sst;
+	sst << personId << ",";
+	sst << tripStartPoint << ",";
+	sst << tripEndPoint << ",";
+	sst << subStartPoint << ",";
+	sst << subEndPoint << ",";
+	sst << subStartType << ",";
+	sst << subEndType << ",";
+	sst << mode << ",";
+	sst << arrivalTime << ",";
+	sst << travelTime << ",";
+	sst << service << std::endl;
+	return sst.str();
 }
 
 std::string WaitingCount::getCSV() const

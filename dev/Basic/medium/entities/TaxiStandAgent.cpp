@@ -54,40 +54,12 @@ Entity::UpdateStatus TaxiStandAgent::frame_tick(timeslice now)
 	auto itWaitDriver = queuingDrivers.begin();
 	while(itWaitDriver != queuingDrivers.end())
 	{
-		Role<Person_MT> *role = (*itWaitDriver)->getRole();
-		if(role)
+		parentConflux->updateQueuingTaxiDriverAgent((*itWaitDriver));
+		TaxiDriver *driver = dynamic_cast<TaxiDriver*>((*itWaitDriver)->getRole());
+		if(!driver || driver->getMovementFacet()->isToBeRemovedFromTaxiStand())
 		{
-			TaxiDriver *driver = dynamic_cast<TaxiDriver*>(role);
-			DriverUpdateParams& params = driver->getParams();
-			if(!driver->getParent()->getHasEnteredTaxiStand())
-			{
-				params.elapsedSeconds = 0.0;
-				driver->getParent()->setRemainingTimeThisTick(params.secondsInTick);
-			}
-			driver->getParent()->setEnteredTaxiStand(false);
-			if(params.elapsedSeconds<params.secondsInTick)
-			{
-				driver->getMovementFacet()->setToCallMovementTick(true);
-				Conflux * conflux = getParentConflux();
-				Person_MT *parentPerson = dynamic_cast<Person_MT*>(driver->getParent());
-				conflux->updateQueuingTaxiDriverAgent(parentPerson);
-				if(driver)
-				{
-					driver->getMovementFacet()->setToCallMovementTick(false);
-				}
-				if(!driver || driver->getMovementFacet()->isToBeRemovedFromTaxiStand())
-				{
-					queuingDrivers.erase(itWaitDriver);
-					if(driver)
-					{
-						if(!driver->getDriveMode() == QUEUING_AT_TAXISTAND)
-						{
-							driver->getResource()->setMoving(true);
-						}
-					}
-					continue;
-				}
-			}
+			itWaitDriver = queuingDrivers.erase(itWaitDriver);
+			continue;
 		}
 		itWaitDriver++;
 	}
@@ -147,6 +119,17 @@ TaxiStandAgent* TaxiStandAgent::getTaxiStandAgent(const TaxiStand* stand)
 	return nullptr;
 }
 
+const TaxiStand* TaxiStandAgent::getTaxiStand(int standId)
+{
+	for(auto it = allTaxiStandAgents.begin(); it!=allTaxiStandAgents.end(); it++)
+	{
+		if((*it).first->getStandId()==standId)
+		{
+			return (*it).first;
+		}
+	}
+	return nullptr;
+}
 bool TaxiStandAgent::acceptTaxiDriver(Person_MT* driver)
 {
 	if (queuingDrivers.size() < capacity) {
@@ -179,6 +162,7 @@ Person_MT* TaxiStandAgent::pickupOneWaitingPerson()
 		{
 			return nullptr;
 		}
+		res->getRole()->setArrivalTime(currentTimeMS);
 	}
 	return res;
 }
@@ -215,14 +199,17 @@ void TaxiStandAgent::storeWaitingTime(Person_MT* waitingPerson) const
 		if(activity){
 			unsigned int waitingTime = activity->getWaitingTime();
 			PersonWaitingTime personWaitInfo;
-			personWaitInfo.busStopNo = taxiStand->getStandId();
+			personWaitInfo.busStopNo = boost::lexical_cast<std::string>(taxiStand->getStandId());
 			personWaitInfo.personId  = waitingPerson->getId();
 			personWaitInfo.personIddb = waitingPerson->getDatabaseId();
 			personWaitInfo.originNode = (*(waitingPerson->currTripChainItem))->origin.node->getNodeId();
 			personWaitInfo.destNode = (*(waitingPerson->currTripChainItem))->destination.node->getNodeId();
-			personWaitInfo.endstop = waitingPerson->currSubTrip->endLocationId;
+			personWaitInfo.endstop = boost::lexical_cast<std::string>(personWaitInfo.destNode);
 			personWaitInfo.currentTime = DailyTime(currentTimeMS + ConfigManager::GetInstance().FullConfig().simulation.baseGranMS).getStrRepr();
-			personWaitInfo.waitingTime = waitingTime;
+			personWaitInfo.busLines = "Taxi";
+			personWaitInfo.busLineBoarded = "Taxi";
+			personWaitInfo.deniedBoardingCount = 0;
+			personWaitInfo.waitingTime = waitingTime/1000;
 			messaging::MessageBus::PostMessage(PT_Statistics::getInstance(), STORE_PERSON_WAITING,
 					messaging::MessageBus::MessagePtr(new PersonWaitingTimeMessage(personWaitInfo)));
 		}
@@ -231,3 +218,4 @@ void TaxiStandAgent::storeWaitingTime(Person_MT* waitingPerson) const
 
 }
 }
+

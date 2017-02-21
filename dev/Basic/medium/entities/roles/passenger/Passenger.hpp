@@ -108,6 +108,19 @@ public:
 		this->startPoint = startPoint;
 	}
 
+	void setService(const std::vector<WayPoint>& lines)
+	{
+		std::stringstream sst;
+		sst << "[";
+		for(auto i=lines.begin(); i!=lines.end(); i++){
+			if(i->type==WayPoint::LINK){
+				sst<<i->link->getLinkId()<<" ";
+			}
+		}
+		sst << "]";
+		this->service = sst.str();
+	}
+
 private:
 	friend class PassengerBehavior;
 	friend class PassengerMovement;
@@ -123,6 +136,9 @@ private:
 
 	/** ending node of passenger - for travel time storage */
 	sim_mob::WayPoint endPoint;
+
+	/**record service info*/
+	std::string service;
 };
 
 }

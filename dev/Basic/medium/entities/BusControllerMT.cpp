@@ -116,7 +116,7 @@ void BusControllerMT::assignBusTripChainWithPerson(std::set<Entity*>& activeAgen
 		{
 			if (tripIt->startTime.isAfterEqual(config.simStartTime()))
 			{
-				/*Person_MT* person = new Person_MT("BusController", config.mutexStategy(), -1, tripIt->getPersonID());
+				Person_MT* person = new Person_MT("BusController", config.mutexStategy(), -1, tripIt->getPersonID());
 				someBusLine = busline;
 				sometripIt = tripIt;
 				person->busLine = busline->getBusLineID();
@@ -126,28 +126,36 @@ void BusControllerMT::assignBusTripChainWithPerson(std::set<Entity*>& activeAgen
 				tripChain.push_back(const_cast<BusTrip*>(&(*tripIt)));
 				person->setTripChain(tripChain);
 				person->initTripChain();
-				addOrStashBuses(person, activeAgents);*/
+				addOrStashBuses(person, activeAgents);
 			}
 		}
 	}
 
 	for (std::set<Entity*>::iterator it = activeAgents.begin(); it != activeAgents.end(); it++)
 	{
-		/*(*it)->parentEntity = this;
-		busDrivers.push_back(*it);*/
+		(*it)->parentEntity = this;
+		busDrivers.push_back(*it);
 	}
 
-	std::vector<TaxiFleetManager::TaxiFleet> taxiFleets = TaxiFleetManager::getInstance()->dispatchTaxiAtCurrentTime(24*3600);
-	for(auto i=taxiFleets.begin(); i!=taxiFleets.end(); i++){
-		TaxiFleetManager::TaxiFleet& taxi = (*i);
-		Person_MT* person = new Person_MT("TaxiController", config.mutexStategy(), -1, taxi.vehicleNo);
-		person->setDatabaseId(taxi.vehicleNo);
+	const std::vector<TaxiFleetManager::TaxiFleet> taxiFleets = TaxiFleetManager::getInstance()->getAllTaxiFleet();
+	std::map<std::string, TaxiFleetManager::FleetTimePriorityQueue> groupFleets;
+	for(auto i=taxiFleets.begin(); i!=taxiFleets.end(); i++)
+	{
+		const TaxiFleetManager::TaxiFleet& taxi = (*i);
+		groupFleets[taxi.vehicleNo].push(taxi);
+	}
+
+	for(auto i=groupFleets.begin(); i!= groupFleets.end(); i++)
+	{
+		const TaxiFleetManager::FleetTimePriorityQueue& fleetItems = i->second;
+		const TaxiFleetManager::TaxiFleet& taxi = fleetItems.top();
+		Person_MT* person = new Person_MT("TaxiController", config.mutexStategy(), -1);
+		person->setVehicleNo(taxi.vehicleNo);
+		person->setDatabaseId(taxi.driverId);
 		person->setPersonCharacteristics();
 		vector<TripChainItem*> tripChain;
-		//creating a dummy TaxiTrip for now to test
 		if(taxi.startNode)
 		{
-			//continue;
 			TaxiTrip *taxiTrip =new TaxiTrip("0","TaxiTrip",0,-1, DailyTime(taxi.startTime*1000.0), DailyTime(),0,const_cast<Node*>(taxi.startNode),"node",nullptr,"node");
 			tripChain.push_back(taxiTrip);
 			person->setTripChain(tripChain);

@@ -133,7 +133,7 @@ public:
 	/**
 	 * prints the seg stats path. useful for debugging
 	 */
-	void printPath();
+	std::string printPath() const;
 
 	/**
 	 * gets the first segstats in the immediate downstream Link of nextSegStats

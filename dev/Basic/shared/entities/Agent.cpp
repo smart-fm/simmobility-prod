@@ -206,12 +206,13 @@ Entity::UpdateStatus sim_mob::Agent::update(timeslice now)
 		//PROFILE_LOG_AGENT_EXCEPTION(currWorkerProvider->getProfileBuilder(), *this, now, ex);
 
 		//Add a line to the output file.
+		std::stringstream msg;
 		if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled())
 		{
-			std::stringstream msg;
 			msg << "Error updating Agent[" << getId() << "], will be removed from the simulation. \n  " << ex.what();
 			LogOut(msg.str() << std::endl);
 		}
+		std::cout<<msg.str()<<std::endl;
 		setToBeRemoved();
 	}
 

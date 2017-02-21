@@ -28,12 +28,8 @@ public:
 	void alightPassenger();
 	void boardPassenger(Passenger *passenger);
 	void driveToDestinationNode(Node * destinationNode);
-	void runRouteChoiceModel(const Node *origin, const Node *destination,SubTrip &currSubTrip, std::vector<WayPoint> &currentRouteChoice);
-	void setCurrentNode(const Node *currNode);
-	void setDestinationNode(const Node *destinationNode);
-	const Node* getDestinationNode();
+	void runRouteChoiceModel(const Node *origin, const Node *destination, std::vector<WayPoint> &currentRouteChoice);
 	Person_MT* getParent();
-	const Node* getCurrentNode();
 	void checkPersonsAndPickUpAtNode(Conflux *parentConflux);
 	TaxiDriverMovement * getMovementFacet();
 	virtual Role<Person_MT>* clone(Person_MT *parent) const;
@@ -49,15 +45,10 @@ public:
 
 private:
 	Passenger *taxiPassenger = nullptr;
-	const Node * destinationNode = nullptr;
-	const Node *originNode = nullptr;
-	const Node *currentNode = nullptr;
-	const Node *pickupNode = nullptr;
 	RoadSegment *currSegment = nullptr;
 	TaxiDriverMovement *taxiDriverMovement;
 	TaxiDriverBehavior *taxiDriverBehaviour;
 	bool personBoarded = false;
-	std::vector<WayPoint> currentRouteChoice;
 	DriverMode taxiDriverMode;
 
 public:

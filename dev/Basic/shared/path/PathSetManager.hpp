@@ -494,6 +494,15 @@ public:
 	 			 bool enRoute, const sim_mob::Link *approach,boost::shared_ptr<sim_mob::PathSet> &pathset,const Lane* currLane,
 	 			 bool useInSimulationTT = false);
 
+	 bool getBestPathWhereToStand(std::vector<sim_mob::WayPoint>& res,
+	 			 const sim_mob::SubTrip& st,bool useCache,
+	 			 const std::set<const sim_mob::Link*> tempBlckLstSegs/*=std::set<const sim_mob::RoadSegment*>()*/,
+	 			 bool usePartialExclusion,
+	 			 bool useBlackList,
+	 			 bool enRoute, const sim_mob::Link *approach,boost::shared_ptr<sim_mob::PathSet> &pathset,const Lane* currLane,
+	 			 const Link* last,
+	 			 bool useInSimulationTT = false);
+
 	/**
 	 * The main entry point to the pathset manager,
 	 * returns a path for the requested subtrip per the requesting person
@@ -507,7 +516,11 @@ public:
 
 	std::vector<WayPoint> getPathAfterPassengerPickup(const sim_mob::SubTrip& subTrip, bool enRoute, const sim_mob::Link *approach , const Lane *currLane,bool useInSimulationTT = false);
 
+	std::vector<WayPoint> getPathWhereToStand(const sim_mob::SubTrip& subTrip, bool enRoute, const sim_mob::Link *approach , const Lane *currLane, const Link* last, bool useInSimulationTT = false);
+
 	void filterPathsetsWhereCurrSegmentIsConnectedToDownStreamLink(boost::shared_ptr<sim_mob::PathSet>& pathset,const Lane  *currlane);
+
+	void filterPathsetsByLastLink(boost::shared_ptr<sim_mob::PathSet>& pathset,const Link* link);
 	/**
 	 * calculates the travel time of the shortest path in the pathset for a given OD
 	 * @param origin origin node id

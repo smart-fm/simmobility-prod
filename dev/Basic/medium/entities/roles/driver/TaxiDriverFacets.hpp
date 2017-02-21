@@ -26,26 +26,25 @@ public:
 	void setParentTaxiDriver(TaxiDriver * taxiDriver);
 	const Node* getCurrentNode();
 	const Node* getDestinationNode();
-	void addRouteChoicePath(std::vector<WayPoint> &currentChoice,Conflux *);
+	void addRouteChoicePath(std::vector<WayPoint> &currentChoice);
 	void setCurrentNode(const Node * node);
 	void setDestinationNode(const Node * node);
 	bool isToBeRemovedFromTaxiStand();
 
 private:
-	TaxiDriver *parentTaxiDriver = nullptr;
 	const Node * destinationNode = nullptr;
+	const Node *currentNode = nullptr;
+	TaxiDriver *parentTaxiDriver = nullptr;
 	Node *originNode = nullptr;
 	bool isQueuingTaxiStand = false;
-	const Node *currentNode = nullptr;
 	bool isPathInitialized = false;
-	double waitingTimeAtTaxiStand = -1;
 	const TaxiStand *destinationTaxiStand = nullptr;
 	const TaxiStand *previousTaxiStand = nullptr;
 	bool toBeRemovedFromTaxiStand = false;
-	bool toCallMovTickInTaxiStand = false;
 	std::map<const Link*, int> mapOfLinksAndVisitedCounts;
-	std::vector<RoadSegment *> currentRoute;
-	std::vector<WayPoint> currentRouteChoice;
+	double cruisingTooLongTime = 0.0;
+	double queuingTooLongTime = 0.0;
+	Link* selectedNextLinkInCrusing = nullptr;
 
 private:
 	void driveToDestinationNode(Node * destinationNode);
@@ -55,16 +54,10 @@ private:
 	void driveToTaxiStand();
 	void setCurrentNode(Node *currNode);
 	void setDestinationNode(Node *destinationNode);
-	void getLinkAndRoadSegments(Node * start, Node *end,std::vector<RoadSegment*>& segments);
 	const Lane* getBestTargetLane(const SegmentStats* nextSegStats,const SegmentStats* nextToNextSegStats);
 	bool moveToNextSegment(DriverUpdateParams& params);
 	void selectNextNodeAndLinksWhileCruising();
-	void setPath(std::vector<const SegmentStats*>&path);
-
-public:
-	void setToCallMovementTick(bool toCall);
-	bool getToCallMovementTick();
-
+	void addCruisingPath(const Link* selectedLink);
 };
 
 class TaxiDriverBehavior: public DriverBehavior

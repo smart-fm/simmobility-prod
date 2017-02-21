@@ -291,16 +291,17 @@ void MesoPathMover::moveFwdInSegStats(double fwdDisplacement)
 	distToSegmentEnd = std::max(distToSegmentEnd, 0.0);
 }
 
-void MesoPathMover::printPath()
+std::string MesoPathMover::printPath() const
 {
 	std::stringstream pathStream;
 	pathStream << "SegmentStats path: ";
-	for (Path::iterator i = path.begin(); i != path.end(); i++)
+	for (Path::const_iterator i = path.begin(); i != path.end(); i++)
 	{
 		pathStream << (*i)->getRoadSegment()->getRoadSegmentId() << "-" << (*i)->getStatsNumberInSegment() << "|";
 	}
 	pathStream << std::endl;
 	Print() << pathStream.str();
+	return pathStream.str();
 }
 
 std::string MesoPathMover::getPathString(const Path &path, const Node *node)

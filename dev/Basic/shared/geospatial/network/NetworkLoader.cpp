@@ -200,7 +200,7 @@ void NetworkLoader::loadTaxiStands(const std::string& storedProc)
 	sim_mob::ConfigParams& config = sim_mob::ConfigManager::GetInstanceRW().FullConfig();
 	if(storedProc.empty())
 	{
-		Print() << "Stored procedure to load taxi stands not specified in the configuration file."
+		Warn() << "Stored procedure to load taxi stands not specified in the configuration file."
 				<< "\nTaxi stands not loaded..." << std::endl;
 		return;
 	}
@@ -213,6 +213,22 @@ void NetworkLoader::loadTaxiStands(const std::string& storedProc)
 		//Create new taxi stand and add it to road network
 		TaxiStand* stand = new TaxiStand(*itStand);
 		roadNetwork->addTaxiStand(stand);
+	}
+}
+
+void NetworkLoader::loadSensors(const string &storedProc)
+{
+	if(!storedProc.empty())
+	{
+		//SQL statement
+		soci::rowset<TrafficSensor> sensors = (sql.prepare << "select * from " + storedProc);
+
+		for(soci::rowset<TrafficSensor>::const_iterator itSensor = sensors.begin(); itSensor != sensors.end(); ++itSensor)
+		{
+			//Create a new traffic sensor and add it to the network
+			TrafficSensor *sensor = new TrafficSensor(*itSensor);
+			roadNetwork->addTrafficSensor(sensor);
+		}
 	}
 }
 
@@ -337,6 +353,8 @@ void NetworkLoader::loadNetwork(const string& connectionStr, const map<string, s
 		loadTurningPolyLines(getStoredProcedure(storedProcs, "turning_polylines"));
 
 		loadTurningConflicts(getStoredProcedure(storedProcs, "turning_conflicts"));
+
+		loadSensors(getStoredProcedure(storedProcs, "traffic_sensors", false));
 		
 		loadBusStops(getStoredProcedure(storedProcs, "bus_stops", false));
 

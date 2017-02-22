@@ -17,9 +17,10 @@
 #include "Node.hpp"
 #include "Point.hpp"
 #include "RoadItem.hpp"
+#include "TaxiStand.hpp"
+#include "TrafficSensor.hpp"
 #include "TurningGroup.hpp"
 #include "TurningPath.hpp"
-#include "TaxiStand.hpp"
 
 using namespace sim_mob;
 
@@ -272,13 +273,11 @@ template<> struct type_conversion<sim_mob::TaxiStand>
 	}
 };
 
-template<>
-struct type_conversion<sim_mob::PT_BusDispatchFreq>
+template<> struct type_conversion<sim_mob::PT_BusDispatchFreq>
 {
     typedef values base_type;
 
-    static void
-    from_base(soci::values const & values, soci::indicator & indicator, sim_mob::PT_BusDispatchFreq& ptBusDispatchFreq)
+	static void from_base(soci::values const & values, soci::indicator & indicator, sim_mob::PT_BusDispatchFreq& ptBusDispatchFreq)
     {
     	ptBusDispatchFreq.frequencyId = values.get<std::string>("frequency_id", "");
     	boost::trim(ptBusDispatchFreq.frequencyId);
@@ -289,8 +288,7 @@ struct type_conversion<sim_mob::PT_BusDispatchFreq>
     	ptBusDispatchFreq.headwaySec = values.get<int>("headway_sec", 0);
     }
 
-    static void
-    to_base(sim_mob::PT_BusDispatchFreq const & ptBusDispatchFreq, soci::values & values, soci::indicator & indicator)
+	static void to_base(sim_mob::PT_BusDispatchFreq const & ptBusDispatchFreq, soci::values & values, soci::indicator & indicator)
     {
         values.set("frequency_id", ptBusDispatchFreq.frequencyId);
         values.set("route_id", ptBusDispatchFreq.routeId);
@@ -301,13 +299,11 @@ struct type_conversion<sim_mob::PT_BusDispatchFreq>
     }
 };
 
-template<>
-struct type_conversion<sim_mob::PT_BusRoutes>
+template<> struct type_conversion<sim_mob::PT_BusRoutes>
 {
     typedef values base_type;
 
-    static void
-    from_base(soci::values const & values, soci::indicator & indicator, sim_mob::PT_BusRoutes& ptBusRoutes)
+	static void from_base(soci::values const & values, soci::indicator & indicator, sim_mob::PT_BusRoutes& ptBusRoutes)
     {
     	ptBusRoutes.routeId = values.get<std::string>("route_id", "");
     	boost::trim(ptBusRoutes.routeId);
@@ -316,8 +312,7 @@ struct type_conversion<sim_mob::PT_BusRoutes>
     	ptBusRoutes.sequenceNo = values.get<int>("sequence_no", 0);
     }
 
-    static void
-    to_base(sim_mob::PT_BusRoutes const & ptBusRoutes, soci::values & values, soci::indicator & indicator)
+	static void to_base(sim_mob::PT_BusRoutes const & ptBusRoutes, soci::values & values, soci::indicator & indicator)
     {
         values.set("route_id", ptBusRoutes.routeId);
         values.set("link_id", ptBusRoutes.linkId);
@@ -326,13 +321,11 @@ struct type_conversion<sim_mob::PT_BusRoutes>
     }
 };
 
-template<>
-struct type_conversion<sim_mob::PT_BusStops>
+template<> struct type_conversion<sim_mob::PT_BusStops>
 {
     typedef values base_type;
 
-    static void
-    from_base(soci::values const & values, soci::indicator & indicator, sim_mob::PT_BusStops& ptBusStops)
+	static void from_base(soci::values const & values, soci::indicator & indicator, sim_mob::PT_BusStops& ptBusStops)
     {
     	ptBusStops.routeId = values.get<std::string>("route_id", "");
     	boost::trim(ptBusStops.routeId);
@@ -341,13 +334,30 @@ struct type_conversion<sim_mob::PT_BusStops>
     	ptBusStops.sequenceNo = values.get<int>("sequence_no", 0);
     }
 
-    static void
-    to_base(sim_mob::PT_BusStops const & ptBusStops, soci::values & values, soci::indicator & indicator)
+	static void to_base(sim_mob::PT_BusStops const & ptBusStops, soci::values & values, soci::indicator & indicator)
     {
         values.set("route_id", ptBusStops.routeId);
         values.set("busstop_no", ptBusStops.stopNo);
         values.set("busstop_sequence_no", ptBusStops.sequenceNo);
         indicator = i_ok;
     }
+};
+
+template<> struct type_conversion<sim_mob::TrafficSensor>
+{
+	typedef values base_type;
+
+	static void from_base(soci::values const &vals, soci::indicator &ind, sim_mob::TrafficSensor &sensor)
+	{
+		sensor.setSensorId(vals.get<unsigned int>("id", 0));
+		sensor.setSensorType((sim_mob::SensorType)vals.get<unsigned int>("type", 0));
+		sensor.setTaskCode(vals.get<unsigned int>("task_code", 0));
+		sensor.setZoneLength(vals.get<double>("zone_length", 0.0));
+		sensor.setSegmentId(vals.get<unsigned int>("segment", 0));
+		sensor.setOffsetDistance(vals.get<double>("offset", 0.0));
+		sensor.setWorkingProbability(vals.get<double>("working_probability", 0.0));
+		sensor.setLaneId(vals.get<unsigned int>("lane", 0));
+		sensor.setTrafficLightId(vals.get<unsigned int>("traffic_light_id", 0));
+	}
 };
 } //namesace soci

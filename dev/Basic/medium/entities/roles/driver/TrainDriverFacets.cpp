@@ -2047,10 +2047,6 @@ namespace medium
 				}
 			}
 		}
-		else
-		{
-			int debug = 1;
-		}
 	}
 
 	void TrainMovement::setDisruptedState(bool disruptedState)

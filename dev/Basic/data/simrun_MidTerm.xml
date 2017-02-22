@@ -241,7 +241,7 @@
              <script name="wdmw" file="wdmw.lua"/> <!--within-day mode choice for work trips-->
              <script name="wdme" file="wdme.lua"/> <!--within-day mode choice for education trips-->
              <script name="wdmso" file="wdmso.lua"/> <!--within-day mode choice for work shopping and other trips-->
-	     	 <script name="rsc" file="rsc_scaling.lua"/><!-- rail service controller -->
+	     	 <script name="rsc" file="rsc.lua"/><!-- rail service controller -->
         </model_scripts>
 
         

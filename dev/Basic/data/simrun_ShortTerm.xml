@@ -184,8 +184,8 @@
 			<!-- Where to find our Road Network schema files. -->
 			<!-- The first valid path is used. -->
 			<road_network>
-				<option value="test/data/geo10.xsd"/>     <!-- Running from dev/Basic or from Eclipse -->
-				<option value="..test/data/geo10.xsd"/>  <!-- Running from dev/Basic/Debug or dev/Basic/Release -->
+				<option value="shared/geospatial/xmlLoader/geo10.xsd"/>     <!-- Running from dev/Basic or from Eclipse -->
+				<option value="..shared/geospatial/xmlLoader/geo10.xsd"/>  <!-- Running from dev/Basic/Debug or dev/Basic/Release -->
 			</road_network>
 		</xsd_schema_files>
         

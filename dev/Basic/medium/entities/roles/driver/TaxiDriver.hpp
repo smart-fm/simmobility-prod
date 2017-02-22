@@ -23,33 +23,81 @@ public:
 			std::string roleName,
 			Role<Person_MT>::Type roleType = Role<Person_MT>::RL_TAXIDRIVER);
 
-	TaxiDriver(Person_MT* parent, const MutexStrategy& mtx);
-	bool addPassenger(Passenger* passenger);
-	void alightPassenger();
-	void boardPassenger(Passenger *passenger);
-	void driveToDestinationNode(Node * destinationNode);
-	void runRouteChoiceModel(const Node *origin, const Node *destination, std::vector<WayPoint> &currentRouteChoice);
-	Person_MT* getParent();
-	void checkPersonsAndPickUpAtNode(Conflux *parentConflux);
-	TaxiDriverMovement * getMovementFacet();
-	virtual Role<Person_MT>* clone(Person_MT *parent) const;
 	virtual ~TaxiDriver();
+
+	TaxiDriver(Person_MT* parent, const MutexStrategy& mtx);
+	/**
+	 * add a new passenger into taxi
+	 * @param passenger is a pointer to the taxi passenger
+	 * @return true if boarding successfully
+	 */
+	bool addPassenger(Passenger* passenger);
+	/**
+	 * alight a passenger when arriving the destination
+	 */
+	void alightPassenger();
+	/**
+	 * passenger route choice after boarding into taxi
+	 * @param origin is a pointer to original node
+	 * @param destination is a pointer to destination node
+	 * @param currentRouteChoice hold the route choice result
+	 */
+	void passengerChoiceModel(const Node *origin, const Node *destination, std::vector<WayPoint> &currentRouteChoice);
+	/**
+	 * get parent object
+	 * @return parent object
+	 */
+	Person_MT* getParent();
+	/**
+	 * perform pickup at the node
+	 * @param parentConflux is a pointer to the current conflux
+	 */
+	void pickUpPassngerAtNode(Conflux *parentConflux);
+	/**
+	 * get movement facet
+	 * @return movement facet which is in charge of movement
+	 */
+	TaxiDriverMovement * getMovementFacet();
+	/**
+	 * clone taxi-driver object
+	 * @return cloned result which hold a taxi-driver role
+	 */
+	virtual Role<Person_MT>* clone(Person_MT *parent) const;
+	/**
+	 * make parameters for current frame-tick update
+	 * @param now is current simulation time
+	 */
 	void make_frame_tick_params(timeslice now);
+	/**
+	 * override from base class
+	 * @return a shared buffer if used
+	 */
 	std::vector<BufferedBase*> getSubscriptionParams();
-	void setTaxiDriveMode(const DriverMode &mode) {
-		taxiDriverMode = mode;
-		driverMode = mode;
-	}
+	/**
+	 * set current driving mode
+	 * @param mode hold current mode
+	 */
+	void setTaxiDriveMode(const DriverMode &mode);
+	/**
+	 * get current driving mode
+	 * @return current mode
+	 */
 	const DriverMode & getDriverMode() const;
+	/**
+	 * get current passenger
+	 * @return a passenger object if have.
+	 */
 	Passenger* getPassenger();
 
 private:
+	/**hold passenger object*/
 	Passenger *taxiPassenger = nullptr;
-	RoadSegment *currSegment = nullptr;
+	/**hold movement facet object*/
 	TaxiDriverMovement *taxiDriverMovement;
+	/**hold behavior facet object*/
 	TaxiDriverBehavior *taxiDriverBehaviour;
-	bool personBoarded = false;
-	DriverMode taxiDriverMode;
+	/** store current mode*/
+	DriverMode taxiDriverMode=DRIVE_START;
 
 public:
 	friend class TaxiDriverBehavior;

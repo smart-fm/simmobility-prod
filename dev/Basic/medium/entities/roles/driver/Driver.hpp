@@ -47,7 +47,7 @@ class DriverMovement;
  */
 enum DriverMode
 {
-	DRIVE_TO_NODE =0,
+	DRIVE_START =0,
 	CRUISE,
 	DRIVE_TO_TAXISTAND,
 	DRIVE_WITH_PASSENGER,

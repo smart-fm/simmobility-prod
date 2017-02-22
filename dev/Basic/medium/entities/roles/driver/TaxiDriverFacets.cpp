@@ -205,7 +205,7 @@ bool TaxiDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 		else if (pathMover.isEndOfPath())
 		{
 			Conflux *parentConflux = currSegStat->getParentConflux();
-			parentTaxiDriver->checkPersonsAndPickUpAtNode(parentConflux);
+			parentTaxiDriver->pickUpPassngerAtNode(parentConflux);
 			if (parentTaxiDriver->getPassenger() == nullptr)
 			{
 				selectNextNodeAndLinksWhileCruising();

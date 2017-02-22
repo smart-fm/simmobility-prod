@@ -37,7 +37,6 @@ bool TaxiDriver::addPassenger(Passenger *passenger)
 	if (taxiPassenger == nullptr)
 	{
 		taxiPassenger = passenger;
-		personBoarded = true;
 		return true;
 	}
 	return false;
@@ -65,7 +64,7 @@ void TaxiDriver::alightPassenger()
 	}
 }
 
-void TaxiDriver::runRouteChoiceModel(const Node *origin,const Node *destination, std::vector<WayPoint> &currentRouteChoice)
+void TaxiDriver::passengerChoiceModel(const Node *origin,const Node *destination, std::vector<WayPoint> &currentRouteChoice)
 {
 	std::vector<WayPoint> res;
 	bool useInSimulationTT = parent->usesInSimulationTravelTime();
@@ -74,6 +73,12 @@ void TaxiDriver::runRouteChoiceModel(const Node *origin,const Node *destination,
 	currSubTrip.destination = WayPoint(destination);
 	const Lane * currentLane = taxiDriverMovement->getCurrentlane();
 	currentRouteChoice = PrivateTrafficRouteChoice::getInstance()->getPathAfterPassengerPickup(currSubTrip, false, nullptr, currentLane,useInSimulationTT);
+}
+
+void TaxiDriver::setTaxiDriveMode(const DriverMode &mode)
+{
+	taxiDriverMode = mode;
+	driverMode = mode;
 }
 
 const DriverMode & TaxiDriver::getDriverMode() const
@@ -91,13 +96,12 @@ TaxiDriverMovement *TaxiDriver::getMovementFacet()
 	return taxiDriverMovement;
 }
 
-void TaxiDriver::checkPersonsAndPickUpAtNode(Conflux *parentConflux)
+void TaxiDriver::pickUpPassngerAtNode(Conflux *parentConflux)
 {
 	if (!parentConflux)
 	{
 		return;
 	}
-	std::deque<Person_MT*> & travellingPersons = parentConflux->getTravellingPersons();
 	Person_MT *personToPickUp = parentConflux->pickupTaxiTraveler();
 	if (personToPickUp)
 	{
@@ -110,12 +114,12 @@ void TaxiDriver::checkPersonsAndPickUpAtNode(Conflux *parentConflux)
 			WayPoint personTravelDestination = (*subTripItr).destination;
 			const Node * personDestinationNode = personTravelDestination.node;
 			std::vector<WayPoint> currentRouteChoice;
-			const Node * currentNode = taxiDriverMovement->getDestinationNode();//destinationNode;
+			const Node * currentNode = taxiDriverMovement->getDestinationNode();
 			if (currentNode == personDestinationNode)
 			{
 				return;
 			}
-			runRouteChoiceModel(currentNode, personDestinationNode, currentRouteChoice);
+			passengerChoiceModel(currentNode, personDestinationNode, currentRouteChoice);
 			if (currentRouteChoice.size() > 0)
 			{
 				bool isAdded = addPassenger(passenger);
@@ -130,13 +134,15 @@ void TaxiDriver::checkPersonsAndPickUpAtNode(Conflux *parentConflux)
 					passenger->setService(currentRouteChoice);
 					passenger->setStartPoint(WayPoint(taxiDriverMovement->getCurrentNode()));
 					passenger->setEndPoint(WayPoint(taxiDriverMovement->getDestinationNode()));
-					taxiDriverMode = DRIVE_WITH_PASSENGER;
-					driverMode = DRIVE_WITH_PASSENGER;
+					setTaxiDriveMode(DRIVE_WITH_PASSENGER);
 				}
-			} else {
-				sim_mob::BasicLogger& ptMoveLogger = sim_mob::Logger::log("nopathAfterPickup.csv");
+			}
+			else
+			{
+				sim_mob::BasicLogger& ptMoveLogger = sim_mob::Logger::log("nopathAfterPickupInCruising.csv");
 				const SegmentStats* currentStats = taxiDriverMovement->getMesoPathMover().getCurrSegStats();
-				if(currentStats){
+				if(currentStats)
+				{
 					ptMoveLogger << passenger->getParent()->getDatabaseId()<<",";
 					ptMoveLogger << currentStats->getRoadSegment()->getLinkId()<<",";
 					ptMoveLogger << currentStats->getRoadSegment()->getRoadSegmentId()<<",";

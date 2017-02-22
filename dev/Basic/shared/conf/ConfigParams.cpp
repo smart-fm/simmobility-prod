@@ -336,3 +336,47 @@ void ConfigParams::setPT_StopStatsFilename(const std::string& str)
 	ptStopStatsFilename = str;
 }
 
+
+const std::string &ConfigParams::getTravelModeStr(int travelModeId) const
+{
+    return travelModeMap.at(travelModeId).name;
+}
+
+const TravelModeConfig &ConfigParams::getTravelModeConfig(int travelModeId) const
+{
+    return travelModeMap.at(travelModeId);
+}
+
+int ConfigParams::getNumTravelModes() const
+{
+    return travelModeMap.size();
+}
+
+const std::string &ConfigParams::getActivityTypeStr(StopType activityTypeId) const
+{
+    return activityTypeIdConfigMap.at(activityTypeId).name;
+}
+
+const std::unordered_map<string, StopType> &ConfigParams::getActivityTypeStrMap() const
+{
+    return activityTypeNameIdMap;
+}
+
+const ActivityTypeConfig& ConfigParams::getActivityTypeConfig(StopType activityTypeId) const
+{
+    return activityTypeIdConfigMap.at(activityTypeId);
+}
+
+StopType ConfigParams::getActivityTypeId(const std::string& activityName) const
+{
+    if (activityTypeNameIdMap.find(activityName) == activityTypeNameIdMap.end())
+    {
+        return std::numeric_limits<int>::max();
+    }
+    return activityTypeNameIdMap.at(activityName);
+}
+
+const std::unordered_map<StopType, ActivityTypeConfig> &ConfigParams::getActivityTypeConfigMap() const
+{
+    return activityTypeIdConfigMap;
+}

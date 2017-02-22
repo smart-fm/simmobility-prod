@@ -686,7 +686,7 @@ void sim_mob::medium::PredayManager::loadPostcodeNodeMapping()
 	simmobConn.connect();
 	if (simmobConn.isConnected())
 	{
-		SimmobSqlDao simmobSqlDao(simmobConn, "");
+        SimmobSqlDao simmobSqlDao(simmobConn, "", std::vector<std::string>());
 		simmobSqlDao.getPostcodeNodeMap(PersonParams::getPostcodeNodeMap());
 	}
 	else
@@ -767,7 +767,15 @@ void sim_mob::medium::PredayManager::dispatchLT_Persons()
 			throw std::runtime_error("simmobility db connection failure!");
 		}
 		const std::string& logsumTableName = mtConfig.getLogsumTableName();
-		SimmobSqlDao logsumSqlDao(simmobConn, logsumTableName);
+
+        const std::unordered_map<StopType, ActivityTypeConfig>& activityTypeConfig = ConfigManager::GetInstance().FullConfig().getActivityTypeConfigMap();
+        std::vector<std::string> activityLogsumColumns;
+        for (int i = 1; i <= activityTypeConfig.size(); ++i)
+        {
+            activityLogsumColumns.push_back(activityTypeConfig.at(i).logsumTableColumn);
+        }
+
+        SimmobSqlDao logsumSqlDao(simmobConn, logsumTableName, activityLogsumColumns);
 		bool truncated = logsumSqlDao.erase(db::EMPTY_PARAMS);
 		if(truncated)
 		{
@@ -1119,8 +1127,10 @@ void sim_mob::medium::PredayManager::processPersonsForCalibration(const PersonLi
 	CalibrationStatistics& simStats = simulatedStatsVector.at(threadNum);
 	bool consoleOutput = mtConfig.isConsoleOutput();
 
+    const ConfigParams& cfg = ConfigManager::GetInstance().FullConfig();
+
 	// time dependent zone-zone travel time data source
-	DB_Connection simmobConn = getDB_Connection(ConfigManager::GetInstance().FullConfig().networkDatabase);
+    DB_Connection simmobConn = getDB_Connection(cfg.networkDatabase);
 	simmobConn.connect();
 	if (!simmobConn.isConnected())
 	{
@@ -1128,9 +1138,11 @@ void sim_mob::medium::PredayManager::processPersonsForCalibration(const PersonLi
 	}
 	TimeDependentTT_SqlDao tcostDao(simmobConn);
 
+    const std::unordered_map<StopType, ActivityTypeConfig>& activityTypeConfig = cfg.getActivityTypeConfigMap();
+
 	for (PersonList::iterator i = firstPersonIt; i != oneAfterLastPersonIt; i++)
 	{
-		PredaySystem predaySystem(**i, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, tcostDao, unavailableODs);
+        PredaySystem predaySystem(**i, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, tcostDao, unavailableODs, activityTypeConfig, cfg.getNumTravelModes());
 		predaySystem.planDay();
 		predaySystem.updateStatistics(simStats);
 		if (consoleOutput)
@@ -1224,8 +1236,10 @@ void sim_mob::medium::PredayManager::processPersonsForLT_Population(const LT_Per
 	bool outputTripchains = mtConfig.isFileOutputEnabled();
 	bool consoleOutput = mtConfig.isConsoleOutput();
 
+    const ConfigParams& cfg = ConfigManager::GetInstance().FullConfig();
+
 	// construct population dao specially
-	DB_Connection populationConn = getDB_Connection(ConfigManager::GetInstance().FullConfig().populationDatabase);
+    DB_Connection populationConn = getDB_Connection(cfg.populationDatabase);
 	populationConn.connect();
 	if (!populationConn.isConnected())
 	{
@@ -1234,14 +1248,22 @@ void sim_mob::medium::PredayManager::processPersonsForLT_Population(const LT_Per
 	PopulationSqlDao populationDao(populationConn);
 
 	// logsum data source
-	DB_Connection simmobConn = getDB_Connection(ConfigManager::GetInstance().FullConfig().networkDatabase);
+    DB_Connection simmobConn = getDB_Connection(cfg.networkDatabase);
 	simmobConn.connect();
 	if (!simmobConn.isConnected())
 	{
 		throw std::runtime_error("simmobility db connection failure!");
 	}
 	const std::string& logsumTableName = mtConfig.getLogsumTableName();
-	SimmobSqlDao logsumSqlDao(simmobConn, logsumTableName);
+
+    const std::unordered_map<StopType, ActivityTypeConfig>& activityTypeConfig = cfg.getActivityTypeConfigMap();
+    std::vector<std::string> activityLogsumColumns;
+    for (int i = 1; i <= activityTypeConfig.size(); ++i)
+    {
+        activityLogsumColumns.push_back(activityTypeConfig.at(i).logsumTableColumn);
+    }
+
+    SimmobSqlDao logsumSqlDao(simmobConn, logsumTableName, activityLogsumColumns);
 	TimeDependentTT_SqlDao tcostDao(simmobConn);
 
 	// open log file for this thread
@@ -1258,7 +1280,7 @@ void sim_mob::medium::PredayManager::processPersonsForLT_Population(const LT_Per
 			continue;
 		} // some persons are not complete in the database
 		logsumSqlDao.getLogsumById(*i, personParams);
-		PredaySystem predaySystem(personParams, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, tcostDao, unavailableODs);
+        PredaySystem predaySystem(personParams, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, tcostDao, unavailableODs, activityTypeConfig, cfg.getNumTravelModes());
 		predaySystem.planDay();
 
 		if (outputTripchains)
@@ -1278,8 +1300,10 @@ void sim_mob::medium::PredayManager::computeLogsumsForCalibration(const PersonLi
 {
 	bool consoleOutput = mtConfig.isConsoleOutput();
 
+    const ConfigParams& cfg = ConfigManager::GetInstance().FullConfig();
+
 	// time dependent zone-zone travel time data source
-	DB_Connection simmobConn = getDB_Connection(ConfigManager::GetInstance().FullConfig().networkDatabase);
+    DB_Connection simmobConn = getDB_Connection(cfg.networkDatabase);
 	simmobConn.connect();
 	if (!simmobConn.isConnected())
 	{
@@ -1287,10 +1311,12 @@ void sim_mob::medium::PredayManager::computeLogsumsForCalibration(const PersonLi
 	}
 	TimeDependentTT_SqlDao tcostDao(simmobConn);
 
+    const std::unordered_map<StopType, ActivityTypeConfig>& activityTypeConfig = cfg.getActivityTypeConfigMap();
+
 	// loop through all persons within the range and plan their day
 	for (PersonList::iterator i = firstPersonIt; i != oneAfterLastPersonIt; i++)
 	{
-		PredaySystem predaySystem(**i, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, tcostDao, unavailableODs);
+        PredaySystem predaySystem(**i, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, tcostDao, unavailableODs, activityTypeConfig, cfg.getNumTravelModes());
 		predaySystem.computeLogsums();
 		if (consoleOutput)
 		{
@@ -1304,8 +1330,10 @@ void sim_mob::medium::PredayManager::computeLogsumsForLT_Population(const LT_Per
 {
 	bool consoleOutput = mtConfig.isConsoleOutput();
 
+    const ConfigParams& cfg = ConfigManager::GetInstance().FullConfig();
+
 	// construct population dao specially
-	DB_Connection populationConn = getDB_Connection(ConfigManager::GetInstance().FullConfig().populationDatabase);
+    DB_Connection populationConn = getDB_Connection(cfg.populationDatabase);
 	populationConn.connect();
 	if (!populationConn.isConnected())
 	{
@@ -1314,14 +1342,22 @@ void sim_mob::medium::PredayManager::computeLogsumsForLT_Population(const LT_Per
 	PopulationSqlDao populationDao(populationConn);
 
 	// logsum data source
-	DB_Connection simmobConn = getDB_Connection(ConfigManager::GetInstance().FullConfig().networkDatabase);
+    DB_Connection simmobConn = getDB_Connection(cfg.networkDatabase);
 	simmobConn.connect();
 	if (!simmobConn.isConnected())
 	{
 		throw std::runtime_error("simmobility db connection failure!");
 	}
 	const std::string& logsumTableName = mtConfig.getLogsumTableName();
-	SimmobSqlDao logsumSqlDao(simmobConn, logsumTableName);
+
+    const std::unordered_map<StopType, ActivityTypeConfig>& activityTypeConfig = cfg.getActivityTypeConfigMap();
+    std::vector<std::string> activityLogsumColumns;
+    for (int i = 1; i <= activityTypeConfig.size(); ++i)
+    {
+        activityLogsumColumns.push_back(activityTypeConfig.at(i).logsumTableColumn);
+    }
+
+    SimmobSqlDao logsumSqlDao(simmobConn, logsumTableName, activityLogsumColumns);
 	TimeDependentTT_SqlDao tcostDao(simmobConn);
 
 	// loop through all persons within the range and plan their day
@@ -1333,7 +1369,7 @@ void sim_mob::medium::PredayManager::computeLogsumsForLT_Population(const LT_Per
 		{
 			continue;
 		} // some persons are not complete in the database
-		PredaySystem predaySystem(personParams, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, tcostDao, unavailableODs);
+        PredaySystem predaySystem(personParams, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, tcostDao, unavailableODs, activityTypeConfig, cfg.getNumTravelModes());
 		predaySystem.computeLogsums();
 		logsumSqlDao.insert(personParams);
 		if (consoleOutput)

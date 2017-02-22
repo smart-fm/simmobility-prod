@@ -59,9 +59,9 @@ void setCarAndMotorAvailability(bool stop, const PersonParams& personParams, boo
 } // end anonymous namespace
 
 TourModeDestinationParams::TourModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap,
-		const PersonParams& personParams, StopType tourType,
-		const std::vector<OD_Pair>& unavailableODs) :
-		ModeDestinationParams(zoneMap, amCostsMap, pmCostsMap, tourType, personParams.getHomeLocation(), unavailableODs),
+        const PersonParams& personParams, StopType tourType, int numModes,
+        const std::vector<OD_Pair>& unavailableODs) :
+        ModeDestinationParams(zoneMap, amCostsMap, pmCostsMap, tourType, personParams.getHomeLocation(), numModes, unavailableODs),
 			drive1Available(false), motorAvailable(false), modeForParentWorkTour(0), costIncrease(0)
 {
 	setCarAndMotorAvailability(false, personParams, drive1Available, motorAvailable);
@@ -280,7 +280,6 @@ int TourModeDestinationParams::isAvailable_TMD(int choiceId) const
 	 * 5. drive alone is available when for the agent, has_driving_license * one_plus_car == True
 	 */
 	int numZones = zoneMap.size();
-	int numModes = 9;
 	if (choiceId < 1 || choiceId > numModes * numZones)
 	{
 		throw std::runtime_error("isAvailable()::invalid choice id for mode-destination model");
@@ -304,46 +303,31 @@ int TourModeDestinationParams::isAvailable_TMD(int choiceId) const
 		return 0; // destination is unavailable due to lack of cost data
 	}
 
-	// bus 1-1092; mrt 1093 - 2184; private bus 2185 - 3276; same result for the three modes
-	if (choiceId <= 3 * numZones)
-	{
-		return (pmCostsMap.at(destination).at(origin)->getPubIvt() > 0 && amCostsMap.at(origin).at(destination)->getPubIvt() > 0);
-	}
-	// drive1 3277 - 4368
-	if (choiceId <= 4 * numZones)
-	{
-		return drive1Available;
-	}
-	// share2 4369 - 5460
-	if (choiceId <= 5 * numZones)
-	{
-		// share2 is available to all
-		return 1;
-	}
-	// share3 5461 - 6552
-	if (choiceId <= 6 * numZones)
-	{
-		// share3 is available to all
-		return 1;
-	}
-	// motor 6553 - 7644
-	if (choiceId <= 7 * numZones)
-	{
-		return motorAvailable;
-	}
-	// walk 7645 - 8736
-	if (choiceId <= 8 * numZones)
-	{
-		return (amCostsMap.at(origin).at(destination)->getDistance() <= MAX_WALKING_DISTANCE
-				&& pmCostsMap.at(destination).at(origin)->getDistance() <= MAX_WALKING_DISTANCE);
-	}
-	// taxi 8737 - 9828
-	if (choiceId <= 9 * numZones)
-	{
-		// taxi is available to all
-		return 1;
-	}
-	return 0;
+    int modeType = ConfigManager::GetInstance().FullConfig().getTravelModeConfig(getMode(choiceId)).type;
+
+    switch (modeType) {
+    case PT_TRAVEL_MODE:
+    case PRIVATE_BUS_MODE:
+        return (pmCostsMap.at(destination).at(origin)->getPubIvt() > 0 && amCostsMap.at(origin).at(destination)->getPubIvt() > 0);
+        break;
+    case PVT_CAR_MODE:
+        return drive1Available;
+        break;
+    case SHARING_MODE:
+    case TAXI_MODE:
+        return 1;
+        break;
+    case PVT_BIKE_MODE:
+        return motorAvailable;
+        break;
+    case WALK_MODE:
+        return (amCostsMap.at(origin).at(destination)->getDistance() <= MAX_WALKING_DISTANCE
+                && pmCostsMap.at(destination).at(origin)->getDistance() <= MAX_WALKING_DISTANCE);
+        break;
+    }
+
+    return 0;
+
 }
 
 int TourModeDestinationParams::getModeForParentWorkTour() const
@@ -362,9 +346,9 @@ int sim_mob::medium::TourModeDestinationParams::isCbdOrgZone() const
 }
 
 StopModeDestinationParams::StopModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap,
-		const PersonParams& personParams, const Stop* stop, int originCode,
+        const PersonParams& personParams, const Stop* stop, int originCode, int numModes,
 		const std::vector<OD_Pair>& unavailableODs) :
-		ModeDestinationParams(zoneMap, amCostsMap, pmCostsMap, stop->getStopType(), originCode, unavailableODs), homeZone(personParams.getHomeLocation()),
+        ModeDestinationParams(zoneMap, amCostsMap, pmCostsMap, stop->getStopType(), originCode, numModes, unavailableODs), homeZone(personParams.getHomeLocation()),
 			driveAvailable(false), motorAvailable(false), tourMode(stop->getParentTour().getTourMode()),
 			firstBound(stop->isInFirstHalfTour())
 {
@@ -520,99 +504,92 @@ int StopModeDestinationParams::isAvailable_IMD(int choiceId) const
 			|| isUnavailable(destination, homeZone))
 	{ return 0; } // destination is unavailable due to lack of cost data
 
-	// bus 1-1092; mrt 1093 - 2184; private bus 2185 - 3276; same result for the three modes
-	if (choiceId <= 3 * numZones)
-	{
-		bool avail = (pmCostsMap.at(destination).at(origin)->getPubIvt() > 0
-				&& amCostsMap.at(origin).at(destination)->getPubIvt() > 0);
-		switch(tourMode)
-		{
-		case 1: return avail;
-		case 2: return avail;
-		case 3: return avail;
-		case 4: return 0;
-		case 5: return 0;
-		case 6: return 0;
-		case 7: return 0;
-		case 8: return 0;
-		case 9: return 0;
-		}
-	}
+    int choiceModeType = ConfigManager::GetInstance().FullConfig().getTravelModeConfig(getMode(choiceId)).type;
+    int tourModeType = ConfigManager::GetInstance().FullConfig().getActivityTypeConfig(tourMode).type;
 
-	// drive1 3277 - 4368
-	if (choiceId <= 4 * numZones)
-	{
-		switch(tourMode)
-		{
-		case 1: return driveAvailable;
-		case 2: return driveAvailable;
-		case 3: return driveAvailable;
-		case 4: return driveAvailable;
-		case 5: return driveAvailable;
-		case 6: return driveAvailable;
-		case 7: return 0;
-		case 8: return 0;
-		case 9: return 0;
-		}
-	}
+    switch(choiceModeType)
+    {
+    case PT_TRAVEL_MODE:
+    case PRIVATE_BUS_MODE:
+    {
+        bool avail = (pmCostsMap.at(destination).at(origin)->getPubIvt() > 0
+                && amCostsMap.at(origin).at(destination)->getPubIvt() > 0);
+        switch(tourModeType)
+        {
+        case PT_TRAVEL_MODE:
+        case PRIVATE_BUS_MODE:
+        {
+            return avail;
+            break;
+        }
+        }
+        break;
+    }
+    case PVT_CAR_MODE:
+    {
+        switch(tourModeType)
+        {
+        case PT_TRAVEL_MODE:
+        case PRIVATE_BUS_MODE:
+        case PVT_CAR_MODE:
+        case SHARING_MODE:
+        {
+            return driveAvailable;
+            break;
+        }
+        }
+        break;
+    }
+    case SHARING_MODE:
+    {
+        switch (tourModeType) {
+        case PT_TRAVEL_MODE:
+        case PRIVATE_BUS_MODE:
+        case SHARING_MODE:
+        {
+            return 1;
+            break;
+        }
+        }
+        break;
+    }
+    case PVT_BIKE_MODE:
+    {
+        switch (tourModeType) {
+        case PT_TRAVEL_MODE:
+        case PRIVATE_BUS_MODE:
+        case SHARING_MODE:
+        case PVT_BIKE_MODE:
+        {
+            return motorAvailable;
+            break;
+        }
+        }
+        break;
+    }
+    case WALK_MODE:
+    {
+        return (amCostsMap.at(origin).at(destination)->getDistance() <= MAX_WALKING_DISTANCE
+                && pmCostsMap.at(destination).at(origin)->getDistance() <= MAX_WALKING_DISTANCE);
+        break;
+    }
+    case TAXI_MODE:
+    {
+        switch (tourModeType) {
+        case PT_TRAVEL_MODE:
+        case PRIVATE_BUS_MODE:
+        case SHARING_MODE:
+        case TAXI_MODE:
+        {
+            return 1;
+            break;
+        }
+        }
+        break;
+    }
+    }
 
-	// share2 4369 - 5460
-	if (choiceId <= 6 * numZones)
-	{
-		switch(tourMode)
-		{
-		case 1: return 1;
-		case 2: return 1;
-		case 3: return 1;
-		case 4: return 0;
-		case 5: return 1;
-		case 6: return 1;
-		case 7: return 0;
-		case 8: return 0;
-		case 9: return 0;
-		}
-	}
-
-	// motor 6553 - 7644
-	if (choiceId <= 7 * numZones)
-	{
-		switch(tourMode)
-		{
-		case 1: return motorAvailable;
-		case 2: return motorAvailable;
-		case 3: return motorAvailable;
-		case 4: return 0;
-		case 5: return motorAvailable;
-		case 6: return motorAvailable;
-		case 7: return motorAvailable;
-		case 8: return 0;
-		case 9: return 0;
-		}
-	}
-	// walk 7645 - 8736
-	if (choiceId <= 8 * numZones)
-	{
-		return (amCostsMap.at(origin).at(destination)->getDistance() <= MAX_WALKING_DISTANCE
-				&& pmCostsMap.at(destination).at(origin)->getDistance() <= MAX_WALKING_DISTANCE);
-	}
-	// taxi 8737 - 9828
-	if (choiceId <= 9 * numZones)
-	{
-		// taxi is available to all
-		switch(tourMode)
-		{
-		case 1: return 1;
-		case 2: return 1;
-		case 3: return 1;
-		case 4: return 0;
-		case 5: return 1;
-		case 6: return 1;
-		case 7: return 0;
-		case 8: return 0;
-		case 9: return 1;
-		}
-	}
-	return 0;
+    return 0;
 }
 
 int StopModeDestinationParams::isFirstBound() const

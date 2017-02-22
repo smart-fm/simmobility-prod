@@ -77,11 +77,8 @@ void sim_mob::WithindayLuaModel::mapClasses()
 				.addProperty("only_adults", &PersonParams::getHH_OnlyAdults)
 				.addProperty("only_workers", &PersonParams::getHH_OnlyWorkers)
 				.addProperty("num_underfour", &PersonParams::getHH_NumUnder4)
-				.addProperty("presence_of_under15", &PersonParams::getHH_HasUnder15)
-				.addProperty("worklogsum", &PersonParams::getWorkLogSum)
-				.addProperty("edulogsum", &PersonParams::getEduLogSum)
-				.addProperty("shoplogsum", &PersonParams::getShopLogSum)
-				.addProperty("otherlogsum", &PersonParams::getOtherLogSum)
+                .addProperty("presence_of_under15", &PersonParams::getHH_HasUnder15)
+                .addFunction("activity_logsum", &PersonParams::getActivityLogsum)
 				.addProperty("dptour_logsum", &PersonParams::getDptLogsum)
 				.addProperty("dpstop_logsum", &PersonParams::getDpsLogsum)
 				.addProperty("travel_probability", &PersonParams::getTravelProbability)
@@ -118,32 +115,15 @@ void sim_mob::WithindayLuaModel::mapClasses()
 
 int sim_mob::WithindayLuaModel::chooseMode(const PersonParams& personParams, const WithindayModeParams& wdModeParams) const
 {
-	switch(wdModeParams.getTripType())
-	{
-	case WORK:
-	{
-		LuaRef chooseWDMW = getGlobal(state.get(), "choose_wdmw");
-		LuaRef retVal = chooseWDMW(&personParams, &wdModeParams);
-		return retVal.cast<int>();
-		break;
-	}
-	case EDUCATION:
-	{
-		LuaRef chooseWDME = getGlobal(state.get(), "choose_wdme");
-		LuaRef retVal = chooseWDME(&personParams, &wdModeParams);
-		return retVal.cast<int>();
-		break;
-	}
-	case SHOP:
-	case OTHER:
-	case NULL_STOP:
-	{
-		LuaRef chooseWDMSO = getGlobal(state.get(), "choose_wdmso");
-		LuaRef retVal = chooseWDMSO(&personParams, &wdModeParams);
-		return retVal.cast<int>();
-		break;
-	}
-	}
+    const std::unordered_map<int, ActivityTypeConfig> &activityTypes = ConfigManager::GetInstance().FullConfig().getActivityTypeConfigMap();
+    const std::string& modelName = activityTypes.at(wdModeParams.getTripType()).withinDayModeChoiceModel;
+    if (modelName.empty())
+    {
+        std::string luaFunc = "choose_" + modelName;
+        LuaRef chooseWDM = getGlobal(state.get(), luaFunc.c_str());
+        LuaRef retVal = chooseWDM(&personParams, &wdModeParams);
+        return retVal.cast<int>();
+    }
 }
 
 const WithindayLuaModel& sim_mob::WithindayLuaProvider::getWithindayModel()

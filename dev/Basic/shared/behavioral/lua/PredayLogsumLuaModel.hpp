@@ -5,6 +5,7 @@
 #pragma once
 #include "behavioral/params/PersonParams.hpp"
 #include "behavioral/params/LogsumTourModeDestinationParams.hpp"
+#include "conf/ConfigParams.hpp"
 #include "lua/LuaModel.hpp"
 
 namespace sim_mob {
@@ -27,7 +28,8 @@ public:
 	 * @param tourModeDestinationParams parameters specific to tour mode-destination models
 	 * @param numZones total number of zones (possible destinations in the mode destination choice model)
 	 */
-	void computeTourModeDestinationLogsum(PersonParams& personParams, LogsumTourModeDestinationParams& tourModeDestinationParams, int numZones) const;
+    void computeTourModeDestinationLogsum(PersonParams& personParams, const std::unordered_map<int, ActivityTypeConfig> &activityTypes,
+                                          LogsumTourModeDestinationParams& tourModeDestinationParams, int numZones) const;
 
 	/**
 	 * Computes logsums for work tours with fixed work location by invoking corresponding functions in tour mode (for work) model
@@ -35,7 +37,8 @@ public:
 	 * @param personParams object containing person and household related variables. logsums will be updated in this object
 	 * @param tourModeDestinationParams parameters specific to tour mode model
 	 */
-	void computeTourModeLogsum(PersonParams& personParams, LogsumTourModeParams& tourModeParams) const;
+    void computeTourModeLogsum(PersonParams& personParams, const std::unordered_map<int, ActivityTypeConfig> &activityTypes,
+                               LogsumTourModeParams& tourModeParams) const;
 
 	/**
 	 * Computes logsums from day-pattern tours and day-pattern stops models

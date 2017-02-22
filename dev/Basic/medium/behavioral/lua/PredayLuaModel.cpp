@@ -4,6 +4,7 @@
 
 #include "PredayLuaModel.hpp"
 
+#include "behavioral/StopType.hpp"
 #include "lua/LuaLibrary.hpp"
 #include "lua/third-party/luabridge/LuaBridge.h"
 #include "lua/third-party/luabridge/RefCountedObject.h"
@@ -49,10 +50,7 @@ void sim_mob::medium::PredayLuaModel::mapClasses()
 				.addProperty("only_workers", &PersonParams::getHH_OnlyWorkers)
 				.addProperty("num_underfour", &PersonParams::getHH_NumUnder4)
 				.addProperty("presence_of_under15", &PersonParams::getHH_HasUnder15)
-				.addProperty("worklogsum", &PersonParams::getWorkLogSum)
-				.addProperty("edulogsum", &PersonParams::getEduLogSum)
-				.addProperty("shoplogsum", &PersonParams::getShopLogSum)
-				.addProperty("otherlogsum", &PersonParams::getOtherLogSum)
+                .addFunction("activity_logsum", &PersonParams::getActivityLogsum)
 				.addProperty("dptour_logsum", &PersonParams::getDptLogsum)
 				.addProperty("dpstop_logsum", &PersonParams::getDpsLogsum)
 				.addFunction("getTimeWindowAvailabilityTour", &PersonParams::getTimeWindowAvailability)
@@ -260,31 +258,30 @@ void sim_mob::medium::PredayLuaModel::computeDayPatternBinaryLogsums(PersonParam
 	}
 }
 
-void sim_mob::medium::PredayLuaModel::predictDayPattern(PersonParams& personParams, boost::unordered_map<std::string, bool>& dayPattern) const
+void sim_mob::medium::PredayLuaModel::predictDayPattern(PersonParams& personParams, const std::unordered_map<int, ActivityTypeConfig> &activityTypes,
+                                                        std::unordered_map<int, bool> &dayPatternTours, std::unordered_map<int, bool> &dayPatternStops) const
 {
 	LuaRef chooseDPB = getGlobal(state.get(), "choose_dpb");
 	LuaRef retValB = chooseDPB(&personParams);
 	if(retValB.cast<int>() == 1) // no travel
 	{
-		dayPattern["WorkT"] = 0;
-		dayPattern["EduT"] = 0;
-		dayPattern["ShopT"] = 0;
-		dayPattern["OthersT"] = 0;
-		dayPattern["WorkI"] = 0;
-		dayPattern["EduI"] = 0;
-		dayPattern["ShopI"] = 0;
-		dayPattern["OthersI"] = 0;
+        for (const auto& activityType : activityTypes)
+        {
+            dayPatternTours[activityType.first] = 0;
+            dayPatternStops[activityType.first] = 0;
+        }
 	}
 	else
 	{
 		//Day pattern stops
 		LuaRef chooseDPT = getGlobal(state.get(), "choose_dpt");
 		LuaRef retValT = chooseDPT(&personParams);
-		if (retValT.isTable()) {
-			dayPattern["WorkT"] = retValT[1].cast<int>();
-			dayPattern["EduT"] = retValT[2].cast<int>();
-			dayPattern["ShopT"] = retValT[3].cast<int>();
-			dayPattern["OthersT"] = retValT[4].cast<int>();
+        if (retValT.isTable())
+        {
+            for (const auto& activityType : activityTypes)
+            {
+                dayPatternTours[activityType.first] = retValT[activityType.first].cast<int>();
+            }
 		}
 		else {
 			throw std::runtime_error("Error in day pattern tours prediction. Unexpected return value");
@@ -294,10 +291,10 @@ void sim_mob::medium::PredayLuaModel::predictDayPattern(PersonParams& personPara
 		LuaRef chooseDPS = getGlobal(state.get(), "choose_dps");
 		LuaRef retValS = chooseDPS(&personParams);
 		if (retValS.isTable()) {
-			dayPattern["WorkI"] = retValS[1].cast<int>();
-			dayPattern["EduI"] = retValS[2].cast<int>();
-			dayPattern["ShopI"] = retValS[3].cast<int>();
-			dayPattern["OthersI"] = retValS[4].cast<int>();
+            for (const auto& activityType : activityTypes)
+            {
+                dayPatternStops[activityType.first] = retValT[activityType.first].cast<int>();
+            }
 		}
 		else {
 			throw std::runtime_error("Error in day pattern stops prediction. Unexpected return value");
@@ -305,46 +302,24 @@ void sim_mob::medium::PredayLuaModel::predictDayPattern(PersonParams& personPara
 	}
 }
 
-void sim_mob::medium::PredayLuaModel::predictNumTours(PersonParams& personParams, boost::unordered_map<std::string, bool>& dayPattern, boost::unordered_map<std::string, int>& numTours) const
+void sim_mob::medium::PredayLuaModel::predictNumTours(PersonParams& personParams, const std::unordered_map<int, ActivityTypeConfig> &activityTypes,
+                                                      std::unordered_map<int, bool> &dayPatternTours, std::unordered_map<int, int>& numTours) const
 {
-	numTours["WorkT"] = numTours["EduT"] = numTours["ShopT"] = numTours["OthersT"] = 0;
+    for (const auto& dayPatternTour : dayPatternTours)
+    {
+        numTours[dayPatternTour.first] = 0;
 
-	if(dayPattern["WorkT"])
-	{
-		LuaRef chooseNTW = getGlobal(state.get(), "choose_ntw"); // choose Num. of Work Tours
-		LuaRef retVal = chooseNTW(&personParams);
-	    if (retVal.isNumber())
-	    {
-	    	numTours["WorkT"] = retVal.cast<int>();
-	    }
-	}
-	if(dayPattern["EduT"])
-	{
-		LuaRef chooseNTE = getGlobal(state.get(), "choose_nte"); // choose Num. of Education Tours
-		LuaRef retVal = chooseNTE(&personParams);
-	    if (retVal.isNumber())
-	    {
-	    	numTours["EduT"] = retVal.cast<int>();
-	    }
-	}
-	if(dayPattern["ShopT"])
-	{
-		LuaRef chooseNTS = getGlobal(state.get(), "choose_nts"); // choose Num. of Shopping Tours
-		LuaRef retVal = chooseNTS(&personParams);
-	    if (retVal.isNumber())
-	    {
-	    	numTours["ShopT"] = retVal.cast<int>();
-	    }
-	}
-	if(dayPattern["OthersT"])
-	{
-		LuaRef chooseNTO = getGlobal(state.get(), "choose_nto"); // choose Num. of Other Tours
-		LuaRef retVal = chooseNTO(&personParams);
-	    if (retVal.isNumber())
-	    {
-	    	numTours["OthersT"] = retVal.cast<int>();
-	    }
-	}
+        if (dayPatternTour.second)
+        {
+            std::string luaFunc = "choose_" + activityTypes.at(dayPatternTour.first).numToursModel;
+            LuaRef chooseNT = getGlobal(state.get(), luaFunc.c_str());
+            LuaRef retVal = chooseNT(&personParams);
+            if (retVal.isNumber())
+            {
+                numTours[dayPatternTour.first] = retVal.cast<int>();
+            }
+        }
+    }
 }
 
 bool sim_mob::medium::PredayLuaModel::predictUsualWorkLocation(PersonParams& personParams, UsualWorkParams& usualWorkParams) const
@@ -357,117 +332,116 @@ bool sim_mob::medium::PredayLuaModel::predictUsualWorkLocation(PersonParams& per
 	return retVal.cast<bool>();
 }
 
-int sim_mob::medium::PredayLuaModel::predictTourMode(PersonParams& personParams, TourModeParams& tourModeParams) const
+int sim_mob::medium::PredayLuaModel::predictTourMode(PersonParams& personParams, const std::unordered_map<int, ActivityTypeConfig> &activityTypes,
+                                                     TourModeParams& tourModeParams) const
 {
-	switch (tourModeParams.getStopType()) {
-	case WORK:
+    const std::string& tmModel = activityTypes.at(tourModeParams.getStopType()).tourModeModel;
+
+    if (!tmModel.empty())
+    {
+        std::string luaFunc = "choose_" + tmModel;
+        LuaRef chooseTM = getGlobal(state.get(), luaFunc.c_str());
+        LuaRef retVal = chooseTM(&personParams, &tourModeParams);
+        return retVal.cast<int>();
+    }
+    else
 	{
-		LuaRef chooseTMW = getGlobal(state.get(), "choose_tmw");
-		LuaRef retVal = chooseTMW(&personParams, &tourModeParams);
-		return retVal.cast<int>();
-		break;
+        throw std::runtime_error("Tour mode model cannot be invoked for " + activityTypes.at(tourModeParams.getStopType()).name + " tour type");
+        return -1;
 	}
-	case EDUCATION:
-	{
-		LuaRef chooseTME = getGlobal(state.get(), "choose_tme");
-		LuaRef retVal = chooseTME(&personParams, &tourModeParams);
-		return retVal.cast<int>();
-		break;
-	}
-	default:
+}
+
+void sim_mob::medium::PredayLuaModel::computeTourModeLogsum(PersonParams& personParams, const std::unordered_map<int, ActivityTypeConfig> &activityTypes,
+                                                            TourModeParams& tourModeParams) const
+{
+    for (const auto& activity : activityTypes)
+    {
+        const ActivityTypeConfig& actConfig = activity.second;
+        if (actConfig.type == WORK_ACTIVITY_TYPE && personParams.hasFixedWorkPlace())
+        {
+            if (!actConfig.tourModeDestModel.empty())
+            {
+                std::string luaFunc = "compute_logsum_" + actConfig.tourModeModel;
+                LuaRef computeLogsumTMW = getGlobal(state.get(), luaFunc.c_str());
+                LuaRef workLogSum = computeLogsumTMW(&personParams, &tourModeParams);
+                personParams.setActivityLogsum(activity.first, workLogSum.cast<double>());
+            }
+        }
+    }
+}
+
+void sim_mob::medium::PredayLuaModel::computeTourModeDestinationLogsum(PersonParams& personParams, const std::unordered_map<int, ActivityTypeConfig> &activityTypes,
+                                                                       TourModeDestinationParams& tourModeDestinationParams, int zoneSize) const
+{
+    for (const auto& activity : activityTypes)
+    {
+        const ActivityTypeConfig& actConfig = activity.second;
+        if (actConfig.type == EDUCATION_ACTIVITY_TYPE)
+        {
+            continue;
+        }
+
+        if (actConfig.type == WORK_ACTIVITY_TYPE && !personParams.hasFixedWorkPlace())
+        {
+            if (!actConfig.tourModeDestModel.empty())
+            {
+                std::string luaFunc = "compute_logsum_" + actConfig.tourModeDestModel;
+                LuaRef computeLogsumTMDW = getGlobal(state.get(), luaFunc.c_str());
+                LuaRef workLogSum = computeLogsumTMDW(&personParams, &tourModeDestinationParams, zoneSize);
+                personParams.setActivityLogsum(activity.first, workLogSum.cast<double>());
+            }
+        }
+        else
+        {
+            if (!actConfig.tourModeDestModel.empty())
+            {
+                std::string luaFunc = "compute_logsum_" + actConfig.tourModeDestModel;
+                LuaRef computeLogsumTMD = getGlobal(state.get(), luaFunc.c_str());
+                LuaRef logsum = computeLogsumTMD(&personParams, &tourModeDestinationParams, zoneSize);
+                personParams.setActivityLogsum(activity.first, logsum.cast<double>());
+            }
+        }
+    }
+}
+
+int sim_mob::medium::PredayLuaModel::predictTourModeDestination(PersonParams& personParams, const std::unordered_map<int, ActivityTypeConfig> &activityTypes,
+                                                                TourModeDestinationParams& tourModeDestinationParams) const
+{
+    const std::string& tmdModel = activityTypes.at(tourModeDestinationParams.getTourPurpose()).tourModeDestModel;
+
+    if(!tmdModel.empty())
+    {
+        std::string luaFunc = "choose_" + tmdModel;
+        LuaRef chooseTMD = getGlobal(state.get(), luaFunc.c_str());
+        LuaRef retVal = chooseTMD(&personParams, &tourModeDestinationParams);
+        return retVal.cast<int>();
+    }
+    else
 	{
 		throw std::runtime_error("Tour mode model cannot be invoked for Shopping and Other tour types");
-	}
-	}
+        return -1;
+    }
 }
 
-void sim_mob::medium::PredayLuaModel::computeTourModeLogsum(PersonParams& personParams, TourModeParams& tourModeParams) const
+void PredayLuaModel::initializeLogsums(PersonParams &personParams, const std::unordered_map<int, ActivityTypeConfig> &activityTypes) const
 {
-	if(personParams.hasFixedWorkPlace())
-	{
-		LuaRef computeLogsumTMW = getGlobal(state.get(), "compute_logsum_tmw");
-		LuaRef workLogSum = computeLogsumTMW(&personParams, &tourModeParams);
-		personParams.setWorkLogSum(workLogSum.cast<double>());
-	}
+    for (const auto& activity : activityTypes)
+    {
+        personParams.setActivityLogsum(activity.first, 0.0);
+    }
 }
 
-void sim_mob::medium::PredayLuaModel::computeTourModeDestinationLogsum(PersonParams& personParams, TourModeDestinationParams& tourModeDestinationParams) const
+int sim_mob::medium::PredayLuaModel::predictTourTimeOfDay(PersonParams& personParams, const std::unordered_map<int, ActivityTypeConfig> &activityTypes,
+                                                          TourTimeOfDayParams& tourTimeOfDayParams, StopType tourType) const
 {
-	if(!personParams.hasFixedWorkPlace())
-	{
-		LuaRef computeLogsumTMDW = getGlobal(state.get(), "compute_logsum_tmdw");
-		LuaRef workLogSum = computeLogsumTMDW(&personParams, &tourModeDestinationParams, NUM_ZONES);
-		personParams.setWorkLogSum(workLogSum.cast<double>());
-	}
-
-	LuaRef computeLogsumTMDS = getGlobal(state.get(), "compute_logsum_tmds");
-	LuaRef shopLogSum = computeLogsumTMDS(&personParams, &tourModeDestinationParams, NUM_ZONES);
-	personParams.setShopLogSum(shopLogSum.cast<double>());
-
-	LuaRef computeLogsumTMDO = getGlobal(state.get(), "compute_logsum_tmdo");
-	LuaRef otherLogSum = computeLogsumTMDO(&personParams, &tourModeDestinationParams, NUM_ZONES);
-	personParams.setOtherLogSum(otherLogSum.cast<double>());
-}
-
-int sim_mob::medium::PredayLuaModel::predictTourModeDestination(PersonParams& personParams, TourModeDestinationParams& tourModeDestinationParams) const
-{
-	switch (tourModeDestinationParams.getTourPurpose())
-	{
-	case WORK:
-	{
-		LuaRef chooseTMD = getGlobal(state.get(), "choose_tmdw");
-		LuaRef retVal = chooseTMD(&personParams, &tourModeDestinationParams);
-		return retVal.cast<int>();
-		break;
-	}
-	case SHOP:
-	{
-		LuaRef chooseTMD = getGlobal(state.get(), "choose_tmds");
-		LuaRef retVal = chooseTMD(&personParams, &tourModeDestinationParams);
-		return retVal.cast<int>();
-		break;
-	}
-	case OTHER:
-	{
-		LuaRef chooseTMD = getGlobal(state.get(), "choose_tmdo");
-		LuaRef retVal = chooseTMD(&personParams, &tourModeDestinationParams);
-		return retVal.cast<int>();
-		break;
-	}
-	default:
-	{
-		throw std::runtime_error("Tour mode model cannot be invoked for Shopping and Other tour types");
-	}
-	}
-}
-
-int sim_mob::medium::PredayLuaModel::predictTourTimeOfDay(PersonParams& personParams, TourTimeOfDayParams& tourTimeOfDayParams, StopType tourType) const
-{
-	switch (tourType)
-	{
-	case WORK:
-	{
-		LuaRef chooseTTDW = getGlobal(state.get(), "choose_ttdw");
-		LuaRef retVal = chooseTTDW(&personParams, &tourTimeOfDayParams);
-		return retVal.cast<int>();
-		break;
-	}
-	case EDUCATION:
-	{
-		LuaRef chooseTTDE = getGlobal(state.get(), "choose_ttde");
-		LuaRef retVal = chooseTTDE(&personParams, &tourTimeOfDayParams);
-		return retVal.cast<int>();
-		break;
-	}
-	case SHOP: // Fall through
-	case OTHER:
-	{
-		LuaRef chooseTTDO = getGlobal(state.get(), "choose_ttdo");
-		LuaRef retVal = chooseTTDO(&personParams, &tourTimeOfDayParams);
-		return retVal.cast<int>();
-		break;
-	}
-	}
+    const std::string& modelName = activityTypes.at(tourType).tourTimeOfDayModel;
+    if (!modelName.empty())
+    {
+        std::string luaFunc = "choose_" + modelName;
+        LuaRef chooseTTD = getGlobal(state.get(), luaFunc.c_str());
+        LuaRef retVal = chooseTTD(&personParams, &tourTimeOfDayParams);
+        return retVal.cast<int>();
+    }
 }
 
 int sim_mob::medium::PredayLuaModel::generateIntermediateStop(PersonParams& personParams, StopGenerationParams& isgParams) const

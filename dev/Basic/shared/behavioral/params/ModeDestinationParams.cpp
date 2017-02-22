@@ -5,6 +5,7 @@
 #include "ModeDestinationParams.hpp"
 #include "LogsumTourModeDestinationParams.hpp"
 #include "behavioral/PredayUtils.hpp"
+#include "conf/ConfigManager.hpp"
 
 #include <algorithm>
 #include <stdio.h>
@@ -62,9 +63,9 @@ void setTourCarAndMotorAvailability(const PersonParams& personParams, bool& driv
 }
 
 ModeDestinationParams::ModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap,
-		StopType purpose, int originCode, const std::vector<OD_Pair>& unavailableODs) :
+        StopType purpose, int originCode, int numModes, const std::vector<OD_Pair>& unavailableODs) :
 		zoneMap(zoneMap), amCostsMap(amCostsMap), pmCostsMap(pmCostsMap), purpose(purpose), origin(originCode), OPERATIONAL_COST(0.147),
-			MAX_WALKING_DISTANCE(3), cbdOrgZone(false), unavailableODs(unavailableODs)
+            MAX_WALKING_DISTANCE(3), cbdOrgZone(false), unavailableODs(unavailableODs), numModes(numModes)
 {
 }
 
@@ -75,8 +76,7 @@ ModeDestinationParams::~ModeDestinationParams()
 int ModeDestinationParams::getMode(int choice) const
 {
 	int nZones = zoneMap.size();
-	int nModes = 9;
-	if (choice < 1 || choice > nZones * nModes)
+    if (choice < 1 || choice > nZones * numModes)
 	{
 		return -1;
 	}
@@ -86,8 +86,7 @@ int ModeDestinationParams::getMode(int choice) const
 int ModeDestinationParams::getDestination(int choice) const
 {
 	int nZones = zoneMap.size();
-	int nModes = 9;
-	if (choice < 1 || choice > nZones * nModes)
+    if (choice < 1 || choice > nZones * numModes)
 	{
 		return -1;
 	}
@@ -106,8 +105,8 @@ bool sim_mob::ModeDestinationParams::isUnavailable(int origin, int destination) 
 }
 
 LogsumTourModeDestinationParams::LogsumTourModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap,
-		const PersonParams& personParams, StopType tourType) :
-		ModeDestinationParams(zoneMap, amCostsMap, pmCostsMap, tourType, personParams.getHomeLocation(), unavailableODsDummy),
+        const PersonParams& personParams, StopType tourType, int numModes) :
+        ModeDestinationParams(zoneMap, amCostsMap, pmCostsMap, tourType, personParams.getHomeLocation(), numModes, unavailableODsDummy),
 			drive1Available(false), motorAvailable(false), modeForParentWorkTour(0), costIncrease(1)
 {
 	setTourCarAndMotorAvailability(personParams, drive1Available, motorAvailable);
@@ -568,7 +567,6 @@ int LogsumTourModeDestinationParams::isAvailable_TMD(int choiceId) const
 	 * 5. drive alone is available when for the agent, has_driving_license * one_plus_car == True
 	 */
 	int numZones = zoneMap.size();
-	int numModes = 9;
 	if (choiceId < 1 || choiceId > numModes * numZones)
 	{
 		throw std::runtime_error("isAvailable()::invalid choice id for mode-destination model");
@@ -594,63 +592,56 @@ int LogsumTourModeDestinationParams::isAvailable_TMD(int choiceId) const
 		return 0;
 	}
 
-	// bus 1-1092; mrt 1093 - 2184; private bus 2185 - 3276; same result for the three modes
-	if (choiceId <= 3 * numZones)
-	{
-		bool result = false;
+    int modeType = ConfigManager::GetInstance().FullConfig().getActivityTypeConfig(int(choiceId / numZones)).type;
 
-		try
-		{
-			result = pmCostsMap.at(destination).at(origin)->getPubIvt() > 0 && amCostsMap.at(origin).at(destination)->getPubIvt() > 0;
-		}
-		catch(...){}
+    switch(modeType)
+    {
+    case PT_TRAVEL_MODE:
+    case PRIVATE_BUS_MODE:
+    {
+        bool result = false;
 
-		return result;
-	}
+        try
+        {
+            result = pmCostsMap.at(destination).at(origin)->getPubIvt() > 0 && amCostsMap.at(origin).at(destination)->getPubIvt() > 0;
+        }
+        catch(...){}
 
-	// drive1 3277 - 4368
-	if (choiceId <= 4 * numZones)
-	{
-		return drive1Available;
-	}
-	// share2 4369 - 5460
-	if (choiceId <= 5 * numZones)
-	{
-		// share2 is available to all
-		return 1;
-	}
-	// share3 5461 - 6552
-	if (choiceId <= 6 * numZones)
-	{
-		// share3 is available to all
-		return 1;
-	}
-	// motor 6553 - 7644
-	if (choiceId <= 7 * numZones)
-	{
-		// share3 is available to all
-		return 1;
-	}
-	// walk 7645 - 8736
-	if (choiceId <= 8 * numZones)
-	{
-		bool result = false;
+        return result;
+        break;
+    }
+    case PVT_CAR_MODE:
+    {
+        return drive1Available;
+        break;
+    }
+    case SHARING_MODE:
+    case TAXI_MODE:
+    {
+        return 1;
+        break;
+    }
+    case PVT_BIKE_MODE:
+    {
+        return motorAvailable;
+        break;
+    }
+    case WALK_MODE:
+    {
+        bool result = false;
 
-		try
-		{
-			result =  (amCostsMap.at(origin).at(destination)->getDistance() <= MAX_WALKING_DISTANCE
-					&& pmCostsMap.at(destination).at(origin)->getDistance() <= MAX_WALKING_DISTANCE);
-		}
-		catch(...){}
+        try
+        {
+            result =  (amCostsMap.at(origin).at(destination)->getDistance() <= MAX_WALKING_DISTANCE
+                    && pmCostsMap.at(destination).at(origin)->getDistance() <= MAX_WALKING_DISTANCE);
+        }
+        catch(...){}
 
-		return result;
-	}
-	// taxi 8737 - 9828
-	if (choiceId <= 9 * numZones)
-	{
-		// taxi is available to all
-		return 1;
-	}
+        return result;
+        break;
+    }
+    }
+
 	return 0;
 }
 

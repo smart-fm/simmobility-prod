@@ -26,7 +26,7 @@ namespace medium
 class TourModeDestinationParams: public ModeDestinationParams
 {
 public:
-	TourModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap, const PersonParams& personParams, StopType tourType,
+    TourModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap, const PersonParams& personParams, StopType tourType, int numModes,
 			const std::vector<OD_Pair>& unavailableODs);
 	virtual ~TourModeDestinationParams();
 
@@ -71,7 +71,7 @@ class StopModeDestinationParams: public ModeDestinationParams
 {
 public:
 	StopModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap, const PersonParams& personParams, const Stop* stop,
-			int originCode, const std::vector<OD_Pair>& unavailableODs);
+            int originCode, int numModes, const std::vector<OD_Pair>& unavailableODs);
 	virtual ~StopModeDestinationParams();
 	double getCostCarParking(int zone) const;
 	double getCostCarOP(int zone) const;

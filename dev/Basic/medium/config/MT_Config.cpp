@@ -311,7 +311,7 @@ void MT_Config::setLogsumTableName(const std::string& logsumTableName)
 	if(!configSealed)
 	{
 		this->logsumTableName = logsumTableName;
-	}
+    }
 }
 
 bool MT_Config::RunningMidSupply() const {

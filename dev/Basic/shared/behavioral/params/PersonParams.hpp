@@ -3,11 +3,13 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 #pragma once
+#include <unordered_map>
 #include <vector>
 #include <bitset>
 #include <map>
 #include <stdint.h>
 #include <string>
+#include "behavioral/StopType.hpp"
 #include "behavioral/PredayUtils.hpp"
 
 namespace sim_mob
@@ -345,7 +347,7 @@ public:
 		this->hhOnlyWorkers = hhOnlyWorkers;
 	}
 
-	double getEduLogSum() const
+    /*double getEduLogSum() const
 	{
 		return eduLogSum;
 	}
@@ -383,7 +385,17 @@ public:
 	void setWorkLogSum(double workLogSum)
 	{
 		this->workLogSum = workLogSum;
-	}
+    }*/
+
+    double getActivityLogsum(StopType activityType) const
+    {
+        return activityLogsums.at(activityType);
+    }
+
+    void setActivityLogsum(StopType activityType, double logsum)
+    {
+        activityLogsums[activityType] = logsum;
+    }
 
 	int getStudentTypeId() const
 	{
@@ -736,6 +748,9 @@ private:
 	double eduLogSum;
 	double shopLogSum;
 	double otherLogSum;
+
+    std::unordered_map<StopType, double> activityLogsums;
+
 	double dptLogsum;
 	double dpsLogsum;
 	double dpbLogsum;

@@ -11,12 +11,20 @@ namespace sim_mob
  *
  * \author Harish Loganathan
  */
-enum StopType
-{
-	WORK,
-	EDUCATION,
-	SHOP,
-	OTHER,
-	NULL_STOP
-};
+typedef int StopType;
+
+const StopType NULL_STOP = -1;
+
+const int WORK_ACTIVITY_TYPE = 1;
+const int EDUCATION_ACTIVITY_TYPE = 2;
+const int OTHER_ACTIVITY_TYPE = 3;
+
+const int PT_TRAVEL_MODE = 1;
+const int PRIVATE_BUS_MODE = 2;
+const int PVT_CAR_MODE = 3;
+const int SHARING_MODE = 4;
+const int PVT_BIKE_MODE = 5;
+const int WALK_MODE = 6;
+const int TAXI_MODE = 7;
+
 }

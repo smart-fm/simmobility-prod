@@ -242,6 +242,20 @@ private:
 
     void processPathSetFileName(xercesc::DOMElement* node);
 
+    /**
+     * Processes the travel modes element in config xml
+     *
+     * @param node node corresponding to the travel modes element inside xml file
+     */
+    void processTravelModesNode(xercesc::DOMElement* node);
+
+    /**
+     * Processes the activity types element in config xml
+     *
+     * @param node node corresponding to the activity types element inside xml file
+     */
+    void processActivityTypesNode(xercesc::DOMElement* node);
+
     /// The config we are currently loading
 	MT_Config& mtCfg;
 

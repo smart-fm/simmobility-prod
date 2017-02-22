@@ -266,10 +266,13 @@ private:
 	 */
 	boost::unordered_map<std::string, bool> dayPattern;
 
+    std::unordered_map<int, bool> dayPatternTours;
+    std::unordered_map<int, bool> dayPatternStops;
+
 	/**
 	 * The predicted number of tours for each type of tour - Work, Education, Shopping, Others.
 	 */
-	boost::unordered_map<std::string, int> numTours;
+    std::unordered_map<int, int> numTours;
 
 	/**
 	 * Data access objects for time dependent travel times data
@@ -286,10 +289,14 @@ private:
 	 */
 	int firstAvailableTimeIndex;
 
+    const std::unordered_map<StopType, ActivityTypeConfig>& activityTypeConfigMap;
+
+    const int numModes;
+
 public:
 	PredaySystem(PersonParams& personParams, const ZoneMap& zoneMap, const boost::unordered_map<int, int>& zoneIdLookup, const CostMap& amCostMap,
-			const CostMap& pmCostMap, const CostMap& opCostMap, TimeDependentTT_SqlDao& tcosDao,
-			const std::vector<OD_Pair>& unavailableODs);
+            const CostMap& pmCostMap, const CostMap& opCostMap, TimeDependentTT_SqlDao& tcosDao, const std::vector<OD_Pair>& unavailableODs,
+            const std::unordered_map<StopType, ActivityTypeConfig>& activityTypeConfig, const int numModes);
 
 	virtual ~PredaySystem();
 

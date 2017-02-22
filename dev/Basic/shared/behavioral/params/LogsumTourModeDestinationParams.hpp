@@ -19,7 +19,7 @@ class LogsumTourModeDestinationParams: public ModeDestinationParams
 {
 public:
 	LogsumTourModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap, const PersonParams& personParams,
-			StopType tourType);
+                        StopType tourType, int numModes);
 	virtual ~LogsumTourModeDestinationParams();
 
 	double getCostPublicFirst(int zoneId) const;

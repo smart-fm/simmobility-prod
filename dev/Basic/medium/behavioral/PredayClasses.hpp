@@ -9,7 +9,7 @@
 #include <string>
 #include <vector>
 #include "behavioral/StopType.hpp"
-#include "behavioral/StopType.hpp"
+#include "conf/ConfigManager.hpp"
 #include "util/LangHelpers.hpp"
 
 namespace sim_mob
@@ -99,17 +99,7 @@ public:
 	 */
 	int getStopTypeID() const
 	{
-		switch (stopType)
-		{
-		case WORK:
-			return 1;
-		case EDUCATION:
-			return 2;
-		case SHOP:
-			return 3;
-		case OTHER:
-			return 4;
-		}
+                return stopType;
 	}
 
 	/**
@@ -118,17 +108,7 @@ public:
 	 */
 	std::string getStopTypeStr() const
 	{
-		switch (stopType)
-		{
-		case WORK:
-			return "Work";
-		case EDUCATION:
-			return "Education";
-		case SHOP:
-			return "Shop";
-		case OTHER:
-			return "Other";
-		}
+                return ConfigManager::GetInstance().FullConfig().getActivityTypeStr(stopType);
 	}
 
 	void setStopType(StopType stopType)
@@ -250,19 +230,7 @@ public:
 	 */
 	std::string getTourTypeStr() const
 	{
-		switch (tourType)
-		{
-		case WORK:
-			return "Work";
-		case EDUCATION:
-			return "Education";
-		case SHOP:
-			return "Shop";
-		case OTHER:
-			return "Other";
-		default:
-			return "NULL";
-		}
+                return ConfigManager::GetInstance().FullConfig().getActivityTypeStr(this->tourType);
 	}
 
 	void setTourType(StopType tourType)

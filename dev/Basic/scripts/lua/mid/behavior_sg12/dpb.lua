@@ -69,6 +69,8 @@ local beta_dptour_logsum = 0.227
 --1 for notravel; 2 for travel
 local choice = { 1, 2 }
 
+local activity_types = { ["Work"] = 1, ["Education"] = 2, ["Shop"] = 3, ["Others"] = 4 }
+
 --utility
 local utility = {}
 local function computeUtilities(params) 
@@ -87,10 +89,10 @@ local function computeUtilities(params)
 	local missing_income = params.missing_income
 	local workathome = params.work_at_home_dummy
 	local veh_own_cat = params.vehicle_ownership_category
-	local worklogsum = params.worklogsum
-	local edulogsum = params.edulogsum
-	local shoplogsum = params.shoplogsum
-	local otherlogsum = params.otherlogsum
+	local worklogsum = params:activity_logsum(activity_types.Work)
+	local edulogsum = params:activity_logsum(activity_types.Education)
+	local shoplogsum = params:activity_logsum(activity_types.Shop)
+	local otherlogsum = params:activity_logsum(activity_types.Others)
 	local dptour_logsum = params.dptour_logsum
 	local dpstop_logsum = params.dpstop_logsum
 

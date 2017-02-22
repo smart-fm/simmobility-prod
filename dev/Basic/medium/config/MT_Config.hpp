@@ -8,6 +8,7 @@
 #include <vector>
 #include <utility>
 
+#include "behavioral/StopType.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "conf/Constructs.hpp"

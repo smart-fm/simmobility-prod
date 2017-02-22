@@ -4,10 +4,12 @@
 
 #pragma once
 
+#include <unordered_map>
 #include <vector>
 #include <map>
 #include <string>
 
+#include "behavioral/StopType.hpp"
 #include "buffering/Shared.hpp"
 #include "conf/CMakeConfigParams.hpp"
 #include "conf/Constructs.hpp"
@@ -472,6 +474,26 @@ struct TravelTimeConfig {
 	TravelTimeConfig() : intervalMS(0), fileName(""), enabled(false) {}
 };
 
+
+struct ActivityTypeConfig
+{
+    std::string name;
+    std::string withinDayModeChoiceModel;
+    std::string numToursModel;
+    std::string tourModeModel;
+    std::string tourModeDestModel;
+    std::string tourTimeOfDayModel;
+    std::string logsumTableColumn;
+    int type;
+};
+
+struct TravelModeConfig
+{
+    std::string name;
+    int type;
+    int numSharing;
+};
+
 /**
  * Contains the properties of the config file as they appear in, e.g., test_road_network.xml, with
  *   minimal conversion.
@@ -557,6 +579,16 @@ public:
 
     /// container for lua scripts
 	ModelScriptsMap luaScriptsMap;
+
+
+    /// key:value (travel mode id : travel mode string) map
+    std::unordered_map<int, TravelModeConfig> travelModeMap;
+
+    /// key:value (activity type id : activity type config) map
+    std::unordered_map<StopType, ActivityTypeConfig> activityTypeIdConfigMap;
+
+    /// key:value (activity name : activity type id) map
+    std::unordered_map<std::string, StopType> activityTypeNameIdMap;
 };
 
 

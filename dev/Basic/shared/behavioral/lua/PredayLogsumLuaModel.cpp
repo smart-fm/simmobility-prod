@@ -42,10 +42,7 @@ void sim_mob::PredayLogsumLuaModel::mapClasses()
 				.addProperty("only_workers", &PersonParams::getHH_OnlyWorkers)
 				.addProperty("num_underfour", &PersonParams::getHH_NumUnder4)
 				.addProperty("presence_of_under15", &PersonParams::getHH_HasUnder15)
-				.addProperty("worklogsum", &PersonParams::getWorkLogSum)
-				.addProperty("edulogsum", &PersonParams::getEduLogSum)
-				.addProperty("shoplogsum", &PersonParams::getShopLogSum)
-				.addProperty("otherlogsum", &PersonParams::getOtherLogSum)
+                .addFunction("activity_logsum", &PersonParams::getActivityLogsum)
 				.addProperty("dptour_logsum", &PersonParams::getDptLogsum)
 				.addProperty("dpstop_logsum", &PersonParams::getDpsLogsum)
 				.addProperty("travel_probability", &PersonParams::getTravelProbability)
@@ -154,30 +151,55 @@ void sim_mob::PredayLogsumLuaModel::computeDayPatternBinaryLogsums(PersonParams&
 	}
 }
 
-void sim_mob::PredayLogsumLuaModel::computeTourModeLogsum(PersonParams& personParams, LogsumTourModeParams& tourModeParams) const
+void sim_mob::PredayLogsumLuaModel::computeTourModeLogsum(PersonParams& personParams, const std::unordered_map<int, ActivityTypeConfig> &activityTypes,
+                                                          LogsumTourModeParams& tourModeParams) const
 {
-	if(personParams.hasFixedWorkPlace())
-	{
-		LuaRef computeLogsumTMW = getGlobal(state.get(), "compute_logsum_tmw");
-		LuaRef workLogSum = computeLogsumTMW(&personParams, &tourModeParams);
-		personParams.setWorkLogSum(workLogSum.cast<double>());
-	}
+    for (const auto& activity : activityTypes)
+    {
+        const ActivityTypeConfig& actConfig = activity.second;
+        if (actConfig.type == WORK_ACTIVITY_TYPE && personParams.hasFixedWorkPlace())
+        {
+            if (!actConfig.tourModeDestModel.empty())
+            {
+                std::string luaFunc = "compute_logsum_" + actConfig.tourModeModel;
+                LuaRef computeLogsumTMW = getGlobal(state.get(), luaFunc.c_str());
+                LuaRef workLogSum = computeLogsumTMW(&personParams, &tourModeParams);
+                personParams.setActivityLogsum(activity.first, workLogSum.cast<double>());
+            }
+        }
+    }
 }
 
-void sim_mob::PredayLogsumLuaModel::computeTourModeDestinationLogsum(PersonParams& personParams, LogsumTourModeDestinationParams& tourModeDestinationParams, int size) const
+void sim_mob::PredayLogsumLuaModel::computeTourModeDestinationLogsum(PersonParams& personParams, const std::unordered_map<int, ActivityTypeConfig> &activityTypes,
+                                                                     LogsumTourModeDestinationParams& tourModeDestinationParams, int size) const
 {
-	if(!personParams.hasFixedWorkPlace())
-	{
-		LuaRef computeLogsumTMDW = getGlobal(state.get(), "compute_logsum_tmdw");
-		LuaRef workLogSum = computeLogsumTMDW(&personParams, &tourModeDestinationParams, size);
-		personParams.setWorkLogSum(workLogSum.cast<double>());
-	}
+    for (const auto& activity : activityTypes)
+    {
+        const ActivityTypeConfig& actConfig = activity.second;
+        if (actConfig.type == EDUCATION_ACTIVITY_TYPE)
+        {
+            continue;
+        }
 
-	LuaRef computeLogsumTMDS = getGlobal(state.get(), "compute_logsum_tmds");
-	LuaRef shopLogSum = computeLogsumTMDS(&personParams, &tourModeDestinationParams,  size);
-	personParams.setShopLogSum(shopLogSum.cast<double>());
-
-	LuaRef computeLogsumTMDO = getGlobal(state.get(), "compute_logsum_tmdo");
-	LuaRef otherLogSum = computeLogsumTMDO(&personParams, &tourModeDestinationParams, size);
-	personParams.setOtherLogSum(otherLogSum.cast<double>());
+        if (actConfig.type == WORK_ACTIVITY_TYPE && !personParams.hasFixedWorkPlace())
+        {
+            if (!actConfig.tourModeDestModel.empty())
+            {
+                std::string luaFunc = "compute_logsum_" + actConfig.tourModeDestModel;
+                LuaRef computeLogsumTMDW = getGlobal(state.get(), luaFunc.c_str());
+                LuaRef workLogSum = computeLogsumTMDW(&personParams, &tourModeDestinationParams, size);
+                personParams.setActivityLogsum(activity.first, workLogSum.cast<double>());
+            }
+        }
+        else
+        {
+            if (!actConfig.tourModeDestModel.empty())
+            {
+                std::string luaFunc = "compute_logsum_" + actConfig.tourModeDestModel;
+                LuaRef computeLogsumTMD = getGlobal(state.get(), luaFunc.c_str());
+                LuaRef logsum = computeLogsumTMD(&personParams, &tourModeDestinationParams, size);
+                personParams.setActivityLogsum(activity.first, logsum.cast<double>());
+            }
+        }
+    }
 }

@@ -170,7 +170,7 @@ void PopulationSqlDao::getVehicleCategories(std::map<int, std::bitset<6> >& vehi
 	}
 }
 
-SimmobSqlDao::SimmobSqlDao(db::DB_Connection& connection, const std::string& tableName) :
+SimmobSqlDao::SimmobSqlDao(db::DB_Connection& connection, const std::string& tableName, const std::vector<std::string>& activityLogsumColumns) :
 		SqlAbstractDao<PersonParams>(
 				connection,
 				tableName,
@@ -179,14 +179,9 @@ SimmobSqlDao::SimmobSqlDao(db::DB_Connection& connection, const std::string& tab
 				("TRUNCATE " + tableName), //delete
 				"", //get all
 				"SELECT "
-					+ DB_FIELD_WORK_LOGSUM + ","
-					+ DB_FIELD_EDUCATION_LOGSUM + ","
-					+ DB_FIELD_SHOP_LOGSUM + ","
-					+ DB_FIELD_OTHER_LOGSUM + ","
-					+ DB_FIELD_DPT_LOGSUM + ","
-					+ DB_FIELD_DPS_LOGSUM
+                    + getLogsumColumnsStr(activityLogsumColumns)
 					+ " FROM " + tableName + " where person_id = :_id" //get by id
-				)
+                ), activityLogsumColumns(activityLogsumColumns)
 {
 }
 
@@ -196,23 +191,36 @@ SimmobSqlDao::~SimmobSqlDao()
 
 void SimmobSqlDao::fromRow(db::Row& result, PersonParams& outObj)
 {
-	outObj.setWorkLogSum(result.get<double>(DB_FIELD_WORK_LOGSUM));
-	outObj.setEduLogSum(result.get<double>(DB_FIELD_EDUCATION_LOGSUM));
-	outObj.setShopLogSum(result.get<double>(DB_FIELD_SHOP_LOGSUM));
-	outObj.setOtherLogSum(result.get<double>(DB_FIELD_OTHER_LOGSUM));
-	outObj.setDptLogsum(result.get<double>(DB_FIELD_DPT_LOGSUM));
+    StopType activityType = 1;
+    for (const auto& column : activityLogsumColumns)
+    {
+        outObj.setActivityLogsum(activityType, result.get<double>(column));
+    }
+    outObj.setDptLogsum(result.get<double>(DB_FIELD_DPT_LOGSUM));
 	outObj.setDpsLogsum(result.get<double>(DB_FIELD_DPS_LOGSUM));
 }
 
 void SimmobSqlDao::toRow(PersonParams& data, db::Parameters& outParams, bool update)
 {
-	outParams.push_back(data.getPersonId());
-	outParams.push_back(data.getWorkLogSum());
-	outParams.push_back(data.getEduLogSum());
-	outParams.push_back(data.getShopLogSum());
-	outParams.push_back(data.getOtherLogSum());
+    outParams.push_back(data.getPersonId());
+    for (int activityType = 1; activityType <= activityLogsumColumns.size(); ++activityType)
+    {
+        outParams.push_back(data.getActivityLogsum(activityType));
+    }
 	outParams.push_back(data.getDptLogsum());
-	outParams.push_back(data.getDpsLogsum());
+    outParams.push_back(data.getDpsLogsum());
+}
+
+std::string SimmobSqlDao::getLogsumColumnsStr(const std::vector<std::string>& actvtylogsumClmns)
+{
+    std::string columnStr = "";
+    for (const auto& column : actvtylogsumClmns)
+    {
+        columnStr += (column + ",");
+    }
+    columnStr += DB_FIELD_DPT_LOGSUM + "," + DB_FIELD_DPS_LOGSUM;
+
+    return columnStr;
 }
 
 void SimmobSqlDao::getLogsumById(long long id, PersonParams& outObj)

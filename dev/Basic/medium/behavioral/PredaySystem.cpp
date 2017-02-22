@@ -18,10 +18,10 @@
 #include "behavioral/params/TourModeParams.hpp"
 #include "behavioral/params/TourModeDestinationParams.hpp"
 #include "behavioral/StopType.hpp"
-#include "behavioral/StopType.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "conf/Constructs.hpp"
+#include "config/MT_Config.hpp"
 #include "database/DB_Connection.hpp"
 #include "logging/Log.hpp"
 #include "PredayClasses.hpp"
@@ -70,45 +70,6 @@ namespace {
 	const double TAXI_UNIT_PRICE = 0.22;
 	const double UNIT_FOR_FIRST_10KM = 0.4;
 	const double UNIT_AFTER_10KM = 0.35;
-
-	std::map<int, std::string> setModeMap() {
-		// 1 for public bus; 2 for MRT/LRT; 3 for private bus; 4 for drive1;
-		// 5 for shared2; 6 for shared3+; 7 for motor; 8 for walk; 9 for taxi
-		//mode_idx_ref = { 1 : 3, 2 : 5, 3 : 3, 4 : 1, 5 : 6, 6 : 6, 7 : 8, 8 : 2, 9 : 4 }
-		std::map<int, std::string> res;
-		res[1] = "BusTravel";
-		res[2] = "MRT";
-		res[3] = "PrivateBus";
-		res[4] = "Car";
-		res[5] = "Car Sharing 2";
-		res[6] = "Car Sharing 3";
-		res[7] = "Motorcycle";
-		res[8] = "Walk";
-		res[9] = "Taxi";
-		return res;
-	}
-
-	/**
-	 * This function is to assign modes which are supported by withinday
-	 */
-	std::map<int, std::string> setModeMapTemp() {
-		// 1 for public bus; 2 for MRT/LRT; 3 for private bus; 4 for drive1;
-		// 5 for shared2; 6 for shared3+; 7 for motor; 8 for walk; 9 for taxi
-		//mode_idx_ref = { 1 : 3, 2 : 5, 3 : 3, 4 : 1, 5 : 6, 6 : 6, 7 : 8, 8 : 2, 9 : 4 }
-		std::map<int, std::string> res;
-		res[1] = "BusTravel";
-		res[2] = "Car";
-		res[3] = "Car";
-		res[4] = "Car";
-		res[5] = "Car";
-		res[6] = "Car";
-		res[7] = "Motorcycle";
-		res[8] = "Walk";
-		res[9] = "Taxi";
-		return res;
-	}
-
-	const std::map<int,std::string> modeMap = setModeMap();
 
 	/*
 	 * There are 48 half-hour indexes in a day from 3.25 to 26.75.
@@ -187,14 +148,16 @@ namespace {
 } // anon namespace
 
 PredaySystem::PredaySystem(PersonParams& personParams,
-		const ZoneMap& zoneMap, const boost::unordered_map<int,int>& zoneIdLookup,
-		const CostMap& amCostMap, const CostMap& pmCostMap, const CostMap& opCostMap,
-		TimeDependentTT_SqlDao& tcostDao,
-		const std::vector<OD_Pair>& unavailableODs)
+        const ZoneMap& zoneMap, const boost::unordered_map<int,int>& zoneIdLookup,
+        const CostMap& amCostMap, const CostMap& pmCostMap, const CostMap& opCostMap,
+        TimeDependentTT_SqlDao& tcostDao,
+        const std::vector<OD_Pair>& unavailableODs, const std::unordered_map<StopType, ActivityTypeConfig> &activityTypeConfig,
+        const int numModes)
 : personParams(personParams), zoneMap(zoneMap), zoneIdLookup(zoneIdLookup),
   amCostMap(amCostMap), pmCostMap(pmCostMap), opCostMap(opCostMap),
   tcostDao(tcostDao), unavailableODs(unavailableODs),
-  firstAvailableTimeIndex(FIRST_INDEX), logStream(std::stringstream::out)
+  firstAvailableTimeIndex(FIRST_INDEX), logStream(std::stringstream::out),
+  activityTypeConfigMap(activityTypeConfig), numModes(numModes)
 {}
 
 PredaySystem::~PredaySystem()
@@ -340,8 +303,8 @@ void PredaySystem::predictTourMode(Tour& tour)
 {
 	TourModeParams tmParams;
 	constructTourModeParams(tmParams, tour.getTourDestination(), tour.getTourType());
-	int mode = PredayLuaProvider::getPredayModel().predictTourMode(personParams, tmParams);
-	if(mode < 1 || mode > 9)
+    int mode = PredayLuaProvider::getPredayModel().predictTourMode(personParams, activityTypeConfigMap, tmParams);
+    if(mode < 1 || mode > numModes)
 	{
 		throw std::runtime_error("Invalid tour mode");
 	}
@@ -398,7 +361,7 @@ void sim_mob::medium::PredaySystem::predictSubTours(Tour& parentTour)
 
 void PredaySystem::predictSubTourModeDestination(Tour& subTour, const Tour& parentTour)
 {
-	TourModeDestinationParams stmdParams(zoneMap, amCostMap, pmCostMap, personParams, subTour.getTourType(), unavailableODs);
+    TourModeDestinationParams stmdParams(zoneMap, amCostMap, pmCostMap, personParams, subTour.getTourType(), numModes, unavailableODs);
 	stmdParams.setOrigin(parentTour.getTourDestination()); //origin is primary activity location of parentTour (not home location)
 	stmdParams.setCbdOrgZone(zoneMap.at(zoneIdLookup.at(parentTour.getTourDestination()))->getCbdDummy());
 	stmdParams.setModeForParentWorkTour(parentTour.getTourMode());
@@ -417,11 +380,11 @@ void PredaySystem::predictSubTourModeDestination(Tour& subTour, const Tour& pare
 
 void PredaySystem::predictTourModeDestination(Tour& tour)
 {
-	TourModeDestinationParams tmdParams(zoneMap, amCostMap, pmCostMap, personParams, tour.getTourType(), unavailableODs);
+    TourModeDestinationParams tmdParams(zoneMap, amCostMap, pmCostMap, personParams, tour.getTourType(), numModes, unavailableODs);
 	tmdParams.setCbdOrgZone(zoneMap.at(zoneIdLookup.at(personParams.getHomeLocation()))->getCbdDummy());
-	int modeDest = PredayLuaProvider::getPredayModel().predictTourModeDestination(personParams, tmdParams);
+    int modeDest = PredayLuaProvider::getPredayModel().predictTourModeDestination(personParams, activityTypeConfigMap, tmdParams);
 	int mode = tmdParams.getMode(modeDest);
-	if(mode < 1 || mode > 9)
+    if(mode < 1 || mode > numModes)
 	{
 		throw std::runtime_error("invalid tour mode");
 	}
@@ -454,6 +417,8 @@ TimeWindowAvailability PredaySystem::predictTourTimeOfDay(Tour& tour)
 	std::vector<double>& ttFirstHalfTour = todParams.travelTimesFirstHalfTour;
 	std::vector<double>& ttSecondHalfTour = todParams.travelTimesSecondHalfTour;
 
+    const ConfigParams& cfg = ConfigManager::GetInstance().FullConfig();
+
 	if(origin != destination)
 	{
 		//load tcost data from the appropriate table
@@ -461,25 +426,26 @@ TimeWindowAvailability PredaySystem::predictTourTimeOfDay(Tour& tour)
 		double amTT = 0;
 		double pmTT = 0;
 		double opTT = 0;
-		switch (tour.getTourMode())
+
+        int tourModeType = cfg.getTravelModeConfig(tour.getTourMode()).type;
+
+        switch (tourModeType)
 		{
-		case 1: // Fall through
-		case 2:
-		case 3:
+        case PT_TRAVEL_MODE:
+        case PRIVATE_BUS_MODE:
 		{
 			tcostDao.getTT_ByOD(TravelTimeMode::TT_PUBLIC, origin, destination, todBasedTT);
 			break;
 		}
-		case 4: // Fall through
-		case 5:
-		case 6:
-		case 7:
-		case 9:
+        case PVT_CAR_MODE: // Fall through
+        case SHARING_MODE:
+        case PVT_BIKE_MODE:
+        case TAXI_MODE:
 		{
 			tcostDao.getTT_ByOD(TravelTimeMode::TT_PRIVATE, origin, destination, todBasedTT);
 			break;
 		}
-		case 8:
+        case WALK_MODE:
 		{
 			CostParams* costObj = amCostMap.at(origin).at(destination);
 			amTT = costObj->getDistance()/PEDESTRIAN_WALK_SPEED;
@@ -495,23 +461,21 @@ TimeWindowAvailability PredaySystem::predictTourTimeOfDay(Tour& tour)
 
 		for (int i=FIRST_INDEX; i<=LAST_INDEX; i++)
 		{
-			switch (tour.getTourMode())
+            switch (tourModeType)
 			{
-			case 1: // Fall through
-			case 2:
-			case 3:
-			case 4:
-			case 5:
-			case 6:
-			case 7:
-			case 9:
+            case PT_TRAVEL_MODE:
+            case PRIVATE_BUS_MODE:
+            case PVT_CAR_MODE:
+            case SHARING_MODE:
+            case PVT_BIKE_MODE:
+            case TAXI_MODE:
 			{
 				//todBasedTT is from tcost_bus for modes 1, 2 & 3 and is from tcost_car for modes 4, 5, 6, 7 & 9
 				ttFirstHalfTour.push_back(todBasedTT.getArrivalBasedTT_at(i));
 				ttSecondHalfTour.push_back(todBasedTT.getDepartureBasedTT_at(i));
 				break;
 			}
-			case 8:
+            case WALK_MODE:
 			{
 				if(i>=AM_PEAK_LOW && i<=AM_PEAK_HIGH) // if i is in AM peak period
 				{
@@ -552,11 +516,13 @@ TimeWindowAvailability PredaySystem::predictTourTimeOfDay(Tour& tour)
 		const CostParams* amHT2 = amCostMap.at(primaryStopLoc).at(home);
 		const CostParams* pmHT2 = pmCostMap.at(primaryStopLoc).at(home);
 		const CostParams* opHT2 = opCostMap.at(primaryStopLoc).at(home);
-		switch (tour.getTourMode())
+
+        int tourModeType = cfg.getTravelModeConfig(tour.getTourMode()).type;
+
+        switch (tourModeType)
 		{
-		case 1: // Fall through
-		case 2:
-		case 3:
+        case PT_TRAVEL_MODE:
+        case PRIVATE_BUS_MODE:
 		{	//for Public bus, MRT/LRT, private bus
 			todParams.setCostHt1Am(amHT1->getPubCost());
 			todParams.setCostHt1Pm(pmHT1->getPubCost());
@@ -566,43 +532,21 @@ TimeWindowAvailability PredaySystem::predictTourTimeOfDay(Tour& tour)
 			todParams.setCostHt2Op(opHT2->getPubCost());
 			break;
 		}
-		case 4:
-		{	// drive1
-			double ht1ParkingRate = zoneMap.at(zoneIdLookup.at(primaryStopLoc))->getParkingRate();
+        case PVT_CAR_MODE:
+        case SHARING_MODE:
+        {
+            int numSharing = cfg.getTravelModeConfig(tour.getTourMode()).numSharing;
+            double ht1ParkingRate = zoneMap.at(zoneIdLookup.at(primaryStopLoc))->getParkingRate();
 			double ht2ParkingRate = zoneMap.at(zoneIdLookup.at(home))->getParkingRate();
-			todParams.setCostHt1Am(amHT1->getCarCostErp() + ht1ParkingRate + (amHT1->getDistance()*OPERATIONAL_COST));
-			todParams.setCostHt1Pm(pmHT1->getCarCostErp() + ht1ParkingRate + (pmHT1->getDistance()*OPERATIONAL_COST));
-			todParams.setCostHt1Op(opHT1->getCarCostErp() + ht1ParkingRate + (opHT1->getDistance()*OPERATIONAL_COST));
-			todParams.setCostHt2Am(amHT2->getCarCostErp() + ht2ParkingRate + (amHT2->getDistance()*OPERATIONAL_COST));
-			todParams.setCostHt2Pm(pmHT2->getCarCostErp() + ht2ParkingRate + (pmHT2->getDistance()*OPERATIONAL_COST));
-			todParams.setCostHt2Op(opHT2->getCarCostErp() + ht2ParkingRate + (opHT2->getDistance()*OPERATIONAL_COST));
+            todParams.setCostHt1Am(amHT1->getCarCostErp() + ht1ParkingRate + (amHT1->getDistance()*OPERATIONAL_COST) / numSharing);
+            todParams.setCostHt1Pm(pmHT1->getCarCostErp() + ht1ParkingRate + (pmHT1->getDistance()*OPERATIONAL_COST) / numSharing);
+            todParams.setCostHt1Op(opHT1->getCarCostErp() + ht1ParkingRate + (opHT1->getDistance()*OPERATIONAL_COST) / numSharing);
+            todParams.setCostHt2Am(amHT2->getCarCostErp() + ht2ParkingRate + (amHT2->getDistance()*OPERATIONAL_COST) / numSharing);
+            todParams.setCostHt2Pm(pmHT2->getCarCostErp() + ht2ParkingRate + (pmHT2->getDistance()*OPERATIONAL_COST) / numSharing);
+            todParams.setCostHt2Op(opHT2->getCarCostErp() + ht2ParkingRate + (opHT2->getDistance()*OPERATIONAL_COST) / numSharing);
 			break;
-		}
-		case 5:
-		{	// share2
-			double ht1ParkingRate = zoneMap.at(zoneIdLookup.at(primaryStopLoc))->getParkingRate();
-			double ht2ParkingRate = zoneMap.at(zoneIdLookup.at(home))->getParkingRate();
-			todParams.setCostHt1Am((amHT1->getCarCostErp() + ht1ParkingRate + (amHT1->getDistance()*OPERATIONAL_COST))/2.0);
-			todParams.setCostHt1Pm((pmHT1->getCarCostErp() + ht1ParkingRate + (pmHT1->getDistance()*OPERATIONAL_COST))/2.0);
-			todParams.setCostHt1Op((opHT1->getCarCostErp() + ht1ParkingRate + (opHT1->getDistance()*OPERATIONAL_COST))/2.0);
-			todParams.setCostHt2Am((amHT2->getCarCostErp() + ht2ParkingRate + (amHT2->getDistance()*OPERATIONAL_COST))/2.0);
-			todParams.setCostHt2Pm((pmHT2->getCarCostErp() + ht2ParkingRate + (pmHT2->getDistance()*OPERATIONAL_COST))/2.0);
-			todParams.setCostHt2Op((opHT2->getCarCostErp() + ht2ParkingRate + (opHT2->getDistance()*OPERATIONAL_COST))/2.0);
-			break;
-		}
-		case 6:
-		{	// share3
-			double ht1ParkingRate = zoneMap.at(zoneIdLookup.at(primaryStopLoc))->getParkingRate();
-			double ht2ParkingRate = zoneMap.at(zoneIdLookup.at(home))->getParkingRate();
-			todParams.setCostHt1Am((amHT1->getCarCostErp() + ht1ParkingRate + (amHT1->getDistance()*OPERATIONAL_COST))/3.0);
-			todParams.setCostHt1Pm((pmHT1->getCarCostErp() + ht1ParkingRate + (pmHT1->getDistance()*OPERATIONAL_COST))/3.0);
-			todParams.setCostHt1Op((opHT1->getCarCostErp() + ht1ParkingRate + (opHT1->getDistance()*OPERATIONAL_COST))/3.0);
-			todParams.setCostHt2Am((amHT2->getCarCostErp() + ht2ParkingRate + (amHT2->getDistance()*OPERATIONAL_COST))/3.0);
-			todParams.setCostHt2Pm((pmHT2->getCarCostErp() + ht2ParkingRate + (pmHT2->getDistance()*OPERATIONAL_COST))/3.0);
-			todParams.setCostHt2Op((opHT2->getCarCostErp() + ht2ParkingRate + (opHT2->getDistance()*OPERATIONAL_COST))/3.0);
-			break;
-		}
-		case 7:
+        }
+        case PVT_BIKE_MODE:
 		{	//motorcycle
 			double ht1ParkingRate = zoneMap.at(zoneIdLookup.at(primaryStopLoc))->getParkingRate();
 			double ht2ParkingRate = zoneMap.at(zoneIdLookup.at(home))->getParkingRate();
@@ -614,7 +558,7 @@ TimeWindowAvailability PredaySystem::predictTourTimeOfDay(Tour& tour)
 			todParams.setCostHt2Op(((opHT2->getCarCostErp() + (opHT2->getDistance()*OPERATIONAL_COST))*0.5) + (ht2ParkingRate*0.65));
 			break;
 		}
-		case 8:
+        case WALK_MODE:
 		{	//Walk
 			todParams.setCostHt1Am(0);
 			todParams.setCostHt1Pm(0);
@@ -624,7 +568,7 @@ TimeWindowAvailability PredaySystem::predictTourTimeOfDay(Tour& tour)
 			todParams.setCostHt2Op(0);
 			break;
 		}
-		case 9:
+        case TAXI_MODE:
 		{	//Taxi
 			const ZoneParams* homeZoneParams = zoneMap.at(zoneIdLookup.at(home));
 			const ZoneParams* destZoneParams = zoneMap.at(zoneIdLookup.at(primaryStopLoc));
@@ -678,7 +622,7 @@ TimeWindowAvailability PredaySystem::predictTourTimeOfDay(Tour& tour)
 		todParams.setCostHt2Op(0);
 	}
 
-	timeWndw = PredayLuaProvider::getPredayModel().predictTourTimeOfDay(personParams, todParams, tour.getTourType());
+    timeWndw = PredayLuaProvider::getPredayModel().predictTourTimeOfDay(personParams, activityTypeConfigMap, todParams, tour.getTourType());
 	if(timeWndw == -1)
 	{
 		return TimeWindowAvailability();
@@ -696,7 +640,12 @@ void PredaySystem::constructIntermediateStops(Tour& tour, size_t remainingTours,
 		throw runtime_error(errStrm.str());
 	}
 	//return trivially if possible
-	if ((dayPattern.at("WorkI") + dayPattern.at("EduI") + dayPattern.at("ShopI") + dayPattern.at("OthersI")) <= 0 ) { return; } //No stops
+    int testDPS = 0;
+    for (const auto& dps : dayPatternStops)
+    {
+        testDPS += dps.second;
+    }
+    if (!testDPS)  { return; }
 
 	Stop* primaryStop = tour.stops.front(); // The only stop at this point is the primary activity stop
 
@@ -877,7 +826,7 @@ void PredaySystem::generateIntermediateStops(uint8_t halfTour, Tour& tour, const
 	//initialize isgParams
 	int origin = personParams.getHomeLocation();
 	int destination = primaryStop->getStopLocation();
-	StopGenerationParams isgParams(tour, primaryStop, dayPattern);
+    StopGenerationParams isgParams(tour, primaryStop, dayPatternStops);
 	isgParams.setFirstHalfTour((halfTour==FIRST_HALF_TOUR));
 	isgParams.setNumRemainingTours(remainingTours);
 	if(origin == destination) { isgParams.setDistance(0.0); }
@@ -946,34 +895,15 @@ void PredaySystem::generateIntermediateStops(uint8_t halfTour, Tour& tour, const
 	{
 		isgParams.setNumPreviousStops(stopCounter);
 		choice = PredayLuaProvider::getPredayModel().generateIntermediateStop(personParams, isgParams);
-		if(choice == QUIT_CHOICE_ISG) { break; } //Quit
-		switch(choice)
-		{
-		case WORK_CHOICE_ISG:
-			generatedStop = new Stop(sim_mob::WORK, tour, false /*not primary*/, (halfTour==1) /*in first half tour*/);
-			tour.addStop(generatedStop);
-			break;
-		case EDU_CHOICE_ISG:
-			generatedStop = new Stop(sim_mob::EDUCATION, tour, false /*not primary*/, (halfTour==1) /*in first half tour*/);
-			tour.addStop(generatedStop);
-			break;
-		case SHOP_CHOICE_ISG:
-			generatedStop = new Stop(sim_mob::SHOP, tour, false /*not primary*/, (halfTour==1) /*in first half tour*/);
-			tour.addStop(generatedStop);
-			break;
-		case OTHER_CHOICE_ISG:
-			generatedStop = new Stop(sim_mob::OTHER, tour, false /*not primary*/, (halfTour==1) /*in first half tour*/);
-			tour.addStop(generatedStop);
-			break;
-		default:
-			throw std::runtime_error("invalid choice predicted by ISG model");
-		}
+        if(activityTypeConfigMap.find(choice) == activityTypeConfigMap.end()) { break; } //Quit
+        generatedStop = new Stop(choice, tour, false /*not primary*/, (halfTour==1) /*in first half tour*/);
+        tour.addStop(generatedStop);
 	}
 }
 
 bool PredaySystem::predictStopModeDestination(Stop* stop, int origin)
 {
-	StopModeDestinationParams imdParams(zoneMap, amCostMap, pmCostMap, personParams, stop, origin, unavailableODs);
+    StopModeDestinationParams imdParams(zoneMap, amCostMap, pmCostMap, personParams, stop, origin, numModes, unavailableODs);
 	imdParams.setCbdOrgZone(zoneMap.at(zoneIdLookup.at(origin))->getCbdDummy());
 	int modeDest = PredayLuaProvider::getPredayModel().predictStopModeDestination(personParams, imdParams);
 	if(modeDest == -1)
@@ -986,7 +916,7 @@ bool PredaySystem::predictStopModeDestination(Stop* stop, int origin)
 	int zone_id = imdParams.getDestination(modeDest);
 	stop->setStopLocationId(zone_id);
 	stop->setStopLocation(zoneMap.at(zone_id)->getZoneCode());
-	if(stop->getStopLocation() == origin || stop->getStopMode() > 9 || stop->getStopMode() < 1)
+    if(stop->getStopLocation() == origin || stop->getStopMode() > numModes || stop->getStopMode() < 1)
 	{
 		throw std::runtime_error("o = d || invalid stop mode");
 	}
@@ -1002,6 +932,8 @@ bool PredaySystem::predictStopTimeOfDay(Stop* stop, int destination, bool isBefo
 	stodParams.setCbdOrgZone(zoneMap.at(zoneIdLookup.at(origin))->getCbdDummy());
 	stodParams.setCbdDestZone(zoneMap.at(zoneIdLookup.at(destination))->getCbdDummy());
 
+    const ConfigParams& cfg = ConfigManager::GetInstance().FullConfig();
+
 	if(origin == destination)
 	{
 		for(int i=FIRST_INDEX; i<=LAST_INDEX; i++) { stodParams.travelTimes.push_back(0.0); }
@@ -1013,25 +945,26 @@ bool PredaySystem::predictStopTimeOfDay(Stop* stop, int destination, bool isBefo
 		double amTravelTime = 0;
 		double pmTravelTime = 0;
 		double opTravelTime = 0;
-		switch (stop->getStopMode())
+
+        int stopModeType = cfg.getTravelModeConfig(stop->getStopMode()).type;
+
+        switch (stopModeType)
 		{
-		case 1: // Fall through
-		case 2:
-		case 3:
+        case PT_TRAVEL_MODE:
+        case PRIVATE_BUS_MODE:
 		{
 			tcostDao.getTT_ByOD(TravelTimeMode::TT_PUBLIC, origin, destination, todBasedTT);
 			break;
 		}
-		case 4: // Fall through
-		case 5:
-		case 6:
-		case 7:
-		case 9:
+        case PVT_CAR_MODE:
+        case SHARING_MODE:
+        case PVT_BIKE_MODE:
+        case TAXI_MODE:
 		{
 			tcostDao.getTT_ByOD(TravelTimeMode::TT_PRIVATE, origin, destination, todBasedTT);
 			break;
 		}
-		case 8:
+        case WALK_MODE:
 		{
 			amTravelTime = amCostMap.at(origin).at(destination)->getDistance()/PEDESTRIAN_WALK_SPEED;
 			pmTravelTime = pmCostMap.at(origin).at(destination)->getDistance()/PEDESTRIAN_WALK_SPEED;
@@ -1042,16 +975,14 @@ bool PredaySystem::predictStopTimeOfDay(Stop* stop, int destination, bool isBefo
 
 		for (int i = FIRST_INDEX; i <= LAST_INDEX; i++)
 		{
-			switch (stop->getStopMode())
+            switch (stopModeType)
 			{
-			case 1: // Fall through
-			case 2:
-			case 3:
-			case 4:
-			case 5:
-			case 6:
-			case 7:
-			case 9:
+            case PT_TRAVEL_MODE:
+            case PRIVATE_BUS_MODE:
+            case PVT_CAR_MODE:
+            case SHARING_MODE:
+            case PVT_BIKE_MODE:
+            case TAXI_MODE:
 			{
 				//todBasedTT is from tcost_bus for modes 1, 2 & 3 and is from tcost_car for modes 4, 5, 6, 7 & 9
 				if(stodParams.getFirstBound())
@@ -1064,7 +995,7 @@ bool PredaySystem::predictStopTimeOfDay(Stop* stop, int destination, bool isBefo
 				}
 				break;
 			}
-			case 8:
+            case WALK_MODE:
 			{
 				if(i>=AM_PEAK_LOW && i<=AM_PEAK_HIGH) /*if i is in AM peak period*/
 				{
@@ -1133,30 +1064,29 @@ bool PredaySystem::predictStopTimeOfDay(Stop* stop, int destination, bool isBefo
 				walkDistance = opDoc->getDistance();
 			}
 
-			switch (stop->getStopMode())
-			{
-			case 1: // Fall through
-			case 2:
-			case 3:
+            int stopModeType = cfg.getTravelModeConfig(stop->getStopMode()).type;
+            switch (stopModeType)
+            {
+            case PT_TRAVEL_MODE:
+            case PRIVATE_BUS_MODE:
 			{
 				if(i >= AM_PEAK_LOW && i <= AM_PEAK_HIGH) { stodParams.travelCost.push_back(amDoc->getPubCost()); }
 				else if (i >= PM_PEAK_LOW && i <= PM_PEAK_HIGH) { stodParams.travelCost.push_back(pmDoc->getPubCost()); }
 				else { stodParams.travelCost.push_back(opDoc->getPubCost()); }
 				break;
 			}
-			case 4: // Fall through
-			case 5:
-			case 6:
+            case PVT_CAR_MODE:
+            case SHARING_MODE:
 			{
 				stodParams.travelCost.push_back((costCarParking+costCarOP+costCarERP)/(stop->getStopMode()-3.0));
 				break;
 			}
-			case 7:
+            case PVT_BIKE_MODE:
 			{
 				stodParams.travelCost.push_back((0.5*costCarERP+0.5*costCarOP+0.65*costCarParking)); // these constants 0.5 and 0.65 are from LTA
 				break;
 			}
-			case 9:
+            case TAXI_MODE:
 			{
 				stodParams.travelCost.push_back(
 						TAXI_FLAG_DOWN_PRICE
@@ -1167,7 +1097,7 @@ bool PredaySystem::predictStopTimeOfDay(Stop* stop, int destination, bool isBefo
 						);
 				break;
 			}
-			case 8:
+            case WALK_MODE:
 			{
 				stodParams.travelCost.push_back(0);
 				break;
@@ -1190,29 +1120,29 @@ bool PredaySystem::predictStopTimeOfDay(Stop* stop, int destination, bool isBefo
 			costCarOP = 0;
 			walkDistance = 0;
 
-			switch (stop->getStopMode()) {
-			case 1: // Fall through
-			case 2:
-			case 3:
+            int stopModeType = cfg.getTravelModeConfig(stop->getStopMode()).type;
+            switch (stopModeType)
+            {
+            case PT_TRAVEL_MODE:
+            case PRIVATE_BUS_MODE:
 			{
 				if(i >= AM_PEAK_LOW && i <= AM_PEAK_HIGH) { stodParams.travelCost.push_back(0); }
 				else if (i >= PM_PEAK_LOW && i <= PM_PEAK_HIGH) { stodParams.travelCost.push_back(0); }
 				else { stodParams.travelCost.push_back(0); }
 				break;
 			}
-			case 4: // Fall through
-			case 5:
-			case 6:
+            case PVT_CAR_MODE:
+            case SHARING_MODE:
 			{
 				stodParams.travelCost.push_back((costCarParking+costCarOP+costCarERP)/(stop->getStopMode()-3.0));
 				break;
 			}
-			case 7:
+            case PVT_BIKE_MODE:
 			{
 				stodParams.travelCost.push_back((0.5*costCarERP+0.5*costCarOP+0.65*costCarParking));
 				break;
 			}
-			case 9:
+            case TAXI_MODE:
 			{
 				stodParams.travelCost.push_back(
 						TAXI_FLAG_DOWN_PRICE
@@ -1223,7 +1153,8 @@ bool PredaySystem::predictStopTimeOfDay(Stop* stop, int destination, bool isBefo
 						);
 				break;
 			}
-			case 8: {
+            case WALK_MODE:
+            {
 				stodParams.travelCost.push_back(0);
 				break;
 			}
@@ -1254,11 +1185,11 @@ double PredaySystem::fetchTravelTime(int origin, int destination, int mode,  boo
 	double travelTime = 0.0;
 	if(origin != destination)
 	{
-		switch(mode)
-		{
-		case 1: // Fall through
-		case 2:
-		case 3:
+        int modeType = ConfigManager::GetInstance().FullConfig().getTravelModeConfig(mode).type;
+        switch (modeType)
+        {
+        case PT_TRAVEL_MODE:
+        case PRIVATE_BUS_MODE:
 		{
 			TimeDependentTT_Params todBasedTT;
 			tcostDao.getTT_ByOD(TravelTimeMode::TT_PUBLIC, origin, destination, todBasedTT);
@@ -1272,11 +1203,10 @@ double PredaySystem::fetchTravelTime(int origin, int destination, int mode,  boo
 			}
 			break;
 		}
-		case 4: // Fall through
-		case 5:
-		case 6:
-		case 7:
-		case 9:
+        case PVT_CAR_MODE:
+        case SHARING_MODE:
+        case PVT_BIKE_MODE:
+        case TAXI_MODE:
 		{
 			TimeDependentTT_Params todBasedTT;
 			tcostDao.getTT_ByOD(TravelTimeMode::TT_PRIVATE, origin, destination, todBasedTT);
@@ -1290,7 +1220,7 @@ double PredaySystem::fetchTravelTime(int origin, int destination, int mode,  boo
 			}
 			break;
 		}
-		case 8:
+        case WALK_MODE:
 		{
 			CostParams* costObj = nullptr;
 			if(timeIdx>=AM_PEAK_LOW && timeIdx<=AM_PEAK_HIGH) // if i is in AM peak period
@@ -1423,48 +1353,58 @@ void PredaySystem::constructTours() {
 		throw std::runtime_error("Tours cannot be constructed before predicting number of tours for each tour type");
 	}
 
-	//Construct work tours
-	bool firstOfMultiple = true;
-	for(int i=0; i<numTours["WorkT"]; i++) {
-		bool attendsUsualWorkLocation = false;
-		if(!(personParams.isStudent() == 1) && (personParams.getFixedWorkLocation() != 0)) {
-			//if person not a student and has a fixed work location
-			attendsUsualWorkLocation = predictUsualWorkLocation(firstOfMultiple); // Predict if this tour is to a usual work location
-			firstOfMultiple = false;
-		}
-		Tour workTour(WORK);
-		workTour.setUsualLocation(attendsUsualWorkLocation);
-		if(attendsUsualWorkLocation) {
-			workTour.setTourDestination(personParams.getFixedWorkLocation());
-		}
-		tours.push_back(workTour);
-	}
-
-	// Construct education tours
-	for(int i=0; i<numTours["EduT"]; i++) {
-		Tour eduTour(EDUCATION);
-		eduTour.setUsualLocation(true); // Education tours are always to usual locations
-		eduTour.setTourDestination(personParams.getFixedSchoolLocation());
-		if(personParams.isStudent()) {
-			// if the person is a student, his education tours should be processed before other tour types.
-			tours.push_front(eduTour); // if the person is a student, his education tours should be processed before other tour types.
-		}
-		else {
-			tours.push_back(eduTour);
-		}
-	}
-
-	// Construct shopping tours
-	for(int i=0; i<numTours["ShopT"]; i++) {
-		Tour shopTour(SHOP);
-		tours.push_back(shopTour);
-	}
-
-	// Construct other tours
-	for(int i=0; i<numTours["OthersT"]; i++) {
-		Tour otherTour(OTHER);
-		tours.push_back(otherTour);
-	}
+    for (int tourType = 1; tourType <= numTours.size(); ++tourType)
+    {
+        int tourGroup = activityTypeConfigMap.at(tourType).type;
+        switch(tourGroup)
+        {
+        case WORK_ACTIVITY_TYPE:
+        {
+            bool firstOfMultiple = false;
+            for (int j = 0; j < numTours.at(tourType); ++j)
+            {
+                bool attendsUsualWorkLocation = false;
+                if(!(personParams.isStudent() == 1) && (personParams.getFixedWorkLocation() != 0)) {
+                    //if person not a student and has a fixed work location
+                    attendsUsualWorkLocation = predictUsualWorkLocation(firstOfMultiple); // Predict if this tour is to a usual work location
+                    firstOfMultiple = false;
+                }
+                Tour workTour(tourType);
+                workTour.setUsualLocation(attendsUsualWorkLocation);
+                if(attendsUsualWorkLocation) {
+                    workTour.setTourDestination(personParams.getFixedWorkLocation());
+                }
+                tours.push_back(workTour);
+            }
+            break;
+        }
+        case EDUCATION_ACTIVITY_TYPE:
+        {
+            // Construct education tours
+            for(int j=0; j<numTours.at(tourType); ++j) {
+                Tour eduTour(tourType);
+                eduTour.setUsualLocation(true); // Education tours are always to usual locations
+                eduTour.setTourDestination(personParams.getFixedSchoolLocation());
+                if(personParams.isStudent()) {
+                    // if the person is a student, his education tours should be processed before other tour types.
+                    tours.push_front(eduTour); // if the person is a student, his education tours should be processed before other tour types.
+                }
+                else {
+                    tours.push_back(eduTour);
+                }
+            }
+            break;
+        }
+        case OTHER_ACTIVITY_TYPE:
+        {
+            for(int j=0; j<numTours.at(tourType); ++j) {
+                Tour tour(tourType);
+                tours.push_back(tour);
+            }
+            break;
+        }
+        }
+    }
 }
 
 void PredaySystem::planDay()
@@ -1474,18 +1414,30 @@ void PredaySystem::planDay()
 	//Predict day pattern
 	logStream << "Person: " << personParams.getPersonId() << "| home: " << personParams.getHomeLocation();
 	logStream << "| Day Pattern: ";
-	PredayLuaProvider::getPredayModel().predictDayPattern(personParams, dayPattern);
-	if (dayPattern.empty())
+    PredayLuaProvider::getPredayModel().predictDayPattern(personParams, activityTypeConfigMap, dayPatternTours, dayPatternStops);
+    if (dayPatternTours.empty() || dayPatternStops.empty())
 	{
 		throw std::runtime_error("Cannot invoke number of tours model without a day pattern");
-	}
-	logStream << dayPattern["WorkT"] << dayPattern["EduT"] << dayPattern["ShopT"] << dayPattern["OthersT"] << dayPattern["WorkI"] << dayPattern["EduI"]
-			<< dayPattern["ShopI"] << dayPattern["OthersI"];
+    }
+
+    for (int i = 1; i <= dayPatternTours.size(); ++i)
+    {
+        logStream << dayPatternTours.at(i);
+    }
+
+    for (int i = 1; i <= dayPatternStops.size(); ++i)
+    {
+        logStream << dayPatternStops.at(i);
+    }
 
 	//Predict number of Tours
 	logStream << "| Num. Tours: ";
-	PredayLuaProvider::getPredayModel().predictNumTours(personParams, dayPattern, numTours);
-	logStream << numTours["WorkT"] << numTours["EduT"] << numTours["ShopT"] << numTours["OthersT"];
+    PredayLuaProvider::getPredayModel().predictNumTours(personParams, activityTypeConfigMap, dayPatternTours, numTours);
+
+    for (int i = 1; i <= numTours.size(); ++i)
+    {
+        logStream << numTours.at(i);
+    }
 
 	//Construct tours.
 	constructTours();
@@ -1543,7 +1495,7 @@ void PredaySystem::planDay()
 		personParams.blockTime(timeWindow.getStartTime(), timeWindow.getEndTime());
 
 		//Generate sub tours for work tours
-		if (tour.getTourType() == sim_mob::WORK)
+        if (activityTypeConfigMap.at(tour.getTourType()).type == WORK_ACTIVITY_TYPE)
 		{
 			predictSubTours(tour);
 		}
@@ -1615,22 +1567,27 @@ long sim_mob::medium::PredaySystem::getFirstNodeInZone(const std::vector<ZoneNod
 
 void sim_mob::medium::PredaySystem::computeLogsums()
 {
+    const ConfigParams& cfg = ConfigManager::GetInstance().FullConfig();
 	if(personParams.hasFixedWorkPlace())
 	{
 		TourModeParams tmParams;
-		constructTourModeParams(tmParams, personParams.getFixedWorkLocation(), WORK);
-		PredayLuaProvider::getPredayModel().computeTourModeLogsum(personParams, tmParams);
+        constructTourModeParams(tmParams, personParams.getFixedWorkLocation(), cfg.getActivityTypeId("Work"));
+        PredayLuaProvider::getPredayModel().computeTourModeLogsum(personParams, activityTypeConfigMap, tmParams);
 	}
-	TourModeDestinationParams tmdParams(zoneMap, amCostMap, pmCostMap, personParams, NULL_STOP, unavailableODs);
+    TourModeDestinationParams tmdParams(zoneMap, amCostMap, pmCostMap, personParams, NULL_STOP, numModes, unavailableODs);
 	tmdParams.setCbdOrgZone(zoneMap.at(zoneIdLookup.at(personParams.getHomeLocation()))->getCbdDummy());
-	PredayLuaProvider::getPredayModel().computeTourModeDestinationLogsum(personParams, tmdParams);
+    PredayLuaProvider::getPredayModel().initializeLogsums(personParams, activityTypeConfigMap);
+    PredayLuaProvider::getPredayModel().computeTourModeDestinationLogsum(personParams, activityTypeConfigMap, tmdParams, zoneMap.size());
 	PredayLuaProvider::getPredayModel().computeDayPatternLogsums(personParams);
 
-	logStream << "Person: " << personParams.getPersonId()
-			<< "|updated logsums- work: " << personParams.getWorkLogSum()
-			<< ", shop: " << personParams.getShopLogSum()
-			<< ", other: " << personParams.getOtherLogSum()
-			<< ", dpt: " << personParams.getDptLogsum()
+    logStream << "Person: " << personParams.getPersonId() << "|updated logsums- ";
+
+    for (int i = 1; i <= activityTypeConfigMap.size(); ++i)
+    {
+        logStream << activityTypeConfigMap.at(i).name << ": " << personParams.getActivityLogsum(i) << ", ";
+    }
+
+    logStream << "dpt: " << personParams.getDptLogsum()
 			<< ", dps: " << personParams.getDpsLogsum()
 			<<std::endl;
 }
@@ -1653,6 +1610,9 @@ void sim_mob::medium::PredaySystem::outputActivityScheduleToStream(const ZoneNod
 	if (numTours == 0) { return; }
 	std::string personId = personParams.getPersonId();
 	long hhFactor = (long)std::ceil(personParams.getHouseholdFactor());
+
+    const ConfigParams& cfg = ConfigManager::GetInstance().FullConfig();
+
 	for(long k=1; k<=hhFactor; k++)
 	{
 		int homeZone = personParams.getHomeLocation();
@@ -1700,8 +1660,8 @@ void sim_mob::medium::PredaySystem::outputActivityScheduleToStream(const ZoneNod
 				currStopZone = stop->getStopLocation();
 				currStopNode = 0;
 				if(stop->isPrimaryActivity() && tour.isUsualLocation() &&
-						((stop->getStopType() == sim_mob::WORK && personParams.getFixedWorkLocation() != 0)
-								|| (stop->getStopType() == sim_mob::EDUCATION && personParams.getFixedSchoolLocation() != 0)))
+                        ((activityTypeConfigMap.at(stop->getStopType()).type == WORK_ACTIVITY_TYPE && personParams.getFixedWorkLocation() != 0)
+                                || ((activityTypeConfigMap.at(stop->getStopType()).type == EDUCATION_ACTIVITY_TYPE && personParams.getFixedSchoolLocation() != 0))))
 				{
 					currStopNode = personParams.getSimMobNodeForAddressId(personParams.getActivityAddressId());
 				}
@@ -1742,7 +1702,7 @@ void sim_mob::medium::PredaySystem::outputActivityScheduleToStream(const ZoneNod
 						<< stop->getStopTypeStr() << ","
 						<< currStopNode << ","
 						<< currStopZone << ","
-						<< modeMap.at(stop->getStopMode()) << ","
+                        << cfg.getTravelModeStr(stop->getStopMode()) << ","
 						<< (stop->isPrimaryActivity()? "True":"False")  << ","
 						<< getTimeWindowFromIndex(stop->getArrivalTime()) << ","
 						<< currStopEndTime << ","
@@ -1769,7 +1729,7 @@ void sim_mob::medium::PredaySystem::outputActivityScheduleToStream(const ZoneNod
 						<< "Home" << ","
 						<< homeNode << ","
 						<< homeZone << ","
-						<< modeMap.at(tour.getTourMode()) << ","
+                        << cfg.getTravelModeStr(tour.getTourMode()) << ","
 						<< "False"  << ","
 						<< getTimeWindowFromIndex(tour.getEndTime()) << ","
 						<< homeActivityEndTime << ","

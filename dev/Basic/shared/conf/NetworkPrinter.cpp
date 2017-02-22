@@ -65,6 +65,8 @@ void NetworkPrinter::printNetwork(const RoadNetwork *network) const
 	
 	printBusStops(network->getMapOfIdvsBusStops());
 
+	printTrafficSensors(network->getMapOfIdVsTrafficSensors());
+
 	//Required for the visualiser
 	out << "ROADNETWORK_DONE" << std::endl;
 }
@@ -278,6 +280,29 @@ void NetworkPrinter::printBusStops(const std::map<unsigned int, BusStop *> &stop
 		out << "})\n";
 	}
 	
+	printToFile(out);
+}
+
+void NetworkPrinter::printTrafficSensors(const std::map<unsigned int, TrafficSensor *> &sensors) const
+{
+	std::stringstream out;
+	out << std::setprecision(8);
+
+	for(std::map<unsigned int, TrafficSensor *>::const_iterator it = sensors.begin(); it != sensors.end(); ++it)
+	{
+		const TrafficSensor *sensor = it->second;
+		out << "(\"sensor\", 0, " << sensor->getSensorId() << ", {";
+		out << "\"type\":\"" << sensor->getSensorType() << "\",";
+		out << "\"task_code\":\"" << sensor->getTaskCode() << "\",";
+		out << "\"zone-length\":\"" << sensor->getZoneLength() << "\",";
+		out << "\"segment\":\"" << sensor->getSegmentId() << "\",";
+		out << "\"offset\":\"" << sensor->getOffsetDistance() << "\",";
+		out << "\"work-prob\":\"" << sensor->getWorkingProbability() << "\",";
+		out << "\"lane\":\"" << sensor->getLaneId() << "\",";
+		out << "\"signal-id\":\"" << sensor->getTrafficLightId() << "\",";
+		out << "})\n";
+	}
+
 	printToFile(out);
 }
 

@@ -82,6 +82,12 @@ private:
 	void printBusStops(const std::map<unsigned int, BusStop *> &stops) const;
 
 	/**
+	 * Prints the traffic sensors
+	 * @param sensors map of id vs sensors
+	 */
+	void printTrafficSensors(const std::map<unsigned int, TrafficSensor *> &sensors) const;
+
+	/**
 	 * This method prints the stream to the output file.
      * @param str the stream to be written
      */

@@ -109,10 +109,15 @@
     </constructs>
 
     <simulation>
+        <!-- Reasonable values for ShortTerm -->
+        <!-- <base_granularity   value="100"   units="ms"/> -->
+        <!-- <total_runtime      value="14"      units="minutes" /> -->
+
+        <!-- Reasonable values for MidTerm -->
         <base_granularity   value="5"   units="seconds"/>
         <total_runtime      value="1439"      units="minutes" />
+
         <total_warmup       value="10"     units="seconds" />
-       
         <start_time         value="00:00:00"/>
 
         <!--Indicates the percentage of drivers that will use in-simulation travel times rather than the historical travel times-->

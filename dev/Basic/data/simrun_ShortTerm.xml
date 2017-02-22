@@ -185,7 +185,7 @@
 			<!-- The first valid path is used. -->
 			<road_network>
 				<option value="shared/geospatial/xmlLoader/geo10.xsd"/>     <!-- Running from dev/Basic or from Eclipse -->
-				<option value="..shared/geospatial/xmlLoader/geo10.xsd"/>  <!-- Running from dev/Basic/Debug or dev/Basic/Release -->
+				<option value="../shared/geospatial/xmlLoader/geo10.xsd"/>  <!-- Running from dev/Basic/Debug or dev/Basic/Release -->
 			</road_network>
 		</xsd_schema_files>
         

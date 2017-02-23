@@ -505,7 +505,7 @@ int StopModeDestinationParams::isAvailable_IMD(int choiceId) const
 	{ return 0; } // destination is unavailable due to lack of cost data
 
     int choiceModeType = ConfigManager::GetInstance().FullConfig().getTravelModeConfig(getMode(choiceId)).type;
-    int tourModeType = ConfigManager::GetInstance().FullConfig().getActivityTypeConfig(tourMode).type;
+    int tourModeType = ConfigManager::GetInstance().FullConfig().getTravelModeConfig(tourMode).type;
 
     switch(choiceModeType)
     {

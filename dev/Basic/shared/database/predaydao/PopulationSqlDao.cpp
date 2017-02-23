@@ -195,6 +195,7 @@ void SimmobSqlDao::fromRow(db::Row& result, PersonParams& outObj)
     for (const auto& column : activityLogsumColumns)
     {
         outObj.setActivityLogsum(activityType, result.get<double>(column));
+        ++activityType;
     }
     outObj.setDptLogsum(result.get<double>(DB_FIELD_DPT_LOGSUM));
 	outObj.setDpsLogsum(result.get<double>(DB_FIELD_DPS_LOGSUM));

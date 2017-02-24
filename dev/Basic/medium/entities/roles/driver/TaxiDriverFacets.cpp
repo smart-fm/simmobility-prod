@@ -18,6 +18,10 @@ namespace sim_mob
 
 namespace medium
 {
+
+/**define the threshold for long time waiting, timeout is 15 minutes in seconds*/
+const double timeoutForLongWaiting = 15*60;
+
 TaxiDriverMovement::TaxiDriverMovement()
 {
 }
@@ -192,7 +196,7 @@ bool TaxiDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 
 	if (parentTaxiDriver->getDriverMode() == CRUISE)
 	{
-		if(cruisingTooLongTime > 15*60)
+		if(cruisingTooLongTime > timeoutForLongWaiting)
 		{
 			cruisingTooLongTime = 0.0;
 			const PolyPoint point = currSegStat->getRoadSegment()->getPolyLine()->getLastPoint();
@@ -310,7 +314,7 @@ void TaxiDriverMovement::frame_tick()
 					}
 				}
 			}
-			else if(queuingTooLongTime>15*60)
+			else if(queuingTooLongTime>timeoutForLongWaiting)
 			{
 				setCruisingMode();
 				parentTaxiDriver->getResource()->setMoving(true);
@@ -613,22 +617,6 @@ void TaxiDriverMovement::addTaxiStandPath(vector<WayPoint> &routeToTaxiStand)
 	}
 	pathMover.setPath(path);
 	pathMover.setSegmentStatIterator(currSegStat);
-	/*const SegmentStats* currSegStat = pathMover.getCurrSegStats();
-	const Link *currSegmentParentLink = currSegStat->getRoadSegment()->getParentLink();
-	const RoadSegment * currRoadSegment = currSegStat->getRoadSegment();
-	const std::vector<const SegmentStats*> currPathSegs = pathMover.getPath();
-	pathMover.erasePathAfterCurrenrLink();
-	pathMover.appendRoute(routeToTaxiStand);
-	const RoadSegment *roadSegment = destinationTaxiStand->getRoadSegment();
-	const Link * parentLink = roadSegment->getParentLink();
-	Node * toNode = parentLink->getToNode();
-	Conflux *conflux = Conflux::getConfluxFromNode(toNode);
-	const std::vector<RoadSegment*>& roadSegments = parentLink->getRoadSegments();
-	std::vector<RoadSegment*> roadSegmentTillTaxiStand;
-	std::vector<RoadSegment*>::const_iterator rdSegItr = std::find(roadSegments.begin(), roadSegments.end(), roadSegment);
-	roadSegmentTillTaxiStand.insert(roadSegmentTillTaxiStand.end(),roadSegments.begin(), rdSegItr + 1);
-	pathMover.appendSegmentStats(roadSegmentTillTaxiStand, conflux);
-	pathMover.setSegmentStatIterator(currSegStat);*/
 }
 
 bool TaxiDriverMovement::isToBeRemovedFromTaxiStand()

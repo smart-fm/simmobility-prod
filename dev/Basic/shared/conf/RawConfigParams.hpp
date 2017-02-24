@@ -64,6 +64,7 @@ struct LongTermParams
 		int bidderBTOUnitsChoiceSet;
 		int householdBiddingWindow;
 		float householdAwakeningPercentageByBTO;
+		int offsetBetweenUnitBuyingAndSellingAdvancedPurchase;
 
 		struct AwakeningModel
 		{
@@ -73,6 +74,8 @@ struct LongTermParams
 			bool awakenModelJingsi;
 			bool awakenModelShan;
 			bool awakenModelRandom;
+			int awakeningOffMarketSuccessfulBid;
+			int awakeningOffMarketUnsuccessfulBid;
 		} awakeningModel;
 	} housingModel;
 
@@ -101,6 +104,40 @@ struct LongTermParams
 		bool enabled;
 		unsigned int schoolChangeWaitingTimeInDays;
 	}schoolAssignmentModel;
+
+
+	struct OutputFiles{
+
+		OutputFiles();
+        bool bids;
+        bool expectations;
+        bool parcels;
+        bool units;
+        bool projects;
+        bool hh_pc;
+        bool units_in_market;
+        bool log_taxi_availability;
+        bool log_vehicle_ownership;
+        bool log_taz_level_logsum;
+        bool log_householdgrouplogsum;
+        bool log_individual_hits_logsum;
+        bool log_householdbidlist;
+        bool log_individual_logsum_vo;
+        bool log_screeningprobabilities;
+        bool log_hhchoiceset;
+        bool log_error;
+        bool log_school_assignment;
+        bool log_pre_school_assignment;
+        bool log_hh_awakening;
+        bool log_hh_exit;
+        bool log_random_nums;
+        bool log_dev_roi;
+        bool log_household_statistics;
+        bool log_out_xx_files;
+        bool enabled;
+
+	}outputFiles;
+
 };
 
 ///represent the incident data section of the config file
@@ -153,28 +190,36 @@ struct WalkingTimeParams{
 /**
  * Represents a Person's Characteristic in the config file. (NOTE: Further documentation needed.)
  */
-struct PersonCharacteristics {
-	PersonCharacteristics() : lowerAge(0), upperAge(0), lowerSecs(0), upperSecs(0) {}
+struct PersonCharacteristics
+{
+	PersonCharacteristics() : lowerAge(0), upperAge(0), lowerSecs(0), upperSecs(0), walkSpeed(0.0)
+	{
+	}
 
 	unsigned int lowerAge; // lowerAge
 	unsigned int upperAge; // upperAge
-	int lowerSecs;// lowerSecs
-	int upperSecs;// upperSecs
-};
+	int lowerSecs; // lowerSecs
+	int upperSecs; // upperSecs
+	double walkSpeed; //walking speed in m/s
+} ;
 
 /**
  * represent the person characteristics data section of the config file
  */
-struct PersonCharacteristicsParams {
+struct PersonCharacteristicsParams
+{
+	PersonCharacteristicsParams() : lowestAge(100), highestAge(0), DEFAULT_LOWER_SECS(3), DEFAULT_UPPER_SECS(10)
+	{
+	}
 
-	PersonCharacteristicsParams() : lowestAge(100), highestAge(0), DEFAULT_LOWER_SECS(3), DEFAULT_UPPER_SECS(10) {}
 	int lowestAge;
 	int highestAge;
 	const int DEFAULT_LOWER_SECS;
 	const int DEFAULT_UPPER_SECS;
-    ///Some settings for person characteristics(age range, boarding alighting secs)
+	
+	///Some settings for person characteristics(age range, boarding alighting secs)
 	std::map<int, PersonCharacteristics> personCharacteristics;
-};
+} ;
 
 /**
  * Represents the "Constructs" section of the config file.
@@ -493,7 +538,7 @@ struct TrainControllerParams
     bool outputEnabled;
     /// train capacity
     unsigned int maxCapacity;
-	unsigned int trainLength;
+
 	double distanceArrivingAtPlatform;
     std::map<const std::string,TrainProperties> trainLinePropertiesMap;
 };

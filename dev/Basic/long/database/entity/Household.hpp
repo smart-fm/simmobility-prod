@@ -18,6 +18,76 @@ namespace sim_mob
 {
     namespace long_term
     {
+		class HouseholdStatistics
+		{
+			public:
+				HouseholdStatistics(): 	 maleChild(0),
+										 femaleChild(0),
+										 maleAdultYoung(0),
+										 femaleAdultYoung(0),
+										 maleAdultMiddleAged(0),
+										 femaleAdultMiddleAged(0),
+										 maleAdultElderly(0),
+										 femaleAdultElderly(0),
+										 adultSingaporean(0),
+										 maleChild_global(0),
+										 femaleChild_global(0),
+										 maleAdultYoung_global(0),
+										 femaleAdultYoung_global(0),
+										 maleAdultMiddleAged_global(0),
+										 femaleAdultMiddleAged_global(0),
+										 maleAdultElderly_global(0),
+										 femaleAdultElderly_global(0),
+										 adultSingaporean_global(0),
+										 coupleAndChild(0),
+										 siblingsAndParents(0),
+										 singleParent(0),
+										 engagedCouple(0),
+										 orphanSiblings(0),
+										 multigeneration(0)
+										{}
+
+				void ResetLocal()
+				{
+					maleChild = 0;
+					femaleChild = 0;
+					maleAdultYoung = 0;
+					femaleAdultYoung = 0;
+					maleAdultMiddleAged = 0;
+					femaleAdultMiddleAged = 0;
+					maleAdultElderly = 0;
+					femaleAdultElderly = 0;
+					adultSingaporean = 0;
+				}
+
+				int maleChild;
+				int femaleChild;
+				int maleAdultYoung;
+				int femaleAdultYoung;
+				int maleAdultMiddleAged;
+				int femaleAdultMiddleAged;
+				int maleAdultElderly;
+				int femaleAdultElderly;
+				int adultSingaporean;
+				int maleChild_global;
+				int femaleChild_global;
+				int maleAdultYoung_global;
+				int femaleAdultYoung_global;
+				int maleAdultMiddleAged_global;
+				int femaleAdultMiddleAged_global;
+				int maleAdultElderly_global;
+				int femaleAdultElderly_global;
+				int adultSingaporean_global;
+
+				int coupleAndChild;
+				int siblingsAndParents;
+				int singleParent;
+				int engagedCouple;
+				int orphanSiblings;
+				int multigeneration;
+		};
+
+
         class Household
         {
         public:
@@ -26,7 +96,7 @@ namespace sim_mob
             Household( BigSerial id, BigSerial lifestyleId, BigSerial unitId, BigSerial ethnicityId, BigSerial vehicleCategoryId,  int size, int childUnder4, int childUnder15, int adult, double income,
             		   int housingDuration,int workers, int ageOfHead, int pendingStatusId,std::tm pendingFromDate,int unitPending,bool twoRoomHdbEligibility, bool threeRoomHdbEligibility,
 					   bool fourRoomHdbEligibility, int familyType, bool taxiAvailability, int vehicleOwnershipOptionId, double logsum, double currentUnitPrice, double householdAffordabilityAmount,
-					   int buySellInterval, std::tm moveInDate,int timeOnMarket,int timeOffMarket,int isBidder,int isSeller,int hasMoved, int tenureStatus,int awakenedDay,bool existInDB);
+					   int buySellInterval, std::tm moveInDate,int timeOnMarket,int timeOffMarket,int isBidder,int isSeller,int hasMoved, int tenureStatus,int awakenedDay,bool existInDB,int lastAwakenedDay,int lastBidStatus);
 
             virtual ~Household();
 
@@ -84,6 +154,10 @@ namespace sim_mob
 			void	setCurrentUnitPrice( double value);
 			double	getCurrentUnitPrice() const;
 
+
+			int getLastAwakenedDay();
+			void setLastAwakenedDay(int lastAwknedDay);
+
 			int getBuySellInterval() const;
 			int getTimeOffMarket() const ;
 			int getTimeOnMarket() const;
@@ -114,6 +188,12 @@ namespace sim_mob
 			void setHasMoved(int hasMove);
 			void setAwakenedDay(int awakenDay);
 			void setExistInDB(bool exist);
+
+			int getLastBidStatus() const;
+			void setLastBidStatus(int lastBidStatus);
+
+			void setHouseholdStats(HouseholdStatistics stats);
+			HouseholdStatistics getHouseholdStats();
 
 
 			enum FAMILY_TYPE
@@ -177,76 +257,11 @@ namespace sim_mob
 			int awakenedDay;
 			bool existInDB;
 
-        };
+			int lastAwakenedDay;
+			int lastBidStatus;
 
+			HouseholdStatistics householdStats;
 
-        class HouseholdStatistics
-        {
-        	public:
-        		HouseholdStatistics(): 	 maleChild(0),
-										 femaleChild(0),
-										 maleAdultYoung(0),
-										 femaleAdultYoung(0),
-										 maleAdultMiddleAged(0),
-										 femaleAdultMiddleAged(0),
-										 maleAdultElderly(0),
-										 femaleAdultElderly(0),
-										 adultSingaporean(0),
-										 maleChild_global(0),
-										 femaleChild_global(0),
-										 maleAdultYoung_global(0),
-										 femaleAdultYoung_global(0),
-										 maleAdultMiddleAged_global(0),
-										 femaleAdultMiddleAged_global(0),
-										 maleAdultElderly_global(0),
-										 femaleAdultElderly_global(0),
-										 adultSingaporean_global(0),
-										 coupleAndChild(0),
-										 siblingsAndParents(0),
-										 singleParent(0),
-										 engagedCouple(0),
-										 orphanSiblings(0),
-										 multigeneration(0)
-        								{}
-
-        		void ResetLocal()
-        		{
-        			maleChild = 0;
-        			femaleChild = 0;
-        			maleAdultYoung = 0;
-        			femaleAdultYoung = 0;
-        			maleAdultMiddleAged = 0;
-        			femaleAdultMiddleAged = 0;
-        			maleAdultElderly = 0;
-        			femaleAdultElderly = 0;
-        			adultSingaporean = 0;
-        		}
-
-				int maleChild;
-				int femaleChild;
-				int maleAdultYoung;
-				int femaleAdultYoung;
-				int maleAdultMiddleAged;
-				int femaleAdultMiddleAged;
-				int maleAdultElderly;
-				int femaleAdultElderly;
-				int adultSingaporean;
-				int maleChild_global;
-				int femaleChild_global;
-				int maleAdultYoung_global;
-				int femaleAdultYoung_global;
-				int maleAdultMiddleAged_global;
-				int femaleAdultMiddleAged_global;
-				int maleAdultElderly_global;
-				int femaleAdultElderly_global;
-				int adultSingaporean_global;
-
-				int coupleAndChild;
-				int siblingsAndParents;
-				int singleParent;
-				int engagedCouple;
-				int orphanSiblings;
-				int multigeneration;
         };
     }
 }

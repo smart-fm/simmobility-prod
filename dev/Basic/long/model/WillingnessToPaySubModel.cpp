@@ -7,6 +7,7 @@
  *
  *  Created on: 29 Jan 2016
  *  Author: Chetan Rogbeer <chetan.rogbeer@smart.mit.edu>
+ *  Modelling constants:    Roberto Lopez <rponcelo@mit.edu> 	
  */
 
 #include "database/entity/PostcodeAmenities.hpp"
@@ -92,40 +93,28 @@ namespace sim_mob
 			ageOfUnitPrivate = HITS_SURVEY_YEAR  - 1900 + ( day / 365 ) - unit->getOccupancyFromDate().tm_year;
 
 			ZZ_ageOfUnitPrivate	 = ageOfUnitPrivate;
-			ZZ_ageBet25And50 = 0;
-			ZZ_ageGreater50  = 0;
 			ZZ_missingAge    = 0;
 			ZZ_freehold 	 = 0;
 
-			if( ageOfUnitPrivate > 25 )
-				ZZ_ageOfUnitPrivate = 25;
+			if( ageOfUnitPrivate > 50 )
+				ZZ_ageOfUnitPrivate = 50;
 
 			if( ageOfUnitPrivate < 0 )
 				ZZ_ageOfUnitPrivate = 0;
 
 			ZZ_ageOfUnitPrivate = ZZ_ageOfUnitPrivate / 10.0;
 
-			if( ageOfUnitPrivate > 25 && ageOfUnitPrivate < 50)
-				ZZ_ageBet25And50 = 1;
-
-			if( ageOfUnitPrivate > 50 )
-				ZZ_ageGreater50 = 1;
-
-
 			ageOfUnitHDB = HITS_SURVEY_YEAR - 1900 + ( day / 365 ) - unit->getOccupancyFromDate().tm_year;
 			ZZ_ageOfUnitHDB	 = ageOfUnitHDB;
-			ZZ_ageGreater30  = 0;
 
-			if( ageOfUnitHDB > 30 )
-				ZZ_ageOfUnitHDB = 30;
+			if( ageOfUnitHDB > 40 )
+				ZZ_ageOfUnitHDB = 40;
 
 			if( ageOfUnitHDB  < 0 )
 				ZZ_ageOfUnitHDB = 0;
 
 			ZZ_ageOfUnitHDB = ZZ_ageOfUnitHDB / 10.0;
 
-			if( ageOfUnitHDB > 30 )
-				ZZ_ageGreater30 = 1;
 		}
 
 		void WillingnessToPaySubModel::GetLogsum(HM_Model *model, const Household *household, int day)
@@ -290,7 +279,7 @@ namespace sim_mob
 		{
 			double V;
 
-			const PostcodeAmenities *pcAmenities = DataManagerSingleton::getInstance().getAmenitiesById( unit->getSlaAddressId() );
+			const PostcodeAmenities *pcAmenities = DataManagerSingleton::getInstance().getAmenitiesById( model->getUnitSlaAddressId( unit->getId() ) );
 
 			int unitType = unit->getUnitType();
 
@@ -315,27 +304,23 @@ namespace sim_mob
 			//We use a separate list of coefficients for HDB units.
 			if( unitType <= 6  || unitType == 65 )
 			{
-				sde 	 = 0.05;
-				barea 	 = 1.8015720108;
-				blogsum	 = 3.9195477998;
-				bsizearea=-0.0169852462;
-				//bchin 	 = 0.0555546991;
-				//bmalay 	 = -0.0056135472;
-				//bHighInc = 0.0229342784;
-
-				bcar	= -5.9210886427;
-				bcarlgs	= 1.1602061059;
+				sde			=  0.2079816511;
+				barea		=  1.3174741336;
+				blogsum		=  5.6119278112;
+				bsizearea	=  0.0182733682;
+				bcar		= -2.9867669658;
+				bcarlgs		=  0.5766951069;
 			}
 
 			FindHDBType(unitType);
 			FindHouseholdSize(household);
 
-			DD_area = log( sqrt(unit->getFloorArea()) );
+			DD_area = log(unit->getFloorArea()/10);
 
 			FindAgeOfUnit( unit, day);
 
 			//GetLogsum(model, household, day);
-			Postcode *unitPostcode = model->getPostcodeById(	unit->getSlaAddressId() );
+			Postcode *unitPostcode = model->getPostcodeById( model->getUnitSlaAddressId( unit->getId() ) );
 			ZZ_logsumhh = model->ComputeHedonicPriceLogsumFromDatabase( unitPostcode->getTazId() );
 			Household* householdT = const_cast<Household*>(household);
 			householdT->setLogsum(ZZ_logsumhh);
@@ -357,13 +342,6 @@ namespace sim_mob
 
 			double Vpriv = 	(barea		*  DD_area 		) +
 							(blogsum	* ZZ_logsumhh 	) +
-
-							//(bchin	  	* ZZ_hhchinese 	* chineseHousehold ) +
-							//(bmalay		* ZZ_hhmalay 	* malayHousehold   ) +
-							//(bHighInc   * ZZ_highInc 	) +
-							//(bHIncChildApart * ZZ_children * ZZ_highInc	* Apartment 	) +
-							//(bHIncChildCondo * ZZ_children * ZZ_highInc	* Condo 		) +
-
 							(bsizearea	 * sizeAreaQuantileCondo) +
 							(bcar * carOwnershipBoolean ) +
 							(bcarlgs * carOwnershipBoolean  * ZZ_logsumhh ) +
@@ -373,10 +351,6 @@ namespace sim_mob
 							(bcondo 	 * Condo 	 ) +
 							(bdetachedAndSemiDetached * DetachedAndSemidetaced ) +
 							(terrace	* Terrace		) +
-							(bageOfUnit25 * ZZ_ageOfUnitPrivate 	) +
-							(bageOfUnit25Squared 	* ZZ_ageOfUnitPrivate * ZZ_ageOfUnitPrivate ) +
-							(bageGreaterT25LessT50  * ZZ_ageBet25And50 	) +
-							(bageGreaterT50  		* ZZ_ageGreater50 	) +
 							(bmissingAge  			* ZZ_missingAge 	) +
 							(bfreeholdAppartm  		* ZZ_freehold * Apartment 	) +
 							(bfreeholdCondo  		* ZZ_freehold * Condo 		) +
@@ -385,28 +359,17 @@ namespace sim_mob
 
 			double Vhdb = 	(barea		*  DD_area 		) +
 							(blogsum	* ZZ_logsumhh 	) +
-
-							//(bchin	  	* ZZ_hhchinese 	* chineseHousehold ) +
-							//(bmalay		* ZZ_hhmalay 	* malayHousehold   ) +
-							//(bHighInc   * ZZ_highInc 	) +
-							///(midIncChildHDB3 * ZZ_children * ZZ_middleInc 	* HDB3	) +
-							//(midIncChildHDB4 * ZZ_children * ZZ_middleInc 	* HDB4	) +
-							//(midIncChildHDB5 * ZZ_children * ZZ_middleInc 	* HDB5	) +
-
 							(bsizearea	 * sizeAreaQuantileHDB) +
 							(bcar * carOwnershipBoolean ) +
 							(bcarlgs * carOwnershipBoolean  * ZZ_logsumhh ) +
 							(bmall * mallDistance) +
 							(bmrt2400m * mallDistanceBool ) +
-
-
 							(bhdb12  * HDB12 ) +
 							(bhdb3   * HDB3  ) +
 							(bhdb4 	 * HDB4	 ) +
 							(bhdb5 	 * HDB5	 ) +
 							(bageOfUnit30 * ZZ_ageOfUnitHDB ) +
-							(bageOfUnit30Squared * ZZ_ageOfUnitHDB * ZZ_ageOfUnitHDB ) +
-							(bageOfUnitGreater30 * ZZ_ageGreater30 );
+							(bageOfUnit30Squared * ZZ_ageOfUnitHDB * ZZ_ageOfUnitHDB );
 
 			if( unit->getUnitType() <= 6 || unitType == 65 )
 				V = Vhdb;

@@ -49,7 +49,9 @@
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "util/SharedFunctions.hpp"
+#include "util/PrintLog.hpp"
 #include "SOCI_ConvertersLong.hpp"
+#include "DatabaseHelper.hpp"
 
 using namespace sim_mob;
 using namespace sim_mob::long_term;
@@ -92,6 +94,12 @@ void DeveloperModel::startImpl() {
 			emptyParcelsById.insert(std::make_pair((*it)->getId(), *it));
 		}
 
+		freeholdParcels = parcelDao.getFreeholdParcels();
+		//Index all freehold parcels.
+		for (ParcelList::iterator it = freeholdParcels.begin(); it != freeholdParcels.end(); it++) {
+			freeholdParcelsById.insert(std::make_pair((*it)->getId(), *it));
+		}
+
 		//load DevelopmentType-Templates
 		loadData<DevelopmentTypeTemplateDao>(conn, developmentTypeTemplates);
 		//load Template - UnitType
@@ -129,7 +137,7 @@ void DeveloperModel::startImpl() {
 
 		loadData<BuildingAvgAgePerParcelDao>(conn,buildingAvgAgePerParcel,BuildingAvgAgeByParceld,&BuildingAvgAgePerParcel::getFmParcelId);
 		PrintOutV("building average age per parcel loaded " << buildingAvgAgePerParcel.size() << std::endl);
-		loadData<ROILimitsDao>(conn,roiLimits,roiLimitsByBuildingTypeId,&ROILimits::getBuildingTypeId);
+		loadData<ROILimitsDao>(conn,roiLimits,roiLimitsByDevTypeId,&ROILimits::getDevelopmentTypeId);
 		PrintOutV("roi limits loaded " << roiLimits.size() << std::endl);
 
 		ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
@@ -140,17 +148,7 @@ void DeveloperModel::startImpl() {
 		std::tm currentSimYear = getDateBySimDay(simYear,0);
 		UnitDao unitDao(conn);
 		btoUnits = unitDao.getBTOUnits(currentSimYear);
-		ongoingBtoUnits = unitDao.getOngoingBTOUnits(currentSimYear);
-		//set the BTO flag when the units are first loaded
-		for(Unit *unit : btoUnits)
-		{
-			unit->setBto(true);
-		}
-
-		for(Unit *unit : ongoingBtoUnits)
-		{
-			unit->setBto(true);
-		}
+		//ongoingBtoUnits = unitDao.getOngoingBTOUnits(currentSimYear);
 
 		setRealEstateAgentIds(housingMarketModel->getRealEstateAgentIds());
 
@@ -193,6 +191,7 @@ void DeveloperModel::startImpl() {
 
 		loadHedonicCoeffs(conn);
 		loadPrivateLagT(conn);
+		loadHedonicLogsums(conn);
 	}
 
 
@@ -307,12 +306,6 @@ const LogsumForDevModel* DeveloperModel::getAccessibilityLogsumsByTAZId(BigSeria
 		return itr->second;
 	}
 	return nullptr;
-}
-
-double DeveloperModel::getHedonicPriceLogsum(BigSerial tazId) const
-{
-	double logsum = housingMarketModel->ComputeHedonicPriceLogsumFromDatabase(tazId);
-	return logsum;
 }
 
 const ParcelsWithHDB* DeveloperModel::getParcelsWithHDB_ByParcelId(BigSerial fmParcelId) const
@@ -485,7 +478,7 @@ void DeveloperModel::processParcels()
 {
 	/**
 	 *  Iterates over all developer parcels and
-	 *  get all potential projects which have a density <= GPR.
+	 *  get all potential projects.
 	 */
 	for (size_t i = 0; i < initParcelList.size(); i++)
 	{
@@ -497,42 +490,52 @@ void DeveloperModel::processParcels()
 			if(getParcelWithOngoingProjectById(parcel->getId())!= nullptr)
 			{
 				parcelsWithProjectsList.push_back(parcel);
+				writeNonEligibleParcelsToFile(parcel->getId(),"on going project");
 			}
 			else
 			{
 				if(parcel->getStatus()==1)
 				{
 					parcelsWithDay0Projects.push_back(parcel);
-				}
-				//unitPrice sum null means that the parcel has buildings without units or buildings with HDB units.
-				else if ((!isEmptyParcel(parcel->getId())) && (getUnitPriceSumByParcelId(parcel->getId())==nullptr))
-				{
-					nonEligibleParcelList.push_back(parcel);
+					writeNonEligibleParcelsToFile(parcel->getId(),"on going project");
 				}
 				else
 				{
-					if((parcel->getDevelopmentAllowed()!=2)||(parcel->getLotSize()< minLotSize)|| (getParcelsWithHDB_ByParcelId(parcel->getId())!= nullptr))
+					if(parcel->getDevelopmentAllowed()!=2)
 					{
 						nonEligibleParcelList.push_back(parcel);
+						writeNonEligibleParcelsToFile(parcel->getId(),"development not allowed");
+					}
+					else if(parcel->getLotSize()< minLotSize)
+					{
+						nonEligibleParcelList.push_back(parcel);
+						writeNonEligibleParcelsToFile(parcel->getId(),"lot size less than 100");
+					}
+					else if (getParcelsWithHDB_ByParcelId(parcel->getId())!= nullptr)
+					{
+						nonEligibleParcelList.push_back(parcel);
+						writeNonEligibleParcelsToFile(parcel->getId(),"parcel with HDB");
 					}
 					else
 					{
 						//TODO:: consider the use_restriction field of parcel as well in the future
 						float allowdGpr = getAllowedGpr(*parcel);
-						float actualGpr = getBuildingSpaceByParcelId(parcel->getId())/parcel->getLotSize();
-						if ( actualGpr >= 0 && actualGpr < allowdGpr)
+						if(allowdGpr > 0)
 						{
-							developmentCandidateParcelList.push_back(parcel);
+						developmentCandidateParcelList.push_back(parcel);
+
 							int newDevelopment = 0;
 							if(isEmptyParcel(parcel->getId()))
 							{
 								newDevelopment = 1;
 							}
+							writeEligibleParcelsToFile(parcel->getId(),newDevelopment);
 							devCandidateParcelsById.insert(std::make_pair(parcel->getId(), parcel));
 						}
 						else
 						{
 							nonEligibleParcelList.push_back(parcel);
+							writeNonEligibleParcelsToFile(parcel->getId(),"parcel gpr is not present");
 						}
 
 					}
@@ -586,27 +589,26 @@ void DeveloperModel::processProjects()
 DeveloperModel::DeveloperList DeveloperModel::getDeveloperAgents(){
 
 	const int poolSize = developers.size();
-	const float dailyParcelPercentage = 0.006; //we are examining 0.6% of the pool everyday
+	const float dailyParcelPercentage = 0.001; //we are examining 0.6% of the pool everyday
 	const int dailyAgentFraction = poolSize * dailyParcelPercentage;
 	std::set<int> indexes;
 	DeveloperList dailyDevAgents;
 	int max_index = developers.size() - 1;
-	//while (indexes.size() < std::min(dailyAgentFraction, max_index))
-		for(unsigned int i = 0; i < dailyAgentFraction ; i++)
+
+	for(unsigned int i = 0; i < dailyAgentFraction ; i++)
 	{
-	    //int random_index = rand() % max_index;
 		std::random_device rd;
 		std::mt19937 gen(rd());
 		std::uniform_int_distribution<int> dis(0, max_index);
 		const unsigned int random_index = dis(gen);
-	    if (indexes.find(random_index) == indexes.end())
-	    {
-	    	if(!(developers[random_index]->isActive()))
-	    	{
-	    		dailyDevAgents.push_back(developers[random_index]);
-	    		indexes.insert(random_index);
-	    	}
-	    }
+		if (indexes.find(random_index) == indexes.end())
+		{
+			if(!(developers[random_index]->isActive()))
+			{
+				dailyDevAgents.push_back(developers[random_index]);
+				indexes.insert(random_index);
+			}
+		}
 	}
 	return dailyDevAgents;
 }
@@ -650,6 +652,15 @@ const bool DeveloperModel::isEmptyParcel(BigSerial id) const {
         return true;
     }
     return false;
+}
+
+const int DeveloperModel::isFreeholdParcel(BigSerial id) const
+{
+	ParcelMap::const_iterator itr = freeholdParcelsById.find(id);
+	if (itr != freeholdParcelsById.end()) {
+		return true;
+	}
+	return false;
 }
 
 BigSerial DeveloperModel::getProjectIdForDeveloperAgent()
@@ -900,25 +911,24 @@ DeveloperModel::ROILimitsList DeveloperModel::getROILimits() const
 	return roiLimits;
 }
 
-const ROILimits* DeveloperModel::getROILimitsByBuildingTypeId(BigSerial buildingTypeId) const
+const ROILimits* DeveloperModel::getROILimitsByDevelopmentTypeId(BigSerial devTypeId) const
 {
-	ROILimitsMap::const_iterator itr = roiLimitsByBuildingTypeId.find(buildingTypeId);
-	if (itr != roiLimitsByBuildingTypeId.end())
+	ROILimitsMap::const_iterator itr = roiLimitsByDevTypeId.find(devTypeId);
+	if (itr != roiLimitsByDevTypeId.end())
 	{
 		return itr->second;
 	}
 	return nullptr;
 }
 
-DeveloperModel::UnitList DeveloperModel::getBTOUnits(std::tm currentDate)
+std::vector<BigSerial> DeveloperModel::getBTOUnits(std::tm currentDate)
 {
-	DeveloperModel::UnitList btoUnitsForSale;
+	std::vector<BigSerial> btoUnitsForSale;
 	for(Unit *unit : btoUnits)
 	{
-
 		if(compareTMDates(unit->getSaleFromDate(),currentDate))
 			{
-				btoUnitsForSale.push_back(unit);
+				btoUnitsForSale.push_back(unit->getId());
 			}
 	}
 	return btoUnitsForSale;
@@ -930,7 +940,8 @@ void DeveloperModel::loadHedonicCoeffs(DB_Connection &conn)
 	//sql = conn.getSession<soci::session>();
 	sql.open(soci::postgresql, conn.getConnectionStr());
 
-	const std::string storedProc = "main2012.getHedonicCoeffs()";
+
+	const std::string storedProc = MAIN_SCHEMA + "getHedonicCoeffs()";
 	//SQL statement
 	soci::rowset<HedonicCoeffs> hedonicCoeffs = (sql.prepare << "select * from " + storedProc);
 	for (soci::rowset<HedonicCoeffs>::const_iterator itCoeffs = hedonicCoeffs.begin(); itCoeffs != hedonicCoeffs.end(); ++itCoeffs)
@@ -960,7 +971,7 @@ void  DeveloperModel::loadPrivateLagT(DB_Connection &conn)
 	//sql = conn.getSession<soci::session>();
 	sql.open(soci::postgresql, conn.getConnectionStr());
 
-	const std::string storedProc = "main2012.getLagPrivateT()";
+	const std::string storedProc = MAIN_SCHEMA + "getLagPrivateT()";
 	//SQL statement
 	soci::rowset<LagPrivateT> privateLags = (sql.prepare << "select * from " + storedProc);
 	for (soci::rowset<LagPrivateT>::const_iterator itPrivateLags = privateLags.begin(); itPrivateLags != privateLags.end(); ++itPrivateLags)
@@ -978,6 +989,35 @@ const LagPrivateT* DeveloperModel::getLagPrivateTByPropertyTypeId(BigSerial prop
 {
 	LagPrivateTMap::const_iterator itr = privateLagsByPropertyTypeId.find(propertyId);
 		if (itr != privateLagsByPropertyTypeId.end())
+		{
+			return itr->second;
+		}
+		return nullptr;
+}
+
+void DeveloperModel::loadHedonicLogsums(DB_Connection &conn)
+{
+	soci::session sql;
+		//sql = conn.getSession<soci::session>();
+		sql.open(soci::postgresql, conn.getConnectionStr());
+
+		const std::string storedProc = MAIN_SCHEMA + "getHedonicLogsums()";
+		//SQL statement
+		soci::rowset<HedonicLogsums> hedonicLogsums = (sql.prepare << "select * from " + storedProc);
+		for (soci::rowset<HedonicLogsums>::const_iterator itLogsums = hedonicLogsums.begin(); itLogsums != hedonicLogsums.end(); ++itLogsums)
+		{
+			//Create new node and add it in the map of nodes
+			HedonicLogsums* logsum = new HedonicLogsums(*itLogsums);
+			hedonicLogsumsList.push_back(logsum);
+			hedonicLogsumsByTazId.insert(std::make_pair(logsum->getTazId(), logsum));
+
+		}
+}
+
+const HedonicLogsums* DeveloperModel::getHedonicLogsumsByTazId(BigSerial tazId) const
+{
+	HedonicLogsumsMap::const_iterator itr = hedonicLogsumsByTazId.find(tazId);
+		if (itr != hedonicLogsumsByTazId.end())
 		{
 			return itr->second;
 		}

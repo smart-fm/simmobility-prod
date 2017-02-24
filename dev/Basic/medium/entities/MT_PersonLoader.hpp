@@ -68,6 +68,9 @@ private:
 
 	/** stored procedure to periodically load freight demand*/
 	std::string freightStoredProcName;
+
+	/**indicate whether load personal info*/
+	bool isLoadPersonInfo;
 };
 
 } // namespace medium

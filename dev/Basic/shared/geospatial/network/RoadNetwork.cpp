@@ -467,6 +467,46 @@ void RoadNetwork::addTurningPolyLine(PolyPoint point)
 	}
 }
 
+void RoadNetwork::addTaxiStand(TaxiStand* stand)
+{
+	//Check if the taxi stand has already been added to the map
+	std::map<unsigned int, TaxiStand*>::iterator itStand = mapOfIdvsTaxiStand.find(stand->getStandId());
+	if (itStand != mapOfIdvsTaxiStand.end())
+	{
+		std::stringstream msg;
+		msg << "Taxi stand " << stand->getStandId() << " has already been added!";
+		safe_delete_item(stand);
+		throw std::runtime_error(msg.str());
+	}
+	else
+	{
+		//Get the road segment to which the taxi stand belongs
+		std::map<unsigned int, RoadSegment *>::iterator itSegments = mapOfIdVsRoadSegments.find(stand->getRoadSegmentId());
+
+		if (itSegments != mapOfIdVsRoadSegments.end())
+		{
+			RoadSegment* standSegment = itSegments->second;
+			double offset = stand->getOffset();
+
+			//Set the parent segment of the taxi stand
+			stand->setRoadSegment(standSegment);
+
+			//Add the stand to the segment
+			standSegment->addObstacle(offset, stand);
+
+			//Insert the stand into the map
+			mapOfIdvsTaxiStand.insert(std::make_pair(stand->getStandId(), stand));
+		}
+		else
+		{
+			std::stringstream msg;
+			msg << "Taxi Stand " << stand->getStandId() << " refers to an invalid road segment " << stand->getRoadSegmentId();
+			safe_delete_item(stand);
+			throw std::runtime_error(msg.str());
+		}
+	}
+}
+
 void RoadNetwork::addBusStop(BusStop* stop)
 {
 	//Check if the bus stop has already been added to the map
@@ -512,7 +552,7 @@ void RoadNetwork::addBusStop(BusStop* stop)
 			}
 			
 			//Insert the stop into the map
-			mapOfIdvsBusStops.insert(std::make_pair(stop->getRoadItemId(), stop));
+			mapOfIdvsBusStops.insert(std::make_pair(stop->getStopId(), stop));
 			BusStop::registerBusStop(stop);
 		}
 		else

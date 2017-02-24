@@ -27,11 +27,11 @@ namespace sim_mob
         class Unit
         {
         public:
-            Unit( BigSerial id = INVALID_ID, BigSerial buildingId = INVALID_ID, BigSerial sla_address_id = INVALID_ID, int unit_type = INVALID_ID,
+            Unit( BigSerial id = INVALID_ID, BigSerial buildingId = INVALID_ID, int unit_type = INVALID_ID,
             	  int story_range = 0, int constructionStatus = 0, double floor_area = .0f, int storey = 0, double monthlyRent = .0f, std::tm sale_from_date = std::tm(),
             	  std::tm occupancyFromDate = std::tm(), int sale_status = 0, int occupancyStatus = 0, std::tm lastChangedDate = std::tm(),double totalPrice = 0,
             	  std::tm valueDate = std::tm(),int tenureStatus = 0,int biddingMarketEntryDay = 0, int timeOnMarket = 0, int timeOffMarket = 0, double lagCoefficent = 0,
-				  int zoneHousingType = 0, int dwellingType = 0, bool isBTO = false);
+				  int zoneHousingType = 0, int dwellingType = 0,bool isBTO = false);
 
             Unit( const Unit& source );
 
@@ -49,7 +49,6 @@ namespace sim_mob
              */
             BigSerial getId() const;
             BigSerial getBuildingId() const;
-            BigSerial getSlaAddressId() const;
             int getUnitType() const;
             int getStoreyRange() const;
             int getConstructionStatus() const;
@@ -66,6 +65,7 @@ namespace sim_mob
             double getTotalPrice() const;
             const std::tm& getValueDate() const;
             void setBto(bool bto);
+            void setExistInDb(bool existInDb);
 
             /*
              * setters
@@ -78,7 +78,6 @@ namespace sim_mob
             void setMonthlyRent(double monthlyRent);
             void setSaleFromDate(const std::tm& saleFromDate);
             void setSaleStatus(int saleStatus);
-            void setSlaAddressId(BigSerial slaAddressId);
             void setStorey(int storey);
             void setStoreyRange(int storeyRange);
             void setConstructionStatus(int unitStatus);
@@ -101,6 +100,7 @@ namespace sim_mob
             int  getZoneHousingType() const;
             int getDwellingType() const;
             bool isBto() const;
+            bool isExistInDb() const ;
 
 
             /**
@@ -116,7 +116,6 @@ namespace sim_mob
             //from database.
             BigSerial id;
             BigSerial building_id;
-            BigSerial sla_address_id;
             int unit_type;
             int storey_range;
             int constructionStatus;
@@ -138,6 +137,7 @@ namespace sim_mob
             double lagCoefficient;
             int zoneHousingType;
             int dwellingType;
+            bool existInDB;
             bool isBTO;
         };
     }

@@ -45,8 +45,9 @@ set (Basic_VERSION_MINOR 1)
 SET(CMAKE_CXX_FLAGS_RELEASE "-O2")
 SET(CMAKE_CXX_FLAGS_DEBUG  "-O0 -g")
 
-
-SET(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+IF(${BUILD_STATIC} MATCHES "ON")
+  SET(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+ENDIF(${BUILD_STATIC} MATCHES "ON")
 #SET(BUILD_SHARED_LIBRARIES ON)
 #SET(CMAKE_EXE_LINKER_FLAGS "-static")
 
@@ -213,6 +214,9 @@ option(BUILD_LONG "Build long-term simulator." ON)
 #Option: build short/medium/long as libraries. Use the cmake gui to change this on a per-user basis.
 option(BUILD_LIBS "If true, builds the short, medium, and long-term code as libraries (to be installed in sim_mob_short,sim_mob_mid,sim_mob_long." OFF)   
 
+#Option: Static building SimMobility. Currently static building doesn't work with Ubuntu 16.04
+option(BUILD_STATIC "If true, SimMobility is built in static mode." OFF)
+
 #Option: Run SimMobility to only produce an input XML file for itself
 option(SIMMOB_XML_WRITER "Sim Mobility will print the network as an XML file." OFF)
 
@@ -345,7 +349,10 @@ SET(LibraryList "")
 set(Boost_ADDITIONAL_VERSIONS "1.47" "1.47.0" "1.48" "1.48.0" "1.49" "1.49.0" "1.50" "1.50.0" "1.51" "1.51.0" "1.52" "1.52.0" "1.53" "1.53.0" "1.54" "1.54.0" "1.55.0" "1.56.0" "1.57.0" "1.58.0" "1.59.0")
 find_package(Boost COMPONENTS system thread filesystem serialization date_time chrono random regex REQUIRED)
 include_directories(${Boost_INCLUDE_DIR})
-LIST(APPEND LibraryList  -Wl,-Bstatic -lboost_system -lboost_thread -lboost_filesystem -lboost_serialization -lboost_date_time -lboost_chrono -lboost_random -lboost_regex  -lsoci_core -lsoci_postgresql)
+IF (${BUILD_STATIC} MATCHES "ON")
+   LIST(APPEND LibraryList -Wl,-Bstatic)
+ENDIF(${BUILD_STATIC} MATCHES "ON")
+LIST(APPEND LibraryList -lboost_system -lboost_thread -lboost_filesystem -lboost_serialization -lboost_date_time -lboost_chrono -lboost_random -lboost_regex  -lsoci_core -lsoci_postgresql)
 
 
 #Find TinyXML (optional; not used any more)

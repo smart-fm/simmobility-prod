@@ -9,8 +9,8 @@
             <database id="fm_remote" dbtype="postgres">
                 <host value="172.25.184.48"/>
                 <port value="5432"/>
-                <dbname value="simmobility"/>
-            </database>
+                <dbname value="simmobility_virtualcity"/>
+			</database>
 
             <database id="fm_hpchead" dbtype="postgres">
                 <host value="172.25.184.156"/>
@@ -109,11 +109,16 @@
     </constructs>
 
     <simulation>
+        <!-- Reasonable values for ShortTerm -->
+        <!-- <base_granularity   value="100"   units="ms"/> -->
+        <!-- <total_runtime      value="14"      units="minutes" /> -->
+
+        <!-- Reasonable values for MidTerm -->
         <base_granularity   value="5"   units="seconds"/>
-        <total_runtime      value="60"      units="minutes" />
+        <total_runtime      value="1439"      units="minutes" />
+
         <total_warmup       value="10"     units="seconds" />
-       
-        <start_time         value="08:20:00"/>
+        <start_time         value="00:00:00"/>
 
 
         <!--Indicates the percentage of drivers that will use in-simulation travel times rather than the historical travel times-->
@@ -136,9 +141,6 @@
     </simulation>
 
     <generic_props>
-        <!--Specifies the location of the dirver behaviour parameter files-->
-        <property key="driver_behaviour_file" value="data/driver_behavior_model/driver_param.xml"/>
-        <property key="amod_behaviour_file" value="data/driver_behavior_model/amod_driver_param.xml"/>
     </generic_props>
 
     <merge_log_files value="true"/>

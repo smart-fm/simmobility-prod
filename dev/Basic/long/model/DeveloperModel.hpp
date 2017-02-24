@@ -35,6 +35,7 @@
 #include "database/entity/ROILimits.hpp"
 #include "database/entity/HedonicCoeffs.hpp"
 #include "database/entity/LagPrivateT.hpp"
+#include "database/entity/HedonicLogsums.hpp"
 #include "agent/impl/DeveloperAgent.hpp"
 #include "agent/impl/RealEstateAgent.hpp"
 #include "model/HM_Model.hpp"
@@ -71,6 +72,7 @@ namespace sim_mob {
             typedef std::vector<Unit*>UnitList;
             typedef std::vector<HedonicCoeffs*>HedonicCoeffsList;
             typedef std::vector<LagPrivateT*>LagPrivateTList;
+            typedef std::vector<HedonicLogsums*>HedonicLogsumsList;
 
             //maps
             typedef boost::unordered_map<BigSerial,Parcel*> ParcelMap;
@@ -88,6 +90,7 @@ namespace sim_mob {
             typedef boost::unordered_map<BigSerial,ROILimits*> ROILimitsMap;
             typedef boost::unordered_map<BigSerial,HedonicCoeffs*>HedonicCoeffsMap;
             typedef boost::unordered_map<BigSerial,LagPrivateT*>LagPrivateTMap;
+            typedef boost::unordered_map<BigSerial,HedonicLogsums*>HedonicLogsumsMap;
 
         public:
             DeveloperModel(WorkGroup& workGroup);
@@ -139,11 +142,6 @@ namespace sim_mob {
              */
             const LogsumForDevModel* getAccessibilityLogsumsByTAZId(BigSerial fmParcelId) const;
 
-            /*
-             * get the 2012 logsums from HM_Model
-             */
-            double getHedonicPriceLogsum(BigSerial tazId) const;
-
             const ParcelsWithHDB* getParcelsWithHDB_ByParcelId(BigSerial fmParcelId) const;
             DeveloperList getDeveloperAgents();
             const TAO* getTaoByQuarter(std::string& quarterStr);
@@ -170,6 +168,13 @@ namespace sim_mob {
             * @param id of the given parcel
             */
             const bool isEmptyParcel(BigSerial id) const;
+
+            /**
+             * check whether a given parcel is empty or not
+             * @param id of the given parcel
+             */
+            const int isFreeholdParcel(BigSerial id) const;
+
             /*
              * increment the id of the last project in db
              * @return next projectId
@@ -271,9 +276,9 @@ namespace sim_mob {
 
             ROILimitsList getROILimits() const;
 
-            const ROILimits* getROILimitsByBuildingTypeId(BigSerial buildingTypeId) const;
+            const ROILimits* getROILimitsByDevelopmentTypeId(BigSerial devTypeId) const;
 
-            UnitList getBTOUnits(std::tm currentDate);
+            std::vector<BigSerial> getBTOUnits(std::tm currentDate);
 
             void loadHedonicCoeffs(DB_Connection &conn);
 
@@ -282,6 +287,11 @@ namespace sim_mob {
             void loadPrivateLagT(DB_Connection &conn);
 
             const LagPrivateT* getLagPrivateTByPropertyTypeId(BigSerial propertyId) const;
+
+            void loadHedonicLogsums(DB_Connection &conn);
+
+            const HedonicLogsums* getHedonicLogsumsByTazId(BigSerial tazId) const;
+
 
         protected:
             /**
@@ -298,6 +308,7 @@ namespace sim_mob {
             ParcelList developmentCandidateParcelList;
             ParcelList nonEligibleParcelList;
             ParcelList emptyParcels;
+            ParcelList freeholdParcels;
             ParcelList parcelsWithOngoingProjects; //this is loaded when the simulation is resumed from a previous run
             ParcelList parcelsWithDay0Projects;
             BuildingList buildings;
@@ -310,6 +321,7 @@ namespace sim_mob {
             ParcelMap emptyParcelsById;
             ParcelMap devCandidateParcelsById;
             ParcelMap parcelsWithOngoingProjectsById;
+            ParcelMap freeholdParcelsById;
             unsigned int timeInterval;
             std::vector<BigSerial> existingProjectIds;
             std::vector<BigSerial> newBuildingIdList;
@@ -370,13 +382,15 @@ namespace sim_mob {
             BuildingAvgAgePerParcelMap BuildingAvgAgeByParceld;
             std::string  outputSchema;
             ROILimitsList roiLimits;
-            ROILimitsMap roiLimitsByBuildingTypeId;
+            ROILimitsMap roiLimitsByDevTypeId;
             UnitList btoUnits;
             UnitList ongoingBtoUnits;
             HedonicCoeffsList hedonicCoefficientsList;
             HedonicCoeffsMap hedonicCoefficientsByPropertyTypeId;
             LagPrivateTList privateLagsList;
             LagPrivateTMap privateLagsByPropertyTypeId;
+            HedonicLogsumsList hedonicLogsumsList;
+            HedonicLogsumsMap hedonicLogsumsByTazId;
         };
     }
 }

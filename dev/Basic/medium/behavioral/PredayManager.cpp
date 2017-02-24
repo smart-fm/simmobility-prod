@@ -843,6 +843,32 @@ void sim_mob::medium::PredayManager::dispatchLT_Persons()
 	}
 }
 
+void PredayManager::removeInvalidAddresses()
+{
+	std::map<long, sim_mob::Address>& addresses = PersonParams::getAddressLookup();
+	std::map<int, std::vector<long> >& zoneAdresses = PersonParams::getZoneAddresses();
+	std::map<unsigned int, unsigned int>& postCodeNodeMap = PersonParams::getPostcodeNodeMap();
+
+	for(std::map<long, sim_mob::Address>::iterator iter = addresses.begin(); iter != addresses.end();)
+	{
+		if (postCodeNodeMap.find(iter->second.getPostcode()) == postCodeNodeMap.end())
+		{
+			std::vector<long>& addressesInZone = zoneAdresses.at(iter->second.getTazCode());
+			std::vector<long>::iterator removeItem = std::find(addressesInZone.begin(), addressesInZone.end(), iter->first);
+			if (removeItem != addressesInZone.end())
+			{
+				addressesInZone.erase(removeItem);
+			}
+
+			iter = addresses.erase(iter);
+		}
+		else
+		{
+			++iter;
+		}
+	}
+}
+
 void sim_mob::medium::PredayManager::distributeAndProcessForCalibration(threadedFnPtr fnPtr)
 {
 	boost::thread_group threadGroup;

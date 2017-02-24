@@ -30,9 +30,14 @@ sim_mob::medium::Pedestrian::~Pedestrian()
 Role<Person_MT>* sim_mob::medium::Pedestrian::clone(Person_MT *parent) const
 {
 	double walkSpeed = MT_Config::getInstance().getPedestrianWalkSpeed();
+	Role<Person_MT>::Type personRoleType = Role<Person_MT>::RL_PEDESTRIAN;
+	if (parent->currSubTrip->getMode() == "TaxiTravel")
+	{
+		personRoleType = Role<Person_MT>::RL_TRAVELPEDESTRIAN;
+	}
 	PedestrianBehavior* behavior = new PedestrianBehavior();
 	PedestrianMovement* movement = new PedestrianMovement(walkSpeed);
-	Pedestrian* pedestrian = new Pedestrian(parent, behavior, movement);
+	Pedestrian* pedestrian = new Pedestrian(parent, behavior, movement,"Pedestrain_",personRoleType);
 	behavior->setParentPedestrian(pedestrian);
 	movement->setParentPedestrian(pedestrian);
 	return pedestrian;

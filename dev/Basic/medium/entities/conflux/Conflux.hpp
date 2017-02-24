@@ -164,6 +164,9 @@ private:
 	/**list of persons currently on MRT train bound to some node in this conflux*/
 	PersonList mrt;
 
+	/**list of persons traveling for taxi*/
+	PersonList travelingPersons;
+
 	/**
 	 * list of persons who are hidden in this conflux awaiting a wake-up call
 	 * All persons whose roles resolve to teleportation (e.g. car sharing and private bus) are kept in this list.

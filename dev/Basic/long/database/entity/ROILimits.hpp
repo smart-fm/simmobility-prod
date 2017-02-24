@@ -21,7 +21,7 @@ namespace sim_mob
 		class ROILimits
 		{
 		public:
-			ROILimits(BigSerial buildingTypeId = 0, double roiLimit = .0 );
+			ROILimits(BigSerial developmentTypeId = 0, double roiLimit = .0 );
 			virtual ~ROILimits();
 
 			ROILimits(const ROILimits& source);
@@ -29,16 +29,16 @@ namespace sim_mob
 
 			friend std::ostream& operator<<(std::ostream& strm, const ROILimits& data);
 
-			BigSerial getBuildingTypeId() const;
+			BigSerial getDevelopmentTypeId() const;
 			double getRoiLimit() const;
 
-			void setBuildingTypeId(BigSerial developmentTypeId);
+			void setDevelopmentTypeId(BigSerial developmentTypeId);
 			void setRoiLimit(double roiLimit);
 
 		private:
 			friend class ROILimitsDao;
 
-			BigSerial buildingTypeId;
+			BigSerial developmentTypeId;
 			double roiLimit;
 		};
 	}

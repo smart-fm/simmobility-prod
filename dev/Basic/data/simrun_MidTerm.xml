@@ -43,17 +43,17 @@
             <mapping name="restricted_reg_in_turning" procedure="get_banned_area_in_turning()"/>
             <mapping name="restricted_reg_out_turning" procedure="get_banned_area_out_turning()"/>
             <mapping name="restricted_reg_nodes" procedure="get_restricted_region_nodes()"/>
-	    <mapping name="pt_platform" procedure="get_pt_train_platforms()"/>             
+	    	<mapping name="pt_platform" procedure="get_pt_train_platforms()"/>             
             <mapping name="pt_mrt_dispatch_freq" procedure="get_pt_train_dispatch_freq()"/> 	  
-	    <mapping name="pt_mrt_block" procedure="get_pt_train_blocks()"/>
+	    	<mapping name="pt_mrt_block" procedure="get_pt_train_blocks()"/>
     	    <mapping name="pt_mrt_route" procedure="get_pt_train_route()"/> 
-	   <!-- This procedure returns platforms from pt_mrt_platform with only lineid,Sequenceno,platformNo fields -->       
-	    <mapping name="pt_mrt_platform" procedure="get_pt_train_route_platform()"/>       
-	    <mapping name="pt_mrt_block_polyline" procedure="get_pt_train_block_polylines()"/>
-	    <mapping name="pt_opposite_lines" procedure="get_pt_opposite_lines()"/>
-	    <mapping name="get_train_fleet" procedure="get_train_fleet()"/>
-	    <mapping name="mrt_road_segments" procedure="get_pt_train_segments()"/>
-	    <mapping name="day_activity_schedule" procedure="get_persons_between"/>
+	   		<!-- This procedure returns platforms from pt_mrt_platform with only lineid,Sequenceno,platformNo fields -->       
+	    	<mapping name="pt_mrt_platform" procedure="get_pt_train_route_platform()"/>       
+	    	<mapping name="pt_mrt_block_polyline" procedure="get_pt_train_block_polylines()"/>
+	    	<mapping name="pt_opposite_lines" procedure="get_pt_opposite_lines()"/>
+	    	<mapping name="get_train_fleet" procedure="get_train_fleet()"/>
+	    	<mapping name="mrt_road_segments" procedure="get_pt_train_segments()"/>
+	    	<mapping name="day_activity_schedule" procedure="get_persons_between"/>
             <mapping name="freight_trips" procedure="get_freight_between"/>
             <mapping name="erp_surcharge" procedure="get_erp_surcharge()"/>
         </proc_map>
@@ -83,7 +83,7 @@
             <mapping name="pt_mrt_dispatch_freq" procedure="get_pt_mrt_dispatch_freq()"/>
             <mapping name="pt_mrt_block" procedure="get_pt_blocks_test()"/>
             <mapping name="pt_mrt_route" procedure="get_pt_mrt_route_test()"/>
-	   <!-- This procedure returns platforms from pt_mrt_platform with only lineid,Sequenceno,platformNo fields -->
+	  	 	<!-- This procedure returns platforms from pt_mrt_platform with only lineid,Sequenceno,platformNo fields -->
             <mapping name="pt_mrt_platform" procedure="get_pt_mrt_platform_test()"/>
             <mapping name="pt_mrt_block_polyline" procedure="get_pt_block_polylines_test()"/>
 
@@ -100,15 +100,14 @@
             <mapping name="erp_section" procedure="get_erp_section()"/>
             <mapping name="erp_surcharge" procedure="get_erp_surcharge()"/>
 
-            <!--<mapping name="day_activity_schedule" procedure="get_persons_between_new_mrt_1"/>-->
+            <mapping name="day_activity_schedule" procedure="get_persons_between"/>
             <mapping name="freight_trips" procedure="get_testfreight_between"/>
             <mapping name="screen_line" procedure="get_screen_line_segments()"/>
 	    	<mapping name="pt_opposite_lines" procedure="get_pt_opposite_lines()"/>
 	    	<mapping name="get_train_fleet" procedure="get_train_fleet()"/>
 	    	<mapping name="get_uturn_platforms" procedure="get_pt_uturn_platforms()"/>
 	    	<mapping name="get_train_line_properties" procedure="get_pt_train_line_properties()"/>
-            <!--<mapping name="restricted_reg_segments" procedure="get_section_banned_area()"/>
-            <mapping name="restricted_reg_in_turning" procedure="get_banned_area_in_turning()"/>
+            <!--<mapping name="restricted_reg_in_turning" procedure="get_banned_area_in_turning()"/>
             <mapping name="restricted_reg_out_turning" procedure="get_banned_area_out_turning()"/>
             <mapping name="restricted_reg_nodes" procedure="get_restricted_region_nodes()"/>-->
         </proc_map> 
@@ -117,8 +116,8 @@
     <system>         
         <!-- If loading from the database, which database, proc_map, and credentials are used? -->
 
-        <network_database database="fm_hpchead" credentials="fm_hpchead" proc_map="withinday"/>
-        <population_database  database="fm_hpchead" credentials="fm_hpchead" proc_map=""/> 
+		<network_database database="fm_remote" credentials="fm_remote_plain" proc_map="simmobcity"/>
+		<population_database  database="fm_remote_lt" credentials="lt_cred" proc_map=""/> 
 
         <!-- The parser will simply load everything in "generic_props" section into "SystemParams.genericProps".  -->
         <!-- In other words, you DO NOT need to update the parser just to add a simple string-based configuration parameter to -->
@@ -131,7 +130,7 @@
     <!-- List of all Worker types and their properties. -->
     <!-- granularity of each component must be a multiple of the "base" granularity -->
     <workers>
-        <person count="7" granularity="5 seconds"/> <!-- Person agents (with Roles) -->
+        <person count="10" granularity="5 seconds"/> <!-- Person agents (with Roles) -->
     </workers>
       
     <incidentsData enabled="false">
@@ -162,22 +161,15 @@
     <!-- 2. "pt_bus_routes" -->
     <!-- 3. "pt_bus_stops" -->
     <!-- The current control strategy for buses. Can be "headway_based", "evenheadway_based", "hybrid_based", or (default) "no_control" -->
-    <busController enabled="false" busline_control_type="headway_based"/>
+    <busController enabled="true" busline_control_type="headway_based"/>
 
-    <!-- The current control strategy for train. Can be "fixed_block", "moving_block"-->   
     <path-set-config-file value="data/pathset_config.xml" />
-    <!-- The current control strategy for train. Can be "fixed_block", "moving_block"-->
-    <trainController enabled="true" train_control_type="moving_block">
-    	<!-- <safe_operation_distance_meter value="50"/> -->
-    	<!-- <safe_operation_headway_sec value="90"/> -->
-    	<dwell_time_params min_sec="30" max_sec="50"/>
-    	<output_enabled value="true"/>
-		<train_length value ="138"/>
-		<distance_arriving_at_platform value ="0.001"/>
-    	<!-- <max_capacity value="1600"/> -->
-    </trainController>
-
     
+    <!-- The current control strategy for train. Can be "fixed_block", "moving_block"-->
+    <trainController enabled="false" train_control_type="moving_block">
+    	<output_enabled value="false"/>
+		<distance_arriving_at_platform value ="0.001"/>
+    </trainController>    
 
     <!-- location of the config file for loading pathset generation or route choice related info -->
     <pathset_config_file value="data/pathset_config.xml" />
@@ -234,7 +226,7 @@
         </speed_density_params>
 
         <!-- lua scripts used in withinday --> 
-        <model_scripts path="scripts/lua/mid/behavior-models/" format="lua">
+        <model_scripts path="scripts/lua/mid/behavior_sg12/" format="lua">
              <script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models-->
              <script name="pvtrc" file="pvtrc.lua"/> <!--private traffic route choice-->
              <script name="ptrc" file="ptrc.lua"/> <!--public transit route choice-->

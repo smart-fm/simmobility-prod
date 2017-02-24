@@ -13,6 +13,7 @@
 #include <boost/unordered_map.hpp>
 #include "entities/Entity.hpp"
 #include "database/entity/Unit.hpp"
+#include <set>
 
 namespace sim_mob
 {
@@ -154,6 +155,9 @@ namespace sim_mob
             virtual UpdateStatus update(timeslice now);
 
             size_t getEntrySize();
+            size_t getBTOEntrySize();
+
+            std::set<BigSerial> getBTOEntries();
 
         protected:
             /**
@@ -173,6 +177,9 @@ namespace sim_mob
         private:
             EntryMap entriesById; // original copies
             EntryMapById entriesByTazId; // only lookup.
+
+            std::set<BigSerial> btoEntries;
+
         };
     }
 }

@@ -437,7 +437,7 @@ void DriverMovement::outputDensityMap(unsigned int tick)
 	const ConfigParams &cfg = ConfigManager::GetInstance().FullConfig();
 
 	//Get the logger instance
-	BasicLogger &logger = Logger::log(config.segDensityMap.fileName);
+	BasicLogger &logger = Logger::log(config.outputStats.segDensityMap.fileName);
 
 	//Iterator to access all elements in the map
 	map<const RoadSegment *, unsigned long>::iterator itDensityMap = rdSegDensityMap.begin();
@@ -446,7 +446,7 @@ void DriverMovement::outputDensityMap(unsigned int tick)
 	while (itDensityMap != rdSegDensityMap.end())
 	{
 		//Get collection time
-		unsigned int period = config.segDensityMap.updateInterval / cfg.baseGranMS();
+		unsigned int period = config.outputStats.segDensityMap.updateInterval / cfg.baseGranMS();
 
 		//Get the average vehicle count
 		double avgVehCount = (double) itDensityMap->second / period;
@@ -560,7 +560,7 @@ bool DriverMovement::updateMovement()
 	params.overflowIntoIntersection = drive(params);
 
 	//Update the road segment density map
-	if (ST_Config::getInstance().segDensityMap.outputEnabled)
+	if (ST_Config::getInstance().outputStats.segDensityMap.outputEnabled)
 	{
 		updateDensityMap();
 	}
@@ -627,8 +627,10 @@ bool DriverMovement::updateMovement()
 			}
 			else if (startWayPoint.type == WayPoint::TURNING_GROUP && currWayPoint.type == WayPoint::ROAD_SEGMENT)
 			{
+				//Include the current waypoint into the segmentsPassed vector as we need to start the collection of travel time for this segment
+				//[As the previous way-point was a turning group, we have not started the collection for the segment yet]
 				segmentsPassed.insert(segmentsPassed.begin(), currLink->getRoadSegments().begin(),
-									  currLink->getRoadSegments().begin() + currWayPoint.roadSegment->getSequenceNumber());
+									  currLink->getRoadSegments().begin() + currWayPoint.roadSegment->getSequenceNumber() + 1);
 			}
 
 			updateRoadSegmentTravelTime(segmentsPassed);
@@ -712,10 +714,10 @@ bool DriverMovement::updatePostMovement()
 	return true;
 }
 
-void DriverMovement::checkForStoppingPoints(DriverUpdateParams &params)
+void DriverMovement::checkForStops(DriverUpdateParams &params)
 {
 	//Get the distance to stopping point in the current link
-	double distance = getDistanceToStopPoint(params.stopVisibilityDistance);
+	double distance = getDistanceToStopLocation(params.stopVisibilityDistance);
 
 	if (parentDriver->getParent()->amodId != "-1" && abs(distance) < 50)
 	{
@@ -757,7 +759,8 @@ void DriverMovement::checkForStoppingPoints(DriverUpdateParams &params)
 		return;
 	}
 	
-	if (distance < -10 && params.stopPointState == DriverUpdateParams::LEAVING_STOP_POINT)
+	//Reset
+	if ((distance < -10 && params.stopPointState == DriverUpdateParams::LEAVING_STOP_POINT) || distance == -100)
 	{
 		params.stopPointState = DriverUpdateParams::STOP_POINT_NOT_FOUND;
 	}
@@ -773,7 +776,7 @@ void DriverMovement::applyDrivingModels(DriverUpdateParams &params)
 	//for private cars and taxis will be a burden.
 	if (parentDriver->getParent()->amodId != "-1" || parentDriver->IsBusDriver())
 	{
-		checkForStoppingPoints(params);
+		checkForStops(params);
 	}
 
 	if(!fwdDriverMovement.isInIntersection())
@@ -957,11 +960,6 @@ std::vector<WayPoint> DriverMovement::buildPath(std::vector<WayPoint> &wayPoints
 	return path;
 }
 
-void DriverMovement::resetPath(std::vector<WayPoint> path)
-{
-	fwdDriverMovement.setPath(buildPath(path), parentDriver->getParent()->startLaneIndex, parentDriver->getParent()->startSegmentId);	
-}
-
 bool DriverMovement::isLastSegmentInLink() const
 {
 	bool isLastSegInLink = false;
@@ -1000,7 +998,7 @@ Point DriverMovement::getPosition()
 	return origPos;
 }
 
-double DriverMovement::getDistanceToStopPoint(double perceptionDistance)
+double DriverMovement::getDistanceToStopLocation(double perceptionDistance)
 {
 	//Distance to stopping point
 	double distance = -100;
@@ -1019,28 +1017,33 @@ double DriverMovement::getDistanceToStopPoint(double perceptionDistance)
 	
 	//Distance along which we have scanned for the stopping points
 	double scannedDist = distToEndOfWayPt;
+		
+	std::map<unsigned int, std::vector<StopPoint> >::iterator itStopPtPool = params.stopPointPool.end();
 	
 	//Find the stop points in the current segment
-	std::map<unsigned int, std::vector<StopPoint> >::iterator itStopPtPool = params.stopPointPool.find(wayPtIt->roadSegment->getRoadSegmentId());	
-	
-	//Check if the current segment has any stop-points
-	if(itStopPtPool != params.stopPointPool.end())
+	if(wayPtIt->type == WayPoint::ROAD_SEGMENT)
 	{
-		double distCovered = fwdDriverMovement.getDistCoveredOnCurrWayPt();
-		
-		//Look for the first stop-point in front of us, but within the perception distance
-		std::vector<StopPoint>::const_iterator itStopPts = itStopPtPool->second.begin();
-		while(itStopPts != itStopPtPool->second.end() && (itStopPts->distance - distCovered) <= perceptionDistance)
+		itStopPtPool = params.stopPointPool.find(wayPtIt->roadSegment->getRoadSegmentId());
+
+		//Check if the current segment has any stop-points
+		if (itStopPtPool != params.stopPointPool.end())
 		{
-			if(itStopPts->distance >= distCovered)
+			double distCovered = fwdDriverMovement.getDistCoveredOnCurrWayPt();
+
+			//Look for the first stop-point in front of us, but within the perception distance
+			std::vector<StopPoint>::const_iterator itStopPts = itStopPtPool->second.begin();
+			while (itStopPts != itStopPtPool->second.end() && (itStopPts->distance - distCovered) <= perceptionDistance)
 			{
-				params.currentStopPoint = *itStopPts;
-				distance = params.currentStopPoint.distance - distCovered;
-				isStopPointFound = true;
-				break;
+				if (itStopPts->distance >= distCovered)
+				{
+					params.currentStopPoint = *itStopPts;
+					distance = params.currentStopPoint.distance - distCovered;
+					isStopPointFound = true;
+					break;
+				}
+
+				++itStopPts;
 			}
-			
-			++itStopPts;
 		}
 	}
 	
@@ -1277,7 +1280,7 @@ Vehicle* DriverMovement::initializePath(bool createVehicle)
 		else
 		{
 			const StreetDirectory& stdir = StreetDirectory::Instance();
-			path = stdir.SearchShortestDrivingPath<sim_mob::Node, sim_mob::Node>(*(parentDriver->origin), *(parentDriver->destination));
+			path = stdir.SearchShortestDrivingPath<Node, Node>(*(parentDriver->origin), *(parentDriver->destination));
 		}
 
 		double length = 4.0;
@@ -1307,13 +1310,57 @@ Vehicle* DriverMovement::initializePath(bool createVehicle)
 	return vehicle;
 }
 
-void DriverMovement::rerouteWithPath(const std::vector<WayPoint> &path)
+void DriverMovement::rerouteWithPath(const std::vector<WayPoint> &path, bool isPathBuilt)
 {
-	//Pre-pend the current segment, and reset path
-	//NOTE: This will put the current driver back onto the start of the current Segment
-	std::vector<WayPoint> prependedPath = path;
-	prependedPath.insert(prependedPath.begin(), fwdDriverMovement.getCurrWayPoint());
-	resetPath(prependedPath);
+	vector<WayPoint> builtPath = path;
+	
+	//Build the path if it has not already been built
+	if(!isPathBuilt)
+	{
+		builtPath = buildPath(builtPath);
+	}
+
+	if(fwdDriverMovement.isDrivingPathSet() && !fwdDriverMovement.isDoneWithEntireRoute())
+	{
+		WayPoint currWayPt;
+		double distCovered = fwdDriverMovement.getDistCoveredOnCurrWayPt();
+		
+		//Check if we're reached the end of the previously defined path
+		if(!fwdDriverMovement.isDoneWithEntireRoute())
+		{
+			//We haven't reached the end, so we can use the current way point
+			currWayPt = fwdDriverMovement.getCurrWayPoint();
+		}
+		else
+		{
+			//We have reached the end of the previously defined path and entered a turning from our last segment
+			//So set the current way point as the previous segment and set the distance covered as the length of segment
+			//plus the overflow into the turning
+			currWayPt = WayPoint(fwdDriverMovement.getCurrLane()->getParentSegment());
+			distCovered += fwdDriverMovement.getCurrLane()->getLength();
+		}
+
+		if (currWayPt.type == WayPoint::ROAD_SEGMENT)
+		{
+			//Reset the path and advance the driver to current location			
+			unsigned int currLaneIdx = fwdDriverMovement.getCurrLane()->getLaneIndex();
+			
+			fwdDriverMovement.setPath(builtPath, currLaneIdx, currWayPt.roadSegment->getRoadSegmentId());
+			fwdDriverMovement.advance(distCovered);
+		}
+		else
+		{
+			//Reset the path and advance the driver to current location
+			builtPath.insert(builtPath.begin(), currWayPt);
+
+			fwdDriverMovement.setPathStartingWithTurningGroup(path, fwdDriverMovement.getCurrTurning()->getFromLane());
+			fwdDriverMovement.advance(distCovered);
+		}
+	}
+	else
+	{
+		fwdDriverMovement.setPath(builtPath);
+	}
 }
 
 void DriverMovement::rerouteWithBlacklist(const std::vector<const Link *> &blacklisted)
@@ -1323,28 +1370,38 @@ void DriverMovement::rerouteWithBlacklist(const std::vector<const Link *> &black
 		return;
 	}
 
-	//Retrieve the shortest path from the current intersection node to destination and save all RoadSegments in this path.
-	//NOTE: This path may be invalid, if there is no turning from the current link to the first link of the resultant path.
+	//Retrieve the shortest path from the current location to the destination and save all RoadSegments in this path.	
 	WayPoint currWayPt = fwdDriverMovement.getCurrWayPoint();
-	const Node *node;
+	
+	const StreetDirectory& stdir = StreetDirectory::Instance();
+    vector<WayPoint> path;
 	
 	if(currWayPt.type == WayPoint::ROAD_SEGMENT)
 	{
-		node = currWayPt.roadSegment->getParentLink()->getToNode();
+		const Link *link = currWayPt.roadSegment->getParentLink();
+		path = stdir.SearchShortestDrivingPath<Link, Node>(*link, *(parentDriver->destination), blacklisted);
+
+		//Reset the path and advance the driver to current location
+		double distCovered = fwdDriverMovement.getDistCoveredOnCurrWayPt();
+		unsigned int currLaneIdx = fwdDriverMovement.getCurrLane()->getLaneIndex();		
+		
+		fwdDriverMovement.setPath(buildPath(path), currLaneIdx, currWayPt.roadSegment->getRoadSegmentId());
+		fwdDriverMovement.advance(distCovered);
 	}
 	else
 	{
 		const RoadNetwork *network = RoadNetwork::getInstance();
-		node = network->getById(network->getMapOfIdvsNodes(), currWayPt.turningGroup->getNodeId());
-	}
+		const Node *node = network->getById(network->getMapOfIdvsNodes(), currWayPt.turningGroup->getNodeId());
+		path = stdir.SearchShortestDrivingPath<Node, Node>(*node, *(parentDriver->destination), blacklisted);
 	
-	const StreetDirectory& stdir = StreetDirectory::Instance();
-    vector<WayPoint> path = stdir.SearchShortestDrivingPath<sim_mob::Node, sim_mob::Node>(*node, *(parentDriver->destination), blacklisted);
+		//Reset the path and advance the driver to current location
+		double distCovered = fwdDriverMovement.getDistCoveredOnCurrWayPt();
+		path = buildPath(path);
+		path.insert(path.begin(), currWayPt);
 
-	//Pre-pend the current segment, and reset the current driver.
-	//NOTE: This will put the current driver back onto the start of the segment.
-	path.insert(path.begin(), fwdDriverMovement.getCurrWayPoint());
-	resetPath(path);
+		fwdDriverMovement.setPathStartingWithTurningGroup(path, fwdDriverMovement.getCurrTurning()->getFromLane());
+		fwdDriverMovement.advance(distCovered);
+	}
 }
 
 void DriverMovement::setOrigin(DriverUpdateParams &params)
@@ -1375,7 +1432,9 @@ void DriverMovement::setOrigin(DriverUpdateParams &params)
 	
 	//Initialise the link travel time
 	double currTime = params.elapsedSeconds + (params.now.ms() / 1000);
+	parentDriver->parent->currLinkTravelStats.reset();
 	parentDriver->parent->currLinkTravelStats.start(fwdDriverMovement.getCurrLink(), currTime);
+	startRdSegStat(fwdDriverMovement.getCurrSegment(), currTime);
 }
 
 double DriverMovement::updatePosition(DriverUpdateParams &params)
@@ -1410,80 +1469,7 @@ double DriverMovement::updatePosition(DriverUpdateParams &params)
 	{
 		if(!parentDriver->isBusDriver)
 		{			
-			//No turning path to the next link from the selected route. Change route.			
-			
-			bool isPathFound = false;
-			
-			//Get the link that we are connected to from the current lane
-			const Node *currNode = ex.fromLane->getParentSegment()->getParentLink()->getToNode();			
-			const TurningGroup *tGroupToEnter = nullptr;			
-			const Link *nextLink = nullptr;
-			const std::map<unsigned int, TurningGroup *> &tGroups = currNode->getTurningGroups(ex.fromLane->getParentSegment()->getLinkId());			
-			
-			//From the current node, get the turning group that has turning paths originating at the current lane
-			for(std::map<unsigned int, TurningGroup *>::const_iterator itGroups = tGroups.begin(); itGroups != tGroups.end(); ++itGroups)
-			{
-				const std::map<unsigned int, TurningPath *> *tPaths = itGroups->second->getTurningPaths(ex.fromLane->getLaneId());				
-				
-				if (tPaths)
-				{
-					tGroupToEnter = itGroups->second;
-					nextLink = tPaths->begin()->second->getToLane()->getParentSegment()->getParentLink();
-
-					//Create a temporary sub-trip
-					DailyTime startTime(ConfigManager::GetInstance().FullConfig().simStartTime().getValue() + params.now.ms());
-					SubTrip subtrip;
-
-					subtrip.origin = WayPoint(currNode);
-					subtrip.destination = parentDriver->parent->destNode;
-					subtrip.startTime = startTime;
-
-					//Get the path from the path-set manager if we're using route-choice, else find the shortest path
-					vector<WayPoint> path;
-					if (ConfigManager::GetInstance().FullConfig().PathSetMode())
-					{
-						set<const Link *> blackListLink;
-
-						bool useInSimulationTT = parentDriver->getParent()->usesInSimulationTravelTime();
-						isPathFound = PrivateTrafficRouteChoice::getInstance()->getBestPath(path, subtrip, true, blackListLink, 
-								false, false, false, nextLink, useInSimulationTT);
-					}
-					
-					if(!isPathFound || !ConfigManager::GetInstance().FullConfig().PathSetMode())
-					{
-						const StreetDirectory& stdir = StreetDirectory::Instance();						
-						path = stdir.SearchShortestDrivingPath<sim_mob::Link, sim_mob::Node>(*nextLink, *(parentDriver->destination));
-						
-						if(path.empty())
-						{
-							continue;
-						}	
-					}
-
-					//Build the new path
-					path = buildPath(path);
-					
-					//Prepend the path with the next turning group
-					path.insert(path.begin(), WayPoint(tGroupToEnter));
-
-					//Set the updated path
-					fwdDriverMovement.setPathStartingWithTurningGroup(path, ex.fromLane);
-
-					updatePosition(params);
-
-					//Set path found
-					isPathFound = true;
-					break;					
-				}
-			}
-			
-			if(!isPathFound)
-			{
-				stringstream msg;
-				msg << "No alternate path found from lane " << ex.fromLane->getLaneId() << " to destination node " << parentDriver->destination->getNodeId();
-				msg << " Frame: [" << params.now.frame() << "]";
-				throw runtime_error(msg.str());
-			}
+			reRouteToDestination(params, ex.fromLane);
 		}
 		else
 		{
@@ -1537,6 +1523,84 @@ double DriverMovement::updatePosition(DriverUpdateParams &params)
 	return overflow;
 }
 
+void DriverMovement::reRouteToDestination(DriverUpdateParams &params, const Lane* currLane)
+{
+	//No turning path to the next link from the selected route. Change route.			
+
+	bool isPathFound = false;
+
+	//Get the link that we are connected to from the current lane
+	const Node *currNode = currLane->getParentSegment()->getParentLink()->getToNode();
+	const TurningGroup *tGroupToEnter = nullptr;
+	const Link *nextLink = nullptr;
+	const std::map<unsigned int, TurningGroup *> &tGroups = currNode->getTurningGroups(currLane->getParentSegment()->getLinkId());
+
+	//From the current node, get the turning group that has turning paths originating at the current lane
+	for (std::map<unsigned int, TurningGroup *>::const_iterator itGroups = tGroups.begin(); itGroups != tGroups.end(); ++itGroups)
+	{
+		const std::map<unsigned int, TurningPath *> *tPaths = itGroups->second->getTurningPaths(currLane->getLaneId());
+
+		if (tPaths)
+		{
+			tGroupToEnter = itGroups->second;
+			nextLink = tPaths->begin()->second->getToLane()->getParentSegment()->getParentLink();
+
+			//Create a temporary sub-trip
+			DailyTime startTime(ConfigManager::GetInstance().FullConfig().simStartTime().getValue() + params.now.ms());
+			SubTrip subtrip;
+
+			subtrip.origin = WayPoint(currNode);
+			subtrip.destination = parentDriver->parent->destNode;
+			subtrip.startTime = startTime;
+
+			//Get the path from the path-set manager if we're using route-choice, else find the shortest path
+			vector<WayPoint> path;
+			if (ConfigManager::GetInstance().FullConfig().PathSetMode())
+			{
+				set<const Link *> blackListLink;
+
+				bool useInSimulationTT = parentDriver->getParent()->usesInSimulationTravelTime();
+				isPathFound = PrivateTrafficRouteChoice::getInstance()->getBestPath(path, subtrip, true, blackListLink,
+						false, false, false, nextLink, useInSimulationTT);
+			}
+
+			if (!isPathFound || !ConfigManager::GetInstance().FullConfig().PathSetMode())
+			{
+				const StreetDirectory& stdir = StreetDirectory::Instance();
+				path = stdir.SearchShortestDrivingPath<sim_mob::Link, sim_mob::Node>(*nextLink, *(parentDriver->destination));
+
+				if (path.empty())
+				{
+					continue;
+				}
+			}
+
+			//Build the new path
+			path = buildPath(path);
+
+			//Prepend the path with the next turning group
+			path.insert(path.begin(), WayPoint(tGroupToEnter));
+
+			//Set the updated path
+			fwdDriverMovement.setPathStartingWithTurningGroup(path, currLane);
+
+			updatePosition(params);
+
+			//Set path found
+			isPathFound = true;
+			break;
+		}
+	}
+
+	if (!isPathFound)
+	{
+		stringstream msg;
+		msg << "No alternate path found from lane " << currLane->getLaneId() << " to destination node " << parentDriver->destination->getNodeId();
+		msg << " Frame: [" << params.now.frame() << "]";
+		throw runtime_error(msg.str());
+	}
+}
+	
 void DriverMovement::setNearestVehicle(NearestVehicle &nearestVeh, double distance, const Driver *otherDriver)
 {
 	//Subtract the size of the car from the distance between them
@@ -2220,8 +2284,7 @@ void sim_mob::DriverMovement::startRdSegStat(const RoadSegment* roadSegment, dou
 	parentDriver->parent->startCurrRdSegTravelStat(roadSegment, startTime);
 }
 
-void sim_mob::DriverMovement::finalizeRdSegStat(const RoadSegment* roadSegment,
-		double endTime, const std::string travelMode)
+void sim_mob::DriverMovement::finalizeRdSegStat(const RoadSegment* roadSegment, double endTime, const std::string travelMode)
 {
 	SegmentTravelStats &currStats = parentDriver->parent->finalizeCurrRdSegTravelStat(roadSegment, endTime, travelMode);
 	if (ConfigManager::GetInstance().FullConfig().rsTTConfig.enabled)
@@ -2232,7 +2295,7 @@ void sim_mob::DriverMovement::finalizeRdSegStat(const RoadSegment* roadSegment,
 
 void DriverMovement::updateRoadSegmentTravelTime(const vector<const RoadSegment*>& segmentsPassed)
 {
-	if(segmentsPassed.empty())
+	if(segmentsPassed.empty() || !ConfigManager::GetInstance().FullConfig().rsTTConfig.enabled)
 			return;
 
 	std::string travelMode = (*parentDriver->parent->currTripChainItem)->getMode();
@@ -2257,15 +2320,9 @@ void DriverMovement::updateRoadSegmentTravelTime(const vector<const RoadSegment*
 		}
 	}
 	// If the journey is not done yet, record the start time of current segment
-	if(!fwdDriverMovement.isDoneWithEntireRoute())
+	if(!fwdDriverMovement.isDoneWithEntireRoute() && fwdDriverMovement.getCurrSegment())
 	{
 		startRdSegStat(fwdDriverMovement.getCurrSegment(), actualTime);
-	}
-	// Start and Finalize the travel times for paths with single segment
-	else if(!finalized)
-	{
-		startRdSegStat(segmentsPassed.front(), actualTime);
-		finalizeRdSegStat(segmentsPassed.front(), actualTime, travelMode);
 	}
 }
 

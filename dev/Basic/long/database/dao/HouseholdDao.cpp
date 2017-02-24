@@ -22,7 +22,7 @@ HouseholdDao::~HouseholdDao() {}
 
 void HouseholdDao::fromRow(Row& result, Household& outObj)
 {
-    outObj.id = result.get<BigSerial>(DB_FIELD_ID, INVALID_ID);
+    outObj.id = result.get<BigSerial>("hh_id", INVALID_ID);
     outObj.lifestyleId = result.get<BigSerial>(DB_FIELD_LIFESTYLE_ID, INVALID_ID);
     outObj.unitId = result.get<BigSerial>(DB_FIELD_UNIT_ID, INVALID_ID);
     outObj.ethnicityId = result.get<BigSerial>(DB_FIELD_ETHNICITY_ID, INVALID_ID);
@@ -30,7 +30,7 @@ void HouseholdDao::fromRow(Row& result, Household& outObj)
     outObj.size = result.get<int>(DB_FIELD_SIZE, 0);
     outObj.childUnder4  = result.get<int>(DB_FIELD_CHILDUNDER4, 0);
     outObj.childUnder15 = result.get<int>(DB_FIELD_CHILDUNDER15, 0);
-    outObj.adult = result.get<int>("adult", 0);
+    outObj.adult = result.get<int>("num_adults", 0);
     outObj.income = result.get<double>(DB_FIELD_INCOME, 0);
     outObj.housingDuration = result.get<int>(DB_FIELD_HOUSING_DURATION, 0);
     outObj.workers = result.get<int>(DB_FIELD_WORKERS, 0);
@@ -44,7 +44,6 @@ void HouseholdDao::fromRow(Row& result, Household& outObj)
     outObj.isBidder = result.get<int>("is_bidder", 0);
     outObj.isSeller = result.get<int>("is_seller", 0);
     outObj.buySellInterval = result.get<int>("buy_sell_interval", 0);
-    outObj.moveInDate = result.get<std::tm>("move_in_date", std::tm());
     outObj.tenureStatus = result.get<int>("tenure_status", 0);
     outObj.awakenedDay= result.get<int>("awakened_day", 0);
 }
@@ -74,8 +73,6 @@ void HouseholdDao::toRow(Household& data, Parameters& outParams, bool update)
 	outParams.push_back(data.getIsBidder());
 	outParams.push_back(data.getIsSeller());
 	outParams.push_back(data.getBuySellInterval());
-	outParams.push_back(data.getMoveInDate());
-	outParams.push_back(data.getHasMoved());
 	outParams.push_back(data.getTenureStatus());
 	outParams.push_back(data.getAwaknedDay());
 }
@@ -109,8 +106,6 @@ void HouseholdDao::insertHousehold(Household& houseHold,std::string schema)
 		params.push_back(houseHold.getIsBidder());
 		params.push_back(houseHold.getIsSeller());
 		params.push_back(houseHold.getBuySellInterval());
-		params.push_back(houseHold.getMoveInDate());
-		params.push_back(houseHold.getHasMoved());
 		params.push_back(houseHold.getTenureStatus());
 		params.push_back(houseHold.getAwaknedDay());
 		params.push_back(houseHold.getId());
@@ -118,12 +113,12 @@ void HouseholdDao::insertHousehold(Household& houseHold,std::string schema)
 		const std::string DB_UPDATE_HOUSEHOLD = "UPDATE "	+ APPLY_SCHEMA(schema, ".household") + " SET "
 				+ DB_FIELD_LIFESTYLE_ID+ "= :v1, "
 				+ DB_FIELD_UNIT_ID + "= :v2, "
-				+ "ethnicity_id" + "= :v3, "
+				+ DB_FIELD_ETHNICITY_ID + "= :v3, "
 				+ DB_FIELD_VEHICLE_CATEGORY_ID + "= :v4, "
 				+ DB_FIELD_SIZE + "= :v5, "
 				+ DB_FIELD_CHILDUNDER4 + "= :v6, "
 				+ DB_FIELD_CHILDUNDER15 + "= :v7, "
-				+ "adult" + "= :v8, "
+				+ "num_adults" + "= :v8, "
 				+ DB_FIELD_INCOME + "= :v9, "
 				+ DB_FIELD_HOUSING_DURATION + "= :v10, "
 				+ DB_FIELD_WORKERS + "= :v11, "
@@ -138,23 +133,21 @@ void HouseholdDao::insertHousehold(Household& houseHold,std::string schema)
 				+ "is_bidder" + "= :v20, "
 				+ "is_seller" + "= :v21, "
 				+ "buy_sell_interval" + "= :v22, "
-				+ "move_in_date" + "= :v23, "
-				+ "has_moved" + "= :v24, "
-				+ "tenure_status" + "= :v25, "
+				+ "tenure_status" + "= :v23, "
 				+ "awakened_day"
-				+ "= :v26 WHERE "
-				+ DB_FIELD_ID + "=:v27";
+				+ "= :v24 WHERE "
+				+ DB_FIELD_ID + "=:v25";
 		executeQueryWithParams(houseHold,DB_UPDATE_HOUSEHOLD,params);
 	}
 
 	else
 	{
 		const std::string DB_INSERT_HOUSEHOLD_OP = "INSERT INTO " + APPLY_SCHEMA(schema, ".household")
-							+ " (" + DB_FIELD_ID + ", "+ "lifestyle_id" + ", "+ DB_FIELD_UNIT_ID + ", "+ "ethnicity_id" + ", "+ "vehicle_category_id" + ", "+ DB_FIELD_SIZE + ", "+
-							DB_FIELD_CHILDUNDER4 + ", "+ DB_FIELD_CHILDUNDER15 + ", " + "adult" + ", "+ DB_FIELD_INCOME + ", "+ DB_FIELD_HOUSING_DURATION + ", " + "workers"+ ", "+
+							+ " (" + DB_FIELD_ID + ", "+ "lifestyle_id" + ", "+ DB_FIELD_UNIT_ID + ", "+ DB_FIELD_ETHNICITY_ID + ", "+ DB_FIELD_VEHICLE_CATEGORY_ID + ", "+ DB_FIELD_SIZE + ", "+
+							DB_FIELD_CHILDUNDER4 + ", "+ DB_FIELD_CHILDUNDER15 + ", " + "num_adults" + ", "+ DB_FIELD_INCOME + ", "+ DB_FIELD_HOUSING_DURATION + ", " + "workers"+ ", "+
 							"age_of_head" + ", "+ "pending_status_id" + ", " + "pending_from_date" + ", "+ "unit_pending" + ", "+ "taxi_availability" + ", " + "vehicle_ownership_option_id"+ ", "+
-							+ "time_on_market" + ", " + "time_off_market"+ ", "+ "is_bidder" + ", " + "is_seller"+ ", "+ "buy_sell_interval" + ", "+ "move_in_date" + ", " + "has_moved"+ ", "+
-							+ "tenure_status"  ", " + "awakened_day" + ") VALUES (:v1, :v2, :v3, :v4, :v5, :v6, :v7 ,:v8, :v9, :v10, :v11, :v12, :v13, :v14, :v15, :v16, :v17, :v18, :v19, :v20, :v21, :v22, :v23, :v24, :V25, :v26, :v27)";
+							+ "time_on_market" + ", " + "time_off_market"+ ", "+ "is_bidder" + ", " + "is_seller"+ ", "+ "buy_sell_interval" + ", "+
+							+ "tenure_status"  ", " + "awakened_day" + ") VALUES (:v1, :v2, :v3, :v4, :v5, :v6, :v7 ,:v8, :v9, :v10, :v11, :v12, :v13, :v14, :v15, :v16, :v17, :v18, :v19, :v20, :v21, :v22, :v23, :v24, :V25)";
 		insertViaQuery(houseHold,DB_INSERT_HOUSEHOLD_OP);
 	}
 

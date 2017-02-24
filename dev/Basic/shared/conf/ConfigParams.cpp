@@ -306,6 +306,16 @@ void ConfigParams::setWaitingCountStatsFilename(const std::string& str)
 	waitingCountStatsFilename = str;
 }
 
+unsigned int ConfigParams::getWaitingCountStatsInterval() const
+{
+	return waitingCountStatsStorageInterval;
+}
+
+void ConfigParams::setWaitingCountStatsInterval(unsigned int interval)
+{
+	waitingCountStatsStorageInterval = interval;
+}
+
 const std::string& ConfigParams::getTravelTimeStatsFilename() const
 {
 	return travelTimeStatsFilename;

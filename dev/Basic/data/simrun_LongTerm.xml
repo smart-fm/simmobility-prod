@@ -21,24 +21,31 @@
             </database>
             
 	    <!-- internal ip for remote midterm server -->
-            <database id="fm_remote_mt" dbtype="postgres">
+            <database id="fm_remote_mt1" dbtype="postgres">
                 <host value="172.25.184.48"/>
                 <port value="5432"/>
                 <dbname value="simmobility"/>
             </database>
 
-            <!-- localhost for midterm server -->
+	    <!-- hpc ip for remote midterm server -->
             <database id="fm_remote_mt2" dbtype="postgres">
+                <host value="172.25.184.156"/>
+                <port value="5432"/>
+                <dbname value="simmobility"/>
+            </database>
+
+            <!-- localhost for midterm server -->
+            <database id="fm_remote_mt6" dbtype="postgres">
                 <host value="localhost"/>
                 <port value="5432"/>
                 <dbname value="sim_mob_lt"/>
             </database>
 
 		<!-- public ip for remote midterm server -->
-	    <database id="fm_remote_mt3" dbtype="postgres">
+	    <database id="fm_remote_mt" dbtype="postgres">
 	        <host value="137.132.22.82"/>
 	        <port value="15061"/> <!--old port: 15025 -->
-	        <dbname value="SimMobility_DB_2015"/>
+	        <dbname value="simmobility"/>
 	    </database>
 
 		<!-- public ip for remote midterm server -->
@@ -76,8 +83,8 @@
 	-->
 
 	<file-based-credential id="fm_remote_mt">
-	<!-- <file path="private/fm_remote.cred"/> -->
-	     <file path="private/fm_local.cred"/>
+	 <file path="private/fm_remote.cred"/> 
+	  <!--   <file path="private/fm_local.cred"/>-->
 	</file-based-credential>
 
 	<plaintext-credential id="LT_cred">
@@ -115,7 +122,7 @@
 	<outputHouseholdLogsums enabled="false">
 	    <vehicleOwnershipLogsum value ="false"/>
 	    <fixedHomeVariableWork value ="false"/>
-	    <fixedWorkVariableHome value ="true"/>
+	    <fixedWorkVariableHome value ="false"/>
 	</outputHouseholdLogsums>
     	<housingModel enabled="true"> 	    
             <timeOnMarket value="90"/>
@@ -124,18 +131,21 @@
 	    <awakeningModel enabled="true">
 		    <initialHouseholdsOnMarket value="15000"/>
 		    <dailyHouseholdAwakenings value="400"/>
-		    <awakenModelShan value="true"/>
-		    <awakenModelRandom value="false"/>
-		    <awakenModelJingsi value="false"/>		
+		    <awakenModelShan value="false"/>
+		    <awakenModelRandom value="true"/>
+		    <awakenModelJingsi value="false"/>	
+                    <awakeningOffMarketSuccessfulBid value="100"/>
+ 	             <awakeningOffMarketUnsuccessfulBid value="200"/>
 	    </awakeningModel>
 	    <vacantUnitActivationProbability value="0.375"/>
 	    <housingMarketSearchPercentage value="0.15"/>
-	    <housingMoveInDaysInterval value="30"/>
-	    <offsetBetweenUnitBuyingAndSelling value ="7"/>
+	    <housingMoveInDaysInterval value="30"/>	   
 	    <bidderUnitsChoiceSet value = "50"/>
-	    <bidderBTOUnitsChoiceSet value = "12"/>
+	    <bidderBTOUnitsChoiceSet value = "10"/>
 	    <householdBiddingWindow value = "30" />
-	    <householdAwakeningPercentageByBTO value = "0.00001" />
+	    <householdAwakeningPercentageByBTO value = "0.05" />
+	    <offsetBetweenUnitBuyingAndSelling value ="7"/>
+            <offsetBetweenUnitBuyingAndSellingAdvancedPurchase value = "30" />
         </housingModel>
 	<vehicleOwnershipModel enabled='false'>
 		<vehicleBuyingWaitingTimeInDays value= "1"/>
@@ -145,6 +155,34 @@
 	<schoolAssignmentModel enabled = 'false'>
 		<schoolChangeWaitingTimeInDays value ="1" />
 	</schoolAssignmentModel>
+
+	<outputFiles enabled= 'true'>
+                <bids value= 'true' />
+                <expectations value= 'true'/>
+                <parcels value= 'true' />
+                <units value= 'true' />
+                <projects value= 'true'/>
+                <hh_pc value= 'true'/>
+                <units_in_market value= 'true'/>
+                <log_taxi_availability value= 'true'/>
+                <log_vehicle_ownership value= 'true'/>
+                <log_taz_level_logsum value= 'true'/>
+                <log_householdgrouplogsum value= 'true'/>
+                <log_individual_hits_logsum value= 'true'/>
+                <log_householdbidlist value= 'true'/>
+                <log_individual_logsum_vo value= 'true' />
+		<log_screeningprobabilities value= 'true' />
+		<log_hhchoiceset value= 'true' />
+		<log_error value= 'true' />
+		<log_school_assignment value= 'true' />
+		<log_pre_school_assignment value = 'true' />
+		<log_hh_awakening value = 'true' />
+		<log_hh_exit value = 'true' />
+		<log_random_nums value = 'true' />
+		<log_dev_roi value = 'true' />
+		<log_household_statistics value = 'true' />
+		<log_out_xx_files value='false' />
+        </outputFiles>
     </longTermParams>
 
     <model_scripts path="scripts/lua/mid/behavior-models/" format="lua">

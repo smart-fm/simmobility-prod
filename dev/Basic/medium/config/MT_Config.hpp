@@ -701,6 +701,12 @@ public:
      */
     unsigned int personTimeStepInMilliSeconds() const;
 
+	/**
+	 * Retrieves the segment stats with taxi stands
+	 * @return segment stats with taxi-stands
+	 */
+	std::set<SegmentStats*>& getSegmentStatsWithTaxiStands();
+
 
 	const WorkerParams& getWorkerParams() const;
 
@@ -859,6 +865,9 @@ private:
 
 	/// array of speed density function parameters indexed by link category
 	SpeedDensityParams speedDensityParams[7];
+
+	/**set of segment stats with taxi-stands*/
+	std::set<SegmentStats*> segmentStatsWithTaxiStands;
 };
 }
 }

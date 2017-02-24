@@ -12,6 +12,7 @@
 #include <iostream>
 #include <fstream>
 #include <boost/unordered_map.hpp>
+#include <boost/thread/mutex.hpp>
 
 namespace sim_mob
 {
@@ -56,7 +57,12 @@ namespace sim_mob
 				LOG_PRE_SCHOOL_ASSIGNMENT,
 				LOG_HH_AWAKENING,
 				LOG_HH_EXIT,
-				LOG_RANDOM_NUMS
+				LOG_RANDOM_NUMS,
+				LOG_DEV_ROI,
+				LOG_HOUSEHOLD_STATISTICS,
+				LOG_NON_ELIGIBLE_PARCELS,
+				LOG_ELIGIBLE_PARCELS,
+				LOG_GPR
             };
 
             LoggerAgent();
@@ -91,6 +97,9 @@ namespace sim_mob
         private:
             typedef boost::unordered_map<LogFile, std::ofstream*> Files;
             boost::unordered_map<LogFile, std::ofstream*> streams; 
+
+            boost::mutex mtx;
+
         };
     }
 }

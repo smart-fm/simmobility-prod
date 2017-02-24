@@ -36,13 +36,14 @@ using std::string;
 using std::map;
 using std::endl;
 
-HouseholdAgent::HouseholdAgent(BigSerial _id, HM_Model* _model, Household* _household, HousingMarket* _market, bool _marketSeller, int _day, int _householdBiddingWindow, int awakeningDay)
+HouseholdAgent::HouseholdAgent(BigSerial _id, HM_Model* _model, Household* _household, HousingMarket* _market, bool _marketSeller, int _day, int _householdBiddingWindow, int awakeningDay, bool acceptedBid)
 							 : Agent_LT(ConfigManager::GetInstance().FullConfig().mutexStategy(), _id), model(_model), market(_market), household(_household), marketSeller(_marketSeller), bidder (nullptr), seller(nullptr), day(_day),
-							   vehicleOwnershipOption(NO_VEHICLE), householdBiddingWindow(_householdBiddingWindow),awakeningDay(awakeningDay)
+							   vehicleOwnershipOption(NO_VEHICLE), householdBiddingWindow(_householdBiddingWindow),awakeningDay(awakeningDay),acceptedBid(acceptedBid)
 							{
 
     seller = new HouseholdSellerRole(this);
-    seller->setActive(marketSeller);
+    if( marketSeller == true )
+    	seller->setActive(true);
 
 
     ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
@@ -51,7 +52,6 @@ HouseholdAgent::HouseholdAgent(BigSerial _id, HM_Model* _model, Household* _hous
     if ( marketSeller == false )
     {
         bidder = new HouseholdBidderRole(this);
-        bidder->setActive(false);
     }
 
 
@@ -150,15 +150,13 @@ HouseholdSellerRole* HouseholdAgent::getSeller()
 
 }
 
-
 Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 {
 	day = now.frame();
+	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 
-	if( bidder && bidder->isActive() && buySellInterval > 0 )
-		buySellInterval--;
-
-	if( buySellInterval == 0 )
+	//has 7 days elapsed since the bidder was activted OR the bid has been accepted AND the waiting time is less than the BTO BuySell interval, we can activate the sellers
+	if(buySellInterval == 0 || (acceptedBid  && ( bidder->getMoveInWaitingTimeInDays() <= config.ltParams.housingModel.offsetBetweenUnitBuyingAndSellingAdvancedPurchase)))
 	{
 		if( seller->isActive() == false )
 		{
@@ -175,34 +173,35 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 					unit->setTimeOnMarket( config.ltParams.housingModel.timeOnMarket);
 				}
 			}
+
+			seller->setActive(true);
 		}
-
-		seller->setActive(true);
-
-		buySellInterval--;
 	}
 
-	if( bidder && bidder->isActive() && ( householdBiddingWindow == 0 || bidder->getMoveInWaitingTimeInDays() == 0) )
-	{
-		PrintExit( day, household, 0);
-		bidder->setActive(false);
-		model->incrementExits();
-	}
 
     if (bidder && bidder->isActive() && householdBiddingWindow > 0 )
     {
         bidder->update(now);
         householdBiddingWindow--;
+       	buySellInterval--;
     }
+
+	//If 1) the bidder is active and 2) it is not waiting to move into a unit and 3) it has exceeded it's bidding time frame,
+	//Then it can now go inactive. However if any one of the above three conditions are not true, the bidder has to remain active
+	if( bidder && bidder->isActive() &&  ( bidder->getMoveInWaitingTimeInDays() ==  0 || householdBiddingWindow == 0 ) )
+	{
+		PrintExit( day, household, 0);
+		bidder->setActive(false);
+		seller->setActive(false);
+		model->incrementExits();
+	}
 
     if (seller && seller->isActive())
     {
-
-    	model->incrementNumberOfSellers();
         seller->update(now);
     }
 
-    ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+
     int startDay = 0;
     if(config.ltParams.resume)
     {
@@ -216,29 +215,29 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
     			std::vector<BigSerial> individuals = household->getIndividuals();
     			std::vector<BigSerial>::iterator individualsItr;
     			for(individualsItr = individuals.begin(); individualsItr != individuals.end(); individualsItr++)
-    				{
-    					const Individual* individual = model->getPrimaySchoolIndById((*individualsItr));
-    					SchoolAssignmentSubModel schoolAssignmentModel(model);
-    					if (individual!= nullptr)
-    					{
-    						if(day == startDay)
-    						{
-    							schoolAssignmentModel.assignPrimarySchool(this->getHousehold(),individual->getId(),this, day);
-    						}
-    						if(day == ++startDay)
-    						{
-    							schoolAssignmentModel.setStudentLimitInPrimarySchool();
-    						}
-    					}
-    					else
-    					{
-    						const Individual* individual = model->getPreSchoolIndById((*individualsItr));
-    						if (individual!= nullptr && day == startDay)
-    						{
-    							schoolAssignmentModel.assignPreSchool(this->getHousehold(),individual->getId(),this, day);
-    						}
-    					}
-    				}
+    			{
+					const Individual* individual = model->getPrimaySchoolIndById((*individualsItr));
+					SchoolAssignmentSubModel schoolAssignmentModel(model);
+					if (individual!= nullptr)
+					{
+						if(day == startDay)
+						{
+							schoolAssignmentModel.assignPrimarySchool(this->getHousehold(),individual->getId(),this, day);
+						}
+						if(day == ++startDay)
+						{
+							schoolAssignmentModel.setStudentLimitInPrimarySchool();
+						}
+					}
+					else
+					{
+						const Individual* individual = model->getPreSchoolIndById((*individualsItr));
+						if (individual!= nullptr && day == startDay)
+						{
+							schoolAssignmentModel.assignPreSchool(this->getHousehold(),individual->getId(),this, day);
+						}
+					}
+    			}
     		}
     	}
 
@@ -273,7 +272,15 @@ void HouseholdAgent::processEvent(EventId eventId, Context ctxId, const EventArg
         {
         	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 
-        	float montecarlo = (float)rand() /RAND_MAX;
+        	//generate a unifromly distributed random number
+        	std::random_device rd;
+        	std::mt19937 gen(rd());
+        	std::uniform_real_distribution<> dis(0.0, 1.0);
+        	const double montecarlo = dis(gen);
+
+        	static int counter = 0;
+        	counter++;
+
 
         	if( montecarlo < config.ltParams.housingModel.householdAwakeningPercentageByBTO )
         	{
@@ -292,9 +299,11 @@ void HouseholdAgent::processEvent(EventId eventId, Context ctxId, const EventArg
 					buySellInterval = config.ltParams.housingModel.offsetBetweenUnitBuyingAndSelling;
 				}
         	}
-
             break;
+
         }
+
+
         default:break;
     };
 }
@@ -339,6 +348,11 @@ void HouseholdAgent::processExternalEvent(const ExternalEventArgs& args)
 bool HouseholdAgent::getFutureTransitionOwn()
 {
 	return futureTransitionOwn;
+}
+
+void HouseholdAgent::setAcceptedBid(bool isAccepted)
+{
+	acceptedBid = isAccepted;
 }
 
 void HouseholdAgent::onWorkerEnter()

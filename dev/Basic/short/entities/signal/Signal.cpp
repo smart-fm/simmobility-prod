@@ -153,7 +153,7 @@ Entity::UpdateStatus Signal_SCATS::frame_init(timeslice now)
 
 Entity::UpdateStatus Signal_SCATS::frame_tick(timeslice now)
 {
-	if (ST_Config::getInstance().loopDetectorCounts.outputEnabled)
+	if (ST_Config::getInstance().outputStats.loopDetectorCounts.outputEnabled)
 	{
 		curVehicleCounter.aggregateCounts(now);
 	}
@@ -523,8 +523,8 @@ void Signal_SCATS::createTrafficSignals(const MutexStrategy &mtxStrat)
 }
 
 VehicleCounter::VehicleCounter() : simStartTime(ConfigManager::GetInstance().FullConfig().simStartTime()),
-frequency(ST_Config::getInstance().loopDetectorCounts.frequency),
-logger(Logger::log(ST_Config::getInstance().loopDetectorCounts.fileName)), curTimeSlice(0, 0)
+frequency(ST_Config::getInstance().outputStats.loopDetectorCounts.frequency),
+logger(Logger::log(ST_Config::getInstance().outputStats.loopDetectorCounts.fileName)), curTimeSlice(0, 0)
 {
 }
 
@@ -556,7 +556,7 @@ void VehicleCounter::resetCounter()
 
 void VehicleCounter::serialize(const uint32_t& time)
 {
-	if (ST_Config::getInstance().loopDetectorCounts.outputEnabled)
+	if (ST_Config::getInstance().outputStats.loopDetectorCounts.outputEnabled)
 	{
 		std::map<const Lane*, int> ::iterator it(counter.begin());
 		for (; it != counter.end(); it++)

@@ -669,25 +669,11 @@ namespace medium
 					}
 					else
 					{
-						//check for the condition that whether the train has crossed the limit for platform ,so then the next platform position wise
-						//has to be updated.
-						//here ,not checking for the case when the train crosses more than one platform in a frame tick when it has to skip consective 
-						//platforms.Its ideally not possible for train to cross two or more consecutive platforms in one frame tick
-						//so when the train crosses the limit of its upcoming(next) platform after it has moved in the frame tick ,the next platform 
-						//is just updated by one in the list.
 						if(distance<getTotalCoveredDistance())
 						{
 							//if it has to ignore all platforms and last next position position wise is the last platform on its route
 							if(shouldIgnoreAllPlatforms && trainPlatformMover_accpos.getLastPlatformOnRoute() == trainPlatformMover_accpos.getNextPlatform(false))
 							{
-								// if the train has reached the end of route ,that is if the train has overshoot the distance due to the 5 sec frame tick 
-								//meaning to say in last frame tick it was before the end of route and now its after the end of route 
-								//then it is to be removed
-								
-								//when it overshoots the distance it is true that there are no block or poly points for train to update its position
-								//but thats ok the train's position will be last block and last poly point,only distance travelled will be updated
-								//If the distance travelled in next frame tick overshoots ,its better not to terminate the train early since we will losing
-								//certain distance the train travels ,ideally the full path should be covered by the train 
 								parentDriver->getParent()->setToBeRemoved();
 								arrivalAtEndPlatform();
 							}
@@ -1384,13 +1370,6 @@ namespace medium
 
 		const TrainDriver* nextDriver = parentDriver->getNextDriver();
 		distanceToNextTrain = getDistanceToNextTrain(nextDriver);
-		//As long as station case decision is not confirmed keep iterating through the loop
-		//It is possible that there are several stop points on the way one after the other
-		//if a stop point is the nearest object then it is unable to stop at that point due to limited deceleration available ,but the train has 
-		//got too close to the stop point then no attempt is made to stop at stop point
-		//rather next  nearest object is chosen and if it a stop point then again it stop point then check the deceleration requirement and availability for
-		//that stop point ,if still not enough deceleration to stop it then likewise keeping checking for other stop points if they are nearest
-		//finally if platform is nearest object just stop there with whatever deceleration it requires.
 		while(!stationCaseDecisionConfirmed)
 		{
 			distanceToNextObject = 0.0;
@@ -1408,17 +1387,6 @@ namespace medium
 			std::vector<PolyPoint>::const_iterator stopPointItr = points.end();
 			if(stopPoints.size() != 0)
 			{
-				//this function gets the stop point nearest to the train which is not at distance 0 from the train.If the stop point is at distance 0 ,then
-				//just ignore it.if the distance is 0 then that means the stop point is inserted by service controller just in this frame tick at the same
-				//position of the train so its not possible to make the velocity of train instantaneously to 0.
-				//When it is at certain distance from stop point and it reaches the stop point at the end of frame tick ,the distance will be 0 to it 
-				//then it that case immediately stopping status is set and stop time is calculated. And stop point is deleted so that it does not come into picture
-				//with 0 distance when in future its needed to find the nearest stop point.
-				//There is a minor bug ,lets say when the train is stopped due to train ahead of it is very close and at that time stop point is inserted
-				//so only  now the train is closer to the stop point considering the value of safe distance(if the train has crossed safety limit) but is 
-				//still at some distance of train ahead so if the train has just stopped at the end of frame tick and in next frame tick the train ahead of it
-				//moves some distance such that it is at safe distance(since its multi threaded) so then the stop point will not be considered as it is at 0 distance from the train stopped
-				//and the train will now start moving ,but if the train has to wait for at least one frame tick then it checks that stop point is present and it honours it.
 				itr = findNearestStopPoint(stopPoints,disToNextStopPoint,maxDecelerationToStopPoint);
 			}
 
@@ -1753,10 +1721,6 @@ namespace medium
 		{
 			if(nextDriver->getMovement()->getDisruptedState()&&(nextDriver->getNextRequested()==TrainDriver::REQUESTED_AT_PLATFORM||nextDriver->getNextRequested()==TrainDriver::REQUESTED_WAITING_LEAVING)&&nextDriver->getNextPlatform()==getNextPlatform())
 			{
-				//This condition applies in case of disruption where if a train has already occupied a platform and it cannot move ahead due to disruption
-				//and if there is a train behind it which is between the two platforms then that train will arrive as close as possible to train on platform
-				//if the distance to that train is 0 then ,it is taken as the the train behind has already arrived at platform and it will start
-				//force alighting the passengers ,so it is considered as stop at platform.The condition below checks for it
 				double distanceToNextTrain = getDistanceToNextTrain(nextDriver);
 				if(distanceToNextTrain < distanceArrvingAtPlatform)
 				{
@@ -1949,15 +1913,6 @@ namespace medium
 			trainPlatformMover.resetPlatformItr();
 			//clear all the previous platform list 
 			trainPlatformMover.clearPrevPlatforms();
-			//need to reset the iterator the clear the platform list because the platforms may also be added back which are ignored
-			//so need to remove them from prevPlatform list and also need to adjust the position of the next platform iterator
-			//as it might have gone ahead if a platform was ignored 
-			//eg A->B->C->D
-			//lets say the next platform position wise is B ,then if B and C are ignored,the next platform where it will stop will be D
-			//but then if you want add back C ,then next platform the train will stop at will be C
-			//need to readjust the iterator to point at C as it was pointing to D previously and even the prev platform list have to only
-			//contain platforms till B as it was previously till C
-			//so the easiest way is to reiterate over the list from beginning till you reach the respective platform
 			std::vector<Platform*>::const_iterator itr = std::find(platforms.begin(),platforms.end(),nextPltAccPos);
 			if(itr != platforms.end())
 			{

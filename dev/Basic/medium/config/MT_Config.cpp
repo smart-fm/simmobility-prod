@@ -385,6 +385,11 @@ std::set<SegmentStats*>& MT_Config::getSegmentStatsWithBusStops()
     return segmentStatsWithBusStops;
 }
 
+std::set<SegmentStats*>& MT_Config::getSegmentStatsWithTaxiStands()
+{
+	return segmentStatsWithTaxiStands;
+}
+
 unsigned int MT_Config::personTimeStepInMilliSeconds() const
 {
     return workers.person.granularityMs;

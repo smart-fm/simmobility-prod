@@ -324,7 +324,7 @@ void sim_mob::Worker::perform_frame_tick()
 	update_entities(timeslice(par.currTick, par.currTick*par.msPerFrame));
 
 
-	if( getId() >= 0 )
+	if( 0 && getId() >= 0 )
 	{
 		time_t end_clock = time(0);
 		double time_clock = difftime( end_clock, start_clock );

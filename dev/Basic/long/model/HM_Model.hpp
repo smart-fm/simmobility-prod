@@ -526,14 +526,14 @@ namespace sim_mob
             ScreeningCostTimeMap screeningCostTimeById;
             ScreeningCostTimeSuperMap screeningCostTimeSuperMap;
 
-            boost::mutex mtx;
-            boost::mutex mtx2;
-            boost::mutex mtx3;
-            boost::mutex mtx4;
-            boost::mutex mtx5;
-            boost::mutex mtx6;
-            boost::mutex idLock;
-            boost::mutex DBLock;
+            //boost::mutex mtx;
+            //boost::mutex mtx2;
+            //boost::mutex mtx3;
+            //boost::mutex mtx4;
+            //boost::mutex mtx5;
+            //boost::mutex mtx6;
+            //boost::mutex idLock;
+            //boost::mutex DBLock;
             boost::unordered_map<BigSerial, double>tazLevelLogsum;
             boost::unordered_map<BigSerial, double>vehicleOwnershipLogsum;
 

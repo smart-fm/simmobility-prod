@@ -98,7 +98,7 @@ namespace sim_mob
             typedef boost::unordered_map<LogFile, std::ofstream*> Files;
             boost::unordered_map<LogFile, std::ofstream*> streams; 
 
-            boost::mutex mtx;
+            //boost::mutex mtx;
 
         };
     }

@@ -187,7 +187,7 @@ namespace sim_mob
             std::string name;
             Metadata metadata;
             MetadataMap metadataMapping;// only for mapping.
-            boost::mutex dbLock;
+            //boost::mutex dbLock;
         };
     }
 }

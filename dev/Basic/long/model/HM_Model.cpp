@@ -2840,21 +2840,21 @@ void HM_Model::hdbEligibilityTest(int index)
 void HM_Model::addNewBids(boost::shared_ptr<Bid> &newBid)
 {
 	//DBLock.lock();
-	newBids.push_back(newBid);
+	//newBids.push_back(newBid);
 	//DBLock.unlock();
 }
 
 void HM_Model::addUnitSales(boost::shared_ptr<UnitSale> &unitSale)
 {
 	//DBLock.lock();
-	unitSales.push_back(unitSale);
+	//unitSales.push_back(unitSale);
 	//DBLock.unlock();
 }
 
 void HM_Model::addHouseholdUnits(boost::shared_ptr<HouseholdUnit> &newHouseholdUnit)
 {
 	//DBLock.lock();
-	newHouseholdUnits.push_back(newHouseholdUnit);
+	//newHouseholdUnits.push_back(newHouseholdUnit);
 	//DBLock.unlock();
 }
 
@@ -2867,8 +2867,8 @@ void HM_Model::addUpdatedUnits(boost::shared_ptr<Unit> &updatedUnit)
 	}
 
 	//DBLock.lock();
-	updatedUnits.push_back(updatedUnit);
-	updatedUnitsById.insert(std::make_pair((updatedUnit)->getId(), updatedUnit.get()));
+	//updatedUnits.push_back(updatedUnit);
+	//updatedUnitsById.insert(std::make_pair((updatedUnit)->getId(), updatedUnit.get()));
 	//DBLock.unlock();
 }
 

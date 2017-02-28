@@ -76,7 +76,7 @@ PersonParams::~PersonParams()
 
 void PersonParams::setVehicleOwnershipCategory(int vehicleOwnershipCategory)
 {
-	if(vehicleOwnershipCategory<0 || vehicleOwnershipCategory>5)
+    if(vehicleOwnershipCategory < 0 || vehicleOwnershipCategory > 5)
 	{
 		throw std::runtime_error("invalid vehicle ownership category: " + std::to_string(vehicleOwnershipCategory));
 	}

@@ -52,7 +52,7 @@ public:
 	double getEmployment(int zone) const;
 	double getPopulation(int zone) const;
 	double getArea(int zone) const;
-	void setDrive1Available(bool drive1Available);
+    //void setDrive1Available(bool drive1Available);
 	int isAvailable_TMD(int choiceId) const;
 	int getModeForParentWorkTour() const;
 	void setModeForParentWorkTour(int modeForParentWorkTour);
@@ -61,8 +61,11 @@ public:
 	double getCostIncrease() const;
 
 private:
-	bool drive1Available;
-	bool motorAvailable;
+    /*bool drive1Available;
+    bool motorAvailable;*/
+
+    std::unordered_map<int, bool> modeAvailability;
+
 	int modeForParentWorkTour;
 	double costIncrease;
 };
@@ -96,8 +99,11 @@ public:
 
 private:
 	int homeZone;
-	bool driveAvailable;
-	bool motorAvailable;
+    /*bool driveAvailable;
+    bool motorAvailable;*/
+
+    std::unordered_map<int, bool> modeAvailability;
+
 	int tourMode;
 	bool firstBound;
 };

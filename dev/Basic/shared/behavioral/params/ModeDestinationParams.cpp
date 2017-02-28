@@ -60,6 +60,97 @@ void setTourCarAndMotorAvailability(const PersonParams& personParams, bool& driv
 	}
 	}
 }
+
+void setTourModeAvailability(const PersonParams& personParams, int numModes, std::unordered_map<int, bool>& modeAvailability, const ConfigParams& cfg)
+{
+    for (int mode = 1; mode <= numModes; ++mode)
+    {
+        modeAvailability[mode] = true;
+    }
+
+    switch(personParams.getVehicleOwnershipOption())
+    {
+    case VehicleOwnershipOption::NO_VEHICLE:
+    case VehicleOwnershipOption::INVALID:
+    {
+        for (int mode = 1; mode <= numModes; ++mode)
+        {
+            int modeType = cfg.getActivityTypeConfig(mode).type;
+            if (modeType == PVT_CAR_MODE || modeType == PVT_BIKE_MODE)
+            {
+                modeAvailability[mode] = false;
+            }
+        }
+        break;
+    }
+    case VehicleOwnershipOption::ONE_PLUS_MOTOR_ONLY:
+    {
+        for (int mode = 1; mode <= numModes; ++mode)
+        {
+            int modeType = cfg.getActivityTypeConfig(mode).type;
+            if (modeType == PVT_CAR_MODE)
+            {
+                modeAvailability[mode] = false;
+            }
+            if (modeType == PVT_BIKE_MODE)
+            {
+                modeAvailability[mode] = personParams.getMotorLicense();
+            }
+        }
+        break;
+    }
+    case VehicleOwnershipOption::ONE_OP_CAR_W_WO_MOTOR:
+    {
+        for (int mode = 1; mode <= numModes; ++mode)
+        {
+            int modeType = cfg.getActivityTypeConfig(mode).type;
+            if (modeType == PVT_CAR_MODE)
+            {
+                modeAvailability[mode] = false;
+            }
+            if (modeType == PVT_BIKE_MODE)
+            {
+                modeAvailability[mode] = personParams.getMotorLicense();
+            }
+        }
+        break;
+    }
+    case VehicleOwnershipOption::ONE_NORMAL_CAR_ONLY:
+    {
+        for (int mode = 1; mode <= numModes; ++mode)
+        {
+            int modeType = cfg.getActivityTypeConfig(mode).type;
+            if (modeType == PVT_CAR_MODE)
+            {
+                modeAvailability[mode] = personParams.hasDrivingLicence();
+            }
+            if (modeType == PVT_BIKE_MODE)
+            {
+                modeAvailability[mode] = false;
+            }
+        }
+        break;
+    }
+    case VehicleOwnershipOption::ONE_NORMAL_CAR_AND_ONE_PLUS_MOTOR:
+    case VehicleOwnershipOption::TWO_PLUS_NORMAL_CAR_W_WO_MOTOR:
+    {
+        for (int mode = 1; mode <= numModes; ++mode)
+        {
+            int modeType = cfg.getActivityTypeConfig(mode).type;
+            if (modeType == PVT_CAR_MODE)
+            {
+                modeAvailability[mode] = personParams.hasDrivingLicence();
+            }
+            if (modeType == PVT_BIKE_MODE)
+            {
+                modeAvailability[mode] = personParams.getMotorLicense();
+            }
+        }
+        break;
+    }
+    }
+}
+
 }
 
 ModeDestinationParams::ModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap,
@@ -107,9 +198,10 @@ bool sim_mob::ModeDestinationParams::isUnavailable(int origin, int destination) 
 LogsumTourModeDestinationParams::LogsumTourModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap,
         const PersonParams& personParams, StopType tourType, int numModes) :
         ModeDestinationParams(zoneMap, amCostsMap, pmCostsMap, tourType, personParams.getHomeLocation(), numModes, unavailableODsDummy),
-			drive1Available(false), motorAvailable(false), modeForParentWorkTour(0), costIncrease(1)
+            modeForParentWorkTour(0), costIncrease(1)
 {
-	setTourCarAndMotorAvailability(personParams, drive1Available, motorAvailable);
+    //setTourCarAndMotorAvailability(personParams, drive1Available, motorAvailable);
+    setTourModeAvailability(personParams, numModes, modeAvailability, ConfigManager::GetInstance().FullConfig());
 }
 
 LogsumTourModeDestinationParams::~LogsumTourModeDestinationParams()
@@ -548,10 +640,10 @@ double LogsumTourModeDestinationParams::getArea(int zone) const
 	return result;
 }
 
-void LogsumTourModeDestinationParams::setDrive1Available(bool drive1Available)
+/*void LogsumTourModeDestinationParams::setDrive1Available(bool drive1Available)
 {
 	this->drive1Available = drive1Available;
-}
+}*/
 
 double LogsumTourModeDestinationParams::getCostIncrease() const
 {
@@ -592,7 +684,8 @@ int LogsumTourModeDestinationParams::isAvailable_TMD(int choiceId) const
 		return 0;
 	}
 
-    int modeType = ConfigManager::GetInstance().FullConfig().getActivityTypeConfig(int(choiceId / numZones)).type;
+    const ConfigParams& cfg = ConfigManager::GetInstance().FullConfig();
+    int modeType = cfg.getActivityTypeConfig(int(choiceId / numZones)).type;
 
     switch(modeType)
     {
@@ -612,7 +705,13 @@ int LogsumTourModeDestinationParams::isAvailable_TMD(int choiceId) const
     }
     case PVT_CAR_MODE:
     {
-        return drive1Available;
+        for (int mode = 1; mode <= numModes; ++mode)
+        {
+            if (cfg.getTravelModeConfig(mode).type == PVT_CAR_MODE)
+            {
+                return modeAvailability.at(mode);
+            }
+        }
         break;
     }
     case SHARING_MODE:
@@ -623,7 +722,13 @@ int LogsumTourModeDestinationParams::isAvailable_TMD(int choiceId) const
     }
     case PVT_BIKE_MODE:
     {
-        return motorAvailable;
+        for (int mode = 1; mode <= numModes; ++mode)
+        {
+            if (cfg.getTravelModeConfig(mode).type == PVT_BIKE_MODE)
+            {
+                return modeAvailability.at(mode);
+            }
+        }
         break;
     }
     case WALK_MODE:
@@ -674,6 +779,8 @@ sim_mob::LogsumTourModeParams::LogsumTourModeParams(const ZoneParams* znOrgObj, 
 			workOP(znDesObj->getEmployment()), educationOP(znDesObj->getTotalEnrollment()), originArea(znOrgObj->getArea()),
 			destinationArea(znDesObj->getArea())
 {
+    int numModes = ConfigManager::GetInstance().FullConfig().getNumTravelModes();
+
 	if (amObj && pmObj)
 	{
 		costPublicFirst = amObj->getPubCost();
@@ -695,14 +802,23 @@ sim_mob::LogsumTourModeParams::LogsumTourModeParams(const ZoneParams* znOrgObj, 
 		avgTransfer = (amObj->getAvgTransfer() + pmObj->getAvgTransfer()) / 2;
 
 		//set availabilities
-		share2Available = 1;
-		share3Available = 1;
-		publicBusAvailable = (amObj->getPubIvt() > 0 && pmObj->getPubIvt() > 0);
-		mrtAvailable = (amObj->getPubIvt() > 0 && pmObj->getPubIvt() > 0);
-		privateBusAvailable = (amObj->getPubIvt() > 0 && pmObj->getPubIvt() > 0);
-		walkAvailable = (amObj->getPubIvt() <= WALKABLE_DISTANCE && pmObj->getPubIvt() <= WALKABLE_DISTANCE);
-		taxiAvailable = 1;
-		setTourCarAndMotorAvailability(personParams, drive1Available, motorAvailable);
+        setTourModeAvailability(personParams, numModes, modeAvailabilityMap, ConfigManager::GetInstance().FullConfig());
+
+        for (int mode = 1; mode <= numModes; ++mode)
+        {
+            if (mode == SHARING_MODE || mode == TAXI_MODE)
+            {
+                modeAvailabilityMap[mode] = true;
+            }
+            if (mode == PT_TRAVEL_MODE || mode == PRIVATE_BUS_MODE)
+            {
+                modeAvailabilityMap[mode] = (amObj->getPubIvt() > 0 && pmObj->getPubIvt() > 0);
+            }
+            if (mode == WALK_MODE)
+            {
+                modeAvailabilityMap[mode] = (amObj->getPubIvt() <= WALKABLE_DISTANCE && pmObj->getPubIvt() <= WALKABLE_DISTANCE);
+            }
+        }
 	}
 	else
 	{
@@ -725,14 +841,14 @@ sim_mob::LogsumTourModeParams::LogsumTourModeParams(const ZoneParams* znOrgObj, 
 		avgTransfer = 0;
 
 		//set availabilities
-		share2Available = 1;
-		share3Available = 1;
-		publicBusAvailable = 1;
-		mrtAvailable = 1;
-		privateBusAvailable = 1;
-		walkAvailable = 1;
-		taxiAvailable = 1;
-		setTourCarAndMotorAvailability(personParams, drive1Available, motorAvailable);
+        setTourModeAvailability(personParams, numModes, modeAvailabilityMap, ConfigManager::GetInstance().FullConfig());
+        for (int mode = 1; mode <= numModes; ++mode)
+        {
+            if (mode != PVT_CAR_MODE && mode != PVT_BIKE_MODE)
+            {
+                modeAvailabilityMap[mode] = true;
+            }
+        }
 	}
 }
 

@@ -51,4 +51,6 @@ enum class VehicleOwnershipOption
 	TWO_PLUS_NORMAL_CAR_W_WO_MOTOR,
 	INVALID
 };
+
+
 }

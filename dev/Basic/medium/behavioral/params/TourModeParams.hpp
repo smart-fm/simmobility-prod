@@ -3,7 +3,11 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 #pragma once
+
+#include <unordered_map>
+
 #include "behavioral/StopType.hpp"
+#include "conf/ConfigManager.hpp"
 
 namespace sim_mob
 {
@@ -113,7 +117,7 @@ public:
 		this->costPublicSecond = costPublicSecond;
 	}
 
-	int isDrive1Available() const
+        /*int isDrive1Available() const
 	{
 		return drive1Available;
 	}
@@ -181,7 +185,27 @@ public:
 	void setShare3Available(bool share3Available)
 	{
 		this->share3Available = share3Available;
-	}
+        }
+
+        int isTaxiAvailable() const
+        {
+                return taxiAvailable;
+        }
+
+        void setTaxiAvailable(bool taxiAvailable)
+        {
+                this->taxiAvailable = taxiAvailable;
+        }*/
+
+        void setModeAvailability(int mode, bool availability)
+        {
+            modeAvailabilityMap[mode] = availability;
+        }
+
+        bool isModeAvailable(int mode) const
+        {
+            return modeAvailabilityMap.at(mode);
+        }
 
 	StopType getStopType() const
 	{
@@ -191,16 +215,6 @@ public:
 	void setStopType(StopType stopType)
 	{
 		this->stopType = stopType;
-	}
-
-	int isTaxiAvailable() const
-	{
-		return taxiAvailable;
-	}
-
-	void setTaxiAvailable(bool taxiAvailable)
-	{
-		this->taxiAvailable = taxiAvailable;
 	}
 
 	double getTtCarIvtFirst() const
@@ -283,7 +297,7 @@ public:
 		this->ttPublicWalkSecond = ttPublicWalkSecond;
 	}
 
-	int isWalkAvailable() const
+        /*int isWalkAvailable() const
 	{
 		return walkAvailable;
 	}
@@ -291,7 +305,7 @@ public:
 	void setWalkAvailable(bool walkAvailable)
 	{
 		this->walkAvailable = walkAvailable;
-	}
+        }*/
 
 	double getWalkDistance1() const
 	{
@@ -423,7 +437,7 @@ private:
 	double destinationArea;
 	double costIncrease;
 
-	bool publicBusAvailable;
+        /*bool publicBusAvailable;
 	bool mrtAvailable;
 	bool privateBusAvailable;
 	bool drive1Available;
@@ -431,7 +445,9 @@ private:
 	bool share3Available;
 	bool motorAvailable;
 	bool walkAvailable;
-	bool taxiAvailable;
+        bool taxiAvailable;*/
+
+        std::unordered_map<int, bool> modeAvailabilityMap;
 
 };
 } //end namespace medium

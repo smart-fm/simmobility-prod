@@ -188,7 +188,9 @@ bool sim_mob::medium::PredaySystem::predictUsualWorkLocation(bool firstOfMultipl
 
 void PredaySystem::constructTourModeParams(TourModeParams& tmParams, int destination, StopType tourType)
 {
-	tmParams.setStopType(tourType);
+    const ConfigParams& cfg = ConfigManager::GetInstance().FullConfig();
+
+    tmParams.setStopType(tourType);
 
 	ZoneParams* znOrgObj = zoneMap.at(zoneIdLookup.at(personParams.getHomeLocation()));
 	ZoneParams* znDesObj = zoneMap.at(zoneIdLookup.at(destination));
@@ -225,11 +227,19 @@ void PredaySystem::constructTourModeParams(TourModeParams& tmParams, int destina
 		tmParams.setAvgTransfer((amObj->getAvgTransfer() + pmObj->getAvgTransfer())/2);
 
 		//set availabilities
+        for (int mode = 1; mode <= numModes; ++mode)
+        {
+            int modeType = cfg.getActivityTypeConfig(mode).type;
+            if (modeType == PT_TRAVEL_MODE || modeType == PRIVATE_BUS_MODE)
+            {
+                tmParams.setModeAvailability(mode, (amObj->getPubIvt() > 0 && pmObj->getPubIvt() > 0));
+            }
+            else if (modeType == WALK_MODE)
+            {
+                tmParams.setModeAvailability(mode, (amObj->getDistance() <= WALKABLE_DISTANCE && pmObj->getDistance() <= WALKABLE_DISTANCE));
+            }
+        }
 
-		tmParams.setPublicBusAvailable(amObj->getPubIvt() > 0 && pmObj->getPubIvt() > 0);
-		tmParams.setMrtAvailable(amObj->getPubIvt() > 0 && pmObj->getPubIvt() > 0);
-		tmParams.setPrivateBusAvailable(amObj->getPubIvt() > 0 && pmObj->getPubIvt() > 0);
-		tmParams.setWalkAvailable(amObj->getDistance() <= WALKABLE_DISTANCE && pmObj->getDistance() <= WALKABLE_DISTANCE);
 	}
 	else
 	{
@@ -253,47 +263,91 @@ void PredaySystem::constructTourModeParams(TourModeParams& tmParams, int destina
 		tmParams.setAvgTransfer(0);
 
 		//set availabilities
-		tmParams.setPublicBusAvailable(1);
-		tmParams.setMrtAvailable(1);
-		tmParams.setPrivateBusAvailable(1);
-		tmParams.setWalkAvailable(1);
+        for (int mode = 1; mode <= numModes; ++mode)
+        {
+            int modeType = cfg.getActivityTypeConfig(mode).type;
+            if (modeType == PT_TRAVEL_MODE || modeType == PRIVATE_BUS_MODE)
+            {
+                tmParams.setModeAvailability(mode, true);
+            }
+            else if (modeType == WALK_MODE)
+            {
+                tmParams.setModeAvailability(mode, true);
+            }
+        }
 	}
 
-	tmParams.setShare2Available(1);
-	tmParams.setShare3Available(1);
-	tmParams.setTaxiAvailable(1);
+    for (int mode = 1; mode <= numModes; ++mode)
+    {
+        int modeType = cfg.getActivityTypeConfig(mode).type;
+        if (modeType == SHARING_MODE || modeType == TAXI_MODE)
+        {
+            tmParams.setModeAvailability(mode, true);
+        }
+    }
 	switch(personParams.getVehicleOwnershipOption())
 	{
 	case VehicleOwnershipOption::NO_VEHICLE:
 	case VehicleOwnershipOption::INVALID:
 	{
-		tmParams.setDrive1Available(false);
-		tmParams.setMotorAvailable(false);
+        for (int mode = 1; mode <= numModes; ++mode)
+        {
+            int modeType = cfg.getActivityTypeConfig(mode).type;
+            if (modeType == PVT_CAR_MODE || modeType == PVT_BIKE_MODE)
+            {
+                tmParams.setModeAvailability(mode, false);
+            }
+        }
 		break;
 	}
-	case VehicleOwnershipOption::ONE_PLUS_MOTOR_ONLY:
+    case VehicleOwnershipOption::ONE_PLUS_MOTOR_ONLY:
+    case VehicleOwnershipOption::ONE_OP_CAR_W_WO_MOTOR:
 	{
-		tmParams.setDrive1Available(false);
-		tmParams.setMotorAvailable(personParams.getMotorLicense());
+        for (int mode = 1; mode <= numModes; ++mode)
+        {
+            int modeType = cfg.getActivityTypeConfig(mode).type;
+            if (modeType == PVT_CAR_MODE)
+            {
+                tmParams.setModeAvailability(mode, false);
+            }
+            if (modeType == PVT_BIKE_MODE)
+            {
+                tmParams.setModeAvailability(mode, personParams.getMotorLicense());
+            }
+        }
+		break;
+    }
+    case VehicleOwnershipOption::ONE_NORMAL_CAR_ONLY:
+	{
+        for (int mode = 1; mode <= numModes; ++mode)
+        {
+            int modeType = cfg.getActivityTypeConfig(mode).type;
+            if (modeType == PVT_CAR_MODE)
+            {
+                tmParams.setModeAvailability(mode, personParams.hasDrivingLicence());
+            }
+            if (modeType == PVT_BIKE_MODE)
+            {
+                tmParams.setModeAvailability(mode, false);
+            }
+        }
 		break;
 	}
-	case VehicleOwnershipOption::ONE_OP_CAR_W_WO_MOTOR:
-	{
-		tmParams.setDrive1Available(false);
-		tmParams.setMotorAvailable(personParams.getMotorLicense());
-		break;
-	}
-	case VehicleOwnershipOption::ONE_NORMAL_CAR_ONLY:
-	{
-		tmParams.setDrive1Available(personParams.hasDrivingLicence());
-		tmParams.setMotorAvailable(false);
-		break;
-	}
-	case VehicleOwnershipOption::ONE_NORMAL_CAR_AND_ONE_PLUS_MOTOR:
-	case VehicleOwnershipOption::TWO_PLUS_NORMAL_CAR_W_WO_MOTOR:
-	{
-		tmParams.setDrive1Available(personParams.hasDrivingLicence());
-		tmParams.setMotorAvailable(personParams.getMotorLicense());
+    case VehicleOwnershipOption::ONE_NORMAL_CAR_AND_ONE_PLUS_MOTOR:
+    case VehicleOwnershipOption::TWO_PLUS_NORMAL_CAR_W_WO_MOTOR:
+    {
+        for (int mode = 1; mode <= numModes; ++mode)
+        {
+            int modeType = cfg.getActivityTypeConfig(mode).type;
+            if (modeType == PVT_CAR_MODE)
+            {
+                tmParams.setModeAvailability(mode, personParams.hasDrivingLicence());
+            }
+            if (modeType == PVT_BIKE_MODE)
+            {
+                tmParams.setModeAvailability(mode, personParams.getMotorLicense());
+            }
+        }
 		break;
 	}
 	}

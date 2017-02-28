@@ -44,18 +44,22 @@ public:
 	double getEmployment(int zone) const;
 	double getPopulation(int zone) const;
 	double getArea(int zone) const;
-	void setDrive1Available(bool drive1Available);
+        //void setDrive1Available(bool drive1Available);
 	int isAvailable_TMD(int choiceId) const;
 	int getCbdDummy(int zone) const;
 	int isCbdOrgZone() const;
 	double getCostIncrease() const;
 
 private:
-	bool drive1Available;
-	bool motorAvailable;
+        /*bool drive1Available;
+        bool motorAvailable;*/
+
+        std::unordered_map<int, bool> modeAvailability;
+
 	/**mode for parent work tour in case of sub tours*/
 	int modeForParentWorkTour;
 	double costIncrease;
+
 };
 
 /**
@@ -96,7 +100,7 @@ private:
 	double destinationArea;
 	double costIncrease;
 
-	bool publicBusAvailable;
+        /*bool publicBusAvailable;
 	bool mrtAvailable;
 	bool privateBusAvailable;
 	bool drive1Available;
@@ -104,7 +108,9 @@ private:
 	bool share3Available;
 	bool motorAvailable;
 	bool walkAvailable;
-	bool taxiAvailable;
+        bool taxiAvailable;*/
+
+        std::unordered_map<int, bool> modeAvailabilityMap;
 
 public:
 	LogsumTourModeParams(const ZoneParams* znOrgObj, const ZoneParams* znDesObj, const CostParams* amObj, const CostParams* pmObj,
@@ -201,7 +207,7 @@ public:
 		this->costPublicSecond = costPublicSecond;
 	}
 
-	int isDrive1Available() const
+        /*int isDrive1Available() const
 	{
 		return drive1Available;
 	}
@@ -269,7 +275,27 @@ public:
 	void setShare3Available(bool share3Available)
 	{
 		this->share3Available = share3Available;
-	}
+        }
+
+        int isTaxiAvailable() const
+        {
+                return taxiAvailable;
+        }
+
+        void setTaxiAvailable(bool taxiAvailable)
+        {
+                this->taxiAvailable = taxiAvailable;
+        }*/
+
+        void setModeAvailability(int mode, bool availability)
+        {
+            modeAvailabilityMap[mode] = availability;
+        }
+
+        bool isModeAvailable(int mode) const
+        {
+            return modeAvailabilityMap.at(mode);
+        }
 
 	StopType getStopType() const
 	{
@@ -279,16 +305,6 @@ public:
 	void setStopType(StopType stopType)
 	{
 		this->stopType = stopType;
-	}
-
-	int isTaxiAvailable() const
-	{
-		return taxiAvailable;
-	}
-
-	void setTaxiAvailable(bool taxiAvailable)
-	{
-		this->taxiAvailable = taxiAvailable;
 	}
 
 	double getTtCarIvtFirst() const
@@ -371,7 +387,7 @@ public:
 		this->ttPublicWalkSecond = ttPublicWalkSecond;
 	}
 
-	int isWalkAvailable() const
+        /*int isWalkAvailable() const
 	{
 		return walkAvailable;
 	}
@@ -379,7 +395,7 @@ public:
 	void setWalkAvailable(bool walkAvailable)
 	{
 		this->walkAvailable = walkAvailable;
-	}
+        }*/
 
 	double getWalkDistance1() const
 	{

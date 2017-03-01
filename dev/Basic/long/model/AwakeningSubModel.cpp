@@ -37,7 +37,7 @@ namespace sim_mob
 
 		void AwakeningSubModel::InitialAwakenings(HM_Model *model, Household *household, HouseholdAgent *agent, int day)
 		{
-			//boost::mutex::scoped_lock lock( mtx );
+			boost::mutex::scoped_lock lock( mtx );
 
 			if( agent->getId() >= model->FAKE_IDS_START )
 				return;

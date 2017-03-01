@@ -285,42 +285,8 @@ void sim_mob::Worker::perform_frame_tick()
 	//Add Agents as required.
 	addPendingEntities();
 
-	time_t  start_clock   = time(0);
-	clock_t start_process = clock();
-
-        
 	//Perform all our Agent updates, etc.
 	update_entities(timeslice(par.currTick, par.currTick*par.msPerFrame));
-
-
-	if( 0 && getId() >= 0 )
-	{
-		time_t end_clock = time(0);
-		double time_clock = difftime( end_clock, start_clock );
-
-		clock_t end_process = clock();
-		double time_process = (double) ( end_process - start_process ) / CLOCKS_PER_SEC;
-
-		std::cout << getId() << " Wall clock time passed: ";
-		if( time_clock > 60 )
-		{
-			std::cout << (int)(time_clock / 60) << " minutes ";
-		}
-
-		std::cout << time_clock - ( (int)( time_clock / 60 ) * 60 )<< " seconds." << std::endl;
-
-		std::cout  << getId() <<  " CPU time used: ";
-		if( time_process > 60 )
-		{
-			std::cout << (int)time_process / 60 << " minutes ";
-		}
-
-		std::cout << (int)( time_process - ( (int)(time_process / 60)  * 60 ) ) << " seconds" << std::endl;
-	}
-
-
-
-
 
 
 	//Remove Agents as requires

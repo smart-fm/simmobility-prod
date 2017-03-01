@@ -33,7 +33,7 @@ namespace sim_mob
 
 		private:
 
-			//boost::mutex mtx;
+			boost::mutex mtx;
 
 			bool futureTransitionOwn = false;
 		};

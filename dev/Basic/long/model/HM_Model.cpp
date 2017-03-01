@@ -581,9 +581,9 @@ double HM_Model::ComputeHedonicPriceLogsumFromMidterm(BigSerial taz)
 
 	printTazLevelLogsum(taz, logsum);
 
-	//mtx.lock();
+	mtx.lock();
 	tazLevelLogsum.insert( std::make_pair<BigSerial,double>( BigSerial(taz),double(logsum) ));
-	//mtx.unlock();
+	mtx.unlock();
 
 	return logsum;
 }
@@ -1002,9 +1002,9 @@ int HM_Model::getStartDay() const
 
 void HM_Model::addHouseholdGroupByGroupId(HouseholdGroup* hhGroup)
 {
-	//mtx2.lock();
+	mtx2.lock();
 	this->vehicleOwnerhipHHGroupByGroupId.insert(std::make_pair(hhGroup->getGroupId(),hhGroup));
-	//mtx2.unlock();
+	mtx2.unlock();
 }
 
 void HM_Model::setTaxiAccess2008(const Household *household)
@@ -2116,7 +2116,7 @@ void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId)
 {
 	HouseHoldHitsSample *hitsSample = nullptr;
 	{
-		//boost::mutex::scoped_lock lock( mtx3 );
+		boost::mutex::scoped_lock lock( mtx3 );
 
 		hitsSample = this->getHouseHoldHitsById( householdId );
 
@@ -2367,7 +2367,7 @@ void HM_Model::getLogsumOfVaryingHomeOrWork(BigSerial householdId)
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 
 	{
-		//boost::mutex::scoped_lock lock( mtx3 );
+		boost::mutex::scoped_lock lock( mtx3 );
 
 		hitsSample = this->getHouseHoldHitsById( householdId );
 
@@ -2579,7 +2579,7 @@ void HM_Model::getLogsumOfVaryingHomeOrWork(BigSerial householdId)
 
 
 		{
-			//boost::mutex::scoped_lock lock( mtx5 );
+			boost::mutex::scoped_lock lock( mtx5 );
 			printHouseholdHitsLogsum( "logsum", hitsSample->getHouseholdHitsId() , to_string(householdId), to_string(householdIndividualIds[n]), to_string(thisIndividual->getMemberId()), logsum  );
 		}
 		//printHouseholdHitsLogsum( "travelProbability", hitsSample->getHouseholdHitsId() , householdId, householdIndividualIds[n], thisIndividual->getMemberId(), travelProbability );
@@ -2839,23 +2839,23 @@ void HM_Model::hdbEligibilityTest(int index)
 
 void HM_Model::addNewBids(boost::shared_ptr<Bid> &newBid)
 {
-	//DBLock.lock();
-	//newBids.push_back(newBid);
-	//DBLock.unlock();
+	DBLock.lock();
+	newBids.push_back(newBid);
+	DBLock.unlock();
 }
 
 void HM_Model::addUnitSales(boost::shared_ptr<UnitSale> &unitSale)
 {
-	//DBLock.lock();
-	//unitSales.push_back(unitSale);
-	//DBLock.unlock();
+	DBLock.lock();
+	unitSales.push_back(unitSale);
+	DBLock.unlock();
 }
 
 void HM_Model::addHouseholdUnits(boost::shared_ptr<HouseholdUnit> &newHouseholdUnit)
 {
-	//DBLock.lock();
-	//newHouseholdUnits.push_back(newHouseholdUnit);
-	//DBLock.unlock();
+	DBLock.lock();
+	newHouseholdUnits.push_back(newHouseholdUnit);
+	DBLock.unlock();
 }
 
 void HM_Model::addUpdatedUnits(boost::shared_ptr<Unit> &updatedUnit)
@@ -2866,10 +2866,10 @@ void HM_Model::addUpdatedUnits(boost::shared_ptr<Unit> &updatedUnit)
 		unit->setExistInDb(true);
 	}
 
-	//DBLock.lock();
-	//updatedUnits.push_back(updatedUnit);
-	//updatedUnitsById.insert(std::make_pair((updatedUnit)->getId(), updatedUnit.get()));
-	//DBLock.unlock();
+	DBLock.lock();
+	updatedUnits.push_back(updatedUnit);
+	updatedUnitsById.insert(std::make_pair((updatedUnit)->getId(), updatedUnit.get()));
+	DBLock.unlock();
 }
 
 Unit* HM_Model::getUpdatedUnitById(BigSerial unitId)

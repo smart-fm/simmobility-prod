@@ -666,7 +666,7 @@ const int DeveloperModel::isFreeholdParcel(BigSerial id) const
 BigSerial DeveloperModel::getProjectIdForDeveloperAgent()
 {
 	{
-		//boost::mutex::scoped_lock lock(projectIdLock);
+		boost::mutex::scoped_lock lock(projectIdLock);
 		return ++projectIdForDevAgent;
 	}
 }
@@ -674,7 +674,7 @@ BigSerial DeveloperModel::getProjectIdForDeveloperAgent()
 BigSerial DeveloperModel::getBuildingIdForDeveloperAgent()
 {
 	{
-		//boost::mutex::scoped_lock lock( buildingIdLock );
+		boost::mutex::scoped_lock lock( buildingIdLock );
 		if(!newBuildingIdList.empty())
 		{
 			BigSerial buildingId = newBuildingIdList.back();
@@ -693,7 +693,7 @@ BigSerial DeveloperModel::getBuildingIdForDeveloperAgent()
 BigSerial DeveloperModel::getUnitIdForDeveloperAgent()
 {
 	{
-		//boost::mutex::scoped_lock lock( unitIdLock );
+		boost::mutex::scoped_lock lock( unitIdLock );
 		return ++unitIdForDevAgent;
 	}
 }
@@ -749,7 +749,7 @@ void DeveloperModel::setHousingMarketModel(HM_Model *housingModel)
 int DeveloperModel::getPostcodeForDeveloperAgent()
 {
 	{
-		//boost::mutex::scoped_lock lock( postcodeLock);
+		boost::mutex::scoped_lock lock( postcodeLock);
 		if(initPostcode)
 		{
 			initPostcode = false;
@@ -809,38 +809,38 @@ Parcel* DeveloperModel::getParcelWithOngoingProjectById(BigSerial id) const {
 
 void DeveloperModel::addNewBuildings(boost::shared_ptr<Building> &newBuilding)
 {
-	//addBuildingLock.lock();
+	addBuildingLock.lock();
 	newBuildings.push_back(newBuilding);
-	//addBuildingLock.unlock();
+	addBuildingLock.unlock();
 }
 
 void DeveloperModel::addNewProjects(boost::shared_ptr<Project> &newProject)
 {
-	//addProjectsLock.lock();
+	addProjectsLock.lock();
 	newProjects.push_back(newProject);
-	//addProjectsLock.unlock();
+	addProjectsLock.unlock();
 }
 
 void DeveloperModel::addNewUnits(boost::shared_ptr<Unit> &newUnit)
 {
-	//addUnitsLock.lock();
+	addUnitsLock.lock();
 	newUnits.push_back(newUnit);
-	//addUnitsLock.unlock();
+	addUnitsLock.unlock();
 }
 
 
 void DeveloperModel::addProfitableParcels(boost::shared_ptr<Parcel> &profitableParcel)
 {
-	//addParcelLock.lock();
+	addParcelLock.lock();
 	profitableParcels.push_back(profitableParcel);
-	//addParcelLock.unlock();
+	addParcelLock.unlock();
 }
 
 void DeveloperModel::addPotentialProjects(boost::shared_ptr<PotentialProject> &potentialProject)
 {
-	//addPotentialProjectsLock.lock();
+	addPotentialProjectsLock.lock();
 	potentialProjects.push_back(potentialProject);
-	//addPotentialProjectsLock.unlock();
+	addPotentialProjectsLock.unlock();
 }
 
 std::vector<boost::shared_ptr<Building> > DeveloperModel::getBuildingsVec()

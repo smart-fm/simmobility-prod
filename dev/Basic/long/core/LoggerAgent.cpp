@@ -315,7 +315,7 @@ Entity::UpdateStatus LoggerAgent::update(timeslice now)
 
 void LoggerAgent::log(LogFile outputType, const std::string& logMsg)
 {
-	//boost::mutex::scoped_lock lock( mtx );
+	boost::mutex::scoped_lock lock( mtx );
 
     // entry will be available only on the next tick
     //MessageBus::PostMessage(this, LTMID_LOG, MessageBus::MessagePtr(new LogMsg(logMsg, outputType)));

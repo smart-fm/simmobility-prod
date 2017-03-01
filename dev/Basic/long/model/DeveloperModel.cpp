@@ -875,9 +875,9 @@ void DeveloperModel::setOpSchemaloadingInterval(int opSchemaLoadingInt)
 
 void DeveloperModel::addDevelopmentPlans(boost::shared_ptr<DevelopmentPlan> &devPlan)
 {
-	//addDevPlansLock.lock();
+	addDevPlansLock.lock();
 	developmentPlansVec.push_back(devPlan);
-	//addDevPlansLock.unlock();
+	addDevPlansLock.unlock();
 }
 
 std::vector<boost::shared_ptr<DevelopmentPlan> > DeveloperModel::getDevelopmentPlansVec()

@@ -2905,7 +2905,7 @@ std::vector<boost::shared_ptr<Unit> > HM_Model::getUpdatedUnits()
 BigSerial HM_Model::getBidId()
 {
 	{
-		//boost::mutex::scoped_lock lock(idLock);
+		boost::mutex::scoped_lock lock(idLock);
 
 		return ++bidId;
 	}
@@ -2914,7 +2914,7 @@ BigSerial HM_Model::getBidId()
 BigSerial HM_Model::getUnitSaleId()
 {
 	{
-		//boost::mutex::scoped_lock lock(idLock);
+		boost::mutex::scoped_lock lock(idLock);
 
 		return ++unitSaleId;
 	}
@@ -2939,10 +2939,10 @@ void HM_Model::addHouseholdsTo_OPSchema(boost::shared_ptr<Household> &houseHold)
 		houseHold->setExistInDB(true);
 	}
 
-	//DBLock.lock();
+	DBLock.lock();
 	hhWithBidsVector.push_back(houseHold);
 	householdWithBidsById.insert(std::make_pair((houseHold)->getId(), houseHold.get()));
-	//DBLock.unlock();
+	DBLock.unlock();
 }
 
 std::vector<boost::shared_ptr<Household> > HM_Model::getHouseholdsWithBids()
@@ -2952,9 +2952,9 @@ std::vector<boost::shared_ptr<Household> > HM_Model::getHouseholdsWithBids()
 
 void HM_Model::addVehicleOwnershipChanges(boost::shared_ptr<VehicleOwnershipChanges> &vehicleOwnershipChange)
 {
-	//DBLock.lock();
+	DBLock.lock();
 	vehicleOwnershipChangesVector.push_back(vehicleOwnershipChange);
-	//DBLock.unlock();
+	DBLock.unlock();
 }
 
 std::vector<boost::shared_ptr<VehicleOwnershipChanges> > HM_Model::getVehicleOwnershipChanges()

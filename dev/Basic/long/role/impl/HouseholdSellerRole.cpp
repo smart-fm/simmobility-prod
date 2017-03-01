@@ -399,6 +399,23 @@ void HouseholdSellerRole::handleReceivedBid(const Bid &bid, BigSerial unitId)
 	Statistics::increment(Statistics::N_BIDS);
 }
 
+void HouseholdSellerRole::removeAllEntries()
+{
+	HousingMarket* market = getParent()->getMarket();
+	const IdVector& unitIds = getParent()->getUnitIds();
+
+    for (IdVector::const_iterator itr = unitIds.begin(); itr != unitIds.end(); itr++)
+    {
+    	BigSerial unitId = *itr;
+    	UnitsInfoMap::iterator it = sellingUnitsMap.find(unitId);
+
+		if(it != sellingUnitsMap.end())
+		{
+			market->removeEntry(unitId);
+		}
+    }
+}
+
 void HouseholdSellerRole::adjustNotSoldUnits()
 {
     const HM_Model* model = getParent()->getModel();

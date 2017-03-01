@@ -64,6 +64,8 @@ namespace sim_mob
              */
             void adjustNotSoldUnits();
             
+            void removeAllEntries();
+
             /**
              * Calculates the unit expectations to the maximum period of time 
              * that the seller is expecting to be in the market.

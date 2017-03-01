@@ -317,18 +317,8 @@ void LoggerAgent::log(LogFile outputType, const std::string& logMsg)
 {
 	boost::mutex::scoped_lock lock( mtx );
 
-    	// entry will be available only on the next tick
-    	//MessageBus::PostMessage(this, LTMID_LOG, MessageBus::MessagePtr(new LogMsg(logMsg, outputType)));
-	
-	if (outputType == STDOUT)
-	{
-		PrintOut(logMsg << std::endl);
-	}
-	else
-	{
-	    (*streams[outputType]) << logMsg << std::endl;
-		(*streams[outputType]).flush();
-	}
+    // entry will be available only on the next tick
+    MessageBus::PostMessage(this, LTMID_LOG, MessageBus::MessagePtr(new LogMsg(logMsg, outputType)));
 }
 
 void LoggerAgent::HandleMessage(messaging::Message::MessageType type, const messaging::Message& message)

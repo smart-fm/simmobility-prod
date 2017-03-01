@@ -1764,6 +1764,14 @@ void HM_Model::startImpl()
 			}
 		}
 
+
+		//These households with tenure_status 3 are considered to be occupied by foreign workers
+		const int FROZEN_HH = 3;
+
+
+		if( household->getTenureStatus() == FROZEN_HH )
+			continue;
+
 		HouseholdAgent* hhAgent = new HouseholdAgent(household->getId(), this,	household, &market, false, startDay, config.ltParams.housingModel.householdBiddingWindow,0);
 
 		if (resumptionHH != nullptr)

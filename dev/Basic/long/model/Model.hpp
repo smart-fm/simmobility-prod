@@ -109,7 +109,6 @@ namespace sim_mob
             void insertToDB(K &object)
             {
             	{
-            		//boost::mutex::scoped_lock lock( dbLock );
             		DB_Config dbConfig(LT_DB_CONFIG_FILE);
             		dbConfig.load();
 
@@ -187,7 +186,6 @@ namespace sim_mob
             std::string name;
             Metadata metadata;
             MetadataMap metadataMapping;// only for mapping.
-            //boost::mutex dbLock;
         };
     }
 }

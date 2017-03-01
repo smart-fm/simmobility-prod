@@ -140,9 +140,6 @@ public:
 
 	virtual ProfileBuilder* getProfileBuilder() const;
 
-	int getId();
-	void setId( int id);
-
 protected:
 	///Simple struct that holds all of the params used throughout threaded_function_loop().
 	struct MgmtParams {

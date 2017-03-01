@@ -189,7 +189,7 @@ namespace sim_mob {
              * increment the id of the last building in db
              * @return next unitId.
              */
-            //boost::mutex unitIdLock;
+            boost::mutex unitIdLock;
             BigSerial getUnitIdForDeveloperAgent();
 
             void setUnitId(BigSerial unitId);

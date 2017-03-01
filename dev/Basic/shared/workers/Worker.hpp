@@ -110,8 +110,6 @@ private:
 	 *        Note that this stream should *not* require logging, so any shared ostreams should be on the same
 	 *        thread (usually that means on the same worker).
 	 */
-	Worker(WorkGroup* parent, std::ostream* logFile, sim_mob::FlexiBarrier* frame_tick, sim_mob::FlexiBarrier* buff_flip, sim_mob::FlexiBarrier* aura_mgr, 
-			boost::barrier* macro_tick, std::vector<Entity*>* entityRemovalList, std::vector<Entity*>* entityBredList, uint32_t endTick, uint32_t tickStep, uint32_t simulationStart = 0, int id = 0);
 
 	Worker(WorkGroup* parent, std::ostream* logFile, sim_mob::FlexiBarrier* frame_tick, sim_mob::FlexiBarrier* buff_flip, sim_mob::FlexiBarrier* aura_mgr,
 			boost::barrier* macro_tick, std::vector<Entity*>* entityRemovalList, std::vector<Entity*>* entityBredList, uint32_t endTick, uint32_t tickStep, uint32_t simulationStart = 0);
@@ -247,7 +245,6 @@ private:
 
 	uint32_t simulationStartDay;
 
-	int id;
 public:
 
 	/// each worker has its own path set manager

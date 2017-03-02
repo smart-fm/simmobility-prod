@@ -284,32 +284,66 @@ void TaxiDriverMovement::frame_tick()
 						currSubTrip.origin = WayPoint(link->getFromNode());
 						currSubTrip.destination = WayPoint(personDestinationNode);
 						currentRouteChoice = PrivateTrafficRouteChoice::getInstance()->getPath(currSubTrip, false, link, parentTaxiDriver->parent->usesInSimulationTravelTime());
-						if (currentRouteChoice.size() > 0)
+						if(currentRouteChoice.size()==0)
 						{
-							bool isAdded = parentTaxiDriver->addPassenger(passenger);
-							if (isAdded)
+							currentRouteChoice = PrivateTrafficRouteChoice::getInstance()->getPath(currSubTrip, false, nullptr, parentTaxiDriver->parent->usesInSimulationTravelTime());
+							if(currentRouteChoice.size()>0)
 							{
-								destinationNode = personDestinationNode;
-								setCurrentNode(currentNode);
-								setDestinationNode(destinationNode);
-								addTaxiStandPath(currentRouteChoice);
-								passenger->setStartPoint(WayPoint(destinationTaxiStand));
-								passenger->setEndPoint(WayPoint(destinationNode));
-								passenger->setService(currentRouteChoice);
-								parentTaxiDriver->setTaxiDriveMode(DRIVE_WITH_PASSENGER);
-								parentTaxiDriver->getResource()->setMoving(true);
-								toBeRemovedFromTaxiStand = true;
-								previousTaxiStand = destinationTaxiStand;
-								destinationTaxiStand = nullptr;
-								isQueuingTaxiStand = false;
+								const Link* destLink = nullptr;
+								if(currentRouteChoice.front().type==WayPoint::LINK)
+								{
+									destLink = currentRouteChoice.front().link;
+								}
+								if(destLink)
+								{
+									vector<WayPoint> path =	StreetDirectory::Instance().SearchShortestDrivingPath<Link, Link>(*link,*destLink);
+									vector<WayPoint> pathOfLinks;
+									for (vector<WayPoint>::iterator itWayPts =path.begin();itWayPts != path.end();	++itWayPts) {
+										if (itWayPts->type == WayPoint::LINK) {
+											pathOfLinks.push_back(*itWayPts);
+										}
+									}
+									if(pathOfLinks.size()>0)
+									{
+										const Link* lastLink = pathOfLinks.back().link;
+										pathOfLinks.erase(pathOfLinks.end()-1);
+										currentRouteChoice.insert(currentRouteChoice.begin(),pathOfLinks.begin(),pathOfLinks.end());
+									}
+									else
+									{
+										currentRouteChoice.clear();
+									}
+								}
 							}
-						} else {
-							sim_mob::BasicLogger& ptMoveLogger = sim_mob::Logger::log("nopathAfterPickupInStand.csv");
-							ptMoveLogger << passenger->getParent()->getDatabaseId()<<",";
-							ptMoveLogger << link->getLinkId()<<",";
-							ptMoveLogger << destinationTaxiStand->getRoadSegmentId()<<",";
-							ptMoveLogger << link->getFromNode()->getNodeId()<<",";
-							ptMoveLogger << personDestinationNode->getNodeId()<<std::endl;
+							if (currentRouteChoice.size() > 0)
+							{
+								bool isAdded = parentTaxiDriver->addPassenger(passenger);
+								if (isAdded)
+								{
+									destinationNode = personDestinationNode;
+									setCurrentNode(currentNode);
+									setDestinationNode(destinationNode);
+									addTaxiStandPath(currentRouteChoice);
+									passenger->setStartPoint(WayPoint(destinationTaxiStand));
+									passenger->setEndPoint(WayPoint(destinationNode));
+									//passenger->setService(currentRouteChoice);
+									parentTaxiDriver->setTaxiDriveMode(DRIVE_WITH_PASSENGER);
+									parentTaxiDriver->getResource()->setMoving(true);
+									toBeRemovedFromTaxiStand = true;
+									previousTaxiStand = destinationTaxiStand;
+									destinationTaxiStand = nullptr;
+									isQueuingTaxiStand = false;
+								}
+							}
+							else
+							{
+								sim_mob::BasicLogger& ptMoveLogger = sim_mob::Logger::log("nopathAfterPickupInStand.csv");
+								ptMoveLogger << passenger->getParent()->getDatabaseId()<<",";
+								ptMoveLogger << link->getLinkId()<<",";
+								ptMoveLogger << destinationTaxiStand->getRoadSegmentId()<<",";
+								ptMoveLogger << link->getFromNode()->getNodeId()<<",";
+								ptMoveLogger << personDestinationNode->getNodeId()<<std::endl;
+							}
 						}
 					}
 				}

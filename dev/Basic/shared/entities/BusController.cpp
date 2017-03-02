@@ -806,7 +806,6 @@ Entity::UpdateStatus BusController::frame_tick(timeslice now)
 		pendingChildren.pop();
 		child->parentEntity = this;
 		Person *per=dynamic_cast<Person*>(child);
-		vector<TripChainItem*> tripChain=per->getTripChain();
 		currWorkerProvider->scheduleForBred(child);
 		busDrivers.push_back(child);
 	}

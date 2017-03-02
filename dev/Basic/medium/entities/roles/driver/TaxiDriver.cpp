@@ -131,7 +131,7 @@ void TaxiDriver::pickUpPassngerAtNode(Conflux *parentConflux)
 					const Lane * currentLane = taxiDriverMovement->getCurrentlane();
 					const Link* currentLink = currentLane->getParentSegment()->getParentLink();
 					currentRouteChoice.insert(currentRouteChoice.begin(), WayPoint(currentLink));
-					passenger->setService(currentRouteChoice);
+					//passenger->setService(currentRouteChoice);
 					passenger->setStartPoint(WayPoint(taxiDriverMovement->getCurrentNode()));
 					passenger->setEndPoint(WayPoint(taxiDriverMovement->getDestinationNode()));
 					setTaxiDriveMode(DRIVE_WITH_PASSENGER);

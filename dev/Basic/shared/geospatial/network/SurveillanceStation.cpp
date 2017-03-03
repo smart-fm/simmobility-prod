@@ -97,16 +97,13 @@ void SurveillanceStation::setSegment(const RoadSegment *value)
 {
 	segment = value;
 
-	//Delete the old sensors if any and associate new sensors witht the station
-	clear_delete_vector(trafficSensors);
-
 	unsigned int size = segment->getNoOfLanes();
-	trafficSensors.reserve(size);
+	unsigned int idx = 0;
 
-	while(size)
+	while(idx < size)
 	{
-		size--;
-		trafficSensors[size] = new TrafficSensor(this, segment->getLane(size), size);
+		trafficSensors.push_back(new TrafficSensor(this, segment->getLane(idx), idx));
+		idx++;
 	}
 }
 
@@ -120,16 +117,6 @@ void SurveillanceStation::setTrafficLightId(unsigned int value)
 	trafficLightId = value;
 }
 
-void SurveillanceStation::addSensor(TrafficSensor *sensor, int index)
-{
-	if(isLinkWide())
-	{
-		index = 0;
-	}
-
-	trafficSensors[index] = sensor;
-}
-
 TrafficSensor *SurveillanceStation::getTrafficSensor(int index)
 {
 	if(isLinkWide())
@@ -138,6 +125,11 @@ TrafficSensor *SurveillanceStation::getTrafficSensor(int index)
 	}
 
 	return trafficSensors[index];
+}
+
+const std::vector<TrafficSensor *> &SurveillanceStation::getTrafficSensors() const
+{
+	return trafficSensors;
 }
 
 TrafficSensor::TrafficSensor(SurveillanceStation *station) : index(0), lane(nullptr), surveillanceStn(station),

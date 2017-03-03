@@ -114,8 +114,8 @@ public:
 	unsigned int getTrafficLightId() const;
 	void setTrafficLightId(unsigned int value);
 
-	void addSensor(TrafficSensor *sensor, int index);
 	TrafficSensor * getTrafficSensor(int index);
+	const std::vector<TrafficSensor *>& getTrafficSensors() const;
 };
 
 class TrafficSensor

@@ -218,13 +218,15 @@ public:
 struct ClosedLoopParams
 {
     bool enabled;
+	bool isGuidanceDirectional;
     int sensorStepSize;
     std::string guidanceFile;
     std::string tollFile;
     std::string incentivesFile;
     std::string sensorOutputFile;
 
-    ClosedLoopParams() : enabled(false), sensorStepSize(0), guidanceFile(""), tollFile(""), incentivesFile(""), sensorOutputFile("")
+	ClosedLoopParams() : enabled(false), isGuidanceDirectional(false), sensorStepSize(0), guidanceFile(""),
+		tollFile(""), incentivesFile(""), sensorOutputFile("")
     {
     }
 };

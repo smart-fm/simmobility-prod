@@ -121,6 +121,9 @@ public:
 class TrafficSensor
 {
 private:
+	/**Id of the traffic sensor*/
+	unsigned int id;
+
 	/**index of the sensor within the container (surveillance station)*/
 	unsigned int index;
 
@@ -167,6 +170,8 @@ public:
 	TrafficSensor(SurveillanceStation *station, const Lane *lane, unsigned int index);
 	~TrafficSensor();
 
+	unsigned int getId() const;
+
 	unsigned int getIndex() const;
 	void setIndex(unsigned int value);
 
@@ -198,7 +203,7 @@ public:
 	 * @param vehSpeed speed of the vehicle
 	 * @param acceleration acceleration of the vehicle
 	 */
-	void calculatePassingData(double vehPosition, double vehLength, double vehSpeed, double acceleration);
+	void calculatePassingData(double vehPosition, double vehLength, double vehSpeed, double acceleration);	
 };
 
 }

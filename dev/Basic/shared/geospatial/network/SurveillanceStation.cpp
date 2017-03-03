@@ -143,15 +143,22 @@ TrafficSensor *SurveillanceStation::getTrafficSensor(int index)
 TrafficSensor::TrafficSensor(SurveillanceStation *station) : index(0), lane(nullptr), surveillanceStn(station),
 	count(0), occupancy(0), speed(0)
 {
+	id = (station->getSurveillanceStnId() * 100) + index;
 }
 
 TrafficSensor::TrafficSensor(SurveillanceStation *station, const Lane *lane, unsigned int index) : index(index),
 	lane(lane), surveillanceStn(station), count(0), occupancy(0), speed(0)
 {
+	id = (station->getSurveillanceStnId() * 100) + index;
 }
 
 TrafficSensor::~TrafficSensor()
 {
+}
+
+unsigned int TrafficSensor::getId() const
+{
+	return id;
 }
 
 unsigned int TrafficSensor::getIndex() const
@@ -162,6 +169,7 @@ unsigned int TrafficSensor::getIndex() const
 void TrafficSensor::setIndex(unsigned int value)
 {
 	index = value;
+	id = (surveillanceStn->getSurveillanceStnId() * 100) + index;
 }
 
 const Lane *TrafficSensor::getLane() const

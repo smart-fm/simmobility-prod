@@ -12,8 +12,8 @@
 #include "Node.hpp"
 #include "Point.hpp"
 #include "PolyLine.hpp"
+#include "SurveillanceStation.hpp"
 #include "TaxiStand.hpp"
-#include "TrafficSensor.hpp"
 #include "TurningGroup.hpp"
 #include "TurningPath.hpp"
 
@@ -62,9 +62,6 @@ private:
 	/**This map stores all the taxi stands in the network with taxi-stand id as the key*/
 	std::map<unsigned int, TaxiStand *> mapOfIdvsTaxiStand;
 
-	/**This map stores all the traffic sensors in the network with the sensor id as the key*/
-	std::map<unsigned int, TrafficSensor *> mapOfIdVsTrafficSensors;
-
 	/**Private constructor as the class is a singleton*/
 	RoadNetwork();
 
@@ -97,8 +94,6 @@ public:
 	const std::map<unsigned int, TurningConflict *>& getMapOfIdvsTurningConflicts() const;
 
 	const std::map<unsigned int, BusStop *>& getMapOfIdvsBusStops() const;
-
-	const std::map<unsigned int, TrafficSensor *>& getMapOfIdVsTrafficSensors() const;
 	
 	/**
 	 * Adds a lane to the road network
@@ -179,10 +174,10 @@ public:
 	void addTaxiStand(TaxiStand* stand);
 
 	/**
-	 * Adds a traffic sensor to the road network
-	 * @param sensor - the pointer to the sensor
+	 * Adds a surveillance stn to the network
+	 * @param station - the pointer to the surveillance station
 	 */
-	void addTrafficSensor(TrafficSensor *sensor);
+	void addSurveillenceStn(SurveillanceStation *station);
 
 	/**
 	 * Template class to lookup any map with an unsigned int id

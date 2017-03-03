@@ -26,7 +26,6 @@ RoadNetwork::~RoadNetwork()
     clear_delete_map(mapOfIdvsNodes);
     clear_delete_map(mapOfIdVsLinks);
     clear_delete_map(mapOfIdVsTurningConflicts);
-	clear_delete_map(mapOfIdVsTrafficSensors);
     
     //All other maps can simply be cleared as the 'Node' and 'Link' classes contain the others.
 	//So, when they get destroyed, the objects contained within them will be destroyed 
@@ -77,11 +76,6 @@ const std::map<unsigned int, TurningConflict *>& RoadNetwork::getMapOfIdvsTurnin
 const std::map<unsigned int, BusStop *>& RoadNetwork::getMapOfIdvsBusStops() const
 {
 	return mapOfIdvsBusStops;
-}
-
-const std::map<unsigned int, TrafficSensor *> &RoadNetwork::getMapOfIdVsTrafficSensors() const
-{
-	return mapOfIdVsTrafficSensors;
 }
 
 void RoadNetwork::addLane(Lane* lane)
@@ -513,6 +507,28 @@ void RoadNetwork::addTaxiStand(TaxiStand* stand)
 	}
 }
 
+void RoadNetwork::addSurveillenceStn(SurveillanceStation *station)
+{
+	std::map<unsigned int, RoadSegment *>::iterator itRoadSeg = mapOfIdVsRoadSegments.find(station->getSegmentId());
+
+	if(itRoadSeg != mapOfIdVsRoadSegments.end())
+	{
+		RoadSegment *segment = itRoadSeg->second;
+
+		//Set the road segment in the surveillance station and set the surveillance station
+		//in the road segment
+		station->setSegment(segment);
+		segment->addSurveillanceStation(station);
+	}
+	else
+	{
+		std::stringstream msg;
+		msg << "Surveillance Stn " << station->getSurveillanceStnId() << " refers to an invalid road segment " << station->getSegmentId();
+		safe_delete_item(station);
+		throw std::runtime_error(msg.str());
+	}
+}
+
 void RoadNetwork::addBusStop(BusStop* stop)
 {
 	//Check if the bus stop has already been added to the map
@@ -569,49 +585,6 @@ void RoadNetwork::addBusStop(BusStop* stop)
 			throw std::runtime_error(msg.str());
 		}
 	}
-}
-
-void RoadNetwork::addTrafficSensor(TrafficSensor *sensor)
-{
-	//Check if the sensor is associated with a valid segment
-	auto itSegments = mapOfIdVsRoadSegments.find(sensor->getSegmentId());
-
-	if(itSegments == mapOfIdVsRoadSegments.end())
-	{
-		std::stringstream msg;
-		msg << "Sensor id " << sensor->getSensorId() << " refers to an invalid road segment " << sensor->getSegmentId();
-		safe_delete_item(sensor);
-		throw std::runtime_error(msg.str());
-	}
-
-	//Check if the sensor is associated with a lane and if so, check if the lane is valid
-	SensorType type = sensor->getSensorType();
-
-	if(type != SENSOR_TYPE_INVALID && type < SENSOR_TYPE_TRAFFIC_LINK_WIDE)
-	{
-		unsigned int lane = sensor->getLaneId();
-
-		if(lane == 0)
-		{
-			std::stringstream msg;
-			msg << "Sensor id " << sensor->getSensorId() << " has type indicating lane level sensor, but no lane specified!";
-			safe_delete_item(sensor);
-			throw std::runtime_error(msg.str());
-		}
-
-		auto itLanes = mapOfIdVsLanes.find(lane);
-
-		if(itLanes == mapOfIdVsLanes.end())
-		{
-			std::stringstream msg;
-			msg << "Sensor id " << sensor->getSensorId() << " refers to an invalid lane " << sensor->getLaneId();
-			safe_delete_item(sensor);
-			throw std::runtime_error(msg.str());
-		}
-	}
-
-	//Add to the map
-	mapOfIdVsTrafficSensors.insert(make_pair(sensor->getSensorId(), sensor));
 }
 
 const RoadNetwork* sim_mob::RoadNetwork::getInstance()

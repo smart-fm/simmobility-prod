@@ -5,7 +5,9 @@
 #include <stdexcept>
 #include <sstream>
 #include "RoadSegment.hpp"
+
 #include "logging/Log.hpp"
+#include "SurveillanceStation.hpp"
 
 using namespace sim_mob;
 
@@ -16,22 +18,16 @@ parentLink(nullptr), busTerminusSegment(false)
 
 RoadSegment::~RoadSegment()
 {
-	for (std::vector<Lane *>::iterator itLane = lanes.begin(); itLane != lanes.end(); ++itLane)
-	{
-		delete *itLane;
-		*itLane = nullptr;
-	}
+	clear_delete_vector(lanes);
 
 	if (polyLine)
 	{
 		delete polyLine;
 		polyLine = nullptr;
 	}
-	
-	for(std::map<double, RoadItem *>::iterator it = obstacles.begin(); it != obstacles.end(); it++)
-	{
-		delete it->second;
-	}
+
+	clear_delete_map(obstacles);
+	clear_delete_vector(surveillanceStations);
 }
 
 unsigned int RoadSegment::getRoadSegmentId() const
@@ -144,6 +140,11 @@ void RoadSegment::addLane(Lane *lane)
 	this->lanes.push_back(lane);
 }
 
+const std::vector<SurveillanceStation *>& RoadSegment::getSurveillanceStations() const
+{
+	return surveillanceStations;
+}
+
 void RoadSegment::addObstacle(double offset, RoadItem *item)
 {
 	if (offset < 0)
@@ -171,4 +172,9 @@ void RoadSegment::addObstacle(double offset, RoadItem *item)
 	}
 
 	obstacles[offset] = item;
+}
+
+void RoadSegment::addSurveillanceStation(SurveillanceStation *surveillanceStn)
+{
+	surveillanceStations.push_back(surveillanceStn);
 }

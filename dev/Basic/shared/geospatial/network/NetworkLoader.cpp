@@ -216,18 +216,29 @@ void NetworkLoader::loadTaxiStands(const std::string& storedProc)
 	}
 }
 
-void NetworkLoader::loadSensors(const string &storedProc)
+void NetworkLoader::loadSurveillanceStns(const string &storedProc)
 {
 	if(!storedProc.empty())
 	{
 		//SQL statement
-		soci::rowset<TrafficSensor> sensors = (sql.prepare << "select * from " + storedProc);
+		soci::rowset<soci::row> surveillanceStns = (sql.prepare << "select * from " + storedProc);
 
-		for(soci::rowset<TrafficSensor>::const_iterator itSensor = sensors.begin(); itSensor != sensors.end(); ++itSensor)
+		unsigned int id, type, code, segmentId, trafficLight;
+		double zone, offset;
+
+		for(soci::rowset<soci::row>::const_iterator itStn = surveillanceStns.begin(); itStn != surveillanceStns.end(); ++itStn)
 		{
-			//Create a new traffic sensor and add it to the network
-			TrafficSensor *sensor = new TrafficSensor(*itSensor);
-			roadNetwork->addTrafficSensor(sensor);
+			id = (*itStn).get<unsigned int>(0);
+			type = (*itStn).get<unsigned int>(1);
+			code = (*itStn).get<unsigned int>(2);
+			zone = (*itStn).get<double>(3);
+			offset = (*itStn).get<double>(4);
+			segmentId = (*itStn).get<unsigned int>(5);
+			trafficLight = (*itStn).get<unsigned int>(6);
+
+			//Create a new surveillance station and add it to the network
+			SurveillanceStation *station = new SurveillanceStation(id, type, code, zone, offset, segmentId, trafficLight);
+			roadNetwork->addSurveillenceStn(station);
 		}
 	}
 }
@@ -354,7 +365,7 @@ void NetworkLoader::loadNetwork(const string& connectionStr, const map<string, s
 
 		loadTurningConflicts(getStoredProcedure(storedProcs, "turning_conflicts"));
 
-		loadSensors(getStoredProcedure(storedProcs, "traffic_sensors", false));
+		loadSurveillanceStns(getStoredProcedure(storedProcs, "traffic_sensors", false));
 		
 		loadBusStops(getStoredProcedure(storedProcs, "bus_stops", false));
 

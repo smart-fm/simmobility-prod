@@ -18,7 +18,6 @@
 #include "Point.hpp"
 #include "RoadItem.hpp"
 #include "TaxiStand.hpp"
-#include "TrafficSensor.hpp"
 #include "TurningGroup.hpp"
 #include "TurningPath.hpp"
 
@@ -341,23 +340,5 @@ template<> struct type_conversion<sim_mob::PT_BusStops>
         values.set("busstop_sequence_no", ptBusStops.sequenceNo);
         indicator = i_ok;
     }
-};
-
-template<> struct type_conversion<sim_mob::TrafficSensor>
-{
-	typedef values base_type;
-
-	static void from_base(soci::values const &vals, soci::indicator &ind, sim_mob::TrafficSensor &sensor)
-	{
-		sensor.setSensorId(vals.get<unsigned int>("id", 0));
-		sensor.setSensorType((sim_mob::SensorType)vals.get<unsigned int>("type", 0));
-		sensor.setTaskCode(vals.get<unsigned int>("task_code", 0));
-		sensor.setZoneLength(vals.get<double>("zone_length", 0.0));
-		sensor.setSegmentId(vals.get<unsigned int>("segment", 0));
-		sensor.setOffsetDistance(vals.get<double>("offset", 0.0));
-		sensor.setWorkingProbability(vals.get<double>("working_probability", 0.0));
-		sensor.setLaneId(vals.get<unsigned int>("lane", 0));
-		sensor.setTrafficLightId(vals.get<unsigned int>("traffic_light_id", 0));
-	}
 };
 } //namesace soci

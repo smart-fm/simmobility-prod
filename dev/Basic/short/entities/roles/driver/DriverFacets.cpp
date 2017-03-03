@@ -618,6 +618,9 @@ bool DriverMovement::updateMovement()
 					segmentsPassed.insert(segmentsPassed.end(), currLink->getRoadSegments().begin(),
 										  currLink->getRoadSegments().begin() + currWayPoint.roadSegment->getSequenceNumber());
 				}
+
+				//Change in road segment, so set the next surveillance stn
+				nextSurveillanceStn = currWayPoint.roadSegment->getSurveillanceStations().begin();
 			}
 			else if (startWayPoint.type == WayPoint::ROAD_SEGMENT && currWayPoint.type == WayPoint::TURNING_GROUP)
 			{
@@ -631,6 +634,9 @@ bool DriverMovement::updateMovement()
 				//[As the previous way-point was a turning group, we have not started the collection for the segment yet]
 				segmentsPassed.insert(segmentsPassed.begin(), currLink->getRoadSegments().begin(),
 									  currLink->getRoadSegments().begin() + currWayPoint.roadSegment->getSequenceNumber() + 1);
+
+				//Change in road segment, so set the next surveillance stn
+				nextSurveillanceStn = currWayPoint.roadSegment->getSurveillanceStations().begin();
 			}
 
 			updateRoadSegmentTravelTime(segmentsPassed);
@@ -892,6 +898,21 @@ double DriverMovement::drive(DriverUpdateParams &params)
 	}
 
 	params.lateralVelocity = lcModel->calculateLateralVelocity(laneChangeTo);
+
+	//The distance covered on the current segment or turning
+	double oldPos = fwdDriverMovement.getDistCoveredOnCurrWayPt();
+
+	//Distance covered in this time tick
+	double distCovered = (params.currSpeed * params.elapsedSeconds) + (0.5 * params.acceleration *	params.elapsedSeconds * params.elapsedSeconds);
+
+	if(fwdDriverMovement.isInIntersection())
+	{
+		//If in intersection, add the length of previous segment, as the sensor is associated with the segment
+		//and the offset distance is from the start of the segment
+		oldPos += fwdDriverMovement.getCurrTurning()->getFromLane()->getParentSegment()->getLength();
+	}
+
+	updateTrafficSensor(oldPos, oldPos + distCovered, parentDriver->vehicle->getVelocity(), parentDriver->vehicle->getAcceleration());
 
 	parentDriver->vehicle->setTurningDirection(laneChangeTo);
 	parentDriver->vehicle->setLateralVelocity(params.lateralVelocity);
@@ -1435,6 +1456,9 @@ void DriverMovement::setOrigin(DriverUpdateParams &params)
 	parentDriver->parent->currLinkTravelStats.reset();
 	parentDriver->parent->currLinkTravelStats.start(fwdDriverMovement.getCurrLink(), currTime);
 	startRdSegStat(fwdDriverMovement.getCurrSegment(), currTime);
+
+	//Set the next surveillance stn
+	nextSurveillanceStn = fwdDriverMovement.getCurrSegment()->getSurveillanceStations().begin();
 }
 
 double DriverMovement::updatePosition(DriverUpdateParams &params)
@@ -2323,6 +2347,50 @@ void DriverMovement::updateRoadSegmentTravelTime(const vector<const RoadSegment*
 	if(!fwdDriverMovement.isDoneWithEntireRoute() && fwdDriverMovement.getCurrSegment())
 	{
 		startRdSegStat(fwdDriverMovement.getCurrSegment(), actualTime);
+	}
+}
+
+void DriverMovement::updateTrafficSensor(double oldPos, double newPos, double speed, double acceleration)
+{
+	if(fwdDriverMovement.isInIntersection() || fwdDriverMovement.isDoneWithEntireRoute())
+	{
+		return;
+	}
+
+	/*
+	 * Occupance is calculated when the vehicle is present in the detection zone of a sensor. Flow counts, instantaneous speed,
+	 * and other point data are calculate when the back bumper crosses the down-edge of the detection zone.
+	 * NOTE: We do not count a vehicle until its back-bumper leaves the detection zone of the sensor.
+	 * This is to avoid double counting.
+	 */
+
+	//Get the surveillance stations in the segment
+	const vector<SurveillanceStation *> &survStns = fwdDriverMovement.getCurrSegment()->getSurveillanceStations();
+	vector<SurveillanceStation *>::const_iterator itSurvStn = nextSurveillanceStn;
+
+	//Vehicle front and back bumper positions
+	unsigned int vehBackBumper = newPos - (parentDriver->getVehicleLength() / 2);
+	unsigned int vehFrontBumper = newPos + (parentDriver->getVehicleLength() / 2);
+
+	unsigned int laneIdx = fwdDriverMovement.getCurrLane()->getLaneIndex();
+
+	//Some data items such as occupancy are accumulated if the entire or a part of the vehicle was/is in the detection zone.
+	while((itSurvStn != survStns.end()) && (vehFrontBumper - (*itSurvStn)->getOffsetDistance() <= (*itSurvStn)->getZoneLength()))
+	{
+		TrafficSensor *sensor = (*itSurvStn)->getTrafficSensor(laneIdx);
+		sensor->calculateActivatingData(oldPos, parentDriver->getVehicleLength(), speed, acceleration, parentDriver->getParams().now.ms());
+
+		++itSurvStn;
+	}
+
+	//Other data items such as flow and headways are counted when the back bumper of the vehicle crosses the
+	//down-edge of the of detection zone
+	while((nextSurveillanceStn != survStns.end()) && (vehBackBumper > (*nextSurveillanceStn)->getOffsetDistance() + (*nextSurveillanceStn)->getZoneLength()))
+	{
+		TrafficSensor *sensor = (*nextSurveillanceStn)->getTrafficSensor(laneIdx);
+		sensor->calculatePassingData(oldPos, parentDriver->getVehicleLength(), speed, acceleration);
+
+		++nextSurveillanceStn;
 	}
 }
 

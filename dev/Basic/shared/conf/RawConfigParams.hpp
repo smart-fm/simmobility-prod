@@ -14,6 +14,7 @@
 #include "geospatial/network/Point.hpp"
 #include "workers/WorkGroup.hpp"
 #include "util/DailyTime.hpp"
+#include "util/Profiler.hpp"
 #include "conf/Constructs.hpp"
 
 namespace sim_mob {
@@ -224,9 +225,10 @@ struct ClosedLoopParams
     std::string tollFile;
     std::string incentivesFile;
     std::string sensorOutputFile;
+	BasicLogger *logger;
 
 	ClosedLoopParams() : enabled(false), isGuidanceDirectional(false), sensorStepSize(0), guidanceFile(""),
-		tollFile(""), incentivesFile(""), sensorOutputFile("")
+		tollFile(""), incentivesFile(""), sensorOutputFile(""), logger(nullptr)
     {
     }
 };

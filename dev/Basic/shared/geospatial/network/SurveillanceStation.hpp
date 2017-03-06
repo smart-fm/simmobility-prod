@@ -185,6 +185,8 @@ public:
 	double getOccupancy() const;
 	double getSpeed() const;
 
+	void resetReadings();
+
 	/**
 	 * Calculates the sensor data which are accumulated if the entire or a part of the vehicle was/is in the detection zone.
 	 * @param vehPosition vehicle position

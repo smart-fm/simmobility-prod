@@ -818,6 +818,9 @@ void writeSensorOutput(const ConfigParams &config, unsigned long currTime)
 				file << " " << (*itSensors)->getId() << " " << (*itStns)->getTaskCode()
 					 << " " << count << " " << totalSpeed / count
 					 << " " << (*itSensors)->getOccupancy() << "\n";
+
+				//Reset the sensor reading
+				(*itSensors)->resetReadings();
 			}
 		}
 	}

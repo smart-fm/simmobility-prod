@@ -199,6 +199,11 @@ double TrafficSensor::getSpeed() const
 	return speed;
 }
 
+void TrafficSensor::resetReadings()
+{
+	count = speed = occupancy = 0;
+}
+
 double TrafficSensor::calculateSensorSpeed(double vehPosition, double vehLength, double vehSpeed, double acceleration)
 {
 	//Distance travelled from previous position to the end of the sensor

@@ -11,7 +11,10 @@
 
 using namespace sim_mob;
 
-const unsigned int SENSOR_LINKWIDE = 0x00000100;
+const unsigned int SurveillanceStation::SENSOR_LINKWIDE = 0x00000100;
+const unsigned int SurveillanceStation::SENSOR_TASK_FLOW = 0x00000001;
+const unsigned int SurveillanceStation::SENSOR_TASK_SPEED = 0x00000002;
+const unsigned int SurveillanceStation::SENSOR_TASK_OCCUPANCY = 0x00000004;
 
 SurveillanceStation::SurveillanceStation(unsigned int id, unsigned int type, unsigned int code, double zone, double offset,
 										 unsigned int segId, unsigned int trafficLight) :
@@ -53,9 +56,9 @@ unsigned int SurveillanceStation::getTaskCode() const
 	return taskCode;
 }
 
-void SurveillanceStation::setTaskCode(unsigned int value)
+unsigned int SurveillanceStation::isSensorTask(unsigned int task) const
 {
-	taskCode = value;
+	return taskCode & task;
 }
 
 unsigned int SurveillanceStation::getZoneLength() const
@@ -184,19 +187,48 @@ void TrafficSensor::setSurveillanceStn(SurveillanceStation *value)
 	surveillanceStn = value;
 }
 
-unsigned int TrafficSensor::getCount() const
+unsigned int TrafficSensor::getFlow() const
 {
-	return count;
+	double step = ConfigManager::GetInstance().FullConfig().simulation.closedLoop.sensorStepSize;
+	double flow = count / step * 3600.0;
+
+	if (surveillanceStn->isLinkWide())
+	{
+		return (unsigned int) (flow / surveillanceStn->getSegment()->getNoOfLanes() + 0.5);
+	}
+	else
+	{
+		return (unsigned int) (flow + 0.5);
+	}
 }
 
 double TrafficSensor::getOccupancy() const
 {
-	return occupancy;
+	double step = ConfigManager::GetInstance().FullConfig().simulation.closedLoop.sensorStepSize;
+	double result = occupancy;
+
+	if (surveillanceStn->isLinkWide())
+	{
+		result /= step * surveillanceStn->getSegment()->getNoOfLanes();
+	}
+	else
+	{
+		result /= step;
+	}
+
+	return result * 100.0;
 }
 
 double TrafficSensor::getSpeed() const
 {
-	return speed;
+	if(count)
+	{
+		return speed / count;
+	}
+	else
+	{
+		return surveillanceStn->getSegment()->getMaxSpeed();
+	}
 }
 
 void TrafficSensor::resetReadings()

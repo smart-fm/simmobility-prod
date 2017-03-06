@@ -80,6 +80,12 @@ private:
 	std::vector<TrafficSensor *> trafficSensors;
 
 public:
+	/**Constants*/
+	static const unsigned int SENSOR_LINKWIDE;
+	static const unsigned int SENSOR_TASK_FLOW;
+	static const unsigned int SENSOR_TASK_SPEED;
+	static const unsigned int SENSOR_TASK_OCCUPANCY;
+
 	SurveillanceStation(unsigned int id, unsigned int type, unsigned int code, double zone, double offset,
 						unsigned int segId, unsigned int trafficLight);
 	~SurveillanceStation();
@@ -91,7 +97,7 @@ public:
 	void setType(const unsigned int value);
 
 	unsigned int getTaskCode() const;
-	void setTaskCode(unsigned int value);
+	unsigned int isSensorTask(unsigned int task) const;
 
 	unsigned int getZoneLength() const;
 	void setZoneLength(unsigned int value);
@@ -175,7 +181,11 @@ public:
 	SurveillanceStation *getSurveillanceStn() const;
 	void setSurveillanceStn(SurveillanceStation *value);
 
-	unsigned int getCount() const;
+	/**
+	 * Convert the sensor readings from accumulated to average flow per lane per hour
+	 * @return the average flow (unit: #vehicles per lane per hour)
+	 */
+	unsigned int getFlow() const;
 	double getOccupancy() const;
 	double getSpeed() const;
 

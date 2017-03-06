@@ -813,10 +813,8 @@ void writeSensorOutput(const ConfigParams &config, unsigned long currTime)
 
 			for(auto itSensors = sensors.begin(); itSensors != sensors.end(); ++itSensors)
 			{
-				double count = (*itSensors)->getCount(), totalSpeed = (*itSensors)->getSpeed();
-
 				file << " " << (*itSensors)->getId() << " " << (*itStns)->getTaskCode()
-					 << " " << count << " " << totalSpeed / count
+					 << " " << (*itSensors)->getFlow() << " " << (*itSensors)->getSpeed()
 					 << " " << (*itSensors)->getOccupancy() << "\n";
 
 				//Reset the sensor reading

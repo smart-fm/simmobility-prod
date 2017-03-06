@@ -9,12 +9,6 @@
 namespace sim_mob
 {
 
-enum SensorState
-{
-	SENSOR_STATE_ACTIVATED,
-
-};
-
 class Lane;
 class RoadSegment;
 class TrafficSensor;

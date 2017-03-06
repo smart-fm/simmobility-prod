@@ -28,6 +28,7 @@
 #include "entities/AuraManager.hpp"
 #include "entities/BusController.hpp"
 #include "entities/BusStopAgent.hpp"
+#include "entities/ClosedLoopRunManager.hpp"
 #include "entities/incident/IncidentManager.hpp"
 #include "entities/params/PT_NetworkEntities.hpp"
 #include "entities/MT_PersonLoader.hpp"
@@ -84,6 +85,10 @@ timeval start_time_med;
 
 //Current software version.
 const string SIMMOB_VERSION = string(SIMMOB_VERSION_MAJOR) + ":" + SIMMOB_VERSION_MINOR;
+
+//Declare method
+void writeSensorOutput(const ConfigParams &config, unsigned long currTime);
+void waitForDynaMIT(const ConfigParams &config);
 
 void assignConfluxLoaderToWorker(WorkGroup* workGrp, unsigned int workerIdx)
 {
@@ -371,6 +376,15 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 
 		//Agent-based cycle, steps 1,2,3,4
 		wgMgr.waitAllGroups();
+
+		unsigned long currTimeMS = currTick * config.baseGranMS();
+
+		//Check if we are running in closed loop with DynaMIT
+		if(config.simulation.closedLoop.enabled && (currTimeMS + config.baseGranMS()) % (config.simulation.closedLoop.sensorStepSize * 1000) == 0)
+		{
+			writeSensorOutput(config, currTimeMS + config.baseGranMS());
+			waitForDynaMIT(config);
+		}
 	}
 
 	BusStopAgent::removeAllBusStopAgents();
@@ -623,3 +637,102 @@ int main_impl(int ARGC, char* ARGV[])
 	return returnVal;
 }
 
+void waitForDynaMIT(const ConfigParams &config)
+{
+	if(!config.simulation.closedLoop.guidanceFile.empty())
+	{
+		ClosedLoopRunManager &guidanceMgr = ClosedLoopRunManager::getInstance(CLOSED_LOOP_GUIDANCE);
+
+		//Keep testing till file is ready
+		while(guidanceMgr.checkRunStatus());
+
+		int fd = guidanceMgr.getFileLock();
+
+		//Update path table
+		//theGuidedRoute->updatePathTable(guidanceMgr.getFileName());
+
+		//if (isSpFlag(INFO_FLAG_UPDATE_PATHS))
+		//{
+		//	tsNetwork->guidedVehiclesUpdatePaths();
+		//}
+
+		guidanceMgr.removeFileLock();
+	}
+
+	if(!config.simulation.closedLoop.tollFile.empty())
+	{
+		ClosedLoopRunManager &tollMgr = ClosedLoopRunManager::getInstance(CLOSED_LOOP_TOLL);
+
+		//Keep testing till file is ready
+		while(tollMgr.checkRunStatus());
+
+		int fd = tollMgr.getFileLock();
+
+		//Update path table
+		//theGuidedRoute->updatePathTable(guidanceMgr.getFileName());
+
+		//if (isSpFlag(INFO_FLAG_UPDATE_PATHS))
+		//{
+		//	tsNetwork->guidedVehiclesUpdatePaths();
+		//}
+
+		tollMgr.removeFileLock();
+	}
+
+	if(!config.simulation.closedLoop.incentivesFile.empty())
+	{
+		ClosedLoopRunManager &incentivesMgr = ClosedLoopRunManager::getInstance(CLOSED_LOOP_INCENTIVES);
+
+		//Keep testing till file is ready
+		while(incentivesMgr.checkRunStatus());
+
+		int fd = incentivesMgr.getFileLock();
+
+		//Update path table
+		//theGuidedRoute->updatePathTable(guidanceMgr.getFileName());
+
+		//if (isSpFlag(INFO_FLAG_UPDATE_PATHS))
+		//{
+		//	tsNetwork->guidedVehiclesUpdatePaths();
+		//}
+
+		incentivesMgr.removeFileLock();
+	}
+}
+
+void writeSensorOutput(const ConfigParams &config, unsigned long currTime)
+{
+	//Print the time
+	BasicLogger &file = *(config.simulation.closedLoop.logger);
+	file << (config.simStartTime().getValue() + currTime) / 1000 << " {";
+
+	//Get the road segments in the network
+	const RoadNetwork *network = RoadNetwork::getInstance();
+	const map<unsigned int, RoadSegment *> &segments = network->getMapOfIdVsRoadSegments();
+
+	for(auto itSegments = segments.begin(); itSegments != segments.end(); ++itSegments)
+	{
+		//Get the surveillance stations
+		const vector<SurveillanceStation *> &survStns = itSegments->second->getSurveillanceStations();
+
+		for(auto itStns = survStns.begin(); itStns != survStns.end(); ++itStns)
+		{
+			//Get the traffic sensors
+			const vector<TrafficSensor *> &sensors = (*itStns)->getTrafficSensors();
+
+			for(auto itSensors = sensors.begin(); itSensors != sensors.end(); ++itSensors)
+			{
+				file << " " << (*itSensors)->getId() << " " << (*itStns)->getTaskCode()
+					 << " " << (*itSensors)->getFlow() << " " << (*itSensors)->getSpeed()
+					 << " " << (*itSensors)->getOccupancy() << "\n";
+
+				//Reset the sensor reading
+				(*itSensors)->resetReadings();
+			}
+		}
+	}
+
+	file << "}\n";
+
+	file.flush();
+}

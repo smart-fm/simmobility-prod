@@ -37,6 +37,13 @@ private:
 	 */
 	time_t fileTimeStamp;
 
+	/**
+	 * Reads the guidance file and stores the travel times
+	 * @param file file name
+	 * @param isGuidanceDirectional indicates if the guidance is directional
+	 */
+	void readGuidanceFile(const std::string &file, bool isGuidanceDirectional);
+
 public:
 	static ClosedLoopRunManager& getInstance(ClosedLoopMgrInstanceType type);
 	static void initialise(const std::string &guidance, const std::string &toll, const std::string &incentives);
@@ -66,8 +73,8 @@ public:
 	int removeFileLock();
 
 	/**
-	 * @brief waitForDynaMIT
-	 * @param config
+	 * Waits for DynaMIT to produce the guidance, toll and incentives files
+	 * @param config the configuration parameters
 	 */
 	static void waitForDynaMIT(const ConfigParams &config);
 };

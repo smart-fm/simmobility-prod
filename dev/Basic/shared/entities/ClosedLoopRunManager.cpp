@@ -71,6 +71,75 @@ void ClosedLoopRunManager::setFileName(const std::string &value)
 	fileName = value;
 }
 
+void ClosedLoopRunManager::readGuidanceFile(const string &file, bool isGuidanceDirectional)
+{
+	//Open file for reading
+	FILE *filePtr = nullptr;
+	filePtr = fopen(file.c_str(), "r");
+
+	if(filePtr)
+	{
+		unsigned int startTime = 0, numPeriods = 0, secsPerPeriod = 0;
+		unsigned int linkId = 0, downstreamLink = 0;
+		float *travelTimes = nullptr;
+
+		char buffer[128];
+
+		//Read first 2 lines
+		fgets(buffer, sizeof(buffer), filePtr);
+		fgets(buffer, sizeof(buffer), filePtr);
+
+		//Read the line containing the startTime, and extract it
+		fgets(buffer, sizeof(buffer), filePtr);
+		sscanf(buffer, "%d", &startTime);
+
+		//Read the line containing the number of periods, and extract it
+		fgets(buffer, sizeof(buffer), filePtr);
+		sscanf(buffer, "%d", &numPeriods);
+
+		//Read the line containing the seconds per periods, and extract it
+		fgets(buffer, sizeof(buffer), filePtr);
+		sscanf(buffer, "%d", &secsPerPeriod);
+
+		//Allocate space for storing the travel times
+		travelTimes = new float[numPeriods];
+
+		//Skip to the travel times information
+		while(fgets(buffer, sizeof(buffer), filePtr) && buffer[0] != '{');
+
+		long position = ftell(filePtr);
+
+		//Read the rest of the data
+		while(fgetc(filePtr) != '}')
+		{
+			//Move to the position before fgetc
+			fseek(filePtr, position, SEEK_SET);
+
+			if(isGuidanceDirectional)
+			{
+				fscanf(filePtr, "%d %d %*f", &linkId, &downstreamLink);
+			}
+			else
+			{
+				fscanf(filePtr, "%d %*f", &linkId);
+			}
+
+			for(unsigned int idx = 0; idx < numPeriods; idx++)
+			{
+				fscanf(filePtr, "%f", &travelTimes[idx]);
+			}
+
+			position = ftell(filePtr);
+		}
+	}
+	else
+	{
+		char msg[128];
+		sprintf(msg, "Failed to open guidance file: %s", file.c_str());
+		throw std::runtime_error(msg);
+	}
+}
+
 int ClosedLoopRunManager::checkRunStatus()
 {
 	//Check the timestamp on file to see if it has changed
@@ -138,8 +207,11 @@ void ClosedLoopRunManager::waitForDynaMIT(const ConfigParams &config)
 
 		int fd = guidanceMgr.getFileLock();
 
+		//Read the guidance file
+		guidanceMgr.readGuidanceFile(guidanceMgr.getFileName(), config.simulation.closedLoop.isGuidanceDirectional);
+
 		//Update path table
-		//theGuidedRoute->updatePathTable(guidanceMgr.getFileName());
+		//theGuidedRoute->updatePathTable();
 
 		//if (isSpFlag(INFO_FLAG_UPDATE_PATHS))
 		//{

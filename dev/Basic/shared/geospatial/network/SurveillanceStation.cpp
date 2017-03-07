@@ -11,6 +11,8 @@
 
 using namespace sim_mob;
 
+/**Initialise static members*/
+std::vector<SurveillanceStation *> SurveillanceStation::surveillanceStations;
 const unsigned int SurveillanceStation::SENSOR_LINKWIDE = 0x00000100;
 const unsigned int SurveillanceStation::SENSOR_TASK_FLOW = 0x00000001;
 const unsigned int SurveillanceStation::SENSOR_TASK_SPEED = 0x00000002;
@@ -133,6 +135,33 @@ TrafficSensor *SurveillanceStation::getTrafficSensor(int index)
 const std::vector<TrafficSensor *> &SurveillanceStation::getTrafficSensors() const
 {
 	return trafficSensors;
+}
+
+void SurveillanceStation::writeSurveillanceOutput(const ConfigParams &config, unsigned long currTime)
+{
+	//Print the time
+	BasicLogger &file = *(config.simulation.closedLoop.logger);
+	file << (config.simStartTime().getValue() + currTime) / 1000 << " {";
+
+	for(auto itStns = surveillanceStations.begin(); itStns != surveillanceStations.end(); ++itStns)
+	{
+		//Get the traffic sensors
+		const std::vector<TrafficSensor *> &sensors = (*itStns)->getTrafficSensors();
+
+		for(auto itSensors = sensors.begin(); itSensors != sensors.end(); ++itSensors)
+		{
+			file << " " << (*itSensors)->getId() << " " << (*itStns)->getTaskCode()
+				 << " " << (*itSensors)->getFlow() << " " << (*itSensors)->getSpeed()
+				 << " " << (*itSensors)->getOccupancy() << "\n";
+
+			//Reset the sensor reading
+			(*itSensors)->resetReadings();
+		}
+	}
+
+	file << "}\n";
+
+	file.flush();
 }
 
 TrafficSensor::TrafficSensor(SurveillanceStation *station) : index(0), lane(nullptr), surveillanceStn(station),

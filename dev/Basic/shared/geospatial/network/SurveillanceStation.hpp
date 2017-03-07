@@ -9,6 +9,7 @@
 namespace sim_mob
 {
 
+class ConfigParams;
 class Lane;
 class RoadSegment;
 class TrafficSensor;
@@ -86,6 +87,12 @@ public:
 	static const unsigned int SENSOR_TASK_SPEED;
 	static const unsigned int SENSOR_TASK_OCCUPANCY;
 
+	/**
+	 * Static container for storing the surveillance stations. The surveillance stations are
+	 * deleted via their parent road segments, so we dont have to worry about deleting them from here
+	 */
+	static std::vector<SurveillanceStation *> surveillanceStations;
+
 	SurveillanceStation(unsigned int id, unsigned int type, unsigned int code, double zone, double offset,
 						unsigned int segId, unsigned int trafficLight);
 	~SurveillanceStation();
@@ -116,6 +123,8 @@ public:
 
 	TrafficSensor * getTrafficSensor(int index);
 	const std::vector<TrafficSensor *>& getTrafficSensors() const;
+
+	static void writeSurveillanceOutput(const ConfigParams &config, unsigned long currTime);
 };
 
 class TrafficSensor

@@ -87,7 +87,6 @@ timeval start_time_med;
 const string SIMMOB_VERSION = string(SIMMOB_VERSION_MAJOR) + ":" + SIMMOB_VERSION_MINOR;
 
 //Declare method
-void writeSensorOutput(const ConfigParams &config, unsigned long currTime);
 void waitForDynaMIT(const ConfigParams &config);
 
 void assignConfluxLoaderToWorker(WorkGroup* workGrp, unsigned int workerIdx)
@@ -382,7 +381,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 		//Check if we are running in closed loop with DynaMIT
 		if(config.simulation.closedLoop.enabled && (currTimeMS + config.baseGranMS()) % (config.simulation.closedLoop.sensorStepSize * 1000) == 0)
 		{
-			writeSensorOutput(config, currTimeMS + config.baseGranMS());
+			SurveillanceStation::writeSurveillanceOutput(config, currTimeMS + config.baseGranMS());
 			waitForDynaMIT(config);
 		}
 	}
@@ -698,41 +697,4 @@ void waitForDynaMIT(const ConfigParams &config)
 
 		incentivesMgr.removeFileLock();
 	}
-}
-
-void writeSensorOutput(const ConfigParams &config, unsigned long currTime)
-{
-	//Print the time
-	BasicLogger &file = *(config.simulation.closedLoop.logger);
-	file << (config.simStartTime().getValue() + currTime) / 1000 << " {";
-
-	//Get the road segments in the network
-	const RoadNetwork *network = RoadNetwork::getInstance();
-	const map<unsigned int, RoadSegment *> &segments = network->getMapOfIdVsRoadSegments();
-
-	for(auto itSegments = segments.begin(); itSegments != segments.end(); ++itSegments)
-	{
-		//Get the surveillance stations
-		const vector<SurveillanceStation *> &survStns = itSegments->second->getSurveillanceStations();
-
-		for(auto itStns = survStns.begin(); itStns != survStns.end(); ++itStns)
-		{
-			//Get the traffic sensors
-			const vector<TrafficSensor *> &sensors = (*itStns)->getTrafficSensors();
-
-			for(auto itSensors = sensors.begin(); itSensors != sensors.end(); ++itSensors)
-			{
-				file << " " << (*itSensors)->getId() << " " << (*itStns)->getTaskCode()
-					 << " " << (*itSensors)->getFlow() << " " << (*itSensors)->getSpeed()
-					 << " " << (*itSensors)->getOccupancy() << "\n";
-
-				//Reset the sensor reading
-				(*itSensors)->resetReadings();
-			}
-		}
-	}
-
-	file << "}\n";
-
-	file.flush();
 }

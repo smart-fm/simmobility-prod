@@ -177,4 +177,7 @@ void RoadSegment::addObstacle(double offset, RoadItem *item)
 void RoadSegment::addSurveillanceStation(SurveillanceStation *surveillanceStn)
 {
 	surveillanceStations.push_back(surveillanceStn);
+
+	//Add to the static container
+	SurveillanceStation::surveillanceStations.push_back(surveillanceStn);
 }

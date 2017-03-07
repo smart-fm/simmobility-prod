@@ -86,9 +86,6 @@ timeval start_time_med;
 //Current software version.
 const string SIMMOB_VERSION = string(SIMMOB_VERSION_MAJOR) + ":" + SIMMOB_VERSION_MINOR;
 
-//Declare method
-void waitForDynaMIT(const ConfigParams &config);
-
 void assignConfluxLoaderToWorker(WorkGroup* workGrp, unsigned int workerIdx)
 {
 	const sim_mob::MutexStrategy& mtxStrat = ConfigManager::GetInstance().FullConfig().mutexStategy();
@@ -382,7 +379,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 		if(config.simulation.closedLoop.enabled && (currTimeMS + config.baseGranMS()) % (config.simulation.closedLoop.sensorStepSize * 1000) == 0)
 		{
 			SurveillanceStation::writeSurveillanceOutput(config, currTimeMS + config.baseGranMS());
-			waitForDynaMIT(config);
+			ClosedLoopRunManager::waitForDynaMIT(config);
 		}
 	}
 
@@ -634,67 +631,4 @@ int main_impl(int ARGC, char* ARGV[])
 	cout << "Done. \nTotal simulation time: "<< (ProfileBuilder::diff_ms(simEndTime, simStartTime))/1000.0 << " seconds." << endl;
 
 	return returnVal;
-}
-
-void waitForDynaMIT(const ConfigParams &config)
-{
-	if(!config.simulation.closedLoop.guidanceFile.empty())
-	{
-		ClosedLoopRunManager &guidanceMgr = ClosedLoopRunManager::getInstance(CLOSED_LOOP_GUIDANCE);
-
-		//Keep testing till file is ready
-		while(guidanceMgr.checkRunStatus());
-
-		int fd = guidanceMgr.getFileLock();
-
-		//Update path table
-		//theGuidedRoute->updatePathTable(guidanceMgr.getFileName());
-
-		//if (isSpFlag(INFO_FLAG_UPDATE_PATHS))
-		//{
-		//	tsNetwork->guidedVehiclesUpdatePaths();
-		//}
-
-		guidanceMgr.removeFileLock();
-	}
-
-	if(!config.simulation.closedLoop.tollFile.empty())
-	{
-		ClosedLoopRunManager &tollMgr = ClosedLoopRunManager::getInstance(CLOSED_LOOP_TOLL);
-
-		//Keep testing till file is ready
-		while(tollMgr.checkRunStatus());
-
-		int fd = tollMgr.getFileLock();
-
-		//Update path table
-		//theGuidedRoute->updatePathTable(guidanceMgr.getFileName());
-
-		//if (isSpFlag(INFO_FLAG_UPDATE_PATHS))
-		//{
-		//	tsNetwork->guidedVehiclesUpdatePaths();
-		//}
-
-		tollMgr.removeFileLock();
-	}
-
-	if(!config.simulation.closedLoop.incentivesFile.empty())
-	{
-		ClosedLoopRunManager &incentivesMgr = ClosedLoopRunManager::getInstance(CLOSED_LOOP_INCENTIVES);
-
-		//Keep testing till file is ready
-		while(incentivesMgr.checkRunStatus());
-
-		int fd = incentivesMgr.getFileLock();
-
-		//Update path table
-		//theGuidedRoute->updatePathTable(guidanceMgr.getFileName());
-
-		//if (isSpFlag(INFO_FLAG_UPDATE_PATHS))
-		//{
-		//	tsNetwork->guidedVehiclesUpdatePaths();
-		//}
-
-		incentivesMgr.removeFileLock();
-	}
 }

@@ -16,6 +16,8 @@
 #include <sys/types.h>
 #include <thread>
 
+#include "conf/ConfigParams.hpp"
+
 using namespace std;
 using namespace sim_mob;
 
@@ -123,4 +125,67 @@ int ClosedLoopRunManager::removeFileLock()
 	lockFileName.append(".lck");
 
 	return remove(lockFileName.c_str());
+}
+
+void ClosedLoopRunManager::waitForDynaMIT(const ConfigParams &config)
+{
+	if(!config.simulation.closedLoop.guidanceFile.empty())
+	{
+		ClosedLoopRunManager &guidanceMgr = getInstance(CLOSED_LOOP_GUIDANCE);
+
+		//Keep testing till file is ready
+		while(guidanceMgr.checkRunStatus());
+
+		int fd = guidanceMgr.getFileLock();
+
+		//Update path table
+		//theGuidedRoute->updatePathTable(guidanceMgr.getFileName());
+
+		//if (isSpFlag(INFO_FLAG_UPDATE_PATHS))
+		//{
+		//	tsNetwork->guidedVehiclesUpdatePaths();
+		//}
+
+		guidanceMgr.removeFileLock();
+	}
+
+	if(!config.simulation.closedLoop.tollFile.empty())
+	{
+		ClosedLoopRunManager &tollMgr = getInstance(CLOSED_LOOP_TOLL);
+
+		//Keep testing till file is ready
+		while(tollMgr.checkRunStatus());
+
+		int fd = tollMgr.getFileLock();
+
+		//Update path table
+		//theGuidedRoute->updatePathTable(guidanceMgr.getFileName());
+
+		//if (isSpFlag(INFO_FLAG_UPDATE_PATHS))
+		//{
+		//	tsNetwork->guidedVehiclesUpdatePaths();
+		//}
+
+		tollMgr.removeFileLock();
+	}
+
+	if(!config.simulation.closedLoop.incentivesFile.empty())
+	{
+		ClosedLoopRunManager &incentivesMgr = getInstance(CLOSED_LOOP_INCENTIVES);
+
+		//Keep testing till file is ready
+		while(incentivesMgr.checkRunStatus());
+
+		int fd = incentivesMgr.getFileLock();
+
+		//Update path table
+		//theGuidedRoute->updatePathTable(guidanceMgr.getFileName());
+
+		//if (isSpFlag(INFO_FLAG_UPDATE_PATHS))
+		//{
+		//	tsNetwork->guidedVehiclesUpdatePaths();
+		//}
+
+		incentivesMgr.removeFileLock();
+	}
 }

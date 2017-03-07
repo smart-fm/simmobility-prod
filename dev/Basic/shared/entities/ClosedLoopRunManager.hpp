@@ -12,6 +12,8 @@
 namespace sim_mob
 {
 
+class ConfigParams;
+
 enum ClosedLoopMgrInstanceType
 {
 	CLOSED_LOOP_GUIDANCE,
@@ -62,6 +64,12 @@ public:
 	 * @return -1 on failure, file descriptor > 0 on success
 	 */
 	int removeFileLock();
+
+	/**
+	 * @brief waitForDynaMIT
+	 * @param config
+	 */
+	static void waitForDynaMIT(const ConfigParams &config);
 };
 
 }

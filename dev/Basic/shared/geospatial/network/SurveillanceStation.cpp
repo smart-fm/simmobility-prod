@@ -141,7 +141,7 @@ void SurveillanceStation::writeSurveillanceOutput(const ConfigParams &config, un
 {
 	//Print the time
 	BasicLogger &file = *(config.simulation.closedLoop.logger);
-	file << (config.simStartTime().getValue() + currTime) / 1000 << " {";
+	file << (config.simStartTime().getValue() + currTime) / 1000 << " {\n";
 
 	for(auto itStns = surveillanceStations.begin(); itStns != surveillanceStations.end(); ++itStns)
 	{
@@ -150,7 +150,7 @@ void SurveillanceStation::writeSurveillanceOutput(const ConfigParams &config, un
 
 		for(auto itSensors = sensors.begin(); itSensors != sensors.end(); ++itSensors)
 		{
-			file << " " << (*itSensors)->getId() << " " << (*itStns)->getTaskCode()
+			file << "\t" << (*itSensors)->getId() << " " << (*itStns)->getTaskCode()
 				 << " " << (*itSensors)->getFlow() << " " << (*itSensors)->getSpeed()
 				 << " " << (*itSensors)->getOccupancy() << "\n";
 

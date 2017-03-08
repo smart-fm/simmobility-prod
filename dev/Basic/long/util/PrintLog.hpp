@@ -181,11 +181,11 @@ namespace sim_mob
 			if(printHeader)
 			{
 				printHeader = false;
-				AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_HH_AWAKENING,"awakening_day, householdId, TimeOnMarket");
+				AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_HH_AWAKENING,"awakening_day, householdId, TimeOnMarket, ageCategory, tenureStatus");
 			}
 
 			//day household_id timeOnMarket
-			boost::format fmtr = boost::format("%1%, %2%, %3%") % (day + 1) % household->getId() % household->getTimeOnMarket();
+			boost::format fmtr = boost::format("%1%, %2%, %3%, %4%, %5%") % (day + 1) % household->getId() % household->getTimeOnMarket() % household->getAgeOfHead() % household->getTenureStatus();
 			AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_HH_AWAKENING, fmtr.str());
 
 		}

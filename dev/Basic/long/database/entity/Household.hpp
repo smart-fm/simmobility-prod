@@ -174,6 +174,7 @@ namespace sim_mob
 			int getAwaknedDay() const;
 			bool getExistInDB() const;
 
+			void setTenureStatus(int val);
 			void setBuySellInterval(int buyerSellerInterval);
 			void setTimeOffMarket(int timeOffMarket);
 			void setTimeOnMarket(int timeOnMarket);

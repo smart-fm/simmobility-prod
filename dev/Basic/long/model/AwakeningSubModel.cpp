@@ -270,7 +270,7 @@ namespace sim_mob
 				{
 					if( household->getTenureStatus() == 2) //renter
 					{
-						return; //rent->rent: do nothing
+						//return; //rent->rent: do nothing
 						//agent goes inactive
 					}
 					else
@@ -339,10 +339,10 @@ namespace sim_mob
 			for(int n = 0; n < ownerTenantMR.size(); n++)
 			{
 				if( household->getTenureStatus() == 2 && householdHead->getAgeCategoryId() == ownerTenantMR[n]->getAgeCategory() )
-					movingRate = ownerTenantMR[n]->getTenantMovingPercentage() / 22.0; //22.0 is the weighted average for tenant moving rates
+					movingRate = ownerTenantMR[n]->getTenantMovingPercentage() / 100.0; /// 22.0; //22.0 is the weighted average for tenant moving rates
 
 				if( household->getTenureStatus() == 1 && householdHead->getAgeCategoryId() == ownerTenantMR[n]->getAgeCategory() )
-					movingRate = ownerTenantMR[n]->getOwnerMovingPercentage() / 8.5; //8.5 is the weighted average for owner moving rates
+					movingRate = ownerTenantMR[n]->getOwnerMovingPercentage() / 100.0; /// 8.5; //8.5 is the weighted average for owner moving rates
 			}
 
 			return movingRate;

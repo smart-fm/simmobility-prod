@@ -270,7 +270,7 @@ namespace sim_mob
 				{
 					if( household->getTenureStatus() == 2) //renter
 					{
-						//return; //rent->rent: do nothing
+						//rent->rent: do nothing
 						//agent goes inactive
 					}
 					else
@@ -280,6 +280,8 @@ namespace sim_mob
 						//Let's change its tenure status here.
 						household->setTenureStatus(1);
 					}
+
+					return;
 				}
 
 

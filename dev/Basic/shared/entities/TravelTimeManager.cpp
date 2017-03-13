@@ -209,6 +209,7 @@ sim_mob::TravelTimeManager::TravelTimeManager()
 sim_mob::TravelTimeManager::~TravelTimeManager()
 {
 	safe_delete_item(enRouteTT);
+	clear_delete_map(predictedLinkTravelTimes.linkTravelTimes);
 }
 
 void sim_mob::TravelTimeManager::loadTravelTimes()
@@ -286,6 +287,24 @@ double sim_mob::TravelTimeManager::getDefaultLinkTT(const Link* lnk) const
 double sim_mob::TravelTimeManager::getLinkTT(const sim_mob::Link* lnk, const sim_mob::DailyTime& startTime, const sim_mob::Link* downstreamLink, 
 											 bool useInSimulationTT) const
 {
+	if(ConfigManager::GetInstance().FullConfig().simulation.closedLoop.enabled)
+	{
+		//Look up the link pair in the travel times map
+		unsigned int downstreamLinkId = (downstreamLink != nullptr) ? downstreamLink->getLinkId() : 0;
+		std::pair<unsigned int,unsigned int> linkPair = std::make_pair(lnk->getLinkId(), downstreamLinkId);
+		std::map<std::pair<unsigned int,unsigned int>, double *>::const_iterator itTravelTimes = predictedLinkTravelTimes.linkTravelTimes.find(linkPair);
+
+		if(itTravelTimes != predictedLinkTravelTimes.linkTravelTimes.end())
+		{
+			unsigned int period = ((startTime.getValue() - predictedLinkTravelTimes.startTime) / predictedLinkTravelTimes.secondsPerPeriod) - 1;
+
+			if(period < predictedLinkTravelTimes.numOfPeriods)
+			{
+				return itTravelTimes->second[period];
+			}
+		}
+	}
+
 	std::map<unsigned int, sim_mob::LinkTravelTime>::const_iterator it = lnkTravelTimeMap.find(lnk->getLinkId());
 	if (it == lnkTravelTimeMap.end())
 	{
@@ -449,6 +468,33 @@ void sim_mob::TravelTimeManager::dumpSegmentTravelTimeToFile(const std::string& 
 			}
 		}
 	}
+}
+
+void TravelTimeManager::addPredictedLinkTT(unsigned int link, unsigned int downstreamLink, double *travelTimes)
+{
+	std::pair<unsigned int, unsigned int> linkPair = std::make_pair(link, downstreamLink);
+
+	//Check if travel times exist for the given pair of links
+	std::map<std::pair<unsigned int, unsigned int>, double *>::iterator itTT = predictedLinkTravelTimes.linkTravelTimes.find(linkPair);
+
+	if(itTT == predictedLinkTravelTimes.linkTravelTimes.end())
+	{
+		//Add the new travel times
+		predictedLinkTravelTimes.linkTravelTimes.insert(std::make_pair(linkPair, travelTimes));
+	}
+	else
+	{
+		//Delete the old travel times and replace with the new ones
+		delete itTT->second;
+		itTT->second = travelTimes;
+	}
+}
+
+void TravelTimeManager::setPredictionPeriod(unsigned int startTime, unsigned int numOfPeriods, unsigned int secondsPerPeriod)
+{
+	predictedLinkTravelTimes.startTime = (startTime * 60) + (ConfigManager::GetInstance().FullConfig().simStartTime().getValue());
+	predictedLinkTravelTimes.numOfPeriods = numOfPeriods;
+	predictedLinkTravelTimes.secondsPerPeriod = secondsPerPeriod;
 }
 
 void sim_mob::TravelTimeManager::dumpODTravelTimeToFile(const std::string& fileName) const

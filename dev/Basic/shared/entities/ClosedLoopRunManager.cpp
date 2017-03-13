@@ -17,6 +17,7 @@
 #include <thread>
 
 #include "conf/ConfigParams.hpp"
+#include "entities/TravelTimeManager.hpp"
 
 using namespace std;
 using namespace sim_mob;
@@ -81,7 +82,7 @@ void ClosedLoopRunManager::readGuidanceFile(const string &file, bool isGuidanceD
 	{
 		unsigned int startTime = 0, numPeriods = 0, secsPerPeriod = 0;
 		unsigned int linkId = 0, downstreamLink = 0;
-		float *travelTimes = nullptr;
+		double *travelTimes = nullptr;
 
 		char buffer[128];
 
@@ -101,8 +102,7 @@ void ClosedLoopRunManager::readGuidanceFile(const string &file, bool isGuidanceD
 		fgets(buffer, sizeof(buffer), filePtr);
 		sscanf(buffer, "%d", &secsPerPeriod);
 
-		//Allocate space for storing the travel times
-		travelTimes = new float[numPeriods];
+		TravelTimeManager::getInstance()->setPredictionPeriod(startTime, numPeriods, secsPerPeriod);
 
 		//Skip to the travel times information
 		while(fgets(buffer, sizeof(buffer), filePtr) && buffer[0] != '{');
@@ -117,19 +117,25 @@ void ClosedLoopRunManager::readGuidanceFile(const string &file, bool isGuidanceD
 
 			if(isGuidanceDirectional)
 			{
-				fscanf(filePtr, "%d %d %*f", &linkId, &downstreamLink);
+				fscanf(filePtr, "%d %d %*f ", &linkId, &downstreamLink);
 			}
 			else
 			{
-				fscanf(filePtr, "%d %*f", &linkId);
+				fscanf(filePtr, "%d %*f ", &linkId);
 			}
+
+			//Allocate space for storing the travel times
+			travelTimes = new double[numPeriods];
 
 			for(unsigned int idx = 0; idx < numPeriods; idx++)
 			{
-				fscanf(filePtr, "%f", &travelTimes[idx]);
+				fscanf(filePtr, "%lf ", &travelTimes[idx]);
 			}
 
 			position = ftell(filePtr);
+
+			//Add the predicted travel times
+			TravelTimeManager::getInstance()->addPredictedLinkTT(linkId, downstreamLink, travelTimes);
 		}
 	}
 	else
@@ -207,11 +213,8 @@ void ClosedLoopRunManager::waitForDynaMIT(const ConfigParams &config)
 
 		int fd = guidanceMgr.getFileLock();
 
-		//Read the guidance file
+		//Read the guidance file & update travel times
 		guidanceMgr.readGuidanceFile(guidanceMgr.getFileName(), config.simulation.closedLoop.isGuidanceDirectional);
-
-		//Update path table
-		//theGuidedRoute->updatePathTable();
 
 		//if (isSpFlag(INFO_FLAG_UPDATE_PATHS))
 		//{

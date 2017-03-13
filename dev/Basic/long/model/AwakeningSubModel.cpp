@@ -278,7 +278,8 @@ namespace sim_mob
 						//own->rent
 						//This awakened household will now look for a rental unit
 						//Let's change its tenure status here.
-						household->setTenureStatus(1);
+						household->setTenureStatus(2);
+						return;
 					}
 
 					return;

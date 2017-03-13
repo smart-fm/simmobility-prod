@@ -132,8 +132,8 @@
 		    <initialHouseholdsOnMarket value="15000"/>
 		    <dailyHouseholdAwakenings value="400"/>
 		    <awakenModelShan value="false"/>
-		    <awakenModelRandom value="true"/>
-		    <awakenModelJingsi value="false"/>	
+		    <awakenModelRandom value="false"/>
+		    <awakenModelJingsi value="true"/>	
                     <awakeningOffMarketSuccessfulBid value="100"/>
  	             <awakeningOffMarketUnsuccessfulBid value="200"/>
 	    </awakeningModel>

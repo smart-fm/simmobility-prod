@@ -98,7 +98,7 @@
               
     <!-- Long Term Configurations parameters -->
     <longTermParams enabled ="true">
-    	<days value="365"/>
+    	<days value="3"/>
     	<maxIterations value="1"/>
     	<workers value="8"/>
     	<tickStep value="1"/>  
@@ -111,6 +111,7 @@
 	<calibrationSchemaVersion value= "calibration2012" />
 	<geometrySchemaVersion value = "geometry2012" />
         <opSchemaloadingInterval value = "365"/>
+        <initialLoading value = "true" />
     	<developerModel enabled="true">
     		<timeInterval value="30"/>
 		<InitialPostcode value = "1000000"/>

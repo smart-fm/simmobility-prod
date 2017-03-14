@@ -495,12 +495,67 @@ static double CalculateExpectation(double price, double v, double a, double b, d
 ]]
 */
 
-vector<ExpectationEntry> HedonicPrice_SubModel::CalculateUnitExpectations (Unit *unit, double timeOnMarket, double logsum, double lagCoefficient, const Building *building, const Postcode *postcode, const PostcodeAmenities *amenities)
+vector<ExpectationEntry> HedonicPrice_SubModel::CalculateUnitExpectations (Unit *unit, double timeOnMarket, double logsum, double lagCoefficient, const Building *building, const Postcode *postcode, const PostcodeAmenities *amenitiesX)
 {
     vector<ExpectationEntry> expectations;
     //-- HEDONIC PRICE in SGD in thousands with average hedonic price (500)
 
-    double  hedonicPrice = CalculateHedonicPrice(unit, building, postcode, amenities, logsum, lagCoefficient);
+    PostcodeAmenities amenities = *amenitiesX;
+    int tazId = amenities.getTazId();
+
+	if( tazId == 682 ||
+		tazId == 683 ||
+		tazId == 684 ||
+		tazId == 697 ||
+		tazId == 698 ||
+		tazId == 699 ||
+		tazId == 700 ||
+		tazId == 702 ||
+		tazId == 703 ||
+		tazId == 927 ||
+		tazId == 928 ||
+		tazId == 929 ||
+		tazId == 930 ||
+		tazId == 931 ||
+		tazId == 932 ||
+		tazId == 1255||
+		tazId == 1256 )
+	{
+		amenities.setDistanceToJob(amenities.getDistanceToJob() / 2.0);
+		amenities.setDistanceToMall(amenities.getDistanceToMall() / 2.0);
+		amenities.setDistanceToCBD(amenities.getDistanceToCBD() / 2.0);
+		amenities.setDistanceToPMS30(amenities.getDistanceToPMS30() / 2.0);
+		amenities.setDistanceToExpress(amenities.getDistanceToExpress() / 2.0);
+		amenities.setDistanceToBus(amenities.getDistanceToBus() / 2.0);
+		amenities.setDistanceToMRT(amenities.getDistanceToMRT() / 2.0);
+	}
+
+
+    tazId = hmModel->getUnitTazId( unit->getId() );
+
+	if( tazId == 682 ||
+		tazId == 683 ||
+		tazId == 684 ||
+		tazId == 697 ||
+		tazId == 698 ||
+		tazId == 699 ||
+		tazId == 700 ||
+		tazId == 702 ||
+		tazId == 703 ||
+		tazId == 927 ||
+		tazId == 928 ||
+		tazId == 929 ||
+		tazId == 930 ||
+		tazId == 931 ||
+		tazId == 932 ||
+		tazId == 1255 ||
+		tazId == 1256 )
+	{
+		logsum += 0.07808;
+	}
+
+    double  hedonicPrice = CalculateHedonicPrice(unit, building, postcode, &amenities, logsum, lagCoefficient);
+
 
     hedonicPrice = exp( hedonicPrice ) / 1000000.0;
 

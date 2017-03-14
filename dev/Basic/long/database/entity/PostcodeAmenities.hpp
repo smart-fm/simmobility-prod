@@ -41,12 +41,23 @@ namespace sim_mob {
             double getDistanceToExpress() const;
             double getDistanceToBus() const;
             double getDistanceToMRT() const;
+            BigSerial getTazId() const;
+            BigSerial getAddressId() const;
             const std::string& getMrtStation() const;
             const std::string& getMtzNumber() const;
             const std::string& getRoadName() const;
             const std::string& getUnitBlock() const;
             const std::string& getBuildingName() const;
             const std::string& getPostcode() const;
+
+            void setDistanceToJob(double val);
+            void setDistanceToMall(double val);
+            void setDistanceToCBD(double val);
+            void setDistanceToPMS30(double val);
+            void setDistanceToExpress(double val);
+            void setDistanceToBus(double val);
+            void setDistanceToMRT(double val);
+
 
             /**
              * Operator to print the PostcodeAmenities data.  
@@ -75,6 +86,8 @@ namespace sim_mob {
             bool bus_200m;
             bool bus_400m;
             bool pms_1km;
+            BigSerial addressId;
+            BigSerial tazId;
         };
     }
 }

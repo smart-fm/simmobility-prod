@@ -322,6 +322,69 @@ namespace sim_mob
 			//GetLogsum(model, household, day);
 			Postcode *unitPostcode = model->getPostcodeById( model->getUnitSlaAddressId( unit->getId() ) );
 			ZZ_logsumhh = model->ComputeHedonicPriceLogsumFromDatabase( unitPostcode->getTazId() );
+
+
+			vector<BigSerial>ind_hh = household->getIndividuals();
+
+			Individual *thisIndividual;
+			for(int n = 0; n < ind_hh.size();n++)
+			{
+				Individual *tempIndividual = model->getIndividualById(ind_hh[n]);
+
+				if( tempIndividual->getHouseholdHead() )
+					thisIndividual = tempIndividual;
+			}
+
+			Job *job = model->getJobById(thisIndividual->getJobId());
+			Establishment *establishment = model->getEstablishmentById(	job->getEstablishmentId());
+			int work_tazId = model->getEstablishmentTazId( establishment->getId() );
+
+			if( work_tazId == 682 ||
+				work_tazId == 683 ||
+				work_tazId == 684 ||
+				work_tazId == 697 ||
+				work_tazId == 698 ||
+				work_tazId == 699 ||
+				work_tazId == 700 ||
+				work_tazId == 702 ||
+				work_tazId == 703 ||
+				work_tazId == 927 ||
+				work_tazId == 928 ||
+				work_tazId == 929 ||
+				work_tazId == 930 ||
+				work_tazId == 931 ||
+				work_tazId == 932 ||
+				work_tazId == 1255||
+				work_tazId == 1256 )
+			{
+				ZZ_logsumhh += 0.07808;
+			}
+
+		    int tazId = model->getUnitTazId( unit->getId() );
+
+			if( tazId == 682 ||
+				tazId == 683 ||
+				tazId == 684 ||
+				tazId == 697 ||
+				tazId == 698 ||
+				tazId == 699 ||
+				tazId == 700 ||
+				tazId == 702 ||
+				tazId == 703 ||
+				tazId == 927 ||
+				tazId == 928 ||
+				tazId == 929 ||
+				tazId == 930 ||
+				tazId == 931 ||
+				tazId == 932 ||
+				tazId == 1255||
+				tazId == 1256 )
+			{
+				ZZ_logsumhh += 0.07808;
+			}
+
+
+
 			Household* householdT = const_cast<Household*>(household);
 			householdT->setLogsum(ZZ_logsumhh);
 

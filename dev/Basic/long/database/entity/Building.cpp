@@ -15,9 +15,10 @@ using namespace sim_mob::long_term;
 
 Building::Building( BigSerial fmBuildingId, BigSerial fmProjectId, BigSerial fmParcelId, int storeysAboveGround, int storeysBelowGround,
 					std::tm fromDate, std::tm toDate, int buildingStatus, float	grossSqMRes, float grossSqMOffice,
-					float grossSqMRetail, float grossSqMOther, std::tm lastChangedDate,int freehold,float floorSpace,std::string buildingType,BigSerial slaAddressId) :
+					float grossSqMRetail, float grossSqMWarehouse, float grossSqMIndustrial, float grossSqMOther, float grossSqMCivic,std::tm lastChangedDate,int freehold,float floorSpace,std::string buildingType,BigSerial slaAddressId) :
 					fmBuildingId(fmBuildingId), fmProjectId(fmProjectId), fmParcelId(fmParcelId), storeysAboveGround(storeysAboveGround),storeysBelowGround(storeysBelowGround), fromDate(fromDate),
-					toDate(toDate), buildingStatus(buildingStatus),grossSqMRes(grossSqMRes),grossSqMOffice(grossSqMOffice), grossSqMRetail(grossSqMRetail), grossSqMOther(grossSqMOther),
+					toDate(toDate), buildingStatus(buildingStatus),grossSqMRes(grossSqMRes),grossSqMOffice(grossSqMOffice), grossSqMRetail(grossSqMRetail), grossSqMWarehouse(grossSqMWarehouse),
+					grossSqMIndustrial(grossSqMIndustrial),grossSqMOther(grossSqMOther),grossSqMCivic(grossSqMCivic),
 					lastChangedDate(lastChangedDate),freehold(freehold),floorSpace(floorSpace),buildingType(buildingType),slaAddressId(slaAddressId){}
 
 Building::~Building() {}
@@ -35,7 +36,10 @@ Building::Building( const Building &source)
 	this->grossSqMRes			= source.grossSqMRes;
 	this->grossSqMOffice		= source.grossSqMOffice;
 	this->grossSqMRetail		= source.grossSqMRetail;
+	this->grossSqMWarehouse     = source.grossSqMWarehouse;
+	this->grossSqMIndustrial    = source.grossSqMIndustrial;
 	this->grossSqMOther			= source.grossSqMOther;
+	this->grossSqMCivic         = source.grossSqMCivic;
 	this->lastChangedDate       = source.lastChangedDate;
 	this->freehold              = source.freehold;
 	this->floorSpace            = source.freehold;
@@ -46,22 +50,25 @@ Building::Building( const Building &source)
 Building& Building::operator=(const Building& source)
 {
 	this->fmBuildingId 			= source.fmBuildingId;
-	this->fmProjectId			= source.fmProjectId;
-	this->fmParcelId 			= source.fmParcelId;
-	this->storeysAboveGround	= source.storeysAboveGround;
-	this->storeysBelowGround  	= source.storeysBelowGround;
-	this->fromDate				= source.fromDate;
-	this->toDate				= source.toDate;
-	this->buildingStatus		= source.buildingStatus;
-	this->grossSqMRes			= source.grossSqMRes;
-	this->grossSqMOffice		= source.grossSqMOffice;
-	this->grossSqMRetail		= source.grossSqMRetail;
-	this->grossSqMOther			= source.grossSqMOther;
-	this->lastChangedDate       = source.lastChangedDate;
-	this->freehold              = source.freehold;
-	this->floorSpace            = source.freehold;
-	this->buildingType          = source.buildingType;
-	this->slaAddressId          = source.slaAddressId;
+		this->fmProjectId			= source.fmProjectId;
+		this->fmParcelId 			= source.fmParcelId;
+		this->storeysAboveGround	= source.storeysAboveGround;
+		this->storeysBelowGround  	= source.storeysBelowGround;
+		this->fromDate				= source.fromDate;
+		this->toDate				= source.toDate;
+		this->buildingStatus		= source.buildingStatus;
+		this->grossSqMRes			= source.grossSqMRes;
+		this->grossSqMOffice		= source.grossSqMOffice;
+		this->grossSqMRetail		= source.grossSqMRetail;
+		this->grossSqMWarehouse     = source.grossSqMWarehouse;
+		this->grossSqMIndustrial    = source.grossSqMIndustrial;
+		this->grossSqMOther			= source.grossSqMOther;
+		this->grossSqMCivic         = source.grossSqMCivic;
+		this->lastChangedDate       = source.lastChangedDate;
+		this->freehold              = source.freehold;
+		this->floorSpace            = source.freehold;
+		this->buildingType          = source.buildingType;
+		this->slaAddressId          = source.slaAddressId;
 
     return *this;
 }
@@ -220,6 +227,40 @@ void Building::setSlaAddressId(BigSerial slaAddressId)
 	this->slaAddressId = slaAddressId;
 }
 
+float Building::getGrossSqMCivic() const
+{
+	return grossSqMCivic;
+}
+
+void Building::setGrossSqMCivic(float grossSqMCivic)
+{
+	this->grossSqMCivic = grossSqMCivic;
+}
+
+float Building::getGrossSqMIndustrial() const
+{
+	return grossSqMIndustrial;
+}
+
+void Building::setGrossSqMIndustrial(float grossSqMIndustrial)
+{
+	this->grossSqMIndustrial = grossSqMIndustrial;
+}
+
+float Building::getGrossSqMWarehouse() const
+{
+	return grossSqMWarehouse;
+}
+
+void Building::setGrossSqMWarehouse(float grossSqMWarehouse)
+{
+	this->grossSqMWarehouse = grossSqMWarehouse;
+}
+
+void Building::setLastChangedDate(const std::tm& lastChangedDate)
+{
+	this->lastChangedDate = lastChangedDate;
+}
 
 namespace sim_mob
 {

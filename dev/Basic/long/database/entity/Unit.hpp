@@ -104,7 +104,10 @@ namespace sim_mob
             bool isBto() const;
             bool isExistInDb() const ;
 
-
+            template<class Archive>
+            void serialize(Archive & ar,const unsigned int version);
+            void saveData(std::vector<Unit*> &units);
+            std::vector<Unit*> loadSerializedData();
             /**
              * Operator to print the Unit data.  
              */
@@ -142,6 +145,8 @@ namespace sim_mob
             int dwellingType;
             bool existInDB;
             bool isBTO;
+
+            static constexpr auto filename = "units";
         };
     }
 }

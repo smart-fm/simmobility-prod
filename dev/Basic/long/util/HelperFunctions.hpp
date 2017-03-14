@@ -13,6 +13,7 @@
 
 #include <vector>
 #include <boost/unordered_map.hpp>
+
 #include "database/DB_Connection.hpp"
 namespace sim_mob 
 {
@@ -149,6 +150,16 @@ namespace sim_mob
 			{
                 map.insert(std::make_pair(((*it)->*getter)(), *it));
             }
+        }
+
+        template <typename K, typename M, typename F>
+        inline void indexData( K &list, M& map, F getter)
+        {
+        	//Index all data.
+        	for (typename K::iterator it = list.begin(); it != list.end(); it++)
+        	{
+        		map.insert(std::make_pair(((*it)->*getter)(), *it));
+        	}
         }
     }
 }

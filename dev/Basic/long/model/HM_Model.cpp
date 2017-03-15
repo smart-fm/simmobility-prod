@@ -2184,7 +2184,7 @@ void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId)
 				tazStrH = tazObjH->getName();
 			tazH = std::atoi( tazStrH.c_str() );
 
-			BigSerial establishmentSlaAddressId = getEstablishmentSlaAddressId(establishment->getBuildingId());
+			BigSerial establishmentSlaAddressId = getEstablishmentSlaAddressId(establishment->getId());
 
 
 			personParams.setPersonId(boost::lexical_cast<std::string>(thisIndividual->getId()));
@@ -2506,7 +2506,7 @@ void HM_Model::getLogsumOfVaryingHomeOrWork(BigSerial householdId)
 			Establishment *establishment = this->getEstablishmentById(	job->getEstablishmentId());
 			const Unit *unit = this->getUnitById(currentHousehold->getUnitId());
 
-			BigSerial establishmentSlaAddressId = getEstablishmentSlaAddressId(establishment->getBuildingId());
+			BigSerial establishmentSlaAddressId = getEstablishmentSlaAddressId(establishment->getId());
 
 			personParams.setPersonId(boost::lexical_cast<std::string>(thisIndividual->getId()));
 			personParams.setPersonTypeId(thisIndividual->getEmploymentStatusId());

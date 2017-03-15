@@ -511,6 +511,11 @@ int Household::getTenureStatus() const
 	return tenureStatus;
 }
 
+void Household::setTenureStatus(int val)
+{
+	tenureStatus = val;
+}
+
 int Household::getAwaknedDay() const
 {
 	return this->awakenedDay;

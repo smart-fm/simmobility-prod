@@ -459,6 +459,29 @@ BigSerial HM_Model::getEstablishmentTazId(BigSerial establishmentId) const
 	return tazId;
 }
 
+
+BigSerial HM_Model::getUnitSlaAddressId(BigSerial unitId) const
+{
+	const Unit* unit = getUnitById(unitId);
+
+	BigSerial buildingId = unit->getBuildingId();
+	string slaBuildingId = "";
+	BigSerial slaAddressId = 0;
+
+	auto itr = buildingMatchById.find(buildingId);
+
+	if( itr != buildingMatchById.end() )
+		slaBuildingId = itr->second->getSla_building_id();
+
+	auto itr2 = slaBuildingById.find(slaBuildingId);
+
+	if( itr2 != slaBuildingById.end())
+		slaAddressId = itr2->second->getSla_address_id();
+
+	return slaAddressId;
+}
+
+
 BigSerial HM_Model::getEstablishmentSlaAddressId(BigSerial establishmentId) const
 {
 	const Establishment* establishment = getEstablishmentById(establishmentId);
@@ -483,14 +506,14 @@ BigSerial HM_Model::getEstablishmentSlaAddressId(BigSerial establishmentId) cons
 		}
 	}
 
-	BigSerial tazId = INVALID_ID;
+	BigSerial addressId = INVALID_ID;
 
 	if (establishment)
 	{
-		tazId = DataManagerSingleton::getInstance().getPostcodeTazId(slaAddressId);
+		addressId = DataManagerSingleton::getInstance().getPostcodeTazId(slaAddressId);
 	}
 
-	return tazId;
+	return addressId;
 }
 
 
@@ -501,7 +524,7 @@ BigSerial HM_Model::getUnitTazId(BigSerial unitId) const
 
 	if (unit)
 	{
-		tazId = DataManagerSingleton::getInstance().getPostcodeTazId(unit->getSlaAddressId());
+		tazId = DataManagerSingleton::getInstance().getPostcodeTazId( this->getUnitSlaAddressId( unit->getId()));
 	}
 
 	return tazId;
@@ -1489,7 +1512,7 @@ void HM_Model::startImpl()
 			{
 				SlaBuilding* this_row = new SlaBuilding(*itBuildingMatch );
 				slaBuilding.push_back(this_row);
-				slaBuildingById.insert(std::make_pair(this_row->getSla_address_id(), this_row));
+				slaBuildingById.insert(std::make_pair(this_row->getSla_building_id(), this_row));
 			}
 
 			PrintOutV("Number of Sla Buildings: " << slaBuilding.size() << std::endl );
@@ -1545,8 +1568,6 @@ void HM_Model::startImpl()
 			preSchoolIndById.insert(std::make_pair((*it)->getId(), *it));
 
 		}
-
-
 
 		loadData<PostcodeDao>(conn, postcodes, postcodesById,	&Postcode::getAddressId);
 		PrintOutV("Number of postcodes: " << postcodes.size() << std::endl );
@@ -1760,6 +1781,14 @@ void HM_Model::startImpl()
 			}
 		}
 
+
+		//These households with tenure_status 3 are considered to be occupied by foreign workers
+		const int FROZEN_HH = 3;
+
+
+		if( household->getTenureStatus() == FROZEN_HH )
+			continue;
+
 		HouseholdAgent* hhAgent = new HouseholdAgent(household->getId(), this,	household, &market, false, startDay, config.ltParams.housingModel.householdBiddingWindow,0);
 
 		if (resumptionHH != nullptr)
@@ -1876,7 +1905,6 @@ void HM_Model::startImpl()
 	//assign empty units to freelance housing agents
 	for (UnitList::const_iterator it = units.begin(); it != units.end(); it++)
 	{
-		boost::gregorian::date occupancyDate = boost::gregorian::date_from_tm((*it)->getOccupancyFromDate());
 		boost::gregorian::date saleDate = boost::gregorian::date_from_tm((*it)->getSaleFromDate());
 		boost::gregorian::date simulationDate = boost::gregorian::date(HITS_SURVEY_YEAR, 1, 1);
 		int unitStartDay = startDay;
@@ -1922,8 +1950,7 @@ void HM_Model::startImpl()
 		{
 			Unit *thisUnit = (*it);
 
-			PostcodeMap::iterator itrPC  =  postcodesById.find((*it)->getSlaAddressId());
-			int tazId = (*itrPC).second->getTazId();
+			int tazId = this->getUnitSlaAddressId((*it)->getId());
 			int mtzId = -1;
 			int subzoneId = -1;
 			int planningAreaId = -1;
@@ -2269,7 +2296,7 @@ void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId)
 				tazStrW = tazObjW->getName();
 			tazW = std::atoi( tazStrW.c_str() );
 
-			Postcode *postcode = this->getPostcodeById( unit->getSlaAddressId());
+			Postcode *postcode = this->getPostcodeById( this->getUnitSlaAddressId(unit->getId()));
 			Taz *tazObjH = getTazById( postcode->getTazId() );
 			std::string tazStrH;
 			if( tazObjH != NULL )
@@ -2315,7 +2342,7 @@ void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId)
 
 			//household related
 			personParams.setHhId(boost::lexical_cast<std::string>( currentHousehold->getId() ));
-			personParams.setHomeAddressId( unit->getSlaAddressId() );
+			personParams.setHomeAddressId( this->getUnitSlaAddressId( unit->getId() ));
 			personParams.setHH_Size( currentHousehold->getSize() );
 			personParams.setHH_NumUnder4( currentHousehold->getChildUnder4());
 			personParams.setHH_NumUnder15( currentHousehold->getChildUnder15());
@@ -2637,7 +2664,7 @@ void HM_Model::getLogsumOfVaryingHomeOrWork(BigSerial householdId)
 
 			//household related
 			personParams.setHhId(boost::lexical_cast<std::string>( currentHousehold->getId() ));
-			personParams.setHomeAddressId( unit->getSlaAddressId() );
+			personParams.setHomeAddressId( this->getUnitSlaAddressId( unit->getId()));
 			personParams.setHH_Size( currentHousehold->getSize() );
 			personParams.setHH_NumUnder4( currentHousehold->getChildUnder4());
 			personParams.setHH_NumUnder15( currentHousehold->getChildUnder15());

@@ -63,7 +63,6 @@ namespace {
             .beginClass <Unit> ("Unit")
             .addProperty("fmUnitId", &Unit::getId)
         	.addProperty("fmBuildingId", &Unit::getBuildingId)
-        	.addProperty("slaAddressId", &Unit::getSlaAddressId)
         	.addProperty("unitType", &Unit::getUnitType)
         	.addProperty("storeyRange", &Unit::getStoreyRange)
         	.addProperty("unitStatus", &Unit::getConstructionStatus)
@@ -232,7 +231,9 @@ void HM_LuaModel::mapClasses()
 
 void HM_LuaModel::calulateUnitExpectations(const Unit& unit, int timeOnMarket, double logsum, double lagCoefficient, vector<ExpectationEntry>& outValues ) const
 {
-    const BigSerial pcId = unit.getSlaAddressId();
+	assert(0);
+	PrintOutV("We no longer use this function.");
+    const BigSerial pcId = 0;//unit.getSlaAddressId();
     LuaRef funcRef = getGlobal(state.get(), "calulateUnitExpectations");
 
 	LuaRef retVal = funcRef(&unit, timeOnMarket, logsum, lagCoefficient, getBuilding(unit.getBuildingId()), getPostcode(pcId), getAmenities(pcId));
@@ -260,7 +261,9 @@ void HM_LuaModel::calulateUnitExpectations(const Unit& unit, int timeOnMarket, d
 
 double HM_LuaModel::calculateHedonicPrice(const Unit& unit) const
 {
-    const BigSerial pcId = unit.getSlaAddressId();
+	assert(0);
+	PrintOutV("We no longer use this function.");
+    const BigSerial pcId = 0;//unit.getSlaAddressId();
     LuaRef funcRef = getGlobal(state.get(), "calculateHedonicPrice");
     LuaRef retVal = funcRef(&unit, getBuilding(unit.getBuildingId()), getPostcode(pcId), getAmenities(pcId));
     if (retVal.isNumber()) {
@@ -284,7 +287,9 @@ double HM_LuaModel::calculateSpeculation(const HousingMarket::Entry& entry, int 
 
 double HM_LuaModel::calulateWP(const Household& hh, const Unit& unit, const HM_Model::TazStats& stats) const
 {
-    const BigSerial pcId = unit.getSlaAddressId();
+	assert(0);
+	PrintOutV("We no longer use this function.");
+    const BigSerial pcId = 0;//unit.getSlaAddressId();
     LuaRef funcRef = getGlobal(state.get(), "calculateWP");
     LuaRef retVal = funcRef(&hh, &unit, &stats, getAmenities(pcId));
     if (retVal.isNumber())

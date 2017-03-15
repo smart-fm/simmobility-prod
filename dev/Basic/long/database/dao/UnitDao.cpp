@@ -23,7 +23,6 @@ void UnitDao::fromRow(Row& result, Unit& outObj)
 {
     outObj.id  = result.get<BigSerial>("fm_unit_id", INVALID_ID);
     outObj.building_id  = result.get<BigSerial>("fm_building_id", INVALID_ID);
-    //outObj.sla_address_id  = result.get<BigSerial>("sla_address_id", INVALID_ID);
     outObj.unit_type  = result.get<int>("unit_type", INVALID_ID);
     outObj.storey_range  = result.get<int>("storey_range", 0);
     outObj.constructionStatus  = result.get<int>("construction_status", 0);
@@ -44,7 +43,6 @@ void UnitDao::toRow(Unit& data, Parameters& outParams, bool update)
 {
 	outParams.push_back(data.getId());
 	outParams.push_back(data.getBuildingId());
-	outParams.push_back(data.getSlaAddressId());
 	outParams.push_back(data.getUnitType());
 	outParams.push_back(data.getStoreyRange());
 	outParams.push_back(data.getConstructionStatus());
@@ -70,7 +68,6 @@ void UnitDao::insertUnit(Unit& unit,std::string schema)
 		db::Parameters outParams;
 		outParams.push_back(unit.getId());
 		outParams.push_back(unit.getBuildingId());
-		outParams.push_back(unit.getSlaAddressId());
 		outParams.push_back(unit.getUnitType());
 		outParams.push_back(unit.getStoreyRange());
 		outParams.push_back(unit.getConstructionStatus());

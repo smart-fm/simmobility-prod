@@ -13,6 +13,21 @@
 namespace sim_mob
 {
 /**
+ * the exception for pt pathset loading
+ * \author Zhang Huai Peng
+ */
+class PT_PathsetLoadException: public std::exception
+{
+public:
+	int originNode;
+	int destNode;
+	PT_PathsetLoadException(int sNode, int dNode):
+		originNode(sNode),destNode(dNode){}
+	virtual const char* what() const throw () {
+		return "PT pathset load failed exception";
+	}
+};
+/**
  * public transit route choice model
  * \author Zhang Huai Peng
  * \author Harish Loganathan
@@ -87,21 +102,19 @@ public:
 	 * @param origin is trip origin
 	 * @param destination is trip destination
 	 * @param odTrips is list of trip legs in pt path
+	 * @param ptPathsetStoredProcName store procedure to fetch pathset
 	 * @return true if route choice was successful; false otherwise
 	 */
-	//bool getBestPT_Path(int origin, int destination, const DailyTime& startTime, std::vector<sim_mob::OD_Trip>& odTrips);
-	bool getBestPT_Path(int origin, int destination, const DailyTime& startTime, std::vector<sim_mob::OD_Trip>& odTrips, std::string dbid, unsigned int start_time);
-
+	bool getBestPT_Path(int origin, int destination, unsigned int startTime, std::vector<sim_mob::OD_Trip>& odTrips, std::string dbid, unsigned int start_time, const std::string& ptPathsetStoredProcName);
 	/**
 	 * fetches the public transit pathset for a given OD from database
 	 * @param origin origin node id
 	 * @param destination destination node id
 	 * @param startTime time at which route choice is to be done
-	 *
+	 * @param ptPathsetStoredProcName is the store procedure to fetch pathsets.
 	 * @return public transit pathset for the supplied OD.
 	 */
-	PT_PathSet fetchPathset(int origin, int destination, const DailyTime& startTime) const;
-
+	PT_PathSet fetchPathset(int origin, int destination, const DailyTime& startTime, const std::string& ptPathsetStoredProcName) const;
 	/**
 	 * store chosen path in file
 	 */
@@ -119,9 +132,6 @@ private:
 	/**database session for loading public path set*/
 	soci::session* dbSession;
 
-	/**the name of stored-procedure for loading public path set*/
-	std::string ptPathsetStoredProcName;
-
 	/**start time for current trip*/
 	DailyTime curStartTime;
 
@@ -133,14 +143,14 @@ private:
 	 * @param dest is trip destination
 	 * @param curTime time at which routechoice is to be done
 	 * @param pathSet output parameter for path set retrieved from database
+	 * @param ptPathsetStoredProcName store procedure to fetch pathsets
 	 */
-	void loadPT_PathSet(int origin, int dest, const DailyTime& curTime, PT_PathSet& pathSet) const;
+	void loadPT_PathSet(int origin, int dest, const DailyTime& curTime, PT_PathSet& pathSet, const std::string& ptPathsetStoredProcName) const;
 
 	/**
 	 * Inherited from LuaModel
 	 */
 	void mapClasses();
-
 	/**
 	 * make public transit route choice from lua scripts.
 	 * @param origin is	trip origin

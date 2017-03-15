@@ -27,7 +27,10 @@
 #include "entities/Agent.hpp"
 #include "entities/AuraManager.hpp"
 #include "entities/BusController.hpp"
+#include "entities/TrainController.hpp"
+#include "entities/TrainController.hpp"
 #include "entities/BusStopAgent.hpp"
+#include "entities/TrainStationAgent.hpp"
 #include "entities/incident/IncidentManager.hpp"
 #include "entities/params/PT_NetworkEntities.hpp"
 #include "entities/MT_PersonLoader.hpp"
@@ -41,6 +44,7 @@
 #include "entities/roles/passenger/Passenger.hpp"
 #include "entities/roles/pedestrian/Pedestrian.hpp"
 #include "entities/roles/waitBusActivity/WaitBusActivity.hpp"
+#include "entities/roles/driver/TrainDriver.hpp"
 #include "entities/ScreenLineCounter.hpp"
 #include "entities/TravelTimeManager.hpp"
 #include "entities/TaxiStandAgent.hpp"
@@ -62,6 +66,9 @@
 #include "workers/Worker.hpp"
 #include "workers/WorkGroup.hpp"
 #include "workers/WorkGroupManager.hpp"
+#include "behavioral/ServiceController.hpp"
+#include "behavioral/TrainServiceControllerLuaProvider.hpp"
+#include "entities/TrainRemoval.hpp"
 
 
 //If you want to force a header file to compile, you can put it here temporarily:
@@ -198,6 +205,38 @@ void assignConfluxToWorkers(WorkGroup* workGrp)
 }
 
 /**
+ * assign train station agent to conflux
+ */
+void assignStationAgentToConfluxes()
+{
+	std::map<std::string, TrainStop*>&  MRTStopMap = PT_NetworkCreater::getInstance().MRTStopsMap;
+	std::map<std::string, TrainStop*>::iterator trainStopIt;
+	for(trainStopIt = MRTStopMap.begin();trainStopIt!=MRTStopMap.end();trainStopIt++)
+	{
+		TrainStationAgent* stationAgent = new TrainStationAgent();
+		TrainController<Person_MT>::registerStationAgent(trainStopIt->first, stationAgent);
+		TrainController<sim_mob::medium::Person_MT> *trainController=TrainController<sim_mob::medium::Person_MT>::getInstance();
+		Station *station=trainController->getStationFromId(trainStopIt->first);
+		stationAgent->setStationName(trainStopIt->first);
+		if(station)
+		{
+			stationAgent->setStation(station);
+			stationAgent->setLines();
+		}
+		const Node* node = trainStopIt->second->getRandomStationSegment()->getParentLink()->getFromNode();
+		ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
+		MT_Config& mtCfg = MT_Config::getInstance();
+		std::map<const Node*, Conflux*>& nodeConfluxesMap = mtCfg.getConfluxNodes();
+		std::map<const Node*, Conflux*>::iterator it = nodeConfluxesMap.find(node);
+		if(it!=nodeConfluxesMap.end())
+		{
+			it->second->addStationAgent(stationAgent);
+			stationAgent->setConflux(it->second);
+		}
+	}
+}
+
+/**
  * Main simulation loop for the supply simulator
  * @param configFileName name of the input config xml file
  * @param resLogFiles name of the output log file
@@ -230,11 +269,15 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	rf->registerRole("activityRole", new sim_mob::ActivityPerformer<Person_MT>(nullptr));
 	rf->registerRole("busdriver", new sim_mob::medium::BusDriver(nullptr, mtx));
 	rf->registerRole("waitBusActivity", new sim_mob::medium::WaitBusActivity(nullptr));
+	rf->registerRole("waitTrainActivity", new sim_mob::medium::WaitTrainActivity(nullptr));
 	rf->registerRole("pedestrian", new sim_mob::medium::Pedestrian(nullptr));
 	rf->registerRole("passenger", new sim_mob::medium::Passenger(nullptr));
 	rf->registerRole("biker", new sim_mob::medium::Biker(nullptr));
+	rf->registerRole("trainDriver", new sim_mob::medium::TrainDriver(nullptr));
 	rf->registerRole("truckerLGV", new sim_mob::medium::TruckerLGV(nullptr));
 	rf->registerRole("truckerHGV", new sim_mob::medium::TruckerHGV(nullptr));
+
+
 
 	//Load our user config file, which is a time costly function
 	ExpandMidTermConfigFile expand(MT_Config::getInstance(), ConfigManager::GetInstanceRW().FullConfig(), Agent::all_agents);
@@ -296,6 +339,9 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	//distribute confluxes among workers
 	assignConfluxToWorkers(personWorkers);
 
+	//distribute station agents among confluxes
+	assignStationAgentToConfluxes();
+
 	//Anything in all_agents is starting on time 0, and should be added now.
 	for (std::set<Entity*>::iterator it = Agent::all_agents.begin(); it != Agent::all_agents.end(); it++)
 	{
@@ -306,6 +352,10 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	if(BusController::HasBusController())
 	{
 		personWorkers->assignAWorker(BusController::GetInstance());
+	}
+	if(TrainController<Person_MT>::HasTrainController())
+	{
+		personWorkers->assignAWorker(TrainController<Person_MT>::getInstance());
 	}
 	//incident
 	personWorkers->assignAWorker(IncidentManager::getInstance());
@@ -333,8 +383,10 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	int loop_start_offset = ProfileBuilder::diff_ms(loop_start_time, start_time_med);
 
 	int lastTickPercent = 0; //So we have some idea how much time is left.
+	bool firstTick = true;
 	for (unsigned int currTick = 0; currTick < config.totalRuntimeTicks; currTick++)
 	{
+		const DailyTime dailyTime=ConfigManager::GetInstance().FullConfig().simStartTime()+DailyTime(currTick*5000);
 		//Flag
 		bool warmupDone = (currTick >= config.totalWarmupTicks);
 
@@ -370,7 +422,36 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 		}
 
 		//Agent-based cycle, steps 1,2,3,4
-		wgMgr.waitAllGroups();
+		{
+			std::set<Entity*> removedEntities;
+
+			//Call each function in turn.
+			//NOTE: Each sub-function tests the current state.
+			if (firstTick && ConfigManager::GetInstance().FullConfig().RunningMidTerm())
+			{
+				TrainServiceControllerLuaProvider::getTrainControllerModel()->useServiceController(dailyTime.getStrRepr());
+				//first tick has two frameTickBarr
+				wgMgr.waitForFrameTickBar();
+				firstTick = false;
+			}
+
+			wgMgr.waitAllGroups_FrameTick();
+			wgMgr.waitAllGroups_FlipBuffers(&removedEntities);
+			//removing the trains from the simulation which are to be removed after the finish of frame tick barrier and flip buffer barrier for thread safety
+			TrainRemoval *trainRemovalInstance=TrainRemoval::getInstance();
+			trainRemovalInstance->removeTrainsBeforeNextFrameTick();
+			TrainServiceControllerLuaProvider::getTrainControllerModel()->useServiceController((dailyTime+DailyTime(5000)).getStrRepr());
+			wgMgr.waitAllGroups_DistributeMessages(removedEntities);
+			wgMgr.waitAllGroups_MacroTimeTick();
+
+			//Delete all collected entities:
+			while (!removedEntities.empty())
+			{
+				Entity* ag = *removedEntities.begin();
+				removedEntities.erase(removedEntities.begin());
+				delete ag;
+			}
+		}
 	}
 
 	BusStopAgent::removeAllBusStopAgents();
@@ -392,6 +473,13 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	{
 		cout<< "Pending Agents: " << (Agent::all_agents.size() + Agent::pending_agents.size()) << endl;
 	}
+
+	(Conflux::activeAgentsLock).lock();
+	if(Agent::activeAgents.size()>0)
+	{
+		cout<<"Currently active agents are "<<Agent::activeAgents.size()<<endl;
+	}
+	(Conflux::activeAgentsLock).unlock();
 
 	PT_Statistics::getInstance()->storeStatistics();
 	PT_Statistics::resetInstance();
@@ -426,6 +514,12 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 		Agent::pending_agents.pop();
 		safe_delete_item(topAg);
 	}
+
+	int boardCount=sim_mob::medium::TrainDriver::boardPassengerCount;
+	const std::string& fileName("CoardingCount.csv");
+	sim_mob::BasicLogger& ptMRTMoveLogger  = sim_mob::Logger::log(fileName);
+	ptMRTMoveLogger<<boardCount<<endl;
+	cout<<"The number of passengers boarding are"<<boardCount<<endl;
 	safe_delete_item(periodicPersonLoader);
 	cout << "Simulation complete; closing worker threads." << endl;
 
@@ -611,6 +705,7 @@ int main_impl(int ARGC, char* ARGV[])
 	{
 		resLogFiles.insert(resLogFiles.begin(), ConfigManager::GetInstance().FullConfig().outSimInfoFileName);
 		resLogFiles.insert(resLogFiles.begin(), ConfigManager::GetInstance().FullConfig().outNetworkFileName);
+		resLogFiles.insert(resLogFiles.begin(), ConfigManager::GetInstance().FullConfig().outTrainNetworkFilename);
 		Utils::printAndDeleteLogFiles(resLogFiles);
 	}
 	int retVal = std::system("rm out_0_*.txt out.network.txt");

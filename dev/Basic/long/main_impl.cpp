@@ -480,7 +480,7 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
 			for( int n = 0; n < householdList->size(); n++)
 			{
 				const Unit *localUnit = (dynamic_cast<HM_Model*>(models[0]))->getUnitById( (*householdList)[n]->getUnitId());
-				Postcode *postcode = (dynamic_cast<HM_Model*>(models[0]))->getPostcodeById(localUnit->getSlaAddressId());
+				Postcode *postcode = (dynamic_cast<HM_Model*>(models[0]))->getPostcodeById( (dynamic_cast<HM_Model*>(models[0]))->getUnitSlaAddressId( localUnit->getId()));
 
 				//PrintOut( currTick << "," << (*householdList)[n]->getId() << ","  <<  postcode->getSlaPostcode() << "," << postcode->getLongitude() << "," <<  postcode->getLatitude() << std::endl );
 

@@ -15,11 +15,10 @@ using namespace sim_mob::long_term;
 
 Building::Building( BigSerial fmBuildingId, BigSerial fmProjectId, BigSerial fmParcelId, int storeysAboveGround, int storeysBelowGround,
 					std::tm fromDate, std::tm toDate, int buildingStatus, float	grossSqMRes, float grossSqMOffice,
-					float grossSqMRetail, float grossSqMWarehouse, float grossSqMIndustrial, float grossSqMOther, float grossSqMCivic,std::tm lastChangedDate,int freehold,float floorSpace,std::string buildingType,BigSerial slaAddressId) :
+					float grossSqMRetail, float grossSqMWarehouse, float grossSqMIndustrial, float grossSqMOther, float grossSqMCivic, std::tm lastChangedDate,int freehold,float floorSpace,std::string buildingType) :
 					fmBuildingId(fmBuildingId), fmProjectId(fmProjectId), fmParcelId(fmParcelId), storeysAboveGround(storeysAboveGround),storeysBelowGround(storeysBelowGround), fromDate(fromDate),
-					toDate(toDate), buildingStatus(buildingStatus),grossSqMRes(grossSqMRes),grossSqMOffice(grossSqMOffice), grossSqMRetail(grossSqMRetail), grossSqMWarehouse(grossSqMWarehouse),
-					grossSqMIndustrial(grossSqMIndustrial),grossSqMOther(grossSqMOther),grossSqMCivic(grossSqMCivic),
-					lastChangedDate(lastChangedDate),freehold(freehold),floorSpace(floorSpace),buildingType(buildingType),slaAddressId(slaAddressId){}
+					toDate(toDate), buildingStatus(buildingStatus),grossSqMRes(grossSqMRes),grossSqMOffice(grossSqMOffice), grossSqMRetail(grossSqMRetail), grossSqMWarehouse(grossSqMWarehouse),grossSqMIndustrial(grossSqMIndustrial),
+					grossSqMOther(grossSqMOther),grossSqMCivic(grossSqMCivic),lastChangedDate(lastChangedDate),freehold(freehold),floorSpace(floorSpace),buildingType(buildingType){}
 
 Building::~Building() {}
 
@@ -44,31 +43,29 @@ Building::Building( const Building &source)
 	this->freehold              = source.freehold;
 	this->floorSpace            = source.freehold;
 	this->buildingType          = source.buildingType;
-	this->slaAddressId          = source.slaAddressId;
 }
 
 Building& Building::operator=(const Building& source)
 {
 	this->fmBuildingId 			= source.fmBuildingId;
-		this->fmProjectId			= source.fmProjectId;
-		this->fmParcelId 			= source.fmParcelId;
-		this->storeysAboveGround	= source.storeysAboveGround;
-		this->storeysBelowGround  	= source.storeysBelowGround;
-		this->fromDate				= source.fromDate;
-		this->toDate				= source.toDate;
-		this->buildingStatus		= source.buildingStatus;
-		this->grossSqMRes			= source.grossSqMRes;
-		this->grossSqMOffice		= source.grossSqMOffice;
-		this->grossSqMRetail		= source.grossSqMRetail;
-		this->grossSqMWarehouse     = source.grossSqMWarehouse;
-		this->grossSqMIndustrial    = source.grossSqMIndustrial;
-		this->grossSqMOther			= source.grossSqMOther;
-		this->grossSqMCivic         = source.grossSqMCivic;
-		this->lastChangedDate       = source.lastChangedDate;
-		this->freehold              = source.freehold;
-		this->floorSpace            = source.freehold;
-		this->buildingType          = source.buildingType;
-		this->slaAddressId          = source.slaAddressId;
+	this->fmProjectId			= source.fmProjectId;
+	this->fmParcelId 			= source.fmParcelId;
+	this->storeysAboveGround	= source.storeysAboveGround;
+	this->storeysBelowGround  	= source.storeysBelowGround;
+	this->fromDate				= source.fromDate;
+	this->toDate				= source.toDate;
+	this->buildingStatus		= source.buildingStatus;
+	this->grossSqMRes			= source.grossSqMRes;
+	this->grossSqMOffice		= source.grossSqMOffice;
+	this->grossSqMRetail		= source.grossSqMRetail;
+	this->grossSqMWarehouse     = source.grossSqMWarehouse;
+	this->grossSqMIndustrial    = source.grossSqMIndustrial;
+	this->grossSqMOther			= source.grossSqMOther;
+	this->grossSqMCivic         = source.grossSqMCivic;
+	this->lastChangedDate       = source.lastChangedDate;
+	this->freehold              = source.freehold;
+	this->floorSpace            = source.freehold;
+	this->buildingType          = source.buildingType;
 
     return *this;
 }
@@ -139,6 +136,32 @@ std::tm Building::getLastChangedDate() const
 {
 	return lastChangedDate;
 }
+
+int Building::getFreehold() const
+{
+	return freehold;
+}
+
+float Building::getGrossSqMOffice() const
+{
+	return grossSqMOffice;
+}
+
+float Building::getGrossSqMOther() const
+{
+	return grossSqMOther;
+}
+
+float Building::getGrossSqMRes() const
+{
+	return grossSqMRes;
+}
+
+float Building::getGrossSqMRetail() const
+{
+	return grossSqMRetail;
+}
+
 void Building::setBuildingStatus(int buildingStatus) {
 	this->buildingStatus = buildingStatus;
 }
@@ -207,24 +230,9 @@ void Building::setFloorSpace(float floorSpace)
 	this->floorSpace = floorSpace;
 }
 
-int Building::getFreehold() const
-{
-	return freehold;
-}
-
 void Building::setFreehold(int freehold)
 {
 	this->freehold = freehold;
-}
-
-BigSerial Building::getSlaAddressId() const
-{
-	return slaAddressId;
-}
-
-void Building::setSlaAddressId(BigSerial slaAddressId)
-{
-	this->slaAddressId = slaAddressId;
 }
 
 float Building::getGrossSqMCivic() const

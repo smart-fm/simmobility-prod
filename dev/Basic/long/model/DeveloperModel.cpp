@@ -365,82 +365,90 @@ void DeveloperModel::createDeveloperAgents(ParcelList devCandidateParcelList, bo
 				devAgent->setHousingMarketModel(housingMarketModel);
 				devAgent->setSimYear(simYear);
 
-
-if(onGoingProject|| day0Project)
-{
-	std::tm currentSimYear = getDateBySimDay(simYear,0);
+				if(onGoingProject|| day0Project)
+				{
+					std::tm currentSimYear = getDateBySimDay(simYear,0);
 					DB_Config dbConfig(LT_DB_CONFIG_FILE);
 					dbConfig.load();
 					// Connect to database
 					DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
 					conn.connect();
-				if(onGoingProject)
-				{
-					devAgent->setParcelDBStatus(true);
-					Project *project = getProjectByParcelId(devCandidateParcelList[i]->getId());
-					if(project != nullptr)
+					if(onGoingProject)
 					{
-						boost::shared_ptr<Project> projectPtr (new Project(*project));
-						devAgent->setProject(projectPtr);
-						projectPtr->setCurrTick(startDay);
-						devAgent->getParcel().get()->setStatus(1);
+						std::tm currentSimYear = getDateBySimDay(simYear,0);
+						DB_Config dbConfig(LT_DB_CONFIG_FILE);
+						dbConfig.load();
+						// Connect to database
+						DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
+						conn.connect();
+						if(onGoingProject)
+						{
+							devAgent->setParcelDBStatus(true);
+							Project *project = getProjectByParcelId(devCandidateParcelList[i]->getId());
+							if(project != nullptr)
+							{
+								boost::shared_ptr<Project> projectPtr (new Project(*project));
+								devAgent->setProject(projectPtr);
+								projectPtr->setCurrTick(startDay);
+								devAgent->getParcel().get()->setStatus(1);
+							}
+
+							BuildingList buildingsInOngoingProjects;
+
+							if (conn.isConnected())
+							{
+								BuildingDao buildingDao(conn);
+								buildingsInOngoingProjects = buildingDao.getBuildingsByParcelId(devCandidateParcelList[i]->getId(),outputSchema);
+							}
+
+							std::vector< boost::shared_ptr<Building> > buildingsInOngoingProjectsSharedVec;
+							buildingsInOngoingProjectsSharedVec.reserve(buildingsInOngoingProjects.size());
+							std::transform(buildingsInOngoingProjects.begin(), buildingsInOngoingProjects.end(), std::back_inserter(buildingsInOngoingProjectsSharedVec),to_shared_ptr<Building>);
+							buildingsInOngoingProjects.clear();
+							devAgent->setNewBuildings(buildingsInOngoingProjectsSharedVec);
+
+							std::vector<Unit*> unitsInOngoingProjects;
+							UnitDao unitDao(conn);
+							BuildingList::iterator buildingsItr;
+							for(buildingsItr = buildingsInOngoingProjects.begin(); buildingsItr != buildingsInOngoingProjects.end(); ++buildingsItr)
+							{
+								//TODO:: currently there is only one building with all the new units assigned to it. have to revisit this when there are multiple buildings.
+								unitsInOngoingProjects = unitDao.getUnitsByBuildingId((*buildingsItr)->getFmBuildingId(),outputSchema);
+							}
+
+							std::vector< boost::shared_ptr<Unit> > unitsInOngoingProjectsSharedVec;
+							unitsInOngoingProjectsSharedVec.reserve(unitsInOngoingProjects.size());
+							std::transform(unitsInOngoingProjects.begin(), unitsInOngoingProjects.end(), std::back_inserter(unitsInOngoingProjectsSharedVec),to_shared_ptr<Unit>);
+							unitsInOngoingProjects.clear();
+							devAgent->setNewUnits(unitsInOngoingProjectsSharedVec);
+						}
+						else if(day0Project)
+						{
+							if (conn.isConnected())
+							{
+								UnitDao unitDao(conn);
+								std::tm lastDayOfCurrentSimYear = getDateBySimDay(simYear,364);
+								UnitList unitsOnDay0 = unitDao.loadUnitsToLaunchOnDay0(currentSimYear,lastDayOfCurrentSimYear,devCandidateParcelList[i]->getId());
+								std::vector< boost::shared_ptr<Unit> > unitsOnDay0SharedVec;
+								unitsOnDay0SharedVec.reserve(unitsOnDay0.size());
+								std::transform(unitsOnDay0.begin(), unitsOnDay0.end(), std::back_inserter(unitsOnDay0SharedVec),to_shared_ptr<Unit>);
+								unitsOnDay0.clear();
+								devAgent->setNewUnits(unitsOnDay0SharedVec);
+								devAgent->setIsDay0Project(true);
+
+							}
+
+							Project *project = new Project();
+							project->setParcelId(devCandidateParcelList[i]->getId());
+							boost::shared_ptr<Project> projectPtr (new Project(*project));
+							devAgent->setProject(projectPtr);
+							projectPtr->setCurrTick(startDay);
+							devAgent->getParcel().get()->setStatus(1);
+						}
+
+						agents.push_back(devAgent);
 					}
-
-					BuildingList buildingsInOngoingProjects;
-
-					if (conn.isConnected())
-					{
-						BuildingDao buildingDao(conn);
-						buildingsInOngoingProjects = buildingDao.getBuildingsByParcelId(devCandidateParcelList[i]->getId(),outputSchema);
-					}
-
-					std::vector< boost::shared_ptr<Building> > buildingsInOngoingProjectsSharedVec;
-					buildingsInOngoingProjectsSharedVec.reserve(buildingsInOngoingProjects.size());
-					std::transform(buildingsInOngoingProjects.begin(), buildingsInOngoingProjects.end(), std::back_inserter(buildingsInOngoingProjectsSharedVec),to_shared_ptr<Building>);
-					buildingsInOngoingProjects.clear();
-					devAgent->setNewBuildings(buildingsInOngoingProjectsSharedVec);
-
-					std::vector<Unit*> unitsInOngoingProjects;
-					UnitDao unitDao(conn);
-					BuildingList::iterator buildingsItr;
-					for(buildingsItr = buildingsInOngoingProjects.begin(); buildingsItr != buildingsInOngoingProjects.end(); ++buildingsItr)
-					{
-						//TODO:: currently there is only one building with all the new units assigned to it. have to revisit this when there are multiple buildings.
-						unitsInOngoingProjects = unitDao.getUnitsByBuildingId((*buildingsItr)->getFmBuildingId(),outputSchema);
-					}
-
-					std::vector< boost::shared_ptr<Unit> > unitsInOngoingProjectsSharedVec;
-					unitsInOngoingProjectsSharedVec.reserve(unitsInOngoingProjects.size());
-					std::transform(unitsInOngoingProjects.begin(), unitsInOngoingProjects.end(), std::back_inserter(unitsInOngoingProjectsSharedVec),to_shared_ptr<Unit>);
-					unitsInOngoingProjects.clear();
-					devAgent->setNewUnits(unitsInOngoingProjectsSharedVec);
 				}
-				else if(day0Project)
-				{
-					if (conn.isConnected())
-					{
-						UnitDao unitDao(conn);
-						std::tm lastDayOfCurrentSimYear = getDateBySimDay(simYear,364);
-						UnitList unitsOnDay0 = unitDao.loadUnitsToLaunchOnDay0(currentSimYear,lastDayOfCurrentSimYear,devCandidateParcelList[i]->getId());
-						std::vector< boost::shared_ptr<Unit> > unitsOnDay0SharedVec;
-						unitsOnDay0SharedVec.reserve(unitsOnDay0.size());
-						std::transform(unitsOnDay0.begin(), unitsOnDay0.end(), std::back_inserter(unitsOnDay0SharedVec),to_shared_ptr<Unit>);
-						unitsOnDay0.clear();
-						devAgent->setNewUnits(unitsOnDay0SharedVec);
-						devAgent->setIsDay0Project(true);
-
-					}
-
-					Project *project = new Project();
-					project->setParcelId(devCandidateParcelList[i]->getId());
-					boost::shared_ptr<Project> projectPtr (new Project(*project));
-					devAgent->setProject(projectPtr);
-					projectPtr->setCurrTick(startDay);
-					devAgent->getParcel().get()->setStatus(1);
-				}
-}
-
-				agents.push_back(devAgent);
 
 				workGroup.assignAWorker(devAgent);
 				if((!onGoingProject) && (!day0Project))

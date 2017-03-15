@@ -16,6 +16,7 @@ namespace medium
  * Sub-class of PersonLoader tailored for loading mid-term persons from day activity schedule
  *
  * \author Harish Loganathan
+ * \zhang huai peng
  */
 class MT_PersonLoader : public PeriodicPersonLoader
 {
@@ -27,7 +28,11 @@ public:
 	 * load activity schedules for next interval
 	 */
 	virtual void loadPersonDemand();
-
+protected:
+	/**
+	 * load MRT demand
+	 */
+	void loadMRT_Demand();
 private:
 	/**
 	 * makes a single sub trip for trip (for now)

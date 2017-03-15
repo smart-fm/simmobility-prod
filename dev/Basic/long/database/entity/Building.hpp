@@ -25,7 +25,7 @@ namespace sim_mob
         public:
         	Building( BigSerial fmBuildingId = INVALID_ID, BigSerial fmProjectId = INVALID_ID, BigSerial fmParcelId = INVALID_ID, int storeysAboveGround = 0,
         			  int storeysBelowGround = 0, std::tm fromDate = std::tm(), std::tm toDate = std::tm(), int buildingStatus = 0,float	grossSqMRes = 0, float grossSqMOffice = 0,
-					  float grossSqMRetail = 0, float grossSqMWarehouse = 0, float grossSqMIndustrial = 0, float grossSqMOther = 0, float grossSqMCivic = 0, std::tm lastChangedDate = std::tm(),int freehold = 0,float floorSpace = 0,std::string buildingType = std::string(),BigSerial slaAddressId = INVALID_ID);
+					  float grossSqMRetail = 0, float grossSqMWarehouse = 0, float grossSqMIndustrial = 0, float grossSqMOther = 0, float grossSqMCivic = 0, std::tm lastChangedDate = std::tm(),int freehold = 0,float floorSpace = 0,std::string buildingType = std::string());
 
             virtual ~Building();
 
@@ -114,11 +114,14 @@ namespace sim_mob
 
             const std::string& getBuildingType() const;
             float getFloorSpace() const ;
-            int getFreehold() const;
-            BigSerial getSlaAddressId() const;
             float getGrossSqMCivic() const;
             float getGrossSqMIndustrial() const;
             float getGrossSqMWarehouse() const ;
+            float getGrossSqMOffice() const;
+            int getFreehold() const;
+        	float getGrossSqMOther() const;
+        	float getGrossSqMRetail() const;
+        	float getGrossSqMRes() const;
             /*
              * setters
              */
@@ -138,11 +141,9 @@ namespace sim_mob
             void setBuildingType(const std::string& buildingType);
             void setFloorSpace(float floorSpace);
             void setFreehold(int freehold);
-            void setSlaAddressId(BigSerial slaAddressId);
             void setGrossSqMCivic(float grossSqMCivic);
             void setGrossSqMIndustrial(float grossSqMIndustrial);
             void setGrossSqMWarehouse(float grossSqMWarehouse);
-
 
             /**
              * Operator to print the Building data.  
@@ -171,8 +172,6 @@ namespace sim_mob
             int freehold;
             float floorSpace;
             std::string buildingType;
-            BigSerial slaAddressId;
-
         };
     }
 }

@@ -182,9 +182,30 @@ inline void calculateProjectProfit(PotentialProject& project,DeveloperModel* mod
 		double logsum = 0;
 		const HedonicLogsums *logsumPtr = model->getHedonicLogsumsByTazId(tazId);
 		if(logsumPtr != nullptr)
+		{
+			logsum = logsumPtr->getLogsumWeighted();
+			if( tazId == 682 ||
+					tazId == 683 ||
+					tazId == 684 ||
+					tazId == 697 ||
+					tazId == 698 ||
+					tazId == 699 ||
+					tazId == 700 ||
+					tazId == 702 ||
+					tazId == 703 ||
+					tazId == 927 ||
+					tazId == 928 ||
+					tazId == 929 ||
+					tazId == 930 ||
+					tazId == 931 ||
+					tazId == 932 ||
+					tazId == 1255 ||
+					tazId == 1256 )
 			{
-				logsum = logsumPtr->getLogsumWeighted();
+				logsum += 0.07808;
 			}
+
+		}
 
 		if(isEmptyParcel)
 		{
@@ -203,7 +224,6 @@ inline void calculateProjectProfit(PotentialProject& project,DeveloperModel* mod
 			const DeveloperLuaModel& luaModel = LuaProvider::getDeveloperModel();
 			double taoValue = 0;
 
-			//PrintOutV("buildingTypeId"<<buildingTypeId<<std::endl);
 			const HedonicCoeffs* hedonicCoeffObj = nullptr;
 			const LagPrivateT* privateLagTObj = nullptr;
 
@@ -252,12 +272,74 @@ inline void calculateProjectProfit(PotentialProject& project,DeveloperModel* mod
 			double revenue = 0;
 
 			int freehold = model->isFreeholdParcel(fmParcelId);
+
+			double distanceToMall = amenities->getDistanceToMall();
+			double distanceToPMS30 = amenities->getDistanceToPMS30();
+			double distanceToExpress = amenities->getDistanceToExpress();
+			double distanceToBus = amenities->getDistanceToBus();
+			double distanceToMRT = amenities->getDistanceToMRT();
+
+
+			if( tazId == 682 ||
+								tazId == 683 ||
+								tazId == 684 ||
+								tazId == 697 ||
+								tazId == 698 ||
+								tazId == 699 ||
+								tazId == 700 ||
+								tazId == 702 ||
+								tazId == 703 ||
+								tazId == 927 ||
+								tazId == 928 ||
+								tazId == 929 ||
+								tazId == 930 ||
+								tazId == 931 ||
+								tazId == 932 ||
+								tazId == 1255 ||
+								tazId == 1256 )
+						{
+							distanceToMall = (distanceToMall/2);
+							distanceToPMS30 = (distanceToPMS30/2);
+							distanceToExpress = (distanceToExpress/2);
+							distanceToBus = (distanceToBus/2);
+							distanceToMRT = (distanceToMRT/2);
+
+						}
+
+			double isDistanceToPMS30 = 0;
+			double isMRT_200m = 0;
+			double isMRT_2_400m = 0;
+			double isExpress_200m = 0;
+			double isBus_2_400m = 0;
+			double isBusGt_400m = 0;
+
+			if(distanceToPMS30 < 1)
+			{
+				isDistanceToPMS30 = 1;
+			}
+			if( (distanceToMRT > 0.200) && (distanceToMRT < 0.400))
+			{
+				isMRT_2_400m = 1;
+			}
+			if(distanceToExpress < 0.200)
+			{
+				isExpress_200m = 1;
+			}
+			if((distanceToBus > 0.200) && (distanceToBus < 0.400))
+			{
+				isBus_2_400m = 1;
+			}
+			else if(distanceToBus > 0.400)
+			{
+				isBusGt_400m = 1;
+			}
+
 			if(hedonicCoeffObj!=nullptr)
 			{
 				revenue  = hedonicCoeffObj->getIntercept() + (hedonicCoeffObj->getLogSqrtArea() * log(floorArea))+ (hedonicCoeffObj->getFreehold() * freehold) +
-					(hedonicCoeffObj->getLogsumWeighted() * logsum ) + (hedonicCoeffObj->getPms1km() * amenities->hasPms_1km()) + (hedonicCoeffObj->getDistanceMallKm() * amenities->getDistanceToMall()) +
-					(hedonicCoeffObj->getMrt200m()* amenities->hasMRT_200m()) + (hedonicCoeffObj->getMrt_2_400m() * amenities->hasMRT_400m()) + (hedonicCoeffObj->getExpress200m() * amenities->hasExpress_200m()) +
-				    (hedonicCoeffObj->getBus400m() * amenities->hasBus_200m()) + (hedonicCoeffObj->getBusGt400m() * amenities->hasBus_400m()) + (hedonicCoeffObj->getAge() * ageCapped) + (hedonicCoeffObj->getLogAgeSquared() * (ageCapped*ageCapped));
+					(hedonicCoeffObj->getLogsumWeighted() * logsum ) + (hedonicCoeffObj->getPms1km() * isDistanceToPMS30) + (hedonicCoeffObj->getDistanceMallKm() * distanceToMall) +
+					(hedonicCoeffObj->getMrt200m()* isMRT_200m) + (hedonicCoeffObj->getMrt_2_400m() *isMRT_2_400m) + (hedonicCoeffObj->getExpress200m() * isExpress_200m) +
+				    (hedonicCoeffObj->getBus400m() * isBus_2_400m) + (hedonicCoeffObj->getBusGt400m() * isBusGt_400m) + (hedonicCoeffObj->getAge() * ageCapped) + (hedonicCoeffObj->getLogAgeSquared() * (ageCapped*ageCapped));
 			}
 
 			double revenuePerUnit = exp(revenue+HPI);

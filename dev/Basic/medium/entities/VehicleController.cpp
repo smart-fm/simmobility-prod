@@ -30,7 +30,8 @@ VehicleController::~VehicleController()
 {
 }
 
-bool VehicleController::RegisterVehicleController(int id, const MutexStrategy& mtxStrat)
+bool VehicleController::RegisterVehicleController(int id,
+	const MutexStrategy& mtxStrat)
 {
 	VehicleController *vehicleController = new VehicleController(id, mtxStrat);
 
@@ -55,15 +56,20 @@ void VehicleController::addTaxiDriver(Person_MT* person)
 
 void VehicleController::removeTaxiDriver(Person_MT* person)
 {
-	taxiDrivers.erase(std::remove(taxiDrivers.begin(), taxiDrivers.end(), person), taxiDrivers.end());
+	taxiDrivers.erase(std::remove(taxiDrivers.begin(),
+		taxiDrivers.end(), person), taxiDrivers.end());
 }
 
 
 Response VehicleController::assignVehicleToRequest(Request request) {
 	Response response = {false};
 
+	printf("Request made from (%f, %f)\n", request.startNode->getPosX(),
+		request.startNode->getPosY());
+
 	TaxiDriver* best_driver;
 	double best_distance = -1;
+	double best_x, best_y;
 
 	auto person = taxiDrivers.begin();
 
@@ -71,7 +77,8 @@ Response VehicleController::assignVehicleToRequest(Request request) {
 	{
 		if ((*person)->getRole())
 		{
-			TaxiDriver* curr_driver = dynamic_cast<TaxiDriver*>((*person)->getRole());
+			TaxiDriver* curr_driver = dynamic_cast<TaxiDriver*>((*person)
+				->getRole());
 			if (curr_driver)
 			{
 				if (curr_driver->getDriverMode() != CRUISE)
@@ -84,11 +91,14 @@ Response VehicleController::assignVehicleToRequest(Request request) {
 				{
 					best_driver = curr_driver;
 
-					TaxiDriverMovement* movement = best_driver->getMovementFacet();
+					TaxiDriverMovement* movement = best_driver
+						->getMovementFacet();
 					const Node* node = movement->getCurrentNode();
 
-					best_distance = std::abs(request.startNode->getPosX() - node->getPosX());
-					best_distance += std::abs(request.startNode->getPosY() - node->getPosY());
+					best_distance = std::abs(request.startNode->getPosX()
+						- node->getPosX());
+					best_distance += std::abs(request.startNode->getPosY()
+						- node->getPosY());
 				}
 
 				else
@@ -96,16 +106,21 @@ Response VehicleController::assignVehicleToRequest(Request request) {
 					double curr_distance = 0.0;
 
 					// TODO: Find shortest path instead
-					TaxiDriverMovement* movement = curr_driver->getMovementFacet();
+					TaxiDriverMovement* movement = curr_driver
+						->getMovementFacet();
 					const Node* node = movement->getCurrentNode();
 
-					curr_distance = std::abs(request.startNode->getPosX() - node->getPosX());
-					curr_distance += std::abs(request.startNode->getPosY() - node->getPosY());
+					curr_distance = std::abs(request.startNode->getPosX()
+						- node->getPosX());
+					curr_distance += std::abs(request.startNode->getPosY()
+						- node->getPosY());
 
 					if (curr_distance < best_distance)
 					{
 						best_driver = curr_driver;
 						best_distance = curr_distance;
+						best_x = node->getPosX();
+						best_y = node->getPosY();
 					}
 				}
 			}
@@ -114,11 +129,11 @@ Response VehicleController::assignVehicleToRequest(Request request) {
 		person++;
 	}
 
-	printf("Best distance: %f\n", best_distance);
+	printf("Closest taxi is at (%f, %f)\n", best_x, best_y);
 
 	if (best_distance == -1) return response;
 
-	// TODO: Call taxi function to take request
+	best_driver->getMovementFacet()->setDestinationNode(request.startNode);
 	response.success = true;
 
 	return response;

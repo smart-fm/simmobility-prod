@@ -126,7 +126,7 @@ void TaxiDriver::pickUpPassngerAtNode(Conflux *parentConflux)
 				if (isAdded)
 				{
 					taxiDriverMovement->setDestinationNode(personDestinationNode);
-					taxiDriverMovement->setCurrentNode(currentNode);;
+					taxiDriverMovement->setCurrentNode(currentNode);
 					taxiDriverMovement->addRouteChoicePath(currentRouteChoice);
 					const Lane * currentLane = taxiDriverMovement->getCurrentlane();
 					const Link* currentLink = currentLane->getParentSegment()->getParentLink();
@@ -135,6 +135,7 @@ void TaxiDriver::pickUpPassngerAtNode(Conflux *parentConflux)
 					passenger->setStartPoint(WayPoint(taxiDriverMovement->getCurrentNode()));
 					passenger->setEndPoint(WayPoint(taxiDriverMovement->getDestinationNode()));
 					setTaxiDriveMode(DRIVE_WITH_PASSENGER);
+					printf("Person picked up at (%f, %f)\n", parentConflux->getConfluxNode()->getPosX(), parentConflux->getConfluxNode()->getPosY());
 				}
 			}
 			else
@@ -184,4 +185,5 @@ TaxiDriver::~TaxiDriver()
 }
 }
 }
+
 

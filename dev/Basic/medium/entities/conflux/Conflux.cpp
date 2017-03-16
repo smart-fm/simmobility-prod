@@ -47,6 +47,7 @@
 #include "path/PathSetManager.hpp"
 #include "util/Utils.hpp"
 #include "entities/roles/driver/TaxiDriver.hpp"
+#include "entities/VehicleController.hpp"
 
 using namespace boost;
 using namespace sim_mob;
@@ -293,6 +294,10 @@ void Conflux::addAgent(Person_MT* person)
 		}
 		case Role<Person_MT>::RL_TRAVELPEDESTRIAN:
 		{
+			Request r;
+			r.startNode = confluxNode;
+			VehicleController::GetInstance()->assignVehicleToRequest(r);
+			
 			travelingPersons.push_back(person);
 			break;
 		}
@@ -1281,6 +1286,10 @@ void Conflux::HandleMessage(messaging::Message::MessageType type, const messagin
 	}
 	case MSG_TRAVELER_TRANSFER:
 	{
+		Request r;
+		r.startNode = confluxNode;
+		VehicleController::GetInstance()->assignVehicleToRequest(r);
+
 		const PersonMessage& msg = MSG_CAST(PersonMessage, message);
 		travelingPersons.push_back(msg.person);
 		break;
@@ -2851,3 +2860,4 @@ sim_mob::medium::PersonTransferMessage::PersonTransferMessage(Person_MT* person,
 sim_mob::medium::PersonTransferMessage::~PersonTransferMessage()
 {
 }
+

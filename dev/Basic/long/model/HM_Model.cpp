@@ -2086,10 +2086,6 @@ void HM_Model::startImpl()
 		indexData(individuals,individualsById,&Individual::getId);
 		PrintOutV("individuals loaded from disk"<<individuals.size() << std::endl );
 
-		units = unit->loadSerializedData();
-		indexData(units,unitsById,&Unit::getId);
-		PrintOutV("units loaded from disk"<<units.size() << std::endl );
-
 		alternativeHedonicPrices = altHedonicPrice->loadSerializedData();
 		indexData(alternativeHedonicPrices,alternativeHedonicPriceById,&AlternativeHedonicPrice::getId);
 		PrintOutV("alternativeHedonicPrice loaded from disk"<<alternativeHedonicPrices.size() << std::endl );

@@ -73,6 +73,36 @@ bool Postcode::getPrimaryPostcode() const
 	return primary_postcode;
 }
 
+void Postcode::setAddressId(BigSerial addressId)
+{
+	address_id = addressId;
+}
+
+void Postcode::setLatitude(float latitude)
+{
+	this->latitude = latitude;
+}
+
+void Postcode::setLongitude(float longitude)
+{
+	this->longitude = longitude;
+}
+
+void Postcode::setPrimaryPostcode(bool primaryPostcode)
+{
+	primary_postcode = primaryPostcode;
+}
+
+void Postcode::setSlaPostcode(const std::string& slaPostcode)
+{
+	sla_postcode = slaPostcode;
+}
+
+void Postcode::setTazId(BigSerial tazId)
+{
+	taz_id = tazId;
+}
+
 namespace sim_mob
 {
     namespace long_term

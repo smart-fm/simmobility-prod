@@ -593,7 +593,7 @@ namespace sim_mob
             IndvidualVehicleOwnershipLogsumList IndvidualVehicleOwnershipLogsums;
             IndvidualVehicleOwnershipLogsumMap IndvidualVehicleOwnershipLogsumById;
 
-            AlternativeHedonicPriceList alternativeHedonicPrice;
+            AlternativeHedonicPriceList alternativeHedonicPrices;
             AlternativeHedonicPriceMap alternativeHedonicPriceById;
 
             ScreeningModelCoefficientsList screeningModelCoefficientsList;
@@ -619,6 +619,7 @@ namespace sim_mob
             PreSchoolList preSchools;
             PreSchoolMap preSchoolById;
             bool resume ;
+            bool initialLoading;
             IndvidualEmpSecList indEmpSecList;
             IndvidualEmpSecMap indEmpSecbyIndId;
 

@@ -1429,7 +1429,7 @@ void HM_Model::setTaxiAccess2012(const Household *household)
 
 void HM_Model::startImpl()
 {
-	//PredayLT_LogsumManager::getInstance();
+	PredayLT_LogsumManager::getInstance();
 
 
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
@@ -1524,9 +1524,9 @@ void HM_Model::startImpl()
 		loadData<ScreeningModelCoefficientsDao>( conn, screeningModelCoefficientsList, screeningModelCoefficicientsMap, &ScreeningModelCoefficients::getId );
 		PrintOutV("Number of screening Model Coefficients: " << screeningModelCoefficientsList.size() << std::endl );
 
-
 		if(initialLoading)
 		{
+
 			//Load households
 			loadData<HouseholdDao>(conn, households, householdsById, &Household::getId);
 			PrintOutV("Number of households: " << households.size() << ". Households used: " << households.size()  << std::endl);
@@ -1534,10 +1534,6 @@ void HM_Model::startImpl()
 			//load individuals
 			loadData<IndividualDao>(conn, individuals, individualsById,	&Individual::getId);
 			PrintOutV("Initial Individuals: " << individuals.size() << std::endl);
-
-			//Load units
-			loadData<UnitDao>(conn, units, unitsById, &Unit::getId);
-			PrintOutV("Number of units: " << units.size() << ". Units Used: " << units.size() << std::endl);
 
 			loadData<AlternativeHedonicPriceDao>( conn, alternativeHedonicPrices, alternativeHedonicPriceById, &AlternativeHedonicPrice::getId );
 			PrintOutV("Number of Alternative Hedonic Price rows: " << alternativeHedonicPrices.size() << std::endl );
@@ -1554,6 +1550,10 @@ void HM_Model::startImpl()
 			loadData<AwakeningDao>(conn, awakening, awakeningById,	&Awakening::getId);
 			PrintOutV("Awakening probability: " << awakening.size() << std::endl );
 		}
+
+		//Load units
+		loadData<UnitDao>(conn, units, unitsById, &Unit::getId);
+		PrintOutV("Number of units: " << units.size() << ". Units Used: " << units.size() << std::endl);
 
 		IndividualDao indDao(conn);
 		primarySchoolIndList = indDao.getPrimarySchoolIndividual(currentSimYear);
@@ -1706,12 +1706,6 @@ void HM_Model::startImpl()
 	{
 		std::string costTime = std::to_string(screeningCostTime[n]->getPlanningAreaOrigin() ) + "-" + std::to_string(screeningCostTime[n]->getPlanningAreaDestination());
 		screeningCostTimeSuperMap.insert({costTime, screeningCostTime[n]->getId()});
-	}
-
-	Unit *unit;
-	if(initialLoading)
-	{
-		unit->saveData(units);
 	}
 
 
@@ -2062,8 +2056,9 @@ void HM_Model::startImpl()
 	ZonalLanduseVariableValues *zonalLU_VarVals;
 	DistanceMRT *mrtDistPerHH;
 	Awakening *awakeningPtr;
+	Unit *unit;
 
-	//save o after all the preprocessing
+	//save day0 after all the preprocessing
 	if(initialLoading)
 	{
 		hh->saveData(households);
@@ -2073,6 +2068,7 @@ void HM_Model::startImpl()
 		zonalLU_VarVals->saveData(zonalLanduseVariableValues);
 		mrtDistPerHH->saveData(mrtDistances);
 		awakeningPtr->saveData(awakening);
+		//unit->saveData(units);
 
 	}
 

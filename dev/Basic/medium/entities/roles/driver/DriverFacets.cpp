@@ -26,6 +26,7 @@
 #include "geospatial/network/Node.hpp"
 #include "geospatial/network/LaneConnector.hpp"
 #include "geospatial/network/Point.hpp"
+#include "geospatial/network/SurveillanceStation.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "logging/Log.hpp"
 #include "MesoReroute.hpp"
@@ -425,11 +426,13 @@ bool DriverMovement::moveToNextSegment(DriverUpdateParams& params)
 	if (curRs && curRs != nxtRs)
 	{
 		onSegmentCompleted(curRs, nxtRs);
+		nextSurveillanceStn = nxtRs ? nxtRs->getSurveillanceStations().begin() : curRs->getSurveillanceStations().end();
 	}
 
 	if (isNewLinkNext)
 	{
 		onLinkCompleted(curRs->getParentLink(), (nxtRs ? nxtRs->getParentLink() : nullptr));
+		nextSurveillanceStn = nxtRs ? nxtRs->getSurveillanceStations().begin() : curRs->getSurveillanceStations().end();
 	}
 
 	//reset these local variables in case path has been changed in onLinkCompleted
@@ -808,6 +811,10 @@ bool DriverMovement::advanceMovingVehicle(DriverUpdateParams& params)
 			res = moveInSegment(initialDistToSegEnd - finalDistToSegEnd);
 			pathMover.setPositionInSegment(finalDistToSegEnd);
 			params.elapsedSeconds = params.secondsInTick;
+
+			double oldDistCovered = currLane->getParentSegment()->getLength() - initialDistToSegEnd;
+			double acceleration = 2 * ((initialDistToSegEnd - finalDistToSegEnd) - (velocity * finalTimeSpent)) / (finalTimeSpent * finalTimeSpent);
+			updateTrafficSensor(oldDistCovered, oldDistCovered + initialDistToSegEnd - finalDistToSegEnd, velocity, acceleration);
 		}
 	}
 	else if (getInitialQueueLength(currLane) > 0)
@@ -838,6 +845,10 @@ bool DriverMovement::advanceMovingVehicle(DriverUpdateParams& params)
 			res = moveInSegment(initialDistToSegEnd - finalDistToSegEnd);
 			pathMover.setPositionInSegment(finalDistToSegEnd);
 			params.elapsedSeconds = finalTimeSpent;
+
+			double oldDistCovered = currLane->getParentSegment()->getLength() - initialDistToSegEnd;
+			double acceleration = 2 * ((initialDistToSegEnd - finalDistToSegEnd) - (velocity * finalTimeSpent)) / (finalTimeSpent * finalTimeSpent);
+			updateTrafficSensor(oldDistCovered, oldDistCovered + initialDistToSegEnd - finalDistToSegEnd, velocity, acceleration);
 		}
 	}
 	return res;
@@ -992,6 +1003,7 @@ void DriverMovement::setOrigin(DriverUpdateParams& params)
 		currLane = laneInNextSegment;
 		double actualT = params.elapsedSeconds + (convertToSeconds(params.now.ms()));
 		parentDriver->parent->currLinkTravelStats.start(currSegStats->getRoadSegment()->getParentLink(), actualT);
+		nextSurveillanceStn = currLane->getParentSegment()->getSurveillanceStations().begin();
 
 		setLastAccept(currLane, actualT, currSegStats);
 		setParentData(params);
@@ -1165,6 +1177,45 @@ void DriverMovement::updateScreenlineCounts(const SegmentStats* prevSegStat, dou
 	const TripChainItem* tripChain = *(parent->currTripChainItem);
 	const std::string& travelMode = tripChain->getMode();
 	ScreenLineCounter::getInstance()->updateScreenLineCount(pathMover.getCurrSegStats()->getRoadSegment()->getRoadSegmentId(), segEnterExitTime, travelMode);
+}
+
+void DriverMovement::updateTrafficSensor(double oldPos, double newPos, double speed, double acceleration)
+{
+	/*
+	 * Occupance is calculated when the vehicle is present in the detection zone of a sensor. Flow counts, instantaneous speed,
+	 * and other point data are calculate when the back bumper crosses the down-edge of the detection zone.
+	 * NOTE: We do not count a vehicle until its back-bumper leaves the detection zone of the sensor.
+	 * This is to avoid double counting.
+	 */
+
+	//Get the surveillance stations in the segment
+	const vector<SurveillanceStation *> &survStns = currLane->getParentSegment()->getSurveillanceStations();
+	vector<SurveillanceStation *>::const_iterator itSurvStn = nextSurveillanceStn;
+
+	//Vehicle front and back bumper positions
+	unsigned int vehBackBumper = newPos - (parentDriver->getResource()->getLengthInM() / 2);
+	unsigned int vehFrontBumper = newPos + (parentDriver->getResource()->getLengthInM() / 2);
+
+	unsigned int laneIdx = currLane->getLaneIndex();
+
+	//Some data items such as occupancy are accumulated if the entire or a part of the vehicle was/is in the detection zone.
+	while((itSurvStn != survStns.end()) && (vehFrontBumper - (*itSurvStn)->getOffsetDistance() <= (*itSurvStn)->getZoneLength()))
+	{
+		TrafficSensor *sensor = (*itSurvStn)->getTrafficSensor(laneIdx);
+		sensor->calculateActivatingData(oldPos, parentDriver->getResource()->getLengthInM(), speed, acceleration, parentDriver->getParams().now.ms());
+
+		++itSurvStn;
+	}
+
+	//Other data items such as flow and headways are counted when the back bumper of the vehicle crosses the
+	//down-edge of the of detection zone
+	while((nextSurveillanceStn != survStns.end()) && (vehBackBumper > (*nextSurveillanceStn)->getOffsetDistance() + (*nextSurveillanceStn)->getZoneLength()))
+	{
+		TrafficSensor *sensor = (*nextSurveillanceStn)->getTrafficSensor(laneIdx);
+		sensor->calculatePassingData(oldPos, parentDriver->getResource()->getLengthInM(), speed, acceleration);
+
+		++nextSurveillanceStn;
+	}
 }
 
 TravelMetric & DriverMovement::startTravelTimeMetric()

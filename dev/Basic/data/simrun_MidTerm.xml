@@ -93,7 +93,7 @@
             <mapping name="pt_vertices" procedure="get_pt_map_trvertices()"/>
             <mapping name="pt_edges" procedure="get_pt_map_tredges()"/>
 
-            <mapping name="pt_pathset" procedure="get_pt_trpathset"/>
+            <mapping name="pt_pathset" procedure="get_pt_pathset_full"/>
             <mapping name="mrt_road_segments" procedure="get_pt_mrt_segments()"/>
             <mapping name="rail_transit_edges" procedure="get_rail_transit_edges()"/>
             <mapping name="erp_gantry_zone" procedure="get_erp_gantry_zone()"/>
@@ -108,16 +108,17 @@
 	    	<mapping name="get_uturn_platforms" procedure="get_pt_uturn_platforms()"/>
 	    	<mapping name="get_train_line_properties" procedure="get_pt_train_line_properties()"/>
             <!--<mapping name="restricted_reg_in_turning" procedure="get_banned_area_in_turning()"/>
-            <mapping name="restricted_reg_out_turning" procedure="get_banned_area_out_turning()"/>
-            <mapping name="restricted_reg_nodes" procedure="get_restricted_region_nodes()"/>-->
+	    <mapping name="restricted_reg_out_turning" procedure="get_banned_area_out_turning()"/>-->
+	    <mapping name="restricted_reg_nodes" procedure="get_changi_nodes()"/>
+	    <mapping name="restricted_reg_links" procedure="get_changi_links()"/>
         </proc_map> 
     </db_proc_groups>
     
     <system>         
         <!-- If loading from the database, which database, proc_map, and credentials are used? -->
 
-		<network_database database="fm_remote" credentials="fm_remote_plain" proc_map="simmobcity"/>
-		<population_database  database="fm_remote_lt" credentials="lt_cred" proc_map=""/> 
+		<network_database database="fm_hpchead" credentials="fm_hpchead" proc_map="withinday"/>
+		<population_database  database="fm_hpchead" credentials="fm_hpchead" proc_map=""/> 
 
         <!-- The parser will simply load everything in "generic_props" section into "SystemParams.genericProps".  -->
         <!-- In other words, you DO NOT need to update the parser just to add a simple string-based configuration parameter to -->
@@ -175,7 +176,7 @@
     <pathset_config_file value="data/pathset_config.xml" />
 
     <!-- config used for enabling region restriction for private vehicles. The region must be pre-defined and kept in the database. The corresponding functions must be provided in the proc_map -->
-    <region_restriction enabled="false"/>
+    <region_restriction enabled="true"/>
 
     <!-- enable this only to generate the bus routes based on stops data for each line -->
     <generateBusRoutes enabled="false" /> 
@@ -185,6 +186,8 @@
 
     <!-- flag to control if PT graph should be loaded -->
     <public_transit enabled="true"/>
+
+    <trip_chain_output enabled="true" trip_activities_file="trip_activities.csv" sub_trips_file="sub_trips.csv"/>
 
     <!-- config specific to supply simulator -->                    
     <supply>

@@ -253,6 +253,8 @@ private:
 
     void processPathSetFileName(xercesc::DOMElement* node);
 
+    void processTripChainOutputNode(xercesc::DOMElement* node);
+
     /// The config we are currently loading
 	MT_Config& mtCfg;
 

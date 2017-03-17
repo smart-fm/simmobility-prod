@@ -311,6 +311,16 @@ private:
 	double minDensity;
 };
 
+struct TripChainOutputConfig
+{
+    bool enabled;
+    std::string tripActivitiesFile;
+    std::string subTripsFile;
+
+    TripChainOutputConfig() : enabled(false), tripActivitiesFile(""), subTripsFile("")
+    {}
+};
+
 /**
  * Singleton class to hold Mid-term related configurations
  */
@@ -756,6 +766,9 @@ public:
 
 	/// Generic properties, for testing new features.
 	std::map<std::string, std::string> genericProps;
+
+    /// Configuration for trip chain output
+    TripChainOutputConfig tripChainOutput;
 
 private:
 	/**

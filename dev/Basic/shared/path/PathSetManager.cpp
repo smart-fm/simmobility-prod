@@ -360,6 +360,7 @@ void sim_mob::PathSetManager::clearPathSet(boost::shared_ptr<sim_mob::PathSet>& 
 
 void sim_mob::PrivateTrafficRouteChoice::cachePathSet(boost::shared_ptr<sim_mob::PathSet>& ps)
 {
+	return;
 	cacheLRU.insert(ps->id, ps);
 }
 

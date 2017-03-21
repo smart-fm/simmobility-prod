@@ -170,6 +170,30 @@ namespace sim_mob
 		 }
 
 
+
+
+
+		inline void printAwakeningJingsi(int day, Household *household, double futureTransitionRate, double randomDraw, double movingRate, double randomDrawMovingRate)
+		{
+			ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+			if(!config.ltParams.outputFiles.log_hh_awakening)
+				return;
+
+			static bool printHeader = true;
+
+			if(printHeader)
+			{
+				printHeader = false;
+				AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_HH_AWAKENING,"awakening_day, householdId, TimeOnMarket, ageCategory, tenureStatus, futureTransitionPercentage, randomDrawFutureTransition, movingPercentage, randomDrawMovingRate");
+			}
+
+			//day household_id timeOnMarket
+			boost::format fmtr = boost::format("%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%") % (day + 1) % household->getId() % household->getTimeOnMarket() % household->getAgeOfHead() % household->getTenureStatus() % futureTransitionRate % randomDraw  % movingRate % randomDrawMovingRate;
+			AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_HH_AWAKENING, fmtr.str());
+
+		}
+
+
 		inline void printAwakening(int day, Household *household)
 		{
 			ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();

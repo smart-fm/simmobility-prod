@@ -730,6 +730,18 @@ public:
 	void setLogsumTableName(const std::string& logsumTableName);
 
 	/**
+	 * get threads number for person loader
+	 * @return the threads number in use of person loader
+	 */
+	const unsigned int getThreadsNumInPersonLoader() const;
+
+	/**
+	 * set threads number for person loader
+	 * @param number is threads number for person loader
+	 */
+	void setThreadsNumInPersonLoader(unsigned int number);
+
+	/**
 	 * Enumerator for mid term run mode
 	 */
 	enum MidTermRunMode
@@ -793,6 +805,9 @@ private:
 
 	/** default capacity for bus*/
 	unsigned int busCapacity;
+
+	/** the threads number in person loader*/
+	unsigned int threadsNumInPersonLoader;
 
 	/// supply update interval in frames
 	unsigned supplyUpdateInterval;

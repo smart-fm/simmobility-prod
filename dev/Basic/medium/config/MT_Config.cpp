@@ -27,7 +27,7 @@ MT_Config::MT_Config() :
        regionRestrictionEnabled(false), midTermRunMode(MT_Config::MT_NONE), pedestrianWalkSpeed(0), numPredayThreads(0),
 			configSealed(false), fileOutputEnabled(false), consoleOutput(false), predayRunMode(MT_Config::PREDAY_NONE),
 			calibrationMethodology(MT_Config::WSPSA), logsumComputationFrequency(0), supplyUpdateInterval(0),
-			activityScheduleLoadInterval(0), busCapacity(0), populationSource(db::MONGO_DB), granPersonTicks(0)
+			activityScheduleLoadInterval(0), busCapacity(0), populationSource(db::MONGO_DB), granPersonTicks(0),threadsNumInPersonLoader(0)
 {
 }
 
@@ -311,6 +311,18 @@ void MT_Config::setLogsumTableName(const std::string& logsumTableName)
 	if(!configSealed)
 	{
 		this->logsumTableName = logsumTableName;
+	}
+}
+const unsigned int MT_Config::getThreadsNumInPersonLoader() const
+{
+	return threadsNumInPersonLoader;
+}
+
+void MT_Config::setThreadsNumInPersonLoader(unsigned int number)
+{
+	if(!configSealed)
+	{
+		threadsNumInPersonLoader = number;
 	}
 }
 

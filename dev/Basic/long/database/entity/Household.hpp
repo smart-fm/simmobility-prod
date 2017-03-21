@@ -100,6 +100,11 @@ namespace sim_mob
 
             virtual ~Household();
 
+            template<class Archive>
+            void serialize(Archive & ar,const unsigned int version);
+            void saveData(std::vector<Household*> &households);
+            std::vector<Household*> loadSerializedData();
+
             Household& operator=(const Household& source);
             void setAgeOfHead(int ageOfHead);
             int getAgeOfHead() const;
@@ -174,6 +179,7 @@ namespace sim_mob
 			int getAwaknedDay() const;
 			bool getExistInDB() const;
 
+			void setTenureStatus(int val);
 			void setBuySellInterval(int buyerSellerInterval);
 			void setTimeOffMarket(int timeOffMarket);
 			void setTimeOnMarket(int timeOnMarket);
@@ -261,6 +267,7 @@ namespace sim_mob
 			int lastBidStatus;
 
 			HouseholdStatistics householdStats;
+			static constexpr auto filename = "households";
 
         };
     }

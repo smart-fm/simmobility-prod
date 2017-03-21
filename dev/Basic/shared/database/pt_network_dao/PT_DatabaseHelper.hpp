@@ -26,6 +26,7 @@ const std::string DB_FIELD_PT_VERTICES_STOP_DESCRIPTION = "stop_desc";
 const std::string DB_FIELD_PT_EDGES_START_STOP = "start_stop";
 const std::string DB_FIELD_PT_EDGES_END_STOP = "end_stop";
 const std::string DB_FIELD_PT_EDGES_R_TYPE = "r_type";
+const std::string DB_FIELD_PT_SERVICE_LINE = "service_line";
 const std::string DB_FIELD_PT_EDGES_ROAD_INDEX = "road_index";
 const std::string DB_FIELD_PT_EDGES_ROAD_EDGE_ID = "road_edge_id";
 const std::string DB_FIELD_PT_EDGES_R_SERVICE_LINES = "r_service_lines";

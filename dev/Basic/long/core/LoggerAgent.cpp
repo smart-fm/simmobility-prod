@@ -266,6 +266,18 @@ LoggerAgent::LoggerAgent() : Entity(-1)
 		streams.insert(std::make_pair(LOG_HOUSEHOLD_STATISTICS, householdStatisticsFile));
     }
 
+    //non eligible parcels
+	 std::ofstream* nonEligibleParcelsFile = new std::ofstream("nonEligibleParcels.csv");
+	 streams.insert(std::make_pair(LOG_NON_ELIGIBLE_PARCELS, nonEligibleParcelsFile));
+
+	 //non eligible parcels
+	 std::ofstream* eligibleParcelsFile = new std::ofstream("eligibleParcels.csv");
+	 streams.insert(std::make_pair(LOG_ELIGIBLE_PARCELS, eligibleParcelsFile));
+
+	 //gpr
+	 std::ofstream* gprInfoFile = new std::ofstream("gprInfo.csv");
+	 streams.insert(std::make_pair(LOG_GPR, gprInfoFile));
+
 }
 
 LoggerAgent::~LoggerAgent()
@@ -305,18 +317,8 @@ void LoggerAgent::log(LogFile outputType, const std::string& logMsg)
 {
 	boost::mutex::scoped_lock lock( mtx );
 
-    	// entry will be available only on the next tick
-    	//MessageBus::PostMessage(this, LTMID_LOG, MessageBus::MessagePtr(new LogMsg(logMsg, outputType)));
-	
-	if (outputType == STDOUT)
-	{
-		PrintOut(logMsg << std::endl);
-	}
-	else
-	{
-	    (*streams[outputType]) << logMsg << std::endl;
-		(*streams[outputType]).flush();
-	}
+    // entry will be available only on the next tick
+    MessageBus::PostMessage(this, LTMID_LOG, MessageBus::MessagePtr(new LogMsg(logMsg, outputType)));
 }
 
 void LoggerAgent::HandleMessage(messaging::Message::MessageType type, const messaging::Message& message)

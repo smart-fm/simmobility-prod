@@ -353,6 +353,8 @@ void HouseholdBidderRole::update(timeslice now)
 			#endif
 		}
 			vehicleBuyingWaitingTimeInDays--;
+
+		return;
 	}
 
     //can bid another house if it is not waiting for any 
@@ -362,16 +364,15 @@ void HouseholdBidderRole::update(timeslice now)
         bidOnCurrentDay = false;
     }
 
-    if (isActive())
-    {
-    	getParent()->getModel()->incrementNumberOfBidders();
 
-        if (!waitingForResponse && !bidOnCurrentDay && bidUnit(now))
-        {
-            waitingForResponse = true;
-            bidOnCurrentDay = true;
-        }
-    }
+	getParent()->getModel()->incrementNumberOfBidders();
+
+	if (!waitingForResponse && !bidOnCurrentDay && bidUnit(now))
+	{
+		waitingForResponse = true;
+		bidOnCurrentDay = true;
+	}
+
 
     lastTime = now;
 }
@@ -574,7 +575,6 @@ bool HouseholdBidderRole::pickEntryToBid()
     float housingMarketSearchPercentage = config.ltParams.housingModel.housingMarketSearchPercentage;
 
     HouseHoldHitsSample *householdHits = model->getHouseHoldHitsById( household->getId() );
-    std::string hitsId = householdHits->getHouseholdHitsId();
 
     std::vector<double>householdScreeningProbabilities;
 
@@ -616,7 +616,11 @@ bool HouseholdBidderRole::pickEntryToBid()
 
         if( thisUnit->getZoneHousingType() == zoneHousingType )
         {
-			if( thisUnit->getTenureStatus() == 2 && getParent()->getFutureTransitionOwn() == false ) //rented
+        	/*
+        	 * Chetan has temporarily commented this out until we figure out who to determine rental units
+        	 * 13 Feb 2017
+        	 *
+			if( thisUnit->getTenureStatus() == 1 && getParent()->getFutureTransitionOwn() == false ) //rented
 			{
 				std::vector<const HousingMarket::Entry*>::iterator screenedEntriesItr;
 				screenedEntriesItr = std::find(screenedEntries.begin(), screenedEntries.end(), entry );
@@ -625,7 +629,8 @@ bool HouseholdBidderRole::pickEntryToBid()
 					screenedEntries.push_back(entry);
 			}
 			else
-			if( thisUnit->getTenureStatus() == 1) //owner-occupied
+			if( thisUnit->getTenureStatus() == 2) //owner-occupied
+			*/
 			{
 				std::vector<const HousingMarket::Entry*>::iterator screenedEntriesItr;
 				screenedEntriesItr = std::find(screenedEntries.begin(), screenedEntries.end(), entry );
@@ -686,13 +691,13 @@ bool HouseholdBidderRole::pickEntryToBid()
 
             bool flatEligibility = true;
 
- 			if( unit->getTenureStatus() == 0 && unit->getUnitType() == 2 && household->getTwoRoomHdbEligibility()  == false )
+ 			if( household->getTenureStatus() == 0 && unit->getUnitType() == 2 && household->getTwoRoomHdbEligibility()  == false )
 				flatEligibility = false;
 
-			if( unit->getTenureStatus() == 0 && unit->getUnitType() == 3 && household->getThreeRoomHdbEligibility() == false )
+			if( household->getTenureStatus() == 0 && unit->getUnitType() == 3 && household->getThreeRoomHdbEligibility() == false )
 				flatEligibility = false;
 
-			if( unit->getTenureStatus() == 0 && unit->getUnitType() == 4 && household->getFourRoomHdbEligibility() == false )
+			if( household->getTenureStatus() == 0 && unit->getUnitType() == 4 && household->getFourRoomHdbEligibility() == false )
 				flatEligibility = false;
 
 
@@ -702,10 +707,10 @@ bool HouseholdBidderRole::pickEntryToBid()
 
             	BigSerial postcodeCurrent = 0;
             	if( hhUnit != NULL )
-            		postcodeCurrent = hhUnit->getSlaAddressId();
+            		postcodeCurrent = model->getUnitSlaAddressId( hhUnit->getId() );
 
             	Postcode *oldPC = model->getPostcodeById(postcodeCurrent);
-            	Postcode *newPC = model->getPostcodeById(unit->getSlaAddressId());
+            	Postcode *newPC = model->getPostcodeById( model->getUnitSlaAddressId( unit->getId() ) );
 
                //double wp_old = luaModel.calulateWP(*household, *unit, *stats);
             	double wtp_e = 0;
@@ -714,7 +719,7 @@ bool HouseholdBidderRole::pickEntryToBid()
             	WillingnessToPaySubModel wtp_m;
             	double wp = wtp_m.CalculateWillingnessToPay(unit, household, wtp_e,day, model);
 
-            	wtp_e = wtp_e * entry->getAskingPrice(); //wtp error is a fraction of the asking price.
+            	//wtp_e = wtp_e * entry->getAskingPrice(); //wtp error is a fraction of the asking price.
 
             	wp += wtp_e; // adjusted willingness to pay in millions of dollars
 
@@ -741,7 +746,7 @@ bool HouseholdBidderRole::pickEntryToBid()
             	if( entry->getAskingPrice() != 0 )
             	{
             		//tenure_status = 0 mean it is a BTO unit
-            		if( unit->getTenureStatus() == 0)
+            		if( unit->isBto() )
             		{
             			currentBid = entry->getAskingPrice();
             			currentSurplus = wp - entry->getAskingPrice();

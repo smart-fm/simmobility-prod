@@ -181,8 +181,12 @@ void HedonicPrice_SubModel::ComputeExpectation( int numExpectations, std::vector
 		AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, (boost::format( "LOGSUM FOR UNIT %1% is 0.") %  unit->getId()).str());
 
 	const Building *building = DataManagerSingleton::getInstance().getBuildingById(unit->getBuildingId());
-	const Postcode *postcode = DataManagerSingleton::getInstance().getPostcodeById(unit->getSlaAddressId());
-	const PostcodeAmenities *amenities = DataManagerSingleton::getInstance().getAmenitiesById(unit->getSlaAddressId());
+
+	BigSerial addressId = hmModel->getUnitSlaAddressId( unit->getId() );
+
+	const Postcode *postcode = DataManagerSingleton::getInstance().getPostcodeById(addressId);
+
+	const PostcodeAmenities *amenities = DataManagerSingleton::getInstance().getAmenitiesById(addressId);
 
 	expectations = CalculateUnitExpectations(unit, numExpectations, logsum, lagCoefficient, building, postcode, amenities);
 }
@@ -514,7 +518,7 @@ vector<ExpectationEntry> HedonicPrice_SubModel::CalculateUnitExpectations (Unit 
         {
         	ExpectationEntry entry = ExpectationEntry(); //--entry is a class initialized to 0, that will hold the hedonic, asking and target prices.
 
-            if( unit->getTenureStatus() == 0 )
+            if( unit->isBto() )
             {
             	entry.hedonicPrice = unit->getTotalPrice();
   	            entry.askingPrice = unit->getTotalPrice();

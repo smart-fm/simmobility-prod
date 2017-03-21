@@ -727,7 +727,9 @@ void sim_mob::medium::PredayManager::loadCosts()
 	}
 	else
 	{
+
 		throw std::runtime_error("simmob db connection failure!");
+
 	}
 }
 
@@ -1285,8 +1287,8 @@ void sim_mob::medium::PredayManager::computeLogsumsForCalibration(const PersonLi
 	{
 		throw std::runtime_error("simmobility db connection failure!");
 	}
-	TimeDependentTT_SqlDao tcostDao(simmobConn);
 
+	TimeDependentTT_SqlDao tcostDao(simmobConn);
 	// loop through all persons within the range and plan their day
 	for (PersonList::iterator i = firstPersonIt; i != oneAfterLastPersonIt; i++)
 	{

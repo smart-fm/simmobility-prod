@@ -240,6 +240,9 @@ TripChainItem::ItemType sim_mob::TripChainItem::getItemType(std::string itemType
 	{
 		return IT_WAITBUSACTIVITY;
 	}
+	else if( itemType == "WaitingTrainActivity"){
+		return IT_WAITTRAINACTIVITY;
+	}
 	else
 	{
 		throw std::runtime_error("Unknown trip chain item type.");

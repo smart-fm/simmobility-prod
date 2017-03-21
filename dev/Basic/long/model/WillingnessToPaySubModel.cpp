@@ -279,7 +279,7 @@ namespace sim_mob
 		{
 			double V;
 
-			const PostcodeAmenities *pcAmenities = DataManagerSingleton::getInstance().getAmenitiesById( unit->getSlaAddressId() );
+			const PostcodeAmenities *pcAmenities = DataManagerSingleton::getInstance().getAmenitiesById( model->getUnitSlaAddressId( unit->getId() ) );
 
 			int unitType = unit->getUnitType();
 
@@ -320,7 +320,7 @@ namespace sim_mob
 			FindAgeOfUnit( unit, day);
 
 			//GetLogsum(model, household, day);
-			Postcode *unitPostcode = model->getPostcodeById(	unit->getSlaAddressId() );
+			Postcode *unitPostcode = model->getPostcodeById( model->getUnitSlaAddressId( unit->getId() ) );
 			ZZ_logsumhh = model->ComputeHedonicPriceLogsumFromDatabase( unitPostcode->getTazId() );
 			Household* householdT = const_cast<Household*>(household);
 			householdT->setLogsum(ZZ_logsumhh);

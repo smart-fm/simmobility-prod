@@ -132,6 +132,7 @@ void MT_Config::setModelScriptsMap(const ModelScriptsMap& modelScriptsMap)
 	}
 }
 
+
 const MongoCollectionsMap& MT_Config::getMongoCollectionsMap() const
 {
 	return mongoCollectionsMap;
@@ -357,6 +358,11 @@ bool MT_Config::isRegionRestrictionEnabled() const{
 
 std::vector<IncidentParams>& MT_Config::getIncidents(){
     return incidents;
+}
+
+std::vector<DisruptionParams>& MT_Config::getDisruption_rw()
+{
+	return this->disruptions;
 }
 
 std::map<const Node*, Conflux*>& MT_Config::getConfluxNodes()

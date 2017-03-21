@@ -162,6 +162,7 @@ public:
 
 	/**Agents waiting to be added to the simulation, prioritised by start time.*/
 	static StartTimePriorityQueue pending_agents;
+	static std::vector<Entity*> activeAgents;
 
 	/**
 	 * Constructs an Agent with an immutable ID.

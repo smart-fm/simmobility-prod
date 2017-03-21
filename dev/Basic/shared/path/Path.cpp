@@ -381,7 +381,7 @@ void sim_mob::PT_Path::updatePathEdges()
 	int edgeId;
 	std::stringstream ss(ptPathId);
 	pathEdges.clear();
-	PT_Network& ptNetwork = PT_Network::getInstance();
+	PT_Network& ptNetwork = PT_NetworkCreater::getInstance();
 	bool hasBusTrip = false;
 	bool hasTrainTrip = false;
 	while (ss >> edgeId)
@@ -397,7 +397,6 @@ void sim_mob::PT_Path::updatePathEdges()
 		pathEdges.push_back(edgeIt->second);
 		hasBusTrip = (hasBusTrip || (edgeIt->second.getType() == sim_mob::PT_EdgeType::BUS_EDGE));
 		hasTrainTrip = (hasTrainTrip || (edgeIt->second.getType() == sim_mob::PT_EdgeType::TRAIN_EDGE));
-
 		if (ss.peek() == ',')
 		{
 			ss.ignore();
@@ -526,11 +525,11 @@ void sim_mob::PT_PathSet::checkPathFeasibilty()
 			prevEdgeType = currentEdgeType;
 
 			// Check 3 : Doesn't walk back to any simMobility node from bus stop/ MRT station in the middle of the path
-			if (sim_mob::PT_Network::getInstance().PT_NetworkVertexMap[itEdge->getStartStop()].getStopType() == 0)
+			if (sim_mob::PT_NetworkCreater::getInstance().PT_NetworkVertexMap[itEdge->getStartStop()].getStopType() == 0)
 			{
 				simMobilityNodeCount++;
 			}
-			if (sim_mob::PT_Network::getInstance().PT_NetworkVertexMap[itEdge->getEndStop()].getStopType() == 0)
+			if (sim_mob::PT_NetworkCreater::getInstance().PT_NetworkVertexMap[itEdge->getEndStop()].getStopType() == 0)
 			{
 				simMobilityNodeCount++;
 			}

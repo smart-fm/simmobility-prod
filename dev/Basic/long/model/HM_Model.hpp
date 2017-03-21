@@ -52,6 +52,8 @@
 #include "database/entity/HouseholdUnit.hpp"
 #include "database/entity/IndvidualEmpSec.hpp"
 #include "database/entity/LtVersion.hpp"
+#include "database/entity/BuildingMatch.hpp"
+#include "database/entity/SlaBuilding.hpp"
 #include "core/HousingMarket.hpp"
 #include "boost/unordered_map.hpp"
 #include "DeveloperModel.hpp"
@@ -141,7 +143,6 @@ namespace sim_mob
             typedef std::vector<HitsIndividualLogsum*> HitsIndividualLogsumList;
             typedef boost::unordered_map<BigSerial, HitsIndividualLogsum*> HitsIndividualLogsumMap;
 
-
             typedef std::vector<IndvidualVehicleOwnershipLogsum*> IndvidualVehicleOwnershipLogsumList;
             typedef boost::unordered_map<BigSerial, IndvidualVehicleOwnershipLogsum*> IndvidualVehicleOwnershipLogsumMap;
 
@@ -194,6 +195,12 @@ namespace sim_mob
 
             typedef std::vector<WorkersGrpByLogsumParams*> WorkersGrpByLogsumParamsList;
             typedef boost::unordered_map<BigSerial, WorkersGrpByLogsumParams*> WorkersGrpByLogsumParamsMap;
+
+            typedef std::vector<BuildingMatch*> BuildingMatchList;
+            typedef boost::unordered_map<BigSerial, BuildingMatch*> BuildingMatchMap;
+
+            typedef std::vector<SlaBuilding*> SlaBuildingList;
+            typedef boost::unordered_map<string, SlaBuilding*> SlaBuildingMap;
 
             /**
              * Taz statistics
@@ -280,7 +287,9 @@ namespace sim_mob
              */
             Unit* getUnitById(BigSerial id) const;
             BigSerial getUnitTazId(BigSerial unitId) const;
+            BigSerial getUnitSlaAddressId(BigSerial unitId) const;
             BigSerial getEstablishmentTazId(BigSerial establishmentId) const;
+            BigSerial getEstablishmentSlaAddressId(BigSerial establishmentId) const;
             const TazStats* getTazStats(BigSerial tazId) const;
             const TazStats* getTazStatsByUnitId(BigSerial unitId) const;
 
@@ -584,7 +593,7 @@ namespace sim_mob
             IndvidualVehicleOwnershipLogsumList IndvidualVehicleOwnershipLogsums;
             IndvidualVehicleOwnershipLogsumMap IndvidualVehicleOwnershipLogsumById;
 
-            AlternativeHedonicPriceList alternativeHedonicPrice;
+            AlternativeHedonicPriceList alternativeHedonicPrices;
             AlternativeHedonicPriceMap alternativeHedonicPriceById;
 
             ScreeningModelCoefficientsList screeningModelCoefficientsList;
@@ -610,6 +619,7 @@ namespace sim_mob
             PreSchoolList preSchools;
             PreSchoolMap preSchoolById;
             bool resume ;
+            bool initialLoading;
             IndvidualEmpSecList indEmpSecList;
             IndvidualEmpSecMap indEmpSecbyIndId;
 
@@ -619,8 +629,11 @@ namespace sim_mob
             WorkersGrpByLogsumParamsList workersGrpByLogsumParams;
 			WorkersGrpByLogsumParamsMap workersGrpByLogsumParamsById;
 
+			BuildingMatchList buildingMatch;
+			BuildingMatchMap  buildingMatchById;
 
-
+			SlaBuildingList slaBuilding;
+			SlaBuildingMap	slaBuildingById;
         };
     }
 }

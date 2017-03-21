@@ -20,7 +20,7 @@ namespace sim_mob
 		//award_date,award_status,use_restriction,development_type_code,successful_tender_id,successful_tender_price,tender_closing_date,lease,status,developmentAllowed,nextAvailableDate
 		const std::string LOG_PARCEL = "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%, %11%, %12%, %13%, %14%, %15%, %16%, %17%, %18%, %19%, %20%, %21%, %22%, %23%, %24%,%25%, %26%, %27%";
 
-		const std::string LOG_UNIT = "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%, %11%, %12%, %13%, %14%, %15%, %16%, %17%, %18%";
+		const std::string LOG_UNIT = "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%, %11%, %12%, %13%, %14%, %15%, %16%, %17%";
 
 		//projectId,parcelId,developerId,templateId,projectName,constructionDate,completionDate,constructionCost,demolitionCost,totalCost,fmLotSize,grossRatio,grossArea
 		const std::string LOG_PROJECT = "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%, %11%, %12%, %13%";
@@ -60,7 +60,7 @@ namespace sim_mob
 			if(!config.ltParams.outputFiles.units)
 				return;
 
-			boost::format fmtr = boost::format(LOG_UNIT) % unit.getId() % unit.getBuildingId() % unit.getSlaAddressId() % unit.getUnitType() % unit.getStoreyRange() % unit.getConstructionStatus() % unit.getFloorArea() % unit.getStorey() % unit.getMonthlyRent()
+			boost::format fmtr = boost::format(LOG_UNIT) % unit.getId() % unit.getBuildingId() % unit.getUnitType() % unit.getStoreyRange() % unit.getConstructionStatus() % unit.getFloorArea() % unit.getStorey() % unit.getMonthlyRent()
 					% unit.getSaleFromDate().tm_year % unit.getOccupancyFromDate().tm_year % unit.getSaleStatus() % unit.getOccupancyStatus() % unit.getLastChangedDate().tm_year % unitProfit % parcelId % demolitionCost % quarter;
 			AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::UNITS,fmtr.str());
 
@@ -181,11 +181,11 @@ namespace sim_mob
 			if(printHeader)
 			{
 				printHeader = false;
-				AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_HH_AWAKENING,"awakening_day, householdId, TimeOnMarket");
+				AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_HH_AWAKENING,"awakening_day, householdId, TimeOnMarket, ageCategory, tenureStatus");
 			}
 
 			//day household_id timeOnMarket
-			boost::format fmtr = boost::format("%1%, %2%, %3%") % (day + 1) % household->getId() % household->getTimeOnMarket();
+			boost::format fmtr = boost::format("%1%, %2%, %3%, %4%, %5%") % (day + 1) % household->getId() % household->getTimeOnMarket() % household->getAgeOfHead() % household->getTenureStatus();
 			AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_HH_AWAKENING, fmtr.str());
 
 		}
@@ -562,13 +562,13 @@ namespace sim_mob
 	    	const Unit* unit  = model->getUnitById(bid.getNewUnitId());
 	        double floor_area = unit->getFloorArea();
 	        BigSerial type_id = unit->getUnitType();
-	        int UnitslaId = unit->getSlaAddressId();
+	        int UnitslaId = model->getUnitSlaAddressId( unit->getId() );
 	        Postcode *unitPostcode = model->getPostcodeById(UnitslaId);
 
 
 	        Household *thisBidder = model->getHouseholdById(bid.getBidderId());
 	        const Unit* currentHHUnit = model->getUnitById(thisBidder->getUnitId());
-	        Postcode* thisPostcode = model->getPostcodeById( currentHHUnit->getSlaAddressId() );
+	        Postcode* thisPostcode = model->getPostcodeById( model->getUnitSlaAddressId( currentHHUnit->getId() ) );
 
 	        boost::gregorian::date saleFromDate 	 = boost::gregorian::date_from_tm(unit->getSaleFromDate());
 	        boost::gregorian::date occupancyFromDate = boost::gregorian::date_from_tm(unit->getOccupancyFromDate());
@@ -728,6 +728,24 @@ namespace sim_mob
 
 	    	boost::format fmtr = boost::format("%1%, %2%, %3%, %4%, %5%") % sellerId % unitId % entryday % timeOnMarket % timeOffMarket;
 	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::UNITS_IN_MARKET,fmtr.str());
+	    }
+
+	    inline void writeNonEligibleParcelsToFile(BigSerial parcelId, std::string reason)
+	    {
+	    	boost::format fmtr = boost::format("%1%, %2%") % parcelId % reason;
+	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_NON_ELIGIBLE_PARCELS,fmtr.str());
+	    }
+
+	    inline void writeEligibleParcelsToFile(BigSerial parcelId, int newDevelopment)
+	    {
+	    	boost::format fmtr = boost::format("%1%, %2%") % parcelId % newDevelopment;
+	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ELIGIBLE_PARCELS,fmtr.str());
+	    }
+
+	    inline void writeGPRToFile(double parcelId, double parcelGPR, double actualGPR, double gap)
+	    {
+	    	boost::format fmtr = boost::format("%1%, %2%, %3%, %4%") % parcelId % parcelGPR % actualGPR % gap;
+	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_GPR,fmtr.str());
 	    }
 
 	    inline void printError( string error )

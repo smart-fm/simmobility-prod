@@ -77,7 +77,6 @@ sim_mob::Worker::Worker(WorkGroup* parent, std::ostream* logFile,  FlexiBarrier*
 	srand(std::time(0));
 }
 
-
 sim_mob::Worker::~Worker()
 {
 	//Clear all tracked entitites
@@ -285,9 +284,10 @@ void sim_mob::Worker::perform_frame_tick()
 
 	//Add Agents as required.
 	addPendingEntities();
-        
+
 	//Perform all our Agent updates, etc.
 	update_entities(timeslice(par.currTick, par.currTick*par.msPerFrame));
+
 
 	//Remove Agents as requires
 	removePendingEntities();
@@ -421,39 +421,40 @@ struct EntityUpdater
 	virtual void operator()(sim_mob::Entity* entity)
 	{
 		UpdateStatus res = entity->update(currTime);
+
 		if (ConfigManager::GetInstance().FullConfig().isWorkerPublisherEnabled())
 		{
 			Worker::GetUpdatePublisher().publish(event::EVT_CORE_AGENT_UPDATED, (void*) event::CXT_CORE_AGENT_UPDATE, UpdateEventArgs(entity));
 		}
 		switch(res.status)
 		{
-		case UpdateStatus::RS_DONE:
-		{
-			//This Entity is done; schedule for deletion.
-			wrk.scheduleForRemoval(entity);
-			break;
-		}
-		case UpdateStatus::RS_CONTINUE:
-		{
-			//Still going, but we may have properties to start/stop managing
-			for (set<BufferedBase*>::iterator it = res.toRemove.begin(); it != res.toRemove.end(); it++)
+			case UpdateStatus::RS_DONE:
 			{
-				wrk.stopManaging(*it);
+				//This Entity is done; schedule for deletion.
+				wrk.scheduleForRemoval(entity);
+				break;
 			}
-			for (set<BufferedBase*>::iterator it = res.toAdd.begin(); it != res.toAdd.end(); it++)
+			case UpdateStatus::RS_CONTINUE:
 			{
-				wrk.beginManaging(*it);
+				//Still going, but we may have properties to start/stop managing
+				for (set<BufferedBase*>::iterator it = res.toRemove.begin(); it != res.toRemove.end(); it++)
+				{
+					wrk.stopManaging(*it);
+				}
+				for (set<BufferedBase*>::iterator it = res.toAdd.begin(); it != res.toAdd.end(); it++)
+				{
+					wrk.beginManaging(*it);
+				}
+				break;
 			}
-			break;
-		}
-		case UpdateStatus::RS_CONTINUE_INCOMPLETE:
-		{
-			break;
-		}
-		default:
-		{
-			throw std::runtime_error("Unknown/unexpected update() return status.");
-		}
+			case UpdateStatus::RS_CONTINUE_INCOMPLETE:
+			{
+				break;
+			}
+			default:
+			{
+				throw std::runtime_error("Unknown/unexpected update() return status.");
+			}
 		}
 	}
 };

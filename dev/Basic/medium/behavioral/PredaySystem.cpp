@@ -1647,6 +1647,7 @@ void sim_mob::medium::PredaySystem::computeLogsumsForLT(std::stringstream& outSt
 			<< "\n";
 }
 
+
 void sim_mob::medium::PredaySystem::outputActivityScheduleToStream(const ZoneNodeMap& zoneNodeMap, std::stringstream& outStream)
 {
 	size_t numTours = tours.size();

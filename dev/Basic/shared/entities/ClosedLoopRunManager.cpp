@@ -18,6 +18,7 @@
 
 #include "conf/ConfigParams.hpp"
 #include "entities/TravelTimeManager.hpp"
+#include "logging/Log.hpp"
 
 using namespace std;
 using namespace sim_mob;
@@ -80,6 +81,8 @@ void ClosedLoopRunManager::readGuidanceFile(const string &file, bool isGuidanceD
 
 	if(filePtr)
 	{
+		Print() << "Guidance file found!\n";
+
 		unsigned int startTime = 0, numPeriods = 0, secsPerPeriod = 0;
 		unsigned int linkId = 0, downstreamLink = 0;
 		double *travelTimes = nullptr;
@@ -208,6 +211,8 @@ void ClosedLoopRunManager::waitForDynaMIT(const ConfigParams &config)
 	{
 		ClosedLoopRunManager &guidanceMgr = getInstance(CLOSED_LOOP_GUIDANCE);
 
+		Print() << "Waiting for guidance file...\n";
+
 		//Keep testing till file is ready
 		while(guidanceMgr.checkRunStatus());
 
@@ -216,12 +221,9 @@ void ClosedLoopRunManager::waitForDynaMIT(const ConfigParams &config)
 		//Read the guidance file & update travel times
 		guidanceMgr.readGuidanceFile(guidanceMgr.getFileName(), config.simulation.closedLoop.isGuidanceDirectional);
 
-		//if (isSpFlag(INFO_FLAG_UPDATE_PATHS))
-		//{
-		//	tsNetwork->guidedVehiclesUpdatePaths();
-		//}
-
 		guidanceMgr.removeFileLock();
+
+		Print() << "Predicted travel times updated\n";
 	}
 
 	if(!config.simulation.closedLoop.tollFile.empty())

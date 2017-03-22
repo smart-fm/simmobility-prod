@@ -154,7 +154,7 @@ void BusControllerMT::assignBusTripChainWithPerson(std::set<Entity*>& activeAgen
 		const TaxiFleetManager::TaxiFleet& taxi = fleetItems.top();
 
 		Person_MT* person = new Person_MT("TaxiController", config.mutexStategy(), -1);
-		person->setVehicleNo(taxi.vehicleNo);
+		person->setTaxiFleet(fleetItems);
 		person->setDatabaseId(taxi.driverId);
 		person->setPersonCharacteristics();
 

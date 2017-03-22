@@ -51,7 +51,9 @@ enum DriverMode
 	CRUISE,
 	DRIVE_TO_TAXISTAND,
 	DRIVE_WITH_PASSENGER,
-	QUEUING_AT_TAXISTAND
+	DRIVE_FOR_DRIVER_CHANGE_SHIFT,
+	QUEUING_AT_TAXISTAND,
+	DRIVER_IN_BREAK
 };
 
 class Driver : public sim_mob::Role<Person_MT>, public UpdateWrapper<DriverUpdateParams>

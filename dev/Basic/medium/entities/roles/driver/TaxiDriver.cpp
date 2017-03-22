@@ -125,12 +125,12 @@ void TaxiDriver::pickUpPassngerAtNode(Conflux *parentConflux)
 				bool isAdded = addPassenger(passenger);
 				if (isAdded)
 				{
-					taxiDriverMovement->setDestinationNode(personDestinationNode);
-					taxiDriverMovement->setCurrentNode(currentNode);
-					taxiDriverMovement->addRouteChoicePath(currentRouteChoice);
 					const Lane * currentLane = taxiDriverMovement->getCurrentlane();
 					const Link* currentLink = currentLane->getParentSegment()->getParentLink();
 					currentRouteChoice.insert(currentRouteChoice.begin(), WayPoint(currentLink));
+					taxiDriverMovement->setDestinationNode(personDestinationNode);
+					taxiDriverMovement->setCurrentNode(currentNode);;
+					taxiDriverMovement->addRouteChoicePath(currentRouteChoice);
 					//passenger->setService(currentRouteChoice);
 					passenger->setStartPoint(WayPoint(taxiDriverMovement->getCurrentNode()));
 					passenger->setEndPoint(WayPoint(taxiDriverMovement->getDestinationNode()));
@@ -138,7 +138,7 @@ void TaxiDriver::pickUpPassngerAtNode(Conflux *parentConflux)
 					printf("Person picked up at (%f, %f)\n", parentConflux->getConfluxNode()->getPosX(), parentConflux->getConfluxNode()->getPosY());
 				}
 			}
-			else
+			/*else
 			{
 				sim_mob::BasicLogger& ptMoveLogger = sim_mob::Logger::log("nopathAfterPickupInCruising.csv");
 				const SegmentStats* currentStats = taxiDriverMovement->getMesoPathMover().getCurrSegStats();
@@ -150,7 +150,7 @@ void TaxiDriver::pickUpPassngerAtNode(Conflux *parentConflux)
 					ptMoveLogger << taxiDriverMovement->getCurrentNode()->getNodeId()<<",";
 					ptMoveLogger << personDestinationNode->getNodeId()<<std::endl;
 				}
-			}
+			}*/
 		}
 	}
 }

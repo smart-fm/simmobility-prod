@@ -1297,7 +1297,6 @@ Person_MT* SegmentStats::dequeue(const Person_MT* person, const Lane* lane, bool
 	else
 	{
 		printAgents();
-		std::cout<<person->routeStr.str();
 		std::stringstream debugMsgs;
 		debugMsgs << "Error: Person " << person->getDatabaseId() << " (" << person->getRole()->getRoleName() << ")"
 				<< " was not found in lane " << lane->getLaneId() << std::endl;

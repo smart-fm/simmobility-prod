@@ -45,10 +45,8 @@ private:
 	double cruisingTooLongTime = 0.0;
 	double queuingTooLongTime = 0.0;
 	Link* selectedNextLinkInCrusing = nullptr;
-
+	std::queue<TaxiFleetManager::TaxiFleet> taxiFleets;
 private:
-	void driveToDestinationNode(Node * destinationNode);
-	void addTaxiStandPath(std::vector<WayPoint> &routeToTaxiStand);
 	void assignFirstNode();
 	void setCruisingMode();
 	void driveToTaxiStand();
@@ -56,8 +54,9 @@ private:
 	void setDestinationNode(Node *destinationNode);
 	const Lane* getBestTargetLane(const SegmentStats* nextSegStats,const SegmentStats* nextToNextSegStats);
 	bool moveToNextSegment(DriverUpdateParams& params);
-	void selectNextNodeAndLinksWhileCruising();
+	void selectNextLinkWhileCruising();
 	void addCruisingPath(const Link* selectedLink);
+	bool checkNextFleet();
 };
 
 class TaxiDriverBehavior: public DriverBehavior

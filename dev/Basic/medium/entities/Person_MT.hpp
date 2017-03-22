@@ -12,6 +12,7 @@
 #include "geospatial/network/Link.hpp"
 #include "entities/roles/Role.hpp"
 #include "buffering/BufferedDataManager.hpp"
+#include "TaxiFleetManager.hpp"
 #include <boost/algorithm/string.hpp>
 namespace sim_mob
 {
@@ -50,7 +51,7 @@ private:
 	Conflux * currentConflux;
 
 	/**store vehicle no*/
-	std::string vehicleNo;
+	TaxiFleetManager::FleetTimePriorityQueue taxiFleets;
 
 	/**Alters trip chain in accordance to route choice for public transit trips*/
 	void convertPublicTransitODsToTrips();
@@ -91,8 +92,6 @@ public:
 	double beforeUpdateDistoSegEnd = -1;
 	double latestUpdatedFrameTick=-1;
 	double beforeUpdateSpeed = -1;
-
-	std::stringstream routeStr;
 
 	enum Permission //to be renamed later
 	{
@@ -226,15 +225,16 @@ public:
 		this->personInfo = personInfo;
 	}
 
-	void setVehicleNo(const std::string& vehicleNo)
+	void setTaxiFleet(const TaxiFleetManager::FleetTimePriorityQueue& fleets)
 	{
-		this->vehicleNo = vehicleNo;
+		taxiFleets = fleets;
 	}
 
-	std::string getVehicleNo() const
+	auto& getTaxiFleet()
 	{
-		return vehicleNo;
+		return taxiFleets;
 	}
+
 };
 } // namespace medium
 } //namespace sim_mob

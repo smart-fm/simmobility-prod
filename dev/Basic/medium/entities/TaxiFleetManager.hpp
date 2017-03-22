@@ -21,8 +21,9 @@ public:
 	{
 		std::string vehicleNo;
 		std::string driverId;
-		double startTime;
-		const Node* startNode;
+		double startTime = 0;
+		double endTime= 0;
+		const Node* startNode = nullptr;
 	};
 
 	struct cmp_fleet_start: public std::less<TaxiFleet>

@@ -38,7 +38,15 @@ void TaxiDriverMovement::frame_init()
 	parentTaxiDriver->driverMode = CRUISE;
 	parentDriver->driverMode = CRUISE;
 	assignFirstNode();
-	selectNextNodeAndLinksWhileCruising();
+	selectNextLinkWhileCruising();
+	TaxiFleetManager::FleetTimePriorityQueue& fleets = parentTaxiDriver->parent->getTaxiFleet();
+	fleets.pop();
+	while(fleets.size()>0)
+	{
+		TaxiFleetManager::TaxiFleet fleet = fleets.top();
+		fleets.pop();
+		taxiFleets.push(fleet);
+	}
 }
 
 void TaxiDriverMovement::setParentTaxiDriver(TaxiDriver * taxiDriver)
@@ -131,33 +139,6 @@ bool TaxiDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 	const SegmentStats* nxtSegStat = pathMover.getNextSegStats(false);
 	bool res = false;
 
-	/*sim_mob::BasicLogger& ptMoveLogger = sim_mob::Logger::log("DriversMovePath.csv");
-	ptMoveLogger<<parentTaxiDriver->parent->getDatabaseId()<<","<<currSegStat->getRoadSegment()->getRoadSegmentId()<<"-"<<currSegStat->getStatsNumberInSegment()<<","<<currSegStat->getRoadSegment()->getLinkId();
-	if(nxtSegStat){
-		ptMoveLogger<<","<<nxtSegStat->getRoadSegment()->getRoadSegmentId()<<"-"<<nxtSegStat->getStatsNumberInSegment()<<","<<nxtSegStat->getRoadSegment()->getLinkId()<<",";
-	} else {
-		ptMoveLogger<<","<<"0"<<","<<"0"<<",";
-	}
-	ptMoveLogger<<parentTaxiDriver->parent->distanceToEndOfSegment<<",";
-	ptMoveLogger<<DailyTime(params.now.ms()).getStrRepr()<<","<<parentTaxiDriver->getDriverMode()<<","<<parentTaxiDriver->taxiPassenger<<std::endl;*/
-
-	/*parentTaxiDriver->parent->routeStr<<parentTaxiDriver->parent->getDatabaseId()<<",";
-	parentTaxiDriver->parent->routeStr<<DailyTime(params.now.ms()).getStrRepr()<<",";
-	parentTaxiDriver->parent->routeStr<<currSegStat->getRoadSegment()->getRoadSegmentId()<<"-"<<currSegStat->getStatsNumberInSegment()<<",";
-	parentTaxiDriver->parent->routeStr<<currSegStat->getRoadSegment()->getLinkId()<<",";
-	parentTaxiDriver->parent->routeStr<<"before nodes"<<",";
-	if(this->currentNode)
-		parentTaxiDriver->parent->routeStr<<this->currentNode->getNodeId()<<",";
-	else
-		parentTaxiDriver->parent->routeStr<<"0"<<",";
-	if(this->destinationNode)
-		parentTaxiDriver->parent->routeStr<<this->destinationNode->getNodeId()<<",";
-	else
-		parentTaxiDriver->parent->routeStr<<"0"<<",";
-
-	parentTaxiDriver->parent->routeStr<<"before conflux,"<<currSegStat->getParentConflux()->getConfluxNode()->getNodeId()<<","<<parentTaxiDriver->getDriverMode()<<std::endl;
-	*/
-
 	if (parentTaxiDriver->getDriverMode() == DRIVE_TO_TAXISTAND)
 	{
 		const SegmentStats* currSegStat = pathMover.getCurrSegStats();
@@ -212,7 +193,7 @@ bool TaxiDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 			parentTaxiDriver->pickUpPassngerAtNode(parentConflux);
 			if (parentTaxiDriver->getPassenger() == nullptr)
 			{
-				selectNextNodeAndLinksWhileCruising();
+				selectNextLinkWhileCruising();
 			}
 		}
 	}
@@ -220,28 +201,46 @@ bool TaxiDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 	{
 		parentTaxiDriver->alightPassenger();
 		parentTaxiDriver->taxiDriverMode = CRUISE;
-		selectNextNodeAndLinksWhileCruising();
+		selectNextLinkWhileCruising();
+	}
+	else if ( parentTaxiDriver->getDriverMode() == DRIVE_FOR_DRIVER_CHANGE_SHIFT && pathMover.isEndOfPath())
+	{
+		setCruisingMode();
 	}
 
 	res = DriverMovement::moveToNextSegment(params);
 
-	/*parentTaxiDriver->parent->routeStr<<parentTaxiDriver->parent->getDatabaseId()<<",";
-	parentTaxiDriver->parent->routeStr<<DailyTime(params.now.ms()).getStrRepr()<<",";
-	parentTaxiDriver->parent->routeStr<<currSegStat->getRoadSegment()->getRoadSegmentId()<<"-"<<currSegStat->getStatsNumberInSegment()<<",";
-	parentTaxiDriver->parent->routeStr<<currSegStat->getRoadSegment()->getLinkId()<<",";
-	parentTaxiDriver->parent->routeStr<<"after nodes"<<",";
-	if(this->currentNode)
-		parentTaxiDriver->parent->routeStr<<this->currentNode->getNodeId()<<",";
-	else
-		parentTaxiDriver->parent->routeStr<<"0"<<",";
-	if(this->destinationNode)
-		parentTaxiDriver->parent->routeStr<<this->destinationNode->getNodeId()<<",";
-	else
-		parentTaxiDriver->parent->routeStr<<"0"<<",";
+	return res;
+}
 
-	parentTaxiDriver->parent->routeStr<<"after conflux,"<<currSegStat->getParentConflux()->getConfluxNode()->getNodeId()<<","<<parentTaxiDriver->getDriverMode()<<std::endl;
-	*/
-
+bool TaxiDriverMovement::checkNextFleet()
+{
+	bool res = false;
+	DriverUpdateParams& params = parentTaxiDriver->getParams();
+	if(taxiFleets.size()>0)
+	{
+		TaxiFleetManager::TaxiFleet fleet = taxiFleets.front();
+		if(fleet.startTime<params.now.ms()/1000.0)
+		{
+			const Link* link = this->currLane->getParentSegment()->getParentLink();
+			SubTrip currSubTrip;
+			currSubTrip.origin = WayPoint(link->getFromNode());
+			currSubTrip.destination = WayPoint(fleet.startNode);
+			std::vector<WayPoint> currentRouteChoice = PrivateTrafficRouteChoice::getInstance()->getPath(currSubTrip, false, link, parentTaxiDriver->parent->usesInSimulationTravelTime());
+			if(currentRouteChoice.size()>0)
+			{
+				res = true;
+				taxiFleets.pop();
+				currentNode = link->getFromNode();
+				destinationNode = fleet.startNode;
+				setCurrentNode(currentNode);
+				setDestinationNode(destinationNode);
+				addRouteChoicePath(currentRouteChoice);
+				parentTaxiDriver->parent->setDatabaseId(fleet.driverId);
+				parentTaxiDriver->setTaxiDriveMode(DRIVE_FOR_DRIVER_CHANGE_SHIFT);
+			}
+		}
+	}
 	return res;
 }
 
@@ -323,7 +322,7 @@ void TaxiDriverMovement::frame_tick()
 									destinationNode = personDestinationNode;
 									setCurrentNode(currentNode);
 									setDestinationNode(destinationNode);
-									addTaxiStandPath(currentRouteChoice);
+									addRouteChoicePath(currentRouteChoice);
 									passenger->setStartPoint(WayPoint(destinationTaxiStand));
 									passenger->setEndPoint(WayPoint(destinationNode));
 									//passenger->setService(currentRouteChoice);
@@ -335,7 +334,7 @@ void TaxiDriverMovement::frame_tick()
 									isQueuingTaxiStand = false;
 								}
 							}
-							else
+							/*else
 							{
 								sim_mob::BasicLogger& ptMoveLogger = sim_mob::Logger::log("nopathAfterPickupInStand.csv");
 								ptMoveLogger << passenger->getParent()->getDatabaseId()<<",";
@@ -343,7 +342,7 @@ void TaxiDriverMovement::frame_tick()
 								ptMoveLogger << destinationTaxiStand->getRoadSegmentId()<<",";
 								ptMoveLogger << link->getFromNode()->getNodeId()<<",";
 								ptMoveLogger << personDestinationNode->getNodeId()<<std::endl;
-							}
+							}*/
 						}
 					}
 				}
@@ -359,7 +358,7 @@ void TaxiDriverMovement::frame_tick()
 		params.elapsedSeconds = params.secondsInTick;
 		parentTaxiDriver->parent->setRemainingTimeThisTick(0.0);
 	}
-	else if (mode == CRUISE || mode == DRIVE_WITH_PASSENGER || mode == DRIVE_TO_TAXISTAND)
+	else if (mode == CRUISE || mode == DRIVE_WITH_PASSENGER || mode == DRIVE_TO_TAXISTAND || mode == DRIVE_FOR_DRIVER_CHANGE_SHIFT)
 	{
 		DriverMovement::frame_tick();
 	}
@@ -410,8 +409,13 @@ TaxiDriver* TaxiDriverMovement::getParentDriver()
 {
 	return parentTaxiDriver;
 }
-void TaxiDriverMovement::selectNextNodeAndLinksWhileCruising()
+void TaxiDriverMovement::selectNextLinkWhileCruising()
 {
+	if(checkNextFleet())
+	{
+		return;
+	}
+
 	if (!currentNode)
 	{
 		currentNode = originNode;
@@ -534,7 +538,7 @@ void TaxiDriverMovement::selectNextNodeAndLinksWhileCruising()
 		addCruisingPath(selectedNextLinkInCrusing);
 	}
 
-	if(!selectedNextLinkInCrusing){
+	/*if(!selectedNextLinkInCrusing){
 		sim_mob::BasicLogger& ptMoveLogger = sim_mob::Logger::log("nopathInCruising.csv");
 		const SegmentStats* currentStats = getMesoPathMover().getCurrSegStats();
 		if(currentStats){
@@ -543,53 +547,7 @@ void TaxiDriverMovement::selectNextNodeAndLinksWhileCruising()
 			ptMoveLogger << currentStats->getRoadSegment()->getRoadSegmentId()<<",";
 			ptMoveLogger << currentNode->getNodeId()<<std::endl;
 		}
-	}
-}
-
-void TaxiDriverMovement::addRouteChoicePath(std::vector<WayPoint> &currentRouteChoice)
-{
-	std::vector<const SegmentStats*> path = getMesoPathMover().getPath();
-	if (!isPathInitialized)
-	{
-		path.erase(path.begin(), path.end());
-	}
-	else
-	{
-		if (path.size() > 0)
-		{
-			path.erase(path.begin(), path.end() - 1);
-		}
-	}
-	for (std::vector<WayPoint>::const_iterator itr = currentRouteChoice.begin();itr != currentRouteChoice.end(); itr++)
-	{
-		if((*itr).type==WayPoint::LINK){
-			const Link *link = (*itr).link;
-			Node *toNode = link->getToNode();
-			Conflux *nodeConflux = Conflux::getConfluxFromNode(toNode);
-			const std::vector<RoadSegment*>& roadSegments = link->getRoadSegments();
-			for (std::vector<RoadSegment*>::const_iterator segItr =	roadSegments.begin(); segItr != roadSegments.end(); segItr++)
-			{
-				const std::vector<SegmentStats*>& segStatsVector = nodeConflux->findSegStats(*segItr);
-				path.insert(path.end(), segStatsVector.begin(),	segStatsVector.end());
-			}
-		}
-	}
-
-	if (!isPathInitialized)
-	{
-		const SegmentStats* firstSegStat = path.front();
-		pathMover.setPath(path);
-		parentTaxiDriver->parent->setCurrSegStats(firstSegStat);
-		parentTaxiDriver->parent->setCurrLane(firstSegStat->laneInfinity);
-		parentTaxiDriver->parent->distanceToEndOfSegment =firstSegStat->getLength();
-		isPathInitialized = true;
-	}
-	else
-	{
-		const SegmentStats* currSegStats = pathMover.getCurrSegStats();
-		pathMover.setPath(path);
-		pathMover.setSegmentStatIterator(currSegStats);
-	}
+	}*/
 }
 
 void TaxiDriverMovement::setCruisingMode()
@@ -599,7 +557,7 @@ void TaxiDriverMovement::setCruisingMode()
 	parentTaxiDriver->taxiDriverMode = CRUISE;
 	parentDriver->driverMode = CRUISE;
 	if(pathMover.isEndOfPath()){
-		selectNextNodeAndLinksWhileCruising();
+		selectNextLinkWhileCruising();
 	}
 }
 
@@ -627,11 +585,11 @@ void TaxiDriverMovement::driveToTaxiStand()
 		queuingTooLongTime = 0.0;
 		parentTaxiDriver->setTaxiDriveMode(DRIVE_TO_TAXISTAND);
 		destinationNode = destForRouteChoice;
-		addTaxiStandPath(routeToTaxiStand);
+		addRouteChoicePath(routeToTaxiStand);
 	}
 }
 
-void TaxiDriverMovement::addTaxiStandPath(vector<WayPoint> &routeToTaxiStand)
+void TaxiDriverMovement::addRouteChoicePath(vector<WayPoint> &routeToTaxiStand)
 {
 	const SegmentStats* currSegStat = pathMover.getCurrSegStats();
 	std::vector<const SegmentStats*> path;

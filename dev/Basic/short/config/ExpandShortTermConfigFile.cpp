@@ -104,7 +104,7 @@ Trip* MakePseudoTrip(unsigned int personId, const Node *origin, const Node *dest
 		res->setPersonID(personId);
 		res->itemType = TripChainItem::getItemType("Trip");
 		res->sequenceNumber = 1;
-		res->startTime = DailyTime(startTimeMS);
+		res->startTime = DailyTime(startTimeMS + ConfigManager::GetInstance().FullConfig().simStartTime().getValue());
 		res->endTime = res->startTime; //No estimated end time.
 		res->tripID = "";
 		res->origin = WayPoint(origin);

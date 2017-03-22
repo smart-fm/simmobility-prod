@@ -19,6 +19,7 @@
 #include "entities/TaxiStandAgent.hpp"
 #include "entities/roles/driver/TaxiDriverFacets.hpp"
 #include "entities/roles/driver/TaxiDriver.hpp"
+#include "entities/VehicleController.hpp"
 
 using std::string;
 using namespace sim_mob;
@@ -154,6 +155,8 @@ void SegmentStats::updateBusStopAgents(timeslice now)
 	{
 		(*it)->update(now);
 	}
+
+	VehicleController::GetInstance()->update(now);
 }
 
 void SegmentStats::addAgent(const Lane* lane, Person_MT* p)
@@ -1399,3 +1402,4 @@ bool SegmentStats::isShortSegment() const
 {
 	return (length < SHORT_SEGMENT_LENGTH_LIMIT);
 }
+

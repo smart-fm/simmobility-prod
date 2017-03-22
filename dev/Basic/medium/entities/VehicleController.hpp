@@ -9,26 +9,17 @@
 #define VehicleController_HPP_
 #include <map>
 #include <vector>
+#include <mutex>
 
 #include "entities/Agent.hpp"
 #include "entities/roles/driver/TaxiDriverFacets.hpp"
 #include "entities/roles/driver/TaxiDriver.hpp"
+#include "message/Message.hpp"
 
 namespace sim_mob
 {
 namespace medium
 {
-
-struct Request
-{
-	const sim_mob::Node* startNode;
-	const sim_mob::Node* destinationNode;
-};
-
-struct Response
-{
-	bool success;
-};
 
 class VehicleController: public sim_mob::Agent {
 protected:
@@ -74,15 +65,6 @@ public:
 	 */
 	void removeTaxiDriver(Person_MT* person);
 
-	// TODO: Create a list of requests?
-
-	/**
-	 * [assignVehicleToRequest description]
-	 * @param  request [description]
-	 * @return         [description]
-	 */
-	virtual Response assignVehicleToRequest(Request request);
-
 	/**
 	 * Signals are non-spatial in nature.
 	 */
@@ -104,11 +86,21 @@ protected:
 	 */
 	virtual void frame_output(timeslice now);
 
+    virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
+
+	/**
+	 * [assignVehicleToRequest description]
+	 * @param  request [description]
+	 * @return         [description]
+	 */
+	virtual void assignVehicleToRequest(VehicleRequestMessage request);
+
 private:
 	/**store driver information*/
 	std::vector<Person_MT*> taxiDrivers;
 	/**store self instance*/
 	static VehicleController* instance;
+	std::mutex mtx;
 };
 }
 }

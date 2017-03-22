@@ -27,7 +27,10 @@ enum ConfluxMessage
 	MSG_WARN_INCIDENT,
 	MSG_PERSON_LOAD,
 	MSG_PERSON_TRANSFER,
-	MSG_TRAVELER_TRANSFER
+	MSG_TRAVELER_TRANSFER,
+	// Vehicle Controller Messages
+	MSG_VEHICLE_REQUEST,
+	MSG_VEHICLE_ASSIGNMENT
 };
 
 enum PublicTransitMessage
@@ -127,5 +130,44 @@ public:
 	Person_MT* waitingPerson;
 };
 
+/**
+ * Message to request a vehicle
+ */
+class VehicleRequestMessage: public messaging::Message
+{
+public:
+	VehicleRequestMessage(Person_MT* p, const Node* sn, const Node* dn) :
+			person(p), startNode(sn), destinationNode(dn)
+	{
+	}
+
+	virtual ~VehicleRequestMessage()
+	{
+	}
+
+	Person_MT* person;
+	const Node* startNode;
+	const Node* destinationNode;
+};
+
+/**
+ * Message to assign a vehicle to a passenger
+ */
+class VehicleAssignmentMessage: public messaging::Message
+{
+public:
+	VehicleAssignmentMessage(Person_MT* person) :
+			driver(person)
+	{
+	}
+
+	virtual ~VehicleAssignmentMessage()
+	{
+	}
+
+	Person_MT* driver;
+};
+
 }
 }
+

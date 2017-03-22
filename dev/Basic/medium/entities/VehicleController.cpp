@@ -13,6 +13,7 @@
 #include "util/Utils.hpp"
 #include <iostream>
 #include <boost/date_time.hpp>
+#include "../shared/message/MessageBus.hpp"
 
 namespace bt = boost::posix_time;
 namespace sim_mob
@@ -61,9 +62,7 @@ void VehicleController::removeTaxiDriver(Person_MT* person)
 }
 
 
-Response VehicleController::assignVehicleToRequest(Request request) {
-	Response response = {false};
-
+void VehicleController::assignVehicleToRequest(VehicleRequestMessage request) {
 	printf("Request made from (%f, %f)\n", request.startNode->getPosX(),
 		request.startNode->getPosY());
 
@@ -77,8 +76,7 @@ Response VehicleController::assignVehicleToRequest(Request request) {
 	{
 		if ((*person)->getRole())
 		{
-			TaxiDriver* curr_driver = dynamic_cast<TaxiDriver*>((*person)
-				->getRole());
+			TaxiDriver* curr_driver = dynamic_cast<TaxiDriver*>((*person)->getRole());
 			if (curr_driver)
 			{
 				if (curr_driver->getDriverMode() != CRUISE)
@@ -129,32 +127,48 @@ Response VehicleController::assignVehicleToRequest(Request request) {
 		person++;
 	}
 
+	if (best_distance == -1)
+	{
+		printf("No available taxis\n");
+	}
+
 	printf("Closest taxi is at (%f, %f)\n", best_x, best_y);
+}
 
-	if (best_distance == -1) return response;
-
-	best_driver->getMovementFacet()->setDestinationNode(request.startNode);
-	response.success = true;
-
-	return response;
+Entity::UpdateStatus VehicleController::frame_init(timeslice now)
+{
+	if (!GetContext())
+	{
+		messaging::MessageBus::RegisterHandler(this);
+	}
+	
+	return Entity::UpdateStatus::Continue;
 }
 
 Entity::UpdateStatus VehicleController::frame_tick(timeslice now)
 {
 	// TODO: See if keeping track of all taxi locations
 	//       speeds up a lot of time
-	printf("TESTING\n");
-	return Entity::UpdateStatus::Continue;
-}
-
-Entity::UpdateStatus VehicleController::frame_init(timeslice now)
-{
 	return Entity::UpdateStatus::Continue;
 }
 
 void VehicleController::frame_output(timeslice now)
 {
 
+}
+
+void VehicleController::HandleMessage(messaging::Message::MessageType type, const messaging::Message& message)
+{
+	switch (type) {
+	        case MSG_VEHICLE_REQUEST:
+	        {
+				const VehicleRequestMessage& requestArgs = MSG_CAST(VehicleRequestMessage, message);
+	        	assignVehicleToRequest(requestArgs);
+	            break;
+	        }
+
+	        default:break;
+	    };
 }
 
 bool VehicleController::isNonspatial()

@@ -294,10 +294,8 @@ void Conflux::addAgent(Person_MT* person)
 		}
 		case Role<Person_MT>::RL_TRAVELPEDESTRIAN:
 		{
-			Request r;
-			r.startNode = confluxNode;
-			VehicleController::GetInstance()->assignVehicleToRequest(r);
-			
+			MessageBus::PostMessage(VehicleController::GetInstance(), MSG_VEHICLE_REQUEST, messaging::MessageBus::MessagePtr(
+				new VehicleRequestMessage(person, confluxNode, nullptr)));
 			travelingPersons.push_back(person);
 			break;
 		}
@@ -1286,10 +1284,6 @@ void Conflux::HandleMessage(messaging::Message::MessageType type, const messagin
 	}
 	case MSG_TRAVELER_TRANSFER:
 	{
-		Request r;
-		r.startNode = confluxNode;
-		VehicleController::GetInstance()->assignVehicleToRequest(r);
-
 		const PersonMessage& msg = MSG_CAST(PersonMessage, message);
 		travelingPersons.push_back(msg.person);
 		break;

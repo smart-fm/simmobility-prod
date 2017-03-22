@@ -287,7 +287,9 @@ double sim_mob::TravelTimeManager::getDefaultLinkTT(const Link* lnk) const
 double sim_mob::TravelTimeManager::getLinkTT(const sim_mob::Link* lnk, const sim_mob::DailyTime& startTime, const sim_mob::Link* downstreamLink, 
 											 bool useInSimulationTT) const
 {
-	if(ConfigManager::GetInstance().FullConfig().simulation.closedLoop.enabled)
+	const ConfigParams &configParams = ConfigManager::GetInstance().FullConfig();
+
+	if(configParams.simulation.closedLoop.enabled)
 	{
 		//Look up the link pair in the travel times map
 		unsigned int downstreamLinkId = (downstreamLink != nullptr) ? downstreamLink->getLinkId() : 0;
@@ -296,7 +298,7 @@ double sim_mob::TravelTimeManager::getLinkTT(const sim_mob::Link* lnk, const sim
 
 		if(itTravelTimes != predictedLinkTravelTimes.linkTravelTimes.end())
 		{
-			unsigned int period = ((startTime.getValue() - predictedLinkTravelTimes.startTime) / predictedLinkTravelTimes.secondsPerPeriod) - 1;
+			unsigned int period = ((startTime.getValue() / 1000) - predictedLinkTravelTimes.startTime) / predictedLinkTravelTimes.secondsPerPeriod;
 
 			if(period < predictedLinkTravelTimes.numOfPeriods)
 			{
@@ -492,7 +494,8 @@ void TravelTimeManager::addPredictedLinkTT(unsigned int link, unsigned int downs
 
 void TravelTimeManager::setPredictionPeriod(unsigned int startTime, unsigned int numOfPeriods, unsigned int secondsPerPeriod)
 {
-	predictedLinkTravelTimes.startTime = (startTime * 60) + (ConfigManager::GetInstance().FullConfig().simStartTime().getValue());
+	//Start time relative to simulation start time in seconds
+	predictedLinkTravelTimes.startTime = startTime * 60;
 	predictedLinkTravelTimes.numOfPeriods = numOfPeriods;
 	predictedLinkTravelTimes.secondsPerPeriod = secondsPerPeriod;
 }

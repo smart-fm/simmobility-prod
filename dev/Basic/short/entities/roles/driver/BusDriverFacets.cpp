@@ -215,8 +215,8 @@ void BusDriverMovement::frame_tick()
 			BusTrip *busTrip = static_cast<BusTrip *> (*(parentBusDriver->getParent()->currTripChainItem));
 
 			//Send bus arrival message
-			BusArrivalTime busArrivalInfo;
-			busArrivalInfo.busLine = parentBusDriver->getBusLineId();
+			PT_ArrivalTime busArrivalInfo;
+			busArrivalInfo.serviceLine = parentBusDriver->getBusLineId();
 			busArrivalInfo.tripId = busTrip->tripID;
 			busArrivalInfo.sequenceNo = parentBusDriver->sequenceNum++;
 			busArrivalInfo.arrivalTime = busArrivalTime;
@@ -225,10 +225,10 @@ void BusDriverMovement::frame_tick()
 			busArrivalInfo.dwellTime = (DailyTime(1000 * params.currentStopPoint.dwellTime)).getStrRepr();
 			//Compute percentage of occupancy
 			busArrivalInfo.pctOccupancy = (((double) parentBusDriver->passengerList.size()) / ST_Config::getInstance().defaultBusCapacity) * 100.0;
-			busArrivalInfo.busStopNo = (*busStopTracker)->getStopCode();
+			busArrivalInfo.stopNo = (*busStopTracker)->getStopCode();
 
 			messaging::MessageBus::PostMessage(PT_Statistics::getInstance(), STORE_BUS_ARRIVAL,
-					messaging::MessageBus::MessagePtr(new BusArrivalTimeMessage(busArrivalInfo)));
+					messaging::MessageBus::MessagePtr(new PT_ArrivalTimeMessage(busArrivalInfo)));
 			
 			break;
 		}

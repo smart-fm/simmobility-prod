@@ -514,18 +514,22 @@ void Person_ST::convertPublicTransitODsToTrips()
 						
 						const string &src = getAgentSrc();
 						DailyTime subTripStartTime = itSubTrip->startTime;
+
+						const ConfigParams &cfgParams = ConfigManager::GetInstance().FullConfig();
 						
 						if (src == dataSourceXML)
 						{
-							subTripStartTime = subTripStartTime + ConfigManager::GetInstance().FullConfig().simStartTime();
+							subTripStartTime = subTripStartTime + cfgParams.simStartTime();
 						}
-						
-						bool ret = PT_RouteChoiceLuaProvider::getPTRC_Model().getBestPT_Path(itSubTrip->origin.node->getNodeId(), 
-								itSubTrip->destination.node->getNodeId(), subTripStartTime, odTrips, dbid, itSubTrip->startTime.getValue());
+
+						const std::string ptPathsetStoredProcName = cfgParams.getDatabaseProcMappings().procedureMappings["pt_pathset"];
+						bool ret = PT_RouteChoiceLuaProvider::getPTRC_Model().getBestPT_Path(itSubTrip->origin.node->getNodeId(),
+										itSubTrip->destination.node->getNodeId(), subTripStartTime.getValue(), odTrips, dbid,
+										itSubTrip->startTime.getValue(), ptPathsetStoredProcName);
 						
 						if (ret)
 						{
-							ret = makeODsToTrips(&(*itSubTrip), newSubTrips, odTrips);
+							ret = makeODsToTrips(&(*itSubTrip), newSubTrips, odTrips, PT_NetworkCreater::getInstance());
 						}
 
 						if (!ret)

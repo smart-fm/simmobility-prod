@@ -46,6 +46,7 @@ private:
 	double queuingTooLongTime = 0.0;
 	Link* selectedNextLinkInCrusing = nullptr;
 	std::queue<TaxiFleetManager::TaxiFleet> taxiFleets;
+
 private:
 	void assignFirstNode();
 	void setCruisingMode();

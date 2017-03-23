@@ -12,7 +12,7 @@
 #include "geospatial/network/Link.hpp"
 #include "entities/roles/Role.hpp"
 #include "buffering/BufferedDataManager.hpp"
-#include "TaxiFleetManager.hpp"
+#include "entities/TaxiFleetManager.hpp"
 #include <boost/algorithm/string.hpp>
 namespace sim_mob
 {

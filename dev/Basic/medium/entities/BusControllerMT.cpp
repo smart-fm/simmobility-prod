@@ -14,7 +14,7 @@
 #include "entities/misc/TaxiTrip.hpp"
 #include "entities/roles/DriverRequestParams.hpp"
 #include "Person_MT.hpp"
-#include "TaxiFleetManager.hpp"
+#include "entities/TaxiFleetManager.hpp"
 
 using namespace std;
 using namespace sim_mob;

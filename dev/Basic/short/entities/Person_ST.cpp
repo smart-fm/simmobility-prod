@@ -155,7 +155,9 @@ void Person_ST::initTripChain()
 		if (!updateOD(*currTripChainItem))
 		{ 
 			//Offer some protection
-			throw std::runtime_error("Trip/Activity mismatch, or unknown TripChainItem subclass.");
+			std::stringstream msg;
+			msg << __func__ << ": Trip/Activity mismatch, or unknown TripChainItem subclass.";
+			throw std::runtime_error(msg.str());
 		}
 	}
 
@@ -339,7 +341,7 @@ Entity::UpdateStatus Person_ST::frame_init(timeslice now)
 	if (!currRole)
 	{
 		std::ostringstream txt;
-		txt << "Person " << this->getId() << " has no Role.";
+		txt << __func__ << ": Person " << this->getId() << " has no Role.";
 		throw std::runtime_error(txt.str());
 	}
 
@@ -636,7 +638,9 @@ void Person_ST::assignPersonToBusStopAgent()
 		
 		if (stop->getTerminusType() == sim_mob::SINK_TERMINUS)
 		{
-			throw std::runtime_error("both twin stops are SINKs");
+			std::stringstream msg;
+			msg << __func__ << ": Both twin stops - " << stop->getStopCode() << ", " << stop->getTwinStop()->getStopCode() << " - are SINKs";
+			throw std::runtime_error(msg.str());
 		}
 	}
 
@@ -740,7 +744,9 @@ SegmentTravelStats& Person_ST::finalizeCurrRdSegTravelStat(const RoadSegment* rd
 {
 	if(rdSeg != rsTravelStats.roadSegment)
 	{
-		throw std::runtime_error("roadsegment mismatch while finalizing travel time stats");
+		std::stringstream msg;
+		msg << __func__ << ": Road segment mis-match";
+		throw std::runtime_error(msg.str());
 	}
 	rsTravelStats.finalize(rdSeg,exitTime, travelMode);
 	return rsTravelStats;

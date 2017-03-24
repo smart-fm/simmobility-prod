@@ -101,7 +101,7 @@ void BusDriverMovement::buildPath(const std::string &routeId, const std::vector<
 			else
 			{
 				stringstream msg;
-				msg << "No turning between the links " << currLink->getLinkId() << " and " << nextLinkId;
+				msg << __func__ << ": No turning between the links " << currLink->getLinkId() << " and " << nextLinkId;
 				msg << "\nInvalid Path for Bus route " << routeId;
 				throw std::runtime_error(msg.str());
 			}
@@ -131,7 +131,9 @@ void BusDriverMovement::frame_init()
 
 		if (!busTrip && busTrip->itemType == TripChainItem::IT_BUSTRIP)
 		{
-			throw std::runtime_error("BusDriver created without an appropriate BusTrip item.");
+			std::stringstream msg;
+			msg << __func__ << ": BusDriver created without an appropriate BusTrip item.";
+			throw std::runtime_error(msg.str());
 		}
 
 		//Use the vehicle to build a bus, then delete the old vehicle.

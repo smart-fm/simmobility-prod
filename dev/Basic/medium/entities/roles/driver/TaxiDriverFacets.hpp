@@ -23,6 +23,14 @@ public:
 	virtual void frame_init();
 	virtual void frame_tick();
 	/**
+	 * internal structure for breaking
+	 */
+	struct BrokenInfo
+	{
+		const Node* parkingNode = nullptr;
+		unsigned int duration = 0;
+	};
+	/**
 	 * get parent taxi driver
 	 * @return the result holding parent taxi driver.
 	 */
@@ -89,6 +97,8 @@ private:
 	Link* selectedNextLinkInCrusing = nullptr;
 	/**the vector to record second or third drivers*/
 	std::queue<TaxiFleetManager::TaxiFleet> taxiFleets;
+	/**record breaking information*/
+	std::shared_ptr<BrokenInfo> nextBroken;
 
 private:
 	/**
@@ -138,6 +148,14 @@ private:
 	 * check fleet information for driver changing
 	 */
 	bool checkNextFleet();
+	/**
+	 * set break mode at destination node
+	 */
+	bool setBreakMode();
+	/**
+	 * set broken information
+	 */
+	bool setBrokenInfo(const Node* next, const unsigned int duration);
 };
 
 class TaxiDriverBehavior: public DriverBehavior

@@ -322,6 +322,21 @@ void Conflux::addAgent(Person_MT* person)
 	}
 }
 
+void Conflux::acceptBrokenDriver(Person_MT* person)
+{
+	brokenPersons.push_back(person);
+}
+
+void Conflux::removeBrokenDriver(Person_MT* person)
+{
+	auto res = std::find(brokenPersons.begin(), brokenPersons.end(), person);
+	if(res!=brokenPersons.end())
+	{
+		brokenPersons.erase(res);
+	}
+}
+
+
 Entity::UpdateStatus Conflux::frame_init(timeslice now)
 {
 	messaging::MessageBus::RegisterHandler(this);
@@ -425,10 +440,7 @@ void Conflux::processAgents()
 	getAllPersonsUsingTopCMerge(orderedPersons); //merge on-road agents of this conflux into a single list
 	orderedPersons.insert(orderedPersons.end(), activityPerformers.begin(), activityPerformers.end()); // append activity performers
 	orderedPersons.insert(orderedPersons.end(), travelingPersons.begin(), travelingPersons.end());
-	if(travelingPersons.size()>0)
-	{
-		int debug =1 ;
-	}
+	orderedPersons.insert(orderedPersons.end(), brokenPersons.begin(), brokenPersons.end());
 	for (PersonList::iterator personIt = orderedPersons.begin(); personIt != orderedPersons.end(); personIt++) //iterate and update all persons
 	{
 		updateAgent(*personIt);

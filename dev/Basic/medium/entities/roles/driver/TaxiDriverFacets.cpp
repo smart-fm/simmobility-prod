@@ -207,6 +207,13 @@ bool TaxiDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 	{
 		setCruisingMode();
 	}
+	else if ( parentTaxiDriver->getDriverMode() == DRIVE_FOR_BREAK && pathMover.isEndOfPath())
+	{
+		if(setBreakMode())
+		{
+			return res;
+		}
+	}
 
 	res = DriverMovement::moveToNextSegment(params);
 
@@ -253,6 +260,22 @@ void TaxiDriverMovement::frame_tick()
 		parentTaxiDriver->taxiPassenger->Movement()->frame_tick();
 	}
 
+	if (mode == DRIVER_IN_BREAK && nextBroken.get())
+	{
+		if (nextBroken->duration < params.secondsInTick)
+		{
+			parentTaxiDriver->getResource()->setMoving(true);
+			Conflux *nodeConflux = Conflux::getConfluxFromNode(nextBroken->parkingNode);
+			nodeConflux->removeBrokenDriver(parentTaxiDriver->parent);
+			nextBroken.reset();
+			setCruisingMode();
+		}
+		else
+		{
+			nextBroken->duration -= params.secondsInTick;
+		}
+		return;
+	}
 	if( mode == CRUISE)
 	{
 		cruisingTooLongTime += params.secondsInTick;
@@ -356,10 +379,61 @@ void TaxiDriverMovement::frame_tick()
 		params.elapsedSeconds = params.secondsInTick;
 		parentTaxiDriver->parent->setRemainingTimeThisTick(0.0);
 	}
-	else if (mode == CRUISE || mode == DRIVE_WITH_PASSENGER || mode == DRIVE_TO_TAXISTAND || mode == DRIVE_FOR_DRIVER_CHANGE_SHIFT)
+	else if (mode == CRUISE || mode == DRIVE_WITH_PASSENGER || mode == DRIVE_TO_TAXISTAND || mode == DRIVE_FOR_DRIVER_CHANGE_SHIFT || mode == DRIVE_FOR_BREAK)
 	{
 		DriverMovement::frame_tick();
 	}
+}
+
+bool TaxiDriverMovement::setBreakMode()
+{
+	bool res = false;
+	const DriverMode &mode = parentTaxiDriver->getDriverMode();
+	if(mode != DRIVE_FOR_BREAK)
+	{
+		return res;
+	}
+	if (nextBroken.get())
+	{
+		const SegmentStats* currSegStat = pathMover.getCurrSegStats();
+		const Node* toNode = currSegStat->getRoadSegment()->getParentLink()->getToNode();
+		if (toNode == nextBroken->parkingNode)
+		{
+			parentTaxiDriver->setTaxiDriveMode(DRIVER_IN_BREAK);
+			parentTaxiDriver->getResource()->setMoving(false);
+			parentTaxiDriver->parent->setRemainingTimeThisTick(0.0);
+			Conflux *nodeConflux = Conflux::getConfluxFromNode(toNode);
+			nodeConflux->acceptBrokenDriver(parentTaxiDriver->parent);
+			res = true;
+		}
+	}
+	return res;
+}
+
+bool TaxiDriverMovement::setBrokenInfo(const Node* next, const unsigned int duration)
+{
+	const DriverMode &mode = parentTaxiDriver->getDriverMode();
+	if(mode != CRUISE)
+	{
+		return false;
+	}
+	const SegmentStats* currSegStat = pathMover.getCurrSegStats();
+	const Link* link = currSegStat->getRoadSegment()->getParentLink();
+	SubTrip currSubTrip;
+	currSubTrip.origin = WayPoint(link->getFromNode());
+	currSubTrip.destination = WayPoint(next);
+	vector<WayPoint> currentRouteChoice = PrivateTrafficRouteChoice::getInstance()->getPath(currSubTrip, false, link, parentTaxiDriver->parent->usesInSimulationTravelTime());
+	if(currentRouteChoice.size()>0)
+	{
+		addRouteChoicePath(currentRouteChoice);
+		nextBroken.reset();
+		nextBroken = std::make_shared<BrokenInfo>();
+		nextBroken->parkingNode = next;
+		nextBroken->duration = duration;
+		parentTaxiDriver->setTaxiDriveMode(DRIVE_FOR_BREAK);
+		return true;
+	}
+	return false;
 }
 
 void TaxiDriverMovement::addCruisingPath(const Link* selectedLink)

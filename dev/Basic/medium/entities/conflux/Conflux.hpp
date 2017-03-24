@@ -164,6 +164,9 @@ private:
 	/**list of persons traveling for taxi*/
 	PersonList travelingPersons;
 
+	/**list of persons for breaking drivers*/
+	PersonList brokenPersons;
+
 	/**
 	 * list of persons who are hidden in this conflux awaiting a wake-up call
 	 * All persons whose roles resolve to teleportation (e.g. car sharing and private bus) are kept in this list.
@@ -445,6 +448,18 @@ public:
 	 * @param conflux Conflux to add
 	 */
 	void addConnectedConflux(Conflux* conflux);
+
+	/**
+	 * accept broken driver
+	 * @param person is pointer to a person who is broken
+	 */
+	void acceptBrokenDriver(Person_MT* person);
+
+	/**
+	 * remove broken driver
+	 * @param person is pointer to a person who will be removed
+	 */
+	void removeBrokenDriver(Person_MT* person);
 
 	/**
 	 * adds a person into this conflux

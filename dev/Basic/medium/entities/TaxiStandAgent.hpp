@@ -19,7 +19,7 @@ namespace medium
 class TaxiDriver;
 class TaxiStandAgent : public sim_mob::Agent {
 public:
-	TaxiStandAgent(const MutexStrategy& mtxStrat, int id, const TaxiStand* stand, SegmentStats* stats);
+	TaxiStandAgent(const MutexStrategy& mtxStrat, int id, const TaxiStand* stand);
 	virtual ~TaxiStandAgent();
 	/**
 	 * set a taxi-stand pointer to taxiStand
@@ -82,8 +82,6 @@ private:
 	std::deque<Person_MT*> queuingDrivers;
 	/** global static taxi stand agents lookup table*/
 	static std::map<const TaxiStand*, TaxiStandAgent*> allTaxiStandAgents;
-	/**segment stats containing this taxi stand*/
-	SegmentStats* parentSegmentStats;
 	/**current time in milliseconds*/
 	unsigned int currentTimeMS;
 	/**default capacity for queuing drivers*/

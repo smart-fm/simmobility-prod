@@ -2,7 +2,7 @@
  * TaxiDriverFacets.cpp
  *
  *  Created on: 5 Nov 2016
- *      Author: jabir
+ *      Author: zhang huai peng
  */
 
 #include <entities/roles/driver/TaxiDriverFacets.hpp>
@@ -331,7 +331,6 @@ void TaxiDriverMovement::frame_tick()
 									toBeRemovedFromTaxiStand = true;
 									previousTaxiStand = destinationTaxiStand;
 									destinationTaxiStand = nullptr;
-									isQueuingTaxiStand = false;
 								}
 							}
 							/*else
@@ -352,7 +351,6 @@ void TaxiDriverMovement::frame_tick()
 				setCruisingMode();
 				parentTaxiDriver->getResource()->setMoving(true);
 				toBeRemovedFromTaxiStand = true;
-				isQueuingTaxiStand = true;
 			}
 		}
 		params.elapsedSeconds = params.secondsInTick;

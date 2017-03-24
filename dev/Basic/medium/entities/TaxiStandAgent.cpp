@@ -22,7 +22,7 @@ namespace medium
 {
 std::map<const TaxiStand*, TaxiStandAgent*> TaxiStandAgent::allTaxiStandAgents;
 
-TaxiStandAgent::TaxiStandAgent(const MutexStrategy& mtxStrat, int id, const TaxiStand* stand, SegmentStats* stats):taxiStand(stand),parentSegmentStats(stats),currentTimeMS(0),capacity(10),Agent(mtxStrat, id)
+TaxiStandAgent::TaxiStandAgent(const MutexStrategy& mtxStrat, int id, const TaxiStand* stand):taxiStand(stand),currentTimeMS(0),capacity(10),Agent(mtxStrat, id)
 {
 	setParentConflux();
 }

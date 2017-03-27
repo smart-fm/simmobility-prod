@@ -31,6 +31,8 @@ namespace sim_mob
 
 			double movingProbability(Household* household, HM_Model *model);
 
+			bool ComputeFutureTransition(Household *household, HM_Model *model, double &futureTransitionRate, double &futureTransitionRandomDraw);
+
 		private:
 
 			boost::mutex mtx;

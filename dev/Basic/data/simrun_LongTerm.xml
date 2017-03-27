@@ -130,8 +130,8 @@
             <timeOffMarket value="150"/>
             <timeInterval value="7"/>
 	    <awakeningModel enabled="true">
-		    <initialHouseholdsOnMarket value="150"/>
-		    <dailyHouseholdAwakenings value="40"/>
+		    <initialHouseholdsOnMarket value="15000"/>
+		    <dailyHouseholdAwakenings value="400"/>
 		    <awakenModelShan value="false"/>
 		    <awakenModelRandom value="false"/>
 		    <awakenModelJingsi value="true"/>	

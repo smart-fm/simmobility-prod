@@ -8,8 +8,11 @@
 #include "entities/params/PT_NetworkEntities.hpp"
 #include "entities/BusController.hpp"
 #include "entities/BusControllerMT.hpp"
+#include "entities/TrainController.hpp"
+#include "entities/TrainController.hpp"
 #include "entities/conflux/Conflux.hpp"
 #include "entities/TravelTimeManager.hpp"
+#include "entities/incident/IncidentManager.hpp"
 #include "geospatial/Incident.hpp"
 #include "geospatial/network/RoadNetwork.hpp"
 #include "geospatial/network/NetworkLoader.hpp"
@@ -107,6 +110,12 @@ void ExpandMidTermConfigFile::processConfig()
 		busController->initializeBusController(active_agents);
 	}
 
+	if(cfg.trainController.enabled)
+	{
+		TrainController<Person_MT>::getInstance()->initTrainController();
+		TrainController<Person_MT>::getInstance()->assignTrainTripToPerson(active_agents);
+	}
+
     /// Enable/Disble restricted region support based on configuration
     setRestrictedRegionSupport();
 
@@ -130,7 +139,7 @@ void ExpandMidTermConfigFile::loadNetworkFromDatabase()
 
 void ExpandMidTermConfigFile::loadPublicTransitNetworkFromDatabase()
 {
-    PT_Network::getInstance().init();
+	PT_NetworkCreater::init();
 }
 
 void ExpandMidTermConfigFile::verifyIncidents()
@@ -144,7 +153,8 @@ void ExpandMidTermConfigFile::verifyIncidents()
 		const std::map<unsigned int, RoadSegment*>::const_iterator segIt = segLookup.find((*incIt).segmentId);
 		if (segIt == segLookup.end())
 		{
-			throw std::runtime_error("invalid segment id supplied for incident injection");
+			Print()<<"segment not found";
+			continue;
 		}
 		const RoadSegment* roadSeg = segIt->second;
 
@@ -185,6 +195,8 @@ void ExpandMidTermConfigFile::verifyIncidents()
 			rs->addObstacle(pos, item);
 		}
 	}
+
+	IncidentManager::getInstance()->setDisruptions(MT_Config::getInstance().getDisruption_rw());
 }
 
 void ExpandMidTermConfigFile::setRestrictedRegionSupport()
@@ -278,6 +290,7 @@ void ExpandMidTermConfigFile::printSettings()
 	std::cout << "------------------\n";
 	NetworkPrinter nwPrinter(cfg, cfg.outNetworkFileName);
 	nwPrinter.printNetwork(RoadNetwork::getInstance());
+	std::cout << "------------------\n";
 	SimulationInfoPrinter simInfoPrinter(cfg, cfg.outSimInfoFileName);
 	simInfoPrinter.printSimulationInfo();
 }

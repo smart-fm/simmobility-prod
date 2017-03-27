@@ -23,7 +23,7 @@ using namespace sim_mob;
 
 sim_mob::ConfigParams::ConfigParams() : RawConfigParams(),
 	publicTransitEnabled(false), totalRuntimeTicks(0), totalWarmupTicks(0), numAgentsSkipped(0),
-    using_MPI(false), outNetworkFileName("out.network.txt"), outSimInfoFileName("out.siminfo.txt"),
+    using_MPI(false), outNetworkFileName("out.network.txt"),outTrainNetworkFilename("out.train.network.txt"),outSimInfoFileName("out.siminfo.txt"),
     is_simulation_repeatable(false), sealedNetwork(false), controlMgr(nullptr),
     workerPublisherEnabled(false), enabledEdgeTravelTime(false)
 {}

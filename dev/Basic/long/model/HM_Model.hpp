@@ -200,7 +200,7 @@ namespace sim_mob
             typedef boost::unordered_map<BigSerial, BuildingMatch*> BuildingMatchMap;
 
             typedef std::vector<SlaBuilding*> SlaBuildingList;
-            typedef boost::unordered_map<BigSerial, SlaBuilding*> SlaBuildingMap;
+            typedef boost::unordered_map<string, SlaBuilding*> SlaBuildingMap;
 
             /**
              * Taz statistics
@@ -287,6 +287,7 @@ namespace sim_mob
              */
             Unit* getUnitById(BigSerial id) const;
             BigSerial getUnitTazId(BigSerial unitId) const;
+            BigSerial getUnitSlaAddressId(BigSerial unitId) const;
             BigSerial getEstablishmentTazId(BigSerial establishmentId) const;
             BigSerial getEstablishmentSlaAddressId(BigSerial establishmentId) const;
             const TazStats* getTazStats(BigSerial tazId) const;
@@ -592,7 +593,7 @@ namespace sim_mob
             IndvidualVehicleOwnershipLogsumList IndvidualVehicleOwnershipLogsums;
             IndvidualVehicleOwnershipLogsumMap IndvidualVehicleOwnershipLogsumById;
 
-            AlternativeHedonicPriceList alternativeHedonicPrice;
+            AlternativeHedonicPriceList alternativeHedonicPrices;
             AlternativeHedonicPriceMap alternativeHedonicPriceById;
 
             ScreeningModelCoefficientsList screeningModelCoefficientsList;
@@ -618,6 +619,7 @@ namespace sim_mob
             PreSchoolList preSchools;
             PreSchoolMap preSchoolById;
             bool resume ;
+            bool initialLoading;
             IndvidualEmpSecList indEmpSecList;
             IndvidualEmpSecMap indEmpSecbyIndId;
 

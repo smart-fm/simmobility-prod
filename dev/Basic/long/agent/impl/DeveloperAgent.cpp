@@ -663,7 +663,7 @@ void DeveloperAgent::createUnitsAndBuildings(PotentialProject &project,BigSerial
 	//building construction start date; assumed to be the first day of the project created.
 	//building construction finish date ; assumed to be 6 months after
 	std::tm toDate = getDateBySimDay(simYear,(currentTick+180));
-	boost::shared_ptr<Building>building(new Building(buildingId,projectId,parcel->getId(),0,0,currentDate,toDate,BUILDING_UNCOMPLETED_WITHOUT_PREREQUISITES,project.getGrosArea(),0,0,0,toDate));
+	boost::shared_ptr<Building>building(new Building(buildingId,projectId,parcel->getId(),0,0,currentDate,toDate,BUILDING_UNCOMPLETED_WITHOUT_PREREQUISITES,project.getGrosArea(),0,0,0,0,0,0,toDate,0,0,std::string()));
 	newBuildings.push_back(building);
 	MessageBus::PostMessage(this, LT_DEV_BUILDING_ADDED, MessageBus::MessagePtr(new DEV_InternalMsg(*building.get())), true);
 
@@ -674,7 +674,8 @@ void DeveloperAgent::createUnitsAndBuildings(PotentialProject &project,BigSerial
 	for (unitsItr = units.begin(); unitsItr != units.end(); ++unitsItr) {
 		for(size_t i=0; i< unitsItr->getNumUnits();i++)
 		{
-			boost::shared_ptr<Unit>unit(new Unit( devModel->getUnitIdForDeveloperAgent(), buildingId, postcode, (*unitsItr).getUnitTypeId(), 0, DeveloperAgent::UNIT_PLANNED, (*unitsItr).getFloorArea(), 0, 0,toDate, currentDate,DeveloperAgent::UNIT_NOT_LAUNCHED, DeveloperAgent::UNIT_NOT_READY_FOR_OCCUPANCY, currentDate, 0, currentDate,0));
+			//TODO: Add the BTO unit sla address to building_match and sla_building. 15 Feb 2017. Chetan/Gishara
+			boost::shared_ptr<Unit>unit(new Unit( devModel->getUnitIdForDeveloperAgent(), buildingId, (*unitsItr).getUnitTypeId(), 0, DeveloperAgent::UNIT_PLANNED, (*unitsItr).getFloorArea(), 0, 0,toDate, currentDate,DeveloperAgent::UNIT_NOT_LAUNCHED, DeveloperAgent::UNIT_NOT_READY_FOR_OCCUPANCY, currentDate, 0, currentDate,0));
 			newUnits.push_back(unit);
 			double profit = (*unitsItr).getUnitProfit();
 			double demolitionCost = (*unitsItr).getDemolitionCostPerUnit();

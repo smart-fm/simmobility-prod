@@ -59,100 +59,61 @@ namespace sim_mob
 				return;
 			}
 
-		    std::string tenureTransitionId;
-
-		    //Thse age category were set by the Jingsi shaw (xujs@mit.edu)
-		    //in her tenure transition model.
-		    if( household->getAgeOfHead() <= 6 )
-		    	tenureTransitionId = "<35";
-		    else
-		    if( household->getAgeOfHead()>= 7 && household->getAgeOfHead() <= 9 )
-		    	tenureTransitionId = "35-49";
-		    if( household->getAgeOfHead()>= 10 && household->getAgeOfHead() <= 12 )
-		        tenureTransitionId = "50-64";
-		    if( household->getAgeOfHead()>= 13 )
-		        tenureTransitionId = "65+";
-
-			string tenureStatus;
-
-			if( household->getTenureStatus() == 1 ) //owner
-				tenureStatus = "own";
-			else
-				tenureStatus = "rent";
-
-			double futureTransitionRate = 0;
-
-			for(int p = 0; p < model->getTenureTransitionRates().size(); p++)
-			{
-				if( model->getTenureTransitionRates()[p]->getAgeGroup() == tenureTransitionId &&
-					model->getTenureTransitionRates()[p]->getCurrentStatus() == tenureStatus  &&
-					model->getTenureTransitionRates()[p]->getFutureStatus() == string("own") )
-				{
-					futureTransitionRate = model->getTenureTransitionRates()[p]->getRate() / 100.0;
-				}
-			}
-
-			double randomDraw = (double)rand()/RAND_MAX;
-
-			if( randomDraw < futureTransitionRate )
-				futureTransitionOwn = true; //Future transition is to OWN a unit
-
-			//own->own: proceed as normal
-			//own->rent: randomly chooser a rental unit for this unit.
-			//rent->own: proceed as normal
-			//rent->rent: do nothing
-			if( futureTransitionOwn == false )//futureTransition is to RENT
-			{
-				if( household->getTenureStatus() == 2) //renter
-				{
-					return; //rent->rent: do nothing
-					//agent goes inactive
-				}
-			}
 
 			//We will awaken a specific number of households on day 1 as dictated by the long term XML file.
-
 			if( model->getAwakeningCounter() > config.ltParams.housingModel.awakeningModel.initialHouseholdsOnMarket)
 				return;
 
-			Awakening *awakening = model->getAwakeningById( household->getId() );
-
-			//These 6 variables are the 3 classes that we believe households fall into.
-			//And the 3 probabilities that we believe these 3 classes will have of awakening.
-			float class1 = 0;
-			float class2 = 0;
-			float class3 = 0;
-			float awaken_class1 = 0;
-			float awaken_class2 = 0;
-			float awaken_class3 = 0;
-
-			const float equalClassProb = 0.33;
-			const float baseAwakeningProb = 0.02;
-
 			if( config.ltParams.housingModel.awakeningModel.awakenModelRandom == true )
 			{
-				class1 = equalClassProb;
-				class2 = equalClassProb;
-				class3 = equalClassProb;
-				awaken_class1 = (double)rand()/RAND_MAX;
-				awaken_class2 = (double)rand()/RAND_MAX;
-				awaken_class3 = (double)rand()/RAND_MAX;
+				float random = (float)rand() / RAND_MAX;
+
+				if( random < 0.5 )
+					return;
+
+				bidder->setActive(true);
+
+				printAwakening(day, household);
+
+				#ifdef VERBOSE
+				PrintOutV("[day " << day << "] Lifestyle 3. Household " << getId() << " has been awakened. " << model->getNumberOfBidders() << std::endl);
+				#endif
+
+				IdVector unitIds = agent->getUnitIds();
+
+				for (vector<BigSerial>::const_iterator itr = unitIds.begin(); itr != unitIds.end(); itr++)
+				{
+					BigSerial unitId = *itr;
+					Unit* unit = const_cast<Unit*>(model->getUnitById(unitId));
+
+					unit->setbiddingMarketEntryDay(day);
+					unit->setTimeOnMarket( 1 + config.ltParams.housingModel.timeOnMarket * (float)rand() / RAND_MAX);
+					unit->setTimeOffMarket( 1 + config.ltParams.housingModel.timeOffMarket * (float)rand() / RAND_MAX);
+				}
+
+				household->setLastAwakenedDay(day);
+				model->incrementAwakeningCounter();
+				model->incrementLifestyle3HHs();
 			}
 			else
 			if( config.ltParams.housingModel.awakeningModel.awakenModelShan == true )
 			{
-				if( awakening == nullptr )
-				{
-					printError((boost::format( "The awakening object is null for household %1%. We'll set it to the average.") % household->getId()).str());
+				Awakening *awakening = model->getAwakeningById( household->getId() );
 
-					class1 = equalClassProb;
-					class2 = equalClassProb;
-					class3 = equalClassProb;
-					awaken_class1 = baseAwakeningProb;
-					awaken_class2 = baseAwakeningProb;
-					awaken_class3 = baseAwakeningProb;
-				}
-				else
+				const float equalClassProb = 0.33;
+				const float baseAwakeningProb = 0.02;
+
+
+				printError((boost::format( "The awakening object is null for household %1%. We'll set it to the average.") % household->getId()).str());
+
+				float class1 = equalClassProb;
+				float class2 = equalClassProb;
+				float class3 = equalClassProb;
+				float awaken_class1 = baseAwakeningProb;
+				float awaken_class2 = baseAwakeningProb;
+				float awaken_class3 = baseAwakeningProb;
+
+				if( awakening == nullptr )
 				{
 					class1 = awakening->getClass1();
 					class2 = awakening->getClass2();
@@ -161,88 +122,180 @@ namespace sim_mob
 					awaken_class2 = awakening->getAwakenClass2();
 					awaken_class3 = awakening->getAwakenClass3();
 				}
+
+
+				float r1 = (float)rand() / RAND_MAX;
+				int lifestyle = 1;
+
+				if( r1 > class1 && r1 <= class1 + class2 )
+				{
+					lifestyle = 2;
+				}
+				else if( r1 > class1 + class2 )
+				{
+					lifestyle = 3;
+				}
+
+				float r2 = (float)rand() / RAND_MAX;
+
+				int ageCategory = 0;
+
+				r2 = r2 * movingProbability(household, model);
+
+				IdVector unitIds = agent->getUnitIds();
+
+				if( lifestyle == 1 && r2 < awaken_class1)
+				{
+					bidder->setActive(true);
+
+					printAwakening(day, household);
+
+					#ifdef VERBOSE
+					PrintOutV("[day " << day << "] Lifestyle 1. Household " << getId() << " has been awakened." << model->getNumberOfBidders()  << std::endl);
+					#endif
+
+					for (vector<BigSerial>::const_iterator itr = unitIds.begin(); itr != unitIds.end(); itr++)
+					{
+						BigSerial unitId = *itr;
+						Unit* unit = const_cast<Unit*>(model->getUnitById(unitId));
+
+						unit->setbiddingMarketEntryDay(day);
+						unit->setTimeOnMarket( 1 + config.ltParams.housingModel.timeOnMarket * (float)rand() / RAND_MAX);
+						unit->setTimeOffMarket( 1 + config.ltParams.housingModel.timeOffMarket * (float)rand() / RAND_MAX);
+					}
+
+					household->setLastAwakenedDay(day);
+					model->incrementAwakeningCounter();
+					model->incrementLifestyle1HHs();
+				}
+				else
+				if( lifestyle == 2 && r2 < awaken_class2)
+				{
+					bidder->setActive(true);
+
+					printAwakening(day, household);
+
+					#ifdef VERBOSE
+					PrintOutV("[day " << day << "] Lifestyle 2. Household " << getId() << " has been awakened. "  << model->getNumberOfBidders() << std::endl);
+					#endif
+
+
+					for (vector<BigSerial>::const_iterator itr = unitIds.begin(); itr != unitIds.end(); itr++)
+					{
+						BigSerial unitId = *itr;
+						Unit* unit = const_cast<Unit*>(model->getUnitById(unitId));
+
+						unit->setbiddingMarketEntryDay(day);
+						unit->setTimeOnMarket( 1 + config.ltParams.housingModel.timeOnMarket * (float)rand() / RAND_MAX);
+						unit->setTimeOffMarket( 1 + config.ltParams.housingModel.timeOffMarket * (float)rand() / RAND_MAX);
+					}
+
+					household->setLastAwakenedDay(day);
+					model->incrementAwakeningCounter();
+					model->incrementLifestyle2HHs();
+				}
+				else
+				if( lifestyle == 3 && r2 < awaken_class3)
+				{
+					bidder->setActive(true);
+
+					printAwakening(day, household);
+
+					#ifdef VERBOSE
+					PrintOutV("[day " << day << "] Lifestyle 3. Household " << getId() << " has been awakened. " << model->getNumberOfBidders() << std::endl);
+					#endif
+
+					for (vector<BigSerial>::const_iterator itr = unitIds.begin(); itr != unitIds.end(); itr++)
+					{
+						BigSerial unitId = *itr;
+						Unit* unit = const_cast<Unit*>(model->getUnitById(unitId));
+
+						unit->setbiddingMarketEntryDay(day);
+						unit->setTimeOnMarket( 1 + config.ltParams.housingModel.timeOnMarket * (float)rand() / RAND_MAX);
+						unit->setTimeOffMarket( 1 + config.ltParams.housingModel.timeOffMarket * (float)rand() / RAND_MAX);
+					}
+
+					household->setLastAwakenedDay(day);
+					model->incrementAwakeningCounter();
+					model->incrementLifestyle3HHs();
+				}
+
 			}
+			else
 			if( config.ltParams.housingModel.awakeningModel.awakenModelJingsi== true )
 			{
-				class1 = 0;
-				class2 = 0;
-				class3 = 0;
-				awaken_class1 = 0;
-				awaken_class2 = 0;
-				awaken_class3 = 0;
-			}
+				std::string tenureTransitionId;
 
-			float r1 = (float)rand() / RAND_MAX;
-			int lifestyle = 1;
+				//The age category were set by the Jingsi shaw (xujs@mit.edu)
+				//in her tenure transition model.
+				if( household->getAgeOfHead() <= 6 )
+					tenureTransitionId = "<35";
+				else
+				if( household->getAgeOfHead()>= 7 && household->getAgeOfHead() <= 9 )
+					tenureTransitionId = "35-49";
+				if( household->getAgeOfHead()>= 10 && household->getAgeOfHead() <= 12 )
+					tenureTransitionId = "50-64";
+				if( household->getAgeOfHead()>= 13 )
+					tenureTransitionId = "65+";
 
-			if( r1 > class1 && r1 <= class1 + class2 )
-			{
-				lifestyle = 2;
-			}
-			else if( r1 > class1 + class2 )
-			{
-				lifestyle = 3;
-			}
+				string tenureStatus;
 
-			float r2 = (float)rand() / RAND_MAX;
+				if( household->getTenureStatus() == 1 ) //owner
+					tenureStatus = "own";
+				else
+					tenureStatus = "rent";
 
-			r2 = r2 * movingProbability(household, model);
+				double futureTransitionRate = 0;
 
-			IdVector unitIds = agent->getUnitIds();
-
-			if( lifestyle == 1 && r2 < awaken_class1)
-			{
-				bidder->setActive(true);
-
-				printAwakening(day, household);
-
-				#ifdef VERBOSE
-				PrintOutV("[day " << day << "] Lifestyle 1. Household " << getId() << " has been awakened." << model->getNumberOfBidders()  << std::endl);
-				#endif
-
-				for (vector<BigSerial>::const_iterator itr = unitIds.begin(); itr != unitIds.end(); itr++)
+				for(int p = 0; p < model->getTenureTransitionRates().size(); p++)
 				{
-					BigSerial unitId = *itr;
-					Unit* unit = const_cast<Unit*>(model->getUnitById(unitId));
-
-					unit->setbiddingMarketEntryDay(day);
-					unit->setTimeOnMarket( 1 + config.ltParams.housingModel.timeOnMarket * (float)rand() / RAND_MAX);
-					unit->setTimeOffMarket( 1 + config.ltParams.housingModel.timeOffMarket * (float)rand() / RAND_MAX);
+					if( model->getTenureTransitionRates()[p]->getAgeGroup() == tenureTransitionId &&
+						model->getTenureTransitionRates()[p]->getCurrentStatus() == tenureStatus  &&
+						model->getTenureTransitionRates()[p]->getFutureStatus() == string("own") )
+					{
+						futureTransitionRate = model->getTenureTransitionRates()[p]->getRate() / 100.0;
+					}
 				}
 
-				household->setLastAwakenedDay(day);
-				model->incrementAwakeningCounter();
-				model->incrementLifestyle1HHs();
-			}
-			else
-			if( lifestyle == 2 && r2 < awaken_class2)
-			{
-				bidder->setActive(true);
+				double randomDraw = (double)rand()/RAND_MAX;
 
-				printAwakening(day, household);
+				if( randomDraw < futureTransitionRate )
+					futureTransitionOwn = true; //Future transition is to OWN a unit
 
-				#ifdef VERBOSE
-				PrintOutV("[day " << day << "] Lifestyle 2. Household " << getId() << " has been awakened. "  << model->getNumberOfBidders() << std::endl);
-				#endif
-
-
-				for (vector<BigSerial>::const_iterator itr = unitIds.begin(); itr != unitIds.end(); itr++)
+				//own->own: proceed as normal
+				//own->rent: randomly choose a rental unit for this unit.
+				//rent->own: proceed as normal
+				//rent->rent: do nothing
+				if( futureTransitionOwn == false )//futureTransition is to RENT
 				{
-					BigSerial unitId = *itr;
-					Unit* unit = const_cast<Unit*>(model->getUnitById(unitId));
+					if( household->getTenureStatus() == 2) //renter
+					{
+						//rent->rent: do nothing
+						//agent goes inactive
+					}
+					else
+					{
+						//own->rent
+						//This awakened household will now look for a rental unit
+						//Let's change its tenure status here.
+						household->setTenureStatus(2);
+						return;
+					}
 
-					unit->setbiddingMarketEntryDay(day);
-					unit->setTimeOnMarket( 1 + config.ltParams.housingModel.timeOnMarket * (float)rand() / RAND_MAX);
-					unit->setTimeOffMarket( 1 + config.ltParams.housingModel.timeOffMarket * (float)rand() / RAND_MAX);
+					return;
 				}
 
-				household->setLastAwakenedDay(day);
-				model->incrementAwakeningCounter();
-				model->incrementLifestyle2HHs();
-			}
-			else
-			if( lifestyle == 3 && r2 < awaken_class3)
-			{
+
+				double movingRate = movingProbability(household, model ) / 100.0;
+
+				double randomDrawMovingRate = (double)rand()/RAND_MAX;
+
+				if( randomDrawMovingRate > movingRate )
+				{
+					return;
+				}
+
+
 				bidder->setActive(true);
 
 				printAwakening(day, household);
@@ -250,6 +303,8 @@ namespace sim_mob
 				#ifdef VERBOSE
 				PrintOutV("[day " << day << "] Lifestyle 3. Household " << getId() << " has been awakened. " << model->getNumberOfBidders() << std::endl);
 				#endif
+
+				IdVector unitIds = agent->getUnitIds();
 
 				for (vector<BigSerial>::const_iterator itr = unitIds.begin(); itr != unitIds.end(); itr++)
 				{

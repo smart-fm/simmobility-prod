@@ -10,6 +10,7 @@
 #include "LuaModel.hpp"
 #include <boost/filesystem.hpp>
 #include "util/LangHelpers.hpp"
+#include <sstream>
 
 using namespace sim_mob;
 using namespace sim_mob::lua;
@@ -81,12 +82,16 @@ void LuaModel::loadFile(const std::string& filePath)
         }
         else
         {
-            throw runtime_error("Your file must have the extension .lua");
+        	std::stringstream msg; msg << "Problem with file "<< filePath <<
+        		". Your file must have the extension .lua";
+            throw runtime_error(msg.str() );
         }
     }
     else
     {
-        throw runtime_error("File does not exist or is invalid.");
+    	std::stringstream msg; msg << "File "<< filePath <<
+    	        		" does not exist or is invalid";
+    	throw runtime_error(msg.str() );
     }
 }
 

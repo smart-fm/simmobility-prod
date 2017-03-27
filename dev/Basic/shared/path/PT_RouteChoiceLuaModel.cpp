@@ -40,11 +40,6 @@ namespace sim_mob
 PT_RouteChoiceLuaModel::PT_RouteChoiceLuaModel() : publicTransitPathSet(nullptr), curStartTime()
 {
 	ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
-	ptPathsetStoredProcName = cfg.getDatabaseProcMappings().procedureMappings["pt_pathset"];
-	if (ptPathsetStoredProcName.empty())
-	{
-		throw std::runtime_error("stored procedure for \"pt_pathset\" is empty or not specified in config file");
-	}
 	dbSession = new soci::session(soci::postgresql, cfg.getDatabaseConnectionString(false));
 	output.open("od_scenario.csv",std::ofstream::out);
 }
@@ -185,20 +180,23 @@ std::vector<sim_mob::OD_Trip> PT_RouteChoiceLuaModel::makePT_RouteChoice(const s
 		throw std::runtime_error(errStrm.str());
 	}
 
-	if (publicTransitPathSet) {
+	if (publicTransitPathSet)
+	{
 		std::set<PT_Path, cmp_path_vector>::iterator it = publicTransitPathSet->pathSet.begin();
 		std::advance(it, index - 1);
 		const std::vector<PT_NetworkEdge>& pathEdges = it->getPathEdges();
 		for (std::vector<PT_NetworkEdge>::const_iterator itEdge = pathEdges.begin(); itEdge != pathEdges.end(); itEdge++) {
 			sim_mob::OD_Trip trip;
 			trip.startStop = itEdge->getStartStop();
-			trip.sType = PT_Network::getInstance().getVertexTypeFromStopId(trip.startStop);
-			if (trip.startStop.find("N_") != std::string::npos) {
+			trip.sType = PT_NetworkCreater::getInstance().getVertexTypeFromStopId(trip.startStop);
+			if (trip.startStop.find("N_") != std::string::npos)
+			{
 				trip.startStop = trip.startStop.substr(2);
 			}
 			trip.endStop = itEdge->getEndStop();
-			trip.eType = PT_Network::getInstance().getVertexTypeFromStopId(trip.endStop);
-			if (trip.endStop.find("N_") != std::string::npos) {
+			trip.eType = PT_NetworkCreater::getInstance().getVertexTypeFromStopId(trip.endStop);
+			if (trip.endStop.find("N_") != std::string::npos)
+			{
 				trip.endStop = trip.endStop.substr(2);
 			}
 			trip.tType = itEdge->getType();
@@ -211,6 +209,7 @@ std::vector<sim_mob::OD_Trip> PT_RouteChoiceLuaModel::makePT_RouteChoice(const s
 			trip.walkTime = itEdge->getWalkTimeSecs();
 			trip.id = itEdge->getEdgeId();
 			trip.pathset = pathSetId;
+			trip.serviceLine = itEdge->getServiceLine();
 			odTrips.push_back(trip);
 		}
 	}
@@ -218,22 +217,24 @@ std::vector<sim_mob::OD_Trip> PT_RouteChoiceLuaModel::makePT_RouteChoice(const s
 	return odTrips;
 }
 
-PT_PathSet PT_RouteChoiceLuaModel::fetchPathset(int origin, int destination, const DailyTime& startTime) const
+PT_PathSet PT_RouteChoiceLuaModel::fetchPathset(int origin, int destination, const DailyTime& startTime, const std::string& ptPathsetStoredProcName) const
 {
 	PT_PathSet pathSet;
-	loadPT_PathSet(origin, destination, startTime, pathSet);
+	loadPT_PathSet(origin, destination, startTime, pathSet,ptPathsetStoredProcName);
 	return pathSet;
 }
 
-bool PT_RouteChoiceLuaModel::getBestPT_Path(int origin, int dest, const DailyTime& startTime, std::vector<sim_mob::OD_Trip>& odTrips, std::string dbid, unsigned int start_time)
+bool PT_RouteChoiceLuaModel::getBestPT_Path(int origin, int dest, unsigned int startTime, std::vector<sim_mob::OD_Trip>& odTrips, std::string dbid, unsigned int start_time, const std::string& ptPathsetStoredProcName)
 {
 	bool ret = false;
 	PT_PathSet pathSet;
-	curStartTime = startTime;
-	loadPT_PathSet(origin, dest, startTime, pathSet);
+	curStartTime = DailyTime(startTime);
+	loadPT_PathSet(origin, dest, curStartTime, pathSet,ptPathsetStoredProcName);
 	if (pathSet.pathSet.empty())
 	{
-		Print() << "[PT pathset]load pathset failed:[" << origin << "]:[" << dest << "]" << std::endl;
+		sim_mob::BasicLogger& ptPathsetLogger  = sim_mob::Logger::log("pt_pathset_failed.csv");
+		ptPathsetLogger << origin << "," << dest << ","<<curStartTime.getStrRepr() << std::endl;
+		throw PT_PathsetLoadException(origin, dest);
 	}
 	else
 	{
@@ -242,7 +243,6 @@ bool PT_RouteChoiceLuaModel::getBestPT_Path(int origin, int dest, const DailyTim
 		std::string destId = boost::lexical_cast < std::string > (dest);
 		publicTransitPathSet = &pathSet;
 		odTrips = makePT_RouteChoice(originId, destId);
-		//printScenarioAndOD(odTrips, dbid, start_time);
 		ret = true;
 	}
 	return ret;
@@ -261,9 +261,11 @@ void PT_RouteChoiceLuaModel::printScenarioAndOD(const std::vector<sim_mob::OD_Tr
 void PT_RouteChoiceLuaModel::storeBestPT_Path()
 {
 	std::ofstream outputFile("od_to_trips.csv");
-	if (outputFile.is_open()) {
+	if (outputFile.is_open())
+	{
 		std::vector<sim_mob::OD_Trip>::iterator odIt = odTripMapGen.begin();
-		for (; odIt != odTripMapGen.end(); odIt++) {
+		for (; odIt != odTripMapGen.end(); odIt++)
+		{
 			outputFile << odIt->startStop << ",";
 			outputFile << odIt->endStop << ",";
 			outputFile << odIt->sType << ",";
@@ -304,7 +306,7 @@ void loadPT_PathsetFromDB(soci::session& sql, const std::string& funcName, int o
 	}
 }
 
-void PT_RouteChoiceLuaModel::loadPT_PathSet(int origin, int dest, const DailyTime& curTime, PT_PathSet& pathSet) const
+void PT_RouteChoiceLuaModel::loadPT_PathSet(int origin, int dest, const DailyTime& curTime, PT_PathSet& pathSet, const std::string& ptPathsetStoredProcName) const
 {
 	sim_mob::ConfigParams& config = sim_mob::ConfigManager::GetInstanceRW().FullConfig();
 	if(!config.isPublicTransitEnabled())

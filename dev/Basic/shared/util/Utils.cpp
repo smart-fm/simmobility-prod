@@ -122,14 +122,17 @@ void Utils::printAndDeleteLogFiles(const std::list<std::string>& logFileNames,st
 //	std::ofstream out("abc.txt", std::ios::trunc|std::ios::binary);
 	std::ofstream out(outputFileName.c_str(), std::ios::trunc|std::ios::binary);
 	if (!out.good()) { throw std::runtime_error("Error: Can't write to file."); }
-	for (std::list<std::string>::const_iterator it=logFileNames.begin(); it!=logFileNames.end(); it++) {
+	for (std::list<std::string>::const_iterator it=logFileNames.begin(); it!=logFileNames.end(); it++)
+	{
 		std::cout <<"  Merging: " <<*it <<std::endl;
 		std::ifstream src(it->c_str(), std::ios::binary);
-		if (src.fail()) { throw std::runtime_error("Error: Can't read from file."); }
-
+		if (!src.fail())
+		{
+			//throw std::runtime_error("Error: Can't read from file.");
 		//If it's good, this part's easy.
 		out <<src.rdbuf();
 		src.close();
+		}
 	}
 	out.close();
 

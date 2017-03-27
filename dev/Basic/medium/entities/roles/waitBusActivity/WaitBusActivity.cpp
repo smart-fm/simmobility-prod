@@ -62,7 +62,7 @@ void sim_mob::medium::WaitBusActivity::collectTravelTime()
 	personTravelTime.subEndPoint = parent->currSubTrip->endLocationId;
 	personTravelTime.subStartType = parent->currSubTrip->startLocationType;
 	personTravelTime.subEndType = parent->currSubTrip->endLocationType;
-	personTravelTime.mode = "WAITING_BUS";
+	personTravelTime.mode = "WAIT_BUS";
 	personTravelTime.service = parent->currSubTrip->ptLineId;
 	personTravelTime.travelTime = ((double) parent->getRole()->getTravelTime())/1000.0; //convert to seconds
 	personTravelTime.arrivalTime = DailyTime(parent->getRole()->getArrivalTime()).getStrRepr();

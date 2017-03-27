@@ -249,6 +249,7 @@ void sim_mob::ParseConfigFile::processLongTermParamsNode(xercesc::DOMElement* no
 	cfg.ltParams.calibrationSchemaVersion = ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "calibrationSchemaVersion"), "value"), static_cast<std::string>(""));
 	cfg.ltParams.geometrySchemaVersion = ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "geometrySchemaVersion"), "value"), static_cast<std::string>(""));
 	cfg.ltParams.opSchemaloadingInterval = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "opSchemaloadingInterval"), "value"), static_cast<unsigned int>(0));
+	cfg.ltParams.initialLoading              = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName( node, "initialLoading"), "value"), false );
 
 	LongTermParams::DeveloperModel developerModel;
 	developerModel.enabled = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName( node, "developerModel"), "enabled"), false );
@@ -478,5 +479,10 @@ void sim_mob::ParseConfigFile::processModelScriptsNode(xercesc::DOMElement* node
 		scriptsMap.addScriptFileName(key, val);
 	}
 	cfg.luaScriptsMap = scriptsMap;
+}
+
+void sim_mob::ParseConfigFile::processXmlFileForServiceControler(xercesc::XercesDOMParser& parser)
+{
+
 }
 

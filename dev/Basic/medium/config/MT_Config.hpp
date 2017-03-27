@@ -379,11 +379,11 @@ public:
 	 */
 	void setModelScriptsMap(const ModelScriptsMap& modelScriptsMap);
 
-	/**
-	 * Retrieves Mongo Collection map
-	 *
-	 * @return mongo collections map
-	 */
+    /**
+     * Retrieves Mongo Collection map
+     *
+     * @return mongo collections map
+     */
 	const MongoCollectionsMap& getMongoCollectionsMap() const;
 
 	/**
@@ -394,7 +394,7 @@ public:
 	void setMongoCollectionsMap(const MongoCollectionsMap& mongoCollectionsMap);
 
 	/**
-	 * the object of this class gets sealed when this function is called. No more changes will be allowed via the setters
+	 * the object of this class gets sealed when this function is called. No more changes will be allowed via the  setters
 	 */
 	void sealConfig();
 
@@ -595,27 +595,11 @@ public:
 	void setPopulationSource(const std::string& src);
 
 	/**
-	 * Retrieves number of workers for handling agents
-	 *
-	 * @return number of workers
-	 */
-	unsigned int& personWorkGroupSize();
-
-	/**
-	 * Retrieves number of workers for handling agents
-	 *
-	 * @return number of workers
-	 */
-	unsigned int personWorkGroupSize() const;
-
-	/**
 	 * Checks whether CBD area restriction enforced
 	 *
 	 * @return true if restriction enforced, else false
 	 */
 	bool isRegionRestrictionEnabled() const;
-
-	void setPublicTransitEnabled(bool val);
 
 	/**
 	 * Retrives the confluxes
@@ -631,35 +615,91 @@ public:
 	 */
 	const std::set<Conflux*>& getConfluxes() const;
 
-	/**
-	 * Retrieves conflux nodes
-	 *
-	 * @return conflux nodes
-	 */
-	std::map<const Node*, Conflux*>& getConfluxNodes();
+    /**
+     * Retrieves number of workers for handling agents
+     *
+     * @return number of workers
+     */
+    unsigned int& personWorkGroupSize();
 
-	/**
-	 * Retrieves conflux nodes
-	 *
-	 * @return conflux nodes (const reference)
-	 */
-	const std::map<const Node*, Conflux*>& getConfluxNodes() const;
+    /**
+     * Retrieves number of workers for handling agents
+     *
+     * @return number of workers
+     */
+    unsigned int personWorkGroupSize() const;
 
-	/**
-	 * Retrives the conflux corresponding to a node
-	 *
-	 * @param multinode node for which the conflux to be found
-	 *
-	 * @return conflux
-	 */
-	Conflux* getConfluxForNode(const Node* multinode) const;
+    void setPublicTransitEnabled(bool val);
 
-	/**
-	 * Retrives the segment stats with bus stops
-	 *
-	 * @return segment stats with bus stops
-	 */
-	std::set<SegmentStats*>& getSegmentStatsWithBusStops();
+    /**
+     * Retrives the confluxes
+     *
+     * @return confluxes (const reference)
+     */
+    std::map<const Node*, Conflux*>& getConfluxNodes();
+
+    /**
+     * Retrieves conflux nodes
+     *
+     * @return conflux nodes (const reference)
+     */
+    const std::map<const Node*, Conflux*>& getConfluxNodes() const;
+
+    /**
+     * Retrives the conflux corresponding to a node
+     *
+     * @param multinode node for which the conflux to be found
+     *
+     * @return conflux
+     */
+    Conflux* getConfluxForNode(const Node* multinode) const;
+
+    /**
+     * Retrives the segment stats with bus stops
+     *
+     * @return segment stats with bus stops
+     */
+    std::set<SegmentStats*>& getSegmentStatsWithBusStops();
+
+    /**
+     * Checks whether mid term supply is running
+     *
+     * @return true if mid term supply is running, else false
+     */
+    bool RunningMidSupply() const;
+
+    /**
+     * Checks whether mid term demand is running
+     *
+     * @return true if mid term demand is running, else false
+     */
+    bool RunningMidDemand() const;
+
+    /**
+     * Sets the mid term run mode
+     *
+     * @param runMode run mode (supply/demand/withinday) to be set
+     */
+    void setMidTermRunMode(const std::string& runMode);
+
+    /**
+     * Retrives the incident params list
+     *
+     * @return incidents
+     */
+    std::vector<IncidentParams>& getIncidents();
+
+    /**
+     * Retrieve the disruption params
+     * @return disruption definition
+     */
+    std::vector<DisruptionParams>& getDisruption_rw();
+
+    /**
+     * get person timestep in milliseconds
+     * @return timestep in milliseconds
+     */
+    unsigned int personTimeStepInMilliSeconds() const;
 
 	/**
 	 * Retrieves the segment stats with taxi stands
@@ -667,39 +707,6 @@ public:
 	 */
 	std::set<SegmentStats*>& getSegmentStatsWithTaxiStands();
 
-	/**
-	 * Checks whether mid term supply is running
-	 *
-	 * @return true if mid term supply is running, else false
-	 */
-	bool RunningMidSupply() const;
-
-	/**
-	 * Checks whether mid term demand is running
-	 *
-	 * @return true if mid term demand is running, else false
-	 */
-	bool RunningMidDemand() const;
-
-	/**
-	 * Sets the mid term run mode
-	 *
-	 * @param runMode run mode (supply/demand/withinday) to be set
-	 */
-	void setMidTermRunMode(const std::string& runMode);
-
-	/**
-	 * Retrives the incident params list
-	 *
-	 * @return incidents
-	 */
-	std::vector<IncidentParams>& getIncidents();
-
-	/**
-	 * get person timestep in milliseconds
-	 * @return timestep in milliseconds
-	 */
-	unsigned int personTimeStepInMilliSeconds() const;
 
 	const WorkerParams& getWorkerParams() const;
 
@@ -717,6 +724,7 @@ public:
 	 */
 	void setSpeedDensityParam(int linkCategory, SpeedDensityParams sdParams);
 
+
 	/**
 	 * get name of table storing logsums
 	 * @return name of table storing logsums
@@ -728,6 +736,18 @@ public:
 	 * @param name of table storing logsums
 	 */
 	void setLogsumTableName(const std::string& logsumTableName);
+
+	/**
+	 * get threads number for person loader
+	 * @return the threads number in use of person loader
+	 */
+	const unsigned int getThreadsNumInPersonLoader() const;
+
+	/**
+	 * set threads number for person loader
+	 * @param number is threads number for person loader
+	 */
+	void setThreadsNumInPersonLoader(unsigned int number);
 
 	/**
 	 * Enumerator for mid term run mode
@@ -788,11 +808,17 @@ private:
 	/// Container for lua scripts
 	ModelScriptsMap modelScriptsMap;
 
+	/// Container for service controller script
+	ModelScriptsMap ServiceControllerScriptsMap;
+
 	/// container for mongo collections
 	MongoCollectionsMap mongoCollectionsMap;
 
 	/** default capacity for bus*/
 	unsigned int busCapacity;
+
+	/** the threads number in person loader*/
+	unsigned int threadsNumInPersonLoader;
 
 	/// supply update interval in frames
 	unsigned supplyUpdateInterval;
@@ -838,8 +864,13 @@ private:
 	///setting for the incidents
 	std::vector<IncidentParams> incidents;
 
-	/// set of confluxes
-	std::set<Conflux*> confluxes;
+
+    ///setting for disruptions
+    std::vector<DisruptionParams> disruptions;
+
+    /// set of confluxes
+    std::set<Conflux*> confluxes;
+
 
 	/// key:value (MultiNode:Conflux) map
 	std::map<const Node*, Conflux*> multinode_confluxes;

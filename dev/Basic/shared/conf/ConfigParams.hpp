@@ -97,6 +97,9 @@ public:
     /// Output network file name
 	std::string outNetworkFileName;
 
+	/// Output train network filename
+	std::string outTrainNetworkFilename;
+
 	/// Output simulation information file name
 	std::string outSimInfoFileName;
 

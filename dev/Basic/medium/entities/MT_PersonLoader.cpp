@@ -18,6 +18,7 @@
 #include <vector>
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
+#include "config/MT_Config.hpp"
 #include "conf/Constructs.hpp"
 #include "conf/RawConfigParams.hpp"
 #include "database/DB_Connection.hpp"
@@ -29,6 +30,8 @@
 #include "Person_MT.hpp"
 #include "util/DailyTime.hpp"
 #include "util/Utils.hpp"
+#include "util/CSVReader.hpp"
+#include "entities/TrainController.hpp"
 
 using namespace std;
 using namespace sim_mob;
@@ -306,6 +309,7 @@ public:
 
 	static int load(std::map<std::string, std::vector<TripChainItem*> >& tripChainMap, std::vector<Person_MT*>& outPersonsLoaded)
 	{
+		unsigned int numThreads = MT_Config::getInstance().getThreadsNumInPersonLoader();
 		int personsPerThread = tripChainMap.size() / numThreads;
 		CellLoader thread[numThreads];
 		boost::thread_group threadGroup;
@@ -459,10 +463,99 @@ Trip* MT_PersonLoader::makeFreightTrip(const soci::row& r)
 
 	return trip;
 }
+void MT_PersonLoader::loadMRT_Demand()
+{
+	static bool isLoaded = false;
+	if (isLoaded)
+	{
+		return;
+	}
+	isLoaded = true;
+	std::string filename = "MRTTrips.csv";
+	CSV_Reader variablesReader(filename, true);
+	boost::unordered_map<std::string, std::string> variableRow;
+	variablesReader.getNextRow(variableRow, false);
+	map<string, vector<TripChainItem*> > tripchains;
+	TrainController<Person_MT>* trainController = TrainController<Person_MT>::getInstance();
+	while (!variableRow.empty())
+	{
+		try
+		{
+			std::string personId = variableRow.at("person_id");
+			std::string sStartPlatform = variableRow.at("start_platform");
+			std::string sEndPlatform = variableRow.at("end_platform");
+			std::string sStartTime = variableRow.at("start_time");
+			std::string lineId = variableRow.at("line_id");
+			sim_mob::Platform* sPlatform = trainController->getPlatformFromId(sStartPlatform);
+			sim_mob::Platform* ePlatform = trainController->getPlatformFromId(sEndPlatform);
+			if (!sPlatform || !ePlatform)
+			{
+				throw std::runtime_error("csv do not include correct platform");
+			}
+			if (tripchains.count(personId) > 0)
+			{
+				throw std::runtime_error("csv include duplicated person id");
+			}
 
+			Trip* trip = new Trip();
+			int startTime = boost::lexical_cast<int>(sStartTime);
+			trip->startTime = DailyTime(startTime * 1000);
+			trip->itemType = TripChainItem::IT_TRIP;
+			trip->travelMode = "MRT";
+			trip->serviceLine = lineId;
+			trip->setPersonID(personId);
+			trip->origin = WayPoint(trainController->getStationFromId(sPlatform->getStationNo()));
+			trip->originType = TripChainItem::LT_PUBLIC_TRANSIT_STOP;
+			trip->startLocationId = sPlatform->getStationNo();
+			trip->destination = WayPoint(trainController->getStationFromId(ePlatform->getStationNo()));
+			trip->destinationType = TripChainItem::LT_PUBLIC_TRANSIT_STOP;
+			trip->endLocationId = ePlatform->getStationNo();
+
+			SubTrip subTrip;
+			subTrip.itemType = TripChainItem::IT_TRIP;
+			subTrip.origin = WayPoint(sPlatform);
+			subTrip.destination = WayPoint(ePlatform);
+			subTrip.originType = TripChainItem::LT_PUBLIC_TRANSIT_STOP;
+			subTrip.destinationType = TripChainItem::LT_PUBLIC_TRANSIT_STOP;
+			subTrip.travelMode = "WaitingTrainActivity";
+			subTrip.startTime = trip->startTime;
+			subTrip.serviceLine = lineId;
+			subTrip.startLocationType = "PT";
+			subTrip.endLocationType = "PT";
+			subTrip.startLocationId = sPlatform->getPlatformNo();
+			subTrip.endLocationId = ePlatform->getPlatformNo();
+			trip->addSubTrip(subTrip);
+
+			subTrip.travelMode = "MRT";
+			trip->addSubTrip(subTrip);
+			tripchains[personId].push_back(trip);
+		} catch (const std::out_of_range& oor) {
+			throw std::runtime_error("Header mis-match while reading MRT demand csv");
+		} catch (boost::bad_lexical_cast const&) {
+			throw std::runtime_error("Invalid value found in MRT demand csv");
+		}
+
+		variableRow.clear();
+		variablesReader.getNextRow(variableRow, false);
+	}
+
+	vector<Person_MT*> persons;
+	int personsLoaded = CellLoader::load(tripchains, persons);
+	for (vector<Person_MT*>::iterator i = persons.begin(); i != persons.end();i++)
+	{
+		addOrStashPerson(*i);
+	}
+
+	Print() << "PersonLoader:: MRT loaded " << personsLoaded << endl;
+	Print() << "active_agents: " << activeAgents.size() << " | pending_agents: "<< pendingAgents.size() << endl;
+}
 void MT_PersonLoader::loadPersonDemand()
 {
-	if (storedProcName.empty()) { return; }
+	if(storedProcName.empty())
+	{
+		loadMRT_Demand();
+		return;
+	}
 	//Our SQL statement
 	stringstream query;
 	double end = nextLoadStart + DEFAULT_LOAD_INTERVAL;
@@ -474,6 +567,7 @@ void MT_PersonLoader::loadPersonDemand()
 	ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
 	unsigned actCtr = 0;
 	map<string, vector<TripChainItem*> > tripchains;
+
 	for (soci::rowset<soci::row>::const_iterator it=rs.begin(); it!=rs.end(); ++it)
 	{
 		const soci::row& r = (*it);

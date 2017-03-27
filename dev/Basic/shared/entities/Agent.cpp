@@ -41,6 +41,7 @@ using std::priority_queue;
 
 StartTimePriorityQueue sim_mob::Agent::pending_agents;
 std::set<Entity*> sim_mob::Agent::all_agents;
+std::vector<Entity*>sim_mob::Agent::activeAgents;
 unsigned int sim_mob::Agent::nextAgentId = 0;
 
 unsigned int sim_mob::Agent::getAndIncrementID(int preferredID)
@@ -162,6 +163,7 @@ UpdateStatus sim_mob::Agent::performUpdate(timeslice now)
 	checkFrameTimes(getId(), now.ms(), getStartTime(), calledFrameInit, isToBeRemoved());
 
 	//Perform the main update tick
+
 	frameTckRes = frame_tick(now);
 
 	//Save the output

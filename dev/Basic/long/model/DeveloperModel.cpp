@@ -34,7 +34,6 @@
 #include "database/entity/UnitType.hpp"
 #include "database/dao/UnitTypeDao.hpp"
 #include "database/dao/BuildingDao.hpp"
-#include "database/dao/TotalBuildingSpaceDao.hpp"
 #include "database/dao/ParcelAmenitiesDao.hpp"
 #include "database/dao/MacroEconomicsDao.hpp"
 #include "database/dao/LogsumForDevModelDao.hpp"
@@ -73,14 +72,34 @@ DeveloperModel::~DeveloperModel() {
 }
 
 void DeveloperModel::startImpl() {
+
+	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+	bool resume = config.ltParams.resume;
+	simYear = config.ltParams.year;
+	minLotSize= config.ltParams.developerModel.minLotSize;
+	bool initLoading = config.ltParams.initialLoading;
 	DB_Config dbConfig(LT_DB_CONFIG_FILE);
 	dbConfig.load();
-
 	// Connect to database and load data for this model.
 	DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
 	conn.connect();
 	if (conn.isConnected())
 	{
+		ParcelsWithHDB *HDB_Parcel;
+		if(initLoading)
+		{
+			loadData<ParcelsWithHDBDao>(conn,parcelsWithHDB,parcelsWithHDB_ById,&ParcelsWithHDB::getFmParcelId);
+			PrintOutV("Parcels with HDB loaded " << parcelsWithHDB.size() << std::endl);
+			HDB_Parcel->saveParcelsWithHDB(parcelsWithHDB,"parcelsWithHDB");
+		}
+
+		if(!initLoading)
+		{
+			parcelsWithHDB = HDB_Parcel->loadSerializedData();
+			indexData(parcelsWithHDB,parcelsWithHDB_ById,&ParcelsWithHDB::getFmParcelId);
+			PrintOutV("parcelsWithHDB loaded from disk"<<parcelsWithHDB.size() << std::endl );
+		}
+
 		//Load developers
 		//loadData<DeveloperDao>(conn, developers);
 		//Load templates
@@ -108,13 +127,6 @@ void DeveloperModel::startImpl() {
 		loadData<UnitTypeDao>(conn, unitTypes, unitTypeById,&UnitType::getId);
 		//load buildings
 		loadData<BuildingDao>(conn,buildings);
-		//load building spaces
-		TotalBuildingSpaceDao buildingSpaceDao(conn);
-		buildingSpaces = buildingSpaceDao.getBuildingSpaces();
-		//Index all building spaces.
-		for (BuildingSpaceList::iterator it = buildingSpaces.begin(); it != buildingSpaces.end(); it++) {
-			buildingSpacesByParcelId.insert(std::make_pair((*it)->getFmParcelId(), *it));
-		}
 
 		loadData<ParcelAmenitiesDao>(conn,amenities,amenitiesById,&ParcelAmenities::getFmParcelId);
 
@@ -122,9 +134,6 @@ void DeveloperModel::startImpl() {
 
 		//commented as this is not used in 2012 now.
 		//loadData<LogsumForDevModelDao>(conn,accessibilityList,accessibilityByTazId,&LogsumForDevModel::gettAZ2012Id);
-
-		loadData<ParcelsWithHDBDao>(conn,parcelsWithHDB,parcelsWithHDB_ById,&ParcelsWithHDB::getFmParcelId);
-		PrintOutV("Parcels with HDB loaded " << parcelsWithHDB.size() << std::endl);
 
 		loadData<TAO_Dao>(conn,taoList,taoByQuarterStr,&TAO::getQuarter);
 		PrintOutV("TAO by quarters loaded " << taoList.size() << std::endl);
@@ -139,11 +148,6 @@ void DeveloperModel::startImpl() {
 		PrintOutV("building average age per parcel loaded " << buildingAvgAgePerParcel.size() << std::endl);
 		loadData<ROILimitsDao>(conn,roiLimits,roiLimitsByDevTypeId,&ROILimits::getDevelopmentTypeId);
 		PrintOutV("roi limits loaded " << roiLimits.size() << std::endl);
-
-		ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
-		bool resume = config.ltParams.resume;
-		simYear = config.ltParams.year;
-		minLotSize= config.ltParams.developerModel.minLotSize;
 
 		std::tm currentSimYear = getDateBySimDay(simYear,0);
 		UnitDao unitDao(conn);
@@ -197,12 +201,31 @@ void DeveloperModel::startImpl() {
 
 
 	PrintOutV("minLotSize"<<minLotSize<<std::endl);
-	processParcels();
+	Parcel *parcel;
+	if(initLoading)
+	{
+		processParcels();
+		PrintOutV("Parcels processed"<<std::endl);
+		parcel->saveData(developmentCandidateParcelList,"developmentCandidateParcelList");
+		parcel->saveData(parcelsWithProjectsList,"parcelsWithProjectsList");
+		parcel->saveData(parcelsWithDay0Projects,"parcelsWithDay0Projects");
+	}
+	else
+	{
+		developmentCandidateParcelList = parcel->loadSerializedData("developmentCandidateParcelList");
+		parcelsWithProjectsList = parcel->loadSerializedData("parcelsWithProjectsList");
+		parcelsWithDay0Projects  = parcel->loadSerializedData("parcelsWithDay0Projects");
+
+
+	}
+
 	createDeveloperAgents(developmentCandidateParcelList,false,false);
 	createDeveloperAgents(parcelsWithProjectsList,true,false);
 	createDeveloperAgents(parcelsWithDay0Projects,false,true);
-	//createBTODeveloperAgents();
+	PrintOutV("Created dev agents"<<std::endl);
+	createBTODeveloperAgents();
 	wakeUpDeveloperAgents(getDeveloperAgents());
+	PrintOutV("Wokeup dev agents"<<std::endl);
 
 	PrintOutV("Time Interval " << timeInterval << std::endl);
 	PrintOutV("Initial Developers " << developers.size() << std::endl);
@@ -219,7 +242,7 @@ void DeveloperModel::startImpl() {
 	addMetadata("Initial Templates", templates.size());
 	addMetadata("Initial Parcels", initParcelList.size());
 	addMetadata("Initial DevelopmentTypeTemplates",developmentTypeTemplates.size());
-	PrintOutV("Initial Developer,Agents"<< developmentCandidateParcelList.size() << std::endl );
+	PrintOutV("Initial Developer Agents"<< developmentCandidateParcelList.size() << std::endl );
 	PrintOut("total eligible parcels"<<developmentCandidateParcelList.size()<< std::endl);
 }
 
@@ -229,7 +252,6 @@ void DeveloperModel::stopImpl() {
 	emptyParcelsById.clear();
 	parcelsById.clear();
 	amenitiesById.clear();
-	buildingSpacesByParcelId.clear();
 	macroEconomicsById.clear();
 	parcelsWithHDB_ById.clear();
 	taoByQuarterStr.clear();
@@ -240,7 +262,6 @@ void DeveloperModel::stopImpl() {
     clear_delete_vector(initParcelList);
     clear_delete_vector(existingProjectIds);
     clear_delete_vector(amenities);
-    clear_delete_vector(buildingSpaces);
     clear_delete_vector(macroEconomics);
     clear_delete_vector(parcelsWithHDB);
     clear_delete_vector(taoList);
@@ -287,15 +308,6 @@ const MacroEconomics* DeveloperModel::getMacroEconById(BigSerial id) const {
 			return itr->second;
 	    }
 	    return nullptr;
-}
-
-float DeveloperModel::getBuildingSpaceByParcelId(BigSerial id) const {
-	TotalBuildingSpaceMap::const_iterator itr = buildingSpacesByParcelId.find(id);
-    if (itr != buildingSpacesByParcelId.end())
-    {
-        return itr->second->getTotalBuildingSpace();
-    }
-    return 0;
 }
 
 const LogsumForDevModel* DeveloperModel::getAccessibilityLogsumsByTAZId(BigSerial fmParcelId) const
@@ -353,79 +365,90 @@ void DeveloperModel::createDeveloperAgents(ParcelList devCandidateParcelList, bo
 				devAgent->setHousingMarketModel(housingMarketModel);
 				devAgent->setSimYear(simYear);
 
-				std::tm currentSimYear = getDateBySimDay(simYear,0);
-				DB_Config dbConfig(LT_DB_CONFIG_FILE);
-				dbConfig.load();
-				// Connect to database
-				DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
-				conn.connect();
-
-				if(onGoingProject)
+				if(onGoingProject|| day0Project)
 				{
-					devAgent->setParcelDBStatus(true);
-					Project *project = getProjectByParcelId(devCandidateParcelList[i]->getId());
-					if(project != nullptr)
+					std::tm currentSimYear = getDateBySimDay(simYear,0);
+					DB_Config dbConfig(LT_DB_CONFIG_FILE);
+					dbConfig.load();
+					// Connect to database
+					DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
+					conn.connect();
+					if(onGoingProject)
 					{
-						boost::shared_ptr<Project> projectPtr (new Project(*project));
-						devAgent->setProject(projectPtr);
-						projectPtr->setCurrTick(startDay);
-						devAgent->getParcel().get()->setStatus(1);
+						std::tm currentSimYear = getDateBySimDay(simYear,0);
+						DB_Config dbConfig(LT_DB_CONFIG_FILE);
+						dbConfig.load();
+						// Connect to database
+						DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
+						conn.connect();
+						if(onGoingProject)
+						{
+							devAgent->setParcelDBStatus(true);
+							Project *project = getProjectByParcelId(devCandidateParcelList[i]->getId());
+							if(project != nullptr)
+							{
+								boost::shared_ptr<Project> projectPtr (new Project(*project));
+								devAgent->setProject(projectPtr);
+								projectPtr->setCurrTick(startDay);
+								devAgent->getParcel().get()->setStatus(1);
+							}
+
+							BuildingList buildingsInOngoingProjects;
+
+							if (conn.isConnected())
+							{
+								BuildingDao buildingDao(conn);
+								buildingsInOngoingProjects = buildingDao.getBuildingsByParcelId(devCandidateParcelList[i]->getId(),outputSchema);
+							}
+
+							std::vector< boost::shared_ptr<Building> > buildingsInOngoingProjectsSharedVec;
+							buildingsInOngoingProjectsSharedVec.reserve(buildingsInOngoingProjects.size());
+							std::transform(buildingsInOngoingProjects.begin(), buildingsInOngoingProjects.end(), std::back_inserter(buildingsInOngoingProjectsSharedVec),to_shared_ptr<Building>);
+							buildingsInOngoingProjects.clear();
+							devAgent->setNewBuildings(buildingsInOngoingProjectsSharedVec);
+
+							std::vector<Unit*> unitsInOngoingProjects;
+							UnitDao unitDao(conn);
+							BuildingList::iterator buildingsItr;
+							for(buildingsItr = buildingsInOngoingProjects.begin(); buildingsItr != buildingsInOngoingProjects.end(); ++buildingsItr)
+							{
+								//TODO:: currently there is only one building with all the new units assigned to it. have to revisit this when there are multiple buildings.
+								unitsInOngoingProjects = unitDao.getUnitsByBuildingId((*buildingsItr)->getFmBuildingId(),outputSchema);
+							}
+
+							std::vector< boost::shared_ptr<Unit> > unitsInOngoingProjectsSharedVec;
+							unitsInOngoingProjectsSharedVec.reserve(unitsInOngoingProjects.size());
+							std::transform(unitsInOngoingProjects.begin(), unitsInOngoingProjects.end(), std::back_inserter(unitsInOngoingProjectsSharedVec),to_shared_ptr<Unit>);
+							unitsInOngoingProjects.clear();
+							devAgent->setNewUnits(unitsInOngoingProjectsSharedVec);
+						}
+						else if(day0Project)
+						{
+							if (conn.isConnected())
+							{
+								UnitDao unitDao(conn);
+								std::tm lastDayOfCurrentSimYear = getDateBySimDay(simYear,364);
+								UnitList unitsOnDay0 = unitDao.loadUnitsToLaunchOnDay0(currentSimYear,lastDayOfCurrentSimYear,devCandidateParcelList[i]->getId());
+								std::vector< boost::shared_ptr<Unit> > unitsOnDay0SharedVec;
+								unitsOnDay0SharedVec.reserve(unitsOnDay0.size());
+								std::transform(unitsOnDay0.begin(), unitsOnDay0.end(), std::back_inserter(unitsOnDay0SharedVec),to_shared_ptr<Unit>);
+								unitsOnDay0.clear();
+								devAgent->setNewUnits(unitsOnDay0SharedVec);
+								devAgent->setIsDay0Project(true);
+
+							}
+
+							Project *project = new Project();
+							project->setParcelId(devCandidateParcelList[i]->getId());
+							boost::shared_ptr<Project> projectPtr (new Project(*project));
+							devAgent->setProject(projectPtr);
+							projectPtr->setCurrTick(startDay);
+							devAgent->getParcel().get()->setStatus(1);
+						}
+
+						agents.push_back(devAgent);
 					}
-
-					BuildingList buildingsInOngoingProjects;
-
-					if (conn.isConnected())
-					{
-						BuildingDao buildingDao(conn);
-						buildingsInOngoingProjects = buildingDao.getBuildingsByParcelId(devCandidateParcelList[i]->getId(),outputSchema);
-					}
-
-					std::vector< boost::shared_ptr<Building> > buildingsInOngoingProjectsSharedVec;
-					buildingsInOngoingProjectsSharedVec.reserve(buildingsInOngoingProjects.size());
-					std::transform(buildingsInOngoingProjects.begin(), buildingsInOngoingProjects.end(), std::back_inserter(buildingsInOngoingProjectsSharedVec),to_shared_ptr<Building>);
-					buildingsInOngoingProjects.clear();
-					devAgent->setNewBuildings(buildingsInOngoingProjectsSharedVec);
-
-					std::vector<Unit*> unitsInOngoingProjects;
-					UnitDao unitDao(conn);
-					BuildingList::iterator buildingsItr;
-					for(buildingsItr = buildingsInOngoingProjects.begin(); buildingsItr != buildingsInOngoingProjects.end(); ++buildingsItr)
-					{
-						//TODO:: currently there is only one building with all the new units assigned to it. have to revisit this when there are multiple buildings.
-						unitsInOngoingProjects = unitDao.getUnitsByBuildingId((*buildingsItr)->getFmBuildingId(),outputSchema);
-					}
-
-					std::vector< boost::shared_ptr<Unit> > unitsInOngoingProjectsSharedVec;
-					unitsInOngoingProjectsSharedVec.reserve(unitsInOngoingProjects.size());
-					std::transform(unitsInOngoingProjects.begin(), unitsInOngoingProjects.end(), std::back_inserter(unitsInOngoingProjectsSharedVec),to_shared_ptr<Unit>);
-					unitsInOngoingProjects.clear();
-					devAgent->setNewUnits(unitsInOngoingProjectsSharedVec);
 				}
-				else if(day0Project)
-				{
-					if (conn.isConnected())
-					{
-						UnitDao unitDao(conn);
-						std::tm lastDayOfCurrentSimYear = getDateBySimDay(simYear,364);
-						UnitList unitsOnDay0 = unitDao.loadUnitsToLaunchOnDay0(currentSimYear,lastDayOfCurrentSimYear,devCandidateParcelList[i]->getId());
-						std::vector< boost::shared_ptr<Unit> > unitsOnDay0SharedVec;
-						unitsOnDay0SharedVec.reserve(unitsOnDay0.size());
-						std::transform(unitsOnDay0.begin(), unitsOnDay0.end(), std::back_inserter(unitsOnDay0SharedVec),to_shared_ptr<Unit>);
-						unitsOnDay0.clear();
-						devAgent->setNewUnits(unitsOnDay0SharedVec);
-						devAgent->setIsDay0Project(true);
-
-					}
-
-					Project *project = new Project();
-					project->setParcelId(devCandidateParcelList[i]->getId());
-					boost::shared_ptr<Project> projectPtr (new Project(*project));
-					devAgent->setProject(projectPtr);
-					projectPtr->setCurrTick(startDay);
-					devAgent->getParcel().get()->setStatus(1);
-				}
-
-				agents.push_back(devAgent);
 
 				workGroup.assignAWorker(devAgent);
 				if((!onGoingProject) && (!day0Project))
@@ -494,28 +517,20 @@ void DeveloperModel::processParcels()
 			}
 			else
 			{
-				if(parcel->getStatus()==1)
+				if( parcel->getStatus()==1 )
 				{
 					parcelsWithDay0Projects.push_back(parcel);
+					#ifdef VERBOSE_DEVELOPER
 					writeNonEligibleParcelsToFile(parcel->getId(),"on going project");
+					#endif
 				}
-				else
+				/*
+				 * getDevelopmentAllowed()!=2 = "development not allowed"
+				 */
+				else if( (parcel->getDevelopmentAllowed()!=2) || (parcel->getLotSize()< minLotSize) || (getParcelsWithHDB_ByParcelId(parcel->getId())!= nullptr))
 				{
-					if(parcel->getDevelopmentAllowed()!=2)
-					{
-						nonEligibleParcelList.push_back(parcel);
-						writeNonEligibleParcelsToFile(parcel->getId(),"development not allowed");
-					}
-					else if(parcel->getLotSize()< minLotSize)
-					{
-						nonEligibleParcelList.push_back(parcel);
-						writeNonEligibleParcelsToFile(parcel->getId(),"lot size less than 100");
-					}
-					else if (getParcelsWithHDB_ByParcelId(parcel->getId())!= nullptr)
-					{
-						nonEligibleParcelList.push_back(parcel);
-						writeNonEligibleParcelsToFile(parcel->getId(),"parcel with HDB");
-					}
+					nonEligibleParcelList.push_back(parcel);
+				}
 					else
 					{
 						//TODO:: consider the use_restriction field of parcel as well in the future
@@ -529,13 +544,17 @@ void DeveloperModel::processParcels()
 							{
 								newDevelopment = 1;
 							}
+							#ifdef VERBOSE_DEVELOPER
 							writeEligibleParcelsToFile(parcel->getId(),newDevelopment);
+							#endif
 							devCandidateParcelsById.insert(std::make_pair(parcel->getId(), parcel));
 						}
 						else
 						{
 							nonEligibleParcelList.push_back(parcel);
+							#ifdef VERBOSE_DEVELOPER
 							writeNonEligibleParcelsToFile(parcel->getId(),"parcel gpr is not present");
+							#endif
 						}
 
 					}
@@ -543,8 +562,6 @@ void DeveloperModel::processParcels()
 
 			}
 		}
-
-	}
 }
 
 void DeveloperModel::processProjects()
@@ -589,7 +606,7 @@ void DeveloperModel::processProjects()
 DeveloperModel::DeveloperList DeveloperModel::getDeveloperAgents(){
 
 	const int poolSize = developers.size();
-	const float dailyParcelPercentage = 0.001; //we are examining 0.6% of the pool everyday
+	const float dailyParcelPercentage =  0.001; //we are examining 0.6% of the pool everyday
 	const int dailyAgentFraction = poolSize * dailyParcelPercentage;
 	std::set<int> indexes;
 	DeveloperList dailyDevAgents;

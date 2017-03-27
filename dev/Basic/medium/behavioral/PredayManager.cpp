@@ -727,7 +727,9 @@ void sim_mob::medium::PredayManager::loadCosts()
 	}
 	else
 	{
+
 		throw std::runtime_error("simmob db connection failure!");
+
 	}
 }
 
@@ -838,6 +840,32 @@ void sim_mob::medium::PredayManager::dispatchLT_Persons()
 	if (mtConfig.isFileOutputEnabled())
 	{
 		mergeCSV_Files(logFileNames, logFileNamePrefix);
+	}
+}
+
+void PredayManager::removeInvalidAddresses()
+{
+	std::map<long, sim_mob::Address>& addresses = PersonParams::getAddressLookup();
+	std::map<int, std::vector<long> >& zoneAdresses = PersonParams::getZoneAddresses();
+	std::map<unsigned int, unsigned int>& postCodeNodeMap = PersonParams::getPostcodeNodeMap();
+
+	for(std::map<long, sim_mob::Address>::iterator iter = addresses.begin(); iter != addresses.end();)
+	{
+		if (postCodeNodeMap.find(iter->second.getPostcode()) == postCodeNodeMap.end())
+		{
+			std::vector<long>& addressesInZone = zoneAdresses.at(iter->second.getTazCode());
+			std::vector<long>::iterator removeItem = std::find(addressesInZone.begin(), addressesInZone.end(), iter->first);
+			if (removeItem != addressesInZone.end())
+			{
+				addressesInZone.erase(removeItem);
+			}
+
+			iter = addresses.erase(iter);
+		}
+		else
+		{
+			++iter;
+		}
 	}
 }
 
@@ -1259,8 +1287,8 @@ void sim_mob::medium::PredayManager::computeLogsumsForCalibration(const PersonLi
 	{
 		throw std::runtime_error("simmobility db connection failure!");
 	}
-	TimeDependentTT_SqlDao tcostDao(simmobConn);
 
+	TimeDependentTT_SqlDao tcostDao(simmobConn);
 	// loop through all persons within the range and plan their day
 	for (PersonList::iterator i = firstPersonIt; i != oneAfterLastPersonIt; i++)
 	{

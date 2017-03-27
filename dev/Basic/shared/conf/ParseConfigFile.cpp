@@ -248,6 +248,7 @@ void sim_mob::ParseConfigFile::processLongTermParamsNode(xercesc::DOMElement* no
 	cfg.ltParams.calibrationSchemaVersion = ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "calibrationSchemaVersion"), "value"), static_cast<std::string>(""));
 	cfg.ltParams.geometrySchemaVersion = ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "geometrySchemaVersion"), "value"), static_cast<std::string>(""));
 	cfg.ltParams.opSchemaloadingInterval = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "opSchemaloadingInterval"), "value"), static_cast<unsigned int>(0));
+	cfg.ltParams.initialLoading              = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName( node, "initialLoading"), "value"), false );
 
 	LongTermParams::DeveloperModel developerModel;
 	developerModel.enabled = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName( node, "developerModel"), "enabled"), false );
@@ -278,6 +279,9 @@ void sim_mob::ParseConfigFile::processLongTermParamsNode(xercesc::DOMElement* no
 	housingModel.awakeningModel.awakenModelRandom =ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "awakeningModel"), "awakenModelRandom"), "value"), false);
 	housingModel.awakeningModel.awakenModelShan =ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "awakeningModel"), "awakenModelShan"), "value"), false);
 	housingModel.awakeningModel.awakenModelJingsi =ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "awakeningModel"), "awakenModelJingsi"), "value"), false);
+	housingModel.offsetBetweenUnitBuyingAndSellingAdvancedPurchase = ParseInteger(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "offsetBetweenUnitBuyingAndSellingAdvancedPurchase"), "value"), static_cast<int>(0));
+	housingModel.awakeningModel.awakeningOffMarketSuccessfulBid = ParseInteger(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "awakeningModel"), "awakeningOffMarketSuccessfulBid"), "value"), static_cast<int>(0));
+	housingModel.awakeningModel.awakeningOffMarketUnsuccessfulBid = ParseInteger(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "awakeningModel"), "awakeningOffMarketUnsuccessfulBid"), "value"), static_cast<int>(0));
 
 	cfg.ltParams.housingModel = housingModel;
 
@@ -301,6 +305,38 @@ void sim_mob::ParseConfigFile::processLongTermParamsNode(xercesc::DOMElement* no
 	schoolAssignmentModel.enabled = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName( node, "schoolAssignmentModel"), "enabled"), false);
 	schoolAssignmentModel.schoolChangeWaitingTimeInDays = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "schoolAssignmentModel"), "schoolChangeWaitingTimeInDays"), "value"), static_cast<unsigned int>(0));
 	cfg.ltParams.taxiAccessModel = taxiAccessModel;
+
+
+	LongTermParams::OutputFiles outputFiles;
+
+	outputFiles.enabled = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName( node, "outputFiles"), "enabled"), false);
+	outputFiles.bids = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "outputFiles"), "bids"), "value"), false);
+	outputFiles.expectations = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "outputFiles"), "expectations"), "value"), false);
+	outputFiles.parcels = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "outputFiles"), "parcels"), "value"), false);
+	outputFiles.units = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "outputFiles"), "units"), "value"), false);
+	outputFiles.projects = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "outputFiles"), "projects"), "value"), false);
+	outputFiles.hh_pc = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "outputFiles"), "hh_pc"), "value"), false);
+	outputFiles.units_in_market = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "outputFiles"), "units_in_market"), "value"), false);
+	outputFiles.log_taxi_availability = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "outputFiles"), "log_taxi_availability"), "value"), false);
+	outputFiles.log_vehicle_ownership = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "outputFiles"), "log_vehicle_ownership"), "value"), false);
+	outputFiles.log_taz_level_logsum = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "outputFiles"), "log_taz_level_logsum"), "value"), false);
+	outputFiles.log_householdgrouplogsum = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "outputFiles"), "log_householdgrouplogsum"), "value"), false);
+	outputFiles.log_individual_hits_logsum = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "outputFiles"), "log_individual_hits_logsum"), "value"), false);
+	outputFiles.log_householdbidlist = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "outputFiles"), "log_householdbidlist"), "value"), false);
+	outputFiles.log_individual_logsum_vo = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "outputFiles"), "log_individual_logsum_vo"), "value"), false);
+	outputFiles.log_screeningprobabilities = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "outputFiles"), "log_screeningprobabilities"), "value"), false);
+	outputFiles.log_hhchoiceset = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "outputFiles"), "log_hhchoiceset"), "value"), false);
+	outputFiles.log_error = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "outputFiles"), "log_error"), "value"), false);
+	outputFiles.log_school_assignment = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "outputFiles"), "log_school_assignment"), "value"), false);
+	outputFiles.log_pre_school_assignment = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "outputFiles"), "log_pre_school_assignment"), "value"), false);
+	outputFiles.log_hh_awakening = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "outputFiles"), "log_hh_awakening"), "value"), false);
+	outputFiles.log_hh_exit = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "outputFiles"), "log_hh_exit"), "value"), false);
+	outputFiles.log_random_nums = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "outputFiles"), "log_random_nums"), "value"), false);
+	outputFiles.log_dev_roi = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "outputFiles"), "log_dev_roi"), "value"), false);
+	outputFiles.log_household_statistics = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "outputFiles"), "log_household_statistics"), "value"), false);
+	outputFiles.log_out_xx_files = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "outputFiles"), "log_out_xx_files"), "value"), true);
+
+	cfg.ltParams.outputFiles = outputFiles;
 }
 
 void sim_mob::ParseConfigFile::processSimulationNode(xercesc::DOMElement* node)
@@ -423,5 +459,10 @@ void sim_mob::ParseConfigFile::processModelScriptsNode(xercesc::DOMElement* node
 		scriptsMap.addScriptFileName(key, val);
 	}
 	cfg.luaScriptsMap = scriptsMap;
+}
+
+void sim_mob::ParseConfigFile::processXmlFileForServiceControler(xercesc::XercesDOMParser& parser)
+{
+
 }
 

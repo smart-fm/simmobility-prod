@@ -38,6 +38,7 @@ struct LongTermParams
 	std::string calibrationSchemaVersion;
 	std::string geometrySchemaVersion;
 	unsigned int opSchemaloadingInterval;
+	bool initialLoading;
 
 	struct DeveloperModel{
 		DeveloperModel();
@@ -64,6 +65,7 @@ struct LongTermParams
 		int bidderBTOUnitsChoiceSet;
 		int householdBiddingWindow;
 		float householdAwakeningPercentageByBTO;
+		int offsetBetweenUnitBuyingAndSellingAdvancedPurchase;
 
 		struct AwakeningModel
 		{
@@ -73,6 +75,8 @@ struct LongTermParams
 			bool awakenModelJingsi;
 			bool awakenModelShan;
 			bool awakenModelRandom;
+			int awakeningOffMarketSuccessfulBid;
+			int awakeningOffMarketUnsuccessfulBid;
 		} awakeningModel;
 	} housingModel;
 
@@ -101,6 +105,40 @@ struct LongTermParams
 		bool enabled;
 		unsigned int schoolChangeWaitingTimeInDays;
 	}schoolAssignmentModel;
+
+
+	struct OutputFiles{
+
+		OutputFiles();
+        bool bids;
+        bool expectations;
+        bool parcels;
+        bool units;
+        bool projects;
+        bool hh_pc;
+        bool units_in_market;
+        bool log_taxi_availability;
+        bool log_vehicle_ownership;
+        bool log_taz_level_logsum;
+        bool log_householdgrouplogsum;
+        bool log_individual_hits_logsum;
+        bool log_householdbidlist;
+        bool log_individual_logsum_vo;
+        bool log_screeningprobabilities;
+        bool log_hhchoiceset;
+        bool log_error;
+        bool log_school_assignment;
+        bool log_pre_school_assignment;
+        bool log_hh_awakening;
+        bool log_hh_exit;
+        bool log_random_nums;
+        bool log_dev_roi;
+        bool log_household_statistics;
+        bool log_out_xx_files;
+        bool enabled;
+
+	}outputFiles;
+
 };
 
 ///represent the incident data section of the config file
@@ -131,7 +169,25 @@ struct IncidentParams {
 	float accessibility;
 	std::vector<LaneParams> laneParams;
 };
-
+/**
+ * represent disruption data section of the config file
+ */
+struct DisruptionParams{
+	DisruptionParams():startTime(0),duration(0),id(0){}
+	unsigned int id;
+	DailyTime startTime;
+	DailyTime duration;
+	std::vector<std::string> platformNames;
+	std::vector<std::string> platformLineIds;
+};
+/**
+ * represent walking time in the train station
+ */
+struct WalkingTimeParams{
+	std::string stationName;
+	double alpha = 0.0;
+	double beta = 0.0;
+};
 /**
  * Represents a Person's Characteristic in the config file. (NOTE: Further documentation needed.)
  */
@@ -397,6 +453,12 @@ struct PathSetConf
 
     /// Utility Parameters
 	UtilityParams params;
+
+    /// pt route choice model scripts params
+	ModelScriptsMap ServiceControllerScriptsMap;
+
+
+
 };
 
 /**
@@ -415,6 +477,71 @@ struct BusControllerParams
 
     /// bus line control type
     std::string busLineControlType;
+};
+
+/**
+ * Represents train controller parameter section
+ */
+
+ struct TrainDwellTimeInfo
+ {
+	 double dwellTimeAtNormalStation;
+	 double dwellTimeAtInterchanges;
+	 double dwellTimeAtTerminalStaions;
+	 double maxDwellTime;
+	 double firstCoeff;
+	 double secondCoeff;
+	 double thirdCoeff;
+	 double fourthCoeff;
+ };
+struct TrainProperties
+{
+	TrainProperties() :safeDistance(0), safeHeadway(0),maxCapacity(0)
+	{
+
+	}
+	/// safe operation distance;
+	double safeDistance;
+	/// safe operation headway
+	double safeHeadway;
+	/// train capacity
+	unsigned int maxCapacity;
+    /// train length
+	double trainLength;
+	double minDistanceTrainBehindForUnscheduledTrain;
+	TrainDwellTimeInfo dwellTimeInfo;
+};
+
+struct TrainControllerParams
+{
+    /**
+     * Constructor
+     */
+	TrainControllerParams() : enabled(false), trainControlType(""),
+			safeDistance(0), safeHeadway(0), miniDwellTime(0),
+			maxDwellTime(0),outputEnabled(false),maxCapacity(0)
+    {}
+
+    /// Is train controller enabled?
+    bool enabled;
+
+    /// train line control type
+    std::string trainControlType;
+    /// safe operation distance;
+    double safeDistance;
+    /// safe operation headway
+    double safeHeadway;
+    /// dwell time minimum value
+    double miniDwellTime;
+    /// dwell time maximum value
+    double maxDwellTime;
+    /// train output enabled
+    bool outputEnabled;
+    /// train capacity
+    unsigned int maxCapacity;
+
+	double distanceArrivingAtPlatform;
+    std::map<const std::string,TrainProperties> trainLinePropertiesMap;
 };
 
 /**
@@ -488,11 +615,18 @@ public:
     /// Bus controller parameters
     BusControllerParams busController;
 
+
+
+    /// Train controller parameters
+    TrainControllerParams trainController;
+
+
     //OD Travel Time configurations
     TravelTimeConfig odTTConfig;
 
     //OD Travel Time configurations
 	TravelTimeConfig rsTTConfig;
+
 
     ///Some settings for bus stop arrivals/departures.
     std::map<int, BusStopScheduledTime> busScheduledTimes; //The int is a "bus stop ID", starting from 0.

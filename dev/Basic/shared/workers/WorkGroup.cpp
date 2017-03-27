@@ -138,7 +138,10 @@ void sim_mob::WorkGroup::initWorkers(EntityLoadParams* loader)
 		std::stringstream outFilePath;
 		outFilePath << prefix << i << ".txt";
 		std::ofstream* logFile = nullptr;
-		if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled())
+
+		ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+
+		if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled() && config.ltParams.outputFiles.log_out_xx_files)
 		{
 			//TODO: Handle error case more gracefully.
 			logFileNames.push_back(outFilePath.str());
@@ -230,6 +233,9 @@ void sim_mob::WorkGroup::stageEntities()
 		if (ConfigManager::GetInstance().FullConfig().RunningMidTerm())
 		{
 			loadPerson(ag);
+			//push to currently active agents
+			Agent::activeAgents.push_back(ag);
+
 		}
 		else // short or long term
 		{

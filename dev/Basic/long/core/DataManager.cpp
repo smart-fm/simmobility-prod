@@ -51,6 +51,7 @@ void DataManager::reset()
     readyToLoad = true;
 }
 
+
 void DataManager::load()
 {
     //first resets old data if necessary.
@@ -70,7 +71,7 @@ void DataManager::load()
         PrintOutV("Loaded " << buildings.size() << " buildings." << std::endl);
         loadData<PostcodeDao>(conn, postcodes, postcodesById, &Postcode::getAddressId);
         PrintOutV("Loaded " << postcodes.size() << " postcodes." << std::endl );
-        loadData<PostcodeAmenitiesDao>(conn, amenities, amenitiesByCode, &PostcodeAmenities::getPostcode);
+        loadData<PostcodeAmenitiesDao>(conn, amenities, amenitiesById, &PostcodeAmenities::getAddressId);
         PrintOutV("Loaded " << amenities.size() << " amenities." << std::endl);
 
         // (Special case) Index all postcodes.
@@ -79,20 +80,7 @@ void DataManager::load()
             postcodesByCode.insert(std::make_pair((*it)->getSlaPostcode(), *it));
         }
 
-        int amenitiesByIdCount = 0;
-        //Index all amenities. 
-        for (PostcodeAmenitiesList::iterator it = amenities.begin(); it != amenities.end(); it++)
-        {
-            const Postcode* pc = getPostcodeByCode((*it)->getPostcode());
-
-            if (pc)
-            {
-                amenitiesById.insert(std::make_pair(pc->getAddressId(), *it));
-                amenitiesByIdCount++;
-            }
-        }
-
-        PrintOutV("amenitiesById pairs " << amenitiesByIdCount << std::endl);
+        PrintOutV("amenitiesById pairs " << amenitiesById.size() << std::endl);
     }
     readyToLoad = false;
 }

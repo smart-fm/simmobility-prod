@@ -79,7 +79,9 @@ void DriverMovement::init()
 {
 	if (!parentDriver)
 	{
-		throw runtime_error("Failed to initialise driver movement... Driver does not exist!!!");
+		std::stringstream msg;
+		msg << __func__ << ": Initialisation failed! parentDriver is NULL";
+		throw runtime_error(msg.str());
 	}
 
 	DriverUpdateParams &params = parentDriver->getParams();
@@ -104,7 +106,9 @@ void DriverMovement::frame_init()
 	}
 	else
 	{
-		throw std::runtime_error("No vehicle associated with the driver!");
+		std::stringstream msg;
+		msg << __func__ << ": No vehicle associated with the driver.";
+		throw std::runtime_error(msg.str());
 	}
 
 	if (fwdDriverMovement.isDrivingPathSet())
@@ -114,7 +118,7 @@ void DriverMovement::frame_init()
 	else
 	{
 		std::stringstream msg;
-		msg << "No path found from " << parentDriver->origin->getNodeId() << " to " << parentDriver->destination->getNodeId();
+		msg << __func__ << ": No path found from " << parentDriver->origin->getNodeId() << " to " << parentDriver->destination->getNodeId();
 		throw std::runtime_error(msg.str());
 	}
 }
@@ -477,7 +481,9 @@ TravelMetric& DriverMovement::startTravelTimeMetric()
 	
 	if (!startNode)
 	{
-		throw std::runtime_error("Unknown Origin Node");
+		std::stringstream msg;
+		msg << __func__ << "Origin Node is NULL";
+		throw std::runtime_error(msg.str());
 	}
 	
 	travelMetric.origin = WayPoint(startNode);
@@ -627,8 +633,10 @@ bool DriverMovement::updateMovement()
 			}
 			else if (startWayPoint.type == WayPoint::TURNING_GROUP && currWayPoint.type == WayPoint::ROAD_SEGMENT)
 			{
+				//Include the current waypoint into the segmentsPassed vector as we need to start the collection of travel time for this segment
+				//[As the previous way-point was a turning group, we have not started the collection for the segment yet]
 				segmentsPassed.insert(segmentsPassed.begin(), currLink->getRoadSegments().begin(),
-									  currLink->getRoadSegments().begin() + currWayPoint.roadSegment->getSequenceNumber());
+									  currLink->getRoadSegments().begin() + currWayPoint.roadSegment->getSequenceNumber() + 1);
 			}
 
 			updateRoadSegmentTravelTime(segmentsPassed);
@@ -949,7 +957,7 @@ std::vector<WayPoint> DriverMovement::buildPath(std::vector<WayPoint> &wayPoints
 			else
 			{
 				stringstream msg;
-				msg << "No turning between the links " << currLink << " and " << nextLink << "!\nInvalid Path!!!";
+				msg << __func__ << ": No turning between the links " << currLink << " and " << nextLink << "!\nInvalid Path!!!";
 				throw std::runtime_error(msg.str());
 			}
 		}				
@@ -1472,8 +1480,9 @@ double DriverMovement::updatePosition(DriverUpdateParams &params)
 		else
 		{
 			stringstream msg;
-			msg << "Bus driver on incorrect lane " << ex.fromLane->getLaneId() << " trying to go to segment " << ex.toSegment->getRoadSegmentId();
-			msg << " Frame: [" << params.now.frame() << "]";
+			msg << __func__ << ": Bus driver on incorrect lane " << ex.fromLane->getLaneId() << " trying to go to segment "
+				<< ex.toSegment->getRoadSegmentId()
+				<< " Frame: [" << params.now.frame() << "]";
 			throw runtime_error(msg.str());
 		}
 	}
@@ -1593,8 +1602,9 @@ void DriverMovement::reRouteToDestination(DriverUpdateParams &params, const Lane
 	if (!isPathFound)
 	{
 		stringstream msg;
-		msg << "No alternate path found from lane " << currLane->getLaneId() << " to destination node " << parentDriver->destination->getNodeId();
-		msg << " Frame: [" << params.now.frame() << "]";
+		msg << __func__ << "No alternate path found from lane " << currLane->getLaneId()
+			<< " to destination node " << parentDriver->destination->getNodeId()
+			<< " Frame: [" << params.now.frame() << "]";
 		throw runtime_error(msg.str());
 	}
 }
@@ -2157,9 +2167,9 @@ void DriverMovement::updateLateralMovement(DriverUpdateParams &params)
 		if (params.currLane->isPedestrianLane())
 		{
 			std::stringstream msg;
-			msg << "Error: Car has moved onto sidewalk. Agent ID: "
+			msg << __func__ << ": Car has moved onto pedestrian lane. Agent ID: "
 				<< parentDriver->getParent()->getId();
-			throw std::runtime_error(msg.str().c_str());
+			throw std::runtime_error(msg.str());
 		}
 
 		parentDriver->vehicle->resetLateralMovement();
@@ -2208,9 +2218,9 @@ void DriverMovement::syncLaneInfoPostLateralMove(DriverUpdateParams &params)
 	else
 	{
 		std::stringstream msg;
-		msg << "syncInfoLateralMove (" << parentDriver->getParent()->GetId();
-		msg << ") is attempting to change lane when no lane changing decision made";
-		throw std::runtime_error(msg.str().c_str());
+		msg << __func__ << ": " << parentDriver->getParent()->GetId()
+			<< " is attempting to change lane when no lane changing decision made";
+		throw std::runtime_error(msg.str());
 	}
 
 	//Update the driver path mover

@@ -29,6 +29,7 @@
 #include "database/entity/ROILimits.hpp"
 #include "behavioral/PredayLT_Logsum.hpp"
 #include "util/SharedFunctions.hpp"
+#include "util/PrintLog.hpp"
 
 using namespace sim_mob::long_term;
 using namespace sim_mob::event;
@@ -107,62 +108,6 @@ namespace
 }
 namespace {
 
-//id,lot_size, gpr, land_use_type_id, owner_name, owner_category, last_transaction_date, last_transaction_type_total, psm_per_gps, lease_type, lease_start_date, centroid_x, centroid_y,
-//award_date,award_status,use_restriction,development_type_code,successful_tender_id,successful_tender_price,tender_closing_date,lease,status,developmentAllowed,nextAvailableDate
-const std::string LOG_PARCEL = "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%, %11%, %12%, %13%, %14%, %15%, %16%, %17%, %18%, %19%, %20%, %21%, %22%, %23%, %24%,%25%, %26%, %27%";
-
-const std::string LOG_UNIT = "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%, %11%, %12%, %13%, %14%, %15%, %16%, %17%, %18%";
-
-//projectId,parcelId,developerId,templateId,projectName,constructionDate,completionDate,constructionCost,demolitionCost,totalCost,fmLotSize,grossRatio,grossArea
-const std::string LOG_PROJECT = "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%, %11%, %12%, %13%";
-
-const std::string LOG_POTENTIAL_PROJECT = "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%";
-/**
- * Write the data of profitable parcels to a csv.
- * @param parcel to be written.
- *
- */
-inline void writeParcelDataToFile(Parcel &parcel, int newDevelopment,double profit) {
-
-	boost::format fmtr = boost::format(LOG_PARCEL) % parcel.getId()
-			% parcel.getLotSize() % parcel.getGpr() % parcel.getLandUseTypeId()
-			% parcel.getOwnerName() % parcel.getOwnerCategory()
-			% parcel.getLastTransactionDate().tm_year % parcel.getLastTransationTypeTotal() % parcel.getPsmPerGps() % parcel.getLeaseType()
-			% parcel.getLeaseStartDate().tm_year % parcel.getCentroidX() % parcel.getCentroidY() % parcel.getAwardDate().tm_year % parcel.getAwardStatus()
-			% parcel.getUseRestriction()%parcel.getDevelopmentTypeCode()% parcel.getSuccessfulTenderId() % parcel.getSuccessfulTenderPrice()
-			% parcel.getTenderClosingDate().tm_year% parcel.getLease() % parcel.getStatus() % parcel.getDevelopmentAllowed() % parcel.getNextAvailableDate().tm_year % parcel.getTazId() % newDevelopment % profit;
-
-	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::PARCELS,fmtr.str());
-
-}
-
-/**
- * Write the data of units to a csv.
- * @param unit to be written.
- *
- */
-inline void writeUnitDataToFile(Unit &unit, double unitProfit,BigSerial parcelId,double demolitionCost,int quarter) {
-
-	boost::format fmtr = boost::format(LOG_UNIT) % unit.getId() % unit.getBuildingId() % unit.getSlaAddressId() % unit.getUnitType() % unit.getStoreyRange() % unit.getConstructionStatus() % unit.getFloorArea() % unit.getStorey() % unit.getMonthlyRent()
-			% unit.getSaleFromDate().tm_year % unit.getOccupancyFromDate().tm_year % unit.getSaleStatus() % unit.getOccupancyStatus() % unit.getLastChangedDate().tm_year % unitProfit % parcelId % demolitionCost % quarter;
-	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::UNITS,fmtr.str());
-
-}
-
-
-/**
- * Write the data of projects to a csv.
- * @param project to be written.
- *
- */
-inline void writeProjectDataToFile(boost::shared_ptr<Project>project) {
-
-	boost::format fmtr = boost::format(LOG_PROJECT) % project->getProjectId() % project->getParcelId()%project->getDeveloperId()%project->getTemplateId()%project->getProjectName()
-			             %project->getConstructionDate().tm_year%project->getCompletionDate().tm_year%project->getConstructionCost()%project->getDemolitionCost()%project->getTotalCost()
-			             %project->getFmLotSize()%project->getGrossRatio()%project->getGrossArea();
-	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::PROJECTS,fmtr.str());
-
-}
 
 inline void formatDate(int &month, int &year)
 {
@@ -306,9 +251,10 @@ inline void calculateProjectProfit(PotentialProject& project,DeveloperModel* mod
 			double floorArea = (*unitsItr).getFloorArea();
 			double revenue = 0;
 
+			int freehold = model->isFreeholdParcel(fmParcelId);
 			if(hedonicCoeffObj!=nullptr)
 			{
-				revenue  = hedonicCoeffObj->getIntercept() + (hedonicCoeffObj->getLogSqrtArea() * log(floorArea))+ (hedonicCoeffObj->getFreehold() * (*unitsItr).isFreehold()) +
+				revenue  = hedonicCoeffObj->getIntercept() + (hedonicCoeffObj->getLogSqrtArea() * log(floorArea))+ (hedonicCoeffObj->getFreehold() * freehold) +
 					(hedonicCoeffObj->getLogsumWeighted() * logsum ) + (hedonicCoeffObj->getPms1km() * amenities->hasPms_1km()) + (hedonicCoeffObj->getDistanceMallKm() * amenities->getDistanceToMall()) +
 					(hedonicCoeffObj->getMrt200m()* amenities->hasMRT_200m()) + (hedonicCoeffObj->getMrt_2_400m() * amenities->hasMRT_400m()) + (hedonicCoeffObj->getExpress200m() * amenities->hasExpress_200m()) +
 				    (hedonicCoeffObj->getBus400m() * amenities->hasBus_200m()) + (hedonicCoeffObj->getBusGt400m() * amenities->hasBus_400m()) + (hedonicCoeffObj->getAge() * ageCapped) + (hedonicCoeffObj->getLogAgeSquared() * (ageCapped*ageCapped));
@@ -516,8 +462,11 @@ inline void createPotentialUnits(PotentialProject& project,const DeveloperModel*
                         	thresholdInvestmentReturnRatio = roiLimit->getRoiLimit();
                         }
 
+                        writeROIDataToFile(*parcel,newDevelopment,project.getProfit(),project.getDevTemplate()->getDevelopmentTypeId(), thresholdInvestmentReturnRatio, project.getInvestmentReturnRatio());
+
                         if(project.getInvestmentReturnRatio()> thresholdInvestmentReturnRatio)
                         {
+
                         	if(&project != nullptr)
                         	{
                         		projects.push_back(project);
@@ -681,7 +630,6 @@ void DeveloperAgent::createUnitsAndBuildings(PotentialProject &project,BigSerial
 		devModel->addProfitableParcels(profitableParcel);
 	}
 	writeParcelDataToFile(*parcel,newDevelopment,project.getProfit());
-	//Parcel *parcel1 = new Parcel(*this->parcel);
 
 	//check whether the parcel is empty; if not send a message to HM model with building id and future demolition date about the units that are going to be demolished.
 	if (!(devModel->isEmptyParcel(parcel->getId()))) {
@@ -715,7 +663,7 @@ void DeveloperAgent::createUnitsAndBuildings(PotentialProject &project,BigSerial
 	//building construction start date; assumed to be the first day of the project created.
 	//building construction finish date ; assumed to be 6 months after
 	std::tm toDate = getDateBySimDay(simYear,(currentTick+180));
-	boost::shared_ptr<Building>building(new Building(buildingId,projectId,parcel->getId(),0,0,currentDate,toDate,BUILDING_UNCOMPLETED_WITHOUT_PREREQUISITES,project.getGrosArea(),0,0,0,toDate));
+	boost::shared_ptr<Building>building(new Building(buildingId,projectId,parcel->getId(),0,0,currentDate,toDate,BUILDING_UNCOMPLETED_WITHOUT_PREREQUISITES,project.getGrosArea(),0,0,0,0,0,0,toDate,0,0,std::string()));
 	newBuildings.push_back(building);
 	MessageBus::PostMessage(this, LT_DEV_BUILDING_ADDED, MessageBus::MessagePtr(new DEV_InternalMsg(*building.get())), true);
 
@@ -726,7 +674,8 @@ void DeveloperAgent::createUnitsAndBuildings(PotentialProject &project,BigSerial
 	for (unitsItr = units.begin(); unitsItr != units.end(); ++unitsItr) {
 		for(size_t i=0; i< unitsItr->getNumUnits();i++)
 		{
-			boost::shared_ptr<Unit>unit(new Unit( devModel->getUnitIdForDeveloperAgent(), buildingId, postcode, (*unitsItr).getUnitTypeId(), 0, DeveloperAgent::UNIT_PLANNED, (*unitsItr).getFloorArea(), 0, 0,toDate, currentDate,DeveloperAgent::UNIT_NOT_LAUNCHED, DeveloperAgent::UNIT_NOT_READY_FOR_OCCUPANCY, currentDate, 0, currentDate,0));
+			//TODO: Add the BTO unit sla address to building_match and sla_building. 15 Feb 2017. Chetan/Gishara
+			boost::shared_ptr<Unit>unit(new Unit( devModel->getUnitIdForDeveloperAgent(), buildingId, (*unitsItr).getUnitTypeId(), 0, DeveloperAgent::UNIT_PLANNED, (*unitsItr).getFloorArea(), 0, 0,toDate, currentDate,DeveloperAgent::UNIT_NOT_LAUNCHED, DeveloperAgent::UNIT_NOT_READY_FOR_OCCUPANCY, currentDate, 0, currentDate,0));
 			newUnits.push_back(unit);
 			double profit = (*unitsItr).getUnitProfit();
 			double demolitionCost = (*unitsItr).getDemolitionCostPerUnit();
@@ -819,6 +768,7 @@ void DeveloperAgent::processExistingProjects()
 				PrintOutV(unitsToSale.size()<<" number of units launched for selling by developer agent "<<this->GetId()<<"on day "<<currentTick<<std::endl);
 				#endif
 
+				//comment this to disable private unit launches by developer model, when running BTO.
 				for(unitsItr = unitsToSale.begin(); unitsItr != unitsToSale.end(); unitsItr++)
 				{
 					(*unitsItr)->setSaleStatus(UNIT_LAUNCHED_BUT_UNSOLD);
@@ -865,10 +815,10 @@ void DeveloperAgent::setUnitsRemain (bool unitRemain)
 
 void DeveloperAgent::launchBTOUnits(std::tm currentDate)
 {
-	DeveloperModel::UnitList btoUnits = devModel->getBTOUnits(currentDate);
-	for(Unit *btoUnit : btoUnits)
+	std::vector<BigSerial>  btoUnits = devModel->getBTOUnits(currentDate);
+	if(btoUnits.size()>0)
 	{
-			MessageBus::PostMessage(realEstateAgent, LT_DEV_BTO_UNIT_ADDED, MessageBus::MessagePtr(new HM_ActionMessage((*btoUnit))), true);
+		MessageBus::PostMessage(realEstateAgent, LT_DEV_BTO_UNIT_ADDED, MessageBus::MessagePtr(new HM_ActionMessage((btoUnits))), true);
 	}
 }
 

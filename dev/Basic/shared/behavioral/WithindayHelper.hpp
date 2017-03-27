@@ -46,6 +46,6 @@ public:
 	 * @param curTime time at which the withinday mode choice is to be called
 	 * @return constructed withinday mode choice model params object
 	 */
-	WithindayModeParams buildModeChoiceParams(const Trip& curTrip, unsigned int orgNd, const DailyTime& curTime) const;
+	WithindayModeParams buildModeChoiceParams(const Trip& curTrip, unsigned int orgNd, const DailyTime& curTime,const std::string& ptPathsetStoredProcName) const;
 };
 } //end namespace sim_mob

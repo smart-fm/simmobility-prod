@@ -110,6 +110,13 @@ private:
 	void processWalkSpeedElement(xercesc::DOMElement* node);
 
 	/**
+	 * processes threads number in person loader included in xml file.
+	 *
+	 * @param node corresponding to the element of threads number in person loader inside xml file
+	 */
+	void processThreadsNumInPersonLoaderElement(xercesc::DOMElement* node);
+
+	/**
      * processes model scripts element in config xml
      *
 	 * @param node node corresponding to model_scripts element inside xml file
@@ -235,10 +242,21 @@ private:
 
     /**
      * Processes the busController element in config xml
-     *
      * @param node node corresponding to the busController element inside xml file
      */
     void processBusControllerNode(xercesc::DOMElement *node);
+
+    /**
+     * Processes the trainController element in config xml
+     * @param node is the node corresponding to the trainController element inside simrun_Midterm.xml file
+     */
+    void processTrainControllerNode(xercesc::DOMElement *node);
+
+    /**
+     * Process the train properties node in simrun_MidTerm.xml
+     * @param node is the node corresponding to the trainProperties element inside simrun_Midterm.xml file
+     */
+    void processTrainPropertiesNode(xercesc::DOMElement *node);
 
     void processPathSetFileName(xercesc::DOMElement* node);
 

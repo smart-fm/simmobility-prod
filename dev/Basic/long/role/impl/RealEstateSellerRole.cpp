@@ -21,6 +21,7 @@
 #include "core/AgentsLookup.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
+#include "util/PrintLog.hpp"
 
 using namespace sim_mob::long_term;
 using namespace sim_mob::messaging;
@@ -30,81 +31,6 @@ using sim_mob::Math;
 
 namespace
 {
-    //bid_timestamp, day_to_apply, seller_id, unit_id, hedonic_price, asking_price, target_price
-    const std::string LOG_EXPECTATION = "%1%, %2%, %3%, %4%, %5%, %6%, %7%";
-    //bid_timestamp ,seller_id, bidder_id, unit_id, bidder wp, speculation, asking_price, floor_area, type_id, target_price, bid_value, bids_counter (daily), status(0 - REJECTED, 1- ACCEPTED)
-    const std::string LOG_BID = "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%, %11%, %12%, %13%";
-    //unit Id
-    const std::string LOG_UNIT = "%1%";
-
-    /**
-     * Print the current bid on the unit.
-     * @param agent to received the bid
-     * @param bid to send.
-     * @param struct containing the hedonic, asking and target price.
-     * @param number of bids for this unit
-     * @param boolean indicating if the bid was successful
-     *
-     */
-    inline void printBid(const RealEstateAgent& agent, const Bid& bid, const ExpectationEntry& entry, unsigned int bidsCounter, bool accepted)
-    {
-    	const HM_Model* model = agent.getModel();
-    	const Unit* unit  = model->getUnitById(bid.getNewUnitId());
-        double floor_area = unit->getFloorArea();
-        BigSerial type_id = unit->getUnitType();
-
-        boost::format fmtr = boost::format(LOG_BID) % bid.getSimulationDay()
-													% agent.getId()
-													% bid.getBidderId()
-													% bid.getNewUnitId()
-													% bid.getWillingnessToPay()
-													% entry.hedonicPrice
-													% entry.askingPrice
-													% floor_area
-													% type_id
-													% entry.targetPrice
-													% bid.getBidValue()
-													% bidsCounter
-													% ((accepted) ? 1 : 0);
-
-        AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::BIDS, fmtr.str());
-        //PrintOut(fmtr.str() << endl);
-    }
-
-    /**
-     * Print the current expectation on the unit.
-     * @param the current day
-     * @param the day on which the bid was made
-     * @param the unit id
-     * @param agent to received the bid
-     * @param struct containing the hedonic, asking and target price.
-     *
-     */
-    inline void printExpectation(const timeslice& now, int dayToApply, BigSerial unitId, const RealEstateAgent& agent, const ExpectationEntry& exp)
-    {
-        boost::format fmtr = boost::format(LOG_EXPECTATION) % now.ms()
-															% dayToApply
-															% agent.getId()
-															% unitId
-															% exp.hedonicPrice
-															% exp.askingPrice
-															% exp.targetPrice;
-
-        AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::EXPECTATIONS, fmtr.str());
-        //PrintOut(fmtr.str() << endl);
-    }
-
-    /**
-     * Write the data of units to a csv.
-     * @param unit to be written.
-     *
-     */
-    inline void printNewUnitsInMarket(BigSerial unitId) {
-
-    	boost::format fmtr = boost::format(LOG_UNIT) % unitId;
-    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::UNITS_IN_MARKET,fmtr.str());
-    }
-
     /**
      * Decides over a given bid for a given expectation.
      * @param bid given by the bidder.
@@ -112,7 +38,7 @@ namespace
      */
     inline bool decide(const Bid& bid, const ExpectationEntry& entry)
     {
-        return bid.getBidValue() > entry.targetPrice;
+        return bid.getBidValue() >= entry.targetPrice;
     }
 
     /**
@@ -126,8 +52,10 @@ namespace
     {
         MessageBus::PostMessage(bid.getBidder(), LTMID_BID_RSP, MessageBus::MessagePtr(new BidMessage(bid, response)));
 
-        //print bid.
-        printBid(agent, bid, entry, bidsCounter, (response == ACCEPTED));
+        if( response != NOT_AVAILABLE )
+        {
+        	printBid(agent, bid, entry, bidsCounter, (response == ACCEPTED));
+        }
     }
 
     /**
@@ -250,14 +178,10 @@ void RealEstateSellerRole::update(timeslice now)
             	continue;
             }
 
-            if( currentTime.ms() != unit->getbiddingMarketEntryDay() )
+            if( currentTime.ms() != unit->getbiddingMarketEntryDay() + 1 )
             {
             	continue;
             }
-
-            BigSerial rand_tazId = BigSerial((float)rand() / RAND_MAX * 110524);
-            unit->setSlaAddressId(rand_tazId);
-
 
             BigSerial tazId = model->getUnitTazId(unitId);
             calculateUnitExpectations(*unit);
@@ -267,15 +191,12 @@ void RealEstateSellerRole::update(timeslice now)
 
             if(getCurrentExpectation(unit->getId(), firstExpectation))
             {
-            	//chetan must change this after gishara merges her branch
-            	bool bto = false;
-
-                market->addEntry( HousingMarket::Entry( getParent(), unit->getId(), unit->getSlaAddressId(), tazId, firstExpectation.askingPrice, firstExpectation.hedonicPrice, bto));
+                market->addEntry( HousingMarket::Entry( getParent(), unit->getId(), model->getUnitSlaAddressId( unit->getId() ), tazId, firstExpectation.askingPrice, firstExpectation.hedonicPrice, unit->isBto() ));
 				#ifdef VERBOSE
                 PrintOutV("[day " << currentTime.ms() << "] RealEstate Agent " <<  this->getParent()->getId() << ". Adding entry to Housing market for unit " << unit->getId() << " with asking price: " << firstExpectation.askingPrice << std::endl);
 				#endif
 
-                printNewUnitsInMarket(unit->getId());
+                printNewUnitsInMarket(getParent()->getId(), unit->getId(), unit->getbiddingMarketEntryDay(), unit->getTimeOnMarket(), unit->getTimeOffMarket());
             }
 
             selling = true;
@@ -417,7 +338,7 @@ void RealEstateSellerRole::notifyWinnerBidders()
         PrintOutV("[day " << currentTime.ms() << "] RealEstate Agent. Seller " << std::dec << getParent()->getId() << " accepted the bid of " << maxBidOfDay.getBidderId() << " for unit " << maxBidOfDay.getUnitId() << " at $" << maxBidOfDay.getValue() << std::endl );
 		#endif
 
-        printNewUnitsInMarket(maxBidOfDay.getNewUnitId());
+        dynamic_cast<RealEstateAgent*>(getParent())->getModel()->incrementSuccessfulBids();
         market->removeEntry(maxBidOfDay.getNewUnitId());
         dynamic_cast<RealEstateAgent*>(getParent())->removeUnitId(maxBidOfDay.getNewUnitId());
         sellingUnitsMap.erase(maxBidOfDay.getNewUnitId());
@@ -429,6 +350,8 @@ void RealEstateSellerRole::notifyWinnerBidders()
 
 void RealEstateSellerRole::calculateUnitExpectations(const Unit& unit)
 {
+	HM_Model* model = dynamic_cast<RealEstateAgent*>(getParent())->getModel();
+
 	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
 	unsigned int timeInterval = config.ltParams.housingModel.timeInterval;
 	unsigned int timeOnMarket = config.ltParams.housingModel.timeOnMarket;
@@ -451,23 +374,9 @@ void RealEstateSellerRole::calculateUnitExpectations(const Unit& unit)
             //int dayToApply = currentTime.ms() + (i * info.interval);
             //printExpectation(currentTime, dayToApply, unit.getId(), *dynamic_cast<RealEstateAgent*>(getParent()), info.expectations[i]);
 
-        	double asking =0;
-        	double hedonic = 0;
-        	double target = 0;
-
-            /*if(i == 0){*/ asking= 476.172;hedonic = 171.483;target  = 253.928;/*}*/
-            if(i == 1){ asking= 234.626; hedonic =171.483;target =213.348;}
-            if(i == 2){ asking= 198.103; hedonic =171.483;target =177.728;}
-            if(i == 3){ asking= 165.898; hedonic =171.483;target =146.368;}
-            if(i == 4){ asking= 137.409; hedonic =171.483;target =118.674;}
-            if(i == 5){ asking= 112.13; hedonic =171.483;target =94.142;}
-            if(i == 6){ asking=  89.626; hedonic =171.483;target =72.343;}
-            if(i == 7){ asking=  69.53; hedonic =171.483;target =52.913;}
-            if(i == 8){ asking=  51.528; hedonic =171.483;target =35.54;}
-            if(i == 9){ asking=  35.353; hedonic =171.483;target =19.96;}
-            if(i == 10){ asking= 20.775; hedonic =171.483;target =05.946;}
-            if(i == 11){ asking= 7.598; hedonic =171.483;target =3.302;}
-            if(i == 12){ asking= 5.653; hedonic =171.483;target =1.863;}
+        	double asking =unit.getTotalPrice();
+        	double hedonic = unit.getTotalPrice();
+        	double target = unit.getTotalPrice();
 
             ExpectationEntry expectation;
 

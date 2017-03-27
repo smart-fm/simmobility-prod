@@ -86,7 +86,8 @@ void NetworkPrinter::printSimulationProperties() const
 void NetworkPrinter::printNodes(const map<unsigned int, Node *> &nodes) const
 {
 	std::stringstream out;
-	out << std::setprecision(8);
+	out<<std::fixed;
+	out << std::setprecision(2);
 	
 	for (map<unsigned int, Node *>::const_iterator it = nodes.begin(); it != nodes.end(); ++it)
 	{
@@ -104,7 +105,8 @@ void NetworkPrinter::printNodes(const map<unsigned int, Node *> &nodes) const
 void NetworkPrinter::printLinks(const map<unsigned int, Link *> &links) const
 {
 	std::stringstream out;
-	out << std::setprecision(8);
+	out<<std::fixed;
+	out << std::setprecision(2);
 	
 	for (map<unsigned int, Link *>::const_iterator it = links.begin(); it != links.end(); ++it)
 	{
@@ -132,7 +134,8 @@ void NetworkPrinter::printLinks(const map<unsigned int, Link *> &links) const
 void NetworkPrinter::printSegments(const map<unsigned int, RoadSegment *> &segments) const
 {
 	std::stringstream out;
-	out << std::setprecision(8);
+	out<<std::fixed;
+	out << std::setprecision(2);
 
 	for (map<unsigned int, RoadSegment *>::const_iterator it = segments.begin(); it != segments.end(); ++it)
 	{
@@ -179,7 +182,8 @@ void NetworkPrinter::printSegments(const map<unsigned int, RoadSegment *> &segme
 void NetworkPrinter::printLaneConnectors(const map<unsigned int, Lane *> &lanes) const
 {
 	std::stringstream out;
-	out << std::setprecision(8);
+	out<<std::fixed;
+	out << std::setprecision(2);
 	
 	for(map<unsigned int, Lane *>::const_iterator it = lanes.begin(); it != lanes.end(); ++it)
 	{
@@ -201,7 +205,8 @@ void NetworkPrinter::printLaneConnectors(const map<unsigned int, Lane *> &lanes)
 void NetworkPrinter::printTurningGroups(const std::map<unsigned int, TurningGroup *>& turningGroups) const
 {
 	std::stringstream out;
-	out << std::setprecision(8);
+	out<<std::fixed;
+	out << std::setprecision(2);
 
 	for (map<unsigned int, TurningGroup *>::const_iterator it = turningGroups.begin(); it != turningGroups.end(); ++it)
 	{
@@ -219,7 +224,8 @@ void NetworkPrinter::printTurningGroups(const std::map<unsigned int, TurningGrou
 void NetworkPrinter::printTurnings(const map<unsigned int, TurningPath*>& turnings) const
 {
 	std::stringstream out;
-	out << std::setprecision(8);
+	out<<std::fixed;
+	out << std::setprecision(2);
 
 	for (map<unsigned int, TurningPath *>::const_iterator it = turnings.begin(); it != turnings.end(); ++it)
 	{
@@ -246,7 +252,8 @@ void NetworkPrinter::printTurnings(const map<unsigned int, TurningPath*>& turnin
 void NetworkPrinter::printConflicts(const std::map<unsigned int, TurningConflict* >& conflicts) const
 {
 	std::stringstream out;
-	out << std::setprecision(8);
+	out<<std::fixed;
+	out << std::setprecision(2);
 
 	for (std::map<unsigned int, TurningConflict* >::const_iterator it = conflicts.begin(); it != conflicts.end(); ++it)
 	{
@@ -265,7 +272,8 @@ void NetworkPrinter::printConflicts(const std::map<unsigned int, TurningConflict
 void NetworkPrinter::printBusStops(const std::map<unsigned int, BusStop *> &stops) const
 {
 	std::stringstream out;
-	out << std::setprecision(8);
+	out<<std::fixed;
+	out << std::setprecision(2);
 	
 	for(std::map<unsigned int, BusStop *>::const_iterator it = stops.begin(); it != stops.end(); ++it)
 	{

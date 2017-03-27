@@ -101,6 +101,11 @@ public:
 	 */
 	void waitAllGroups_MacroTimeTick();
 
+	/**
+	 * wait for frame tick barrier
+	 */
+	void waitForFrameTickBar();
+
 private:
 	/**
 	 * WorkGroup management proceeds like a state machine. At each point, only a set number of (usually 1) actions can be performed

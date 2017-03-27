@@ -412,7 +412,7 @@ void ExpandShortTermConfigFile::loadNetworkFromDatabase()
 
 void ExpandShortTermConfigFile::loadPublicTransitNetworkFromDatabase()
 {
-    PT_Network::getInstance().init();
+	PT_NetworkCreater::init();
 }
 
 void ExpandShortTermConfigFile::loadAMOD_Controller()

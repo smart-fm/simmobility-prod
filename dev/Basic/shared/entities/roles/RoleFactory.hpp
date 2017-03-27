@@ -149,6 +149,10 @@ public:
 		{
 			return "waitBusActivity";
 		}
+		if (mode == "WaitingTrainActivity")
+		{
+			return "waitTrainActivity";
+		}
 		if (mode == "Motorcycle")
 		{
 			return "biker";
@@ -194,6 +198,10 @@ public:
 		else if (tripChainItem->itemType == TripChainItem::IT_BUSTRIP)
 		{
 			return "busdriver";
+		}
+		else if(tripChainItem->itemType == TripChainItem::IT_TRAINTRIP)
+		{
+			return "trainDriver";
 		}
 
 		throw std::runtime_error("unknown TripChainItem type");

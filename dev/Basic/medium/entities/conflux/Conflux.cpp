@@ -27,7 +27,10 @@
 #include "entities/roles/passenger/PassengerFacets.hpp"
 #include "entities/roles/pedestrian/PedestrianFacets.hpp"
 #include "entities/roles/waitBusActivity/WaitBusActivityFacets.hpp"
+#include "entities/roles/waitTrainActivity/WaitTrainActivity.hpp"
+#include "entities/roles/driver/TrainDriverFacets.hpp"
 #include "entities/vehicle/VehicleBase.hpp"
+#include "entities/TrainController.hpp"
 #include "event/args/EventArgs.hpp"
 #include "event/EventPublisher.hpp"
 #include "event/SystemEvents.hpp"
@@ -41,7 +44,10 @@
 #include "metrics/Length.hpp"
 #include "path/PathSetManager.hpp"
 #include "util/Utils.hpp"
-
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
+#include "behavioral/ServiceController.hpp"
+//#include "DailyTime.cpp"
 using namespace boost;
 using namespace sim_mob;
 using namespace sim_mob::medium;
@@ -69,6 +75,8 @@ void sim_mob::medium::sortPersonsDecreasingRemTime(std::deque<Person_MT*>& perso
 }
 
 unsigned Conflux::updateInterval = 0;
+int Conflux::currentframenumber =-1;
+boost::mutex Conflux::activeAgentsLock;
 
 Conflux::Conflux(Node* confluxNode, const MutexStrategy& mtxStrat, int id, bool isLoader) :
 		Agent(mtxStrat, id), confluxNode(confluxNode), parentWorkerAssigned(false), currFrame(0, 0), isLoader(isLoader), numUpdatesThisTick(0),
@@ -172,6 +180,14 @@ Conflux::PersonProps::PersonProps(const Person_MT* person, const Conflux* cnflx)
 		conflux = cnflx;
 		segStats = nullptr;
 	}
+
+	if (roleType == Role<Person_MT>::RL_TRAVELPEDESTRIAN) {
+		const medium::PedestrianMovement* pedestrianMvt = dynamic_cast<const medium::PedestrianMovement*>(role->Movement());
+		if (pedestrianMvt) {
+			conflux = pedestrianMvt->getStartConflux();
+		}
+	}
+
 	distanceToSegEnd = person->distanceToEndOfSegment;
 }
 
@@ -267,6 +283,17 @@ void Conflux::addAgent(Person_MT* person)
 			assignPersonToBusStopAgent(person);
 			break;
 		}
+
+		case Role<Person_MT>::RL_WAITTRAINACTIVITY:
+		{
+			assignPersonToStationAgent(person);
+			break;
+		}
+		case Role<Person_MT>::RL_TRAVELPEDESTRIAN:
+		{
+			travelingPersons.push_back(person);
+			break;
+		}
 		case Role<Person_MT>::RL_TRAINPASSENGER:
 		{
 			assignPersonToMRT(person);
@@ -304,6 +331,14 @@ Entity::UpdateStatus Conflux::frame_init(timeslice now)
 			(*segIt)->initializeBusStops();
 		}
 	}
+
+	for(std::vector<Agent*>::iterator it=stationAgents.begin(); it!=stationAgents.end(); it++){
+			messaging::MessageBus::RegisterHandler((*it));
+		}
+
+	/**************test code insert incident *********************/
+
+	/*************************************************************/
 	return Entity::UpdateStatus::Continue;
 }
 
@@ -338,11 +373,13 @@ UpdateStatus Conflux::update(timeslice frameNumber)
 		{
 			resetPositionOfLastUpdatedAgentOnLanes();
 			resetPersonRemTimes(); //reset the remaining times of persons in lane infinity and VQ if required.
-			processAgents(); //process all agents in this conflux for this tick
+
+			processAgents(frameNumber); //process all agents in this conflux for this tick
 			if(segStatsOutput.length() > 0 || lnkStatsOutput.length() > 0)
 			{
 				writeOutputs(); //write outputs from previous update interval (if any)
 			}
+
 			setLastUpdatedFrame(frameNumber.frame());
 			numUpdatesThisTick = 1;
 			return UpdateStatus::ContinueIncomplete;
@@ -383,23 +420,32 @@ void Conflux::loadPersons()
 		{
 			messaging::MessageBus::PostMessage(conflux, MSG_PERSON_LOAD, messaging::MessageBus::MessagePtr(new PersonMessage(person)));
 		}
-		else
+
+		/*else
 		{
 			safe_delete_item(person);
-		}
+		}*/
+
 	}
 }
 
-void Conflux::processAgents()
+void Conflux::processAgents(timeslice frameNumber)
 {
 	PersonList orderedPersons;
 	getAllPersonsUsingTopCMerge(orderedPersons); //merge on-road agents of this conflux into a single list
 	orderedPersons.insert(orderedPersons.end(), activityPerformers.begin(), activityPerformers.end()); // append activity performers
+	orderedPersons.insert(orderedPersons.end(), travelingPersons.begin(), travelingPersons.end());
 	for (PersonList::iterator personIt = orderedPersons.begin(); personIt != orderedPersons.end(); personIt++) //iterate and update all persons
 	{
 		updateAgent(*personIt);
 	}
 	updateBusStopAgents(); //finally update bus stop agents in this conflux
+
+	for(std::vector<Agent*>::iterator it=stationAgents.begin(); it!=stationAgents.end(); it++)
+	{
+		(*it)->currWorkerProvider = currWorkerProvider;
+		(*it)->update(currFrame);
+	}
 }
 
 void  Conflux::processStartingAgents()
@@ -573,6 +619,16 @@ void Conflux::housekeep(PersonProps& beforeUpdate, PersonProps& afterUpdate, Per
 	{
 		// if the role was ActivityPerformer before the update as well, do nothing.
 		// It is also possible that the person has changed from one activity to another. Do nothing even in this case.
+		return;
+	}
+	case Role<Person_MT>::RL_TRAVELPEDESTRIAN:
+	{
+		if (beforeUpdate.conflux != afterUpdate.conflux) {
+			auto it = std::find(travelingPersons.begin(), travelingPersons.end(), person);
+			if (it != travelingPersons.end()) {
+				travelingPersons.erase(it);
+			}
+		}
 		return;
 	}
 	case Role<Person_MT>::RL_BUSDRIVER:
@@ -1031,6 +1087,14 @@ void Conflux::killAgent(Person_MT* person, PersonProps& beforeUpdate)
 	person->currWorkerProvider = nullptr;
 	messaging::MessageBus::UnRegisterHandler(person);
 	person->onWorkerExit();
+	Agent *ag=dynamic_cast<Agent*>(person);
+	activeAgentsLock.lock();
+	std::vector<Entity*>::iterator itr=std::find(Agent::activeAgents.begin(),Agent::activeAgents.end(),ag);
+	if(itr!=Agent::activeAgents.end())
+	{
+		Agent::activeAgents.erase(itr);
+	}
+	activeAgentsLock.unlock();
 	safe_delete_item(person);
 }
 
@@ -1167,6 +1231,12 @@ void Conflux::HandleMessage(messaging::Message::MessageType type, const messagin
 		assignPersonToPedestrianlist(msg.person);
 		break;
 	}
+	case MSG_TRAVELER_TRANSFER:
+	{
+		const PersonMessage& msg = MSG_CAST(PersonMessage, message);
+		travelingPersons.push_back(msg.person);
+		break;
+	}
 	case MSG_INSERT_INCIDENT:
 	{
 		//pathsetLogger << "Conflux received MSG_INSERT_INCIDENT" << std::endl;
@@ -1234,6 +1304,20 @@ void Conflux::HandleMessage(messaging::Message::MessageType type, const messagin
 	{
 		const PersonMessage& msg = MSG_CAST(PersonMessage, message);
 		addAgent(msg.person);
+		break;
+	}
+	case PASSENGER_LEAVE_FRM_PLATFORM:
+	{
+		const PersonMessage& msg = MSG_CAST(PersonMessage, message);
+		switchTripChainItem(msg.person);
+		if(!msg.person->isToBeRemoved() && msg.person->getRole()->roleType == Role<Person_MT>::RL_DRIVER)
+		{
+			SegmentStats* rdSegStats = const_cast<SegmentStats*>(msg.person->getCurrSegStats());
+			msg.person->setCurrLane(rdSegStats->laneInfinity);
+			msg.person->distanceToEndOfSegment = rdSegStats->getLength();
+			msg.person->remainingTimeThisTick = tickTimeInS;
+			rdSegStats->addAgent(rdSegStats->laneInfinity, msg.person);
+		}
 		break;
 	}
 	default:
@@ -1307,6 +1391,11 @@ Entity::UpdateStatus Conflux::switchTripChainItem(Person_MT* person)
 		{
 			assignPersonToBusStopAgent(person);
 			break;
+		}
+		case Role<Person_MT>::RL_WAITTRAINACTIVITY:
+		{
+			assignPersonToStationAgent(person);
+			return retVal;
 		}
 		case Role<Person_MT>::RL_TRAINPASSENGER:
 		{
@@ -1504,6 +1593,30 @@ void Conflux::updateBusStopAgents()
 		for (std::vector<SegmentStats*>::const_iterator segStatsIt = upStrmSegMapIt->second.begin(); segStatsIt != upStrmSegMapIt->second.end(); segStatsIt++)
 		{
 			(*segStatsIt)->updateBusStopAgents(currFrame);
+		}
+	}
+}
+
+void Conflux::assignPersonToStationAgent(Person_MT* person)
+{
+	Role<Person_MT>* role = person->getRole();
+	if (role && role->roleType == Role<Person_MT>::RL_WAITTRAINACTIVITY)
+	{
+		const Platform* platform = nullptr;
+		if (person->originNode.type == WayPoint::MRT_PLATFORM)
+		{
+			sim_mob::medium::WaitTrainActivity* curRole = dynamic_cast<sim_mob::medium::WaitTrainActivity*>(person->getRole());
+			if(curRole){
+				platform = person->originNode.platform;
+				curRole->setStartPlatform(platform);
+				curRole->setArrivalTime(currFrame.ms()+(ConfigManager::GetInstance().FullConfig().simStartTime()).getValue());
+				std::string stationNo = platform->getStationNo();
+				Agent* stationAgent = TrainController<Person_MT>::getAgentFromStation(stationNo);
+				messaging::MessageBus::PostMessage(stationAgent,PASSENGER_ARRIVAL_AT_PLATFORM,
+						messaging::MessageBus::MessagePtr(new PersonMessage(person)));
+			} else {
+				throw std::runtime_error("waiting train activity role don't exist.");
+			}
 		}
 	}
 }
@@ -1974,6 +2087,18 @@ Conflux* Conflux::findStartingConflux(Person_MT* person, unsigned int now)
 		}
 		break;
 	}
+
+	case Role<Person_MT>::RL_TRAINDRIVER:
+	{
+		const medium::TrainMovement* trainMvt = dynamic_cast<const medium::TrainMovement*>(personRole->Movement());
+		if(trainMvt)
+		{
+			trainMvt->arrivalAtStartPlaform();
+		}
+		return nullptr;
+
+	}
+
 	case Role<Person_MT>::RL_TRUCKER_HGV:
 	case Role<Person_MT>::RL_TRUCKER_LGV:
 	{
@@ -1987,6 +2112,7 @@ Conflux* Conflux::findStartingConflux(Person_MT* person, unsigned int now)
 			throw std::runtime_error("Driver role facets not/incorrectly initialized");
 		}
 		break;
+
 	}
 	case Role<Person_MT>::RL_BIKER:
 	{
@@ -2007,6 +2133,19 @@ Conflux* Conflux::findStartingConflux(Person_MT* person, unsigned int now)
 		if(pedestrianMvt)
 		{
 			return pedestrianMvt->getDestinationConflux();
+		}
+		else
+		{
+			throw std::runtime_error("Pedestrian role facets not/incorrectly initialized");
+		}
+		break;
+	}
+	case Role<Person_MT>::RL_TRAVELPEDESTRIAN:
+	{
+		const medium::PedestrianMovement* pedestrianMvt = dynamic_cast<const medium::PedestrianMovement*>(personRole->Movement());
+		if(pedestrianMvt)
+		{
+			return pedestrianMvt->getStartConflux();
 		}
 		else
 		{
@@ -2061,6 +2200,12 @@ Conflux* Conflux::findStartingConflux(Person_MT* person, unsigned int now)
 		}
 		break;
 	}
+	case Role<Person_MT>::RL_WAITTRAINACTIVITY:
+	{
+		if(MT_Config::getInstance().getConfluxNodes().size()>0){
+			return MT_Config::getInstance().getConfluxNodes().begin()->second;
+		}
+	}
 	}
 }
 
@@ -2101,6 +2246,85 @@ void Conflux::removeIncident(SegmentStats* segStats)
 	}
 }
 
+void Conflux::addStationAgent(Agent* stationAgent)
+{
+	if(!stationAgent){
+		return;
+	}
+	stationAgent->currWorkerProvider = currWorkerProvider;
+	stationAgents.push_back(stationAgent);
+}
+void Conflux::driverStatistics(timeslice now)
+{
+	std::map<int, int> statSegs;
+	std::map<int, int> statSegsInfinity;
+	std::map<int, int> statLinks;
+	std::map<int, string> statPersons;
+	PersonList allPersonsInCfx, tmpAgents;
+	SegmentStats* segStats = nullptr;
+	std::string personIds;
+	for(UpstreamSegmentStatsMap::iterator upStrmSegMapIt = upstreamSegStatsMap.begin();
+			upStrmSegMapIt!=upstreamSegStatsMap.end(); upStrmSegMapIt++) {
+		const SegmentStatsList& upstreamSegments = upStrmSegMapIt->second;
+		for(SegmentStatsList::const_iterator rdSegIt=upstreamSegments.begin();
+				rdSegIt!=upstreamSegments.end(); rdSegIt++) {
+			tmpAgents.clear();
+			segStats = (*rdSegIt);
+			segStats->getPersons(tmpAgents);
+			int segId = segStats->getRoadSegment()->getRoadSegmentId();
+			if(statSegs.find(segId)!=statSegs.end()){
+				statSegs[segId] = statSegs[segId]+tmpAgents.size();
+			} else {
+				statSegs[segId] = tmpAgents.size();
+			}
+			statLinks[segId] = segStats->getRoadSegment()->getLinkId();
+			tmpAgents.clear();
+			personIds.clear();
+			segStats->getInfinityPersons(tmpAgents);
+			statSegsInfinity[segId] = tmpAgents.size();
+			statPersons[segId] = personIds;
+
+		}
+	}
+
+	for(VirtualQueueMap::iterator vqMapIt = virtualQueuesMap.begin();
+			vqMapIt != virtualQueuesMap.end(); vqMapIt++) {
+		tmpAgents = vqMapIt->second;
+		int segId = 0;
+		if(vqMapIt->first && vqMapIt->first->getRoadSegments().size()>0){
+			segId = vqMapIt->first->getRoadSegments().back()->getRoadSegmentId();
+		}
+		if(segId!=0){
+			segId = -segId;
+			statSegs[segId] = tmpAgents.size();
+			statLinks[segId] = vqMapIt->first->getLinkId();
+		}
+	}
+
+	std::stringstream logout;
+	std::string filename("driverstats.csv");
+	sim_mob::BasicLogger & movement = sim_mob::Logger::log(filename);
+	std::map<int, int>::iterator it;
+	for (it = statSegs.begin(); it != statSegs.end(); it++) {
+		if (it->second > 0) {
+			if (it->first > 0) {
+				logout << it->first << "," << it->second << ","
+						<< statSegsInfinity[it->first] << ","
+						<< statLinks[it->first] << ","
+						<< DailyTime(now.ms()).getStrRepr() << std::endl;
+			} else {
+				logout << it->first << "," << it->second << ","
+						<< 0 << ","
+						<< statLinks[it->first] << ","
+						<< DailyTime(now.ms()).getStrRepr() << std::endl;
+			}
+		}
+	}
+	movement <<logout.str();
+	movement.flush();
+}
+
+
 void Conflux::addConnectedConflux(Conflux* conflux)
 {
 	if(!conflux)
@@ -2126,13 +2350,21 @@ void Conflux::CreateSegmentStats(const RoadSegment* rdSeg, Conflux* conflux, std
 	for (std::map<double, RoadItem*>::const_iterator obsIt = obstacles.begin(); obsIt != obstacles.end(); obsIt++)
 	{
 		const BusStop* busStop = dynamic_cast<const BusStop*>(obsIt->second);
-		if (busStop)
+		const TaxiStand* taxiStand = dynamic_cast<const TaxiStand*>(obsIt->second);
+		if (busStop || taxiStand)
 		{
 			double stopOffset = obsIt->first;
 			if (stopOffset <= 0)
 			{
 				SegmentStats* segStats = new SegmentStats(rdSeg, conflux, rdSegmentLength);
-				segStats->addBusStop(busStop);
+				if(busStop)
+				{
+					segStats->addBusStop(busStop);
+				}
+				if(taxiStand)
+				{
+					segStats->addTaxiStand(taxiStand);
+				}
 				//add the current stop and the remaining stops (if any) to the end of the segment as well
 				while (++obsIt != obstacles.end())
 				{
@@ -2140,6 +2372,11 @@ void Conflux::CreateSegmentStats(const RoadSegment* rdSeg, Conflux* conflux, std
 					if (busStop)
 					{
 						segStats->addBusStop(busStop);
+					}
+					taxiStand = dynamic_cast<const TaxiStand*>(obsIt->second);
+					if(taxiStand)
+					{
+						segStats->addTaxiStand(taxiStand);
 					}
 				}
 				splitSegmentStats.push_back(segStats);
@@ -2159,7 +2396,14 @@ void Conflux::CreateSegmentStats(const RoadSegment* rdSeg, Conflux* conflux, std
 				segStatLength = rdSegmentLength - lengthCoveredInSeg;
 				lengthCoveredInSeg = rdSegmentLength;
 				SegmentStats* segStats = new SegmentStats(rdSeg, conflux, segStatLength);
-				segStats->addBusStop(busStop);
+				if(busStop)
+				{
+					segStats->addBusStop(busStop);
+				}
+				if(taxiStand)
+				{
+					segStats->addTaxiStand(taxiStand);
+				}
 				//add the current stop and the remaining stops (if any) to the end of the segment as well
 				while (++obsIt != obstacles.end())
 				{
@@ -2167,6 +2411,11 @@ void Conflux::CreateSegmentStats(const RoadSegment* rdSeg, Conflux* conflux, std
 					if (busStop)
 					{
 						segStats->addBusStop(busStop);
+					}
+					taxiStand = dynamic_cast<const TaxiStand*>(obsIt->second);
+					if(taxiStand)
+					{
+						segStats->addTaxiStand(taxiStand);
 					}
 				}
 				splitSegmentStats.push_back(segStats);
@@ -2176,7 +2425,14 @@ void Conflux::CreateSegmentStats(const RoadSegment* rdSeg, Conflux* conflux, std
 			segStatLength = stopOffset - lengthCoveredInSeg;
 			lengthCoveredInSeg = stopOffset;
 			SegmentStats* segStats = new SegmentStats(rdSeg, conflux, segStatLength);
-			segStats->addBusStop(busStop);
+			if(busStop)
+			{
+				segStats->addBusStop(busStop);
+			}
+			if(taxiStand)
+			{
+				segStats->addTaxiStand(taxiStand);
+			}
 			splitSegmentStats.push_back(segStats);
 		}
 	}
@@ -2252,6 +2508,10 @@ void Conflux::CreateSegmentStats(const RoadSegment* rdSeg, Conflux* conflux, std
 						{
 							nextStats->addBusStop(*stopIt);
 						}
+						for(std::vector<const TaxiStand*>::iterator standIt = currStats->taxiStands.begin(); standIt != currStats->taxiStands.end(); standIt++)
+						{
+							nextStats->addTaxiStand(*standIt);
+						}
 						statsIt = splitSegmentStats.erase(statsIt);
 						safe_delete_item(currStats);
 						continue;
@@ -2276,6 +2536,10 @@ void Conflux::CreateSegmentStats(const RoadSegment* rdSeg, Conflux* conflux, std
 				{
 					lastSegStats->addBusStop(*stopIt);
 				}
+				for (std::vector<const TaxiStand*>::iterator standIt = lastButOneSegStats->taxiStands.begin(); standIt != lastButOneSegStats->taxiStands.end(); standIt++)
+				{
+					lastSegStats->addTaxiStand(*standIt);
+				}
 				splitSegmentStats.erase(statsIt);
 				safe_delete_item(lastButOneSegStats);
 			}
@@ -2290,6 +2554,7 @@ void Conflux::CreateSegmentStats(const RoadSegment* rdSeg, Conflux* conflux, std
 
 	uint16_t statsNum = 1;
 	std::set<SegmentStats*>& segmentStatsWithStops = MT_Config::getInstance().getSegmentStatsWithBusStops();
+	std::set<SegmentStats*>& segmentStatsWithStands = MT_Config::getInstance().getSegmentStatsWithTaxiStands();
 	for (std::list<SegmentStats*>::iterator statsIt = splitSegmentStats.begin(); statsIt != splitSegmentStats.end(); statsIt++)
 	{
 		SegmentStats* stats = *statsIt;
@@ -2301,6 +2566,10 @@ void Conflux::CreateSegmentStats(const RoadSegment* rdSeg, Conflux* conflux, std
 		if (!(stats->getBusStops().empty()))
 		{
 			segmentStatsWithStops.insert(stats);
+		}
+		if(!(stats->getTaxiStand().empty()))
+		{
+			segmentStatsWithStands.insert(stats);
 		}
 	}
 }

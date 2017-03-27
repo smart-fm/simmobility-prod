@@ -8,6 +8,7 @@
 
 #include "PT_Stop.hpp"
 #include "NetworkLoader.hpp"
+#include "TaxiStand.hpp"
 
 namespace sim_mob
 {
@@ -60,6 +61,9 @@ private:
 	/**This map stores all the bus stops in the network with bus stop id as the key*/
 	std::map<unsigned int, BusStop *> mapOfIdvsBusStops;
 
+	/**This map stores all the taxi stands in the network with taxi-stand id as the key*/
+	std::map<unsigned int, TaxiStand *> mapOfIdvsTaxiStand;
+	
 	/**This map stores all the parking slots in the network with the id as the key*/
 	std::map<unsigned int, ParkingSlot *> mapOfIdVsParkingSlots;
 
@@ -175,6 +179,12 @@ public:
 	 */
 	void addBusStop(BusStop *stop);
 
+	/**
+	 * Adds a taxi stand to the road network
+	 * @param stand - the pointer to taxi-stand
+	 */
+	void addTaxiStand(TaxiStand* stand);
+	
 	/**
 	 * Adds a parking slot to the the respective parking area and the road network
 	 * @param parkingSlot - the pointer to the parking slot

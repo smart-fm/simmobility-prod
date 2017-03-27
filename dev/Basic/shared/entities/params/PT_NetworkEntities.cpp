@@ -20,8 +20,17 @@
 
 using namespace std;
 using namespace sim_mob;
-PT_Network sim_mob::PT_Network::instance_;
+PT_Network sim_mob::PT_NetworkCreater::instance;
 
+void PT_NetworkCreater::init()
+{
+	const std::string DB_STORED_PROC_PT_EDGES = ConfigManager::GetInstanceRW().FullConfig().getDatabaseProcMappings().procedureMappings["pt_edges"];
+	const std::string DB_STORED_PROC_PT_VERTICES = ConfigManager::GetInstanceRW().FullConfig().getDatabaseProcMappings().procedureMappings["pt_vertices"];
+	if(!DB_STORED_PROC_PT_EDGES.empty()&&!DB_STORED_PROC_PT_VERTICES.empty())
+	{
+		instance.init(DB_STORED_PROC_PT_VERTICES, DB_STORED_PROC_PT_EDGES);
+	}
+}
 namespace
 {
 void loadMRTData(soci::session& sql_, std::map<std::string, TrainStop*>& mrtStopsMap)
@@ -49,7 +58,8 @@ void loadMRTData(soci::session& sql_, std::map<std::string, TrainStop*>& mrtStop
 	   }
 	   else
 	   {
-		   TrainStop* mrtStopObj = nullptr;
+		   TrainStop* mrtStopObj = new TrainStop(mrtstopid);
+		   mrtStopsMap[mrtstopid] = mrtStopObj;
 		   std::stringstream ss(mrtstopid);
 		   std::string singleMrtStopId;
 		   while (std::getline(ss, singleMrtStopId, '/'))
@@ -113,7 +123,7 @@ void printTransferPoints(std::string o, std::string d)
 }
 }
 
-void PT_Network::init()
+void PT_Network::init(const std::string& storedProcForVertex, const std::string& storeProceForEdges)
 {
 	vector<PT_NetworkVertex> PublicTransitVertices;
 	vector<PT_NetworkEdge> PublicTransitEdges;
@@ -126,11 +136,8 @@ void PT_Network::init()
 	std::string password = credentials.getPassword(false);
 	sim_mob::db::DB_Config dbConfig(database.host, database.port, database.dbName, username, password);
 
-
-	const std::string DB_STORED_PROC_PT_EDGES = ConfigManager::GetInstanceRW().FullConfig().getDatabaseProcMappings().procedureMappings["pt_edges"];
-	const std::string DB_GETALL_PT_EDGES_QUERY = "SELECT * FROM " + DB_STORED_PROC_PT_EDGES;
-	const std::string DB_STORED_PROC_PT_VERTICES = ConfigManager::GetInstanceRW().FullConfig().getDatabaseProcMappings().procedureMappings["pt_vertices"];
-	const std::string DB_GETALL_PT_VERTICES_QUERY = "SELECT * FROM " + DB_STORED_PROC_PT_VERTICES;
+	const std::string DB_GETALL_PT_EDGES_QUERY = "SELECT * FROM " + storeProceForEdges;
+	const std::string DB_GETALL_PT_VERTICES_QUERY = "SELECT * FROM " + storedProcForVertex;
 
 	// Connect to database and load data.
 	sim_mob::db::DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
@@ -151,10 +158,72 @@ void PT_Network::init()
 	for(vector<PT_NetworkEdge>::const_iterator ptEdgeIt=PublicTransitEdges.begin();ptEdgeIt!=PublicTransitEdges.end();ptEdgeIt++)
 	{
 		PT_NetworkEdgeMap[ptEdgeIt->getEdgeId()]=*ptEdgeIt;
+		//(*ptEdgeIt).startStop;
+		//(*ptEdgeIt).endStop;
+		if((*ptEdgeIt).getType()==TRAIN_EDGE)
+		{
+			MRTStopdgesMap[(*ptEdgeIt).getStartStop()][(*ptEdgeIt).getEndStop()].push_back((*ptEdgeIt));
+			if((*ptEdgeIt).getStartStop().find("NE12")!=std::string::npos&&(*ptEdgeIt).getStartStop().find("NE4")!=std::string::npos)
+			{
+				if((*ptEdgeIt).getServiceLine().find("CC")!=std::string::npos||(*ptEdgeIt).getServiceLine().find("CE")!=std::string::npos)
+				{
+					int debug =1 ;
+				}
+			}
+		}
 	}
 
 	//Read MRT data
 	soci::session& sql_ = conn.getSession<soci::session>();
+	std::string storedProc = sim_mob::ConfigManager::GetInstance().FullConfig().getDatabaseProcMappings().procedureMappings["mrt_road_segments"];
+	std::stringstream query;
+	query << "select * from " << storedProc;
+	soci::rowset<soci::row> rs = (sql_.prepare << query.str());
+	for (soci::rowset<soci::row>::const_iterator it = rs.begin(); it != rs.end(); ++it)
+	{
+	   soci::row const& row = *it;
+	   std::string mrtstopid = row.get<std::string>(0);
+	   int roadsegmentId = row.get<unsigned int>(1);
+	   //MRT stop id can be a slash '/' separated list of IDs in case of interchanges. We need to split it into individual stop ids
+	   if(mrtstopid.find('/') == std::string::npos)
+	   {
+		   if(MRTStopsMap.find(mrtstopid) == MRTStopsMap.end())
+		   {
+			   TrainStop* mrtStopObj = new TrainStop(mrtstopid);
+			   MRTStopsMap[mrtstopid] = mrtStopObj;
+		   }
+		   MRTStopsMap[mrtstopid]->addAccessRoadSegment(roadsegmentId);
+	   }
+	   else
+	   {
+		   TrainStop* mrtStopObj = new TrainStop(mrtstopid);
+		   MRTStopsMap[mrtstopid] = mrtStopObj;
+		   std::stringstream ss(mrtstopid);
+		   std::string singleMrtStopId;
+		   while (std::getline(ss, singleMrtStopId, '/'))
+		   {
+			   if(!mrtStopObj)
+			   {
+				   if(MRTStopsMap.find(singleMrtStopId) == MRTStopsMap.end())
+				   {
+					   mrtStopObj = new TrainStop(mrtstopid); //note: the original '/' separated string of ids must be passed to constructor; check constructor implementation for details.
+					   MRTStopsMap[singleMrtStopId] = mrtStopObj;
+				   }
+				   else
+				   {
+					   mrtStopObj = MRTStopsMap[singleMrtStopId];
+				   }
+			   }
+			   else if(MRTStopsMap.find(singleMrtStopId) == MRTStopsMap.end())
+			   {
+				   MRTStopsMap[singleMrtStopId] = mrtStopObj;
+			   }
+		   }
+		   mrtStopObj->addAccessRoadSegment(roadsegmentId);
+	   }
+	}
+
+
 	loadMRTData(sql_, MRTStopsMap);
 
 	std::set<string> mrtStationIds;

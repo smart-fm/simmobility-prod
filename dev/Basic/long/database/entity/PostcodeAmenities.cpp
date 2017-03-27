@@ -14,7 +14,7 @@
 using namespace sim_mob;
 using namespace sim_mob::long_term;
 
-PostcodeAmenities::PostcodeAmenities(): postcode(EMPTY_STR), buildingName(EMPTY_STR), unitBlock(EMPTY_STR), roadName(EMPTY_STR), mtzNumber(EMPTY_STR),
+PostcodeAmenities::PostcodeAmenities(): postcode(EMPTY_STR),
 										mrtStation(EMPTY_STR), distanceToMRT(0), distanceToBus(0), distanceToExpress(0), distanceToPMS30(0),
 										distanceToCBD(0), distanceToMall(0), distanceToJob(0), mrt_200m(false), mrt_400m(false), express_200m(false),
 										bus_200m(false), bus_400m(false), pms_1km(false) {}
@@ -78,24 +78,104 @@ const std::string& PostcodeAmenities::getMrtStation() const {
     return mrtStation;
 }
 
-const std::string& PostcodeAmenities::getMtzNumber() const {
-    return mtzNumber;
+void PostcodeAmenities::setBus200m(bool bus200m)
+{
+	bus_200m = bus200m;
 }
 
-const std::string& PostcodeAmenities::getRoadName() const {
-    return roadName;
+void PostcodeAmenities::setBus400m(bool bus400m)
+{
+	bus_400m = bus400m;
 }
 
-const std::string& PostcodeAmenities::getUnitBlock() const {
-    return unitBlock;
+void PostcodeAmenities::setDistanceToBus(double distanceToBus)
+{
+	this->distanceToBus = distanceToBus;
 }
 
-const std::string& PostcodeAmenities::getBuildingName() const {
-    return buildingName;
+void PostcodeAmenities::setDistanceToCbd(double distanceToCbd)
+{
+	distanceToCBD = distanceToCbd;
 }
 
-const std::string& PostcodeAmenities::getPostcode() const {
-    return postcode;
+void PostcodeAmenities::setDistanceToExpress(double distanceToExpress)
+{
+	this->distanceToExpress = distanceToExpress;
+}
+
+void PostcodeAmenities::setDistanceToJob(double distanceToJob)
+{
+	this->distanceToJob = distanceToJob;
+}
+
+void PostcodeAmenities::setDistanceToMall(double distanceToMall)
+{
+	this->distanceToMall = distanceToMall;
+}
+
+void PostcodeAmenities::setDistanceToMrt(double distanceToMrt)
+{
+	distanceToMRT = distanceToMrt;
+}
+
+void PostcodeAmenities::setDistanceToPms30(double distanceToPms30)
+{
+	distanceToPMS30 = distanceToPms30;
+}
+
+void PostcodeAmenities::setExpress200m(bool express200m)
+{
+	express_200m = express200m;
+}
+
+void PostcodeAmenities::setMrt200m(bool mrt200m)
+{
+	mrt_200m = mrt200m;
+}
+
+void PostcodeAmenities::setMrt400m(bool mrt400m)
+{
+	mrt_400m = mrt400m;
+}
+
+void PostcodeAmenities::setMrtStation(const std::string& mrtStation)
+{
+	this->mrtStation = mrtStation;
+}
+
+void PostcodeAmenities::setPms1km(bool pms1km)
+{
+	pms_1km = pms1km;
+}
+
+void PostcodeAmenities::setPostcode(const std::string& postcode)
+{
+	this->postcode = postcode;
+}
+
+BigSerial PostcodeAmenities::getAddressId() const
+{
+	return addressId;
+}
+
+void PostcodeAmenities::setAddressId(BigSerial addressId)
+{
+	this->addressId = addressId;
+}
+
+const std::string& PostcodeAmenities::getPostcode() const
+{
+	return this->postcode;
+}
+
+BigSerial PostcodeAmenities::getTazId() const
+{
+	return tazId;
+}
+
+void PostcodeAmenities::setTazId(BigSerial tazId)
+{
+	this->tazId = tazId;
 }
 
 namespace sim_mob {
@@ -104,10 +184,6 @@ namespace sim_mob {
         std::ostream& operator<<(std::ostream& strm, const PostcodeAmenities& data) {
             return strm << "{"
                     << "\"postcode\":\"" << data.postcode << "\","
-                    << "\"buildingName\":\"" << data.buildingName << "\","
-                    << "\"unitBlock\":\"" << data.unitBlock << "\","
-                    << "\"roadName\":\"" << data.roadName << "\","
-                    << "\"mtzNumber\":\"" << data.mtzNumber << "\","
                     << "\"mrtStation\":\"" << data.mrtStation << "\","
                     << "\"distanceMrt\":\"" << data.distanceToMRT << "\","
                     << "\"distanceBus\":\"" << data.distanceToBus << "\","

@@ -195,18 +195,39 @@ void NetworkLoader::loadTurningPolyLines(const std::string& storedProc)
 	}
 }
 
+void NetworkLoader::loadTaxiStands(const std::string& storedProc)
+{
+	sim_mob::ConfigParams& config = sim_mob::ConfigManager::GetInstanceRW().FullConfig();
+	if(storedProc.empty())
+	{
+		Print() << "Stored procedure to load taxi stands not specified in the configuration file."
+				<< "\nTaxi stands not loaded..." << std::endl;
+		return;
+	}
+
+	//SQL statement
+	soci::rowset<sim_mob::TaxiStand> stands = (sql.prepare << "select * from " + storedProc);
+
+	for (soci::rowset<TaxiStand>::const_iterator itStand = stands.begin(); itStand != stands.end(); ++itStand)
+	{
+		//Create new taxi stand and add it to road network
+		TaxiStand* stand = new TaxiStand(*itStand);
+		roadNetwork->addTaxiStand(stand);
+	}
+}
+
 void NetworkLoader::loadBusStops(const std::string& storedProc)
 {
 	sim_mob::ConfigParams& config = sim_mob::ConfigManager::GetInstanceRW().FullConfig();
 	if(!config.isPublicTransitEnabled())
 	{
-		sim_mob::Print() << "\nWARNING: public-transit is not enabled in the config file " << std::endl;
+		Warn() << "\nPublic-transit is not enabled in the config file " << std::endl;
 		return;
 	}
 
 	if (storedProc.empty())
 	{
-		Print() << "Stored procedure to load bus stops not specified in the configuration file." 
+		Warn() << "Stored procedure to load bus stops not specified in the configuration file." 
 				<< "\nBus Stops not loaded..." << std::endl;
 		return;
 	}
@@ -340,7 +361,9 @@ void NetworkLoader::loadNetwork(const string& connectionStr, const map<string, s
 		loadBusStops(getStoredProcedure(storedProcs, "bus_stops", false));
 
 		loadParkingSlots(getStoredProcedure(storedProcs, "parking_slots", false));
-		
+
+		loadTaxiStands(getStoredProcedure(storedProcs, "taxi_stands", false));
+
 		//Close the connection
 		sql.close();
 

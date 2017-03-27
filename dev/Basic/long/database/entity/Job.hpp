@@ -16,34 +16,21 @@ namespace sim_mob
 		class Job
 		{
 		public:
-			Job(BigSerial id=INVALID_ID, BigSerial establishmentId=INVALID_ID, BigSerial sectorId=INVALID_ID, int timeRestriction = 0,bool isStudent = false,
-				bool fixedWorkplace =false);
+			Job(BigSerial id=INVALID_ID, BigSerial establishmentId=INVALID_ID);
 
 			virtual ~Job();
 
 			void setId(BigSerial val);
 			void setEstablishmentId(BigSerial val);
-			void setSectorId(BigSerial val);
-			void setTimeRestriction(int val);
-			void setIsStudent(bool val);
-			void setFixedWorkplace(bool val);
 
 			BigSerial getId() const;
 			BigSerial getEstablishmentId() const;
-			BigSerial getSectorId() const;
-			int getTimeRestriction() const;
-			bool getIsStudent() const;
-			bool getFixedWorkplace() const;
 
 		private:
 			friend class JobDao;
 
 			BigSerial id;
 			BigSerial establishmentId;
-			BigSerial sectorId;
-			int timeRestriction;
-			bool isStudent;
-			bool fixedWorkplace;
 		};
 	}
 }

@@ -144,7 +144,8 @@ sim_mob::SubTrip::SubTrip(std::string entId,
 		bool isPrimary,
 		std::string ptLineId) :
 				Trip(entId, type, seqNumber, requestTime, start, end, "", from, fromLocType, to, toLocType, mode),
-				isPT_Walk(false),walkTime(0.0), ptLineId(ptLineId), cbdTraverseType(sim_mob::TravelMetric::CBD_NONE)
+				isPT_Walk(false),walkTime(0.0), ptLineId(ptLineId), cbdTraverseType(sim_mob::TravelMetric::CBD_NONE),
+				isTT_Walk(false)
 {
 }
 
@@ -238,6 +239,9 @@ TripChainItem::ItemType sim_mob::TripChainItem::getItemType(std::string itemType
 	else if (itemType == "WaitingBusActivity")
 	{
 		return IT_WAITBUSACTIVITY;
+	}
+	else if( itemType == "WaitingTrainActivity"){
+		return IT_WAITTRAINACTIVITY;
 	}
 	else
 	{

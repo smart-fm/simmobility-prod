@@ -124,7 +124,7 @@ public:
 	 */
 	enum ItemType
 	{
-		IT_TRIP, IT_ACTIVITY, IT_BUSTRIP, IT_FMODSIM, IT_WAITBUSACTIVITY
+		IT_TRIP, IT_ACTIVITY, IT_BUSTRIP, IT_FMODSIM, IT_WAITBUSACTIVITY, IT_WAITTRAINACTIVITY,IT_TRAINTRIP
 	};
 
 
@@ -153,6 +153,7 @@ public:
 	std::string startLocationType;
 	std::string endLocationType;
 	unsigned int edgeId;
+	std::string serviceLine;
 	
 	/**Indicates the number of times the trip is to be loaded [Added for short-term demand calibration]*/
 	unsigned int load_factor;
@@ -265,6 +266,9 @@ public:
 
 	bool isPT_Walk;
 	double walkTime;
+
+
+	bool isTT_Walk;
 
 } ;
 

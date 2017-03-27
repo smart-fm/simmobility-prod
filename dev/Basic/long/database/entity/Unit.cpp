@@ -11,26 +11,28 @@
  */
 
 #include "Unit.hpp"
+#include <boost/serialization/vector.hpp>
+#include <boost/archive/binary_oarchive.hpp>
+#include <boost/archive/binary_iarchive.hpp>
 
 using namespace sim_mob;
 using namespace sim_mob::long_term;
 
-Unit::Unit( BigSerial id, BigSerial building_id, BigSerial sla_address_id, int unit_type, int storey_range, int constructionStatus, double floor_area, int storey,
+Unit::Unit( BigSerial id, BigSerial building_id, int unit_type, int storey_range, int constructionStatus, double floor_area, int storey,
 			double monthlyRent, std::tm sale_from_date, std::tm occupancyFromDate, int sale_status, int occupancyStatus, std::tm lastChangedDate,
 			double totalPrice,std::tm valueDate,int tenureStatus,int biddingMarketEntryDay, int timeOnMarket, int timeOffMarket, double lagCoefficient, int zoneHousingType,
 			int dwellingType, bool isBTO)
-		   : id(id), building_id(building_id), sla_address_id(sla_address_id), unit_type(unit_type), storey_range(storey_range), constructionStatus(constructionStatus),
+		   : id(id), building_id(building_id), unit_type(unit_type), storey_range(storey_range), constructionStatus(constructionStatus),
 		     floor_area(floor_area), storey(storey), monthlyRent(monthlyRent), sale_from_date(sale_from_date), occupancyFromDate(occupancyFromDate),
 			 sale_status(sale_status), occupancyStatus(occupancyStatus), lastChangedDate(lastChangedDate),totalPrice(totalPrice),valueDate(valueDate),tenureStatus(tenureStatus),
 			 biddingMarketEntryDay(biddingMarketEntryDay),timeOnMarket(timeOnMarket), timeOffMarket(timeOffMarket), lagCoefficient(lagCoefficient),
-			 zoneHousingType(zoneHousingType), dwellingType(dwellingType), isBTO(isBTO){}
+			 zoneHousingType(zoneHousingType), dwellingType(dwellingType),isBTO(isBTO),existInDB(0){}
 
 
 Unit::Unit(const Unit& source)
 {
     this->id  = source.id;
     this->building_id  = source.building_id;
-    this->sla_address_id  = source.sla_address_id;
     this->unit_type  = source.unit_type;
     this->storey_range  = source.storey_range;
     this->constructionStatus  = source.constructionStatus;
@@ -51,6 +53,7 @@ Unit::Unit(const Unit& source)
     this->lagCoefficient = source.lagCoefficient;
     this->zoneHousingType = source.zoneHousingType;
     this->dwellingType = source.dwellingType;
+    this->existInDB = source.existInDB;
     this->isBTO = source.isBTO;
 }
 
@@ -60,7 +63,6 @@ Unit& Unit::operator=(const Unit& source)
 {
     this->id  = source.id;
     this->building_id  = source.building_id;
-    this->sla_address_id  = source.sla_address_id;
     this->unit_type  = source.unit_type;
     this->storey_range  = source.storey_range;
     this->constructionStatus  = source.constructionStatus;
@@ -81,9 +83,91 @@ Unit& Unit::operator=(const Unit& source)
     this->lagCoefficient = source.lagCoefficient;
     this->zoneHousingType = source.zoneHousingType;
     this->dwellingType = source.dwellingType;
+    this->existInDB = source.existInDB;
     this->isBTO = source.isBTO;
 
     return *this;
+}
+
+template<class Archive>
+void Unit::serialize(Archive & ar,const unsigned int version)
+{
+	ar & id;
+	ar & building_id;
+	ar & unit_type;
+	ar & storey_range;
+	ar & constructionStatus;
+	ar & floor_area;
+	ar & storey;
+	ar & monthlyRent;
+
+	ar & BOOST_SERIALIZATION_NVP(sale_from_date.tm_year);
+	ar & BOOST_SERIALIZATION_NVP(sale_from_date.tm_mon);
+	ar & BOOST_SERIALIZATION_NVP(sale_from_date.tm_mday);
+	sale_from_date.tm_year = sale_from_date.tm_year+1900;
+
+	ar & BOOST_SERIALIZATION_NVP(occupancyFromDate.tm_year);
+	ar & BOOST_SERIALIZATION_NVP(occupancyFromDate.tm_mon);
+	ar & BOOST_SERIALIZATION_NVP(occupancyFromDate.tm_mday);
+	occupancyFromDate.tm_year = occupancyFromDate.tm_year+1900;
+
+	ar & sale_status;
+	ar & occupancyStatus;
+
+	ar & BOOST_SERIALIZATION_NVP(lastChangedDate.tm_year);
+	ar & BOOST_SERIALIZATION_NVP(lastChangedDate.tm_mon);
+	ar & BOOST_SERIALIZATION_NVP(lastChangedDate.tm_mday);
+	lastChangedDate.tm_year = lastChangedDate.tm_year+1900;
+
+	ar & totalPrice;
+
+	ar & BOOST_SERIALIZATION_NVP(valueDate.tm_year);
+	ar & BOOST_SERIALIZATION_NVP(valueDate.tm_mon);
+	ar & BOOST_SERIALIZATION_NVP(valueDate.tm_mday);
+	valueDate.tm_year = valueDate.tm_year+1900;
+
+	ar & tenureStatus;
+	ar & biddingMarketEntryDay;
+	ar & timeOnMarket;
+	ar & timeOffMarket;
+	ar & lagCoefficient;
+	ar & zoneHousingType;
+	ar & dwellingType;
+	ar & existInDB;
+	ar & isBTO;
+
+}
+
+void Unit::saveData(std::vector<Unit*> &units)
+{
+	// make an archive
+	std::ofstream ofs(filename);
+	boost::archive::binary_oarchive oa(ofs);
+	oa & units;
+
+}
+
+std::vector<Unit*> Unit::loadSerializedData()
+{
+	std::vector<Unit*> units;
+	// Restore from saved data and print to verify contents
+	std::vector<Unit*> restored_info;
+	{
+		// Create and input archive
+		std::ifstream ifs(filename);
+		boost::archive::binary_iarchive ar( ifs );
+
+		// Load the data
+		ar & restored_info;
+	}
+
+	for (auto *itr :restored_info)
+	{
+		Unit *unit = itr;
+		units.push_back(unit);
+	}
+
+	return units;
 }
 
 BigSerial Unit::getId() const
@@ -96,10 +180,6 @@ BigSerial Unit::getBuildingId() const
     return building_id;
 }
 
-BigSerial Unit::getSlaAddressId() const
-{
-    return sla_address_id;
-}
 
 int Unit::getUnitType() const
 {
@@ -189,10 +269,6 @@ void Unit::setSaleFromDate(const std::tm& saleFromDate) {
 
 void Unit::setSaleStatus(int saleStatus) {
 	this->sale_status = saleStatus;
-}
-
-void Unit::setSlaAddressId(BigSerial slaAddressId) {
-	this->sla_address_id = slaAddressId;
 }
 
 void Unit::setStorey(int storey) {
@@ -316,8 +392,20 @@ bool  Unit::isBto() const
 }
 
 void  Unit::setBto(bool bto)
+
 {
-		isBTO = bto;
+	isBTO = bto;
+
+}
+
+bool Unit::isExistInDb() const
+{
+	return existInDB;
+}
+
+void Unit::setExistInDb(bool existInDb)
+{
+	existInDB = existInDb;
 }
 
 namespace sim_mob
@@ -329,7 +417,6 @@ namespace sim_mob
             return strm << "{"
 						<< "\"id \":\"" << data.id << "\","
 						<< "\"building_id \":\"" << data.building_id << "\","
-						<< "\"sla_address_id \":\"" << data.sla_address_id << "\","
 						<< "\"unit_type \":\"" << data.unit_type << "\","
 						<< "\"storey_range \":\"" << data.storey_range << "\","
 						<< "\"unit_status \":\"" << data.constructionStatus << "\","
@@ -347,7 +434,6 @@ namespace sim_mob
 						<< "\"lagCoefficient\":\"" << data.lagCoefficient << "\","
 						<< "\"zoneHousingType\":\"" << data.zoneHousingType << "\","
 						<< "\"dwellingType\":\"" << data.dwellingType << "\""
-						<< "\"isBTO\":\"" << data.isBTO << "\""
 						<< "}";
         }
     }

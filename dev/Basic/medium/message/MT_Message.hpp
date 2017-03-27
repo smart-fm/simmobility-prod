@@ -15,7 +15,8 @@ class BusStop;
 namespace medium
 {
 class BusDriver;
-
+class TrainDriver;
+class Passenger;
 enum ConfluxMessage
 {
 	MSG_PEDESTRIAN_TRANSFER_REQUEST = 5000000,
@@ -26,15 +27,29 @@ enum ConfluxMessage
 	MSG_WAKEUP_PEDESTRIAN,
 	MSG_WARN_INCIDENT,
 	MSG_PERSON_LOAD,
-	MSG_PERSON_TRANSFER
+	MSG_PERSON_TRANSFER,
+	MSG_TRAVELER_TRANSFER
 };
 
+enum PublicTrainsitEvent
+{
+	EVT_DISRUPTION_STATION=7000000,
+	EVT_DISRUPTION_CHANGEROUTE
+};
 enum PublicTransitMessage
 {
 	BOARD_BUS = 6000000,
 	ALIGHT_BUS,
 	BUS_ARRIVAL,
-	BUS_DEPARTURE
+	BUS_DEPARTURE,
+	TRAIN_MOVETO_NEXT_PLATFORM,
+	TRAIN_ARRIVAL_AT_STARTPOINT,
+	TRAIN_ARRIVAL_AT_ENDPOINT,
+	TRAIN_MOVE_AT_UTURN_PLATFORM,
+	PASSENGER_ARRIVAL_AT_PLATFORM,
+	PASSENGER_LEAVE_FRM_PLATFORM,
+	INSERT_UNSCHEDULED_TRAIN
+
 };
 
 /**
@@ -69,7 +84,40 @@ public:
 	}
 	BusDriver* busDriver;
 };
+/**
+ * Message holding a pointer to trainDriver
+ */
+class TrainDriverMessage: public messaging::Message
+{
+public:
+	TrainDriverMessage(TrainDriver* driver, bool isHigher=false):
+		trainDriver(driver)
+	{
+		if(isHigher){
+			priority += 1;
+		}
+	}
+	virtual ~TrainDriverMessage()
+	{
+	}
+	TrainDriver* trainDriver;
+};
+/**
+ * Message holding a pointer to passenger
+ */
+class TrainPassengerMessage: public messaging::Message
+{
+public:
+	TrainPassengerMessage(Passenger* passenger):trainPassenger(passenger)
+	{
 
+	}
+	virtual ~TrainPassengerMessage()
+	{
+
+	}
+	Passenger* trainPassenger;
+};
 /**
  * Message to wrap a Person
  */

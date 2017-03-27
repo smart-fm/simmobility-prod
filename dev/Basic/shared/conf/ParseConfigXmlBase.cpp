@@ -13,6 +13,8 @@
 #include <xercesc/util/PlatformUtils.hpp>
 #include "util/XmlParseHelper.hpp"
 
+#include "logging/Log.hpp"
+
 using namespace sim_mob;
 using namespace xercesc;
 
@@ -78,13 +80,46 @@ std::string ParseConfigXmlBase::parseXmlFile(XercesDOMParser& parser, ErrorHandl
 	} catch (const DOMException& error)
 	{
 		return TranscodeString(error.getMessage());
+	} catch (const std::exception& e)
+	{
+		throw e;
 	} catch (...)
 	{
-		return "Unexpected Exception parsing config file.\n";
+		//TODO: add a more precise indication of where the error occurred
+		std::stringstream msg; msg <<"Error parsing "<<inFilePath<< std::endl;
+		throw std::runtime_error(msg.str() );
 	}
 
 	//No error.
 	return "";
+}
+
+
+
+void sim_mob::ParseConfigXmlBase::processXmlFileForServiceControler(xercesc::XercesDOMParser& parser)
+{
+
+}
+
+void sim_mob::ParseConfigXmlBase::parseXmlAndProcessForServiceController()
+{
+	//NOTE: I think the order of destruction matters (parser must be listed last). ~Seth
+		initXerces();
+		HandlerBase handBase;
+		XercesDOMParser parser;
+
+		//Attempt to parse it.
+		std::string errorMsg = parseXmlFile(parser, dynamic_cast<ErrorHandler&>(handBase));
+
+		//If there's an error, throw it as an exception.
+		if (!errorMsg.empty())
+		{
+			throw std::runtime_error(errorMsg.c_str());
+		}
+
+		//Now process it.
+		//processXmlFile(parser);
+		processXmlFileForServiceControler(parser);
 }
 
 }

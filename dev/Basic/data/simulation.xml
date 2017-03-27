@@ -10,7 +10,7 @@
                 <host value="172.25.184.48"/>
                 <port value="5432"/>
                 <dbname value="simmobility_virtualcity"/>
-			</database>
+            </database>
 
             <database id="fm_hpchead" dbtype="postgres">
                 <host value="172.25.184.156"/>

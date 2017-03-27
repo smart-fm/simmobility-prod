@@ -505,6 +505,7 @@ void Person_ST::convertPublicTransitODsToTrips()
 						
 						const string &src = getAgentSrc();
 						DailyTime subTripStartTime = itSubTrip->startTime;
+						const ConfigParams &cfgParams = ConfigManager::GetInstance().FullConfig();
 						
 						const std::string ptPathsetStoredProcName = cfgParams.getDatabaseProcMappings().procedureMappings["pt_pathset"];
 						bool ret = PT_RouteChoiceLuaProvider::getPTRC_Model().getBestPT_Path(itSubTrip->origin.node->getNodeId(),

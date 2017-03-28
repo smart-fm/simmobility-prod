@@ -1932,10 +1932,6 @@ void HM_Model::startImpl()
 			Taz *curTaz = this->getTazById(tazId);
 			string planningAreaName = curTaz->getPlanningAreaName();
 
-
-
-			/*
-			delete this : chetan  23 mar 17
 			for(int n = 0; n < mtzTaz.size();n++)
 			{
 				if(tazId == mtzTaz[n]->getTazId() )
@@ -1962,7 +1958,6 @@ void HM_Model::startImpl()
 					break;
 				}
 			}
-			*/
 
 			if( thisUnit->getUnitType()  == 1 || thisUnit->getUnitType() == 2)
 			{
@@ -2001,8 +1996,8 @@ void HM_Model::startImpl()
 			for( int n = 0; n < alternative.size(); n++)
 			{
 				if( alternative[n]->getDwellingTypeId() == thisUnit->getDwellingType() &&
-					//alternative[n]->getPlanAreaId() 	== planningAreaId )
-					alternative[n]->getPlanAreaName() == planningAreaName)
+					alternative[n]->getPlanAreaId() 	== planningAreaId )
+					//alternative[n]->getPlanAreaName() == planningAreaName)
 				{
 					thisUnit->setZoneHousingType(alternative[n]->getId());
 

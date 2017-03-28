@@ -462,7 +462,7 @@ namespace sim_mob
 				if( std::isinf( probability) )
 					probability = 0.0;
 
-				if(  model->getAlternatives()[n]->getId() == 50)
+				if(  model->getAlternatives()[n]->getPlanAreaId() == 50 )
 					probability = probability * 2.0;
 
 				probabilities.push_back(probability);

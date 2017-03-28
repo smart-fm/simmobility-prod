@@ -503,23 +503,7 @@ vector<ExpectationEntry> HedonicPrice_SubModel::CalculateUnitExpectations (Unit 
     PostcodeAmenities amenities = *amenitiesX;
     int tazId = amenities.getTazId();
 
-	if( tazId == 682 ||
-		tazId == 683 ||
-		tazId == 684 ||
-		tazId == 697 ||
-		tazId == 698 ||
-		tazId == 699 ||
-		tazId == 700 ||
-		tazId == 702 ||
-		tazId == 703 ||
-		tazId == 927 ||
-		tazId == 928 ||
-		tazId == 929 ||
-		tazId == 930 ||
-		tazId == 931 ||
-		tazId == 932 ||
-		tazId == 1255||
-		tazId == 1256 )
+	if(tazId==682||tazId==683||tazId==684||tazId==697||tazId==698||tazId==699||tazId==700||tazId==702||tazId==703||tazId==927||tazId==928||tazId==929||tazId==930||tazId==931||tazId==932||tazId==1255||tazId==1256)
 	{
 		amenities.setDistanceToJob(amenities.getDistanceToJob() / 2.0);
 		amenities.setDistanceToMall(amenities.getDistanceToMall() / 2.0);
@@ -533,23 +517,7 @@ vector<ExpectationEntry> HedonicPrice_SubModel::CalculateUnitExpectations (Unit 
 
     tazId = hmModel->getUnitTazId( unit->getId() );
 
-	if( tazId == 682 ||
-		tazId == 683 ||
-		tazId == 684 ||
-		tazId == 697 ||
-		tazId == 698 ||
-		tazId == 699 ||
-		tazId == 700 ||
-		tazId == 702 ||
-		tazId == 703 ||
-		tazId == 927 ||
-		tazId == 928 ||
-		tazId == 929 ||
-		tazId == 930 ||
-		tazId == 931 ||
-		tazId == 932 ||
-		tazId == 1255 ||
-		tazId == 1256 )
+    if(tazId==682||tazId==683||tazId==684||tazId==697||tazId==698||tazId==699||tazId==700||tazId==702||tazId==703||tazId==927||tazId==928||tazId==929||tazId==930||tazId==931||tazId==932||tazId==1255||tazId==1256)
 	{
 		logsum += 0.07808;
 	}

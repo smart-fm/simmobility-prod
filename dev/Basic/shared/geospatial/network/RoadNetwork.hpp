@@ -8,13 +8,14 @@
 
 #include "PT_Stop.hpp"
 #include "Link.hpp"
+#include "NetworkLoader.hpp"
 #include "Node.hpp"
 #include "Point.hpp"
 #include "PolyLine.hpp"
+#include "SurveillanceStation.hpp"
+#include "TaxiStand.hpp"
 #include "TurningGroup.hpp"
 #include "TurningPath.hpp"
-#include "NetworkLoader.hpp"
-#include "TaxiStand.hpp"
 
 namespace sim_mob
 {
@@ -171,6 +172,12 @@ public:
 	 * @param stand - the pointer to taxi-stand
 	 */
 	void addTaxiStand(TaxiStand* stand);
+
+	/**
+	 * Adds a surveillance stn to the network
+	 * @param station - the pointer to the surveillance station
+	 */
+	void addSurveillenceStn(SurveillanceStation *station);
 
 	/**
 	 * Template class to lookup any map with an unsigned int id

@@ -31,6 +31,7 @@
 #include "entities/TrainController.hpp"
 #include "entities/BusStopAgent.hpp"
 #include "entities/TrainStationAgent.hpp"
+#include "entities/ClosedLoopRunManager.hpp"
 #include "entities/incident/IncidentManager.hpp"
 #include "entities/params/PT_NetworkEntities.hpp"
 #include "entities/MT_PersonLoader.hpp"
@@ -452,6 +453,15 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 				delete ag;
 			}
 		}
+		
+		unsigned long currTimeMS = currTick * config.baseGranMS();
+
+		//Check if we are running in closed loop with DynaMIT
+		if(config.simulation.closedLoop.enabled && (currTimeMS + config.baseGranMS()) % (config.simulation.closedLoop.sensorStepSize * 1000) == 0)
+		{
+			SurveillanceStation::writeSurveillanceOutput(config, currTimeMS + config.baseGranMS());
+			ClosedLoopRunManager::waitForDynaMIT(config);
+		}
 	}
 
 	BusStopAgent::removeAllBusStopAgents();
@@ -717,4 +727,3 @@ int main_impl(int ARGC, char* ARGV[])
 
 	return returnVal;
 }
-

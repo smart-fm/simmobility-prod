@@ -94,6 +94,13 @@ private:
     void processWorkgroupAssignmentNode(xercesc::DOMElement* node);
 
     /**
+     * Processes the closed_loop element in the config file
+     *
+     * @param node node corresponding to the closed_loop element in the xml file
+     */
+    void processClosedLoopPropertiesNode(xercesc::DOMElement *node);
+
+    /**
      * Processes the merge_log_files element in the config file
      *
      * @param node node corresponding to the merge_log_files element in the xml file

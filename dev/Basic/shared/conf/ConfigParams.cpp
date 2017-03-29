@@ -30,11 +30,12 @@ sim_mob::ConfigParams::ConfigParams() : RawConfigParams(),
 
 sim_mob::ConfigParams::~ConfigParams()
 {
-    ///Delete all pointers
+	///Delete all pointers
 //	safe_delete_item(commDataMgr);
 	safe_delete_item(controlMgr);
 
-    clear_delete_map(busStopNo_busStops);
+	clear_delete_map(busStopNo_busStops);
+	safe_delete_item(simulation.closedLoop.logger);
 }
 
 sim_mob::Factory<sim_mob::Broker>& sim_mob::ConfigParams::getBrokerFactoryRW()

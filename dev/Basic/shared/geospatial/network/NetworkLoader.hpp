@@ -137,6 +137,13 @@ private:
 	 */
 	 void loadParkingSlots(const std::string& storedProc);
 
+	/**
+	 * Loads the surveillance stations and traffic sensors within the network using the given stored procedure
+	 *
+	 * @param storedProc - the stored procedure to be executed in order to retrieve the data
+	 */
+	void loadSurveillanceStns(const std::string& storedProc);
+
 public:
 	virtual ~NetworkLoader();
 

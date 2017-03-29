@@ -8,6 +8,7 @@
 
 #include "PT_Stop.hpp"
 #include "NetworkLoader.hpp"
+#include "SurveillanceStation.hpp"
 #include "TaxiStand.hpp"
 
 namespace sim_mob
@@ -189,7 +190,14 @@ public:
 	 * Adds a parking slot to the the respective parking area and the road network
 	 * @param parkingSlot - the pointer to the parking slot
 	 */
+	 */
 	 void addParking(ParkingSlot *parkingSlot);
+	 
+	 /**
+	 * Adds a surveillance stn to the network
+	 * @param station - the pointer to the surveillance station
+	 */
+	void addSurveillenceStn(SurveillanceStation *station);
 
 	/**
 	 * Template class to lookup any map with an unsigned int id

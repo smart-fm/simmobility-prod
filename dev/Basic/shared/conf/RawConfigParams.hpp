@@ -14,6 +14,7 @@
 #include "geospatial/network/Point.hpp"
 #include "workers/WorkGroup.hpp"
 #include "util/DailyTime.hpp"
+#include "util/Profiler.hpp"
 #include "conf/Constructs.hpp"
 
 namespace sim_mob {
@@ -139,6 +140,15 @@ struct LongTermParams
 
 	}outputFiles;
 
+
+	struct Scenario
+	{
+		Scenario();
+		bool   enabled;
+		std::string scenarioName;
+
+	} scenario;
+
 };
 
 ///represent the incident data section of the config file
@@ -232,6 +242,26 @@ public:
 };
 
 /**
+ * Defines the configuration settings for the closed loop manager
+ */
+struct ClosedLoopParams
+{
+    bool enabled;
+	bool isGuidanceDirectional;
+    int sensorStepSize;
+    std::string guidanceFile;
+    std::string tollFile;
+    std::string incentivesFile;
+    std::string sensorOutputFile;
+	BasicLogger *logger;
+
+	ClosedLoopParams() : enabled(false), isGuidanceDirectional(false), sensorStepSize(0), guidanceFile(""),
+		tollFile(""), incentivesFile(""), sensorOutputFile(""), logger(nullptr)
+    {
+    }
+};
+
+/**
  * Represents the "Simulation" section of the config file.
  */
 class SimulationParams {
@@ -239,7 +269,7 @@ public:
     /**
      * Constructor
      */
-	SimulationParams();
+    SimulationParams();
 
     /// Base system granularity, in milliseconds. Each "tick" is this long.
     unsigned int baseGranMS;
@@ -267,6 +297,9 @@ public:
 
     /// Locking strategy for Shared<> properties.
     sim_mob::MutexStrategy mutexStategy;
+
+    /// The settings for the closed loop manager
+    ClosedLoopParams closedLoop;
 };
 
 /**

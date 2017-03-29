@@ -36,14 +36,7 @@ const std::vector<const ParkingSlot *>& ParkingArea::getParkingSlots() const
 
 const ParkingSlot* ParkingArea::getParkingSlot(unsigned int index) const
 {
-	try
-	{
-		return parkingSlots.at(index);
-	}
-	catch (out_of_range &ex)
-	{
-		return nullptr;
-	}
+	return parkingSlots.at(index);
 }
 
 void ParkingArea::addParkingSlot(const ParkingSlot *pkSlot)

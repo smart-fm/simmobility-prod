@@ -35,6 +35,68 @@ namespace sim_mob
 			return futureTransitionOwn;
 		}
 
+		bool  AwakeningSubModel::ComputeFutureTransition(Household *household, HM_Model *model, double &futureTransitionRate, double &futureTransitionRandomDraw )
+		{
+            std::string tenureTransitionId="";
+			//The age category were set by the Jingsi shaw (xujs@mit.edu)
+			//in her tenure transition model.
+			if( household->getAgeOfHead() <= 6 )
+				tenureTransitionId = "<35";
+			else
+			if( household->getAgeOfHead()>= 7 && household->getAgeOfHead() <= 9 )
+				tenureTransitionId = "35-49";
+			if( household->getAgeOfHead()>= 10 && household->getAgeOfHead() <= 12 )
+				tenureTransitionId = "50-64";
+			if( household->getAgeOfHead()>= 13 )
+				tenureTransitionId = "65+";
+
+			string tenureStatus;
+
+			if( household->getTenureStatus() == 1 ) //owner
+				tenureStatus = "own";
+			else
+				tenureStatus = "rent";
+
+			for(int p = 0; p < model->getTenureTransitionRates().size(); p++)
+			{
+				if( model->getTenureTransitionRates()[p]->getAgeGroup() == tenureTransitionId &&
+					model->getTenureTransitionRates()[p]->getCurrentStatus() == tenureStatus  &&
+					model->getTenureTransitionRates()[p]->getFutureStatus() == string("own") )
+				{
+					futureTransitionRate = model->getTenureTransitionRates()[p]->getRate() / 100.0;
+				}
+			}
+
+			futureTransitionRandomDraw = (double)rand()/RAND_MAX;
+
+			if( futureTransitionRandomDraw < futureTransitionRate )
+				futureTransitionOwn = true; //Future transition is to OWN a unit
+
+			//own->own: proceed as normal
+			//own->rent: randomly choose a rental unit for this unit.
+			//rent->own: proceed as normal
+			//rent->rent: do nothing
+			if( futureTransitionOwn == false )//futureTransition is to RENT
+			{
+				if( household->getTenureStatus() == 2) //renter
+				{
+					//rent->rent: do nothing
+					//agent goes inactive
+				}
+				else
+				{
+					//own->rent
+					//This awakened household will now look for a rental unit
+					//Let's change its tenure status here.
+					household->setTenureStatus(2);
+				}
+
+				return false;
+			}
+			else
+				return true;
+		}
+
 		void AwakeningSubModel::InitialAwakenings(HM_Model *model, Household *household, HouseholdAgent *agent, int day)
 		{
 			boost::mutex::scoped_lock lock( mtx );
@@ -224,81 +286,24 @@ namespace sim_mob
 			else
 			if( config.ltParams.housingModel.awakeningModel.awakenModelJingsi== true )
 			{
-				std::string tenureTransitionId;
-
-				//The age category were set by the Jingsi shaw (xujs@mit.edu)
-				//in her tenure transition model.
-				if( household->getAgeOfHead() <= 6 )
-					tenureTransitionId = "<35";
-				else
-				if( household->getAgeOfHead()>= 7 && household->getAgeOfHead() <= 9 )
-					tenureTransitionId = "35-49";
-				if( household->getAgeOfHead()>= 10 && household->getAgeOfHead() <= 12 )
-					tenureTransitionId = "50-64";
-				if( household->getAgeOfHead()>= 13 )
-					tenureTransitionId = "65+";
-
-				string tenureStatus;
-
-				if( household->getTenureStatus() == 1 ) //owner
-					tenureStatus = "own";
-				else
-					tenureStatus = "rent";
-
-				double futureTransitionRate = 0;
-
-				for(int p = 0; p < model->getTenureTransitionRates().size(); p++)
-				{
-					if( model->getTenureTransitionRates()[p]->getAgeGroup() == tenureTransitionId &&
-						model->getTenureTransitionRates()[p]->getCurrentStatus() == tenureStatus  &&
-						model->getTenureTransitionRates()[p]->getFutureStatus() == string("own") )
-					{
-						futureTransitionRate = model->getTenureTransitionRates()[p]->getRate() / 100.0;
-					}
-				}
-
-				double randomDraw = (double)rand()/RAND_MAX;
-
-				if( randomDraw < futureTransitionRate )
-					futureTransitionOwn = true; //Future transition is to OWN a unit
-
-				//own->own: proceed as normal
-				//own->rent: randomly choose a rental unit for this unit.
-				//rent->own: proceed as normal
-				//rent->rent: do nothing
-				if( futureTransitionOwn == false )//futureTransition is to RENT
-				{
-					if( household->getTenureStatus() == 2) //renter
-					{
-						//rent->rent: do nothing
-						//agent goes inactive
-					}
-					else
-					{
-						//own->rent
-						//This awakened household will now look for a rental unit
-						//Let's change its tenure status here.
-						household->setTenureStatus(2);
-						return;
-					}
-
-					return;
-				}
-
-
 				double movingRate = movingProbability(household, model ) / 100.0;
 
 				double randomDrawMovingRate = (double)rand()/RAND_MAX;
 
 				if( randomDrawMovingRate > movingRate )
-				{
 					return;
-				}
 
+				double futureTransitionRate = 0.0;
+				double futureTransitionRandomDraw = 0.0;
+
+				bool success = ComputeFutureTransition(household, model, futureTransitionRate, futureTransitionRandomDraw );
+
+				if( success == false )
+					return;
 
 				bidder->setActive(true);
 
-				printAwakening(day, household);
+				printAwakeningJingsi(day, household, futureTransitionRate, futureTransitionRandomDraw, movingRate, randomDrawMovingRate);
 
 				#ifdef VERBOSE
 				PrintOutV("[day " << day << "] Lifestyle 3. Household " << getId() << " has been awakened. " << model->getNumberOfBidders() << std::endl);
@@ -364,48 +369,46 @@ namespace sim_mob
 		    {
 		    	ExternalEvent extEv;
 
-
 		    	BigSerial householdId = (double)rand()/RAND_MAX * model->getHouseholdList()->size();
 
-		    	Household *potentialAwakening = model->getHouseholdById( householdId );
+		    	Household *household = model->getHouseholdById( householdId );
 
-		    	if( !potentialAwakening)
+		    	if( !household)
 		    		continue;
 
+		    	int awakenDay = household->getLastAwakenedDay();
 
-
-		    	int awakenDay = potentialAwakening->getLastAwakenedDay();
-
-				if(( potentialAwakening->getLastBidStatus() == 1 && day < config.ltParams.housingModel.awakeningModel.awakeningOffMarketSuccessfulBid + awakenDay ))
-				{
-					continue;
-				}
-
-				if(( potentialAwakening->getLastBidStatus() == 2 && day < config.ltParams.housingModel.awakeningModel.awakeningOffMarketUnsuccessfulBid + awakenDay ))
-				{
+				if(( household->getLastBidStatus() == 1 && day < config.ltParams.housingModel.awakeningModel.awakeningOffMarketSuccessfulBid + awakenDay ))
 					continue;
 
-				}
+				if(( household->getLastBidStatus() == 2 && day < config.ltParams.housingModel.awakeningModel.awakeningOffMarketUnsuccessfulBid + awakenDay ))
+					continue;
+
+                double futureTransitionRate = 0;
+				double futureTransitionRandomDraw = 0;
+
+				bool success = ComputeFutureTransition(household, model, futureTransitionRate, futureTransitionRandomDraw );
+
+				if( success == false)
+					continue;
+
+		    	double movingRate = movingProbability(household, model ) / 100.0;
+
+		    	double movingRateRandomDraw = (double)rand()/RAND_MAX;
+
+		    	if( movingRateRandomDraw > movingRate )
+					continue;
 
 		    	n++;
 
-		    	double movingRate = movingProbability(potentialAwakening, model ) / 100.0;
-
-		    	double randomDraw = (double)rand()/RAND_MAX;
-
-		    	if( randomDraw > movingRate )
-				{
-		    		n--;
-					continue;
-				}
-
-		    	potentialAwakening->setLastAwakenedDay(day);
+		    	household->setLastAwakenedDay(day);
                 model->incrementAwakeningCounter();
-		    	printAwakening(day, potentialAwakening);
+
+		    	printAwakeningJingsi(day, household, futureTransitionRate, futureTransitionRandomDraw, movingRate, movingRateRandomDraw);
 
 		    	extEv.setDay( day + 1 );
 		    	extEv.setType( ExternalEvent::NEW_JOB );
-		    	extEv.setHouseholdId( potentialAwakening->getId());
+		    	extEv.setHouseholdId( household->getId());
 		    	extEv.setDeveloperId(0);
 
 		    	events.push_back(extEv);

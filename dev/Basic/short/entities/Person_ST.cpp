@@ -23,10 +23,6 @@ using namespace sim_mob;
 
 namespace
 {
-const string dataSourceDAS = "DAS_TripChain";
-const string dataSourceXML = "XML_TripChain";
-const string dataSourceAMOD = "AMOD_TripChain";
-const string dataSourceBusController = "BusController";
 const string transitModeBus = "BusTravel";
 const string transitModeTrain = "MRT";
 const string transitModeUnknown = "PT";
@@ -137,16 +133,9 @@ void Person_ST::load(const map<string, string> &configProps)
 void Person_ST::initTripChain()
 {
 	currTripChainItem = tripChain.begin();
-	
 	const std::string& src = getAgentSrc();
-	if (src == dataSourceDAS || src == dataSourceAMOD || src == dataSourceBusController)
-	{
-		setStartTime((*currTripChainItem)->startTime.offsetMS_From(ConfigManager::GetInstance().FullConfig().simStartTime()));
-	}
-	else
-	{
-		setStartTime((*currTripChainItem)->startTime.getValue());
-	}
+
+	setStartTime((*currTripChainItem)->startTime.offsetMS_From(ConfigManager::GetInstance().FullConfig().simStartTime()));
 	
 	if ((*currTripChainItem)->itemType == TripChainItem::IT_TRIP)
 	{
@@ -516,14 +505,8 @@ void Person_ST::convertPublicTransitODsToTrips()
 						
 						const string &src = getAgentSrc();
 						DailyTime subTripStartTime = itSubTrip->startTime;
-
 						const ConfigParams &cfgParams = ConfigManager::GetInstance().FullConfig();
 						
-						if (src == dataSourceXML)
-						{
-							subTripStartTime = subTripStartTime + cfgParams.simStartTime();
-						}
-
 						const std::string ptPathsetStoredProcName = cfgParams.getDatabaseProcMappings().procedureMappings["pt_pathset"];
 						bool ret = PT_RouteChoiceLuaProvider::getPTRC_Model().getBestPT_Path(itSubTrip->origin.node->getNodeId(),
 										itSubTrip->destination.node->getNodeId(), subTripStartTime.getValue(), odTrips, dbid,

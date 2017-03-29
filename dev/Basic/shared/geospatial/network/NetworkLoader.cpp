@@ -200,7 +200,7 @@ void NetworkLoader::loadTaxiStands(const std::string& storedProc)
 	sim_mob::ConfigParams& config = sim_mob::ConfigManager::GetInstanceRW().FullConfig();
 	if(storedProc.empty())
 	{
-		Print() << "Stored procedure to load taxi stands not specified in the configuration file."
+		Warn() << "Stored procedure to load taxi stands not specified in the configuration file."
 				<< "\nTaxi stands not loaded..." << std::endl;
 		return;
 	}
@@ -213,6 +213,33 @@ void NetworkLoader::loadTaxiStands(const std::string& storedProc)
 		//Create new taxi stand and add it to road network
 		TaxiStand* stand = new TaxiStand(*itStand);
 		roadNetwork->addTaxiStand(stand);
+	}
+}
+
+void NetworkLoader::loadSurveillanceStns(const string &storedProc)
+{
+	if(!storedProc.empty())
+	{
+		//SQL statement
+		soci::rowset<soci::row> surveillanceStns = (sql.prepare << "select * from " + storedProc);
+
+		unsigned int id, type, code, segmentId, trafficLight;
+		double zone, offset;
+
+		for(soci::rowset<soci::row>::const_iterator itStn = surveillanceStns.begin(); itStn != surveillanceStns.end(); ++itStn)
+		{
+			id = (*itStn).get<unsigned int>(0);
+			type = (*itStn).get<unsigned int>(1);
+			code = (*itStn).get<unsigned int>(2);
+			zone = (*itStn).get<double>(3);
+			offset = (*itStn).get<double>(4);
+			segmentId = (*itStn).get<unsigned int>(5);
+			trafficLight = (*itStn).get<unsigned int>(6);
+
+			//Create a new surveillance station and add it to the network
+			SurveillanceStation *station = new SurveillanceStation(id, type, code, zone, offset, segmentId, trafficLight);
+			roadNetwork->addSurveillenceStn(station);
+		}
 	}
 }
 
@@ -355,6 +382,8 @@ void NetworkLoader::loadNetwork(const string& connectionStr, const map<string, s
 		loadTurningPolyLines(getStoredProcedure(storedProcs, "turning_polylines"));
 
 		loadTurningConflicts(getStoredProcedure(storedProcs, "turning_conflicts"));
+
+		loadSurveillanceStns(getStoredProcedure(storedProcs, "traffic_sensors", false));
 		
 		loadBusStops(getStoredProcedure(storedProcs, "bus_stops", false));
 

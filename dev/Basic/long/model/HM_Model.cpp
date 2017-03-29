@@ -451,7 +451,7 @@ BigSerial HM_Model::getEstablishmentTazId(BigSerial establishmentId) const
 
 	if (establishment)
 	{
-		BigSerial establishmentSlaAddressId = getEstablishmentSlaAddressId(establishment->getBuildingId());
+		BigSerial establishmentSlaAddressId = getEstablishmentSlaAddressId(establishmentId);
 
 		tazId = DataManagerSingleton::getInstance().getPostcodeTazId(establishmentSlaAddressId);
 	}
@@ -1897,6 +1897,9 @@ void HM_Model::startImpl()
 	int onMarket  = 0;
 	int offMarket = 0;
 	//assign empty units to freelance housing agents
+
+	int unitCounter=0;
+
 	for (UnitList::const_iterator it = units.begin(); it != units.end(); it++)
 	{
 		boost::gregorian::date saleDate = boost::gregorian::date_from_tm((*it)->getSaleFromDate());
@@ -1944,10 +1947,13 @@ void HM_Model::startImpl()
 		{
 			Unit *thisUnit = (*it);
 
-			int tazId = this->getUnitSlaAddressId((*it)->getId());
+			int tazId = this->getUnitTazId((*it)->getId());
 			int mtzId = -1;
 			int subzoneId = -1;
 			int planningAreaId = -1;
+
+			Taz *curTaz = this->getTazById(tazId);
+			string planningAreaName = curTaz->getPlanningAreaName();
 
 			for(int n = 0; n < mtzTaz.size();n++)
 			{
@@ -2012,18 +2018,28 @@ void HM_Model::startImpl()
 
 			for( int n = 0; n < alternative.size(); n++)
 			{
-				if( thisUnit->getDwellingType() == alternative[n]->getDwellingTypeId() &&
-					planningAreaId   == alternative[n]->getPlanAreaId() )
+				if( alternative[n]->getDwellingTypeId() == thisUnit->getDwellingType() &&
+					alternative[n]->getPlanAreaId() 	== planningAreaId )
+					//alternative[n]->getPlanAreaName() == planningAreaName)
 				{
 					thisUnit->setZoneHousingType(alternative[n]->getId());
 
+					unitCounter++;
 					//PrintOutV(" " << thisUnit->getId() << " " << alternative[n]->getPlanAreaId() << std::endl );
 					unitsByZoneHousingType.insert( std::pair<BigSerial,Unit*>( alternative[n]->getId(), thisUnit ) );
 					break;
 				}
 			}
+
+			if(thisUnit->getZoneHousingType() == 0)
+			{
+				PrintOutV(" " << thisUnit->getId() << " " << thisUnit->getDwellingType() << " " << planningAreaName << std::endl );
+			}
 		}
 	}
+
+	cout << "counter: " << unitCounter << endl;
+
 
 	PrintOutV("Initial Vacant units: " << vacancies << " onMarket: " << onMarket << " offMarket: " << offMarket << std::endl);
 
@@ -2295,7 +2311,7 @@ void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId)
 				tazStrH = tazObjH->getName();
 			tazH = std::atoi( tazStrH.c_str() );
 
-			BigSerial establishmentSlaAddressId = getEstablishmentSlaAddressId(establishment->getBuildingId());
+			BigSerial establishmentSlaAddressId = getEstablishmentSlaAddressId(establishment->getId());
 
 
 			personParams.setPersonId(boost::lexical_cast<std::string>(thisIndividual->getId()));
@@ -2617,7 +2633,7 @@ void HM_Model::getLogsumOfVaryingHomeOrWork(BigSerial householdId)
 			Establishment *establishment = this->getEstablishmentById(	job->getEstablishmentId());
 			const Unit *unit = this->getUnitById(currentHousehold->getUnitId());
 
-			BigSerial establishmentSlaAddressId = getEstablishmentSlaAddressId(establishment->getBuildingId());
+			BigSerial establishmentSlaAddressId = getEstablishmentSlaAddressId(establishment->getId());
 
 			personParams.setPersonId(boost::lexical_cast<std::string>(thisIndividual->getId()));
 			personParams.setPersonTypeId(thisIndividual->getEmploymentStatusId());

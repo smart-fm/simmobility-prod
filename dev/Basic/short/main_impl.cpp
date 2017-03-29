@@ -39,6 +39,7 @@
 #include "conf/ParseConfigFile.hpp"
 #include "entities/AuraManager.hpp"
 #include "entities/BusStopAgent.hpp"
+#include "entities/ClosedLoopRunManager.hpp"
 #include "entities/commsim/broker/Broker.hpp"
 #include "entities/LoopDetectorEntity.hpp"
 #include "entities/IntersectionManager.hpp"
@@ -89,8 +90,6 @@ timeval start_time;
 
 //Current software version.
 const string SIMMOB_VERSION = string(SIMMOB_VERSION_MAJOR) + ":" + SIMMOB_VERSION_MINOR;
-
-
 
 /**
  * Main simulation loop.
@@ -313,6 +312,12 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 		personWorkers->assignAWorker(FMOD::FMOD_Controller::instance());
 	}
 
+	if(config.simulation.closedLoop.enabled)
+	{
+		const ClosedLoopParams &params = config.simulation.closedLoop;
+		ClosedLoopRunManager::initialise(params.guidanceFile, params.tollFile, params.incentivesFile);
+	}
+
 	Print() << "Initial agents dispatched or pushed to pending." << endl;
 
 	//Start work groups and all threads.
@@ -416,6 +421,14 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 		wgMgr.waitAllGroups();
 		
 		unsigned long currTimeMS = currTick * config.baseGranMS();
+
+		//Check if we are running in closed loop with DynaMIT
+		if(config.simulation.closedLoop.enabled && (currTimeMS + config.baseGranMS()) % (config.simulation.closedLoop.sensorStepSize * 1000) == 0)
+		{
+			SurveillanceStation::writeSurveillanceOutput(config, currTimeMS + config.baseGranMS());
+			ClosedLoopRunManager::waitForDynaMIT(config);
+		}
+
 		if(stCfg.outputStats.segDensityMap.outputEnabled && ((currTimeMS + config.baseGranMS()) % stCfg.outputStats.segDensityMap.updateInterval == 0))
 		{
 			DriverMovement::outputDensityMap(currTimeMS / stCfg.outputStats.segDensityMap.updateInterval);
@@ -710,4 +723,3 @@ int main_impl(int ARGC, char* ARGV[])
 	Print() << "Done" << endl;
 	return returnVal;
 }
-

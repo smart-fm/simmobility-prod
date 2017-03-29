@@ -31,12 +31,12 @@ RoadNetwork::RoadNetwork()
 
 RoadNetwork::~RoadNetwork()
 {
-	clear_delete_map(mapOfIdvsNodes);
-	clear_delete_map(mapOfIdVsLinks);
-	clear_delete_map(mapOfIdVsTurningConflicts);
+    clear_delete_map(mapOfIdvsNodes);
+    clear_delete_map(mapOfIdVsLinks);
+    clear_delete_map(mapOfIdVsTurningConflicts);
 	clear_delete_map(mapOfIdVsParkingAreas);
-
-	//All other maps can simply be cleared as the 'Node' and 'Link' classes contain the others.
+    
+    //All other maps can simply be cleared as the 'Node' and 'Link' classes contain the others.
 	//So, when they get destroyed, the objects contained within them will be destroyed 
 	mapOfIdVsLanes.clear();
 	mapOfIdVsRoadSegments.clear();
@@ -524,6 +524,28 @@ void RoadNetwork::addTaxiStand(TaxiStand* stand)
 			safe_delete_item(stand);
 			throw std::runtime_error(msg.str());
 		}
+	}
+}
+
+void RoadNetwork::addSurveillenceStn(SurveillanceStation *station)
+{
+	std::map<unsigned int, RoadSegment *>::iterator itRoadSeg = mapOfIdVsRoadSegments.find(station->getSegmentId());
+
+	if(itRoadSeg != mapOfIdVsRoadSegments.end())
+	{
+		RoadSegment *segment = itRoadSeg->second;
+
+		//Set the road segment in the surveillance station and set the surveillance station
+		//in the road segment
+		station->setSegment(segment);
+		segment->addSurveillanceStation(station);
+	}
+	else
+	{
+		std::stringstream msg;
+		msg << "Surveillance Stn " << station->getSurveillanceStnId() << " refers to an invalid road segment " << station->getSegmentId();
+		safe_delete_item(station);
+		throw std::runtime_error(msg.str());
 	}
 }
 

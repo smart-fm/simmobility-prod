@@ -193,6 +193,14 @@ struct LinkTravelStats
 	}
 };
 
+struct PredictedLinkTT
+{
+	std::map<std::pair<unsigned int,unsigned int>, double *> linkTravelTimes;
+	unsigned int numOfPeriods;
+	unsigned int startTime;
+	unsigned int secondsPerPeriod;
+};
+
 /**
  * Class to hold default, historical and in-simulation travel times for a link
  *
@@ -369,6 +377,22 @@ public:
 
 	void dumpSegmentTravelTimeToFile(const std::string& fileName) const;
 
+	/**
+	 * Adds the predicted link travel times
+	 * @param link - the link id
+	 * @param downstreamLink - the downstream link id
+	 * @params numPeriods - number of periods for which the travel times are provided
+	 * @param travelTimes - the array of link travel times
+	 */
+	void addPredictedLinkTT(unsigned int link, unsigned int downstreamLink, double *travelTimes);
+
+	/**
+	 * sets the prediction start time and number of periods
+	 * @param startTime prediction start time in seconds (with 00:00:00 as 0)
+	 * @param numOfPeriods number of periods for which the travel times are provided
+	 * @param secondsPerPeriod the number of seconds in a period
+	 */
+	void setPredictionPeriod(unsigned int startTime, unsigned int numOfPeriods, unsigned int secondsPerPeriod);
 
 	/**
 	 * accumulates Travel Time data
@@ -461,6 +485,12 @@ private:
 	 * a structure to keep history of average travel time records
 	 */
 	std::map<unsigned int, sim_mob::LinkTravelTime> lnkTravelTimeMap;
+
+	/**
+	 * Stores the predicted link travel times received from dynaMIT (for informed agents)
+	 * key: pair<link id, downstream link id>, value: array of travel-times. array index represents the time period
+	 */
+	PredictedLinkTT predictedLinkTravelTimes;
 
 	/**
 	 * a structure to keep history of average od travel time records

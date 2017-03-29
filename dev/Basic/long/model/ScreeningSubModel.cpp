@@ -462,8 +462,17 @@ namespace sim_mob
 				if( std::isinf( probability) )
 					probability = 0.0;
 
-				if(  model->getAlternatives()[n]->getPlanAreaId() == 50 )
+
+				 const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
+				 bool bToaPayohScenario = false;
+
+				 if( config.ltParams.scenario.enabled && config.ltParams.scenario.scenarioName == "ToaPayohScenario")
+					 bToaPayohScenario = true;
+
+				if(  bToaPayohScenario  && model->getAlternatives()[n]->getPlanAreaId() == 50 )
+				{
 					probability = probability * 2.0;
+				}
 
 				probabilities.push_back(probability);
 

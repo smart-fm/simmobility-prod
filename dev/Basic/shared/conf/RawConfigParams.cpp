@@ -58,4 +58,7 @@ sim_mob::LongTermParams::OutputFiles::OutputFiles(): bids(false),
 													 log_out_xx_files(true),
 													 enabled(false){}
 
+sim_mob::LongTermParams::Scenario::Scenario():  enabled(false),
+												scenarioName(""){};
+
 ModelScriptsMap::ModelScriptsMap(const std::string& scriptFilesPath, const std::string& scriptsLang) : path(scriptFilesPath), scriptLanguage(scriptsLang) {}

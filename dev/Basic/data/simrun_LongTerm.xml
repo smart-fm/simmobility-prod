@@ -129,8 +129,8 @@
             <timeOffMarket value="150"/>
             <timeInterval value="7"/>
 	    <awakeningModel enabled="true">
-		    <initialHouseholdsOnMarket value="15000"/>
-		    <dailyHouseholdAwakenings value="400"/>
+		    <initialHouseholdsOnMarket value="150"/>
+		    <dailyHouseholdAwakenings value="40"/>
 		    <awakenModelShan value="false"/>
 		    <awakenModelRandom value="false"/>
 		    <awakenModelJingsi value="true"/>	
@@ -155,6 +155,10 @@
 	<schoolAssignmentModel enabled = 'false'>
 		<schoolChangeWaitingTimeInDays value ="1" />
 	</schoolAssignmentModel>
+
+	<scenario enabled= 'false'>
+		<name value="ToaPayohScenario"/>
+	</scenario>
 
 	<outputFiles enabled= 'true'>
                 <bids value= 'true' />

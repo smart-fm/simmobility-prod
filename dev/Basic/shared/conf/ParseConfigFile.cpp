@@ -305,6 +305,11 @@ void sim_mob::ParseConfigFile::processLongTermParamsNode(xercesc::DOMElement* no
 	schoolAssignmentModel.schoolChangeWaitingTimeInDays = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "schoolAssignmentModel"), "schoolChangeWaitingTimeInDays"), "value"), static_cast<unsigned int>(0));
 	cfg.ltParams.taxiAccessModel = taxiAccessModel;
 
+	LongTermParams::Scenario scenario;
+	scenario.enabled = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName( node, "scenario"), "enabled"), false);
+	scenario.scenarioName = ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "name"), "value"), "");
+	cfg.ltParams.scenario = scenario;
+
 
 	LongTermParams::OutputFiles outputFiles;
 

@@ -7,21 +7,24 @@
 #include <map>
 
 #include "PT_Stop.hpp"
-#include "Link.hpp"
 #include "NetworkLoader.hpp"
-#include "Node.hpp"
-#include "Point.hpp"
-#include "PolyLine.hpp"
 #include "SurveillanceStation.hpp"
 #include "TaxiStand.hpp"
-#include "TurningGroup.hpp"
-#include "TurningPath.hpp"
 
 namespace sim_mob
 {
-class NetworkLoader;
 
+class Link;
 class NetworkLoader;
+class Node;
+class ParkingArea;
+class ParkingSlot;
+class Point;
+class PolyPoint;
+class PolyLine;
+class TurningGroup;
+class TurningPath;
+
 /**
  * class for holding the network for simulation
  * \author Neeraj D
@@ -61,6 +64,12 @@ private:
 
 	/**This map stores all the taxi stands in the network with taxi-stand id as the key*/
 	std::map<unsigned int, TaxiStand *> mapOfIdvsTaxiStand;
+	
+	/**This map stores all the parking slots in the network with the id as the key*/
+	std::map<unsigned int, ParkingSlot *> mapOfIdVsParkingSlots;
+
+	/**This map stores all the parking areas in the network with the id as the key*/
+	std::map<unsigned int, ParkingArea *> mapOfIdVsParkingAreas;
 
 	/**Private constructor as the class is a singleton*/
 	RoadNetwork();
@@ -94,6 +103,10 @@ public:
 	const std::map<unsigned int, TurningConflict *>& getMapOfIdvsTurningConflicts() const;
 
 	const std::map<unsigned int, BusStop *>& getMapOfIdvsBusStops() const;
+
+	const std::map<unsigned int, ParkingSlot *>& getMapOfIdVsParkingSlots() const;
+
+	const std::map<unsigned int, ParkingArea *>& getMapOfIdVsParkingAreas() const;
 	
 	/**
 	 * Adds a lane to the road network
@@ -172,8 +185,15 @@ public:
 	 * @param stand - the pointer to taxi-stand
 	 */
 	void addTaxiStand(TaxiStand* stand);
-
+	
 	/**
+	 * Adds a parking slot to the the respective parking area and the road network
+	 * @param parkingSlot - the pointer to the parking slot
+	 */
+	 */
+	 void addParking(ParkingSlot *parkingSlot);
+	 
+	 /**
 	 * Adds a surveillance stn to the network
 	 * @param station - the pointer to the surveillance station
 	 */

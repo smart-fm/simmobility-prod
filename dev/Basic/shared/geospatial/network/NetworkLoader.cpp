@@ -330,6 +330,24 @@ void NetworkLoader::loadBusStops(const std::string& storedProc)
 	}
 }
 
+void NetworkLoader::loadParkingSlots(const std::string& storedProc)
+{
+	if (storedProc.empty())
+	{
+		return;
+	}
+
+	//SQL statement
+	soci::rowset<ParkingSlot> pkSlots = (sql.prepare << "select * from " + storedProc);
+
+	for (soci::rowset<ParkingSlot>::const_iterator itPkSlots = pkSlots.begin(); itPkSlots != pkSlots.end(); ++itPkSlots)
+	{
+		//Create new parking slot and add it to the netowrk
+		ParkingSlot *parkingSlot = new ParkingSlot(*itPkSlots);
+		roadNetwork->addParking(parkingSlot);
+	}
+}
+
 void NetworkLoader::loadNetwork(const string& connectionStr, const map<string, string>& storedProcs)
 {
 	try
@@ -368,6 +386,8 @@ void NetworkLoader::loadNetwork(const string& connectionStr, const map<string, s
 		loadSurveillanceStns(getStoredProcedure(storedProcs, "traffic_sensors", false));
 		
 		loadBusStops(getStoredProcedure(storedProcs, "bus_stops", false));
+
+		loadParkingSlots(getStoredProcedure(storedProcs, "parking_slots", false));
 
 		loadTaxiStands(getStoredProcedure(storedProcs, "taxi_stands", false));
 

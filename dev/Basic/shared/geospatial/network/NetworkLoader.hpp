@@ -129,6 +129,13 @@ private:
 	 * @param storedProc - the stored procedure to be executed in order to retrieve the data
 	 */
 	void loadTaxiStands(const std::string& storedProc);
+	
+	/**
+	 * Load the parking slots associated with the road segements using the given stored procedure
+	 * 
+	 * @param storedProc - the stored procedure to be executed in order to retrieve the data
+	 */
+	 void loadParkingSlots(const std::string& storedProc);
 
 	/**
 	 * Loads the surveillance stations and traffic sensors within the network using the given stored procedure

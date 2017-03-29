@@ -129,8 +129,7 @@ TrafficSensor *SurveillanceStation::getTrafficSensor(unsigned int index)
 		index = 0;
 	}
 
-	assert(index < trafficSensors.size());
-	return trafficSensors[index];
+	return trafficSensors.at(index);
 }
 
 const std::vector<TrafficSensor *> &SurveillanceStation::getTrafficSensors() const

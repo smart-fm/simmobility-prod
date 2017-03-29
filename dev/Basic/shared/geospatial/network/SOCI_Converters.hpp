@@ -9,13 +9,15 @@
 #include <map>
 #include <soci/soci.h>
 #include <string>
-#include "PT_Stop.hpp"
+
 #include "entities/misc/PublicTransit.hpp"
 #include "Lane.hpp"
 #include "LaneConnector.hpp"
 #include "Link.hpp"
 #include "Node.hpp"
+#include "ParkingSlot.hpp"
 #include "Point.hpp"
+#include "PT_Stop.hpp"
 #include "RoadItem.hpp"
 #include "TaxiStand.hpp"
 #include "TurningGroup.hpp"
@@ -269,6 +271,23 @@ template<> struct type_conversion<sim_mob::TaxiStand>
 		double z = vals.get<double>("z", 0);
 		Point location(x, y, z);
 		res.setLocation(location);
+	}
+};
+
+template<> struct type_conversion<sim_mob::ParkingSlot>
+{
+	typedef values base_type;
+
+	static void from_base(const soci::values& vals, soci::indicator& ind, sim_mob::ParkingSlot& res)
+	{			
+		res.setRoadItemId(vals.get<unsigned int>("id", 0));
+		res.setAccessSegmentId(vals.get<unsigned int>("access_segment", 0));
+		res.setEgressSegmentId(vals.get<unsigned int>("egress_segment", 0));
+		res.setOffset(vals.get<double>("segment_offset", 0.0));
+		res.setLength(vals.get<double>("length", 0.0));
+		res.setCapacity(vals.get<unsigned int>("capacity", 0));
+		res.setParkingAreaId(vals.get<unsigned int>("area_id", 0));
+		res.setSequenceNumber(vals.get<unsigned int>("sequence_number", 0));
 	}
 };
 

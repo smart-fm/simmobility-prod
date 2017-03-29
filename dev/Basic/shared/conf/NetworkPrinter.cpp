@@ -10,8 +10,9 @@
 #include "geospatial/network/Link.hpp"
 #include "geospatial/network/NetworkLoader.hpp"
 #include "geospatial/network/Node.hpp"
-#include "geospatial/network/PT_Stop.hpp"
+#include "geospatial/network/ParkingSlot.hpp"
 #include "geospatial/network/Point.hpp"
+#include "geospatial/network/PT_Stop.hpp"
 #include "geospatial/network/RoadNetwork.hpp"
 #include "geospatial/network/RoadSegment.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
@@ -64,6 +65,8 @@ void NetworkPrinter::printNetwork(const RoadNetwork *network) const
 	printConflicts(network->getMapOfIdvsTurningConflicts());	
 	
 	printBusStops(network->getMapOfIdvsBusStops());
+
+	printParkingSlots(network->getMapOfIdVsParkingSlots());
 
 	//Required for the visualiser
 	out << "ROADNETWORK_DONE" << std::endl;
@@ -286,6 +289,26 @@ void NetworkPrinter::printBusStops(const std::map<unsigned int, BusStop *> &stop
 		out << "})\n";
 	}
 	
+	printToFile(out);
+}
+
+void NetworkPrinter::printParkingSlots(const std::map<unsigned int, ParkingSlot *> &parkingSlots) const
+{
+	std::stringstream out;
+	out << std::setprecision(8);
+
+	for(std::map<unsigned int, ParkingSlot *>::const_iterator it = parkingSlots.begin(); it != parkingSlots.end(); ++it)
+	{
+		const ParkingSlot *pkSlot = it->second;
+		out << "(\"parking\", 0, " << pkSlot->getParkingSlotId() << ", {";
+		out << "\"access\":\"" << pkSlot->getAccessSegmentId() << "\",";
+		out << "\"egress\":\"" << pkSlot->getEgressSegmentId() << "\",";
+		out << "\"offset\":\"" << pkSlot->getOffset() << "\",";
+		out << "\"length\":\"" << pkSlot->getLength() << "\",";
+		out << "\"capacity\":\"" << pkSlot->getCapacity() << "\",";
+		out << "})\n";
+	}
+
 	printToFile(out);
 }
 

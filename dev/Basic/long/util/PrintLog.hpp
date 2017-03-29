@@ -473,7 +473,7 @@ namespace sim_mob
 			if(!config.ltParams.outputFiles.log_vehicle_ownership)
 				return;
 
-	        static bool printHeader = true;
+	        static bool printHeader = false;
 
 	        if(printHeader)
 	        {

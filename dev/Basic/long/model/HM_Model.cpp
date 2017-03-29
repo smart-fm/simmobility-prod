@@ -74,6 +74,7 @@
 #include <random>
 #include "SOCI_ConvertersLong.hpp"
 #include <DatabaseHelper.hpp>
+#include "model/VehicleOwnershipModel.hpp"
 
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
@@ -451,7 +452,7 @@ BigSerial HM_Model::getEstablishmentTazId(BigSerial establishmentId) const
 
 	if (establishment)
 	{
-		BigSerial establishmentSlaAddressId = getEstablishmentSlaAddressId(establishment->getBuildingId());
+		BigSerial establishmentSlaAddressId = getEstablishmentSlaAddressId(establishment->getId());
 
 		tazId = DataManagerSingleton::getInstance().getPostcodeTazId(establishmentSlaAddressId);
 	}
@@ -1890,6 +1891,7 @@ void HM_Model::startImpl()
 
 	PrintOutV( "There are " << homelessHousehold << " homeless households" << std::endl);
 
+
 	///////////////////////////////////////////
 	//Vacant Unit activation model
 	//////////////////////////////////////////
@@ -2295,7 +2297,7 @@ void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId)
 				tazStrH = tazObjH->getName();
 			tazH = std::atoi( tazStrH.c_str() );
 
-			BigSerial establishmentSlaAddressId = getEstablishmentSlaAddressId(establishment->getBuildingId());
+			BigSerial establishmentSlaAddressId = getEstablishmentSlaAddressId(establishment->getId());
 
 
 			personParams.setPersonId(boost::lexical_cast<std::string>(thisIndividual->getId()));
@@ -2617,7 +2619,7 @@ void HM_Model::getLogsumOfVaryingHomeOrWork(BigSerial householdId)
 			Establishment *establishment = this->getEstablishmentById(	job->getEstablishmentId());
 			const Unit *unit = this->getUnitById(currentHousehold->getUnitId());
 
-			BigSerial establishmentSlaAddressId = getEstablishmentSlaAddressId(establishment->getBuildingId());
+			BigSerial establishmentSlaAddressId = getEstablishmentSlaAddressId(establishment->getId());
 
 			personParams.setPersonId(boost::lexical_cast<std::string>(thisIndividual->getId()));
 			personParams.setPersonTypeId(thisIndividual->getEmploymentStatusId());

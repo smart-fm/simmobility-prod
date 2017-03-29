@@ -1193,8 +1193,9 @@ void DriverMovement::updateTrafficSensor(double oldPos, double newPos, double sp
 	vector<SurveillanceStation *>::const_iterator itSurvStn = nextSurveillanceStn;
 
 	//Vehicle front and back bumper positions
-	unsigned int vehBackBumper = newPos - (parentDriver->getResource()->getLengthInM() / 2);
-	unsigned int vehFrontBumper = newPos + (parentDriver->getResource()->getLengthInM() / 2);
+	double halfVehicleLen = (parentDriver->getResource()->getLengthInM() / 2);
+	unsigned int vehBackBumper = newPos > halfVehicleLen ? newPos - halfVehicleLen : 0;
+	unsigned int vehFrontBumper = newPos + halfVehicleLen;
 
 	unsigned int laneIdx = currLane->getLaneIndex();
 

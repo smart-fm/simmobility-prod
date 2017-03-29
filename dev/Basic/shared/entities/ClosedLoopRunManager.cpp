@@ -235,13 +235,7 @@ void ClosedLoopRunManager::waitForDynaMIT(const ConfigParams &config)
 
 		int fd = tollMgr.getFileLock();
 
-		//Update path table
-		//theGuidedRoute->updatePathTable(guidanceMgr.getFileName());
-
-		//if (isSpFlag(INFO_FLAG_UPDATE_PATHS))
-		//{
-		//	tsNetwork->guidedVehiclesUpdatePaths();
-		//}
+		//Todo: Read the tolls file and update the information in a relevant location
 
 		tollMgr.removeFileLock();
 	}
@@ -255,13 +249,7 @@ void ClosedLoopRunManager::waitForDynaMIT(const ConfigParams &config)
 
 		int fd = incentivesMgr.getFileLock();
 
-		//Update path table
-		//theGuidedRoute->updatePathTable(guidanceMgr.getFileName());
-
-		//if (isSpFlag(INFO_FLAG_UPDATE_PATHS))
-		//{
-		//	tsNetwork->guidedVehiclesUpdatePaths();
-		//}
+		//Todo: Read the incentives file and update the information in a relevant location
 
 		incentivesMgr.removeFileLock();
 	}

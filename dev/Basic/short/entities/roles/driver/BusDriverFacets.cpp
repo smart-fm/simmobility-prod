@@ -101,7 +101,7 @@ void BusDriverMovement::buildPath(const std::string &routeId, const std::vector<
 			else
 			{
 				stringstream msg;
-				msg << "No turning between the links " << currLink->getLinkId() << " and " << nextLinkId;
+				msg << __func__ << ": No turning between the links " << currLink->getLinkId() << " and " << nextLinkId;
 				msg << "\nInvalid Path for Bus route " << routeId;
 				throw std::runtime_error(msg.str());
 			}
@@ -131,7 +131,9 @@ void BusDriverMovement::frame_init()
 
 		if (!busTrip && busTrip->itemType == TripChainItem::IT_BUSTRIP)
 		{
-			throw std::runtime_error("BusDriver created without an appropriate BusTrip item.");
+			std::stringstream msg;
+			msg << __func__ << ": BusDriver created without an appropriate BusTrip item.";
+			throw std::runtime_error(msg.str());
 		}
 
 		//Use the vehicle to build a bus, then delete the old vehicle.
@@ -215,8 +217,8 @@ void BusDriverMovement::frame_tick()
 			BusTrip *busTrip = static_cast<BusTrip *> (*(parentBusDriver->getParent()->currTripChainItem));
 
 			//Send bus arrival message
-			BusArrivalTime busArrivalInfo;
-			busArrivalInfo.busLine = parentBusDriver->getBusLineId();
+			PT_ArrivalTime busArrivalInfo;
+			busArrivalInfo.serviceLine = parentBusDriver->getBusLineId();
 			busArrivalInfo.tripId = busTrip->tripID;
 			busArrivalInfo.sequenceNo = parentBusDriver->sequenceNum++;
 			busArrivalInfo.arrivalTime = busArrivalTime;
@@ -225,10 +227,10 @@ void BusDriverMovement::frame_tick()
 			busArrivalInfo.dwellTime = (DailyTime(1000 * params.currentStopPoint.dwellTime)).getStrRepr();
 			//Compute percentage of occupancy
 			busArrivalInfo.pctOccupancy = (((double) parentBusDriver->passengerList.size()) / ST_Config::getInstance().defaultBusCapacity) * 100.0;
-			busArrivalInfo.busStopNo = (*busStopTracker)->getStopCode();
+			busArrivalInfo.stopNo = (*busStopTracker)->getStopCode();
 
 			messaging::MessageBus::PostMessage(PT_Statistics::getInstance(), STORE_BUS_ARRIVAL,
-					messaging::MessageBus::MessagePtr(new BusArrivalTimeMessage(busArrivalInfo)));
+					messaging::MessageBus::MessagePtr(new PT_ArrivalTimeMessage(busArrivalInfo)));
 			
 			break;
 		}

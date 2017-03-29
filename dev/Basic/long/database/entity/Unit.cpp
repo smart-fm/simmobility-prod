@@ -11,6 +11,9 @@
  */
 
 #include "Unit.hpp"
+#include <boost/serialization/vector.hpp>
+#include <boost/archive/binary_oarchive.hpp>
+#include <boost/archive/binary_iarchive.hpp>
 
 using namespace sim_mob;
 using namespace sim_mob::long_term;
@@ -84,6 +87,87 @@ Unit& Unit::operator=(const Unit& source)
     this->isBTO = source.isBTO;
 
     return *this;
+}
+
+template<class Archive>
+void Unit::serialize(Archive & ar,const unsigned int version)
+{
+	ar & id;
+	ar & building_id;
+	ar & unit_type;
+	ar & storey_range;
+	ar & constructionStatus;
+	ar & floor_area;
+	ar & storey;
+	ar & monthlyRent;
+
+	ar & BOOST_SERIALIZATION_NVP(sale_from_date.tm_year);
+	ar & BOOST_SERIALIZATION_NVP(sale_from_date.tm_mon);
+	ar & BOOST_SERIALIZATION_NVP(sale_from_date.tm_mday);
+	sale_from_date.tm_year = sale_from_date.tm_year+1900;
+
+	ar & BOOST_SERIALIZATION_NVP(occupancyFromDate.tm_year);
+	ar & BOOST_SERIALIZATION_NVP(occupancyFromDate.tm_mon);
+	ar & BOOST_SERIALIZATION_NVP(occupancyFromDate.tm_mday);
+	occupancyFromDate.tm_year = occupancyFromDate.tm_year+1900;
+
+	ar & sale_status;
+	ar & occupancyStatus;
+
+	ar & BOOST_SERIALIZATION_NVP(lastChangedDate.tm_year);
+	ar & BOOST_SERIALIZATION_NVP(lastChangedDate.tm_mon);
+	ar & BOOST_SERIALIZATION_NVP(lastChangedDate.tm_mday);
+	lastChangedDate.tm_year = lastChangedDate.tm_year+1900;
+
+	ar & totalPrice;
+
+	ar & BOOST_SERIALIZATION_NVP(valueDate.tm_year);
+	ar & BOOST_SERIALIZATION_NVP(valueDate.tm_mon);
+	ar & BOOST_SERIALIZATION_NVP(valueDate.tm_mday);
+	valueDate.tm_year = valueDate.tm_year+1900;
+
+	ar & tenureStatus;
+	ar & biddingMarketEntryDay;
+	ar & timeOnMarket;
+	ar & timeOffMarket;
+	ar & lagCoefficient;
+	ar & zoneHousingType;
+	ar & dwellingType;
+	ar & existInDB;
+	ar & isBTO;
+
+}
+
+void Unit::saveData(std::vector<Unit*> &units)
+{
+	// make an archive
+	std::ofstream ofs(filename);
+	boost::archive::binary_oarchive oa(ofs);
+	oa & units;
+
+}
+
+std::vector<Unit*> Unit::loadSerializedData()
+{
+	std::vector<Unit*> units;
+	// Restore from saved data and print to verify contents
+	std::vector<Unit*> restored_info;
+	{
+		// Create and input archive
+		std::ifstream ifs(filename);
+		boost::archive::binary_iarchive ar( ifs );
+
+		// Load the data
+		ar & restored_info;
+	}
+
+	for (auto *itr :restored_info)
+	{
+		Unit *unit = itr;
+		units.push_back(unit);
+	}
+
+	return units;
 }
 
 BigSerial Unit::getId() const

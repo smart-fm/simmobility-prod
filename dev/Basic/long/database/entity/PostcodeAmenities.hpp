@@ -5,6 +5,7 @@
 /* 
  * File:   PostcodeAmenities.hpp
  * Author: Pedro Gandola <pedrogandola@smart.mit.edu>
+ * Author: Gishara Premarathne <gishara@smart.mit.edu>
  *
  * Created on Feb 11, 2014, 3:05 PM
  */
@@ -44,20 +45,26 @@ namespace sim_mob {
             BigSerial getTazId() const;
             BigSerial getAddressId() const;
             const std::string& getMrtStation() const;
-            const std::string& getMtzNumber() const;
-            const std::string& getRoadName() const;
-            const std::string& getUnitBlock() const;
-            const std::string& getBuildingName() const;
             const std::string& getPostcode() const;
 
-            void setDistanceToJob(double val);
-            void setDistanceToMall(double val);
-            void setDistanceToCBD(double val);
-            void setDistanceToPMS30(double val);
-            void setDistanceToExpress(double val);
-            void setDistanceToBus(double val);
-            void setDistanceToMRT(double val);
-
+            void setBuildingName(const std::string& buildingName);
+            void setBus200m(bool bus200m);
+            void setBus400m(bool bus400m);
+            void setDistanceToBus(double distanceToBus);
+            void setDistanceToCbd(double distanceToCbd);
+            void setDistanceToExpress(double distanceToExpress);
+            void setDistanceToJob(double distanceToJob);
+            void setDistanceToMall(double distanceToMall);
+            void setDistanceToMrt(double distanceToMrt);
+            void setDistanceToPms30(double distanceToPms30);
+            void setExpress200m(bool express200m);
+            void setMrt200m(bool mrt200m);
+            void setMrt400m(bool mrt400m);
+            void setMrtStation(const std::string& mrtStation);
+            void setPms1km(bool pms1km);
+            void setPostcode(const std::string& postcode);
+            void setAddressId(BigSerial addressId);
+            void setTazId(BigSerial tazId);
 
             /**
              * Operator to print the PostcodeAmenities data.  
@@ -67,11 +74,9 @@ namespace sim_mob {
         private:
             friend class PostcodeAmenitiesDao;
         private:
+            BigSerial addressId;
             std::string postcode;
-            std::string buildingName;
-            std::string unitBlock;
-            std::string roadName;
-            std::string mtzNumber;
+            BigSerial tazId;
             std::string mrtStation;
             double distanceToMRT;
             double distanceToBus;
@@ -86,8 +91,6 @@ namespace sim_mob {
             bool bus_200m;
             bool bus_400m;
             bool pms_1km;
-            BigSerial addressId;
-            BigSerial tazId;
         };
     }
 }

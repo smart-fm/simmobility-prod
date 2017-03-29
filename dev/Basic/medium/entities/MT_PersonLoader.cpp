@@ -18,6 +18,7 @@
 #include <vector>
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
+#include "config/MT_Config.hpp"
 #include "conf/Constructs.hpp"
 #include "conf/RawConfigParams.hpp"
 #include "database/DB_Connection.hpp"
@@ -308,6 +309,7 @@ public:
 
 	static int load(std::map<std::string, std::vector<TripChainItem*> >& tripChainMap, std::vector<Person_MT*>& outPersonsLoaded)
 	{
+		unsigned int numThreads = MT_Config::getInstance().getThreadsNumInPersonLoader();
 		int personsPerThread = tripChainMap.size() / numThreads;
 		CellLoader thread[numThreads];
 		boost::thread_group threadGroup;

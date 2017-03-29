@@ -516,11 +516,11 @@ vector<ExpectationEntry> HedonicPrice_SubModel::CalculateUnitExpectations (Unit 
 		{
 			amenities.setDistanceToJob(amenities.getDistanceToJob() / 2.0);
 			amenities.setDistanceToMall(amenities.getDistanceToMall() / 2.0);
-			amenities.setDistanceToCBD(amenities.getDistanceToCBD() / 2.0);
-			amenities.setDistanceToPMS30(amenities.getDistanceToPMS30() / 2.0);
+			amenities.setDistanceToCbd(amenities.getDistanceToCBD() / 2.0);
+			amenities.setDistanceToPms30(amenities.getDistanceToPMS30() / 2.0);
 			amenities.setDistanceToExpress(amenities.getDistanceToExpress() / 2.0);
 			amenities.setDistanceToBus(amenities.getDistanceToBus() / 2.0);
-			amenities.setDistanceToMRT(amenities.getDistanceToMRT() / 2.0);
+			amenities.setDistanceToMrt(amenities.getDistanceToMRT() / 2.0);
 		}
 
 

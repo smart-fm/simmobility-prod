@@ -14,7 +14,7 @@
 using namespace sim_mob;
 using namespace sim_mob::long_term;
 
-PostcodeAmenities::PostcodeAmenities(): postcode(EMPTY_STR), buildingName(EMPTY_STR), unitBlock(EMPTY_STR), roadName(EMPTY_STR), mtzNumber(EMPTY_STR),
+PostcodeAmenities::PostcodeAmenities(): postcode(EMPTY_STR),
 										mrtStation(EMPTY_STR), distanceToMRT(0), distanceToBus(0), distanceToExpress(0), distanceToPMS30(0),
 										distanceToCBD(0), distanceToMall(0), distanceToJob(0), mrt_200m(false), mrt_400m(false), express_200m(false),
 										bus_200m(false), bus_400m(false), pms_1km(false),addressId(0),tazId(0) {}
@@ -78,69 +78,105 @@ const std::string& PostcodeAmenities::getMrtStation() const {
     return mrtStation;
 }
 
-const std::string& PostcodeAmenities::getMtzNumber() const {
-    return mtzNumber;
-}
-
-const std::string& PostcodeAmenities::getRoadName() const {
-    return roadName;
-}
-
-const std::string& PostcodeAmenities::getUnitBlock() const {
-    return unitBlock;
-}
-
-const std::string& PostcodeAmenities::getBuildingName() const {
-    return buildingName;
-}
-
-const std::string& PostcodeAmenities::getPostcode() const {
-    return postcode;
-}
-
-BigSerial PostcodeAmenities::getTazId() const {
-    return tazId;
-}
-
-BigSerial PostcodeAmenities::getAddressId() const {
-    return addressId;
-}
-
-void PostcodeAmenities::setDistanceToJob(double val)
+void PostcodeAmenities::setBus200m(bool bus200m)
 {
-	distanceToJob = val;
+	bus_200m = bus200m;
 }
 
-void PostcodeAmenities::setDistanceToMall(double val)
+void PostcodeAmenities::setBus400m(bool bus400m)
 {
-	distanceToMall = val;
+	bus_400m = bus400m;
 }
 
-void PostcodeAmenities::setDistanceToCBD(double val)
+void PostcodeAmenities::setDistanceToBus(double distanceToBus)
 {
-	distanceToCBD = val;
+	this->distanceToBus = distanceToBus;
 }
 
-void PostcodeAmenities::setDistanceToPMS30(double val)
+void PostcodeAmenities::setDistanceToCbd(double distanceToCbd)
 {
-	distanceToPMS30 = val;
+	distanceToCBD = distanceToCbd;
 }
 
-void PostcodeAmenities::setDistanceToExpress(double val)
+void PostcodeAmenities::setDistanceToExpress(double distanceToExpress)
 {
-	distanceToExpress = val;
+	this->distanceToExpress = distanceToExpress;
 }
 
-void PostcodeAmenities::setDistanceToBus(double val)
+void PostcodeAmenities::setDistanceToJob(double distanceToJob)
 {
-	distanceToBus = val;
+	this->distanceToJob = distanceToJob;
 }
 
-void PostcodeAmenities::setDistanceToMRT(double val)
+void PostcodeAmenities::setDistanceToMall(double distanceToMall)
 {
-	distanceToMRT = val;
+	this->distanceToMall = distanceToMall;
 }
 
+void PostcodeAmenities::setDistanceToMrt(double distanceToMrt)
+{
+	distanceToMRT = distanceToMrt;
+}
+
+void PostcodeAmenities::setDistanceToPms30(double distanceToPms30)
+{
+	distanceToPMS30 = distanceToPms30;
+}
+
+void PostcodeAmenities::setExpress200m(bool express200m)
+{
+	express_200m = express200m;
+}
+
+void PostcodeAmenities::setMrt200m(bool mrt200m)
+{
+	mrt_200m = mrt200m;
+}
+
+void PostcodeAmenities::setMrt400m(bool mrt400m)
+{
+	mrt_400m = mrt400m;
+}
+
+void PostcodeAmenities::setMrtStation(const std::string& mrtStation)
+{
+	this->mrtStation = mrtStation;
+}
+
+void PostcodeAmenities::setPms1km(bool pms1km)
+{
+	pms_1km = pms1km;
+}
+
+void PostcodeAmenities::setPostcode(const std::string& postcode)
+{
+	this->postcode = postcode;
+}
+
+BigSerial PostcodeAmenities::getAddressId() const
+{
+	return addressId;
+}
+
+void PostcodeAmenities::setAddressId(BigSerial addressId)
+{
+	this->addressId = addressId;
+}
+
+const std::string& PostcodeAmenities::getPostcode() const
+{
+	return this->postcode;
+}
+
+BigSerial PostcodeAmenities::getTazId() const
+{
+	return tazId;
+}
+
+void PostcodeAmenities::setTazId(BigSerial tazId)
+{
+	this->tazId = tazId;
+}
 
 namespace sim_mob {
     namespace long_term {
@@ -148,10 +184,6 @@ namespace sim_mob {
         std::ostream& operator<<(std::ostream& strm, const PostcodeAmenities& data) {
             return strm << "{"
                     << "\"postcode\":\"" << data.postcode << "\","
-                    << "\"buildingName\":\"" << data.buildingName << "\","
-                    << "\"unitBlock\":\"" << data.unitBlock << "\","
-                    << "\"roadName\":\"" << data.roadName << "\","
-                    << "\"mtzNumber\":\"" << data.mtzNumber << "\","
                     << "\"mrtStation\":\"" << data.mrtStation << "\","
                     << "\"distanceMrt\":\"" << data.distanceToMRT << "\","
                     << "\"distanceBus\":\"" << data.distanceToBus << "\","

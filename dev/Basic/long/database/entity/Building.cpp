@@ -15,10 +15,10 @@ using namespace sim_mob::long_term;
 
 Building::Building( BigSerial fmBuildingId, BigSerial fmProjectId, BigSerial fmParcelId, int storeysAboveGround, int storeysBelowGround,
 					std::tm fromDate, std::tm toDate, int buildingStatus, float	grossSqMRes, float grossSqMOffice,
-					float grossSqMRetail, float grossSqMOther, std::tm lastChangedDate,int freehold,float floorSpace,std::string buildingType) :
+					float grossSqMRetail, float grossSqMWarehouse, float grossSqMIndustrial, float grossSqMOther, float grossSqMCivic, std::tm lastChangedDate,int freehold,float floorSpace,std::string buildingType) :
 					fmBuildingId(fmBuildingId), fmProjectId(fmProjectId), fmParcelId(fmParcelId), storeysAboveGround(storeysAboveGround),storeysBelowGround(storeysBelowGround), fromDate(fromDate),
-					toDate(toDate), buildingStatus(buildingStatus),grossSqMRes(grossSqMRes),grossSqMOffice(grossSqMOffice), grossSqMRetail(grossSqMRetail), grossSqMOther(grossSqMOther),
-					lastChangedDate(lastChangedDate),freehold(freehold),floorSpace(floorSpace),buildingType(buildingType){}
+					toDate(toDate), buildingStatus(buildingStatus),grossSqMRes(grossSqMRes),grossSqMOffice(grossSqMOffice), grossSqMRetail(grossSqMRetail), grossSqMWarehouse(grossSqMWarehouse),grossSqMIndustrial(grossSqMIndustrial),
+					grossSqMOther(grossSqMOther),grossSqMCivic(grossSqMCivic),lastChangedDate(lastChangedDate),freehold(freehold),floorSpace(floorSpace),buildingType(buildingType){}
 
 Building::~Building() {}
 
@@ -35,7 +35,10 @@ Building::Building( const Building &source)
 	this->grossSqMRes			= source.grossSqMRes;
 	this->grossSqMOffice		= source.grossSqMOffice;
 	this->grossSqMRetail		= source.grossSqMRetail;
+	this->grossSqMWarehouse     = source.grossSqMWarehouse;
+	this->grossSqMIndustrial    = source.grossSqMIndustrial;
 	this->grossSqMOther			= source.grossSqMOther;
+	this->grossSqMCivic         = source.grossSqMCivic;
 	this->lastChangedDate       = source.lastChangedDate;
 	this->freehold              = source.freehold;
 	this->floorSpace            = source.freehold;
@@ -55,7 +58,10 @@ Building& Building::operator=(const Building& source)
 	this->grossSqMRes			= source.grossSqMRes;
 	this->grossSqMOffice		= source.grossSqMOffice;
 	this->grossSqMRetail		= source.grossSqMRetail;
+	this->grossSqMWarehouse     = source.grossSqMWarehouse;
+	this->grossSqMIndustrial    = source.grossSqMIndustrial;
 	this->grossSqMOther			= source.grossSqMOther;
+	this->grossSqMCivic         = source.grossSqMCivic;
 	this->lastChangedDate       = source.lastChangedDate;
 	this->freehold              = source.freehold;
 	this->floorSpace            = source.freehold;
@@ -130,6 +136,32 @@ std::tm Building::getLastChangedDate() const
 {
 	return lastChangedDate;
 }
+
+int Building::getFreehold() const
+{
+	return freehold;
+}
+
+float Building::getGrossSqMOffice() const
+{
+	return grossSqMOffice;
+}
+
+float Building::getGrossSqMOther() const
+{
+	return grossSqMOther;
+}
+
+float Building::getGrossSqMRes() const
+{
+	return grossSqMRes;
+}
+
+float Building::getGrossSqMRetail() const
+{
+	return grossSqMRetail;
+}
+
 void Building::setBuildingStatus(int buildingStatus) {
 	this->buildingStatus = buildingStatus;
 }
@@ -198,16 +230,45 @@ void Building::setFloorSpace(float floorSpace)
 	this->floorSpace = floorSpace;
 }
 
-int Building::getFreehold() const
-{
-	return freehold;
-}
-
 void Building::setFreehold(int freehold)
 {
 	this->freehold = freehold;
 }
 
+float Building::getGrossSqMCivic() const
+{
+	return grossSqMCivic;
+}
+
+void Building::setGrossSqMCivic(float grossSqMCivic)
+{
+	this->grossSqMCivic = grossSqMCivic;
+}
+
+float Building::getGrossSqMIndustrial() const
+{
+	return grossSqMIndustrial;
+}
+
+void Building::setGrossSqMIndustrial(float grossSqMIndustrial)
+{
+	this->grossSqMIndustrial = grossSqMIndustrial;
+}
+
+float Building::getGrossSqMWarehouse() const
+{
+	return grossSqMWarehouse;
+}
+
+void Building::setGrossSqMWarehouse(float grossSqMWarehouse)
+{
+	this->grossSqMWarehouse = grossSqMWarehouse;
+}
+
+void Building::setLastChangedDate(const std::tm& lastChangedDate)
+{
+	this->lastChangedDate = lastChangedDate;
+}
 
 namespace sim_mob
 {

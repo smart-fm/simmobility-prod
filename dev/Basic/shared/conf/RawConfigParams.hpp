@@ -38,6 +38,7 @@ struct LongTermParams
 	std::string calibrationSchemaVersion;
 	std::string geometrySchemaVersion;
 	unsigned int opSchemaloadingInterval;
+	bool initialLoading;
 
 	struct DeveloperModel{
 		DeveloperModel();

@@ -706,7 +706,9 @@ int MITSIM_LC_Model::getNumberOfLCToEndOfLink(DriverUpdateParams &params, const 
 		}
 		else
 		{
-			throw std::runtime_error("Turning group expected after the link!");
+			std::stringstream msg;
+			msg << __func__ << ": Turning group expected after link " << currLink->getLinkId();
+			throw std::runtime_error(msg.str());
 		}
 	}
 	else

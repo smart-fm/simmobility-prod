@@ -18,8 +18,12 @@ void IndvidualVehicleOwnershipLogsumDao::fromRow(Row& result, IndvidualVehicleOw
 {
     outObj.householdId 		= result.get<BigSerial>("household_id",INVALID_ID);
     outObj.individualId 		= result.get<BigSerial>("individual_id",0.0);
-    outObj.logsumTransit = result.get<double>("logsum_transit",0.0);
-    outObj.logsumCar = result.get<double>("logsum_car",0.0);
+    outObj.logsum0 = result.get<double>("logsum0",0.0);
+    outObj.logsum1 = result.get<double>("logsum1",0.0);
+    outObj.logsum2 = result.get<double>("logsum2",0.0);
+    outObj.logsum3 = result.get<double>("logsum3",0.0);
+    outObj.logsum4 = result.get<double>("logsum4",0.0);
+    outObj.logsum5 = result.get<double>("logsum5",0.0);
 }
 
 void IndvidualVehicleOwnershipLogsumDao::toRow(IndvidualVehicleOwnershipLogsum& data, Parameters& outParams, bool update) {}

@@ -121,7 +121,7 @@ public:
 	unsigned int getTrafficLightId() const;
 	void setTrafficLightId(unsigned int value);
 
-	TrafficSensor * getTrafficSensor(int index);
+	TrafficSensor * getTrafficSensor(unsigned int index);
 	const std::vector<TrafficSensor *>& getTrafficSensors() const;
 
 	static void writeSurveillanceOutput(const ConfigParams &config, unsigned long currTime);
@@ -191,11 +191,21 @@ public:
 	void setSurveillanceStn(SurveillanceStation *value);
 
 	/**
-	 * Convert the sensor readings from accumulated to average flow per lane per hour
+	 * Convert the sensor readings from accumulated count to average flow per lane per hour
 	 * @return the average flow (unit: #vehicles per lane per hour)
 	 */
 	unsigned int getFlow() const;
+
+	/**
+	 * Converts the sensor readings from accumulated values to average occupancy percentage
+	 * @return the average occupancy (unit: percentage)
+	 */
 	double getOccupancy() const;
+
+	/**
+	 * Converts the accumulated sensor readings to average speed values
+	 * @return the average speed (unit: m/s)
+	 */
 	double getSpeed() const;
 
 	void resetReadings();

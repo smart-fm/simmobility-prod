@@ -122,13 +122,14 @@ void SurveillanceStation::setTrafficLightId(unsigned int value)
 	trafficLightId = value;
 }
 
-TrafficSensor *SurveillanceStation::getTrafficSensor(int index)
+TrafficSensor *SurveillanceStation::getTrafficSensor(unsigned int index)
 {
 	if(isLinkWide())
 	{
 		index = 0;
 	}
 
+	assert(index < trafficSensors.size());
 	return trafficSensors[index];
 }
 
@@ -219,14 +220,18 @@ void TrafficSensor::setSurveillanceStn(SurveillanceStation *value)
 unsigned int TrafficSensor::getFlow() const
 {
 	double step = ConfigManager::GetInstance().FullConfig().simulation.closedLoop.sensorStepSize;
+
+	//Compute the flow (in terms of vehicles per hour)
 	double flow = count / step * 3600.0;
 
 	if (surveillanceStn->isLinkWide())
 	{
+		//If the sensor is link-wide, calculate flow per lane and round off to nearest integer
 		return (unsigned int) (flow / surveillanceStn->getSegment()->getNoOfLanes() + 0.5);
 	}
 	else
 	{
+		//Flow is already per lane, round off to nearest integer
 		return (unsigned int) (flow + 0.5);
 	}
 }

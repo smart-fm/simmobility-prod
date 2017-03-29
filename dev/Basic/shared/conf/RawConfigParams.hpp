@@ -139,6 +139,14 @@ struct LongTermParams
 
 	}outputFiles;
 
+	struct ToaPayohScenario{
+		ToaPayohScenario();
+		bool enabled;
+		bool workInToaPayoh;
+		bool liveInToaPayoh;
+		bool moveToToaPayoh;
+	}toaPayohScenario;
+
 };
 
 ///represent the incident data section of the config file

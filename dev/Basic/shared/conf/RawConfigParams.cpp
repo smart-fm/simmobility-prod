@@ -59,4 +59,6 @@ sim_mob::LongTermParams::OutputFiles::OutputFiles(): bids(false),
 													 log_out_xx_files(true),
 													 enabled(false){}
 
+sim_mob::LongTermParams::ToaPayohScenario::ToaPayohScenario():enabled(false),workInToaPayoh(false),liveInToaPayoh(false),moveToToaPayoh(false){}
+
 ModelScriptsMap::ModelScriptsMap(const std::string& scriptFilesPath, const std::string& scriptsLang) : path(scriptFilesPath), scriptLanguage(scriptsLang) {}

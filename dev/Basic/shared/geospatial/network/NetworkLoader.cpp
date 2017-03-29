@@ -307,8 +307,6 @@ void NetworkLoader::loadParkingSlots(const std::string& storedProc)
 {
 	if (storedProc.empty())
 	{
-		Print() << "Stored procedure to load parking slots not specified in the configuration file." 
-				<< "\nParking slots not loaded..." << std::endl;
 		return;
 	}
 

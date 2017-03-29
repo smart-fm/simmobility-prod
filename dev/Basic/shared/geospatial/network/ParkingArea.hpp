@@ -32,6 +32,12 @@ public:
 	void setParkingAreaId(unsigned int areaId);
 
 	const std::vector<const ParkingSlot *>& getParkingSlots() const;
+
+	/**
+	 * Returns the parking slot in the area at the given index
+	 * @param index the index of the requested parking slot
+	 * @return pointer to the parking slot in the parking area at the given index
+	 */
 	const ParkingSlot* getParkingSlot(unsigned int index) const;
 
 	/**

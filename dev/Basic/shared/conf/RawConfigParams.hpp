@@ -139,6 +139,15 @@ struct LongTermParams
 
 	}outputFiles;
 
+
+	struct Scenario
+	{
+		Scenario();
+		bool   enabled;
+		std::string scenarioName;
+
+	} scenario;
+
 };
 
 ///represent the incident data section of the config file

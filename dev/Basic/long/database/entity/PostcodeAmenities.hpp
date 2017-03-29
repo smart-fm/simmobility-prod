@@ -42,10 +42,10 @@ namespace sim_mob {
             double getDistanceToExpress() const;
             double getDistanceToBus() const;
             double getDistanceToMRT() const;
+            BigSerial getTazId() const;
+            BigSerial getAddressId() const;
             const std::string& getMrtStation() const;
             const std::string& getPostcode() const;
-            BigSerial getAddressId() const;
-            BigSerial getTazId() const;
 
             void setBuildingName(const std::string& buildingName);
             void setBus200m(bool bus200m);

@@ -190,7 +190,6 @@ public:
 	 * Adds a parking slot to the the respective parking area and the road network
 	 * @param parkingSlot - the pointer to the parking slot
 	 */
-	 */
 	 void addParking(ParkingSlot *parkingSlot);
 	 
 	 /**

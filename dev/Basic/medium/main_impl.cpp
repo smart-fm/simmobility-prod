@@ -361,6 +361,12 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	//incident
 	personWorkers->assignAWorker(IncidentManager::getInstance());
 
+	if(config.simulation.closedLoop.enabled)
+	{
+		const ClosedLoopParams &params = config.simulation.closedLoop;
+		ClosedLoopRunManager::initialise(params.guidanceFile, params.tollFile, params.incentivesFile);
+	}
+
 	//before starting the groups, initialize the time interval for one of the pathset manager's helpers
 	PathSetManager::initTimeInterval();
 
@@ -493,13 +499,6 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 
 	PT_Statistics::getInstance()->storeStatistics();
 	PT_Statistics::resetInstance();
-
-	if (config.numAgentsSkipped>0)
-	{
-		cout<<"Agents SKIPPED due to invalid route assignment: "
-			<<config.numAgentsSkipped
-			<<endl;
-	}
 
 	//Save our output files if we are merging them later.
 	if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled()

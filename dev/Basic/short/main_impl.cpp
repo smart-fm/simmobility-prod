@@ -639,11 +639,11 @@ int main_impl(int ARGC, char* ARGV[])
 	//Concatenate output files?
 	if (!resLogFiles.empty()) 
 	{
-		resLogFiles.insert(resLogFiles.begin(), config.outSimInfoFileName);
 		resLogFiles.insert(resLogFiles.begin(), config.outNetworkFileName);
 		Utils::printAndDeleteLogFiles(resLogFiles,outputFileName);
 	}
-	int retVal = std::system("rm out_0_*.txt out.network.txt");
+
+	int retVal = std::system("rm out_*.txt out.network.txt");
 
 	//Delete the config manager instance
 	ConfigManager::DeleteConfigMgrInstance();

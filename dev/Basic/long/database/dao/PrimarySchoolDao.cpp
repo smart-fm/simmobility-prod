@@ -11,7 +11,7 @@
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
-PrimarySchoolDao::PrimarySchoolDao(DB_Connection& connection): SqlAbstractDao<PrimarySchool>(connection, DB_TABLE_PRIMARY_SCHOOL,"", "", "",DB_GETALL_PRIMARY_SCHOOL, "")
+PrimarySchoolDao::PrimarySchoolDao(DB_Connection& connection): SqlAbstractDao<PrimarySchool>(connection, "","", "", "","SELECT * FROM " + connection.getSchema()+"primary_schools", "")
 {}
 
 PrimarySchoolDao::~PrimarySchoolDao() {}

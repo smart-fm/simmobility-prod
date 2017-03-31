@@ -16,8 +16,7 @@ using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
 
-IndividualDao::IndividualDao(DB_Connection& connection): SqlAbstractDao<Individual>(connection, DB_TABLE_INDIVIDUAL, DB_INSERT_INDIVIDUAL, DB_UPDATE_INDIVIDUAL,
-																					DB_DELETE_INDIVIDUAL, DB_GETALL_INDIVIDUAL, DB_GETBYID_INDIVIDUAL) {}
+IndividualDao::IndividualDao(DB_Connection& connection): SqlAbstractDao<Individual>(connection, "", "", "","", "SELECT * FROM " + connection.getSchema()+"individual", "") {}
 
 IndividualDao::~IndividualDao() {}
 
@@ -61,7 +60,7 @@ std::vector<Individual*> IndividualDao::getPrimarySchoolIndividual(std::tm curre
 	params.push_back(currentSimYear);
 	//params.push_back(currentSimYear);
 	std::vector<Individual*> primarySchoolIndList;
-	getByQueryId(DB_GETALL_PRIMARY_SCHOOL_INDIVIDUALS,params,primarySchoolIndList);
+	getByQueryId("SELECT * FROM " + connection.getSchema() + "getPrimarySchoolIndivduals(:simstartdate)",params,primarySchoolIndList);
 	return primarySchoolIndList;
 }
 
@@ -72,7 +71,7 @@ std::vector<Individual*> IndividualDao::getPreSchoolIndividual(std::tm currentSi
 	params.push_back(currentSimYear);
 	//params.push_back(currentSimYear);
 	std::vector<Individual*> preSchoolIndList;
-	getByQueryId(DB_GETALL_PRE_SCHOOL_INDIVIDUALS,params,preSchoolIndList);
+	getByQueryId("SELECT * FROM " + connection.getSchema() + "getPreschoolIndivduals(:simstartdate)",params,preSchoolIndList);
 	return preSchoolIndList;
 
 }

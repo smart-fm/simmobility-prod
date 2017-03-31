@@ -11,7 +11,7 @@ using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
 ParcelMatchDao::ParcelMatchDao(DB_Connection& connection)
-: SqlAbstractDao<ParcelMatch>(connection, DB_TABLE_PARCEL_MATCH,EMPTY_STR, EMPTY_STR, EMPTY_STR,DB_GETALL_PARCEL_MATCHES, EMPTY_STR) {}
+: SqlAbstractDao<ParcelMatch>(connection, "","", "", "", "SELECT * FROM " + connection.getSchema()+"parcel_match", "") {}
 
 ParcelMatchDao::~ParcelMatchDao() {}
 

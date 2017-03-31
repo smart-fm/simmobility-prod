@@ -67,6 +67,7 @@ void DataManager::load()
     conn.connect();
     if (conn.isConnected())
     {
+    	conn.setSchema("synpop12.");
         loadData<BuildingDao>(conn, buildings, buildingsById, &Building::getFmBuildingId);
         PrintOutV("Loaded " << buildings.size() << " buildings." << std::endl);
         loadData<PostcodeDao>(conn, postcodes, postcodesById, &Postcode::getAddressId);

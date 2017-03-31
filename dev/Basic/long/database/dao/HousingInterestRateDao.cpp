@@ -11,8 +11,7 @@
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
-HousingInterestRateDao::HousingInterestRateDao(DB_Connection& connection): SqlAbstractDao<HousingInterestRate>( connection, DB_TABLE_HIR, EMPTY_STR, EMPTY_STR, EMPTY_STR,
-																												DB_GETALL_HIR, DB_GETBYID_HIR ){}
+HousingInterestRateDao::HousingInterestRateDao(DB_Connection& connection): SqlAbstractDao<HousingInterestRate>( connection, "", "", "", "",	"SELECT * FROM " + connection.getSchema()+"housing_interest_rates", "" ){}
 
 HousingInterestRateDao::~HousingInterestRateDao(){}
 

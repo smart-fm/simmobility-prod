@@ -15,7 +15,10 @@
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
-ZonalLanduseVariableValuesDao::ZonalLanduseVariableValuesDao(DB_Connection& connection): SqlAbstractDao<ZonalLanduseVariableValues>(connection, DB_TABLE_ZONALLANDUSEVARIABLEVALUES, EMPTY_STR, EMPTY_STR, EMPTY_STR, DB_GETALL_ZONALLANDUSEVARIABLEVALUES, DB_GETBYID_ZONALLANDUSEVARIABLEVALUES) {}
+ZonalLanduseVariableValuesDao::ZonalLanduseVariableValuesDao(DB_Connection& connection): SqlAbstractDao<ZonalLanduseVariableValues>
+																						 (connection, "", "", "", "",
+																						  "SELECT * FROM " + connection.getSchema()+"zonal_landuse_variable_values",
+																						  "") {}
 
 ZonalLanduseVariableValuesDao::~ZonalLanduseVariableValuesDao() {}
 

@@ -11,7 +11,7 @@
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
-TAO_Dao::TAO_Dao(DB_Connection& connection): SqlAbstractDao<TAO>(connection, DB_TABLE_TAO, EMPTY_STR,EMPTY_STR, EMPTY_STR, DB_GETALL_TAO, EMPTY_STR) {
+TAO_Dao::TAO_Dao(DB_Connection& connection): SqlAbstractDao<TAO>(connection, "", "","", "", "SELECT * FROM " + connection.getSchema()+"tao_hedonic_price", "") {
 }
 
 TAO_Dao::~TAO_Dao() {

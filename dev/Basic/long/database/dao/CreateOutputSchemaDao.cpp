@@ -11,7 +11,7 @@
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
-CreateOutputSchemaDao::CreateOutputSchemaDao(DB_Connection& connection): SqlAbstractDao<CreateOutputSchema>(connection, DB_TABLE_CREATE_OP_SCHEMA,EMPTY_STR, EMPTY_STR, EMPTY_STR,DB_GETALL_CREATEOPSCHEMA, EMPTY_STR)
+CreateOutputSchemaDao::CreateOutputSchemaDao(DB_Connection& connection): SqlAbstractDao<CreateOutputSchema>(connection, "","", "", "","SELECT * FROM " + connection.getSchema()+"create_output_schema", "")
 {}
 
 CreateOutputSchemaDao::~CreateOutputSchemaDao() {}

@@ -12,7 +12,7 @@
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
-TravelTimeDao::TravelTimeDao(DB_Connection& connection): SqlAbstractDao<TravelTime>(connection, DB_TABLE_TRAVEL_TIME, EMPTY_STR, EMPTY_STR, EMPTY_STR, EMPTY_STR, EMPTY_STR)
+TravelTimeDao::TravelTimeDao(DB_Connection& connection): SqlAbstractDao<TravelTime>(connection, "", "", "", "", "SELECT * FROM " + connection.getSchema()+"travel_time", "")
 {}
 
 TravelTimeDao::~TravelTimeDao() {}

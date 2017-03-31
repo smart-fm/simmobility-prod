@@ -10,7 +10,7 @@
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
-IndvidualVehicleOwnershipLogsumDao::IndvidualVehicleOwnershipLogsumDao(DB_Connection& connection): SqlAbstractDao<IndvidualVehicleOwnershipLogsum>( connection, DB_TABLE_INDIVIDUAL_LEVEL_VEHICLEOWNERSHIP_LOGSUM, EMPTY_STR, EMPTY_STR, EMPTY_STR,DB_GETALL_INDIVIDUAL_VEHICLE_OWNERSHIP_LOGSUMS, EMPTY_STR ) {}
+IndvidualVehicleOwnershipLogsumDao::IndvidualVehicleOwnershipLogsumDao(DB_Connection& connection): SqlAbstractDao<IndvidualVehicleOwnershipLogsum>( connection, "", "", "", "","SELECT * FROM " + connection.getSchema()+"individual_level_vehicle_ownership_logsum", "") {}
 
 IndvidualVehicleOwnershipLogsumDao::~IndvidualVehicleOwnershipLogsumDao() {}
 

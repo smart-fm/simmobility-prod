@@ -15,7 +15,7 @@
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
-HouseholdDao::HouseholdDao(DB_Connection& connection): SqlAbstractDao<Household>(connection, DB_TABLE_HOUSEHOLD,DB_INSERT_HOUSEHOLD, EMPTY_STR, EMPTY_STR,DB_GETALL_HOUSEHOLD, DB_GETBYID_HOUSEHOLD)
+HouseholdDao::HouseholdDao(DB_Connection& connection): SqlAbstractDao<Household>(connection, "","", "", "","SELECT * FROM " + connection.getSchema()+"household", "")
 {}
 
 HouseholdDao::~HouseholdDao() {}

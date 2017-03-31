@@ -1441,6 +1441,12 @@ void HM_Model::startImpl()
 	// Connect to database and load data for this model.
 	DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
 	conn.connect();
+	conn.setSchema("synpop12.");
+
+
+	DB_Connection conn_calibration(sim_mob::db::POSTGRES, dbConfig);
+	conn_calibration.connect();
+	conn_calibration.setSchema("calibration2012.");
 
 	resume = config.ltParams.resume;
 	std::string  outputSchema = config.ltParams.currentOutputSchema;
@@ -1479,7 +1485,7 @@ void HM_Model::startImpl()
 			soci::session sql;
 			sql.open(soci::postgresql, conn.getConnectionStr());
 
-			std::string storedProc = MAIN_SCHEMA + "building_match";
+			std::string storedProc = conn.getSchema() + "building_match";
 
 			//SQL statement
 			soci::rowset<BuildingMatch> buildingMatchsql = (sql.prepare << "select * from " + storedProc);
@@ -1501,7 +1507,7 @@ void HM_Model::startImpl()
 			soci::session sql;
 			sql.open(soci::postgresql, conn.getConnectionStr());
 
-			std::string storedProc = MAIN_SCHEMA + "sla_building";
+			std::string storedProc = conn.getSchema() + "sla_building";
 
 			//SQL statement
 			soci::rowset<SlaBuilding> slaBuildingsql = (sql.prepare << "select * from " + storedProc);
@@ -1518,10 +1524,10 @@ void HM_Model::startImpl()
 			PrintOutV("Number of Sla Buildings: " << slaBuilding.size() << std::endl );
 		}
 
-		loadData<LogsumMtzV2Dao>( conn, logsumMtzV2, logsumMtzV2ById, &LogsumMtzV2::getTazId );
+		loadData<LogsumMtzV2Dao>( conn_calibration, logsumMtzV2, logsumMtzV2ById, &LogsumMtzV2::getTazId );
 		PrintOutV("Number of LogsumMtzV2: " << logsumMtzV2.size() << std::endl );
 
-		loadData<ScreeningModelCoefficientsDao>( conn, screeningModelCoefficientsList, screeningModelCoefficicientsMap, &ScreeningModelCoefficients::getId );
+		loadData<ScreeningModelCoefficientsDao>( conn_calibration, screeningModelCoefficientsList, screeningModelCoefficicientsMap, &ScreeningModelCoefficients::getId );
 		PrintOutV("Number of screening Model Coefficients: " << screeningModelCoefficientsList.size() << std::endl );
 
 		if(initialLoading)
@@ -1538,7 +1544,7 @@ void HM_Model::startImpl()
 			loadData<AlternativeHedonicPriceDao>( conn, alternativeHedonicPrices, alternativeHedonicPriceById, &AlternativeHedonicPrice::getId );
 			PrintOutV("Number of Alternative Hedonic Price rows: " << alternativeHedonicPrices.size() << std::endl );
 
-			loadData<ZonalLanduseVariableValuesDao>( conn, zonalLanduseVariableValues, zonalLanduseVariableValuesById, &ZonalLanduseVariableValues::getAltId );
+			loadData<ZonalLanduseVariableValuesDao>( conn_calibration, zonalLanduseVariableValues, zonalLanduseVariableValuesById, &ZonalLanduseVariableValues::getAltId );
 			PrintOutV("Number of zonal landuse variable values: " << zonalLanduseVariableValues.size() << std::endl );
 
 			loadData<PopulationPerPlanningAreaDao>( conn, populationPerPlanningArea, populationPerPlanningAreaById, &PopulationPerPlanningArea::getPlanningAreaId );
@@ -1547,7 +1553,7 @@ void HM_Model::startImpl()
 			loadData<DistanceMRTDao>( conn, mrtDistances, mrtDistancesById, &DistanceMRT::getHouseholdId);
 			PrintOutV("Number of mrt distances: " << mrtDistances.size() << std::endl );
 
-			loadData<AwakeningDao>(conn, awakening, awakeningById,	&Awakening::getId);
+			loadData<AwakeningDao>(conn_calibration, awakening, awakeningById,	&Awakening::getId);
 			PrintOutV("Awakening probability: " << awakening.size() << std::endl );
 		}
 
@@ -1574,10 +1580,12 @@ void HM_Model::startImpl()
 		PrintOutV("Number of postcodes by id: " << postcodesById.size() << std::endl );
 
 
-		loadData<VehicleOwnershipCoefficientsDao>(conn,vehicleOwnershipCoeffs,vehicleOwnershipCoeffsById, &VehicleOwnershipCoefficients::getVehicleOwnershipOptionId);
-		PrintOutV("Vehicle Ownership coefficients: " << vehicleOwnershipCoeffs.size() << std::endl );
 
-		loadData<TaxiAccessCoefficientsDao>(conn,taxiAccessCoeffs,taxiAccessCoeffsById, &TaxiAccessCoefficients::getParameterId);
+		//Chetan commmened this 31 mar 2017
+		//loadData<VehicleOwnershipCoefficientsDao>(conn,vehicleOwnershipCoeffs,vehicleOwnershipCoeffsById, &VehicleOwnershipCoefficients::getVehicleOwnershipOptionId);
+		//PrintOutV("Vehicle Ownership coefficients: " << vehicleOwnershipCoeffs.size() << std::endl );
+
+		loadData<TaxiAccessCoefficientsDao>(conn_calibration,taxiAccessCoeffs,taxiAccessCoeffsById, &TaxiAccessCoefficients::getParameterId);
 		PrintOutV("Taxi access coefficients: " << taxiAccessCoeffs.size() << std::endl );
 
 		loadData<EstablishmentDao>(conn, establishments, establishmentsById, &Establishment::getId);
@@ -1598,7 +1606,7 @@ void HM_Model::startImpl()
 		loadData<HouseHoldHitsSampleDao>( conn, houseHoldHits, houseHoldHitsById, &HouseHoldHitsSample::getHouseholdId);
 		PrintOutV("Number of houseHoldHits: " << houseHoldHits.size() << std::endl );
 
-		loadData<TazLogsumWeightDao>( conn, tazLogsumWeights, tazLogsumWeightById, &TazLogsumWeight::getGroupLogsum );
+		loadData<TazLogsumWeightDao>( conn_calibration, tazLogsumWeights, tazLogsumWeightById, &TazLogsumWeight::getGroupLogsum );
 		PrintOutV("Number of tazLogsumWeights: " << tazLogsumWeights.size() << std::endl );
 
 		loadData<PlanningAreaDao>( conn, planningArea, planningAreaById, &PlanningArea::getId );
@@ -1613,7 +1621,7 @@ void HM_Model::startImpl()
 		loadData<MtzTazDao>( conn, mtzTaz, mtzTazById, &MtzTaz::getMtzId );
 		PrintOutV("Number of mtz taz lookups: " << mtzTaz.size() << std::endl );
 
-		loadData<AlternativeDao>( conn, alternative, alternativeById, &Alternative::getId );
+		loadData<AlternativeDao>( conn_calibration, alternative, alternativeById, &Alternative::getId );
 		PrintOutV("Number of alternative region names: " << alternative.size() << std::endl );
 
 		//only used with Hits2008 data
@@ -1623,19 +1631,21 @@ void HM_Model::startImpl()
 		loadData<HitsIndividualLogsumDao>( conn, hitsIndividualLogsum, hitsIndividualLogsumById, &HitsIndividualLogsum::getId );
 		PrintOutV("Number of Hits Individual Logsum rows: " << hitsIndividualLogsum.size() << std::endl );
 
-		loadData<IndvidualVehicleOwnershipLogsumDao>( conn, IndvidualVehicleOwnershipLogsums, IndvidualVehicleOwnershipLogsumById, &IndvidualVehicleOwnershipLogsum::getHouseholdId );
-		PrintOutV("Number of Hits Individual VehicleOwnership Logsum rows: " << IndvidualVehicleOwnershipLogsums.size() << std::endl );
 
-		loadData<ScreeningCostTimeDao>( conn, screeningCostTime, screeningCostTimeById, &ScreeningCostTime::getId );
+		//chetan commented this. 31 mar 2017
+		//loadData<IndvidualVehicleOwnershipLogsumDao>( conn_calibration, IndvidualVehicleOwnershipLogsums, IndvidualVehicleOwnershipLogsumById, &IndvidualVehicleOwnershipLogsum::getHouseholdId );
+		//PrintOutV("Number of Hits Individual VehicleOwnership Logsum rows: " << IndvidualVehicleOwnershipLogsums.size() << std::endl );
+
+		loadData<ScreeningCostTimeDao>( conn_calibration, screeningCostTime, screeningCostTimeById, &ScreeningCostTime::getId );
 		PrintOutV("Number of Screening Cost Time rows: " << screeningCostTime.size() << std::endl );
 
-		loadData<AccessibilityFixedPzidDao>( conn, accessibilityFixedPzid, accessibilityFixedPzidById, &AccessibilityFixedPzid::getId );
+		loadData<AccessibilityFixedPzidDao>( conn_calibration, accessibilityFixedPzid, accessibilityFixedPzidById, &AccessibilityFixedPzid::getId );
 		PrintOutV("Number of Accessibility fixed pz id rows: " << accessibilityFixedPzid.size() << std::endl );
 
-		loadData<TenureTransitionRateDao>( conn, tenureTransitionRate, tenureTransitionRateById, &TenureTransitionRate::getId );
+		loadData<TenureTransitionRateDao>( conn_calibration, tenureTransitionRate, tenureTransitionRateById, &TenureTransitionRate::getId );
 		PrintOutV("Number of Tenure Transition rate rows: " << tenureTransitionRate.size() << std::endl );
 
-		loadData<OwnerTenantMovingRateDao>( conn, ownerTenantMovingRate, ownerTenantMovingRateById, &OwnerTenantMovingRate::getId );
+		loadData<OwnerTenantMovingRateDao>( conn_calibration, ownerTenantMovingRate, ownerTenantMovingRateById, &OwnerTenantMovingRate::getId );
 		PrintOutV("Number of Owner Tenant Moving Rate rows: " << ownerTenantMovingRate.size() << std::endl );
 
 		loadData<HouseholdPlanningAreaDao>( conn, hhPlanningAreaList, hhPlanningAreaMap, &HouseholdPlanningArea::getHouseHoldId);
@@ -1644,13 +1654,13 @@ void HM_Model::startImpl()
 	    loadData<HHCoordinatesDao>( conn, hhCoordinates, hhCoordinatesById, &HHCoordinates::getHouseHoldId);
 	    PrintOutV("Number of household coordinate rows: " << hhCoordinates.size() << std::endl );
 
-	    loadData<SchoolAssignmentCoefficientsDao>( conn, schoolAssignmentCoefficients, SchoolAssignmentCoefficientsById, &SchoolAssignmentCoefficients::getParameterId);
+	    loadData<SchoolAssignmentCoefficientsDao>( conn_calibration, schoolAssignmentCoefficients, SchoolAssignmentCoefficientsById, &SchoolAssignmentCoefficients::getParameterId);
 	    PrintOutV("Number of School Assignment Coefficients rows: " << schoolAssignmentCoefficients.size() << std::endl );
 
-	    loadData<PrimarySchoolDao>( conn, primarySchools, primarySchoolById, &PrimarySchool::getSchoolId);
+	    loadData<PrimarySchoolDao>( conn_calibration, primarySchools, primarySchoolById, &PrimarySchool::getSchoolId);
 	    PrintOutV("Number of Primary School rows: " << primarySchools.size() << std::endl );
 
-	    loadData<PreSchoolDao>( conn, preSchools, preSchoolById, &PreSchool::getPreSchoolId);
+	    loadData<PreSchoolDao>( conn_calibration, preSchools, preSchoolById, &PreSchool::getPreSchoolId);
 	    PrintOutV("Number of Pre School rows: " << preSchools.size() << std::endl );
 
 		//::TODO::uncomment after Diem finalized job and emp sec tables. gishara
@@ -2187,7 +2197,7 @@ void  HM_Model::loadLTVersion(DB_Connection &conn)
 	std::string storedProc = MAIN_SCHEMA + "lt_version";
 
 	//SQL statement
-	soci::rowset<LtVersion> lt_version = (sql.prepare << "select * from " + storedProc);
+	soci::rowset<LtVersion> lt_version = (sql.prepare << "select * from " + conn.getSchema() + storedProc);
 
 	for (soci::rowset<LtVersion>::const_iterator itLtVersion = lt_version.begin(); itLtVersion != lt_version.end(); ++itLtVersion)
 	{

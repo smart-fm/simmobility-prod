@@ -17,7 +17,7 @@ using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
 ParcelDao::ParcelDao(DB_Connection& connection)
-: SqlAbstractDao<Parcel>(connection, DB_TABLE_PARCEL,"", EMPTY_STR, EMPTY_STR,DB_GETALL_PARCELS, DB_GETBYID_PARCEL) {}
+: SqlAbstractDao<Parcel>(connection, "","", "", "","SELECT * FROM " + connection.getSchema()+"fm_parcel", "") {}
 
 ParcelDao::~ParcelDao() {}
 
@@ -83,7 +83,7 @@ void ParcelDao::toRow(Parcel& data, Parameters& outParams, bool update)
 
 std::vector<Parcel*>  ParcelDao::getEmptyParcels()
 {
-	const std::string queryStr = DB_GETALL_EMPTY_PARCELS;
+	const std::string queryStr = "SELECT * FROM " + connection.getSchema() + "getEmptyParcels()";
 	std::vector<Parcel*> emptyParcelList;
 	getByQuery(queryStr,emptyParcelList);
 	return emptyParcelList;
@@ -91,7 +91,7 @@ std::vector<Parcel*>  ParcelDao::getEmptyParcels()
 
 std::vector<Parcel*> ParcelDao::getParcelsWithOngoingProjects(std::string schema)
 {
-	const std::string queryStr = "SELECT * FROM " + APPLY_SCHEMA(schema, ".fm_parcel") + LIMIT;
+	const std::string queryStr = "SELECT * FROM " + connection.getSchema() + APPLY_SCHEMA(schema, ".fm_parcel") + LIMIT;
 	std::vector<Parcel*> parcelsWithOngoingProjectsList;
 	getByQuery(queryStr,parcelsWithOngoingProjectsList);
 	return parcelsWithOngoingProjectsList;
@@ -114,7 +114,7 @@ void ParcelDao::insertParcel(Parcel& parcel,std::string schema)
 
 std::vector<Parcel*> ParcelDao::getFreeholdParcels()
 {
-	const std::string queryStr = "SELECT P.* FROM " + APPLY_SCHEMA(MAIN_SCHEMA, "fm_parcel P,") +  APPLY_SCHEMA(MAIN_SCHEMA, "fm_building B") +
+	const std::string queryStr = "SELECT P.* FROM " + connection.getSchema() + APPLY_SCHEMA(MAIN_SCHEMA, "fm_parcel P,") + connection.getSchema() +  APPLY_SCHEMA(MAIN_SCHEMA, "fm_building B") +
 			" WHERE p.fm_parcel_id = b.fm_parcel_id and freehold = 1";
 	std::vector<Parcel*> freeholdParcelsList;
 	getByQuery(queryStr,freeholdParcelsList);

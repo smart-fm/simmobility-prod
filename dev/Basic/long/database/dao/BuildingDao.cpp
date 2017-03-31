@@ -15,7 +15,8 @@
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
-BuildingDao::BuildingDao(DB_Connection& connection): SqlAbstractDao<Building>( connection, DB_TABLE_BUILDING, "", DB_UPDATE_BUILDING, DB_DELETE_BUILDING, DB_GETALL_BUILDING, DB_GETBYID_BUILDING ) {}
+BuildingDao::BuildingDao(DB_Connection& connection): SqlAbstractDao<Building>( connection, 	"",	"",	"",	"",
+																							"SELECT * FROM " + connection.getSchema() + "fm_building",	"" ){}
 
 BuildingDao::~BuildingDao() {}
 

@@ -82,7 +82,13 @@ void DeveloperModel::startImpl() {
 	dbConfig.load();
 	// Connect to database and load data for this model.
 	DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
+	conn.setSchema("synpop12.");
 	conn.connect();
+
+	DB_Connection conn_calibration(sim_mob::db::POSTGRES, dbConfig);
+	conn_calibration.setSchema("calibration2012.");
+	conn_calibration.connect();
+
 	if (conn.isConnected())
 	{
 		ParcelsWithHDB *HDB_Parcel;
@@ -135,18 +141,18 @@ void DeveloperModel::startImpl() {
 		//commented as this is not used in 2012 now.
 		//loadData<LogsumForDevModelDao>(conn,accessibilityList,accessibilityByTazId,&LogsumForDevModel::gettAZ2012Id);
 
-		loadData<TAO_Dao>(conn,taoList,taoByQuarterStr,&TAO::getQuarter);
+		loadData<TAO_Dao>(conn_calibration,taoList,taoByQuarterStr,&TAO::getQuarter);
 		PrintOutV("TAO by quarters loaded " << taoList.size() << std::endl);
 
 		loadData<UnitPriceSumDao>(conn,unitPriceSumList,unitPriceSumByParcelId,&UnitPriceSum::getFmParcelId);
 		PrintOutV("unit price sums loaded " << unitPriceSumList.size() << std::endl);
 
-		loadData<TazLevelLandPriceDao>(conn,tazLevelLandPriceList,tazLevelLandPriceByTazId,&TazLevelLandPrice::getTazId);
+		loadData<TazLevelLandPriceDao>(conn_calibration,tazLevelLandPriceList,tazLevelLandPriceByTazId,&TazLevelLandPrice::getTazId);
 		PrintOutV("land values loaded " << tazLevelLandPriceList.size() << std::endl);
 
 		loadData<BuildingAvgAgePerParcelDao>(conn,buildingAvgAgePerParcel,BuildingAvgAgeByParceld,&BuildingAvgAgePerParcel::getFmParcelId);
 		PrintOutV("building average age per parcel loaded " << buildingAvgAgePerParcel.size() << std::endl);
-		loadData<ROILimitsDao>(conn,roiLimits,roiLimitsByDevTypeId,&ROILimits::getDevelopmentTypeId);
+		loadData<ROILimitsDao>(conn_calibration,roiLimits,roiLimitsByDevTypeId,&ROILimits::getDevelopmentTypeId);
 		PrintOutV("roi limits loaded " << roiLimits.size() << std::endl);
 
 		std::tm currentSimYear = getDateBySimDay(simYear,0);
@@ -958,7 +964,7 @@ void DeveloperModel::loadHedonicCoeffs(DB_Connection &conn)
 	sql.open(soci::postgresql, conn.getConnectionStr());
 
 
-	const std::string storedProc = MAIN_SCHEMA + "getHedonicCoeffs()";
+	const std::string storedProc = conn.getSchema() + "getHedonicCoeffs()";
 	//SQL statement
 	soci::rowset<HedonicCoeffs> hedonicCoeffs = (sql.prepare << "select * from " + storedProc);
 	for (soci::rowset<HedonicCoeffs>::const_iterator itCoeffs = hedonicCoeffs.begin(); itCoeffs != hedonicCoeffs.end(); ++itCoeffs)
@@ -988,7 +994,7 @@ void  DeveloperModel::loadPrivateLagT(DB_Connection &conn)
 	//sql = conn.getSession<soci::session>();
 	sql.open(soci::postgresql, conn.getConnectionStr());
 
-	const std::string storedProc = MAIN_SCHEMA + "getLagPrivateT()";
+	const std::string storedProc = conn.getSchema() + "getLagPrivateT()";
 	//SQL statement
 	soci::rowset<LagPrivateT> privateLags = (sql.prepare << "select * from " + storedProc);
 	for (soci::rowset<LagPrivateT>::const_iterator itPrivateLags = privateLags.begin(); itPrivateLags != privateLags.end(); ++itPrivateLags)
@@ -1018,7 +1024,7 @@ void DeveloperModel::loadHedonicLogsums(DB_Connection &conn)
 		//sql = conn.getSession<soci::session>();
 		sql.open(soci::postgresql, conn.getConnectionStr());
 
-		const std::string storedProc = MAIN_SCHEMA + "getHedonicLogsums()";
+		const std::string storedProc = conn.getSchema() + "getHedonicLogsums()";
 		//SQL statement
 		soci::rowset<HedonicLogsums> hedonicLogsums = (sql.prepare << "select * from " + storedProc);
 		for (soci::rowset<HedonicLogsums>::const_iterator itLogsums = hedonicLogsums.begin(); itLogsums != hedonicLogsums.end(); ++itLogsums)

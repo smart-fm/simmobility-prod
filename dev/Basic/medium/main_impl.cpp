@@ -463,10 +463,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	TravelTimeManager::getInstance()->storeCurrentSimulationTT();
 
 	Print() << "Time required for initialisation [Loading configuration, network, demand ...]: "
-	        << DailyTime((uint32_t) loop_start_offset).getStrRepr() << std::endl;
-
-	Print() << "\nNumber of persons simulated: " << config.numPersonsSimulated
-	        << "\nNumber of persons whose simulation was completed: " << config.numPersonsCompleted << "\n";
+	        << DailyTime((uint32_t) loop_start_offset).getStrRepr() << std::endl << std::endl;
 
 	if (Agent::all_agents.empty() && Agent::pending_agents.empty())
 	{

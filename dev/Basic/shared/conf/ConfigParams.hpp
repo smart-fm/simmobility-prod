@@ -242,6 +242,9 @@ private:
 	/** name of file to store PT stop statistics */
 	std::string ptStopStatsFilename;
 
+	/** name of the file to store the person rerouting information (public transit)*/
+	std::string ptPersonRerouteFilename;
+
 public:
 	/////////////////////////////////////////////////////////////////////////////////////
     /// These are helper functions, to make compatibility between old/new parsing easier.
@@ -451,6 +454,19 @@ public:
      * @param str PT stop  stats file name to be set
      */
 	void setPT_StopStatsFilename(const std::string& str);
+
+	/**
+	 * Retrieves the Person reroute filename (public transit)
+	 * @return PT Person reroute filename
+	 */
+	const std::string &getPT_PersonRerouteFilename() const;
+
+	/**
+	 * Sets the PT person reroute filename
+	 *
+	 * @param ptPersonRerouteFilename filename to be set
+	 */
+	void setPT_PersonRerouteFilename(const std::string &ptPersonRerouteFilename);
 };
 
 

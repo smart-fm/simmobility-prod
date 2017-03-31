@@ -337,3 +337,13 @@ void ConfigParams::setPT_StopStatsFilename(const std::string& str)
 	ptStopStatsFilename = str;
 }
 
+const string &ConfigParams::getPT_PersonRerouteFilename() const
+{
+	return ptPersonRerouteFilename;
+}
+
+void ConfigParams::setPT_PersonRerouteFilename(const string &ptPersonRerouteFilename)
+{
+	ConfigParams::ptPersonRerouteFilename = ptPersonRerouteFilename;
+}
+

@@ -370,7 +370,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	//before starting the groups, initialize the time interval for one of the pathset manager's helpers
 	PathSetManager::initTimeInterval();
 
-	cout << "Initial Agents dispatched or pushed to pending.\nall_agents: " << Agent::all_agents.size() << " pending: " << Agent::pending_agents.size() << endl;
+	Print() << "\nSimulating...\n";
 
 	//Start work groups and all threads.
 	wgMgr.startAllWorkGroups();
@@ -381,51 +381,31 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	//       time ticks, the WorkGroups will return without performing
 	//       a barrier sync.
 	/////////////////////////////////////////////////////////////////
-	size_t numStartAgents = Agent::all_agents.size();
-	size_t numPendingAgents = Agent::pending_agents.size();
-	size_t maxAgents = Agent::all_agents.size();
-
 	timeval loop_start_time;
 	gettimeofday(&loop_start_time, nullptr);
 	int loop_start_offset = ProfileBuilder::diff_ms(loop_start_time, start_time_med);
 
-	int lastTickPercent = 0; //So we have some idea how much time is left.
+	StateSwitcher<int> numTicksShown(0); //Only goes up to 10
+	StateSwitcher<int> lastTickPercent(0); //So we have some idea how much time is left.
 	bool firstTick = true;
+
 	for (unsigned int currTick = 0; currTick < config.totalRuntimeTicks; currTick++)
 	{
 		const DailyTime dailyTime=ConfigManager::GetInstance().FullConfig().simStartTime()+DailyTime(currTick*5000);
-		//Flag
-		bool warmupDone = (currTick >= config.totalWarmupTicks);
 
-		//Get a rough idea how far along we are
-		int currTickPercent = (currTick*100)/config.totalRuntimeTicks;
+		//Output. We show every 10% change. (just to give some indication of progress)
+		int currTickPercent = (currTick * 100) / config.totalRuntimeTicks;
+		currTickPercent /= 10; //Only update 10%, 20%, etc.
 
-		//Save the maximum number of agents at any given time
-		maxAgents = std::max(maxAgents, Agent::all_agents.size());
+		//Determine whether to print this time tick or not.
+		bool printTick = lastTickPercent.update(currTickPercent);
 
-		//Output
-		if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled())
+		//Note that OutputEnabled also affects locking.
+		if (printTick)
 		{
 			std::stringstream msg;
-			msg << "Approximate Tick Boundary: " << currTick << ", ";
-			msg << (currTick * config.baseGranSecond())
-				<< "s   [" <<currTickPercent <<"%]" << endl;
-			if (!warmupDone)
-			{
-				msg << "  Warmup; output ignored." << endl;
-			}
+			msg << currTickPercent << "0%" << std::endl;
 			PrintOut(msg.str());
-		}
-		else
-		{
-			//We don't need to lock this output if general output is disabled, since Agents won't
-			//  perform any output (and hence there will be no contention)
-			if (currTickPercent-lastTickPercent>9)
-			{
-				lastTickPercent = currTickPercent;
-				cout<< currTickPercent <<"%"
-					<< ", Agents:" << Agent::all_agents.size() <<endl;
-			}
 		}
 
 		//Agent-based cycle, steps 1,2,3,4
@@ -470,16 +450,23 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 		}
 	}
 
+	timeval loop_end_time;
+	gettimeofday(&loop_end_time, nullptr);
+	int loop_time = (int) ProfileBuilder::diff_ms(loop_end_time, loop_start_time);
+	Print() << "100%\n\nTime required to execute the simulation: "
+	        << DailyTime((uint32_t) loop_time).getStrRepr() << std::endl;
+
 	BusStopAgent::removeAllBusStopAgents();
 	sim_mob::PathSetParam::resetInstance();
 
 	//finalize
 	TravelTimeManager::getInstance()->storeCurrentSimulationTT();
 
-	cout <<"Database lookup took: " << (loop_start_offset/1000.0) <<" s" <<endl;
-	cout << "Max Agents at any given time: " <<maxAgents <<endl;
-	cout << "Starting Agents: " << numStartAgents
-			<< ",     Pending: " << numPendingAgents << endl;
+	Print() << "Time required for initialisation [Loading configuration, network, demand ...]: "
+	        << DailyTime((uint32_t) loop_start_offset).getStrRepr() << std::endl;
+
+	Print() << "\nNumber of persons simulated: " << config.numPersonsSimulated
+	        << "\nNumber of persons whose simulation was completed: " << config.numPersonsCompleted << "\n";
 
 	if (Agent::all_agents.empty() && Agent::pending_agents.empty())
 	{
@@ -493,7 +480,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	(Conflux::activeAgentsLock).lock();
 	if(Agent::activeAgents.size()>0)
 	{
-		cout<<"Currently active agents are "<<Agent::activeAgents.size()<<endl;
+		cout<<"Currently active agents: "<<Agent::activeAgents.size()<<endl;
 	}
 	(Conflux::activeAgentsLock).unlock();
 
@@ -525,12 +512,12 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	}
 
 	int boardCount=sim_mob::medium::TrainDriver::boardPassengerCount;
-	const std::string& fileName("CoardingCount.csv");
+	const std::string& fileName("BoardingCount.csv");
 	sim_mob::BasicLogger& ptMRTMoveLogger  = sim_mob::Logger::log(fileName);
 	ptMRTMoveLogger<<boardCount<<endl;
-	cout<<"The number of passengers boarding are"<<boardCount<<endl;
+	cout<<"The number of passengers boarding: "<<boardCount<<endl;
 	safe_delete_item(periodicPersonLoader);
-	cout << "Simulation complete; closing worker threads." << endl;
+	cout << "\nSimulation complete. Closing worker threads...\n" << endl;
 
 	//Delete our profile pointer (if it exists)
 	safe_delete_item(prof);
@@ -598,6 +585,7 @@ bool performMainMed(const std::string& configFileName, const std::string& mtConf
 {
 	std::srand(clock()); // set random seed for RNGs
 	cout <<"Starting SimMobility, version " << SIMMOB_VERSION << endl;
+	cout << "\nLoading the configuration files: " << configFileName << ", " << mtConfigFileName << endl;
 
 	//Parse the config file (this *does not* create anything, it just reads it.).
 	ParseConfigFile parse(configFileName, ConfigManager::GetInstanceRW().FullConfig());
@@ -624,12 +612,12 @@ bool performMainMed(const std::string& configFileName, const std::string& mtConf
 
     if (MT_Config::getInstance().RunningMidSupply())
 	{
-		Print() << "Mid-term run mode: supply" << endl;
+		Print() << "Mid-term run mode: supply\n" << endl;
 		return performMainSupply(configFileName, resLogFiles);
 	}
     else if (MT_Config::getInstance().RunningMidDemand())
 	{
-		Print() << "Mid-term run mode: preday" << endl;
+		Print() << "Mid-term run mode: preday\n" << endl;
 		return performMainDemand();
 	}
 	else
@@ -693,7 +681,6 @@ int main_impl(int ARGC, char* ARGV[])
 	{
 		Print() << "One or both config file not specified; using defaults: " << configFileName << " and " << mtConfigFileName << endl;
 	}
-	Print() << "Using config file: " << configFileName << endl;
 
 	//This should be moved later, but we'll likely need to manage random numbers
 	//ourselves anyway, to make simulations as repeatable as possible.
@@ -718,11 +705,6 @@ int main_impl(int ARGC, char* ARGV[])
 		Utils::printAndDeleteLogFiles(resLogFiles);
 	}
 	int retVal = std::system("rm out_0_*.txt out.network.txt");
-
-	timeval simEndTime;
-	gettimeofday(&simEndTime, nullptr);
-
-	cout << "Done. \nTotal simulation time: "<< (ProfileBuilder::diff_ms(simEndTime, simStartTime))/1000.0 << " seconds." << endl;
 
 	return returnVal;
 }

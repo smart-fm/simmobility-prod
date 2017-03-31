@@ -2655,7 +2655,10 @@ void Conflux::CreateConfluxes()
 		} //end if
 	} // end for each multinode
 	debugMsgs << "]\n";
+
+#ifdef DEBUG
 	Print() << debugMsgs.str();
+#endif
 
 	//now we go through each link again to tag confluxes with adjacent confluxes
 	for (std::map<unsigned int, Link*>::const_iterator it=linkMap.begin(); it!=linkMap.end(); it++)

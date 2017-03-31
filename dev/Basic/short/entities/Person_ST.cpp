@@ -342,6 +342,8 @@ Entity::UpdateStatus Person_ST::frame_init(timeslice now)
 	{
 		currRole->Movement()->frame_init();
 	}
+
+	ConfigManager::GetInstanceRW().FullConfig().numPersonsSimulated++;
 	
 	return result;
 }
@@ -408,6 +410,10 @@ Entity::UpdateStatus Person_ST::frame_tick(timeslice now)
 					assignPersonToBusStopAgent();
 				}
 			}
+		}
+		else
+		{
+			ConfigManager::GetInstanceRW().FullConfig().numPersonsCompleted++;
 		}
 	}
 

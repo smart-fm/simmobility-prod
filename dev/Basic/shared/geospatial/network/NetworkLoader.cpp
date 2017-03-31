@@ -198,10 +198,9 @@ void NetworkLoader::loadTurningPolyLines(const std::string& storedProc)
 void NetworkLoader::loadTaxiStands(const std::string& storedProc)
 {
 	sim_mob::ConfigParams& config = sim_mob::ConfigManager::GetInstanceRW().FullConfig();
+
 	if(storedProc.empty())
 	{
-		Warn() << "Stored procedure to load taxi stands not specified in the configuration file."
-				<< "\nTaxi stands not loaded..." << std::endl;
 		return;
 	}
 
@@ -283,7 +282,6 @@ void NetworkLoader::loadBusStops(const std::string& storedProc)
 			stop->setLength(sim_mob::BUS_LENGTH);
 		}
 
-		RoadSegment* parentSegment = const_cast<RoadSegment*>(roadNetwork->getById(roadNetwork->getMapOfIdVsRoadSegments(), stop->getRoadSegmentId()));
 		roadNetwork->addBusStop(stop);
 
 		if(stop->getReverseSectionId() != 0) // this condition is true only for bus interchange stops
@@ -352,12 +350,8 @@ void NetworkLoader::loadNetwork(const string& connectionStr, const map<string, s
 {
 	try
 	{
-		sim_mob::Print() << "Database connection: ";
-
 		//Open the connection to the database
 		sql.open(soci::postgresql, connectionStr);
-		
-		sim_mob::Print() << "successful\nSimMobility network loading: ";
 
 		//Load the components of the network
 		
@@ -395,16 +389,17 @@ void NetworkLoader::loadNetwork(const string& connectionStr, const map<string, s
 		sql.close();
 
 		isNetworkLoaded = true;
-		sim_mob::Print() << "done\n";
+
+		Print() << "SimMobility Road Network loaded from database\n";
 	}
 	catch (soci::soci_error const &err)
 	{
-		sim_mob::Print() << "failed\nException occurred while loading the network!\n" << err.what() << std::endl;
+		Print() << "Exception occurred while loading the network!\n" << err.what() << std::endl;
 		exit(-1);
 	}
 	catch (runtime_error const &err)
 	{
-		sim_mob::Print() << "failed\nException occurred while loading the network!\n" << err.what() << std::endl;
+		Print() << "Exception occurred while loading the network!\n" << err.what() << std::endl;
 		exit(-1);
 	}
 }

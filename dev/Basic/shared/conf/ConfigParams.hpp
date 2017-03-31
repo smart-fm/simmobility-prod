@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <atomic>
 #include <set>
 #include <map>
 #include <string>
@@ -109,8 +110,14 @@ public:
     /// Is the simulation repeatable?
 	bool is_simulation_repeatable;
 
-    /// Number of agents skipped in loading
-    unsigned int numAgentsSkipped;
+    /// Number of agents killed due to errors
+    std::atomic<unsigned int> numAgentsKilled;
+
+	///Total number of persons simulated
+	std::atomic<unsigned int> numPersonsSimulated;
+
+	///Total number of persons whose simulation was completed
+	std::atomic<unsigned int> numPersonsCompleted;
 
 public:
     /**

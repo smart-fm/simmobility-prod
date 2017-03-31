@@ -608,8 +608,8 @@ void MT_PersonLoader::loadPersonDemand()
 		addOrStashPerson(*i);
 	}
 
-	Print() << "PeriodicPersonLoader:: activities loaded from " << nextLoadStart << " to " << end << ": " << actCtr << " | new persons loaded: " << personsLoaded << endl;
-	Print() << "active_agents: " << activeAgents.size() << " | pending_agents: " << pendingAgents.size() << endl;
+	Print() << "\nPersons loaded: " << personsLoaded
+			<< "\nActivities loaded from " << nextLoadStart << " to " << end << ": " << actCtr << endl;
 
 	//update next load start
 	nextLoadStart = end + DEFAULT_LOAD_INTERVAL;

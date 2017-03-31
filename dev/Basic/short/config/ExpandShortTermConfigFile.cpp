@@ -45,10 +45,10 @@ enum TripChainColumn
 
 void informLoadOrder(const std::vector<LoadAgentsOrderOption>& order)
 {
-	std::cout << "Agent Load order: ";
+	std::cout << "Demand source: ";
 	if (order.empty())
 	{
-		std::cout << "<N/A>";
+		std::cout << "Not specified";
 	}
 	else
 	{
@@ -56,24 +56,20 @@ void informLoadOrder(const std::vector<LoadAgentsOrderOption>& order)
 		{
 			if ((*it) == LoadAg_Drivers)
 			{
-				std::cout << "drivers";
+				std::cout << "XML Trip file";
 			}
 			else if ((*it) == LoadAg_Database)
 			{
-				std::cout << "database";
-			}
-			else if ((*it) == LoadAg_Pedestrians)
-			{
-				std::cout << "pedestrians";
+				std::cout << "Trip chains from database";
 			}
 			else
 			{
 				std::cout << "<unknown>";
 			}
-			std::cout << "  ";
+			std::cout << ", ";
 		}
 	}
-	std::cout << std::endl;
+	std::cout << std::endl << std::endl;
 }
 
 ////
@@ -294,10 +290,6 @@ void ExpandShortTermConfigFile::processConfig()
 	checkGranularities();
 	setTicks();
 
-	//Print schema file.
-	const std::string schem = stConfig.getRoadNetworkXsdSchemaFile();
-	Print() << "XML (road network) schema file: " << (schem.empty() ? "<default>" : schem) << std::endl;
-
 	//Load from database or XML.
 	loadNetworkFromDatabase();
 	
@@ -321,7 +313,6 @@ void ExpandShortTermConfigFile::processConfig()
 	}
 
 	cfg.sealNetwork();
-	std::cout << "Network Sealed" << std::endl;
 
 	//Initialize the street directory.
 	StreetDirectory::Instance().Init(*(RoadNetwork::getInstance()));
@@ -389,8 +380,6 @@ void ExpandShortTermConfigFile::loadNetworkFromDatabase()
 	//Load from the database or from XML
 	if (ST_Config::getInstance().networkSource == NetworkSource::NETSRC_DATABASE)
 	{
-		Print() << "Loading Road Network from the database.\n";
-
 		//The instance of the network loader
 		NetworkLoader *loader = NetworkLoader::getInstance();
 
@@ -457,7 +446,7 @@ void ExpandShortTermConfigFile::loadAgentsInOrder(ConfigParams::AgentConstraints
 			{
 				generateXMLAgents(it->second);
 			}
-			std::cout << "Loaded drivers from the configuration file).\n";
+			std::cout << "\nLoaded drivers from the configuration file.\n";
 			break;
 			
 		case LoadAg_Pedestrians:
@@ -474,7 +463,6 @@ void ExpandShortTermConfigFile::loadAgentsInOrder(ConfigParams::AgentConstraints
 			throw std::runtime_error("Unknown item in load_agents");
 		}
 	}
-	std::cout << "Loading Agents, Pedestrians, and Trip Chains as specified in loadAgentOrder: Success!\n";
 }
 
 void ExpandShortTermConfigFile::generateAgentsFromTripChain(ConfigParams::AgentConstraints &constraints)
@@ -717,8 +705,11 @@ void ExpandShortTermConfigFile::setTicks()
 
 void ExpandShortTermConfigFile::printSettings()
 {
-	std::cout << "Config parameters:\n";
+	std::cout << "\nConfiguration parameters:\n";
 	std::cout << "------------------\n";
+
+	//Output Database details
+	std::cout << "Database connection: " << cfg.getDatabaseConnectionString() << "\n";
 
 	//Print the WorkGroup strategy.
 	std::cout << "WorkGroup assignment: ";
@@ -743,23 +734,11 @@ void ExpandShortTermConfigFile::printSettings()
 	std::cout << "  Start time: " << cfg.simStartTime().getStrRepr() << "\n";
 	std::cout << "  Mutex strategy: " << (cfg.mutexStategy() == MtxStrat_Locked ? "Locked" : cfg.mutexStategy() == MtxStrat_Buffered ? "Buffered" : "Unknown") << "\n";
 
-	//Output Database details
-	if (stConfig.networkSource == NETSRC_XML)
-	{
-		std::cout << "Network details loaded from xml file: " << stConfig.networkXmlInputFile << "\n";
-	}
-	if (stConfig.networkSource == NETSRC_DATABASE)
-	{
-		std::cout << "Network details loaded from database connection: " << cfg.getDatabaseConnectionString() << "\n";
-	}
-
 	//Print the network (this will go to a different output file...)
-	std::cout << "------------------\n";
+	std::cout << "------------------\n\n";
 	NetworkPrinter nwPrinter(cfg, cfg.outNetworkFileName);
 	nwPrinter.printSignals(getSignalsInfo(Signal::getMapOfIdVsSignals()));
 	nwPrinter.printNetwork(RoadNetwork::getInstance());
-	SimulationInfoPrinter simInfoPrinter(cfg, cfg.outSimInfoFileName);
-	simInfoPrinter.printSimulationInfo();
 }
 
 const std::string ExpandShortTermConfigFile::getSignalsInfo(std::map<unsigned int, Signal*>& signals) const

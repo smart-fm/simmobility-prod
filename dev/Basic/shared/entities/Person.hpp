@@ -52,8 +52,8 @@ class OD_Trip;
 class Person : public sim_mob::Agent
 {
 private:
-	/**The database id*/
-	std::string databaseID;
+	/**The person id in the database*/
+	std::string personDbId;
 
 	/**The age of the person*/
 	unsigned int age;
@@ -304,12 +304,12 @@ public:
 
 	const std::string& getDatabaseId() const
 	{
-		return databaseID;
+		return personDbId;
 	}
 
 	void setDatabaseId(const std::string &databaseId)
 	{
-		databaseID = databaseId;
+		personDbId = databaseId;
 	}
 	
 	unsigned int getAge()

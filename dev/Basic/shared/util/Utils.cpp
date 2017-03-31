@@ -124,9 +124,10 @@ void Utils::printAndDeleteLogFiles(const std::list<std::string>& logFileNames,st
 	for (std::list<std::string>::const_iterator it = logFileNames.begin(); it != logFileNames.end(); it++)
 	{
 		std::ifstream src(it->c_str(), std::ios::binary);
-		if (!src.fail())
+
+		//Check if the file is good and is not empty
+		if (!src.fail() && src.peek() != std::ifstream::traits_type::eof())
 		{
-			//If it's good, this part's easy.
 			out << src.rdbuf();
 			src.close();
 		}

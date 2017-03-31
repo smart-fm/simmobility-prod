@@ -1705,25 +1705,43 @@ void Conflux::dropOffTaxiTraveler(Person_MT* person)
 	}
 }
 
-Person_MT* Conflux::pickupTaxiTraveler()
+Person_MT* Conflux::pickupTaxiTraveler(std::string* personId)
 {
 	Person_MT* res = nullptr;
 	if(travelingPersons.size()>0)
 	{
-		res = travelingPersons.front();
-		travelingPersons.pop_front();
-		res->currSubTrip->endLocationId = boost::lexical_cast<std::string>(this->getConfluxNode()->getNodeId());
-		res->currSubTrip->endLocationType = "NODE";
-		res->getRole()->collectTravelTime();
-		UpdateStatus status = res->checkTripChain(currFrame.ms());
-		status = res->checkTripChain(currFrame.ms());
-		if (status.status == UpdateStatus::RS_DONE)
+		if(!personId)
 		{
-			return nullptr;
+			res = travelingPersons.front();
+			travelingPersons.pop_front();
 		}
-		res->currSubTrip->startLocationId = boost::lexical_cast<std::string>(this->getConfluxNode()->getNodeId());
-		res->currSubTrip->startLocationType = "NODE";
-		res->getRole()->setArrivalTime(currFrame.ms()+ConfigManager::GetInstance().FullConfig().simStartTime().getValue());
+		else
+		{
+			for(auto i = travelingPersons.begin(); i!=travelingPersons.end(); i++)
+			{
+				if((*i)->getDatabaseId()== *personId)
+				{
+					travelingPersons.erase(i);
+					res = (*i);
+					break;
+				}
+			}
+		}
+		if(res)
+		{
+			res->currSubTrip->endLocationId = boost::lexical_cast<std::string>(this->getConfluxNode()->getNodeId());
+			res->currSubTrip->endLocationType = "NODE";
+			res->getRole()->collectTravelTime();
+			UpdateStatus status = res->checkTripChain(currFrame.ms());
+			status = res->checkTripChain(currFrame.ms());
+			if (status.status == UpdateStatus::RS_DONE)
+			{
+				return nullptr;
+			}
+			res->currSubTrip->startLocationId = boost::lexical_cast<std::string>(this->getConfluxNode()->getNodeId());
+			res->currSubTrip->startLocationType = "NODE";
+			res->getRole()->setArrivalTime(currFrame.ms()+ConfigManager::GetInstance().FullConfig().simStartTime().getValue());
+		}
 	}
 	return res;
 }

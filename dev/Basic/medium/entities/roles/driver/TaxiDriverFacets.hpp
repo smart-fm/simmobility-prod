@@ -70,6 +70,13 @@ public:
 	 * @return true when taxi is leaving from current stand
 	 */
 	bool isToBeRemovedFromTaxiStand();
+	/**
+	 * driving taxi for oncall request
+	 * @param personId is person id who is calling taxi
+	 * @param destination is a node where calling person is waiting there
+	 * @return true if calling request is successful
+	 */
+	bool driveToNodeOnCall(const std::string& personId, const Node* destination);
 
 private:
 	/**record next destination node*/
@@ -99,7 +106,8 @@ private:
 	std::queue<TaxiFleetManager::TaxiFleet> taxiFleets;
 	/**record breaking information*/
 	std::shared_ptr<BrokenInfo> nextBroken;
-
+	/**record person id to be picked up*/
+	std::string personIdPickedUp;
 private:
 	/**
 	 * assign taxi at original node

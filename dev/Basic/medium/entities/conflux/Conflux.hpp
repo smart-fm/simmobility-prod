@@ -525,9 +525,10 @@ public:
 
 	/**
 	 * pick up taxi-traveler at current conflux.
+	 * @param personId is a pointer to the person id, default value is zero
 	 * @return person who successfully get boarding. if result is null, means no traveler exist.
 	 */
-	Person_MT* pickupTaxiTraveler();
+	Person_MT* pickupTaxiTraveler(std::string* personId);
 
 	/**
 	 * drop off taxi-traveler at current conflux.

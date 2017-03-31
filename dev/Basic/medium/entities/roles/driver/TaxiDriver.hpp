@@ -51,8 +51,9 @@ public:
 	/**
 	 * perform pickup at the node
 	 * @param parentConflux is a pointer to the current conflux
+	 * @param personId is a pointer to the person id, default value is zero
 	 */
-	void pickUpPassngerAtNode(Conflux *parentConflux);
+	void pickUpPassngerAtNode(Conflux *parentConflux, std::string* personId=nullptr);
 	/**
 	 * get movement facet
 	 * @return movement facet which is in charge of movement
@@ -88,6 +89,12 @@ public:
 	 * @return a passenger object if have.
 	 */
 	Passenger* getPassenger();
+	/**
+	 * message handler which provide a chance to handle message transfered from parent agent.
+	 * @param type of the message.
+	 * @param message data received.
+	 */
+	virtual void HandleParentMessage(messaging::Message::MessageType type, const messaging::Message& message);
 
 private:
 	/**hold passenger object*/

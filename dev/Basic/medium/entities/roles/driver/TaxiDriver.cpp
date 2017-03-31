@@ -75,6 +75,23 @@ void TaxiDriver::passengerChoiceModel(const Node *origin,const Node *destination
 	currentRouteChoice = PrivateTrafficRouteChoice::getInstance()->getPathAfterPassengerPickup(currSubTrip, false, nullptr, currentLane,useInSimulationTT);
 }
 
+void TaxiDriver::HandleParentMessage(messaging::Message::MessageType type, const messaging::Message& message)
+{
+	switch (type)
+	{
+	case CALL_TAXI:
+	{
+		const TaxiCallMessage& msg = MSG_CAST(TaxiCallMessage, message);
+		taxiDriverMovement->driveToNodeOnCall(msg.personId, msg.destination);
+		break;
+	}
+	default:
+	{
+		break;
+	}
+	}
+}
+
 void TaxiDriver::setTaxiDriveMode(const DriverMode &mode)
 {
 	taxiDriverMode = mode;
@@ -96,13 +113,13 @@ TaxiDriverMovement *TaxiDriver::getMovementFacet()
 	return taxiDriverMovement;
 }
 
-void TaxiDriver::pickUpPassngerAtNode(Conflux *parentConflux)
+void TaxiDriver::pickUpPassngerAtNode(Conflux *parentConflux, std::string* personId)
 {
 	if (!parentConflux)
 	{
 		return;
 	}
-	Person_MT *personToPickUp = parentConflux->pickupTaxiTraveler();
+	Person_MT *personToPickUp = parentConflux->pickupTaxiTraveler(personId);
 	if (personToPickUp)
 	{
 		std::string id = personToPickUp->getDatabaseId();

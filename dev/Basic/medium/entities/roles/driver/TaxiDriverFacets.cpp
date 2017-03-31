@@ -214,6 +214,15 @@ bool TaxiDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 			return res;
 		}
 	}
+	else if(parentTaxiDriver->getDriverMode() == DRIVE_ON_CALL && pathMover.isEndOfPath())
+	{
+		Conflux *parentConflux = currSegStat->getParentConflux();
+		parentTaxiDriver->pickUpPassngerAtNode(parentConflux, &personIdPickedUp);
+		if (parentTaxiDriver->getPassenger() == nullptr)
+		{
+			setCruisingMode();
+		}
+	}
 
 	res = DriverMovement::moveToNextSegment(params);
 
@@ -260,7 +269,7 @@ void TaxiDriverMovement::frame_tick()
 		parentTaxiDriver->taxiPassenger->Movement()->frame_tick();
 	}
 
-	if (mode == DRIVER_IN_BREAK && nextBroken.get())
+	if (mode == DRIVE_IN_BREAK && nextBroken.get())
 	{
 		if (nextBroken->duration < params.secondsInTick)
 		{
@@ -379,7 +388,8 @@ void TaxiDriverMovement::frame_tick()
 		params.elapsedSeconds = params.secondsInTick;
 		parentTaxiDriver->parent->setRemainingTimeThisTick(0.0);
 	}
-	else if (mode == CRUISE || mode == DRIVE_WITH_PASSENGER || mode == DRIVE_TO_TAXISTAND || mode == DRIVE_FOR_DRIVER_CHANGE_SHIFT || mode == DRIVE_FOR_BREAK)
+
+	if (mode !=QUEUING_AT_TAXISTAND && mode!=DRIVE_IN_BREAK)
 	{
 		DriverMovement::frame_tick();
 	}
@@ -399,7 +409,7 @@ bool TaxiDriverMovement::setBreakMode()
 		const Node* toNode = currSegStat->getRoadSegment()->getParentLink()->getToNode();
 		if (toNode == nextBroken->parkingNode)
 		{
-			parentTaxiDriver->setTaxiDriveMode(DRIVER_IN_BREAK);
+			parentTaxiDriver->setTaxiDriveMode(DRIVE_IN_BREAK);
 			parentTaxiDriver->getResource()->setMoving(false);
 			parentTaxiDriver->parent->setRemainingTimeThisTick(0.0);
 			Conflux *nodeConflux = Conflux::getConfluxFromNode(toNode);
@@ -631,6 +641,32 @@ void TaxiDriverMovement::setCruisingMode()
 	if(pathMover.isEndOfPath()){
 		selectNextLinkWhileCruising();
 	}
+}
+
+bool TaxiDriverMovement::driveToNodeOnCall(const std::string& personId, const Node* destination)
+{
+	bool res = false;
+	const DriverMode &mode = parentTaxiDriver->getDriverMode();
+	if(mode == CRUISE && destination)
+	{
+		const Link* link = this->currLane->getParentSegment()->getParentLink();
+		SubTrip currSubTrip;
+		currSubTrip.origin = WayPoint(link->getFromNode());
+		currSubTrip.destination = WayPoint(destination);
+		std::vector<WayPoint> currentRouteChoice = PrivateTrafficRouteChoice::getInstance()->getPath(currSubTrip, false, link, parentTaxiDriver->parent->usesInSimulationTravelTime());
+		if(currentRouteChoice.size()>0)
+		{
+			res = true;
+			currentNode = link->getFromNode();
+			destinationNode = destination;
+			setCurrentNode(currentNode);
+			setDestinationNode(destinationNode);
+			addRouteChoicePath(currentRouteChoice);
+			parentTaxiDriver->setTaxiDriveMode(DRIVE_ON_CALL);
+			personIdPickedUp = personId;
+		}
+	}
+	return res;
 }
 
 void TaxiDriverMovement::driveToTaxiStand()

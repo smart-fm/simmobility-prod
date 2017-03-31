@@ -426,13 +426,11 @@ bool DriverMovement::moveToNextSegment(DriverUpdateParams& params)
 	if (curRs && curRs != nxtRs)
 	{
 		onSegmentCompleted(curRs, nxtRs);
-		nextSurveillanceStn = nxtRs ? nxtRs->getSurveillanceStations().begin() : curRs->getSurveillanceStations().end();
 	}
 
 	if (isNewLinkNext)
 	{
 		onLinkCompleted(curRs->getParentLink(), (nxtRs ? nxtRs->getParentLink() : nullptr));
-		nextSurveillanceStn = nxtRs ? nxtRs->getSurveillanceStations().begin() : curRs->getSurveillanceStations().end();
 	}
 
 	//reset these local variables in case path has been changed in onLinkCompleted
@@ -538,19 +536,27 @@ void DriverMovement::onSegmentCompleted(const RoadSegment* completedRS, const Ro
 	traversed.push_back(completedRS);
 
 	//2. update travel distance
-	travelMetric.distance += completedRS->getPolyLine()->getLength();	
+	travelMetric.distance += completedRS->getPolyLine()->getLength();
+
+	//3. update the next surveillance station
+	nextSurveillanceStn = nextRS ? nextRS->getSurveillanceStations().begin() :
+	                      completedRS->getSurveillanceStations().end();
 }
 
 void DriverMovement::onLinkCompleted(const Link * completedLink, const Link * nextLink)
 {
-	//2. Re-routing
+	//1. Re-routing
 	if (ConfigManager::GetInstance().FullConfig().getPathSetConf().reroute)
 	{
 		reroute();
 	}
 	
-	//3. CBD
+	//2. CBD
 	processCBD_TravelMetrics(completedLink, nextLink);
+
+	//3. update the next surveillance station
+	nextSurveillanceStn = nextLink ? nextLink->getRoadSegments().front()->getSurveillanceStations().begin() :
+	                      completedLink->getRoadSegments().back()->getSurveillanceStations().end();
 }
 
 void DriverMovement::flowIntoNextLinkIfPossible(DriverUpdateParams& params)

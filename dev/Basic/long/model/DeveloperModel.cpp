@@ -51,6 +51,7 @@
 #include "util/PrintLog.hpp"
 #include "SOCI_ConvertersLong.hpp"
 #include "DatabaseHelper.hpp"
+#include <random>
 
 using namespace sim_mob;
 using namespace sim_mob::long_term;

@@ -64,6 +64,11 @@ private:
      */
     void processSimulationNode(xercesc::DOMElement* node);
 
+
+    /*
+     * Process the schemas defined in the xml file
+     * */
+    void processSchemasParamsNode(xercesc::DOMElement* node);
     /**
      * Processes the longTerm element in the config file
      * @param node node corresponding to the longTerm element in xml file

@@ -1441,12 +1441,11 @@ void HM_Model::startImpl()
 	// Connect to database and load data for this model.
 	DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
 	conn.connect();
-	conn.setSchema("synpop12.");
-
+	conn.setSchema(config.schemas.main_schema);
 
 	DB_Connection conn_calibration(sim_mob::db::POSTGRES, dbConfig);
 	conn_calibration.connect();
-	conn_calibration.setSchema("calibration2012.");
+	conn_calibration.setSchema(config.schemas.calibration_schema);
 
 	resume = config.ltParams.resume;
 	std::string  outputSchema = config.ltParams.currentOutputSchema;
@@ -2041,10 +2040,10 @@ void HM_Model::startImpl()
 				}
 			}
 
-			if(thisUnit->getZoneHousingType() == 0)
-			{
-				PrintOutV(" " << thisUnit->getId() << " " << thisUnit->getDwellingType() << " " << planningAreaName << std::endl );
-			}
+			//if(thisUnit->getZoneHousingType() == 0)
+			//{
+				//PrintOutV(" " << thisUnit->getId() << " " << thisUnit->getDwellingType() << " " << planningAreaName << std::endl );
+			//}
 		}
 	}
 

@@ -82,11 +82,11 @@ void DeveloperModel::startImpl() {
 	dbConfig.load();
 	// Connect to database and load data for this model.
 	DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
-	conn.setSchema("synpop12.");
+	conn.setSchema(config.schemas.main_schema);
 	conn.connect();
 
 	DB_Connection conn_calibration(sim_mob::db::POSTGRES, dbConfig);
-	conn_calibration.setSchema("calibration2012.");
+	conn_calibration.setSchema(config.schemas.calibration_schema);
 	conn_calibration.connect();
 
 	if (conn.isConnected())

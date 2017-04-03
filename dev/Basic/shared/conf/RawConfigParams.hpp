@@ -18,6 +18,17 @@
 
 namespace sim_mob {
 
+
+struct Schemas
+{
+	Schemas();
+	bool enabled;
+	std::string main_schema;
+	std::string calibration_schema;
+	std::string public_schema;
+	std::string demand_schema;
+};
+
 /**
  * Represents the long-term developer model of the config file
  */
@@ -605,6 +616,8 @@ public:
 
     /// "Constructs" for general re-use.
 	Constructs constructs;
+
+	Schemas schemas;
 
     /// Settings for Long Term Parameters
 	LongTermParams ltParams;

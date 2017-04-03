@@ -128,6 +128,7 @@ void sim_mob::ParseConfigFile::processXmlFile(XercesDOMParser& parser)
 
 	if( longTerm )
 	{
+		processSchemasParamsNode(GetSingleElementByName(rootNode,"schemas"));
         processConstructsNode(GetSingleElementByName(rootNode,"constructs"));
         processLongTermParamsNode( GetSingleElementByName(rootNode, "longTermParams"));
         processModelScriptsNode(GetSingleElementByName(rootNode, "model_scripts"));
@@ -220,9 +221,34 @@ void sim_mob::ParseConfigFile::processConstructCredentialNode(xercesc::DOMElemen
 	}
 }
 
+
+void sim_mob::ParseConfigFile::processSchemasParamsNode(xercesc::DOMElement* node)
+{
+	if (!node)
+	{
+		return;
+	}
+
+    ///The schemaParams tag has an attribute
+	cfg.ltParams.enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), false);
+
+	if (!cfg.ltParams.enabled)
+	{
+		return;
+	}
+
+	cfg.schemas.main_schema = ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "main_schema"), "value"), static_cast<std::string>(""));
+	cfg.schemas.calibration_schema = ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "calibration_schema"), "value"), static_cast<std::string>(""));
+	cfg.schemas.public_schema = ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "public_schema"), "value"), static_cast<std::string>(""));
+	cfg.schemas.demand_schema = ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "demand_schema"), "value"), static_cast<std::string>(""));
+}
+
+
+
 void sim_mob::ParseConfigFile::processLongTermParamsNode(xercesc::DOMElement* node)
 {
-	if (!node) {
+	if (!node)
+	{
 		return;
 	}
 
@@ -310,7 +336,6 @@ void sim_mob::ParseConfigFile::processLongTermParamsNode(xercesc::DOMElement* no
 	scenario.enabled = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName( node, "scenario"), "enabled"), false);
 	scenario.scenarioName = ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "name"), "value"), "");
 	cfg.ltParams.scenario = scenario;
-
 
 	LongTermParams::OutputFiles outputFiles;
 

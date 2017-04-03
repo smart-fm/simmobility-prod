@@ -94,12 +94,12 @@
 	</credentials>
     </constructs>
 
-   <schema enabled= "true">
+   <schemas enabled= "true">
 	<main_schema  value= "synpop12."/>
-	<calibation_schema value= "calibration2012."/>
+	<calibration_schema value= "calibration2012."/>
 	<public_schema value= "public."/>
 	<demand_schema value= "demand."/>
-   </schema>
+   </schemas>
               
     <!-- Long Term Configurations parameters -->
     <longTermParams enabled ="true">

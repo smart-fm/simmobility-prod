@@ -53,7 +53,7 @@ void SimulationStartPointDao::insertSimulationStartPoint(SimulationStartPoint& o
 
 std::vector<SimulationStartPoint*> SimulationStartPointDao::getAllSimulationStartPoints(std::string schema)
 {
-	const std::string queryStr = "SELECT * FROM " + APPLY_SCHEMA(schema, ".simulation_start_point") + LIMIT;
+	const std::string queryStr = "SELECT * FROM " + APPLY_SCHEMA(schema, ".simulation_start_point") ;
 	std::vector<SimulationStartPoint*> simulationStartPointsList;
 	getByQuery(queryStr,simulationStartPointsList);
 	return simulationStartPointsList;

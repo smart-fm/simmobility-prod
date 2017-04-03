@@ -18,11 +18,11 @@ namespace sim_mob {
 
     namespace long_term {
 
-#define APPLY_SCHEMA(schema, field) std::string(schema)+std::string(field)
 
-        /**
-         * Schemas
-         */
+/*
+		#define APPLY_SCHEMA(schema, field) std::string(schema)+std::string(field)
+
+
         const std::string DB_EMPTY_QUERY = "";
         const std::string DB_SCHEMA_EMPTY = "";
         const std::string LIMIT_10000 = " order by random() limit 10000";
@@ -30,9 +30,7 @@ namespace sim_mob {
         const std::string LIMIT_ALL = "";
         const std::string LIMIT = LIMIT_ALL;
 
-        /**
-         * Tables
-         */
+
         const std::string DB_TABLE_HOUSEHOLD = APPLY_SCHEMA(MAIN_SCHEMA, "household");
         const std::string DB_TABLE_BUILDING = APPLY_SCHEMA(MAIN_SCHEMA, "fm_building");
         const std::string DB_TABLE_UNIT = APPLY_SCHEMA(MAIN_SCHEMA, "fm_unit_res");
@@ -88,14 +86,9 @@ namespace sim_mob {
         const std::string DB_TABLE_ROI_LIMITS = APPLY_SCHEMA(CALIBRATION_SCHEMA, "roi_limits");
 
 
-        /**
-         * Views
-         */
+
         const std::string DB_VIEW_UNIT = APPLY_SCHEMA(MAIN_SCHEMA, "view_unit");
 
-        /**
-         * Functions API
-         */
         const std::string DB_FUNC_DEL_HOUSEHOLD_BY_ID = APPLY_SCHEMA(MAIN_SCHEMA, "deleteHouseholdById(:id)");
         const std::string DB_FUNC_GET_HOUSEHOLDS	  = APPLY_SCHEMA(MAIN_SCHEMA, "getHouseholds()");
         const std::string DB_FUNC_GET_HOUSEHOLD_BY_ID = APPLY_SCHEMA(MAIN_SCHEMA, "getHouseholdById(:id)");
@@ -180,10 +173,7 @@ namespace sim_mob {
         const std::string DB_FUNC_GET_HH_PLANNING_AREA = APPLY_SCHEMA(MAIN_SCHEMA, "getHouseholdPlanningArea()");
         const std::string DB_FUNC_GET_IND_EMP_SEC = APPLY_SCHEMA(MAIN_SCHEMA, "getIndividualEmpSecIds()");
 
-        /**
-         * Fields
-         */
-
+		*/
         //NEW DATABASE
         const std::string DB_FIELD_ID = "id";
         const std::string DB_FIELD_UNIT_ID = "fm_unit_id";
@@ -260,10 +250,7 @@ namespace sim_mob {
         const std::string DB_FIELD_TYPICAL_AREA = "typical_area";
         const std::string DB_FIELD_CONSTRUCTION_COST_PER_UNIT = "construction_cost_per_unit";
 
-
-        /**
-         * INSERT
-         */
+        /*
         const std::string DB_INSERT_HOUSEHOLD = "INSERT INTO "
 												+ DB_TABLE_HOUSEHOLD + " ("
 												+ DB_FIELD_ID + ", "
@@ -294,9 +281,6 @@ namespace sim_mob {
         const std::string DB_UPDATE_RESIDENTIAL_STATUS = DB_EMPTY_QUERY;
         const std::string DB_UPDATE_AWAKENING = DB_EMPTY_QUERY;
 
-        /**
-         * DELETE
-         */
         const std::string DB_DELETE_BUILDING 	= "SELECT * FROM " + DB_FUNC_DEL_BUILDING_BY_ID;
         const std::string DB_DELETE_UNIT 		= "SELECT * FROM " + DB_FUNC_DEL_UNIT_BY_ID;
         const std::string DB_DELETE_POSTCODE 	= DB_EMPTY_QUERY;
@@ -307,10 +291,6 @@ namespace sim_mob {
         const std::string DB_DELETE_AWAKENING = DB_EMPTY_QUERY;
 
 
-
-        /**
-         * GET ALL
-         */
         const std::string DB_GETALL_HOUSEHOLD 	= "SELECT * FROM " + DB_FUNC_GET_HOUSEHOLDS + LIMIT;
         const std::string DB_GETALL_BUILDING 	= "SELECT * FROM " + DB_FUNC_GET_BUILDINGS  + LIMIT;
         const std::string DB_GETALL_UNIT 		= "SELECT * FROM " + DB_FUNC_GET_UNITS + LIMIT;
@@ -378,9 +358,7 @@ namespace sim_mob {
         const std::string DB_GETALL_PRE_SCHOOL_INDIVIDUALS = "SELECT * FROM "+ DB_FUNC_GET_PRE_SCHOOL_INDS + LIMIT;
         const std::string DB_GETALL_IND_EMP_SEC = "SELECT * FROM "+ DB_FUNC_GET_IND_EMP_SEC + LIMIT;
 
-        /**
-         * GET BY ID
-         */
+
         const std::string DB_GETBYID_HOUSEHOLD = "SELECT * FROM " + DB_FUNC_GET_HOUSEHOLD_BY_ID;
         const std::string DB_GETBYID_BUILDING  = "SELECT * FROM " + DB_FUNC_GET_BUILDING_BY_ID;
         const std::string DB_GETBYID_UNIT      = "SELECT * FROM " + DB_FUNC_GET_UNIT_BY_ID;
@@ -417,6 +395,8 @@ namespace sim_mob {
         const std::string DB_GETBYID_OWNERTENANTMOVINGRATE = "SELECT * FROM "+ DB_TABLE_OWNERTENANTMOVINGRATE + " WHERE id = :v1;";
         const std::string DB_GETBYID_TENURETRANSITIONRATE = "SELECT * FROM "+ DB_TABLE_TENURETRANSITIONRATE + " WHERE id = :v1;";
         const std::string DB_GETBYID_ALTERNATIVE_HEDONIC_PRICE = "SELECT * FROM " + DB_FUNC_GET_ALTERNATIVE_HEDONIC_PRICE + " WHERE planning_area = :v1;";
+
+        */
 
     }
 }

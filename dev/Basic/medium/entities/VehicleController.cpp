@@ -32,9 +32,9 @@ VehicleController::~VehicleController()
 }
 
 bool VehicleController::RegisterVehicleController(int id,
-	const MutexStrategy& mtxStrat)
+	const MutexStrategy& mtxStrat, int tickRefresh)
 {
-	VehicleController *vehicleController = new VehicleController(id, mtxStrat);
+	VehicleController *vehicleController = new VehicleController(id, mtxStrat, tickRefresh);
 
 	if (!instance)
 	{
@@ -150,6 +150,26 @@ Entity::UpdateStatus VehicleController::frame_tick(timeslice now)
 	// TODO: See if keeping track of all taxi locations
 	//       speeds up a lot of time
 	return Entity::UpdateStatus::Continue;
+
+	if (currTick == tickThreshold)
+	{
+		currTick = 0;
+
+		auto message = messageQueue.begin();
+		while (message != messageQueue.end())
+		{
+			assignVehicleToRequest(*message);
+			message++;
+		}
+
+		messageQueue.clear();
+	}
+	else
+	{
+		currTick += 1;
+	}
+
+	return Entity::UpdateStatus::Continue;
 }
 
 void VehicleController::frame_output(timeslice now)
@@ -163,6 +183,7 @@ void VehicleController::HandleMessage(messaging::Message::MessageType type, cons
 	        case MSG_VEHICLE_REQUEST:
 	        {
 				const VehicleRequestMessage& requestArgs = MSG_CAST(VehicleRequestMessage, message);
+				messageQueue.push_back(requestArgs);
 	        	assignVehicleToRequest(requestArgs);
 	            break;
 	        }
@@ -177,4 +198,5 @@ bool VehicleController::isNonspatial()
 }
 }
 }
+
 

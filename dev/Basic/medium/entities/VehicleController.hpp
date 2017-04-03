@@ -23,17 +23,21 @@ namespace medium
 
 class VehicleController: public sim_mob::Agent {
 protected:
-	explicit VehicleController(int id = -1, const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered) :
+	explicit VehicleController(int id = -1, const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered, int tickRefresh = 0) :
 			Agent(mtxStrat, id)
 	{
 			startTime = 0; // vehicle controllers are alive for the entire duration of the simulation
+
+			currTick = 0;
+			tickThreshold = tickRefresh;
 	}
 
 public:
 	/**
 	 * Initialize a single VehicleController with the given start time and MutexStrategy.
 	 */
-	static bool RegisterVehicleController(int id = -1, const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered);
+	static bool RegisterVehicleController(int id = -1, const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered,
+		int tickRefresh = 0);
 
 	virtual ~VehicleController();
 	
@@ -96,8 +100,12 @@ protected:
 	virtual void assignVehicleToRequest(VehicleRequestMessage request);
 
 private:
+	int currTick;
+	int tickThreshold;
 	/**store driver information*/
 	std::vector<Person_MT*> taxiDrivers;
+	/**store message information*/
+	std::vector<VehicleRequestMessage> messageQueue;
 	/**store self instance*/
 	static VehicleController* instance;
 	std::mutex mtx;
@@ -105,4 +113,5 @@ private:
 }
 }
 #endif /* VehicleController_HPP_ */
+
 

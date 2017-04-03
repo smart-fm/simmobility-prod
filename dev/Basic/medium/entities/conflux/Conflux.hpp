@@ -164,6 +164,9 @@ private:
 	/**list of persons traveling for taxi*/
 	PersonList travelingPersons;
 
+	/**list of persons for breaking drivers*/
+	PersonList brokenPersons;
+
 	/**
 	 * list of persons who are hidden in this conflux awaiting a wake-up call
 	 * All persons whose roles resolve to teleportation (e.g. car sharing and private bus) are kept in this list.
@@ -447,6 +450,18 @@ public:
 	void addConnectedConflux(Conflux* conflux);
 
 	/**
+	 * accept broken driver
+	 * @param person is pointer to a person who is broken
+	 */
+	void acceptBrokenDriver(Person_MT* person);
+
+	/**
+	 * remove broken driver
+	 * @param person is pointer to a person who will be removed
+	 */
+	void removeBrokenDriver(Person_MT* person);
+
+	/**
 	 * adds a person into this conflux
 	 * @param person person to be added
 	 * @param rdSeg starting road segment of ag
@@ -510,9 +525,10 @@ public:
 
 	/**
 	 * pick up taxi-traveler at current conflux.
+	 * @param personId is a pointer to the person id, default value is zero
 	 * @return person who successfully get boarding. if result is null, means no traveler exist.
 	 */
-	Person_MT* pickupTaxiTraveler();
+	Person_MT* pickupTaxiTraveler(std::string* personId);
 
 	/**
 	 * drop off taxi-traveler at current conflux.

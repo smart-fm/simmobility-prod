@@ -41,6 +41,10 @@ enum PublicTransitMessage
 	BUS_DEPARTURE
 };
 
+enum TaxiMessage
+{
+	CALL_TAXI = 7000000
+};
 /**
  * Message holding a pointer to BusStop
  */
@@ -57,7 +61,17 @@ public:
 	const BusStop* nextStop;
 	std::string busLines;
 };
-
+/**
+ * Message for calling a taxi
+ */
+class TaxiCallMessage: public messaging::Message
+{
+public:
+	TaxiCallMessage(const std::string& personId, const Node* destination):personId(personId),destination(destination){}
+	virtual ~TaxiCallMessage(){}
+	const Node* destination = nullptr;
+	const std::string personId;
+};
 /**
  * Message holding a pointer to busDriver
  */
@@ -148,24 +162,6 @@ public:
 	Person_MT* person;
 	const Node* startNode;
 	const Node* destinationNode;
-};
-
-/**
- * Message to assign a vehicle to a passenger
- */
-class VehicleAssignmentMessage: public messaging::Message
-{
-public:
-	VehicleAssignmentMessage(Person_MT* person) :
-			driver(person)
-	{
-	}
-
-	virtual ~VehicleAssignmentMessage()
-	{
-	}
-
-	Person_MT* driver;
 };
 
 }

@@ -63,8 +63,8 @@ private:
 	std::map<unsigned int, BusStop *> mapOfIdvsBusStops;
 
 	/**This map stores all the taxi stands in the network with taxi-stand id as the key*/
-	std::map<unsigned int, TaxiStand *> mapOfIdvsTaxiStand;
-	
+	std::map<unsigned int, TaxiStand *> mapOfIdvsTaxiStands;
+
 	/**This map stores all the parking slots in the network with the id as the key*/
 	std::map<unsigned int, ParkingSlot *> mapOfIdVsParkingSlots;
 
@@ -103,6 +103,8 @@ public:
 	const std::map<unsigned int, TurningConflict *>& getMapOfIdvsTurningConflicts() const;
 
 	const std::map<unsigned int, BusStop *>& getMapOfIdvsBusStops() const;
+
+	const std::map<unsigned int, TaxiStand *>& getMapOfIdvsTaxiStands() const;
 
 	const std::map<unsigned int, ParkingSlot *>& getMapOfIdVsParkingSlots() const;
 

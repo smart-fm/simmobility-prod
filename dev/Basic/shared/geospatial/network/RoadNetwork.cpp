@@ -93,6 +93,11 @@ const std::map<unsigned int, ParkingSlot *>& RoadNetwork::getMapOfIdVsParkingSlo
 	return mapOfIdVsParkingSlots;
 }
 
+const map<unsigned int, TaxiStand *>& RoadNetwork::getMapOfIdvsTaxiStands() const
+{
+	return mapOfIdvsTaxiStands;
+}
+
 const std::map<unsigned int, ParkingArea *>& RoadNetwork::getMapOfIdVsParkingAreas() const
 {
 	return mapOfIdVsParkingAreas;
@@ -490,8 +495,8 @@ void RoadNetwork::addTurningPolyLine(PolyPoint point)
 void RoadNetwork::addTaxiStand(TaxiStand* stand)
 {
 	//Check if the taxi stand has already been added to the map
-	std::map<unsigned int, TaxiStand*>::iterator itStand = mapOfIdvsTaxiStand.find(stand->getStandId());
-	if (itStand != mapOfIdvsTaxiStand.end())
+	std::map<unsigned int, TaxiStand*>::iterator itStand = mapOfIdvsTaxiStands.find(stand->getStandId());
+	if (itStand != mapOfIdvsTaxiStands.end())
 	{
 		std::stringstream msg;
 		msg << "Taxi stand " << stand->getStandId() << " has already been added!";
@@ -515,7 +520,7 @@ void RoadNetwork::addTaxiStand(TaxiStand* stand)
 			standSegment->addObstacle(offset, stand);
 
 			//Insert the stand into the map
-			mapOfIdvsTaxiStand.insert(std::make_pair(stand->getStandId(), stand));
+			mapOfIdvsTaxiStands.insert(std::make_pair(stand->getStandId(), stand));
 		}
 		else
 		{

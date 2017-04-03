@@ -434,8 +434,7 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 
 	Print() << "Persons still in the simulation: " << numDriver << " (Driver)\t" << numBusDriver << " (BusDriver)\t"
 			<< numPedestrian << " (Pedestrian)\t" << numPassenger << " (Passenger)\t"
-			<< numActivities << " (Performing activity)\t"
-			<< (numPerson - numDriver - numBusDriver - numPedestrian - numActivities) << " (Unassigned)" << endl;
+			<< numActivities << " (Performing activity)\n";
 
     if (config.numAgentsKilled > 0)
 	{

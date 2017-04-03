@@ -362,7 +362,7 @@ void MessageBus::RegisterMainThread() {
 void MessageBus::UnRegisterMainThread() {
     CheckMainThread();
 
-#ifdef DEBUG
+#ifndef NDEBUG
 	printReport();
 #endif
 

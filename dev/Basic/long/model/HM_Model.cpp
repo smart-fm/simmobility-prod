@@ -1461,7 +1461,7 @@ void HM_Model::startImpl()
 			soci::session sql;
 			sql.open(soci::postgresql, conn.getConnectionStr());
 
-			std::string storedProc = CALIBRATION_SCHEMA + "workers_grp_by_logsum_params";
+			std::string storedProc = config.schemas.calibration_schema + "workers_grp_by_logsum_params";
 
 			//SQL statement
 			soci::rowset<WorkersGrpByLogsumParams> workers_grp_by_logsum_params = (sql.prepare << "select * from " + storedProc);
@@ -2193,7 +2193,7 @@ void  HM_Model::loadLTVersion(DB_Connection &conn)
 	soci::session sql;
 	sql.open(soci::postgresql, conn.getConnectionStr());
 
-	std::string storedProc = MAIN_SCHEMA + "lt_version";
+	std::string storedProc = "lt_version";
 
 	//SQL statement
 	soci::rowset<LtVersion> lt_version = (sql.prepare << "select * from " + conn.getSchema() + storedProc);

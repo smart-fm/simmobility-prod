@@ -75,7 +75,7 @@ void BidDao::toRow(Bid& data, Parameters& outParams, bool update)
 void BidDao::insertBid(Bid& bid,std::string schema)
 {
 
-	const std::string DB_INSERT_BID = "INSERT INTO " + APPLY_SCHEMA(schema, ".bids")
+	const std::string DB_INSERT_BID = "INSERT INTO " + schema + ".bids"
                 		+ " (" + "bid_id" + ", " + "simulation_day" + ", " + "seller_id" + ", " + "bidder_id"+ ", " + "current_unit_id" ", " + "new_unit_id" + ", " + "willingness_to_pay"+ ", "
                 		+ "wtp_error_term"+  ", " + "affordability_amount" + ", " + "current_unit_price" + ", " + "target_price" + ", " + "hedonic_price" + ", " + "lag_coefficient" +", " + "asking_price" + ", " + "bid_value"+ ", "
                 		+ "bids_counter" + ", " + "logsum" + ", "+ "unit_floor_area" + ", " + "unit_type_id" ", " + "current_postcode" + ", " + "new_postcode" + ", " + "move_in_date" +", " + "accepted"

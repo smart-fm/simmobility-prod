@@ -63,7 +63,7 @@ void BuildingDao::toRow(Building& data, Parameters& outParams, bool update)
 std::vector<Building*> BuildingDao::getBuildingsByParcelId(const long long parcelId,std::string schema)
 {
 
-	const std::string DB_GETBUILDINGS_BY_PARCELID      = "SELECT * FROM " + APPLY_SCHEMA(schema, ".fm_building") + " WHERE fm_parcel_id = :v1;";
+	const std::string DB_GETBUILDINGS_BY_PARCELID      = "SELECT * FROM " + schema + ".fm_building" + " WHERE fm_parcel_id = :v1;";
 	db::Parameters params;
 	params.push_back(parcelId);
 	std::vector<Building*> buildingList;
@@ -74,7 +74,7 @@ std::vector<Building*> BuildingDao::getBuildingsByParcelId(const long long parce
 void BuildingDao::insertBuilding(Building& building,std::string schema)
 {
 
-	const std::string DB_INSERT_BUILDING_OP = "INSERT INTO " + APPLY_SCHEMA(schema, ".fm_building")
+	const std::string DB_INSERT_BUILDING_OP = "INSERT INTO " + schema + ".fm_building"
 	        		+ " (" + "fm_building_id" + ", " + "fm_project_id" + ", " + "fm_parcel_id" + ", " + "storeys_above_ground"+ ", " + "storeys_below_ground" + ", " + "from_date" + ", " + "to_date"
 	        		+ ", " + "building_status" + ", " + "gross_sq_m_res" + ", " + "gross_sq_m_office" + ", " + "gross_sq_m_retail" + ", " + "gross_sq_m_other" + ", " + "last_changed_date"
 					+ ", " + "freehold" + ", " + "floor_space" + ", " + "building_type" + ", " + "sla_address_id"

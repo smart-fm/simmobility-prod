@@ -12,7 +12,6 @@
 
 #pragma once
 #include <string>
-#include "database/predaydao/DatabaseHelper.hpp"
 
 namespace sim_mob {
 

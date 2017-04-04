@@ -23,21 +23,31 @@ namespace medium
 
 class VehicleController: public sim_mob::Agent {
 protected:
-	explicit VehicleController(int id = -1, const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered, int tickRefresh = 0) :
+	explicit VehicleController(int id = -1, const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered, int tickRefresh = 0, double shareThreshold = 0) :
 			Agent(mtxStrat, id)
 	{
 			startTime = 0; // vehicle controllers are alive for the entire duration of the simulation
 
 			currTick = 0;
 			tickThreshold = tickRefresh;
+			timedelta = shareThreshold;
 	}
 
 public:
+	struct VehicleRequest
+	{
+		const std::string& personId;
+		const unsigned int startNodeId;
+		const unsigned int destinationNodeId;
+	};
+
 	/**
 	 * Initialize a single VehicleController with the given start time and MutexStrategy.
 	 */
-	static bool RegisterVehicleController(int id = -1, const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered,
-		int tickRefresh = 0);
+	static bool RegisterVehicleController(int id = -1,
+		const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered,
+		int tickRefresh = 0,
+		double shareThreshold = 0);
 
 	virtual ~VehicleController();
 	
@@ -58,16 +68,16 @@ public:
 	void initializeVehicleController(std::set<sim_mob::Entity*>& agentList);
 
 	/**
-	 * [addTaxiDriver description]
-	 * @param driver [description]
+	 * [addVehicleDriver description]
+	 * @param person [description]
 	 */
-	void addTaxiDriver(Person_MT* person);
+	virtual void addVehicleDriver(Person_MT* person);
 
 	/**
-	 * [removeTaxiDriver description]
-	 * @param driver [description]
+	 * [removeVehicleDriver description]
+	 * @param person [description]
 	 */
-	void removeTaxiDriver(Person_MT* person);
+	virtual void removeVehicleDriver(Person_MT* person);
 
 	/**
 	 * Signals are non-spatial in nature.
@@ -97,15 +107,19 @@ protected:
 	 * @param  request [description]
 	 * @return         [description]
 	 */
-	virtual void assignVehicleToRequest(VehicleRequestMessage request);
+	virtual void assignVehicleToRequest(VehicleRequest request);
+
+	virtual void assignSharedVehicles(std::vector<Person_MT*> drivers, std::vector<VehicleRequest> requests, timeslice now);
 
 private:
 	int currTick;
 	int tickThreshold;
+	double timedelta;
+	std::vector<timeslice> test;
 	/**store driver information*/
-	std::vector<Person_MT*> taxiDrivers;
+	std::vector<Person_MT*> vehicleDrivers;
 	/**store message information*/
-	std::vector<VehicleRequestMessage> messageQueue;
+	std::vector<VehicleRequest> requestQueue;
 	/**store self instance*/
 	static VehicleController* instance;
 	std::mutex mtx;
@@ -113,5 +127,6 @@ private:
 }
 }
 #endif /* VehicleController_HPP_ */
+
 
 

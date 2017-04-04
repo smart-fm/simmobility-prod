@@ -294,8 +294,13 @@ void Conflux::addAgent(Person_MT* person)
 		}
 		case Role<Person_MT>::RL_TRAVELPEDESTRIAN:
 		{
+			std::vector<SubTrip>::iterator subTripItr = person->currSubTrip;
+			WayPoint personTravelDestination = (*subTripItr).destination;
+			const Node * personDestinationNode = personTravelDestination.node;
+
 			MessageBus::PostMessage(VehicleController::GetInstance(), MSG_VEHICLE_REQUEST, messaging::MessageBus::MessagePtr(
-				new VehicleRequestMessage(person, confluxNode, nullptr)));
+				new VehicleRequestMessage(person->getDatabaseId(), confluxNode->getNodeId(), personDestinationNode->getNodeId())));
+			
 			travelingPersons.push_back(person);
 			break;
 		}
@@ -2884,4 +2889,5 @@ sim_mob::medium::PersonTransferMessage::PersonTransferMessage(Person_MT* person,
 sim_mob::medium::PersonTransferMessage::~PersonTransferMessage()
 {
 }
+
 

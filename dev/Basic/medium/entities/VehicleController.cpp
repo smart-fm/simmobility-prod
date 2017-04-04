@@ -14,6 +14,8 @@
 #include <iostream>
 #include <boost/date_time.hpp>
 #include "../shared/message/MessageBus.hpp"
+#include "path/PathSetManager.hpp"
+#include "geospatial/network/RoadNetwork.hpp"
 
 namespace bt = boost::posix_time;
 namespace sim_mob
@@ -32,9 +34,11 @@ VehicleController::~VehicleController()
 }
 
 bool VehicleController::RegisterVehicleController(int id,
-	const MutexStrategy& mtxStrat, int tickRefresh)
+	const MutexStrategy& mtxStrat,
+	int tickRefresh,
+	double shareThreshold)
 {
-	VehicleController *vehicleController = new VehicleController(id, mtxStrat, tickRefresh);
+	VehicleController *vehicleController = new VehicleController(id, mtxStrat, tickRefresh, shareThreshold);
 
 	if (!instance)
 	{
@@ -49,30 +53,43 @@ bool VehicleController::HasVehicleController()
 	return (instance != nullptr);
 }
 
-// TODO: These functions should be abstract
-void VehicleController::addTaxiDriver(Person_MT* person)
+void VehicleController::addVehicleDriver(Person_MT* person)
 {
-	VehicleController::taxiDrivers.push_back(person);
+	VehicleController::vehicleDrivers.push_back(person);
 }
 
-void VehicleController::removeTaxiDriver(Person_MT* person)
+void VehicleController::removeVehicleDriver(Person_MT* person)
 {
-	taxiDrivers.erase(std::remove(taxiDrivers.begin(),
-		taxiDrivers.end(), person), taxiDrivers.end());
+	vehicleDrivers.erase(std::remove(vehicleDrivers.begin(),
+		vehicleDrivers.end(), person), vehicleDrivers.end());
 }
 
 
-void VehicleController::assignVehicleToRequest(VehicleRequestMessage request) {
-	printf("Request made from (%f, %f)\n", request.startNode->getPosX(),
-		request.startNode->getPosY());
-
+void VehicleController::assignVehicleToRequest(VehicleRequest request) {
 	TaxiDriver* best_driver;
 	double best_distance = -1;
 	double best_x, best_y;
 
-	auto person = taxiDrivers.begin();
+	std::map<unsigned int, Node*> nodeIdMap = RoadNetwork::getInstance()->getMapOfIdvsNodes();
 
-	while (person != taxiDrivers.end())
+	std::map<unsigned int, Node*>::iterator it = nodeIdMap.find(request.startNodeId); 
+	if (it == nodeIdMap.end()) {
+		printf("Request contains bad start node\n");
+		return;
+	}
+	Node* startNode = it->second;
+
+	it = nodeIdMap.find(request.destinationNodeId); 
+	if (it == nodeIdMap.end()) {
+		printf("Request contains bad destination node\n");
+		return;
+	}
+	Node* destinationNode = it->second;
+
+	printf("Request made from (%f, %f)\n", startNode->getPosX(), startNode->getPosY());
+	auto person = vehicleDrivers.begin();
+
+	while (person != vehicleDrivers.end())
 	{
 		if ((*person)->getRole())
 		{
@@ -93,9 +110,9 @@ void VehicleController::assignVehicleToRequest(VehicleRequestMessage request) {
 						->getMovementFacet();
 					const Node* node = movement->getCurrentNode();
 
-					best_distance = std::abs(request.startNode->getPosX()
+					best_distance = std::abs(startNode->getPosX()
 						- node->getPosX());
-					best_distance += std::abs(request.startNode->getPosY()
+					best_distance += std::abs(startNode->getPosY()
 						- node->getPosY());
 				}
 
@@ -108,9 +125,9 @@ void VehicleController::assignVehicleToRequest(VehicleRequestMessage request) {
 						->getMovementFacet();
 					const Node* node = movement->getCurrentNode();
 
-					curr_distance = std::abs(request.startNode->getPosX()
+					curr_distance = std::abs(startNode->getPosX()
 						- node->getPosX());
-					curr_distance += std::abs(request.startNode->getPosY()
+					curr_distance += std::abs(startNode->getPosY()
 						- node->getPosY());
 
 					if (curr_distance < best_distance)
@@ -132,7 +149,146 @@ void VehicleController::assignVehicleToRequest(VehicleRequestMessage request) {
 		printf("No available taxis\n");
 	}
 
+	messaging::MessageBus::PostMessage(best_driver->getParent(), CALL_TAXI, messaging::MessageBus::MessagePtr(
+		new TaxiCallMessage(request.personId, destinationNode)));
+
 	printf("Closest taxi is at (%f, %f)\n", best_x, best_y);
+}
+
+void VehicleController::assignSharedVehicles(std::vector<Person_MT*> drivers,
+	std::vector<VehicleRequest> requests,
+	timeslice now)
+{
+	std::map<unsigned int, Node*> nodeIdMap = RoadNetwork::getInstance()->getMapOfIdvsNodes();
+
+	std::vector<double> desiredTravelTimes;
+
+	auto request = requests.begin();
+	while (request != requests.end())
+	{
+		std::map<unsigned int, Node*>::iterator it = nodeIdMap.find((*request).startNodeId); 
+		if (it == nodeIdMap.end()) {
+			printf("Request contains bad start node\n");
+			return;
+		}
+		Node* startNode = it->second;
+
+		it = nodeIdMap.find((*request).destinationNodeId); 
+		if (it == nodeIdMap.end()) {
+			printf("Request contains bad destination node\n");
+			return;
+		}
+		Node* destinationNode = it->second;
+
+		double tripTime = PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(
+			startNode->getNodeId(), destinationNode->getNodeId(), DailyTime(now.ms()));
+		desiredTravelTimes.push_back(tripTime);
+
+		request++;
+	}
+
+	auto request1 = requests.begin();
+	int reqest1Index = 0;
+	while (request1 != requests.end())
+	{
+		auto request2 = request1 + 1;
+		int reqest2Index = reqest1Index + 1;
+		while (request2 != requests.end())
+		{
+			std::map<unsigned int, Node*>::iterator it = nodeIdMap.find((*request1).startNodeId); 
+			if (it == nodeIdMap.end()) {
+				printf("Request contains bad start node\n");
+				return;
+			}
+			Node* startNode1 = it->second;
+
+			it = nodeIdMap.find((*request1).destinationNodeId); 
+			if (it == nodeIdMap.end()) {
+				printf("Request contains bad destination node\n");
+				return;
+			}
+			Node* destinationNode1 = it->second;
+
+			it = nodeIdMap.find((*request2).startNodeId); 
+			if (it == nodeIdMap.end()) {
+				printf("Request contains bad start node\n");
+				return;
+			}
+			Node* startNode2 = it->second;
+
+			it = nodeIdMap.find((*request2).destinationNodeId); 
+			if (it == nodeIdMap.end()) {
+				printf("Request contains bad destination node\n");
+				return;
+			}
+			Node* destinationNode2 = it->second;
+
+			// o1 o2 d1 d2
+			double tripTime1 = PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(
+				startNode1->getNodeId(), startNode2->getNodeId(), DailyTime(now.ms()))
+				+ PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(
+					startNode2->getNodeId(), destinationNode1->getNodeId(), DailyTime(now.ms()));
+
+			double tripTime2 = PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(
+				startNode2->getNodeId(), destinationNode1->getNodeId(), DailyTime(now.ms()))
+				+ PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(
+					destinationNode1->getNodeId(), destinationNode2->getNodeId(), DailyTime(now.ms()));
+
+			if ((tripTime1 <= desiredTravelTimes.at(reqest1Index) + timedelta) && (tripTime2 <= desiredTravelTimes.at(reqest2Index) + timedelta))
+			{
+				// TODO: construct graph
+			}
+
+			// o2 o1 d2 d1
+			tripTime1 = PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(
+				startNode1->getNodeId(), destinationNode2->getNodeId(), DailyTime(now.ms()))
+				+ PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(
+					destinationNode2->getNodeId(), destinationNode1->getNodeId(), DailyTime(now.ms()));
+
+			tripTime2 = PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(
+				startNode2->getNodeId(), startNode1->getNodeId(), DailyTime(now.ms()))
+				+ PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(
+					startNode1->getNodeId(), destinationNode2->getNodeId(), DailyTime(now.ms()));
+
+			if ((tripTime1 <= desiredTravelTimes.at(reqest1Index) + timedelta) && (tripTime2 <= desiredTravelTimes.at(reqest2Index) + timedelta))
+			{
+				// TODO: construct graph
+			}
+
+			// o1 o2 d2 d1
+			tripTime1 = PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(
+				startNode1->getNodeId(), startNode2->getNodeId(), DailyTime(now.ms()))
+				+ PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(
+					startNode2->getNodeId(), destinationNode2->getNodeId(), DailyTime(now.ms()))
+				+ PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(
+					destinationNode2->getNodeId(), destinationNode1->getNodeId(), DailyTime(now.ms()));
+
+			if (tripTime1 <= desiredTravelTimes.at(reqest1Index) + timedelta)
+			{
+				// TODO: construct graph
+			}
+
+			// o2 o1 d1 d2
+			tripTime2 = PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(
+				startNode2->getNodeId(), startNode1->getNodeId(), DailyTime(now.ms()))
+				+ PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(
+					startNode1->getNodeId(), destinationNode1->getNodeId(), DailyTime(now.ms()))
+				+ PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(
+					destinationNode1->getNodeId(), destinationNode2->getNodeId(), DailyTime(now.ms()));
+
+			if (tripTime2 <= desiredTravelTimes.at(reqest2Index) + timedelta)
+			{
+				// TODO: construct graph
+			}
+
+			// TODO: Mark all compatible trips here
+
+			request2++;
+			reqest2Index++;
+		}
+		request1++;
+		reqest1Index++;
+	}
 }
 
 Entity::UpdateStatus VehicleController::frame_init(timeslice now)
@@ -140,6 +296,8 @@ Entity::UpdateStatus VehicleController::frame_init(timeslice now)
 	if (!GetContext())
 	{
 		messaging::MessageBus::RegisterHandler(this);
+		test.push_back(now);
+		timedelta = 20;
 	}
 	
 	return Entity::UpdateStatus::Continue;
@@ -147,27 +305,39 @@ Entity::UpdateStatus VehicleController::frame_init(timeslice now)
 
 Entity::UpdateStatus VehicleController::frame_tick(timeslice now)
 {
-	// TODO: See if keeping track of all taxi locations
-	//       speeds up a lot of time
+	mtx.lock();
+	if (currTick == tickThreshold)
+	{
+		currTick = 0;
+		assignSharedVehicles(vehicleDrivers, requestQueue, now);
+		requestQueue.clear();
+	} else
+	{
+		currTick += 1;
+	}
+	mtx.unlock();
+
 	return Entity::UpdateStatus::Continue;
 
+	mtx.lock();
 	if (currTick == tickThreshold)
 	{
 		currTick = 0;
 
-		auto message = messageQueue.begin();
-		while (message != messageQueue.end())
+		auto request = requestQueue.begin();
+		while (request != requestQueue.end())
 		{
-			assignVehicleToRequest(*message);
-			message++;
+			assignVehicleToRequest(*request);
+			request++;
 		}
 
-		messageQueue.clear();
+		requestQueue.clear();
 	}
 	else
 	{
 		currTick += 1;
 	}
+	mtx.unlock();
 
 	return Entity::UpdateStatus::Continue;
 }
@@ -179,17 +349,18 @@ void VehicleController::frame_output(timeslice now)
 
 void VehicleController::HandleMessage(messaging::Message::MessageType type, const messaging::Message& message)
 {
+	mtx.lock();
 	switch (type) {
 	        case MSG_VEHICLE_REQUEST:
 	        {
 				const VehicleRequestMessage& requestArgs = MSG_CAST(VehicleRequestMessage, message);
-				messageQueue.push_back(requestArgs);
-	        	assignVehicleToRequest(requestArgs);
+				requestQueue.push_back({requestArgs.personId, requestArgs.startNodeId, requestArgs.destinationNodeId});
 	            break;
 	        }
 
 	        default:break;
 	    };
+	mtx.unlock();
 }
 
 bool VehicleController::isNonspatial()
@@ -198,5 +369,6 @@ bool VehicleController::isNonspatial()
 }
 }
 }
+
 
 

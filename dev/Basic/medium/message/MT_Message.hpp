@@ -67,9 +67,14 @@ public:
 class TaxiCallMessage: public messaging::Message
 {
 public:
-	TaxiCallMessage(const std::string& personId, const Node* destination):personId(personId),destination(destination){}
-	virtual ~TaxiCallMessage(){}
-	const Node* destination = nullptr;
+	TaxiCallMessage(const std::string& person, const Node* dn) :
+			personId(person), destination(dn)
+	{
+	}
+	virtual ~TaxiCallMessage()
+	{
+	}
+	const Node* destination;
 	const std::string personId;
 };
 /**
@@ -150,8 +155,8 @@ public:
 class VehicleRequestMessage: public messaging::Message
 {
 public:
-	VehicleRequestMessage(Person_MT* p, const Node* sn, const Node* dn) :
-			person(p), startNode(sn), destinationNode(dn)
+	VehicleRequestMessage(const std::string& p, const unsigned int sn, const unsigned int dn) :
+			personId(p), startNodeId(sn), destinationNodeId(dn)
 	{
 	}
 
@@ -159,11 +164,12 @@ public:
 	{
 	}
 
-	Person_MT* person;
-	const Node* startNode;
-	const Node* destinationNode;
+	const std::string& personId;
+	const unsigned int startNodeId;
+	const unsigned int destinationNodeId;
 };
 
 }
 }
+
 

@@ -169,7 +169,8 @@ void BusControllerMT::assignBusTripChainWithPerson(std::set<Entity*>& activeAgen
 			addOrStashBuses(person, activeAgents);
 		}
 
-		VehicleController::GetInstance()->addTaxiDriver(person);
+		VehicleController::GetInstance()->addVehicleDriver(person);
 	}
 }
+
 

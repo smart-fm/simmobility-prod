@@ -1907,8 +1907,6 @@ void HM_Model::startImpl()
 	int offMarket = 0;
 	//assign empty units to freelance housing agents
 
-	int unitCounter=0;
-
 	for (UnitList::const_iterator it = units.begin(); it != units.end(); it++)
 	{
 		boost::gregorian::date saleDate = boost::gregorian::date_from_tm((*it)->getSaleFromDate());
@@ -2033,7 +2031,6 @@ void HM_Model::startImpl()
 				{
 					thisUnit->setZoneHousingType(alternative[n]->getId());
 
-					unitCounter++;
 					//PrintOutV(" " << thisUnit->getId() << " " << alternative[n]->getPlanAreaId() << std::endl );
 					unitsByZoneHousingType.insert( std::pair<BigSerial,Unit*>( alternative[n]->getId(), thisUnit ) );
 					break;
@@ -2047,7 +2044,6 @@ void HM_Model::startImpl()
 		}
 	}
 
-	cout << "counter: " << unitCounter << endl;
 
 
 	PrintOutV("Initial Vacant units: " << vacancies << " onMarket: " << onMarket << " offMarket: " << offMarket << std::endl);

@@ -29,7 +29,7 @@ namespace sim_mob
 
 			double getFutureTransitionOwn();
 
-			double movingProbability(Household* household, HM_Model *model);
+			double movingProbability(Household* household, HM_Model *model, bool day0);
 
 			bool ComputeFutureTransition(Household *household, HM_Model *model, double &futureTransitionRate, double &futureTransitionRandomDraw);
 

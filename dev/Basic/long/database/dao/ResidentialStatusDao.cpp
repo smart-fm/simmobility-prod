@@ -16,9 +16,10 @@
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
-ResidentialStatusDao::ResidentialStatusDao(DB_Connection& connection): SqlAbstractDao<ResidentialStatus>( connection, DB_TABLE_RESIDENTIAL_STATUS,DB_INSERT_RESIDENTIAL_STATUS,
-																										  DB_UPDATE_RESIDENTIAL_STATUS, DB_DELETE_RESIDENTIAL_STATUS,
-																										  DB_GETALL_RESIDENTIAL_STATUS, DB_GETBYID_RESIDENTIAL_STATUS){}
+ResidentialStatusDao::ResidentialStatusDao(DB_Connection& connection): SqlAbstractDao<ResidentialStatus>( connection,
+																										  "","", "", "",
+																										  "SELECT * FROM " + connection.getSchema()+"residential_status",
+																										  ""){}
 
 
 ResidentialStatusDao::~ResidentialStatusDao() {}

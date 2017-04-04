@@ -26,6 +26,7 @@
 #include "model/AwakeningSubModel.hpp"
 #include "model/SchoolAssignmentSubModel.hpp"
 #include "util/PrintLog.hpp"
+#include <random>
 
 using namespace sim_mob::long_term;
 using namespace sim_mob::event;

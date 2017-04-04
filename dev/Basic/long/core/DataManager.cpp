@@ -13,6 +13,7 @@
 #include "database/dao/BuildingDao.hpp"
 #include "database/dao/PostcodeDao.hpp"
 #include "database/dao/PostcodeAmenitiesDao.hpp"
+#include "conf/ConfigManager.hpp"
 
 using namespace sim_mob;
 using namespace sim_mob::long_term;
@@ -67,6 +68,9 @@ void DataManager::load()
     conn.connect();
     if (conn.isConnected())
     {
+    	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+
+    	conn.setSchema(config.schemas.main_schema);
         loadData<BuildingDao>(conn, buildings, buildingsById, &Building::getFmBuildingId);
         PrintOutV("Loaded " << buildings.size() << " buildings." << std::endl);
         loadData<PostcodeDao>(conn, postcodes, postcodesById, &Postcode::getAddressId);

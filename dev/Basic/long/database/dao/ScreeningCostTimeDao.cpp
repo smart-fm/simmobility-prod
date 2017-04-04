@@ -16,8 +16,9 @@
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
-ScreeningCostTimeDao::ScreeningCostTimeDao(DB_Connection& connection): SqlAbstractDao<ScreeningCostTime>( connection, DB_TABLE_SCREENINGCOSTTIME,
-																			 "", "", "", DB_GETALL_SCREENINGCOSTTIME, DB_GETBYID_SCREENINGCOSTTIME){}
+ScreeningCostTimeDao::ScreeningCostTimeDao(DB_Connection& connection): SqlAbstractDao<ScreeningCostTime>( connection, "","", "", "",
+																													  "SELECT * FROM " + connection.getSchema()+"cost_time",
+																													  ""){}
 
 ScreeningCostTimeDao::~ScreeningCostTimeDao(){}
 

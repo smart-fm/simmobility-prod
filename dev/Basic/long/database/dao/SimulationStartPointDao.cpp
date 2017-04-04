@@ -44,7 +44,7 @@ void SimulationStartPointDao::toRow(SimulationStartPoint& data, Parameters& outP
 void SimulationStartPointDao::insertSimulationStartPoint(SimulationStartPoint& objToInsert,std::string schema)
 {
 
-	const std::string DB_INSERT_SIM_VERSION = "INSERT INTO " + APPLY_SCHEMA(schema, ".simulation_start_point")
+	const std::string DB_INSERT_SIM_VERSION = "INSERT INTO " + schema + ".simulation_start_point"
 	        		+ " (" + "id" + ", " + "scenario" + ", " + "simulation_start_date" + ", " + "main_schema_version" + ", " + "configuration_schema_version" + ", " + "calibration_schema_version" + ", " + "geometry_schema_version" + ", " + "simulation_stopped_day"
 	        		+ ") VALUES (:v1, :v2, :v3, :v4, :v5, :v6, :v7, :v8)";
 	insertViaQuery(objToInsert,DB_INSERT_SIM_VERSION);
@@ -53,7 +53,7 @@ void SimulationStartPointDao::insertSimulationStartPoint(SimulationStartPoint& o
 
 std::vector<SimulationStartPoint*> SimulationStartPointDao::getAllSimulationStartPoints(std::string schema)
 {
-	const std::string queryStr = "SELECT * FROM " + APPLY_SCHEMA(schema, ".simulation_start_point") + LIMIT;
+	const std::string queryStr = "SELECT * FROM " + schema + ".simulation_start_point" ;
 	std::vector<SimulationStartPoint*> simulationStartPointsList;
 	getByQuery(queryStr,simulationStartPointsList);
 	return simulationStartPointsList;

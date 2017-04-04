@@ -10,7 +10,7 @@
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
-UnitPriceSumDao::UnitPriceSumDao(DB_Connection& connection): SqlAbstractDao<UnitPriceSum>(connection, EMPTY_STR ,EMPTY_STR, EMPTY_STR, EMPTY_STR,DB_GETALL_UNIT_PRICE_SUM_PER_PARCEL, EMPTY_STR)
+UnitPriceSumDao::UnitPriceSumDao(DB_Connection& connection): SqlAbstractDao<UnitPriceSum>(connection, "" ,"", "", "","SELECT * FROM " + connection.getSchema() + "getUnitPriceSumPerParcel()", "")
 {}
 
 UnitPriceSumDao::~UnitPriceSumDao() {}

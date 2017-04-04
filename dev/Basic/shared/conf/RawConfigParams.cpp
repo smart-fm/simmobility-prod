@@ -60,6 +60,15 @@ sim_mob::LongTermParams::OutputFiles::OutputFiles(): bids(false),
 													 enabled(false){}
 
 sim_mob::LongTermParams::Scenario::Scenario():  enabled(false),
-												scenarioName(""){};
+												scenarioName(""){}
+
+
+sim_mob::Schemas::Schemas():	enabled(false),
+								main_schema(""),
+								calibration_schema(""),
+								public_schema(""),
+								demand_schema(""){}
+
+
 
 ModelScriptsMap::ModelScriptsMap(const std::string& scriptFilesPath, const std::string& scriptsLang) : path(scriptFilesPath), scriptLanguage(scriptsLang) {}

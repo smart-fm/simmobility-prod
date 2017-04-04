@@ -15,7 +15,8 @@
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
-TazLevelLandPriceDao::TazLevelLandPriceDao(DB_Connection& connection): SqlAbstractDao<TazLevelLandPrice>(connection, DB_TABLE_TAZ_LEVEL_LAND_PRICE,EMPTY_STR, EMPTY_STR, EMPTY_STR,DB_GETALL_TAZ_LEVEL_LAND_PRICES, EMPTY_STR){}
+TazLevelLandPriceDao::TazLevelLandPriceDao(DB_Connection& connection): SqlAbstractDao<TazLevelLandPrice>(connection, "","", "", "",
+																										 "SELECT * FROM " + connection.getSchema()+"taz_level_land_price", ""){}
 
 TazLevelLandPriceDao::~TazLevelLandPriceDao() {}
 

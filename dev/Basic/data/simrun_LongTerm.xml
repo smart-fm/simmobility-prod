@@ -94,7 +94,12 @@
 	</credentials>
     </constructs>
 
-
+   <schemas enabled= "true">
+	<main_schema  value= "synpop12."/>
+	<calibration_schema value= "calibration2012."/>
+	<public_schema value= "public."/>
+	<demand_schema value= "demand."/>
+   </schemas>
               
     <!-- Long Term Configurations parameters -->
     <longTermParams enabled ="true">
@@ -106,10 +111,6 @@
 	<simulationScenario value="baseline"/> 
 	<resume value ="false"/> 
 	<currentOutputSchema value = "baseline_2012_20160225034344"/> <!--if resume is true give the current op schema name-->
-	<mainSchemaVersion value="main2012" />
-	<configSchemaVersion value = "configuration2012" />
-	<calibrationSchemaVersion value= "calibration2012" />
-	<geometrySchemaVersion value = "geometry2012" />
         <opSchemaloadingInterval value = "365"/>
         <initialLoading value = "true" />
     	<developerModel enabled="true">
@@ -130,8 +131,8 @@
             <timeOffMarket value="150"/>
             <timeInterval value="7"/>
 	    <awakeningModel enabled="true">
-		    <initialHouseholdsOnMarket value="150"/>
-		    <dailyHouseholdAwakenings value="40"/>
+		    <initialHouseholdsOnMarket value="15000"/>
+		    <dailyHouseholdAwakenings value="400"/>
 		    <awakenModelShan value="false"/>
 		    <awakenModelRandom value="false"/>
 		    <awakenModelJingsi value="true"/>	

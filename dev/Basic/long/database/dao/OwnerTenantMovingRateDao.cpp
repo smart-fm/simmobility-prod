@@ -15,8 +15,8 @@
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
-OwnerTenantMovingRateDao::OwnerTenantMovingRateDao(DB_Connection& connection): SqlAbstractDao<OwnerTenantMovingRate>( connection, DB_TABLE_OWNERTENANTMOVINGRATE, "", "", "",
-																				DB_GETALL_OWNERTENANTMOVINGRATE, DB_GETBYID_OWNERTENANTMOVINGRATE){}
+OwnerTenantMovingRateDao::OwnerTenantMovingRateDao(DB_Connection& connection): SqlAbstractDao<OwnerTenantMovingRate>( connection, "", "", "", "",
+																													  "SELECT * FROM " + connection.getSchema()+"owner_tenant_moving_rate", ""){}
 
 OwnerTenantMovingRateDao::~OwnerTenantMovingRateDao(){}
 

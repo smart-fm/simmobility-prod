@@ -11,7 +11,9 @@
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
-LogSumVehicleOwnershipDao::LogSumVehicleOwnershipDao(DB_Connection& connection): SqlAbstractDao<LogSumVehicleOwnership>( connection, EMPTY_STR, EMPTY_STR, EMPTY_STR, EMPTY_STR,DB_FUNC_GET_ALL_CAR_OWNERSHIP_LOGSUMS_PER_HH, EMPTY_STR ) {}
+LogSumVehicleOwnershipDao::LogSumVehicleOwnershipDao(DB_Connection& connection): SqlAbstractDao<LogSumVehicleOwnership>( connection, "", "", "", "",
+																														 "SELECT * FROM " + connection.getSchema()+"getCarOwnershipLogsumsPerHH()", "" ) {}
+
 
 LogSumVehicleOwnershipDao::~LogSumVehicleOwnershipDao() {}
 

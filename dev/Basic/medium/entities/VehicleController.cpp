@@ -74,14 +74,14 @@ int VehicleController::assignVehicleToRequest(VehicleRequest request) {
 
 	std::map<unsigned int, Node*>::iterator it = nodeIdMap.find(request.startNodeId); 
 	if (it == nodeIdMap.end()) {
-		printf("Request contains bad start node\n");
+		Print() << "Request contains bad start node" << std::endl;
 		return PARSING_FAILED;
 	}
 	Node* startNode = it->second;
 
 	it = nodeIdMap.find(request.destinationNodeId); 
 	if (it == nodeIdMap.end()) {
-		printf("Request contains bad destination node\n");
+		Print() << "Request contains bad destination node" << std::endl;
 		return PARSING_FAILED;
 	}
 	Node* destinationNode = it->second;
@@ -145,18 +145,18 @@ int VehicleController::assignVehicleToRequest(VehicleRequest request) {
 
 	if (best_distance == -1)
 	{
-		printf("No available taxis\n");
+		Print() << "No available taxis" << std::endl;
 		return PARSING_RETRY;
 	}
 
-	printf("Closest taxi is at (%f, %f)\n", best_x, best_y);
+	Print() << "Closest taxi is at (" << best_x << ", " << best_y << ")" << std::endl;;
 
 	messaging::MessageBus::PostMessage(best_driver->getParent(), CALL_TAXI, messaging::MessageBus::MessagePtr(
 		new TaxiCallMessage(currTick, request.personId, request.startNodeId, request.destinationNodeId)));
 
-	printf("Assignment sent for %s at time %d. Message was sent at %d with startNodeId %d, destinationNodeId %d, and taxiDriverId null\n",
-		request.personId.c_str(), currTick.frame(), request.currTick.frame(),
-		request.startNodeId, request.destinationNodeId);
+	Print() << "Assignment sent for " << request.personId << " at time " << currTick.frame()
+		<< ". Message was sent at " << request.currTick.frame() << " with startNodeId " << request.startNodeId
+		<< ", destinationNodeId " << request.destinationNodeId << ", and taxiDriverId null" << std::endl;
 
 	return PARSING_SUCCESS;
 }
@@ -174,14 +174,14 @@ void VehicleController::assignSharedVehicles(std::vector<Person_MT*> drivers,
 	{
 		std::map<unsigned int, Node*>::iterator it = nodeIdMap.find((*request).startNodeId); 
 		if (it == nodeIdMap.end()) {
-			printf("Request contains bad start node\n");
+			Print() << "Request contains bad start node" << std::endl;
 			return;
 		}
 		Node* startNode = it->second;
 
 		it = nodeIdMap.find((*request).destinationNodeId); 
 		if (it == nodeIdMap.end()) {
-			printf("Request contains bad destination node\n");
+			Print() << "Request contains bad destination node" << std::endl;
 			return;
 		}
 		Node* destinationNode = it->second;
@@ -203,28 +203,28 @@ void VehicleController::assignSharedVehicles(std::vector<Person_MT*> drivers,
 		{
 			std::map<unsigned int, Node*>::iterator it = nodeIdMap.find((*request1).startNodeId); 
 			if (it == nodeIdMap.end()) {
-				printf("Request contains bad start node\n");
+				Print() << "Request contains bad start node" << std::endl;
 				return;
 			}
 			Node* startNode1 = it->second;
 
 			it = nodeIdMap.find((*request1).destinationNodeId); 
 			if (it == nodeIdMap.end()) {
-				printf("Request contains bad destination node\n");
+				Print() << "Request contains bad destination node" << std::endl;
 				return;
 			}
 			Node* destinationNode1 = it->second;
 
 			it = nodeIdMap.find((*request2).startNodeId); 
 			if (it == nodeIdMap.end()) {
-				printf("Request contains bad start node\n");
+				Print() << "Request contains bad start node" << std::endl;
 				return;
 			}
 			Node* startNode2 = it->second;
 
 			it = nodeIdMap.find((*request2).destinationNodeId); 
 			if (it == nodeIdMap.end()) {
-				printf("Request contains bad destination node\n");
+				Print() << "Request contains bad destination node" << std::endl;
 				return;
 			}
 			Node* destinationNode2 = it->second;
@@ -369,9 +369,9 @@ void VehicleController::HandleMessage(messaging::Message::MessageType type, cons
 	        {
 				const VehicleRequestMessage& requestArgs = MSG_CAST(VehicleRequestMessage, message);
 
-				printf("Request received from %s at time %d. Message was sent at %d with startNodeId %d, destinationNodeId %d, and taxiDriverId null\n",
-					requestArgs.personId.c_str(), currTick.frame(), requestArgs.currTick.frame(),
-					requestArgs.startNodeId, requestArgs.destinationNodeId);
+				Print() << "Request received from " << requestArgs.personId << " at time " << currTick.frame() << ". Message was sent at "
+					<< requestArgs.currTick.frame() << " with startNodeId " << requestArgs.startNodeId << ", destinationNodeId "
+					<< requestArgs.destinationNodeId << ", and taxiDriverId null" << std::endl;
 
 				requestQueue.push_back({requestArgs.currTick, requestArgs.personId, requestArgs.startNodeId, requestArgs.destinationNodeId});
 	            break;
@@ -381,15 +381,16 @@ void VehicleController::HandleMessage(messaging::Message::MessageType type, cons
 	        {
 				const VehicleAssignmentMessage& replyArgs = MSG_CAST(VehicleAssignmentMessage, message);
 				if (!replyArgs.success) {
-					printf("Request received from %s at time %d. Message was sent at %d with startNodeId %d, destinationNodeId %d, and taxiDriverId null\n",
-						replyArgs.personId.c_str(), currTick.frame(), replyArgs.currTick.frame(),
-						replyArgs.startNodeId, replyArgs.destinationNodeId);
+					Print() << "Request received from " << replyArgs.personId << " at time " << currTick.frame() << ". Message was sent at "
+						<< replyArgs.currTick.frame() << " with startNodeId " << replyArgs.startNodeId << ", destinationNodeId "
+						<< replyArgs.destinationNodeId << ", and taxiDriverId null" << std::endl;
 
 					requestQueue.push_back({replyArgs.currTick, replyArgs.personId, replyArgs.startNodeId, replyArgs.destinationNodeId});
 				} else {
-					printf("Assignment response received from %s at time %d. Message was sent at %d with startNodeId %d, destinationNodeId %d, and taxiDriverId %s\n",
-						replyArgs.personId.c_str(), currTick.frame(), replyArgs.currTick.frame(),
-						replyArgs.startNodeId, replyArgs.destinationNodeId, replyArgs.taxiDriverId.c_str());
+					Print() << "Assignment response received from " << replyArgs.personId << " at time "
+						<< currTick.frame() << ". Message was sent at " << replyArgs.currTick.frame() << " with startNodeId "
+						<< replyArgs.startNodeId << ", destinationNodeId " << replyArgs.destinationNodeId << ", and taxiDriverId "
+						<< replyArgs.taxiDriverId << std::endl;
 				}
 	        }
 
@@ -404,6 +405,7 @@ bool VehicleController::isNonspatial()
 }
 }
 }
+
 
 
 

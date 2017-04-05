@@ -490,30 +490,24 @@ BigSerial HM_Model::getEstablishmentSlaAddressId(BigSerial establishmentId) cons
 	string slaBuildingId = "";
 	BigSerial slaAddressId = 0;
 
-	for( auto n : buildingMatch )
-	{
-		if( n->getFm_building() == buildingId && n->getMatch_code() == 1 )
-		{
-			slaBuildingId = n->getSla_building_id();
-		}
-	}
+	auto itr = buildingMatchById.find(buildingId);
 
-	for( auto n : slaBuilding )
-	{
-		if( n->getSla_building_id() == slaBuildingId)
-		{
-			slaAddressId = n->getSla_address_id();
-		}
-	}
+	if( itr != buildingMatchById.end() )
+		slaBuildingId = itr->second->getSla_building_id();
 
-	BigSerial addressId = INVALID_ID;
+	auto itr2 = slaBuildingById.find(slaBuildingId);
+
+	if( itr2 != slaBuildingById.end())
+		slaAddressId = itr2->second->getSla_address_id();
+
+	BigSerial tazId = INVALID_ID;
 
 	if (establishment)
 	{
-		addressId = DataManagerSingleton::getInstance().getPostcodeTazId(slaAddressId);
+		tazId = DataManagerSingleton::getInstance().getPostcodeTazId(slaAddressId);
 	}
 
-	return addressId;
+	return tazId;
 }
 
 

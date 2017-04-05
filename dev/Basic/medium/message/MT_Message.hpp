@@ -67,15 +67,16 @@ public:
 class TaxiCallMessage: public messaging::Message
 {
 public:
-	TaxiCallMessage(const std::string& person, const Node* dn) :
-			personId(person), destination(dn)
+	TaxiCallMessage(const std::string& person, const unsigned int sn, const unsigned int dn) :
+			personId(person), startNodeId(sn), destinationNodeId(dn)
 	{
 	}
 	virtual ~TaxiCallMessage()
 	{
 	}
-	const Node* destination;
 	const std::string personId;
+	const unsigned int startNodeId;
+	const unsigned int destinationNodeId;
 };
 /**
  * Message holding a pointer to busDriver
@@ -164,12 +165,35 @@ public:
 	{
 	}
 
-	const std::string& personId;
+	const std::string personId;
+	const unsigned int startNodeId;
+	const unsigned int destinationNodeId;
+};
+
+/**
+ * Message to request a vehicle
+ */
+class VehicleAssignmentMessage: public messaging::Message
+{
+public:
+	VehicleAssignmentMessage(const bool s, const std::string& p, const std::string& t, const unsigned int sn, const unsigned int dn) :
+			success(s), personId(p), taxiDriverId(t), startNodeId(sn), destinationNodeId(dn)
+	{
+	}
+
+	virtual ~VehicleAssignmentMessage()
+	{
+	}
+
+	const bool success;
+	const std::string personId;
+	const std::string taxiDriverId;
 	const unsigned int startNodeId;
 	const unsigned int destinationNodeId;
 };
 
 }
 }
+
 
 

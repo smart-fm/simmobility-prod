@@ -36,9 +36,16 @@ protected:
 public:
 	struct VehicleRequest
 	{
-		const std::string& personId;
+		const std::string personId;
 		const unsigned int startNodeId;
 		const unsigned int destinationNodeId;
+	};
+
+	enum MessageParsingResult
+	{
+		PARSING_SUCCESS = 0,
+		PARSING_FAILED,
+		PARSING_RETRY
 	};
 
 	/**
@@ -102,12 +109,7 @@ protected:
 
     virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
 
-	/**
-	 * [assignVehicleToRequest description]
-	 * @param  request [description]
-	 * @return         [description]
-	 */
-	virtual void assignVehicleToRequest(VehicleRequest request);
+	virtual int assignVehicleToRequest(VehicleRequest request);
 
 	virtual void assignSharedVehicles(std::vector<Person_MT*> drivers, std::vector<VehicleRequest> requests, timeslice now);
 
@@ -115,7 +117,6 @@ private:
 	int currTick;
 	int tickThreshold;
 	double timedelta;
-	std::vector<timeslice> test;
 	/**store driver information*/
 	std::vector<Person_MT*> vehicleDrivers;
 	/**store message information*/
@@ -127,6 +128,7 @@ private:
 }
 }
 #endif /* VehicleController_HPP_ */
+
 
 
 

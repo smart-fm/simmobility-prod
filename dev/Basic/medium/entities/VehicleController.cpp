@@ -65,7 +65,7 @@ void VehicleController::removeVehicleDriver(Person_MT* person)
 }
 
 
-void VehicleController::assignVehicleToRequest(VehicleRequest request) {
+int VehicleController::assignVehicleToRequest(VehicleRequest request) {
 	TaxiDriver* best_driver;
 	double best_distance = -1;
 	double best_x, best_y;
@@ -75,14 +75,14 @@ void VehicleController::assignVehicleToRequest(VehicleRequest request) {
 	std::map<unsigned int, Node*>::iterator it = nodeIdMap.find(request.startNodeId); 
 	if (it == nodeIdMap.end()) {
 		printf("Request contains bad start node\n");
-		return;
+		return PARSING_FAILED;
 	}
 	Node* startNode = it->second;
 
 	it = nodeIdMap.find(request.destinationNodeId); 
 	if (it == nodeIdMap.end()) {
 		printf("Request contains bad destination node\n");
-		return;
+		return PARSING_FAILED;
 	}
 	Node* destinationNode = it->second;
 
@@ -147,12 +147,15 @@ void VehicleController::assignVehicleToRequest(VehicleRequest request) {
 	if (best_distance == -1)
 	{
 		printf("No available taxis\n");
+		return PARSING_RETRY;
 	}
 
-	messaging::MessageBus::PostMessage(best_driver->getParent(), CALL_TAXI, messaging::MessageBus::MessagePtr(
-		new TaxiCallMessage(request.personId, destinationNode)));
-
 	printf("Closest taxi is at (%f, %f)\n", best_x, best_y);
+
+	messaging::MessageBus::PostMessage(best_driver->getParent(), CALL_TAXI, messaging::MessageBus::MessagePtr(
+		new TaxiCallMessage(request.personId, request.startNodeId, request.destinationNodeId)));
+
+	return PARSING_SUCCESS;
 }
 
 void VehicleController::assignSharedVehicles(std::vector<Person_MT*> drivers,
@@ -281,8 +284,6 @@ void VehicleController::assignSharedVehicles(std::vector<Person_MT*> drivers,
 				// TODO: construct graph
 			}
 
-			// TODO: Mark all compatible trips here
-
 			request2++;
 			reqest2Index++;
 		}
@@ -296,7 +297,6 @@ Entity::UpdateStatus VehicleController::frame_init(timeslice now)
 	if (!GetContext())
 	{
 		messaging::MessageBus::RegisterHandler(this);
-		test.push_back(now);
 		timedelta = 20;
 	}
 	
@@ -305,33 +305,44 @@ Entity::UpdateStatus VehicleController::frame_init(timeslice now)
 
 Entity::UpdateStatus VehicleController::frame_tick(timeslice now)
 {
+	// mtx.lock();
+	// if (currTick == tickThreshold)
+	// {
+	// 	currTick = 0;
+	// 	assignSharedVehicles(vehicleDrivers, requestQueue, now);
+	// 	requestQueue.clear();
+	// } else
+	// {
+	// 	currTick += 1;
+	// }
+	// mtx.unlock();
+
+	// return Entity::UpdateStatus::Continue;
+
 	mtx.lock();
 	if (currTick == tickThreshold)
 	{
 		currTick = 0;
-		assignSharedVehicles(vehicleDrivers, requestQueue, now);
-		requestQueue.clear();
-	} else
-	{
-		currTick += 1;
-	}
-	mtx.unlock();
 
-	return Entity::UpdateStatus::Continue;
+		std::vector<VehicleRequest> retryRequestQueue;
 
-	mtx.lock();
-	if (currTick == tickThreshold)
-	{
-		currTick = 0;
-
-		auto request = requestQueue.begin();
+		std::vector<VehicleRequest>::iterator request = requestQueue.begin();
 		while (request != requestQueue.end())
 		{
-			assignVehicleToRequest(*request);
-			request++;
+			int r = assignVehicleToRequest(*request);
+
+		    if (r == PARSING_RETRY) retryRequestQueue.push_back(*request);
+		    request++;
 		}
 
 		requestQueue.clear();
+
+		request = retryRequestQueue.begin();
+		while (request != retryRequestQueue.end())
+		{
+		    requestQueue.push_back(*request);
+		    request++;
+		}
 	}
 	else
 	{
@@ -358,6 +369,15 @@ void VehicleController::HandleMessage(messaging::Message::MessageType type, cons
 	            break;
 	        }
 
+	        case MSG_VEHICLE_ASSIGNMENT:
+	        {
+				const VehicleAssignmentMessage& replyArgs = MSG_CAST(VehicleAssignmentMessage, message);
+				if (!replyArgs.success) {
+					printf("Vehicle assingment was not successful - trying again\n");
+					requestQueue.push_back({replyArgs.personId, replyArgs.startNodeId, replyArgs.destinationNodeId});
+				}
+	        }
+
 	        default:break;
 	    };
 	mtx.unlock();
@@ -369,6 +389,7 @@ bool VehicleController::isNonspatial()
 }
 }
 }
+
 
 
 

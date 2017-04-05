@@ -8,7 +8,9 @@
 #include <entities/roles/driver/TaxiDriver.hpp>
 #include "path/PathSetManager.hpp"
 #include "Driver.hpp"
+#include "../shared/message/MessageBus.hpp"
 #include "geospatial/network/RoadNetwork.hpp"
+#include "entities/VehicleController.hpp"
 
 namespace sim_mob
 {
@@ -79,16 +81,35 @@ void TaxiDriver::HandleParentMessage(messaging::Message::MessageType type, const
 {
 	switch (type)
 	{
-	case CALL_TAXI:
-	{
-		const TaxiCallMessage& msg = MSG_CAST(TaxiCallMessage, message);
-		taxiDriverMovement->driveToNodeOnCall(msg.personId, msg.destination);
-		break;
-	}
-	default:
-	{
-		break;
-	}
+		case CALL_TAXI:
+		{
+			const TaxiCallMessage& msg = MSG_CAST(TaxiCallMessage, message);
+
+			std::map<unsigned int, Node*> nodeIdMap = RoadNetwork::getInstance()->getMapOfIdvsNodes();
+
+			std::map<unsigned int, Node*>::iterator it = nodeIdMap.find(msg.destinationNodeId); 
+			if (it == nodeIdMap.end()) {
+				printf("Message contains bad destination node\n");
+
+				messaging::MessageBus::PostMessage(VehicleController::GetInstance(), MSG_VEHICLE_ASSIGNMENT,
+					messaging::MessageBus::MessagePtr(new VehicleAssignmentMessage(false, msg.personId, parent->getDatabaseId(),
+						msg.startNodeId, msg.destinationNodeId)));
+				return;
+			}
+			Node* node = it->second;
+
+			const bool success = taxiDriverMovement->driveToNodeOnCall(msg.personId, node);
+
+			messaging::MessageBus::PostMessage(VehicleController::GetInstance(), MSG_VEHICLE_ASSIGNMENT,
+				messaging::MessageBus::MessagePtr(new VehicleAssignmentMessage(success, msg.personId, parent->getDatabaseId(),
+					msg.startNodeId, msg.destinationNodeId)));
+
+			break;
+		}
+		default:
+		{
+			break;
+		}
 	}
 }
 
@@ -202,5 +223,6 @@ TaxiDriver::~TaxiDriver()
 }
 }
 }
+
 
 

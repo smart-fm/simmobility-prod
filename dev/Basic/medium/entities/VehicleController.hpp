@@ -28,7 +28,7 @@ protected:
 	{
 			startTime = 0; // vehicle controllers are alive for the entire duration of the simulation
 
-			currTick = 0;
+			currIntTick = 0;
 			tickThreshold = tickRefresh;
 			timedelta = shareThreshold;
 	}
@@ -36,6 +36,7 @@ protected:
 public:
 	struct VehicleRequest
 	{
+		const timeslice currTick;
 		const std::string personId;
 		const unsigned int startNodeId;
 		const unsigned int destinationNodeId;
@@ -114,7 +115,7 @@ protected:
 	virtual void assignSharedVehicles(std::vector<Person_MT*> drivers, std::vector<VehicleRequest> requests, timeslice now);
 
 private:
-	int currTick;
+	int currIntTick;
 	int tickThreshold;
 	double timedelta;
 	/**store driver information*/
@@ -128,6 +129,7 @@ private:
 }
 }
 #endif /* VehicleController_HPP_ */
+
 
 
 

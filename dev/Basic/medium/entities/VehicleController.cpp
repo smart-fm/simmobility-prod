@@ -86,7 +86,6 @@ int VehicleController::assignVehicleToRequest(VehicleRequest request) {
 	}
 	Node* destinationNode = it->second;
 
-	printf("Request made from (%f, %f)\n", startNode->getPosX(), startNode->getPosY());
 	auto person = vehicleDrivers.begin();
 
 	while (person != vehicleDrivers.end())
@@ -153,7 +152,11 @@ int VehicleController::assignVehicleToRequest(VehicleRequest request) {
 	printf("Closest taxi is at (%f, %f)\n", best_x, best_y);
 
 	messaging::MessageBus::PostMessage(best_driver->getParent(), CALL_TAXI, messaging::MessageBus::MessagePtr(
-		new TaxiCallMessage(request.personId, request.startNodeId, request.destinationNodeId)));
+		new TaxiCallMessage(currTick, request.personId, request.startNodeId, request.destinationNodeId)));
+
+	printf("Assignment sent for %s at time %d. Message was sent at %d with startNodeId %d, destinationNodeId %d, and taxiDriverId null\n",
+		request.personId.c_str(), currTick.frame(), request.currTick.frame(),
+		request.startNodeId, request.destinationNodeId);
 
 	return PARSING_SUCCESS;
 }
@@ -306,23 +309,23 @@ Entity::UpdateStatus VehicleController::frame_init(timeslice now)
 Entity::UpdateStatus VehicleController::frame_tick(timeslice now)
 {
 	// mtx.lock();
-	// if (currTick == tickThreshold)
+	// if (currIntTick == tickThreshold)
 	// {
-	// 	currTick = 0;
+	// 	currIntTick = 0;
 	// 	assignSharedVehicles(vehicleDrivers, requestQueue, now);
 	// 	requestQueue.clear();
 	// } else
 	// {
-	// 	currTick += 1;
+	// 	currIntTick += 1;
 	// }
 	// mtx.unlock();
 
 	// return Entity::UpdateStatus::Continue;
 
 	mtx.lock();
-	if (currTick == tickThreshold)
+	if (currIntTick == tickThreshold)
 	{
-		currTick = 0;
+		currIntTick = 0;
 
 		std::vector<VehicleRequest> retryRequestQueue;
 
@@ -346,7 +349,7 @@ Entity::UpdateStatus VehicleController::frame_tick(timeslice now)
 	}
 	else
 	{
-		currTick += 1;
+		currIntTick += 1;
 	}
 	mtx.unlock();
 
@@ -365,7 +368,12 @@ void VehicleController::HandleMessage(messaging::Message::MessageType type, cons
 	        case MSG_VEHICLE_REQUEST:
 	        {
 				const VehicleRequestMessage& requestArgs = MSG_CAST(VehicleRequestMessage, message);
-				requestQueue.push_back({requestArgs.personId, requestArgs.startNodeId, requestArgs.destinationNodeId});
+
+				printf("Request received from %s at time %d. Message was sent at %d with startNodeId %d, destinationNodeId %d, and taxiDriverId null\n",
+					requestArgs.personId.c_str(), currTick.frame(), requestArgs.currTick.frame(),
+					requestArgs.startNodeId, requestArgs.destinationNodeId);
+
+				requestQueue.push_back({requestArgs.currTick, requestArgs.personId, requestArgs.startNodeId, requestArgs.destinationNodeId});
 	            break;
 	        }
 
@@ -373,8 +381,15 @@ void VehicleController::HandleMessage(messaging::Message::MessageType type, cons
 	        {
 				const VehicleAssignmentMessage& replyArgs = MSG_CAST(VehicleAssignmentMessage, message);
 				if (!replyArgs.success) {
-					printf("Vehicle assingment was not successful - trying again\n");
-					requestQueue.push_back({replyArgs.personId, replyArgs.startNodeId, replyArgs.destinationNodeId});
+					printf("Request received from %s at time %d. Message was sent at %d with startNodeId %d, destinationNodeId %d, and taxiDriverId null\n",
+						replyArgs.personId.c_str(), currTick.frame(), replyArgs.currTick.frame(),
+						replyArgs.startNodeId, replyArgs.destinationNodeId);
+
+					requestQueue.push_back({replyArgs.currTick, replyArgs.personId, replyArgs.startNodeId, replyArgs.destinationNodeId});
+				} else {
+					printf("Assignment response received from %s at time %d. Message was sent at %d with startNodeId %d, destinationNodeId %d, and taxiDriverId %s\n",
+						replyArgs.personId.c_str(), currTick.frame(), replyArgs.currTick.frame(),
+						replyArgs.startNodeId, replyArgs.destinationNodeId, replyArgs.taxiDriverId.c_str());
 				}
 	        }
 
@@ -389,6 +404,7 @@ bool VehicleController::isNonspatial()
 }
 }
 }
+
 
 
 

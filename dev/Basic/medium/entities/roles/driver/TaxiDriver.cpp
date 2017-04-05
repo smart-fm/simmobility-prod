@@ -85,23 +85,32 @@ void TaxiDriver::HandleParentMessage(messaging::Message::MessageType type, const
 		{
 			const TaxiCallMessage& msg = MSG_CAST(TaxiCallMessage, message);
 
+			printf("Assignment received for %s at time %d. Message was sent at %d with startNodeId %d, destinationNodeId %d, and taxiDriverId null\n",
+				msg.personId.c_str(), parent->currTick.frame(), msg.currTick.frame(), msg.startNodeId, msg.destinationNodeId);
+
 			std::map<unsigned int, Node*> nodeIdMap = RoadNetwork::getInstance()->getMapOfIdvsNodes();
 
 			std::map<unsigned int, Node*>::iterator it = nodeIdMap.find(msg.destinationNodeId); 
 			if (it == nodeIdMap.end()) {
 				printf("Message contains bad destination node\n");
 
+				printf("Assignment response sent for %s at time %d. Message was sent at %d with startNodeId %d, destinationNodeId %d, and taxiDriverId null\n",
+					msg.personId.c_str(), parent->currTick.frame(), msg.currTick.frame(), msg.startNodeId, msg.destinationNodeId);
+
 				messaging::MessageBus::PostMessage(VehicleController::GetInstance(), MSG_VEHICLE_ASSIGNMENT,
-					messaging::MessageBus::MessagePtr(new VehicleAssignmentMessage(false, msg.personId, parent->getDatabaseId(),
+					messaging::MessageBus::MessagePtr(new VehicleAssignmentMessage(parent->currTick, false, msg.personId, parent->getDatabaseId(),
 						msg.startNodeId, msg.destinationNodeId)));
 				return;
 			}
 			Node* node = it->second;
 
-			const bool success = taxiDriverMovement->driveToNodeOnCall(msg.personId, node);
+			const bool success = taxiDriverMovement->driveToNodeOnCall(msg.personId, node);			
+
+			printf("Assignmet response sent for %s at time %d. Message was sent at %d with startNodeId %d, destinationNodeId %d, and taxiDriverId %s\n",
+				msg.personId.c_str(), parent->currTick.frame(), msg.currTick.frame(), msg.startNodeId, msg.destinationNodeId, parent->getDatabaseId().c_str());
 
 			messaging::MessageBus::PostMessage(VehicleController::GetInstance(), MSG_VEHICLE_ASSIGNMENT,
-				messaging::MessageBus::MessagePtr(new VehicleAssignmentMessage(success, msg.personId, parent->getDatabaseId(),
+				messaging::MessageBus::MessagePtr(new VehicleAssignmentMessage(parent->currTick, success, msg.personId, parent->getDatabaseId(),
 					msg.startNodeId, msg.destinationNodeId)));
 
 			break;
@@ -173,7 +182,7 @@ void TaxiDriver::pickUpPassngerAtNode(Conflux *parentConflux, std::string* perso
 					passenger->setStartPoint(WayPoint(taxiDriverMovement->getCurrentNode()));
 					passenger->setEndPoint(WayPoint(taxiDriverMovement->getDestinationNode()));
 					setTaxiDriveMode(DRIVE_WITH_PASSENGER);
-					printf("Person picked up at (%f, %f)\n", parentConflux->getConfluxNode()->getPosX(), parentConflux->getConfluxNode()->getPosY());
+					// printf("Person %s picked up at (%f, %f)\n", personId->c_str(), parentConflux->getConfluxNode()->getPosX(), parentConflux->getConfluxNode()->getPosY());
 				}
 			}
 			/*else
@@ -223,6 +232,7 @@ TaxiDriver::~TaxiDriver()
 }
 }
 }
+
 
 
 

@@ -220,7 +220,15 @@ bool TaxiDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 		parentTaxiDriver->pickUpPassngerAtNode(parentConflux, &personIdPickedUp);
 		if (parentTaxiDriver->getPassenger() == nullptr)
 		{
+			printf("Pickup failed for %s at time %d. Message was sent at ??? with startNodeId ???, destinationNodeId %d, and taxiDriverId %s\n",
+				personIdPickedUp.c_str(), parentTaxiDriver->parent->currTick.frame(), destinationNode->getNodeId(), parentTaxiDriver->parent->getDatabaseId().c_str());
+
 			setCruisingMode();
+		}
+		else
+		{
+			printf("Pickup succeeded for %s at time %d. Message was sent at ??? with startNodeId ???, destinationNodeId %d, and taxiDriverId %s\n",
+				personIdPickedUp.c_str(), parentTaxiDriver->parent->currTick.frame(), destinationNode->getNodeId(), parentTaxiDriver->parent->getDatabaseId().c_str());
 		}
 	}
 
@@ -666,6 +674,16 @@ bool TaxiDriverMovement::driveToNodeOnCall(const std::string& personId, const No
 			personIdPickedUp = personId;
 		}
 	}
+
+	if (!res) {
+		if (mode != CRUISE)
+			printf("Assignment failed for %s because mode was not CRUISE\n", personId.c_str());
+		else if (!destination)
+			printf("Assignment failed for %s because destination was null\n", personId.c_str());
+		else
+			printf("Assignment failed for %s because currentRouteChoice was empty\n", personId.c_str());
+	}
+
 	return res;
 }
 
@@ -735,4 +753,5 @@ TaxiDriverBehavior::~TaxiDriverBehavior()
 }
 }
 }
+
 

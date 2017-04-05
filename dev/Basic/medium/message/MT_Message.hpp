@@ -67,13 +67,15 @@ public:
 class TaxiCallMessage: public messaging::Message
 {
 public:
-	TaxiCallMessage(const std::string& person, const unsigned int sn, const unsigned int dn) :
-			personId(person), startNodeId(sn), destinationNodeId(dn)
+	TaxiCallMessage(timeslice ct, const std::string& person, const unsigned int sn, const unsigned int dn) :
+			currTick(ct), personId(person), startNodeId(sn), destinationNodeId(dn)
 	{
 	}
 	virtual ~TaxiCallMessage()
 	{
 	}
+
+	const timeslice currTick;
 	const std::string personId;
 	const unsigned int startNodeId;
 	const unsigned int destinationNodeId;
@@ -156,8 +158,8 @@ public:
 class VehicleRequestMessage: public messaging::Message
 {
 public:
-	VehicleRequestMessage(const std::string& p, const unsigned int sn, const unsigned int dn) :
-			personId(p), startNodeId(sn), destinationNodeId(dn)
+	VehicleRequestMessage(timeslice ct, const std::string& p, const unsigned int sn, const unsigned int dn) :
+			currTick(ct), personId(p), startNodeId(sn), destinationNodeId(dn)
 	{
 	}
 
@@ -165,6 +167,7 @@ public:
 	{
 	}
 
+	const timeslice currTick;
 	const std::string personId;
 	const unsigned int startNodeId;
 	const unsigned int destinationNodeId;
@@ -176,8 +179,8 @@ public:
 class VehicleAssignmentMessage: public messaging::Message
 {
 public:
-	VehicleAssignmentMessage(const bool s, const std::string& p, const std::string& t, const unsigned int sn, const unsigned int dn) :
-			success(s), personId(p), taxiDriverId(t), startNodeId(sn), destinationNodeId(dn)
+	VehicleAssignmentMessage(timeslice ct, const bool s, const std::string& p, const std::string& t, const unsigned int sn, const unsigned int dn) :
+			currTick(ct), success(s), personId(p), taxiDriverId(t), startNodeId(sn), destinationNodeId(dn)
 	{
 	}
 
@@ -185,6 +188,7 @@ public:
 	{
 	}
 
+	const timeslice currTick;
 	const bool success;
 	const std::string personId;
 	const std::string taxiDriverId;
@@ -194,6 +198,7 @@ public:
 
 }
 }
+
 
 
 

@@ -299,7 +299,12 @@ void Conflux::addAgent(Person_MT* person)
 			const Node * personDestinationNode = personTravelDestination.node;
 
 			MessageBus::PostMessage(VehicleController::GetInstance(), MSG_VEHICLE_REQUEST, messaging::MessageBus::MessagePtr(
-				new VehicleRequestMessage(person->getDatabaseId(), confluxNode->getNodeId(), personDestinationNode->getNodeId())));
+				new VehicleRequestMessage(person->currTick, person->getDatabaseId(),
+					confluxNode->getNodeId(), personDestinationNode->getNodeId())));
+
+			printf("Request made from %s at time %d. Message was sent at %d with startNodeId %d, destinationNodeId %d, and taxiDriverId null\n",
+				person->getDatabaseId().c_str(), person->currTick.frame(), person->currTick.frame(),
+				confluxNode->getNodeId(), personDestinationNode->getNodeId());
 			
 			travelingPersons.push_back(person);
 			break;
@@ -2889,5 +2894,6 @@ sim_mob::medium::PersonTransferMessage::PersonTransferMessage(Person_MT* person,
 sim_mob::medium::PersonTransferMessage::~PersonTransferMessage()
 {
 }
+
 
 

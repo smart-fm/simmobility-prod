@@ -608,9 +608,6 @@ void MT_PersonLoader::loadPersonDemand()
 		addOrStashPerson(*i);
 	}
 
-	Print() << "\nPersons loaded: " << personsLoaded
-			<< "\nActivities loaded from " << nextLoadStart << " to " << end << ": " << actCtr << endl;
-
 	//update next load start
 	nextLoadStart = end + DEFAULT_LOAD_INTERVAL;
 	if(nextLoadStart > LAST_30MIN_WINDOW_OF_DAY)

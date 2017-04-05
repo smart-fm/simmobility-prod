@@ -113,11 +113,11 @@ public:
     /// Number of agents killed due to errors
     std::atomic<unsigned int> numAgentsKilled;
 
-	///Total number of persons simulated
-	std::atomic<unsigned int> numPersonsSimulated;
+	///Total number of trips simulated
+	std::atomic<unsigned int> numTripsSimulated;
 
-	///Total number of persons whose simulation was completed
-	std::atomic<unsigned int> numPersonsCompleted;
+	///Total number of trips that were completed
+	std::atomic<unsigned int> numTripsCompleted;
 
 public:
     /**

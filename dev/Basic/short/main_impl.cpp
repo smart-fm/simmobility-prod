@@ -395,10 +395,11 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 	Print() << "Time required for initialisation [Loading configuration, network, demand ...]: "
 	        << DailyTime((uint32_t) loop_start_offset).getStrRepr() << std::endl;
 
-	Print() << "\nNumber of persons simulated: " << config.numPersonsSimulated
-	        << "\nNumber of persons whose simulation was completed: " << config.numPersonsCompleted << "\n";
+	Print() << "\nNumber of trips/activities simulated: " << config.numTripsSimulated
+	        << "\nNumber of trips/activities completed: " << config.numTripsCompleted << "\n";
 
-	size_t numPerson = 0, numBusDriver = 0, numDriver = 0, numPedestrian = 0, numPassenger = 0, numActivities = 0;
+	size_t numActivities = 0, numBusDriver = 0, numDriver = 0, numPassenger = 0, numPedestrian = 0, numTrainPassenger = 0;
+	size_t numPersons = 0, numWaitBus = 0;
 
 	for (std::set<Entity*>::iterator it = Agent::all_agents.begin(); it != Agent::all_agents.end(); ++it)
 	{
@@ -406,35 +407,43 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 
 		if (person)
 		{
-			numPerson++;
 			Role<Person_ST> *role = person->getRole();
 
-			if (dynamic_cast<BusDriver *> (role))
+			if (role)
 			{
-				numBusDriver++;
-			}
-			else if (dynamic_cast<Driver *> (role))
-			{
-				numDriver++;
-			}
-			else if (dynamic_cast<Pedestrian *> (role))
-			{
-				numPedestrian++;
-			}
-			else if (dynamic_cast<Passenger *> (role))
-			{
-				numPassenger++;
-			}
-			else if(dynamic_cast<ActivityPerformer<Person_ST> *> (role))
-			{
-				numActivities++;
+				numPersons++;
+				switch (role->roleType)
+				{
+				case Role<Person_ST>::RL_ACTIVITY:
+					numActivities++;
+					break;
+				case Role<Person_ST>::RL_BUSDRIVER:
+					numBusDriver++;
+					break;
+				case Role<Person_ST>::RL_DRIVER:
+					numDriver++;
+					break;
+				case Role<Person_ST>::RL_PASSENGER:
+					numPassenger++;
+					break;
+				case Role<Person_ST>::RL_PEDESTRIAN:
+					numPedestrian++;
+					break;
+				case Role<Person_ST>::RL_TRAINPASSENGER:
+					numTrainPassenger++;
+					break;
+				case Role<Person_ST>::RL_WAITBUSACTIVITY:
+					numWaitBus++;
+					break;
+				}
 			}
 		}
 	}
 
-	Print() << "Persons still in the simulation: " << numDriver << " (Driver)\t" << numBusDriver << " (BusDriver)\t"
-			<< numPedestrian << " (Pedestrian)\t" << numPassenger << " (Passenger)\t"
-			<< numActivities << " (Performing activity)\n";
+	Print() << "\nPersons still in the simulation: " << numPersons << "\n"
+			<< numActivities << " Performing activity,\t" << numBusDriver << " BusDrivers,\t"
+			<< numDriver << " Drivers,\t" << numPassenger << " Passengers,\t" << numPedestrian << " Pedestrians,\t"
+			<< numTrainPassenger << " TrainPassengers,\t"	<< numWaitBus << " Waiting for bus\n";
 
     if (config.numAgentsKilled > 0)
 	{

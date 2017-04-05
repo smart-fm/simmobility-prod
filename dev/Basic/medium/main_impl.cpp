@@ -465,21 +465,110 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	Print() << "Time required for initialisation [Loading configuration, network, demand ...]: "
 	        << DailyTime((uint32_t) loop_start_offset).getStrRepr() << std::endl << std::endl;
 
-	if (Agent::all_agents.empty() && Agent::pending_agents.empty())
+	Print() << "Number of trips/activities simulated: " << config.numTripsSimulated
+            << "\nNumber of trips/activities completed: " << config.numTripsCompleted << "\n";
+
+	if (!Agent::pending_agents.empty())
 	{
-		cout << "All Agents have left the simulation.\n";
-	}
-	else
-	{
-		cout<< "Pending Agents: " << (Agent::all_agents.size() + Agent::pending_agents.size()) << endl;
+		Print() << "\nWARNING! There are still " << Agent::pending_agents.size()
+		        << " agents waiting to be scheduled. Next start time is: "
+		        << Agent::pending_agents.top()->getStartTime() << " ms\n";
 	}
 
 	(Conflux::activeAgentsLock).lock();
-	if(Agent::activeAgents.size()>0)
+	if (Agent::activeAgents.size() > 0)
 	{
-		cout<<"Currently active agents: "<<Agent::activeAgents.size()<<endl;
+		size_t numPersons = 0;
+		size_t numActivities = 0, numBiker = 0, numBusDriver = 0, numCarPassenger = 0, numDriver = 0, numPassenger = 0;
+		size_t numPedestrian = 0, numPrivBusPassenger = 0, numTaxiPassenger = 0, numTrainDriver = 0, numTrainPassenger = 0;
+		size_t numTravelPedestrian = 0, numTruckerHGV = 0, numTruckerLGV = 0, numWaitBus = 0, numWaitTaxi = 0, numWaitTrain = 0;
+
+		for (std::vector<Entity*>::iterator it = Agent::activeAgents.begin(); it != Agent::activeAgents.end(); ++it)
+		{
+			Person_MT *person = dynamic_cast<Person_MT *> (*it);
+
+			if (person)
+			{
+				Role<Person_MT> *role = person->getRole();
+
+				if (role)
+				{
+					numPersons++;
+					switch(role->roleType)
+					{
+					case Role<Person_MT>::RL_ACTIVITY:
+						numActivities++;
+						break;
+					case Role<Person_MT>::RL_BIKER:
+						numBiker++;
+						break;
+					case Role<Person_MT>::RL_BUSDRIVER:
+						numBusDriver++;
+						break;
+					case Role<Person_MT>::RL_CARPASSENGER:
+						numCarPassenger++;
+						break;
+					case Role<Person_MT>::RL_DRIVER:
+						numDriver++;
+						break;
+					case Role<Person_MT>::RL_PASSENGER:
+						numPassenger++;
+						break;
+					case Role<Person_MT>::RL_PEDESTRIAN:
+						numPedestrian++;
+						break;
+					case Role<Person_MT>::RL_PRIVATEBUSPASSENGER:
+						numPrivBusPassenger++;
+						break;
+					case Role<Person_MT>::RL_TAXIPASSENGER:
+						numTaxiPassenger++;
+						break;
+					case Role<Person_MT>::RL_TRAINDRIVER:
+						numTrainDriver++;
+						break;
+					case Role<Person_MT>::RL_TRAINPASSENGER:
+						numTrainPassenger++;
+						break;
+					case Role<Person_MT>::RL_TRAVELPEDESTRIAN:
+						numTravelPedestrian++;
+						break;
+					case Role<Person_MT>::RL_TRUCKER_HGV:
+						numTruckerHGV++;
+						break;
+					case Role<Person_MT>::RL_TRUCKER_LGV:
+						numTruckerLGV++;
+						break;
+					case Role<Person_MT>::RL_WAITBUSACTIVITY:
+						numWaitBus++;
+						break;
+					case Role<Person_MT>::RL_WAITTAXIACTIVITY:
+						numWaitTaxi++;
+						break;
+					case Role<Person_MT>::RL_WAITTRAINACTIVITY:
+						numWaitTrain++;
+						break;
+					}
+				}
+			}
+		}
+
+		Print() << "\nPersons still in the simulation: " << numPersons << "\n"
+		        << numActivities << " Performing activity,\t" << numBiker << " Bikers,\t"
+		        << numBusDriver << " BusDrivers,\t" << numCarPassenger << " Car passengers,\t"
+		        << numDriver << " Drivers,\t" << numPassenger << " Passengers,\t" << numPedestrian << " Pedestrians,\t"
+		        << numPrivBusPassenger << " Private bus passengers,\n" << numTaxiPassenger << " Taxi passengers,\t"
+				<< numTrainDriver << " Train drivers,\t" << numTrainPassenger << " Train passengers,\t"
+		        << numTravelPedestrian << " Travel pedestrians,\t" << numTruckerHGV << " HGV truckers,\t"
+				<< numTruckerLGV << " LGV truckers,\t" << numWaitBus << " Waiting for bus,\t"
+				<< numWaitTaxi << " Waiting for Taxi,\t" << numWaitTrain << " Waiting for train\n";
 	}
 	(Conflux::activeAgentsLock).unlock();
+
+	if (config.numAgentsKilled > 0)
+	{
+		Print() << "\nAgents removed from simulation due to errors [Refer to warn.log for more details]: "
+		        << config.numAgentsKilled << endl;
+	}
 
 	PT_Statistics::getInstance()->storeStatistics();
 	PT_Statistics::resetInstance();
@@ -512,7 +601,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	const std::string& fileName("BoardingCount.csv");
 	sim_mob::BasicLogger& ptMRTMoveLogger  = sim_mob::Logger::log(fileName);
 	ptMRTMoveLogger<<boardCount<<endl;
-	cout<<"The number of passengers boarding: "<<boardCount<<endl;
+
 	safe_delete_item(periodicPersonLoader);
 	cout << "\nSimulation complete. Closing worker threads...\n" << endl;
 

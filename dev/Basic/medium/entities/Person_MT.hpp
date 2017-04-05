@@ -73,6 +73,9 @@ private:
      */
 	bool advanceCurrentTripChainItem();
 
+	/**Inherited from MessageHandler.*/
+	virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message &message);
+
 protected:
 public:
 	/**Indicates if the agent is queuing*/

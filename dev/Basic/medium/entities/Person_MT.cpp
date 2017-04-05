@@ -385,6 +385,14 @@ void Person_MT::setStartTime(unsigned int value)
 	}
 }
 
+void Person_MT::HandleMessage(messaging::Message::MessageType type, const messaging::Message &message)
+{
+	if (currRole)
+	{
+		currRole->HandleParentMessage(type, message);
+	}
+}
+
 vector<BufferedBase *> Person_MT::buildSubscriptionList()
 {
 	//First, add the x and y co-ordinates

@@ -511,8 +511,3 @@ void sim_mob::ParseConfigFile::processModelScriptsNode(xercesc::DOMElement* node
 	cfg.luaScriptsMap = scriptsMap;
 }
 
-void sim_mob::ParseConfigFile::processXmlFileForServiceControler(xercesc::XercesDOMParser& parser)
-{
-
-}
-

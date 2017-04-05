@@ -177,7 +177,6 @@ private:
      * @param node node corresponding to the model_scripts element in the xml file
      */
     void processModelScriptsNode(xercesc::DOMElement* node);
-    virtual void processXmlFileForServiceControler(xercesc::XercesDOMParser& parser);
 
 private:
     ///The config file we are currently loading

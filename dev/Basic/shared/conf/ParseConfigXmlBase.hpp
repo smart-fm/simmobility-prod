@@ -39,10 +39,6 @@ protected:
 	 */
 	void parseXmlAndProcess();
 
-	void processXmlFileForServiceControler(xercesc::XercesDOMParser& parser);
-
-	void parseXmlAndProcessForServiceController();
-
 	/**
 	 * Perform per-process parser initialization
 	 */

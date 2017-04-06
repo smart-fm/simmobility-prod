@@ -490,30 +490,24 @@ BigSerial HM_Model::getEstablishmentSlaAddressId(BigSerial establishmentId) cons
 	string slaBuildingId = "";
 	BigSerial slaAddressId = 0;
 
-	for( auto n : buildingMatch )
-	{
-		if( n->getFm_building() == buildingId && n->getMatch_code() == 1 )
-		{
-			slaBuildingId = n->getSla_building_id();
-		}
-	}
+	auto itr = buildingMatchById.find(buildingId);
 
-	for( auto n : slaBuilding )
-	{
-		if( n->getSla_building_id() == slaBuildingId)
-		{
-			slaAddressId = n->getSla_address_id();
-		}
-	}
+	if( itr != buildingMatchById.end() )
+		slaBuildingId = itr->second->getSla_building_id();
 
-	BigSerial addressId = INVALID_ID;
+	auto itr2 = slaBuildingById.find(slaBuildingId);
+
+	if( itr2 != slaBuildingById.end())
+		slaAddressId = itr2->second->getSla_address_id();
+
+	BigSerial tazId = INVALID_ID;
 
 	if (establishment)
 	{
-		addressId = DataManagerSingleton::getInstance().getPostcodeTazId(slaAddressId);
+		tazId = DataManagerSingleton::getInstance().getPostcodeTazId(slaAddressId);
 	}
 
-	return addressId;
+	return tazId;
 }
 
 
@@ -1907,8 +1901,6 @@ void HM_Model::startImpl()
 	int offMarket = 0;
 	//assign empty units to freelance housing agents
 
-	int unitCounter=0;
-
 	for (UnitList::const_iterator it = units.begin(); it != units.end(); it++)
 	{
 		boost::gregorian::date saleDate = boost::gregorian::date_from_tm((*it)->getSaleFromDate());
@@ -2033,7 +2025,6 @@ void HM_Model::startImpl()
 				{
 					thisUnit->setZoneHousingType(alternative[n]->getId());
 
-					unitCounter++;
 					//PrintOutV(" " << thisUnit->getId() << " " << alternative[n]->getPlanAreaId() << std::endl );
 					unitsByZoneHousingType.insert( std::pair<BigSerial,Unit*>( alternative[n]->getId(), thisUnit ) );
 					break;
@@ -2047,7 +2038,6 @@ void HM_Model::startImpl()
 		}
 	}
 
-	cout << "counter: " << unitCounter << endl;
 
 
 	PrintOutV("Initial Vacant units: " << vacancies << " onMarket: " << onMarket << " offMarket: " << offMarket << std::endl);

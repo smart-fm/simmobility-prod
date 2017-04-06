@@ -202,7 +202,7 @@ namespace sim_mob
 
 				int ageCategory = 0;
 
-				r2 = r2 * movingProbability(household, model);
+				r2 = r2 * movingProbability(household, model, true);
 
 				IdVector unitIds = agent->getUnitIds();
 
@@ -286,7 +286,7 @@ namespace sim_mob
 			else
 			if( config.ltParams.housingModel.awakeningModel.awakenModelJingsi== true )
 			{
-				double movingRate = movingProbability(household, model ) / 100.0;
+				double movingRate = movingProbability(household, model, true ) / 100.0;
 
 				double randomDrawMovingRate = (double)rand()/RAND_MAX;
 
@@ -328,7 +328,7 @@ namespace sim_mob
 		}
 
 
-		double AwakeningSubModel::movingProbability( Household* household, HM_Model *model)
+		double AwakeningSubModel::movingProbability( Household* household, HM_Model *model, bool day0)
 		{
 			std::vector<BigSerial> individuals = household->getIndividuals();
 			Individual *householdHead;
@@ -346,11 +346,15 @@ namespace sim_mob
 
 			for(int n = 0; n < ownerTenantMR.size(); n++)
 			{
-				if( household->getTenureStatus() == 2 && householdHead->getAgeCategoryId() == ownerTenantMR[n]->getAgeCategory() )
-					movingRate = ownerTenantMR[n]->getTenantMovingPercentage() / 22.0; //22.0 is the weighted average for tenant moving rates
+				if( household->getTenureStatus() == 2 &&
+				    householdHead->getAgeCategoryId() == ownerTenantMR[n]->getAgeCategory() &&
+				    ownerTenantMR[n]->getDayZero() == day0 )
+						movingRate = ownerTenantMR[n]->getTenantMovingPercentage();
 
-				if( household->getTenureStatus() == 1 && householdHead->getAgeCategoryId() == ownerTenantMR[n]->getAgeCategory() )
-					movingRate = ownerTenantMR[n]->getOwnerMovingPercentage() / 8.5; //8.5 is the weighted average for owner moving rates
+				if( household->getTenureStatus() == 1 &&
+					householdHead->getAgeCategoryId() == ownerTenantMR[n]->getAgeCategory() &&
+					ownerTenantMR[n]->getDayZero() == day0 )
+						movingRate = ownerTenantMR[n]->getOwnerMovingPercentage();
 			}
 
 			return movingRate;
@@ -392,7 +396,7 @@ namespace sim_mob
 				if( success == false)
 					continue;
 
-		    	double movingRate = movingProbability(household, model ) / 100.0;
+		    	double movingRate = movingProbability(household, model, false ) / 100.0;
 
 		    	double movingRateRandomDraw = (double)rand()/RAND_MAX;
 

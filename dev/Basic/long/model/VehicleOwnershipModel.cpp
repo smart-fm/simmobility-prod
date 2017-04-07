@@ -340,6 +340,10 @@ void VehicleOwnershipModel::reconsiderVehicleOwnershipOption2(const Household *h
 
 
 		double logsumAlt0 = 0;
+		bool topayoScenarioR1W1 = false;
+		bool topayoScenarioR1W0 = false;
+		bool topayoScenarioR0W1 = false;
+
 	if(toaPayohScenario)
 	{
 		//scenario : households live and work in Toa Payoh
@@ -348,6 +352,7 @@ void VehicleOwnershipModel::reconsiderVehicleOwnershipOption2(const Household *h
 			if(liveInToaPayoh && workInToaPayoh)
 			{
 				logsumAlt0 = calculateVOLogsumForToaPayohScenario(logsumVec);
+				topayoScenarioR1W1 = true;
 			}
 
 		}
@@ -357,6 +362,7 @@ void VehicleOwnershipModel::reconsiderVehicleOwnershipOption2(const Household *h
 			if(liveInToaPayoh)
 			{
 				logsumAlt0 = calculateVOLogsumForToaPayohScenario(logsumVec);
+				topayoScenarioR1W0 = true;
 			}
 
 		}
@@ -366,6 +372,7 @@ void VehicleOwnershipModel::reconsiderVehicleOwnershipOption2(const Household *h
 			if(workInToaPayoh)
 			{
 				logsumAlt0 = calculateVOLogsumForToaPayohScenario(logsumVec);
+				topayoScenarioR0W1 = true;
 			}
 
 		}
@@ -382,7 +389,7 @@ void VehicleOwnershipModel::reconsiderVehicleOwnershipOption2(const Household *h
 		{
 			if(coeffsObj->getVehicleOwnershipOptionId() == 0)
 			{
-				if(toaPayohScenario)
+				if(topayoScenarioR1W1 || topayoScenarioR1W0 || topayoScenarioR0W1 )
 				{
 					vehicleOwnershipLogsum = logsumAlt0;
 				}
@@ -469,19 +476,20 @@ void VehicleOwnershipModel::reconsiderVehicleOwnershipOption2(const Household *h
 				selectedVehicleOwnershipOtionId = probVal.first;
 				vehcileOwnershipOptChange->setNewVehicleOwnershipOptionId(selectedVehicleOwnershipOtionId);
 				writeVehicleOwnershipToFile(household->getId(),selectedVehicleOwnershipOtionId);
+				break;
 				switch(selectedVehicleOwnershipOtionId)
 				{
-				case 1 : MessageBus::PostMessage(hhAgent, LTMID_HH_NO_VEHICLE, MessageBus::MessagePtr(new Message()));
+				case 0 : MessageBus::PostMessage(hhAgent, LTMID_HH_NO_VEHICLE, MessageBus::MessagePtr(new Message()));
 				break;
-				case 2 : MessageBus::PostMessage(hhAgent, LTMID_HH_PLUS1_MOTOR_ONLY, MessageBus::MessagePtr(new Message()));
+				case 1 : MessageBus::PostMessage(hhAgent, LTMID_HH_PLUS1_MOTOR_ONLY, MessageBus::MessagePtr(new Message()));
 				break;
-				case 3 : MessageBus::PostMessage(hhAgent, LTMID_HH_OFF_PEAK_CAR_W_WO_MOTOR, MessageBus::MessagePtr(new Message()));
+				case 2 : MessageBus::PostMessage(hhAgent, LTMID_HH_OFF_PEAK_CAR_W_WO_MOTOR, MessageBus::MessagePtr(new Message()));
 				break;
-				case 4 : MessageBus::PostMessage(hhAgent, LTMID_HH_NORMAL_CAR_ONLY, MessageBus::MessagePtr(new Message()));
+				case 3 : MessageBus::PostMessage(hhAgent, LTMID_HH_NORMAL_CAR_ONLY, MessageBus::MessagePtr(new Message()));
 				break;
-				case 5 : MessageBus::PostMessage(hhAgent, LTMID_HH_NORMAL_CAR_1PLUS_MOTOR, MessageBus::MessagePtr(new Message()));
+				case 4 : MessageBus::PostMessage(hhAgent, LTMID_HH_NORMAL_CAR_1PLUS_MOTOR, MessageBus::MessagePtr(new Message()));
 				break;
-				case 6 : MessageBus::PostMessage(hhAgent, LTMID_HH_NORMAL_CAR_W_WO_MOTOR, MessageBus::MessagePtr(new Message()));
+				case 5 : MessageBus::PostMessage(hhAgent, LTMID_HH_NORMAL_CAR_W_WO_MOTOR, MessageBus::MessagePtr(new Message()));
 				break;
 				}
 				break;
@@ -491,7 +499,7 @@ void VehicleOwnershipModel::reconsiderVehicleOwnershipOption2(const Household *h
 				pTemp = pTemp + probVal.second;
 			}
 		}
-		model->addVehicleOwnershipChanges(vehcileOwnershipOptChange);
+ 		model->addVehicleOwnershipChanges(vehcileOwnershipOptChange);
 
 	}
 
@@ -501,7 +509,10 @@ void VehicleOwnershipModel::reconsiderVehicleOwnershipOption2(const Household *h
 double VehicleOwnershipModel::getExp2(int unitTypeId,double vehicleOwnershipLogsum, VehicleOwnershipCoefficients *coeffsObj, const Household &household,int &numWhiteCollars,int &numWorkers,int & numElderly)
 {
 	double value = 0;
+
 	double incomeAdjusted = household.getIncome()/(10000.00);
+
+	value = value + incomeAdjusted * coeffsObj->getIncomeAdj();
 
 	if(household.getEthnicityId() == INDIAN)
 	{

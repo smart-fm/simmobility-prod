@@ -124,11 +124,11 @@ private:
 	std::vector<VehicleRequest> requestQueue;
 	/**store self instance*/
 	static VehicleController* instance;
-	std::mutex mtx;
 };
 }
 }
 #endif /* VehicleController_HPP_ */
+
 
 
 

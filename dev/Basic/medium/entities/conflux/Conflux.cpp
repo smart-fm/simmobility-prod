@@ -298,13 +298,16 @@ void Conflux::addAgent(Person_MT* person)
 			WayPoint personTravelDestination = (*subTripItr).destination;
 			const Node * personDestinationNode = personTravelDestination.node;
 
-			MessageBus::PostMessage(VehicleController::GetInstance(), MSG_VEHICLE_REQUEST, messaging::MessageBus::MessagePtr(
-				new VehicleRequestMessage(person->currTick, person->getDatabaseId(),
-					confluxNode->getNodeId(), personDestinationNode->getNodeId())));
+			if (VehicleController::HasVehicleController())
+			{
+				MessageBus::PostMessage(VehicleController::GetInstance(), MSG_VEHICLE_REQUEST, messaging::MessageBus::MessagePtr(
+					new VehicleRequestMessage(person->currTick, person->getDatabaseId(),
+						confluxNode->getNodeId(), personDestinationNode->getNodeId())));
 
-			Print() << "Request made from " << person->getDatabaseId() << " at time " << person->currTick.frame() << ". Message was sent at "
-				<< person->currTick.frame() << " with startNodeId " << confluxNode->getNodeId() << ", destinationNodeId " << personDestinationNode->getNodeId()
-				<< ", and taxiDriverId null" << std::endl;
+				Print() << "Request made from " << person->getDatabaseId() << " at time " << person->currTick.frame() << ". Message was sent at "
+					<< person->currTick.frame() << " with startNodeId " << confluxNode->getNodeId() << ", destinationNodeId " << personDestinationNode->getNodeId()
+					<< ", and taxiDriverId null" << std::endl;
+			}
 			
 			travelingPersons.push_back(person);
 			break;
@@ -2894,6 +2897,7 @@ sim_mob::medium::PersonTransferMessage::PersonTransferMessage(Person_MT* person,
 sim_mob::medium::PersonTransferMessage::~PersonTransferMessage()
 {
 }
+
 
 
 

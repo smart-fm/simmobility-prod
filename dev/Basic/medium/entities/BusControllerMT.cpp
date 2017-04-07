@@ -146,8 +146,6 @@ void BusControllerMT::assignBusTripChainWithPerson(std::set<Entity*>& activeAgen
 		groupFleets[taxi.vehicleNo].push(taxi);
 	}
 
-    VehicleController::RegisterVehicleController();
-
 	for (auto i=groupFleets.begin(); i!= groupFleets.end(); i++)
 	{
 		const TaxiFleetManager::FleetTimePriorityQueue& fleetItems = i->second;
@@ -169,8 +167,12 @@ void BusControllerMT::assignBusTripChainWithPerson(std::set<Entity*>& activeAgen
 			addOrStashBuses(person, activeAgents);
 		}
 
-		VehicleController::GetInstance()->addVehicleDriver(person);
+		if (VehicleController::HasVehicleController())
+		{
+			VehicleController::GetInstance()->addVehicleDriver(person);
+		}
 	}
 }
+
 
 

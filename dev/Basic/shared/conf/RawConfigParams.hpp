@@ -436,6 +436,21 @@ struct TravelTimeConfig {
 };
 
 /**
+ * Represents vehicle controller parameter section
+ */
+struct VehicleControllerParams
+{
+    /**
+     * Constructor
+     */
+    VehicleControllerParams() : enabled(false)
+    {}
+
+    /// Is vehicle controller enabled?
+    bool enabled;
+};
+
+/**
  * Contains the properties of the config file as they appear in, e.g., test_road_network.xml, with
  *   minimal conversion.
  * Derived properties (such as the road network) are listed in ConfigParams.
@@ -488,6 +503,9 @@ public:
     /// Bus controller parameters
     BusControllerParams busController;
 
+    /// Vehicle controller parameters
+    VehicleControllerParams vehicleController;
+
     //OD Travel Time configurations
     TravelTimeConfig odTTConfig;
 
@@ -524,3 +542,4 @@ public:
 
 
 }
+

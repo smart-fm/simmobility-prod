@@ -150,6 +150,8 @@
     <!-- The current control strategy for buses. Can be "headway_based", "evenheadway_based", "hybrid_based", or (default) "no_control" -->
     <busController enabled="true" busline_control_type="headway_based"/>
 
+    <vehicleController enabled="true"/>
+
     <!-- location of the config file for loading pathset generation or route choice related info -->
     <pathset_config_file value="data/pathset_config.xml" />
 

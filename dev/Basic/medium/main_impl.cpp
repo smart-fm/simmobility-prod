@@ -46,6 +46,7 @@
 #include "entities/ScreenLineCounter.hpp"
 #include "entities/TravelTimeManager.hpp"
 #include "entities/TaxiStandAgent.hpp"
+#include "entities/VehicleController.hpp"
 #include "geospatial/aimsun/Loader.hpp"
 #include "geospatial/network/RoadNetwork.hpp"
 #include "geospatial/network/RoadSegment.hpp"
@@ -307,9 +308,14 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	}
 	Agent::all_agents.clear();
 
-	if(BusController::HasBusController())
+	if (BusController::HasBusController())
 	{
 		personWorkers->assignAWorker(BusController::GetInstance());
+	}
+
+	if (VehicleController::HasVehicleController())
+	{
+		personWorkers->assignAWorker(VehicleController::GetInstance());
 	}
 	//incident
 	personWorkers->assignAWorker(IncidentManager::getInstance());
@@ -625,4 +631,5 @@ int main_impl(int ARGC, char* ARGV[])
 
 	return returnVal;
 }
+
 

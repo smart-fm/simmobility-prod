@@ -322,7 +322,6 @@ Entity::UpdateStatus VehicleController::frame_tick(timeslice now)
 
 	// return Entity::UpdateStatus::Continue;
 
-	mtx.lock();
 	if (currIntTick == tickThreshold)
 	{
 		currIntTick = 0;
@@ -351,7 +350,6 @@ Entity::UpdateStatus VehicleController::frame_tick(timeslice now)
 	{
 		currIntTick += 1;
 	}
-	mtx.unlock();
 
 	return Entity::UpdateStatus::Continue;
 }
@@ -363,7 +361,6 @@ void VehicleController::frame_output(timeslice now)
 
 void VehicleController::HandleMessage(messaging::Message::MessageType type, const messaging::Message& message)
 {
-	mtx.lock();
 	switch (type) {
 	        case MSG_VEHICLE_REQUEST:
 	        {
@@ -396,7 +393,6 @@ void VehicleController::HandleMessage(messaging::Message::MessageType type, cons
 
 	        default:break;
 	    };
-	mtx.unlock();
 }
 
 bool VehicleController::isNonspatial()
@@ -405,6 +401,7 @@ bool VehicleController::isNonspatial()
 }
 }
 }
+
 
 
 

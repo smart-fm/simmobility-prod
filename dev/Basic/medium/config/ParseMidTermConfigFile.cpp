@@ -80,6 +80,7 @@ void ParseMidTermConfigFile::processXmlFile(xercesc::XercesDOMParser& parser)
 	processIncidentsNode(GetSingleElementByName(rootNode, "incidentsData", true));
 	processBusStopScheduledTimesNode(GetSingleElementByName(rootNode, "scheduledTimes", true));
 	processBusControllerNode(GetSingleElementByName(rootNode, "busController", true));
+	processVehicleControllerNode(GetSingleElementByName(rootNode, "vehicleController", true));
 	processGenerateBusRoutesNode(GetSingleElementByName(rootNode, "generateBusRoutes"));
 	processTT_Update(GetSingleElementByName(rootNode, "travel_time_update", true));
 	processPublicTransit(GetSingleElementByName(rootNode, "public_transit", true));
@@ -680,11 +681,17 @@ void ParseMidTermConfigFile::processIncidentsNode(xercesc::DOMElement* node)
 
 void ParseMidTermConfigFile::processBusControllerNode(DOMElement *node)
 {
-    if(node)
+    if (node)
     {
         cfg.busController.enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), "false");
         cfg.busController.busLineControlType = ParseString(GetNamedAttributeValue(node, "busline_control_type"), "");
     }
+}
+
+void ParseMidTermConfigFile::processVehicleControllerNode(DOMElement *node)
+{
+    if (node)
+    	cfg.vehicleController.enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), "false");
 }
 
 void ParseMidTermConfigFile::processPathSetFileName(xercesc::DOMElement* node)
@@ -696,5 +703,6 @@ void ParseMidTermConfigFile::processPathSetFileName(xercesc::DOMElement* node)
 }
 
 }
+
 
 

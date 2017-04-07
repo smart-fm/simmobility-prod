@@ -95,26 +95,33 @@ void TaxiDriver::HandleParentMessage(messaging::Message::MessageType type, const
 			if (it == nodeIdMap.end()) {
 				Print() << "Message contains bad destination node" << std::endl;
 
-				Print() << "Assignment response sent for " << msg.personId << " at time " << parent->currTick.frame()
-					<< ". Message was sent at " << msg.currTick.frame() << " with startNodeId " << msg.startNodeId
-					<< ", destinationNodeId " << msg.destinationNodeId << ", and taxiDriverId null" << std::endl;
+				if (VehicleController::HasVehicleController())
+				{
+					messaging::MessageBus::PostMessage(VehicleController::GetInstance(), MSG_VEHICLE_ASSIGNMENT,
+						messaging::MessageBus::MessagePtr(new VehicleAssignmentMessage(parent->currTick, false, msg.personId, parent->getDatabaseId(),
+							msg.startNodeId, msg.destinationNodeId)));
 
-				messaging::MessageBus::PostMessage(VehicleController::GetInstance(), MSG_VEHICLE_ASSIGNMENT,
-					messaging::MessageBus::MessagePtr(new VehicleAssignmentMessage(parent->currTick, false, msg.personId, parent->getDatabaseId(),
-						msg.startNodeId, msg.destinationNodeId)));
+					Print() << "Assignment response sent for " << msg.personId << " at time " << parent->currTick.frame()
+						<< ". Message was sent at " << msg.currTick.frame() << " with startNodeId " << msg.startNodeId
+						<< ", destinationNodeId " << msg.destinationNodeId << ", and taxiDriverId null" << std::endl;
+				}
+
 				return;
 			}
 			Node* node = it->second;
 
-			const bool success = taxiDriverMovement->driveToNodeOnCall(msg.personId, node);			
+			const bool success = taxiDriverMovement->driveToNodeOnCall(msg.personId, node);
 
-			Print() << "Assignmet response sent for " << msg.personId << " at time " << parent->currTick.frame()
-				<< ". Message was sent at " << msg.currTick.frame() << " with startNodeId " << msg.startNodeId
-				<< ", destinationNodeId " << msg.destinationNodeId << ", and taxiDriverId " << parent->getDatabaseId() << std::endl;
+			if (VehicleController::HasVehicleController())
+			{
+				messaging::MessageBus::PostMessage(VehicleController::GetInstance(), MSG_VEHICLE_ASSIGNMENT,
+					messaging::MessageBus::MessagePtr(new VehicleAssignmentMessage(parent->currTick, success, msg.personId, parent->getDatabaseId(),
+						msg.startNodeId, msg.destinationNodeId)));
 
-			messaging::MessageBus::PostMessage(VehicleController::GetInstance(), MSG_VEHICLE_ASSIGNMENT,
-				messaging::MessageBus::MessagePtr(new VehicleAssignmentMessage(parent->currTick, success, msg.personId, parent->getDatabaseId(),
-					msg.startNodeId, msg.destinationNodeId)));
+				Print() << "Assignmet response sent for " << msg.personId << " at time " << parent->currTick.frame()
+					<< ". Message was sent at " << msg.currTick.frame() << " with startNodeId " << msg.startNodeId
+					<< ", destinationNodeId " << msg.destinationNodeId << ", and taxiDriverId " << parent->getDatabaseId() << std::endl;
+			}
 
 			break;
 		}
@@ -234,6 +241,7 @@ TaxiDriver::~TaxiDriver()
 }
 }
 }
+
 
 
 

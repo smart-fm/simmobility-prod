@@ -10,6 +10,7 @@
 #include "entities/BusControllerMT.hpp"
 #include "entities/conflux/Conflux.hpp"
 #include "entities/TravelTimeManager.hpp"
+#include "entities/VehicleController.hpp"
 #include "geospatial/Incident.hpp"
 #include "geospatial/network/RoadNetwork.hpp"
 #include "geospatial/network/NetworkLoader.hpp"
@@ -97,6 +98,12 @@ void ExpandMidTermConfigFile::processConfig()
         size_t sizeBefore = mtCfg.getConfluxes().size();
         Conflux::CreateConfluxes();
         std::cout << mtCfg.getConfluxes().size() << " Confluxes created" << std::endl;
+    }
+
+    //register and initialize VehicleController
+    if (cfg.vehicleController.enabled)
+    {
+        VehicleController::RegisterVehicleController(-1, cfg.mutexStategy());
     }
 
     //register and initialize BusController
@@ -281,3 +288,4 @@ void ExpandMidTermConfigFile::printSettings()
 	SimulationInfoPrinter simInfoPrinter(cfg, cfg.outSimInfoFileName);
 	simInfoPrinter.printSimulationInfo();
 }
+

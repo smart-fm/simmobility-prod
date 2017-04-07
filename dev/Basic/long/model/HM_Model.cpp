@@ -1891,7 +1891,6 @@ void HM_Model::startImpl()
 
 	PrintOutV( "There are " << homelessHousehold << " homeless households" << std::endl);
 
-
 	///////////////////////////////////////////
 	//Vacant Unit activation model
 	//////////////////////////////////////////
@@ -1946,7 +1945,7 @@ void HM_Model::startImpl()
 		{
 			Unit *thisUnit = (*it);
 
-			int tazId = this->getUnitSlaAddressId((*it)->getId());
+			int tazId = this->getUnitTazId((*it)->getId());
 			int mtzId = -1;
 			int subzoneId = -1;
 			int planningAreaId = -1;
@@ -2188,7 +2187,6 @@ void  HM_Model::loadLTVersion(DB_Connection &conn)
 	PrintOutV("LT Database Baseline Comment: " << ltVersionList.back()->getComments() << endl);
 	PrintOutV("LT Database Baseline user id: " << ltVersionList.back()->getUser_id() << endl);
 }
-
 
 HM_Model::ScreeningModelCoefficientsList HM_Model::getScreeningModelCoefficientsList()
 {

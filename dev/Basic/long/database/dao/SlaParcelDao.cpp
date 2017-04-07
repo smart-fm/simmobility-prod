@@ -10,7 +10,7 @@
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
-SlaParcelDao::SlaParcelDao(DB_Connection& connection): SqlAbstractDao<SlaParcel>(connection, DB_TABLE_SLA_PARCEL, EMPTY_STR,EMPTY_STR, EMPTY_STR, DB_GETALL_SLA_PARCELS, EMPTY_STR) {
+SlaParcelDao::SlaParcelDao(DB_Connection& connection): SqlAbstractDao<SlaParcel>(connection, "", "","", "", "SELECT * FROM " + connection.getSchema()+"sla_parcel", "") {
 }
 
 SlaParcelDao::~SlaParcelDao() {

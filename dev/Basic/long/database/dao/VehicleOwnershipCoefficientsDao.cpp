@@ -10,7 +10,8 @@
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
-VehicleOwnershipCoefficientsDao::VehicleOwnershipCoefficientsDao(DB_Connection& connection): SqlAbstractDao<VehicleOwnershipCoefficients>( connection, DB_TABLE_VEHICLE_OWNERSHIP_COEFFICIENTS, EMPTY_STR, EMPTY_STR, EMPTY_STR,DB_GETALL_VEHCILE_OWNERSHIP_COEFFICIENTS, EMPTY_STR ) {}
+VehicleOwnershipCoefficientsDao::VehicleOwnershipCoefficientsDao(DB_Connection& connection): SqlAbstractDao<VehicleOwnershipCoefficients>( connection, "", "", "", "",
+																						     "SELECT * FROM " + connection.getSchema()+"getVehicleOwnershipCoefficients()", "") {}
 
 VehicleOwnershipCoefficientsDao::~VehicleOwnershipCoefficientsDao() {}
 

@@ -10,7 +10,7 @@
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
-IndvidualVehicleOwnershipLogsumDao::IndvidualVehicleOwnershipLogsumDao(DB_Connection& connection): SqlAbstractDao<IndvidualVehicleOwnershipLogsum>( connection, DB_TABLE_INDIVIDUAL_LEVEL_VEHICLEOWNERSHIP_LOGSUM, EMPTY_STR, EMPTY_STR, EMPTY_STR,DB_GETALL_INDIVIDUAL_VEHICLE_OWNERSHIP_LOGSUMS, EMPTY_STR ) {}
+IndvidualVehicleOwnershipLogsumDao::IndvidualVehicleOwnershipLogsumDao(DB_Connection& connection): SqlAbstractDao<IndvidualVehicleOwnershipLogsum>( connection, "", "", "", "","SELECT * FROM " + connection.getSchema()+"individual_level_vehicle_ownership_logsum", "") {}
 
 IndvidualVehicleOwnershipLogsumDao::~IndvidualVehicleOwnershipLogsumDao() {}
 
@@ -30,7 +30,7 @@ void IndvidualVehicleOwnershipLogsumDao::toRow(IndvidualVehicleOwnershipLogsum& 
 
 std::vector<IndvidualVehicleOwnershipLogsum*> IndvidualVehicleOwnershipLogsumDao::getIndvidualVehicleOwnershipLogsumsByHHId(const long long householdId)
 {
-	const std::string queryStr = DB_GET_INDIVIDUAL_VEHICLEOWNERSHIP_LOGSUM_BY_HHID;
+	const std::string queryStr = "SELECT * FROM individual_level_vehicle_ownership_logsum WHERE household_id = :v1;";
 	db::Parameters params;
 	params.push_back(householdId);
 	std::vector<IndvidualVehicleOwnershipLogsum*> IndividualList;

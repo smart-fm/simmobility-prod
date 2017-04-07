@@ -15,6 +15,7 @@
 #include "conf/RawConfigParams.hpp"
 #include "geospatial/network/Point.hpp"
 #include "util/GeomHelpers.hpp"
+#include "util/Profiler.hpp"
 #include "util/XmlParseHelper.hpp"
 #include "path/ParsePathXmlConfig.hpp"
 
@@ -128,6 +129,7 @@ void sim_mob::ParseConfigFile::processXmlFile(XercesDOMParser& parser)
 
 	if( longTerm )
 	{
+		processSchemasParamsNode(GetSingleElementByName(rootNode,"schemas"));
         processConstructsNode(GetSingleElementByName(rootNode,"constructs"));
         processLongTermParamsNode( GetSingleElementByName(rootNode, "longTermParams"));
         processModelScriptsNode(GetSingleElementByName(rootNode, "model_scripts"));
@@ -220,9 +222,34 @@ void sim_mob::ParseConfigFile::processConstructCredentialNode(xercesc::DOMElemen
 	}
 }
 
+
+void sim_mob::ParseConfigFile::processSchemasParamsNode(xercesc::DOMElement* node)
+{
+	if (!node)
+	{
+		return;
+	}
+
+    ///The schemaParams tag has an attribute
+	cfg.ltParams.enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), false);
+
+	if (!cfg.ltParams.enabled)
+	{
+		return;
+	}
+
+	cfg.schemas.main_schema = ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "main_schema"), "value"), static_cast<std::string>(""));
+	cfg.schemas.calibration_schema = ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "calibration_schema"), "value"), static_cast<std::string>(""));
+	cfg.schemas.public_schema = ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "public_schema"), "value"), static_cast<std::string>(""));
+	cfg.schemas.demand_schema = ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "demand_schema"), "value"), static_cast<std::string>(""));
+}
+
+
+
 void sim_mob::ParseConfigFile::processLongTermParamsNode(xercesc::DOMElement* node)
 {
-	if (!node) {
+	if (!node)
+	{
 		return;
 	}
 
@@ -306,6 +333,10 @@ void sim_mob::ParseConfigFile::processLongTermParamsNode(xercesc::DOMElement* no
 	schoolAssignmentModel.schoolChangeWaitingTimeInDays = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "schoolAssignmentModel"), "schoolChangeWaitingTimeInDays"), "value"), static_cast<unsigned int>(0));
 	cfg.ltParams.taxiAccessModel = taxiAccessModel;
 
+	LongTermParams::Scenario scenario;
+	scenario.enabled = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName( node, "scenario"), "enabled"), false);
+	scenario.scenarioName = ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "name"), "value"), "");
+	cfg.ltParams.scenario = scenario;
 
 	LongTermParams::OutputFiles outputFiles;
 
@@ -363,13 +394,13 @@ void sim_mob::ParseConfigFile::processSimulationNode(xercesc::DOMElement* node)
     processWorkgroupAssignmentNode(GetSingleElementByName(node, "workgroup_assignment"));
     cfg.simulation.startingAutoAgentID = ProcessValueInteger2(GetSingleElementByName(node, "auto_id_start"), 0);
     processMutexEnforcementNode(GetSingleElementByName(node, "mutex_enforcement"));
+    processClosedLoopPropertiesNode(GetSingleElementByName(node, "closed_loop"));
 }
 
 void sim_mob::ParseConfigFile::processMergeLogFilesNode(xercesc::DOMElement* node)
 {
 	cfg.mergeLogFiles = ParseBoolean(GetNamedAttributeValue(node, "value"), false);
 }
-
 
 void sim_mob::ParseConfigFile::processGenericPropsNode(xercesc::DOMElement* node)
 {
@@ -422,6 +453,25 @@ unsigned int sim_mob::ParseConfigFile::processInSimulationTTUsage(xercesc::DOMEl
 void sim_mob::ParseConfigFile::processWorkgroupAssignmentNode(xercesc::DOMElement* node)
 {
     cfg.simulation.workGroupAssigmentStrategy = ParseWrkGrpAssignEnum(GetNamedAttributeValue(node, "value"), WorkGroup::ASSIGN_SMALLEST);
+}
+
+void sim_mob::ParseConfigFile::processClosedLoopPropertiesNode(xercesc::DOMElement *node)
+{
+	if(node)
+	{
+		cfg.simulation.closedLoop.enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), false);
+
+		if(cfg.simulation.closedLoop.enabled)
+		{
+			cfg.simulation.closedLoop.guidanceFile = ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "closed_loop_guidance"), "file"));
+			cfg.simulation.closedLoop.isGuidanceDirectional = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(node, "closed_loop_guidance"), "is_guidance_directional"), false);
+			cfg.simulation.closedLoop.tollFile = ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "closed_loop_toll"), "file"));
+			cfg.simulation.closedLoop.incentivesFile = ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "closed_loop_incentives"), "file"));
+			cfg.simulation.closedLoop.sensorOutputFile = ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "sensor_output"), "file"), "sensor_out.txt");
+			cfg.simulation.closedLoop.sensorStepSize = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "sensor_output"), "step_size"), 300);
+			cfg.simulation.closedLoop.logger = new BasicLogger(cfg.simulation.closedLoop.sensorOutputFile);
+		}
+	}
 }
 
 void sim_mob::ParseConfigFile::processMutexEnforcementNode(xercesc::DOMElement* node)

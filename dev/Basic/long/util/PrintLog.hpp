@@ -93,15 +93,7 @@ namespace sim_mob
 			if(!config.ltParams.outputFiles.log_household_statistics)
 				return;
 
-			static bool printHeader = true;
-
-			 if(printHeader)
-			 {
-				printHeader = false;
-				AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_HOUSEHOLD_STATISTICS,"householdId, TwoRoomHdbEligibility, ThreeRoomHdbEligibility, FourRoomHdbEligibility, FamilyType, hhSize, adultSingaporean, coupleAndChild, engagedCouple, femaleAdultElderly, femaleAdultMiddleAged, femaleAdultYoung, femaleChild, maleAdultElderly, maleAdultMiddleAged, maleAdultYoung, maleChild, multigeneration, orphanSiblings, siblingsAndParents, singleParent");
-			 }
-
-			 boost::format fmtr = boost::format("%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%, "
+			boost::format fmtr = boost::format("%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%, "
 												"%11%, %12%, %13%, %14%, %15%, %16%, %17%, %18%, %19%, %20%, %21% ")
 																 % household->getId()
 																 % household->getTwoRoomHdbEligibility()
@@ -141,21 +133,9 @@ namespace sim_mob
 		 inline void printExpectation(int day, int dayToApply, BigSerial unitId, BigSerial agentId, const ExpectationEntry& exp)
 		 {
 
-				ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
-				if(!config.ltParams.outputFiles.expectations)
+			ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+			if(!config.ltParams.outputFiles.expectations)
 					return;
-
-			 //static boost::mutex mtx_expectation;
-
-			 static bool printHeader = true;
-
-			 if(printHeader)
-			 {
-				//boost::mutex::scoped_lock(mtx_expectation);
-				printHeader = false;
-				AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::EXPECTATIONS,"bid_timestamp, day_to_apply, seller_id, unit_id, hedonic_price, asking_price, target_price");
-
-			 }
 
 			 boost::format fmtr = boost::format("%1%, %2%, %3%, %4%, %5%, %6%, %7%") 	% day
 																						% dayToApply
@@ -170,19 +150,26 @@ namespace sim_mob
 		 }
 
 
-		inline void printAwakening(int day, Household *household)
+
+
+
+		inline void printAwakeningJingsi(int day, Household *household, double futureTransitionRate, double randomDraw, double movingRate, double randomDrawMovingRate)
 		{
 			ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 			if(!config.ltParams.outputFiles.log_hh_awakening)
 				return;
 
-			static bool printHeader = true;
+			//day household_id timeOnMarket
+			boost::format fmtr = boost::format("%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%") % (day + 1) % household->getId() % household->getTimeOnMarket() % household->getAgeOfHead() % household->getTenureStatus() % futureTransitionRate % randomDraw  % movingRate % randomDrawMovingRate;
+			AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_HH_AWAKENING, fmtr.str());
+		}
 
-			if(printHeader)
-			{
-				printHeader = false;
-				AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_HH_AWAKENING,"awakening_day, householdId, TimeOnMarket, ageCategory, tenureStatus");
-			}
+
+		inline void printAwakening(int day, Household *household)
+		{
+			ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+			if(!config.ltParams.outputFiles.log_hh_awakening)
+				return;
 
 			//day household_id timeOnMarket
 			boost::format fmtr = boost::format("%1%, %2%, %3%, %4%, %5%") % (day + 1) % household->getId() % household->getTimeOnMarket() % household->getAgeOfHead() % household->getTenureStatus();
@@ -197,17 +184,8 @@ namespace sim_mob
 			if(!config.ltParams.outputFiles.log_taxi_availability)
 				return;
 
-			static bool printHeader = true;
-
-			if(printHeader)
-			{
-				printHeader = false;
-				AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_TAXI_AVAILABILITY,"household_id, probability_taxiAccess, randonNum");
-			}
-
 			boost::format fmtr = boost::format("%1%, %2%, %3%") % hhId % probabilityTaxiAccess % randomNum;
 			AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_TAXI_AVAILABILITY,fmtr.str());
-
 		}
 
 		inline void printTazLevelLogsum(int taz, double logsum)
@@ -215,14 +193,6 @@ namespace sim_mob
 			ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 			if(!config.ltParams.outputFiles.log_taz_level_logsum)
 				return;
-
-			static bool printHeader = true;
-
-			if(printHeader)
-			{
-				printHeader = false;
-				AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_TAZ_LEVEL_LOGSUM,"taz, logsum");
-			}
 
 			boost::format fmtr = boost::format("%1%, %2%") 	% taz % logsum;
 
@@ -236,18 +206,9 @@ namespace sim_mob
 			if(!config.ltParams.outputFiles.log_individual_hits_logsum)
 				return;
 
-			static bool printHeader = true;
-
-			if(printHeader)
-			{
-				printHeader = false;
-				AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_INDIVIDUAL_HITS_LOGSUM,"individualId, logsum");
-			}
-
 			boost::format fmtr = boost::format("%1%, %2%") % individualId % logsum;
 
 			AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_INDIVIDUAL_HITS_LOGSUM, fmtr.str());
-
 		}
 
 		inline void printHouseholdHitsLogsum( std::string title, std::string hitsId, std::string householdId, std::string individualId, std::string paxId, vector<double> logsum )
@@ -410,14 +371,6 @@ namespace sim_mob
 			if(!config.ltParams.outputFiles.log_individual_logsum_vo)
 				return;
 
-			static bool printHeader = true;
-
-			if(printHeader)
-			{
-				printHeader = false;
-				AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_INDIVIDUAL_LOGSUM_VO,"hitsId , paxId , householdId , individualId , memberId , tazH , tazW , logsum[0] , logsum[1] ,logsum[2] , logsum[3] ,logsum[4] , logsum[5] ,travelProbability[0] , travelProbability[1] , travelProbability[2] , travelProbability[3] ,travelProbability[4] , travelProbability[5] ,tripsExpected[0] , tripsExpected[1], tripsExpected[2] , tripsExpected[3], tripsExpected[4] , tripsExpected[5]");
-			}
-
 			boost::format fmtr = boost::format( "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%, %11%, %12%, %13%, %14%, %15%, %16%, %17%, %18%, %19%, %20%, %21%, %22%, %23%, %24%, %25% ")
 												 % hitsId % paxId % householdId % individualId % memberId % tazH % tazW
 												 % logsum[0] % logsum[1] % logsum[2] % logsum[3] % logsum[4] % logsum[5]
@@ -431,14 +384,6 @@ namespace sim_mob
 			ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 			if(!config.ltParams.outputFiles.log_screeningprobabilities)
 				return;
-
-			static bool printHeader = true;
-
-			if(printHeader)
-			{
-				printHeader = false;
-				AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_SCREENINGPROBABILITIES,"householdId , probabilities[0], probabilities[1], probabilities[2], probabilities[3], probabilities[4], probabilities[5], probabilities[6], probabilities[7], probabilities[8], probabilities[9], probabilities[10], probabilities[11], probabilities[12], probabilities[13], probabilities[14], probabilities[15], probabilities[16], probabilities[17], probabilities[18], probabilities[19], probabilities[20], probabilities[21], probabilities[22], probabilities[23], probabilities[24], probabilities[25], probabilities[26], probabilities[27], probabilities[28], probabilities[29], probabilities[30], probabilities[31], probabilities[32], probabilities[33], probabilities[34], probabilities[35], probabilities[36], probabilities[37], probabilities[38], probabilities[39], probabilities[40], probabilities[41], probabilities[42], probabilities[43], probabilities[44], probabilities[45], probabilities[46], probabilities[47], probabilities[48], probabilities[49], probabilities[50], probabilities[51], probabilities[52], probabilities[53], probabilities[54], probabilities[55], probabilities[56], probabilities[57], probabilities[58], probabilities[59], probabilities[60], probabilities[61], probabilities[62], probabilities[63], probabilities[64], probabilities[65], probabilities[66], probabilities[67], probabilities[68], probabilities[69], probabilities[70], probabilities[71], probabilities[72], probabilities[73], probabilities[74], probabilities[75], probabilities[76], probabilities[77], probabilities[78], probabilities[79], probabilities[80], probabilities[81], probabilities[82], probabilities[83], probabilities[84], probabilities[85], probabilities[86], probabilities[87], probabilities[88], probabilities[89], probabilities[90], probabilities[91], probabilities[92], probabilities[93], probabilities[94], probabilities[95], probabilities[96], probabilities[97], probabilities[98], probabilities[99], probabilities[100], probabilities[101], probabilities[102], probabilities[103], probabilities[104], probabilities[105], probabilities[106], probabilities[107], probabilities[108], probabilities[109], probabilities[110], probabilities[111], probabilities[112], probabilities[113], probabilities[114], probabilities[115], probabilities[116], probabilities[117], probabilities[118], probabilities[119], probabilities[120], probabilities[121], probabilities[122], probabilities[123], probabilities[124], probabilities[125], probabilities[126], probabilities[127], probabilities[128], probabilities[129], probabilities[130], probabilities[131], probabilities[132], probabilities[133], probabilities[134], probabilities[135], probabilities[136], probabilities[137], probabilities[138], probabilities[139], probabilities[140], probabilities[141], probabilities[142], probabilities[143], probabilities[144], probabilities[145], probabilities[146], probabilities[147], probabilities[148], probabilities[149], probabilities[150], probabilities[151], probabilities[152], probabilities[153], probabilities[154], probabilities[155], probabilities[156], probabilities[157], probabilities[158], probabilities[159], probabilities[160], probabilities[161], probabilities[162], probabilities[163], probabilities[164], probabilities[165], probabilities[166], probabilities[167], probabilities[168], probabilities[169], probabilities[170], probabilities[171], probabilities[172], probabilities[173], probabilities[174], probabilities[175], probabilities[176], probabilities[177], probabilities[178], probabilities[179], probabilities[180], probabilities[181], probabilities[182], probabilities[183], probabilities[184], probabilities[185], probabilities[186], probabilities[187], probabilities[188], probabilities[189], probabilities[190], probabilities[191], probabilities[192], probabilities[193], probabilities[194], probabilities[195], probabilities[196], probabilities[197], probabilities[198], probabilities[199], probabilities[200], probabilities[201], probabilities[202], probabilities[203], probabilities[204], probabilities[205], probabilities[206], probabilities[207], probabilities[208], probabilities[209], probabilities[210], probabilities[211], probabilities[212], probabilities[213], probabilities[214], probabilities[215]");
-			}
 
 			boost::format fmtr = boost::format("%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%, %11%, %12%, %13%, %14%, %15%, %16%, %17%, %18%, %19%, %20%, %21%, %22%, %23%, %24%, %25%, %26%, %27%, %28%, %29%, %30%, %31%, %32%, %33%, %34%, %35%, %36%, %37%, %38%, %39%, %40%, %41%, %42%, "
 												"%43%, %44%, %45%, %46%, %47%, %48%, %49%, %50%, %51%, %52%, %53%, %54%, %55%, %56%, %57%, %58%, %59%, %60%, %61%, %62%, %63%, %64%, %65%, %66%, %67%, %68%, %69%, %70%, %71%, %72%, %73%, %74%, %75%, %76%, %77%, %78%, %79%, %80%, %81%, %82%, "
@@ -473,17 +418,8 @@ namespace sim_mob
 			if(!config.ltParams.outputFiles.log_vehicle_ownership)
 				return;
 
-	        static bool printHeader = false;
-
-	        if(printHeader)
-	        {
-	        	printHeader = false;
-	        	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_VEHICLE_OWNERSIP,"householdId, vehicleOwnershipOption");
-	        }
-
 	    	boost::format fmtr = boost::format("%1%, %2%") % hhId % VehiclOwnershiOptionId;
 	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_VEHICLE_OWNERSIP,fmtr.str());
-
 	    }
 	    									//day, householdId, unitId, willingnessToPay, AskingPrice, Affordability, BidAmount, Surplus, currentPostcode, unitPostcode
 	    inline void printHouseholdBiddingList(  int day, BigSerial householdId, BigSerial unitId, std::string postcodeCurrent, std::string postcodeNew,
@@ -492,14 +428,6 @@ namespace sim_mob
 			ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 			if(!config.ltParams.outputFiles.log_householdbidlist)
 				return;
-
-	        static bool printHeader = true;
-
-	        if(printHeader)
-	        {
-	        	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_HOUSEHOLDBIDLIST,"day, householdId, unitId, willingnessToPay, AskingPrice, Affordability, BidAmount, Surplus, currentPostcode, unitPostcode");
-	        	printHeader = false;
-	        }
 
 	    	boost::format fmtr = boost::format("%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%") % day % householdId % unitId % wp % askingPrice
 	    																							% affordability % currentBid % currentSurplus % postcodeCurrent % postcodeNew;
@@ -513,14 +441,6 @@ namespace sim_mob
 			if(!config.ltParams.outputFiles.log_hhchoiceset)
 				return;
 
-	        static bool printHeader = true;
-
-	        if(printHeader)
-	        {
-	        	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_HHCHOICESET,"day, householdId, unitId1, unitId2, unitId3, unitId4, unitId5, unitId6, unitId7, unitId8, unitId9, unitId10, unitId11, unitId12, unitId13, unitId14, unitId15, unitId16, unitId17, unitId18, unitId19, unitId20, unitId21, unitId22, unitId23, unitId24, unitId25, unitId26, unitId27, unitId28, unitId29, unitId30, unitId31, unitId32, unitId33, unitId34, unitId35, unitId36, unitId37, unitId38, unitId39, unitId40, unitId41, unitId42, unitId43, unitId44, unitId45, unitId46, unitId47, unitId48, unitId49, unitId50, unitId51, unitId52, unitId53, unitId54, unitId55, unitId56, unitId57, unitId58, unitId59, unitId60, unitId61, unitId62, unitId63, unitId64, unitId65, unitId66, unitId67, unitId68, unitId69, unitId70");
-	        	printHeader = false;
-	        }
-
 	    	boost::format fmtr = boost::format("%1%, %2%, %3%")% day % householdId % choiceset;
 
 	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_HHCHOICESET,fmtr.str());
@@ -532,15 +452,7 @@ namespace sim_mob
 			if(!config.ltParams.outputFiles.log_hh_exit)
 				return;
 
-	        static bool printHeader = true;
-
-	        if(printHeader)
-	        {
-	        	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_HH_EXIT,"day, household, exit_status");
-	        	printHeader = false;
-	        }
-
-	    	//day household_id timeOnMarket
+			//day household_id timeOnMarket
 	    	boost::format fmtr = boost::format("%1%, %2%, %3%") % (day + 1) % household->getId() % result;
 	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_HH_EXIT, fmtr.str());
 	    }
@@ -551,14 +463,6 @@ namespace sim_mob
 
 	    inline void printBidGeneric(HM_Model* model, int id, const Bid& bid, const ExpectationEntry& entry, unsigned int bidsCounter, bool accepted)
 	    {
-	        static bool printHeader = true;
-
-	        if(printHeader)
-	        {
-			AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::BIDS, "bid_timestamp, seller_id, bidder_id, unit_id, bidder wtp, bidder wp+wp_error, wp_error, affordability, currentUnitHP,target_price, hedonicprice, lagCoefficient, asking_price, bid_value, bids_counter (daily), bid_status, logsum, floor_area, type_id, HHPC, UPC,sale_from_date,occupancy_from_date" );
-			printHeader = false;
-	        }
-
 	    	const Unit* unit  = model->getUnitById(bid.getNewUnitId());
 	        double floor_area = unit->getFloorArea();
 	        BigSerial type_id = unit->getUnitType();
@@ -652,17 +556,8 @@ namespace sim_mob
 			if(!config.ltParams.outputFiles.log_pre_school_assignment)
 				return;
 
-	        static bool printHeader = true;
-
-	        if(printHeader)
-	        {
-	        	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_PRE_SCHOOL_ASSIGNMENT,"hhid, individual_id, school_id");
-	        	printHeader = false;
-	        }
-
 	    	boost::format fmtr = boost::format("%1%, %2%, %3%") % hhId % individualId % schoolId;
 	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_PRE_SCHOOL_ASSIGNMENT,fmtr.str());
-
 	    }
 
 	    inline void writeSchoolAssignmentsToFile(BigSerial individualId,BigSerial priSchoolId)
@@ -671,17 +566,8 @@ namespace sim_mob
 			if(!config.ltParams.outputFiles.log_school_assignment)
 				return;
 
-	        static bool printHeader = true;
-
-	        if(printHeader)
-	        {
-	        	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_SCHOOL_ASSIGNMENT,"individualId, primarySchoolId");
-	        	printHeader = false;
-	        }
-
 	    	boost::format fmtr = boost::format("%1%, %2%") % individualId % priSchoolId;
 	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_SCHOOL_ASSIGNMENT,fmtr.str());
-
 	    }
 
 
@@ -693,15 +579,7 @@ namespace sim_mob
 
 	    	boost::format fmtr = boost::format("%1%, %2%, %3%") % counter % hhId % montecarlo;
 
-	    	static bool printHeader = true;
-
-	    	if(printHeader)
-	    	{
-	    		AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_RANDOM_NUMS,"randomNumber");
-	    		printHeader = false;
-	    	}
 	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_RANDOM_NUMS,fmtr.str());
-
 	    }
 
 

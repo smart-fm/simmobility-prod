@@ -288,6 +288,10 @@ void ParseMidTermConfigFile::processStatisticsOutputNode(xercesc::DOMElement* no
 
 	child = GetSingleElementByName(node, "screen_line_count");
 	processScreenLineNode(child);
+
+	child = GetSingleElementByName(node, "pt_reroute");
+	value = ParseString(GetNamedAttributeValue(child, "file"), "");
+	cfg.setPT_PersonRerouteFilename(value);
 }
 
 void ParseMidTermConfigFile::processSpeedDensityParamsNode(xercesc::DOMElement* node)

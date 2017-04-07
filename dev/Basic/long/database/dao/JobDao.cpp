@@ -11,7 +11,7 @@
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
-JobDao::JobDao(DB_Connection& connection): SqlAbstractDao<Job>(connection, DB_TABLE_JOB, EMPTY_STR, EMPTY_STR, EMPTY_STR, DB_GETALL_JOB, DB_GETBYID_JOB)
+JobDao::JobDao(DB_Connection& connection): SqlAbstractDao<Job>(connection, "", "", "", "", "SELECT * FROM " + connection.getSchema()+"getJobs()", "")
 {}
 
 JobDao::~JobDao() {}

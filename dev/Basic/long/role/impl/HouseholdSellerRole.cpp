@@ -486,6 +486,9 @@ void HouseholdSellerRole::notifyWinnerBidders()
         sellingUnitsMap.erase(maxBidOfDay.getNewUnitId());
     }
 
+    if( getParent()->getId() < getParent()->getModel()->FAKE_IDS_START )
+    	setActive(false);
+
     // notify winners.
     maxBidsOfDay.clear();
 }

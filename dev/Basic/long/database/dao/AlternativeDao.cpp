@@ -15,7 +15,7 @@
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
-AlternativeDao::AlternativeDao(DB_Connection& connection): SqlAbstractDao<Alternative>( connection, DB_TABLE_ALTERNATIVE, "", "", "", DB_GETALL_ALTERNATIVE, DB_GETBYID_ALTERNATIVE){}
+AlternativeDao::AlternativeDao(DB_Connection& connection): SqlAbstractDao<Alternative>( connection, "", "", "", "", "SELECT * FROM " + connection.getSchema()+"alternative", ""){}
 
 AlternativeDao::~AlternativeDao(){}
 

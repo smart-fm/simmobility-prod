@@ -10,7 +10,7 @@
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
-ParcelAmenitiesDao::ParcelAmenitiesDao(DB_Connection& connection): SqlAbstractDao<ParcelAmenities>(connection, DB_TABLE_PARCEL_AMENITIES,EMPTY_STR, EMPTY_STR, EMPTY_STR,DB_GETALL_PARCEL_AMENITIES, EMPTY_STR)
+ParcelAmenitiesDao::ParcelAmenitiesDao(DB_Connection& connection): SqlAbstractDao<ParcelAmenities>(connection, "","", "", "", "SELECT * FROM " + connection.getSchema()+"parcel_amenities", "")
 {}
 
 ParcelAmenitiesDao::~ParcelAmenitiesDao() {}

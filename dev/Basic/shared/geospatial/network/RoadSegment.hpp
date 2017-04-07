@@ -19,6 +19,7 @@ namespace sim_mob
 class Link;
 class Lane;
 class RoadItem;
+class SurveillanceStation;
 
 /**
  * This class define the structure of a road segment
@@ -58,6 +59,9 @@ private:
 
 	/**Obstacles generally include things like bus stops and crossing and incidents*/
 	std::map<double, RoadItem *> obstacles;
+
+	/**The traffic sensors on the road segment ordered by offset in metre.*/
+	std::vector<SurveillanceStation *> surveillanceStations;
 
 	/**Flag to indicate whether this segment exists only to hold a bus interchange*/
 	bool busTerminusSegment;
@@ -100,6 +104,8 @@ public:
 	bool isBusTerminusSegment() const;
 	void setBusTerminusSegment();
 
+	const std::vector<SurveillanceStation *>& getSurveillanceStations() const;
+
 	/**
 	 * Gets the length of the road segment poly-line. This is equal to the length of the segment
 	 * @return length of the road segment
@@ -118,6 +124,12 @@ public:
      * @param item - the obstacle
      */
 	void addObstacle(double offset, RoadItem *item);
+
+	/**
+	 * Adds a traffic sensor to the road segment.
+	 * @param surveillanceStn - the traffic sensor
+	 */
+	void addSurveillanceStation(SurveillanceStation *surveillanceStn);
 };
 }
 

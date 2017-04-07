@@ -10,6 +10,7 @@
 #include "behavioral/PredayLT_Logsum.hpp"
 #include "util/SharedFunctions.hpp"
 #include "util/PrintLog.hpp"
+#include <random>
 
 using namespace sim_mob;
 using namespace sim_mob::long_term;

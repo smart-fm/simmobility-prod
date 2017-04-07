@@ -12,7 +12,7 @@
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
-TravelTimeDao::TravelTimeDao(DB_Connection& connection): SqlAbstractDao<TravelTime>(connection, DB_TABLE_TRAVEL_TIME, EMPTY_STR, EMPTY_STR, EMPTY_STR, EMPTY_STR, EMPTY_STR)
+TravelTimeDao::TravelTimeDao(DB_Connection& connection): SqlAbstractDao<TravelTime>(connection, "", "", "", "", "SELECT * FROM " + connection.getSchema()+"travel_time", "")
 {}
 
 TravelTimeDao::~TravelTimeDao() {}
@@ -33,7 +33,7 @@ const TravelTime* TravelTimeDao::getTravelTimeByOriginDest(BigSerial origin, Big
 	db::Parameters params;
 	params.push_back(origin);
 	params.push_back(destination);
-	const std::string getTravelTime = "SELECT * FROM " + DB_TABLE_TRAVEL_TIME + " WHERE origin = :v1" + " AND destination = :v2;" ;
+	const std::string getTravelTime = "SELECT * FROM " + connection.getSchema() + "travel_time WHERE origin = :v1" + " AND destination = :v2;" ;
 	std::vector<TravelTime*> travelTimeList;
 	getByQueryId(getTravelTime,params,travelTimeList);
 	TravelTime *travelTime;

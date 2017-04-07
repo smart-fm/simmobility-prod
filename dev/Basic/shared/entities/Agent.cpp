@@ -211,10 +211,13 @@ Entity::UpdateStatus sim_mob::Agent::update(timeslice now)
 		if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled())
 		{
 			std::stringstream msg;
-			msg << "Error updating Agent[" << getId() << "], will be removed from the simulation. \n  " << ex.what();
-			LogOut(msg.str() << std::endl);
+			msg << "Error updating Agent[" << getId() << "], will be removed from the simulation. \n  "
+			    << ex.what() << std::endl;
+			WarnOut(msg.str());
 		}
+
 		setToBeRemoved();
+		ConfigManager::GetInstanceRW().FullConfig().numAgentsKilled++;
 	}
 
 	//Ensure that isToBeRemoved() and UpdateStatus::status are in sync

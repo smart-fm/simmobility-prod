@@ -15,7 +15,7 @@
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
-TazDao::TazDao(DB_Connection& connection): SqlAbstractDao<Taz>(connection, DB_TABLE_TAZ,EMPTY_STR, EMPTY_STR, EMPTY_STR,DB_GETALL_TAZS, DB_GETBYID_TAZ){}
+TazDao::TazDao(DB_Connection& connection): SqlAbstractDao<Taz>(connection, "","", "", "","SELECT * FROM " + connection.getSchema()+"taz", ""){}
 
 TazDao::~TazDao() {}
 

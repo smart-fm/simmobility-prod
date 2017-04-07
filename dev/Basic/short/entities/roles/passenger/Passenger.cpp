@@ -34,7 +34,10 @@ Role<Person_ST>* Passenger::clone(Person_ST *parent) const
 	}
 	else
 	{
-		throw std::runtime_error("Unknown mode for passenger role");
+		std::stringstream msg;
+		msg << __func__ << ": Unknown mode for passenger role: " << parent->currSubTrip->getMode();
+		msg << "\nAccepted modes are: BusTravel and MRT";
+		throw std::runtime_error(msg.str());
 	}
 	
 	Passenger *passenger = new Passenger(parent, behavior, movement, "Passenger_", personRoleType);

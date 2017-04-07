@@ -58,11 +58,15 @@ public:
 
 	std::string getConnectionStr();
 
+	void setSchema(std::string _schema);
+	std::string getSchema();
+
 private:
 	void* currentSession;
 	std::string connectionStr;
 	BackendType type;
 	volatile bool connected;
+	std::string schema;
 };
 }
 }

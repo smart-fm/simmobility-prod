@@ -12,7 +12,7 @@ using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
 ProjectDao::ProjectDao(DB_Connection& connection)
-: SqlAbstractDao<Project>(connection, DB_TABLE_PROJECT,"", DB_UPDATE_PROJECT, DB_DELETE_PROJECT,DB_GETALL_PROJECTS, EMPTY_STR) {}
+: SqlAbstractDao<Project>(connection, "","", "", "","SELECT * FROM " + connection.getSchema()+"fm_project", "") {}
 
 ProjectDao::~ProjectDao() {}
 
@@ -57,7 +57,7 @@ void ProjectDao::toRow(Project& data, Parameters& outParams, bool update)
 void ProjectDao::insertProject(Project& project,std::string schema)
 {
 
-	const std::string DB_INSERT_PROJECT_OP = "INSERT INTO " + APPLY_SCHEMA(schema, ".fm_project")
+	const std::string DB_INSERT_PROJECT_OP = "INSERT INTO " + schema + ".fm_project"
                         		+ " (" + "fm_project_id" + ", " + "fm_parcel_id" + ", " + "developer_id"
                         		+ ", " + "template_id" + ", " + "project_name" + ", "
                         		+ "construction_date" + ", " + "completion_date"  + ", "+ "construction_cost" + ", " + "demolition_cost" + ", "
@@ -70,7 +70,7 @@ void ProjectDao::insertProject(Project& project,std::string schema)
 
 std::vector<Project*> ProjectDao::loadOngoingProjects(std::string schema)
 {
-	const std::string queryStr = "SELECT * FROM " + APPLY_SCHEMA(schema, ".fm_project") + LIMIT;
+	const std::string queryStr = "SELECT * FROM " + schema + ".fm_project";
 	std::vector<Project*> ongoingProjectsList;
 	getByQuery(queryStr,ongoingProjectsList);
 	return ongoingProjectsList;

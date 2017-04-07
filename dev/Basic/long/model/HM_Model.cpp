@@ -74,6 +74,7 @@
 #include <random>
 #include "SOCI_ConvertersLong.hpp"
 #include <DatabaseHelper.hpp>
+#include "model/VehicleOwnershipModel.hpp"
 
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
@@ -451,8 +452,8 @@ BigSerial HM_Model::getEstablishmentTazId(BigSerial establishmentId) const
 
 	if (establishment)
 	{
-		BigSerial establishmentSlaAddressId = getEstablishmentSlaAddressId(establishmentId);
 
+		BigSerial establishmentSlaAddressId = getEstablishmentSlaAddressId(establishmentId);
 		tazId = DataManagerSingleton::getInstance().getPostcodeTazId(establishmentSlaAddressId);
 	}
 
@@ -1626,8 +1627,8 @@ void HM_Model::startImpl()
 
 
 		//chetan commented this. 31 mar 2017
-		//loadData<IndvidualVehicleOwnershipLogsumDao>( conn_calibration, IndvidualVehicleOwnershipLogsums, IndvidualVehicleOwnershipLogsumById, &IndvidualVehicleOwnershipLogsum::getHouseholdId );
-		//PrintOutV("Number of Hits Individual VehicleOwnership Logsum rows: " << IndvidualVehicleOwnershipLogsums.size() << std::endl );
+		loadData<IndvidualVehicleOwnershipLogsumDao>( conn_calibration, IndvidualVehicleOwnershipLogsums, IndvidualVehicleOwnershipLogsumById, &IndvidualVehicleOwnershipLogsum::getHouseholdId );
+		PrintOutV("Number of Hits Individual VehicleOwnership Logsum rows: " << IndvidualVehicleOwnershipLogsums.size() << std::endl );
 
 		loadData<ScreeningCostTimeDao>( conn_calibration, screeningCostTime, screeningCostTimeById, &ScreeningCostTime::getId );
 		PrintOutV("Number of Screening Cost Time rows: " << screeningCostTime.size() << std::endl );
@@ -2201,7 +2202,6 @@ void  HM_Model::loadLTVersion(DB_Connection &conn)
 	PrintOutV("LT Database Baseline Comment: " << ltVersionList.back()->getComments() << endl);
 	PrintOutV("LT Database Baseline user id: " << ltVersionList.back()->getUser_id() << endl);
 }
-
 
 HM_Model::ScreeningModelCoefficientsList HM_Model::getScreeningModelCoefficientsList()
 {

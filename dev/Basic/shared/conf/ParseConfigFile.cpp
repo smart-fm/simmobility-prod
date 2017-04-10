@@ -742,7 +742,7 @@ void ParseConfigFile::processModelScriptsNode(xercesc::DOMElement *node)
 	if (scriptsDirectoryPath.empty())
 	{
 		stringstream msg;
-		msg << "Error parsing file: " << inFilePath << ". Empty value for <model_scripts path=\"\"\>. "
+		msg << "Error parsing file: " << inFilePath << ". Empty value for <model_scripts path=\"\"/>. "
 		    << "Expected: path to scripts";
 		throw runtime_error(msg.str());
 	}

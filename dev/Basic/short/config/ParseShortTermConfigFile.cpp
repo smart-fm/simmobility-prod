@@ -1,174 +1,46 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
-#include <stdlib.h>
 
 #include "ParseShortTermConfigFile.hpp"
-#include "entities/AuraManager.hpp"
 #include "path/ParsePathXmlConfig.hpp"
 #include "logging/Log.hpp"
-#include "util/GeomHelpers.hpp"
 #include "util/XmlParseHelper.hpp"
 
+using namespace std;
 using namespace xercesc;
 
 namespace
 {
 
-NetworkSource ParseNetSourceEnum(const XMLCh* srcX, NetworkSource* defValue)
+unsigned int ParseGranularitySingle(const XMLCh* srcX)
 {
 	if (srcX)
 	{
-		std::string src = TranscodeString(srcX);
-		if (src == "xml")
-		{
-			return NETSRC_XML;
-		}
-		else if (src == "database")
-		{
-			return NETSRC_DATABASE;
-		}
-		throw std::runtime_error("Expected SystemParams::NetworkSource value.");
-	}
-
-	///Wasn't found.
-	if (!defValue)
-	{
-		throw std::runtime_error("Mandatory SystemParams::NetworkSource variable; no default available.");
-	}
-	return *defValue;
-}
-
-AuraManager::AuraManagerImplementation ParseAuraMgrImplEnum(const XMLCh* srcX, AuraManager::AuraManagerImplementation* defValue)
-{
-	if (srcX)
-	{
-		std::string src = TranscodeString(srcX);
-		if (src == "rdu")
-		{
-			return AuraManager::IMPL_RDU;
-		}
-		else if (src == "rstar")
-		{
-			return AuraManager::IMPL_RSTAR;
-		}
-		else if(src == "simtree")
-		{
-			return AuraManager::IMPL_SIMTREE;
-		}
-		else if(src == "packing-tree")
-		{
-			return AuraManager::IMPL_PACKING;
-		}
-		throw std::runtime_error("Expected AuraManager::AuraManagerImplementation value.");
-	}
-
-	///Wasn't found.
-	if (!defValue)
-	{
-		throw std::runtime_error("Mandatory AuraManager::AuraManagerImplementation variable; no default available.");
-	}
-	return *defValue;
-}
-
-Point ParsePoint(const XMLCh* srcX, Point* defValue)
-{
-	if (srcX)
-	{
-		std::string src = TranscodeString(srcX);
-		return parse_point(src);
-	}
-
-	///Wasn't found.
-	if (!defValue)
-	{
-		throw std::runtime_error("Mandatory Point variable; no default available.");
-	}
-	return *defValue;
-}
-
-AuraManager::AuraManagerImplementation ParseAuraMgrImplEnum(const XMLCh* srcX, AuraManager::AuraManagerImplementation defValue)
-{
-	return ParseAuraMgrImplEnum(srcX, &defValue);
-}
-
-AuraManager::AuraManagerImplementation ParseAuraMgrImplEnum(const XMLCh* srcX)
-{
-	return ParseAuraMgrImplEnum(srcX, nullptr);
-}
-
-void splitRoleString(std::string& roleString, std::vector<std::string>& roles)
-{
-	std::string delimiter = "|";
-	size_t pos = 0;
-	std::string token;
-	while ((pos = roleString.find(delimiter)) != std::string::npos)
-	{
-		token = roleString.substr(0, pos);
-		roles.push_back(token);
-		roleString.erase(0, pos + delimiter.length());
-	}
-}
-
-unsigned int ParseGranularitySingle(const XMLCh* srcX, unsigned int* defValue)
-{
-	if (srcX)
-	{
-		///Search for "[0-9]+ ?[^0-9]+), roughly.
+		//Search for "[0-9]+ ?[^0-9]+), roughly.
 		std::string src = TranscodeString(srcX);
 		size_t digStart = src.find_first_of("1234567890");
 		size_t digEnd = src.find_first_not_of("1234567890", digStart + 1);
 		size_t unitStart = src.find_first_not_of(" ", digEnd);
+
 		if (digStart != 0 || digStart == std::string::npos || digEnd == std::string::npos || unitStart == std::string::npos)
 		{
-			throw std::runtime_error("Badly formatted single-granularity string.");
+			stringstream msg;
+			msg << "Unable to parse granularity value: " << src;
+			throw runtime_error(msg.str());
 		}
 
-		///Now split/parse it.
+		//Now split/parse it.
 		double value = boost::lexical_cast<double>(src.substr(digStart, (digEnd - digStart)));
 		std::string units = src.substr(unitStart, std::string::npos);
 
-		return GetValueInMs(value, units, defValue);
+		return GetValueInMs(value, units, nullptr);
 	}
-
-	///Wasn't found.
-	if (!defValue)
+	else
 	{
-		throw std::runtime_error("Mandatory integer (granularity) variable; no default available.");
+		stringstream msg;
+		msg << "Unable to parse granularity value: " << srcX;
+		throw runtime_error(msg.str());
 	}
-	return *defValue;
-}
-
-unsigned int ParseGranularitySingle(const XMLCh* src, unsigned int defValue)
-{
-	return ParseGranularitySingle(src, &defValue);
-}
-
-unsigned int ParseGranularitySingle(const XMLCh* src)
-{ 
-	//No default
-	return ParseGranularitySingle(src, nullptr);
-}
-
-NetworkSource ParseNetSourceEnum(const XMLCh* srcX, NetworkSource defValue)
-{
-	return ParseNetSourceEnum(srcX, &defValue);
-}
-
-NetworkSource ParseNetSourceEnum(const XMLCh* srcX)
-{
-	return ParseNetSourceEnum(srcX, nullptr);
-}
-
-///How to do defaults
-Point ParsePoint(const XMLCh* src, Point defValue)
-{
-	return ParsePoint(src, &defValue);
-}
-
-Point ParsePoint(const XMLCh* src)
-{ 
-	///No default
-	return ParsePoint(src, nullptr);
 }
 
 }
@@ -185,15 +57,18 @@ ParseConfigXmlBase(configFileName), cfg(sharedCfg), stCfg(result)
 void ParseShortTermConfigFile::processXmlFile(XercesDOMParser& parser)
 {
 	DOMElement* rootNode = parser.getDocument()->getDocumentElement();
-	///Verify that the root node is "config"
+
+	//Verify that the root node is "config"
 	if (TranscodeString(rootNode->getTagName()) != "config")
 	{
-		throw std::runtime_error("xml parse error: root node must be \"config\"");
+		stringstream msg;
+		msg << "Error parsing file: " << inFilePath << ". Root node must be \'config\'";
+		throw runtime_error(msg.str());
 	}
 
 	processProcMapNode(GetSingleElementByName(rootNode, "db_proc_groups", true));
 	processSystemNode(GetSingleElementByName(rootNode, "system", true));
-	cfg.luaScriptsMap = processModelScriptsNode(GetSingleElementByName(rootNode, "model_scripts", true));
+	processModelScriptsNode(GetSingleElementByName(rootNode, "model_scripts", true));
 	processWorkersNode(GetSingleElementByName(rootNode, "workers", true));
 	processAmodControllerNode(GetSingleElementByName(rootNode, "amodcontroller"));
 	processFmodControllerNode(GetSingleElementByName(rootNode, "fmodcontroller"));
@@ -217,32 +92,40 @@ void ParseShortTermConfigFile::processProcMapNode(DOMElement* node)
 	{
 		if (TranscodeString(item->getNodeName()) != "proc_map")
 		{
-			Warn() << "Invalid db_proc_groups child node.\n";
+			Warn() << "\nWARNING! Invalid value for \'db_proc_groups\': \"" << TranscodeString(item->getNodeName())
+			       << "\" in file " << inFilePath << ". Expected: \'proc_map\'\n";
 			continue;
 		}
 
-		///Retrieve some attributes from the Node itself.
+		//Retrieve some attributes from the Node itself.
 		StoredProcedureMap pm(ParseString(GetNamedAttributeValue(item, "id")));
 		pm.dbFormat = ParseString(GetNamedAttributeValue(item, "format"), "");
+
 		if (pm.dbFormat != "aimsun" && pm.dbFormat != "long-term")
 		{
-			throw std::runtime_error("Stored procedure map format not supported.");
+			stringstream msg;
+			msg << "Error parsing file: " << inFilePath << ". Invalid value for <proc_map format=\""
+			    << pm.dbFormat << "\">. Expected: \"aimsun\"";
+			throw runtime_error(msg.str());
 		}
 
-		///Loop through and save child attributes.
+		//Loop through and save child attributes.
 		for (DOMElement* mapItem = item->getFirstElementChild(); mapItem; mapItem = mapItem->getNextElementSibling())
 		{
 			if (TranscodeString(mapItem->getNodeName()) != "mapping")
 			{
-				Warn() << "Invalid proc_map child node.\n";
+				Warn() << "\nWARNING! Invalid value for \'proc_map\': \"" << TranscodeString(item->getNodeName())
+				       << "\" in file " << inFilePath << ". Expected: \'mapping\'\n";
 				continue;
 			}
 
 			std::string key = ParseString(GetNamedAttributeValue(mapItem, "name"), "");
 			std::string val = ParseString(GetNamedAttributeValue(mapItem, "procedure"), "");
+
 			if (key.empty() || val.empty())
 			{
-				Warn() << "Invalid mapping; missing \"name\" or \"procedure\".\n";
+				Warn() << "\nWARNING! Empty value in <mapping name=\"" << key << "\" procedure=\"" << val
+				       << "\"/>. Expected: mapping name and stored procedure name";
 				continue;
 			}
 
@@ -257,7 +140,7 @@ void ParseShortTermConfigFile::processAmodControllerNode(DOMElement* node)
 {
 	if (node)
 	{
-		///Read the attribute value indicating whether AMOD is enabled or disabled
+		//Read the attribute value indicating whether AMOD is enabled or disabled
 		stCfg.amod.enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), false);
 		stCfg.amod.fileName = ParseString(GetNamedAttributeValue(node, "config_file"), "amod_config.xml");
 	}
@@ -267,7 +150,10 @@ class FmodParser : public ParseConfigXmlBase
 {
 public:
 
-	FmodParser(std::map<std::string, TripChainItem*>& items, const std::string& configFileName) : allItems(items), ParseConfigXmlBase(configFileName)
+	std::map<std::string, TripChainItem*>& allItems;
+
+	FmodParser(std::map<std::string, TripChainItem*>& items, const std::string& configFileName) :
+			ParseConfigXmlBase(configFileName), allItems(items)
 	{
 		parseXmlAndProcess();
 	}
@@ -278,8 +164,11 @@ public:
 		
 		if (TranscodeString(rootNode->getTagName()) != "requests")
 		{
-			throw std::runtime_error("xml parse error: root node must be \"requests\"");
+			stringstream msg;
+			msg << "Error parsing file: " << inFilePath << ". Root node must be \'requests\'";
+			throw runtime_error(msg.str());
 		}
+
 		for (DOMElement* item = rootNode->getFirstElementChild(); item; item = item->getNextElementSibling())
 		{
 			if (TranscodeString(item->getNodeName()) == "request")
@@ -306,10 +195,13 @@ public:
 					delete trip;
 				}
 			}
+			else
+			{
+				Warn() << "\nWARNING! Invalid value for \'requests\': \"" << TranscodeString(item->getNodeName())
+				       << "\" in file " << inFilePath << ". Expected: \'request\'\n";
+			}
 		}
 	}
-public:
-	std::map<std::string, TripChainItem*>& allItems;
 };
 
 void sim_mob::ParseShortTermConfigFile::processFmodControllerNode(xercesc::DOMElement* node)
@@ -321,40 +213,35 @@ void sim_mob::ParseShortTermConfigFile::processFmodControllerNode(xercesc::DOMEl
 
 	//The fmod tag has an attribute
 	stCfg.fmod.enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), false);
+
 	if (stCfg.fmod.enabled)
 	{
 		//Now set the rest.
-		stCfg.fmod.ipAddress = ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "ip_address"), "value"), "");
-		stCfg.fmod.port = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "port"), "value"), static_cast<unsigned int> (0));
-		stCfg.fmod.updateTimeMS = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "update_time_ms"), "value"), static_cast<unsigned int> (0));
-		stCfg.fmod.mapfile = ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "map_file"), "value"), "");
-		stCfg.fmod.blockingTimeSec = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "blocking_time_sec"), "value"), static_cast<unsigned int> (0));
-		xercesc::DOMElement* resNodes = GetSingleElementByName(node, "requests");
-		
-		if (resNodes)
-		{
-			for (DOMElement* item = resNodes->getFirstElementChild(); item; item = item->getNextElementSibling())
-			{
-				if (TranscodeString(item->getNodeName()) == "request")
-				{
-					TripChainItem* trip = new Trip();
-					trip->startTime = DailyTime(ParseString(GetNamedAttributeValue(item, "startTime"), ""));
-					trip->endTime = DailyTime(ParseString(GetNamedAttributeValue(item, "endTime"), ""));
-					trip->requestTime = ParseUnsignedInt(GetNamedAttributeValue(item, "timeWin"));
-					trip->sequenceNumber = ParseUnsignedInt(GetNamedAttributeValue(item, "frequency"));
-					trip->startLocationId = ParseString(GetNamedAttributeValue(item, "originNode"), "");
-					trip->endLocationId = ParseString(GetNamedAttributeValue(item, "destNode"), "");
-					std::string startId = ParseString(GetNamedAttributeValue(item, "startId"), "");
-					stCfg.fmod.allItems[startId] = trip;
-				}
-			}
-		}
-		DOMElement* element = GetSingleElementByName(node, "requests_file");
-		if (element)
-		{
-			std::string filename = ParseString(GetNamedAttributeValue(element, "value"), "");
-			FmodParser fmodParser(stCfg.fmod.allItems, filename);
-		}
+		stCfg.fmod.ipAddress =
+				ParseString(GetNamedAttributeValue(GetSingleElementByName(
+						node, "ip_address"), "value"), "");
+
+		stCfg.fmod.port =
+				ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(
+						node, "port"), "value"), (unsigned int) 0);
+
+		stCfg.fmod.updateTimeMS =
+				ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(
+						node, "update_time_ms"), "value"), (unsigned int) 0);
+
+		stCfg.fmod.mapfile =
+				ParseString(GetNamedAttributeValue(GetSingleElementByName(
+						node, "map_file"), "value"), "");
+
+		stCfg.fmod.blockingTimeSec =
+				ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(
+						node, "blocking_time_sec"), "value"), (unsigned int) 0);
+
+		std::string filename =
+				ParseString(GetNamedAttributeValue(GetSingleElementByName(
+						node, "requests_file"), "value"), "");
+
+		FmodParser fmodParser(stCfg.fmod.allItems, filename);
 	}
 }
 
@@ -362,20 +249,30 @@ void ParseShortTermConfigFile::processSegmentDensityNode(DOMElement* node)
 {
 	if (node)
 	{
-		stCfg.outputStats.segDensityMap.outputEnabled = ParseBoolean(GetNamedAttributeValue(node, "outputEnabled"), "false");
-		if (stCfg.outputStats.segDensityMap.outputEnabled)
-		{
-			stCfg.outputStats.segDensityMap.updateInterval = ParseUnsignedInt(GetNamedAttributeValue(node, "updateInterval"), 1000);
-			stCfg.outputStats.segDensityMap.fileName = ParseString(GetNamedAttributeValue(node, "file-name"), "private/DensityMap.csv");
+		SegmentDensityMap &densityMap = stCfg.outputStats.segDensityMap;
 
-			if (stCfg.outputStats.segDensityMap.updateInterval == 0)
+		densityMap.outputEnabled = ParseBoolean(GetNamedAttributeValue(node, "outputEnabled"), false);
+		
+		if (densityMap.outputEnabled)
+		{
+			densityMap.updateInterval = ParseUnsignedInt(GetNamedAttributeValue(node, "updateInterval"), 1000);
+			densityMap.fileName = ParseString(GetNamedAttributeValue(node, "file-name"), "private/DensityMap.csv");
+
+			if (densityMap.updateInterval == 0)
 			{
-				throw std::runtime_error("ParseConfigFile::ProcessShortDensityMapNode - Update interval for aggregating density is 0");
+				stringstream msg;
+				msg << "Error parsing file: " << inFilePath
+				    << ". Invalid value for <segment_density updateInterval=\"" << densityMap.updateInterval
+				    << "\">. Expected: \"non zero value\"";
+				throw runtime_error(msg.str());
 			}
 
-			if (stCfg.outputStats.segDensityMap.fileName.empty())
+			if (densityMap.fileName.empty())
 			{
-				throw std::runtime_error("ParseConfigFile::ProcessShortDensityMapNode - File name is empty");
+				stringstream msg;
+				msg << "Error parsing file: " << inFilePath << ". Empty value for <segment_density file-name=\""
+				    << "\">. Expected: \"file name\"";
+				throw runtime_error(msg.str());
 			}
 		}
 	}
@@ -389,54 +286,71 @@ void ParseShortTermConfigFile::processSystemNode(DOMElement *node)
 		processAuraManagerImpNode(GetSingleElementByName(node, "aura_manager_impl", true));
 		processLoadAgentsOrder(GetSingleElementByName(node, "load_agents", true));
 		processCommSimNode(GetSingleElementByName(node, "commsim"));
-		//processXmlSchemaFilesNode(GetSingleElementByName(node, "xsd_schema_files"));
 		processGenericPropsNode(GetSingleElementByName(node, "generic_props"));
 	}
 	else
 	{
-		throw std::runtime_error("processSystemNode : System node not defined");
+		stringstream msg;
+		msg << "Error parsing file: " << inFilePath
+		    << ". <system> node not defined.";
+		throw runtime_error(msg.str());
 	}
 }
 
-ModelScriptsMap ParseShortTermConfigFile::processModelScriptsNode(xercesc::DOMElement* node)
+void ParseShortTermConfigFile::processModelScriptsNode(xercesc::DOMElement* node)
 {
-	std::string format = ParseString(GetNamedAttributeValue(node, "format"), "");
+	string format = ParseString(GetNamedAttributeValue(node, "format"), "");
+
 	if (format.empty() || format != "lua")
 	{
-		throw std::runtime_error("Unsupported script format");
+		stringstream msg;
+		msg << "Error parsing file: " << inFilePath << ". Invalid value for <model_scripts format=\""
+		    << format << "\">. Expected: \"lua\"";
+		throw runtime_error(msg.str());
 	}
 
-	std::string scriptsDirectoryPath = ParseString(GetNamedAttributeValue(node, "path"), "");
+	string scriptsDirectoryPath = ParseString(GetNamedAttributeValue(node, "path"), "");
+
 	if (scriptsDirectoryPath.empty())
 	{
-		throw std::runtime_error("path to scripts is not provided");
+		stringstream msg;
+		msg << "Error parsing file: " << inFilePath << ". Empty value for <model_scripts path=\"\"/>. "
+		    << "Expected: path to scripts";
+		throw runtime_error(msg.str());
 	}
+
 	if ((*scriptsDirectoryPath.rbegin()) != '/')
 	{
 		//add a / to the end of the path string if it is not already there
 		scriptsDirectoryPath.push_back('/');
 	}
+
 	ModelScriptsMap scriptsMap(scriptsDirectoryPath, format);
-	for (DOMElement* item = node->getFirstElementChild(); item; item = item->getNextElementSibling())
+
+	for (DOMElement *item = node->getFirstElementChild(); item; item = item->getNextElementSibling())
 	{
-		std::string name = TranscodeString(item->getNodeName());
+		string name = TranscodeString(item->getNodeName());
+
 		if (name != "script")
 		{
-			Warn() << "Invalid db_proc_groups child node.\n";
+			Warn() << "\nWARNING! Invalid value for \'model_scripts\': \"" << TranscodeString(item->getNodeName())
+			       << "\" in file " << inFilePath << ". Expected: \'script\'\n";
 			continue;
 		}
 
-		std::string key = ParseString(GetNamedAttributeValue(item, "name"), "");
-		std::string val = ParseString(GetNamedAttributeValue(item, "file"), "");
+		string key = ParseString(GetNamedAttributeValue(item, "name"), "");
+		string val = ParseString(GetNamedAttributeValue(item, "file"), "");
+
 		if (key.empty() || val.empty())
 		{
-			Warn() << "Invalid script; missing \"name\" or \"file\".\n";
+			Warn() << "\nWARNING! Empty value in <script name=\"" << key << "\" file=\"" << val << "\"/>. "
+			       << "Expected: script name and file name";
 			continue;
 		}
 
 		scriptsMap.addScriptFileName(key, val);
 	}
-	return scriptsMap;
+	cfg.luaScriptsMap = scriptsMap;
 }
 
 void ParseShortTermConfigFile::processNetworkNode(DOMElement *node)
@@ -450,13 +364,43 @@ void ParseShortTermConfigFile::processNetworkNode(DOMElement *node)
 	}
 	else
 	{
-		throw std::runtime_error("processNetworkNode : network node not defined");
+		stringstream msg;
+		msg << "Error parsing file: " << inFilePath
+		    << ". <network> node not defined.";
+		throw runtime_error(msg.str());
 	}
 }
 
 void ParseShortTermConfigFile::processAuraManagerImpNode(DOMElement *node)
 {
-	stCfg.auraManagerImplementation = ParseAuraMgrImplEnum(GetNamedAttributeValue(node, "value"), AuraManager::IMPL_RSTAR);
+	const XMLCh *xmlValue = GetNamedAttributeValue(node, "value");
+
+	if (xmlValue)
+	{
+		std::string value = TranscodeString(xmlValue);
+
+		if(value == "packing-tree")
+		{
+			stCfg.auraManagerImplementation = AuraManager::IMPL_PACKING;
+		}
+		else if (value == "rstar")
+		{
+			stCfg.auraManagerImplementation = AuraManager::IMPL_RSTAR;
+		}
+		else if (value == "rdu")
+		{
+			stCfg.auraManagerImplementation = AuraManager::IMPL_RDU;
+		}
+		else if(value == "simtree")
+		{
+			stCfg.auraManagerImplementation = AuraManager::IMPL_SIMTREE;
+		}
+
+		stringstream msg;
+		msg << "Error parsing file: " << inFilePath << ". Invalid value for <aura_manager_impl value=\""
+		    << value << "\">. Expected: \"packing-tree\" or \"rstar\" or \"rdu\" or \"simtree\"";
+		throw runtime_error(msg.str());
+	}
 }
 
 void ParseShortTermConfigFile::processLoadAgentsOrder(DOMElement *node)
@@ -470,27 +414,20 @@ void ParseShortTermConfigFile::processLoadAgentsOrder(DOMElement *node)
 	for (std::vector<std::string>::const_iterator it = valArray.begin(); it != valArray.end(); ++it)
 	{
 		LoadAgentsOrderOption opt(LoadAg_Database);
+
 		if ((*it) == "database")
 		{
 			opt = LoadAg_Database;
 		}
-		else if ((*it) == "drivers")
+		else if ((*it) == "xml")
 		{
-			opt = LoadAg_Drivers;
-		}
-		else if ((*it) == "pedestrians")
-		{
-			opt = LoadAg_Pedestrians;
-		}
-		else if ((*it) == "passengers")
-		{
-			opt = LoadAg_Passengers;
+			opt = LoadAg_XML;
 		}
 		else
 		{
 			std::stringstream out;
-			out.str("");
-			out << "Unexpected load_agents order param." << "[" << *it << "]";
+			out << "Error parsing file: " << inFilePath << ". Invalid value for <load_agents order=\""
+			    << *it << "\">. Expected: Comma-separated values: \"database\" and / or \"xml\"";
 			throw std::runtime_error(out.str());
 		}
 		stCfg.loadAgentsOrder.push_back(opt);
@@ -514,19 +451,19 @@ void ParseShortTermConfigFile::processCommSimNode(DOMElement *node)
 		return;
 	}
 
-	///Enabled?
+	//Enabled?
 	stCfg.commsim.enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), false);
 
-	///Number of threads assigned to the boost I/O service that reads from Android clients.
+	//Number of threads assigned to the boost I/O service that reads from Android clients.
 	stCfg.commsim.numIoThreads = processValueInteger(GetSingleElementByName(node, "io_threads", true));
 
-	///Minimum clients
+	//Minimum clients
 	stCfg.commsim.minClients = processValueInteger(GetSingleElementByName(node, "min_clients", true));
 
-	///Hold tick
+	//Hold tick
 	stCfg.commsim.holdTick = processValueInteger(GetSingleElementByName(node, "hold_tick", true));
 
-	///Use ns-3 for routing?
+	//Use ns-3 for routing?
 	stCfg.commsim.useNs3 = processValueBoolean(GetSingleElementByName(node, "use_ns3", true));
 }
 
@@ -534,53 +471,30 @@ void ParseShortTermConfigFile::processLoopDetectorCountNode(DOMElement *node)
 {
 	if (node)
 	{
-		stCfg.outputStats.loopDetectorCounts.outputEnabled = ParseBoolean(GetNamedAttributeValue(node, "outputEnabled"), "false");
-		if (stCfg.outputStats.loopDetectorCounts.outputEnabled)
-		{
-			stCfg.outputStats.loopDetectorCounts.frequency = ParseUnsignedInt(GetNamedAttributeValue(node, "frequency"), 600000);
-			stCfg.outputStats.loopDetectorCounts.fileName = ParseString(GetNamedAttributeValue(node, "file-name"), "private/VehCounts.csv");
+		LoopDetectorCounts &counts = stCfg.outputStats.loopDetectorCounts;
+		counts.outputEnabled = ParseBoolean(GetNamedAttributeValue(node, "outputEnabled"), false);
 
-			if (stCfg.outputStats.loopDetectorCounts.frequency == 0)
+		if (counts.outputEnabled)
+		{
+			counts.frequency = ParseUnsignedInt(GetNamedAttributeValue(node, "frequency"), 600000);
+			counts.fileName = ParseString(GetNamedAttributeValue(node, "file-name"), "private/VehCounts.csv");
+
+			if (counts.frequency == 0)
 			{
-				throw std::runtime_error("ParseConfigFile::ProcessLoopDetectorCountsNode - "
-										 "Update frequency for aggregating vehicle counts is 0");
+				stringstream msg;
+				msg << "Error parsing file: " << inFilePath
+				    << ". Invalid value for <loop-detector_counts frequency=\"" << counts.frequency
+				    << "\">. Expected: \"non zero value\"";
+				throw runtime_error(msg.str());
 			}
 
-			if (stCfg.outputStats.loopDetectorCounts.fileName.empty())
+			if (counts.fileName.empty())
 			{
-				throw std::runtime_error("ParseConfigFile::ProcessLoopDetectorCountsNode - File name is empty");
+				stringstream msg;
+				msg << "Error parsing file: " << inFilePath
+				    << ". Empty value for <loop-detector_counts file-name=\"\">. Expected: \"file name\"";
+				throw runtime_error(msg.str());
 			}
-		}
-	}
-}
-
-void ParseShortTermConfigFile::processXmlSchemaFilesNode(DOMElement *node)
-{
-	///For now, only the Road Network has an XSD file (doing this for the config file from within it would be difficult).
-	DOMElement* rn = GetSingleElementByName(node, "road_network");
-	if (rn)
-	{
-		std::vector<DOMElement*> options = GetElementsByName(rn, "option");
-		for (std::vector<DOMElement*>::const_iterator it = options.begin(); it != options.end(); ++it)
-		{
-			std::string path = ParseString(GetNamedAttributeValue(*it, "value"), "");
-			if (!path.empty())
-			{
-				///See if the file exists.
-				if (boost::filesystem::exists(path))
-				{
-					///Convert it to an absolute path.
-					boost::filesystem::path abs_path = boost::filesystem::absolute(path);
-					stCfg.getRoadNetworkXsdSchemaFile() = abs_path.string();
-					break;
-				}
-			}
-		}
-
-		///Did we try and find nothing?
-		if (!options.empty() && stCfg.roadNetworkXsdSchemaFile.empty())
-		{
-			Warn() << "Warning: No viable options for road_network schema file." << std::endl;
 		}
 	}
 }
@@ -597,7 +511,26 @@ void ParseShortTermConfigFile::processNetworkXmlInputNode(DOMElement *node)
 
 void ParseShortTermConfigFile::processNetworkSourceNode(DOMElement *node)
 {
-	stCfg.networkSource = ParseNetSourceEnum(GetNamedAttributeValue(node, "value"), NETSRC_XML);
+	const XMLCh *xmlValue = GetNamedAttributeValue(node, "value");
+
+	if (xmlValue)
+	{
+		std::string value = TranscodeString(xmlValue);
+
+		if (value == "xml")
+		{
+			stCfg.networkSource = NETSRC_XML;
+		}
+		else if (value == "database")
+		{
+			stCfg.networkSource = NETSRC_DATABASE;
+		}
+
+		stringstream msg;
+		msg << "Error parsing file: " << inFilePath << ". Invalid value for <network_source value=\""
+		    << value << "\">. Expected: \"database\" or \"xml\"";
+		throw runtime_error(msg.str());
+	}
 }
 
 void ParseShortTermConfigFile::processDatabaseNode(DOMElement *node)
@@ -610,7 +543,9 @@ void ParseShortTermConfigFile::processDatabaseNode(DOMElement *node)
 	}
 	else
 	{
-		throw std::runtime_error("processDatabaseNode : Network database configuration not defined");
+		stringstream msg;
+		msg << "Error parsing file: " << inFilePath << ". <network_database> node not defined";
+		throw runtime_error(msg.str());
 	}
 }
 
@@ -625,7 +560,9 @@ void ParseShortTermConfigFile::processWorkersNode(xercesc::DOMElement* node)
 	}
 	else
 	{
-		throw std::runtime_error("processWorkerParamsNode : Workers configuration not defined");
+		stringstream msg;
+		msg << "Error parsing file: " << inFilePath << ". <workers> node not defined";
+		throw runtime_error(msg.str());
 	}
 }
 
@@ -633,7 +570,7 @@ void ParseShortTermConfigFile::processWorkerPersonNode(xercesc::DOMElement* node
 {
 	if (node)
 	{
-		stCfg.workers.person.count = ParseInteger(GetNamedAttributeValue(node, "count"));
+		stCfg.workers.person.count = ParseUnsignedInt(GetNamedAttributeValue(node, "count"));
 		stCfg.workers.person.granularityMs = ParseGranularitySingle(GetNamedAttributeValue(node, "granularity"));
 	}
 }
@@ -642,7 +579,7 @@ void ParseShortTermConfigFile::processWorkerSignalNode(xercesc::DOMElement* node
 {
 	if (node)
 	{
-		stCfg.workers.signal.count = ParseInteger(GetNamedAttributeValue(node, "count"));
+		stCfg.workers.signal.count = ParseUnsignedInt(GetNamedAttributeValue(node, "count"));
 		stCfg.workers.signal.granularityMs = ParseGranularitySingle(GetNamedAttributeValue(node, "granularity"));
 	}
 }
@@ -651,7 +588,7 @@ void ParseShortTermConfigFile::processWorkerIntMgrNode(xercesc::DOMElement* node
 {
 	if (node)
 	{
-		stCfg.workers.intersectionMgr.count = ParseInteger(GetNamedAttributeValue(node, "count"));
+		stCfg.workers.intersectionMgr.count = ParseUnsignedInt(GetNamedAttributeValue(node, "count"));
 		stCfg.workers.intersectionMgr.granularityMs = ParseGranularitySingle(GetNamedAttributeValue(node, "granularity"));
 	}
 }
@@ -660,7 +597,7 @@ void ParseShortTermConfigFile::processWorkerCommunicationNode(xercesc::DOMElemen
 {
 	if (node)
 	{
-		stCfg.workers.communication.count = ParseInteger(GetNamedAttributeValue(node, "count"));
+		stCfg.workers.communication.count = ParseUnsignedInt(GetNamedAttributeValue(node, "count"));
 		stCfg.workers.communication.granularityMs = ParseGranularitySingle(GetNamedAttributeValue(node, "granularity"));
 	}
 }
@@ -672,23 +609,25 @@ void ParseShortTermConfigFile::processPersonCharacteristicsNode(DOMElement *node
 		return;
 	}
 
-	///Loop through all children
+	//Loop through all children
 	int count = 0;
 	for (DOMElement* item = node->getFirstElementChild(); item; item = item->getNextElementSibling())
 	{
 		if (TranscodeString(item->getNodeName()) != "person")
 		{
-			Warn() << "Invalid personCharacteristics child node.\n";
+			Warn() << "\nWARNING! Invalid value for \'person_characteristics\': \""
+			       << TranscodeString(item->getNodeName()) << "\" in file " << inFilePath
+			       << ". Expected: \'person\'\n";
 			continue;
 		}
 
 		///Retrieve properties, add a new item to the vector.
 		PersonCharacteristics res;
-		res.lowerAge = ParseUnsignedInt(GetNamedAttributeValue(item, "lowerAge"), static_cast<unsigned int> (0));
-		res.upperAge = ParseUnsignedInt(GetNamedAttributeValue(item, "upperAge"), static_cast<unsigned int> (0));
-		res.lowerSecs = ParseInteger(GetNamedAttributeValue(item, "lowerSecs"), static_cast<int> (0));
-		res.upperSecs = ParseInteger(GetNamedAttributeValue(item, "upperSecs"), static_cast<int> (0));
-		res.walkSpeed = ParseFloat(GetNamedAttributeValue(item, "walkSpeed_kmph"), static_cast<float> (0));
+		res.lowerAge = ParseUnsignedInt(GetNamedAttributeValue(item, "lowerAge"), (unsigned int) 0);
+		res.upperAge = ParseUnsignedInt(GetNamedAttributeValue(item, "upperAge"), (unsigned int) 0);
+		res.lowerSecs = ParseInteger(GetNamedAttributeValue(item, "lowerSecs"), (int) 0);
+		res.upperSecs = ParseInteger(GetNamedAttributeValue(item, "upperSecs"), (int) 0);
+		res.walkSpeed = ParseFloat(GetNamedAttributeValue(item, "walkSpeed_kmph"), (float) 0.0);
 		
 		//Convert walking speed to m/s (from km/h)
 		res.walkSpeed *= 0.277778;
@@ -736,15 +675,11 @@ void ParseShortTermConfigFile::processVehicleTypesNode(DOMElement *node)
 	if (node)
 	{
 		std::vector<DOMElement*> vehicles = GetElementsByName(node, "vehicleType");
+
 		for (std::vector<DOMElement*>::const_iterator it = vehicles.begin(); it != vehicles.end(); it++)
 		{
 			VehicleType vehicleType;
-			vehicleType.name = ParseString(GetNamedAttributeValue(*it, "name", ""));
-			if (vehicleType.name.empty())
-			{
-				throw std::runtime_error("ProcessVehicleTypesNode : Vehicle name cannot be empty");
-			}
-
+			vehicleType.name = ParseString(GetNamedAttributeValue(*it, "name", true));
 			vehicleType.length = ParseFloat(GetNamedAttributeValue(*it, "length"), 4.0);
 			vehicleType.width = ParseFloat(GetNamedAttributeValue(*it, "width"), 2.0);
 			vehicleType.capacity = ParseInteger(GetNamedAttributeValue(*it, "capacity"), 4);
@@ -754,12 +689,16 @@ void ParseShortTermConfigFile::processVehicleTypesNode(DOMElement *node)
 
 		if (stCfg.vehicleTypes.empty())
 		{
-			throw std::runtime_error("ProcessVehicleTypesNode : No vehicle type is defined");
+			stringstream msg;
+			msg << "Error parsing file: " << inFilePath << ". <vehicleTypes> node is empty";
+			throw runtime_error(msg.str());
 		}
 	}
 	else
 	{
-		throw std::runtime_error("ProcessVehicleTypeNode : VehicleTypes node not defined in the configuration");
+		stringstream msg;
+		msg << "Error parsing file: " << inFilePath << ". <vehicleTypes> node not defined";
+		throw runtime_error(msg.str());
 	}
 }
 
@@ -789,7 +728,7 @@ void ParseShortTermConfigFile::processBusControllerNode(DOMElement *node)
 {
 	if (node)
 	{
-		cfg.busController.enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), "false");
+		cfg.busController.enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), false);
 		cfg.busController.busLineControlType = ParseString(GetNamedAttributeValue(node, "busline_control_type"), "");
 	}
 }
@@ -815,9 +754,15 @@ void ParseShortTermConfigFile::processPublicTransit(xercesc::DOMElement* node)
 		{
 			const std::string& key = cfg.networkDatabase.procedures;
 			std::map<std::string, StoredProcedureMap>::const_iterator procMapIt = cfg.procedureMaps.find(key);
-			if (procMapIt->second.procedureMappings.count("pt_vertices") == 0 || procMapIt->second.procedureMappings.count("pt_edges") == 0)
+
+			if (procMapIt->second.procedureMappings.count("pt_vertices") == 0 ||
+					procMapIt->second.procedureMappings.count("pt_edges") == 0)
 			{
-				throw std::runtime_error("Public transit is enabled , but stored procedures not defined");
+				stringstream msg;
+				msg << "Error parsing file: " << inFilePath
+				    << ". Public transit is enabled, but stored procedures \"pt_vertices\" and / or "
+				    << " \"pt_edges\" not defined";
+				throw runtime_error(msg.str());
 			}
 		}
 	}
@@ -907,10 +852,12 @@ void ParseShortTermConfigFile::processAssignmentMatrixNode(xercesc::DOMElement* 
 	if(node)
 	{
 		bool enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"));
+
 		if (enabled)
 		{
 			stCfg.outputStats.assignmentMatrix.enabled = true;
-			stCfg.outputStats.assignmentMatrix.fileName = ParseString(GetNamedAttributeValue(node, "file-name"), "assignment_matrix.csv");
+			stCfg.outputStats.assignmentMatrix.fileName = ParseString(GetNamedAttributeValue(node, "file-name"),
+			                                                          "assignment_matrix.csv");
 		}
 	}
 }
@@ -923,7 +870,7 @@ void ParseShortTermConfigFile::processODTravelTimeNode(xercesc::DOMElement* node
 		if (enabled)
 		{
 			cfg.odTTConfig.enabled = true;
-			cfg.odTTConfig.intervalMS = ParseInteger(GetNamedAttributeValue(node, "interval"), 300000);
+			cfg.odTTConfig.intervalMS = ParseUnsignedInt(GetNamedAttributeValue(node, "interval"), 300000);
 			cfg.odTTConfig.fileName = ParseString(GetNamedAttributeValue(node, "file-name"), "od_travel_time.csv");
 		}
 	}
@@ -937,7 +884,7 @@ void ParseShortTermConfigFile::processSegmentTravelTimeNode(xercesc::DOMElement*
 		if (enabled)
 		{
 			cfg.rsTTConfig.enabled = true;
-			cfg.rsTTConfig.intervalMS = ParseInteger(GetNamedAttributeValue(node, "interval"), 300000);
+			cfg.rsTTConfig.intervalMS = ParseUnsignedInt(GetNamedAttributeValue(node, "interval"), 300000);
 			cfg.rsTTConfig.fileName = ParseString(GetNamedAttributeValue(node, "file-name"), "segment_travel_time.csv");
 		}
 	}
@@ -952,10 +899,13 @@ ParseConfigXmlBase(tripFileName), cfg(stConfig), tripName(tripName_)
 void ParseShortTermTripFile::processXmlFile(XercesDOMParser &parser)
 {
 	DOMElement* rootNode = parser.getDocument()->getDocumentElement();
-	///Verify that the root node is "config"
+
+	//Verify that the root node is "trips"
 	if (TranscodeString(rootNode->getTagName()) != "trips")
 	{
-		throw std::runtime_error("xml parse error: root node must be \"trips\"");
+		stringstream msg;
+		msg << "Error parsing file: " << inFilePath << ". Root node must be \'config\'";
+		throw runtime_error(msg.str());
 	}
 
 	processTrips(rootNode);
@@ -973,7 +923,7 @@ void ParseShortTermTripFile::processTrips(DOMElement *node)
 		
 		for (DOMListIter it = trips.begin(); it != trips.end(); ++it, ++defaultTripId)
 		{
-			defaultTripId = ParseInteger(GetNamedAttributeValue(*it, "id"), defaultTripId);
+			defaultTripId = ParseUnsignedInt(GetNamedAttributeValue(*it, "id"), defaultTripId);
 			unsigned int personId = ParseUnsignedInt(GetNamedAttributeValue(*it, "personId", false), static_cast<unsigned int> (0));
 			std::stringstream tripIdStr;
 			tripIdStr << defaultTripId;
@@ -991,9 +941,9 @@ void ParseShortTermTripFile::processTrips(DOMElement *node)
 				ent.agentId = personId;
 				ent.startSegmentId = ParseUnsignedInt(GetNamedAttributeValue(*stIter, "startSegmentId", false), static_cast<unsigned int> (0));
 				ent.segmentStartOffset = ParseUnsignedInt(GetNamedAttributeValue(*stIter, "segmentStartOffset", false), static_cast<unsigned int> (0));
-				ent.initialSpeed = ParseUnsignedInt(GetNamedAttributeValue(*stIter, "initialSpeed", false), static_cast<double> (0));
-				ent.originNode = ParseUnsignedInt(GetNamedAttributeValue(*stIter, "originNode", true), static_cast<double> (0));
-				ent.destNode = ParseUnsignedInt(GetNamedAttributeValue(*stIter, "destNode", true), static_cast<double> (0));				
+				ent.initialSpeed = ParseInteger(GetNamedAttributeValue(*stIter, "initialSpeed", false), (int) 0);
+				ent.originNode = ParseInteger(GetNamedAttributeValue(*stIter, "originNode", true), (int) 0);
+				ent.destNode = ParseInteger(GetNamedAttributeValue(*stIter, "destNode", true), (int) 0);
 				ent.tripId = std::make_pair(defaultTripId, defaultSubTripId);
 				ent.mode = ParseString(GetNamedAttributeValue(*stIter, "mode"), "");
 				
@@ -1007,17 +957,20 @@ void ParseShortTermTripFile::processTrips(DOMElement *node)
 
 						if (vehTypeIter == cfg.vehicleTypes.end())
 						{
-							std::stringstream msg;
-							msg << "Travel mode '" << ent.mode << "' specifed in file '" << inFilePath
-									<< "' for trip '" << defaultTripId << "' is not defined";
+							stringstream msg;
+							msg << "Error parsing file: " << inFilePath
+								<< ". Travel mode \"" << ent.mode << "\" for trip \"" << defaultTripId
+								<< "\" is not defined";
 							throw std::runtime_error(msg.str());
 						}
 					}
 				}
 				else
 				{
-					std::stringstream msg;
-					msg << "Travel mode not specifed in file '" << inFilePath << "' for trip '" << defaultTripId << "'";
+					stringstream msg;
+					msg << "Error parsing file: " << inFilePath
+					    << ". Travel mode \"" << ent.mode << "\" for trip \"" << defaultTripId
+					    << "\" is not defined";
 					throw std::runtime_error(msg.str());
 				}
 				

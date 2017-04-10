@@ -149,7 +149,7 @@
 	    <offsetBetweenUnitBuyingAndSelling value ="7"/>
             <offsetBetweenUnitBuyingAndSellingAdvancedPurchase value = "30" />
         </housingModel>
-	<vehicleOwnershipModel enabled='false'>
+	<vehicleOwnershipModel enabled='true'>
 		<vehicleBuyingWaitingTimeInDays value= "1"/>
 	</vehicleOwnershipModel>
         <taxiAccessModel enabled='false'>
@@ -189,9 +189,14 @@
 		<log_household_statistics value = 'true' />
 		<log_out_xx_files value='false' />
         </outputFiles>
+        <toaPayohScenario enabled = 'false'>
+                 <workInToaPayoh value = 'false'/>
+                 <liveInToaPayoh value = 'false' />
+                 <moveToToaPayoh value = 'false' />
+       </toaPayohScenario>
     </longTermParams>
 
-    <model_scripts path="scripts/lua/mid/behavior-models/" format="lua">
+    <model_scripts path="scripts/lua/mid/behavior_sg12_20161206/" format="lua">
 	<script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models-->
 	<script name="dpb" file="dpb.lua"/> <!-- Day Pattern Binary -->
 	<script name="dpt" file="dpt.lua"/> <!-- Day Pattern Tours -->

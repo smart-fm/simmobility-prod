@@ -372,6 +372,7 @@ void HouseholdAgent::onWorkerEnter()
 	#endif
 
 
+
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 	if( config.ltParams.outputHouseholdLogsums.enabled )
 	{
@@ -391,7 +392,8 @@ void HouseholdAgent::onWorkerEnter()
 		if( getId() < model->FAKE_IDS_START)
 		{
 			VehicleOwnershipModel vehOwnershipModel(model);
-			vehOwnershipModel.reconsiderVehicleOwnershipOption(this->getHousehold(),this, day);
+			//vehOwnershipModel.reconsiderVehicleOwnershipOption2(this->getHousehold(),this, day);
+			vehOwnershipModel.reconsiderVehicleOwnershipOption2(this->getHousehold(),this, 0);
 		}
 	}
 

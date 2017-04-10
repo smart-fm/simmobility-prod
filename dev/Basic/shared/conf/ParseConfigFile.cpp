@@ -368,6 +368,15 @@ void sim_mob::ParseConfigFile::processLongTermParamsNode(xercesc::DOMElement* no
 	outputFiles.log_out_xx_files = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "outputFiles"), "log_out_xx_files"), "value"), true);
 
 	cfg.ltParams.outputFiles = outputFiles;
+
+	LongTermParams::ToaPayohScenario toaPayohScenario;
+
+	toaPayohScenario.enabled = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName( node, "toaPayohScenario"), "enabled"), false);
+	toaPayohScenario.workInToaPayoh = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "toaPayohScenario"), "workInToaPayoh"), "value"), false);
+	toaPayohScenario.liveInToaPayoh = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "toaPayohScenario"), "liveInToaPayoh"), "value"), false);
+	toaPayohScenario.moveToToaPayoh = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "toaPayohScenario"), "moveToToaPayoh"), "value"), false);
+
+	cfg.ltParams.toaPayohScenario = toaPayohScenario;
 }
 
 void sim_mob::ParseConfigFile::processSimulationNode(xercesc::DOMElement* node)

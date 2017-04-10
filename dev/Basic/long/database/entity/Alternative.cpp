@@ -16,10 +16,11 @@ namespace sim_mob
 	namespace long_term
 	{
 		Alternative::Alternative( BigSerial id, BigSerial planAreaId, std::string planAreaName, BigSerial dwellingTypeId, std::string dwellingTypeName,
-								  double avgHouseholdSize, double avgHouseholdIncome, int unitTypeCounter, int populationByUnitType, double medianHedonicPrice, double sumFloorArea)
+								  double avgHouseholdSize, double avgHouseholdIncome, int unitTypeCounter, int populationByUnitType, double medianHedonicPrice,
+								  double sumFloorArea, BigSerial mapId)
 								 :id(id), planAreaId(planAreaId), planAreaName(planAreaName), dwellingTypeId(dwellingTypeId), dwellingTypeName(dwellingTypeName),
 								  avgHouseholdSize(avgHouseholdSize), avgHouseholdIncome(avgHouseholdIncome), unitTypeCounter(unitTypeCounter),
-								  populationByUnitType(populationByUnitType), medianHedonicPrice(medianHedonicPrice), sumFloorArea(sumFloorArea){}
+								  populationByUnitType(populationByUnitType), medianHedonicPrice(medianHedonicPrice), sumFloorArea(sumFloorArea), mapId(mapId){}
 
 		Alternative::~Alternative() {}
 
@@ -36,6 +37,7 @@ namespace sim_mob
 			this->populationByUnitType = source.populationByUnitType;
 			this->medianHedonicPrice = source.medianHedonicPrice;
 			this->sumFloorArea = source.sumFloorArea;
+			this->mapId = source.mapId;
 		}
 
 		Alternative& Alternative::operator=(const Alternative& source)
@@ -53,6 +55,12 @@ namespace sim_mob
 			this->sumFloorArea = source.sumFloorArea;
 
 			return *this;
+		}
+
+
+		BigSerial Alternative::getMapId() const
+		{
+			return mapId;
 		}
 
 		BigSerial Alternative::getId() const
@@ -153,6 +161,7 @@ namespace sim_mob
 						<< "\"unitTypeCounter \":\"" << data.unitTypeCounter << "\","
 						<< "\"populationByUnitType \":\"" << data.populationByUnitType << "\""
 						<< "\"medianHedonicPrice \":\"" << data.medianHedonicPrice<< "\""
+						<< "\"mapId \":\"" << data.mapId<< "\""
 						<< "}";
 		}
 	}

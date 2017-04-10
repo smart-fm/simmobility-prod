@@ -126,7 +126,7 @@ void ParseConfigFile::processConstructDatabaseNode(xercesc::DOMElement *node)
 		if (TranscodeString(item->getNodeName()) != "database")
 		{
 			Warn() << "\nWARNING! Invalid value for \'databases\': \"" << TranscodeString(item->getNodeName())
-			       << "\". Expected: \'database\'\n";
+			       << "\" in file " << inFilePath << ". Expected: \'database\'\n";
 			continue;
 		}
 
@@ -137,7 +137,8 @@ void ParseConfigFile::processConstructDatabaseNode(xercesc::DOMElement *node)
 		if (dbType != "postgres")
 		{
 			stringstream msg;
-			msg << "Invalid value for \'dbType\'" << " in <database id=\"" << db.getId()
+			msg << "Error parsing file: " << inFilePath << ". Invalid value for \'dbType\'"
+			    << " in <database id=\"" << db.getId()
 			    << "\" dbtype=\"" << dbType << "\">. Expected: \"postgres\"";
 			throw runtime_error(msg.str());
 		}
@@ -159,7 +160,8 @@ void ParseConfigFile::processConstructCredentialNode(xercesc::DOMElement *node)
 		if (name != "file-based-credential" && name != "plaintext-credential")
 		{
 			Warn() << "\nWARNING! Invalid value for \'db_proc_groups\': \"" << TranscodeString(item->getNodeName())
-			       << "\". Expected: \"file-based-credential\" or \"plaintext-credential\"\n";
+			       << "\" in file " << inFilePath
+			       << ". Expected: \"file-based-credential\" or \"plaintext-credential\"\n";
 			continue;
 		}
 
@@ -177,7 +179,8 @@ void ParseConfigFile::processConstructCredentialNode(xercesc::DOMElement *node)
 				if (TranscodeString(pathItem->getNodeName()) != "file")
 				{
 					Warn() << "\nWARNING! Invalid value for \'file-based credential\': \""
-					       << TranscodeString(pathItem->getNodeName()) << "\". Expected: \"file\"\n";
+					       << TranscodeString(pathItem->getNodeName()) << "\" in file " << inFilePath
+					       << ". Expected: \"file\"\n";
 					continue;
 				}
 
@@ -725,36 +728,51 @@ void ParseConfigFile::processMutexEnforcementNode(xercesc::DOMElement *node)
 void ParseConfigFile::processModelScriptsNode(xercesc::DOMElement *node)
 {
 	string format = ParseString(GetNamedAttributeValue(node, "format"), "");
+
 	if (format.empty() || format != "lua")
 	{
-		throw runtime_error("Unsupported script format");
+		stringstream msg;
+		msg << "Error parsing file: " << inFilePath << ". Invalid value for <model_scripts format=\""
+		    << format << "\">. Expected: \"lua\"";
+		throw runtime_error(msg.str());
 	}
 
 	string scriptsDirectoryPath = ParseString(GetNamedAttributeValue(node, "path"), "");
+
 	if (scriptsDirectoryPath.empty())
 	{
-		throw runtime_error("path to scripts is not provided");
+		stringstream msg;
+		msg << "Error parsing file: " << inFilePath << ". Empty value for <model_scripts path=\"\"\>. "
+		    << "Expected: path to scripts";
+		throw runtime_error(msg.str());
 	}
+
 	if ((*scriptsDirectoryPath.rbegin()) != '/')
 	{
-		///add a / to the end of the path string if it is not already there
+		//add a / to the end of the path string if it is not already there
 		scriptsDirectoryPath.push_back('/');
 	}
+
 	ModelScriptsMap scriptsMap(scriptsDirectoryPath, format);
+
 	for (DOMElement *item = node->getFirstElementChild(); item; item = item->getNextElementSibling())
 	{
 		string name = TranscodeString(item->getNodeName());
+
 		if (name != "script")
 		{
-			Warn() << "Invalid db_proc_groups child node.\n";
+			Warn() << "\nWARNING! Invalid value for \'model_scripts\': \"" << TranscodeString(item->getNodeName())
+			       << "\" in file " << inFilePath << ". Expected: \'script\'\n";
 			continue;
 		}
 
 		string key = ParseString(GetNamedAttributeValue(item, "name"), "");
 		string val = ParseString(GetNamedAttributeValue(item, "file"), "");
+
 		if (key.empty() || val.empty())
 		{
-			Warn() << "Invalid script; missing \"name\" or \"file\".\n";
+			Warn() << "\nWARNING! Empty value in <script name=\"" << key << "\" file=\"" << val << "\"/>. "
+			       << "Expected: script name and file name";
 			continue;
 		}
 

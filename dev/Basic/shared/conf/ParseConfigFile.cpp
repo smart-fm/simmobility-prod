@@ -90,20 +90,29 @@ void ParseConfigFile::processXmlFile(XercesDOMParser &parser)
 		throw runtime_error(msg.str());
 	}
 
-	processConstructsNode(GetSingleElementByName(rootNode, "constructs"));
-
-	if (longTerm)
+	try
 	{
-		processSchemasParamsNode(GetSingleElementByName(rootNode, "schemas"));
-		processLongTermParamsNode(GetSingleElementByName(rootNode, "longTermParams"));
-		processModelScriptsNode(GetSingleElementByName(rootNode, "model_scripts"));
-		return;
-	}
+		processConstructsNode(GetSingleElementByName(rootNode, "constructs"));
 
-	///Now just parse the document recursively.
-	processSimulationNode(GetSingleElementByName(rootNode, "simulation", true));
-	processGenericPropsNode(GetSingleElementByName(rootNode, "generic_props"));
-	processMergeLogFilesNode(GetSingleElementByName(rootNode, "merge_log_files"));
+		if (longTerm)
+		{
+			processSchemasParamsNode(GetSingleElementByName(rootNode, "schemas"));
+			processLongTermParamsNode(GetSingleElementByName(rootNode, "longTermParams"));
+			processModelScriptsNode(GetSingleElementByName(rootNode, "model_scripts"));
+			return;
+		}
+
+		///Now just parse the document recursively.
+		processSimulationNode(GetSingleElementByName(rootNode, "simulation", true));
+		processGenericPropsNode(GetSingleElementByName(rootNode, "generic_props"));
+		processMergeLogFilesNode(GetSingleElementByName(rootNode, "merge_log_files"));
+	}
+	catch (runtime_error &ex)
+	{
+		stringstream msg;
+		msg << "Error parsing file: " << inFilePath << ". " << ex.what();
+		throw runtime_error(msg.str());
+	}
 }
 
 void ParseConfigFile::processConstructsNode(xercesc::DOMElement *node)
@@ -137,7 +146,7 @@ void ParseConfigFile::processConstructDatabaseNode(xercesc::DOMElement *node)
 		if (dbType != "postgres")
 		{
 			stringstream msg;
-			msg << "Error parsing file: " << inFilePath << ". Invalid value for \'dbType\'"
+			msg << "Invalid value for \'dbType\'"
 			    << " in <database id=\"" << db.getId()
 			    << "\" dbtype=\"" << dbType << "\">. Expected: \"postgres\"";
 			throw runtime_error(msg.str());
@@ -630,13 +639,15 @@ void ParseConfigFile::processSimulationNode(xercesc::DOMElement *node)
 	cfg.simulation.baseGranSecond = cfg.simulation.baseGranMS / MILLISECONDS_IN_SECOND;
 
 	cfg.simulation.simStartTime = processValueDailyTime(GetSingleElementByName(node, "start_time", true));
-	cfg.simulation.inSimulationTTUsage = processInSimulationTTUsage(GetSingleElementByName(node, "in_simulation_travel_time_usage", true));
+	cfg.simulation.inSimulationTTUsage =
+			processInSimulationTTUsage(GetSingleElementByName(node, "in_simulation_travel_time_usage", true));
 
 	processWorkgroupAssignmentNode(GetSingleElementByName(node, "workgroup_assignment"));
 	processMutexEnforcementNode(GetSingleElementByName(node, "mutex_enforcement"));
 	processClosedLoopPropertiesNode(GetSingleElementByName(node, "closed_loop"));
 
-	cfg.simulation.startingAutoAgentID = ProcessValueInteger2(GetSingleElementByName(node, "auto_id_start"), 0);
+	cfg.simulation.startingAutoAgentID =
+			ParseInteger(GetNamedAttributeValue(GetSingleElementByName(node, "auto_id_start"), "value"), (int) 0);
 }
 
 void ParseConfigFile::processMergeLogFilesNode(xercesc::DOMElement *node)
@@ -732,7 +743,7 @@ void ParseConfigFile::processModelScriptsNode(xercesc::DOMElement *node)
 	if (format.empty() || format != "lua")
 	{
 		stringstream msg;
-		msg << "Error parsing file: " << inFilePath << ". Invalid value for <model_scripts format=\""
+		msg << "Invalid value for <model_scripts format=\""
 		    << format << "\">. Expected: \"lua\"";
 		throw runtime_error(msg.str());
 	}
@@ -742,7 +753,7 @@ void ParseConfigFile::processModelScriptsNode(xercesc::DOMElement *node)
 	if (scriptsDirectoryPath.empty())
 	{
 		stringstream msg;
-		msg << "Error parsing file: " << inFilePath << ". Empty value for <model_scripts path=\"\"/>. "
+		msg << "Empty value for <model_scripts path=\"\"/>. "
 		    << "Expected: path to scripts";
 		throw runtime_error(msg.str());
 	}

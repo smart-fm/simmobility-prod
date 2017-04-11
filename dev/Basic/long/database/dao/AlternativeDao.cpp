@@ -27,6 +27,7 @@ void AlternativeDao::fromRow(Row& result, Alternative& outObj)
     outObj.dwellingTypeId	= result.get<BigSerial>( "dwelling_type_id", 0);
     outObj.dwellingTypeName	= result.get<std::string>( "dwelling_type_name", "");
     outObj.medianHedonicPrice	= result.get<double>( "median_hedonic_price", .0);
+    outObj.mapId			= result.get<BigSerial>("map_id", 0);
 }
 
 void AlternativeDao::toRow(Alternative& data, Parameters& outParams, bool update) {}

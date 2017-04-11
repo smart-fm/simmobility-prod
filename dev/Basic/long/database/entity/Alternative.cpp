@@ -53,6 +53,7 @@ namespace sim_mob
 			this->populationByUnitType = source.populationByUnitType;
 			this->medianHedonicPrice = source.medianHedonicPrice;
 			this->sumFloorArea = source.sumFloorArea;
+			this->mapId = source.mapId;
 
 			return *this;
 		}

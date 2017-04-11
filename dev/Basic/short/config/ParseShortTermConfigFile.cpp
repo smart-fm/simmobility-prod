@@ -38,7 +38,7 @@ unsigned int ParseGranularitySingle(const XMLCh* srcX)
 	else
 	{
 		stringstream msg;
-		msg << "Unable to parse granularity value: " << srcX;
+		msg << "Unable to parse granularity value: \"" << srcX << "\"";
 		throw runtime_error(msg.str());
 	}
 }
@@ -66,21 +66,30 @@ void ParseShortTermConfigFile::processXmlFile(XercesDOMParser& parser)
 		throw runtime_error(msg.str());
 	}
 
-	processProcMapNode(GetSingleElementByName(rootNode, "db_proc_groups", true));
-	processSystemNode(GetSingleElementByName(rootNode, "system", true));
-	processModelScriptsNode(GetSingleElementByName(rootNode, "model_scripts", true));
-	processWorkersNode(GetSingleElementByName(rootNode, "workers", true));
-	processAmodControllerNode(GetSingleElementByName(rootNode, "amodcontroller"));
-	processFmodControllerNode(GetSingleElementByName(rootNode, "fmodcontroller"));
-	processVehicleTypesNode(GetSingleElementByName(rootNode, "vehicleTypes"));
-	processTripFilesNode(GetSingleElementByName(rootNode, "tripFiles"));
-	processPersonCharacteristicsNode(GetSingleElementByName(rootNode, "person_characteristics"));
-	processBusControllerNode(GetSingleElementByName(rootNode, "busController"));
-	processBusCapacityNode(GetSingleElementByName(rootNode, "bus_default_capacity"));
-	processPublicTransit(GetSingleElementByName(rootNode, "public_transit", true));
-	processOutputStatistics(GetSingleElementByName(rootNode, "output_statistics", true));
-	processPathSetFileName(GetSingleElementByName(rootNode, "path-set-config-file"));
-	processTT_Update(GetSingleElementByName(rootNode, "travel_time_update", true));	
+	try
+	{
+		processProcMapNode(GetSingleElementByName(rootNode, "db_proc_groups", true));
+		processSystemNode(GetSingleElementByName(rootNode, "system", true));
+		processModelScriptsNode(GetSingleElementByName(rootNode, "model_scripts", true));
+		processWorkersNode(GetSingleElementByName(rootNode, "workers", true));
+		processAmodControllerNode(GetSingleElementByName(rootNode, "amodcontroller"));
+		processFmodControllerNode(GetSingleElementByName(rootNode, "fmodcontroller"));
+		processVehicleTypesNode(GetSingleElementByName(rootNode, "vehicleTypes", true));
+		processTripFilesNode(GetSingleElementByName(rootNode, "tripFiles"));
+		processPersonCharacteristicsNode(GetSingleElementByName(rootNode, "person_characteristics"));
+		processBusControllerNode(GetSingleElementByName(rootNode, "busController"));
+		processBusCapacityNode(GetSingleElementByName(rootNode, "bus_default_capacity"));
+		processPublicTransit(GetSingleElementByName(rootNode, "public_transit"));
+		processOutputStatistics(GetSingleElementByName(rootNode, "output_statistics", true));
+		processPathSetFileName(GetSingleElementByName(rootNode, "path-set-config-file", true));
+		processTT_Update(GetSingleElementByName(rootNode, "travel_time_update", true));
+	}
+	catch(runtime_error &ex)
+	{
+		stringstream msg;
+		msg << "Error parsing file: " << inFilePath << ". " << ex.what();
+		throw runtime_error(msg.str());
+	}
 	
 	//Take care of path-set manager configuration in here
     ParsePathXmlConfig(cfg.pathsetFile, cfg.getPathSetConf());
@@ -280,21 +289,11 @@ void ParseShortTermConfigFile::processSegmentDensityNode(DOMElement* node)
 
 void ParseShortTermConfigFile::processSystemNode(DOMElement *node)
 {
-	if (node)
-	{
-		processNetworkNode(GetSingleElementByName(node, "network", true));
-		processAuraManagerImpNode(GetSingleElementByName(node, "aura_manager_impl", true));
-		processLoadAgentsOrder(GetSingleElementByName(node, "load_agents", true));
-		processCommSimNode(GetSingleElementByName(node, "commsim"));
-		processGenericPropsNode(GetSingleElementByName(node, "generic_props"));
-	}
-	else
-	{
-		stringstream msg;
-		msg << "Error parsing file: " << inFilePath
-		    << ". <system> node not defined.";
-		throw runtime_error(msg.str());
-	}
+	processNetworkNode(GetSingleElementByName(node, "network", true));
+	processAuraManagerImpNode(GetSingleElementByName(node, "aura_manager_impl", true));
+	processLoadAgentsOrder(GetSingleElementByName(node, "load_agents", true));
+	processCommSimNode(GetSingleElementByName(node, "commsim"));
+	processGenericPropsNode(GetSingleElementByName(node, "generic_props", true));
 }
 
 void ParseShortTermConfigFile::processModelScriptsNode(xercesc::DOMElement* node)
@@ -355,20 +354,10 @@ void ParseShortTermConfigFile::processModelScriptsNode(xercesc::DOMElement* node
 
 void ParseShortTermConfigFile::processNetworkNode(DOMElement *node)
 {
-	if (node)
-	{
-		processNetworkSourceNode(GetSingleElementByName(node, "network_source", true));
-		processDatabaseNode(GetSingleElementByName(node, "network_database", true));
-		processNetworkXmlInputNode(GetSingleElementByName(node, "network_xml_file_input", true));
-		processNetworkXmlOutputNode(GetSingleElementByName(node, "network_xml_file_output", true));
-	}
-	else
-	{
-		stringstream msg;
-		msg << "Error parsing file: " << inFilePath
-		    << ". <network> node not defined.";
-		throw runtime_error(msg.str());
-	}
+	processNetworkSourceNode(GetSingleElementByName(node, "network_source", true));
+	processDatabaseNode(GetSingleElementByName(node, "network_database", true));
+	processNetworkXmlInputNode(GetSingleElementByName(node, "network_xml_file_input", true));
+	processNetworkXmlOutputNode(GetSingleElementByName(node, "network_xml_file_output", true));
 }
 
 void ParseShortTermConfigFile::processAuraManagerImpNode(DOMElement *node)
@@ -395,11 +384,13 @@ void ParseShortTermConfigFile::processAuraManagerImpNode(DOMElement *node)
 		{
 			stCfg.auraManagerImplementation = AuraManager::IMPL_SIMTREE;
 		}
-
-		stringstream msg;
-		msg << "Error parsing file: " << inFilePath << ". Invalid value for <aura_manager_impl value=\""
-		    << value << "\">. Expected: \"packing-tree\" or \"rstar\" or \"rdu\" or \"simtree\"";
-		throw runtime_error(msg.str());
+		else
+		{
+			stringstream msg;
+			msg << "Error parsing file: " << inFilePath << ". Invalid value for <aura_manager_impl value=\""
+			    << value << "\">. Expected: \"packing-tree\" or \"rstar\" or \"rdu\" or \"simtree\"";
+			throw runtime_error(msg.str());
+		}
 	}
 }
 
@@ -441,7 +432,7 @@ int ParseShortTermConfigFile::processValueInteger(xercesc::DOMElement* node)
 
 bool ParseShortTermConfigFile::processValueBoolean(xercesc::DOMElement* node)
 {
-	return ParseBoolean(GetNamedAttributeValue(node, "value"));
+	return ParseBoolean(GetNamedAttributeValue(node, "value"), false);
 }
 
 void ParseShortTermConfigFile::processCommSimNode(DOMElement *node)
@@ -454,17 +445,20 @@ void ParseShortTermConfigFile::processCommSimNode(DOMElement *node)
 	//Enabled?
 	stCfg.commsim.enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), false);
 
-	//Number of threads assigned to the boost I/O service that reads from Android clients.
-	stCfg.commsim.numIoThreads = processValueInteger(GetSingleElementByName(node, "io_threads", true));
+	if (stCfg.commsim.enabled)
+	{
+		//Number of threads assigned to the boost I/O service that reads from Android clients.
+		stCfg.commsim.numIoThreads = processValueInteger(GetSingleElementByName(node, "io_threads", true));
 
-	//Minimum clients
-	stCfg.commsim.minClients = processValueInteger(GetSingleElementByName(node, "min_clients", true));
+		//Minimum clients
+		stCfg.commsim.minClients = processValueInteger(GetSingleElementByName(node, "min_clients", true));
 
-	//Hold tick
-	stCfg.commsim.holdTick = processValueInteger(GetSingleElementByName(node, "hold_tick", true));
+		//Hold tick
+		stCfg.commsim.holdTick = processValueInteger(GetSingleElementByName(node, "hold_tick", true));
 
-	//Use ns-3 for routing?
-	stCfg.commsim.useNs3 = processValueBoolean(GetSingleElementByName(node, "use_ns3", true));
+		//Use ns-3 for routing?
+		stCfg.commsim.useNs3 = processValueBoolean(GetSingleElementByName(node, "use_ns3", true));
+	}
 }
 
 void ParseShortTermConfigFile::processLoopDetectorCountNode(DOMElement *node)
@@ -525,63 +519,41 @@ void ParseShortTermConfigFile::processNetworkSourceNode(DOMElement *node)
 		{
 			stCfg.networkSource = NETSRC_DATABASE;
 		}
-
-		stringstream msg;
-		msg << "Error parsing file: " << inFilePath << ". Invalid value for <network_source value=\""
-		    << value << "\">. Expected: \"database\" or \"xml\"";
-		throw runtime_error(msg.str());
+		else
+		{
+			stringstream msg;
+			msg << "Error parsing file: " << inFilePath << ". Invalid value for <network_source value=\""
+			    << value << "\">. Expected: \"database\" or \"xml\"";
+			throw runtime_error(msg.str());
+		}
 	}
 }
 
 void ParseShortTermConfigFile::processDatabaseNode(DOMElement *node)
 {
-	if (node)
-	{
-		cfg.networkDatabase.database = ParseString(GetNamedAttributeValue(node, "database"), "");
-		cfg.networkDatabase.credentials = ParseString(GetNamedAttributeValue(node, "credentials"), "");
-		cfg.networkDatabase.procedures = ParseString(GetNamedAttributeValue(node, "proc_map"), "");
-	}
-	else
-	{
-		stringstream msg;
-		msg << "Error parsing file: " << inFilePath << ". <network_database> node not defined";
-		throw runtime_error(msg.str());
-	}
+	cfg.networkDatabase.database = ParseString(GetNamedAttributeValue(node, "database"), "");
+	cfg.networkDatabase.credentials = ParseString(GetNamedAttributeValue(node, "credentials"), "");
+	cfg.networkDatabase.procedures = ParseString(GetNamedAttributeValue(node, "proc_map"), "");
 }
 
 void ParseShortTermConfigFile::processWorkersNode(xercesc::DOMElement* node)
 {
-	if (node)
-	{
-		processWorkerPersonNode(GetSingleElementByName(node, "person", true));
-		processWorkerSignalNode(GetSingleElementByName(node, "signal", true));
-		processWorkerIntMgrNode(GetSingleElementByName(node, "intersection_manager", true));
-		processWorkerCommunicationNode(GetSingleElementByName(node, "communication", true));
-	}
-	else
-	{
-		stringstream msg;
-		msg << "Error parsing file: " << inFilePath << ". <workers> node not defined";
-		throw runtime_error(msg.str());
-	}
+	processWorkerPersonNode(GetSingleElementByName(node, "person", true));
+	processWorkerSignalNode(GetSingleElementByName(node, "signal", true));
+	processWorkerIntMgrNode(GetSingleElementByName(node, "intersection_manager", true));
+	processWorkerCommunicationNode(GetSingleElementByName(node, "communication", true));
 }
 
 void ParseShortTermConfigFile::processWorkerPersonNode(xercesc::DOMElement* node)
 {
-	if (node)
-	{
-		stCfg.workers.person.count = ParseUnsignedInt(GetNamedAttributeValue(node, "count"));
-		stCfg.workers.person.granularityMs = ParseGranularitySingle(GetNamedAttributeValue(node, "granularity"));
-	}
+	stCfg.workers.person.count = ParseUnsignedInt(GetNamedAttributeValue(node, "count"));
+	stCfg.workers.person.granularityMs = ParseGranularitySingle(GetNamedAttributeValue(node, "granularity"));
 }
 
 void ParseShortTermConfigFile::processWorkerSignalNode(xercesc::DOMElement* node)
 {
-	if (node)
-	{
-		stCfg.workers.signal.count = ParseUnsignedInt(GetNamedAttributeValue(node, "count"));
-		stCfg.workers.signal.granularityMs = ParseGranularitySingle(GetNamedAttributeValue(node, "granularity"));
-	}
+	stCfg.workers.signal.count = ParseUnsignedInt(GetNamedAttributeValue(node, "count"));
+	stCfg.workers.signal.granularityMs = ParseGranularitySingle(GetNamedAttributeValue(node, "granularity"));
 }
 
 void ParseShortTermConfigFile::processWorkerIntMgrNode(xercesc::DOMElement* node)
@@ -653,11 +625,6 @@ void ParseShortTermConfigFile::processPersonCharacteristicsNode(DOMElement *node
 
 void ParseShortTermConfigFile::processGenericPropsNode(DOMElement *node)
 {
-	if (!node)
-	{
-		return;
-	}
-
 	std::vector<DOMElement*> properties = GetElementsByName(node, "property");
 	for (std::vector<DOMElement*>::const_iterator it = properties.begin(); it != properties.end(); ++it)
 	{
@@ -672,32 +639,23 @@ void ParseShortTermConfigFile::processGenericPropsNode(DOMElement *node)
 
 void ParseShortTermConfigFile::processVehicleTypesNode(DOMElement *node)
 {
-	if (node)
+	std::vector<DOMElement*> vehicles = GetElementsByName(node, "vehicleType");
+
+	for (std::vector<DOMElement*>::const_iterator it = vehicles.begin(); it != vehicles.end(); it++)
 	{
-		std::vector<DOMElement*> vehicles = GetElementsByName(node, "vehicleType");
+		VehicleType vehicleType;
+		vehicleType.name = ParseString(GetNamedAttributeValue(*it, "name", true));
+		vehicleType.length = ParseFloat(GetNamedAttributeValue(*it, "length"), 4.0);
+		vehicleType.width = ParseFloat(GetNamedAttributeValue(*it, "width"), 2.0);
+		vehicleType.capacity = ParseInteger(GetNamedAttributeValue(*it, "capacity"), 4);
 
-		for (std::vector<DOMElement*>::const_iterator it = vehicles.begin(); it != vehicles.end(); it++)
-		{
-			VehicleType vehicleType;
-			vehicleType.name = ParseString(GetNamedAttributeValue(*it, "name", true));
-			vehicleType.length = ParseFloat(GetNamedAttributeValue(*it, "length"), 4.0);
-			vehicleType.width = ParseFloat(GetNamedAttributeValue(*it, "width"), 2.0);
-			vehicleType.capacity = ParseInteger(GetNamedAttributeValue(*it, "capacity"), 4);
-
-			stCfg.vehicleTypes.push_back(vehicleType);
-		}
-
-		if (stCfg.vehicleTypes.empty())
-		{
-			stringstream msg;
-			msg << "Error parsing file: " << inFilePath << ". <vehicleTypes> node is empty";
-			throw runtime_error(msg.str());
-		}
+		stCfg.vehicleTypes.push_back(vehicleType);
 	}
-	else
+
+	if (stCfg.vehicleTypes.empty())
 	{
 		stringstream msg;
-		msg << "Error parsing file: " << inFilePath << ". <vehicleTypes> node not defined";
+		msg << "Error parsing file: " << inFilePath << ". <vehicleTypes> node is empty";
 		throw runtime_error(msg.str());
 	}
 }
@@ -770,40 +728,26 @@ void ParseShortTermConfigFile::processPublicTransit(xercesc::DOMElement* node)
 
 void ParseShortTermConfigFile::processOutputStatistics(xercesc::DOMElement* node)
 {
-	if(node)
-	{
-		processJourneyTimeNode(GetSingleElementByName(node, "journey_time"));
-		processWaitingTimeNode(GetSingleElementByName(node, "waiting_time"));
-		processWaitingCountsNode(GetSingleElementByName(node, "waiting_count"));
-		processTravelTimeNode(GetSingleElementByName(node, "travel_time"));
-		processPT_StopStatsNode(GetSingleElementByName(node, "pt_stop_stats"));
-		processODTravelTimeNode(GetSingleElementByName(node, "od_travel_time"));
-		processSegmentTravelTimeNode(GetSingleElementByName(node, "segment_travel_time"));
-		processSegmentDensityNode(GetSingleElementByName(node, "segment_density"));
-		processLoopDetectorCountNode(GetSingleElementByName(node, "loop-detector_counts"));
-		processAssignmentMatrixNode(GetSingleElementByName(node, "assignment_matrix"));
-	}
+	processJourneyTimeNode(GetSingleElementByName(node, "journey_time"));
+	processWaitingTimeNode(GetSingleElementByName(node, "waiting_time"));
+	processWaitingCountsNode(GetSingleElementByName(node, "waiting_count"));
+	processTravelTimeNode(GetSingleElementByName(node, "travel_time"));
+	processPT_StopStatsNode(GetSingleElementByName(node, "pt_stop_stats"));
+	processODTravelTimeNode(GetSingleElementByName(node, "od_travel_time"));
+	processSegmentTravelTimeNode(GetSingleElementByName(node, "segment_travel_time"));
+	processSegmentDensityNode(GetSingleElementByName(node, "segment_density"));
+	processLoopDetectorCountNode(GetSingleElementByName(node, "loop-detector_counts"));
+	processAssignmentMatrixNode(GetSingleElementByName(node, "assignment_matrix"));
 }
 
 void ParseShortTermConfigFile::processPathSetFileName(DOMElement* node)
 {
-	if (!node)
-	{
-		return;
-	}
 	cfg.pathsetFile = ParseString(GetNamedAttributeValue(node, "value"));
 }
 
 void ParseShortTermConfigFile::processTT_Update(xercesc::DOMElement* node)
 {
-	if (!node)
-	{
-		throw std::runtime_error("Path-set travel_time_interval not found\n");
-	}
-	else
-	{
-		cfg.getPathSetConf().interval = ParseInteger(GetNamedAttributeValue(node, "interval"), 300);
-	}
+	cfg.getPathSetConf().interval = ParseInteger(GetNamedAttributeValue(node, "interval"), 300);
 }
 
 void ParseShortTermConfigFile::processJourneyTimeNode(xercesc::DOMElement* node)
@@ -851,7 +795,7 @@ void ParseShortTermConfigFile::processAssignmentMatrixNode(xercesc::DOMElement* 
 {
 	if(node)
 	{
-		bool enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"));
+		bool enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), false);
 
 		if (enabled)
 		{
@@ -866,7 +810,7 @@ void ParseShortTermConfigFile::processODTravelTimeNode(xercesc::DOMElement* node
 {
 	if(node)
 	{
-		bool enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"));
+		bool enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), false);
 		if (enabled)
 		{
 			cfg.odTTConfig.enabled = true;
@@ -880,7 +824,7 @@ void ParseShortTermConfigFile::processSegmentTravelTimeNode(xercesc::DOMElement*
 {
 	if(node)
 	{
-		bool enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"));
+		bool enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), false);
 		if (enabled)
 		{
 			cfg.rsTTConfig.enabled = true;
@@ -908,7 +852,16 @@ void ParseShortTermTripFile::processXmlFile(XercesDOMParser &parser)
 		throw runtime_error(msg.str());
 	}
 
-	processTrips(rootNode);
+	try
+	{
+		processTrips(rootNode);
+	}
+	catch(runtime_error &ex)
+	{
+		stringstream msg;
+		msg << "Error parsing file: " << inFilePath << ". " << ex.what();
+		throw runtime_error(msg.str());
+	}
 }
 
 void ParseShortTermTripFile::processTrips(DOMElement *node)
@@ -923,7 +876,7 @@ void ParseShortTermTripFile::processTrips(DOMElement *node)
 		
 		for (DOMListIter it = trips.begin(); it != trips.end(); ++it, ++defaultTripId)
 		{
-			defaultTripId = ParseUnsignedInt(GetNamedAttributeValue(*it, "id"), defaultTripId);
+			defaultTripId = ParseUnsignedInt(GetNamedAttributeValue(*it, "id", false), defaultTripId);
 			unsigned int personId = ParseUnsignedInt(GetNamedAttributeValue(*it, "personId", false), static_cast<unsigned int> (0));
 			std::stringstream tripIdStr;
 			tripIdStr << defaultTripId;
@@ -937,7 +890,7 @@ void ParseShortTermTripFile::processTrips(DOMElement *node)
 				EntityTemplate ent;
 				
 				ent.startTimeMs = ParseUnsignedInt(GetNamedAttributeValue(*stIter, "time", true), static_cast<unsigned int> (0));
-				ent.startLaneIndex = ParseInteger(GetNamedAttributeValue(*stIter, "startLaneIndex"), -1);
+				ent.startLaneIndex = ParseInteger(GetNamedAttributeValue(*stIter, "startLaneIndex", false), -1);
 				ent.agentId = personId;
 				ent.startSegmentId = ParseUnsignedInt(GetNamedAttributeValue(*stIter, "startSegmentId", false), static_cast<unsigned int> (0));
 				ent.segmentStartOffset = ParseUnsignedInt(GetNamedAttributeValue(*stIter, "segmentStartOffset", false), static_cast<unsigned int> (0));
@@ -945,7 +898,7 @@ void ParseShortTermTripFile::processTrips(DOMElement *node)
 				ent.originNode = ParseInteger(GetNamedAttributeValue(*stIter, "originNode", true), (int) 0);
 				ent.destNode = ParseInteger(GetNamedAttributeValue(*stIter, "destNode", true), (int) 0);
 				ent.tripId = std::make_pair(defaultTripId, defaultSubTripId);
-				ent.mode = ParseString(GetNamedAttributeValue(*stIter, "mode"), "");
+				ent.mode = ParseString(GetNamedAttributeValue(*stIter, "mode", false), "");
 				
 				if(!ent.mode.empty())
 				{
@@ -958,8 +911,7 @@ void ParseShortTermTripFile::processTrips(DOMElement *node)
 						if (vehTypeIter == cfg.vehicleTypes.end())
 						{
 							stringstream msg;
-							msg << "Error parsing file: " << inFilePath
-								<< ". Travel mode \"" << ent.mode << "\" for trip \"" << defaultTripId
+							msg << "Travel mode \"" << ent.mode << "\" for trip \"" << defaultTripId
 								<< "\" is not defined";
 							throw std::runtime_error(msg.str());
 						}
@@ -968,8 +920,7 @@ void ParseShortTermTripFile::processTrips(DOMElement *node)
 				else
 				{
 					stringstream msg;
-					msg << "Error parsing file: " << inFilePath
-					    << ". Travel mode \"" << ent.mode << "\" for trip \"" << defaultTripId
+					msg << "Travel mode \"" << ent.mode << "\" for trip \"" << defaultTripId
 					    << "\" is not defined";
 					throw std::runtime_error(msg.str());
 				}

@@ -1573,11 +1573,8 @@ void HM_Model::startImpl()
 		PrintOutV("Number of postcodes: " << postcodes.size() << std::endl );
 		PrintOutV("Number of postcodes by id: " << postcodesById.size() << std::endl );
 
-
-
-		//Chetan commmened this 31 mar 2017
-		//loadData<VehicleOwnershipCoefficientsDao>(conn,vehicleOwnershipCoeffs,vehicleOwnershipCoeffsById, &VehicleOwnershipCoefficients::getVehicleOwnershipOptionId);
-		//PrintOutV("Vehicle Ownership coefficients: " << vehicleOwnershipCoeffs.size() << std::endl );
+		loadData<VehicleOwnershipCoefficientsDao>(conn,vehicleOwnershipCoeffs,vehicleOwnershipCoeffsById, &VehicleOwnershipCoefficients::getVehicleOwnershipOptionId);
+		PrintOutV("Vehicle Ownership coefficients: " << vehicleOwnershipCoeffs.size() << std::endl );
 
 		loadData<TaxiAccessCoefficientsDao>(conn_calibration,taxiAccessCoeffs,taxiAccessCoeffsById, &TaxiAccessCoefficients::getParameterId);
 		PrintOutV("Taxi access coefficients: " << taxiAccessCoeffs.size() << std::endl );
@@ -1625,8 +1622,6 @@ void HM_Model::startImpl()
 		loadData<HitsIndividualLogsumDao>( conn, hitsIndividualLogsum, hitsIndividualLogsumById, &HitsIndividualLogsum::getId );
 		PrintOutV("Number of Hits Individual Logsum rows: " << hitsIndividualLogsum.size() << std::endl );
 
-
-		//chetan commented this. 31 mar 2017
 		loadData<IndvidualVehicleOwnershipLogsumDao>( conn_calibration, IndvidualVehicleOwnershipLogsums, IndvidualVehicleOwnershipLogsumById, &IndvidualVehicleOwnershipLogsum::getHouseholdId );
 		PrintOutV("Number of Hits Individual VehicleOwnership Logsum rows: " << IndvidualVehicleOwnershipLogsums.size() << std::endl );
 

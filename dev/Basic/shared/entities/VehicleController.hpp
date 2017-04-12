@@ -40,11 +40,11 @@ public:
 		const unsigned int destinationNodeId;
 	};
 
-	enum MessageParsingResult
+	enum MessageResult
 	{
-		PARSING_SUCCESS = 0,
-		PARSING_FAILED,
-		PARSING_RETRY
+		MESSAGE_ERROR_BAD_NODE = 0,
+		MESSAGE_ERROR_VEHICLES_UNAVAILABLE,
+		MESSAGE_SUCCESS
 	};
 
 	/**
@@ -125,10 +125,4 @@ private:
 };
 }
 #endif /* VehicleController_HPP_ */
-
-
-
-
-
-
 

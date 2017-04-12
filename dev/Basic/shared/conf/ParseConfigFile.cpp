@@ -139,6 +139,8 @@ void sim_mob::ParseConfigFile::processXmlFile(XercesDOMParser& parser)
     processMergeLogFilesNode(GetSingleElementByName(rootNode, "merge_log_files"));
     processGenericPropsNode(GetSingleElementByName(rootNode, "generic_props"));
     processConstructsNode(GetSingleElementByName(rootNode,"constructs"));
+
+    processVehicleControllerNode(GetSingleElementByName(rootNode, "vehicleController"));
 }
 
 void sim_mob::ParseConfigFile::processConstructsNode(xercesc::DOMElement* node)
@@ -424,4 +426,14 @@ void sim_mob::ParseConfigFile::processModelScriptsNode(xercesc::DOMElement* node
 	}
 	cfg.luaScriptsMap = scriptsMap;
 }
+
+void sim_mob::ParseConfigFile::processVehicleControllerNode(DOMElement *node)
+{
+    if (node)
+    {
+    	cfg.vehicleController.enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), "false");
+        cfg.vehicleController.controllerId = ParseUnsignedInt(GetNamedAttributeValue(node, "controllerId"), static_cast<unsigned int>(0));
+    }
+}
+
 

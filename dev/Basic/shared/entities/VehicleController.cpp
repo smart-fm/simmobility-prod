@@ -65,75 +65,75 @@ void VehicleController::removeVehicleDriver(Person* person)
 
 int VehicleController::assignVehicleToRequest(VehicleRequest request)
 {
-	// TaxiDriver* best_driver;
-	// double best_distance = -1;
-	// double best_x, best_y;
+	// TaxiDriver* bestDriver;
+	// double bestDistance = -1;
+	// double bestX, bestY;
 
 	// std::map<unsigned int, Node*> nodeIdMap = RoadNetwork::getInstance()->getMapOfIdvsNodes();
 
 	// std::map<unsigned int, Node*>::iterator it = nodeIdMap.find(request.startNodeId); 
 	// if (it == nodeIdMap.end()) {
 	// 	Print() << "Request contains bad start node" << std::endl;
-	// 	return PARSING_FAILED;
+	// 	return MESSAGE_ERROR_BAD_NODE;
 	// }
 	// Node* startNode = it->second;
 
 	// it = nodeIdMap.find(request.destinationNodeId); 
 	// if (it == nodeIdMap.end()) {
 	// 	Print() << "Request contains bad destination node" << std::endl;
-	// 	return PARSING_FAILED;
+	// 	return MESSAGE_ERROR_BAD_NODE;
 	// }
 	// Node* destinationNode = it->second;
 
-	auto person = vehicleDrivers.begin();
+	// auto person = vehicleDrivers.begin();
 
 	// while (person != vehicleDrivers.end())
 	// {
 	// 	if ((*person)->getRole())
 	// 	{
-	// 		TaxiDriver* curr_driver = dynamic_cast<TaxiDriver*>((*person)->getRole());
-	// 		if (curr_driver)
+	// 		TaxiDriver* currDriver = dynamic_cast<TaxiDriver*>((*person)->getRole());
+	// 		if (currDriver)
 	// 		{
-	// 			if (curr_driver->getDriverMode() != CRUISE)
+	// 			if (currDriver->getDriverMode() != CRUISE)
 	// 			{
 	// 				person++;
 	// 				continue;
 	// 			}
 
-	// 			if (best_distance < 0)
+	// 			if (bestDistance < 0)
 	// 			{
-	// 				best_driver = curr_driver;
+	// 				bestDriver = currDriver;
 
-	// 				TaxiDriverMovement* movement = best_driver
+	// 				TaxiDriverMovement* movement = bestDriver
 	// 					->getMovementFacet();
 	// 				const Node* node = movement->getCurrentNode();
 
-	// 				best_distance = std::abs(startNode->getPosX()
+	// 				bestDistance = std::abs(startNode->getPosX()
 	// 					- node->getPosX());
-	// 				best_distance += std::abs(startNode->getPosY()
+	// 				bestDistance += std::abs(startNode->getPosY()
 	// 					- node->getPosY());
 	// 			}
 
 	// 			else
 	// 			{
-	// 				double curr_distance = 0.0;
+	// 				double currDistance = 0.0;
 
 	// 				// TODO: Find shortest path instead
-	// 				TaxiDriverMovement* movement = curr_driver
+	// 				TaxiDriverMovement* movement = currDriver
 	// 					->getMovementFacet();
 	// 				const Node* node = movement->getCurrentNode();
 
-	// 				curr_distance = std::abs(startNode->getPosX()
+	// 				currDistance = std::abs(startNode->getPosX()
 	// 					- node->getPosX());
-	// 				curr_distance += std::abs(startNode->getPosY()
+	// 				currDistance += std::abs(startNode->getPosY()
 	// 					- node->getPosY());
 
-	// 				if (curr_distance < best_distance)
+	// 				if (currDistance < bestDistance)
 	// 				{
-	// 					best_driver = curr_driver;
-	// 					best_distance = curr_distance;
-	// 					best_x = node->getPosX();
-	// 					best_y = node->getPosY();
+	// 					bestDriver = currDriver;
+	// 					bestDistance = currDistance;
+	// 					bestX = node->getPosX();
+	// 					bestY = node->getPosY();
 	// 				}
 	// 			}
 	// 		}
@@ -142,24 +142,25 @@ int VehicleController::assignVehicleToRequest(VehicleRequest request)
 	// 	person++;
 	// }
 
-	// if (best_distance == -1)
+	// if (bestDistance == -1)
 	// {
 	// 	Print() << "No available taxis" << std::endl;
-	// 	return PARSING_RETRY;
+	// 	return MESSAGE_ERROR_VEHICLES_UNAVAILABLE;
 	// }
 
-	// Print() << "Closest taxi is at (" << best_x << ", " << best_y << ")" << std::endl;;
+	// Print() << "Closest taxi is at (" << bestX << ", " << bestY << ")" << std::endl;;
 
-	Person *best_driver = *person;
+	// sim_mob::medium::Person_MT *bestDriver = dynamic_cast<sim_mob::medium::Person_MT*>(*person);
+	Person *bestDriver = vehicleDrivers.at(rand() % vehicleDrivers.size());
 
-	messaging::MessageBus::PostMessage(best_driver, MSG_VEHICLE_ASSIGNMENT, messaging::MessageBus::MessagePtr(
+	messaging::MessageBus::PostMessage(bestDriver, MSG_VEHICLE_ASSIGNMENT, messaging::MessageBus::MessagePtr(
 		new VehicleAssignmentMessage(currTick, request.personId, request.startNodeId, request.destinationNodeId)));
 
 	Print() << "Assignment sent for " << request.personId << " at time " << currTick.frame()
 		<< ". Message was sent at " << request.currTick.frame() << " with startNodeId " << request.startNodeId
 		<< ", destinationNodeId " << request.destinationNodeId << ", and taxiDriverId null" << std::endl;
 
-	return PARSING_SUCCESS;
+	return MESSAGE_SUCCESS;
 }
 
 void VehicleController::assignSharedVehicles(std::vector<Person*> drivers,
@@ -367,7 +368,8 @@ Entity::UpdateStatus VehicleController::frame_tick(timeslice now)
 		{
 			int r = assignVehicleToRequest(*request);
 
-		    if (r == PARSING_RETRY) retryRequestQueue.push_back(*request);
+		    if (r == MESSAGE_ERROR_VEHICLES_UNAVAILABLE)
+		    	retryRequestQueue.push_back(*request);
 		    request++;
 		}
 

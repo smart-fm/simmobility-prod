@@ -443,11 +443,14 @@ struct VehicleControllerParams
     /**
      * Constructor
      */
-    VehicleControllerParams() : enabled(false)
+    VehicleControllerParams() : enabled(false), controllerId(0)
     {}
 
     /// Is vehicle controller enabled?
     bool enabled;
+
+    /// ID of the controller to be instantiated
+    unsigned int controllerId;
 };
 
 /**
@@ -542,4 +545,5 @@ public:
 
 
 }
+
 

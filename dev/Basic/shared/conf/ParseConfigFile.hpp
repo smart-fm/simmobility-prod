@@ -166,6 +166,13 @@ private:
      */
     void processModelScriptsNode(xercesc::DOMElement* node);
 
+    /**
+     * Processes the vehicleController element in config xml
+     *
+     * @param node node corresponding to the vehicleController element inside xml file
+     */
+    void processVehicleControllerNode(xercesc::DOMElement *node);
+
 private:
     ///The config file we are currently loading
 	RawConfigParams& cfg;
@@ -175,3 +182,4 @@ private:
 };
 
 }
+

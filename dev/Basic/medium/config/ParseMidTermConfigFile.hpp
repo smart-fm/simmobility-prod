@@ -247,13 +247,6 @@ private:
      */
     void processBusControllerNode(xercesc::DOMElement *node);
 
-    /**
-     * Processes the vehicleController element in config xml
-     *
-     * @param node node corresponding to the vehicleController element inside xml file
-     */
-    void processVehicleControllerNode(xercesc::DOMElement *node);
-
     void processPathSetFileName(xercesc::DOMElement* node);
 
     /// The config we are currently loading
@@ -264,4 +257,5 @@ private:
 };
 } // namespace medium
 } // namespace sim_mob
+
 

@@ -123,7 +123,7 @@ void TaxiDriver::HandleParentMessage(messaging::Message::MessageType type, const
 					messaging::MessageBus::MessagePtr(new VehicleAssignmentResponseMessage(parent->currTick, success, msg.personId, parent->getDatabaseId(),
 						msg.startNodeId, msg.destinationNodeId)));
 
-				Print() << "Assignmet response sent for " << msg.personId << " at time " << parent->currTick.frame()
+				Print() << "Assignment response sent for " << msg.personId << " at time " << parent->currTick.frame()
 					<< ". Message was sent at " << msg.currTick.frame() << " with startNodeId " << msg.startNodeId
 					<< ", destinationNodeId " << msg.destinationNodeId << ", and taxiDriverId " << parent->getDatabaseId() << std::endl;
 			}

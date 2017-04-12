@@ -32,3 +32,4 @@ sim_mob::LongTermParams::TaxiAccessModel::TaxiAccessModel():enabled(false){}
 sim_mob::LongTermParams::SchoolAssignmentModel::SchoolAssignmentModel():enabled(false), schoolChangeWaitingTimeInDays(0){}
 
 ModelScriptsMap::ModelScriptsMap(const std::string& scriptFilesPath, const std::string& scriptsLang) : path(scriptFilesPath), scriptLanguage(scriptsLang) {}
+

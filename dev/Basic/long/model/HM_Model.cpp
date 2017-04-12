@@ -2058,6 +2058,16 @@ void HM_Model::startImpl()
 				setTaxiAccess2012(households[n]);
 			}
 		}
+
+		if(config.ltParams.vehicleOwnershipModel.enabled)
+		{
+			//remove frozen hh
+			if(households[n]->getTenureStatus() != 3)
+			{
+				VehicleOwnershipModel vehOwnershipModel(this);
+				vehOwnershipModel.reconsiderVehicleOwnershipOption2(households[n],nullptr, 0);
+			}
+		}
 	}
 
 	Household *hh;

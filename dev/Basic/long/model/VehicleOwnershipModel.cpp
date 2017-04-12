@@ -478,22 +478,22 @@ void VehicleOwnershipModel::reconsiderVehicleOwnershipOption2(const Household *h
 				vehcileOwnershipOptChange->setNewVehicleOwnershipOptionId(selectedVehicleOwnershipOtionId);
 				writeVehicleOwnershipToFile(household->getId(),selectedVehicleOwnershipOtionId);
 				break;
-				switch(selectedVehicleOwnershipOtionId)
-				{
-				case 0 : MessageBus::PostMessage(hhAgent, LTMID_HH_NO_VEHICLE, MessageBus::MessagePtr(new Message()));
-				break;
-				case 1 : MessageBus::PostMessage(hhAgent, LTMID_HH_PLUS1_MOTOR_ONLY, MessageBus::MessagePtr(new Message()));
-				break;
-				case 2 : MessageBus::PostMessage(hhAgent, LTMID_HH_OFF_PEAK_CAR_W_WO_MOTOR, MessageBus::MessagePtr(new Message()));
-				break;
-				case 3 : MessageBus::PostMessage(hhAgent, LTMID_HH_NORMAL_CAR_ONLY, MessageBus::MessagePtr(new Message()));
-				break;
-				case 4 : MessageBus::PostMessage(hhAgent, LTMID_HH_NORMAL_CAR_1PLUS_MOTOR, MessageBus::MessagePtr(new Message()));
-				break;
-				case 5 : MessageBus::PostMessage(hhAgent, LTMID_HH_NORMAL_CAR_W_WO_MOTOR, MessageBus::MessagePtr(new Message()));
-				break;
-				}
-				break;
+//				switch(selectedVehicleOwnershipOtionId)
+//				{
+//				case 0 : MessageBus::PostMessage(hhAgent, LTMID_HH_NO_VEHICLE, MessageBus::MessagePtr(new Message()));
+//				break;
+//				case 1 : MessageBus::PostMessage(hhAgent, LTMID_HH_PLUS1_MOTOR_ONLY, MessageBus::MessagePtr(new Message()));
+//				break;
+//				case 2 : MessageBus::PostMessage(hhAgent, LTMID_HH_OFF_PEAK_CAR_W_WO_MOTOR, MessageBus::MessagePtr(new Message()));
+//				break;
+//				case 3 : MessageBus::PostMessage(hhAgent, LTMID_HH_NORMAL_CAR_ONLY, MessageBus::MessagePtr(new Message()));
+//				break;
+//				case 4 : MessageBus::PostMessage(hhAgent, LTMID_HH_NORMAL_CAR_1PLUS_MOTOR, MessageBus::MessagePtr(new Message()));
+//				break;
+//				case 5 : MessageBus::PostMessage(hhAgent, LTMID_HH_NORMAL_CAR_W_WO_MOTOR, MessageBus::MessagePtr(new Message()));
+//				break;
+//				}
+//				break;
 			}
 			else
 			{

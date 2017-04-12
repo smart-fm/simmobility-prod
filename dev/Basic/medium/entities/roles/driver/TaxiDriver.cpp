@@ -8,9 +8,10 @@
 #include <entities/roles/driver/TaxiDriver.hpp>
 #include "path/PathSetManager.hpp"
 #include "Driver.hpp"
+#include "../shared/entities/VehicleController.hpp"
 #include "../shared/message/MessageBus.hpp"
+#include "../shared/message/VehicleControllerMessage.hpp"
 #include "geospatial/network/RoadNetwork.hpp"
-#include "entities/VehicleController.hpp"
 
 namespace sim_mob
 {
@@ -62,6 +63,10 @@ void TaxiDriver::alightPassenger()
 			const SegmentStats* segStats = pathMover.getCurrSegStats();
 			Conflux *parentConflux = segStats->getParentConflux();
 			parentConflux->dropOffTaxiTraveler(parentPerson);
+
+			Print() << "Drop-off for " << parentPerson->getDatabaseId() << " at time " << parentPerson->currTick.frame()
+				<< ". Message was sent at null with startNodeId null, destinationNodeId " << parentConflux->getConfluxNode()->getNodeId()
+				<< ", and taxiDriverId null" << std::endl;
 		}
 	}
 }
@@ -81,9 +86,9 @@ void TaxiDriver::HandleParentMessage(messaging::Message::MessageType type, const
 {
 	switch (type)
 	{
-		case CALL_TAXI:
+		case MSG_VEHICLE_ASSIGNMENT:
 		{
-			const TaxiCallMessage& msg = MSG_CAST(TaxiCallMessage, message);
+			const VehicleAssignmentMessage& msg = MSG_CAST(VehicleAssignmentMessage, message);
 
 			Print() << "Assignment received for " << msg.personId << " at time " << parent->currTick.frame()
 				<< ". Message was sent at " << msg.currTick.frame() << " with startNodeId " << msg.startNodeId
@@ -97,8 +102,8 @@ void TaxiDriver::HandleParentMessage(messaging::Message::MessageType type, const
 
 				if (VehicleController::HasVehicleController())
 				{
-					messaging::MessageBus::PostMessage(VehicleController::GetInstance(), MSG_VEHICLE_ASSIGNMENT,
-						messaging::MessageBus::MessagePtr(new VehicleAssignmentMessage(parent->currTick, false, msg.personId, parent->getDatabaseId(),
+					messaging::MessageBus::PostMessage(VehicleController::GetInstance(), MSG_VEHICLE_ASSIGNMENT_RESPONSE,
+						messaging::MessageBus::MessagePtr(new VehicleAssignmentResponseMessage(parent->currTick, false, msg.personId, parent->getDatabaseId(),
 							msg.startNodeId, msg.destinationNodeId)));
 
 					Print() << "Assignment response sent for " << msg.personId << " at time " << parent->currTick.frame()
@@ -114,8 +119,8 @@ void TaxiDriver::HandleParentMessage(messaging::Message::MessageType type, const
 
 			if (VehicleController::HasVehicleController())
 			{
-				messaging::MessageBus::PostMessage(VehicleController::GetInstance(), MSG_VEHICLE_ASSIGNMENT,
-					messaging::MessageBus::MessagePtr(new VehicleAssignmentMessage(parent->currTick, success, msg.personId, parent->getDatabaseId(),
+				messaging::MessageBus::PostMessage(VehicleController::GetInstance(), MSG_VEHICLE_ASSIGNMENT_RESPONSE,
+					messaging::MessageBus::MessagePtr(new VehicleAssignmentResponseMessage(parent->currTick, success, msg.personId, parent->getDatabaseId(),
 						msg.startNodeId, msg.destinationNodeId)));
 
 				Print() << "Assignmet response sent for " << msg.personId << " at time " << parent->currTick.frame()
@@ -241,6 +246,7 @@ TaxiDriver::~TaxiDriver()
 }
 }
 }
+
 
 
 

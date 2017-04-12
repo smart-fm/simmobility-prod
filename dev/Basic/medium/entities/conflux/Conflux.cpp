@@ -43,6 +43,7 @@
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "logging/Log.hpp"
 #include "message/MessageBus.hpp"
+#include "message/VehicleControllerMessage.hpp"
 #include "metrics/Length.hpp"
 #include "path/PathSetManager.hpp"
 #include "util/Utils.hpp"
@@ -2897,6 +2898,7 @@ sim_mob::medium::PersonTransferMessage::PersonTransferMessage(Person_MT* person,
 sim_mob::medium::PersonTransferMessage::~PersonTransferMessage()
 {
 }
+
 
 
 

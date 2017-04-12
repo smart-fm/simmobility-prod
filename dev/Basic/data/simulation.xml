@@ -7,9 +7,9 @@
         <!-- Note that credentials (login details) are stored in a separate construct. -->
         <databases>
             <database id="fm_remote" dbtype="postgres">
-                <host value="172.25.184.48"/>
+                <host value="18.58.5.170"/>
                 <port value="5432"/>
-                <dbname value="simmobility_virtualcity"/>
+                <dbname value="simmobility_virtualcity_smartcontroller"/>
             </database>
 
             <database id="fm_hpchead" dbtype="postgres">
@@ -98,7 +98,7 @@
 
             <plaintext-credential id="fm_remote_plain">
                 <username value="postgres"/>
-                <password value="5M_S1mM0bility"/>
+                <password value="ITSLab2016!"/>
             </plaintext-credential>
 
             <plaintext-credential id="fm_hpchead">
@@ -110,9 +110,9 @@
 
     <simulation>
         <base_granularity   value="5"   units="seconds"/>
-        <total_runtime      value="1440"      units="minutes" />
-        <total_warmup       value="10"     units="seconds" />
-        <start_time         value="00:00:00"/>
+        <total_runtime      value="180"      units="minutes" />
+        <total_warmup       value="60"     units="minutes" />
+        <start_time         value="08:00:00"/>
         <!--Indicates the percentage of drivers that will use in-simulation travel times rather than the historical travel times-->
         <in_simulation_travel_time_usage value="100"/>
 

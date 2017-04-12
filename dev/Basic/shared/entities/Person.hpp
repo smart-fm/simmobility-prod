@@ -117,7 +117,7 @@ protected:
 	virtual void onEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher *sender, const event::EventArgs &args);
 
 	/**Inherited from MessageHandler.*/
-	virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message &message);
+	virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message &message) = 0;
 
 	/**
 	 * Advances the current sub-trip to the next item.
@@ -363,3 +363,4 @@ public:
 };
 
 }
+

@@ -28,9 +28,6 @@ enum ConfluxMessage
 	MSG_PERSON_LOAD,
 	MSG_PERSON_TRANSFER,
 	MSG_TRAVELER_TRANSFER,
-	// Vehicle Controller Messages
-	MSG_VEHICLE_REQUEST,
-	MSG_VEHICLE_ASSIGNMENT
 };
 
 enum PublicTransitMessage
@@ -41,10 +38,6 @@ enum PublicTransitMessage
 	BUS_DEPARTURE
 };
 
-enum TaxiMessage
-{
-	CALL_TAXI = 7000000
-};
 /**
  * Message holding a pointer to BusStop
  */
@@ -61,25 +54,7 @@ public:
 	const BusStop* nextStop;
 	std::string busLines;
 };
-/**
- * Message for calling a taxi
- */
-class TaxiCallMessage: public messaging::Message
-{
-public:
-	TaxiCallMessage(timeslice ct, const std::string& person, const unsigned int sn, const unsigned int dn) :
-			currTick(ct), personId(person), startNodeId(sn), destinationNodeId(dn)
-	{
-	}
-	virtual ~TaxiCallMessage()
-	{
-	}
 
-	const timeslice currTick;
-	const std::string personId;
-	const unsigned int startNodeId;
-	const unsigned int destinationNodeId;
-};
 /**
  * Message holding a pointer to busDriver
  */
@@ -152,52 +127,9 @@ public:
 	Person_MT* waitingPerson;
 };
 
-/**
- * Message to request a vehicle
- */
-class VehicleRequestMessage: public messaging::Message
-{
-public:
-	VehicleRequestMessage(timeslice ct, const std::string& p, const unsigned int sn, const unsigned int dn) :
-			currTick(ct), personId(p), startNodeId(sn), destinationNodeId(dn)
-	{
-	}
-
-	virtual ~VehicleRequestMessage()
-	{
-	}
-
-	const timeslice currTick;
-	const std::string personId;
-	const unsigned int startNodeId;
-	const unsigned int destinationNodeId;
-};
-
-/**
- * Message to request a vehicle
- */
-class VehicleAssignmentMessage: public messaging::Message
-{
-public:
-	VehicleAssignmentMessage(timeslice ct, const bool s, const std::string& p, const std::string& t, const unsigned int sn, const unsigned int dn) :
-			currTick(ct), success(s), personId(p), taxiDriverId(t), startNodeId(sn), destinationNodeId(dn)
-	{
-	}
-
-	virtual ~VehicleAssignmentMessage()
-	{
-	}
-
-	const timeslice currTick;
-	const bool success;
-	const std::string personId;
-	const std::string taxiDriverId;
-	const unsigned int startNodeId;
-	const unsigned int destinationNodeId;
-};
-
 }
 }
+
 
 
 

@@ -12,19 +12,17 @@
 #include <mutex>
 
 #include "entities/Agent.hpp"
-#include "entities/roles/driver/TaxiDriverFacets.hpp"
-#include "entities/roles/driver/TaxiDriver.hpp"
 #include "message/Message.hpp"
 
 namespace sim_mob
 {
-namespace medium
-{
 
-class VehicleController: public sim_mob::Agent {
+class VehicleController: public Agent {
 protected:
-	explicit VehicleController(int id = -1, const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered, int tickRefresh = 0, double shareThreshold = 0) :
-			Agent(mtxStrat, id)
+	explicit VehicleController(int id = -1,
+		const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered,
+		int tickRefresh = 0,
+		double shareThreshold = 0) : Agent(mtxStrat, id)
 	{
 			startTime = 0; // vehicle controllers are alive for the entire duration of the simulation
 
@@ -79,55 +77,55 @@ public:
 	 * [addVehicleDriver description]
 	 * @param person [description]
 	 */
-	virtual void addVehicleDriver(Person_MT* person);
+	void addVehicleDriver(Person* person);
 
 	/**
 	 * [removeVehicleDriver description]
 	 * @param person [description]
 	 */
-	virtual void removeVehicleDriver(Person_MT* person);
+	void removeVehicleDriver(Person* person);
 
 	/**
 	 * Signals are non-spatial in nature.
 	 */
-	virtual bool isNonspatial();
+	bool isNonspatial();
 
 protected:
 	/**
 	 * inherited from base class agent to initialize parameters for vehicle controller
 	 */
-	virtual Entity::UpdateStatus frame_init(timeslice now);
+	Entity::UpdateStatus frame_init(timeslice now);
 
 	/**
 	 * inherited from base class to update this agent
 	 */
-	virtual Entity::UpdateStatus frame_tick(timeslice now);
+	Entity::UpdateStatus frame_tick(timeslice now);
 
 	/**
 	 * inherited from base class to output result
 	 */
-	virtual void frame_output(timeslice now);
+	void frame_output(timeslice now);
 
-    virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
+    void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
 
 	virtual int assignVehicleToRequest(VehicleRequest request);
 
-	virtual void assignSharedVehicles(std::vector<Person_MT*> drivers, std::vector<VehicleRequest> requests, timeslice now);
+	virtual void assignSharedVehicles(std::vector<Person*> drivers, std::vector<VehicleRequest> requests, timeslice now);
 
 private:
 	int currIntTick;
 	int tickThreshold;
 	double timedelta;
 	/**store driver information*/
-	std::vector<Person_MT*> vehicleDrivers;
+	std::vector<Person*> vehicleDrivers;
 	/**store message information*/
 	std::vector<VehicleRequest> requestQueue;
 	/**store self instance*/
 	static VehicleController* instance;
 };
 }
-}
 #endif /* VehicleController_HPP_ */
+
 
 
 

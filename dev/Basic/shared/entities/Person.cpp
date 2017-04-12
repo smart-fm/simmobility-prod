@@ -91,9 +91,9 @@ void sim_mob::Person::onEvent(event::EventId eventId, sim_mob::event::Context ct
 {
 }
 
-void sim_mob::Person::HandleMessage(messaging::Message::MessageType type, const messaging::Message& message)
-{
-}
+// void sim_mob::Person::HandleMessage(messaging::Message::MessageType type, const messaging::Message& message)
+// {
+// }
 
 UpdateStatus sim_mob::Person::frame_init(timeslice now)
 {
@@ -618,3 +618,4 @@ void sim_mob::Person::serializeSubTripChainItemTravelTimeMetrics(const TravelMet
 void sim_mob::Person::initTripChain()
 {
 }
+

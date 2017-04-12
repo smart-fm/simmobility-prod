@@ -13,9 +13,9 @@
 #include "entities/misc/BusTrip.hpp"
 #include "entities/misc/TaxiTrip.hpp"
 #include "entities/roles/DriverRequestParams.hpp"
-#include "Person_MT.hpp"
 #include "entities/TaxiFleetManager.hpp"
-#include "VehicleController.hpp"
+#include "Person_MT.hpp"
+#include "../shared/entities/VehicleController.hpp"
 
 using namespace std;
 using namespace sim_mob;
@@ -146,33 +146,45 @@ void BusControllerMT::assignBusTripChainWithPerson(std::set<Entity*>& activeAgen
 		groupFleets[taxi.vehicleNo].push(taxi);
 	}
 
+	int number_of_taxis = 235;
+	int count = 0;
+
+	Print() << "Map size " << groupFleets.size() << std::endl;
+	Print() << "Number of taxis " << number_of_taxis << std::endl;
+
 	for (auto i=groupFleets.begin(); i!= groupFleets.end(); i++)
 	{
-		const TaxiFleetManager::FleetTimePriorityQueue& fleetItems = i->second;
-		const TaxiFleetManager::TaxiFleet& taxi = fleetItems.top();
-
-		Person_MT* person = new Person_MT("TaxiController", config.mutexStategy(), -1);
-		person->setTaxiFleet(fleetItems);
-		person->setDatabaseId(taxi.driverId);
-		person->setPersonCharacteristics();
-
-		vector<TripChainItem*> tripChain;
-
-		if (taxi.startNode)
+		if (count < number_of_taxis)
 		{
-			TaxiTrip *taxiTrip = new TaxiTrip("0","TaxiTrip",0,-1, DailyTime(taxi.startTime*1000.0), DailyTime(),0,const_cast<Node*>(taxi.startNode),"node",nullptr,"node");
-			tripChain.push_back(taxiTrip);
-			person->setTripChain(tripChain);
+			const TaxiFleetManager::FleetTimePriorityQueue& fleetItems = i->second;
+			const TaxiFleetManager::TaxiFleet& taxi = fleetItems.top();
 
-			addOrStashBuses(person, activeAgents);
-		}
+			Person_MT* person = new Person_MT("TaxiController", config.mutexStategy(), -1);
+			person->setTaxiFleet(fleetItems);
+			person->setDatabaseId(taxi.driverId);
+			person->setPersonCharacteristics();
 
-		if (VehicleController::HasVehicleController())
-		{
-			VehicleController::GetInstance()->addVehicleDriver(person);
+			vector<TripChainItem*> tripChain;
+
+			if (taxi.startNode)
+			{
+				TaxiTrip *taxiTrip = new TaxiTrip("0","TaxiTrip",0,-1, DailyTime(taxi.startTime*1000.0), DailyTime(),0,const_cast<Node*>(taxi.startNode),"node",nullptr,"node");
+				tripChain.push_back(taxiTrip);
+				person->setTripChain(tripChain);
+
+				addOrStashBuses(person, activeAgents);
+			}
+
+			if (VehicleController::HasVehicleController())
+			{
+				VehicleController::GetInstance()->addVehicleDriver(person);
+			}
+
+			count++;
 		}
 	}
 }
+
 
 
 

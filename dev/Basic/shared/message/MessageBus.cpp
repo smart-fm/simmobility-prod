@@ -526,10 +526,14 @@ void MessageBus::PostMessage(MessageHandler* destination, Message::MessageType t
 	ThreadContext* context = GetThreadContext();
 	if (context)
 	{
+        if (type == 7000000)
+            Print() << "Context exists" << std::endl;
 		InternalMessage* internalMsg = dynamic_cast<InternalMessage*>(message.get());
 		InternalEventMessage* eventMsg = dynamic_cast<InternalEventMessage*>(message.get());
 		if (destination || eventMsg)
 		{
+            if (type == 7000000)
+                Print() << "Destination or eventMsg exists" << std::endl;
 			MessageEntry entry;
 			entry.destination = destination;
 			entry.type = type;
@@ -761,3 +765,4 @@ namespace {
         PrintOut(endl);
     }
 }
+

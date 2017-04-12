@@ -114,6 +114,9 @@ protected:
 
 	/**record the path from node to taxi-stand*/
 	std::queue<TravelTimeAtNode> travelPath;
+	/**record traveler whether is on-demand traveler*/
+	bool isOnDemandTraveler = false;
+
 };
 
 }

@@ -163,7 +163,7 @@
     <travel_time_update interval="300" />
 
     <!-- flag to control if PT graph should be loaded -->
-    <public_transit enabled="true"/>
+    <public_transit enabled="true"/>    
 
     <!-- config specific to supply simulator -->                    
     <supply>
@@ -178,6 +178,9 @@
 
         <!-- pedestrian walking speed in kmph -->
         <pedestrian_walk_speed value="5"/>
+        
+		<!-- the setting about percentage of on-demand traveler, from 0 to 100 -->
+    	<on_demand_traveler_percentage value="0"/>        
         
         <!-- default capacity value -->
         <bus_default_capacity value="100"/>

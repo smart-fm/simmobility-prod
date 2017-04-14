@@ -39,6 +39,8 @@ Entity::UpdateStatus VehicleController::frame_init(timeslice now)
 
 Entity::UpdateStatus VehicleController::frame_tick(timeslice now)
 {
+	currTimeSlice = now;
+
 	if (localTick == messageProcessFrequency)
 	{
 		localTick = 0;
@@ -92,9 +94,10 @@ void VehicleController::HandleMessage(messaging::Message::MessageType type, cons
 
 				Print() << "Request received from " << requestArgs.personId << " at time " << currTick.frame() << ". Message was sent at "
 					<< requestArgs.currTick.frame() << " with startNodeId " << requestArgs.startNodeId << ", destinationNodeId "
-					<< requestArgs.destinationNodeId << ", and taxiDriverId null" << std::endl;
+					<< requestArgs.destinationNodeId << ", and driverId null" << std::endl;
 
-				requestQueue.push_back({requestArgs.currTick, requestArgs.personId, requestArgs.startNodeId, requestArgs.destinationNodeId});
+				requestQueue.push_back({requestArgs.currTick, requestArgs.personId, requestArgs.startNodeId,
+					requestArgs.destinationNodeId, requestArgs.extraTripTimeThreshold});
 	            break;
 	        }
 
@@ -104,14 +107,15 @@ void VehicleController::HandleMessage(messaging::Message::MessageType type, cons
 				if (!replyArgs.success) {
 					Print() << "Request received from " << replyArgs.personId << " at time " << currTick.frame() << ". Message was sent at "
 						<< replyArgs.currTick.frame() << " with startNodeId " << replyArgs.startNodeId << ", destinationNodeId "
-						<< replyArgs.destinationNodeId << ", and taxiDriverId null" << std::endl;
+						<< replyArgs.destinationNodeId << ", and driverId null" << std::endl;
 
-					requestQueue.push_back({replyArgs.currTick, replyArgs.personId, replyArgs.startNodeId, replyArgs.destinationNodeId});
+					requestQueue.push_back({replyArgs.currTick, replyArgs.personId, replyArgs.startNodeId,
+						replyArgs.destinationNodeId, replyArgs.extraTripTimeThreshold});
 				} else {
 					Print() << "Assignment response received from " << replyArgs.personId << " at time "
 						<< currTick.frame() << ". Message was sent at " << replyArgs.currTick.frame() << " with startNodeId "
-						<< replyArgs.startNodeId << ", destinationNodeId " << replyArgs.destinationNodeId << ", and taxiDriverId "
-						<< replyArgs.taxiDriverId << std::endl;
+						<< replyArgs.startNodeId << ", destinationNodeId " << replyArgs.destinationNodeId << ", and driverId "
+						<< replyArgs.driverId << std::endl;
 				}
 	        }
 

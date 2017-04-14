@@ -6,12 +6,12 @@
  */
 
 #include <entities/roles/driver/TaxiDriverFacets.hpp>
-#include "TaxiDriver.hpp"
-#include "path/PathSetManager.hpp"
-#include "geospatial/network/RoadNetwork.hpp"
 #include "config/MT_Config.hpp"
-#include "entities/TaxiStandAgent.hpp"
 #include "entities/misc/TaxiTrip.hpp"
+#include "entities/TaxiStandAgent.hpp"
+#include "geospatial/network/RoadNetwork.hpp"
+#include "path/PathSetManager.hpp"
+#include "TaxiDriver.hpp"
 
 namespace sim_mob
 {
@@ -222,7 +222,7 @@ bool TaxiDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 		{
 			Print() << "Pickup failed for " << personIdPickedUp << " at time " << parentTaxiDriver->parent->currTick.frame()
 				<< ". Message was sent at ??? with startNodeId ???, destinationNodeId " << destinationNode->getNodeId()
-				<< ", and taxiDriverId " << parentTaxiDriver->parent->getDatabaseId() << std::endl;
+				<< ", and driverId " << parentTaxiDriver->parent->getDatabaseId() << std::endl;
 
 			setCruisingMode();
 		}
@@ -230,7 +230,7 @@ bool TaxiDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 		{
 			Print() << "Pickup succeeded for " << personIdPickedUp << " at time " << parentTaxiDriver->parent->currTick.frame()
 				<< ". Message was sent at ??? with startNodeId ???, destinationNodeId " << destinationNode->getNodeId()
-				<< ", and taxiDriverId " << parentTaxiDriver->parent->getDatabaseId() << std::endl;
+				<< ", and driverId " << parentTaxiDriver->parent->getDatabaseId() << std::endl;
 		}
 	}
 
@@ -755,6 +755,7 @@ TaxiDriverBehavior::~TaxiDriverBehavior()
 }
 }
 }
+
 
 
 

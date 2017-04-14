@@ -10,6 +10,7 @@
 #include "entities/BusControllerMT.hpp"
 #include "entities/conflux/Conflux.hpp"
 #include "entities/controllers/VehicleControllerManager.hpp"
+#include "entities/SharedVehicleController_MT.hpp"
 #include "entities/SimpleVehicleController_MT.hpp"
 #include "entities/TravelTimeManager.hpp"
 #include "geospatial/Incident.hpp"
@@ -113,6 +114,12 @@ void ExpandMidTermConfigFile::processConfig()
             if (it->second.type == 1)
             {
                 SimpleVehicleController_MT* svc = new SimpleVehicleController_MT(cfg.mutexStategy(),
+                    it->second.messageProcessFrequency);
+                VehicleControllerManager::GetInstance()->addVehicleController(it->first, svc);
+            }
+            else if (it->second.type == 2)
+            {
+                SharedVehicleController_MT* svc = new SharedVehicleController_MT(cfg.mutexStategy(),
                     it->second.messageProcessFrequency);
                 VehicleControllerManager::GetInstance()->addVehicleController(it->first, svc);
             }

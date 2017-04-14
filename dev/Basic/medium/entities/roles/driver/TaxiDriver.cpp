@@ -6,12 +6,12 @@
  */
 
 #include <entities/roles/driver/TaxiDriver.hpp>
-#include "path/PathSetManager.hpp"
 #include "Driver.hpp"
 #include "entities/controllers/VehicleControllerManager.hpp"
 #include "geospatial/network/RoadNetwork.hpp"
 #include "message/MessageBus.hpp"
 #include "message/VehicleControllerMessage.hpp"
+#include "path/PathSetManager.hpp"
 
 namespace sim_mob
 {
@@ -66,7 +66,7 @@ void TaxiDriver::alightPassenger()
 
 			Print() << "Drop-off for " << parentPerson->getDatabaseId() << " at time " << parentPerson->currTick.frame()
 				<< ". Message was sent at null with startNodeId null, destinationNodeId " << parentConflux->getConfluxNode()->getNodeId()
-				<< ", and taxiDriverId null" << std::endl;
+				<< ", and driverId null" << std::endl;
 		}
 	}
 }
@@ -92,25 +92,25 @@ void TaxiDriver::HandleParentMessage(messaging::Message::MessageType type, const
 
 			Print() << "Assignment received for " << msg.personId << " at time " << parent->currTick.frame()
 				<< ". Message was sent at " << msg.currTick.frame() << " with startNodeId " << msg.startNodeId
-				<< ", destinationNodeId " << msg.destinationNodeId << ", and taxiDriverId null" << std::endl;
+				<< ", destinationNodeId " << msg.destinationNodeId << ", and driverId null" << std::endl;
 
 			std::map<unsigned int, Node*> nodeIdMap = RoadNetwork::getInstance()->getMapOfIdvsNodes();
 
 			std::map<unsigned int, Node*>::iterator it = nodeIdMap.find(msg.destinationNodeId); 
 			if (it == nodeIdMap.end()) {
-				Print() << "Message contains bad destination node" << std::endl;
+				Print() << "Message contains bad destination node " << msg.destinationNodeId << std::endl;
 
 				if (VehicleControllerManager::HasVehicleControllerManager())
 				{
 					std::map<unsigned int, VehicleController*> controllers = VehicleControllerManager::GetInstance()->getControllers();
 				
-					messaging::MessageBus::PostMessage(controllers[1], MSG_VEHICLE_ASSIGNMENT_RESPONSE,
+					messaging::MessageBus::SendMessage(controllers[1], MSG_VEHICLE_ASSIGNMENT_RESPONSE,
 						messaging::MessageBus::MessagePtr(new VehicleAssignmentResponseMessage(parent->currTick, false, msg.personId, parent->getDatabaseId(),
-							msg.startNodeId, msg.destinationNodeId)));
+							msg.startNodeId, msg.destinationNodeId, msg.extraTripTimeThreshold)));
 
 					Print() << "Assignment response sent for " << msg.personId << " at time " << parent->currTick.frame()
 						<< ". Message was sent at " << msg.currTick.frame() << " with startNodeId " << msg.startNodeId
-						<< ", destinationNodeId " << msg.destinationNodeId << ", and taxiDriverId null" << std::endl;
+						<< ", destinationNodeId " << msg.destinationNodeId << ", and driverId null" << std::endl;
 				}
 
 				return;
@@ -123,13 +123,13 @@ void TaxiDriver::HandleParentMessage(messaging::Message::MessageType type, const
 			{
 				std::map<unsigned int, VehicleController*> controllers = VehicleControllerManager::GetInstance()->getControllers();
 
-				messaging::MessageBus::PostMessage(controllers[1], MSG_VEHICLE_ASSIGNMENT_RESPONSE,
+				messaging::MessageBus::SendMessage(controllers[1], MSG_VEHICLE_ASSIGNMENT_RESPONSE,
 					messaging::MessageBus::MessagePtr(new VehicleAssignmentResponseMessage(parent->currTick, success, msg.personId, parent->getDatabaseId(),
-						msg.startNodeId, msg.destinationNodeId)));
+						msg.startNodeId, msg.destinationNodeId, msg.extraTripTimeThreshold)));
 
 				Print() << "Assignment response sent for " << msg.personId << " at time " << parent->currTick.frame()
 					<< ". Message was sent at " << msg.currTick.frame() << " with startNodeId " << msg.startNodeId
-					<< ", destinationNodeId " << msg.destinationNodeId << ", and taxiDriverId " << parent->getDatabaseId() << std::endl;
+					<< ", destinationNodeId " << msg.destinationNodeId << ", and driverId " << parent->getDatabaseId() << std::endl;
 			}
 
 			break;

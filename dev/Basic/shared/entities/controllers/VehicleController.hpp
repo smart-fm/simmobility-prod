@@ -18,7 +18,7 @@ namespace sim_mob
 class VehicleController : public Agent {
 protected:
 	explicit VehicleController(const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered, unsigned int freq = 0)
-		: Agent(mtxStrat, -1), messageProcessFrequency(freq)
+		: Agent(mtxStrat, -1), messageProcessFrequency(freq), currTimeSlice(timeslice(0, 0))
 	{
 	}
 
@@ -29,6 +29,7 @@ public:
 		const std::string personId;
 		const unsigned int startNodeId;
 		const unsigned int destinationNodeId;
+		const unsigned int extraTripTimeThreshold;
 	};
 
 	enum MessageResult
@@ -83,6 +84,9 @@ protected:
 
 	/** Store queue of requests */
 	std::vector<VehicleRequest> requestQueue;
+
+	/** Store current timeslice */
+	timeslice currTimeSlice;
 
 private:
 	/**

@@ -28,7 +28,7 @@ std::vector<VehicleController::MessageResult> SimpleVehicleController_MT::assign
 
 		std::map<unsigned int, Node*>::iterator it = nodeIdMap.find((*request).startNodeId); 
 		if (it == nodeIdMap.end()) {
-			Print() << "Request contains bad start node" << std::endl;
+			Print() << "Request contains bad start node " << (*request).startNodeId << std::endl;
 			results.push_back(MESSAGE_ERROR_BAD_NODE);
 			continue;
 		}
@@ -36,7 +36,7 @@ std::vector<VehicleController::MessageResult> SimpleVehicleController_MT::assign
 
 		it = nodeIdMap.find((*request).destinationNodeId); 
 		if (it == nodeIdMap.end()) {
-			Print() << "Request contains bad destination node" << std::endl;
+			Print() << "Request contains bad destination node " << (*request).destinationNodeId << std::endl;
 			results.push_back(MESSAGE_ERROR_BAD_NODE);
 			continue;
 		}
@@ -104,19 +104,20 @@ std::vector<VehicleController::MessageResult> SimpleVehicleController_MT::assign
 
 		if (bestDistance == -1)
 		{
-			Print() << "No available taxis" << std::endl;
+			Print() << "No available vehicles" << std::endl;
 			results.push_back(MESSAGE_ERROR_VEHICLES_UNAVAILABLE);
 			continue;
 		}
 
-		Print() << "Closest taxi is at (" << bestX << ", " << bestY << ")" << std::endl;
+		Print() << "Closest vehicle is at (" << bestX << ", " << bestY << ")" << std::endl;
 
 		messaging::MessageBus::PostMessage(bestDriver->getParent(), MSG_VEHICLE_ASSIGNMENT, messaging::MessageBus::MessagePtr(
-			new VehicleAssignmentMessage(currTick, (*request).personId, (*request).startNodeId, (*request).destinationNodeId)));
+			new VehicleAssignmentMessage(currTick, (*request).personId, (*request).startNodeId,
+				(*request).destinationNodeId, (*request).extraTripTimeThreshold)));
 
 		Print() << "Assignment sent for " << (*request).personId << " at time " << currTick.frame()
 			<< ". Message was sent at " << (*request).currTick.frame() << " with startNodeId " << (*request).startNodeId
-			<< ", destinationNodeId " << (*request).destinationNodeId << ", and taxiDriverId null" << std::endl;
+			<< ", destinationNodeId " << (*request).destinationNodeId << ", and driverId null" << std::endl;
 
 		results.push_back(MESSAGE_SUCCESS);
 		continue;

@@ -146,41 +146,30 @@ void BusControllerMT::assignBusTripChainWithPerson(std::set<Entity*>& activeAgen
 		groupFleets[taxi.vehicleNo].push(taxi);
 	}
 
-	int number_of_taxis = 235;
-	int count = 0;
-
-	Print() << "Map size " << groupFleets.size() << std::endl;
-	Print() << "Number of taxis " << number_of_taxis << std::endl;
-
 	for (auto i=groupFleets.begin(); i!= groupFleets.end(); i++)
 	{
-		if (count < number_of_taxis)
+		const TaxiFleetManager::FleetTimePriorityQueue& fleetItems = i->second;
+		const TaxiFleetManager::TaxiFleet& taxi = fleetItems.top();
+
+		Person_MT* person = new Person_MT("TaxiController", config.mutexStategy(), -1);
+		person->setTaxiFleet(fleetItems);
+		person->setDatabaseId(taxi.driverId);
+		person->setPersonCharacteristics();
+
+		vector<TripChainItem*> tripChain;
+
+		if (taxi.startNode)
 		{
-			const TaxiFleetManager::FleetTimePriorityQueue& fleetItems = i->second;
-			const TaxiFleetManager::TaxiFleet& taxi = fleetItems.top();
+			TaxiTrip *taxiTrip = new TaxiTrip("0","TaxiTrip",0,-1, DailyTime(taxi.startTime*1000.0), DailyTime(),0,const_cast<Node*>(taxi.startNode),"node",nullptr,"node");
+			tripChain.push_back(taxiTrip);
+			person->setTripChain(tripChain);
 
-			Person_MT* person = new Person_MT("TaxiController", config.mutexStategy(), -1);
-			person->setTaxiFleet(fleetItems);
-			person->setDatabaseId(taxi.driverId);
-			person->setPersonCharacteristics();
+			addOrStashBuses(person, activeAgents);
+		}
 
-			vector<TripChainItem*> tripChain;
-
-			if (taxi.startNode)
-			{
-				TaxiTrip *taxiTrip = new TaxiTrip("0","TaxiTrip",0,-1, DailyTime(taxi.startTime*1000.0), DailyTime(),0,const_cast<Node*>(taxi.startNode),"node",nullptr,"node");
-				tripChain.push_back(taxiTrip);
-				person->setTripChain(tripChain);
-
-				addOrStashBuses(person, activeAgents);
-			}
-
-			if (VehicleControllerManager::HasVehicleControllerManager())
-			{
-				VehicleControllerManager::GetInstance()->addVehicleDriver(person);
-			}
-
-			count++;
+		if (VehicleControllerManager::HasVehicleControllerManager())
+		{
+			VehicleControllerManager::GetInstance()->addVehicleDriver(person);
 		}
 	}
 }

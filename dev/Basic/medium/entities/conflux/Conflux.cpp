@@ -303,13 +303,13 @@ void Conflux::addAgent(Person_MT* person)
 			{
 				std::map<unsigned int, VehicleController*> controllers = VehicleControllerManager::GetInstance()->getControllers();
 
-				messaging::MessageBus::PostMessage(controllers[1], MSG_VEHICLE_REQUEST, messaging::MessageBus::MessagePtr(
+				messaging::MessageBus::SendMessage(controllers[1], MSG_VEHICLE_REQUEST, messaging::MessageBus::MessagePtr(
 					new VehicleRequestMessage(person->currTick, person->getDatabaseId(),
-						confluxNode->getNodeId(), personDestinationNode->getNodeId())));
+						confluxNode->getNodeId(), personDestinationNode->getNodeId(), 0)));
 
 				Print() << "Request made from " << person->getDatabaseId() << " at time " << person->currTick.frame() << ". Message was sent at "
 					<< person->currTick.frame() << " with startNodeId " << confluxNode->getNodeId() << ", destinationNodeId " << personDestinationNode->getNodeId()
-					<< ", and taxiDriverId null" << std::endl;
+					<< ", and driverId null" << std::endl;
 			}
 			
 			travelingPersons.push_back(person);

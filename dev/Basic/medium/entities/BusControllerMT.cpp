@@ -10,12 +10,12 @@
 #include "buffering/Shared.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
+#include "entities/controllers/VehicleControllerManager.hpp"
 #include "entities/misc/BusTrip.hpp"
 #include "entities/misc/TaxiTrip.hpp"
 #include "entities/roles/DriverRequestParams.hpp"
 #include "entities/TaxiFleetManager.hpp"
 #include "Person_MT.hpp"
-#include "../shared/entities/VehicleController.hpp"
 
 using namespace std;
 using namespace sim_mob;
@@ -175,15 +175,16 @@ void BusControllerMT::assignBusTripChainWithPerson(std::set<Entity*>& activeAgen
 				addOrStashBuses(person, activeAgents);
 			}
 
-			if (VehicleController::HasVehicleController())
+			if (VehicleControllerManager::HasVehicleControllerManager())
 			{
-				VehicleController::GetInstance()->addVehicleDriver(person);
+				VehicleControllerManager::GetInstance()->addVehicleDriver(person);
 			}
 
 			count++;
 		}
 	}
 }
+
 
 
 

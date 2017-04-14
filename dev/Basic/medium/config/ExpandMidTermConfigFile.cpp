@@ -9,8 +9,9 @@
 #include "entities/BusController.hpp"
 #include "entities/BusControllerMT.hpp"
 #include "entities/conflux/Conflux.hpp"
+#include "entities/controllers/VehicleControllerManager.hpp"
+#include "entities/SimpleVehicleController_MT.hpp"
 #include "entities/TravelTimeManager.hpp"
-#include "entities/VehicleController.hpp"
 #include "geospatial/Incident.hpp"
 #include "geospatial/network/RoadNetwork.hpp"
 #include "geospatial/network/NetworkLoader.hpp"
@@ -103,7 +104,19 @@ void ExpandMidTermConfigFile::processConfig()
     //register and initialize VehicleController
     if (cfg.vehicleController.enabled)
     {
-        VehicleController::RegisterVehicleController(-1, cfg.mutexStategy());
+        VehicleControllerManager::RegisterVehicleControllerManager(cfg.mutexStategy());
+
+        for (std::map<unsigned int, VehicleControllerConfig>::iterator it
+                = cfg.vehicleController.enabledControllers.begin();
+            it != cfg.vehicleController.enabledControllers.end(); it++)
+        {
+            if (it->second.type == 1)
+            {
+                SimpleVehicleController_MT* svc = new SimpleVehicleController_MT(cfg.mutexStategy(),
+                    it->second.messageProcessFrequency);
+                VehicleControllerManager::GetInstance()->addVehicleController(it->first, svc);
+            }
+        }
     }
 
     //register and initialize BusController
@@ -288,4 +301,5 @@ void ExpandMidTermConfigFile::printSettings()
 	SimulationInfoPrinter simInfoPrinter(cfg, cfg.outSimInfoFileName);
 	simInfoPrinter.printSimulationInfo();
 }
+
 

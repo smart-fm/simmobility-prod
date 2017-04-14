@@ -20,6 +20,7 @@
 #include "entities/BusStopAgent.hpp"
 #include "entities/TaxiStandAgent.hpp"
 #include "entities/conflux/SegmentStats.hpp"
+#include "entities/controllers/VehicleControllerManager.hpp"
 #include "entities/Entity.hpp"
 #include "entities/misc/TripChain.hpp"
 #include "entities/roles/activityRole/ActivityPerformer.hpp"
@@ -48,7 +49,6 @@
 #include "path/PathSetManager.hpp"
 #include "util/Utils.hpp"
 #include "entities/roles/driver/TaxiDriver.hpp"
-#include "entities/VehicleController.hpp"
 
 using namespace boost;
 using namespace sim_mob;
@@ -299,9 +299,11 @@ void Conflux::addAgent(Person_MT* person)
 			WayPoint personTravelDestination = (*subTripItr).destination;
 			const Node * personDestinationNode = personTravelDestination.node;
 
-			if (VehicleController::HasVehicleController())
+			if (VehicleControllerManager::HasVehicleControllerManager())
 			{
-				MessageBus::PostMessage(VehicleController::GetInstance(), MSG_VEHICLE_REQUEST, messaging::MessageBus::MessagePtr(
+				std::map<unsigned int, VehicleController*> controllers = VehicleControllerManager::GetInstance()->getControllers();
+
+				messaging::MessageBus::PostMessage(controllers[1], MSG_VEHICLE_REQUEST, messaging::MessageBus::MessagePtr(
 					new VehicleRequestMessage(person->currTick, person->getDatabaseId(),
 						confluxNode->getNodeId(), personDestinationNode->getNodeId())));
 
@@ -2898,6 +2900,7 @@ sim_mob::medium::PersonTransferMessage::PersonTransferMessage(Person_MT* person,
 sim_mob::medium::PersonTransferMessage::~PersonTransferMessage()
 {
 }
+
 
 
 

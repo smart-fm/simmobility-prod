@@ -8,10 +8,10 @@
 #include <entities/roles/driver/TaxiDriver.hpp>
 #include "path/PathSetManager.hpp"
 #include "Driver.hpp"
-#include "../shared/entities/VehicleController.hpp"
-#include "../shared/message/MessageBus.hpp"
-#include "../shared/message/VehicleControllerMessage.hpp"
+#include "entities/controllers/VehicleControllerManager.hpp"
 #include "geospatial/network/RoadNetwork.hpp"
+#include "message/MessageBus.hpp"
+#include "message/VehicleControllerMessage.hpp"
 
 namespace sim_mob
 {
@@ -100,9 +100,11 @@ void TaxiDriver::HandleParentMessage(messaging::Message::MessageType type, const
 			if (it == nodeIdMap.end()) {
 				Print() << "Message contains bad destination node" << std::endl;
 
-				if (VehicleController::HasVehicleController())
+				if (VehicleControllerManager::HasVehicleControllerManager())
 				{
-					messaging::MessageBus::PostMessage(VehicleController::GetInstance(), MSG_VEHICLE_ASSIGNMENT_RESPONSE,
+					std::map<unsigned int, VehicleController*> controllers = VehicleControllerManager::GetInstance()->getControllers();
+				
+					messaging::MessageBus::PostMessage(controllers[1], MSG_VEHICLE_ASSIGNMENT_RESPONSE,
 						messaging::MessageBus::MessagePtr(new VehicleAssignmentResponseMessage(parent->currTick, false, msg.personId, parent->getDatabaseId(),
 							msg.startNodeId, msg.destinationNodeId)));
 
@@ -117,9 +119,11 @@ void TaxiDriver::HandleParentMessage(messaging::Message::MessageType type, const
 
 			const bool success = taxiDriverMovement->driveToNodeOnCall(msg.personId, node);
 
-			if (VehicleController::HasVehicleController())
+			if (VehicleControllerManager::HasVehicleControllerManager())
 			{
-				messaging::MessageBus::PostMessage(VehicleController::GetInstance(), MSG_VEHICLE_ASSIGNMENT_RESPONSE,
+				std::map<unsigned int, VehicleController*> controllers = VehicleControllerManager::GetInstance()->getControllers();
+
+				messaging::MessageBus::PostMessage(controllers[1], MSG_VEHICLE_ASSIGNMENT_RESPONSE,
 					messaging::MessageBus::MessagePtr(new VehicleAssignmentResponseMessage(parent->currTick, success, msg.personId, parent->getDatabaseId(),
 						msg.startNodeId, msg.destinationNodeId)));
 
@@ -246,6 +250,7 @@ TaxiDriver::~TaxiDriver()
 }
 }
 }
+
 
 
 

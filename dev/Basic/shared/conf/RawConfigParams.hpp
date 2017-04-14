@@ -435,6 +435,14 @@ struct TravelTimeConfig {
 	TravelTimeConfig() : intervalMS(0), fileName(""), enabled(false) {}
 };
 
+struct VehicleControllerConfig {
+	unsigned int type;
+	unsigned int messageProcessFrequency;
+	std::vector<std::string> vehicleIds;
+
+	VehicleControllerConfig() : type(0), messageProcessFrequency(0) {}
+};
+
 /**
  * Represents vehicle controller parameter section
  */
@@ -443,14 +451,14 @@ struct VehicleControllerParams
     /**
      * Constructor
      */
-    VehicleControllerParams() : enabled(false), controllerId(0)
+    VehicleControllerParams() : enabled(false)
     {}
 
     /// Is vehicle controller enabled?
     bool enabled;
 
-    /// ID of the controller to be instantiated
-    unsigned int controllerId;
+	/// Maps controller IDs to controller configurations
+	std::map<unsigned int, VehicleControllerConfig> enabledControllers;
 };
 
 /**
@@ -545,5 +553,6 @@ public:
 
 
 }
+
 
 

@@ -28,6 +28,7 @@
 #include "entities/AuraManager.hpp"
 #include "entities/BusController.hpp"
 #include "entities/BusStopAgent.hpp"
+#include "entities/controllers/VehicleControllerManager.hpp"
 #include "entities/incident/IncidentManager.hpp"
 #include "entities/params/PT_NetworkEntities.hpp"
 #include "entities/MT_PersonLoader.hpp"
@@ -46,7 +47,6 @@
 #include "entities/ScreenLineCounter.hpp"
 #include "entities/TravelTimeManager.hpp"
 #include "entities/TaxiStandAgent.hpp"
-#include "entities/VehicleController.hpp"
 #include "geospatial/aimsun/Loader.hpp"
 #include "geospatial/network/RoadNetwork.hpp"
 #include "geospatial/network/RoadSegment.hpp"
@@ -313,9 +313,12 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 		personWorkers->assignAWorker(BusController::GetInstance());
 	}
 
-	if (VehicleController::HasVehicleController())
+	if (VehicleControllerManager::HasVehicleControllerManager())
 	{
-		personWorkers->assignAWorker(VehicleController::GetInstance());
+		std::map<unsigned int, VehicleController*> controllers = VehicleControllerManager::GetInstance()->getControllers();
+
+		for (std::map<unsigned int, VehicleController*>::iterator it = controllers.begin(); it != controllers.end(); it++)
+			personWorkers->assignAWorker(it->second);
 	}
 	//incident
 	personWorkers->assignAWorker(IncidentManager::getInstance());
@@ -631,5 +634,6 @@ int main_impl(int ARGC, char* ARGV[])
 
 	return returnVal;
 }
+
 
 

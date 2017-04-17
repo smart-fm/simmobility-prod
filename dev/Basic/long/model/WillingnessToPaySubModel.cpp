@@ -286,10 +286,10 @@ namespace sim_mob
 			int sizeAreaQuantileHDB = 0;
 			int sizeAreaQuantileCondo = 0;
 			double lgsqrtArea = log(sqrt(unit->getFloorArea()));
-			double lowerQuantileCondo = model->getlogSqrtFloorAreahdb()[ model->getlogSqrtFloorAreahdb().size() * 0.3 ];
-			double upperQuantileCondo = model->getlogSqrtFloorAreahdb()[ model->getlogSqrtFloorAreahdb().size() * 0.5 ];
-			double lowerQuantileHDB = model->getlogSqrtFloorAreahdb()[ model->getlogSqrtFloorAreahdb().size() * 0.4 ];
-			double upperQuantileHDB = model->getlogSqrtFloorAreahdb()[ model->getlogSqrtFloorAreahdb().size() * 0.6 ];
+			double lowerQuantileCondo = model->getlogSqrtFloorAreacondo( model->getlogSqrtFloorAreacondoSize() * 0.3 );
+			double upperQuantileCondo = model->getlogSqrtFloorAreacondo( model->getlogSqrtFloorAreacondoSize() * 0.5 );
+			double lowerQuantileHDB = model->getlogSqrtFloorAreahdb( model->getlogSqrtFloorAreahdbSize() * 0.4 );
+			double upperQuantileHDB = model->getlogSqrtFloorAreahdb( model->getlogSqrtFloorAreahdbSize() * 0.6 );
 
 			if( lgsqrtArea >=  lowerQuantileCondo && lgsqrtArea < upperQuantileCondo )
 			{

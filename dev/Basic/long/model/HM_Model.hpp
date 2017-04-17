@@ -436,8 +436,10 @@ namespace sim_mob
             IndvidualEmpSecList getIndvidualEmpSecList() const;
             IndvidualEmpSec* getIndvidualEmpSecByIndId(BigSerial indId) const;
 
-			vector<double> getlogSqrtFloorAreahdb() const{ return logSqrtFloorAreahdb;}
-            vector<double> getlogSqrtFloorAreacondo() const { return logSqrtFloorAreacondo;}
+			double getlogSqrtFloorAreahdb(int index) { return logSqrtFloorAreahdb[index];}
+            double getlogSqrtFloorAreacondo(int index)  { return logSqrtFloorAreacondo[index];}
+			int getlogSqrtFloorAreahdbSize() { return logSqrtFloorAreahdb.size();}
+            int getlogSqrtFloorAreacondoSize()  { return logSqrtFloorAreacondo.size();}
 
 
             set<string> logsumUniqueCounter_str;

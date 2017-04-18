@@ -174,7 +174,7 @@ LoggerAgent::LoggerAgent() : Entity(-1)
 		std::ofstream* vehicleOwnershipOptionFile = new std::ofstream("hhWithVehicleOwnership.csv");
 		streams.insert(std::make_pair(LOG_VEHICLE_OWNERSIP, vehicleOwnershipOptionFile));
 
-		*vehicleOwnershipOptionFile << "householdId, vehicleOwnershipOption" << std::endl;
+		*vehicleOwnershipOptionFile << "householdId, vehicleOwnershipOption, workInTopayo, liveInTopayo" << std::endl;
     }
 
     if(log_taz_level_logsum)

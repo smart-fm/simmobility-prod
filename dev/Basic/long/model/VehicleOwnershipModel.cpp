@@ -97,7 +97,7 @@ void VehicleOwnershipModel::reconsiderVehicleOwnershipOption(const Household *ho
 				{
 					selecteVehicleOwnershipOtionId = probVal.first;
 					vehcileOwnershipOptChange->setNewVehicleOwnershipOptionId(selecteVehicleOwnershipOtionId);
-					writeVehicleOwnershipToFile(household->getId(),selecteVehicleOwnershipOtionId);
+				//	writeVehicleOwnershipToFile(household->getId(),selecteVehicleOwnershipOtionId);
 					switch(selecteVehicleOwnershipOtionId)
 					{
 					case 1 : MessageBus::PostMessage(hhAgent, LTMID_HH_NO_VEHICLE, MessageBus::MessagePtr(new Message()));
@@ -476,7 +476,7 @@ void VehicleOwnershipModel::reconsiderVehicleOwnershipOption2(const Household *h
 			{
 				selectedVehicleOwnershipOtionId = probVal.first;
 				vehcileOwnershipOptChange->setNewVehicleOwnershipOptionId(selectedVehicleOwnershipOtionId);
-				writeVehicleOwnershipToFile(household->getId(),selectedVehicleOwnershipOtionId);
+				writeVehicleOwnershipToFile(household->getId(),selectedVehicleOwnershipOtionId, workInToaPayoh,liveInToaPayoh);
 				break;
 //				switch(selectedVehicleOwnershipOtionId)
 //				{
@@ -646,6 +646,7 @@ bool VehicleOwnershipModel::isToaPayohTaz(BigSerial tazId)
 			tazId == 1256 )
 	{
 		return true;
+		PrintOutV("live in topayo"<<std::endl);
 
 	}
 	return false;

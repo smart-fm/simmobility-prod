@@ -12,7 +12,7 @@ using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
 DistanceMRTDao::DistanceMRTDao(DB_Connection& connection)
-: SqlAbstractDao<DistanceMRT>(connection, EMPTY_STR, EMPTY_STR, EMPTY_STR, EMPTY_STR, DB_GETALL_DIST_MRT, EMPTY_STR)
+: SqlAbstractDao<DistanceMRT>(connection, "", "", "", "", "SELECT * FROM " + connection.getSchema()+"getdistMrt()", "")
 {}
 
 DistanceMRTDao::~DistanceMRTDao() {

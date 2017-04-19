@@ -125,6 +125,7 @@ void ParseMidTermConfigFile::processSupplyNode(xercesc::DOMElement* node)
 	processUpdateIntervalElement(GetSingleElementByName(node, "update_interval", true));
 	processDwellTimeElement(GetSingleElementByName(node, "dwell_time_parameters", true));
 	processWalkSpeedElement(GetSingleElementByName(node, "pedestrian_walk_speed", true));
+	processThreadsNumInPersonLoaderElement(GetSingleElementByName(node, "thread_number_in_person_loader", true));
 	processStatisticsOutputNode(GetSingleElementByName(node, "output_statistics", true));
 	processBusCapactiyElement(GetSingleElementByName(node, "bus_default_capacity", true));
 	processSpeedDensityParamsNode(GetSingleElementByName(node, "speed_density_params", true));
@@ -288,6 +289,10 @@ void ParseMidTermConfigFile::processStatisticsOutputNode(xercesc::DOMElement* no
 
 	child = GetSingleElementByName(node, "screen_line_count");
 	processScreenLineNode(child);
+
+	child = GetSingleElementByName(node, "pt_reroute");
+	value = ParseString(GetNamedAttributeValue(child, "file"), "");
+	cfg.setPT_PersonRerouteFilename(value);
 }
 
 void ParseMidTermConfigFile::processSpeedDensityParamsNode(xercesc::DOMElement* node)
@@ -317,6 +322,16 @@ void ParseMidTermConfigFile::processWalkSpeedElement(xercesc::DOMElement* node)
 	double walkSpeed = ParseFloat(GetNamedAttributeValue(node, "value", true), nullptr);
 	walkSpeed = walkSpeed * (NUM_METERS_IN_KM/NUM_SECONDS_IN_AN_HOUR); //convert kmph to m/s
 	mtCfg.setPedestrianWalkSpeed(walkSpeed);
+}
+
+void ParseMidTermConfigFile::processThreadsNumInPersonLoaderElement(xercesc::DOMElement* node)
+{
+	if(!node)
+	{
+		return;
+	}
+	unsigned int num = ParseUnsignedInt(GetNamedAttributeValue(node, "value", true), 1);
+	mtCfg.setThreadsNumInPersonLoader(num);
 }
 
 void ParseMidTermConfigFile::processBusCapactiyElement(xercesc::DOMElement* node)

@@ -11,7 +11,7 @@
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
-UnitTypeDao::UnitTypeDao(DB_Connection& connection): SqlAbstractDao<UnitType>(connection, DB_TABLE_UNIT_TYPE,EMPTY_STR, EMPTY_STR, EMPTY_STR,DB_GETALL_UNIT_TYPES, EMPTY_STR) {}
+UnitTypeDao::UnitTypeDao(DB_Connection& connection): SqlAbstractDao<UnitType>(connection, "","", "", "","SELECT * FROM " + connection.getSchema()+"unit_type", "") {}
 
 UnitTypeDao::~UnitTypeDao() {}
 

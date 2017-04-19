@@ -39,7 +39,7 @@ public:
 	 */
 	PopulationSqlDao ltPopulationDao;
 
-	LT_PopulationSqlDaoContext(const DB_Config& ltDbConfig) : ltDbConnection(sim_mob::db::POSTGRES, ltDbConfig), ltPopulationDao(ltDbConnection)
+	LT_PopulationSqlDaoContext(const DB_Config& ltDbConfig, DB_Connection conn): ltDbConnection(conn), ltPopulationDao(conn)
 	{
 		ltDbConnection.connect();
 		if(!ltDbConnection.isConnected()) { throw std::runtime_error("LT database connection failure!"); }
@@ -63,7 +63,8 @@ void ensureContext()
 	{
 		DB_Config ltDbConfig(LT_DB_CONFIG_FILE);
 		ltDbConfig.load();
-		LT_PopulationSqlDaoContext* ltPopulationSqlDaoCtx = new LT_PopulationSqlDaoContext(ltDbConfig);
+		DB_Connection conn(sim_mob::db::POSTGRES, ltDbConfig);
+		LT_PopulationSqlDaoContext* ltPopulationSqlDaoCtx = new LT_PopulationSqlDaoContext(ltDbConfig, conn);
 		threadContext.reset(ltPopulationSqlDaoCtx);
 	}
 }

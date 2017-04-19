@@ -36,7 +36,7 @@ const std::vector<double>& SplitPlan::getCurrSplitPlan() const
 	if (choiceSet.size() == 0)
 	{
 		std::ostringstream out("");
-		out << "Choice Set is empty for signal " << this->parentSignal->getTrafficLightId();
+		out << __func__ << ": Choice Set is empty for signal " << this->parentSignal->getTrafficLightId();
 		this->parentSignal->setTrafficLightId(0);
 		throw std::runtime_error(out.str());
 	}

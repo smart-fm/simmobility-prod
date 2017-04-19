@@ -15,7 +15,8 @@
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
-TazLogsumWeightDao::TazLogsumWeightDao(DB_Connection& connection): SqlAbstractDao<TazLogsumWeight>(connection, DB_TABLE_TAZ_LOGUM_WEIGHT,EMPTY_STR, EMPTY_STR, EMPTY_STR, DB_GETALL_TAZ_LOGSUM_WEIGHTS, DB_GETBYID_TAZ_LOGSUM_WEIGHT){}
+TazLogsumWeightDao::TazLogsumWeightDao(DB_Connection& connection): SqlAbstractDao<TazLogsumWeight>( connection, "","", "", "",
+																									"SELECT * FROM " + connection.getSchema()+"taz_logsum_hedonic_price", ""){}
 
 TazLogsumWeightDao::~TazLogsumWeightDao() {}
 

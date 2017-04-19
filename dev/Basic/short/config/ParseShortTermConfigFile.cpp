@@ -389,7 +389,7 @@ void ParseShortTermConfigFile::processSystemNode(DOMElement *node)
 		processAuraManagerImpNode(GetSingleElementByName(node, "aura_manager_impl", true));
 		processLoadAgentsOrder(GetSingleElementByName(node, "load_agents", true));
 		processCommSimNode(GetSingleElementByName(node, "commsim"));
-		processXmlSchemaFilesNode(GetSingleElementByName(node, "xsd_schema_files"));
+		//processXmlSchemaFilesNode(GetSingleElementByName(node, "xsd_schema_files"));
 		processGenericPropsNode(GetSingleElementByName(node, "generic_props"));
 	}
 	else

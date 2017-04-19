@@ -15,7 +15,7 @@
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
-MacroEconomicsDao::MacroEconomicsDao(DB_Connection& connection): SqlAbstractDao<MacroEconomics>(connection, DB_TABLE_MACRO_ECONOMICS,EMPTY_STR, EMPTY_STR, EMPTY_STR, DB_GETALL_MACRO_ECONOMICS, EMPTY_STR)
+MacroEconomicsDao::MacroEconomicsDao(DB_Connection& connection): SqlAbstractDao<MacroEconomics>(connection, "","", "", "", "SELECT * FROM " + connection.getSchema()+"macro_economics", "")
 {}
 
 MacroEconomicsDao::~MacroEconomicsDao() {}

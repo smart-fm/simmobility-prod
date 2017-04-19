@@ -74,6 +74,10 @@
 #include <random>
 #include "SOCI_ConvertersLong.hpp"
 #include <DatabaseHelper.hpp>
+#include "model/VehicleOwnershipModel.hpp"
+
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
 
 using namespace sim_mob;
 using namespace sim_mob::long_term;
@@ -208,7 +212,7 @@ double HM_Model::TazStats::getAvgHHSize() const
 
 HM_Model::HM_Model(WorkGroup& workGroup) :	Model(MODEL_NAME, workGroup),numberOfBidders(0), initialHHAwakeningCounter(0), numLifestyle1HHs(0), numLifestyle2HHs(0), numLifestyle3HHs(0), hasTaxiAccess(false),
 											householdLogsumCounter(0), simulationStopCounter(0), developerModel(nullptr), startDay(0), bidId(0), numberOfBids(0), numberOfExits(0),	numberOfSuccessfulBids(0),
-											unitSaleId(0), numberOfSellers(0), resume(0), lastStoppedDay(0), numberOfBTOAwakenings(0){}
+											unitSaleId(0), numberOfSellers(0), resume(0), lastStoppedDay(0), numberOfBTOAwakenings(0),initialLoading(false){}
 
 HM_Model::~HM_Model()
 {
@@ -448,8 +452,8 @@ BigSerial HM_Model::getEstablishmentTazId(BigSerial establishmentId) const
 
 	if (establishment)
 	{
-		BigSerial establishmentSlaAddressId = getEstablishmentSlaAddressId(establishment->getBuildingId());
 
+		BigSerial establishmentSlaAddressId = getEstablishmentSlaAddressId(establishmentId);
 		tazId = DataManagerSingleton::getInstance().getPostcodeTazId(establishmentSlaAddressId);
 	}
 
@@ -487,30 +491,24 @@ BigSerial HM_Model::getEstablishmentSlaAddressId(BigSerial establishmentId) cons
 	string slaBuildingId = "";
 	BigSerial slaAddressId = 0;
 
-	for( auto n : buildingMatch )
-	{
-		if( n->getFm_building() == buildingId && n->getMatch_code() == 1 )
-		{
-			slaBuildingId = n->getSla_building_id();
-		}
-	}
+	auto itr = buildingMatchById.find(buildingId);
 
-	for( auto n : slaBuilding )
-	{
-		if( n->getSla_building_id() == slaBuildingId)
-		{
-			slaAddressId = n->getSla_address_id();
-		}
-	}
+	if( itr != buildingMatchById.end() )
+		slaBuildingId = itr->second->getSla_building_id();
 
-	BigSerial addressId = INVALID_ID;
+	auto itr2 = slaBuildingById.find(slaBuildingId);
+
+	if( itr2 != slaBuildingById.end())
+		slaAddressId = itr2->second->getSla_address_id();
+
+	BigSerial tazId = INVALID_ID;
 
 	if (establishment)
 	{
-		addressId = DataManagerSingleton::getInstance().getPostcodeTazId(slaAddressId);
+		tazId = DataManagerSingleton::getInstance().getPostcodeTazId(slaAddressId);
 	}
 
-	return addressId;
+	return tazId;
 }
 
 
@@ -1438,11 +1436,17 @@ void HM_Model::startImpl()
 	// Connect to database and load data for this model.
 	DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
 	conn.connect();
+	conn.setSchema(config.schemas.main_schema);
+
+	DB_Connection conn_calibration(sim_mob::db::POSTGRES, dbConfig);
+	conn_calibration.connect();
+	conn_calibration.setSchema(config.schemas.calibration_schema);
 
 	resume = config.ltParams.resume;
 	std::string  outputSchema = config.ltParams.currentOutputSchema;
 	BigSerial simYear = config.ltParams.year;
 	std::tm currentSimYear = getDateBySimDay(simYear,1);
+	initialLoading = config.ltParams.initialLoading;
 
 	if (conn.isConnected())
 	{
@@ -1452,7 +1456,7 @@ void HM_Model::startImpl()
 			soci::session sql;
 			sql.open(soci::postgresql, conn.getConnectionStr());
 
-			std::string storedProc = CALIBRATION_SCHEMA + "workers_grp_by_logsum_params";
+			std::string storedProc = config.schemas.calibration_schema + "workers_grp_by_logsum_params";
 
 			//SQL statement
 			soci::rowset<WorkersGrpByLogsumParams> workers_grp_by_logsum_params = (sql.prepare << "select * from " + storedProc);
@@ -1470,11 +1474,12 @@ void HM_Model::startImpl()
 		}
 
 
+
 		{
 			soci::session sql;
 			sql.open(soci::postgresql, conn.getConnectionStr());
 
-			std::string storedProc = MAIN_SCHEMA + "building_match";
+			std::string storedProc = conn.getSchema() + "building_match";
 
 			//SQL statement
 			soci::rowset<BuildingMatch> buildingMatchsql = (sql.prepare << "select * from " + storedProc);
@@ -1496,7 +1501,7 @@ void HM_Model::startImpl()
 			soci::session sql;
 			sql.open(soci::postgresql, conn.getConnectionStr());
 
-			std::string storedProc = MAIN_SCHEMA + "sla_building";
+			std::string storedProc = conn.getSchema() + "sla_building";
 
 			//SQL statement
 			soci::rowset<SlaBuilding> slaBuildingsql = (sql.prepare << "select * from " + storedProc);
@@ -1513,16 +1518,42 @@ void HM_Model::startImpl()
 			PrintOutV("Number of Sla Buildings: " << slaBuilding.size() << std::endl );
 		}
 
-
-		loadData<LogsumMtzV2Dao>( conn, logsumMtzV2, logsumMtzV2ById, &LogsumMtzV2::getTazId );
+		loadData<LogsumMtzV2Dao>( conn_calibration, logsumMtzV2, logsumMtzV2ById, &LogsumMtzV2::getTazId );
 		PrintOutV("Number of LogsumMtzV2: " << logsumMtzV2.size() << std::endl );
 
-		loadData<ScreeningModelCoefficientsDao>( conn, screeningModelCoefficientsList, screeningModelCoefficicientsMap, &ScreeningModelCoefficients::getId );
+		loadData<ScreeningModelCoefficientsDao>( conn_calibration, screeningModelCoefficientsList, screeningModelCoefficicientsMap, &ScreeningModelCoefficients::getId );
 		PrintOutV("Number of screening Model Coefficients: " << screeningModelCoefficientsList.size() << std::endl );
 
-		//load individuals
-		loadData<IndividualDao>(conn, individuals, individualsById,	&Individual::getId);
-		PrintOutV("Initial Individuals: " << individuals.size() << std::endl);
+		if(initialLoading)
+		{
+
+			//Load households
+			loadData<HouseholdDao>(conn, households, householdsById, &Household::getId);
+			PrintOutV("Number of households: " << households.size() << ". Households used: " << households.size()  << std::endl);
+
+			//load individuals
+			loadData<IndividualDao>(conn, individuals, individualsById,	&Individual::getId);
+			PrintOutV("Initial Individuals: " << individuals.size() << std::endl);
+
+			loadData<AlternativeHedonicPriceDao>( conn, alternativeHedonicPrices, alternativeHedonicPriceById, &AlternativeHedonicPrice::getId );
+			PrintOutV("Number of Alternative Hedonic Price rows: " << alternativeHedonicPrices.size() << std::endl );
+
+			loadData<ZonalLanduseVariableValuesDao>( conn_calibration, zonalLanduseVariableValues, zonalLanduseVariableValuesById, &ZonalLanduseVariableValues::getAltId );
+			PrintOutV("Number of zonal landuse variable values: " << zonalLanduseVariableValues.size() << std::endl );
+
+			loadData<PopulationPerPlanningAreaDao>( conn, populationPerPlanningArea, populationPerPlanningAreaById, &PopulationPerPlanningArea::getPlanningAreaId );
+			PrintOutV("Number of PopulationPerPlanningArea rows: " << populationPerPlanningArea.size() << std::endl );
+
+			loadData<DistanceMRTDao>( conn, mrtDistances, mrtDistancesById, &DistanceMRT::getHouseholdId);
+			PrintOutV("Number of mrt distances: " << mrtDistances.size() << std::endl );
+
+			loadData<AwakeningDao>(conn_calibration, awakening, awakeningById,	&Awakening::getId);
+			PrintOutV("Awakening probability: " << awakening.size() << std::endl );
+		}
+
+		//Load units
+		loadData<UnitDao>(conn, units, unitsById, &Unit::getId);
+		PrintOutV("Number of units: " << units.size() << ". Units Used: " << units.size() << std::endl);
 
 		IndividualDao indDao(conn);
 		primarySchoolIndList = indDao.getPrimarySchoolIndividual(currentSimYear);
@@ -1535,26 +1566,17 @@ void HM_Model::startImpl()
 		//Index all pre school inds.
 		for (IndividualList::iterator it = preSchoolIndList.begin(); it != preSchoolIndList.end(); it++) {
 			preSchoolIndById.insert(std::make_pair((*it)->getId(), *it));
+
 		}
-
-		//Load households
-		loadData<HouseholdDao>(conn, households, householdsById, &Household::getId);
-		PrintOutV("Number of households: " << households.size() << ". Households used: " << households.size()  << std::endl);
-
-		//Load units
-		loadData<UnitDao>(conn, units, unitsById, &Unit::getId);
-		PrintOutV("Number of units: " << units.size() << ". Units Used: " << units.size() << std::endl);
-
-		loadData<AwakeningDao>(conn, awakening, awakeningById,	&Awakening::getId);
-		PrintOutV("Awakening probability: " << awakening.size() << std::endl );
 
 		loadData<PostcodeDao>(conn, postcodes, postcodesById,	&Postcode::getAddressId);
 		PrintOutV("Number of postcodes: " << postcodes.size() << std::endl );
+		PrintOutV("Number of postcodes by id: " << postcodesById.size() << std::endl );
 
 		loadData<VehicleOwnershipCoefficientsDao>(conn,vehicleOwnershipCoeffs,vehicleOwnershipCoeffsById, &VehicleOwnershipCoefficients::getVehicleOwnershipOptionId);
 		PrintOutV("Vehicle Ownership coefficients: " << vehicleOwnershipCoeffs.size() << std::endl );
 
-		loadData<TaxiAccessCoefficientsDao>(conn,taxiAccessCoeffs,taxiAccessCoeffsById, &TaxiAccessCoefficients::getParameterId);
+		loadData<TaxiAccessCoefficientsDao>(conn_calibration,taxiAccessCoeffs,taxiAccessCoeffsById, &TaxiAccessCoefficients::getParameterId);
 		PrintOutV("Taxi access coefficients: " << taxiAccessCoeffs.size() << std::endl );
 
 		loadData<EstablishmentDao>(conn, establishments, establishmentsById, &Establishment::getId);
@@ -1569,16 +1591,13 @@ void HM_Model::startImpl()
 		loadData<LogSumVehicleOwnershipDao>( conn, vehicleOwnershipLogsums, vehicleOwnershipLogsumById, &LogSumVehicleOwnership::getHouseholdId);
 		PrintOutV("Number of vehicle ownership logsums: " << vehicleOwnershipLogsums.size() << std::endl );
 
-		loadData<DistanceMRTDao>( conn, mrtDistances, mrtDistancesById, &DistanceMRT::getHouseholdId);
-		PrintOutV("Number of mrt distances: " << mrtDistances.size() << std::endl );
-
 		loadData<TazDao>( conn, tazs, tazById, &Taz::getId);
 		PrintOutV("Number of taz: " << tazs.size() << std::endl );
 
 		loadData<HouseHoldHitsSampleDao>( conn, houseHoldHits, houseHoldHitsById, &HouseHoldHitsSample::getHouseholdId);
 		PrintOutV("Number of houseHoldHits: " << houseHoldHits.size() << std::endl );
 
-		loadData<TazLogsumWeightDao>( conn, tazLogsumWeights, tazLogsumWeightById, &TazLogsumWeight::getGroupLogsum );
+		loadData<TazLogsumWeightDao>( conn_calibration, tazLogsumWeights, tazLogsumWeightById, &TazLogsumWeight::getGroupLogsum );
 		PrintOutV("Number of tazLogsumWeights: " << tazLogsumWeights.size() << std::endl );
 
 		loadData<PlanningAreaDao>( conn, planningArea, planningAreaById, &PlanningArea::getId );
@@ -1593,36 +1612,29 @@ void HM_Model::startImpl()
 		loadData<MtzTazDao>( conn, mtzTaz, mtzTazById, &MtzTaz::getMtzId );
 		PrintOutV("Number of mtz taz lookups: " << mtzTaz.size() << std::endl );
 
-		loadData<AlternativeDao>( conn, alternative, alternativeById, &Alternative::getId );
+		loadData<AlternativeDao>( conn_calibration, alternative, alternativeById, &Alternative::getId );
 		PrintOutV("Number of alternative region names: " << alternative.size() << std::endl );
 
 		//only used with Hits2008 data
 		//loadData<Hits2008ScreeningProbDao>( conn, hits2008ScreeningProb, hits2008ScreeningProbById, &Hits2008ScreeningProb::getId );
 		//PrintOutV("Number of hits2008 screening probabilities: " << hits2008ScreeningProb.size() << std::endl );
 
-		loadData<ZonalLanduseVariableValuesDao>( conn, zonalLanduseVariableValues, zonalLanduseVariableValuesById, &ZonalLanduseVariableValues::getAltId );
-		PrintOutV("Number of zonal landuse variable values: " << zonalLanduseVariableValues.size() << std::endl );
-
-		loadData<PopulationPerPlanningAreaDao>( conn, populationPerPlanningArea, populationPerPlanningAreaById, &PopulationPerPlanningArea::getPlanningAreaId );
-		PrintOutV("Number of PopulationPerPlanningArea rows: " << populationPerPlanningArea.size() << std::endl );
-
 		loadData<HitsIndividualLogsumDao>( conn, hitsIndividualLogsum, hitsIndividualLogsumById, &HitsIndividualLogsum::getId );
 		PrintOutV("Number of Hits Individual Logsum rows: " << hitsIndividualLogsum.size() << std::endl );
 
-
-		loadData<IndvidualVehicleOwnershipLogsumDao>( conn, IndvidualVehicleOwnershipLogsums, IndvidualVehicleOwnershipLogsumById, &IndvidualVehicleOwnershipLogsum::getHouseholdId );
+		loadData<IndvidualVehicleOwnershipLogsumDao>( conn_calibration, IndvidualVehicleOwnershipLogsums, IndvidualVehicleOwnershipLogsumById, &IndvidualVehicleOwnershipLogsum::getHouseholdId );
 		PrintOutV("Number of Hits Individual VehicleOwnership Logsum rows: " << IndvidualVehicleOwnershipLogsums.size() << std::endl );
 
-		loadData<ScreeningCostTimeDao>( conn, screeningCostTime, screeningCostTimeById, &ScreeningCostTime::getId );
+		loadData<ScreeningCostTimeDao>( conn_calibration, screeningCostTime, screeningCostTimeById, &ScreeningCostTime::getId );
 		PrintOutV("Number of Screening Cost Time rows: " << screeningCostTime.size() << std::endl );
 
-		loadData<AccessibilityFixedPzidDao>( conn, accessibilityFixedPzid, accessibilityFixedPzidById, &AccessibilityFixedPzid::getId );
+		loadData<AccessibilityFixedPzidDao>( conn_calibration, accessibilityFixedPzid, accessibilityFixedPzidById, &AccessibilityFixedPzid::getId );
 		PrintOutV("Number of Accessibility fixed pz id rows: " << accessibilityFixedPzid.size() << std::endl );
 
-		loadData<TenureTransitionRateDao>( conn, tenureTransitionRate, tenureTransitionRateById, &TenureTransitionRate::getId );
+		loadData<TenureTransitionRateDao>( conn_calibration, tenureTransitionRate, tenureTransitionRateById, &TenureTransitionRate::getId );
 		PrintOutV("Number of Tenure Transition rate rows: " << tenureTransitionRate.size() << std::endl );
 
-		loadData<OwnerTenantMovingRateDao>( conn, ownerTenantMovingRate, ownerTenantMovingRateById, &OwnerTenantMovingRate::getId );
+		loadData<OwnerTenantMovingRateDao>( conn_calibration, ownerTenantMovingRate, ownerTenantMovingRateById, &OwnerTenantMovingRate::getId );
 		PrintOutV("Number of Owner Tenant Moving Rate rows: " << ownerTenantMovingRate.size() << std::endl );
 
 		loadData<HouseholdPlanningAreaDao>( conn, hhPlanningAreaList, hhPlanningAreaMap, &HouseholdPlanningArea::getHouseHoldId);
@@ -1631,17 +1643,14 @@ void HM_Model::startImpl()
 	    loadData<HHCoordinatesDao>( conn, hhCoordinates, hhCoordinatesById, &HHCoordinates::getHouseHoldId);
 	    PrintOutV("Number of household coordinate rows: " << hhCoordinates.size() << std::endl );
 
-	    loadData<SchoolAssignmentCoefficientsDao>( conn, schoolAssignmentCoefficients, SchoolAssignmentCoefficientsById, &SchoolAssignmentCoefficients::getParameterId);
+	    loadData<SchoolAssignmentCoefficientsDao>( conn_calibration, schoolAssignmentCoefficients, SchoolAssignmentCoefficientsById, &SchoolAssignmentCoefficients::getParameterId);
 	    PrintOutV("Number of School Assignment Coefficients rows: " << schoolAssignmentCoefficients.size() << std::endl );
 
-	    loadData<PrimarySchoolDao>( conn, primarySchools, primarySchoolById, &PrimarySchool::getSchoolId);
+	    loadData<PrimarySchoolDao>( conn_calibration, primarySchools, primarySchoolById, &PrimarySchool::getSchoolId);
 	    PrintOutV("Number of Primary School rows: " << primarySchools.size() << std::endl );
 
-	    loadData<PreSchoolDao>( conn, preSchools, preSchoolById, &PreSchool::getPreSchoolId);
+	    loadData<PreSchoolDao>( conn_calibration, preSchools, preSchoolById, &PreSchool::getPreSchoolId);
 	    PrintOutV("Number of Pre School rows: " << preSchools.size() << std::endl );
-
-		loadData<AlternativeHedonicPriceDao>( conn, alternativeHedonicPrice, alternativeHedonicPriceById, &AlternativeHedonicPrice::getId );
-		PrintOutV("Number of Alternative Hedonic Price rows: " << alternativeHedonicPrice.size() << std::endl );
 
 		//::TODO::uncomment after Diem finalized job and emp sec tables. gishara
 		//loadData<IndvidualEmpSecDao>( conn, indEmpSecList, indEmpSecbyIndId, &IndvidualEmpSec::getIndvidualId );
@@ -1698,6 +1707,7 @@ void HM_Model::startImpl()
 		screeningCostTimeSuperMap.insert({costTime, screeningCostTime[n]->getId()});
 	}
 
+
 	unitsFiltering();
 
 	workGroup.assignAWorker(&market);
@@ -1732,13 +1742,13 @@ void HM_Model::startImpl()
 		realEstateAgents.push_back(realEstateAgent);
 	}
 
-
-
 	int homelessHousehold = 0;
 	//
 	// 1. Create Household Agents.
 	// 2. Assign households to the units.
 	//
+	if(initialLoading)
+	{
 	for (HouseholdList::iterator it = households.begin();	it != households.end(); it++)
 	{
 		Household* household = *it;
@@ -1825,6 +1835,19 @@ void HM_Model::startImpl()
 		workGroup.assignAWorker(hhAgent);
 	}
 
+	for (size_t n = 0; n < individuals.size(); n++)
+			{
+				BigSerial householdId = individuals[n]->getHouseholdId();
+
+				Household *tempHH = getHouseholdById(householdId);
+
+				if (tempHH != nullptr)
+				{
+					tempHH->setIndividual(individuals[n]->getId());
+				}
+			}
+}
+
 
 	for(int n  = 0; n < units.size(); n++)
 	{
@@ -1873,9 +1896,9 @@ void HM_Model::startImpl()
 	int onMarket  = 0;
 	int offMarket = 0;
 	//assign empty units to freelance housing agents
+
 	for (UnitList::const_iterator it = units.begin(); it != units.end(); it++)
 	{
-		boost::gregorian::date occupancyDate = boost::gregorian::date_from_tm((*it)->getOccupancyFromDate());
 		boost::gregorian::date saleDate = boost::gregorian::date_from_tm((*it)->getSaleFromDate());
 		boost::gregorian::date simulationDate = boost::gregorian::date(HITS_SURVEY_YEAR, 1, 1);
 		int unitStartDay = startDay;
@@ -1921,10 +1944,13 @@ void HM_Model::startImpl()
 		{
 			Unit *thisUnit = (*it);
 
-			int tazId = this->getUnitSlaAddressId((*it)->getId());
+			int tazId = this->getUnitTazId((*it)->getId());
 			int mtzId = -1;
 			int subzoneId = -1;
 			int planningAreaId = -1;
+
+			Taz *curTaz = this->getTazById(tazId);
+			string planningAreaName = curTaz->getPlanningAreaName();
 
 			for(int n = 0; n < mtzTaz.size();n++)
 			{
@@ -1989,8 +2015,9 @@ void HM_Model::startImpl()
 
 			for( int n = 0; n < alternative.size(); n++)
 			{
-				if( thisUnit->getDwellingType() == alternative[n]->getDwellingTypeId() &&
-					planningAreaId   == alternative[n]->getPlanAreaId() )
+				if( alternative[n]->getDwellingTypeId() == thisUnit->getDwellingType() &&
+					alternative[n]->getPlanAreaId() 	== planningAreaId )
+					//alternative[n]->getPlanAreaName() == planningAreaName)
 				{
 					thisUnit->setZoneHousingType(alternative[n]->getId());
 
@@ -1999,8 +2026,15 @@ void HM_Model::startImpl()
 					break;
 				}
 			}
+
+			//if(thisUnit->getZoneHousingType() == 0)
+			//{
+				//PrintOutV(" " << thisUnit->getId() << " " << thisUnit->getDwellingType() << " " << planningAreaName << std::endl );
+			//}
 		}
 	}
+
+
 
 	PrintOutV("Initial Vacant units: " << vacancies << " onMarket: " << onMarket << " offMarket: " << offMarket << std::endl);
 
@@ -2009,16 +2043,6 @@ void HM_Model::startImpl()
 	addMetadata("Initial Households", households.size());
 	addMetadata("Initial Vacancies", vacancies);
 	addMetadata("Freelance housing agents", numWorkers);
-
-	for (size_t n = 0; n < individuals.size(); n++)
-	{
-		BigSerial householdId = individuals[n]->getHouseholdId();
-
-		Household *tempHH = getHouseholdById(householdId);
-
-		if (tempHH != nullptr)
-			tempHH->setIndividual(individuals[n]->getId());
-	}
 
 	for (size_t n = 0; n < households.size(); n++)
 	{
@@ -2032,6 +2056,104 @@ void HM_Model::startImpl()
 			else if(simYear == 2012)
 			{
 				setTaxiAccess2012(households[n]);
+			}
+		}
+	}
+
+	Household *hh;
+	PopulationPerPlanningArea *popPerPA;
+	Individual *ind;
+	AlternativeHedonicPrice *altHedonicPrice;
+	ZonalLanduseVariableValues *zonalLU_VarVals;
+	DistanceMRT *mrtDistPerHH;
+	Awakening *awakeningPtr;
+	Unit *unit;
+
+	//save day0 after all the preprocessing
+	if(initialLoading)
+	{
+		hh->saveData(households);
+		popPerPA->saveData(populationPerPlanningArea);
+		ind->saveData(individuals);
+		altHedonicPrice->saveData(alternativeHedonicPrices);
+		zonalLU_VarVals->saveData(zonalLanduseVariableValues);
+		mrtDistPerHH->saveData(mrtDistances);
+		awakeningPtr->saveData(awakening);
+		//unit->saveData(units);
+
+	}
+
+	if(!initialLoading)
+	{
+		households = hh->loadSerializedData();
+		indexData(households, householdsById, &Household::getId);
+		PrintOutV("hh agents loaded from disk"<<households.size() << std::endl );
+
+		populationPerPlanningArea = popPerPA->loadSerializedData();
+		indexData(populationPerPlanningArea,populationPerPlanningAreaById,&PopulationPerPlanningArea::getPlanningAreaId);
+		PrintOutV("populationPerPlanningArea loaded from disk"<<populationPerPlanningArea.size() << std::endl );
+
+		individuals = ind->loadSerializedData();
+		indexData(individuals,individualsById,&Individual::getId);
+		PrintOutV("individuals loaded from disk"<<individuals.size() << std::endl );
+
+		alternativeHedonicPrices = altHedonicPrice->loadSerializedData();
+		indexData(alternativeHedonicPrices,alternativeHedonicPriceById,&AlternativeHedonicPrice::getId);
+		PrintOutV("alternativeHedonicPrice loaded from disk"<<alternativeHedonicPrices.size() << std::endl );
+
+		zonalLanduseVariableValues = zonalLU_VarVals->loadSerializedData();
+		indexData(zonalLanduseVariableValues,zonalLanduseVariableValuesById,&ZonalLanduseVariableValues::getAltId);
+		PrintOutV("zonalLanduseVariableValues loaded from disk"<<zonalLanduseVariableValues.size() << std::endl );
+
+		mrtDistances = mrtDistPerHH->loadSerializedData();
+		indexData(mrtDistances,mrtDistancesById,&DistanceMRT::getHouseholdId);
+		PrintOutV("mrtDistances loaded from disk"<<mrtDistances.size() << std::endl );
+
+		awakening = awakeningPtr->loadSerializedData();
+		indexData(awakening,awakeningById,&Awakening::getId);
+		PrintOutV("awakening loaded from disk"<<awakening.size() << std::endl );
+
+		for (HouseholdList::iterator it = households.begin();	it != households.end(); it++)
+		{
+			if ((*it)->getId()!=0)
+			{
+				Household* household = *it;
+				Household *resumptionHH = getResumptionHouseholdById(household->getId());
+				BigSerial unitIdToBeOwned = INVALID_ID;
+				HouseholdAgent* hhAgent = new HouseholdAgent(household->getId(), this,	household, &market, false, startDay, config.ltParams.housingModel.householdBiddingWindow,0);
+				const Unit* unit = getUnitById(household->getUnitId());
+
+				if (unit)
+				{
+					hhAgent->addUnitId(unit->getId());
+					assignedUnits.insert(std::make_pair(unit->getId(), unit->getId()));
+
+					if( unit->getUnitType() <= 6  || unit->getUnitType() == 65 )
+						logSqrtFloorAreahdb.push_back( log(sqrt(unit->getFloorArea())));
+					else
+						logSqrtFloorAreacondo.push_back( log(sqrt(unit->getFloorArea())));
+				}
+				else
+				{
+					homelessHousehold++;
+				}
+
+				BigSerial tazId = getUnitTazId(household->getUnitId());
+				if (tazId != INVALID_ID)
+				{
+					const HM_Model::TazStats* tazStats = getTazStatsByUnitId( household->getUnitId());
+					if (!tazStats)
+					{
+						tazStats = new TazStats(tazId);
+						stats.insert( std::make_pair(tazId,	const_cast<HM_Model::TazStats*>(tazStats)));
+					}
+
+					const_cast<HM_Model::TazStats*>(tazStats)->updateStats(*household);
+				}
+
+				AgentsLookupSingleton::getInstance().addHouseholdAgent(hhAgent);
+				agents.push_back(hhAgent);
+				workGroup.assignAWorker(hhAgent);
 			}
 		}
 	}
@@ -2057,10 +2179,10 @@ void  HM_Model::loadLTVersion(DB_Connection &conn)
 	soci::session sql;
 	sql.open(soci::postgresql, conn.getConnectionStr());
 
-	std::string storedProc = MAIN_SCHEMA + "lt_version";
+	std::string storedProc = "lt_version";
 
 	//SQL statement
-	soci::rowset<LtVersion> lt_version = (sql.prepare << "select * from " + storedProc);
+	soci::rowset<LtVersion> lt_version = (sql.prepare << "select * from " + conn.getSchema() + storedProc);
 
 	for (soci::rowset<LtVersion>::const_iterator itLtVersion = lt_version.begin(); itLtVersion != lt_version.end(); ++itLtVersion)
 	{
@@ -2075,7 +2197,6 @@ void  HM_Model::loadLTVersion(DB_Connection &conn)
 	PrintOutV("LT Database Baseline Comment: " << ltVersionList.back()->getComments() << endl);
 	PrintOutV("LT Database Baseline user id: " << ltVersionList.back()->getUser_id() << endl);
 }
-
 
 HM_Model::ScreeningModelCoefficientsList HM_Model::getScreeningModelCoefficientsList()
 {
@@ -2184,7 +2305,7 @@ void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId)
 				tazStrH = tazObjH->getName();
 			tazH = std::atoi( tazStrH.c_str() );
 
-			BigSerial establishmentSlaAddressId = getEstablishmentSlaAddressId(establishment->getBuildingId());
+			BigSerial establishmentSlaAddressId = getEstablishmentSlaAddressId(establishment->getId());
 
 
 			personParams.setPersonId(boost::lexical_cast<std::string>(thisIndividual->getId()));
@@ -2506,7 +2627,7 @@ void HM_Model::getLogsumOfVaryingHomeOrWork(BigSerial householdId)
 			Establishment *establishment = this->getEstablishmentById(	job->getEstablishmentId());
 			const Unit *unit = this->getUnitById(currentHousehold->getUnitId());
 
-			BigSerial establishmentSlaAddressId = getEstablishmentSlaAddressId(establishment->getBuildingId());
+			BigSerial establishmentSlaAddressId = getEstablishmentSlaAddressId(establishment->getId());
 
 			personParams.setPersonId(boost::lexical_cast<std::string>(thisIndividual->getId()));
 			personParams.setPersonTypeId(thisIndividual->getEmploymentStatusId());
@@ -3020,7 +3141,7 @@ std::vector<TenureTransitionRate*> HM_Model::getTenureTransitionRates()
 
 std::vector<AlternativeHedonicPrice*> HM_Model::getAlternativeHedonicPrice()
 {
-	return alternativeHedonicPrice;
+	return alternativeHedonicPrices;
 }
 
 boost::unordered_multimap<BigSerial, AlternativeHedonicPrice*>& HM_Model::getAlternativeHedonicPriceById()

@@ -96,7 +96,8 @@ prevRole(nullptr), currRole(nullptr), nextRole(nullptr), numTicksStuck(0)
 	}
 	catch(PT_PathsetLoadException& exception)
 	{
-		Print()<<"[PT pathset]load pt pathset failed!"<<"["<<exception.originNode<<","<<exception.destNode<<"]"<<std::endl;
+		Warn() << "[PT pathset]load pt pathset failed!" << "[" << exception.originNode << "," << exception.destNode
+		       << "]" << std::endl;
 		tripChain.clear();
 	}
 }
@@ -302,7 +303,8 @@ void Person_MT::EnRouteToNextTrip(const std::string& stationName, const DailyTim
 			}
 			catch(PT_PathsetLoadException& exception)
 			{
-				Print()<<"[PT pathset]load pt pathset failed!"<<"["<<exception.originNode<<","<<exception.destNode<<"]"<<std::endl;
+				Warn() << "[PT pathset]load pt pathset failed!" << "[" << exception.originNode << ","
+				       << exception.destNode << "]" << std::endl;
 				isLoaded = false;
 			}
 			insertWaitingActivityToTrip();

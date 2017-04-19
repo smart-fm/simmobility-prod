@@ -23,10 +23,6 @@ using namespace sim_mob;
 
 namespace
 {
-const string dataSourceDAS = "DAS_TripChain";
-const string dataSourceXML = "XML_TripChain";
-const string dataSourceAMOD = "AMOD_TripChain";
-const string dataSourceBusController = "BusController";
 const string transitModeBus = "BusTravel";
 const string transitModeTrain = "MRT";
 const string transitModeUnknown = "PT";
@@ -137,16 +133,9 @@ void Person_ST::load(const map<string, string> &configProps)
 void Person_ST::initTripChain()
 {
 	currTripChainItem = tripChain.begin();
-	
 	const std::string& src = getAgentSrc();
-	if (src == dataSourceDAS || src == dataSourceAMOD || src == dataSourceBusController)
-	{
-		setStartTime((*currTripChainItem)->startTime.offsetMS_From(ConfigManager::GetInstance().FullConfig().simStartTime()));
-	}
-	else
-	{
-		setStartTime((*currTripChainItem)->startTime.getValue());
-	}
+
+	setStartTime((*currTripChainItem)->startTime.offsetMS_From(ConfigManager::GetInstance().FullConfig().simStartTime()));
 	
 	if ((*currTripChainItem)->itemType == TripChainItem::IT_TRIP)
 	{
@@ -155,7 +144,9 @@ void Person_ST::initTripChain()
 		if (!updateOD(*currTripChainItem))
 		{ 
 			//Offer some protection
-			throw std::runtime_error("Trip/Activity mismatch, or unknown TripChainItem subclass.");
+			std::stringstream msg;
+			msg << __func__ << ": Trip/Activity mismatch, or unknown TripChainItem subclass.";
+			throw std::runtime_error(msg.str());
 		}
 	}
 
@@ -339,7 +330,7 @@ Entity::UpdateStatus Person_ST::frame_init(timeslice now)
 	if (!currRole)
 	{
 		std::ostringstream txt;
-		txt << "Person " << this->getId() << " has no Role.";
+		txt << __func__ << ": Person " << this->getId() << " has no Role.";
 		throw std::runtime_error(txt.str());
 	}
 
@@ -351,6 +342,8 @@ Entity::UpdateStatus Person_ST::frame_init(timeslice now)
 	{
 		currRole->Movement()->frame_init();
 	}
+
+	ConfigManager::GetInstanceRW().FullConfig().numTripsSimulated++;
 	
 	return result;
 }
@@ -417,6 +410,10 @@ Entity::UpdateStatus Person_ST::frame_tick(timeslice now)
 					assignPersonToBusStopAgent();
 				}
 			}
+		}
+		else
+		{
+			ConfigManager::GetInstanceRW().FullConfig().numTripsCompleted++;
 		}
 	}
 
@@ -514,18 +511,16 @@ void Person_ST::convertPublicTransitODsToTrips()
 						
 						const string &src = getAgentSrc();
 						DailyTime subTripStartTime = itSubTrip->startTime;
+						const ConfigParams &cfgParams = ConfigManager::GetInstance().FullConfig();
 						
-						if (src == dataSourceXML)
-						{
-							subTripStartTime = subTripStartTime + ConfigManager::GetInstance().FullConfig().simStartTime();
-						}
-						
-						bool ret = PT_RouteChoiceLuaProvider::getPTRC_Model().getBestPT_Path(itSubTrip->origin.node->getNodeId(), 
-								itSubTrip->destination.node->getNodeId(), subTripStartTime, odTrips, dbid, itSubTrip->startTime.getValue());
+						const std::string ptPathsetStoredProcName = cfgParams.getDatabaseProcMappings().procedureMappings["pt_pathset"];
+						bool ret = PT_RouteChoiceLuaProvider::getPTRC_Model().getBestPT_Path(itSubTrip->origin.node->getNodeId(),
+										itSubTrip->destination.node->getNodeId(), subTripStartTime.getValue(), odTrips, dbid,
+										itSubTrip->startTime.getValue(), ptPathsetStoredProcName);
 						
 						if (ret)
 						{
-							ret = makeODsToTrips(&(*itSubTrip), newSubTrips, odTrips);
+							ret = makeODsToTrips(&(*itSubTrip), newSubTrips, odTrips, PT_NetworkCreater::getInstance());
 						}
 
 						if (!ret)
@@ -632,7 +627,9 @@ void Person_ST::assignPersonToBusStopAgent()
 		
 		if (stop->getTerminusType() == sim_mob::SINK_TERMINUS)
 		{
-			throw std::runtime_error("both twin stops are SINKs");
+			std::stringstream msg;
+			msg << __func__ << ": Both twin stops - " << stop->getStopCode() << ", " << stop->getTwinStop()->getStopCode() << " - are SINKs";
+			throw std::runtime_error(msg.str());
 		}
 	}
 
@@ -736,7 +733,9 @@ SegmentTravelStats& Person_ST::finalizeCurrRdSegTravelStat(const RoadSegment* rd
 {
 	if(rdSeg != rsTravelStats.roadSegment)
 	{
-		throw std::runtime_error("roadsegment mismatch while finalizing travel time stats");
+		std::stringstream msg;
+		msg << __func__ << ": Road segment mis-match";
+		throw std::runtime_error(msg.str());
 	}
 	rsTravelStats.finalize(rdSeg,exitTime, travelMode);
 	return rsTravelStats;

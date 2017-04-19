@@ -129,7 +129,7 @@ void PT_Statistics::storeStatistics()
 	personWaitingTimes.clear();
 
 	std::string waitingCountsFilename = cfg.getWaitingCountStatsFilename();
-	if (waitingCountsFilename.size() > 0)
+	if (!waitingCountsFilename.empty())
 	{
 		std::ofstream outputFile(waitingCountsFilename.c_str());
 		if (outputFile.is_open())
@@ -145,7 +145,7 @@ void PT_Statistics::storeStatistics()
 	waitingCounts.clear();
 
 	std::string travelTimeFilename = cfg.getTravelTimeStatsFilename();
-	if (travelTimeFilename.size() > 0)
+	if (!travelTimeFilename.empty())
 	{
 		std::ofstream outputFile(travelTimeFilename.c_str());
 		if (outputFile.is_open())
@@ -161,8 +161,8 @@ void PT_Statistics::storeStatistics()
 	}
 	personTravelTimes.clear();
 
-	std::string personRerouteFilename("pt_reroute.csv");
-	if (personRerouteFilename.size() > 0)
+	std::string personRerouteFilename = cfg.getPT_PersonRerouteFilename();
+	if (!personRerouteFilename.empty())
 	{
 		std::ofstream outputFile(personRerouteFilename.c_str());
 		if (outputFile.is_open())

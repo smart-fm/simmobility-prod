@@ -66,7 +66,6 @@ void ExpandMidTermConfigFile::processConfig()
     }
 
     cfg.sealNetwork();
-    std::cout << "Network sealed" << std::endl;
 
     //Initialize the street directory.
     StreetDirectory::Instance().Init(*(RoadNetwork::getInstance()));
@@ -99,7 +98,6 @@ void ExpandMidTermConfigFile::processConfig()
     {
         size_t sizeBefore = mtCfg.getConfluxes().size();
         Conflux::CreateConfluxes();
-        std::cout << mtCfg.getConfluxes().size() << " Confluxes created" << std::endl;
     }
 
     //register and initialize BusController
@@ -248,8 +246,10 @@ void ExpandMidTermConfigFile::setTicks()
 
 void ExpandMidTermConfigFile::printSettings()
 {
-    std::cout << "Config parameters:\n";
+    std::cout << "\nConfiguration parameters:\n";
     std::cout << "------------------\n";
+
+	std::cout << "Database connection: " << cfg.getDatabaseConnectionString() << "\n";
 
     //Print the WorkGroup strategy.
     std::cout << "WorkGroup assignment: ";
@@ -274,23 +274,10 @@ void ExpandMidTermConfigFile::printSettings()
     std::cout << "  Start time: " << cfg.simStartTime().getStrRepr() << "\n";
     std::cout << "  Mutex strategy: " << (cfg.mutexStategy() == MtxStrat_Locked ? "Locked" : cfg.mutexStategy() == MtxStrat_Buffered ? "Buffered" : "Unknown") << "\n";
 
-//Output Database details
-//	if (cfg.system.networkSource == SystemParams::NETSRC_XML)
-//	{
-//		std::cout << "Network details loaded from xml file: " << cfg.system.networkXmlInputFile << "\n";
-//	}
-//	if (cfg.system.networkSource == SystemParams::NETSRC_DATABASE)
-//	{
-//		std::cout << "Network details loaded from database connection: " << cfg.getDatabaseConnectionString() << "\n";
-//	}
-
-    std::cout << "Network details loaded from database connection: " << cfg.getDatabaseConnectionString() << "\n";
-
     //Print the network (this will go to a different output file...)
 	std::cout << "------------------\n";
 	NetworkPrinter nwPrinter(cfg, cfg.outNetworkFileName);
 	nwPrinter.printNetwork(RoadNetwork::getInstance());
-	std::cout << "------------------\n";
 	SimulationInfoPrinter simInfoPrinter(cfg, cfg.outSimInfoFileName);
 	simInfoPrinter.printSimulationInfo();
 }

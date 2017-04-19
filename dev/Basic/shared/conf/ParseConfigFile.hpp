@@ -64,6 +64,11 @@ private:
      */
     void processSimulationNode(xercesc::DOMElement* node);
 
+
+    /*
+     * Process the schemas defined in the xml file
+     * */
+    void processSchemasParamsNode(xercesc::DOMElement* node);
     /**
      * Processes the longTerm element in the config file
      * @param node node corresponding to the longTerm element in xml file
@@ -92,6 +97,13 @@ private:
      * @param node node correspoding to the workgroup_assignment element in the xml file
      */
     void processWorkgroupAssignmentNode(xercesc::DOMElement* node);
+
+    /**
+     * Processes the closed_loop element in the config file
+     *
+     * @param node node corresponding to the closed_loop element in the xml file
+     */
+    void processClosedLoopPropertiesNode(xercesc::DOMElement *node);
 
     /**
      * Processes the merge_log_files element in the config file

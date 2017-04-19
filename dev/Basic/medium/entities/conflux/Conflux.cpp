@@ -1096,6 +1096,7 @@ void Conflux::killAgent(Person_MT* person, PersonProps& beforeUpdate)
 	}
 	activeAgentsLock.unlock();
 	safe_delete_item(person);
+	ConfigManager::GetInstanceRW().FullConfig().numTripsCompleted++;
 }
 
 void Conflux::resetPositionOfLastUpdatedAgentOnLanes()
@@ -1206,10 +1207,13 @@ bool Conflux::callMovementFrameInit(timeslice now, Person_MT* person)
 	if (person->getRole())
 	{
 		person->getRole()->Movement()->frame_init();
+
 		if (person->isToBeRemoved())
 		{
 			return false;
 		} //if agent initialization fails, person is set to be removed
+
+		ConfigManager::GetInstanceRW().FullConfig().numTripsSimulated++;
 	}
 
 	return true;
@@ -2655,7 +2659,10 @@ void Conflux::CreateConfluxes()
 		} //end if
 	} // end for each multinode
 	debugMsgs << "]\n";
+
+#ifdef DEBUG
 	Print() << debugMsgs.str();
+#endif
 
 	//now we go through each link again to tag confluxes with adjacent confluxes
 	for (std::map<unsigned int, Link*>::const_iterator it=linkMap.begin(); it!=linkMap.end(); it++)

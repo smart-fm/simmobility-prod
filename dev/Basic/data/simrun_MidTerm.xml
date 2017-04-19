@@ -204,9 +204,12 @@
         <pedestrian_walk_speed value="5"/>
         
         <!-- default capacity value -->
-        <bus_default_capacity value="120"/>
-               
-       <!-- file names to output statistics from supply -->   
+        <bus_default_capacity value="100"/>
+ 
+        <!-- the threads number for person loader -->
+        <thread_number_in_person_loader value="10"/>
+             
+        <!-- file names to output statistics from supply -->   
         <output_statistics>                              
             <journey_time file="journeytime.csv"/>
             <waiting_time file="waitingtime.csv"/>
@@ -215,6 +218,7 @@
             <pt_stop_stats file="ptstopstats.csv"/>
             <subtrip_metrics file="subtrip_metrics.csv" enabled="true"/>
             <screen_line_count file="screen_line_count.csv" enabled="true" interval="900"/>
+            <pt_reroute file=""/>
         </output_statistics>  
         
         <!-- parameters used in speed density function -->

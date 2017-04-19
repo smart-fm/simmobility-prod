@@ -26,6 +26,7 @@
 #include "model/AwakeningSubModel.hpp"
 #include "model/SchoolAssignmentSubModel.hpp"
 #include "util/PrintLog.hpp"
+#include <random>
 
 using namespace sim_mob::long_term;
 using namespace sim_mob::event;
@@ -371,6 +372,7 @@ void HouseholdAgent::onWorkerEnter()
 	#endif
 
 
+
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 	if( config.ltParams.outputHouseholdLogsums.enabled )
 	{
@@ -390,7 +392,8 @@ void HouseholdAgent::onWorkerEnter()
 		if( getId() < model->FAKE_IDS_START)
 		{
 			VehicleOwnershipModel vehOwnershipModel(model);
-			vehOwnershipModel.reconsiderVehicleOwnershipOption(this->getHousehold(),this, day);
+			//vehOwnershipModel.reconsiderVehicleOwnershipOption2(this->getHousehold(),this, day);
+			vehOwnershipModel.reconsiderVehicleOwnershipOption2(this->getHousehold(),this, 0);
 		}
 	}
 

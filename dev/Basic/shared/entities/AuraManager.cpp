@@ -34,31 +34,27 @@ void AuraManager::init(AuraManagerImplementation implType)
 
 	if (implType == IMPL_RSTAR)
 	{
-		std::cout << "RSTAR" << std::endl;
 		impl_ = new RStarAuraManager();
 		impl_->init();
 	}
 	else if (implType == IMPL_SIMTREE)
 	{
-		std::cout << "SIMTREE" << std::endl;
 		impl_ = new SimAuraManager();
 		impl_->init();
 	}
 	else if (implType == IMPL_RDU)
 	{
-		std::cout << "RDU" << std::endl;
 		impl_ = new RDUAuraManager();
 		impl_->init();
 	}
 	else if(implType == IMPL_PACKING)
 	{
-		std::cout << "R-Star with packing algorithm" << std::endl;
 		impl_ = new PackingTreeAuraManager();
 		impl_->init();
 	}
 	else
 	{
-		throw std::runtime_error("Unknown tree type.");
+		throw std::runtime_error("Unknown AuraManager Implementation type selected.");
 	}
 }
 

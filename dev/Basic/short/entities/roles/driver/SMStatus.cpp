@@ -49,7 +49,7 @@ StatusValue SMStatusManager::getStatus(string name)
 	else
 	{
 		std::stringstream msg;
-		msg << "setStatus: Error: no such status name " << name;
-		throw std::runtime_error(msg.str().c_str());
+		msg << __func__ << ": Unknown status: " << name;
+		throw std::runtime_error(msg.str());
 	}
 }

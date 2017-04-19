@@ -110,6 +110,13 @@ private:
 	void processWalkSpeedElement(xercesc::DOMElement* node);
 
 	/**
+	 * processes threads number in person loader included in xml file.
+	 *
+	 * @param node corresponding to the element of threads number in person loader inside xml file
+	 */
+	void processThreadsNumInPersonLoaderElement(xercesc::DOMElement* node);
+
+	/**
      * processes model scripts element in config xml
      *
 	 * @param node node corresponding to model_scripts element inside xml file

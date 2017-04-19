@@ -15,7 +15,7 @@
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
-DeveloperDao::DeveloperDao(DB_Connection& connection): SqlAbstractDao<Developer>(connection, DB_TABLE_DEVELOPER,EMPTY_STR, EMPTY_STR, EMPTY_STR,DB_GETALL_DEVELOPERS, DB_GETBYID_DEVELOPER)
+DeveloperDao::DeveloperDao(DB_Connection& connection): SqlAbstractDao<Developer>(connection, "","", "", "","SELECT * FROM " + connection.getSchema()+"developer", "")
 {}
 
 DeveloperDao::~DeveloperDao() {}

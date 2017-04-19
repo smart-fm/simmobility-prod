@@ -311,10 +311,16 @@ private:
 	double minDensity;
 };
 
+/**
+ * Simple struct to store configuration setting related to TripChain outputs
+ */
 struct TripChainOutputConfig
 {
+	/// Flag to check whether trip chain output is enabled
     bool enabled;
+	/// File name where the trips and activities are stored
     std::string tripActivitiesFile;
+	/// File name where the subtrips are stored
     std::string subTripsFile;
 
     TripChainOutputConfig() : enabled(false), tripActivitiesFile(""), subTripsFile("")

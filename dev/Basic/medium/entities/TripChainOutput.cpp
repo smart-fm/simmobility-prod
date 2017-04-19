@@ -3,6 +3,7 @@
 using namespace sim_mob::medium;
 
 TripChainOutput* TripChainOutput::instance = nullptr;
+std::mutex TripChainOutput::instanceMutex;
 
 TripChainOutput::TripChainOutput() : mtCfg(MT_Config::getInstance())
 {
@@ -37,10 +38,12 @@ TripChainOutput::~TripChainOutput()
 
 TripChainOutput& TripChainOutput::getInstance()
 {
+	instanceMutex.lock();
     if (!instance)
     {
         instance = new TripChainOutput();
     }
+	instanceMutex.unlock();
     return *instance;
 }
 
@@ -50,51 +53,51 @@ void TripChainOutput::printTripChain(const std::vector<sim_mob::TripChainItem*> 
     {
         for (std::vector<TripChainItem*>::const_iterator tripChainItemIt = tripChain.begin(); tripChainItemIt != tripChain.end(); ++tripChainItemIt)
         {
-            const TripChainItem* tripchain = *tripChainItemIt;
             std::vector<std::string> train_stop;
-            if(tripchain->itemType == sim_mob::TripChainItem::IT_TRIP)
+            if((*tripChainItemIt)->itemType == sim_mob::TripChainItem::IT_TRIP)
             {
                 std::string a_start;
                 std::string a_end;
                 std::string origin_id;
                 std::string dest_id;
-                std::string trip_id = tripchain->getPersonID() + "_" + std::to_string(tripchain->sequenceNumber);
-                std::string p_id = tripchain->getPersonID();
-                std::string t_start = tripchain->startTime.getStrRepr();
-                int o_type = int(tripchain->originType);
-                int d_type = int(tripchain->destinationType);
-                switch(tripchain->origin.type)
+                std::string trip_id = (*tripChainItemIt)->getPersonID() + "_" + std::to_string((*tripChainItemIt)->sequenceNumber);
+                std::string p_id = (*tripChainItemIt)->getPersonID();
+                std::string t_start = (*tripChainItemIt)->startTime.getStrRepr();
+                int o_type = int((*tripChainItemIt)->originType);
+                int d_type = int((*tripChainItemIt)->destinationType);
+                switch((*tripChainItemIt)->origin.type)
                 {
                     case sim_mob::WayPoint::NODE:
-                        origin_id = std::to_string(tripchain->origin.node->getNodeId());
+                        origin_id = std::to_string((*tripChainItemIt)->origin.node->getNodeId());
                         break;
                     case sim_mob::WayPoint::BUS_STOP:
-                        origin_id = tripchain->origin.busStop->getStopCode();
+                        origin_id = (*tripChainItemIt)->origin.busStop->getStopCode();
                         break;
                     case sim_mob::WayPoint::TRAIN_STOP:
-                        train_stop = tripchain->origin.trainStop->getTrainStopIds();
+                        train_stop = (*tripChainItemIt)->origin.trainStop->getTrainStopIds();
                         origin_id = accumulate(train_stop.begin(),train_stop.end(),std::string("/"));
                         break;
                 }
-                switch(tripchain->destination.type)
+                switch((*tripChainItemIt)->destination.type)
                 {
                     case sim_mob::WayPoint::NODE:
-                        dest_id = std::to_string(tripchain->destination.node->getNodeId());
+                        dest_id = std::to_string((*tripChainItemIt)->destination.node->getNodeId());
                         break;
                     case sim_mob::WayPoint::BUS_STOP:
-                        dest_id = tripchain->destination.busStop->getStopCode();
+                        dest_id = (*tripChainItemIt)->destination.busStop->getStopCode();
                         break;
                     case sim_mob::WayPoint::TRAIN_STOP:
-                        train_stop = tripchain->destination.trainStop->getTrainStopIds();
+                        train_stop = (*tripChainItemIt)->destination.trainStop->getTrainStopIds();
                         dest_id = accumulate(train_stop.begin(),train_stop.end(),std::string("/"));
                         break;
                 }
-                std::vector<sim_mob::SubTrip>& subTrips = (dynamic_cast<sim_mob::Trip*>(*tripChainItemIt))->getSubTripsRW();
+
+	            std::vector<sim_mob::SubTrip>& subTrips = (static_cast<sim_mob::Trip*>(*tripChainItemIt))->getSubTripsRW();
                 std::vector<SubTrip>::iterator itSubTrip = subTrips.begin();
                 int seq_count =0;
                 while (itSubTrip != subTrips.end())
                 {
-                    itSubTrip->sequenceNumber = ++seq_count;
+                    ++seq_count;
                     switch(itSubTrip->origin.type)
                     {
                         case sim_mob::WayPoint::NODE:
@@ -123,7 +126,7 @@ void TripChainOutput::printTripChain(const std::vector<sim_mob::TripChainItem*> 
                     }
 
                     std::stringstream subTripStream;
-                    subTripStream << trip_id << "," << itSubTrip->sequenceNumber << "," << itSubTrip->getMode() << ","
+                    subTripStream << trip_id << "," << seq_count << "," << itSubTrip->getMode() << ","
                                   << itSubTrip->ptLineId << "," << itSubTrip->cbdTraverseType << "," << itSubTrip->originType << ","
                                   << itSubTrip->destinationType << "," << origin_id << "," << dest_id << "\n";
 
@@ -135,16 +138,15 @@ void TripChainOutput::printTripChain(const std::vector<sim_mob::TripChainItem*> 
                     ++itSubTrip;
                 }
                 ++tripChainItemIt;
-                const TripChainItem* tripchain = *tripChainItemIt;
                 if(tripChainItemIt == tripChain.end())
                 {
                      a_start = "";
                      a_end = "";
                      --tripChainItemIt;
                 }
-                else if (tripchain->itemType == sim_mob::TripChainItem::IT_ACTIVITY)
+                else if ((*tripChainItemIt)->itemType == sim_mob::TripChainItem::IT_ACTIVITY)
                 {
-                    sim_mob::Activity * activity = dynamic_cast<Activity*> (*tripChainItemIt);
+                    sim_mob::Activity * activity = static_cast<Activity*> (*tripChainItemIt);
                     a_start = activity->startTime.getStrRepr();
                     a_end = activity->endTime.getStrRepr();
                 }

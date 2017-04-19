@@ -583,7 +583,7 @@ void ParseMidTermConfigFile::processPublicTransit(xercesc::DOMElement* node)
 				std::stringstream msg;
 				msg << "Public transit is enabled, but stored procedures \"pt_vertices\" and / or "
 				    << " \"pt_edges\" not defined";
-				throw runtime_error(msg.str());
+				throw std::runtime_error(msg.str());
 			}
 		}
 	}

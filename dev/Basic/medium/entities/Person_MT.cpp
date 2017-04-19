@@ -91,7 +91,7 @@ prevRole(nullptr), currRole(nullptr), nextRole(nullptr), numTicksStuck(0)
 		if (!tripChain.empty())
 		{
 			initTripChain();
-            TripChainOutput::getInstance().printTripChain(tripChain);
+			TripChainOutput::getInstance().printTripChain(tripChain);
 		}
 	}
 	catch(PT_PathsetLoadException& exception)

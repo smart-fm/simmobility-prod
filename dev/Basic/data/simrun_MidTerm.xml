@@ -83,7 +83,7 @@
             <mapping name="pt_mrt_dispatch_freq" procedure="get_pt_mrt_dispatch_freq()"/>
             <mapping name="pt_mrt_block" procedure="get_pt_blocks_test()"/>
             <mapping name="pt_mrt_route" procedure="get_pt_mrt_route_test()"/>
-	  	 	<!-- This procedure returns platforms from pt_mrt_platform with only lineid,Sequenceno,platformNo fields -->
+            <!-- This procedure returns platforms from pt_mrt_platform with only lineid,Sequenceno,platformNo fields -->
             <mapping name="pt_mrt_platform" procedure="get_pt_mrt_platform_test()"/>
             <mapping name="pt_mrt_block_polyline" procedure="get_pt_block_polylines_test()"/>
 
@@ -103,22 +103,22 @@
             <mapping name="day_activity_schedule" procedure="get_persons_between"/>
             <mapping name="freight_trips" procedure="get_testfreight_between"/>
             <mapping name="screen_line" procedure="get_screen_line_segments()"/>
-	    	<mapping name="pt_opposite_lines" procedure="get_pt_opposite_lines()"/>
-	    	<mapping name="get_train_fleet" procedure="get_train_fleet()"/>
-	    	<mapping name="get_uturn_platforms" procedure="get_pt_uturn_platforms()"/>
-	    	<mapping name="get_train_line_properties" procedure="get_pt_train_line_properties()"/>
+            <mapping name="pt_opposite_lines" procedure="get_pt_opposite_lines()"/>
+            <mapping name="get_train_fleet" procedure="get_train_fleet()"/>
+            <mapping name="get_uturn_platforms" procedure="get_pt_uturn_platforms()"/>
+            <mapping name="get_train_line_properties" procedure="get_pt_train_line_properties()"/>
             <!--<mapping name="restricted_reg_in_turning" procedure="get_banned_area_in_turning()"/>
-	    <mapping name="restricted_reg_out_turning" procedure="get_banned_area_out_turning()"/>-->
-	    <mapping name="restricted_reg_nodes" procedure="get_changi_nodes()"/>
-	    <mapping name="restricted_reg_links" procedure="get_changi_links()"/>
+            <mapping name="restricted_reg_out_turning" procedure="get_banned_area_out_turning()"/>
+            <mapping name="restricted_reg_nodes" procedure="get_changi_nodes()"/>
+            <mapping name="restricted_reg_links" procedure="get_changi_links()"/>-->
         </proc_map> 
     </db_proc_groups>
-    
-    <system>         
+
+    <system>
         <!-- If loading from the database, which database, proc_map, and credentials are used? -->
 
-		<network_database database="fm_hpchead" credentials="fm_hpchead" proc_map="withinday"/>
-		<population_database  database="fm_hpchead" credentials="fm_hpchead" proc_map=""/> 
+        <network_database database="fm_hpchead" credentials="fm_hpchead" proc_map="withinday"/>
+        <population_database  database="fm_hpchead" credentials="fm_hpchead" proc_map=""/>
 
         <!-- The parser will simply load everything in "generic_props" section into "SystemParams.genericProps".  -->
         <!-- In other words, you DO NOT need to update the parser just to add a simple string-based configuration parameter to -->
@@ -176,7 +176,7 @@
     <pathset_config_file value="data/pathset_config.xml" />
 
     <!-- config used for enabling region restriction for private vehicles. The region must be pre-defined and kept in the database. The corresponding functions must be provided in the proc_map -->
-    <region_restriction enabled="true"/>
+    <region_restriction enabled="false"/>
 
     <!-- enable this only to generate the bus routes based on stops data for each line -->
     <generateBusRoutes enabled="false" /> 

@@ -330,7 +330,7 @@ bool DriverMovement::initializePath()
 		}
 
 		//Restricted area logic
-		//if(MT_Config::getInstance().isRegionRestrictionEnabled())
+		if(MT_Config::getInstance().isRegionRestrictionEnabled())
 		{
 			bool fromLocationInRestrictedRegion = RestrictedRegion::getInstance().isInRestrictedZone(wp_path.front());
 			bool toLocationInRestrictedRegion = RestrictedRegion::getInstance().isInRestrictedZone(wp_path.back());

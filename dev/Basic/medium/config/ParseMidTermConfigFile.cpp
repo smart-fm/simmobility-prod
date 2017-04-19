@@ -93,7 +93,7 @@ void ParseMidTermConfigFile::processXmlFile(xercesc::XercesDOMParser& parser)
 	processPublicTransit(GetSingleElementByName(rootNode, "public_transit", true));
 	processRegionRestrictionNode(GetSingleElementByName(rootNode, "region_restriction"));
 	processPathSetFileName(GetSingleElementByName(rootNode, "pathset_config_file", true));
-    processTripChainOutputNode(GetSingleElementByName(rootNode, "trip_chain_output", true));
+	processTripChainOutputNode(GetSingleElementByName(rootNode, "trip_chain_output", true));
 
 	if (mtCfg.RunningMidSupply())
 	{
@@ -831,22 +831,22 @@ void ParseMidTermConfigFile::processPathSetFileName(xercesc::DOMElement* node)
 	{
 		return;
 	}
-    cfg.pathsetFile = ParseString(GetNamedAttributeValue(node, "value"));
+	cfg.pathsetFile = ParseString(GetNamedAttributeValue(node, "value"));
 }
 
 void ParseMidTermConfigFile::processTripChainOutputNode(DOMElement *node)
 {
-    if (!node)
-    {
-        return;
-    }
-    mtCfg.tripChainOutput.enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), "false");
+	if (!node)
+	{
+		return;
+	}
+	mtCfg.tripChainOutput.enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), "false");
 
-    if (mtCfg.tripChainOutput.enabled)
-    {
-        mtCfg.tripChainOutput.subTripsFile = ParseString(GetNamedAttributeValue(node, "sub_trips_file"), "subtrips.xml");
-        mtCfg.tripChainOutput.tripActivitiesFile = ParseString(GetNamedAttributeValue(node, "trip_activities_file"), "trip_activities.xml");
-    }
+	if (mtCfg.tripChainOutput.enabled)
+	{
+		mtCfg.tripChainOutput.subTripsFile = ParseString(GetNamedAttributeValue(node, "sub_trips_file"), "subtrips.csv");
+		mtCfg.tripChainOutput.tripActivitiesFile = ParseString(GetNamedAttributeValue(node, "trip_activities_file"), "trip_activities.csv");
+	}
 }
 
 }

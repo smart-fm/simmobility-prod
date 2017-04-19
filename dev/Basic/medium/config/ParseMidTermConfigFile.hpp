@@ -28,21 +28,21 @@ namespace medium
 class ParseMidTermConfigFile: public ParseConfigXmlBase, private boost::noncopyable
 {
 public:
-    /**
-     * Parse a config file into MT_Config, performing all XML parsing and some trivial semantic processing
-     *
-     * @param configFileName - Config file to be processed
-     *
-     * @param result - Configuration values extracted from config file
-     */
-    ParseMidTermConfigFile(const std::string& configFileName, MT_Config& result, ConfigParams& cfg);
+	/**
+	 * Parse a config file into MT_Config, performing all XML parsing and some trivial semantic processing
+	 *
+	 * @param configFileName - Config file to be processed
+	 *
+	 * @param result - Configuration values extracted from config file
+	 */
+	ParseMidTermConfigFile(const std::string& configFileName, MT_Config& result, ConfigParams& cfg);
 
 private:
-    /**
-     * Code for processing the xml
-     *
-     * @param configFileName is the filename of configuration
-     */
+	/**
+	 * Code for processing the xml
+	 *
+	 * @param configFileName is the filename of configuration
+	 */
 	virtual void processXmlFile(xercesc::XercesDOMParser& parser);
 
 	/**
@@ -149,128 +149,128 @@ private:
 	 */
 	void processCalibrationNode(xercesc::DOMElement* node);
 
-    /**
-     * Processes the system element in the config file
-     *
-     * @param node node corresponding to the system element inside xml file
-     */
-    void processSystemNode(xercesc::DOMElement* node);
+	/**
+	 * Processes the system element in the config file
+	 *
+	 * @param node node corresponding to the system element inside xml file
+	 */
+	void processSystemNode(xercesc::DOMElement* node);
 
-    /**
-     * Processes the generic_props element in the config file
-     *
-     * @param node node corresponding to the generic_props element inside xml file
-     */
-    void processGenericPropsNode(xercesc::DOMElement* node);
+	/**
+	 * Processes the generic_props element in the config file
+	 *
+	 * @param node node corresponding to the generic_props element inside xml file
+	 */
+	void processGenericPropsNode(xercesc::DOMElement* node);
 
-    /**
-     * processes network_database element in config xml
-     *
-     * @param node node corresponding to network_database element inside xml file
-     */
-    void processDatabaseNode(xercesc::DOMElement* node, DatabaseDetails& dbDetails);
+	/**
+	 * processes network_database element in config xml
+	 *
+	 * @param node node corresponding to network_database element inside xml file
+	 */
+	void processDatabaseNode(xercesc::DOMElement* node, DatabaseDetails& dbDetails);
 
-    /**
-     * processes the workers element in config xml
-     *
-     * @param node node corresponding to workers element inside xml file
-     */
-    void processWorkersNode(xercesc::DOMElement* node);
+	/**
+	 * processes the workers element in config xml
+	 *
+	 * @param node node corresponding to workers element inside xml file
+	 */
+	void processWorkersNode(xercesc::DOMElement* node);
 
-    /**
-     * processes the person element in config xml
-     *
-     * @param node node corresponding to person element inside xml file
-     */
-    void processWorkerPersonNode(xercesc::DOMElement* node);
+	/**
+	 * processes the person element in config xml
+	 *
+	 * @param node node corresponding to person element inside xml file
+	 */
+	void processWorkerPersonNode(xercesc::DOMElement* node);
 
-    /**
-     * processes the ScreenLine element in config xml
-     *
-     * @param node node corresponding to screenline element inside xml file
-     */
-    void processScreenLineNode(xercesc::DOMElement* node);
+	/**
+	 * processes the ScreenLine element in config xml
+	 *
+	 * @param node node corresponding to screenline element inside xml file
+	 */
+	void processScreenLineNode(xercesc::DOMElement* node);
 
-    /**
-     * processes the region_restriction element in config xml
-     *
-     * @param node node corresponding to cbd element inside xml file
-     */
-    void processRegionRestrictionNode(xercesc::DOMElement* node);
+	/**
+	 * processes the region_restriction element in config xml
+	 *
+	 * @param node node corresponding to cbd element inside xml file
+	 */
+	void processRegionRestrictionNode(xercesc::DOMElement* node);
 
-    /**
-     * processes the generateBusRoutes element in config xml
-     *
-     * @param node node corresponding to generateBusRoutes element inside xml file
-     */
-    void processGenerateBusRoutesNode(xercesc::DOMElement* node);
+	/**
+	 * processes the generateBusRoutes element in config xml
+	 *
+	 * @param node node corresponding to generateBusRoutes element inside xml file
+	 */
+	void processGenerateBusRoutesNode(xercesc::DOMElement* node);
 
-    /**
-     * processes the subtrip_travel_metrics_output element in config xml
-     *
-     * @param node node corresponding to generateBusRoutes element inside xml file
-     */
-    void processSubtripTravelMetricsOutputNode(xercesc::DOMElement* node);
+	/**
+	 * processes the subtrip_travel_metrics_output element in config xml
+	 *
+	 * @param node node corresponding to generateBusRoutes element inside xml file
+	 */
+	void processSubtripTravelMetricsOutputNode(xercesc::DOMElement* node);
 
-    /**
-     * processes the bus stop schedule times element in config xml
-     *
-     * @param node node correspoding to scheduledTimes element inside xml file
-     */
-    void processBusStopScheduledTimesNode(xercesc::DOMElement* node);
+	/**
+	 * processes the bus stop schedule times element in config xml
+	 *
+	 * @param node node correspoding to scheduledTimes element inside xml file
+	 */
+	void processBusStopScheduledTimesNode(xercesc::DOMElement* node);
 
-    /**
-     * processes the travel time element the config xml
-     *
-     * @param node node corresponding to trave_time element inside xml file
-     */
-    void processTT_Update(xercesc::DOMElement* node);
+	/**
+	 * processes the travel time element the config xml
+	 *
+	 * @param node node corresponding to trave_time element inside xml file
+	 */
+	void processTT_Update(xercesc::DOMElement* node);
 
-    /**
-     * Processes the publicTransit element in config xml
-     *
-     * @param node node corresponding to the publicTransit element inside xml file
-     */
-    void processPublicTransit(xercesc::DOMElement* node);
+	/**
+	 * Processes the publicTransit element in config xml
+	 *
+	 * @param node node corresponding to the publicTransit element inside xml file
+	 */
+	void processPublicTransit(xercesc::DOMElement* node);
 
-    /**
-     * Processes the incidents element in config xml
-     *
-     * @param node node corresponding to the incidents element inside xml file
-     */
-    void processIncidentsNode(xercesc::DOMElement* node);
+	/**
+	 * Processes the incidents element in config xml
+	 *
+	 * @param node node corresponding to the incidents element inside xml file
+	 */
+	void processIncidentsNode(xercesc::DOMElement* node);
 
-    /**
-     * Processes the busController element in config xml
-     * @param node node corresponding to the busController element inside xml file
-     */
-    void processBusControllerNode(xercesc::DOMElement *node);
+	/**
+	 * Processes the busController element in config xml
+	 * @param node node corresponding to the busController element inside xml file
+	 */
+	void processBusControllerNode(xercesc::DOMElement *node);
 
-    /**
-     * Processes the trainController element in config xml
-     * @param node is the node corresponding to the trainController element inside simrun_Midterm.xml file
-     */
-    void processTrainControllerNode(xercesc::DOMElement *node);
+	/**
+	 * Processes the trainController element in config xml
+	 * @param node is the node corresponding to the trainController element inside simrun_Midterm.xml file
+	 */
+	void processTrainControllerNode(xercesc::DOMElement *node);
 
-    /**
-     * Process the train properties node in simrun_MidTerm.xml
-     * @param node is the node corresponding to the trainProperties element inside simrun_Midterm.xml file
-     */
-    void processTrainPropertiesNode(xercesc::DOMElement *node);
+	/**
+	 * Process the train properties node in simrun_MidTerm.xml
+	 * @param node is the node corresponding to the trainProperties element inside simrun_Midterm.xml file
+	 */
+	void processTrainPropertiesNode(xercesc::DOMElement *node);
 
-    void processPathSetFileName(xercesc::DOMElement* node);
+	void processPathSetFileName(xercesc::DOMElement* node);
 
 	/**
 	 * Process the trip chain output node in simrun_MidTerm.xml
 	 * @param node is the node corresponding to the trip_chain_output element inside simrun_Midterm.xml file
 	 */
-    void processTripChainOutputNode(xercesc::DOMElement* node);
+	void processTripChainOutputNode(xercesc::DOMElement* node);
 
-    /// The config we are currently loading
+	/// The config we are currently loading
 	MT_Config& mtCfg;
 
-    /// Shared configuration
-    ConfigParams& cfg;
+	/// Shared configuration
+	ConfigParams& cfg;
 };
 } // namespace medium
 } // namespace sim_mob

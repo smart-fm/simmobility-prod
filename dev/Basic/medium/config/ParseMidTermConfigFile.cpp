@@ -844,8 +844,8 @@ void ParseMidTermConfigFile::processTripChainOutputNode(DOMElement *node)
 
     if (mtCfg.tripChainOutput.enabled)
     {
-        mtCfg.tripChainOutput.subTripsFile = ParseString(GetNamedAttributeValue(node, "sub_trips_file"), "");
-        mtCfg.tripChainOutput.tripActivitiesFile = ParseString(GetNamedAttributeValue(node, "trip_activities_file"), "");
+        mtCfg.tripChainOutput.subTripsFile = ParseString(GetNamedAttributeValue(node, "sub_trips_file"), "subtrips.xml");
+        mtCfg.tripChainOutput.tripActivitiesFile = ParseString(GetNamedAttributeValue(node, "trip_activities_file"), "trip_activities.xml");
     }
 }
 

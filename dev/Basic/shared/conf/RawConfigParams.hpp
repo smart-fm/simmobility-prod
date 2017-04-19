@@ -152,6 +152,15 @@ struct LongTermParams
 	}outputFiles;
 
 
+	struct ToaPayohScenario{
+		ToaPayohScenario();
+		bool enabled;
+		bool workInToaPayoh;
+		bool liveInToaPayoh;
+		bool moveToToaPayoh;
+	}toaPayohScenario;
+
+
 	struct Scenario
 	{
 		Scenario();

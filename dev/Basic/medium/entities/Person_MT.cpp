@@ -20,6 +20,7 @@
 #include "entities/roles/RoleFactory.hpp"
 #include "entities/TravelTimeManager.hpp"
 #include "entities/TrainController.hpp"
+#include "entities/TripChainOutput.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "geospatial/network/WayPoint.hpp"
 #include "path/PT_RouteChoiceLuaProvider.hpp"
@@ -90,6 +91,7 @@ prevRole(nullptr), currRole(nullptr), nextRole(nullptr), numTicksStuck(0)
 		if (!tripChain.empty())
 		{
 			initTripChain();
+			TripChainOutput::getInstance().printTripChain(tripChain);
 		}
 	}
 	catch(PT_PathsetLoadException& exception)

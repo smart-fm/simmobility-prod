@@ -4,17 +4,18 @@
 
 #include "XmlParseHelper.hpp"
 
-#include <string>
 #include <stdexcept>
 #include <boost/lexical_cast.hpp>
 #include <xercesc/dom/DOMNodeList.hpp>
 #include <xercesc/dom/DOMNamedNodeMap.hpp>
 #include <xercesc/util/XMLString.hpp>
+
 #include "LangHelpers.hpp"
 #include "logging/Log.hpp"
 
 using namespace sim_mob;
 using namespace xercesc;
+
 namespace sim_mob
 {
 
@@ -31,10 +32,21 @@ std::string TranscodeString(const XMLCh *str)
 DOMElement* NodeToElement(DOMNode* node)
 {
 	DOMElement* res = dynamic_cast<DOMElement*>(node);
-	if (!res)
+
+	if (node && !res)
 	{
-		throw std::runtime_error("DOMNode is expected to be a DOMElement.");
+		std::stringstream msg;
+		msg << "Failed to cast <" << TranscodeString(node->getLocalName())
+		    << "> from DOMNode to DOMElement";
+		throw std::runtime_error(msg.str());
 	}
+	else if(!node)
+	{
+		std::stringstream msg;
+		msg << "Null pointer encountered";
+		throw std::runtime_error(msg.str());
+	}
+
 	return res;
 }
 
@@ -47,13 +59,25 @@ std::vector<DOMElement*> GetElementsByName(DOMElement* node, const std::string& 
 
 	if (res->getLength() == 0 && required)
 	{
-		throw std::runtime_error("Elements expected, but none returned.");
+		std::stringstream msg;
+		msg << "Mandatory configuration fields <" << key << "> not found.";
+		throw std::runtime_error(msg.str());
 	}
 
 	std::vector<DOMElement*> resV;
 	for (XMLSize_t i = 0; i < res->getLength(); i++)
 	{
-		resV.push_back(NodeToElement(res->item(i)));
+		try
+		{
+			resV.push_back(NodeToElement(res->item(i)));
+		}
+		catch (std::runtime_error &ex)
+		{
+			std::stringstream msg;
+			msg << "Invalid <" << TranscodeString(node->getLocalName()) << "> element at position "
+			    << (i+1) << ". " << ex.what();
+			throw std::runtime_error(msg.str());
+		}
 	}
 
 	return resV;
@@ -69,15 +93,29 @@ DOMElement* GetSingleElementByName(DOMElement* node, const std::string& key, boo
 	//Check.
 	if (res->getLength() > 1)
 	{
-		throw std::runtime_error("Error: single element expected, but returned more than 1.");
+		std::stringstream msg;
+		msg << "Multiple occurrence of configuration field <" << key << "> found. Expected: single occurrence";
+		throw std::runtime_error(msg.str());
 	}
 	else if (res->getLength() == 1)
 	{
-		return NodeToElement(res->item(0));
+		try
+		{
+			return NodeToElement(res->item(0));
+		}
+		catch (std::runtime_error &ex)
+		{
+			std::stringstream msg;
+			msg << "Invalid <" << TranscodeString(node->getLocalName()) << "> element at position 1. "
+			    << ex.what();
+			throw std::runtime_error(msg.str());
+		}
 	}
 	else if (required)
 	{
-		throw std::runtime_error("Error: single element expected, but returned zero.");
+		std::stringstream msg;
+		msg << "Mandatory configuration field <" << key << "> not found.";
+		throw std::runtime_error(msg.str());
 	}
 
 	return nullptr;
@@ -100,7 +138,10 @@ DOMAttr* GetNamedAttribute(DOMElement* node, const std::string& key, bool requir
 	{
 		if (required)
 		{
-			throw std::runtime_error("Error: attribute expected, but none found.");
+			std::stringstream msg;
+			msg << "Mandatory attribute \"" << key << "\" in <" << TranscodeString(node->getLocalName())
+			    << "> not found.";
+			throw std::runtime_error(msg.str());
 		}
 		else
 		{
@@ -109,9 +150,13 @@ DOMAttr* GetNamedAttribute(DOMElement* node, const std::string& key, bool requir
 	}
 
 	DOMAttr* resAttr = dynamic_cast<DOMAttr*>(res);
+
 	if (!resAttr)
 	{
-		throw std::runtime_error("Error: attribute expected, but couldn't be cast.");
+		std::stringstream msg;
+		msg << "Failed to cast <" << TranscodeString(res->getLocalName())
+		    << "> from DOMNode to DOMAttr";
+		throw std::runtime_error(msg.str());
 	}
 
 	return resAttr;
@@ -124,6 +169,7 @@ const XMLCh* GetAttributeValue(const DOMAttr* attr)
 	{
 		return nullptr;
 	}
+
 	return attr->getNodeValue();
 }
 
@@ -148,14 +194,20 @@ bool ParseBoolean(const XMLCh* srcX, bool* defValue)
 		{
 			return false;
 		}
-		throw std::runtime_error("Expected boolean value.");
+
+		std::stringstream msg;
+		msg << "Invalid value \"" << src << "\". Expected: \"true\" or \"false\"";
+		throw std::runtime_error(msg.str());
 	}
 
 	//Wasn't found.
 	if (!defValue)
 	{
-		throw std::runtime_error("Mandatory boolean variable; no default available.");
+		std::stringstream msg;
+		msg << "No value provided for boolean attribute.";
+		throw std::runtime_error(msg.str());
 	}
+
 	return *defValue;
 }
 
@@ -164,22 +216,30 @@ int ParseInteger(const XMLCh* srcX, int* defValue)
 	if (srcX)
 	{
 		int value = 0;
+		std::string src = TranscodeString(srcX);
+
 		try
 		{
-			std::string src = TranscodeString(srcX);
 			value = boost::lexical_cast<int>(src);
-		} catch (boost::bad_lexical_cast const&)
-		{
-			throw std::runtime_error("Bad formatted source string for Integer parsing.");
 		}
+		catch (boost::bad_lexical_cast const&)
+		{
+			std::stringstream msg;
+			msg << "Invalid value \"" << src << "\". Expected: Integer value";
+			throw std::runtime_error(msg.str());
+		}
+
 		return value;
 	}
 
 	//Wasn't found.
 	if (!defValue)
 	{
-		throw std::runtime_error("Mandatory integer variable; no default available.");
+		std::stringstream msg;
+		msg << "No value provided for integer attribute.";
+		throw std::runtime_error(msg.str());
 	}
+
 	return *defValue;
 }
 
@@ -194,8 +254,11 @@ float ParseFloat(const XMLCh* srcX, float* defValue)
 	//Wasn't found.
 	if (!defValue)
 	{
-		throw std::runtime_error("Mandatory float variable; no default available.");
+		std::stringstream msg;
+		msg << "No value provided for float attribute.";
+		throw std::runtime_error(msg.str());
 	}
+
 	return *defValue;
 }
 
@@ -204,22 +267,30 @@ unsigned int ParseUnsignedInt(const XMLCh* srcX, unsigned int* defValue)
 	if (srcX)
 	{
 		unsigned int value = 0;
+		std::string src = TranscodeString(srcX);
+
 		try
 		{
-			std::string src = TranscodeString(srcX);
 			value = boost::lexical_cast<unsigned int>(src);
-		} catch (boost::bad_lexical_cast const&)
-		{
-			throw std::runtime_error("Bad formatted source string for unsigned integer parsing.");
 		}
+		catch (boost::bad_lexical_cast const&)
+		{
+			std::stringstream msg;
+			msg << "Invalid value \"" << src << "\". Expected: Unsigned integer value";
+			throw std::runtime_error(msg.str());
+		}
+
 		return value;
 	}
 
 	//Wasn't found.
 	if (!defValue)
 	{
-		throw std::runtime_error("Mandatory unsigned integer variable; no default available.");
+		std::stringstream msg;
+		msg << "No value provided for unsigned int attribute.";
+		throw std::runtime_error(msg.str());
 	}
+
 	return *defValue;
 }
 
@@ -233,13 +304,15 @@ std::string ParseString(const XMLCh* srcX, std::string* defValue)
 	//Wasn't found.
 	if (!defValue)
 	{
-		throw std::runtime_error("Mandatory string variable; no default available.");
+		std::stringstream msg;
+		msg << "No value provided for string attribute.";
+		throw std::runtime_error(msg.str());
 	}
 
 	return *defValue;
 }
 
-//Helper: amount+value for time-granularities.
+//Helper: amount+value for time granularity.
 unsigned int GetValueInMs(double amount, std::string units, unsigned int* defValue)
 {
 	//Handle plural
@@ -247,6 +320,7 @@ unsigned int GetValueInMs(double amount, std::string units, unsigned int* defVal
 	{
 		units = "seconds";
 	}
+
 	if (units == "minute")
 	{
 		units = "minutes";
@@ -261,7 +335,9 @@ unsigned int GetValueInMs(double amount, std::string units, unsigned int* defVal
 		}
 		else
 		{
-			throw std::runtime_error("Invalid units in parsing time granularity.");
+			std::stringstream msg;
+			msg << "Invalid units provided for granularity. Expected: \"seconds\" or \"minutes\" or \"ms\"";
+			throw std::runtime_error(msg.str());
 		}
 	}
 
@@ -277,9 +353,10 @@ unsigned int GetValueInMs(double amount, std::string units, unsigned int* defVal
 
 	//Check for overflow:
 	unsigned int res = static_cast<unsigned int>(amount);
+
 	if (static_cast<double>(res) != amount)
 	{
-		Warn() << "NOTE: Rounding value in ms from " << amount << " to " << res << "\n";
+		Warn() << "WARNING! Rounding granularity value in from " << amount << "ms to " << res << "ms\n";
 	}
 
 	return res;
@@ -295,8 +372,16 @@ unsigned int GetValueInSecond(double amount, std::string units, unsigned int* de
 	//Detect errors
 	if (units.empty() || (units != "minutes" && units != "seconds" && units != "ms" && units!= "hours"))
 	{
-		if (defValue) { return *defValue; }
-		else { throw std::runtime_error("Invalid units in parsing time granularity."); }
+		if (defValue)
+		{
+			return *defValue;
+		}
+		else
+		{
+			std::stringstream msg;
+			msg << "Invalid units provided for granularity. Expected: \"seconds\" or \"minutes\" or \"ms\"";
+			throw std::runtime_error(msg.str());
+		}
 	}
 
 	//Reduce to seconds
@@ -306,9 +391,10 @@ unsigned int GetValueInSecond(double amount, std::string units, unsigned int* de
 
 	//Check for overflow:
 	unsigned int res = static_cast<unsigned int>(amount);
+
 	if (static_cast<double>(res) != amount)
 	{
-		Warn() << "NOTE: Rounding value in ms from " << amount << " to " << res << "\n";
+		Warn() << "WARNING! Rounding granularity value in from " << amount << "ms to " << res << "ms\n";
 	}
 
 	return res;
@@ -340,14 +426,18 @@ DailyTime ParseDailyTime(const XMLCh* srcX, DailyTime* defValue)
 	//Wasn't found.
 	if (!defValue)
 	{
-		throw std::runtime_error("Mandatory integer variable; no default available.");
+		std::stringstream msg;
+		msg << "No value provided for time attribute.";
+		throw std::runtime_error(msg.str());
 	}
+
 	return *defValue;
 }
 
 std::string ParseNonemptyString(const XMLCh* srcX, std::string* defValue)
 {
 	std::string res = ParseString(srcX, defValue);
+
 	if (!res.empty())
 	{
 		return res;
@@ -356,8 +446,11 @@ std::string ParseNonemptyString(const XMLCh* srcX, std::string* defValue)
 	//Wasn't found.
 	if (!defValue)
 	{
-		throw std::runtime_error("Mandatory string variable; no default available. (Empty strings NOT allowed.)");
+		std::stringstream msg;
+		msg << "No value provided for string attribute.";
+		throw std::runtime_error(msg.str());
 	}
+
 	return *defValue;
 }
 
@@ -366,40 +459,53 @@ bool ParseBoolean(const XMLCh* src, bool defValue)
 {
 	return ParseBoolean(src, &defValue);
 }
+
 bool ParseBoolean(const XMLCh* src)
-{ //No default
+{
+	//No default
 	return ParseBoolean(src, nullptr);
 }
+
 int ParseInteger(const XMLCh* src, int defValue)
 {
 	return ParseInteger(src, &defValue);
 }
+
 int ParseInteger(const XMLCh* src)
-{ //No default
+{
+	//No default
 	return ParseInteger(src, nullptr);
 }
+
 unsigned int ParseUnsignedInt(const XMLCh* src, unsigned int defValue)
 {
 	return ParseUnsignedInt(src, &defValue);
 }
+
 unsigned int ParseUnsignedInt(const XMLCh* src)
-{ //No default
+{
+	//No default
 	return ParseUnsignedInt(src, nullptr);
 }
+
 float ParseFloat(const XMLCh* src)
 {
 	return ParseFloat(src, nullptr);
 }
+
 float ParseFloat(const XMLCh* src, float defValue)
 {
 	return ParseFloat(src, &defValue);
 }
+
 DailyTime ParseDailyTime(const XMLCh* src, DailyTime defValue)
 {
 	return ParseDailyTime(src, &defValue);
 }
+
 DailyTime ParseDailyTime(const XMLCh* src)
-{ //No default
+{
+	//No default
 	return ParseDailyTime(src, nullptr);
 }
 
@@ -407,35 +513,38 @@ std::string ParseString(const XMLCh* src, std::string defValue)
 {
 	return ParseString(src, &defValue);
 }
+
 std::string ParseString(const XMLCh* src)
-{ //No default
+{
+	//No default
 	return ParseString(src, nullptr);
 }
+
 std::string ParseNonemptyString(const XMLCh* src, std::string defValue)
 {
 	return ParseNonemptyString(src, &defValue);
 }
+
 std::string ParseNonemptyString(const XMLCh* src)
-{ //No default
+{
+	//No default
 	return ParseNonemptyString(src, nullptr);
 }
+
 unsigned int ParseTimegranAsMs(const XMLCh* amount, const XMLCh* units, unsigned int defValue)
 {
 	return ParseTimegranAsMs(amount, units, &defValue);
 }
+
 unsigned int ParseTimegranAsMs(const XMLCh* amount, const XMLCh* units)
-{ //No default
+{
+	//No default
 	return ParseTimegranAsMs(amount, units, nullptr);
 }
+
 unsigned int ParseTimegranAsSecond(const XMLCh* amount, const XMLCh* units, unsigned int defValue)
 {
 	return ParseTimegranAsSeconds(amount, units, &defValue);
-}
-
-//TODO: Now we are starting to overlap...
-int ProcessValueInteger2(xercesc::DOMElement* node, int defVal)
-{
-	return ParseInteger(GetNamedAttributeValue(node, "value"), defVal);
 }
 
 //TODO: Same issue; needs to be easier access to these things.
@@ -443,6 +552,7 @@ std::string ProcessValueString(xercesc::DOMElement* node)
 {
 	return ParseString(GetNamedAttributeValue(node, "value"));
 }
+
 }
 
 

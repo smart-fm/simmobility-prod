@@ -54,7 +54,7 @@ void informLoadOrder(const std::vector<LoadAgentsOrderOption>& order)
 	{
 		for (std::vector<LoadAgentsOrderOption>::const_iterator it = order.begin(); it != order.end(); ++it)
 		{
-			if ((*it) == LoadAg_Drivers)
+			if ((*it) == LoadAg_XML)
 			{
 				std::cout << "XML Trip file";
 			}
@@ -441,22 +441,12 @@ void ExpandShortTermConfigFile::loadAgentsInOrder(ConfigParams::AgentConstraints
 			std::cout << "Loaded agents from the database (Trip Chains).\n";
 			break;
 		
-		case LoadAg_Drivers:
+		case LoadAg_XML:
 			for (std::map<std::string, std::vector<EntityTemplate> >::const_iterator it = stConfig.futureAgents.begin(); it != stConfig.futureAgents.end(); it++)
 			{
 				generateXMLAgents(it->second);
 			}
 			std::cout << "\nLoaded drivers from the configuration file.\n";
-			break;
-			
-		case LoadAg_Pedestrians:
-			//generateXMLAgents(stConfig.futureAgents["pedestrian"]);
-			//std::cout << "Loaded pedestrians from the configuration file).\n";
-			break;
-		
-		case LoadAg_Passengers:
-			//generateXMLAgents(stConfig.futureAgents["passenger"]);
-			//std::cout << "Loaded passengers from the configuration file).\n";
 			break;
 		
 		default:

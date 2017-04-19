@@ -113,7 +113,7 @@ void ParseShortTermConfigFile::processProcMapNode(DOMElement* node)
 		if (pm.dbFormat != "aimsun" && pm.dbFormat != "long-term")
 		{
 			stringstream msg;
-			msg << "Error parsing file: " << inFilePath << ". Invalid value for <proc_map format=\""
+			msg << "Invalid value for <proc_map format=\""
 			    << pm.dbFormat << "\">. Expected: \"aimsun\"";
 			throw runtime_error(msg.str());
 		}
@@ -270,8 +270,7 @@ void ParseShortTermConfigFile::processSegmentDensityNode(DOMElement* node)
 			if (densityMap.updateInterval == 0)
 			{
 				stringstream msg;
-				msg << "Error parsing file: " << inFilePath
-				    << ". Invalid value for <segment_density updateInterval=\"" << densityMap.updateInterval
+				msg << "Invalid value for <segment_density updateInterval=\"" << densityMap.updateInterval
 				    << "\">. Expected: \"non zero value\"";
 				throw runtime_error(msg.str());
 			}
@@ -279,7 +278,7 @@ void ParseShortTermConfigFile::processSegmentDensityNode(DOMElement* node)
 			if (densityMap.fileName.empty())
 			{
 				stringstream msg;
-				msg << "Error parsing file: " << inFilePath << ". Empty value for <segment_density file-name=\""
+				msg << "Empty value for <segment_density file-name=\""
 				    << "\">. Expected: \"file name\"";
 				throw runtime_error(msg.str());
 			}
@@ -303,7 +302,7 @@ void ParseShortTermConfigFile::processModelScriptsNode(xercesc::DOMElement* node
 	if (format.empty() || format != "lua")
 	{
 		stringstream msg;
-		msg << "Error parsing file: " << inFilePath << ". Invalid value for <model_scripts format=\""
+		msg << "Invalid value for <model_scripts format=\""
 		    << format << "\">. Expected: \"lua\"";
 		throw runtime_error(msg.str());
 	}
@@ -313,7 +312,7 @@ void ParseShortTermConfigFile::processModelScriptsNode(xercesc::DOMElement* node
 	if (scriptsDirectoryPath.empty())
 	{
 		stringstream msg;
-		msg << "Error parsing file: " << inFilePath << ". Empty value for <model_scripts path=\"\"/>. "
+		msg << "Empty value for <model_scripts path=\"\"/>. "
 		    << "Expected: path to scripts";
 		throw runtime_error(msg.str());
 	}
@@ -387,7 +386,7 @@ void ParseShortTermConfigFile::processAuraManagerImpNode(DOMElement *node)
 		else
 		{
 			stringstream msg;
-			msg << "Error parsing file: " << inFilePath << ". Invalid value for <aura_manager_impl value=\""
+			msg << "Invalid value for <aura_manager_impl value=\""
 			    << value << "\">. Expected: \"packing-tree\" or \"rstar\" or \"rdu\" or \"simtree\"";
 			throw runtime_error(msg.str());
 		}
@@ -417,7 +416,7 @@ void ParseShortTermConfigFile::processLoadAgentsOrder(DOMElement *node)
 		else
 		{
 			std::stringstream out;
-			out << "Error parsing file: " << inFilePath << ". Invalid value for <load_agents order=\""
+			out << "Invalid value for <load_agents order=\""
 			    << *it << "\">. Expected: Comma-separated values: \"database\" and / or \"xml\"";
 			throw std::runtime_error(out.str());
 		}
@@ -476,8 +475,7 @@ void ParseShortTermConfigFile::processLoopDetectorCountNode(DOMElement *node)
 			if (counts.frequency == 0)
 			{
 				stringstream msg;
-				msg << "Error parsing file: " << inFilePath
-				    << ". Invalid value for <loop-detector_counts frequency=\"" << counts.frequency
+				msg << "Invalid value for <loop-detector_counts frequency=\"" << counts.frequency
 				    << "\">. Expected: \"non zero value\"";
 				throw runtime_error(msg.str());
 			}
@@ -485,8 +483,7 @@ void ParseShortTermConfigFile::processLoopDetectorCountNode(DOMElement *node)
 			if (counts.fileName.empty())
 			{
 				stringstream msg;
-				msg << "Error parsing file: " << inFilePath
-				    << ". Empty value for <loop-detector_counts file-name=\"\">. Expected: \"file name\"";
+				msg << "Empty value for <loop-detector_counts file-name=\"\">. Expected: \"file name\"";
 				throw runtime_error(msg.str());
 			}
 		}
@@ -522,7 +519,7 @@ void ParseShortTermConfigFile::processNetworkSourceNode(DOMElement *node)
 		else
 		{
 			stringstream msg;
-			msg << "Error parsing file: " << inFilePath << ". Invalid value for <network_source value=\""
+			msg << "Invalid value for <network_source value=\""
 			    << value << "\">. Expected: \"database\" or \"xml\"";
 			throw runtime_error(msg.str());
 		}
@@ -655,7 +652,7 @@ void ParseShortTermConfigFile::processVehicleTypesNode(DOMElement *node)
 	if (stCfg.vehicleTypes.empty())
 	{
 		stringstream msg;
-		msg << "Error parsing file: " << inFilePath << ". <vehicleTypes> node is empty";
+		msg << "<vehicleTypes> node is empty";
 		throw runtime_error(msg.str());
 	}
 }
@@ -717,8 +714,7 @@ void ParseShortTermConfigFile::processPublicTransit(xercesc::DOMElement* node)
 					procMapIt->second.procedureMappings.count("pt_edges") == 0)
 			{
 				stringstream msg;
-				msg << "Error parsing file: " << inFilePath
-				    << ". Public transit is enabled, but stored procedures \"pt_vertices\" and / or "
+				msg << "Public transit is enabled, but stored procedures \"pt_vertices\" and / or "
 				    << " \"pt_edges\" not defined";
 				throw runtime_error(msg.str());
 			}
@@ -742,7 +738,16 @@ void ParseShortTermConfigFile::processOutputStatistics(xercesc::DOMElement* node
 
 void ParseShortTermConfigFile::processPathSetFileName(DOMElement* node)
 {
-	cfg.pathsetFile = ParseString(GetNamedAttributeValue(node, "value"));
+	try
+	{
+		cfg.pathsetFile = ParseNonemptyString(GetNamedAttributeValue(node, "value"));
+	}
+	catch(runtime_error &ex)
+	{
+		stringstream msg;
+		msg << "Error parsing <path-set-config-file>. " << ex.what();
+		throw runtime_error(msg.str());
+	}
 }
 
 void ParseShortTermConfigFile::processTT_Update(xercesc::DOMElement* node)

@@ -1,24 +1,23 @@
 /*
- * SharedVehicleController_MT.cpp
+ * SharedTaxiController.cpp
  *
- *  Created on: Apr 13, 2017
+ *  Created on: Apr 18, 2017
  *      Author: Akshay Padmanabha
  */
 
-#include "SharedVehicleController_MT.hpp"
+#include "SharedTaxiController.hpp"
 
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/max_cardinality_matching.hpp>
 
-#include "entities/roles/driver/TaxiDriver.hpp"
 #include "geospatial/network/RoadNetwork.hpp"
 #include "message/MessageBus.hpp"
-#include "message/VehicleControllerMessage.hpp"
+#include "message/MobilityServiceControllerMessage.hpp"
 #include "path/PathSetManager.hpp"
 
 namespace sim_mob
 {
-std::vector<VehicleController::MessageResult> SharedVehicleController_MT::assignVehiclesToRequests()
+std::vector<MobilityServiceController::MessageResult> SharedTaxiController::assignVehiclesToRequests()
 {
 	std::map<unsigned int, Node*> nodeIdMap = RoadNetwork::getInstance()->getMapOfIdvsNodes();
 
@@ -32,7 +31,8 @@ std::vector<VehicleController::MessageResult> SharedVehicleController_MT::assign
 	while (request != requestQueue.end())
 	{
 		std::map<unsigned int, Node*>::iterator it = nodeIdMap.find((*request).startNodeId); 
-		if (it == nodeIdMap.end()) {
+		if (it == nodeIdMap.end())
+		{
 			Print() << "Request contains bad start node " << (*request).startNodeId << std::endl;
 
 			badRequests.push_back(requestIndex);
@@ -44,7 +44,8 @@ std::vector<VehicleController::MessageResult> SharedVehicleController_MT::assign
 		Node* startNode = it->second;
 
 		it = nodeIdMap.find((*request).destinationNodeId); 
-		if (it == nodeIdMap.end()) {
+		if (it == nodeIdMap.end())
+		{
 			Print() << "Request contains bad destination node " << (*request).startNodeId << std::endl;
 
 			badRequests.push_back(requestIndex);
@@ -208,7 +209,8 @@ std::vector<VehicleController::MessageResult> SharedVehicleController_MT::assign
 	std::vector<VehicleRequest> privateCarRequests;
 	bool success = boost::checked_edmonds_maximum_cardinality_matching(graph, &mate[0]);
 
-	if (success) {
+	if (success)
+	{
 		Print() << "Found matching of size " << matching_size(graph, &mate[0])
 				<< " for request list size of " << validRequests.size() << std::endl;
 
@@ -239,7 +241,9 @@ std::vector<VehicleController::MessageResult> SharedVehicleController_MT::assign
 			requestIndex++;
 		}
 
-	} else {
+	}
+	else
+	{
 		Print() << "Did not find matching" << std::endl;
 
 		for (std::vector<VehicleRequest>::iterator it = validRequests.begin(); it != validRequests.end(); it++)
@@ -249,11 +253,11 @@ std::vector<VehicleController::MessageResult> SharedVehicleController_MT::assign
 	}
 
 	// 4. Send assignments for requests
-	std::vector<VehicleController::MessageResult> results;
+	std::vector<MobilityServiceController::MessageResult> results;
 
 	for (std::vector<VehicleRequest>::iterator request = privateCarRequests.begin(); request != privateCarRequests.end(); request++)
 	{
-		medium::TaxiDriver* bestDriver;
+		Person* bestDriver;
 		double bestDistance = -1;
 		double bestX, bestY;
 
@@ -267,56 +271,37 @@ std::vector<VehicleController::MessageResult> SharedVehicleController_MT::assign
 
 		while (person != vehicleDrivers.end())
 		{
-			medium::Person_MT* person_MT = dynamic_cast<medium::Person_MT*>(*person);
+			if (!isCruising(*person))
+			{
+				person++;
+				continue;
+			}
 
-			if (person_MT) {
-				if (person_MT->getRole())
+			if (bestDistance < 0)
+			{
+				bestDriver = *person;
+
+				const Node* node = getCurrentNode(bestDriver);
+				bestDistance = std::abs(startNode->getPosX()
+					- node->getPosX());
+				bestDistance += std::abs(startNode->getPosY()
+					- node->getPosY());
+			}
+
+			else
+			{
+				const Node* node = getCurrentNode(*person);
+				double currDistance = std::abs(startNode->getPosX()
+					- node->getPosX());
+				currDistance += std::abs(startNode->getPosY()
+					- node->getPosY());
+
+				if (currDistance < bestDistance)
 				{
-					medium::TaxiDriver* currDriver = dynamic_cast<medium::TaxiDriver*>(person_MT->getRole());
-					if (currDriver)
-					{
-						if (currDriver->getDriverMode() != medium::CRUISE)
-						{
-							person++;
-							continue;
-						}
-
-						if (bestDistance < 0)
-						{
-							bestDriver = currDriver;
-
-							medium::TaxiDriverMovement* movement = bestDriver
-								->getMovementFacet();
-							const Node* node = movement->getCurrentNode();
-
-							bestDistance = std::abs(startNode->getPosX()
-								- node->getPosX());
-							bestDistance += std::abs(startNode->getPosY()
-								- node->getPosY());
-						}
-
-						else
-						{
-							double currDistance = 0.0;
-
-							medium::TaxiDriverMovement* movement = currDriver
-								->getMovementFacet();
-							const Node* node = movement->getCurrentNode();
-
-							currDistance = std::abs(startNode->getPosX()
-								- node->getPosX());
-							currDistance += std::abs(startNode->getPosY()
-								- node->getPosY());
-
-							if (currDistance < bestDistance)
-							{
-								bestDriver = currDriver;
-								bestDistance = currDistance;
-								bestX = node->getPosX();
-								bestY = node->getPosY();
-							}
-						}
-					}
+					bestDriver = *person;
+					bestDistance = currDistance;
+					bestX = node->getPosX();
+					bestY = node->getPosY();
 				}
 			}
 
@@ -332,7 +317,7 @@ std::vector<VehicleController::MessageResult> SharedVehicleController_MT::assign
 
 		Print() << "Closest vehicle is at (" << bestX << ", " << bestY << ")" << std::endl;
 
-		messaging::MessageBus::PostMessage(bestDriver->getParent(), MSG_VEHICLE_ASSIGNMENT, messaging::MessageBus::MessagePtr(
+		messaging::MessageBus::PostMessage((messaging::MessageHandler*) bestDriver, MSG_VEHICLE_ASSIGNMENT, messaging::MessageBus::MessagePtr(
 			new VehicleAssignmentMessage(currTick, (*request).personId, (*request).startNodeId,
 				(*request).destinationNodeId, (*request).extraTripTimeThreshold)));
 
@@ -341,7 +326,6 @@ std::vector<VehicleController::MessageResult> SharedVehicleController_MT::assign
 			<< ", destinationNodeId " << (*request).destinationNodeId << ", and driverId null" << std::endl;
 
 		results.push_back(MESSAGE_SUCCESS);
-		continue;
 	}
 
 	for (std::vector<unsigned int>::iterator it = badRequests.begin(); it != badRequests.end(); it++)
@@ -352,5 +336,6 @@ std::vector<VehicleController::MessageResult> SharedVehicleController_MT::assign
 	return results;
 }
 }
+
 
 

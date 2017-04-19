@@ -10,7 +10,7 @@
 #include "buffering/Shared.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
-#include "entities/controllers/VehicleControllerManager.hpp"
+#include "entities/controllers/MobilityServiceControllerManager.hpp"
 #include "entities/misc/BusTrip.hpp"
 #include "entities/misc/TaxiTrip.hpp"
 #include "entities/roles/DriverRequestParams.hpp"
@@ -167,12 +167,13 @@ void BusControllerMT::assignBusTripChainWithPerson(std::set<Entity*>& activeAgen
 			addOrStashBuses(person, activeAgents);
 		}
 
-		if (VehicleControllerManager::HasVehicleControllerManager())
+		if (MobilityServiceControllerManager::HasMobilityServiceControllerManager())
 		{
-			VehicleControllerManager::GetInstance()->addVehicleDriver(person);
+			MobilityServiceControllerManager::GetInstance()->addVehicleDriver(person);
 		}
 	}
 }
+
 
 
 

@@ -135,9 +135,9 @@
     <generic_props>
     </generic_props>
 
-    <vehicleController enabled="true">
+    <mobilityServiceController enabled="true">
         <controller id="1" type="1" vehicleIds="" messageProcessFrequency="1"/>
-    </vehicleController>
+    </mobilityServiceController>
 
     <merge_log_files value="true"/>
 </config>

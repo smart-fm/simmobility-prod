@@ -28,7 +28,7 @@
 #include "entities/AuraManager.hpp"
 #include "entities/BusController.hpp"
 #include "entities/BusStopAgent.hpp"
-#include "entities/controllers/VehicleControllerManager.hpp"
+#include "entities/controllers/MobilityServiceControllerManager.hpp"
 #include "entities/incident/IncidentManager.hpp"
 #include "entities/params/PT_NetworkEntities.hpp"
 #include "entities/MT_PersonLoader.hpp"
@@ -313,11 +313,11 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 		personWorkers->assignAWorker(BusController::GetInstance());
 	}
 
-	if (VehicleControllerManager::HasVehicleControllerManager())
+	if (MobilityServiceControllerManager::HasMobilityServiceControllerManager())
 	{
-		std::map<unsigned int, VehicleController*> controllers = VehicleControllerManager::GetInstance()->getControllers();
+		std::map<unsigned int, MobilityServiceController*> controllers = MobilityServiceControllerManager::GetInstance()->getControllers();
 
-		for (std::map<unsigned int, VehicleController*>::iterator it = controllers.begin(); it != controllers.end(); it++)
+		for (std::map<unsigned int, MobilityServiceController*>::iterator it = controllers.begin(); it != controllers.end(); it++)
 			personWorkers->assignAWorker(it->second);
 	}
 	//incident
@@ -634,6 +634,7 @@ int main_impl(int ARGC, char* ARGV[])
 
 	return returnVal;
 }
+
 
 
 

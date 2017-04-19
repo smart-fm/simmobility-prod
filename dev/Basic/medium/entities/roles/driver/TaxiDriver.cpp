@@ -7,10 +7,10 @@
 
 #include <entities/roles/driver/TaxiDriver.hpp>
 #include "Driver.hpp"
-#include "entities/controllers/VehicleControllerManager.hpp"
+#include "entities/controllers/MobilityServiceControllerManager.hpp"
 #include "geospatial/network/RoadNetwork.hpp"
 #include "message/MessageBus.hpp"
-#include "message/VehicleControllerMessage.hpp"
+#include "message/MobilityServiceControllerMessage.hpp"
 #include "path/PathSetManager.hpp"
 
 namespace sim_mob
@@ -100,9 +100,9 @@ void TaxiDriver::HandleParentMessage(messaging::Message::MessageType type, const
 			if (it == nodeIdMap.end()) {
 				Print() << "Message contains bad destination node " << msg.destinationNodeId << std::endl;
 
-				if (VehicleControllerManager::HasVehicleControllerManager())
+				if (MobilityServiceControllerManager::HasMobilityServiceControllerManager())
 				{
-					std::map<unsigned int, VehicleController*> controllers = VehicleControllerManager::GetInstance()->getControllers();
+					std::map<unsigned int, MobilityServiceController*> controllers = MobilityServiceControllerManager::GetInstance()->getControllers();
 				
 					messaging::MessageBus::SendMessage(controllers[1], MSG_VEHICLE_ASSIGNMENT_RESPONSE,
 						messaging::MessageBus::MessagePtr(new VehicleAssignmentResponseMessage(parent->currTick, false, msg.personId, parent->getDatabaseId(),
@@ -119,9 +119,9 @@ void TaxiDriver::HandleParentMessage(messaging::Message::MessageType type, const
 
 			const bool success = taxiDriverMovement->driveToNodeOnCall(msg.personId, node);
 
-			if (VehicleControllerManager::HasVehicleControllerManager())
+			if (MobilityServiceControllerManager::HasMobilityServiceControllerManager())
 			{
-				std::map<unsigned int, VehicleController*> controllers = VehicleControllerManager::GetInstance()->getControllers();
+				std::map<unsigned int, MobilityServiceController*> controllers = MobilityServiceControllerManager::GetInstance()->getControllers();
 
 				messaging::MessageBus::SendMessage(controllers[1], MSG_VEHICLE_ASSIGNMENT_RESPONSE,
 					messaging::MessageBus::MessagePtr(new VehicleAssignmentResponseMessage(parent->currTick, success, msg.personId, parent->getDatabaseId(),
@@ -250,6 +250,7 @@ TaxiDriver::~TaxiDriver()
 }
 }
 }
+
 
 
 

@@ -1,33 +1,33 @@
 /*
- * VehicleController.cpp
+ * MobilityServiceController.cpp
  *
  *  Created on: Feb 20, 2017
  *      Author: Akshay Padmanabha
  */
 
-#include "VehicleController.hpp"
+#include "MobilityServiceController.hpp"
 
 #include "message/MessageBus.hpp"
-#include "message/VehicleControllerMessage.hpp"
+#include "message/MobilityServiceControllerMessage.hpp"
 
 namespace sim_mob
 {
-VehicleController::~VehicleController()
+MobilityServiceController::~MobilityServiceController()
 {
 }
 
-void VehicleController::addVehicleDriver(Person* person)
+void MobilityServiceController::addVehicleDriver(Person* person)
 {
 	vehicleDrivers.push_back(person);
 }
 
-void VehicleController::removeVehicleDriver(Person* person)
+void MobilityServiceController::removeVehicleDriver(Person* person)
 {
 	vehicleDrivers.erase(std::remove(vehicleDrivers.begin(),
 		vehicleDrivers.end(), person), vehicleDrivers.end());
 }
 
-Entity::UpdateStatus VehicleController::frame_init(timeslice now)
+Entity::UpdateStatus MobilityServiceController::frame_init(timeslice now)
 {
 	if (!GetContext())
 	{
@@ -37,7 +37,7 @@ Entity::UpdateStatus VehicleController::frame_init(timeslice now)
 	return Entity::UpdateStatus::Continue;
 }
 
-Entity::UpdateStatus VehicleController::frame_tick(timeslice now)
+Entity::UpdateStatus MobilityServiceController::frame_tick(timeslice now)
 {
 	currTimeSlice = now;
 
@@ -81,11 +81,11 @@ Entity::UpdateStatus VehicleController::frame_tick(timeslice now)
 	return Entity::UpdateStatus::Continue;
 }
 
-void VehicleController::frame_output(timeslice now)
+void MobilityServiceController::frame_output(timeslice now)
 {
 }
 
-void VehicleController::HandleMessage(messaging::Message::MessageType type, const messaging::Message& message)
+void MobilityServiceController::HandleMessage(messaging::Message::MessageType type, const messaging::Message& message)
 {
 	switch (type) {
 	        case MSG_VEHICLE_REQUEST:
@@ -123,10 +123,11 @@ void VehicleController::HandleMessage(messaging::Message::MessageType type, cons
 	    };
 }
 
-bool VehicleController::isNonspatial()
+bool MobilityServiceController::isNonspatial()
 {
 	return true;
 }
 }
+
 
 

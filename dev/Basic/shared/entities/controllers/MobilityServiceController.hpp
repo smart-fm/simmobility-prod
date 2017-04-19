@@ -1,12 +1,12 @@
 /*
- * VehicleController.hpp
+ * MobilityServiceController.hpp
  *
  *  Created on: Feb 20, 2017
  *      Author: Akshay Padmanabha
  */
 
-#ifndef VehicleController_HPP_
-#define VehicleController_HPP_
+#ifndef MobilityServiceController_HPP_
+#define MobilityServiceController_HPP_
 #include <vector>
 
 #include "entities/Agent.hpp"
@@ -15,9 +15,9 @@
 namespace sim_mob
 {
 
-class VehicleController : public Agent {
+class MobilityServiceController : public Agent {
 protected:
-	explicit VehicleController(const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered, unsigned int freq = 0)
+	explicit MobilityServiceController(const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered, unsigned int freq = 0)
 		: Agent(mtxStrat, -1), messageProcessFrequency(freq), currTimeSlice(timeslice(0, 0))
 	{
 	}
@@ -39,7 +39,7 @@ public:
 		MESSAGE_SUCCESS
 	};
 
-	virtual ~VehicleController();
+	virtual ~MobilityServiceController();
 
 	/**
 	 * Adds a vehicle driver to the controller
@@ -101,6 +101,7 @@ private:
 	unsigned int messageProcessFrequency;
 };
 }
-#endif /* VehicleController_HPP_ */
+#endif /* MobilityServiceController_HPP_ */
+
 
 

@@ -9,9 +9,9 @@
 #include "entities/BusController.hpp"
 #include "entities/BusControllerMT.hpp"
 #include "entities/conflux/Conflux.hpp"
-#include "entities/controllers/VehicleControllerManager.hpp"
-#include "entities/SharedVehicleController_MT.hpp"
-#include "entities/SimpleVehicleController_MT.hpp"
+#include "entities/controllers/MobilityServiceControllerManager.hpp"
+#include "entities/SharedTaxiController_MT.hpp"
+#include "entities/GreedyTaxiController_MT.hpp"
 #include "entities/TravelTimeManager.hpp"
 #include "geospatial/Incident.hpp"
 #include "geospatial/network/RoadNetwork.hpp"
@@ -102,26 +102,26 @@ void ExpandMidTermConfigFile::processConfig()
         std::cout << mtCfg.getConfluxes().size() << " Confluxes created" << std::endl;
     }
 
-    //register and initialize VehicleController
-    if (cfg.vehicleController.enabled)
+    //register and initialize MobilityServiceControllers
+    if (cfg.mobilityServiceController.enabled)
     {
-        VehicleControllerManager::RegisterVehicleControllerManager(cfg.mutexStategy());
+        MobilityServiceControllerManager::RegisterMobilityServiceControllerManager(cfg.mutexStategy());
 
-        for (std::map<unsigned int, VehicleControllerConfig>::iterator it
-                = cfg.vehicleController.enabledControllers.begin();
-            it != cfg.vehicleController.enabledControllers.end(); it++)
+        for (std::map<unsigned int, MobilityServiceControllerConfig>::iterator it
+                = cfg.mobilityServiceController.enabledControllers.begin();
+            it != cfg.mobilityServiceController.enabledControllers.end(); it++)
         {
             if (it->second.type == 1)
             {
-                SimpleVehicleController_MT* svc = new SimpleVehicleController_MT(cfg.mutexStategy(),
+                GreedyTaxiController_MT* svc = new GreedyTaxiController_MT(cfg.mutexStategy(),
                     it->second.messageProcessFrequency);
-                VehicleControllerManager::GetInstance()->addVehicleController(it->first, svc);
+                MobilityServiceControllerManager::GetInstance()->addMobilityServiceController(it->first, svc);
             }
             else if (it->second.type == 2)
             {
-                SharedVehicleController_MT* svc = new SharedVehicleController_MT(cfg.mutexStategy(),
+                SharedTaxiController_MT* svc = new SharedTaxiController_MT(cfg.mutexStategy(),
                     it->second.messageProcessFrequency);
-                VehicleControllerManager::GetInstance()->addVehicleController(it->first, svc);
+                MobilityServiceControllerManager::GetInstance()->addMobilityServiceController(it->first, svc);
             }
         }
     }
@@ -308,5 +308,6 @@ void ExpandMidTermConfigFile::printSettings()
 	SimulationInfoPrinter simInfoPrinter(cfg, cfg.outSimInfoFileName);
 	simInfoPrinter.printSimulationInfo();
 }
+
 
 

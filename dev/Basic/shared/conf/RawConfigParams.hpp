@@ -435,30 +435,30 @@ struct TravelTimeConfig {
 	TravelTimeConfig() : intervalMS(0), fileName(""), enabled(false) {}
 };
 
-struct VehicleControllerConfig {
+struct MobilityServiceControllerConfig {
 	unsigned int type;
 	unsigned int messageProcessFrequency;
 	std::vector<std::string> vehicleIds;
 
-	VehicleControllerConfig() : type(0), messageProcessFrequency(0) {}
+	MobilityServiceControllerConfig() : type(0), messageProcessFrequency(0) {}
 };
 
 /**
  * Represents vehicle controller parameter section
  */
-struct VehicleControllerParams
+struct MobilityServiceControllerParams
 {
     /**
      * Constructor
      */
-    VehicleControllerParams() : enabled(false)
+    MobilityServiceControllerParams() : enabled(false)
     {}
 
     /// Is vehicle controller enabled?
     bool enabled;
 
 	/// Maps controller IDs to controller configurations
-	std::map<unsigned int, VehicleControllerConfig> enabledControllers;
+	std::map<unsigned int, MobilityServiceControllerConfig> enabledControllers;
 };
 
 /**
@@ -515,7 +515,7 @@ public:
     BusControllerParams busController;
 
     /// Vehicle controller parameters
-    VehicleControllerParams vehicleController;
+    MobilityServiceControllerParams mobilityServiceController;
 
     //OD Travel Time configurations
     TravelTimeConfig odTTConfig;
@@ -553,6 +553,7 @@ public:
 
 
 }
+
 
 
 

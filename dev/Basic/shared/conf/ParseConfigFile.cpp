@@ -140,7 +140,7 @@ void sim_mob::ParseConfigFile::processXmlFile(XercesDOMParser& parser)
     processGenericPropsNode(GetSingleElementByName(rootNode, "generic_props"));
     processConstructsNode(GetSingleElementByName(rootNode,"constructs"));
 
-    processVehicleControllerNode(GetSingleElementByName(rootNode, "vehicleController"));
+    processMobilityServiceControllerNode(GetSingleElementByName(rootNode, "mobilityServiceController"));
 }
 
 void sim_mob::ParseConfigFile::processConstructsNode(xercesc::DOMElement* node)
@@ -427,11 +427,11 @@ void sim_mob::ParseConfigFile::processModelScriptsNode(xercesc::DOMElement* node
 	cfg.luaScriptsMap = scriptsMap;
 }
 
-void sim_mob::ParseConfigFile::processVehicleControllerNode(DOMElement *node)
+void sim_mob::ParseConfigFile::processMobilityServiceControllerNode(DOMElement *node)
 {
     if (node)
     {
-    	cfg.vehicleController.enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), "false");
+    	cfg.mobilityServiceController.enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), "false");
 
 		std::vector<DOMElement*> controllers = GetElementsByName(node, "controller");
 
@@ -443,21 +443,22 @@ void sim_mob::ParseConfigFile::processVehicleControllerNode(DOMElement *node)
 			unsigned int messageProcessFrequency = ParseUnsignedInt(GetNamedAttributeValue(*it, "messageProcessFrequency"), static_cast<unsigned int>(0));
 			// std::string vehicleIds = ParseString(GetNamedAttributeValue(*it, "vehicleIds"), "");
 
-			if (cfg.vehicleController.enabledControllers.count(key) > 0)
+			if (cfg.mobilityServiceController.enabledControllers.count(key) > 0)
 			{
 				throw std::runtime_error("Controller with ID already exists");
 			}
 
 			if (key != 0)
 			{
-				VehicleControllerConfig vcc;
+				MobilityServiceControllerConfig vcc;
 				vcc.type = type;
 				vcc.messageProcessFrequency = messageProcessFrequency;
-				cfg.vehicleController.enabledControllers[key] = vcc;
+				cfg.mobilityServiceController.enabledControllers[key] = vcc;
 			}
 		}
     }
 }
+
 
 
 

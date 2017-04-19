@@ -20,7 +20,7 @@
 #include "entities/BusStopAgent.hpp"
 #include "entities/TaxiStandAgent.hpp"
 #include "entities/conflux/SegmentStats.hpp"
-#include "entities/controllers/VehicleControllerManager.hpp"
+#include "entities/controllers/MobilityServiceControllerManager.hpp"
 #include "entities/Entity.hpp"
 #include "entities/misc/TripChain.hpp"
 #include "entities/roles/activityRole/ActivityPerformer.hpp"
@@ -44,7 +44,7 @@
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "logging/Log.hpp"
 #include "message/MessageBus.hpp"
-#include "message/VehicleControllerMessage.hpp"
+#include "message/MobilityServiceControllerMessage.hpp"
 #include "metrics/Length.hpp"
 #include "path/PathSetManager.hpp"
 #include "util/Utils.hpp"
@@ -299,9 +299,9 @@ void Conflux::addAgent(Person_MT* person)
 			WayPoint personTravelDestination = (*subTripItr).destination;
 			const Node * personDestinationNode = personTravelDestination.node;
 
-			if (VehicleControllerManager::HasVehicleControllerManager())
+			if (MobilityServiceControllerManager::HasMobilityServiceControllerManager())
 			{
-				std::map<unsigned int, VehicleController*> controllers = VehicleControllerManager::GetInstance()->getControllers();
+				std::map<unsigned int, MobilityServiceController*> controllers = MobilityServiceControllerManager::GetInstance()->getControllers();
 
 				messaging::MessageBus::SendMessage(controllers[1], MSG_VEHICLE_REQUEST, messaging::MessageBus::MessagePtr(
 					new VehicleRequestMessage(person->currTick, person->getDatabaseId(),
@@ -2900,6 +2900,7 @@ sim_mob::medium::PersonTransferMessage::PersonTransferMessage(Person_MT* person,
 sim_mob::medium::PersonTransferMessage::~PersonTransferMessage()
 {
 }
+
 
 
 

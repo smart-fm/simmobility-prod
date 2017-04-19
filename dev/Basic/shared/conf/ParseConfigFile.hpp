@@ -167,11 +167,11 @@ private:
     void processModelScriptsNode(xercesc::DOMElement* node);
 
     /**
-     * Processes the vehicleController element in config xml
+     * Processes the mobilityServiceController element in config xml
      *
-     * @param node node corresponding to the vehicleController element inside xml file
+     * @param node node corresponding to the mobilityServiceController element inside xml file
      */
-    void processVehicleControllerNode(xercesc::DOMElement *node);
+    void processMobilityServiceControllerNode(xercesc::DOMElement *node);
 
 private:
     ///The config file we are currently loading
@@ -182,4 +182,5 @@ private:
 };
 
 }
+
 

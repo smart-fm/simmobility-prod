@@ -18,9 +18,7 @@
 using namespace sim_mob;
 using namespace xercesc;
 
-namespace sim_mob
-{
-ParseConfigXmlBase::ParseConfigXmlBase(const std::string& configFileName) :
+ParseConfigXmlBase::ParseConfigXmlBase(const std::string &configFileName) :
 		inFilePath(configFileName)
 {
 }
@@ -29,15 +27,15 @@ ParseConfigXmlBase::~ParseConfigXmlBase()
 {
 }
 
-void sim_mob::ParseConfigXmlBase::parseXmlAndProcess()
+void ParseConfigXmlBase::parseXmlAndProcess()
 {
 	//NOTE: I think the order of destruction matters (parser must be listed last). ~Seth
-	initXerces();
-	HandlerBase handBase;
+	initialiseXerces();
+	HandlerBase errorHandler;
 	XercesDOMParser parser;
 
 	//Attempt to parse it.
-	std::string errorMsg = parseXmlFile(parser, dynamic_cast<ErrorHandler&>(handBase));
+	std::string errorMsg = parseXmlFile(parser, errorHandler);
 
 	//If there's an error, throw it as an exception.
 	if (!errorMsg.empty())
@@ -49,15 +47,18 @@ void sim_mob::ParseConfigXmlBase::parseXmlAndProcess()
 	processXmlFile(parser);
 }
 
-void ParseConfigXmlBase::initXerces()
+void ParseConfigXmlBase::initialiseXerces()
 {
 	//Xerces initialization.
 	try
 	{
 		XMLPlatformUtils::Initialize();
-	} catch (const XMLException& error)
+	}
+	catch (const XMLException& error)
 	{
-		throw std::runtime_error(TranscodeString(error.getMessage()).c_str());
+		std::stringstream msg;
+		msg << "XML toolkit initialisation error: " << TranscodeString(error.getMessage());
+		throw std::runtime_error(msg.str());
 	}
 }
 
@@ -74,20 +75,38 @@ std::string ParseConfigXmlBase::parseXmlFile(XercesDOMParser& parser, ErrorHandl
 	try
 	{
 		parser.parse(inFilePath.c_str());
-	} catch (const XMLException& error)
+	}
+	catch (const XMLException &error)
 	{
-		return TranscodeString(error.getMessage());
-	} catch (const DOMException& error)
+		std::stringstream msg;
+		msg << "Error parsing file: " << inFilePath << ", " << TranscodeString(error.getMessage())
+		    << " at line: " << error.getSrcLine();
+		return msg.str();
+	}
+	catch (const DOMException &error)
 	{
-		return TranscodeString(error.getMessage());
-	} catch (const std::exception& e)
+		std::stringstream msg;
+		msg << "Error parsing file: " << inFilePath << ", " << TranscodeString(error.getMessage());
+		return msg.str();
+	}
+	catch(const SAXParseException &error)
 	{
-		throw e;
-	} catch (...)
+		std::stringstream msg;
+		msg << "Error parsing file: " << inFilePath << ", " << TranscodeString(error.getMessage())
+		    << " at line: " << error.getLineNumber() << ", column: " << error.getColumnNumber();
+		return msg.str();
+	}
+	catch (const std::exception &error)
 	{
-		//TODO: add a more precise indication of where the error occurred
-		std::stringstream msg; msg <<"Error parsing "<<inFilePath<< std::endl;
-		throw std::runtime_error(msg.str() );
+		std::stringstream msg;
+		msg << "Error parsing file: " << inFilePath << ", " << error.what();
+		return msg.str();
+	}
+	catch (...)
+	{
+		std::stringstream msg;
+		msg << "Error parsing " << inFilePath << ", unknown error";
+		return msg.str();
 	}
 
 	//No error.
@@ -96,30 +115,3 @@ std::string ParseConfigXmlBase::parseXmlFile(XercesDOMParser& parser, ErrorHandl
 
 
 
-void sim_mob::ParseConfigXmlBase::processXmlFileForServiceControler(xercesc::XercesDOMParser& parser)
-{
-
-}
-
-void sim_mob::ParseConfigXmlBase::parseXmlAndProcessForServiceController()
-{
-	//NOTE: I think the order of destruction matters (parser must be listed last). ~Seth
-		initXerces();
-		HandlerBase handBase;
-		XercesDOMParser parser;
-
-		//Attempt to parse it.
-		std::string errorMsg = parseXmlFile(parser, dynamic_cast<ErrorHandler&>(handBase));
-
-		//If there's an error, throw it as an exception.
-		if (!errorMsg.empty())
-		{
-			throw std::runtime_error(errorMsg.c_str());
-		}
-
-		//Now process it.
-		//processXmlFile(parser);
-		processXmlFileForServiceControler(parser);
-}
-
-}

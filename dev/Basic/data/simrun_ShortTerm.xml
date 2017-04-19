@@ -147,7 +147,7 @@
 		<aura_manager_impl value="packing-tree"/>
 
 		<!-- Order in which agents are to be loaded into the simulation -->
-		<!-- Values include: database, drivers, pedestrians, passenger -->
+		<!-- Values include: database, xml-->
 		<load_agents order="database"/>
 
 		<!--  Commsim (communication) settings -->

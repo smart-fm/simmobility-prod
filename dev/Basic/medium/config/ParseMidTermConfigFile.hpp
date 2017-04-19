@@ -75,13 +75,6 @@ private:
 	void processProcMapNode(xercesc::DOMElement* node);
 
 	/**
-	 * processes the activity load interval node
-     *
-	 * @param node node specifying the value and unit for activity load interval
-	 */
-	void processActivityLoadIntervalElement(xercesc::DOMElement* node);
-
-	/**
 	 * processes update interval node
      *
 	 * @param node node corresponding to update interval element
@@ -122,13 +115,6 @@ private:
 	 * @param node node corresponding to model_scripts element inside xml file
 	 */
 	ModelScriptsMap processModelScriptsNode(xercesc::DOMElement* node);
-
-	/**
-	 * processes mongo collections element in config xml
-     *
-	 * @param node node corresponding to mongo_collections element inside xml file
-	 */
-	void processMongoCollectionsNode(xercesc::DOMElement* node);
 
 	/**
 	 * processes statistics output file element in config xml
@@ -251,12 +237,6 @@ private:
 	 * @param node is the node corresponding to the trainController element inside simrun_Midterm.xml file
 	 */
 	void processTrainControllerNode(xercesc::DOMElement *node);
-
-	/**
-	 * Process the train properties node in simrun_MidTerm.xml
-	 * @param node is the node corresponding to the trainProperties element inside simrun_Midterm.xml file
-	 */
-	void processTrainPropertiesNode(xercesc::DOMElement *node);
 
 	void processPathSetFileName(xercesc::DOMElement* node);
 

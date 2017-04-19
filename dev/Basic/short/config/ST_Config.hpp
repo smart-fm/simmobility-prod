@@ -94,14 +94,8 @@ struct EntityTemplate
  */
 enum LoadAgentsOrderOption
 {
-	/**Load drivers from the configuration file.*/
-	LoadAg_Drivers,
-	
-	/**Load Pedestrians from the configuration file.*/
-	LoadAg_Pedestrians,
-	
-	/**Load Passengers from the configuration file.*/
-	LoadAg_Passengers,
+	/**Load trips from the configuration file.*/
+	LoadAg_XML,
 	
 	/**Load Trip-Chain based entities from the database.*/
 	LoadAg_Database,

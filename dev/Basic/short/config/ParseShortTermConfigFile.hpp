@@ -76,7 +76,7 @@ private:
      *
 	 * @param node node corresponding to model_scripts element inside the xml file
 	 */
-	ModelScriptsMap processModelScriptsNode(xercesc::DOMElement* node);
+	void processModelScriptsNode(xercesc::DOMElement* node);
 
     /**
      * Processes the network element in the config file
@@ -91,13 +91,6 @@ private:
      * @param node node corresponding to the loop-detector_counts element in the xml file
      */
     void processLoopDetectorCountNode(xercesc::DOMElement* node);
-
-    /**
-     * Processes the xsd_schema_files element in the config file
-     *
-     * @param node node corresponding to the xsd_schema_files element in the xml file
-     */
-    void processXmlSchemaFilesNode(xercesc::DOMElement* node);
 
     /**
      * Processes the network_xml_file_output element in the config file

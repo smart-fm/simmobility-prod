@@ -74,7 +74,8 @@ void TripChainOutput::printTripChain(const std::vector<sim_mob::TripChainItem*> 
 
 					std::stringstream subTripStream;
 					subTripStream << tripId << "," << seq_count << "," << itSubTrip->getMode() << ","
-					              << itSubTrip->ptLineId << "," << itSubTrip->cbdTraverseType << "," << itSubTrip->originType << ","
+					              << (itSubTrip->ptLineId.empty() ? "\"\"" : itSubTrip->ptLineId) << ","
+					              << itSubTrip->cbdTraverseType << "," << itSubTrip->originType << ","
 					              << itSubTrip->destinationType << "," << stOriginId << "," << stDestId << "\n";
 
 					//Write to subtrips file
@@ -90,8 +91,8 @@ void TripChainOutput::printTripChain(const std::vector<sim_mob::TripChainItem*> 
 				std::string activityEnd;
 				if(tripChainItemIt == tripChain.end())
 				{
-					activityStart = "";
-					activityEnd = "";
+					activityStart = "\"\"";
+					activityEnd = "\"\"";
 					--tripChainItemIt;
 				}
 				else if ((*tripChainItemIt)->itemType == sim_mob::TripChainItem::IT_ACTIVITY)
@@ -132,7 +133,10 @@ std::string TripChainOutput::getStopId (const sim_mob::WayPoint &wayPoint)
 	case sim_mob::WayPoint::TRAIN_STOP:
 	{
 		const std::vector<std::string>& trainStop = wayPoint.trainStop->getTrainStopIds();
-		stopId = accumulate(trainStop.begin(),trainStop.end(),std::string("/"));
+		stopId = std::accumulate(trainStop.begin(),trainStop.end(),std::string(),
+		                         [](std::string &s, const std::string &piece) -> std::string
+		                         { return s += piece + "/"; });
+		stopId.pop_back();
 		break;
 	}
 	default:

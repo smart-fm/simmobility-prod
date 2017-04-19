@@ -120,18 +120,26 @@ std::string TripChainOutput::getStopId (const sim_mob::WayPoint &wayPoint)
 	switch(wayPoint.type)
 	{
 	case sim_mob::WayPoint::NODE:
+	{
 		stopId = std::to_string(wayPoint.node->getNodeId());
 		break;
+	}
 	case sim_mob::WayPoint::BUS_STOP:
+	{
 		stopId = wayPoint.busStop->getStopCode();
 		break;
+	}
 	case sim_mob::WayPoint::TRAIN_STOP:
+	{
 		const std::vector<std::string>& trainStop = wayPoint.trainStop->getTrainStopIds();
 		stopId = accumulate(trainStop.begin(),trainStop.end(),std::string("/"));
 		break;
+	}
 	default:
+	{
 		stopId = "";
 		break;
+	}
 	}
 
 	return  stopId;

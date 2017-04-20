@@ -136,7 +136,7 @@
     </generic_props>
 
     <mobilityServiceController enabled="true">
-        <controller id="1" type="1" vehicleIds="" messageProcessFrequency="1"/>
+        <controller id="1" type="1" vehicleIds="" scheduleComputationPeriod="1"/>
     </mobilityServiceController>
 
     <merge_log_files value="true"/>

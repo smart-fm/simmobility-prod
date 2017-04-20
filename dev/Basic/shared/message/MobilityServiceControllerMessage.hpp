@@ -5,21 +5,20 @@
 namespace sim_mob
 {
 
-enum VehicleControllerMessage
+enum MobilityServiceControllerMessage
 {
-	MSG_VEHICLE_REQUEST = 7000000,
-	MSG_VEHICLE_REQUEST_RESPONSE,
-	MSG_VEHICLE_ASSIGNMENT,
-	MSG_VEHICLE_ASSIGNMENT_RESPONSE
+	MSG_TRIP_REQUEST = 7000000,
+	MSG_TRIP_PROPOSITION,
+	MSG_TRIP_PROPOSITION_REPLY
 };
 
 /**
- * Message to request a vehicle
+ * Message to request a trip
  */
-class VehicleRequestMessage: public messaging::Message
+class TripRequestMessage: public messaging::Message
 {
 public:
-	VehicleRequestMessage(timeslice ct, const std::string& p,
+	TripRequestMessage(timeslice ct, const std::string& p,
 		const unsigned int sn, const unsigned int dn,
 		const unsigned int threshold) : currTick(ct), personId(p),
 			startNodeId(sn), destinationNodeId(dn),
@@ -27,7 +26,7 @@ public:
 	{
 	}
 
-	virtual ~VehicleRequestMessage()
+	virtual ~TripRequestMessage()
 	{
 	}
 
@@ -39,19 +38,19 @@ public:
 };
 
 /**
- * Message to assign a vehicle to a person
+ * Message to propose a trip to a driver
  */
-class VehicleAssignmentMessage: public messaging::Message
+class TripPropositionMessage: public messaging::Message
 {
 public:
-	VehicleAssignmentMessage(timeslice ct, const std::string& person,
+	TripPropositionMessage(timeslice ct, const std::string& person,
 		const unsigned int sn, const unsigned int dn,
 		const unsigned int threshold) : currTick(ct), personId(person),
 			startNodeId(sn), destinationNodeId(dn),
 			extraTripTimeThreshold(threshold)
 	{
 	}
-	virtual ~VehicleAssignmentMessage()
+	virtual ~TripPropositionMessage()
 	{
 	}
 
@@ -63,20 +62,20 @@ public:
 };
 
 /**
- * Message to respond to a vehicle assignment
+ * Message to respond to a trip proposition
  */
-class VehicleAssignmentResponseMessage: public messaging::Message
+class TripPropositionReplyMessage: public messaging::Message
 {
 public:
-	VehicleAssignmentResponseMessage(timeslice ct, const bool s,
-		const std::string& p, const std::string& t, const unsigned int sn,
-		const unsigned int dn, const unsigned int threshold) : currTick(ct),
-			success(s), personId(p), driverId(t), startNodeId(sn),
-			destinationNodeId(dn), extraTripTimeThreshold(threshold)
+	TripPropositionReplyMessage(timeslice ct, const std::string& p,
+		const std::string& t, const unsigned int sn, const unsigned int dn,
+		const unsigned int threshold, const bool s) : currTick(ct),
+			personId(p), driverId(t), startNodeId(sn), destinationNodeId(dn),
+			extraTripTimeThreshold(threshold), success(s)
 	{
 	}
 
-	virtual ~VehicleAssignmentResponseMessage()
+	virtual ~TripPropositionReplyMessage()
 	{
 	}
 
@@ -90,9 +89,4 @@ public:
 };
 
 }
-
-
-
-
-
 

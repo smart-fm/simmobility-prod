@@ -18,7 +18,7 @@ namespace sim_mob
 class SharedTaxiController : public MobilityServiceController {
 public:
 	explicit SharedTaxiController(const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered,
-		unsigned int freq = 0) : MobilityServiceController(mtxStrat, freq)
+		unsigned int computationPeriod = 0) : MobilityServiceController(mtxStrat, computationPeriod)
 	{
 	}
 
@@ -30,10 +30,11 @@ private:
 	/**
 	 * Performs the controller algorithm to assign vehicles to requests
 	 */
-	std::vector<MessageResult> assignVehiclesToRequests();
+	std::vector<MessageResult> computeSchedules();
 };
 }
 #endif /* SharedTaxiController_HPP_ */
+
 
 
 

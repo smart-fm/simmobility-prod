@@ -17,11 +17,11 @@
 
 namespace sim_mob
 {
-std::vector<MobilityServiceController::MessageResult> SharedTaxiController::assignVehiclesToRequests()
+std::vector<MobilityServiceController::MessageResult> SharedTaxiController::computeSchedules()
 {
 	std::map<unsigned int, Node*> nodeIdMap = RoadNetwork::getInstance()->getMapOfIdvsNodes();
 
-	std::vector<VehicleRequest> validRequests;
+	std::vector<TripRequest> validRequests;
 	std::vector<double> desiredTravelTimes;
 	std::vector<unsigned int> badRequests;
 
@@ -206,7 +206,7 @@ std::vector<MobilityServiceController::MessageResult> SharedTaxiController::assi
 	Print() << "About to perform matching, wish me luck" << std::endl;
 
 	// 3. Perform maximum matching
-	std::vector<VehicleRequest> privateCarRequests;
+	std::vector<TripRequest> privateCarRequests;
 	bool success = boost::checked_edmonds_maximum_cardinality_matching(graph, &mate[0]);
 
 	if (success)
@@ -230,7 +230,7 @@ std::vector<MobilityServiceController::MessageResult> SharedTaxiController::assi
 
 		unsigned int requestIndex = 0;
 
-		for (std::vector<VehicleRequest>::iterator it = validRequests.begin(); it != validRequests.end(); it++)
+		for (std::vector<TripRequest>::iterator it = validRequests.begin(); it != validRequests.end(); it++)
 		{
 			// if (sharedTrips.count(requestIndex) == 0)
 			// {
@@ -246,7 +246,7 @@ std::vector<MobilityServiceController::MessageResult> SharedTaxiController::assi
 	{
 		Print() << "Did not find matching" << std::endl;
 
-		for (std::vector<VehicleRequest>::iterator it = validRequests.begin(); it != validRequests.end(); it++)
+		for (std::vector<TripRequest>::iterator it = validRequests.begin(); it != validRequests.end(); it++)
 		{
 			privateCarRequests.push_back(*it);
 		}
@@ -255,7 +255,7 @@ std::vector<MobilityServiceController::MessageResult> SharedTaxiController::assi
 	// 4. Send assignments for requests
 	std::vector<MobilityServiceController::MessageResult> results;
 
-	for (std::vector<VehicleRequest>::iterator request = privateCarRequests.begin(); request != privateCarRequests.end(); request++)
+	for (std::vector<TripRequest>::iterator request = privateCarRequests.begin(); request != privateCarRequests.end(); request++)
 	{
 		Person* bestDriver;
 		double bestDistance = -1;
@@ -267,9 +267,9 @@ std::vector<MobilityServiceController::MessageResult> SharedTaxiController::assi
 		it = nodeIdMap.find((*request).destinationNodeId); 
 		Node* destinationNode = it->second;
 
-		auto person = vehicleDrivers.begin();
+		auto person = drivers.begin();
 
-		while (person != vehicleDrivers.end())
+		while (person != drivers.end())
 		{
 			if (!isCruising(*person))
 			{
@@ -317,8 +317,8 @@ std::vector<MobilityServiceController::MessageResult> SharedTaxiController::assi
 
 		Print() << "Closest vehicle is at (" << bestX << ", " << bestY << ")" << std::endl;
 
-		messaging::MessageBus::PostMessage((messaging::MessageHandler*) bestDriver, MSG_VEHICLE_ASSIGNMENT, messaging::MessageBus::MessagePtr(
-			new VehicleAssignmentMessage(currTick, (*request).personId, (*request).startNodeId,
+		messaging::MessageBus::PostMessage((messaging::MessageHandler*) bestDriver, MSG_TRIP_PROPOSITION, messaging::MessageBus::MessagePtr(
+			new TripPropositionMessage(currTick, (*request).personId, (*request).startNodeId,
 				(*request).destinationNodeId, (*request).extraTripTimeThreshold)));
 
 		Print() << "Assignment sent for " << (*request).personId << " at time " << currTick.frame()
@@ -336,6 +336,7 @@ std::vector<MobilityServiceController::MessageResult> SharedTaxiController::assi
 	return results;
 }
 }
+
 
 
 

@@ -16,15 +16,15 @@ MobilityServiceController::~MobilityServiceController()
 {
 }
 
-void MobilityServiceController::addVehicleDriver(Person* person)
+void MobilityServiceController::subscribeDriver(Person* person)
 {
-	vehicleDrivers.push_back(person);
+	drivers.push_back(person);
 }
 
-void MobilityServiceController::removeVehicleDriver(Person* person)
+void MobilityServiceController::unsubscribeDriver(Person* person)
 {
-	vehicleDrivers.erase(std::remove(vehicleDrivers.begin(),
-		vehicleDrivers.end(), person), vehicleDrivers.end());
+	drivers.erase(std::remove(drivers.begin(),
+		drivers.end(), person), drivers.end());
 }
 
 Entity::UpdateStatus MobilityServiceController::frame_init(timeslice now)
@@ -41,16 +41,16 @@ Entity::UpdateStatus MobilityServiceController::frame_tick(timeslice now)
 {
 	currTimeSlice = now;
 
-	if (localTick == messageProcessFrequency)
+	if (localTick == scheduleComputationPeriod)
 	{
 		localTick = 0;
 
-		std::vector<MessageResult> messageResults = assignVehiclesToRequests();
+		std::vector<MessageResult> messageResults = computeSchedules();
 
-		std::vector<VehicleRequest>::iterator request = requestQueue.begin();
+		std::vector<TripRequest>::iterator request = requestQueue.begin();
 		std::vector<MessageResult>::iterator messageResult = messageResults.begin();
 
-		std:std::vector<VehicleRequest> retryRequestQueue;
+		std:std::vector<TripRequest> retryRequestQueue;
 
 		while (request != requestQueue.end())
 		{
@@ -88,9 +88,9 @@ void MobilityServiceController::frame_output(timeslice now)
 void MobilityServiceController::HandleMessage(messaging::Message::MessageType type, const messaging::Message& message)
 {
 	switch (type) {
-	        case MSG_VEHICLE_REQUEST:
+	        case MSG_TRIP_REQUEST:
 	        {
-				const VehicleRequestMessage& requestArgs = MSG_CAST(VehicleRequestMessage, message);
+				const TripRequestMessage& requestArgs = MSG_CAST(TripRequestMessage, message);
 
 				Print() << "Request received from " << requestArgs.personId << " at time " << currTick.frame() << ". Message was sent at "
 					<< requestArgs.currTick.frame() << " with startNodeId " << requestArgs.startNodeId << ", destinationNodeId "
@@ -101,9 +101,9 @@ void MobilityServiceController::HandleMessage(messaging::Message::MessageType ty
 	            break;
 	        }
 
-	        case MSG_VEHICLE_ASSIGNMENT_RESPONSE:
+	        case MSG_TRIP_PROPOSITION_REPLY:
 	        {
-				const VehicleAssignmentResponseMessage& replyArgs = MSG_CAST(VehicleAssignmentResponseMessage, message);
+				const TripPropositionReplyMessage& replyArgs = MSG_CAST(TripPropositionReplyMessage, message);
 				if (!replyArgs.success) {
 					Print() << "Request received from " << replyArgs.personId << " at time " << currTick.frame() << ". Message was sent at "
 						<< replyArgs.currTick.frame() << " with startNodeId " << replyArgs.startNodeId << ", destinationNodeId "
@@ -128,6 +128,7 @@ bool MobilityServiceController::isNonspatial()
 	return true;
 }
 }
+
 
 
 

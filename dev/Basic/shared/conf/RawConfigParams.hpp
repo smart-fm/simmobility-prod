@@ -437,10 +437,10 @@ struct TravelTimeConfig {
 
 struct MobilityServiceControllerConfig {
 	unsigned int type;
-	unsigned int messageProcessFrequency;
+	unsigned int scheduleComputationPeriod;
 	std::vector<std::string> vehicleIds;
 
-	MobilityServiceControllerConfig() : type(0), messageProcessFrequency(0) {}
+	MobilityServiceControllerConfig() : type(0), scheduleComputationPeriod(0) {}
 };
 
 /**
@@ -553,6 +553,7 @@ public:
 
 
 }
+
 
 
 

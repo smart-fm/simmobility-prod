@@ -69,30 +69,6 @@ bool MobilityServiceControllerManager::removeMobilityServiceController(unsigned 
 	return false;
 }
 
-// TODO: Only add to the right controllers
-void MobilityServiceControllerManager::addVehicleDriver(Person* person)
-{
-	auto controller = controllers.begin();
-
-	while (controller != controllers.end())
-	{
-		controller->second->addVehicleDriver(person);
-		controller++;
-	}
-}
-
-// TODO: Only remove from the right controllers
-void MobilityServiceControllerManager::removeVehicleDriver(Person* person)
-{
-	auto controller = controllers.begin();
-
-	while (controller != controllers.end())
-	{
-		controller->second->removeVehicleDriver(person);
-		controller++;
-	}
-}
-
 Entity::UpdateStatus MobilityServiceControllerManager::frame_init(timeslice now)
 {
 	return Entity::UpdateStatus::Continue;
@@ -117,6 +93,7 @@ bool MobilityServiceControllerManager::isNonspatial()
 	return true;
 }
 }
+
 
 
 

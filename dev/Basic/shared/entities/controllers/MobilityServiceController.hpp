@@ -17,13 +17,13 @@ namespace sim_mob
 
 class MobilityServiceController : public Agent {
 protected:
-	explicit MobilityServiceController(const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered, unsigned int freq = 0)
-		: Agent(mtxStrat, -1), messageProcessFrequency(freq), currTimeSlice(timeslice(0, 0))
+	explicit MobilityServiceController(const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered, unsigned int computationPeriod = 0)
+		: Agent(mtxStrat, -1), scheduleComputationPeriod(computationPeriod), currTimeSlice(timeslice(0, 0))
 	{
 	}
 
 public:
-	struct VehicleRequest
+	struct TripRequest
 	{
 		const timeslice currTick;
 		const std::string personId;
@@ -42,16 +42,16 @@ public:
 	virtual ~MobilityServiceController();
 
 	/**
-	 * Adds a vehicle driver to the controller
+	 * Subscribes a vehicle driver to the controller
 	 * @param person Driver to be added
 	 */
-	void addVehicleDriver(Person* person);
+	void subscribeDriver(Person* person);
 
 	/**
-	 * Removes the vehicle driver from the controller
+	 * Unsubscribes a vehicle driver from the controller
 	 * @param person Driver to be removed
 	 */
-	void removeVehicleDriver(Person* person);
+	void unsubscribeDriver(Person* person);
 
 	/**
 	 * Signals are non-spatial in nature.
@@ -80,10 +80,10 @@ protected:
     void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
 
 	/** Store list of vehicle drivers */
-	std::vector<Person*> vehicleDrivers;
+	std::vector<Person*> drivers;
 
 	/** Store queue of requests */
-	std::vector<VehicleRequest> requestQueue;
+	std::vector<TripRequest> requestQueue;
 
 	/** Store current timeslice */
 	timeslice currTimeSlice;
@@ -92,16 +92,17 @@ private:
 	/**
 	 * Performs the controller algorithm to assign vehicles to requests
 	 */
-	virtual std::vector<MessageResult> assignVehiclesToRequests() = 0;
+	virtual std::vector<MessageResult> computeSchedules() = 0;
 
 	/** Keeps track of current local tick */
 	unsigned int localTick = 0;
 
 	/** Keeps track of how often to process messages */
-	unsigned int messageProcessFrequency;
+	unsigned int scheduleComputationPeriod;
 };
 }
 #endif /* MobilityServiceController_HPP_ */
+
 
 
 

@@ -61,18 +61,6 @@ public:
 	bool removeMobilityServiceController(unsigned int id);
 
 	/**
-	 * Adds a vehicle driver to the appropriate controllers
-	 * @param person Driver to be added
-	 */
-	void addVehicleDriver(Person* person);
-
-	/**
-	 * Removes the vehicle driver from the appropriate controllers
-	 * @param person Driver to be removed
-	 */
-	void removeVehicleDriver(Person* person);
-
-	/**
 	 * Signals are non-spatial in nature.
 	 */
 	bool isNonspatial();
@@ -108,6 +96,7 @@ private:
 };
 }
 #endif /* MobilityServiceControllerManager_HPP_ */
+
 
 
 

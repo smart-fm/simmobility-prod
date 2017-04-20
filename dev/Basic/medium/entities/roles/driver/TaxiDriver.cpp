@@ -86,9 +86,9 @@ void TaxiDriver::HandleParentMessage(messaging::Message::MessageType type, const
 {
 	switch (type)
 	{
-		case MSG_VEHICLE_ASSIGNMENT:
+		case MSG_TRIP_PROPOSITION:
 		{
-			const VehicleAssignmentMessage& msg = MSG_CAST(VehicleAssignmentMessage, message);
+			const TripPropositionMessage& msg = MSG_CAST(TripPropositionMessage, message);
 
 			Print() << "Assignment received for " << msg.personId << " at time " << parent->currTick.frame()
 				<< ". Message was sent at " << msg.currTick.frame() << " with startNodeId " << msg.startNodeId
@@ -104,9 +104,9 @@ void TaxiDriver::HandleParentMessage(messaging::Message::MessageType type, const
 				{
 					std::map<unsigned int, MobilityServiceController*> controllers = MobilityServiceControllerManager::GetInstance()->getControllers();
 				
-					messaging::MessageBus::SendMessage(controllers[1], MSG_VEHICLE_ASSIGNMENT_RESPONSE,
-						messaging::MessageBus::MessagePtr(new VehicleAssignmentResponseMessage(parent->currTick, false, msg.personId, parent->getDatabaseId(),
-							msg.startNodeId, msg.destinationNodeId, msg.extraTripTimeThreshold)));
+					messaging::MessageBus::SendMessage(controllers[1], MSG_TRIP_PROPOSITION_REPLY,
+						messaging::MessageBus::MessagePtr(new TripPropositionReplyMessage(parent->currTick, msg.personId, parent->getDatabaseId(),
+							msg.startNodeId, msg.destinationNodeId, msg.extraTripTimeThreshold, false)));
 
 					Print() << "Assignment response sent for " << msg.personId << " at time " << parent->currTick.frame()
 						<< ". Message was sent at " << msg.currTick.frame() << " with startNodeId " << msg.startNodeId
@@ -123,9 +123,9 @@ void TaxiDriver::HandleParentMessage(messaging::Message::MessageType type, const
 			{
 				std::map<unsigned int, MobilityServiceController*> controllers = MobilityServiceControllerManager::GetInstance()->getControllers();
 
-				messaging::MessageBus::SendMessage(controllers[1], MSG_VEHICLE_ASSIGNMENT_RESPONSE,
-					messaging::MessageBus::MessagePtr(new VehicleAssignmentResponseMessage(parent->currTick, success, msg.personId, parent->getDatabaseId(),
-						msg.startNodeId, msg.destinationNodeId, msg.extraTripTimeThreshold)));
+				messaging::MessageBus::SendMessage(controllers[1], MSG_TRIP_PROPOSITION_REPLY,
+					messaging::MessageBus::MessagePtr(new TripPropositionReplyMessage(parent->currTick, msg.personId, parent->getDatabaseId(),
+						msg.startNodeId, msg.destinationNodeId, msg.extraTripTimeThreshold, success)));
 
 				Print() << "Assignment response sent for " << msg.personId << " at time " << parent->currTick.frame()
 					<< ". Message was sent at " << msg.currTick.frame() << " with startNodeId " << msg.startNodeId
@@ -250,6 +250,7 @@ TaxiDriver::~TaxiDriver()
 }
 }
 }
+
 
 
 

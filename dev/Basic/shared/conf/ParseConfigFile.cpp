@@ -440,7 +440,7 @@ void sim_mob::ParseConfigFile::processMobilityServiceControllerNode(DOMElement *
 			unsigned int key = ParseUnsignedInt(GetNamedAttributeValue(*it, "id"), static_cast<unsigned int>(0));
 
 			unsigned int type = ParseUnsignedInt(GetNamedAttributeValue(*it, "type"), static_cast<unsigned int>(0));
-			unsigned int messageProcessFrequency = ParseUnsignedInt(GetNamedAttributeValue(*it, "messageProcessFrequency"), static_cast<unsigned int>(0));
+			unsigned int scheduleComputationPeriod = ParseUnsignedInt(GetNamedAttributeValue(*it, "scheduleComputationPeriod"), static_cast<unsigned int>(0));
 			// std::string vehicleIds = ParseString(GetNamedAttributeValue(*it, "vehicleIds"), "");
 
 			if (cfg.mobilityServiceController.enabledControllers.count(key) > 0)
@@ -452,12 +452,13 @@ void sim_mob::ParseConfigFile::processMobilityServiceControllerNode(DOMElement *
 			{
 				MobilityServiceControllerConfig vcc;
 				vcc.type = type;
-				vcc.messageProcessFrequency = messageProcessFrequency;
+				vcc.scheduleComputationPeriod = scheduleComputationPeriod;
 				cfg.mobilityServiceController.enabledControllers[key] = vcc;
 			}
 		}
     }
 }
+
 
 
 

@@ -13,11 +13,11 @@
 
 namespace sim_mob
 {
-std::vector<MobilityServiceController::MessageResult> GreedyTaxiController::assignVehiclesToRequests()
+std::vector<MobilityServiceController::MessageResult> GreedyTaxiController::computeSchedules()
 {
 	std::vector<MobilityServiceController::MessageResult> results;
 
-	for (std::vector<VehicleRequest>::iterator request = requestQueue.begin(); request != requestQueue.end(); request++)
+	for (std::vector<TripRequest>::iterator request = requestQueue.begin(); request != requestQueue.end(); request++)
 	{
 		Person* bestDriver;
 		double bestDistance = -1;
@@ -41,9 +41,9 @@ std::vector<MobilityServiceController::MessageResult> GreedyTaxiController::assi
 		}
 		Node* destinationNode = it->second;
 
-		auto person = vehicleDrivers.begin();
+		auto person = drivers.begin();
 
-		while (person != vehicleDrivers.end())
+		while (person != drivers.end())
 		{
 			if (!isCruising(*person))
 			{
@@ -90,8 +90,8 @@ std::vector<MobilityServiceController::MessageResult> GreedyTaxiController::assi
 
 		Print() << "Closest vehicle is at (" << bestX << ", " << bestY << ")" << std::endl;
 
-		messaging::MessageBus::PostMessage((messaging::MessageHandler*) bestDriver, MSG_VEHICLE_ASSIGNMENT, messaging::MessageBus::MessagePtr(
-			new VehicleAssignmentMessage(currTick, (*request).personId, (*request).startNodeId,
+		messaging::MessageBus::PostMessage((messaging::MessageHandler*) bestDriver, MSG_TRIP_PROPOSITION, messaging::MessageBus::MessagePtr(
+			new TripPropositionMessage(currTick, (*request).personId, (*request).startNodeId,
 				(*request).destinationNodeId, (*request).extraTripTimeThreshold)));
 
 		Print() << "Assignment sent for " << (*request).personId << " at time " << currTick.frame()
@@ -104,6 +104,7 @@ std::vector<MobilityServiceController::MessageResult> GreedyTaxiController::assi
 	return results;
 	}
 }
+
 
 
 

@@ -18,7 +18,7 @@ namespace sim_mob
 class SharedTaxiController_MT : public SharedTaxiController {
 public:
 	explicit SharedTaxiController_MT(const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered,
-		unsigned int freq = 0) : SharedTaxiController(mtxStrat, freq)
+		unsigned int computationPeriod = 0) : SharedTaxiController(mtxStrat, computationPeriod)
 	{
 	}
 	
@@ -28,6 +28,7 @@ protected:
 };
 }
 #endif /* SharedTaxiController_MT_HPP_ */
+
 
 
 

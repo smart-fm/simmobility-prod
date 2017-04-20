@@ -169,10 +169,12 @@ void BusControllerMT::assignBusTripChainWithPerson(std::set<Entity*>& activeAgen
 
 		if (MobilityServiceControllerManager::HasMobilityServiceControllerManager())
 		{
-			MobilityServiceControllerManager::GetInstance()->addVehicleDriver(person);
+			std::map<unsigned int, MobilityServiceController*> controllers = MobilityServiceControllerManager::GetInstance()->getControllers();
+			controllers[1]->subscribeDriver(person);
 		}
 	}
 }
+
 
 
 

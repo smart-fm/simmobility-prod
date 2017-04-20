@@ -18,7 +18,7 @@ namespace sim_mob
 class GreedyTaxiController_MT : public GreedyTaxiController {
 public:
 	explicit GreedyTaxiController_MT(const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered,
-		unsigned int freq = 0) : GreedyTaxiController(mtxStrat, freq)
+		unsigned int computationPeriod = 0) : GreedyTaxiController(mtxStrat, computationPeriod)
 	{
 	}
 protected:
@@ -27,6 +27,7 @@ protected:
 };
 }
 #endif /* GreedyTaxiController_MT_HPP_ */
+
 
 
 

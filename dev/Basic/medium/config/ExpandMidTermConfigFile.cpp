@@ -114,13 +114,13 @@ void ExpandMidTermConfigFile::processConfig()
             if (it->second.type == 1)
             {
                 GreedyTaxiController_MT* svc = new GreedyTaxiController_MT(cfg.mutexStategy(),
-                    it->second.messageProcessFrequency);
+                    it->second.scheduleComputationPeriod);
                 MobilityServiceControllerManager::GetInstance()->addMobilityServiceController(it->first, svc);
             }
             else if (it->second.type == 2)
             {
                 SharedTaxiController_MT* svc = new SharedTaxiController_MT(cfg.mutexStategy(),
-                    it->second.messageProcessFrequency);
+                    it->second.scheduleComputationPeriod);
                 MobilityServiceControllerManager::GetInstance()->addMobilityServiceController(it->first, svc);
             }
         }
@@ -308,6 +308,7 @@ void ExpandMidTermConfigFile::printSettings()
 	SimulationInfoPrinter simInfoPrinter(cfg, cfg.outSimInfoFileName);
 	simInfoPrinter.printSimulationInfo();
 }
+
 
 
 

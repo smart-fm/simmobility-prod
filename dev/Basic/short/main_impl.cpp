@@ -398,8 +398,8 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 	Print() << "\nNumber of trips/activities simulated: " << config.numTripsSimulated
 	        << "\nNumber of trips/activities completed: " << config.numTripsCompleted << "\n";
 
-	size_t numActivities = 0, numBusDriver = 0, numDriver = 0, numPassenger = 0, numPedestrian = 0, numTrainPassenger = 0;
-	size_t numPersons = 0, numWaitBus = 0;
+	size_t numActivities = 0, numBusDriver = 0, numCarPassenger = 0, numDriver = 0, numPassenger = 0, numPedestrian = 0;
+	size_t numPersons = 0, numPrivateBusPassenger = 0, numTrainPassenger = 0, numWaitBus = 0;
 
 	for (std::set<Entity*>::iterator it = Agent::all_agents.begin(); it != Agent::all_agents.end(); ++it)
 	{
@@ -420,6 +420,9 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 				case Role<Person_ST>::RL_BUSDRIVER:
 					numBusDriver++;
 					break;
+				case Role<Person_ST>::RL_CARPASSENGER:
+					numCarPassenger++;
+					break;
 				case Role<Person_ST>::RL_DRIVER:
 					numDriver++;
 					break;
@@ -428,6 +431,9 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 					break;
 				case Role<Person_ST>::RL_PEDESTRIAN:
 					numPedestrian++;
+					break;
+				case Role<Person_ST>::RL_PRIVATEBUSPASSENGER:
+					numPrivateBusPassenger++;
 					break;
 				case Role<Person_ST>::RL_TRAINPASSENGER:
 					numTrainPassenger++;
@@ -442,7 +448,9 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 
 	Print() << "\nPersons still in the simulation: " << numPersons << "\n"
 			<< numActivities << " Performing activity,\t" << numBusDriver << " BusDrivers,\t"
-			<< numDriver << " Drivers,\t" << numPassenger << " Passengers,\t" << numPedestrian << " Pedestrians,\t"
+			<< numCarPassenger << " CarPassengers,\t" << numDriver << " Drivers,\t"
+			<< numPassenger << " Passengers,\t" << numPedestrian << " Pedestrians,\t"
+			<< numPrivateBusPassenger << " PrivateBusPassenger,\t"
 			<< numTrainPassenger << " TrainPassengers,\t"	<< numWaitBus << " Waiting for bus\n";
 
     if (config.numAgentsKilled > 0)

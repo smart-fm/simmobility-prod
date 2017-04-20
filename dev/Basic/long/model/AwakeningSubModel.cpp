@@ -301,6 +301,9 @@ namespace sim_mob
 				if( success == false )
 					return;
 
+				household->setAwakenedDay(0);
+				household->setLastBidStatus(0);
+
 				bidder->setActive(true);
 
 				printAwakeningJingsi(day, household, futureTransitionRate, futureTransitionRandomDraw, movingRate, randomDrawMovingRate);
@@ -382,11 +385,18 @@ namespace sim_mob
 
 		    	int awakenDay = household->getLastAwakenedDay();
 
-				if(( household->getLastBidStatus() == 1 && day < config.ltParams.housingModel.awakeningModel.awakeningOffMarketSuccessfulBid + awakenDay ))
+
+		    	if( household->getLastBidStatus() == 0 && day < awakenDay + config.ltParams.housingModel.householdBiddingWindow )
+		    		continue;
+
+				if( household->getLastBidStatus() == 1 && day < config.ltParams.housingModel.awakeningModel.awakeningOffMarketSuccessfulBid + awakenDay )
 					continue;
 
-				if(( household->getLastBidStatus() == 2 && day < config.ltParams.housingModel.awakeningModel.awakeningOffMarketUnsuccessfulBid + awakenDay ))
+				if( household->getLastBidStatus() == 2 && day < config.ltParams.housingModel.awakeningModel.awakeningOffMarketUnsuccessfulBid + awakenDay )
 					continue;
+
+				household->setAwakenedDay(day);
+				household->setLastBidStatus(0);
 
                 double futureTransitionRate = 0;
 				double futureTransitionRandomDraw = 0;

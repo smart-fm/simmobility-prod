@@ -212,7 +212,7 @@ double HM_Model::TazStats::getAvgHHSize() const
 
 HM_Model::HM_Model(WorkGroup& workGroup) :	Model(MODEL_NAME, workGroup),numberOfBidders(0), initialHHAwakeningCounter(0), numLifestyle1HHs(0), numLifestyle2HHs(0), numLifestyle3HHs(0), hasTaxiAccess(false),
 											householdLogsumCounter(0), simulationStopCounter(0), developerModel(nullptr), startDay(0), bidId(0), numberOfBids(0), numberOfExits(0),	numberOfSuccessfulBids(0),
-											unitSaleId(0), numberOfSellers(0), resume(0), lastStoppedDay(0), numberOfBTOAwakenings(0),initialLoading(false){}
+											unitSaleId(0), numberOfSellers(0), numberOfBiddersWaitingToMove(0), resume(0), lastStoppedDay(0), numberOfBTOAwakenings(0),initialLoading(false){}
 
 HM_Model::~HM_Model()
 {
@@ -237,6 +237,21 @@ void HM_Model::incrementNumberOfSellers()
 void HM_Model::incrementNumberOfBidders()
 {
 	numberOfBidders++;
+}
+
+void HM_Model::incrementWaitingToMove()
+{
+	numberOfBiddersWaitingToMove++;
+}
+
+int HM_Model::getWaitingToMove()
+{
+	return numberOfBiddersWaitingToMove;
+}
+
+void HM_Model::setWaitingToMove(int number)
+{
+	numberOfBiddersWaitingToMove = number;
 }
 
 int HM_Model::getNumberOfSellers()
@@ -501,14 +516,7 @@ BigSerial HM_Model::getEstablishmentSlaAddressId(BigSerial establishmentId) cons
 	if( itr2 != slaBuildingById.end())
 		slaAddressId = itr2->second->getSla_address_id();
 
-	BigSerial tazId = INVALID_ID;
-
-	if (establishment)
-	{
-		tazId = DataManagerSingleton::getInstance().getPostcodeTazId(slaAddressId);
-	}
-
-	return tazId;
+	return slaAddressId;
 }
 
 

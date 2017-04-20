@@ -340,9 +340,12 @@ namespace sim_mob
 			void incrementNumberOfSellers();
 			void incrementNumberOfBidders();
 			void incrementNumberOfBTOAwakenings();
+			void incrementWaitingToMove();
 			int getNumberOfSellers();
 			int getNumberOfBidders();
 			int getNumberOfBTOAwakenings();
+			int getWaitingToMove();
+			void setWaitingToMove(int number);
 
             void incrementLifestyle1HHs();
             void incrementLifestyle2HHs();
@@ -580,6 +583,7 @@ namespace sim_mob
             int numberOfExits;
             int numberOfSuccessfulBids;
             int numberOfBTOAwakenings;
+            int numberOfBiddersWaitingToMove;
 
             DeveloperModel *developerModel;
             int startDay; //start tick of the simulation

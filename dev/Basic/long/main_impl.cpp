@@ -516,10 +516,11 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
             PrintOutV(" Day " << currTick
             	   << " HUnits: " << std::dec << (dynamic_cast<HM_Model*>(models[0]))->getMarket()->getEntrySize()
 				   << " BTO_Units: " << std::dec << (dynamic_cast<HM_Model*>(models[0])->getMarket()->getBTOEntrySize())
-				   << " Bidders: " 	<< (dynamic_cast<HM_Model*>(models[0]))->getNumberOfBidders() << " "
-				   << " Sellers: " 	<< (dynamic_cast<HM_Model*>(models[0]))->getNumberOfSellers() << " "		
+				   << " Bidders: " 	<< (dynamic_cast<HM_Model*>(models[0]))->getNumberOfBidders()
+				   << " Sellers: " 	<< (dynamic_cast<HM_Model*>(models[0]))->getNumberOfSellers()
 				   << " Bids: " 	<< (dynamic_cast<HM_Model*>(models[0]))->getBids()
 				   << " Accepted: " << (dynamic_cast<HM_Model*>(models[0]))->getSuccessfulBids()
+				   << " Waiting: "  << (dynamic_cast<HM_Model*>(models[0]))->getWaitingToMove()
 				   << " Exits: " 	<< (dynamic_cast<HM_Model*>(models[0]))->getExits()
 				   << " Awaken: "	<< (dynamic_cast<HM_Model*>(models[0]))->getAwakeningCounter()
 				   << " AwakenByBTO: "	<< (dynamic_cast<HM_Model*>(models[0]))->getNumberOfBTOAwakenings()
@@ -534,6 +535,7 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
             (dynamic_cast<HM_Model*>(models[0]))->setNumberOfBidders(0);
             (dynamic_cast<HM_Model*>(models[0]))->setNumberOfSellers(0);
             (dynamic_cast<HM_Model*>(models[0]))->setNumberOfBTOAwakenings(0);
+            (dynamic_cast<HM_Model*>(models[0]))->setWaitingToMove(0);
             (dynamic_cast<HM_Model*>(models[0]))->resetBAEStatistics();
         }
 

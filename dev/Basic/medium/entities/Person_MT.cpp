@@ -85,13 +85,13 @@ prevRole(nullptr), currRole(nullptr), nextRole(nullptr), numTicksStuck(0)
 	std::string ptPathsetStoredProcName = cfg.getDatabaseProcMappings().procedureMappings["pt_pathset"];
 	try
 	{
+		TripChainOutput::getInstance().printTripChain(tripChain);
 		convertPublicTransitODsToTrips(PT_NetworkCreater::getInstance(), ptPathsetStoredProcName);
 		insertWaitingActivityToTrip();
 		assignSubtripIds();
 		if (!tripChain.empty())
 		{
 			initTripChain();
-			TripChainOutput::getInstance().printTripChain(tripChain);
 		}
 	}
 	catch(PT_PathsetLoadException& exception)

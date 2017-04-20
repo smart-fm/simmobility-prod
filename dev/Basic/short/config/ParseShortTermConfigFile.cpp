@@ -908,7 +908,8 @@ void ParseShortTermTripFile::processTrips(DOMElement *node)
 				if(!ent.mode.empty())
 				{
 					//Check if travel mode is public transport
-					if(ent.mode != "PT")
+					if(ent.mode != "PT" && ent.mode != "BusTravel" && ent.mode != "MRT" &&
+							ent.mode != "Sharing" && ent.mode != "PrivateBus" && ent.mode != "Walk")
 					{
 						//Identify vehicle type from the mode of travel
 						std::vector<VehicleType>::iterator vehTypeIter = std::find(cfg.vehicleTypes.begin(), cfg.vehicleTypes.end(), ent.mode);

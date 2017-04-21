@@ -128,6 +128,8 @@ void ExpandMidTermConfigFile::loadNetworkFromDatabase()
 {
     NetworkLoader *loader = NetworkLoader::getInstance();
 
+	std::cout << "Database connection: " << cfg.getDatabaseConnectionString() << "\n\n";
+
     //load network
     loader->loadNetwork(cfg.getDatabaseConnectionString(false), cfg.getDatabaseProcMappings().procedureMappings);
 
@@ -248,8 +250,6 @@ void ExpandMidTermConfigFile::printSettings()
 {
     std::cout << "\nConfiguration parameters:\n";
     std::cout << "------------------\n";
-
-	std::cout << "Database connection: " << cfg.getDatabaseConnectionString() << "\n";
 
     //Print the WorkGroup strategy.
     std::cout << "WorkGroup assignment: ";

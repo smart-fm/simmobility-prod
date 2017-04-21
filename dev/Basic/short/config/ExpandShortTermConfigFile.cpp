@@ -383,6 +383,9 @@ void ExpandShortTermConfigFile::loadNetworkFromDatabase()
 		//The instance of the network loader
 		NetworkLoader *loader = NetworkLoader::getInstance();
 
+		//Output Database details
+		std::cout << "Database connection: " << cfg.getDatabaseConnectionString() << "\n\n";
+
 		//Load the road network
 		loader->loadNetwork(cfg.getDatabaseConnectionString(false), cfg.getDatabaseProcMappings().procedureMappings);
 
@@ -697,9 +700,6 @@ void ExpandShortTermConfigFile::printSettings()
 {
 	std::cout << "\nConfiguration parameters:\n";
 	std::cout << "------------------\n";
-
-	//Output Database details
-	std::cout << "Database connection: " << cfg.getDatabaseConnectionString() << "\n";
 
 	//Print the WorkGroup strategy.
 	std::cout << "WorkGroup assignment: ";

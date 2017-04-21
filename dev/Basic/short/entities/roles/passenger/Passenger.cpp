@@ -43,8 +43,8 @@ Role<Person_ST>* Passenger::clone(Person_ST *parent) const
 	else
 	{
 		std::stringstream msg;
-		msg << __func__ << ": Unknown mode for passenger role: " << parent->currSubTrip->getMode();
-		msg << "\nAccepted modes are: BusTravel and MRT";
+		msg << __func__ << ": Invalid mode for passenger role: " << parent->currSubTrip->getMode();
+		msg << "\nExpected: BusTravel or MRT or Sharing or PrivateBus";
 		throw std::runtime_error(msg.str());
 	}
 	

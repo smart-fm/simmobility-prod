@@ -67,7 +67,9 @@ public:
 	{
 		if (prototypes.count(name) > 0)
 		{
-			throw std::runtime_error("Duplicate role type.");
+			std::stringstream msg;
+			msg << __func__ << ": Proto-type for role " << name << "has been registered.";
+			throw std::runtime_error(msg.str());
 		}
 
 		prototypes[name] = prototype;
@@ -99,7 +101,9 @@ public:
 
 		if (!prot)
 		{
-			throw std::runtime_error("Unknown role type; cannot clone.");
+			std::stringstream msg;
+			msg << __func__ << ": Invalid role: " << name;
+			throw std::runtime_error(msg.str());
 		}
 
 		Role<PERSON> *role = prot->clone(parent);
@@ -174,7 +178,9 @@ public:
 			return "driver";
 		}
 
-		throw std::runtime_error("unknown SubTrip mode: " + mode);
+		std::stringstream msg;
+		msg << __func__ << ": Empty role name given";
+		throw std::runtime_error(msg.str());
 	}
 
 	/**
@@ -234,7 +240,9 @@ public:
 		}
 		else
 		{
-			throw std::runtime_error("RoleFactory is initialised more than once!");
+			std::stringstream msg;
+			msg << __func__ << ": Attempting to replace existing instance of RoleFactory";
+			throw std::runtime_error(msg.str());
 		}
 	}
 

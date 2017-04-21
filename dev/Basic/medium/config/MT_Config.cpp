@@ -145,6 +145,16 @@ void MT_Config::setThreadsNumInPersonLoader(unsigned int number)
 	}
 }
 
+void MT_Config::setPercentageOfOnDemandTraveler(unsigned int percentage)
+{
+	percentageOfOnDemandTraveler = percentage;
+}
+
+unsigned int MT_Config::getPercentageOfOnDemandTraveler() const
+{
+	return percentageOfOnDemandTraveler;
+}
+
 const MongoCollectionsMap& MT_Config::getMongoCollectionsMap() const
 {
 	return mongoCollectionsMap;

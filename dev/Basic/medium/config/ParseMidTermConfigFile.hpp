@@ -117,6 +117,12 @@ private:
 	void processThreadsNumInPersonLoaderElement(xercesc::DOMElement* node);
 
 	/**
+	 * processes percentage for on-demand traveler included in xml file.
+	 * @param node corresponding to the element of percentage for on-demand inside xml file
+	 */
+	void processPercentageOnDemandTravelerElement(xercesc::DOMElement* node);
+
+	/**
      * processes model scripts element in config xml
      *
 	 * @param node node corresponding to model_scripts element inside xml file

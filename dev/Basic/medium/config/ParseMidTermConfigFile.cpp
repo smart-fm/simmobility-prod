@@ -519,7 +519,7 @@ void ParseMidTermConfigFile::processScreenLineNode(DOMElement *node)
 		if(mtCfg.screenLineParams.outputEnabled)
 		{
 			mtCfg.screenLineParams.interval = ParseUnsignedInt(GetNamedAttributeValue(node, "interval"), 300);
-			mtCfg.screenLineParams.fileName = ParseString(GetNamedAttributeValue(node, "file-name"), "screenLineCount.txt");
+			mtCfg.screenLineParams.fileName = ParseString(GetNamedAttributeValue(node, "file"), "screenLineCount.txt");
 
 			if(mtCfg.screenLineParams.interval == 0)
 			{

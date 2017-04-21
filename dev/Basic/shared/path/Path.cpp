@@ -267,7 +267,7 @@ double sim_mob::generatePathLength(const std::vector<sim_mob::WayPoint>& wp)
 
 	double res = sim_mob::dist(frmNodePt, linkStartPt);
 
-	for (std::vector<sim_mob::WayPoint>::const_iterator it = wp.begin(); it != wp.end(); it++)
+	for (std::vector<sim_mob::WayPoint>::const_iterator it = wp.begin(); it != wp.end() - 1; it++)
 	{
 		//Add the length of the link
 		const sim_mob::Link* lnk = it->link;

@@ -91,8 +91,6 @@ void TripChainOutput::printTripChain(const std::vector<sim_mob::TripChainItem*> 
 				std::string activityEnd;
 				if(tripChainItemIt == tripChain.end())
 				{
-					activityStart = "\"\"";
-					activityEnd = "\"\"";
 					--tripChainItemIt;
 				}
 				else if ((*tripChainItemIt)->itemType == sim_mob::TripChainItem::IT_ACTIVITY)
@@ -103,7 +101,9 @@ void TripChainOutput::printTripChain(const std::vector<sim_mob::TripChainItem*> 
 				}
 
 				std::stringstream tripActivityStream;
-				tripActivityStream << tripId << "," << personId << "," << tripStartTime << "," << activityStart << "," << activityEnd << ","
+				tripActivityStream << tripId << "," << personId << "," << tripStartTime << ","
+				                   << (activityStart.empty() ? "\"\"" : activityStart) << ","
+				                   << (activityEnd.empty() ? "\"\"" : activityEnd) << ","
 				                   << originType << "," << destType << "," << originId << "," << destId << "\n";
 
 				//write to trips_activities file

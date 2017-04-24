@@ -32,9 +32,6 @@ WaitTaxiActivity::~WaitTaxiActivity() {
 sim_mob::Role<Person_MT>* WaitTaxiActivity::clone(Person_MT *parent) const
 {
 	SubTrip& subTrip = *(parent->currSubTrip);
-	if(subTrip.origin.type!=WayPoint::TAXI_STAND){
-		throw std::runtime_error("Waiting taxi activity do not have stand!");
-	}
 	WaitTaxiActivityBehavior* behavior = new WaitTaxiActivityBehavior();
 	WaitTaxiActivityMovement* movement = new WaitTaxiActivityMovement();
 	WaitTaxiActivity* waitTaxiActivity = new WaitTaxiActivity(parent, behavior,	movement, subTrip.origin.taxiStand);

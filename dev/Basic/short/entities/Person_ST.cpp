@@ -531,6 +531,8 @@ void Person_ST::convertPublicTransitODsToTrips()
 						if (!ret)
 						{
 							tripChain.clear();
+							ConfigManager::GetInstanceRW().FullConfig().numPathNotFound++;
+							setToBeRemoved();
 							return;
 						}
 					}

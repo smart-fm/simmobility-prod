@@ -459,6 +459,12 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 		        << config.numAgentsKilled << endl;
 	}
 
+	if(config.numPathNotFound > 0)
+	{
+		Print() << "\nPersons not simulated as the path was not found [Refer to warn.log for more details]: "
+		        << config.numPathNotFound << endl;
+	}
+
 	if (!Agent::pending_agents.empty()) 
 	{
 		Print() << "\nWARNING! There are still " << Agent::pending_agents.size()

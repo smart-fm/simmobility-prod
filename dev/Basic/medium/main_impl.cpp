@@ -570,6 +570,12 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 		        << config.numAgentsKilled << endl;
 	}
 
+	if(config.numPathNotFound > 0)
+	{
+		Print() << "\nPersons not simulated as the path was not found [Refer to warn.log for more details]: "
+		        << config.numPathNotFound << endl;
+	}
+
 	PT_Statistics::getInstance()->storeStatistics();
 	PT_Statistics::resetInstance();
 

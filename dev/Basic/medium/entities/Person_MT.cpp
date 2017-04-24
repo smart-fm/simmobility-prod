@@ -366,6 +366,8 @@ void Person_MT::convertPublicTransitODsToTrips(PT_Network& ptNetwork,const std::
 						if (!ret)
 						{
 							tripChain.clear();
+							setToBeRemoved();
+							ConfigManager::GetInstanceRW().FullConfig().numPathNotFound++;
 							return;
 						}
 					}

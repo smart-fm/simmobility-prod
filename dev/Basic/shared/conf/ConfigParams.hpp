@@ -119,6 +119,9 @@ public:
 	///Total number of trips that were completed
 	std::atomic<unsigned int> numTripsCompleted;
 
+	///Total number of person that could not be loaded due to path not found errors
+	std::atomic<unsigned int> numPathNotFound;
+
 public:
     /**
      * Retrieves/Builds the database connection string

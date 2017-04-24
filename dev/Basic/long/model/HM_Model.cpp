@@ -3142,14 +3142,24 @@ std::vector<AccessibilityFixedPzid*> HM_Model::getAccessibilityFixedPzid()
 
 }
 
-std::vector<OwnerTenantMovingRate*> HM_Model::getOwnerTenantMovingRates()
+OwnerTenantMovingRate* HM_Model::getOwnerTenantMovingRates(int index)
 {
-	return ownerTenantMovingRate;
+	return ownerTenantMovingRate[index];
 }
 
-std::vector<TenureTransitionRate*> HM_Model::getTenureTransitionRates()
+TenureTransitionRate* HM_Model::getTenureTransitionRates(int index)
 {
-	return tenureTransitionRate;
+	return tenureTransitionRate[index];
+}
+
+int HM_Model::getOwnerTenantMovingRatesSize()
+{
+	return ownerTenantMovingRate.size();
+}
+
+int HM_Model::getTenureTransitionRatesSize()
+{
+	return tenureTransitionRate.size();
 }
 
 std::vector<AlternativeHedonicPrice*> HM_Model::getAlternativeHedonicPrice()

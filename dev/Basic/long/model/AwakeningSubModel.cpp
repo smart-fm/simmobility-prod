@@ -57,13 +57,13 @@ namespace sim_mob
 			else
 				tenureStatus = "rent";
 
-			for(int p = 0; p < model->getTenureTransitionRates().size(); p++)
+			for(int p = 0; p < model->getTenureTransitionRatesSize(); p++)
 			{
-				if( model->getTenureTransitionRates()[p]->getAgeGroup() == tenureTransitionId &&
-					model->getTenureTransitionRates()[p]->getCurrentStatus() == tenureStatus  &&
-					model->getTenureTransitionRates()[p]->getFutureStatus() == string("own") )
+				if( model->getTenureTransitionRates(p)->getAgeGroup() == tenureTransitionId &&
+					model->getTenureTransitionRates(p)->getCurrentStatus() == tenureStatus  &&
+					model->getTenureTransitionRates(p)->getFutureStatus() == string("own") )
 				{
-					futureTransitionRate = model->getTenureTransitionRates()[p]->getRate() / 100.0;
+					futureTransitionRate = model->getTenureTransitionRates(p)->getRate() / 100.0;
 				}
 			}
 
@@ -343,21 +343,20 @@ namespace sim_mob
 					householdHead = individual;
 			}
 
-			vector<OwnerTenantMovingRate*> ownerTenantMR = model->getOwnerTenantMovingRates();
 
 			double movingRate = 1.0;
 
-			for(int n = 0; n < ownerTenantMR.size(); n++)
+			for(int n = 0; n < model->getOwnerTenantMovingRatesSize(); n++)
 			{
 				if( household->getTenureStatus() == 2 &&
-				    householdHead->getAgeCategoryId() == ownerTenantMR[n]->getAgeCategory() &&
-				    ownerTenantMR[n]->getDayZero() == day0 )
-						movingRate = ownerTenantMR[n]->getTenantMovingPercentage();
+				    householdHead->getAgeCategoryId() == model->getOwnerTenantMovingRates(n)->getAgeCategory() &&
+					model->getOwnerTenantMovingRates(n)->getDayZero() == day0 )
+						movingRate = model->getOwnerTenantMovingRates(n)->getTenantMovingPercentage();
 
 				if( household->getTenureStatus() == 1 &&
-					householdHead->getAgeCategoryId() == ownerTenantMR[n]->getAgeCategory() &&
-					ownerTenantMR[n]->getDayZero() == day0 )
-						movingRate = ownerTenantMR[n]->getOwnerMovingPercentage();
+					householdHead->getAgeCategoryId() == model->getOwnerTenantMovingRates(n)->getAgeCategory() &&
+					model->getOwnerTenantMovingRates(n)->getDayZero() == day0 )
+						movingRate = model->getOwnerTenantMovingRates(n)->getOwnerMovingPercentage();
 			}
 
 			return movingRate;

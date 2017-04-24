@@ -430,8 +430,13 @@ namespace sim_mob
             PreSchoolList getPreSchoolList() const;
             PreSchool* getPreSchoolById( BigSerial id) const;
 
-            std::vector<OwnerTenantMovingRate*> getOwnerTenantMovingRates();
-            std::vector<TenureTransitionRate*> getTenureTransitionRates();
+
+
+            OwnerTenantMovingRate* getOwnerTenantMovingRates(int index);
+            TenureTransitionRate* getTenureTransitionRates(int index);
+            int getOwnerTenantMovingRatesSize();
+            int getTenureTransitionRatesSize();
+
             std::vector<AlternativeHedonicPrice*> getAlternativeHedonicPrice();
             boost::unordered_multimap<BigSerial, AlternativeHedonicPrice*>& getAlternativeHedonicPriceById();
 

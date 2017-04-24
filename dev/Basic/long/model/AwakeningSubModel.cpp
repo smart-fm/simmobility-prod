@@ -45,8 +45,10 @@ namespace sim_mob
 			else
 			if( household->getAgeOfHead()>= 7 && household->getAgeOfHead() <= 9 )
 				tenureTransitionId = "35-49";
+			else
 			if( household->getAgeOfHead()>= 10 && household->getAgeOfHead() <= 12 )
 				tenureTransitionId = "50-64";
+			else
 			if( household->getAgeOfHead()>= 13 )
 				tenureTransitionId = "65+";
 
@@ -59,9 +61,9 @@ namespace sim_mob
 
 			for(int p = 0; p < model->getTenureTransitionRatesSize(); p++)
 			{
-				if( model->getTenureTransitionRates(p)->getAgeGroup() == tenureTransitionId &&
-					model->getTenureTransitionRates(p)->getCurrentStatus() == tenureStatus  &&
-					model->getTenureTransitionRates(p)->getFutureStatus() == string("own") )
+				if( model->getTenureTransitionRates(p)->getCurrentStatus() == tenureStatus &&
+					model->getTenureTransitionRates(p)->getFutureStatus() == string("own") &&
+					model->getTenureTransitionRates(p)->getAgeGroup() == tenureTransitionId )
 				{
 					futureTransitionRate = model->getTenureTransitionRates(p)->getRate() / 100.0;
 				}
@@ -343,23 +345,271 @@ namespace sim_mob
 					householdHead = individual;
 			}
 
+ 			    double movingRate = 1.0;
 
-			double movingRate = 1.0;
+				if(  day0  == true)
+				{
+					if( householdHead->getAgeCategoryId() == 3 )
+					{
+						if( household->getTenureStatus() == 1 )
+							movingRate = 2.421002878;
+						else
+							movingRate = 4.842005756;
+					}
+					else
+					if( householdHead->getAgeCategoryId() == 4 )
+					{
+						if( household->getTenureStatus() == 1 )
+							movingRate = 2.421002878;
+						else
+							movingRate = 4.842005756;
+					}
+					else
+					if( householdHead->getAgeCategoryId() == 5 )
+					{
+						if( household->getTenureStatus() == 1 )
+							movingRate =2.421002878;
+						else
+							movingRate = 4.842005756;
+					}
+					else
+					if( householdHead->getAgeCategoryId() == 6 )
+					{
+						if( household->getTenureStatus() == 1 )
 
+							movingRate =2.421002878;
+						else
+							movingRate = 4.842005756;
+
+					}
+					else
+					if( householdHead->getAgeCategoryId() == 7 )
+					{
+						if( household->getTenureStatus() == 1 )
+							movingRate =1.210501439;
+						else
+							movingRate = 2.421002878;
+					}
+					else
+					if( householdHead->getAgeCategoryId() == 8 )
+					{
+						if( household->getTenureStatus() == 1 )
+							movingRate =1.210501439;
+						else
+								movingRate = 2.421002878;
+					}
+					else
+					if( householdHead->getAgeCategoryId() == 9 )
+					{
+						if( household->getTenureStatus() == 1 )
+							movingRate =1.210501439;
+						else
+							movingRate = 2.421002878;
+					}else
+					if( householdHead->getAgeCategoryId() == 10 )
+					{
+						if( household->getTenureStatus() == 1 )
+							movingRate =0.726300863;
+						else
+							movingRate = 1.331551583;
+					}else
+					if( householdHead->getAgeCategoryId() == 11 )
+					{
+						if( household->getTenureStatus() == 1 )
+							movingRate =0.726300863;
+						else
+							movingRate = 1.331551583;
+					}else
+					if( householdHead->getAgeCategoryId() == 12 )
+					{
+						if( household->getTenureStatus() == 1 )
+							movingRate =0.726300863;
+						else
+							movingRate = 1.331551583;
+					}else
+					if( householdHead->getAgeCategoryId() == 13 )
+					{
+						if( household->getTenureStatus() == 1 )
+							movingRate =0.484200576;
+						else
+							movingRate = 0.968401151;
+					}else
+					if( householdHead->getAgeCategoryId() == 14 )
+					{
+						if( household->getTenureStatus() == 1 )
+							movingRate =0.484200576;
+						else
+							movingRate = 0.968401151;
+					}else
+					if( householdHead->getAgeCategoryId() == 15 )
+					{
+						if( household->getTenureStatus() == 1 )
+							movingRate =0.484200576;
+						else
+							movingRate = 0.968401151;
+					}
+					else
+					if( householdHead->getAgeCategoryId() == 16 )
+					{
+						if( household->getTenureStatus() == 1 )
+							movingRate =0.484200576;
+						else
+							movingRate = 0.968401151;
+					}
+					else
+					if( householdHead->getAgeCategoryId() == 17 )
+					{
+						if( household->getTenureStatus() == 1 )
+							movingRate =0.484200576;
+						else
+							movingRate = 0.968401151;
+					}
+					else
+					if( householdHead->getAgeCategoryId() == 99 )
+					{
+						if( household->getTenureStatus() == 1 )
+							movingRate =0.484200576;
+						else
+							movingRate =0.968401151;
+					}
+				}
+				else
+				{
+
+					if( householdHead->getAgeCategoryId() == 3 )
+					{
+						if( household->getTenureStatus() == 1 )
+							movingRate =0.064560077;
+						else
+							movingRate =0.129120153;
+					}
+					else if( householdHead->getAgeCategoryId() == 4)
+					{
+						if( household->getTenureStatus() == 1 )
+							movingRate =0.064560077;
+						else
+							movingRate =0.129120153;
+					}
+					else if( householdHead->getAgeCategoryId() == 5)
+					{
+						if( household->getTenureStatus() == 1 )
+							movingRate =0.064560077;
+						else
+							movingRate =0.129120153;
+					}
+					else if( householdHead->getAgeCategoryId() == 6)
+					{
+						if( household->getTenureStatus() == 1 )
+							movingRate =0.064560077;
+						else
+							movingRate =0.129120153;
+					}
+					else if( householdHead->getAgeCategoryId() == 7)
+					{
+						if( household->getTenureStatus() == 1 )
+							movingRate =0.032280038;
+						else
+							movingRate =0.064560077;
+					}
+					else if( householdHead->getAgeCategoryId() == 8)
+					{
+						if( household->getTenureStatus() == 1 )
+							movingRate =0.032280038;
+						else
+							movingRate =0.064560077;
+					}
+					else if( householdHead->getAgeCategoryId() == 9)
+					{
+						if( household->getTenureStatus() == 1 )
+							movingRate =0.032280038;
+						else
+							movingRate =0.064560077;
+					}
+					else if( householdHead->getAgeCategoryId() == 10)
+					{
+						if( household->getTenureStatus() == 1 )
+							movingRate =0.019368023;
+						else
+							movingRate =0.035508042;
+					}
+					else if( householdHead->getAgeCategoryId() == 11)
+					{
+						if( household->getTenureStatus() == 1 )
+							movingRate =0.019368023;
+						else
+							movingRate =0.035508042;
+					}
+					else if( householdHead->getAgeCategoryId() == 12)
+					{
+						if( household->getTenureStatus() == 1 )
+							movingRate =0.019368023;
+						else
+							movingRate =0.035508042;
+					}
+					else if( householdHead->getAgeCategoryId() == 13)
+					{
+						if( household->getTenureStatus() == 1 )
+							movingRate =0.012912015;
+						else
+							movingRate =0.025824031;
+					}
+					else if( householdHead->getAgeCategoryId() == 14)
+					{
+						if( household->getTenureStatus() == 1 )
+							movingRate =0.012912015;
+						else
+							movingRate =0.025824031;
+					}
+					else if( householdHead->getAgeCategoryId() == 15)
+					{
+						if( household->getTenureStatus() == 1 )
+							movingRate =0.012912015;
+						else
+							movingRate =0.025824031;
+					}
+					else if( householdHead->getAgeCategoryId() == 16)
+					{
+						if( household->getTenureStatus() == 1 )
+							movingRate =0.012912015;
+						else
+							movingRate =0.025824031;
+					}
+					else if( householdHead->getAgeCategoryId() == 17)
+					{
+						if( household->getTenureStatus() == 1 )
+							movingRate =0.012912015;
+						else
+							movingRate =0.025824031;
+					}
+					else if( householdHead->getAgeCategoryId() == 99)
+					{
+						if( household->getTenureStatus() == 1 )
+							movingRate =0.012912015;
+						else
+							movingRate =0.025824031;
+					}
+
+				}
+
+			return movingRate;
+
+			/*
 			for(int n = 0; n < model->getOwnerTenantMovingRatesSize(); n++)
 			{
 				if( household->getTenureStatus() == 2 &&
 				    householdHead->getAgeCategoryId() == model->getOwnerTenantMovingRates(n)->getAgeCategory() &&
 					model->getOwnerTenantMovingRates(n)->getDayZero() == day0 )
-						movingRate = model->getOwnerTenantMovingRates(n)->getTenantMovingPercentage();
+						return model->getOwnerTenantMovingRates(n)->getTenantMovingPercentage();
+
 
 				if( household->getTenureStatus() == 1 &&
 					householdHead->getAgeCategoryId() == model->getOwnerTenantMovingRates(n)->getAgeCategory() &&
 					model->getOwnerTenantMovingRates(n)->getDayZero() == day0 )
-						movingRate = model->getOwnerTenantMovingRates(n)->getOwnerMovingPercentage();
+						return model->getOwnerTenantMovingRates(n)->getOwnerMovingPercentage();
 			}
 
-			return movingRate;
+			return 1.0;
+			*/
 		}
 
 
@@ -405,7 +655,7 @@ namespace sim_mob
 				if( success == false)
 					continue;
 
-		    	double movingRate = movingProbability(household, model, false ) / 100.0;
+		    	double movingRate = movingProbability(household, model, false ) / 10.0;
 
 		    	double movingRateRandomDraw = (double)rand()/RAND_MAX;
 

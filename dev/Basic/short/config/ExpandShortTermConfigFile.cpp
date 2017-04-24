@@ -151,6 +151,7 @@ SubTrip makeSubTrip(soci::row &r)
 	SubTrip subtrip;
 	subtrip.itemType = TripChainItem::IT_TRIP;
 	subtrip.tripID = r.get<string>(COLUMN_TRIP_ID);
+	subtrip.startTime = DailyTime(r.get<string>(COLUMN_TRIP_START_TIME));
 	subtrip.sequenceNumber = r.get<unsigned int>(COLUMN_SEQUENCE_NUMBER);
 	subtrip.travelMode = r.get<string>(COLUMN_MODE);
 	subtrip.ptLineId = r.get<string>(COLUMN_PT_LINE_ID);

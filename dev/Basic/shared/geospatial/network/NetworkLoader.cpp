@@ -336,7 +336,8 @@ void NetworkLoader::loadTurningConflicts(const std::string& storedProc)
 	//Sanity check
 	unsigned int conflictsLoaded = roadNetwork->getMapOfIdvsTurningConflicts().size();
 
-	if(conflictsLoaded == 0)
+	if(conflictsLoaded == 0 &&
+			ConfigManager::GetInstance().FullConfig().simMobRunMode == RawConfigParams::SimMobRunMode::SHORT_TERM)
 	{
 		std::stringstream msg;
 		msg << storedProc << " returned 0 turning conflicts!";

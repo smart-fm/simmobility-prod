@@ -295,21 +295,24 @@ void Conflux::addAgent(Person_MT* person)
 		}
 		case Role<Person_MT>::RL_TRAVELPEDESTRIAN:
 		{
-			std::vector<SubTrip>::iterator subTripItr = person->currSubTrip;
-			WayPoint personTravelDestination = (*subTripItr).destination;
-			const Node * personDestinationNode = personTravelDestination.node;
-
 			if (MobilityServiceControllerManager::HasMobilityServiceControllerManager())
 			{
-				std::map<unsigned int, MobilityServiceController*> controllers = MobilityServiceControllerManager::GetInstance()->getControllers();
+				std::vector<SubTrip>::iterator subTripItr = person->currSubTrip;
+				const Node * personDestinationNode = (*subTripItr).destination.node;
 
-				messaging::MessageBus::SendMessage(controllers[1], MSG_TRIP_REQUEST, messaging::MessageBus::MessagePtr(
-					new TripRequestMessage(person->currTick, person->getDatabaseId(),
-						confluxNode->getNodeId(), personDestinationNode->getNodeId(), 0)));
+				if ((*subTripItr).travelMode == "TravelPedestrian" && personDestinationNode == confluxNode) {
+					std::vector<SubTrip>::iterator taxiTripItr = subTripItr + 1;
 
-				Print() << "Request made from " << person->getDatabaseId() << " at time " << person->currTick.frame() << ". Message was sent at "
-					<< person->currTick.frame() << " with startNodeId " << confluxNode->getNodeId() << ", destinationNodeId " << personDestinationNode->getNodeId()
-					<< ", and driverId null" << std::endl;
+					std::map<unsigned int, MobilityServiceController*> controllers = MobilityServiceControllerManager::GetInstance()->getControllers();
+
+					messaging::MessageBus::SendMessage(controllers[1], MSG_TRIP_REQUEST, messaging::MessageBus::MessagePtr(
+						new TripRequestMessage(person->currTick, person->getDatabaseId(),
+							confluxNode->getNodeId(), (*taxiTripItr).destination.node->getNodeId(), 0)));
+
+					Print() << "Request made from " << person->getDatabaseId() << " at time " << person->currTick.frame() << ". Message was sent at "
+						<< person->currTick.frame() << " with startNodeId " << confluxNode->getNodeId() << ", destinationNodeId " << (*taxiTripItr).destination.node->getNodeId()
+						<< ", and driverId null" << std::endl;
+				}
 			}
 			
 			travelingPersons.push_back(person);
@@ -2900,12 +2903,5 @@ sim_mob::medium::PersonTransferMessage::PersonTransferMessage(Person_MT* person,
 sim_mob::medium::PersonTransferMessage::~PersonTransferMessage()
 {
 }
-
-
-
-
-
-
-
 
 

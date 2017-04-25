@@ -175,10 +175,9 @@ void PedestrianMovement::frame_tick()
 		unsigned int tickMS = ConfigManager::GetInstance().FullConfig().baseGranMS();
 		parentPedestrian->setTravelTime(parentPedestrian->getTravelTime()+tickMS);
 		double tickSec = ConfigManager::GetInstance().FullConfig().baseGranSecond();
-		if(isOnDemandTraveler)
+		if (isOnDemandTraveler)
 		{
 			std::string personId = parentPedestrian->parent->getDatabaseId();
-			std::cout << "on-demand traveler: "<<personId << std::endl;
 		}
 		else
 		{
@@ -235,3 +234,4 @@ Conflux* PedestrianMovement::getDestinationConflux() const
 	}
 	return nullptr;
 }
+

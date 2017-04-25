@@ -288,7 +288,7 @@ void HouseholdSellerRole::update(timeslice now)
             {
             	//0.05 is the lower threshold for the hedonic price
             	if( firstExpectation.hedonicPrice  < 0.05 )
-            		return;
+            		continue;
 
                 market->addEntry( HousingMarket::Entry( getParent(), unit->getId(), model->getUnitSlaAddressId( unit->getId() ), tazId, firstExpectation.askingPrice, firstExpectation.hedonicPrice, unit->isBto()));
 				#ifdef VERBOSE

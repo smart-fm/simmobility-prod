@@ -396,8 +396,10 @@ Entity::UpdateStatus Person_ST::frame_tick(timeslice now)
 					//since start time of the activity is usually later than what is configured initially,
 					//we have to make adjustments so that the person waits for exact amount of time
 					ActivityPerformer<Person_ST> *ap = dynamic_cast<ActivityPerformer<Person_ST>* > (currRole);
-                    ap->setActivityStartTime(DailyTime(now.ms() + config.baseGranMS()));
-                    ap->setActivityEndTime(DailyTime(now.ms() + config.baseGranMS() + (tcItem->endTime.getValue() - tcItem->startTime.getValue())));
+					Activity* acItem = dynamic_cast<Activity *>(tcItem);
+					ap->setActivityStartTime(DailyTime(now.ms() + config.baseGranMS()));
+					ap->setActivityEndTime(DailyTime(now.ms() + config.baseGranMS() + (tcItem->endTime.getValue() - tcItem->startTime.getValue())));
+					ap->setLocation(acItem->destination.node);
 				}
 				
 				if (!isInitialized())

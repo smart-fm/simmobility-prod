@@ -655,7 +655,7 @@ namespace sim_mob
 				if( success == false)
 					continue;
 
-		    	double movingRate = movingProbability(household, model, false ) / 10.0;
+		    	double movingRate = movingProbability(household, model, false ) / 100.0;
 
 		    	double movingRateRandomDraw = (double)rand()/RAND_MAX;
 

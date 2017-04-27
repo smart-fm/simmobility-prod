@@ -627,6 +627,11 @@ int main_impl(int ARGC, char* ARGV[])
 	config.is_simulation_repeatable = true;
 
 	/**
+	 * set run mode as short-term
+	 */
+	config.simMobRunMode = ConfigParams::SHORT_TERM;
+
+	/**
 	 * Start MPI if using_MPI is true
 	 */
 #ifndef SIMMOB_DISABLE_MPI

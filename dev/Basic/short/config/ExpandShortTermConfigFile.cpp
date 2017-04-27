@@ -281,7 +281,6 @@ stConfig(stConfig), cfg(cfg), active_agents(active_agents), pending_agents(pendi
 
 void ExpandShortTermConfigFile::processConfig()
 {
-	cfg.simMobRunMode = ConfigParams::SimMobRunMode::SHORT_TERM;
 	cfg.setWorkerPublisherEnabled(stConfig.commsim.enabled);
 
 	//Inform of load order (drivers, database, pedestrians, etc.).

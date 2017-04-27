@@ -658,6 +658,14 @@ void ParseConfigFile::processSimulationNode(xercesc::DOMElement *node)
 
 	cfg.simulation.baseGranSecond = cfg.simulation.baseGranMS / MILLISECONDS_IN_SECOND;
 
+	if(cfg.simMobRunMode == RawConfigParams::SimMobRunMode::MID_TERM && ! (unsigned) cfg.simulation.baseGranSecond)
+	{
+		stringstream msg;
+		msg << "Invalid value for base_granularity : " << cfg.simulation.baseGranSecond
+		    << " seconds" << ". Expected: Value greater than or equal to 1 second";
+		throw runtime_error(msg.str());
+	}
+
 	cfg.simulation.simStartTime = processValueDailyTime(GetSingleElementByName(node, "start_time", true));
 	cfg.simulation.inSimulationTTUsage =
 			processInSimulationTTUsage(GetSingleElementByName(node, "in_simulation_travel_time_usage", true));

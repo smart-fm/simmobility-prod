@@ -32,7 +32,6 @@ ExpandMidTermConfigFile::ExpandMidTermConfigFile(MT_Config &mtCfg, ConfigParams 
 
 void ExpandMidTermConfigFile::processConfig()
 {
-    cfg.simMobRunMode = ConfigParams::MID_TERM;
     cfg.setWorkerPublisherEnabled(false);
 
     //Set the auto-incrementing ID.

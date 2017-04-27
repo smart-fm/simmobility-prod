@@ -283,13 +283,18 @@ namespace sim_mob
 
 			int unitType = unit->getUnitType();
 
+			const double kthird = 0.3;
+			const double khalf = 0.5;
+			const double ktwoFifth = 0.4;
+			const double kthreeFifth = 0.6;
+
 			int sizeAreaQuantileHDB = 0;
 			int sizeAreaQuantileCondo = 0;
 			double lgsqrtArea = log(sqrt(unit->getFloorArea()));
-			double lowerQuantileCondo = model->getlogSqrtFloorAreacondo( model->getlogSqrtFloorAreacondoSize() * 0.3 );
-			double upperQuantileCondo = model->getlogSqrtFloorAreacondo( model->getlogSqrtFloorAreacondoSize() * 0.5 );
-			double lowerQuantileHDB = model->getlogSqrtFloorAreahdb( model->getlogSqrtFloorAreahdbSize() * 0.4 );
-			double upperQuantileHDB = model->getlogSqrtFloorAreahdb( model->getlogSqrtFloorAreahdbSize() * 0.6 );
+			double lowerQuantileCondo = model->getlogSqrtFloorAreacondo( model->getlogSqrtFloorAreacondoSize() * kthird );
+			double upperQuantileCondo = model->getlogSqrtFloorAreacondo( model->getlogSqrtFloorAreacondoSize() * khalf );
+			double lowerQuantileHDB = model->getlogSqrtFloorAreahdb( model->getlogSqrtFloorAreahdbSize() * ktwoFifth );
+			double upperQuantileHDB = model->getlogSqrtFloorAreahdb( model->getlogSqrtFloorAreahdbSize() * kthreeFifth );
 
 			if( lgsqrtArea >=  lowerQuantileCondo && lgsqrtArea < upperQuantileCondo )
 			{
@@ -345,15 +350,18 @@ namespace sim_mob
 			if( config.ltParams.scenario.enabled && config.ltParams.scenario.scenarioName == "ToaPayohScenario")
 				bToaPayohScenario = true;
 
+			const double halfStandDeviationLogsum = 0.07808;
+			const double quarterStandDeviationLogsum = 0.03904;
+
 			if(bToaPayohScenario)
 			{
 				if(work_tazId==682||work_tazId==683||work_tazId==684||work_tazId==697||work_tazId==698||work_tazId==699||work_tazId==700||work_tazId==702||work_tazId==703||work_tazId==927||work_tazId==928||work_tazId==929||work_tazId==930||work_tazId==931||work_tazId==932||work_tazId==255||work_tazId==1256)
-					ZZ_logsumhh += 0.03904;//0.07808;
+					ZZ_logsumhh += quarterStandDeviationLogsum;
 
 				int tazId = model->getUnitTazId( unit->getId() );
 
 				if(tazId==682||tazId==683||tazId==684||tazId==697||tazId==698||tazId==699||tazId==700||tazId==702||tazId==703||tazId==927||tazId==928||tazId==929||tazId==930||tazId==931||tazId==932||tazId==1255||tazId==1256)
-					ZZ_logsumhh += 0.03904;//0.07808;
+					ZZ_logsumhh += quarterStandDeviationLogsum;
 			}
 
 			Household* householdT = const_cast<Household*>(household);

@@ -718,10 +718,10 @@ void ExpandShortTermConfigFile::printSettings()
 
 	//Basic statistics
 	std::cout << "  Base Granularity: " << cfg.baseGranMS() << " " << "ms" << "\n";
-	std::cout << "  Total Runtime: " << cfg.totalRuntimeTicks << " " << "ticks" << "\n";
+	std::cout << "  Simultation duration: " << cfg.simStartTime().getStrRepr() << " to "
+	          << DailyTime(cfg.totalRuntimeInMilliSeconds() + cfg.simStartTime().getValue()).getStrRepr() << "\n";
 	std::cout << "  Total Warmup: " << cfg.totalWarmupTicks << " " << "ticks" << "\n";
 	std::cout << "  Person Granularity: " << stConfig.granPersonTicks << " " << "ticks" << "\n";
-	std::cout << "  Start time: " << cfg.simStartTime().getStrRepr() << "\n";
 	std::cout << "  Mutex strategy: " << (cfg.mutexStategy() == MtxStrat_Locked ? "Locked" : cfg.mutexStategy() == MtxStrat_Buffered ? "Buffered" : "Unknown") << "\n";
 
 	//Print the network (this will go to a different output file...)

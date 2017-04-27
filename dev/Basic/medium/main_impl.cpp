@@ -465,8 +465,14 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	Print() << "Time required for initialisation [Loading configuration, network, demand ...]: "
 	        << DailyTime((uint32_t) loop_start_offset).getStrRepr() << std::endl << std::endl;
 
-	Print() << "Number of trips/activities simulated: " << config.numTripsSimulated
-            << "\nNumber of trips/activities completed: " << config.numTripsCompleted << "\n";
+	if(config.numPathNotFound > 0)
+	{
+		Print() << "\nPersons not simulated as the path was not found [Refer to warn.log for more details]: "
+		        << config.numPathNotFound << endl;
+	}
+
+	Print() << "Number of trips/activities [demand] simulated: " << config.numTripsSimulated
+            << "\nNumber of trips/activities [demand] completed: " << config.numTripsCompleted << "\n";
 
 	if (!Agent::pending_agents.empty())
 	{
@@ -568,12 +574,6 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	{
 		Print() << "\nAgents removed from simulation due to errors [Refer to warn.log for more details]: "
 		        << config.numAgentsKilled << endl;
-	}
-
-	if(config.numPathNotFound > 0)
-	{
-		Print() << "\nPersons not simulated as the path was not found [Refer to warn.log for more details]: "
-		        << config.numPathNotFound << endl;
 	}
 
 	PT_Statistics::getInstance()->storeStatistics();

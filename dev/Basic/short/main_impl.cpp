@@ -395,8 +395,14 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 	Print() << "Time required for initialisation [Loading configuration, network, demand ...]: "
 	        << DailyTime((uint32_t) loop_start_offset).getStrRepr() << std::endl;
 
-	Print() << "\nNumber of trips/activities simulated: " << config.numTripsSimulated
-	        << "\nNumber of trips/activities completed: " << config.numTripsCompleted << "\n";
+	if(config.numPathNotFound > 0)
+	{
+		Print() << "\nPersons not simulated as the path was not found [Refer to warn.log for more details]: "
+		        << config.numPathNotFound << endl;
+	}
+
+	Print() << "\nNumber of trips/activities [demand] simulated: " << config.numTripsSimulated
+	        << "\nNumber of trips/activities [demand] completed: " << config.numTripsCompleted << "\n";
 
 	size_t numActivities = 0, numBusDriver = 0, numCarPassenger = 0, numDriver = 0, numPassenger = 0, numPedestrian = 0;
 	size_t numPersons = 0, numPrivateBusPassenger = 0, numTrainPassenger = 0, numWaitBus = 0;
@@ -457,12 +463,6 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 	{
 		Print() << "\nAgents removed from simulation due to errors [Refer to warn.log for more details]: "
 		        << config.numAgentsKilled << endl;
-	}
-
-	if(config.numPathNotFound > 0)
-	{
-		Print() << "\nPersons not simulated as the path was not found [Refer to warn.log for more details]: "
-		        << config.numPathNotFound << endl;
 	}
 
 	if (!Agent::pending_agents.empty()) 

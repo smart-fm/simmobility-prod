@@ -38,22 +38,22 @@ namespace sim_mob
 			return ageCategory;
 		}
 
-		int OwnerTenantMovingRate::getOwnerPopulation() const
+		double OwnerTenantMovingRate::getOwnerPopulation() const
 		{
 			return ownerPopulation;
 		}
 
-		int OwnerTenantMovingRate::getTenantPopulation() const
+		double OwnerTenantMovingRate::getTenantPopulation() const
 		{
 			return tenantPopulation;
 		}
 
-		int OwnerTenantMovingRate::getOwnerMovingPercentage() const
+		double OwnerTenantMovingRate::getOwnerMovingPercentage() const
 		{
 			return ownerMovingPercentage;
 		}
 
-		int OwnerTenantMovingRate::getTenantMovingPercentage() const
+		double OwnerTenantMovingRate::getTenantMovingPercentage() const
 		{
 			return tenantMovingPercentage;
 		}

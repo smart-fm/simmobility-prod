@@ -28,10 +28,10 @@ namespace sim_mob
 
 			BigSerial getId() const;
 			int getAgeCategory() const;
-			int getOwnerPopulation() const;
-			int getTenantPopulation() const;
-			int getOwnerMovingPercentage() const;
-			int getTenantMovingPercentage() const;
+			double getOwnerPopulation() const;
+			double getTenantPopulation() const;
+			double getOwnerMovingPercentage() const;
+			double getTenantMovingPercentage() const;
 			bool getDayZero() const;
 
 		    /**
@@ -44,10 +44,10 @@ namespace sim_mob
 
 			BigSerial id = 0;
 			int ageCategory = 0;
-			int ownerPopulation = 0;
-			int tenantPopulation = 0;
-			int ownerMovingPercentage = 0;
-			int tenantMovingPercentage = 0;
+			double ownerPopulation = 0;
+			double tenantPopulation = 0;
+			double ownerMovingPercentage = 0;
+			double tenantMovingPercentage = 0;
 			int day_zero = false;
 
 		};

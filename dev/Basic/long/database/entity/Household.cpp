@@ -33,7 +33,7 @@ Household::Household( BigSerial id, BigSerial lifestyleId, BigSerial unitId, Big
 Household::Household(): id(0), lifestyleId(0), unitId(0), ethnicityId(0), vehicleCategoryId(0),size(0), childUnder4(0), childUnder15(0), adult(0),income(0), housingDuration(0), workers(0), ageOfHead(0),
 						pendingStatusId(0),pendingFromDate(std::tm()),unitPending(0), twoRoomHdbEligibility(0), threeRoomHdbEligibility(0), fourRoomHdbEligibility(0), familyType(0),taxiAvailability(false),
 						vehicleOwnershipOptionId(0), logsum(0),  currentUnitPrice(0),householdAffordabilityAmount(0),buySellInterval(0), moveInDate(std::tm()),timeOnMarket(0),timeOffMarket(0),isBidder(0),
-						isSeller(0),hasMoved(0), tenureStatus(0), awakenedDay(0),existInDB(false), lastAwakenedDay(0),lastBidStatus(0)
+						isSeller(0),hasMoved(0), tenureStatus(0), awakenedDay(0),existInDB(false), lastAwakenedDay(-INT_MAX),lastBidStatus(0)
 {
 
 }

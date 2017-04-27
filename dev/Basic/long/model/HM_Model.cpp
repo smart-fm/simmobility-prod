@@ -212,7 +212,7 @@ double HM_Model::TazStats::getAvgHHSize() const
 
 HM_Model::HM_Model(WorkGroup& workGroup) :	Model(MODEL_NAME, workGroup),numberOfBidders(0), initialHHAwakeningCounter(0), numLifestyle1HHs(0), numLifestyle2HHs(0), numLifestyle3HHs(0), hasTaxiAccess(false),
 											householdLogsumCounter(0), simulationStopCounter(0), developerModel(nullptr), startDay(0), bidId(0), numberOfBids(0), numberOfExits(0),	numberOfSuccessfulBids(0),
-											unitSaleId(0), numberOfSellers(0), resume(0), lastStoppedDay(0), numberOfBTOAwakenings(0),initialLoading(false){}
+											unitSaleId(0), numberOfSellers(0), numberOfBiddersWaitingToMove(0), resume(0), lastStoppedDay(0), numberOfBTOAwakenings(0),initialLoading(false){}
 
 HM_Model::~HM_Model()
 {
@@ -237,6 +237,21 @@ void HM_Model::incrementNumberOfSellers()
 void HM_Model::incrementNumberOfBidders()
 {
 	numberOfBidders++;
+}
+
+void HM_Model::incrementWaitingToMove()
+{
+	numberOfBiddersWaitingToMove++;
+}
+
+int HM_Model::getWaitingToMove()
+{
+	return numberOfBiddersWaitingToMove;
+}
+
+void HM_Model::setWaitingToMove(int number)
+{
+	numberOfBiddersWaitingToMove = number;
 }
 
 int HM_Model::getNumberOfSellers()
@@ -501,14 +516,7 @@ BigSerial HM_Model::getEstablishmentSlaAddressId(BigSerial establishmentId) cons
 	if( itr2 != slaBuildingById.end())
 		slaAddressId = itr2->second->getSla_address_id();
 
-	BigSerial tazId = INVALID_ID;
-
-	if (establishment)
-	{
-		tazId = DataManagerSingleton::getInstance().getPostcodeTazId(slaAddressId);
-	}
-
-	return tazId;
+	return slaAddressId;
 }
 
 
@@ -2019,7 +2027,7 @@ void HM_Model::startImpl()
 					alternative[n]->getPlanAreaId() 	== planningAreaId )
 					//alternative[n]->getPlanAreaName() == planningAreaName)
 				{
-					thisUnit->setZoneHousingType(alternative[n]->getId());
+					thisUnit->setZoneHousingType(alternative[n]->getMapId());
 
 					//PrintOutV(" " << thisUnit->getId() << " " << alternative[n]->getPlanAreaId() << std::endl );
 					unitsByZoneHousingType.insert( std::pair<BigSerial,Unit*>( alternative[n]->getId(), thisUnit ) );
@@ -2027,10 +2035,10 @@ void HM_Model::startImpl()
 				}
 			}
 
-			//if(thisUnit->getZoneHousingType() == 0)
-			//{
-				//PrintOutV(" " << thisUnit->getId() << " " << thisUnit->getDwellingType() << " " << planningAreaName << std::endl );
-			//}
+			if(thisUnit->getZoneHousingType() == 0)
+			{
+				PrintOutV(" " << thisUnit->getId() << " " << thisUnit->getDwellingType() << " " << planningAreaName << std::endl );
+			}
 		}
 	}
 
@@ -3129,14 +3137,24 @@ std::vector<AccessibilityFixedPzid*> HM_Model::getAccessibilityFixedPzid()
 
 }
 
-std::vector<OwnerTenantMovingRate*> HM_Model::getOwnerTenantMovingRates()
+OwnerTenantMovingRate* HM_Model::getOwnerTenantMovingRates(int index)
 {
-	return ownerTenantMovingRate;
+	return ownerTenantMovingRate[index];
 }
 
-std::vector<TenureTransitionRate*> HM_Model::getTenureTransitionRates()
+TenureTransitionRate* HM_Model::getTenureTransitionRates(int index)
 {
-	return tenureTransitionRate;
+	return tenureTransitionRate[index];
+}
+
+int HM_Model::getOwnerTenantMovingRatesSize()
+{
+	return ownerTenantMovingRate.size();
+}
+
+int HM_Model::getTenureTransitionRatesSize()
+{
+	return tenureTransitionRate.size();
 }
 
 std::vector<AlternativeHedonicPrice*> HM_Model::getAlternativeHedonicPrice()

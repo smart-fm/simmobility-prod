@@ -286,6 +286,10 @@ void HouseholdSellerRole::update(timeslice now)
 
             if(getCurrentExpectation(unit->getId(), firstExpectation) && entryDay )
             {
+            	//0.05 is the lower threshold for the hedonic price
+            	if( firstExpectation.hedonicPrice  < 0.05 )
+            		continue;
+
                 market->addEntry( HousingMarket::Entry( getParent(), unit->getId(), model->getUnitSlaAddressId( unit->getId() ), tazId, firstExpectation.askingPrice, firstExpectation.hedonicPrice, unit->isBto()));
 				#ifdef VERBOSE
                 PrintOutV("[day " << currentTime.ms() << "] Household Seller " << getParent()->getId() << ". Adding entry to Housing market for unit " << unit->getId() << " with ap: " << firstExpectation.askingPrice << " hp: " << firstExpectation.hedonicPrice << " rp: " << firstExpectation.targetPrice << std::endl);

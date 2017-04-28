@@ -23,17 +23,19 @@ using namespace sim_mob::long_term;
 Household::Household( BigSerial id, BigSerial lifestyleId, BigSerial unitId, BigSerial ethnicityId, BigSerial vehicleCategoryId,  int size, int childUnder4, int childUnder15, int adult, double income,
 					  int housingDuration,int workers, int ageOfHead, int pendingStatusId,std::tm pendingFromDate,int unitPending,bool twoRoomHdbEligibility, bool threeRoomHdbEligibility,
 					  bool fourRoomHdbEligibility, int familyType, bool taxiAvailability,  int vehicleOwnershipOptionId, double logsum, double currentUnitPrice, double householdAffordabilityAmount,
-					  int buySellInterval, std::tm moveInDate,int timeOnMarket,int timeOffMarket,int isBidder,int isSeller,int hasMoved, int tenureStatus, int awakenedDay, bool existInDB, int lastAwakenedDay,int lastBidStatus): id(id), lifestyleId(lifestyleId), unitId(unitId),
+					  int buySellInterval, std::tm moveInDate,int timeOnMarket,int timeOffMarket,int isBidder,int isSeller,int hasMoved, int tenureStatus, int awakenedDay, bool existInDB, int lastAwakenedDay,int lastBidStatus,double randomNum,bool liveInToaPayoh,bool workInToaPayoh,int numWhiteCollars,int numWorkers,int numElderly): id(id), lifestyleId(lifestyleId), unitId(unitId),
 					  ethnicityId(ethnicityId), vehicleCategoryId(vehicleCategoryId),size(size), childUnder4(childUnder4), childUnder15(childUnder15), adult(adult),income(income),  housingDuration(housingDuration),
 					  workers(workers), ageOfHead(ageOfHead), pendingStatusId(pendingStatusId),pendingFromDate(pendingFromDate),unitPending(unitPending),twoRoomHdbEligibility(twoRoomHdbEligibility),
 					  threeRoomHdbEligibility(threeRoomHdbEligibility),  fourRoomHdbEligibility(fourRoomHdbEligibility),familyType(familyType), taxiAvailability(taxiAvailability),
 					  vehicleOwnershipOptionId(vehicleOwnershipOptionId), logsum(logsum), currentUnitPrice(currentUnitPrice),  householdAffordabilityAmount(householdAffordabilityAmount), buySellInterval(buySellInterval),
-					  moveInDate(moveInDate),  timeOnMarket(timeOnMarket),timeOffMarket(timeOffMarket),isBidder(isBidder),isSeller(isSeller),hasMoved(hasMoved), tenureStatus(tenureStatus), awakenedDay(awakenedDay), existInDB(existInDB), lastAwakenedDay(lastAwakenedDay),lastBidStatus(lastBidStatus){}
+					  moveInDate(moveInDate),  timeOnMarket(timeOnMarket),timeOffMarket(timeOffMarket),isBidder(isBidder),isSeller(isSeller),hasMoved(hasMoved), tenureStatus(tenureStatus), awakenedDay(awakenedDay), existInDB(existInDB), lastAwakenedDay(lastAwakenedDay),lastBidStatus(lastBidStatus),randomNum(0),liveInToaPayoh(liveInToaPayoh), workInToaPayoh(workInToaPayoh),numWhiteCollars(numWhiteCollars),numWorkers(numWorkers),
+					  numElderly(numElderly)
+					  {}
 
 Household::Household(): id(0), lifestyleId(0), unitId(0), ethnicityId(0), vehicleCategoryId(0),size(0), childUnder4(0), childUnder15(0), adult(0),income(0), housingDuration(0), workers(0), ageOfHead(0),
 						pendingStatusId(0),pendingFromDate(std::tm()),unitPending(0), twoRoomHdbEligibility(0), threeRoomHdbEligibility(0), fourRoomHdbEligibility(0), familyType(0),taxiAvailability(false),
 						vehicleOwnershipOptionId(0), logsum(0),  currentUnitPrice(0),householdAffordabilityAmount(0),buySellInterval(0), moveInDate(std::tm()),timeOnMarket(0),timeOffMarket(0),isBidder(0),
-						isSeller(0),hasMoved(0), tenureStatus(0), awakenedDay(0),existInDB(false), lastAwakenedDay(0),lastBidStatus(0)
+						isSeller(0),hasMoved(0), tenureStatus(0), awakenedDay(0),existInDB(false), lastAwakenedDay(0),lastBidStatus(0),randomNum(0),liveInToaPayoh(false),workInToaPayoh(false),numWhiteCollars(0),numWorkers(0),numElderly(0)
 {
 
 }
@@ -116,6 +118,12 @@ void Household::serialize(Archive & ar,const unsigned int version)
 	{
 		ar & individuals[i];
 	}
+	ar & randomNum;
+	ar & liveInToaPayoh;
+	ar & workInToaPayoh;
+	ar & numWhiteCollars;
+	ar & numWorkers;
+	ar & numElderly;
 
 }
 
@@ -151,6 +159,12 @@ Household& Household::operator=(const Household& source)
     this->moveInDate = source.moveInDate;
     this->tenureStatus = source.tenureStatus;
     this->awakenedDay = source.awakenedDay;
+    this->randomNum = source.randomNum;
+    this->liveInToaPayoh = source.liveInToaPayoh;
+    this->workInToaPayoh = source.workInToaPayoh;
+    this->numWhiteCollars = source.numWhiteCollars;
+    this->numWorkers = source.numWorkers;
+    this->numElderly = source.numElderly;
 
     return *this;
 }
@@ -555,6 +569,66 @@ void Household::setHouseholdStats(HouseholdStatistics stats)
 HouseholdStatistics Household::getHouseholdStats()
 {
 	return householdStats;
+}
+
+bool Household::isLiveInToaPayoh() const
+{
+	return liveInToaPayoh;
+}
+
+void Household::setLiveInToaPayoh(bool liveInToaPayoh)
+{
+	this->liveInToaPayoh = liveInToaPayoh;
+}
+
+int Household::getNumElderly() const
+{
+	return numElderly;
+}
+
+void Household::setNumElderly(int numElderly)
+{
+	this->numElderly = numElderly;
+}
+
+int Household::getNumWhiteCollars() const
+{
+	return numWhiteCollars;
+}
+
+void Household::setNumWhiteCollars(int numWhiteCollars)
+{
+	this->numWhiteCollars = numWhiteCollars;
+}
+
+int Household::getNumWorkers() const
+{
+	return numWorkers;
+}
+
+void Household::setNumWorkers(int numWorkers)
+{
+	this->numWorkers = numWorkers;
+}
+
+double Household::getRandomNum() const
+{
+	return randomNum;
+}
+
+void Household::setRandomNum(double randomNum)
+{
+	this->randomNum = randomNum;
+}
+
+bool Household::isWorkInToaPayoh() const
+{
+	return workInToaPayoh;
+}
+
+void Household::setWorkInToaPayoh(bool workInToaPayoh)
+{
+	this->workInToaPayoh = workInToaPayoh;
 }
 
 namespace sim_mob

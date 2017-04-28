@@ -476,7 +476,6 @@ namespace sim_mob
 		loadSchedules();
 		composeTrainTrips();
 		loadTrainLineProperties();
-		loadWalkingTimeParams();
 	}
 
 	//Initialize Train ids function

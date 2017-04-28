@@ -501,14 +501,7 @@ BigSerial HM_Model::getEstablishmentSlaAddressId(BigSerial establishmentId) cons
 	if( itr2 != slaBuildingById.end())
 		slaAddressId = itr2->second->getSla_address_id();
 
-	BigSerial tazId = INVALID_ID;
-
-	if (establishment)
-	{
-		tazId = DataManagerSingleton::getInstance().getPostcodeTazId(slaAddressId);
-	}
-
-	return tazId;
+	return slaAddressId;
 }
 
 
@@ -2044,6 +2037,7 @@ void HM_Model::startImpl()
 	addMetadata("Initial Vacancies", vacancies);
 	addMetadata("Freelance housing agents", numWorkers);
 
+
 	for (size_t n = 0; n < households.size(); n++)
 	{
 		hdbEligibilityTest(n);
@@ -2059,13 +2053,15 @@ void HM_Model::startImpl()
 			}
 		}
 
-		if(config.ltParams.vehicleOwnershipModel.enabled)
+
+		if(initialLoading && config.ltParams.vehicleOwnershipModel.enabled)
 		{
+
 			//remove frozen hh
 			if(households[n]->getTenureStatus() != 3)
 			{
 				VehicleOwnershipModel vehOwnershipModel(this);
-				vehOwnershipModel.reconsiderVehicleOwnershipOption2(households[n],nullptr, 0);
+				vehOwnershipModel.reconsiderVehicleOwnershipOption2(*households[n],nullptr, 0,initialLoading);
 			}
 		}
 	}
@@ -2165,6 +2161,16 @@ void HM_Model::startImpl()
 				agents.push_back(hhAgent);
 				workGroup.assignAWorker(hhAgent);
 			}
+
+			if(config.ltParams.vehicleOwnershipModel.enabled)
+					{
+						//remove frozen hh
+						if((*it)->getTenureStatus() != 3)
+						{
+							VehicleOwnershipModel vehOwnershipModel(this);
+							vehOwnershipModel.reconsiderVehicleOwnershipOption2(*(*it),nullptr, 0,initialLoading);
+						}
+					}
 		}
 	}
 

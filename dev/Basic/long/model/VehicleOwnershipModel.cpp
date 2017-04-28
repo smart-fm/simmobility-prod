@@ -515,6 +515,10 @@ void VehicleOwnershipModel::reconsiderVehicleOwnershipOption2(Household &househo
 				selectedVehicleOwnershipOtionId = probVal.first;
 				vehcileOwnershipOptChange->setNewVehicleOwnershipOptionId(selectedVehicleOwnershipOtionId);
 				writeVehicleOwnershipToFile(household.getId(),selectedVehicleOwnershipOtionId, workInToaPayoh,liveInToaPayoh);
+				if(day==0)
+				{
+					household.setVehicleOwnershipOptionId(selectedVehicleOwnershipOtionId);
+				}
 				break;
 				if(hhAgent != nullptr)
 				{

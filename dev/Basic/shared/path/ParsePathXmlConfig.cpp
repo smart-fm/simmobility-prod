@@ -142,6 +142,18 @@ void sim_mob::ParsePathXmlConfig::processPrivatePathsetNode(xercesc::DOMElement*
 		cfg.bulkFile = ParseString(GetNamedAttributeValue(bulk, "name"), "");
 	}
 
+
+	//supply_link_travel_time_file
+	xercesc::DOMElement* linkFileNode = GetSingleElementByName(pvtConfNode, "supply_link_travel_time_file");
+	cfg.supplyLinkFile = ParseString(GetNamedAttributeValue(linkFileNode, "name"), "");
+	if(cfg.supplyLinkFile.empty())
+	{
+		stringstream msg;
+		msg << "Empty value in <tables historical_traveltime=\"\"/>. Expected: supply_link_travel_time_file name";
+
+		throw runtime_error(msg.str());
+	}
+
 	xercesc::DOMElement* tableNode = GetSingleElementByName(pvtConfNode, "tables", true);
 	cfg.RTTT_Conf = ParseString(GetNamedAttributeValue(tableNode, "historical_traveltime"), "");
 

@@ -415,7 +415,7 @@ struct PathSetConf
     /**
      * Constructor
      */
-	PathSetConf() : enabled(false), RTTT_Conf(""), DTT_Conf(""), psRetrievalWithoutBannedRegion(""), interval(0), recPS(false), reroute(false),
+	PathSetConf() : enabled(false), supplyLinkFile(""), RTTT_Conf(""), DTT_Conf(""), psRetrievalWithoutBannedRegion(""), interval(0), recPS(false), reroute(false),
 			perturbationRange(std::pair<unsigned short,unsigned short>(0,0)), kspLevel(0),
 			perturbationIteration(0), threadPoolSize(0), maxSegSpeed(0), publickShortestPathLevel(10), simulationApproachIterations(10),
 			publicPathSetEnabled(true), privatePathSetEnabled(true)
@@ -457,6 +457,9 @@ struct PathSetConf
 
     /// data source for getting ODs for bulk pathset generation
     std::string odSourceTableName;
+
+    /// supply link travel time file name
+    std::string supplyLinkFile;
 
     /// realtime travel time table name
     std::string RTTT_Conf;

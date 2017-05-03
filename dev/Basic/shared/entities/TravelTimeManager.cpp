@@ -424,8 +424,9 @@ void sim_mob::TravelTimeManager::dumpTravelTimesToFile(const std::string fileNam
 
 bool sim_mob::TravelTimeManager::storeCurrentSimulationTT()
 {
-	dumpTravelTimesToFile(historicalTT_TableName);
-	sim_mob::Logger::log(historicalTT_TableName).flush();
+	supplyLinkTimeFileName = sim_mob::ConfigManager::GetInstance().PathSetConfig().supplyLinkFile;
+	dumpTravelTimesToFile(supplyLinkTimeFileName);
+	sim_mob::Logger::log(supplyLinkTimeFileName).flush();
 	return true;
 }
 

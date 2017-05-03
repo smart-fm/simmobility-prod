@@ -5,6 +5,7 @@
     <private_pathset enabled="true" mode="normal"> <!--"normal" and "generation" are supported modes -->
         <od_source table="routechoice.pvt_od"/>
         <bulk_generation_output_file name="pvt-pathset.csv" />
+        <supply_link_travel_time_file name ="LinkTravelTime.csv" />
         <tables historical_traveltime="supply.link_travel_time" default_traveltime="supply.link_default_travel_time"/>
         <functions pathset_without_banned_area="get_path_set_woba"/>
         <recursive_pathset_generation value="false"/>

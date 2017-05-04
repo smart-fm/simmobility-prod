@@ -267,7 +267,16 @@ std::vector<BufferedBase*> TaxiDriver::getSubscriptionParams()
 
 TaxiDriver::~TaxiDriver()
 {
+
+	if (MobilityServiceControllerManager::HasMobilityServiceControllerManager())
+	{
+		std::map<unsigned int, MobilityServiceController*> controllers = MobilityServiceControllerManager::GetInstance()->getControllers();
+
+		messaging::MessageBus::SendMessage(controllers[1], MSG_DRIVER_UNSUBSCRIBE,
+			messaging::MessageBus::MessagePtr(new DriverUnsubscribeMessage(parent)));
+	}
 }
 }
 }
+
 

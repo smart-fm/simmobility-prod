@@ -347,16 +347,16 @@ public:
     bool usesInSimulationTravelTime() const
 	{
 		return useInSimulationTravelTime;
-        }
+    }
 
-        /**
-         * generic interface to export service driver.
-         * return empty which is default value.
-         */
-        virtual MobilityServiceDriver* exportServiceDriver() 
-        {
-            return nullptr;
-        }
+    /**
+     * generic interface to export service driver.
+     * return empty which is default value.
+     */
+    virtual MobilityServiceDriver* exportServiceDriver() 
+    {
+        return nullptr;
+    }
 
 #ifndef SIMMOB_DISABLE_MPI
 

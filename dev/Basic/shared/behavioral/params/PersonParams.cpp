@@ -169,16 +169,16 @@ void PersonParams::fixUpParamsForLtPerson()
 		setMissingIncome(0);
 	}
 	setHouseholdFactor(1); // no scaling of persons when generating day activity schedule
-	setHomeLocation(getTAZCodeForAddressId(homeAddressId));
+	setHomeLocation((homeAddressId));
 	setFixedSchoolLocation(0);
 	setFixedWorkLocation(0);
 	if (fixedWorkplace)
 	{
-		setFixedWorkLocation(getTAZCodeForAddressId(activityAddressId));
+		setFixedWorkLocation((activityAddressId));
 	}
 	if (student)
 	{
-		setFixedSchoolLocation(getTAZCodeForAddressId(activityAddressId));
+		setFixedSchoolLocation((activityAddressId));
 	}
 	setHasDrivingLicence(getCarLicense() || getVanbusLicense());
 	setIsUniversityStudent(studentTypeId == 4);

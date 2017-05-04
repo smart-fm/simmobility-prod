@@ -45,6 +45,27 @@ bool TaxiDriver::addPassenger(Passenger *passenger)
 	return false;
 }
 
+MobilityServiceDriver::ServiceStatus TaxiDriver::getServiceStatus()
+{
+	if(getDriverMode()==CRUISE)
+	{
+		return MobilityServiceDriver::SERVICE_FREE;
+	}
+	return MobilityServiceDriver::SERVICE_UNKNOWN;
+}
+
+const Node* TaxiDriver::getCurrentNode()
+{
+	if(taxiDriverMovement)
+	{
+		return taxiDriverMovement->getCurrentNode();
+	}
+	return nullptr;
+}
+MobilityServiceDriver* TaxiDriver::exportServiceDriver()
+{
+	return this;
+}
 Passenger* TaxiDriver::getPassenger()
 {
 	return taxiPassenger;

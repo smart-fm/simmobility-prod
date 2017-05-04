@@ -334,7 +334,30 @@ std::vector<MobilityServiceController::MessageResult> SharedTaxiController::comp
 	}
 
 	return results;
-}
+    }
+
+    bool SharedTaxiController::isCruising(Person* p) 
+    {
+        MobilityServiceDriver* currDriver = p->exportServiceDriver();
+        if (currDriver) 
+        {
+            if (currDriver->getServiceStatus() == MobilityServiceDriver::SERVICE_FREE) 
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    const Node* SharedTaxiController::getCurrentNode(Person* p) 
+    {
+        MobilityServiceDriver* currDriver = p->exportServiceDriver();
+        if (currDriver) 
+        {
+            return currDriver->getCurrentNode();
+        }
+        return nullptr;
+    }
 }
 
 

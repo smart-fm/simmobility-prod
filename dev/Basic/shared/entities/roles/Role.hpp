@@ -13,6 +13,7 @@
 #include "util/LangHelpers.hpp"
 #include "entities/vehicle/VehicleBase.hpp"
 #include "entities/UpdateParams.hpp"
+#include "entities/mobilityServiceDriver/MobilityServiceDriver.hpp"
 #include "workers/Worker.hpp"
 #include "logging/Log.hpp"
 #include "DriverRequestParams.hpp"
@@ -316,6 +317,14 @@ public:
 		return arrivalTimeMS;
 	}
 
+	/**
+	 * export service driver
+	 * @return empty under default situation
+	 */
+	virtual MobilityServiceDriver* exportServiceDriver()
+	{
+		return nullptr;
+	}
 
 	/* TODO: totalTravelTimeMS and arrivalTimeMS does not belong here.
 	 * This has to be re-factored and moved into relevant sub classes of role after July workshop 2015. ~Harish*/

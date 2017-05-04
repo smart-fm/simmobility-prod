@@ -23,8 +23,8 @@ public:
 	}
 
 protected:
-	virtual bool isCruising(Person* p) = 0;
-	virtual const Node* getCurrentNode(Person* p) = 0;
+	bool isCruising(Person* p);
+	const Node* getCurrentNode(Person* p);
 
 private:
 	/**

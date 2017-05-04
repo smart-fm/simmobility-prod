@@ -6,10 +6,11 @@
  */
 
 #include "GreedyTaxiController.hpp"
-
 #include "geospatial/network/RoadNetwork.hpp"
 #include "message/MessageBus.hpp"
 #include "message/MobilityServiceControllerMessage.hpp"
+#include "entities/mobilityServiceDriver/MobilityServiceDriver.hpp"
+#include "entities/Person.hpp"
 
 namespace sim_mob
 {
@@ -102,7 +103,30 @@ std::vector<MobilityServiceController::MessageResult> GreedyTaxiController::comp
 	}
 
 	return results;
-	}
+    }
+
+    bool GreedyTaxiController::isCruising(Person* p) 
+    {
+        MobilityServiceDriver* currDriver = p->exportServiceDriver();
+        if (currDriver) 
+        {
+            if (currDriver->getServiceStatus() == MobilityServiceDriver::SERVICE_FREE) 
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    const Node* GreedyTaxiController::getCurrentNode(Person* p) 
+    {
+        MobilityServiceDriver* currDriver = p->exportServiceDriver();
+        if (currDriver) 
+        {
+            return currDriver->getCurrentNode();
+        }
+        return nullptr;
+    }
 }
 
 

@@ -13,10 +13,11 @@
 #include  "entities/roles/passenger/Passenger.hpp"
 #include "buffering/Shared.hpp"
 #include "buffering/BufferedDataManager.hpp"
+#include "entities/mobilityServiceDriver/MobilityServiceDriver.hpp"
 namespace sim_mob {
 namespace medium {
 
-class TaxiDriver: public Driver {
+class TaxiDriver: public Driver, public MobilityServiceDriver {
 public:
 	TaxiDriver(Person_MT* parent, const MutexStrategy& mtxStrat,
 			TaxiDriverBehavior* behavior, TaxiDriverMovement* movement,
@@ -36,6 +37,16 @@ public:
 	 * alight a passenger when arriving the destination
 	 */
 	void alightPassenger();
+	/**
+	 * get current driver status
+	 * @return status value
+	 */
+	MobilityServiceDriver::ServiceStatus getServiceStatus();
+	/**
+	 * get current Node
+	 * @return current Node
+	 */
+	const Node* getCurrentNode();
 	/**
 	 * passenger route choice after boarding into taxi
 	 * @param origin is a pointer to original node
@@ -95,6 +106,11 @@ public:
 	 * @param message data received.
 	 */
 	virtual void HandleParentMessage(messaging::Message::MessageType type, const messaging::Message& message);
+	/**
+	 * export service driver
+	 * @return exporting result
+	 */
+	virtual MobilityServiceDriver* exportServiceDriver();
 
 private:
 	/**hold passenger object*/

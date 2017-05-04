@@ -14,6 +14,7 @@
 #include "entities/misc/TripChain.hpp"
 #include "entities/TravelTimeManager.hpp"
 #include "entities/vehicle/VehicleBase.hpp"
+#include "entities/mobilityServiceDriver/MobilityServiceDriver.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "util/LangHelpers.hpp"
 #include "util/Profiler.hpp"
@@ -346,7 +347,16 @@ public:
     bool usesInSimulationTravelTime() const
 	{
 		return useInSimulationTravelTime;
-	}
+        }
+
+        /**
+         * generic interface to export service driver.
+         * return empty which is default value.
+         */
+        virtual MobilityServiceDriver* exportServiceDriver() 
+        {
+            return nullptr;
+        }
 
 #ifndef SIMMOB_DISABLE_MPI
 

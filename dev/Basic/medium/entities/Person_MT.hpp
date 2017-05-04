@@ -238,6 +238,18 @@ public:
 		return taxiFleets;
 	}
 
+	/**
+	 * from current role, export service driver
+	 * @return service driver if current role support service driver
+	 */
+	MobilityServiceDriver* exportServiceDriver()
+	{
+		if(currRole)
+		{
+			return currRole->exportServiceDriver();
+		}
+		return nullptr;
+	}
 };
 } // namespace medium
 } //namespace sim_mob

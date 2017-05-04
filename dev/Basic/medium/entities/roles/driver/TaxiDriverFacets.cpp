@@ -7,9 +7,12 @@
 
 #include <entities/roles/driver/TaxiDriverFacets.hpp>
 #include "config/MT_Config.hpp"
+#include "entities/controllers/MobilityServiceControllerManager.hpp"
 #include "entities/misc/TaxiTrip.hpp"
 #include "entities/TaxiStandAgent.hpp"
 #include "geospatial/network/RoadNetwork.hpp"
+#include "message/MessageBus.hpp"
+#include "message/MobilityServiceControllerMessage.hpp"
 #include "path/PathSetManager.hpp"
 #include "TaxiDriver.hpp"
 
@@ -38,6 +41,15 @@ void TaxiDriverMovement::frame_init()
 	parentTaxiDriver->driverMode = CRUISE;
 	parentDriver->driverMode = CRUISE;
 	assignFirstNode();
+
+	if (MobilityServiceControllerManager::HasMobilityServiceControllerManager())
+	{
+		std::map<unsigned int, MobilityServiceController*> controllers = MobilityServiceControllerManager::GetInstance()->getControllers();
+
+		messaging::MessageBus::SendMessage(controllers[1], MSG_DRIVER_SUBSCRIBE,
+			messaging::MessageBus::MessagePtr(new DriverSubscribeMessage(parentTaxiDriver->parent)));
+	}
+
 	selectNextLinkWhileCruising();
 	TaxiFleetManager::FleetTimePriorityQueue& fleets = parentTaxiDriver->parent->getTaxiFleet();
 	fleets.pop();
@@ -201,6 +213,15 @@ bool TaxiDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 	{
 		parentTaxiDriver->alightPassenger();
 		parentTaxiDriver->taxiDriverMode = CRUISE;
+
+		if (MobilityServiceControllerManager::HasMobilityServiceControllerManager())
+		{
+			std::map<unsigned int, MobilityServiceController*> controllers = MobilityServiceControllerManager::GetInstance()->getControllers();
+		
+			messaging::MessageBus::SendMessage(controllers[1], MSG_DRIVER_AVAILABLE,
+				messaging::MessageBus::MessagePtr(new DriverAvailableMessage(parentTaxiDriver->parent)));
+		}
+
 		selectNextLinkWhileCruising();
 	}
 	else if ( parentTaxiDriver->getDriverMode() == DRIVE_FOR_DRIVER_CHANGE_SHIFT && pathMover.isEndOfPath())
@@ -218,6 +239,7 @@ bool TaxiDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 	{
 		Conflux *parentConflux = currSegStat->getParentConflux();
 		parentTaxiDriver->pickUpPassngerAtNode(parentConflux, &personIdPickedUp);
+
 		if (parentTaxiDriver->getPassenger() == nullptr)
 		{
 			Print() << "Pickup failed for " << personIdPickedUp << " at time " << parentTaxiDriver->parent->currTick.frame()
@@ -648,6 +670,16 @@ void TaxiDriverMovement::setCruisingMode()
 	destinationTaxiStand = nullptr;
 	parentTaxiDriver->taxiDriverMode = CRUISE;
 	parentDriver->driverMode = CRUISE;
+
+
+	if (MobilityServiceControllerManager::HasMobilityServiceControllerManager())
+	{
+		std::map<unsigned int, MobilityServiceController*> controllers = MobilityServiceControllerManager::GetInstance()->getControllers();
+
+		messaging::MessageBus::SendMessage(controllers[1], MSG_DRIVER_AVAILABLE,
+			messaging::MessageBus::MessagePtr(new DriverAvailableMessage(parentTaxiDriver->parent)));
+	}
+
 	if(pathMover.isEndOfPath()){
 		selectNextLinkWhileCruising();
 	}
@@ -755,7 +787,5 @@ TaxiDriverBehavior::~TaxiDriverBehavior()
 }
 }
 }
-
-
 
 

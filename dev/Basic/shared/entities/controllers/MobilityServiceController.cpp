@@ -7,6 +7,7 @@
 
 #include "MobilityServiceController.hpp"
 
+#include "entities/Person.hpp"
 #include "message/MessageBus.hpp"
 #include "message/MobilityServiceControllerMessage.hpp"
 
@@ -18,13 +19,27 @@ MobilityServiceController::~MobilityServiceController()
 
 void MobilityServiceController::subscribeDriver(Person* person)
 {
-	drivers.push_back(person);
+	subscribedDrivers.push_back(person);
+	availableDrivers.push_back(person);
 }
 
 void MobilityServiceController::unsubscribeDriver(Person* person)
 {
-	drivers.erase(std::remove(drivers.begin(),
-		drivers.end(), person), drivers.end());
+	subscribedDrivers.erase(std::remove(subscribedDrivers.begin(),
+		subscribedDrivers.end(), person), subscribedDrivers.end());
+	availableDrivers.erase(std::remove(availableDrivers.begin(),
+		availableDrivers.end(), person), availableDrivers.end());
+}
+
+void MobilityServiceController::driverAvailable(Person* person)
+{
+	availableDrivers.push_back(person);
+}
+
+void MobilityServiceController::driverUnavailable(Person* person)
+{
+	availableDrivers.erase(std::remove(availableDrivers.begin(),
+		availableDrivers.end(), person), availableDrivers.end());
 }
 
 Entity::UpdateStatus MobilityServiceController::frame_init(timeslice now)
@@ -88,39 +103,63 @@ void MobilityServiceController::frame_output(timeslice now)
 void MobilityServiceController::HandleMessage(messaging::Message::MessageType type, const messaging::Message& message)
 {
 	switch (type) {
-	        case MSG_TRIP_REQUEST:
-	        {
-				const TripRequestMessage& requestArgs = MSG_CAST(TripRequestMessage, message);
+		case MSG_DRIVER_SUBSCRIBE:
+		{
+			const DriverSubscribeMessage& subscribeArgs = MSG_CAST(DriverSubscribeMessage, message);
+			subscribeDriver(subscribeArgs.person);
+            break;
+		}
 
-				Print() << "Request received from " << requestArgs.personId << " at time " << currTick.frame() << ". Message was sent at "
-					<< requestArgs.currTick.frame() << " with startNodeId " << requestArgs.startNodeId << ", destinationNodeId "
-					<< requestArgs.destinationNodeId << ", and driverId null" << std::endl;
+		case MSG_DRIVER_UNSUBSCRIBE:
+		{
+			const DriverUnsubscribeMessage& unsubscribeArgs = MSG_CAST(DriverUnsubscribeMessage, message);
+			unsubscribeDriver(unsubscribeArgs.person);
+            break;
+		}
 
-				requestQueue.push_back({requestArgs.currTick, requestArgs.personId, requestArgs.startNodeId,
-					requestArgs.destinationNodeId, requestArgs.extraTripTimeThreshold});
-	            break;
-	        }
+		case MSG_DRIVER_AVAILABLE:
+		{
+			const DriverAvailableMessage& availableArgs = MSG_CAST(DriverAvailableMessage, message);
+			driverAvailable(availableArgs.person);
+            break;
+		}
 
-	        case MSG_TRIP_PROPOSITION_REPLY:
-	        {
-				const TripPropositionReplyMessage& replyArgs = MSG_CAST(TripPropositionReplyMessage, message);
-				if (!replyArgs.success) {
-					Print() << "Request received from " << replyArgs.personId << " at time " << currTick.frame() << ". Message was sent at "
-						<< replyArgs.currTick.frame() << " with startNodeId " << replyArgs.startNodeId << ", destinationNodeId "
-						<< replyArgs.destinationNodeId << ", and driverId null" << std::endl;
+        case MSG_TRIP_REQUEST:
+        {
+			const TripRequestMessage& requestArgs = MSG_CAST(TripRequestMessage, message);
 
-					requestQueue.push_back({replyArgs.currTick, replyArgs.personId, replyArgs.startNodeId,
-						replyArgs.destinationNodeId, replyArgs.extraTripTimeThreshold});
-				} else {
-					Print() << "Assignment response received from " << replyArgs.personId << " at time "
-						<< currTick.frame() << ". Message was sent at " << replyArgs.currTick.frame() << " with startNodeId "
-						<< replyArgs.startNodeId << ", destinationNodeId " << replyArgs.destinationNodeId << ", and driverId "
-						<< replyArgs.driverId << std::endl;
-				}
-	        }
+			Print() << "Request received from " << requestArgs.personId << " at time " << currTick.frame() << ". Message was sent at "
+				<< requestArgs.currTick.frame() << " with startNodeId " << requestArgs.startNodeId << ", destinationNodeId "
+				<< requestArgs.destinationNodeId << ", and driverId null" << std::endl;
 
-	        default: break;
-	    };
+			requestQueue.push_back({requestArgs.currTick, requestArgs.personId, requestArgs.startNodeId,
+				requestArgs.destinationNodeId, requestArgs.extraTripTimeThreshold});
+            break;
+        }
+
+        case MSG_SCHEDULE_PROPOSITION_REPLY:
+        {
+			const SchedulePropositionReplyMessage& replyArgs = MSG_CAST(SchedulePropositionReplyMessage, message);
+			if (!replyArgs.success) {
+				Print() << "Assignment failure received from " << replyArgs.personId << " at time "
+					<< currTick.frame() << ". Message was sent at " << replyArgs.currTick.frame() << " with startNodeId "
+					<< replyArgs.startNodeId << ", destinationNodeId " << replyArgs.destinationNodeId << ", and driverId "
+					<< replyArgs.driver->getDatabaseId() << std::endl;
+
+				requestQueue.push_back({replyArgs.currTick, replyArgs.personId, replyArgs.startNodeId,
+					replyArgs.destinationNodeId, replyArgs.extraTripTimeThreshold});
+			} else {
+				Print() << "Assignment success received from " << replyArgs.personId << " at time "
+					<< currTick.frame() << ". Message was sent at " << replyArgs.currTick.frame() << " with startNodeId "
+					<< replyArgs.startNodeId << ", destinationNodeId " << replyArgs.destinationNodeId << ", and driverId "
+					<< replyArgs.driver->getDatabaseId() << std::endl;
+
+				driverUnavailable(replyArgs.driver);
+			}
+        }
+
+        default: break;
+    };
 }
 
 bool MobilityServiceController::isNonspatial()
@@ -128,7 +167,5 @@ bool MobilityServiceController::isNonspatial()
 	return true;
 }
 }
-
-
 
 

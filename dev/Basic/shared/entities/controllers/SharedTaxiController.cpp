@@ -267,9 +267,9 @@ std::vector<MobilityServiceController::MessageResult> SharedTaxiController::comp
 		it = nodeIdMap.find((*request).destinationNodeId); 
 		Node* destinationNode = it->second;
 
-		auto person = drivers.begin();
+		auto person = availableDrivers.begin();
 
-		while (person != drivers.end())
+		while (person != availableDrivers.end())
 		{
 			if (!isCruising(*person))
 			{
@@ -317,8 +317,8 @@ std::vector<MobilityServiceController::MessageResult> SharedTaxiController::comp
 
 		Print() << "Closest vehicle is at (" << bestX << ", " << bestY << ")" << std::endl;
 
-		messaging::MessageBus::PostMessage((messaging::MessageHandler*) bestDriver, MSG_TRIP_PROPOSITION, messaging::MessageBus::MessagePtr(
-			new TripPropositionMessage(currTick, (*request).personId, (*request).startNodeId,
+		messaging::MessageBus::PostMessage((messaging::MessageHandler*) bestDriver, MSG_SCHEDULE_PROPOSITION, messaging::MessageBus::MessagePtr(
+			new SchedulePropositionMessage(currTick, (*request).personId, (*request).startNodeId,
 				(*request).destinationNodeId, (*request).extraTripTimeThreshold)));
 
 		Print() << "Assignment sent for " << (*request).personId << " at time " << currTick.frame()
@@ -359,7 +359,5 @@ std::vector<MobilityServiceController::MessageResult> SharedTaxiController::comp
         return nullptr;
     }
 }
-
-
 
 

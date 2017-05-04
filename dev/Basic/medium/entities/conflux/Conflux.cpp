@@ -298,9 +298,10 @@ void Conflux::addAgent(Person_MT* person)
 			if (MobilityServiceControllerManager::HasMobilityServiceControllerManager())
 			{
 				std::vector<SubTrip>::iterator subTripItr = person->currSubTrip;
+				const Node * personOriginNode = (*subTripItr).origin.node;
 				const Node * personDestinationNode = (*subTripItr).destination.node;
 
-				if ((*subTripItr).travelMode == "TravelPedestrian" && personDestinationNode == confluxNode) {
+				if ((*subTripItr).travelMode == "TravelPedestrian" && personOriginNode == personDestinationNode) {
 					std::vector<SubTrip>::iterator taxiTripItr = subTripItr + 1;
 
 					std::map<unsigned int, MobilityServiceController*> controllers = MobilityServiceControllerManager::GetInstance()->getControllers();
@@ -1743,8 +1744,8 @@ Person_MT* Conflux::pickupTaxiTraveler(std::string* personId)
 			{
 				if((*i)->getDatabaseId()== *personId)
 				{
-					travelingPersons.erase(i);
 					res = (*i);
+					travelingPersons.erase(i);
 					break;
 				}
 			}
@@ -2903,5 +2904,4 @@ sim_mob::medium::PersonTransferMessage::PersonTransferMessage(Person_MT* person,
 sim_mob::medium::PersonTransferMessage::~PersonTransferMessage()
 {
 }
-
 

@@ -107,9 +107,9 @@ void TaxiDriver::HandleParentMessage(messaging::Message::MessageType type, const
 {
 	switch (type)
 	{
-		case MSG_TRIP_PROPOSITION:
+		case MSG_SCHEDULE_PROPOSITION:
 		{
-			const TripPropositionMessage& msg = MSG_CAST(TripPropositionMessage, message);
+			const SchedulePropositionMessage& msg = MSG_CAST(SchedulePropositionMessage, message);
 
 			Print() << "Assignment received for " << msg.personId << " at time " << parent->currTick.frame()
 				<< ". Message was sent at " << msg.currTick.frame() << " with startNodeId " << msg.startNodeId
@@ -117,16 +117,16 @@ void TaxiDriver::HandleParentMessage(messaging::Message::MessageType type, const
 
 			std::map<unsigned int, Node*> nodeIdMap = RoadNetwork::getInstance()->getMapOfIdvsNodes();
 
-			std::map<unsigned int, Node*>::iterator it = nodeIdMap.find(msg.destinationNodeId); 
+			std::map<unsigned int, Node*>::iterator it = nodeIdMap.find(msg.startNodeId); 
 			if (it == nodeIdMap.end()) {
-				Print() << "Message contains bad destination node " << msg.destinationNodeId << std::endl;
+				Print() << "Message contains bad start node " << msg.startNodeId << std::endl;
 
 				if (MobilityServiceControllerManager::HasMobilityServiceControllerManager())
 				{
 					std::map<unsigned int, MobilityServiceController*> controllers = MobilityServiceControllerManager::GetInstance()->getControllers();
 				
-					messaging::MessageBus::SendMessage(controllers[1], MSG_TRIP_PROPOSITION_REPLY,
-						messaging::MessageBus::MessagePtr(new TripPropositionReplyMessage(parent->currTick, msg.personId, parent->getDatabaseId(),
+					messaging::MessageBus::SendMessage(controllers[1], MSG_SCHEDULE_PROPOSITION_REPLY,
+						messaging::MessageBus::MessagePtr(new SchedulePropositionReplyMessage(parent->currTick, msg.personId, parent,
 							msg.startNodeId, msg.destinationNodeId, msg.extraTripTimeThreshold, false)));
 
 					Print() << "Assignment response sent for " << msg.personId << " at time " << parent->currTick.frame()
@@ -144,8 +144,8 @@ void TaxiDriver::HandleParentMessage(messaging::Message::MessageType type, const
 			{
 				std::map<unsigned int, MobilityServiceController*> controllers = MobilityServiceControllerManager::GetInstance()->getControllers();
 
-				messaging::MessageBus::SendMessage(controllers[1], MSG_TRIP_PROPOSITION_REPLY,
-					messaging::MessageBus::MessagePtr(new TripPropositionReplyMessage(parent->currTick, msg.personId, parent->getDatabaseId(),
+				messaging::MessageBus::SendMessage(controllers[1], MSG_SCHEDULE_PROPOSITION_REPLY,
+					messaging::MessageBus::MessagePtr(new SchedulePropositionReplyMessage(parent->currTick, msg.personId, parent,
 						msg.startNodeId, msg.destinationNodeId, msg.extraTripTimeThreshold, success)));
 
 				Print() << "Assignment response sent for " << msg.personId << " at time " << parent->currTick.frame()
@@ -192,7 +192,6 @@ void TaxiDriver::pickUpPassngerAtNode(Conflux *parentConflux, std::string* perso
 	Person_MT *personToPickUp = parentConflux->pickupTaxiTraveler(personId);
 	if (personToPickUp)
 	{
-		std::string id = personToPickUp->getDatabaseId();
 		Role<Person_MT>* curRole = personToPickUp->getRole();
 		sim_mob::medium::Passenger* passenger = dynamic_cast<sim_mob::medium::Passenger*>(curRole);
 		if (passenger)
@@ -271,13 +270,4 @@ TaxiDriver::~TaxiDriver()
 }
 }
 }
-
-
-
-
-
-
-
-
-
 

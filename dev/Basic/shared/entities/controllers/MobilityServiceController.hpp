@@ -42,18 +42,6 @@ public:
 	virtual ~MobilityServiceController();
 
 	/**
-	 * Subscribes a vehicle driver to the controller
-	 * @param person Driver to be added
-	 */
-	void subscribeDriver(Person* person);
-
-	/**
-	 * Unsubscribes a vehicle driver from the controller
-	 * @param person Driver to be removed
-	 */
-	void unsubscribeDriver(Person* person);
-
-	/**
 	 * Signals are non-spatial in nature.
 	 */
 	bool isNonspatial();
@@ -79,8 +67,17 @@ protected:
 	 */
     void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
 
-	/** Store list of vehicle drivers */
-	std::vector<Person*> drivers;
+	/**
+	 * Makes a vehicle driver unavailable to the controller
+	 * @param person Driver to be removed
+	 */
+	void driverUnavailable(Person* person);
+
+	/** Store list of subscribed drivers */
+	std::vector<Person*> subscribedDrivers;
+
+	/** Store list of available drivers */
+	std::vector<Person*> availableDrivers;
 
 	/** Store queue of requests */
 	std::vector<TripRequest> requestQueue;
@@ -89,6 +86,24 @@ protected:
 	timeslice currTimeSlice;
 
 private:
+	/**
+	 * Subscribes a vehicle driver to the controller
+	 * @param person Driver to be added
+	 */
+	void subscribeDriver(Person* person);
+
+	/**
+	 * Unsubscribes a vehicle driver from the controller
+	 * @param person Driver to be removed
+	 */
+	void unsubscribeDriver(Person* person);
+
+	/**
+	 * Makes a vehicle driver available to the controller
+	 * @param person Driver to be added
+	 */
+	void driverAvailable(Person* person);
+
 	/**
 	 * Performs the controller algorithm to assign vehicles to requests
 	 */
@@ -102,7 +117,5 @@ private:
 };
 }
 #endif /* MobilityServiceController_HPP_ */
-
-
 
 

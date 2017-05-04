@@ -10,7 +10,6 @@
 #include "buffering/Shared.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
-#include "entities/controllers/MobilityServiceControllerManager.hpp"
 #include "entities/misc/BusTrip.hpp"
 #include "entities/misc/TaxiTrip.hpp"
 #include "entities/roles/DriverRequestParams.hpp"
@@ -146,38 +145,37 @@ void BusControllerMT::assignBusTripChainWithPerson(std::set<Entity*>& activeAgen
 		groupFleets[taxi.vehicleNo].push(taxi);
 	}
 
+	int currTaxi = 0;
+	// 47, 94, 141, 188, 235
+	const int numberOfTaxis = 235;
+
+	Print() << "Map size " << groupFleets.size() << std::endl;
+	Print() << "Number of taxis " << numberOfTaxis << std::endl;
+
 	for (auto i=groupFleets.begin(); i!= groupFleets.end(); i++)
 	{
-		const TaxiFleetManager::FleetTimePriorityQueue& fleetItems = i->second;
-		const TaxiFleetManager::TaxiFleet& taxi = fleetItems.top();
+		if (currTaxi < numberOfTaxis) {
+			const TaxiFleetManager::FleetTimePriorityQueue& fleetItems = i->second;
+			const TaxiFleetManager::TaxiFleet& taxi = fleetItems.top();
 
-		Person_MT* person = new Person_MT("TaxiController", config.mutexStategy(), -1);
-		person->setTaxiFleet(fleetItems);
-		person->setDatabaseId(taxi.driverId);
-		person->setPersonCharacteristics();
+			Person_MT* person = new Person_MT("TaxiController", config.mutexStategy(), -1);
+			person->setTaxiFleet(fleetItems);
+			person->setDatabaseId(taxi.driverId);
+			person->setPersonCharacteristics();
 
-		vector<TripChainItem*> tripChain;
+			vector<TripChainItem*> tripChain;
 
-		if (taxi.startNode)
-		{
-			TaxiTrip *taxiTrip = new TaxiTrip("0","TaxiTrip",0,-1, DailyTime(taxi.startTime*1000.0), DailyTime(),0,const_cast<Node*>(taxi.startNode),"node",nullptr,"node");
-			tripChain.push_back(taxiTrip);
-			person->setTripChain(tripChain);
+			if (taxi.startNode)
+			{
+				TaxiTrip *taxiTrip = new TaxiTrip("0","TaxiTrip",0,-1, DailyTime(taxi.startTime*1000.0), DailyTime(),0,const_cast<Node*>(taxi.startNode),"node",nullptr,"node");
+				tripChain.push_back(taxiTrip);
+				person->setTripChain(tripChain);
 
-			addOrStashBuses(person, activeAgents);
-		}
+				addOrStashBuses(person, activeAgents);
+			}
 
-		if (MobilityServiceControllerManager::HasMobilityServiceControllerManager())
-		{
-			std::map<unsigned int, MobilityServiceController*> controllers = MobilityServiceControllerManager::GetInstance()->getControllers();
-			controllers[1]->subscribeDriver(person);
+			currTaxi++;
 		}
 	}
 }
-
-
-
-
-
-
 

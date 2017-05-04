@@ -7,9 +7,63 @@ namespace sim_mob
 
 enum MobilityServiceControllerMessage
 {
-	MSG_TRIP_REQUEST = 7000000,
-	MSG_TRIP_PROPOSITION,
-	MSG_TRIP_PROPOSITION_REPLY
+	MSG_DRIVER_SUBSCRIBE = 7000000,
+	MSG_DRIVER_UNSUBSCRIBE,
+	MSG_DRIVER_AVAILABLE,
+	MSG_TRIP_REQUEST,
+	MSG_SCHEDULE_PROPOSITION,
+	MSG_SCHEDULE_PROPOSITION_REPLY
+};
+
+/**
+ * Message to subscribe a driver
+ */
+class DriverSubscribeMessage: public messaging::Message
+{
+public:
+	DriverSubscribeMessage(Person* p) : person(p)
+	{
+	}
+
+	virtual ~DriverSubscribeMessage()
+	{
+	}
+
+	Person* person;
+};
+
+/**
+ * Message to unsubscribe a driver
+ */
+class DriverUnsubscribeMessage: public messaging::Message
+{
+public:
+	DriverUnsubscribeMessage(Person* p) : person(p)
+	{
+	}
+
+	virtual ~DriverUnsubscribeMessage()
+	{
+	}
+
+	Person* person;
+};
+
+/**
+ * Message to state that a driver is available
+ */
+class DriverAvailableMessage: public messaging::Message
+{
+public:
+	DriverAvailableMessage(Person* p) : person(p)
+	{
+	}
+
+	virtual ~DriverAvailableMessage()
+	{
+	}
+
+	Person* person;
 };
 
 /**
@@ -40,17 +94,17 @@ public:
 /**
  * Message to propose a trip to a driver
  */
-class TripPropositionMessage: public messaging::Message
+class SchedulePropositionMessage: public messaging::Message
 {
 public:
-	TripPropositionMessage(timeslice ct, const std::string& person,
+	SchedulePropositionMessage(timeslice ct, const std::string& person,
 		const unsigned int sn, const unsigned int dn,
 		const unsigned int threshold) : currTick(ct), personId(person),
 			startNodeId(sn), destinationNodeId(dn),
 			extraTripTimeThreshold(threshold)
 	{
 	}
-	virtual ~TripPropositionMessage()
+	virtual ~SchedulePropositionMessage()
 	{
 	}
 
@@ -64,29 +118,30 @@ public:
 /**
  * Message to respond to a trip proposition
  */
-class TripPropositionReplyMessage: public messaging::Message
+class SchedulePropositionReplyMessage: public messaging::Message
 {
 public:
-	TripPropositionReplyMessage(timeslice ct, const std::string& p,
-		const std::string& t, const unsigned int sn, const unsigned int dn,
+	SchedulePropositionReplyMessage(timeslice ct, const std::string& p,
+		Person* t, const unsigned int sn, const unsigned int dn,
 		const unsigned int threshold, const bool s) : currTick(ct),
-			personId(p), driverId(t), startNodeId(sn), destinationNodeId(dn),
+			personId(p), driver(t), startNodeId(sn), destinationNodeId(dn),
 			extraTripTimeThreshold(threshold), success(s)
 	{
 	}
 
-	virtual ~TripPropositionReplyMessage()
+	virtual ~SchedulePropositionReplyMessage()
 	{
 	}
 
 	const timeslice currTick;
 	const bool success;
 	const std::string personId;
-	const std::string driverId;
+	Person* driver;
 	const unsigned int startNodeId;
 	const unsigned int destinationNodeId;
 	const unsigned int extraTripTimeThreshold;
 };
 
 }
+
 

@@ -2670,11 +2670,11 @@ void HM_Model::getLogsumOfVaryingHomeOrWork(BigSerial householdId)
 			personParams.setIsStudent(isStudent);
 
 
-			personParams.setActivityAddressId( establishmentSlaAddressId );
+			personParams.setActivityAddressId( tazWork );
 
 			//household related
 			personParams.setHhId(boost::lexical_cast<std::string>( currentHousehold->getId() ));
-			personParams.setHomeAddressId( this->getUnitSlaAddressId( unit->getId()));
+			personParams.setHomeAddressId( tazHome );
 			personParams.setHH_Size( currentHousehold->getSize() );
 			personParams.setHH_NumUnder4( currentHousehold->getChildUnder4());
 			personParams.setHH_NumUnder15( currentHousehold->getChildUnder15());

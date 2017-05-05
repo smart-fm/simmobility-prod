@@ -251,13 +251,7 @@ double ZoneAddressParams::getDistanceBus(int addressIdx) const
 
 ZoneAddressParams::ZoneAddressParams(const std::map<long, Address>& addressLkp, const std::vector<long>& znAddresses)
 	: addressLookup(addressLkp), zoneAddresses(znAddresses), numAddresses(znAddresses.size())
-{
-	int x = 0;
-
-	x++;
-
-	x = 0;
-}
+{}
 
 ZoneAddressParams::~ZoneAddressParams()
 {

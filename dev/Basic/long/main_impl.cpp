@@ -300,6 +300,7 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
     // Connect to database.
     DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
     conn.connect();
+    conn.setSchema(config.schemas.main_schema);
     SimulationStartPointDao simStartPointDao(conn);
     bool resume = config.ltParams.resume;
     std::string currentOutputSchema;

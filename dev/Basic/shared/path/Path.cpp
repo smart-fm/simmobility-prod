@@ -279,6 +279,9 @@ double sim_mob::generatePathLength(const std::vector<sim_mob::WayPoint>& wp)
 		res += turningGroup->getLength();
 	}
 
+	//Add length of last link
+	res += wp.back().link->getLength();
+
 	//Get distance between the 'to node' of the last link in the path and the end of the link
 	const Point &linkEndPt = wp.back().link->getRoadSegments().back()->getPolyLine()->getLastPoint();
 	const Point &toNodePt = wp.back().link->getToNode()->getLocation();

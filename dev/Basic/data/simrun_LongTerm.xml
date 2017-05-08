@@ -35,7 +35,7 @@
             </database>
 
             <!-- localhost for midterm server -->
-            <database id="fm_remote_mt6" dbtype="postgres">
+            <database id="fm_remote_mt3" dbtype="postgres">
                 <host value="localhost"/>
                 <port value="5432"/>
                 <dbname value="sim_mob_lt"/>
@@ -49,14 +49,14 @@
 	    </database>
 
 		<!-- public ip for remote midterm server -->
-	    <database id="fm_remote_mt4" dbtype="postgres">
+	    <database id="fm_remote_mt5" dbtype="postgres">
 	        <host value="fmhpchead"/>
 	        <port value="5432"/> <!--old port: 15025 -->
 	        <dbname value="Simmobility"/>
 	    </database>
 
 		<!-- longterm localhost server hosting midterm data -->
-	    <database id="fm_remote_mt5" dbtype="postgres">
+	    <database id="fm_remote_mt6" dbtype="postgres">
 	        <host value="172.25.184.14"/>
 	        <port value="5432"/>
 	        <dbname value="sim_mob_lt"/>
@@ -137,7 +137,7 @@
 		    <awakenModelRandom value="false"/>
 		    <awakenModelJingsi value="true"/>	
                     <awakeningOffMarketSuccessfulBid value="100"/>
- 	             <awakeningOffMarketUnsuccessfulBid value="200"/>
+ 	            <awakeningOffMarketUnsuccessfulBid value="200"/>
 	    </awakeningModel>
 	    <vacantUnitActivationProbability value="0.375"/>
 	    <housingMarketSearchPercentage value="0.15"/>

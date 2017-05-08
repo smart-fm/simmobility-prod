@@ -150,7 +150,7 @@ void sim_mob::PredayLT_LogsumManager::loadZones()
 	{
 		zoneIdLookup[znMapIt->second->getZoneCode()] = znMapIt->first;
 	}
-	Print() << "TAZs loaded" << std::endl;
+	Print() << "TAZs loaded " << zoneIdLookup.size() << std::endl;
 }
 
 void sim_mob::PredayLT_LogsumManager::loadCosts()
@@ -170,15 +170,15 @@ void sim_mob::PredayLT_LogsumManager::loadCosts()
 	{
 		CostSqlDao amCostDao(mtDbConnection, DB_GET_ALL_AM_COSTS);
 		amCostDao.getAll(amCostMap);
-		Print() << "AM costs loaded" << std::endl;
+		Print() << "AM costs loaded " << amCostMap.size() << std::endl;
 
 		CostSqlDao pmCostDao(mtDbConnection, DB_GET_ALL_PM_COSTS);
 		pmCostDao.getAll(pmCostMap);
-		Print() << "PM costs loaded" << std::endl;
+		Print() << "PM costs loaded " << pmCostMap.size() << std::endl;
 
 		CostSqlDao opCostDao(mtDbConnection, DB_GET_ALL_OP_COSTS);
 		opCostDao.getAll(opCostMap);
-		Print() << "OP costs loaded" << std::endl;
+		Print() << "OP costs loaded " << opCostMap.size() << std::endl;
 	}
 	else
 	{

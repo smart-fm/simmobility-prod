@@ -224,7 +224,14 @@ void HousingMarket::getAvailableEntries(ConstEntryList& outList)
 
 size_t HousingMarket::getEntrySize()
 {
-	return entriesById.size();
+	size_t size = 0;
+	for(int n = 0; n < entriesById.size(); n++)
+	{
+		if(entriesById[n]->isBuySellIntervalCompleted() == true)
+			size++;
+	}
+
+	return size;
 }
 
 size_t HousingMarket::getBTOEntrySize()

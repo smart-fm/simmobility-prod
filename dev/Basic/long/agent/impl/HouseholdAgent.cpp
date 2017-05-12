@@ -191,6 +191,10 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 		}
 	}
 
+    if (seller && seller->isActive())
+    {
+        seller->update(now);
+    }
 
 
     if (bidder && bidder->isActive() && householdBiddingWindow > 0 )
@@ -210,12 +214,6 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 		seller->setActive(false);
 		model->incrementExits();
 	}
-
-    if (seller && seller->isActive())
-    {
-        seller->update(now);
-    }
-
 
     int startDay = 0;
     if(config.ltParams.resume)

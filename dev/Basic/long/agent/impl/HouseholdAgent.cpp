@@ -156,28 +156,41 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 	day = now.frame();
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 
+	if( seller->isActive() == false )
+	{
+		ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+
+		for (vector<BigSerial>::const_iterator itr = unitIds.begin(); itr != unitIds.end(); itr++)
+		{
+			BigSerial unitId = *itr;
+			Unit* unit = const_cast<Unit*>(model->getUnitById(unitId));
+
+			if( id < model->FAKE_IDS_START )
+			{
+				unit->setbiddingMarketEntryDay(day + 1);
+				unit->setTimeOnMarket( config.ltParams.housingModel.timeOnMarket);
+			}
+		}
+
+		seller->setActive(true);
+	}
+
 	//has 7 days elapsed since the bidder was activted OR the bid has been accepted AND the waiting time is less than the BTO BuySell interval, we can activate the sellers
 	if(buySellInterval == 0 || (acceptedBid  && ( bidder->getMoveInWaitingTimeInDays() <= config.ltParams.housingModel.offsetBetweenUnitBuyingAndSellingAdvancedPurchase)))
 	{
-		if( seller->isActive() == false )
+		for (vector<BigSerial>::const_iterator itr = unitIds.begin(); itr != unitIds.end(); itr++)
 		{
-			ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+			BigSerial unitId = *itr;
+			Unit* unit = const_cast<Unit*>(model->getUnitById(unitId));
 
-			for (vector<BigSerial>::const_iterator itr = unitIds.begin(); itr != unitIds.end(); itr++)
+			if( id < model->FAKE_IDS_START )
 			{
-				BigSerial unitId = *itr;
-				Unit* unit = const_cast<Unit*>(model->getUnitById(unitId));
-
-				if( id < model->FAKE_IDS_START )
-				{
-					unit->setbiddingMarketEntryDay(day + 1);
-					unit->setTimeOnMarket( config.ltParams.housingModel.timeOnMarket);
-				}
+				HousingMarket::Entry *entry = const_cast<HousingMarket::Entry*>( getMarket()->getEntryById( unit->getId()) );
+				entry->setBuySellIntervalCompleted(true);
 			}
-
-			seller->setActive(true);
 		}
 	}
+
 
 
     if (bidder && bidder->isActive() && householdBiddingWindow > 0 )
@@ -211,7 +224,7 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
     }
 
     if(config.ltParams.schoolAssignmentModel.enabled)
-    	{
+    {
     		if( getId() < model->FAKE_IDS_START)
     		{
     			std::vector<BigSerial> individuals = household->getIndividuals();

@@ -305,6 +305,7 @@ namespace sim_mob
 
 				household->setAwakenedDay(0);
 				household->setLastBidStatus(0);
+				household->setLastAwakenedDay(day);
 
 				bidder->setActive(true);
 
@@ -398,6 +399,7 @@ namespace sim_mob
 					continue;
 
 				household->setAwakenedDay(day);
+				household->setLastAwakenedDay(day);
 				household->setLastBidStatus(0);
 
                 double futureTransitionRate = 0;

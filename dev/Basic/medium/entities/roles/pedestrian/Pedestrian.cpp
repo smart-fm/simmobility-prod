@@ -86,3 +86,13 @@ void sim_mob::medium::Pedestrian::collectTravelTime()
 	messaging::MessageBus::PostMessage(PT_Statistics::getInstance(),
 			STORE_PERSON_TRAVEL_TIME, messaging::MessageBus::MessagePtr(new PersonTravelTimeMessage(personTravelTime)), true);
 }
+
+bool sim_mob::medium::Pedestrian::isOnDemandTraveller()
+{
+	PedestrianMovement* movement = dynamic_cast<PedestrianMovement*>(Movement());
+	if(movement)
+	{
+		return movement->getOnDemandTraveller();
+	}
+	return false;
+}

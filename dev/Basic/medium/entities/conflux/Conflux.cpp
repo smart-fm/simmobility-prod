@@ -31,6 +31,7 @@
 #include "entities/roles/driver/DriverFacets.hpp"
 #include "entities/roles/passenger/PassengerFacets.hpp"
 #include "entities/roles/pedestrian/PedestrianFacets.hpp"
+#include "entities/roles/pedestrian/Pedestrian.hpp"
 #include "entities/roles/waitBusActivity/WaitBusActivityFacets.hpp"
 #include "entities/roles/waitTaxiActivity/WaitTaxiActivity.hpp"
 #include "entities/vehicle/VehicleBase.hpp"
@@ -1733,10 +1734,18 @@ Person_MT* Conflux::pickupTaxiTraveler(std::string* personId)
 	Person_MT* res = nullptr;
 	if(travelingPersons.size()>0)
 	{
-		if(!personId)
+		if (!personId)
 		{
-			res = travelingPersons.front();
-			travelingPersons.pop_front();
+			for (auto i = travelingPersons.begin(); i != travelingPersons.end();i++)
+			{
+				Pedestrian* pedestrian = dynamic_cast<Pedestrian*>((*i)->getRole());
+				if (pedestrian && !pedestrian->isOnDemandTraveller())
+				{
+					res = (*i);
+					travelingPersons.erase(i);
+					break;
+				}
+			}
 		}
 		else
 		{

@@ -147,7 +147,7 @@ void BusControllerMT::assignBusTripChainWithPerson(std::set<Entity*>& activeAgen
 
 	int currTaxi = 0;
 	// 47, 94, 141, 188, 235
-	const int numberOfTaxis = 235;
+	const int numberOfTaxis = 47;
 
 	Print() << "Map size " << groupFleets.size() << std::endl;
 	Print() << "Number of taxis " << numberOfTaxis << std::endl;
@@ -178,4 +178,5 @@ void BusControllerMT::assignBusTripChainWithPerson(std::set<Entity*>& activeAgen
 		}
 	}
 }
+
 

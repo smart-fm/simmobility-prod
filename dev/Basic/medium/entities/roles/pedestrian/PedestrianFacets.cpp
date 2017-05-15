@@ -235,3 +235,7 @@ Conflux* PedestrianMovement::getDestinationConflux() const
 	return nullptr;
 }
 
+bool PedestrianMovement::getOnDemandTraveller()
+{
+	return isOnDemandTraveler;
+}

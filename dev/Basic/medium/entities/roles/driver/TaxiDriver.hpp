@@ -10,7 +10,7 @@
 
 #include "Driver.hpp"
 #include "TaxiDriverFacets.hpp"
-#include  "entities/roles/passenger/Passenger.hpp"
+#include "entities/roles/passenger/Passenger.hpp"
 #include "buffering/Shared.hpp"
 #include "buffering/BufferedDataManager.hpp"
 #include "entities/mobilityServiceDriver/MobilityServiceDriver.hpp"
@@ -130,3 +130,4 @@ public:
 }
 
 #endif /* ENTITIES_ROLES_DRIVER_TAXIDRIVER_HPP_ */
+

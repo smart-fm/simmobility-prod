@@ -163,7 +163,7 @@ private:
 	/**
 	 * set broken information
 	 */
-	bool setBrokenInfo(const Node* next, const unsigned int duration);
+	bool setBreakInfo(const Node* next, const unsigned int duration);
 };
 
 class TaxiDriverBehavior: public DriverBehavior

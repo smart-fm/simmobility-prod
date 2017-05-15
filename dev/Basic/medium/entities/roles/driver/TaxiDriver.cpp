@@ -148,25 +148,11 @@ void TaxiDriver::pickUpPassngerAtNode(Conflux *parentConflux, std::string* perso
 					taxiDriverMovement->setDestinationNode(personDestinationNode);
 					taxiDriverMovement->setCurrentNode(currentNode);;
 					taxiDriverMovement->addRouteChoicePath(currentRouteChoice);
-					//passenger->setService(currentRouteChoice);
 					passenger->setStartPoint(WayPoint(taxiDriverMovement->getCurrentNode()));
 					passenger->setEndPoint(WayPoint(taxiDriverMovement->getDestinationNode()));
 					setTaxiDriveMode(DRIVE_WITH_PASSENGER);
 				}
 			}
-			/*else
-			{
-				sim_mob::BasicLogger& ptMoveLogger = sim_mob::Logger::log("nopathAfterPickupInCruising.csv");
-				const SegmentStats* currentStats = taxiDriverMovement->getMesoPathMover().getCurrSegStats();
-				if(currentStats)
-				{
-					ptMoveLogger << passenger->getParent()->getDatabaseId()<<",";
-					ptMoveLogger << currentStats->getRoadSegment()->getLinkId()<<",";
-					ptMoveLogger << currentStats->getRoadSegment()->getRoadSegmentId()<<",";
-					ptMoveLogger << taxiDriverMovement->getCurrentNode()->getNodeId()<<",";
-					ptMoveLogger << personDestinationNode->getNodeId()<<std::endl;
-				}
-			}*/
 		}
 	}
 }

@@ -180,7 +180,7 @@
         <pedestrian_walk_speed value="5"/>
         
 		<!-- the setting about percentage of on-demand traveler, from 0 to 100 -->
-    	<on_demand_traveler_percentage value="0"/>        
+    	<on_demand_traveler_percentage value="10"/>        
         
         <!-- default capacity value -->
         <bus_default_capacity value="100"/>

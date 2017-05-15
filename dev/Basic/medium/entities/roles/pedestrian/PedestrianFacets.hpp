@@ -80,6 +80,12 @@ public:
 
 	TravelMetric & startTravelTimeMetric();
 	TravelMetric & finalizeTravelTimeMetric();
+
+	/**
+	 * get on-demand traveller
+	 * @return true if it is a on-demand traveller
+	 */
+	bool getOnDemandTraveller();
 protected:
 
 	/**
@@ -116,7 +122,6 @@ protected:
 	std::queue<TravelTimeAtNode> travelPath;
 	/**record traveler whether is on-demand traveler*/
 	bool isOnDemandTraveler = false;
-
 };
 
 }

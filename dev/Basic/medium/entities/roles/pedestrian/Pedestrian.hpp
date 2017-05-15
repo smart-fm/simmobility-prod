@@ -46,7 +46,11 @@ public:
 	 * collect travel time for current role
 	 */
 	virtual void collectTravelTime();
-
+	/**
+	 * is a on-demand traveller
+	 * return true if it is a on-demand traveller
+	 */
+	bool isOnDemandTraveller();
 private:
 	friend class PedestrianBehavior;
 	friend class PedestrianMovement;

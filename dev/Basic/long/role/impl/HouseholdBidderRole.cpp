@@ -336,26 +336,26 @@ void HouseholdBidderRole::update(timeslice now)
 	}
 
 	//wait x days after move in to a new unit to reconsider the vehicle ownership option.
-//	if( vehicleBuyingWaitingTimeInDays > 0 && moveInWaitingTimeInDays == 0)
-//	{
-//
-//		if( vehicleBuyingWaitingTimeInDays == 1)
-//		{
-//			TimeCheck vehicleOwnershipTiming;
-//
-//			VehicleOwnershipModel vehOwnershipModel(getParent()->getModel());
-//			vehOwnershipModel.reconsiderVehicleOwnershipOption(getParent()->getHousehold(),getParent(), day);
-//
-//			double vehicleOwnershipTime = vehicleOwnershipTiming.getClockTime();
-//
-//			#ifdef VERBOSE_SUBMODEL_TIMING
-//				PrintOutV("vehicleOwnership time for agent " << getParent()->getId() << " is " << vehicleOwnershipTime << std::endl );
-//			#endif
-//		}
-//			vehicleBuyingWaitingTimeInDays--;
-//
-//		return;
-//	}
+	if( vehicleBuyingWaitingTimeInDays > 0 && moveInWaitingTimeInDays == 0)
+	{
+
+		if( vehicleBuyingWaitingTimeInDays == 1)
+		{
+			TimeCheck vehicleOwnershipTiming;
+
+			VehicleOwnershipModel vehOwnershipModel(getParent()->getModel());
+			vehOwnershipModel.reconsiderVehicleOwnershipOption2(*getParent()->getHousehold(),getParent(), day,false);
+
+			double vehicleOwnershipTime = vehicleOwnershipTiming.getClockTime();
+
+			#ifdef VERBOSE_SUBMODEL_TIMING
+				PrintOutV("vehicleOwnership time for agent " << getParent()->getId() << " is " << vehicleOwnershipTime << std::endl );
+			#endif
+		}
+			vehicleBuyingWaitingTimeInDays--;
+
+		return;
+	}
 
     //can bid another house if it is not waiting for any 
     //response and if it not the same day

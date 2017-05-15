@@ -2053,16 +2053,11 @@ void HM_Model::startImpl()
 			}
 		}
 
-//		if( (config.ltParams.outputHouseholdLogsums.vehicleOwnership == true) && (households[n]->getTenureStatus() == 3))
-//		{
-//			getLogsumOfHouseholdVO(households[n]->getId());
-//		}
-
 		if(initialLoading && config.ltParams.vehicleOwnershipModel.enabled)
 		{
 
 			//remove frozen hh
-			if(households[n]->getTenureStatus() == 3)
+			if(households[n]->getTenureStatus() != 3)
 			{
 				VehicleOwnershipModel vehOwnershipModel(this);
 				vehOwnershipModel.reconsiderVehicleOwnershipOption2(*households[n],nullptr, 0,initialLoading);
@@ -2169,7 +2164,7 @@ void HM_Model::startImpl()
 			if(config.ltParams.vehicleOwnershipModel.enabled)
 					{
 						//remove frozen hh
-						if((*it)->getTenureStatus() == 3)
+						if((*it)->getTenureStatus() != 3)
 						{
 							VehicleOwnershipModel vehOwnershipModel(this);
 							vehOwnershipModel.reconsiderVehicleOwnershipOption2(*(*it),nullptr, 0,initialLoading);

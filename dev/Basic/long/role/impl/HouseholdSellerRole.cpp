@@ -274,6 +274,8 @@ void HouseholdSellerRole::update(timeslice now)
             //get first expectation to add the entry on market.
             ExpectationEntry firstExpectation; 
 
+            bool buySellInvtervalCompleted = false;
+
             bool entryDay = true;
             //freelance agents will only awaken their units based on the unit market entry day
             if( getParent()->getId() >= model->FAKE_IDS_START )
@@ -282,6 +284,8 @@ void HouseholdSellerRole::update(timeslice now)
             		entryDay = true;
             	else
             		entryDay = false;
+
+            	buySellInvtervalCompleted = true;
             }
 
             if(getCurrentExpectation(unit->getId(), firstExpectation) && entryDay )
@@ -289,8 +293,6 @@ void HouseholdSellerRole::update(timeslice now)
             	//0.05 is the lower threshold for the hedonic price
             	if( firstExpectation.hedonicPrice  < 0.05 )
             		continue;
-
-            	bool buySellInvtervalCompleted = false;
 
                 market->addEntry( HousingMarket::Entry( getParent(), unit->getId(), model->getUnitSlaAddressId( unit->getId() ), tazId, firstExpectation.askingPrice, firstExpectation.hedonicPrice, unit->isBto(), buySellInvtervalCompleted));
 				#ifdef VERBOSE

@@ -225,9 +225,9 @@ void HousingMarket::getAvailableEntries(ConstEntryList& outList)
 size_t HousingMarket::getEntrySize()
 {
 	size_t size = 0;
-	for(int n = 0; n < entriesById.size(); n++)
+	for( auto itr = entriesById.begin(); itr != entriesById.end(); itr++)
 	{
-		if(entriesById[n]->isBuySellIntervalCompleted() == true)
+		if( (*itr).second->isBuySellIntervalCompleted() == true)
 			size++;
 	}
 

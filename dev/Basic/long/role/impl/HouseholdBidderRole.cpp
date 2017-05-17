@@ -600,7 +600,7 @@ bool HouseholdBidderRole::pickEntryToBid()
     	HousingMarket::ConstEntryList::const_iterator itr = entries.begin() + offset;
     	const HousingMarket::Entry* entry = *itr;
 
-    	if((*itr)->isBuySellIntervalCompleted() == false)
+    	if( entry->isBuySellIntervalCompleted() == false)
     		continue;
 
         const Unit* thisUnit = model->getUnitById( entry->getUnitId() );
@@ -620,6 +620,7 @@ bool HouseholdBidderRole::pickEntryToBid()
 
         if( thisUnit->getZoneHousingType() == zoneHousingType )
         {
+        	/*
 			if( thisUnit->getTenureStatus() == 1 && getParent()->getFutureTransitionOwn() == false ) //rented
 			{
 				std::vector<const HousingMarket::Entry*>::iterator screenedEntriesItr;
@@ -630,6 +631,7 @@ bool HouseholdBidderRole::pickEntryToBid()
 			}
 			else
 			if( thisUnit->getTenureStatus() == 2) //owner-occupied
+			*/
 			{
 				std::vector<const HousingMarket::Entry*>::iterator screenedEntriesItr;
 				screenedEntriesItr = std::find(screenedEntries.begin(), screenedEntries.end(), entry );
@@ -642,7 +644,11 @@ bool HouseholdBidderRole::pickEntryToBid()
 
     //Add your own unit to the choiceset
     {
-    	screenedEntries.push_back( market->getEntryById( household->getUnitId() ) );
+    	BigSerial uid = household->getUnitId();
+    	const HousingMarket::Entry *curEntry = market->getEntryById( uid );
+
+    	if(curEntry != nullptr)
+    		screenedEntries.push_back( curEntry );
     }
 
     {

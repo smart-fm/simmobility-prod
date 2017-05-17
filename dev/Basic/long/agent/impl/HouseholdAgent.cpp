@@ -156,7 +156,7 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 	day = now.frame();
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 
-	if( seller->isActive() == false )
+	if( bidder && bidder->isActive() && seller->isActive() == false )
 	{
 		ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 
@@ -186,7 +186,9 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 			if( id < model->FAKE_IDS_START )
 			{
 				HousingMarket::Entry *entry = const_cast<HousingMarket::Entry*>( getMarket()->getEntryById( unit->getId()) );
-				entry->setBuySellIntervalCompleted(true);
+
+				if( entry != nullptr)
+					entry->setBuySellIntervalCompleted(true);
 			}
 		}
 	}
@@ -197,7 +199,7 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
     }
 
 
-    if (bidder && bidder->isActive() && householdBiddingWindow > 0 )
+    if (bidder && bidder->isActive() && householdBiddingWindow > 0 && awakeningDay < day)
     {
         bidder->update(now);
         householdBiddingWindow--;

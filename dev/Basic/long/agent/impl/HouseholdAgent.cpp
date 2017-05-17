@@ -225,36 +225,36 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 
     if(config.ltParams.schoolAssignmentModel.enabled)
     {
-    		if( getId() < model->FAKE_IDS_START)
-    		{
-    			std::vector<BigSerial> individuals = household->getIndividuals();
-    			std::vector<BigSerial>::iterator individualsItr;
-    			for(individualsItr = individuals.begin(); individualsItr != individuals.end(); individualsItr++)
-    			{
-					const Individual* individual = model->getPrimaySchoolIndById((*individualsItr));
-					SchoolAssignmentSubModel schoolAssignmentModel(model);
-					if (individual!= nullptr)
+		if( getId() < model->FAKE_IDS_START)
+		{
+			std::vector<BigSerial> individuals = household->getIndividuals();
+			std::vector<BigSerial>::iterator individualsItr;
+			for(individualsItr = individuals.begin(); individualsItr != individuals.end(); individualsItr++)
+			{
+				const Individual* individual = model->getPrimaySchoolIndById((*individualsItr));
+				SchoolAssignmentSubModel schoolAssignmentModel(model);
+				if (individual!= nullptr)
+				{
+					if(day == startDay)
 					{
-						if(day == startDay)
-						{
-							schoolAssignmentModel.assignPrimarySchool(this->getHousehold(),individual->getId(),this, day);
-						}
-						if(day == ++startDay)
-						{
-							schoolAssignmentModel.setStudentLimitInPrimarySchool();
-						}
+						schoolAssignmentModel.assignPrimarySchool(this->getHousehold(),individual->getId(),this, day);
 					}
-					else
+					if(day == ++startDay)
 					{
-						const Individual* individual = model->getPreSchoolIndById((*individualsItr));
-						if (individual!= nullptr && day == startDay)
-						{
-							schoolAssignmentModel.assignPreSchool(this->getHousehold(),individual->getId(),this, day);
-						}
+						schoolAssignmentModel.setStudentLimitInPrimarySchool();
 					}
-    			}
-    		}
-    	}
+				}
+				else
+				{
+					const Individual* individual = model->getPreSchoolIndById((*individualsItr));
+					if (individual!= nullptr && day == startDay)
+					{
+						schoolAssignmentModel.assignPreSchool(this->getHousehold(),individual->getId(),this, day);
+					}
+				}
+			}
+		}
+    }
 
     return Entity::UpdateStatus(UpdateStatus::RS_CONTINUE);
 }

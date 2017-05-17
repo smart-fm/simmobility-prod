@@ -254,10 +254,6 @@ void HouseholdSellerRole::update(timeslice now)
             	continue;
             }
 
-            if( currentTime.ms() != unit->getbiddingMarketEntryDay() )
-            {
-            	continue;
-            }
 
 
             BigSerial tazId = model->getUnitTazId(unitId);

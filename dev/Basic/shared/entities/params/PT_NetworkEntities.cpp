@@ -225,11 +225,12 @@ void PT_Network::init(const std::string& storedProcForVertex, const std::string&
 
 
 	loadMRTData(sql_, MRTStopsMap);
-
-	std::set<string> mrtStationIds;
-	std::vector<RTS_NetworkEdge> mrtEdges;
-	loadRailTransitGraphData(sql_, mrtStationIds, mrtEdges);
-	RailTransit::getInstance().initGraph(mrtStationIds, mrtEdges);
+	if (ConfigManager::GetInstance().FullConfig().getPathSetConf().publicPathSetMode != "generation") {
+		std::set<string> mrtStationIds;
+		std::vector<RTS_NetworkEdge> mrtEdges;
+		loadRailTransitGraphData(sql_, mrtStationIds, mrtEdges);
+		RailTransit::getInstance().initGraph(mrtStationIds, mrtEdges);
+	}
 
 	cout << "Public Transport network loaded\n";
 }

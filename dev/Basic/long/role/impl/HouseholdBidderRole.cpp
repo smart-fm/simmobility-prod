@@ -593,8 +593,18 @@ bool HouseholdBidderRole::pickEntryToBid()
 
 	std::vector<const HousingMarket::Entry*> screenedEntries;
 
-    for(int n = 0; n < entries.size() /** housingMarketSearchPercentage*/ && screenedEntries.size() < config.ltParams.housingModel.bidderUnitsChoiceSet; n++)
+    for(int n = 0; n < entries.size() && screenedEntries.size() < config.ltParams.housingModel.bidderUnitsChoiceSet; n++)
     {
+      	int offset = (float)rand() / RAND_MAX * ( entries.size() - 1 );
+
+    	HousingMarket::ConstEntryList::const_iterator itr = entries.begin() + offset;
+    	const HousingMarket::Entry* entry = *itr;
+
+    	if( entry->isBuySellIntervalCompleted() == false)
+    		continue;
+
+        const Unit* thisUnit = model->getUnitById( entry->getUnitId() );
+
         double randomDraw = (double)rand()/RAND_MAX;
         int zoneHousingType = -1;
         double cummulativeProbability = 0.0;
@@ -608,19 +618,9 @@ bool HouseholdBidderRole::pickEntryToBid()
         	}
         }
 
-      	int offset = (float)rand() / RAND_MAX * ( entries.size() - 1 );
-
-    	HousingMarket::ConstEntryList::const_iterator itr = entries.begin() + offset;
-    	const HousingMarket::Entry* entry = *itr;
-
-        const Unit* thisUnit = model->getUnitById( entry->getUnitId() );
-
         if( thisUnit->getZoneHousingType() == zoneHousingType )
         {
         	/*
-        	 * Chetan has temporarily commented this out until we figure out who to determine rental units
-        	 * 13 Feb 2017
-        	 *
 			if( thisUnit->getTenureStatus() == 1 && getParent()->getFutureTransitionOwn() == false ) //rented
 			{
 				std::vector<const HousingMarket::Entry*>::iterator screenedEntriesItr;
@@ -642,8 +642,16 @@ bool HouseholdBidderRole::pickEntryToBid()
         }
     }
 
+    //Add your own unit to the choiceset
     {
-    	HousingMarket *market = model->getMarket();
+    	BigSerial uid = household->getUnitId();
+    	const HousingMarket::Entry *curEntry = market->getEntryById( uid );
+
+    	if(curEntry != nullptr)
+    		screenedEntries.push_back( curEntry );
+    }
+
+    {
     	set<BigSerial> btoEntries = market->getBTOEntries();
 
         //Add x BTO units to the screenedUnit vector if the household is eligible for it

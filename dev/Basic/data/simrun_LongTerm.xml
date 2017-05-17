@@ -136,7 +136,7 @@
 		    <awakenModelShan value="false"/>
 		    <awakenModelRandom value="false"/>
 		    <awakenModelJingsi value="true"/>	
-                    <awakeningOffMarketSuccessfulBid value="100"/>
+                    <awakeningOffMarketSuccessfulBid value="200"/>
  	            <awakeningOffMarketUnsuccessfulBid value="200"/>
 	    </awakeningModel>
 	    <vacantUnitActivationProbability value="0.375"/>

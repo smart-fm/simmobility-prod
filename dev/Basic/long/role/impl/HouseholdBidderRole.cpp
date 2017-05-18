@@ -620,7 +620,7 @@ bool HouseholdBidderRole::pickEntryToBid()
 
         if( thisUnit->getZoneHousingType() == zoneHousingType )
         {
-        	/*
+
 			if( thisUnit->getTenureStatus() == 1 && getParent()->getFutureTransitionOwn() == false ) //rented
 			{
 				std::vector<const HousingMarket::Entry*>::iterator screenedEntriesItr;
@@ -631,7 +631,6 @@ bool HouseholdBidderRole::pickEntryToBid()
 			}
 			else
 			if( thisUnit->getTenureStatus() == 2) //owner-occupied
-			*/
 			{
 				std::vector<const HousingMarket::Entry*>::iterator screenedEntriesItr;
 				screenedEntriesItr = std::find(screenedEntries.begin(), screenedEntries.end(), entry );

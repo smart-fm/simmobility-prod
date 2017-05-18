@@ -305,6 +305,7 @@ namespace sim_mob
 
 				household->setAwakenedDay(0);
 				household->setLastBidStatus(0);
+				household->setLastAwakenedDay(day);
 
 				bidder->setActive(true);
 
@@ -397,9 +398,6 @@ namespace sim_mob
 				if( household->getLastBidStatus() == 2 && day < config.ltParams.housingModel.awakeningModel.awakeningOffMarketUnsuccessfulBid + awakenDay )
 					continue;
 
-				household->setAwakenedDay(day);
-				household->setLastBidStatus(0);
-
                 double futureTransitionRate = 0;
 				double futureTransitionRandomDraw = 0;
 
@@ -417,6 +415,8 @@ namespace sim_mob
 
 		    	n++;
 
+				household->setLastBidStatus(0);
+				household->setAwakenedDay(day);
 		    	household->setLastAwakenedDay(day);
                 model->incrementAwakeningCounter();
 

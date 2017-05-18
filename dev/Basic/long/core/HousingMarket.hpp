@@ -63,7 +63,7 @@ namespace sim_mob
             class Entry
             {
             public:
-                Entry(Agent_LT* owner, BigSerial unitId, BigSerial postcodeId, BigSerial tazId, double askingPrice, double hedonicPrice, bool bto);
+                Entry(Agent_LT* owner, BigSerial unitId, BigSerial postcodeId, BigSerial tazId, double askingPrice, double hedonicPrice, bool bto, bool buySellIntervalCompleted);
                 Entry( const Entry& source );
 
                 virtual ~Entry();
@@ -76,11 +76,14 @@ namespace sim_mob
                 double getAskingPrice() const;
                 double getHedonicPrice() const;
                 Agent_LT* getOwner() const;
-                bool 	isBTO() const;
+                bool isBTO() const;
+                bool isBuySellIntervalCompleted() const;
+
 
                 void setAskingPrice(double askingPrice);
                 void setHedonicPrice(double hedonicPrice);
                 void setOwner(Agent_LT* owner);
+                void setBuySellIntervalCompleted(bool value);
 
             private:
                 BigSerial tazId;
@@ -90,6 +93,7 @@ namespace sim_mob
                 double hedonicPrice;
                 Agent_LT* owner;
                 bool bto;
+                bool buySellIntervalCompleted; //Wait x number of days before you sell your unit. Start buying first.
             };
 
             typedef std::vector<Entry*> EntryList;

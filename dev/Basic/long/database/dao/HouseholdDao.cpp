@@ -11,6 +11,7 @@
 
 #include "HouseholdDao.hpp"
 #include "DatabaseHelper.hpp"
+#include <limits.h>
 
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
@@ -31,7 +32,7 @@ void HouseholdDao::fromRow(Row& result, Household& outObj)
     outObj.childUnder4  = result.get<int>(DB_FIELD_CHILDUNDER4, 0);
     outObj.childUnder15 = result.get<int>(DB_FIELD_CHILDUNDER15, 0);
     outObj.adult = result.get<int>("num_adults", 0);
-    outObj.income = result.get<double>(DB_FIELD_INCOME, 0);
+    outObj.income = std::numeric_limits<double>::min();//result.get<double>(DB_FIELD_INCOME, 0);
     outObj.housingDuration = result.get<int>(DB_FIELD_HOUSING_DURATION, 0);
     outObj.workers = result.get<int>(DB_FIELD_WORKERS, 0);
     outObj.ageOfHead = result.get<int>(DB_FIELD_AGE_OF_HEAD, 0);

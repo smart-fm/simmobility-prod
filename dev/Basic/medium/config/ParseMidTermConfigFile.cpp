@@ -87,7 +87,7 @@ void ParseMidTermConfigFile::processXmlFile(xercesc::XercesDOMParser& parser)
 		processPublicTransit(GetSingleElementByName(rootNode, "public_transit"));
 		processRegionRestrictionNode(GetSingleElementByName(rootNode, "region_restriction"));
 		processPathSetFileName(GetSingleElementByName(rootNode, "pathset_config_file", true));
-	processTripChainOutputNode(GetSingleElementByName(rootNode, "trip_chain_output", true));
+		processTripChainOutputNode(GetSingleElementByName(rootNode, "trip_chain_output"));
 
 		if (mtCfg.RunningMidSupply())
 		{

@@ -286,6 +286,10 @@ void ParseMidTermConfigFile::processStatisticsOutputNode(xercesc::DOMElement* no
 	child = GetSingleElementByName(node, "pt_reroute");
 	value = ParseString(GetNamedAttributeValue(child, "file"), "");
 	cfg.setPT_PersonRerouteFilename(value);
+
+	child = GetSingleElementByName(node, "link_travel_time", true);
+	value = ParseString(GetNamedAttributeValue(child, "file"), "");
+	cfg.setLinkTravelTimesFile(value);
 }
 
 void ParseMidTermConfigFile::processSpeedDensityParamsNode(xercesc::DOMElement* node)

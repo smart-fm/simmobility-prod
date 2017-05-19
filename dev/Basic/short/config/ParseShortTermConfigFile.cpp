@@ -731,6 +731,7 @@ void ParseShortTermConfigFile::processOutputStatistics(xercesc::DOMElement* node
 	processPT_StopStatsNode(GetSingleElementByName(node, "pt_stop_stats"));
 	processODTravelTimeNode(GetSingleElementByName(node, "od_travel_time"));
 	processSegmentTravelTimeNode(GetSingleElementByName(node, "segment_travel_time"));
+	processLinkTravelTimeNode(GetSingleElementByName(node, "link_travel_time", true));
 	processSegmentDensityNode(GetSingleElementByName(node, "segment_density"));
 	processLoopDetectorCountNode(GetSingleElementByName(node, "loop-detector_counts"));
 	processAssignmentMatrixNode(GetSingleElementByName(node, "assignment_matrix"));
@@ -837,6 +838,11 @@ void ParseShortTermConfigFile::processSegmentTravelTimeNode(xercesc::DOMElement*
 			cfg.rsTTConfig.fileName = ParseString(GetNamedAttributeValue(node, "file-name"), "segment_travel_time.csv");
 		}
 	}
+}
+
+void ParseShortTermConfigFile::processLinkTravelTimeNode(xercesc::DOMElement *node)
+{
+	cfg.setLinkTravelTimesFile(ParseString(GetNamedAttributeValue(node, "file"), ""));
 }
 
 ParseShortTermTripFile::ParseShortTermTripFile(const std::string &tripFileName, const std::string &tripName_, ST_Config &stConfig) :

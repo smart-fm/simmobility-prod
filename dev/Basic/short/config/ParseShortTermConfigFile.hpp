@@ -309,16 +309,22 @@ private:
     /**
      * processes the OD Travel Time node in the config xml
      *
-     * @param node node correspoding to od travel time element inside xml file
+     * @param node node corresponding to od travel time element inside xml file
      */
     void processODTravelTimeNode(xercesc::DOMElement* node);
 
     /**
 	 * processes the Segment Travel Time node in the config xml
 	 *
-	 * @param node node correspoding to segment travel time element inside xml file
+	 * @param node node corresponding to link travel time element inside xml file
 	 */
     void processSegmentTravelTimeNode(xercesc::DOMElement* node);
+
+	/**
+	 * processes the link travel time node in the config xml
+	 * @param node
+	 */
+	void processLinkTravelTimeNode(xercesc::DOMElement* node);
 
     /// Short Term config reference
     ST_Config& stCfg;

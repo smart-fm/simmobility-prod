@@ -280,6 +280,7 @@
 		<pt_stop_stats file="pt_stop_stats.csv"/>
 		<od_travel_time enabled="false" file-name="od_travel_time.csv" interval="900000"/>
 		<segment_travel_time enabled="false" file-name="segment_travel_time.csv" interval="300000"/>
+		<link_travel_time file="link_travel_time.csv"/>
 		<!--If enabled, outputs the density at every road segment present at the end of the
 		update interval (in milliseconds)-->
 		<segment_density updateInterval="300000" outputEnabled="false" file-name="density_map.csv"/>

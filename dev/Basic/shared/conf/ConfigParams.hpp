@@ -248,6 +248,9 @@ private:
 	/** name of the file to store the person rerouting information (public transit)*/
 	std::string ptPersonRerouteFilename;
 
+	/**link travel time file name*/
+	std::string linkTravelTimesFile;
+
 public:
 	/////////////////////////////////////////////////////////////////////////////////////
     /// These are helper functions, to make compatibility between old/new parsing easier.
@@ -470,6 +473,19 @@ public:
 	 * @param ptPersonRerouteFilename filename to be set
 	 */
 	void setPT_PersonRerouteFilename(const std::string &ptPersonRerouteFilename);
+
+	/**
+	 * Retrieves the lik travel times file name
+	 * @return link travel time filename
+	 */
+	const std::string &getLinkTravelTimesFile() const;
+
+	/**
+	 * Sets the link travel times filename
+	 *
+	 * @param linkTravelTimesFile filename to be set
+	 */
+	void setLinkTravelTimesFile(const std::string &linkTravelTimesFile);
 };
 
 

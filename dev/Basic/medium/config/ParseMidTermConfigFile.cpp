@@ -87,7 +87,7 @@ void ParseMidTermConfigFile::processXmlFile(xercesc::XercesDOMParser& parser)
 		processPublicTransit(GetSingleElementByName(rootNode, "public_transit"));
 		processRegionRestrictionNode(GetSingleElementByName(rootNode, "region_restriction"));
 		processPathSetFileName(GetSingleElementByName(rootNode, "pathset_config_file", true));
-	processTripChainOutputNode(GetSingleElementByName(rootNode, "trip_chain_output", true));
+		processTripChainOutputNode(GetSingleElementByName(rootNode, "trip_chain_output"));
 
 		if (mtCfg.RunningMidSupply())
 		{
@@ -286,6 +286,10 @@ void ParseMidTermConfigFile::processStatisticsOutputNode(xercesc::DOMElement* no
 	child = GetSingleElementByName(node, "pt_reroute");
 	value = ParseString(GetNamedAttributeValue(child, "file"), "");
 	cfg.setPT_PersonRerouteFilename(value);
+
+	child = GetSingleElementByName(node, "link_travel_time", true);
+	value = ParseString(GetNamedAttributeValue(child, "file"), "");
+	cfg.setLinkTravelTimesFile(value);
 }
 
 void ParseMidTermConfigFile::processSpeedDensityParamsNode(xercesc::DOMElement* node)

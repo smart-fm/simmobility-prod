@@ -347,3 +347,13 @@ void ConfigParams::setPT_PersonRerouteFilename(const string &ptPersonRerouteFile
 	ConfigParams::ptPersonRerouteFilename = ptPersonRerouteFilename;
 }
 
+const string &ConfigParams::getLinkTravelTimesFile() const
+{
+	return linkTravelTimesFile;
+}
+
+void ConfigParams::setLinkTravelTimesFile(const string &linkTravelTimesFile)
+{
+	ConfigParams::linkTravelTimesFile = linkTravelTimesFile;
+}
+

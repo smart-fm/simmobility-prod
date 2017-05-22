@@ -170,7 +170,9 @@ inline void calculateProjectProfit(PotentialProject& project,DeveloperModel* mod
 
 	for (unitsItr = units.begin(); unitsItr != units.end(); unitsItr++) {
 		int unitId = (*unitsItr).getUnitTypeId();
-		if ((unitId >6) && (unitId <17))
+		const int lessThan60Apt = 7;
+		const int largerThan134Condo = 16;
+		if ((unitId >= lessThan60Apt) && (unitId <=largerThan134Condo))
 		{
 		const ParcelAmenities *amenities = model->getAmenitiesById(fmParcelId);
 		//commented the below code in 2012 data as we are now getting logsum per taz id.
@@ -212,10 +214,16 @@ inline void calculateProjectProfit(PotentialProject& project,DeveloperModel* mod
 		}
 
 		//get the historical t values for current quarter - (4,5,6,7) quarters
-		int taoQ4Id = taoId-4;
-		int taoQ5Id = taoId-5;
-		int taoQ6Id = taoId-6;
-		int taoQ7Id = taoId-7;
+		const int q4 = 4;
+		const int q5 = 5;
+		const int q6 = 6;
+		const int q7 = 7;
+
+		int taoQ4Id = taoId-q4;
+		int taoQ5Id = taoId-q5;
+		int taoQ6Id = taoId-q6;
+		int taoQ7Id = taoId-q7;
+
 		const TAOByUnitType* taoByUTQ4 = model->getTaoUTById(taoQ4Id);
 		const TAOByUnitType* taoByUTQ5 = model->getTaoUTById(taoQ5Id);
 		const TAOByUnitType* taoByUTQ6 = model->getTaoUTById(taoQ6Id);
@@ -313,30 +321,6 @@ inline void calculateProjectProfit(PotentialProject& project,DeveloperModel* mod
 			break;
 
 			}
-//			if(buildingTypeId == 1)
-//			{
-//				taoValue = tao->getCondo();
-//			}
-//			else if(buildingTypeId == 2)
-//			{
-//				taoValue = tao->getApartment();
-//			}
-//			else if(buildingTypeId == 3)
-//			{
-//				taoValue = tao->getTerrace();
-//			}
-//			else if(buildingTypeId == 4)
-//			{
-//				taoValue = tao->getSemi();
-//			}
-//			else if(buildingTypeId == 5)
-//			{
-//				taoValue = tao->getDetached();
-//			}
-//			else if(buildingTypeId == 6)
-//			{
-//				taoValue = tao->getEc();
-//			}
 
 			hedonicCoeffObj = model->getHedonicCoeffsByUnitTypeId((*unitsItr).getUnitTypeId());
 		    privateLagTObj = model->getLagPrivateTByUnitTypeId((*unitsItr).getUnitTypeId());

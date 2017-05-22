@@ -52,13 +52,13 @@ const int DEFAULT_HIGHEST_AGE = 60;
 } //End unnamed namespace
 
 sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, int id, std::string databaseID)
-: Agent(mtxStrat, id), databaseID(databaseID), agentSrc(src), age(0), resetParamsRequired(false), isFirstTick(true), useInSimulationTravelTime(false), 
+: Agent(mtxStrat, id), personDbId(databaseID), agentSrc(src), age(0), resetParamsRequired(false), isFirstTick(true), useInSimulationTravelTime(false),
 nextPathPlanned(false), originNode(), destNode(), currLinkTravelStats(nullptr)
 {
 }
 
 sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, const std::vector<sim_mob::TripChainItem*>& tc)
-: Agent(mtxStrat), databaseID(tc.front()->getPersonID()), agentSrc(src), tripChain(tc), age(0), resetParamsRequired(false), 
+: Agent(mtxStrat), personDbId(tc.front()->getPersonID()), agentSrc(src), tripChain(tc), age(0), resetParamsRequired(false),
 isFirstTick(true), useInSimulationTravelTime(false), nextPathPlanned(false), originNode(), destNode(), currLinkTravelStats(nullptr)
 {
 }
@@ -133,9 +133,6 @@ bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::S
 	bool invalidFlag = false;
 	if (!matchedTrips.empty())
 	{
-		sim_mob::BasicLogger& ptMRTMoveLogger  = sim_mob::Logger::log("ODSNorthEast_ValidEdge.csv");
-		sim_mob::BasicLogger& ptMRTMoveLogger1  = sim_mob::Logger::log("ODSNorthEast.csv");
-		sim_mob::BasicLogger& ptMRTPathsetFailed  = sim_mob::Logger::log("PathsetFailed.csv");
 		std::vector<sim_mob::OD_Trip>::const_iterator it = matchedTrips.begin();
 		while (it != matchedTrips.end())
 		{
@@ -161,8 +158,12 @@ bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::S
 
 			if(invalidFlag)
 			{
-				Print() << "[PT pathset] make trip failed:[" << sSrc << "]|[" << sEnd << "] - Invalid start/end stop for PT edge" << std::endl;
-				ptMRTPathsetFailed <<sSrc<<","<<sEnd<<std::endl;
+				std::stringstream msg;
+				msg << __func__ << ": Invalid PT path - Invalid start/end stop for PT edge for Person "
+				    << personDbId << ", travelling from " << originNode.node->getNodeId() << " to "
+				    << destNode.node->getNodeId() << " at time "
+				    << (*currSubTrip).startTime.getStrRepr() << "\n";
+				Warn() << msg.str();
 				ret = false;
 				break;
 			}
@@ -296,21 +297,16 @@ bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::S
 			}
 			else
 			{
-
-
-				Print() << "[PT pathset] make trip failed:[" << sSrc << "(" << sType << ")" << "]|[" << sEnd << "(" << eType << ")" << "] mode: " << it->tType << std::endl;
-				//ptMRTPathsetFailed <<GetId()<<","<<sSrc<<","<<sEnd<<","<<currSubTrip->getMode()<<std::endl;
-
-				Print() << "[PT pathset] make trip failed:[" << sSrc << "(" << sType << ")" << "]|[" << sEnd << "(" << eType << ")" << "] mode: " << it->tTypeStr << std::endl;
-
-
-				Print() << "[PT pathset] make trip failed:[" << sSrc << "(" << sType << ")" << "]|[" << sEnd << "(" << eType << ")" << "] mode: " << it->tTypeStr << std::endl;
-
+				std::stringstream msg;
+				msg << __func__ << ": Invalid PT path: Invalid Source/destination type for Person "
+				    << personDbId << ", travelling from " << originNode.node->getNodeId()
+				    << " to " << destNode.node->getNodeId() << " at time "
+				    << (*currSubTrip).startTime.getStrRepr() << "\n";
+				Warn() << msg.str();
 				ret = false;
 				break;
 			}
 
-			ptMRTMoveLogger1 << getDatabaseId() <<","<<(subTrip.startTime).getStrRepr()<<","<<(subTrip.endTime).getStrRepr()<<","<<sSrc<<","<<sEnd<<","<<subTrip.travelMode<<std::endl;
 			++it;
 		}
 	}

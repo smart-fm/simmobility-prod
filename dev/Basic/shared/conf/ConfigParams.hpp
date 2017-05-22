@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <atomic>
 #include <set>
 #include <map>
 #include <string>
@@ -109,8 +110,17 @@ public:
     /// Is the simulation repeatable?
 	bool is_simulation_repeatable;
 
-    /// Number of agents skipped in loading
-    unsigned int numAgentsSkipped;
+    /// Number of agents killed due to errors
+    std::atomic<unsigned int> numAgentsKilled;
+
+	///Total number of trips simulated
+	std::atomic<unsigned int> numTripsSimulated;
+
+	///Total number of trips that were completed
+	std::atomic<unsigned int> numTripsCompleted;
+
+	///Total number of person that could not be loaded due to path not found errors
+	std::atomic<unsigned int> numPathNotFound;
 
 public:
     /**
@@ -234,6 +244,12 @@ private:
 
 	/** name of file to store PT stop statistics */
 	std::string ptStopStatsFilename;
+
+	/** name of the file to store the person rerouting information (public transit)*/
+	std::string ptPersonRerouteFilename;
+
+	/**link travel time file name*/
+	std::string linkTravelTimesFile;
 
 public:
 	/////////////////////////////////////////////////////////////////////////////////////
@@ -444,6 +460,32 @@ public:
      * @param str PT stop  stats file name to be set
      */
 	void setPT_StopStatsFilename(const std::string& str);
+
+	/**
+	 * Retrieves the Person reroute filename (public transit)
+	 * @return PT Person reroute filename
+	 */
+	const std::string &getPT_PersonRerouteFilename() const;
+
+	/**
+	 * Sets the PT person reroute filename
+	 *
+	 * @param ptPersonRerouteFilename filename to be set
+	 */
+	void setPT_PersonRerouteFilename(const std::string &ptPersonRerouteFilename);
+
+	/**
+	 * Retrieves the lik travel times file name
+	 * @return link travel time filename
+	 */
+	const std::string &getLinkTravelTimesFile() const;
+
+	/**
+	 * Sets the link travel times filename
+	 *
+	 * @param linkTravelTimesFile filename to be set
+	 */
+	void setLinkTravelTimesFile(const std::string &linkTravelTimesFile);
 };
 
 

@@ -71,7 +71,9 @@ void BusStopAgent::registerWaitingPerson(Person_ST *waitingPerson)
 {
 	if(busStop->getTerminusType() == SINK_TERMINUS)
 	{
-		throw runtime_error("Attempt to add waiting person at SINK_TERMINUS");
+		std::stringstream msg;
+		msg << __func__ << ": Attempting to add waiting person at SINK_TERMINUS";
+		throw runtime_error(msg.str());
 	}
 	
 	waitingPersons.push_back(waitingPerson);

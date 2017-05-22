@@ -16,6 +16,7 @@
 #include "geospatial/network/WayPoint.hpp"
 #include "logging/Log.hpp"
 #include "PathSetParam.hpp"
+#include "util/GeomHelpers.hpp"
 #include "util/Profiler.hpp"
 #include "util/Utils.hpp"
 
@@ -260,12 +261,33 @@ void sim_mob::countRightTurnsAndSignals(sim_mob::SinglePath *sp)
 
 double sim_mob::generatePathLength(const std::vector<sim_mob::WayPoint>& wp)
 {
-	double res = 0.0;
-	for (std::vector<sim_mob::WayPoint>::const_iterator it = wp.begin(); it != wp.end(); it++)
+	//Get distance between the 'from node' of the first link in the path and the start of the link
+	const Point &frmNodePt = wp.front().link->getFromNode()->getLocation();
+	const Point &linkStartPt = wp.front().link->getRoadSegments().front()->getPolyLine()->getFirstPoint();
+
+	double res = sim_mob::dist(frmNodePt, linkStartPt);
+
+	for (std::vector<sim_mob::WayPoint>::const_iterator it = wp.begin(); it != wp.end() - 1; it++)
 	{
+		//Add the length of the link
 		const sim_mob::Link* lnk = it->link;
 		res += lnk->getLength();
+
+		//Add the length of the turning group
+		const Link *nxtLnk = (it + 1)->link;
+		const TurningGroup *turningGroup = it->link->getToNode()->getTurningGroup(lnk->getLinkId(), nxtLnk->getLinkId());
+		res += turningGroup->getLength();
 	}
+
+	//Add length of last link
+	res += wp.back().link->getLength();
+
+	//Get distance between the 'to node' of the last link in the path and the end of the link
+	const Point &linkEndPt = wp.back().link->getRoadSegments().back()->getPolyLine()->getLastPoint();
+	const Point &toNodePt = wp.back().link->getToNode()->getLocation();
+
+	res += sim_mob::dist(linkEndPt, toNodePt);
+
 	return res; //meter
 }
 

@@ -11,7 +11,9 @@
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
-SchoolAssignmentCoefficientsDao::SchoolAssignmentCoefficientsDao(DB_Connection& connection): SqlAbstractDao<SchoolAssignmentCoefficients>( connection, DB_TABLE_SCHOOL_ASSIGNMENT_COEFFICIENTS, EMPTY_STR, EMPTY_STR, EMPTY_STR,DB_GETALL_SCHOOL_ASSIGNMENT_COEFFICIENTS, EMPTY_STR ) {}
+SchoolAssignmentCoefficientsDao::SchoolAssignmentCoefficientsDao(DB_Connection& connection): SqlAbstractDao<SchoolAssignmentCoefficients>(  connection, "", "", "", "",
+																																			"SELECT * FROM " + connection.getSchema()+"school_assignment_coefficients",
+																																			"" ) {}
 
 SchoolAssignmentCoefficientsDao::~SchoolAssignmentCoefficientsDao() {}
 

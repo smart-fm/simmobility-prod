@@ -361,7 +361,11 @@ void MessageBus::RegisterMainThread() {
 
 void MessageBus::UnRegisterMainThread() {
     CheckMainThread();
-    printReport();
+
+#ifndef NDEBUG
+	printReport();
+#endif
+
     GetInstance().context = nullptr;
     deleteAllContexts();
 }

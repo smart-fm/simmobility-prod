@@ -283,6 +283,10 @@ namespace sim_mob
 					income = 3.0 * 1000000.0 * household->getCurrentUnitPrice() / ( 30 * 12 );
 				}
 
+
+				if ( zonalLanduseVariableValues == nullptr)
+					continue;
+
 				double logPopulationByHousingType	= log((double)unitTypeCounter);	//1 logarithm of population by housing type in the zone 	persons
 				double populationDensity			= (double)unitTypeCounter / (double)sumFloorArea * 100.0;	//2 population density	persons per hectare
 				double commercialLandFraction		= zonalLanduseVariableValues->getFLocCom();	//3 zonal average fraction of commercial land within a 500-meter buffer area from a residential postcode (weighted by no. of residential unit within the buffer)	percentage point
@@ -461,6 +465,18 @@ namespace sim_mob
 
 				if( std::isinf( probability) )
 					probability = 0.0;
+
+
+				 const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
+				 bool bToaPayohScenario = false;
+
+				 if( config.ltParams.scenario.enabled && config.ltParams.scenario.scenarioName == "ToaPayohScenario")
+					 bToaPayohScenario = true;
+
+				if(  bToaPayohScenario  && model->getAlternatives()[n]->getPlanAreaId() == 50 )
+				{
+					probability = probability * 2.0;
+				}
 
 				probabilities.push_back(probability);
 

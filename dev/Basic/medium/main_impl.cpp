@@ -31,6 +31,7 @@
 #include "entities/TrainController.hpp"
 #include "entities/BusStopAgent.hpp"
 #include "entities/TrainStationAgent.hpp"
+#include "entities/ClosedLoopRunManager.hpp"
 #include "entities/incident/IncidentManager.hpp"
 #include "entities/params/PT_NetworkEntities.hpp"
 #include "entities/MT_PersonLoader.hpp"
@@ -360,10 +361,16 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	//incident
 	personWorkers->assignAWorker(IncidentManager::getInstance());
 
+	if(config.simulation.closedLoop.enabled)
+	{
+		const ClosedLoopParams &params = config.simulation.closedLoop;
+		ClosedLoopRunManager::initialise(params.guidanceFile, params.tollFile, params.incentivesFile);
+	}
+
 	//before starting the groups, initialize the time interval for one of the pathset manager's helpers
 	PathSetManager::initTimeInterval();
 
-	cout << "Initial Agents dispatched or pushed to pending.\nall_agents: " << Agent::all_agents.size() << " pending: " << Agent::pending_agents.size() << endl;
+	Print() << "\nSimulating...\n";
 
 	//Start work groups and all threads.
 	wgMgr.startAllWorkGroups();
@@ -374,51 +381,31 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	//       time ticks, the WorkGroups will return without performing
 	//       a barrier sync.
 	/////////////////////////////////////////////////////////////////
-	size_t numStartAgents = Agent::all_agents.size();
-	size_t numPendingAgents = Agent::pending_agents.size();
-	size_t maxAgents = Agent::all_agents.size();
-
 	timeval loop_start_time;
 	gettimeofday(&loop_start_time, nullptr);
 	int loop_start_offset = ProfileBuilder::diff_ms(loop_start_time, start_time_med);
 
-	int lastTickPercent = 0; //So we have some idea how much time is left.
+	StateSwitcher<int> numTicksShown(0); //Only goes up to 10
+	StateSwitcher<int> lastTickPercent(0); //So we have some idea how much time is left.
 	bool firstTick = true;
+
 	for (unsigned int currTick = 0; currTick < config.totalRuntimeTicks; currTick++)
 	{
 		const DailyTime dailyTime=ConfigManager::GetInstance().FullConfig().simStartTime()+DailyTime(currTick*5000);
-		//Flag
-		bool warmupDone = (currTick >= config.totalWarmupTicks);
 
-		//Get a rough idea how far along we are
-		int currTickPercent = (currTick*100)/config.totalRuntimeTicks;
+		//Output. We show every 10% change. (just to give some indication of progress)
+		int currTickPercent = (currTick * 100) / config.totalRuntimeTicks;
+		currTickPercent /= 10; //Only update 10%, 20%, etc.
 
-		//Save the maximum number of agents at any given time
-		maxAgents = std::max(maxAgents, Agent::all_agents.size());
+		//Determine whether to print this time tick or not.
+		bool printTick = lastTickPercent.update(currTickPercent);
 
-		//Output
-		if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled())
+		//Note that OutputEnabled also affects locking.
+		if (printTick)
 		{
 			std::stringstream msg;
-			msg << "Approximate Tick Boundary: " << currTick << ", ";
-			msg << (currTick * config.baseGranSecond())
-				<< "s   [" <<currTickPercent <<"%]" << endl;
-			if (!warmupDone)
-			{
-				msg << "  Warmup; output ignored." << endl;
-			}
+			msg << currTickPercent << "0%" << std::endl;
 			PrintOut(msg.str());
-		}
-		else
-		{
-			//We don't need to lock this output if general output is disabled, since Agents won't
-			//  perform any output (and hence there will be no contention)
-			if (currTickPercent-lastTickPercent>9)
-			{
-				lastTickPercent = currTickPercent;
-				cout<< currTickPercent <<"%"
-					<< ", Agents:" << Agent::all_agents.size() <<endl;
-			}
 		}
 
 		//Agent-based cycle, steps 1,2,3,4
@@ -452,7 +439,22 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 				delete ag;
 			}
 		}
+		
+		unsigned long currTimeMS = currTick * config.baseGranMS();
+
+		//Check if we are running in closed loop with DynaMIT
+		if(config.simulation.closedLoop.enabled && (currTimeMS + config.baseGranMS()) % (config.simulation.closedLoop.sensorStepSize * 1000) == 0)
+		{
+			SurveillanceStation::writeSurveillanceOutput(config, currTimeMS + config.baseGranMS());
+			ClosedLoopRunManager::waitForDynaMIT(config);
+		}
 	}
+
+	timeval loop_end_time;
+	gettimeofday(&loop_end_time, nullptr);
+	int loop_time = (int) ProfileBuilder::diff_ms(loop_end_time, loop_start_time);
+	Print() << "100%\n\nTime required to execute the simulation: "
+	        << DailyTime((uint32_t) loop_time).getStrRepr() << std::endl;
 
 	BusStopAgent::removeAllBusStopAgents();
 	sim_mob::PathSetParam::resetInstance();
@@ -460,36 +462,122 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	//finalize
 	TravelTimeManager::getInstance()->storeCurrentSimulationTT();
 
-	cout <<"Database lookup took: " << (loop_start_offset/1000.0) <<" s" <<endl;
-	cout << "Max Agents at any given time: " <<maxAgents <<endl;
-	cout << "Starting Agents: " << numStartAgents
-			<< ",     Pending: " << numPendingAgents << endl;
+	Print() << "Time required for initialisation [Loading configuration, network, demand ...]: "
+	        << DailyTime((uint32_t) loop_start_offset).getStrRepr() << std::endl << std::endl;
 
-	if (Agent::all_agents.empty() && Agent::pending_agents.empty())
+	if(config.numPathNotFound > 0)
 	{
-		cout << "All Agents have left the simulation.\n";
+		Print() << "\nPersons not simulated as the path was not found [Refer to warn.log for more details]: "
+		        << config.numPathNotFound << endl;
 	}
-	else
+
+	Print() << "Number of trips/activities [demand] simulated: " << config.numTripsSimulated
+            << "\nNumber of trips/activities [demand] completed: " << config.numTripsCompleted << "\n";
+
+	if (!Agent::pending_agents.empty())
 	{
-		cout<< "Pending Agents: " << (Agent::all_agents.size() + Agent::pending_agents.size()) << endl;
+		Print() << "\nWARNING! There are still " << Agent::pending_agents.size()
+		        << " agents waiting to be scheduled. Next start time is: "
+		        << Agent::pending_agents.top()->getStartTime() << " ms\n";
 	}
 
 	(Conflux::activeAgentsLock).lock();
-	if(Agent::activeAgents.size()>0)
+	if (Agent::activeAgents.size() > 0)
 	{
-		cout<<"Currently active agents are "<<Agent::activeAgents.size()<<endl;
+		size_t numPersons = 0;
+		size_t numActivities = 0, numBiker = 0, numBusDriver = 0, numCarPassenger = 0, numDriver = 0, numPassenger = 0;
+		size_t numPedestrian = 0, numPrivBusPassenger = 0, numTaxiPassenger = 0, numTrainDriver = 0, numTrainPassenger = 0;
+		size_t numTravelPedestrian = 0, numTruckerHGV = 0, numTruckerLGV = 0, numWaitBus = 0, numWaitTaxi = 0, numWaitTrain = 0;
+
+		for (std::vector<Entity*>::iterator it = Agent::activeAgents.begin(); it != Agent::activeAgents.end(); ++it)
+		{
+			Person_MT *person = dynamic_cast<Person_MT *> (*it);
+
+			if (person)
+			{
+				Role<Person_MT> *role = person->getRole();
+
+				if (role)
+				{
+					numPersons++;
+					switch(role->roleType)
+					{
+					case Role<Person_MT>::RL_ACTIVITY:
+						numActivities++;
+						break;
+					case Role<Person_MT>::RL_BIKER:
+						numBiker++;
+						break;
+					case Role<Person_MT>::RL_BUSDRIVER:
+						numBusDriver++;
+						break;
+					case Role<Person_MT>::RL_CARPASSENGER:
+						numCarPassenger++;
+						break;
+					case Role<Person_MT>::RL_DRIVER:
+						numDriver++;
+						break;
+					case Role<Person_MT>::RL_PASSENGER:
+						numPassenger++;
+						break;
+					case Role<Person_MT>::RL_PEDESTRIAN:
+						numPedestrian++;
+						break;
+					case Role<Person_MT>::RL_PRIVATEBUSPASSENGER:
+						numPrivBusPassenger++;
+						break;
+					case Role<Person_MT>::RL_TAXIPASSENGER:
+						numTaxiPassenger++;
+						break;
+					case Role<Person_MT>::RL_TRAINDRIVER:
+						numTrainDriver++;
+						break;
+					case Role<Person_MT>::RL_TRAINPASSENGER:
+						numTrainPassenger++;
+						break;
+					case Role<Person_MT>::RL_TRAVELPEDESTRIAN:
+						numTravelPedestrian++;
+						break;
+					case Role<Person_MT>::RL_TRUCKER_HGV:
+						numTruckerHGV++;
+						break;
+					case Role<Person_MT>::RL_TRUCKER_LGV:
+						numTruckerLGV++;
+						break;
+					case Role<Person_MT>::RL_WAITBUSACTIVITY:
+						numWaitBus++;
+						break;
+					case Role<Person_MT>::RL_WAITTAXIACTIVITY:
+						numWaitTaxi++;
+						break;
+					case Role<Person_MT>::RL_WAITTRAINACTIVITY:
+						numWaitTrain++;
+						break;
+					}
+				}
+			}
+		}
+
+		Print() << "\nPersons still in the simulation: " << numPersons << "\n"
+		        << numActivities << " Performing activity,\t" << numBiker << " Bikers,\t"
+		        << numBusDriver << " BusDrivers,\t" << numCarPassenger << " Car passengers,\t"
+		        << numDriver << " Drivers,\t" << numPassenger << " Passengers,\t" << numPedestrian << " Pedestrians,\t"
+		        << numPrivBusPassenger << " Private bus passengers,\n" << numTaxiPassenger << " Taxi passengers,\t"
+				<< numTrainDriver << " Train drivers,\t" << numTrainPassenger << " Train passengers,\t"
+		        << numTravelPedestrian << " Travel pedestrians,\t" << numTruckerHGV << " HGV truckers,\t"
+				<< numTruckerLGV << " LGV truckers,\t" << numWaitBus << " Waiting for bus,\t"
+				<< numWaitTaxi << " Waiting for Taxi,\t" << numWaitTrain << " Waiting for train\n";
 	}
 	(Conflux::activeAgentsLock).unlock();
 
+	if (config.numAgentsKilled > 0)
+	{
+		Print() << "\nAgents removed from simulation due to errors [Refer to warn.log for more details]: "
+		        << config.numAgentsKilled << endl;
+	}
+
 	PT_Statistics::getInstance()->storeStatistics();
 	PT_Statistics::resetInstance();
-
-	if (config.numAgentsSkipped>0)
-	{
-		cout<<"Agents SKIPPED due to invalid route assignment: "
-			<<config.numAgentsSkipped
-			<<endl;
-	}
 
 	//Save our output files if we are merging them later.
 	if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled()
@@ -516,12 +604,12 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	}
 
 	int boardCount=sim_mob::medium::TrainDriver::boardPassengerCount;
-	const std::string& fileName("CoardingCount.csv");
+	const std::string& fileName("BoardingCount.csv");
 	sim_mob::BasicLogger& ptMRTMoveLogger  = sim_mob::Logger::log(fileName);
 	ptMRTMoveLogger<<boardCount<<endl;
-	cout<<"The number of passengers boarding are"<<boardCount<<endl;
+
 	safe_delete_item(periodicPersonLoader);
-	cout << "Simulation complete; closing worker threads." << endl;
+	cout << "\nSimulation complete. Closing worker threads...\n" << endl;
 
 	//Delete our profile pointer (if it exists)
 	safe_delete_item(prof);
@@ -589,6 +677,7 @@ bool performMainMed(const std::string& configFileName, const std::string& mtConf
 {
 	std::srand(clock()); // set random seed for RNGs
 	cout <<"Starting SimMobility, version " << SIMMOB_VERSION << endl;
+	cout << "\nLoading the configuration files: " << configFileName << ", " << mtConfigFileName << endl;
 
 	//Parse the config file (this *does not* create anything, it just reads it.).
 	ParseConfigFile parse(configFileName, ConfigManager::GetInstanceRW().FullConfig());
@@ -615,12 +704,12 @@ bool performMainMed(const std::string& configFileName, const std::string& mtConf
 
     if (MT_Config::getInstance().RunningMidSupply())
 	{
-		Print() << "Mid-term run mode: supply" << endl;
+		Print() << "Mid-term run mode: supply\n" << endl;
 		return performMainSupply(configFileName, resLogFiles);
 	}
     else if (MT_Config::getInstance().RunningMidDemand())
 	{
-		Print() << "Mid-term run mode: preday" << endl;
+		Print() << "Mid-term run mode: preday\n" << endl;
 		return performMainDemand();
 	}
 	else
@@ -654,6 +743,11 @@ int main_impl(int ARGC, char* ARGV[])
 	config.is_simulation_repeatable = true;
 
 	/**
+	 * set run mode as mid-term
+	 */
+	config.simMobRunMode = ConfigParams::MID_TERM;
+
+	/**
 	 * Start MPI if using_MPI is true
 	 */
 #ifndef SIMMOB_DISABLE_MPI
@@ -684,7 +778,6 @@ int main_impl(int ARGC, char* ARGV[])
 	{
 		Print() << "One or both config file not specified; using defaults: " << configFileName << " and " << mtConfigFileName << endl;
 	}
-	Print() << "Using config file: " << configFileName << endl;
 
 	//This should be moved later, but we'll likely need to manage random numbers
 	//ourselves anyway, to make simulations as repeatable as possible.
@@ -710,11 +803,5 @@ int main_impl(int ARGC, char* ARGV[])
 	}
 	int retVal = std::system("rm out_0_*.txt out.network.txt");
 
-	timeval simEndTime;
-	gettimeofday(&simEndTime, nullptr);
-
-	cout << "Done. \nTotal simulation time: "<< (ProfileBuilder::diff_ms(simEndTime, simStartTime))/1000.0 << " seconds." << endl;
-
 	return returnVal;
 }
-

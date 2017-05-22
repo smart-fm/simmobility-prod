@@ -21,7 +21,6 @@
 #include "database/entity/SlaParcel.hpp"
 #include "database/entity/UnitType.hpp"
 #include "database/entity/Building.hpp"
-#include "database/entity/TotalBuildingSpace.hpp"
 #include "database/entity/ParcelAmenities.hpp"
 #include "database/entity/MacroEconomics.hpp"
 #include "database/entity/LogsumForDevModel.hpp"
@@ -60,7 +59,6 @@ namespace sim_mob {
             typedef std::vector<TemplateUnitType*> TemplateUnitTypeList;
             typedef std::vector<UnitType*> UnitTypeList;
             typedef std::vector<Building*> BuildingList;
-            typedef std::vector<TotalBuildingSpace*> BuildingSpaceList;
             typedef std::vector<Project*> ProjectList;
             typedef std::vector<ParcelAmenities*> AmenitiesList;
             typedef std::vector<MacroEconomics*> MacroEconomicsList;
@@ -83,7 +81,6 @@ namespace sim_mob {
             //maps
             typedef boost::unordered_map<BigSerial,Parcel*> ParcelMap;
             typedef boost::unordered_map<BigSerial,UnitType*> UnitTypeMap;
-            typedef boost::unordered_map<BigSerial,TotalBuildingSpace*> TotalBuildingSpaceMap;
             typedef boost::unordered_map<BigSerial,ParcelAmenities*> AmenitiesMap;
             typedef boost::unordered_map<BigSerial,MacroEconomics*> MacroEconomicsMap;
             typedef boost::unordered_map<BigSerial,LogsumForDevModel*> AccessibilityLogsumMap;
@@ -144,7 +141,6 @@ namespace sim_mob {
             const UnitType* getUnitTypeById(BigSerial id) const;
             const ParcelAmenities* getAmenitiesById(BigSerial fmParcelId) const;
             const MacroEconomics* getMacroEconById(BigSerial id) const;
-            float getBuildingSpaceByParcelId(BigSerial id) const;
             ParcelList getDevelopmentCandidateParcels(bool isInitial);
 
             /*
@@ -338,7 +334,6 @@ namespace sim_mob {
             BuildingList buildings;
             DevelopmentTypeTemplateList developmentTypeTemplates;
             TemplateUnitTypeList templateUnitTypes;
-            BuildingSpaceList buildingSpaces;
             ProjectList projects;
             std::vector<boost::shared_ptr<Project> > newProjects;
             ParcelMap parcelsById;
@@ -351,7 +346,6 @@ namespace sim_mob {
             std::vector<BigSerial> newBuildingIdList;
             UnitTypeList unitTypes;
             UnitTypeMap unitTypeById;
-            TotalBuildingSpaceMap buildingSpacesByParcelId;
             int dailyParcelCount;
             int dailyAgentCount;
             bool isParcelRemain;

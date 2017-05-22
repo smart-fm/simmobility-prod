@@ -13,6 +13,10 @@
 #include "Household.hpp"
 #include "util/Utils.hpp"
 #include "database/dao/SqlAbstractDao.hpp"
+#include <boost/serialization/vector.hpp>
+#include <boost/archive/binary_oarchive.hpp>
+#include <boost/archive/binary_iarchive.hpp>
+
 
 using namespace sim_mob::long_term;
 
@@ -29,10 +33,92 @@ Household::Household( BigSerial id, BigSerial lifestyleId, BigSerial unitId, Big
 Household::Household(): id(0), lifestyleId(0), unitId(0), ethnicityId(0), vehicleCategoryId(0),size(0), childUnder4(0), childUnder15(0), adult(0),income(0), housingDuration(0), workers(0), ageOfHead(0),
 						pendingStatusId(0),pendingFromDate(std::tm()),unitPending(0), twoRoomHdbEligibility(0), threeRoomHdbEligibility(0), fourRoomHdbEligibility(0), familyType(0),taxiAvailability(false),
 						vehicleOwnershipOptionId(0), logsum(0),  currentUnitPrice(0),householdAffordabilityAmount(0),buySellInterval(0), moveInDate(std::tm()),timeOnMarket(0),timeOffMarket(0),isBidder(0),
-						isSeller(0),hasMoved(0), tenureStatus(0), awakenedDay(0),existInDB(false), lastAwakenedDay(0),lastBidStatus(0){}
+						isSeller(0),hasMoved(0), tenureStatus(0), awakenedDay(0),existInDB(false), lastAwakenedDay(-INT_MAX),lastBidStatus(0)
+{
+
+}
 
 
 Household::~Household() {}
+
+void Household::saveData(std::vector<Household*> &households){
+    // make an archive
+    std::ofstream ofs(filename);
+    boost::archive::binary_oarchive oa(ofs);
+    oa & households;
+}
+
+std::vector<Household*> Household::loadSerializedData()
+{
+	std::vector<Household*> households;
+	// Restore from saved data and print to verify contents
+	std::vector<Household*> restored_info;
+	{
+		// Create and input archive
+		std::ifstream ifs( filename );
+		boost::archive::binary_iarchive ar( ifs );
+
+		// Load the data
+		ar & restored_info;
+	}
+
+	std::vector<Household*>::const_iterator it = restored_info.begin();
+	for (; it != restored_info.end(); ++it)
+	{
+		Household *hh = *it;
+		households.push_back(hh);
+	}
+
+	return households;
+
+}
+
+template<class Archive>
+void Household::serialize(Archive & ar,const unsigned int version)
+{
+	ar & id;
+	ar & lifestyleId;
+	ar & unitId ;
+	ar & ethnicityId;
+	ar & vehicleCategoryId;
+	ar & size;
+	ar & childUnder4;
+	ar & childUnder15;
+	ar & adult;
+	ar & income;
+	ar & housingDuration;
+	ar & workers;
+	ar & ageOfHead;
+	ar & pendingStatusId;
+	ar & BOOST_SERIALIZATION_NVP(pendingFromDate.tm_year);
+	ar & BOOST_SERIALIZATION_NVP(pendingFromDate.tm_mon);
+	ar & BOOST_SERIALIZATION_NVP(pendingFromDate.tm_mday);
+	pendingFromDate.tm_year = pendingFromDate.tm_year+1900;
+	ar & unitPending;
+	ar & taxiAvailability;
+	ar & vehicleOwnershipOptionId;
+	ar & logsum;
+	ar & currentUnitPrice;
+	ar & householdAffordabilityAmount;
+	ar & timeOnMarket;
+	ar & timeOffMarket;
+	ar & isBidder;
+	ar & isSeller;
+	ar & buySellInterval;
+	ar & BOOST_SERIALIZATION_NVP(moveInDate.tm_year);
+	ar & BOOST_SERIALIZATION_NVP(moveInDate.tm_mon);
+	ar & BOOST_SERIALIZATION_NVP(moveInDate.tm_mday);
+	moveInDate.tm_year = moveInDate.tm_year+1900;
+	ar & tenureStatus;
+	ar & awakenedDay;
+	ar & individuals;
+	for(size_t i = 0; i < individuals.size(); i++)
+	{
+		ar & individuals[i];
+	}
+
+}
+
 
 Household& Household::operator=(const Household& source)
 {
@@ -470,7 +556,6 @@ HouseholdStatistics Household::getHouseholdStats()
 {
 	return householdStats;
 }
-
 
 namespace sim_mob
 {

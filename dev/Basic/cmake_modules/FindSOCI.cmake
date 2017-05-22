@@ -42,7 +42,7 @@ else ()
   )
 
   FIND_LIBRARY(SOCI_LIBRARIES
-      NAMES soci_core  soci_core-gcc-3_0  soci_core_3_0  soci_core-gcc-3_1  soci_core_3_1
+      NAMES soci_core  soci_core-gcc-3_0  soci_core_3_0  soci_core-gcc-3_1  soci_core_3_1 soci_core_3_2
       PATHS
       C:/MinGW/lib
       C:/MinGW32/lib

@@ -10,7 +10,7 @@
                 <host value="172.25.184.48"/>
                 <port value="5432"/>
                 <dbname value="simmobility_virtualcity"/>
-			</database>
+            </database>
 
             <database id="fm_hpchead" dbtype="postgres">
                 <host value="172.25.184.156"/>
@@ -31,12 +31,6 @@
             </database>
 
             <!-- Variables stores for preday demand simulator-->
-            <database id="fm_mongo" dbtype="mongodb">
-                <host value="localhost"/>
-                <port value="27017"/>
-                <dbname value="simmobcity"/>
-            </database>
-
             <database id="fm_local" dbtype="postgres">
                 <host value="localhost"/>
                 <port value="5432"/>
@@ -138,6 +132,14 @@
         <!-- ID collisions when manually specifying Agent IDs in the config file. -->
         <!-- Setting this to zero has the same effect as leaving it out; the default value is zero. -->
         <auto_id_start value="0"/>
+
+        <!--Enabling the closed loop framework interfaces MT/ST with DynaMIT2.0 in order to evaluate the impact of guidance (travel time information) and control strategies (tolls/incentives) in SimMobility. The two simulators run concurrently with SimMobility passing surveillance data from the network to DynaMIT2.0 which in turn provides optimal control strategies and guidance information that agents in SimMobility react to.-->
+        <closed_loop enabled="false">
+            <closed_loop_guidance file="" is_guidance_directional=""/>
+            <closed_loop_toll file=""/>
+            <closed_loop_incentives file=""/>
+            <sensor_output file="" step_size="" />
+        </closed_loop>
     </simulation>
 
     <generic_props>

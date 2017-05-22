@@ -192,9 +192,6 @@ sim_mob::Profiler & sim_mob::BasicLogger::prof(const std::string id, bool timer)
 void  sim_mob::BasicLogger::initLogFile(const std::string& path)
 {
 	logFile.open(path.c_str());
-//	if ((logFile.is_open() && logFile.good())){
-//		std::cout << "Logfile for " << path << "  creatred" << std::endl;
-//	}
 }
 
 void sim_mob::BasicLogger::flushLog(std::stringstream &out)
@@ -267,20 +264,13 @@ void sim_mob::QueuedLogger::flushLog()
 
 void sim_mob::BasicLogger::flush()
 {
-	if (logFile.is_open()) {
+	if (logFile.is_open())
+	{
 		outIt it = out.begin();
-		if(it== out.end())
-		{
-			std::cout << "No output for " << id << std::endl;
-		}
 		for(; it!= out.end(); it++)
 		{
 			flushLog(*(it->second));
 		}
-	}
-	else
-	{
-		std::cout << "flush() logFile not open   " << id << std::endl;
 	}
 }
 

@@ -18,6 +18,7 @@
 #include <vector>
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
+#include "config/MT_Config.hpp"
 #include "conf/Constructs.hpp"
 #include "conf/RawConfigParams.hpp"
 #include "database/DB_Connection.hpp"
@@ -308,6 +309,7 @@ public:
 
 	static int load(std::map<std::string, std::vector<TripChainItem*> >& tripChainMap, std::vector<Person_MT*>& outPersonsLoaded)
 	{
+		unsigned int numThreads = MT_Config::getInstance().getThreadsNumInPersonLoader();
 		int personsPerThread = tripChainMap.size() / numThreads;
 		CellLoader thread[numThreads];
 		boost::thread_group threadGroup;
@@ -605,9 +607,6 @@ void MT_PersonLoader::loadPersonDemand()
 	{
 		addOrStashPerson(*i);
 	}
-
-	Print() << "PeriodicPersonLoader:: activities loaded from " << nextLoadStart << " to " << end << ": " << actCtr << " | new persons loaded: " << personsLoaded << endl;
-	Print() << "active_agents: " << activeAgents.size() << " | pending_agents: " << pendingAgents.size() << endl;
 
 	//update next load start
 	nextLoadStart = end + DEFAULT_LOAD_INTERVAL;

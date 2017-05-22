@@ -41,7 +41,7 @@ void SimulationStoppedPointDao::toRow(SimulationStoppedPoint& data, Parameters& 
 void SimulationStoppedPointDao::insertSimulationStoppedPoints(SimulationStoppedPoint& simulationStoppedPoint,std::string schema)
 {
 
-	const std::string DB_INSERT_SIM_STOPPED_POINT = "INSERT INTO " + APPLY_SCHEMA(schema, ".simulation_stopped_point")
+	const std::string DB_INSERT_SIM_STOPPED_POINT = "INSERT INTO " + schema + ".simulation_stopped_point"
 	        		+ " (" + "sim_version_id" + ", " + "postcode" + ", " + "building_id"+ ", " + "unit_id" + ", " + "project_id" + ", " + "bid_id" + ", " + "unit_sale_id"
 	        		+ ") VALUES (:v1, :v2, :v3, :v4, :v5, :v6, :v7)";
 	insertViaQuery(simulationStoppedPoint,DB_INSERT_SIM_STOPPED_POINT);

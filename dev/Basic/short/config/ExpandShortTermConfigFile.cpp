@@ -45,35 +45,31 @@ enum TripChainColumn
 
 void informLoadOrder(const std::vector<LoadAgentsOrderOption>& order)
 {
-	std::cout << "Agent Load order: ";
+	std::cout << "Demand source: ";
 	if (order.empty())
 	{
-		std::cout << "<N/A>";
+		std::cout << "Not specified";
 	}
 	else
 	{
 		for (std::vector<LoadAgentsOrderOption>::const_iterator it = order.begin(); it != order.end(); ++it)
 		{
-			if ((*it) == LoadAg_Drivers)
+			if ((*it) == LoadAg_XML)
 			{
-				std::cout << "drivers";
+				std::cout << "XML Trip file";
 			}
 			else if ((*it) == LoadAg_Database)
 			{
-				std::cout << "database";
-			}
-			else if ((*it) == LoadAg_Pedestrians)
-			{
-				std::cout << "pedestrians";
+				std::cout << "Trip chains from database";
 			}
 			else
 			{
 				std::cout << "<unknown>";
 			}
-			std::cout << "  ";
+			std::cout << ", ";
 		}
 	}
-	std::cout << std::endl;
+	std::cout << std::endl << std::endl;
 }
 
 ////
@@ -104,7 +100,7 @@ Trip* MakePseudoTrip(unsigned int personId, const Node *origin, const Node *dest
 		res->setPersonID(personId);
 		res->itemType = TripChainItem::getItemType("Trip");
 		res->sequenceNumber = 1;
-		res->startTime = DailyTime(startTimeMS);
+		res->startTime = DailyTime(startTimeMS + ConfigManager::GetInstance().FullConfig().simStartTime().getValue());
 		res->endTime = res->startTime; //No estimated end time.
 		res->tripID = "";
 		res->origin = WayPoint(origin);
@@ -155,6 +151,7 @@ SubTrip makeSubTrip(soci::row &r)
 	SubTrip subtrip;
 	subtrip.itemType = TripChainItem::IT_TRIP;
 	subtrip.tripID = r.get<string>(COLUMN_TRIP_ID);
+	subtrip.startTime = DailyTime(r.get<string>(COLUMN_TRIP_START_TIME));
 	subtrip.sequenceNumber = r.get<unsigned int>(COLUMN_SEQUENCE_NUMBER);
 	subtrip.travelMode = r.get<string>(COLUMN_MODE);
 	subtrip.ptLineId = r.get<string>(COLUMN_PT_LINE_ID);
@@ -284,7 +281,6 @@ stConfig(stConfig), cfg(cfg), active_agents(active_agents), pending_agents(pendi
 
 void ExpandShortTermConfigFile::processConfig()
 {
-	cfg.simMobRunMode = ConfigParams::SimMobRunMode::SHORT_TERM;
 	cfg.setWorkerPublisherEnabled(stConfig.commsim.enabled);
 
 	//Inform of load order (drivers, database, pedestrians, etc.).
@@ -293,10 +289,6 @@ void ExpandShortTermConfigFile::processConfig()
 	//Ensure granularities are multiples of each other. Then set the "ticks" based on each granularity.
 	checkGranularities();
 	setTicks();
-
-	//Print schema file.
-	const std::string schem = stConfig.getRoadNetworkXsdSchemaFile();
-	Print() << "XML (road network) schema file: " << (schem.empty() ? "<default>" : schem) << std::endl;
 
 	//Load from database or XML.
 	loadNetworkFromDatabase();
@@ -321,7 +313,6 @@ void ExpandShortTermConfigFile::processConfig()
 	}
 
 	cfg.sealNetwork();
-	std::cout << "Network Sealed" << std::endl;
 
 	//Initialize the street directory.
 	StreetDirectory::Instance().Init(*(RoadNetwork::getInstance()));
@@ -389,10 +380,11 @@ void ExpandShortTermConfigFile::loadNetworkFromDatabase()
 	//Load from the database or from XML
 	if (ST_Config::getInstance().networkSource == NetworkSource::NETSRC_DATABASE)
 	{
-		Print() << "Loading Road Network from the database.\n";
-
 		//The instance of the network loader
 		NetworkLoader *loader = NetworkLoader::getInstance();
+
+		//Output Database details
+		std::cout << "Database connection: " << cfg.getDatabaseConnectionString() << "\n\n";
 
 		//Load the road network
 		loader->loadNetwork(cfg.getDatabaseConnectionString(false), cfg.getDatabaseProcMappings().procedureMappings);
@@ -412,7 +404,7 @@ void ExpandShortTermConfigFile::loadNetworkFromDatabase()
 
 void ExpandShortTermConfigFile::loadPublicTransitNetworkFromDatabase()
 {
-    PT_Network::getInstance().init();
+	PT_NetworkCreater::init();
 }
 
 void ExpandShortTermConfigFile::loadAMOD_Controller()
@@ -452,29 +444,18 @@ void ExpandShortTermConfigFile::loadAgentsInOrder(ConfigParams::AgentConstraints
 			std::cout << "Loaded agents from the database (Trip Chains).\n";
 			break;
 		
-		case LoadAg_Drivers:
+		case LoadAg_XML:
 			for (std::map<std::string, std::vector<EntityTemplate> >::const_iterator it = stConfig.futureAgents.begin(); it != stConfig.futureAgents.end(); it++)
 			{
 				generateXMLAgents(it->second);
 			}
-			std::cout << "Loaded drivers from the configuration file).\n";
-			break;
-			
-		case LoadAg_Pedestrians:
-			//generateXMLAgents(stConfig.futureAgents["pedestrian"]);
-			//std::cout << "Loaded pedestrians from the configuration file).\n";
-			break;
-		
-		case LoadAg_Passengers:
-			//generateXMLAgents(stConfig.futureAgents["passenger"]);
-			//std::cout << "Loaded passengers from the configuration file).\n";
+			std::cout << "\nLoaded drivers from the configuration file.\n";
 			break;
 		
 		default:
 			throw std::runtime_error("Unknown item in load_agents");
 		}
 	}
-	std::cout << "Loading Agents, Pedestrians, and Trip Chains as specified in loadAgentOrder: Success!\n";
 }
 
 void ExpandShortTermConfigFile::generateAgentsFromTripChain(ConfigParams::AgentConstraints &constraints)
@@ -717,7 +698,7 @@ void ExpandShortTermConfigFile::setTicks()
 
 void ExpandShortTermConfigFile::printSettings()
 {
-	std::cout << "Config parameters:\n";
+	std::cout << "\nConfiguration parameters:\n";
 	std::cout << "------------------\n";
 
 	//Print the WorkGroup strategy.
@@ -737,29 +718,17 @@ void ExpandShortTermConfigFile::printSettings()
 
 	//Basic statistics
 	std::cout << "  Base Granularity: " << cfg.baseGranMS() << " " << "ms" << "\n";
-	std::cout << "  Total Runtime: " << cfg.totalRuntimeTicks << " " << "ticks" << "\n";
+	std::cout << "  Simultation duration: " << cfg.simStartTime().getStrRepr() << " to "
+	          << DailyTime(cfg.totalRuntimeInMilliSeconds() + cfg.simStartTime().getValue()).getStrRepr() << "\n";
 	std::cout << "  Total Warmup: " << cfg.totalWarmupTicks << " " << "ticks" << "\n";
 	std::cout << "  Person Granularity: " << stConfig.granPersonTicks << " " << "ticks" << "\n";
-	std::cout << "  Start time: " << cfg.simStartTime().getStrRepr() << "\n";
 	std::cout << "  Mutex strategy: " << (cfg.mutexStategy() == MtxStrat_Locked ? "Locked" : cfg.mutexStategy() == MtxStrat_Buffered ? "Buffered" : "Unknown") << "\n";
 
-	//Output Database details
-	if (stConfig.networkSource == NETSRC_XML)
-	{
-		std::cout << "Network details loaded from xml file: " << stConfig.networkXmlInputFile << "\n";
-	}
-	if (stConfig.networkSource == NETSRC_DATABASE)
-	{
-		std::cout << "Network details loaded from database connection: " << cfg.getDatabaseConnectionString() << "\n";
-	}
-
 	//Print the network (this will go to a different output file...)
-	std::cout << "------------------\n";
+	std::cout << "------------------\n\n";
 	NetworkPrinter nwPrinter(cfg, cfg.outNetworkFileName);
 	nwPrinter.printSignals(getSignalsInfo(Signal::getMapOfIdVsSignals()));
 	nwPrinter.printNetwork(RoadNetwork::getInstance());
-	SimulationInfoPrinter simInfoPrinter(cfg, cfg.outSimInfoFileName);
-	simInfoPrinter.printSimulationInfo();
 }
 
 const std::string ExpandShortTermConfigFile::getSignalsInfo(std::map<unsigned int, Signal*>& signals) const

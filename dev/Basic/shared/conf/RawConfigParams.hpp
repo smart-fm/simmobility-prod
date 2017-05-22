@@ -14,9 +14,21 @@
 #include "geospatial/network/Point.hpp"
 #include "workers/WorkGroup.hpp"
 #include "util/DailyTime.hpp"
+#include "util/Profiler.hpp"
 #include "conf/Constructs.hpp"
 
 namespace sim_mob {
+
+
+struct Schemas
+{
+	Schemas();
+	bool enabled;
+	std::string main_schema;
+	std::string calibration_schema;
+	std::string public_schema;
+	std::string demand_schema;
+};
 
 /**
  * Represents the long-term developer model of the config file
@@ -38,6 +50,7 @@ struct LongTermParams
 	std::string calibrationSchemaVersion;
 	std::string geometrySchemaVersion;
 	unsigned int opSchemaloadingInterval;
+	bool initialLoading;
 
 	struct DeveloperModel{
 		DeveloperModel();
@@ -138,6 +151,24 @@ struct LongTermParams
 
 	}outputFiles;
 
+
+	struct ToaPayohScenario{
+		ToaPayohScenario();
+		bool enabled;
+		bool workInToaPayoh;
+		bool liveInToaPayoh;
+		bool moveToToaPayoh;
+	}toaPayohScenario;
+
+
+	struct Scenario
+	{
+		Scenario();
+		bool   enabled;
+		std::string scenarioName;
+
+	} scenario;
+
 };
 
 ///represent the incident data section of the config file
@@ -231,6 +262,26 @@ public:
 };
 
 /**
+ * Defines the configuration settings for the closed loop manager
+ */
+struct ClosedLoopParams
+{
+    bool enabled;
+	bool isGuidanceDirectional;
+    int sensorStepSize;
+    std::string guidanceFile;
+    std::string tollFile;
+    std::string incentivesFile;
+    std::string sensorOutputFile;
+	BasicLogger *logger;
+
+	ClosedLoopParams() : enabled(false), isGuidanceDirectional(false), sensorStepSize(0), guidanceFile(""),
+		tollFile(""), incentivesFile(""), sensorOutputFile(""), logger(nullptr)
+    {
+    }
+};
+
+/**
  * Represents the "Simulation" section of the config file.
  */
 class SimulationParams {
@@ -238,7 +289,7 @@ public:
     /**
      * Constructor
      */
-	SimulationParams();
+    SimulationParams();
 
     /// Base system granularity, in milliseconds. Each "tick" is this long.
     unsigned int baseGranMS;
@@ -266,6 +317,9 @@ public:
 
     /// Locking strategy for Shared<> properties.
     sim_mob::MutexStrategy mutexStategy;
+
+    /// The settings for the closed loop manager
+    ClosedLoopParams closedLoop;
 };
 
 /**
@@ -361,7 +415,7 @@ struct PathSetConf
     /**
      * Constructor
      */
-	PathSetConf() : enabled(false), RTTT_Conf(""), DTT_Conf(""), psRetrievalWithoutBannedRegion(""), interval(0), recPS(false), reroute(false),
+	PathSetConf() : enabled(false), supplyLinkFile(""), RTTT_Conf(""), DTT_Conf(""), psRetrievalWithoutBannedRegion(""), interval(0), recPS(false), reroute(false),
 			perturbationRange(std::pair<unsigned short,unsigned short>(0,0)), kspLevel(0),
 			perturbationIteration(0), threadPoolSize(0), maxSegSpeed(0), publickShortestPathLevel(10), simulationApproachIterations(10),
 			publicPathSetEnabled(true), privatePathSetEnabled(true)
@@ -403,6 +457,9 @@ struct PathSetConf
 
     /// data source for getting ODs for bulk pathset generation
     std::string odSourceTableName;
+
+    /// supply link travel time file name
+    std::string supplyLinkFile;
 
     /// realtime travel time table name
     std::string RTTT_Conf;
@@ -595,6 +652,8 @@ public:
 
     /// "Constructs" for general re-use.
 	Constructs constructs;
+
+	Schemas schemas;
 
     /// Settings for Long Term Parameters
 	LongTermParams ltParams;

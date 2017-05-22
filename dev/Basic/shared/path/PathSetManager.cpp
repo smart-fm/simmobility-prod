@@ -44,6 +44,7 @@ using std::string;
 using namespace luabridge;
 using namespace sim_mob;
 
+
 namespace
 {
 struct ModelContext
@@ -720,7 +721,8 @@ int sim_mob::PrivatePathsetGenerator::genSDLE(boost::shared_ptr<sim_mob::PathSet
 	int cnt = 0;
 	if (ps->oriPath && !ps->oriPath->path.empty())
 	{
-		for (std::vector<sim_mob::WayPoint>::iterator it = ps->oriPath->path.begin(); it != ps->oriPath->path.end(); ++it)
+		for (std::vector<sim_mob::WayPoint>::iterator it = ps->oriPath->path.begin(); it != ps->oriPath->path.end() ;
+				++it)
 		{
 			if (it->link != curLink)
 			{
@@ -773,6 +775,7 @@ int sim_mob::PrivatePathsetGenerator::genSTTLE(boost::shared_ptr<sim_mob::PathSe
 	StreetDirectory::VertexDesc to = sttpImpl->DrivingVertex(*ps->subTrip.destination.node, sim_mob::Default, 0);
 	SinglePath* pathTT = generateShortestTravelTimePath(ps->subTrip.origin.node, ps->subTrip.destination.node, sim_mob::Default);
 
+
 	int cnt = 0;
 	if (pathTT && !pathTT->path.empty())
 	{
@@ -784,8 +787,8 @@ int sim_mob::PrivatePathsetGenerator::genSTTLE(boost::shared_ptr<sim_mob::PathSe
 		work->pathSet = ps;
 		STTLE_Storage.push_back(work); //store STT path as well
 
-		for (std::vector<sim_mob::WayPoint>::iterator it(pathTT->path.begin()); it != pathTT->path.end(); ++it)
-		{
+		for (std::vector<sim_mob::WayPoint>::iterator it(pathTT->path.begin());
+				it != pathTT->path.end(); ++it){
 			if (it->link != curLink)
 			{
 				curLink = it->link;
@@ -844,7 +847,9 @@ int sim_mob::PrivatePathsetGenerator::genSTTHBLE(boost::shared_ptr<sim_mob::Path
 		work->pathSet = ps;
 		STTHBLE_Storage.push_back(work); //store STTHB path as well
 
-		for (std::vector<sim_mob::WayPoint>::iterator it(sinPathHighwayBias->path.begin()); it != sinPathHighwayBias->path.end(); ++it)
+
+		for (std::vector<sim_mob::WayPoint>::iterator it(sinPathHighwayBias->path.begin());
+				it != sinPathHighwayBias->path.end(); ++it)
 		{
 			if (it->link != curLink)
 			{
@@ -978,6 +983,7 @@ int sim_mob::PrivatePathsetGenerator::generateAllPathChoices(boost::shared_ptr<s
 
 	//K-SHORTEST PATH
 	std::set<sim_mob::SinglePath*, sim_mob::SinglePath> KSP_Storage;		//main storage for k-shortest path
+	
 	if (ConfigManager::GetInstance().PathSetConfig().privatePathSetMode == "generation")
 	{
 		genK_ShortestPath(ps, KSP_Storage);
@@ -986,6 +992,7 @@ int sim_mob::PrivatePathsetGenerator::generateAllPathChoices(boost::shared_ptr<s
 	{
 		threadpool_->enqueue(boost::bind(&PrivatePathsetGenerator::genK_ShortestPath, this, ps, boost::ref(KSP_Storage)));
 	}
+	
 
 	std::vector<std::vector<PathSetWorkerThread*> > mainStorage = std::vector<std::vector<PathSetWorkerThread*> >();
 	// SHORTEST DISTANCE LINK ELIMINATION
@@ -1071,7 +1078,7 @@ int sim_mob::PrivatePathsetGenerator::generateAllPathChoices(boost::shared_ptr<s
 	std::pair<boost::chrono::microseconds, boost::chrono::microseconds> tick = gen.tick();
 	{
 		char buf[200];
-		sprintf(buf, "[%s,PATHSET SIZE: %lu, TIME:%ld seconds]\n", fromToID.c_str(), ps->pathChoices.size(), (tick.first.count()/1000000));
+		sprintf(buf, "[%s,PATHSET SIZE: %lu, TIME:%g seconds]\n", fromToID.c_str(), ps->pathChoices.size(), (tick.first.count()/1000000.0));
 		Print() << std::string(buf);
 	}
 

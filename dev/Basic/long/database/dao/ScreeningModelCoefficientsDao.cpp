@@ -15,8 +15,8 @@
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
-ScreeningModelCoefficientsDao::ScreeningModelCoefficientsDao(DB_Connection& connection): SqlAbstractDao<ScreeningModelCoefficients>(connection, DB_TABLE_SCREENINGMODELCOEFFICIENT,
-																																		"","", "", DB_GETALL_SCREENINGMODELCOEFFICIENT, "") {}
+ScreeningModelCoefficientsDao::ScreeningModelCoefficientsDao(DB_Connection& connection): SqlAbstractDao<ScreeningModelCoefficients>(connection, "",	"","", "",
+																																	"SELECT * FROM " + connection.getSchema()+"screening_model_coefficients", "") {}
 
 ScreeningModelCoefficientsDao::~ScreeningModelCoefficientsDao() {}
 

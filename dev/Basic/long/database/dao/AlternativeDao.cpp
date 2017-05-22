@@ -15,7 +15,7 @@
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
-AlternativeDao::AlternativeDao(DB_Connection& connection): SqlAbstractDao<Alternative>( connection, DB_TABLE_ALTERNATIVE, "", "", "", DB_GETALL_ALTERNATIVE, DB_GETBYID_ALTERNATIVE){}
+AlternativeDao::AlternativeDao(DB_Connection& connection): SqlAbstractDao<Alternative>( connection, "", "", "", "", "SELECT * FROM " + connection.getSchema()+"alternative", ""){}
 
 AlternativeDao::~AlternativeDao(){}
 
@@ -27,6 +27,7 @@ void AlternativeDao::fromRow(Row& result, Alternative& outObj)
     outObj.dwellingTypeId	= result.get<BigSerial>( "dwelling_type_id", 0);
     outObj.dwellingTypeName	= result.get<std::string>( "dwelling_type_name", "");
     outObj.medianHedonicPrice	= result.get<double>( "median_hedonic_price", .0);
+    outObj.mapId			= result.get<BigSerial>("map_id", 0);
 }
 
 void AlternativeDao::toRow(Alternative& data, Parameters& outParams, bool update) {}

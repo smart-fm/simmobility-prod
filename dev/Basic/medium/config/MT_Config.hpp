@@ -222,7 +222,7 @@ struct ScreenLineParams
 struct IncidentParams
 {
 	IncidentParams() : incidentId(-1), visibilityDistance(0), segmentId(-1), position(0), severity(0), capFactor(0), startTime(0),
-			duration(0), length(0), compliance(0), accessibility(0)
+	                   duration(0), length(0), compliance(0), accessibility(0)
 	{}
 
 	struct LaneParams
@@ -312,6 +312,22 @@ private:
 };
 
 /**
+ * Simple struct to store configuration setting related to TripChain outputs
+ */
+struct TripChainOutputConfig
+{
+	/// Flag to check whether trip chain output is enabled
+	bool enabled;
+	/// File name where the trips and activities are stored
+	std::string tripActivitiesFile;
+	/// File name where the subtrips are stored
+	std::string subTripsFile;
+
+	TripChainOutputConfig() : enabled(false), tripActivitiesFile(""), subTripsFile("")
+	{}
+};
+
+/**
  * Singleton class to hold Mid-term related configurations
  */
 class MT_Config : private ProtectedCopyable
@@ -379,11 +395,11 @@ public:
 	 */
 	void setModelScriptsMap(const ModelScriptsMap& modelScriptsMap);
 
-    /**
-     * Retrieves Mongo Collection map
-     *
-     * @return mongo collections map
-     */
+	/**
+	 * Retrieves Mongo Collection map
+	 *
+	 * @return mongo collections map
+	 */
 	const MongoCollectionsMap& getMongoCollectionsMap() const;
 
 	/**
@@ -615,91 +631,91 @@ public:
 	 */
 	const std::set<Conflux*>& getConfluxes() const;
 
-    /**
-     * Retrieves number of workers for handling agents
-     *
-     * @return number of workers
-     */
-    unsigned int& personWorkGroupSize();
+	/**
+	 * Retrieves number of workers for handling agents
+	 *
+	 * @return number of workers
+	 */
+	unsigned int& personWorkGroupSize();
 
-    /**
-     * Retrieves number of workers for handling agents
-     *
-     * @return number of workers
-     */
-    unsigned int personWorkGroupSize() const;
+	/**
+	 * Retrieves number of workers for handling agents
+	 *
+	 * @return number of workers
+	 */
+	unsigned int personWorkGroupSize() const;
 
-    void setPublicTransitEnabled(bool val);
+	void setPublicTransitEnabled(bool val);
 
-    /**
-     * Retrives the confluxes
-     *
-     * @return confluxes (const reference)
-     */
-    std::map<const Node*, Conflux*>& getConfluxNodes();
+	/**
+	 * Retrives the confluxes
+	 *
+	 * @return confluxes (const reference)
+	 */
+	std::map<const Node*, Conflux*>& getConfluxNodes();
 
-    /**
-     * Retrieves conflux nodes
-     *
-     * @return conflux nodes (const reference)
-     */
-    const std::map<const Node*, Conflux*>& getConfluxNodes() const;
+	/**
+	 * Retrieves conflux nodes
+	 *
+	 * @return conflux nodes (const reference)
+	 */
+	const std::map<const Node*, Conflux*>& getConfluxNodes() const;
 
-    /**
-     * Retrives the conflux corresponding to a node
-     *
-     * @param multinode node for which the conflux to be found
-     *
-     * @return conflux
-     */
-    Conflux* getConfluxForNode(const Node* multinode) const;
+	/**
+	 * Retrives the conflux corresponding to a node
+	 *
+	 * @param multinode node for which the conflux to be found
+	 *
+	 * @return conflux
+	 */
+	Conflux* getConfluxForNode(const Node* multinode) const;
 
-    /**
-     * Retrives the segment stats with bus stops
-     *
-     * @return segment stats with bus stops
-     */
-    std::set<SegmentStats*>& getSegmentStatsWithBusStops();
+	/**
+	 * Retrives the segment stats with bus stops
+	 *
+	 * @return segment stats with bus stops
+	 */
+	std::set<SegmentStats*>& getSegmentStatsWithBusStops();
 
-    /**
-     * Checks whether mid term supply is running
-     *
-     * @return true if mid term supply is running, else false
-     */
-    bool RunningMidSupply() const;
+	/**
+	 * Checks whether mid term supply is running
+	 *
+	 * @return true if mid term supply is running, else false
+	 */
+	bool RunningMidSupply() const;
 
-    /**
-     * Checks whether mid term demand is running
-     *
-     * @return true if mid term demand is running, else false
-     */
-    bool RunningMidDemand() const;
+	/**
+	 * Checks whether mid term demand is running
+	 *
+	 * @return true if mid term demand is running, else false
+	 */
+	bool RunningMidDemand() const;
 
-    /**
-     * Sets the mid term run mode
-     *
-     * @param runMode run mode (supply/demand/withinday) to be set
-     */
-    void setMidTermRunMode(const std::string& runMode);
+	/**
+	 * Sets the mid term run mode
+	 *
+	 * @param runMode run mode (supply/demand/withinday) to be set
+	 */
+	void setMidTermRunMode(const std::string& runMode);
 
-    /**
-     * Retrives the incident params list
-     *
-     * @return incidents
-     */
-    std::vector<IncidentParams>& getIncidents();
+	/**
+	 * Retrives the incident params list
+	 *
+	 * @return incidents
+	 */
+	std::vector<IncidentParams>& getIncidents();
 
-    /**
-     * Retrieve the disruption params
-     * @return disruption definition
-     */
-    std::vector<DisruptionParams>& getDisruption_rw();
+	/**
+	 * Retrieve the disruption params
+	 * @return disruption definition
+	 */
+	std::vector<DisruptionParams>& getDisruption_rw();
 
-    /**
-     * get person timestep in milliseconds
-     * @return timestep in milliseconds
-     */
-    unsigned int personTimeStepInMilliSeconds() const;
+	/**
+	 * get person timestep in milliseconds
+	 * @return timestep in milliseconds
+	 */
+	unsigned int personTimeStepInMilliSeconds() const;
 
 	/**
 	 * Retrieves the segment stats with taxi stands
@@ -738,6 +754,18 @@ public:
 	void setLogsumTableName(const std::string& logsumTableName);
 
 	/**
+	 * get threads number for person loader
+	 * @return the threads number in use of person loader
+	 */
+	const unsigned int getThreadsNumInPersonLoader() const;
+
+	/**
+	 * set threads number for person loader
+	 * @param number is threads number for person loader
+	 */
+	void setThreadsNumInPersonLoader(unsigned int number);
+
+	/**
 	 * Enumerator for mid term run mode
 	 */
 	enum MidTermRunMode
@@ -756,6 +784,9 @@ public:
 
 	/// Generic properties, for testing new features.
 	std::map<std::string, std::string> genericProps;
+
+	/// Configuration for trip chain output
+	TripChainOutputConfig tripChainOutput;
 
 private:
 	/**
@@ -805,6 +836,9 @@ private:
 	/** default capacity for bus*/
 	unsigned int busCapacity;
 
+	/** the threads number in person loader*/
+	unsigned int threadsNumInPersonLoader;
+
 	/// supply update interval in frames
 	unsigned supplyUpdateInterval;
 
@@ -850,11 +884,11 @@ private:
 	std::vector<IncidentParams> incidents;
 
 
-    ///setting for disruptions
-    std::vector<DisruptionParams> disruptions;
+	///setting for disruptions
+	std::vector<DisruptionParams> disruptions;
 
-    /// set of confluxes
-    std::set<Conflux*> confluxes;
+	/// set of confluxes
+	std::set<Conflux*> confluxes;
 
 
 	/// key:value (MultiNode:Conflux) map

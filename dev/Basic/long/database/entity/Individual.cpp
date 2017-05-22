@@ -10,12 +10,16 @@
  */
 
 #include <database/entity/Individual.hpp>
+#include <boost/serialization/vector.hpp>
+#include <boost/archive/binary_oarchive.hpp>
+#include <boost/archive/binary_iarchive.hpp>
+
 
 using namespace sim_mob::long_term;
 
 Individual::Individual( BigSerial id, BigSerial individualTypeId, BigSerial householdId, BigSerial jobId, BigSerial ethnicityId, BigSerial employmentStatusId,
 						BigSerial genderId, BigSerial educationId, BigSerial occupationId, BigSerial vehicleCategoryId, BigSerial transitCategoryId,
-						BigSerial ageCategoryId, BigSerial residentialStatusId, bool householdHead, float income, int memberId, bool workerAtHome, bool carLicense,
+						BigSerial ageCategoryId, BigSerial residentialStatusId, bool householdHead, float income, int memberId, bool workAtHome, bool carLicense,
 						bool motorLicense, bool vanbusLicense, std::tm dateOfBirth,	BigSerial studentId, BigSerial industryId, BigSerial ageDetailedCategory, int taxiDriver, int fixed_workplace, int fixed_hours) :
 						id(id), individualTypeId(individualTypeId), householdId(householdId), jobId(jobId), ethnicityId(ethnicityId), employmentStatusId(employmentStatusId),
 						genderId(genderId), educationId(educationId), occupationId(occupationId), vehicleCategoryId(vehicleCategoryId), transitCategoryId(transitCategoryId),
@@ -50,12 +54,80 @@ Individual& Individual::operator=(const Individual& source)
 	this->dateOfBirth = source.dateOfBirth;
 	this->studentId = source.studentId;
 	this->industryId = source.industryId;
-	this->ageDetailedCategory = source.taxiDriver;
+	this->ageDetailedCategory = source.ageDetailedCategory;
 	this->taxiDriver = source.taxiDriver;
 	this->fixed_workplace = source.fixed_workplace;
 	this->fixed_hours = source.fixed_hours;
 
 	return *this;
+}
+
+template<class Archive>
+void Individual::serialize(Archive & ar,const unsigned int version)
+{
+	ar & id;
+	ar & individualTypeId;
+	ar & householdId;
+	ar & jobId;
+	ar & ethnicityId;
+	ar & employmentStatusId;
+	ar & genderId;
+	ar & educationId;
+	ar & occupationId;
+	ar & vehicleCategoryId;
+	ar & transitCategoryId;
+	ar & ageCategoryId;
+	ar & residentialStatusId;
+	ar & householdHead;
+	ar & income;
+	ar & memberId;
+	ar & workAtHome;
+	ar & carLicense;
+	ar & motorLicense;
+	ar & vanbusLicense;
+	ar & BOOST_SERIALIZATION_NVP(dateOfBirth.tm_year);
+	ar & BOOST_SERIALIZATION_NVP(dateOfBirth.tm_mon);
+	ar & BOOST_SERIALIZATION_NVP(dateOfBirth.tm_mday);
+	dateOfBirth.tm_year = dateOfBirth.tm_year+1900;
+	ar & studentId;
+	ar & industryId;
+	ar & ageDetailedCategory;
+	ar & taxiDriver;
+	ar & fixed_workplace;
+	ar & fixed_hours;
+
+}
+
+void Individual::saveData(std::vector<Individual*> &individuals)
+{
+	// make an archive
+	std::ofstream ofs(filename);
+	boost::archive::binary_oarchive oa(ofs);
+	oa & individuals;
+}
+
+std::vector<Individual*> Individual::loadSerializedData()
+{
+	std::vector<Individual*> individuals;
+	// Restore from saved data and print to verify contents
+	std::vector<Individual*> restored_info;
+	{
+		// Create and input archive
+		std::ifstream ifs( filename );
+		boost::archive::binary_iarchive ar( ifs );
+
+		// Load the data
+		ar & restored_info;
+	}
+
+	for (auto *itr :restored_info)
+	{
+		Individual *ind = itr;
+		individuals.push_back(ind);
+	}
+
+	return individuals;
+
 }
 
 BigSerial Individual::getId() const

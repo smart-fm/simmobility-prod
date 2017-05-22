@@ -33,7 +33,7 @@ void VehicleOwnershipChangesDao::toRow(VehicleOwnershipChanges& data, Parameters
 void VehicleOwnershipChangesDao::insertVehicleOwnershipChanges(VehicleOwnershipChanges& vehicleOwnershipChange,std::string schema)
 {
 
-	const std::string DB_INSERT_VEHICLE_OWNERSHIP_CHANGES = "INSERT INTO " + APPLY_SCHEMA(schema, ".vehicle_ownership_changes")
+	const std::string DB_INSERT_VEHICLE_OWNERSHIP_CHANGES = "INSERT INTO " + schema + ".vehicle_ownership_changes"
 	        		+ " (" + "household_id" + ", " + "old_vehicle_ownership_option_id" + ", " + "new_vehicle_ownership_option_id" + ", " +"start_date"
 	        		+ ") VALUES (:v1, :v2, :v3, :v4)";
 	insertViaQuery(vehicleOwnershipChange,DB_INSERT_VEHICLE_OWNERSHIP_CHANGES);

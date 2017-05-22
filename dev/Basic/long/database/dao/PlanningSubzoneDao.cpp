@@ -15,7 +15,7 @@
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
-PlanningSubzoneDao::PlanningSubzoneDao(DB_Connection& connection): SqlAbstractDao<PlanningSubzone>(connection, DB_TABLE_PLANNING_SUBZONE,"", "", "",DB_GETALL_PLANNING_SUBZONE, DB_GETBYID_PLANNING_SUBZONE) {}
+PlanningSubzoneDao::PlanningSubzoneDao(DB_Connection& connection): SqlAbstractDao<PlanningSubzone>(connection, "","", "", "", "SELECT * FROM " + connection.getSchema()+"planning_subzone", "") {}
 
 PlanningSubzoneDao::~PlanningSubzoneDao() {}
 

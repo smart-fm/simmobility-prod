@@ -32,7 +32,6 @@ ExpandMidTermConfigFile::ExpandMidTermConfigFile(MT_Config &mtCfg, ConfigParams 
 
 void ExpandMidTermConfigFile::processConfig()
 {
-    cfg.simMobRunMode = ConfigParams::MID_TERM;
     cfg.setWorkerPublisherEnabled(false);
 
     //Set the auto-incrementing ID.
@@ -66,7 +65,6 @@ void ExpandMidTermConfigFile::processConfig()
     }
 
     cfg.sealNetwork();
-    std::cout << "Network sealed" << std::endl;
 
     //Initialize the street directory.
     StreetDirectory::Instance().Init(*(RoadNetwork::getInstance()));
@@ -99,7 +97,6 @@ void ExpandMidTermConfigFile::processConfig()
     {
         size_t sizeBefore = mtCfg.getConfluxes().size();
         Conflux::CreateConfluxes();
-        std::cout << mtCfg.getConfluxes().size() << " Confluxes created" << std::endl;
     }
 
     //register and initialize BusController
@@ -129,6 +126,8 @@ void ExpandMidTermConfigFile::processConfig()
 void ExpandMidTermConfigFile::loadNetworkFromDatabase()
 {
     NetworkLoader *loader = NetworkLoader::getInstance();
+
+	std::cout << "Database connection: " << cfg.getDatabaseConnectionString() << "\n\n";
 
     //load network
     loader->loadNetwork(cfg.getDatabaseConnectionString(false), cfg.getDatabaseProcMappings().procedureMappings);
@@ -248,7 +247,7 @@ void ExpandMidTermConfigFile::setTicks()
 
 void ExpandMidTermConfigFile::printSettings()
 {
-    std::cout << "Config parameters:\n";
+    std::cout << "\nConfiguration parameters:\n";
     std::cout << "------------------\n";
 
     //Print the WorkGroup strategy.
@@ -268,29 +267,16 @@ void ExpandMidTermConfigFile::printSettings()
 
     //Basic statistics
     std::cout << "  Base Granularity: " << cfg.baseGranMS() << " " << "ms" << "\n";
-    std::cout << "  Total Runtime: " << cfg.totalRuntimeTicks << " " << "ticks" << "\n";
+	std::cout << "  Simultation duration: " << cfg.simStartTime().getStrRepr() << " to "
+	          << DailyTime(cfg.totalRuntimeInMilliSeconds() + cfg.simStartTime().getValue()).getStrRepr() << "\n";
     std::cout << "  Total Warmup: " << cfg.totalWarmupTicks << " " << "ticks" << "\n";
     std::cout << "  Person Granularity: " << mtCfg.granPersonTicks << " " << "ticks" << "\n";
-    std::cout << "  Start time: " << cfg.simStartTime().getStrRepr() << "\n";
     std::cout << "  Mutex strategy: " << (cfg.mutexStategy() == MtxStrat_Locked ? "Locked" : cfg.mutexStategy() == MtxStrat_Buffered ? "Buffered" : "Unknown") << "\n";
-
-//Output Database details
-//	if (cfg.system.networkSource == SystemParams::NETSRC_XML)
-//	{
-//		std::cout << "Network details loaded from xml file: " << cfg.system.networkXmlInputFile << "\n";
-//	}
-//	if (cfg.system.networkSource == SystemParams::NETSRC_DATABASE)
-//	{
-//		std::cout << "Network details loaded from database connection: " << cfg.getDatabaseConnectionString() << "\n";
-//	}
-
-    std::cout << "Network details loaded from database connection: " << cfg.getDatabaseConnectionString() << "\n";
 
     //Print the network (this will go to a different output file...)
 	std::cout << "------------------\n";
 	NetworkPrinter nwPrinter(cfg, cfg.outNetworkFileName);
 	nwPrinter.printNetwork(RoadNetwork::getInstance());
-	std::cout << "------------------\n";
 	SimulationInfoPrinter simInfoPrinter(cfg, cfg.outSimInfoFileName);
 	simInfoPrinter.printSimulationInfo();
 }

@@ -35,7 +35,7 @@
             </database>
 
             <!-- localhost for midterm server -->
-            <database id="fm_remote_mt6" dbtype="postgres">
+            <database id="fm_remote_mt3" dbtype="postgres">
                 <host value="localhost"/>
                 <port value="5432"/>
                 <dbname value="sim_mob_lt"/>
@@ -49,14 +49,14 @@
 	    </database>
 
 		<!-- public ip for remote midterm server -->
-	    <database id="fm_remote_mt4" dbtype="postgres">
+	    <database id="fm_remote_mt5" dbtype="postgres">
 	        <host value="fmhpchead"/>
 	        <port value="5432"/> <!--old port: 15025 -->
 	        <dbname value="Simmobility"/>
 	    </database>
 
 		<!-- longterm localhost server hosting midterm data -->
-	    <database id="fm_remote_mt5" dbtype="postgres">
+	    <database id="fm_remote_mt6" dbtype="postgres">
 	        <host value="172.25.184.14"/>
 	        <port value="5432"/>
 	        <dbname value="sim_mob_lt"/>
@@ -94,7 +94,12 @@
 	</credentials>
     </constructs>
 
-
+   <schemas enabled= "true">
+	<main_schema  value= "synpop12."/>
+	<calibration_schema value= "calibration2012."/>
+	<public_schema value= "public."/>
+	<demand_schema value= "demand."/>
+   </schemas>
               
     <!-- Long Term Configurations parameters -->
     <longTermParams enabled ="true">
@@ -106,11 +111,8 @@
 	<simulationScenario value="baseline"/> 
 	<resume value ="false"/> 
 	<currentOutputSchema value = "baseline_2012_20160225034344"/> <!--if resume is true give the current op schema name-->
-	<mainSchemaVersion value="main2012" />
-	<configSchemaVersion value = "configuration2012" />
-	<calibrationSchemaVersion value= "calibration2012" />
-	<geometrySchemaVersion value = "geometry2012" />
         <opSchemaloadingInterval value = "365"/>
+        <initialLoading value = "true" />
     	<developerModel enabled="true">
     		<timeInterval value="30"/>
 		<InitialPostcode value = "1000000"/>
@@ -134,8 +136,8 @@
 		    <awakenModelShan value="false"/>
 		    <awakenModelRandom value="false"/>
 		    <awakenModelJingsi value="true"/>	
-                    <awakeningOffMarketSuccessfulBid value="100"/>
- 	             <awakeningOffMarketUnsuccessfulBid value="200"/>
+                    <awakeningOffMarketSuccessfulBid value="200"/>
+ 	            <awakeningOffMarketUnsuccessfulBid value="200"/>
 	    </awakeningModel>
 	    <vacantUnitActivationProbability value="0.375"/>
 	    <housingMarketSearchPercentage value="0.15"/>
@@ -147,7 +149,7 @@
 	    <offsetBetweenUnitBuyingAndSelling value ="7"/>
             <offsetBetweenUnitBuyingAndSellingAdvancedPurchase value = "30" />
         </housingModel>
-	<vehicleOwnershipModel enabled='false'>
+	<vehicleOwnershipModel enabled='true'>
 		<vehicleBuyingWaitingTimeInDays value= "1"/>
 	</vehicleOwnershipModel>
         <taxiAccessModel enabled='false'>
@@ -155,6 +157,10 @@
 	<schoolAssignmentModel enabled = 'false'>
 		<schoolChangeWaitingTimeInDays value ="1" />
 	</schoolAssignmentModel>
+
+	<scenario enabled= 'false'>
+		<name value="ToaPayohScenario"/>
+	</scenario>
 
 	<outputFiles enabled= 'true'>
                 <bids value= 'true' />
@@ -183,9 +189,14 @@
 		<log_household_statistics value = 'true' />
 		<log_out_xx_files value='false' />
         </outputFiles>
+        <toaPayohScenario enabled = 'false'>
+                 <workInToaPayoh value = 'false'/>
+                 <liveInToaPayoh value = 'false' />
+                 <moveToToaPayoh value = 'false' />
+       </toaPayohScenario>
     </longTermParams>
 
-    <model_scripts path="scripts/lua/mid/behavior-models/" format="lua">
+    <model_scripts path="scripts/lua/mid/behavior_sg12_20161206/" format="lua">
 	<script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models-->
 	<script name="dpb" file="dpb.lua"/> <!-- Day Pattern Binary -->
 	<script name="dpt" file="dpt.lua"/> <!-- Day Pattern Tours -->

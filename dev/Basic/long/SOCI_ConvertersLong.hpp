@@ -21,6 +21,7 @@
 #include "database/entity/LagPrivateT.hpp"
 #include "database/entity/LtVersion.hpp"
 #include "database/entity/HedonicLogsums.hpp"
+#include "database/entity/TAOByUnitType.hpp"
 
 using namespace sim_mob;
 using namespace long_term;
@@ -50,6 +51,33 @@ struct type_conversion<sim_mob::long_term::HedonicCoeffs>
     	hedonicCoeffs.setAge(values.get<double>("age", 0));
     	hedonicCoeffs.setLogAgeSquared(values.get<double>("age_squared", 0));
     	hedonicCoeffs.setMisage(values.get<double>("misage", 0));
+
+    }
+};
+
+template<>
+struct type_conversion<sim_mob::long_term::HedonicCoeffsByUnitType>
+{
+    typedef values base_type;
+
+    static void
+    from_base(soci::values const & values, soci::indicator & indicator, sim_mob::long_term::HedonicCoeffsByUnitType& hedonicCoeffsByUT)
+    {
+    	hedonicCoeffsByUT.setUnitTypeId(values.get<BigSerial>("unit_type_id", INVALID_ID));
+    	hedonicCoeffsByUT.setIntercept(values.get<double>("intercept", 0));
+    	hedonicCoeffsByUT.setLogSqrtArea(values.get<double>("log_area", 0));
+    	hedonicCoeffsByUT.setFreehold( values.get<double>("freehold", 0));
+    	hedonicCoeffsByUT.setLogsumWeighted(values.get<double>("logsum_weighted", 0));
+    	hedonicCoeffsByUT.setPms1km(values.get<double>("pms_1km", 0));
+    	hedonicCoeffsByUT.setDistanceMallKm(values.get<double>("distance_mall_km", 0));
+    	hedonicCoeffsByUT.setMrt200m(values.get<double>("mrt_200m", 0));
+    	hedonicCoeffsByUT.setMrt2400m(values.get<double>("mrt_2_400m", 0));
+    	hedonicCoeffsByUT.setExpress200m(values.get<double>("express_200m", 0));
+    	hedonicCoeffsByUT.setBus2400m(values.get<double>("bus2_400m", 0));
+    	hedonicCoeffsByUT.setBusGt400m(values.get<double>("bus_gt400m", 0));
+    	hedonicCoeffsByUT.setAge(values.get<double>("age", 0));
+    	hedonicCoeffsByUT.setAgeSquared(values.get<double>("age_squared", 0));
+    	hedonicCoeffsByUT.setMisage(values.get<double>("misage", 0));
 
     }
 };
@@ -143,6 +171,50 @@ struct type_conversion<sim_mob::long_term::SlaBuilding>
     	slaBuilding.setSla_address_id(values.get<long long>("sla_address_id",0));
     	slaBuilding.setSla_building_id(values.get<string>("sla_building_id",""));
     	slaBuilding.setSla_inc_crc(values.get<string>("sla_inc_crc",""));
+    }
+};
+
+template<>
+struct type_conversion<sim_mob::long_term::TAOByUnitType>
+{
+    typedef values base_type;
+
+    static void
+    from_base(soci::values const & values, soci::indicator & indicator, sim_mob::long_term::TAOByUnitType& taoByUT)
+    {
+    	taoByUT.setId(values.get<BigSerial>("id",0));
+    	taoByUT.setQuarter(values.get<std::string>("quarter",std::string()));
+    	taoByUT.setTreasuryBillYield1Year(values.get<double>("treasury_bill_yield_1year",0));
+    	taoByUT.setGdpRate(values.get<double>("gdp_rate",0));
+    	taoByUT.setInflation(values.get<double>("inflation",0));
+    	taoByUT.setTApartment7(values.get<double>("tapt_7",0));
+    	taoByUT.setTApartment8(values.get<double>("tapt_8",0));
+    	taoByUT.setTApartment9(values.get<double>("tapt_9",0));
+    	taoByUT.setTApartment10(values.get<double>("tapt_10",0));
+    	taoByUT.setTApartment11(values.get<double>("tapt_11",0));
+    	taoByUT.setTCondo12(values.get<double>("tcondo_12",0));
+    	taoByUT.setTCondo13(values.get<double>("tcondo_13",0));
+    	taoByUT.setTCondo14(values.get<double>("tcondo_14",0));
+    	taoByUT.setTCondo15(values.get<double>("tcondo_15",0));
+    	taoByUT.setTCondo16(values.get<double>("tcondo_16",0));
+    }
+};
+
+template<>
+struct type_conversion<sim_mob::long_term::LagPrivate_TByUnitType>
+{
+    typedef values base_type;
+
+    static void
+    from_base(soci::values const & values, soci::indicator & indicator, sim_mob::long_term::LagPrivate_TByUnitType& lagPvtTByUT)
+    {
+    	lagPvtTByUT.setUnitTypeId(values.get<BigSerial>("unit_type_id",0));
+    	lagPvtTByUT.setIntercept(values.get<double>("intercept",0));
+    	lagPvtTByUT.setT4(values.get<double>("t4",0));
+    	lagPvtTByUT.setT5(values.get<double>("t5",0));
+    	lagPvtTByUT.setT6(values.get<double>("t6",0));
+    	lagPvtTByUT.setT7(values.get<double>("t7",0));
+    	lagPvtTByUT.setGdpRate(values.get<double>("gdp_rate",0));
     }
 };
 

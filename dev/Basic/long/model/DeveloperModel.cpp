@@ -29,6 +29,7 @@
 #include "database/entity/BuildingAvgAgePerParcel.hpp"
 #include "database/entity/ROILimits.hpp"
 #include "database/entity/HedonicCoeffs.hpp"
+#include "database/entity/TAOByUnitType.hpp"
 #include "database/dao/SlaParcelDao.hpp"
 #include "database/dao/UnitDao.hpp"
 #include "database/entity/UnitType.hpp"
@@ -192,6 +193,9 @@ void DeveloperModel::startImpl() {
 		loadHedonicCoeffs(conn);
 		loadPrivateLagT(conn);
 		loadHedonicLogsums(conn);
+		loadHedonicCoeffsByUnitType(conn);
+		loadTaoByUnitType(conn);
+		loadPrivateLagTByUT(conn);
 	}
 
 
@@ -967,6 +971,37 @@ const HedonicCoeffs* DeveloperModel::getHedonicCoeffsByPropertyTypeId(BigSerial 
 	return nullptr;
 }
 
+void DeveloperModel::loadHedonicCoeffsByUnitType(DB_Connection &conn)
+{
+	soci::session sql;
+		//sql = conn.getSession<soci::session>();
+		sql.open(soci::postgresql, conn.getConnectionStr());
+
+
+		const std::string storedProc = MAIN_SCHEMA + "getHedonicCoeffsByUnitTypeId()";
+		//SQL statement
+		soci::rowset<HedonicCoeffsByUnitType> hedonicCoeffsByUT = (sql.prepare << "select * from " + storedProc);
+		for (soci::rowset<HedonicCoeffsByUnitType>::const_iterator itCoeffsByUT = hedonicCoeffsByUT.begin(); itCoeffsByUT != hedonicCoeffsByUT.end(); ++itCoeffsByUT)
+		{
+			//Create new node and add it in the map of nodes
+			HedonicCoeffsByUnitType* coeef = new HedonicCoeffsByUnitType(*itCoeffsByUT);
+			hedonicCoefficientsByUnitTypeList.push_back(coeef);
+			hedonicCoefficientsByUnitTypeId.insert(std::make_pair(coeef->getUnitTypeId(), coeef));
+
+		}
+
+}
+
+const HedonicCoeffsByUnitType* DeveloperModel::getHedonicCoeffsByUnitTypeId(BigSerial unitTypeId) const
+{
+	HedonicCoeffsByUnitTypeMap::const_iterator itr = hedonicCoefficientsByUnitTypeId.find(unitTypeId);
+		if (itr != hedonicCoefficientsByUnitTypeId.end())
+		{
+			return itr->second;
+		}
+		return nullptr;
+}
+
 void  DeveloperModel::loadPrivateLagT(DB_Connection &conn)
 {
 	soci::session sql;
@@ -1000,20 +1035,20 @@ const LagPrivateT* DeveloperModel::getLagPrivateTByPropertyTypeId(BigSerial prop
 void DeveloperModel::loadHedonicLogsums(DB_Connection &conn)
 {
 	soci::session sql;
-		//sql = conn.getSession<soci::session>();
-		sql.open(soci::postgresql, conn.getConnectionStr());
+	//sql = conn.getSession<soci::session>();
+	sql.open(soci::postgresql, conn.getConnectionStr());
 
-		const std::string storedProc = MAIN_SCHEMA + "getHedonicLogsums()";
-		//SQL statement
-		soci::rowset<HedonicLogsums> hedonicLogsums = (sql.prepare << "select * from " + storedProc);
-		for (soci::rowset<HedonicLogsums>::const_iterator itLogsums = hedonicLogsums.begin(); itLogsums != hedonicLogsums.end(); ++itLogsums)
-		{
-			//Create new node and add it in the map of nodes
-			HedonicLogsums* logsum = new HedonicLogsums(*itLogsums);
-			hedonicLogsumsList.push_back(logsum);
-			hedonicLogsumsByTazId.insert(std::make_pair(logsum->getTazId(), logsum));
+	const std::string storedProc = MAIN_SCHEMA + "getHedonicLogsums()";
+	//SQL statement
+	soci::rowset<HedonicLogsums> hedonicLogsums = (sql.prepare << "select * from " + storedProc);
+	for (soci::rowset<HedonicLogsums>::const_iterator itLogsums = hedonicLogsums.begin(); itLogsums != hedonicLogsums.end(); ++itLogsums)
+	{
+		//Create new node and add it in the map of nodes
+		HedonicLogsums* logsum = new HedonicLogsums(*itLogsums);
+		hedonicLogsumsList.push_back(logsum);
+		hedonicLogsumsByTazId.insert(std::make_pair(logsum->getTazId(), logsum));
 
-		}
+	}
 }
 
 const HedonicLogsums* DeveloperModel::getHedonicLogsumsByTazId(BigSerial tazId) const
@@ -1024,4 +1059,74 @@ const HedonicLogsums* DeveloperModel::getHedonicLogsumsByTazId(BigSerial tazId) 
 			return itr->second;
 		}
 		return nullptr;
+}
+
+void DeveloperModel::loadTaoByUnitType(DB_Connection &conn)
+{
+	soci::session sql;
+	//sql = conn.getSession<soci::session>();
+	sql.open(soci::postgresql, conn.getConnectionStr());
+
+	const std::string storedProc = MAIN_SCHEMA + "getTaoByUnitType()";
+	//SQL statement
+	soci::rowset<TAOByUnitType> taoByUT = (sql.prepare << "select * from " + storedProc);
+	for (soci::rowset<TAOByUnitType>::const_iterator itTAO_UT = taoByUT.begin(); itTAO_UT != taoByUT.end(); ++itTAO_UT)
+	{
+		//Create new node and add it in the map of nodes
+		TAOByUnitType* taoByUT = new TAOByUnitType(*itTAO_UT);
+		taoByUnitTypeList.push_back(taoByUT);
+		taoUTByQuarterStr.insert(std::make_pair(taoByUT->getQuarter(), taoByUT));
+		taoUTById.insert(std::make_pair(taoByUT->getId(), taoByUT));
+
+	}
+
+}
+
+const TAOByUnitType* DeveloperModel::getTaoUTByQuarter(std::string& quarterStr)
+{
+	TAOByUTMap::const_iterator itr = taoUTByQuarterStr.find(quarterStr);
+	if (itr != taoUTByQuarterStr.end())
+	{
+		return itr->second;
+	}
+	return nullptr;
+}
+
+const TAOByUnitType* DeveloperModel::getTaoUTById(int& id)
+{
+	TAOByIdMap::const_iterator itr = taoUTById.find(id);
+		if (itr != taoUTById.end())
+		{
+			return itr->second;
+		}
+		return nullptr;
+}
+
+void DeveloperModel::loadPrivateLagTByUT(DB_Connection &conn)
+{
+	soci::session sql;
+	//sql = conn.getSession<soci::session>();
+	sql.open(soci::postgresql, conn.getConnectionStr());
+
+	const std::string storedProc = MAIN_SCHEMA + "getPrivateLagByUnitType()";
+	//SQL statement
+	soci::rowset<LagPrivate_TByUnitType> privateLagByUT = (sql.prepare << "select * from " + storedProc);
+	for (soci::rowset<LagPrivate_TByUnitType>::const_iterator itPrivateLagByUT = privateLagByUT.begin(); itPrivateLagByUT != privateLagByUT.end(); ++itPrivateLagByUT)
+	{
+		//Create new node and add it in the map of nodes
+		LagPrivate_TByUnitType* lagPvtByUT = new LagPrivate_TByUnitType(*itPrivateLagByUT);
+		lagPrivateTByUTList.push_back(lagPvtByUT);
+		ptivateLagsByUnitTypeId.insert(std::make_pair(lagPvtByUT->getUnitTypeId(), lagPvtByUT));
+
+	}
+}
+
+const LagPrivate_TByUnitType* DeveloperModel::getLagPrivateTByUnitTypeId(BigSerial unitTypeId)
+{
+	LagPrivateTByUTMap::const_iterator itr = ptivateLagsByUnitTypeId.find(unitTypeId);
+	if (itr != ptivateLagsByUnitTypeId.end())
+	{
+		return itr->second;
+	}
+	return nullptr;
 }

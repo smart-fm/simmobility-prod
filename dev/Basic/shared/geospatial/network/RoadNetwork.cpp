@@ -248,6 +248,7 @@ bool RoadNetwork::checkSegmentCapacity() const
 	{
 		if((*i).second->getCapacity()<=0.0)
 		{
+			Print()<<"no capacity in segment "<<(*i).second->getRoadSegmentId()<<std::endl;
 			return false;
 		}
 	}

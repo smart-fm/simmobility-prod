@@ -1929,12 +1929,12 @@ void HM_Model::startImpl()
 
 				if( awakeningProbability < config.ltParams.housingModel.vacantUnitActivationProbability )
 				{
-					(*it)->setbiddingMarketEntryDay( unitStartDay );
+					(*it)->setbiddingMarketEntryDay( unitStartDay + (float)rand() / RAND_MAX * config.ltParams.housingModel.timeOnMarket);
 					onMarket++;
 				}
 				else
 				{
-					(*it)->setbiddingMarketEntryDay( unitStartDay +( (float)rand() / RAND_MAX * 365) );
+					(*it)->setbiddingMarketEntryDay( config.ltParams.housingModel.timeOffMarket + unitStartDay + (float)rand() / RAND_MAX * config.ltParams.housingModel.timeOnMarket);
 					offMarket++;
 				}
 
@@ -2037,7 +2037,7 @@ void HM_Model::startImpl()
 
 			if(thisUnit->getZoneHousingType() == 0)
 			{
-				PrintOutV(" " << thisUnit->getId() << " " << thisUnit->getDwellingType() << " " << planningAreaName << std::endl );
+				//PrintOutV(" " << thisUnit->getId() << " " << thisUnit->getDwellingType() << " " << planningAreaName << std::endl );
 			}
 		}
 	}

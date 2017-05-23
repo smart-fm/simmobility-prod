@@ -90,6 +90,12 @@ void ExpandMidTermConfigFile::processConfig()
         exit(1);
     }
 
+    //check each segment's capacity
+    if(!RoadNetwork::getInstance()->checkSegmentCapacity() && mtCfg.RunningMidSupply())
+    {
+    	throw std::runtime_error("some segments have no capacity!");
+    }
+
     //TODO: put its option in config xml
     //generateOD("/home/fm-simmobility/vahid/OD.txt", "/home/fm-simmobility/vahid/ODs.xml");
     //Process Confluxes if required

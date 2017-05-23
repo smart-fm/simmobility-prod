@@ -117,7 +117,6 @@ void PT_Statistics::storeStatistics()
 		std::ofstream outputFile(waitingTimeStatsFilename.c_str());
 		if (outputFile.is_open())
 		{
-			outputFile <<"person_id, s_node,d_node,cur_stop,next_stop,service_lines,boarded_line,arrival_time,wait_time,denied_times"<<std::endl;
 			std::map<std::string, PersonWaitingTime>::const_iterator itWaitingTime = personWaitingTimes.begin();
 			for (; itWaitingTime != personWaitingTimes.end(); itWaitingTime++)
 			{
@@ -150,7 +149,6 @@ void PT_Statistics::storeStatistics()
 		std::ofstream outputFile(travelTimeFilename.c_str());
 		if (outputFile.is_open())
 		{
-			outputFile <<"person_id, s_node,d_node,cur_point,next_point,cur_type,next_type,mode,arrival_time,travel_time"<<std::endl;
 			std::vector<PersonTravelTime>::const_iterator itPersonTravel = personTravelTimes.begin();
 			for (; itPersonTravel != personTravelTimes.end(); itPersonTravel++)
 			{
@@ -167,7 +165,6 @@ void PT_Statistics::storeStatistics()
 		std::ofstream outputFile(personRerouteFilename.c_str());
 		if (outputFile.is_open())
 		{
-			outputFile <<"person_id, stop_id,last_role_type,mode_choice,origin_node,rerouting_node,dest_node,is_pt_loaded,current_time"<<std::endl;
 			std::vector<PT_RerouteInfo>::const_iterator itPerson = personsReroutes.begin();
 			for (; itPerson != personsReroutes.end(); itPerson++)
 			{

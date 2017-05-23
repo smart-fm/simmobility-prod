@@ -242,6 +242,19 @@ void RoadNetwork::addNode(Node *node)
 	mapOfIdvsNodes.insert(std::make_pair(node->getNodeId(), node));
 }
 
+bool RoadNetwork::checkSegmentCapacity() const
+{
+	for(auto i=mapOfIdVsRoadSegments.begin(); i != mapOfIdVsRoadSegments.end(); i++)
+	{
+		if((*i).second->getCapacity()<=0.0)
+		{
+			Print()<<"no capacity in segment "<<(*i).second->getRoadSegmentId()<<std::endl;
+			return false;
+		}
+	}
+	return true;
+}
+
 void RoadNetwork::addRoadSegment(RoadSegment* segment)
 {
 	//Find the link to which the segment belongs

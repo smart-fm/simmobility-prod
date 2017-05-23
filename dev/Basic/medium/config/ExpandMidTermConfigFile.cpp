@@ -10,8 +10,9 @@
 #include "entities/BusControllerMT.hpp"
 #include "entities/conflux/Conflux.hpp"
 #include "entities/controllers/MobilityServiceControllerManager.hpp"
-#include "entities/controllers/SharedTaxiController.hpp"
 #include "entities/controllers/GreedyTaxiController.hpp"
+#include "entities/controllers/OnHailTaxiController.hpp"
+#include "entities/controllers/SharedTaxiController.hpp"
 #include "entities/TravelTimeManager.hpp"
 #include "geospatial/Incident.hpp"
 #include "geospatial/network/RoadNetwork.hpp"
@@ -120,6 +121,12 @@ void ExpandMidTermConfigFile::processConfig()
             else if (it->second.type == 2)
             {
                 SharedTaxiController* svc = new SharedTaxiController(cfg.mutexStategy(),
+                    it->second.scheduleComputationPeriod);
+                MobilityServiceControllerManager::GetInstance()->addMobilityServiceController(it->first, svc);
+            }
+            else
+            {
+                OnHailTaxiController* svc = new OnHailTaxiController(cfg.mutexStategy(),
                     it->second.scheduleComputationPeriod);
                 MobilityServiceControllerManager::GetInstance()->addMobilityServiceController(it->first, svc);
             }

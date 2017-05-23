@@ -117,5 +117,3 @@ private:
 };
 }
 #endif /* MobilityServiceController_HPP_ */
-
-

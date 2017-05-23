@@ -34,7 +34,3 @@ private:
 };
 }
 #endif /* GreedyTaxiController_HPP_ */
-
-
-
-

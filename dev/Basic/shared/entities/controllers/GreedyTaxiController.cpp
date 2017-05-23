@@ -103,30 +103,28 @@ std::vector<MobilityServiceController::MessageResult> GreedyTaxiController::comp
 	}
 
 	return results;
-    }
-
-    bool GreedyTaxiController::isCruising(Person* p) 
-    {
-        MobilityServiceDriver* currDriver = p->exportServiceDriver();
-        if (currDriver) 
-        {
-            if (currDriver->getServiceStatus() == MobilityServiceDriver::SERVICE_FREE) 
-            {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    const Node* GreedyTaxiController::getCurrentNode(Person* p) 
-    {
-        MobilityServiceDriver* currDriver = p->exportServiceDriver();
-        if (currDriver) 
-        {
-            return currDriver->getCurrentNode();
-        }
-        return nullptr;
-    }
 }
 
+bool GreedyTaxiController::isCruising(Person* p) 
+{
+    MobilityServiceDriver* currDriver = p->exportServiceDriver();
+    if (currDriver) 
+    {
+        if (currDriver->getServiceStatus() == MobilityServiceDriver::SERVICE_FREE) 
+        {
+            return true;
+        }
+    }
+    return false;
+}
 
+const Node* GreedyTaxiController::getCurrentNode(Person* p) 
+{
+    MobilityServiceDriver* currDriver = p->exportServiceDriver();
+    if (currDriver) 
+    {
+        return currDriver->getCurrentNode();
+    }
+    return nullptr;
+}
+}

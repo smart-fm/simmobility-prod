@@ -167,5 +167,3 @@ bool MobilityServiceController::isNonspatial()
 	return true;
 }
 }
-
-

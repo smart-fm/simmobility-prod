@@ -25,3 +25,4 @@ std::vector<MobilityServiceController::MessageResult> OnHailTaxiController::comp
 
 	return results;
 }
+}

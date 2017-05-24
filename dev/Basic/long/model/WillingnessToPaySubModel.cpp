@@ -309,7 +309,7 @@ namespace sim_mob
 			//We use a separate list of coefficients for HDB units.
 			if( unitType <= 6  || unitType == 65 )
 			{
-				sde			=  0.2079816511;
+				sde			=  0.02;
 				barea		=  1.3174741336;
 				blogsum		=  5.6119278112;
 				bsizearea	=  0.0182733682;

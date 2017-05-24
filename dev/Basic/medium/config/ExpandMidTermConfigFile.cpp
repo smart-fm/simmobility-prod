@@ -10,9 +10,6 @@
 #include "entities/BusControllerMT.hpp"
 #include "entities/conflux/Conflux.hpp"
 #include "entities/controllers/MobilityServiceControllerManager.hpp"
-#include "entities/controllers/GreedyTaxiController.hpp"
-#include "entities/controllers/OnHailTaxiController.hpp"
-#include "entities/controllers/SharedTaxiController.hpp"
 #include "entities/TravelTimeManager.hpp"
 #include "geospatial/Incident.hpp"
 #include "geospatial/network/RoadNetwork.hpp"
@@ -112,24 +109,9 @@ void ExpandMidTermConfigFile::processConfig()
                 = cfg.mobilityServiceController.enabledControllers.begin();
             it != cfg.mobilityServiceController.enabledControllers.end(); it++)
         {
-            if (it->second.type == 1)
-            {
-                GreedyTaxiController* svc = new GreedyTaxiController(cfg.mutexStategy(),
-                    it->second.scheduleComputationPeriod);
-                MobilityServiceControllerManager::GetInstance()->addMobilityServiceController(it->first, svc);
-            }
-            else if (it->second.type == 2)
-            {
-                SharedTaxiController* svc = new SharedTaxiController(cfg.mutexStategy(),
-                    it->second.scheduleComputationPeriod);
-                MobilityServiceControllerManager::GetInstance()->addMobilityServiceController(it->first, svc);
-            }
-            else
-            {
-                OnHailTaxiController* svc = new OnHailTaxiController(cfg.mutexStategy(),
-                    it->second.scheduleComputationPeriod);
-                MobilityServiceControllerManager::GetInstance()->addMobilityServiceController(it->first, svc);
-            }
+            if (!MobilityServiceControllerManager::GetInstance()->addMobilityServiceController(
+                it->first, it->second.type, it->second.scheduleComputationPeriod))
+                throw std::runtime_error("mobility service controller unable to be added (invalid input parameters in simulation.xml)");
         }
     }
 
@@ -315,7 +297,3 @@ void ExpandMidTermConfigFile::printSettings()
 	SimulationInfoPrinter simInfoPrinter(cfg, cfg.outSimInfoFileName);
 	simInfoPrinter.printSimulationInfo();
 }
-
-
-
-

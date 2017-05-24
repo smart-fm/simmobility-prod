@@ -189,24 +189,24 @@ bool TaxiDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 
 	if (parentTaxiDriver->getDriverMode() == CRUISE)
 	{
-		if(cruisingTooLongTime > timeoutForLongWaiting)
+		// if(cruisingTooLongTime > timeoutForLongWaiting)
+		// {
+		// 	cruisingTooLongTime = 0.0;
+		// 	const PolyPoint point = currSegStat->getRoadSegment()->getPolyLine()->getLastPoint();
+		// 	destinationTaxiStand = TaxiStand::allTaxiStandMap.searchNearestObject(point.getX(), point.getY());
+		// 	if(destinationTaxiStand)
+		// 	{
+		// 		driveToTaxiStand();
+		// 	}
+		// }
+		if (pathMover.isEndOfPath())
 		{
-			cruisingTooLongTime = 0.0;
-			const PolyPoint point = currSegStat->getRoadSegment()->getPolyLine()->getLastPoint();
-			destinationTaxiStand = TaxiStand::allTaxiStandMap.searchNearestObject(point.getX(), point.getY());
-			if(destinationTaxiStand)
-			{
-				driveToTaxiStand();
-			}
-		}
-		else if (pathMover.isEndOfPath())
-		{
-			Conflux *parentConflux = currSegStat->getParentConflux();
-			parentTaxiDriver->pickUpPassngerAtNode(parentConflux);
-			if (parentTaxiDriver->getPassenger() == nullptr)
-			{
+			// Conflux *parentConflux = currSegStat->getParentConflux();
+			// parentTaxiDriver->pickUpPassngerAtNode(parentConflux);
+			// if (parentTaxiDriver->getPassenger() == nullptr)
+			// {
 				selectNextLinkWhileCruising();
-			}
+			// }
 		}
 	}
 	else if (parentTaxiDriver->getDriverMode() == DRIVE_WITH_PASSENGER && pathMover.isEndOfPath())

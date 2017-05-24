@@ -44,14 +44,15 @@ public:
 	 * Checks if the MobilityServiceControllerManager instance exists
 	 */
 	static bool HasMobilityServiceControllerManager();
-
+	
 	/**
 	 * Adds a MobilityServiceController to the list of controllers
-	 * @param  id			ID of controller
-	 * @param  controller	MobilityServiceController
-	 * @return    			Success
+	 * @param  id                        ID of controller
+	 * @param  type                      Type of controller
+	 * @param  scheduleComputationPeriod Schedule computation period of controller
+	 * @return                           Sucess
 	 */
-	bool addMobilityServiceController(unsigned int id, MobilityServiceController* controller);
+	bool addMobilityServiceController(unsigned int id, unsigned int type, unsigned int scheduleComputationPeriod);
 
 	/**
 	 * Removes a MobilityServiceController 

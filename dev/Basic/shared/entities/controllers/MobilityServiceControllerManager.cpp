@@ -6,6 +6,9 @@
  */
 
 #include "MobilityServiceControllerManager.hpp"
+#include "entities/controllers/GreedyTaxiController.hpp"
+#include "entities/controllers/OnHailTaxiController.hpp"
+#include "entities/controllers/SharedTaxiController.hpp"
 
 #include "message/MessageBus.hpp"
 
@@ -42,15 +45,32 @@ bool MobilityServiceControllerManager::HasMobilityServiceControllerManager()
 	return (instance != nullptr);
 }
 
-bool MobilityServiceControllerManager::addMobilityServiceController(unsigned int id,
-	MobilityServiceController* controller)
+bool MobilityServiceControllerManager::addMobilityServiceController(unsigned int id, unsigned int type, unsigned int scheduleComputationPeriod)
 {
 	if (controllers.count(id) > 0)
 	{
 		return false;
 	}
 
-	controllers.insert(std::make_pair(id, controller));
+    if (type == 1)
+    {
+        GreedyTaxiController* svc = new GreedyTaxiController(getMutexStrategy(), scheduleComputationPeriod);
+        controllers.insert(std::make_pair(id, svc));
+    }
+    else if (type == 2)
+    {
+        SharedTaxiController* svc = new SharedTaxiController(getMutexStrategy(), scheduleComputationPeriod);
+        controllers.insert(std::make_pair(id, svc));
+    }
+    else if (type == 3)
+    {
+        OnHailTaxiController* svc = new OnHailTaxiController(getMutexStrategy(), scheduleComputationPeriod);
+        controllers.insert(std::make_pair(id, svc));
+    }
+    else
+    {
+    	return false;
+    }
 
 	return true;
 }

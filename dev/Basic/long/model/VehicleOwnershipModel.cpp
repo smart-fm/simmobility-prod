@@ -11,6 +11,7 @@
 #include "util/SharedFunctions.hpp"
 #include "util/PrintLog.hpp"
 #include <random>
+#include <fstream>
 
 using namespace sim_mob;
 using namespace sim_mob::long_term;
@@ -97,7 +98,7 @@ void VehicleOwnershipModel::reconsiderVehicleOwnershipOption(const Household *ho
 				{
 					selecteVehicleOwnershipOtionId = probVal.first;
 					vehcileOwnershipOptChange->setNewVehicleOwnershipOptionId(selecteVehicleOwnershipOtionId);
-					writeVehicleOwnershipToFile(household->getId(),selecteVehicleOwnershipOtionId);
+				//	writeVehicleOwnershipToFile(household->getId(),selecteVehicleOwnershipOtionId);
 					switch(selecteVehicleOwnershipOtionId)
 					{
 					case 1 : MessageBus::PostMessage(hhAgent, LTMID_HH_NO_VEHICLE, MessageBus::MessagePtr(new Message()));
@@ -247,15 +248,15 @@ double VehicleOwnershipModel::getExp(int unitTypeId,double vehicleOwnershipLogsu
 	return expVal;
 }
 
-void VehicleOwnershipModel::reconsiderVehicleOwnershipOption2(const Household *household,HouseholdAgent *hhAgent, int day)
+void VehicleOwnershipModel::reconsiderVehicleOwnershipOption2(Household &household,HouseholdAgent *hhAgent, int day,bool initLoading)
 {
  	int unitTypeId = 0;
-	if(household->getUnitId() != INVALID_ID)
+	if(household.getUnitId() != INVALID_ID)
 	{
-		unitTypeId = model->getUnitById(household->getUnitId())->getUnitType();
+		unitTypeId = model->getUnitById(household.getUnitId())->getUnitType();
 	}
 
-	std::vector<BigSerial> individualIds = household->getIndividuals();
+	std::vector<BigSerial> individualIds = household.getIndividuals();
 	std::vector<double> logsumVec;
 
 	std::vector<BigSerial>::iterator indItr;
@@ -263,7 +264,7 @@ void VehicleOwnershipModel::reconsiderVehicleOwnershipOption2(const Household *h
 	BigSerial individualIdWihMaxIncome = 0;
 	double logsumCar = 0;
 	double vehicleOwnershipLogsum = 0;
-	IndvidualVehicleOwnershipLogsum *logsum = model->getIndvidualVehicleOwnershipLogsumsByHHId(household->getId());
+	IndvidualVehicleOwnershipLogsum *logsum = model->getIndvidualVehicleOwnershipLogsumsByHHId(household.getId());
 
 	map<BigSerial,double> expValMap;
 	double totalExp = 0;
@@ -297,19 +298,29 @@ void VehicleOwnershipModel::reconsiderVehicleOwnershipOption2(const Household *h
 	bool liveInToaPayoh = false;
 	bool workInToaPayoh = false;
 	//households living in toa payoh
-	BigSerial tazId = model->getUnitTazId(household->getUnitId());
+	BigSerial tazId = model->getUnitTazId(household.getUnitId());
+	if(initLoading)
+	{
 	if( isToaPayohTaz(tazId))
 	{
 		liveInToaPayoh = true;
+		household.setLiveInToaPayoh(liveInToaPayoh);
+	}
+	}
+	else
+	{
+		liveInToaPayoh = household.isLiveInToaPayoh();
 	}
 
-	std::vector<BigSerial> individuals = household->getIndividuals();
+	std::vector<BigSerial> individuals = household.getIndividuals();
 		std::vector<BigSerial>::iterator individualsItr;
 
 		int numWhiteCollars = 0;
 		int numWorkers = 0;
 		int numElderly = 0;
 
+		if(initLoading)
+		{
 		for(individualsItr = individuals.begin(); individualsItr != individuals.end(); individualsItr++)
 		{
 			const Individual* individual = model->getIndividualById((*individualsItr));
@@ -338,6 +349,21 @@ void VehicleOwnershipModel::reconsiderVehicleOwnershipOption2(const Household *h
 				numWorkers++;
 			}
 		}
+			household.setNumElderly(numElderly);
+			household.setNumWhiteCollars(numWhiteCollars);
+			household.setNumWorkers(numWorkers);
+			household.setWorkInToaPayoh(workInToaPayoh);
+			household.setLiveInToaPayoh(liveInToaPayoh);
+
+		}
+		else
+		{
+			workInToaPayoh = household.isWorkInToaPayoh();
+			numWhiteCollars =household.getNumWhiteCollars();
+			numWorkers = household.getNumWorkers();
+			numElderly = household.getNumElderly();
+
+		}
 
 
 		double logsumAlt0 = 0;
@@ -348,40 +374,11 @@ void VehicleOwnershipModel::reconsiderVehicleOwnershipOption2(const Household *h
 	if(toaPayohScenario)
 	{
 		//scenario : households live and work in Toa Payoh
-		if(configLiveInToaPayoh && configWorkInToaPayoh)
-		{
-			if(liveInToaPayoh && workInToaPayoh)
+			if(liveInToaPayoh || workInToaPayoh)
 			{
 				logsumAlt0 = calculateVOLogsumForToaPayohScenario(logsumVec);
-				topayoScenarioR1W1 = true;
+				//topayoScenarioR1W1 = true;
 			}
-
-		}
-		//scenario : households live in Toa Payoh
-		else if(configLiveInToaPayoh && !configWorkInToaPayoh)
-		{
-			if(liveInToaPayoh)
-			{
-				logsumAlt0 = calculateVOLogsumForToaPayohScenario(logsumVec);
-				topayoScenarioR1W0 = true;
-			}
-
-		}
-		//scenario : households work in Toa Payoh
-		else if (!configLiveInToaPayoh && configWorkInToaPayoh)
-		{
-			if(workInToaPayoh)
-			{
-				logsumAlt0 = calculateVOLogsumForToaPayohScenario(logsumVec);
-				topayoScenarioR0W1 = true;
-			}
-
-		}
-//		//::TODO::scenario : households move to Toa Payoh
-//		else (configMoveToToaPayoh)
-//		{
-//
-//		}
 	}
 
 	for(VehicleOwnershipCoefficients *coeffsObj : coeffsList)
@@ -390,7 +387,7 @@ void VehicleOwnershipModel::reconsiderVehicleOwnershipOption2(const Household *h
 		{
 			if(coeffsObj->getVehicleOwnershipOptionId() == 0)
 			{
-				if(topayoScenarioR1W1 || topayoScenarioR1W0 || topayoScenarioR0W1 )
+				if(toaPayohScenario)
 				{
 					vehicleOwnershipLogsum = logsumAlt0;
 				}
@@ -408,35 +405,35 @@ void VehicleOwnershipModel::reconsiderVehicleOwnershipOption2(const Household *h
 			else if(coeffsObj->getVehicleOwnershipOptionId()==1)
 			{
 				vehicleOwnershipLogsum = logsum1;
-				double expVal = getExp2(unitTypeId,vehicleOwnershipLogsum,coeffsObj,*household,numWhiteCollars,numWorkers,numElderly);
+				double expVal = getExp2(unitTypeId,vehicleOwnershipLogsum,coeffsObj,household,numWhiteCollars,numWorkers,numElderly);
 				expValMap.insert(std::pair<BigSerial, double>( coeffsObj->getVehicleOwnershipOptionId(), expVal));
 				totalExp = totalExp + expVal;
 			}
 			else if(coeffsObj->getVehicleOwnershipOptionId()==2)
 			{
 				vehicleOwnershipLogsum = logsum2;
-				double expVal = getExp2(unitTypeId,vehicleOwnershipLogsum,coeffsObj,*household,numWhiteCollars,numWorkers,numElderly);
+				double expVal = getExp2(unitTypeId,vehicleOwnershipLogsum,coeffsObj,household,numWhiteCollars,numWorkers,numElderly);
 				expValMap.insert(std::pair<BigSerial, double>( coeffsObj->getVehicleOwnershipOptionId(), expVal));
 				totalExp = totalExp + expVal;
 			}
 			else if(coeffsObj->getVehicleOwnershipOptionId()==3)
 			{
 				vehicleOwnershipLogsum = logsum3;
-				double expVal = getExp2(unitTypeId,vehicleOwnershipLogsum,coeffsObj,*household,numWhiteCollars,numWorkers,numElderly);
+				double expVal = getExp2(unitTypeId,vehicleOwnershipLogsum,coeffsObj,household,numWhiteCollars,numWorkers,numElderly);
 				expValMap.insert(std::pair<BigSerial, double>( coeffsObj->getVehicleOwnershipOptionId(), expVal));
 				totalExp = totalExp + expVal;
 			}
 			else if(coeffsObj->getVehicleOwnershipOptionId()==4)
 			{
 				vehicleOwnershipLogsum = logsum4;
-				double expVal = getExp2(unitTypeId,vehicleOwnershipLogsum,coeffsObj,*household,numWhiteCollars,numWorkers,numElderly);
+				double expVal = getExp2(unitTypeId,vehicleOwnershipLogsum,coeffsObj,household,numWhiteCollars,numWorkers,numElderly);
 				expValMap.insert(std::pair<BigSerial, double>( coeffsObj->getVehicleOwnershipOptionId(), expVal));
 				totalExp = totalExp + expVal;
 			}
 			else if(coeffsObj->getVehicleOwnershipOptionId()==5)
 			{
 				vehicleOwnershipLogsum = logsum5;
-				double expVal = getExp2(unitTypeId,vehicleOwnershipLogsum,coeffsObj,*household,numWhiteCollars,numWorkers,numElderly);
+				double expVal = getExp2(unitTypeId,vehicleOwnershipLogsum,coeffsObj,household,numWhiteCollars,numWorkers,numElderly);
 				expValMap.insert(std::pair<BigSerial, double>( coeffsObj->getVehicleOwnershipOptionId(), expVal));
 				totalExp = totalExp + expVal;
 			}
@@ -458,14 +455,26 @@ void VehicleOwnershipModel::reconsiderVehicleOwnershipOption2(const Household *h
 		std::mt19937 gen(rd());
 		std::uniform_real_distribution<> dis(0.0, 1.0);
 
-		const double randomNum = dis(gen);
+		double randomNum = 0;
+		if(initLoading)
+		{
+			randomNum = dis(gen);
+			household.setRandomNum(randomNum);
+		}
+		else
+		{
+			randomNum = household.getRandomNum();
+		}
+
 		double pTemp = 0;
 
 		BigSerial selectedVehicleOwnershipOtionId = 0;
 
 		boost::shared_ptr <VehicleOwnershipChanges> vehcileOwnershipOptChange(new VehicleOwnershipChanges());
-		vehcileOwnershipOptChange->setHouseholdId(household->getId());
-		vehcileOwnershipOptChange->setOldVehicleOwnershipOptionId(household->getVehicleCategoryId());
+		vehcileOwnershipOptChange->setHouseholdId(household.getId());
+		vehcileOwnershipOptChange->setOldVehicleOwnershipOptionId(household.getVehicleCategoryId());
+		vehcileOwnershipOptChange->setLiveInTp(liveInToaPayoh);
+		vehcileOwnershipOptChange->setWorkInTp(workInToaPayoh);
 		ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 		int year = config.ltParams.year;
 		vehcileOwnershipOptChange->setStartDate(getDateBySimDay(year,day));
@@ -476,31 +485,38 @@ void VehicleOwnershipModel::reconsiderVehicleOwnershipOption2(const Household *h
 			{
 				selectedVehicleOwnershipOtionId = probVal.first;
 				vehcileOwnershipOptChange->setNewVehicleOwnershipOptionId(selectedVehicleOwnershipOtionId);
-				writeVehicleOwnershipToFile(household->getId(),selectedVehicleOwnershipOtionId);
-				break;
-				switch(selectedVehicleOwnershipOtionId)
+				writeVehicleOwnershipToFile(household.getId(),selectedVehicleOwnershipOtionId, workInToaPayoh,liveInToaPayoh);
+				if(day==0)
 				{
-				case 0 : MessageBus::PostMessage(hhAgent, LTMID_HH_NO_VEHICLE, MessageBus::MessagePtr(new Message()));
-				break;
-				case 1 : MessageBus::PostMessage(hhAgent, LTMID_HH_PLUS1_MOTOR_ONLY, MessageBus::MessagePtr(new Message()));
-				break;
-				case 2 : MessageBus::PostMessage(hhAgent, LTMID_HH_OFF_PEAK_CAR_W_WO_MOTOR, MessageBus::MessagePtr(new Message()));
-				break;
-				case 3 : MessageBus::PostMessage(hhAgent, LTMID_HH_NORMAL_CAR_ONLY, MessageBus::MessagePtr(new Message()));
-				break;
-				case 4 : MessageBus::PostMessage(hhAgent, LTMID_HH_NORMAL_CAR_1PLUS_MOTOR, MessageBus::MessagePtr(new Message()));
-				break;
-				case 5 : MessageBus::PostMessage(hhAgent, LTMID_HH_NORMAL_CAR_W_WO_MOTOR, MessageBus::MessagePtr(new Message()));
-				break;
+					household.setVehicleOwnershipOptionId(selectedVehicleOwnershipOtionId);
 				}
 				break;
+				if(hhAgent != nullptr)
+				{
+					switch(selectedVehicleOwnershipOtionId)
+					{
+					case 0 : MessageBus::PostMessage(hhAgent, LTMID_HH_NO_VEHICLE, MessageBus::MessagePtr(new Message()));
+					break;
+					case 1 : MessageBus::PostMessage(hhAgent, LTMID_HH_PLUS1_MOTOR_ONLY, MessageBus::MessagePtr(new Message()));
+					break;
+					case 2 : MessageBus::PostMessage(hhAgent, LTMID_HH_OFF_PEAK_CAR_W_WO_MOTOR, MessageBus::MessagePtr(new Message()));
+					break;
+					case 3 : MessageBus::PostMessage(hhAgent, LTMID_HH_NORMAL_CAR_ONLY, MessageBus::MessagePtr(new Message()));
+					break;
+					case 4 : MessageBus::PostMessage(hhAgent, LTMID_HH_NORMAL_CAR_1PLUS_MOTOR, MessageBus::MessagePtr(new Message()));
+					break;
+					case 5 : MessageBus::PostMessage(hhAgent, LTMID_HH_NORMAL_CAR_W_WO_MOTOR, MessageBus::MessagePtr(new Message()));
+					break;
+					}
+					break;
+				}
 			}
 			else
 			{
 				pTemp = pTemp + probVal.second;
 			}
 		}
- 		model->addVehicleOwnershipChanges(vehcileOwnershipOptChange);
+		model->addVehicleOwnershipChanges(vehcileOwnershipOptChange);
 
 	}
 

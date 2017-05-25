@@ -400,16 +400,6 @@ void HouseholdAgent::onWorkerEnter()
 		}
 	}
 
-	if(config.ltParams.vehicleOwnershipModel.enabled)
-	{
-		if( getId() < model->FAKE_IDS_START)
-		{
-			VehicleOwnershipModel vehOwnershipModel(model);
-			//vehOwnershipModel.reconsiderVehicleOwnershipOption2(this->getHousehold(),this, day);
-			vehOwnershipModel.reconsiderVehicleOwnershipOption2(this->getHousehold(),this, 0);
-		}
-	}
-
     if (!marketSeller)
     {
         MessageBus::SubscribeEvent(LTEID_EXT_NEW_JOB, this, this);

@@ -174,6 +174,7 @@ void PersonParams::fixUpParamsForLtPerson()
 	setFixedWorkLocation(0);
 	if (fixedWorkplace)
 	{
+
 		setFixedWorkLocation(activityAddressId);
 	}
 	if (student)

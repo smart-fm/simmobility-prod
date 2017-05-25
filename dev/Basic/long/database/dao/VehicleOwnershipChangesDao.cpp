@@ -20,6 +20,7 @@ void VehicleOwnershipChangesDao::fromRow(Row& result, VehicleOwnershipChanges& o
     outObj.oldVehicleOwnershipOptionId		= result.get<int>("old_vehicle_ownership_option_id",0);
     outObj.newVehicleOwnershipOptionId		= result.get<int>("new_vehicle_ownership_option_id",0);
     outObj.startDate = result.get<std::tm>("start_date",std::tm());
+
 }
 
 void VehicleOwnershipChangesDao::toRow(VehicleOwnershipChanges& data, Parameters& outParams, bool update)
@@ -34,7 +35,7 @@ void VehicleOwnershipChangesDao::insertVehicleOwnershipChanges(VehicleOwnershipC
 {
 
 	const std::string DB_INSERT_VEHICLE_OWNERSHIP_CHANGES = "INSERT INTO " + schema + ".vehicle_ownership_changes"
-	        		+ " (" + "household_id" + ", " + "old_vehicle_ownership_option_id" + ", " + "new_vehicle_ownership_option_id" + ", " +"start_date"
+	        		+ " (" + "household_id" + ", " + "old_vehicle_ownership_option_id" + ", " + "new_vehicle_ownership_option_id" + ", " + "start_date"
 	        		+ ") VALUES (:v1, :v2, :v3, :v4)";
 	insertViaQuery(vehicleOwnershipChange,DB_INSERT_VEHICLE_OWNERSHIP_CHANGES);
 

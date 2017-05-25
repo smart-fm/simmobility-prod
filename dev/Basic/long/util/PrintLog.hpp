@@ -412,13 +412,13 @@ namespace sim_mob
 		}
 
 
-	    inline void writeVehicleOwnershipToFile(BigSerial hhId,int VehiclOwnershiOptionId)
+	    inline void writeVehicleOwnershipToFile(BigSerial hhId,int VehiclOwnershiOptionId, bool workInTopayo, bool liveInTopayo)
 	    {
 			ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 			if(!config.ltParams.outputFiles.log_vehicle_ownership)
 				return;
 
-	    	boost::format fmtr = boost::format("%1%, %2%") % hhId % VehiclOwnershiOptionId;
+	    	boost::format fmtr = boost::format("%1%, %2%, %3%, %4%") % hhId % VehiclOwnershiOptionId % workInTopayo % liveInTopayo;
 	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_VEHICLE_OWNERSIP,fmtr.str());
 	    }
 	    									//day, householdId, unitId, willingnessToPay, AskingPrice, Affordability, BidAmount, Surplus, currentPostcode, unitPostcode

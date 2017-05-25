@@ -1787,7 +1787,7 @@ void HM_Model::startImpl()
 		const int FROZEN_HH = 3;
 
 
-		if( household->getTenureStatus() == FROZEN_HH )
+		if( household->getTenureStatus() != FROZEN_HH )
 			continue;
 
 		HouseholdAgent* hhAgent = new HouseholdAgent(household->getId(), this,	household, &market, false, startDay, config.ltParams.housingModel.householdBiddingWindow,0);
@@ -2052,6 +2052,7 @@ void HM_Model::startImpl()
 	addMetadata("Initial Vacancies", vacancies);
 	addMetadata("Freelance housing agents", numWorkers);
 
+
 	for (size_t n = 0; n < households.size(); n++)
 	{
 		hdbEligibilityTest(n);
@@ -2064,6 +2065,17 @@ void HM_Model::startImpl()
 			else if(simYear == 2012)
 			{
 				setTaxiAccess2012(households[n]);
+			}
+		}
+
+		if(initialLoading && config.ltParams.vehicleOwnershipModel.enabled)
+		{
+
+			//remove frozen hh
+			if(households[n]->getTenureStatus() != 3)
+			{
+				VehicleOwnershipModel vehOwnershipModel(this);
+				vehOwnershipModel.reconsiderVehicleOwnershipOption2(*households[n],nullptr, 0,initialLoading);
 			}
 		}
 	}
@@ -2163,6 +2175,16 @@ void HM_Model::startImpl()
 				agents.push_back(hhAgent);
 				workGroup.assignAWorker(hhAgent);
 			}
+
+			if(config.ltParams.vehicleOwnershipModel.enabled)
+					{
+						//remove frozen hh
+						if((*it)->getTenureStatus() != 3)
+						{
+							VehicleOwnershipModel vehOwnershipModel(this);
+							vehOwnershipModel.reconsiderVehicleOwnershipOption2(*(*it),nullptr, 0,initialLoading);
+						}
+					}
 		}
 	}
 
@@ -2249,13 +2271,13 @@ void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId)
 
 		hitsSample = this->getHouseHoldHitsById( householdId );
 
-		if( !hitsSample )
-			return;
+		//if( !hitsSample )
+		//	return;
 
-		if(logsumUniqueCounter_str.find(hitsSample->getHouseholdHitsId()) == logsumUniqueCounter_str.end())
-			logsumUniqueCounter_str.insert(hitsSample->getHouseholdHitsId());
-		else
-			return;
+//		if(logsumUniqueCounter_str.find(hitsSample->getHouseholdHitsId()) == logsumUniqueCounter_str.end())
+//			logsumUniqueCounter_str.insert(hitsSample->getHouseholdHitsId());
+//		else
+//			return;
 	}
 
 	Household *currentHousehold = getHouseholdById( householdId );
@@ -2274,17 +2296,17 @@ void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId)
 		int tazIdH = -1;
 		int paxId  = -1;
 
-		int p = 0;
-		for(p = 0; p < hitsIndividualLogsum.size(); p++ )
-		{
-			if (  hitsIndividualLogsum[p]->getHitsId().compare( hitsSample->getHouseholdHitsId() ) == 0 )
-			{
-				tazIdW = hitsIndividualLogsum[p]->getWorkTaz();
-				tazIdH = hitsIndividualLogsum[p]->getHomeTaz();
-				paxId  = hitsIndividualLogsum[p]->getPaxId();
-				break;
-			}
-		}
+//		int p = 0;
+//		for(p = 0; p < hitsIndividualLogsum.size(); p++ )
+//		{
+//			if (  hitsIndividualLogsum[p]->getHitsId().compare( hitsSample->getHouseholdHitsId() ) == 0 )
+//			{
+//				tazIdW = hitsIndividualLogsum[p]->getWorkTaz();
+//				tazIdH = hitsIndividualLogsum[p]->getHomeTaz();
+//				paxId  = hitsIndividualLogsum[p]->getPaxId();
+//				break;
+//			}
+//		}
 
 
 
@@ -2348,11 +2370,11 @@ void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId)
 
 			personParams.setIsStudent(isStudent);
 
-			personParams.setActivityAddressId( establishmentSlaAddressId );
+			personParams.setActivityAddressId( tazW );
 
 			//household related
 			personParams.setHhId(boost::lexical_cast<std::string>( currentHousehold->getId() ));
-			personParams.setHomeAddressId( this->getUnitSlaAddressId( unit->getId() ));
+			personParams.setHomeAddressId( tazH );
 			personParams.setHH_Size( currentHousehold->getSize() );
 			personParams.setHH_NumUnder4( currentHousehold->getChildUnder4());
 			personParams.setHH_NumUnder15( currentHousehold->getChildUnder15());
@@ -2478,13 +2500,13 @@ void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId)
 
 		simulationStopCounter++;
 
-		printHouseholdHitsLogsumFVO( hitsSample->getHouseholdHitsId(), paxId, currentHousehold->getId(), householdIndividualIds[n], thisIndividual->getMemberId(), tazH, tazW, logsum, travelProbability, tripsExpected );
-		PrintOutV( simulationStopCounter << ". " << hitsIndividualLogsum[p]->getHitsId() << ", " << paxId << ", " << hitsSample->getHouseholdHitsId() << ", " << currentHousehold->getId() << ", " << thisIndividual->getMemberId()
-										 << ", " << householdIndividualIds[n] << ", " << tazH << ", " << tazW << ", "
-										 << std::setprecision(5)
-										 << logsum[0]  << ", " << logsum[1] << ", " << logsum[2] << ", " << logsum[3] << ", "<< logsum[4]  << ", " << logsum[5] << ", "
-										 << tripsExpected[0] << ", " << tripsExpected[1] << ", " << tripsExpected[2] << ", " << tripsExpected[3] << ", "<< tripsExpected[4] << ", " << tripsExpected[5] << ", "
-										 << travelProbability[0] << ", " << travelProbability[1] << ", "  << travelProbability[2] << ", " << travelProbability[3] << ", "  << travelProbability[4] << ", " << travelProbability[5] <<std::endl );
+		printHouseholdHitsLogsumFVO( "", paxId, currentHousehold->getId(), householdIndividualIds[n], thisIndividual->getMemberId(), tazH, tazW, logsum, travelProbability, tripsExpected );
+//		PrintOutV( simulationStopCounter << ". " << hitsIndividualLogsum[p]->getHitsId() << ", " << paxId << ", " << hitsSample->getHouseholdHitsId() << ", " << currentHousehold->getId() << ", " << thisIndividual->getMemberId()
+//										 << ", " << householdIndividualIds[n] << ", " << tazH << ", " << tazW << ", "
+//										 << std::setprecision(5)
+//										 << logsum[0]  << ", " << logsum[1] << ", " << logsum[2] << ", " << logsum[3] << ", "<< logsum[4]  << ", " << logsum[5] << ", "
+//										 << tripsExpected[0] << ", " << tripsExpected[1] << ", " << tripsExpected[2] << ", " << tripsExpected[3] << ", "<< tripsExpected[4] << ", " << tripsExpected[5] << ", "
+//										 << travelProbability[0] << ", " << travelProbability[1] << ", "  << travelProbability[2] << ", " << travelProbability[3] << ", "  << travelProbability[4] << ", " << travelProbability[5] <<std::endl );
 
 	}
 }

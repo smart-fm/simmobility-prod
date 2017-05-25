@@ -244,7 +244,7 @@ bool TaxiDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 		if (parentTaxiDriver->getPassenger() == nullptr)
 		{
 			ControllerLog() << "Pickup failed for " << personIdPickedUp << " at time " << parentTaxiDriver->parent->currTick.frame()
-				<< ". Message was sent at ??? with startNodeId " << destinationNode->getNodeId() << ", destinationNodeId ???"
+				<< ". Message was sent at ??? with startNodeId " << parentConflux->getConfluxNode()->getNodeId() << ", destinationNodeId ???"
 				<< ", and driverId " << parentTaxiDriver->parent->getDatabaseId() << std::endl;
 
 			setCruisingMode();
@@ -252,7 +252,7 @@ bool TaxiDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 		else
 		{
 			ControllerLog() << "Pickup succeeded for " << personIdPickedUp << " at time " << parentTaxiDriver->parent->currTick.frame()
-				<< ". Message was sent at ??? with startNodeId " << destinationNode->getNodeId() << ", destinationNodeId ???"
+				<< ". Message was sent at ??? with startNodeId " << parentConflux->getConfluxNode()->getNodeId() << ", destinationNodeId " << destinationNode->getNodeId()
 				<< ", and driverId " << parentTaxiDriver->parent->getDatabaseId() << std::endl;
 		}
 	}
@@ -745,6 +745,4 @@ TaxiDriverBehavior::~TaxiDriverBehavior()
 }
 }
 }
-
-
 

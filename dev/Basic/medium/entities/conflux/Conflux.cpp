@@ -306,15 +306,15 @@ void Conflux::addAgent(Person_MT* person)
 				if ((*subTripItr).travelMode == "TravelPedestrian" && personOriginNode == personDestinationNode) {
 					std::vector<SubTrip>::iterator taxiTripItr = subTripItr + 1;
 
+					ControllerLog() << "Request made from " << person->getDatabaseId() << " at time " << person->currTick.frame() << ". Message was sent at "
+						<< person->currTick.frame() << " with startNodeId " << confluxNode->getNodeId() << ", destinationNodeId " << (*taxiTripItr).destination.node->getNodeId()
+						<< ", and driverId null" << std::endl;
+
 					std::map<unsigned int, MobilityServiceController*> controllers = MobilityServiceControllerManager::GetInstance()->getControllers();
 
 					messaging::MessageBus::SendMessage(controllers[1], MSG_TRIP_REQUEST, messaging::MessageBus::MessagePtr(
 						new TripRequestMessage(person->currTick, person->getDatabaseId(),
 							confluxNode->getNodeId(), (*taxiTripItr).destination.node->getNodeId(), 0)));
-
-					ControllerLog() << "Request made from " << person->getDatabaseId() << " at time " << person->currTick.frame() << ". Message was sent at "
-						<< person->currTick.frame() << " with startNodeId " << confluxNode->getNodeId() << ", destinationNodeId " << (*taxiTripItr).destination.node->getNodeId()
-						<< ", and driverId null" << std::endl;
 				}
 			}
 			
@@ -2914,5 +2914,4 @@ sim_mob::medium::PersonTransferMessage::PersonTransferMessage(Person_MT* person,
 sim_mob::medium::PersonTransferMessage::~PersonTransferMessage()
 {
 }
-
 

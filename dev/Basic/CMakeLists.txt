@@ -340,13 +340,6 @@ include_directories("/mingw/include")
 #List of libraries to link
 SET(LibraryList "")
 
-#we can only link XercesC dynamically right now. Hence the line below. 
-#I'm hoping we can do a full static link in the future. -chetan 16 May 2017
-SET(CMAKE_FIND_LIBRARY_SUFFIXES ".so")
-#Find XercesC
-find_package(XercesC REQUIRED)
-include_directories(${XERCESC_INCLUDE_DIR})
-LIST(APPEND LibraryList ${XERCESC_LIBRARIES})
 
 SET(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
 
@@ -372,11 +365,6 @@ endif()
 find_package(Xsd REQUIRED)
 include_directories(${XSD_INCLUDE_DIR})
 
-
-#Find JsonCpp
-find_package(JsonCpp REQUIRED)
-include_directories(${JSONCPP_INCLUDE_DIR})
-LIST(APPEND LibraryList ${JSONCPP_LIBRARY})
 
 #Find PQ
 find_package(PostgreSQL REQUIRED)
@@ -405,6 +393,14 @@ include_directories(${LUA_INCLUDE_DIRS})
 LIST(APPEND LibraryList ${LUA_LIBRARIES})
 
 LIST(APPEND LibraryList -lcrypto -lssl -lpq -ldl )
+
+SET(CMAKE_FIND_LIBRARY_SUFFIXES ".so")
+#we can only link XercesC dynamically right now. Hence the line below. 
+#I'm hoping we can do a full static link in the future. -chetan 16 May 2017
+#Find XercesC
+find_package(XercesC REQUIRED)
+include_directories(${XERCESC_INCLUDE_DIR})
+LIST(APPEND LibraryList ${XERCESC_LIBRARIES})
 
 IF (${BUILD_SHORT} MATCHES "ON")
         #Find GLPK

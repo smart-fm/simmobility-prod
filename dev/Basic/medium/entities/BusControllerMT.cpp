@@ -150,7 +150,7 @@ void BusControllerMT::assignBusTripChainWithPerson(std::set<Entity*>& activeAgen
 	// 47, 94, 141, 188, 235
 	const int numberOfTaxis = 47;
 
-	ControllerLog() << "Map size " << groupFleets.size() << std::endl;
+	ControllerLog() << "Maximum number of taxis " << groupFleets.size() << std::endl;
 	ControllerLog() << "Number of taxis " << numberOfTaxis << std::endl;
 
 	for (auto i=groupFleets.begin(); i!= groupFleets.end(); i++)

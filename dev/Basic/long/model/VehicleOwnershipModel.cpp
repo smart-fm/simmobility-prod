@@ -374,40 +374,11 @@ void VehicleOwnershipModel::reconsiderVehicleOwnershipOption2(Household &househo
 	if(toaPayohScenario)
 	{
 		//scenario : households live and work in Toa Payoh
-		//if(configLiveInToaPayoh && configWorkInToaPayoh)
-		//{
 			if(liveInToaPayoh || workInToaPayoh)
 			{
 				logsumAlt0 = calculateVOLogsumForToaPayohScenario(logsumVec);
 				//topayoScenarioR1W1 = true;
 			}
-
-		//}
-//		//scenario : households live in Toa Payoh
-//		else if(configLiveInToaPayoh && !configWorkInToaPayoh)
-//		{
-//			if(liveInToaPayoh)
-//			{
-//				logsumAlt0 = calculateVOLogsumForToaPayohScenario(logsumVec);
-//				topayoScenarioR1W0 = true;
-//			}
-//
-//		}
-//		//scenario : households work in Toa Payoh
-//		else if (!configLiveInToaPayoh && configWorkInToaPayoh)
-//		{
-//			if(workInToaPayoh)
-//			{
-//				logsumAlt0 = calculateVOLogsumForToaPayohScenario(logsumVec);
-//				topayoScenarioR0W1 = true;
-//			}
-//
-//		}
-//		//::TODO::scenario : households move to Toa Payoh
-//		else (configMoveToToaPayoh)
-//		{
-//
-//		}
 	}
 
 	for(VehicleOwnershipCoefficients *coeffsObj : coeffsList)
@@ -691,7 +662,6 @@ bool VehicleOwnershipModel::isToaPayohTaz(BigSerial tazId)
 			tazId == 1256 )
 	{
 		return true;
-		PrintOutV("live in topayo"<<std::endl);
 
 	}
 	return false;

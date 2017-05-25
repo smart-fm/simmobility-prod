@@ -1929,12 +1929,12 @@ void HM_Model::startImpl()
 
 				if( awakeningProbability < config.ltParams.housingModel.vacantUnitActivationProbability )
 				{
-					(*it)->setbiddingMarketEntryDay( unitStartDay + (float)rand() / RAND_MAX * config.ltParams.housingModel.timeOnMarket);
+					(*it)->setbiddingMarketEntryDay( unitStartDay );
 					onMarket++;
 				}
 				else
 				{
-					(*it)->setbiddingMarketEntryDay( config.ltParams.housingModel.timeOffMarket + unitStartDay + (float)rand() / RAND_MAX * config.ltParams.housingModel.timeOnMarket);
+					(*it)->setbiddingMarketEntryDay( unitStartDay + (float)rand() / RAND_MAX * config.ltParams.housingModel.timeOnMarket);
 					offMarket++;
 				}
 

@@ -31,12 +31,6 @@
             </database>
 
             <!-- Variables stores for preday demand simulator-->
-            <database id="fm_mongo" dbtype="mongodb">
-                <host value="localhost"/>
-                <port value="27017"/>
-                <dbname value="simmobcity"/>
-            </database>
-
             <database id="fm_local" dbtype="postgres">
                 <host value="localhost"/>
                 <port value="5432"/>

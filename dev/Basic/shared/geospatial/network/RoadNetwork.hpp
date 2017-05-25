@@ -201,6 +201,12 @@ public:
 	void addSurveillenceStn(SurveillanceStation *station);
 
 	/**
+	 * Check the capacity of road segment
+	 * @return false if any capacities of road segment are zero
+	 */
+	bool checkSegmentCapacity() const;
+
+	/**
 	 * Template class to lookup any map with an unsigned int id
 	 *
 	 * @param lookup the map to look-up id

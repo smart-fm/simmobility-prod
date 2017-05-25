@@ -104,7 +104,7 @@ LoggerAgent::LoggerAgent() : Entity(-1)
 		std::ofstream* bidsFile = new std::ofstream("bids.csv");
 		streams.insert(std::make_pair(BIDS, bidsFile));
 
-		*bidsFile << "awakening_day, householdId, TimeOnMarket, ageCategory, tenureStatus, futureTransitionPercentage, randomDrawFutureTransition, movingPercentage, randomDrawMovingRate" << std::endl;
+		*bidsFile << "bid_timestamp, seller_id, bidder_id, unit_id, bidder wtp, bidder wp+wp_error, wp_error, affordability, currentUnitHP,target_price, hedonicprice, lagCoefficient, asking_price, bid_value, bids_counter (daily), bid_status, logsum, floor_area, type_id, HHPC, UPC,sale_from_date,occupancy_from_date" << std::endl;
     }
 
     if(expectations)
@@ -271,7 +271,8 @@ LoggerAgent::LoggerAgent() : Entity(-1)
 		std::ofstream* hhawakeningFile = new std::ofstream("HH_Awakenings.csv");
 		streams.insert(std::make_pair(LOG_HH_AWAKENING, hhawakeningFile));
 
-		*hhawakeningFile << "awakening_day, householdId, TimeOnMarket, ageCategory, tenureStatus" << std::endl;
+		*hhawakeningFile << "awakening_day, householdId, TimeOnMarket, ageCategory, tenureStatus, futureTransitionPercentage, randomDrawFutureTransition, movingPercentage, randomDrawMovingRate" << std::endl;
+		//*hhawakeningFile << "awakening_day, householdId, TimeOnMarket, ageCategory, tenureStatus" << std::endl;
     }
 
     if(log_hh_exit)

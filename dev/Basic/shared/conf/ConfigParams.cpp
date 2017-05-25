@@ -24,7 +24,7 @@ using namespace sim_mob;
 sim_mob::ConfigParams::ConfigParams() : RawConfigParams(),
 	publicTransitEnabled(false), totalRuntimeTicks(0), totalWarmupTicks(0), numTripsSimulated(0), numAgentsKilled(0),
     using_MPI(false), outNetworkFileName("out.network.txt"),outTrainNetworkFilename("out.train.network.txt"),outSimInfoFileName("out.siminfo.txt"),
-    is_simulation_repeatable(false), sealedNetwork(false), controlMgr(nullptr), numTripsCompleted(0),
+    is_simulation_repeatable(false), sealedNetwork(false), controlMgr(nullptr), numTripsCompleted(0), numPathNotFound(0),
     workerPublisherEnabled(false), enabledEdgeTravelTime(false)
 {}
 
@@ -345,5 +345,15 @@ const string &ConfigParams::getPT_PersonRerouteFilename() const
 void ConfigParams::setPT_PersonRerouteFilename(const string &ptPersonRerouteFilename)
 {
 	ConfigParams::ptPersonRerouteFilename = ptPersonRerouteFilename;
+}
+
+const string &ConfigParams::getLinkTravelTimesFile() const
+{
+	return linkTravelTimesFile;
+}
+
+void ConfigParams::setLinkTravelTimesFile(const string &linkTravelTimesFile)
+{
+	ConfigParams::linkTravelTimesFile = linkTravelTimesFile;
 }
 

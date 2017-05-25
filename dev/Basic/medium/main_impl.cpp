@@ -465,8 +465,14 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	Print() << "Time required for initialisation [Loading configuration, network, demand ...]: "
 	        << DailyTime((uint32_t) loop_start_offset).getStrRepr() << std::endl << std::endl;
 
-	Print() << "Number of trips/activities simulated: " << config.numTripsSimulated
-            << "\nNumber of trips/activities completed: " << config.numTripsCompleted << "\n";
+	if(config.numPathNotFound > 0)
+	{
+		Print() << "\nPersons not simulated as the path was not found [Refer to warn.log for more details]: "
+		        << config.numPathNotFound << endl;
+	}
+
+	Print() << "Number of trips/activities [demand] simulated: " << config.numTripsSimulated
+            << "\nNumber of trips/activities [demand] completed: " << config.numTripsCompleted << "\n";
 
 	if (!Agent::pending_agents.empty())
 	{
@@ -735,6 +741,11 @@ int main_impl(int ARGC, char* ARGV[])
 	 * set random be repeatable
 	 */
 	config.is_simulation_repeatable = true;
+
+	/**
+	 * set run mode as mid-term
+	 */
+	config.simMobRunMode = ConfigParams::MID_TERM;
 
 	/**
 	 * Start MPI if using_MPI is true

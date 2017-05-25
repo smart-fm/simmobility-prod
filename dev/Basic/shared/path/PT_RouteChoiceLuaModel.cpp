@@ -232,9 +232,10 @@ bool PT_RouteChoiceLuaModel::getBestPT_Path(int origin, int dest, unsigned int s
 	loadPT_PathSet(origin, dest, curStartTime, pathSet,ptPathsetStoredProcName);
 	if (pathSet.pathSet.empty())
 	{
-		sim_mob::BasicLogger& ptPathsetLogger  = sim_mob::Logger::log("pt_pathset_failed.csv");
-		ptPathsetLogger << origin << "," << dest << ","<<curStartTime.getStrRepr() << std::endl;
-		throw PT_PathsetLoadException(origin, dest);
+		std::stringstream msg;
+		msg << __func__ << ": No PT path found for Person " << dbid << ", travelling from "
+		    << origin << " to " << dest << " at time " << curStartTime.getStrRepr() << "\n";
+		Warn() << msg.str();
 	}
 	else
 	{

@@ -152,7 +152,7 @@ inline BigSerial getBuildingTypeFromUnitType(BigSerial unitTypeId)
 	else return 0;
 }
 
-inline void calculateProjectProfit(PotentialProject& project,DeveloperModel* model,const TAO *tao, int currTick)
+inline void calculateProjectProfit(PotentialProject& project,DeveloperModel* model,int &currTick, int &quarter)
 {
 	std::vector<PotentialUnit>& units = project.getUnits();
 
@@ -169,6 +169,11 @@ inline void calculateProjectProfit(PotentialProject& project,DeveloperModel* mod
 	BigSerial buildingTypeId = 0;
 
 	for (unitsItr = units.begin(); unitsItr != units.end(); unitsItr++) {
+		int unitId = (*unitsItr).getUnitTypeId();
+		const int lessThan60Apt = 7;
+		const int largerThan134Condo = 16;
+		if ((unitId >= lessThan60Apt) && (unitId <=largerThan134Condo))
+		{
 		const ParcelAmenities *amenities = model->getAmenitiesById(fmParcelId);
 		//commented the below code in 2012 data as we are now getting logsum per taz id.
 		//double logsum = model->getAccessibilityLogsumsByFmParcelId(project.getParcel()->getId())->getAccessibility();
@@ -183,9 +188,10 @@ inline void calculateProjectProfit(PotentialProject& project,DeveloperModel* mod
 		double logsum = 0;
 		const HedonicLogsums *logsumPtr = model->getHedonicLogsumsByTazId(tazId);
 		if(logsumPtr != nullptr)
-			{
-				logsum = logsumPtr->getLogsumWeighted();
-			}
+		{
+			logsum = logsumPtr->getLogsumWeighted();
+
+		}
 
 		if(isEmptyParcel)
 		{
@@ -198,46 +204,129 @@ inline void calculateProjectProfit(PotentialProject& project,DeveloperModel* mod
 		}
 
 		buildingTypeId = getBuildingTypeFromUnitType((*unitsItr).getUnitTypeId());
+		std::string quarterStr = boost::lexical_cast<std::string>("2012")+"Q"+boost::lexical_cast<std::string>(quarter);
+		const TAOByUnitType* taoByUT = model->getTaoUTByQuarter(quarterStr);
 
-		if((amenities != nullptr) && (buildingTypeId >0))
+		int taoId = 0;
+		if(taoByUT != nullptr)
 		{
-			const DeveloperLuaModel& luaModel = LuaProvider::getDeveloperModel();
-			double taoValue = 0;
+			taoId = taoByUT->getId();
+		}
 
-			//PrintOutV("buildingTypeId"<<buildingTypeId<<std::endl);
-			const HedonicCoeffs* hedonicCoeffObj = nullptr;
-			const LagPrivateT* privateLagTObj = nullptr;
+		//get the historical t values for current quarter - (4,5,6,7) quarters
+		const int q4 = 4;
+		const int q5 = 5;
+		const int q6 = 6;
+		const int q7 = 7;
 
+		int taoQ4Id = taoId-q4;
+		int taoQ5Id = taoId-q5;
+		int taoQ6Id = taoId-q6;
+		int taoQ7Id = taoId-q7;
+
+		const TAOByUnitType* taoByUTQ4 = model->getTaoUTById(taoQ4Id);
+		const TAOByUnitType* taoByUTQ5 = model->getTaoUTById(taoQ5Id);
+		const TAOByUnitType* taoByUTQ6 = model->getTaoUTById(taoQ6Id);
+		const TAOByUnitType* taoByUTQ7 = model->getTaoUTById(taoQ7Id);
+
+		double taoValueQ4 = 0;
+		double taoValueQ5 = 0;
+		double taoValueQ6 = 0;
+		double taoValueQ7 = 0;
+
+		if(amenities != nullptr)
+		{
+			double taoValueQ1 = 0;
+
+			const HedonicCoeffsByUnitType* hedonicCoeffObj = nullptr;
+			const LagPrivate_TByUnitType* privateLagTObj = nullptr;
 			double HPI = 0;
 
-			if(buildingTypeId == 1)
+			switch((*unitsItr).getUnitTypeId())
 			{
-				taoValue = tao->getCondo();
-			}
-			else if(buildingTypeId == 2)
-			{
-				taoValue = tao->getApartment();
-			}
-			else if(buildingTypeId == 3)
-			{
-				taoValue = tao->getTerrace();
-			}
-			else if(buildingTypeId == 4)
-			{
-				taoValue = tao->getSemi();
-			}
-			else if(buildingTypeId == 5)
-			{
-				taoValue = tao->getDetached();
-			}
-			else if(buildingTypeId == 6)
-			{
-				taoValue = tao->getEc();
+			case 7:
+				taoValueQ1 = taoByUT->getTApartment7();
+				taoValueQ4 = taoByUTQ4->getTApartment7();
+				taoValueQ5 = taoByUTQ5->getTApartment7();
+				taoValueQ6 = taoByUTQ6->getTApartment7();
+				taoValueQ7 = taoByUTQ7->getTApartment7();
+				break;
+			case 8:
+				taoValueQ1 = taoByUT->getTApartment8();
+				taoValueQ4 = taoByUTQ4->getTApartment8();
+				taoValueQ5 = taoByUTQ5->getTApartment8();
+				taoValueQ6 = taoByUTQ6->getTApartment8();
+				taoValueQ7 = taoByUTQ7->getTApartment8();
+				break;
+			case 9:
+				taoValueQ1 = taoByUT->getTApartment9();
+				taoValueQ4 = taoByUTQ4->getTApartment9();
+				taoValueQ5 = taoByUTQ5->getTApartment9();
+				taoValueQ6 = taoByUTQ6->getTApartment9();
+				taoValueQ7 = taoByUTQ7->getTApartment9();
+				break;
+			case 10:
+				taoValueQ1 = taoByUT->getTApartment10();
+				taoValueQ4 = taoByUTQ4->getTApartment10();
+				taoValueQ5 = taoByUTQ5->getTApartment10();
+				taoValueQ6 = taoByUTQ6->getTApartment10();
+				taoValueQ7 = taoByUTQ7->getTApartment10();
+				break;
+			case 11:
+				taoValueQ1 = taoByUT->getTApartment11();
+				taoValueQ4 = taoByUTQ4->getTApartment11();
+				taoValueQ5 = taoByUTQ5->getTApartment11();
+				taoValueQ6 = taoByUTQ6->getTApartment11();
+				taoValueQ7 = taoByUTQ7->getTApartment11();
+				break;
+			case 12:
+				taoValueQ1 = taoByUT->getTCondo12();
+				taoValueQ4 = taoByUTQ4->getTCondo12();
+				taoValueQ5 = taoByUTQ5->getTCondo12();
+				taoValueQ6 = taoByUTQ6->getTCondo12();
+				taoValueQ7 = taoByUTQ7->getTCondo12();
+				break;
+			case 13:
+				taoValueQ1 = taoByUT->getTCondo13();
+				taoValueQ1 = taoByUT->getTCondo13();
+				taoValueQ4 = taoByUTQ4->getTCondo13();
+				taoValueQ5 = taoByUTQ5->getTCondo13();
+				taoValueQ6 = taoByUTQ6->getTCondo13();
+				taoValueQ7 = taoByUTQ7->getTCondo13();
+				break;
+			case 14:
+				taoValueQ1 = taoByUT->getTCondo14();
+				taoValueQ1 = taoByUT->getTCondo14();
+				taoValueQ4 = taoByUTQ4->getTCondo14();
+				taoValueQ5 = taoByUTQ5->getTCondo14();
+				taoValueQ6 = taoByUTQ6->getTCondo14();
+				taoValueQ7 = taoByUTQ7->getTCondo14();
+				break;
+			case 15:
+				taoValueQ1 = taoByUT->getTCondo15();
+				taoValueQ1 = taoByUT->getTCondo15();
+				taoValueQ4 = taoByUTQ4->getTCondo15();
+				taoValueQ5 = taoByUTQ5->getTCondo15();
+				taoValueQ6 = taoByUTQ6->getTCondo15();
+				taoValueQ7 = taoByUTQ7->getTCondo15();
+				break;
+			case 16:
+				taoValueQ1 = taoByUT->getTCondo16();
+				taoValueQ4 = taoByUTQ4->getTCondo16();
+				taoValueQ5 = taoByUTQ5->getTCondo16();
+				taoValueQ6 = taoByUTQ6->getTCondo16();
+				taoValueQ7 = taoByUTQ7->getTCondo16();
+				break;
+			Deafult:
+			break;
+
 			}
 
-			hedonicCoeffObj = model->getHedonicCoeffsByPropertyTypeId(buildingTypeId);
-		    privateLagTObj = model->getLagPrivateTByPropertyTypeId(buildingTypeId);
-		    HPI = privateLagTObj->getIntercept() + ( privateLagTObj->getT4() * taoValue);
+			hedonicCoeffObj = model->getHedonicCoeffsByUnitTypeId((*unitsItr).getUnitTypeId());
+		    privateLagTObj = model->getLagPrivateTByUnitTypeId((*unitsItr).getUnitTypeId());
+
+		    HPI = privateLagTObj->getIntercept() + ( privateLagTObj->getT4() * taoValueQ4) + ( privateLagTObj->getT5() * taoValueQ5) + ( privateLagTObj->getT6() * taoValueQ6) + ( privateLagTObj->getT7() * taoValueQ7)
+		    		+ (privateLagTObj->getGdpRate() * taoByUT->getGdpRate()) + (taoByUT->getTreasuryBillYield1Year()- taoByUT->getInflation());
 
 			int ageCapped = 0;
 			if(unitAge > 50 )
@@ -253,12 +342,47 @@ inline void calculateProjectProfit(PotentialProject& project,DeveloperModel* mod
 			double revenue = 0;
 
 			int freehold = model->isFreeholdParcel(fmParcelId);
+
+			double distanceToMall = amenities->getDistanceToMall();
+			double distanceToPMS30 = amenities->getDistanceToPMS30();
+			double distanceToExpress = amenities->getDistanceToExpress();
+			double distanceToBus = amenities->getDistanceToBus();
+			double distanceToMRT = amenities->getDistanceToMRT();
+
+			double isDistanceToPMS30 = 0;
+			double isMRT_200m = 0;
+			double isMRT_2_400m = 0;
+			double isExpress_200m = 0;
+			double isBus_2_400m = 0;
+			double isBusGt_400m = 0;
+
+			if(distanceToPMS30 < 1)
+			{
+				isDistanceToPMS30 = 1;
+			}
+			if( (distanceToMRT > 0.200) && (distanceToMRT < 0.400))
+			{
+				isMRT_2_400m = 1;
+			}
+			if(distanceToExpress < 0.200)
+			{
+				isExpress_200m = 1;
+			}
+			if((distanceToBus > 0.200) && (distanceToBus < 0.400))
+			{
+				isBus_2_400m = 1;
+			}
+			else if(distanceToBus > 0.400)
+			{
+				isBusGt_400m = 1;
+			}
+
 			if(hedonicCoeffObj!=nullptr)
 			{
 				revenue  = hedonicCoeffObj->getIntercept() + (hedonicCoeffObj->getLogSqrtArea() * log(floorArea))+ (hedonicCoeffObj->getFreehold() * freehold) +
-					(hedonicCoeffObj->getLogsumWeighted() * logsum ) + (hedonicCoeffObj->getPms1km() * amenities->hasPms_1km()) + (hedonicCoeffObj->getDistanceMallKm() * amenities->getDistanceToMall()) +
-					(hedonicCoeffObj->getMrt200m()* amenities->hasMRT_200m()) + (hedonicCoeffObj->getMrt_2_400m() * amenities->hasMRT_400m()) + (hedonicCoeffObj->getExpress200m() * amenities->hasExpress_200m()) +
-				    (hedonicCoeffObj->getBus400m() * amenities->hasBus_200m()) + (hedonicCoeffObj->getBusGt400m() * amenities->hasBus_400m()) + (hedonicCoeffObj->getAge() * ageCapped) + (hedonicCoeffObj->getLogAgeSquared() * (ageCapped*ageCapped));
+					(hedonicCoeffObj->getLogsumWeighted() * logsum ) + (hedonicCoeffObj->getPms1km() * isDistanceToPMS30) + (hedonicCoeffObj->getDistanceMallKm() * distanceToMall) +
+					(hedonicCoeffObj->getMrt200m()* isMRT_200m) + (hedonicCoeffObj->getMrt2400m() *isMRT_2_400m) + (hedonicCoeffObj->getExpress200m() * isExpress_200m) +
+				    (hedonicCoeffObj->getBusGt400m() * isBus_2_400m) + (hedonicCoeffObj->getBusGt400m() * isBusGt_400m) + (hedonicCoeffObj->getAge() * ageCapped) + (hedonicCoeffObj->getAgeSquared() * (ageCapped*ageCapped));
 			}
 
 			double revenuePerUnit = exp(revenue+HPI);
@@ -305,6 +429,7 @@ inline void calculateProjectProfit(PotentialProject& project,DeveloperModel* mod
 				model->addPotentialProjects(potentialPr);
 			}
 		}
+	}
 
 	}
 
@@ -418,7 +543,7 @@ inline void createPotentialUnits(PotentialProject& project,const DeveloperModel*
      * @param model Developer model.
      * @param outProjects (out parameter) list to receive all projects;
      */
-    inline void createPotentialProjects(BigSerial parcelId, DeveloperModel* model, PotentialProject& outProject,int quarter, const TAO *tao, std::tm &currentDate, int currentTick)
+    inline void createPotentialProjects(BigSerial parcelId, DeveloperModel* model, PotentialProject& outProject,int quarter,std::tm &currentDate, int currentTick)
     {
         const DeveloperModel::DevelopmentTypeTemplateList& devTemplates = model->getDevelopmentTypeTemplates();
         const DeveloperModel::TemplateUnitTypeList& unitTemplates = model->getTemplateUnitType();
@@ -440,14 +565,8 @@ inline void createPotentialUnits(PotentialProject& project,const DeveloperModel*
                 		PotentialProject project((*it), parcel,parcel->getId(),currentDate);
                 		addUnitTemplates(project, unitTemplates);
                 		createPotentialUnits(project,model);
-                		/*
-                		 * This is not used in 2012
-                		 * int quarter = ((currentDate.tm_mon)/3) + 1; //get the current month of the simulation and divide it by 3 to determine the quarter
-                		 *
-                		 */
-                		const int quarter = 4;
 
-                        calculateProjectProfit(project,model,tao,currentTick);
+                        calculateProjectProfit(project,model,currentTick,quarter);
 
                         int newDevelopment = 0;
                         if(model->isEmptyParcel(parcel->getId()))
@@ -557,11 +676,9 @@ Entity::UpdateStatus DeveloperAgent::onFrameTick(timeslice now) {
     	{
     	if(this->parcel->getStatus()== 0)
     	{
-    		int quarter = ((currentDate.tm_mon)/4) + 1; //get the current month of the simulation and divide it by 4 to determine the quarter
-    		std::string quarterStr = boost::lexical_cast<std::string>(simYear)+"Q"+boost::lexical_cast<std::string>(4);
-    		const TAO *tao = devModel->getTaoByQuarter(quarterStr);
+    		int quarter = ((currentDate.tm_mon)/4) + 1;
     		PotentialProject project;
-    		createPotentialProjects(this->parcel->getId(),devModel,project,quarter,tao,currentDate,currentTick);
+    		createPotentialProjects(this->parcel->getId(),devModel,project,quarter,currentDate,currentTick);
     		if(project.getUnits().size()>0)
     		{
     			std::vector<PotentialUnit>::iterator unitsItr;

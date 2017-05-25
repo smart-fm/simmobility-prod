@@ -5,15 +5,9 @@
 #include "Person_ST.hpp"
 
 #include "BusStopAgent.hpp"
-#include "conf/ConfigManager.hpp"
-#include "conf/ConfigParams.hpp"
 #include "config/ST_Config.hpp"
-#include "entities/amodController/AMODController.hpp"
-#include "entities/roles/RoleFactory.hpp"
 #include "entities/roles/activityRole/ActivityPerformer.hpp"
 #include "event/args/ReRouteEventArgs.hpp"
-#include "geospatial/network/RoadNetwork.hpp"
-#include "logging/Log.hpp"
 #include "message/MessageBus.hpp"
 #include "message/ST_Message.hpp"
 #include "path/PT_RouteChoiceLuaProvider.hpp"
@@ -26,6 +20,7 @@ namespace
 const string transitModeBus = "BusTravel";
 const string transitModeTrain = "MRT";
 const string transitModeUnknown = "PT";
+const string travelModeWalk = "Walk";
 }
 
 Person_ST::Person_ST(const std::string &src, const MutexStrategy &mtxStrat, int id, std::string databaseID)
@@ -44,10 +39,6 @@ prevRole(NULL), currRole(NULL), nextRole(NULL), commEventRegistered(false), amod
 amodPickUpSegmentStr("-1"), startSegmentId(-1), segmentStartOffset(0), initialSpeed(0), amodSegmLength(0.0), amodSegmLength2(0.0),
 rsTravelStats(nullptr)
 {
-	convertPublicTransitODsToTrips();
-	insertWaitingActivityToTrip();
-	assignSubtripIds();
-	
 	if (!tripChain.empty())
 	{
 		initTripChain();
@@ -90,30 +81,36 @@ void Person_ST::setPersonCharacteristics()
 	const int defaultLowerSecs = config.personCharacteristicsParams.DEFAULT_LOWER_SECS;
 	const int defaultUpperSecs = config.personCharacteristicsParams.DEFAULT_UPPER_SECS;
 	
-	boost::mt19937 gen(static_cast<unsigned int> (getId() * getId()));
-	
-	boost::uniform_int<> BoardingTime(defaultLowerSecs, defaultUpperSecs);
-	boost::variate_generator < boost::mt19937, boost::uniform_int<int> > varBoardingTime(gen, BoardingTime);
-	boardingTimeSecs = varBoardingTime();
+	boost::mt19937 gen(getId() * getId());
 
-	boost::uniform_int<> AlightingTime(defaultLowerSecs, defaultUpperSecs);
-	boost::variate_generator < boost::mt19937, boost::uniform_int<int> > varAlightingTime(gen, AlightingTime);
-	alightingTimeSecs = varAlightingTime();
-
-	for (std::map<int, PersonCharacteristics>::const_iterator iter = personCharacteristics.begin(); iter != personCharacteristics.end(); ++iter)
+	if(!personCharacteristics.empty())
 	{
-		if (this->getAge() >= iter->second.lowerAge && this->getAge() < iter->second.upperAge)
+		for (std::map<int, PersonCharacteristics>::const_iterator iter = personCharacteristics.begin();
+		     iter != personCharacteristics.end(); ++iter)
 		{
-			boost::uniform_int<> BoardingTime(iter->second.lowerSecs, iter->second.upperSecs);
-			boost::variate_generator < boost::mt19937, boost::uniform_int<int> > varBoardingTime(gen, BoardingTime);
-			boardingTimeSecs = varBoardingTime();
+			if (this->getAge() >= iter->second.lowerAge && this->getAge() < iter->second.upperAge)
+			{
+				boost::uniform_int<> BoardingTime(iter->second.lowerSecs, iter->second.upperSecs);
+				boost::variate_generator<boost::mt19937, boost::uniform_int<int> > varBoardingTime(gen, BoardingTime);
+				boardingTimeSecs = varBoardingTime();
 
-			boost::uniform_int<> AlightingTime(iter->second.lowerSecs, iter->second.upperSecs);
-			boost::variate_generator < boost::mt19937, boost::uniform_int<int> > varAlightingTime(gen, AlightingTime);
-			alightingTimeSecs = varAlightingTime();
-			
-			walkingSpeed = iter->second.walkSpeed;
+				boost::uniform_int<> AlightingTime(iter->second.lowerSecs, iter->second.upperSecs);
+				boost::variate_generator<boost::mt19937, boost::uniform_int<int> > varAlightingTime(gen, AlightingTime);
+				alightingTimeSecs = varAlightingTime();
+
+				walkingSpeed = iter->second.walkSpeed;
+			}
 		}
+	}
+	else
+	{
+		boost::uniform_int<> BoardingTime(defaultLowerSecs, defaultUpperSecs);
+		boost::variate_generator < boost::mt19937, boost::uniform_int<int> > varBoardingTime(gen, BoardingTime);
+		boardingTimeSecs = varBoardingTime();
+
+		boost::uniform_int<> AlightingTime(defaultLowerSecs, defaultUpperSecs);
+		boost::variate_generator < boost::mt19937, boost::uniform_int<int> > varAlightingTime(gen, AlightingTime);
+		alightingTimeSecs = varAlightingTime();
 	}
 }
 
@@ -132,6 +129,10 @@ void Person_ST::load(const map<string, string> &configProps)
 
 void Person_ST::initTripChain()
 {
+	convertPublicTransitODsToTrips();
+	insertWaitingActivityToTrip();
+	assignSubtripIds();
+
 	currTripChainItem = tripChain.begin();
 	const std::string& src = getAgentSrc();
 
@@ -395,8 +396,10 @@ Entity::UpdateStatus Person_ST::frame_tick(timeslice now)
 					//since start time of the activity is usually later than what is configured initially,
 					//we have to make adjustments so that the person waits for exact amount of time
 					ActivityPerformer<Person_ST> *ap = dynamic_cast<ActivityPerformer<Person_ST>* > (currRole);
-                    ap->setActivityStartTime(DailyTime(now.ms() + config.baseGranMS()));
-                    ap->setActivityEndTime(DailyTime(now.ms() + config.baseGranMS() + (tcItem->endTime.getValue() - tcItem->startTime.getValue())));
+					Activity* acItem = dynamic_cast<Activity *>(tcItem);
+					ap->setActivityStartTime(DailyTime(now.ms() + config.baseGranMS()));
+					ap->setActivityEndTime(DailyTime(now.ms() + config.baseGranMS() + (tcItem->endTime.getValue() - tcItem->startTime.getValue())));
+					ap->setLocation(acItem->destination.node);
 				}
 				
 				if (!isInitialized())
@@ -438,7 +441,8 @@ bool Person_ST::advanceCurrentTripChainItem()
 		return false;
 	}
 
-	// current role (activity or sub-trip level role)[for now: only subtrip] is about to change, time to collect its movement metrics(even activity performer)
+	// current role (activity or sub-trip level role)[for now: only subtrip] is about to change,
+	// time to collect its movement metrics(even activity performer)
 	if (currRole != nullptr)
 	{
 		currRole->collectTravelTime();
@@ -504,7 +508,8 @@ void Person_ST::convertPublicTransitODsToTrips()
 			{
 				if (itSubTrip->origin.type == WayPoint::NODE && itSubTrip->destination.type == WayPoint::NODE)
 				{
-					if (itSubTrip->getMode() == transitModeUnknown || itSubTrip->getMode() == transitModeBus || itSubTrip->getMode() == transitModeTrain)
+					if (itSubTrip->getMode() == transitModeUnknown || itSubTrip->getMode() == transitModeBus ||
+							itSubTrip->getMode() == transitModeTrain)
 					{
 						vector<OD_Trip> odTrips;
 						const string &dbid = this->getDatabaseId();
@@ -513,7 +518,9 @@ void Person_ST::convertPublicTransitODsToTrips()
 						DailyTime subTripStartTime = itSubTrip->startTime;
 						const ConfigParams &cfgParams = ConfigManager::GetInstance().FullConfig();
 						
-						const std::string ptPathsetStoredProcName = cfgParams.getDatabaseProcMappings().procedureMappings["pt_pathset"];
+						const std::string ptPathsetStoredProcName =
+								cfgParams.getDatabaseProcMappings().procedureMappings["pt_pathset"];
+
 						bool ret = PT_RouteChoiceLuaProvider::getPTRC_Model().getBestPT_Path(itSubTrip->origin.node->getNodeId(),
 										itSubTrip->destination.node->getNodeId(), subTripStartTime.getValue(), odTrips, dbid,
 										itSubTrip->startTime.getValue(), ptPathsetStoredProcName);
@@ -526,8 +533,54 @@ void Person_ST::convertPublicTransitODsToTrips()
 						if (!ret)
 						{
 							tripChain.clear();
+							ConfigManager::GetInstanceRW().FullConfig().numPathNotFound++;
+							setToBeRemoved();
 							return;
 						}
+					}
+					else if(itSubTrip->getMode() == travelModeWalk)
+					{
+						string originId = boost::lexical_cast<string>(itSubTrip->origin.node->getNodeId());
+						string destId = boost::lexical_cast<string>(itSubTrip->destination.node->getNodeId());
+
+						itSubTrip->startLocationId = originId;
+						itSubTrip->endLocationId = destId;
+						itSubTrip->startLocationType = "NODE";
+						itSubTrip->endLocationType = "NODE";
+					}
+					else if (itSubTrip->getMode().find("Car Sharing") != string::npos ||
+							itSubTrip->getMode() == "PrivateBus")
+					{
+						string originId = boost::lexical_cast<string>(itSubTrip->origin.node->getNodeId());
+						string destId = boost::lexical_cast<string>(itSubTrip->destination.node->getNodeId());
+
+						itSubTrip->startLocationId = originId;
+						itSubTrip->endLocationId = destId;
+						itSubTrip->startLocationType = "NODE";
+						itSubTrip->endLocationType = "NODE";
+
+						if(itSubTrip->getMode() != "PrivateBus")
+						{
+							//modify the mode name for RoleFactory
+							itSubTrip->travelMode = "Sharing";
+						}
+
+						const StreetDirectory& streetDirectory = StreetDirectory::Instance();
+						vector<WayPoint> wayPoints =
+								streetDirectory.SearchShortestDrivingPath<Node, Node>(*itSubTrip->origin.node,
+								                                                      *itSubTrip->destination.node);
+
+						double travelTime = 0.0;
+						const TravelTimeManager* ttMgr = TravelTimeManager::getInstance();
+
+						for (std::vector<WayPoint>::iterator it = wayPoints.begin(); it != wayPoints.end(); it++)
+						{
+							if (it->type == WayPoint::LINK)
+							{
+								travelTime += ttMgr->getDefaultLinkTT(it->link);
+							}
+						}
+						itSubTrip->endTime = DailyTime(travelTime * 1000);
 					}
 				}
 				++itSubTrip;

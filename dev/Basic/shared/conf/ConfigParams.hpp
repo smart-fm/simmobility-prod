@@ -119,6 +119,9 @@ public:
 	///Total number of trips that were completed
 	std::atomic<unsigned int> numTripsCompleted;
 
+	///Total number of person that could not be loaded due to path not found errors
+	std::atomic<unsigned int> numPathNotFound;
+
 public:
     /**
      * Retrieves/Builds the database connection string
@@ -244,6 +247,9 @@ private:
 
 	/** name of the file to store the person rerouting information (public transit)*/
 	std::string ptPersonRerouteFilename;
+
+	/**link travel time file name*/
+	std::string linkTravelTimesFile;
 
 public:
 	/////////////////////////////////////////////////////////////////////////////////////
@@ -467,6 +473,19 @@ public:
 	 * @param ptPersonRerouteFilename filename to be set
 	 */
 	void setPT_PersonRerouteFilename(const std::string &ptPersonRerouteFilename);
+
+	/**
+	 * Retrieves the lik travel times file name
+	 * @return link travel time filename
+	 */
+	const std::string &getLinkTravelTimesFile() const;
+
+	/**
+	 * Sets the link travel times filename
+	 *
+	 * @param linkTravelTimesFile filename to be set
+	 */
+	void setLinkTravelTimesFile(const std::string &linkTravelTimesFile);
 };
 
 

@@ -340,9 +340,12 @@ namespace sim_mob
 			void incrementNumberOfSellers();
 			void incrementNumberOfBidders();
 			void incrementNumberOfBTOAwakenings();
+			void incrementWaitingToMove();
 			int getNumberOfSellers();
 			int getNumberOfBidders();
 			int getNumberOfBTOAwakenings();
+			int getWaitingToMove();
+			void setWaitingToMove(int number);
 
             void incrementLifestyle1HHs();
             void incrementLifestyle2HHs();
@@ -427,8 +430,13 @@ namespace sim_mob
             PreSchoolList getPreSchoolList() const;
             PreSchool* getPreSchoolById( BigSerial id) const;
 
-            std::vector<OwnerTenantMovingRate*> getOwnerTenantMovingRates();
-            std::vector<TenureTransitionRate*> getTenureTransitionRates();
+
+
+            OwnerTenantMovingRate* getOwnerTenantMovingRates(int index);
+            TenureTransitionRate* getTenureTransitionRates(int index);
+            int getOwnerTenantMovingRatesSize();
+            int getTenureTransitionRatesSize();
+
             std::vector<AlternativeHedonicPrice*> getAlternativeHedonicPrice();
             boost::unordered_multimap<BigSerial, AlternativeHedonicPrice*>& getAlternativeHedonicPriceById();
 
@@ -436,8 +444,10 @@ namespace sim_mob
             IndvidualEmpSecList getIndvidualEmpSecList() const;
             IndvidualEmpSec* getIndvidualEmpSecByIndId(BigSerial indId) const;
 
-			vector<double> getlogSqrtFloorAreahdb() const{ return logSqrtFloorAreahdb;}
-            vector<double> getlogSqrtFloorAreacondo() const { return logSqrtFloorAreacondo;}
+			double getlogSqrtFloorAreahdb(int index) { return logSqrtFloorAreahdb[index];}
+            double getlogSqrtFloorAreacondo(int index)  { return logSqrtFloorAreacondo[index];}
+			int getlogSqrtFloorAreahdbSize() { return logSqrtFloorAreahdb.size();}
+            int getlogSqrtFloorAreacondoSize()  { return logSqrtFloorAreacondo.size();}
 
 
             set<string> logsumUniqueCounter_str;
@@ -578,6 +588,7 @@ namespace sim_mob
             int numberOfExits;
             int numberOfSuccessfulBids;
             int numberOfBTOAwakenings;
+            int numberOfBiddersWaitingToMove;
 
             DeveloperModel *developerModel;
             int startDay; //start tick of the simulation

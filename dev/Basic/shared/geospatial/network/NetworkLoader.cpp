@@ -333,17 +333,8 @@ void NetworkLoader::loadTurningConflicts(const std::string& storedProc)
 		}
 	}
 
-	//Sanity check
-	unsigned int conflictsLoaded = roadNetwork->getMapOfIdvsTurningConflicts().size();
-
-	if(conflictsLoaded == 0)
-	{
-		std::stringstream msg;
-		msg << storedProc << " returned 0 turning conflicts!";
-		throw runtime_error(msg.str());
-	}
-
 #ifndef NDEBUG
+	unsigned int conflictsLoaded = roadNetwork->getMapOfIdvsTurningConflicts().size();
 	Print() << "Turning conflicts\t\t|\t" << conflictsLoaded << "\t\t| " << storedProc << endl;
 #endif
 }
@@ -569,10 +560,10 @@ void NetworkLoader::loadSurveillanceStns(const string &storedProc)
 void NetworkLoader::loadBusStops(const std::string& storedProc)
 {
 	sim_mob::ConfigParams& config = sim_mob::ConfigManager::GetInstanceRW().FullConfig();
-	if(!config.isPublicTransitEnabled())
+	if(!config.busController.enabled)
 	{
-		Print() << "Optional data: Bus stops not loaded. Public transit is disabled.\n";
-		Warn() << "\nPublic-transit is not enabled in the config file " << std::endl;
+		Print() << "Optional data: Bus stops not loaded. Bus controller is disabled.\n";
+		Warn() << "\nBus controller is not enabled in the config file " << std::endl;
 		return;
 	}
 

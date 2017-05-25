@@ -45,8 +45,10 @@ namespace sim_mob
 			else
 			if( household->getAgeOfHead()>= 7 && household->getAgeOfHead() <= 9 )
 				tenureTransitionId = "35-49";
+			else
 			if( household->getAgeOfHead()>= 10 && household->getAgeOfHead() <= 12 )
 				tenureTransitionId = "50-64";
+			else
 			if( household->getAgeOfHead()>= 13 )
 				tenureTransitionId = "65+";
 
@@ -57,13 +59,13 @@ namespace sim_mob
 			else
 				tenureStatus = "rent";
 
-			for(int p = 0; p < model->getTenureTransitionRates().size(); p++)
+			for(int p = 0; p < model->getTenureTransitionRatesSize(); p++)
 			{
-				if( model->getTenureTransitionRates()[p]->getAgeGroup() == tenureTransitionId &&
-					model->getTenureTransitionRates()[p]->getCurrentStatus() == tenureStatus  &&
-					model->getTenureTransitionRates()[p]->getFutureStatus() == string("own") )
+				if( model->getTenureTransitionRates(p)->getCurrentStatus() == tenureStatus &&
+					model->getTenureTransitionRates(p)->getFutureStatus() == string("own") &&
+					model->getTenureTransitionRates(p)->getAgeGroup() == tenureTransitionId )
 				{
-					futureTransitionRate = model->getTenureTransitionRates()[p]->getRate() / 100.0;
+					futureTransitionRate = model->getTenureTransitionRates(p)->getRate() / 100.0;
 				}
 			}
 
@@ -301,6 +303,10 @@ namespace sim_mob
 				if( success == false )
 					return;
 
+				household->setAwakenedDay(0);
+				household->setLastBidStatus(0);
+				household->setLastAwakenedDay(day);
+
 				bidder->setActive(true);
 
 				printAwakeningJingsi(day, household, futureTransitionRate, futureTransitionRandomDraw, movingRate, randomDrawMovingRate);
@@ -340,24 +346,24 @@ namespace sim_mob
 					householdHead = individual;
 			}
 
-			vector<OwnerTenantMovingRate*> ownerTenantMR = model->getOwnerTenantMovingRates();
-
-			double movingRate = 1.0;
-
-			for(int n = 0; n < ownerTenantMR.size(); n++)
+			for(int n = 0; n < model->getOwnerTenantMovingRatesSize(); n++)
 			{
-				if( household->getTenureStatus() == 2 &&
-				    householdHead->getAgeCategoryId() == ownerTenantMR[n]->getAgeCategory() &&
-				    ownerTenantMR[n]->getDayZero() == day0 )
-						movingRate = ownerTenantMR[n]->getTenantMovingPercentage();
+				bool awake_day0 = model->getOwnerTenantMovingRates(n)->getDayZero();
+				int ageCategory = model->getOwnerTenantMovingRates(n)->getAgeCategory();
 
-				if( household->getTenureStatus() == 1 &&
-					householdHead->getAgeCategoryId() == ownerTenantMR[n]->getAgeCategory() &&
-					ownerTenantMR[n]->getDayZero() == day0 )
-						movingRate = ownerTenantMR[n]->getOwnerMovingPercentage();
+				if( householdHead->getAgeCategoryId() == ageCategory )
+				{
+					if( awake_day0 == day0 )
+				    {
+						if( household->getTenureStatus() == 2 )
+							return model->getOwnerTenantMovingRates(n)->getTenantMovingPercentage();
+						else
+							return model->getOwnerTenantMovingRates(n)->getOwnerMovingPercentage();
+				    }
+				}
 			}
 
-			return movingRate;
+			return 1.0;
 		}
 
 
@@ -382,10 +388,14 @@ namespace sim_mob
 
 		    	int awakenDay = household->getLastAwakenedDay();
 
-				if(( household->getLastBidStatus() == 1 && day < config.ltParams.housingModel.awakeningModel.awakeningOffMarketSuccessfulBid + awakenDay ))
+
+		    	if( household->getLastBidStatus() == 0 && day < awakenDay + config.ltParams.housingModel.householdBiddingWindow )
+		    		continue;
+
+				if( household->getLastBidStatus() == 1 && day < config.ltParams.housingModel.awakeningModel.awakeningOffMarketSuccessfulBid + awakenDay )
 					continue;
 
-				if(( household->getLastBidStatus() == 2 && day < config.ltParams.housingModel.awakeningModel.awakeningOffMarketUnsuccessfulBid + awakenDay ))
+				if( household->getLastBidStatus() == 2 && day < config.ltParams.housingModel.awakeningModel.awakeningOffMarketUnsuccessfulBid + awakenDay )
 					continue;
 
                 double futureTransitionRate = 0;
@@ -405,6 +415,8 @@ namespace sim_mob
 
 		    	n++;
 
+				household->setLastBidStatus(0);
+				household->setAwakenedDay(day);
 		    	household->setLastAwakenedDay(day);
                 model->incrementAwakeningCounter();
 

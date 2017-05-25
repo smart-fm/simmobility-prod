@@ -32,7 +32,6 @@ ExpandMidTermConfigFile::ExpandMidTermConfigFile(MT_Config &mtCfg, ConfigParams 
 
 void ExpandMidTermConfigFile::processConfig()
 {
-    cfg.simMobRunMode = ConfigParams::MID_TERM;
     cfg.setWorkerPublisherEnabled(false);
 
     //Set the auto-incrementing ID.
@@ -91,6 +90,12 @@ void ExpandMidTermConfigFile::processConfig()
         exit(1);
     }
 
+    //check each segment's capacity
+    if(!RoadNetwork::getInstance()->checkSegmentCapacity() && mtCfg.RunningMidSupply())
+    {
+    	throw std::runtime_error("some segments have no capacity!");
+    }
+
     //TODO: put its option in config xml
     //generateOD("/home/fm-simmobility/vahid/OD.txt", "/home/fm-simmobility/vahid/ODs.xml");
     //Process Confluxes if required
@@ -127,6 +132,8 @@ void ExpandMidTermConfigFile::processConfig()
 void ExpandMidTermConfigFile::loadNetworkFromDatabase()
 {
     NetworkLoader *loader = NetworkLoader::getInstance();
+
+	std::cout << "Database connection: " << cfg.getDatabaseConnectionString() << "\n\n";
 
     //load network
     loader->loadNetwork(cfg.getDatabaseConnectionString(false), cfg.getDatabaseProcMappings().procedureMappings);
@@ -249,8 +256,6 @@ void ExpandMidTermConfigFile::printSettings()
     std::cout << "\nConfiguration parameters:\n";
     std::cout << "------------------\n";
 
-	std::cout << "Database connection: " << cfg.getDatabaseConnectionString() << "\n";
-
     //Print the WorkGroup strategy.
     std::cout << "WorkGroup assignment: ";
     switch (cfg.defaultWrkGrpAssignment())
@@ -268,10 +273,10 @@ void ExpandMidTermConfigFile::printSettings()
 
     //Basic statistics
     std::cout << "  Base Granularity: " << cfg.baseGranMS() << " " << "ms" << "\n";
-    std::cout << "  Total Runtime: " << cfg.totalRuntimeTicks << " " << "ticks" << "\n";
+	std::cout << "  Simultation duration: " << cfg.simStartTime().getStrRepr() << " to "
+	          << DailyTime(cfg.totalRuntimeInMilliSeconds() + cfg.simStartTime().getValue()).getStrRepr() << "\n";
     std::cout << "  Total Warmup: " << cfg.totalWarmupTicks << " " << "ticks" << "\n";
     std::cout << "  Person Granularity: " << mtCfg.granPersonTicks << " " << "ticks" << "\n";
-    std::cout << "  Start time: " << cfg.simStartTime().getStrRepr() << "\n";
     std::cout << "  Mutex strategy: " << (cfg.mutexStategy() == MtxStrat_Locked ? "Locked" : cfg.mutexStategy() == MtxStrat_Buffered ? "Buffered" : "Unknown") << "\n";
 
     //Print the network (this will go to a different output file...)

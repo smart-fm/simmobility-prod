@@ -20,6 +20,7 @@
 #include "entities/roles/RoleFactory.hpp"
 #include "entities/TravelTimeManager.hpp"
 #include "entities/TrainController.hpp"
+#include "entities/TripChainOutput.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "geospatial/network/WayPoint.hpp"
 #include "path/PT_RouteChoiceLuaProvider.hpp"
@@ -84,6 +85,7 @@ prevRole(nullptr), currRole(nullptr), nextRole(nullptr), numTicksStuck(0)
 	std::string ptPathsetStoredProcName = cfg.getDatabaseProcMappings().procedureMappings["pt_pathset"];
 	try
 	{
+		TripChainOutput::getInstance().printTripChain(tripChain);
 		convertPublicTransitODsToTrips(PT_NetworkCreater::getInstance(), ptPathsetStoredProcName);
 		insertWaitingActivityToTrip();
 		assignSubtripIds();
@@ -364,6 +366,8 @@ void Person_MT::convertPublicTransitODsToTrips(PT_Network& ptNetwork,const std::
 						if (!ret)
 						{
 							tripChain.clear();
+							setToBeRemoved();
+							ConfigManager::GetInstanceRW().FullConfig().numPathNotFound++;
 							return;
 						}
 					}

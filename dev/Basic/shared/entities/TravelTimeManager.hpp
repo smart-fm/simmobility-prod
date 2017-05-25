@@ -497,6 +497,9 @@ private:
 	 */
 	std::map<unsigned int, std::map<std::pair<unsigned int, unsigned int>, TimeAndCount> > odTravelTimeMap;
 
+	/** supply link travel time */
+	std::string supplyLinkTimeFileName;
+
 	/** historical travel time table name */
 	std::string historicalTT_TableName;
 

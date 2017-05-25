@@ -54,7 +54,7 @@ void informLoadOrder(const std::vector<LoadAgentsOrderOption>& order)
 	{
 		for (std::vector<LoadAgentsOrderOption>::const_iterator it = order.begin(); it != order.end(); ++it)
 		{
-			if ((*it) == LoadAg_Drivers)
+			if ((*it) == LoadAg_XML)
 			{
 				std::cout << "XML Trip file";
 			}
@@ -151,6 +151,7 @@ SubTrip makeSubTrip(soci::row &r)
 	SubTrip subtrip;
 	subtrip.itemType = TripChainItem::IT_TRIP;
 	subtrip.tripID = r.get<string>(COLUMN_TRIP_ID);
+	subtrip.startTime = DailyTime(r.get<string>(COLUMN_TRIP_START_TIME));
 	subtrip.sequenceNumber = r.get<unsigned int>(COLUMN_SEQUENCE_NUMBER);
 	subtrip.travelMode = r.get<string>(COLUMN_MODE);
 	subtrip.ptLineId = r.get<string>(COLUMN_PT_LINE_ID);
@@ -280,7 +281,6 @@ stConfig(stConfig), cfg(cfg), active_agents(active_agents), pending_agents(pendi
 
 void ExpandShortTermConfigFile::processConfig()
 {
-	cfg.simMobRunMode = ConfigParams::SimMobRunMode::SHORT_TERM;
 	cfg.setWorkerPublisherEnabled(stConfig.commsim.enabled);
 
 	//Inform of load order (drivers, database, pedestrians, etc.).
@@ -383,6 +383,9 @@ void ExpandShortTermConfigFile::loadNetworkFromDatabase()
 		//The instance of the network loader
 		NetworkLoader *loader = NetworkLoader::getInstance();
 
+		//Output Database details
+		std::cout << "Database connection: " << cfg.getDatabaseConnectionString() << "\n\n";
+
 		//Load the road network
 		loader->loadNetwork(cfg.getDatabaseConnectionString(false), cfg.getDatabaseProcMappings().procedureMappings);
 
@@ -441,22 +444,12 @@ void ExpandShortTermConfigFile::loadAgentsInOrder(ConfigParams::AgentConstraints
 			std::cout << "Loaded agents from the database (Trip Chains).\n";
 			break;
 		
-		case LoadAg_Drivers:
+		case LoadAg_XML:
 			for (std::map<std::string, std::vector<EntityTemplate> >::const_iterator it = stConfig.futureAgents.begin(); it != stConfig.futureAgents.end(); it++)
 			{
 				generateXMLAgents(it->second);
 			}
 			std::cout << "\nLoaded drivers from the configuration file.\n";
-			break;
-			
-		case LoadAg_Pedestrians:
-			//generateXMLAgents(stConfig.futureAgents["pedestrian"]);
-			//std::cout << "Loaded pedestrians from the configuration file).\n";
-			break;
-		
-		case LoadAg_Passengers:
-			//generateXMLAgents(stConfig.futureAgents["passenger"]);
-			//std::cout << "Loaded passengers from the configuration file).\n";
 			break;
 		
 		default:
@@ -708,9 +701,6 @@ void ExpandShortTermConfigFile::printSettings()
 	std::cout << "\nConfiguration parameters:\n";
 	std::cout << "------------------\n";
 
-	//Output Database details
-	std::cout << "Database connection: " << cfg.getDatabaseConnectionString() << "\n";
-
 	//Print the WorkGroup strategy.
 	std::cout << "WorkGroup assignment: ";
 	switch (cfg.defaultWrkGrpAssignment())
@@ -728,10 +718,10 @@ void ExpandShortTermConfigFile::printSettings()
 
 	//Basic statistics
 	std::cout << "  Base Granularity: " << cfg.baseGranMS() << " " << "ms" << "\n";
-	std::cout << "  Total Runtime: " << cfg.totalRuntimeTicks << " " << "ticks" << "\n";
+	std::cout << "  Simultation duration: " << cfg.simStartTime().getStrRepr() << " to "
+	          << DailyTime(cfg.totalRuntimeInMilliSeconds() + cfg.simStartTime().getValue()).getStrRepr() << "\n";
 	std::cout << "  Total Warmup: " << cfg.totalWarmupTicks << " " << "ticks" << "\n";
 	std::cout << "  Person Granularity: " << stConfig.granPersonTicks << " " << "ticks" << "\n";
-	std::cout << "  Start time: " << cfg.simStartTime().getStrRepr() << "\n";
 	std::cout << "  Mutex strategy: " << (cfg.mutexStategy() == MtxStrat_Locked ? "Locked" : cfg.mutexStategy() == MtxStrat_Buffered ? "Buffered" : "Unknown") << "\n";
 
 	//Print the network (this will go to a different output file...)

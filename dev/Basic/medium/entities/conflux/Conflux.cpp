@@ -43,6 +43,7 @@
 #include "geospatial/network/RoadNetwork.hpp"
 #include "geospatial/network/RoadSegment.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
+#include "logging/ControllerLog.hpp"
 #include "logging/Log.hpp"
 #include "message/MessageBus.hpp"
 #include "message/MobilityServiceControllerMessage.hpp"
@@ -311,7 +312,7 @@ void Conflux::addAgent(Person_MT* person)
 						new TripRequestMessage(person->currTick, person->getDatabaseId(),
 							confluxNode->getNodeId(), (*taxiTripItr).destination.node->getNodeId(), 0)));
 
-					Print() << "Request made from " << person->getDatabaseId() << " at time " << person->currTick.frame() << ". Message was sent at "
+					ControllerLog() << "Request made from " << person->getDatabaseId() << " at time " << person->currTick.frame() << ". Message was sent at "
 						<< person->currTick.frame() << " with startNodeId " << confluxNode->getNodeId() << ", destinationNodeId " << (*taxiTripItr).destination.node->getNodeId()
 						<< ", and driverId null" << std::endl;
 				}
@@ -2913,4 +2914,5 @@ sim_mob::medium::PersonTransferMessage::PersonTransferMessage(Person_MT* person,
 sim_mob::medium::PersonTransferMessage::~PersonTransferMessage()
 {
 }
+
 

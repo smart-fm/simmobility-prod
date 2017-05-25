@@ -8,6 +8,7 @@
 #include "MobilityServiceController.hpp"
 
 #include "entities/Person.hpp"
+#include "logging/ControllerLog.hpp"
 #include "message/MessageBus.hpp"
 #include "message/MobilityServiceControllerMessage.hpp"
 
@@ -48,13 +49,15 @@ Entity::UpdateStatus MobilityServiceController::frame_init(timeslice now)
 	{
 		messaging::MessageBus::RegisterHandler(this);
 	}
+
+	currTick = now;
 	
 	return Entity::UpdateStatus::Continue;
 }
 
 Entity::UpdateStatus MobilityServiceController::frame_tick(timeslice now)
 {
-	currTimeSlice = now;
+	currTick = now;
 
 	if (localTick == scheduleComputationPeriod)
 	{
@@ -128,7 +131,7 @@ void MobilityServiceController::HandleMessage(messaging::Message::MessageType ty
         {
 			const TripRequestMessage& requestArgs = MSG_CAST(TripRequestMessage, message);
 
-			Print() << "Request received from " << requestArgs.personId << " at time " << currTick.frame() << ". Message was sent at "
+			ControllerLog() << "Request received from " << requestArgs.personId << " at time " << currTick.frame() << ". Message was sent at "
 				<< requestArgs.currTick.frame() << " with startNodeId " << requestArgs.startNodeId << ", destinationNodeId "
 				<< requestArgs.destinationNodeId << ", and driverId null" << std::endl;
 
@@ -141,7 +144,7 @@ void MobilityServiceController::HandleMessage(messaging::Message::MessageType ty
         {
 			const SchedulePropositionReplyMessage& replyArgs = MSG_CAST(SchedulePropositionReplyMessage, message);
 			if (!replyArgs.success) {
-				Print() << "Assignment failure received from " << replyArgs.personId << " at time "
+				ControllerLog() << "Assignment failure received from " << replyArgs.personId << " at time "
 					<< currTick.frame() << ". Message was sent at " << replyArgs.currTick.frame() << " with startNodeId "
 					<< replyArgs.startNodeId << ", destinationNodeId " << replyArgs.destinationNodeId << ", and driverId "
 					<< replyArgs.driver->getDatabaseId() << std::endl;
@@ -149,7 +152,7 @@ void MobilityServiceController::HandleMessage(messaging::Message::MessageType ty
 				requestQueue.push_back({replyArgs.currTick, replyArgs.personId, replyArgs.startNodeId,
 					replyArgs.destinationNodeId, replyArgs.extraTripTimeThreshold});
 			} else {
-				Print() << "Assignment success received from " << replyArgs.personId << " at time "
+				ControllerLog() << "Assignment success received from " << replyArgs.personId << " at time "
 					<< currTick.frame() << ". Message was sent at " << replyArgs.currTick.frame() << " with startNodeId "
 					<< replyArgs.startNodeId << ", destinationNodeId " << replyArgs.destinationNodeId << ", and driverId "
 					<< replyArgs.driver->getDatabaseId() << std::endl;
@@ -167,3 +170,4 @@ bool MobilityServiceController::isNonspatial()
 	return true;
 }
 }
+

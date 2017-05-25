@@ -14,6 +14,7 @@
 #include "entities/misc/TaxiTrip.hpp"
 #include "entities/roles/DriverRequestParams.hpp"
 #include "entities/TaxiFleetManager.hpp"
+#include "logging/ControllerLog.hpp"
 #include "Person_MT.hpp"
 
 using namespace std;
@@ -149,8 +150,8 @@ void BusControllerMT::assignBusTripChainWithPerson(std::set<Entity*>& activeAgen
 	// 47, 94, 141, 188, 235
 	const int numberOfTaxis = 47;
 
-	Print() << "Map size " << groupFleets.size() << std::endl;
-	Print() << "Number of taxis " << numberOfTaxis << std::endl;
+	ControllerLog() << "Map size " << groupFleets.size() << std::endl;
+	ControllerLog() << "Number of taxis " << numberOfTaxis << std::endl;
 
 	for (auto i=groupFleets.begin(); i!= groupFleets.end(); i++)
 	{
@@ -178,5 +179,4 @@ void BusControllerMT::assignBusTripChainWithPerson(std::set<Entity*>& activeAgen
 		}
 	}
 }
-
 

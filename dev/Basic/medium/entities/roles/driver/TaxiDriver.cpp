@@ -9,6 +9,7 @@
 #include "Driver.hpp"
 #include "entities/controllers/MobilityServiceControllerManager.hpp"
 #include "geospatial/network/RoadNetwork.hpp"
+#include "logging/ControllerLog.hpp"
 #include "message/MessageBus.hpp"
 #include "message/MobilityServiceControllerMessage.hpp"
 #include "path/PathSetManager.hpp"
@@ -85,7 +86,7 @@ void TaxiDriver::alightPassenger()
 			Conflux *parentConflux = segStats->getParentConflux();
 			parentConflux->dropOffTaxiTraveler(parentPerson);
 
-			Print() << "Drop-off for " << parentPerson->getDatabaseId() << " at time " << parentPerson->currTick.frame()
+			ControllerLog() << "Drop-off for " << parentPerson->getDatabaseId() << " at time " << parentPerson->currTick.frame()
 				<< ". Message was sent at null with startNodeId null, destinationNodeId " << parentConflux->getConfluxNode()->getNodeId()
 				<< ", and driverId null" << std::endl;
 		}
@@ -111,7 +112,7 @@ void TaxiDriver::HandleParentMessage(messaging::Message::MessageType type, const
 		{
 			const SchedulePropositionMessage& msg = MSG_CAST(SchedulePropositionMessage, message);
 
-			Print() << "Assignment received for " << msg.personId << " at time " << parent->currTick.frame()
+			ControllerLog() << "Assignment received for " << msg.personId << " at time " << parent->currTick.frame()
 				<< ". Message was sent at " << msg.currTick.frame() << " with startNodeId " << msg.startNodeId
 				<< ", destinationNodeId " << msg.destinationNodeId << ", and driverId null" << std::endl;
 
@@ -119,7 +120,7 @@ void TaxiDriver::HandleParentMessage(messaging::Message::MessageType type, const
 
 			std::map<unsigned int, Node*>::iterator it = nodeIdMap.find(msg.startNodeId); 
 			if (it == nodeIdMap.end()) {
-				Print() << "Message contains bad start node " << msg.startNodeId << std::endl;
+				ControllerLog() << "Message contains bad start node " << msg.startNodeId << std::endl;
 
 				if (MobilityServiceControllerManager::HasMobilityServiceControllerManager())
 				{
@@ -129,7 +130,7 @@ void TaxiDriver::HandleParentMessage(messaging::Message::MessageType type, const
 						messaging::MessageBus::MessagePtr(new SchedulePropositionReplyMessage(parent->currTick, msg.personId, parent,
 							msg.startNodeId, msg.destinationNodeId, msg.extraTripTimeThreshold, false)));
 
-					Print() << "Assignment response sent for " << msg.personId << " at time " << parent->currTick.frame()
+					ControllerLog() << "Assignment response sent for " << msg.personId << " at time " << parent->currTick.frame()
 						<< ". Message was sent at " << msg.currTick.frame() << " with startNodeId " << msg.startNodeId
 						<< ", destinationNodeId " << msg.destinationNodeId << ", and driverId null" << std::endl;
 				}
@@ -148,7 +149,7 @@ void TaxiDriver::HandleParentMessage(messaging::Message::MessageType type, const
 					messaging::MessageBus::MessagePtr(new SchedulePropositionReplyMessage(parent->currTick, msg.personId, parent,
 						msg.startNodeId, msg.destinationNodeId, msg.extraTripTimeThreshold, success)));
 
-				Print() << "Assignment response sent for " << msg.personId << " at time " << parent->currTick.frame()
+				ControllerLog() << "Assignment response sent for " << msg.personId << " at time " << parent->currTick.frame()
 					<< ". Message was sent at " << msg.currTick.frame() << " with startNodeId " << msg.startNodeId
 					<< ", destinationNodeId " << msg.destinationNodeId << ", and driverId " << parent->getDatabaseId() << std::endl;
 			}
@@ -264,5 +265,6 @@ TaxiDriver::~TaxiDriver()
 }
 }
 }
+
 
 

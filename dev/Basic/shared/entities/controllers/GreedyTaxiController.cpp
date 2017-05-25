@@ -7,6 +7,7 @@
 
 #include "GreedyTaxiController.hpp"
 #include "geospatial/network/RoadNetwork.hpp"
+#include "logging/ControllerLog.hpp"
 #include "message/MessageBus.hpp"
 #include "message/MobilityServiceControllerMessage.hpp"
 #include "entities/mobilityServiceDriver/MobilityServiceDriver.hpp"
@@ -28,7 +29,7 @@ std::vector<MobilityServiceController::MessageResult> GreedyTaxiController::comp
 
 		std::map<unsigned int, Node*>::iterator it = nodeIdMap.find((*request).startNodeId); 
 		if (it == nodeIdMap.end()) {
-			Print() << "Request contains bad start node " << (*request).startNodeId << std::endl;
+			ControllerLog() << "Request contains bad start node " << (*request).startNodeId << std::endl;
 			results.push_back(MESSAGE_ERROR_BAD_NODE);
 			continue;
 		}
@@ -36,7 +37,7 @@ std::vector<MobilityServiceController::MessageResult> GreedyTaxiController::comp
 
 		it = nodeIdMap.find((*request).destinationNodeId); 
 		if (it == nodeIdMap.end()) {
-			Print() << "Request contains bad destination node " << (*request).destinationNodeId << std::endl;
+			ControllerLog() << "Request contains bad destination node " << (*request).destinationNodeId << std::endl;
 			results.push_back(MESSAGE_ERROR_BAD_NODE);
 			continue;
 		}
@@ -84,18 +85,18 @@ std::vector<MobilityServiceController::MessageResult> GreedyTaxiController::comp
 
 		if (bestDistance == -1)
 		{
-			Print() << "No available vehicles" << std::endl;
+			ControllerLog() << "No available vehicles" << std::endl;
 			results.push_back(MESSAGE_ERROR_VEHICLES_UNAVAILABLE);
 			continue;
 		}
 
-		Print() << "Closest vehicle is at (" << bestX << ", " << bestY << ")" << std::endl;
+		ControllerLog() << "Closest vehicle is at (" << bestX << ", " << bestY << ")" << std::endl;
 
 		messaging::MessageBus::PostMessage((messaging::MessageHandler*) bestDriver, MSG_SCHEDULE_PROPOSITION, messaging::MessageBus::MessagePtr(
 			new SchedulePropositionMessage(currTick, (*request).personId, (*request).startNodeId,
 				(*request).destinationNodeId, (*request).extraTripTimeThreshold)));
 
-		Print() << "Assignment sent for " << (*request).personId << " at time " << currTick.frame()
+		ControllerLog() << "Assignment sent for " << (*request).personId << " at time " << currTick.frame()
 		<< ". Message was sent at " << (*request).currTick.frame() << " with startNodeId " << (*request).startNodeId
 		<< ", destinationNodeId " << (*request).destinationNodeId << ", and driverId null" << std::endl;
 
@@ -128,3 +129,4 @@ const Node* GreedyTaxiController::getCurrentNode(Person* p)
     return nullptr;
 }
 }
+

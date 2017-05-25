@@ -57,6 +57,7 @@
 #include "entities/TravelTimeManager.hpp"
 #include "entities/fmodController/FMOD_Controller.hpp"
 #include "geospatial/network/NetworkLoader.hpp"
+#include "logging/ControllerLog.hpp"
 #include "logging/Log.hpp"
 #include "network/CommunicationManager.hpp"
 #include "network/ControlManager.hpp"
@@ -128,12 +129,14 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 	if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled()) 
 	{
 		Warn::Init("warn.log");
-		Print::Init("<stdout>");		
+		Print::Init("<stdout>");
+		ControllerLog::Init("controller.log");
 	}
 	else 
 	{
 		Warn::Ignore();
-		Print::Ignore();		
+		Print::Ignore();
+		ControllerLog::Ignore();
 	}
 
 	ProfileBuilder* prof = nullptr;
@@ -403,6 +406,7 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 				}
 				
 				PrintOut(msg.str());
+				ControllerLogOut(msg.str());
 			} 
 			else 
 			{
@@ -710,4 +714,5 @@ int main_impl(int ARGC, char* ARGV[])
 	Print() << "Done" << endl;
 	return returnVal;
 }
+
 

@@ -5,7 +5,7 @@
  *      Author: zhang huai peng
  */
 
-#include "TaxiFleetManager.hpp"
+#include "FleetManager.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include <soci/postgresql/soci-postgresql.h>
@@ -17,7 +17,7 @@
 namespace bt = boost::posix_time;
 namespace sim_mob
 {
-TaxiFleetManager* TaxiFleetManager::instance = nullptr;
+FleetManager* FleetManager::instance = nullptr;
 
 double getSecondFrmTimeString(const std::string& startTime)
 {
@@ -28,25 +28,25 @@ double getSecondFrmTimeString(const std::string& startTime)
 	return (double)pt.time_of_day().ticks() / (double)bt::time_duration::rep_type::ticks_per_second;
 }
 
-TaxiFleetManager::TaxiFleetManager()
+FleetManager::FleetManager()
 {
 	LoadTaxiDemandFrmDB();
 }
 
-TaxiFleetManager* TaxiFleetManager::getInstance()
+FleetManager* FleetManager::getInstance()
 {
 	if(!instance){
-		instance = new TaxiFleetManager();
+		instance = new FleetManager();
 	}
 	return instance;
 }
 
-TaxiFleetManager::~TaxiFleetManager()
+FleetManager::~FleetManager()
 {
 
 }
 
-void TaxiFleetManager::LoadTaxiDemandFrmDB()
+void FleetManager::LoadTaxiDemandFrmDB()
 {
 	ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
 	soci::session sql_(soci::postgresql,cfg.getDatabaseConnectionString(false));
@@ -76,7 +76,7 @@ void TaxiFleetManager::LoadTaxiDemandFrmDB()
 	}
 }
 
-std::vector<TaxiFleetManager::TaxiFleet> TaxiFleetManager::dispatchTaxiAtCurrentTime(const unsigned int currentTimeSec)
+std::vector<FleetManager::TaxiFleet> FleetManager::dispatchTaxiAtCurrentTime(const unsigned int currentTimeSec)
 {
 	std::vector<TaxiFleet> res;
 	auto i=taxiFleets.begin();
@@ -95,7 +95,7 @@ std::vector<TaxiFleetManager::TaxiFleet> TaxiFleetManager::dispatchTaxiAtCurrent
 	return res;
 }
 
-const std::vector<TaxiFleetManager::TaxiFleet>& TaxiFleetManager::getAllTaxiFleet() const
+const std::vector<FleetManager::TaxiFleet>& FleetManager::getAllTaxiFleet() const
 {
 	return taxiFleets;
 }

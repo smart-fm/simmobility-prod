@@ -13,7 +13,7 @@
 #include "entities/misc/BusTrip.hpp"
 #include "entities/misc/TaxiTrip.hpp"
 #include "entities/roles/DriverRequestParams.hpp"
-#include "entities/TaxiFleetManager.hpp"
+#include "entities/FleetManager.hpp"
 #include "Person_MT.hpp"
 
 using namespace std;
@@ -137,11 +137,11 @@ void BusControllerMT::assignBusTripChainWithPerson(std::set<Entity*>& activeAgen
 		busDrivers.push_back(*it);
 	}
 
-	const std::vector<TaxiFleetManager::TaxiFleet> taxiFleets = TaxiFleetManager::getInstance()->getAllTaxiFleet();
-	std::map<std::string, TaxiFleetManager::FleetTimePriorityQueue> groupFleets;
+	const std::vector<FleetManager::TaxiFleet> taxiFleets = FleetManager::getInstance()->getAllTaxiFleet();
+	std::map<std::string, FleetManager::FleetTimePriorityQueue> groupFleets;
 	for (auto i=taxiFleets.begin(); i!=taxiFleets.end(); i++)
 	{
-		const TaxiFleetManager::TaxiFleet& taxi = (*i);
+		const FleetManager::TaxiFleet& taxi = (*i);
 		groupFleets[taxi.vehicleNo].push(taxi);
 	}
 
@@ -155,8 +155,8 @@ void BusControllerMT::assignBusTripChainWithPerson(std::set<Entity*>& activeAgen
 	for (auto i=groupFleets.begin(); i!= groupFleets.end(); i++)
 	{
 		if (currTaxi < numberOfTaxis) {
-			const TaxiFleetManager::FleetTimePriorityQueue& fleetItems = i->second;
-			const TaxiFleetManager::TaxiFleet& taxi = fleetItems.top();
+			const FleetManager::FleetTimePriorityQueue& fleetItems = i->second;
+			const FleetManager::TaxiFleet& taxi = fleetItems.top();
 
 			Person_MT* person = new Person_MT("TaxiController", config.mutexStategy(), -1);
 			person->setTaxiFleet(fleetItems);

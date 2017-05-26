@@ -13,10 +13,10 @@
 namespace sim_mob
 {
 class Node;
-class TaxiFleetManager {
+class FleetManager {
 public:
-	TaxiFleetManager();
-	virtual ~TaxiFleetManager();
+	FleetManager();
+	virtual ~FleetManager();
 	struct TaxiFleet
 	{
 		std::string vehicleNo;
@@ -47,7 +47,7 @@ public:
 	 * get global singleton instance of FleetManager
 	 * @return pointer to the global instance of FleetManager
 	 */
-	static TaxiFleetManager* getInstance();
+	static FleetManager* getInstance();
 	/**
 	 * get taxi fleet at current time
 	 * @param currentTimeSec is current time in seconds
@@ -62,7 +62,7 @@ private:
 	/**store taxi fleet information*/
 	std::vector<TaxiFleet> taxiFleets;
 	/**store self instance*/
-	static TaxiFleetManager* instance;
+	static FleetManager* instance;
 };
 }
 #endif /* TAXIFLEETMANAGER_HPP_ */

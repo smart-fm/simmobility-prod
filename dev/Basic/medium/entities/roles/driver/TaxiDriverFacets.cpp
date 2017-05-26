@@ -51,11 +51,11 @@ void TaxiDriverMovement::frame_init()
 	}
 
 	selectNextLinkWhileCruising();
-	TaxiFleetManager::FleetTimePriorityQueue& fleets = parentTaxiDriver->parent->getTaxiFleet();
+	FleetManager::FleetTimePriorityQueue& fleets = parentTaxiDriver->parent->getTaxiFleet();
 	fleets.pop();
 	while(fleets.size()>0)
 	{
-		TaxiFleetManager::TaxiFleet fleet = fleets.top();
+		FleetManager::TaxiFleet fleet = fleets.top();
 		fleets.pop();
 		taxiFleets.push(fleet);
 	}
@@ -267,7 +267,7 @@ bool TaxiDriverMovement::checkNextFleet()
 	DriverUpdateParams& params = parentTaxiDriver->getParams();
 	if(taxiFleets.size()>0)
 	{
-		TaxiFleetManager::TaxiFleet fleet = taxiFleets.front();
+		FleetManager::TaxiFleet fleet = taxiFleets.front();
 		if(fleet.startTime<params.now.ms()/1000.0)
 		{
 			const Link* link = this->currLane->getParentSegment()->getParentLink();

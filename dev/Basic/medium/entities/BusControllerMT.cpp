@@ -131,7 +131,7 @@ void BusControllerMT::assignBusTripChainWithPerson(std::set<Entity*>& activeAgen
 		busDrivers.push_back(*it);
 	}
 
-	const std::vector<FleetManager::FleetItem> &fleet = FleetManager::getInstance()->getAllTaxiFleet();
+	const std::vector<FleetManager::FleetItem> &fleet = FleetManager::getInstance()->getTaxiFleet();
 	std::map<std::string, FleetManager::FleetTimePriorityQueue> fleetMap;
 
 	for (auto i=fleet.begin(); i!=fleet.end(); i++)

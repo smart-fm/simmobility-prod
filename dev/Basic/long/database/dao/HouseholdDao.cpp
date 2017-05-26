@@ -11,6 +11,7 @@
 
 #include "HouseholdDao.hpp"
 #include "DatabaseHelper.hpp"
+#include <limits.h>
 
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;

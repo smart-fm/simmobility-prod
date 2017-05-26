@@ -127,8 +127,8 @@
 	    <fixedWorkVariableHome value ="false"/>
 	</outputHouseholdLogsums>
     	<housingModel enabled="true"> 	    
-            <timeOnMarket value="90"/>
-            <timeOffMarket value="150"/>
+            <timeOnMarket value="180"/>
+            <timeOffMarket value="180"/>
             <timeInterval value="7"/>
 	    <awakeningModel enabled="true">
 		    <initialHouseholdsOnMarket value="15000"/>
@@ -139,7 +139,7 @@
                     <awakeningOffMarketSuccessfulBid value="200"/>
  	            <awakeningOffMarketUnsuccessfulBid value="200"/>
 	    </awakeningModel>
-	    <vacantUnitActivationProbability value="0.375"/>
+	    <vacantUnitActivationProbability value="0.1875"/>
 	    <housingMarketSearchPercentage value="0.15"/>
 	    <housingMoveInDaysInterval value="30"/>	   
 	    <bidderUnitsChoiceSet value = "50"/>

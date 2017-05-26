@@ -65,11 +65,23 @@ HouseholdAgent::HouseholdAgent(BigSerial _id, HM_Model* _model, Household* _hous
     	householdBiddingWindow = ( config.ltParams.housingModel.housingMoveInDaysInterval + config.ltParams.housingModel.householdBiddingWindow ) * (double)rand() / RAND_MAX + 1;
     }
 
+    futureTransitionOwn = false;
 
     if( household )
+    {
     	(const_cast<Household*>(household))->setTimeOnMarket(householdBiddingWindow);
 
-    futureTransitionOwn = false;
+
+		double householdIncome = 0;
+		vector<BigSerial> individuals = household->getIndividuals();
+		for(int n = 0; n < individuals.size(); n++)
+		{
+			const Individual *individual = getModel()->getIndividualById(individuals[n]);
+			householdIncome += individual->getIncome();
+		}
+
+		household->setIncome(householdIncome);
+    }
 
 }
 

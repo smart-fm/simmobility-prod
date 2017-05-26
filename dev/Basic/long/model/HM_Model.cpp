@@ -1934,7 +1934,7 @@ void HM_Model::startImpl()
 				}
 				else
 				{
-					(*it)->setbiddingMarketEntryDay( unitStartDay +( (float)rand() / RAND_MAX * 365) );
+					(*it)->setbiddingMarketEntryDay( unitStartDay + (float)rand() / RAND_MAX * config.ltParams.housingModel.timeOnMarket);
 					offMarket++;
 				}
 
@@ -2037,7 +2037,7 @@ void HM_Model::startImpl()
 
 			if(thisUnit->getZoneHousingType() == 0)
 			{
-				PrintOutV(" " << thisUnit->getId() << " " << thisUnit->getDwellingType() << " " << planningAreaName << std::endl );
+				//PrintOutV(" " << thisUnit->getId() << " " << thisUnit->getDwellingType() << " " << planningAreaName << std::endl );
 			}
 		}
 	}

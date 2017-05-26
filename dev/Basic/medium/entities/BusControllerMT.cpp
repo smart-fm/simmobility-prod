@@ -4,15 +4,8 @@
 
 #include "BusControllerMT.hpp"
 
-#include <map>
-#include <string>
-#include <vector>
-#include "buffering/Shared.hpp"
 #include "conf/ConfigManager.hpp"
-#include "conf/ConfigParams.hpp"
-#include "entities/misc/BusTrip.hpp"
 #include "entities/misc/TaxiTrip.hpp"
-#include "entities/roles/DriverRequestParams.hpp"
 #include "entities/FleetManager.hpp"
 #include "logging/ControllerLog.hpp"
 #include "Person_MT.hpp"

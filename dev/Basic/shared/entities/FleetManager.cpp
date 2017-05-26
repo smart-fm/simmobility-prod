@@ -5,14 +5,11 @@
  *      Author: zhang huai peng
  */
 
+#include <boost/date_time.hpp>
+
 #include "FleetManager.hpp"
 #include "conf/ConfigManager.hpp"
-#include "conf/ConfigParams.hpp"
-#include <soci/postgresql/soci-postgresql.h>
-#include <soci/soci.h>
 #include "util/Utils.hpp"
-#include <iostream>
-#include <boost/date_time.hpp>
 
 namespace bt = boost::posix_time;
 namespace sim_mob

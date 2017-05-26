@@ -18,7 +18,7 @@ namespace sim_mob
 class MobilityServiceController : public Agent {
 protected:
 	explicit MobilityServiceController(const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered, unsigned int computationPeriod = 0)
-		: Agent(mtxStrat, -1), scheduleComputationPeriod(computationPeriod), currTimeSlice(timeslice(0, 0))
+		: Agent(mtxStrat, -1), scheduleComputationPeriod(computationPeriod)
 	{
 	}
 
@@ -82,9 +82,6 @@ protected:
 	/** Store queue of requests */
 	std::vector<TripRequest> requestQueue;
 
-	/** Store current timeslice */
-	timeslice currTimeSlice;
-
 private:
 	/**
 	 * Subscribes a vehicle driver to the controller
@@ -117,3 +114,4 @@ private:
 };
 }
 #endif /* MobilityServiceController_HPP_ */
+

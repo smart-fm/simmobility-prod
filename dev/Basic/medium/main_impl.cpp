@@ -53,6 +53,7 @@
 #include "geospatial/streetdir/A_StarPublicTransitShortestPathImpl.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "geospatial/network/Lane.hpp"
+#include "logging/ControllerLog.hpp"
 #include "logging/Log.hpp"
 #include "partitions/PartitionManager.hpp"
 #include "path/PathSetManager.hpp"
@@ -369,6 +370,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 				msg << "  Warmup; output ignored." << endl;
 			}
 			PrintOut(msg.str());
+			ControllerLogOut(msg.str());
 		}
 		else
 		{
@@ -523,12 +525,14 @@ bool performMainMed(const std::string& configFileName, const std::string& mtConf
 		//Log::Init("out.txt");
 		Warn::Init("warn.log");
 		Print::Init("<stdout>");
+		ControllerLog::Init("controller.log");
 	}
 	else
 	{
 		//Log::Ignore();
 		Warn::Ignore();
 		Print::Ignore();
+		ControllerLog::Ignore();
 	}
 
     if (MT_Config::getInstance().RunningMidSupply())
@@ -634,7 +638,4 @@ int main_impl(int ARGC, char* ARGV[])
 
 	return returnVal;
 }
-
-
-
 

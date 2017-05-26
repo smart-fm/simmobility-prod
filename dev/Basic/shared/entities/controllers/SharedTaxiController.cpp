@@ -11,6 +11,7 @@
 #include <boost/graph/max_cardinality_matching.hpp>
 
 #include "geospatial/network/RoadNetwork.hpp"
+#include "logging/ControllerLog.hpp"
 #include "message/MessageBus.hpp"
 #include "message/MobilityServiceControllerMessage.hpp"
 #include "path/PathSetManager.hpp"
@@ -33,7 +34,7 @@ std::vector<MobilityServiceController::MessageResult> SharedTaxiController::comp
 		std::map<unsigned int, Node*>::iterator it = nodeIdMap.find((*request).startNodeId); 
 		if (it == nodeIdMap.end())
 		{
-			Print() << "Request contains bad start node " << (*request).startNodeId << std::endl;
+			ControllerLog() << "Request contains bad start node " << (*request).startNodeId << std::endl;
 
 			badRequests.push_back(requestIndex);
 
@@ -46,7 +47,7 @@ std::vector<MobilityServiceController::MessageResult> SharedTaxiController::comp
 		it = nodeIdMap.find((*request).destinationNodeId); 
 		if (it == nodeIdMap.end())
 		{
-			Print() << "Request contains bad destination node " << (*request).startNodeId << std::endl;
+			ControllerLog() << "Request contains bad destination node " << (*request).startNodeId << std::endl;
 
 			badRequests.push_back(requestIndex);
 
@@ -59,7 +60,7 @@ std::vector<MobilityServiceController::MessageResult> SharedTaxiController::comp
 		validRequests.push_back(*request);
 
 		double tripTime = PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(
-			startNode->getNodeId(), destinationNode->getNodeId(), DailyTime(currTimeSlice.ms()));
+			startNode->getNodeId(), destinationNode->getNodeId(), DailyTime(currTick.ms()));
 		desiredTravelTimes.push_back(tripTime);
 
 		request++;
@@ -80,7 +81,7 @@ std::vector<MobilityServiceController::MessageResult> SharedTaxiController::comp
 		unsigned int request2Index = request1Index + 1;
 		while (request2 != validRequests.end())
 		{
-			Print() << "(" << request1Index << ", " << request2Index << ")" << std::endl;
+			ControllerLog() << "(" << request1Index << ", " << request2Index << ")" << std::endl;
 			std::map<unsigned int, Node*>::iterator it = nodeIdMap.find((*request1).startNodeId); 
 			Node* startNode1 = it->second;
 
@@ -95,14 +96,14 @@ std::vector<MobilityServiceController::MessageResult> SharedTaxiController::comp
 
 			// o1 o2 d1 d2
 			double tripTime1 = PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(
-				startNode1->getNodeId(), startNode2->getNodeId(), DailyTime(currTimeSlice.ms()))
+				startNode1->getNodeId(), startNode2->getNodeId(), DailyTime(currTick.ms()))
 				+ PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(
-					startNode2->getNodeId(), destinationNode1->getNodeId(), DailyTime(currTimeSlice.ms()));
+					startNode2->getNodeId(), destinationNode1->getNodeId(), DailyTime(currTick.ms()));
 
 			double tripTime2 = PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(
-				startNode2->getNodeId(), destinationNode1->getNodeId(), DailyTime(currTimeSlice.ms()))
+				startNode2->getNodeId(), destinationNode1->getNodeId(), DailyTime(currTick.ms()))
 				+ PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(
-					destinationNode1->getNodeId(), destinationNode2->getNodeId(), DailyTime(currTimeSlice.ms()));
+					destinationNode1->getNodeId(), destinationNode2->getNodeId(), DailyTime(currTick.ms()));
 
 			if ((tripTime1 <= desiredTravelTimes.at(request1Index) + (*request1).extraTripTimeThreshold)
 				&& (tripTime2 <= desiredTravelTimes.at(request2Index) + (*request2).extraTripTimeThreshold))
@@ -113,14 +114,14 @@ std::vector<MobilityServiceController::MessageResult> SharedTaxiController::comp
 
 			// o2 o1 d2 d1
 			tripTime1 = PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(
-				startNode1->getNodeId(), destinationNode2->getNodeId(), DailyTime(currTimeSlice.ms()))
+				startNode1->getNodeId(), destinationNode2->getNodeId(), DailyTime(currTick.ms()))
 				+ PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(
-					destinationNode2->getNodeId(), destinationNode1->getNodeId(), DailyTime(currTimeSlice.ms()));
+					destinationNode2->getNodeId(), destinationNode1->getNodeId(), DailyTime(currTick.ms()));
 
 			tripTime2 = PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(
-				startNode2->getNodeId(), startNode1->getNodeId(), DailyTime(currTimeSlice.ms()))
+				startNode2->getNodeId(), startNode1->getNodeId(), DailyTime(currTick.ms()))
 				+ PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(
-					startNode1->getNodeId(), destinationNode2->getNodeId(), DailyTime(currTimeSlice.ms()));
+					startNode1->getNodeId(), destinationNode2->getNodeId(), DailyTime(currTick.ms()));
 
 			if ((tripTime1 <= desiredTravelTimes.at(request1Index) + (*request1).extraTripTimeThreshold)
 				&& (tripTime2 <= desiredTravelTimes.at(request2Index) + (*request2).extraTripTimeThreshold))
@@ -144,11 +145,11 @@ std::vector<MobilityServiceController::MessageResult> SharedTaxiController::comp
 
 			// o1 o2 d2 d1
 			tripTime1 = PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(
-				startNode1->getNodeId(), startNode2->getNodeId(), DailyTime(currTimeSlice.ms()))
+				startNode1->getNodeId(), startNode2->getNodeId(), DailyTime(currTick.ms()))
 				+ PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(
-					startNode2->getNodeId(), destinationNode2->getNodeId(), DailyTime(currTimeSlice.ms()))
+					startNode2->getNodeId(), destinationNode2->getNodeId(), DailyTime(currTick.ms()))
 				+ PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(
-					destinationNode2->getNodeId(), destinationNode1->getNodeId(), DailyTime(currTimeSlice.ms()));
+					destinationNode2->getNodeId(), destinationNode1->getNodeId(), DailyTime(currTick.ms()));
 
 			if (tripTime1 <= desiredTravelTimes.at(request1Index) + (*request1).extraTripTimeThreshold)
 			{
@@ -171,11 +172,11 @@ std::vector<MobilityServiceController::MessageResult> SharedTaxiController::comp
 
 			// o2 o1 d1 d2
 			tripTime2 = PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(
-				startNode2->getNodeId(), startNode1->getNodeId(), DailyTime(currTimeSlice.ms()))
+				startNode2->getNodeId(), startNode1->getNodeId(), DailyTime(currTick.ms()))
 				+ PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(
-					startNode1->getNodeId(), destinationNode1->getNodeId(), DailyTime(currTimeSlice.ms()))
+					startNode1->getNodeId(), destinationNode1->getNodeId(), DailyTime(currTick.ms()))
 				+ PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(
-					destinationNode1->getNodeId(), destinationNode2->getNodeId(), DailyTime(currTimeSlice.ms()));
+					destinationNode1->getNodeId(), destinationNode2->getNodeId(), DailyTime(currTick.ms()));
 
 			if (tripTime2 <= desiredTravelTimes.at(request2Index) + (*request2).extraTripTimeThreshold)
 			{
@@ -203,7 +204,7 @@ std::vector<MobilityServiceController::MessageResult> SharedTaxiController::comp
 		request1Index++;
 	}
 
-	Print() << "About to perform matching, wish me luck" << std::endl;
+	ControllerLog() << "About to perform matching, wish me luck" << std::endl;
 
 	// 3. Perform maximum matching
 	std::vector<TripRequest> privateCarRequests;
@@ -211,7 +212,7 @@ std::vector<MobilityServiceController::MessageResult> SharedTaxiController::comp
 
 	if (success)
 	{
-		Print() << "Found matching of size " << matching_size(graph, &mate[0])
+		ControllerLog() << "Found matching of size " << matching_size(graph, &mate[0])
 				<< " for request list size of " << validRequests.size() << std::endl;
 
 		boost::graph_traits<boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS>>::vertex_iterator vi, vi_end;
@@ -244,7 +245,7 @@ std::vector<MobilityServiceController::MessageResult> SharedTaxiController::comp
 	}
 	else
 	{
-		Print() << "Did not find matching" << std::endl;
+		ControllerLog() << "Did not find matching" << std::endl;
 
 		for (std::vector<TripRequest>::iterator it = validRequests.begin(); it != validRequests.end(); it++)
 		{
@@ -310,18 +311,18 @@ std::vector<MobilityServiceController::MessageResult> SharedTaxiController::comp
 
 		if (bestDistance == -1)
 		{
-			Print() << "No available vehicles" << std::endl;
+			ControllerLog() << "No available vehicles" << std::endl;
 			results.push_back(MESSAGE_ERROR_VEHICLES_UNAVAILABLE);
 			continue;
 		}
 
-		Print() << "Closest vehicle is at (" << bestX << ", " << bestY << ")" << std::endl;
+		ControllerLog() << "Closest vehicle is at (" << bestX << ", " << bestY << ")" << std::endl;
 
 		messaging::MessageBus::PostMessage((messaging::MessageHandler*) bestDriver, MSG_SCHEDULE_PROPOSITION, messaging::MessageBus::MessagePtr(
 			new SchedulePropositionMessage(currTick, (*request).personId, (*request).startNodeId,
 				(*request).destinationNodeId, (*request).extraTripTimeThreshold)));
 
-		Print() << "Assignment sent for " << (*request).personId << " at time " << currTick.frame()
+		ControllerLog() << "Assignment sent for " << (*request).personId << " at time " << currTick.frame()
 			<< ". Message was sent at " << (*request).currTick.frame() << " with startNodeId " << (*request).startNodeId
 			<< ", destinationNodeId " << (*request).destinationNodeId << ", and driverId null" << std::endl;
 
@@ -359,3 +360,4 @@ const Node* SharedTaxiController::getCurrentNode(Person* p)
     return nullptr;
 }
 }
+

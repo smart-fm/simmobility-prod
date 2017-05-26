@@ -11,6 +11,7 @@
 #include "entities/misc/TaxiTrip.hpp"
 #include "entities/TaxiStandAgent.hpp"
 #include "geospatial/network/RoadNetwork.hpp"
+#include "logging/ControllerLog.hpp"
 #include "message/MessageBus.hpp"
 #include "message/MobilityServiceControllerMessage.hpp"
 #include "path/PathSetManager.hpp"
@@ -242,16 +243,16 @@ bool TaxiDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 
 		if (parentTaxiDriver->getPassenger() == nullptr)
 		{
-			Print() << "Pickup failed for " << personIdPickedUp << " at time " << parentTaxiDriver->parent->currTick.frame()
-				<< ". Message was sent at ??? with startNodeId ???, destinationNodeId " << destinationNode->getNodeId()
+			ControllerLog() << "Pickup failed for " << personIdPickedUp << " at time " << parentTaxiDriver->parent->currTick.frame()
+				<< ". Message was sent at ??? with startNodeId " << parentConflux->getConfluxNode()->getNodeId() << ", destinationNodeId ???"
 				<< ", and driverId " << parentTaxiDriver->parent->getDatabaseId() << std::endl;
 
 			setCruisingMode();
 		}
 		else
 		{
-			Print() << "Pickup succeeded for " << personIdPickedUp << " at time " << parentTaxiDriver->parent->currTick.frame()
-				<< ". Message was sent at ??? with startNodeId ???, destinationNodeId " << destinationNode->getNodeId()
+			ControllerLog() << "Pickup succeeded for " << personIdPickedUp << " at time " << parentTaxiDriver->parent->currTick.frame()
+				<< ". Message was sent at ??? with startNodeId " << parentConflux->getConfluxNode()->getNodeId() << ", destinationNodeId " << destinationNode->getNodeId()
 				<< ", and driverId " << parentTaxiDriver->parent->getDatabaseId() << std::endl;
 		}
 	}
@@ -668,11 +669,11 @@ bool TaxiDriverMovement::driveToNodeOnCall(const std::string& personId, const No
 
 	if (!res) {
 		if (mode != CRUISE)
-			Print() << "Assignment failed for " << personId << " because mode was not CRUISE" << std::endl;
+			ControllerLog() << "Assignment failed for " << personId << " because mode was not CRUISE" << std::endl;
 		else if (!destination)
-			Print() << "Assignment failed for " << personId << " because destination was null" << std::endl;
+			ControllerLog() << "Assignment failed for " << personId << " because destination was null" << std::endl;
 		else
-			Print() << "Assignment failed for " << personId << " because currentRouteChoice was empty" << std::endl;
+			ControllerLog() << "Assignment failed for " << personId << " because currentRouteChoice was empty" << std::endl;
 	}
 
 	return res;
@@ -744,5 +745,4 @@ TaxiDriverBehavior::~TaxiDriverBehavior()
 }
 }
 }
-
 

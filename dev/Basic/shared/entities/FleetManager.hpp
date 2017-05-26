@@ -13,11 +13,14 @@
 namespace sim_mob
 {
 class Node;
-class FleetManager {
+
+class FleetManager
+{
 public:
 	FleetManager();
 	virtual ~FleetManager();
-	struct TaxiFleet
+
+	struct FleetItem
 	{
 		std::string vehicleNo;
 		std::string driverId;
@@ -26,41 +29,46 @@ public:
 		const Node* startNode = nullptr;
 	};
 
-	struct cmp_fleet_start: public std::less<TaxiFleet>
+	struct cmp_fleet_start: public std::less<FleetItem>
 	{
-		bool operator()(const TaxiFleet& x, const TaxiFleet& y) const
+		bool operator()(const FleetItem& x, const FleetItem& y) const
 		{
 			return x.startTime > y.startTime;
 		}
 	};
 
-	class FleetTimePriorityQueue: public std::priority_queue<TaxiFleet,
-			std::vector<TaxiFleet>, cmp_fleet_start>
+	class FleetTimePriorityQueue: public std::priority_queue<FleetItem,
+			std::vector<FleetItem>, cmp_fleet_start>
 	{
 	};
-public:
+
 	/**
 	 * load taxi demand from database
 	 */
-	void LoadTaxiDemandFrmDB();
+	void LoadTaxiFleetFromDB();
+
 	/**
 	 * get global singleton instance of FleetManager
 	 * @return pointer to the global instance of FleetManager
 	 */
 	static FleetManager* getInstance();
+
 	/**
 	 * get taxi fleet at current time
 	 * @param currentTimeSec is current time in seconds
 	 * @return a list include all taxi which need be dispatched currently
 	 */
-	std::vector<TaxiFleet> dispatchTaxiAtCurrentTime(const unsigned int currentTimeSec);
+	std::vector<FleetItem> dispatchTaxiAtCurrentTime(const unsigned int currentTimeSec);
+
 	/**
 	 * get all taxi fleet information
 	 */
-	const std::vector<TaxiFleet>& getAllTaxiFleet() const;
+	const std::vector<FleetItem>& getAllTaxiFleet() const;
+
 private:
 	/**store taxi fleet information*/
-	std::vector<TaxiFleet> taxiFleets;
+	std::vector<FleetItem> taxiFleet;
+
 	/**store self instance*/
 	static FleetManager* instance;
 };

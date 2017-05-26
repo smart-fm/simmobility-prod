@@ -30,7 +30,7 @@ double getSecondFrmTimeString(const std::string& startTime)
 
 FleetManager::FleetManager()
 {
-	LoadTaxiDemandFrmDB();
+	LoadTaxiFleetFromDB();
 }
 
 FleetManager* FleetManager::getInstance()
@@ -46,7 +46,7 @@ FleetManager::~FleetManager()
 
 }
 
-void FleetManager::LoadTaxiDemandFrmDB()
+void FleetManager::LoadTaxiFleetFromDB()
 {
 	ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
 	soci::session sql_(soci::postgresql,cfg.getDatabaseConnectionString(false));
@@ -60,32 +60,33 @@ void FleetManager::LoadTaxiDemandFrmDB()
 
 	std::map<std::string, std::vector<TripChainItem> > tripchains;
 	soci::rowset<soci::row> rs = (sql_.prepare<< "select * from " + spIt->second);
+
 	for (soci::rowset<soci::row>::const_iterator it = rs.begin();it != rs.end(); ++it)
 	{
-		TaxiFleet taxiFleet;
+		FleetItem fleetItem;
 		const soci::row& r = (*it);
-		taxiFleet.vehicleNo = r.get<std::string>(0);
-		taxiFleet.driverId = r.get<std::string>(1);
+		fleetItem.vehicleNo = r.get<std::string>(0);
+		fleetItem.driverId = r.get<std::string>(1);
 		double x = r.get<double>(2);
 		double y = r.get<double>(3);
 		Utils::convertWGS84_ToUTM(x, y);
-		taxiFleet.startNode = Node::allNodesMap.searchNearestObject(x, y);
+		fleetItem.startNode = Node::allNodesMap.searchNearestObject(x, y);
 		std::string startTime = r.get<std::string>(4);
-		taxiFleet.startTime = getSecondFrmTimeString(startTime);
-		taxiFleets.push_back(taxiFleet);
+		fleetItem.startTime = getSecondFrmTimeString(startTime);
+		taxiFleet.push_back(fleetItem);
 	}
 }
 
-std::vector<FleetManager::TaxiFleet> FleetManager::dispatchTaxiAtCurrentTime(const unsigned int currentTimeSec)
+std::vector<FleetManager::FleetItem> FleetManager::dispatchTaxiAtCurrentTime(const unsigned int currentTimeSec)
 {
-	std::vector<TaxiFleet> res;
-	auto i=taxiFleets.begin();
-	while(i!=taxiFleets.end())
+	std::vector<FleetItem> res;
+	auto i=taxiFleet.begin();
+	while(i!=taxiFleet.end())
 	{
 		if(i->startTime <= currentTimeSec)
 		{
 			res.push_back(*i);
-			i = taxiFleets.erase(i);
+			i = taxiFleet.erase(i);
 		}
 		else
 		{
@@ -95,9 +96,9 @@ std::vector<FleetManager::TaxiFleet> FleetManager::dispatchTaxiAtCurrentTime(con
 	return res;
 }
 
-const std::vector<FleetManager::TaxiFleet>& FleetManager::getAllTaxiFleet() const
+const std::vector<FleetManager::FleetItem>& FleetManager::getAllTaxiFleet() const
 {
-	return taxiFleets;
+	return taxiFleet;
 }
 
 }

@@ -138,26 +138,27 @@ void BusControllerMT::assignBusTripChainWithPerson(std::set<Entity*>& activeAgen
 		busDrivers.push_back(*it);
 	}
 
-	const std::vector<FleetManager::TaxiFleet> taxiFleets = FleetManager::getInstance()->getAllTaxiFleet();
-	std::map<std::string, FleetManager::FleetTimePriorityQueue> groupFleets;
-	for (auto i=taxiFleets.begin(); i!=taxiFleets.end(); i++)
+	const std::vector<FleetManager::FleetItem> &fleet = FleetManager::getInstance()->getAllTaxiFleet();
+	std::map<std::string, FleetManager::FleetTimePriorityQueue> fleetMap;
+
+	for (auto i=fleet.begin(); i!=fleet.end(); i++)
 	{
-		const FleetManager::TaxiFleet& taxi = (*i);
-		groupFleets[taxi.vehicleNo].push(taxi);
+		const FleetManager::FleetItem& taxi = (*i);
+		fleetMap[taxi.vehicleNo].push(taxi);
 	}
 
 	int currTaxi = 0;
 	// 47, 94, 141, 188, 235
 	const int numberOfTaxis = 47;
 
-	ControllerLog() << "Maximum number of taxis " << groupFleets.size() << std::endl;
+	ControllerLog() << "Maximum number of taxis " << fleetMap.size() << std::endl;
 	ControllerLog() << "Number of taxis " << numberOfTaxis << std::endl;
 
-	for (auto i=groupFleets.begin(); i!= groupFleets.end(); i++)
+	for (auto i=fleetMap.begin(); i!= fleetMap.end(); i++)
 	{
 		if (currTaxi < numberOfTaxis) {
 			const FleetManager::FleetTimePriorityQueue& fleetItems = i->second;
-			const FleetManager::TaxiFleet& taxi = fleetItems.top();
+			const FleetManager::FleetItem& taxi = fleetItems.top();
 
 			Person_MT* person = new Person_MT("TaxiController", config.mutexStategy(), -1);
 			person->setTaxiFleet(fleetItems);

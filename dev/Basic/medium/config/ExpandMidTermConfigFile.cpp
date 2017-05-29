@@ -3,6 +3,7 @@
 #include <boost/lexical_cast.hpp>
 #include <map>
 #include <vector>
+#include <entities/FleetController_MT.hpp>
 #include "conf/NetworkPrinter.hpp"
 #include "conf/SimulationInfoPrinter.hpp"
 #include "entities/params/PT_NetworkEntities.hpp"
@@ -103,6 +104,7 @@ void ExpandMidTermConfigFile::processConfig()
     //register and initialize MobilityServiceControllers
     if (cfg.mobilityServiceController.enabled)
     {
+		FleetController_MT::getInstance()->initialise(active_agents);
         MobilityServiceControllerManager::RegisterMobilityServiceControllerManager(cfg.mutexStategy());
 
         for (std::map<unsigned int, MobilityServiceControllerConfig>::iterator it

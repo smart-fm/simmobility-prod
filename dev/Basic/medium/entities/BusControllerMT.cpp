@@ -6,7 +6,7 @@
 
 #include "conf/ConfigManager.hpp"
 #include "entities/misc/TaxiTrip.hpp"
-#include "entities/FleetManager.hpp"
+#include "entities/FleetController.hpp"
 #include "logging/ControllerLog.hpp"
 #include "Person_MT.hpp"
 
@@ -129,48 +129,6 @@ void BusControllerMT::assignBusTripChainWithPerson(std::set<Entity*>& activeAgen
 	{
 		(*it)->parentEntity = this;
 		busDrivers.push_back(*it);
-	}
-
-	const std::vector<FleetManager::FleetItem> &fleet = FleetManager::getInstance()->getTaxiFleet();
-	std::map<std::string, FleetManager::FleetTimePriorityQueue> fleetMap;
-
-	for (auto i=fleet.begin(); i!=fleet.end(); i++)
-	{
-		const FleetManager::FleetItem& taxi = (*i);
-		fleetMap[taxi.vehicleNo].push(taxi);
-	}
-
-	int currTaxi = 0;
-	// 47, 94, 141, 188, 235
-	const int numberOfTaxis = 47;
-
-	ControllerLog() << "Maximum number of taxis " << fleetMap.size() << std::endl;
-	ControllerLog() << "Number of taxis " << numberOfTaxis << std::endl;
-
-	for (auto i=fleetMap.begin(); i!= fleetMap.end(); i++)
-	{
-		if (currTaxi < numberOfTaxis) {
-			const FleetManager::FleetTimePriorityQueue& fleetItems = i->second;
-			const FleetManager::FleetItem& taxi = fleetItems.top();
-
-			Person_MT* person = new Person_MT("TaxiController", config.mutexStategy(), -1);
-			person->setTaxiFleet(fleetItems);
-			person->setDatabaseId(taxi.driverId);
-			person->setPersonCharacteristics();
-
-			vector<TripChainItem*> tripChain;
-
-			if (taxi.startNode)
-			{
-				TaxiTrip *taxiTrip = new TaxiTrip("0","TaxiTrip",0,-1, DailyTime(taxi.startTime*1000.0), DailyTime(),0,const_cast<Node*>(taxi.startNode),"node",nullptr,"node");
-				tripChain.push_back(taxiTrip);
-				person->setTripChain(tripChain);
-
-				addOrStashBuses(person, activeAgents);
-			}
-
-			currTaxi++;
-		}
 	}
 }
 

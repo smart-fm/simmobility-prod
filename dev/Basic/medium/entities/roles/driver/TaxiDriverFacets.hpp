@@ -103,7 +103,7 @@ private:
 	/**record next selected link when cruising*/
 	Link* selectedNextLinkInCrusing = nullptr;
 	/**the vector to record second or third drivers*/
-	std::queue<FleetManager::FleetItem> taxiFleets;
+	std::queue<FleetController::FleetItem> taxiFleets;
 	/**record breaking information*/
 	std::shared_ptr<BrokenInfo> nextBroken;
 	/**record person id to be picked up*/

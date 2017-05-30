@@ -1,12 +1,12 @@
 /*
- * SharedTaxiController.hpp
+ * SharedController.hpp
  *
  *  Created on: Apr 18, 2017
  *      Author: Akshay Padmanabha
  */
 
-#ifndef SharedTaxiController_HPP_
-#define SharedTaxiController_HPP_
+#ifndef SharedController_HPP_
+#define SharedController_HPP_
 #include <vector>
 
 #include "entities/Agent.hpp"
@@ -15,9 +15,9 @@
 namespace sim_mob
 {
 
-class SharedTaxiController : public MobilityServiceController {
+class SharedController : public MobilityServiceController {
 public:
-	explicit SharedTaxiController(const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered,
+	explicit SharedController(const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered,
 		unsigned int computationPeriod = 0) : MobilityServiceController(mtxStrat, computationPeriod)
 	{
 	}
@@ -33,4 +33,4 @@ private:
 	std::vector<MessageResult> computeSchedules();
 };
 }
-#endif /* SharedTaxiController_HPP_ */
+#endif /* SharedController_HPP_ */

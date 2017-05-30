@@ -1,11 +1,11 @@
 /*
- * SharedTaxiController.cpp
+ * SharedController.cpp
  *
  *  Created on: Apr 18, 2017
  *      Author: Akshay Padmanabha
  */
 
-#include "SharedTaxiController.hpp"
+#include "SharedController.hpp"
 
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/max_cardinality_matching.hpp>
@@ -18,7 +18,7 @@
 
 namespace sim_mob
 {
-std::vector<MobilityServiceController::MessageResult> SharedTaxiController::computeSchedules()
+std::vector<MobilityServiceController::MessageResult> SharedController::computeSchedules()
 {
 	std::map<unsigned int, Node*> nodeIdMap = RoadNetwork::getInstance()->getMapOfIdvsNodes();
 
@@ -31,7 +31,8 @@ std::vector<MobilityServiceController::MessageResult> SharedTaxiController::comp
 	auto request = requestQueue.begin();
 	while (request != requestQueue.end())
 	{
-		std::map<unsigned int, Node*>::iterator it = nodeIdMap.find((*request).startNodeId); 
+		std::map<unsigned int, Node*>::const_iterator it = nodeIdMap.find((*request).startNodeId);
+		//{ SANITY CHECK
 		if (it == nodeIdMap.end())
 		{
 			ControllerLog() << "Request contains bad start node " << (*request).startNodeId << std::endl;
@@ -42,9 +43,11 @@ std::vector<MobilityServiceController::MessageResult> SharedTaxiController::comp
 			requestIndex++;
 			continue;
 		}
-		Node* startNode = it->second;
+		//} SANITY CHECK
+		const Node* startNode = it->second;
 
-		it = nodeIdMap.find((*request).destinationNodeId); 
+		it = nodeIdMap.find((*request).destinationNodeId);
+		//{ SANITY CHECK
 		if (it == nodeIdMap.end())
 		{
 			ControllerLog() << "Request contains bad destination node " << (*request).startNodeId << std::endl;
@@ -55,6 +58,7 @@ std::vector<MobilityServiceController::MessageResult> SharedTaxiController::comp
 			requestIndex++;
 			continue;
 		}
+		//} SANITY CHECK
 		Node* destinationNode = it->second;
 
 		validRequests.push_back(*request);
@@ -68,6 +72,8 @@ std::vector<MobilityServiceController::MessageResult> SharedTaxiController::comp
 	}
 
 	// 2. Add valid shared trips to graph
+	// We construct a graph in which each node represents a trip. We will later draw and edge between two
+	// two trips if they can be shared
 	boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS> graph(validRequests.size());
 	std::vector<boost::graph_traits<boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS>>::vertex_descriptor> mate(validRequests.size());
 
@@ -77,13 +83,14 @@ std::vector<MobilityServiceController::MessageResult> SharedTaxiController::comp
 	unsigned int request1Index = 0;
 	while (request1 != validRequests.end())
 	{
+		// We check if request1 can be shared with some of the following requests in the queue
 		auto request2 = request1 + 1;
 		unsigned int request2Index = request1Index + 1;
 		while (request2 != validRequests.end())
 		{
 			ControllerLog() << "(" << request1Index << ", " << request2Index << ")" << std::endl;
-			std::map<unsigned int, Node*>::iterator it = nodeIdMap.find((*request1).startNodeId); 
-			Node* startNode1 = it->second;
+			std::map<unsigned int, Node*>::const_iterator it = nodeIdMap.find((*request1).startNodeId);
+			const Node* startNode1 = it->second;
 
 			it = nodeIdMap.find((*request1).destinationNodeId); 
 			Node* destinationNode1 = it->second;
@@ -94,12 +101,26 @@ std::vector<MobilityServiceController::MessageResult> SharedTaxiController::comp
 			it = nodeIdMap.find((*request2).destinationNodeId); 
 			Node* destinationNode2 = it->second;
 
-			// o1 o2 d1 d2
+
+			// We now check if we can combine trip 1 and trip 2. They can be combined in different ways.
+			// For example, we can
+			// 		i) pick up user 1, ii) pick up user 2, iii) drop off user 1, iv) drop off user 2
+			// (which we indicate with o1 o2 d1 d2), or we can
+			//		i) pick up user 2, ii) pick up user 1, iii) drop off user 2, iv) drop off user 1
+			// and so on. When trip 1 is combined with trip 2, user 1 experiences some additional delays
+			// w.r.t. the case when each user travels alone. A combination is feasible if this extra-delay
+			// induced by sharing is below a certain threshold.
+			// In the following line, we check what are the feasible combination and we select the
+			// "best", i.e., the one with the minimum induce extra-delay.
+
+			//{ o1 o2 d1 d2
+			// We compute the travel time that user 1 would experience in this case
 			double tripTime1 = PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(
 				startNode1->getNodeId(), startNode2->getNodeId(), DailyTime(currTick.ms()))
 				+ PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(
 					startNode2->getNodeId(), destinationNode1->getNodeId(), DailyTime(currTick.ms()));
 
+			// We also compute the travel time that user 2 would experience
 			double tripTime2 = PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(
 				startNode2->getNodeId(), destinationNode1->getNodeId(), DailyTime(currTick.ms()))
 				+ PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(
@@ -111,8 +132,9 @@ std::vector<MobilityServiceController::MessageResult> SharedTaxiController::comp
 				bestTrips[std::make_pair(request1Index, request2Index)] = std::make_pair(tripTime1 + tripTime2, "o1o2d1d2");
 				add_edge(request1Index, request2Index, graph);
 			}
+			//} o1 o2 d1 d2
 
-			// o2 o1 d2 d1
+			//{ o2 o1 d2 d1
 			tripTime1 = PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(
 				startNode1->getNodeId(), destinationNode2->getNodeId(), DailyTime(currTick.ms()))
 				+ PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(
@@ -142,8 +164,9 @@ std::vector<MobilityServiceController::MessageResult> SharedTaxiController::comp
 
 				add_edge(request1Index, request2Index, graph);
 			}
+			//} o2 o1 d2 d1
 
-			// o1 o2 d2 d1
+			//{ o1 o2 d2 d1
 			tripTime1 = PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(
 				startNode1->getNodeId(), startNode2->getNodeId(), DailyTime(currTick.ms()))
 				+ PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(
@@ -169,8 +192,9 @@ std::vector<MobilityServiceController::MessageResult> SharedTaxiController::comp
 
 				add_edge(request1Index, request2Index, graph);
 			}
+			//} o1 o2 d2 d1
 
-			// o2 o1 d1 d2
+			//{ o2 o1 d1 d2
 			tripTime2 = PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(
 				startNode2->getNodeId(), startNode1->getNodeId(), DailyTime(currTick.ms()))
 				+ PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(
@@ -196,6 +220,7 @@ std::vector<MobilityServiceController::MessageResult> SharedTaxiController::comp
 
 				add_edge(request1Index, request2Index, graph);
 			}
+			//} o2 o1 d1 d2
 
 			request2++;
 			request2Index++;
@@ -337,7 +362,7 @@ std::vector<MobilityServiceController::MessageResult> SharedTaxiController::comp
 	return results;
 }
 
-bool SharedTaxiController::isCruising(Person* p) 
+bool SharedController::isCruising(Person* p)
 {
     MobilityServiceDriver* currDriver = p->exportServiceDriver();
     if (currDriver) 
@@ -350,7 +375,7 @@ bool SharedTaxiController::isCruising(Person* p)
     return false;
 }
 
-const Node* SharedTaxiController::getCurrentNode(Person* p) 
+const Node* SharedController::getCurrentNode(Person* p)
 {
     MobilityServiceDriver* currDriver = p->exportServiceDriver();
     if (currDriver) 

@@ -8,7 +8,7 @@
 #include "MobilityServiceControllerManager.hpp"
 #include "entities/controllers/GreedyTaxiController.hpp"
 #include "entities/controllers/OnHailTaxiController.hpp"
-#include "entities/controllers/SharedTaxiController.hpp"
+#include "entities/controllers/SharedController.hpp"
 
 #include "message/MessageBus.hpp"
 
@@ -59,7 +59,7 @@ bool MobilityServiceControllerManager::addMobilityServiceController(unsigned int
     }
     else if (type == 2)
     {
-        SharedTaxiController* svc = new SharedTaxiController(getMutexStrategy(), scheduleComputationPeriod);
+        SharedController* svc = new SharedController(getMutexStrategy(), scheduleComputationPeriod);
         controllers.insert(std::make_pair(id, svc));
     }
     else if (type == 3)

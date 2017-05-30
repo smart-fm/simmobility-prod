@@ -27,6 +27,11 @@ public:
 	{
 		const timeslice currTick;
 		const std::string personId;
+		//TODO: to enhance performance, instead of storing here node ids,
+		// we could directly store Node*, to avoid continuous access to the
+		// RoadNetwork::getInstance()->getMapOfIdvsNodes()
+		// For example, in SharedController::computeSchedules() we make a search into
+		// that map, many times, redundantly and uselessly.
 		const unsigned int startNodeId;
 		const unsigned int destinationNodeId;
 		const unsigned int extraTripTimeThreshold;

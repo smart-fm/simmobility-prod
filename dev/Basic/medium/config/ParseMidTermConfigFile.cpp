@@ -4,7 +4,6 @@
 
 #include "ParseMidTermConfigFile.hpp"
 
-#include <boost/algorithm/string.hpp>
 #include "path/ParsePathXmlConfig.hpp"
 #include "util/XmlParseHelper.hpp"
 
@@ -17,7 +16,7 @@ const float NUM_SECONDS_IN_AN_HOUR = 3600;
 unsigned int ProcessTimegranUnits(xercesc::DOMElement* node)
 {
 	return ParseTimegranAsSecond(GetNamedAttributeValue(node, "value"), GetNamedAttributeValue(node, "units"),
-	                             NUM_SECONDS_IN_AN_HOUR);
+								 (unsigned int) NUM_SECONDS_IN_AN_HOUR);
 }
 
 unsigned int ParseGranularitySingle(const XMLCh* srcX)
@@ -326,20 +325,12 @@ void ParseMidTermConfigFile::processWalkSpeedElement(xercesc::DOMElement* node)
 
 void ParseMidTermConfigFile::processThreadsNumInPersonLoaderElement(xercesc::DOMElement* node)
 {
-	if(!node)
-	{
-		return;
-	}
 	unsigned int num = ParseUnsignedInt(GetNamedAttributeValue(node, "value", true), 1);
 	mtCfg.setThreadsNumInPersonLoader(num);
 }
 
 void ParseMidTermConfigFile::processPercentageOnDemandTravelerElement(xercesc::DOMElement* node)
 {
-	if(!node)
-	{
-		return;
-	}
 	unsigned int num = ParseUnsignedInt(GetNamedAttributeValue(node, "value", true), 1);
 	mtCfg.setPercentageOfOnDemandTraveler(num);
 }
@@ -713,17 +704,18 @@ void ParseMidTermConfigFile::processIncidentsNode(xercesc::DOMElement* node)
 
 void ParseMidTermConfigFile::processBusControllerNode(DOMElement *node)
 {
+	cfg.busController.enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), false);
+	cfg.busController.busLineControlType = ParseString(GetNamedAttributeValue(node, "busline_control_type"), "");
+}
 
-        cfg.busController.enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), false);
-        cfg.busController.busLineControlType = ParseString(GetNamedAttributeValue(node, "busline_control_type"), "");
-    }void ParseMidTermConfigFile::processTrainControllerNode(xercesc::DOMElement *node)
+void ParseMidTermConfigFile::processTrainControllerNode(xercesc::DOMElement *node)
 {
 	cfg.trainController.enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), false);
 	cfg.trainController.trainControlType = ParseString(GetNamedAttributeValue(node, "train_control_type"), "");
 
-	DOMElement* child  = GetSingleElementByName(node, "output_enabled", true);
+	DOMElement *child = GetSingleElementByName(node, "output_enabled", true);
 	cfg.trainController.outputEnabled = ParseBoolean(GetNamedAttributeValue(child, "value"), false);
-	child  = GetSingleElementByName(node, "distance_arriving_at_platform", true);
+	child = GetSingleElementByName(node, "distance_arriving_at_platform", true);
 	cfg.trainController.distanceArrivingAtPlatform = ParseFloat(GetNamedAttributeValue(child, "value"));
 }
 

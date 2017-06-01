@@ -343,13 +343,15 @@ std::vector<MobilityServiceController::MessageResult> SharedController::computeS
 
 		ControllerLog() << "Closest vehicle is at (" << bestX << ", " << bestY << ")" << std::endl;
 
+		/*
 		messaging::MessageBus::PostMessage((messaging::MessageHandler*) bestDriver, MSG_SCHEDULE_PROPOSITION, messaging::MessageBus::MessagePtr(
 			new SchedulePropositionMessage(currTick, (*request).personId, (*request).startNodeId,
 				(*request).destinationNodeId, (*request).extraTripTimeThreshold)));
+				*/
 
-		ControllerLog() << "Assignment sent for " << (*request).personId << " at time " << currTick.frame()
-			<< ". Message was sent at " << (*request).currTick.frame() << " with startNodeId " << (*request).startNodeId
-			<< ", destinationNodeId " << (*request).destinationNodeId << ", and driverId null" << std::endl;
+		ControllerLog() << "Assignment sent for " << request->userId << " at time " << currTick.frame()
+			<< ". Message was sent at " << request->currTick.frame() << " with startNodeId " << request->startNodeId
+			<< ", destinationNodeId " << request->destinationNodeId << ", and driverId null" << std::endl;
 
 		results.push_back(MESSAGE_SUCCESS);
 	}

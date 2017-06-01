@@ -111,47 +111,77 @@ void TaxiDriver::HandleParentMessage(messaging::Message::MessageType type, const
 		case MSG_SCHEDULE_PROPOSITION:
 		{
 			const SchedulePropositionMessage& msg = MSG_CAST(SchedulePropositionMessage, message);
+			Schedule* schedule = msg.getSchedule();
+			const ScheduleItem* scheduleItem = schedule->front(); schedule->pop();
+#ifndef NDEBUG
+			if (scheduleItem->getScheduleItemType() != PICKUP)
+				throw std::runtime_error("I expect a pickup here");
+#endif
+			const PickUpScheduleItem* pickUpScheduleItem = (PickUpScheduleItem*) scheduleItem;
+			const TripRequest request = pickUpScheduleItem->request;
+			safe_delete_item(pickUpScheduleItem);
+			scheduleItem = schedule->front(); schedule->pop();
+#ifndef NDEBUG
+			if (scheduleItem->getScheduleItemType() != DROPOFF)
+				throw std::runtime_error("I expect a dropoff here");
+#endif
+			const DropOffScheduleItem* dropOffScheduleItem = (DropOffScheduleItem*) scheduleItem;
+#ifndef NDEBUG
+		if (dropOffScheduleItem->request.userId != request.userId)
+				throw std::runtime_error("We expected a drop off related to the same request of the pick up here");
+#endif
+			safe_delete_item(dropOffScheduleItem);
 
-			ControllerLog() << "Assignment received for " << msg.personId << " at time " << parent->currTick.frame()
-				<< ". Message was sent at " << msg.currTick.frame() << " with startNodeId " << msg.startNodeId
-				<< ", destinationNodeId " << msg.destinationNodeId << ", and driverId null" << std::endl;
+#ifndef NDEBUG
+		if (!schedule->empty())
+			throw std::runtime_error("For the moment, I would expect to have an empty schedule after getting a pick up and a drop off. In further development, this will not be an error anymore, as more flexible schedules will be possible");
+		safe_delete_item(schedule);
+#endif
+
+
+
+
+
+			ControllerLog() << "Assignment received for " << request.userId << " at time " << parent->currTick.frame()
+				<< ". Message was sent at " << msg.currTick.frame() << " with startNodeId " << request.startNodeId
+				<< ", destinationNodeId " << request.destinationNodeId << ", and driverId null" << std::endl;
 
 			std::map<unsigned int, Node*> nodeIdMap = RoadNetwork::getInstance()->getMapOfIdvsNodes();
 
-			std::map<unsigned int, Node*>::iterator it = nodeIdMap.find(msg.startNodeId); 
+			std::map<unsigned int, Node*>::iterator it = nodeIdMap.find(request.startNodeId);
 			if (it == nodeIdMap.end()) {
-				ControllerLog() << "Message contains bad start node " << msg.startNodeId << std::endl;
+				ControllerLog() << "Message contains bad start node " << request.startNodeId << std::endl;
 
 				if (MobilityServiceControllerManager::HasMobilityServiceControllerManager())
 				{
 					std::map<unsigned int, MobilityServiceController*> controllers = MobilityServiceControllerManager::GetInstance()->getControllers();
 				
 					messaging::MessageBus::SendMessage(controllers[1], MSG_SCHEDULE_PROPOSITION_REPLY,
-						messaging::MessageBus::MessagePtr(new SchedulePropositionReplyMessage(parent->currTick, msg.personId, parent,
-							msg.startNodeId, msg.destinationNodeId, msg.extraTripTimeThreshold, false)));
+						messaging::MessageBus::MessagePtr(new SchedulePropositionReplyMessage(parent->currTick, request.userId, parent,
+								request.startNodeId, request.destinationNodeId, request.extraTripTimeThreshold, false)));
 
-					ControllerLog() << "Assignment response sent for " << msg.personId << " at time " << parent->currTick.frame()
-						<< ". Message was sent at " << msg.currTick.frame() << " with startNodeId " << msg.startNodeId
-						<< ", destinationNodeId " << msg.destinationNodeId << ", and driverId null" << std::endl;
+					ControllerLog() << "Assignment response sent for " << request.userId << " at time " << parent->currTick.frame()
+						<< ". Message was sent at " << msg.currTick.frame() << " with startNodeId " << request.startNodeId
+						<< ", destinationNodeId " << request.destinationNodeId << ", and driverId null" << std::endl;
 				}
 
 				return;
 			}
 			Node* node = it->second;
 
-			const bool success = taxiDriverMovement->driveToNodeOnCall(msg.personId, node);
+			const bool success = taxiDriverMovement->driveToNodeOnCall(request.userId, node);
 
 			if (MobilityServiceControllerManager::HasMobilityServiceControllerManager())
 			{
 				std::map<unsigned int, MobilityServiceController*> controllers = MobilityServiceControllerManager::GetInstance()->getControllers();
 
 				messaging::MessageBus::SendMessage(controllers[1], MSG_SCHEDULE_PROPOSITION_REPLY,
-					messaging::MessageBus::MessagePtr(new SchedulePropositionReplyMessage(parent->currTick, msg.personId, parent,
-						msg.startNodeId, msg.destinationNodeId, msg.extraTripTimeThreshold, success)));
+					messaging::MessageBus::MessagePtr(new SchedulePropositionReplyMessage(parent->currTick, request.userId, parent,
+							request.startNodeId, request.destinationNodeId, request.extraTripTimeThreshold, success)));
 
-				ControllerLog() << "Assignment response sent for " << msg.personId << " at time " << parent->currTick.frame()
-					<< ". Message was sent at " << msg.currTick.frame() << " with startNodeId " << msg.startNodeId
-					<< ", destinationNodeId " << msg.destinationNodeId << ", and driverId " << parent->getDatabaseId() << std::endl;
+				ControllerLog() << "Assignment response sent for " << request.userId << " at time " << parent->currTick.frame()
+					<< ". Message was sent at " << msg.currTick.frame() << " with startNodeId " << request.startNodeId
+					<< ", destinationNodeId " << request.destinationNodeId << ", and driverId " << parent->getDatabaseId() << std::endl;
 			}
 
 			break;

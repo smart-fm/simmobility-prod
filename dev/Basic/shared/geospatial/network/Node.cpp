@@ -17,6 +17,9 @@ GeneralR_TreeManager<Node> Node::allNodesMap;
 
 Node::Node() :
 nodeId(0), location(), nodeType(DEFAULT_NODE), trafficLightId(0)
+//aa{
+, tazId(TAZ_UNDEFINED)
+//aa}
 {
 }
 
@@ -208,3 +211,33 @@ const std::map<unsigned int, TurningGroup *>& Node::getTurningGroups(unsigned in
 		return EMPTY_MAP;
 	}
 }
+
+
+//aa{
+//aa{
+unsigned int Node::getTazId()const
+{
+#ifndef NDEBUG
+	if (tazId == TAZ_UNDEFINED)
+	{
+		std::stringstream msg; msg<< "Node "<<nodeId<<" does not have any TAZ associated";
+		throw std::runtime_error(msg.str() );
+	}
+#endif
+	return tazId;
+};
+void Node::setTazId(unsigned int tazId_)
+{
+#ifndef NDEBUG
+	if (tazId!= TAZ_UNDEFINED)
+	{
+		std::stringstream msg; msg<<"Node "<<nodeId<<" has already taz "<<tazId<<
+			"associated. Now you are trying to associate taz "<<tazId_<<
+			". It is not possible to associate twice a taz to a node";
+		throw std::runtime_error(msg.str() );
+	}
+#endif
+	tazId = tazId_;
+};
+//aa}
+//aa}

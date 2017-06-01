@@ -1,6 +1,8 @@
 #pragma once
 
 #include "Message.hpp"
+#include <boost/ptr_container/ptr_vector.hpp>
+#include "entities/Person.hpp"
 
 namespace sim_mob
 {
@@ -13,6 +15,20 @@ enum MobilityServiceControllerMessage
 	MSG_TRIP_REQUEST,
 	MSG_SCHEDULE_PROPOSITION,
 	MSG_SCHEDULE_PROPOSITION_REPLY
+};
+
+struct TripRequest
+{
+	const timeslice currTick;
+	const std::string userId;
+	//TODO: to enhance performance, instead of storing here node ids,
+	// we could directly store Node*, to avoid continuous access to the
+	// RoadNetwork::getInstance()->getMapOfIdvsNodes()
+	// For example, in SharedController::computeSchedules() we make a search into
+	// that map, many times, redundantly and uselessly.
+	const unsigned int startNodeId;
+	const unsigned int destinationNodeId;
+	const unsigned int extraTripTimeThreshold;
 };
 
 /**
@@ -91,16 +107,58 @@ public:
 	const unsigned int extraTripTimeThreshold;
 };
 
+enum ScheduleItemType{PICKUP, DROPOFF};
+
+
+class ScheduleItem
+{
+protected:
+	ScheduleItemType scheduleItemType;
+
+public:
+	ScheduleItem(){};
+	virtual void dummy() = 0 ;
+	const ScheduleItemType getScheduleItemType() const;
+};
+
+
+class PickUpScheduleItem : public ScheduleItem
+{
+public:
+	PickUpScheduleItem(const TripRequest request_): request(request_)
+	{
+		scheduleItemType=PICKUP;
+	};
+	void dummy(){};
+	const TripRequest request;
+};
+
+class DropOffScheduleItem : public ScheduleItem
+{
+public:
+	DropOffScheduleItem(const TripRequest request_): request(request_)
+	{
+		scheduleItemType=DROPOFF;
+	};
+
+	void dummy(){};
+	const TripRequest request;
+};
+
+typedef std::queue<ScheduleItem*> Schedule;
+
 /**
  * Message to propose a trip to a driver
  */
+/*
 class SchedulePropositionMessage: public messaging::Message
 {
 public:
 	SchedulePropositionMessage(timeslice ct, const std::string& person,
-		const unsigned int sn, const unsigned int dn,
-		const unsigned int threshold) : currTick(ct), personId(person),
-			startNodeId(sn), destinationNodeId(dn),
+		const unsigned int startNode, const unsigned int destinationNode,
+		const unsigned int threshold) :
+			currTick(ct), personId(person),
+			startNodeId(startNode), destinationNodeId(destinationNode),
 			extraTripTimeThreshold(threshold)
 	{
 	}
@@ -113,6 +171,20 @@ public:
 	const unsigned int startNodeId;
 	const unsigned int destinationNodeId;
 	const unsigned int extraTripTimeThreshold;
+};
+*/
+
+class SchedulePropositionMessage: public messaging::Message
+{
+public:
+	SchedulePropositionMessage(const timeslice currTick_, Schedule* schedule_):
+		currTick(currTick_), schedule(schedule_){};
+
+	Schedule* getSchedule() const;
+	const timeslice currTick;
+
+private:
+	Schedule* schedule;
 };
 
 /**

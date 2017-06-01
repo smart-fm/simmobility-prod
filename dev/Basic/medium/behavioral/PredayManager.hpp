@@ -164,6 +164,11 @@ private:
 	typedef std::vector<PersonParams*> PersonList;
 	typedef boost::unordered_map<int, ZoneParams*> ZoneMap;
 	typedef boost::unordered_map<int, boost::unordered_map<int, CostParams*> > CostMap;
+
+	/*
+	 * It associates, to each tazId, a vector of nodes belonging to it, each represented by a
+	 * ZoneNodeParams object
+	 */
 	typedef boost::unordered_map<int, std::vector<ZoneNodeParams*> > ZoneNodeMap;
 	typedef std::vector<std::string> PersonIdList;
 	typedef std::vector<long> LT_PersonIdList;

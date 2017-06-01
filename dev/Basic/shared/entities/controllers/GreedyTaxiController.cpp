@@ -92,13 +92,25 @@ std::vector<MobilityServiceController::MessageResult> GreedyTaxiController::comp
 
 		ControllerLog() << "Closest vehicle is at (" << bestX << ", " << bestY << ")" << std::endl;
 
+		Schedule* schedule = new Schedule();
+		PickUpScheduleItem* pickUpScheduleItem = new PickUpScheduleItem(*request);
+		DropOffScheduleItem* dropOffScheduleItem = new DropOffScheduleItem(*request);
+		schedule->push(pickUpScheduleItem );
+		schedule->push(dropOffScheduleItem );
+
+		messaging::MessageBus::PostMessage((messaging::MessageHandler*) bestDriver, MSG_SCHEDULE_PROPOSITION,
+				messaging::MessageBus::MessagePtr(new SchedulePropositionMessage(currTick, schedule) ) );
+
+		/*
 		messaging::MessageBus::PostMessage((messaging::MessageHandler*) bestDriver, MSG_SCHEDULE_PROPOSITION, messaging::MessageBus::MessagePtr(
 			new SchedulePropositionMessage(currTick, (*request).personId, (*request).startNodeId,
-				(*request).destinationNodeId, (*request).extraTripTimeThreshold)));
+				(*request).destinationNodeId, (*request).extraTripTimeThreshold)
+		));
+		*/
 
-		ControllerLog() << "Assignment sent for " << (*request).personId << " at time " << currTick.frame()
-		<< ". Message was sent at " << (*request).currTick.frame() << " with startNodeId " << (*request).startNodeId
-		<< ", destinationNodeId " << (*request).destinationNodeId << ", and driverId null" << std::endl;
+		ControllerLog() << "Assignment sent for " << request->userId << " at time " << currTick.frame()
+		<< ". Message was sent at " << request->currTick.frame() << " with startNodeId " << request->startNodeId
+		<< ", destinationNodeId " << request->destinationNodeId << ", and driverId null" << std::endl;
 
 		results.push_back(MESSAGE_SUCCESS);
 	}
@@ -124,7 +136,8 @@ const Node* GreedyTaxiController::getCurrentNode(Person* p)
     MobilityServiceDriver* currDriver = p->exportServiceDriver();
     if (currDriver) 
     {
-        return currDriver->getCurrentNode();
+    	const Node* currentNode =currDriver->getCurrentNode();
+        return currentNode;
     }
     return nullptr;
 }

@@ -32,6 +32,7 @@
 #include "entities/PT_Statistics.hpp"
 #include "util/Utils.hpp"
 #include "geospatial/network/RoadNetwork.hpp"
+#include "logging/ControllerLog.hpp"
 
 using namespace std;
 using namespace sim_mob;
@@ -112,19 +113,23 @@ Person_MT::~Person_MT()
 
 void Person_MT::convertToTaxiTrips()
 {
-	for (auto tripChainItemIt = tripChain.begin(); tripChainItemIt != tripChain.end(); ++tripChainItemIt) {
-		if ((*tripChainItemIt)->itemType == sim_mob::TripChainItem::IT_TRIP) {
+	for (auto tripChainItemIt = tripChain.begin(); tripChainItemIt != tripChain.end(); ++tripChainItemIt)
+	{
+		if ((*tripChainItemIt)->itemType == sim_mob::TripChainItem::IT_TRIP)
+		{
 			TripChainItem* trip = (*tripChainItemIt);
 			std::string originId = boost::lexical_cast<std::string>(trip->origin.node->getNodeId());
 			std::string destId = boost::lexical_cast<std::string>(trip->destination.node->getNodeId());
 			trip->startLocationId = originId;
 			trip->endLocationId = destId;
+
 			auto& subTrips = (dynamic_cast<sim_mob::Trip*>(*tripChainItemIt))->getSubTripsRW();
 			auto itSubTrip = subTrips.begin();
 			std::vector<sim_mob::SubTrip> taxiTrip;
 			while (itSubTrip != subTrips.end())
 			{
-				if (itSubTrip->origin.type == WayPoint::NODE && itSubTrip->destination.type == WayPoint::NODE) {
+				if (itSubTrip->origin.type == WayPoint::NODE && itSubTrip->destination.type == WayPoint::NODE)
+				{
 					if (itSubTrip->getMode() == "Taxi")
 					{
 						bool isOnDemandTraveler = false;
@@ -134,6 +139,7 @@ void Person_MT::convertToTaxiTrips()
 						{
 							isOnDemandTraveler = true;
 						}
+
 						if(!isOnDemandTraveler)
 						{
 							double x = itSubTrip->origin.node->getLocation().getX();

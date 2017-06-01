@@ -12,10 +12,13 @@
 #include "message/MessageBus.hpp"
 #include "message/MobilityServiceControllerMessage.hpp"
 
+#include "geospatial/network/RoadNetwork.hpp"
+
 namespace sim_mob
 {
 MobilityServiceController::~MobilityServiceController()
 {
+	safe_delete_item(rebalancer);
 }
 
 void MobilityServiceController::subscribeDriver(Person* person)
@@ -137,6 +140,11 @@ void MobilityServiceController::HandleMessage(messaging::Message::MessageType ty
 
 			requestQueue.push_back({requestArgs.currTick, requestArgs.personId, requestArgs.startNodeId,
 				requestArgs.destinationNodeId, requestArgs.extraTripTimeThreshold});
+
+
+			const Node* startNode = RoadNetwork::getInstance()->getMapOfIdvsNodes().at(requestArgs.startNodeId);
+			rebalancer->onRequestReceived(startNode);
+
             break;
         }
 
@@ -169,5 +177,12 @@ bool MobilityServiceController::isNonspatial()
 {
 	return true;
 }
+
+void MobilityServiceController::sendScheduleProposition(const Person* driver, Schedule* schedule) const
+{
+	messaging::MessageBus::PostMessage((messaging::MessageHandler*) driver, MSG_SCHEDULE_PROPOSITION,
+			messaging::MessageBus::MessagePtr(new SchedulePropositionMessage(currTick, schedule) ) );
+}
+
 }
 

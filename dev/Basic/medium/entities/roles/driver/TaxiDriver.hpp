@@ -46,7 +46,7 @@ public:
 	 * get current Node
 	 * @return current Node
 	 */
-	const Node* getCurrentNode();
+	const Node* getCurrentNode() const;
 	/**
 	 * passenger route choice after boarding into taxi
 	 * @param origin is a pointer to original node

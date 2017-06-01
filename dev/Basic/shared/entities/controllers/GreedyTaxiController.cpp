@@ -17,14 +17,12 @@ namespace sim_mob
 {
 std::vector<MobilityServiceController::MessageResult> GreedyTaxiController::computeSchedules()
 {
+	ControllerLog()<<"Computing schedule: "<< requestQueue.size()<<" requests are in the queue"<<std::endl;
 	std::vector<MobilityServiceController::MessageResult> results;
 
 	for (std::vector<TripRequest>::iterator request = requestQueue.begin(); request != requestQueue.end(); request++)
 	{
-		Person* bestDriver;
-		double bestDistance = -1;
-		double bestX, bestY;
-
+		//{ RETRIEVE NODES
 		std::map<unsigned int, Node*> nodeIdMap = RoadNetwork::getInstance()->getMapOfIdvsNodes();
 
 		std::map<unsigned int, Node*>::iterator it = nodeIdMap.find((*request).startNodeId); 
@@ -42,77 +40,70 @@ std::vector<MobilityServiceController::MessageResult> GreedyTaxiController::comp
 			continue;
 		}
 		Node* destinationNode = it->second;
+		//} RETRIEVE NODES
 
-		auto person = availableDrivers.begin();
+		Person* bestDriver = NULL;
+		double bestDistanceSqr = std::numeric_limits<double>::max();
+		double bestX, bestY;
 
-		while (person != availableDrivers.end())
+
+		auto driver = availableDrivers.begin();
+
+		while (driver != availableDrivers.end())
 		{
-			if (!isCruising(*person))
+			if (isCruising(*driver) )
 			{
-				person++;
-				continue;
+					const Node* driverNode = getCurrentNode(*driver);
+					double currDistanceSqr =
+						(startNode->getPosX() - driverNode->getPosX() )*
+						(startNode->getPosX() - driverNode->getPosX() );
+					currDistanceSqr+=
+						(startNode->getPosY() - driverNode->getPosY() )*
+						(startNode->getPosY() - driverNode->getPosY() );
+
+					if (currDistanceSqr < bestDistanceSqr)
+					{
+						bestDriver = *driver;
+						bestDistanceSqr = currDistanceSqr;
+						bestX = driverNode->getPosX();
+						bestY = driverNode->getPosY();
+					}
 			}
-
-			if (bestDistance < 0)
-			{
-				bestDriver = *person;
-
-				const Node* node = getCurrentNode(bestDriver);
-				bestDistance = std::abs(startNode->getPosX()
-					- node->getPosX());
-				bestDistance += std::abs(startNode->getPosY()
-					- node->getPosY());
-			}
-			else
-			{
-				const Node* node = getCurrentNode(*person);
-				double currDistance = std::abs(startNode->getPosX()
-					- node->getPosX());
-				currDistance += std::abs(startNode->getPosY()
-					- node->getPosY());
-
-				if (currDistance < bestDistance)
-				{
-					bestDriver = *person;
-					bestDistance = currDistance;
-					bestX = node->getPosX();
-					bestY = node->getPosY();
-				}
-			}
-
-			person++;
+			driver++;
 		}
 
-		if (bestDistance == -1)
+
+		if (bestDriver != NULL)
 		{
+
+			ControllerLog() << "Closest vehicle is at (" << bestX << ", " << bestY << ")" << std::endl;
+
+			Schedule* schedule = new Schedule();
+			PickUpScheduleItem* pickUpScheduleItem = new PickUpScheduleItem(*request);
+			DropOffScheduleItem* dropOffScheduleItem = new DropOffScheduleItem(*request);
+			schedule->push(pickUpScheduleItem );
+			schedule->push(dropOffScheduleItem );
+
+			sendScheduleProposition(bestDriver, schedule);
+
+
+
+			/*
+			messaging::MessageBus::PostMessage((messaging::MessageHandler*) bestDriver, MSG_SCHEDULE_PROPOSITION, messaging::MessageBus::MessagePtr(
+				new SchedulePropositionMessage(currTick, (*request).personId, (*request).startNodeId,
+					(*request).destinationNodeId, (*request).extraTripTimeThreshold)
+			));
+			*/
+
+			ControllerLog() << "Assignment sent for " << request->userId << " at time " << currTick.frame()
+			<< ". Message was sent at " << request->currTick.frame() << " with startNodeId " << request->startNodeId
+			<< ", destinationNodeId " << request->destinationNodeId << ", and driverId null" << std::endl;
+
+			results.push_back(MESSAGE_SUCCESS);
+		} else{
 			ControllerLog() << "No available vehicles" << std::endl;
 			results.push_back(MESSAGE_ERROR_VEHICLES_UNAVAILABLE);
-			continue;
 		}
-
-		ControllerLog() << "Closest vehicle is at (" << bestX << ", " << bestY << ")" << std::endl;
-
-		Schedule* schedule = new Schedule();
-		PickUpScheduleItem* pickUpScheduleItem = new PickUpScheduleItem(*request);
-		DropOffScheduleItem* dropOffScheduleItem = new DropOffScheduleItem(*request);
-		schedule->push(pickUpScheduleItem );
-		schedule->push(dropOffScheduleItem );
-
-		messaging::MessageBus::PostMessage((messaging::MessageHandler*) bestDriver, MSG_SCHEDULE_PROPOSITION,
-				messaging::MessageBus::MessagePtr(new SchedulePropositionMessage(currTick, schedule) ) );
-
-		/*
-		messaging::MessageBus::PostMessage((messaging::MessageHandler*) bestDriver, MSG_SCHEDULE_PROPOSITION, messaging::MessageBus::MessagePtr(
-			new SchedulePropositionMessage(currTick, (*request).personId, (*request).startNodeId,
-				(*request).destinationNodeId, (*request).extraTripTimeThreshold)
-		));
-		*/
-
-		ControllerLog() << "Assignment sent for " << request->userId << " at time " << currTick.frame()
-		<< ". Message was sent at " << request->currTick.frame() << " with startNodeId " << request->startNodeId
-		<< ", destinationNodeId " << request->destinationNodeId << ", and driverId null" << std::endl;
-
-		results.push_back(MESSAGE_SUCCESS);
 	}
 
 	return results;

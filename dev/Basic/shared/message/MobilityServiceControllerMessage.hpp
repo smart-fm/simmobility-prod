@@ -107,7 +107,7 @@ public:
 	const unsigned int extraTripTimeThreshold;
 };
 
-enum ScheduleItemType{PICKUP, DROPOFF};
+enum ScheduleItemType{PICKUP, DROPOFF,CRUISE};
 
 
 class ScheduleItem
@@ -143,6 +143,17 @@ public:
 
 	void dummy(){};
 	const TripRequest request;
+};
+
+class CruiseTAZ_ScheduleItem : public ScheduleItem
+{
+public:
+	CruiseTAZ_ScheduleItem(unsigned tazId_): tazId(tazId_)
+	{
+		scheduleItemType=CRUISE;
+	};
+	const unsigned tazId;
+	void dummy(){};
 };
 
 typedef std::queue<ScheduleItem*> Schedule;

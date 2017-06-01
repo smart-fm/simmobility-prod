@@ -12,6 +12,7 @@
 #include "entities/Agent.hpp"
 #include "message/Message.hpp"
 #include "message/MobilityServiceControllerMessage.hpp"
+#include "entities/controllers/Rebalancer.hpp"
 
 namespace sim_mob
 {
@@ -23,6 +24,7 @@ protected:
 	explicit MobilityServiceController(const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered, unsigned int computationPeriod = 0)
 		: Agent(mtxStrat, -1), scheduleComputationPeriod(computationPeriod)
 	{
+		rebalancer = new SimpleRebalancer();
 	}
 
 public:
@@ -78,6 +80,8 @@ protected:
 	/** Store queue of requests */
 	std::vector<TripRequest> requestQueue;
 
+	void sendScheduleProposition(const Person* driver, Schedule* schedule) const;
+
 private:
 	/**
 	 * Subscribes a vehicle driver to the controller
@@ -107,6 +111,8 @@ private:
 
 	/** Keeps track of how often to process messages */
 	unsigned int scheduleComputationPeriod;
+
+	Rebalancer* rebalancer;
 };
 }
 #endif /* MobilityServiceController_HPP_ */

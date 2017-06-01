@@ -27,7 +27,7 @@ public:
 	 * the interface function to get current node
 	 * @return current node.
 	 */
-	virtual const Node* getCurrentNode() = 0;
+	virtual const Node* getCurrentNode() const = 0;
 };
 
 } /* namespace sim_mob */

@@ -9,7 +9,7 @@ namespace sim_mob
 
 class RoadItem
 {
-private:
+protected:
 	/**Unique identifier for the road item*/
 	unsigned int roadItemId;
 

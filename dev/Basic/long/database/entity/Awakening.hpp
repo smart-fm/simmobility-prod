@@ -42,6 +42,11 @@ namespace sim_mob
 			Awakening& operator=(const Awakening& source);
 			friend std::ostream& operator<<(std::ostream& strm, const Awakening& data);
 
+			template<class Archive>
+			void serialize(Archive & ar,const unsigned int version);
+			void saveData(std::vector<Awakening*> &awakenings);
+			std::vector<Awakening*> loadSerializedData();
+
 
 		private:
 			friend class AwakeningDao;
@@ -54,6 +59,8 @@ namespace sim_mob
 			float	awakenClass1;
 			float	awakenClass2;
 			float	awakenClass3;
+
+			static constexpr auto filename = "awakenings";
 		};
 	}
 }

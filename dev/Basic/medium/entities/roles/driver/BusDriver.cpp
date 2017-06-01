@@ -145,16 +145,16 @@ void BusDriver::storeArrivalTime(const std::string& current, const std::string& 
 		{
 			busStopNo = stop->getStopCode();
 		}
-		BusArrivalTime busArrivalInfo;
-		busArrivalInfo.busLine = busTrip->getBusLine()->getBusLineID();
-		busArrivalInfo.tripId = busTrip->tripID;
-		busArrivalInfo.sequenceNo = busSequenceNumber;
-		busArrivalInfo.arrivalTime = current;
-		busArrivalInfo.dwellTime = waitTime;
-		busArrivalInfo.dwellTimeSecs = (DailyTime(waitTime)).getValue() / 1000.0;
-		busArrivalInfo.pctOccupancy = (((double)passengerList.size())/MT_Config::getInstance().getBusCapacity()) * 100.0;
-		busArrivalInfo.busStopNo = busStopNo;
-		messaging::MessageBus::PostMessage(PT_Statistics::getInstance(), STORE_BUS_ARRIVAL, messaging::MessageBus::MessagePtr(new BusArrivalTimeMessage(busArrivalInfo)));
+		PT_ArrivalTime arrivalInfo;
+		arrivalInfo.serviceLine = busTrip->getBusLine()->getBusLineID();
+		arrivalInfo.tripId = busTrip->tripID;
+		arrivalInfo.sequenceNo = busSequenceNumber;
+		arrivalInfo.arrivalTime = current;
+		arrivalInfo.dwellTime = waitTime;
+		arrivalInfo.dwellTimeSecs = (DailyTime(waitTime)).getValue() / 1000.0;
+		arrivalInfo.pctOccupancy = (((double)passengerList.size())/MT_Config::getInstance().getBusCapacity()) * 100.0;
+		arrivalInfo.stopNo = busStopNo;
+		messaging::MessageBus::PostMessage(PT_Statistics::getInstance(), STORE_BUS_ARRIVAL, messaging::MessageBus::MessagePtr(new PT_ArrivalTimeMessage(arrivalInfo)));
 		this->busSequenceNumber++;
 	}
 }

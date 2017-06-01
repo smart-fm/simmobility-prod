@@ -174,6 +174,7 @@ void PersonParams::fixUpParamsForLtPerson()
 	setFixedWorkLocation(0);
 	if (fixedWorkplace)
 	{
+
 		setFixedWorkLocation(getTAZCodeForAddressId(activityAddressId));
 	}
 	if (student)
@@ -251,8 +252,7 @@ double ZoneAddressParams::getDistanceBus(int addressIdx) const
 
 ZoneAddressParams::ZoneAddressParams(const std::map<long, Address>& addressLkp, const std::vector<long>& znAddresses)
 	: addressLookup(addressLkp), zoneAddresses(znAddresses), numAddresses(znAddresses.size())
-{
-}
+{}
 
 ZoneAddressParams::~ZoneAddressParams()
 {

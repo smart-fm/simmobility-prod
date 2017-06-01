@@ -52,6 +52,8 @@
 #include "database/entity/HouseholdUnit.hpp"
 #include "database/entity/IndvidualEmpSec.hpp"
 #include "database/entity/LtVersion.hpp"
+#include "database/entity/BuildingMatch.hpp"
+#include "database/entity/SlaBuilding.hpp"
 #include "core/HousingMarket.hpp"
 #include "boost/unordered_map.hpp"
 #include "DeveloperModel.hpp"
@@ -141,7 +143,6 @@ namespace sim_mob
             typedef std::vector<HitsIndividualLogsum*> HitsIndividualLogsumList;
             typedef boost::unordered_map<BigSerial, HitsIndividualLogsum*> HitsIndividualLogsumMap;
 
-
             typedef std::vector<IndvidualVehicleOwnershipLogsum*> IndvidualVehicleOwnershipLogsumList;
             typedef boost::unordered_map<BigSerial, IndvidualVehicleOwnershipLogsum*> IndvidualVehicleOwnershipLogsumMap;
 
@@ -194,6 +195,12 @@ namespace sim_mob
 
             typedef std::vector<WorkersGrpByLogsumParams*> WorkersGrpByLogsumParamsList;
             typedef boost::unordered_map<BigSerial, WorkersGrpByLogsumParams*> WorkersGrpByLogsumParamsMap;
+
+            typedef std::vector<BuildingMatch*> BuildingMatchList;
+            typedef boost::unordered_map<BigSerial, BuildingMatch*> BuildingMatchMap;
+
+            typedef std::vector<SlaBuilding*> SlaBuildingList;
+            typedef boost::unordered_map<string, SlaBuilding*> SlaBuildingMap;
 
             /**
              * Taz statistics
@@ -278,9 +285,11 @@ namespace sim_mob
             /**
              * Getters & Setters 
              */
-            const Unit* getUnitById(BigSerial id) const;
+            Unit* getUnitById(BigSerial id) const;
             BigSerial getUnitTazId(BigSerial unitId) const;
+            BigSerial getUnitSlaAddressId(BigSerial unitId) const;
             BigSerial getEstablishmentTazId(BigSerial establishmentId) const;
+            BigSerial getEstablishmentSlaAddressId(BigSerial establishmentId) const;
             const TazStats* getTazStats(BigSerial tazId) const;
             const TazStats* getTazStatsByUnitId(BigSerial unitId) const;
 
@@ -331,9 +340,12 @@ namespace sim_mob
 			void incrementNumberOfSellers();
 			void incrementNumberOfBidders();
 			void incrementNumberOfBTOAwakenings();
+			void incrementWaitingToMove();
 			int getNumberOfSellers();
 			int getNumberOfBidders();
 			int getNumberOfBTOAwakenings();
+			int getWaitingToMove();
+			void setWaitingToMove(int number);
 
             void incrementLifestyle1HHs();
             void incrementLifestyle2HHs();
@@ -376,10 +388,13 @@ namespace sim_mob
             int getStartDay() const;
             void addNewBids(boost::shared_ptr<Bid> &newBid);
             void addHouseholdUnits(boost::shared_ptr<HouseholdUnit> &newHouseholdUnit);
+            void addUpdatedUnits(boost::shared_ptr<Unit> &updatedUnit);
+            Unit* getUpdatedUnitById(BigSerial unitId);
             BigSerial getBidId();
             BigSerial getUnitSaleId();
             std::vector<boost::shared_ptr<Bid> > getNewBids();
             std::vector<boost::shared_ptr<HouseholdUnit> > getNewHouseholdUnits();
+            std::vector<boost::shared_ptr<Unit> > getUpdatedUnits();
             void addUnitSales(boost::shared_ptr<UnitSale> &unitSale);
             std::vector<boost::shared_ptr<UnitSale> > getUnitSales();
             void addHouseholdsTo_OPSchema(boost::shared_ptr<Household> &houseHold);
@@ -415,8 +430,13 @@ namespace sim_mob
             PreSchoolList getPreSchoolList() const;
             PreSchool* getPreSchoolById( BigSerial id) const;
 
-            std::vector<OwnerTenantMovingRate*> getOwnerTenantMovingRates();
-            std::vector<TenureTransitionRate*> getTenureTransitionRates();
+
+
+            OwnerTenantMovingRate* getOwnerTenantMovingRates(int index);
+            TenureTransitionRate* getTenureTransitionRates(int index);
+            int getOwnerTenantMovingRatesSize();
+            int getTenureTransitionRatesSize();
+
             std::vector<AlternativeHedonicPrice*> getAlternativeHedonicPrice();
             boost::unordered_multimap<BigSerial, AlternativeHedonicPrice*>& getAlternativeHedonicPriceById();
 
@@ -424,8 +444,10 @@ namespace sim_mob
             IndvidualEmpSecList getIndvidualEmpSecList() const;
             IndvidualEmpSec* getIndvidualEmpSecByIndId(BigSerial indId) const;
 
-			vector<double> getlogSqrtFloorAreahdb() const{ return logSqrtFloorAreahdb;}
-            vector<double> getlogSqrtFloorAreacondo() const { return logSqrtFloorAreacondo;}
+			double getlogSqrtFloorAreahdb(int index) { return logSqrtFloorAreahdb[index];}
+            double getlogSqrtFloorAreacondo(int index)  { return logSqrtFloorAreacondo[index];}
+			int getlogSqrtFloorAreahdbSize() { return logSqrtFloorAreahdb.size();}
+            int getlogSqrtFloorAreacondoSize()  { return logSqrtFloorAreacondo.size();}
 
 
             set<string> logsumUniqueCounter_str;
@@ -566,12 +588,15 @@ namespace sim_mob
             int numberOfExits;
             int numberOfSuccessfulBids;
             int numberOfBTOAwakenings;
+            int numberOfBiddersWaitingToMove;
 
             DeveloperModel *developerModel;
             int startDay; //start tick of the simulation
             std::vector<boost::shared_ptr<Bid> > newBids;
             std::vector<boost::shared_ptr<UnitSale> > unitSales;
             std::vector<boost::shared_ptr<HouseholdUnit> > newHouseholdUnits;
+            std::vector<boost::shared_ptr<Unit> > updatedUnits;
+            UnitMap updatedUnitsById;
             BigSerial bidId;
             BigSerial unitSaleId;
             std::vector<boost::shared_ptr<Household> > hhWithBidsVector;
@@ -579,7 +604,7 @@ namespace sim_mob
             IndvidualVehicleOwnershipLogsumList IndvidualVehicleOwnershipLogsums;
             IndvidualVehicleOwnershipLogsumMap IndvidualVehicleOwnershipLogsumById;
 
-            AlternativeHedonicPriceList alternativeHedonicPrice;
+            AlternativeHedonicPriceList alternativeHedonicPrices;
             AlternativeHedonicPriceMap alternativeHedonicPriceById;
 
             ScreeningModelCoefficientsList screeningModelCoefficientsList;
@@ -605,6 +630,7 @@ namespace sim_mob
             PreSchoolList preSchools;
             PreSchoolMap preSchoolById;
             bool resume ;
+            bool initialLoading;
             IndvidualEmpSecList indEmpSecList;
             IndvidualEmpSecMap indEmpSecbyIndId;
 
@@ -614,8 +640,11 @@ namespace sim_mob
             WorkersGrpByLogsumParamsList workersGrpByLogsumParams;
 			WorkersGrpByLogsumParamsMap workersGrpByLogsumParamsById;
 
+			BuildingMatchList buildingMatch;
+			BuildingMatchMap  buildingMatchById;
 
-
+			SlaBuildingList slaBuilding;
+			SlaBuildingMap	slaBuildingById;
         };
     }
 }

@@ -68,6 +68,11 @@ public:
 	 */
 	virtual void collectTravelTime();
 
+	/**
+	 * collect walking time
+	 */
+	void collectWalkingTime();
+
 	bool canAlightBus() const
 	{
 		return alightBus;
@@ -108,6 +113,21 @@ public:
 		this->startPoint = startPoint;
 	}
 
+	double getWalkTimeToPlatform() const
+	{
+		return remainingWalkTime;
+	}
+	void setWalkTimeToPlatform(double walkTime)
+	{
+		remainingWalkTime = walkTime;
+		originalWalkTime = walkTime;
+	}
+
+	double reduceWalkingTime(double value)
+	{
+		return remainingWalkTime -= value;
+	}
+
 	void setService(const std::vector<WayPoint>& lines)
 	{
 		std::stringstream sst;
@@ -139,6 +159,12 @@ private:
 
 	/**record service info*/
 	std::string service;
+
+	/**walking time to the platform*/
+	double remainingWalkTime = 0.0;
+
+	/**original walk time*/
+	double originalWalkTime = 0.0;
 };
 
 }

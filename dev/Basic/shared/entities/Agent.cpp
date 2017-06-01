@@ -41,6 +41,7 @@ using std::priority_queue;
 
 StartTimePriorityQueue sim_mob::Agent::pending_agents;
 std::set<Entity*> sim_mob::Agent::all_agents;
+std::vector<Entity*>sim_mob::Agent::activeAgents;
 unsigned int sim_mob::Agent::nextAgentId = 0;
 
 unsigned int sim_mob::Agent::getAndIncrementID(int preferredID)
@@ -162,6 +163,7 @@ UpdateStatus sim_mob::Agent::performUpdate(timeslice now)
 	checkFrameTimes(getId(), now.ms(), getStartTime(), calledFrameInit, isToBeRemoved());
 
 	//Perform the main update tick
+
 	frameTckRes = frame_tick(now);
 
 	//Save the output
@@ -206,14 +208,16 @@ Entity::UpdateStatus sim_mob::Agent::update(timeslice now)
 		//PROFILE_LOG_AGENT_EXCEPTION(currWorkerProvider->getProfileBuilder(), *this, now, ex);
 
 		//Add a line to the output file.
-		std::stringstream msg;
 		if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled())
 		{
-			msg << "Error updating Agent[" << getId() << "], will be removed from the simulation. \n  " << ex.what();
-			LogOut(msg.str() << std::endl);
+			std::stringstream msg;
+			msg << "Error updating Agent[" << getId() << "], will be removed from the simulation. \n  "
+			    << ex.what() << std::endl;
+			WarnOut(msg.str());
 		}
-		std::cout<<msg.str()<<std::endl;
+
 		setToBeRemoved();
+		ConfigManager::GetInstanceRW().FullConfig().numAgentsKilled++;
 	}
 
 	//Ensure that isToBeRemoved() and UpdateStatus::status are in sync

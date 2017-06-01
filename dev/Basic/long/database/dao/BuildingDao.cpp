@@ -15,7 +15,8 @@
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
-BuildingDao::BuildingDao(DB_Connection& connection): SqlAbstractDao<Building>( connection, DB_TABLE_BUILDING, "", DB_UPDATE_BUILDING, DB_DELETE_BUILDING, DB_GETALL_BUILDING, DB_GETBYID_BUILDING ) {}
+BuildingDao::BuildingDao(DB_Connection& connection): SqlAbstractDao<Building>( connection, 	"",	"",	"",	"",
+																							"SELECT * FROM " + connection.getSchema() + "fm_building",	"" ){}
 
 BuildingDao::~BuildingDao() {}
 
@@ -37,7 +38,6 @@ void BuildingDao::fromRow(Row& result, Building& outObj)
     outObj.freehold = result.get<int>("freehold", 0);
     outObj.floorSpace =  result.get<double>(		"floor_space", 		0.0);
     outObj.buildingType =  result.get<std::string>(	"building_type", std::string());
-    outObj.slaAddressId =  0;//result.get<BigSerial>(		"sla_address_id", INVALID_ID);
 }
 
 void BuildingDao::toRow(Building& data, Parameters& outParams, bool update)
@@ -58,13 +58,12 @@ void BuildingDao::toRow(Building& data, Parameters& outParams, bool update)
 	outParams.push_back(data.getFreehold());
 	outParams.push_back(data.getFloorSpace());
 	outParams.push_back(data.getBuildingType());
-	outParams.push_back(data.getSlaAddressId());
 }
 
 std::vector<Building*> BuildingDao::getBuildingsByParcelId(const long long parcelId,std::string schema)
 {
 
-	const std::string DB_GETBUILDINGS_BY_PARCELID      = "SELECT * FROM " + APPLY_SCHEMA(schema, ".fm_building") + " WHERE fm_parcel_id = :v1;";
+	const std::string DB_GETBUILDINGS_BY_PARCELID      = "SELECT * FROM " + schema + ".fm_building" + " WHERE fm_parcel_id = :v1;";
 	db::Parameters params;
 	params.push_back(parcelId);
 	std::vector<Building*> buildingList;
@@ -75,11 +74,11 @@ std::vector<Building*> BuildingDao::getBuildingsByParcelId(const long long parce
 void BuildingDao::insertBuilding(Building& building,std::string schema)
 {
 
-	const std::string DB_INSERT_BUILDING_OP = "INSERT INTO " + APPLY_SCHEMA(schema, ".fm_building")
+	const std::string DB_INSERT_BUILDING_OP = "INSERT INTO " + schema + ".fm_building"
 	        		+ " (" + "fm_building_id" + ", " + "fm_project_id" + ", " + "fm_parcel_id" + ", " + "storeys_above_ground"+ ", " + "storeys_below_ground" + ", " + "from_date" + ", " + "to_date"
 	        		+ ", " + "building_status" + ", " + "gross_sq_m_res" + ", " + "gross_sq_m_office" + ", " + "gross_sq_m_retail" + ", " + "gross_sq_m_other" + ", " + "last_changed_date"
-					+ ", " + "freehold" + ", " + "floor_space" + ", " + "building_type" + ", " + "sla_address_id"
-	        		+ ") VALUES (:v1, :v2, :v3, :v4, :v5, :v6, :v7, :v8, :v9, :v10, :v11, :v12, :v13, :v14, :v15, :v16, :v17)";
+					+ ", " + "freehold" + ", " + "floor_space" + ", " + "building_type"
+	        		+ ") VALUES (:v1, :v2, :v3, :v4, :v5, :v6, :v7, :v8, :v9, :v10, :v11, :v12, :v13, :v14, :v15, :v16)";
 	insertViaQuery(building,DB_INSERT_BUILDING_OP);
 
 }

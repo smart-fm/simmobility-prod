@@ -41,13 +41,6 @@ set (EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 set (Basic_VERSION_MAJOR 0)
 set (Basic_VERSION_MINOR 1)
 
-#Flags for each configuration type
-SET(CMAKE_CXX_FLAGS_RELEASE "-O2")
-SET(CMAKE_CXX_FLAGS_DEBUG  "-O0 -g")
-
-IF(${BUILD_STATIC} MATCHES "ON")
-  SET(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
-ENDIF(${BUILD_STATIC} MATCHES "ON")
 #SET(BUILD_SHARED_LIBRARIES ON)
 #SET(CMAKE_EXE_LINKER_FLAGS "-static")
 
@@ -215,7 +208,7 @@ option(BUILD_LONG "Build long-term simulator." ON)
 option(BUILD_LIBS "If true, builds the short, medium, and long-term code as libraries (to be installed in sim_mob_short,sim_mob_mid,sim_mob_long." OFF)   
 
 #Option: Static building SimMobility. Currently static building doesn't work with Ubuntu 16.04
-option(BUILD_STATIC "If true, SimMobility is built in static mode." OFF)
+option(BUILD_STATIC "If true, SimMobility is built in static mode." ON)
 
 #Option: Run SimMobility to only produce an input XML file for itself
 option(SIMMOB_XML_WRITER "Sim Mobility will print the network as an XML file." OFF)
@@ -276,19 +269,21 @@ FOREACH(InFile ${SettingsFiles})
   configure_file ("${InFile}" "${OutFile}")
 ENDFOREACH()
 
-
+IF(${BUILD_STATIC} MATCHES "ON")
+  SET(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+ENDIF(${BUILD_STATIC} MATCHES "ON")
 
 #Cflags for C++0x support via gcc
 IF (SIMMOB_LATEST_STANDARD)
   IF(CMAKE_COMPILER_IS_GNUCXX)
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11 -static-libstdc++ -static-libgcc")
   ELSE() 
     #Just hope for the best
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -static-libstdc++ -static-libgcc")
   ENDIF()
 ELSE (SIMMOB_LATEST_STANDARD)
   #Avoid "C++0x compatibility" warnings.
-  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-c++11-compat")
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-c++11-compat -static-libstdc++ -static-libgcc")
 
   #Needed for profiling Agent updates (timing)
   #IF (${SIMMOB_AGENT_UPDATE_PROFILE} MATCHES "ON")
@@ -345,6 +340,8 @@ include_directories("/mingw/include")
 #List of libraries to link
 SET(LibraryList "")
 
+
+
 #Find boost
 set(Boost_ADDITIONAL_VERSIONS "1.47" "1.47.0" "1.48" "1.48.0" "1.49" "1.49.0" "1.50" "1.50.0" "1.51" "1.51.0" "1.52" "1.52.0" "1.53" "1.53.0" "1.54" "1.54.0" "1.55.0" "1.56.0" "1.57.0" "1.58.0" "1.59.0")
 find_package(Boost COMPONENTS system thread filesystem serialization date_time chrono random regex REQUIRED)
@@ -352,7 +349,8 @@ include_directories(${Boost_INCLUDE_DIR})
 IF (${BUILD_STATIC} MATCHES "ON")
    LIST(APPEND LibraryList -Wl,-Bstatic)
 ENDIF(${BUILD_STATIC} MATCHES "ON")
-LIST(APPEND LibraryList -lboost_system -lboost_thread -lboost_filesystem -lboost_serialization -lboost_date_time -lboost_chrono -lboost_random -lboost_regex  -lsoci_core -lsoci_postgresql)
+
+LIST(APPEND LibraryList -lboost_system -lboost_thread -lboost_filesystem -lboost_serialization -lboost_date_time -lboost_chrono -lboost_random -lboost_regex  -lsoci_core -lsoci_postgresql -lm -lc -lgcc -lc )
 
 
 #Find TinyXML (optional; not used any more)
@@ -366,10 +364,6 @@ endif()
 find_package(Xsd REQUIRED)
 include_directories(${XSD_INCLUDE_DIR})
 
-#Find XercesC
-find_package(XercesC REQUIRED)
-include_directories(${XERCESC_INCLUDE_DIR})
-LIST(APPEND LibraryList ${XERCESC_LIBRARIES})
 
 #Find JsonCpp
 find_package(JsonCpp REQUIRED)
@@ -396,16 +390,23 @@ find_package(SOCIPostgreSQL REQUIRED)
 include_directories(${SOCIPOSTGRESQL_INCLUDE_DIRS})
 LIST(APPEND LibraryList ${SOCIPOSTGRESQL_LIBRARIES})
 
-
-#Find JsonCpp
-find_package(JsonCpp REQUIRED)
-include_directories(${JSONCPP_INCLUDE_DIR})
-LIST(APPEND LibraryList ${JSONCPP_LIBRARY})
-
 #Find Lua
 find_package(Lua REQUIRED)
 include_directories(${LUA_INCLUDE_DIRS})
 LIST(APPEND LibraryList ${LUA_LIBRARIES})
+
+#we can only link XercesC dynamically right now. Hence the line below. 
+#I'm hoping we can do a full static link in the future. -chetan 16 May 2017
+SET(CMAKE_FIND_LIBRARY_SUFFIXES ".so")
+#Find XercesC
+find_package(XercesC REQUIRED)
+include_directories(${XERCESC_INCLUDE_DIR})
+LIST(APPEND LibraryList ${XERCESC_LIBRARIES})
+
+IF (${BUILD_STATIC} MATCHES "ON")
+   SET(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+ENDIF(${BUILD_STATIC} MATCHES "ON")
+
 
 LIST(APPEND LibraryList -lcrypto -lssl -lpq -ldl )
 

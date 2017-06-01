@@ -7,20 +7,24 @@
 #include <map>
 
 #include "PT_Stop.hpp"
-#include "Link.hpp"
-#include "Node.hpp"
-#include "Point.hpp"
-#include "PolyLine.hpp"
-#include "TurningGroup.hpp"
-#include "TurningPath.hpp"
 #include "NetworkLoader.hpp"
+#include "SurveillanceStation.hpp"
 #include "TaxiStand.hpp"
 
 namespace sim_mob
 {
-class NetworkLoader;
 
+class Link;
 class NetworkLoader;
+class Node;
+class ParkingArea;
+class ParkingSlot;
+class Point;
+class PolyPoint;
+class PolyLine;
+class TurningGroup;
+class TurningPath;
+
 /**
  * class for holding the network for simulation
  * \author Neeraj D
@@ -59,7 +63,13 @@ private:
 	std::map<unsigned int, BusStop *> mapOfIdvsBusStops;
 
 	/**This map stores all the taxi stands in the network with taxi-stand id as the key*/
-	std::map<unsigned int, TaxiStand *> mapOfIdvsTaxiStand;
+	std::map<unsigned int, TaxiStand *> mapOfIdvsTaxiStands;
+
+	/**This map stores all the parking slots in the network with the id as the key*/
+	std::map<unsigned int, ParkingSlot *> mapOfIdVsParkingSlots;
+
+	/**This map stores all the parking areas in the network with the id as the key*/
+	std::map<unsigned int, ParkingArea *> mapOfIdVsParkingAreas;
 
 	std::map<const Lane*,std::map<const Lane*,const TurningPath *>> turningPathFromLanes;
 
@@ -95,6 +105,12 @@ public:
 	const std::map<unsigned int, TurningConflict *>& getMapOfIdvsTurningConflicts() const;
 
 	const std::map<unsigned int, BusStop *>& getMapOfIdvsBusStops() const;
+
+	const std::map<unsigned int, TaxiStand *>& getMapOfIdvsTaxiStands() const;
+
+	const std::map<unsigned int, ParkingSlot *>& getMapOfIdVsParkingSlots() const;
+
+	const std::map<unsigned int, ParkingArea *>& getMapOfIdVsParkingAreas() const;
 	
 	const std::map<const Lane*,std::map<const Lane*,const TurningPath *>> &getTurningPathsFromLanes() const;
 
@@ -177,6 +193,24 @@ public:
 	 * @param stand - the pointer to taxi-stand
 	 */
 	void addTaxiStand(TaxiStand* stand);
+	
+	/**
+	 * Adds a parking slot to the the respective parking area and the road network
+	 * @param parkingSlot - the pointer to the parking slot
+	 */
+	 void addParking(ParkingSlot *parkingSlot);
+	 
+	 /**
+	 * Adds a surveillance stn to the network
+	 * @param station - the pointer to the surveillance station
+	 */
+	void addSurveillenceStn(SurveillanceStation *station);
+
+	/**
+	 * Check the capacity of road segment
+	 * @return false if any capacities of road segment are zero
+	 */
+	bool checkSegmentCapacity() const;
 
 	/**
 	 * Template class to lookup any map with an unsigned int id

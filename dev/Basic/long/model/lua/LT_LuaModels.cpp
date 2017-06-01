@@ -63,7 +63,6 @@ namespace {
             .beginClass <Unit> ("Unit")
             .addProperty("fmUnitId", &Unit::getId)
         	.addProperty("fmBuildingId", &Unit::getBuildingId)
-        	.addProperty("slaAddressId", &Unit::getSlaAddressId)
         	.addProperty("unitType", &Unit::getUnitType)
         	.addProperty("storeyRange", &Unit::getStoreyRange)
         	.addProperty("unitStatus", &Unit::getConstructionStatus)
@@ -84,28 +83,28 @@ namespace {
             .addProperty("latitude", &Postcode::getLatitude)
             .addProperty("primary_postcode", &Postcode::getPrimaryPostcode)
             .endClass();
-    getGlobalNamespace(state)
-            .beginClass <PostcodeAmenities> ("PostcodeAmenities")
-            .addProperty("postcode", &PostcodeAmenities::getPostcode)
-            .addProperty("buildingName", &PostcodeAmenities::getBuildingName)
-            .addProperty("unitBlock", &PostcodeAmenities::getUnitBlock)
-            .addProperty("roadName", &PostcodeAmenities::getRoadName)
-            .addProperty("mtzNumber", &PostcodeAmenities::getMtzNumber)
-            .addProperty("mrtStation", &PostcodeAmenities::getMrtStation)
-            .addProperty("distanceToMRT", &PostcodeAmenities::getDistanceToMRT)
-            .addProperty("distanceToBus", &PostcodeAmenities::getDistanceToBus)
-            .addProperty("distanceToExpress", &PostcodeAmenities::getDistanceToExpress)
-            .addProperty("distanceToPMS30", &PostcodeAmenities::getDistanceToPMS30)
-            .addProperty("distanceToCBD", &PostcodeAmenities::getDistanceToCBD)
-            .addProperty("distanceToMall", &PostcodeAmenities::getDistanceToMall)
-            .addProperty("distanceToJob", &PostcodeAmenities::getDistanceToJob)
-            .addProperty("mrt_200m", &PostcodeAmenities::hasMRT_200m)
-            .addProperty("mrt_400m", &PostcodeAmenities::hasMRT_400m)
-            .addProperty("express_200m", &PostcodeAmenities::hasExpress_200m)
-            .addProperty("bus_200m", &PostcodeAmenities::hasBus_200m)
-            .addProperty("bus_400m", &PostcodeAmenities::hasBus_400m)
-            .addProperty("pms_1km", &PostcodeAmenities::hasPms_1km)
-            .endClass();
+//    getGlobalNamespace(state)
+//            .beginClass <PostcodeAmenities> ("PostcodeAmenities")
+//            .addProperty("postcode", &PostcodeAmenities::getPostcode)
+//            .addProperty("buildingName", &PostcodeAmenities::getBuildingName)
+//            .addProperty("unitBlock", &PostcodeAmenities::getUnitBlock)
+//            .addProperty("roadName", &PostcodeAmenities::getRoadName)
+//            .addProperty("mtzNumber", &PostcodeAmenities::getMtzNumber)
+//            .addProperty("mrtStation", &PostcodeAmenities::getMrtStation)
+//            .addProperty("distanceToMRT", &PostcodeAmenities::getDistanceToMRT)
+//            .addProperty("distanceToBus", &PostcodeAmenities::getDistanceToBus)
+//            .addProperty("distanceToExpress", &PostcodeAmenities::getDistanceToExpress)
+//            .addProperty("distanceToPMS30", &PostcodeAmenities::getDistanceToPMS30)
+//            .addProperty("distanceToCBD", &PostcodeAmenities::getDistanceToCBD)
+//            .addProperty("distanceToMall", &PostcodeAmenities::getDistanceToMall)
+//            .addProperty("distanceToJob", &PostcodeAmenities::getDistanceToJob)
+//            .addProperty("mrt_200m", &PostcodeAmenities::hasMRT_200m)
+//            .addProperty("mrt_400m", &PostcodeAmenities::hasMRT_400m)
+//            .addProperty("express_200m", &PostcodeAmenities::hasExpress_200m)
+//            .addProperty("bus_200m", &PostcodeAmenities::hasBus_200m)
+//            .addProperty("bus_400m", &PostcodeAmenities::hasBus_400m)
+//            .addProperty("pms_1km", &PostcodeAmenities::hasPms_1km)
+//            .endClass();
     getGlobalNamespace(state)
             .beginClass <ParcelAmenities> ("ParcelAmenities")
             .addProperty("fmParcelId", &ParcelAmenities::getFmParcelId)
@@ -232,7 +231,9 @@ void HM_LuaModel::mapClasses()
 
 void HM_LuaModel::calulateUnitExpectations(const Unit& unit, int timeOnMarket, double logsum, double lagCoefficient, vector<ExpectationEntry>& outValues ) const
 {
-    const BigSerial pcId = unit.getSlaAddressId();
+	assert(0);
+	PrintOutV("We no longer use this function.");
+    const BigSerial pcId = 0;//unit.getSlaAddressId();
     LuaRef funcRef = getGlobal(state.get(), "calulateUnitExpectations");
 
 	LuaRef retVal = funcRef(&unit, timeOnMarket, logsum, lagCoefficient, getBuilding(unit.getBuildingId()), getPostcode(pcId), getAmenities(pcId));
@@ -252,7 +253,6 @@ void HM_LuaModel::calulateUnitExpectations(const Unit& unit, int timeOnMarket, d
     	const Building* build = getBuilding(unit.getBuildingId());
     	const Postcode* postcode = getPostcode(pcId);
     	const PostcodeAmenities* amen = getAmenities(pcId);
-    	std::string buildingName = amen == NULL? "<empty>": amen->getBuildingName();
 
     	//PrintOutV("[ERROR] Unit Expectations is empty for unit " << unit.getId() << " from building ID: "  << build->getFmBuildingId() << " at addressId: " << postcode->getAddressId() << " with building name: " << buildingName << std::endl );
 
@@ -261,7 +261,9 @@ void HM_LuaModel::calulateUnitExpectations(const Unit& unit, int timeOnMarket, d
 
 double HM_LuaModel::calculateHedonicPrice(const Unit& unit) const
 {
-    const BigSerial pcId = unit.getSlaAddressId();
+	assert(0);
+	PrintOutV("We no longer use this function.");
+    const BigSerial pcId = 0;//unit.getSlaAddressId();
     LuaRef funcRef = getGlobal(state.get(), "calculateHedonicPrice");
     LuaRef retVal = funcRef(&unit, getBuilding(unit.getBuildingId()), getPostcode(pcId), getAmenities(pcId));
     if (retVal.isNumber()) {
@@ -285,7 +287,9 @@ double HM_LuaModel::calculateSpeculation(const HousingMarket::Entry& entry, int 
 
 double HM_LuaModel::calulateWP(const Household& hh, const Unit& unit, const HM_Model::TazStats& stats) const
 {
-    const BigSerial pcId = unit.getSlaAddressId();
+	assert(0);
+	PrintOutV("We no longer use this function.");
+    const BigSerial pcId = 0;//unit.getSlaAddressId();
     LuaRef funcRef = getGlobal(state.get(), "calculateWP");
     LuaRef retVal = funcRef(&hh, &unit, &stats, getAmenities(pcId));
     if (retVal.isNumber())

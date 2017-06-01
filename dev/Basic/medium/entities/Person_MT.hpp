@@ -54,7 +54,7 @@ private:
 	FleetController::FleetTimePriorityQueue taxiFleets;
 
 	/**Alters trip chain in accordance to route choice for public transit trips*/
-	void convertPublicTransitODsToTrips();
+	void convertPublicTransitODsToTrips(PT_Network& ptNetwork,const std::string& ptPathsetStoredProcName);
 
 	/**Alters trip chain in accordance to route choice for taxi trip*/
 	void convertToTaxiTrips();
@@ -72,6 +72,22 @@ private:
 	 * @return true, if the trip chain item is advanced
      */
 	bool advanceCurrentTripChainItem();
+
+	/**
+	 * make new trip from current point
+	 * @param stationName is current station name
+	 * @param now is current time
+	 */
+	void EnRouteToNextTrip(const std::string& stationName, const DailyTime& now);
+
+	/**
+	 * Inherited from EventListener.
+	 * @param eventId
+	 * @param ctxId
+	 * @param sender
+	 * @param args
+	 */
+	virtual void onEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args);
 
 	/**Inherited from MessageHandler.*/
 	virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message &message);
@@ -155,14 +171,32 @@ public:
 	virtual std::vector<BufferedBase *> buildSubscriptionList();
 
 	/**
-	 * en-route mode choice function
-	 * @param trip current trip of person
-	 * @param originNode the new origin node considered for re-routing after mode-choice
-	 * @param curTime current time when mode choice is done
-	 * @return a mode chosen from the mode choice model (return value is compatible with mode strings used to lookup roles for modes)
+	 * This interface splits the MRT trips into different trips of different line
+	 * after the entire station list is given by rail transit graph
+	 * @param railPath is the station list of the train given by rail transit graph
+	 * @return is the vector of OD trips created
 	 */
-	std::string chooseModeEnRoute(const Trip& trip, unsigned int originNode, const DailyTime& curTime) const;
+	std::vector<sim_mob::OD_Trip> splitMrtTrips(std::vector<std::string> railPath);
 
+	/**
+	 * This interface creates creates MRT sub trips for various intermediate trips splitted
+	 * @param src is the source of subtrip
+	 * @param dest is the destination of subtrip
+	 * @return is the OD trip created
+	 */
+	sim_mob::OD_Trip CreateMRTSubTrips(std::string src,std::string dest);
+
+	/**
+	 * This interface finds the MRT trips after route choice and performs RailTransitRoute choice
+	 * to give the full route consisting of station names  and then splitting various intermediate
+	 * trips and creating subtrips out of them
+	 * @param matchedTrips is the trips given after performing route choice.
+	 * The result of splitted trips into subtrips is appended in matchedTrips as well
+	 * as matchedTrips is passed by reference
+	 */
+	void  findMrtTripsAndPerformRailTransitRoute(std::vector<sim_mob::OD_Trip>& matchedTrips);
+
+	std::string chooseModeEnRoute(const Trip& trip, unsigned int originNode, const DailyTime& curTime) const;
 	/**
 	 * exposes the Log function to print in thread local output files
 	 */

@@ -28,7 +28,7 @@
 #include "path/PT_RouteChoiceLuaProvider.hpp"
 #include "entities/params/PT_NetworkEntities.hpp"
 #include "geospatial/network/RoadNetwork.hpp"
-
+#include "geospatial/streetdir/RailTransit.hpp"
 #ifndef SIMMOB_DISABLE_MPI
 #include "partitions/PackageUtils.hpp"
 #include "partitions/UnPackageUtils.hpp"
@@ -52,13 +52,13 @@ const int DEFAULT_HIGHEST_AGE = 60;
 } //End unnamed namespace
 
 sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, int id, std::string databaseID)
-: Agent(mtxStrat, id), databaseID(databaseID), agentSrc(src), age(0), resetParamsRequired(false), isFirstTick(true), useInSimulationTravelTime(false), 
+: Agent(mtxStrat, id), personDbId(databaseID), agentSrc(src), age(0), resetParamsRequired(false), isFirstTick(true), useInSimulationTravelTime(false),
 nextPathPlanned(false), originNode(), destNode(), currLinkTravelStats(nullptr)
 {
 }
 
 sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, const std::vector<sim_mob::TripChainItem*>& tc)
-: Agent(mtxStrat), databaseID(tc.front()->getPersonID()), agentSrc(src), tripChain(tc), age(0), resetParamsRequired(false), 
+: Agent(mtxStrat), personDbId(tc.front()->getPersonID()), agentSrc(src), tripChain(tc), age(0), resetParamsRequired(false),
 isFirstTick(true), useInSimulationTravelTime(false), nextPathPlanned(false), originNode(), destNode(), currLinkTravelStats(nullptr)
 {
 }
@@ -122,7 +122,8 @@ std::vector<sim_mob::SubTrip>::iterator sim_mob::Person::resetCurrSubTrip()
 	return trip->getSubTripsRW().begin();
 }
 
-bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::SubTrip>& newSubTrips, const std::vector<sim_mob::OD_Trip>& matchedTrips)
+
+bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::SubTrip>& newSubTrips, const std::vector<sim_mob::OD_Trip>& matchedTrips,  PT_Network& ptNetwork)
 {
 	bool ret = true;
 	bool invalidFlag = false;
@@ -153,7 +154,12 @@ bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::S
 
 			if(invalidFlag)
 			{
-				Print() << "[PT pathset] make trip failed:[" << sSrc << "]|[" << sEnd << "] - Invalid start/end stop for PT edge" << std::endl;
+				std::stringstream msg;
+				msg << __func__ << ": Invalid PT path - Invalid start/end stop for PT edge for Person "
+				    << personDbId << ", travelling from " << originNode.node->getNodeId() << " to "
+				    << destNode.node->getNodeId() << " at time "
+				    << (*currSubTrip).startTime.getStrRepr() << "\n";
+				Warn() << msg.str();
 				ret = false;
 				break;
 			}
@@ -162,7 +168,7 @@ bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::S
 			{
 			case 0:
 			{
-				endType = "NODE";
+				endType = "N";
 				int id = boost::lexical_cast<unsigned int>(sEnd);
 				const RoadNetwork* rn = RoadNetwork::getInstance();
 				const sim_mob::Node* node = rn->getById(rn->getMapOfIdvsNodes() , id);
@@ -174,7 +180,7 @@ bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::S
 			}
 			case 1:
 			{
-				endType = "BUS_STOP";
+				endType = "BS";
 				sim_mob::BusStop* stop = sim_mob::BusStop::findBusStop(sEnd);
 				if (stop)
 				{
@@ -184,8 +190,8 @@ bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::S
 			}
 			case 2:
 			{
-				endType = "MRT_STOP";
-				sim_mob::TrainStop* stop = sim_mob::PT_Network::getInstance().findMRT_Stop(sEnd);
+				endType = "MS";
+				sim_mob::TrainStop* stop = ptNetwork.findMRT_Stop(sEnd);
 				if (stop)
 				{
 					dest = WayPoint(stop);
@@ -198,7 +204,7 @@ bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::S
 			{
 			case 0:
 			{
-				srcType = "NODE";
+				srcType = "N";
 				int id = boost::lexical_cast<unsigned int>(sSrc);
 				const RoadNetwork* rn = RoadNetwork::getInstance();
 				const sim_mob::Node* node = rn->getById(rn->getMapOfIdvsNodes() , id);
@@ -210,7 +216,7 @@ bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::S
 			}
 			case 1:
 			{
-				srcType = "BUS_STOP";
+				srcType = "BS";
 				sim_mob::BusStop* stop = sim_mob::BusStop::findBusStop(sSrc);
 				if (stop)
 				{
@@ -220,8 +226,8 @@ bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::S
 			}
 			case 2:
 			{
-				srcType = "MRT_STOP";
-				sim_mob::TrainStop* stop = sim_mob::PT_Network::getInstance().findMRT_Stop(sSrc);
+				srcType = "MS";
+				sim_mob::TrainStop* stop = ptNetwork.findMRT_Stop(sSrc);
 				if (stop)
 				{
 					source = WayPoint(stop);
@@ -235,7 +241,7 @@ bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::S
 				subTrip.setPersonID(-1);
 				subTrip.itemType = TripChainItem::getItemType("Trip");
 				subTrip.sequenceNumber = 1;
-				subTrip.startTime = curSubTrip->endTime;
+				subTrip.startTime = curSubTrip->startTime;
 				subTrip.endTime = DailyTime((*it).travelTime * 1000.0);
 				subTrip.origin = source;
 				subTrip.destination = dest;
@@ -244,6 +250,7 @@ bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::S
 				subTrip.endLocationId = sEnd;
 				subTrip.endLocationType = endType;
 				subTrip.edgeId = (*it).id;
+				subTrip.serviceLine = (*it).serviceLine;
 				switch(source.type)
 				{
 				case WayPoint::BUS_STOP:
@@ -286,10 +293,16 @@ bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::S
 			}
 			else
 			{
-				Print() << "[PT pathset] make trip failed:[" << sSrc << "(" << sType << ")" << "]|[" << sEnd << "(" << eType << ")" << "] mode: " << it->tTypeStr << std::endl;
+				std::stringstream msg;
+				msg << __func__ << ": Invalid PT path: Invalid Source/destination type for Person "
+				    << personDbId << ", travelling from " << originNode.node->getNodeId()
+				    << " to " << destNode.node->getNodeId() << " at time "
+				    << (*currSubTrip).startTime.getStrRepr() << "\n";
+				Warn() << msg.str();
 				ret = false;
 				break;
 			}
+
 			++it;
 		}
 	}
@@ -462,10 +475,6 @@ void sim_mob::Person::serializeSubTripChainItemTravelTimeMetrics(const TravelMet
 	{
 		return;
 	} //sanity check
-	if (titleSubPredayTT.check())
-	{
-		csv << "person_id,trip_id,subtrip_id,origin,origin_taz,destination,destination_taz,mode,start_time,end_time,travel_time,total_distance,cbd_entry_node,cbd_exit_node,cbd_entry_time,cbd_exit_time,cbd_travel_time,non_cbd_travel_time,cbd_distance,non_cbd_distance\n";
-	}
 
 	sim_mob::SubTrip &st = (*currSubTrip); //easy reading
 	// restricted area which is to be appended at the end of the csv line
@@ -530,6 +539,12 @@ void sim_mob::Person::serializeSubTripChainItemTravelTimeMetrics(const TravelMet
 		origin = trainStopIdStrm.str();
 		break;
 	}
+
+	case WayPoint::MRT_PLATFORM:
+	{
+		origin=subtripMetrics.origin.platform->getPlatformNo();
+		break;
+	}
 	default:
 	{
 		origin = std::to_string(subtripMetrics.origin.type);
@@ -556,6 +571,12 @@ void sim_mob::Person::serializeSubTripChainItemTravelTimeMetrics(const TravelMet
 		const std::vector<std::string>& trainStopIdVect = subtripMetrics.destination.trainStop->getTrainStopIds();
 		std::copy(trainStopIdVect.begin(), trainStopIdVect.end(), std::ostream_iterator<std::string>(trainStopIdStrm, delimiter));
 		destination = trainStopIdStrm.str();
+		break;
+	}
+
+	case WayPoint::MRT_PLATFORM:
+	{
+		destination=subtripMetrics.destination.platform->getPlatformNo();
 		break;
 	}
 	default:

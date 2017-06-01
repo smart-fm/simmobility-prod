@@ -16,7 +16,7 @@ using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
 
-MtzTazDao::MtzTazDao(DB_Connection& connection): SqlAbstractDao<MtzTaz>(connection, DB_TABLE_MTZ_TAZ, "", "", "", DB_GETALL_MTZ_TAZ, DB_GETBYID_MTZ_TAZ) {}
+MtzTazDao::MtzTazDao(DB_Connection& connection): SqlAbstractDao<MtzTaz>(connection, "", "", "", "", "SELECT * FROM " + connection.getSchema()+"mtz_taz", "") {}
 
 MtzTazDao::~MtzTazDao() {}
 

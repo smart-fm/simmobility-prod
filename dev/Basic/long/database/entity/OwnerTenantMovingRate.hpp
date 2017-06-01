@@ -22,16 +22,17 @@ namespace sim_mob
 		{
 		public:
 			OwnerTenantMovingRate( BigSerial _id = 0, int _ageCategory = 0, int _ownerPopulation = 0, int _tenantPopulation = 0, int _ownerMovingPercentage = 0,
-								   int _tenantMovingPercentage = 0);
+								   int _tenantMovingPercentage = 0,bool _day_zero = false);
 
 			virtual ~OwnerTenantMovingRate();
 
 			BigSerial getId() const;
 			int getAgeCategory() const;
-			int getOwnerPopulation() const;
-			int getTenantPopulation() const;
-			int getOwnerMovingPercentage() const;
-			int getTenantMovingPercentage() const;
+			double getOwnerPopulation() const;
+			double getTenantPopulation() const;
+			double getOwnerMovingPercentage() const;
+			double getTenantMovingPercentage() const;
+			bool getDayZero() const;
 
 		    /**
 		    * Operator to print the data.
@@ -43,10 +44,11 @@ namespace sim_mob
 
 			BigSerial id = 0;
 			int ageCategory = 0;
-			int ownerPopulation = 0;
-			int tenantPopulation = 0;
-			int ownerMovingPercentage = 0;
-			int tenantMovingPercentage = 0;
+			double ownerPopulation = 0;
+			double tenantPopulation = 0;
+			double ownerMovingPercentage = 0;
+			double tenantMovingPercentage = 0;
+			int day_zero = false;
 
 		};
 

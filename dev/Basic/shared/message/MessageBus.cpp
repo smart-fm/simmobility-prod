@@ -87,7 +87,7 @@ namespace {
         MessageEntry()
         : destination(nullptr), internal(false), event(false),
         priority(MessageBus::MB_MIN_MSG_PRIORITY), processOnMainThread(false),
-        triggerTime(0){
+        triggerTime(0),type(0){
         }
 
         MessageEntry(const MessageEntry& source) {
@@ -361,7 +361,11 @@ void MessageBus::RegisterMainThread() {
 
 void MessageBus::UnRegisterMainThread() {
     CheckMainThread();
-    printReport();
+
+#ifndef NDEBUG
+	printReport();
+#endif
+
     GetInstance().context = nullptr;
     deleteAllContexts();
 }

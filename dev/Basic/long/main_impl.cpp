@@ -165,6 +165,7 @@ void loadDataToOutputSchema(db::DB_Connection& conn,std::string &currentOutputSc
 			unitDao.insertUnit(*(*unitsItr),currentOutputSchema);
 		}
 
+
 		std::vector<boost::shared_ptr<Project> > projects = developerModel.getProjectsVec();
 		std::vector<boost::shared_ptr<Project> >::iterator projectsItr;
 		ProjectDao projectDao(conn);
@@ -238,6 +239,14 @@ void loadDataToOutputSchema(db::DB_Connection& conn,std::string &currentOutputSc
 		{
 			hhUnitDao.insertHouseholdUnit(*hhUnit,currentOutputSchema);
 		}
+
+//		std::vector<boost::shared_ptr<Unit> > updatedUnits = housingMarketModel.getUpdatedUnits();
+//		std::vector<boost::shared_ptr<Unit> >::iterator updatedUnitsItr;
+//		for(updatedUnitsItr = units.begin(); updatedUnitsItr != updatedUnits.end(); ++updatedUnitsItr)
+//		{
+//			unitDao.insertUnit(*(*updatedUnitsItr),currentOutputSchema);
+//		}
+
 		SimulationStoppedPointDao simStoppedPointDao(conn);
 		simStoppedPointDao.insertSimulationStoppedPoints(*(developerModel.getSimStoppedPointObj(simVersionId)).get(),currentOutputSchema);
 //		developerModel.getBuildingsVec().clear();
@@ -291,6 +300,7 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
     // Connect to database.
     DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
     conn.connect();
+    conn.setSchema(config.schemas.main_schema);
     SimulationStartPointDao simStartPointDao(conn);
     bool resume = config.ltParams.resume;
     std::string currentOutputSchema;
@@ -471,7 +481,7 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
 			for( int n = 0; n < householdList->size(); n++)
 			{
 				const Unit *localUnit = (dynamic_cast<HM_Model*>(models[0]))->getUnitById( (*householdList)[n]->getUnitId());
-				Postcode *postcode = (dynamic_cast<HM_Model*>(models[0]))->getPostcodeById(localUnit->getSlaAddressId());
+				Postcode *postcode = (dynamic_cast<HM_Model*>(models[0]))->getPostcodeById( (dynamic_cast<HM_Model*>(models[0]))->getUnitSlaAddressId( localUnit->getId()));
 
 				//PrintOut( currTick << "," << (*householdList)[n]->getId() << ","  <<  postcode->getSlaPostcode() << "," << postcode->getLongitude() << "," <<  postcode->getLatitude() << std::endl );
 
@@ -498,14 +508,20 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
 
             DeveloperModel::ParcelList parcels;
             DeveloperModel::DeveloperList developerAgents;
-            developerAgents = developerModel->getDeveloperAgents();
-            developerModel->wakeUpDeveloperAgents(developerAgents);
+            if((currTick+1)%7 == 0)
+            {
+            	developerAgents = developerModel->getDeveloperAgents();
+            	developerModel->wakeUpDeveloperAgents(developerAgents);
+            }
 
-            PrintOutV("Day " << currTick << " HUnits: " << std::dec << (dynamic_cast<HM_Model*>(models[0]))->getMarket()->getEntrySize()
-				   << " Bidders: " 	<< (dynamic_cast<HM_Model*>(models[0]))->getNumberOfBidders() << " "
-				   << " Sellers: " 	<< (dynamic_cast<HM_Model*>(models[0]))->getNumberOfSellers() << " "		
+            PrintOutV(" Day " << currTick
+            	   << " HUnits: " << std::dec << (dynamic_cast<HM_Model*>(models[0]))->getMarket()->getEntrySize()
+				   << " BTO_Units: " << std::dec << (dynamic_cast<HM_Model*>(models[0])->getMarket()->getBTOEntrySize())
+				   << " Bidders: " 	<< (dynamic_cast<HM_Model*>(models[0]))->getNumberOfBidders()
+				   << " Sellers: " 	<< (dynamic_cast<HM_Model*>(models[0]))->getNumberOfSellers()
 				   << " Bids: " 	<< (dynamic_cast<HM_Model*>(models[0]))->getBids()
 				   << " Accepted: " << (dynamic_cast<HM_Model*>(models[0]))->getSuccessfulBids()
+				   << " Waiting: "  << (dynamic_cast<HM_Model*>(models[0]))->getWaitingToMove()
 				   << " Exits: " 	<< (dynamic_cast<HM_Model*>(models[0]))->getExits()
 				   << " Awaken: "	<< (dynamic_cast<HM_Model*>(models[0]))->getAwakeningCounter()
 				   << " AwakenByBTO: "	<< (dynamic_cast<HM_Model*>(models[0]))->getNumberOfBTOAwakenings()
@@ -520,6 +536,7 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
             (dynamic_cast<HM_Model*>(models[0]))->setNumberOfBidders(0);
             (dynamic_cast<HM_Model*>(models[0]))->setNumberOfSellers(0);
             (dynamic_cast<HM_Model*>(models[0]))->setNumberOfBTOAwakenings(0);
+            (dynamic_cast<HM_Model*>(models[0]))->setWaitingToMove(0);
             (dynamic_cast<HM_Model*>(models[0]))->resetBAEStatistics();
         }
 

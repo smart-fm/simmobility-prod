@@ -17,7 +17,7 @@ using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
 ParcelDao::ParcelDao(DB_Connection& connection)
-: SqlAbstractDao<Parcel>(connection, DB_TABLE_PARCEL,"", EMPTY_STR, EMPTY_STR,DB_GETALL_PARCELS, DB_GETBYID_PARCEL) {}
+: SqlAbstractDao<Parcel>(connection, "","", "", "","SELECT * FROM " + connection.getSchema()+"fm_parcel", "") {}
 
 ParcelDao::~ParcelDao() {}
 
@@ -83,7 +83,7 @@ void ParcelDao::toRow(Parcel& data, Parameters& outParams, bool update)
 
 std::vector<Parcel*>  ParcelDao::getEmptyParcels()
 {
-	const std::string queryStr = DB_GETALL_EMPTY_PARCELS;
+	const std::string queryStr = "SELECT * FROM " + connection.getSchema() + "getEmptyParcels()";
 	std::vector<Parcel*> emptyParcelList;
 	getByQuery(queryStr,emptyParcelList);
 	return emptyParcelList;
@@ -91,7 +91,7 @@ std::vector<Parcel*>  ParcelDao::getEmptyParcels()
 
 std::vector<Parcel*> ParcelDao::getParcelsWithOngoingProjects(std::string schema)
 {
-	const std::string queryStr = "SELECT * FROM " + APPLY_SCHEMA(schema, ".fm_parcel") + LIMIT;
+	const std::string queryStr = "SELECT * FROM " + connection.getSchema() + schema + ".fm_parcel";
 	std::vector<Parcel*> parcelsWithOngoingProjectsList;
 	getByQuery(queryStr,parcelsWithOngoingProjectsList);
 	return parcelsWithOngoingProjectsList;
@@ -100,7 +100,7 @@ std::vector<Parcel*> ParcelDao::getParcelsWithOngoingProjects(std::string schema
 void ParcelDao::insertParcel(Parcel& parcel,std::string schema)
 {
 
-	const std::string DB_INSERT_PARCEL_OP = "INSERT INTO " + APPLY_SCHEMA(schema, ".fm_parcel")
+	const std::string DB_INSERT_PARCEL_OP = "INSERT INTO " + schema + ".fm_parcel"
 										+ " (" + "fm_parcel_id" + ", " + "taz_id" + ", " + "lot_size"
 				                		+ ", " + "gpr" + ", " + "land_use_type_id" + ", "
 				                		+ "owner_name" + ", " + "owner_category"  + ", "+ "last_transaction_date" + ", " + "last_transaction_type_total" + ", "
@@ -110,4 +110,12 @@ void ParcelDao::insertParcel(Parcel& parcel,std::string schema)
 				                		+ ") VALUES (:v1, :v2, :v3, :v4, :v5, :v6, :v7, :v8, :v9, :v10, :v11, :v12, :v13, :v14, :v15, :v16, :v17, :v18, :v19, :v20, :v21, :v22, :v23, :v24, :v25, :v26)";
 	insertViaQuery(parcel,DB_INSERT_PARCEL_OP);
 
+}
+
+std::vector<Parcel*> ParcelDao::getFreeholdParcels()
+{
+	const std::string queryStr = "SELECT P.* FROM " + connection.getSchema() + "fm_parcel P," + connection.getSchema() +  "fm_building B" +	" WHERE p.fm_parcel_id = b.fm_parcel_id and freehold = 1";
+	std::vector<Parcel*> freeholdParcelsList;
+	getByQuery(queryStr,freeholdParcelsList);
+	return freeholdParcelsList;
 }

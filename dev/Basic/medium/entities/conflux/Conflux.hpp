@@ -75,8 +75,11 @@ private:
 	typedef std::map<const Link*, const SegmentStatsList> UpstreamSegmentStatsMap;
 	typedef std::map<const Link*, PersonList> VirtualQueueMap;
 	typedef std::map<const RoadSegment*, SegmentStatsList> SegmentStatsMap;
+
+	bool isServiceControllerInvoked=false;
+	static int currentframenumber;
 	typedef std::map<const Link*, LinkStats> LinkStatsMap;
-	static std::map<const Node *,Conflux *> nodeConfluxMap;
+static std::map<const Node *,Conflux *> nodeConfluxMap;
 	/**
 	 * helper to capture the status of a person before and after update
 	 */
@@ -185,6 +188,9 @@ private:
 	/**time in seconds of a single tick*/
 	const double tickTimeInS;
 
+	/**station agents*/
+	std::vector<Agent*> stationAgents;
+
 	/**
 	 * number of times update function was called for this conflux in current tick
 	 */
@@ -208,7 +214,7 @@ private:
 	/**
 	 * updates agents in this conflux
 	 */
-	void processAgents();
+	void processAgents(timeslice frameNumber);
 
 	/**
 	 * update agent in infinite lanes
@@ -244,6 +250,12 @@ private:
 	 * @param person is with the role "waiting bus activity"
 	 */
 	void assignPersonToBusStopAgent(Person_MT* person);
+
+	/**
+	 * assign a waiting person to station agent
+	 * @param person is with the role "waiting train activity"
+	 */
+	void assignPersonToStationAgent(Person_MT* person);
 
 	/**
 	 * assign person to MRT
@@ -683,9 +695,19 @@ public:
 	/**
 	 * exposes the Log() function for printing in output files
 	 */
+
+	void driverStatistics(timeslice now);
+	/**
+	 * add station agent to the conflux
+	 * @param stationAgent is station agent;
+	 */
+	void addStationAgent(Agent* stationAgent);
+
 	void log(std::string line) const;
 
 	static  Conflux * getConfluxFromNode(const Node * node) ;
+
+	static boost::mutex activeAgentsLock;
 };
 
 /**

@@ -31,7 +31,7 @@
 			<mapping name="pt_pathset" procedure="get_pt_pathset"/>
 			<mapping name="erp_gantry_zone" procedure="get_erp_gantry_zone()"/>
 			<mapping name="erp_section" procedure="get_erp_section()"/>
-			<mapping name="erp_surcharge" procedure="get_erp_surcharge()"/>			
+			<mapping name="erp_surcharge" procedure="get_erp_surcharge()"/>
 		</proc_map>
 
 		<!-- Small CBD network -->
@@ -82,7 +82,7 @@
 			<mapping name="erp_surcharge" procedure="get_erp_surcharge()"/>
 			<!--Stored procedure for trip-chains-->
 			<mapping name="trip_chains" procedure="get_trip_chains_extcbd_stcalibration"/>
-		</proc_map> 
+		</proc_map>
 
 		<!-- Changi network -->
 		<proc_map id="changi" format="aimsun">
@@ -106,7 +106,38 @@
 			<mapping name="erp_gantry_zone" procedure="get_erp_gantry_zone()"/>
 			<mapping name="erp_section" procedure="get_erp_section()"/>
 			<mapping name="erp_surcharge" procedure="get_erp_surcharge()"/>
-		</proc_map> 
+		</proc_map>
+
+		<!-- Virtual City network -->
+		<proc_map id="virtual_city" format="aimsun">
+			<mapping name="nodes" procedure="get_nodes()"/>
+			<mapping name="links" procedure="get_links()"/>
+			<mapping name="turning_groups" procedure="get_turning_groups()"/>
+			<mapping name="turning_paths" procedure="get_turning_paths()"/>
+			<mapping name="turning_polylines" procedure="get_turning_polylines()"/>
+			<mapping name="turning_conflicts" procedure="get_turning_conflicts()"/>
+			<mapping name="road_segments" procedure="get_road_segments()"/>
+			<mapping name="segment_polylines" procedure="get_segment_polylines()"/>
+			<mapping name="lanes" procedure="get_lanes()"/>
+			<mapping name="lane_polylines" procedure="get_lane_polylines()"/>
+			<mapping name="lane_connectors" procedure="get_lane_connectors()"/>
+			<mapping name="bus_stops" procedure="get_bus_stops()"/>
+			<mapping name="pt_bus_dispatch_freq" procedure="get_pt_bus_frequency()"/>
+			<mapping name="pt_bus_routes" procedure="get_pt_bus_routes()"/>
+			<mapping name="pt_bus_stops" procedure="get_pt_bus_stops()"/>
+			<mapping name="mrt_road_segments" procedure="get_pt_train_segments()"/>
+			<!--Stored procedures for route-choice-->
+			<mapping name="pt_edges" procedure="get_pt_tr_edges()"/>
+			<mapping name="pt_vertices" procedure="get_pt_tr_vertices()"/>
+			<mapping name="rail_transit_edges" procedure="get_rail_transit_edges()"/>
+			<mapping name="pvt_pathset" procedure="get_pvt_pathset"/>
+			<mapping name="pt_pathset" procedure="get_pt_pathset_tr"/>
+			<mapping name="erp_gantry_zone" procedure="get_erp_gantry_zone()"/>
+			<mapping name="erp_section" procedure="get_erp_section()"/>
+			<mapping name="erp_surcharge" procedure="get_erp_surcharge()"/>
+			<!--Stored procedure for trip-chains-->
+			<mapping name="trip_chains" procedure="get_trip_chains"/>
+		</proc_map>
 	</db_proc_groups>
 
 	<!-- System configuration properties -->
@@ -114,9 +145,9 @@
 		<!-- Implementation to use for the Aura Manager. -->
 		<!-- Values include: rdu, rstar (default), simtree, packing-tree -->
 		<aura_manager_impl value="packing-tree"/>
-            
+
 		<!-- Order in which agents are to be loaded into the simulation -->
-		<!-- Values include: database, drivers, pedestrians, passenger -->
+		<!-- Values include: database, xml-->
 		<load_agents order="database"/>
 
 		<!--  Commsim (communication) settings -->
@@ -145,7 +176,7 @@
 			<!-- If loading from the database, which database, proc_map, and credentials are used? -->
 			<network_database database="fm_remote" credentials="fm_remote_plain" proc_map="extended_cbd"/>
 		</network>
-        
+
 		<!-- Where to find our various schema files. -->
 		<!-- Overrides xsi:schemaLocation in the files themselves. -->
 		<!-- Note that absolute paths are allowed, and that relative paths are relative to the current working directory. -->
@@ -157,22 +188,22 @@
 				<option value="../shared/geospatial/xmlLoader/geo10.xsd"/>  <!-- Running from dev/Basic/Debug or dev/Basic/Release -->
 			</road_network>
 		</xsd_schema_files>
-        
+
 		<!-- The new parser will simply load everything in the "generic_props" section into "SystemParams.genericProps".  -->
 		<!-- In other words, you DO NOT need to update the parser just to add a simple string-based configuration parameter to -->
 		<!-- the config file. This is intended to be used for new or temporary features. -->
 		<generic_props>
 			<!-- The current control strategy for buses. Can be "headway_based", "evenheadway_based", "hybrid_based", or (default) "no_control" -->
 			<property key="busline_control_type" value="headway_based"/>
-            
+
 			<!-- Default number of buses that can be accommodated in a bus stop -->
 			<!-- This attribute must ideally come for each bus stop from the database -->
 			<!-- Since we currently do  not have this data, we use a generic property -->
 			<property key="buses_per_stop" value="2"/>
-            
+
 			<!--Specifies the short-term driving model in un-signalised interesections.
 			Valid models: "slot-based", "conflict-based" (default)
-			Note: Both, slot-based and conflict-based require the stored procedures for turnings and conflicts. If these are not specified, 
+			Note: Both, slot-based and conflict-based require the stored procedures for turnings and conflicts. If these are not specified,
 			there is no intersection driving behaviour i.e. vehicles collide with each other in the intersection-->
 			<property key="intersection_driving_model" value="conflict-based"/>
 
@@ -191,7 +222,7 @@
 		<communication count="0" granularity="100 ms"/>  <!-- Communication simulator -->
 	</workers>
 
-	<model_scripts path="scripts/lua/mid/behavior-models/" format="lua">
+	<model_scripts path="scripts/lua/mid/behavior_vc/" format="lua">
 		<script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models-->
 		<script name="pvtrc" file="pvtrc.lua"/> <!--private traffic route choice-->
 		<script name="ptrc" file="ptrc.lua"/> <!--public transit route choice-->
@@ -204,7 +235,7 @@
 		<update_time_ms value="500"/>
 		<map_file value="cityhall/cityhall.osm"/>
 		<blocking_time_sec value="5"/>
-	</fmodcontroller>   
+	</fmodcontroller>
 
 	<vehicleTypes>
 		<vehicleType name="Car" length="4.0" width="2.0" capacity="4"/>
@@ -225,7 +256,7 @@
 		<person lowerAge="50" upperAge="60" lowerSecs="6" upperSecs="10" walkSpeed_kmph="3"/>
 		<person lowerAge="60" upperAge="100" lowerSecs="8" upperSecs="15" walkSpeed_kmph="2.5"/>
 	</person_characteristics>
-    
+
 	<!-- To Enable Buses: make sure the following stored procedures in your <proc_map> not empty and valid -->
 	<!-- 1. "pt_bus_dispatch_freq" -->
 	<!-- 2. "pt_bus_routes" -->
@@ -233,32 +264,33 @@
 	<!-- With the above three procedures present and valid, enable buses with "<busController enabled="true" />" in the <busController> -->
 	<!-- The current control strategy for buses. Can be "headway_based", "evenheadway_based", "hybrid_based", or (default) "no_control" -->
 	<busController enabled="true" busline_control_type="headway_based"/>
-	
+
 	<!-- default capacity value -->
 	<bus_default_capacity value="100"/>
 
 	<!-- flag to control if PT graph should be loaded -->
 	<public_transit enabled="true"/>
-	
-	<!-- file names to output statistics-->   
-	<output_statistics>                              
+
+	<!-- file names to output statistics-->
+	<output_statistics>
 		<journey_time file="journey_time.csv"/>
 		<waiting_time file="waiting_time.csv"/>
 		<waiting_count file="waiting_count.csv" interval="900000"/>
 		<travel_time file="travel_time.csv"/>
-		<pt_stop_stats file="pt_stop_stats.csv"/>		
+		<pt_stop_stats file="pt_stop_stats.csv"/>
 		<od_travel_time enabled="false" file-name="od_travel_time.csv" interval="900000"/>
 		<segment_travel_time enabled="false" file-name="segment_travel_time.csv" interval="300000"/>
-		<!--If enabled, outputs the density at every road segment present at the end of the 
+		<link_travel_time file="link_travel_time.csv"/>
+		<!--If enabled, outputs the density at every road segment present at the end of the
 		update interval (in milliseconds)-->
 		<segment_density updateInterval="300000" outputEnabled="false" file-name="density_map.csv"/>
 		<!--If enabled, outputs the vehicles counted by every loop detector, accumulated over the given period length (in milliseconds)
 		i.e. count of vehicles passing a loop detector in every "600,000" milliseconds -->
 		<loop-detector_counts frequency="900000" outputEnabled="true" file-name="VehicleCounts.csv"/>
 		<assignment_matrix enabled="false" file-name="assignment_matrix.csv"/>
-	</output_statistics>	
+	</output_statistics>
 
-	<path-set-config-file value="data/pathset_config.xml" />
-	<travel_time_update interval="300" alpha="0.5" />	
+	<path-set-config-file value="data/pathset_config.xml"/>
+	<travel_time_update interval="300" alpha="0.5"/>
 </config>
 

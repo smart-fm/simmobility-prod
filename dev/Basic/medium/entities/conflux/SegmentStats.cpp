@@ -32,6 +32,8 @@ const double INFINITESIMAL_DOUBLE = 0.000001;
 const double SHORT_SEGMENT_LENGTH_LIMIT = 5 * PASSENGER_CAR_UNIT; // 5 times a car's length (in m)
 const double LARGE_OUTPUT_FLOW_RATE = 2.77; //veh/s (10000 veh/hr)(considered high output flow rate for a lane) (suggested by Yang Lu on 23-Apr-2015)
 
+const double METERS_IN_KM = 1000.0;
+
 const double SINGLE_LANE_SEGMENT_CAPACITY = 1200.0; //veh/hr. suggested by Yang Lu on 11-Oct-2014
 const double DOUBLE_LANE_SEGMENT_CAPACITY = 3000.0; //veh/hr. suggested by Yang Lu on 11-Oct-2014
 }
@@ -551,7 +553,7 @@ double SegmentStats::getTotalDensity(bool hasVehicle)
 {
 	double density = 0.0;
 	double totalPCUs = getTotalVehicleLength() / PASSENGER_CAR_UNIT;
-	density = totalPCUs / (numVehicleLanes * (length / 1000.0));
+	density = totalPCUs / (numVehicleLanes * (length / METERS_IN_KM));
 
 	return density;
 }
@@ -899,7 +901,7 @@ std::string SegmentStats::reportSegmentStats(uint32_t frameNumber)
 				frameNumber,
 				roadSegment->getRoadSegmentId(),
 				statsNumberInSegment,
-				segVehicleSpeed,
+				speedDensityFunction((getTotalDensity(true)/METERS_IN_KM)),
 				segFlow,
 				getTotalDensity(true),
 				(numPersons - numAgentsInLane(laneInfinity)),

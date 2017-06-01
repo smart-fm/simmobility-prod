@@ -11,22 +11,22 @@
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
-EstablishmentDao::EstablishmentDao(DB_Connection& connection): SqlAbstractDao<Establishment>(connection, DB_TABLE_ESTABLISHMENT,EMPTY_STR,
-																							 EMPTY_STR, EMPTY_STR,DB_GETALL_ESTABLISHMENT, DB_GETBYID_ESTABLISHMENT){}
+EstablishmentDao::EstablishmentDao(DB_Connection& connection): SqlAbstractDao<Establishment>(connection, "","","", "","SELECT * FROM " + connection.getSchema()+"establishment", ""){}
 
 EstablishmentDao::~EstablishmentDao() {}
 
 void EstablishmentDao::fromRow(Row& result, Establishment& outObj)
 {
-    outObj.id = result.get<BigSerial>("id", INVALID_ID);
-    outObj.firmId = result.get<BigSerial>("firm_id", INVALID_ID);
-    outObj.buildingId = result.get<BigSerial>("fm_building_id", INVALID_ID);
-    outObj.lifestyleId = result.get<BigSerial>("life_style_id", INVALID_ID);
-    outObj.businessTypeId = result.get<BigSerial>("business_type_id", INVALID_ID);
-    outObj.size = result.get<int>("size", 0);
-    outObj.revenue = result.get<double>("revenue", 0);
-    outObj.grossSqM = result.get<double>("gross_sq_m", 0);
-    outObj.slaAddressId = result.get<BigSerial>("sla_address_id", INVALID_ID);
+    outObj.id 			= result.get<BigSerial>("id", INVALID_ID);
+    outObj.buildingId 	= result.get<BigSerial>("fm_building_id", INVALID_ID);
+    outObj.firmId 		= result.get<BigSerial>("firm_id", INVALID_ID);
+    outObj.firmFoundationYear 	= result.get<BigSerial>("firm_foundation_year",0);
+    outObj.industryTypeId 	= result.get<int>("industry_type_id",0);
+    outObj.floorArea 		= result.get<double>("floor_area",0);
+    outObj.jobSize 			= result.get<int>("job_size",0);
+    outObj.revenue 			= result.get<double>("revenue",0);
+    outObj.capital 			= result.get<double>("capital",0);
+    outObj.establishmentLifestyleId = result.get<BigSerial>("establishment_lifestyle_id", 0);
 }
 
 void EstablishmentDao::toRow(Establishment& data, Parameters& outParams, bool update) {}

@@ -153,6 +153,8 @@ protected:
 	const Lane* currLane;
 	bool isQueuing;
 	bool laneConnectorOverride;
+	/**Iterator pointing to the next surveillance station on the segment*/
+	std::vector<SurveillanceStation *>::const_iterator nextSurveillanceStn;
 
 	mutable std::stringstream DebugStream;
 
@@ -356,6 +358,16 @@ protected:
 	 * @param linkExitTimeSec time at which the link was exited
 	 */
 	void updateScreenlineCounts(const SegmentStats* prevSegStat, double segEnterExitTime);
+
+	/**
+	 * This method updates the values recorded by the traffic sensor
+	 *
+	 * @param oldPos previous vehicle position w.r.t start of segment
+	 * @param newPos current vehicle position w.r.t start of segment
+	 * @param speed the speed of the vehicle
+	 * @param acceleration the acceleration of the vehicle
+	 */
+	void updateTrafficSensor(double oldPos, double newPos, double speed, double acceleration);
 
 	/**
 	 * get number of intersections between the agent's location and incident location

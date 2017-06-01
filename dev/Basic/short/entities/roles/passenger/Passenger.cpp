@@ -32,9 +32,20 @@ Role<Person_ST>* Passenger::clone(Person_ST *parent) const
 	{
 		personRoleType = Role<Person_ST>::RL_TRAINPASSENGER;
 	}
+	else if (parent->currSubTrip->getMode() == "Sharing")
+	{
+		personRoleType = Role<Person_ST>::RL_CARPASSENGER;
+	}
+	else if (parent->currSubTrip->getMode() == "PrivateBus")
+	{
+		personRoleType = Role<Person_ST>::RL_PRIVATEBUSPASSENGER;
+	}
 	else
 	{
-		throw std::runtime_error("Unknown mode for passenger role");
+		std::stringstream msg;
+		msg << __func__ << ": Invalid mode for passenger role: " << parent->currSubTrip->getMode();
+		msg << "\nExpected: BusTravel or MRT or Sharing or PrivateBus";
+		throw std::runtime_error(msg.str());
 	}
 	
 	Passenger *passenger = new Passenger(parent, behavior, movement, "Passenger_", personRoleType);
@@ -75,13 +86,21 @@ void Passenger::collectTravelTime()
 	personTravelTime.travelTime = ((double)parent->getRole()->getTravelTime()) / 1000.0; //convert to seconds
 	personTravelTime.arrivalTime = DailyTime(parent->getRole()->getArrivalTime()).getStrRepr();
 	
-	if (roleType == Role<Person_ST>::RL_PASSENGER)
+	if(roleType == Role<Person_ST>::RL_TRAINPASSENGER)
 	{
-		personTravelTime.mode = "BUS_TRAVEL";
+		personTravelTime.mode = "ON_MRT";
 	}
-	else if(roleType == Role<Person_ST>::RL_TRAINPASSENGER)
+	else if(roleType == Role<Person_ST>::RL_CARPASSENGER)
 	{
-		personTravelTime.mode = "MRT_TRAVEL";
+		personTravelTime.mode = "ON_SHARINGCAR";
+	}
+	else if(roleType == Role<Person_ST>::RL_PRIVATEBUSPASSENGER)
+	{
+		personTravelTime.mode = "ON_PBUS";
+	}
+	else
+	{
+		personTravelTime.mode = "ON_BUS";
 	}
 
 	messaging::MessageBus::PostMessage(PT_Statistics::getInstance(), STORE_PERSON_TRAVEL_TIME,

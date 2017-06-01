@@ -13,36 +13,40 @@
 
 using namespace sim_mob::long_term;
 
-Establishment::Establishment(BigSerial id, BigSerial firmId, BigSerial buildingId, BigSerial lifestyleId, BigSerial businessTypeId, int size, double revenue, double grossSqM, BigSerial slaAddressId)
-							:id(id), firmId(firmId), buildingId(buildingId), lifestyleId(lifestyleId), businessTypeId(businessTypeId), size(size), revenue(revenue), grossSqM(grossSqM), slaAddressId(slaAddressId){}
+Establishment::Establishment(BigSerial 	id,	BigSerial buildingId,BigSerial firmId,BigSerial	firmFoundationYear,int	industryTypeId,
+							 double floorArea,BigSerial jobSize,double revenue,double capital,BigSerial	establishmentLifestyleId):
+							id(id),buildingId(buildingId),	firmId(firmId),firmFoundationYear(firmFoundationYear),industryTypeId(industryTypeId),
+							floorArea(floorArea),jobSize(jobSize),revenue(revenue),capital(capital),establishmentLifestyleId(establishmentLifestyleId){}
 
 Establishment::~Establishment(){}
 
 Establishment::Establishment(const Establishment& source)
 {
-	this->id 			= source.id;
-	this->firmId 		= source.firmId;
-	this->buildingId 	= source.buildingId;
-	this->lifestyleId 	= source.lifestyleId;
-	this->businessTypeId = source.businessTypeId;
-	this->size 			= source.size;
-	this->revenue 		= source.revenue;
-	this->grossSqM 		= source.grossSqM;
-	this->slaAddressId 	= source.slaAddressId;
+	this->id = source.id;
+	this->buildingId = source.buildingId;
+	this->firmId = source.firmId;
+	this->firmFoundationYear = source.firmFoundationYear;
+	this->industryTypeId = source.industryTypeId;
+	this->floorArea = source.floorArea;
+	this->jobSize = source.jobSize;
+	this->revenue = source.revenue;
+	this->capital = source.capital;
+	this->establishmentLifestyleId = source.establishmentLifestyleId;
 }
 
 
 Establishment& Establishment::operator=(const Establishment& source)
 {
-	this->id 			= source.id;
-	this->firmId 		= source.firmId;
-	this->buildingId 	= source.buildingId;
-	this->lifestyleId 	= source.lifestyleId;
-	this->businessTypeId = source.businessTypeId;
-	this->size 			= source.size;
-	this->revenue 		= source.revenue;
-	this->grossSqM 		= source.grossSqM;
-	this->slaAddressId 	= source.slaAddressId;
+	this->id = source.id;
+	this->buildingId = source.buildingId;
+	this->firmId = source.firmId;
+	this->firmFoundationYear = source.firmFoundationYear;
+	this->industryTypeId = source.industryTypeId;
+	this->floorArea = source.floorArea;
+	this->jobSize = source.jobSize;
+	this->revenue = source.revenue;
+	this->capital = source.capital;
+	this->establishmentLifestyleId = source.establishmentLifestyleId;
 
 	return *this;
 }
@@ -52,44 +56,45 @@ void Establishment::setId(BigSerial val)
 	id = val;
 }
 
-void Establishment::setFirmId(BigSerial val)
-{
-	firmId = val;
-}
-
 void Establishment::setBuildingId(BigSerial val)
 {
 	buildingId = val;
 }
 
-void Establishment::setLifestyleId(BigSerial val)
+void Establishment::setFirmId(BigSerial val)
 {
-	lifestyleId = val;
+	firmId = val;
 }
 
-void Establishment::setBusinessTypeId(BigSerial val)
+void Establishment::setFirmFoundationYear(BigSerial val)
 {
-	businessTypeId = val;
+	firmFoundationYear = val;
 }
 
-void Establishment::setSize(int val)
+void Establishment::setIndustryTypeId(int val)
 {
-	size = val;
+	industryTypeId = val;
 }
+
+void Establishment::setFloorArea(double val)
+{
+	floorArea = val;
+}
+
+void Establishment::setJobSize(BigSerial  val)
+{
+	jobSize = val;
+}
+
 
 void Establishment::setRevenue(double val)
 {
 	revenue = val;
 }
 
-void Establishment::setGrossSqM(double val)
+void Establishment::setEstablishmentLifestyleId(BigSerial val)
 {
-	grossSqM = val;
-}
-
-void Establishment::setSlaAddressId(BigSerial val)
-{
-	slaAddressId = val;
+	establishmentLifestyleId = val;
 }
 
 BigSerial Establishment::getId() const
@@ -97,29 +102,35 @@ BigSerial Establishment::getId() const
 	return id;
 }
 
-BigSerial Establishment::getFirmId() const
-{
-	return firmId;
-}
-
 BigSerial Establishment::getBuildingId() const
 {
 	return buildingId;
 }
 
-BigSerial Establishment::getLifestyleId() const
+BigSerial Establishment::getFirmId() const
 {
-	return lifestyleId;
+	return firmId;
 }
 
-BigSerial Establishment::getBusinessTypeId() const
+BigSerial Establishment::getFirmFoundationYear() const
 {
-	return businessTypeId;
+	return firmFoundationYear;
 }
 
-int Establishment::getSize() const
+int	Establishment::getIndustryTypeId() const
 {
-	return size;
+	return industryTypeId;
+}
+
+
+double Establishment::getFloorArea() const
+{
+	return floorArea;
+}
+
+BigSerial Establishment::getJobSize() const
+{
+	return jobSize;
 }
 
 double Establishment::getRevenue() const
@@ -127,16 +138,10 @@ double Establishment::getRevenue() const
 	return revenue;
 }
 
-double Establishment::getGrossSqM() const
+BigSerial Establishment::getEstablishmentLifestyleId() const
 {
-	return grossSqM;
+	return establishmentLifestyleId;
 }
-
-BigSerial Establishment::getSlaAddressId() const
-{
-	return slaAddressId;
-}
-
 
 namespace sim_mob
 {
@@ -148,12 +153,7 @@ namespace sim_mob
 						<< "\"id \":\"" 			<< data.id 				<< "\","
 						<< "\"firmId \":\"" 		<< data.firmId 			<< "\","
 						<< "\"buildingId \":\"" 	<< data.buildingId 		<< "\","
-						<< "\"lifestyleId \":\"" 	<< data.lifestyleId 	<< "\","
-						<< "\"businessTypeId \":\"" << data.businessTypeId 	<< "\","
-						<< "\"size \":\"" 			<< data.size 			<< "\","
 						<< "\"revenue \":\"" 		<< data.revenue 		<< "\","
-						<< "\"grossSqM \":\"" 		<< data.grossSqM 		<< "\","
-						<< "\"slaAddressId \":\"" 	<< data.slaAddressId 	<< "\""
 						<< "}";
         }
     }

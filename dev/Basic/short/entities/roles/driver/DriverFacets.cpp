@@ -79,7 +79,9 @@ void DriverMovement::init()
 {
 	if (!parentDriver)
 	{
-		throw runtime_error("Failed to initialise driver movement... Driver does not exist!!!");
+		std::stringstream msg;
+		msg << __func__ << ": Initialisation failed! parentDriver is NULL";
+		throw runtime_error(msg.str());
 	}
 
 	DriverUpdateParams &params = parentDriver->getParams();
@@ -104,7 +106,9 @@ void DriverMovement::frame_init()
 	}
 	else
 	{
-		throw std::runtime_error("No vehicle associated with the driver!");
+		std::stringstream msg;
+		msg << __func__ << ": No vehicle associated with the driver.";
+		throw std::runtime_error(msg.str());
 	}
 
 	if (fwdDriverMovement.isDrivingPathSet())
@@ -114,7 +118,7 @@ void DriverMovement::frame_init()
 	else
 	{
 		std::stringstream msg;
-		msg << "No path found from " << parentDriver->origin->getNodeId() << " to " << parentDriver->destination->getNodeId();
+		msg << __func__ << ": No path found from " << parentDriver->origin->getNodeId() << " to " << parentDriver->destination->getNodeId();
 		throw std::runtime_error(msg.str());
 	}
 }
@@ -477,7 +481,9 @@ TravelMetric& DriverMovement::startTravelTimeMetric()
 	
 	if (!startNode)
 	{
-		throw std::runtime_error("Unknown Origin Node");
+		std::stringstream msg;
+		msg << __func__ << "Origin Node is NULL";
+		throw std::runtime_error(msg.str());
 	}
 	
 	travelMetric.origin = WayPoint(startNode);
@@ -618,6 +624,9 @@ bool DriverMovement::updateMovement()
 					segmentsPassed.insert(segmentsPassed.end(), currLink->getRoadSegments().begin(),
 										  currLink->getRoadSegments().begin() + currWayPoint.roadSegment->getSequenceNumber());
 				}
+
+				//Change in road segment, so set the next surveillance stn
+				nextSurveillanceStn = currWayPoint.roadSegment->getSurveillanceStations().begin();
 			}
 			else if (startWayPoint.type == WayPoint::ROAD_SEGMENT && currWayPoint.type == WayPoint::TURNING_GROUP)
 			{
@@ -627,8 +636,13 @@ bool DriverMovement::updateMovement()
 			}
 			else if (startWayPoint.type == WayPoint::TURNING_GROUP && currWayPoint.type == WayPoint::ROAD_SEGMENT)
 			{
+				//Include the current waypoint into the segmentsPassed vector as we need to start the collection of travel time for this segment
+				//[As the previous way-point was a turning group, we have not started the collection for the segment yet]
 				segmentsPassed.insert(segmentsPassed.begin(), currLink->getRoadSegments().begin(),
-									  currLink->getRoadSegments().begin() + currWayPoint.roadSegment->getSequenceNumber());
+									  currLink->getRoadSegments().begin() + currWayPoint.roadSegment->getSequenceNumber() + 1);
+
+				//Change in road segment, so set the next surveillance stn
+				nextSurveillanceStn = currWayPoint.roadSegment->getSurveillanceStations().begin();
 			}
 
 			updateRoadSegmentTravelTime(segmentsPassed);
@@ -891,6 +905,21 @@ double DriverMovement::drive(DriverUpdateParams &params)
 
 	params.lateralVelocity = lcModel->calculateLateralVelocity(laneChangeTo);
 
+	//The distance covered on the current segment or turning
+	double oldPos = fwdDriverMovement.getDistCoveredOnCurrWayPt();
+
+	//Distance covered in this time tick
+	double distCovered = (params.currSpeed * params.elapsedSeconds) + (0.5 * params.acceleration *	params.elapsedSeconds * params.elapsedSeconds);
+
+	if(fwdDriverMovement.isInIntersection())
+	{
+		//If in intersection, add the length of previous segment, as the sensor is associated with the segment
+		//and the offset distance is from the start of the segment
+		oldPos += fwdDriverMovement.getCurrTurning()->getFromLane()->getParentSegment()->getLength();
+	}
+
+	updateTrafficSensor(oldPos, oldPos + distCovered, parentDriver->vehicle->getVelocity(), parentDriver->vehicle->getAcceleration());
+
 	parentDriver->vehicle->setTurningDirection(laneChangeTo);
 	parentDriver->vehicle->setLateralVelocity(params.lateralVelocity);
 	parentDriver->vehicle->setAcceleration(params.acceleration);
@@ -949,7 +978,7 @@ std::vector<WayPoint> DriverMovement::buildPath(std::vector<WayPoint> &wayPoints
 			else
 			{
 				stringstream msg;
-				msg << "No turning between the links " << currLink << " and " << nextLink << "!\nInvalid Path!!!";
+				msg << __func__ << ": No turning between the links " << currLink << " and " << nextLink << "!\nInvalid Path!!!";
 				throw std::runtime_error(msg.str());
 			}
 		}				
@@ -1433,6 +1462,9 @@ void DriverMovement::setOrigin(DriverUpdateParams &params)
 	parentDriver->parent->currLinkTravelStats.reset();
 	parentDriver->parent->currLinkTravelStats.start(fwdDriverMovement.getCurrLink(), currTime);
 	startRdSegStat(fwdDriverMovement.getCurrSegment(), currTime);
+
+	//Set the next surveillance stn
+	nextSurveillanceStn = fwdDriverMovement.getCurrSegment()->getSurveillanceStations().begin();
 }
 
 double DriverMovement::updatePosition(DriverUpdateParams &params)
@@ -1472,8 +1504,9 @@ double DriverMovement::updatePosition(DriverUpdateParams &params)
 		else
 		{
 			stringstream msg;
-			msg << "Bus driver on incorrect lane " << ex.fromLane->getLaneId() << " trying to go to segment " << ex.toSegment->getRoadSegmentId();
-			msg << " Frame: [" << params.now.frame() << "]";
+			msg << __func__ << ": Bus driver on incorrect lane " << ex.fromLane->getLaneId() << " trying to go to segment "
+				<< ex.toSegment->getRoadSegmentId()
+				<< " Frame: [" << params.now.frame() << "]";
 			throw runtime_error(msg.str());
 		}
 	}
@@ -1593,8 +1626,9 @@ void DriverMovement::reRouteToDestination(DriverUpdateParams &params, const Lane
 	if (!isPathFound)
 	{
 		stringstream msg;
-		msg << "No alternate path found from lane " << currLane->getLaneId() << " to destination node " << parentDriver->destination->getNodeId();
-		msg << " Frame: [" << params.now.frame() << "]";
+		msg << __func__ << "No alternate path found from lane " << currLane->getLaneId()
+			<< " to destination node " << parentDriver->destination->getNodeId()
+			<< " Frame: [" << params.now.frame() << "]";
 		throw runtime_error(msg.str());
 	}
 }
@@ -2157,9 +2191,9 @@ void DriverMovement::updateLateralMovement(DriverUpdateParams &params)
 		if (params.currLane->isPedestrianLane())
 		{
 			std::stringstream msg;
-			msg << "Error: Car has moved onto sidewalk. Agent ID: "
+			msg << __func__ << ": Car has moved onto pedestrian lane. Agent ID: "
 				<< parentDriver->getParent()->getId();
-			throw std::runtime_error(msg.str().c_str());
+			throw std::runtime_error(msg.str());
 		}
 
 		parentDriver->vehicle->resetLateralMovement();
@@ -2208,9 +2242,9 @@ void DriverMovement::syncLaneInfoPostLateralMove(DriverUpdateParams &params)
 	else
 	{
 		std::stringstream msg;
-		msg << "syncInfoLateralMove (" << parentDriver->getParent()->GetId();
-		msg << ") is attempting to change lane when no lane changing decision made";
-		throw std::runtime_error(msg.str().c_str());
+		msg << __func__ << ": " << parentDriver->getParent()->GetId()
+			<< " is attempting to change lane when no lane changing decision made";
+		throw std::runtime_error(msg.str());
 	}
 
 	//Update the driver path mover
@@ -2321,6 +2355,51 @@ void DriverMovement::updateRoadSegmentTravelTime(const vector<const RoadSegment*
 	if(!fwdDriverMovement.isDoneWithEntireRoute() && fwdDriverMovement.getCurrSegment())
 	{
 		startRdSegStat(fwdDriverMovement.getCurrSegment(), actualTime);
+	}
+}
+
+void DriverMovement::updateTrafficSensor(double oldPos, double newPos, double speed, double acceleration)
+{
+	if(fwdDriverMovement.isInIntersection() || fwdDriverMovement.isDoneWithEntireRoute())
+	{
+		return;
+	}
+
+	/*
+	 * Occupance is calculated when the vehicle is present in the detection zone of a sensor. Flow counts, instantaneous speed,
+	 * and other point data are calculate when the back bumper crosses the down-edge of the detection zone.
+	 * NOTE: We do not count a vehicle until its back-bumper leaves the detection zone of the sensor.
+	 * This is to avoid double counting.
+	 */
+
+	//Get the surveillance stations in the segment
+	const vector<SurveillanceStation *> &survStns = fwdDriverMovement.getCurrSegment()->getSurveillanceStations();
+	vector<SurveillanceStation *>::const_iterator itSurvStn = nextSurveillanceStn;
+
+	//Vehicle front and back bumper positions
+	double halfVehicleLen = (parentDriver->getVehicleLength() / 2);
+	unsigned int vehBackBumper = newPos > halfVehicleLen ? newPos - halfVehicleLen : 0;
+	unsigned int vehFrontBumper = newPos + halfVehicleLen;
+
+	unsigned int laneIdx = fwdDriverMovement.getCurrLane()->getLaneIndex();
+
+	//Some data items such as occupancy are accumulated if the entire or a part of the vehicle was/is in the detection zone.
+	while((itSurvStn != survStns.end()) && (vehFrontBumper - (*itSurvStn)->getOffsetDistance() <= (*itSurvStn)->getZoneLength()))
+	{
+		TrafficSensor *sensor = (*itSurvStn)->getTrafficSensor(laneIdx);
+		sensor->calculateActivatingData(oldPos, parentDriver->getVehicleLength(), speed, acceleration, parentDriver->getParams().now.ms());
+
+		++itSurvStn;
+	}
+
+	//Other data items such as flow and headways are counted when the back bumper of the vehicle crosses the
+	//down-edge of the of detection zone
+	while((nextSurveillanceStn != survStns.end()) && (vehBackBumper > (*nextSurveillanceStn)->getOffsetDistance() + (*nextSurveillanceStn)->getZoneLength()))
+	{
+		TrafficSensor *sensor = (*nextSurveillanceStn)->getTrafficSensor(laneIdx);
+		sensor->calculatePassingData(oldPos, parentDriver->getVehicleLength(), speed, acceleration);
+
+		++nextSurveillanceStn;
 	}
 }
 

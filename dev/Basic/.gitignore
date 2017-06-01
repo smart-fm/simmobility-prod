@@ -2,7 +2,7 @@ GenConfig.h
 out*.txt
 HeadwayAtBusStopInfo.txt
 PassengerInfo.txt
-supply.link_travel_time.txt
+LinkTravelTime.csv
 *.xml*
 *.out*
 *.log*

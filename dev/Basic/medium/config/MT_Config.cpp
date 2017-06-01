@@ -370,6 +370,11 @@ std::vector<IncidentParams>& MT_Config::getIncidents(){
     return incidents;
 }
 
+std::vector<DisruptionParams>& MT_Config::getDisruption_rw()
+{
+	return this->disruptions;
+}
+
 std::map<const Node*, Conflux*>& MT_Config::getConfluxNodes()
 {
     return multinode_confluxes;

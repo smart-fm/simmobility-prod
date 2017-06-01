@@ -11,6 +11,9 @@
  */
 
 #include <database/entity/AlternativeHedonicPrice.hpp>
+#include <boost/serialization/vector.hpp>
+#include <boost/archive/binary_oarchive.hpp>
+#include <boost/archive/binary_iarchive.hpp>
 
 namespace sim_mob
 {
@@ -39,6 +42,49 @@ namespace sim_mob
 			this->planning_area_id = source.planning_area_id;
 			this->total_price = source.total_price;
 			return *this;
+		}
+
+		template<class Archive>
+		void AlternativeHedonicPrice::serialize(Archive & ar,const unsigned int version)
+		{
+			ar & id;
+			ar & dwelling_type;
+			ar & planning_area;
+			ar & planning_area_id;
+			ar & total_price;
+		}
+
+		void AlternativeHedonicPrice::saveData(std::vector<AlternativeHedonicPrice*> &altHedonicprices)
+		{
+			// make an archive
+			std::ofstream ofs(filename);
+			boost::archive::binary_oarchive oa(ofs);
+			oa & altHedonicprices;
+
+		}
+
+		std::vector<AlternativeHedonicPrice*> AlternativeHedonicPrice::loadSerializedData()
+		{
+			std::vector<AlternativeHedonicPrice*> altHedonicprices;
+				// Restore from saved data and print to verify contents
+				std::vector<AlternativeHedonicPrice*> restored_info;
+				{
+					// Create and input archive
+					std::ifstream ifs( filename );
+					boost::archive::binary_iarchive ar( ifs );
+
+					// Load the data
+					ar & restored_info;
+				}
+
+				for (auto *itr :restored_info)
+				{
+					AlternativeHedonicPrice *altHedonicPrice = itr;
+					altHedonicprices.push_back(altHedonicPrice);
+				}
+
+				return altHedonicprices;
+
 		}
 
 		int AlternativeHedonicPrice::getId()

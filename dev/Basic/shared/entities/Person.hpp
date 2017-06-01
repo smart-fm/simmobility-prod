@@ -53,8 +53,8 @@ class OD_Trip;
 class Person : public sim_mob::Agent
 {
 private:
-	/**The database id*/
-	std::string databaseID;
+	/**The person id in the database*/
+	std::string personDbId;
 
 	/**The age of the person*/
 	unsigned int age;
@@ -223,7 +223,7 @@ public:
      * 
 	 * @return true, if successful
      */
-	bool makeODsToTrips(SubTrip *curSubTrip, std::vector<SubTrip> &newSubTrips, const std::vector<OD_Trip> &matchedTrips);
+	bool makeODsToTrips(SubTrip *curSubTrip, std::vector<SubTrip> &newSubTrips, const std::vector<OD_Trip> &matchedTrips, PT_Network& ptNetwork);
 
 	/**
 	 * Updates the next trip chain, used only for NextRole
@@ -238,6 +238,10 @@ public:
 	 * @return true if the next sub trip is updated, else false
      */
 	bool updateNextSubTrip();
+
+	void splitMrtTrips(std::vector<std::string> railPath);
+
+	sim_mob::SubTrip CreateMRTSubTrips(std::string src,std::string dest);
 
 	/**
 	 * Check if any role changing is required.
@@ -301,12 +305,12 @@ public:
 
 	const std::string& getDatabaseId() const
 	{
-		return databaseID;
+		return personDbId;
 	}
 
 	void setDatabaseId(const std::string &databaseId)
 	{
-		databaseID = databaseId;
+		personDbId = databaseId;
 	}
 	
 	unsigned int getAge()

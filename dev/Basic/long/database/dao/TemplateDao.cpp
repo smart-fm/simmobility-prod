@@ -15,7 +15,9 @@
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
-TemplateDao::TemplateDao(DB_Connection& connection): SqlAbstractDao<Template>(connection, DB_TABLE_TEMPLATE,EMPTY_STR, EMPTY_STR, EMPTY_STR,DB_GETALL_TEMPLATES, DB_GETBYID_TEMPLATE)
+TemplateDao::TemplateDao(DB_Connection& connection): SqlAbstractDao<Template>(connection, "","", "", "","SELECT * FROM " + connection.getSchema()+"template", "")
+
+
 {}
 
 TemplateDao::~TemplateDao() {}

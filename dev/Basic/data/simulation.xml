@@ -7,9 +7,9 @@
         <!-- Note that credentials (login details) are stored in a separate construct. -->
         <databases>
             <database id="fm_remote" dbtype="postgres">
-                <host value="18.58.5.170"/>
+                <host value="172.25.184.48"/>
                 <port value="5432"/>
-                <dbname value="simmobility_virtualcity_smartcontroller"/>
+                <dbname value="simmobility_virtualcity"/>
             </database>
 
             <database id="fm_hpchead" dbtype="postgres">
@@ -31,12 +31,6 @@
             </database>
 
             <!-- Variables stores for preday demand simulator-->
-            <database id="fm_mongo" dbtype="mongodb">
-                <host value="localhost"/>
-                <port value="27017"/>
-                <dbname value="simmobcity"/>
-            </database>
-
             <database id="fm_local" dbtype="postgres">
                 <host value="localhost"/>
                 <port value="5432"/>
@@ -98,7 +92,7 @@
 
             <plaintext-credential id="fm_remote_plain">
                 <username value="postgres"/>
-                <password value="ITSLab2016!"/>
+                <password value="5M_S1mM0bility"/>
             </plaintext-credential>
 
             <plaintext-credential id="fm_hpchead">
@@ -109,10 +103,18 @@
     </constructs>
 
     <simulation>
+        <!-- Reasonable values for ShortTerm -->
+        <!-- <base_granularity   value="100"   units="ms"/> -->
+        <!-- <total_runtime      value="14"      units="minutes" /> -->
+
+        <!-- Reasonable values for MidTerm -->
         <base_granularity   value="5"   units="seconds"/>
-        <total_runtime      value="360"      units="minutes" />
-        <total_warmup       value="0"     units="minutes" />
-        <start_time         value="06:00:00"/>
+        <total_runtime      value="1439"      units="minutes" />
+
+        <total_warmup       value="10"     units="seconds" />
+        <start_time         value="00:00:00"/>
+
+
         <!--Indicates the percentage of drivers that will use in-simulation travel times rather than the historical travel times-->
         <in_simulation_travel_time_usage value="100"/>
 
@@ -130,6 +132,14 @@
         <!-- ID collisions when manually specifying Agent IDs in the config file. -->
         <!-- Setting this to zero has the same effect as leaving it out; the default value is zero. -->
         <auto_id_start value="0"/>
+
+        <!--Enabling the closed loop framework interfaces MT/ST with DynaMIT2.0 in order to evaluate the impact of guidance (travel time information) and control strategies (tolls/incentives) in SimMobility. The two simulators run concurrently with SimMobility passing surveillance data from the network to DynaMIT2.0 which in turn provides optimal control strategies and guidance information that agents in SimMobility react to.-->
+        <closed_loop enabled="false">
+            <closed_loop_guidance file="" is_guidance_directional=""/>
+            <closed_loop_toll file=""/>
+            <closed_loop_incentives file=""/>
+            <sensor_output file="" step_size="" />
+        </closed_loop>
     </simulation>
 
     <generic_props>

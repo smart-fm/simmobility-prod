@@ -181,8 +181,12 @@ void HedonicPrice_SubModel::ComputeExpectation( int numExpectations, std::vector
 		AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, (boost::format( "LOGSUM FOR UNIT %1% is 0.") %  unit->getId()).str());
 
 	const Building *building = DataManagerSingleton::getInstance().getBuildingById(unit->getBuildingId());
-	const Postcode *postcode = DataManagerSingleton::getInstance().getPostcodeById(unit->getSlaAddressId());
-	const PostcodeAmenities *amenities = DataManagerSingleton::getInstance().getAmenitiesById(unit->getSlaAddressId());
+
+	BigSerial addressId = hmModel->getUnitSlaAddressId( unit->getId() );
+
+	const Postcode *postcode = DataManagerSingleton::getInstance().getPostcodeById(addressId);
+
+	const PostcodeAmenities *amenities = DataManagerSingleton::getInstance().getAmenitiesById(addressId);
 
 	expectations = CalculateUnitExpectations(unit, numExpectations, logsum, lagCoefficient, building, postcode, amenities);
 }
@@ -491,12 +495,45 @@ static double CalculateExpectation(double price, double v, double a, double b, d
 ]]
 */
 
-vector<ExpectationEntry> HedonicPrice_SubModel::CalculateUnitExpectations (Unit *unit, double timeOnMarket, double logsum, double lagCoefficient, const Building *building, const Postcode *postcode, const PostcodeAmenities *amenities)
+vector<ExpectationEntry> HedonicPrice_SubModel::CalculateUnitExpectations (Unit *unit, double timeOnMarket, double logsum, double lagCoefficient, const Building *building, const Postcode *postcode, const PostcodeAmenities *amenitiesX)
 {
     vector<ExpectationEntry> expectations;
     //-- HEDONIC PRICE in SGD in thousands with average hedonic price (500)
 
-    double  hedonicPrice = CalculateHedonicPrice(unit, building, postcode, amenities, logsum, lagCoefficient);
+    PostcodeAmenities amenities = *amenitiesX;
+    int tazId = amenities.getTazId();
+
+
+    const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
+	bool bToaPayohScenario = false;
+
+	if( config.ltParams.scenario.enabled && config.ltParams.scenario.scenarioName == "ToaPayohScenario")
+		 bToaPayohScenario = true;
+
+    if(bToaPayohScenario)
+    {
+
+    	tazId = hmModel->getUnitTazId( unit->getId() );
+
+		if(tazId==682||tazId==683||tazId==684||tazId==697||tazId==698||tazId==699||tazId==700||tazId==702||tazId==703||tazId==927||tazId==928||tazId==929||tazId==930||tazId==931||tazId==932||tazId==1255||tazId==1256)
+		{
+			amenities.setDistanceToJob(amenities.getDistanceToJob() );
+			amenities.setDistanceToMall(amenities.getDistanceToMall() / 2.0);
+			amenities.setDistanceToCbd(amenities.getDistanceToCBD() );
+			amenities.setDistanceToPms30(amenities.getDistanceToPMS30() / 2.0);
+			amenities.setDistanceToExpress(amenities.getDistanceToExpress() );
+			amenities.setDistanceToBus(amenities.getDistanceToBus() / 2.0);
+			amenities.setDistanceToMrt(amenities.getDistanceToMRT() / 2.0);
+		}
+
+		if(tazId==682||tazId==683||tazId==684||tazId==697||tazId==698||tazId==699||tazId==700||tazId==702||tazId==703||tazId==927||tazId==928||tazId==929||tazId==930||tazId==931||tazId==932||tazId==1255||tazId==1256)
+			logsum += 0.03904;//0.07808;
+    }
+
+
+    double  hedonicPrice = CalculateHedonicPrice(unit, building, postcode, &amenities, logsum, lagCoefficient);
+
+
     hedonicPrice = exp( hedonicPrice ) / 1000000.0;
 
     if (hedonicPrice > 0)
@@ -511,14 +548,26 @@ vector<ExpectationEntry> HedonicPrice_SubModel::CalculateUnitExpectations (Unit 
 
         for(int i=1; i <= timeOnMarket; i++)
         {
-            a = 1.5 * reservationPrice;
-            x0 = 1.4 * reservationPrice;
-            ExpectationEntry entry = ExpectationEntry(); //--entry is a class initialized to 0, that will hold the hedonic, asking and target prices.
-            entry.hedonicPrice = hedonicPrice;
-            entry.askingPrice = FindMaxArgConstrained(CalculateExpectation, x0, reservationPrice, a, b, cost, crit, maxIterations, reservationPrice, 1.2 * reservationPrice );
-            entry.targetPrice = CalculateExpectation(entry.askingPrice, reservationPrice, a, b, cost );
-            reservationPrice = entry.targetPrice;
-            expectations.push_back(entry);
+        	ExpectationEntry entry = ExpectationEntry(); //--entry is a class initialized to 0, that will hold the hedonic, asking and target prices.
+
+            if( unit->isBto() )
+            {
+            	entry.hedonicPrice = unit->getTotalPrice();
+  	            entry.askingPrice = unit->getTotalPrice();
+                entry.targetPrice = unit->getTotalPrice();
+            }
+            else
+            {
+                 a = 1.5 * reservationPrice;
+                 x0 = 1.4 * reservationPrice;
+
+                 entry.hedonicPrice = hedonicPrice;
+                 entry.askingPrice = FindMaxArgConstrained(CalculateExpectation, x0, reservationPrice, a, b, cost, crit, maxIterations, reservationPrice, 1.2 * reservationPrice );
+                 entry.targetPrice = CalculateExpectation(entry.askingPrice, reservationPrice, a, b, cost );
+
+                 reservationPrice = entry.targetPrice;
+                 expectations.push_back(entry);
+            }
     	}
     }
 

@@ -80,8 +80,8 @@ namespace
     }
 }
 
-HousingMarket::Entry::Entry(Agent_LT* owner, BigSerial unitId, BigSerial postcodeId, BigSerial tazId, double askingPrice, double hedonicPrice, bool bto)
-						  : owner(owner), unitId(unitId), askingPrice(askingPrice), hedonicPrice(hedonicPrice), postcodeId(postcodeId), tazId(tazId),bto(bto) {}
+HousingMarket::Entry::Entry(Agent_LT* owner, BigSerial unitId, BigSerial postcodeId, BigSerial tazId, double askingPrice, double hedonicPrice, bool bto, bool _buySellIntervalCompleted)
+						  : owner(owner), unitId(unitId), askingPrice(askingPrice), hedonicPrice(hedonicPrice), postcodeId(postcodeId), tazId(tazId),bto(bto), buySellIntervalCompleted(_buySellIntervalCompleted) {}
 
 HousingMarket::Entry::Entry(const Entry &source)
 {
@@ -92,6 +92,7 @@ HousingMarket::Entry::Entry(const Entry &source)
 	this->tazId = source.tazId;
 	this->unitId = source.unitId;
 	this->bto = source.bto;
+	this->buySellIntervalCompleted = source.buySellIntervalCompleted;
 }
 
 HousingMarket::Entry& HousingMarket::Entry::operator=(const Entry& source)
@@ -103,11 +104,22 @@ HousingMarket::Entry& HousingMarket::Entry::operator=(const Entry& source)
 	this->tazId = source.tazId;
 	this->unitId = source.unitId;
 	this->bto = source.bto;
+	this->buySellIntervalCompleted = source.buySellIntervalCompleted;
 
 	return *this;
 }
 
 HousingMarket::Entry::~Entry(){}
+
+bool HousingMarket::Entry::isBuySellIntervalCompleted() const
+{
+	return buySellIntervalCompleted;
+}
+
+void HousingMarket::Entry::setBuySellIntervalCompleted(bool value)
+{
+	buySellIntervalCompleted = value;
+}
 
 BigSerial HousingMarket::Entry::getUnitId() const
 {
@@ -212,7 +224,24 @@ void HousingMarket::getAvailableEntries(ConstEntryList& outList)
 
 size_t HousingMarket::getEntrySize()
 {
-	return entriesById.size();
+	size_t size = 0;
+	for( auto itr = entriesById.begin(); itr != entriesById.end(); itr++)
+	{
+		if( (*itr).second->isBuySellIntervalCompleted() == true)
+			size++;
+	}
+
+	return size;
+}
+
+size_t HousingMarket::getBTOEntrySize()
+{
+	return btoEntries.size();
+}
+
+std::set<BigSerial> HousingMarket::getBTOEntries()
+{
+	return btoEntries;
 }
             
 const HousingMarket::Entry* HousingMarket::getEntryById(const BigSerial& unitId)
@@ -261,6 +290,9 @@ void HousingMarket::HandleMessage(Message::MessageType type, const Message& mess
                 //notify subscribers. FOR NOW we are not using this.
                 //MessageBus::PublishEvent(LTEID_HM_UNIT_ADDED, this,
                 //MessageBus::EventArgsPtr(new HM_ActionEventArgs(unitId)));
+
+               if( newEntry->isBTO() )
+            	   btoEntries.insert(unitId);
             }
             break;
         }
@@ -270,6 +302,9 @@ void HousingMarket::HandleMessage(Message::MessageType type, const Message& mess
             Entry* entry = getEntry(entriesById, msg.unitId);
             if (entry)
             {
+                if( entry->isBTO() )
+                	btoEntries.erase(entry->getUnitId());
+
                 BigSerial tazId = entry->getTazId();
                 //remove from the map by Taz.
                 if (mapContains(entriesByTazId, tazId))

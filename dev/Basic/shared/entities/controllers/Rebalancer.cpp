@@ -9,6 +9,7 @@
 #include <queue>
 #include <vector>
 #include "message/MobilityServiceControllerMessage.hpp"
+#include "message/MessageBus.hpp"
 
 
 namespace sim_mob {

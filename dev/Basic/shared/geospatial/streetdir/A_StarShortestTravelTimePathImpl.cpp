@@ -181,7 +181,7 @@ double A_StarShortestTravelTimePathImpl::getEdgeWeight(const sim_mob::Link* link
 	case sim_mob::HighwayBiasDistance:
 	{
 		edgeWeight = link->getLength();
-		if (!link->getLinkType() != LinkType::LINK_TYPE_EXPRESSWAY)
+		if (link->getLinkType() != LinkType::LINK_TYPE_EXPRESSWAY)
 		{
 			edgeWeight = edgeWeight / highwayBias;//if not highway, increase edge weight
 		}

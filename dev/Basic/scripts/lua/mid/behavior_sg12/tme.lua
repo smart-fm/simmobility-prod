@@ -116,6 +116,9 @@ local beta_university_student_taxi = 2.10
 local beta_distance_motor = 0
 
 
+local modes = {['BusTravel'] = 1 , ['MRT'] =2 , ['PrivateBus'] =3 ,  ['Car'] = 4,  ['Car_Sharing_2'] = 5,['Car_Sharing_3'] = 6, ['Motorcycle'] = 7,['Walk'] = 8, ['Taxi'] = 9 }
+
+
 --choice set
 -- 1 for public bus; 2 for MRT/LRT; 3 for private bus; 4 for drive1;
 -- 5 for shared2; 6 for shared3+; 7 for motor; 8 for walk; 9 for taxi
@@ -318,15 +321,15 @@ end
 local availability = {}
 local function computeAvailabilities(params,dbparams)
  availability = {
-	dbparams.publicbus_AV, 
-	dbparams.mrt_AV, 
-	dbparams.privatebus_AV, 
-	dbparams.drive1_AV, 
-	dbparams.share2_AV, 
-	dbparams.share3_AV, 
-	dbparams.motor_AV, 
-	dbparams.walk_AV, 
-	dbparams.taxi_AV
+	dbparams:getModeAvailability(modes.BusTravel),
+		dbparams:getModeAvailability(modes.MRT),
+		dbparams:getModeAvailability(modes.PrivateBus),
+		dbparams:getModeAvailability(modes.Car),
+		dbparams:getModeAvailability(modes.Car_Sharing_2),
+		dbparams:getModeAvailability(modes.Car_Sharing_3),
+		dbparams:getModeAvailability(modes.Motorcycle),
+		dbparams:getModeAvailability(modes.Walk),
+		dbparams:getModeAvailability(modes.Taxi)
 }
 end
 

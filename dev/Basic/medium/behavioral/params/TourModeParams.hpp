@@ -202,7 +202,7 @@ public:
             modeAvailabilityMap[mode] = availability;
         }
 
-        bool isModeAvailable(int mode) const
+        int isModeAvailable(int mode) const
         {
             return modeAvailabilityMap.at(mode);
         }

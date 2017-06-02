@@ -193,7 +193,7 @@ void ParseShortTermConfigFile::processXmlFile(XercesDOMParser& parser)
 
 	processProcMapNode(GetSingleElementByName(rootNode, "db_proc_groups", true));
 	processSystemNode(GetSingleElementByName(rootNode, "system", true));
-	cfg.luaScriptsMap = processModelScriptsNode(GetSingleElementByName(rootNode, "model_scripts", true));
+	cfg.withindayLuaScriptsMap = processModelScriptsNode(GetSingleElementByName(rootNode, "model_scripts", true));
 	processWorkersNode(GetSingleElementByName(rootNode, "workers", true));
 	processAmodControllerNode(GetSingleElementByName(rootNode, "amodcontroller"));
 	processFmodControllerNode(GetSingleElementByName(rootNode, "fmodcontroller"));

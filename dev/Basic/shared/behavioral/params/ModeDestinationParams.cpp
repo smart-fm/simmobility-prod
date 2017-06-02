@@ -75,7 +75,7 @@ void setTourModeAvailability(const PersonParams& personParams, int numModes, std
     {
         for (int mode = 1; mode <= numModes; ++mode)
         {
-            int modeType = cfg.getActivityTypeConfig(mode).type;
+            int modeType = cfg.getTravelModeConfig(mode).type;
             if (modeType == PVT_CAR_MODE || modeType == PVT_BIKE_MODE)
             {
                 modeAvailability[mode] = false;
@@ -87,7 +87,7 @@ void setTourModeAvailability(const PersonParams& personParams, int numModes, std
     {
         for (int mode = 1; mode <= numModes; ++mode)
         {
-            int modeType = cfg.getActivityTypeConfig(mode).type;
+            int modeType = cfg.getTravelModeConfig(mode).type;
             if (modeType == PVT_CAR_MODE)
             {
                 modeAvailability[mode] = false;
@@ -103,7 +103,7 @@ void setTourModeAvailability(const PersonParams& personParams, int numModes, std
     {
         for (int mode = 1; mode <= numModes; ++mode)
         {
-            int modeType = cfg.getActivityTypeConfig(mode).type;
+            int modeType = cfg.getTravelModeConfig(mode).type;
             if (modeType == PVT_CAR_MODE)
             {
                 modeAvailability[mode] = false;
@@ -119,7 +119,7 @@ void setTourModeAvailability(const PersonParams& personParams, int numModes, std
     {
         for (int mode = 1; mode <= numModes; ++mode)
         {
-            int modeType = cfg.getActivityTypeConfig(mode).type;
+            int modeType = cfg.getTravelModeConfig(mode).type;
             if (modeType == PVT_CAR_MODE)
             {
                 modeAvailability[mode] = personParams.hasDrivingLicence();
@@ -136,7 +136,7 @@ void setTourModeAvailability(const PersonParams& personParams, int numModes, std
     {
         for (int mode = 1; mode <= numModes; ++mode)
         {
-            int modeType = cfg.getActivityTypeConfig(mode).type;
+            int modeType = cfg.getTravelModeConfig(mode).type;
             if (modeType == PVT_CAR_MODE)
             {
                 modeAvailability[mode] = personParams.hasDrivingLicence();

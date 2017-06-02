@@ -1387,7 +1387,7 @@ double sim_mob::medium::PredayManager::computeObjectiveFunction(const std::vecto
 
 void sim_mob::medium::PredayManager::computeObservationsVector(const std::vector<CalibrationVariable>& calVarList, std::vector<double>& simulatedHITS_Stats)
 {
-	updateVariablesInLuaFiles(mtConfig.getModelScriptsMap().getPath(), calVarList);
+	updateVariablesInLuaFiles(ConfigManager::GetInstance().FullConfig().predayLuaScriptsMap.getPath(), calVarList);
 	std::for_each(simulatedStatsVector.begin(), simulatedStatsVector.end(), std::mem_fun_ref(&CalibrationStatistics::reset));
 	distributeAndProcessForCalibration(&PredayManager::processPersonsForCalibration);
 	simulatedHITS_Stats.clear();

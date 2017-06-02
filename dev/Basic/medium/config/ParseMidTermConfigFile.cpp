@@ -121,7 +121,7 @@ void ParseMidTermConfigFile::processSupplyNode(xercesc::DOMElement* node)
 	processStatisticsOutputNode(GetSingleElementByName(node, "output_statistics", true));
 	processBusCapactiyElement(GetSingleElementByName(node, "bus_default_capacity", true));
 	processSpeedDensityParamsNode(GetSingleElementByName(node, "speed_density_params", true));
-	cfg.luaScriptsMap = processModelScriptsNode(GetSingleElementByName(node, "model_scripts", true));
+	cfg.withindayLuaScriptsMap = processModelScriptsNode(GetSingleElementByName(node, "model_scripts", true));
 }
 
 
@@ -145,7 +145,7 @@ void ParseMidTermConfigFile::processPredayNode(xercesc::DOMElement* node)
 	mtCfg.setLogsumTableName(ParseString(GetNamedAttributeValue(childNode, "name", true)));
 
 	ModelScriptsMap luaModelsMap = processModelScriptsNode(GetSingleElementByName(node, "model_scripts", true));
-	mtCfg.setModelScriptsMap(luaModelsMap);
+	cfg.predayLuaScriptsMap = luaModelsMap;
 
 	processCalibrationNode(GetSingleElementByName(node, "calibration", true));
 }

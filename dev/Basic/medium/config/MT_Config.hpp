@@ -367,20 +367,6 @@ public:
 	void setNumPredayThreads(unsigned numPredayThreads);
 
 	/**
-	 * Retrieves model scripts map
-	 *
-	 * @return model scritps map
-	 */
-	const ModelScriptsMap& getModelScriptsMap() const;
-
-	/**
-	 * Sets model scripts map
-	 *
-	 * @param modelScriptsMap model scripts map to be set
-	 */
-	void setModelScriptsMap(const ModelScriptsMap& modelScriptsMap);
-
-	/**
 	 * Retrieves Mongo Collection map
 	 *
 	 * @return mongo collections map
@@ -785,9 +771,6 @@ private:
 
 	/// flag to indicate whether console output is required
 	bool consoleOutput;
-
-	/// Container for lua scripts
-	ModelScriptsMap modelScriptsMap;
 
 	/// container for mongo collections
 	MongoCollectionsMap mongoCollectionsMap;

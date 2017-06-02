@@ -218,6 +218,9 @@ local choice = {
 }
 
 
+local modes = {['BusTravel'] = 1 , ['MRT'] =2 , ['PrivateBus'] =3 ,  ['Car'] = 4,  ['Car_Sharing_2'] = 5,['Car_Sharing_3'] = 6, ['Motorcycle'] = 7,['Walk'] = 8, ['Taxi'] = 9 }
+
+
 --choice["PT"] = {1,2,3}
 --choice["non-PT"] = {4,5,6,7,8,9}
 
@@ -431,15 +434,15 @@ end
 local availability = {}
 local function computeAvailabilities(params,dbparams)
 	availability = {
-		dbparams.publicbus_AV,
-		dbparams.mrt_AV,
-		dbparams.privatebus_AV,
-		dbparams.drive1_AV,
-		dbparams.share2_AV,
-		dbparams.share3_AV,
-		dbparams.motor_AV,
-		dbparams.walk_AV,
-		dbparams.taxi_AV
+		dbparams:getModeAvailability(1),
+		dbparams:getModeAvailability(2),
+		dbparams:getModeAvailability(3),
+		dbparams:getModeAvailability(4),
+		dbparams:getModeAvailability(5),
+		dbparams:getModeAvailability(6),
+		dbparams:getModeAvailability(7),
+		dbparams:getModeAvailability(8),
+		dbparams:getModeAvailability(9)
 	}
 end
 
@@ -462,7 +465,10 @@ end
 -- params and dbparams tables contain data passed from C++
 -- to check variable bindings in params or dbparams, refer PredayLuaModel::mapClasses() function in dev/Basic/medium/behavioral/lua/PredayLuaModel.cpp
 function compute_logsum_tmw(params,dbparams)
+	print("tmw called")
 	computeUtilities(params,dbparams) 
+	print("utilities computed")
 	computeAvailabilities(params,dbparams)
+	print("availabilities computed")
 	return compute_mnl_logsum(utility, availability)
 end

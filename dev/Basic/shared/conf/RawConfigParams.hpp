@@ -326,6 +326,11 @@ public:
 		this->scriptFileNameMap[key] = value;
 	}
 
+	const std::map<std::string, std::string>& getScriptsFileNameMap() const
+	{
+		return this->scriptFileNameMap;
+	}
+
 private:
     /// scripts file path
 	std::string path;
@@ -578,7 +583,11 @@ public:
 	PersonCharacteristicsParams personCharacteristicsParams;
 
     /// container for lua scripts
-	ModelScriptsMap luaScriptsMap;
+    ModelScriptsMap luaScriptsMap;
+
+	ModelScriptsMap predayLuaScriptsMap;
+
+	ModelScriptsMap withindayLuaScriptsMap;
 
 
     /// key:value (travel mode id : travel mode string) map

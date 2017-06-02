@@ -119,19 +119,6 @@ void MT_Config::setNumPredayThreads(unsigned numPredayThreads)
 	}
 }
 
-const ModelScriptsMap& MT_Config::getModelScriptsMap() const
-{
-	return modelScriptsMap;
-}
-
-void MT_Config::setModelScriptsMap(const ModelScriptsMap& modelScriptsMap)
-{
-	if(!configSealed)
-	{
-		this->modelScriptsMap = modelScriptsMap;
-	}
-}
-
 const MongoCollectionsMap& MT_Config::getMongoCollectionsMap() const
 {
 	return mongoCollectionsMap;

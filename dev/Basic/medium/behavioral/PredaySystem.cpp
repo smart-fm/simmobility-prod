@@ -229,7 +229,7 @@ void PredaySystem::constructTourModeParams(TourModeParams& tmParams, int destina
 		//set availabilities
         for (int mode = 1; mode <= numModes; ++mode)
         {
-            int modeType = cfg.getActivityTypeConfig(mode).type;
+            int modeType = cfg.getTravelModeConfig(mode).type;
             if (modeType == PT_TRAVEL_MODE || modeType == PRIVATE_BUS_MODE)
             {
                 tmParams.setModeAvailability(mode, (amObj->getPubIvt() > 0 && pmObj->getPubIvt() > 0));
@@ -265,7 +265,7 @@ void PredaySystem::constructTourModeParams(TourModeParams& tmParams, int destina
 		//set availabilities
         for (int mode = 1; mode <= numModes; ++mode)
         {
-            int modeType = cfg.getActivityTypeConfig(mode).type;
+            int modeType = cfg.getTravelModeConfig(mode).type;
             if (modeType == PT_TRAVEL_MODE || modeType == PRIVATE_BUS_MODE)
             {
                 tmParams.setModeAvailability(mode, true);
@@ -279,7 +279,7 @@ void PredaySystem::constructTourModeParams(TourModeParams& tmParams, int destina
 
     for (int mode = 1; mode <= numModes; ++mode)
     {
-        int modeType = cfg.getActivityTypeConfig(mode).type;
+        int modeType = cfg.getTravelModeConfig(mode).type;
         if (modeType == SHARING_MODE || modeType == TAXI_MODE)
         {
             tmParams.setModeAvailability(mode, true);
@@ -292,7 +292,7 @@ void PredaySystem::constructTourModeParams(TourModeParams& tmParams, int destina
 	{
         for (int mode = 1; mode <= numModes; ++mode)
         {
-            int modeType = cfg.getActivityTypeConfig(mode).type;
+            int modeType = cfg.getTravelModeConfig(mode).type;
             if (modeType == PVT_CAR_MODE || modeType == PVT_BIKE_MODE)
             {
                 tmParams.setModeAvailability(mode, false);
@@ -305,7 +305,7 @@ void PredaySystem::constructTourModeParams(TourModeParams& tmParams, int destina
 	{
         for (int mode = 1; mode <= numModes; ++mode)
         {
-            int modeType = cfg.getActivityTypeConfig(mode).type;
+            int modeType = cfg.getTravelModeConfig(mode).type;
             if (modeType == PVT_CAR_MODE)
             {
                 tmParams.setModeAvailability(mode, false);
@@ -321,7 +321,7 @@ void PredaySystem::constructTourModeParams(TourModeParams& tmParams, int destina
 	{
         for (int mode = 1; mode <= numModes; ++mode)
         {
-            int modeType = cfg.getActivityTypeConfig(mode).type;
+            int modeType = cfg.getTravelModeConfig(mode).type;
             if (modeType == PVT_CAR_MODE)
             {
                 tmParams.setModeAvailability(mode, personParams.hasDrivingLicence());
@@ -338,7 +338,7 @@ void PredaySystem::constructTourModeParams(TourModeParams& tmParams, int destina
     {
         for (int mode = 1; mode <= numModes; ++mode)
         {
-            int modeType = cfg.getActivityTypeConfig(mode).type;
+            int modeType = cfg.getTravelModeConfig(mode).type;
             if (modeType == PVT_CAR_MODE)
             {
                 tmParams.setModeAvailability(mode, personParams.hasDrivingLicence());

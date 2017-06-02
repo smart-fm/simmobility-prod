@@ -145,7 +145,7 @@
     <generic_props>
     </generic_props>
 
-    <mobilityServiceController enabled="true">
+    <mobilityServiceController enabled="true" maxFleetSize="47">
         <controller id="1" type="1" vehicleIds="" scheduleComputationPeriod="1"/>
     </mobilityServiceController>
 

@@ -618,7 +618,8 @@ struct TravelTimeConfig {
 	TravelTimeConfig() : intervalMS(0), fileName(""), enabled(false) {}
 };
 
-struct MobilityServiceControllerConfig {
+struct MobilityServiceControllerConfig
+{
 	unsigned int type;
 	unsigned int scheduleComputationPeriod;
 	std::vector<std::string> vehicleIds;
@@ -639,6 +640,9 @@ struct MobilityServiceControllerParams
 
     /// Is vehicle controller enabled?
     bool enabled;
+
+	/// Maximum fleet size
+	unsigned int maxFleetSize;
 
 	/// Maps controller IDs to controller configurations
 	std::map<unsigned int, MobilityServiceControllerConfig> enabledControllers;

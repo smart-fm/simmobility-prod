@@ -826,6 +826,7 @@ void sim_mob::ParseConfigFile::processMobilityServiceControllerNode(DOMElement *
     if (node)
     {
     	cfg.mobilityServiceController.enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), "false");
+		cfg.mobilityServiceController.maxFleetSize = ParseUnsignedInt(GetNamedAttributeValue(node, "maxFleetSize"));
 
 		std::vector<DOMElement*> controllers = GetElementsByName(node, "controller");
 
@@ -839,7 +840,10 @@ void sim_mob::ParseConfigFile::processMobilityServiceControllerNode(DOMElement *
 
 			if (cfg.mobilityServiceController.enabledControllers.count(key) > 0)
 			{
-				throw std::runtime_error("Controller with ID already exists");
+				stringstream msg;
+				msg << "Duplicate value for <controller id=\"" << key
+					<< "\">. Expected: Unique id for controller";
+				throw runtime_error(msg.str());
 			}
 
 			if (key != 0)

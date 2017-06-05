@@ -43,38 +43,37 @@ void FleetController_MT::initialise(std::set<sim_mob::Entity *> &agentList)
 		fleetMap[taxi.vehicleNo].push(taxi);
 	}
 
-	int currTaxi = 0;
-	// 47, 94, 141, 188, 235
-	const int numberOfTaxis = 47;
+	const unsigned int maxFleetSize = ConfigManager::GetInstance().FullConfig().mobilityServiceController.maxFleetSize;
+	unsigned int currTaxi = 0, vehToBeLoaded = min(maxFleetSize, (unsigned int)fleetMap.size());
+	auto serviceVehicle = fleetMap.begin();
 
-	ControllerLog() << "Maximum number of taxis " << fleetMap.size() << std::endl;
-	ControllerLog() << "Number of taxis " << numberOfTaxis << std::endl;
+	ControllerLog() << "Total number of service vehicles loaded from database: " << fleetMap.size() << std::endl;
+	ControllerLog() << "Max. fleet size configured: " << maxFleetSize << std::endl;
 
-	for (auto i=fleetMap.begin(); i!= fleetMap.end(); i++)
+	while(currTaxi < vehToBeLoaded)
 	{
-		if (currTaxi < numberOfTaxis) {
-			const FleetController::FleetTimePriorityQueue& fleetItems = i->second;
-			const FleetController::FleetItem& taxi = fleetItems.top();
+		const FleetController::FleetTimePriorityQueue& fleetItems = serviceVehicle->second;
+		const FleetController::FleetItem& taxi = fleetItems.top();
 
-			Person_MT* person = new Person_MT("TaxiController", ConfigManager::GetInstance().FullConfig().mutexStategy(), -1);
-			person->setTaxiFleet(fleetItems);
-			person->setDatabaseId(taxi.driverId);
-			person->setPersonCharacteristics();
+		Person_MT* person = new Person_MT("TaxiController", ConfigManager::GetInstance().FullConfig().mutexStategy(), -1);
+		person->setTaxiFleet(fleetItems);
+		person->setDatabaseId(taxi.driverId);
+		person->setPersonCharacteristics();
 
-			vector<TripChainItem*> tripChain;
+		vector<TripChainItem*> tripChain;
 
-			if (taxi.startNode)
-			{
-				TaxiTrip *taxiTrip = new TaxiTrip("0", "TaxiTrip", 0, -1, DailyTime(taxi.startTime * 1000.0), DailyTime(),
-												  0, const_cast<Node*>(taxi.startNode), "node", nullptr, "node");
-				tripChain.push_back((TripChainItem *)taxiTrip);
-				person->setTripChain(tripChain);
+		if (taxi.startNode)
+		{
+			TaxiTrip *taxiTrip = new TaxiTrip("0", "TaxiTrip", 0, -1, DailyTime(taxi.startTime * 1000.0), DailyTime(),
+											  0, const_cast<Node*>(taxi.startNode), "node", nullptr, "node");
+			tripChain.push_back((TripChainItem *)taxiTrip);
+			person->setTripChain(tripChain);
 
-				addOrStashTaxis(person, agentList);
-			}
-
-			currTaxi++;
+			addOrStashTaxis(person, agentList);
 		}
+
+		currTaxi++;
+		serviceVehicle++;
 	}
 }
 

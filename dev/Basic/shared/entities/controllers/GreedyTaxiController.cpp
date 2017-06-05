@@ -20,7 +20,7 @@ std::vector<MobilityServiceController::MessageResult> GreedyTaxiController::comp
 	ControllerLog()<<"Computing schedule: "<< requestQueue.size()<<" requests are in the queue"<<std::endl;
 	std::vector<MobilityServiceController::MessageResult> results;
 
-	for (std::vector<TripRequest>::iterator request = requestQueue.begin(); request != requestQueue.end(); request++)
+	for (std::vector<TripRequestMessage>::const_iterator request = requestQueue.begin(); request != requestQueue.end(); request++)
 	{
 		//{ RETRIEVE NODES
 		std::map<unsigned int, Node*> nodeIdMap = RoadNetwork::getInstance()->getMapOfIdvsNodes();
@@ -78,24 +78,36 @@ std::vector<MobilityServiceController::MessageResult> GreedyTaxiController::comp
 
 			ControllerLog() << "Closest vehicle is at (" << bestX << ", " << bestY << ")" << std::endl;
 
-			Schedule* schedule = new Schedule();
-			PickUpScheduleItem* pickUpScheduleItem = new PickUpScheduleItem(*request);
-			DropOffScheduleItem* dropOffScheduleItem = new DropOffScheduleItem(*request);
-			schedule->push(pickUpScheduleItem );
-			schedule->push(dropOffScheduleItem );
+
+			Schedule schedule;
+
+			try{
+			const ScheduleItem pickUpScheduleItem(ScheduleItemType::PICKUP,*request);
+
+			const ScheduleItem dropOffScheduleItem(ScheduleItemType::DROPOFF,*request);
+
+			ControllerLog()<<"Items constructed"<<std::endl;
+
+			schedule.push_back(pickUpScheduleItem);
+			schedule.push_back(dropOffScheduleItem );
+
+			}catch(std::exception& e)
+			{
+				ControllerLog()<<"Error in "<< __FILE__ << ":" << __LINE__ <<": "<< e.what() << std::endl;
+				exit(0);
+			}
 
 			sendScheduleProposition(bestDriver, schedule);
 
 
-
-			/*
+			/* OLD CODE REPLACED NOW BY sendScheduleProposition(..)
 			messaging::MessageBus::PostMessage((messaging::MessageHandler*) bestDriver, MSG_SCHEDULE_PROPOSITION, messaging::MessageBus::MessagePtr(
 				new SchedulePropositionMessage(currTick, (*request).personId, (*request).startNodeId,
 					(*request).destinationNodeId, (*request).extraTripTimeThreshold)
 			));
 			*/
 
-			ControllerLog() << "Assignment sent for " << request->userId << " at time " << currTick.frame()
+			ControllerLog() << "Assignment sent for " << request->personId << " at time " << currTick.frame()
 			<< ". Message was sent at " << request->currTick.frame() << " with startNodeId " << request->startNodeId
 			<< ", destinationNodeId " << request->destinationNodeId << ", and driverId null" << std::endl;
 
@@ -107,6 +119,7 @@ std::vector<MobilityServiceController::MessageResult> GreedyTaxiController::comp
 	}
 
 	return results;
+
 }
 
 bool GreedyTaxiController::isCruising(Person* p) 

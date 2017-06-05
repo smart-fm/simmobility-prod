@@ -78,9 +78,11 @@ protected:
 	std::vector<Person*> availableDrivers;
 
 	/** Store queue of requests */
-	std::vector<TripRequest> requestQueue;
+	//TODO: It should be vector<const TripRequest>, but it does not compile in that case:
+	// check why
+	std::vector<TripRequestMessage> requestQueue;
 
-	void sendScheduleProposition(const Person* driver, Schedule* schedule) const;
+	void sendScheduleProposition(const Person* driver, Schedule schedule) const;
 
 private:
 	/**

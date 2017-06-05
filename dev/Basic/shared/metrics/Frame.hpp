@@ -32,7 +32,8 @@
  */
 class timeslice {
 public:
-	timeslice(uint32_t frame, uint32_t ms) : frame_(frame), ms_(ms) {}
+	timeslice(uint32_t frame, uint32_t ms) : frame_(frame), ms_(ms) {};
+	timeslice (const timeslice& t):frame_(t.frame()), ms_(t.ms()){};
 
 	uint32_t frame() const { return frame_; }
 	uint32_t ms() const { return ms_; }

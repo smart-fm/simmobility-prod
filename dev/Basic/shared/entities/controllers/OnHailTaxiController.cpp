@@ -18,7 +18,7 @@ std::vector<MobilityServiceController::MessageResult> OnHailTaxiController::comp
 {
 	std::vector<MobilityServiceController::MessageResult> results;
 
-	for (std::vector<TripRequest>::iterator request = requestQueue.begin(); request != requestQueue.end(); request++)
+	for (std::vector<TripRequestMessage>::iterator request = requestQueue.begin(); request != requestQueue.end(); request++)
 	{
 		results.push_back(MESSAGE_ERROR_BAD_NODE);
 	}

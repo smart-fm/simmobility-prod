@@ -60,6 +60,8 @@ Entity::UpdateStatus MobilityServiceController::frame_init(timeslice now)
 
 Entity::UpdateStatus MobilityServiceController::frame_tick(timeslice now)
 {
+	try
+	{
 	currTick = now;
 
 	if (localTick == scheduleComputationPeriod)
@@ -68,14 +70,14 @@ Entity::UpdateStatus MobilityServiceController::frame_tick(timeslice now)
 
 		std::vector<MessageResult> messageResults = computeSchedules();
 
-		std::vector<TripRequest>::iterator request = requestQueue.begin();
+		std::vector<TripRequestMessage>::iterator request = requestQueue.begin();
 		std::vector<MessageResult>::iterator messageResult = messageResults.begin();
 
-		std:std::vector<TripRequest> retryRequestQueue;
+		std:std::vector<TripRequestMessage> retryRequestQueue;
 
 		while (request != requestQueue.end())
 		{
-		    if ((*messageResult) == MESSAGE_ERROR_VEHICLES_UNAVAILABLE)
+		    if ((*messageResult) == MessageResult::MESSAGE_ERROR_VEHICLES_UNAVAILABLE)
 		    {
 		    	retryRequestQueue.push_back(*request);
 		    }
@@ -92,6 +94,7 @@ Entity::UpdateStatus MobilityServiceController::frame_tick(timeslice now)
 		    requestQueue.push_back(*request);
 		    request++;
 		}
+		rebalancer->rebalance(availableDrivers, currTick);
 
 	}
 	else
@@ -100,6 +103,13 @@ Entity::UpdateStatus MobilityServiceController::frame_tick(timeslice now)
 	}
 
 	return Entity::UpdateStatus::Continue;
+	}catch (std::exception& e)
+	{
+		Print()<<"Error in "<<__FILE__<<":"<<__LINE__<< ". The problem is "<< e.what() << std::endl;
+#ifndef NDEBUG
+		exit(0);
+#endif
+	}
 }
 
 void MobilityServiceController::frame_output(timeslice now)
@@ -138,8 +148,12 @@ void MobilityServiceController::HandleMessage(messaging::Message::MessageType ty
 				<< requestArgs.currTick.frame() << " with startNodeId " << requestArgs.startNodeId << ", destinationNodeId "
 				<< requestArgs.destinationNodeId << ", and driverId null" << std::endl;
 
-			requestQueue.push_back({requestArgs.currTick, requestArgs.personId, requestArgs.startNodeId,
-				requestArgs.destinationNodeId, requestArgs.extraTripTimeThreshold});
+			/*
+			TripRequest r; r.currTick=requestArgs.currTick; r.userId = requestArgs.personId;
+			r.startNodeId=requestArgs.startNodeId; r.destinationNodeId=requestArgs.destinationNodeId;
+			r.extraTripTimeThreshold=requestArgs.extraTripTimeThreshold;
+			*/
+			requestQueue.push_back(requestArgs);
 
 
 			const Node* startNode = RoadNetwork::getInstance()->getMapOfIdvsNodes().at(requestArgs.startNodeId);
@@ -157,8 +171,11 @@ void MobilityServiceController::HandleMessage(messaging::Message::MessageType ty
 					<< replyArgs.startNodeId << ", destinationNodeId " << replyArgs.destinationNodeId << ", and driverId "
 					<< replyArgs.driver->getDatabaseId() << std::endl;
 
-				requestQueue.push_back({replyArgs.currTick, replyArgs.personId, replyArgs.startNodeId,
-					replyArgs.destinationNodeId, replyArgs.extraTripTimeThreshold});
+
+				TripRequestMessage r; r.currTick=replyArgs.currTick; r.personId= replyArgs.personId;
+				r.startNodeId=replyArgs.startNodeId; r.destinationNodeId=replyArgs.destinationNodeId;
+				r.extraTripTimeThreshold=replyArgs.extraTripTimeThreshold;
+				requestQueue.push_back(r);
 			} else {
 				ControllerLog() << "Assignment success received from " << replyArgs.personId << " at time "
 					<< currTick.frame() << ". Message was sent at " << replyArgs.currTick.frame() << " with startNodeId "
@@ -178,7 +195,7 @@ bool MobilityServiceController::isNonspatial()
 	return true;
 }
 
-void MobilityServiceController::sendScheduleProposition(const Person* driver, Schedule* schedule) const
+void MobilityServiceController::sendScheduleProposition(const Person* driver, Schedule schedule) const
 {
 	messaging::MessageBus::PostMessage((messaging::MessageHandler*) driver, MSG_SCHEDULE_PROPOSITION,
 			messaging::MessageBus::MessagePtr(new SchedulePropositionMessage(currTick, schedule) ) );

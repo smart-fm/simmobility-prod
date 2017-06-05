@@ -3,6 +3,8 @@
 #include "Message.hpp"
 #include <boost/ptr_container/ptr_vector.hpp>
 #include "entities/Person.hpp"
+#include <stdexcept>
+
 
 namespace sim_mob
 {
@@ -17,19 +19,26 @@ enum MobilityServiceControllerMessage
 	MSG_SCHEDULE_PROPOSITION_REPLY
 };
 
+/*
 struct TripRequest
 {
-	const timeslice currTick;
-	const std::string userId;
+	TripRequest():currTick(timeslice(0,0)){};
+	~TripRequest(){};
+	TripRequest(const TripRequest& r):userId(r.userId),currTick(r.currTick),startNodeId(r.startNodeId),
+			destinationNodeId(r.destinationNodeId),extraTripTimeThreshold(r.extraTripTimeThreshold)
+	{};
+	std::string userId;
+	timeslice currTick;
 	//TODO: to enhance performance, instead of storing here node ids,
 	// we could directly store Node*, to avoid continuous access to the
 	// RoadNetwork::getInstance()->getMapOfIdvsNodes()
 	// For example, in SharedController::computeSchedules() we make a search into
 	// that map, many times, redundantly and uselessly.
-	const unsigned int startNodeId;
-	const unsigned int destinationNodeId;
-	const unsigned int extraTripTimeThreshold;
+	unsigned int startNodeId;
+	unsigned int destinationNodeId;
+	unsigned int extraTripTimeThreshold;
 };
+*/
 
 /**
  * Message to subscribe a driver
@@ -85,78 +94,76 @@ public:
 /**
  * Message to request a trip
  */
+
+
 class TripRequestMessage: public messaging::Message
 {
 public:
-	TripRequestMessage(timeslice ct, const std::string& p,
-		const unsigned int sn, const unsigned int dn,
-		const unsigned int threshold) : currTick(ct), personId(p),
+	TripRequestMessage():currTick(timeslice(0,0)),personId("no-id"),startNodeId(0),
+		destinationNodeId(0), extraTripTimeThreshold(0){};
+
+	TripRequestMessage(const TripRequestMessage& r) :
+		currTick(r.currTick),
+			personId(r.personId), startNodeId(r.startNodeId),
+			destinationNodeId(r.destinationNodeId),
+			extraTripTimeThreshold(r.extraTripTimeThreshold)
+		{
+		};
+
+
+
+	TripRequestMessage(const timeslice& ct, const std::string& p,
+		const unsigned int& sn, const unsigned int& dn,
+		const unsigned int& threshold) : currTick(ct), personId(p),
 			startNodeId(sn), destinationNodeId(dn),
 			extraTripTimeThreshold(threshold)
 	{
+	};
+
+
+	~TripRequestMessage()
+	{
 	}
 
-	virtual ~TripRequestMessage()
-	{
-	}
-
-	const timeslice currTick;
-	const std::string personId;
-	const unsigned int startNodeId;
-	const unsigned int destinationNodeId;
-	const unsigned int extraTripTimeThreshold;
+	timeslice currTick;
+	std::string personId;
+	unsigned int startNodeId;
+	unsigned int destinationNodeId;
+	unsigned int extraTripTimeThreshold;
 };
 
-enum ScheduleItemType{PICKUP, DROPOFF,CRUISE};
+enum ScheduleItemType{INVALID,PICKUP, DROPOFF,CRUISE};
 
-
-class ScheduleItem
+struct ScheduleItem
 {
-protected:
-	ScheduleItemType scheduleItemType;
-
-public:
-	ScheduleItem(){};
-	virtual void dummy() = 0 ;
-	const ScheduleItemType getScheduleItemType() const;
-};
-
-
-class PickUpScheduleItem : public ScheduleItem
-{
-public:
-	PickUpScheduleItem(const TripRequest request_): request(request_)
+	ScheduleItem(const ScheduleItemType scheduleItemType_, const TripRequestMessage tripRequest_)
+		: scheduleItemType(scheduleItemType_),tripRequest(tripRequest_),tazToCruiseTo(0)
 	{
-		scheduleItemType=PICKUP;
-	};
-	void dummy(){};
-	const TripRequest request;
-};
+#ifndef NDEBUG
+		if (scheduleItemType!= ScheduleItemType::PICKUP && scheduleItemType!= ScheduleItemType::DROPOFF)
+			throw std::runtime_error("Only PICKUP or DROPOFF is admitted here");
+#endif
 
-class DropOffScheduleItem : public ScheduleItem
-{
-public:
-	DropOffScheduleItem(const TripRequest request_): request(request_)
-	{
-		scheduleItemType=DROPOFF;
 	};
 
-	void dummy(){};
-	const TripRequest request;
-};
-
-class CruiseTAZ_ScheduleItem : public ScheduleItem
-{
-public:
-	CruiseTAZ_ScheduleItem(unsigned tazId_): tazId(tazId_)
+	ScheduleItem(const ScheduleItemType scheduleItemType_, const unsigned tazToCruiseTo_)
+		:scheduleItemType(scheduleItemType_),tazToCruiseTo(tazToCruiseTo_),tripRequest()
 	{
-		scheduleItemType=CRUISE;
+#ifndef NDEBUG
+		if (scheduleItemType!= ScheduleItemType::CRUISE)
+			throw std::runtime_error("Only CRUISE is admitted here");
+#endif
 	};
-	const unsigned tazId;
-	void dummy(){};
+
+	const ScheduleItemType scheduleItemType;
+
+	const TripRequestMessage tripRequest;
+
+	unsigned tazToCruiseTo;
 };
 
-typedef std::queue<ScheduleItem*> Schedule;
+//TODO: It would be more elegant using std::variant, available from c++17
+typedef std::vector<ScheduleItem> Schedule;
 
 /**
  * Message to propose a trip to a driver
@@ -188,14 +195,14 @@ public:
 class SchedulePropositionMessage: public messaging::Message
 {
 public:
-	SchedulePropositionMessage(const timeslice currTick_, Schedule* schedule_):
+	SchedulePropositionMessage(const timeslice currTick_, Schedule schedule_):
 		currTick(currTick_), schedule(schedule_){};
 
-	Schedule* getSchedule() const;
+	const Schedule& getSchedule() const;
 	const timeslice currTick;
 
 private:
-	Schedule* schedule;
+	Schedule schedule;
 };
 
 /**

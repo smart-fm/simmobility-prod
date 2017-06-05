@@ -49,8 +49,12 @@ public:
 		return context;
 	}
 
+	//aa{
+	void SetContext(void* context_){context=context_;};
+	//aa}
+
 private:
-	friend class MessageBus;
+	//friend class MessageBus;
 	unsigned int id;
 	//MessageBus exclusive
 	void* context;

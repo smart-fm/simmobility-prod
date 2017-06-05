@@ -34,6 +34,9 @@ using namespace sim_mob;
 using namespace sim_mob::event;
 using namespace sim_mob::messaging;
 
+class MobilityServiceController;
+
+
 typedef Entity::UpdateStatus UpdateStatus;
 
 using std::vector;
@@ -210,6 +213,10 @@ Entity::UpdateStatus sim_mob::Agent::update(timeslice now)
 		//Add a line to the output file.
 		if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled())
 		{
+#ifndef NDEBUG
+			throw ex;
+#endif
+
 			std::stringstream msg;
 			msg << "Error updating Agent[" << getId() << "], will be removed from the simulation. \n  "
 			    << ex.what() << std::endl;
@@ -223,6 +230,7 @@ Entity::UpdateStatus sim_mob::Agent::update(timeslice now)
 	//Ensure that isToBeRemoved() and UpdateStatus::status are in sync
 	if (isToBeRemoved() || retVal.status == UpdateStatus::RS_DONE)
 	{
+
 		retVal.status = UpdateStatus::RS_DONE;
 		setToBeRemoved();
 

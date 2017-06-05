@@ -111,92 +111,90 @@ void TaxiDriver::HandleParentMessage(messaging::Message::MessageType type, const
 		case MSG_SCHEDULE_PROPOSITION:
 		{
 			const SchedulePropositionMessage& msg = MSG_CAST(SchedulePropositionMessage, message);
-			Schedule* schedule = msg.getSchedule();
-			const ScheduleItem* scheduleItem = schedule->front(); schedule->pop();
+			const Schedule& schedule = msg.getSchedule();
 
-			switch (scheduleItem->getScheduleItemType() )
+			for (Schedule::const_iterator s = schedule.begin(); s<schedule.end(); )
 			{
-				case PICKUP :
+				switch (s->scheduleItemType )
 				{
-					const PickUpScheduleItem* pickUpScheduleItem = (PickUpScheduleItem*) scheduleItem;
-					const TripRequest request = pickUpScheduleItem->request;
-					safe_delete_item(pickUpScheduleItem);
-					scheduleItem = schedule->front(); schedule->pop();
-					#ifndef NDEBUG
-						if (scheduleItem->getScheduleItemType() != DROPOFF)
-								throw std::runtime_error("I expect a dropoff here");
-					#endif
-					const DropOffScheduleItem* dropOffScheduleItem = (DropOffScheduleItem*) scheduleItem;
-					#ifndef NDEBUG
-						if (dropOffScheduleItem->request.userId != request.userId)
-							throw std::runtime_error("We expected a drop off related to the same request of the pick up here");
-					#endif
-					safe_delete_item(dropOffScheduleItem);
-
-					#ifndef NDEBUG
-							if (!schedule->empty())
-								throw std::runtime_error("For the moment, I would expect to have an empty schedule after getting a pick up and a drop off. In further development, this will not be an error anymore, as more flexible schedules will be possible");
-							safe_delete_item(schedule);
-					#endif
-
-					ControllerLog() << "Assignment received for " << request.userId << " at time " << parent->currTick.frame()
-								<< ". Message was sent at " << msg.currTick.frame() << " with startNodeId " << request.startNodeId
-								<< ", destinationNodeId " << request.destinationNodeId << ", and driverId null" << std::endl;
-
-					std::map<unsigned int, Node*> nodeIdMap = RoadNetwork::getInstance()->getMapOfIdvsNodes();
-
-					std::map<unsigned int, Node*>::iterator it = nodeIdMap.find(request.startNodeId);
-					if (it == nodeIdMap.end())
+					case ScheduleItemType::PICKUP :
 					{
-								ControllerLog() << "Message contains bad start node " << request.startNodeId << std::endl;
+						const TripRequestMessage request = s->tripRequest; s++;
+						#ifndef NDEBUG
+							if (s->scheduleItemType != ScheduleItemType::DROPOFF)
+									throw std::runtime_error("I expect a dropoff here");
+						#endif
+						#ifndef NDEBUG
+							if (s->tripRequest.personId != request.personId)
+								throw std::runtime_error("We expected a drop off related to the same request of the pick up here");
+						#endif
+						s++;
 
-								if (MobilityServiceControllerManager::HasMobilityServiceControllerManager())
-								{
+						#ifndef NDEBUG
+								if (s != schedule.end())
+									throw std::runtime_error("For the moment, I would expect to have an empty schedule after getting a pick up and a drop off. In further development, this will not be an error anymore, as more flexible schedules will be possible");
+						#endif
+
+						ControllerLog() << "Assignment received for " << request.personId << " at time " << parent->currTick.frame()
+									<< ". Message was sent at " << msg.currTick.frame() << " with startNodeId " << request.startNodeId
+									<< ", destinationNodeId " << request.destinationNodeId << ", and driverId null" << std::endl;
+
+						std::map<unsigned int, Node*> nodeIdMap = RoadNetwork::getInstance()->getMapOfIdvsNodes();
+
+						std::map<unsigned int, Node*>::iterator it = nodeIdMap.find(request.startNodeId);
+						if (it == nodeIdMap.end())
+						{
+									ControllerLog() << "Message contains bad start node " << request.startNodeId << std::endl;
+
+									if (MobilityServiceControllerManager::HasMobilityServiceControllerManager())
+									{
+										std::map<unsigned int, MobilityServiceController*> controllers = MobilityServiceControllerManager::GetInstance()->getControllers();
+
+										messaging::MessageBus::SendMessage(controllers[1], MSG_SCHEDULE_PROPOSITION_REPLY,
+											messaging::MessageBus::MessagePtr(new SchedulePropositionReplyMessage(parent->currTick, request.personId , parent,
+													request.startNodeId, request.destinationNodeId, request.extraTripTimeThreshold, false)));
+
+										ControllerLog() << "Assignment response sent for " << request.personId << " at time " << parent->currTick.frame()
+											<< ". Message was sent at " << msg.currTick.frame() << " with startNodeId " << request.startNodeId
+											<< ", destinationNodeId " << request.destinationNodeId << ", and driverId null" << std::endl;
+									}
+
+									return;
+						}
+
+						Node* node = it->second;
+
+						const bool success = taxiDriverMovement->driveToNodeOnCall(request.personId , node);
+
+						if (MobilityServiceControllerManager::HasMobilityServiceControllerManager())
+						{
 									std::map<unsigned int, MobilityServiceController*> controllers = MobilityServiceControllerManager::GetInstance()->getControllers();
 
 									messaging::MessageBus::SendMessage(controllers[1], MSG_SCHEDULE_PROPOSITION_REPLY,
-										messaging::MessageBus::MessagePtr(new SchedulePropositionReplyMessage(parent->currTick, request.userId, parent,
-												request.startNodeId, request.destinationNodeId, request.extraTripTimeThreshold, false)));
+										messaging::MessageBus::MessagePtr(new SchedulePropositionReplyMessage(parent->currTick, request.personId , parent,
+												request.startNodeId, request.destinationNodeId, request.extraTripTimeThreshold, success)));
 
-									ControllerLog() << "Assignment response sent for " << request.userId << " at time " << parent->currTick.frame()
+									ControllerLog() << "Assignment response sent for " << request.personId  << " at time " << parent->currTick.frame()
 										<< ". Message was sent at " << msg.currTick.frame() << " with startNodeId " << request.startNodeId
-										<< ", destinationNodeId " << request.destinationNodeId << ", and driverId null" << std::endl;
-								}
+										<< ", destinationNodeId " << request.destinationNodeId << ", and driverId " << parent->getDatabaseId() << std::endl;
+						}
 
-								return;
+						break;
 					}
-
-					Node* node = it->second;
-
-					const bool success = taxiDriverMovement->driveToNodeOnCall(request.userId, node);
-
-					if (MobilityServiceControllerManager::HasMobilityServiceControllerManager())
+					case ScheduleItemType::CRUISE:
 					{
-								std::map<unsigned int, MobilityServiceController*> controllers = MobilityServiceControllerManager::GetInstance()->getControllers();
-
-								messaging::MessageBus::SendMessage(controllers[1], MSG_SCHEDULE_PROPOSITION_REPLY,
-									messaging::MessageBus::MessagePtr(new SchedulePropositionReplyMessage(parent->currTick, request.userId, parent,
-											request.startNodeId, request.destinationNodeId, request.extraTripTimeThreshold, success)));
-
-								ControllerLog() << "Assignment response sent for " << request.userId << " at time " << parent->currTick.frame()
-									<< ". Message was sent at " << msg.currTick.frame() << " with startNodeId " << request.startNodeId
-									<< ", destinationNodeId " << request.destinationNodeId << ", and driverId " << parent->getDatabaseId() << std::endl;
+						ControllerLog()<<"Taxi driver "<< getParent()->getPersonInfo().getPersonId() <<" received a cruise command "<<
+									"but she does not know what to do now"<<std::endl;
+						break;
 					}
 
-					break;
-				}
-				case CRUISE:
-				{
-					const CruiseTAZ_ScheduleItem* scheduleItem = (CruiseTAZ_ScheduleItem*) scheduleItem;
-						ControllerLog()<<"Taxi driver "<< getParent()->getPersonInfo().getPersonId() <<" received a cruise command "<<
-								"but she does not know what to do now"<<std::endl;
-					break;
-				}
+					default:
+						throw runtime_error("Schedule Item is invalid");
 
-				default:
-					throw runtime_error("Schedule Item is invalid");
+				}
 
 			}
+
 
 
 

@@ -9,13 +9,9 @@
 
 namespace sim_mob
 {
-	Schedule* SchedulePropositionMessage::getSchedule() const
+	const Schedule& SchedulePropositionMessage::getSchedule() const
 	{
 		return schedule;
 	}
 
-	const ScheduleItemType ScheduleItem::getScheduleItemType() const
-	{
-		return scheduleItemType;
-	}
 }

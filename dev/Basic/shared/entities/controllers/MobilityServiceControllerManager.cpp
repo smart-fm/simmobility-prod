@@ -9,6 +9,8 @@
 #include "entities/controllers/GreedyTaxiController.hpp"
 #include "entities/controllers/OnHailTaxiController.hpp"
 #include "entities/controllers/SharedController.hpp"
+#include "logging/ControllerLog.hpp"
+#include <stdexcept>
 
 #include "message/MessageBus.hpp"
 
@@ -49,7 +51,8 @@ bool MobilityServiceControllerManager::addMobilityServiceController(unsigned int
 {
 	if (controllers.count(id) > 0)
 	{
-		return false;
+		std::stringstream msg; msg<<"Trying to add twice a controller with id "<<id<<std::endl;
+		throw std::runtime_error(msg.str());
 	}
 
     if (type == 1)
@@ -59,7 +62,7 @@ bool MobilityServiceControllerManager::addMobilityServiceController(unsigned int
     }
     else if (type == 2)
     {
-        SharedController* svc = new SharedController(getMutexStrategy(), scheduleComputationPeriod);
+    	SharedController* svc = new SharedController(getMutexStrategy(), scheduleComputationPeriod);
         controllers.insert(std::make_pair(id, svc));
     }
     else if (type == 3)
@@ -105,6 +108,7 @@ void MobilityServiceControllerManager::frame_output(timeslice now)
 
 std::map<unsigned int, MobilityServiceController*> MobilityServiceControllerManager::getControllers()
 {
+
 	return controllers;
 }
 

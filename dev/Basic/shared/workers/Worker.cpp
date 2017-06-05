@@ -431,15 +431,6 @@ struct EntityUpdater
 		{
 			case UpdateStatus::RS_DONE:
 			{
-				#ifndef NDEBUG
-					if (dynamic_cast<sim_mob::MobilityServiceController*> (entity) )
-					{
-						std::stringstream msg; msg<<"entity "<<entity <<" is a MobilityServiceController"
-						<<". Why do you want to remove it?";
-						throw std::runtime_error(msg.str() );
-
-					}
-				#endif
 				//This Entity is done; schedule for deletion.
 				wrk.scheduleForRemoval(entity);
 				break;

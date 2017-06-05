@@ -158,9 +158,6 @@ namespace {
             CleanUpQueue(input);
             CleanUpQueue(output);
             safe_delete_item(eventPublisher);
-#ifndef NDEBUG
-            throw std::runtime_error("Why are you calling me?");
-#endif
         }
 
         /**

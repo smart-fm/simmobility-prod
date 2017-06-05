@@ -119,7 +119,8 @@ void TaxiDriver::HandleParentMessage(messaging::Message::MessageType type, const
 				{
 					case ScheduleItemType::PICKUP :
 					{
-						const TripRequestMessage request = s->tripRequest; s++;
+						const TripRequestMessage request = s->tripRequest;
+						s++;
 						#ifndef NDEBUG
 							if (s->scheduleItemType != ScheduleItemType::DROPOFF)
 									throw std::runtime_error("I expect a dropoff here");
@@ -185,6 +186,7 @@ void TaxiDriver::HandleParentMessage(messaging::Message::MessageType type, const
 					{
 						ControllerLog()<<"Taxi driver "<< getParent()->getPersonInfo().getPersonId() <<" received a cruise command "<<
 									"but she does not know what to do now"<<std::endl;
+						s++;
 						break;
 					}
 

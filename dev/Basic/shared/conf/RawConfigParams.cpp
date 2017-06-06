@@ -17,7 +17,7 @@ sim_mob::SimulationParams::SimulationParams() :
 {}
 
 
-sim_mob::LongTermParams::LongTermParams(): enabled(false), workers(0), days(0), tickStep(0), maxIterations(0),year(0),simulationScenario(std::string()),resume(false),currentOutputSchema(std::string()),mainSchemaVersion(std::string()),configSchemaVersion(std::string()),calibrationSchemaVersion(std::string()),geometrySchemaVersion(std::string()),opSchemaloadingInterval(0)
+sim_mob::LongTermParams::LongTermParams(): enabled(false), workers(0), days(0), tickStep(0), maxIterations(0),year(0),resume(false),currentOutputSchema(std::string()),mainSchemaVersion(std::string()),configSchemaVersion(std::string()),calibrationSchemaVersion(std::string()),geometrySchemaVersion(std::string()),opSchemaloadingInterval(0)
 										   ,initialLoading(false){}
 sim_mob::LongTermParams::DeveloperModel::DeveloperModel(): enabled(false), timeInterval(0), initialPostcode(0),initialUnitId(0),initialBuildingId(0),initialProjectId(0),minLotSize(0) {}
 sim_mob::LongTermParams::HousingModel::HousingModel(): enabled(false), timeInterval(0), timeOnMarket(0), timeOffMarket(0), vacantUnitActivationProbability(0),
@@ -60,10 +60,9 @@ sim_mob::LongTermParams::OutputFiles::OutputFiles(): bids(false),
 													 enabled(false){}
 
 
-sim_mob::LongTermParams::ToaPayohScenario::ToaPayohScenario():enabled(false),workInToaPayoh(false),liveInToaPayoh(false),moveToToaPayoh(false){}
-
 sim_mob::LongTermParams::Scenario::Scenario():  enabled(false),
-												scenarioName(""){}
+												scenarioName(""),
+												parcelsTable(""){}
 
 
 sim_mob::Schemas::Schemas():	enabled(false),

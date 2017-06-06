@@ -258,6 +258,25 @@ void HouseholdSellerRole::update(timeslice now)
 
             BigSerial tazId = model->getUnitTazId(unitId);
 
+
+            bool buySellInvtervalCompleted = false;
+
+            bool entryDay = true;
+            //freelance agents will only awaken their units based on the unit market entry day
+            if( getParent()->getId() >= model->FAKE_IDS_START )
+            {
+               	if( unit->getbiddingMarketEntryDay() == now.ms() )
+               		entryDay = true;
+               	else
+               	{
+               		entryDay = false;
+               		continue;
+               	}
+
+               	buySellInvtervalCompleted = true;
+            }
+
+
             TimeCheck hedonicPriceTiming;
 
             calculateUnitExpectations(*unit);
@@ -269,20 +288,6 @@ void HouseholdSellerRole::update(timeslice now)
 			#endif
             //get first expectation to add the entry on market.
             ExpectationEntry firstExpectation; 
-
-            bool buySellInvtervalCompleted = false;
-
-            bool entryDay = true;
-            //freelance agents will only awaken their units based on the unit market entry day
-            if( getParent()->getId() >= model->FAKE_IDS_START )
-            {
-            	if( unit->getbiddingMarketEntryDay() == now.ms() )
-            		entryDay = true;
-            	else
-            		entryDay = false;
-
-            	buySellInvtervalCompleted = true;
-            }
 
             if(getCurrentExpectation(unit->getId(), firstExpectation) && entryDay )
             {
@@ -416,6 +421,7 @@ void HouseholdSellerRole::removeAllEntries()
 		if(it != sellingUnitsMap.end())
 		{
 			market->removeEntry(unitId);
+			sellingUnitsMap.erase(unitId);
 		}
     }
 }
@@ -447,6 +453,9 @@ void HouseholdSellerRole::adjustNotSoldUnits()
 					#ifdef VERBOSE
 					PrintOutV("[day " << currentTime.ms() << "] Removing unit " << unitId << " from the market. start:" << info.startedDay << " currentDay: " << currentTime.ms() << " daysOnMarket: " << info.daysOnMarket << std::endl );
 					#endif
+
+					sellingUnitsMap.erase(unitId);
+
 					market->removeEntry(unitId);
 					continue;
 				 }

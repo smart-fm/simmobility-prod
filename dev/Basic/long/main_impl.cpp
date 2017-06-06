@@ -124,7 +124,7 @@ void loadDataToOutputSchema(db::DB_Connection& conn,std::string &currentOutputSc
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 	bool resume = config.ltParams.resume;
 	unsigned int year = config.ltParams.year;
-	std::string scenario = config.ltParams.simulationScenario;
+	std::string scenario = config.ltParams.scenario.scenarioName;
 	std::string mainSchemaVersion = config.ltParams.mainSchemaVersion;
 	std::string cfgSchemaVersion = config.ltParams.configSchemaVersion;
 	std::string calibrationSchemaVersion = config.ltParams.calibrationSchemaVersion;
@@ -151,7 +151,7 @@ void loadDataToOutputSchema(db::DB_Connection& conn,std::string &currentOutputSc
 
 		std::vector<boost::shared_ptr<Parcel> > parcels = developerModel.getProfitableParcelsVec();
 		std::vector<boost::shared_ptr<Parcel> >::iterator parcelsItr;
-		ParcelDao parcelDao(conn);
+		ParcelDao parcelDao(conn,"fm_parcel");
 		for(parcelsItr = parcels.begin(); parcelsItr != parcels.end(); ++parcelsItr)
 		{
 			parcelDao.insertParcel(*(*parcelsItr),currentOutputSchema);
@@ -306,7 +306,7 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
     std::string currentOutputSchema;
 
     unsigned int year = config.ltParams.year;
-    std::string scenario = config.ltParams.simulationScenario;
+    std::string scenario = config.ltParams.scenario.scenarioName;
     std::string simScenario = boost::lexical_cast<std::string>(scenario)+"_"+boost::lexical_cast<std::string>(year);
     time_t rawtime;
     struct tm * timeinfo;
@@ -445,7 +445,8 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
         PrintOutV("XML Config Simulation resumption " << config.ltParams.resume << endl);
         PrintOutV("XML Config schoolAssignmentModel enabled " << config.ltParams.schoolAssignmentModel.enabled << endl);
         PrintOutV("XML Config schoolAssignmentModel schoolChangeWaitingTimeInDays " << config.ltParams.schoolAssignmentModel.schoolChangeWaitingTimeInDays << endl);
-        PrintOutV("XML Config simulationScenario " << config.ltParams.simulationScenario << endl);
+        PrintOutV("XML Config simulationScenario " << config.ltParams.scenario.scenarioName << endl);
+        PrintOutV("XML Config simulationScenario parcels table " << config.ltParams.scenario.parcelsTable << endl);
         PrintOutV("XML Config tickStep " << config.ltParams.tickStep << endl);
         PrintOutV("XML Config vehicleOwnershipModel " << config.ltParams.vehicleOwnershipModel.enabled << endl);
         PrintOutV("XML Config vehicleOwnershipModel vehicleBuyingWaitingTimeInDays " << config.ltParams.vehicleOwnershipModel.vehicleBuyingWaitingTimeInDays << endl);

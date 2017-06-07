@@ -22,9 +22,6 @@ public:
 	{
 	}
 
-protected:
-	bool isCruising(Person* p);
-	const Node* getCurrentNode(Person* p);
 
 private:
 	/**

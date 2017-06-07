@@ -73,6 +73,15 @@ Entity::UpdateStatus MobilityServiceController::frame_tick(timeslice now)
 		std::vector<TripRequestMessage>::iterator request = requestQueue.begin();
 		std::vector<MessageResult>::iterator messageResult = messageResults.begin();
 
+#ifndef NDEBUG
+		if (requestQueue.size() != messageResults.size() )
+		{
+			std::stringstream msg; msg<<"requestQueue.size()="<<requestQueue.size()<<", messageResults.size()="<<
+				messageResults.size()<<", while they must be the same. Insert the request in the message result";
+			throw std::runtime_error(msg.str() );
+		}
+#endif
+
 		std:std::vector<TripRequestMessage> retryRequestQueue;
 
 		while (request != requestQueue.end())
@@ -199,6 +208,67 @@ void MobilityServiceController::sendScheduleProposition(const Person* driver, Sc
 {
 	messaging::MessageBus::PostMessage((messaging::MessageHandler*) driver, MSG_SCHEDULE_PROPOSITION,
 			messaging::MessageBus::MessagePtr(new SchedulePropositionMessage(currTick, schedule) ) );
+}
+
+bool MobilityServiceController::isCruising(Person* driver) const
+{
+    MobilityServiceDriver* currDriver = driver->exportServiceDriver();
+    if (currDriver)
+    {
+        if (currDriver->getServiceStatus() == MobilityServiceDriver::SERVICE_FREE)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+const Node* MobilityServiceController::getCurrentNode(Person* driver) const
+{
+    MobilityServiceDriver* currDriver = driver->exportServiceDriver();
+    if (currDriver)
+    {
+    	const Node* currentNode =currDriver->getCurrentNode();
+        return currentNode;
+    }
+    return nullptr;
+}
+
+const Person* MobilityServiceController::findClosestDriver(const Node* node) const
+{
+	double bestDistanceSqr = std::numeric_limits<double>::max();
+	double bestX, bestY;
+
+	Person* bestDriver = NULL;
+	auto driver = availableDrivers.begin();
+
+	while (driver != availableDrivers.end())
+	{
+		if (isCruising(*driver) )
+		{
+				const Node* driverNode = getCurrentNode(*driver);
+				double currDistanceSqr =
+					(node->getPosX() - driverNode->getPosX() )*
+					(node->getPosX() - driverNode->getPosX() );
+				currDistanceSqr+=
+					(node->getPosY() - driverNode->getPosY() )*
+					(node->getPosY() - driverNode->getPosY() );
+
+				if (currDistanceSqr < bestDistanceSqr)
+				{
+					bestDriver = *driver;
+					bestDistanceSqr = currDistanceSqr;
+					bestX = driverNode->getPosX();
+					bestY = driverNode->getPosY();
+				}
+		}
+		driver++;
+	}
+	if (bestDriver!=NULL)
+		ControllerLog() << "Closest vehicle is at (" << bestX << ", " << bestY << ")" << std::endl;
+	else
+		ControllerLog()<<"No available driver" << std::endl;
+	return bestDriver;
 }
 
 }

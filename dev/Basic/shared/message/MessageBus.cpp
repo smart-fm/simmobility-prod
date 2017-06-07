@@ -388,7 +388,6 @@ void MessageBus::RegisterThread() {
         }
         threadContext.reset(context);
         RegisterHandler(dynamic_cast<MessageHandler*> (context->eventPublisher));
-        std::cout<<"Registering contex "<<context<<std::endl;
     } else {
         throw runtime_error("MessageBus - Current thread already has a context associated.");
     }

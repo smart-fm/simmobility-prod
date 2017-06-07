@@ -72,6 +72,8 @@ bool MobilityServiceControllerManager::addMobilityServiceController(unsigned int
     }
     else
     {
+    	std::stringstream msg; msg<<"Type "<< type <<" is not a valid controller type. Check simulation.xml";
+    	throw std::runtime_error(msg.str() );
     	return false;
     }
 

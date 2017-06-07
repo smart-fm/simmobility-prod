@@ -42,42 +42,11 @@ std::vector<MobilityServiceController::MessageResult> GreedyTaxiController::comp
 		Node* destinationNode = it->second;
 		//} RETRIEVE NODES
 
-		Person* bestDriver = NULL;
-		double bestDistanceSqr = std::numeric_limits<double>::max();
-		double bestX, bestY;
 
-
-		auto driver = availableDrivers.begin();
-
-		while (driver != availableDrivers.end())
-		{
-			if (isCruising(*driver) )
-			{
-					const Node* driverNode = getCurrentNode(*driver);
-					double currDistanceSqr =
-						(startNode->getPosX() - driverNode->getPosX() )*
-						(startNode->getPosX() - driverNode->getPosX() );
-					currDistanceSqr+=
-						(startNode->getPosY() - driverNode->getPosY() )*
-						(startNode->getPosY() - driverNode->getPosY() );
-
-					if (currDistanceSqr < bestDistanceSqr)
-					{
-						bestDriver = *driver;
-						bestDistanceSqr = currDistanceSqr;
-						bestX = driverNode->getPosX();
-						bestY = driverNode->getPosY();
-					}
-			}
-			driver++;
-		}
-
+		const Person* bestDriver = findClosestDriver(startNode) ;
 
 		if (bestDriver != NULL)
 		{
-
-			ControllerLog() << "Closest vehicle is at (" << bestX << ", " << bestY << ")" << std::endl;
-
 
 			Schedule schedule;
 
@@ -122,28 +91,6 @@ std::vector<MobilityServiceController::MessageResult> GreedyTaxiController::comp
 
 }
 
-bool GreedyTaxiController::isCruising(Person* p) 
-{
-    MobilityServiceDriver* currDriver = p->exportServiceDriver();
-    if (currDriver) 
-    {
-        if (currDriver->getServiceStatus() == MobilityServiceDriver::SERVICE_FREE) 
-        {
-            return true;
-        }
-    }
-    return false;
-}
 
-const Node* GreedyTaxiController::getCurrentNode(Person* p) 
-{
-    MobilityServiceDriver* currDriver = p->exportServiceDriver();
-    if (currDriver) 
-    {
-    	const Node* currentNode =currDriver->getCurrentNode();
-        return currentNode;
-    }
-    return nullptr;
-}
 }
 

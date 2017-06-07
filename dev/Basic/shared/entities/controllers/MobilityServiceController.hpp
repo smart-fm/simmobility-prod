@@ -44,6 +44,13 @@ public:
 	 */
 	bool isNonspatial();
 
+	/*
+	 * It returns the pointer to the driver closest to the node
+	 */
+	const Person* findClosestDriver(const Node* node) const;
+
+
+
 protected:
 	/**
 	 * Inherited from base class agent to initialize parameters
@@ -83,6 +90,10 @@ protected:
 	std::vector<TripRequestMessage> requestQueue;
 
 	void sendScheduleProposition(const Person* driver, Schedule schedule) const;
+
+	bool isCruising(Person* driver) const;
+	const Node* getCurrentNode(Person* driver) const;
+
 
 private:
 	/**

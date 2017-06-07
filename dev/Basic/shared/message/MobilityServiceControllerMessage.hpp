@@ -232,6 +232,12 @@ public:
 	const unsigned int extraTripTimeThreshold;
 };
 
+class ScheduleException: public std::runtime_error {
+public:
+	ScheduleException(const std::string& xmsg) : std::runtime_error (xmsg) {} ;
+	virtual ~ScheduleException(){};
+};
+
 }
 
 

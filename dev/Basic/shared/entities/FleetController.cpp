@@ -51,6 +51,7 @@ void FleetController::LoadTaxiFleetFromDB()
 		fleetItem.startNode = Node::allNodesMap.searchNearestObject(x, y);
 		std::string startTime = r.get<std::string>(4);
 		fleetItem.startTime = getSecondFrmTimeString(startTime);
+		fleetItem.controllerSubscription = r.get<unsigned int>(5);
 		taxiFleet.push_back(fleetItem);
 	}
 }

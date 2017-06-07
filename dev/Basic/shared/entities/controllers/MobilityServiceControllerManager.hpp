@@ -17,7 +17,7 @@
 namespace sim_mob
 {
 
-enum MobilityServiceControllerType
+enum MobilityServiceControllerType : unsigned int
 {
 	SERVICE_CONTROLLER_UNKNOWN = 0b0000,
 	SERVICE_CONTROLLER_GREEDY = 0b0001,
@@ -48,19 +48,11 @@ public:
 	
 	/**
 	 * Adds a MobilityServiceController to the list of controllers
-	 * @param  id                        ID of controller
 	 * @param  type                      Type of controller
 	 * @param  scheduleComputationPeriod Schedule computation period of controller
 	 * @return                           Sucess
 	 */
-	bool addMobilityServiceController(unsigned int id, unsigned int type, unsigned int scheduleComputationPeriod);
-
-	/**
-	 * Removes a MobilityServiceController 
-	 * @param  id ID of the MobilityServiceController to remove
-	 * @return    Success
-	 */
-	bool removeMobilityServiceController(unsigned int id);
+	bool addMobilityServiceController(MobilityServiceControllerType type, unsigned int scheduleComputationPeriod);
 
 	/**
 	 * Signals are non-spatial in nature.
@@ -70,7 +62,7 @@ public:
 	/**
 	 * Returns a list of enabled controllers
 	 */
-	std::map<unsigned int, MobilityServiceController*> getControllers();
+	const std::multimap<MobilityServiceControllerType, MobilityServiceController*>& getControllers();
 
 protected:
 	explicit MobilityServiceControllerManager(const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered) :
@@ -95,8 +87,8 @@ protected:
 	void frame_output(timeslice now);
 
 private:
-	/** Store list of controllers */
-	std::map<unsigned int, MobilityServiceController*> controllers;
+	/** Stores the various controllers with the type as key*/
+	std::multimap<MobilityServiceControllerType, MobilityServiceController*> controllers;
 
 	/** Store self instance */
 	static MobilityServiceControllerManager* instance;

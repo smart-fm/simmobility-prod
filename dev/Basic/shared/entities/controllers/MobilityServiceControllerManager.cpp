@@ -23,11 +23,9 @@ MobilityServiceControllerManager::~MobilityServiceControllerManager()
 {
 }
 
-bool MobilityServiceControllerManager::RegisterMobilityServiceControllerManager(
-	const MutexStrategy& mtxStrat)
+bool MobilityServiceControllerManager::RegisterMobilityServiceControllerManager(const MutexStrategy& mtxStrat)
 {
-	MobilityServiceControllerManager *mobilityServiceControllerManager
-		= new MobilityServiceControllerManager(mtxStrat);
+	MobilityServiceControllerManager *mobilityServiceControllerManager = new MobilityServiceControllerManager(mtxStrat);
 
 	if (!instance)
 	{
@@ -43,31 +41,27 @@ bool MobilityServiceControllerManager::HasMobilityServiceControllerManager()
 	return (instance != nullptr);
 }
 
-bool MobilityServiceControllerManager::addMobilityServiceController(unsigned int id, unsigned int type, unsigned int scheduleComputationPeriod)
+bool MobilityServiceControllerManager::addMobilityServiceController(MobilityServiceControllerType type,
+																	unsigned int scheduleComputationPeriod)
 {
-	if (controllers.count(id) > 0)
-	{
-		return false;
-	}
-
     switch(type)
 	{
 		case SERVICE_CONTROLLER_GREEDY:
 		{
 			GreedyTaxiController *controller = new GreedyTaxiController(getMutexStrategy(), scheduleComputationPeriod);
-			controllers.insert(std::make_pair(id, controller));
+			controllers.insert(std::make_pair(type, controller));
 			break;
 		}
 		case SERVICE_CONTROLLER_SHARED:
 		{
 			SharedController *controller = new SharedController(getMutexStrategy(), scheduleComputationPeriod);
-			controllers.insert(std::make_pair(id, controller));
+			controllers.insert(std::make_pair(type, controller));
 			break;
 		}
 		case SERVICE_CONTROLLER_ON_HAIL:
 		{
 			OnHailTaxiController *controller = new OnHailTaxiController(getMutexStrategy(), scheduleComputationPeriod);
-			controllers.insert(std::make_pair(id, controller));
+			controllers.insert(std::make_pair(type, controller));
 			break;
 		}
 		default:
@@ -75,19 +69,6 @@ bool MobilityServiceControllerManager::addMobilityServiceController(unsigned int
 	}
 
 	return true;
-}
-
-bool MobilityServiceControllerManager::removeMobilityServiceController(unsigned int id)
-{
-	std::map<unsigned int, MobilityServiceController*>::iterator it = controllers.find(id);
-
-	if (it != controllers.end())
-	{
-		controllers.erase(it);
-		return true;
-	}
-
-	return false;
 }
 
 Entity::UpdateStatus MobilityServiceControllerManager::frame_init(timeslice now)
@@ -104,7 +85,7 @@ void MobilityServiceControllerManager::frame_output(timeslice now)
 {
 }
 
-std::map<unsigned int, MobilityServiceController*> MobilityServiceControllerManager::getControllers()
+const std::multimap<MobilityServiceControllerType, MobilityServiceController *>& MobilityServiceControllerManager::getControllers()
 {
 	return controllers;
 }

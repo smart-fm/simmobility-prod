@@ -113,13 +113,19 @@ void ExpandMidTermConfigFile::processConfig()
 		FleetController_MT::getInstance()->initialise(active_agents);
         MobilityServiceControllerManager::RegisterMobilityServiceControllerManager(cfg.mutexStategy());
 
-        for (std::map<unsigned int, MobilityServiceControllerConfig>::iterator it
-                = cfg.mobilityServiceController.enabledControllers.begin();
-            it != cfg.mobilityServiceController.enabledControllers.end(); it++)
+		auto &enabledControllers = cfg.mobilityServiceController.enabledControllers;
+		auto serviceCtrlMgr = MobilityServiceControllerManager::GetInstance();
+
+        for (auto it = enabledControllers.begin(); it != enabledControllers.end(); it++)
         {
-            if (!MobilityServiceControllerManager::GetInstance()->addMobilityServiceController(
-                it->first, it->second.type, it->second.scheduleComputationPeriod))
-                throw std::runtime_error("mobility service controller unable to be added (invalid input parameters in simulation.xml)");
+            if (!serviceCtrlMgr->addMobilityServiceController(it->second.type, it->second.scheduleComputationPeriod))
+			{
+				stringstream msg;
+				msg << "Error processing configuration file. Invalid values for <controller=\""
+					<< it->first << "\" type=\"" << it->second.type << "\""
+					<< "\nUnable to add Mobility Service Controller";
+				throw std::runtime_error(msg.str());
+			}
         }
     }
 

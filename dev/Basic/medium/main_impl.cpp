@@ -366,10 +366,12 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	}
 	if (MobilityServiceControllerManager::HasMobilityServiceControllerManager())
 	{
-		std::map<unsigned int, MobilityServiceController*> controllers = MobilityServiceControllerManager::GetInstance()->getControllers();
+		auto controllers = MobilityServiceControllerManager::GetInstance()->getControllers();
 
-		for (std::map<unsigned int, MobilityServiceController*>::iterator it = controllers.begin(); it != controllers.end(); it++)
+		for (auto it = controllers.begin(); it != controllers.end(); it++)
+		{
 			personWorkers->assignAWorker(it->second);
+		}
 	}
 	//incident
 	personWorkers->assignAWorker(IncidentManager::getInstance());

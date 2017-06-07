@@ -5,7 +5,7 @@
  *      Author: jabir
  */
 
-#include <entities/roles/driver/TaxiDriver.hpp>
+#include "entities/roles/driver/TaxiDriver.hpp"
 #include "Driver.hpp"
 #include "entities/controllers/MobilityServiceControllerManager.hpp"
 #include "geospatial/network/RoadNetwork.hpp"
@@ -110,48 +110,62 @@ void TaxiDriver::HandleParentMessage(messaging::Message::MessageType type, const
 	{
 		case MSG_SCHEDULE_PROPOSITION:
 		{
-			const SchedulePropositionMessage& msg = MSG_CAST(SchedulePropositionMessage, message);
+			const SchedulePropositionMessage &msg = MSG_CAST(SchedulePropositionMessage, message);
 
 			ControllerLog() << "Assignment received for " << msg.personId << " at time " << parent->currTick.frame()
-				<< ". Message was sent at " << msg.currTick.frame() << " with startNodeId " << msg.startNodeId
-				<< ", destinationNodeId " << msg.destinationNodeId << ", and driverId null" << std::endl;
+							<< ". Message was sent at " << msg.currTick.frame() << " with startNodeId "
+							<< msg.startNodeId
+							<< ", destinationNodeId " << msg.destinationNodeId << ", and driverId null" << std::endl;
 
-			std::map<unsigned int, Node*> nodeIdMap = RoadNetwork::getInstance()->getMapOfIdvsNodes();
+			std::map<unsigned int, Node *> nodeIdMap = RoadNetwork::getInstance()->getMapOfIdvsNodes();
 
-			std::map<unsigned int, Node*>::iterator it = nodeIdMap.find(msg.startNodeId); 
-			if (it == nodeIdMap.end()) {
+			std::map<unsigned int, Node *>::iterator it = nodeIdMap.find(msg.startNodeId);
+			if (it == nodeIdMap.end())
+			{
 				ControllerLog() << "Message contains bad start node " << msg.startNodeId << std::endl;
 
 				if (MobilityServiceControllerManager::HasMobilityServiceControllerManager())
 				{
-					std::map<unsigned int, MobilityServiceController*> controllers = MobilityServiceControllerManager::GetInstance()->getControllers();
-				
-					messaging::MessageBus::SendMessage(controllers[1], MSG_SCHEDULE_PROPOSITION_REPLY,
-						messaging::MessageBus::MessagePtr(new SchedulePropositionReplyMessage(parent->currTick, msg.personId, parent,
-							msg.startNodeId, msg.destinationNodeId, msg.extraTripTimeThreshold, false)));
+					messaging::MessageBus::SendMessage(message.GetSender(), MSG_SCHEDULE_PROPOSITION_REPLY,
+													   messaging::MessageBus::MessagePtr(
+															   new SchedulePropositionReplyMessage(parent->currTick,
+																								   msg.personId, parent,
+																								   msg.startNodeId,
+																								   msg.destinationNodeId,
+																								   msg.extraTripTimeThreshold,
+																								   false)));
 
-					ControllerLog() << "Assignment response sent for " << msg.personId << " at time " << parent->currTick.frame()
-						<< ". Message was sent at " << msg.currTick.frame() << " with startNodeId " << msg.startNodeId
-						<< ", destinationNodeId " << msg.destinationNodeId << ", and driverId null" << std::endl;
+					ControllerLog() << "Assignment response sent for " << msg.personId << " at time "
+									<< parent->currTick.frame()
+									<< ". Message was sent at " << msg.currTick.frame() << " with startNodeId "
+									<< msg.startNodeId
+									<< ", destinationNodeId " << msg.destinationNodeId << ", and driverId null"
+									<< std::endl;
 				}
 
 				return;
 			}
-			Node* node = it->second;
+			Node *node = it->second;
 
 			const bool success = taxiDriverMovement->driveToNodeOnCall(msg.personId, node);
 
 			if (MobilityServiceControllerManager::HasMobilityServiceControllerManager())
 			{
-				std::map<unsigned int, MobilityServiceController*> controllers = MobilityServiceControllerManager::GetInstance()->getControllers();
+				messaging::MessageBus::SendMessage(message.GetSender(), MSG_SCHEDULE_PROPOSITION_REPLY,
+												   messaging::MessageBus::MessagePtr(
+														   new SchedulePropositionReplyMessage(parent->currTick,
+																							   msg.personId, parent,
+																							   msg.startNodeId,
+																							   msg.destinationNodeId,
+																							   msg.extraTripTimeThreshold,
+																							   success)));
 
-				messaging::MessageBus::SendMessage(controllers[1], MSG_SCHEDULE_PROPOSITION_REPLY,
-					messaging::MessageBus::MessagePtr(new SchedulePropositionReplyMessage(parent->currTick, msg.personId, parent,
-						msg.startNodeId, msg.destinationNodeId, msg.extraTripTimeThreshold, success)));
-
-				ControllerLog() << "Assignment response sent for " << msg.personId << " at time " << parent->currTick.frame()
-					<< ". Message was sent at " << msg.currTick.frame() << " with startNodeId " << msg.startNodeId
-					<< ", destinationNodeId " << msg.destinationNodeId << ", and driverId " << parent->getDatabaseId() << std::endl;
+				ControllerLog() << "Assignment response sent for " << msg.personId << " at time "
+								<< parent->currTick.frame()
+								<< ". Message was sent at " << msg.currTick.frame() << " with startNodeId "
+								<< msg.startNodeId
+								<< ", destinationNodeId " << msg.destinationNodeId << ", and driverId "
+								<< parent->getDatabaseId() << std::endl;
 			}
 
 			break;
@@ -254,13 +268,14 @@ std::vector<BufferedBase*> TaxiDriver::getSubscriptionParams()
 
 TaxiDriver::~TaxiDriver()
 {
-
 	if (MobilityServiceControllerManager::HasMobilityServiceControllerManager())
 	{
-		std::map<unsigned int, MobilityServiceController*> controllers = MobilityServiceControllerManager::GetInstance()->getControllers();
-
-		messaging::MessageBus::SendMessage(controllers[1], MSG_DRIVER_UNSUBSCRIBE,
-			messaging::MessageBus::MessagePtr(new DriverUnsubscribeMessage(parent)));
+		for(auto it = taxiDriverMovement->subscribedControllers.begin();
+			it != taxiDriverMovement->subscribedControllers.end(); ++it)
+		{
+			messaging::MessageBus::SendMessage(*it, MSG_DRIVER_UNSUBSCRIBE,
+											   messaging::MessageBus::MessagePtr(new DriverUnsubscribeMessage(parent)));
+		}
 	}
 }
 }

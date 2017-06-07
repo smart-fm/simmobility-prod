@@ -324,9 +324,12 @@ void Conflux::addAgent(Person_MT* person)
 						<< person->currTick.frame() << " with startNodeId " << confluxNode->getNodeId() << ", destinationNodeId " << (*taxiTripItr).destination.node->getNodeId()
 						<< ", and driverId null" << std::endl;
 
-					std::map<unsigned int, MobilityServiceController*> controllers = MobilityServiceControllerManager::GetInstance()->getControllers();
+					auto controllers = MobilityServiceControllerManager::GetInstance()->getControllers();
+					unsigned int randomController = Utils::generateInt(0, controllers.size() - 1);
+					auto itControllers = controllers.begin();
+					advance(itControllers, randomController);
 
-					messaging::MessageBus::SendMessage(controllers[1], MSG_TRIP_REQUEST, messaging::MessageBus::MessagePtr(
+					messaging::MessageBus::SendMessage(itControllers->second, MSG_TRIP_REQUEST, messaging::MessageBus::MessagePtr(
 						new TripRequestMessage(person->currTick, person->getDatabaseId(),
 							confluxNode->getNodeId(), (*taxiTripItr).destination.node->getNodeId(), 0)));
 				}

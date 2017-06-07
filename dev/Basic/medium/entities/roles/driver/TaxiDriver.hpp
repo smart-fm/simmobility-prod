@@ -14,10 +14,13 @@
 #include "buffering/Shared.hpp"
 #include "buffering/BufferedDataManager.hpp"
 #include "entities/mobilityServiceDriver/MobilityServiceDriver.hpp"
-namespace sim_mob {
-namespace medium {
+namespace sim_mob
+{
+namespace medium
+{
 
-class TaxiDriver: public Driver, public MobilityServiceDriver {
+class TaxiDriver: public Driver, public MobilityServiceDriver
+{
 public:
 	TaxiDriver(Person_MT* parent, const MutexStrategy& mtxStrat,
 			TaxiDriverBehavior* behavior, TaxiDriverMovement* movement,
@@ -126,6 +129,7 @@ public:
 	friend class TaxiDriverBehavior;
 	friend class TaxiDriverMovement;
 };
+
 }
 }
 

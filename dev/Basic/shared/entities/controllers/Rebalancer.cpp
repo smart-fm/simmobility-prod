@@ -41,7 +41,6 @@ void Rebalancer::sendCruiseTAZ_Command(const Person* driver, unsigned tazId, con
 void Rebalancer::onRequestReceived(const Node* startNode)
 {
 	latestStartNodes.push_back(startNode);
-	ControllerLog()<<"ciao, onRequestReceived. latestStartNodes.size()="<< latestStartNodes.size() <<std::endl;
 }
 
 void SimpleRebalancer::rebalance(const std::vector<Person*>& availableDrivers, const timeslice currTick)
@@ -54,8 +53,6 @@ void SimpleRebalancer::rebalance(const std::vector<Person*>& availableDrivers, c
 		const Node* node = latestStartNodes[rand()%latestStartNodes.size()];
 
 		sendCruiseTAZ_Command(driver, node->getTazId(), currTick );
-		ControllerLog()<<"ciao, sent a cruise command to "<< driver->getDatabaseId() << " to go to TAZ "<< node->getTazId()
-				<<std::endl;
 		latestStartNodes.clear();
 	}
 }

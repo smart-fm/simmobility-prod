@@ -234,7 +234,7 @@ void Node::setTazId(unsigned int tazId_)
 		std::stringstream msg; msg<<"Node "<<nodeId<<" has already taz "<<tazId<<
 			"associated. Now you are trying to associate taz "<<tazId_<<
 			". It is not possible to associate twice a taz to a node";
-		throw std::runtime_error(msg.str() );
+		Warn()<< msg << std::endl;
 	}
 #endif
 	tazId = tazId_;

@@ -10,10 +10,8 @@
 #include "entities/controllers/OnHailTaxiController.hpp"
 #include "entities/controllers/SharedController.hpp"
 
-#include "message/MessageBus.hpp"
+using namespace sim_mob;
 
-namespace sim_mob
-{
 MobilityServiceControllerManager* MobilityServiceControllerManager::instance = nullptr;
 
 MobilityServiceControllerManager* MobilityServiceControllerManager::GetInstance()
@@ -52,33 +50,36 @@ bool MobilityServiceControllerManager::addMobilityServiceController(unsigned int
 		return false;
 	}
 
-    if (type == 1)
-    {
-        GreedyTaxiController* svc = new GreedyTaxiController(getMutexStrategy(), scheduleComputationPeriod);
-        controllers.insert(std::make_pair(id, svc));
-    }
-    else if (type == 2)
-    {
-        SharedController* svc = new SharedController(getMutexStrategy(), scheduleComputationPeriod);
-        controllers.insert(std::make_pair(id, svc));
-    }
-    else if (type == 3)
-    {
-        OnHailTaxiController* svc = new OnHailTaxiController(getMutexStrategy(), scheduleComputationPeriod);
-        controllers.insert(std::make_pair(id, svc));
-    }
-    else
-    {
-    	return false;
-    }
+    switch(type)
+	{
+		case SERVICE_CONTROLLER_GREEDY:
+		{
+			GreedyTaxiController *controller = new GreedyTaxiController(getMutexStrategy(), scheduleComputationPeriod);
+			controllers.insert(std::make_pair(id, controller));
+			break;
+		}
+		case SERVICE_CONTROLLER_SHARED:
+		{
+			SharedController *controller = new SharedController(getMutexStrategy(), scheduleComputationPeriod);
+			controllers.insert(std::make_pair(id, controller));
+			break;
+		}
+		case SERVICE_CONTROLLER_ON_HAIL:
+		{
+			OnHailTaxiController *controller = new OnHailTaxiController(getMutexStrategy(), scheduleComputationPeriod);
+			controllers.insert(std::make_pair(id, controller));
+			break;
+		}
+		default:
+			return false;
+	}
 
 	return true;
 }
 
 bool MobilityServiceControllerManager::removeMobilityServiceController(unsigned int id)
 {
-	std::map<unsigned int, MobilityServiceController*>::iterator it
-		= controllers.find(id);
+	std::map<unsigned int, MobilityServiceController*>::iterator it = controllers.find(id);
 
 	if (it != controllers.end())
 	{
@@ -112,4 +113,4 @@ bool MobilityServiceControllerManager::isNonspatial()
 {
 	return true;
 }
-}
+

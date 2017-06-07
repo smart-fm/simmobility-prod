@@ -11,11 +11,11 @@
 #include "buffering/Shared.hpp"
 #include "conf/CMakeConfigParams.hpp"
 #include "conf/Constructs.hpp"
+#include "entities/controllers/MobilityServiceControllerManager.hpp"
 #include "geospatial/network/Point.hpp"
 #include "workers/WorkGroup.hpp"
 #include "util/DailyTime.hpp"
 #include "util/Profiler.hpp"
-#include "conf/Constructs.hpp"
 
 namespace sim_mob {
 
@@ -620,11 +620,11 @@ struct TravelTimeConfig {
 
 struct MobilityServiceControllerConfig
 {
-	unsigned int type;
+	MobilityServiceControllerType type;
 	unsigned int scheduleComputationPeriod;
 	std::vector<std::string> vehicleIds;
 
-	MobilityServiceControllerConfig() : type(0), scheduleComputationPeriod(0) {}
+	MobilityServiceControllerConfig() : type(SERVICE_CONTROLLER_UNKNOWN), scheduleComputationPeriod(0) {}
 };
 
 /**

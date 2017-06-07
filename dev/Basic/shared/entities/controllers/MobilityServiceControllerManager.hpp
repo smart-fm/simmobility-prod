@@ -5,8 +5,8 @@
  *      Author: Akshay Padmanabha
  */
 
-#ifndef MobilityServiceControllerManager_HPP_
-#define MobilityServiceControllerManager_HPP_
+#pragma once
+
 #include <boost/shared_ptr.hpp>
 #include <map>
 
@@ -17,20 +17,21 @@
 namespace sim_mob
 {
 
-class MobilityServiceControllerManager : public Agent {
-protected:
-	explicit MobilityServiceControllerManager(
-		const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered)
-		  : Agent(mtxStrat, -1)
-	{
-	}
+enum MobilityServiceControllerType
+{
+	SERVICE_CONTROLLER_UNKNOWN = 0b0000,
+	SERVICE_CONTROLLER_GREEDY = 0b0001,
+	SERVICE_CONTROLLER_SHARED = 0b0010,
+	SERVICE_CONTROLLER_ON_HAIL = 0b0100
+};
 
+class MobilityServiceControllerManager : public Agent
+{
 public:
 	/**
 	 * Initialize a single MobilityServiceControllerManager with the given MutexStrategy
 	 */
-	static bool RegisterMobilityServiceControllerManager(
-		const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered);
+	static bool RegisterMobilityServiceControllerManager(const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered);
 
 	~MobilityServiceControllerManager();
 	
@@ -72,6 +73,11 @@ public:
 	std::map<unsigned int, MobilityServiceController*> getControllers();
 
 protected:
+	explicit MobilityServiceControllerManager(const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered) :
+			Agent(mtxStrat, -1)
+	{
+	}
+
 	/**
 	 * Inherited from base class agent to initialize
 	 * parameters for MobilityServiceControllerManager
@@ -95,5 +101,6 @@ private:
 	/** Store self instance */
 	static MobilityServiceControllerManager* instance;
 };
+
 }
-#endif /* MobilityServiceControllerManager_HPP_ */
+

@@ -55,7 +55,7 @@ void FleetController_MT::initialise(std::set<sim_mob::Entity *> &agentList)
 		const FleetController::FleetTimePriorityQueue& fleetItems = serviceVehicle->second;
 		const FleetController::FleetItem& taxi = fleetItems.top();
 
-		Person_MT* person = new Person_MT("TaxiController", ConfigManager::GetInstance().FullConfig().mutexStategy(), -1);
+		Person_MT* person = new Person_MT("FleetController", ConfigManager::GetInstance().FullConfig().mutexStategy(), -1);
 		person->setTaxiFleet(fleetItems);
 		person->setDatabaseId(taxi.driverId);
 		person->setPersonCharacteristics();

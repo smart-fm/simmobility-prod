@@ -19,6 +19,8 @@ enum MobilityServiceControllerMessage
 	MSG_SCHEDULE_PROPOSITION_REPLY
 };
 
+
+
 /*
 struct TripRequest
 {

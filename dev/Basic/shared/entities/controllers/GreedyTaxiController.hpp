@@ -23,11 +23,11 @@ public:
 	}
 
 
-private:
+protected:
 	/**
 	 * Performs the controller algorithm to assign vehicles to requests
 	 */
-	std::vector<MessageResult> computeSchedules();
+	void computeSchedules();
 };
 }
 #endif /* GreedyTaxiController_HPP_ */

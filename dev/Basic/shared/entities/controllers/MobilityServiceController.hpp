@@ -25,17 +25,12 @@ protected:
 		: Agent(mtxStrat, -1), scheduleComputationPeriod(computationPeriod)
 	{
 		rebalancer = new SimpleRebalancer();
+#ifndef NDEBUG
+		isComputingSchedules = false;
+#endif
 	}
 
 public:
-
-
-	enum MessageResult
-	{
-		MESSAGE_ERROR_BAD_NODE = 0,
-		MESSAGE_ERROR_VEHICLES_UNAVAILABLE,
-		MESSAGE_SUCCESS
-	};
 
 	virtual ~MobilityServiceController();
 
@@ -87,13 +82,21 @@ protected:
 	/** Store queue of requests */
 	//TODO: It should be vector<const TripRequest>, but it does not compile in that case:
 	// check why
-	std::vector<TripRequestMessage> requestQueue;
+	std::list<TripRequestMessage> requestQueue;
 
 	void sendScheduleProposition(const Person* driver, Schedule schedule) const;
 
 	bool isCruising(Person* driver) const;
 	const Node* getCurrentNode(Person* driver) const;
+	/**
+	 * Performs the controller algorithm to assign vehicles to requests
+	 */
+	virtual void computeSchedules() = 0;
 
+
+#ifndef NDEBUG
+	bool isComputingSchedules; //true during computing schedules. Used for debug purposes
+#endif
 
 private:
 	/**
@@ -114,10 +117,6 @@ private:
 	 */
 	void driverAvailable(Person* person);
 
-	/**
-	 * Performs the controller algorithm to assign vehicles to requests
-	 */
-	virtual std::vector<MessageResult> computeSchedules() = 0;
 
 	/** Keeps track of current local tick */
 	unsigned int localTick = 0;

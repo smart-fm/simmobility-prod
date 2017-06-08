@@ -60,49 +60,21 @@ Entity::UpdateStatus MobilityServiceController::frame_init(timeslice now)
 
 Entity::UpdateStatus MobilityServiceController::frame_tick(timeslice now)
 {
-	try
-	{
 	currTick = now;
 
 	if (localTick == scheduleComputationPeriod)
 	{
 		localTick = 0;
 
-		std::vector<MessageResult> messageResults = computeSchedules();
-
-		std::vector<TripRequestMessage>::iterator request = requestQueue.begin();
-		std::vector<MessageResult>::iterator messageResult = messageResults.begin();
-
 #ifndef NDEBUG
-		if (requestQueue.size() != messageResults.size() )
-		{
-			std::stringstream msg; msg<<"requestQueue.size()="<<requestQueue.size()<<", messageResults.size()="<<
-				messageResults.size()<<", while they must be the same. Insert the request in the message result";
-			throw std::runtime_error(msg.str() );
-		}
+		if(isComputingSchedules)
+			throw std::runtime_error("At this point, the controller should not be computing schedules");
+		isComputingSchedules = true;
 #endif
-
-		std:std::vector<TripRequestMessage> retryRequestQueue;
-
-		while (request != requestQueue.end())
-		{
-		    if ((*messageResult) == MessageResult::MESSAGE_ERROR_VEHICLES_UNAVAILABLE)
-		    {
-		    	retryRequestQueue.push_back(*request);
-		    }
-
-	    	request++;
-		    messageResult++;
-		}
-
-		requestQueue.clear();
-
-		request = retryRequestQueue.begin();
-		while (request != retryRequestQueue.end())
-		{
-		    requestQueue.push_back(*request);
-		    request++;
-		}
+		computeSchedules();
+#ifndef NDEBUG
+		isComputingSchedules = false;
+#endif
 		rebalancer->rebalance(availableDrivers, currTick);
 
 	}
@@ -112,13 +84,6 @@ Entity::UpdateStatus MobilityServiceController::frame_tick(timeslice now)
 	}
 
 	return Entity::UpdateStatus::Continue;
-	}catch (std::exception& e)
-	{
-		Print()<<"Error in "<<__FILE__<<":"<<__LINE__<< ". The problem is "<< e.what() << std::endl;
-#ifndef NDEBUG
-		exit(0);
-#endif
-	}
 }
 
 void MobilityServiceController::frame_output(timeslice now)
@@ -127,7 +92,12 @@ void MobilityServiceController::frame_output(timeslice now)
 
 void MobilityServiceController::HandleMessage(messaging::Message::MessageType type, const messaging::Message& message)
 {
-	switch (type) {
+#ifndef NDEBUG
+	if (isComputingSchedules)
+		throw std::runtime_error("At this point, the controller should not be computing schedules");
+#endif
+	switch (type)
+	{
 		case MSG_DRIVER_SUBSCRIBE:
 		{
 			const DriverSubscribeMessage& subscribeArgs = MSG_CAST(DriverSubscribeMessage, message);
@@ -138,6 +108,7 @@ void MobilityServiceController::HandleMessage(messaging::Message::MessageType ty
 		case MSG_DRIVER_UNSUBSCRIBE:
 		{
 			const DriverUnsubscribeMessage& unsubscribeArgs = MSG_CAST(DriverUnsubscribeMessage, message);
+			ControllerLog()<<"Driver " << unsubscribeArgs.person->getDatabaseId()<<" unsubscribed "<< std::endl;
 			unsubscribeDriver(unsubscribeArgs.person);
             break;
 		}
@@ -153,9 +124,9 @@ void MobilityServiceController::HandleMessage(messaging::Message::MessageType ty
         {
 			const TripRequestMessage& requestArgs = MSG_CAST(TripRequestMessage, message);
 
-			ControllerLog() << "Request received from " << requestArgs.personId << " at time " << currTick.frame() << ". Message was sent at "
+			ControllerLog() << "Request received by the controller from " << requestArgs.personId << " at time " << currTick.frame() << ". Message was sent at "
 				<< requestArgs.currTick.frame() << " with startNodeId " << requestArgs.startNodeId << ", destinationNodeId "
-				<< requestArgs.destinationNodeId << ", and driverId null" << std::endl;
+				<< requestArgs.destinationNodeId << ", and driverId not_yet_assigned" << std::endl;
 
 			/*
 			TripRequest r; r.currTick=requestArgs.currTick; r.userId = requestArgs.personId;
@@ -193,9 +164,10 @@ void MobilityServiceController::HandleMessage(messaging::Message::MessageType ty
 
 				driverUnavailable(replyArgs.driver);
 			}
+			break;
         }
 
-        default: break;
+        default: throw std::runtime_error("Unrecognized message");
     };
 }
 

@@ -213,14 +213,12 @@ Entity::UpdateStatus sim_mob::Agent::update(timeslice now)
 		//Add a line to the output file.
 		if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled())
 		{
-#ifndef NDEBUG
-			throw ex;
-#endif
 
 			std::stringstream msg;
 			msg << "Error updating Agent[" << getId() << "], will be removed from the simulation. \n  "
 			    << ex.what() << std::endl;
 			WarnOut(msg.str());
+			Print()<<"CHECK IF SOMETHING IS WRITTEN IN THE WAAAARN"<<std::endl;
 		}
 
 		setToBeRemoved();

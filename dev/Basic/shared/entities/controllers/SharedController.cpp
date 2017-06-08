@@ -18,11 +18,10 @@
 
 namespace sim_mob
 {
-std::vector<MobilityServiceController::MessageResult> SharedController::computeSchedules()
+void SharedController::computeSchedules()
 {
 	std::map<unsigned int, Node*> nodeIdMap = RoadNetwork::getInstance()->getMapOfIdvsNodes();
 	std::vector<sim_mob::Schedule> schedules; // We will fill this schedules and send it to the best driver
-	std::vector<MobilityServiceController::MessageResult> results;
 
 
 
@@ -32,10 +31,15 @@ std::vector<MobilityServiceController::MessageResult> SharedController::computeS
 	//		time we would need if the trip is performed without sharing
 	//		Each request is uniquely identified by its requestIndex, i.e, its position
 	//		in the validRequests vector.
+	//		We need to introduce a vector of validRequests that replicates the requestQueue
+	//		since we need to associate a unique index to each request. To this aim, it is not
+	//		convenient to rely on requestQueue, as we will need to have fast access to non-adjacent
+	//		request in the requestQueue (in case we aggregate, for example, the i-th request with the j-th
+	//		request in a shared trip)
 	std::vector<TripRequestMessage> validRequests;
 	std::vector<double> desiredTravelTimes;
+	std::set<unsigned int> satisfiedRequestIndices;
 
-	std::vector<unsigned int> badRequests;
 
 	// 1. Calculate times for direct trips
 	unsigned int requestIndex = 0;
@@ -49,25 +53,11 @@ std::vector<MobilityServiceController::MessageResult> SharedController::computeS
 		if (itStart == nodeIdMap.end())
 		{
 			std::stringstream msg; msg << "Request contains bad start node " << (*request).startNodeId ;
-			ControllerLog() << msg <<std::endl;
 			throw std::runtime_error(msg.str() );
-			badRequests.push_back(requestIndex);
-
-			request++;
-			requestIndex++;
-			continue;
-		}
-
-		if (itEnd == nodeIdMap.end())
+		}else if (itEnd == nodeIdMap.end())
 		{
 			std::stringstream msg; msg << "Request contains bad destination node " << (*request).startNodeId;
-			ControllerLog() << msg << std::endl;
-
-			badRequests.push_back(requestIndex);
-
-			request++;
-			requestIndex++;
-			continue;
+			throw std::runtime_error(msg.str() );
 		}
 #endif
 		//} SANITY CHECK
@@ -77,7 +67,7 @@ std::vector<MobilityServiceController::MessageResult> SharedController::computeS
 		validRequests.push_back(*request);
 
 		double tripTime = PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(
-			startNode->getNodeId(), destinationNode->getNodeId(), DailyTime(currTick.ms()));
+			request->startNodeId, request->destinationNodeId, DailyTime(currTick.ms()));
 		desiredTravelTimes.push_back(tripTime);
 
 		request++;
@@ -87,11 +77,11 @@ std::vector<MobilityServiceController::MessageResult> SharedController::computeS
 #ifndef NDEBUG
 	//{ CONSISTENCY CHECK
 	if (validRequests.size() != desiredTravelTimes.size() )
-		throw std::runtime_error("validRequests and desiredTravlelTimes should be equivalent");
+		throw std::runtime_error("validRequests and desiredTravlelTimes must have the same length");
 	//} CONSISTENCY CHECK
 #endif
 
-	if (!validRequests.empty() )
+	if (!validRequests.empty() && !availableDrivers.empty() )
 	{
 		// 2. Add valid shared trips to graph
 		// We construct a graph in which each node represents a trip. We will later draw and edge between two
@@ -110,7 +100,10 @@ std::vector<MobilityServiceController::MessageResult> SharedController::computeS
 			unsigned int request2Index = request1Index + 1;
 			while (request2 != validRequests.end())
 			{
-				ControllerLog() << "(" << request1Index << ", " << request2Index << ")" << std::endl;
+#ifndef NDEBUG
+				ControllerLog() << "Checking if we can combine request " << request1Index << " and request " << request2Index << std::endl;
+
+#endif
 				std::map<unsigned int, Node*>::const_iterator it = nodeIdMap.find((*request1).startNodeId);
 				const Node* startNode1 = it->second;
 
@@ -259,7 +252,12 @@ std::vector<MobilityServiceController::MessageResult> SharedController::computeS
 		//		Edges constituting the matching are returned in mate.
 		bool success = boost::checked_edmonds_maximum_cardinality_matching(graph, &mate[0]);
 
-		if (success & !availableDrivers.empty())
+#ifndef NDEBUG
+		if (!success)
+		throw std::runtime_error("checked_edmonds_maximum_cardinality_matching(..) failed. Why?");
+#endif
+
+		if (!availableDrivers.empty())
 		{
 			ControllerLog() << "Found matching of size " << matching_size(graph, &mate[0])
 					<< " for request list size of " << validRequests.size() << std::endl;
@@ -318,6 +316,9 @@ std::vector<MobilityServiceController::MessageResult> SharedController::computeS
 					schedule.push_back( ScheduleItem(ScheduleItemType::DROPOFF, firstDropOff) );
 					schedule.push_back( ScheduleItem(ScheduleItemType::DROPOFF, secondDropOff) );
 					schedules.push_back(schedule);
+
+					satisfiedRequestIndices.insert(request1Index);
+					satisfiedRequestIndices.insert(request2Index);
 					//aa}
 				}
 				//aa{
@@ -328,14 +329,15 @@ std::vector<MobilityServiceController::MessageResult> SharedController::computeS
 					schedule.push_back( ScheduleItem(ScheduleItemType::PICKUP, request) );
 					schedule.push_back( ScheduleItem(ScheduleItemType::DROPOFF, request) );
 					schedules.push_back(schedule);
+
+					satisfiedRequestIndices.insert(request1Index);
 				}
 				//aa}
 			}
 		}
 		else
 		{
-			std::stringstream msg; msg << "Did not find matching" << std::endl;
-			std::runtime_error(msg.str() );
+			ControllerLog()<<"No available drivers"<<std::endl;
 		}
 
 		// 4. Send assignments for requests
@@ -370,17 +372,33 @@ std::vector<MobilityServiceController::MessageResult> SharedController::computeS
 				ControllerLog()<<". The trip is shared with person " << secondScheduleItem.tripRequest.personId;
 			}
 			ControllerLog()<<std::endl;
-
-			results.push_back(MESSAGE_SUCCESS);
 		}
 
+		// 5. Remove from the pending requests the ones that have been assigned
+		std::list<TripRequestMessage>::iterator requestToEliminate = requestQueue.begin();
+		int lastEliminatedIndex = -1;
 
-		for (std::vector<unsigned int>::iterator it = badRequests.begin(); it != badRequests.end(); it++)
+		for (const unsigned satisfiedRequestIndex : satisfiedRequestIndices)
 		{
-			results.insert(results.begin() + (*it), MESSAGE_ERROR_BAD_NODE);
+			std::advance(requestToEliminate, satisfiedRequestIndex - lastEliminatedIndex - 1 );
+			requestToEliminate = requestQueue.erase(requestToEliminate);
+			lastEliminatedIndex = satisfiedRequestIndex;
 		}
+
+#ifndef NDEBUG
+		if (validRequests.size() - satisfiedRequestIndices.size() != requestQueue.size() )
+		{
+			std::stringstream msg; msg <<"We should have validRequests.size() - satisfiedRequestIndices.size() == requestQueue.size(), while "
+				<< validRequests.size()<<" - "<<satisfiedRequestIndices.size()<<" != "<<requestQueue.size();
+			throw std::runtime_error(msg.str() );
+		}
+#endif
+
+	} else
+	{
+		ControllerLog()<<"Requests to be scheduled "<< requestQueue.size() << ", available drivers "<<availableDrivers.size() <<std::endl;
 	}
-	return results;
+
 }
 
 bool SharedController::isCruising(Person* p)

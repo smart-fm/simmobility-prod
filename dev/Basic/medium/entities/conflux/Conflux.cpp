@@ -322,7 +322,7 @@ void Conflux::addAgent(Person_MT* person)
 
 					ControllerLog() << "Request made from " << person->getDatabaseId() << " at time " << person->currTick.frame() << ". Message was sent at "
 						<< person->currTick.frame() << " with startNodeId " << confluxNode->getNodeId() << ", destinationNodeId " << (*taxiTripItr).destination.node->getNodeId()
-						<< ", and driverId null" << std::endl;
+						<< ", and driverId not_yet_assigned" << std::endl;
 
 					std::map<unsigned int, MobilityServiceController*> controllers = MobilityServiceControllerManager::GetInstance()->getControllers();
 

@@ -26,11 +26,10 @@ protected:
 	bool isCruising(Person* p);
 	const Node* getCurrentNode(Person* p);
 
-private:
 	/**
 	 * Performs the controller algorithm to assign vehicles to requests
 	 */
-	std::vector<MessageResult> computeSchedules();
+	void computeSchedules();
 };
 }
 #endif /* SharedController_HPP_ */

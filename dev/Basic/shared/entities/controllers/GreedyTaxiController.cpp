@@ -15,80 +15,70 @@
 
 namespace sim_mob
 {
-std::vector<MobilityServiceController::MessageResult> GreedyTaxiController::computeSchedules()
+void GreedyTaxiController::computeSchedules()
 {
 	ControllerLog()<<"Computing schedule: "<< requestQueue.size()<<" requests are in the queue"<<std::endl;
-	std::vector<MobilityServiceController::MessageResult> results;
 
-	for (std::vector<TripRequestMessage>::const_iterator request = requestQueue.begin(); request != requestQueue.end(); request++)
+	std::list<TripRequestMessage>::iterator request = requestQueue.begin();
+	if ( !availableDrivers.empty() )
 	{
-		//{ RETRIEVE NODES
-		std::map<unsigned int, Node*> nodeIdMap = RoadNetwork::getInstance()->getMapOfIdvsNodes();
-
-		std::map<unsigned int, Node*>::iterator it = nodeIdMap.find((*request).startNodeId); 
-		if (it == nodeIdMap.end()) {
-			ControllerLog() << "Request contains bad start node " << (*request).startNodeId << std::endl;
-			results.push_back(MESSAGE_ERROR_BAD_NODE);
-			continue;
-		}
-		Node* startNode = it->second;
-
-		it = nodeIdMap.find((*request).destinationNodeId); 
-		if (it == nodeIdMap.end()) {
-			ControllerLog() << "Request contains bad destination node " << (*request).destinationNodeId << std::endl;
-			results.push_back(MESSAGE_ERROR_BAD_NODE);
-			continue;
-		}
-		Node* destinationNode = it->second;
-		//} RETRIEVE NODES
-
-
-		const Person* bestDriver = findClosestDriver(startNode) ;
-
-		if (bestDriver != NULL)
+		while ( request != requestQueue.end())
 		{
+			//{ RETRIEVE NODES
+			const Node* startNode, destinationNode;
+			std::map<unsigned int, Node*> nodeIdMap = RoadNetwork::getInstance()->getMapOfIdvsNodes();
+			std::map<unsigned int, Node*>::iterator itStart = nodeIdMap.find((*request).startNodeId);
+			std::map<unsigned int, Node*>::iterator itDestination = nodeIdMap.find((*request).destinationNodeId);
 
-			Schedule schedule;
-
-			try{
-			const ScheduleItem pickUpScheduleItem(ScheduleItemType::PICKUP,*request);
-
-			const ScheduleItem dropOffScheduleItem(ScheduleItemType::DROPOFF,*request);
-
-			ControllerLog()<<"Items constructed"<<std::endl;
-
-			schedule.push_back(pickUpScheduleItem);
-			schedule.push_back(dropOffScheduleItem );
-
-			}catch(std::exception& e)
+	#ifndef NDEBUG
+			if (itStart == nodeIdMap.end())
 			{
-				ControllerLog()<<"Error in "<< __FILE__ << ":" << __LINE__ <<": "<< e.what() << std::endl;
-				exit(0);
+				std::stringstream msg; msg << "Request contains bad start node " << (*request).startNodeId << std::endl;
+				throw std::runtime_error(msg.str() );
 			}
+			else if (itDestination == nodeIdMap.end()) {
+				std::stringstream msg; msg  << "Request contains bad destination node " << (*request).destinationNodeId << std::endl;
+				throw std::runtime_error(msg.str() );
+			}
+	#endif
+			//} RETRIEVE NODES
 
-			sendScheduleProposition(bestDriver, schedule);
+
+			const Person* bestDriver = findClosestDriver(startNode) ;
+
+#ifndef NDEBUG
+			if (bestDriver == NULL)
+			{
+				std::stringstream msg; msg << "bestDriver==NULL means that there are no drivers available. "
+				<<"This is impossible as in that case I would have not entered here";
+				throw std::runtime_error(msg.str() );
+			}
+#endif
 
 
-			/* OLD CODE REPLACED NOW BY sendScheduleProposition(..)
-			messaging::MessageBus::PostMessage((messaging::MessageHandler*) bestDriver, MSG_SCHEDULE_PROPOSITION, messaging::MessageBus::MessagePtr(
-				new SchedulePropositionMessage(currTick, (*request).personId, (*request).startNodeId,
-					(*request).destinationNodeId, (*request).extraTripTimeThreshold)
-			));
-			*/
 
-			ControllerLog() << "Assignment sent for " << request->personId << " at time " << currTick.frame()
-			<< ". Message was sent at " << request->currTick.frame() << " with startNodeId " << request->startNodeId
-			<< ", destinationNodeId " << request->destinationNodeId << ", and driverId null" << std::endl;
+				Schedule schedule;
 
-			results.push_back(MESSAGE_SUCCESS);
-		} else{
-			ControllerLog() << "No available vehicles" << std::endl;
-			results.push_back(MESSAGE_ERROR_VEHICLES_UNAVAILABLE);
+				const ScheduleItem pickUpScheduleItem(ScheduleItemType::PICKUP,*request);
+
+				const ScheduleItem dropOffScheduleItem(ScheduleItemType::DROPOFF,*request);
+
+				ControllerLog()<<"Items constructed"<<std::endl;
+
+				schedule.push_back(pickUpScheduleItem);
+				schedule.push_back(dropOffScheduleItem );
+
+				sendScheduleProposition(bestDriver, schedule);
+				request = requestQueue.erase(request);
+
+				ControllerLog() << "Assignment sent for " << request->personId << " at time " << currTick.frame()
+				<< ". Message was sent at " << request->currTick.frame() << " with startNodeId " << request->startNodeId
+				<< ", destinationNodeId " << request->destinationNodeId << ", and driverId null" << std::endl;
+
+
 		}
-	}
-
-	return results;
-
+	}else // no available drivers
+		ControllerLog()<<"Requests to be scheduled "<< requestQueue.size() << ", available drivers "<<availableDrivers.size() <<std::endl;
 }
 
 

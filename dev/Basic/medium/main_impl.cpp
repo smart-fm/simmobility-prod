@@ -5,7 +5,6 @@
 #include <vector>
 #include <string>
 #include <set>
-#include <cstdlib>
 
 //TODO: Replace with <chrono> or something similar.
 #include <sys/time.h>
@@ -15,61 +14,36 @@
 
 #include "behavioral/PredayManager.hpp"
 #include "behavioral/WithindayHelper.hpp"
-#include "buffering/BufferedDataManager.hpp"
-#include "conf/ConfigManager.hpp"
-#include "conf/ConfigParams.hpp"
 #include "config/ExpandMidTermConfigFile.hpp"
-#include "config/MT_Config.hpp"
 #include "config/ParseMidTermConfigFile.hpp"
 #include "conf/ParseConfigFile.hpp"
-#include "database/DB_Connection.hpp"
 #include "database/pt_network_dao/PT_NetworkSqlDao.hpp"
-#include "entities/Agent.hpp"
 #include "entities/AuraManager.hpp"
 #include "entities/BusController.hpp"
 #include "entities/TrainController.hpp"
-#include "entities/TrainController.hpp"
 #include "entities/BusStopAgent.hpp"
-#include "entities/controllers/MobilityServiceControllerManager.hpp"
 #include "entities/TrainStationAgent.hpp"
 #include "entities/ClosedLoopRunManager.hpp"
-#include "entities/incident/IncidentManager.hpp"
-#include "entities/params/PT_NetworkEntities.hpp"
 #include "entities/MT_PersonLoader.hpp"
-#include "entities/Person_MT.hpp"
 #include "entities/profile/ProfileBuilder.hpp"
 #include "entities/PT_Statistics.hpp"
 #include "entities/roles/activityRole/ActivityPerformer.hpp"
 #include "entities/roles/driver/DriverVariants.hpp"
-#include "entities/roles/driver/BusDriver.hpp"
 #include "entities/roles/driver/TaxiDriver.hpp"
-#include "entities/roles/driver/Driver.hpp"
-#include "entities/roles/passenger/Passenger.hpp"
 #include "entities/roles/pedestrian/Pedestrian.hpp"
-#include "entities/roles/waitBusActivity/WaitBusActivity.hpp"
 #include "entities/roles/driver/TrainDriver.hpp"
 #include "entities/roles/waitTaxiActivity/WaitTaxiActivity.hpp"
 #include "entities/ScreenLineCounter.hpp"
-#include "entities/TravelTimeManager.hpp"
 #include "entities/TaxiStandAgent.hpp"
 #include "geospatial/aimsun/Loader.hpp"
 #include "geospatial/network/RoadNetwork.hpp"
-#include "geospatial/network/RoadSegment.hpp"
 #include "geospatial/streetdir/A_StarPublicTransitShortestPathImpl.hpp"
-#include "geospatial/streetdir/StreetDirectory.hpp"
-#include "geospatial/network/Lane.hpp"
 #include "logging/ControllerLog.hpp"
-#include "logging/Log.hpp"
 #include "partitions/PartitionManager.hpp"
 #include "path/PathSetManager.hpp"
-#include "path/PathSetParam.hpp"
 #include "path/PT_PathSetManager.hpp"
 #include "path/PT_RouteChoiceLuaModel.hpp"
-#include "util/DailyTime.hpp"
-#include "util/LangHelpers.hpp"
 #include "util/Utils.hpp"
-#include "workers/Worker.hpp"
-#include "workers/WorkGroup.hpp"
 #include "workers/WorkGroupManager.hpp"
 #include "behavioral/ServiceController.hpp"
 #include "behavioral/TrainServiceControllerLuaProvider.hpp"
@@ -81,7 +55,7 @@
 
 //Note: This must be the LAST include, so that other header files don't have
 //      access to cout if output is disabled.
-#include <iostream>
+#include <entities/FleetController_MT.hpp>
 
 using std::cout;
 using std::endl;
@@ -366,6 +340,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	}
 	if (MobilityServiceControllerManager::HasMobilityServiceControllerManager())
 	{
+		personWorkers->assignAWorker(FleetController_MT::getInstance());
 		auto controllers = MobilityServiceControllerManager::GetInstance()->getControllers();
 
 		for (auto it = controllers.begin(); it != controllers.end(); it++)

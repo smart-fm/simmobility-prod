@@ -582,7 +582,7 @@ inline void createPotentialUnits(PotentialProject& project,const DeveloperModel*
                         	thresholdInvestmentReturnRatio = roiLimit->getRoiLimit();
                         }
 
-                        writeROIDataToFile(*parcel,newDevelopment,project.getProfit(),project.getDevTemplate()->getDevelopmentTypeId(), thresholdInvestmentReturnRatio, project.getInvestmentReturnRatio());
+                        writeROIDataToFile(*parcel,newDevelopment,project.getProfit(),project.getDevTemplate()->getTemplateId(), thresholdInvestmentReturnRatio, project.getInvestmentReturnRatio());
 
                         if(project.getInvestmentReturnRatio()> thresholdInvestmentReturnRatio)
                         {

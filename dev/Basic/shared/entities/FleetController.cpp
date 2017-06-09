@@ -18,7 +18,7 @@ using namespace sim_mob;
 double getSecondFrmTimeString(const std::string& startTime)
 {
 	std::istringstream is(startTime);
-	is.imbue(std::locale(is.getloc(),new bt::time_input_facet("%d-%m-%Y %H:%M")));
+	is.imbue(std::locale(is.getloc(),new bt::time_input_facet("%H:%M")));
 	bt::ptime pt;
 	is >> pt;
 	return (double)pt.time_of_day().ticks() / (double)bt::time_duration::rep_type::ticks_per_second;
@@ -37,7 +37,13 @@ void FleetController::LoadTaxiFleetFromDB()
 	}
 
 	std::map<std::string, std::vector<TripChainItem> > tripchains;
-	soci::rowset<soci::row> rs = (sql_.prepare<< "select * from " + spIt->second);
+	std::stringstream query;
+
+	const SimulationParams &simParams = ConfigManager::GetInstance().FullConfig().simulation;
+
+	query << "select * from " << spIt->second << "('" << simParams.simStartTime.getStrRepr()
+	      << "','" << (DailyTime(simParams.totalRuntimeMS) + simParams.simStartTime).getStrRepr() << "')";
+	soci::rowset<soci::row> rs = (sql_.prepare << query.str());
 
 	for (soci::rowset<soci::row>::const_iterator it = rs.begin();it != rs.end(); ++it)
 	{

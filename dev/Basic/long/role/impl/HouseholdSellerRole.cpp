@@ -287,7 +287,7 @@ void HouseholdSellerRole::update(timeslice now)
             	PrintOutV(" hedonicPriceTime for agent " << getParent()->getId() << " is " << hedonicPriceTime << std::endl );
 			#endif
             //get first expectation to add the entry on market.
-            ExpectationEntry firstExpectation; 
+            ExpectationEntry firstExpectation;
 
             if(getCurrentExpectation(unit->getId(), firstExpectation) && entryDay )
             {
@@ -295,7 +295,7 @@ void HouseholdSellerRole::update(timeslice now)
             	if( firstExpectation.hedonicPrice  < 0.05 )
             		continue;
 
-                market->addEntry( HousingMarket::Entry( getParent(), unit->getId(), model->getUnitSlaAddressId( unit->getId() ), tazId, firstExpectation.askingPrice, firstExpectation.hedonicPrice, unit->isBto(), buySellInvtervalCompleted));
+                market->addEntry( HousingMarket::Entry( getParent(), unit->getId(), model->getUnitSlaAddressId( unit->getId() ), tazId, firstExpectation.askingPrice, firstExpectation.hedonicPrice, unit->isBto(), buySellInvtervalCompleted, unit->getZoneHousingType() ));
 				#ifdef VERBOSE
                 PrintOutV("[day " << currentTime.ms() << "] Household Seller " << getParent()->getId() << ". Adding entry to Housing market for unit " << unit->getId() << " with ap: " << firstExpectation.askingPrice << " hp: " << firstExpectation.hedonicPrice << " rp: " << firstExpectation.targetPrice << std::endl);
 				#endif

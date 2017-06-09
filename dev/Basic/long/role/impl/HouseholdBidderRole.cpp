@@ -595,15 +595,6 @@ bool HouseholdBidderRole::pickEntryToBid()
 
     for(int n = 0; n < entries.size() && screenedEntries.size() < config.ltParams.housingModel.bidderUnitsChoiceSet; n++)
     {
-      	int offset = (float)rand() / RAND_MAX * ( entries.size() - 1 );
-
-    	HousingMarket::ConstEntryList::const_iterator itr = entries.begin() + offset;
-    	const HousingMarket::Entry* entry = *itr;
-
-    	if( entry->isBuySellIntervalCompleted() == false)
-    		continue;
-
-        const Unit* thisUnit = model->getUnitById( entry->getUnitId() );
 
         double randomDraw = (double)rand()/RAND_MAX;
         int zoneHousingType = -1;
@@ -617,6 +608,32 @@ bool HouseholdBidderRole::pickEntryToBid()
         		break;
         	}
         }
+
+
+    	auto range = market->getunitsByZoneHousingType().equal_range( zoneHousingType  );
+    	int numUnits = distance(range.first, range.second); //find the number of units in the above zoneHousingType
+
+    	if( numUnits == 0 )
+    		continue;
+
+    	int offset = (float)rand() / RAND_MAX * numUnits;
+    	advance( range.first, offset ); // change a random unit in that zoneHousingType
+
+    	const BigSerial unitId = (range.first)->second;
+
+
+    	const HousingMarket::Entry* entry = market->getEntryById(unitId);
+
+
+
+
+    	if( entry->isBuySellIntervalCompleted() == false)
+    		continue;
+
+
+    	const Unit* thisUnit = model->getUnitById( entry->getUnitId() );
+
+
 
         if( thisUnit->getZoneHousingType() == zoneHousingType )
         {

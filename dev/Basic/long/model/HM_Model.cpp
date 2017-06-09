@@ -1921,7 +1921,7 @@ void HM_Model::startImpl()
 		(*it)->setTimeOffMarket( 1 + (float)rand() / RAND_MAX * config.ltParams.housingModel.timeOffMarket);
 
 		//this unit is a vacancy
-		if( assignedUnits.find((*it)->getId()) == assignedUnits.end())
+		if( assignedUnits.find((*it)->getId()) == assignedUnits.end() && (*it)->getTenureStatus() != 3)
 		{
 			if( (*it)->getUnitType() != NON_RESIDENTIAL_PROPERTY && (*it)->isBto() == false )
 			{

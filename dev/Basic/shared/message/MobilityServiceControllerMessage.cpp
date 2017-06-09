@@ -12,6 +12,33 @@ namespace sim_mob
 	const Schedule& SchedulePropositionMessage::getSchedule() const
 	{
 		return schedule;
-	}
+	};
 
+	bool TripRequestMessage::operator==(const TripRequestMessage& other) const
+	{
+		if (
+			currTick == other.currTick &&
+			personId == other.personId &&
+			startNodeId == other.startNodeId &&
+			destinationNodeId == other.destinationNodeId &&
+			extraTripTimeThreshold == other.extraTripTimeThreshold
+		) {return true; }
+		else  {return false;}
+	};
+
+
+	bool TripRequestMessage::operator!=(const TripRequestMessage& other) const
+	{
+		if (
+			currTick != other.currTick ||
+			personId != other.personId ||
+			startNodeId != other.startNodeId ||
+			destinationNodeId != other.destinationNodeId ||
+			extraTripTimeThreshold != other.extraTripTimeThreshold
+		) {return true; }
+		else  {return false;}
+	};
 }
+
+
+

@@ -38,6 +38,20 @@ public:
 	uint32_t frame() const { return frame_; }
 	uint32_t ms() const { return ms_; }
 
+	bool operator==(const timeslice& other) const
+	{
+		if (frame_ == other.frame_ && ms_ == other.ms_)
+			return true;
+		else return false;
+	}
+
+	bool operator!=(const timeslice& other) const
+	{
+		if (frame_ != other.frame_ || ms_ != other.ms_)
+			return true;
+		else return false;
+	}
+
 private:
 	uint32_t frame_;
 	uint32_t ms_

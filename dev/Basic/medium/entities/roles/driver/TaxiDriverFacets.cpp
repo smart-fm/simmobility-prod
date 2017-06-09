@@ -7,7 +7,6 @@
 
 #include <entities/roles/driver/TaxiDriverFacets.hpp>
 #include "config/MT_Config.hpp"
-#include "entities/controllers/MobilityServiceControllerManager.hpp"
 #include "entities/misc/TaxiTrip.hpp"
 #include "entities/TaxiStandAgent.hpp"
 #include "geospatial/network/RoadNetwork.hpp"
@@ -17,11 +16,9 @@
 #include "path/PathSetManager.hpp"
 #include "TaxiDriver.hpp"
 
-namespace sim_mob
-{
-
-namespace medium
-{
+using namespace sim_mob;
+using namespace medium;
+using namespace messaging;
 
 /**define the threshold for long time waiting, timeout is 15 minutes in seconds*/
 const double timeoutForLongWaiting = 15*60;
@@ -43,22 +40,41 @@ void TaxiDriverMovement::frame_init()
 	parentDriver->driverMode = CRUISE;
 	assignFirstNode();
 
+	FleetController::FleetTimePriorityQueue& fleets = parentTaxiDriver->parent->getTaxiFleet();
+	currentFleetItem = fleets.top();
+	fleets.pop();
+
 	if (MobilityServiceControllerManager::HasMobilityServiceControllerManager())
 	{
-		std::map<unsigned int, MobilityServiceController*> controllers = MobilityServiceControllerManager::GetInstance()->getControllers();
-
-		messaging::MessageBus::SendMessage(controllers[1], MSG_DRIVER_SUBSCRIBE,
-			messaging::MessageBus::MessagePtr(new DriverSubscribeMessage(parentTaxiDriver->parent)));
+		auto controllers = MobilityServiceControllerManager::GetInstance()->getControllers();
+		subscribeToController(controllers, SERVICE_CONTROLLER_GREEDY);
+		subscribeToController(controllers, SERVICE_CONTROLLER_SHARED);
+		subscribeToController(controllers, SERVICE_CONTROLLER_ON_HAIL);
 	}
 
 	selectNextLinkWhileCruising();
-	FleetController::FleetTimePriorityQueue& fleets = parentTaxiDriver->parent->getTaxiFleet();
-	fleets.pop();
+
 	while(fleets.size()>0)
 	{
 		FleetController::FleetItem fleet = fleets.top();
 		fleets.pop();
 		taxiFleets.push(fleet);
+	}
+}
+
+void TaxiDriverMovement::subscribeToController(multimap<MobilityServiceControllerType, MobilityServiceController *> &controllers,
+											   MobilityServiceControllerType controllerType)
+{
+	if(currentFleetItem.controllerSubscription & controllerType)
+	{
+		auto range = controllers.equal_range(controllerType);
+		for(auto itController = range.first; itController != range.second; ++itController)
+		{
+			MessageBus::SendMessage(itController->second, MSG_DRIVER_SUBSCRIBE,
+									MessageBus::MessagePtr(new DriverSubscribeMessage(parentTaxiDriver->getParent())));
+
+			subscribedControllers.push_back(itController->second);
+		}
 	}
 }
 
@@ -147,7 +163,6 @@ const Node* TaxiDriverMovement::getDestinationNode()
 
 bool TaxiDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 {
-
 	const SegmentStats* currSegStat = pathMover.getCurrSegStats();
 	const SegmentStats* nxtSegStat = pathMover.getNextSegStats(false);
 	bool res = false;
@@ -190,24 +205,24 @@ bool TaxiDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 
 	if (parentTaxiDriver->getDriverMode() == CRUISE)
 	{
-		// if(cruisingTooLongTime > timeoutForLongWaiting)
-		// {
-		// 	cruisingTooLongTime = 0.0;
-		// 	const PolyPoint point = currSegStat->getRoadSegment()->getPolyLine()->getLastPoint();
-		// 	destinationTaxiStand = TaxiStand::allTaxiStandMap.searchNearestObject(point.getX(), point.getY());
-		// 	if(destinationTaxiStand)
-		// 	{
-		// 		driveToTaxiStand();
-		// 	}
-		// }
+		 if(cruisingTooLongTime > timeoutForLongWaiting)
+		 {
+		 	cruisingTooLongTime = 0.0;
+		 	const PolyPoint point = currSegStat->getRoadSegment()->getPolyLine()->getLastPoint();
+		 	destinationTaxiStand = TaxiStand::allTaxiStandMap.searchNearestObject(point.getX(), point.getY());
+		 	if(destinationTaxiStand)
+		 	{
+		 		driveToTaxiStand();
+		 	}
+		 }
 		if (pathMover.isEndOfPath())
 		{
-			// Conflux *parentConflux = currSegStat->getParentConflux();
-			// parentTaxiDriver->pickUpPassngerAtNode(parentConflux);
-			// if (parentTaxiDriver->getPassenger() == nullptr)
-			// {
+			 Conflux *parentConflux = currSegStat->getParentConflux();
+			 parentTaxiDriver->pickUpPassngerAtNode(parentConflux);
+			 if (parentTaxiDriver->getPassenger() == nullptr)
+			 {
 				selectNextLinkWhileCruising();
-			// }
+			 }
 		}
 	}
 	else if (parentTaxiDriver->getDriverMode() == DRIVE_WITH_PASSENGER && pathMover.isEndOfPath())
@@ -217,10 +232,12 @@ bool TaxiDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 
 		if (MobilityServiceControllerManager::HasMobilityServiceControllerManager())
 		{
-			std::map<unsigned int, MobilityServiceController*> controllers = MobilityServiceControllerManager::GetInstance()->getControllers();
-		
-			messaging::MessageBus::SendMessage(controllers[1], MSG_DRIVER_AVAILABLE,
-				messaging::MessageBus::MessagePtr(new DriverAvailableMessage(parentTaxiDriver->parent)));
+			for (auto it = subscribedControllers.begin(); it != subscribedControllers.end(); ++it)
+			{
+				messaging::MessageBus::SendMessage(*it, MSG_DRIVER_AVAILABLE,
+												   messaging::MessageBus::MessagePtr(
+														   new DriverAvailableMessage(parentTaxiDriver->parent)));
+			}
 		}
 
 		selectNextLinkWhileCruising();
@@ -265,27 +282,30 @@ bool TaxiDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 bool TaxiDriverMovement::checkNextFleet()
 {
 	bool res = false;
-	DriverUpdateParams& params = parentTaxiDriver->getParams();
-	if(taxiFleets.size()>0)
+	DriverUpdateParams &params = parentTaxiDriver->getParams();
+	if (taxiFleets.size() > 0)
 	{
-		FleetController::FleetItem fleet = taxiFleets.front();
-		if(fleet.startTime<params.now.ms()/1000.0)
+		currentFleetItem = taxiFleets.front();
+		if (currentFleetItem.startTime < params.now.ms() / 1000.0)
 		{
-			const Link* link = this->currLane->getParentSegment()->getParentLink();
+			const Link *link = this->currLane->getParentSegment()->getParentLink();
 			SubTrip currSubTrip;
 			currSubTrip.origin = WayPoint(link->getFromNode());
-			currSubTrip.destination = WayPoint(fleet.startNode);
-			std::vector<WayPoint> currentRouteChoice = PrivateTrafficRouteChoice::getInstance()->getPath(currSubTrip, false, link, parentTaxiDriver->parent->usesInSimulationTravelTime());
-			if(currentRouteChoice.size()>0)
+			currSubTrip.destination = WayPoint(currentFleetItem.startNode);
+			std::vector<WayPoint> currentRouteChoice =
+					PrivateTrafficRouteChoice::getInstance()->getPath(currSubTrip, false, link,
+																	  parentTaxiDriver->parent->usesInSimulationTravelTime());
+
+			if (currentRouteChoice.size() > 0)
 			{
 				res = true;
 				taxiFleets.pop();
 				currentNode = link->getFromNode();
-				destinationNode = fleet.startNode;
+				destinationNode = currentFleetItem.startNode;
 				setCurrentNode(currentNode);
 				setDestinationNode(destinationNode);
 				addRouteChoicePath(currentRouteChoice);
-				parentTaxiDriver->parent->setDatabaseId(fleet.driverId);
+				parentTaxiDriver->parent->setDatabaseId(currentFleetItem.driverId);
 				parentTaxiDriver->setTaxiDriveMode(DRIVE_FOR_DRIVER_CHANGE_SHIFT);
 			}
 		}
@@ -629,16 +649,18 @@ void TaxiDriverMovement::setCruisingMode()
 	parentTaxiDriver->taxiDriverMode = CRUISE;
 	parentDriver->driverMode = CRUISE;
 
-
 	if (MobilityServiceControllerManager::HasMobilityServiceControllerManager())
 	{
-		std::map<unsigned int, MobilityServiceController*> controllers = MobilityServiceControllerManager::GetInstance()->getControllers();
-
-		messaging::MessageBus::SendMessage(controllers[1], MSG_DRIVER_AVAILABLE,
-			messaging::MessageBus::MessagePtr(new DriverAvailableMessage(parentTaxiDriver->parent)));
+		for (auto it = subscribedControllers.begin(); it != subscribedControllers.end(); ++it)
+		{
+			messaging::MessageBus::SendMessage(*it, MSG_DRIVER_AVAILABLE,
+											   messaging::MessageBus::MessagePtr(
+													   new DriverAvailableMessage(parentTaxiDriver->parent)));
+		}
 	}
 
-	if(pathMover.isEndOfPath()){
+	if (pathMover.isEndOfPath())
+	{
 		selectNextLinkWhileCruising();
 	}
 }
@@ -743,6 +765,3 @@ TaxiDriverBehavior::~TaxiDriverBehavior()
 {
 
 }
-}
-}
-

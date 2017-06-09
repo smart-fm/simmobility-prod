@@ -43,6 +43,7 @@ public:
 		double startTime = 0;
 		double endTime= 0;
 		const Node* startNode = nullptr;
+		unsigned int controllerSubscription = 0;
 	};
 
 	struct cmp_fleet_start: public std::less<FleetItem>

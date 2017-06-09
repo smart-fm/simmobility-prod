@@ -100,9 +100,9 @@ void MobilityServiceController::HandleMessage(messaging::Message::MessageType ty
 	{
 		case MSG_DRIVER_SUBSCRIBE:
 		{
-			const DriverSubscribeMessage& subscribeArgs = MSG_CAST(DriverSubscribeMessage, message);
+			const DriverSubscribeMessage &subscribeArgs = MSG_CAST(DriverSubscribeMessage, message);
 			subscribeDriver(subscribeArgs.person);
-            break;
+			break;
 		}
 
 		case MSG_DRIVER_UNSUBSCRIBE:
@@ -110,19 +110,19 @@ void MobilityServiceController::HandleMessage(messaging::Message::MessageType ty
 			const DriverUnsubscribeMessage& unsubscribeArgs = MSG_CAST(DriverUnsubscribeMessage, message);
 			ControllerLog()<<"Driver " << unsubscribeArgs.person->getDatabaseId()<<" unsubscribed "<< std::endl;
 			unsubscribeDriver(unsubscribeArgs.person);
-            break;
+			break;
 		}
 
 		case MSG_DRIVER_AVAILABLE:
 		{
-			const DriverAvailableMessage& availableArgs = MSG_CAST(DriverAvailableMessage, message);
+			const DriverAvailableMessage &availableArgs = MSG_CAST(DriverAvailableMessage, message);
 			driverAvailable(availableArgs.person);
-            break;
+			break;
 		}
 
-        case MSG_TRIP_REQUEST:
-        {
-			const TripRequestMessage& requestArgs = MSG_CAST(TripRequestMessage, message);
+		case MSG_TRIP_REQUEST:
+		{
+			const TripRequestMessage &requestArgs = MSG_CAST(TripRequestMessage, message);
 
 			ControllerLog() << "Request received by the controller from " << requestArgs.personId << " at time " << currTick.frame() << ". Message was sent at "
 				<< requestArgs.currTick.frame() << " with startNodeId " << requestArgs.startNodeId << ", destinationNodeId "
@@ -145,22 +145,27 @@ void MobilityServiceController::HandleMessage(messaging::Message::MessageType ty
         case MSG_SCHEDULE_PROPOSITION_REPLY:
         {
 			const SchedulePropositionReplyMessage& replyArgs = MSG_CAST(SchedulePropositionReplyMessage, message);
-			if (!replyArgs.success) {
+			if (!replyArgs.success)
+			{
 				ControllerLog() << "Assignment failure received from " << replyArgs.personId << " at time "
-					<< currTick.frame() << ". Message was sent at " << replyArgs.currTick.frame() << " with startNodeId "
-					<< replyArgs.startNodeId << ", destinationNodeId " << replyArgs.destinationNodeId << ", and driverId "
-					<< replyArgs.driver->getDatabaseId() << std::endl;
-
+								<< currTick.frame() << ". Message was sent at " << replyArgs.currTick.frame()
+								<< " with startNodeId "
+								<< replyArgs.startNodeId << ", destinationNodeId " << replyArgs.destinationNodeId
+								<< ", and driverId "
+								<< replyArgs.driver->getDatabaseId() << std::endl;
 
 				TripRequestMessage r; r.currTick=replyArgs.currTick; r.personId= replyArgs.personId;
 				r.startNodeId=replyArgs.startNodeId; r.destinationNodeId=replyArgs.destinationNodeId;
 				r.extraTripTimeThreshold=replyArgs.extraTripTimeThreshold;
 				requestQueue.push_back(r);
 			} else {
+
 				ControllerLog() << "Assignment success received from " << replyArgs.personId << " at time "
-					<< currTick.frame() << ". Message was sent at " << replyArgs.currTick.frame() << " with startNodeId "
-					<< replyArgs.startNodeId << ", destinationNodeId " << replyArgs.destinationNodeId << ", and driverId "
-					<< replyArgs.driver->getDatabaseId() << std::endl;
+								<< currTick.frame() << ". Message was sent at " << replyArgs.currTick.frame()
+								<< " with startNodeId "
+								<< replyArgs.startNodeId << ", destinationNodeId " << replyArgs.destinationNodeId
+								<< ", and driverId "
+								<< replyArgs.driver->getDatabaseId() << std::endl;
 
 				driverUnavailable(replyArgs.driver);
 			}
@@ -169,6 +174,7 @@ void MobilityServiceController::HandleMessage(messaging::Message::MessageType ty
 
         default: throw std::runtime_error("Unrecognized message");
     };
+
 }
 
 bool MobilityServiceController::isNonspatial()

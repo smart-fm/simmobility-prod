@@ -69,12 +69,13 @@ void GreedyTaxiController::computeSchedules()
 				schedule.push_back(dropOffScheduleItem );
 
 				sendScheduleProposition(bestDriver, schedule);
-				request = requestQueue.erase(request);
 
 				ControllerLog() << "Assignment sent for " << request->personId << " at time " << currTick.frame()
 				<< ". Message was sent at " << request->currTick.frame() << " with startNodeId " << request->startNodeId
-				<< ", destinationNodeId " << request->destinationNodeId << ", and driverId null" << std::endl;
+				<< ", destinationNodeId " << request->destinationNodeId << ", and driverId " << bestDriver->getDatabaseId()
+				<< std::endl;
 
+				request = requestQueue.erase(request);
 
 		}
 	}else // no available drivers

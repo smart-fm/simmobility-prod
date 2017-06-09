@@ -127,6 +127,9 @@ public:
 	{
 	}
 
+	bool operator==(const TripRequestMessage& other) const;
+	bool operator!=(const TripRequestMessage& other) const;
+
 	timeslice currTick;
 	std::string personId;
 	unsigned int startNodeId;

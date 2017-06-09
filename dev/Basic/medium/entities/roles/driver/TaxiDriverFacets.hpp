@@ -8,6 +8,7 @@
 #ifndef ENTITIES_ROLES_DRIVER_TAXIDRIVERFACETS_HPP_
 #define ENTITIES_ROLES_DRIVER_TAXIDRIVERFACETS_HPP_
 
+#include <entities/controllers/MobilityServiceControllerManager.hpp>
 #include "DriverFacets.hpp"
 
 namespace sim_mob
@@ -18,6 +19,9 @@ class TaxiDriver;
 class TaxiDriverMovement: public DriverMovement
 {
 public:
+	/**List of subscribed controllers*/
+	std::vector<MobilityServiceController *> subscribedControllers;
+
 	TaxiDriverMovement();
 	virtual ~TaxiDriverMovement();
 	virtual void frame_init();
@@ -108,7 +112,10 @@ private:
 	std::shared_ptr<BrokenInfo> nextBroken;
 	/**record person id to be picked up*/
 	std::string personIdPickedUp;
-private:
+
+	/**The current fleet item*/
+	FleetController::FleetItem currentFleetItem;
+
 	/**
 	 * assign taxi at original node
 	 */
@@ -164,6 +171,15 @@ private:
 	 * set broken information
 	 */
 	bool setBreakInfo(const Node* next, const unsigned int duration);
+
+	/**
+	 * Checks if the taxi driver is supposed to subscribe to the given controller type. If so, it subscribes it to all
+	 * controllers of that it, else does nothing.
+	 * @param controllers map of controllers
+	 * @param controllerType the type of controller to be subscribed
+	 */
+	void subscribeToController(std::multimap<MobilityServiceControllerType, MobilityServiceController *> &controllers,
+							   MobilityServiceControllerType controllerType);
 };
 
 class TaxiDriverBehavior: public DriverBehavior

@@ -109,6 +109,10 @@ public:
 			return 3;
 		case OTHER:
 			return 4;
+		case WORK_BASED_SUBTOUR:
+			return 5;
+		default:
+			return 1;
 		}
 	}
 
@@ -127,6 +131,10 @@ public:
 		case SHOP:
 			return "Shop";
 		case OTHER:
+			return "Other";
+		case WORK_BASED_SUBTOUR:
+            return "WorkbasedSubTour";
+		default:
 			return "Other";
 		}
 	}
@@ -260,6 +268,8 @@ public:
 			return "Shop";
 		case OTHER:
 			return "Other";
+		case WORK_BASED_SUBTOUR:
+			return "WorkbasedSubTour";
 		default:
 			return "NULL";
 		}

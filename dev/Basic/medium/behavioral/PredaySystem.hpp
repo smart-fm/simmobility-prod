@@ -331,6 +331,16 @@ public:
 	 * @param statsCollector statistics collector to be updated
 	 */
 	void updateStatistics(CalibrationStatistics& statsCollector) const;
+
+	/**
+	 * calculates current Stop Zone and Node
+	 * @param currStopNode gives the current Stop's node data
+	 * @param currStopZone gives the current Stop's Zone information
+	 * @param zoneNodeMap is an unordered map containing zone and node information
+	 */
+
+	void calculateZoneNodeMap(const ZoneNodeMap& zoneNodeMap,int& currStopZone, int& currStopNode);
+    
 };
 
 } // end namespace medium

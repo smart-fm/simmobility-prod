@@ -215,26 +215,29 @@ const std::map<unsigned int, TurningGroup *>& Node::getTurningGroups(unsigned in
 
 //aa{
 //aa{
-unsigned int Node::getTazId()const
+unsigned int Node::getTazId() const
 {
 #ifndef NDEBUG
 	if (tazId == TAZ_UNDEFINED)
 	{
-		std::stringstream msg; msg<< "Node "<<nodeId<<" does not have any TAZ associated";
-		throw std::runtime_error(msg.str() );
+		std::stringstream msg;
+		msg << "Node " << nodeId << " does not have any TAZ associated";
+		throw std::runtime_error(msg.str());
 	}
 #endif
 	return tazId;
 };
+
 void Node::setTazId(unsigned int tazId_)
 {
 #ifndef NDEBUG
-	if (tazId!= TAZ_UNDEFINED)
+	if (tazId != TAZ_UNDEFINED)
 	{
-		std::stringstream msg; msg<<"Node "<<nodeId<<" has already taz "<<tazId<<
-			"associated. Now you are trying to associate taz "<<tazId_<<
-			". It is not possible to associate twice a taz to a node";
-		Warn()<< msg << std::endl;
+		std::stringstream msg;
+		msg << "Node " << nodeId << " has already taz " << tazId
+		    << "associated. Now you are trying to associate taz " << tazId_
+		    << ". It is not possible to associate twice a taz to a node";
+		Warn() << msg.str() << std::endl;
 	}
 #endif
 	tazId = tazId_;

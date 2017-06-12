@@ -627,7 +627,7 @@ bool HouseholdBidderRole::pickEntryToBid()
 
 
 
-    	if( entry->isBuySellIntervalCompleted() == false)
+    	if( entry == nullptr ||  entry->isBuySellIntervalCompleted() == false)
     		continue;
 
 

@@ -42,7 +42,6 @@ struct LongTermParams
 	unsigned int tickStep;
 	unsigned int maxIterations;
 	unsigned int year;
-	std::string simulationScenario;
 	bool resume;
 	std::string currentOutputSchema;
 	std::string mainSchemaVersion;
@@ -151,21 +150,12 @@ struct LongTermParams
 
 	}outputFiles;
 
-
-	struct ToaPayohScenario{
-		ToaPayohScenario();
-		bool enabled;
-		bool workInToaPayoh;
-		bool liveInToaPayoh;
-		bool moveToToaPayoh;
-	}toaPayohScenario;
-
-
 	struct Scenario
 	{
 		Scenario();
 		bool   enabled;
 		std::string scenarioName;
+		std::string parcelsTable;
 
 	} scenario;
 

@@ -16,8 +16,8 @@
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
-ParcelDao::ParcelDao(DB_Connection& connection)
-: SqlAbstractDao<Parcel>(connection, "","", "", "","SELECT * FROM " + connection.getSchema()+"fm_parcel", "") {}
+ParcelDao::ParcelDao(DB_Connection& connection, const std::string& tableName)
+: SqlAbstractDao<Parcel>(connection, tableName,"", "", "","SELECT * FROM " + connection.getSchema()+ tableName, "") {}
 
 ParcelDao::~ParcelDao() {}
 

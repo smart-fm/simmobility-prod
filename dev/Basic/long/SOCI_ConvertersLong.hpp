@@ -22,6 +22,7 @@
 #include "database/entity/LtVersion.hpp"
 #include "database/entity/HedonicLogsums.hpp"
 #include "database/entity/TAOByUnitType.hpp"
+#include "database/entity/StudyArea.hpp"
 
 using namespace sim_mob;
 using namespace long_term;
@@ -215,6 +216,20 @@ struct type_conversion<sim_mob::long_term::LagPrivate_TByUnitType>
     	lagPvtTByUT.setT6(values.get<double>("t6",0));
     	lagPvtTByUT.setT7(values.get<double>("t7",0));
     	lagPvtTByUT.setGdpRate(values.get<double>("gdp_rate",0));
+    }
+};
+
+template<>
+struct type_conversion<sim_mob::long_term::StudyArea>
+{
+    typedef values base_type;
+
+    static void
+    from_base(soci::values const & values, soci::indicator & indicator, sim_mob::long_term::StudyArea& studyArea)
+    {
+    	studyArea.setId(values.get<BigSerial>("id",0));
+    	studyArea.setFmTazId(values.get<BigSerial>("fm_taz_id",0));
+    	studyArea.setStudyCode(values.get<std::string>("study_code",std::string()));
     }
 };
 

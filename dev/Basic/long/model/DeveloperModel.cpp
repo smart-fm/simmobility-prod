@@ -91,6 +91,7 @@ void DeveloperModel::startImpl() {
 	conn_calibration.setSchema(config.schemas.calibration_schema);
 	conn_calibration.connect();
 
+	const std::string parcelTable = config.ltParams.scenario.parcelsTable;
 	if (conn.isConnected())
 	{
 		ParcelsWithHDB *HDB_Parcel;
@@ -113,8 +114,8 @@ void DeveloperModel::startImpl() {
 		//Load templates
 		loadData<TemplateDao>(conn, templates);
 		//Load parcels
-		loadData<ParcelDao>(conn, initParcelList, parcelsById, &Parcel::getId);
-		ParcelDao parcelDao(conn);
+		loadData<ParcelDao>(conn, parcelTable, initParcelList, parcelsById, &Parcel::getId);
+		ParcelDao parcelDao(conn,parcelTable);
 		emptyParcels = parcelDao.getEmptyParcels();
 		//Index all empty parcels.
 		for (ParcelList::iterator it = emptyParcels.begin(); it != emptyParcels.end(); it++) {

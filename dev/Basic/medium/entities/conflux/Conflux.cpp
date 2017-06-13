@@ -494,6 +494,7 @@ void Conflux::processAgents(timeslice frameNumber)
 	orderedPersons.insert(orderedPersons.end(), brokenPersons.begin(), brokenPersons.end());
 	for (PersonList::iterator personIt = orderedPersons.begin(); personIt != orderedPersons.end(); personIt++) //iterate and update all persons
 	{
+		(*personIt)->currTick = currFrame;
 		updateAgent(*personIt);
 		(*personIt)->latestUpdatedFrameTick = currFrame.frame();
 	}

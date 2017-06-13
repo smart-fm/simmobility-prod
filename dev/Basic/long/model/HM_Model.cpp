@@ -1788,7 +1788,7 @@ void HM_Model::startImpl()
 		const int FROZEN_HH = 3;
 
 
-		if( household->getTenureStatus() != FROZEN_HH )
+		if( household->getTenureStatus() == FROZEN_HH )
 			continue;
 
 		HouseholdAgent* hhAgent = new HouseholdAgent(household->getId(), this,	household, &market, false, startDay, config.ltParams.housingModel.householdBiddingWindow,0);
@@ -1922,7 +1922,7 @@ void HM_Model::startImpl()
 		(*it)->setTimeOffMarket( 1 + (float)rand() / RAND_MAX * config.ltParams.housingModel.timeOffMarket);
 
 		//this unit is a vacancy
-		if( assignedUnits.find((*it)->getId()) == assignedUnits.end())
+		if( assignedUnits.find((*it)->getId()) == assignedUnits.end() && (*it)->getTenureStatus() != 3)
 		{
 			if( (*it)->getUnitType() != NON_RESIDENTIAL_PROPERTY && (*it)->isBto() == false )
 			{

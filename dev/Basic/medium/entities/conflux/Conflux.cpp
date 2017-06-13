@@ -472,6 +472,7 @@ void Conflux::loadPersons()
 	while (!loadingQueue.empty())
 	{
 		Person_MT* person = loadingQueue.front();
+		person->currTick = currFrame;
 		loadingQueue.pop_front();
 		Conflux* conflux = Conflux::findStartingConflux(person, nextTickMS);
 		if (conflux)

@@ -70,6 +70,10 @@ void GreedyTaxiController::computeSchedules()
 				                << std::endl;
 
 				request = requestQueue.erase(request);
+
+				// The driver is not available anymore
+				availableDrivers.erase(std::remove(availableDrivers.begin(),
+						availableDrivers.end(), bestDriver), availableDrivers.end());
 			}
 			else
 			{

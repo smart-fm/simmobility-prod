@@ -193,6 +193,11 @@ inline void calculateProjectProfit(PotentialProject& project,DeveloperModel* mod
 
 		}
 
+		if(model->getScenario().compare("ToaPayohScenario") == 0)
+		{
+			logsum += 0.03904;
+		}
+
 		if(isEmptyParcel)
 		{
 			unitAge = 0;
@@ -348,6 +353,14 @@ inline void calculateProjectProfit(PotentialProject& project,DeveloperModel* mod
 			double distanceToExpress = amenities->getDistanceToExpress();
 			double distanceToBus = amenities->getDistanceToBus();
 			double distanceToMRT = amenities->getDistanceToMRT();
+
+			if(model->getScenario().compare("ToaPayohScenario") == 0)
+			{
+				distanceToMall = distanceToMall/2.0;
+				distanceToPMS30 = distanceToPMS30/2.0;
+				distanceToBus = distanceToBus/2.0;
+				distanceToMRT = distanceToMRT/2.0;
+			}
 
 			double isDistanceToPMS30 = 0;
 			double isMRT_200m = 0;

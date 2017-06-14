@@ -459,6 +459,8 @@ namespace sim_mob
             void  loadLTVersion(DB_Connection &conn);
             void  loadStudyAreas(DB_Connection &conn);
 
+            StudyAreaList& getStudyAreas();
+
 
         protected:
             /**

@@ -3342,6 +3342,11 @@ IndvidualEmpSec* HM_Model::getIndvidualEmpSecByIndId(BigSerial indId) const
 	return nullptr;
 }
 
+HM_Model::StudyAreaList& HM_Model::getStudyAreas()
+{
+	return studyAreas;
+}
+
 void  HM_Model::loadStudyAreas(DB_Connection &conn)
 {
 	soci::session sql;
@@ -3350,7 +3355,7 @@ void  HM_Model::loadStudyAreas(DB_Connection &conn)
 	std::string tableName = "study_area";
 
 	//SQL statement
-	soci::rowset<StudyArea> studyAreaObjs = (sql.prepare << "select * from " + conn.getSchema() + tableName);
+	soci::rowset<StudyArea> studyAreaObjs = (sql.prepare << "select * from configuration2012."  + tableName);
 
 	for (soci::rowset<StudyArea>::const_iterator itStudyArea = studyAreaObjs.begin(); itStudyArea != studyAreaObjs.end(); ++itStudyArea)
 	{

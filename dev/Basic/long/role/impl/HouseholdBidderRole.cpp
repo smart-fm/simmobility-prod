@@ -91,6 +91,12 @@ double HouseholdBidderRole::CurrentBiddingEntry::getBestBid() const
 	return bestBid;
 }
 
+void HouseholdBidderRole::CurrentBiddingEntry::setBestBid(double val)
+{
+	bestBid = val;
+}
+
+
 long int HouseholdBidderRole::CurrentBiddingEntry::getTries() const
 {
     return tries;
@@ -502,6 +508,12 @@ bool HouseholdBidderRole::bidUnit(timeslice now)
 		#ifdef  VERBOSE_SUBMODEL_TIMING
         PrintOutV("pickUnit for household " << getParent()->getId() << " is " << pickUnitTime << std::endl );
 		#endif
+    }
+    else
+    {
+    	//we are now rebidding on the same unit as yesterday.
+    	//We will now increase the bid by 20 % of the difference of the bid and the AP
+    	biddingEntry.setBestBid( biddingEntry.getBestBid() + ( entry->getAskingPrice() - biddingEntry.getBestBid() ) * 0.2 );
     }
     
     if (entry && biddingEntry.isValid())

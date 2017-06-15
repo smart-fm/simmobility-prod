@@ -756,6 +756,37 @@ bool HouseholdBidderRole::pickEntryToBid()
             	WillingnessToPaySubModel wtp_m;
             	double wp = wtp_m.CalculateWillingnessToPay(unit, household, wtp_e,day, model);
 
+            	{
+            		int unitType = unit->getUnitType();
+           			//(1-avg(wtp/hedonic)) * hedonic
+        			//We need to adjust the willingness to pay
+        			if( unitType >= 4 && unitType <= 6 )
+        			{
+        				wp +=  0.27509251 * entry->getHedonicPrice();
+        			}
+
+        			if( unitType >= 7 && unitType <= 11 )
+        			{
+        				wp +=  0.311260316 * entry->getHedonicPrice();
+        			}
+
+        			if( ( unitType >= 12 && unitType <= 16 ) || unitType == 64)
+        			{
+        				wp +=  0.293076583 * entry->getHedonicPrice();
+        			}
+
+        			if( unitType >= 17 && unitType <= 21 )
+        			{
+        				wp +=  0.178378709 * entry->getHedonicPrice();
+        			}
+
+        			if( unitType >= 32 && unitType <= 36 )
+        			{
+        				wp +=  0.3166413 * entry->getHedonicPrice();
+        			}
+            	}
+
+
             	//wtp_e = wtp_e * entry->getAskingPrice(); //wtp error is a fraction of the asking price.
 
             	wp += wtp_e; // adjusted willingness to pay in millions of dollars

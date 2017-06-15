@@ -17,6 +17,7 @@ enum StopType
 	EDUCATION,
 	SHOP,
 	OTHER,
+	WORK_BASED_SUBTOUR,
 	NULL_STOP
 };
 }

@@ -350,7 +350,12 @@ void SharedController::computeSchedules()
 			const Node* startNode = nodeIdMap.find(startNodeId)->second;
 
 			const Person* bestDriver = findClosestDriver(startNode);
-			sendScheduleProposition(bestDriver, schedule);
+			assignScheduleProposition(bestDriver, schedule);
+
+
+			// The driver is not available anymore
+			availableDrivers.erase(std::remove(availableDrivers.begin(),
+					availableDrivers.end(), bestDriver), availableDrivers.end());
 
 			ControllerLog() << "Schedule for the " << firstRequest.personId << " at time " << currTick.frame()
 				<< ". Message was sent at " << firstRequest.currTick.frame() << " with startNodeId " << firstRequest.startNodeId

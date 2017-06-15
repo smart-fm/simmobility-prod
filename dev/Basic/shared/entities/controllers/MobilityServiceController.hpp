@@ -84,7 +84,8 @@ protected:
 	// check why
 	std::list<TripRequestMessage> requestQueue;
 
-	void sendScheduleProposition(const Person* driver, Schedule schedule) const;
+	void assignScheduleProposition(const Person* driver, Schedule schedule);
+
 
 	bool isCruising(Person* driver) const;
 	const Node* getCurrentNode(Person* driver) const;
@@ -92,6 +93,11 @@ protected:
 	 * Performs the controller algorithm to assign vehicles to requests
 	 */
 	virtual void computeSchedules() = 0;
+
+	/**
+	 * Associates to each driver its current schedule
+	 */
+	std::map<const Person*,Schedule> currentSchedules;
 
 
 #ifndef NDEBUG

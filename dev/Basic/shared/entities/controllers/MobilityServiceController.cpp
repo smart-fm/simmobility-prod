@@ -196,8 +196,9 @@ bool MobilityServiceController::isNonspatial()
 	return true;
 }
 
-void MobilityServiceController::sendScheduleProposition(const Person *driver, Schedule schedule) const
+void MobilityServiceController::assignScheduleProposition(const Person *driver, Schedule schedule)
 {
+	currentSchedules.emplace(driver, schedule);
 	MessageBus::PostMessage((MessageHandler *) driver, MSG_SCHEDULE_PROPOSITION, MessageBus::MessagePtr(
 			new SchedulePropositionMessage(currTick, schedule)));
 }

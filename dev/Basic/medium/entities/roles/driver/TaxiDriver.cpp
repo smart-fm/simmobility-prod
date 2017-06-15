@@ -151,8 +151,8 @@ void TaxiDriver::HandleParentMessage(messaging::Message::MessageType type, const
 				                << parent->currTick.frame()
 				                << ". Message was sent at " << msg.currTick.frame() << " with startNodeId "
 				                << request.startNodeId
-				                << ", destinationNodeId " << request.destinationNodeId << ", and driverId null"
-				                << std::endl;
+				                << ", destinationNodeId " << request.destinationNodeId << ", and driverId "
+				                << this->getParent()->getDatabaseId() << std::endl;
 
 				const std::map<unsigned int, Node *> &nodeIdMap = RoadNetwork::getInstance()->getMapOfIdvsNodes();
 
@@ -206,9 +206,9 @@ void TaxiDriver::HandleParentMessage(messaging::Message::MessageType type, const
 			}
 			case ScheduleItemType::CRUISE:
 			{
-				ControllerLog() << "Taxi driver " << getParent()->getPersonInfo().getPersonId()
-				                << " received a cruise command " <<
-				                "but she does not know what to do now" << std::endl;
+				ControllerLog() << "Taxi driver " << getParent()->getDatabaseId()
+				                << " received a cruise command "
+				                << "but she does not know what to do now" << std::endl;
 				scheduleItem++;
 				break;
 			}

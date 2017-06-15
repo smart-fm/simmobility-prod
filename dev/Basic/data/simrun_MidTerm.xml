@@ -154,6 +154,9 @@
 	    <mode name="Motorcycle" type="5" num_sharing="1"/>
 	    <mode name="Walk" type="6" num_sharing="1"/>
 	    <mode name="Taxi" type="7" num_sharing="1"/>
+	    <mode name="SMS" type="7" num_sharing="1"/>
+	    <mode name="Rail_SMS" type="1" num_sharing="1"/>
+
     </travel_modes>
 	
     <activity_types>
@@ -230,7 +233,7 @@
         <logsum_table name="demand.preday_logsum_test"/>
 
         <!-- model scripts for preday -->
-        <model_scripts path="scripts/lua/mid/behavior_sg12" format="lua">
+        <model_scripts path="scripts/lua/mid/behavior-models_new_modes" format="lua">
             <script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models-->
             <script name="dpb" file="dpb.lua"/> <!-- Day Pattern Binary -->
             <script name="dpt" file="dpt.lua"/> <!-- Day Pattern Tours -->

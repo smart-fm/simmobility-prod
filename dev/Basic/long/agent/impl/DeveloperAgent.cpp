@@ -195,7 +195,7 @@ inline void calculateProjectProfit(PotentialProject& project,DeveloperModel* mod
 
 		if(model->getScenario().compare("ToaPayohScenario") == 0)
 		{
-			logsum += 0.03904;
+			logsum += hedonicLogsumStdDevForTpScenario;
 		}
 
 		if(isEmptyParcel)

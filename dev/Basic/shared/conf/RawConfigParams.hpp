@@ -156,6 +156,7 @@ struct LongTermParams
 		bool   enabled;
 		std::string scenarioName;
 		std::string parcelsTable;
+		std::string scenarioSchema;
 
 	} scenario;
 

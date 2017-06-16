@@ -401,7 +401,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 			std::stringstream msg;
 			msg << currTickPercent << "0%" << std::endl;
 			PrintOut(msg.str());
-			ControllerLogOut(msg.str());
+			ControllerLog() << "Simulation done: " << msg.str();
 		}
 
 		//Agent-based cycle, steps 1,2,3,4

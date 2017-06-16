@@ -7,17 +7,12 @@
 
 #include "PedestrianFacets.hpp"
 
-#include <iterator>
-#include <limits>
 #include "conf/ConfigManager.hpp"
-#include "conf/ConfigParams.hpp"
 #include "config/MT_Config.hpp"
-#include "geospatial/network/PT_Stop.hpp"
-#include "geospatial/network/Link.hpp"
-#include "Pedestrian.hpp"
-#include "entities/params/PT_NetworkEntities.hpp"
-#include "util/Utils.hpp"
+#include "logging/ControllerLog.hpp"
 #include "message/MessageBus.hpp"
+#include "Pedestrian.hpp"
+#include "util/Utils.hpp"
 
 using namespace sim_mob;
 using namespace sim_mob::medium;
@@ -63,6 +58,7 @@ void PedestrianBehavior::setParentPedestrian(medium::Pedestrian* parentPedestria
 void PedestrianMovement::frame_init()
 {
 	destinationNode = getDestNode();
+
 	if(!destinationNode)
 	{
 		throw std::runtime_error("destination segment not found");
@@ -70,6 +66,7 @@ void PedestrianMovement::frame_init()
 
 	SubTrip& subTrip = *(parentPedestrian->parent->currSubTrip);
 	double walkTime = 0.0;
+
 	if(subTrip.isPT_Walk)
 	{
 		walkTime = subTrip.walkTime; //walk time comes from db for PT pedestrians
@@ -77,10 +74,50 @@ void PedestrianMovement::frame_init()
 	else if(subTrip.isTT_Walk)
 	{
 		isOnDemandTraveler = false;
+
 		if (subTrip.origin.type == WayPoint::NODE && subTrip.destination.type == WayPoint::NODE)
 		{
 			isOnDemandTraveler = true;
+			const unsigned int taxiStartNodeId = subTrip.destination.node->getNodeId();
+
+			if (MobilityServiceControllerManager::HasMobilityServiceControllerManager())
+			{
+				Person_MT *person = parentPedestrian->getParent();
+				std::vector<SubTrip>::iterator subTripItr = person->currSubTrip;
+
+				if ((*subTripItr).travelMode == "TravelPedestrian" && subTrip.origin.node == subTrip.destination.node)
+				{
+					std::vector<SubTrip>::iterator taxiTripItr = subTripItr + 1;
+					const unsigned int taxiEndNodeId = (*taxiTripItr).destination.node->getNodeId();
+
+					ControllerLog() << "Request made from " << person->getDatabaseId() << " at time "
+					                << person->currTick.frame() << ". Message was sent at "
+					                << person->currTick.frame() << " with startNodeId " << taxiStartNodeId
+					                << ", destinationNodeId " << taxiEndNodeId
+					                << ", and driverId not_yet_assigned" << std::endl;
+
+					Conflux* startConflux = this->getStartConflux();
+					auto controllers = MobilityServiceControllerManager::GetInstance()->getControllers();
+					unsigned int randomController = Utils::generateInt(0, controllers.size() - 1);
+					auto itControllers = controllers.begin();
+					advance(itControllers, randomController);
+
+					messaging::MessageBus::SendMessage(itControllers->second, MSG_TRIP_REQUEST,
+					                                   messaging::MessageBus::MessagePtr(
+							                                   new TripRequestMessage(person->currTick,
+							                                                          person->getDatabaseId(),
+							                                                          taxiStartNodeId, taxiEndNodeId,
+							                                                          0)));
+
+					if (startConflux)
+					{
+						messaging::MessageBus::PostMessage(startConflux, MSG_TRAVELER_TRANSFER,
+						                                   messaging::MessageBus::MessagePtr(new PersonMessage(person)));
+					}
+				}
+			}
 		}
+
 		if(!isOnDemandTraveler)
 		{
 			const Node* source = subTrip.origin.node;
@@ -112,6 +149,7 @@ void PedestrianMovement::frame_init()
 		double distance = distVector.getMagnitude();
 		walkTime = distance / walkSpeed;
 	}
+
 	parentPedestrian->setTravelTime(walkTime*1000);
 }
 
@@ -175,11 +213,8 @@ void PedestrianMovement::frame_tick()
 		unsigned int tickMS = ConfigManager::GetInstance().FullConfig().baseGranMS();
 		parentPedestrian->setTravelTime(parentPedestrian->getTravelTime()+tickMS);
 		double tickSec = ConfigManager::GetInstance().FullConfig().baseGranSecond();
-		if (isOnDemandTraveler)
-		{
-			std::string personId = parentPedestrian->parent->getDatabaseId();
-		}
-		else
+
+		if (!isOnDemandTraveler)
 		{
 			TravelTimeAtNode& front = travelPath.front();
 			if (front.travelTime < tickSec)

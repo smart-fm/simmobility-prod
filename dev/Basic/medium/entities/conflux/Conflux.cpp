@@ -309,35 +309,6 @@ void Conflux::addAgent(Person_MT* person)
 			assignPersonToStationAgent(person);
 			break;
 		}
-		case Role<Person_MT>::RL_TRAVELPEDESTRIAN:
-		{
-			if (MobilityServiceControllerManager::HasMobilityServiceControllerManager())
-			{
-				std::vector<SubTrip>::iterator subTripItr = person->currSubTrip;
-				const Node * personOriginNode = (*subTripItr).origin.node;
-				const Node * personDestinationNode = (*subTripItr).destination.node;
-
-				if ((*subTripItr).travelMode == "TravelPedestrian" && personOriginNode == personDestinationNode) {
-					std::vector<SubTrip>::iterator taxiTripItr = subTripItr + 1;
-
-					ControllerLog() << "Request made from " << person->getDatabaseId() << " at time " << person->currTick.frame() << ". Message was sent at "
-						<< person->currTick.frame() << " with startNodeId " << confluxNode->getNodeId() << ", destinationNodeId " << (*taxiTripItr).destination.node->getNodeId()
-						<< ", and driverId not_yet_assigned" << std::endl;
-
-					auto controllers = MobilityServiceControllerManager::GetInstance()->getControllers();
-					unsigned int randomController = Utils::generateInt(0, controllers.size() - 1);
-					auto itControllers = controllers.begin();
-					advance(itControllers, randomController);
-
-					messaging::MessageBus::SendMessage(itControllers->second, MSG_TRIP_REQUEST, messaging::MessageBus::MessagePtr(
-						new TripRequestMessage(person->currTick, person->getDatabaseId(),
-							confluxNode->getNodeId(), (*taxiTripItr).destination.node->getNodeId(), 0)));
-				}
-			}
-
-			travelingPersons.push_back(person);
-			break;
-		}
 		case Role<Person_MT>::RL_TRAINPASSENGER:
 		{
 			assignPersonToMRT(person);
@@ -610,7 +581,8 @@ bool Conflux::handleRoleChange(PersonProps& beforeUpdate, PersonProps& afterUpda
 	case Role<Person_MT>::RL_TRAVELPEDESTRIAN:
 	{
 		auto it = std::find(travelingPersons.begin(), travelingPersons.end(), person);
-		if (it != travelingPersons.end()) {
+		if (it != travelingPersons.end())
+		{
 			travelingPersons.erase(it);
 		}
 		break;
@@ -639,11 +611,14 @@ bool Conflux::handleRoleChange(PersonProps& beforeUpdate, PersonProps& afterUpda
 	}
 	case Role<Person_MT>::RL_WAITTAXIACTIVITY:
 	{
-		WaitTaxiActivity* activity = dynamic_cast<WaitTaxiActivity*>(person->getRole());
-		if(activity){
-			TaxiStandAgent* taxiStandAgent = TaxiStandAgent::getTaxiStandAgent(activity->getTaxiStand());
-			if(taxiStandAgent){
-				messaging::MessageBus::SendMessage(taxiStandAgent, MSG_WAITING_PERSON_ARRIVAL, messaging::MessageBus::MessagePtr(new ArrivalAtStopMessage(person)));
+		WaitTaxiActivity *activity = dynamic_cast<WaitTaxiActivity *>(person->getRole());
+		if (activity)
+		{
+			TaxiStandAgent *taxiStandAgent = TaxiStandAgent::getTaxiStandAgent(activity->getTaxiStand());
+			if (taxiStandAgent)
+			{
+				messaging::MessageBus::SendMessage(taxiStandAgent, MSG_WAITING_PERSON_ARRIVAL,
+				                                   messaging::MessageBus::MessagePtr(new ArrivalAtStopMessage(person)));
 			}
 		}
 		break;

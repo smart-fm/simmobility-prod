@@ -693,12 +693,9 @@ bool TaxiDriverMovement::driveToNodeOnCall(const std::string &personId, const No
 	if (mode == CRUISE && destination)
 	{
 		const Link *link = this->currLane->getParentSegment()->getParentLink();
-		SubTrip currSubTrip;
-		currSubTrip.origin = WayPoint(link->getFromNode());
-		currSubTrip.destination = WayPoint(destination);
-		std::vector<WayPoint> currentRouteChoice = PrivateTrafficRouteChoice::getInstance()->getPath(currSubTrip, false,
-		                                                                                             link,
-		                                                                                             parentTaxiDriver->parent->usesInSimulationTravelTime());
+		std::vector<WayPoint> currentRouteChoice =
+				StreetDirectory::Instance().SearchShortestDrivingPath<Link, Node>(*link, *destination);
+
 		if (currentRouteChoice.size() > 0)
 		{
 			res = true;
@@ -725,7 +722,8 @@ bool TaxiDriverMovement::driveToNodeOnCall(const std::string &personId, const No
 		else
 		{
 			ControllerLog() << "Assignment failed for " << personId << " because currentRouteChoice was empty"
-			                << std::endl;
+			                << ". No path from lane " << this->currLane->getLaneId() << " to node "
+			                << destination->getNodeId() << std::endl;
 		}
 	}
 

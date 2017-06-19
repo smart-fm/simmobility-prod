@@ -147,6 +147,10 @@
 	    <householdAwakeningPercentageByBTO value = "0.025" />
 	    <offsetBetweenUnitBuyingAndSelling value ="7"/>
             <offsetBetweenUnitBuyingAndSellingAdvancedPurchase value = "30" />
+	    <hedonicPriceModel enabled = "true">
+		<a value = "0.8"/>
+		<b value = "1.15"/>
+	    </hedonicPriceModel>
         </housingModel>
 	<vehicleOwnershipModel enabled='false'>
 		<vehicleBuyingWaitingTimeInDays value= "1"/>

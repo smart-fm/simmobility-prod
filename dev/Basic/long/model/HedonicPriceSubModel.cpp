@@ -539,8 +539,8 @@ vector<ExpectationEntry> HedonicPrice_SubModel::CalculateUnitExpectations (Unit 
     if (hedonicPrice > 0)
     {
         double reservationPrice = hedonicPrice * 0.8; //  -- IMPORTANT : The reservation price should be less than the hedonic price and the asking price
-        double a = 0.8; // -- ratio of events expected by the seller per (considering that the price is 0)
-        double b = 1.15; // -- Importance of the price for seller.
+        double a = config.ltParams.housingModel.hedonicPriceModel.a; // -- ratio of events expected by the seller per (considering that the price is 0)
+        double b = config.ltParams.housingModel.hedonicPriceModel.b; // -- Importance of the price for seller.
         double cost = 0.0; // -- Cost of being in the market
         double x0 = 0; // -- starting point for price search
         double crit = 0.0001; // -- criteria

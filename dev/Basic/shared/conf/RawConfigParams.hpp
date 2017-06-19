@@ -89,6 +89,15 @@ struct LongTermParams
 			int awakeningOffMarketSuccessfulBid;
 			int awakeningOffMarketUnsuccessfulBid;
 		} awakeningModel;
+
+
+		struct HedonicPriceModel
+		{
+			HedonicPriceModel();
+			float a;
+			float b;
+		}hedonicPriceModel;
+
 	} housingModel;
 
 	struct OutputHouseholdLogsums

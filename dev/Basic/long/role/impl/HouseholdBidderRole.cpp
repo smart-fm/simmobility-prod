@@ -603,7 +603,7 @@ bool HouseholdBidderRole::pickEntryToBid()
     if(householdScreeningProbabilities.size() > 0 )
     	printProbabilityList(household->getId(), householdScreeningProbabilities);
 
-	std::vector<const HousingMarket::Entry*> screenedEntries;
+	std::set<const HousingMarket::Entry*> screenedEntries;
 
     for(int n = 0; n < entries.size() && screenedEntries.size() < config.ltParams.housingModel.bidderUnitsChoiceSet; n++)
     {
@@ -652,20 +652,20 @@ bool HouseholdBidderRole::pickEntryToBid()
 
 			if( thisUnit->getTenureStatus() == 1 && getParent()->getFutureTransitionOwn() == false ) //rented
 			{
-				std::vector<const HousingMarket::Entry*>::iterator screenedEntriesItr;
+				std::set<const HousingMarket::Entry*>::iterator screenedEntriesItr;
 				screenedEntriesItr = std::find(screenedEntries.begin(), screenedEntries.end(), entry );
 
 				if( screenedEntriesItr == screenedEntries.end() )
-					screenedEntries.push_back(entry);
+					screenedEntries.insert(entry);
 			}
 			else
 			if( thisUnit->getTenureStatus() == 2) //owner-occupied
 			{
-				std::vector<const HousingMarket::Entry*>::iterator screenedEntriesItr;
+				std::set<const HousingMarket::Entry*>::iterator screenedEntriesItr;
 				screenedEntriesItr = std::find(screenedEntries.begin(), screenedEntries.end(), entry );
 
 				if( screenedEntriesItr == screenedEntries.end() )
-					screenedEntries.push_back(entry);
+					screenedEntries.insert(entry);
 			}
         }
     }
@@ -676,7 +676,7 @@ bool HouseholdBidderRole::pickEntryToBid()
     	const HousingMarket::Entry *curEntry = market->getEntryById( uid );
 
     	if(curEntry != nullptr)
-    		screenedEntries.push_back( curEntry );
+    		screenedEntries.insert( curEntry );
     }
 
     {
@@ -692,7 +692,7 @@ bool HouseholdBidderRole::pickEntryToBid()
 
          	const HousingMarket::Entry* entry = market->getEntryById(*itr);
 
-        	screenedEntries.push_back(entry);
+        	screenedEntries.insert(entry);
 
         	btoEntries.erase(*itr);
         }
@@ -700,7 +700,10 @@ bool HouseholdBidderRole::pickEntryToBid()
     	std::string choiceset(" ");
     	for(int n = 0; n < screenedEntries.size(); n++)
     	{
-    		choiceset += std::to_string( screenedEntries[n]->getUnitId() )  + ", ";
+    		auto itr_scr = screenedEntries.begin();
+    		advance(itr_scr, n);
+
+    		choiceset += std::to_string( (*itr_scr)->getUnitId() )  + ", ";
     	}
 
     	printChoiceset(day, household->getId(), choiceset);
@@ -713,7 +716,9 @@ bool HouseholdBidderRole::pickEntryToBid()
     // This is done to replicate the real life scenario where a household will only visit a certain percentage of vacant units before settling on one.
     for(int n = 0; n < screenedEntries.size(); n++)
     {
-      	HousingMarket::ConstEntryList::const_iterator itr = screenedEntries.begin() + n;
+    	auto itr = screenedEntries.begin();
+    	advance(itr, n);
+
         const HousingMarket::Entry* entry = *itr;
 
         if( entry->getAskingPrice() < 0.01 )
@@ -793,6 +798,11 @@ bool HouseholdBidderRole::pickEntryToBid()
         			if( unitType >= 32 && unitType <= 36 )
         			{
         				wp +=  0.3166413 * entry->getHedonicPrice();
+        			}
+        			else
+        			if( unitType == 65 )
+        			{
+        				wp -=  0.24958184222118 * entry->getHedonicPrice();
         			}
             	}
 

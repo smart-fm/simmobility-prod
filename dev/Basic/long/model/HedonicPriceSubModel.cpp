@@ -505,17 +505,26 @@ vector<ExpectationEntry> HedonicPrice_SubModel::CalculateUnitExpectations (Unit 
 
 
     const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
-	bool bToaPayohScenario = false;
 
-	if( config.ltParams.scenario.enabled && config.ltParams.scenario.scenarioName == "ToaPayohScenario")
-		 bToaPayohScenario = true;
 
-    if(bToaPayohScenario)
-    {
+	if( config.ltParams.scenario.enabled )
+	{
+		std::multimap<string, StudyArea*> scenario = hmModel->getStudyAreaByScenarioName();
+		auto itr_range = scenario.equal_range( config.ltParams.scenario.scenarioName );
 
-    	tazId = hmModel->getUnitTazId( unit->getId() );
+		bool bHomeTaz = false;
 
-		if(tazId==682||tazId==683||tazId==684||tazId==697||tazId==698||tazId==699||tazId==700||tazId==702||tazId==703||tazId==927||tazId==928||tazId==929||tazId==930||tazId==931||tazId==932||tazId==1255||tazId==1256)
+		int dist = distance(itr_range.first, itr_range.second);
+
+		tazId = hmModel->getUnitTazId( unit->getId() );
+
+		for(auto itr = itr_range.first; itr != itr_range.second; itr++)
+		{
+			if( itr->second->getFmTazId()  == tazId )
+				bHomeTaz = true;
+		}
+
+		if( bHomeTaz)
 		{
 			amenities.setDistanceToJob(amenities.getDistanceToJob() );
 			amenities.setDistanceToMall(amenities.getDistanceToMall() / 2.0);
@@ -524,11 +533,13 @@ vector<ExpectationEntry> HedonicPrice_SubModel::CalculateUnitExpectations (Unit 
 			amenities.setDistanceToExpress(amenities.getDistanceToExpress() );
 			amenities.setDistanceToBus(amenities.getDistanceToBus() / 2.0);
 			amenities.setDistanceToMrt(amenities.getDistanceToMRT() / 2.0);
+
+
+			logsum += 0.03904;//0.07808;
 		}
 
-		if(tazId==682||tazId==683||tazId==684||tazId==697||tazId==698||tazId==699||tazId==700||tazId==702||tazId==703||tazId==927||tazId==928||tazId==929||tazId==930||tazId==931||tazId==932||tazId==1255||tazId==1256)
-			logsum += 0.03904;//0.07808;
-    }
+
+	}
 
 
     double  hedonicPrice = CalculateHedonicPrice(unit, building, postcode, &amenities, logsum, lagCoefficient);

@@ -15,6 +15,7 @@
 #include "database/DB_Connection.hpp"
 #include "database/dao/HouseholdDao.hpp"
 #include "database/dao/UnitDao.hpp"
+#include "database/dao/UnitTypeDao.hpp"
 #include "database/dao/IndividualDao.hpp"
 #include "database/dao/AwakeningDao.hpp"
 #include "database/dao/PostcodeDao.hpp"
@@ -457,6 +458,18 @@ Unit* HM_Model::getUnitById(BigSerial id) const
 	{
 		return (*itr).second;
 	}
+	return nullptr;
+}
+
+
+UnitType* HM_Model::getUnitTypeById(BigSerial id) const
+{
+	UnitTypeMap::const_iterator itr = unitTypesById.find(id);
+	if (itr != unitTypesById.end())
+	{
+		return (*itr).second;
+	}
+
 	return nullptr;
 }
 
@@ -1563,6 +1576,11 @@ void HM_Model::startImpl()
 		//Load units
 		loadData<UnitDao>(conn, units, unitsById, &Unit::getId);
 		PrintOutV("Number of units: " << units.size() << ". Units Used: " << units.size() << std::endl);
+
+
+		//Load units
+		loadData<UnitTypeDao>(conn, unitTypes, unitTypesById, &UnitType::getId);
+		PrintOutV("Number of unit types: " << unitTypes.size() << std::endl);
 
 		IndividualDao indDao(conn);
 		primarySchoolIndList = indDao.getPrimarySchoolIndividual(currentSimYear);

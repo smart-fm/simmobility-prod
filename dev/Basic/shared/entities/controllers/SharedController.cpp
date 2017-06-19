@@ -350,10 +350,10 @@ void SharedController::computeSchedules()
 			const Node* startNode = nodeIdMap.find(startNodeId)->second;
 
 			const Person* bestDriver = findClosestDriver(startNode);
-			sendScheduleProposition(bestDriver, schedule);
+			assignSchedule(bestDriver, schedule);
 
-			ControllerLog() << "Schedule for the " << firstRequest.personId << " at time " << currTick.frame()
-				<< ". Message was sent at " << firstRequest.currTick.frame() << " with startNodeId " << firstRequest.startNodeId
+			ControllerLog() << "Schedule for the " << firstRequest.userId << " at time " << currTick.frame()
+				<< ". Message was sent at " << firstRequest.timeOfRequest.frame() << " with startNodeId " << firstRequest.startNodeId
 				<< ", destinationNodeId " << firstRequest.destinationNodeId << ", and driverId "<< bestDriver->getDatabaseId();
 
 			const ScheduleItem& secondScheduleItem = schedule.at(1);
@@ -362,14 +362,14 @@ void SharedController::computeSchedules()
 
 #ifndef NDEBUG
 				//aa{ CONSISTENCY CHECKS
-				if (secondScheduleItem.tripRequest.personId ==  firstRequest.personId)
+				if (secondScheduleItem.tripRequest.userId ==  firstRequest.userId)
 				{
-					std::stringstream msg; msg<<"Malformed schedule. Trying to pick up twice the same person "<<firstRequest.personId;
+					std::stringstream msg; msg<<"Malformed schedule. Trying to pick up twice the same person "<<firstRequest.userId;
 					throw ScheduleException(msg.str() );
 				}
 				//aa} CONSISTENCY CHECKS
 #endif
-				ControllerLog()<<". The trip is shared with person " << secondScheduleItem.tripRequest.personId;
+				ControllerLog()<<". The trip is shared with person " << secondScheduleItem.tripRequest.userId;
 			}
 			ControllerLog()<<std::endl;
 		}

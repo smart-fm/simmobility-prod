@@ -60,10 +60,10 @@ void GreedyTaxiController::computeSchedules()
 				schedule.push_back(pickUpScheduleItem);
 				schedule.push_back(dropOffScheduleItem);
 
-				sendScheduleProposition(bestDriver, schedule);
+				assignSchedule(bestDriver, schedule);
 
-				ControllerLog() << "Assignment sent for " << request->personId << " at time " << currTick.frame()
-				                << ". Message was sent at " << request->currTick.frame() << " with startNodeId "
+				ControllerLog() << "Assignment sent for " << request->userId << " at time " << currTick.frame()
+				                << ". Message was sent at " << request->timeOfRequest.frame() << " with startNodeId "
 				                << request->startNodeId
 				                << ", destinationNodeId " << request->destinationNodeId << ", and driverId "
 				                << bestDriver->getDatabaseId()

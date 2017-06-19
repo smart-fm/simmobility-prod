@@ -147,7 +147,7 @@ void TaxiDriver::HandleParentMessage(messaging::Message::MessageType type, const
 				}
 #endif
 
-				ControllerLog() << "Assignment received for " << request.personId << " at time "
+				ControllerLog() << "Assignment received for " << request.userId << " at time "
 				                << parent->currTick.frame()
 				                << ". Message was sent at " << msg.currTick.frame() << " with startNodeId "
 				                << request.startNodeId
@@ -174,14 +174,14 @@ void TaxiDriver::HandleParentMessage(messaging::Message::MessageType type, const
 
 				node = it->second;
 
-				const bool success = taxiDriverMovement->driveToNodeOnCall(request.personId, node);
+				const bool success = taxiDriverMovement->driveToNodeOnCall(request.userId, node);
 
 #ifndef NDEBUG
 				if (!success)
 				{
 					std::stringstream msg;
 					msg << __FILE__ << ":" << __LINE__ << ": taxiDriverMovement->driveToNodeOnCall("
-					    << request.personId << "," << node->getNodeId() << ");" << std::endl;
+					    << request.userId << "," << node->getNodeId() << ");" << std::endl;
 					WarnOut(msg.str());
 				}
 #endif
@@ -189,13 +189,13 @@ void TaxiDriver::HandleParentMessage(messaging::Message::MessageType type, const
 				messaging::MessageBus::SendMessage(message.GetSender(), MSG_SCHEDULE_PROPOSITION_REPLY,
 				                                   messaging::MessageBus::MessagePtr(
 						                                   new SchedulePropositionReplyMessage(parent->currTick,
-						                                                                       request.personId, parent,
+						                                                                       request.userId, parent,
 						                                                                       request.startNodeId,
 						                                                                       request.destinationNodeId,
 						                                                                       request.extraTripTimeThreshold,
 						                                                                       success)));
 
-				ControllerLog() << "Assignment response sent for " << request.personId << " at time "
+				ControllerLog() << "Assignment response sent for " << request.userId << " at time "
 				                << parent->currTick.frame()
 				                << ". Message was sent at " << msg.currTick.frame() << " with startNodeId "
 				                << request.startNodeId

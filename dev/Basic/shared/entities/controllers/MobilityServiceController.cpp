@@ -12,9 +12,15 @@
 #include "message/MessageBus.hpp"
 #include "util/GeomHelpers.hpp"
 #include "util/Utils.hpp"
+#include <algorithm>    // std::sort, next_permutation
+#include "path/PathSetManager.hpp" // for PrivateTrafficRouteChoice
 
 using namespace sim_mob;
 using namespace messaging;
+
+//TODO: These should not be hardcoded
+const static double additionalDelayTreshold = std::numeric_limits<double>::max();
+const static double waitingTimeTreshold = std::numeric_limits<double>::max();
 
 MobilityServiceController::~MobilityServiceController()
 {
@@ -35,9 +41,10 @@ void MobilityServiceController::unsubscribeDriver(Person *person)
 	                                   availableDrivers.end(), person), availableDrivers.end());
 }
 
-void MobilityServiceController::driverAvailable(Person *person)
+void MobilityServiceController::driverAvailable(Person *driver)
 {
-	availableDrivers.push_back(person);
+	availableDrivers.push_back(driver);
+	driverSchedules.erase(driver); // The driver has no more schedules
 }
 
 void MobilityServiceController::driverUnavailable(Person *person)
@@ -130,9 +137,9 @@ void MobilityServiceController::HandleMessage(messaging::Message::MessageType ty
 	{
 		const TripRequestMessage &requestArgs = MSG_CAST(TripRequestMessage, message);
 
-		ControllerLog() << "Request received by the controller from " << requestArgs.personId << " at time "
+		ControllerLog() << "Request received by the controller from " << requestArgs.userId << " at time "
 		                << currTick.frame() << ". Message was sent at "
-		                << requestArgs.currTick.frame() << " with startNodeId " << requestArgs.startNodeId
+		                << requestArgs.timeOfRequest.frame() << " with startNodeId " << requestArgs.startNodeId
 		                << ", destinationNodeId "
 		                << requestArgs.destinationNodeId << ", and driverId not_yet_assigned" << std::endl;
 
@@ -163,8 +170,8 @@ void MobilityServiceController::HandleMessage(messaging::Message::MessageType ty
 			                << replyArgs.driver->getDatabaseId() << std::endl;
 
 			TripRequestMessage r;
-			r.currTick = replyArgs.currTick;
-			r.personId = replyArgs.personId;
+			r.timeOfRequest = replyArgs.currTick;
+			r.userId = replyArgs.personId;
 			r.startNodeId = replyArgs.startNodeId;
 			r.destinationNodeId = replyArgs.destinationNodeId;
 			r.extraTripTimeThreshold = replyArgs.extraTripTimeThreshold;
@@ -197,10 +204,21 @@ bool MobilityServiceController::isNonspatial()
 	return true;
 }
 
-void MobilityServiceController::sendScheduleProposition(const Person *driver, Schedule schedule) const
+void MobilityServiceController::assignSchedule(const Person *driver, Schedule schedule)
 {
 	MessageBus::PostMessage((MessageHandler *) driver, MSG_SCHEDULE_PROPOSITION, MessageBus::MessagePtr(
 			new SchedulePropositionMessage(currTick, schedule)));
+
+#ifndef NDEBUG
+	if (driverSchedules.find(driver) != driverSchedules.end() )
+	{
+		std::stringstream msg; msg<<"Trying to assign a schedule to driver "<< driver->getDatabaseId() << " who already has one."<<
+		" If you are using the greedy controller, this is not possible. Otherwise, please disable this error";
+		throw runtime_error(msg.str());
+	}
+#endif
+
+	driverSchedules.emplace(driver,schedule);
 }
 
 bool MobilityServiceController::isCruising(Person *driver) const
@@ -263,4 +281,112 @@ const Person *MobilityServiceController::findClosestDriver(const Node *node) con
 	}
 
 	return bestDriver;
+}
+
+//TODO: in the request itself, the user should specify the earliest and latest pickup and dropoff times
+double  MobilityServiceController::evaluateSchedule(const Node* initialPosition, const Schedule& schedule,
+		double additionalDelayThreshold, double waitingTimeThreshold) const
+{
+	double scheduleTimeStamp = currTick.ms() / 1000.0; // In seconds
+	unsigned latestNodeId = initialPosition->getNodeId();
+
+	// Check that each user is picked up before being dropped off
+	std::set<string> dropoffs;
+	for (const ScheduleItem& scheduleItem : schedule)
+	{
+		switch (scheduleItem.scheduleItemType)
+		{
+			case (ScheduleItemType::DROPOFF):
+			{
+				dropoffs.insert(scheduleItem.tripRequest.userId);
+
+				unsigned nextNodeId = scheduleItem.tripRequest.destinationNodeId;
+				scheduleTimeStamp += PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(
+						latestNodeId, nextNodeId, DailyTime(currTick.ms()));
+				latestNodeId = nextNodeId;
+
+				double earliestPickupTimeStamp = scheduleItem.tripRequest.timeOfRequest.ms()/100.0; // in seconds
+				double minimumTravelTime = PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(
+						scheduleItem.tripRequest.startNodeId, scheduleItem.tripRequest.destinationNodeId,
+						DailyTime(currTick.ms()));
+				double latestDropoffTimeStamp = earliestPickupTimeStamp + minimumTravelTime + additionalDelayThreshold;
+				if (scheduleTimeStamp > latestDropoffTimeStamp)
+					return -1;
+				break;
+			};
+			case (ScheduleItemType::PICKUP):
+			{
+				if ( dropoffs.find(scheduleItem.tripRequest.userId) != dropoffs.end() )
+					// Trying to pick up a user who is scheduled to be dropped off before
+					return -1;
+
+				unsigned nextNodeId = scheduleItem.tripRequest.startNodeId;
+				scheduleTimeStamp += PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(
+						latestNodeId, nextNodeId, DailyTime(currTick.ms()));
+				latestNodeId = nextNodeId;
+
+				double earliestPickupTimeStamp = scheduleItem.tripRequest.timeOfRequest.ms()/100.0; // in seconds
+				if (scheduleTimeStamp > earliestPickupTimeStamp + waitingTimeThreshold)
+					return -1;
+				break;
+
+			};
+			case (ScheduleItemType::CRUISE):
+			{
+				throw std::runtime_error("CRUISE is an \"instantaneous\" schedule item, meaning that after the controller sends it, there is no reason to keep memory of it. Therefore, it should not be there anymore");
+
+			};
+			default:
+			{
+				throw runtime_error("Unknown schedule item type");
+			}
+		}
+	}
+
+	double travelTime = scheduleTimeStamp - currTick.ms() / 1000.0;
+
+#ifndef NDEBUG
+	if (schedule.size() == 0)
+		throw std::runtime_error("You are evaluating a schedule of 0 scheduleItems. Why would you want to do that? Is it an error?");
+
+	if (travelTime <= 1e-5)
+	{
+		std::stringstream msg; msg<<"The travel time for this schedule of "<< schedule.size()<<" schedule items is 0. Why? Is it an error?";
+		throw std::runtime_error(msg.str());
+	}
+#endif
+
+	return travelTime;
+}
+
+double MobilityServiceController::computeOptimalSchedule(const Node* initialNode, const Schedule currentSchedule,
+		const std::vector<TripRequestMessage>& additionalRequests,
+		Schedule& newSchedule) const
+{
+	double travelTime = std::numeric_limits<double>::max();
+
+	//Contruct the required ScheduleItems for the new requests
+	std::vector<ScheduleItem> additionalScheduleItems;
+	for (const TripRequestMessage& request : additionalRequests)
+	{
+		additionalScheduleItems.push_back(ScheduleItem(ScheduleItemType::PICKUP, request));
+		additionalScheduleItems.push_back(ScheduleItem(ScheduleItemType::DROPOFF, request));
+	}
+
+	//https://stackoverflow.com/a/201729/2110769
+	Schedule tempSchedule(currentSchedule);
+	tempSchedule.insert(tempSchedule.end(), additionalScheduleItems.begin(), additionalScheduleItems.end());
+
+	// sorting is necessary to correctly compute the permutations (see https://www.topcoder.com/community/data-science/data-science-tutorials/power-up-c-with-the-standard-template-library-part-1/)
+	std::sort(tempSchedule.begin(), tempSchedule.end());
+
+	do{
+		double tempTravelTime = evaluateSchedule(initialNode, tempSchedule, additionalDelayTreshold, waitingTimeTreshold);
+		if (tempTravelTime < travelTime)
+		{
+			travelTime = tempTravelTime; newSchedule = tempSchedule;
+		}
+	} while (std::next_permutation(tempSchedule.begin(), tempSchedule.end() ) );
+
+	return travelTime;
 }

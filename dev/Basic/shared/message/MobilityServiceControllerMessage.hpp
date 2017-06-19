@@ -101,12 +101,12 @@ public:
 class TripRequestMessage: public messaging::Message
 {
 public:
-	TripRequestMessage():currTick(timeslice(0,0)),personId("no-id"),startNodeId(0),
+	TripRequestMessage():timeOfRequest(timeslice(0,0)),userId("no-id"),startNodeId(0),
 		destinationNodeId(0), extraTripTimeThreshold(0){};
 
 	TripRequestMessage(const TripRequestMessage& r) :
-		currTick(r.currTick),
-			personId(r.personId), startNodeId(r.startNodeId),
+		timeOfRequest(r.timeOfRequest),
+			userId(r.userId), startNodeId(r.startNodeId),
 			destinationNodeId(r.destinationNodeId),
 			extraTripTimeThreshold(r.extraTripTimeThreshold)
 		{
@@ -116,7 +116,7 @@ public:
 
 	TripRequestMessage(const timeslice& ct, const std::string& p,
 		const unsigned int& sn, const unsigned int& dn,
-		const unsigned int& threshold) : currTick(ct), personId(p),
+		const unsigned int& threshold) : timeOfRequest(ct), userId(p),
 			startNodeId(sn), destinationNodeId(dn),
 			extraTripTimeThreshold(threshold)
 	{
@@ -129,9 +129,10 @@ public:
 
 	bool operator==(const TripRequestMessage& other) const;
 	bool operator!=(const TripRequestMessage& other) const;
+	bool operator<(const TripRequestMessage& other) const;
 
-	timeslice currTick;
-	std::string personId;
+	timeslice timeOfRequest;
+	std::string userId;
 	unsigned int startNodeId;
 	unsigned int destinationNodeId;
 	unsigned int extraTripTimeThreshold;
@@ -160,9 +161,13 @@ struct ScheduleItem
 #endif
 	};
 
-	const ScheduleItemType scheduleItemType;
+	ScheduleItem(const ScheduleItem& other):scheduleItemType(other.scheduleItemType),tripRequest(other.tripRequest),tazToCruiseTo(other.tazToCruiseTo){};
 
-	const TripRequestMessage tripRequest;
+	bool operator<(const ScheduleItem& other) const;
+
+	ScheduleItemType scheduleItemType;
+
+	TripRequestMessage tripRequest;
 
 	unsigned tazToCruiseTo;
 };

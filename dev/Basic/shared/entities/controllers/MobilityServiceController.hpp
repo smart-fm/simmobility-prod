@@ -84,7 +84,7 @@ protected:
 	// check why
 	std::list<TripRequestMessage> requestQueue;
 
-	void sendScheduleProposition(const Person* driver, Schedule schedule) const;
+	void assignSchedule(const Person* driver, Schedule schedule);
 
 	bool isCruising(Person* driver) const;
 	const Node* getCurrentNode(Person* driver) const;
@@ -92,6 +92,32 @@ protected:
 	 * Performs the controller algorithm to assign vehicles to requests
 	 */
 	virtual void computeSchedules() = 0;
+
+	/**
+	 * Associates to each driver her current schedule
+	 */
+	std::map<const Person*, Schedule> driverSchedules;
+
+	/**
+	 * Computes a hypothetical schedule such that a driver located at a certain position can serve her current schedule
+	 * as well as additional requests. The hypothetical schedule is written in newSchedule. The return value is the
+	 * travel time.
+	 */
+	double computeOptimalSchedule(const Node* initialPositon, const Schedule currentSchedule,
+			const std::vector<TripRequestMessage>& additionalRequests,
+			Schedule& newSchedule) const;
+
+	/**
+	 * Checks if the schedule is feasible, i.e. if:
+	 * 1. no user is scheduled to be dropped off before being picked up
+	 * 2. no user will experience an additional delay above the additionalDelayThreshold. The additonal delay is the
+	 *    increase in her total time (including waiting and travel time
+	 *    with respect to the case when she moves with a private vehicle
+	 * 3. no user will experience a waiting time above waitingTimeThreshold
+	 * If the schedule is feasible, it returns the travel time. Otherwise, it returns a negative number.
+	 * The return value and the thresholds are expressed in ms.
+	 */
+	double evaluateSchedule(const Node* initialPositon, const Schedule& schedule, double additionalDelayThreshold, double waitingTimeThreshold) const;
 
 
 #ifndef NDEBUG

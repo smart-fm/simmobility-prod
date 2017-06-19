@@ -207,6 +207,7 @@ namespace sim_mob
             typedef boost::unordered_map<string, SlaBuilding*> SlaBuildingMap;
 
             typedef std::vector<StudyArea*> StudyAreaList;
+            typedef std::multimap<string, StudyArea*>StudyAreaMultiMap;
 
             /**
              * Taz statistics
@@ -464,6 +465,8 @@ namespace sim_mob
             void  loadStudyAreas(DB_Connection &conn);
 
             StudyAreaList& getStudyAreas();
+            StudyAreaMultiMap& getStudyAreaByScenarioName();
+
 
 
         protected:
@@ -660,6 +663,7 @@ namespace sim_mob
 			SlaBuildingMap	slaBuildingById;
 
 			StudyAreaList studyAreas;
+			StudyAreaMultiMap  studyAreaByScenario;
         };
     }
 }

@@ -3365,6 +3365,11 @@ HM_Model::StudyAreaList& HM_Model::getStudyAreas()
 	return studyAreas;
 }
 
+HM_Model::StudyAreaMultiMap& HM_Model::getStudyAreaByScenarioName()
+{
+	return studyAreaByScenario;
+}
+
 void  HM_Model::loadStudyAreas(DB_Connection &conn)
 {
 	soci::session sql;
@@ -3379,6 +3384,7 @@ void  HM_Model::loadStudyAreas(DB_Connection &conn)
 	{
 		StudyArea* stdArea = new StudyArea(*itStudyArea);
 		studyAreas.push_back(stdArea);
+		studyAreaByScenario.insert(std::pair<string, StudyArea*>( stdArea->getStudyCode(), stdArea ));
 	}
 
 	PrintOutV("Number of Study Area rows: " << studyAreas.size() << std::endl );

@@ -133,7 +133,7 @@ public:
 		case OTHER:
 			return "Other";
 		case WORK_BASED_SUBTOUR:
-            return "WorkbasedSubTour";
+                        return "WorkbasedSubTour";
 		default:
 			return "Other";
 		}

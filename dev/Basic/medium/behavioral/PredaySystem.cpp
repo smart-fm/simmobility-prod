@@ -358,16 +358,17 @@ void sim_mob::medium::PredaySystem::predictSubTours(Tour& parentTour)
 	{
 		choice = PredayLuaProvider::getPredayModel().predictWorkBasedSubTour(personParams, workBasedSubTourParams);
 		if(choice == 2) { break; } //QUIT
-		else {
-            if(parentTour.getTourType()==sim_mob::WORK)
-            {
-                subToursList.push_back(Tour(WORK_BASED_SUBTOUR,true));
-            }
-            else
-            {
-                subToursList.push_back(Tour(NULL_STOP,true));
-            }
-        } //NON-QUIT
+		else
+		{
+		    if(parentTour.getTourType()==sim_mob::WORK)
+		    {
+		        subToursList.push_back(Tour(WORK_BASED_SUBTOUR,true));
+		    }
+		    else
+		    {
+		        subToursList.push_back(Tour(NULL_STOP,true));
+		    }
+        	} //NON-QUIT
 	}
 	// mode/destination and time of day for each sub tour
 	for(TourList::iterator tourIt=subToursList.begin(); tourIt!=subToursList.end(); tourIt++)
@@ -995,7 +996,8 @@ bool PredaySystem::predictStopModeDestination(Stop* stop, int origin)
 	int zone_id = imdParams.getDestination(modeDest);
 	stop->setStopLocationId(zone_id);
 	stop->setStopLocation(zoneMap.at(zone_id)->getZoneCode());
-	if(stop->getStopLocation() == origin || stop->getStopMode() > 9 || stop->getStopMode() < 1)
+	//stop->getStopLocation() == origin ||
+	if(stop->getStopMode() > 9 || stop->getStopMode() < 1)
 	{
 		throw std::runtime_error("o = d || invalid stop mode");
 	}
@@ -1734,7 +1736,7 @@ void sim_mob::medium::PredaySystem::outputActivityScheduleToStream(const ZoneNod
 			for(StopList::const_iterator stopIt=stops.begin(); stopIt!=stops.end(); stopIt++)
 			{
 				const Stop* stop = (*stopIt);
-                currStopZone = stop->getStopLocation();
+                		currStopZone = stop->getStopLocation();
 				currStopNode = 0;
 				if(stop->isPrimaryActivity() && tour.isUsualLocation() &&
 						((stop->getStopType() == sim_mob::WORK && personParams.getFixedWorkLocation() != 0)
@@ -1852,7 +1854,7 @@ void sim_mob::medium::PredaySystem::outputActivityScheduleToStream(const ZoneNod
 
 			if(stopNum > 0) // if there `was atleast one stop (with valid node) in tour
 			{
-                homeActivityEndTime = LAST_WINDOW;
+                		homeActivityEndTime = LAST_WINDOW;
 				TourList::const_iterator nextTourIt=tourIt; nextTourIt++; //copy and then increment
 				if(nextTourIt!=tours.end()) { homeActivityEndTime = getTimeWindowFromIndex((*nextTourIt).getStartTime()); }
 

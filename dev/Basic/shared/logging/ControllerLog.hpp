@@ -1,6 +1,7 @@
 #pragma once
 
 #include "logging/Log.hpp"
+#include "metrics/Frame.hpp" // For using operator << on timeslice
 
 namespace sim_mob {
 

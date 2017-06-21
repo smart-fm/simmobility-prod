@@ -1,26 +1,43 @@
 /*
- * SharedController.cpp
+ * FrazzoliController.cpp
  *
- *  Created on: Apr 18, 2017
- *      Author: Akshay Padmanabha
+ *  Created on: 21 Jun 2017
+ *      Author: araldo
  */
 
-#include "SharedController.hpp"
+#include "FrazzoliController.h"
 
-#include <boost/graph/adjacency_list.hpp>
-#include <boost/graph/max_cardinality_matching.hpp>
+namespace sim_mob {
 
-#include "geospatial/network/RoadNetwork.hpp"
-#include "logging/ControllerLog.hpp"
-#include "message/MessageBus.hpp"
-#include "message/MobilityServiceControllerMessage.hpp"
-#include "path/PathSetManager.hpp"
+FrazzoliController::FrazzoliController() {
+	// TODO Auto-generated constructor stub
 
-namespace sim_mob
-{
-void SharedController::computeSchedules()
+}
+
+FrazzoliController::~FrazzoliController() {
+	// TODO Auto-generated destructor stub
+}
+
+
+void FrazzoliController::computeSchedules()
 {
 	const std::map<unsigned int, Node*>& nodeIdMap = RoadNetwork::getInstance()->getMapOfIdvsNodes();
+
+
+	for (const TripRequestMessage& request : requestQueue)
+	{
+		for (const std::pair<const Person*, const Schedule>& p : driverSchedules )
+		{
+			const Person* driver = p.first;
+			const Schedule& currentSchedule = p.second;
+			const Node *driverNode = getCurrentNode(driver);
+			std::vector<TripRequestMessage> additionalRequests; additionalRequests.push_back(request);
+			Schedule newSchedule;
+			computeOptimalSchedule(driverNode, currentSchedule, additionalRequests, newSchedule);
+		}
+
+	}
+
 	std::vector<sim_mob::Schedule> schedules; // We will fill this schedules and send it to the best driver
 
 
@@ -401,27 +418,4 @@ void SharedController::computeSchedules()
 
 }
 
-bool SharedController::isCruising(Person* p)
-{
-    MobilityServiceDriver* currDriver = p->exportServiceDriver();
-    if (currDriver) 
-    {
-        if (currDriver->getServiceStatus() == MobilityServiceDriver::SERVICE_FREE) 
-        {
-            return true;
-        }
-    }
-    return false;
-}
-
-const Node* SharedController::getCurrentNode(Person* p)
-{
-    MobilityServiceDriver* currDriver = p->exportServiceDriver();
-    if (currDriver) 
-    {
-        return currDriver->getCurrentNode();
-    }
-    return nullptr;
-}
-}
-
+} /* namespace sim_mob */

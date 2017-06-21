@@ -71,26 +71,22 @@ protected:
 	// check why
 	std::list<TripRequestMessage> requestQueue;
 
-	virtual void assignSchedule(const Person* driver, Schedule schedule);
+	virtual void assignSchedule(const Person* driver, const Schedule& schedule);
 
 	virtual bool isCruising(Person* driver) const;
-	virtual const Node* getCurrentNode(Person* driver) const;
+	virtual const Node* getCurrentNode(const Person* driver) const;
 	/**
 	 * Performs the controller algorithm to assign vehicles to requests
 	 */
 	virtual void computeSchedules() = 0;
 
-	/**
-	 * Associates to each driver her current schedule
-	 */
-	std::map<const Person*, Schedule> driverSchedules;
 
 	/**
 	 * Computes a hypothetical schedule such that a driver located at a certain position can serve her current schedule
 	 * as well as additional requests. The hypothetical schedule is written in newSchedule. The return value is the
 	 * travel time.
 	 */
-	virtual double computeOptimalSchedule(const Node* initialPositon, const Schedule currentSchedule,
+	virtual double computeOptimalSchedule(const Node* initialPositon, const Schedule& currentSchedule,
 			const std::vector<TripRequestMessage>& additionalRequests,
 			Schedule& newSchedule) const;
 
@@ -118,7 +114,6 @@ protected:
 	bool isComputingSchedules; //true during computing schedules. Used for debug purposes
 #endif
 
-private:
 	/**
 	 * Subscribes a vehicle driver to the controller
 	 * @param person Driver to be added
@@ -145,6 +140,13 @@ private:
 	unsigned int scheduleComputationPeriod;
 
 	Rebalancer* rebalancer;
+
+	/**
+	 * Associates to each driver her current schedule. If a driver has nothing to do,
+	 * an empty schedule is associated to her
+	 */
+	std::map<const Person*, Schedule> driverSchedules;
+
 };
 }
 #endif /* MobilityServiceController_HPP_ */

@@ -62,12 +62,13 @@ void GreedyTaxiController::computeSchedules()
 
 				assignSchedule(bestDriver, schedule);
 
-				ControllerLog() << "Assignment sent for " << request->userId << " at time " << currTick.frame()
-				                << ". Message was sent at " << request->timeOfRequest.frame() << " with startNodeId "
-				                << request->startNodeId
-				                << ", destinationNodeId " << request->destinationNodeId << ", and driverId "
-				                << bestDriver->getDatabaseId()
-				                << std::endl;
+				ControllerLog() << "Assignment sent by the controller for "<< *request<<". The assignement is sent at "<<
+						currTick<<" to driver "<<bestDriver->getDatabaseId() << std::endl;
+
+#ifndef NDEBUG
+				if (currTick < request->timeOfRequest)
+					throw std::runtime_error("The assignment is sent before the request has been issued: impossible");
+#endif
 
 				request = requestQueue.erase(request);
 

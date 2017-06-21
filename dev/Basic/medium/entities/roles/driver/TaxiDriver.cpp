@@ -84,11 +84,11 @@ void TaxiDriver::alightPassenger()
 			Conflux *parentConflux = segStats->getParentConflux();
 			parentConflux->dropOffTaxiTraveler(parentPerson);
 
-			ControllerLog() << "Drop-off for " << parentPerson->getDatabaseId() << " at time "
-			                << parentPerson->currTick.frame()
-			                << ". Message was sent at null with startNodeId null, destinationNodeId "
+			ControllerLog() << "Drop-off of user" << parentPerson->getDatabaseId() << " at time "
+			                << parentPerson->currTick
+			                << ". Message was sent at ??? with startNodeId ???, destinationNodeId "
 			                << parentConflux->getConfluxNode()->getNodeId()
-			                << ", and driverId null" << std::endl;
+			                << ", and driverId ???" << std::endl;
 		}
 	}
 }
@@ -147,12 +147,8 @@ void TaxiDriver::HandleParentMessage(messaging::Message::MessageType type, const
 				}
 #endif
 
-				ControllerLog() << "Assignment received for " << request.userId << " at time "
-				                << parent->currTick.frame()
-				                << ". Message was sent at " << msg.currTick.frame() << " with startNodeId "
-				                << request.startNodeId
-				                << ", destinationNodeId " << request.destinationNodeId << ", and driverId "
-				                << this->getParent()->getDatabaseId() << std::endl;
+				ControllerLog() << "Assignment received for " << request<<". This assignment is received by driver "<<
+						this->getParent()->getDatabaseId() << " at time "<<parent->currTick.frame() << std::endl;
 
 				const std::map<unsigned int, Node *> &nodeIdMap = RoadNetwork::getInstance()->getMapOfIdvsNodes();
 
@@ -195,12 +191,8 @@ void TaxiDriver::HandleParentMessage(messaging::Message::MessageType type, const
 						                                                                       request.extraTripTimeThreshold,
 						                                                                       success)));
 
-				ControllerLog() << "Assignment response sent for " << request.userId << " at time "
-				                << parent->currTick.frame()
-				                << ". Message was sent at " << msg.currTick.frame() << " with startNodeId "
-				                << request.startNodeId
-				                << ", destinationNodeId " << request.destinationNodeId << ", and driverId "
-				                << parent->getDatabaseId() << std::endl;
+				ControllerLog() << "Assignment response sent for " << request<<". This response is sent by driver "
+						<< parent->getDatabaseId()<<" at time "<<parent->currTick<<std::endl;
 
 				break;
 			}

@@ -27,17 +27,56 @@ OnCallController::~OnCallController()
 	safe_delete_item(rebalancer);
 }
 
-void OnCallController::subscribeDriver(Person *person)
+void OnCallController::subscribeDriver(Person *driver)
 {
-	MobilityServiceController::subscribeDriver(person);
-	availableDrivers.push_back(person);
+	MobilityServiceController::subscribeDriver(driver);
+	availableDrivers.push_back(driver);
+	driverSchedules.emplace(driver, Schedule() );
 }
 
-void OnCallController::unsubscribeDriver(Person *person)
+void OnCallController::unsubscribeDriver(Person *driver)
 {
-	MobilityServiceController::unsubscribeDriver(person);
+	MobilityServiceController::unsubscribeDriver(driver);
+
+#ifndef NDEBUG
+	if (driverSchedules.find(driver) == driverSchedules.end() )
+	{
+		std::stringstream msg; msg<<"Driver "<< driver->getDatabaseId()<<" has been subscribed but had no "<<
+			"schedule associated. This is impossible. It should have had at least an empty schedule";
+		throw std::runtime_error(msg.str());
+	}
+
+	unsigned scheduleSize = driverSchedules.at(driver).size();
+	if (scheduleSize>0 )
+	{
+		std::stringstream msg; msg<<"Driver "<< driver->getDatabaseId()<<" has a non empty schedule and she sent a message "
+		<<"to unsubscribe. This is not admissible";
+		throw std::runtime_error(msg.str());
+	}
+
+	if (availableDrivers.size()!= driverSchedules.size() )
+	{
+		std::stringstream msg; msg<<"availableDrivers.size()="<<availableDrivers.size()<<
+		", driverSchedules.size()="<<driverSchedules.size()<<". They should be equal";
+		throw std::runtime_error(msg.str());
+	}
+#endif
+
+
+	driverSchedules.erase(driver);
+
+	//http://en.cppreference.com/w/cpp/algorithm/remove
 	availableDrivers.erase(std::remove(availableDrivers.begin(),
-	                                   availableDrivers.end(), person), availableDrivers.end());
+	                                   availableDrivers.end(), driver), availableDrivers.end());
+
+#ifndef NDEBUG
+	if (availableDrivers.size()!= driverSchedules.size() )
+	{
+		std::stringstream msg; msg<<"availableDrivers.size()="<<availableDrivers.size()<<
+		", driverSchedules.size()="<<driverSchedules.size()<<". They should be equal";
+		throw std::runtime_error(msg.str());
+	}
+#endif
 }
 
 void OnCallController::driverAvailable(Person *driver)
@@ -125,11 +164,13 @@ void OnCallController::HandleMessage(messaging::Message::MessageType type, const
 	{
 		const TripRequestMessage &requestArgs = MSG_CAST(TripRequestMessage, message);
 
-		ControllerLog() << "Request received by the controller from " << requestArgs.userId << " at time "
-		                << currTick.frame() << ". Message was sent at "
-		                << requestArgs.timeOfRequest.frame() << " with startNodeId " << requestArgs.startNodeId
-		                << ", destinationNodeId "
-		                << requestArgs.destinationNodeId << ", and driverId not_yet_assigned" << std::endl;
+		ControllerLog() << "Request received by the controller: "<< requestArgs<<". This request is received at "<<
+				currTick<<std::endl;
+
+#ifndef NDEBUG
+		if (currTick < requestArgs.timeOfRequest)
+			throw std::runtime_error("Request received before it was issed: impossible");
+#endif
 
 		/*
 		TripRequest r; r.currTick=requestArgs.currTick; r.userId = requestArgs.personId;
@@ -189,7 +230,7 @@ void OnCallController::HandleMessage(messaging::Message::MessageType type, const
 }
 
 
-void OnCallController::assignSchedule(const Person *driver, Schedule schedule)
+void OnCallController::assignSchedule(const Person *driver, const Schedule& schedule)
 {
 	MessageBus::PostMessage((MessageHandler *) driver, MSG_SCHEDULE_PROPOSITION, MessageBus::MessagePtr(
 			new SchedulePropositionMessage(currTick, schedule)));
@@ -203,7 +244,7 @@ void OnCallController::assignSchedule(const Person *driver, Schedule schedule)
 	}
 #endif
 
-	driverSchedules.emplace(driver,schedule);
+	driverSchedules[driver]=schedule;
 }
 
 bool OnCallController::isCruising(Person *driver) const
@@ -219,7 +260,7 @@ bool OnCallController::isCruising(Person *driver) const
 	return false;
 }
 
-const Node *OnCallController::getCurrentNode(Person *driver) const
+const Node *OnCallController::getCurrentNode(const Person *driver) const
 {
 	MobilityServiceDriver *currDriver = driver->exportServiceDriver();
 	if (currDriver)
@@ -344,7 +385,7 @@ double  OnCallController::evaluateSchedule(const Node* initialPosition, const Sc
 	return travelTime;
 }
 
-double OnCallController::computeOptimalSchedule(const Node* initialNode, const Schedule currentSchedule,
+double OnCallController::computeOptimalSchedule(const Node* initialNode, const Schedule& currentSchedule,
 		const std::vector<TripRequestMessage>& additionalRequests,
 		Schedule& newSchedule) const
 {
@@ -372,6 +413,16 @@ double OnCallController::computeOptimalSchedule(const Node* initialNode, const S
 			travelTime = tempTravelTime; newSchedule = tempSchedule;
 		}
 	} while (std::next_permutation(tempSchedule.begin(), tempSchedule.end() ) );
+
+#ifndef NDEBUG
+	ControllerLog()<<"Current schedule: ";
+	for (const ScheduleItem& item : currentSchedule) ControllerLog()<< item<<",";
+	ControllerLog()<<". Trying to add requests [";
+	for (const TripRequestMessage& request : additionalRequests) ControllerLog()<<request;
+	ControllerLog()<<". The optimal schedule is ";
+	for (const ScheduleItem& item : newSchedule) ControllerLog()<< item<<",";
+	ControllerLog()<<std::endl;
+#endif
 
 	return travelTime;
 }

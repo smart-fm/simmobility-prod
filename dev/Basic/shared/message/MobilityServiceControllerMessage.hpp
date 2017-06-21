@@ -251,3 +251,4 @@ public:
 }
 
 
+std::ostream& operator<<(std::ostream& strm, const sim_mob::TripRequestMessage& request);

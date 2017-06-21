@@ -75,3 +75,9 @@ namespace sim_mob
 
 
 
+std::ostream& operator<<(std::ostream& strm, const sim_mob::TripRequestMessage& request)
+{
+	return strm << "request issued by "<<request.userId<< " at " << request.timeOfRequest<<
+			" to go from node "<< request.startNodeId <<
+			", to node "<< request.destinationNodeId;
+}

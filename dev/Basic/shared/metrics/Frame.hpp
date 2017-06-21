@@ -96,3 +96,4 @@ private:
 	;
 };
 
+std::ostream& operator<<(std::ostream& strm, const timeslice& ts);

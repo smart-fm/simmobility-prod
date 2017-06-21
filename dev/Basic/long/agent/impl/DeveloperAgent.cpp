@@ -152,7 +152,7 @@ inline BigSerial getBuildingTypeFromUnitType(BigSerial unitTypeId)
 	else return 0;
 }
 
-inline void calculateProjectProfit(PotentialProject& project,DeveloperModel* model,int &currTick, int &quarter)
+inline void calculateProjectProfit(PotentialProject& project,DeveloperModel* model,int &currTick, int &quarter, HM_Model *housingModel)
 {
 	std::vector<PotentialUnit>& units = project.getUnits();
 
@@ -193,7 +193,7 @@ inline void calculateProjectProfit(PotentialProject& project,DeveloperModel* mod
 
 		}
 
-		if(model->getScenario().compare("ToaPayohScenario") == 0)
+		if(model->getScenario().compare("ToaPayohScenario") == 0 && (housingModel->isStudyAreaTaz(tazId)))
 		{
 			logsum += hedonicLogsumStdDevForTpScenario;
 		}
@@ -354,7 +354,7 @@ inline void calculateProjectProfit(PotentialProject& project,DeveloperModel* mod
 			double distanceToBus = amenities->getDistanceToBus();
 			double distanceToMRT = amenities->getDistanceToMRT();
 
-			if(model->getScenario().compare("ToaPayohScenario") == 0)
+			if(model->getScenario().compare("ToaPayohScenario") == 0 && (housingModel->isStudyAreaTaz(tazId)))
 			{
 				distanceToMall = distanceToMall/2.0;
 				distanceToPMS30 = distanceToPMS30/2.0;
@@ -556,10 +556,13 @@ inline void createPotentialUnits(PotentialProject& project,const DeveloperModel*
      * @param model Developer model.
      * @param outProjects (out parameter) list to receive all projects;
      */
-    inline void createPotentialProjects(BigSerial parcelId, DeveloperModel* model, PotentialProject& outProject,int quarter,std::tm &currentDate, int currentTick)
+    inline void createPotentialProjects(BigSerial parcelId, DeveloperModel* model, PotentialProject& outProject,int quarter,std::tm &currentDate, int currentTick, HM_Model *housingModel)
     {
         const DeveloperModel::DevelopmentTypeTemplateList& devTemplates = model->getDevelopmentTypeTemplates();
         const DeveloperModel::TemplateUnitTypeList& unitTemplates = model->getTemplateUnitType();
+        const int condoType = 2;
+        const int apartmentType = 1;
+        const int minLotSizeForCondo = 4000;
         /**
          *  Iterates over all development type templates and
          *  get all potential projects which have a density <= GPR.
@@ -572,6 +575,9 @@ inline void createPotentialUnits(PotentialProject& project,const DeveloperModel*
 
                 for (it = devTemplates.begin(); it != devTemplates.end(); it++)
                 {
+                	//limit the condo to parcels with min lot size of 4000 sqm and apartments to parcels less than 4000 sqm.
+                	if( ((*it)->getDevelopmentTypeId() == condoType && parcel->getLotSize() >= minLotSizeForCondo) || ((*it)->getDevelopmentTypeId() == apartmentType && parcel->getLotSize() < minLotSizeForCondo))
+                	{
                 	if ((*it)->getLandUseTypeId() == parcel->getLandUseTypeId())
 
                     {
@@ -579,7 +585,7 @@ inline void createPotentialUnits(PotentialProject& project,const DeveloperModel*
                 		addUnitTemplates(project, unitTemplates);
                 		createPotentialUnits(project,model);
 
-                        calculateProjectProfit(project,model,currentTick,quarter);
+                        calculateProjectProfit(project,model,currentTick,quarter,housingModel);
 
                         int newDevelopment = 0;
                         if(model->isEmptyParcel(parcel->getId()))
@@ -607,6 +613,9 @@ inline void createPotentialUnits(PotentialProject& project,const DeveloperModel*
                         }
                     }
                 }
+
+                }
+
 
                 if(projects.size()>0)
                 {
@@ -691,7 +700,7 @@ Entity::UpdateStatus DeveloperAgent::onFrameTick(timeslice now) {
     	{
     		int quarter = ((currentDate.tm_mon)/4) + 1;
     		PotentialProject project;
-    		createPotentialProjects(this->parcel->getId(),devModel,project,quarter,currentDate,currentTick);
+    		createPotentialProjects(this->parcel->getId(),devModel,project,quarter,currentDate,currentTick,housingMarketModel);
     		if(project.getUnits().size()>0)
     		{
     			std::vector<PotentialUnit>::iterator unitsItr;

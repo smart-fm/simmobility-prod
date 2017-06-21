@@ -131,7 +131,11 @@ void sim_mob::medium::Passenger::collectTravelTime()
 
 	messaging::MessageBus::PostMessage(PT_Statistics::getInstance(),
 			STORE_PERSON_TRAVEL_TIME, messaging::MessageBus::MessagePtr(new PersonTravelTimeMessage(personTravelTime)), true);
-	collectWalkingTime();
+
+	if(roleType == Role<Person_MT>::RL_TRAINPASSENGER)
+	{
+		collectWalkingTime();
+	}
 }
 
 void sim_mob::medium::Passenger::collectWalkingTime()

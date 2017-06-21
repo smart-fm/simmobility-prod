@@ -74,6 +74,7 @@ void PedestrianMovement::frame_init()
 	else if(subTrip.isTT_Walk)
 	{
 		isOnDemandTraveler = false;
+		Person_MT *person = parentPedestrian->getParent();
 
 		if (subTrip.origin.type == WayPoint::NODE && subTrip.destination.type == WayPoint::NODE)
 		{
@@ -82,7 +83,6 @@ void PedestrianMovement::frame_init()
 
 			if (MobilityServiceControllerManager::HasMobilityServiceControllerManager())
 			{
-				Person_MT *person = parentPedestrian->getParent();
 				std::vector<SubTrip>::iterator subTripItr = person->currSubTrip;
 
 				if ((*subTripItr).travelMode == "TravelPedestrian" && subTrip.origin.node == subTrip.destination.node)
@@ -96,7 +96,6 @@ void PedestrianMovement::frame_init()
 					                << ", destinationNodeId " << taxiEndNodeId
 					                << ", and driverId not_yet_assigned" << std::endl;
 
-					Conflux* startConflux = this->getStartConflux();
 					auto controllers = MobilityServiceControllerManager::GetInstance()->getControllers();
 					unsigned int randomController = Utils::generateInt(0, controllers.size() - 1);
 					auto itControllers = controllers.begin();
@@ -108,12 +107,6 @@ void PedestrianMovement::frame_init()
 							                                                          person->getDatabaseId(),
 							                                                          taxiStartNodeId, taxiEndNodeId,
 							                                                          0)));
-
-					if (startConflux)
-					{
-						messaging::MessageBus::PostMessage(startConflux, MSG_TRAVELER_TRANSFER,
-						                                   messaging::MessageBus::MessagePtr(new PersonMessage(person)));
-					}
 				}
 			}
 		}
@@ -134,6 +127,14 @@ void PedestrianMovement::frame_init()
 					travelPath.push(item);
 				}
 			}
+		}
+
+		Conflux* startConflux = this->getStartConflux();
+
+		if (startConflux)
+		{
+			messaging::MessageBus::PostMessage(startConflux, MSG_TRAVELER_TRANSFER,
+			                                   messaging::MessageBus::MessagePtr(new PersonMessage(person)));
 		}
 	}
 	else // both origin and destination must be nodes
@@ -246,18 +247,17 @@ std::string PedestrianMovement::frame_tick_output()
 
 Conflux* PedestrianMovement::getStartConflux() const
 {
-	if (parentPedestrian->roleType
-			== Role < Person_MT > ::RL_TRAVELPEDESTRIAN && travelPath.size()>0)
+	if (parentPedestrian->roleType == Role<Person_MT>::RL_TRAVELPEDESTRIAN && travelPath.size() > 0)
 	{
-		const TravelTimeAtNode& front = travelPath.front();
+		const TravelTimeAtNode &front = travelPath.front();
 		return MT_Config::getInstance().getConfluxForNode(front.node);
 	}
-	else if(parentPedestrian->roleType
-			== Role < Person_MT > ::RL_TRAVELPEDESTRIAN && isOnDemandTraveler)
+	else if (parentPedestrian->roleType == Role<Person_MT>::RL_TRAVELPEDESTRIAN && isOnDemandTraveler)
 	{
-		SubTrip& subTrip = *(parentPedestrian->parent->currSubTrip);
+		SubTrip &subTrip = *(parentPedestrian->parent->currSubTrip);
 		return MT_Config::getInstance().getConfluxForNode(subTrip.origin.node);
 	}
+
 	return nullptr;
 }
 

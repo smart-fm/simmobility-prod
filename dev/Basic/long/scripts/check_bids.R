@@ -1,5 +1,5 @@
 rm(list=ls())
-setwd("Z:\\Dropbox\\experiment\\synthetic_pop\\simmobility\\task\\checking\\simulation")
+#setwd("Z:\\Dropbox\\experiment\\synthetic_pop\\simmobility\\task\\checking\\simulation")
 #setwd("~/Dropbox/experiment/synthetic_pop/simmobility/task/checking/simulation")
 #install.packages("ggplot2")
 library('ggplot2')

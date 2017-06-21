@@ -10,26 +10,26 @@
 #include <vector>
 
 #include "entities/Agent.hpp"
-#include "entities/controllers/MobilityServiceController.hpp"
+#include "OnCallController.hpp"
 
 namespace sim_mob
 {
 
-class SharedController : public MobilityServiceController {
+class SharedController : public OnCallController {
 public:
 	explicit SharedController(const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered,
-		unsigned int computationPeriod = 0) : MobilityServiceController(mtxStrat, computationPeriod)
+		unsigned int computationPeriod=0) : OnCallController(mtxStrat, computationPeriod)
 	{
 	}
 
 protected:
-	bool isCruising(Person* p);
-	const Node* getCurrentNode(Person* p);
+	virtual bool isCruising(Person* p);
+	virtual const Node* getCurrentNode(Person* p);
 
 	/**
 	 * Performs the controller algorithm to assign vehicles to requests
 	 */
-	void computeSchedules();
+	virtual void computeSchedules();
 };
 }
 #endif /* SharedController_HPP_ */

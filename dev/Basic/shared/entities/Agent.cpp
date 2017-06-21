@@ -34,7 +34,6 @@ using namespace sim_mob;
 using namespace sim_mob::event;
 using namespace sim_mob::messaging;
 
-class MobilityServiceController;
 
 
 typedef Entity::UpdateStatus UpdateStatus;

@@ -10,7 +10,7 @@
 #include <vector>
 
 #include "entities/Agent.hpp"
-#include "entities/controllers/MobilityServiceController.hpp"
+#include "OnCallController.hpp"
 
 namespace sim_mob
 {
@@ -22,11 +22,7 @@ public:
 	{
 	}
 
-protected:
-	/**
-	 * Performs the controller algorithm to assign vehicles to requests
-	 */
-	void computeSchedules();
+	~OnHailTaxiController(){};
 };
 }
 #endif /* OnHailTaxiController_HPP_ */

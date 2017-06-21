@@ -12,7 +12,7 @@
 
 #include "entities/Agent.hpp"
 #include "message/Message.hpp"
-#include "MobilityServiceController.hpp"
+#include "OnCallController.hpp"
 
 namespace sim_mob
 {
@@ -54,15 +54,17 @@ public:
 	 */
 	bool addMobilityServiceController(MobilityServiceControllerType type, unsigned int scheduleComputationPeriod);
 
-	/**
-	 * Signals are non-spatial in nature.
-	 */
-	bool isNonspatial();
 
 	/**
 	 * Returns a list of enabled controllers
 	 */
 	const std::multimap<MobilityServiceControllerType, MobilityServiceController*>& getControllers();
+
+
+	/**
+	 * Inherited.
+	 */
+	virtual bool isNonspatial();
 
 protected:
 	explicit MobilityServiceControllerManager(const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered) :

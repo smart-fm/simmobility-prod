@@ -1432,7 +1432,7 @@ void HM_Model::setTaxiAccess2012(const Household *household)
 
 void HM_Model::startImpl()
 {
-	PredayLT_LogsumManager::getInstance();
+	//PredayLT_LogsumManager::getInstance();
 
 
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
@@ -3356,9 +3356,23 @@ void  HM_Model::loadStudyAreas(DB_Connection &conn)
 	{
 		StudyArea* stdArea = new StudyArea(*itStudyArea);
 		studyAreas.push_back(stdArea);
+		studyAreasByTazId.insert(std::make_pair(stdArea->getFmTazId(), stdArea));
 	}
 
 	PrintOutV("Number of Study Area rows: " << studyAreas.size() << std::endl );
+}
+
+bool HM_Model::isStudyAreaTaz(BigSerial tazId)
+{
+	StudyAreaMap::const_iterator itr = studyAreasByTazId.find(tazId);
+
+		if (itr != studyAreasByTazId.end())
+		{
+			return true;
+		}
+
+		return false;
+
 }
 
 void HM_Model::stopImpl()

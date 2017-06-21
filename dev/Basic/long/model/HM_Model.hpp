@@ -204,6 +204,7 @@ namespace sim_mob
             typedef boost::unordered_map<string, SlaBuilding*> SlaBuildingMap;
 
             typedef std::vector<StudyArea*> StudyAreaList;
+            typedef boost::unordered_map<BigSerial, StudyArea*> StudyAreaMap;
 
             /**
              * Taz statistics
@@ -458,6 +459,7 @@ namespace sim_mob
 
             void  loadLTVersion(DB_Connection &conn);
             void  loadStudyAreas(DB_Connection &conn);
+            bool isStudyAreaTaz(BigSerial tazId);
 
 
         protected:
@@ -651,6 +653,7 @@ namespace sim_mob
 			SlaBuildingMap	slaBuildingById;
 
 			StudyAreaList studyAreas;
+			StudyAreaMap studyAreasByTazId;
         };
     }
 }

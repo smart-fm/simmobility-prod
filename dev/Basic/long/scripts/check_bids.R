@@ -162,7 +162,7 @@ draw_buyer <- function(df.bids,pth.figure,ext.title,ext.file,pre.file='buyer_'){
 
 ###------ Main Function ------###
 
-pth.results = "./Results/0619/Release/"
+pth.results = "./Release/"
 pth.figure = paste0(pth.results,'/figure/')
 dir.create((pth.figure))
 doc.bids = "bids.csv"

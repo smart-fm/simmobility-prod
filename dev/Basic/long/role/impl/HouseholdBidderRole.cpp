@@ -852,13 +852,15 @@ bool HouseholdBidderRole::pickEntryToBid()
 
 void HouseholdBidderRole::computeBidValueLogistic( double price, double wp, double &finalBid, double &finalSurplus )
 {
+	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+
 	const double sigma = 1.0;
 	const double mu    = 0.0;
 
 	double lowerBound = -5.0;
 	double upperBound =  5.0;
-	double a = 0.6;
-	double b = 1.05;
+	double a = config.ltParams.housingModel.hedonicPriceModel.a;
+	double b = config.ltParams.housingModel.hedonicPriceModel.b;
 	double w = wp / price;
 	const int MAX_ITERATIONS = 50;
 

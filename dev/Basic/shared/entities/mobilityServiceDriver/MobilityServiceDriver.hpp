@@ -11,6 +11,8 @@ namespace sim_mob {
 class Node;
 class MobilityServiceDriver {
 public:
+
+
 	enum ServiceStatus
 	{
 		SERVICE_UNKNOWN = 0,
@@ -22,7 +24,7 @@ public:
 	 * the interface function to get current driver status
 	 * @return current status
 	 */
-	virtual ServiceStatus getServiceStatus() = 0;
+	virtual ServiceStatus getServiceStatus() const = 0;
 	/**
 	 * the interface function to get current node
 	 * @return current node.

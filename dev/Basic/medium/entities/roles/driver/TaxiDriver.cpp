@@ -42,7 +42,7 @@ bool TaxiDriver::addPassenger(Passenger *passenger)
 	return false;
 }
 
-MobilityServiceDriver::ServiceStatus TaxiDriver::getServiceStatus()
+MobilityServiceDriver::ServiceStatus TaxiDriver::getServiceStatus() const
 {
 	if(getDriverMode()==CRUISE)
 	{
@@ -60,7 +60,7 @@ const Node *TaxiDriver::getCurrentNode() const
 	return nullptr;
 }
 
-MobilityServiceDriver *TaxiDriver::exportServiceDriver()
+const MobilityServiceDriver *TaxiDriver::exportServiceDriver() const
 {
 	return this;
 }
@@ -148,7 +148,7 @@ void TaxiDriver::HandleParentMessage(messaging::Message::MessageType type, const
 #endif
 
 				ControllerLog() << "Assignment received for " << request<<". This assignment is received by driver "<<
-						this->getParent()->getDatabaseId() << " at time "<<parent->currTick.frame() << std::endl;
+						this->getParent()->getDatabaseId() << " at time "<<parent->currTick << std::endl;
 
 				const std::map<unsigned int, Node *> &nodeIdMap = RoadNetwork::getInstance()->getMapOfIdvsNodes();
 

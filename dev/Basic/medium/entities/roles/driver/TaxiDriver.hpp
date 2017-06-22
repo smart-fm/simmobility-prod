@@ -49,7 +49,7 @@ public:
 	 * get current driver status
 	 * @return status value
 	 */
-	MobilityServiceDriver::ServiceStatus getServiceStatus();
+	MobilityServiceDriver::ServiceStatus getServiceStatus() const;
 
 	/**
 	 * get current Node
@@ -132,7 +132,7 @@ public:
 	 * export service driver
 	 * @return exporting result
 	 */
-	virtual MobilityServiceDriver *exportServiceDriver();
+	virtual const MobilityServiceDriver *exportServiceDriver() const;
 
 private:
 	/**hold passenger object*/

@@ -81,3 +81,29 @@ std::ostream& operator<<(std::ostream& strm, const sim_mob::TripRequestMessage& 
 			" to go from node "<< request.startNodeId <<
 			", to node "<< request.destinationNodeId;
 }
+
+std::ostream& operator<<(std::ostream& strm, const sim_mob::ScheduleItem& item)
+{
+	strm << "ScheduleItem ";
+	switch (item.scheduleItemType)
+	{
+		case (sim_mob::ScheduleItemType::PICKUP):
+		{
+			strm<<"PICKUP of "<< item.tripRequest;
+			break;
+		}
+		case (sim_mob::ScheduleItemType::DROPOFF):
+		{
+			strm<<"DROPOFF of "<<item.tripRequest;
+			break;
+		}
+		case (sim_mob::ScheduleItemType::CRUISE):
+		{
+			strm<<"CRUISE to taz "<<item.tazToCruiseTo;
+			break;
+		}
+		default:{throw std::runtime_error("unrecognized schedule item type");}
+	};
+	return strm;
+}
+

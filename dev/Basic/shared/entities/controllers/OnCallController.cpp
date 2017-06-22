@@ -31,7 +31,17 @@ void OnCallController::subscribeDriver(Person *driver)
 {
 	MobilityServiceController::subscribeDriver(driver);
 	availableDrivers.push_back(driver);
+#ifndef NDEBUG
+	if (driverSchedules.find(driver) != driverSchedules.end() )
+		throw std::runtime_error("Trying to subscribe a driver already subscribed");
+#endif
 	driverSchedules.emplace(driver, Schedule() );
+
+#ifndef NDEBUG
+	ControllerLog()<<"Subscription received by the controller from driver "<<driver->getDatabaseId() <<
+			", subscribedDrivers.size()="<< subscribedDrivers.size()<<", availableDrivers.size()="<< availableDrivers.size() <<
+			", driverSchedules.size()="<< driverSchedules.size() << std::endl;
+#endif
 }
 
 void OnCallController::unsubscribeDriver(Person *driver)
@@ -62,6 +72,7 @@ void OnCallController::unsubscribeDriver(Person *driver)
 	}
 #endif
 
+	ControllerLog() << "Unsubscription of driver " << driver->getDatabaseId() <<" at time "<< currTick<< std::endl;
 
 	driverSchedules.erase(driver);
 
@@ -236,7 +247,14 @@ void OnCallController::assignSchedule(const Person *driver, const Schedule& sche
 			new SchedulePropositionMessage(currTick, schedule)));
 
 #ifndef NDEBUG
-	if (driverSchedules.find(driver) != driverSchedules.end() )
+	if (driverSchedules.find(driver) == driverSchedules.end() )
+	{
+		std::stringstream msg; msg <<"Assigning a schedule to driver "<< driver->getDatabaseId() <<
+			" who is not present in the driverSchedules map. Impossible.";
+		throw std::runtime_error(msg.str() );
+	}
+
+	if ( ! driverSchedules[driver].empty()  )
 	{
 		std::stringstream msg; msg<<"Trying to assign a schedule to driver "<< driver->getDatabaseId() << " who already has one."<<
 		" If you are using the greedy controller, this is not possible. Otherwise, please disable this error";
@@ -249,7 +267,7 @@ void OnCallController::assignSchedule(const Person *driver, const Schedule& sche
 
 bool OnCallController::isCruising(Person *driver) const
 {
-	MobilityServiceDriver *currDriver = driver->exportServiceDriver();
+	const MobilityServiceDriver *currDriver = driver->exportServiceDriver();
 	if (currDriver)
 	{
 		if (currDriver->getServiceStatus() == MobilityServiceDriver::SERVICE_FREE)
@@ -257,12 +275,16 @@ bool OnCallController::isCruising(Person *driver) const
 			return true;
 		}
 	}
+#ifndef NDEBUG
+	else throw std::runtime_error("Error in getting the MobilityServiceDriver");
+#endif
+
 	return false;
 }
 
 const Node *OnCallController::getCurrentNode(const Person *driver) const
 {
-	MobilityServiceDriver *currDriver = driver->exportServiceDriver();
+	const MobilityServiceDriver *currDriver = driver->exportServiceDriver();
 	if (currDriver)
 	{
 		const Node *currentNode = currDriver->getCurrentNode();
@@ -277,7 +299,11 @@ const Person *OnCallController::findClosestDriver(const Node *node) const
 	double bestX, bestY;
 
 	Person *bestDriver = NULL;
-	auto driver = availableDrivers.begin();
+	std::vector<Person*>::const_iterator driver = availableDrivers.begin();
+
+#ifndef NDEBUG
+	unsigned nonCruisingDrivers = 0;
+#endif
 
 	while (driver != availableDrivers.end())
 	{
@@ -294,16 +320,43 @@ const Person *OnCallController::findClosestDriver(const Node *node) const
 				bestY = driverNode->getPosY();
 			}
 		}
+#ifndef NDEBUG
+		else{
+			nonCruisingDrivers++;
+
+			(*driver)->
+			const std::string driverMode;
+			std::stringstream msg; msg<<"Driver " << (*driver)->getDatabaseId() <<" is among the available drivers but she is not cruising."<<
+				" In the scenarios where a driver subscribed to an OnCall service is only subscribed to that service, "<<
+					"ALL the available drivers MUST be cruising. If it is not the case, there is a bug. If you are running a more complex scenario, where a driver can be "
+					<<"subscribed to different services at the same time, please remove this exception, compile and run again";
+			throw std::runtime_error(msg.str() );
+		}
+#endif
 		driver++;
 	}
 
+	std::stringstream msg;
 	if (bestDriver != NULL)
 	{
-		ControllerLog() << "Closest vehicle is at (" << bestX << ", " << bestY << ")" << std::endl;
+		msg << "Closest vehicle is at (" << bestX << ", " << bestY << ")" << std::endl;
 	}
 	else
 	{
-		ControllerLog() << "No available driver" << std::endl;
+		msg << "No available driver, availableDrivers.size()="<<availableDrivers.size();
+#ifndef NDEBUG
+		msg <<", cruisingDrivers="<<nonCruisingDrivers;
+#endif
+		ControllerLog()<< msg.str() << std::endl;
+#ifndef NDEBUG
+		if (! availableDrivers.empty() )
+		{
+			msg<<". In the scenarios where a driver subscribed to an OnCall service is only subscribed to that service, "<<
+			"ALL the available drivers MUST be cruising. If it is not the case, there is a bug. If you are running a more complex scenario, where a driver can be "
+			<<"subscribed to different services at the same time, please remove this exception, compile and run again";
+			throw std::runtime_error(msg.str() );
+		}
+#endif
 	}
 
 	return bestDriver;

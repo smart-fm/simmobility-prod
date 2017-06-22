@@ -78,6 +78,7 @@ public:
 
 	DriverMode driverMode;
 	const DriverMode & getDriveMode() const;
+	const std::string getDriveModeStr() const;
 	void setDriveMode(const DriverMode &driveMode);
 	//to be moved to a DriverUpdateParam later
 	const Lane* currLane;

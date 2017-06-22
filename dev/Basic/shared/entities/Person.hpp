@@ -357,7 +357,7 @@ public:
      * generic interface to export service driver.
      * return empty which is default value.
      */
-    virtual MobilityServiceDriver* exportServiceDriver() const
+    virtual const MobilityServiceDriver* exportServiceDriver() const
     {
         return nullptr;
     }

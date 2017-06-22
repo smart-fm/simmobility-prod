@@ -403,7 +403,7 @@ void SharedController::computeSchedules()
 
 bool SharedController::isCruising(Person* p)
 {
-    MobilityServiceDriver* currDriver = p->exportServiceDriver();
+    const MobilityServiceDriver* currDriver = p->exportServiceDriver();
     if (currDriver) 
     {
         if (currDriver->getServiceStatus() == MobilityServiceDriver::SERVICE_FREE) 
@@ -416,7 +416,7 @@ bool SharedController::isCruising(Person* p)
 
 const Node* SharedController::getCurrentNode(Person* p)
 {
-    MobilityServiceDriver* currDriver = p->exportServiceDriver();
+    const MobilityServiceDriver* currDriver = p->exportServiceDriver();
     if (currDriver) 
     {
         return currDriver->getCurrentNode();

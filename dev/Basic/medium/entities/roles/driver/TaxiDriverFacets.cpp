@@ -315,6 +315,15 @@ bool TaxiDriverMovement::checkNextFleet()
 				addRouteChoicePath(currentRouteChoice);
 				parentTaxiDriver->parent->setDatabaseId(currentFleetItem.driverId);
 				parentTaxiDriver->setTaxiDriveMode(DRIVE_FOR_DRIVER_CHANGE_SHIFT);
+
+				if (MobilityServiceControllerManager::HasMobilityServiceControllerManager())
+				{
+					for (auto it = subscribedControllers.begin(); it != subscribedControllers.end(); ++it)
+					{
+						MessageBus::SendMessage(*it, MSG_DRIVER_UNSUBSCRIBE, MessageBus::MessagePtr(
+								new DriverUnsubscribeMessage(parentTaxiDriver->getParent())));
+					}
+				}
 			}
 		}
 	}

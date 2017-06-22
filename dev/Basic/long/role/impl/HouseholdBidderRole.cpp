@@ -577,7 +577,7 @@ bool HouseholdBidderRole::pickEntryToBid()
     market->getAvailableEntries(entries);
 
     const HousingMarket::Entry* maxEntry = nullptr;
-    double maxSurplus = 0; // holds the wp of the entry with maximum surplus.
+    double maxSurplus = INT_MIN; // holds the wp of the entry with maximum surplus.
     double finalBid = 0;
     double maxWp	= 0;
     double maxWtpe  = 0;
@@ -624,6 +624,10 @@ bool HouseholdBidderRole::pickEntryToBid()
 
     	auto range = market->getunitsByZoneHousingType().equal_range( zoneHousingType  );
     	int numUnits = distance(range.first, range.second); //find the number of units in the above zoneHousingType
+
+    	if(numUnits < config.ltParams.housingModel.bidderUnitsChoiceSet)
+    		continue;
+
 
     	if( numUnits == 0 )
     		continue;
@@ -854,7 +858,6 @@ bool HouseholdBidderRole::pickEntryToBid()
 
 void HouseholdBidderRole::computeBidValueLogistic( double price, double wp, double &finalBid, double &finalSurplus )
 {
-	mtx.lock();
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 
 	const double sigma = 1.0;
@@ -898,8 +901,6 @@ void HouseholdBidderRole::computeBidValueLogistic( double price, double wp, doub
 
 	finalBid     = price * incrementScaledMax;
 	finalSurplus = ( w - incrementScaledMax ) * price;
-
-	mtx.unlock();
 }
 
 void HouseholdBidderRole::setMoveInWaitingTimeInDays(int days)

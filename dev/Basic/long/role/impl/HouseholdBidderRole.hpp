@@ -159,8 +159,6 @@ namespace sim_mob
         	uint32_t day;
         	int year;
 
-        	boost::mutex mtx;
-
             enum EthnicityId
             {
             	CHINESE = 1, MALAY, INDIAN, OTHERS

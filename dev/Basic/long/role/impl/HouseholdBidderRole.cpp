@@ -811,12 +811,14 @@ bool HouseholdBidderRole::pickEntryToBid()
             		{
             			computeBidValueLogistic( entry->getAskingPrice(), wp, currentBid, currentSurplus );
 
+            			/*
             			//If you can't find the optimal bid, just bid the asking price.
             			if( currentBid == 0)
             			{
 							currentBid = entry->getAskingPrice();
 							currentSurplus = wp - entry->getAskingPrice();
             			}
+            			*/
             		}
             	}
             	else
@@ -852,6 +854,7 @@ bool HouseholdBidderRole::pickEntryToBid()
 
 void HouseholdBidderRole::computeBidValueLogistic( double price, double wp, double &finalBid, double &finalSurplus )
 {
+	mtx.lock();
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 
 	const double sigma = 1.0;
@@ -868,7 +871,7 @@ void HouseholdBidderRole::computeBidValueLogistic( double price, double wp, doub
 	double increment = (upperBound - lowerBound) / MAX_ITERATIONS;
 	double m = lowerBound;
 
-	double  expectedSurplusMax = 0;
+	double  expectedSurplusMax = INT_MIN;
 	double incrementScaledMax  = 0;
 
 	for (int n = 0; n <= MAX_ITERATIONS; n++ )
@@ -886,10 +889,17 @@ void HouseholdBidderRole::computeBidValueLogistic( double price, double wp, doub
 		}
 
 		m += increment;
+
+
 	}
+
+	if( incrementScaledMax < 0.8 || incrementScaledMax > 1.15)
+		cout << " incremenScaled " << incrementScaledMax << endl;
 
 	finalBid     = price * incrementScaledMax;
 	finalSurplus = ( w - incrementScaledMax ) * price;
+
+	mtx.unlock();
 }
 
 void HouseholdBidderRole::setMoveInWaitingTimeInDays(int days)

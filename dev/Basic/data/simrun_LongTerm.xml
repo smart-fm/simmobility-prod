@@ -167,7 +167,7 @@
 		<parcelsTable value = "fm_parcel" /> <!-- in tp scenario : fm_parcel_scenario_toapayoh -->
 	</scenario>
 
-	<outputFiles enabled= 'true'>
+	<outputFiles enabled= 'false'>
                 <bids value= 'true' />
                 <expectations value= 'true'/>
                 <parcels value= 'true' />

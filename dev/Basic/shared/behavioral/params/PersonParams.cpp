@@ -276,3 +276,66 @@ const std::vector<long>& PersonParams::getAddressIdsInZone(int zoneCode) const
 	}
 	return znAddressIt->second;
 }
+
+void PersonParams::setAddressLookup(const sim_mob::Address& address)
+{
+    sim_mob::Address& lCurrAddress = addressLookup[address.getAddressId()];
+    lCurrAddress.setAddressId(address.getAddressId());
+    lCurrAddress.setPostcode(address.getPostcode());
+    lCurrAddress.setTazCode(address.getTazCode());
+    lCurrAddress.setDistanceMrt( address.getDistanceMrt());
+    lCurrAddress.setDistanceBus( address.getDistanceBus());
+
+}
+
+void PersonParams::removeInvalidAddress()
+{
+    std::map<long, sim_mob::Address>& addresses = addressLookup;
+    std::map<int, std::vector<long> >& zoneAdress = zoneAddresses;
+    std::map<unsigned int, unsigned int>& postCodeNodeMap = postCodeToNodeMapping;
+
+    for(std::map<long, sim_mob::Address>::const_iterator iter = addresses.begin(); iter != addresses.end();)
+    {
+        if (postCodeNodeMap.find(iter->second.getPostcode()) == postCodeNodeMap.end())
+        {
+            std::vector<long>& addressesInZone = zoneAdress.at(iter->second.getTazCode());
+            std::vector<long>::iterator removeItem = std::find(addressesInZone.begin(), addressesInZone.end(), iter->first);
+            if (removeItem != addressesInZone.end())
+            {
+                addressesInZone.erase(removeItem);
+            }
+
+            iter = addresses.erase(iter);
+        }
+        else
+        {
+            ++iter;
+        }
+    }
+}
+
+void PersonParams::clearAddressLookup()
+{
+    addressLookup.clear();
+}
+
+void PersonParams::clearZoneAddresses()
+{
+    zoneAddresses.clear();
+}
+
+void PersonParams::clearPostCodeNodeMap()
+{
+    postCodeToNodeMapping.clear();
+}
+
+void PersonParams::setZoneNodeAddressesMap(const sim_mob::Address& address)
+{
+    zoneAddresses[address.getTazCode()].push_back(address.getAddressId());
+}
+
+
+void PersonParams::setPostCodeNodeMap(const sim_mob::Address& address, const ZoneNodeParams& nodeId)
+{
+    postCodeToNodeMapping[address.getPostcode()] = nodeId.getNodeId();
+}

@@ -91,6 +91,12 @@ double HouseholdBidderRole::CurrentBiddingEntry::getBestBid() const
 	return bestBid;
 }
 
+void HouseholdBidderRole::CurrentBiddingEntry::setBestBid(double val)
+{
+	bestBid = val;
+}
+
+
 long int HouseholdBidderRole::CurrentBiddingEntry::getTries() const
 {
     return tries;
@@ -503,6 +509,12 @@ bool HouseholdBidderRole::bidUnit(timeslice now)
         PrintOutV("pickUnit for household " << getParent()->getId() << " is " << pickUnitTime << std::endl );
 		#endif
     }
+    else
+    {
+    	//we are now rebidding on the same unit as yesterday.
+    	//We will now increase the bid by 20 % of the difference of the bid and the AP
+    	biddingEntry.setBestBid( biddingEntry.getBestBid() + ( entry->getAskingPrice() - biddingEntry.getBestBid() ) * 0.2 );
+    }
     
     if (entry && biddingEntry.isValid())
     {
@@ -565,7 +577,7 @@ bool HouseholdBidderRole::pickEntryToBid()
     market->getAvailableEntries(entries);
 
     const HousingMarket::Entry* maxEntry = nullptr;
-    double maxSurplus = 0; // holds the wp of the entry with maximum surplus.
+    double maxSurplus = INT_MIN; // holds the wp of the entry with maximum surplus.
     double finalBid = 0;
     double maxWp	= 0;
     double maxWtpe  = 0;
@@ -591,7 +603,7 @@ bool HouseholdBidderRole::pickEntryToBid()
     if(householdScreeningProbabilities.size() > 0 )
     	printProbabilityList(household->getId(), householdScreeningProbabilities);
 
-	std::vector<const HousingMarket::Entry*> screenedEntries;
+	std::set<const HousingMarket::Entry*> screenedEntries;
 
     for(int n = 0; n < entries.size() && screenedEntries.size() < config.ltParams.housingModel.bidderUnitsChoiceSet; n++)
     {
@@ -612,6 +624,10 @@ bool HouseholdBidderRole::pickEntryToBid()
 
     	auto range = market->getunitsByZoneHousingType().equal_range( zoneHousingType  );
     	int numUnits = distance(range.first, range.second); //find the number of units in the above zoneHousingType
+
+    	if(numUnits < config.ltParams.housingModel.bidderUnitsChoiceSet)
+    		continue;
+
 
     	if( numUnits == 0 )
     		continue;
@@ -640,20 +656,20 @@ bool HouseholdBidderRole::pickEntryToBid()
 
 			if( thisUnit->getTenureStatus() == 1 && getParent()->getFutureTransitionOwn() == false ) //rented
 			{
-				std::vector<const HousingMarket::Entry*>::iterator screenedEntriesItr;
+				std::set<const HousingMarket::Entry*>::iterator screenedEntriesItr;
 				screenedEntriesItr = std::find(screenedEntries.begin(), screenedEntries.end(), entry );
 
 				if( screenedEntriesItr == screenedEntries.end() )
-					screenedEntries.push_back(entry);
+					screenedEntries.insert(entry);
 			}
 			else
 			if( thisUnit->getTenureStatus() == 2) //owner-occupied
 			{
-				std::vector<const HousingMarket::Entry*>::iterator screenedEntriesItr;
+				std::set<const HousingMarket::Entry*>::iterator screenedEntriesItr;
 				screenedEntriesItr = std::find(screenedEntries.begin(), screenedEntries.end(), entry );
 
 				if( screenedEntriesItr == screenedEntries.end() )
-					screenedEntries.push_back(entry);
+					screenedEntries.insert(entry);
 			}
         }
     }
@@ -664,7 +680,7 @@ bool HouseholdBidderRole::pickEntryToBid()
     	const HousingMarket::Entry *curEntry = market->getEntryById( uid );
 
     	if(curEntry != nullptr)
-    		screenedEntries.push_back( curEntry );
+    		screenedEntries.insert( curEntry );
     }
 
     {
@@ -680,7 +696,7 @@ bool HouseholdBidderRole::pickEntryToBid()
 
          	const HousingMarket::Entry* entry = market->getEntryById(*itr);
 
-        	screenedEntries.push_back(entry);
+        	screenedEntries.insert(entry);
 
         	btoEntries.erase(*itr);
         }
@@ -688,7 +704,10 @@ bool HouseholdBidderRole::pickEntryToBid()
     	std::string choiceset(" ");
     	for(int n = 0; n < screenedEntries.size(); n++)
     	{
-    		choiceset += std::to_string( screenedEntries[n]->getUnitId() )  + ", ";
+    		auto itr_scr = screenedEntries.begin();
+    		advance(itr_scr, n);
+
+    		choiceset += std::to_string( (*itr_scr)->getUnitId() )  + ", ";
     	}
 
     	printChoiceset(day, household->getId(), choiceset);
@@ -701,7 +720,9 @@ bool HouseholdBidderRole::pickEntryToBid()
     // This is done to replicate the real life scenario where a household will only visit a certain percentage of vacant units before settling on one.
     for(int n = 0; n < screenedEntries.size(); n++)
     {
-      	HousingMarket::ConstEntryList::const_iterator itr = screenedEntries.begin() + n;
+    	auto itr = screenedEntries.begin();
+    	advance(itr, n);
+
         const HousingMarket::Entry* entry = *itr;
 
         if( entry->getAskingPrice() < 0.01 )
@@ -744,6 +765,20 @@ bool HouseholdBidderRole::pickEntryToBid()
             	WillingnessToPaySubModel wtp_m;
             	double wp = wtp_m.CalculateWillingnessToPay(unit, household, wtp_e,day, model);
 
+
+
+
+            	{
+            		int unit_type = unit->getUnitType();
+
+            		UnitType *unitType = model->getUnitTypeById( unit_type );
+
+           			//(1-avg(wtp/hedonic)) * hedonic
+        			//We need to adjust the willingness to pay
+            		wp += entry->getHedonicPrice() * unitType->getWtpOffset();
+            	}
+
+
             	//wtp_e = wtp_e * entry->getAskingPrice(); //wtp error is a fraction of the asking price.
 
             	wp += wtp_e; // adjusted willingness to pay in millions of dollars
@@ -779,13 +814,6 @@ bool HouseholdBidderRole::pickEntryToBid()
             		else
             		{
             			computeBidValueLogistic( entry->getAskingPrice(), wp, currentBid, currentSurplus );
-
-            			//If you can't find the optimal bid, just bid the asking price.
-            			if( currentBid == 0)
-            			{
-							currentBid = entry->getAskingPrice();
-							currentSurplus = wp - entry->getAskingPrice();
-            			}
             		}
             	}
             	else
@@ -821,13 +849,15 @@ bool HouseholdBidderRole::pickEntryToBid()
 
 void HouseholdBidderRole::computeBidValueLogistic( double price, double wp, double &finalBid, double &finalSurplus )
 {
+	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+
 	const double sigma = 1.0;
 	const double mu    = 0.0;
 
 	double lowerBound = -5.0;
 	double upperBound =  5.0;
-	double a = 0.6;
-	double b = 1.05;
+	double a = config.ltParams.housingModel.hedonicPriceModel.a;
+	double b = config.ltParams.housingModel.hedonicPriceModel.b;
 	double w = wp / price;
 	const int MAX_ITERATIONS = 50;
 
@@ -835,7 +865,7 @@ void HouseholdBidderRole::computeBidValueLogistic( double price, double wp, doub
 	double increment = (upperBound - lowerBound) / MAX_ITERATIONS;
 	double m = lowerBound;
 
-	double  expectedSurplusMax = 0;
+	double  expectedSurplusMax = INT_MIN;
 	double incrementScaledMax  = 0;
 
 	for (int n = 0; n <= MAX_ITERATIONS; n++ )
@@ -853,7 +883,12 @@ void HouseholdBidderRole::computeBidValueLogistic( double price, double wp, doub
 		}
 
 		m += increment;
+
+
 	}
+
+	if( incrementScaledMax < 0.8 || incrementScaledMax > 1.15)
+		cout << " incremenScaled " << incrementScaledMax << endl;
 
 	finalBid     = price * incrementScaledMax;
 	finalSurplus = ( w - incrementScaledMax ) * price;

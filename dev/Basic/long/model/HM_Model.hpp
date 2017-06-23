@@ -72,6 +72,9 @@ namespace sim_mob
             typedef std::vector<Unit*> UnitList;
             typedef boost::unordered_map<BigSerial, Unit*> UnitMap;
 
+            typedef std::vector<UnitType*> UnitTypeList;
+            typedef boost::unordered_map<BigSerial, UnitType*> UnitTypeMap;
+
             typedef std::vector<Household*> HouseholdList;
             typedef boost::unordered_map<BigSerial, Household*> HouseholdMap;
 
@@ -204,6 +207,7 @@ namespace sim_mob
             typedef boost::unordered_map<string, SlaBuilding*> SlaBuildingMap;
 
             typedef std::vector<StudyArea*> StudyAreaList;
+            typedef std::multimap<string, StudyArea*>StudyAreaMultiMap;
 
             /**
              * Taz statistics
@@ -289,6 +293,7 @@ namespace sim_mob
              * Getters & Setters 
              */
             Unit* getUnitById(BigSerial id) const;
+            UnitType* getUnitTypeById(BigSerial id) const;
             BigSerial getUnitTazId(BigSerial unitId) const;
             BigSerial getUnitSlaAddressId(BigSerial unitId) const;
             BigSerial getEstablishmentTazId(BigSerial establishmentId) const;
@@ -459,6 +464,10 @@ namespace sim_mob
             void  loadLTVersion(DB_Connection &conn);
             void  loadStudyAreas(DB_Connection &conn);
 
+            StudyAreaList& getStudyAreas();
+            StudyAreaMultiMap& getStudyAreaByScenarioName();
+
+
 
         protected:
             /**
@@ -479,6 +488,9 @@ namespace sim_mob
             UnitList units; //residential only.
             UnitMap unitsById;
             std::multimap<BigSerial, Unit*> unitsByZoneHousingType;
+
+            UnitTypeList unitTypes; //residential only.
+            UnitTypeMap unitTypesById;
 
             StatsMap stats;
 
@@ -651,6 +663,7 @@ namespace sim_mob
 			SlaBuildingMap	slaBuildingById;
 
 			StudyAreaList studyAreas;
+			StudyAreaMultiMap  studyAreaByScenario;
         };
     }
 }

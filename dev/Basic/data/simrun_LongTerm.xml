@@ -135,8 +135,8 @@
 		    <awakenModelShan value="false"/>
 		    <awakenModelRandom value="false"/>
 		    <awakenModelJingsi value="true"/>	
-                    <awakeningOffMarketSuccessfulBid value="200"/>
- 	            <awakeningOffMarketUnsuccessfulBid value="200"/>
+                    <awakeningOffMarketSuccessfulBid value="210"/>
+ 	            <awakeningOffMarketUnsuccessfulBid value="210"/>
 	    </awakeningModel>
 	    <vacantUnitActivationProbability value="0.1875"/>
 	    <housingMarketSearchPercentage value="0.15"/>
@@ -144,9 +144,13 @@
 	    <bidderUnitsChoiceSet value = "50"/>
 	    <bidderBTOUnitsChoiceSet value = "10"/>
 	    <householdBiddingWindow value = "30" />
-	    <householdAwakeningPercentageByBTO value = "0.05" />
+	    <householdAwakeningPercentageByBTO value = "0.025" />
 	    <offsetBetweenUnitBuyingAndSelling value ="7"/>
             <offsetBetweenUnitBuyingAndSellingAdvancedPurchase value = "30" />
+	    <hedonicPriceModel enabled = "true">
+		<a value = "0.8"/>
+		<b value = "1.15"/>
+	    </hedonicPriceModel>
         </housingModel>
 	<vehicleOwnershipModel enabled='false'>
 		<vehicleBuyingWaitingTimeInDays value= "1"/>
@@ -157,14 +161,15 @@
 		<schoolChangeWaitingTimeInDays value ="1" />
 	</schoolAssignmentModel>
 
-	<scenario enabled= 'false'>
-                <!-- <name value="baseline" />-->
-		<name value="ToaPayohScenario"/> <!--right now we have baseline and tp scenario-->
+	<scenario enabled= 'true'>
+                <name value="baseline" />
+		<!-- <name value="ToaPayohScenario"/> --> <!--right now we have baseline and tp scenario-->
                 <scenarioSchema value = 'configuration2012.' />
-		<parcelsTable value = "fm_parcel_study_area" /> <!-- in tp scenario : fm_parcel_scenario_toapayoh -->
+		<parcelsTable value = "fm_parcel" /> 
+		<!-- <parcelsTable value = "fm_parcel_study_area" /> --> <!-- in tp scenario : fm_parcel_scenario_toapayoh -->
 	</scenario>
 
-	<outputFiles enabled= 'true'>
+	<outputFiles enabled= 'false'>
                 <bids value= 'true' />
                 <expectations value= 'true'/>
                 <parcels value= 'true' />

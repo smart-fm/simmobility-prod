@@ -15,6 +15,7 @@
 #include "database/DB_Connection.hpp"
 #include "database/dao/HouseholdDao.hpp"
 #include "database/dao/UnitDao.hpp"
+#include "database/dao/UnitTypeDao.hpp"
 #include "database/dao/IndividualDao.hpp"
 #include "database/dao/AwakeningDao.hpp"
 #include "database/dao/PostcodeDao.hpp"
@@ -457,6 +458,18 @@ Unit* HM_Model::getUnitById(BigSerial id) const
 	{
 		return (*itr).second;
 	}
+	return nullptr;
+}
+
+
+UnitType* HM_Model::getUnitTypeById(BigSerial id) const
+{
+	UnitTypeMap::const_iterator itr = unitTypesById.find(id);
+	if (itr != unitTypesById.end())
+	{
+		return (*itr).second;
+	}
+
 	return nullptr;
 }
 
@@ -1563,6 +1576,11 @@ void HM_Model::startImpl()
 		//Load units
 		loadData<UnitDao>(conn, units, unitsById, &Unit::getId);
 		PrintOutV("Number of units: " << units.size() << ". Units Used: " << units.size() << std::endl);
+
+
+		//Load units
+		loadData<UnitTypeDao>(conn, unitTypes, unitTypesById, &UnitType::getId);
+		PrintOutV("Number of unit types: " << unitTypes.size() << std::endl);
 
 		IndividualDao indDao(conn);
 		primarySchoolIndList = indDao.getPrimarySchoolIndividual(currentSimYear);
@@ -3342,6 +3360,16 @@ IndvidualEmpSec* HM_Model::getIndvidualEmpSecByIndId(BigSerial indId) const
 	return nullptr;
 }
 
+HM_Model::StudyAreaList& HM_Model::getStudyAreas()
+{
+	return studyAreas;
+}
+
+HM_Model::StudyAreaMultiMap& HM_Model::getStudyAreaByScenarioName()
+{
+	return studyAreaByScenario;
+}
+
 void  HM_Model::loadStudyAreas(DB_Connection &conn)
 {
 	soci::session sql;
@@ -3350,12 +3378,13 @@ void  HM_Model::loadStudyAreas(DB_Connection &conn)
 	std::string tableName = "study_area";
 
 	//SQL statement
-	soci::rowset<StudyArea> studyAreaObjs = (sql.prepare << "select * from " + conn.getSchema() + tableName);
+	soci::rowset<StudyArea> studyAreaObjs = (sql.prepare << "select * from configuration2012."  + tableName);
 
 	for (soci::rowset<StudyArea>::const_iterator itStudyArea = studyAreaObjs.begin(); itStudyArea != studyAreaObjs.end(); ++itStudyArea)
 	{
 		StudyArea* stdArea = new StudyArea(*itStudyArea);
 		studyAreas.push_back(stdArea);
+		studyAreaByScenario.insert(std::pair<string, StudyArea*>( stdArea->getStudyCode(), stdArea ));
 	}
 
 	PrintOutV("Number of Study Area rows: " << studyAreas.size() << std::endl );

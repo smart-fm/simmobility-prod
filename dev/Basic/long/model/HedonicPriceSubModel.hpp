@@ -65,6 +65,7 @@ namespace sim_mob
 			DeveloperModel * devModel;
 			Unit *unit;
 			double logsum;
+			const double halfStandardDeviation = 0.03904;//0.07808;
 		};
 
 	}

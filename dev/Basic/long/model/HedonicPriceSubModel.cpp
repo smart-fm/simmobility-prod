@@ -583,7 +583,7 @@ vector<ExpectationEntry> HedonicPrice_SubModel::CalculateUnitExpectations (Unit 
             }
     	}
 
-        for(int n = expectationsReverse.size(); n >= 0; n--)
+        for(int n = expectationsReverse.size() - 1; n >= 0; n--)
         {
         	expectations.push_back(expectationsReverse[n]);
         }

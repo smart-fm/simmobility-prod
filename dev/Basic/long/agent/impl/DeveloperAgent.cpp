@@ -193,6 +193,11 @@ inline void calculateProjectProfit(PotentialProject& project,DeveloperModel* mod
 
 		}
 
+		if(model->getScenario().compare("ToaPayohScenario") == 0)
+		{
+			logsum += hedonicLogsumStdDevForTpScenario;
+		}
+
 		if(isEmptyParcel)
 		{
 			unitAge = 0;
@@ -348,6 +353,14 @@ inline void calculateProjectProfit(PotentialProject& project,DeveloperModel* mod
 			double distanceToExpress = amenities->getDistanceToExpress();
 			double distanceToBus = amenities->getDistanceToBus();
 			double distanceToMRT = amenities->getDistanceToMRT();
+
+			if(model->getScenario().compare("ToaPayohScenario") == 0)
+			{
+				distanceToMall = distanceToMall/2.0;
+				distanceToPMS30 = distanceToPMS30/2.0;
+				distanceToBus = distanceToBus/2.0;
+				distanceToMRT = distanceToMRT/2.0;
+			}
 
 			double isDistanceToPMS30 = 0;
 			double isMRT_200m = 0;
@@ -582,7 +595,7 @@ inline void createPotentialUnits(PotentialProject& project,const DeveloperModel*
                         	thresholdInvestmentReturnRatio = roiLimit->getRoiLimit();
                         }
 
-                        writeROIDataToFile(*parcel,newDevelopment,project.getProfit(),project.getDevTemplate()->getDevelopmentTypeId(), thresholdInvestmentReturnRatio, project.getInvestmentReturnRatio());
+                        writeROIDataToFile(*parcel,newDevelopment,project.getProfit(),project.getDevTemplate()->getTemplateId(), thresholdInvestmentReturnRatio, project.getInvestmentReturnRatio());
 
                         if(project.getInvestmentReturnRatio()> thresholdInvestmentReturnRatio)
                         {

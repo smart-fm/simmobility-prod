@@ -111,29 +111,5 @@ void sim_mob::medium::Driver::HandleParentMessage(messaging::Message::MessageTyp
 	}
 }
 
-const sim_mob::medium::DriverMode sim_mob::medium::Driver::getDriveMode() const
-{
-	return driverMode;
-}
+bool sim_mob::medium::Driver::canSheMove() const{ return true;}
 
-const std::string sim_mob::medium::Driver::getDriveModeStr() const
-{
-	switch(driverMode)
-	{
-	case DRIVE_START: {return "DRIVE_START"; }
-	case CRUISE:{ return "CRUISE"; }
-	case DRIVE_TO_TAXISTAND:{return "DRIVE_TO_TAXISTAND"; }
-	case DRIVE_WITH_PASSENGER:{return "DRIVE_WITH_PASSENGER"; }
-	case DRIVE_FOR_DRIVER_CHANGE_SHIFT: {return "DRIVE_FOR_DRIVER_CHANGE_SHIFT";}
-	case QUEUING_AT_TAXISTAND: {return "QUEUING_AT_TAXISTAND";}
-	case DRIVE_FOR_BREAK: {return "DRIVE_FOR_BREAK";}
-	case DRIVER_IN_BREAK: {return "DRIVER_IN_BREAK";}
-	case DRIVE_ON_CALL:{return "DRIVE_ON_CALL";}
-	default: throw std::runtime_error("drive mode not recognized");
-	}
-}
-
-void sim_mob::medium::Driver::setDriveMode(const DriverMode &driveMode)
-{
-	sim_mob::medium::Driver::driverMode = driveMode;
-}

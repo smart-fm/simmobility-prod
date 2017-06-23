@@ -10,7 +10,7 @@
 #include "message/MessageBus.hpp"
 #include "util/GeomHelpers.hpp"
 #include "util/Utils.hpp"
-#include <algorithm>    // std::sort, next_permutation
+#include <algorithm>    // std::sort, next_permutation, find
 
 #include "OnCallController.hpp"
 #include "path/PathSetManager.hpp" // for PrivateTrafficRouteChoice
@@ -29,6 +29,12 @@ OnCallController::~OnCallController()
 
 void OnCallController::subscribeDriver(Person *driver)
 {
+#ifndef NDEBUG
+	consistencyChecks("before subscription");
+	if (isComputingSchedules)
+		throw std::runtime_error("Trying to subscribe a driver while computing schedules. This should not happen");
+#endif
+
 	MobilityServiceController::subscribeDriver(driver);
 	availableDrivers.push_back(driver);
 #ifndef NDEBUG
@@ -37,10 +43,11 @@ void OnCallController::subscribeDriver(Person *driver)
 #endif
 	driverSchedules.emplace(driver, Schedule() );
 
+
 #ifndef NDEBUG
-	ControllerLog()<<"Subscription received by the controller from driver "<<driver->getDatabaseId() <<
-			", subscribedDrivers.size()="<< subscribedDrivers.size()<<", availableDrivers.size()="<< availableDrivers.size() <<
-			", driverSchedules.size()="<< driverSchedules.size() << std::endl;
+	ControllerLog()<<"After the subscription, subscribedDrivers.size()="<< subscribedDrivers.size()<<", availableDrivers.size()="<< availableDrivers.size() <<
+			", driverSchedules.size()="<< driverSchedules.size()<< std::endl ;
+	consistencyChecks("after subscription");
 #endif
 }
 
@@ -57,7 +64,7 @@ void OnCallController::unsubscribeDriver(Person *driver)
 	}
 
 	unsigned scheduleSize = driverSchedules.at(driver).size();
-	if (scheduleSize>0 )
+	if ( scheduleSize>0 )
 	{
 		std::stringstream msg; msg<<"Driver "<< driver->getDatabaseId()<<" has a non empty schedule and she sent a message "
 		<<"to unsubscribe. This is not admissible";
@@ -72,7 +79,6 @@ void OnCallController::unsubscribeDriver(Person *driver)
 	}
 #endif
 
-	ControllerLog() << "Unsubscription of driver " << driver->getDatabaseId() <<" at time "<< currTick<< std::endl;
 
 	driverSchedules.erase(driver);
 
@@ -81,25 +87,32 @@ void OnCallController::unsubscribeDriver(Person *driver)
 	                                   availableDrivers.end(), driver), availableDrivers.end());
 
 #ifndef NDEBUG
-	if (availableDrivers.size()!= driverSchedules.size() )
-	{
-		std::stringstream msg; msg<<"availableDrivers.size()="<<availableDrivers.size()<<
-		", driverSchedules.size()="<<driverSchedules.size()<<". They should be equal";
-		throw std::runtime_error(msg.str());
-	}
+	consistencyChecks("unsubscribeDriver: end");
 #endif
 }
 
-void OnCallController::driverAvailable(Person *driver)
+void OnCallController::driverAvailable(const Person *driver)
 {
+#ifndef NDEBUG
+	consistencyChecks("driverAvailable: start");
+#endif
 	availableDrivers.push_back(driver);
-	driverSchedules.erase(driver); // The driver has no more schedules
+	driverSchedules[driver] = Schedule() ; // The driver has an empty schedule now
+#ifndef NDEBUG
+	consistencyChecks("driverAvailable: end");
+#endif
 }
 
 void OnCallController::driverUnavailable(Person *person)
 {
+#ifndef NDEBUG
+	consistencyChecks("driverUnavailable: start");
+#endif
 	availableDrivers.erase(std::remove(availableDrivers.begin(),
 	                                   availableDrivers.end(), person), availableDrivers.end());
+#ifndef NDEBUG
+	consistencyChecks("driverUnavailable: end");
+#endif
 }
 
 
@@ -180,7 +193,11 @@ void OnCallController::HandleMessage(messaging::Message::MessageType type, const
 
 #ifndef NDEBUG
 		if (currTick < requestArgs.timeOfRequest)
-			throw std::runtime_error("Request received before it was issed: impossible");
+		{
+			std::stringstream msg; msg<<"Request "<< requestArgs << " received at time "<< currTick<<
+			". It means it has been received before it was issued: impossible";
+			throw std::runtime_error(msg.str());
+		}
 #endif
 
 		/*
@@ -247,10 +264,14 @@ void OnCallController::assignSchedule(const Person *driver, const Schedule& sche
 			new SchedulePropositionMessage(currTick, schedule)));
 
 #ifndef NDEBUG
-	if (driverSchedules.find(driver) == driverSchedules.end() )
-	{
+	if (
+			driverSchedules.find(driver) == driverSchedules.end() ||
+			std::find(availableDrivers.begin(), availableDrivers.end(), driver ) == availableDrivers.end()
+	){
 		std::stringstream msg; msg <<"Assigning a schedule to driver "<< driver->getDatabaseId() <<
-			" who is not present in the driverSchedules map. Impossible.";
+			". She should be present both in availableDrivers and driverSchedules but is she present in driverSchedules? "<<
+			(driverSchedules.find(driver) != driverSchedules.end()?1:0) <<" and is she present in availableDrivers? "<<
+			(std::find(availableDrivers.begin(), availableDrivers.end(), driver ) != availableDrivers.end()?1:0) ;
 		throw std::runtime_error(msg.str() );
 	}
 
@@ -265,12 +286,12 @@ void OnCallController::assignSchedule(const Person *driver, const Schedule& sche
 	driverSchedules[driver]=schedule;
 }
 
-bool OnCallController::isCruising(Person *driver) const
+bool OnCallController::isCruising(const Person *driver) const
 {
 	const MobilityServiceDriver *currDriver = driver->exportServiceDriver();
 	if (currDriver)
 	{
-		if (currDriver->getServiceStatus() == MobilityServiceDriver::SERVICE_FREE)
+		if (currDriver->getDriverStatus() == MobilityServiceDriverStatus::CRUISING)
 		{
 			return true;
 		}
@@ -298,8 +319,8 @@ const Person *OnCallController::findClosestDriver(const Node *node) const
 	double bestDistance = std::numeric_limits<double>::max();
 	double bestX, bestY;
 
-	Person *bestDriver = NULL;
-	std::vector<Person*>::const_iterator driver = availableDrivers.begin();
+	const Person *bestDriver = NULL;
+	std::vector<const Person*>::const_iterator driver = availableDrivers.begin();
 
 #ifndef NDEBUG
 	unsigned nonCruisingDrivers = 0;
@@ -324,10 +345,13 @@ const Person *OnCallController::findClosestDriver(const Node *node) const
 		else{
 			nonCruisingDrivers++;
 
-			(*driver)->
-			const std::string driverMode;
-			std::stringstream msg; msg<<"Driver " << (*driver)->getDatabaseId() <<" is among the available drivers but she is not cruising."<<
-				" In the scenarios where a driver subscribed to an OnCall service is only subscribed to that service, "<<
+			const MobilityServiceDriver* mobilityServiceDriver = (*driver)->exportServiceDriver();
+			const std::string driverStatusStr = mobilityServiceDriver->getDriverStatusStr();
+			std::stringstream msg; msg<<"Driver " << (*driver)->getDatabaseId() <<" is among the available drivers of a controller of type "<<
+				fromMobilityServiceControllerTypetoString(type) <<", but her state is "<<
+				driverStatusStr<<
+				" This driver is subscribed to the following controller types "<< mobilityServiceDriver->getSubscribedControllerTypesStr()<<
+				". In the scenarios where a driver subscribed to an OnCall service is only subscribed to that service, "<<
 					"ALL the available drivers MUST be cruising. If it is not the case, there is a bug. If you are running a more complex scenario, where a driver can be "
 					<<"subscribed to different services at the same time, please remove this exception, compile and run again";
 			throw std::runtime_error(msg.str() );
@@ -479,3 +503,37 @@ double OnCallController::computeOptimalSchedule(const Node* initialNode, const S
 
 	return travelTime;
 }
+
+
+#ifndef NDEBUG
+void OnCallController::consistencyChecks(const std::string& label) const
+{
+	if (subscribedDrivers.size()!=driverSchedules.size() )
+	{
+		std::stringstream msg; msg<< label << " subscribedDrivers.size()="<<subscribedDrivers.size()<<
+			" and driverSchedules.size()="<<driverSchedules.size() <<". They should be equal. ";
+
+		for (const Person* driver : subscribedDrivers)
+		{
+			if (driverSchedules.find(driver) == driverSchedules.end() )
+				msg<<"Driver "<< driver->getDatabaseId()<<" is in subscribedDrivers but not in driverSchedules";
+		}
+
+
+		throw std::runtime_error(msg.str());
+
+	}
+
+	unsigned emptyDrivers = 0;
+	for (const std::pair<const Person*, Schedule>& p : driverSchedules)
+	{
+		if (p.second.empty()) emptyDrivers++;
+	}
+	if (emptyDrivers!= availableDrivers.size())
+	{
+		std::stringstream msg; msg<< label << " emptyDrivers="<<emptyDrivers<<", availableDrivers.size()="<<
+			availableDrivers.size()<<" while they should be equal";
+		throw std::runtime_error(msg.str() );
+	}
+}
+#endif

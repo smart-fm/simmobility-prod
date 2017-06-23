@@ -8,6 +8,7 @@
 #ifndef MobilityServiceController_HPP_
 #define MobilityServiceController_HPP_
 #include <vector>
+#include <string>
 
 #include "entities/Agent.hpp"
 #include "message/Message.hpp"
@@ -23,8 +24,9 @@ namespace sim_mob
 class OnCallController : public MobilityServiceController
 {
 protected:
-	explicit OnCallController(const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered, unsigned int computationPeriod=0)
-		: MobilityServiceController(mtxStrat, computationPeriod), scheduleComputationPeriod(computationPeriod)
+	explicit OnCallController(const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered, unsigned int computationPeriod=0,
+			MobilityServiceControllerType type_ = SERVICE_CONTROLLER_UNKNOWN)
+		: MobilityServiceController(mtxStrat, computationPeriod, type_), scheduleComputationPeriod(computationPeriod)
 	{
 		rebalancer = new SimpleRebalancer();
 #ifndef NDEBUG
@@ -64,7 +66,7 @@ protected:
 	virtual void driverUnavailable(Person* person);
 
 	/** Store list of available drivers */
-	std::vector<Person*> availableDrivers;
+	std::vector<const Person*> availableDrivers;
 
 	/** Store queue of requests */
 	//TODO: It should be vector<const TripRequest>, but it does not compile in that case:
@@ -73,7 +75,7 @@ protected:
 
 	virtual void assignSchedule(const Person* driver, const Schedule& schedule);
 
-	virtual bool isCruising(Person* driver) const;
+	virtual bool isCruising(const Person* driver) const;
 	virtual const Node* getCurrentNode(const Person* driver) const;
 	/**
 	 * Performs the controller algorithm to assign vehicles to requests
@@ -112,6 +114,7 @@ protected:
 
 #ifndef NDEBUG
 	bool isComputingSchedules; //true during computing schedules. Used for debug purposes
+	void consistencyChecks(const std::string& label) const;
 #endif
 
 	/**
@@ -130,7 +133,7 @@ protected:
 	 * Makes a vehicle driver available to the controller
 	 * @param person Driver to be added
 	 */
-	virtual void driverAvailable(Person* person);
+	virtual void driverAvailable(const Person* person);
 
 
 	/** Keeps track of current local tick */

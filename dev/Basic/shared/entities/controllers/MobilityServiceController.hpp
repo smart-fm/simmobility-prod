@@ -18,12 +18,25 @@
 
 namespace sim_mob {
 
+
+enum MobilityServiceControllerType : unsigned int
+{
+	SERVICE_CONTROLLER_UNKNOWN = 0b0000,
+	SERVICE_CONTROLLER_GREEDY = 0b0001,
+	SERVICE_CONTROLLER_SHARED = 0b0010,
+	SERVICE_CONTROLLER_ON_HAIL = 0b0100,
+	SERVICE_CONTROLLER_FRAZZOLI = 0b1000
+};
+
+const std::string fromMobilityServiceControllerTypetoString(MobilityServiceControllerType type);
+
 class MobilityServiceController: public Agent
 {
 protected:
 
-	explicit MobilityServiceController(const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered, unsigned int dummy=0)
-		: Agent(mtxStrat, -1) {}
+	explicit MobilityServiceController(const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered, unsigned int dummy=0,
+			MobilityServiceControllerType type_ = SERVICE_CONTROLLER_UNKNOWN)
+		: Agent(mtxStrat, -1), type(type_) {}
 
 	virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
 
@@ -42,6 +55,7 @@ protected:
 	 * @param person Driver to be removed
 	 */
 	virtual void unsubscribeDriver(Person* person);
+
 
 public:
 	virtual ~MobilityServiceController();
@@ -66,6 +80,8 @@ public:
 	 * Inherited from base class to output result
 	 */
 	void frame_output(timeslice now);
+
+	const MobilityServiceControllerType type;
 
 };
 

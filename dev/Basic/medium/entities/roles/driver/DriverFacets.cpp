@@ -712,7 +712,7 @@ bool DriverMovement::canGoToNextRdSeg(DriverUpdateParams& params, const SegmentS
 
 	bool hasSpaceInNextStats = ((maxAllowed - total) >= enteringVehicleLength);
 
-	if (( hasSpaceInNextStats && nextLink) || ( hasSpaceInNextStats && parentDriver->getDriveMode() == CRUISE))
+	if (( hasSpaceInNextStats && nextLink) || ( hasSpaceInNextStats && parentDriver->canSheMove() ) )
 	{
 		//additionally check if the length of vehicles in the lanegroup is not too long to accommodate this driver
 		try{

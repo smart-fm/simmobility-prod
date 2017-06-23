@@ -13,6 +13,10 @@ using namespace sim_mob;
 
 void GreedyTaxiController::computeSchedules()
 {
+#ifndef NDEBUG
+	consistencyChecks("beginning");
+#endif
+
 	ControllerLog() << "Computing schedule: " << requestQueue.size() << " requests are in the queue" << std::endl;
 
 	std::list<TripRequestMessage>::iterator request = requestQueue.begin();
@@ -104,4 +108,9 @@ void GreedyTaxiController::computeSchedules()
 		ControllerLog() << "Requests to be scheduled " << requestQueue.size() << ", available drivers "
 		                << availableDrivers.size() << std::endl;
 	}
+
+#ifndef NDEBUG
+	consistencyChecks("end");
+#endif
+
 }

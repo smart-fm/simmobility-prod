@@ -406,7 +406,7 @@ bool SharedController::isCruising(Person* p)
     const MobilityServiceDriver* currDriver = p->exportServiceDriver();
     if (currDriver) 
     {
-        if (currDriver->getServiceStatus() == MobilityServiceDriver::SERVICE_FREE) 
+        if (currDriver->getDriverStatus() == MobilityServiceDriverStatus::CRUISING)
         {
             return true;
         }

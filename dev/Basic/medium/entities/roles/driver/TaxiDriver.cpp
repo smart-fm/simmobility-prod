@@ -42,14 +42,7 @@ bool TaxiDriver::addPassenger(Passenger *passenger)
 	return false;
 }
 
-MobilityServiceDriver::ServiceStatus TaxiDriver::getServiceStatus() const
-{
-	if(getDriverMode()==CRUISE)
-	{
-		return MobilityServiceDriver::SERVICE_FREE;
-	}
-	return MobilityServiceDriver::SERVICE_UNKNOWN;
-}
+
 
 const Node *TaxiDriver::getCurrentNode() const
 {
@@ -220,16 +213,6 @@ void TaxiDriver::HandleParentMessage(messaging::Message::MessageType type, const
 	}
 }
 
-void TaxiDriver::setTaxiDriveMode(const DriverMode &mode)
-{
-	taxiDriverMode = mode;
-	driverMode = mode;
-}
-
-const DriverMode & TaxiDriver::getDriverMode() const
-{
-	return taxiDriverMode;
-}
 
 Person_MT *TaxiDriver::getParent()
 {
@@ -277,7 +260,7 @@ void TaxiDriver::pickUpPassngerAtNode(Conflux *parentConflux, std::string* perso
 					taxiDriverMovement->addRouteChoicePath(currentRouteChoice);
 					passenger->setStartPoint(WayPoint(taxiDriverMovement->getCurrentNode()));
 					passenger->setEndPoint(WayPoint(taxiDriverMovement->getDestinationNode()));
-					setTaxiDriveMode(DRIVE_WITH_PASSENGER);
+					setDriverStatus(DRIVE_WITH_PASSENGER);
 				}
 			}
 		}
@@ -309,12 +292,17 @@ std::vector<BufferedBase*> TaxiDriver::getSubscriptionParams()
 	return std::vector<BufferedBase*>();
 }
 
+const std::vector<MobilityServiceController*>& TaxiDriver::getSubscribedControllers() const
+{
+	return taxiDriverMovement->getSubscribedControllers();
+}
+
 TaxiDriver::~TaxiDriver()
 {
 	if (MobilityServiceControllerManager::HasMobilityServiceControllerManager())
 	{
-		for(auto it = taxiDriverMovement->subscribedControllers.begin();
-			it != taxiDriverMovement->subscribedControllers.end(); ++it)
+		for(auto it = taxiDriverMovement->getSubscribedControllers().begin();
+			it != taxiDriverMovement->getSubscribedControllers().end(); ++it)
 		{
 			messaging::MessageBus::SendMessage(*it, MSG_DRIVER_UNSUBSCRIBE,
 											   messaging::MessageBus::MessagePtr(new DriverUnsubscribeMessage(parent)));

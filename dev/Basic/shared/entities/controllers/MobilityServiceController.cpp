@@ -63,15 +63,18 @@ void MobilityServiceController::HandleMessage(messaging::Message::MessageType ty
 }
 
 
-void MobilityServiceController::subscribeDriver(Person *person)
+void MobilityServiceController::subscribeDriver(Person *driver)
 {
-	subscribedDrivers.push_back(person);
+	ControllerLog()<<"Subscription received by the controller from driver "<< driver->getDatabaseId()
+			<<" at time "<< currTick <<std::endl;
+	subscribedDrivers.push_back(driver);
 }
 
-void MobilityServiceController::unsubscribeDriver(Person *person)
+void MobilityServiceController::unsubscribeDriver(Person *driver)
 {
+	ControllerLog() << "Unsubscription of driver " << driver->getDatabaseId() <<" at time "<< currTick<< std::endl;
 	subscribedDrivers.erase(std::remove(subscribedDrivers.begin(),
-	                                    subscribedDrivers.end(), person), subscribedDrivers.end());
+	                                    subscribedDrivers.end(), driver), subscribedDrivers.end());
 }
 
 
@@ -86,4 +89,19 @@ void MobilityServiceController::frame_output(timeslice now)
 }
 
 
+const std::string fromMobilityServiceControllerTypetoString(MobilityServiceControllerType type)
+{
+	switch(type)
+	{
+		case (SERVICE_CONTROLLER_UNKNOWN): { return "SERVICE_CONTROLLER_UNKNOWN"; }
+		case (SERVICE_CONTROLLER_GREEDY): { return "SERVICE_CONTROLLER_GREEDY"; }
+		case (SERVICE_CONTROLLER_SHARED): { return "SERVICE_CONTROLLER_SHARED"; }
+		case (SERVICE_CONTROLLER_ON_HAIL): { return "SERVICE_CONTROLLER_ON_HAIL"; }
+		case (SERVICE_CONTROLLER_FRAZZOLI): { return "SERVICE_CONTROLLER_FRAZZOLI"; }
+		default:{throw std::runtime_error("type unknown"); }
+	};
+}
+
 } /* namespace sim_mob */
+
+

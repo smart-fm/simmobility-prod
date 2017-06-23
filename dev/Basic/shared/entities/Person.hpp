@@ -32,6 +32,8 @@ class UnPackageUtils;
 class UpdateParams;
 class OD_Trip;
 
+class MobilityServiceDriver; //TODO: We should remove it
+
 /**
  * Basic Person class.
  *
@@ -357,10 +359,7 @@ public:
      * generic interface to export service driver.
      * return empty which is default value.
      */
-    virtual const MobilityServiceDriver* exportServiceDriver() const
-    {
-        return nullptr;
-    }
+    virtual const MobilityServiceDriver* exportServiceDriver() const = 0;
 
 #ifndef SIMMOB_DISABLE_MPI
 

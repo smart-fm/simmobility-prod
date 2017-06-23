@@ -45,11 +45,6 @@ public:
 	 */
 	void alightPassenger();
 
-	/**
-	 * get current driver status
-	 * @return status value
-	 */
-	MobilityServiceDriver::ServiceStatus getServiceStatus() const;
 
 	/**
 	 * get current Node
@@ -103,17 +98,6 @@ public:
 	 */
 	std::vector<BufferedBase *> getSubscriptionParams();
 
-	/**
-	 * set current driving mode
-	 * @param mode hold current mode
-	 */
-	void setTaxiDriveMode(const DriverMode &mode);
-
-	/**
-	 * get current driving mode
-	 * @return current mode
-	 */
-	const DriverMode &getDriverMode() const;
 
 	/**
 	 * get current passenger
@@ -134,6 +118,8 @@ public:
 	 */
 	virtual const MobilityServiceDriver *exportServiceDriver() const;
 
+	virtual const std::vector<MobilityServiceController*>& getSubscribedControllers() const;
+
 private:
 	/**hold passenger object*/
 	Passenger *taxiPassenger = nullptr;
@@ -144,8 +130,6 @@ private:
 	/**hold behavior facet object*/
 	TaxiDriverBehavior *taxiDriverBehaviour;
 
-	/** store current mode*/
-	DriverMode taxiDriverMode = DRIVE_START;
 
 public:
 	friend class TaxiDriverBehavior;

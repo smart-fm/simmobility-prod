@@ -253,3 +253,4 @@ public:
 
 std::ostream& operator<<(std::ostream& strm, const sim_mob::TripRequestMessage& request);
 std::ostream& operator<<(std::ostream& strm, const sim_mob::ScheduleItem& item);
+std::ostream& operator<<(std::ostream& strm, const sim_mob::Schedule& schedule);

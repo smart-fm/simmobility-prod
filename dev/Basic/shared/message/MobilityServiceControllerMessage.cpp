@@ -107,3 +107,13 @@ std::ostream& operator<<(std::ostream& strm, const sim_mob::ScheduleItem& item)
 	return strm;
 }
 
+std::ostream& operator<<(std::ostream& strm, const sim_mob::Schedule& schedule)
+{
+	strm<<"Schedule [";
+	for (const sim_mob::ScheduleItem& item : schedule)
+	{
+		strm<< item <<", ";
+	}
+	strm<<" ]";
+	return strm;
+}

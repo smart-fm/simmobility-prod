@@ -181,6 +181,9 @@ void OnCallController::HandleMessage(messaging::Message::MessageType type, const
 	{
 		const DriverAvailableMessage &availableArgs = MSG_CAST(DriverAvailableMessage, message);
 		driverAvailable(availableArgs.person);
+#ifndef NDEBUG
+		ControllerLog()<<"Driver "<< availableArgs.person->getDatabaseId()<<" is available again"<<std::endl;
+#endif
 		break;
 	}
 
@@ -281,9 +284,26 @@ void OnCallController::assignSchedule(const Person *driver, const Schedule& sche
 		" If you are using the greedy controller, this is not possible. Otherwise, please disable this error";
 		throw runtime_error(msg.str());
 	}
+	unsigned availableDriversBeforeTheRemoval = availableDrivers.size();
 #endif
 
 	driverSchedules[driver]=schedule;
+	// The driver is not available anymore
+	availableDrivers.erase(std::remove(availableDrivers.begin(),
+			availableDrivers.end(), driver), availableDrivers.end());
+
+#ifndef NDEBUG
+				if (availableDrivers.size() != availableDriversBeforeTheRemoval-1)
+				{
+					std::stringstream msg; msg<<"The removal of driver "<<driver->getDatabaseId()<<" from the availableDrivers "
+					<<"was not successful. In fact availableDriversBeforeTheRemoval="<<availableDriversBeforeTheRemoval<<" and "<<
+					"availableDrivers.size()="<<availableDrivers.size();
+					throw std::runtime_error(msg.str());
+				}
+#endif
+
+	ControllerLog() << schedule << "sent by the controller. The assignement is sent at "<<
+			currTick<<" to driver "<<driver->getDatabaseId() << std::endl;
 }
 
 bool OnCallController::isCruising(const Person *driver) const
@@ -347,7 +367,8 @@ const Person *OnCallController::findClosestDriver(const Node *node) const
 
 			const MobilityServiceDriver* mobilityServiceDriver = (*driver)->exportServiceDriver();
 			const std::string driverStatusStr = mobilityServiceDriver->getDriverStatusStr();
-			std::stringstream msg; msg<<"Driver " << (*driver)->getDatabaseId() <<" is among the available drivers of a controller of type "<<
+			std::stringstream msg; msg<<"Error: "<<__FILE__<<":" <<__LINE__<< ":Driver " << (*driver)->getDatabaseId() <<
+				" is among the available drivers of a controller of type "<<
 				fromMobilityServiceControllerTypetoString(type) <<", but her state is "<<
 				driverStatusStr<<
 				" This driver is subscribed to the following controller types "<< mobilityServiceDriver->getSubscribedControllerTypesStr()<<
@@ -534,6 +555,25 @@ void OnCallController::consistencyChecks(const std::string& label) const
 		std::stringstream msg; msg<< label << " emptyDrivers="<<emptyDrivers<<", availableDrivers.size()="<<
 			availableDrivers.size()<<" while they should be equal";
 		throw std::runtime_error(msg.str() );
+	}
+
+	for (const Person* driver : availableDrivers)
+	{
+		const MobilityServiceDriverStatus status = driver->exportServiceDriver()->getDriverStatus();
+		if (status != CRUISING)
+		{
+					std::stringstream msg; msg<<"Driver "<<driver->getDatabaseId()<<" is among the available drivers but his status is:"
+						<< driver->exportServiceDriver()->getDriverStatusStr() << ". This is not admitted at the moment";
+					throw std::runtime_error(msg.str( ));
+		}
+
+		if ( !driverSchedules.at(driver).empty() )
+		{
+			std::stringstream msg; msg<<"Driver "<<driver->getDatabaseId()<<" is among the available drivers but her schedule is not empty:"
+			<<driverSchedules.at(driver);
+			throw std::runtime_error(msg.str( ));
+		}
+
 	}
 }
 #endif

@@ -66,30 +66,17 @@ void GreedyTaxiController::computeSchedules()
 
 				assignSchedule(bestDriver, schedule);
 
-				ControllerLog() << "Assignment sent by the controller for "<< *request<<". The assignement is sent at "<<
-						currTick<<" to driver "<<bestDriver->getDatabaseId() << std::endl;
+
 
 #ifndef NDEBUG
 				if (currTick < request->timeOfRequest)
 					throw std::runtime_error("The assignment is sent before the request has been issued: impossible");
-
-				unsigned availableDriversBeforeTheRemoval = availableDrivers.size();
 #endif
 
 				request = requestQueue.erase(request);
 
-				// The driver is not available anymore
-				availableDrivers.erase(std::remove(availableDrivers.begin(),
-						availableDrivers.end(), bestDriver), availableDrivers.end());
-#ifndef NDEBUG
-				if (availableDrivers.size() != availableDriversBeforeTheRemoval-1)
-				{
-					std::stringstream msg; msg<<"The removal of driver "<<bestDriver->getDatabaseId()<<" from the availableDrivers "
-					<<"was not successful. In fact availableDriversBeforeTheRemoval="<<availableDriversBeforeTheRemoval<<" and "<<
-					"availableDrivers.size()="<<availableDrivers.size();
-					throw std::runtime_error(msg.str());
-				}
-#endif
+
+
 			}
 			else
 			{

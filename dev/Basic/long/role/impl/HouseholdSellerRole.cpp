@@ -538,7 +538,8 @@ bool HouseholdSellerRole::getCurrentExpectation(const BigSerial& unitId, Expecta
         SellingUnitInfo& info = it->second;
 
         //expectations are start on last element to the first.
-        unsigned int index = ((unsigned int)(floor(abs(info.startedDay - currentTime.ms()) / info.interval))) % info.expectations.size();
+        int dayRange = ((int)currentTime.ms() - info.startedDay)  / info.interval;
+        unsigned int index = dayRange  % info.expectations.size();
 
         if (index < info.expectations.size())
         {

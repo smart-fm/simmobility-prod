@@ -814,15 +814,6 @@ bool HouseholdBidderRole::pickEntryToBid()
             		else
             		{
             			computeBidValueLogistic( entry->getAskingPrice(), wp, currentBid, currentSurplus );
-
-            			/*
-            			//If you can't find the optimal bid, just bid the asking price.
-            			if( currentBid == 0)
-            			{
-							currentBid = entry->getAskingPrice();
-							currentSurplus = wp - entry->getAskingPrice();
-            			}
-            			*/
             		}
             	}
             	else

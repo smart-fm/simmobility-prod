@@ -42,14 +42,7 @@ bool TaxiDriver::addPassenger(Passenger *passenger)
 	return false;
 }
 
-MobilityServiceDriver::ServiceStatus TaxiDriver::getServiceStatus()
-{
-	if(getDriverMode()==CRUISE)
-	{
-		return MobilityServiceDriver::SERVICE_FREE;
-	}
-	return MobilityServiceDriver::SERVICE_UNKNOWN;
-}
+
 
 const Node *TaxiDriver::getCurrentNode() const
 {
@@ -60,7 +53,7 @@ const Node *TaxiDriver::getCurrentNode() const
 	return nullptr;
 }
 
-MobilityServiceDriver *TaxiDriver::exportServiceDriver()
+const MobilityServiceDriver *TaxiDriver::exportServiceDriver() const
 {
 	return this;
 }
@@ -84,11 +77,11 @@ void TaxiDriver::alightPassenger()
 			Conflux *parentConflux = segStats->getParentConflux();
 			parentConflux->dropOffTaxiTraveler(parentPerson);
 
-			ControllerLog() << "Drop-off for " << parentPerson->getDatabaseId() << " at time "
-			                << parentPerson->currTick.frame()
-			                << ". Message was sent at null with startNodeId null, destinationNodeId "
+			ControllerLog() << "Drop-off of user" << parentPerson->getDatabaseId() << " at time "
+			                << parentPerson->currTick
+			                << ". Message was sent at ??? with startNodeId ???, destinationNodeId "
 			                << parentConflux->getConfluxNode()->getNodeId()
-			                << ", and driverId null" << std::endl;
+			                << ", and driverId ???" << std::endl;
 		}
 	}
 }
@@ -147,12 +140,8 @@ void TaxiDriver::HandleParentMessage(messaging::Message::MessageType type, const
 				}
 #endif
 
-				ControllerLog() << "Assignment received for " << request.personId << " at time "
-				                << parent->currTick.frame()
-				                << ". Message was sent at " << msg.currTick.frame() << " with startNodeId "
-				                << request.startNodeId
-				                << ", destinationNodeId " << request.destinationNodeId << ", and driverId "
-				                << this->getParent()->getDatabaseId() << std::endl;
+				ControllerLog() << "Assignment received for " << request<<". This assignment is received by driver "<<
+						this->getParent()->getDatabaseId() << " at time "<<parent->currTick << std::endl;
 
 				const std::map<unsigned int, Node *> &nodeIdMap = RoadNetwork::getInstance()->getMapOfIdvsNodes();
 
@@ -174,14 +163,14 @@ void TaxiDriver::HandleParentMessage(messaging::Message::MessageType type, const
 
 				node = it->second;
 
-				const bool success = taxiDriverMovement->driveToNodeOnCall(request.personId, node);
+				const bool success = taxiDriverMovement->driveToNodeOnCall(request.userId, node);
 
 #ifndef NDEBUG
 				if (!success)
 				{
 					std::stringstream msg;
 					msg << __FILE__ << ":" << __LINE__ << ": taxiDriverMovement->driveToNodeOnCall("
-					    << request.personId << "," << node->getNodeId() << ");" << std::endl;
+					    << request.userId << "," << node->getNodeId() << ");" << std::endl;
 					WarnOut(msg.str());
 				}
 #endif
@@ -189,18 +178,14 @@ void TaxiDriver::HandleParentMessage(messaging::Message::MessageType type, const
 				messaging::MessageBus::SendMessage(message.GetSender(), MSG_SCHEDULE_PROPOSITION_REPLY,
 				                                   messaging::MessageBus::MessagePtr(
 						                                   new SchedulePropositionReplyMessage(parent->currTick,
-						                                                                       request.personId, parent,
+						                                                                       request.userId, parent,
 						                                                                       request.startNodeId,
 						                                                                       request.destinationNodeId,
 						                                                                       request.extraTripTimeThreshold,
 						                                                                       success)));
 
-				ControllerLog() << "Assignment response sent for " << request.personId << " at time "
-				                << parent->currTick.frame()
-				                << ". Message was sent at " << msg.currTick.frame() << " with startNodeId "
-				                << request.startNodeId
-				                << ", destinationNodeId " << request.destinationNodeId << ", and driverId "
-				                << parent->getDatabaseId() << std::endl;
+				ControllerLog() << "Assignment response sent for " << request<<". This response is sent by driver "
+						<< parent->getDatabaseId()<<" at time "<<parent->currTick<<std::endl;
 
 				break;
 			}
@@ -228,16 +213,6 @@ void TaxiDriver::HandleParentMessage(messaging::Message::MessageType type, const
 	}
 }
 
-void TaxiDriver::setTaxiDriveMode(const DriverMode &mode)
-{
-	taxiDriverMode = mode;
-	driverMode = mode;
-}
-
-const DriverMode & TaxiDriver::getDriverMode() const
-{
-	return taxiDriverMode;
-}
 
 Person_MT *TaxiDriver::getParent()
 {
@@ -285,7 +260,7 @@ void TaxiDriver::pickUpPassngerAtNode(Conflux *parentConflux, std::string* perso
 					taxiDriverMovement->addRouteChoicePath(currentRouteChoice);
 					passenger->setStartPoint(WayPoint(taxiDriverMovement->getCurrentNode()));
 					passenger->setEndPoint(WayPoint(taxiDriverMovement->getDestinationNode()));
-					setTaxiDriveMode(DRIVE_WITH_PASSENGER);
+					setDriverStatus(DRIVE_WITH_PASSENGER);
 				}
 			}
 		}
@@ -317,12 +292,17 @@ std::vector<BufferedBase*> TaxiDriver::getSubscriptionParams()
 	return std::vector<BufferedBase*>();
 }
 
+const std::vector<MobilityServiceController*>& TaxiDriver::getSubscribedControllers() const
+{
+	return taxiDriverMovement->getSubscribedControllers();
+}
+
 TaxiDriver::~TaxiDriver()
 {
 	if (MobilityServiceControllerManager::HasMobilityServiceControllerManager())
 	{
-		for(auto it = taxiDriverMovement->subscribedControllers.begin();
-			it != taxiDriverMovement->subscribedControllers.end(); ++it)
+		for(auto it = taxiDriverMovement->getSubscribedControllers().begin();
+			it != taxiDriverMovement->getSubscribedControllers().end(); ++it)
 		{
 			messaging::MessageBus::SendMessage(*it, MSG_DRIVER_UNSUBSCRIBE,
 											   messaging::MessageBus::MessagePtr(new DriverUnsubscribeMessage(parent)));

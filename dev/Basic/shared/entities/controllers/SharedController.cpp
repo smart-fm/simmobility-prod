@@ -20,7 +20,7 @@ namespace sim_mob
 {
 void SharedController::computeSchedules()
 {
-	std::map<unsigned int, Node*> nodeIdMap = RoadNetwork::getInstance()->getMapOfIdvsNodes();
+	const std::map<unsigned int, Node*>& nodeIdMap = RoadNetwork::getInstance()->getMapOfIdvsNodes();
 	std::vector<sim_mob::Schedule> schedules; // We will fill this schedules and send it to the best driver
 
 
@@ -350,15 +350,11 @@ void SharedController::computeSchedules()
 			const Node* startNode = nodeIdMap.find(startNodeId)->second;
 
 			const Person* bestDriver = findClosestDriver(startNode);
-			assignScheduleProposition(bestDriver, schedule);
 
+			assignSchedule(bestDriver, schedule);
 
-			// The driver is not available anymore
-			availableDrivers.erase(std::remove(availableDrivers.begin(),
-					availableDrivers.end(), bestDriver), availableDrivers.end());
-
-			ControllerLog() << "Schedule for the " << firstRequest.personId << " at time " << currTick.frame()
-				<< ". Message was sent at " << firstRequest.currTick.frame() << " with startNodeId " << firstRequest.startNodeId
+			ControllerLog() << "Schedule for the " << firstRequest.userId << " at time " << currTick.frame()
+				<< ". Message was sent at " << firstRequest.timeOfRequest.frame() << " with startNodeId " << firstRequest.startNodeId
 				<< ", destinationNodeId " << firstRequest.destinationNodeId << ", and driverId "<< bestDriver->getDatabaseId();
 
 			const ScheduleItem& secondScheduleItem = schedule.at(1);
@@ -367,14 +363,14 @@ void SharedController::computeSchedules()
 
 #ifndef NDEBUG
 				//aa{ CONSISTENCY CHECKS
-				if (secondScheduleItem.tripRequest.personId ==  firstRequest.personId)
+				if (secondScheduleItem.tripRequest.userId ==  firstRequest.userId)
 				{
-					std::stringstream msg; msg<<"Malformed schedule. Trying to pick up twice the same person "<<firstRequest.personId;
+					std::stringstream msg; msg<<"Malformed schedule. Trying to pick up twice the same person "<<firstRequest.userId;
 					throw ScheduleException(msg.str() );
 				}
 				//aa} CONSISTENCY CHECKS
 #endif
-				ControllerLog()<<". The trip is shared with person " << secondScheduleItem.tripRequest.personId;
+				ControllerLog()<<". The trip is shared with person " << secondScheduleItem.tripRequest.userId;
 			}
 			ControllerLog()<<std::endl;
 		}
@@ -408,10 +404,10 @@ void SharedController::computeSchedules()
 
 bool SharedController::isCruising(Person* p)
 {
-    MobilityServiceDriver* currDriver = p->exportServiceDriver();
+    const MobilityServiceDriver* currDriver = p->exportServiceDriver();
     if (currDriver) 
     {
-        if (currDriver->getServiceStatus() == MobilityServiceDriver::SERVICE_FREE) 
+        if (currDriver->getDriverStatus() == MobilityServiceDriverStatus::CRUISING)
         {
             return true;
         }
@@ -421,7 +417,7 @@ bool SharedController::isCruising(Person* p)
 
 const Node* SharedController::getCurrentNode(Person* p)
 {
-    MobilityServiceDriver* currDriver = p->exportServiceDriver();
+    const MobilityServiceDriver* currDriver = p->exportServiceDriver();
     if (currDriver) 
     {
         return currDriver->getCurrentNode();

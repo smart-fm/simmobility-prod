@@ -15,6 +15,7 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/bind.hpp>
 
+#include "../entities/controllers/OnCallController.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "entities/Entity.hpp"
@@ -28,7 +29,6 @@
 #include "util/FlexiBarrier.hpp"
 #include "util/LangHelpers.hpp"
 #include "message/MessageBus.hpp"
-#include "entities/controllers/MobilityServiceController.hpp"
 
 using std::set;
 using std::vector;

@@ -1,6 +1,8 @@
 #pragma once
 
 #include "logging/Log.hpp"
+#include "metrics/Frame.hpp" // For using operator << on timeslice
+#include "message/MobilityServiceControllerMessage.hpp"
 
 namespace sim_mob {
 

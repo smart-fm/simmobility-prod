@@ -43,13 +43,13 @@ void Rebalancer::onRequestReceived(const Node* startNode)
 	latestStartNodes.push_back(startNode);
 }
 
-void SimpleRebalancer::rebalance(const std::vector<Person*>& availableDrivers, const timeslice currTick)
+void SimpleRebalancer::rebalance(const std::vector<const Person*>& availableDrivers, const timeslice currTick)
 {
 	if (!availableDrivers.empty() && !latestStartNodes.empty() )
 	{
 		int seed = 1;
 		srand(seed);
-		Person* driver = availableDrivers[rand()%availableDrivers.size() ];
+		const Person* driver = availableDrivers[rand()%availableDrivers.size() ];
 		const Node* node = latestStartNodes[rand()%latestStartNodes.size()];
 
 		sendCruiseTAZ_Command(driver, node->getTazId(), currTick );

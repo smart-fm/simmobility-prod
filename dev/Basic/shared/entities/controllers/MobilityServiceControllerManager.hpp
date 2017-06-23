@@ -12,18 +12,10 @@
 
 #include "entities/Agent.hpp"
 #include "message/Message.hpp"
-#include "MobilityServiceController.hpp"
+#include "OnCallController.hpp"
 
 namespace sim_mob
 {
-
-enum MobilityServiceControllerType : unsigned int
-{
-	SERVICE_CONTROLLER_UNKNOWN = 0b0000,
-	SERVICE_CONTROLLER_GREEDY = 0b0001,
-	SERVICE_CONTROLLER_SHARED = 0b0010,
-	SERVICE_CONTROLLER_ON_HAIL = 0b0100
-};
 
 class MobilityServiceControllerManager : public Agent
 {
@@ -54,15 +46,17 @@ public:
 	 */
 	bool addMobilityServiceController(MobilityServiceControllerType type, unsigned int scheduleComputationPeriod);
 
-	/**
-	 * Signals are non-spatial in nature.
-	 */
-	bool isNonspatial();
 
 	/**
 	 * Returns a list of enabled controllers
 	 */
 	const std::multimap<MobilityServiceControllerType, MobilityServiceController*>& getControllers();
+
+
+	/**
+	 * Inherited.
+	 */
+	virtual bool isNonspatial();
 
 protected:
 	explicit MobilityServiceControllerManager(const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered) :

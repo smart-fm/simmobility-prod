@@ -169,10 +169,11 @@ void MobilityServiceController::HandleMessage(messaging::Message::MessageType ty
 			r.destinationNodeId = replyArgs.destinationNodeId;
 			r.extraTripTimeThreshold = replyArgs.extraTripTimeThreshold;
 			requestQueue.push_back(r);
+
+			driverAvailable(replyArgs.driver);
 		}
 		else
 		{
-
 			ControllerLog() << "Assignment success received from " << replyArgs.personId << " at time "
 			                << currTick.frame() << ". Message was sent at " << replyArgs.currTick.frame()
 			                << " with startNodeId "

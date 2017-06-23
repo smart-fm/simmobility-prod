@@ -138,7 +138,7 @@ void Person_MT::convertToTaxiTrips()
 						bool isOnDemandTraveler = false;
 						int seed = sim_mob::Utils::generateInt(0,100);
 						int percentage = MT_Config::getInstance().getPercentageOfOnDemandTraveler();
-						if(seed < percentage)
+						if(seed <= percentage)
 						{
 							isOnDemandTraveler = true;
 						}

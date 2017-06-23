@@ -54,8 +54,8 @@ void FleetController::LoadTaxiFleetFromDB()
 
 	const SimulationParams &simParams = ConfigManager::GetInstance().FullConfig().simulation;
 
-	query << "select * from " << spIt->second << "('" << simParams.simStartTime.getStrRepr()
-	      << "','" << (DailyTime(simParams.totalRuntimeMS) + simParams.simStartTime).getStrRepr() << "')";
+	query << "select * from " << spIt->second << "('" << simParams.simStartTime.getStrRepr().substr(0, 5)
+	      << "','" << (DailyTime(simParams.totalRuntimeMS) + simParams.simStartTime).getStrRepr().substr(0, 5) << "')";
 	soci::rowset<soci::row> rs = (sql_.prepare << query.str());
 
 	for (soci::rowset<soci::row>::const_iterator it = rs.begin();it != rs.end(); ++it)

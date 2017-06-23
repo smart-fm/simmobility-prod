@@ -535,7 +535,7 @@ vector<ExpectationEntry> HedonicPrice_SubModel::CalculateUnitExpectations (Unit 
 			amenities.setDistanceToMrt(amenities.getDistanceToMRT() / 2.0);
 
 
-			logsum += 0.03904;//0.07808;
+			logsum += halfStandardDeviation;
 		}
 
 

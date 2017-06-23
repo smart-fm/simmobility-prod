@@ -341,7 +341,7 @@ bool TaxiDriverMovement::checkNextFleet()
 				addRouteChoicePath(currentRouteChoice);
 				parentTaxiDriver->parent->setDatabaseId(currentFleetItem.driverId);
 
-				parentTaxiDriver->setTaxiDriveMode(DRIVE_FOR_DRIVER_CHANGE_SHIFT);
+				parentTaxiDriver->setDriverStatus(DRIVE_FOR_DRIVER_CHANGE_SHIFT);
 
 				if (MobilityServiceControllerManager::HasMobilityServiceControllerManager())
 				{

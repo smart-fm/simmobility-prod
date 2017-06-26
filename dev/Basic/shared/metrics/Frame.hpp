@@ -15,7 +15,7 @@
 
 #include <stdint.h>
 #include <sstream>  //stringstream
-
+#include <stdexcept>
 
 /**
  * A simple class representing a timeslice of the simulation.

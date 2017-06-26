@@ -14,6 +14,8 @@
 
 #include "OnCallController.hpp"
 #include "path/PathSetManager.hpp" // for PrivateTrafficRouteChoice
+#include "entities/mobilityServiceDriver/MobilityServiceDriver.hpp"
+
 
 using namespace sim_mob;
 using namespace messaging;
@@ -559,6 +561,17 @@ void OnCallController::consistencyChecks(const std::string& label) const
 
 	for (const Person* driver : availableDrivers)
 	{
+		if (!isMobilityServiceDriver(driver) )
+		{
+			std::stringstream msg; msg<<"Driver "<<driver->getDatabaseId()<<
+			" is not a MobilityServiceDriver"<< std::endl;
+			throw std::runtime_error(msg.str() );
+		}
+
+		Print()<<"Consistency-checking driver "<< driver->getDatabaseId()<<
+			". Is she a MobilitySeviceDriver? "<< isMobilityServiceDriver(driver) <<std::endl;
+		const MobilityServiceDriver* mobilityServiceDriver = driver->exportServiceDriver();
+		Print()<<"Driver status is "<< mobilityServiceDriver->getDriverStatusStr() << std::endl;
 		const MobilityServiceDriverStatus status = driver->exportServiceDriver()->getDriverStatus();
 		if (status != CRUISING)
 		{

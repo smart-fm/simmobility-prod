@@ -66,4 +66,11 @@ const std::string MobilityServiceDriver::getSubscribedControllerTypesStr() const
 	return returnString;
 }
 
+bool sim_mob::isMobilityServiceDriver(const Person* person)
+{
+	if(dynamic_cast<const MobilityServiceDriver*>(person) == NULL)
+		return false;
+	else return true;
+}
+
 

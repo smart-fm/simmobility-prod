@@ -68,6 +68,15 @@ void MobilityServiceController::subscribeDriver(Person *driver)
 {
 	ControllerLog()<<"Subscription received by the controller from driver "<< driver->getDatabaseId()
 			<<" at time "<< currTick <<std::endl;
+#ifndef NDEBUG
+                if (!isMobilityServiceDriver(driver) )
+                {
+                        std::stringstream msg; msg<<"Driver "<<driver->getDatabaseId()<<
+                        " is not a MobilityServiceDriver"<< std::endl;
+                        throw std::runtime_error(msg.str() );
+                }
+
+#endif
 	subscribedDrivers.push_back(driver);
 }
 

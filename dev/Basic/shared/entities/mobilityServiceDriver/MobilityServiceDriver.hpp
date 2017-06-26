@@ -57,6 +57,8 @@ protected:
 	MobilityServiceDriverStatus driverStatus;
 };
 
+bool isMobilityServiceDriver(const Person* person);
+
 } /* namespace sim_mob */
 
 #endif /* MOBILITYSERVICEDRIVER_HPP_ */

@@ -70,10 +70,21 @@ void TaxiDriverMovement::subscribeToController(
 		auto range = controllers.equal_range(controllerType);
 		for (auto itController = range.first; itController != range.second; ++itController)
 		{
+
+#ifndef NDEBUG
+                if (!isMobilityServiceDriver(parentDriver->getParent() ) )
+                {
+                        std::stringstream msg; msg<<"Driver "<< parentDriver->getParent()->getDatabaseId() <<" is trying to send a subscription message"
+                        " but she is not a MobilityServiceDriver"<< std::endl;
+                        throw std::runtime_error(msg.str() );
+                }
+#endif
+
 			MessageBus::SendMessage(itController->second, MSG_DRIVER_SUBSCRIBE,
 			                        MessageBus::MessagePtr(new DriverSubscribeMessage(parentTaxiDriver->getParent())));
 #ifndef NDEBUG
-			ControllerLog()<<"Driver "<< parentDriver->getParent()->getDatabaseId()<<" sent a subscribtion to the controller "<<
+			ControllerLog()<<"Driver "<< parentDriver->getParent()->getDatabaseId()<<" sent a subscription to the controller "<<
+
 					itController->second->GetId() <<" at time "<<parentDriver->getParent()->currTick<<std::endl;
 #endif
 

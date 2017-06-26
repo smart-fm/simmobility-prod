@@ -55,7 +55,11 @@ const Node *TaxiDriver::getCurrentNode() const
 
 const MobilityServiceDriver *TaxiDriver::exportServiceDriver() const
 {
+#ifndef NDEBUG
+	return dynamic_cast<const MobilityServiceDriver*> (this);
+#else
 	return this;
+#endif
 }
 
 Passenger *TaxiDriver::getPassenger()

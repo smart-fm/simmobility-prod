@@ -168,7 +168,17 @@ void ExpandMidTermConfigFile::loadNetworkFromDatabase()
 
 void ExpandMidTermConfigFile::loadPublicTransitNetworkFromDatabase()
 {
-	PT_NetworkCreater::init();
+	StoredProcedureMap procedureMap = cfg.getDatabaseProcMappings();
+
+	//Create default PT network
+	const std::string storedProcForVertex = procedureMap.procedureMappings["pt_vertices"];
+	const std::string storedProcForEdges = procedureMap.procedureMappings["pt_edges"];
+	PT_NetworkCreater::createNetwork(storedProcForVertex, storedProcForEdges);
+
+	//Create the rail-sms network
+	const std::string storedProcRailSmsVertices = procedureMap.procedureMappings["rail_sms_vertices"];
+	const std::string storedProcRailSmsEdges = procedureMap.procedureMappings["rail_sms_edges"];
+	PT_NetworkCreater::createNetwork(storedProcRailSmsVertices, storedProcRailSmsEdges, PT_Network::TYPE_RAIL_SMS);
 }
 
 void ExpandMidTermConfigFile::verifyIncidents()

@@ -12,7 +12,8 @@ enum PT_EdgeType
 	UNKNOWN_EDGE,
 	WALK_EDGE,
 	BUS_EDGE,
-	TRAIN_EDGE
+	TRAIN_EDGE,
+	SMS_EDGE
 };
 }
 

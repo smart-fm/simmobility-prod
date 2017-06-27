@@ -398,12 +398,12 @@ sim_mob::PT_Path::PT_Path(const std::vector<PT_NetworkEdge> &path) :
 	}
 }
 
-void sim_mob::PT_Path::updatePathEdges()
+void sim_mob::PT_Path::updatePathEdges(PT_Network::NetworkType type)
 {
 	int edgeId;
 	std::stringstream ss(ptPathId);
 	pathEdges.clear();
-	PT_Network& ptNetwork = PT_NetworkCreater::getInstance();
+	PT_Network& ptNetwork = PT_NetworkCreater::getInstance(type);
 	bool hasBusTrip = false;
 	bool hasTrainTrip = false;
 	while (ss >> edgeId)

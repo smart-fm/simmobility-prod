@@ -31,7 +31,9 @@
             <mapping name="pt_edges" procedure="get_pt_tr_edges()"/>
             <mapping name="pt_vertices" procedure="get_pt_tr_vertices()"/>
             <mapping name="pt_pathset" procedure="get_pt_pathset_tr"/>
-            
+            <mapping name="rail_sms_edges" procedure="get_pt_tr_edges_sms_mrt()"/>
+            <mapping name="rail_sms_vertices" procedure="get_pt_tr_vertices_sms_mrt()"/>            
+            <mapping name="rail_sms_pathset" procedure="get_pt_pathset_tr_sms_mrt"/>
             <mapping name="rail_transit_edges" procedure="get_rail_transit_edges()"/>
             <mapping name="erp_gantry_zone" procedure="get_erp_gantry_zone()"/>
             <mapping name="screen_line" procedure="get_screen_line_segments()"/>

@@ -127,6 +127,7 @@ bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::S
 {
 	bool ret = true;
 	bool invalidFlag = false;
+
 	if (!matchedTrips.empty())
 	{
 		std::vector<sim_mob::OD_Trip>::const_iterator it = matchedTrips.begin();
@@ -284,9 +285,13 @@ bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::S
 				{
 					subTrip.travelMode = "BusTravel";
 				}
-				else
+				else if((*it).tType == sim_mob::TRAIN_EDGE)
 				{
 					subTrip.travelMode = "MRT";
+				}
+				else if((*it).tType == sim_mob::SMS_EDGE)
+				{
+					subTrip.travelMode = "RAIL_SMS";
 				}
 				subTrip.ptLineId = it->serviceLines;
 				newSubTrips.push_back(subTrip);

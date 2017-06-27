@@ -571,6 +571,7 @@ vector<ExpectationEntry> HedonicPrice_SubModel::CalculateUnitExpectations (Unit 
             }
             else
             {
+            	/*
                  a = 1.5 * reservationPrice;
                  x0 = 1.4 * reservationPrice;
 
@@ -580,6 +581,12 @@ vector<ExpectationEntry> HedonicPrice_SubModel::CalculateUnitExpectations (Unit 
 
                  reservationPrice = entry.targetPrice;
                  expectationsReverse.push_back(entry);
+                */
+
+            	 entry.hedonicPrice = hedonicPrice;
+            	 entry.targetPrice  = hedonicPrice *  0.85;
+            	 entry.askingPrice  = hedonicPrice * (0.85 + ((double)timeOnMarket - i) / timeOnMarket * 0.2);
+            	 expectationsReverse.push_back(entry);
             }
     	}
 

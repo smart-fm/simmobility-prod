@@ -165,7 +165,7 @@
                 <name value="baseline" />
 		<!-- <name value="ToaPayohScenario"/> --> <!--right now we have baseline and tp scenario-->
                 <scenarioSchema value = 'configuration2012.' />
-		<parcelsTable value = "fm_parcel" /> 
+		<parcelsTable value = "fm_parcel_study_area" /> 
 		<!-- <parcelsTable value = "fm_parcel_study_area" /> --> <!-- in tp scenario : fm_parcel_scenario_toapayoh -->
 	</scenario>
 

@@ -14,7 +14,8 @@
 #pragma once
 
 #include <stdint.h>
-
+#include <sstream>  //stringstream
+#include <stdexcept>
 
 /**
  * A simple class representing a timeslice of the simulation.
@@ -40,16 +41,53 @@ public:
 
 	bool operator==(const timeslice& other) const
 	{
-		if (frame_ == other.frame_ && ms_ == other.ms_)
+		if (ms_ == other.ms() )
+		{
+#ifndef NDEBUG
+			if (frame_ != other.frame() )
+			{
+				std::stringstream msg; msg<<"Error: in ms "<< ms_ <<"=="<<other.ms()<<", but in frames "<<
+					frame_<<">="<<other.frame();
+				throw std::runtime_error(msg.str());
+			}
+#endif
 			return true;
-		else return false;
+		}
+		return false;
 	}
 
 	bool operator!=(const timeslice& other) const
 	{
-		if (frame_ != other.frame_ || ms_ != other.ms_)
+		if (frame_ != other.frame() )
+		{
+#ifndef NDEBUG
+			if ( ms_ == other.ms() )
+			{
+				std::stringstream msg; msg<<"Error: in frames "<<frame_<<"!="<<other.frame()<<
+				", but in ms "<< ms_ <<"=="<< other.ms();
+				throw std::runtime_error(msg.str() );
+			}
+#endif
 			return true;
+		}
 		else return false;
+	}
+
+	bool operator<(const timeslice& other) const
+	{
+		if (ms_ < other.ms() )
+		{
+#ifndef NDEBUG
+			if (frame_ >= other.frame() )
+			{
+				std::stringstream msg; msg<< "Error: in milliseconds "<< ms_ <<"<" << other.ms() << ", but in frames "<<
+					frame_ <<">="<< other.frame();
+				throw std::runtime_error(msg.str() );
+			}
+#endif
+			return true;
+		}
+		return false;
 	}
 
 private:
@@ -58,3 +96,4 @@ private:
 	;
 };
 
+std::ostream& operator<<(std::ostream& strm, const timeslice& ts);

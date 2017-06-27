@@ -90,23 +90,21 @@ void PedestrianMovement::frame_init()
 					std::vector<SubTrip>::iterator taxiTripItr = subTripItr + 1;
 					const unsigned int taxiEndNodeId = (*taxiTripItr).destination.node->getNodeId();
 
-					ControllerLog() << "Request made from " << person->getDatabaseId() << " at time "
-					                << person->currTick.frame() << ". Message was sent at "
-					                << person->currTick.frame() << " with startNodeId " << taxiStartNodeId
-					                << ", destinationNodeId " << taxiEndNodeId
-					                << ", and driverId not_yet_assigned" << std::endl;
 
 					auto controllers = MobilityServiceControllerManager::GetInstance()->getControllers();
 					unsigned int randomController = Utils::generateInt(0, controllers.size() - 1);
 					auto itControllers = controllers.begin();
 					advance(itControllers, randomController);
 
+					TripRequestMessage* request = new TripRequestMessage(person->currTick,
+												  person->getDatabaseId(),
+												  taxiStartNodeId, taxiEndNodeId, 0);
 					messaging::MessageBus::SendMessage(itControllers->second, MSG_TRIP_REQUEST,
 					                                   messaging::MessageBus::MessagePtr(
-							                                   new TripRequestMessage(person->currTick,
-							                                                          person->getDatabaseId(),
-							                                                          taxiStartNodeId, taxiEndNodeId,
-							                                                          0)));
+							                                   request));
+
+
+					ControllerLog() << "Request sent: "<< *request << std::endl;
 				}
 			}
 		}

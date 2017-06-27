@@ -323,7 +323,7 @@ public:
 	 * export service driver
 	 * @return empty under default situation
 	 */
-	virtual MobilityServiceDriver* exportServiceDriver()
+	virtual const MobilityServiceDriver* exportServiceDriver() const
 	{
 		return nullptr;
 	}

@@ -13,6 +13,10 @@ using namespace sim_mob;
 
 void GreedyTaxiController::computeSchedules()
 {
+#ifndef NDEBUG
+	consistencyChecks("beginning");
+#endif
+
 	ControllerLog() << "Computing schedule: " << requestQueue.size() << " requests are in the queue" << std::endl;
 
 	std::list<TripRequestMessage>::iterator request = requestQueue.begin();
@@ -62,20 +66,19 @@ void GreedyTaxiController::computeSchedules()
 				schedule.push_back(pickUpScheduleItem);
 				schedule.push_back(dropOffScheduleItem);
 
-				sendScheduleProposition(bestDriver, schedule);
+				assignSchedule(bestDriver, schedule);
 
-				ControllerLog() << "Assignment sent for " << request->personId << " at time " << currTick.frame()
-				                << ". Message was sent at " << request->currTick.frame() << " with startNodeId "
-				                << request->startNodeId
-				                << ", destinationNodeId " << request->destinationNodeId << ", and driverId "
-				                << bestDriver->getDatabaseId()
-				                << std::endl;
+
+
+#ifndef NDEBUG
+				if (currTick < request->timeOfRequest)
+					throw std::runtime_error("The assignment is sent before the request has been issued: impossible");
+#endif
 
 				request = requestQueue.erase(request);
 
-				// The driver is not available anymore
-				availableDrivers.erase(std::remove(availableDrivers.begin(),
-						availableDrivers.end(), bestDriver), availableDrivers.end());
+
+
 			}
 			else
 			{
@@ -94,4 +97,9 @@ void GreedyTaxiController::computeSchedules()
 		ControllerLog() << "Requests to be scheduled " << requestQueue.size() << ", available drivers "
 		                << availableDrivers.size() << std::endl;
 	}
+
+#ifndef NDEBUG
+	consistencyChecks("end");
+#endif
+
 }

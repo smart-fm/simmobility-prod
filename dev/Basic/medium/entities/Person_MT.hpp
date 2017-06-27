@@ -285,7 +285,7 @@ public:
 	 * from current role, export service driver
 	 * @return service driver if current role support service driver
 	 */
-	MobilityServiceDriver* exportServiceDriver()
+	const MobilityServiceDriver* exportServiceDriver() const
 	{
 		if(currRole)
 		{

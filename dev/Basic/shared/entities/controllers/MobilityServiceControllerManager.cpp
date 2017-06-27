@@ -93,9 +93,10 @@ const std::multimap<MobilityServiceControllerType, MobilityServiceController *>&
 	return controllers;
 }
 
+
+
 bool MobilityServiceControllerManager::isNonspatial()
 {
+	// A controller is not located in any specific place
 	return true;
 }
-
-

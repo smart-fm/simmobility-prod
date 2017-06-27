@@ -14,8 +14,4 @@
 
 namespace sim_mob
 {
-void OnHailTaxiController::computeSchedules()
-{
-	// Do nothing
-}
 }

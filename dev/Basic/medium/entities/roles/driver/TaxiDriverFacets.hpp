@@ -20,8 +20,6 @@ class TaxiDriver;
 class TaxiDriverMovement : public DriverMovement
 {
 public:
-	/**List of subscribed controllers*/
-	std::vector<MobilityServiceController *> subscribedControllers;
 
 	TaxiDriverMovement();
 
@@ -95,6 +93,15 @@ public:
 	 * @return true if calling request is successful
 	 */
 	bool driveToNodeOnCall(const std::string &personId, const Node *destination);
+
+	virtual const std::vector<MobilityServiceController*>& getSubscribedControllers() const;
+
+
+protected:
+	bool isSubscribedToOnHail() const;
+
+	/**List of subscribed controllers*/
+	std::vector<MobilityServiceController *> subscribedControllers;
 
 private:
 	/**record next destination node*/

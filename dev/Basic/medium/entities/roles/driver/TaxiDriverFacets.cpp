@@ -72,20 +72,23 @@ void TaxiDriverMovement::subscribeToController(
 		{
 
 #ifndef NDEBUG
-                if (!isMobilityServiceDriver(parentDriver->getParent() ) )
-                {
-                        std::stringstream msg; msg<<"Driver "<< parentDriver->getParent()->getDatabaseId() <<" is trying to send a subscription message"
-                        " but she is not a MobilityServiceDriver"<< std::endl;
-                        throw std::runtime_error(msg.str() );
-                }
+			if (!isMobilityServiceDriver(parentDriver->getParent()))
+			{
+				std::stringstream msg;
+				msg << "Driver " << parentDriver->getParent()->getDatabaseId()
+				    << " is trying to send a subscription message but she is not a MobilityServiceDriver"
+				    << std::endl;
+				throw std::runtime_error(msg.str());
+			}
 #endif
 
 			MessageBus::SendMessage(itController->second, MSG_DRIVER_SUBSCRIBE,
 			                        MessageBus::MessagePtr(new DriverSubscribeMessage(parentTaxiDriver->getParent())));
 #ifndef NDEBUG
-			ControllerLog()<<"Driver "<< parentDriver->getParent()->getDatabaseId()<<" sent a subscription to the controller "<<
-
-					itController->second->GetId() <<" at time "<<parentDriver->getParent()->currTick<<std::endl;
+			ControllerLog() << "Driver " << parentDriver->getParent()->getDatabaseId()
+			                << " sent a subscription to the controller "
+			                << itController->second->GetId() << " at time " << parentDriver->getParent()->currTick
+			                << std::endl;
 #endif
 
 			subscribedControllers.push_back(itController->second);
@@ -112,7 +115,8 @@ const Lane *
 TaxiDriverMovement::getBestTargetLane(const SegmentStats *nextSegStats, const SegmentStats *nextToNextSegStats)
 {
 	MobilityServiceDriverStatus mobilityServiceDriverStatus = parentTaxiDriver->getDriverStatus();
-	if (mobilityServiceDriverStatus == DRIVE_TO_TAXISTAND && destinationTaxiStand && nextSegStats->hasTaxiStand(destinationTaxiStand))
+	if (mobilityServiceDriverStatus == DRIVE_TO_TAXISTAND && destinationTaxiStand && nextSegStats->hasTaxiStand(
+			destinationTaxiStand))
 	{
 		return nextSegStats->getOutermostLane();
 	}
@@ -220,7 +224,7 @@ bool TaxiDriverMovement::moveToNextSegment(DriverUpdateParams &params)
 		}
 	}
 
-	if (parentTaxiDriver->getDriverStatus() == CRUISING)
+	if (parentTaxiDriver->getDriverStatus() == CRUISING && isSubscribedToOnHail())
 	{
 		if (cruisingTooLongTime > timeoutForLongWaiting)
 		{
@@ -240,6 +244,13 @@ bool TaxiDriverMovement::moveToNextSegment(DriverUpdateParams &params)
 			{
 				selectNextLinkWhileCruising();
 			}
+		}
+	}
+	else if (parentTaxiDriver->getDriverStatus() == CRUISING && !isSubscribedToOnHail())
+	{
+		if (pathMover.isEndOfPath())
+		{
+			selectNextLinkWhileCruising();
 		}
 	}
 	else if (parentTaxiDriver->getDriverStatus() == DRIVE_WITH_PASSENGER && pathMover.isEndOfPath())
@@ -303,20 +314,20 @@ bool TaxiDriverMovement::moveToNextSegment(DriverUpdateParams &params)
 
 bool TaxiDriverMovement::isSubscribedToOnHail() const
 {
-	for (const MobilityServiceController* controller : subscribedControllers)
+	if (currentFleetItem.controllerSubscription & MobilityServiceControllerType::SERVICE_CONTROLLER_ON_HAIL)
 	{
-#ifndef NDEBUG
-		if (controller->type == MobilityServiceControllerType::SERVICE_CONTROLLER_UNKNOWN)
-		{
-			std::stringstream msg; msg<<"Controller "<<controller->GetId()<<" is of UNKNOWN TYPE.";
-			throw std::runtime_error(msg.str());
-		}
-#endif
-
-		if (controller->type == MobilityServiceControllerType::SERVICE_CONTROLLER_ON_HAIL)
-			return true;
+		return true;
 	}
-	return false;
+	else if (currentFleetItem.controllerSubscription & MobilityServiceControllerType::SERVICE_CONTROLLER_UNKNOWN)
+	{
+		stringstream msg;
+		msg << "Driver " << currentFleetItem.driverId << " subscribes to unknown service controller";
+		throw runtime_error(msg.str());
+	}
+	else
+	{
+		return false;
+	}
 }
 
 bool TaxiDriverMovement::checkNextFleet()
@@ -324,11 +335,7 @@ bool TaxiDriverMovement::checkNextFleet()
 	bool res = false;
 	DriverUpdateParams &params = parentTaxiDriver->getParams();
 
-	if (taxiFleets.size() > 0
-			//<aa>
-			&& isSubscribedToOnHail()
-			//</aa>
-	)
+	if (taxiFleets.size() > 0 && isSubscribedToOnHail())
 	{
 		currentFleetItem = taxiFleets.front();
 		if (currentFleetItem.startTime < params.now.ms() / 1000.0)
@@ -394,7 +401,7 @@ void TaxiDriverMovement::frame_tick()
 		}
 		return;
 	}
-	if (mode == CRUISING)
+	if (mode == CRUISING && isSubscribedToOnHail())
 	{
 		cruisingTooLongTime += params.secondsInTick;
 	}
@@ -840,7 +847,7 @@ bool TaxiDriverMovement::isToBeRemovedFromTaxiStand()
 }
 
 
-const std::vector<MobilityServiceController*>& TaxiDriverMovement::getSubscribedControllers() const
+const std::vector<MobilityServiceController *> &TaxiDriverMovement::getSubscribedControllers() const
 {
 	return subscribedControllers;
 }

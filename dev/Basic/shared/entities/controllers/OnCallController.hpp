@@ -2,7 +2,7 @@
  * MobilityServiceController.hpp
  *
  *  Created on: Feb 20, 2017
- *      Author: Akshay Padmanabha
+ *      Author: Akshay Padmanabha, Andrea Araldo
  */
 
 #ifndef MobilityServiceController_HPP_
@@ -18,6 +18,29 @@
 
 namespace sim_mob
 {
+
+/**
+ * This class is a sort of smart implementation of set. Indeed, in debug mode, it assures unicity of its members.
+ * In release mode this check is not operated and the insertion is faster. Use this when you know that your code
+ * never tries to add twice the same object
+ */
+template <class T> class Group
+{
+public:
+	Group():elements( std::list<T>() ){};
+	~Group(){};
+	void insert(const T& r);
+	const std::list<T>& getElements() const;
+	size_t size() const;
+	const T pop_front() const;
+
+protected:
+	std::list<T> elements;
+};
+
+
+
+
 
 
 
@@ -85,12 +108,14 @@ protected:
 
 	/**
 	 * Computes a hypothetical schedule such that a driver located at a certain position can serve her current schedule
-	 * as well as additional requests. The hypothetical schedule is written in newSchedule. The return value is the
-	 * travel time.
+	 * as well as additional requests. The hypothetical schedule is written in newSchedule.
+	 * The return value is the travel time if a feasible schedule is found, otherwise -1 is returned.
+	 * If isOptimalityRequired is true, the function computes the schedule that minimizes the travel time. Otherwise, any feasible
+	 * schedule is computed.
 	 */
-	virtual double computeOptimalSchedule(const Node* initialPositon, const Schedule& currentSchedule,
-			const std::vector<TripRequestMessage>& additionalRequests,
-			Schedule& newSchedule) const;
+	virtual double computeSchedule(const Node* initialPositon, const Schedule& currentSchedule,
+			const Group<TripRequestMessage>& additionalRequests,
+			Schedule& newSchedule, bool isOptimalityRequired) const;
 
 	/**
 	 * Checks if the schedule is feasible, i.e. if:
@@ -103,6 +128,12 @@ protected:
 	 * The return value and the thresholds are expressed in ms.
 	 */
 	virtual double evaluateSchedule(const Node* initialPositon, const Schedule& schedule, double additionalDelayThreshold, double waitingTimeThreshold) const;
+
+	/**
+	 * True if it is possible to combine these two requests together while respecting the constraints
+	 */
+	virtual bool canBeShared(const TripRequestMessage& r1, const TripRequestMessage& r2,
+			double additionalDelayThreshold, double waitingTimeThreshold ) const;
 
 	/**
 	 * Inherited from base class to update this agent
@@ -150,7 +181,13 @@ protected:
 	 */
 	std::map<const Person*, Schedule> driverSchedules;
 
+	//TODO: These should not be hardcoded
+	const double additionalDelayThreshold = std::numeric_limits<double>::max();
+	const double waitingTimeThreshold = std::numeric_limits<double>::max();
+	const unsigned maxVehicleOccupancy = 3;
+
 };
 }
 #endif /* MobilityServiceController_HPP_ */
 
+std::ostream& operator<<(std::ostream& strm, const sim_mob::Group<sim_mob::TripRequestMessage>& requestGroup);

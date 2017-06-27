@@ -607,6 +607,7 @@ bool HouseholdBidderRole::pickEntryToBid()
     	printProbabilityList(household->getId(), householdScreeningProbabilities);
 
 	std::set<const HousingMarket::Entry*> screenedEntries;
+	std::vector<const HousingMarket::Entry*> screenedEntriesVec; //This vector's only purpose is to print the choiceset
 
     for(int n = 0; n < entries.size() && screenedEntries.size() < config.ltParams.housingModel.bidderUnitsChoiceSet; n++)
     {
@@ -687,6 +688,11 @@ bool HouseholdBidderRole::pickEntryToBid()
     }
 
     {
+
+    	for(auto itr = screenedEntries.begin(); itr != screenedEntries.end(); itr++)
+    		screenedEntriesVec.push_back(*itr);
+
+
     	set<BigSerial> btoEntries = market->getBTOEntries();
 
         //Add x BTO units to the screenedUnit vector if the household is eligible for it
@@ -700,17 +706,15 @@ bool HouseholdBidderRole::pickEntryToBid()
          	const HousingMarket::Entry* entry = market->getEntryById(*itr);
 
         	screenedEntries.insert(entry);
+        	screenedEntriesVec.push_back(entry);
 
         	btoEntries.erase(*itr);
         }
 
     	std::string choiceset(" ");
-    	for(int n = 0; n < screenedEntries.size(); n++)
+    	for(int n = 0; n < screenedEntriesVec.size(); n++)
     	{
-    		auto itr_scr = screenedEntries.begin();
-    		advance(itr_scr, n);
-
-    		choiceset += std::to_string( (*itr_scr)->getUnitId() )  + ", ";
+    		choiceset += std::to_string( screenedEntriesVec[n]->getUnitId() )  + ", ";
     	}
 
     	printChoiceset(day, household->getId(), choiceset);

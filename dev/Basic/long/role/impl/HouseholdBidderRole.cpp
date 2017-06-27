@@ -294,7 +294,10 @@ void HouseholdBidderRole::computeHouseholdAffordability()
 	std::vector<ExpectationEntry> expectations;
 	hpSubmodel.ComputeExpectation(1, expectations);
 
-	double price = expectations[0].hedonicPrice;
+	double price = 0;
+
+	if(expectations.size() > 0 )
+		price = expectations[0].hedonicPrice;
 
 	bidderHousehold->setCurrentUnitPrice( price );
 }
@@ -625,7 +628,7 @@ bool HouseholdBidderRole::pickEntryToBid()
     	auto range = market->getunitsByZoneHousingType().equal_range( zoneHousingType  );
     	int numUnits = distance(range.first, range.second); //find the number of units in the above zoneHousingType
 
-    	if(numUnits < config.ltParams.housingModel.bidderUnitsChoiceSet)
+    	if(numUnits < 2)
     		continue;
 
 
@@ -767,7 +770,7 @@ bool HouseholdBidderRole::pickEntryToBid()
 
 
 
-
+		if(unit->isBto() == false )
             	{
             		int unit_type = unit->getUnitType();
 

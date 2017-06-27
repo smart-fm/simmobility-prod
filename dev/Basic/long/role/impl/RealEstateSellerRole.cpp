@@ -333,6 +333,11 @@ void RealEstateSellerRole::notifyWinnerBidders()
         Bid& maxBidOfDay = itr->second;
         ExpectationEntry entry;
         getCurrentExpectation(maxBidOfDay.getNewUnitId(), entry);
+
+
+	if(decide(maxBidOfDay, entry) == false)
+        	continue;
+
         replyBid(*dynamic_cast<RealEstateAgent*>(getParent()), maxBidOfDay, entry, ACCEPTED, getCounter(dailyBids, maxBidOfDay.getNewUnitId()));
 
         //PrintOut("\033[1;37mSeller " << std::dec << getParent()->GetId() << " accepted the bid of " << maxBidOfDay.getBidderId() << " for unit " << maxBidOfDay.getUnitId() << " at $" << maxBidOfDay.getValue() << " psf. \033[0m\n" );

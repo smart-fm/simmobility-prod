@@ -1930,9 +1930,14 @@ void HM_Model::startImpl()
 		boost::gregorian::date simulationDate = boost::gregorian::date(HITS_SURVEY_YEAR, 1, 1);
 		int unitStartDay = startDay;
 
+		(*it)->setBto(false);
+
 		if( saleDate > simulationDate )
 		{
 			unitStartDay = (saleDate - simulationDate).days();
+
+			if( (*it)->getUnitType() < 6 )
+				(*it)->setBto(true);
 		}
 
 		(*it)->setbiddingMarketEntryDay( unitStartDay );

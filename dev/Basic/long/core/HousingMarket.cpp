@@ -311,8 +311,9 @@ void HousingMarket::HandleMessage(Message::MessageType type, const Message& mess
                 //MessageBus::EventArgsPtr(new HM_ActionEventArgs(unitId)));
 
                if( newEntry->isBTO() )
+		{
             	   btoEntries.insert(unitId);
-
+		}
                unitsByZoneHousingType.insert(std::make_pair<int,BigSerial>( msg.entry.getZoneHousingType(), msg.entry.getUnitId()));
             }
             break;

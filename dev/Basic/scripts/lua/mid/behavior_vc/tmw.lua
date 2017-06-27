@@ -218,6 +218,9 @@ local choice = {
 }
 
 
+local modes = {['BusTravel'] = 1 , ['MRT'] =2 , ['PrivateBus'] =3 ,  ['Car'] = 4,  ['Car_Sharing_2'] = 5,['Car_Sharing_3'] = 6, ['Motorcycle'] = 7,['Walk'] = 8, ['Taxi'] = 9  }
+
+
 --choice["PT"] = {1,2,3}
 --choice["non-PT"] = {4,5,6,7,8,9}
 
@@ -431,15 +434,21 @@ end
 local availability = {}
 local function computeAvailabilities(params,dbparams)
 	availability = {
-		dbparams.publicbus_AV,
-		dbparams.mrt_AV,
-		dbparams.privatebus_AV,
-		dbparams.drive1_AV,
-		dbparams.share2_AV,
-		dbparams.share3_AV,
-		dbparams.motor_AV,
-		dbparams.walk_AV,
-		dbparams.taxi_AV
+	
+
+
+		dbparams:getModeAvailability(modes.BusTravel),
+		dbparams:getModeAvailability(modes.MRT),
+		dbparams:getModeAvailability(modes.PrivateBus),
+		dbparams:getModeAvailability(modes.Car),
+		dbparams:getModeAvailability(modes.Car_Sharing_2),
+		dbparams:getModeAvailability(modes.Car_Sharing_3),
+		dbparams:getModeAvailability(modes.Motorcycle),
+		dbparams:getModeAvailability(modes.Walk),
+		dbparams:getModeAvailability(modes.Taxi)
+	
+
+
 	}
 end
 

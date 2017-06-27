@@ -210,6 +210,8 @@ local edushop_ss = {0,0,0,0,0,0,0,1,0,0}
 local eduothers_ss = {0,0,0,0,0,0,0,0,1,0}
 local shopothers_ss = {0,0,0,0,0,0,0,0,0,1}
 
+local activity_types = { ["Work"] = 1, ["Education"] = 2, ["Shop"] = 3, ["Others"] = 4 }
+
 --utility
 local utility = {}
 local function computeUtilities(params) 
@@ -228,10 +230,10 @@ local function computeUtilities(params)
 	local missing_income = params.missing_income
 	local workathome = params.work_at_home_dummy
 	local veh_own_cat = params.vehicle_ownership_category
-	local worklogsum = params.worklogsum
-	local edulogsum = params.edulogsum
-	local shoplogsum = params.shoplogsum
-	local otherlogsum = params.otherlogsum
+	local worklogsum = params:activity_logsum(activity_types.Work)
+	local edulogsum = params:activity_logsum(activity_types.Education)
+	local shoplogsum = params:activity_logsum(activity_types.Shop)
+	local otherlogsum = params:activity_logsum(activity_types.Others)
 
 	-- person type related variables
 	local fulltime,parttime,selfemployed,homemaker,retired,univ_student,unemployed,nationalservice,voluntary,domestic,otherworker,student16,student515,child4 = 0,0,0,0,0,0,0,0,0,0,0,0,0,0	

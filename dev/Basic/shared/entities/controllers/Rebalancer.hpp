@@ -32,6 +32,12 @@ class SimpleRebalancer : public Rebalancer
 			const timeslice currTick);
 };
 
+class KasiaRebalancer : public Rebalancer
+{
+	void rebalance(const std::vector<const Person*>& availableDrivers,
+			const timeslice currTick);
+};
+
 
 } /* namespace sim_mob */
 

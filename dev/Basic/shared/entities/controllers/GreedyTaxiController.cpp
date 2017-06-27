@@ -33,8 +33,7 @@ void GreedyTaxiController::computeSchedules()
 			if (itStart == nodeIdMap.end())
 			{
 				std::stringstream msg;
-				msg << "Request from person " << (*request).personId << " contains bad start node "
-					<< (*request).startNodeId << std::endl;
+				msg << "Request contains bad start node " << (*request).startNodeId << std::endl;
 				throw std::runtime_error(msg.str());
 			}
 #endif
@@ -46,8 +45,7 @@ void GreedyTaxiController::computeSchedules()
 			if (itDestination == nodeIdMap.end())
 			{
 				std::stringstream msg;
-				msg << "Request from person " << (*request).personId << " contains bad destination node "
-					<< (*request).destinationNodeId << std::endl;
+				msg << "Request contains bad destination node " << (*request).destinationNodeId << std::endl;
 				throw std::runtime_error(msg.str());
 			}
 #endif

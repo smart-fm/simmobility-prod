@@ -10,13 +10,13 @@ Authors - Siyu Li, Harish Loganathan
 --Estimated values for all betas
 --Note: the betas that not estimated are fixed to zero.
 
-local beta_cons_NQ = -4.42
+local beta_cons_NQ= -4.42
 local beta_cons_Q = 0
 
 local beta_first_work = 0
 local beta_2plus_work = 0
 local beta_not_usual = 0
-local beta_car_avail = -0.265
+local beta_car_avail= -0.265
 
 local beta_female_nonquit = -0.502
 

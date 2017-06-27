@@ -13,10 +13,10 @@ UPDATED VERSION - Carlos, Adnan, Harish
 --Estimated values for all betas
 --Note: the betas that not estimated are fixed to zero.
 --stop constants
-local beta_stop_work = -9.229
-local beta_stop_edu = -4.829
-local beta_stop_shop = -5.566
-local beta_stop_others = -3.96
+local beta_stop_work = -8.39
+local beta_stop_edu = -4.39
+local beta_stop_shop = -5.06
+local beta_stop_others = -3.60
 
 --Person type
 local beta_parttime_work = 0
@@ -124,7 +124,7 @@ local beta_income_edu = 0
 local beta_income_shop = 0.147
 local beta_income_others = 0.104
 
-local beta_missingincome_work = 0
+local beta_missingincome_work = 2.41
 local beta_missingincome_edu = 0
 local beta_missingincome_shop = 0.459
 local beta_missingincome_others = 0.544
@@ -210,8 +210,6 @@ local edushop_ss = {0,0,0,0,0,0,0,1,0,0}
 local eduothers_ss = {0,0,0,0,0,0,0,0,1,0}
 local shopothers_ss = {0,0,0,0,0,0,0,0,0,1}
 
-local activity_types = { ["Work"] = 1, ["Education"] = 2, ["Shop"] = 3, ["Others"] = 4 }
-
 --utility
 local utility = {}
 local function computeUtilities(params) 
@@ -230,10 +228,10 @@ local function computeUtilities(params)
 	local missing_income = params.missing_income
 	local workathome = params.work_at_home_dummy
 	local veh_own_cat = params.vehicle_ownership_category
-	local worklogsum = params:activity_logsum(activity_types.Work)
-	local edulogsum = params:activity_logsum(activity_types.Education)
-	local shoplogsum = params:activity_logsum(activity_types.Shop)
-	local otherlogsum = params:activity_logsum(activity_types.Others)
+	local worklogsum = params.worklogsum
+	local edulogsum = params.edulogsum
+	local shoplogsum = params.shoplogsum
+	local otherlogsum = params.otherlogsum
 
 	-- person type related variables
 	local fulltime,parttime,selfemployed,homemaker,retired,univ_student,unemployed,nationalservice,voluntary,domestic,otherworker,student16,student515,child4 = 0,0,0,0,0,0,0,0,0,0,0,0,0,0	
@@ -316,7 +314,7 @@ local function computeUtilities(params)
 
 	-- other variables
 	local zero_car,one_car,twoplus_car,motoravail = 0,0,0,0
-	if veh_own_cat == 0 or veh_own_cat == 1 or veh_own_cat ==2 then
+	if veh_own_cat == 0  then 
 		zero_car = 1 
 	end
 	if veh_own_cat == 1 or veh_own_cat == 2 or veh_own_cat == 4 or veh_own_cat == 5  then 

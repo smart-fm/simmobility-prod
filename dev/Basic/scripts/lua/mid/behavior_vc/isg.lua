@@ -21,7 +21,7 @@ local beta_first_stop_inbound = 0
 local beta_second_stop_inbound = 5.31
 local beta_threeplus_stop_inbound = 1.73
 local beta_first_stop_outbound = 0.233
-local beta_second_stop_outbound = 2.3
+local beta_second_stop_outbound = 2.30
 local beta_threeplus_stop_outbound = 2.23
 
 
@@ -31,7 +31,7 @@ local beta_shopping_tour_dummy_Q = 0
 local beta_other_tour_dummy_Q = 0
 
 
-local beta_first_tour_dummy_Q = -1.4
+local beta_first_tour_dummy_Q = -1.40
 local beta_sub_tour_dummy_Q = -0.0218
 local beta_zero_tour_remain_Q = 0
 local beta_one_tour_remain_Q = 0.506
@@ -93,7 +93,7 @@ local beta_other_logsum = 0
 
 
 local beta_time_window_work_first_stop_first_bound = 2.31
-local beta_time_window_work_second_stop_first_bound = 3.43
+local beta_time_window_work_second_stop_first_bound =3.43
 local beta_time_window_work_3plus_stop_first_bound = 0
 local beta_time_window_work_first_stop_second_bound = 0.669
 local beta_time_window_work_second_stop_second_bound = 3.34

@@ -10,7 +10,7 @@ Authors - Siyu Li, Harish Loganathan
 --Estimated values for all betas
 --Note= the betas that not estimated are fixed to zero.
 
-local beta_C_1 = -0.169
+local beta_C_1 =-0.169
 local beta_DUR_1_shopping= 0
 local beta_DUR_2_shopping= 0 
 local beta_DUR_1_edu= 0
@@ -18,28 +18,28 @@ local beta_DUR_3_work= 0
 local beta_DUR_2_work= 0 
 local beta_DUR_1_other= 0
 local beta_DUR_1_work= 0 
-local beta_TT = -2.07
-local beta_C_2 = -0.545 
-local beta_DEP_1_1 = 3.79 
-local beta_DEP_1_3 = -3.14 
-local beta_DEP_1_2 = -2.15 
-local beta_DEP_1_5 = -4 
-local beta_DEP_1_4 = -0.165 
-local beta_DEP_1_7 = 0.354 
-local beta_DEP_1_6 = -4.45 
-local beta_DEP_1_8 = 1.64
+local beta_TT= -2.07
+local beta_C_2= -0.545 
+local beta_DEP_1_1= 3.79 
+local beta_DEP_1_3= -3.14 
+local beta_DEP_1_2= -2.15 
+local beta_DEP_1_5= -4.00 
+local beta_DEP_1_4= -0.165 
+local beta_DEP_1_7= 0.354 
+local beta_DEP_1_6= -4.45 
+local beta_DEP_1_8= 1.64
 local beta_DUR_2_other= 0 
 local beta_DUR_3_shopping= 0 
 local beta_DUR_2_edu= 0 
 local beta_DUR_3_edu= 0 
-local beta_ARR_1_8 = 0.688
-local beta_ARR_1_7 = 2.88 
-local beta_ARR_1_6 = 2.66 
-local beta_ARR_1_5 = -2.01 
-local beta_ARR_1_4 = 0.385 
-local beta_ARR_1_3 = -0.727 
-local beta_ARR_1_2 = -5.91 
-local beta_ARR_1_1 = -9.47 
+local beta_ARR_1_8= 0.688
+local beta_ARR_1_7= 2.88 
+local beta_ARR_1_6= 2.66 
+local beta_ARR_1_5= -2.01 
+local beta_ARR_1_4= 0.385 
+local beta_ARR_1_3= -0.727 
+local beta_ARR_1_2= -5.91 
+local beta_ARR_1_1= -9.47 
 local beta_DUR_3_other= 0
 
 

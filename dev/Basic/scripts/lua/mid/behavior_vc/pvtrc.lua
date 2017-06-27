@@ -7,20 +7,20 @@ Authors - Adnan, Shahita
 --Estimated values for all betas
 --Note: the betas that not estimated are fixed to zero.
 
-local beta_bTTVOT = -0.0013904847537047364
-local beta_bCommonFactor = 1.542931900577706
-local beta_bLength = -2.2760243196051997e-06
-local beta_bHighway = 4.494847364656496e-05
+local beta_bTTVOT = -0.01373
+local beta_bCommonFactor = 1
+local beta_bLength = -0.00103
+local beta_bHighway= 0.00052
 local beta_bCost = 0.0
-local beta_bSigInter = -0.0020431164328690793
+local beta_bSigInter = -0.13
 local beta_bLeftTurns = 0.0
 local beta_bWork = 0.0
 local beta_bLeisure = 0.0
-local beta_highwayBias = 0.23998897032620298
-local beta_minTravelTimeParam = 0.37320274392971114
-local beta_minDistanceParam = 0.08777962943862566
-local beta_minSignalParam = 0.020236935452274854
-local beta_maxHighwayParam = 0.125971989288778
+local beta_highwayBias = 0.5
+local beta_minTravelTimeParam = 0.879
+local beta_minDistanceParam = 0.325
+local beta_minSignalParam = 0.256
+local beta_maxHighwayParam = 0.422
 
 
 --utility

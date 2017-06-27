@@ -13,13 +13,12 @@ UPDATED VERSION - Adnan
 --Estimated values for all betas
 --Note: the betas that not estimated are fixed to zero.
 --travel constants
-local cons_travel = 2.5
-
+local cons_travel = -0.1
 
 --Person type
 local beta_homemaker = 0.442
 local beta_retired = -0.419
-local beta_fulltime = 4.10
+local beta_fulltime = 4.1
 local beta_parttime = 3.02
 local beta_selfemployed = 2.60
 local beta_unemployed = -0.329
@@ -70,6 +69,8 @@ local beta_dptour_logsum = 0.227
 --1 for notravel; 2 for travel
 local choice = { 1, 2 }
 
+local activity_types = { ["Work"] = 1, ["Education"] = 2, ["Shop"] = 3, ["Others"] = 4 }
+
 --utility
 local utility = {}
 local function computeUtilities(params) 
@@ -88,10 +89,10 @@ local function computeUtilities(params)
 	local missing_income = params.missing_income
 	local workathome = params.work_at_home_dummy
 	local veh_own_cat = params.vehicle_ownership_category
-	local worklogsum = params.worklogsum
-	local edulogsum = params.edulogsum
-	local shoplogsum = params.shoplogsum
-	local otherlogsum = params.otherlogsum
+	local worklogsum = params:activity_logsum(activity_types.Work)
+	local edulogsum = params:activity_logsum(activity_types.Education)
+	local shoplogsum = params:activity_logsum(activity_types.Shop)
+	local otherlogsum = params:activity_logsum(activity_types.Others)
 	local dptour_logsum = params.dptour_logsum
 	local dpstop_logsum = params.dpstop_logsum
 
@@ -176,7 +177,7 @@ local function computeUtilities(params)
 
 	-- other variables
 	local zero_car,one_car,twoplus_car,motoravail = 0,0,0,0
-	if veh_own_cat == 0  then 
+	if veh_own_cat == 0 or veh_own_cat == 1 or veh_own_cat ==2 then
 		zero_car = 1 
 	end
 	if veh_own_cat == 1 or veh_own_cat == 2 or veh_own_cat == 4 or veh_own_cat == 5  then 
@@ -189,10 +190,12 @@ local function computeUtilities(params)
 		twoplus_car = 1 
 	end
 			
-	utility[1] = 0
+	utility[1] = 0.55
 			
-	if person_type_id == 11 then --taking care of excluded individuals at dpbinary level (individuals not eligible for hits interview and also not traveling (persontype_id =1, age_id=0))
-
+	if person_type_id == 11 or person_type_id == 99 then 
+		--taking care of excluded individuals at dpbinary level (individuals not eligible for hits interview and also not traveling 
+		--person_type_id = 11, age_id=0 for HITS population data
+		--person_type_id = 99, age_id=0 or 99 for LT population data. NOTE: LT population dataset has no individual with person_type_id = 11.
 		utility[2]=-999
 	else	
 		utility[2] = cons_travel +  

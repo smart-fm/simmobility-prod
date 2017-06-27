@@ -16,7 +16,7 @@ local beta_ARR_2_1 = -0.111
 local beta_ARR_2_7 = 0.0257 
 local beta_ARR_2_6 = -0.0509 
 local beta_ARR_2_5 = -0.216 
-local beta_ARR_2_4 = 0.0680 
+local beta_ARR_2_4 = 0.068 
 local beta_DEP_2_8 = 0.0194 
 local beta_C = -0.212
 local beta_ARR_2_8 = -0.00634 
@@ -46,7 +46,7 @@ local beta_ARR_1_2 = -1.81
 local beta_ARR_1_3 = -0.273 
 local beta_DUR_1 = 0.00618
 local beta_DUR_2 = -0.0831 
-local beta_DUR_3 = 0.00390 
+local beta_DUR_3 = 0.0039 
 local beta_DEP_2_4 = 0.00894
 
 local k = 3

@@ -160,7 +160,7 @@ local function computeUtilities(params,dbparams)
 
 	local cost_bus=cost_public_first+cost_public_second+cost_increase
 	local cost_mrt=cost_public_first+cost_public_second+cost_increase
-	local cost_rail_SMS=cost_public_first+cost_public_second+cost_increase + (3.4 + (d1*(d1<=10 and 1 or 0)))*0.25 + (3.4 + (d2*(d2<=10 and 1 or 0)))*0.25
+	local cost_rail_SMS=cost_public_first+cost_public_second+cost_increase + (3.4 + (d1*(d1<=10 and 1 or 0)))*0.25 + (3.4 + (d2*(d2<=10 and 1 or 0)))
 	local cost_privatebus=cost_public_first+cost_public_second+cost_increase--dbparams.cost_car_ERP_first = AM[(origin,destination)]['car_cost_erp']
 	--dbparams.cost_car_ERP_second = PM[(destination,origin)]['car_cost_erp']
 	--dbparams.cost_car_OP_first = AM[(origin,destination)]['distance']*0.147

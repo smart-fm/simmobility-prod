@@ -288,7 +288,7 @@ local function computeUtilities(params,dbparams)
 		cost_public_second[i] = dbparams:cost_public_second(i)
 		cost_bus[i] = cost_public_first[i] + cost_public_second[i] + cost_increase
 		cost_mrt[i] = cost_public_first[i] + cost_public_second[i] + cost_increase
-		cost_rail_SMS[i] = cost_public_first[i] + cost_public_second[i] + cost_increase + (3.4 + (d1[i]*(d1[i]<=10 and 1 or 0)))*0.25 + (3.4 + (d2[i]*(d2[i]<=10 and 1 or 0)))*0.25
+		cost_rail_SMS[i] = cost_public_first[i] + cost_public_second[i] + cost_increase + (3.4 + (d1[i]*(d1[i]<=10 and 1 or 0))) + (3.4 + (d2[i]*(d2[i]<=10 and 1 or 0)))*0.25
 		cost_private_bus[i] = cost_public_first[i] + cost_public_second[i] + cost_increase
 
 		--dbparams:cost_car_ERP_first(i) = AM[(origin,destination[i])]['car_cost_erp']

@@ -164,7 +164,7 @@ local function computeUtilities(params,dbparams)
 
 		cost_bus[i] = dbparams:cost_public_first(i) + dbparams:cost_public_second(i)
 		cost_mrt[i] = cost_bus[i]
-		cost_rail_SMS[i] = cost_bus[i] + (3.4 + (d1[i]*(d1[i]<=10 and 1 or 0)))*0.25+(3.4 + (d2[i]*(d2[i]<=10 and 1 or 0)))*0.25
+		cost_rail_SMS[i] = cost_bus[i] + (3.4 + (d1[i]*(d1[i]<=10 and 1 or 0)))*0.25+(3.4 + (d2[i]*(d2[i]<=10 and 1 or 0)))
 		cost_private_bus[i] = cost_bus[i]
 
 		cost_drive1[i] = dbparams:cost_car_ERP_first(i)+dbparams:cost_car_ERP_second(i)+dbparams:cost_car_OP_first(i)+dbparams:cost_car_OP_second(i)+dbparams:cost_car_parking(i)

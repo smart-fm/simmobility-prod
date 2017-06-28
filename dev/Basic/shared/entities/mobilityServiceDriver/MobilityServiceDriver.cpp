@@ -68,9 +68,15 @@ const std::string MobilityServiceDriver::getSubscribedControllerTypesStr() const
 
 bool sim_mob::isMobilityServiceDriver(const Person* person)
 {
-	const MobilityServiceDriver* msd = person->exportServiceDriver();
-	if (msd) return true;
-	else return false;
+	const MobilityServiceDriver *serviceDriver = person->exportServiceDriver();
+	if (serviceDriver)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
 }
 
 

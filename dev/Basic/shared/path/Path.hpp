@@ -435,7 +435,7 @@ public:
 	/**
 	 * parses comma separated list of path edge ids and builds pathEdges (vector of PT_NetworkEdge objects)
 	 */
-	void updatePathEdges();
+	void updatePathEdges(PT_Network::NetworkType type = PT_Network::TYPE_DEFAULT);
 
 private:
 	std::vector<PT_NetworkEdge> pathEdges;

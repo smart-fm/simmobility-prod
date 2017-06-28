@@ -4,39 +4,67 @@
 
 #include "PT_NetworkEntities.hpp"
 
-#include <sstream>
 #include "conf/ConfigManager.hpp"
-#include "conf/Constructs.hpp"
-#include "conf/ConfigParams.hpp"
-#include "conf/RawConfigParams.hpp"
 #include "database/DB_Connection.hpp"
 #include "database/pt_network_dao/PT_NetworkSqlDao.hpp"
-#include "geospatial/streetdir/StreetDirectory.hpp"
 #include "geospatial/streetdir/RailTransit.hpp"
-#include "util/LangHelpers.hpp"
 #include "util/Utils.hpp"
 
-
-
-using namespace std;
 using namespace sim_mob;
-PT_Network sim_mob::PT_NetworkCreater::instance;
+using namespace std;
+
+map<PT_Network::NetworkType, PT_Network *> PT_NetworkCreater::mapOfInstances;
+
+void PT_NetworkCreater::createNetwork(const string &storedProcForVertex, const string &storeProceForEdges,
+                                      PT_Network::NetworkType type)
+{
+	//Check if an instance of the given type has been created before
+	auto itInstance = mapOfInstances.find(type);
+
+	if (mapOfInstances.empty() || itInstance == mapOfInstances.end())
+	{
+		PT_Network *network = new PT_Network();
+		network->initialise(storedProcForVertex, storeProceForEdges);
+		mapOfInstances[type] = network;
+	}
+	else
+	{
+		stringstream msg;
+		msg << "Network for type: " << type << " has already been created.";
+		throw runtime_error(msg.str());
+	}
+}
 
 void PT_NetworkCreater::init()
 {
-	const std::string DB_STORED_PROC_PT_EDGES = ConfigManager::GetInstanceRW().FullConfig().getDatabaseProcMappings().procedureMappings["pt_edges"];
-	const std::string DB_STORED_PROC_PT_VERTICES = ConfigManager::GetInstanceRW().FullConfig().getDatabaseProcMappings().procedureMappings["pt_vertices"];
-	if(!DB_STORED_PROC_PT_EDGES.empty()&&!DB_STORED_PROC_PT_VERTICES.empty())
+	StoredProcedureMap procedureMap = ConfigManager::GetInstanceRW().FullConfig().getDatabaseProcMappings();
+	const string DB_STORED_PROC_PT_EDGES = procedureMap.procedureMappings["pt_edges"];
+	const string DB_STORED_PROC_PT_VERTICES = procedureMap.procedureMappings["pt_vertices"];
+
+	if (!DB_STORED_PROC_PT_EDGES.empty() && !DB_STORED_PROC_PT_VERTICES.empty())
 	{
-		instance.init(DB_STORED_PROC_PT_VERTICES, DB_STORED_PROC_PT_EDGES);
+		//Retrieve the default network
+		PT_Network &instance = getInstance();
+		instance.initialise(DB_STORED_PROC_PT_VERTICES, DB_STORED_PROC_PT_EDGES);
+	}
+
+	const string DB_STORED_PROC_RAIL_SMS_EDGES = procedureMap.procedureMappings["rail_sms_edges"];
+	const string DB_STORED_PROC_RAIL_SMS_VERTICES = procedureMap.procedureMappings["rail_sms_vertices"];
+
+	if (!DB_STORED_PROC_RAIL_SMS_EDGES.empty() && !DB_STORED_PROC_RAIL_SMS_VERTICES.empty())
+	{
+		//Retrieve the rail-sms network
+		PT_Network &instance = getInstance(PT_Network::TYPE_RAIL_SMS);
+		instance.initialise(DB_STORED_PROC_RAIL_SMS_VERTICES, DB_STORED_PROC_RAIL_SMS_EDGES);
 	}
 }
+
 namespace
 {
 void loadMRTData(soci::session& sql_, std::map<std::string, TrainStop*>& mrtStopsMap)
 {
 	//Reading the MRT data
-	std::string storedProc = sim_mob::ConfigManager::GetInstance().FullConfig().getDatabaseProcMappings().procedureMappings["mrt_road_segments"];
+	std::string storedProc = ConfigManager::GetInstance().FullConfig().getDatabaseProcMappings().procedureMappings["mrt_road_segments"];
 	if(storedProc.empty()) { return; }
 	std::stringstream query;
 	query << "select * from " << storedProc;
@@ -89,7 +117,7 @@ void loadMRTData(soci::session& sql_, std::map<std::string, TrainStop*>& mrtStop
 void loadRailTransitGraphData(soci::session& sql_, std::set<string>& rtVertices, std::vector<RTS_NetworkEdge>& rtEdges)
 {
 	//Reading the MRT data
-	std::string storedProc = sim_mob::ConfigManager::GetInstance().FullConfig().getDatabaseProcMappings().procedureMappings["rail_transit_edges"];
+	std::string storedProc = ConfigManager::GetInstance().FullConfig().getDatabaseProcMappings().procedureMappings["rail_transit_edges"];
 	if(storedProc.empty()) { return; }
 	std::stringstream query;
 	query << "select * from " << storedProc;
@@ -123,7 +151,7 @@ void printTransferPoints(std::string o, std::string d)
 }
 }
 
-void PT_Network::init(const std::string& storedProcForVertex, const std::string& storeProceForEdges)
+void PT_Network::initialise(const std::string &storedProcForVertex, const std::string &storeProceForEdges)
 {
 	vector<PT_NetworkVertex> PublicTransitVertices;
 	vector<PT_NetworkEdge> PublicTransitEdges;
@@ -134,13 +162,13 @@ void PT_Network::init(const std::string& storedProcForVertex, const std::string&
 	Credential credentials = ConfigManager::GetInstance().FullConfig().constructs.credentials.at(cred_id);
 	std::string username = credentials.getUsername();
 	std::string password = credentials.getPassword(false);
-	sim_mob::db::DB_Config dbConfig(database.host, database.port, database.dbName, username, password);
+	db::DB_Config dbConfig(database.host, database.port, database.dbName, username, password);
 
 	const std::string DB_GETALL_PT_EDGES_QUERY = "SELECT * FROM " + storeProceForEdges;
 	const std::string DB_GETALL_PT_VERTICES_QUERY = "SELECT * FROM " + storedProcForVertex;
 
 	// Connect to database and load data.
-	sim_mob::db::DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
+	db::DB_Connection conn(db::POSTGRES, dbConfig);
 	conn.connect();
 	if (conn.isConnected()) {
 		PT_VerticesSqlDao pt_verticesDao(conn,DB_GETALL_PT_VERTICES_QUERY);
@@ -175,7 +203,7 @@ void PT_Network::init(const std::string& storedProcForVertex, const std::string&
 
 	//Read MRT data
 	soci::session& sql_ = conn.getSession<soci::session>();
-	std::string storedProc = sim_mob::ConfigManager::GetInstance().FullConfig().getDatabaseProcMappings().procedureMappings["mrt_road_segments"];
+	std::string storedProc = ConfigManager::GetInstance().FullConfig().getDatabaseProcMappings().procedureMappings["mrt_road_segments"];
 	std::stringstream query;
 	query << "select * from " << storedProc;
 	soci::rowset<soci::row> rs = (sql_.prepare << query.str());
@@ -235,7 +263,7 @@ void PT_Network::init(const std::string& storedProcForVertex, const std::string&
 	cout << "Public Transport network loaded\n";
 }
 
-sim_mob::PT_Network::~PT_Network()
+PT_Network::~PT_Network()
 {
 	while(!MRTStopsMap.empty())
 	{

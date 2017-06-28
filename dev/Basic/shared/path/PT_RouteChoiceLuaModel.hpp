@@ -105,7 +105,10 @@ public:
 	 * @param ptPathsetStoredProcName store procedure to fetch pathset
 	 * @return true if route choice was successful; false otherwise
 	 */
-	bool getBestPT_Path(int origin, int destination, unsigned int startTime, std::vector<sim_mob::OD_Trip>& odTrips, std::string dbid, unsigned int start_time, const std::string& ptPathsetStoredProcName);
+	bool getBestPT_Path(int origin, int destination, unsigned int startTime, std::vector<sim_mob::OD_Trip> &odTrips,
+	                    std::string dbid, unsigned int start_time, const std::string &ptPathsetStoredProcName,
+	                    PT_Network::NetworkType networkType = PT_Network::TYPE_DEFAULT);
+
 	/**
 	 * fetches the public transit pathset for a given OD from database
 	 * @param origin origin node id
@@ -114,7 +117,9 @@ public:
 	 * @param ptPathsetStoredProcName is the store procedure to fetch pathsets.
 	 * @return public transit pathset for the supplied OD.
 	 */
-	PT_PathSet fetchPathset(int origin, int destination, const DailyTime& startTime, const std::string& ptPathsetStoredProcName) const;
+	PT_PathSet fetchPathset(int origin, int destination, const DailyTime &startTime,
+	                        const std::string &ptPathsetStoredProcName) const;
+
 	/**
 	 * store chosen path in file
 	 */
@@ -145,7 +150,9 @@ private:
 	 * @param pathSet output parameter for path set retrieved from database
 	 * @param ptPathsetStoredProcName store procedure to fetch pathsets
 	 */
-	void loadPT_PathSet(int origin, int dest, const DailyTime& curTime, PT_PathSet& pathSet, const std::string& ptPathsetStoredProcName) const;
+	void loadPT_PathSet(int origin, int dest, const DailyTime &curTime, PT_PathSet &pathSet,
+	                    const std::string &ptPathsetStoredProcName,
+	                    PT_Network::NetworkType type = PT_Network::TYPE_DEFAULT) const;
 
 	/**
 	 * Inherited from LuaModel
@@ -157,7 +164,8 @@ private:
 	 * @param dest	is	trip destination
 	 * @return the map from OD pair to public transit trip
 	 */
-	std::vector<sim_mob::OD_Trip> makePT_RouteChoice(const std::string& origin, const std::string& dest);
+	std::vector<sim_mob::OD_Trip> makePT_RouteChoice(const std::string &origin, const std::string &dest,
+	                                                 PT_Network::NetworkType type = PT_Network::TYPE_DEFAULT);
 
 	/**
 	 * get the size of current path set.

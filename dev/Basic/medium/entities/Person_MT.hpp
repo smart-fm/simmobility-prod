@@ -59,6 +59,15 @@ private:
 	/**Alters trip chain in accordance to route choice for taxi trip*/
 	void convertToTaxiTrips();
 
+	/**Alters the trip chain in accordance with the route choice for */
+	void convertToSmartMobilityTrips(PT_Network& ptNetwork,const std::string&  railFLMPathsetStoredProcName);
+
+	/**Adds the walk and wait legs for the travel by smart mobility*/
+	void addWalkAndWaitLegs(std::vector<SubTrip> &subTrips, const std::vector<SubTrip>::iterator &itSubTrip,
+	                        const Node *destination) const;
+
+	void processRAIL_SMSTrips(std::vector<SubTrip> &subTrips);
+
 	/**Inserts a waiting activity before bus travel*/
 	void insertWaitingActivityToTrip();
 

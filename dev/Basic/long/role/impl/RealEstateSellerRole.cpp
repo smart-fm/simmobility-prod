@@ -335,7 +335,7 @@ void RealEstateSellerRole::notifyWinnerBidders()
         getCurrentExpectation(maxBidOfDay.getNewUnitId(), entry);
 
 
-	if(decide(maxBidOfDay, entry) == false)
+        if(decide(maxBidOfDay, entry) == false)
         	continue;
 
         replyBid(*dynamic_cast<RealEstateAgent*>(getParent()), maxBidOfDay, entry, ACCEPTED, getCounter(dailyBids, maxBidOfDay.getNewUnitId()));
@@ -381,9 +381,9 @@ void RealEstateSellerRole::calculateUnitExpectations(const Unit& unit)
             //int dayToApply = currentTime.ms() + (i * info.interval);
             //printExpectation(currentTime, dayToApply, unit.getId(), *dynamic_cast<RealEstateAgent*>(getParent()), info.expectations[i]);
 
-        	double asking =unit.getTotalPrice();
-        	double hedonic = unit.getTotalPrice();
-        	double target = unit.getTotalPrice();
+        	double asking =unit.getBTOPrice();
+        	double hedonic = unit.getBTOPrice();
+        	double target = unit.getBTOPrice();
 
             ExpectationEntry expectation;
 
@@ -410,7 +410,8 @@ bool RealEstateSellerRole::getCurrentExpectation(const BigSerial& unitId, Expect
         SellingUnitInfo& info = it->second;
 
         //expectations are start on last element to the first.
-        unsigned int index = ((unsigned int)(floor(abs(info.startedDay - currentTime.ms()) / info.interval))) % info.expectations.size();
+        int dayRange = ((int)currentTime.ms() - info.startedDay)  / info.interval;
+        unsigned int index = dayRange  % info.expectations.size();
 
         if (index < info.expectations.size())
         {

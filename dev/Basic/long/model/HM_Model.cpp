@@ -1936,8 +1936,8 @@ void HM_Model::startImpl()
 		{
 			unitStartDay = (saleDate - simulationDate).days();
 
-			if( (*it)->getUnitType() < 6 )
-				(*it)->setBto(true);
+			//if( (*it)->getUnitType() < 6 )
+			//	(*it)->setBto(true);
 		}
 
 		(*it)->setbiddingMarketEntryDay( unitStartDay );

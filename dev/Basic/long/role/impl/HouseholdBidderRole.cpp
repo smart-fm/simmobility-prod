@@ -774,7 +774,7 @@ bool HouseholdBidderRole::pickEntryToBid()
 
 
 
-		if(unit->isBto() == false )
+            	if(unit->isBto() == false )
             	{
             		int unit_type = unit->getUnitType();
 

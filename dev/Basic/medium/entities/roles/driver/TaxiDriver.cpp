@@ -265,6 +265,7 @@ void TaxiDriver::pickUpPassngerAtNode(Conflux *parentConflux, std::string* perso
 					passenger->setStartPoint(WayPoint(taxiDriverMovement->getCurrentNode()));
 					passenger->setEndPoint(WayPoint(taxiDriverMovement->getDestinationNode()));
 					setDriverStatus(DRIVE_WITH_PASSENGER);
+					passenger->Movement()->startTravelTimeMetric();
 				}
 			}
 		}

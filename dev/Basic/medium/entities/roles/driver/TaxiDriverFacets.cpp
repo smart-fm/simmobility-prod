@@ -486,6 +486,7 @@ void TaxiDriverMovement::frame_tick()
 									toBeRemovedFromTaxiStand = true;
 									previousTaxiStand = destinationTaxiStand;
 									destinationTaxiStand = nullptr;
+									passenger->Movement()->startTravelTimeMetric();
 								}
 							}
 						}

@@ -81,11 +81,14 @@ void TaxiDriver::alightPassenger()
 			Conflux *parentConflux = segStats->getParentConflux();
 			parentConflux->dropOffTaxiTraveler(parentPerson);
 
-			ControllerLog() << "Drop-off of user" << parentPerson->getDatabaseId() << " at time "
-			                << parentPerson->currTick
-			                << ". Message was sent at ??? with startNodeId ???, destinationNodeId "
-			                << parentConflux->getConfluxNode()->getNodeId()
-			                << ", and driverId " << getParent()->getDatabaseId() <<std::endl;
+			if(!taxiDriverMovement->isSubscribedToOnHail())
+			{
+				ControllerLog() << "Drop-off of user" << parentPerson->getDatabaseId() << " at time "
+				                << parentPerson->currTick
+				                << ". Message was sent at ??? with startNodeId ???, destinationNodeId "
+				                << parentConflux->getConfluxNode()->getNodeId()
+				                << ", and driverId " << getParent()->getDatabaseId() << std::endl;
+			}
 		}
 	}
 }

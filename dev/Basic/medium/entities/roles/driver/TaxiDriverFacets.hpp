@@ -96,10 +96,9 @@ public:
 
 	virtual const std::vector<MobilityServiceController*>& getSubscribedControllers() const;
 
-
-protected:
 	bool isSubscribedToOnHail() const;
 
+protected:
 	/**List of subscribed controllers*/
 	std::vector<MobilityServiceController *> subscribedControllers;
 

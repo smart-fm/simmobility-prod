@@ -29,15 +29,37 @@ template <class T> class Group
 public:
 	Group():elements( std::list<T>() ){};
 	~Group(){};
-	void insert(const T& r);
-	const std::list<T>& getElements() const;
-	size_t size() const;
-	const T pop_front() const;
+
+
+	bool operator==(const Group<T>& other) const
+	{
+		return (elements == other.getElements() );
+	}
+
+	void insert(const T& r)
+	{
+		#ifndef NDEBUG
+		if ( std::find(elements.begin(), elements.end(), r) != elements.end() )
+		{
+			std::stringstream msg; msg<<"Trying to insert "<<r<<" to a request group that already contains it. This denotes there is a bug somewhere";
+			throw std::runtime_error(msg.str() );
+		}
+		#endif
+		elements.push_back(r);
+	}
+
+	const std::list<T>& getElements() const
+	{		return elements; }
+
+	size_t size() const
+	{ return elements.size(); }
+
+	const T front() const
+	{ return elements.front();}
 
 protected:
 	std::list<T> elements;
 };
-
 
 
 
@@ -188,6 +210,16 @@ protected:
 
 };
 }
-#endif /* MobilityServiceController_HPP_ */
 
-std::ostream& operator<<(std::ostream& strm, const sim_mob::Group<sim_mob::TripRequestMessage>& requestGroup);
+template <class T> std::ostream& operator<<(std::ostream& strm, const sim_mob::Group<T>& group)
+{
+	strm<<"RequestGroup [";
+	for (const sim_mob::TripRequestMessage& r: group.getElements())
+	{
+		strm<< r <<", ";
+	}
+	strm<<" ]";
+	return strm;
+}
+
+#endif /* MobilityServiceController_HPP_ */

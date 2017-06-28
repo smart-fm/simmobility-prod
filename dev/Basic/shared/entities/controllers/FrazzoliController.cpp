@@ -11,6 +11,7 @@
 #include "message/MessageBus.hpp"
 #include "message/MobilityServiceControllerMessage.hpp"
 #include "path/PathSetManager.hpp"
+#include "entities/controllers/OnCallController.hpp"
 
 namespace sim_mob {
 
@@ -92,8 +93,8 @@ void FrazzoliController::generateRGD_Graph()
 				throw std::runtime_error(msg.str() );
 			}
 #endif
-			const TripRequestMessage& r1 = requestGroupsIterator1->pop_front();
-			const TripRequestMessage& r2 = requestGroupsIterator2->pop_front();
+			const TripRequestMessage& r1 = requestGroupsIterator1->front();
+			const TripRequestMessage& r2 = requestGroupsIterator2->front();
 			if (rdGraph.doesEdgeExists(r1,r2 ) )
 			{
 				bool optimalityRequired = false;

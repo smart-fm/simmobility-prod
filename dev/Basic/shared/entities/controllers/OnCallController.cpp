@@ -631,46 +631,6 @@ void OnCallController::consistencyChecks(const std::string& label) const
 
 
 
-template <class T> void Group<T>::insert(const T& r)
-{
-#ifndef NDEBUG
-	if ( std::find(elements.begin(), elements.end(), r) != elements.end() )
-	{
-		std::stringstream msg; msg<<"Trying to insert "<<r<<" to a request group that already contains it. This denotes there is a bug somewhere";
-		throw std::runtime_error(msg.str() );
-	}
-#endif
-	elements.push_back(r);
-}
-
-template <class T> const std::list<T>& Group<T>::getElements() const
-{
-	return elements;
-}
-
-
-template <class T> size_t Group<T>::size() const
-{
-	return elements.size();
-}
-
-template <class T> const T Group<T>::pop_front() const
-{
-	return elements.pop_front();
-}
-
-
-std::ostream& operator<<(std::ostream& strm, const sim_mob::Group<TripRequestMessage>& requestGroup)
-{
-	strm<<"RequestGroup [";
-	for (const sim_mob::TripRequestMessage& r: requestGroup.getElements())
-	{
-		strm<< r <<", ";
-	}
-	strm<<" ]";
-	return strm;
-}
-
 
 
 #endif

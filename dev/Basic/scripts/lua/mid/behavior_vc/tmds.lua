@@ -19,6 +19,8 @@ local beta_cost_share2_1= 0
 local beta_cost_share3_1= 0
 local beta_cost_motor_1 = 0
 local beta_cost_taxi_1 = 0
+local beta_cost_SMS_1 = 0
+local beta_cost_rail_SMS_1 = 0
 
 local beta_cost_bus_mrt_2 = -0.294
 local beta_cost_private_bus_2 = -1.29
@@ -27,6 +29,8 @@ local beta_cost_share2_2 = -0.233
 local beta_cost_share3_2 = 0
 local beta_cost_motor_2 = -0.150
 local beta_cost_taxi_2 = -0.113
+local beta_cost_SMS_2 = -0.113
+local beta_cost_rail_SMS_2 = -0.294
 
 local beta_tt_bus_mrt = -2.78
 local beta_tt_private_bus = 0 
@@ -36,6 +40,8 @@ local beta_tt_share3= -2.14
 local beta_tt_motor = 0
 local beta_tt_walk = -5.05
 local beta_tt_taxi = -3.33
+local beta_tt_SMS = -1.61
+local beta_tt_rail_SMS = -2.78
 
 local beta_log = 1.14
 local beta_area = 3.41
@@ -49,6 +55,8 @@ local beta_central_share3 = 0.103
 local beta_central_motor = 0.0738
 local beta_central_walk = 1.12
 local beta_central_taxi = 1.92
+local beta_central_SMS = 1.92
+local beta_central_rail_SMS = -0.178
 
 local beta_distance_bus_mrt = 0.00911
 local beta_distance_private_bus = 0.0808
@@ -58,6 +66,8 @@ local beta_distance_share3 = -0.0220
 local beta_distance_motor = -0.0635
 local beta_distance_walk = 0
 local beta_distance_taxi = 0
+local beta_distance_SMS =0
+local beta_distance_rail_SMS = 0.00911
 
 
 local beta_cons_bus = -1.204
@@ -69,6 +79,9 @@ local beta_cons_share3 = -4.28
 local beta_cons_motor = -2.538
 local beta_cons_walk = -6.77
 local beta_cons_taxi = -5.16
+local beta_cons_SMS = -9.508
+local beta_cons_rail_SMS = 2.463
+
 
 local beta_zero_bus = 0
 local beta_oneplus_bus = 0
@@ -120,6 +133,16 @@ local beta_oneplus_motor = 0
 local beta_twoplus_motor= 4.89
 local beta_threeplus_motor= 0 
 
+local beta_zero_SMS = 0
+local beta_oneplus_SMS = -0.0655
+local beta_twoplus_SMS = 0
+local beta_threeplus_SMS = 0
+
+local beta_zero_rail_SMS = 0
+local beta_oneplus_rail_SMS = 0.648
+local beta_twoplus_rail_SMS = -2.55
+local beta_threeplus_rail_SMS = 0
+
 local beta_female_bus = 0.0894
 local beta_female_mrt = 0
 local beta_female_private_bus = -0.437
@@ -128,13 +151,15 @@ local beta_female_share2 = -0.669
 local beta_female_share3 = -0.690
 local beta_female_motor = -2.60
 local beta_female_taxi = 0.404
+local beta_female_SMS =  0.404
+local beta_female_rail_SMS = 0
 local beta_female_walk = 1.83
 
 
 --choice set
 local choice = {}
 
-for i = 1, 24*9 do 
+for i = 1, 24*11 do 
 
 	choice[i] = i
 end
@@ -142,6 +167,7 @@ end
 --utility
 -- 1 for public bus; 2 for MRT/LRT; 3 for private bus; 4 for drive1;
 -- 5 for shared2; 6 for shared3+; 7 for motor; 8 for walk; 9 for taxi
+-- 10 for SMS, 11 f
 local utility = {}
 local function computeUtilities(params,dbparams)
 	local cost_increase = dbparams.cost_increase
@@ -187,6 +213,7 @@ local function computeUtilities(params,dbparams)
 	local cost_public_second = {}
 	local cost_bus = {}
 	local cost_mrt = {}
+	local cost_rail_SMS = {}
 	local cost_private_bus = {}
 
 	local cost_car_OP_first = {}
@@ -203,6 +230,10 @@ local function computeUtilities(params,dbparams)
 	local cost_taxi_2 = {}
 	local cost_taxi={}
 
+	local cost_SMS_1 = {}
+	local cost_SMS_2 = {}
+	local cost_SMS={}
+	
 	local d1={}
 	local d2={}
 	local central_dummy={}
@@ -215,6 +246,8 @@ local function computeUtilities(params,dbparams)
 	local cost_over_income_share3 = {}
 	local cost_over_income_motor = {}
 	local cost_over_income_taxi = {}
+	local cost_over_income_SMS = {}
+	local cost_over_income_rail_SMS = {}
 
 	local tt_public_ivt_first = {}
 	local tt_public_ivt_second = {}
@@ -232,6 +265,9 @@ local function computeUtilities(params,dbparams)
 	local tt_motor = {}
 	local tt_walk = {}
 	local tt_taxi = {}
+	local tt_SMS = {}
+	local tt_rail_SMS = {}
+
 
 	local average_transfer_number = {}
 
@@ -241,6 +277,8 @@ local function computeUtilities(params,dbparams)
 	local shop = {}
 
 	for i =1,24 do
+		d1[i] = dbparams:walk_distance1(i)
+		d2[i] = dbparams:walk_distance2(i)
 		--dbparams:cost_public_first(i) = AM[(origin,destination[i])]['pub_cost']
 		--dbparams:cost_public_second(i) = PM[(destination[i],origin)]['pub_cost']
 		--origin is home, destination[i] is zone from 1 to 24
@@ -250,6 +288,7 @@ local function computeUtilities(params,dbparams)
 		cost_public_second[i] = dbparams:cost_public_second(i)
 		cost_bus[i] = cost_public_first[i] + cost_public_second[i] + cost_increase
 		cost_mrt[i] = cost_public_first[i] + cost_public_second[i] + cost_increase
+		cost_rail_SMS[i] = cost_public_first[i] + cost_public_second[i] + cost_increase + (3.4 + (d1[i]*(d1[i]<=10 and 1 or 0)))*0.25 + (3.4 + (d2[i]*(d2[i]<=10 and 1 or 0)))*0.25
 		cost_private_bus[i] = cost_public_first[i] + cost_public_second[i] + cost_increase
 
 		--dbparams:cost_car_ERP_first(i) = AM[(origin,destination[i])]['car_cost_erp']
@@ -273,14 +312,18 @@ local function computeUtilities(params,dbparams)
 		--origin is home mtz, destination[i] is zone from 1 to 24
 
 		--0 if origin == destination
-		d1[i] = dbparams:walk_distance1(i)
-		d2[i] = dbparams:walk_distance2(i)
+		
 		central_dummy[i] = dbparams:central_dummy(i)
 
 		cost_taxi_1[i] = 3.4+((d1[i]*(d1[i]>10 and 1 or 0)-10*(d1[i]>10 and 1 or 0))/0.35+(d1[i]*(d1[i]<=10 and 1 or 0)+10*(d1[i]>10 and 1 or 0))/0.4)*0.22+ dbparams:cost_car_ERP_first(i) + central_dummy[i]*3
 		cost_taxi_2[i] = 3.4+((d2[i]*(d2[i]>10 and 1 or 0)-10*(d2[i]>10 and 1 or 0))/0.35+(d2[i]*(d2[i]<=10 and 1 or 0)+10*(d2[i]>10 and 1 or 0))/0.4)*0.22+ dbparams:cost_car_ERP_second(i) + central_dummy[i]*3
 		cost_taxi[i] = cost_taxi_1[i] + cost_taxi_2[i] + cost_increase
-
+		
+		cost_SMS_1[i] = 3.4+((d1[i]*(d1[i]>10 and 1 or 0)-10*(d1[i]>10 and 1 or 0))/0.35+(d1[i]*(d1[i]<=10 and 1 or 0)+10*(d1[i]>10 and 1 or 0))/0.4)*0.22+ dbparams:cost_car_ERP_first(i)+central_dummy[i]*3
+		cost_SMS_2[i] = 3.4+((d2[i]*(d2[i]>10 and 1 or 0)-10*(d2[i]>10 and 1 or 0))/0.35+(d2[i]*(d2[i]<=10 and 1 or 0)+10*(d2[i]>10 and 1 or 0))/0.4)*0.22+ dbparams:cost_car_ERP_second(i)+central_dummy[i]*3
+		cost_SMS[i] = (cost_SMS_1[i] + cost_SMS_2[i])*0.6 + cost_increase
+		
+		
 		cost_over_income_bus[i]=30*cost_bus[i]/(0.5+income_mid)
 		cost_over_income_mrt[i]=30*cost_mrt[i]/(0.5+income_mid)
 		cost_over_income_private_bus[i]=30*cost_private_bus[i]/(0.5+income_mid)
@@ -289,6 +332,8 @@ local function computeUtilities(params,dbparams)
 		cost_over_income_share3[i] = 30 * cost_share3[i]/(0.5+income_mid)
 		cost_over_income_motor[i]=30*cost_motor[i]/(0.5+income_mid)
 		cost_over_income_taxi[i]=30*cost_taxi[i]/(0.5+income_mid)
+		cost_over_income_SMS[i]=30*cost_SMS[i]/(0.5+income_mid)
+		cost_over_income_rail_SMS[i]=30*cost_rail_SMS[i]/(0.5+income_mid)
 
 		--dbparams:tt_public_ivt_first(i) = AM[(origin,destination[i])]['pub_ivt']
 		--dbparams:tt_public_ivt_second(i) = PM[(destination[i],origin)]['pub_ivt']
@@ -317,6 +362,8 @@ local function computeUtilities(params,dbparams)
 		tt_motor[i] = tt_car_ivt_first[i] + tt_car_ivt_second[i] + 1.0/6
 		tt_walk[i] = (d1[i]+d2[i])/5
 		tt_taxi[i] = tt_car_ivt_first[i] + tt_car_ivt_second[i] + 1.0/6
+		tt_SMS[i] = tt_car_ivt_first[i] + tt_car_ivt_second[i]
+		tt_rail_SMS[i] = tt_public_ivt_first[i]+ tt_public_ivt_second[i]+(tt_public_out_first[i]+tt_public_out_second[i])*0.3
 
 		--dbparams:average_transfer_number(i) = (AM[(origin,destination[i])]['avg_transfer'] + PM[(destination[i],origin)]['avg_transfer'])/2
 
@@ -408,6 +455,18 @@ local function computeUtilities(params,dbparams)
 		V_counter = V_counter +1
 		utility[V_counter] = beta_cons_taxi + cost_over_income_taxi[i] * (1-missing_income)* beta_cost_taxi_1 + cost_taxi[i]* beta_cost_taxi_2 + tt_taxi[i] * beta_tt_taxi + beta_central_taxi * central_dummy[i] + beta_log * math.log(shop[i]+math.exp(beta_area)*area[i]+math.exp(beta_population)*population[i]) + (d1[i]+d2[i]) * beta_distance_taxi + beta_female_taxi * female_dummy + beta_zero_taxi*zero_car+beta_oneplus_taxi*one_plus_car+beta_twoplus_taxi*two_plus_car
 	end
+	
+	--utility function for SMS 1-24
+	for i=1,24 do
+		V_counter = V_counter +1
+		utility[V_counter] = beta_cons_SMS + cost_over_income_SMS[i] * (-missing_income)* beta_cost_SMS_1 + cost_SMS[i]* beta_cost_bus_mrt_2 + tt_SMS[i] * beta_tt_SMS + beta_central_SMS * central_dummy[i] + beta_log * math.log(math.exp(beta_area)*area[i]+math.exp(beta_population)*population[i]) + (d1[i]+d2[i]) * beta_distance_SMS + beta_female_SMS * female_dummy + beta_zero_SMS*zero_car+beta_oneplus_SMS*one_plus_car+beta_twoplus_SMS*two_plus_car
+	end
+	
+	--utility function for rail_SMS 1-24
+	for i=1,24 do
+		V_counter = V_counter +1
+		utility[V_counter] = beta_cons_rail_SMS + cost_over_income_rail_SMS[i] * (1- missing_income) * beta_cost_rail_SMS_1 + cost_rail_SMS[i] * beta_cost_rail_SMS_2 + tt_rail_SMS[i] * beta_tt_rail_SMS + beta_central_rail_SMS * central_dummy[i] + beta_log * math.log(math.exp(beta_area)*area[i]+math.exp(beta_population)*population[i]) + (d1[i]+d2[i]) * beta_distance_rail_SMS + beta_female_rail_SMS * female_dummy + beta_zero_rail_SMS*zero_car+ beta_oneplus_rail_SMS*one_plus_car+beta_twoplus_rail_SMS*two_plus_car
+	end
 
 end
 
@@ -416,7 +475,7 @@ end
 --the logic to determine availability is the same with current implementation
 local availability = {}
 local function computeAvailabilities(params,dbparams)
-	for i = 1, 24*9 do 
+	for i = 1, 24*11 do 
 
 		availability[i] = dbparams:availability(i)
 	end

@@ -488,6 +488,8 @@ sim_mob::OD_Trip Person_MT::CreateMRTSubTrips(std::string src,std::string dest)
 		odTrip.id=selEdge.getEdgeId();
 		odTrip.serviceLine=selEdge.getServiceLine();
 		odTrip.serviceLines=selEdge.getServiceLines();
+		odTrip.travelTime = selEdge.getTransitTimeSecs();
+		odTrip.walkTime = selEdge.getWalkTimeSecs();
 	}
 
 	return odTrip;

@@ -557,8 +557,6 @@ vector<ExpectationEntry> HedonicPrice_SubModel::CalculateUnitExpectations (Unit 
         double crit = 0.0001; // -- criteria
         double maxIterations = 20; // --number of iterations
 
-        vector<ExpectationEntry> expectationsReverse;
-
         for(int i=1; i <= timeOnMarket; i++)
         {
         	ExpectationEntry entry = ExpectationEntry(); //--entry is a class initialized to 0, that will hold the hedonic, asking and target prices.
@@ -586,7 +584,7 @@ vector<ExpectationEntry> HedonicPrice_SubModel::CalculateUnitExpectations (Unit 
             	 entry.hedonicPrice = hedonicPrice;
             	 entry.targetPrice  = hedonicPrice *  0.85;
             	 entry.askingPrice  = hedonicPrice * (0.85 + ((double)timeOnMarket - i) / timeOnMarket * 0.2);
-            	 expectationsReverse.push_back(entry);
+            	 expectations.push_back(entry);
             }
     	}
     }

@@ -565,9 +565,9 @@ vector<ExpectationEntry> HedonicPrice_SubModel::CalculateUnitExpectations (Unit 
 
             if( unit->isBto() )
             {
-            	entry.hedonicPrice = unit->getTotalPrice();
-  	            entry.askingPrice = unit->getTotalPrice();
-                entry.targetPrice = unit->getTotalPrice();
+            	entry.hedonicPrice = unit->getBTOPrice();
+  	            entry.askingPrice = unit->getBTOPrice();
+                entry.targetPrice = unit->getBTOPrice();
             }
             else
             {
@@ -589,11 +589,6 @@ vector<ExpectationEntry> HedonicPrice_SubModel::CalculateUnitExpectations (Unit 
             	 expectationsReverse.push_back(entry);
             }
     	}
-
-        for(int n = expectationsReverse.size() - 1; n >= 0; n--)
-        {
-        	expectations.push_back(expectationsReverse[n]);
-        }
     }
 
 

@@ -99,7 +99,7 @@ std::ostream& operator<<(std::ostream& strm, const sim_mob::ScheduleItem& item)
 		}
 		case (sim_mob::ScheduleItemType::CRUISE):
 		{
-			strm<<"CRUISE to taz "<<item.tazToCruiseTo;
+			strm<<"CRUISE to node "<<item.nodeToCruiseTo->getNodeId();
 			break;
 		}
 		default:{throw std::runtime_error("unrecognized schedule item type");}
@@ -116,4 +116,9 @@ std::ostream& operator<<(std::ostream& strm, const sim_mob::Schedule& schedule)
 	}
 	strm<<" ]";
 	return strm;
+}
+
+bool operator==(sim_mob::TripRequestMessage r1, const sim_mob::TripRequestMessage r2)
+{
+	return r1.operator ==(r2);
 }

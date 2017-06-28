@@ -85,7 +85,7 @@ void TaxiDriver::alightPassenger()
 			                << parentPerson->currTick
 			                << ". Message was sent at ??? with startNodeId ???, destinationNodeId "
 			                << parentConflux->getConfluxNode()->getNodeId()
-			                << ", and driverId ???" << std::endl;
+			                << ", and driverId " << getParent()->getDatabaseId() <<std::endl;
 		}
 	}
 }

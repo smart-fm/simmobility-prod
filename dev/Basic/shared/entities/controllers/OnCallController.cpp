@@ -20,9 +20,7 @@
 using namespace sim_mob;
 using namespace messaging;
 
-//TODO: These should not be hardcoded
-const static double additionalDelayTreshold = std::numeric_limits<double>::max();
-const static double waitingTimeTreshold = std::numeric_limits<double>::max();
+
 
 OnCallController::~OnCallController()
 {
@@ -501,15 +499,16 @@ double OnCallController::evaluateSchedule(const Node *initialPosition, const Sch
 	return travelTime;
 }
 
-double OnCallController::computeOptimalSchedule(const Node *initialNode, const Schedule &currentSchedule,
-                                                const std::vector<TripRequestMessage> &additionalRequests,
-                                                Schedule &newSchedule) const
+double OnCallController::computeSchedule(const Node* initialNode, const Schedule& currentSchedule,
+		const Group<TripRequestMessage>& additionalRequests,
+		Schedule& newSchedule, bool isOptimalityRequired) const
 {
 	double travelTime = std::numeric_limits<double>::max();
+	bool isFeasible = false;
 
 	//Contruct the required ScheduleItems for the new requests
 	std::vector<ScheduleItem> additionalScheduleItems;
-	for (const TripRequestMessage &request : additionalRequests)
+	for (const TripRequestMessage& request : additionalRequests.getElements() )
 	{
 		additionalScheduleItems.push_back(ScheduleItem(ScheduleItemType::PICKUP, request));
 		additionalScheduleItems.push_back(ScheduleItem(ScheduleItemType::DROPOFF, request));
@@ -522,29 +521,64 @@ double OnCallController::computeOptimalSchedule(const Node *initialNode, const S
 	// sorting is necessary to correctly compute the permutations (see https://www.topcoder.com/community/data-science/data-science-tutorials/power-up-c-with-the-standard-template-library-part-1/)
 	std::sort(tempSchedule.begin(), tempSchedule.end());
 
-	do
-	{
-		double tempTravelTime = evaluateSchedule(initialNode, tempSchedule, additionalDelayTreshold,
-		                                         waitingTimeTreshold);
-		if (tempTravelTime < travelTime)
+	double tempTravelTime;
+	do{
+		tempTravelTime = evaluateSchedule(initialNode, tempSchedule, additionalDelayThreshold, waitingTimeThreshold);
+		if (tempTravelTime >= 0 && tempTravelTime < travelTime)
 		{
-			travelTime = tempTravelTime;
-			newSchedule = tempSchedule;
+			isFeasible = true;
+			travelTime = tempTravelTime; newSchedule = tempSchedule;
 		}
-	}
-	while (std::next_permutation(tempSchedule.begin(), tempSchedule.end()));
+	} while (
+		std::next_permutation(tempSchedule.begin(), tempSchedule.end() ) &&
+
+		// If i) optimality is not required and ii) we already found a feasible solution, we can just return that and stop.
+		// If those two conditions are not met at the same time, we can continue
+		!(
+			!isOptimalityRequired && isFeasible
+		)
+
+	);
 
 #ifndef NDEBUG
 	ControllerLog()<<"Current schedule: ";
 	for (const ScheduleItem& item : currentSchedule) ControllerLog()<< item<<",";
 	ControllerLog()<<". Trying to add requests [";
-	for (const TripRequestMessage& request : additionalRequests) ControllerLog()<<request;
+	for (const TripRequestMessage& request : additionalRequests.getElements() ) ControllerLog()<<request;
 	ControllerLog()<<". The optimal schedule is ";
 	for (const ScheduleItem& item : newSchedule) ControllerLog()<< item<<",";
 	ControllerLog()<<std::endl;
 #endif
 
-	return travelTime;
+	if(isFeasible)
+		return travelTime;
+	else return -1;
+}
+
+bool OnCallController::canBeShared(const TripRequestMessage& r1, const TripRequestMessage& r2,
+			double additionalDelayThreshold, double waitingTimeThreshold ) const
+{
+#ifndef NDEBUG
+	if (r1==r2)
+	{
+		std::stringstream msg; msg<<__FILE__<<":"<<__LINE__<<": trying to share "<<r1<<" with "<<r2<<" but they are the same";
+		throw std::runtime_error(msg.str());
+	}
+#endif
+
+	// We check if, in case we have an empty vehicle that start in the position we want (we choose either of
+	// the two pick up points), it can serve both request while respecting the constraints
+	Schedule emptySchedule;
+	const Node* initialPosition =  RoadNetwork::getInstance()->getMapOfIdvsNodes().at(r1.startNodeId);
+	double travelTime = evaluateSchedule(initialPosition, emptySchedule, additionalDelayThreshold, waitingTimeThreshold);
+	if (travelTime>=0)
+		return true;
+	initialPosition =  RoadNetwork::getInstance()->getMapOfIdvsNodes().at(r2.startNodeId);
+	travelTime = evaluateSchedule(initialPosition, emptySchedule, additionalDelayThreshold, waitingTimeThreshold);
+	if (travelTime>=0)
+		return true;
+
+	return false;
 }
 
 
@@ -588,10 +622,7 @@ void OnCallController::consistencyChecks(const std::string& label) const
 			throw std::runtime_error(msg.str() );
 		}
 
-		Print()<<"Consistency-checking driver "<< driver->getDatabaseId()<<
-			". Is she a MobilitySeviceDriver? "<< isMobilityServiceDriver(driver) <<std::endl;
 		const MobilityServiceDriver* mobilityServiceDriver = driver->exportServiceDriver();
-		Print()<<"Driver status is "<< mobilityServiceDriver->getDriverStatusStr() << std::endl;
 		const MobilityServiceDriverStatus status = driver->exportServiceDriver()->getDriverStatus();
 		if (status != CRUISING)
 		{
@@ -609,4 +640,10 @@ void OnCallController::consistencyChecks(const std::string& label) const
 
 	}
 }
+
+
+
+
+
+
 #endif

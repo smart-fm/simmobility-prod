@@ -18,7 +18,7 @@ public:
 	virtual void rebalance(const std::vector<const Person*>& availableDrivers,
 			const timeslice currTick)=0;
 
-	void sendCruiseTAZ_Command(const Person* driver, unsigned tazId, const timeslice currTick ) const;
+	void sendCruiseCommand(const Person* driver, const Node* nodeToCruiseTo, const timeslice currTick ) const;
 
 	void onRequestReceived(const Node* startNode);
 

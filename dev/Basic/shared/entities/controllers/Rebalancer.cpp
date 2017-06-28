@@ -25,9 +25,9 @@ Rebalancer::~Rebalancer() {
 }
 
 
-void Rebalancer::sendCruiseTAZ_Command(const Person* driver, unsigned tazId, const timeslice currTick) const
+void Rebalancer::sendCruiseCommand(const Person* driver, const Node* nodeToCruiseTo, const timeslice currTick) const
 {
-	ScheduleItem item(ScheduleItemType::CRUISE, tazId);
+	ScheduleItem item(ScheduleItemType::CRUISE, nodeToCruiseTo);
 	sim_mob::Schedule schedule;
 	schedule.push_back(ScheduleItem(item) );
 
@@ -52,7 +52,7 @@ void SimpleRebalancer::rebalance(const std::vector<const Person*>& availableDriv
 		const Person* driver = availableDrivers[rand()%availableDrivers.size() ];
 		const Node* node = latestStartNodes[rand()%latestStartNodes.size()];
 
-		sendCruiseTAZ_Command(driver, node->getTazId(), currTick );
+		sendCruiseCommand(driver, node, currTick );
 		latestStartNodes.clear();
 	}
 }

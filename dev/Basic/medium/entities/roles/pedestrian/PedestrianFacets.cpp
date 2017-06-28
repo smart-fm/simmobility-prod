@@ -235,6 +235,10 @@ void PedestrianMovement::frame_tick()
 				parentPedestrian->parent->setToBeRemoved();
 			}
 		}
+		else
+		{
+			parentPedestrian->getParent()->setToBeRemoved();
+		}
 	}
 }
 

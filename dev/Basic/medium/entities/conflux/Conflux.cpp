@@ -620,6 +620,10 @@ bool Conflux::handleRoleChange(PersonProps& beforeUpdate, PersonProps& afterUpda
 				messaging::MessageBus::SendMessage(taxiStandAgent, MSG_WAITING_PERSON_ARRIVAL,
 				                                   messaging::MessageBus::MessagePtr(new ArrivalAtStopMessage(person)));
 			}
+			else
+			{
+				travelingPersons.push_back(person);
+			}
 		}
 		break;
 	}
@@ -687,6 +691,10 @@ void Conflux::housekeep(PersonProps& beforeUpdate, PersonProps& afterUpdate, Per
 				travelingPersons.erase(it);
 			}
 		}
+		return;
+	}
+	case Role<Person_MT>::RL_WAITTAXIACTIVITY:
+	{
 		return;
 	}
 	case Role<Person_MT>::RL_TAXIDRIVER: //fall through
@@ -1830,7 +1838,6 @@ Person_MT* Conflux::pickupTaxiTraveler(std::string* personId)
 			res->currSubTrip->endLocationType = "NODE";
 			res->getRole()->collectTravelTime();
 			UpdateStatus status = res->checkTripChain(currFrame.ms());
-			status = res->checkTripChain(currFrame.ms());
 			if (status.status == UpdateStatus::RS_DONE)
 			{
 				return nullptr;

@@ -219,7 +219,7 @@ void Person_MT::convertToSmartMobilityTrips(PT_Network &ptNetwork, const std::st
 						subTrip.endLocationId = boost::lexical_cast<string>(
 								itSubTrip->destination.node->getNodeId());
 						subTrip.endLocationType = "NODE";
-						subTrip.travelMode = "TaxiTraveler";
+						subTrip.travelMode = "SMS_TaxiTraveler";
 						smartMobilityTrips.push_back(subTrip);
 					}
 					else if(itSubTrip->getMode() == "Rail_SMS")
@@ -316,7 +316,7 @@ void Person_MT::processRAIL_SMSTrips(std::vector<SubTrip> &subTrips)
 			subTrip.startLocationType = "NODE";
 			subTrip.endLocationId = boost::lexical_cast<string>(nodeNearStation->getNodeId());
 			subTrip.endLocationType = "NODE";
-			subTrip.travelMode = "TaxiTraveler";
+			subTrip.travelMode = "RAIL_SMS_TaxiTraveler";
 			modifiedSubTrips.push_back(subTrip);
 
 			//Walk to train station
@@ -380,7 +380,7 @@ void Person_MT::processRAIL_SMSTrips(std::vector<SubTrip> &subTrips)
 				modifiedSubTrips.push_back(subTrip);
 
 				//Ride to destination
-				subTrip.travelMode = "TaxiTraveller";
+				subTrip.travelMode = "RAIL_SMS_TaxiTraveller";
 				modifiedSubTrips.push_back(subTrip);
 			}
 		}

@@ -154,7 +154,8 @@ public:
 			return "taxidriver";
 		}*/
 
-		if (mode == "BusTravel" || mode == "MRT" || mode == "Sharing" || mode == "PrivateBus" || mode == "TaxiTraveler")
+		if (mode == "BusTravel" || mode == "MRT" || mode == "Sharing" || mode == "PrivateBus" ||
+				mode == "TaxiTraveler" || mode == "SMS_TaxiTraveler" || mode == "RAIL_SMS_TaxiTraveler")
 		{
 			return "passenger";
 		}

@@ -82,7 +82,7 @@ void TaxiDriverMovement::subscribeToController(
 			}
 #endif
 
-			MessageBus::SendMessage(itController->second, MSG_DRIVER_SUBSCRIBE,
+			MessageBus::PostMessage(itController->second, MSG_DRIVER_SUBSCRIBE,
 			                        MessageBus::MessagePtr(new DriverSubscribeMessage(parentTaxiDriver->getParent())));
 #ifndef NDEBUG
 			ControllerLog() << "Driver " << parentDriver->getParent()->getDatabaseId()
@@ -262,9 +262,8 @@ bool TaxiDriverMovement::moveToNextSegment(DriverUpdateParams &params)
 		{
 			for (auto it = subscribedControllers.begin(); it != subscribedControllers.end(); ++it)
 			{
-				messaging::MessageBus::SendMessage(*it, MSG_DRIVER_AVAILABLE,
-				                                   messaging::MessageBus::MessagePtr(
-						                                   new DriverAvailableMessage(parentTaxiDriver->parent)));
+				MessageBus::PostMessage(*it, MSG_DRIVER_AVAILABLE,
+				                        MessageBus::MessagePtr(new DriverAvailableMessage(parentTaxiDriver->parent)));
 			}
 		}
 
@@ -365,7 +364,7 @@ bool TaxiDriverMovement::checkNextFleet()
 				{
 					for (auto it = subscribedControllers.begin(); it != subscribedControllers.end(); ++it)
 					{
-						MessageBus::SendMessage(*it, MSG_DRIVER_UNSUBSCRIBE, MessageBus::MessagePtr(
+						MessageBus::PostMessage(*it, MSG_DRIVER_UNSUBSCRIBE, MessageBus::MessagePtr(
 								new DriverUnsubscribeMessage(parentTaxiDriver->getParent())));
 					}
 				}
@@ -729,9 +728,8 @@ void TaxiDriverMovement::setCruisingMode()
 	{
 		for (auto it = subscribedControllers.begin(); it != subscribedControllers.end(); ++it)
 		{
-			messaging::MessageBus::SendMessage(*it, MSG_DRIVER_AVAILABLE,
-			                                   messaging::MessageBus::MessagePtr(
-					                                   new DriverAvailableMessage(parentTaxiDriver->parent)));
+			MessageBus::PostMessage(*it, MSG_DRIVER_AVAILABLE,
+			                        MessageBus::MessagePtr(new DriverAvailableMessage(parentTaxiDriver->parent)));
 		}
 	}
 

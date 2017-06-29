@@ -16,6 +16,7 @@
 
 using namespace sim_mob;
 using namespace medium;
+using namespace messaging;
 
 TaxiDriver::TaxiDriver(Person_MT* parent, const MutexStrategy& mtxStrat, TaxiDriverBehavior* behavior,
                        TaxiDriverMovement* movement, std::string roleName, Role<Person_MT>::Type roleType) :
@@ -182,14 +183,14 @@ void TaxiDriver::HandleParentMessage(messaging::Message::MessageType type, const
 				}
 #endif
 
-				messaging::MessageBus::SendMessage(message.GetSender(), MSG_SCHEDULE_PROPOSITION_REPLY,
-				                                   messaging::MessageBus::MessagePtr(
-						                                   new SchedulePropositionReplyMessage(parent->currTick,
-						                                                                       request.userId, parent,
-						                                                                       request.startNodeId,
-						                                                                       request.destinationNodeId,
-						                                                                       request.extraTripTimeThreshold,
-						                                                                       success)));
+				MessageBus::PostMessage(message.GetSender(), MSG_SCHEDULE_PROPOSITION_REPLY,
+				                        MessageBus::MessagePtr(new SchedulePropositionReplyMessage(parent->currTick,
+				                                                                                   request.userId,
+				                                                                                   parent,
+				                                                                                   request.startNodeId,
+				                                                                                   request.destinationNodeId,
+				                                                                                   request.extraTripTimeThreshold,
+				                                                                                   success)));
 
 				ControllerLog() << "Assignment response sent for " << request<<". This response is sent by driver "
 						<< parent->getDatabaseId()<<" at time "<<parent->currTick<<std::endl;
@@ -312,8 +313,8 @@ TaxiDriver::~TaxiDriver()
 		for(auto it = taxiDriverMovement->getSubscribedControllers().begin();
 			it != taxiDriverMovement->getSubscribedControllers().end(); ++it)
 		{
-			messaging::MessageBus::SendMessage(*it, MSG_DRIVER_UNSUBSCRIBE,
-											   messaging::MessageBus::MessagePtr(new DriverUnsubscribeMessage(parent)));
+			MessageBus::PostMessage(*it, MSG_DRIVER_UNSUBSCRIBE,
+			                        MessageBus::MessagePtr(new DriverUnsubscribeMessage(parent)));
 		}
 	}
 }

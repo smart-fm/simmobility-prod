@@ -11,15 +11,16 @@ Authors - Siyu Li, Harish Loganathan
 --Note: the betas that not estimated are fixed to zero.
 
 --!! see the documentation on the definition of AM,PM and OP table!!
-local beta_cons_bus = -3.139
-local beta_cons_mrt = -5.000
-local beta_cons_privatebus= -1.906
-local beta_cons_drive1= -0.211
-local beta_cons_share2= -4.0
-local beta_cons_share3= -3.0
-local beta_cons_motor= 24
-local beta_cons_walk= 2.559
-local beta_cons_taxi= -4.833
+local beta_cons_bus = -2.928
+local beta_cons_mrt = -4.789
+local beta_cons_privatebus= -1.695
+local beta_cons_drive1= 0
+local beta_cons_share2= -3.789
+local beta_cons_share3= -2.789
+local beta_cons_motor= 24.211
+local beta_cons_walk= 2.770
+local beta_cons_taxi= -4.622
+
 
 local beta1_1_tt = -0.687
 local beta1_2_tt = -0.690

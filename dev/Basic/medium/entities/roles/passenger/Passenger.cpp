@@ -31,23 +31,25 @@ Role<Person_MT>* sim_mob::medium::Passenger::clone(Person_MT *parent) const
 	PassengerBehavior* behavior = new PassengerBehavior();
 	PassengerMovement* movement = new PassengerMovement();
 	Role<Person_MT>::Type personRoleType = Role<Person_MT>::RL_UNKNOWN;
-	if (parent->currSubTrip->getMode() == "MRT")
+	const std::string &mode = parent->currSubTrip->getMode();
+
+	if (mode == "MRT")
 	{
 		personRoleType = Role<Person_MT>::RL_TRAINPASSENGER;
 	}
-	else if (parent->currSubTrip->getMode() == "Sharing")
+	else if (mode == "Sharing")
 	{
 		personRoleType = Role<Person_MT>::RL_CARPASSENGER;
 	}
-	else if (parent->currSubTrip->getMode() == "PrivateBus")
+	else if (mode == "PrivateBus")
 	{
 		personRoleType = Role<Person_MT>::RL_PRIVATEBUSPASSENGER;
 	}
-	else if (parent->currSubTrip->getMode() == "BusTravel")
+	else if (mode == "BusTravel")
 	{
 		personRoleType = Role<Person_MT>::RL_PASSENGER;
 	}
-	else if (parent->currSubTrip->getMode() == "TaxiTraveler")
+	else if (mode.find("TaxiTraveler") != std::string::npos)
 	{
 		personRoleType = Role<Person_MT>::RL_TAXIPASSENGER;
 	}
@@ -122,7 +124,7 @@ void sim_mob::medium::Passenger::collectTravelTime()
 	}
 	else if (roleType == Role<Person_MT>::RL_TAXIPASSENGER)
 	{
-		personTravelTime.mode = "TAXI_PASSENGER";
+		personTravelTime.mode = (*(parent->currSubTrip)).travelMode;
 	}
 	else
 	{

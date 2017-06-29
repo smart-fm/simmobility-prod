@@ -478,7 +478,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 		size_t numPersons = 0;
 		size_t numActivities = 0, numBiker = 0, numBusDriver = 0, numCarPassenger = 0, numDriver = 0, numPassenger = 0;
 		size_t numPedestrian = 0, numPrivBusPassenger = 0, numTaxiPassenger = 0, numTrainDriver = 0, numTrainPassenger = 0;
-		size_t numTravelPedestrian = 0, numTruckerHGV = 0, numTruckerLGV = 0, numWaitBus = 0, numWaitTaxi = 0, numWaitTrain = 0;
+		size_t numTravelPedestrian = 0, numTruckerHGV = 0, numTruckerLGV = 0, numWaitBus = 0, numWaitTaxi = 0, numWaitTrain = 0, numTaxiDriver = 0;
 
 		for (std::vector<Entity*>::iterator it = Agent::activeAgents.begin(); it != Agent::activeAgents.end(); ++it)
 		{
@@ -544,6 +544,10 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 					case Role<Person_MT>::RL_WAITTRAINACTIVITY:
 						numWaitTrain++;
 						break;
+					case Role<Person_MT>::RL_TAXIDRIVER:
+						numTaxiDriver++;
+						break;
+
 					}
 				}
 			}
@@ -551,7 +555,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 
 		Print() << "\nPersons still in the simulation: " << numPersons << "\n"
 		        << numActivities << " Performing activity,\t" << numBiker << " Bikers,\t"
-		        << numBusDriver << " BusDrivers,\t" << numCarPassenger << " Car passengers,\t"
+		        << numBusDriver << " BusDrivers,\t" << numTaxiDriver << " TaxiDrivers,\t" << numCarPassenger << " Car passengers,\t"
 		        << numDriver << " Drivers,\t" << numPassenger << " Passengers,\t" << numPedestrian << " Pedestrians,\t"
 		        << numPrivBusPassenger << " Private bus passengers,\n" << numTaxiPassenger << " Taxi passengers,\t"
 				<< numTrainDriver << " Train drivers,\t" << numTrainPassenger << " Train passengers,\t"

@@ -54,7 +54,7 @@
 	    	<mapping name="pt_opposite_lines" procedure="get_pt_opposite_lines()"/>
 	    	<mapping name="get_train_fleet" procedure="get_train_fleet()"/>
 	    	<mapping name="mrt_road_segments" procedure="get_pt_train_segments()"/>
-	    	<mapping name="day_activity_schedule" procedure="get_persons_between"/>
+	    	<mapping name="day_activity_schedule" procedure="get_persons_between_with_subsidy"/>
             <mapping name="freight_trips" procedure="get_freight_between"/>
             
             <mapping name="taxi_fleet" procedure="get_taxi_fleet"/>
@@ -137,7 +137,7 @@
     <!-- List of all Worker types and their properties. -->
     <!-- granularity of each component must be a multiple of the "base" granularity -->
     <workers>
-        <person count="10" granularity="5 seconds"/> <!-- Person agents (with Roles) -->
+        <person count="1" granularity="5 seconds"/> <!-- Person agents (with Roles) -->
     </workers>
       
     <incidentsData enabled="false">
@@ -214,7 +214,7 @@
         <bus_default_capacity value="100"/>
 
         <!-- the threads number for person loader -->
-        <thread_number_in_person_loader value="10"/>
+        <thread_number_in_person_loader value="1"/>
 
 
         <!-- file names to output statistics from supply -->

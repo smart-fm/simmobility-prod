@@ -69,17 +69,17 @@ local beta_distance_taxi = 0
 local beta_distance_SMS =0
 local beta_distance_rail_SMS = 0
 
-local beta_cons_bus = 1.270
-local beta_cons_mrt = 1.548
-local beta_cons_private_bus = 0.958
-local beta_cons_drive1 = 6.168
-local beta_cons_share2 = 1.305
-local beta_cons_share3 = -2.762
-local beta_cons_motor = -1.777
+local beta_cons_bus = -4.898
+local beta_cons_mrt = -7.948
+local beta_cons_private_bus = -5.21
+local beta_cons_drive1 = 0
+local beta_cons_share2 = 4.863
+local beta_cons_share3 = -8.93
+local beta_cons_motor = -7.938
 local beta_cons_walk = -192.919
-local beta_cons_taxi = -2.983
-local beta_cons_SMS = -5.45
-local beta_cons_rail_SMS = -1.78
+local beta_cons_taxi = -9.151
+local beta_cons_SMS = -9.151
+local beta_cons_rail_SMS = -7.948
 
 local beta_zero_bus = 0
 local beta_oneplus_bus = -3.20
@@ -214,6 +214,9 @@ local function computeUtilities(params,dbparams)
 	local cost_mrt = {}
 	local cost_rail_mrt = {}
 	local cost_rail_SMS = {}
+	local cost_Rail_SMS_AE_1 = {}
+	local cost_Rail_SMS_AE_2 = {} 
+	local cost_Rail_SMS_AE_avg = {}
 	local cost_private_bus = {}
 
 	local cost_car_OP_first = {}
@@ -274,6 +277,8 @@ local function computeUtilities(params,dbparams)
 	local population = {}
 	local area = {}
 	local shop = {}
+	
+	
 
 	local log = math.log
 	local exp = math.exp
@@ -288,11 +293,14 @@ local function computeUtilities(params,dbparams)
 		--origin is home, destination(i) is zone from 1 to 24
 
 		--0 if origin == destination
+		
+	
+		
 		cost_public_first[i] = dbparams:cost_public_first(i)
 		cost_public_second[i] = dbparams:cost_public_second(i)
 		cost_bus[i] = cost_public_first[i] + cost_public_second[i] + cost_increase
 		cost_mrt[i] = cost_public_first[i] + cost_public_second[i] + cost_increase
-		cost_rail_SMS[i] = cost_public_first[i] + cost_public_second[i] + cost_increase + (3.4 + (d1[i]*(d1[i]<=10 and 1 or 0)))*0.25 + (3.4 + (d2[i]*(d2[i]<=10 and 1 or 0)))
+		
 		cost_private_bus[i] = cost_public_first[i] + cost_public_second[i] + cost_increase
 
 		--dbparams:cost_car_ERP_first(i) = AM[(origin,destination[i])]['car_cost_erp']
@@ -327,6 +335,12 @@ local function computeUtilities(params,dbparams)
 		cost_SMS_2[i] = 3.4+((d2[i]*(d2[i]>10 and 1 or 0)-10*(d2[i]>10 and 1 or 0))/0.35+(d2[i]*(d2[i]<=10 and 1 or 0)+10*(d2[i]>10 and 1 or 0))/0.4)*0.22+ dbparams:cost_car_ERP_second(i)+central_dummy[i]*3
 		cost_SMS[i] = (cost_SMS_1[i] + cost_SMS_2[i])*0.6 + cost_increase
 		
+		
+		local aed = 2.0 -- Access egress distance
+		cost_Rail_SMS_AE_1[i] = 3.4+((aed*(aed>10 and 1 or 0)-10*(aed>10 and 1 or 0))/0.35+(aed*(aed<=10 and 1 or 0)+10*(aed>10 and 1 or 0))/0.4)*0.22+ dbparams:cost_car_ERP_first(i)+central_dummy[i]*3
+		cost_Rail_SMS_AE_2[i] = 3.4+((aed*(aed>10 and 1 or 0)-10*(aed>10 and 1 or 0))/0.35+(aed*(aed<=10 and 1 or 0)+10*(aed>10 and 1 or 0))/0.4)*0.22+ dbparams:cost_car_ERP_second(i)+central_dummy[i]*3
+		cost_Rail_SMS_AE_avg[i] = (cost_Rail_SMS_AE_1[i] + cost_Rail_SMS_AE_2[i])/2
+		cost_rail_SMS[i] = cost_public_first[i] + cost_public_second[i] + cost_increase + cost_Rail_SMS_AE_avg[i] * 2 * 0.6
 	
 		cost_over_income_bus[i]=30*cost_bus[i]/(0.5+income_mid)
 		cost_over_income_mrt[i]=30*cost_mrt[i]/(0.5+income_mid)
@@ -351,6 +365,7 @@ local function computeUtilities(params,dbparams)
 		tt_public_ivt_second[i] = dbparams:tt_public_ivt_second(i)
 		tt_public_out_first[i] = dbparams:tt_public_out_first(i)
 		tt_public_out_second[i] = dbparams:tt_public_out_second(i)
+		
 
 		--dbparams:tt_car_ivt_first(i) = AM[(origin,destination[i])]['car_ivt']
 		--dbparams:tt_car_ivt_second(i) = PM[(destination[i],origin)]['car_ivt']

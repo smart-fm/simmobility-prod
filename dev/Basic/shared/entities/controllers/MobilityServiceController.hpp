@@ -1,122 +1,92 @@
 /*
- * MobilityServiceController.hpp
+ * MobilityServiceController.h
  *
- *  Created on: Feb 20, 2017
- *      Author: Akshay Padmanabha
+ *  Created on: 21 Jun 2017
+ *      Author: araldo
  */
 
-#ifndef MobilityServiceController_HPP_
-#define MobilityServiceController_HPP_
-#include <vector>
+#ifndef SHARED_ENTITIES_CONTROLLERS_MOBILITYSERVICECONTROLLER_HPP_
+#define SHARED_ENTITIES_CONTROLLERS_MOBILITYSERVICECONTROLLER_HPP_
 
 #include "entities/Agent.hpp"
 #include "message/Message.hpp"
+#include "message/MobilityServiceControllerMessage.hpp"
+#include "MobilityServiceController.hpp"
+#include "entities/controllers/Rebalancer.hpp"
+#include "message/MessageBus.hpp"
 
-namespace sim_mob
+
+namespace sim_mob {
+
+
+enum MobilityServiceControllerType : unsigned int
 {
+	SERVICE_CONTROLLER_UNKNOWN = 0b0000,
+	SERVICE_CONTROLLER_GREEDY = 0b0001,
+	SERVICE_CONTROLLER_SHARED = 0b0010,
+	SERVICE_CONTROLLER_ON_HAIL = 0b0100,
+	SERVICE_CONTROLLER_FRAZZOLI = 0b1000
+};
 
-class MobilityServiceController : public Agent {
+const std::string fromMobilityServiceControllerTypetoString(MobilityServiceControllerType type);
+
+class MobilityServiceController: public Agent
+{
 protected:
-	explicit MobilityServiceController(const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered, unsigned int computationPeriod = 0)
-		: Agent(mtxStrat, -1), scheduleComputationPeriod(computationPeriod)
-	{
-	}
+
+	explicit MobilityServiceController(const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered, unsigned int dummy=0,
+			MobilityServiceControllerType type_ = SERVICE_CONTROLLER_UNKNOWN)
+		: Agent(mtxStrat, -1), type(type_) {}
+
+	virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
+
+	/** Store list of subscribed drivers */
+	std::vector<Person*> subscribedDrivers;
+
+
+	/**
+	 * Subscribes a vehicle driver to the controller
+	 * @param person Driver to be added
+	 */
+	virtual void subscribeDriver(Person* person);
+
+	/**
+	 * Unsubscribes a vehicle driver from the controller
+	 * @param person Driver to be removed
+	 */
+	virtual void unsubscribeDriver(Person* person);
+
+
 
 public:
-	struct TripRequest
-	{
-		const timeslice currTick;
-		const std::string personId;
-		//TODO: to enhance performance, instead of storing here node ids,
-		// we could directly store Node*, to avoid continuous access to the
-		// RoadNetwork::getInstance()->getMapOfIdvsNodes()
-		// For example, in SharedController::computeSchedules() we make a search into
-		// that map, many times, redundantly and uselessly.
-		const unsigned int startNodeId;
-		const unsigned int destinationNodeId;
-		const unsigned int extraTripTimeThreshold;
-	};
-
-	enum MessageResult
-	{
-		MESSAGE_ERROR_BAD_NODE = 0,
-		MESSAGE_ERROR_VEHICLES_UNAVAILABLE,
-		MESSAGE_SUCCESS
-	};
-
 	virtual ~MobilityServiceController();
 
 	/**
-	 * Signals are non-spatial in nature.
-	 */
-	bool isNonspatial();
-
-protected:
-	/**
 	 * Inherited from base class agent to initialize parameters
 	 */
-	Entity::UpdateStatus frame_init(timeslice now);
+
+	virtual Entity::UpdateStatus frame_init(timeslice now);
 
 	/**
 	 * Inherited from base class to update this agent
 	 */
-	Entity::UpdateStatus frame_tick(timeslice now);
+	virtual Entity::UpdateStatus frame_tick(timeslice now);
+
+
+	/**
+	 * Inherited.
+	 */
+	virtual bool isNonspatial();
 
 	/**
 	 * Inherited from base class to output result
 	 */
 	void frame_output(timeslice now);
 
-	/**
-	 * Inherited from base class to handle message
-	 */
-    void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
+	const MobilityServiceControllerType type;
 
-	/**
-	 * Makes a vehicle driver unavailable to the controller
-	 * @param person Driver to be removed
-	 */
-	void driverUnavailable(Person* person);
-
-	/** Store list of subscribed drivers */
-	std::vector<Person*> subscribedDrivers;
-
-	/** Store list of available drivers */
-	std::vector<Person*> availableDrivers;
-
-	/** Store queue of requests */
-	std::vector<TripRequest> requestQueue;
-
-private:
-	/**
-	 * Subscribes a vehicle driver to the controller
-	 * @param person Driver to be added
-	 */
-	void subscribeDriver(Person* person);
-
-	/**
-	 * Unsubscribes a vehicle driver from the controller
-	 * @param person Driver to be removed
-	 */
-	void unsubscribeDriver(Person* person);
-
-	/**
-	 * Makes a vehicle driver available to the controller
-	 * @param person Driver to be added
-	 */
-	void driverAvailable(Person* person);
-
-	/**
-	 * Performs the controller algorithm to assign vehicles to requests
-	 */
-	virtual std::vector<MessageResult> computeSchedules() = 0;
-
-	/** Keeps track of current local tick */
-	unsigned int localTick = 0;
-
-	/** Keeps track of how often to process messages */
-	unsigned int scheduleComputationPeriod;
 };
-}
-#endif /* MobilityServiceController_HPP_ */
 
+} /* namespace sim_mob */
+
+#endif /* SHARED_ENTITIES_CONTROLLERS_MOBILITYSERVICECONTROLLER_HPP_ */

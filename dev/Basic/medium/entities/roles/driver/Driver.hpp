@@ -45,18 +45,6 @@ class DriverMovement;
  * \author Melani Jayasuriya
  * \author Harish Loganathan
  */
-enum DriverMode
-{
-	DRIVE_START =0,
-	CRUISE,
-	DRIVE_TO_TAXISTAND,
-	DRIVE_WITH_PASSENGER,
-	DRIVE_FOR_DRIVER_CHANGE_SHIFT,
-	QUEUING_AT_TAXISTAND,
-	DRIVE_FOR_BREAK,
-	DRIVER_IN_BREAK,
-	DRIVE_ON_CALL
-};
 
 class Driver : public sim_mob::Role<Person_MT>, public UpdateWrapper<DriverUpdateParams>
 {
@@ -75,10 +63,13 @@ public:
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
 	virtual void HandleParentMessage(messaging::Message::MessageType type, const messaging::Message& message);
 
+	/**
+	 * True if there are no reasons that prevent the driver from moving. By default, this function returns true.
+	 * You may need to override this function if you need to force a driver not to move, i.e. to force her in some
+	 * waiting status
+	 */
+	virtual bool canSheMove() const;
 
-	DriverMode driverMode;
-	const DriverMode & getDriveMode() const;
-	void setDriveMode(const DriverMode &driveMode);
 	//to be moved to a DriverUpdateParam later
 	const Lane* currLane;
 

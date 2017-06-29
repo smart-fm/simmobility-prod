@@ -321,7 +321,11 @@ void StopStatsManager::addStopStats(const PersonWaitingTime& personWaiting)
 	unsigned int personArrivalTime = personBoardingTime - personWaiting.waitingTime;
 	if(personArrivalTime > SECONDS_IN_DAY) // personWaiting.waitingTime > personWaiting.currentTime(from start of day)
 	{
-		throw std::runtime_error("invalid currentTime or waiting time passed with person waiting message");
+		std::stringstream msg;
+		msg << "Invalid currentTime or waiting time passed with person waiting message! "
+		    << "\npersonBoardingTime: " << personBoardingTime << ", waitingTime: " << personWaiting.waitingTime
+		    << "\npersonArrivalTime: " << personArrivalTime;
+		throw std::runtime_error(msg.str());
 	}
 	unsigned int interval = personArrivalTime / intervalWidth;
 	for(const std::string& line : lines)

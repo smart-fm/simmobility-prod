@@ -15,6 +15,19 @@
 namespace bt = boost::posix_time;
 using namespace sim_mob;
 
+namespace
+{
+	enum TaxiFleetTableColumns
+	{
+		COLUMN_VEHICLE_NUMBER = 0,
+		COLUMN_DRIVER_ID = 1,
+		COLUMN_START_LOCATION_X = 2,
+		COLUMN_START_LOCATION_Y = 3,
+		COLUMN_SHIFT_START_TIME = 4,
+		COLUMN_CONTROLLER_SUBSCRIPTIONS = 5
+	};
+}
+
 double getSecondFrmTimeString(const std::string& startTime)
 {
 	std::istringstream is(startTime);
@@ -43,23 +56,23 @@ void FleetController::LoadTaxiFleetFromDB()
     /* for Debug Only : to print details in Console
      * Print()<<"\n\nTaxi Details at start:"<<std::endl;
      */
-	query << "select * from " << spIt->second << "('" << simParams.simStartTime.getStrRepr()
-	      << "','" << (DailyTime(simParams.totalRuntimeMS) + simParams.simStartTime).getStrRepr() << "')";
+	query << "select * from " << spIt->second << "('" << simParams.simStartTime.getStrRepr().substr(0, 5)
+	      << "','" << (DailyTime(simParams.totalRuntimeMS) + simParams.simStartTime).getStrRepr().substr(0, 5) << "')";
 	soci::rowset<soci::row> rs = (sql_.prepare << query.str());
 
 	for (soci::rowset<soci::row>::const_iterator it = rs.begin();it != rs.end(); ++it)
 	{
 		FleetItem fleetItem;
 		const soci::row& r = (*it);
-		fleetItem.vehicleNo = r.get<std::string>(0);
-		fleetItem.driverId = r.get<std::string>(1);
-		double x = r.get<double>(2);
-		double y = r.get<double>(3);
+		fleetItem.vehicleNo = r.get<std::string>(COLUMN_VEHICLE_NUMBER);
+		fleetItem.driverId = r.get<std::string>(COLUMN_DRIVER_ID);
+		double x = r.get<double>(COLUMN_START_LOCATION_X);
+		double y = r.get<double>(COLUMN_START_LOCATION_Y);
 		Utils::convertWGS84_ToUTM(x, y);
 		fleetItem.startNode = Node::allNodesMap.searchNearestObject(x, y);
-		std::string startTime = r.get<std::string>(4);
+		std::string startTime = r.get<std::string>(COLUMN_SHIFT_START_TIME);
 		fleetItem.startTime = getSecondFrmTimeString(startTime);
-		fleetItem.controllerSubscription = r.get<unsigned int>(5);
+		fleetItem.controllerSubscription = r.get<unsigned int>(COLUMN_CONTROLLER_SUBSCRIPTIONS);
 		taxiFleet.push_back(fleetItem);
 	/* for Debug Purpose Only : to print details in Console
 

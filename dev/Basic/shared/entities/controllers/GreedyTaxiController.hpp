@@ -10,27 +10,26 @@
 #include <vector>
 
 #include "entities/Agent.hpp"
-#include "entities/controllers/MobilityServiceController.hpp"
+#include "OnCallController.hpp"
 
 namespace sim_mob
 {
 
-class GreedyTaxiController : public MobilityServiceController {
+class GreedyTaxiController : public OnCallController {
 public:
-	explicit GreedyTaxiController(const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered,
-		unsigned int computationPeriod = 0) : MobilityServiceController(mtxStrat, computationPeriod)
+	explicit GreedyTaxiController
+		(const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered,
+		unsigned int computationPeriod = 0) :
+		OnCallController(mtxStrat, computationPeriod, MobilityServiceControllerType::SERVICE_CONTROLLER_GREEDY)
 	{
 	}
 
-protected:
-	bool isCruising(Person* p);
-	const Node* getCurrentNode(Person* p);
 
-private:
+protected:
 	/**
 	 * Performs the controller algorithm to assign vehicles to requests
 	 */
-	std::vector<MessageResult> computeSchedules();
+	virtual void computeSchedules();
 };
 }
 #endif /* GreedyTaxiController_HPP_ */

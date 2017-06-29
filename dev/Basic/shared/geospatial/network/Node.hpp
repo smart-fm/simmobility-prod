@@ -12,6 +12,10 @@
 
 namespace sim_mob
 {
+//aa{
+const static unsigned TAZ_UNDEFINED = 0;
+//aa}
+
 class TurningGroup;
 class Link;
 /**Defines the various types of nodes supported by the SimMobility network*/
@@ -67,6 +71,13 @@ private:
 	std::map<unsigned int,Link*> mapOfDownStreamLinks;
 	std::map<unsigned int,Link*> mapOfUpStreamLinks;
 	std::vector<Person*> waitingPersons;
+
+	//aa{
+	/*
+	 * The Traffic Analysis Zone (TAZ) to which this nodes belong
+	 */
+	unsigned int tazId;
+	//aa}
 
 
 public:
@@ -136,5 +147,10 @@ public:
 	 * get y position
 	 */
 	double getPosY() const;
+
+	//aa{
+	unsigned int getTazId()const;
+	void setTazId(unsigned int tazId_);
+	//aa}
 };
 }

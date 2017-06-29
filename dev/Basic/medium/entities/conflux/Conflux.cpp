@@ -309,35 +309,6 @@ void Conflux::addAgent(Person_MT* person)
 			assignPersonToStationAgent(person);
 			break;
 		}
-		case Role<Person_MT>::RL_TRAVELPEDESTRIAN:
-		{
-			if (MobilityServiceControllerManager::HasMobilityServiceControllerManager())
-			{
-				std::vector<SubTrip>::iterator subTripItr = person->currSubTrip;
-				const Node * personOriginNode = (*subTripItr).origin.node;
-				const Node * personDestinationNode = (*subTripItr).destination.node;
-
-				if ((*subTripItr).travelMode == "TravelPedestrian" && personOriginNode == personDestinationNode) {
-					std::vector<SubTrip>::iterator taxiTripItr = subTripItr + 1;
-
-					ControllerLog() << "Request made from " << person->getDatabaseId() << " at time " << person->currTick.frame() << ". Message was sent at "
-						<< person->currTick.frame() << " with startNodeId " << confluxNode->getNodeId() << ", destinationNodeId " << (*taxiTripItr).destination.node->getNodeId()
-						<< ", and driverId null" << std::endl;
-
-					auto controllers = MobilityServiceControllerManager::GetInstance()->getControllers();
-					unsigned int randomController = Utils::generateInt(0, controllers.size() - 1);
-					auto itControllers = controllers.begin();
-					advance(itControllers, randomController);
-
-					messaging::MessageBus::SendMessage(itControllers->second, MSG_TRIP_REQUEST, messaging::MessageBus::MessagePtr(
-						new TripRequestMessage(person->currTick, person->getDatabaseId(),
-							confluxNode->getNodeId(), (*taxiTripItr).destination.node->getNodeId(), 0)));
-				}
-			}
-
-			travelingPersons.push_back(person);
-			break;
-		}
 		case Role<Person_MT>::RL_TRAINPASSENGER:
 		{
 			assignPersonToMRT(person);
@@ -472,6 +443,7 @@ void Conflux::loadPersons()
 	while (!loadingQueue.empty())
 	{
 		Person_MT* person = loadingQueue.front();
+		person->currTick = currFrame;
 		loadingQueue.pop_front();
 		Conflux* conflux = Conflux::findStartingConflux(person, nextTickMS);
 		if (conflux)
@@ -494,6 +466,7 @@ void Conflux::processAgents(timeslice frameNumber)
 	orderedPersons.insert(orderedPersons.end(), brokenPersons.begin(), brokenPersons.end());
 	for (PersonList::iterator personIt = orderedPersons.begin(); personIt != orderedPersons.end(); personIt++) //iterate and update all persons
 	{
+		(*personIt)->currTick = currFrame;
 		updateAgent(*personIt);
 		(*personIt)->latestUpdatedFrameTick = currFrame.frame();
 	}
@@ -608,7 +581,8 @@ bool Conflux::handleRoleChange(PersonProps& beforeUpdate, PersonProps& afterUpda
 	case Role<Person_MT>::RL_TRAVELPEDESTRIAN:
 	{
 		auto it = std::find(travelingPersons.begin(), travelingPersons.end(), person);
-		if (it != travelingPersons.end()) {
+		if (it != travelingPersons.end())
+		{
 			travelingPersons.erase(it);
 		}
 		break;
@@ -637,11 +611,18 @@ bool Conflux::handleRoleChange(PersonProps& beforeUpdate, PersonProps& afterUpda
 	}
 	case Role<Person_MT>::RL_WAITTAXIACTIVITY:
 	{
-		WaitTaxiActivity* activity = dynamic_cast<WaitTaxiActivity*>(person->getRole());
-		if(activity){
-			TaxiStandAgent* taxiStandAgent = TaxiStandAgent::getTaxiStandAgent(activity->getTaxiStand());
-			if(taxiStandAgent){
-				messaging::MessageBus::SendMessage(taxiStandAgent, MSG_WAITING_PERSON_ARRIVAL, messaging::MessageBus::MessagePtr(new ArrivalAtStopMessage(person)));
+		WaitTaxiActivity *activity = dynamic_cast<WaitTaxiActivity *>(person->getRole());
+		if (activity)
+		{
+			TaxiStandAgent *taxiStandAgent = TaxiStandAgent::getTaxiStandAgent(activity->getTaxiStand());
+			if (taxiStandAgent)
+			{
+				messaging::MessageBus::SendMessage(taxiStandAgent, MSG_WAITING_PERSON_ARRIVAL,
+				                                   messaging::MessageBus::MessagePtr(new ArrivalAtStopMessage(person)));
+			}
+			else
+			{
+				travelingPersons.push_back(person);
 			}
 		}
 		break;
@@ -710,6 +691,10 @@ void Conflux::housekeep(PersonProps& beforeUpdate, PersonProps& afterUpdate, Per
 				travelingPersons.erase(it);
 			}
 		}
+		return;
+	}
+	case Role<Person_MT>::RL_WAITTAXIACTIVITY:
+	{
 		return;
 	}
 	case Role<Person_MT>::RL_TAXIDRIVER: //fall through
@@ -1855,7 +1840,6 @@ Person_MT* Conflux::pickupTaxiTraveler(std::string* personId)
 			res->currSubTrip->endLocationType = "NODE";
 			res->getRole()->collectTravelTime();
 			UpdateStatus status = res->checkTripChain(currFrame.ms());
-			status = res->checkTripChain(currFrame.ms());
 			if (status.status == UpdateStatus::RS_DONE)
 			{
 				return nullptr;
@@ -2272,8 +2256,8 @@ Conflux* Conflux::findStartingConflux(Person_MT* person, unsigned int now)
 	{
 	case Role<Person_MT>::RL_DRIVER:
 	{
-		const medium::DriverMovement* driverMvt = dynamic_cast<const medium::DriverMovement*>(personRole->Movement());
-		if(driverMvt)
+		const medium::DriverMovement *driverMvt = dynamic_cast<const medium::DriverMovement *>(personRole->Movement());
+		if (driverMvt)
 		{
 			return driverMvt->getStartingConflux();
 		}
@@ -2283,20 +2267,21 @@ Conflux* Conflux::findStartingConflux(Person_MT* person, unsigned int now)
 		}
 		break;
 	}
-case Role<Person_MT>::RL_TRAINDRIVER:
+	case Role<Person_MT>::RL_TRAINDRIVER:
 	{
-		const medium::TrainMovement* trainMvt = dynamic_cast<const medium::TrainMovement*>(personRole->Movement());
-		if(trainMvt)
+		const medium::TrainMovement *trainMvt = dynamic_cast<const medium::TrainMovement *>(personRole->Movement());
+		if (trainMvt)
 		{
 			trainMvt->arrivalAtStartPlaform();
 		}
 		return nullptr;
 
-	}	case Role<Person_MT>::RL_TRUCKER_HGV:
+	}
+	case Role<Person_MT>::RL_TRUCKER_HGV:
 	case Role<Person_MT>::RL_TRUCKER_LGV:
 	{
-		const medium::TruckerMovement* truckerMvt = dynamic_cast<const medium::TruckerMovement*>(personRole->Movement());
-		if(truckerMvt)
+		const medium::TruckerMovement *truckerMvt = dynamic_cast<const medium::TruckerMovement *>(personRole->Movement());
+		if (truckerMvt)
 		{
 			return truckerMvt->getStartingConflux();
 		}
@@ -2308,8 +2293,8 @@ case Role<Person_MT>::RL_TRAINDRIVER:
 	}
 	case Role<Person_MT>::RL_BIKER:
 	{
-		const medium::BikerMovement* bikerMvt = dynamic_cast<const medium::BikerMovement*>(personRole->Movement());
-		if(bikerMvt)
+		const medium::BikerMovement *bikerMvt = dynamic_cast<const medium::BikerMovement *>(personRole->Movement());
+		if (bikerMvt)
 		{
 			return bikerMvt->getStartingConflux();
 		}
@@ -2321,8 +2306,8 @@ case Role<Person_MT>::RL_TRAINDRIVER:
 	}
 	case Role<Person_MT>::RL_PEDESTRIAN:
 	{
-		const medium::PedestrianMovement* pedestrianMvt = dynamic_cast<const medium::PedestrianMovement*>(personRole->Movement());
-		if(pedestrianMvt)
+		const medium::PedestrianMovement *pedestrianMvt = dynamic_cast<const medium::PedestrianMovement *>(personRole->Movement());
+		if (pedestrianMvt)
 		{
 			return pedestrianMvt->getDestinationConflux();
 		}
@@ -2334,8 +2319,8 @@ case Role<Person_MT>::RL_TRAINDRIVER:
 	}
 	case Role<Person_MT>::RL_TRAVELPEDESTRIAN:
 	{
-		const medium::PedestrianMovement* pedestrianMvt = dynamic_cast<const medium::PedestrianMovement*>(personRole->Movement());
-		if(pedestrianMvt)
+		const medium::PedestrianMovement *pedestrianMvt = dynamic_cast<const medium::PedestrianMovement *>(personRole->Movement());
+		if (pedestrianMvt)
 		{
 			return pedestrianMvt->getStartConflux();
 		}
@@ -2347,67 +2332,69 @@ case Role<Person_MT>::RL_TRAINDRIVER:
 	}
 	case Role<Person_MT>::RL_BUSDRIVER:
 	{
-		const medium::BusDriverMovement* busDriverMvt = dynamic_cast<const medium::BusDriverMovement*>(personRole->Movement());
-		if(busDriverMvt)
+		const medium::BusDriverMovement *busDriverMvt = dynamic_cast<const medium::BusDriverMovement *>(personRole->Movement());
+		if (busDriverMvt)
 		{
 			return busDriverMvt->getStartingConflux();
 		}
 		else
 		{
-			throw std::runtime_error("Bus-Driver role facets not/incorrectly initialized");}
-			break;
+			throw std::runtime_error("Bus-Driver role facets not/incorrectly initialized");
 		}
+		break;
+	}
 
-		case Role<Person_MT>::RL_TAXIDRIVER:
+	case Role<Person_MT>::RL_TAXIDRIVER:
+	{
+		const medium::TaxiDriverMovement *taxiDriverMvt = dynamic_cast<const medium::TaxiDriverMovement *>(personRole->Movement());
+		if (taxiDriverMvt)
 		{
-			const medium::TaxiDriverMovement *taxiDriverMvt = dynamic_cast<const medium::TaxiDriverMovement*>(personRole->Movement());
-			if(taxiDriverMvt)
-			{
-				return taxiDriverMvt->getStartingConflux();
-			}
-			else
-			{
-				throw std::runtime_error("Taxi-Driver role facets not/incorrectly initialized");
-			}
-			break;
+			return taxiDriverMvt->getStartingConflux();
 		}
-		case Role<Person_MT>::RL_ACTIVITY:
+		else
 		{
-			ActivityPerformer<Person_MT>* ap = dynamic_cast<ActivityPerformer<Person_MT>*>(personRole);
-			return MT_Config::getInstance().getConfluxForNode(ap->getLocation());
+			throw std::runtime_error("Taxi-Driver role facets not/incorrectly initialized");
 		}
-		case Role<Person_MT>::RL_PASSENGER: //Fall through
-		case Role<Person_MT>::RL_TRAINPASSENGER: //Fall through
-		case Role<Person_MT>::RL_CARPASSENGER: //Fall through
-		case Role<Person_MT>::RL_PRIVATEBUSPASSENGER: //Fall through
+		break;
+	}
+	case Role<Person_MT>::RL_ACTIVITY:
+	{
+		ActivityPerformer<Person_MT> *ap = dynamic_cast<ActivityPerformer<Person_MT> *>(personRole);
+		return MT_Config::getInstance().getConfluxForNode(ap->getLocation());
+	}
+	case Role<Person_MT>::RL_PASSENGER: //Fall through
+	case Role<Person_MT>::RL_TRAINPASSENGER: //Fall through
+	case Role<Person_MT>::RL_CARPASSENGER: //Fall through
+	case Role<Person_MT>::RL_PRIVATEBUSPASSENGER: //Fall through
+	{
+		const medium::PassengerMovement *passengerMvt = dynamic_cast<const medium::PassengerMovement *>(personRole->Movement());
+		if (passengerMvt)
 		{
-			const medium::PassengerMovement* passengerMvt = dynamic_cast<const medium::PassengerMovement*>(personRole->Movement());
-			if(passengerMvt)
-			{
-				return passengerMvt->getDestinationConflux();
-			}
-			else
-			{
-				throw std::runtime_error("Passenger role facets not/incorrectly initialized");
-			}
-			break;
+			return passengerMvt->getDestinationConflux();
 		}
-		case Role<Person_MT>::RL_WAITBUSACTIVITY:
+		else
 		{
-			const medium::WaitBusActivityMovement* waitBusMvt = dynamic_cast<const medium::WaitBusActivityMovement*>(personRole->Movement());
-			if(waitBusMvt)
-			{
-				return waitBusMvt->getStartingConflux();
-			}
-			else
-			{
-				throw std::runtime_error("WaitBusActivity role facets not/incorrectly initialized");
-			}
-			break;
+			throw std::runtime_error("Passenger role facets not/incorrectly initialized");
 		}
+		break;
+	}
+	case Role<Person_MT>::RL_WAITBUSACTIVITY:
+	{
+		const medium::WaitBusActivityMovement *waitBusMvt = dynamic_cast<const medium::WaitBusActivityMovement *>(personRole->Movement());
+		if (waitBusMvt)
+		{
+			return waitBusMvt->getStartingConflux();
+		}
+		else
+		{
+			throw std::runtime_error("WaitBusActivity role facets not/incorrectly initialized");
+		}
+		break;
+	}
 	case Role<Person_MT>::RL_WAITTRAINACTIVITY:
 	{
-		if(MT_Config::getInstance().getConfluxNodes().size()>0){
+		if (MT_Config::getInstance().getConfluxNodes().size() > 0)
+		{
 			return MT_Config::getInstance().getConfluxNodes().begin()->second;
 		}
 	}

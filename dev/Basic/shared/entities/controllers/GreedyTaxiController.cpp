@@ -8,125 +8,96 @@
 #include "GreedyTaxiController.hpp"
 #include "geospatial/network/RoadNetwork.hpp"
 #include "logging/ControllerLog.hpp"
-#include "message/MessageBus.hpp"
-#include "message/MobilityServiceControllerMessage.hpp"
-#include "entities/mobilityServiceDriver/MobilityServiceDriver.hpp"
-#include "entities/Person.hpp"
 
-namespace sim_mob
-{
-std::vector<MobilityServiceController::MessageResult> GreedyTaxiController::computeSchedules()
-{
-	std::vector<MobilityServiceController::MessageResult> results;
+using namespace sim_mob;
 
-	for (std::vector<TripRequest>::iterator request = requestQueue.begin(); request != requestQueue.end(); request++)
+void GreedyTaxiController::computeSchedules()
+{
+#ifndef NDEBUG
+	consistencyChecks("beginning");
+#endif
+
+	ControllerLog() << "Computing schedule: " << requestQueue.size() << " requests are in the queue" << std::endl;
+
+	std::list<TripRequestMessage>::iterator request = requestQueue.begin();
+	if (!availableDrivers.empty())
 	{
-		Person* bestDriver;
-		double bestDistance = -1;
-		double bestX, bestY;
-
-		std::map<unsigned int, Node*> nodeIdMap = RoadNetwork::getInstance()->getMapOfIdvsNodes();
-
-		std::map<unsigned int, Node*>::iterator it = nodeIdMap.find((*request).startNodeId); 
-		if (it == nodeIdMap.end()) {
-			ControllerLog() << "Request contains bad start node " << (*request).startNodeId << std::endl;
-			results.push_back(MESSAGE_ERROR_BAD_NODE);
-			continue;
-		}
-		Node* startNode = it->second;
-
-		it = nodeIdMap.find((*request).destinationNodeId); 
-		if (it == nodeIdMap.end()) {
-			ControllerLog() << "Request contains bad destination node " << (*request).destinationNodeId << std::endl;
-			results.push_back(MESSAGE_ERROR_BAD_NODE);
-			continue;
-		}
-		Node* destinationNode = it->second;
-
-		auto person = availableDrivers.begin();
-
-		while (person != availableDrivers.end())
+		while (request != requestQueue.end())
 		{
-			if (!isCruising(*person))
+			//{ RETRIEVE NODES
+			std::map<unsigned int, Node *> nodeIdMap = RoadNetwork::getInstance()->getMapOfIdvsNodes();
+			std::map<unsigned int, Node *>::iterator itStart = nodeIdMap.find((*request).startNodeId);
+			std::map<unsigned int, Node *>::iterator itDestination = nodeIdMap.find((*request).destinationNodeId);
+
+#ifndef NDEBUG
+			if (itStart == nodeIdMap.end())
 			{
-				person++;
-				continue;
+				std::stringstream msg;
+				msg << "Request contains bad start node " << (*request).startNodeId << std::endl;
+				throw std::runtime_error(msg.str());
 			}
+#endif
 
-			if (bestDistance < 0)
+			//Assign the start node
+			const Node *startNode = itStart->second;
+
+#ifndef NDEBUG
+			if (itDestination == nodeIdMap.end())
 			{
-				bestDriver = *person;
+				std::stringstream msg;
+				msg << "Request contains bad destination node " << (*request).destinationNodeId << std::endl;
+				throw std::runtime_error(msg.str());
+			}
+#endif
+			//} RETRIEVE NODES
 
-				const Node* node = getCurrentNode(bestDriver);
-				bestDistance = std::abs(startNode->getPosX()
-					- node->getPosX());
-				bestDistance += std::abs(startNode->getPosY()
-					- node->getPosY());
+			const Person *bestDriver = findClosestDriver(startNode);
+
+			if (bestDriver)
+			{
+				Schedule schedule;
+				const ScheduleItem pickUpScheduleItem(ScheduleItemType::PICKUP, *request);
+				const ScheduleItem dropOffScheduleItem(ScheduleItemType::DROPOFF, *request);
+
+				ControllerLog() << "Items constructed" << std::endl;
+
+				schedule.push_back(pickUpScheduleItem);
+				schedule.push_back(dropOffScheduleItem);
+
+				assignSchedule(bestDriver, schedule);
+
+
+
+#ifndef NDEBUG
+				if (currTick < request->timeOfRequest)
+					throw std::runtime_error("The assignment is sent before the request has been issued: impossible");
+#endif
+
+				request = requestQueue.erase(request);
+
+
+
 			}
 			else
 			{
-				const Node* node = getCurrentNode(*person);
-				double currDistance = std::abs(startNode->getPosX()
-					- node->getPosX());
-				currDistance += std::abs(startNode->getPosY()
-					- node->getPosY());
+				//no available drivers
+				ControllerLog() << "Requests to be scheduled " << requestQueue.size() << ", available drivers "
+				                << availableDrivers.size() << std::endl;
 
-				if (currDistance < bestDistance)
-				{
-					bestDriver = *person;
-					bestDistance = currDistance;
-					bestX = node->getPosX();
-					bestY = node->getPosY();
-				}
+				//Move to next request. Leave the unassigned request in the queue, we will process again this next time
+				++request;
 			}
-
-			person++;
 		}
-
-		if (bestDistance == -1)
-		{
-			ControllerLog() << "No available vehicles" << std::endl;
-			results.push_back(MESSAGE_ERROR_VEHICLES_UNAVAILABLE);
-			continue;
-		}
-
-		ControllerLog() << "Closest vehicle is at (" << bestX << ", " << bestY << ")" << std::endl;
-
-		messaging::MessageBus::PostMessage((messaging::MessageHandler*) bestDriver, MSG_SCHEDULE_PROPOSITION, messaging::MessageBus::MessagePtr(
-			new SchedulePropositionMessage(currTick, (*request).personId, (*request).startNodeId,
-				(*request).destinationNodeId, (*request).extraTripTimeThreshold)));
-
-		ControllerLog() << "Assignment sent for " << (*request).personId << " at time " << currTick.frame()
-		<< ". Message was sent at " << (*request).currTick.frame() << " with startNodeId " << (*request).startNodeId
-		<< ", destinationNodeId " << (*request).destinationNodeId << ", and driverId null" << std::endl;
-
-		results.push_back(MESSAGE_SUCCESS);
+	}
+	else
+	{
+		//no available drivers
+		ControllerLog() << "Requests to be scheduled " << requestQueue.size() << ", available drivers "
+		                << availableDrivers.size() << std::endl;
 	}
 
-	return results;
-}
+#ifndef NDEBUG
+	consistencyChecks("end");
+#endif
 
-bool GreedyTaxiController::isCruising(Person* p) 
-{
-    MobilityServiceDriver* currDriver = p->exportServiceDriver();
-    if (currDriver) 
-    {
-        if (currDriver->getServiceStatus() == MobilityServiceDriver::SERVICE_FREE) 
-        {
-            return true;
-        }
-    }
-    return false;
 }
-
-const Node* GreedyTaxiController::getCurrentNode(Person* p) 
-{
-    MobilityServiceDriver* currDriver = p->exportServiceDriver();
-    if (currDriver) 
-    {
-        return currDriver->getCurrentNode();
-    }
-    return nullptr;
-}
-}
-

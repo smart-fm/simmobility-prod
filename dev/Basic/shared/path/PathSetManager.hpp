@@ -361,7 +361,7 @@ private:
 	 * @startTime when to start the path
 	 * @enRoute decided whether in simulation travel time should be searched or not
 	 * @param useInSimulationTT indicates whether in simulation travel times are to be used
-	 * @returns path's travel time
+	 * @returns path's travel time, in seconds
 	 */
 	double getPathTravelTime(sim_mob::SinglePath *sp, const sim_mob::DailyTime & startTime, bool enRoute = false, bool useInSimulationTT = false);
 
@@ -527,7 +527,7 @@ public:
 	 * @param destination destination node id
 	 * @param curTime time at which route choice is to be done
 	 *
-	 * @return in vehicle travel time of shortest path in the pathset for given O and D; -1 if no pathset is available for the OD
+	 * @return in vehicle travel time of shortest path in the pathset for given O and D; -1 if no pathset is available for the OD. In seconds
 	 */
 	double getOD_TravelTime(unsigned int origin, unsigned int destination, const sim_mob::DailyTime& curTime);
 };

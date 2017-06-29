@@ -7,6 +7,8 @@
 #include <vector>
 #include "DatabaseHelper.hpp"
 #include "logging/Log.hpp"
+#include "geospatial/network/Node.hpp"
+#include "geospatial/network/RoadNetwork.hpp"
 
 using namespace sim_mob;
 using namespace sim_mob::db;
@@ -116,11 +118,19 @@ ZoneNodeSqlDao::~ZoneNodeSqlDao()
 
 void ZoneNodeSqlDao::fromRow(Row& result, ZoneNodeParams& outObj)
 {
-	outObj.setZone(result.get<int>(DB_FIELD_TAZ));
-	outObj.setNodeId(result.get<unsigned int>(DB_FIELD_NODE_ID));
+	unsigned int nodeId = result.get<unsigned int>(DB_FIELD_NODE_ID);
+	unsigned int tazId = result.get<int>(DB_FIELD_TAZ);
+
+	outObj.setZone(tazId);
+	outObj.setNodeId(nodeId);
 	outObj.setSourceNode(result.get<int>(DB_FIELD_SOURCE));
 	outObj.setSinkNode(result.get<int>(DB_FIELD_SINK));
 	outObj.setBusTerminusNode(result.get<int>(DB_FIELD_BUS_TERMINUS));
+
+	//aa{
+	Node* node = RoadNetwork::getInstance()->getMapOfIdvsNodes().at(nodeId);
+	node->setTazId(tazId);
+	//aa}
 }
 
 void ZoneNodeSqlDao::toRow(ZoneNodeParams& data, Parameters& outParams, bool update)
@@ -134,12 +144,15 @@ void ZoneNodeSqlDao::getZoneNodeMap(boost::unordered_map<int, std::vector<ZoneNo
 		Statement query(connection.getSession<soci::session>());
 		prepareStatement(DB_GET_ALL_NODE_ZONE_MAP, db::EMPTY_PARAMS, query);
 		ResultSet rs(query);
+
 		ResultSet::const_iterator it = rs.begin();
 		for (it; it != rs.end(); ++it)
 		{
+			// aa: Each row is related to a node
 			Row& row = *it;
 			ZoneNodeParams* zoneNodeParams = new ZoneNodeParams();
-			fromRow(row, *zoneNodeParams);
+			fromRow(row, *zoneNodeParams); 	// aa: we build a ZonNodeParams object that associates
+											// to the node the information about its TAZ
 			outList[zoneNodeParams->getZone()].push_back(zoneNodeParams);
 		}
 	}

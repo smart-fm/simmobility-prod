@@ -14,7 +14,8 @@
 #pragma once
 
 #include <stdint.h>
-
+#include <sstream>  //stringstream
+#include <stdexcept>
 
 /**
  * A simple class representing a timeslice of the simulation.
@@ -32,10 +33,62 @@
  */
 class timeslice {
 public:
-	timeslice(uint32_t frame, uint32_t ms) : frame_(frame), ms_(ms) {}
+	timeslice(uint32_t frame, uint32_t ms) : frame_(frame), ms_(ms) {};
+	timeslice (const timeslice& t):frame_(t.frame()), ms_(t.ms()){};
 
 	uint32_t frame() const { return frame_; }
 	uint32_t ms() const { return ms_; }
+
+	bool operator==(const timeslice& other) const
+	{
+		if (ms_ == other.ms() )
+		{
+#ifndef NDEBUG
+			if (frame_ != other.frame() )
+			{
+				std::stringstream msg; msg<<"Error: in ms "<< ms_ <<"=="<<other.ms()<<", but in frames "<<
+					frame_<<">="<<other.frame();
+				throw std::runtime_error(msg.str());
+			}
+#endif
+			return true;
+		}
+		return false;
+	}
+
+	bool operator!=(const timeslice& other) const
+	{
+		if (frame_ != other.frame() )
+		{
+#ifndef NDEBUG
+			if ( ms_ == other.ms() )
+			{
+				std::stringstream msg; msg<<"Error: in frames "<<frame_<<"!="<<other.frame()<<
+				", but in ms "<< ms_ <<"=="<< other.ms();
+				throw std::runtime_error(msg.str() );
+			}
+#endif
+			return true;
+		}
+		else return false;
+	}
+
+	bool operator<(const timeslice& other) const
+	{
+		if (ms_ < other.ms() )
+		{
+#ifndef NDEBUG
+			if (frame_ >= other.frame() )
+			{
+				std::stringstream msg; msg<< "Error: in milliseconds "<< ms_ <<"<" << other.ms() << ", but in frames "<<
+					frame_ <<">="<< other.frame();
+				throw std::runtime_error(msg.str() );
+			}
+#endif
+			return true;
+		}
+		return false;
+	}
 
 private:
 	uint32_t frame_;
@@ -43,3 +96,4 @@ private:
 	;
 };
 
+std::ostream& operator<<(std::ostream& strm, const timeslice& ts);

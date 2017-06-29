@@ -14,15 +14,4 @@
 
 namespace sim_mob
 {
-std::vector<MobilityServiceController::MessageResult> OnHailTaxiController::computeSchedules()
-{
-	std::vector<MobilityServiceController::MessageResult> results;
-
-	for (std::vector<TripRequest>::iterator request = requestQueue.begin(); request != requestQueue.end(); request++)
-	{
-		results.push_back(MESSAGE_ERROR_BAD_NODE);
-	}
-
-	return results;
-}
 }

@@ -31,7 +31,9 @@
             <mapping name="pt_edges" procedure="get_pt_tr_edges()"/>
             <mapping name="pt_vertices" procedure="get_pt_tr_vertices()"/>
             <mapping name="pt_pathset" procedure="get_pt_pathset_tr"/>
-            
+            <mapping name="rail_sms_edges" procedure="get_pt_tr_edges_sms_mrt()"/>
+            <mapping name="rail_sms_vertices" procedure="get_pt_tr_vertices_sms_mrt()"/>            
+            <mapping name="rail_sms_pathset" procedure="get_pt_pathset_tr_sms_mrt"/>
             <mapping name="rail_transit_edges" procedure="get_rail_transit_edges()"/>
             <mapping name="erp_gantry_zone" procedure="get_erp_gantry_zone()"/>
             <mapping name="screen_line" procedure="get_screen_line_segments()"/>
@@ -109,8 +111,8 @@
             <mapping name="get_train_line_properties" procedure="get_pt_train_line_properties()"/>
             <mapping name="taxi_fleet" procedure="get_taxi_fleet"/>
             <mapping name="taxi_stands" procedure="get_singapore_taxi_stands()"/>
-            <!--<mapping name="restricted_reg_in_turning" procedure="get_banned_area_in_turning()"/>
-            <!--<mapping name="restricted_reg_segments" procedure="get_section_banned_area()"/>
+            <!--<mapping name="restricted_reg_in_turning" procedure="get_banned_area_in_turning()"/> -->
+            <!--<mapping name="restricted_reg_segments" procedure="get_section_banned_area()"/> -->
             <mapping name="restricted_reg_in_turning" procedure="get_banned_area_in_turning()"/>
             <mapping name="restricted_reg_out_turning" procedure="get_banned_area_out_turning()"/>
             <mapping name="restricted_reg_nodes" procedure="get_changi_nodes()"/>
@@ -121,7 +123,7 @@
     <system>
         <!-- If loading from the database, which database, proc_map, and credentials are used? -->
 
-        <network_database database="fm_hpchead" credentials="fm_hpchead" proc_map="withinday"/>
+        <network_database database="fm_hpchead" credentials="fm_hpchead" proc_map="simmobcity"/>
         <population_database  database="fm_hpchead" credentials="fm_hpchead" proc_map=""/>
 
         <!-- The parser will simply load everything in "generic_props" section into "SystemParams.genericProps".  -->
@@ -214,9 +216,6 @@
         <!-- the threads number for person loader -->
         <thread_number_in_person_loader value="10"/>
 
-
-        <!-- the threads number for person loader -->
-        <thread_number_in_person_loader value="10"/>
 
         <!-- file names to output statistics from supply -->
         <output_statistics>                              

@@ -9,6 +9,8 @@
 #include "entities/controllers/GreedyTaxiController.hpp"
 #include "entities/controllers/OnHailTaxiController.hpp"
 #include "entities/controllers/SharedController.hpp"
+#include "logging/ControllerLog.hpp"
+#include <stdexcept>
 
 using namespace sim_mob;
 
@@ -87,11 +89,14 @@ void MobilityServiceControllerManager::frame_output(timeslice now)
 
 const std::multimap<MobilityServiceControllerType, MobilityServiceController *>& MobilityServiceControllerManager::getControllers()
 {
+
 	return controllers;
 }
 
+
+
 bool MobilityServiceControllerManager::isNonspatial()
 {
+	// A controller is not located in any specific place
 	return true;
 }
-

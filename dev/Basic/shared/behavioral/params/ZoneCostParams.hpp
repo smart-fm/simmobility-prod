@@ -458,6 +458,9 @@ private:
 	double departureBasedTT[NUM_30MIN_TIME_WINDOWS_IN_DAY];
 };
 
+/*
+ * aa: This class associates to each node, the information about its Traffic Analysis Zone (TAZ)
+ */
 class ZoneNodeParams
 {
 public:

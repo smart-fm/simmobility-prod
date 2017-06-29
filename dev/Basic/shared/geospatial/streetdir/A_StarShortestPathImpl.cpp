@@ -634,6 +634,7 @@ StreetDirectory::VertexDesc A_StarShortestPathImpl::DrivingVertex(const BusStop&
 std::vector<WayPoint> A_StarShortestPathImpl::GetShortestDrivingPath(const StreetDirectory::VertexDesc &from, const StreetDirectory::VertexDesc &to,
                                                                      const std::vector<const Link*> &blacklist, TimeRange timeRange, int randomGraphIdx) const
 {
+
 	//check whether invalid or not.
 	if (!(from.valid && to.valid))
 	{
@@ -707,11 +708,13 @@ vector<WayPoint> A_StarShortestPathImpl::GetShortestDrivingPath(const StreetDire
 
 	if (blacklistV.empty())
 	{
-		return searchShortestPath(drivingSegMap, fromV, toV);
+		vector<WayPoint> res =searchShortestPath(drivingSegMap, fromV, toV);
+		return res;
 	}
 	else
 	{
-		return searchShortestPathWithBlackList(drivingSegMap, fromV, toV, blacklistV);
+		vector<WayPoint> res =searchShortestPathWithBlackList(drivingSegMap, fromV, toV, blacklistV);
+		return res;
 	}
 }
 

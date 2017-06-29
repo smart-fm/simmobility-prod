@@ -148,6 +148,10 @@ namespace {
         receivedMessages(0),
         processedMessages(0),
         eventMessages(0) {
+#ifndef NDEBUG
+        	if (input.size() != 0)
+        		throw std::runtime_error("input queue is already non empty");
+#endif
         }
 
         virtual ~ThreadContext() {
@@ -350,7 +354,7 @@ void MessageBus::RegisterMainThread() {
         mainContext->threadId = boost::this_thread::get_id();
         mainContext->eventPublisher = new InternalEventPublisher();
         mainContext->main = true;
-        GetInstance().context = static_cast<void*> (mainContext);
+        GetInstance().SetContext (static_cast<void*> (mainContext) );
         threadContext.reset(mainContext);
         threadContexts.push_back(mainContext);
         RegisterHandler(dynamic_cast<MessageHandler*> (mainContext->eventPublisher));
@@ -366,12 +370,13 @@ void MessageBus::UnRegisterMainThread() {
 	printReport();
 #endif
 
-    GetInstance().context = nullptr;
+    GetInstance().SetContext (nullptr);
     deleteAllContexts();
 }
 
 void MessageBus::RegisterThread() {
-    if (!threadContext.get()) {
+    if (!threadContext.get())
+    {
         ThreadContext* context = new ThreadContext();
         context->threadId = boost::this_thread::get_id();
         context->eventPublisher = new InternalEventPublisher();
@@ -403,23 +408,31 @@ void MessageBus::UnRegisterThread() {
 
 void MessageBus::RegisterHandler(MessageHandler* handler) {
     CheckThreadContext();
-    if (handler) {
+    if (handler)
+    {
         ThreadContext* context = GetThreadContext();
-        if (!(handler->context)) {
-            handler->context = static_cast<void*> (context);
-        } else if (context != handler->context) {
+        if (!(handler->GetContext() ))
+        {
+            handler->SetContext( static_cast<void*> (context) );
+        } else if (context != handler->GetContext() ) {
             // just assign the context.
             throw runtime_error("MessageBus - To register the handler in other thread context it is necessary to unregister it first.");
         }
+    }else
+    {
+    	throw runtime_error("Trying to register a NULL MessageHandler");
     }
 }
 
 void MessageBus::UnRegisterHandler(MessageHandler* handler) {
     CheckThreadContext();
-    if (handler && handler->context) {
+    if (handler && handler->GetContext() )
+    {
         ThreadContext* context = GetThreadContext();
-        if (context == handler->context || context->main) {
-            handler->context = nullptr;
+        if (context == handler->GetContext() || context->main)
+        {
+        	void* dummy = nullptr;
+            handler->SetContext (dummy);
         } else {
             throw runtime_error("MessageBus - To unregister the handler it is necessary to use the registered thread context.");
         }
@@ -435,7 +448,8 @@ void MessageBus::ReRegisterHandler(MessageHandler* handler, void* newContext)
 	    {
 	    	throw runtime_error("MessageBus - invalid thread context passed for re-registration");
 	    }
-	    handler->context = newContext;
+
+	    handler->SetContext (newContext);
 	}
 }
 
@@ -483,8 +497,10 @@ void MessageBus::DispatchMessages() {
 		ContextList::iterator lstItr = threadContexts.begin();
 		while (lstItr != threadContexts.end()) {
 			ThreadContext* context = (*lstItr);
-			while (!context->output.empty()) {
+			while (!context->output.empty())
+			{
 				const MessageEntry& entry = context->output.top();
+
 				dispatch(entry, context, mainContext);
 				// internal messages go to the input queue of the main context.
 				context->output.pop();
@@ -511,15 +527,15 @@ void MessageBus::ThreadDispatchMessages() {
         while (!context->input.empty()) {
             const MessageEntry& entry = context->input.top();
             if (entry.destination && entry.message.get()) {
-                ThreadContext* destinationContext = static_cast<ThreadContext*> (entry.destination->context);
+                ThreadContext* destinationContext = static_cast<ThreadContext*> (entry.destination->GetContext() );
                 if (!entry.processOnMainThread && context->threadId != destinationContext->threadId) {
                     throw runtime_error("Thread contexts inconsistency.");
                 }
                 entry.destination->HandleMessage(entry.type, *(entry.message.get()));
             }
             context->input.pop();
-            context->processedMessages++;
         }
+            context->processedMessages++;
     }
 }
 
@@ -559,7 +575,7 @@ void MessageBus::SendInstantaneousMessage(MessageHandler* destination,
 		Message::MessageType type, MessagePtr message) {
 	CheckThreadContext();
 	ThreadContext* context = GetThreadContext();
-	if (context && (destination->context==context || context->main)) {
+	if (context && ( destination->GetContext()==context  || context->main)) {
 		if (destination) {
 			destination->HandleMessage(type, *(message.get()));
 			context->receivedMessages++;
@@ -578,7 +594,7 @@ void sim_mob::messaging::MessageBus::SendMessage(MessageHandler* destination,
 	ThreadContext* context = GetThreadContext();
 	if (context)
 	{
-		if (destination && destination->context == context)
+		if (destination && destination->GetContext() == context)
 		{
 			SendInstantaneousMessage(destination, type, message);
 		}

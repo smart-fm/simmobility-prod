@@ -10,7 +10,7 @@
 #include <vector>
 
 #include "entities/Agent.hpp"
-#include "entities/controllers/MobilityServiceController.hpp"
+#include "OnCallController.hpp"
 
 namespace sim_mob
 {
@@ -18,15 +18,12 @@ namespace sim_mob
 class OnHailTaxiController : public MobilityServiceController {
 public:
 	explicit OnHailTaxiController(const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered,
-		unsigned int computationPeriod = 0) : MobilityServiceController(mtxStrat, computationPeriod)
+		unsigned int computationPeriod = 0) :
+		MobilityServiceController(mtxStrat, computationPeriod, MobilityServiceControllerType::SERVICE_CONTROLLER_ON_HAIL)
 	{
 	}
 
-private:
-	/**
-	 * Performs the controller algorithm to assign vehicles to requests
-	 */
-	std::vector<MessageResult> computeSchedules();
+	~OnHailTaxiController(){};
 };
 }
 #endif /* OnHailTaxiController_HPP_ */

@@ -256,10 +256,14 @@ bool MesoPathMover::hasNextSegStats(bool inSameLink) const
 
 bool MesoPathMover::isEndOfPath()
 {
+	bool retVal = false;
+
 	if (currSegStatIt == path.end()-1)
 	{
-		return true;
+		retVal = true;
 	}
+
+	return retVal;
 }
 
 void MesoPathMover::advanceInPath()

@@ -55,19 +55,8 @@ void TaxiDriverMovement::frame_init()
 		subscribeToController(controllers, SERVICE_CONTROLLER_ON_HAIL);
 	}
 
+	(isSubscribedToOnHail() && CruiseOnlyOrMoveToTaxiStand())?driveToTaxiStand():selectNextLinkWhileCruising();  // for 1 : drive_to_taxiStand or cruise
 
-    if (CruiseOnlyOrMoveToTaxiStand())      //Temporary decision point for cruise or driveToTaxiStand.It will be replaced by logic
-    {                                       //provided by Bathen
-        parentTaxiDriver->taxiDriverMode = CRUISE;
-        parentTaxiDriver->driverMode = CRUISE;
-        parentDriver->driverMode = CRUISE;
-        selectNextLinkWhileCruising();
-
-    }
-    else
-    {                                       // Since it is first node we will  handle driveToTaxiStand, RouteChoice and Initial
-        driveToTaxiStand();                 // PathSetting differently
-    }
 
 	while(fleets.size()>0)
 	{
@@ -417,7 +406,7 @@ void TaxiDriverMovement::frame_tick()
             Conflux *nodeConflux = Conflux::getConfluxFromNode(nextBroken->parkingNode);
             nodeConflux->removeBrokenDriver(parentTaxiDriver->parent);
             nextBroken.reset();
-            CruiseOnlyOrMoveToTaxiStand()?setCruisingMode():driveToTaxiStand();
+			(isSubscribedToOnHail() && CruiseOnlyOrMoveToTaxiStand())?driveToTaxiStand():setCruisingMode();  // for 1 : drive_to_taxiStand or cruise
 		}
 		else
 		{
@@ -932,7 +921,7 @@ std::string TaxiDriverMovement::frame_tick_output()
 
         out << currentFleetItem.vehicleNo << "," << parentTaxiDriver->parent->getDatabaseId() << ","
             << currentNode->getNodeId() << "," << DailyTime(currentFleetItem.startTime*1000).getStrRepr() << "," << NULL << "," << NULL
-            << "," << parentTaxiDriver->getDriverMode() << std::endl;
+            << "," << parentTaxiDriver->getDriverStatusStr() << std::endl;
     } else
     {
         out << currentFleetItem.vehicleNo << "," << parentTaxiDriver->parent->getDatabaseId() << ","
@@ -940,7 +929,7 @@ std::string TaxiDriverMovement::frame_tick_output()
             << (DailyTime(params.now.ms()) + DailyTime(ConfigManager::GetInstance().FullConfig().simStartTime())).getStrRepr() << ","
             << (parentDriver->getParent()->getCurrSegStats()->getRoadSegment()->getRoadSegmentId()) << ","
             << ((parentDriver->getParent()->getCurrLane()) ? parentDriver->getParent()->getCurrLane()->getLaneId() : 0)
-            << "," << parentTaxiDriver->getDriverMode()<< std::endl;
+			<< "," << parentTaxiDriver->getDriverStatusStr()<< std::endl;
     }
 	/* for Debug Purpose Only : to print details in Console
     	Print() << out.str();

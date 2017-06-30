@@ -783,6 +783,53 @@ bool TaxiDriverMovement::driveToNodeOnCall(const std::string &personId, const No
 	return res;
 }
 
+void TaxiDriverMovement::cruiseToNode(const Node *destination)
+{
+	bool result = false;
+	const MobilityServiceDriverStatus mode = parentTaxiDriver->getDriverStatus();
+
+	if (mode != DRIVE_WITH_PASSENGER && destination)
+	{
+		const Link *currLink = this->currLane->getParentSegment()->getParentLink();
+		SubTrip subTrip;
+		subTrip.origin = WayPoint(currLink->getFromNode());
+		subTrip.destination = WayPoint(destination);
+		std::vector<WayPoint> pathToNode = PrivateTrafficRouteChoice::getInstance()->getPath(subTrip, false, currLink,
+		                                                                                     parentTaxiDriver->getParent()->usesInSimulationTravelTime());
+
+		if (!pathToNode.empty())
+		{
+			result = true;
+			currentNode = currLink->getFromNode();
+			destinationNode = destination;
+			setCurrentNode(currentNode);
+			setDestinationNode(destinationNode);
+			addRouteChoicePath(pathToNode);
+			parentTaxiDriver->setDriverStatus(CRUISING);
+		}
+		else
+		{
+			stringstream msg;
+			msg << "Unable to CRUISE to node " << destination->getNodeId() << ". No path available from "
+			    << "current link " << currLink->getLinkId();
+			throw runtime_error(msg.str());
+		}
+	}
+	else if(destination == nullptr)
+	{
+		stringstream msg;
+		msg << "Invalid destination node. Unable to CRUISE to node.";
+		throw runtime_error(msg.str());
+	}
+	else
+	{
+		stringstream msg;
+		msg << "Unable to CRUISE to node " << destination->getNodeId()
+		    << ". Current mode is DRIVE_WITH_PASSENGER";
+		throw runtime_error(msg.str());
+	}
+}
+
 void TaxiDriverMovement::driveToTaxiStand()
 {
 	bool useInSimulationTT = parentTaxiDriver->getParent()->usesInSimulationTravelTime();
@@ -816,11 +863,11 @@ void TaxiDriverMovement::driveToTaxiStand()
 	}
 }
 
-void TaxiDriverMovement::addRouteChoicePath(vector<WayPoint> &routeToTaxiStand)
+void TaxiDriverMovement::addRouteChoicePath(vector<WayPoint> &routeToDestination)
 {
 	const SegmentStats *currSegStat = pathMover.getCurrSegStats();
 	std::vector<const SegmentStats *> path;
-	for (std::vector<WayPoint>::const_iterator itr = routeToTaxiStand.begin(); itr != routeToTaxiStand.end(); itr++)
+	for (std::vector<WayPoint>::const_iterator itr = routeToDestination.begin(); itr != routeToDestination.end(); itr++)
 	{
 		if ((*itr).type == WayPoint::LINK)
 		{

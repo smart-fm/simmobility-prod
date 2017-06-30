@@ -192,16 +192,23 @@ void TaxiDriver::HandleParentMessage(messaging::Message::MessageType type, const
 				                                                                                   request.extraTripTimeThreshold,
 				                                                                                   success)));
 
-				ControllerLog() << "Assignment response sent for " << request<<". This response is sent by driver "
-						<< parent->getDatabaseId()<<" at time "<<parent->currTick<<std::endl;
+				ControllerLog() << "Assignment response sent for " << request << ". This response is sent by driver "
+				                << parent->getDatabaseId() << " at time " << parent->currTick << std::endl;
 
 				break;
 			}
 			case ScheduleItemType::CRUISE:
 			{
-				ControllerLog() << "Taxi driver " << getParent()->getDatabaseId()
-				                << " received a cruise command "
-				                << "but she does not know what to do now" << std::endl;
+				try
+				{
+					taxiDriverMovement->cruiseToNode((*scheduleItem).nodeToCruiseTo);
+				}
+				catch (exception &ex)
+				{
+					ControllerLog() << ex.what();
+					Print() << ex.what();
+				}
+
 				scheduleItem++;
 				break;
 			}
@@ -210,9 +217,7 @@ void TaxiDriver::HandleParentMessage(messaging::Message::MessageType type, const
 				throw runtime_error("Schedule Item is invalid");
 
 			}
-
 		}
-
 	}
 	default:
 	{

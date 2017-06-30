@@ -824,22 +824,25 @@ void TaxiDriverMovement::cruiseToNode(const Node *destination)
 		else
 		{
 			stringstream msg;
-			msg << "\nUnable to CRUISE to node " << destination->getNodeId() << ". No path available from "
-			    << "current link " << currLink->getLinkId();
+			msg << "Driver " << parentTaxiDriver->getParent()->getDatabaseId()
+			    << " is unable to CRUISE to node " << destination->getNodeId() << ". No path available from "
+			    << "current link " << currLink->getLinkId() << endl;
 			throw runtime_error(msg.str());
 		}
 	}
 	else if(destination == nullptr)
 	{
 		stringstream msg;
-		msg << "\nInvalid destination node. Unable to CRUISE to node.";
+		msg << "Driver " << parentTaxiDriver->getParent()->getDatabaseId()
+		    << " received invalid destination node. Unable to CRUISE to node.\n";
 		throw runtime_error(msg.str());
 	}
 	else
 	{
 		stringstream msg;
-		msg << "\nUnable to CRUISE to node " << destination->getNodeId()
-		    << ". Current mode is DRIVE_WITH_PASSENGER";
+		msg << "Driver " << parentTaxiDriver->getParent()->getDatabaseId()
+		    << " is unable to CRUISE to node " << destination->getNodeId()
+		    << ". Current mode is DRIVE_WITH_PASSENGER\n";
 		throw runtime_error(msg.str());
 	}
 }
@@ -930,7 +933,7 @@ void TaxiDriverMovement::addRouteChoicePath(vector<WayPoint> &routeToDestination
 		isPathInitialized = true;
 		pathMover.setSegmentStatIterator(firstSegStat);
 	}
-	else if(pathMover.getCurrSegStats() != path.front())
+	else
 	{
 		const SegmentStats *currSegStat = pathMover.getCurrSegStats();
 		pathMover.setPath(path);

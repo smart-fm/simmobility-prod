@@ -202,6 +202,8 @@ void TaxiDriver::HandleParentMessage(messaging::Message::MessageType type, const
 				try
 				{
 					taxiDriverMovement->cruiseToNode((*scheduleItem).nodeToCruiseTo);
+					ControllerLog() << "Driver " << parent->getDatabaseId() << " received CRUISE to node "
+					                << (*scheduleItem).nodeToCruiseTo->getNodeId() << std::endl;
 				}
 				catch (exception &ex)
 				{

@@ -904,40 +904,44 @@ void TaxiDriverMovement::driveToTaxiStand()
 void TaxiDriverMovement::addRouteChoicePath(vector<WayPoint> &routeToDestination)
 {
 	//const SegmentStats* currSegStat = pathMover.getCurrSegStats();
-	std::vector<const SegmentStats*> path;
-	for (std::vector<WayPoint>::const_iterator itr = routeToTaxiStand.begin();itr != routeToTaxiStand.end(); itr++){
-
-		if((*itr).type==WayPoint::LINK)
-			{const Link *link = (*itr).link;
+	std::vector<const SegmentStats *> path;
+	for (std::vector<WayPoint>::const_iterator itr = routeToDestination.begin(); itr != routeToDestination.end(); itr++)
+	{
+		if ((*itr).type == WayPoint::LINK)
+		{
+			const Link *link = (*itr).link;
 			Node *toNode = link->getToNode();
 			Conflux *nodeConflux = Conflux::getConfluxFromNode(toNode);
-			const std::vector<RoadSegment*>& roadSegments = link->getRoadSegments();
-			for (std::vector<RoadSegment*>::const_iterator segItr =	roadSegments.begin(); segItr != roadSegments.end(); segItr++){
-
-				const std::vector<SegmentStats*>& segStatsVector = nodeConflux->findSegStats(*segItr);
-				path.insert(path.end(), segStatsVector.begin(),	segStatsVector.end());
+			const std::vector<RoadSegment *> &roadSegments = link->getRoadSegments();
+			for (std::vector<RoadSegment *>::const_iterator segItr = roadSegments.begin(); segItr != roadSegments.end();
+			     segItr++)
+			{
+				const std::vector<SegmentStats *> &segStatsVector = nodeConflux->findSegStats(*segItr);
+				path.insert(path.end(), segStatsVector.begin(), segStatsVector.end());
 			}
 		}
-	}if (currentNode == originNode && pathMover.getPath().empty()) {
-        pathMover.setPath(path);
-        const SegmentStats *firstSegStat = path.front();
-        parentTaxiDriver->parent->setCurrSegStats(firstSegStat);
-        parentTaxiDriver->parent->setCurrLane(firstSegStat->laneInfinity);
-        isPathInitialized = true;
-        pathMover.setSegmentStatIterator(firstSegStat);
-    }
-    else
-    {   const SegmentStats *currSegStat = pathMover.getCurrSegStats();
-	pathMover.setPath(path);
-	pathMover.setSegmentStatIterator(currSegStat);
-}
+	}
+	if (currentNode == originNode && pathMover.getPath().empty())
+	{
+		pathMover.setPath(path);
+		const SegmentStats *firstSegStat = path.front();
+		parentTaxiDriver->parent->setCurrSegStats(firstSegStat);
+		parentTaxiDriver->parent->setCurrLane(firstSegStat->laneInfinity);
+		isPathInitialized = true;
+		pathMover.setSegmentStatIterator(firstSegStat);
+	}
+	else
+	{
+		const SegmentStats *currSegStat = pathMover.getCurrSegStats();
+		pathMover.setPath(path);
+		pathMover.setSegmentStatIterator(currSegStat);
+	}
 }
 
 bool TaxiDriverMovement::isToBeRemovedFromTaxiStand()
 {
 	return toBeRemovedFromTaxiStand;
 }
-
 
 const std::vector<MobilityServiceController *> &TaxiDriverMovement::getSubscribedControllers() const
 {

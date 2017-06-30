@@ -22,6 +22,8 @@
 #include "event/EventPublisher.hpp"
 #include "util/LangHelpers.hpp"
 #include "logging/Log.hpp"
+#include "logging/ControllerLog.hpp"
+#include "entities/controllers/MobilityServiceController.hpp"
 
 using namespace sim_mob::messaging;
 using namespace sim_mob::event;
@@ -44,7 +46,9 @@ const unsigned int MessageBus::MB_MIN_MSG_PRIORITY = 5;
 const unsigned int MessageBus::MB_MSG_START = 1000000;
 unsigned int MessageBus::currentTime = 0;
 
+
 namespace {
+
     const unsigned int MB_MSGI_START = 1000;
     const unsigned int INTERNAL_EVENT_MSG_PRIORITY = 3;
     const unsigned int INTERNAL_EVENT_ACTION_PRIORITY = 4;
@@ -406,22 +410,40 @@ void MessageBus::UnRegisterThread() {
     threadContext.reset();*/
 }
 
-void MessageBus::RegisterHandler(MessageHandler* handler) {
-    CheckThreadContext();
-    if (handler)
-    {
-        ThreadContext* context = GetThreadContext();
-        if (!(handler->GetContext() ))
-        {
-            handler->SetContext( static_cast<void*> (context) );
-        } else if (context != handler->GetContext() ) {
-            // just assign the context.
-            throw runtime_error("MessageBus - To register the handler in other thread context it is necessary to unregister it first.");
-        }
-    }else
-    {
+void MessageBus::RegisterHandler(MessageHandler* handler)
+{
+	CheckThreadContext();
+    ThreadContext* context = GetThreadContext();
+
+    if (dynamic_cast<sim_mob::MobilityServiceController*> (handler) )
+    	sim_mob::ControllerLog()<<"Registering the controller"<<std::endl;
+
+#ifndef NDEBUG
+    if (!handler)
     	throw runtime_error("Trying to register a NULL MessageHandler");
+
+    if ( handler->GetContext() )
+    {
+        if (context != handler->GetContext() )
+        {
+            std::stringstream msg; msg<<__FILE__<<":"<<__LINE__<<": Error: trying to register an object of class "<<typeid(*handler).name()
+            	<<" to a context, while it is already registered to another context";
+        	throw runtime_error(msg.str() );
+        }else
+        {
+        	std::stringstream msg; msg<<__FILE__<<":"<<__LINE__<<": Trying to register an object "<< handler<<" of class "<<typeid(*handler).name()
+        	            	<<" to a context, but it is already registered to the same context";
+    		msg<<". This is related to this issue: https://github.com/smart-fm/simmobility/issues/590"<<std::endl;
+        	sim_mob::Warn() << msg.str() <<std::endl;
+        }
     }
+#endif
+
+   	handler->SetContext( static_cast<void*> (context) );
+
+    if (dynamic_cast<sim_mob::MobilityServiceController*> (handler) )
+    	sim_mob::ControllerLog()<<"The controller has been successfully registered"<<std::endl;
+
 }
 
 void MessageBus::UnRegisterHandler(MessageHandler* handler) {

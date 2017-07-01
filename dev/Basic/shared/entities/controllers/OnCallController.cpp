@@ -378,7 +378,7 @@ const Person *OnCallController::findClosestDriver(const Node *node) const
 			const std::string driverStatusStr = mobilityServiceDriver->getDriverStatusStr();
 			std::stringstream msg; msg<<"Error: "<<__FILE__<<":" <<__LINE__<< ":Driver " << (*driver)->getDatabaseId() <<
 				" is among the available drivers of a controller of type "<<
-				fromMobilityServiceControllerTypetoString(type) <<", but her state is "<<
+				sim_mob::toString(controllerServiceType) <<", but her state is "<<
 				driverStatusStr<<
 				" This driver is subscribed to the following controller types "<< mobilityServiceDriver->getSubscribedControllerTypesStr()<<
 				". In the scenarios where a driver subscribed to an OnCall service is only subscribed to that service, "<<
@@ -517,6 +517,16 @@ double OnCallController::computeSchedule(const Node* initialNode, const Schedule
 	//https://stackoverflow.com/a/201729/2110769
 	Schedule tempSchedule(currentSchedule);
 	tempSchedule.insert(tempSchedule.end(), additionalScheduleItems.begin(), additionalScheduleItems.end());
+#ifndef NDEBUG
+	if (tempSchedule.empty())
+	{
+		std::stringstream msg; msg<<__FILE__<<":"<<__LINE__<<": An empty schedule was created. This is an error. currentSchedule.size()="<<
+			currentSchedule.size()<<", additionalRequests.size()="<<additionalRequests.size()<<", tempSchedule.size()"<<
+			tempSchedule.size()<<", additionalScheduleItems.size()="<<additionalScheduleItems.size();
+		Print()<<"ciao, "<<msg.str()<<std::endl;
+		throw std::runtime_error(msg.str());
+	}
+#endif
 
 	// sorting is necessary to correctly compute the permutations (see https://www.topcoder.com/community/data-science/data-science-tutorials/power-up-c-with-the-standard-template-library-part-1/)
 	std::sort(tempSchedule.begin(), tempSchedule.end());

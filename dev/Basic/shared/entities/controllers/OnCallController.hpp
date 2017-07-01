@@ -36,6 +36,29 @@ public:
 		return (elements == other.getElements() );
 	}
 
+	bool operator<(const Group<T>& other) const
+	{
+		if (size() < other.size() ) return true;
+		if (size() > other.size() ) return false;
+
+		auto itMe = elements.begin();
+		auto itOther = other.getElements().begin();
+
+		while (itMe != elements.end() )
+		{
+#ifndef NDEBUG
+			if (itOther == other.getElements().end() )
+				throw std::runtime_error("this group and the other have the same size. If itMe is not at the end, the other should not be at the end as well");
+#endif
+			if (*itMe < *itOther) return true;
+			if (*itMe > *itOther) return false;
+
+			itMe++; itOther++;
+		}
+
+		return false;
+	}
+
 	void insert(const T& r)
 	{
 		#ifndef NDEBUG
@@ -57,6 +80,11 @@ public:
 	const T front() const
 	{ return elements.front();}
 
+	bool contains(const T& r) const
+	{
+		return ( std::find(elements.begin(), elements.end(), r) != elements.end() );
+	}
+
 protected:
 	std::list<T> elements;
 };
@@ -69,9 +97,12 @@ protected:
 class OnCallController : public MobilityServiceController
 {
 protected:
-	explicit OnCallController(const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered, unsigned int computationPeriod=0,
-			MobilityServiceControllerType type_ = SERVICE_CONTROLLER_UNKNOWN)
-		: MobilityServiceController(mtxStrat, computationPeriod, type_), scheduleComputationPeriod(computationPeriod)
+	// We use explicit to avoid accidentally passing an integer instead of a MobilityServiceControllerType
+	// (see https://stackoverflow.com/a/121163/2110769).
+	// The constructor is protected to avoid instantiating an OnCallController directly, since it is conceptually abstract
+	explicit OnCallController(const MutexStrategy& mtxStrat, unsigned int computationPeriod,
+			MobilityServiceControllerType type_, unsigned id)
+		: MobilityServiceController(mtxStrat, type_, id), scheduleComputationPeriod(computationPeriod)
 	{
 		rebalancer = new SimpleRebalancer();
 #ifndef NDEBUG

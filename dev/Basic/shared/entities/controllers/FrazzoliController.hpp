@@ -15,13 +15,13 @@ namespace sim_mob {
 /**
  * This edge exists in the RV graph if the two requests can share the same ride
  */
-typedef std::pair<TripRequestMessage, Person*> RR_Edge;
+//typedef std::pair<TripRequestMessage, Person*> RR_Edge; Useless
 
 /**
  * This edge exists in the RV graph if the driver can serve the request
  * (D stands for Driver)
  */
-typedef std::pair<TripRequestMessage, Person*> RD_Edge;
+typedef std::pair<TripRequestMessage, const Person*> RD_Edge;
 
 /**
  * This edge exists in the RTV graph if the request belongs to the request group
@@ -36,13 +36,25 @@ typedef std::pair<TripRequestMessage, Group<TripRequestMessage>> RG_Edge;
 class GD_Edge
 {
 public:
-	GD_Edge(const Group<TripRequestMessage>& requestGroup_, const Person* driver_, double cost_, const Schedule& schedule):
+	GD_Edge(const Group<TripRequestMessage>& requestGroup_, const Person* driver_, double cost_,
+			const Schedule& schedule):
 		requestGroup(requestGroup_), driver(driver_),cost(cost_){};
 
-	const Group<TripRequestMessage> requestGroup;
+	GD_Edge(const GD_Edge& other):requestGroup(other.getRequestGroup()),driver(other.getDriver()),
+			cost(other.getCost()), schedule(other.getSchedule() ){};
+
+	bool operator<(const GD_Edge& other) const;
+
+	Group<TripRequestMessage> getRequestGroup() const;
+	const Person* getDriver() const;
+	double getCost() const;
+	Schedule getSchedule() const;
+
+protected:
+	Group<TripRequestMessage> requestGroup;
 	const Person* driver;
-	const double cost;
-	const Schedule schedule;
+	double cost;
+	Schedule schedule;
 };
 
 /**
@@ -57,19 +69,21 @@ public:
 	const std::vector< RD_Edge>& getRD_Edges(const Person* driver) const;
 
 	virtual void addEdge(const TripRequestMessage& r1, const TripRequestMessage& r2) ;
-	virtual void addEdge(const TripRequestMessage& request, const Person* mobilityServiceDriver);
-	virtual bool doesEdgeExists(const TripRequestMessage& r1, const TripRequestMessage& r2) const;
+	virtual void addEdge(TripRequestMessage request, const Person* mobilityServiceDriver);
+	virtual bool doesEdgeExist(const TripRequestMessage& r1, const TripRequestMessage& r2) const;
 
 protected:
+
 	/**
-	 * Request-to-request association
+	 * Request-to-request association. If a request is associated to another, it is like we
+	 * are drawing an edge between them
 	 */
-	std::vector< RR_Edge > rrEdges;
+	std::map< TripRequestMessage, std::set<TripRequestMessage > > rrEdges;
 
 	/**
 	 * Request-to-vehicle association
 	 */
-	std::vector< RD_Edge> rdEdges;
+	std::map<const Person*, std::vector<RD_Edge>> rdEgdeMap;
 
 };
 
@@ -79,40 +93,51 @@ protected:
 class RGD_Graph
 {
 public:
+#ifndef NDEBUG
+	RGD_Graph():isGdEdgesSorted(false){};
+#endif
+
 	virtual void addEdge(const TripRequestMessage& request, const Group<TripRequestMessage>& requestGroup);
 	virtual void addEdge(const Group<TripRequestMessage>& requestGroup, const Person* mobilityServiceDriver,
 			double cost, const Schedule& schedule);
+
+	/**
+	 * Sort the edges from the most costly to the least
+	 */
 	virtual void sortGD_Edges();
+
 	virtual GD_Edge popGD_Edge();
 	virtual bool hasGD_Edges() const;
+	void consistencyChecks() const;
 
 
 protected:
-	/**
-	 * Request-to-RequestGroup association
-	 */
-	std::vector<RG_Edge> rgEdges;
 
 	/**
 	 * RequestGroup-to-Driver association
 	 */
 	std::vector<GD_Edge> gdEdges;
+
+#ifndef NDEBUG
+	/**
+	 * Request-to-RequestGroup association
+	 */
+	sim_mob::Group<RG_Edge> rgEdges;
+
+	bool isGdEdgesSorted;
+#endif
 };
 
 class FrazzoliController: public OnCallController {
 public:
-	explicit FrazzoliController
-		(const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered,
-		unsigned int computationPeriod = 0) :
-		OnCallController(mtxStrat, computationPeriod, MobilityServiceControllerType::SERVICE_CONTROLLER_FRAZZOLI),
+	FrazzoliController
+		(const MutexStrategy& mtxStrat, unsigned int computationPeriod, unsigned id) :
+		OnCallController(mtxStrat, computationPeriod, MobilityServiceControllerType::SERVICE_CONTROLLER_FRAZZOLI, id),
 		requestGroupsPerOccupancy(std::vector< Group< Group<TripRequestMessage> > >(maxVehicleOccupancy) )
 	{
 	}
 
-	virtual ~FrazzoliController();
 
-
-	virtual void computeSchedules();
 
 
 protected:
@@ -132,6 +157,11 @@ protected:
 	 */
 	virtual void greedyAssignment(RD_Graph& rdGraph, RGD_Graph& rgdGraph);
 
+	/**
+	 * Overrides the parent function
+	 */
+	virtual void computeSchedules();
+
 	// requestGroupsPerOccupancy[i] will contain all the request groups of i+1 requests
 	std::vector< Group< Group<TripRequestMessage> > > requestGroupsPerOccupancy;
 
@@ -141,6 +171,8 @@ protected:
 };
 
 } /* namespace sim_mob */
+
+std::ostream& operator<<(std::ostream& strm, const sim_mob::RG_Edge& rgEdge);
 
 #endif /* SHARED_ENTITIES_CONTROLLERS_FRAZZOLICONTROLLER_HPP_ */
 

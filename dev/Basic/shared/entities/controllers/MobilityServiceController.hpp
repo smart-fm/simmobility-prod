@@ -11,9 +11,9 @@
 #include "entities/Agent.hpp"
 #include "message/Message.hpp"
 #include "message/MobilityServiceControllerMessage.hpp"
-#include "MobilityServiceController.hpp"
 #include "entities/controllers/Rebalancer.hpp"
 #include "message/MessageBus.hpp"
+#include "logging/ControllerLog.hpp"
 
 
 namespace sim_mob {
@@ -22,21 +22,39 @@ namespace sim_mob {
 enum MobilityServiceControllerType : unsigned int
 {
 	SERVICE_CONTROLLER_UNKNOWN = 0b0000,
-	SERVICE_CONTROLLER_GREEDY = 0b0001,
-	SERVICE_CONTROLLER_SHARED = 0b0010,
+	SERVICE_CONTROLLER_GREEDY =  0b0001,
+	SERVICE_CONTROLLER_SHARED =  0b0010,
 	SERVICE_CONTROLLER_ON_HAIL = 0b0100,
-	SERVICE_CONTROLLER_FRAZZOLI = 0b1000
+	SERVICE_CONTROLLER_FRAZZOLI =0b1000
 };
 
-const std::string fromMobilityServiceControllerTypetoString(MobilityServiceControllerType type);
+const std::string toString(const MobilityServiceControllerType type);
+
+/**
+ * Raises an exception if the controller type is unrecognized. Does nothing otherwise
+ */
+void consistencyChecks(const MobilityServiceControllerType type);
+
+
+//const std::string fromMobilityServiceControllerTypetoString(MobilityServiceControllerType type);
 
 class MobilityServiceController: public Agent
 {
 protected:
+	// We use explicit to avoid accidentally passing an integer instead of a MobilityServiceControllerType
+	// (see https://stackoverflow.com/a/121163/2110769)
+	// The constructor is protected to avoid instantiating an OnCallController directly, since it is conceptually abstract
+	explicit MobilityServiceController(const MutexStrategy& mtxStrat,
+		MobilityServiceControllerType type_, unsigned id_)
+	: Agent(mtxStrat, id_), controllerServiceType(type_), controllerId(id_)
+	{
+	#ifndef NDEBUG
+	sim_mob::consistencyChecks(type_);
+	#endif
+	ControllerLog()<<"MobilityServiceController instantiated, type:"<<sim_mob::toString(controllerServiceType)
+			<< ", id:" << controllerId <<", pointer:"<<this<<std::endl;
 
-	explicit MobilityServiceController(const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered, unsigned int dummy=0,
-			MobilityServiceControllerType type_ = SERVICE_CONTROLLER_UNKNOWN)
-		: Agent(mtxStrat, -1), type(type_) {}
+	}
 
 	virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
 
@@ -56,9 +74,14 @@ protected:
 	 */
 	virtual void unsubscribeDriver(Person* person);
 
+	const MobilityServiceControllerType controllerServiceType;
+
+	const unsigned controllerId;
 
 
 public:
+
+
 	virtual ~MobilityServiceController();
 
 	/**
@@ -83,9 +106,26 @@ public:
 	 */
 	void frame_output(timeslice now);
 
-	const MobilityServiceControllerType type;
+	/**
+	 * Overrides the correspondent function of MessageHandler
+	 */
+	virtual void onRegistrationOnTheMessageBus() const;
 
+
+	void consistencyChecks() const;
+
+	MobilityServiceControllerType getServiceType() const;
+	unsigned getControllerId() const;
+	const std::string toString() const;
+
+	/**
+	 * Overrides the parent function
+	 */
+	virtual void setToBeRemoved();
 };
+
+
+
 
 } /* namespace sim_mob */
 

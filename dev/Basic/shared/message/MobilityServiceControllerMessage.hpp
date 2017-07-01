@@ -130,6 +130,7 @@ public:
 	bool operator==(const TripRequestMessage& other) const;
 	bool operator!=(const TripRequestMessage& other) const;
 	bool operator<(const TripRequestMessage& other) const;
+	bool operator>(const TripRequestMessage& other) const;
 
 	timeslice timeOfRequest;
 	std::string userId;

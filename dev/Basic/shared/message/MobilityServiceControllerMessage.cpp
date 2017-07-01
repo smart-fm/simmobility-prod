@@ -39,6 +39,13 @@ namespace sim_mob
 		else  {return false;}
 	};
 
+	bool TripRequestMessage::operator>(const TripRequestMessage& other) const
+	{
+		if ( operator==(other) || operator<(other) )
+			return false;
+		return true;
+	}
+
 	bool TripRequestMessage::operator<(const TripRequestMessage& other) const
 	{
 		if (timeOfRequest < other.timeOfRequest ) return true;

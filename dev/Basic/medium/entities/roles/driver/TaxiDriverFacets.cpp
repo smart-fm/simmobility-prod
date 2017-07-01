@@ -49,10 +49,13 @@ void TaxiDriverMovement::frame_init()
 
 	if (MobilityServiceControllerManager::HasMobilityServiceControllerManager())
 	{
-		auto controllers = MobilityServiceControllerManager::GetInstance()->getControllers();
-		subscribeToController(controllers, SERVICE_CONTROLLER_GREEDY);
-		subscribeToController(controllers, SERVICE_CONTROLLER_SHARED);
-		subscribeToController(controllers, SERVICE_CONTROLLER_ON_HAIL);
+		const std::multimap<MobilityServiceControllerType, MobilityServiceController*>& controllers =
+				MobilityServiceControllerManager::GetInstance()->getControllers();
+		for (const std::pair<MobilityServiceControllerType, MobilityServiceController*>& p: controllers)
+		{
+			const MobilityServiceControllerType type = p.first;
+			subscribeToOrIgnoreController(controllers, type);
+		}
 	}
 
 	(isSubscribedToOnHail() && CruiseOnlyOrMoveToTaxiStand())?driveToTaxiStand():selectNextLinkWhileCruising();  // for 1 : drive_to_taxiStand or cruise
@@ -66,8 +69,8 @@ void TaxiDriverMovement::frame_init()
 	}
 }
 
-void TaxiDriverMovement::subscribeToController(
-		multimap<MobilityServiceControllerType, MobilityServiceController *> &controllers,
+void TaxiDriverMovement::subscribeToOrIgnoreController(
+		const multimap<MobilityServiceControllerType, MobilityServiceController *> &controllers,
 		MobilityServiceControllerType controllerType)
 {
 	if (currentFleetItem.controllerSubscription & controllerType)

@@ -171,7 +171,7 @@
     <busController enabled="true" busline_control_type="headway_based"/>
 
     <!-- The current control strategy for train. Can be "fixed_block", "moving_block"-->
-    <trainController enabled="false" train_control_type="moving_block">
+    <trainController enabled="true" train_control_type="moving_block">
     	<output_enabled value="false"/>
 		<distance_arriving_at_platform value ="0.001"/>
     </trainController>
@@ -261,7 +261,7 @@
         <run_mode value="simulation"/>
         <!-- Number of threads to create for processing the population in-->
         <!-- the preday demand simulator -->
-        <threads value="6"/>
+        <threads value="1"/>
         <!-- outputs the preday predictions as activity schedule in CSV format if enabled with simulation run_mode -->
         <output_activity_schedule enabled="true"/>
         <!-- prints person ids and tour details in console for each person if enabled -->

@@ -22,6 +22,7 @@
 #include "TaxiStand.hpp"
 #include "TurningGroup.hpp"
 #include "TurningPath.hpp"
+#include "ParkingDetail.hpp"
 
 using namespace sim_mob;
 
@@ -290,6 +291,19 @@ template<> struct type_conversion<sim_mob::ParkingSlot>
 		res.setSequenceNumber(vals.get<unsigned int>("sequence_number", 0));
 	}
 };
+
+	template<> struct type_conversion<sim_mob::ParkingDetail>
+	{
+		typedef values base_type;
+
+		static void from_base(const soci::values& vals, soci::indicator& ind, sim_mob::ParkingDetail& res)
+		{
+			res.setParkingID(vals.get<int>("parking_id", 0));
+			res.setAccessNodeID(vals.get<int>("access_node", 0));
+			res.setEgressNodeID(vals.get<int>("egress_node", 0));
+			res.setSegmentID(vals.get<int>("segment_id", 0));
+		}
+	};
 
 template<> struct type_conversion<sim_mob::PT_BusDispatchFreq>
 {

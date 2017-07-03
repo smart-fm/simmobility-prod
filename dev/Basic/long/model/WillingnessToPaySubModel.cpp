@@ -298,12 +298,12 @@ namespace sim_mob
 
 			if( lgsqrtArea >=  lowerQuantileCondo && lgsqrtArea < upperQuantileCondo )
 			{
-				sizeAreaQuantileCondo = 0;
+				sizeAreaQuantileCondo = 1;
 			}
 
 			if( lgsqrtArea >=  lowerQuantileHDB && lgsqrtArea < upperQuantileHDB )
 			{
-				sizeAreaQuantileHDB = 0;
+				sizeAreaQuantileHDB = 1;
 			}
 
 			//We use a separate list of coefficients for HDB units.
@@ -394,6 +394,15 @@ namespace sim_mob
 
 			if( amenities->getDistanceToMall() > 200 && amenities->getDistanceToMall() < 400 )
 				mallDistanceBool = 1;
+
+			double bmall2 = bmall;
+
+			if( unit->isBto() )
+			{
+				ZZ_logsumhh += halfStandDeviationLogsum;
+				bmall2 = bmall2 / 1000;
+			}
+
 
 			double Vpriv = 	(barea		*  DD_area 		) +
 							(blogsum	* ZZ_logsumhh 	) +

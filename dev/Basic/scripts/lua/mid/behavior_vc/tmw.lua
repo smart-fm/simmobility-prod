@@ -52,10 +52,12 @@ local beta8_1_cost = -7.96
 local beta8_2_cost = -0.0332
 local beta9_1_cost = -6.74
 local beta9_2_cost = -0.0455
+local beta11_1_cost = -6.74
+local beta11_2_cost = -0.0455
 local beta10_1_cost = -4.97
 local beta10_2_cost = -0.0296
-local beta10_1_cost = -6.74
-local beta10_2_cost = -0.0455
+
+
 
 local beta_cost_erp = 0 
 local beta_cost_parking = 0

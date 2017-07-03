@@ -54,7 +54,7 @@
 	    	<mapping name="pt_opposite_lines" procedure="get_pt_opposite_lines()"/>
 	    	<mapping name="get_train_fleet" procedure="get_train_fleet()"/>
 	    	<mapping name="mrt_road_segments" procedure="get_pt_train_segments()"/>
-	    	<mapping name="day_activity_schedule" procedure="get_persons_between"/>
+	    	<mapping name="day_activity_schedule" procedure="get_persons_between_with_subsidy"/>
             <mapping name="freight_trips" procedure="get_freight_between"/>
             
             <mapping name="taxi_fleet" procedure="get_taxi_fleet"/>
@@ -111,8 +111,8 @@
             <mapping name="get_train_line_properties" procedure="get_pt_train_line_properties()"/>
             <mapping name="taxi_fleet" procedure="get_taxi_fleet"/>
             <mapping name="taxi_stands" procedure="get_singapore_taxi_stands()"/>
-            <!--<mapping name="restricted_reg_in_turning" procedure="get_banned_area_in_turning()"/>
-            <!--<mapping name="restricted_reg_segments" procedure="get_section_banned_area()"/>
+            <!--<mapping name="restricted_reg_in_turning" procedure="get_banned_area_in_turning()"/> -->
+            <!--<mapping name="restricted_reg_segments" procedure="get_section_banned_area()"/> -->
             <mapping name="restricted_reg_in_turning" procedure="get_banned_area_in_turning()"/>
             <mapping name="restricted_reg_out_turning" procedure="get_banned_area_out_turning()"/>
             <mapping name="restricted_reg_nodes" procedure="get_changi_nodes()"/>
@@ -123,7 +123,7 @@
     <system>
         <!-- If loading from the database, which database, proc_map, and credentials are used? -->
 
-        <network_database database="fm_hpchead" credentials="fm_hpchead" proc_map="withinday"/>
+        <network_database database="fm_hpchead" credentials="fm_hpchead" proc_map="simmobcity"/>
         <population_database  database="fm_hpchead" credentials="fm_hpchead" proc_map=""/>
 
         <!-- The parser will simply load everything in "generic_props" section into "SystemParams.genericProps".  -->
@@ -137,7 +137,7 @@
     <!-- List of all Worker types and their properties. -->
     <!-- granularity of each component must be a multiple of the "base" granularity -->
     <workers>
-        <person count="10" granularity="5 seconds"/> <!-- Person agents (with Roles) -->
+        <person count="1" granularity="5 seconds"/> <!-- Person agents (with Roles) -->
     </workers>
       
     <incidentsData enabled="false">
@@ -214,11 +214,8 @@
         <bus_default_capacity value="100"/>
 
         <!-- the threads number for person loader -->
-        <thread_number_in_person_loader value="10"/>
+        <thread_number_in_person_loader value="1"/>
 
-
-        <!-- the threads number for person loader -->
-        <thread_number_in_person_loader value="10"/>
 
         <!-- file names to output statistics from supply -->
         <output_statistics>                              

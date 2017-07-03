@@ -209,8 +209,9 @@ void BusDriverMovement::frame_tick()
 
 std::string BusDriverMovement::frame_tick_output() {
 	DriverUpdateParams &p = parentBusDriver->getParams();
+	Person_MT* person = parentBusDriver->getParent();
 	//Skip?
-	if (pathMover.isPathCompleted()
+	if (pathMover.isPathCompleted() || !person->getCurrSegStats() || !person->getCurrLane()
 			|| ConfigManager::GetInstance().FullConfig().using_MPI
 			|| ConfigManager::GetInstance().CMakeConfig().OutputDisabled())
 	{
@@ -218,7 +219,7 @@ std::string BusDriverMovement::frame_tick_output() {
 	}
 
 	std::stringstream logout;
-	Person_MT* person = parentBusDriver->parent;
+
 	logout << "(\"BusDriver\""
 			<<","<<person->getId()
 			<<","<<parentBusDriver->getParams().now.frame()

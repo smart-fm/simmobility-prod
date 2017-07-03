@@ -28,7 +28,7 @@ public:
 	virtual void frame_init();
 
 	virtual void frame_tick();
-
+    virtual std::string frame_tick_output();
 	/**
 	 * internal structure for breaking
 	 */
@@ -64,9 +64,9 @@ public:
 
 	/**
 	 * set new route after route choice
-	 * @param currentChoice is a list of links holding new route
+	 * @param routeToDestination is a list of links holding new route
 	 */
-	void addRouteChoicePath(std::vector<WayPoint> &currentChoice);
+	void addRouteChoicePath(std::vector<WayPoint> &routeToDestination);
 
 	/**
 	 * set current node as new start node
@@ -94,12 +94,17 @@ public:
 	 */
 	bool driveToNodeOnCall(const std::string &personId, const Node *destination);
 
+	/**
+	 * Sets the driver to cruise to a given node. This functionality is specific to on call drivers
+	 * @param destination the destination node to cruise to
+	 */
+	void cruiseToNode(const Node *destination);
+
 	virtual const std::vector<MobilityServiceController*>& getSubscribedControllers() const;
 
-
-protected:
 	bool isSubscribedToOnHail() const;
 
+protected:
 	/**List of subscribed controllers*/
 	std::vector<MobilityServiceController *> subscribedControllers;
 
@@ -151,12 +156,6 @@ private:
 	 * drive taxi to next taxi stand
 	 */
 	void driveToTaxiStand();
-
-	/**
-	 * set current node
-	 * @param currNode is a pointer to current node
-	 */
-	void setCurrentNode(Node *currNode);
 
 	/**
 	 * set destination node
@@ -211,7 +210,13 @@ private:
 	 * @param controllerType the type of controller to be subscribed
 	 */
 	void subscribeToController(std::multimap<MobilityServiceControllerType, MobilityServiceController *> &controllers,
-	                           MobilityServiceControllerType controllerType);
+							   MobilityServiceControllerType controllerType);
+
+	/** Return boolean Decision whether taxi is supposed to cruise or to move taxi stand
+	 *  Currently this decision is set as random, but this would be replaced by the Bathen's logic
+	 *  after decision model fixed.
+	 */
+    bool CruiseOnlyOrMoveToTaxiStand();
 };
 
 class TaxiDriverBehavior : public DriverBehavior

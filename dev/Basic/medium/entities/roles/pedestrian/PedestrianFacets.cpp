@@ -16,6 +16,7 @@
 
 using namespace sim_mob;
 using namespace sim_mob::medium;
+using namespace messaging;
 
 PedestrianBehavior::PedestrianBehavior() : BehaviorFacet(), parentPedestrian(nullptr)
 {
@@ -99,9 +100,7 @@ void PedestrianMovement::frame_init()
 					TripRequestMessage* request = new TripRequestMessage(person->currTick,
 												  person->getDatabaseId(),
 												  taxiStartNodeId, taxiEndNodeId, 0);
-					messaging::MessageBus::SendMessage(itControllers->second, MSG_TRIP_REQUEST,
-					                                   messaging::MessageBus::MessagePtr(
-							                                   request));
+					MessageBus::PostMessage(itControllers->second, MSG_TRIP_REQUEST, MessageBus::MessagePtr(request));
 
 
 					ControllerLog() << "Request sent: "<< *request << std::endl;
@@ -131,8 +130,8 @@ void PedestrianMovement::frame_init()
 
 		if (startConflux)
 		{
-			messaging::MessageBus::PostMessage(startConflux, MSG_TRAVELER_TRANSFER,
-			                                   messaging::MessageBus::MessagePtr(new PersonMessage(person)));
+			MessageBus::PostMessage(startConflux, MSG_TRAVELER_TRANSFER,
+			                        MessageBus::MessagePtr(new PersonMessage(person)));
 		}
 	}
 	else // both origin and destination must be nodes
@@ -222,8 +221,8 @@ void PedestrianMovement::frame_tick()
 				Conflux* start = this->getStartConflux();
 				if (start)
 				{
-					messaging::MessageBus::PostMessage(start, MSG_TRAVELER_TRANSFER,
-							messaging::MessageBus::MessagePtr(new PersonMessage(parentPedestrian->parent)));
+					MessageBus::PostMessage(start, MSG_TRAVELER_TRANSFER,
+					                        MessageBus::MessagePtr(new PersonMessage(parentPedestrian->parent)));
 				}
 			}
 			else
@@ -234,6 +233,10 @@ void PedestrianMovement::frame_tick()
 			{
 				parentPedestrian->parent->setToBeRemoved();
 			}
+		}
+		else
+		{
+			parentPedestrian->getParent()->setToBeRemoved();
 		}
 	}
 }

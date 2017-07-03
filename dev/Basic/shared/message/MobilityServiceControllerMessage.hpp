@@ -143,7 +143,7 @@ enum ScheduleItemType{INVALID,PICKUP, DROPOFF,CRUISE};
 struct ScheduleItem
 {
 	ScheduleItem(const ScheduleItemType scheduleItemType_, const TripRequestMessage tripRequest_)
-		: scheduleItemType(scheduleItemType_),tripRequest(tripRequest_),tazToCruiseTo(0)
+		: scheduleItemType(scheduleItemType_),tripRequest(tripRequest_),nodeToCruiseTo(NULL)
 	{
 #ifndef NDEBUG
 		if (scheduleItemType!= ScheduleItemType::PICKUP && scheduleItemType!= ScheduleItemType::DROPOFF)
@@ -152,8 +152,8 @@ struct ScheduleItem
 
 	};
 
-	ScheduleItem(const ScheduleItemType scheduleItemType_, const unsigned tazToCruiseTo_)
-		:scheduleItemType(scheduleItemType_),tazToCruiseTo(tazToCruiseTo_),tripRequest()
+	ScheduleItem(const ScheduleItemType scheduleItemType_, const Node* nodeToCruiseTo_)
+		:scheduleItemType(scheduleItemType_),nodeToCruiseTo(nodeToCruiseTo_),tripRequest()
 	{
 #ifndef NDEBUG
 		if (scheduleItemType!= ScheduleItemType::CRUISE)
@@ -161,7 +161,7 @@ struct ScheduleItem
 #endif
 	};
 
-	ScheduleItem(const ScheduleItem& other):scheduleItemType(other.scheduleItemType),tripRequest(other.tripRequest),tazToCruiseTo(other.tazToCruiseTo){};
+	ScheduleItem(const ScheduleItem& other):scheduleItemType(other.scheduleItemType),tripRequest(other.tripRequest),nodeToCruiseTo(other.nodeToCruiseTo){};
 
 	bool operator<(const ScheduleItem& other) const;
 
@@ -169,7 +169,7 @@ struct ScheduleItem
 
 	TripRequestMessage tripRequest;
 
-	unsigned tazToCruiseTo;
+	const Node* nodeToCruiseTo;
 };
 
 //TODO: It would be more elegant using std::variant, available from c++17

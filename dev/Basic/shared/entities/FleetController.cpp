@@ -53,7 +53,9 @@ void FleetController::LoadTaxiFleetFromDB()
 	std::stringstream query;
 
 	const SimulationParams &simParams = ConfigManager::GetInstance().FullConfig().simulation;
-
+    /* for Debug Only : to print details in Console
+     * Print()<<"\n\nTaxi Details at start:"<<std::endl;
+     */
 	query << "select * from " << spIt->second << "('" << simParams.simStartTime.getStrRepr().substr(0, 5)
 	      << "','" << (DailyTime(simParams.totalRuntimeMS) + simParams.simStartTime).getStrRepr().substr(0, 5) << "')";
 	soci::rowset<soci::row> rs = (sql_.prepare << query.str());
@@ -72,7 +74,14 @@ void FleetController::LoadTaxiFleetFromDB()
 		fleetItem.startTime = getSecondFrmTimeString(startTime);
 		fleetItem.controllerSubscription = r.get<unsigned int>(COLUMN_CONTROLLER_SUBSCRIPTIONS);
 		taxiFleet.push_back(fleetItem);
-	}
+	/* for Debug Purpose Only : to print details in Console
+
+       Print()<<" VehicleNo:"<<fleetItem.vehicleNo<<" Driver ID:"
+              <<fleetItem.driverId<<" X_Position:"<<x<<" Y_Position:"<<y
+              <<" Start_Node ID:"<<fleetItem.startNode->getNodeId()
+              <<" Start_time:"<<startTime<<std::endl;
+     */
+   }
 }
 
 std::vector<FleetController::FleetItem> FleetController::dispatchTaxiAtCurrentTime(const unsigned int currentTimeSec)

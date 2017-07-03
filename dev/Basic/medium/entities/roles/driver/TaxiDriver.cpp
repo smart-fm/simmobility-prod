@@ -16,6 +16,7 @@
 
 using namespace sim_mob;
 using namespace medium;
+using namespace messaging;
 
 TaxiDriver::TaxiDriver(Person_MT* parent, const MutexStrategy& mtxStrat, TaxiDriverBehavior* behavior,
                        TaxiDriverMovement* movement, std::string roleName, Role<Person_MT>::Type roleType) :
@@ -81,11 +82,14 @@ void TaxiDriver::alightPassenger()
 			Conflux *parentConflux = segStats->getParentConflux();
 			parentConflux->dropOffTaxiTraveler(parentPerson);
 
-			ControllerLog() << "Drop-off of user" << parentPerson->getDatabaseId() << " at time "
-			                << parentPerson->currTick
-			                << ". Message was sent at ??? with startNodeId ???, destinationNodeId "
-			                << parentConflux->getConfluxNode()->getNodeId()
-			                << ", and driverId ???" << std::endl;
+			if(!taxiDriverMovement->isSubscribedToOnHail())
+			{
+				ControllerLog() << "Drop-off of user" << parentPerson->getDatabaseId() << " at time "
+				                << parentPerson->currTick
+				                << ". Message was sent at ??? with startNodeId ???, destinationNodeId "
+				                << parentConflux->getConfluxNode()->getNodeId()
+				                << ", and driverId " << getParent()->getDatabaseId() << std::endl;
+			}
 		}
 	}
 }
@@ -179,25 +183,34 @@ void TaxiDriver::HandleParentMessage(messaging::Message::MessageType type, const
 				}
 #endif
 
-				messaging::MessageBus::SendMessage(message.GetSender(), MSG_SCHEDULE_PROPOSITION_REPLY,
-				                                   messaging::MessageBus::MessagePtr(
-						                                   new SchedulePropositionReplyMessage(parent->currTick,
-						                                                                       request.userId, parent,
-						                                                                       request.startNodeId,
-						                                                                       request.destinationNodeId,
-						                                                                       request.extraTripTimeThreshold,
-						                                                                       success)));
+				MessageBus::PostMessage(message.GetSender(), MSG_SCHEDULE_PROPOSITION_REPLY,
+				                        MessageBus::MessagePtr(new SchedulePropositionReplyMessage(parent->currTick,
+				                                                                                   request.userId,
+				                                                                                   parent,
+				                                                                                   request.startNodeId,
+				                                                                                   request.destinationNodeId,
+				                                                                                   request.extraTripTimeThreshold,
+				                                                                                   success)));
 
-				ControllerLog() << "Assignment response sent for " << request<<". This response is sent by driver "
-						<< parent->getDatabaseId()<<" at time "<<parent->currTick<<std::endl;
+				ControllerLog() << "Assignment response sent for " << request << ". This response is sent by driver "
+				                << parent->getDatabaseId() << " at time " << parent->currTick << std::endl;
 
 				break;
 			}
 			case ScheduleItemType::CRUISE:
 			{
-				ControllerLog() << "Taxi driver " << getParent()->getDatabaseId()
-				                << " received a cruise command "
-				                << "but she does not know what to do now" << std::endl;
+				try
+				{
+					taxiDriverMovement->cruiseToNode((*scheduleItem).nodeToCruiseTo);
+					ControllerLog() << "Driver " << parent->getDatabaseId() << " received CRUISE to node "
+					                << (*scheduleItem).nodeToCruiseTo->getNodeId() << std::endl;
+				}
+				catch (exception &ex)
+				{
+					ControllerLog() << ex.what();
+					Print() << ex.what();
+				}
+
 				scheduleItem++;
 				break;
 			}
@@ -206,9 +219,7 @@ void TaxiDriver::HandleParentMessage(messaging::Message::MessageType type, const
 				throw runtime_error("Schedule Item is invalid");
 
 			}
-
 		}
-
 	}
 	default:
 	{
@@ -265,6 +276,7 @@ void TaxiDriver::pickUpPassngerAtNode(Conflux *parentConflux, std::string* perso
 					passenger->setStartPoint(WayPoint(taxiDriverMovement->getCurrentNode()));
 					passenger->setEndPoint(WayPoint(taxiDriverMovement->getDestinationNode()));
 					setDriverStatus(DRIVE_WITH_PASSENGER);
+					passenger->Movement()->startTravelTimeMetric();
 				}
 			}
 		}
@@ -308,8 +320,8 @@ TaxiDriver::~TaxiDriver()
 		for(auto it = taxiDriverMovement->getSubscribedControllers().begin();
 			it != taxiDriverMovement->getSubscribedControllers().end(); ++it)
 		{
-			messaging::MessageBus::SendMessage(*it, MSG_DRIVER_UNSUBSCRIBE,
-											   messaging::MessageBus::MessagePtr(new DriverUnsubscribeMessage(parent)));
+			MessageBus::PostMessage(*it, MSG_DRIVER_UNSUBSCRIBE,
+			                        MessageBus::MessagePtr(new DriverUnsubscribeMessage(parent)));
 		}
 	}
 }

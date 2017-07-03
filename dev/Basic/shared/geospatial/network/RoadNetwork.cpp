@@ -13,6 +13,7 @@
 #include "Node.hpp"
 #include "ParkingArea.hpp"
 #include "ParkingSlot.hpp"
+#include "ParkingDetail.hpp"
 #include "Point.hpp"
 #include "PolyLine.hpp"
 #include "RoadItem.hpp"
@@ -44,6 +45,7 @@ RoadNetwork::~RoadNetwork()
 	mapOfIdvsTurningPaths.clear();
 	mapOfIdvsBusStops.clear();
 	mapOfIdVsParkingSlots.clear();
+	mapOfIdVsParkingDetails.clear();
 
 	roadNetwork = NULL;
 }
@@ -101,6 +103,11 @@ const map<unsigned int, TaxiStand *>& RoadNetwork::getMapOfIdvsTaxiStands() cons
 const std::map<unsigned int, ParkingArea *>& RoadNetwork::getMapOfIdVsParkingAreas() const
 {
 	return mapOfIdVsParkingAreas;
+}
+
+const std::map<unsigned int, ParkingDetail *>& RoadNetwork::getMapOfIdVsParkingDetails() const
+{
+	return mapOfIdVsParkingDetails;
 }
 
 void RoadNetwork::addLane(Lane* lane)
@@ -657,6 +664,39 @@ void RoadNetwork::addBusStop(BusStop* stop)
 			std::stringstream msg;
 			msg << "Bus stop " << stop->getStopId() << " refers to an invalid road segment " << stop->getRoadSegmentId();
 			safe_delete_item(stop);
+			throw std::runtime_error(msg.str());
+		}
+	}
+}
+
+void RoadNetwork::addParkingDetail(ParkingDetail* parking_detail)
+{
+	//Check if the parking  has already been added to the map
+	std::map<unsigned int, ParkingDetail *>::iterator itPark = mapOfIdVsParkingDetails.find(parking_detail->getParkingID());
+
+	if (itPark != mapOfIdVsParkingDetails.end())
+	{
+		std::stringstream msg;
+		msg << "Parking " << parking_detail->getParkingID() << " (parkingID) has already been added!";
+		safe_delete_item(parking_detail);
+		throw std::runtime_error(msg.str());
+	}
+	else
+	{
+		//Get the Node to which the Parking belongs
+		std::map<unsigned int, Node *>::iterator itAccNode = mapOfIdvsNodes.find(parking_detail->getAccessNodeID());
+		std::map<unsigned int, Node *>::iterator itEgrNode = mapOfIdvsNodes.find(parking_detail->getEgressNodeID());
+
+		if ((itAccNode != mapOfIdvsNodes.end()) && (itEgrNode != mapOfIdvsNodes.end()) )
+		{
+			//Insert the parking_detail into the map
+			mapOfIdVsParkingDetails.insert(std::make_pair(parking_detail->getParkingID(), parking_detail));
+		}
+		else
+		{
+			std::stringstream msg;
+			msg << "Parking refers to  invalid Access Or Egress Node "<<std::endl;
+			safe_delete_item(parking_detail);
 			throw std::runtime_error(msg.str());
 		}
 	}

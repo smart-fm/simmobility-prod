@@ -717,6 +717,54 @@ void NetworkLoader::loadParkingSlots(const std::string& storedProc)
 #endif
 }
 
+void NetworkLoader::loadAllParking(const std::string& storedProc)
+{
+	sim_mob::ConfigParams& config = sim_mob::ConfigManager::GetInstanceRW().FullConfig();
+
+	if(storedProc.empty())
+	{
+		Print() << "Optional data: Parking Info are not loaded. Stored procedure not provided\n";
+		Warn() << "Stored procedure to load Parking Info  not specified in the configuration file."
+			   << "\nParking Info not loaded..." << std::endl;
+		return;
+    }
+
+    //SQL statement
+    soci::rowset<sim_mob::ParkingDetail> pkDetail = (sql.prepare << "select * from " + storedProc);
+
+    for (soci::rowset<ParkingDetail>::const_iterator itPkDet = pkDetail.begin(); itPkDet != pkDetail.end(); ++itPkDet)
+    {
+        //Create new parking detail  and add it to the netowrk
+        ParkingDetail *parking_detail = new ParkingDetail(*itPkDet);
+
+        try
+        {
+            roadNetwork->addParkingDetail(parking_detail);
+        }
+        catch(runtime_error &ex)
+        {
+            std::stringstream msg;
+            msg << ex.what() << "\nStored procedure: " << storedProc;
+            throw std::runtime_error(msg.str());
+        }
+    }
+
+    //Sanity check
+    unsigned long parkingLoaded = roadNetwork->getMapOfIdVsParkingDetails().size();
+
+    if(parkingLoaded == 0)
+    {
+        std::stringstream msg;
+        msg << storedProc << " returned 0 parking!";
+        throw runtime_error(msg.str());
+    }
+
+#ifndef NDEBUG
+    Print() << "Parking Details\t\t\t|\t" << parkingLoaded << "\t\t| " << storedProc << endl;
+#endif
+}
+
+
 void NetworkLoader::loadNetwork(const string& connectionStr, const map<string, string>& storedProcs)
 {
 	try
@@ -760,6 +808,8 @@ void NetworkLoader::loadNetwork(const string& connectionStr, const map<string, s
 		loadParkingSlots(getStoredProcedure(storedProcs, "parking_slots", false));
 
 		loadTaxiStands(getStoredProcedure(storedProcs, "taxi_stands", false));
+
+		loadAllParking(getStoredProcedure(storedProcs, "all_parking_Info", false));
 
 		//Close the connection
 		sql.close();

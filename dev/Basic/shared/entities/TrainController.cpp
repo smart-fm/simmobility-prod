@@ -92,7 +92,7 @@ namespace sim_mob
 		std::map<std::string, std::string>::const_iterator spIt = storedProcs.find("pt_opposite_lines");
 		if(spIt == storedProcs.end())
 		{
-			Print() << "missing stored procedure for get_pt_opposite_lines" << std::endl;
+			Print() << "missing stored procedure for pt_opposite_lines" << std::endl;
 			return;
 		}
 		soci::session sql_(soci::postgresql, configParams.getDatabaseConnectionString(false));
@@ -114,7 +114,7 @@ namespace sim_mob
 		std::map<std::string, std::string>::const_iterator spIt = storedProcs.find("get_uturn_platforms");
 		if(spIt == storedProcs.end())
 		{
-			Print() << "missing stored procedure for get_pt_opposite_lines" << std::endl;
+			Print() << "missing stored procedure for get_uturn_platforms" << std::endl;
 			return;
 		}
 		soci::session sql_(soci::postgresql, configParams.getDatabaseConnectionString(false));

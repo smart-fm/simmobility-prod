@@ -11,6 +11,9 @@
 #pragma once
 #include "Message.hpp"
 #include <set>
+#include <typeinfo>
+#include <sstream>
+#include "logging/Log.hpp"
 
 namespace sim_mob
 {
@@ -50,7 +53,18 @@ public:
 	}
 
 	//aa{
-	void SetContext(void* context_){context=context_;};
+	void SetContext(void* context_)
+	{
+#ifndef NDEBUG
+		if (context){
+			std::stringstream msg; msg<<"Trying to set context "<< context_ <<" to object "<< this <<
+			" of type "<< typeid(this).name()<<", but the object has already context "<<context;
+			msg<<". This is related to this issue: https://github.com/smart-fm/simmobility/issues/590"<<std::endl;
+			sim_mob::Warn() << msg.str() << std::endl ;
+		}
+#endif
+		context=context_;
+	};
 	//aa}
 
 private:

@@ -1307,10 +1307,11 @@ Person_MT* SegmentStats::dequeue(const Person_MT* person, const Lane* lane, bool
 Person_MT* LaneStats::dequeue(const Person_MT* person, bool isQueuingBfrUpdate, double vehicleLength)
 {
 	if (laneAgents.size() == 0)
-	{
-		std::stringstream debugMsgs;
-		debugMsgs << "Trying to dequeue Person " << person->getId() << " from empty lane." << std::endl;
-		return nullptr;
+		{
+			std::stringstream debugMsgs;
+			debugMsgs << "Trying to dequeue Person " << person->getDatabaseId() << " from empty lane." << std::endl;
+			Print() << debugMsgs.str();
+			return nullptr;
 	}
 	Person_MT* dequeuedPerson = nullptr;
 	if (laneInfinity)

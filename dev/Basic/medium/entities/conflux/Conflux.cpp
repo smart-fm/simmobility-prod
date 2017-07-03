@@ -620,6 +620,10 @@ bool Conflux::handleRoleChange(PersonProps& beforeUpdate, PersonProps& afterUpda
 				messaging::MessageBus::SendMessage(taxiStandAgent, MSG_WAITING_PERSON_ARRIVAL,
 				                                   messaging::MessageBus::MessagePtr(new ArrivalAtStopMessage(person)));
 			}
+			else
+			{
+				travelingPersons.push_back(person);
+			}
 		}
 		break;
 	}
@@ -687,6 +691,10 @@ void Conflux::housekeep(PersonProps& beforeUpdate, PersonProps& afterUpdate, Per
 				travelingPersons.erase(it);
 			}
 		}
+		return;
+	}
+	case Role<Person_MT>::RL_WAITTAXIACTIVITY:
+	{
 		return;
 	}
 	case Role<Person_MT>::RL_TAXIDRIVER: //fall through
@@ -1577,6 +1585,8 @@ Entity::UpdateStatus Conflux::callMovementFrameTick(timeslice now, Person_MT* pe
 		if (!person->isToBeRemoved())
 		{
 			personRole->Movement()->frame_tick();
+            //Added to get Taxi Trajectory Output
+            personRole->Movement()->frame_tick_output();
 			if (personRole->roleType == Role<Person_MT>::RL_ACTIVITY)
 			{
 				person->setRemainingTimeThisTick(0.0);
@@ -1824,17 +1834,26 @@ Person_MT* Conflux::pickupTaxiTraveler(std::string* personId)
 				}
 			}
 		}
+
 		if(res)
 		{
 			res->currSubTrip->endLocationId = boost::lexical_cast<std::string>(this->getConfluxNode()->getNodeId());
 			res->currSubTrip->endLocationType = "NODE";
 			res->getRole()->collectTravelTime();
 			UpdateStatus status = res->checkTripChain(currFrame.ms());
-			status = res->checkTripChain(currFrame.ms());
+
+			if((*(res->currSubTrip)).origin.type == WayPoint::TAXI_STAND)
+			{
+				//Person was walking to taxi stand, where it would wait.
+				//Switch role again
+				status = res->checkTripChain(currFrame.ms());
+			}
+
 			if (status.status == UpdateStatus::RS_DONE)
 			{
 				return nullptr;
 			}
+
 			res->currSubTrip->startLocationId = boost::lexical_cast<std::string>(this->getConfluxNode()->getNodeId());
 			res->currSubTrip->startLocationType = "NODE";
 			res->getRole()->setArrivalTime(currFrame.ms()+ConfigManager::GetInstance().FullConfig().simStartTime().getValue());

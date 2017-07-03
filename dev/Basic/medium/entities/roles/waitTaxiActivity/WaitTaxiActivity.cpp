@@ -65,7 +65,20 @@ void WaitTaxiActivity::collectTravelTime()
 	personTravelTime.subEndPoint = parent->currSubTrip->endLocationId;
 	personTravelTime.subStartType = parent->currSubTrip->startLocationType;
 	personTravelTime.subEndType = parent->currSubTrip->endLocationType;
-	personTravelTime.mode = "WAITING_TAXIS";
+
+	if((*(parent->currTripChainItem))->travelMode == "SMS")
+	{
+		personTravelTime.mode = "WAIT_SMS";
+	}
+	else if((*(parent->currTripChainItem))->travelMode == "Rail_SMS")
+	{
+		personTravelTime.mode = "WAIT_RAIL_SMS";
+	}
+	else
+	{
+		personTravelTime.mode = "WAIT_TAXI";
+	}
+
 	personTravelTime.travelTime = ((double) parent->getRole()->getTravelTime())/1000.0; //convert to seconds
 	personTravelTime.arrivalTime = DailyTime(parent->getRole()->getArrivalTime()).getStrRepr();
 	messaging::MessageBus::PostMessage(PT_Statistics::getInstance(),

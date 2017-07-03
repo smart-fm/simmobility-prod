@@ -308,8 +308,9 @@ void loadPT_PathsetFromDB(soci::session &sql, const std::string &funcName, int o
 	soci::rowset<sim_mob::PT_Path> rs = (sql.prepare << std::string("select * from ") + funcName + "(:o_node,:d_node)", soci::use(originNode), soci::use(destNode));
 	for (soci::rowset<sim_mob::PT_Path>::const_iterator it = rs.begin(); it != rs.end(); ++it)
 	{
-		paths.push_back(*it);
-		(*it).updatePathEdges(type);
+		PT_Path path(*it);
+		path.updatePathEdges(type);
+		paths.push_back(path);
 	}
 }
 

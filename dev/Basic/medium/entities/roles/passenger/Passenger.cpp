@@ -49,7 +49,7 @@ Role<Person_MT>* sim_mob::medium::Passenger::clone(Person_MT *parent) const
 	{
 		personRoleType = Role<Person_MT>::RL_PASSENGER;
 	}
-	else if (mode.find("TaxiTraveler") != std::string::npos)
+	else if (mode.find("Taxi") != std::string::npos)
 	{
 		personRoleType = Role<Person_MT>::RL_TAXIPASSENGER;
 	}
@@ -124,7 +124,18 @@ void sim_mob::medium::Passenger::collectTravelTime()
 	}
 	else if (roleType == Role<Person_MT>::RL_TAXIPASSENGER)
 	{
-		personTravelTime.mode = (*(parent->currSubTrip)).travelMode;
+		if((*(parent->currSubTrip)).travelMode == "TaxiTravel")
+		{
+			personTravelTime.mode = "ON_TAXI";
+		}
+		else if((*(parent->currSubTrip)).travelMode == "SMS_Taxi")
+		{
+			personTravelTime.mode = "ON_SMS_TAXI";
+		}
+		else
+		{
+			personTravelTime.mode = "ON_RAIL_SMS_TAXI";
+		}
 	}
 	else
 	{

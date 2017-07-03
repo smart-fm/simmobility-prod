@@ -12,6 +12,7 @@
 #include "message/MobilityServiceControllerMessage.hpp"
 #include "path/PathSetManager.hpp"
 #include "entities/controllers/OnCallController.hpp"
+#include <algorithm>
 
 namespace sim_mob {
 
@@ -22,8 +23,10 @@ FrazzoliController::~FrazzoliController() {
 }
 
 
-void FrazzoliController::generateRV_Graph()
+RD_Graph FrazzoliController::generateRD_Graph()
 {
+	RD_Graph rdGraph;
+
 	// https://stackoverflow.com/a/1824900/2110769
 	// We check the shareability of every possible pair of requests
 	for (std::list<TripRequestMessage>::const_iterator r1 = requestQueue.begin(); r1!=requestQueue.end(); r1++)
@@ -53,27 +56,44 @@ void FrazzoliController::generateRV_Graph()
 		}
 
 	}
+	return rdGraph;
 }
 
-void FrazzoliController::generateRGD_Graph()
+RGD_Graph FrazzoliController::generateRGD_Graph(const RD_Graph& rdGraph)
 {
+	RGD_Graph rgdGraph;
 	Group< Group<TripRequestMessage> > overallRequestGroups;
+	bool optimalityRequired = true;
 	for (const std::pair<const Person*, const Schedule>& p : driverSchedules)
 	{
 		const Person* driver = p.first;
+		const Node* driverNode = driver->exportServiceDriver()->getCurrentNode();
+		const Schedule& currentSchedule = driverSchedules.at(p.first);
 
-		// requestGroupsPerOccupancy[i] will contain all the request groups of i+1 requests
-		std::vector< Group< Group<TripRequestMessage> > > requestGroupsPerOccupancy(maxVehicleOccupancy);
+#ifndef NDEBUG
+		if (!currentSchedule.empty())
+		{
+			std::stringstream msg; msg<<"Trying to assign a schedule to a driver whose current schedule is not empty. This is not supported yet";
+			throw std::runtime_error(msg.str());
+		}
+#endif
+
 
 		// Add request groups of size one
 		unsigned occupancy = 1;
 		for ( const RD_Edge& rdEdge : rdGraph.getRD_Edges(driver) )
 		{
+
 			const TripRequestMessage& request = rdEdge.first;
 			Group<TripRequestMessage> requestGroup; requestGroup.insert(request);
-			requestGroupsPerOccupancy[occupancy-1].insert(requestGroup);
-			rgdGraph.addEdge(request, requestGroup);
-			rgdGraph.addEdge(requestGroup, driver);
+			Schedule newSchedule;
+			double travelTime = computeSchedule(driverNode, currentSchedule, requestGroup, newSchedule, optimalityRequired);
+			if (travelTime>=0)
+			{
+				requestGroupsPerOccupancy[occupancy-1].insert(requestGroup);
+				rgdGraph.addEdge(request, requestGroup);
+				rgdGraph.addEdge(requestGroup, driver, travelTime, newSchedule);
+			}
 		}
 
 		// Add request groups of size 2
@@ -97,9 +117,8 @@ void FrazzoliController::generateRGD_Graph()
 			const TripRequestMessage& r2 = requestGroupsIterator2->front();
 			if (rdGraph.doesEdgeExists(r1,r2 ) )
 			{
-				bool optimalityRequired = false;
-				const Node* driverNode = driver->exportServiceDriver()->getCurrentNode();
-				const Schedule& currentSchedule = driverSchedules.at(p.first);
+				bool optimalityRequired = true;
+
 				Group<TripRequestMessage> requestGroup; requestGroup.insert(r1); requestGroup.insert(r2);
 				Schedule newSchedule;
 				double travelTime = computeSchedule(driverNode, currentSchedule, requestGroup, newSchedule, optimalityRequired);
@@ -108,17 +127,47 @@ void FrazzoliController::generateRGD_Graph()
 					// It is feasible that the driver serves this requestGroup
 					requestGroupsPerOccupancy[occupancy-1].insert(requestGroup);
 					rgdGraph.addEdge(r1,requestGroup);rgdGraph.addEdge(r2,requestGroup);
-					rgdGraph.addEdge(requestGroup,driver);
+					rgdGraph.addEdge(requestGroup,driver, travelTime, newSchedule);
 				}
+			}
+		}
+
+	}
+	return rgdGraph;
+}
+
+void FrazzoliController::greedyAssignment(RD_Graph& rdGraph, RGD_Graph& rgdGraph)
+{
+	std::set<TripRequestMessage> assignedRequests;
+	std::set<const Person*> assignedDrivers;
+
+	for (unsigned occupancy = maxVehicleOccupancy; occupancy>0; occupancy--)
+	{
+		rgdGraph.sortGD_Edges();
+		while (rgdGraph.hasGD_Edges() )
+		{
+			const GD_Edge gdEdge = rgdGraph.popGD_Edge();
+			for (const TripRequestMessage request : gdEdge.requestGroup.getElements() )
+			{
+				if ( 	assignedRequests.find(request) != assignedRequests.end() &&
+						assignedDrivers.find(gdEdge.driver) != assignedDrivers.end()
+				){
+					assignedRequests.insert(request);
+					assignedDrivers.insert(gdEdge.driver);
+					assignSchedule(gdEdge.driver,gdEdge.schedule);
+				} // else, if the request or the driver have been already assigned, we have nothing to do
 			}
 		}
 
 	}
 }
 
-
 void FrazzoliController::computeSchedules()
-{	throw std::runtime_error("Implement it"); }
+{
+	RD_Graph rdGraph = generateRD_Graph() ;
+	RGD_Graph rgdGraph = generateRGD_Graph(rdGraph);
+	greedyAssignment(rdGraph, rgdGraph);
+}
 
 const std::vector< RD_Edge>& RD_Graph::getRD_Edges(const Person* driver) const
 {	throw std::runtime_error("Implement it"); }
@@ -131,7 +180,20 @@ bool RD_Graph::doesEdgeExists(const TripRequestMessage& r1, const TripRequestMes
 
 void RGD_Graph::addEdge(const TripRequestMessage& request, const Group<TripRequestMessage>& requestGroup)
 {	throw std::runtime_error("Implement it"); }
-void RGD_Graph::addEdge(const Group<TripRequestMessage>& requestGroup, const Person* mobilityServiceDriver)
+
+void RGD_Graph::addEdge(const Group<TripRequestMessage>& requestGroup, const Person* mobilityServiceDriver,
+		double cost, const Schedule& schedule)
+{	throw std::runtime_error("Implement it"); }
+
+bool RGD_Graph::hasGD_Edges() const
+{
+	return !gdEdges.empty();
+}
+
+void RGD_Graph::sortGD_Edges()
+{	throw std::runtime_error("Implement it"); }
+
+GD_Edge RGD_Graph::popGD_Edge()
 {	throw std::runtime_error("Implement it"); }
 
 } /* namespace sim_mob */

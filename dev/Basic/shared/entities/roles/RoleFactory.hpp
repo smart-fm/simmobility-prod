@@ -155,7 +155,7 @@ public:
 		}*/
 
 		if (mode == "BusTravel" || mode == "MRT" || mode == "Sharing" || mode == "PrivateBus" ||
-				mode == "TaxiTraveler" || mode == "SMS_TaxiTraveler" || mode == "RAIL_SMS_TaxiTraveler")
+				mode == "TaxiTravel" || mode == "SMS_Taxi" || mode == "RAIL_SMS_Taxi")
 		{
 			return "passenger";
 		}

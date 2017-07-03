@@ -61,8 +61,7 @@ private:
 	/**Keeps track of the next agent's id. Used for auto-generating the agent id's*/
 	static unsigned int nextAgentId;
 
-	/**Indicates if the agent has been initialised using the frame_init method*/
-	bool initialized;
+
 
 	/**
 	 * Internal update function for handling frame_init(), frame_tick(), etc.
@@ -85,7 +84,11 @@ private:
 	 */
 	static void checkFrameTimes(unsigned int agentId, uint32_t now, unsigned int startTime, bool wasFirstFrame, bool wasRemoved);
 
+	/**Indicates if the agent has been initialised using the frame_init method*/
+	bool initialized;
+
 protected:
+
 	/**Indicates if the agent is to be removed from the simulation*/
 	bool toRemoved;
 

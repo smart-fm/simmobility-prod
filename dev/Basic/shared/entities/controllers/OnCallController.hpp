@@ -206,7 +206,7 @@ protected:
 	//TODO: These should not be hardcoded
 	const double additionalDelayThreshold = std::numeric_limits<double>::max();
 	const double waitingTimeThreshold = std::numeric_limits<double>::max();
-	const unsigned maxVehicleOccupancy = 3;
+	const unsigned maxVehicleOccupancy = 2; //number of passengers (the driver is not considered in this number) //TODO: it should be vehicle based
 
 };
 }

@@ -28,6 +28,7 @@
 #include "workers/Worker.hpp"
 #include "util/LangHelpers.hpp"
 #include "util/DebugFlags.hpp"
+#include "logging/ControllerLog.hpp"
 
 
 using namespace sim_mob;
@@ -153,6 +154,10 @@ UpdateStatus sim_mob::Agent::performUpdate(timeslice now)
 		
 		if (frameInitRes.status == UpdateStatus::RS_DONE)
 		{
+#ifndef NDEBUG
+			if (dynamic_cast<MobilityServiceController*>(this)  )
+					ControllerLog()<<"The controller is done." << std::endl;
+#endif
 			return frameInitRes;
 		}
 

@@ -29,6 +29,7 @@
 #include "util/FlexiBarrier.hpp"
 #include "util/LangHelpers.hpp"
 #include "message/MessageBus.hpp"
+#include "logging/ControllerLog.hpp"
 
 using std::set;
 using std::vector;

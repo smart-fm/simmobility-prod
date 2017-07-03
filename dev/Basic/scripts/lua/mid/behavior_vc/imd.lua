@@ -280,7 +280,7 @@ local function computeUtilities(params,dbparams)
 		cost_Rail_SMS_AE_2[i] = 3.4+((aed*(aed>10 and 1 or 0)-10*(aed>10 and 1 or 0))/0.35+(aed*(aed<=10 and 1 or 0)+10*(aed>10 and 1 or 0))/0.4)*0.22+ central_dummy[i]*3
 		cost_Rail_SMS_AE_avg[i] = (cost_Rail_SMS_AE_1[i] + cost_Rail_SMS_AE_2[i])/2
 
-		cost_rail_SMS[i] = cost_public[i] + cost_Rail_SMS_AE_avg[i]*0.25
+		cost_rail_SMS[i] = cost_public[i] + cost_Rail_SMS_AE_avg[i]*0.6
 
 		cost_over_income_bus[i]=30*cost_bus[i]/(0.5+income_mid)
 		cost_over_income_mrt[i]=30*cost_mrt[i]/(0.5+income_mid)

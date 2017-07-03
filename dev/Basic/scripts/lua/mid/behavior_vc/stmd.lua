@@ -193,7 +193,7 @@ local function computeUtilities(params,dbparams)
 		cost_Rail_SMS_AE_2[i] = 3.4+((aed*(aed>10 and 1 or 0)-10*(aed>10 and 1 or 0))/0.35+(aed*(aed<=10 and 1 or 0)+10*(aed>10 and 1 or 0))/0.4)*0.22+ dbparams:cost_car_ERP_second(i) + central_dummy[i]*3
 		cost_Rail_SMS_AE_avg[i] = (cost_Rail_SMS_AE_1[i] + cost_Rail_SMS_AE_2[i])/2
 
-		cost_rail_SMS[i] = cost_mrt[i] + cost_Rail_SMS_AE_avg[i]*0.25
+		cost_rail_SMS[i] = cost_mrt[i] + cost_Rail_SMS_AE_avg[i]*0.6
 
 		tt_car_ivt[i] = dbparams:tt_car_ivt_first(i) + dbparams:tt_car_ivt_second(i)
 		tt_public_ivt[i] = dbparams:tt_public_ivt_first(i) + dbparams:tt_public_ivt_second(i)

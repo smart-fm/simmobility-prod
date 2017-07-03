@@ -88,6 +88,12 @@ private:
 	void printParkingSlots(const std::map<unsigned int, ParkingSlot *> &parkingSlots) const;
 
 	/**
+ 	* Prints the parking Info (For Oncall & MRT)
+ 	* @param parkingDetails map of id vs the parking Detail (Info)
+ 	*/
+	void printParkingDetails(const std::map<unsigned int, ParkingDetail *> &parkingDetails) const;
+
+	/**
 	 * This method prints the stream to the output file.
      * @param str the stream to be written
      */

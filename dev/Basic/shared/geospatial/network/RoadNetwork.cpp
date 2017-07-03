@@ -669,7 +669,6 @@ void RoadNetwork::addBusStop(BusStop* stop)
 	}
 }
 
-
 void RoadNetwork::addParkingDetail(ParkingDetail* parking_detail)
 {
 	//Check if the parking  has already been added to the map
@@ -702,7 +701,6 @@ void RoadNetwork::addParkingDetail(ParkingDetail* parking_detail)
 		}
 	}
 }
-
 
 void RoadNetwork::addParking(ParkingSlot *parkingSlot)
 {

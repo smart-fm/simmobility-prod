@@ -11,15 +11,15 @@ Authors - Siyu Li, Harish Loganathan
 --Note: the betas that not estimated are fixed to zero.
 
 --!! see the documentation on the definition of AM,PM and OP table!!
-local beta_cons_bus = -2.928
-local beta_cons_mrt = -4.789
-local beta_cons_privatebus= -1.695
+local beta_cons_bus = -6.896
+local beta_cons_mrt = -7.959
+local beta_cons_privatebus= -6.331
 local beta_cons_drive1= 0
-local beta_cons_share2= -3.789
-local beta_cons_share3= -2.789
-local beta_cons_motor= 24.211
-local beta_cons_walk= 2.770
-local beta_cons_taxi= -4.622
+local beta_cons_share2= -9.448
+local beta_cons_share3= -9.987
+local beta_cons_motor= 10.692
+local beta_cons_walk= -10.0
+local beta_cons_taxi= -11.434
 local beta_cons_SMS = -4.622
 local beta_cons_rail_SMS = -4.789
 
@@ -76,7 +76,7 @@ local beta_threeplus_drive1 = 0
 
 local beta_zero_share2 = 0
 local beta_oneplus_share2 = 2.77
-local beta_twoplus_share2 = 2.77
+local beta_twoplus_share2 = 1.31
 local beta_threeplus_share2 = 0.140
 
 local beta_zero_share3 = 0
@@ -174,7 +174,9 @@ local function computeUtilities(params,dbparams)
 
 	local cost_bus=cost_public_first+cost_public_second+cost_increase
 	local cost_mrt=cost_public_first+cost_public_second+cost_increase
-	local cost_privatebus=cost_public_first+cost_public_second+cost_increase--dbparams.cost_car_ERP_first = AM[(origin,destination)]['car_cost_erp']
+	local cost_privatebus=cost_public_first+cost_public_second+cost_increase
+
+	--dbparams.cost_car_ERP_first = AM[(origin,destination)]['car_cost_erp']
 	--dbparams.cost_car_ERP_second = PM[(destination,origin)]['car_cost_erp']
 	--dbparams.cost_car_OP_first = AM[(origin,destination)]['distance']*0.147
 	--dbparams.cost_car_OP_second = PM[(destination,origin)]['distance']*0.147

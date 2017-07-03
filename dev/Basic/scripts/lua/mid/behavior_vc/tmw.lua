@@ -12,15 +12,15 @@ Authors - Siyu Li, Harish Loganathan
 
 --!! see the documentation on the definition of AM,PM and OP table!!
 
-local beta_cons_bus = -6.031
-local beta_cons_mrt = -7.392
-local beta_cons_privatebus = -2.606
+local beta_cons_bus = -2.027
+local beta_cons_mrt = -2.138
+local beta_cons_privatebus = -4.91
 local beta_cons_drive1 = 0
-local beta_cons_share2 = -4.892
-local beta_cons_share3 = -7.792
-local beta_cons_motor = 25.608
-local beta_cons_walk = -1.209
-local beta_cons_taxi = -8.333
+local beta_cons_share2 = -7.431
+local beta_cons_share3 = -6.132
+local beta_cons_motor = -2.742
+local beta_cons_walk = -12.0
+local beta_cons_taxi = -4.917
 local beta_cons_SMS = -8.333
 local beta_cons_rail_SMS = -7.392
 
@@ -52,8 +52,8 @@ local beta8_1_cost = -7.96
 local beta8_2_cost = -0.0332
 local beta9_1_cost = -6.74
 local beta9_2_cost = -0.0455
-local beta11_1_cost = -6.74
-local beta11_2_cost = -0.0455
+local beta10_1_cost = -4.97
+local beta10_2_cost = -0.0296
 local beta10_1_cost = -6.74
 local beta10_2_cost = -0.0455
 

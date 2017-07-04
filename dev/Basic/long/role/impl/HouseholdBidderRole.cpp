@@ -294,7 +294,10 @@ void HouseholdBidderRole::computeHouseholdAffordability()
 	std::vector<ExpectationEntry> expectations;
 	hpSubmodel.ComputeExpectation(1, expectations);
 
-	double price = expectations[0].hedonicPrice;
+	double price = 0;
+
+	if(expectations.size() > 0 )
+		price = expectations[0].hedonicPrice;
 
 	bidderHousehold->setCurrentUnitPrice( price );
 }
@@ -513,7 +516,7 @@ bool HouseholdBidderRole::bidUnit(timeslice now)
     {
     	//we are now rebidding on the same unit as yesterday.
     	//We will now increase the bid by 20 % of the difference of the bid and the AP
-    	biddingEntry.setBestBid( biddingEntry.getBestBid() + ( entry->getAskingPrice() - biddingEntry.getBestBid() ) * 0.2 );
+    	biddingEntry.setBestBid( biddingEntry.getBestBid() + fabs( entry->getAskingPrice() - biddingEntry.getBestBid() ) * 0.2 );
     }
     
     if (entry && biddingEntry.isValid())
@@ -571,6 +574,8 @@ bool HouseholdBidderRole::pickEntryToBid()
     boost::gregorian::date_duration dt(day);
     simulationDate = simulationDate + dt;
 
+    const double minUnitsInZoneHousingType = 2;
+
     //get available entries (for preferable zones if exists)
     HousingMarket::ConstEntryList entries;
 
@@ -604,6 +609,7 @@ bool HouseholdBidderRole::pickEntryToBid()
     	printProbabilityList(household->getId(), householdScreeningProbabilities);
 
 	std::set<const HousingMarket::Entry*> screenedEntries;
+	std::vector<const HousingMarket::Entry*> screenedEntriesVec; //This vector's only purpose is to print the choiceset
 
     for(int n = 0; n < entries.size() && screenedEntries.size() < config.ltParams.housingModel.bidderUnitsChoiceSet; n++)
     {
@@ -625,7 +631,7 @@ bool HouseholdBidderRole::pickEntryToBid()
     	auto range = market->getunitsByZoneHousingType().equal_range( zoneHousingType  );
     	int numUnits = distance(range.first, range.second); //find the number of units in the above zoneHousingType
 
-    	if(numUnits < config.ltParams.housingModel.bidderUnitsChoiceSet)
+    	if(numUnits < minUnitsInZoneHousingType)
     		continue;
 
 
@@ -684,6 +690,11 @@ bool HouseholdBidderRole::pickEntryToBid()
     }
 
     {
+
+    	for(auto itr = screenedEntries.begin(); itr != screenedEntries.end(); itr++)
+    		screenedEntriesVec.push_back(*itr);
+
+
     	set<BigSerial> btoEntries = market->getBTOEntries();
 
         //Add x BTO units to the screenedUnit vector if the household is eligible for it
@@ -697,17 +708,15 @@ bool HouseholdBidderRole::pickEntryToBid()
          	const HousingMarket::Entry* entry = market->getEntryById(*itr);
 
         	screenedEntries.insert(entry);
+        	screenedEntriesVec.push_back(entry);
 
         	btoEntries.erase(*itr);
         }
 
     	std::string choiceset(" ");
-    	for(int n = 0; n < screenedEntries.size(); n++)
+    	for(int n = 0; n < screenedEntriesVec.size(); n++)
     	{
-    		auto itr_scr = screenedEntries.begin();
-    		advance(itr_scr, n);
-
-    		choiceset += std::to_string( (*itr_scr)->getUnitId() )  + ", ";
+    		choiceset += std::to_string( screenedEntriesVec[n]->getUnitId() )  + ", ";
     	}
 
     	printChoiceset(day, household->getId(), choiceset);
@@ -764,7 +773,6 @@ bool HouseholdBidderRole::pickEntryToBid()
             	//The willingness to pay is in millions of dollars
             	WillingnessToPaySubModel wtp_m;
             	double wp = wtp_m.CalculateWillingnessToPay(unit, household, wtp_e,day, model);
-
 
 
 

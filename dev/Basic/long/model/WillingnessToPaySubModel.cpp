@@ -298,12 +298,12 @@ namespace sim_mob
 
 			if( lgsqrtArea >=  lowerQuantileCondo && lgsqrtArea < upperQuantileCondo )
 			{
-				sizeAreaQuantileCondo = 0;
+				sizeAreaQuantileCondo = 1;
 			}
 
 			if( lgsqrtArea >=  lowerQuantileHDB && lgsqrtArea < upperQuantileHDB )
 			{
-				sizeAreaQuantileHDB = 0;
+				sizeAreaQuantileHDB = 1;
 			}
 
 			//We use a separate list of coefficients for HDB units.
@@ -390,10 +390,18 @@ namespace sim_mob
 
 			double mallDistance = amenities->getDistanceToMall();
 
+            //Chetan. 3 July 2017.
+			//Temp fix cos XiaoHu added some distanceToMall in meters
+			if(mallDistance > 100 )
+				mallDistance = mallDistance / 1000;
+
+
 			int mallDistanceBool = 0;
 
 			if( amenities->getDistanceToMall() > 200 && amenities->getDistanceToMall() < 400 )
 				mallDistanceBool = 1;
+
+			double bmall2 = bmall;
 
 			double Vpriv = 	(barea		*  DD_area 		) +
 							(blogsum	* ZZ_logsumhh 	) +

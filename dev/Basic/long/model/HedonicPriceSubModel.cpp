@@ -557,7 +557,7 @@ vector<ExpectationEntry> HedonicPrice_SubModel::CalculateUnitExpectations (Unit 
         double crit = 0.0001; // -- criteria
         double maxIterations = 20; // --number of iterations
 
-        vector<ExpectationEntry> expectationsReverse;
+        const double lowerBound = 0.85;
 
         for(int i=1; i <= timeOnMarket; i++)
         {
@@ -565,12 +565,13 @@ vector<ExpectationEntry> HedonicPrice_SubModel::CalculateUnitExpectations (Unit 
 
             if( unit->isBto() )
             {
-            	entry.hedonicPrice = unit->getTotalPrice();
-  	            entry.askingPrice = unit->getTotalPrice();
-                entry.targetPrice = unit->getTotalPrice();
+            	entry.hedonicPrice = unit->getBTOPrice();
+  	            entry.askingPrice = unit->getBTOPrice();
+                entry.targetPrice = unit->getBTOPrice();
             }
             else
             {
+            	/*
                  a = 1.5 * reservationPrice;
                  x0 = 1.4 * reservationPrice;
 
@@ -580,13 +581,14 @@ vector<ExpectationEntry> HedonicPrice_SubModel::CalculateUnitExpectations (Unit 
 
                  reservationPrice = entry.targetPrice;
                  expectationsReverse.push_back(entry);
+                */
+
+            	 entry.hedonicPrice = hedonicPrice;
+            	 entry.targetPrice  = hedonicPrice *  lowerBound;
+            	 entry.askingPrice  = hedonicPrice * (lowerBound + ((double)timeOnMarket - i) / timeOnMarket * 0.2);
+            	 expectations.push_back(entry);
             }
     	}
-
-        for(int n = expectationsReverse.size() - 1; n >= 0; n--)
-        {
-        	expectations.push_back(expectationsReverse[n]);
-        }
     }
 
 

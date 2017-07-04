@@ -333,6 +333,7 @@ void HouseholdSellerRole::handleReceivedBid(const Bid &bid, BigSerial unitId)
 {
 	bool decision = false;
 	ExpectationEntry entry;
+	const double dHalf = 0.5;
 
 	if(getCurrentExpectation(unitId, entry))
 	{
@@ -357,14 +358,14 @@ void HouseholdSellerRole::handleReceivedBid(const Bid &bid, BigSerial unitId)
 			{
 				maxBidsOfDay.insert(std::make_pair(unitId, bid));
 			}
-			else if(maxBidOfDay->getBidValue() == bid.getBidValue())
+			else if( fabs(maxBidOfDay->getBidValue() - bid.getBidValue()) < EPSILON )
 			{
 				// bids are exactly equal. Randomly choose one.
 
 				double randomDraw = (double)rand()/RAND_MAX;
 
 				//drop the current bid
-				if(randomDraw < 0.5)
+				if(randomDraw < dHalf)
 				{
 					replyBid(*getParent(), *maxBidOfDay, entry, BETTER_OFFER, dailyBidCounter);
 					maxBidsOfDay.erase(unitId);
@@ -538,8 +539,15 @@ bool HouseholdSellerRole::getCurrentExpectation(const BigSerial& unitId, Expecta
         SellingUnitInfo& info = it->second;
 
         //expectations are start on last element to the first.
-        int dayRange = ((int)currentTime.ms() - info.startedDay)  / info.interval;
-        unsigned int index = dayRange  % info.expectations.size();
+        int index = ((int)currentTime.ms() - info.startedDay)  / info.interval;
+
+        if( index > info.expectations.size() )
+        {
+        	//This is an edge case. The unit is about to leave the market.
+        	//Let's just return the last asking price.
+        	index = info.expectations.size() - 1;
+
+        }
 
         if (index < info.expectations.size())
         {

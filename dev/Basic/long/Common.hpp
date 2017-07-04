@@ -165,7 +165,12 @@ namespace sim_mob {
         const int ID_DETACHED480 = 27;
         const int ID_DETACHED1199 = 31;
 
+
         const double EPSILON = 0.0001;
+        /*
+         * toa payoh scenario conigurations
+         */
+        const double hedonicLogsumStdDevForTpScenario = 0.03904;
 
         /**
          * Configs

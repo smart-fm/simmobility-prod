@@ -11,16 +11,15 @@ Authors - Siyu Li, Harish Loganathan
 --Note: the betas that not estimated are fixed to zero.
 
 --!! see the documentation on the definition of AM,PM and OP table!!
-local beta_cons_bus = -2.928
-local beta_cons_mrt = -4.789
-local beta_cons_privatebus= -1.695
+local beta_cons_bus = -6.896
+local beta_cons_mrt = -7.959
+local beta_cons_privatebus= -6.331
 local beta_cons_drive1= 0
-local beta_cons_share2= -3.789
-local beta_cons_share3= -2.789
-local beta_cons_motor= 24.211
-local beta_cons_walk= 2.770
-local beta_cons_taxi= -4.622
-
+local beta_cons_share2= -9.448
+local beta_cons_share3= -9.987
+local beta_cons_motor= 10.692
+local beta_cons_walk= -4.304
+local beta_cons_taxi= -11.434
 
 local beta1_1_tt = -0.687
 local beta1_2_tt = -0.690
@@ -71,7 +70,7 @@ local beta_threeplus_drive1 = 0
 
 local beta_zero_share2 = 0
 local beta_oneplus_share2 = 2.77
-local beta_twoplus_share2 = 1.31
+local beta_twoplus_share2 = 2.77
 local beta_threeplus_share2 = 0.140
 
 local beta_zero_share3 = 0
@@ -260,7 +259,7 @@ local function computeUtilities(params,dbparams)
 
 	local zero_car,one_plus_car,two_plus_car,three_plus_car, zero_motor,one_plus_motor,two_plus_motor,three_plus_motor = 0,0,0,0,0,0,0,0
 	local veh_own_cat = params.vehicle_ownership_category
-	if veh_own_cat == 0  then 
+	if veh_own_cat == 0 or veh_own_cat == 1 or veh_own_cat ==2 then 
 		zero_car = 1 
 	
 	end

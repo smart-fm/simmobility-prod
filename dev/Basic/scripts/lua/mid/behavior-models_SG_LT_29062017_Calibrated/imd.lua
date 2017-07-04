@@ -67,7 +67,6 @@ local beta_cons_motor = -2.398
 local beta_cons_walk = -101.128
 local beta_cons_taxi = -5.228
 
-
 local beta_zero_drive1 = 0
 local beta_oneplus_drive1 = 3.83
 local beta_twoplus_drive1 = 0.0514
@@ -101,7 +100,7 @@ local beta_female_walk = 0
 
 --choice set
 local choice = {}
-for i = 1, 24*9 do 
+for i = 1, 1169*9 do 
 	choice[i] = i
 end
 
@@ -131,13 +130,14 @@ local function computeUtilities(params,dbparams)
 	--imd use all cars (car_normal + car_offpeak) to calculate zero car...
 	local zero_car,one_plus_car,two_plus_car,three_plus_car, zero_motor,one_plus_motor,two_plus_motor,three_plus_motor = 0,0,0,0,0,0,0,0
 	local veh_own_cat = params.vehicle_ownership_category
-	if veh_own_cat == 0  then 
-		zero_car = 1 
-		
+	if veh_own_cat == 0 or veh_own_cat == 1 or veh_own_cat ==2 then
+		zero_car = 1 	
 	end
+
 	if veh_own_cat == 2 or veh_own_cat == 3 or veh_own_cat == 4 or veh_own_cat == 5  then 
 		one_plus_car = 1 
 	end
+
 	if veh_own_cat == 5  then 
 		two_plus_car = 1 
 	end
@@ -145,9 +145,11 @@ local function computeUtilities(params,dbparams)
 	if veh_own_cat == 5  then 
 		three_plus_car = 1 
 	end
+
 	if veh_own_cat == 0 or veh_own_cat == 3  then 
 		zero_motor = 1 
 	end
+
 	if veh_own_cat == 1 or veh_own_cat == 2 or veh_own_cat == 4 or veh_own_cat == 5  then 
 		one_plus_motor = 1 
 	end
@@ -160,8 +162,6 @@ local function computeUtilities(params,dbparams)
 		three_plus_motor = 1 
 	end
 	
-
-
 	local cost_public = {}
 	local cost_bus = {}
 	local cost_mrt = {}
@@ -214,7 +214,7 @@ local function computeUtilities(params,dbparams)
 	local area = {}
 	local shop = {}
 
-	for i =1,24 do
+	for i =1,1169 do
 		--dbparams.cost_public(i) = 
 
 		cost_public[i] = dbparams:cost_public(i)
@@ -283,56 +283,56 @@ local function computeUtilities(params,dbparams)
 	local V_counter = 0
 	local log = math.log
 
-	--utility function for bus 1-24
-	for i =1,24 do
+	--utility function for bus 1-1169
+	for i =1,1169 do
 		V_counter = V_counter + 1
 		utility[V_counter] = beta_cons_bus + cost_bus[i] * beta_cost_bus_mrt_2 + tt_bus[i] * beta_tt_bus_mrt + beta_central_bus_mrt * central_dummy[i] + beta_shop * log(1+shop[i])*shop_stop_dummy+beta_work * log(1+employment[i])*work_stop_dummy + (d1[i]+d2[i]) * beta_distance_bus_mrt + beta_female_bus * female_dummy
 	end
 
-	--utility function for mrt 1-24
-	for i=1,24 do
+	--utility function for mrt 1-1169
+	for i=1,1169 do
 		V_counter = V_counter +1
 		utility[V_counter] = beta_cons_mrt + cost_mrt[i] * beta_cost_bus_mrt_2 + tt_mrt[i] * beta_tt_bus_mrt + beta_central_bus_mrt * central_dummy[i] + beta_shop * log(1+shop[i])*shop_stop_dummy+beta_work * log(1+employment[i])*work_stop_dummy + (d1[i]+d2[i]) * beta_distance_bus_mrt + beta_female_mrt * female_dummy
 	end
 
-	--utility function for private bus 1-24
-	for i=1,24 do
+	--utility function for private bus 1-1169
+	for i=1,1169 do
 		V_counter = V_counter +1
 		utility[V_counter] = beta_cons_private_bus + cost_private_bus[i] * beta_cost_private_bus_2 + tt_private_bus[i] * beta_tt_private_bus + beta_central_private_bus * central_dummy[i] + beta_shop * log(1+shop[i])*shop_stop_dummy+beta_work * log(1+employment[i])*work_stop_dummy + (d1[i]+d2[i]) * beta_distance_private_bus + beta_female_private_bus * female_dummy
 	end
 
-	--utility function for drive1 1-24
-	for i=1,24 do
+	--utility function for drive1 1-1169
+	for i=1,1169 do
 		V_counter = V_counter +1
 		utility[V_counter] = beta_cons_drive1 + first_bound * cost_drive1[i] * beta_cost_drive1_2_first + second_bound * cost_drive1[i] * beta_cost_drive1_2_second + first_bound * tt_drive1[i] * beta_tt_drive1_first + second_bound * tt_drive1[i] * beta_tt_drive1_second + beta_central_drive1 * central_dummy[i] + beta_shop * log(1+shop[i])*shop_stop_dummy+beta_work * log(1+employment[i])*work_stop_dummy + (d1[i]+d2[i]) * beta_distance_drive1 + beta_zero_drive1 *zero_car + beta_oneplus_drive1 * one_plus_car + beta_twoplus_drive1 * two_plus_car + beta_threeplus_drive1 * three_plus_car + beta_female_drive1 * female_dummy
 	end
 
-	--utility function for share2 1-24
-	for i=1,24 do
+	--utility function for share2 1-1169
+	for i=1,1169 do
 		V_counter = V_counter +1
 		utility[V_counter] = beta_cons_share2 + first_bound * cost_share2[i] * beta_cost_drive1_2_first + second_bound * cost_share2[i] * beta_cost_drive1_2_second + first_bound * tt_share2[i] * beta_tt_drive1_first + second_bound * tt_share2[i] * beta_tt_drive1_second + beta_central_share2 * central_dummy[i] + beta_shop * log(1+shop[i])*shop_stop_dummy+beta_work * log(1+employment[i])*work_stop_dummy + (d1[i]+d2[i]) * beta_distance_share2 + beta_zero_share2 *zero_car + beta_oneplus_share2 * one_plus_car + beta_twoplus_share2 * two_plus_car + beta_threeplus_share2 * three_plus_car + beta_female_share2 * female_dummy
 	end
 
-	--utility function for share3 1-24
-	for i=1,24 do
+	--utility function for share3 1-1169
+	for i=1,1169 do
 		V_counter = V_counter +1
 		utility[V_counter] = beta_cons_share3 + first_bound * cost_share3[i] * beta_cost_drive1_2_first + second_bound * cost_share3[i] * beta_cost_drive1_2_second + first_bound * tt_share3[i] * beta_tt_drive1_first + second_bound * tt_share3[i] * beta_tt_drive1_second + beta_central_share3 * central_dummy[i] + beta_shop * log(1+shop[i])*shop_stop_dummy+beta_work * log(1+employment[i])*work_stop_dummy + (d1[i]+d2[i]) * beta_distance_share3 + beta_zero_share3 *zero_car + beta_oneplus_share3 * one_plus_car + beta_twoplus_share3 * two_plus_car + beta_threeplus_share3 * three_plus_car + beta_female_share3 * female_dummy
 	end
 
-	--utility function for motor 1-24
-	for i=1,24 do
+	--utility function for motor 1-1169
+	for i=1,1169 do
 		V_counter = V_counter +1
 		utility[V_counter] = beta_cons_motor + cost_motor[i] * beta_cost_motor_2 + first_bound * tt_motor[i] * beta_tt_drive1_first + second_bound * tt_motor[i] * beta_tt_drive1_second + beta_central_motor * central_dummy[i] + beta_shop * log(1+shop[i])*shop_stop_dummy+beta_work * log(1+employment[i])*work_stop_dummy + (d1[i]+d2[i]) * beta_distance_motor + beta_zero_motor *zero_motor + beta_oneplus_motor * one_plus_motor + beta_twoplus_motor * two_plus_motor + beta_threeplus_motor * three_plus_motor + beta_female_motor * female_dummy
 	end
 
-	--utility function for walk 1-24
-	for i=1,24 do
+	--utility function for walk 1-1169
+	for i=1,1169 do
 		V_counter = V_counter +1
 		utility[V_counter] = beta_cons_walk + tt_walk[i] * beta_tt_walk + beta_central_walk * central_dummy[i] + beta_shop * log(1+shop[i])*shop_stop_dummy+beta_work * log(1+employment[i])*work_stop_dummy + (d1[i]+d2[i]) * beta_distance_walk + beta_female_walk * female_dummy
 	end
 
-	--utility function for taxi 1-24
-	for i=1,24 do
+	--utility function for taxi 1-1169
+	for i=1,1169 do
 		V_counter = V_counter +1
 		utility[V_counter] = beta_cons_taxi + first_bound * cost_taxi[i]* beta_cost_drive1_2_first + second_bound * cost_taxi[i]* beta_cost_drive1_2_second + first_bound * tt_taxi[i] * beta_tt_taxi_first + second_bound * tt_taxi[i] * beta_tt_taxi_second + beta_central_taxi * central_dummy[i] + beta_shop * log(1+shop[i])*shop_stop_dummy+beta_work * log(1+employment[i])*work_stop_dummy + (d1[i]+d2[i]) * beta_distance_taxi + beta_female_taxi * female_dummy
 	end
@@ -344,14 +344,14 @@ end
 --the logic to determine availability is the same with current implementation
 local availability = {}
 local function computeAvailabilities(params,dbparams)
-	for i = 1, 24*9 do 
+	for i = 1, 1169*9 do 
 		availability[i] = dbparams:availability(i)
 	end
 end
 
 --scale
 local scale={}
-for i = 1, 24*9 do
+for i = 1, 1169*9 do
 	scale[i]=1
 end
 

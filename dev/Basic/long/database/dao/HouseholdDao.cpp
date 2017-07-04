@@ -65,7 +65,12 @@ void HouseholdDao::toRow(Household& data, Parameters& outParams, bool update)
 	outParams.push_back(data.getWorkers());
 	outParams.push_back(data.getAgeOfHead());
 	outParams.push_back(data.getPendingStatusId());
-	outParams.push_back(data.getPendingFromDate());
+	std::tm pendingFromDate = data.getPendingFromDate();
+	if(pendingFromDate.tm_year == 9999)
+	{
+		pendingFromDate.tm_year = (pendingFromDate.tm_year - 1900);
+	}
+	outParams.push_back(pendingFromDate);
 	outParams.push_back(data.getUnitPending());
 	outParams.push_back(data.getTaxiAvailability());
 	outParams.push_back(data.getVehicleOwnershipOptionId());

@@ -507,8 +507,8 @@ TimeWindowAvailability PredaySystem::predictTourTimeOfDay(Tour& tour)
 			case 9:
 			{
 				//todBasedTT is from tcost_bus for modes 1, 2 & 3 and is from tcost_car for modes 4, 5, 6, 7 & 9
-				ttFirstHalfTour.push_back(todBasedTT.getArrivalBasedTT_at(i));
-				ttSecondHalfTour.push_back(todBasedTT.getDepartureBasedTT_at(i));
+				ttFirstHalfTour.push_back(todBasedTT.getArrivalBasedTT_at(i-1));
+				ttSecondHalfTour.push_back(todBasedTT.getDepartureBasedTT_at(i-1));
 				break;
 			}
 			case 8:

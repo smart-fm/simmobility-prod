@@ -345,6 +345,10 @@ void ParseConfigFile::processLongTermParamsNode(xercesc::DOMElement *node)
 			ParseString(GetNamedAttributeValue(GetSingleElementByName(
 					scenarioNode, "parcelsTable"), "value"), "");
 
+	scenario.scenarioSchema =
+				ParseString(GetNamedAttributeValue(GetSingleElementByName(
+						scenarioNode, "scenarioSchema"), "value"), "");
+
 	cfg.ltParams.scenario = scenario;
 }
 

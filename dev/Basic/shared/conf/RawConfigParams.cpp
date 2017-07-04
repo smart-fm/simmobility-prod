@@ -62,9 +62,7 @@ sim_mob::LongTermParams::OutputFiles::OutputFiles(): bids(false),
 													 enabled(false){}
 
 
-sim_mob::LongTermParams::Scenario::Scenario():  enabled(false),
-												scenarioName(""),
-												parcelsTable(""){}
+sim_mob::LongTermParams::Scenario::Scenario():  enabled(false),scenarioName(""),parcelsTable(""),scenarioSchema(""){}
 
 
 sim_mob::Schemas::Schemas():	enabled(false),

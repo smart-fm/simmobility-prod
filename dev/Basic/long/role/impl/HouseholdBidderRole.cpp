@@ -574,6 +574,8 @@ bool HouseholdBidderRole::pickEntryToBid()
     boost::gregorian::date_duration dt(day);
     simulationDate = simulationDate + dt;
 
+    const double minUnitsInZoneHousingType = 2;
+
     //get available entries (for preferable zones if exists)
     HousingMarket::ConstEntryList entries;
 
@@ -629,7 +631,7 @@ bool HouseholdBidderRole::pickEntryToBid()
     	auto range = market->getunitsByZoneHousingType().equal_range( zoneHousingType  );
     	int numUnits = distance(range.first, range.second); //find the number of units in the above zoneHousingType
 
-    	if(numUnits < 2)
+    	if(numUnits < minUnitsInZoneHousingType)
     		continue;
 
 

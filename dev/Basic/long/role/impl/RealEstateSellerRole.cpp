@@ -217,6 +217,8 @@ void RealEstateSellerRole::HandleMessage(Message::MessageType type, const Messag
             bool decision = false;
             ExpectationEntry entry;
 
+            const double dHalf = 0.5;
+
             if(getCurrentExpectation(unitId, entry))
             {
                 //increment counter
@@ -247,7 +249,7 @@ void RealEstateSellerRole::HandleMessage(Message::MessageType type, const Messag
         				double randomDraw = (double)rand()/RAND_MAX;
 
         				//drop the current bid
-        				if(randomDraw < 0.5)
+        				if(randomDraw < dHalf)
         				{
         					replyBid(*dynamic_cast<RealEstateAgent*>(getParent()), *maxBidOfDay, entry, BETTER_OFFER, dailyBidCounter);
         					maxBidsOfDay.erase(unitId);

@@ -333,6 +333,7 @@ void HouseholdSellerRole::handleReceivedBid(const Bid &bid, BigSerial unitId)
 {
 	bool decision = false;
 	ExpectationEntry entry;
+	const double dHalf = 0.5;
 
 	if(getCurrentExpectation(unitId, entry))
 	{
@@ -364,7 +365,7 @@ void HouseholdSellerRole::handleReceivedBid(const Bid &bid, BigSerial unitId)
 				double randomDraw = (double)rand()/RAND_MAX;
 
 				//drop the current bid
-				if(randomDraw < 0.5)
+				if(randomDraw < dHalf)
 				{
 					replyBid(*getParent(), *maxBidOfDay, entry, BETTER_OFFER, dailyBidCounter);
 					maxBidsOfDay.erase(unitId);

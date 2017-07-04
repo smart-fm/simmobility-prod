@@ -434,8 +434,14 @@ bool RealEstateSellerRole::getCurrentExpectation(const BigSerial& unitId, Expect
         SellingUnitInfo& info = it->second;
 
         //expectations are start on last element to the first.
-        int dayRange = ((int)currentTime.ms() - info.startedDay)  / info.interval;
-        unsigned int index = dayRange  % info.expectations.size();
+        int index  = ((int)currentTime.ms() - info.startedDay)  / info.interval;
+
+        if( index > info.expectations.size() )
+        {
+        	//This is an edge case. The unit is about to leave the market.
+        	//Let's just return the last asking price.
+        	index = info.expectations.size() - 1;
+         }
 
         if (index < info.expectations.size())
         {

@@ -357,7 +357,7 @@ void HouseholdSellerRole::handleReceivedBid(const Bid &bid, BigSerial unitId)
 			{
 				maxBidsOfDay.insert(std::make_pair(unitId, bid));
 			}
-			else if(maxBidOfDay->getBidValue() == bid.getBidValue())
+			else if( fabs(maxBidOfDay->getBidValue() - bid.getBidValue()) < EPSILON )
 			{
 				// bids are exactly equal. Randomly choose one.
 

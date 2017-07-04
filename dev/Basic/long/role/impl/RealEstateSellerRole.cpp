@@ -240,6 +240,26 @@ void RealEstateSellerRole::HandleMessage(Message::MessageType type, const Messag
                     {
                         maxBidsOfDay.insert(std::make_pair(unitId, msg.getBid()));
                     }
+        			else if( fabs(maxBidOfDay->getBidValue() - msg.getBid().getBidValue()) < EPSILON)
+        			{
+        				// bids are equal (i.e so close the difference is less that EPSILON). Randomly choose one.
+
+        				double randomDraw = (double)rand()/RAND_MAX;
+
+        				//drop the current bid
+        				if(randomDraw < 0.5)
+        				{
+        					replyBid(*dynamic_cast<RealEstateAgent*>(getParent()), *maxBidOfDay, entry, BETTER_OFFER, dailyBidCounter);
+        					maxBidsOfDay.erase(unitId);
+
+        					//update the new bid and bidder.
+        					maxBidsOfDay.insert(std::make_pair(unitId, msg.getBid()));
+        				}
+        				else //keep the current bid
+        				{
+        					replyBid(*dynamic_cast<RealEstateAgent*>(getParent()), msg.getBid(), entry, BETTER_OFFER, dailyBidCounter);
+        				}
+        			}
                     else if(maxBidOfDay->getBidValue() < msg.getBid().getBidValue())
                     {
                         // bid is higher than the current one of the day.
@@ -303,8 +323,12 @@ void RealEstateSellerRole::adjustNotSoldUnits()
 					#ifdef VERBOSE
 					PrintOutV("[day " << this->currentTime.ms() << "] RealEstate Agent. Removing unit " << unitId << " from the market. start:" << info.startedDay << " currentDay: " << currentTime.ms() << " daysOnMarket: " << info.daysOnMarket << std::endl );
 					#endif
-					 market->removeEntry(unitId);
-					 continue;
+
+					sellingUnitsMap.erase(unitId);
+
+					market->removeEntry(unitId);
+
+					continue;
 				 }
 			 }
 

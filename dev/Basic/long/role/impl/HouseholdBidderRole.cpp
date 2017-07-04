@@ -516,7 +516,7 @@ bool HouseholdBidderRole::bidUnit(timeslice now)
     {
     	//we are now rebidding on the same unit as yesterday.
     	//We will now increase the bid by 20 % of the difference of the bid and the AP
-    	biddingEntry.setBestBid( biddingEntry.getBestBid() + ( entry->getAskingPrice() - biddingEntry.getBestBid() ) * 0.2 );
+    	biddingEntry.setBestBid( biddingEntry.getBestBid() + fabs( entry->getAskingPrice() - biddingEntry.getBestBid() ) * 0.2 );
     }
     
     if (entry && biddingEntry.isValid())

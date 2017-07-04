@@ -403,13 +403,6 @@ namespace sim_mob
 
 			double bmall2 = bmall;
 
-			if( unit->isBto() )
-			{
-				ZZ_logsumhh += halfStandDeviationLogsum;
-				bmall2 = bmall2 / 1000;
-			}
-
-
 			double Vpriv = 	(barea		*  DD_area 		) +
 							(blogsum	* ZZ_logsumhh 	) +
 							(bsizearea	 * sizeAreaQuantileCondo) +

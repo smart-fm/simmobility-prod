@@ -208,7 +208,7 @@ void RealEstateAgent::HandleMessage(Message::MessageType type, const Message& me
 	        {
 	            const HM_ActionMessage& hmMessage = MSG_CAST(HM_ActionMessage, message);
 	            Unit *unit = hmMessage.getUnit();
-			unit->setBto(false);
+	            unit->setBto(true);
 	           	units.push_back(unit);
 	            unitsById.insert(std::make_pair((unit)->getId(), unit));
 	            break;
@@ -242,7 +242,7 @@ void RealEstateAgent::HandleMessage(Message::MessageType type, const Message& me
 	            		(itr->second)->setTimeOffMarket(1 + config.ltParams.housingModel.timeOnMarket );
 	            		(itr->second)->setTimeOnMarket(1 + config.ltParams.housingModel.timeOffMarket );
 	            		(itr->second)->setbiddingMarketEntryDay(day);
- 				(itr->second)->setBto(false);
+ 				(itr->second)->setBto(true);
 	            	}
 	            changeUnitSaleStatus(hmMessage.getUnitId(),UNIT_LAUNCHED_BUT_UNSOLD);
 	            break;
@@ -258,7 +258,7 @@ void RealEstateAgent::HandleMessage(Message::MessageType type, const Message& me
 	        		(itr->second)->setTimeOffMarket(1 + config.ltParams.housingModel.timeOnMarket );
 	        		(itr->second)->setTimeOnMarket(1 + config.ltParams.housingModel.timeOffMarket );
 	        		(itr->second)->setbiddingMarketEntryDay(day);
-				(itr->second)->setBto(false);
+	        		(itr->second)->setBto(true);
 	        	}
 	        	changeUnitSaleStatus(hmMessage.getUnitId(),UNIT_LAUNCHED_BUT_UNSOLD);
 	        	break;

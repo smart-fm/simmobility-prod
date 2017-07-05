@@ -119,11 +119,14 @@ void TaxiDriver::alightPassenger()
 void TaxiDriver::passengerChoiceModel(const Node *origin,const Node *destination, std::vector<WayPoint> &currentRouteChoice)
 {
 	std::vector<WayPoint> res;
-	bool useInSimulationTT = parent->usesInSimulationTravelTime();
 	SubTrip currSubTrip;
 	currSubTrip.origin = WayPoint(origin);
 	currSubTrip.destination = WayPoint(destination);
 	const Lane *currentLane = taxiDriverMovement->getCurrentlane();
+
+	/**On call drivers use in simulation travel-times, on hail drivers do not*/
+	bool useInSimulationTT = !taxiDriverMovement->isSubscribedToOnHail();
+
 	currentRouteChoice = PrivateTrafficRouteChoice::getInstance()->getPathAfterPassengerPickup(currSubTrip, false,
 	                                                                                           nullptr, currentLane,
 	                                                                                           useInSimulationTT);

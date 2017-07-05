@@ -64,9 +64,9 @@ public:
 
 	/**
 	 * set new route after route choice
-	 * @param currentChoice is a list of links holding new route
+	 * @param routeToDestination is a list of links holding new route
 	 */
-	void addRouteChoicePath(std::vector<WayPoint> &currentChoice);
+	void addRouteChoicePath(std::vector<WayPoint> &routeToDestination);
 
 	/**
 	 * set current node as new start node
@@ -93,6 +93,12 @@ public:
 	 * @return true if calling request is successful
 	 */
 	bool driveToNodeOnCall(const std::string &personId, const Node *destination);
+
+	/**
+	 * Sets the driver to cruise to a given node. This functionality is specific to on call drivers
+	 * @param destination the destination node to cruise to
+	 */
+	void cruiseToNode(const Node *destination);
 
 	virtual const std::vector<MobilityServiceController*>& getSubscribedControllers() const;
 

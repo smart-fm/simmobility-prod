@@ -935,6 +935,8 @@ bool TrainDriver::isBoardingRestricted()
 			}
 		}
 	}
+
+	return false;
 }
 
 void TrainDriver::setHasForceAlightedInDisruption(bool hasForceAlighted)
@@ -973,6 +975,8 @@ bool TrainDriver::isAlightingRestricted()
 			}
 		}
 	}
+
+	return false;
 }
 
 

@@ -138,6 +138,13 @@ private:
 	 void loadParkingSlots(const std::string& storedProc);
 
 	/**
+	 * Load All the parking detail associated with Parking ID (OnCALL/MRT) using the given stored procedure
+	 *
+	 * @param storedProc - the stored procedure to be executed in order to retrieve the data
+	 */
+	void loadAllParking(const std::string& storedProc);
+
+	/**
 	 * Loads the surveillance stations and traffic sensors within the network using the given stored procedure
 	 *
 	 * @param storedProc - the stored procedure to be executed in order to retrieve the data

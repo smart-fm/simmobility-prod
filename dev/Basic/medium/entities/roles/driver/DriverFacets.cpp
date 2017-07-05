@@ -253,7 +253,8 @@ void DriverMovement::frame_tick()
 std::string DriverMovement::frame_tick_output()
 {
 	const DriverUpdateParams& params = parentDriver->getParams();
-	if (pathMover.isPathCompleted() || ConfigManager::GetInstance().CMakeConfig().OutputDisabled())
+	if (pathMover.isPathCompleted() || !parentDriver->parent->getCurrSegStats() || !parentDriver->parent->getCurrLane()
+	    || ConfigManager::GetInstance().CMakeConfig().OutputDisabled())
 	{
 		return std::string();
 	}

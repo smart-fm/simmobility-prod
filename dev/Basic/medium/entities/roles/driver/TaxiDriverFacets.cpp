@@ -37,6 +37,13 @@ TaxiDriverMovement::~TaxiDriverMovement()
 
 void TaxiDriverMovement::frame_init()
 {
+#ifndef NDEBUG
+	if (!MobilityServiceControllerManager::HasMobilityServiceControllerManager())
+	{
+		throw std::runtime_error("No controller manager exists");
+	}
+#endif
+
 	Vehicle *newVeh = new Vehicle(Vehicle::TAXI, sim_mob::TAXI_LENGTH);
 	parentTaxiDriver->setResource(newVeh);
 	parentTaxiDriver->setDriverStatus(MobilityServiceDriverStatus::CRUISING);
@@ -47,12 +54,13 @@ void TaxiDriverMovement::frame_init()
 	currentFleetItem = fleets.top();
 	fleets.pop();
 
-	if (MobilityServiceControllerManager::HasMobilityServiceControllerManager())
+
+	const std::multimap<MobilityServiceControllerType, MobilityServiceController*>& controllers =
+			MobilityServiceControllerManager::GetInstance()->getControllers();
+	for (const std::pair<MobilityServiceControllerType, MobilityServiceController*>& p: controllers)
 	{
-		auto controllers = MobilityServiceControllerManager::GetInstance()->getControllers();
-		subscribeToController(controllers, SERVICE_CONTROLLER_GREEDY);
-		subscribeToController(controllers, SERVICE_CONTROLLER_SHARED);
-		subscribeToController(controllers, SERVICE_CONTROLLER_ON_HAIL);
+		const MobilityServiceControllerType type = p.first;
+		subscribeToOrIgnoreController(controllers, type);
 	}
 
 	(isSubscribedToOnHail() && CruiseOnlyOrMoveToTaxiStand())?driveToTaxiStand():selectNextLinkWhileCruising();  // for 1 : drive_to_taxiStand or cruise
@@ -66,13 +74,24 @@ void TaxiDriverMovement::frame_init()
 	}
 }
 
-void TaxiDriverMovement::subscribeToController(
-		multimap<MobilityServiceControllerType, MobilityServiceController *> &controllers,
+void TaxiDriverMovement::subscribeToOrIgnoreController(
+		const multimap<MobilityServiceControllerType, MobilityServiceController *> &controllers,
 		MobilityServiceControllerType controllerType)
 {
+
 	if (currentFleetItem.controllerSubscription & controllerType)
 	{
 		auto range = controllers.equal_range(controllerType);
+
+
+#ifndef NDEBUG
+		if (range.first ==  range.second)
+		{
+			std::stringstream msg; msg<<"Driver "<<parentDriver->getParent()->getDatabaseId()<<" wants to subscribe to type "<<
+				toString(controllerType)<<", but no controller of that type is registered";
+			throw std::runtime_error(msg.str() );
+		}
+#endif
 		for (auto itController = range.first; itController != range.second; ++itController)
 		{
 
@@ -92,7 +111,7 @@ void TaxiDriverMovement::subscribeToController(
 #ifndef NDEBUG
 			ControllerLog() << "Driver " << parentDriver->getParent()->getDatabaseId()
 			                << " sent a subscription to the controller "
-			                << itController->second->GetId() << " at time " << parentDriver->getParent()->currTick
+			                << itController->second->toString() << " at time " << parentDriver->getParent()->currTick
 			                << std::endl;
 #endif
 
@@ -964,7 +983,7 @@ std::string TaxiDriverMovement::frame_tick_output()
     	Print() << out.str();
     */
 	taxitrajectoryLogger << out.str();
-	return out.str();
+return out.str();
 }
 
 

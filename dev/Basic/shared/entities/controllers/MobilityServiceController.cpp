@@ -7,13 +7,15 @@
 
 #include "MobilityServiceController.hpp"
 #include "logging/ControllerLog.hpp"
+#include <string>
 
 namespace sim_mob {
 
 
 
 
-MobilityServiceController::~MobilityServiceController() {
+MobilityServiceController::~MobilityServiceController()
+{
 	// TODO Auto-generated destructor stub
 }
 
@@ -31,6 +33,7 @@ Entity::UpdateStatus MobilityServiceController::frame_init(timeslice now)
 		msg<<". This is related to this issue: https://github.com/smart-fm/simmobility/issues/590"<<std::endl;
 		Warn()<< msg.str()<<std::endl;
 	}
+	consistencyChecks();
 #endif
 
 	currTick = now;
@@ -40,12 +43,18 @@ Entity::UpdateStatus MobilityServiceController::frame_init(timeslice now)
 
 Entity::UpdateStatus MobilityServiceController::frame_tick(timeslice now)
 {
+#ifndef NDEBUG
+	consistencyChecks();
+#endif
 	currTick = now;
 	return Entity::UpdateStatus::Continue;
 }
 
 void MobilityServiceController::HandleMessage(messaging::Message::MessageType type, const messaging::Message &message)
 {
+#ifndef NDEBUG
+	consistencyChecks();
+#endif
 
 	switch (type)
 	{
@@ -77,6 +86,7 @@ void MobilityServiceController::subscribeDriver(Person *driver)
 	ControllerLog()<<"Subscription received by the controller from driver "<< driver->getDatabaseId()
 			<<" at time "<< currTick <<std::endl;
 #ifndef NDEBUG
+	consistencyChecks();
                 if (!isMobilityServiceDriver(driver) )
                 {
                         std::stringstream msg; msg<<"Driver "<<driver->getDatabaseId()<<
@@ -98,6 +108,9 @@ void MobilityServiceController::unsubscribeDriver(Person *driver)
 
 bool MobilityServiceController::isNonspatial()
 {
+#ifndef NDEBUG
+	consistencyChecks();
+#endif
 	// A controller is not located in any specific place
 	return true;
 }
@@ -106,18 +119,87 @@ void MobilityServiceController::frame_output(timeslice now)
 {
 }
 
-
-const std::string fromMobilityServiceControllerTypetoString(MobilityServiceControllerType type)
+void MobilityServiceController::onRegistrationOnTheMessageBus()const
 {
-	switch(type)
+#ifndef NDEBUG
+	consistencyChecks();
+#endif
+	sim_mob::ControllerLog()<<"The controller has been successfully registered"<<std::endl;
+}
+
+void MobilityServiceController::consistencyChecks() const
+{
+	try{ sim_mob::consistencyChecks(controllerServiceType);}
+	catch(const std::runtime_error& e)
 	{
-		case (SERVICE_CONTROLLER_UNKNOWN): { return "SERVICE_CONTROLLER_UNKNOWN"; }
-		case (SERVICE_CONTROLLER_GREEDY): { return "SERVICE_CONTROLLER_GREEDY"; }
-		case (SERVICE_CONTROLLER_SHARED): { return "SERVICE_CONTROLLER_SHARED"; }
-		case (SERVICE_CONTROLLER_ON_HAIL): { return "SERVICE_CONTROLLER_ON_HAIL"; }
-		case (SERVICE_CONTROLLER_FRAZZOLI): { return "SERVICE_CONTROLLER_FRAZZOLI"; }
-		default:{throw std::runtime_error("type unknown"); }
-	};
+		std::stringstream msg; msg<<"Error in controller "<<controllerId<<": "<<e.what();
+		throw std::runtime_error(msg.str() );
+	}
+}
+
+unsigned MobilityServiceController::getControllerId() const
+{
+	return controllerId;
+}
+
+MobilityServiceControllerType MobilityServiceController::getServiceType() const
+{
+	return controllerServiceType;
+}
+
+
+const std::string MobilityServiceController::toString() const
+{
+	std::string str;
+		str = str + "Controller id:" + std::to_string( getControllerId() )  + ",type:" + std::to_string( getServiceType() );
+		return str;
+}
+
+void MobilityServiceController::setToBeRemoved()
+{
+	Agent::setToBeRemoved();
+}
+
+
+const std::string toString(const MobilityServiceControllerType type)
+{
+
+    switch(type)
+	{
+		case SERVICE_CONTROLLER_GREEDY:
+		{ return "SERVICE_CONTROLLER_GREEDY";}
+		case SERVICE_CONTROLLER_SHARED:
+		{ return "SERVICE_CONTROLLER_SHARED";}
+		case SERVICE_CONTROLLER_FRAZZOLI:
+		{	return "SERVICE_CONTROLLER_FRAZZOLI";}
+		case SERVICE_CONTROLLER_ON_HAIL:
+		{	return "SERVICE_CONTROLLER_ON_HAIL";}
+		default:
+		{
+			std::stringstream msg; msg<<"Unrecognized MobilityServiceControllerType "<<type;
+			throw std::runtime_error(msg.str() );
+		}
+	}
+}
+
+void consistencyChecks(const MobilityServiceControllerType type)
+{
+    switch(type)
+	{
+		case SERVICE_CONTROLLER_GREEDY:
+		{ break;}
+		case SERVICE_CONTROLLER_SHARED:
+		{ break;}
+		case SERVICE_CONTROLLER_FRAZZOLI:
+		{ break;}
+		case SERVICE_CONTROLLER_ON_HAIL:
+		{ break;}
+		default:
+		{
+			std::stringstream msg; msg<<"Unrecognized MobilityServiceControllerType "<<type;
+			throw std::runtime_error(msg.str() );
+		}
+	}
 }
 
 } /* namespace sim_mob */

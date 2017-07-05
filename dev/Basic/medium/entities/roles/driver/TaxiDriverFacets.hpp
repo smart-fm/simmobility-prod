@@ -215,7 +215,7 @@ private:
 	 * @param controllers map of controllers
 	 * @param controllerType the type of controller to be subscribed
 	 */
-	void subscribeToController(std::multimap<MobilityServiceControllerType, MobilityServiceController *> &controllers,
+	void subscribeToOrIgnoreController(const std::multimap<MobilityServiceControllerType, MobilityServiceController *>& controllers,
 							   MobilityServiceControllerType controllerType);
 };
 

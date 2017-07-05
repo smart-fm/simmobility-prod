@@ -41,6 +41,12 @@ public:
 	virtual void HandleMessage(Message::MessageType type, const Message& message) = 0;
 
 	/**
+	 * You can override this message if you want to perform some specific action after being registered to
+	 * the message bus
+	 */
+	virtual void onRegistrationOnTheMessageBus()const{};
+
+	/**
 	 * Gets the id associated with this handler.
 	 * NOTE: used only for debug but it will be necessary on the future.
 	 * @return id value associated.

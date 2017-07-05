@@ -61,7 +61,7 @@ const std::string MobilityServiceDriver::getSubscribedControllerTypesStr() const
 	std::string returnString = "";
 	for (const MobilityServiceController* controller : getSubscribedControllers() )
 	{
-		returnString += ( fromMobilityServiceControllerTypetoString(controller->type) + ", " );
+		returnString += ( toString(controller->getServiceType() ) + ", " );
 	}
 	return returnString;
 }

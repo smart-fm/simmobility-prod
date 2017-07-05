@@ -80,6 +80,7 @@ void TaxiDriver::alightPassenger()
 	{
 		Passenger *passenger = taxiPassenger;
 		taxiPassenger = nullptr;
+		taxiPassengers.erase(passenger->getParent()->getDatabaseId());
 		Person_MT *parentPerson = passenger->getParent();
 
 		if (parentPerson)

@@ -21,8 +21,8 @@ local beta_cons_share3 = -6.132
 local beta_cons_motor = -2.742
 local beta_cons_walk = -12.0
 local beta_cons_taxi = -4.917
-local beta_cons_SMS = -8.333
-local beta_cons_rail_SMS = -7.392
+local beta_cons_SMS =  -4.917
+local beta_cons_rail_SMS =  -2.138
 
 local beta1_1_tt = -0.717
 local beta1_2_tt = -1.37

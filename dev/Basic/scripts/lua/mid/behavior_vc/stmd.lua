@@ -62,7 +62,7 @@ local beta_distance_SMS = 0
 
 local beta_cons_bus = -2.892
 local beta_cons_mrt = -3.358
-local beta_cons_rail_SMS = 1.81
+local beta_cons_rail_SMS = -3.358
 local beta_cons_private_bus = -3.462
 local beta_cons_drive1 = 0
 local beta_cons_share2 = -3.944
@@ -70,7 +70,7 @@ local beta_cons_share3 = -5.575
 local beta_cons_motor = -10.008
 local beta_cons_walk = -8.024
 local beta_cons_taxi = -9.175
-local beta_cons_SMS = -3.99
+local beta_cons_SMS = -9.175
 
 local beta_female_bus = 0
 local beta_female_mrt = 0

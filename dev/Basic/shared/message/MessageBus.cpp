@@ -502,8 +502,6 @@ void dispatch(const MessageEntry& entry, ThreadContext* &context,ThreadContext* 
 		} else {
 			ThreadContext* destinationContext = static_cast<ThreadContext*> (entry.destination->GetContext());
 			if (destinationContext) {
-				std::cout<<"ciao, destinationContext="<<destinationContext<<std::endl;
-				std::cout<<"ciao, destinationContext->input.size()="<< destinationContext->input.size() <<std::endl;
 				destinationContext->input.push(entry);
 			}
 			//<aa>

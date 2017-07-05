@@ -63,14 +63,16 @@ protected:
 class RD_Graph
 {
 public:
+	virtual ~RD_Graph(){};
 	/**
 	 * Returns the Request-to-Driver edges having that specific driver
 	 */
-	const std::vector< RD_Edge>& getRD_Edges(const Person* driver) const;
+	const std::vector< RD_Edge> getRD_Edges(const Person* driver) const;
 
 	virtual void addEdge(const TripRequestMessage& r1, const TripRequestMessage& r2) ;
 	virtual void addEdge(TripRequestMessage request, const Person* mobilityServiceDriver);
 	virtual bool doesEdgeExist(const TripRequestMessage& r1, const TripRequestMessage& r2) const;
+	virtual const std::string getProperties() const;
 
 protected:
 
@@ -83,7 +85,7 @@ protected:
 	/**
 	 * Request-to-vehicle association
 	 */
-	std::map<const Person*, std::vector<RD_Edge>> rdEgdeMap;
+	std::map<const Person*, std::vector<RD_Edge>> rdEdgeMap;
 
 };
 

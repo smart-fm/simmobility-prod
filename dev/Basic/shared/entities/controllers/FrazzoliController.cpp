@@ -42,7 +42,14 @@ RD_Graph FrazzoliController::generateRD_Graph()
 			const Person* driver = p.first;
 			const Schedule& currentSchedule = p.second;
 			const Node *driverNode = getCurrentNode(driver);
-			Group<TripRequestMessage> additionalRequests; additionalRequests.insert(request);
+			Group<TripRequestMessage> additionalRequests;
+			try{
+			 additionalRequests.insert(request);
+			}catch(const std::exception& e)
+			{
+				Print()<<"Exception "<<__FILE__<<":"<<__LINE__<<std::endl;
+				throw std::runtime_error(e.what() );
+			}
 			Schedule newSchedule;
 			bool optimalityRequired = false;
 			double travelTime = computeSchedule(driverNode, currentSchedule, additionalRequests, newSchedule, optimalityRequired);
@@ -82,12 +89,25 @@ RGD_Graph FrazzoliController::generateRGD_Graph(const RD_Graph& rdGraph)
 		{
 
 			const TripRequestMessage& request = rdEdge.first;
-			Group<TripRequestMessage> requestGroup; requestGroup.insert(request);
+			Group<TripRequestMessage> requestGroup;
+			try{
+			requestGroup.insert(request);
+			}catch(const std::exception& e)
+			{
+				Print()<<"Exception "<<__FILE__<<":"<<__LINE__<<std::endl;
+				throw std::runtime_error(e.what() );
+			}
 			Schedule newSchedule;
 			double travelTime = computeSchedule(driverNode, currentSchedule, requestGroup, newSchedule, optimalityRequired);
 			if (travelTime>=0)
 			{
+				try{
 				requestGroupsPerOccupancy[occupancy-1].insert(requestGroup);
+				}catch(const std::exception& e)
+				{
+					Print()<<"Exception "<<__FILE__<<":"<<__LINE__<<std::endl;
+					throw std::runtime_error(e.what() );
+				}
 				rgdGraph.addEdge(request, requestGroup);
 				rgdGraph.addEdge(requestGroup, driver, travelTime, newSchedule);
 			}
@@ -115,14 +135,33 @@ RGD_Graph FrazzoliController::generateRGD_Graph(const RD_Graph& rdGraph)
 			if (rdGraph.doesEdgeExist(r1,r2 ) )
 			{
 				bool optimalityRequired = true;
-
-				Group<TripRequestMessage> requestGroup; requestGroup.insert(r1); requestGroup.insert(r2);
+				Group<TripRequestMessage> requestGroup;
+				try{
+				requestGroup.insert(r1);
+				}catch(const std::exception& e)
+				{
+					Print()<<"Exception "<<__FILE__<<":"<<__LINE__<<std::endl;
+					throw std::runtime_error(e.what() );
+				}
+				try{
+				requestGroup.insert(r2);
+				}catch(const std::exception& e)
+				{
+					Print()<<"Exception "<<__FILE__<<":"<<__LINE__<<std::endl;
+					throw std::runtime_error(e.what() );
+				}
 				Schedule newSchedule;
 				double travelTime = computeSchedule(driverNode, currentSchedule, requestGroup, newSchedule, optimalityRequired);
 				if (travelTime >= 0)
 				{
 					// It is feasible that the driver serves this requestGroup
+					try{
 					requestGroupsPerOccupancy[occupancy-1].insert(requestGroup);
+					}catch(const std::exception& e)
+					{
+						Print()<<"Exception "<<__FILE__<<":"<<__LINE__<<std::endl;
+						throw std::runtime_error(e.what() );
+					}
 					rgdGraph.addEdge(r1,requestGroup);
 					rgdGraph.addEdge(r2,requestGroup);
 					rgdGraph.addEdge(requestGroup,driver, travelTime, newSchedule);
@@ -150,8 +189,20 @@ void FrazzoliController::greedyAssignment(RD_Graph& rdGraph, RGD_Graph& rgdGraph
 				if ( 	assignedRequests.find(request) != assignedRequests.end() &&
 						assignedDrivers.find(gdEdge.getDriver()) != assignedDrivers.end()
 				){
+					try{
 					assignedRequests.insert(request);
+					}catch(const std::exception& e)
+					{
+						Print()<<"Exception "<<__FILE__<<":"<<__LINE__<<std::endl;
+						throw std::runtime_error(e.what() );
+					}
+					try{
 					assignedDrivers.insert(gdEdge.getDriver() );
+					}catch(const std::exception& e)
+					{
+						Print()<<"Exception "<<__FILE__<<":"<<__LINE__<<std::endl;
+						throw std::runtime_error(e.what() );
+					}
 					assignSchedule(gdEdge.getDriver(),gdEdge.getSchedule());
 				} // else, if the request or the driver have been already assigned, we have nothing to do
 			}
@@ -162,9 +213,19 @@ void FrazzoliController::greedyAssignment(RD_Graph& rdGraph, RGD_Graph& rgdGraph
 
 void FrazzoliController::computeSchedules()
 {
+#ifndef NDEBUG
+	consistencyChecks("beginning of computeSchedules");
+#endif
+
+	ControllerLog() << "Computing schedule: " << requestQueue.size() << " requests are in the queue, available drivers "
+			<< availableDrivers.size() << std::endl;
 	RD_Graph rdGraph = generateRD_Graph() ;
 	RGD_Graph rgdGraph = generateRGD_Graph(rdGraph);
 	greedyAssignment(rdGraph, rgdGraph);
+
+#ifndef NDEBUG
+	consistencyChecks("end of computeSchedules");
+#endif
 }
 
 
@@ -199,7 +260,13 @@ Schedule GD_Edge::getSchedule() const{return schedule;};
 
 void RD_Graph::addEdge(const TripRequestMessage& r1, const TripRequestMessage& r2)
 {
+	try{
 	rrEdges[r1].insert(r2);
+	}catch(const std::exception& e)
+	{
+		Print()<<"Exception "<<__FILE__<<":"<<__LINE__<<std::endl;
+		throw std::runtime_error(e.what() );
+	}
 }
 
 bool RD_Graph::doesEdgeExist(const TripRequestMessage& r1, const TripRequestMessage& r2) const
@@ -218,19 +285,39 @@ bool RD_Graph::doesEdgeExist(const TripRequestMessage& r1, const TripRequestMess
 void RD_Graph::addEdge(TripRequestMessage request, const Person* driver)
 {
 	RD_Edge rdEdge = std::make_pair(request,driver);
-	std::map<const Person*, std::vector<RD_Edge>>::iterator p = rdEgdeMap.find(driver);
-	if (p != rdEgdeMap.end() )
+	std::map<const Person*, std::vector<RD_Edge>>::iterator p = rdEdgeMap.find(driver);
+	if (p != rdEdgeMap.end() )
 		(p->second).push_back(rdEdge);
 	else{
-		//std::vector<const TripRequestMessage> v; v.push_back(request);
-		p->second.push_back(rdEdge);
+		std::vector<RD_Edge> v; v.push_back(rdEdge);
+		rdEdgeMap[driver] = v;
 	}
 }
 
-const std::vector< RD_Edge>& RD_Graph::getRD_Edges(const Person* driver) const
-{	return rdEgdeMap.at(driver);}
+const std::vector< RD_Edge> RD_Graph::getRD_Edges(const Person* driver) const
+{
+	std::map<const Person*, std::vector<RD_Edge>>::const_iterator it = rdEdgeMap.find(driver);
+	if (it==rdEdgeMap.end() )
+		return std::vector< RD_Edge>();
+	else return it->second;
+}
 
-
+const std::string RD_Graph::getProperties() const
+{
+	std::string retValue="";
+	unsigned rdEdgesCount = 0;
+	for (const std::pair<const Person*, std::vector<RD_Edge>>& p : rdEdgeMap)
+	{
+		rdEdgesCount += p.second.size();
+	}
+	unsigned rrEdgesCount = 0;
+	for (const std::pair<TripRequestMessage, std::set<TripRequestMessage > >& p: rrEdges)
+	{
+		rrEdgesCount += p.second.size();
+	}
+	retValue = retValue + "rdEdgesCount="+std::to_string(rdEdgesCount)+", rrEdgesCount=" + std::to_string(rrEdgesCount);
+	return retValue;
+}
 
 
 
@@ -252,7 +339,13 @@ void RGD_Graph::addEdge(const TripRequestMessage& request, const Group<TripReque
 
 #ifndef NDEBUG
 	const RG_Edge rgEdge = std::make_pair(request, requestGroup);
+	try{
 	rgEdges.insert(rgEdge);
+	}catch(const std::exception& e)
+	{
+		Print()<<"Exception "<<__FILE__<<":"<<__LINE__<<std::endl;
+		throw std::runtime_error(e.what() );
+	}
 #endif
 }
 

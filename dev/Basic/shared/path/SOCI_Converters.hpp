@@ -64,6 +64,13 @@ template<> struct type_conversion<sim_mob::SinglePath>
 		res.maxHighWayUsage = vals.get<int>("max_highway_usage", 0);
 		res.validPath = vals.get<int>("valid_path", 0);
 		res.shortestPath = vals.get<int>("shortest_path", 0);
+		//sim_mob::Print()<<"res.pathSetId="<<res.pathSetId<<", res.scenario="<<
+		//		res.scenario<<" res.id="<<res.id<<", res.partialUtility="<< res.partialUtility<<
+		//		", res.pathSize="<<res.pathSize<<", res.signalNumber="<<res.signalNumber<<
+		//		"res.rightTurnNumber="<< res.rightTurnNumber <<", res.length="<<res.length<<
+		//		"res.highWayDistance="<<res.highWayDistance <<", res.minDistance="<<res.minDistance<<
+		//		", res.minSignals="<<res.minSignals<<", res.minRightTurns="<< ", res.maxHighWayUsag="<<res.maxHighWayUsage<<
+		//		", res.shortestPath="<< res.shortestPath <<std::endl;
 	}
 };
 template<> struct type_conversion<sim_mob::ERP_Surcharge>

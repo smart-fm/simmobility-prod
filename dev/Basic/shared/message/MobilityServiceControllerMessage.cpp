@@ -106,6 +106,11 @@ std::ostream& operator<<(std::ostream& strm, const sim_mob::ScheduleItem& item)
 		}
 		case (sim_mob::ScheduleItemType::CRUISE):
 		{
+			const sim_mob::Node* nodeToCruiseTo = item.nodeToCruiseTo;
+#ifndef NDEBUG
+			if (!nodeToCruiseTo)
+				throw std::runtime_error("Invalid CRUISE ScheduleItem: the nodeToCruiseTo is NULL");
+#endif
 			strm<<"CRUISE to node "<<item.nodeToCruiseTo->getNodeId();
 			break;
 		}

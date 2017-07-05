@@ -139,12 +139,12 @@ public:
 	unsigned int extraTripTimeThreshold;
 };
 
-enum ScheduleItemType{INVALID,PICKUP, DROPOFF,CRUISE};
+enum ScheduleItemType{INVALID,PICKUP, DROPOFF,CRUISE, PARK};
 
 struct ScheduleItem
 {
 	ScheduleItem(const ScheduleItemType scheduleItemType_, const TripRequestMessage tripRequest_)
-		: scheduleItemType(scheduleItemType_),tripRequest(tripRequest_),nodeToCruiseTo(NULL)
+		: scheduleItemType(scheduleItemType_),tripRequest(tripRequest_),nodeToCruiseTo(NULL),parkingId(0)
 	{
 #ifndef NDEBUG
 		if (scheduleItemType!= ScheduleItemType::PICKUP && scheduleItemType!= ScheduleItemType::DROPOFF)
@@ -154,7 +154,7 @@ struct ScheduleItem
 	};
 
 	ScheduleItem(const ScheduleItemType scheduleItemType_, const Node* nodeToCruiseTo_)
-		:scheduleItemType(scheduleItemType_),nodeToCruiseTo(nodeToCruiseTo_),tripRequest()
+		:scheduleItemType(scheduleItemType_),nodeToCruiseTo(nodeToCruiseTo_),tripRequest(),parkingId(0)
 	{
 #ifndef NDEBUG
 		if (scheduleItemType!= ScheduleItemType::CRUISE)
@@ -162,7 +162,8 @@ struct ScheduleItem
 #endif
 	};
 
-	ScheduleItem(const ScheduleItem& other):scheduleItemType(other.scheduleItemType),tripRequest(other.tripRequest),nodeToCruiseTo(other.nodeToCruiseTo){};
+	ScheduleItem(const ScheduleItemType scheduleItemType_, const unsigned int parkingId_)
+			:scheduleItemType(scheduleItemType_),nodeToCruiseTo(NULL),tripRequest(), parkingId(parkingId_){};
 
 	bool operator<(const ScheduleItem& other) const;
 
@@ -171,6 +172,10 @@ struct ScheduleItem
 	TripRequestMessage tripRequest;
 
 	const Node* nodeToCruiseTo;
+
+	unsigned int parkingId;
+
+
 };
 
 //TODO: It would be more elegant using std::variant, available from c++17

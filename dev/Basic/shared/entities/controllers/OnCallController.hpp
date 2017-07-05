@@ -64,7 +64,10 @@ public:
 		#ifndef NDEBUG
 		if ( std::find(elements.begin(), elements.end(), r) != elements.end() )
 		{
-			std::stringstream msg; msg<<"Trying to insert "<<r<<" to a request group that already contains it. This denotes there is a bug somewhere";
+			std::stringstream msg; msg<<"Trying to insert "<<r<<" to a group that already contains it. The group is ";
+			for (const T& element : elements)
+				msg<< element <<", ";
+			msg<<". This denotes there is a bug somewhere";
 			throw std::runtime_error(msg.str() );
 		}
 		#endif

@@ -171,21 +171,6 @@ void OnCallController::HandleMessage(messaging::Message::MessageType type, const
 
 	switch (type)
 	{
-	case MSG_DRIVER_SUBSCRIBE:
-	{
-		const DriverSubscribeMessage &subscribeArgs = MSG_CAST(DriverSubscribeMessage, message);
-		subscribeDriver(subscribeArgs.person);
-		break;
-	}
-
-	case MSG_DRIVER_UNSUBSCRIBE:
-	{
-		const DriverUnsubscribeMessage &unsubscribeArgs = MSG_CAST(DriverUnsubscribeMessage, message);
-		ControllerLog() << "Driver " << unsubscribeArgs.person->getDatabaseId() << " unsubscribed " << std::endl;
-		unsubscribeDriver(unsubscribeArgs.person);
-		break;
-	}
-
 	case MSG_DRIVER_AVAILABLE:
 	{
 		const DriverAvailableMessage &availableArgs = MSG_CAST(DriverAvailableMessage, message);
@@ -486,12 +471,10 @@ double OnCallController::evaluateSchedule(const Node *initialPosition, const Sch
 	double travelTime = scheduleTimeStamp - currTick.ms() / 1000.0;
 
 #ifndef NDEBUG
-	if (schedule.size() == 0)
-		throw std::runtime_error("You are evaluating a schedule of 0 scheduleItems. Why would you want to do that? Is it an error?");
-
-	if (travelTime <= 1e-5)
+	if (travelTime <= 1e-5 && !schedule.empty() )
 	{
-		std::stringstream msg; msg<<"The travel time for this schedule of "<< schedule.size()<<" schedule items is 0. Why? Is it an error?";
+		std::stringstream msg; msg<<"The travel time for this schedule of "<< schedule.size()<<" schedule items is 0. Why? Is it an error?"<<
+			" The schedule is "<<schedule;
 		throw std::runtime_error(msg.str());
 	}
 #endif
@@ -523,8 +506,18 @@ double OnCallController::computeSchedule(const Node* initialNode, const Schedule
 		std::stringstream msg; msg<<__FILE__<<":"<<__LINE__<<": An empty schedule was created. This is an error. currentSchedule.size()="<<
 			currentSchedule.size()<<", additionalRequests.size()="<<additionalRequests.size()<<", tempSchedule.size()"<<
 			tempSchedule.size()<<", additionalScheduleItems.size()="<<additionalScheduleItems.size();
-		Print()<<"ciao, "<<msg.str()<<std::endl;
+		Print()<<msg.str()<<std::endl;
 		throw std::runtime_error(msg.str());
+	}
+
+	if (currentSchedule.size() + additionalRequests.size()*2 != tempSchedule.size() )
+	{
+		std::stringstream msg; msg<<"currentSchedule.size()="<<currentSchedule.size()<<
+			", additionalRequests.size()="<<additionalRequests.size()<<
+			", tempSchedule.size()="<<tempSchedule.size()<<
+			", while the new schedule should have the old schedule items + 2 schedule items "<<
+			" per each new additional requests";
+		throw std::runtime_error(msg.str() );
 	}
 #endif
 
@@ -555,7 +548,7 @@ double OnCallController::computeSchedule(const Node* initialNode, const Schedule
 	for (const ScheduleItem& item : currentSchedule) ControllerLog()<< item<<",";
 	ControllerLog()<<". Trying to add requests [";
 	for (const TripRequestMessage& request : additionalRequests.getElements() ) ControllerLog()<<request;
-	ControllerLog()<<". The optimal schedule is ";
+	ControllerLog()<<"]. The optimal schedule is ";
 	for (const ScheduleItem& item : newSchedule) ControllerLog()<< item<<",";
 	ControllerLog()<<std::endl;
 #endif

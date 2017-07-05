@@ -876,7 +876,7 @@ bool sim_mob::BusController::isBuslineAvailable(const std::vector<std::string>& 
 		}
 		else
 		{
-			throw std::runtime_error("invalid busline passed for fetching availability (" + line + ")");
+			std::stringstream msg; msg <<"invalid busline passed for fetching availability (" << line << ")";
 		}
 	}
 	return busesAvailable;

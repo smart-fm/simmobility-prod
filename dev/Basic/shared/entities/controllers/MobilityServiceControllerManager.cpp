@@ -92,11 +92,11 @@ bool MobilityServiceControllerManager::addMobilityServiceController(MobilityServ
 			return false;
 		}
 	}
+	controllers.insert(std::make_pair(type, controller));
 
 #ifndef NDEBUG
 	controller->consistencyChecks();
 	consistencyChecks();
-	controllers.insert(std::make_pair(type, controller));
 #endif
 
 	return true;

@@ -169,12 +169,12 @@ void SharedController::computeSchedules()
 
 						if (tripTime1 + tripTime2 < currBestTrip.first)
 						{
-							bestTrips[std::make_pair(request1Index, request2Index)] = std::make_pair(tripTime1 + tripTime2, "o2o1d2d2");
+							bestTrips[std::make_pair(request1Index, request2Index)] = std::make_pair(tripTime1 + tripTime2, "o2o1d2d1");
 						}
 					}
 					else
 					{
-						bestTrips[std::make_pair(request1Index, request2Index)] = std::make_pair(tripTime1 + tripTime2, "o2o1d2d2");
+						bestTrips[std::make_pair(request1Index, request2Index)] = std::make_pair(tripTime1 + tripTime2, "o2o1d2d1");
 					}
 
 					add_edge(request1Index, request2Index, graph);
@@ -234,6 +234,14 @@ void SharedController::computeSchedules()
 					}
 
 					add_edge(request1Index, request2Index, graph);
+#ifndef NDEBUG
+					if (request1Index >= requestQueue.size()  || request2Index >= requestQueue.size())
+					{
+						std::stringstream msg; msg<< __FILE__<<":"<<__LINE__<< ":"<<" request1Index="<< request1Index<<
+							" and request2Index="<<request2Index<< ", while they should both be requestQueue.size()= < "<<requestQueue.size();
+						throw std::runtime_error(msg.str() );
+					}
+#endif
 				}
 				//} o2 o1 d1 d2
 
@@ -244,7 +252,7 @@ void SharedController::computeSchedules()
 			request1Index++;
 		}
 
-		ControllerLog() << "About to perform matching, wish me luck" << std::endl;
+		ControllerLog() << "About to perform matching on "<< requestQueue.size()<< " requests, wish me luck" << std::endl;
 
 		// 3. Perform maximum matching
 		// aa: 	the following algorithm finds the maximum matching, a set of edges representing
@@ -306,7 +314,7 @@ void SharedController::computeSchedules()
 						secondDropOff = validRequests.at(request2Index);
 					}else
 					{
-						std::stringstream msg; msg<<"Sequence "<<sequence<<" is not recognized";
+						std::stringstream msg; msg<<__FILE__<<":"<<__LINE__ <<":Sequence "<<sequence<<" is not recognized";
 						throw std::runtime_error(msg.str() );
 					}
 
@@ -317,8 +325,18 @@ void SharedController::computeSchedules()
 					schedule.push_back( ScheduleItem(ScheduleItemType::DROPOFF, secondDropOff) );
 					schedules.push_back(schedule);
 
-					satisfiedRequestIndices.insert(request1Index);
-					satisfiedRequestIndices.insert(request2Index);
+					//We do -1 because the numbering of graph starts from 1
+					satisfiedRequestIndices.insert(request1Index-1);
+					satisfiedRequestIndices.insert(request2Index-1);
+
+#ifndef NDEBUG
+					if (request1Index >= requestQueue.size()  || request2Index >= requestQueue.size())
+					{
+						std::stringstream msg; msg<< __FILE__<<":"<<__LINE__<< ":"<<" request1Index="<< request1Index<<
+							" and request2Index="<<request2Index<< ", while they should both be requestQueue.size()= < "<<requestQueue.size();
+						throw std::runtime_error(msg.str() );
+					}
+#endif
 					//aa}
 				}
 				//aa{
@@ -330,7 +348,9 @@ void SharedController::computeSchedules()
 					schedule.push_back( ScheduleItem(ScheduleItemType::DROPOFF, request) );
 					schedules.push_back(schedule);
 
-					satisfiedRequestIndices.insert(request1Index);
+					//We do -1 because the numbering of graph starts from 1
+					satisfiedRequestIndices.insert(request1Index -1);
+
 				}
 				//aa}
 			}
@@ -379,11 +399,33 @@ void SharedController::computeSchedules()
 		std::list<TripRequestMessage>::iterator requestToEliminate = requestQueue.begin();
 		int lastEliminatedIndex = -1;
 
+
+
 		for (const unsigned satisfiedRequestIndex : satisfiedRequestIndices)
 		{
-			std::advance(requestToEliminate, satisfiedRequestIndex - lastEliminatedIndex - 1 );
+			int advancement = satisfiedRequestIndex - lastEliminatedIndex - 1;
+			std::advance(requestToEliminate,  advancement);
+#ifndef NDEBUG
+
+			if (requestToEliminate == requestQueue.end() )
+			{
+				std::stringstream msg; msg << "Trying to eliminate a request " << satisfiedRequestIndex << " that is not in the satisfiedRequests, which are ";
+				for (const unsigned s : satisfiedRequestIndices)
+					msg<< s <<", ";
+				throw std::runtime_error(msg.str() );
+			}
+
+			if (satisfiedRequestIndex >= requestQueue.size()  )
+			{
+				std::stringstream msg; msg<<"Error: satisfiedRequestIndex="<<satisfiedRequestIndex<<", requestQueue.size()="<<
+					requestQueue.size() <<", requestToEliminate == requestQueue.end()?"<<
+					(requestToEliminate == requestQueue.end() ) << std::endl;
+				throw std::runtime_error(msg.str() );
+			}
+#endif
 			requestToEliminate = requestQueue.erase(requestToEliminate);
 			lastEliminatedIndex = satisfiedRequestIndex;
+
 		}
 
 #ifndef NDEBUG
@@ -424,5 +466,16 @@ const Node* SharedController::getCurrentNode(Person* p)
     }
     return nullptr;
 }
+
+
+
+void SharedController::checkSequence (const std::string& sequence) const
+	{
+		if (sequence != "o1o2d1d2" && sequence != "o2o1d2d1" && sequence != "o1o2d2d1" && sequence != "o2o1d1d2")
+		{
+			std::stringstream msg; msg<<__FILE__<<":"<<__LINE__<<": sequence "<<sequence<<" is not recognized";
+			throw std::runtime_error(msg.str() );
+		}
+	}
 }
 

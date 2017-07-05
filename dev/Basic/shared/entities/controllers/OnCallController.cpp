@@ -265,10 +265,12 @@ void OnCallController::assignSchedule(const Person *driver, const Schedule &sche
 			driverSchedules.find(driver) == driverSchedules.end() ||
 			std::find(availableDrivers.begin(), availableDrivers.end(), driver ) == availableDrivers.end()
 	){
+		std::string answer1 = (driverSchedules.find(driver) != driverSchedules.end()?"yes":"no");
+		std::string answer2 = (std::find(availableDrivers.begin(), availableDrivers.end(), driver ) != availableDrivers.end()?"yes":"no");
 		std::stringstream msg; msg <<"Assigning a schedule to driver "<< driver->getDatabaseId() <<
 			". She should be present both in availableDrivers and driverSchedules but is she present in driverSchedules? "<<
-			(driverSchedules.find(driver) != driverSchedules.end()?1:0) <<" and is she present in availableDrivers? "<<
-			(std::find(availableDrivers.begin(), availableDrivers.end(), driver ) != availableDrivers.end()?1:0) ;
+			answer1 <<" and is she present in availableDrivers? "<< answer2
+			 ;
 		throw std::runtime_error(msg.str() );
 	}
 

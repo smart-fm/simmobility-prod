@@ -399,7 +399,9 @@ void SharedController::computeSchedules()
 		std::list<TripRequestMessage>::iterator requestToEliminate = requestQueue.begin();
 		int lastEliminatedIndex = -1;
 
-
+#ifndef NDEBUG
+		unsigned eliminationsPerformed=0;
+#endif
 
 		for (const unsigned satisfiedRequestIndex : satisfiedRequestIndices)
 		{
@@ -411,17 +413,10 @@ void SharedController::computeSchedules()
 			{
 				std::stringstream msg; msg << "Trying to eliminate a request " << satisfiedRequestIndex << " that is not in the satisfiedRequests, which are ";
 				for (const unsigned s : satisfiedRequestIndices)
-					msg<< s <<", ";
+					msg<< s <<", Eliminations performed before "<< eliminationsPerformed;
 				throw std::runtime_error(msg.str() );
 			}
-
-			if (satisfiedRequestIndex >= requestQueue.size()  )
-			{
-				std::stringstream msg; msg<<"Error: satisfiedRequestIndex="<<satisfiedRequestIndex<<", requestQueue.size()="<<
-					requestQueue.size() <<", requestToEliminate == requestQueue.end()?"<<
-					(requestToEliminate == requestQueue.end() ) << std::endl;
-				throw std::runtime_error(msg.str() );
-			}
+			eliminationsPerformed++;
 #endif
 			requestToEliminate = requestQueue.erase(requestToEliminate);
 			lastEliminatedIndex = satisfiedRequestIndex;

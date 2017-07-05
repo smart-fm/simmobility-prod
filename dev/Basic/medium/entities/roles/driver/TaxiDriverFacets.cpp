@@ -966,18 +966,23 @@ std::string TaxiDriverMovement::frame_tick_output()
 	if (originNode == currentNode && params.now.ms() == (uint32_t) 0)
 	{
 		out << currentFleetItem.vehicleNo << "," << parentTaxiDriver->parent->getDatabaseId() << ","
-		    << currentNode->getNodeId() << "," << DailyTime(currentFleetItem.startTime * 1000).getStrRepr()
-		    << ",NULL,NULL," << parentTaxiDriver->getDriverStatusStr() << std::endl;
+			<< currentNode->getNodeId() << "," << DailyTime(currentFleetItem.startTime * 1000).getStrRepr()
+			<< ",NULL,NULL," << parentTaxiDriver->getDriverStatusStr()
+			<< ",No Passenger"
+			<< std::endl;
 	}
 	else
-	{
+	{           std::string PassengerDBID="";
+		PassengerDBID = parentTaxiDriver->getPassenger()!=NULL?parentTaxiDriver->getPassenger()->getParent()->getDatabaseId():" No Passenger";
 		out << currentFleetItem.vehicleNo << "," << parentTaxiDriver->parent->getDatabaseId() << ","
-		    << currentNode->getNodeId() << ","
-		    << (DailyTime(params.now.ms()) + DailyTime(
-				    ConfigManager::GetInstance().FullConfig().simStartTime())).getStrRepr() << ","
-		    << (parentDriver->getParent()->getCurrSegStats()->getRoadSegment()->getRoadSegmentId()) << ","
-		    << ((parentDriver->getParent()->getCurrLane()) ? parentDriver->getParent()->getCurrLane()->getLaneId() : 0)
-		    << "," << parentTaxiDriver->getDriverStatusStr() << std::endl;
+			<< currentNode->getNodeId() << ","
+			<< (DailyTime(params.now.ms()) + DailyTime(
+					ConfigManager::GetInstance().FullConfig().simStartTime())).getStrRepr() << ","
+			<< (parentDriver->getParent()->getCurrSegStats()->getRoadSegment()->getRoadSegmentId()) << ","
+			<< ((parentDriver->getParent()->getCurrLane()) ? parentDriver->getParent()->getCurrLane()->getLaneId() : 0)
+			<< "," << parentTaxiDriver->getDriverStatusStr()
+			<< ","<< PassengerDBID
+			<< std::endl;
 	}
 	/* for Debug Purpose Only : to print details in Console
     	Print() << out.str();

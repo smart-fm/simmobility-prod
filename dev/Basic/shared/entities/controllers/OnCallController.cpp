@@ -15,6 +15,7 @@
 #include "OnCallController.hpp"
 #include "path/PathSetManager.hpp" // for PrivateTrafficRouteChoice
 #include "entities/mobilityServiceDriver/MobilityServiceDriver.hpp"
+#include "message/MobilityServiceControllerMessage.hpp"
 
 
 using namespace sim_mob;
@@ -257,17 +258,38 @@ void OnCallController::HandleMessage(messaging::Message::MessageType type, const
 
 void OnCallController::assignSchedule(const Person *driver, const Schedule &schedule)
 {
+#ifndef NDEBUG
+	if (!driver)
+	{
+		std::stringstream msg; msg<<__FILE__<<":"<<__LINE__<<": Trying to assign a schedule to a NULL driver. The schedule is "
+		<<schedule;
+		throw std::runtime_error(msg.str() );
+	}
+#endif
+
 	MessageBus::PostMessage((MessageHandler *) driver, MSG_SCHEDULE_PROPOSITION, MessageBus::MessagePtr(
 			new SchedulePropositionMessage(currTick, schedule)));
 
 #ifndef NDEBUG
+
 	if (
 			driverSchedules.find(driver) == driverSchedules.end() ||
 			std::find(availableDrivers.begin(), availableDrivers.end(), driver ) == availableDrivers.end()
 	){
 		std::string answer1 = (driverSchedules.find(driver) != driverSchedules.end()?"yes":"no");
 		std::string answer2 = (std::find(availableDrivers.begin(), availableDrivers.end(), driver ) != availableDrivers.end()?"yes":"no");
-		std::stringstream msg; msg <<"Assigning a schedule to driver "<< driver->getDatabaseId() <<
+		Print()<<"ciao, trying to print the id of "<<driver<<std::endl;
+		std::string driverId;
+		try{
+		driverId = driver->getDatabaseId();
+		}catch(const std::exception& e)
+		{
+			std::stringstream msg; msg<<__FILE__<<":"<<__LINE__<< ":Exception in retrieving the ID of the driver with pointer "<<
+				driver<<". Check in warn if the driver has been removed. The exception is "<< e.what();
+			throw std::runtime_error(msg.str() );
+		}
+
+		std::stringstream msg; msg <<"Assigning a schedule to driver "<< driverId <<
 			". She should be present both in availableDrivers and driverSchedules but is she present in driverSchedules? "<<
 			answer1 <<" and is she present in availableDrivers? "<< answer2
 			 ;
@@ -647,7 +669,15 @@ void OnCallController::consistencyChecks(const std::string& label) const
 }
 
 
-
+const std::string OnCallController::getRequestQueueStr() const
+{
+	std::stringstream msg;
+	for (const TripRequestMessage& r : requestQueue)
+	{
+		msg<< r << ", ";
+	}
+	return msg.str();
+}
 
 
 

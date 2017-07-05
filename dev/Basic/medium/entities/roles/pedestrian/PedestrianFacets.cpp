@@ -113,7 +113,7 @@ void PedestrianMovement::frame_init()
 
 					TripRequestMessage* request = new TripRequestMessage(person->currTick,
 												  person->getDatabaseId(),
-												  taxiStartNodeId, taxiEndNodeId, 0);
+												  taxiStartNodeId, taxiEndNodeId, MobilityServiceController::toleratedExtraTime);
 					MessageBus::PostMessage(itControllers->second, MSG_TRIP_REQUEST, MessageBus::MessagePtr(request));
 
 

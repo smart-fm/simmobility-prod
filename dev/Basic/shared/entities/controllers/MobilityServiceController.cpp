@@ -11,7 +11,7 @@
 
 namespace sim_mob {
 
-
+const unsigned MobilityServiceController::toleratedExtraTime = 2000; //seconds
 
 
 MobilityServiceController::~MobilityServiceController()

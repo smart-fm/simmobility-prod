@@ -81,6 +81,8 @@ protected:
 
 public:
 
+	//TODO: Should not be hardocded
+	static const unsigned toleratedExtraTime; //seconds
 
 	virtual ~MobilityServiceController();
 

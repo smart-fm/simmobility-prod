@@ -136,7 +136,12 @@ public:
 	std::string userId;
 	unsigned int startNodeId;
 	unsigned int destinationNodeId;
-	unsigned int extraTripTimeThreshold;
+
+	/**
+	 * The time the passenger can tolerate to spend more w.r.t. the fastest option in which
+	 * she travels alone without any other passenger to share the trip with
+	 */
+	unsigned int extraTripTimeThreshold; // seconds
 };
 
 enum ScheduleItemType{INVALID,PICKUP, DROPOFF,CRUISE, PARK};

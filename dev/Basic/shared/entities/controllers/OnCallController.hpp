@@ -123,6 +123,8 @@ public:
 	 */
 	virtual const Person* findClosestDriver(const Node* node) const;
 
+	virtual const std::string getRequestQueueStr() const;
+
 
 
 protected:

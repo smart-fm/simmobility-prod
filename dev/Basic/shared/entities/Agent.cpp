@@ -220,7 +220,7 @@ Entity::UpdateStatus sim_mob::Agent::update(timeslice now)
 
 			std::stringstream msg;
 			msg << "Error updating Agent[" << getId() << "], will be removed from the simulation. Pointer:"<<
-					this<<". The problem is: "
+					this <<". The problem is: "
 			    << ex.what() << std::endl;
 			WarnOut(msg.str());
 #ifndef NDEBUG

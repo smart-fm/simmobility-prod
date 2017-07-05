@@ -17,11 +17,14 @@ namespace sim_mob
 
 class SharedController : public OnCallController {
 public:
-	explicit SharedController(const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered,
-		unsigned int computationPeriod = 0) :
-		OnCallController(mtxStrat, computationPeriod, MobilityServiceControllerType::SERVICE_CONTROLLER_SHARED)
+	SharedController
+		(const MutexStrategy& mtxStrat, unsigned int computationPeriod, unsigned id) :
+		OnCallController(mtxStrat, computationPeriod, MobilityServiceControllerType::SERVICE_CONTROLLER_SHARED, id)
 	{
 	}
+
+	virtual void checkSequence (const std::string& sequence) const;
+
 
 protected:
 	virtual bool isCruising(Person* p);

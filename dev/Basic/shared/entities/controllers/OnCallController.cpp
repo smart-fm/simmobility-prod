@@ -171,21 +171,6 @@ void OnCallController::HandleMessage(messaging::Message::MessageType type, const
 
 	switch (type)
 	{
-	case MSG_DRIVER_SUBSCRIBE:
-	{
-		const DriverSubscribeMessage &subscribeArgs = MSG_CAST(DriverSubscribeMessage, message);
-		subscribeDriver(subscribeArgs.person);
-		break;
-	}
-
-	case MSG_DRIVER_UNSUBSCRIBE:
-	{
-		const DriverUnsubscribeMessage &unsubscribeArgs = MSG_CAST(DriverUnsubscribeMessage, message);
-		ControllerLog() << "Driver " << unsubscribeArgs.person->getDatabaseId() << " unsubscribed " << std::endl;
-		unsubscribeDriver(unsubscribeArgs.person);
-		break;
-	}
-
 	case MSG_DRIVER_AVAILABLE:
 	{
 		const DriverAvailableMessage &availableArgs = MSG_CAST(DriverAvailableMessage, message);
@@ -280,10 +265,12 @@ void OnCallController::assignSchedule(const Person *driver, const Schedule &sche
 			driverSchedules.find(driver) == driverSchedules.end() ||
 			std::find(availableDrivers.begin(), availableDrivers.end(), driver ) == availableDrivers.end()
 	){
+		std::string answer1 = (driverSchedules.find(driver) != driverSchedules.end()?"yes":"no");
+		std::string answer2 = (std::find(availableDrivers.begin(), availableDrivers.end(), driver ) != availableDrivers.end()?"yes":"no");
 		std::stringstream msg; msg <<"Assigning a schedule to driver "<< driver->getDatabaseId() <<
 			". She should be present both in availableDrivers and driverSchedules but is she present in driverSchedules? "<<
-			(driverSchedules.find(driver) != driverSchedules.end()?1:0) <<" and is she present in availableDrivers? "<<
-			(std::find(availableDrivers.begin(), availableDrivers.end(), driver ) != availableDrivers.end()?1:0) ;
+			answer1 <<" and is she present in availableDrivers? "<< answer2
+			 ;
 		throw std::runtime_error(msg.str() );
 	}
 
@@ -378,7 +365,7 @@ const Person *OnCallController::findClosestDriver(const Node *node) const
 			const std::string driverStatusStr = mobilityServiceDriver->getDriverStatusStr();
 			std::stringstream msg; msg<<"Error: "<<__FILE__<<":" <<__LINE__<< ":Driver " << (*driver)->getDatabaseId() <<
 				" is among the available drivers of a controller of type "<<
-				fromMobilityServiceControllerTypetoString(type) <<", but her state is "<<
+				sim_mob::toString(controllerServiceType) <<", but her state is "<<
 				driverStatusStr<<
 				" This driver is subscribed to the following controller types "<< mobilityServiceDriver->getSubscribedControllerTypesStr()<<
 				". In the scenarios where a driver subscribed to an OnCall service is only subscribed to that service, "<<
@@ -486,12 +473,10 @@ double OnCallController::evaluateSchedule(const Node *initialPosition, const Sch
 	double travelTime = scheduleTimeStamp - currTick.ms() / 1000.0;
 
 #ifndef NDEBUG
-	if (schedule.size() == 0)
-		throw std::runtime_error("You are evaluating a schedule of 0 scheduleItems. Why would you want to do that? Is it an error?");
-
-	if (travelTime <= 1e-5)
+	if (travelTime <= 1e-5 && !schedule.empty() )
 	{
-		std::stringstream msg; msg<<"The travel time for this schedule of "<< schedule.size()<<" schedule items is 0. Why? Is it an error?";
+		std::stringstream msg; msg<<"The travel time for this schedule of "<< schedule.size()<<" schedule items is 0. Why? Is it an error?"<<
+			" The schedule is "<<schedule;
 		throw std::runtime_error(msg.str());
 	}
 #endif
@@ -517,6 +502,26 @@ double OnCallController::computeSchedule(const Node* initialNode, const Schedule
 	//https://stackoverflow.com/a/201729/2110769
 	Schedule tempSchedule(currentSchedule);
 	tempSchedule.insert(tempSchedule.end(), additionalScheduleItems.begin(), additionalScheduleItems.end());
+#ifndef NDEBUG
+	if (tempSchedule.empty())
+	{
+		std::stringstream msg; msg<<__FILE__<<":"<<__LINE__<<": An empty schedule was created. This is an error. currentSchedule.size()="<<
+			currentSchedule.size()<<", additionalRequests.size()="<<additionalRequests.size()<<", tempSchedule.size()"<<
+			tempSchedule.size()<<", additionalScheduleItems.size()="<<additionalScheduleItems.size();
+		Print()<<msg.str()<<std::endl;
+		throw std::runtime_error(msg.str());
+	}
+
+	if (currentSchedule.size() + additionalRequests.size()*2 != tempSchedule.size() )
+	{
+		std::stringstream msg; msg<<"currentSchedule.size()="<<currentSchedule.size()<<
+			", additionalRequests.size()="<<additionalRequests.size()<<
+			", tempSchedule.size()="<<tempSchedule.size()<<
+			", while the new schedule should have the old schedule items + 2 schedule items "<<
+			" per each new additional requests";
+		throw std::runtime_error(msg.str() );
+	}
+#endif
 
 	// sorting is necessary to correctly compute the permutations (see https://www.topcoder.com/community/data-science/data-science-tutorials/power-up-c-with-the-standard-template-library-part-1/)
 	std::sort(tempSchedule.begin(), tempSchedule.end());
@@ -545,7 +550,7 @@ double OnCallController::computeSchedule(const Node* initialNode, const Schedule
 	for (const ScheduleItem& item : currentSchedule) ControllerLog()<< item<<",";
 	ControllerLog()<<". Trying to add requests [";
 	for (const TripRequestMessage& request : additionalRequests.getElements() ) ControllerLog()<<request;
-	ControllerLog()<<". The optimal schedule is ";
+	ControllerLog()<<"]. The optimal schedule is ";
 	for (const ScheduleItem& item : newSchedule) ControllerLog()<< item<<",";
 	ControllerLog()<<std::endl;
 #endif

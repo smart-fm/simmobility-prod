@@ -6,59 +6,57 @@
 
 #include "Node.hpp"
 
-namespace sim_mob {
+namespace sim_mob
+{
 
-    class Node;
+class Node;
 
 /**
  * Represents the  parking Info
  */
-    class ParkingDetail
-    {
-    private:
-        int parking_id;
-        int segment_id;
-        int accessNodeID;
-        int egressNodeID;
+class ParkingDetail
+{
+private:
+    int parking_id;
+    int segment_id;
+    int accessNodeID;
+    int egressNodeID;
 
-        /**The access Node*/
-        const Node *accessNode;
+    /**The access Node*/
+    const Node *accessNode;
 
-        /**The egress Node*/
-        const Node *egressNode;
+    /**The egress Node*/
+    const Node *egressNode;
 
-    public:
-        ParkingDetail();
+public:
+    ParkingDetail();
 
-        virtual ~ParkingDetail();
+    virtual ~ParkingDetail();
 
-        const int getParkingID() const;
+    const int getParkingID() const;
 
-        void setParkingID(const int pkID);
+    void setParkingID(const int pkID);
 
-        const int getSegmentID() const;
+    const int getSegmentID() const;
 
-        void setSegmentID(const int segmentID);
+    void setSegmentID(const int segmentID);
 
-        const int getAccessNodeID() const;
+    const int getAccessNodeID() const;
 
-        void setAccessNodeID(const int NodeID);
+    void setAccessNodeID(const int NodeID);
 
-        const int getEgressNodeID() const;
+    const int getEgressNodeID() const;
 
-        void setEgressNodeID(const int NodeID);
+    void setEgressNodeID(const int NodeID);
 
-        const Node* getAccessNode() const;
+    const Node *getAccessNode() const;
 
-        void setAccessNode(const Node* node);
+    void setAccessNode(const Node *node);
 
-        const Node* getEgressNode() const;
+    const Node *getEgressNode() const;
 
-        void setEgressNode(const Node* node);
+    void setEgressNode(const Node *node);
 
-
-
-
-    };
+};
 
 }

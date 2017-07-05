@@ -22,7 +22,6 @@ TaxiDriver::TaxiDriver(Person_MT* parent, const MutexStrategy& mtxStrat, TaxiDri
                        TaxiDriverMovement* movement, std::string roleName, Role<Person_MT>::Type roleType) :
 		Driver(parent, behavior, movement, roleName, roleType)
 {
-	taxiPassenger = nullptr;
 	taxiDriverMovement = movement;
 	taxiDriverBehaviour = behavior;
 }
@@ -35,15 +34,22 @@ TaxiDriver::TaxiDriver(Person_MT* parent, const MutexStrategy& mtx) :
 
 bool TaxiDriver::addPassenger(Passenger *passenger)
 {
-	if (taxiPassenger == nullptr)
+	const string &personId = passenger->getParent()->getDatabaseId();
+
+	if(taxiPassengers.find(personId) == taxiPassengers.end())
 	{
-		taxiPassenger = passenger;
-		return true;
+		taxiPassengers[personId] = passenger;
 	}
-	return false;
+	else
+	{
+		stringstream msg;
+		msg << "Driver " << parent->getDatabaseId()
+		    << " is trying to add passenger " << personId << "that has already been picked-up.";
+		throw runtime_error(msg.str());
+	}
+
+	return true;
 }
-
-
 
 const Node *TaxiDriver::getCurrentNode() const
 {
@@ -74,7 +80,9 @@ void TaxiDriver::alightPassenger()
 	{
 		Passenger *passenger = taxiPassenger;
 		taxiPassenger = nullptr;
+		taxiPassengers.erase(passenger->getParent()->getDatabaseId());
 		Person_MT *parentPerson = passenger->getParent();
+
 		if (parentPerson)
 		{
 			MesoPathMover &pathMover = taxiDriverMovement->getMesoPathMover();
@@ -84,11 +92,26 @@ void TaxiDriver::alightPassenger()
 
 			if(!taxiDriverMovement->isSubscribedToOnHail())
 			{
+				//Drop-off schedule complete, process next item
+				processNextScheduleItem();
+
 				ControllerLog() << "Drop-off of user" << parentPerson->getDatabaseId() << " at time "
 				                << parentPerson->currTick
 				                << ". Message was sent at ??? with startNodeId ???, destinationNodeId "
 				                << parentConflux->getConfluxNode()->getNodeId()
 				                << ", and driverId " << getParent()->getDatabaseId() << std::endl;
+			}
+			else
+			{
+				if (taxiDriverMovement->CruiseOnlyOrMoveToTaxiStand())      //Decision point.Logic Would be Replaced as per Bathen's Input
+				{
+					setDriverStatus(CRUISING);
+					taxiDriverMovement->selectNextLinkWhileCruising();
+				}
+				else
+				{
+					taxiDriverMovement->driveToTaxiStand();
+				}
 			}
 		}
 	}
@@ -97,11 +120,14 @@ void TaxiDriver::alightPassenger()
 void TaxiDriver::passengerChoiceModel(const Node *origin,const Node *destination, std::vector<WayPoint> &currentRouteChoice)
 {
 	std::vector<WayPoint> res;
-	bool useInSimulationTT = parent->usesInSimulationTravelTime();
 	SubTrip currSubTrip;
 	currSubTrip.origin = WayPoint(origin);
 	currSubTrip.destination = WayPoint(destination);
 	const Lane *currentLane = taxiDriverMovement->getCurrentlane();
+
+	/**On call drivers use in simulation travel-times, on hail drivers do not*/
+	bool useInSimulationTT = !taxiDriverMovement->isSubscribedToOnHail();
+
 	currentRouteChoice = PrivateTrafficRouteChoice::getInstance()->getPathAfterPassengerPickup(currSubTrip, false,
 	                                                                                           nullptr, currentLane,
 	                                                                                           useInSimulationTT);
@@ -114,112 +140,10 @@ void TaxiDriver::HandleParentMessage(messaging::Message::MessageType type, const
 	case MSG_SCHEDULE_PROPOSITION:
 	{
 		const SchedulePropositionMessage &msg = MSG_CAST(SchedulePropositionMessage, message);
-		const Schedule &schedule = msg.getSchedule();
-		const Node *node = NULL;
-
-		for (Schedule::const_iterator scheduleItem = schedule.begin(); scheduleItem < schedule.end();)
-		{
-			switch (scheduleItem->scheduleItemType)
-			{
-			case ScheduleItemType::PICKUP :
-			{
-				const TripRequestMessage request = scheduleItem->tripRequest;
-				scheduleItem++; // Now scheduleItem should point a dropoff
-
-#ifndef NDEBUG
-				if (scheduleItem->scheduleItemType != ScheduleItemType::DROPOFF)
-				{
-					throw std::runtime_error(
-							"I expect a dropoff here. If it is a shared trip schedule, implement it here");
-				}
-				if (scheduleItem->tripRequest != request)
-				{
-					throw std::runtime_error(
-							"We expected a drop off related to the same request of the pick up here, unless this is a shared trip schedule. In that case, please write your implementation here");
-				}
-#endif
-				scheduleItem++; // Now scheduleItem should point to the end
-
-#ifndef NDEBUG
-				if (scheduleItem != schedule.end())
-				{
-					throw std::runtime_error(
-							"For the moment, I would expect to have an empty schedule after getting a pick up and a drop off. If yoiu want to start handling sharing, please write your impleentation here");
-				}
-#endif
-
-				ControllerLog() << "Assignment received for " << request<<". This assignment is received by driver "<<
-						this->getParent()->getDatabaseId() << " at time "<<parent->currTick << std::endl;
-
-				const std::map<unsigned int, Node *> &nodeIdMap = RoadNetwork::getInstance()->getMapOfIdvsNodes();
-
-				std::map<unsigned int, Node *>::const_iterator it = nodeIdMap.find(request.startNodeId);
-
-#ifndef NDEBUG
-				if (it == nodeIdMap.end())
-				{
-					std::stringstream msg;
-					msg << "The schedule received start with node " << it->first << " which is not valid";
-					throw std::runtime_error(msg.str());
-				}
-				if (!MobilityServiceControllerManager::HasMobilityServiceControllerManager())
-				{
-					throw std::runtime_error(
-							"MobilityServiceControllerManager::HasMobilityServiceControllerManager() == false");
-				}
-#endif
-
-				node = it->second;
-
-				const bool success = taxiDriverMovement->driveToNodeOnCall(request.userId, node);
-
-#ifndef NDEBUG
-				if (!success)
-				{
-					std::stringstream msg;
-					msg << __FILE__ << ":" << __LINE__ << ": taxiDriverMovement->driveToNodeOnCall("
-					    << request.userId << "," << node->getNodeId() << ");" << std::endl;
-					WarnOut(msg.str());
-				}
-#endif
-
-				MessageBus::PostMessage(message.GetSender(), MSG_SCHEDULE_PROPOSITION_REPLY,
-				                        MessageBus::MessagePtr(new SchedulePropositionReplyMessage(parent->currTick,
-				                                                                                   request.userId,
-				                                                                                   parent,
-				                                                                                   request.startNodeId,
-				                                                                                   request.destinationNodeId,
-				                                                                                   request.extraTripTimeThreshold,
-				                                                                                   success)));
-
-				ControllerLog() << "Assignment response sent for " << request << ". This response is sent by driver "
-				                << parent->getDatabaseId() << " at time " << parent->currTick << std::endl;
-
-				break;
-			}
-			case ScheduleItemType::CRUISE:
-			{
-				try
-				{
-					taxiDriverMovement->cruiseToNode((*scheduleItem).nodeToCruiseTo);
-					ControllerLog() << "Driver " << parent->getDatabaseId() << " received CRUISE to node "
-					                << (*scheduleItem).nodeToCruiseTo->getNodeId() << std::endl;
-				}
-				catch (exception &ex)
-				{
-					ControllerLog() << ex.what();
-					Print() << ex.what();
-				}
-
-				scheduleItem++;
-				break;
-			}
-
-			default:
-				throw runtime_error("Schedule Item is invalid");
-
-			}
-		}
+		assignedSchedule = msg.getSchedule();
+		controller = msg.GetSender();
+		currScheduleItem = assignedSchedule.begin();
+		processNextScheduleItem();
 	}
 	default:
 	{
@@ -245,42 +169,203 @@ void TaxiDriver::pickUpPassngerAtNode(Conflux *parentConflux, std::string* perso
 	{
 		return;
 	}
+
 	Person_MT *personToPickUp = parentConflux->pickupTaxiTraveler(personId);
+
 	if (personToPickUp)
 	{
 		Role<Person_MT> *curRole = personToPickUp->getRole();
 		sim_mob::medium::Passenger *passenger = dynamic_cast<sim_mob::medium::Passenger *>(curRole);
+
 		if (passenger)
 		{
-			std::vector<SubTrip>::iterator subTripItr = personToPickUp->currSubTrip;
-			WayPoint personTravelDestination = (*subTripItr).destination;
-			const Node *personDestinationNode = personTravelDestination.node;
-			std::vector<WayPoint> currentRouteChoice;
-			const Node *currentNode = taxiDriverMovement->getDestinationNode();
-			if (currentNode == personDestinationNode)
+			if(taxiDriverMovement->isSubscribedToOnHail())
 			{
-				return;
-			}
-			passengerChoiceModel(currentNode, personDestinationNode, currentRouteChoice);
-			if (currentRouteChoice.size() > 0)
-			{
-				bool isAdded = addPassenger(passenger);
-				if (isAdded)
+				std::vector<SubTrip>::iterator subTripItr = personToPickUp->currSubTrip;
+				WayPoint personTravelDestination = (*subTripItr).destination;
+				const Node *personDestinationNode = personTravelDestination.node;
+				std::vector<WayPoint> currentRouteChoice;
+				const Node *currentNode = taxiDriverMovement->getDestinationNode();
+
+				if (currentNode == personDestinationNode)
 				{
-					const Lane *currentLane = taxiDriverMovement->getCurrentlane();
-					const Link *currentLink = currentLane->getParentSegment()->getParentLink();
-					currentRouteChoice.insert(currentRouteChoice.begin(), WayPoint(currentLink));
-					taxiDriverMovement->setDestinationNode(personDestinationNode);
-					taxiDriverMovement->setCurrentNode(currentNode);;
-					taxiDriverMovement->addRouteChoicePath(currentRouteChoice);
-					passenger->setStartPoint(WayPoint(taxiDriverMovement->getCurrentNode()));
-					passenger->setEndPoint(WayPoint(taxiDriverMovement->getDestinationNode()));
-					setDriverStatus(DRIVE_WITH_PASSENGER);
-					passenger->Movement()->startTravelTimeMetric();
+					return;
 				}
+
+				passengerChoiceModel(currentNode, personDestinationNode, currentRouteChoice);
+
+				if (currentRouteChoice.size() > 0)
+				{
+					bool isAdded = addPassenger(passenger);
+					if (isAdded)
+					{
+						const Lane *currentLane = taxiDriverMovement->getCurrentlane();
+						const Link *currentLink = currentLane->getParentSegment()->getParentLink();
+						currentRouteChoice.insert(currentRouteChoice.begin(), WayPoint(currentLink));
+						taxiDriverMovement->setDestinationNode(personDestinationNode);
+						taxiDriverMovement->setCurrentNode(currentNode);;
+						taxiDriverMovement->addRouteChoicePath(currentRouteChoice);
+						passenger->setStartPoint(WayPoint(taxiDriverMovement->getCurrentNode()));
+						passenger->setEndPoint(WayPoint(taxiDriverMovement->getDestinationNode()));
+						setDriverStatus(DRIVE_WITH_PASSENGER);
+						passenger->Movement()->startTravelTimeMetric();
+					}
+				}
+			}
+			else
+			{
+				addPassenger(passenger);
+				setDriverStatus(DRIVE_WITH_PASSENGER);
+				passenger->Movement()->startTravelTimeMetric();
+				passenger->setStartPoint(WayPoint(taxiDriverMovement->getCurrentNode()));
+
+				//Pick-up schedule is complete, process next schedule item
+				processNextScheduleItem();
 			}
 		}
 	}
+}
+
+void TaxiDriver::processNextScheduleItem()
+{
+	//If entire schedule is complete, cruise around
+	if(currScheduleItem == assignedSchedule.end())
+	{
+		setDriverStatus(CRUISING);
+		taxiDriverMovement->selectNextLinkWhileCruising();
+		auto subscribedControllers = taxiDriverMovement->getSubscribedControllers();
+
+		if (MobilityServiceControllerManager::HasMobilityServiceControllerManager())
+		{
+			for (auto it = subscribedControllers.begin(); it != subscribedControllers.end(); ++it)
+			{
+				MessageBus::PostMessage(*it, MSG_DRIVER_AVAILABLE,
+				                        MessageBus::MessagePtr(new DriverAvailableMessage(parent)));
+			}
+		}
+
+		return;
+	}
+
+	switch (currScheduleItem->scheduleItemType)
+	{
+	case PICKUP:
+	{
+		const TripRequestMessage &tripRequest = currScheduleItem->tripRequest;
+		const std::map<unsigned int, Node *> &nodeIdMap = RoadNetwork::getInstance()->getMapOfIdvsNodes();
+		std::map<unsigned int, Node *>::const_iterator it = nodeIdMap.find(tripRequest.startNodeId);
+
+#ifndef NDEBUG
+		if (it == nodeIdMap.end())
+		{
+			std::stringstream msg;
+			msg << "The schedule received start with node " << it->first << " which is not valid";
+			throw std::runtime_error(msg.str());
+		}
+		if (!MobilityServiceControllerManager::HasMobilityServiceControllerManager())
+		{
+			throw std::runtime_error(
+					"MobilityServiceControllerManager::HasMobilityServiceControllerManager() == false");
+		}
+#endif
+
+		ControllerLog() << "Assignment received for " << tripRequest
+		                << ". This assignment is received by driver " <<
+		                this->getParent()->getDatabaseId() << " at time " << parent->currTick << std::endl;
+
+		const Node *node = it->second;
+		const bool success = taxiDriverMovement->driveToNodeOnCall(tripRequest.userId, node);
+
+#ifndef NDEBUG
+		if (!success)
+		{
+			std::stringstream msg;
+			msg << __FILE__ << ":" << __LINE__ << ": taxiDriverMovement->processNextScheduleItem("
+			    << tripRequest.userId << "," << node->getNodeId() << ");" << std::endl;
+			WarnOut(msg.str());
+		}
+#endif
+
+		MessageBus::PostMessage(controller, MSG_SCHEDULE_PROPOSITION_REPLY,
+		                        MessageBus::MessagePtr(new SchedulePropositionReplyMessage(parent->currTick,
+		                                                                                   tripRequest.userId,
+		                                                                                   parent,
+		                                                                                   tripRequest.startNodeId,
+		                                                                                   tripRequest.destinationNodeId,
+		                                                                                   tripRequest.extraTripTimeThreshold,
+		                                                                                   success)));
+
+		ControllerLog() << "Assignment response sent for " << tripRequest << ". This response is sent by driver "
+		                << parent->getDatabaseId() << " at time " << parent->currTick << std::endl;
+
+		break;
+	}
+	case DROPOFF:
+	{
+		const TripRequestMessage &tripRequest = currScheduleItem->tripRequest;
+
+		//Check which passenger is to be dropped-off
+		Passenger *passengerToDrop = taxiPassenger = taxiPassengers[tripRequest.userId];
+
+#ifndef NDEBUG
+		if(!passengerToDrop)
+		{
+			std::stringstream msg;
+			msg << "The passenger " << tripRequest.userId << " has not been picked-up by "
+			    << " driver " << parent->getDatabaseId();
+			throw std::runtime_error(msg.str());
+		}
+#endif
+
+		const Person_MT *personToDrop = passengerToDrop->getParent();
+		std::vector<SubTrip>::iterator subTripItr = personToDrop->currSubTrip;
+		WayPoint personTravelDestination = (*subTripItr).destination;
+		const Node *personDestinationNode = personTravelDestination.node;
+		std::vector<WayPoint> currentRouteChoice;
+		const Node *currentNode = taxiDriverMovement->getDestinationNode();
+
+		if (currentNode == personDestinationNode)
+		{
+			return;
+		}
+
+		passengerChoiceModel(currentNode, personDestinationNode, currentRouteChoice);
+
+		if (!currentRouteChoice.empty())
+		{
+			const Lane *currentLane = taxiDriverMovement->getCurrentlane();
+			const Link *currentLink = currentLane->getParentSegment()->getParentLink();
+			currentRouteChoice.insert(currentRouteChoice.begin(), WayPoint(currentLink));
+			taxiDriverMovement->setDestinationNode(personDestinationNode);
+			taxiDriverMovement->setCurrentNode(currentNode);;
+			taxiDriverMovement->addRouteChoicePath(currentRouteChoice);
+			passengerToDrop->setEndPoint(WayPoint(taxiDriverMovement->getDestinationNode()));
+			setDriverStatus(DRIVE_WITH_PASSENGER);
+		}
+
+		break;
+	}
+	case CRUISE:
+	{
+		try
+		{
+			taxiDriverMovement->cruiseToNode(currScheduleItem->nodeToCruiseTo);
+			ControllerLog() << "Driver " << parent->getDatabaseId() << " received CRUISE to node "
+			                << currScheduleItem->nodeToCruiseTo->getNodeId() << std::endl;
+		}
+		catch (exception &ex)
+		{
+			ControllerLog() << ex.what();
+		}
+
+		break;
+	}
+	default:
+		throw runtime_error("Invalid Schedule item type");
+	}
+
+	//Move to next schedule item
+	++currScheduleItem;
 }
 
 Role<Person_MT>* TaxiDriver::clone(Person_MT *parent) const

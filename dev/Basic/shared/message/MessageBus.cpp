@@ -440,10 +440,7 @@ void MessageBus::RegisterHandler(MessageHandler* handler)
 #endif
 
    	handler->SetContext( static_cast<void*> (context) );
-
-    if (dynamic_cast<sim_mob::MobilityServiceController*> (handler) )
-    	sim_mob::ControllerLog()<<"The controller has been successfully registered"<<std::endl;
-
+   	handler->onRegistrationOnTheMessageBus();
 }
 
 void MessageBus::UnRegisterHandler(MessageHandler* handler) {
@@ -507,6 +504,13 @@ void dispatch(const MessageEntry& entry, ThreadContext* &context,ThreadContext* 
 			if (destinationContext) {
 				destinationContext->input.push(entry);
 			}
+			//<aa>
+			else{
+				std::stringstream msg; msg<<"Destination context is invalid, as static_cast to ThreadContext* failed. entry.destination="<<
+					entry.destination<<", entry.destination->GetContext()="<<entry.destination->GetContext();
+				throw std::runtime_error(msg.str());
+			}
+			//</aa>
 		}
 	}
 };

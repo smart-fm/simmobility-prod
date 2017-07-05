@@ -13,6 +13,7 @@
 #include "message/MessageBus.hpp"
 #include "Pedestrian.hpp"
 #include "util/Utils.hpp"
+#include "entities/controllers/MobilityServiceController.hpp"
 
 using namespace sim_mob;
 using namespace sim_mob::medium;
@@ -96,6 +97,19 @@ void PedestrianMovement::frame_init()
 					unsigned int randomController = Utils::generateInt(0, controllers.size() - 1);
 					auto itControllers = controllers.begin();
 					advance(itControllers, randomController);
+					MobilityServiceControllerType type = itControllers->first;
+					const MobilityServiceController* controller = itControllers->second;
+
+#ifndef NDEBUG
+					consistencyChecks(type);
+					controller->consistencyChecks();
+					if (type != controller->getServiceType() )
+					{
+						std::stringstream msg; msg<<"Controller of type "<< toString(controller->getServiceType() )<<"("<<controller->getServiceType()<<
+						") is registered under the type " << toString(type)<<"("<<type<<")";
+						throw std::runtime_error(msg.str() );
+					}
+#endif
 
 					TripRequestMessage* request = new TripRequestMessage(person->currTick,
 												  person->getDatabaseId(),
@@ -103,7 +117,7 @@ void PedestrianMovement::frame_init()
 					MessageBus::PostMessage(itControllers->second, MSG_TRIP_REQUEST, MessageBus::MessagePtr(request));
 
 
-					ControllerLog() << "Request sent: "<< *request << std::endl;
+					ControllerLog() << "Request sent to controller of type "<< toString(type) << ": "<< *request << std::endl;
 				}
 			}
 		}

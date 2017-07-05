@@ -37,6 +37,13 @@ TaxiDriverMovement::~TaxiDriverMovement()
 
 void TaxiDriverMovement::frame_init()
 {
+#ifndef NDEBUG
+	if (!MobilityServiceControllerManager::HasMobilityServiceControllerManager())
+	{
+		throw std::runtime_error("No controller manager exists");
+	}
+#endif
+
 	Vehicle *newVeh = new Vehicle(Vehicle::TAXI, sim_mob::TAXI_LENGTH);
 	parentTaxiDriver->setResource(newVeh);
 	parentTaxiDriver->setDriverStatus(MobilityServiceDriverStatus::CRUISING);
@@ -47,12 +54,13 @@ void TaxiDriverMovement::frame_init()
 	currentFleetItem = fleets.top();
 	fleets.pop();
 
-	if (MobilityServiceControllerManager::HasMobilityServiceControllerManager())
+
+	const std::multimap<MobilityServiceControllerType, MobilityServiceController*>& controllers =
+			MobilityServiceControllerManager::GetInstance()->getControllers();
+	for (const std::pair<MobilityServiceControllerType, MobilityServiceController*>& p: controllers)
 	{
-		auto controllers = MobilityServiceControllerManager::GetInstance()->getControllers();
-		subscribeToController(controllers, SERVICE_CONTROLLER_GREEDY);
-		subscribeToController(controllers, SERVICE_CONTROLLER_SHARED);
-		subscribeToController(controllers, SERVICE_CONTROLLER_ON_HAIL);
+		const MobilityServiceControllerType type = p.first;
+		subscribeToOrIgnoreController(controllers, type);
 	}
 
 	(isSubscribedToOnHail() && CruiseOnlyOrMoveToTaxiStand())?driveToTaxiStand():selectNextLinkWhileCruising();  // for 1 : drive_to_taxiStand or cruise
@@ -66,13 +74,24 @@ void TaxiDriverMovement::frame_init()
 	}
 }
 
-void TaxiDriverMovement::subscribeToController(
-		multimap<MobilityServiceControllerType, MobilityServiceController *> &controllers,
+void TaxiDriverMovement::subscribeToOrIgnoreController(
+		const multimap<MobilityServiceControllerType, MobilityServiceController *> &controllers,
 		MobilityServiceControllerType controllerType)
 {
+
 	if (currentFleetItem.controllerSubscription & controllerType)
 	{
 		auto range = controllers.equal_range(controllerType);
+
+
+#ifndef NDEBUG
+		if (range.first ==  range.second)
+		{
+			std::stringstream msg; msg<<"Driver "<<parentDriver->getParent()->getDatabaseId()<<" wants to subscribe to type "<<
+				toString(controllerType)<<", but no controller of that type is registered";
+			throw std::runtime_error(msg.str() );
+		}
+#endif
 		for (auto itController = range.first; itController != range.second; ++itController)
 		{
 
@@ -92,7 +111,7 @@ void TaxiDriverMovement::subscribeToController(
 #ifndef NDEBUG
 			ControllerLog() << "Driver " << parentDriver->getParent()->getDatabaseId()
 			                << " sent a subscription to the controller "
-			                << itController->second->GetId() << " at time " << parentDriver->getParent()->currTick
+			                << itController->second->toString() << " at time " << parentDriver->getParent()->currTick
 			                << std::endl;
 #endif
 
@@ -256,32 +275,6 @@ bool TaxiDriverMovement::moveToNextSegment(DriverUpdateParams &params)
 	else if (parentTaxiDriver->getDriverStatus() == DRIVE_WITH_PASSENGER && pathMover.isEndOfPath())
 	{
 		parentTaxiDriver->alightPassenger();
-
-		if (MobilityServiceControllerManager::HasMobilityServiceControllerManager())
-		{
-			for (auto it = subscribedControllers.begin(); it != subscribedControllers.end(); ++it)
-			{
-				MessageBus::PostMessage(*it, MSG_DRIVER_AVAILABLE,
-				                        MessageBus::MessagePtr(new DriverAvailableMessage(parentTaxiDriver->parent)));
-			}
-		}
-        if(isSubscribedToOnHail())
-        {
-            if (CruiseOnlyOrMoveToTaxiStand())      //Decision point.Logic Would be Replaced as per Bathen's Input
-            {
-                parentTaxiDriver->setDriverStatus(CRUISING);
-                selectNextLinkWhileCruising();
-            }
-            else
-            {
-                driveToTaxiStand();
-            }
-        }
-        else
-        {
-            parentTaxiDriver->setDriverStatus(CRUISING);
-            selectNextLinkWhileCruising();
-        }
 	}
 	else if (parentTaxiDriver->getDriverStatus() == DRIVE_FOR_DRIVER_CHANGE_SHIFT && pathMover.isEndOfPath())
 	{
@@ -753,21 +746,21 @@ void TaxiDriverMovement::setCruisingMode()
 	}
 }
 
-bool TaxiDriverMovement::driveToNodeOnCall(const std::string &personId, const Node *destination)
+bool TaxiDriverMovement::driveToNodeOnCall(const std::string &personId, const Node *pickupNode)
 {
 	bool res = false;
 	const MobilityServiceDriverStatus mode = parentTaxiDriver->getDriverStatus();
-	if (mode == CRUISING && destination)
+	if ((mode == CRUISING || mode == DRIVE_WITH_PASSENGER) && pickupNode)
 	{
 		const Link *link = this->currLane->getParentSegment()->getParentLink();
 		std::vector<WayPoint> currentRouteChoice =
-				StreetDirectory::Instance().SearchShortestDrivingPath<Link, Node>(*link, *destination);
+				StreetDirectory::Instance().SearchShortestDrivingPath<Link, Node>(*link, *pickupNode);
 
 		if (currentRouteChoice.size() > 0)
 		{
 			res = true;
 			currentNode = link->getFromNode();
-			destinationNode = destination;
+			destinationNode = pickupNode;
 			setCurrentNode(currentNode);
 			setDestinationNode(destinationNode);
 			addRouteChoicePath(currentRouteChoice);
@@ -782,15 +775,15 @@ bool TaxiDriverMovement::driveToNodeOnCall(const std::string &personId, const No
 		{
 			ControllerLog() << "Assignment failed for " << personId << " because mode was not CRUISING" << std::endl;
 		}
-		else if (!destination)
+		else if (!pickupNode)
 		{
-			ControllerLog() << "Assignment failed for " << personId << " because destination was null" << std::endl;
+			ControllerLog() << "Assignment failed for " << personId << " because pickup node was null" << std::endl;
 		}
 		else
 		{
 			ControllerLog() << "Assignment failed for " << personId << " because currentRouteChoice was empty"
 			                << ". No path from lane " << this->currLane->getLaneId() << " to node "
-			                << destination->getNodeId() << std::endl;
+			                << pickupNode->getNodeId() << std::endl;
 		}
 	}
 
@@ -995,7 +988,7 @@ std::string TaxiDriverMovement::frame_tick_output()
     	Print() << out.str();
     */
 	taxitrajectoryLogger << out.str();
-	return out.str();
+return out.str();
 }
 
 

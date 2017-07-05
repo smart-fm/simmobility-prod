@@ -73,18 +73,23 @@ void sim_mob::medium::Pedestrian::collectTravelTime()
 		messaging::MessageBus::PostMessage(PT_Statistics::getInstance(),
 				STORE_PERSON_TRAVEL_TIME, messaging::MessageBus::MessagePtr(new PersonTravelTimeMessage(personTravelTime)), true);
 	}
-	personTravelTime.tripStartPoint = (*(parent->currTripChainItem))->startLocationId;
-	personTravelTime.tripEndPoint = (*(parent->currTripChainItem))->endLocationId;
-	personTravelTime.subStartPoint = parent->currSubTrip->startLocationId;
-	personTravelTime.subEndPoint = parent->currSubTrip->endLocationId;
-	personTravelTime.subStartType = parent->currSubTrip->startLocationType;
-	personTravelTime.subEndType = parent->currSubTrip->endLocationType;
-	personTravelTime.mode = "WALK";
-	personTravelTime.service = parent->currSubTrip->ptLineId;
-	personTravelTime.travelTime = totalTravelTimeMS/1000.0;
-	personTravelTime.arrivalTime = DailyTime(parent->getRole()->getArrivalTime()).getStrRepr();
-	messaging::MessageBus::PostMessage(PT_Statistics::getInstance(),
-			STORE_PERSON_TRAVEL_TIME, messaging::MessageBus::MessagePtr(new PersonTravelTimeMessage(personTravelTime)), true);
+
+	if(!parent->currSubTrip->isTT_Walk)
+	{
+		personTravelTime.tripStartPoint = (*(parent->currTripChainItem))->startLocationId;
+		personTravelTime.tripEndPoint = (*(parent->currTripChainItem))->endLocationId;
+		personTravelTime.subStartPoint = parent->currSubTrip->startLocationId;
+		personTravelTime.subEndPoint = parent->currSubTrip->endLocationId;
+		personTravelTime.subStartType = parent->currSubTrip->startLocationType;
+		personTravelTime.subEndType = parent->currSubTrip->endLocationType;
+		personTravelTime.mode = "WALK";
+		personTravelTime.service = parent->currSubTrip->ptLineId;
+		personTravelTime.travelTime = totalTravelTimeMS / 1000.0;
+		personTravelTime.arrivalTime = DailyTime(parent->getRole()->getArrivalTime()).getStrRepr();
+		messaging::MessageBus::PostMessage(PT_Statistics::getInstance(),
+		                                   STORE_PERSON_TRAVEL_TIME, messaging::MessageBus::MessagePtr(
+						new PersonTravelTimeMessage(personTravelTime)), true);
+	}
 }
 
 bool sim_mob::medium::Pedestrian::isOnDemandTraveller()

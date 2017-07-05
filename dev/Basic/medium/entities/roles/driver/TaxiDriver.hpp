@@ -45,7 +45,6 @@ public:
 	 */
 	void alightPassenger();
 
-
 	/**
 	 * get current Node
 	 * @return current Node
@@ -98,6 +97,10 @@ public:
 	 */
 	std::vector<BufferedBase *> getSubscriptionParams();
 
+	/**
+	 * Process the next schedule item and updates the currScheduleItem
+	 */
+	void processNextScheduleItem();
 
 	/**
 	 * get current passenger
@@ -121,7 +124,10 @@ public:
 	virtual const std::vector<MobilityServiceController*>& getSubscribedControllers() const;
 
 private:
-	/**hold passenger object*/
+	/**Holds all the passengers on board, the key to the map is the person db id*/
+	std::map<const std::string, Passenger *> taxiPassengers;
+
+	/**The taxiPassenger that will be dropped off next*/
 	Passenger *taxiPassenger = nullptr;
 
 	/**hold movement facet object*/
@@ -130,6 +136,14 @@ private:
 	/**hold behavior facet object*/
 	TaxiDriverBehavior *taxiDriverBehaviour;
 
+	/**Holds the schedule assigned by the controller*/
+	Schedule assignedSchedule;
+
+	/**Points to the current schedule item*/
+	Schedule::const_iterator currScheduleItem;
+
+	/**The mobility service controller that sent the current schedule*/
+	messaging::MessageHandler *controller = nullptr;
 
 public:
 	friend class TaxiDriverBehavior;

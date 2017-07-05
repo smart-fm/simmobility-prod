@@ -17,7 +17,8 @@ void GreedyTaxiController::computeSchedules()
 	consistencyChecks("beginning");
 #endif
 
-	ControllerLog() << "Computing schedule: " << requestQueue.size() << " requests are in the queue" << std::endl;
+	ControllerLog() << "Computing schedule: " << requestQueue.size() << " requests are in the queue, available drivers "
+			<< availableDrivers.size() << std::endl;
 
 	std::list<TripRequestMessage>::iterator request = requestQueue.begin();
 	if (!availableDrivers.empty())

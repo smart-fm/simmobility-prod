@@ -89,10 +89,10 @@ public:
 	/**
 	 * driving taxi for oncall request
 	 * @param personId is person id who is calling taxi
-	 * @param destination is a node where calling person is waiting there
+	 * @param pickupNode is a node where calling person is waiting there
 	 * @return true if calling request is successful
 	 */
-	bool driveToNodeOnCall(const std::string &personId, const Node *destination);
+	bool driveToNodeOnCall(const std::string &personId, const Node *pickupNode);
 
 	/**
 	 * Sets the driver to cruise to a given node. This functionality is specific to on call drivers
@@ -103,6 +103,22 @@ public:
 	virtual const std::vector<MobilityServiceController*>& getSubscribedControllers() const;
 
 	bool isSubscribedToOnHail() const;
+
+	/** Return boolean Decision whether taxi is supposed to cruise or to move taxi stand
+	 * Currently this decision is set as random, but this would be replaced by the Bathen's logic
+	 * after decision model fixed.
+	 */
+	bool CruiseOnlyOrMoveToTaxiStand();
+
+	/**
+	 * select next link when cruising
+	 */
+	void selectNextLinkWhileCruising();
+
+	/**
+	 * drive taxi to next taxi stand
+ 	 */
+	void driveToTaxiStand();
 
 protected:
 	/**List of subscribed controllers*/
@@ -153,11 +169,6 @@ private:
 	void setCruisingMode();
 
 	/**
-	 * drive taxi to next taxi stand
-	 */
-	void driveToTaxiStand();
-
-	/**
 	 * set destination node
 	 * @param destinationNode is a pointer to destination node
 	 */
@@ -176,11 +187,6 @@ private:
 	 * @param params hold current driver information
 	 */
 	bool moveToNextSegment(DriverUpdateParams &params);
-
-	/**
-	 * select next link when cruising
-	 */
-	void selectNextLinkWhileCruising();
 
 	/**
 	 * add next cruising path
@@ -209,14 +215,8 @@ private:
 	 * @param controllers map of controllers
 	 * @param controllerType the type of controller to be subscribed
 	 */
-	void subscribeToController(std::multimap<MobilityServiceControllerType, MobilityServiceController *> &controllers,
+	void subscribeToOrIgnoreController(const std::multimap<MobilityServiceControllerType, MobilityServiceController *>& controllers,
 							   MobilityServiceControllerType controllerType);
-
-	/** Return boolean Decision whether taxi is supposed to cruise or to move taxi stand
-	 *  Currently this decision is set as random, but this would be replaced by the Bathen's logic
-	 *  after decision model fixed.
-	 */
-    bool CruiseOnlyOrMoveToTaxiStand();
 };
 
 class TaxiDriverBehavior : public DriverBehavior

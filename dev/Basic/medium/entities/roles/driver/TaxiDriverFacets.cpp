@@ -256,32 +256,6 @@ bool TaxiDriverMovement::moveToNextSegment(DriverUpdateParams &params)
 	else if (parentTaxiDriver->getDriverStatus() == DRIVE_WITH_PASSENGER && pathMover.isEndOfPath())
 	{
 		parentTaxiDriver->alightPassenger();
-
-		if (MobilityServiceControllerManager::HasMobilityServiceControllerManager())
-		{
-			for (auto it = subscribedControllers.begin(); it != subscribedControllers.end(); ++it)
-			{
-				MessageBus::PostMessage(*it, MSG_DRIVER_AVAILABLE,
-				                        MessageBus::MessagePtr(new DriverAvailableMessage(parentTaxiDriver->parent)));
-			}
-		}
-        if(isSubscribedToOnHail())
-        {
-            if (CruiseOnlyOrMoveToTaxiStand())      //Decision point.Logic Would be Replaced as per Bathen's Input
-            {
-                parentTaxiDriver->setDriverStatus(CRUISING);
-                selectNextLinkWhileCruising();
-            }
-            else
-            {
-                driveToTaxiStand();
-            }
-        }
-        else
-        {
-            parentTaxiDriver->setDriverStatus(CRUISING);
-            selectNextLinkWhileCruising();
-        }
 	}
 	else if (parentTaxiDriver->getDriverStatus() == DRIVE_FOR_DRIVER_CHANGE_SHIFT && pathMover.isEndOfPath())
 	{
@@ -753,21 +727,21 @@ void TaxiDriverMovement::setCruisingMode()
 	}
 }
 
-bool TaxiDriverMovement::driveToNodeOnCall(const std::string &personId, const Node *destination)
+bool TaxiDriverMovement::driveToNodeOnCall(const std::string &personId, const Node *pickupNode)
 {
 	bool res = false;
 	const MobilityServiceDriverStatus mode = parentTaxiDriver->getDriverStatus();
-	if (mode == CRUISING && destination)
+	if ((mode == CRUISING || mode == DRIVE_WITH_PASSENGER) && pickupNode)
 	{
 		const Link *link = this->currLane->getParentSegment()->getParentLink();
 		std::vector<WayPoint> currentRouteChoice =
-				StreetDirectory::Instance().SearchShortestDrivingPath<Link, Node>(*link, *destination);
+				StreetDirectory::Instance().SearchShortestDrivingPath<Link, Node>(*link, *pickupNode);
 
 		if (currentRouteChoice.size() > 0)
 		{
 			res = true;
 			currentNode = link->getFromNode();
-			destinationNode = destination;
+			destinationNode = pickupNode;
 			setCurrentNode(currentNode);
 			setDestinationNode(destinationNode);
 			addRouteChoicePath(currentRouteChoice);
@@ -782,15 +756,15 @@ bool TaxiDriverMovement::driveToNodeOnCall(const std::string &personId, const No
 		{
 			ControllerLog() << "Assignment failed for " << personId << " because mode was not CRUISING" << std::endl;
 		}
-		else if (!destination)
+		else if (!pickupNode)
 		{
-			ControllerLog() << "Assignment failed for " << personId << " because destination was null" << std::endl;
+			ControllerLog() << "Assignment failed for " << personId << " because pickup node was null" << std::endl;
 		}
 		else
 		{
 			ControllerLog() << "Assignment failed for " << personId << " because currentRouteChoice was empty"
 			                << ". No path from lane " << this->currLane->getLaneId() << " to node "
-			                << destination->getNodeId() << std::endl;
+			                << pickupNode->getNodeId() << std::endl;
 		}
 	}
 

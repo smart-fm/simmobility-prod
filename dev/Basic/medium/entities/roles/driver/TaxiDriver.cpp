@@ -148,7 +148,8 @@ void TaxiDriver::HandleParentMessage(messaging::Message::MessageType type, const
 		assignedSchedule = msg.getSchedule();
 		controller = msg.GetSender();
 		currScheduleItem = assignedSchedule.begin();
-		processNextScheduleItem();
+		processNextScheduleItem(false);
+		break;
 	}
 	default:
 	{
@@ -240,8 +241,14 @@ void TaxiDriver::pickUpPassngerAtNode(Conflux *parentConflux, std::string* perso
 	}
 }
 
-void TaxiDriver::processNextScheduleItem()
+void TaxiDriver::processNextScheduleItem(bool isMoveToNextScheduleItem)
 {
+	if(isMoveToNextScheduleItem)
+	{
+		//Move to next schedule item
+		++currScheduleItem;
+	}
+
 	//If entire schedule is complete, cruise around
 	if(currScheduleItem == assignedSchedule.end())
 	{
@@ -271,8 +278,8 @@ void TaxiDriver::processNextScheduleItem()
 		}
 #endif
 
-		ControllerLog() << "Assignment received for " << tripRequest
-		                << ". This assignment is received by driver " <<
+		ControllerLog() << "Processing pick-up for " << tripRequest
+		                << ". This assignment is started by driver " <<
 		                this->getParent()->getDatabaseId() << " at time " << parent->currTick << std::endl;
 
 		const Node *node = it->second;
@@ -287,18 +294,6 @@ void TaxiDriver::processNextScheduleItem()
 			WarnOut(msg.str());
 		}
 #endif
-
-		MessageBus::PostMessage(controller, MSG_SCHEDULE_PROPOSITION_REPLY,
-		                        MessageBus::MessagePtr(new SchedulePropositionReplyMessage(parent->currTick,
-		                                                                                   tripRequest.userId,
-		                                                                                   parent,
-		                                                                                   tripRequest.startNodeId,
-		                                                                                   tripRequest.destinationNodeId,
-		                                                                                   tripRequest.extraTripTimeThreshold,
-		                                                                                   success)));
-
-		ControllerLog() << "Assignment response sent for " << tripRequest << ". This response is sent by driver "
-		                << parent->getDatabaseId() << " at time " << parent->currTick << std::endl;
 
 		break;
 	}
@@ -343,6 +338,16 @@ void TaxiDriver::processNextScheduleItem()
 			taxiDriverMovement->addRouteChoicePath(currentRouteChoice);
 			passengerToDrop->setEndPoint(WayPoint(taxiDriverMovement->getDestinationNode()));
 			setDriverStatus(DRIVE_WITH_PASSENGER);
+
+			ControllerLog() << "Processing drop-off for " << tripRequest
+			                << ". This assignment is started by driver " <<
+			                this->getParent()->getDatabaseId() << " at time " << parent->currTick << std::endl;
+		}
+		else
+		{
+			ControllerLog() << "Processing drop-off for " << tripRequest
+			                << " failed as no route found by driver " <<
+			                this->getParent()->getDatabaseId() << " at time " << parent->currTick << std::endl;
 		}
 
 		break;
@@ -365,9 +370,6 @@ void TaxiDriver::processNextScheduleItem()
 	default:
 		throw runtime_error("Invalid Schedule item type");
 	}
-
-	//Move to next schedule item
-	++currScheduleItem;
 }
 
 Role<Person_MT>* TaxiDriver::clone(Person_MT *parent) const

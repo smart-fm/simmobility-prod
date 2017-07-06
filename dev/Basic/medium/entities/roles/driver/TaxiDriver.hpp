@@ -99,8 +99,10 @@ public:
 
 	/**
 	 * Process the next schedule item and updates the currScheduleItem
+	 * @param isMoveToNextScheduleItem Indicates whether we increment the iterator
+	 * pointing to the schedule item
 	 */
-	void processNextScheduleItem();
+	void processNextScheduleItem(bool isMoveToNextScheduleItem = true);
 
 	/**
 	 * get current passenger

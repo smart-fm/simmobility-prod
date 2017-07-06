@@ -443,7 +443,7 @@ void SharedController::computeSchedules()
 				}else passengerIds.insert(item.tripRequest.userId);
 			}
 		}
-		for (const std::string& passengerId : passengerIds) ControllerLog()<<passengerId<<", "; ControllerLog()<<"\n\n\n"<<std::endl;
+
 #endif
 
 

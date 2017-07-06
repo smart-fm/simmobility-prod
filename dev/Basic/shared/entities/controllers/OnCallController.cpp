@@ -67,7 +67,7 @@ void OnCallController::unsubscribeDriver(Person *driver)
 	unsigned scheduleSize = driverSchedules.at(driver).size();
 	if ( scheduleSize>0 )
 	{
-		std::stringstream msg; msg<<"Driver "<< driver->getDatabaseId()<<" has a non empty schedule and she sent a message "
+		std::stringstream msg; msg<<"Driver "<< driver->getDatabaseId()<<", pointer "<< driver << " has a non empty schedule and she sent a message "
 		<<"to unsubscribe. This is not admissible";
 		throw std::runtime_error(msg.str());
 	}
@@ -321,7 +321,11 @@ void OnCallController::assignSchedule(const Person *driver, const Schedule &sche
 #endif
 
 	ControllerLog() << schedule << "sent by the controller. The assignement is sent at " <<
-	                currTick << " to driver " << driver->getDatabaseId() << std::endl;
+	                currTick << " to driver " << driver->getDatabaseId();
+#ifndef NDEBUG
+	ControllerLog() <<", whose pointer is driver=" << driver <<", (MessageHandler *) driver="<<(MessageHandler *) driver;
+#endif
+	ControllerLog()<< std::endl;
 }
 
 bool OnCallController::isCruising(const Person *driver) const

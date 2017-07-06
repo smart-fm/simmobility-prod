@@ -111,8 +111,10 @@ void TaxiDriverMovement::subscribeToOrIgnoreController(
 #ifndef NDEBUG
 			ControllerLog() << "Driver " << parentDriver->getParent()->getDatabaseId()
 			                << " sent a subscription to the controller "
-			                << itController->second->toString() << " at time " << parentDriver->getParent()->currTick
-			                << std::endl;
+			                << itController->second->toString() << " at time " << parentDriver->getParent()->currTick;
+			ControllerLog()<<". parentDriver pointer "<< parentDriver;
+
+			ControllerLog()<< std::endl;
 #endif
 
 			subscribedControllers.push_back(itController->second);
@@ -380,6 +382,10 @@ bool TaxiDriverMovement::checkNextFleet()
 					{
 						MessageBus::PostMessage(*it, MSG_DRIVER_UNSUBSCRIBE, MessageBus::MessagePtr(
 								new DriverUnsubscribeMessage(parentTaxiDriver->getParent())));
+#ifndef NDEBUG
+						ControllerLog()<< __FILE__ <<":" <<__LINE__<<":"<< __FUNCTION__ << ": Driver "<<parentTaxiDriver->parent->getDatabaseId()<<
+								" unsubscribed because of checkNextFleet()"<< std::endl;
+#endif
 					}
 				}
 

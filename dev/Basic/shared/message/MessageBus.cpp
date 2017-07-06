@@ -481,7 +481,8 @@ void MessageBus::DistributeMessages() {
 
 void dispatch(const MessageEntry& entry, ThreadContext* &context,ThreadContext* &mainContext)
 {
-	if (entry.event) {
+	if (entry.event)
+	{
 		context->eventMessages++;
 		//if it is an event then we need to distribute the event for all
 		//publishers in the system.
@@ -507,7 +508,7 @@ void dispatch(const MessageEntry& entry, ThreadContext* &context,ThreadContext* 
 			//<aa>
 			else{
 				std::stringstream msg; msg<<"Destination context is invalid, as static_cast to ThreadContext* failed. entry.destination="<<
-					entry.destination<<", entry.destination->GetContext()="<<entry.destination->GetContext();
+					entry.destination<<", entry.destination->GetContext()="<<entry.destination->GetContext()<< ", entry.type=" << entry.type;
 				throw std::runtime_error(msg.str());
 			}
 			//</aa>

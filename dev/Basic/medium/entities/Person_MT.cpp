@@ -1063,7 +1063,7 @@ Entity::UpdateStatus Person_MT::checkTripChain(unsigned int currentTime)
 
 	//advance the trip, sub-trip or activity....
 	TripChainItem *chainItem=*(tripChain.begin());
-	if(chainItem->itemType!=TripChainItem::IT_TAXITRIP)
+	if(chainItem->itemType != TripChainItem::IT_TAXITRIP)
 	{
 		if (!isFirstTick)
 		{
@@ -1081,7 +1081,8 @@ Entity::UpdateStatus Person_MT::checkTripChain(unsigned int currentTime)
 	{
 		if (!isFirstTick)
 		{
-			return UpdateStatus::Done;
+
+			// return UpdateStatus::Done; //<aa> I disabled it </aa>
 		}
 	}
 

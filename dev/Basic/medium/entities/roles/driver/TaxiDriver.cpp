@@ -402,6 +402,10 @@ TaxiDriver::~TaxiDriver()
 		{
 			MessageBus::PostMessage(*it, MSG_DRIVER_UNSUBSCRIBE,
 			                        MessageBus::MessagePtr(new DriverUnsubscribeMessage(parent)));
+#ifndef NDEBUG
+						ControllerLog()<< __FILE__ <<":" <<__LINE__<<":" <<__FUNCTION__<< ": Driver with pointer "<< this <<
+								" unsubscribed because it is being destroyed "<< std::endl;
+#endif
 		}
 	}
 }

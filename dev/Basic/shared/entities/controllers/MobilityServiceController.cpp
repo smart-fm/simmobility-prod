@@ -69,8 +69,8 @@ void MobilityServiceController::HandleMessage(messaging::Message::MessageType ty
 	{
 		const DriverUnsubscribeMessage &unsubscribeArgs = MSG_CAST(DriverUnsubscribeMessage, message);
 		const Person* person = unsubscribeArgs.person;
+		Print()<<"ciao, person pointer "<< person <<". begin. " <<std::endl;
 		const std::string personId = person->getDatabaseId();
-		Print()<<"ciao, person pointer "<< person <<", personId="<< personId << ". begin. " <<std::endl;
 		ControllerLog() << "Driver " << personId << " unsubscribed " << std::endl;
 		Print()<<"ciao, person pointer "<< person <<", personId="<< personId << ". end. "  <<std::endl;
 		unsubscribeDriver(unsubscribeArgs.person);
@@ -107,7 +107,14 @@ void MobilityServiceController::subscribeDriver(Person *driver)
 
 void MobilityServiceController::unsubscribeDriver(Person *driver)
 {
-	ControllerLog() << "Unsubscription of driver " << driver->getDatabaseId() <<" at time "<< currTick<< std::endl;
+#ifndef NDEBUG
+	if (driver->getDatabaseId().empty() )
+	{
+		std::stringstream msg; msg<<"The driver with pointer "<< driver<<" has no databaseId and she is asking to unsubscribe";
+		throw std::runtime_error(msg.str() );
+	}
+#endif
+	ControllerLog() << "Unsubscription of driver " << driver->getDatabaseId() <<", pointer "<< driver << " at time "<< currTick<< std::endl;
 	subscribedDrivers.erase(std::remove(subscribedDrivers.begin(),
 	                                    subscribedDrivers.end(), driver), subscribedDrivers.end());
 }

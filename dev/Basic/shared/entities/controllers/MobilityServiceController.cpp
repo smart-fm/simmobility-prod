@@ -83,8 +83,7 @@ void MobilityServiceController::HandleMessage(messaging::Message::MessageType ty
 
 void MobilityServiceController::subscribeDriver(Person *driver)
 {
-	ControllerLog()<<"Subscription received by the controller from driver "<< driver->getDatabaseId()
-			<<" at time "<< currTick <<std::endl;
+
 #ifndef NDEBUG
 	consistencyChecks();
                 if (!isMobilityServiceDriver(driver) )
@@ -96,6 +95,10 @@ void MobilityServiceController::subscribeDriver(Person *driver)
 
 #endif
 	subscribedDrivers.push_back(driver);
+
+	ControllerLog()<<"Subscription received by the controller of type "<< sim_mob::toString(controllerServiceType) <<", controller info: "<< toString() <<
+			". Subscription from driver "<< driver->getDatabaseId()
+				<<" at time "<< currTick <<". Now subscribed drivers are "<< subscribedDrivers.size() <<std::endl;
 }
 
 void MobilityServiceController::unsubscribeDriver(Person *driver)

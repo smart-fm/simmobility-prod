@@ -268,7 +268,8 @@ void SharedController::computeSchedules()
 			request1Index++;
 		}
 
-		ControllerLog() << "About to perform matching on "<< requestQueue.size()<< " requests, wish me luck" << std::endl;
+		ControllerLog() << "About to perform matching on "<< requestQueue.size()<< " requests and "<< availableDrivers.size() <<
+				" drivers. Wish me luck" << std::endl;
 
 		// 3. Perform maximum matching
 		// aa: 	the following algorithm finds the maximum matching, a set of edges representing

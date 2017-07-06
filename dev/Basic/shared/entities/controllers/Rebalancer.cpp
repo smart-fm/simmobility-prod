@@ -11,7 +11,9 @@
 #include "message/MobilityServiceControllerMessage.hpp"
 #include "message/MessageBus.hpp"
 #include "logging/ControllerLog.hpp"
-
+// jo {
+#include "database/predaydao/ZoneCostSqlDao.hpp"
+// } jo
 
 namespace sim_mob {
 
@@ -70,6 +72,7 @@ void KasiaRebalancer::rebalance(const std::vector<const Person*>& availableDrive
 //    }
 
     // create variables for solving lp
+
 	// { jo: We need to get the entire TAZ list for the network; for now using latestStartNodes will do
 	std::vector<int> stations ;
 	std::vector<Node*>:: iterator inode;
@@ -81,60 +84,81 @@ void KasiaRebalancer::rebalance(const std::vector<const Person*>& availableDrive
 	}
 	sort(stations.begin(), stations.end()) ;
 	std::vector<int>:: iterator it;
-	it = unique(stations.begin(), stations.end()) ;
-	stations.resize(distance(stations.begin(),it));
+	it = unique(stations.begin(), stations.end()) ; // get unique TAZ's represented
+	stations.resize(distance(stations.begin(),it)); // resize stations vector
 	// } jo
+
     int nvehs = availableDrivers.size();
     int nstations = stations.size();
     int nstationsServed = 0;
     int nvars = nstations*nstations; // how many to send from one station to another
 
     int viTotal = availableDrivers.size();
-    int cexTotal = 0;
+    int cexTotal = 0; // total excess customers
     std::unordered_map<int, int> cex;
     std::unordered_map<int, std::set<int>> vi; // free vehicles at this station
 
     // set up the problem
-//    glp_prob *lp; // initialize linear program
-//    lp = glp_create_prob();
-//    glp_set_prob_name(lp, "rebalancing"); // assign problem name
-//    glp_set_obj_dir(lp, GLP_MIN); // objective direction: minimization
-//    glp_add_cols(lp, nvars); // variables to be returned
-//
-//
-//    // add the structural variables (decision variables)
-//    std::unordered_map<int, std::pair<int,int>> indexToIds;
-//    std::unordered_map<std::pair<int,int>, int> idsToIndex;
-//
-//    int k = 1;
-//    for (auto sitr = stations.begin(); sitr != stations.end(); ++sitr){
-//        for (auto sitr2 = stations.begin(); sitr2 != stations.end(); ++sitr2) {
-//            // store the indices to make lookups easier (can be optimized in future iterations)
-//            indexToIds[k] = {sitr->first, sitr2->first};
-//            idsToIndex[std::make_pair(sitr->first, sitr2->first)] = k;
-//
-//            // get cost
+    glp_prob *lp; // initialize linear program
+    lp = glp_create_prob();
+    glp_set_prob_name(lp, "rebalancing"); // assign problem name
+    glp_set_obj_dir(lp, GLP_MIN); // objective direction: minimization
+    glp_add_cols(lp, nvars); // variables to be returned
+
+
+    // add the structural variables (decision variables)
+    std::unordered_map<int, std::pair<int,int>> indexToIds;
+    std::unordered_map<std::pair<int,int>, int> idsToIndex;
+
+    int k = 1;
+    // { jo: since `stations` is a vector not a map (as in previous AMOD branch, all refs to `first`,`second` removed
+    for (auto sitr = stations.begin(); sitr != stations.end(); ++sitr){
+        for (auto sitr2 = stations.begin(); sitr2 != stations.end(); ++sitr2) {
+            // store the indices to make lookups easier (can be optimized in future iterations)
+            indexToIds[k] = {sitr, sitr2};
+            idsToIndex[std::make_pair(sitr, sitr2)] = k;
+
+            // get cost
+            // { jo use traveltimemode function (zone-based travel time)
+
+            int origin = sitr ;
+            int destination = sitr2 ;
+            double cost ;
+            if(origin==destination){
+            	cost = 0.0 ;
+            }
+            else {
+                TimeDependentTT_SqlDao& tcostDao ;
+                TimeDependentTT_Params todBasedTT;
+            	tcostDao.getTT_ByOD(TravelTimeMode::TT_PRIVATE, origin, destination, todBasedTT);
+            	cost = todBasedTT.arrivalBasedTT() ;
+            }
+            // The below is for node-based traveltime
+            // PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(
+            //          request->startNodeId, request->destinationNodeId, DailyTime(currTick.ms()));
+
+            // }jo
 //            double cost = simulator->getDrivingDistance(sitr->second.getPosition(),
 //                    sitr2->second.getPosition() );
-//
-//            if (cost == -1) {
-//                // no route possible
-//                cost = 1e11; //some large number
-//            };
-//
-//            // add this variable to the solver
-//            std::stringstream ss;
-//            ss << "x " << sitr->first << " " << sitr2->first;
-//            const std::string& tmp = ss.str();
-//            const char* cstr = tmp.c_str();
-//            glp_set_col_name(lp, k, cstr);
-//
-//            glp_set_col_bnds(lp, k, GLP_LO, 0.0, 0.0); // set lower bound of zero, no upperbound
-//            glp_set_obj_coef(lp, k, cost);
-//
-//            // increment index
-//            ++k;
-//        }
+
+            if (cost == -1) {
+                // no route possible
+                cost = 1e11; //some large number
+            };
+
+            // add this variable to the solver
+            std::stringstream ss;
+            ss << "x " << sitr << " " << sitr2;
+            const std::string& tmp = ss.str();
+            const char* cstr = tmp.c_str();
+            glp_set_col_name(lp, k, cstr);
+
+            glp_set_col_bnds(lp, k, GLP_LO, 0.0, 0.0); // set lower bound of zero, no upperbound
+            glp_set_obj_coef(lp, k, cost);
+
+            // increment index
+            ++k;
+        }
 //
 //        // compute variables for the lp
 //

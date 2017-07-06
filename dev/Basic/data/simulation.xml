@@ -109,10 +109,10 @@
 
         <!-- Reasonable values for MidTerm -->
         <base_granularity   value="5"   units="seconds"/>
-        <total_runtime      value="1439"      units="minutes" />
+        <total_runtime      value="120"      units="minutes" />
 
         <total_warmup       value="10"     units="seconds" />
-        <start_time         value="00:00:00"/>
+        <start_time         value="17:00:00"/>
 
 
         <!--Indicates the percentage of drivers that will use in-simulation travel times rather than the historical travel times-->

@@ -584,7 +584,8 @@ double sim_mob::PrivateTrafficRouteChoice::getOD_TravelTime(unsigned int origin,
 
 	if(shortestPath)
 	{
-		shortestPathTravelTime = getPathTravelTime(shortestPath, curTime, false, true);
+		bool useInSimulationTravelTime = true;
+		shortestPathTravelTime = getPathTravelTime(shortestPath, curTime, false, useInSimulationTravelTime);
 	}
 	else
 	{

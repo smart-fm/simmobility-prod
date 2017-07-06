@@ -245,19 +245,7 @@ void TaxiDriver::processNextScheduleItem()
 	//If entire schedule is complete, cruise around
 	if(currScheduleItem == assignedSchedule.end())
 	{
-		setDriverStatus(CRUISING);
-		taxiDriverMovement->selectNextLinkWhileCruising();
-		auto subscribedControllers = taxiDriverMovement->getSubscribedControllers();
-
-		if (MobilityServiceControllerManager::HasMobilityServiceControllerManager())
-		{
-			for (auto it = subscribedControllers.begin(); it != subscribedControllers.end(); ++it)
-			{
-				MessageBus::PostMessage(*it, MSG_DRIVER_AVAILABLE,
-				                        MessageBus::MessagePtr(new DriverAvailableMessage(parent)));
-			}
-		}
-
+		taxiDriverMovement->setCruisingMode();
 		return;
 	}
 

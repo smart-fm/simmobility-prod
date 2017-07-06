@@ -120,6 +120,11 @@ public:
  	 */
 	void driveToTaxiStand();
 
+	/**
+	 * set current mode as cruising
+	 */
+	void setCruisingMode();
+
 protected:
 	/**List of subscribed controllers*/
 	std::vector<MobilityServiceController *> subscribedControllers;
@@ -162,11 +167,6 @@ private:
 	 * assign taxi at original node
 	 */
 	void assignFirstNode();
-
-	/**
-	 * set current mode as cruising
-	 */
-	void setCruisingMode();
 
 	/**
 	 * set destination node

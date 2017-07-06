@@ -131,7 +131,7 @@ void KasiaRebalancer::rebalance(const std::vector<const Person*>& availableDrive
                 TimeDependentTT_SqlDao& tcostDao ;
                 TimeDependentTT_Params todBasedTT;
             	tcostDao.getTT_ByOD(TravelTimeMode::TT_PRIVATE, origin, destination, todBasedTT);
-            	cost = todBasedTT.arrivalBasedTT() ;
+            	cost = todBasedTT.arrivalBasedTT() ; // also .arrivalBasedTT_at(i) for time_based
             }
             // The below is for node-based traveltime
             // PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(
@@ -161,7 +161,7 @@ void KasiaRebalancer::rebalance(const std::vector<const Person*>& availableDrive
         }
 //
 //        // compute variables for the lp
-//
+//		  // jo { WE are going to use current demand for now
 //        // use current demand
 //        // int cexi = sitr->second.getNumCustomers() - sitr->second.getNumVehicles();
 //
@@ -188,14 +188,14 @@ void KasiaRebalancer::rebalance(const std::vector<const Person*>& availableDrive
 //        if (verbose) Print() << "cexi: " << cexi;
 //        if (verbose) Print() << "vehs: " << sitr->second.getNumVehicles();
 //
-//        cex[sitr->first] = cexi; // excess customers at this station
+//        cex[sitr] = cexi; // excess customers at this station
 //        cexTotal += cexi; // total number of excess customers
 //
 //        if (cexi > 0) {
 //            nstationsServed++;
 //        }
 //
-//        if (verbose) Print() << "cex[" << sitr->first << "]: " << cex[sitr->first] << std::endl;
+//        if (verbose) Print() << "cex[" << sitr << "]: " << cex[sitr] << std::endl;
 //
 //    }
 //
@@ -233,7 +233,7 @@ void KasiaRebalancer::rebalance(const std::vector<const Person*>& availableDrive
 //
 //
 //            for (auto sitr2 = stations.begin(); sitr2 != stations.end(); ++sitr2) {
-//                if (sitr2->first == sitr->first) continue;
+//                if (sitr2 == sitr) continue;
 //                // from i to j
 //                ia[k] = i;
 //                int st_source = sitr->second.getId();
@@ -258,11 +258,11 @@ void KasiaRebalancer::rebalance(const std::vector<const Person*>& availableDrive
 //            const std::string& tmp = ss.str();
 //            const char* cstr = tmp.c_str();
 //            glp_set_row_name(lp, i, cstr);
-//            //if (verbose_) std::cout << "vi[" << sitr->first << "]: " <<  vi[sitr->second.getId()].size() << std::endl;
+//            //if (verbose_) std::cout << "vi[" << sitr << "]: " <<  vi[sitr->second.getId()].size() << std::endl;
 //            glp_set_row_bnds(lp, i, GLP_UP, 0.0, vi[sitr->second.getId()].size());
 //
 //            for (auto sitr2 = stations.begin(); sitr2 != stations.end(); ++sitr2) {
-//                if (sitr2->first == sitr->first) continue;
+//                if (sitr2 == sitr) continue;
 //
 //                // from i to j
 //                ia[k] = i;
@@ -304,7 +304,7 @@ void KasiaRebalancer::rebalance(const std::vector<const Person*>& availableDrive
 //
 //
 //            for (auto sitr2 = stations.begin(); sitr2 != stations.end(); ++sitr2) {
-//                if (sitr2->first == sitr->first) continue;
+//                if (sitr2 == sitr) continue;
 //
 //                // from i to j
 //                ia[k] = i;
@@ -334,7 +334,7 @@ void KasiaRebalancer::rebalance(const std::vector<const Person*>& availableDrive
 //
 //            for (auto sitr2 = stations.begin(); sitr2 != stations.end(); ++sitr2) {
 //                // from i to j
-//                if (sitr2->first == sitr->first) continue;
+//                if (sitr2 == sitr) continue;
 //
 //                ia[k] = i;
 //                int stSrc = sitr->second.getId();
@@ -353,11 +353,11 @@ void KasiaRebalancer::rebalance(const std::vector<const Person*>& availableDrive
 //            const std::string& tmp = ss.str();
 //            const char* cstr = tmp.c_str();
 //            glp_set_row_name(lp, i, cstr);
-//            double constr = std::min( (double) vi[sitr->first].size(), (double) std::max(0, -cex[sitr->first] ));
+//            double constr = std::min( (double) vi[sitr].size(), (double) std::max(0, -cex[sitr] ));
 //            glp_set_row_bnds(lp, i, GLP_LO, constr, 0.0);
 //
 //            for (auto sitr2 = stations.begin(); sitr2 != stations.end(); ++sitr2) {
-//                if (sitr2->first == sitr->first) continue;
+//                if (sitr2 == sitr) continue;
 //
 //                // from i to j
 //                ia[k] = i;

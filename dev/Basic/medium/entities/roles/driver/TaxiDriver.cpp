@@ -34,6 +34,9 @@ TaxiDriver::TaxiDriver(Person_MT* parent, const MutexStrategy& mtx) :
 
 bool TaxiDriver::addPassenger(Passenger *passenger)
 {
+	//Assign the taxiPassenger, this will be used by on hail drivers to alight the passenger
+	taxiPassenger = passenger;
+
 	const string &personId = passenger->getParent()->getDatabaseId();
 
 	if(taxiPassengers.find(personId) == taxiPassengers.end())

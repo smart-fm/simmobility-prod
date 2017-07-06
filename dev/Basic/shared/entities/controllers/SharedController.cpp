@@ -344,8 +344,25 @@ void SharedController::computeSchedules()
 					schedule.push_back( ScheduleItem(ScheduleItemType::DROPOFF, secondDropOff) );
 					schedules.push_back(schedule);
 
+
+#ifndef NDEBUG
+					if ( satisfiedRequestIndices.find(request1Idx) !=  satisfiedRequestIndices.end() )
+										{
+											std::stringstream msg; msg<<"line:"<<__LINE__<<"Index request1Idx="<<request1Idx<<" has already been added";
+											throw std::runtime_error(msg.str());
+										}
+#endif
 					satisfiedRequestIndices.insert(request1Idx);
+#ifndef NDEBUG
+					if ( satisfiedRequestIndices.find(request2Idx) !=  satisfiedRequestIndices.end() )
+										{
+											std::stringstream msg; msg<<"line:"<<__LINE__<<"Index request1Idx="<<request2Idx<<" has already been added";
+											throw std::runtime_error(msg.str());
+										}
+#endif
 					satisfiedRequestIndices.insert(request2Idx);
+
+
 
 #ifndef NDEBUG
 					if (request1Idx >= requestQueue.size()  || request2Idx >= requestQueue.size())
@@ -375,10 +392,15 @@ void SharedController::computeSchedules()
 #endif
 					const TripRequestMessage& request = validRequests.at(*vi);
 					const unsigned request1Idx = *vi;
-					Schedule schedule;
-					schedule.push_back( ScheduleItem(ScheduleItemType::PICKUP, request) );
-					schedule.push_back( ScheduleItem(ScheduleItemType::DROPOFF, request) );
-					schedules.push_back(schedule);
+					if (satisfiedRequestIndices.find(request1Idx) ==  satisfiedRequestIndices.end() )
+					{
+						satisfiedRequestIndices.insert(request1Idx);
+						Schedule schedule;
+						schedule.push_back( ScheduleItem(ScheduleItemType::PICKUP, request) );
+						schedule.push_back( ScheduleItem(ScheduleItemType::DROPOFF, request) );
+						schedules.push_back(schedule);
+
+					}
 
 
 #ifndef NDEBUG
@@ -394,8 +416,12 @@ void SharedController::computeSchedules()
 						std::stringstream msg; msg<<"requestQueue.size() changed. Before it was "<< howManyRequests
 						<<", while now it is "<<requestQueue.size();
 					}
+
+
 #endif
-					satisfiedRequestIndices.insert(request1Idx);
+
+
+
 
 				}
 				//aa}
@@ -417,7 +443,6 @@ void SharedController::computeSchedules()
 				}else passengerIds.insert(item.tripRequest.userId);
 			}
 		}
-		ControllerLog()<<"\n\n\nciao, passengerIds: ";
 		for (const std::string& passengerId : passengerIds) ControllerLog()<<passengerId<<", "; ControllerLog()<<"\n\n\n"<<std::endl;
 #endif
 

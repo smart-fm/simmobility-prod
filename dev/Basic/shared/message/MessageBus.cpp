@@ -24,6 +24,7 @@
 #include "logging/Log.hpp"
 #include "logging/ControllerLog.hpp"
 #include "entities/controllers/MobilityServiceController.hpp"
+#include "message/MobilityServiceControllerMessage.hpp"
 
 using namespace sim_mob::messaging;
 using namespace sim_mob::event;
@@ -48,6 +49,7 @@ unsigned int MessageBus::currentTime = 0;
 
 
 namespace {
+
 
     const unsigned int MB_MSGI_START = 1000;
     const unsigned int INTERNAL_EVENT_MSG_PRIORITY = 3;
@@ -502,13 +504,21 @@ void dispatch(const MessageEntry& entry, ThreadContext* &context,ThreadContext* 
 			mainContext->input.push(entry);
 		} else {
 			ThreadContext* destinationContext = static_cast<ThreadContext*> (entry.destination->GetContext());
-			if (destinationContext) {
+			if (destinationContext)
+			{
 				destinationContext->input.push(entry);
 			}
 			//<aa>
 			else{
 				std::stringstream msg; msg<<"Destination context is invalid, as static_cast to ThreadContext* failed. entry.destination="<<
 					entry.destination<<", entry.destination->GetContext()="<<entry.destination->GetContext()<< ", entry.type=" << entry.type;
+				if (entry.type == sim_mob::MobilityServiceControllerMessage::MSG_SCHEDULE_PROPOSITION)
+								{
+									const sim_mob::SchedulePropositionMessage &msg = MSG_CAST(sim_mob::SchedulePropositionMessage, *(entry.message) );
+									const sim_mob::Schedule& assignedSchedule = msg.getSchedule();
+
+									cout<<". The message was sent by " << entry.message->GetSender() << ", schedule "<< assignedSchedule << std::endl;
+								}
 				throw std::runtime_error(msg.str());
 			}
 			//</aa>

@@ -276,10 +276,13 @@ public:
 		taxiFleets = fleets;
 	}
 
-	FleetController::FleetTimePriorityQueue& getTaxiFleet()
+	const FleetController::FleetTimePriorityQueue& getTaxiFleet() const
 	{
 		return taxiFleets;
 	}
+
+	FleetController::FleetItem taxiFleetPop();
+
 
 	/**
 	 * from current role, export service driver

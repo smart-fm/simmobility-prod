@@ -50,9 +50,7 @@ void TaxiDriverMovement::frame_init()
 
 	assignFirstNode();
 
-	FleetController::FleetTimePriorityQueue &fleets = parentTaxiDriver->parent->getTaxiFleet();
-	currentFleetItem = fleets.top();
-	fleets.pop();
+	currentFleetItem = parentTaxiDriver->parent->taxiFleetPop();
 
 
 	const std::multimap<MobilityServiceControllerType, MobilityServiceController*>& controllers =
@@ -66,10 +64,9 @@ void TaxiDriverMovement::frame_init()
 	(isSubscribedToOnHail() && CruiseOnlyOrMoveToTaxiStand())?driveToTaxiStand():selectNextLinkWhileCruising();  // for 1 : drive_to_taxiStand or cruise
 
 
-	while (fleets.size() > 0)
+	while (parentTaxiDriver->parent->getTaxiFleet().size() > 0)
 	{
-		FleetController::FleetItem fleet = fleets.top();
-		fleets.pop();
+		FleetController::FleetItem fleet = parentTaxiDriver->parent->taxiFleetPop();
 		taxiFleets.push(fleet);
 	}
 }
@@ -979,6 +976,7 @@ TaxiDriverBehavior::~TaxiDriverBehavior()
 
 std::string TaxiDriverMovement::frame_tick_output()
 {
+
 	const DriverUpdateParams &params = parentDriver->getParams();
 	if (pathMover.isPathCompleted() || ConfigManager::GetInstance().CMakeConfig().OutputDisabled())
 	{
@@ -986,6 +984,7 @@ std::string TaxiDriverMovement::frame_tick_output()
 	}
 
 	std::ostringstream out(" ");
+
 	if (originNode == currentNode && params.now.ms() == (uint32_t) 0)
 	{
 		out << currentFleetItem.vehicleNo << "," << parentTaxiDriver->parent->getDatabaseId() << ","
@@ -995,21 +994,30 @@ std::string TaxiDriverMovement::frame_tick_output()
 			<< std::endl;
 	}
 	else
-	{           std::string PassengerDBID="";
+	{
+		const std::string driverId = parentTaxiDriver->parent->getDatabaseId();
+		const unsigned int nodeId = currentNode->getNodeId();
+		const unsigned int roadSegmentId =(parentDriver->getParent()->getCurrSegStats()->getRoadSegment()->getRoadSegmentId() );
+		const Lane* currLane = parentDriver->getParent()->getCurrLane();
+		const unsigned int currLaneId = ( currLane ? parentDriver->getParent()->getCurrLane()->getLaneId() : 0);
+		const std::string driverStatusStr =parentTaxiDriver->getDriverStatusStr();
+		std::string PassengerDBID="";
 		PassengerDBID = parentTaxiDriver->getPassenger()!=NULL?parentTaxiDriver->getPassenger()->getParent()->getDatabaseId():" No Passenger";
-		out << currentFleetItem.vehicleNo << "," << parentTaxiDriver->parent->getDatabaseId() << ","
-			<< currentNode->getNodeId() << ","
-			<< (DailyTime(params.now.ms()) + DailyTime(
-					ConfigManager::GetInstance().FullConfig().simStartTime())).getStrRepr() << ","
-			<< (parentDriver->getParent()->getCurrSegStats()->getRoadSegment()->getRoadSegmentId()) << ","
-			<< ((parentDriver->getParent()->getCurrLane()) ? parentDriver->getParent()->getCurrLane()->getLaneId() : 0)
-			<< "," << parentTaxiDriver->getDriverStatusStr()
+		const string timeStr = (DailyTime(params.now.ms()) + DailyTime(
+				ConfigManager::GetInstance().FullConfig().simStartTime())).getStrRepr();
+
+		out << currentFleetItem.driverId << "," << driverId << ","
+			<< nodeId << ","
+			<< timeStr << ","
+			<< roadSegmentId << ","
+			<< currLaneId
+			<< "," << driverStatusStr
 			<< ","<< PassengerDBID
 			<< std::endl;
 	}
-	/* for Debug Purpose Only : to print details in Console
-    	Print() << out.str();
-    */
+	// for Debug Purpose Only : to print details in Console
+    //	Print() << out.str();
+    //
 	taxitrajectoryLogger << out.str();
 return out.str();
 }

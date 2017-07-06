@@ -278,7 +278,6 @@ void OnCallController::assignSchedule(const Person *driver, const Schedule &sche
 	){
 		std::string answer1 = (driverSchedules.find(driver) != driverSchedules.end()?"yes":"no");
 		std::string answer2 = (std::find(availableDrivers.begin(), availableDrivers.end(), driver ) != availableDrivers.end()?"yes":"no");
-		Print()<<"ciao, trying to print the id of "<<driver<<std::endl;
 		std::string driverId;
 		try{
 		driverId = driver->getDatabaseId();

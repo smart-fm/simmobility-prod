@@ -290,9 +290,14 @@ bool TaxiDriverMovement::moveToNextSegment(DriverUpdateParams &params)
 	else if (parentTaxiDriver->getDriverStatus() == DRIVE_ON_CALL && pathMover.isEndOfPath())
 	{
 		Conflux *parentConflux = currSegStat->getParentConflux();
+
+		//Store the number of passengers currently in the vehicle
 		unsigned long prevPassengerCount = parentTaxiDriver->getPassengerCount();
+
+		//Pick-up new passenger
 		parentTaxiDriver->pickUpPassngerAtNode(parentConflux, &personIdPickedUp);
 
+		//If the pick-up is successful, the passenger count should have increased
 		if (prevPassengerCount == parentTaxiDriver->getPassengerCount())
 		{
 			ControllerLog() << "Pickup failed for " << personIdPickedUp << " at time "
@@ -301,7 +306,11 @@ bool TaxiDriverMovement::moveToNextSegment(DriverUpdateParams &params)
 			                << parentConflux->getConfluxNode()->getNodeId() << ", destinationNodeId ???"
 			                << ", and driverId " << parentTaxiDriver->parent->getDatabaseId() << std::endl;
 
-			setCruisingMode();
+			//Pick-up failed and we didn't have any passengers on board, so we can cruise
+			if(prevPassengerCount == 0)
+			{
+				setCruisingMode();
+			}
 		}
 		else
 		{

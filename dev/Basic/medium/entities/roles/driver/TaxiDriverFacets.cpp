@@ -753,10 +753,18 @@ bool TaxiDriverMovement::driveToNodeOnCall(const std::string &personId, const No
 	if ((mode == CRUISING || mode == DRIVE_WITH_PASSENGER) && pickupNode)
 	{
 		const Link *link = this->currLane->getParentSegment()->getParentLink();
-		std::vector<WayPoint> currentRouteChoice =
-				StreetDirectory::Instance().SearchShortestDrivingPath<Link, Node>(*link, *pickupNode);
+		SubTrip currSubTrip;
+		currSubTrip.origin = WayPoint(link->getToNode());
+		currSubTrip.destination = WayPoint(pickupNode);
+		std::vector<WayPoint> currentRouteChoice = PrivateTrafficRouteChoice::getInstance()->getPath(currSubTrip, false,
+		                                                                                             link, true);
 
-		if (currentRouteChoice.size() > 0)
+		if(currentRouteChoice.empty())
+		{
+			currentRouteChoice = StreetDirectory::Instance().SearchShortestDrivingPath<Link, Node>(*link, *pickupNode);
+		}
+
+		if (!currentRouteChoice.empty())
 		{
 			res = true;
 			currentNode = link->getFromNode();

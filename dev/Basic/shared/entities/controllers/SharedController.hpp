@@ -25,6 +25,9 @@ public:
 
 	virtual void checkSequence (const std::string& sequence) const;
 
+	// Overrides the parent method
+	virtual void consistencyChecks(const std::string& label) const;
+
 
 protected:
 	virtual bool isCruising(Person* p);

@@ -76,8 +76,18 @@ void SharedController::computeSchedules()
 
 #ifndef NDEBUG
 	//{ CONSISTENCY CHECK
+	unsigned howManyRequests = requestQueue.size();
+
 	if (validRequests.size() != desiredTravelTimes.size() )
 		throw std::runtime_error("validRequests and desiredTravlelTimes must have the same length");
+
+	if (validRequests.size() != requestQueue.size() )
+	{
+		std::stringstream msg; msg<<"validRequests.size()="<<validRequests.size()<<", requestQueue.size()="
+			<<requestQueue.size()<<std::endl; throw std::runtime_error(msg.str() );
+	}
+
+	consistencyChecks("Before constructing the graph");
 	//} CONSISTENCY CHECK
 #endif
 
@@ -85,7 +95,7 @@ void SharedController::computeSchedules()
 	{
 		// 2. Add valid shared trips to graph
 		// We construct a graph in which each node represents a trip. We will later draw and edge between two
-		// two trips if they can be shared
+		// two trips if they can be shared. Nodes are numbered starting from 0 in the graph
 		boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS> graph(validRequests.size());
 		std::vector<boost::graph_traits<boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS>>::vertex_descriptor> mate(validRequests.size());
 
@@ -101,7 +111,7 @@ void SharedController::computeSchedules()
 			while (request2 != validRequests.end())
 			{
 #ifndef NDEBUG
-				ControllerLog() << "Checking if we can combine request " << request1Index << " and request " << request2Index << std::endl;
+				//ControllerLog() << "DebugPrint, Checking if we can combine request " << request1Index << " and request " << request2Index << std::endl;
 
 #endif
 				std::map<unsigned int, Node*>::const_iterator it = nodeIdMap.find((*request1).startNodeId);
@@ -241,6 +251,12 @@ void SharedController::computeSchedules()
 							" and request2Index="<<request2Index<< ", while they should both be requestQueue.size()= < "<<requestQueue.size();
 						throw std::runtime_error(msg.str() );
 					}
+
+					if (requestQueue.size() != howManyRequests)
+					{
+						std::stringstream msg; msg<<"requestQueue.size() changed. Before it was "<< howManyRequests
+						<<", while now it is "<<requestQueue.size();
+					}
 #endif
 				}
 				//} o2 o1 d1 d2
@@ -265,53 +281,55 @@ void SharedController::computeSchedules()
 		throw std::runtime_error("checked_edmonds_maximum_cardinality_matching(..) failed. Why?");
 #endif
 
-		if (!availableDrivers.empty())
-		{
+
+
 			ControllerLog() << "Found matching of size " << matching_size(graph, &mate[0])
 					<< " for request list size of " << validRequests.size() << std::endl;
 
 			boost::graph_traits<boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS>>::vertex_iterator vi, vi_end;
 
 
-			for (tie(vi,vi_end) = vertices(graph); vi != vi_end; ++vi)
-			{
+			for (	tie(vi,vi_end) = vertices(graph);
+					vi != vi_end && schedules.size() < availableDrivers.size(); // We cannot assign more schedules than available drivers
+					++vi
+			){
 				if (mate[*vi] != boost::graph_traits<boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS>>::null_vertex() && *vi < mate[*vi])
 				{
 
 					//aa{
-					const unsigned request1Index = *vi;
-					const unsigned request2Index = mate[*vi];
-					const TripRequestMessage& request1 = validRequests.at(request1Index);
-					const TripRequestMessage& request2 = validRequests.at(request2Index);
-					const std::pair<double, std::string> sharedTripInfo =  bestTrips.at( std::make_pair(request1Index, request2Index) );
+					const unsigned request1Idx = *vi;
+					const unsigned request2Idx = mate[*vi];
+					const TripRequestMessage& request1 = validRequests.at(request1Idx);
+					const TripRequestMessage& request2 = validRequests.at(request2Idx);
+					const std::pair<double, std::string> sharedTripInfo =  bestTrips.at( std::make_pair(request1Idx, request2Idx) );
 					const unsigned& totalTime = sharedTripInfo.first;
 					const string& sequence = sharedTripInfo.second;
 
 					TripRequestMessage firstPickUp, secondPickUp, firstDropOff, secondDropOff;
 					if (sequence == "o1o2d1d2")
 					{
-						firstPickUp = validRequests.at(request1Index);
-						secondPickUp = validRequests.at(request2Index);
-						firstDropOff = validRequests.at(request1Index);
-						secondDropOff = validRequests.at(request2Index);
+						firstPickUp = validRequests.at(request1Idx);
+						secondPickUp = validRequests.at(request2Idx);
+						firstDropOff = validRequests.at(request1Idx);
+						secondDropOff = validRequests.at(request2Idx);
 					}else if (sequence == "o2o1d2d1")
 					{
-						firstPickUp = validRequests.at(request2Index);
-						secondPickUp = validRequests.at(request1Index);
-						firstDropOff = validRequests.at(request2Index);
-						secondDropOff = validRequests.at(request1Index);
+						firstPickUp = validRequests.at(request2Idx);
+						secondPickUp = validRequests.at(request1Idx);
+						firstDropOff = validRequests.at(request2Idx);
+						secondDropOff = validRequests.at(request1Idx);
 					}else if (sequence == "o1o2d2d1")
 					{
-						firstPickUp = validRequests.at(request1Index);
-						secondPickUp = validRequests.at(request2Index);
-						firstDropOff = validRequests.at(request2Index);
-						secondDropOff = validRequests.at(request1Index);
+						firstPickUp = validRequests.at(request1Idx);
+						secondPickUp = validRequests.at(request2Idx);
+						firstDropOff = validRequests.at(request2Idx);
+						secondDropOff = validRequests.at(request1Idx);
 					}else if (sequence == "o2o1d1d2")
 					{
-						firstPickUp = validRequests.at(request2Index);
-						secondPickUp = validRequests.at(request1Index);
-						firstDropOff = validRequests.at(request1Index);
-						secondDropOff = validRequests.at(request2Index);
+						firstPickUp = validRequests.at(request2Idx);
+						secondPickUp = validRequests.at(request1Idx);
+						firstDropOff = validRequests.at(request1Idx);
+						secondDropOff = validRequests.at(request2Idx);
 					}else
 					{
 						std::stringstream msg; msg<<__FILE__<<":"<<__LINE__ <<":Sequence "<<sequence<<" is not recognized";
@@ -325,16 +343,21 @@ void SharedController::computeSchedules()
 					schedule.push_back( ScheduleItem(ScheduleItemType::DROPOFF, secondDropOff) );
 					schedules.push_back(schedule);
 
-					//We do -1 because the numbering of graph starts from 1
-					satisfiedRequestIndices.insert(request1Index-1);
-					satisfiedRequestIndices.insert(request2Index-1);
+					satisfiedRequestIndices.insert(request1Idx);
+					satisfiedRequestIndices.insert(request2Idx);
 
 #ifndef NDEBUG
-					if (request1Index >= requestQueue.size()  || request2Index >= requestQueue.size())
+					if (request1Idx >= requestQueue.size()  || request2Idx >= requestQueue.size())
 					{
-						std::stringstream msg; msg<< __FILE__<<":"<<__LINE__<< ":"<<" request1Index="<< request1Index<<
-							" and request2Index="<<request2Index<< ", while they should both be requestQueue.size()= < "<<requestQueue.size();
+						std::stringstream msg; msg<< __FILE__<<":"<<__LINE__<< ":"<<" request1Index="<< request1Idx<<
+							" and request2Index="<<request2Idx<< ", while they should both be requestQueue.size()= "<<requestQueue.size();
 						throw std::runtime_error(msg.str() );
+					}
+
+					if (requestQueue.size() != howManyRequests)
+					{
+						std::stringstream msg; msg<<"requestQueue.size() changed. Before it was "<< howManyRequests
+						<<", while now it is "<<requestQueue.size();
 					}
 #endif
 					//aa}
@@ -342,23 +365,41 @@ void SharedController::computeSchedules()
 				//aa{
 				else // request vi is not matched with any other
 				{
+#ifndef NDEBUG
+					if (validRequests.size() != requestQueue.size() )
+					{
+						std::stringstream msg; msg<<"validRequests.size()="<<validRequests.size()<<", requestQueue.size()="
+							<<requestQueue.size()<<std::endl; throw std::runtime_error(msg.str() );
+					}
+#endif
 					const TripRequestMessage& request = validRequests.at(*vi);
+					const unsigned request1Idx = *vi;
 					Schedule schedule;
 					schedule.push_back( ScheduleItem(ScheduleItemType::PICKUP, request) );
 					schedule.push_back( ScheduleItem(ScheduleItemType::DROPOFF, request) );
 					schedules.push_back(schedule);
 
-					//We do -1 because the numbering of graph starts from 1
-					satisfiedRequestIndices.insert(request1Index -1);
+
+#ifndef NDEBUG
+					if (request1Idx >= requestQueue.size()   )
+					{
+						std::stringstream msg; msg<< __FILE__<<":"<<__LINE__<< ":"<<" request1Index="<< request1Idx<<
+							 ", while it should be less than requestQueue.size()= "<<requestQueue.size();
+						throw std::runtime_error(msg.str() );
+					}
+
+					if (requestQueue.size() != howManyRequests)
+					{
+						std::stringstream msg; msg<<"requestQueue.size() changed. Before it was "<< howManyRequests
+						<<", while now it is "<<requestQueue.size();
+					}
+#endif
+					satisfiedRequestIndices.insert(request1Idx);
 
 				}
 				//aa}
 			}
-		}
-		else
-		{
-			ControllerLog()<<"No available drivers"<<std::endl;
-		}
+
 
 		// 4. Send assignments for requests
 		for (const Schedule& schedule : schedules)
@@ -388,6 +429,12 @@ void SharedController::computeSchedules()
 					std::stringstream msg; msg<<"Malformed schedule. Trying to pick up twice the same person "<<firstRequest.userId;
 					throw ScheduleException(msg.str() );
 				}
+
+				if (requestQueue.size() != howManyRequests)
+				{
+					std::stringstream msg; msg<<"requestQueue.size() changed. Before it was "<< howManyRequests
+					<<", while now it is "<<requestQueue.size();
+				}
 				//aa} CONSISTENCY CHECKS
 #endif
 				ControllerLog()<<". The trip is shared with person " << secondScheduleItem.tripRequest.userId;
@@ -403,8 +450,15 @@ void SharedController::computeSchedules()
 		unsigned eliminationsPerformed=0;
 #endif
 
+		//// DebugPrint
+		// Print()<<"\n\n\n DebugPrint, satisfiedRequestIndices=";
+		// for (const unsigned satisfiedRequestIndex : satisfiedRequestIndices) Print()<< satisfiedRequestIndex<<", "; Print()<<std::endl;
+		// Print()<<"DebugPrint, requestQueue = " << getRequestQueueStr() << std::endl;
+
+
 		for (const unsigned satisfiedRequestIndex : satisfiedRequestIndices)
 		{
+			// Print()<<"DebugPrint, eliminating "<<satisfiedRequestIndex<<", while requests are "<<getRequestQueueStr()<<std::endl;
 			int advancement = satisfiedRequestIndex - lastEliminatedIndex - 1;
 			std::advance(requestToEliminate,  advancement);
 #ifndef NDEBUG
@@ -413,7 +467,8 @@ void SharedController::computeSchedules()
 			{
 				std::stringstream msg; msg << "Trying to eliminate a request " << satisfiedRequestIndex << " that is not in the satisfiedRequests, which are ";
 				for (const unsigned s : satisfiedRequestIndices)
-					msg<< s <<", Eliminations performed before "<< eliminationsPerformed;
+					msg<< s <<", ";
+				msg<<". Eliminations performed before "<< eliminationsPerformed;
 				throw std::runtime_error(msg.str() );
 			}
 			eliminationsPerformed++;
@@ -430,12 +485,18 @@ void SharedController::computeSchedules()
 				<< validRequests.size()<<" - "<<satisfiedRequestIndices.size()<<" != "<<requestQueue.size();
 			throw std::runtime_error(msg.str() );
 		}
+
+		if (validRequests.size() != howManyRequests)
+		{
+			std::stringstream msg; msg<<"validRequests.size() changed. Before it was "<< howManyRequests
+			<<", while now it is "<<validRequests.size();
+		}
 #endif
 
-	} else
-	{
-		ControllerLog()<<"Requests to be scheduled "<< requestQueue.size() << ", available drivers "<<availableDrivers.size() <<std::endl;
 	}
+
+	ControllerLog()<<"Requests to be scheduled "<< requestQueue.size() << ", available drivers "<<availableDrivers.size() <<std::endl;
+
 
 }
 
@@ -465,12 +526,18 @@ const Node* SharedController::getCurrentNode(Person* p)
 
 
 void SharedController::checkSequence (const std::string& sequence) const
-	{
+{
 		if (sequence != "o1o2d1d2" && sequence != "o2o1d2d1" && sequence != "o1o2d2d1" && sequence != "o2o1d1d2")
 		{
 			std::stringstream msg; msg<<__FILE__<<":"<<__LINE__<<": sequence "<<sequence<<" is not recognized";
 			throw std::runtime_error(msg.str() );
 		}
-	}
+}
+
+void SharedController::consistencyChecks(const std::string& label) const
+{
+	OnCallController::consistencyChecks(label);
+}
+
 }
 

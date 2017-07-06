@@ -8,6 +8,7 @@
     <mid_term_run_mode value="withinday"/>
 
     <!-- Groupings of stored procedures, used for loading network data from certain tables. -->
+
     <db_proc_groups>
         <!-- SimMobility Virtual City Network -->
         <proc_map id="simmobcity" format="aimsun">
@@ -22,6 +23,7 @@
             <mapping name="lanes" procedure="get_lanes()"/>
             <mapping name="lane_polylines" procedure="get_lane_polylines()"/>
             <mapping name="lane_connectors" procedure="get_lane_connectors()"/>
+            <mapping name="traffic_sensors" procedure="get_traffic_sensors()"/>
             <mapping name="pvt_pathset" procedure="get_pvt_pathset"/>
             <mapping name="bus_stops" procedure="get_bus_stops()"/>
             <mapping name="pt_bus_dispatch_freq" procedure="get_pt_bus_frequency()"/>
@@ -30,10 +32,11 @@
             <mapping name="pt_stop_stats" procedure="get_pt_stop_stats()"/>
             <mapping name="pt_edges" procedure="get_pt_tr_edges()"/>
             <mapping name="pt_vertices" procedure="get_pt_tr_vertices()"/>
-            <mapping name="pt_pathset" procedure="get_pt_pathset_tr"/>
             <mapping name="rail_sms_edges" procedure="get_pt_tr_edges_sms_mrt()"/>
-            <mapping name="rail_sms_vertices" procedure="get_pt_tr_vertices_sms_mrt()"/>            
+            <mapping name="rail_sms_vertices" procedure="get_pt_tr_vertices_sms_mrt()"/>
+            <mapping name="pt_pathset" procedure="get_pt_pathset_tr"/>
             <mapping name="rail_sms_pathset" procedure="get_pt_pathset_tr_sms_mrt"/>
+            <mapping name="mrt_road_segments" procedure="get_pt_train_segments()"/>
             <mapping name="rail_transit_edges" procedure="get_rail_transit_edges()"/>
             <mapping name="erp_gantry_zone" procedure="get_erp_gantry_zone()"/>
             <mapping name="screen_line" procedure="get_screen_line_segments()"/>
@@ -44,27 +47,26 @@
             <mapping name="restricted_reg_in_turning" procedure="get_banned_area_in_turning()"/>
             <mapping name="restricted_reg_out_turning" procedure="get_banned_area_out_turning()"/>
             <mapping name="restricted_reg_nodes" procedure="get_restricted_region_nodes()"/>
-	    	<mapping name="pt_platform" procedure="get_pt_train_platforms()"/>
-            <mapping name="pt_mrt_dispatch_freq" procedure="get_pt_train_dispatch_freq()"/>
-	    	<mapping name="pt_mrt_block" procedure="get_pt_train_blocks()"/>
-    	    <mapping name="pt_mrt_route" procedure="get_pt_train_route()"/>
-	   		<!-- This procedure returns platforms from pt_mrt_platform with only lineid,Sequenceno,platformNo fields -->
-	    	<mapping name="pt_mrt_platform" procedure="get_pt_train_route_platform()"/>
-	    	<mapping name="pt_mrt_block_polyline" procedure="get_pt_train_block_polylines()"/>
-	    	<mapping name="pt_opposite_lines" procedure="get_pt_opposite_lines()"/>
-	    	<mapping name="get_train_fleet" procedure="get_train_fleet()"/>
-	    	<mapping name="mrt_road_segments" procedure="get_pt_train_segments()"/>
-	    	<mapping name="day_activity_schedule" procedure="get_persons_between_no_subsidy"/>
-            <mapping name="freight_trips" procedure="get_freight_between"/>
-            
-            <mapping name="taxi_fleet" procedure="get_taxi_fleet"/>
-	   		<mapping name="taxi_stands" procedure="get_taxi_stands()"/>
+            <mapping name="pt_platform" procedure="get_pt_train_platforms()"/>             
+            <mapping name="pt_mrt_dispatch_freq" procedure="get_pt_train_dispatch_freq()"/> 	  
+            <mapping name="pt_mrt_block" procedure="get_pt_train_blocks()"/>
+            <mapping name="pt_mrt_route" procedure="get_pt_train_route()"/> 
+            <!-- This procedure returns platforms from pt_mrt_platform with only lineid,Sequenceno,platformNo fields -->       
+            <mapping name="pt_mrt_platform" procedure="get_pt_train_route_platform()"/>       
+            <mapping name="pt_mrt_block_polyline" procedure="get_pt_train_block_polylines()"/>
+            <mapping name="pt_opposite_lines" procedure="get_pt_opposite_lines()"/>
+            <mapping name="get_train_line_properties" procedure="get_pt_train_line_properties()"/>
+            <mapping name="get_train_fleet" procedure="get_train_fleet()"/>
+            <mapping name="day_activity_schedule" procedure="get_persons_between_no_subsidy"/>
+            <!--<mapping name="freight_trips" procedure="get_freight_between"/>-->
+            <mapping name="erp_surcharge" procedure="get_erp_surcharge()"/>
+            <mapping name="taxi_fleet" procedure="get_fleet_1500taxi_1500sms"/>
+            <mapping name="taxi_stands" procedure="get_taxi_stands()"/>
         </proc_map>
 
-
-        <!-- Singapore network -->
-        <proc_map id="withinday" format="aimsun">
-            <mapping name="nodes" procedure="get_test_singapore_nodes()"/>
+        <!-- SimMobility Singapore Network -->
+        <proc_map id="singapore" format="aimsun">
+             <mapping name="nodes" procedure="get_test_singapore_nodes()"/>
             <mapping name="links" procedure="get_singapore_links()"/>
             <mapping name="turning_groups" procedure="get_test_singapore_turning_groups()"/>
             <mapping name="turning_paths" procedure="get_test_singapore_turning_paths()"/>
@@ -78,9 +80,7 @@
             <mapping name="pvt_pathset" procedure="get_pvt_pathset"/>
             <mapping name="bus_stops" procedure="get_singapore_bus_stops_17feb()"/>
             <mapping name="pt_bus_dispatch_freq" procedure="get_pt_bus_frequency()"/>
-
-            <mapping name="pt_bus_routes" procedure="get_pt_bus_routes()"/>
-            <mapping name="pt_bus_stops" procedure="get_pt_bus_stops()"/>
+            
             <!-- This procedure returns platforms from pt_platform table with many data fields -->
             <mapping name="pt_platform" procedure="get_pt_platforms_test()"/>
             <mapping name="pt_mrt_dispatch_freq" procedure="get_pt_mrt_dispatch_freq()"/>
@@ -93,248 +93,243 @@
             <mapping name="pt_bus_routes" procedure="get_pt_bus_routes_17feb()"/>
             <mapping name="pt_bus_stops" procedure="get_pt_bus_stops_17feb()"/>
             <mapping name="pt_stop_stats" procedure="get_pt_stop_stats()"/>
+            
             <mapping name="pt_vertices" procedure="get_pt_map_trvertices()"/>
             <mapping name="pt_edges" procedure="get_pt_map_tredges()"/>
+            <mapping name="pt_pathset" procedure="get_pt_trpathset"/>
+            <mapping name="rail_sms_edges" procedure="get_pt_tr_edges_sms_mrt()"/>
+            <mapping name="rail_sms_vertices" procedure="get_pt_tr_vertices_sms_mrt()"/>            
+            <mapping name="rail_sms_pathset" procedure="get_pt_pathset_tr_sms_mrt"/>
 
-            <mapping name="pt_pathset" procedure="get_pt_pathset_full"/>
             <mapping name="mrt_road_segments" procedure="get_pt_mrt_segments()"/>
             <mapping name="rail_transit_edges" procedure="get_rail_transit_edges()"/>
             <mapping name="erp_gantry_zone" procedure="get_erp_gantry_zone()"/>
             <mapping name="erp_section" procedure="get_erp_section()"/>
             <mapping name="erp_surcharge" procedure="get_erp_surcharge()"/>
-            <mapping name="day_activity_schedule" procedure="get_persons_between_ta2"/>
-            <mapping name="freight_trips" procedure="get_testfreight_between"/>
+            
             <mapping name="screen_line" procedure="get_screen_line_segments()"/>
             <mapping name="pt_opposite_lines" procedure="get_pt_opposite_lines()"/>
             <mapping name="get_train_fleet" procedure="get_train_fleet()"/>
             <mapping name="get_uturn_platforms" procedure="get_pt_uturn_platforms()"/>
             <mapping name="get_train_line_properties" procedure="get_pt_train_line_properties()"/>
+
+            <mapping name="day_activity_schedule" procedure="get_persons_between_no_subsidy"/>
             <mapping name="taxi_fleet" procedure="get_taxi_fleet"/>
             <mapping name="taxi_stands" procedure="get_singapore_taxi_stands()"/>
-            <!--<mapping name="restricted_reg_in_turning" procedure="get_banned_area_in_turning()"/> -->
-            <!--<mapping name="restricted_reg_segments" procedure="get_section_banned_area()"/> -->
-            <mapping name="restricted_reg_in_turning" procedure="get_banned_area_in_turning()"/>
-            <mapping name="restricted_reg_out_turning" procedure="get_banned_area_out_turning()"/>
-            <mapping name="restricted_reg_nodes" procedure="get_changi_nodes()"/>
-            <mapping name="restricted_reg_links" procedure="get_changi_links()"/>-->
-        </proc_map> 
+        </proc_map>
     </db_proc_groups>
 
-    <system>
-        <!-- If loading from the database, which database, proc_map, and credentials are used? -->
+<system>         
+    <!-- If loading from the database, which database, proc_map, and credentials are used? -->
 
-        <network_database database="fm_hpchead" credentials="fm_hpchead" proc_map="simmobcity"/>
-        <population_database  database="fm_hpchead" credentials="fm_hpchead" proc_map=""/>
+    <network_database database="fm_hpc" credentials="fm_hpc" proc_map="simmobcity"/>
+    <population_database  database="fm_remote_lt" credentials="lt_cred" proc_map=""/> 
 
-        <!-- The parser will simply load everything in "generic_props" section into "SystemParams.genericProps".  -->
-        <!-- In other words, you DO NOT need to update the parser just to add a simple string-based configuration parameter to -->
-        <!-- the config file. This is intended to be used for new or temporary features for quick testing. -->
-        <generic_props>
-            <!-- <property key="sampleproperty" value="samplevalue"/> -->
-        </generic_props>
-    </system>
-    
-    <!-- List of all Worker types and their properties. -->
-    <!-- granularity of each component must be a multiple of the "base" granularity -->
-    <workers>
-        <person count="1" granularity="5 seconds"/> <!-- Person agents (with Roles) -->
-    </workers>
-      
-    <incidentsData enabled="false">
-        <incident id="0" visibility="4000" segment="40200" position="60" cap_factor="1.0" start_time="08:30:00" duration="00:32:00" length="1000" compliance="50" accessibility="50" > 
-            <lane laneId="0" speedLimitFactor="0"/>
-            <lane laneId="1" speedLimitFactor="0"/>
-            <lane laneId="2" speedLimitFactor="20"/>
-        </incident>
-    </incidentsData>
-    
-    <!-- This is data only for "schedule_based", "evenheadway_based" or "hybrid_based" control strategies -->
-    <!-- each item store the scheduled offset arriving time(ms) and offset departure time(ms) at some bus stops -->
-    <scheduledTimes>
-        <stop offsetAT="11600" offsetDT="17600" />
-        <stop offsetAT="74800" offsetDT="80800" />
-        <stop offsetAT="101000" offsetDT="107100" />
-        <stop offsetAT="124000" offsetDT="130000" />       
-        <stop offsetAT="174300" offsetDT="180300" />    
-        <stop offsetAT="254400" offsetDT="260400" />
-        <stop offsetAT="287800" offsetDT="293800" />
-        <stop offsetAT="313500" offsetDT="319500" />       
-        <stop offsetAT="376100" offsetDT="382100" />    
-        <stop offsetAT="403600" offsetDT="409600" />        
-    </scheduledTimes>
+    <!-- The parser will simply load everything in "generic_props" section into "SystemParams.genericProps".  -->
+    <!-- In other words, you DO NOT need to update the parser just to add a simple string-based configuration parameter to -->
+    <!-- the config file. This is intended to be used for new or temporary features for quick testing. -->
+    <generic_props>
+        <!-- <property key="sampleproperty" value="samplevalue"/> -->
+    </generic_props>
+</system>
 
-    <!-- To Enable Buses: make sure the following stored procedures in your <proc_map> are not empty and valid -->
-    <!-- 1. "pt_bus_dispatch_freq" -->
-    <!-- 2. "pt_bus_routes" -->
-    <!-- 3. "pt_bus_stops" -->
-    <!-- The current control strategy for buses. Can be "headway_based", "evenheadway_based", "hybrid_based", or (default) "no_control" -->
-    <busController enabled="true" busline_control_type="headway_based"/>
+<!-- List of all Worker types and their properties. -->
+<!-- granularity of each component must be a multiple of the "base" granularity -->
+<workers>
+    <person count="6" granularity="5 seconds"/> <!-- Person agents (with Roles) -->
+</workers>
 
-    <!-- The current control strategy for train. Can be "fixed_block", "moving_block"-->
-    <trainController enabled="true" train_control_type="moving_block">
-    	<output_enabled value="false"/>
-		<distance_arriving_at_platform value ="0.001"/>
-    </trainController>
+<incidentsData enabled="false">
+    <incident id="0" visibility="4000" segment="40200" position="60" cap_factor="1.0" start_time="08:30:00" duration="00:32:00" length="1000" compliance="50" accessibility="50" > 
+        <lane laneId="0" speedLimitFactor="0"/>
+        <lane laneId="1" speedLimitFactor="0"/>
+        <lane laneId="2" speedLimitFactor="20"/>
+    </incident>
+</incidentsData>
 
-    <!-- location of the config file for loading pathset generation or route choice related info -->
-    <pathset_config_file value="data/pathset_config.xml" />
+<!-- This is data only for "schedule_based", "evenheadway_based" or "hybrid_based" control strategies -->
+<!-- each item store the scheduled offset arriving time(ms) and offset departure time(ms) at some bus stops -->
+<scheduledTimes>
+    <stop offsetAT="11600" offsetDT="17600" />
+    <stop offsetAT="74800" offsetDT="80800" />
+    <stop offsetAT="101000" offsetDT="107100" />
+    <stop offsetAT="124000" offsetDT="130000" />       
+    <stop offsetAT="174300" offsetDT="180300" />    
+    <stop offsetAT="254400" offsetDT="260400" />
+    <stop offsetAT="287800" offsetDT="293800" />
+    <stop offsetAT="313500" offsetDT="319500" />       
+    <stop offsetAT="376100" offsetDT="382100" />    
+    <stop offsetAT="403600" offsetDT="409600" />        
+</scheduledTimes>
 
-    <!-- config used for enabling region restriction for private vehicles. The region must be pre-defined and kept in the database. The corresponding functions must be provided in the proc_map -->
-    <region_restriction enabled="false"/>
+<!-- To Enable Buses: make sure the following stored procedures in your <proc_map> are not empty and valid -->
+<!-- 1. "pt_bus_dispatch_freq" -->
+<!-- 2. "pt_bus_routes" -->
+<!-- 3. "pt_bus_stops" -->
+<!-- The current control strategy for buses. Can be "headway_based", "evenheadway_based", "hybrid_based", or (default) "no_control" -->
+<busController enabled="true" busline_control_type="headway_based"/>
 
-    <!-- enable this only to generate the bus routes based on stops data for each line -->
-    <generateBusRoutes enabled="false" /> 
+<!-- The current control strategy for train. Can be "fixed_block", "moving_block"-->
+<trainController enabled="true" train_control_type="moving_block">
+    <output_enabled value="false"/>
+    <distance_arriving_at_platform value ="0.001"/>
+</trainController>    
 
-    <!-- the time interval in seconds for collection of link travel times -->
-    <travel_time_update interval="300" />
+<!-- location of the config file for loading pathset generation or route choice related info -->
+<pathset_config_file value="data/pathset_config.xml" />
 
-    <!-- flag to control if PT graph should be loaded -->
-    <public_transit enabled="true"/>
+<!-- config used for enabling region restriction for private vehicles. The region must be pre-defined and kept in the database. The corresponding functions must be provided in the proc_map -->
+<region_restriction enabled="false"/>
 
-    <trip_chain_output enabled="true" trip_activities_file="trip_activities.csv" sub_trips_file="sub_trips.csv"/>
+<!-- enable this only to generate the bus routes based on stops data for each line -->
+<generateBusRoutes enabled="false" /> 
 
-    <!-- config specific to supply simulator -->
-    <supply>
-        <!-- frequency of segment density, speed and flow output -->
-        <update_interval value="1" units="minute" />
-        
-        <!-- these parameters are used to calculate dwell time of buses at bus stops-->
-        <dwell_time_parameters>
-            <!--parameters : minimum and maximum of fixed dwelling time, minimum and maximum of individual dwelling time-->
-            <parameters value="0.0, 0.0, 2.0, 3.0"/>
-        </dwell_time_parameters>
+<!-- the time interval in seconds for collection of link travel times -->
+<travel_time_update interval="300" />
 
-        <!-- pedestrian walking speed in kmph -->
-        <pedestrian_walk_speed value="5"/>
-        
-		<!-- the setting about percentage of on-demand traveler, from 0 to 100 -->
-    	<on_demand_traveler_percentage value="10"/>
+<!-- flag to control if PT graph should be loaded -->
+<public_transit enabled="true"/>
 
-        <!-- default capacity value -->
-        <bus_default_capacity value="100"/>
+<trip_chain_output enabled="false" trip_activities_file="trip_activities.csv" sub_trips_file="sub_trips.csv"/>
 
-        <!-- the threads number for person loader -->
-        <thread_number_in_person_loader value="1"/>
+<!-- config specific to supply simulator -->                    
+<supply>
+    <!-- frequency of segment density, speed and flow output -->
+    <update_interval value="1" units="minute" />
 
+    <!-- these parameters are used to calculate dwell time of buses at bus stops-->
+    <dwell_time_parameters>
+        <!--parameters : minimum and maximum of fixed dwelling time, minimum and maximum of individual dwelling time-->
+        <parameters value="0.0, 0.0, 2.0, 3.0"/>
+    </dwell_time_parameters>
 
-        <!-- file names to output statistics from supply -->
-        <output_statistics>                              
-            <journey_time file="journeytime.csv"/>
-            <waiting_time file="waitingtime.csv"/>
-            <waiting_count file="waitingcount.csv"/>
-            <travel_time file="traveltime.csv"/>
-            <pt_stop_stats file="ptstopstats.csv"/>
-            <subtrip_metrics file="subtrip_metrics.csv" enabled="true"/>
-            <screen_line_count file="screen_line_count.csv" enabled="true" interval="900"/>
-            <pt_reroute file=""/>
-            <link_travel_time file="link_travel_time.csv"/>
-        </output_statistics>
-        
-        <!-- parameters used in speed density function -->
-        <speed_density_params>
-            <param category="1" alpha="3.0" beta="1.5" kmin="0.04" kjam="0.2"/>
-            <param category="2" alpha="3.0" beta="1.5" kmin="0.04" kjam="0.2"/>
-            <param category="3" alpha="3.0" beta="1.5" kmin="0.04" kjam="0.2"/>
-            <param category="4" alpha="3.0" beta="1.5" kmin="0.04" kjam="0.2"/>
-            <param category="5" alpha="3.0" beta="1.5" kmin="0.04" kjam="0.2"/>
-            <param category="6" alpha="3.0" beta="1.5" kmin="0.04" kjam="0.2"/>
-            <param category="7" alpha="3.0" beta="1.5" kmin="0.04" kjam="0.2"/>
-        </speed_density_params>
+    <!-- pedestrian walking speed in kmph -->
+    <pedestrian_walk_speed value="5"/>
 
-        <!-- lua scripts used in withinday --> 
-        <model_scripts path="scripts/lua/mid/behavior_sg12/" format="lua">
-             <script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models-->
-             <script name="pvtrc" file="pvtrc.lua"/> <!--private traffic route choice-->
-             <script name="ptrc" file="ptrc.lua"/> <!--public transit route choice-->
-             <script name="wdmw" file="wdmw.lua"/> <!--within-day mode choice for work trips-->
-             <script name="wdme" file="wdme.lua"/> <!--within-day mode choice for education trips-->
-             <script name="wdmso" file="wdmso.lua"/> <!--within-day mode choice for work shopping and other trips-->
-	     	 <script name="rsc" file="rsc.lua"/><!-- rail service controller -->
-        </model_scripts>
+    <!-- the setting about percentage of on-demand traveler, from 0 to 100 -->
+    <on_demand_traveler_percentage value="0"/>
 
+    <!-- default capacity value -->
+    <bus_default_capacity value="100"/>
 
-    </supply>                                      
-            
-    <!-- config specific to preday simulator -->
-    <preday>
-        <!-- Control variable to run simulation or logsum computation. Admissible values are "simulation" and "logsum" -->
-        <run_mode value="simulation"/>
-        <!-- Number of threads to create for processing the population in-->
-        <!-- the preday demand simulator -->
-        <threads value="1"/>
-        <!-- outputs the preday predictions as activity schedule in CSV format if enabled with simulation run_mode -->
-        <output_activity_schedule enabled="true"/>
-        <!-- prints person ids and tour details in console for each person if enabled -->
-        <console_output enabled="true"/>
-        <!-- table containing logsums for each individual in the population. NOTE:  -->
-        <logsum_table name="demand.preday_logsum"/>
+    <!-- the threads number for person loader -->
+    <thread_number_in_person_loader value="4"/>
 
-        <!-- model scripts for preday -->
-        <model_scripts path="scripts/lua/mid/behavior-models/virtualcity" format="lua">
+    <!-- file names to output statistics from supply -->   
+    <output_statistics>                              
+        <journey_time file="data/journeytime.csv"/>
+        <waiting_time file="data/waitingtime.csv"/>
+        <waiting_count file="data/waitingcount.csv"/>
+        <travel_time file="data/traveltime.csv"/>
+        <pt_stop_stats file="data/ptstopstats.csv"/>
+        <subtrip_metrics file="data/subtrip_metrics.csv" enabled="true"/>
+        <screen_line_count file="data/screen_line_count.csv" enabled="true" interval="900"/>
+        <link_travel_time file="data/link_travel_time.csv"/>
+    </output_statistics>  
 
-            <script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models-->
-            <script name="dpb" file="dpb.lua"/> <!-- Day Pattern Binary -->
-            <script name="dpt" file="dpt.lua"/> <!-- Day Pattern Tours -->
-            <script name="dps" file="dps.lua"/> <!-- Day Pattern Stops -->
-            <script name="ntw" file="ntw.lua"/> <!-- Number Of Tours Work -->
-            <script name="nte" file="nte.lua"/> <!-- Number Of Tours Education -->
-            <script name="nts" file="nts.lua"/> <!--Number Of Tours Shopping -->
-            <script name="nto" file="nto.lua"/> <!--Number Of Tours Others -->
-            <script name="uw" file="tuw.lua"/> <!--Attend Usual Work -->
-            <script name="tmw" file="tmw.lua"/> <!--Tour Mode Work -->
-            <script name="tme" file="tme.lua"/> <!--Tour Mode Education -->
-            <script name="tmdw" file="tmdw.lua"/> <!--Tour Mode/Destination Work -->
-            <script name="tmds" file="tmds.lua"/> <!--Tour Mode/Destination Shopping -->
-            <script name="tmdo" file="tmdo.lua"/> <!--Tour Mode/Destination Others -->
-            <script name="ttdw" file="ttdw.lua"/> <!--Tour Time Of Day Work -->
-            <script name="ttdo" file="ttdo.lua"/> <!--Tour Time Of Day Others -->
-            <script name="ttde" file="ttde.lua"/> <!--Tour Time Of Day Education -->
-            <script name="tws" file="tws.lua"/> <!--Work Based Sub-Tours -->
-            <script name="stmd" file="stmd.lua"/> <!--Work Based Sub-Tours Mode/Destination-->
-            <script name="sttd" file="sttd.lua"/> <!--Work Based Sub-Tours Time Of Day-->
-            <script name="isg" file="isg.lua"/> <!--Intermediate Stop Generation -->
-            <script name="imd" file="imd.lua"/> <!--Intermediate Stop Mode/Destination -->
-            <script name="itd" file="itd.lua"/> <!--Intermediate Stop Time Of Day -->                      
-            <script name="zpa" file="zpa.lua"/> <!--Zone postcode assignment -->
-            <script name="zpa" file="zpa.lua"/> <!--Zone postcode assignment -->
-        </model_scripts>
+    <!-- parameters used in speed density function -->
+    <speed_density_params>
+        <param category="1" alpha="3.0" beta="1.5" kmin="0.04" kjam="0.2"/>
+        <param category="2" alpha="3.0" beta="1.5" kmin="0.04" kjam="0.2"/>
+        <param category="3" alpha="3.0" beta="1.5" kmin="0.04" kjam="0.2"/>
+        <param category="4" alpha="3.0" beta="1.5" kmin="0.04" kjam="0.2"/>
+        <param category="5" alpha="3.0" beta="1.5" kmin="0.04" kjam="0.2"/>
+        <param category="6" alpha="3.0" beta="1.5" kmin="0.04" kjam="0.2"/>
+        <param category="7" alpha="3.0" beta="1.5" kmin="0.04" kjam="0.2"/>
+    </speed_density_params>
 
-        <calibration enabled="false">
-            <!-- variables to calibrate -->
-            <!-- expected csv format: variable_name,lua_file_name,initial_value,lower_limit,upper_limit -->
-            <variables file="data/medium/preday_calibration_variables.csv"/>
-            <!--csv providing the observed values for the statistics to compute-->
-            <observed_statistics file="data/medium/preday_observed_HITS08_statistics.csv"/>
-            <!-- which calibration technique to use: SPSA/WSPSA -->
-            <calibration_technique value="SPSA"/>
-            <!-- logsums will be recomputed every x iterations if value is set to x -->
-            <logsum_computation_frequency value="5"/>
-            <SPSA>
-                <!-- max number of iterations that spsa must run for -->
-                <iterations value="20"/>
-                <!-- termination condition for spsa is (F(X_k+1) - F(X_k) <= tolerance ) where F(X) is the objective function -->
-                <tolerence value="0.000001"/>
-                <!-- perturbation step size for iteration k is given by c_k = c / ((1+k)^gamma) -->
-                <gradient_step_size initial_value="0.1" algorithm_coefficient2="0.101"/>
-                <!-- step size for iteration k is given by a_k = a / ((1+k)^alpha) -->
-                <step_size initial_value="0.16" stability_constant="100" algorithm_coefficient1="0.602"/>
-            </SPSA>
-            <WSPSA>
-                <!-- max number of iterations that spsa must run for -->
-                <iterations value="20"/>
-                <!-- termination condition for spsa is (F(X_k+1) - F(X_k) <= tolerance ) where F(X) is the objective function -->
-                <tolerence value="0.000001"/>
-                <!-- perturbation step size for iteration k is given by c_k = c / ((1+k)^gamma) -->
-                <gradient_step_size initial_value="0.1" algorithm_coefficient2="0.101"/>
-                <!-- step size for iteration k is given by a_k = a / ((1+k)^alpha) -->
-                <step_size initial_value="0.16" stability_constant="100" algorithm_coefficient1="0.602"/>
-                <!-- csv containing the weight matrix-->
-                <weight_matrix file="data/medium/preday_calibration_weight_matrix.csv"/>
-            </WSPSA>
-            
-            <!-- output file to track the statistics and parameters for every iteration of calibration -->
-            <output file="preday_calibration_out.csv"/>
-        </calibration>
-    </preday>
+    <!-- lua scripts used in withinday --> 
+    <model_scripts path="scripts/lua/mid/behavior_sg12/" format="lua">
+        <script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models-->
+        <script name="pvtrc" file="pvtrc.lua"/> <!--private traffic route choice-->
+        <script name="ptrc" file="ptrc.lua"/> <!--public transit route choice-->
+        <script name="wdmw" file="wdmw.lua"/> <!--within-day mode choice for work trips-->
+        <script name="wdme" file="wdme.lua"/> <!--within-day mode choice for education trips-->
+        <script name="wdmso" file="wdmso.lua"/> <!--within-day mode choice for work shopping and other trips-->
+        <script name="rsc" file="rsc.lua"/><!-- rail service controller -->
+    </model_scripts>
+</supply>                                      
+
+<!-- config specific to preday simulator -->
+<preday>
+    <!-- Control variable to run simulation or logsum computation. Admissible values are "simulation" and "logsum" -->
+    <run_mode value="simulation"/>
+    <!-- Number of threads to create for processing the population in-->
+    <!-- the preday demand simulator -->
+    <threads value="6"/>
+    <!-- outputs the preday predictions as activity schedule in CSV format if enabled with simulation run_mode -->
+    <output_activity_schedule enabled="true"/>
+    <!-- prints person ids and tour details in console for each person if enabled -->
+    <console_output enabled="true"/>
+    <!-- table containing logsums for each individual in the population. NOTE:  -->
+    <logsum_table name="demand.preday_logsum"/>
+
+    <!-- model scripts for preday -->
+    <model_scripts path="scripts/lua/mid/behavior_sg12/" format="lua">
+
+        <script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models-->
+        <script name="dpb" file="dpb.lua"/> <!-- Day Pattern Binary -->
+        <script name="dpt" file="dpt.lua"/> <!-- Day Pattern Tours -->
+        <script name="dps" file="dps.lua"/> <!-- Day Pattern Stops -->
+        <script name="ntw" file="ntw.lua"/> <!-- Number Of Tours Work -->
+        <script name="nte" file="nte.lua"/> <!-- Number Of Tours Education -->
+        <script name="nts" file="nts.lua"/> <!--Number Of Tours Shopping -->
+        <script name="nto" file="nto.lua"/> <!--Number Of Tours Others -->
+        <script name="uw" file="tuw.lua"/> <!--Attend Usual Work -->
+        <script name="tmw" file="tmw.lua"/> <!--Tour Mode Work -->
+        <script name="tme" file="tme.lua"/> <!--Tour Mode Education -->
+        <script name="tmdw" file="tmdw.lua"/> <!--Tour Mode/Destination Work -->
+        <script name="tmds" file="tmds.lua"/> <!--Tour Mode/Destination Shopping -->
+        <script name="tmdo" file="tmdo.lua"/> <!--Tour Mode/Destination Others -->
+        <script name="ttdw" file="ttdw.lua"/> <!--Tour Time Of Day Work -->
+        <script name="ttdo" file="ttdo.lua"/> <!--Tour Time Of Day Others -->
+        <script name="ttde" file="ttde.lua"/> <!--Tour Time Of Day Education -->
+        <script name="tws" file="tws.lua"/> <!--Work Based Sub-Tours -->
+        <script name="stmd" file="stmd.lua"/> <!--Work Based Sub-Tours Mode/Destination-->
+        <script name="sttd" file="sttd.lua"/> <!--Work Based Sub-Tours Time Of Day-->
+        <script name="isg" file="isg.lua"/> <!--Intermediate Stop Generation -->
+        <script name="imd" file="imd.lua"/> <!--Intermediate Stop Mode/Destination -->
+        <script name="itd" file="itd.lua"/> <!--Intermediate Stop Time Of Day -->                      
+        <script name="zpa" file="zpa.lua"/> <!--Zone postcode assignment --> 
+        <script name="zpa" file="zpa.lua"/> <!--Zone postcode assignment --> 
+    </model_scripts>
+
+    <calibration enabled="false">
+        <!-- variables to calibrate -->
+        <!-- expected csv format: variable_name,lua_file_name,initial_value,lower_limit,upper_limit -->
+        <variables file="data/medium/preday_calibration_variables.csv"/>
+        <!--csv providing the observed values for the statistics to compute-->
+        <observed_statistics file="data/medium/preday_observed_HITS08_statistics.csv"/>
+        <!-- which calibration technique to use: SPSA/WSPSA -->
+        <calibration_technique value="SPSA"/>
+        <!-- logsums will be recomputed every x iterations if value is set to x -->
+        <logsum_computation_frequency value="5"/>
+        <SPSA>
+            <!-- max number of iterations that spsa must run for -->
+            <iterations value="20"/>
+            <!-- termination condition for spsa is (F(X_k+1) - F(X_k) <= tolerance ) where F(X) is the objective function -->
+            <tolerence value="0.000001"/>
+            <!-- perturbation step size for iteration k is given by c_k = c / ((1+k)^gamma) -->
+            <gradient_step_size initial_value="0.1" algorithm_coefficient2="0.101"/>
+            <!-- step size for iteration k is given by a_k = a / ((1+k)^alpha) -->
+            <step_size initial_value="0.16" stability_constant="100" algorithm_coefficient1="0.602"/>
+        </SPSA>
+        <WSPSA>
+            <!-- max number of iterations that spsa must run for -->
+            <iterations value="20"/>
+            <!-- termination condition for spsa is (F(X_k+1) - F(X_k) <= tolerance ) where F(X) is the objective function -->
+            <tolerence value="0.000001"/>
+            <!-- perturbation step size for iteration k is given by c_k = c / ((1+k)^gamma) -->
+            <gradient_step_size initial_value="0.1" algorithm_coefficient2="0.101"/>
+            <!-- step size for iteration k is given by a_k = a / ((1+k)^alpha) -->
+            <step_size initial_value="0.16" stability_constant="100" algorithm_coefficient1="0.602"/>
+            <!-- csv containing the weight matrix-->
+            <weight_matrix file="data/medium/preday_calibration_weight_matrix.csv"/>
+        </WSPSA>
+
+        <!-- output file to track the statistics and parameters for every iteration of calibration -->
+        <output file="preday_calibration_out.csv"/>
+    </calibration>
+</preday>
 </config>
 

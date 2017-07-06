@@ -16,7 +16,7 @@
 #include "path/PathSetManager.hpp" // for PrivateTrafficRouteChoice
 #include "entities/mobilityServiceDriver/MobilityServiceDriver.hpp"
 #include "message/MobilityServiceControllerMessage.hpp"
-
+#include <iterator> // for std::begin
 
 using namespace sim_mob;
 using namespace messaging;
@@ -664,8 +664,22 @@ void OnCallController::consistencyChecks(const std::string& label) const
 			<<driverSchedules.at(driver);
 			throw std::runtime_error(msg.str( ));
 		}
-
 	}
+
+	// Check if the same request is present more than once
+	std::vector<TripRequestMessage> requestQueueCopy{ std::begin(requestQueue), std::end(requestQueue) };
+	std::sort(requestQueueCopy.begin(), requestQueueCopy.end());
+	for(int i = 0; i < requestQueueCopy.size() ; i++)
+	{
+		for (int j = i+1 ; j<requestQueueCopy.size() ; j++ )
+	    if (requestQueueCopy[i].userId == requestQueueCopy[j].userId)
+	    {
+	        std::stringstream msg; msg<<"There are two requests from the same users currently in the requestQueue. They are "<<
+	        	requestQueueCopy[i] <<" and "<<requestQueueCopy[j]<< std::endl;
+	        throw std::runtime_error(msg.str() );
+	    }
+	}
+
 }
 #endif
 

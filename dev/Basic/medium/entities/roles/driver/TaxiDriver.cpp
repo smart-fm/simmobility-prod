@@ -305,8 +305,8 @@ void TaxiDriver::processNextScheduleItem(bool isMoveToNextScheduleItem)
 		if(!passengerToDrop)
 		{
 			std::stringstream msg;
-			msg << "The passenger " << tripRequest.userId << " has not been picked-up by "
-			    << " driver " << parent->getDatabaseId();
+			msg << "The passenger " << tripRequest.userId << " has not been picked-up by driver " <<
+					parent->getDatabaseId();
 			throw std::runtime_error(msg.str());
 		}
 #endif

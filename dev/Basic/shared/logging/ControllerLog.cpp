@@ -48,8 +48,8 @@ std::ostream* sim_mob::ControllerLog::CreateStream(const string& path, std::ofst
 
 void sim_mob::ControllerLog::Init(const string& path)
 {
-	log_handle = NULL; //CreateStream(path, log_file);
-	log_mutex = NULL; //RegisterStream(log_handle);
+	log_handle = CreateStream(path, log_file);
+	log_mutex = RegisterStream(log_handle);
 }
 
 void sim_mob::ControllerLog::Ignore()

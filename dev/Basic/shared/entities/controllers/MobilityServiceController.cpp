@@ -68,7 +68,11 @@ void MobilityServiceController::HandleMessage(messaging::Message::MessageType ty
 	case MSG_DRIVER_UNSUBSCRIBE:
 	{
 		const DriverUnsubscribeMessage &unsubscribeArgs = MSG_CAST(DriverUnsubscribeMessage, message);
-		ControllerLog() << "Driver " << unsubscribeArgs.person->getDatabaseId() << " unsubscribed " << std::endl;
+		const Person* person = unsubscribeArgs.person;
+		const std::string personId = person->getDatabaseId();
+		Print()<<"ciao, person pointer "<< person <<", personId="<< personId << ". begin. " <<std::endl;
+		ControllerLog() << "Driver " << personId << " unsubscribed " << std::endl;
+		Print()<<"ciao, person pointer "<< person <<", personId="<< personId << ". end. "  <<std::endl;
 		unsubscribeDriver(unsubscribeArgs.person);
 		break;
 	}

@@ -401,6 +401,26 @@ void SharedController::computeSchedules()
 				//aa}
 			}
 
+#ifndef NDEBUG
+		// 3.1 Check if the same passenger is inserted in more than one schedule
+		std::set<std::string> passengerIds;
+		for (const Schedule& schedule : schedules)
+		for (const ScheduleItem& item : schedule)
+		{
+			if ( item.scheduleItemType == ScheduleItemType::PICKUP )
+			{
+				if (passengerIds.find( item.tripRequest.userId) != passengerIds.end() )
+				{
+					std::stringstream msg; msg<<"The same passenger "<<item.tripRequest.userId<<" is supposed to be picked up multiple times."
+						<<" This is impossible as she is not ubiquitous!";
+					throw std::runtime_error(msg.str() );
+				}else passengerIds.insert(item.tripRequest.userId);
+			}
+		}
+		ControllerLog()<<"\n\n\nciao, passengerIds: ";
+		for (const std::string& passengerId : passengerIds) ControllerLog()<<passengerId<<", "; ControllerLog()<<"\n\n\n"<<std::endl;
+#endif
+
 
 		// 4. Send assignments for requests
 		for (const Schedule& schedule : schedules)

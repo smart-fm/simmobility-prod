@@ -290,9 +290,10 @@ bool TaxiDriverMovement::moveToNextSegment(DriverUpdateParams &params)
 	else if (parentTaxiDriver->getDriverStatus() == DRIVE_ON_CALL && pathMover.isEndOfPath())
 	{
 		Conflux *parentConflux = currSegStat->getParentConflux();
+		unsigned long prevPassengerCount = parentTaxiDriver->getPassengerCount();
 		parentTaxiDriver->pickUpPassngerAtNode(parentConflux, &personIdPickedUp);
 
-		if (parentTaxiDriver->getPassenger() == nullptr)
+		if (prevPassengerCount == parentTaxiDriver->getPassengerCount())
 		{
 			ControllerLog() << "Pickup failed for " << personIdPickedUp << " at time "
 			                << parentTaxiDriver->parent->currTick

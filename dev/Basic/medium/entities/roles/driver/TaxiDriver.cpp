@@ -117,6 +117,11 @@ void TaxiDriver::alightPassenger()
 	}
 }
 
+const unsigned long TaxiDriver::getPassengerCount() const
+{
+	return taxiPassengers.size();
+}
+
 void TaxiDriver::passengerChoiceModel(const Node *origin,const Node *destination, std::vector<WayPoint> &currentRouteChoice)
 {
 	std::vector<WayPoint> res;

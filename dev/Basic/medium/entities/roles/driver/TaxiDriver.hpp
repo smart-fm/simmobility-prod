@@ -109,6 +109,11 @@ public:
 	Passenger *getPassenger();
 
 	/**
+	 * @return the count of passengers on board
+	 */
+	const unsigned long getPassengerCount() const;
+
+	/**
 	 * message handler which provide a chance to handle message transfered from parent agent.
 	 * @param type of the message.
 	 * @param message data received.

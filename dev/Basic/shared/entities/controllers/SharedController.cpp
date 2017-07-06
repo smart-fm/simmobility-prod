@@ -525,20 +525,22 @@ const Node* SharedController::getCurrentNode(Person* p)
 }
 
 
-
-void SharedController::checkSequence (const std::string& sequence) const
+void SharedController::checkSequence(const std::string &sequence) const
 {
-		if (sequence != "o1o2d1d2" && sequence != "o2o1d2d1" && sequence != "o1o2d2d1" && sequence != "o2o1d1d2")
-		{
-			std::stringstream msg; msg<<__FILE__<<":"<<__LINE__<<": sequence "<<sequence<<" is not recognized";
-			throw std::runtime_error(msg.str() );
-		}
+	if (sequence != "o1o2d1d2" && sequence != "o2o1d2d1" && sequence != "o1o2d2d1" && sequence != "o2o1d1d2")
+	{
+		std::stringstream msg;
+		msg << __FILE__ << ":" << __LINE__ << ": sequence " << sequence << " is not recognized";
+		throw std::runtime_error(msg.str());
+	}
 }
 
+#ifndef NDEBUG
 void SharedController::consistencyChecks(const std::string& label) const
 {
 	OnCallController::consistencyChecks(label);
 }
+#endif
 
 }
 

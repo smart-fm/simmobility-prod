@@ -25,9 +25,10 @@ public:
 
 	virtual void checkSequence (const std::string& sequence) const;
 
+#ifndef NDEBUG
 	// Overrides the parent method
 	virtual void consistencyChecks(const std::string& label) const;
-
+#endif
 
 protected:
 	virtual bool isCruising(Person* p);

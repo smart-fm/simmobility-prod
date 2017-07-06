@@ -667,7 +667,7 @@ void OnCallController::consistencyChecks(const std::string& label) const
 
 	}
 }
-
+#endif
 
 const std::string OnCallController::getRequestQueueStr() const
 {
@@ -680,5 +680,3 @@ const std::string OnCallController::getRequestQueueStr() const
 }
 
 
-
-#endif

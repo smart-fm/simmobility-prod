@@ -388,6 +388,7 @@ GD_Edge RGD_Graph::popGD_Edge()
 	return retValue;
 }
 
+#ifndef NDEBUG
 void RGD_Graph::consistencyChecks() const
 {
 	for (const RG_Edge& rgEdge : rgEdges.getElements())
@@ -403,6 +404,7 @@ void RGD_Graph::consistencyChecks() const
 
 	}
 }
+#endif
 
 } /* namespace sim_mob */
 

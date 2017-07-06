@@ -92,14 +92,14 @@ void TaxiDriver::alightPassenger()
 
 			if(!taxiDriverMovement->isSubscribedToOnHail())
 			{
-				//Drop-off schedule complete, process next item
-				processNextScheduleItem();
-
 				ControllerLog() << "Drop-off of user" << parentPerson->getDatabaseId() << " at time "
 				                << parentPerson->currTick
 				                << ". Message was sent at ??? with startNodeId ???, destinationNodeId "
 				                << parentConflux->getConfluxNode()->getNodeId()
 				                << ", and driverId " << getParent()->getDatabaseId() << std::endl;
+
+				//Drop-off schedule complete, process next item
+				processNextScheduleItem();
 			}
 			else
 			{
@@ -224,9 +224,6 @@ void TaxiDriver::pickUpPassngerAtNode(Conflux *parentConflux, std::string* perso
 				setDriverStatus(DRIVE_WITH_PASSENGER);
 				passenger->Movement()->startTravelTimeMetric();
 				passenger->setStartPoint(WayPoint(taxiDriverMovement->getCurrentNode()));
-
-				//Pick-up schedule is complete, process next schedule item
-				processNextScheduleItem();
 			}
 		}
 		else

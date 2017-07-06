@@ -305,12 +305,6 @@ bool TaxiDriverMovement::moveToNextSegment(DriverUpdateParams &params)
 			                << ". Message was sent at ??? with startNodeId "
 			                << parentConflux->getConfluxNode()->getNodeId() << ", destinationNodeId ???"
 			                << ", and driverId " << parentTaxiDriver->parent->getDatabaseId() << std::endl;
-
-			//Pick-up failed and we didn't have any passengers on board, so we can cruise
-			if(prevPassengerCount == 0)
-			{
-				setCruisingMode();
-			}
 		}
 		else
 		{
@@ -321,6 +315,9 @@ bool TaxiDriverMovement::moveToNextSegment(DriverUpdateParams &params)
 			                << destinationNode->getNodeId()
 			                << ", and driverId " << parentTaxiDriver->parent->getDatabaseId() << std::endl;
 		}
+
+		//Pick-up schedule is complete, process next schedule item
+		parentTaxiDriver->processNextScheduleItem();
 	}
 
 	res = DriverMovement::moveToNextSegment(params);

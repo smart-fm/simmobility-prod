@@ -226,15 +226,6 @@ void TaxiDriver::pickUpPassngerAtNode(Conflux *parentConflux, std::string* perso
 				passenger->setStartPoint(WayPoint(taxiDriverMovement->getCurrentNode()));
 			}
 		}
-		else
-		{
-			ControllerLog() << "personToPickUp doesn't have passenger role. Current role is: "
-			                << personToPickUp->getRole()->roleType;
-		}
-	}
-	else
-	{
-		ControllerLog() << "personToPickUp is Null\n";
 	}
 }
 

@@ -300,20 +300,20 @@ bool TaxiDriverMovement::moveToNextSegment(DriverUpdateParams &params)
 		//If the pick-up is successful, the passenger count should have increased
 		if (prevPassengerCount == parentTaxiDriver->getPassengerCount())
 		{
-			ControllerLog() << "Pickup failed for " << personIdPickedUp << " at time "
-			                << parentTaxiDriver->parent->currTick
-			                << ". Message was sent at ??? with startNodeId "
-			                << parentConflux->getConfluxNode()->getNodeId() << ", destinationNodeId ???"
-			                << ", and driverId " << parentTaxiDriver->parent->getDatabaseId() << std::endl;
+			stringstream msg;
+			msg << "Pickup failed for " << personIdPickedUp << " at time "
+			    << parentTaxiDriver->getParent()->currTick
+			    << ", and driverId " << parentTaxiDriver->getParent()->getDatabaseId() << std::endl;
+			throw runtime_error(msg.str());
 		}
 		else
 		{
 			ControllerLog() << "Pickup succeeded for " << personIdPickedUp << " at time "
-			                << parentTaxiDriver->parent->currTick
+			                << parentTaxiDriver->getParent()->currTick
 			                << ". Message was sent at ??? with startNodeId "
 			                << parentConflux->getConfluxNode()->getNodeId() << ", destinationNodeId "
 			                << destinationNode->getNodeId()
-			                << ", and driverId " << parentTaxiDriver->parent->getDatabaseId() << std::endl;
+			                << ", and driverId " << parentTaxiDriver->getParent()->getDatabaseId() << std::endl;
 		}
 
 		//Pick-up schedule is complete, process next schedule item
@@ -786,9 +786,11 @@ bool TaxiDriverMovement::driveToNodeOnCall(const std::string &personId, const No
 
 	if (!res)
 	{
-		if (mode != CRUISING)
+		if (mode != CRUISING && mode != DRIVE_WITH_PASSENGER)
 		{
-			ControllerLog() << "Assignment failed for " << personId << " because mode was not CRUISING" << std::endl;
+			ControllerLog() << "Assignment failed for " << personId
+			                << " because mode was not CRUISING/DRIVE_WITH_PASSENGER. Mode = " << mode
+			                << std::endl;
 		}
 		else if (!pickupNode)
 		{

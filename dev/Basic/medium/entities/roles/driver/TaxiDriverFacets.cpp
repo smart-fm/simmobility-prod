@@ -759,16 +759,6 @@ bool TaxiDriverMovement::driveToNodeOnCall(const TripRequestMessage &tripRequest
 			destinationNode = pickupNode;
 			setCurrentNode(currentNode);
 			setDestinationNode(destinationNode);
-
-			// Get path to destination of the person (In some cases we need to process next link before picking
-			// up the passenger, but since we don't have it we get an error)
-			const RoadNetwork *rdNetwork = RoadNetwork::getInstance();
-			const Node *destNode = rdNetwork->getById(rdNetwork->getMapOfIdvsNodes(), tripRequest.destinationNodeId);
-			std::vector<WayPoint> pathToDest =
-					StreetDirectory::Instance().SearchShortestDrivingPath<Link, Node>(*(currentRouteChoice.back().link),
-					                                                                  *destNode);
-
-			currentRouteChoice.insert(currentRouteChoice.end(), pathToDest.begin(), pathToDest.end());
 			addRouteChoicePath(currentRouteChoice);
 			parentTaxiDriver->setDriverStatus(DRIVE_ON_CALL);
 			personIdPickedUp = tripRequest.userId;

@@ -139,6 +139,11 @@ void TaxiDriver::passengerChoiceModel(const Node *origin,const Node *destination
 	currentRouteChoice = PrivateTrafficRouteChoice::getInstance()->getPathAfterPassengerPickup(currSubTrip, false,
 	                                                                                           nullptr, currentLane,
 	                                                                                           useInSimulationTT);
+
+	if(!currentRouteChoice.empty())
+	{
+		currentRouteChoice.insert(currentRouteChoice.begin(), WayPoint(currentLane->getParentSegment()->getParentLink()));
+	}
 }
 
 void TaxiDriver::HandleParentMessage(messaging::Message::MessageType type, const messaging::Message& message)
@@ -232,6 +237,12 @@ void TaxiDriver::pickUpPassngerAtNode(const std::string personId)
 
 			passengerChoiceModel(currentNode, personDestinationNode, currentRouteChoice);
 
+			if(currentRouteChoice.empty())
+			{
+				currentRouteChoice = StreetDirectory::Instance().SearchShortestDrivingPath<Link, Node>(
+						*(segStats->getRoadSegment()->getParentLink()), *personDestinationNode);
+			}
+
 #ifndef NDEBUG
 			if (currentRouteChoice.empty())
 			{
@@ -245,9 +256,6 @@ void TaxiDriver::pickUpPassngerAtNode(const std::string personId)
 			}
 #endif
 			addPassenger(passenger);
-			const Lane *currentLane = taxiDriverMovement->getCurrentlane();
-			const Link *currentLink = currentLane->getParentSegment()->getParentLink();
-			currentRouteChoice.insert(currentRouteChoice.begin(), WayPoint(currentLink));
 			taxiDriverMovement->setDestinationNode(personDestinationNode);
 			taxiDriverMovement->setCurrentNode(currentNode);;
 			taxiDriverMovement->addRouteChoicePath(currentRouteChoice);
@@ -268,7 +276,7 @@ void TaxiDriver::pickUpPassngerAtNode(const std::string personId)
 			                << parent->currTick
 			                << ". Message was sent at ??? with startNodeId "
 			                << parentConflux->getConfluxNode()->getNodeId() << ", destinationNodeId "
-			                << taxiDriverMovement->getDestinationNode()->getNodeId()
+			                << personToPickUp->currSubTrip->destination.node->getNodeId()
 			                << ", and driverId " << parent->getDatabaseId() << std::endl;
 
 			//Pick-up schedule is complete, process next schedule item
@@ -370,11 +378,15 @@ void TaxiDriver::processNextScheduleItem(bool isMoveToNextScheduleItem)
 
 		passengerChoiceModel(currentNode, personDestinationNode, currentRouteChoice);
 
-		if (!currentRouteChoice.empty())
+		if (currentRouteChoice.empty())
 		{
-			const Lane *currentLane = taxiDriverMovement->getCurrentlane();
-			const Link *currentLink = currentLane->getParentSegment()->getParentLink();
-			currentRouteChoice.insert(currentRouteChoice.begin(), WayPoint(currentLink));
+			const Link *currentLink = taxiDriverMovement->getCurrentlane()->getParentSegment()->getParentLink();
+			currentRouteChoice = StreetDirectory::Instance().SearchShortestDrivingPath<Link, Node>(*currentLink,
+			                                                                                       *personDestinationNode);
+		}
+
+		if(!currentRouteChoice.empty())
+		{
 			taxiDriverMovement->setDestinationNode(personDestinationNode);
 			taxiDriverMovement->setCurrentNode(currentNode);;
 			taxiDriverMovement->addRouteChoicePath(currentRouteChoice);

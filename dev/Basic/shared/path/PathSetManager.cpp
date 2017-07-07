@@ -720,43 +720,25 @@ void sim_mob::PrivateTrafficRouteChoice::filterPathsetsByLastLink(boost::shared_
 void sim_mob::PrivateTrafficRouteChoice::filterPathsetsWhereCurrSegmentIsConnectedToDownStreamLink(boost::shared_ptr<sim_mob::PathSet>& pathset, const Lane* currlane)
 {
 	boost::shared_ptr<sim_mob::PathSet> filteredPathset;
-	const RoadNetwork* rdNetwork = RoadNetwork::getInstance();
-	const std::map<const Lane*,std::map<const Lane*,const TurningPath *>>&turningPathsFromLanes = rdNetwork->getTurningPathsFromLanes();
+
+	const Link *fromLink = currlane->getParentSegment()->getParentLink();
+	const Node *toNode = fromLink->getToNode();
+
 	for (std::set<sim_mob::SinglePath*, sim_mob::SinglePath>::iterator itr = pathset->pathChoices.begin() ; itr != pathset->pathChoices.end() ; )
 	{
 		std::vector<sim_mob::WayPoint> path = (*itr)->path;
 		sim_mob::WayPoint wayPoint = *path.begin();
-		const Link* link =wayPoint.link;
-		const Node * fromNode = link->getFromNode();
-		const std::vector<RoadSegment*>& rdSegs= link->getRoadSegments();
-		const RoadSegment * rdSegment = *rdSegs.begin();
-		const std::vector<Lane *> lanes = rdSegment->getLanes();
-		bool foundTurningPath = false;
-		for(std::vector<Lane*>::const_iterator laneItr = lanes.begin();laneItr != lanes.end(); laneItr++)
-		{
-			if (turningPathsFromLanes.find(currlane) != turningPathsFromLanes.end())
-			{
-				std::map<const Lane*,const TurningPath *> mapOfLaneVsTurningPath = turningPathsFromLanes.find(currlane)->second;
-				const TurningPath *turningPath = mapOfLaneVsTurningPath.find(*laneItr)->second;
-				if(turningPath != nullptr)
-				{
-					foundTurningPath = true;
-					break;
-				}
-			}
-			else
-			{
-				break;
-			}
+		const Link* toLink =wayPoint.link;
 
-		}
-		if(foundTurningPath)
+		if(!toNode->getTurningGroup(fromLink->getLinkId(), toLink->getLinkId()))
 		{
-			itr++;
-			continue;
+			//delete from path from current pathset
+			itr = (pathset->pathChoices).erase(itr);
 		}
-		//delete from path from current pathset
-		itr=(pathset->pathChoices).erase(itr);
+		else
+		{
+			++itr;
+		}
 	}
 }
 

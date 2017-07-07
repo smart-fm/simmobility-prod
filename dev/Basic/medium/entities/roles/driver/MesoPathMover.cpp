@@ -62,8 +62,13 @@ const SegmentStats* MesoPathMover::getCurrSegStats() const
 void MesoPathMover::setSegmentStatIterator(const SegmentStats* currSegStats)
 {
 	currSegStatIt = std::find(path.begin(),path.end(),currSegStats);
-	const SegmentStats * sg = *(currSegStatIt);
-	int degug = 1;
+
+#ifndef NDEBUG
+	if(currSegStatIt == path.end())
+	{
+		throw std::runtime_error("Current segment not found in new path");
+	}
+#endif
 }
 
 const SegmentStats* MesoPathMover::getNextSegStats(bool inSameLink) const

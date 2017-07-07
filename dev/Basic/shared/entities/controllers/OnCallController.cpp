@@ -387,11 +387,12 @@ const Person *OnCallController::findClosestDriver(const Node *node) const
 	while (driver != availableDrivers.end())
 	{
 #ifndef NDEBUG
-		if ( driverSchedules.find(driver) == driverSchedules.end()  )
+		if ( driverSchedules.find(*driver) == driverSchedules.end()  )
 		{
-		std::stringstream msg; msg << "Driver " << driver->getDatabaseId() <<" and pointer "<< driver
-		<< " exists in availableDrivers but not in driverSchedules";
-			throw std::runtime_error(msg.str() );
+			std::stringstream msg;
+			msg << "Driver " << (*driver)->getDatabaseId() << " and pointer " << *driver
+			    << " exists in availableDrivers but not in driverSchedules";
+			throw std::runtime_error(msg.str());
 		}
 #endif
 		if (isCruising(*driver))

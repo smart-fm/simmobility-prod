@@ -27,12 +27,6 @@ Entity::UpdateStatus MobilityServiceController::frame_init(timeslice now)
 		messaging::MessageBus::RegisterHandler(this);
 	}
 #ifndef NDEBUG
-	else{
-		std::stringstream msg; msg<<"The context for this controller has already been set. This means that frame_init has "<<
-		"already been called and that we are trying to call it again. This should not happen";
-		msg<<". This is related to this issue: https://github.com/smart-fm/simmobility/issues/590"<<std::endl;
-		Warn()<< msg.str()<<std::endl;
-	}
 	consistencyChecks();
 #endif
 

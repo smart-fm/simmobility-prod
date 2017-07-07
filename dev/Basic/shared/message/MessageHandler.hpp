@@ -62,7 +62,7 @@ public:
 	void SetContext(void* context_)
 	{
 #ifndef NDEBUG
-		if (context){
+		if (context && context != context_){
 			std::stringstream msg; msg<<"Trying to set context "<< context_ <<" to object "<< this <<
 			" of type "<< typeid(this).name()<<", but the object has already context "<<context;
 			msg<<". This is related to this issue: https://github.com/smart-fm/simmobility/issues/590"<<std::endl;

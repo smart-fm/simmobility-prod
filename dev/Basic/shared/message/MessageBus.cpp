@@ -421,24 +421,31 @@ void MessageBus::RegisterHandler(MessageHandler* handler)
     	sim_mob::ControllerLog()<<"Registering the controller"<<std::endl;
 
 #ifndef NDEBUG
-    if (!handler)
-    	throw runtime_error("Trying to register a NULL MessageHandler");
+	if (!handler)
+	{
+		throw runtime_error("Trying to register a NULL MessageHandler");
+	}
 
-    if ( handler->GetContext() )
-    {
-        if (context != handler->GetContext() )
-        {
-            std::stringstream msg; msg<<__FILE__<<":"<<__LINE__<<": Error: trying to register an object of class "<<typeid(*handler).name()
-            	<<" to a context, while it is already registered to another context";
-        	throw runtime_error(msg.str() );
-        }else
-        {
-        	std::stringstream msg; msg<<__FILE__<<":"<<__LINE__<<": Trying to register an object "<< handler<<" of class "<<typeid(*handler).name()
-        	            	<<" to a context, but it is already registered to the same context";
-    		msg<<". This is related to this issue: https://github.com/smart-fm/simmobility/issues/590"<<std::endl;
-        	sim_mob::Warn() << msg.str() <<std::endl;
-        }
-    }
+	if (handler->GetContext())
+	{
+		if (context && context != handler->GetContext())
+		{
+			std::stringstream msg;
+			msg << __FILE__ << ":" << __LINE__ << ": Error: trying to register an object of class "
+			    << typeid(*handler).name()
+			    << " to a context, while it is already registered to another context";
+			throw runtime_error(msg.str());
+		}
+		/*else
+		{
+			std::stringstream msg;
+			msg << __FILE__ << ":" << __LINE__ << ": Trying to register an object " << handler << " of class "
+			    << typeid(*handler).name()
+			    << " to a context, but it is already registered to the same context";
+			msg << ". This is related to this issue: https://github.com/smart-fm/simmobility/issues/590" << std::endl;
+			sim_mob::Warn() << msg.str() << std::endl;
+		}*/
+	}
 #endif
 
    	handler->SetContext( static_cast<void*> (context) );

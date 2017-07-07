@@ -28,7 +28,10 @@ OnCallController::OnCallController(const MutexStrategy& mtxStrat, unsigned int c
 		MobilityServiceControllerType type_, unsigned id)
 	: MobilityServiceController(mtxStrat, type_, id), scheduleComputationPeriod(computationPeriod)
 {
-	rebalancer = new LazyRebalancer(this);
+	// jo{ Put in Kasia function here
+	// rebalancer = new LazyRebalancer(this);
+	// }jo
+	rebalancer = new KasiaRebalancer(this);
 #ifndef NDEBUG
 	isComputingSchedules = false;
 #endif

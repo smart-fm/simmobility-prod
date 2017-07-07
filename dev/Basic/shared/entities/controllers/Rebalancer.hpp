@@ -8,6 +8,15 @@
 #include <queue>
 #include "entities/Person.hpp"
 
+// jo{
+#include "Types.hpp" // hash functor
+#include <map>
+#include <set>
+#include <sstream>
+
+#include "glpk.h"
+// }jo
+
 namespace sim_mob {
 
 class Rebalancer {

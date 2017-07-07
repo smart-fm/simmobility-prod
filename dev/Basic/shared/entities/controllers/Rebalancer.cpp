@@ -485,13 +485,11 @@ void KasiaRebalancer::rebalance(const std::vector<const Person*>& availableDrive
                 	}
                 }
 
-                latestStartNodes.clear();
-
-                // change station ownership of vehicle
-                stations[stSrc].removeVehicleId(vehId);
-                stations[stDest].addVehicleId(vehId);
-                vehIdToStationId[vehId] = stDest;
-                availableDrivers.erase(vehId);
+                // change station ownership of vehicle (these are moot in this implementation I think }jo
+                //stations[stSrc].removeVehicleId(vehId);
+                //stations[stDest].addVehicleId(vehId);
+                //vehIdToStationId[vehId] = stDest;
+                //availableDrivers.erase(vehId);
 
                 // mark vehicle as no longer available for dispatch
                 vi[stSrc].erase(vehId);
@@ -499,10 +497,6 @@ void KasiaRebalancer::rebalance(const std::vector<const Person*>& availableDrive
                 // increment iterator
                 itr = vi[stSrc].begin();
             }
-
-
-    		parentController->sendCruiseCommand(driver, node, currTick );
-    		latestStartNodes.clear();
 
 //            Event ev(amod::EVENT_REBALANCE, --eventId,
 //                  "Rebalancing", worldState->getCurrentTime(),
@@ -527,6 +521,7 @@ void KasiaRebalancer::rebalance(const std::vector<const Person*>& availableDrive
     }
 
     // housekeeping
+	latestStartNodes.clear();
     glp_delete_prob(lp);
     glp_free_env();
 

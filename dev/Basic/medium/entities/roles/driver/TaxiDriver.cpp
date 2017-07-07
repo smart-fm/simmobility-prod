@@ -320,13 +320,13 @@ void TaxiDriver::processNextScheduleItem(bool isMoveToNextScheduleItem)
 
 		const Node *node = it->second;
 
-		if(taxiDriverMovement->getDestinationNode() == node)
+		if(taxiDriverMovement->getMesoPathMover().getCurrSegStats()->getParentConflux()->getConfluxNode() == node)
 		{
 			pickUpPassngerAtNode(tripRequest.userId);
 			return;
 		}
 
-		const bool success = taxiDriverMovement->driveToNodeOnCall(tripRequest.userId, node);
+		const bool success = taxiDriverMovement->driveToNodeOnCall(tripRequest, node);
 
 #ifndef NDEBUG
 		if (!success)

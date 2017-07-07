@@ -734,7 +734,7 @@ const string TaxiDriverMovement::getPersonPickedUp() const
 	return personIdPickedUp;
 }
 
-bool TaxiDriverMovement::driveToNodeOnCall(const std::string &personId, const Node *pickupNode)
+bool TaxiDriverMovement::driveToNodeOnCall(const TripRequestMessage &tripRequest, const Node *pickupNode)
 {
 	bool res = false;
 	const MobilityServiceDriverStatus mode = parentTaxiDriver->getDriverStatus();
@@ -759,9 +759,19 @@ bool TaxiDriverMovement::driveToNodeOnCall(const std::string &personId, const No
 			destinationNode = pickupNode;
 			setCurrentNode(currentNode);
 			setDestinationNode(destinationNode);
+
+			// Get path to destination of the person (In some cases we need to process next link before picking
+			// up the passenger, but since we don't have it we get an error)
+			const RoadNetwork *rdNetwork = RoadNetwork::getInstance();
+			const Node *destNode = rdNetwork->getById(rdNetwork->getMapOfIdvsNodes(), tripRequest.destinationNodeId);
+			std::vector<WayPoint> pathToDest =
+					StreetDirectory::Instance().SearchShortestDrivingPath<Link, Node>(*(currentRouteChoice.back().link),
+					                                                                  *destNode);
+
+			currentRouteChoice.insert(currentRouteChoice.end(), pathToDest.begin(), pathToDest.end());
 			addRouteChoicePath(currentRouteChoice);
 			parentTaxiDriver->setDriverStatus(DRIVE_ON_CALL);
-			personIdPickedUp = personId;
+			personIdPickedUp = tripRequest.userId;
 		}
 	}
 
@@ -769,17 +779,17 @@ bool TaxiDriverMovement::driveToNodeOnCall(const std::string &personId, const No
 	{
 		if (mode != CRUISING && mode != DRIVE_WITH_PASSENGER)
 		{
-			ControllerLog() << "Assignment failed for " << personId
+			ControllerLog() << "Assignment failed for " << tripRequest.userId
 			                << " because mode was not CRUISING/DRIVE_WITH_PASSENGER. Mode = " << mode
 			                << std::endl;
 		}
 		else if (!pickupNode)
 		{
-			ControllerLog() << "Assignment failed for " << personId << " because pickup node was null" << std::endl;
+			ControllerLog() << "Assignment failed for " << tripRequest.userId << " because pickup node was null" << std::endl;
 		}
 		else
 		{
-			ControllerLog() << "Assignment failed for " << personId << " because currentRouteChoice was empty"
+			ControllerLog() << "Assignment failed for " << tripRequest.userId << " because currentRouteChoice was empty"
 			                << ". No path from lane " << this->currLane->getLaneId() << " to node "
 			                << pickupNode->getNodeId() << std::endl;
 		}

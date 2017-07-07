@@ -88,11 +88,11 @@ public:
 
 	/**
 	 * driving taxi for oncall request
-	 * @param personId is person id who is calling taxi
+	 * @param tripRequest is the request for calling the taxi
 	 * @param pickupNode is a node where calling person is waiting there
 	 * @return true if calling request is successful
 	 */
-	bool driveToNodeOnCall(const std::string &personId, const Node *pickupNode);
+	bool driveToNodeOnCall(const TripRequestMessage &tripRequest, const Node *pickupNode);
 
 	/**
 	 * Sets the driver to cruise to a given node. This functionality is specific to on call drivers

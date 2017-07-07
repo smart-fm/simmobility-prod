@@ -131,13 +131,14 @@ void TaxiDriver::passengerChoiceModel(const Node *origin,const Node *destination
 	SubTrip currSubTrip;
 	currSubTrip.origin = WayPoint(origin);
 	currSubTrip.destination = WayPoint(destination);
-	const Link *currLink = taxiDriverMovement->getCurrentlane()->getParentSegment()->getParentLink();
+	const Lane *currentLane = taxiDriverMovement->getCurrentlane();
 
 	/**On call drivers use in simulation travel-times, on hail drivers do not*/
 	bool useInSimulationTT = !taxiDriverMovement->isSubscribedToOnHail();
 
-	currentRouteChoice = PrivateTrafficRouteChoice::getInstance()->getPath(currSubTrip, false, currLink,
-	                                                                       useInSimulationTT);
+	currentRouteChoice = PrivateTrafficRouteChoice::getInstance()->getPathAfterPassengerPickup(currSubTrip, false,
+	                                                                                           nullptr, currentLane,
+	                                                                                           useInSimulationTT);
 }
 
 void TaxiDriver::HandleParentMessage(messaging::Message::MessageType type, const messaging::Message& message)

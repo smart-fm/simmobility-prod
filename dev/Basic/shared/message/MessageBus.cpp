@@ -506,6 +506,8 @@ void dispatch(const MessageEntry& entry, ThreadContext* &context,ThreadContext* 
 			ThreadContext* destinationContext = static_cast<ThreadContext*> (entry.destination->GetContext());
 			if (destinationContext)
 			{
+				if (entry.type == sim_mob::MobilityServiceControllerMessage::MSG_SCHEDULE_PROPOSITION)
+				sim_mob::Print()<<"ciao, sending schedule to druive " << entry.destination << std::endl;
 				destinationContext->input.push(entry);
 			}
 			//<aa>
@@ -519,6 +521,7 @@ void dispatch(const MessageEntry& entry, ThreadContext* &context,ThreadContext* 
 
 									cout<<". The message was sent by " << entry.message->GetSender() << ", schedule "<< assignedSchedule << std::endl;
 								}
+
 				throw std::runtime_error(msg.str());
 			}
 			//</aa>

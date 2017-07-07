@@ -102,8 +102,15 @@ void OnCallController::driverAvailable(const Person *driver)
 		{
 			std::stringstream msg;
 			msg << "Driver id " << driver->getDatabaseId() << " is already present in availableDrivers";
-			break;
+			throw runtime_error(msg.str());
 		}
+	}
+
+	if(driverSchedules.find(driver) == driverSchedules.end())
+	{
+		std::stringstream msg;
+		msg << "Driver id " << driver->getDatabaseId() << " is not present in driverSchedules";
+		throw runtime_error(msg.str());
 	}
 #endif
 	availableDrivers.push_back(driver);
@@ -265,6 +272,16 @@ void OnCallController::assignSchedule(const Person *driver, const Schedule &sche
 		<<schedule;
 		throw std::runtime_error(msg.str() );
 	}
+
+	if(driverSchedules.find(driver) == driverSchedules.end())
+	{
+		std::stringstream msg; msg<<__FILE__<<":"<<__LINE__<<": Trying to assign a schedule to an unknown driver "
+		<< driver <<". The schedule is "<<schedule;
+		Warn()<< msg.str();
+
+		msg << " The id is "<< driver->getDatabaseId();
+		throw std::runtime_error(msg.str() );
+	}
 #endif
 
 	MessageBus::PostMessage((MessageHandler *) driver, MSG_SCHEDULE_PROPOSITION, MessageBus::MessagePtr(
@@ -369,6 +386,14 @@ const Person *OnCallController::findClosestDriver(const Node *node) const
 
 	while (driver != availableDrivers.end())
 	{
+#ifndef NDEBUG
+		if ( driverSchedules.find(driver) == driverSchedules.end()  )
+		{
+		std::stringstream msg; msg << "Driver " << driver->getDatabaseId() <<" and pointer "<< driver
+		<< " exists in availableDrivers but not in driverSchedules";
+			throw std::runtime_error(msg.str() );
+		}
+#endif
 		if (isCruising(*driver))
 		{
 			const Node *driverNode = getCurrentNode(*driver);

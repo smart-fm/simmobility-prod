@@ -19,24 +19,36 @@
 
 namespace sim_mob {
 
-class Rebalancer {
+class OnCallController; //forward declaration
+
+class Rebalancer
+{
 public:
-	Rebalancer();
+	Rebalancer(const OnCallController* parentController_);
 	virtual ~Rebalancer();
 
 	virtual void rebalance(const std::vector<const Person*>& availableDrivers,
 			const timeslice currTick)=0;
 
-	void sendCruiseCommand(const Person* driver, const Node* nodeToCruiseTo, const timeslice currTick ) const;
-
 	void onRequestReceived(const Node* startNode);
 
 protected:
 	std::vector<const Node*> latestStartNodes;
+	const OnCallController* parentController;
 };
 
 class SimpleRebalancer : public Rebalancer
 {
+	using Rebalancer::Rebalancer;
+
+	void rebalance(const std::vector<const Person*>& availableDrivers,
+			const timeslice currTick);
+};
+
+class LazyRebalancer : public Rebalancer
+{
+	using Rebalancer::Rebalancer;
+
 	void rebalance(const std::vector<const Person*>& availableDrivers,
 			const timeslice currTick);
 };

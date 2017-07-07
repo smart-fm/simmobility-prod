@@ -206,7 +206,7 @@ public:
 	/**
 	 * Marks the agent for removal from the simulation
 	 */
-	void setToBeRemoved();
+	virtual void setToBeRemoved();
 
 	/**
 	 * Inherited from EventListener.

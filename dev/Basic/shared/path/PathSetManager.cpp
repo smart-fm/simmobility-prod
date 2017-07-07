@@ -38,6 +38,12 @@
 #include "util/Utils.hpp"
 #include "workers/Worker.hpp"
 
+
+#include <iostream>
+#include <string>
+#include <sstream>
+#include <iterator>
+
 using std::vector;
 using std::string;
 
@@ -555,7 +561,8 @@ double sim_mob::PrivateTrafficRouteChoice::getOD_TravelTime(unsigned int origin,
 	else
 	{
 		sim_mob::HasPath pathsetRetrievalStatus = PSM_UNKNOWN;
-		pathset.reset(new sim_mob::PathSet());
+		sim_mob::PathSet* tmpPathset = new sim_mob::PathSet();
+		pathset.reset(tmpPathset);
 		pathset->id = fromToID;
 		pathsetRetrievalStatus = loadPathsetFromDB(*getSession(), fromToID, pathset->pathChoices, psRetrieval);
 		if(pathsetRetrievalStatus == PSM_HASPATH)
@@ -577,7 +584,8 @@ double sim_mob::PrivateTrafficRouteChoice::getOD_TravelTime(unsigned int origin,
 
 	if(shortestPath)
 	{
-		shortestPathTravelTime = getPathTravelTime(shortestPath, curTime, false, true);
+		bool useInSimulationTravelTime = true;
+		shortestPathTravelTime = getPathTravelTime(shortestPath, curTime, false, useInSimulationTravelTime);
 	}
 	else
 	{
@@ -1875,9 +1883,20 @@ sim_mob::HasPath PrivateTrafficRouteChoice::loadPathsetFromDB(soci::session& sql
 		bool proceed = true;
 		std::vector<sim_mob::WayPoint> path;
 
+#ifndef NDEBUG
+		if ( (it->id).empty() )
+		{
+			throw std::runtime_error("One of the path of pathset " + pathsetId + " is empty");
+		}
+
+#endif
+
 		//use id to build shortestWayPointpath
+		//<STRING SPLIT>
 		std::vector<std::string> linkIdsCsv = std::vector<std::string>();
 		boost::split(linkIdsCsv, it->id, boost::is_any_of(","));
+		//</STRING SPLIT>
+
 
 		const RoadNetwork* rn = RoadNetwork::getInstance();
 		const std::map<unsigned int, Link *>& linksMap = rn->getMapOfIdVsLinks();

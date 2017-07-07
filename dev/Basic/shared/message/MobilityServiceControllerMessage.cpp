@@ -39,6 +39,13 @@ namespace sim_mob
 		else  {return false;}
 	};
 
+	bool TripRequestMessage::operator>(const TripRequestMessage& other) const
+	{
+		if ( operator==(other) || operator<(other) )
+			return false;
+		return true;
+	}
+
 	bool TripRequestMessage::operator<(const TripRequestMessage& other) const
 	{
 		if (timeOfRequest < other.timeOfRequest ) return true;
@@ -99,6 +106,11 @@ std::ostream& operator<<(std::ostream& strm, const sim_mob::ScheduleItem& item)
 		}
 		case (sim_mob::ScheduleItemType::CRUISE):
 		{
+			const sim_mob::Node* nodeToCruiseTo = item.nodeToCruiseTo;
+#ifndef NDEBUG
+			if (!nodeToCruiseTo)
+				throw std::runtime_error("Invalid CRUISE ScheduleItem: the nodeToCruiseTo is NULL");
+#endif
 			strm<<"CRUISE to node "<<item.nodeToCruiseTo->getNodeId();
 			break;
 		}

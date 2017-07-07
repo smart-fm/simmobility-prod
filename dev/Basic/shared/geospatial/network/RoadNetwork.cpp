@@ -26,7 +26,7 @@ using namespace sim_mob;
 
 RoadNetwork* RoadNetwork::roadNetwork = nullptr;
 
-RoadNetwork::RoadNetwork()
+RoadNetwork::RoadNetwork(): turningPathFromLanes(std::map<const Lane*,std::map<const Lane*,const TurningPath *>>())
 {
 }
 

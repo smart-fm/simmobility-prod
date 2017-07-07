@@ -45,7 +45,6 @@ public:
 	 */
 	void alightPassenger();
 
-
 	/**
 	 * get current Node
 	 * @return current Node
@@ -69,10 +68,10 @@ public:
 
 	/**
 	 * perform pickup at the node
-	 * @param parentConflux is a pointer to the current conflux
-	 * @param personId is a pointer to the person id, default value is zero
+	 * @param personId is the id of the person to be picked up, if it is an empty string,
+	 * on hail drivers pick up a person from the node (without knowing the id)
 	 */
-	void pickUpPassngerAtNode(Conflux *parentConflux, std::string *personId = nullptr);
+	void pickUpPassngerAtNode(const std::string personId = "");
 
 	/**
 	 * get movement facet
@@ -98,12 +97,23 @@ public:
 	 */
 	std::vector<BufferedBase *> getSubscriptionParams();
 
+	/**
+	 * Process the next schedule item and updates the currScheduleItem
+	 * @param isMoveToNextScheduleItem Indicates whether we increment the iterator
+	 * pointing to the schedule item
+	 */
+	void processNextScheduleItem(bool isMoveToNextScheduleItem = true);
 
 	/**
 	 * get current passenger
 	 * @return a passenger object if have.
 	 */
 	Passenger *getPassenger();
+
+	/**
+	 * @return the count of passengers on board
+	 */
+	const unsigned long getPassengerCount() const;
 
 	/**
 	 * message handler which provide a chance to handle message transfered from parent agent.
@@ -121,7 +131,10 @@ public:
 	virtual const std::vector<MobilityServiceController*>& getSubscribedControllers() const;
 
 private:
-	/**hold passenger object*/
+	/**Holds all the passengers on board, the key to the map is the person db id*/
+	std::map<const std::string, Passenger *> taxiPassengers;
+
+	/**The taxiPassenger that will be dropped off next*/
 	Passenger *taxiPassenger = nullptr;
 
 	/**hold movement facet object*/
@@ -130,6 +143,14 @@ private:
 	/**hold behavior facet object*/
 	TaxiDriverBehavior *taxiDriverBehaviour;
 
+	/**Holds the schedule assigned by the controller*/
+	Schedule assignedSchedule;
+
+	/**Points to the current schedule item*/
+	Schedule::const_iterator currScheduleItem;
+
+	/**The mobility service controller that sent the current schedule*/
+	messaging::MessageHandler *controller = nullptr;
 
 public:
 	friend class TaxiDriverBehavior;

@@ -240,7 +240,6 @@ void sim_mob::TravelTimeManager::loadLinkHistoricalTravelTime(soci::session& sql
 	historicalTT_TableName = sim_mob::ConfigManager::GetInstance().PathSetConfig().RTTT_Conf;
 	std::string query = "select link_id, downstream_link_id, to_char(start_time,'HH24:MI:SS') AS start_time, to_char(end_time,'HH24:MI:SS') AS end_time,"
 			"travel_time from " + historicalTT_TableName + " order by link_id, downstream_link_id";
-
 	//main loop
 	soci::rowset<soci::row> rs = (sql.prepare << query);
 	for (soci::rowset<soci::row>::const_iterator it = rs.begin(); it != rs.end(); ++it)

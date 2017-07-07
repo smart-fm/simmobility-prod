@@ -15,12 +15,24 @@
 #include "OnCallController.hpp"
 #include "path/PathSetManager.hpp" // for PrivateTrafficRouteChoice
 #include "entities/mobilityServiceDriver/MobilityServiceDriver.hpp"
-
+#include "message/MobilityServiceControllerMessage.hpp"
+#include <iterator> // for std::begin
+#include "Rebalancer.hpp"
 
 using namespace sim_mob;
 using namespace messaging;
 
 
+
+OnCallController::OnCallController(const MutexStrategy& mtxStrat, unsigned int computationPeriod,
+		MobilityServiceControllerType type_, unsigned id)
+	: MobilityServiceController(mtxStrat, type_, id), scheduleComputationPeriod(computationPeriod)
+{
+	rebalancer = new LazyRebalancer(this);
+#ifndef NDEBUG
+	isComputingSchedules = false;
+#endif
+}
 
 OnCallController::~OnCallController()
 {
@@ -66,7 +78,7 @@ void OnCallController::unsubscribeDriver(Person *driver)
 	unsigned scheduleSize = driverSchedules.at(driver).size();
 	if ( scheduleSize>0 )
 	{
-		std::stringstream msg; msg<<"Driver "<< driver->getDatabaseId()<<" has a non empty schedule and she sent a message "
+		std::stringstream msg; msg<<"Driver "<< driver->getDatabaseId()<<", pointer "<< driver << " has a non empty schedule and she sent a message "
 		<<"to unsubscribe. This is not admissible";
 		throw std::runtime_error(msg.str());
 	}
@@ -101,8 +113,15 @@ void OnCallController::driverAvailable(const Person *driver)
 		{
 			std::stringstream msg;
 			msg << "Driver id " << driver->getDatabaseId() << " is already present in availableDrivers";
-			break;
+			throw runtime_error(msg.str());
 		}
+	}
+
+	if(driverSchedules.find(driver) == driverSchedules.end())
+	{
+		std::stringstream msg;
+		msg << "Driver id " << driver->getDatabaseId() << " is not present in driverSchedules";
+		throw runtime_error(msg.str());
 	}
 #endif
 	availableDrivers.push_back(driver);
@@ -171,21 +190,6 @@ void OnCallController::HandleMessage(messaging::Message::MessageType type, const
 
 	switch (type)
 	{
-	case MSG_DRIVER_SUBSCRIBE:
-	{
-		const DriverSubscribeMessage &subscribeArgs = MSG_CAST(DriverSubscribeMessage, message);
-		subscribeDriver(subscribeArgs.person);
-		break;
-	}
-
-	case MSG_DRIVER_UNSUBSCRIBE:
-	{
-		const DriverUnsubscribeMessage &unsubscribeArgs = MSG_CAST(DriverUnsubscribeMessage, message);
-		ControllerLog() << "Driver " << unsubscribeArgs.person->getDatabaseId() << " unsubscribed " << std::endl;
-		unsubscribeDriver(unsubscribeArgs.person);
-		break;
-	}
-
 	case MSG_DRIVER_AVAILABLE:
 	{
 		const DriverAvailableMessage &availableArgs = MSG_CAST(DriverAvailableMessage, message);
@@ -272,18 +276,50 @@ void OnCallController::HandleMessage(messaging::Message::MessageType type, const
 
 void OnCallController::assignSchedule(const Person *driver, const Schedule &schedule)
 {
+#ifndef NDEBUG
+	if (!driver)
+	{
+		std::stringstream msg; msg<<__FILE__<<":"<<__LINE__<<": Trying to assign a schedule to a NULL driver. The schedule is "
+		<<schedule;
+		throw std::runtime_error(msg.str() );
+	}
+
+	if(driverSchedules.find(driver) == driverSchedules.end())
+	{
+		std::stringstream msg; msg<<__FILE__<<":"<<__LINE__<<": Trying to assign a schedule to an unknown driver "
+		<< driver <<". The schedule is "<<schedule;
+		Warn()<< msg.str();
+
+		msg << " The id is "<< driver->getDatabaseId();
+		throw std::runtime_error(msg.str() );
+	}
+#endif
+
 	MessageBus::PostMessage((MessageHandler *) driver, MSG_SCHEDULE_PROPOSITION, MessageBus::MessagePtr(
 			new SchedulePropositionMessage(currTick, schedule)));
 
 #ifndef NDEBUG
+
 	if (
 			driverSchedules.find(driver) == driverSchedules.end() ||
 			std::find(availableDrivers.begin(), availableDrivers.end(), driver ) == availableDrivers.end()
 	){
-		std::stringstream msg; msg <<"Assigning a schedule to driver "<< driver->getDatabaseId() <<
+		std::string answer1 = (driverSchedules.find(driver) != driverSchedules.end()?"yes":"no");
+		std::string answer2 = (std::find(availableDrivers.begin(), availableDrivers.end(), driver ) != availableDrivers.end()?"yes":"no");
+		std::string driverId;
+		try{
+		driverId = driver->getDatabaseId();
+		}catch(const std::exception& e)
+		{
+			std::stringstream msg; msg<<__FILE__<<":"<<__LINE__<< ":Exception in retrieving the ID of the driver with pointer "<<
+				driver<<". Check in warn if the driver has been removed. The exception is "<< e.what();
+			throw std::runtime_error(msg.str() );
+		}
+
+		std::stringstream msg; msg <<"Assigning a schedule to driver "<< driverId <<
 			". She should be present both in availableDrivers and driverSchedules but is she present in driverSchedules? "<<
-			(driverSchedules.find(driver) != driverSchedules.end()?1:0) <<" and is she present in availableDrivers? "<<
-			(std::find(availableDrivers.begin(), availableDrivers.end(), driver ) != availableDrivers.end()?1:0) ;
+			answer1 <<" and is she present in availableDrivers? "<< answer2
+			 ;
 		throw std::runtime_error(msg.str() );
 	}
 
@@ -312,7 +348,11 @@ void OnCallController::assignSchedule(const Person *driver, const Schedule &sche
 #endif
 
 	ControllerLog() << schedule << "sent by the controller. The assignement is sent at " <<
-	                currTick << " to driver " << driver->getDatabaseId() << std::endl;
+	                currTick << " to driver " << driver->getDatabaseId();
+#ifndef NDEBUG
+	ControllerLog() <<", whose pointer is driver=" << driver <<", (MessageHandler *) driver="<<(MessageHandler *) driver;
+#endif
+	ControllerLog()<< std::endl;
 }
 
 bool OnCallController::isCruising(const Person *driver) const
@@ -357,6 +397,15 @@ const Person *OnCallController::findClosestDriver(const Node *node) const
 
 	while (driver != availableDrivers.end())
 	{
+#ifndef NDEBUG
+		if ( driverSchedules.find(*driver) == driverSchedules.end()  )
+		{
+			std::stringstream msg;
+			msg << "Driver " << (*driver)->getDatabaseId() << " and pointer " << *driver
+			    << " exists in availableDrivers but not in driverSchedules";
+			throw std::runtime_error(msg.str());
+		}
+#endif
 		if (isCruising(*driver))
 		{
 			const Node *driverNode = getCurrentNode(*driver);
@@ -378,7 +427,7 @@ const Person *OnCallController::findClosestDriver(const Node *node) const
 			const std::string driverStatusStr = mobilityServiceDriver->getDriverStatusStr();
 			std::stringstream msg; msg<<"Error: "<<__FILE__<<":" <<__LINE__<< ":Driver " << (*driver)->getDatabaseId() <<
 				" is among the available drivers of a controller of type "<<
-				fromMobilityServiceControllerTypetoString(type) <<", but her state is "<<
+				sim_mob::toString(controllerServiceType) <<", but her state is "<<
 				driverStatusStr<<
 				" This driver is subscribed to the following controller types "<< mobilityServiceDriver->getSubscribedControllerTypesStr()<<
 				". In the scenarios where a driver subscribed to an OnCall service is only subscribed to that service, "<<
@@ -486,12 +535,10 @@ double OnCallController::evaluateSchedule(const Node *initialPosition, const Sch
 	double travelTime = scheduleTimeStamp - currTick.ms() / 1000.0;
 
 #ifndef NDEBUG
-	if (schedule.size() == 0)
-		throw std::runtime_error("You are evaluating a schedule of 0 scheduleItems. Why would you want to do that? Is it an error?");
-
-	if (travelTime <= 1e-5)
+	if (travelTime <= 1e-5 && !schedule.empty() )
 	{
-		std::stringstream msg; msg<<"The travel time for this schedule of "<< schedule.size()<<" schedule items is 0. Why? Is it an error?";
+		std::stringstream msg; msg<<"The travel time for this schedule of "<< schedule.size()<<" schedule items is 0. Why? Is it an error?"<<
+			" The schedule is "<<schedule;
 		throw std::runtime_error(msg.str());
 	}
 #endif
@@ -517,6 +564,26 @@ double OnCallController::computeSchedule(const Node* initialNode, const Schedule
 	//https://stackoverflow.com/a/201729/2110769
 	Schedule tempSchedule(currentSchedule);
 	tempSchedule.insert(tempSchedule.end(), additionalScheduleItems.begin(), additionalScheduleItems.end());
+#ifndef NDEBUG
+	if (tempSchedule.empty())
+	{
+		std::stringstream msg; msg<<__FILE__<<":"<<__LINE__<<": An empty schedule was created. This is an error. currentSchedule.size()="<<
+			currentSchedule.size()<<", additionalRequests.size()="<<additionalRequests.size()<<", tempSchedule.size()"<<
+			tempSchedule.size()<<", additionalScheduleItems.size()="<<additionalScheduleItems.size();
+		Print()<<msg.str()<<std::endl;
+		throw std::runtime_error(msg.str());
+	}
+
+	if (currentSchedule.size() + additionalRequests.size()*2 != tempSchedule.size() )
+	{
+		std::stringstream msg; msg<<"currentSchedule.size()="<<currentSchedule.size()<<
+			", additionalRequests.size()="<<additionalRequests.size()<<
+			", tempSchedule.size()="<<tempSchedule.size()<<
+			", while the new schedule should have the old schedule items + 2 schedule items "<<
+			" per each new additional requests";
+		throw std::runtime_error(msg.str() );
+	}
+#endif
 
 	// sorting is necessary to correctly compute the permutations (see https://www.topcoder.com/community/data-science/data-science-tutorials/power-up-c-with-the-standard-template-library-part-1/)
 	std::sort(tempSchedule.begin(), tempSchedule.end());
@@ -545,7 +612,7 @@ double OnCallController::computeSchedule(const Node* initialNode, const Schedule
 	for (const ScheduleItem& item : currentSchedule) ControllerLog()<< item<<",";
 	ControllerLog()<<". Trying to add requests [";
 	for (const TripRequestMessage& request : additionalRequests.getElements() ) ControllerLog()<<request;
-	ControllerLog()<<". The optimal schedule is ";
+	ControllerLog()<<"]. The optimal schedule is ";
 	for (const ScheduleItem& item : newSchedule) ControllerLog()<< item<<",";
 	ControllerLog()<<std::endl;
 #endif
@@ -637,13 +704,71 @@ void OnCallController::consistencyChecks(const std::string& label) const
 			<<driverSchedules.at(driver);
 			throw std::runtime_error(msg.str( ));
 		}
-
 	}
+
+	// Check if the same request is present more than once
+	std::vector<TripRequestMessage> requestQueueCopy{ std::begin(requestQueue), std::end(requestQueue) };
+	std::sort(requestQueueCopy.begin(), requestQueueCopy.end());
+	for(int i = 0; i < requestQueueCopy.size() ; i++)
+	{
+		for (int j = i+1 ; j<requestQueueCopy.size() ; j++ )
+	    if (requestQueueCopy[i].userId == requestQueueCopy[j].userId)
+	    {
+	        std::stringstream msg; msg<<"There are two requests from the same users currently in the requestQueue. They are "<<
+	        	requestQueueCopy[i] <<" and "<<requestQueueCopy[j]<< std::endl;
+	        throw std::runtime_error(msg.str() );
+	    }
+	}
+
+}
+#endif
+
+const std::string OnCallController::getRequestQueueStr() const
+{
+	std::stringstream msg;
+	for (const TripRequestMessage& r : requestQueue)
+	{
+		msg<< r << ", ";
+	}
+	return msg.str();
+}
+
+void OnCallController::sendCruiseCommand(const Person* driver, const Node* nodeToCruiseTo, const timeslice currTick) const
+{
+#ifndef NDEBUG
+	bool found = false;
+	for (const Person* availableDriver : availableDrivers)
+	{
+		if (availableDriver == driver) found = true;
+	}
+	if (!found)
+	{
+		std::stringstream msg; msg<<"Trying to send a message to driver "<<driver->getDatabaseId()<<" pointer "<< driver<<
+		" who is not among the available drivers";
+		throw std::runtime_error(msg.str() );
+	}
+
+	for (const Person* availableDriver : subscribedDrivers)
+	{
+		if (availableDriver == driver) found = true;
+	}
+	if (!found)
+	{
+		std::stringstream msg; msg<<"Trying to send a message to driver "<<driver->getDatabaseId()<<" pointer "<< driver<<
+		" who is not among the subscribed drivers";
+		throw std::runtime_error(msg.str() );
+	}
+
+#endif
+
+	ScheduleItem item(ScheduleItemType::CRUISE, nodeToCruiseTo);
+	sim_mob::Schedule schedule;
+	schedule.push_back(ScheduleItem(item) );
+
+
+	messaging::MessageBus::PostMessage((messaging::MessageHandler*) driver, MSG_SCHEDULE_PROPOSITION,
+				messaging::MessageBus::MessagePtr(new SchedulePropositionMessage(currTick, schedule) ) );
 }
 
 
 
-
-
-
-#endif

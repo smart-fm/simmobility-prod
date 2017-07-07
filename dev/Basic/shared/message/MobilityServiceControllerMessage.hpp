@@ -11,7 +11,7 @@ namespace sim_mob
 
 enum MobilityServiceControllerMessage
 {
-	MSG_DRIVER_SUBSCRIBE = 7000000,
+	MSG_DRIVER_SUBSCRIBE = 7100000,
 	MSG_DRIVER_UNSUBSCRIBE,
 	MSG_DRIVER_AVAILABLE,
 	MSG_TRIP_REQUEST,
@@ -130,20 +130,26 @@ public:
 	bool operator==(const TripRequestMessage& other) const;
 	bool operator!=(const TripRequestMessage& other) const;
 	bool operator<(const TripRequestMessage& other) const;
+	bool operator>(const TripRequestMessage& other) const;
 
 	timeslice timeOfRequest;
 	std::string userId;
 	unsigned int startNodeId;
 	unsigned int destinationNodeId;
-	unsigned int extraTripTimeThreshold;
+
+	/**
+	 * The time the passenger can tolerate to spend more w.r.t. the fastest option in which
+	 * she travels alone without any other passenger to share the trip with
+	 */
+	unsigned int extraTripTimeThreshold; // seconds
 };
 
-enum ScheduleItemType{INVALID,PICKUP, DROPOFF,CRUISE};
+enum ScheduleItemType{INVALID,PICKUP, DROPOFF,CRUISE, PARK};
 
 struct ScheduleItem
 {
 	ScheduleItem(const ScheduleItemType scheduleItemType_, const TripRequestMessage tripRequest_)
-		: scheduleItemType(scheduleItemType_),tripRequest(tripRequest_),nodeToCruiseTo(NULL)
+		: scheduleItemType(scheduleItemType_),tripRequest(tripRequest_),nodeToCruiseTo(NULL),parkingId(0)
 	{
 #ifndef NDEBUG
 		if (scheduleItemType!= ScheduleItemType::PICKUP && scheduleItemType!= ScheduleItemType::DROPOFF)
@@ -153,7 +159,7 @@ struct ScheduleItem
 	};
 
 	ScheduleItem(const ScheduleItemType scheduleItemType_, const Node* nodeToCruiseTo_)
-		:scheduleItemType(scheduleItemType_),nodeToCruiseTo(nodeToCruiseTo_),tripRequest()
+		:scheduleItemType(scheduleItemType_),nodeToCruiseTo(nodeToCruiseTo_),tripRequest(),parkingId(0)
 	{
 #ifndef NDEBUG
 		if (scheduleItemType!= ScheduleItemType::CRUISE)
@@ -161,7 +167,8 @@ struct ScheduleItem
 #endif
 	};
 
-	ScheduleItem(const ScheduleItem& other):scheduleItemType(other.scheduleItemType),tripRequest(other.tripRequest),nodeToCruiseTo(other.nodeToCruiseTo){};
+	ScheduleItem(const ScheduleItemType scheduleItemType_, const unsigned int parkingId_)
+			:scheduleItemType(scheduleItemType_),nodeToCruiseTo(NULL),tripRequest(), parkingId(parkingId_){};
 
 	bool operator<(const ScheduleItem& other) const;
 
@@ -170,6 +177,10 @@ struct ScheduleItem
 	TripRequestMessage tripRequest;
 
 	const Node* nodeToCruiseTo;
+
+	unsigned int parkingId;
+
+
 };
 
 //TODO: It would be more elegant using std::variant, available from c++17

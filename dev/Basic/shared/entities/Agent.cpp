@@ -219,14 +219,20 @@ Entity::UpdateStatus sim_mob::Agent::update(timeslice now)
 		{
 
 			std::stringstream msg;
-			msg << "Error updating Agent[" << getId() << "], will be removed from the simulation. \n  "
+			msg << "Error updating Agent[" << getId() << "], will be removed from the simulation. Pointer:"<<
+					this <<". The problem is: "
 			    << ex.what() << std::endl;
 			WarnOut(msg.str());
-			Print()<<"CHECK IF SOMETHING IS WRITTEN IN THE WAAAARN"<<std::endl;
+#ifndef NDEBUG
+			Print()<<"CHECK IF ANYTHING IS WRITTEN IN THE WAAAARN"<<std::endl;
+#endif
 		}
 
 		setToBeRemoved();
 		ConfigManager::GetInstanceRW().FullConfig().numAgentsKilled++;
+
+		if (dynamic_cast<MobilityServiceDriver*>(this))
+			throw ex;
 	}
 
 	//Ensure that isToBeRemoved() and UpdateStatus::status are in sync

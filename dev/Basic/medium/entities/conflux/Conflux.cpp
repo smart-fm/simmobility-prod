@@ -1804,19 +1804,19 @@ void Conflux::dropOffTaxiTraveler(Person_MT* person)
 	}
 }
 
-Person_MT* Conflux::pickupTaxiTraveler(std::string* personId)
+Person_MT* Conflux::pickupTaxiTraveler(const std::string& personId)
 {
-	Person_MT* res = nullptr;
-	if(travelingPersons.size()>0)
+	Person_MT* personPickedUp = nullptr;
+	if(!travelingPersons.empty())
 	{
-		if (!personId)
+		if (personId.empty())
 		{
 			for (auto i = travelingPersons.begin(); i != travelingPersons.end();i++)
 			{
 				Pedestrian* pedestrian = dynamic_cast<Pedestrian*>((*i)->getRole());
 				if (pedestrian && !pedestrian->isOnDemandTraveller())
 				{
-					res = (*i);
+					personPickedUp = (*i);
 					travelingPersons.erase(i);
 					break;
 				}
@@ -1826,27 +1826,27 @@ Person_MT* Conflux::pickupTaxiTraveler(std::string* personId)
 		{
 			for(auto i = travelingPersons.begin(); i!=travelingPersons.end(); i++)
 			{
-				if((*i)->getDatabaseId()== *personId)
+				if((*i)->getDatabaseId() == personId)
 				{
-					res = (*i);
+					personPickedUp = (*i);
 					travelingPersons.erase(i);
 					break;
 				}
 			}
 		}
 
-		if(res)
+		if(personPickedUp)
 		{
-			res->currSubTrip->endLocationId = boost::lexical_cast<std::string>(this->getConfluxNode()->getNodeId());
-			res->currSubTrip->endLocationType = "NODE";
-			res->getRole()->collectTravelTime();
-			UpdateStatus status = res->checkTripChain(currFrame.ms());
+			personPickedUp->currSubTrip->endLocationId = boost::lexical_cast<std::string>(this->getConfluxNode()->getNodeId());
+			personPickedUp->currSubTrip->endLocationType = "NODE";
+			personPickedUp->getRole()->collectTravelTime();
+			UpdateStatus status = personPickedUp->checkTripChain(currFrame.ms());
 
-			if((*(res->currSubTrip)).origin.type == WayPoint::TAXI_STAND)
+			if((*(personPickedUp->currSubTrip)).origin.type == WayPoint::TAXI_STAND)
 			{
 				//Person was walking to taxi stand, where it would wait.
 				//Switch role again
-				status = res->checkTripChain(currFrame.ms());
+				status = personPickedUp->checkTripChain(currFrame.ms());
 			}
 
 			if (status.status == UpdateStatus::RS_DONE)
@@ -1854,12 +1854,12 @@ Person_MT* Conflux::pickupTaxiTraveler(std::string* personId)
 				return nullptr;
 			}
 
-			res->currSubTrip->startLocationId = boost::lexical_cast<std::string>(this->getConfluxNode()->getNodeId());
-			res->currSubTrip->startLocationType = "NODE";
-			res->getRole()->setArrivalTime(currFrame.ms()+ConfigManager::GetInstance().FullConfig().simStartTime().getValue());
+			personPickedUp->currSubTrip->startLocationId = boost::lexical_cast<std::string>(this->getConfluxNode()->getNodeId());
+			personPickedUp->currSubTrip->startLocationType = "NODE";
+			personPickedUp->getRole()->setArrivalTime(currFrame.ms()+ConfigManager::GetInstance().FullConfig().simStartTime().getValue());
 		}
 	}
-	return res;
+	return personPickedUp;
 }
 
 void Conflux::assignPersonToMRT(Person_MT* person)

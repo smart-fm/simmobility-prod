@@ -24,6 +24,7 @@
 #include "logging/Log.hpp"
 #include "logging/ControllerLog.hpp"
 #include "entities/controllers/MobilityServiceController.hpp"
+#include "message/MobilityServiceControllerMessage.hpp"
 
 using namespace sim_mob::messaging;
 using namespace sim_mob::event;
@@ -48,6 +49,7 @@ unsigned int MessageBus::currentTime = 0;
 
 
 namespace {
+
 
     const unsigned int MB_MSGI_START = 1000;
     const unsigned int INTERNAL_EVENT_MSG_PRIORITY = 3;
@@ -419,31 +421,35 @@ void MessageBus::RegisterHandler(MessageHandler* handler)
     	sim_mob::ControllerLog()<<"Registering the controller"<<std::endl;
 
 #ifndef NDEBUG
-    if (!handler)
-    	throw runtime_error("Trying to register a NULL MessageHandler");
+	if (!handler)
+	{
+		throw runtime_error("Trying to register a NULL MessageHandler");
+	}
 
-    if ( handler->GetContext() )
-    {
-        if (context != handler->GetContext() )
-        {
-            std::stringstream msg; msg<<__FILE__<<":"<<__LINE__<<": Error: trying to register an object of class "<<typeid(*handler).name()
-            	<<" to a context, while it is already registered to another context";
-        	throw runtime_error(msg.str() );
-        }else
-        {
-        	std::stringstream msg; msg<<__FILE__<<":"<<__LINE__<<": Trying to register an object "<< handler<<" of class "<<typeid(*handler).name()
-        	            	<<" to a context, but it is already registered to the same context";
-    		msg<<". This is related to this issue: https://github.com/smart-fm/simmobility/issues/590"<<std::endl;
-        	sim_mob::Warn() << msg.str() <<std::endl;
-        }
-    }
+	if (handler->GetContext())
+	{
+		if (context && context != handler->GetContext())
+		{
+			std::stringstream msg;
+			msg << __FILE__ << ":" << __LINE__ << ": Error: trying to register an object of class "
+			    << typeid(*handler).name()
+			    << " to a context, while it is already registered to another context";
+			throw runtime_error(msg.str());
+		}
+		/*else
+		{
+			std::stringstream msg;
+			msg << __FILE__ << ":" << __LINE__ << ": Trying to register an object " << handler << " of class "
+			    << typeid(*handler).name()
+			    << " to a context, but it is already registered to the same context";
+			msg << ". This is related to this issue: https://github.com/smart-fm/simmobility/issues/590" << std::endl;
+			sim_mob::Warn() << msg.str() << std::endl;
+		}*/
+	}
 #endif
 
    	handler->SetContext( static_cast<void*> (context) );
-
-    if (dynamic_cast<sim_mob::MobilityServiceController*> (handler) )
-    	sim_mob::ControllerLog()<<"The controller has been successfully registered"<<std::endl;
-
+   	handler->onRegistrationOnTheMessageBus();
 }
 
 void MessageBus::UnRegisterHandler(MessageHandler* handler) {
@@ -484,7 +490,8 @@ void MessageBus::DistributeMessages() {
 
 void dispatch(const MessageEntry& entry, ThreadContext* &context,ThreadContext* &mainContext)
 {
-	if (entry.event) {
+	if (entry.event)
+	{
 		context->eventMessages++;
 		//if it is an event then we need to distribute the event for all
 		//publishers in the system.
@@ -504,9 +511,30 @@ void dispatch(const MessageEntry& entry, ThreadContext* &context,ThreadContext* 
 			mainContext->input.push(entry);
 		} else {
 			ThreadContext* destinationContext = static_cast<ThreadContext*> (entry.destination->GetContext());
-			if (destinationContext) {
+			if (destinationContext)
+			{
+				if (entry.type == sim_mob::MobilityServiceControllerMessage::MSG_SCHEDULE_PROPOSITION)
+				{
+					const sim_mob::SchedulePropositionMessage &msg = MSG_CAST(sim_mob::SchedulePropositionMessage, *(entry.message) );
+														const sim_mob::Schedule& assignedSchedule = msg.getSchedule();
+				}
 				destinationContext->input.push(entry);
 			}
+			//<aa>
+			else{
+				std::stringstream msg; msg<<"Destination context is invalid, as static_cast to ThreadContext* failed. entry.destination="<<
+					entry.destination<<", entry.destination->GetContext()="<<entry.destination->GetContext()<< ", entry.type=" << entry.type;
+				if (entry.type == sim_mob::MobilityServiceControllerMessage::MSG_SCHEDULE_PROPOSITION)
+								{
+									const sim_mob::SchedulePropositionMessage &message = MSG_CAST(sim_mob::SchedulePropositionMessage, *(entry.message) );
+									const sim_mob::Schedule& assignedSchedule = message.getSchedule();
+
+									msg<<". The message was sent by " << entry.message->GetSender() << ", schedule "<< assignedSchedule << std::endl;
+								}
+
+				throw std::runtime_error(msg.str());
+			}
+			//</aa>
 		}
 	}
 };
@@ -566,8 +594,19 @@ void MessageBus::PostMessage(MessageHandler* destination, Message::MessageType t
 {
 	CheckThreadContext();
 	ThreadContext* context = GetThreadContext();
-	if (context)
+#ifndef NDEBUG
+	if (!context)
+		throw std::runtime_error("the context is invalid");
+
+	if ( type == MobilityServiceControllerMessage::MSG_SCHEDULE_PROPOSITION )
 	{
+		const sim_mob::SchedulePropositionMessage &messageCasted = MSG_CAST(sim_mob::SchedulePropositionMessage, *message );
+		const sim_mob::Schedule& assignedSchedule = messageCasted.getSchedule();
+
+	}
+#endif
+
+
 		InternalMessage* internalMsg = dynamic_cast<InternalMessage*>(message.get());
 		InternalEventMessage* eventMsg = dynamic_cast<InternalEventMessage*>(message.get());
 		if (destination || eventMsg)
@@ -590,7 +629,7 @@ void MessageBus::PostMessage(MessageHandler* destination, Message::MessageType t
 				context->futureEventList.push(entry);
 			}
 		}
-	}
+
 }
 
 void MessageBus::SendInstantaneousMessage(MessageHandler* destination,

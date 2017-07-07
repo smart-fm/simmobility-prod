@@ -17,11 +17,21 @@ namespace sim_mob
 
 class SharedController : public OnCallController {
 public:
-	explicit SharedController(const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered,
-		unsigned int computationPeriod = 0) :
-		OnCallController(mtxStrat, computationPeriod, MobilityServiceControllerType::SERVICE_CONTROLLER_SHARED)
+	SharedController
+		(const MutexStrategy& mtxStrat, unsigned int computationPeriod, unsigned id) :
+		OnCallController(mtxStrat, computationPeriod, MobilityServiceControllerType::SERVICE_CONTROLLER_SHARED, id)
 	{
 	}
+
+	virtual void checkSequence (const std::string& sequence) const;
+
+	// Inhertis from the parent
+	virtual void sendCruiseCommand(const Person* driver, const Node* nodeToCruiseTo, const timeslice currTick ) const;
+
+#ifndef NDEBUG
+	// Overrides the parent method
+	virtual void consistencyChecks(const std::string& label) const;
+#endif
 
 protected:
 	virtual bool isCruising(Person* p);

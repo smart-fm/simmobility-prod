@@ -13,6 +13,7 @@
 #include "entities/Agent.hpp"
 #include "message/Message.hpp"
 #include "OnCallController.hpp"
+#include "FrazzoliController.hpp"
 
 namespace sim_mob
 {
@@ -20,6 +21,8 @@ namespace sim_mob
 class MobilityServiceControllerManager : public Agent
 {
 public:
+
+
 	/**
 	 * Initialize a single MobilityServiceControllerManager with the given MutexStrategy
 	 */
@@ -44,13 +47,19 @@ public:
 	 * @param  scheduleComputationPeriod Schedule computation period of controller
 	 * @return                           Sucess
 	 */
-	bool addMobilityServiceController(MobilityServiceControllerType type, unsigned int scheduleComputationPeriod);
+	bool addMobilityServiceController(MobilityServiceControllerType type, unsigned int scheduleComputationPeriod, unsigned id);
 
 
 	/**
 	 * Returns a list of enabled controllers
 	 */
-	const std::multimap<MobilityServiceControllerType, MobilityServiceController*>& getControllers();
+	const std::multimap<MobilityServiceControllerType, MobilityServiceController*>& getControllers() const;
+
+
+	/**
+	 * Returns a list of enabled controllers in a string
+	 */
+	const std::string getControllersStr() const;
 
 
 	/**
@@ -58,10 +67,16 @@ public:
 	 */
 	virtual bool isNonspatial();
 
+	void consistencyChecks() const;
+
 protected:
-	explicit MobilityServiceControllerManager(const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered) :
-			Agent(mtxStrat, -1)
+	//This constructor is protected beacause we want to allow its construction only through the GetInstance(..) function
+	MobilityServiceControllerManager(const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered):
+	Agent(mtxStrat, -1),controllers(std::multimap<MobilityServiceControllerType, MobilityServiceController*>())
 	{
+#ifndef NDEBUG
+		consistencyChecks();
+#endif
 	}
 
 	/**

@@ -22,6 +22,7 @@ std::ofstream   sim_mob::ControllerLog::log_file;
 
 sim_mob::ControllerLog::ControllerLog()
 {
+
 	if (log_mutex) {
 		local_lock = boost::mutex::scoped_lock(*log_mutex);
 	}

@@ -517,9 +517,6 @@ void dispatch(const MessageEntry& entry, ThreadContext* &context,ThreadContext* 
 				{
 					const sim_mob::SchedulePropositionMessage &msg = MSG_CAST(sim_mob::SchedulePropositionMessage, *(entry.message) );
 														const sim_mob::Schedule& assignedSchedule = msg.getSchedule();
-
-					sim_mob::Print()<<"ciao, sending schedule to driver " << entry.destination <<
-					". The message was sent by " << entry.message->GetSender() << ", schedule "<< assignedSchedule << std::endl;
 				}
 				destinationContext->input.push(entry);
 			}
@@ -606,11 +603,6 @@ void MessageBus::PostMessage(MessageHandler* destination, Message::MessageType t
 		const sim_mob::SchedulePropositionMessage &messageCasted = MSG_CAST(sim_mob::SchedulePropositionMessage, *message );
 		const sim_mob::Schedule& assignedSchedule = messageCasted.getSchedule();
 
-		Print()<<"ciao, Posting message of type "<< type << " toward destination "<<destination;
-
-		Print()<<". The message was sent by messageCasted.GetSender()=" << messageCasted.GetSender() <<
-				", while message->getSender()=" << message->GetSender()<<
-				", schedule "<< assignedSchedule << std::endl;
 	}
 #endif
 

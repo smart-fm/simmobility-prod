@@ -48,6 +48,11 @@ void SimpleRebalancer::rebalance(const std::vector<const Person*>& availableDriv
 	}
 }
 
+void LazyRebalancer::rebalance(const std::vector<const Person*>& availableDrivers, const timeslice currTick)
+{
+	//Does nothing
+}
+
 } /* namespace sim_mob */
 
 

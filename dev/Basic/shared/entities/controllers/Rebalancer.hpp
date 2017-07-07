@@ -31,7 +31,14 @@ protected:
 class SimpleRebalancer : public Rebalancer
 {
 	using Rebalancer::Rebalancer;
-	//SimpleRebalancer(const OnCallController* parentController_):Rebalancer(parentController_);
+
+	void rebalance(const std::vector<const Person*>& availableDrivers,
+			const timeslice currTick);
+};
+
+class LazyRebalancer : public Rebalancer
+{
+	using Rebalancer::Rebalancer;
 
 	void rebalance(const std::vector<const Person*>& availableDrivers,
 			const timeslice currTick);

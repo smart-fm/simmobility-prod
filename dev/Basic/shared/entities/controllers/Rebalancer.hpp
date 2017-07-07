@@ -61,7 +61,7 @@ class KasiaRebalancer : public Rebalancer
 			const timeslice currTick);
 
 // jo{ need these functions to get supply/demand by zone ID
-private:
+public:
 	// get demand by Zone
 	virtual int getNumCustomers(int TazId);
 

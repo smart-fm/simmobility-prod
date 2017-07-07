@@ -55,7 +55,7 @@ void SimpleRebalancer::rebalance(const std::vector<const Person*>& availableDriv
 }
 
 // *******************************************************************
-// PRIVATE FUNCTIONS
+// KASIAREBAL FUNCTIONS
 // *******************************************************************
 
 int KasiaRebalancer::getNumCustomers(int TazId) {
@@ -83,13 +83,14 @@ int KasiaRebalancer::getNumVehicles(int TazId) {
 			const Node *driverNode = getCurrentNode(*driver);
 		}
 		int taz;
-		taz = (*inode)->getTazId() ;
+		taz = (*driverNode)->getTazId() ;
 		if (taz == TazId ){
 			count += 1 ;
 		}
 	}
 	return count;
 }
+
 
 void KasiaRebalancer::rebalance(const std::vector<const Person*>& availableDrivers, const timeslice currTick) {
 
@@ -171,15 +172,17 @@ void KasiaRebalancer::rebalance(const std::vector<const Person*>& availableDrive
             int origin = sitr ;
             int destination = sitr2 ;
             double cost ;
-            if(origin==destination){
-            	cost = 0.0 ;
-            }
-            else {
+
+
+//            if(origin==destination){
+//            	cost = 0.0 ;
+//            }
+//            else {
                 TimeDependentTT_SqlDao& tcostDao ;
                 TimeDependentTT_Params todBasedTT;
             	tcostDao.getTT_ByOD(TravelTimeMode::TT_PRIVATE, origin, destination, todBasedTT);
             	cost = todBasedTT.arrivalBasedTT() ; // also .arrivalBasedTT_at(i) for time_based
-            }
+//            }
             // The below is for node-based traveltime
             // PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(
             //          request->startNodeId, request->destinationNodeId, DailyTime(currTick.ms()));
@@ -211,7 +214,7 @@ void KasiaRebalancer::rebalance(const std::vector<const Person*>& availableDrive
 		  // jo { WE are going to use current demand for now } jo
 
         // use current demand
-          int cexi = sitr->second.getNumCustomers() - sitr->second.getNumVehicles();
+        int cexi = getNumCustomers(sitr) - getNumVehicles(sitr); // excess customers in zone `sitr`
 
         // jo { not using predicted demand
         // use predicted demand
@@ -245,15 +248,20 @@ void KasiaRebalancer::rebalance(const std::vector<const Person*>& availableDrive
             nstationsServed++;
         }
 
-        if (verbose) Print() << "cex[" << sitr << "]: " << cex[sitr] << std::endl;
+        // if (verbose) Print() << "cex[" << sitr << "]: " << cex[sitr] << std::endl;
 
     }
 
     // set up available vehicles at each station
-    for (auto vitr = availableDrivers.begin(); vitr != availableDrivers.end(); ++vitr) {
-        // get which station this vehicle belongs
-        int sid = vehIdToStationId[*vitr];
-        vi[sid].insert(*vitr);
+    // jo{ this is different now, since stations is the list of zone (TAZ) IDs, so we just call getNumVehicles
+       for (auto vitr = availableDrivers.begin(); vitr != availableDrivers.end(); ++vitr) {
+    // for (auto vitr = stations.begin(); vitr != stations.end(); ++vitr) {
+    	   // get which station this vehicle belongs
+    	   const Node *driverNode = getCurrentNode(*vitr); //current node of driver
+    	   int taz;
+    	   taz = (*driverNode)->getTazId() ; // get TAZ id of associated node with driver
+    	   ;
+    	   vi[taz].insert( *( vitr->getDatabaseId() ) ); // will need to fix if doesn't work (DatabaseId is a std::string)
     }
 
     // set up constraints
@@ -275,19 +283,19 @@ void KasiaRebalancer::rebalance(const std::vector<const Person*>& availableDrive
         // constraint for net flow to match (or exceed) excess customers
         for (auto sitr = stations.begin(); sitr!= stations.end(); ++sitr) {
             std::stringstream ss;
-            ss << "st " << sitr->second.getId();
+            ss << "st " << sitr ; // ->second.getId();
             const std::string& tmp = ss.str();
             const char* cstr = tmp.c_str();
             glp_set_row_name(lp, i, cstr);
-            glp_set_row_bnds(lp, i, GLP_LO, cex[sitr->second.getId()], 0.0);
-
+            //glp_set_row_bnds(lp, i, GLP_LO, cex[sitr->second.getId()], 0.0);
+            glp_set_row_bnds(lp, i, GLP_LO, cex[sitr], 0.0);
 
             for (auto sitr2 = stations.begin(); sitr2 != stations.end(); ++sitr2) {
                 if (sitr2 == sitr) continue;
                 // from i to j
                 ia[k] = i;
-                int st_source = sitr->second.getId();
-                int st_dest   = sitr2->second.getId();
+                int st_source = sitr;// ->second.getId();
+                int st_dest   = sitr2; //->second.getId();
                 ja[k] = idsToIndex[std::make_pair(st_source, st_dest)];
                 ar[k] = -1.0;
                 ++k;
@@ -316,8 +324,8 @@ void KasiaRebalancer::rebalance(const std::vector<const Person*>& availableDrive
 
                 // from i to j
                 ia[k] = i;
-                int stSrc = sitr->second.getId();
-                int stDest   = sitr2->second.getId();
+                int stSrc = sitr; //jo ->second.getId();
+                int stDest   = sitr2; //jo ->second.getId();
                 ja[k] = idsToIndex[std::make_pair(stSrc, stDest)];
                 ar[k] = 1.0;
                 ++k;
@@ -358,8 +366,8 @@ void KasiaRebalancer::rebalance(const std::vector<const Person*>& availableDrive
 
                 // from i to j
                 ia[k] = i;
-                int stSrc = sitr->second.getId();
-                int stDest   = sitr2->second.getId();
+                int stSrc = sitr; //jo ->second.getId();
+                int stDest   = sitr2; //jo ->second.getId();
                 ja[k] = idsToIndex[std::make_pair(stSrc, stDest)];
                 ar[k] =  -1.0;
                 ++k;
@@ -376,19 +384,19 @@ void KasiaRebalancer::rebalance(const std::vector<const Person*>& availableDrive
         // constraint to make sure stations don't send more vehicles than they have
         for (auto sitr = stations.begin(); sitr!= stations.end(); ++sitr) {
             std::stringstream ss;
-            ss << "st " << sitr->second.getId() << " veh constraint";
+            ss << "st " << sitr << " veh constraint";
             const std::string& tmp = ss.str();
             const char* cstr = tmp.c_str();
             glp_set_row_name(lp, i, cstr);
-            glp_set_row_bnds(lp, i, GLP_UP, 0.0, vi[sitr->second.getId()].size());
+            glp_set_row_bnds(lp, i, GLP_UP, 0.0, vi[sitr].size());
 
             for (auto sitr2 = stations.begin(); sitr2 != stations.end(); ++sitr2) {
                 // from i to j
                 if (sitr2 == sitr) continue;
 
                 ia[k] = i;
-                int stSrc = sitr->second.getId();
-                int stDest   = sitr2->second.getId();
+                int stSrc = sitr ; //jo this param is the zone ID itself ->second.getId(); ->second.getId();
+                int stDest   = sitr2; //jo (same comment as above) ->second.getId();
                 ja[k] = idsToIndex[std::make_pair(stSrc, stDest)];
                 ar[k] =  1.0;
                 ++k;
@@ -399,7 +407,7 @@ void KasiaRebalancer::rebalance(const std::vector<const Person*>& availableDrive
         // constraint for stations to send as many vehicles as possible
         for (auto sitr = stations.begin(); sitr!= stations.end(); ++sitr) {
             std::stringstream ss;
-            ss << "st " << sitr->second.getId() << " send all constraint";
+            ss << "st " << sitr << " send all constraint";
             const std::string& tmp = ss.str();
             const char* cstr = tmp.c_str();
             glp_set_row_name(lp, i, cstr);
@@ -411,8 +419,8 @@ void KasiaRebalancer::rebalance(const std::vector<const Person*>& availableDrive
 
                 // from i to j
                 ia[k] = i;
-                int stSrc = sitr->second.getId();
-                int stDest = sitr2->second.getId();
+                int stSrc = sitr ; //jo this param is the zone ID itself ->second.getId();
+                int stDest = sitr2 ; //jo (same comment as above) ->second.getId();
                 ja[k] = idsToIndex[std::make_pair(stSrc, stDest)];
                 ar[k] =  1.0;
                 ++k;
@@ -434,31 +442,87 @@ void KasiaRebalancer::rebalance(const std::vector<const Person*>& availableDrive
         int toDispatch = floor(glp_get_col_prim(lp,k));
         //if (verbose_) std::cout << k << ": " << to_dispatch << std::endl;
         if (toDispatch > 0) {
-            int stSrc = indexToIds[k].first;
-            int stDest = indexToIds[k].second;
+            int stSrc = indexToIds[k].first; //jo origin TAZ
+            int stDest = indexToIds[k].second; //jo destination TAZ
 
+
+            //****************************************************************
             // dispatch to_dispatch vehicles form station st_source to st_dest
-            amod::ReturnCode rc = interStationDispatch(stSrc, stDest, toDispatch, worldState, vi);
+            //*****************************************************************
 
-            Event ev(amod::EVENT_REBALANCE, --eventId,
-                  "Rebalancing", worldState->getCurrentTime(),
-                   {stSrc, stDest, toDispatch});
-            worldState->addEvent(ev);
+            // check that st_source and st_dest are valid
+            auto itrSrc = stations.find(stSrc);
+            auto itrDest = stations.find(stDest);
 
-            if (rc != amod::SUCCESS) {
-                if (verbose) Print() << amod::kErrorStrings[rc] << std::endl;
-
-                // housekeeping
-                glp_delete_prob(lp);
-                glp_free_env();
-
-                ia.clear();
-                ja.clear();
-                ar.clear();
-
-                // be stringent and throw an exception: this shouldn't happen
-                throw std::runtime_error("solveRebalancing: interStationDispatch failed.");
+            if (itrSrc == stations.end() || itrDest == stations.end() ) {
+                std::cout << "INVALID_ZONE_ID" << std::endl;
             }
+
+            // dispatch vehicles
+            auto itr = vi[stSrc].begin();
+            for (int i=0; i<toDispatch; i++) {
+                // find a free vehicle at station st_source
+                std::string vehId = *itr; //vehId is actually the database ID of the person (in the mobilityservicedriver role)
+
+                // send it to station st_dest
+                //auto rc = simulator->dispatchVehicle(worldState, vehId , itrDest->second.getPosition(),
+                //                                VehicleStatus::MOVING_TO_REBALANCE, VehicleStatus::FREE);
+
+                // randomly select node in zone based on recent demand
+        		int seed = 1;
+        		srand(seed);
+        		// const Person* driver = availableDrivers[rand()%availableDrivers.size() ];
+        		do {
+        			const Node* node = latestStartNodes[rand()%latestStartNodes.size()];
+        			int randNodeTaz = node->getTazId();
+        		} while (randNodeTaz != stDest);
+
+
+                for (auto driver : availableDrivers){
+                	std::string id = driver->getDatabaseId ;
+                	if (id == vehId) {
+                		parentController->sendCruiseCommand(driver, node, currTick ); //jo NEEDS WORK
+                	}
+                }
+
+                latestStartNodes.clear();
+
+                // change station ownership of vehicle
+                stations[stSrc].removeVehicleId(vehId);
+                stations[stDest].addVehicleId(vehId);
+                vehIdToStationId[vehId] = stDest;
+                availableDrivers.erase(vehId);
+
+                // mark vehicle as no longer available for dispatch
+                vi[stSrc].erase(vehId);
+
+                // increment iterator
+                itr = vi[stSrc].begin();
+            }
+
+
+    		parentController->sendCruiseCommand(driver, node, currTick );
+    		latestStartNodes.clear();
+
+//            Event ev(amod::EVENT_REBALANCE, --eventId,
+//                  "Rebalancing", worldState->getCurrentTime(),
+//                   {stSrc, stDest, toDispatch});
+//            worldState->addEvent(ev);
+
+//            if (rc != amod::SUCCESS) {
+//                if (verbose) Print() << amod::kErrorStrings[rc] << std::endl;
+//
+//                // housekeeping
+//                glp_delete_prob(lp);
+//                glp_free_env();
+//
+//                ia.clear();
+//                ja.clear();
+//                ar.clear();
+//
+//                // be stringent and throw an exception: this shouldn't happen
+//                throw std::runtime_error("solveRebalancing: interStationDispatch failed.");
+//            }
         }
     }
 
@@ -470,7 +534,6 @@ void KasiaRebalancer::rebalance(const std::vector<const Person*>& availableDrive
     ja.clear();
     ar.clear();
 
-    return amod::SUCCESS;
 }
 
 

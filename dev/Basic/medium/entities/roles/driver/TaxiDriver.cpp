@@ -131,14 +131,13 @@ void TaxiDriver::passengerChoiceModel(const Node *origin,const Node *destination
 	SubTrip currSubTrip;
 	currSubTrip.origin = WayPoint(origin);
 	currSubTrip.destination = WayPoint(destination);
-	const Lane *currentLane = taxiDriverMovement->getCurrentlane();
+	const Link *currLink = taxiDriverMovement->getCurrentlane()->getParentSegment()->getParentLink();
 
 	/**On call drivers use in simulation travel-times, on hail drivers do not*/
 	bool useInSimulationTT = !taxiDriverMovement->isSubscribedToOnHail();
 
-	currentRouteChoice = PrivateTrafficRouteChoice::getInstance()->getPathAfterPassengerPickup(currSubTrip, false,
-	                                                                                           nullptr, currentLane,
-	                                                                                           useInSimulationTT);
+	currentRouteChoice = PrivateTrafficRouteChoice::getInstance()->getPath(currSubTrip, false, currLink,
+	                                                                       useInSimulationTT);
 }
 
 void TaxiDriver::HandleParentMessage(messaging::Message::MessageType type, const messaging::Message& message)
@@ -320,13 +319,13 @@ void TaxiDriver::processNextScheduleItem(bool isMoveToNextScheduleItem)
 
 		const Node *node = it->second;
 
-		if(taxiDriverMovement->getDestinationNode() == node)
+		if(taxiDriverMovement->getMesoPathMover().getCurrSegStats()->getParentConflux()->getConfluxNode() == node)
 		{
 			pickUpPassngerAtNode(tripRequest.userId);
 			return;
 		}
 
-		const bool success = taxiDriverMovement->driveToNodeOnCall(tripRequest.userId, node);
+		const bool success = taxiDriverMovement->driveToNodeOnCall(tripRequest, node);
 
 #ifndef NDEBUG
 		if (!success)

@@ -104,14 +104,7 @@ protected:
 	// (see https://stackoverflow.com/a/121163/2110769).
 	// The constructor is protected to avoid instantiating an OnCallController directly, since it is conceptually abstract
 	explicit OnCallController(const MutexStrategy& mtxStrat, unsigned int computationPeriod,
-			MobilityServiceControllerType type_, unsigned id)
-		: MobilityServiceController(mtxStrat, type_, id), scheduleComputationPeriod(computationPeriod)
-	{
-		rebalancer = new SimpleRebalancer();
-#ifndef NDEBUG
-		isComputingSchedules = false;
-#endif
-	}
+			MobilityServiceControllerType type_, unsigned id);
 
 public:
 
@@ -124,6 +117,8 @@ public:
 	virtual const Person* findClosestDriver(const Node* node) const;
 
 	virtual const std::string getRequestQueueStr() const;
+
+	virtual void sendCruiseCommand(const Person* driver, const Node* nodeToCruiseTo, const timeslice currTick ) const;
 
 
 
@@ -150,8 +145,8 @@ protected:
 	std::vector<const Person*> availableDrivers;
 
 	/** Store queue of requests */
-	//TODO: It should be vector<const TripRequest>, but it does not compile in that case:
-	// check why
+
+
 	std::list<TripRequestMessage> requestQueue;
 
 	virtual void assignSchedule(const Person* driver, const Schedule& schedule);

@@ -221,7 +221,7 @@ const SegmentStats* MesoPathMover::getFirstSegStatsInNextLink(const SegmentStats
 	const RoadSegment *rdFound = sStatFound->getRoadSegment();
 	it++; //start looking from stats after segStats
 	int count =0;
-	const SegmentStats *prevSegStat = (*it);
+
 	for (; it != path.end(); it++)
 	{
 		const SegmentStats *segStat = (*it);

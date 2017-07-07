@@ -165,13 +165,13 @@ void SurveillanceStation::writeSurveillanceOutput(const ConfigParams &config, un
 }
 
 TrafficSensor::TrafficSensor(SurveillanceStation *station) : index(0), lane(nullptr), surveillanceStn(station),
-	count(0), occupancy(0), speed(0)
+	count(0), occupancy(0), speed(0), prevTimeDetectorOff(-1)
 {
 	id = (station->getSurveillanceStnId() * 100) + index;
 }
 
 TrafficSensor::TrafficSensor(SurveillanceStation *station, const Lane *lane, unsigned int index) : index(index),
-	lane(lane), surveillanceStn(station), count(0), occupancy(0), speed(0)
+	lane(lane), surveillanceStn(station), count(0), occupancy(0), speed(0), prevTimeDetectorOff(-1)
 {
 	id = (station->getSurveillanceStnId() * 100) + index;
 }

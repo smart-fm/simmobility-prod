@@ -11,11 +11,12 @@
 #include "message/MobilityServiceControllerMessage.hpp"
 #include "message/MessageBus.hpp"
 #include "logging/ControllerLog.hpp"
+#include "OnCallController.hpp"
 
 
 namespace sim_mob {
 
-Rebalancer::Rebalancer() {
+Rebalancer::Rebalancer(const OnCallController* parentController_):parentController(parentController_ ) {
 	// TODO Auto-generated constructor stub
 
 }
@@ -25,16 +26,6 @@ Rebalancer::~Rebalancer() {
 }
 
 
-void Rebalancer::sendCruiseCommand(const Person* driver, const Node* nodeToCruiseTo, const timeslice currTick) const
-{
-	ScheduleItem item(ScheduleItemType::CRUISE, nodeToCruiseTo);
-	sim_mob::Schedule schedule;
-	schedule.push_back(ScheduleItem(item) );
-
-
-	messaging::MessageBus::PostMessage((messaging::MessageHandler*) driver, MSG_SCHEDULE_PROPOSITION,
-				messaging::MessageBus::MessagePtr(new SchedulePropositionMessage(currTick, schedule) ) );
-}
 
 
 
@@ -52,7 +43,7 @@ void SimpleRebalancer::rebalance(const std::vector<const Person*>& availableDriv
 		const Person* driver = availableDrivers[rand()%availableDrivers.size() ];
 		const Node* node = latestStartNodes[rand()%latestStartNodes.size()];
 
-		sendCruiseCommand(driver, node, currTick );
+		parentController->sendCruiseCommand(driver, node, currTick );
 		latestStartNodes.clear();
 	}
 }

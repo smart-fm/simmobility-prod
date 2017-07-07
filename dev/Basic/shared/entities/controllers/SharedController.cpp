@@ -580,6 +580,17 @@ void SharedController::checkSequence(const std::string &sequence) const
 	}
 }
 
+void SharedController::sendCruiseCommand(const Person* driver, const Node* nodeToCruiseTo, const timeslice currTick ) const
+{
+	if ( driverSchedules.find(driver) == driverSchedules.end()  )
+	{
+		std::stringstream msg; msg<<"Trying to send a message to driver "<<driver->getDatabaseId()<<" pointer "<< driver<<
+				" who has not entry in the driverSchedules";
+				throw std::runtime_error(msg.str() );
+	}
+	OnCallController::sendCruiseCommand(driver, nodeToCruiseTo, currTick );
+}
+
 #ifndef NDEBUG
 void SharedController::consistencyChecks(const std::string& label) const
 {

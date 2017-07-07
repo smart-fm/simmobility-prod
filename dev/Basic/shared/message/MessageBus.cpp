@@ -507,7 +507,13 @@ void dispatch(const MessageEntry& entry, ThreadContext* &context,ThreadContext* 
 			if (destinationContext)
 			{
 				if (entry.type == sim_mob::MobilityServiceControllerMessage::MSG_SCHEDULE_PROPOSITION)
-				sim_mob::Print()<<"ciao, sending schedule to druive " << entry.destination << std::endl;
+				{
+					const sim_mob::SchedulePropositionMessage &msg = MSG_CAST(sim_mob::SchedulePropositionMessage, *(entry.message) );
+														const sim_mob::Schedule& assignedSchedule = msg.getSchedule();
+
+					sim_mob::Print()<<"ciao, sending schedule to driver " << entry.destination <<
+					". The message was sent by " << entry.message->GetSender() << ", schedule "<< assignedSchedule << std::endl;
+				}
 				destinationContext->input.push(entry);
 			}
 			//<aa>
@@ -516,10 +522,10 @@ void dispatch(const MessageEntry& entry, ThreadContext* &context,ThreadContext* 
 					entry.destination<<", entry.destination->GetContext()="<<entry.destination->GetContext()<< ", entry.type=" << entry.type;
 				if (entry.type == sim_mob::MobilityServiceControllerMessage::MSG_SCHEDULE_PROPOSITION)
 								{
-									const sim_mob::SchedulePropositionMessage &msg = MSG_CAST(sim_mob::SchedulePropositionMessage, *(entry.message) );
-									const sim_mob::Schedule& assignedSchedule = msg.getSchedule();
+									const sim_mob::SchedulePropositionMessage &message = MSG_CAST(sim_mob::SchedulePropositionMessage, *(entry.message) );
+									const sim_mob::Schedule& assignedSchedule = message.getSchedule();
 
-									cout<<". The message was sent by " << entry.message->GetSender() << ", schedule "<< assignedSchedule << std::endl;
+									msg<<". The message was sent by " << entry.message->GetSender() << ", schedule "<< assignedSchedule << std::endl;
 								}
 
 				throw std::runtime_error(msg.str());
@@ -584,8 +590,24 @@ void MessageBus::PostMessage(MessageHandler* destination, Message::MessageType t
 {
 	CheckThreadContext();
 	ThreadContext* context = GetThreadContext();
-	if (context)
+#ifndef NDEBUG
+	if (!context)
+		throw std::runtime_error("the context is invalid");
+
+	if ( type == MobilityServiceControllerMessage::MSG_SCHEDULE_PROPOSITION )
 	{
+		const sim_mob::SchedulePropositionMessage &messageCasted = MSG_CAST(sim_mob::SchedulePropositionMessage, *message );
+		const sim_mob::Schedule& assignedSchedule = messageCasted.getSchedule();
+
+		Print()<<"ciao, Posting message of type "<< type << " toward destination "<<destination;
+
+		Print()<<". The message was sent by messageCasted.GetSender()=" << messageCasted.GetSender() <<
+				", while message->getSender()=" << message->GetSender()<<
+				", schedule "<< assignedSchedule << std::endl;
+	}
+#endif
+
+
 		InternalMessage* internalMsg = dynamic_cast<InternalMessage*>(message.get());
 		InternalEventMessage* eventMsg = dynamic_cast<InternalEventMessage*>(message.get());
 		if (destination || eventMsg)
@@ -608,7 +630,7 @@ void MessageBus::PostMessage(MessageHandler* destination, Message::MessageType t
 				context->futureEventList.push(entry);
 			}
 		}
-	}
+
 }
 
 void MessageBus::SendInstantaneousMessage(MessageHandler* destination,

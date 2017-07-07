@@ -17,11 +17,22 @@
 #include "entities/mobilityServiceDriver/MobilityServiceDriver.hpp"
 #include "message/MobilityServiceControllerMessage.hpp"
 #include <iterator> // for std::begin
+#include "Rebalancer.hpp"
 
 using namespace sim_mob;
 using namespace messaging;
 
 
+
+OnCallController::OnCallController(const MutexStrategy& mtxStrat, unsigned int computationPeriod,
+		MobilityServiceControllerType type_, unsigned id)
+	: MobilityServiceController(mtxStrat, type_, id), scheduleComputationPeriod(computationPeriod)
+{
+	rebalancer = new SimpleRebalancer(this);
+#ifndef NDEBUG
+	isComputingSchedules = false;
+#endif
+}
 
 OnCallController::~OnCallController()
 {
@@ -721,5 +732,43 @@ const std::string OnCallController::getRequestQueueStr() const
 	}
 	return msg.str();
 }
+
+void OnCallController::sendCruiseCommand(const Person* driver, const Node* nodeToCruiseTo, const timeslice currTick) const
+{
+#ifndef NDEBUG
+	bool found = false;
+	for (const Person* availableDriver : availableDrivers)
+	{
+		if (availableDriver == driver) found = true;
+	}
+	if (!found)
+	{
+		std::stringstream msg; msg<<"Trying to send a message to driver "<<driver->getDatabaseId()<<" pointer "<< driver<<
+		" who is not among the available drivers";
+		throw std::runtime_error(msg.str() );
+	}
+
+	for (const Person* availableDriver : subscribedDrivers)
+	{
+		if (availableDriver == driver) found = true;
+	}
+	if (!found)
+	{
+		std::stringstream msg; msg<<"Trying to send a message to driver "<<driver->getDatabaseId()<<" pointer "<< driver<<
+		" who is not among the subscribed drivers";
+		throw std::runtime_error(msg.str() );
+	}
+
+#endif
+
+	ScheduleItem item(ScheduleItemType::CRUISE, nodeToCruiseTo);
+	sim_mob::Schedule schedule;
+	schedule.push_back(ScheduleItem(item) );
+
+
+	messaging::MessageBus::PostMessage((messaging::MessageHandler*) driver, MSG_SCHEDULE_PROPOSITION,
+				messaging::MessageBus::MessagePtr(new SchedulePropositionMessage(currTick, schedule) ) );
+}
+
 
 

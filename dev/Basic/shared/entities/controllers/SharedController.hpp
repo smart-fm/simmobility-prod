@@ -25,6 +25,9 @@ public:
 
 	virtual void checkSequence (const std::string& sequence) const;
 
+	// Inhertis from the parent
+	virtual void sendCruiseCommand(const Person* driver, const Node* nodeToCruiseTo, const timeslice currTick ) const;
+
 #ifndef NDEBUG
 	// Overrides the parent method
 	virtual void consistencyChecks(const std::string& label) const;

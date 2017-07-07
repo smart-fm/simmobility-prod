@@ -11,10 +11,13 @@
 #include "message/MobilityServiceControllerMessage.hpp"
 #include "message/MessageBus.hpp"
 #include "logging/ControllerLog.hpp"
+#include "OnCallController.hpp"
+
 // jo {
 #include "database/predaydao/ZoneCostSqlDao.hpp"
+#include "entities/mobilityServiceDriver/MobilityServiceDriver.hpp"
+#include "message/MobilityServiceControllerMessage.hpp"
 // } jo
-#include "OnCallController.hpp"
 
 
 namespace sim_mob {
@@ -51,6 +54,42 @@ void SimpleRebalancer::rebalance(const std::vector<const Person*>& availableDriv
 	}
 }
 
+// *******************************************************************
+// PRIVATE FUNCTIONS
+// *******************************************************************
+
+int KasiaRebalancer::getNumCustomers(int TazId) {
+	// obtains demand per zone based on latestStartNodes
+	int count ;
+	std::vector<Node*>:: iterator inode;
+	for (auto inode = latestStartNodes.begin(); inode!= latestStartNodes.end(); ++inode) {
+		int taz;
+		taz = (*inode)->getTazId() ;
+		if (taz == TazId ){
+			count += 1 ;
+		}
+	}
+	return count;
+}
+
+int KasiaRebalancer::getNumVehicles(int TazId) {
+	// obtains demand per zone based on latestStartNodes
+	int count ;
+	std::vector<const Person *>::const_iterator driver = availableDrivers.begin();
+	while (driver != availableDrivers.end())
+	{
+		if (isCruising(*driver))
+		{
+			const Node *driverNode = getCurrentNode(*driver);
+		}
+		int taz;
+		taz = (*inode)->getTazId() ;
+		if (taz == TazId ){
+			count += 1 ;
+		}
+	}
+	return count;
+}
 
 void KasiaRebalancer::rebalance(const std::vector<const Person*>& availableDrivers, const timeslice currTick) {
 
@@ -79,6 +118,22 @@ void KasiaRebalancer::rebalance(const std::vector<const Person*>& availableDrive
 	it = unique(stations.begin(), stations.end()) ; // get unique TAZ's represented
 	stations.resize(distance(stations.begin(),it)); // resize stations vector
 	// } jo
+
+
+//	//// =====================================================================================
+//	std::vector<const Person *>::const_iterator driver = availableDrivers.begin();
+//	while (driver != availableDrivers.end())
+//	{
+//		if (isCruising(*driver))
+//		{
+//			const Node *driverNode = getCurrentNode(*driver);
+//			// jo{ don't need to find distance
+//			// double currDistance = dist(node->getLocation(), driverNode->getLocation());
+//			// }jo
+//		}
+//	}
+//	//// ================================================================================================
+
 
     int nvehs = availableDrivers.size();
     int nstations = stations.size();

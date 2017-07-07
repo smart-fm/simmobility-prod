@@ -55,9 +55,23 @@ class LazyRebalancer : public Rebalancer
 
 class KasiaRebalancer : public Rebalancer
 {
+	using Rebalancer::Rebalancer;
+
 	void rebalance(const std::vector<const Person*>& availableDrivers,
 			const timeslice currTick);
+
+// jo{ need these functions to get supply/demand by zone ID
+private:
+	// get demand by Zone
+	virtual int getNumCustomers(int TazId);
+
+	// get supply by Zone
+	virtual int getNumVehicles(int TazId);
+// }jo
 };
+
+
+
 
 
 } /* namespace sim_mob */

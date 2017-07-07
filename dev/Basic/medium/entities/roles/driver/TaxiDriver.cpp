@@ -172,8 +172,15 @@ TaxiDriverMovement *TaxiDriver::getMovementFacet()
 	return taxiDriverMovement;
 }
 
-void TaxiDriver::pickUpPassngerAtNode(Conflux *parentConflux, std::string* personId)
+void TaxiDriver::pickUpPassngerAtNode(const std::string personId)
 {
+	MesoPathMover &pathMover = taxiDriverMovement->getMesoPathMover();
+	const SegmentStats *segStats = pathMover.getCurrSegStats();
+	Conflux *parentConflux = segStats->getParentConflux();
+
+	//Store the number of passengers currently in the vehicle
+	unsigned long prevPassengerCount = getPassengerCount();
+
 	if (!parentConflux)
 	{
 		return;
@@ -181,55 +188,93 @@ void TaxiDriver::pickUpPassngerAtNode(Conflux *parentConflux, std::string* perso
 
 	Person_MT *personToPickUp = parentConflux->pickupTaxiTraveler(personId);
 
+#ifndef NDEBUG
+	if (!personToPickUp && !taxiDriverMovement->isSubscribedToOnHail())
+	{
+		stringstream msg;
+		msg << "Pickup failed for " << personId << " at time "
+		    << parent->currTick
+		    << ", and driverId " << parent->getDatabaseId() << ". personToPickUp is NULL" << std::endl;
+		throw runtime_error(msg.str());
+	}
+#endif
+
 	if (personToPickUp)
 	{
 		Role<Person_MT> *curRole = personToPickUp->getRole();
 		sim_mob::medium::Passenger *passenger = dynamic_cast<sim_mob::medium::Passenger *>(curRole);
 
-		if (passenger)
+#ifndef NDEBUG
+		if (!passenger)
 		{
-			if(taxiDriverMovement->isSubscribedToOnHail())
-			{
-				std::vector<SubTrip>::iterator subTripItr = personToPickUp->currSubTrip;
-				WayPoint personTravelDestination = (*subTripItr).destination;
-				const Node *personDestinationNode = personTravelDestination.node;
-				std::vector<WayPoint> currentRouteChoice;
-				const Node *currentNode = taxiDriverMovement->getDestinationNode();
-
-				if (currentNode == personDestinationNode)
-				{
-					return;
-				}
-
-				passengerChoiceModel(currentNode, personDestinationNode, currentRouteChoice);
-
-				if (currentRouteChoice.size() > 0)
-				{
-					bool isAdded = addPassenger(passenger);
-					if (isAdded)
-					{
-						const Lane *currentLane = taxiDriverMovement->getCurrentlane();
-						const Link *currentLink = currentLane->getParentSegment()->getParentLink();
-						currentRouteChoice.insert(currentRouteChoice.begin(), WayPoint(currentLink));
-						taxiDriverMovement->setDestinationNode(personDestinationNode);
-						taxiDriverMovement->setCurrentNode(currentNode);;
-						taxiDriverMovement->addRouteChoicePath(currentRouteChoice);
-						passenger->setStartPoint(WayPoint(taxiDriverMovement->getCurrentNode()));
-						passenger->setEndPoint(WayPoint(taxiDriverMovement->getDestinationNode()));
-						setDriverStatus(DRIVE_WITH_PASSENGER);
-						passenger->Movement()->startTravelTimeMetric();
-					}
-				}
-			}
-			else
-			{
-				addPassenger(passenger);
-				setDriverStatus(DRIVE_WITH_PASSENGER);
-				passenger->Movement()->startTravelTimeMetric();
-				passenger->setStartPoint(WayPoint(taxiDriverMovement->getCurrentNode()));
-			}
+			stringstream msg;
+			msg << "Pickup failed for " << personId << " at time "
+			    << parent->currTick
+			    << ", and driverId " << parent->getDatabaseId()
+			    << ". personToPickUp is not a passenger"
+			    << std::endl;
+			throw runtime_error(msg.str());
 		}
-	}
+#endif
+
+		if (taxiDriverMovement->isSubscribedToOnHail())
+		{
+			std::vector<SubTrip>::iterator subTripItr = personToPickUp->currSubTrip;
+			WayPoint personTravelDestination = (*subTripItr).destination;
+			const Node *personDestinationNode = personTravelDestination.node;
+			std::vector<WayPoint> currentRouteChoice;
+			const Node *currentNode = taxiDriverMovement->getDestinationNode();
+
+			if (currentNode == personDestinationNode)
+			{
+				return;
+			}
+
+			passengerChoiceModel(currentNode, personDestinationNode, currentRouteChoice);
+
+#ifndef NDEBUG
+			if (currentRouteChoice.empty())
+			{
+				stringstream msg;
+				msg << "Pickup failed for " << personId << " at time "
+				    << parent->currTick
+				    << ", and driverId " << parent->getDatabaseId() << ", No path found from "
+				    << currentNode->getNodeId() << " to " << personDestinationNode->getNodeId()
+				    << std::endl;
+				throw runtime_error(msg.str());
+			}
+#endif
+			addPassenger(passenger);
+			const Lane *currentLane = taxiDriverMovement->getCurrentlane();
+			const Link *currentLink = currentLane->getParentSegment()->getParentLink();
+			currentRouteChoice.insert(currentRouteChoice.begin(), WayPoint(currentLink));
+			taxiDriverMovement->setDestinationNode(personDestinationNode);
+			taxiDriverMovement->setCurrentNode(currentNode);;
+			taxiDriverMovement->addRouteChoicePath(currentRouteChoice);
+			passenger->setStartPoint(WayPoint(taxiDriverMovement->getCurrentNode()));
+			passenger->setEndPoint(WayPoint(taxiDriverMovement->getDestinationNode()));
+			setDriverStatus(DRIVE_WITH_PASSENGER);
+			passenger->Movement()->startTravelTimeMetric();
+		}
+		else
+		{
+			//On call passenger
+			addPassenger(passenger);
+			setDriverStatus(DRIVE_WITH_PASSENGER);
+			passenger->Movement()->startTravelTimeMetric();
+			passenger->setStartPoint(WayPoint(taxiDriverMovement->getCurrentNode()));
+
+			ControllerLog() << "Pickup succeeded for " << personId << " at time "
+			                << parent->currTick
+			                << ". Message was sent at ??? with startNodeId "
+			                << parentConflux->getConfluxNode()->getNodeId() << ", destinationNodeId "
+			                << taxiDriverMovement->getDestinationNode()->getNodeId()
+			                << ", and driverId " << parent->getDatabaseId() << std::endl;
+
+			//Pick-up schedule is complete, process next schedule item
+			processNextScheduleItem();
+		}
+	}//else I am a onHail driver and I found no passenger at the node
 }
 
 void TaxiDriver::processNextScheduleItem(bool isMoveToNextScheduleItem)
@@ -270,10 +315,17 @@ void TaxiDriver::processNextScheduleItem(bool isMoveToNextScheduleItem)
 #endif
 
 		ControllerLog() << "Processing pick-up for " << tripRequest
-		                << ". This assignment is started by driver " <<
-		                this->getParent()->getDatabaseId() << " at time " << parent->currTick << std::endl;
+		                << ". This assignment is started by driver "
+		                << this->getParent()->getDatabaseId() << " at time " << parent->currTick << std::endl;
 
 		const Node *node = it->second;
+
+		if(taxiDriverMovement->getDestinationNode() == node)
+		{
+			pickUpPassngerAtNode(tripRequest.userId);
+			return;
+		}
+
 		const bool success = taxiDriverMovement->driveToNodeOnCall(tripRequest.userId, node);
 
 #ifndef NDEBUG
@@ -295,7 +347,6 @@ void TaxiDriver::processNextScheduleItem(bool isMoveToNextScheduleItem)
 		//Check which passenger is to be dropped-off
 		Passenger *passengerToDrop = taxiPassenger = taxiPassengers[tripRequest.userId];
 
-#ifndef NDEBUG
 		if(!passengerToDrop)
 		{
 			std::stringstream msg;
@@ -303,7 +354,6 @@ void TaxiDriver::processNextScheduleItem(bool isMoveToNextScheduleItem)
 					parent->getDatabaseId();
 			throw std::runtime_error(msg.str());
 		}
-#endif
 
 		const Person_MT *personToDrop = passengerToDrop->getParent();
 		std::vector<SubTrip>::iterator subTripItr = personToDrop->currSubTrip;
@@ -314,6 +364,7 @@ void TaxiDriver::processNextScheduleItem(bool isMoveToNextScheduleItem)
 
 		if (currentNode == personDestinationNode)
 		{
+			alightPassenger();
 			return;
 		}
 
@@ -336,9 +387,11 @@ void TaxiDriver::processNextScheduleItem(bool isMoveToNextScheduleItem)
 		}
 		else
 		{
-			ControllerLog() << "Processing drop-off for " << tripRequest
-			                << " failed as no route found by driver " <<
-			                this->getParent()->getDatabaseId() << " at time " << parent->currTick << std::endl;
+			stringstream msg;
+			msg << "Processing drop-off for " << tripRequest
+			    << " failed as no route found by driver " <<
+			    this->getParent()->getDatabaseId() << " at time " << parent->currTick << std::endl;
+			throw runtime_error(msg.str());
 		}
 
 		break;

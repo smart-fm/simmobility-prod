@@ -125,6 +125,8 @@ public:
 	 */
 	void setCruisingMode();
 
+	const std::string getPersonPickedUp() const;
+
 protected:
 	/**List of subscribed controllers*/
 	std::vector<MobilityServiceController *> subscribedControllers;

@@ -1804,12 +1804,12 @@ void Conflux::dropOffTaxiTraveler(Person_MT* person)
 	}
 }
 
-Person_MT* Conflux::pickupTaxiTraveler(std::string* personId)
+Person_MT* Conflux::pickupTaxiTraveler(const std::string& personId)
 {
 	Person_MT* personPickedUp = nullptr;
 	if(!travelingPersons.empty())
 	{
-		if (!personId)
+		if (personId.empty())
 		{
 			for (auto i = travelingPersons.begin(); i != travelingPersons.end();i++)
 			{
@@ -1826,7 +1826,7 @@ Person_MT* Conflux::pickupTaxiTraveler(std::string* personId)
 		{
 			for(auto i = travelingPersons.begin(); i!=travelingPersons.end(); i++)
 			{
-				if((*i)->getDatabaseId()== *personId)
+				if((*i)->getDatabaseId() == personId)
 				{
 					personPickedUp = (*i);
 					travelingPersons.erase(i);

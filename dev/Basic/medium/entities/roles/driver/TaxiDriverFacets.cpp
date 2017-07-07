@@ -256,8 +256,8 @@ bool TaxiDriverMovement::moveToNextSegment(DriverUpdateParams &params)
 		}
 		if (pathMover.isEndOfPath())
 		{
-			Conflux *parentConflux = currSegStat->getParentConflux();
-			parentTaxiDriver->pickUpPassngerAtNode(parentConflux);
+			parentTaxiDriver->pickUpPassngerAtNode();
+			// I cruise if there are no passengers
 			if (parentTaxiDriver->getPassenger() == nullptr)
 			{
 				selectNextLinkWhileCruising();
@@ -288,35 +288,8 @@ bool TaxiDriverMovement::moveToNextSegment(DriverUpdateParams &params)
 	}
 	else if (parentTaxiDriver->getDriverStatus() == DRIVE_ON_CALL && pathMover.isEndOfPath())
 	{
-		Conflux *parentConflux = currSegStat->getParentConflux();
-
-		//Store the number of passengers currently in the vehicle
-		unsigned long prevPassengerCount = parentTaxiDriver->getPassengerCount();
-
 		//Pick-up new passenger
-		parentTaxiDriver->pickUpPassngerAtNode(parentConflux, &personIdPickedUp);
-
-		//If the pick-up is successful, the passenger count should have increased
-		if (prevPassengerCount == parentTaxiDriver->getPassengerCount())
-		{
-			stringstream msg;
-			msg << "Pickup failed for " << personIdPickedUp << " at time "
-			    << parentTaxiDriver->getParent()->currTick
-			    << ", and driverId " << parentTaxiDriver->getParent()->getDatabaseId() << std::endl;
-			throw runtime_error(msg.str());
-		}
-		else
-		{
-			ControllerLog() << "Pickup succeeded for " << personIdPickedUp << " at time "
-			                << parentTaxiDriver->getParent()->currTick
-			                << ". Message was sent at ??? with startNodeId "
-			                << parentConflux->getConfluxNode()->getNodeId() << ", destinationNodeId "
-			                << destinationNode->getNodeId()
-			                << ", and driverId " << parentTaxiDriver->getParent()->getDatabaseId() << std::endl;
-		}
-
-		//Pick-up schedule is complete, process next schedule item
-		parentTaxiDriver->processNextScheduleItem();
+		parentTaxiDriver->pickUpPassngerAtNode(personIdPickedUp);
 	}
 
 	res = DriverMovement::moveToNextSegment(params);
@@ -754,6 +727,11 @@ void TaxiDriverMovement::setCruisingMode()
 	{
 		selectNextLinkWhileCruising();
 	}
+}
+
+const string TaxiDriverMovement::getPersonPickedUp() const
+{
+	return personIdPickedUp;
 }
 
 bool TaxiDriverMovement::driveToNodeOnCall(const std::string &personId, const Node *pickupNode)

@@ -28,6 +28,8 @@ public:
 	// Inhertis from the parent
 	virtual void sendCruiseCommand(const Person* driver, const Node* nodeToCruiseTo, const timeslice currTick ) const;
 
+	double getTT(const Node* node1, const Node* node2) const;
+
 #ifndef NDEBUG
 	// Overrides the parent method
 	virtual void consistencyChecks(const std::string& label) const;

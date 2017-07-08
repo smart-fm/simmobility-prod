@@ -802,6 +802,12 @@ void TaxiDriverMovement::cruiseToNode(const Node *destination)
 		std::vector<WayPoint> pathToNode = PrivateTrafficRouteChoice::getInstance()->getPath(subTrip, false, currLink,
 		                                                                                     parentTaxiDriver->getParent()->usesInSimulationTravelTime());
 
+		if(pathToNode.empty())
+		{
+			pathToNode = StreetDirectory::Instance().SearchShortestDrivingPath<Link, Node>(*currLink, *destination);
+		}
+
+
 		if (!pathToNode.empty())
 		{
 			result = true;

@@ -18,6 +18,22 @@
 
 namespace sim_mob
 {
+double SharedController::getTT(const Node* node1, const Node* node2) const
+{
+	double retValue;
+	if (node1 == node2)
+		retValue = 0;
+	else{
+		retValue = PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(
+				node1->getNodeId(), node2->getNodeId(), DailyTime(currTick.ms()));
+		if (retValue == 0)
+		{	// The two nodes are different and the travel time should be non zero, if valid
+			retValue = std::numeric_limits<double>::max();
+		}
+	}
+	return retValue;
+}
+
 void SharedController::computeSchedules()
 {
 	const std::map<unsigned int, Node*>& nodeIdMap = RoadNetwork::getInstance()->getMapOfIdvsNodes();
@@ -140,16 +156,10 @@ void SharedController::computeSchedules()
 
 				//{ o1 o2 d1 d2
 				// We compute the travel time that user 1 would experience in this case
-				double tripTime1 = PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(
-					startNode1->getNodeId(), startNode2->getNodeId(), DailyTime(currTick.ms()))
-					+ PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(
-						startNode2->getNodeId(), destinationNode1->getNodeId(), DailyTime(currTick.ms()));
+				double tripTime1 = getTT(startNode1, startNode2) + getTT(startNode2, destinationNode1);
 
 				// We also compute the travel time that user 2 would experience
-				double tripTime2 = PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(
-					startNode2->getNodeId(), destinationNode1->getNodeId(), DailyTime(currTick.ms()))
-					+ PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(
-						destinationNode1->getNodeId(), destinationNode2->getNodeId(), DailyTime(currTick.ms()));
+				double tripTime2 = getTT(startNode2, destinationNode1) + getTT(destinationNode1, destinationNode2);
 
 				if ((tripTime1 <= desiredTravelTimes.at(request1Index) + (*request1).extraTripTimeThreshold)
 					&& (tripTime2 <= desiredTravelTimes.at(request2Index) + (*request2).extraTripTimeThreshold))
@@ -160,15 +170,9 @@ void SharedController::computeSchedules()
 				//} o1 o2 d1 d2
 
 				//{ o2 o1 d2 d1
-				tripTime1 = PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(
-					startNode1->getNodeId(), destinationNode2->getNodeId(), DailyTime(currTick.ms()))
-					+ PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(
-						destinationNode2->getNodeId(), destinationNode1->getNodeId(), DailyTime(currTick.ms()));
+				tripTime1 = getTT(startNode1, destinationNode2) + getTT(destinationNode2, destinationNode1);
 
-				tripTime2 = PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(
-					startNode2->getNodeId(), startNode1->getNodeId(), DailyTime(currTick.ms()))
-					+ PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(
-						startNode1->getNodeId(), destinationNode2->getNodeId(), DailyTime(currTick.ms()));
+				tripTime2 = getTT(startNode2, startNode1) + getTT(startNode1, destinationNode2);
 
 				if ((tripTime1 <= desiredTravelTimes.at(request1Index) + (*request1).extraTripTimeThreshold)
 					&& (tripTime2 <= desiredTravelTimes.at(request2Index) + (*request2).extraTripTimeThreshold))
@@ -192,12 +196,9 @@ void SharedController::computeSchedules()
 				//} o2 o1 d2 d1
 
 				//{ o1 o2 d2 d1
-				tripTime1 = PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(
-					startNode1->getNodeId(), startNode2->getNodeId(), DailyTime(currTick.ms()))
-					+ PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(
-						startNode2->getNodeId(), destinationNode2->getNodeId(), DailyTime(currTick.ms()))
-					+ PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(
-						destinationNode2->getNodeId(), destinationNode1->getNodeId(), DailyTime(currTick.ms()));
+				tripTime1 = getTT(startNode1, startNode2) + getTT(startNode2, destinationNode2) +getTT(destinationNode2, destinationNode1);
+
+				// tripTime2 is ok, because user 2 does the same path as she was alone in the car
 
 				if (tripTime1 <= desiredTravelTimes.at(request1Index) + (*request1).extraTripTimeThreshold)
 				{
@@ -220,12 +221,9 @@ void SharedController::computeSchedules()
 				//} o1 o2 d2 d1
 
 				//{ o2 o1 d1 d2
-				tripTime2 = PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(
-					startNode2->getNodeId(), startNode1->getNodeId(), DailyTime(currTick.ms()))
-					+ PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(
-						startNode1->getNodeId(), destinationNode1->getNodeId(), DailyTime(currTick.ms()))
-					+ PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(
-						destinationNode1->getNodeId(), destinationNode2->getNodeId(), DailyTime(currTick.ms()));
+				tripTime2 = getTT(startNode2, startNode1)+ getTT(startNode1, destinationNode1)+ getTT(destinationNode1, destinationNode2);
+
+				// tripTime2 is ok, because user 1 does the same path as she was alone in the car
 
 				if (tripTime2 <= desiredTravelTimes.at(request2Index) + (*request2).extraTripTimeThreshold)
 				{

@@ -28,7 +28,7 @@ OnCallController::OnCallController(const MutexStrategy& mtxStrat, unsigned int c
 		MobilityServiceControllerType type_, unsigned id)
 	: MobilityServiceController(mtxStrat, type_, id), scheduleComputationPeriod(computationPeriod)
 {
-	rebalancer = new LazyRebalancer(this);
+	rebalancer = new SimpleRebalancer(this);
 #ifndef NDEBUG
 	isComputingSchedules = false;
 #endif

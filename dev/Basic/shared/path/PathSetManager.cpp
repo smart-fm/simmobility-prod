@@ -594,6 +594,50 @@ double sim_mob::PrivateTrafficRouteChoice::getOD_TravelTime(unsigned int origin,
 	return shortestPathTravelTime;
 }
 
+
+double sim_mob::PrivateTrafficRouteChoice::getShortestPathTravelTime(const Node* origin, const Node* destination, const sim_mob::DailyTime& curTime)
+{
+	double shortestPathTravelTime = 0.0;
+	if (origin->getNodeId() == destination->getNodeId()) { return 0.0; }
+	std::string fromToID = getFromToString(origin->getNodeId(), destination->getNodeId());
+	if (noPathODs.find(fromToID)) {	return 0.0; }
+
+	sim_mob::SinglePath* shortestPath = nullptr;
+	boost::shared_ptr<sim_mob::PathSet> pathset;
+	bool pathsetFound = findCachedPathSet(fromToID, pathset);
+	if(pathsetFound)
+	{
+		shortestPath = pathset->oriPath;
+	}
+	else
+	{
+		std::vector<WayPoint> wayPointSequence = StreetDirectory::Instance().SearchShortestDrivingPath<Node,Node>(*origin,*destination);
+		std::vector<WayPoint> wayPointSequenceCleaned;
+		for (WayPoint wp:wayPointSequence)
+		{
+			if (wp.type == WayPoint::LINK)
+				wayPointSequenceCleaned.push_back(wp);
+		}
+
+		if ( !wayPointSequenceCleaned.empty() )
+		{
+			shortestPath = new SinglePath();
+			shortestPath->path =wayPointSequenceCleaned;
+		}
+	}
+
+	if(shortestPath)
+	{
+		bool useInSimulationTravelTime = true;
+		shortestPathTravelTime = getPathTravelTime(shortestPath, curTime, false, useInSimulationTravelTime);
+	}
+	else
+	{
+		shortestPathTravelTime = -1; //invalid travel time value is returned to indicate pathset unavailability
+	}
+	return shortestPathTravelTime;
+}
+
 //Operations:
 //step-0: Initial preparations
 //step-1: Check the cache

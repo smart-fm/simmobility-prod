@@ -30,6 +30,8 @@ public:
 
 	double getTT(const Node* node1, const Node* node2) const;
 
+	double toMs(int c) const;
+
 #ifndef NDEBUG
 	// Overrides the parent method
 	virtual void consistencyChecks(const std::string& label) const;

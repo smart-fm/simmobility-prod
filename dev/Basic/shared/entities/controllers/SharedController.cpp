@@ -15,18 +15,31 @@
 #include "message/MessageBus.hpp"
 #include "message/MobilityServiceControllerMessage.hpp"
 #include "path/PathSetManager.hpp"
+#include <sys/time.h>
+
 
 namespace sim_mob
 {
 double SharedController::getTT(const Node* node1, const Node* node2) const
 {
+#ifndef NDEBUG
+	if (
+			(node1 == node2 && node1->getNodeId() !=  node2->getNodeId() ) ||
+			(node1 != node2 && node1->getNodeId() ==  node2->getNodeId() )
+	){
+		throw std::runtime_error("Pointers of nodes do not correspond to their IDs for some weird reason");
+	}
+#endif
+
 	double retValue;
 	if (node1 == node2)
 		retValue = 0;
 	else{
-		retValue = PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(
-				node1->getNodeId(), node2->getNodeId(), DailyTime(currTick.ms()));
-		if (retValue == 0)
+		//retValue = PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(
+			//	node1->getNodeId(), node2->getNodeId(), DailyTime(currTick.ms()));
+		retValue = PrivateTrafficRouteChoice::getInstance()->getShortestPathTravelTime(
+					node1, node2, DailyTime(currTick.ms()));
+		if (retValue <= 0)
 		{	// The two nodes are different and the travel time should be non zero, if valid
 			retValue = std::numeric_limits<double>::max();
 		}
@@ -39,6 +52,7 @@ void SharedController::computeSchedules()
 	const std::map<unsigned int, Node*>& nodeIdMap = RoadNetwork::getInstance()->getMapOfIdvsNodes();
 	std::vector<sim_mob::Schedule> schedules; // We will fill this schedules and send it to the best driver
 
+	ControllerLog()<<"Requests to be scheduled "<< requestQueue.size() << ", available drivers "<<availableDrivers.size() <<std::endl;
 
 
 	// aa: 	The i-th element of validRequests is the i-th valid request
@@ -55,6 +69,13 @@ void SharedController::computeSchedules()
 	std::vector<TripRequestMessage> validRequests;
 	std::vector<double> desiredTravelTimes;
 	std::set<unsigned int> satisfiedRequestIndices;
+
+	int profilingTime_current, profilingTime_previous, profilingTime_directTripTime, profilingTime_graphConstruction, profilingTime_Matching,
+		profilingTime_sendAssignement, profilingTime_removeServedRequests;
+	profilingTime_current= profilingTime_previous= profilingTime_directTripTime= profilingTime_graphConstruction= profilingTime_Matching=
+			profilingTime_sendAssignement= profilingTime_removeServedRequests = -1;
+	profilingTime_current = clock(); profilingTime_previous = profilingTime_current;
+
 
 
 	// 1. Calculate times for direct trips
@@ -106,6 +127,10 @@ void SharedController::computeSchedules()
 	consistencyChecks("Before constructing the graph");
 	//} CONSISTENCY CHECK
 #endif
+
+	profilingTime_current = clock();
+	profilingTime_directTripTime = profilingTime_current - profilingTime_previous;
+	profilingTime_previous = profilingTime_current;
 
 	if (!validRequests.empty() && !availableDrivers.empty() )
 	{
@@ -265,6 +290,11 @@ void SharedController::computeSchedules()
 			request1++;
 			request1Index++;
 		}
+
+
+		profilingTime_current = clock();
+		profilingTime_graphConstruction = profilingTime_current - profilingTime_previous;
+		profilingTime_previous = profilingTime_current;
 
 		ControllerLog() << "About to perform matching on "<< requestQueue.size()<< " requests and "<< availableDrivers.size() <<
 				" drivers. Wish me luck" << std::endl;
@@ -444,6 +474,9 @@ void SharedController::computeSchedules()
 
 #endif
 
+		profilingTime_current = clock();
+		profilingTime_Matching = profilingTime_current - profilingTime_previous;
+		profilingTime_previous = profilingTime_current;
 
 		// 4. Send assignments for requests
 		for (const Schedule& schedule : schedules)
@@ -485,6 +518,10 @@ void SharedController::computeSchedules()
 			}
 			ControllerLog()<<std::endl;
 		}
+
+		profilingTime_current = clock();
+		profilingTime_sendAssignement = profilingTime_current - profilingTime_previous;
+		profilingTime_previous = profilingTime_current ;
 
 		// 5. Remove from the pending requests the ones that have been assigned
 		std::list<TripRequestMessage>::iterator requestToEliminate = requestQueue.begin();
@@ -539,9 +576,21 @@ void SharedController::computeSchedules()
 
 	}
 
-	ControllerLog()<<"Requests to be scheduled "<< requestQueue.size() << ", available drivers "<<availableDrivers.size() <<std::endl;
+	profilingTime_current = clock();
+	profilingTime_removeServedRequests = profilingTime_current - profilingTime_previous;
+	profilingTime_previous = profilingTime_current ;
 
 
+
+	ControllerLog()<<"Schedules computed, now Requests to be scheduled "<< requestQueue.size() << ", available drivers "<<availableDrivers.size();
+	ControllerLog()<<". Performance profilingTime_directTripTime="<<toMs(profilingTime_directTripTime)<<", profilingTime_graphConstruction="<<
+			toMs(profilingTime_graphConstruction)<<", profilingTime_Matching="<<toMs(profilingTime_Matching)<<", profilingTime_sendAssignement"<<
+			toMs(profilingTime_sendAssignement)<<", profilingTime_removeServedRequests="<<toMs(profilingTime_removeServedRequests)<<std::endl;
+}
+
+double SharedController::toMs(int c) const
+{
+	return c / ( CLOCKS_PER_SEC / 1000 );
 }
 
 bool SharedController::isCruising(Person* p)

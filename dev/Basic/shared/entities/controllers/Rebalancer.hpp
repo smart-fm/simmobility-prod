@@ -9,6 +9,14 @@
 #include "entities/Person.hpp"
 
 // jo{
+
+#include "message/Message.hpp"
+#include "message/MobilityServiceControllerMessage.hpp"
+#include "MobilityServiceController.hpp"
+#include "entities/mobilityServiceDriver/MobilityServiceDriver.hpp"
+
+// #include "MobilityServiceController.hpp"
+
 #include "Types.hpp" // hash functor
 #include <map>
 #include <set>
@@ -66,7 +74,8 @@ public:
 	virtual int getNumCustomers(int TazId);
 
 	// get supply by Zone
-	virtual int getNumVehicles(int TazId);
+	virtual int getNumVehicles(const std::vector<const Person*>& availableDrivers,
+			int TazId);
 // }jo
 };
 

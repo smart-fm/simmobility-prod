@@ -16,7 +16,9 @@
 // jo {
 #include "database/predaydao/ZoneCostSqlDao.hpp"
 #include "entities/mobilityServiceDriver/MobilityServiceDriver.hpp"
-#include "message/MobilityServiceControllerMessage.hpp"
+#include "MobilityServiceController.hpp"
+#include "entities/mobilityServiceDriver/MobilityServiceDriver.hpp"
+
 // } jo
 
 
@@ -72,7 +74,7 @@ int KasiaRebalancer::getNumCustomers(int TazId) {
 	return count;
 }
 
-int KasiaRebalancer::getNumVehicles(int TazId) {
+int KasiaRebalancer::getNumVehicles(const std::vector<const Person*>& availableDrivers, int TazId) {
 	// obtains demand per zone based on latestStartNodes
 	int count ;
 	std::vector<const Person *>::const_iterator driver = availableDrivers.begin();
@@ -214,7 +216,7 @@ void KasiaRebalancer::rebalance(const std::vector<const Person*>& availableDrive
 		  // jo { WE are going to use current demand for now } jo
 
         // use current demand
-        int cexi = getNumCustomers(sitr) - getNumVehicles(sitr); // excess customers in zone `sitr`
+        int cexi = getNumCustomers(sitr) - getNumVehicles(availableDrivers, sitr); // excess customers in zone `sitr`
 
         // jo { not using predicted demand
         // use predicted demand
@@ -253,7 +255,7 @@ void KasiaRebalancer::rebalance(const std::vector<const Person*>& availableDrive
     }
 
     // set up available vehicles at each station
-    // jo{ this is different now, since stations is the list of zone (TAZ) IDs, so we just call getNumVehicles
+    // jo{ this is different now, since stations is the list of zone (TAZ) IDs, so we just call
        for (auto vitr = availableDrivers.begin(); vitr != availableDrivers.end(); ++vitr) {
     // for (auto vitr = stations.begin(); vitr != stations.end(); ++vitr) {
     	   // get which station this vehicle belongs

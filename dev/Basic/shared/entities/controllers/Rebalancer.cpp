@@ -18,7 +18,7 @@
 #include "entities/mobilityServiceDriver/MobilityServiceDriver.hpp"
 #include "MobilityServiceController.hpp"
 #include "entities/mobilityServiceDriver/MobilityServiceDriver.hpp"
-
+#include "Types.hpp"
 // } jo
 
 
@@ -56,42 +56,7 @@ void SimpleRebalancer::rebalance(const std::vector<const Person*>& availableDriv
 	}
 }
 
-// *******************************************************************
-// KASIAREBAL FUNCTIONS
-// *******************************************************************
 
-int KasiaRebalancer::getNumCustomers(int TazId) {
-	// obtains demand per zone based on latestStartNodes
-	int count ;
-	std::vector<Node*>:: iterator inode;
-	for (auto inode = latestStartNodes.begin(); inode!= latestStartNodes.end(); ++inode) {
-		int taz;
-		taz = (*inode)->getTazId() ;
-		if (taz == TazId ){
-			count += 1 ;
-		}
-	}
-	return count;
-}
-
-int KasiaRebalancer::getNumVehicles(const std::vector<const Person*>& availableDrivers, int TazId) {
-	// obtains demand per zone based on latestStartNodes
-	int count ;
-	std::vector<const Person *>::const_iterator driver = availableDrivers.begin();
-	while (driver != availableDrivers.end())
-	{
-		if (isCruising(*driver))
-		{
-			const Node *driverNode = getCurrentNode(*driver);
-		}
-		int taz;
-		taz = (*driverNode)->getTazId() ;
-		if (taz == TazId ){
-			count += 1 ;
-		}
-	}
-	return count;
-}
 
 
 void KasiaRebalancer::rebalance(const std::vector<const Person*>& availableDrivers, const timeslice currTick) {
@@ -314,12 +279,12 @@ void KasiaRebalancer::rebalance(const std::vector<const Person*>& availableDrive
         // constraint to make sure stations don't send more vehicles than they have
         for (auto sitr = stations.begin(); sitr!= stations.end(); ++sitr) {
             std::stringstream ss;
-            ss << "st " << sitr->second.getId() << " veh constraint";
+            ss << "st " << sitr << " veh constraint";
             const std::string& tmp = ss.str();
             const char* cstr = tmp.c_str();
             glp_set_row_name(lp, i, cstr);
             //if (verbose_) std::cout << "vi[" << sitr << "]: " <<  vi[sitr->second.getId()].size() << std::endl;
-            glp_set_row_bnds(lp, i, GLP_UP, 0.0, vi[sitr->second.getId()].size());
+            glp_set_row_bnds(lp, i, GLP_UP, 0.0, vi[sitr].size());
 
             for (auto sitr2 = stations.begin(); sitr2 != stations.end(); ++sitr2) {
                 if (sitr2 == sitr) continue;
@@ -354,12 +319,12 @@ void KasiaRebalancer::rebalance(const std::vector<const Person*>& availableDrive
         // constraint for net flow to match (or exceed) excess customers
         for (auto sitr = stations.begin(); sitr!= stations.end(); ++sitr) {
             std::stringstream ss;
-            ss << "st " << sitr->second.getId();
+            ss << "st " << sitr;
             const std::string& tmp = ss.str();
             const char* cstr = tmp.c_str();
             glp_set_row_name(lp, i, cstr);
             glp_set_row_bnds(lp, i, GLP_LO,
-                             std::min((double) cex[sitr->second.getId()] ,
+                             std::min((double) cex[sitr] ,
                                       (double) floor(viTotal/nstationsServed)), 0.0);
 
 
@@ -541,4 +506,39 @@ void LazyRebalancer::rebalance(const std::vector<const Person*>& availableDriver
 
 } /* namespace sim_mob */
 
+// *******************************************************************
+// KASIAREBAL FUNCTIONS
+// *******************************************************************
 
+int Rebalancer::getNumCustomers(int TazId) {
+	// obtains demand per zone based on latestStartNodes
+	int count ;
+	std::vector<Node*>:: iterator inode;
+	for (auto inode = latestStartNodes.begin(); inode!= latestStartNodes.end(); ++inode) {
+		int taz;
+		taz = (*inode)->getTazId() ;
+		if (taz == TazId ){
+			count += 1 ;
+		}
+	}
+	return count;
+}
+
+int Rebalancer::getNumVehicles(const std::vector<const Person*>& availableDrivers, int TazId) {
+	// obtains demand per zone based on latestStartNodes
+	int count ;
+	std::vector<const Person *>::const_iterator driver = availableDrivers.begin();
+	while (driver != availableDrivers.end())
+	{
+		if (isCruising(*driver))
+		{
+			const Node *driverNode = getCurrentNode(*driver);
+		}
+		int taz;
+		taz = (*driverNode)->getTazId() ;
+		if (taz == TazId ){
+			count += 1 ;
+		}
+	}
+	return count;
+}

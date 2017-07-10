@@ -12,6 +12,7 @@
 #include "util/Utils.hpp"
 #include <algorithm>    // std::sort, next_permutation, find
 
+#include <cstring>
 #include "OnCallController.hpp"
 #include "path/PathSetManager.hpp" // for PrivateTrafficRouteChoice
 #include "entities/mobilityServiceDriver/MobilityServiceDriver.hpp"

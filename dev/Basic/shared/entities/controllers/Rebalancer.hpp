@@ -10,7 +10,7 @@
 
 // jo{
 
-#include "Types.hpp" // hash functor
+//#include "Types.hpp" // hash functor
 #include "message/Message.hpp"
 #include "message/MobilityServiceControllerMessage.hpp"
 #include "MobilityServiceController.hpp"

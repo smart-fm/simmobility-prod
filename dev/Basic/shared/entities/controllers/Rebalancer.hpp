@@ -14,10 +14,10 @@
 #include "message/Message.hpp"
 #include "message/MobilityServiceControllerMessage.hpp"
 #include "MobilityServiceController.hpp"
-#include "entities/mobilityServiceDriver/MobilityServiceDriver.hpp"
-#include "database/predaydao/ZoneCostSqlDao.hpp"
+//#include "OnCallController.hpp"
+//#include "entities/mobilityServiceDriver/MobilityServiceDriver.hpp"
+//#include "database/predaydao/ZoneCostSqlDao.hpp"
 
-// #include "MobilityServiceController.hpp"
 
 #include <map>
 #include <set>
@@ -40,15 +40,11 @@ public:
 			const timeslice currTick)=0;
 
 	void onRequestReceived(const Node* startNode);
-	// jo{ need these functions to get supply/demand by zone ID
-	//private:
-		// get demand by Zone
-	virtual int getNumCustomers(int TazId);
+	int getNumCustomers(int TazId);
 
-		// get supply by Zone
-	virtual int getNumVehicles(const std::vector<const Person*>& availableDrivers,
-			int TazId);
-	// }jo
+	// get supply by Zone
+	int getNumVehicles(const std::vector<const Person*>& availableDrivers,
+		int TazId);
 
 protected:
 	std::vector<const Node*> latestStartNodes;
@@ -78,6 +74,16 @@ class KasiaRebalancer : public Rebalancer
 
 	void rebalance(const std::vector<const Person*>& availableDrivers,
 			const timeslice currTick);
+
+	// jo{ need these functions to get supply/demand by zone ID
+//	public:
+//		// get demand by Zone
+//		int getNumCustomers(int TazId);
+//
+//		// get supply by Zone
+//		int getNumVehicles(const std::vector<const Person*>& availableDrivers,
+//			int TazId);
+	// }jo
 
 };
 

@@ -120,7 +120,10 @@ public:
 
 	virtual void sendCruiseCommand(const Person* driver, const Node* nodeToCruiseTo, const timeslice currTick ) const;
 
-
+	//jo{Need to use them in Rebalancer}
+	virtual bool isCruising(const Person* driver) const;
+	virtual const Node* getCurrentNode(const Person* driver) const;
+	//}jo
 
 protected:
 
@@ -150,9 +153,10 @@ protected:
 	std::list<TripRequestMessage> requestQueue;
 
 	virtual void assignSchedule(const Person* driver, const Schedule& schedule);
-
-	virtual bool isCruising(const Person* driver) const;
-	virtual const Node* getCurrentNode(const Person* driver) const;
+	//jo{ made these public
+	//virtual bool isCruising(const Person* driver) const;
+	//virtual const Node* getCurrentNode(const Person* driver) const;
+	//}jo
 	/**
 	 * Performs the controller algorithm to assign vehicles to requests
 	 */

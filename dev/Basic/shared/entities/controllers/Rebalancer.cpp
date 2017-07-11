@@ -164,14 +164,18 @@ void KasiaRebalancer::rebalance(const std::vector<const Person*>& availableDrive
     for (auto sitr = stations.begin(); sitr != stations.end(); ++sitr){
         for (auto sitr2 = stations.begin(); sitr2 != stations.end(); ++sitr2) {
             // store the indices to make lookups easier (can be optimized in future iterations)
-            indexToIds[k] = std::make_pair(sitr, sitr2);
-            idsToIndex[(std::make_pair(sitr, sitr2))] = k;
+        	int sitrIndex ;
+        	int sitr2Index ;
+        	sitrIndex = std::distance(stations.begin(), sitr);
+        	sitr2Index = std::distance(stations.begin(), sitr2) ;
+            indexToIds[k] = std::make_pair(sitrIndex, sitr2Index);
+            idsToIndex[std::make_pair(sitrIndex, sitr2Index)] = k;
 
             // get cost
             // { jo use traveltimemode function (zone-based travel time)
 
-            int origin = sitr ;
-            int destination = sitr2 ;
+            int origin = sitrIndex ;
+            int destination = sitr2Index ;
             double cost ;
 
 

@@ -19,10 +19,12 @@ sim_mob::SimulationParams::SimulationParams() :
 
 sim_mob::LongTermParams::LongTermParams(): enabled(false), workers(0), days(0), tickStep(0), maxIterations(0),year(0),resume(false),currentOutputSchema(std::string()),mainSchemaVersion(std::string()),configSchemaVersion(std::string()),calibrationSchemaVersion(std::string()),geometrySchemaVersion(std::string()),opSchemaloadingInterval(0)
 										   ,initialLoading(false){}
-sim_mob::LongTermParams::DeveloperModel::DeveloperModel(): enabled(false), timeInterval(0), initialPostcode(0),initialUnitId(0),initialBuildingId(0),initialProjectId(0),minLotSize(0) {}
+sim_mob::LongTermParams::DeveloperModel::DeveloperModel(): enabled(false), timeInterval(0), initialPostcode(0),initialUnitId(0),initialBuildingId(0),
+															initialProjectId(0),minLotSize(0) {}
 sim_mob::LongTermParams::HousingModel::HousingModel(): enabled(false), timeInterval(0), timeOnMarket(0), timeOffMarket(0), vacantUnitActivationProbability(0),
 													   housingMarketSearchPercentage(0), housingMoveInDaysInterval(0), offsetBetweenUnitBuyingAndSelling(0),
-													   bidderUnitsChoiceSet(0),bidderBTOUnitsChoiceSet(0),householdBiddingWindow(0), householdAwakeningPercentageByBTO(0),offsetBetweenUnitBuyingAndSellingAdvancedPurchase(0){}
+													   bidderUnitsChoiceSet(0),bidderBTOUnitsChoiceSet(0),householdBiddingWindow(0), householdBTOBiddingWindow(0),
+													   householdAwakeningPercentageByBTO(0), offsetBetweenUnitBuyingAndSellingAdvancedPurchase(0){}
 
 sim_mob::LongTermParams::HousingModel::AwakeningModel::AwakeningModel(): initialHouseholdsOnMarket(0), dailyHouseholdAwakenings(0), awakenModelJingsi(false), awakenModelShan(false), awakenModelRandom(false), awakeningOffMarketSuccessfulBid(0), awakeningOffMarketUnsuccessfulBid(0){}
 

@@ -75,6 +75,7 @@ struct LongTermParams
 		int bidderUnitsChoiceSet;
 		int bidderBTOUnitsChoiceSet;
 		int householdBiddingWindow;
+		int householdBTOBiddingWindow;
 		float householdAwakeningPercentageByBTO;
 		int offsetBetweenUnitBuyingAndSellingAdvancedPurchase;
 

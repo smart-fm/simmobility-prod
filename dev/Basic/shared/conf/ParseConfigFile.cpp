@@ -572,6 +572,10 @@ void ParseConfigFile::processHousingModelNode(xercesc::DOMElement *houseModel)
 			ParseInteger(GetNamedAttributeValue(GetSingleElementByName(
 					houseModel, "householdBiddingWindow"), "value"), (int) 0);
 
+	housingModel.householdBTOBiddingWindow =
+			ParseInteger(GetNamedAttributeValue(GetSingleElementByName(
+					houseModel, "householdBTOBiddingWindow"), "value"), (int) 0);
+
 	housingModel.householdAwakeningPercentageByBTO =
 			ParseFloat(GetNamedAttributeValue(GetSingleElementByName(
 					houseModel, "householdAwakeningPercentageByBTO"),"value"), (float) 0.0);

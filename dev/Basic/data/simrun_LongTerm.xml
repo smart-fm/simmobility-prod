@@ -144,6 +144,7 @@
 	    <bidderUnitsChoiceSet value = "50"/>
 	    <bidderBTOUnitsChoiceSet value = "10"/>
 	    <householdBiddingWindow value = "30" />
+	    <householdBTOBiddingWindow value = "5" />
 	    <householdAwakeningPercentageByBTO value = "0.025" />
 	    <offsetBetweenUnitBuyingAndSelling value ="7"/>
             <offsetBetweenUnitBuyingAndSellingAdvancedPurchase value = "30" />

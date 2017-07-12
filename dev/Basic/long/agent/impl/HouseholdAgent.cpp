@@ -321,7 +321,7 @@ void HouseholdAgent::processEvent(EventId eventId, Context ctxId, const EventArg
 
 					ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 
-					householdBiddingWindow = config.ltParams.housingModel.householdBiddingWindow * (double)rand() / RAND_MAX + 1;
+					householdBiddingWindow = config.ltParams.housingModel.householdBTOBiddingWindow;
 					bidder->setMoveInWaitingTimeInDays(-1);
 					buySellInterval = config.ltParams.housingModel.offsetBetweenUnitBuyingAndSelling;
 				}

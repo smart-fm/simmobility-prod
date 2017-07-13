@@ -28,8 +28,6 @@ public:
 	// Inhertis from the parent
 	virtual void sendCruiseCommand(const Person* driver, const Node* nodeToCruiseTo, const timeslice currTick ) const;
 
-	double getTT(const Node* node1, const Node* node2) const;
-
 	double toMs(int c) const;
 
 #ifndef NDEBUG

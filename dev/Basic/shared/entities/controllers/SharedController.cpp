@@ -20,39 +20,19 @@
 
 namespace sim_mob
 {
-double SharedController::getTT(const Node* node1, const Node* node2) const
-{
-#ifndef NDEBUG
-	if (
-			(node1 == node2 && node1->getNodeId() !=  node2->getNodeId() ) ||
-			(node1 != node2 && node1->getNodeId() ==  node2->getNodeId() )
-	){
-		throw std::runtime_error("Pointers of nodes do not correspond to their IDs for some weird reason");
-	}
-#endif
 
-	double retValue;
-	if (node1 == node2)
-		retValue = 0;
-	else{
-		//retValue = PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(
-			//	node1->getNodeId(), node2->getNodeId(), DailyTime(currTick.ms()));
-		retValue = PrivateTrafficRouteChoice::getInstance()->getShortestPathTravelTime(
-					node1, node2, DailyTime(currTick.ms()));
-		if (retValue <= 0)
-		{	// The two nodes are different and the travel time should be non zero, if valid
-			retValue = std::numeric_limits<double>::max();
-		}
-	}
-	return retValue;
-}
 
 void SharedController::computeSchedules()
 {
+	TT_EstimateType ttEstimateType = EUCLIDEAN_ESTIMATION; // When we check the extra delay induced to passengers due to sharing, we will
+												// estimate travel time in this fashion
 	const std::map<unsigned int, Node*>& nodeIdMap = RoadNetwork::getInstance()->getMapOfIdvsNodes();
 	std::vector<sim_mob::Schedule> schedules; // We will fill this schedules and send it to the best driver
 
-	ControllerLog()<<"Requests to be scheduled "<< requestQueue.size() << ", available drivers "<<availableDrivers.size() <<std::endl;
+	size_t requestsToBeScheduledInitially = requestQueue.size();
+	size_t availableDriversInitially = availableDrivers.size();
+
+	ControllerLog()<<"Requests to be scheduled "<< requestsToBeScheduledInitially << ", available drivers "<<availableDriversInitially <<std::endl;
 
 
 	// aa: 	The i-th element of validRequests is the i-th valid request
@@ -99,12 +79,11 @@ void SharedController::computeSchedules()
 #endif
 		//} SANITY CHECK
 		const Node* startNode = itStart->second;
-		Node* destinationNode = itEnd->second;
+		const Node* destinationNode = itEnd->second;
 
 		validRequests.push_back(*request);
 
-		double tripTime = PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(
-			request->startNodeId, request->destinationNodeId, DailyTime(currTick.ms()));
+		double tripTime = getTT(startNode, destinationNode, ttEstimateType);
 		desiredTravelTimes.push_back(tripTime);
 
 		request++;
@@ -181,10 +160,10 @@ void SharedController::computeSchedules()
 
 				//{ o1 o2 d1 d2
 				// We compute the travel time that user 1 would experience in this case
-				double tripTime1 = getTT(startNode1, startNode2) + getTT(startNode2, destinationNode1);
+				double tripTime1 = getTT(startNode1, startNode2, ttEstimateType) + getTT(startNode2, destinationNode1, ttEstimateType);
 
 				// We also compute the travel time that user 2 would experience
-				double tripTime2 = getTT(startNode2, destinationNode1) + getTT(destinationNode1, destinationNode2);
+				double tripTime2 = getTT(startNode2, destinationNode1, ttEstimateType) + getTT(destinationNode1, destinationNode2, ttEstimateType);
 
 				if ((tripTime1 <= desiredTravelTimes.at(request1Index) + (*request1).extraTripTimeThreshold)
 					&& (tripTime2 <= desiredTravelTimes.at(request2Index) + (*request2).extraTripTimeThreshold))
@@ -195,9 +174,9 @@ void SharedController::computeSchedules()
 				//} o1 o2 d1 d2
 
 				//{ o2 o1 d2 d1
-				tripTime1 = getTT(startNode1, destinationNode2) + getTT(destinationNode2, destinationNode1);
+				tripTime1 = getTT(startNode1, destinationNode2, ttEstimateType) + getTT(destinationNode2, destinationNode1,ttEstimateType);
 
-				tripTime2 = getTT(startNode2, startNode1) + getTT(startNode1, destinationNode2);
+				tripTime2 = getTT(startNode2, startNode1, ttEstimateType) + getTT(startNode1, destinationNode2, ttEstimateType);
 
 				if ((tripTime1 <= desiredTravelTimes.at(request1Index) + (*request1).extraTripTimeThreshold)
 					&& (tripTime2 <= desiredTravelTimes.at(request2Index) + (*request2).extraTripTimeThreshold))
@@ -221,7 +200,8 @@ void SharedController::computeSchedules()
 				//} o2 o1 d2 d1
 
 				//{ o1 o2 d2 d1
-				tripTime1 = getTT(startNode1, startNode2) + getTT(startNode2, destinationNode2) +getTT(destinationNode2, destinationNode1);
+				tripTime1 = getTT(startNode1, startNode2, ttEstimateType) + getTT(startNode2, destinationNode2, ttEstimateType) +
+						getTT(destinationNode2, destinationNode1, ttEstimateType);
 
 				// tripTime2 is ok, because user 2 does the same path as she was alone in the car
 
@@ -246,7 +226,8 @@ void SharedController::computeSchedules()
 				//} o1 o2 d2 d1
 
 				//{ o2 o1 d1 d2
-				tripTime2 = getTT(startNode2, startNode1)+ getTT(startNode1, destinationNode1)+ getTT(destinationNode1, destinationNode2);
+				tripTime2 = getTT(startNode2, startNode1, ttEstimateType)+ getTT(startNode1, destinationNode1, ttEstimateType)+
+						getTT(destinationNode1, destinationNode2, ttEstimateType);
 
 				// tripTime2 is ok, because user 1 does the same path as she was alone in the car
 
@@ -582,7 +563,8 @@ void SharedController::computeSchedules()
 
 
 
-	ControllerLog()<<"Schedules computed, now Requests to be scheduled "<< requestQueue.size() << ", available drivers "<<availableDrivers.size();
+	ControllerLog()<<"Schedules computed, the requests were "<< requestsToBeScheduledInitially <<", the drivers available were "<<
+			availableDriversInitially<<". Now the requests to be scheduled are "<< requestQueue.size() << ", available drivers "<<availableDrivers.size();
 	ControllerLog()<<". Performance profilingTime_directTripTime="<<toMs(profilingTime_directTripTime)<<", profilingTime_graphConstruction="<<
 			toMs(profilingTime_graphConstruction)<<", profilingTime_Matching="<<toMs(profilingTime_Matching)<<", profilingTime_sendAssignement"<<
 			toMs(profilingTime_sendAssignement)<<", profilingTime_removeServedRequests="<<toMs(profilingTime_removeServedRequests)<<std::endl;

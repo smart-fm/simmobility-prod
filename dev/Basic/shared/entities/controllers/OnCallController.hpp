@@ -93,6 +93,14 @@ protected:
 };
 
 
+/**
+ * See how they are used inside the function getTT(..)
+ */
+enum TT_EstimateType{
+	OD_ESTIMATION,
+	SHORTEST_PATH_ESTIMATION,
+	EUCLIDEAN_ESTIMATION // The least computationally expensive one
+};
 
 
 
@@ -119,6 +127,11 @@ public:
 	virtual const std::string getRequestQueueStr() const;
 
 	virtual void sendCruiseCommand(const Person* driver, const Node* nodeToCruiseTo, const timeslice currTick ) const;
+
+	/**
+	 * Estimates the travel time to go from node1 to node2. In seconds
+	 */
+	double getTT(const Node* node1, const Node* node2, TT_EstimateType typeOD) const;
 
 
 

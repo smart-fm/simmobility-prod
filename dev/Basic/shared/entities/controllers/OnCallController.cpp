@@ -18,6 +18,7 @@
 #include "message/MobilityServiceControllerMessage.hpp"
 #include <iterator> // for std::begin
 #include "Rebalancer.hpp"
+#include <cmath> // For pow
 
 using namespace sim_mob;
 using namespace messaging;
@@ -770,5 +771,58 @@ void OnCallController::sendCruiseCommand(const Person* driver, const Node* nodeT
 				messaging::MessageBus::MessagePtr(new SchedulePropositionMessage(currTick, schedule) ) );
 }
 
+double OnCallController::getTT(const Node* node1, const Node* node2, TT_EstimateType type) const
+{
+#ifndef NDEBUG
+	if (
+			(node1 == node2 && node1->getNodeId() !=  node2->getNodeId() ) ||
+			(node1 != node2 && node1->getNodeId() ==  node2->getNodeId() )
+	){
+		throw std::runtime_error("Pointers of nodes do not correspond to their IDs for some weird reason");
+	}
+#endif
+
+	double retValue;
+	if (node1 == node2)
+		retValue = 0;
+	else{
+			switch (type)
+			{
+			case (OD_ESTIMATION):
+			{
+				retValue = PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(
+							node1->getNodeId(), node2->getNodeId(), DailyTime(currTick.ms()));
+				break;
+			}
+			case (SHORTEST_PATH_ESTIMATION):
+			{
+				retValue = PrivateTrafficRouteChoice::getInstance()->getShortestPathTravelTime(
+							node1, node2, DailyTime(currTick.ms() ) );
+				break;
+			}
+			case (EUCLIDEAN_ESTIMATION):
+			{
+				double squareDistance = pow(node1->getPosX() - node2->getPosX(), 2 ) +pow(node1->getPosY() - node2->getPosY(), 2 );
+				// We assume that the distance between node1 and node2 is a hypothenus of a right triangle and
+				// that we go from a node to the other by crossing the two catheti
+				double cathetus = sqrt(squareDistance ) / sqrt(2.0);
+				double distanceToCover = 2.0 * cathetus; // meters
+				double speedAssumed = 40.0 * 1000 / 3600 ; //40Kmph converted in mps
+				retValue = distanceToCover * speedAssumed;
+				break;
+			}
+			default:
+				throw std::runtime_error("Estimate type not recognized");
+		}
+
+
+
+		if (retValue <= 0)
+		{	// The two nodes are different and the travel time should be non zero, if valid
+			retValue = std::numeric_limits<double>::max();
+		}
+	}
+	return retValue;
+}
 
 

@@ -9,13 +9,13 @@ namespace sim_mob
 class Point
 {
 protected:
-	/**X coordinate*/
+	/**X coordinate (meters)*/
 	double x;
 
-	/**Y coordinate*/
+	/**Y coordinate (meters)*/
 	double y;
 
-	/**Z coordinate*/
+	/**Z coordinate (meters)*/
 	double z;
 
 public:

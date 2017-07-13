@@ -459,22 +459,36 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	TravelTimeManager::getInstance()->storeCurrentSimulationTT();
 
 	Print() << "Time required for initialisation [Loading configuration, network, demand ...]: "
-	        << DailyTime((uint32_t) loop_start_offset).getStrRepr() << std::endl << std::endl;
+	        << DailyTime((uint32_t) loop_start_offset).getStrRepr() << std::endl;
+
+	Print() << "\nNumber of trips/activities [demand] loaded: " << config.numTripsLoaded;
+
+	if(config.numTripsNotLoaded > 0)
+	{
+		Print() << "\nNumber of trips/activities [demand] that failed to load [Refer to warn.log for more details]: "
+				<< config.numTripsNotLoaded;
+	}
+
+	Print() << "\nNumber of trips/activities [demand] completed: " << config.numTripsCompleted;
+	Print() << "\n\nNumber of persons loaded: " << config.numPersonsLoaded;
 
 	if(config.numPathNotFound > 0)
 	{
 		Print() << "\nPersons not simulated as the path was not found [Refer to warn.log for more details]: "
-		        << config.numPathNotFound << endl;
+				<< config.numPathNotFound << endl;
 	}
 
-	Print() << "Number of trips/activities [demand] simulated: " << config.numTripsSimulated
-            << "\nNumber of trips/activities [demand] completed: " << config.numTripsCompleted << "\n";
+	if (config.numAgentsKilled > 0)
+	{
+		Print() << "\nAgents removed from simulation due to errors [Refer to warn.log for more details]: "
+				<< config.numAgentsKilled << endl;
+	}
 
 	if (!Agent::pending_agents.empty())
 	{
-		Print() << "\nWARNING! There are still " << Agent::pending_agents.size()
+		Print() << "\n\nWARNING! There are still " << Agent::pending_agents.size()
 		        << " agents waiting to be scheduled. Next start time is: "
-		        << Agent::pending_agents.top()->getStartTime() << " ms\n";
+		        << DailyTime(Agent::pending_agents.top()->getStartTime()).getStrRepr() << "\n";
 	}
 
 	(Conflux::activeAgentsLock).lock();
@@ -569,12 +583,6 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 				<< numWaitTaxi << " Waiting for Taxi,\t" << numWaitTrain << " Waiting for train\n";
 	}
 	(Conflux::activeAgentsLock).unlock();
-
-	if (config.numAgentsKilled > 0)
-	{
-		Print() << "\nAgents removed from simulation due to errors [Refer to warn.log for more details]: "
-		        << config.numAgentsKilled << endl;
-	}
 
 	PT_Statistics::getInstance()->storeStatistics();
 	PT_Statistics::resetInstance();

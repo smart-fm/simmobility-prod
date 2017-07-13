@@ -332,6 +332,8 @@ void Conflux::addAgent(Person_MT* person)
 			break;
 		}
 		}
+
+		ConfigManager::GetInstanceRW().FullConfig().numTripsLoaded++;
 	}
 }
 
@@ -505,6 +507,7 @@ void Conflux::updateQueuingTaxiDriverAgent(Person_MT* person)
 {
 	updateAgent(person);
 }
+
 void Conflux::updateAgent(Person_MT* person)
 {
 	if (person->getLastUpdatedFrame() < currFrame.frame())
@@ -521,13 +524,13 @@ void Conflux::updateAgent(Person_MT* person)
 
 	//let the person move
 	UpdateStatus res = movePerson(currFrame, person);
+
 	//kill person if he's DONE
 	if (res.status == UpdateStatus::RS_DONE)
 	{
 		killAgent(person, beforeUpdate);
 		return;
 	}
-
 
 	//capture person info after update
 	PersonProps afterUpdate(person, this);
@@ -537,12 +540,10 @@ void Conflux::updateAgent(Person_MT* person)
 
 	//update person's handler registration with MessageBus, if required
 	updateAgentContext(beforeUpdate, afterUpdate, person);
-
 }
 
 bool Conflux::handleRoleChange(PersonProps& beforeUpdate, PersonProps& afterUpdate, Person_MT* person)
 {
-
 	if(beforeUpdate.roleType == afterUpdate.roleType)
 	{
 		return false; //no role change took place; simply return
@@ -1092,7 +1093,6 @@ void Conflux::updateAndReportSupplyStats(timeslice frameNumber)
 
 void Conflux::killAgent(Person_MT* person, PersonProps& beforeUpdate)
 {
-
 	SegmentStats* prevSegStats = beforeUpdate.segStats;
 	const Lane* prevLane = beforeUpdate.lane;
 	bool wasQueuing = beforeUpdate.isQueuing;
@@ -1206,7 +1206,6 @@ void Conflux::killAgent(Person_MT* person, PersonProps& beforeUpdate)
 	}
 	activeAgentsLock.unlock();
 	safe_delete_item(person);
-	ConfigManager::GetInstanceRW().FullConfig().numTripsCompleted++;
 }
 
 void Conflux::resetPositionOfLastUpdatedAgentOnLanes()
@@ -1322,8 +1321,6 @@ bool Conflux::callMovementFrameInit(timeslice now, Person_MT* person)
 		{
 			return false;
 		} //if agent initialization fails, person is set to be removed
-
-		ConfigManager::GetInstanceRW().FullConfig().numTripsSimulated++;
 	}
 
 	return true;
@@ -1450,6 +1447,10 @@ void Conflux::collectTravelTime(Person_MT* person)
 Entity::UpdateStatus Conflux::switchTripChainItem(Person_MT* person)
 {
 	collectTravelTime(person);
+
+	//Update the number of trips/activities completed
+	ConfigManager::GetInstanceRW().FullConfig().numTripsCompleted++;
+
 	Entity::UpdateStatus retVal = person->checkTripChain(currFrame.ms());
 	if (retVal.status == UpdateStatus::RS_DONE)
 	{

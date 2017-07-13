@@ -407,7 +407,7 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 		        << config.numPathNotFound << endl;
 	}
 
-	Print() << "\nNumber of trips/activities [demand] simulated: " << config.numTripsSimulated
+	Print() << "\nNumber of trips/activities [demand] loaded: " << config.numTripsLoaded
 	        << "\nNumber of trips/activities [demand] completed: " << config.numTripsCompleted << "\n";
 
 	size_t numActivities = 0, numBusDriver = 0, numCarPassenger = 0, numDriver = 0, numPassenger = 0, numPedestrian = 0;

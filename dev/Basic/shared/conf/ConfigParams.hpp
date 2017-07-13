@@ -110,17 +110,23 @@ public:
     /// Is the simulation repeatable?
 	bool is_simulation_repeatable;
 
-    /// Number of agents killed due to errors
-    std::atomic<unsigned int> numAgentsKilled;
+	///Total number of trips loaded into SimMobility
+	std::atomic<unsigned int> numTripsLoaded;
 
-	///Total number of trips simulated
-	std::atomic<unsigned int> numTripsSimulated;
+	///Total number of trips that could not be loaded into SimMobility
+	std::atomic<unsigned int> numTripsNotLoaded;
 
 	///Total number of trips that were completed
 	std::atomic<unsigned int> numTripsCompleted;
 
+	///Total number of persons loaded into SimMobility
+	std::atomic<unsigned int> numPersonsLoaded;
+
 	///Total number of person that could not be loaded due to path not found errors
 	std::atomic<unsigned int> numPathNotFound;
+
+	/// Number of agents killed due to errors
+	std::atomic<unsigned int> numAgentsKilled;
 
 public:
     /**

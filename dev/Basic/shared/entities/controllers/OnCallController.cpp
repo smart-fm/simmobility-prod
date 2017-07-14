@@ -12,6 +12,7 @@
 #include "util/Utils.hpp"
 #include <algorithm>    // std::sort, next_permutation, find
 
+#include <cstring>
 #include "OnCallController.hpp"
 #include "path/PathSetManager.hpp" // for PrivateTrafficRouteChoice
 #include "entities/mobilityServiceDriver/MobilityServiceDriver.hpp"
@@ -30,7 +31,7 @@ OnCallController::OnCallController(const MutexStrategy& mtxStrat, unsigned int c
 	: MobilityServiceController(mtxStrat, type_, id), scheduleComputationPeriod(computationPeriod),
 	  ttEstimateType(ttEstimateType_)
 {
-	rebalancer = new SimpleRebalancer(this);
+	rebalancer = new KasiaRebalancer(this); //jo SimpleRebalancer(this);
 	nodeIdMap = RoadNetwork::getInstance()->getMapOfIdvsNodes();
 #ifndef NDEBUG
 	isComputingSchedules = false;

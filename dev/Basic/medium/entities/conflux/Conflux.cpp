@@ -332,8 +332,6 @@ void Conflux::addAgent(Person_MT* person)
 			break;
 		}
 		}
-
-		ConfigManager::GetInstanceRW().FullConfig().numTripsLoaded++;
 	}
 }
 
@@ -1447,9 +1445,6 @@ void Conflux::collectTravelTime(Person_MT* person)
 Entity::UpdateStatus Conflux::switchTripChainItem(Person_MT* person)
 {
 	collectTravelTime(person);
-
-	//Update the number of trips/activities completed
-	ConfigManager::GetInstanceRW().FullConfig().numTripsCompleted++;
 
 	Entity::UpdateStatus retVal = person->checkTripChain(currFrame.ms());
 	if (retVal.status == UpdateStatus::RS_DONE)

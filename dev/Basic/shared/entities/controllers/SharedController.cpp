@@ -26,7 +26,6 @@ void SharedController::computeSchedules()
 {
 	TT_EstimateType ttEstimateType = EUCLIDEAN_ESTIMATION; // When we check the extra delay induced to passengers due to sharing, we will
 												// estimate travel time in this fashion
-	const std::map<unsigned int, Node*>& nodeIdMap = RoadNetwork::getInstance()->getMapOfIdvsNodes();
 	std::vector<sim_mob::Schedule> schedules; // We will fill this schedules and send it to the best driver
 
 	size_t requestsToBeScheduledInitially = requestQueue.size();
@@ -570,33 +569,8 @@ void SharedController::computeSchedules()
 			toMs(profilingTime_sendAssignement)<<", profilingTime_removeServedRequests="<<toMs(profilingTime_removeServedRequests)<<std::endl;
 }
 
-double SharedController::toMs(int c) const
-{
-	return c / ( CLOCKS_PER_SEC / 1000 );
-}
 
-bool SharedController::isCruising(Person* p)
-{
-    const MobilityServiceDriver* currDriver = p->exportServiceDriver();
-    if (currDriver) 
-    {
-        if (currDriver->getDriverStatus() == MobilityServiceDriverStatus::CRUISING)
-        {
-            return true;
-        }
-    }
-    return false;
-}
 
-const Node* SharedController::getCurrentNode(Person* p)
-{
-    const MobilityServiceDriver* currDriver = p->exportServiceDriver();
-    if (currDriver) 
-    {
-        return currDriver->getCurrentNode();
-    }
-    return nullptr;
-}
 
 
 void SharedController::checkSequence(const std::string &sequence) const

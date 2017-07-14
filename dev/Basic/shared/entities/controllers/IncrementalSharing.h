@@ -1,34 +1,31 @@
 /*
- * SharedController.hpp
+ * IncrementalSharing.h
  *
- *  Created on: Apr 18, 2017
- *      Author: Akshay Padmanabha
+ *  Created on: 14 Jul 2017
+ *      Author: araldo
  */
 
-#ifndef SharedController_HPP_
-#define SharedController_HPP_
-#include <vector>
+#ifndef ENTITIES_CONTROLLERS_INCREMENTALSHARING_H_
+#define ENTITIES_CONTROLLERS_INCREMENTALSHARING_H_
 
-#include "entities/Agent.hpp"
-#include "OnCallController.hpp"
 
 namespace sim_mob
 {
 
-class SharedController : public OnCallController {
+class IncrementalSharing : public OnCallController {
 public:
-	SharedController
+	IncrementalSharing
 		(const MutexStrategy& mtxStrat, unsigned int computationPeriod, unsigned id) :
-		OnCallController(mtxStrat, computationPeriod, MobilityServiceControllerType::SERVICE_CONTROLLER_SHARED, id)
+		OnCallController(mtxStrat, computationPeriod, MobilityServiceControllerType::SERVICE_CONTROLLER_INCREMENTAL, id)
 	{
 	}
 
 	virtual void checkSequence (const std::string& sequence) const;
 
-	// Inhertis from the parent
+	// Inherits from the parent
 	virtual void sendCruiseCommand(const Person* driver, const Node* nodeToCruiseTo, const timeslice currTick ) const;
 
-	double toMs(int c) const;
+
 
 #ifndef NDEBUG
 	// Overrides the parent method
@@ -36,6 +33,8 @@ public:
 #endif
 
 protected:
+	virtual bool isCruising(Person* p);
+	virtual const Node* getCurrentNode(Person* p);
 
 	/**
 	 * Performs the controller algorithm to assign vehicles to requests
@@ -43,4 +42,5 @@ protected:
 	virtual void computeSchedules();
 };
 }
-#endif /* SharedController_HPP_ */
+
+#endif /* ENTITIES_CONTROLLERS_INCREMENTALSHARING_H_ */

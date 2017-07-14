@@ -26,10 +26,12 @@ using namespace messaging;
 
 
 OnCallController::OnCallController(const MutexStrategy& mtxStrat, unsigned int computationPeriod,
-		MobilityServiceControllerType type_, unsigned id)
-	: MobilityServiceController(mtxStrat, type_, id), scheduleComputationPeriod(computationPeriod)
+		MobilityServiceControllerType type_, unsigned id, TT_EstimateType ttEstimateType_)
+	: MobilityServiceController(mtxStrat, type_, id), scheduleComputationPeriod(computationPeriod),
+	  ttEstimateType(ttEstimateType_)
 {
 	rebalancer = new SimpleRebalancer(this);
+	nodeIdMap = RoadNetwork::getInstance()->getMapOfIdvsNodes();
 #ifndef NDEBUG
 	isComputingSchedules = false;
 #endif
@@ -466,12 +468,49 @@ const Person *OnCallController::findClosestDriver(const Node *node) const
 	return bestDriver;
 }
 
+
+
+double OnCallController::evaluateSchedule(const Node *initialPosition, const Schedule &schedule,
+                                          double additionalDelayThreshold, double waitingTimeThreshold) const
+{
+	double scheduleTimeStamp = currTick.ms() / 1000.0; // In seconds
+	const Node* latestNode = initialPosition;
+	std::map<const string, double> passengerPickUpTimeStamps; // Associate to each passenger, the time stamp at which he has been picked up.
+
+	// In this for loop we are predicting how the schedule would unfold
+	for (const ScheduleItem &scheduleItem : schedule)
+	{
+		case (PICKUP):
+		{
+			const TripRequestMessage& request = scheduleItem.tripRequest;
+			// I verify if the waiting time is ok
+			const Node* nextNode = nodeIdMap.find(scheduleItem.tripRequest.startNodeId);
+			scheduleTimeStamp += getTT(latestNode, nextNode, ttEstimateType);
+			if (scheduleTimeStamp - request.timeOfRequest.ms() / 1000.0 > waitingTimeThreshold)
+				return -1;
+			else
+				passengerPickUpTimeStamps.emplace(request.userId);
+
+			break;
+		}
+		case (DROPOFF):
+		{
+			// Find the time that this traveller would need, if he were alone
+			const TripRequestMessage& request = scheduleItem.tripRequest;
+			const Node* startNode = nodeIdMap.find(scheduleItem.tripRequest.startNodeId);
+			const Node* nextNode = nodeIdMap.find(scheduleItem.tripRequest.destinationNodeId);
+			scheduleTimeStamp += getTT(latestNode, nextNode, ttEstimateType);
+			double timeIfHeWereAlone = getTT(startNode, nextNode, ttEstimateType);
+		}
+	}
+}
+/*
 //TODO: in the request itself, the user should specify the earliest and latest pickup and dropoff times
 double OnCallController::evaluateSchedule(const Node *initialPosition, const Schedule &schedule,
                                           double additionalDelayThreshold, double waitingTimeThreshold) const
 {
 	double scheduleTimeStamp = currTick.ms() / 1000.0; // In seconds
-	unsigned latestNodeId = initialPosition->getNodeId();
+	const Node* latestNode = initialPosition;
 
 	// Check that each user is picked up before being dropped off
 	std::set<string> dropoffs;
@@ -483,12 +522,11 @@ double OnCallController::evaluateSchedule(const Node *initialPosition, const Sch
 		{
 			dropoffs.insert(scheduleItem.tripRequest.userId);
 
-			unsigned nextNodeId = scheduleItem.tripRequest.destinationNodeId;
-			scheduleTimeStamp += PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(
-					latestNodeId, nextNodeId, DailyTime(currTick.ms()));
+			const Node* nextNode= nodeIdMap.find(scheduleItem.tripRequest.destinationNodeId);
+			scheduleTimeStamp += getTT( latestNode, nextNode, ttEstimateType);
 			latestNodeId = nextNodeId;
 
-			double earliestPickupTimeStamp = scheduleItem.tripRequest.timeOfRequest.ms() / 100.0; // in seconds
+			double earliestPickupTimeStamp = scheduleItem.tripRequest.timeOfRequest.ms() / 1000.0; // in seconds
 			double minimumTravelTime = PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(
 					scheduleItem.tripRequest.startNodeId, scheduleItem.tripRequest.destinationNodeId,
 					DailyTime(currTick.ms()));
@@ -546,6 +584,7 @@ double OnCallController::evaluateSchedule(const Node *initialPosition, const Sch
 
 	return travelTime;
 }
+*/
 
 double OnCallController::computeSchedule(const Node* initialNode, const Schedule& currentSchedule,
 		const Group<TripRequestMessage>& additionalRequests,
@@ -825,4 +864,32 @@ double OnCallController::getTT(const Node* node1, const Node* node2, TT_Estimate
 	return retValue;
 }
 
+double OnCallController::toMs(int c) const
+{
+	return c / ( CLOCKS_PER_SEC / 1000 );
+}
 
+
+bool OnCallController::isCruising(Person* p)
+{
+    const MobilityServiceDriver* currDriver = p->exportServiceDriver();
+    if (currDriver)
+    {
+        if (currDriver->getDriverStatus() == MobilityServiceDriverStatus::CRUISING)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+
+const Node* OnCallController::getCurrentNode(Person* p)
+{
+    const MobilityServiceDriver* currDriver = p->exportServiceDriver();
+    if (currDriver)
+    {
+        return currDriver->getCurrentNode();
+    }
+    return nullptr;
+}

@@ -64,27 +64,28 @@ bool MobilityServiceControllerManager::addMobilityServiceController(MobilityServ
 	sim_mob::consistencyChecks(type);
 #endif
 
+	TT_EstimateType ttEstimateType = EUCLIDEAN_ESTIMATION;
 	MobilityServiceController* controller;
 	switch(type)
 	{
 		case SERVICE_CONTROLLER_GREEDY:
 		{
-			controller = new GreedyTaxiController(getMutexStrategy(), scheduleComputationPeriod, controllerId);
+			controller = new GreedyTaxiController(getMutexStrategy(), scheduleComputationPeriod, controllerId, ttEstimateType);
 			break;
 		}
 		case SERVICE_CONTROLLER_SHARED:
 		{
-			controller = new SharedController(getMutexStrategy(), scheduleComputationPeriod, controllerId) ;
+			controller = new SharedController(getMutexStrategy(), scheduleComputationPeriod, controllerId, ttEstimateType) ;
 			break;
 		}
 		case SERVICE_CONTROLLER_FRAZZOLI:
 		{
-			controller = new FrazzoliController(getMutexStrategy(), scheduleComputationPeriod, controllerId);
+			controller = new FrazzoliController(getMutexStrategy(), scheduleComputationPeriod, controllerId, ttEstimateType);
 			break;
 		}
 		case SERVICE_CONTROLLER_ON_HAIL:
 		{
-			controller = new OnHailTaxiController(getMutexStrategy(), controllerId);
+			controller = new OnHailTaxiController(getMutexStrategy(), controllerId, ttEstimateType);
 			break;
 		}
 		default:

@@ -112,7 +112,9 @@ protected:
 	// (see https://stackoverflow.com/a/121163/2110769).
 	// The constructor is protected to avoid instantiating an OnCallController directly, since it is conceptually abstract
 	explicit OnCallController(const MutexStrategy& mtxStrat, unsigned int computationPeriod,
-			MobilityServiceControllerType type_, unsigned id);
+			MobilityServiceControllerType type_, unsigned id, TT_EstimateType ttEstimateType);
+
+	const std::map<unsigned int, Node*>& nodeIdMap;
 
 public:
 
@@ -134,9 +136,18 @@ public:
 	double getTT(const Node* node1, const Node* node2, TT_EstimateType typeOD) const;
 
 
+	/**
+	 * Converts from number of clocks to milliseconds
+	 */
+	double toMs(int c) const;
+
 
 protected:
 
+	/**
+	 * Checks if the driver is cruising
+	 */
+	virtual bool isCruising(Person* driver);
 
 	/**
 	 * Inherited from base class to output result
@@ -206,6 +217,8 @@ protected:
 	 */
 	Entity::UpdateStatus frame_tick(timeslice now);
 
+	virtual const Node* getCurrentNode(Person* p);
+
 
 
 
@@ -252,7 +265,10 @@ protected:
 	const double waitingTimeThreshold = std::numeric_limits<double>::max();
 	const unsigned maxVehicleOccupancy = 2; //number of passengers (the driver is not considered in this number) //TODO: it should be vehicle based
 
+	TT_EstimateType ttEstimateType;
+
 };
+
 }
 
 template <class T> std::ostream& operator<<(std::ostream& strm, const sim_mob::Group<T>& group)

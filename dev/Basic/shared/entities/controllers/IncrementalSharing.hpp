@@ -5,8 +5,10 @@
  *      Author: araldo
  */
 
-#ifndef ENTITIES_CONTROLLERS_INCREMENTALSHARING_H_
-#define ENTITIES_CONTROLLERS_INCREMENTALSHARING_H_
+#ifndef ENTITIES_CONTROLLERS_INCREMENTALSHARING_HPP_
+#define ENTITIES_CONTROLLERS_INCREMENTALSHARING_HPP_
+
+#include "OnCallController.hpp"
 
 
 namespace sim_mob
@@ -15,8 +17,8 @@ namespace sim_mob
 class IncrementalSharing : public OnCallController {
 public:
 	IncrementalSharing
-		(const MutexStrategy& mtxStrat, unsigned int computationPeriod, unsigned id) :
-		OnCallController(mtxStrat, computationPeriod, MobilityServiceControllerType::SERVICE_CONTROLLER_INCREMENTAL, id)
+		(const MutexStrategy& mtxStrat, unsigned int computationPeriod, unsigned id, TT_EstimateType ttEstimateType) :
+		OnCallController(mtxStrat, computationPeriod, MobilityServiceControllerType::SERVICE_CONTROLLER_INCREMENTAL, id, ttEstimateType)
 	{
 	}
 
@@ -43,4 +45,4 @@ protected:
 };
 }
 
-#endif /* ENTITIES_CONTROLLERS_INCREMENTALSHARING_H_ */
+#endif /* ENTITIES_CONTROLLERS_INCREMENTALSHARING_HPP_ */

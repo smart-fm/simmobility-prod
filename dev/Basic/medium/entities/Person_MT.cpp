@@ -927,9 +927,6 @@ void Person_MT::initTripChain()
 	}
 	setNextPathPlanned(false);
 	isFirstTick = true;
-
-	//Record the trips for this person
-	ConfigManager::GetInstanceRW().FullConfig().numTripsLoaded += tripChain.size();
 }
 
 bool Person_MT::updatePersonRole()
@@ -1042,6 +1039,9 @@ bool Person_MT::advanceCurrentTripChainItem()
 
 	//do the increment
 	++currTripChainItem;
+
+	//Update the number of trips completed
+	ConfigManager::GetInstanceRW().FullConfig().numTripsCompleted++;
 
 	if (currTripChainItem == tripChain.end())
 	{

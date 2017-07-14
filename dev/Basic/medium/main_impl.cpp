@@ -461,32 +461,32 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	Print() << "Time required for initialisation [Loading configuration, network, demand ...]: "
 	        << DailyTime((uint32_t) loop_start_offset).getStrRepr() << std::endl;
 
-	Print() << "\nNumber of trips/activities [demand] loaded: " << config.numTripsLoaded;
+	Print() << "\nNumber of trips [demand] loaded: " << config.numTripsLoaded;
 
 	if(config.numTripsNotLoaded > 0)
 	{
-		Print() << "\nNumber of trips/activities [demand] that failed to load [Refer to warn.log for more details]: "
+		Print() << "\nNumber of trips [demand] that failed to load [Refer to warn.log for more details]: "
 				<< config.numTripsNotLoaded;
 	}
 
-	Print() << "\nNumber of trips/activities [demand] completed: " << config.numTripsCompleted;
-	Print() << "\n\nNumber of persons loaded: " << config.numPersonsLoaded;
+	Print() << "\nNumber of trips [demand] completed: " << config.numTripsCompleted;
+	Print() << "\n\nNumber of persons loaded: " << config.numPersonsLoaded << endl;
 
 	if(config.numPathNotFound > 0)
 	{
-		Print() << "\nPersons not simulated as the path was not found [Refer to warn.log for more details]: "
+		Print() << "Persons not simulated as the path was not found [Refer to warn.log for more details]: "
 				<< config.numPathNotFound << endl;
 	}
 
 	if (config.numAgentsKilled > 0)
 	{
-		Print() << "\nAgents removed from simulation due to errors [Refer to warn.log for more details]: "
+		Print() << "Agents removed from simulation due to errors [Refer to warn.log for more details]: "
 				<< config.numAgentsKilled << endl;
 	}
 
 	if (!Agent::pending_agents.empty())
 	{
-		Print() << "\n\nWARNING! There are still " << Agent::pending_agents.size()
+		Print() << "\nWARNING! There are still " << Agent::pending_agents.size()
 		        << " agents waiting to be scheduled. Next start time is: "
 		        << DailyTime(Agent::pending_agents.top()->getStartTime()).getStrRepr() << "\n";
 	}
@@ -495,9 +495,9 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	if (Agent::activeAgents.size() > 0)
 	{
 		size_t numPersons = 0;
-		size_t numActivities = 0, numBiker = 0, numBusDriver = 0, numCarPassenger = 0, numDriver = 0, numPassenger = 0;
-		size_t numPedestrian = 0, numPrivBusPassenger = 0, numTaxiPassenger = 0, numTrainDriver = 0, numTrainPassenger = 0;
-		size_t numTravelPedestrian = 0, numTruckerHGV = 0, numTruckerLGV = 0, numWaitBus = 0, numWaitTaxi = 0, numWaitTrain = 0, numTaxiDriver = 0;
+		size_t numActivities = 0, numBiker = 0, numCarPassenger = 0, numDriver = 0, numPassenger = 0;
+		size_t numPedestrian = 0, numPrivBusPassenger = 0, numTaxiPassenger = 0, numTrainPassenger = 0;
+		size_t numTravelPedestrian = 0, numWaitBus = 0, numWaitTaxi = 0, numWaitTrain = 0;
 
 		for (std::vector<Entity*>::iterator it = Agent::activeAgents.begin(); it != Agent::activeAgents.end(); ++it)
 		{
@@ -519,7 +519,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 						numBiker++;
 						break;
 					case Role<Person_MT>::RL_BUSDRIVER:
-						numBusDriver++;
+						numPersons--;
 						break;
 					case Role<Person_MT>::RL_CARPASSENGER:
 						numCarPassenger++;
@@ -540,7 +540,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 						numTaxiPassenger++;
 						break;
 					case Role<Person_MT>::RL_TRAINDRIVER:
-						numTrainDriver++;
+						numPersons--;
 						break;
 					case Role<Person_MT>::RL_TRAINPASSENGER:
 						numTrainPassenger++;
@@ -549,10 +549,10 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 						numTravelPedestrian++;
 						break;
 					case Role<Person_MT>::RL_TRUCKER_HGV:
-						numTruckerHGV++;
+						numPersons--;
 						break;
 					case Role<Person_MT>::RL_TRUCKER_LGV:
-						numTruckerLGV++;
+						numPersons--;
 						break;
 					case Role<Person_MT>::RL_WAITBUSACTIVITY:
 						numWaitBus++;
@@ -564,7 +564,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 						numWaitTrain++;
 						break;
 					case Role<Person_MT>::RL_TAXIDRIVER:
-						numTaxiDriver++;
+						numPersons--;
 						break;
 
 					}
@@ -573,14 +573,13 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 		}
 
 		Print() << "\nPersons still in the simulation: " << numPersons << "\n"
-		        << numActivities << " Performing activity,\t" << numBiker << " Bikers,\t"
-		        << numBusDriver << " BusDrivers,\t" << numTaxiDriver << " TaxiDrivers,\t" << numCarPassenger << " Car passengers,\t"
-		        << numDriver << " Drivers,\t" << numPassenger << " Passengers,\t" << numPedestrian << " Pedestrians,\t"
-		        << numPrivBusPassenger << " Private bus passengers,\n" << numTaxiPassenger << " Taxi passengers,\t"
-				<< numTrainDriver << " Train drivers,\t" << numTrainPassenger << " Train passengers,\t"
-		        << numTravelPedestrian << " Travel pedestrians,\t" << numTruckerHGV << " HGV truckers,\t"
-				<< numTruckerLGV << " LGV truckers,\t" << numWaitBus << " Waiting for bus,\t"
-				<< numWaitTaxi << " Waiting for Taxi,\t" << numWaitTrain << " Waiting for train\n";
+		        << numActivities << " Performing activity,\n" << numBiker << " Bikers,\n"
+		        << numCarPassenger << " Car passengers,\n"
+		        << numDriver << " Drivers,\n" << numPassenger << " Passengers,\n" << numPedestrian << " Pedestrians,\n"
+		        << numPrivBusPassenger << " Private bus passengers,\n" << numTaxiPassenger << " Taxi passengers,\n"
+				<< numTrainPassenger << " Train passengers,\n"
+		        << numTravelPedestrian << " Travel pedestrians,\n" << numWaitBus << " Waiting for bus,\n"
+				<< numWaitTaxi << " Waiting for Taxi,\n" << numWaitTrain << " Waiting for train\n";
 	}
 	(Conflux::activeAgentsLock).unlock();
 

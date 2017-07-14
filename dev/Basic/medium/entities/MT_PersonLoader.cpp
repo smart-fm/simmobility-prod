@@ -423,6 +423,7 @@ Trip* MT_PersonLoader::makeTrip(const soci::row& r, unsigned int seqNo)
 		safe_delete_item(trip);
 		return nullptr;
 	}
+
 	makeSubTrip(r, trip);
 	return trip;
 }
@@ -566,8 +567,9 @@ void MT_PersonLoader::loadPersonDemand()
 
 	soci::rowset<soci::row> rs = (sql_.prepare << sql_str);
 	ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
-	unsigned actCtr = 0, tripsNotConstructed = 0;
 	map<string, vector<TripChainItem*> > tripchains;
+
+	ConfigParams &configParams = ConfigManager::GetInstanceRW().FullConfig();
 
 	for (soci::rowset<soci::row>::const_iterator it=rs.begin(); it!=rs.end(); ++it)
 	{
@@ -583,10 +585,13 @@ void MT_PersonLoader::loadPersonDemand()
 		if (constructedTrip)
 		{
 			personTripChain.push_back(constructedTrip);
+
+			//Record the number of trips loaded
+			configParams.numTripsLoaded++;
 		}
 		else
 		{
-			tripsNotConstructed++;
+			configParams.numTripsNotLoaded++;
 			continue;
 		}
 
@@ -594,16 +599,10 @@ void MT_PersonLoader::loadPersonDemand()
 		{
 			personTripChain.push_back(makeActivity(r, ++seqNo));
 		}
-
-		actCtr++;
 	}
 
-	//Record the total number of persons loaded and the trips not loaded from the day activity schedule
-	ConfigParams &configParams = ConfigManager::GetInstanceRW().FullConfig();
-	configParams.numTripsLoaded += actCtr;
-	configParams.numTripsNotLoaded += tripsNotConstructed;
+	//Record the total number of persons loaded from the day activity schedule
 	configParams.numPersonsLoaded += tripchains.size();
-
 
 	if (!freightStoredProcName.empty())
 	{

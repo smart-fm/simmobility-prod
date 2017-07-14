@@ -20,13 +20,26 @@ void IncrementalSharing::computeSchedules()
 		const Node* driverNode = driver->exportServiceDriver()->getCurrentNode();
 		std::map<const std::string, double> passengerMinimumTT ;
 		Schedule schedule;
+		unsigned passengers = 0;
 
 		for ( std::list<TripRequestMessage>::iterator itReq =  requestQueue.begin();
-				itReq != requestQueue.end() && passengerSchedules.size() <= vehicleCapacity;
+				itReq != requestQueue.end() && passengers <= vehicleCapacity;
 		){
 			const TripRequestMessage request= *itReq;
 			const Node* pickUpNode = nodeIdMap.find(request.startNodeId);
 			const Node* dropOffNode = nodeIdMap.find(request.destinationNodeId);
+			bool hasChancesToBeValid = true;
+
+			Schedule::iterator scheduleIt = schedule.begin();
+			do
+			{
+				Schedule scheduleHypothesis = schedule;
+				scheduleHypothesis.insert();
+
+				++scheduleIt;
+			} while (scheduleIt != schedule.end() )
+
+
 			if ( getTT( driverNode, pickUpNode, ttEstimateType  ) <= maxWaitingTime )
 			{
 				double currentPassengerMinimumTT = getTT(pickUpNode, dropOffNode, ttEstimateType);
@@ -42,7 +55,7 @@ void IncrementalSharing::computeSchedules()
 					requestQueue.erase(itReq);
 				}else if (schedule.size() == 1)
 				{
-					// I try to pack into the same vehicle another traveller
+					for
 
 				}
 			}// If the pickup point is far from the driver, I do not consider matching them

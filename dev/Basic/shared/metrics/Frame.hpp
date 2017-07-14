@@ -38,6 +38,7 @@ public:
 
 	uint32_t frame() const { return frame_; }
 	uint32_t ms() const { return ms_; }
+	double getSeconds() const { return ms_ / 1000.0;}
 
 	bool operator==(const timeslice& other) const
 	{

@@ -473,13 +473,16 @@ const Person *OnCallController::findClosestDriver(const Node *node) const
 double OnCallController::evaluateSchedule(const Node *initialPosition, const Schedule &schedule,
                                           double additionalDelayThreshold, double waitingTimeThreshold) const
 {
-	double scheduleTimeStamp = currTick.ms() / 1000.0; // In seconds
+	double initialScheduleTimeStamp = currTick.getSeconds() ; // In seconds
+	double scheduleTimeStamp = initialScheduleTimeStamp;
 	const Node* latestNode = initialPosition;
-	std::map<const string, double> passengerPickUpTimeStamps; // Associate to each passenger, the time stamp at which he has been picked up.
+	unsigned numberOfPassengers = 0;
 
 	// In this for loop we are predicting how the schedule would unfold
-	for (const ScheduleItem &scheduleItem : schedule)
+	for (Schedule::const_iterator scheduleItemIt = schedule.begin(); scheduleItemIt != schedule.end(); scheduleItemIt++)
 	{
+
+		const ScheduleItem scheduleItem = *scheduleItemIt;
 		case (PICKUP):
 		{
 			const TripRequestMessage& request = scheduleItem.tripRequest;
@@ -489,8 +492,9 @@ double OnCallController::evaluateSchedule(const Node *initialPosition, const Sch
 			if (scheduleTimeStamp - request.timeOfRequest.ms() / 1000.0 > waitingTimeThreshold)
 				return -1;
 			else
-				passengerPickUpTimeStamps.emplace(request.userId);
-
+			{
+				numberOfPassengers ++;
+			}
 			break;
 		}
 		case (DROPOFF):
@@ -500,9 +504,23 @@ double OnCallController::evaluateSchedule(const Node *initialPosition, const Sch
 			const Node* startNode = nodeIdMap.find(scheduleItem.tripRequest.startNodeId);
 			const Node* nextNode = nodeIdMap.find(scheduleItem.tripRequest.destinationNodeId);
 			scheduleTimeStamp += getTT(latestNode, nextNode, ttEstimateType);
-			double timeIfHeWereAlone = getTT(startNode, nextNode, ttEstimateType);
+			double timeIfHeWereAlone = waitingTimeThreshold + getTT(startNode, nextNode, ttEstimateType);
+			if ( scheduleTimeStamp -  request.timeOfRequest.getSeconds() > timeIfHeWereAlone)
+				return -1;
+			// else do nothing and continue checking the other items
+			break;
 		}
+
+		if (numberOfPassengers == 0 && scheduleItemIt != schedule.end() )
+			// At this point I have 0 passengers in the vehicle and I have still other items to check. This is not a valid
+			// schedule
+			return -1;
+
 	}
+
+	// If I am there and the function did not return before, it means it is feasible
+	double expectedVehicleTravelTime = scheduleTimeStamp - initialScheduleTimeStamp;
+	return expectedVehicleTravelTime ;
 }
 /*
 //TODO: in the request itself, the user should specify the earliest and latest pickup and dropoff times

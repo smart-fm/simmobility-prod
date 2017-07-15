@@ -120,6 +120,7 @@ void IncrementalSharing::computeSchedules()
 					std::string(" and she has not finished yet") );
 		}
 	}
+	//
 #endif
 
 	// After we decided all the schedules for all the drivers, we can send  them

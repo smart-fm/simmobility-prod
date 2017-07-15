@@ -22,34 +22,42 @@ namespace sim_mob {
 void IncrementalSharing::computeSchedules()
 {
 	const std::map<unsigned int, Node*>& nodeIdMap = RoadNetwork::getInstance()->getMapOfIdvsNodes();
-	unsigned maxPassengers = 3;
+
+
+	unsigned maxAggregatedRequests = 3; // Maximum number of requests that can be assigned to a driver
 	double maxWaitingTime = 300; //seconds
-	std::map<const Person*, Schedule> driverSchedules;
+	std::map<const Person*, Schedule> schedulesComputedSoFar; // We will put here the schedule that we will have constructed per each driver
 	for (const Person* driver : availableDrivers)
 	{
-		const Node* driverNode = driver->exportServiceDriver()->getCurrentNode();
-		std::map<const std::string, double> passengerMinimumTT ;
+		const Node* driverNode = driver->exportServiceDriver()->getCurrentNode(); // the node in which the driver is currently located
 		Schedule schedule;
-		unsigned passengers = 0;
+		unsigned aggregatedRequests = 0; // Number of requests that we have aggregated so far
 
 		for ( std::list<TripRequestMessage>::iterator itReq =  requestQueue.begin();
-				itReq != requestQueue.end() && passengers <= maxPassengers;
+				itReq != requestQueue.end() && aggregatedRequests < maxAggregatedRequests;
 		){
+			// We now iterate over all the un-assigned requests and we see if we can assign them to this driver
 			const TripRequestMessage request= *itReq;
-			const Node* pickUpNode = *nodeIdMap.find(request.startNodeId);
-			const Node* dropOffNode = *nodeIdMap.find(request.destinationNodeId);
-			bool found = false;
+			const Node* pickUpNode = nodeIdMap.find(request.startNodeId)->second;
+			const Node* dropOffNode = nodeIdMap.find(request.destinationNodeId)->second;
+			bool isMatchingSuccessful = false; // We will set it to true if we observe that this request can be assigned to this driver
 
 			unsigned pickupIdx = 0;
 			do
 			{
-				Schedule scheduleHypothesis = schedule;
-				ScheduleItem newPickup(PICKUP, request);
+				Schedule scheduleHypothesis = schedule; 	// To check if we can assign this request to this driver, we create tentative schedules (like this
+																								// scheduleHypothesis).
+																								// We will try to modify this tentative schedule. If we succeed, they will become the real schedule.
+																								// Otherwise, we will start again from the real schedule and try to insert in it the following requests
+
+				ScheduleItem newPickup(PICKUP, request);	// First, we have to find a feasible position in the schedule for the pickup of the current request.
 				scheduleHypothesis.insert(scheduleHypothesis.begin()+pickupIdx, newPickup);
+
 				double vehicleTime = evaluateSchedule(driverNode, scheduleHypothesis, MobilityServiceController::toleratedExtraTime, maxWaitingTime);
 				if (vehicleTime>0)
 				{
-					// It is possible at least to insert the pick up. Now I check if I can also insert the dropoff
+					// It is possible to insert the pick up. Now, I start from the current scheduleHypothesis, in which the pick up has been successfully inserted,
+					// and I seek a feasible position for the dropoff
 					unsigned dropoffIdx = pickupIdx+1;
 					do{
 						Schedule scheduleHypothesis2 = scheduleHypothesis;
@@ -57,29 +65,69 @@ void IncrementalSharing::computeSchedules()
 						scheduleHypothesis2.insert(schedule.begin() + dropoffIdx, newDropoff);
 						double vehicleTime = evaluateSchedule(driverNode, scheduleHypothesis, MobilityServiceController::toleratedExtraTime, maxWaitingTime);
 						if (vehicleTime > 0){
-							// I can also insert the dropoff. Perfect, I will definitely insert the request in the schedule
-							found = true;
+							// I can also insert the dropoff. Perfect, I will make this successful scheduleHypothesis my schedule
+							isMatchingSuccessful = true;
 							schedule = scheduleHypothesis2;
-						}
-					} while ( dropoffIdx <= schedule.size() && !found  );
+							aggregatedRequests ++ ;
+							itReq = requestQueue.erase(itReq);// The request is matched now. I can eliminate it, so that I will not assign
+															// it again
+						}else
+							dropoffIdx++; // I will try with the subsequent position
+					} while ( dropoffIdx <= schedule.size() && !isMatchingSuccessful  );
+					// Note: I am using <= and not < in the while condition, since it is possible to insert the dropoff at the end of the schedule
 				}
-				++pickupIdx;
-			} while ( pickupIdx <= schedule.size() &&  !found );
 
+				++pickupIdx;	// If we arrived here, it means we did not find a feasible position in the schedule
+										// for the dropoff. We can try by changin the position of
+										// the pickup. If we find another feasible position for the pickup, it is possible that we will also find a feasible position
+										// for a dropoff, given the new pickup position
+			} while ( pickupIdx < schedule.size() &&  !isMatchingSuccessful );
+			// Note: I am using < and not <= in the while condition, since, if I insert the pickup at the end, it is like I am not really sharing this request with
+
+			if (!isMatchingSuccessful)
+			{
+				// I did not remove the request from the requestQueue, and thus I have to advance the iterator manually
+				itReq++;
+			} // else I do nothing, as I did what was to be done, some lines before
 		}
 
-		driverSchedules.emplace(driver, schedule);
+		// Now we are done with this driver.
+
+#ifndef NDEBUG
+		if (schedule.size() != aggregatedRequests * 2 )
+		{
+			throw std::runtime_error("There should be 2 schedule items (1 pickup + 1 dropoff) per each request inserted in this schedule. But it is not the case here.");
+		}
+
+		if (aggregatedRequests > maxAggregatedRequests)
+		{
+			throw std::runtime_error("The number of aggregated requests is incorrect");
+		}
+
+		if (schedulesComputedSoFar.find(driver) != schedulesComputedSoFar.end()  )
+			throw std::runtime_error("Trying to assign more than one schedule to a single driver");
+#endif
+		schedulesComputedSoFar.emplace(driver, schedule);
 	}
 
-	for (const std::pair<const Person*, Schedule>& p : driverSchedules)
+#ifndef NDEBUG
+	for (const std::pair<const Person*, Schedule>& s : schedulesComputedSoFar)
+	{
+		const Person* driver = s.first;
+		if (driverSchedules.find(driver) == driverSchedules.end()  )
+		{
+			throw std::runtime_error("Trying to assign a schedule to a driver that is already occupied as she received a schedule some schedule computation period ago"+
+					std::string(" and she has not finished yet") );
+		}
+	}
+#endif
+
+	// After we decided all the schedules for all the drivers, we can send  them
+	for (const std::pair<const Person*, Schedule>& p : schedulesComputedSoFar)
 	{
 			const Person* driver = p.first; const Schedule schedule = p.second;
 			assignSchedule(driver, schedule);
 	}
-}
-
-IncrementalSharing::~IncrementalSharing() {
-	// TODO Auto-generated destructor stub
 }
 
 } /* namespace sim_mob */

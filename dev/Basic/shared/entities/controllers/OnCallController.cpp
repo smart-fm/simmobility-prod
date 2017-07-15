@@ -482,32 +482,37 @@ double OnCallController::evaluateSchedule(const Node *initialPosition, const Sch
 	{
 
 		const ScheduleItem scheduleItem = *scheduleItemIt;
-		case (PICKUP):
+		switch(scheduleItem.scheduleItemType)
 		{
-			const TripRequestMessage& request = scheduleItem.tripRequest;
-			// I verify if the waiting time is ok
-			const Node* nextNode = nodeIdMap.find(scheduleItem.tripRequest.startNodeId);
-			scheduleTimeStamp += getTT(latestNode, nextNode, ttEstimateType);
-			if (scheduleTimeStamp - request.timeOfRequest.ms() / 1000.0 > waitingTimeThreshold)
-				return -1;
-			else
+			case (PICKUP):
 			{
-				numberOfPassengers ++;
+				const TripRequestMessage& request = scheduleItem.tripRequest;
+				// I verify if the waiting time is ok
+				const Node* nextNode = nodeIdMap.find(scheduleItem.tripRequest.startNodeId)->second;
+				scheduleTimeStamp += getTT(latestNode, nextNode, ttEstimateType);
+				if (scheduleTimeStamp - request.timeOfRequest.ms() / 1000.0 > waitingTimeThreshold)
+					return -1;
+				else
+				{
+					numberOfPassengers ++;
+				}
+				break;
 			}
-			break;
-		}
-		case (DROPOFF):
-		{
-			// Find the time that this traveller would need, if he were alone
-			const TripRequestMessage& request = scheduleItem.tripRequest;
-			const Node* startNode = nodeIdMap.find(scheduleItem.tripRequest.startNodeId);
-			const Node* nextNode = nodeIdMap.find(scheduleItem.tripRequest.destinationNodeId);
-			scheduleTimeStamp += getTT(latestNode, nextNode, ttEstimateType);
-			double timeIfHeWereAlone = waitingTimeThreshold + getTT(startNode, nextNode, ttEstimateType);
-			if ( scheduleTimeStamp -  request.timeOfRequest.getSeconds() > timeIfHeWereAlone)
-				return -1;
-			// else do nothing and continue checking the other items
-			break;
+			case (DROPOFF):
+			{
+				// Find the time that this traveller would need, if he were alone
+				const TripRequestMessage& request = scheduleItem.tripRequest;
+				const Node* startNode = nodeIdMap.find(scheduleItem.tripRequest.startNodeId)->second;
+				const Node* nextNode = nodeIdMap.find(scheduleItem.tripRequest.destinationNodeId)->second;
+				scheduleTimeStamp += getTT(latestNode, nextNode, ttEstimateType);
+				double timeIfHeWereAlone = waitingTimeThreshold + getTT(startNode, nextNode, ttEstimateType);
+				if ( scheduleTimeStamp -  request.timeOfRequest.getSeconds() > timeIfHeWereAlone)
+					return -1;
+				// else do nothing and continue checking the other items
+				break;
+			}default:{
+				throw std::runtime_error("Why would you want to check a schedule item that is neither PICKUP nor DROPOFF?");
+			}
 		}
 
 		if (numberOfPassengers == 0 && scheduleItemIt != schedule.end() )

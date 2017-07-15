@@ -85,7 +85,7 @@ bool MobilityServiceControllerManager::addMobilityServiceController(MobilityServ
 		}
 		case SERVICE_CONTROLLER_ON_HAIL:
 		{
-			controller = new OnHailTaxiController(getMutexStrategy(), controllerId, ttEstimateType);
+			controller = new OnHailTaxiController(getMutexStrategy(), controllerId);
 			break;
 		}
 		default:

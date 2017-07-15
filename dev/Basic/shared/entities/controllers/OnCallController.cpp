@@ -32,7 +32,6 @@ OnCallController::OnCallController(const MutexStrategy& mtxStrat, unsigned int c
 	  ttEstimateType(ttEstimateType_), nodeIdMap (RoadNetwork::getInstance()->getMapOfIdvsNodes() )
 {
 	rebalancer = new SimpleRebalancer(this); //jo SimpleRebalancer(this);
-	nodeIdMap = RoadNetwork::getInstance()->getMapOfIdvsNodes();
 #ifndef NDEBUG
 	isComputingSchedules = false;
 #endif
@@ -376,6 +375,7 @@ bool OnCallController::isCruising(const Person *driver) const
 	return false;
 }
 
+
 const Node *OnCallController::getCurrentNode(const Person *driver) const
 {
 	const MobilityServiceDriver *currDriver = driver->exportServiceDriver();
@@ -386,6 +386,7 @@ const Node *OnCallController::getCurrentNode(const Person *driver) const
 	}
 	return nullptr;
 }
+
 
 const Person *OnCallController::findClosestDriver(const Node *node) const
 {
@@ -894,26 +895,7 @@ double OnCallController::toMs(int c) const
 }
 
 
-bool OnCallController::isCruising(Person* p)
-{
-    const MobilityServiceDriver* currDriver = p->exportServiceDriver();
-    if (currDriver)
-    {
-        if (currDriver->getDriverStatus() == MobilityServiceDriverStatus::CRUISING)
-        {
-            return true;
-        }
-    }
-    return false;
-}
 
 
-const Node* OnCallController::getCurrentNode(Person* p)
-{
-    const MobilityServiceDriver* currDriver = p->exportServiceDriver();
-    if (currDriver)
-    {
-        return currDriver->getCurrentNode();
-    }
-    return nullptr;
-}
+
+

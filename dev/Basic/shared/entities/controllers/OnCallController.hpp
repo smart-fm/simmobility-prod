@@ -141,17 +141,17 @@ public:
 	 */
 	double toMs(int c) const;
 
-	//jo{Need to use them in Rebalancer}
-	//virtual bool isCruising(const Person* driver) const;
-	//virtual const Node* getCurrentNode(const Person* driver) const;
-	//}jo
-
-protected:
 
 	/**
 	 * Checks if the driver is cruising
 	 */
-	virtual bool isCruising(Person* driver);
+	virtual bool isCruising(const Person* driver) const;
+
+	virtual const Node* getCurrentNode(const Person* driver) const;
+
+
+protected:
+
 
 	/**
 	 * Inherited from base class to output result
@@ -222,7 +222,6 @@ protected:
 	 */
 	Entity::UpdateStatus frame_tick(timeslice now);
 
-	virtual const Node* getCurrentNode(Person* p);
 
 
 

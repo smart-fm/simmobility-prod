@@ -35,7 +35,6 @@ public:
 #endif
 
 protected:
-	virtual bool isCruising(Person* p);
 	virtual const Node* getCurrentNode(Person* p);
 
 	/**

@@ -594,9 +594,10 @@ void MessageBus::PostMessage(MessageHandler* destination, Message::MessageType t
 {
 	CheckThreadContext();
 	ThreadContext* context = GetThreadContext();
+
 #ifndef NDEBUG
 	if (!context)
-		throw std::runtime_error("the context is invalid");
+		throw std::runtime_error("The context is invalid");
 
 	if ( type == MobilityServiceControllerMessage::MSG_SCHEDULE_PROPOSITION )
 	{
@@ -606,13 +607,23 @@ void MessageBus::PostMessage(MessageHandler* destination, Message::MessageType t
 	}
 #endif
 
-
 		InternalMessage* internalMsg = dynamic_cast<InternalMessage*>(message.get());
 		InternalEventMessage* eventMsg = dynamic_cast<InternalEventMessage*>(message.get());
 		if (destination || eventMsg)
 		{
 			MessageEntry entry;
 			entry.destination = destination;
+
+#ifndef NDEBUG
+			if(!entry.destination->GetContext())
+			{
+				std::stringstream msg;
+				msg << "The destination context is invalid! Destination is " << destination
+				    << " Message type: " << type;
+				throw std::runtime_error(msg.str());
+			}
+#endif
+
 			entry.type = type;
 			entry.message = message;
 			entry.priority = (!internalMsg && !eventMsg && message->GetPriority() < MB_MIN_MSG_PRIORITY) ? MB_MIN_MSG_PRIORITY : message->priority;

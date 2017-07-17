@@ -171,41 +171,63 @@ void MobilityServiceController::setToBeRemoved()
 const std::string toString(const MobilityServiceControllerType type)
 {
 
-    switch(type)
+	switch (type)
 	{
-		case SERVICE_CONTROLLER_GREEDY:
-		{ return "SERVICE_CONTROLLER_GREEDY";}
-		case SERVICE_CONTROLLER_SHARED:
-		{ return "SERVICE_CONTROLLER_SHARED";}
-		case SERVICE_CONTROLLER_FRAZZOLI:
-		{	return "SERVICE_CONTROLLER_FRAZZOLI";}
-		case SERVICE_CONTROLLER_ON_HAIL:
-		{	return "SERVICE_CONTROLLER_ON_HAIL";}
-		default:
-		{
-			std::stringstream msg; msg<<"Unrecognized MobilityServiceControllerType "<<type;
-			throw std::runtime_error(msg.str() );
-		}
+	case SERVICE_CONTROLLER_GREEDY:
+	{
+		return "SERVICE_CONTROLLER_GREEDY";
+	}
+	case SERVICE_CONTROLLER_SHARED:
+	{
+		return "SERVICE_CONTROLLER_SHARED";
+	}
+	case SERVICE_CONTROLLER_FRAZZOLI:
+	{
+		return "SERVICE_CONTROLLER_FRAZZOLI";
+	}
+	case SERVICE_CONTROLLER_ON_HAIL:
+	{
+		return "SERVICE_CONTROLLER_ON_HAIL";
+	}
+	case SERVICE_CONTROLLER_INCREMENTAL:
+	{
+		return "SERVICE_CONTROLLER_INCREMENTAL";
+	}
+	default:
+	{
+		std::stringstream msg;
+		msg << "Unrecognized MobilityServiceControllerType " << type;
+		throw std::runtime_error(msg.str());
+	}
 	}
 }
 
 void consistencyChecks(const MobilityServiceControllerType type)
 {
-    switch(type)
+	switch (type)
 	{
-		case SERVICE_CONTROLLER_GREEDY:
-		{ break;}
-		case SERVICE_CONTROLLER_SHARED:
-		{ break;}
-		case SERVICE_CONTROLLER_FRAZZOLI:
-		{ break;}
-		case SERVICE_CONTROLLER_ON_HAIL:
-		{ break;}
-		default:
-		{
-			std::stringstream msg; msg<<"Unrecognized MobilityServiceControllerType "<<type;
-			throw std::runtime_error(msg.str() );
-		}
+	case SERVICE_CONTROLLER_GREEDY:
+	{
+		break;
+	}
+	case SERVICE_CONTROLLER_SHARED:
+	{
+		break;
+	}
+	case SERVICE_CONTROLLER_FRAZZOLI:
+	{
+		break;
+	}
+	case SERVICE_CONTROLLER_ON_HAIL:
+	{
+		break;
+	}
+	default:
+	{
+		std::stringstream msg;
+		msg << "Unrecognized MobilityServiceControllerType " << type;
+		throw std::runtime_error(msg.str());
+	}
 	}
 }
 

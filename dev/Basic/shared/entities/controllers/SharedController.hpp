@@ -7,6 +7,7 @@
 
 #ifndef SharedController_HPP_
 #define SharedController_HPP_
+
 #include <vector>
 
 #include "entities/Agent.hpp"
@@ -15,18 +16,24 @@
 namespace sim_mob
 {
 
-class SharedController : public OnCallController {
+class SharedController : public OnCallController
+{
 public:
-	SharedController
-		(const MutexStrategy& mtxStrat, unsigned int computationPeriod, unsigned id, TT_EstimateType ttEstimateType) :
-		OnCallController(mtxStrat, computationPeriod, MobilityServiceControllerType::SERVICE_CONTROLLER_SHARED, id, ttEstimateType)
+	SharedController(const MutexStrategy &mtxStrat, unsigned int computationPeriod, unsigned id,
+	                 TT_EstimateType ttEstimateType) : OnCallController(mtxStrat, computationPeriod,
+	                                                                    MobilityServiceControllerType::SERVICE_CONTROLLER_SHARED, id,
+	                                                                    ttEstimateType)
 	{
 	}
 
-	virtual void checkSequence (const std::string& sequence) const;
+	virtual ~SharedController()
+	{
+	}
+
+	virtual void checkSequence(const std::string &sequence) const;
 
 	// Inhertis from the parent
-	virtual void sendCruiseCommand(const Person* driver, const Node* nodeToCruiseTo, const timeslice currTick ) const;
+	virtual void sendCruiseCommand(const Person *driver, const Node *nodeToCruiseTo, const timeslice currTick) const;
 
 #ifndef NDEBUG
 	// Overrides the parent method

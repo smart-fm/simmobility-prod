@@ -1459,6 +1459,7 @@ void HM_Model::startImpl()
 	if (conn.isConnected())
 	{
 		loadLTVersion(conn);
+		loadStudyAreas(conn);
 
 		{
 			soci::session sql;
@@ -1787,7 +1788,7 @@ void HM_Model::startImpl()
 		const int FROZEN_HH = 3;
 
 
-		if( household->getTenureStatus() != FROZEN_HH )
+		if( household->getTenureStatus() == FROZEN_HH )
 			continue;
 
 		HouseholdAgent* hhAgent = new HouseholdAgent(household->getId(), this,	household, &market, false, startDay, config.ltParams.housingModel.householdBiddingWindow,0);
@@ -1921,7 +1922,7 @@ void HM_Model::startImpl()
 		(*it)->setTimeOffMarket( 1 + (float)rand() / RAND_MAX * config.ltParams.housingModel.timeOffMarket);
 
 		//this unit is a vacancy
-		if( assignedUnits.find((*it)->getId()) == assignedUnits.end())
+		if( assignedUnits.find((*it)->getId()) == assignedUnits.end() && (*it)->getTenureStatus() != 3)
 		{
 			if( (*it)->getUnitType() != NON_RESIDENTIAL_PROPERTY && (*it)->isBto() == false )
 			{
@@ -3339,6 +3340,25 @@ IndvidualEmpSec* HM_Model::getIndvidualEmpSecByIndId(BigSerial indId) const
 	}
 
 	return nullptr;
+}
+
+void  HM_Model::loadStudyAreas(DB_Connection &conn)
+{
+	soci::session sql;
+	sql.open(soci::postgresql, conn.getConnectionStr());
+
+	std::string tableName = "study_area";
+
+	//SQL statement
+	soci::rowset<StudyArea> studyAreaObjs = (sql.prepare << "select * from " + conn.getSchema() + tableName);
+
+	for (soci::rowset<StudyArea>::const_iterator itStudyArea = studyAreaObjs.begin(); itStudyArea != studyAreaObjs.end(); ++itStudyArea)
+	{
+		StudyArea* stdArea = new StudyArea(*itStudyArea);
+		studyAreas.push_back(stdArea);
+	}
+
+	PrintOutV("Number of Study Area rows: " << studyAreas.size() << std::endl );
 }
 
 void HM_Model::stopImpl()

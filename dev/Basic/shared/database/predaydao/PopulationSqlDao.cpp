@@ -5,6 +5,7 @@
 #include "PopulationSqlDao.hpp"
 
 #include <boost/lexical_cast.hpp>
+#include <behavioral/params/ZoneCostParams.hpp>
 #include "DatabaseHelper.hpp"
 #include "logging/Log.hpp"
 
@@ -84,26 +85,26 @@ void PopulationSqlDao::getAllIds(std::vector<long>& outList)
 	}
 }
 
-void PopulationSqlDao::getAddresses(std::map<long, sim_mob::Address>& addressMap, std::map<int, std::vector<long> >& zoneAddressesMap)
+void PopulationSqlDao::getAddresses()
 {
 	if (isConnected())
 	{
-		addressMap.clear();
-		zoneAddressesMap.clear();
+		PersonParams::clearAddressLookup();
+		PersonParams::clearZoneAddresses();
 		Statement query(connection.getSession<soci::session>());
 		prepareStatement(DB_GET_ADDRESSES, db::EMPTY_PARAMS, query);
 		ResultSet rs(query);
 		for (ResultSet::const_iterator it = rs.begin(); it != rs.end(); ++it)
 		{
 			long addressId = (*it).get<BigInt>(DB_FIELD_ADDRESS_ID);
-			sim_mob::Address& address = addressMap[addressId];
+			sim_mob::Address address;
 			address.setAddressId(addressId);
 			address.setPostcode((*it).get<int>(DB_FIELD_POSTCODE));
 			address.setTazCode((*it).get<int>(DB_FIELD_TAZ_CODE));
 			address.setDistanceMrt((*it).get<double>(DB_FIELD_DISTANCE_MRT));
 			address.setDistanceBus((*it).get<double>(DB_FIELD_DISTANCE_BUS));
-
-			zoneAddressesMap[address.getTazCode()].push_back(addressId);
+			PersonParams::setAddressLookup(address);
+			PersonParams::setZoneNodeAddressesMap(address);
 		}
 	}
 }
@@ -223,17 +224,21 @@ void SimmobSqlDao::getLogsumById(long long id, PersonParams& outObj)
 	getById(params, outObj);
 }
 
-void SimmobSqlDao::getPostcodeNodeMap(std::map<unsigned int, unsigned int>& postcodeNodeMap)
+void SimmobSqlDao::getPostcodeNodeMap()
 {
 	if (isConnected())
 	{
-		postcodeNodeMap.clear();
+		PersonParams::clearPostCodeNodeMap();
 		Statement query(connection.getSession<soci::session>());
 		prepareStatement(DB_GET_POSTCODE_NODE_MAP, db::EMPTY_PARAMS, query);
 		ResultSet rs(query);
 		for (ResultSet::const_iterator it = rs.begin(); it != rs.end(); ++it)
 		{
-			postcodeNodeMap[(*it).get<int>(DB_FIELD_POSTCODE)] = (*it).get<BigInt>(DB_FIELD_NODE_ID);
+			sim_mob::Address address;
+			address.setPostcode((*it).get<int>(DB_FIELD_POSTCODE));
+			ZoneNodeParams nodeId;
+			nodeId.setNodeId((*it).get<BigInt>(DB_FIELD_NODE_ID));
+			PersonParams::setPostCodeNodeMap(address,nodeId);
 		}
 	}
 }

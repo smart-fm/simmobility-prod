@@ -290,10 +290,12 @@ void VehicleOwnershipModel::reconsiderVehicleOwnershipOption2(Household &househo
 
 
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
-	bool toaPayohScenario = config.ltParams.toaPayohScenario.enabled;
-	bool configLiveInToaPayoh = config.ltParams.toaPayohScenario.liveInToaPayoh;
-	bool configWorkInToaPayoh = config.ltParams.toaPayohScenario.workInToaPayoh;
-	bool configMoveToToaPayoh = config.ltParams.toaPayohScenario.moveToToaPayoh;
+	bool toaPayohScenario = false;
+	if(config.ltParams.scenario.scenarioName.compare("ToaPayohScenario") == 0)
+	{
+		toaPayohScenario = true;
+	}
+
 
 	bool liveInToaPayoh = false;
 	bool workInToaPayoh = false;

@@ -631,7 +631,7 @@ bool performMainDemand()
 	{
 		predayManager.loadZoneNodes();
 		predayManager.loadPostcodeNodeMapping();
-		predayManager.removeInvalidAddresses();
+		PersonParams::removeInvalidAddress();
 	}
 
 	if(mtConfig.runningPredayCalibration())
@@ -643,15 +643,6 @@ bool performMainDemand()
 	{
 		Print() << "Preday mode: " << (mtConfig.runningPredaySimulation()? "simulation":"logsum computation")  << std::endl;
 		predayManager.dispatchLT_Persons();
-//		const db::BackendType populationSource = mtConfig.getPopulationSource();
-//		if(populationSource == db::POSTGRES)
-//		{
-//			predayManager.dispatchLT_Persons();
-//		}
-//		else
-//		{
-//			predayManager.dispatchMongodbPersons();
-//		}
 	}
 	return true;
 }

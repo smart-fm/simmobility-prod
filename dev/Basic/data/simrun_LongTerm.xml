@@ -28,7 +28,7 @@
             </database>
 
 	    <!-- hpc ip for remote midterm server -->
-            <database id="fm_remote_mt2" dbtype="postgres">
+            <database id="fm_remote_mt" dbtype="postgres">
                 <host value="172.25.184.156"/>
                 <port value="5432"/>
                 <dbname value="simmobility"/>
@@ -42,7 +42,7 @@
             </database>
 
 		<!-- public ip for remote midterm server -->
-	    <database id="fm_remote_mt" dbtype="postgres">
+	    <database id="fm_remote_mt4" dbtype="postgres">
 	        <host value="137.132.22.82"/>
 	        <port value="15061"/> <!--old port: 15025 -->
 	        <dbname value="simmobility"/>
@@ -83,7 +83,7 @@
 	-->
 
 	<file-based-credential id="fm_remote_mt">
-	 <file path="private/fm_remote.cred"/> 
+	 <file path="private/fm_local.cred"/> 
 	  <!--   <file path="private/fm_local.cred"/>-->
 	</file-based-credential>
 
@@ -107,8 +107,7 @@
     	<maxIterations value="1"/>
     	<workers value="8"/>
     	<tickStep value="1"/>  
-	<year value = "2012" />  
-	<simulationScenario value="baseline"/> 
+	<year value = "2012" />   
 	<resume value ="false"/> 
 	<currentOutputSchema value = "baseline_2012_20160225034344"/> <!--if resume is true give the current op schema name-->
         <opSchemaloadingInterval value = "365"/>
@@ -149,7 +148,7 @@
 	    <offsetBetweenUnitBuyingAndSelling value ="7"/>
             <offsetBetweenUnitBuyingAndSellingAdvancedPurchase value = "30" />
         </housingModel>
-	<vehicleOwnershipModel enabled='true'>
+	<vehicleOwnershipModel enabled='false'>
 		<vehicleBuyingWaitingTimeInDays value= "1"/>
 	</vehicleOwnershipModel>
         <taxiAccessModel enabled='false'>
@@ -159,7 +158,10 @@
 	</schoolAssignmentModel>
 
 	<scenario enabled= 'false'>
-		<name value="ToaPayohScenario"/>
+                <!-- <name value="baseline" />-->
+		<name value="ToaPayohScenario"/> <!--right now we have baseline and tp scenario-->
+                <scenarioSchema value = 'configuration2012.' />
+		<parcelsTable value = "fm_parcel_study_area" /> <!-- in tp scenario : fm_parcel_scenario_toapayoh -->
 	</scenario>
 
 	<outputFiles enabled= 'true'>
@@ -189,11 +191,6 @@
 		<log_household_statistics value = 'true' />
 		<log_out_xx_files value='false' />
         </outputFiles>
-        <toaPayohScenario enabled = 'false'>
-                 <workInToaPayoh value = 'false'/>
-                 <liveInToaPayoh value = 'false' />
-                 <moveToToaPayoh value = 'false' />
-       </toaPayohScenario>
     </longTermParams>
 
     <model_scripts path="scripts/lua/mid/behavior_sg12_20161206/" format="lua">

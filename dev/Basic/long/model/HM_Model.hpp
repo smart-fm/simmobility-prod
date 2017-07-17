@@ -54,6 +54,7 @@
 #include "database/entity/LtVersion.hpp"
 #include "database/entity/BuildingMatch.hpp"
 #include "database/entity/SlaBuilding.hpp"
+#include "database/entity/StudyArea.hpp"
 #include "core/HousingMarket.hpp"
 #include "boost/unordered_map.hpp"
 #include "DeveloperModel.hpp"
@@ -201,6 +202,8 @@ namespace sim_mob
 
             typedef std::vector<SlaBuilding*> SlaBuildingList;
             typedef boost::unordered_map<string, SlaBuilding*> SlaBuildingMap;
+
+            typedef std::vector<StudyArea*> StudyAreaList;
 
             /**
              * Taz statistics
@@ -454,6 +457,7 @@ namespace sim_mob
             set<int> logsumUniqueCounter;
 
             void  loadLTVersion(DB_Connection &conn);
+            void  loadStudyAreas(DB_Connection &conn);
 
 
         protected:
@@ -645,6 +649,8 @@ namespace sim_mob
 
 			SlaBuildingList slaBuilding;
 			SlaBuildingMap	slaBuildingById;
+
+			StudyAreaList studyAreas;
         };
     }
 }

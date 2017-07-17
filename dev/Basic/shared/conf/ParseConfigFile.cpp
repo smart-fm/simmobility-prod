@@ -283,10 +283,6 @@ void ParseConfigFile::processLongTermParamsNode(xercesc::DOMElement *node)
 			ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(
 					node, "year"), "value"), (unsigned int) 0);
 
-	cfg.ltParams.simulationScenario =
-			ParseString(GetNamedAttributeValue(GetSingleElementByName(
-					node, "simulationScenario"), "value"), "");
-
 	cfg.ltParams.resume =
 			ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(
 					node, "resume"), "value"), false);
@@ -335,25 +331,25 @@ void ParseConfigFile::processLongTermParamsNode(xercesc::DOMElement *node)
 	processScenarioNode(GetSingleElementByName(node, "scenario"));
 	processOutputFilesNode(GetSingleElementByName(node, "outputFiles"));
 
-	LongTermParams::ToaPayohScenario toaPayohScenario;
-	DOMElement *tpScenarioNode = GetSingleElementByName(node, "toaPayohScenario");
+	LongTermParams::Scenario scenario;
+	DOMElement *scenarioNode = GetSingleElementByName(node, "scenario");
 
-	toaPayohScenario.enabled =
-			ParseBoolean(GetNamedAttributeValue(tpScenarioNode, "enabled"), false);
+	scenario.enabled =
+			ParseBoolean(GetNamedAttributeValue(scenarioNode, "enabled"), false);
 
-	toaPayohScenario.workInToaPayoh =
-			ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(
-					tpScenarioNode, "workInToaPayoh"), "value"), false);
+	scenario.scenarioName =
+				ParseString(GetNamedAttributeValue(GetSingleElementByName(
+						scenarioNode, "name"), "value"), "");
 
-	toaPayohScenario.liveInToaPayoh =
-			ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(
-					tpScenarioNode, "liveInToaPayoh"), "value"), false);
+	scenario.parcelsTable =
+			ParseString(GetNamedAttributeValue(GetSingleElementByName(
+					scenarioNode, "parcelsTable"), "value"), "");
 
-	toaPayohScenario.moveToToaPayoh =
-			ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(
-					tpScenarioNode, "moveToToaPayoh"), "value"), false);
+	scenario.scenarioSchema =
+				ParseString(GetNamedAttributeValue(GetSingleElementByName(
+						scenarioNode, "scenarioSchema"), "value"), "");
 
-	cfg.ltParams.toaPayohScenario = toaPayohScenario;
+	cfg.ltParams.scenario = scenario;
 }
 
 void ParseConfigFile::processOutputFilesNode(xercesc::DOMElement *output)

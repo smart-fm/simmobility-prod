@@ -196,7 +196,7 @@ const PredayLT_LogsumManager& sim_mob::PredayLT_LogsumManager::getInstance()
 		ensureContext();
 		PopulationSqlDao& ltPopulationDao = threadContext.get()->ltPopulationDao;
 		ltPopulationDao.getIncomeCategories(PersonParams::getIncomeCategoryLowerLimits());
-		ltPopulationDao.getAddresses(PersonParams::getAddressLookup(), PersonParams::getZoneAddresses());
+		ltPopulationDao.getAddresses();
 		logsumManager.dataLoadReqd = false;
 	}
 	return logsumManager;

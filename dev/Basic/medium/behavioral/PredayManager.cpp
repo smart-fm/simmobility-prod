@@ -638,7 +638,7 @@ void sim_mob::medium::PredayManager::loadPersonIds()
 	{
 		PopulationSqlDao populationDao(conn);
 		populationDao.getIncomeCategories(PersonParams::getIncomeCategoryLowerLimits());
-		populationDao.getAddresses(PersonParams::getAddressLookup(), PersonParams::getZoneAddresses());
+		populationDao.getAddresses();
 		populationDao.getAllIds(ltPersonIdList);
 	}
 }
@@ -687,7 +687,7 @@ void sim_mob::medium::PredayManager::loadPostcodeNodeMapping()
 	if (simmobConn.isConnected())
 	{
 		SimmobSqlDao simmobSqlDao(simmobConn, "");
-		simmobSqlDao.getPostcodeNodeMap(PersonParams::getPostcodeNodeMap());
+		simmobSqlDao.getPostcodeNodeMap();
 	}
 	else
 	{
@@ -840,32 +840,6 @@ void sim_mob::medium::PredayManager::dispatchLT_Persons()
 	if (mtConfig.isFileOutputEnabled())
 	{
 		mergeCSV_Files(logFileNames, logFileNamePrefix);
-	}
-}
-
-void PredayManager::removeInvalidAddresses()
-{
-	std::map<long, sim_mob::Address>& addresses = PersonParams::getAddressLookup();
-	std::map<int, std::vector<long> >& zoneAdresses = PersonParams::getZoneAddresses();
-	std::map<unsigned int, unsigned int>& postCodeNodeMap = PersonParams::getPostcodeNodeMap();
-
-	for(std::map<long, sim_mob::Address>::iterator iter = addresses.begin(); iter != addresses.end();)
-	{
-		if (postCodeNodeMap.find(iter->second.getPostcode()) == postCodeNodeMap.end())
-		{
-			std::vector<long>& addressesInZone = zoneAdresses.at(iter->second.getTazCode());
-			std::vector<long>::iterator removeItem = std::find(addressesInZone.begin(), addressesInZone.end(), iter->first);
-			if (removeItem != addressesInZone.end())
-			{
-				addressesInZone.erase(removeItem);
-			}
-
-			iter = addresses.erase(iter);
-		}
-		else
-		{
-			++iter;
-		}
 	}
 }
 

@@ -91,6 +91,14 @@ void DeveloperModel::startImpl() {
 	conn_calibration.setSchema(config.schemas.calibration_schema);
 	conn_calibration.connect();
 
+	const std::string parcelTable = config.ltParams.scenario.parcelsTable;
+	const std::string scenarioSchema = config.ltParams.scenario.scenarioSchema;
+
+	//config the db connection based on the scenario.
+	DB_Connection conn_scenario(sim_mob::db::POSTGRES, dbConfig);
+	conn_scenario.setSchema(scenarioSchema);
+	conn_scenario.connect();
+
 	if (conn.isConnected())
 	{
 		ParcelsWithHDB *HDB_Parcel;
@@ -113,8 +121,8 @@ void DeveloperModel::startImpl() {
 		//Load templates
 		loadData<TemplateDao>(conn, templates);
 		//Load parcels
-		loadData<ParcelDao>(conn, initParcelList, parcelsById, &Parcel::getId);
-		ParcelDao parcelDao(conn);
+		loadData<ParcelDao>(conn_scenario, parcelTable, initParcelList, parcelsById, &Parcel::getId);
+		ParcelDao parcelDao(conn,parcelTable);
 		emptyParcels = parcelDao.getEmptyParcels();
 		//Index all empty parcels.
 		for (ParcelList::iterator it = emptyParcels.begin(); it != emptyParcels.end(); it++) {
@@ -639,6 +647,7 @@ DeveloperModel::DeveloperList DeveloperModel::getDeveloperAgents(){
 		}
 	}
 	return dailyDevAgents;
+
 }
 
 void DeveloperModel::setDays(int days)
@@ -1151,4 +1160,10 @@ const LagPrivate_TByUnitType* DeveloperModel::getLagPrivateTByUnitTypeId(BigSeri
 		return itr->second;
 	}
 	return nullptr;
+}
+
+const std::string &DeveloperModel::getScenario()
+{
+	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+	return config.ltParams.scenario.scenarioName;
 }

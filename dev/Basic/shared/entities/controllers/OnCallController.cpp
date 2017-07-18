@@ -493,7 +493,7 @@ double OnCallController::evaluateSchedule(const Node *initialPosition, const Sch
 				// I verify if the waiting time is ok
 				const Node* nextNode = nodeIdMap.find(scheduleItem.tripRequest.startNodeId)->second;
 				scheduleTimeStamp += getTT(latestNode, nextNode, ttEstimateType);
-				if (scheduleTimeStamp - request.timeOfRequest.ms() / 1000.0 > waitingTimeThreshold)
+				if ((scheduleTimeStamp - request.timeOfRequest.ms()) / 1000.0 > waitingTimeThreshold)
 					return -1;
 				else
 				{

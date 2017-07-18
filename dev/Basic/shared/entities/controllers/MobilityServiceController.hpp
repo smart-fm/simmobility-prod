@@ -16,14 +16,15 @@
 #include "logging/ControllerLog.hpp"
 
 
-namespace sim_mob {
+namespace sim_mob
+{
 
 
 enum MobilityServiceControllerType : unsigned int
 {
 	SERVICE_CONTROLLER_UNKNOWN = 0b0000,
-	SERVICE_CONTROLLER_GREEDY =  0b0001,
-	SERVICE_CONTROLLER_SHARED =  0b0010,
+	SERVICE_CONTROLLER_GREEDY = 0b0001,
+	SERVICE_CONTROLLER_SHARED = 0b0010,
 	SERVICE_CONTROLLER_ON_HAIL = 0b0100,
 	SERVICE_CONTROLLER_FRAZZOLI = 0b1000,
 	SERVICE_CONTROLLER_INCREMENTAL = 0b10000
@@ -39,41 +40,41 @@ void consistencyChecks(const MobilityServiceControllerType type);
 
 //const std::string fromMobilityServiceControllerTypetoString(MobilityServiceControllerType type);
 
-class MobilityServiceController: public Agent
+class MobilityServiceController : public Agent
 {
 protected:
 	// We use explicit to avoid accidentally passing an integer instead of a MobilityServiceControllerType
 	// (see https://stackoverflow.com/a/121163/2110769)
 	// The constructor is protected to avoid instantiating an OnCallController directly, since it is conceptually abstract
-	explicit MobilityServiceController(const MutexStrategy& mtxStrat,
-		MobilityServiceControllerType type_, unsigned id_)
-	: Agent(mtxStrat, id_), controllerServiceType(type_), controllerId(id_)
+	explicit MobilityServiceController(const MutexStrategy &mtxStrat,
+	                                   MobilityServiceControllerType type_, unsigned id_)
+			: Agent(mtxStrat, id_), controllerServiceType(type_), controllerId(id_)
 	{
-	#ifndef NDEBUG
-	sim_mob::consistencyChecks(type_);
-	#endif
-	ControllerLog()<<"MobilityServiceController instantiated, type:"<<sim_mob::toString(controllerServiceType)
-			<< ", id:" << controllerId <<", pointer:"<<this<<std::endl;
+#ifndef NDEBUG
+		sim_mob::consistencyChecks(type_);
+#endif
+		ControllerLog() << "MobilityServiceController instantiated, type:" << sim_mob::toString(controllerServiceType)
+		                << ", id:" << controllerId << ", pointer:" << this << std::endl;
 
 	}
 
-	virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
+	virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message &message);
 
 	/** Store list of subscribed drivers */
-	std::vector<Person*> subscribedDrivers;
+	std::vector<Person *> subscribedDrivers;
 
 
 	/**
 	 * Subscribes a vehicle driver to the controller
 	 * @param person Driver to be added
 	 */
-	virtual void subscribeDriver(Person* person);
+	virtual void subscribeDriver(Person *person);
 
 	/**
 	 * Unsubscribes a vehicle driver from the controller
 	 * @param person Driver to be removed
 	 */
-	virtual void unsubscribeDriver(Person* person);
+	virtual void unsubscribeDriver(Person *person);
 
 	const MobilityServiceControllerType controllerServiceType;
 
@@ -118,7 +119,9 @@ public:
 	void consistencyChecks() const;
 
 	MobilityServiceControllerType getServiceType() const;
+
 	unsigned getControllerId() const;
+
 	const std::string toString() const;
 
 	/**
@@ -126,8 +129,6 @@ public:
 	 */
 	virtual void setToBeRemoved();
 };
-
-
 
 
 } /* namespace sim_mob */

@@ -25,11 +25,10 @@ using namespace sim_mob;
 using namespace messaging;
 
 
-
-OnCallController::OnCallController(const MutexStrategy& mtxStrat, unsigned int computationPeriod,
-		MobilityServiceControllerType type_, unsigned id, TT_EstimateType ttEstimateType_)
-	: MobilityServiceController(mtxStrat, type_, id), scheduleComputationPeriod(computationPeriod),
-	  ttEstimateType(ttEstimateType_), nodeIdMap (RoadNetwork::getInstance()->getMapOfIdvsNodes() )
+OnCallController::OnCallController(const MutexStrategy &mtxStrat, unsigned int computationPeriod,
+                                   MobilityServiceControllerType type_, unsigned id, TT_EstimateType ttEstimateType_)
+		: MobilityServiceController(mtxStrat, type_, id), scheduleComputationPeriod(computationPeriod),
+		  ttEstimateType(ttEstimateType_), nodeIdMap(RoadNetwork::getInstance()->getMapOfIdvsNodes())
 {
 	rebalancer = new SimpleRebalancer(this); //jo SimpleRebalancer(this);
 #ifndef NDEBUG
@@ -299,7 +298,7 @@ void OnCallController::assignSchedule(const Person *driver, const Schedule &sche
 #endif
 
 	MessageBus::PostMessage((MessageHandler *) driver, MSG_SCHEDULE_PROPOSITION, MessageBus::MessagePtr(
-			new SchedulePropositionMessage(currTick, schedule, (MessageHandler*) this)));
+			new SchedulePropositionMessage(currTick, schedule, (MessageHandler *) this)));
 
 #ifndef NDEBUG
 
@@ -355,7 +354,7 @@ void OnCallController::assignSchedule(const Person *driver, const Schedule &sche
 #ifndef NDEBUG
 	ControllerLog() <<", whose pointer is driver=" << driver <<", (MessageHandler *) driver="<<(MessageHandler *) driver;
 #endif
-	ControllerLog()<< std::endl;
+	ControllerLog() << std::endl;
 }
 
 bool OnCallController::isCruising(const Person *driver) const
@@ -407,7 +406,7 @@ const Person *OnCallController::findClosestDriver(const Node *node) const
 		{
 			std::stringstream msg;
 			msg << "Driver " << (*driver)->getDatabaseId() << " and pointer " << *driver
-			    << " exists in availableDrivers but not in driverSchedules";
+				<< " exists in availableDrivers but not in driverSchedules";
 			throw std::runtime_error(msg.str());
 		}
 #endif
@@ -471,13 +470,12 @@ const Person *OnCallController::findClosestDriver(const Node *node) const
 }
 
 
-
 double OnCallController::evaluateSchedule(const Node *initialPosition, const Schedule &schedule,
                                           double additionalDelayThreshold, double waitingTimeThreshold) const
 {
-	double initialScheduleTimeStamp = currTick.getSeconds() ; // In seconds
+	double initialScheduleTimeStamp = currTick.getSeconds(); // In seconds
 	double scheduleTimeStamp = initialScheduleTimeStamp;
-	const Node* latestNode = initialPosition;
+	const Node *latestNode = initialPosition;
 	unsigned numberOfPassengers = 0;
 
 	// In this for loop we are predicting how the schedule would unfold
@@ -485,50 +483,59 @@ double OnCallController::evaluateSchedule(const Node *initialPosition, const Sch
 	{
 
 		const ScheduleItem scheduleItem = *scheduleItemIt;
-		switch(scheduleItem.scheduleItemType)
+		switch (scheduleItem.scheduleItemType)
 		{
-			case (PICKUP):
+		case (PICKUP):
+		{
+			const TripRequestMessage &request = scheduleItem.tripRequest;
+			// I verify if the waiting time is ok
+			const Node *nextNode = nodeIdMap.find(scheduleItem.tripRequest.startNodeId)->second;
+			scheduleTimeStamp += getTT(latestNode, nextNode, ttEstimateType);
+			if ((scheduleTimeStamp - request.timeOfRequest.ms()) / 1000.0 > waitingTimeThreshold)
 			{
-				const TripRequestMessage& request = scheduleItem.tripRequest;
-				// I verify if the waiting time is ok
-				const Node* nextNode = nodeIdMap.find(scheduleItem.tripRequest.startNodeId)->second;
-				scheduleTimeStamp += getTT(latestNode, nextNode, ttEstimateType);
-				if ((scheduleTimeStamp - request.timeOfRequest.ms()) / 1000.0 > waitingTimeThreshold)
-					return -1;
-				else
-				{
-					numberOfPassengers ++;
-				}
-				break;
+				return -1;
 			}
-			case (DROPOFF):
+			else
 			{
-				// Find the time that this traveller would need, if he were alone
-				const TripRequestMessage& request = scheduleItem.tripRequest;
-				const Node* startNode = nodeIdMap.find(scheduleItem.tripRequest.startNodeId)->second;
-				const Node* nextNode = nodeIdMap.find(scheduleItem.tripRequest.destinationNodeId)->second;
-				scheduleTimeStamp += getTT(latestNode, nextNode, ttEstimateType);
-				double timeIfHeWereAlone = waitingTimeThreshold + getTT(startNode, nextNode, ttEstimateType);
-				if ( scheduleTimeStamp -  request.timeOfRequest.getSeconds() > timeIfHeWereAlone)
-					return -1;
-				// else do nothing and continue checking the other items
-				break;
-			}default:{
-				throw std::runtime_error("Why would you want to check a schedule item that is neither PICKUP nor DROPOFF?");
+				numberOfPassengers++;
 			}
+			break;
+		}
+		case (DROPOFF):
+		{
+			// Find the time that this traveller would need, if he were alone
+			const TripRequestMessage &request = scheduleItem.tripRequest;
+			const Node *startNode = nodeIdMap.find(scheduleItem.tripRequest.startNodeId)->second;
+			const Node *nextNode = nodeIdMap.find(scheduleItem.tripRequest.destinationNodeId)->second;
+			scheduleTimeStamp += getTT(latestNode, nextNode, ttEstimateType);
+			double timeIfHeWereAlone = waitingTimeThreshold + getTT(startNode, nextNode, ttEstimateType);
+			if (scheduleTimeStamp - request.timeOfRequest.getSeconds() > timeIfHeWereAlone)
+			{
+				return -1;
+			}
+			// else do nothing and continue checking the other items
+			break;
+		}
+		default:
+		{
+			throw std::runtime_error("Why would you want to check a schedule item that is neither PICKUP nor DROPOFF?");
+		}
 		}
 
-		if (numberOfPassengers == 0 && scheduleItemIt != schedule.end() )
+		if (numberOfPassengers == 0 && scheduleItemIt != schedule.end())
+		{
 			// At this point I have 0 passengers in the vehicle and I have still other items to check. This is not a valid
 			// schedule
 			return -1;
+		}
 
 	}
 
 	// If I am there and the function did not return before, it means it is feasible
 	double expectedVehicleTravelTime = scheduleTimeStamp - initialScheduleTimeStamp;
-	return expectedVehicleTravelTime ;
+	return expectedVehicleTravelTime;
 }
+
 /*
 //TODO: in the request itself, the user should specify the earliest and latest pickup and dropoff times
 double OnCallController::evaluateSchedule(const Node *initialPosition, const Schedule &schedule,
@@ -611,16 +618,16 @@ double OnCallController::evaluateSchedule(const Node *initialPosition, const Sch
 }
 */
 
-double OnCallController::computeSchedule(const Node* initialNode, const Schedule& currentSchedule,
-		const Group<TripRequestMessage>& additionalRequests,
-		Schedule& newSchedule, bool isOptimalityRequired) const
+double OnCallController::computeSchedule(const Node *initialNode, const Schedule &currentSchedule,
+                                         const Group<TripRequestMessage> &additionalRequests,
+                                         Schedule &newSchedule, bool isOptimalityRequired) const
 {
 	double travelTime = std::numeric_limits<double>::max();
 	bool isFeasible = false;
 
 	//Contruct the required ScheduleItems for the new requests
 	std::vector<ScheduleItem> additionalScheduleItems;
-	for (const TripRequestMessage& request : additionalRequests.getElements() )
+	for (const TripRequestMessage &request : additionalRequests.getElements())
 	{
 		additionalScheduleItems.push_back(ScheduleItem(ScheduleItemType::PICKUP, request));
 		additionalScheduleItems.push_back(ScheduleItem(ScheduleItemType::DROPOFF, request));
@@ -654,23 +661,26 @@ double OnCallController::computeSchedule(const Node* initialNode, const Schedule
 	std::sort(tempSchedule.begin(), tempSchedule.end());
 
 	double tempTravelTime;
-	do{
+	do
+	{
 		tempTravelTime = evaluateSchedule(initialNode, tempSchedule, additionalDelayThreshold, waitingTimeThreshold);
 		if (tempTravelTime >= 0 && tempTravelTime < travelTime)
 		{
 			isFeasible = true;
-			travelTime = tempTravelTime; newSchedule = tempSchedule;
+			travelTime = tempTravelTime;
+			newSchedule = tempSchedule;
 		}
-	} while (
-		std::next_permutation(tempSchedule.begin(), tempSchedule.end() ) &&
+	}
+	while (
+			std::next_permutation(tempSchedule.begin(), tempSchedule.end()) &&
 
-		// If i) optimality is not required and ii) we already found a feasible solution, we can just return that and stop.
-		// If those two conditions are not met at the same time, we can continue
-		!(
-			!isOptimalityRequired && isFeasible
-		)
+			// If i) optimality is not required and ii) we already found a feasible solution, we can just return that and stop.
+			// If those two conditions are not met at the same time, we can continue
+			!(
+					!isOptimalityRequired && isFeasible
+			)
 
-	);
+			);
 
 #ifndef NDEBUG
 	ControllerLog()<<"Current schedule: ";
@@ -682,13 +692,16 @@ double OnCallController::computeSchedule(const Node* initialNode, const Schedule
 	ControllerLog()<<std::endl;
 #endif
 
-	if(isFeasible)
+	if (isFeasible)
+	{
 		return travelTime;
-	else return -1;
+	}
+	else
+	{ return -1; }
 }
 
-bool OnCallController::canBeShared(const TripRequestMessage& r1, const TripRequestMessage& r2,
-			double additionalDelayThreshold, double waitingTimeThreshold ) const
+bool OnCallController::canBeShared(const TripRequestMessage &r1, const TripRequestMessage &r2,
+                                   double additionalDelayThreshold, double waitingTimeThreshold) const
 {
 #ifndef NDEBUG
 	if (r1==r2)
@@ -701,14 +714,19 @@ bool OnCallController::canBeShared(const TripRequestMessage& r1, const TripReque
 	// We check if, in case we have an empty vehicle that start in the position we want (we choose either of
 	// the two pick up points), it can serve both request while respecting the constraints
 	Schedule emptySchedule;
-	const Node* initialPosition =  RoadNetwork::getInstance()->getMapOfIdvsNodes().at(r1.startNodeId);
-	double travelTime = evaluateSchedule(initialPosition, emptySchedule, additionalDelayThreshold, waitingTimeThreshold);
-	if (travelTime>=0)
+	const Node *initialPosition = RoadNetwork::getInstance()->getMapOfIdvsNodes().at(r1.startNodeId);
+	double travelTime = evaluateSchedule(initialPosition, emptySchedule, additionalDelayThreshold,
+	                                     waitingTimeThreshold);
+	if (travelTime >= 0)
+	{
 		return true;
-	initialPosition =  RoadNetwork::getInstance()->getMapOfIdvsNodes().at(r2.startNodeId);
+	}
+	initialPosition = RoadNetwork::getInstance()->getMapOfIdvsNodes().at(r2.startNodeId);
 	travelTime = evaluateSchedule(initialPosition, emptySchedule, additionalDelayThreshold, waitingTimeThreshold);
-	if (travelTime>=0)
+	if (travelTime >= 0)
+	{
 		return true;
+	}
 
 	return false;
 }
@@ -777,12 +795,12 @@ void OnCallController::consistencyChecks(const std::string& label) const
 	for(int i = 0; i < requestQueueCopy.size() ; i++)
 	{
 		for (int j = i+1 ; j<requestQueueCopy.size() ; j++ )
-	    if (requestQueueCopy[i].userId == requestQueueCopy[j].userId)
-	    {
-	        std::stringstream msg; msg<<"There are two requests from the same users currently in the requestQueue. They are "<<
-	        	requestQueueCopy[i] <<" and "<<requestQueueCopy[j]<< std::endl;
-	        throw std::runtime_error(msg.str() );
-	    }
+		if (requestQueueCopy[i].userId == requestQueueCopy[j].userId)
+		{
+			std::stringstream msg; msg<<"There are two requests from the same users currently in the requestQueue. They are "<<
+				requestQueueCopy[i] <<" and "<<requestQueueCopy[j]<< std::endl;
+			throw std::runtime_error(msg.str() );
+		}
 	}
 
 }
@@ -791,14 +809,15 @@ void OnCallController::consistencyChecks(const std::string& label) const
 const std::string OnCallController::getRequestQueueStr() const
 {
 	std::stringstream msg;
-	for (const TripRequestMessage& r : requestQueue)
+	for (const TripRequestMessage &r : requestQueue)
 	{
-		msg<< r << ", ";
+		msg << r << ", ";
 	}
 	return msg.str();
 }
 
-void OnCallController::sendCruiseCommand(const Person* driver, const Node* nodeToCruiseTo, const timeslice currTick) const
+void
+OnCallController::sendCruiseCommand(const Person *driver, const Node *nodeToCruiseTo, const timeslice currTick) const
 {
 #ifndef NDEBUG
 	bool found = false;
@@ -828,7 +847,7 @@ void OnCallController::sendCruiseCommand(const Person* driver, const Node* nodeT
 
 	ScheduleItem item(ScheduleItemType::CRUISE, nodeToCruiseTo);
 	sim_mob::Schedule schedule;
-	schedule.push_back(ScheduleItem(item) );
+	schedule.push_back(ScheduleItem(item));
 
 
 	MessageBus::PostMessage((MessageHandler *) driver, MSG_SCHEDULE_PROPOSITION,
@@ -836,7 +855,7 @@ void OnCallController::sendCruiseCommand(const Person* driver, const Node* nodeT
 	                                                                              (MessageHandler *) this)));
 }
 
-double OnCallController::getTT(const Node* node1, const Node* node2, TT_EstimateType type) const
+double OnCallController::getTT(const Node *node1, const Node *node2, TT_EstimateType type) const
 {
 #ifndef NDEBUG
 	if (
@@ -849,41 +868,44 @@ double OnCallController::getTT(const Node* node1, const Node* node2, TT_Estimate
 
 	double retValue;
 	if (node1 == node2)
+	{
 		retValue = 0;
-	else{
-			switch (type)
-			{
-			case (OD_ESTIMATION):
-			{
-				retValue = PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(
-							node1->getNodeId(), node2->getNodeId(), DailyTime(currTick.ms()));
-				break;
-			}
-			case (SHORTEST_PATH_ESTIMATION):
-			{
-				retValue = PrivateTrafficRouteChoice::getInstance()->getShortestPathTravelTime(
-							node1, node2, DailyTime(currTick.ms() ) );
-				break;
-			}
-			case (EUCLIDEAN_ESTIMATION):
-			{
-				double squareDistance = pow(node1->getPosX() - node2->getPosX(), 2 ) +pow(node1->getPosY() - node2->getPosY(), 2 );
-				// We assume that the distance between node1 and node2 is a hypothenus of a right triangle and
-				// that we go from a node to the other by crossing the two catheti
-				double cathetus = sqrt(squareDistance ) / sqrt(2.0);
-				double distanceToCover = 2.0 * cathetus; // meters
-				double speedAssumed = 40.0 * 1000 / 3600 ; //40Kmph converted in mps
-				retValue = distanceToCover * speedAssumed;
-				break;
-			}
-			default:
-				throw std::runtime_error("Estimate type not recognized");
+	}
+	else
+	{
+		switch (type)
+		{
+		case (OD_ESTIMATION):
+		{
+			retValue = PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(
+					node1->getNodeId(), node2->getNodeId(), DailyTime(currTick.ms()));
+			break;
+		}
+		case (SHORTEST_PATH_ESTIMATION):
+		{
+			retValue = PrivateTrafficRouteChoice::getInstance()->getShortestPathTravelTime(
+					node1, node2, DailyTime(currTick.ms()));
+			break;
+		}
+		case (EUCLIDEAN_ESTIMATION):
+		{
+			double squareDistance = pow(node1->getPosX() - node2->getPosX(), 2) + pow(
+					node1->getPosY() - node2->getPosY(), 2);
+			// We assume that the distance between node1 and node2 is a hypothenus of a right triangle and
+			// that we go from a node to the other by crossing the two catheti
+			double cathetus = sqrt(squareDistance) / sqrt(2.0);
+			double distanceToCover = 2.0 * cathetus; // meters
+			double speedAssumed = 40.0 * 1000 / 3600; //40Kmph converted in mps
+			retValue = distanceToCover * speedAssumed;
+			break;
+		}
+		default:
+			throw std::runtime_error("Estimate type not recognized");
 		}
 
 
-
 		if (retValue <= 0)
-		{	// The two nodes are different and the travel time should be non zero, if valid
+		{    // The two nodes are different and the travel time should be non zero, if valid
 			retValue = std::numeric_limits<double>::max();
 		}
 	}
@@ -892,7 +914,7 @@ double OnCallController::getTT(const Node* node1, const Node* node2, TT_Estimate
 
 double OnCallController::toMs(int c) const
 {
-	return c / ( CLOCKS_PER_SEC / 1000 );
+	return c / (CLOCKS_PER_SEC / 1000);
 }
 
 

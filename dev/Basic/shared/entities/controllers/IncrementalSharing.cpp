@@ -14,7 +14,7 @@ using namespace sim_mob;
 
 void IncrementalSharing::computeSchedules()
 {
-	if(availableDrivers.empty() || requestQueue.empty())
+	if (availableDrivers.empty() || requestQueue.empty())
 	{
 		return;
 	}
@@ -121,7 +121,7 @@ void IncrementalSharing::computeSchedules()
 			throw std::runtime_error("Trying to assign more than one schedule to a single driver");
 #endif
 
-		if(!schedule.empty())
+		if (!schedule.empty())
 		{
 			schedulesComputedSoFar.emplace(driver, schedule);
 		}

@@ -10,7 +10,8 @@
 
 #include <string>
 
-namespace sim_mob {
+namespace sim_mob
+{
 
 const unsigned MobilityServiceController::toleratedExtraTime = 150; //seconds
 
@@ -63,7 +64,7 @@ void MobilityServiceController::HandleMessage(messaging::Message::MessageType ty
 	case MSG_DRIVER_UNSUBSCRIBE:
 	{
 		const DriverUnsubscribeMessage &unsubscribeArgs = MSG_CAST(DriverUnsubscribeMessage, message);
-		const Person* person = unsubscribeArgs.person;
+		const Person *person = unsubscribeArgs.person;
 		const std::string personId = person->getDatabaseId();
 		ControllerLog() << "Driver " << personId << " unsubscribed " << std::endl;
 		unsubscribeDriver(unsubscribeArgs.person);
@@ -77,25 +78,26 @@ void MobilityServiceController::HandleMessage(messaging::Message::MessageType ty
 }
 
 
-
 void MobilityServiceController::subscribeDriver(Person *driver)
 {
 
 #ifndef NDEBUG
 	consistencyChecks();
-                if (!isMobilityServiceDriver(driver) )
-                {
-                        std::stringstream msg; msg<<"Driver "<<driver->getDatabaseId()<<
-                        " is not a MobilityServiceDriver"<< std::endl;
-                        throw std::runtime_error(msg.str() );
-                }
+				if (!isMobilityServiceDriver(driver) )
+				{
+						std::stringstream msg; msg<<"Driver "<<driver->getDatabaseId()<<
+						" is not a MobilityServiceDriver"<< std::endl;
+						throw std::runtime_error(msg.str() );
+				}
 
 #endif
 	subscribedDrivers.push_back(driver);
 
-	ControllerLog()<<"Subscription received by the controller of type "<< sim_mob::toString(controllerServiceType) <<", controller info: "<< toString() <<
-			". Subscription from driver "<< driver->getDatabaseId()
-				<<" at time "<< currTick <<". Now subscribed drivers are "<< subscribedDrivers.size() <<std::endl;
+	ControllerLog() << "Subscription received by the controller of type " << sim_mob::toString(controllerServiceType)
+	                << ", controller info: " << toString() <<
+	                ". Subscription from driver " << driver->getDatabaseId()
+	                << " at time " << currTick << ". Now subscribed drivers are " << subscribedDrivers.size()
+	                << std::endl;
 }
 
 void MobilityServiceController::unsubscribeDriver(Person *driver)
@@ -107,7 +109,8 @@ void MobilityServiceController::unsubscribeDriver(Person *driver)
 		throw std::runtime_error(msg.str() );
 	}
 #endif
-	ControllerLog() << "Unsubscription of driver " << driver->getDatabaseId() <<", pointer "<< driver << " at time "<< currTick<< std::endl;
+	ControllerLog() << "Unsubscription of driver " << driver->getDatabaseId() << ", pointer " << driver << " at time "
+	                << currTick << std::endl;
 	subscribedDrivers.erase(std::remove(subscribedDrivers.begin(),
 	                                    subscribedDrivers.end(), driver), subscribedDrivers.end());
 }
@@ -126,21 +129,23 @@ void MobilityServiceController::frame_output(timeslice now)
 {
 }
 
-void MobilityServiceController::onRegistrationOnTheMessageBus()const
+void MobilityServiceController::onRegistrationOnTheMessageBus() const
 {
 #ifndef NDEBUG
 	consistencyChecks();
 #endif
-	sim_mob::ControllerLog()<<"The controller has been successfully registered"<<std::endl;
+	sim_mob::ControllerLog() << "The controller has been successfully registered" << std::endl;
 }
 
 void MobilityServiceController::consistencyChecks() const
 {
-	try{ sim_mob::consistencyChecks(controllerServiceType);}
-	catch(const std::runtime_error& e)
+	try
+	{ sim_mob::consistencyChecks(controllerServiceType); }
+	catch (const std::runtime_error &e)
 	{
-		std::stringstream msg; msg<<"Error in controller "<<controllerId<<": "<<e.what();
-		throw std::runtime_error(msg.str() );
+		std::stringstream msg;
+		msg << "Error in controller " << controllerId << ": " << e.what();
+		throw std::runtime_error(msg.str());
 	}
 }
 
@@ -158,8 +163,8 @@ MobilityServiceControllerType MobilityServiceController::getServiceType() const
 const std::string MobilityServiceController::toString() const
 {
 	std::string str;
-		str = str + "Controller id:" + std::to_string( getControllerId() )  + ",type:" + std::to_string( getServiceType() );
-		return str;
+	str = str + "Controller id:" + std::to_string(getControllerId()) + ",type:" + std::to_string(getServiceType());
+	return str;
 }
 
 void MobilityServiceController::setToBeRemoved()

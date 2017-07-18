@@ -83,7 +83,7 @@ public:
 	double getWalkDistanceFirst(int zone) const;
 	double getWalkDistanceSecond(int zone) const;
 	int getCentralDummy(int zone) const;
-	StopType getTourPurpose() const;
+	int getTourPurpose() const;
 	double getShop(int zone) const;
 	double getEmployment(int zone) const;
 	double getPopulation(int zone) const;

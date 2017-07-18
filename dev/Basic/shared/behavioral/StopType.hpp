@@ -13,7 +13,7 @@ namespace sim_mob
  */
 enum StopType
 {
-	WORK,
+	WORK=1,
 	EDUCATION,
 	SHOP,
 	OTHER,

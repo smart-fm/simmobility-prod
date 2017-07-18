@@ -469,9 +469,9 @@ int StopModeDestinationParams::getCbdDummy(int zone) const
 	return zoneMap.at(zone)->getCbdDummy();
 }
 
-StopType StopModeDestinationParams::getTourPurpose() const
+int StopModeDestinationParams::getTourPurpose() const
 {
-	return purpose;
+	return int(purpose);
 }
 
 double StopModeDestinationParams::getShop(int zone) const

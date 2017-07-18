@@ -14,12 +14,16 @@ using namespace sim_mob;
 
 void IncrementalSharing::computeSchedules()
 {
+	if(availableDrivers.empty() || requestQueue.empty())
+	{
+		return;
+	}
+
 	const std::map<unsigned int, Node *> &nodeIdMap = RoadNetwork::getInstance()->getMapOfIdvsNodes();
-
-
 	unsigned maxAggregatedRequests = 3; // Maximum number of requests that can be assigned to a driver
 	double maxWaitingTime = 300; //seconds
 	std::map<const Person *, Schedule> schedulesComputedSoFar; // We will put here the schedule that we will have constructed per each driver
+
 	for (const Person *driver : availableDrivers)
 	{
 		const Node *driverNode = driver->exportServiceDriver()->getCurrentNode(); // the node in which the driver is currently located
@@ -34,8 +38,8 @@ void IncrementalSharing::computeSchedules()
 			const Node *pickUpNode = nodeIdMap.find(request.startNodeId)->second;
 			const Node *dropOffNode = nodeIdMap.find(request.destinationNodeId)->second;
 			bool isMatchingSuccessful = false; // We will set it to true if we observe that this request can be assigned to this driver
-
 			unsigned pickupIdx = 0;
+
 			do
 			{
 				Schedule scheduleHypothesis = schedule;    // To check if we can assign this request to this driver, we create tentative schedules (like this
@@ -111,7 +115,11 @@ void IncrementalSharing::computeSchedules()
 		if (schedulesComputedSoFar.find(driver) != schedulesComputedSoFar.end()  )
 			throw std::runtime_error("Trying to assign more than one schedule to a single driver");
 #endif
-		schedulesComputedSoFar.emplace(driver, schedule);
+
+		if(!schedule.empty())
+		{
+			schedulesComputedSoFar.emplace(driver, schedule);
+		}
 	}
 
 #ifndef NDEBUG

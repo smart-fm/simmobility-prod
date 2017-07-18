@@ -37,17 +37,20 @@ void IncrementalSharing::computeSchedules()
 			const TripRequestMessage request = *itReq;
 			const Node *pickUpNode = nodeIdMap.find(request.startNodeId)->second;
 			const Node *dropOffNode = nodeIdMap.find(request.destinationNodeId)->second;
-			bool isMatchingSuccessful = false; // We will set it to true if we observe that this request can be assigned to this driver
+			// We will set it to true if we observe that this request can be assigned to this driver
+			bool isMatchingSuccessful = false;
 			unsigned pickupIdx = 0;
 
 			do
 			{
-				Schedule scheduleHypothesis = schedule;    // To check if we can assign this request to this driver, we create tentative schedules (like this
+				Schedule scheduleHypothesis = schedule;
+				// To check if we can assign this request to this driver, we create tentative schedules (like this
 				// scheduleHypothesis).
 				// We will try to modify this tentative schedule. If we succeed, they will become the real schedule.
 				// Otherwise, we will start again from the real schedule and try to insert in it the following requests
 
-				ScheduleItem newPickup(PICKUP, request);    // First, we have to find a feasible position in the schedule for the pickup of the current request.
+				ScheduleItem newPickup(PICKUP, request);
+				// First, we have to find a feasible position in the schedule for the pickup of the current request.
 				scheduleHypothesis.insert(scheduleHypothesis.begin() + pickupIdx, newPickup);
 
 				double vehicleTime = evaluateSchedule(driverNode, scheduleHypothesis,
@@ -61,8 +64,8 @@ void IncrementalSharing::computeSchedules()
 					{
 						Schedule scheduleHypothesis2 = scheduleHypothesis;
 						ScheduleItem newDropoff(DROPOFF, request);
-						scheduleHypothesis2.insert(schedule.begin() + dropoffIdx, newDropoff);
-						double vehicleTime = evaluateSchedule(driverNode, scheduleHypothesis,
+						scheduleHypothesis2.insert(scheduleHypothesis2.begin() + dropoffIdx, newDropoff);
+						double vehicleTime = evaluateSchedule(driverNode, scheduleHypothesis2,
 						                                      MobilityServiceController::toleratedExtraTime,
 						                                      maxWaitingTime);
 						if (vehicleTime > 0)
@@ -71,8 +74,8 @@ void IncrementalSharing::computeSchedules()
 							isMatchingSuccessful = true;
 							schedule = scheduleHypothesis2;
 							aggregatedRequests++;
-							itReq = requestQueue.erase(
-									itReq);// The request is matched now. I can eliminate it, so that I will not assign
+							itReq = requestQueue.erase(itReq);
+							// The request is matched now. I can eliminate it, so that I will not assign
 							// it again
 						}
 						else
@@ -84,7 +87,8 @@ void IncrementalSharing::computeSchedules()
 					// Note: I am using <= and not < in the while condition, since it is possible to insert the dropoff at the end of the schedule
 				}
 
-				++pickupIdx;    // If we arrived here, it means we did not find a feasible position in the schedule
+				++pickupIdx;
+				// If we arrived here, it means we did not find a feasible position in the schedule
 				// for the dropoff. We can try by changin the position of
 				// the pickup. If we find another feasible position for the pickup, it is possible that we will also find a feasible position
 				// for a dropoff, given the new pickup position
@@ -96,7 +100,8 @@ void IncrementalSharing::computeSchedules()
 			{
 				// I did not remove the request from the requestQueue, and thus I have to advance the iterator manually
 				itReq++;
-			} // else I do nothing, as I did what was to be done, some lines before
+			}
+			// else I do nothing, as I did what was to be done, some lines before
 		}
 
 		// Now we are done with this driver.

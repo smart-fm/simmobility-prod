@@ -216,8 +216,11 @@ public:
 class SchedulePropositionMessage: public messaging::Message
 {
 public:
-	SchedulePropositionMessage(const timeslice currTick_, Schedule schedule_):
-		currTick(currTick_), schedule(schedule_){};
+	SchedulePropositionMessage(const timeslice currTick_, Schedule schedule_, messaging::MessageHandler *msgSender):
+		currTick(currTick_), schedule(schedule_)
+	{
+		sender = msgSender;
+	};
 
 	const Schedule& getSchedule() const;
 	const timeslice currTick;

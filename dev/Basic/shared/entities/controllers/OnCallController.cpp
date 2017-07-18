@@ -299,7 +299,7 @@ void OnCallController::assignSchedule(const Person *driver, const Schedule &sche
 #endif
 
 	MessageBus::PostMessage((MessageHandler *) driver, MSG_SCHEDULE_PROPOSITION, MessageBus::MessagePtr(
-			new SchedulePropositionMessage(currTick, schedule)));
+			new SchedulePropositionMessage(currTick, schedule, (MessageHandler*) this)));
 
 #ifndef NDEBUG
 
@@ -831,8 +831,9 @@ void OnCallController::sendCruiseCommand(const Person* driver, const Node* nodeT
 	schedule.push_back(ScheduleItem(item) );
 
 
-	messaging::MessageBus::PostMessage((messaging::MessageHandler*) driver, MSG_SCHEDULE_PROPOSITION,
-				messaging::MessageBus::MessagePtr(new SchedulePropositionMessage(currTick, schedule) ) );
+	MessageBus::PostMessage((MessageHandler *) driver, MSG_SCHEDULE_PROPOSITION,
+	                        MessageBus::MessagePtr(new SchedulePropositionMessage(currTick, schedule,
+	                                                                              (MessageHandler *) this)));
 }
 
 double OnCallController::getTT(const Node* node1, const Node* node2, TT_EstimateType type) const

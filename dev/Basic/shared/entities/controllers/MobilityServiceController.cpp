@@ -207,18 +207,10 @@ void consistencyChecks(const MobilityServiceControllerType type)
 	switch (type)
 	{
 	case SERVICE_CONTROLLER_GREEDY:
-	{
-		break;
-	}
 	case SERVICE_CONTROLLER_SHARED:
-	{
-		break;
-	}
 	case SERVICE_CONTROLLER_FRAZZOLI:
-	{
-		break;
-	}
 	case SERVICE_CONTROLLER_ON_HAIL:
+	case SERVICE_CONTROLLER_INCREMENTAL:
 	{
 		break;
 	}

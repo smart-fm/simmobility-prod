@@ -3,7 +3,6 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 #include "ZoneCostSqlDao.hpp"
-
 #include <vector>
 #include "DatabaseHelper.hpp"
 #include "logging/Log.hpp"
@@ -11,8 +10,10 @@
 using namespace sim_mob;
 using namespace sim_mob::db;
 
+std::unordered_set<int> ZoneSqlDao::ZoneWithoutNodeSet;
 namespace
 {
+
 
 std::vector<std::string> initTimeDependentTT_ColNames(const std::string& prefix)
 {
@@ -79,10 +80,39 @@ bool CostSqlDao::getAll(boost::unordered_map<int, boost::unordered_map<int, Cost
 ZoneSqlDao::ZoneSqlDao(DB_Connection& connection) :
 		SqlAbstractDao<ZoneParams>(connection, "", "", "", "", DB_GET_ALL_ZONES, "")
 {
+	/*
+	 * Added functionality to create an unordered set with the zones without nodes.
+	 */
+	if(ZoneWithoutNodeSet.size() == 0)
+	{
+		Statement query(connection.getSession<soci::session>());
+		prepareStatement(DB_GET_ZONE_WITHOUT_NODE, db::EMPTY_PARAMS, query);
+		ResultSet rs(query);
+		for (ResultSet::const_iterator it = rs.begin(); it != rs.end();++it)
+		{
+			db::Row &row = *it;
+			int currId = row.get<int>(DB_FIELD_ZONE_WITHOUT_NODE);
+			ZoneWithoutNodeSet.insert(currId);
+		}
+	}
 }
+
 
 ZoneSqlDao::~ZoneSqlDao()
 {
+}
+
+bool ZoneSqlDao::getZoneWithoutNode(int zoneId)
+{
+	std::unordered_set<int>::const_iterator it= ZoneWithoutNodeSet.find(zoneId);
+	if (it != ZoneWithoutNodeSet.end())
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
 }
 
 void ZoneSqlDao::fromRow(Row& result, ZoneParams& outObj)
@@ -116,11 +146,11 @@ ZoneNodeSqlDao::~ZoneNodeSqlDao()
 
 void ZoneNodeSqlDao::fromRow(Row& result, ZoneNodeParams& outObj)
 {
-	outObj.setZone(result.get<int>(DB_FIELD_TAZ));
-	outObj.setNodeId(result.get<unsigned int>(DB_FIELD_NODE_ID));
-	outObj.setSourceNode(result.get<int>(DB_FIELD_SOURCE));
-	outObj.setSinkNode(result.get<int>(DB_FIELD_SINK));
-	outObj.setBusTerminusNode(result.get<int>(DB_FIELD_BUS_TERMINUS));
+    outObj.setZone(result.get<int>(DB_FIELD_TAZ));
+    outObj.setNodeId(result.get<unsigned int>(DB_FIELD_NODE_ID));
+    outObj.setSourceNode(result.get<int>(DB_FIELD_SOURCE));
+    outObj.setSinkNode(result.get<int>(DB_FIELD_SINK));
+    outObj.setBusTerminusNode(result.get<int>(DB_FIELD_BUS_TERMINUS));
 }
 
 void ZoneNodeSqlDao::toRow(ZoneNodeParams& data, Parameters& outParams, bool update)

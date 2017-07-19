@@ -10,6 +10,7 @@
 #include "database/DB_Connection.hpp"
 #include "behavioral/params/ZoneCostParams.hpp"
 #include "behavioral/PredayUtils.hpp"
+#include <unordered_set>
 
 namespace sim_mob
 {
@@ -61,6 +62,15 @@ class ZoneSqlDao : public db::SqlAbstractDao<ZoneParams>
 public:
 
 	ZoneSqlDao(db::DB_Connection& connection);
+	/*
+	 * Function to check if the incoming zoneId is same as the Zone without node.
+	 * @param zoneId destination zone id to check if the Zone is available or not.
+	 */
+	static bool getZoneWithoutNode(int zoneId);
+	/*
+	 * Unordered set to store unique elements for zones without node.
+	 */
+	static std::unordered_set<int> ZoneWithoutNodeSet;
 	virtual ~ZoneSqlDao();
 
 private:

@@ -491,7 +491,7 @@ double OnCallController::evaluateSchedule(const Node *initialPosition, const Sch
 			// I verify if the waiting time is ok
 			const Node *nextNode = nodeIdMap.find(scheduleItem.tripRequest.startNodeId)->second;
 			scheduleTimeStamp += getTT(latestNode, nextNode, ttEstimateType);
-			if ((scheduleTimeStamp - request.timeOfRequest.ms()) / 1000.0 > waitingTimeThreshold)
+			if (scheduleTimeStamp - request.timeOfRequest.ms() / 1000.0 > waitingTimeThreshold)
 			{
 				return -1;
 			}
@@ -896,7 +896,7 @@ double OnCallController::getTT(const Node *node1, const Node *node2, TT_Estimate
 			double cathetus = sqrt(squareDistance) / sqrt(2.0);
 			double distanceToCover = 2.0 * cathetus; // meters
 			double speedAssumed = 40.0 * 1000 / 3600; //40Kmph converted in mps
-			retValue = distanceToCover * speedAssumed;
+			retValue = distanceToCover / speedAssumed;
 			break;
 		}
 		default:

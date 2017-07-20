@@ -30,7 +30,7 @@ OnCallController::OnCallController(const MutexStrategy &mtxStrat, unsigned int c
 		: MobilityServiceController(mtxStrat, type_, id), scheduleComputationPeriod(computationPeriod),
 		  ttEstimateType(ttEstimateType_), nodeIdMap(RoadNetwork::getInstance()->getMapOfIdvsNodes())
 {
-	rebalancer = new SimpleRebalancer(this); //jo SimpleRebalancer(this);
+	rebalancer = new LazyRebalancer(this); //jo SimpleRebalancer(this);
 #ifndef NDEBUG
 	isComputingSchedules = false;
 #endif

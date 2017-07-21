@@ -20,7 +20,7 @@ void IncrementalSharing::computeSchedules()
 	}
 
 	const std::map<unsigned int, Node *> &nodeIdMap = RoadNetwork::getInstance()->getMapOfIdvsNodes();
-	unsigned maxAggregatedRequests = 3; // Maximum number of requests that can be assigned to a driver
+	unsigned maxAggregatedRequests = 2; // Maximum number of requests that can be assigned to a driver
 	double maxWaitingTime = 300; //seconds
 	std::map<const Person *, Schedule> schedulesComputedSoFar; // We will put here the schedule that we will have constructed per each driver
 

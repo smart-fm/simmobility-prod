@@ -509,7 +509,9 @@ double OnCallController::evaluateSchedule(const Node *initialPosition, const Sch
 			const Node *nextNode = nodeIdMap.find(scheduleItem.tripRequest.destinationNodeId)->second;
 			scheduleTimeStamp += getTT(latestNode, nextNode, ttEstimateType);
 			double timeIfHeWereAlone = waitingTimeThreshold + getTT(startNode, nextNode, ttEstimateType);
-			if (scheduleTimeStamp - request.timeOfRequest.getSeconds() > timeIfHeWereAlone)
+			const double sharedTravelDelay = 600; //seconds
+			double rideTimeThreshold = schedule.size() > 2 ? timeIfHeWereAlone + sharedTravelDelay : timeIfHeWereAlone;
+			if (scheduleTimeStamp - request.timeOfRequest.getSeconds() > rideTimeThreshold)
 			{
 				return -1;
 			}
@@ -891,11 +893,11 @@ double OnCallController::getTT(const Node *node1, const Node *node2, TT_Estimate
 		{
 			double squareDistance = pow(node1->getPosX() - node2->getPosX(), 2) + pow(
 					node1->getPosY() - node2->getPosY(), 2);
-			// We assume that the distance between node1 and node2 is a hypothenus of a right triangle and
+			// We assume that the distance between node1 and node2 is a hypotenus of a right triangle and
 			// that we go from a node to the other by crossing the two catheti
 			double cathetus = sqrt(squareDistance) / sqrt(2.0);
-			double distanceToCover = 2.0 * cathetus; // meters
-			double speedAssumed = 40.0 * 1000 / 3600; //40Kmph converted in mps
+			double distanceToCover = 2.0 * cathetus; // metersd
+			double speedAssumed = 30.0 * 1000 / 3600; //30Kmph converted in mps
 			retValue = distanceToCover / speedAssumed;
 			break;
 		}

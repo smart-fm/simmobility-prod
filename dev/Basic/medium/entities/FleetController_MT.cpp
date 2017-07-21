@@ -55,24 +55,30 @@ void FleetController_MT::initialise(std::set<sim_mob::Entity *> &agentList)
 		const FleetController::FleetTimePriorityQueue& fleetItems = serviceVehicle->second;
 		const FleetController::FleetItem& taxi = fleetItems.top();
 
-		Person_MT* person = new Person_MT("FleetController", ConfigManager::GetInstance().FullConfig().mutexStategy(), -1);
-		person->setTaxiFleet(fleetItems);
-		person->setDatabaseId(taxi.driverId);
-		person->setPersonCharacteristics();
-
-		vector<TripChainItem*> tripChain;
-
 		if (taxi.startNode)
 		{
+			Person_MT* person = new Person_MT("FleetController", ConfigManager::GetInstance().FullConfig().mutexStategy(), -1);
+			person->setTaxiFleet(fleetItems);
+			person->setDatabaseId(taxi.driverId);
+			person->setPersonCharacteristics();
+
+			vector<TripChainItem*> tripChain;
 			TaxiTrip *taxiTrip = new TaxiTrip("0", "TaxiTrip", 0, -1, DailyTime(taxi.startTime * 1000.0), DailyTime(),
 											  0, const_cast<Node*>(taxi.startNode), "node", nullptr, "node");
 			tripChain.push_back((TripChainItem *)taxiTrip);
 			person->setTripChain(tripChain);
 
 			addOrStashTaxis(person, agentList);
+
+			//Valid vehicle loaded
+			currTaxi++;
+		}
+		else
+		{
+			Warn() << "Vehicle " << taxi.vehicleNo << ", with driver " << taxi.driverId
+			       << " has invalid start node.";
 		}
 
-		currTaxi++;
 		serviceVehicle++;
 	}
 }

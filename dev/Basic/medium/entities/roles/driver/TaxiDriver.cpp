@@ -332,7 +332,7 @@ void TaxiDriver::processNextScheduleItem(bool isMoveToNextScheduleItem)
 	{
 	case PICKUP:
 	{
-		if (driverStatus == MobilityServiceDriverStatus::QUEUED_AT_PARKING)
+		if (driverStatus == MobilityServiceDriverStatus::PARKED)
 		{
 			getResource()->setMoving(true);
 
@@ -483,7 +483,7 @@ void TaxiDriver::processNextScheduleItem(bool isMoveToNextScheduleItem)
 			{
 				ControllerLog() << "Taxi driver " << getParent()->getDatabaseId()
 				                << "already in requested parking location" << std::endl;
-				setDriverStatus(QUEUED_AT_PARKING);
+				setDriverStatus(PARKED);
 				getResource()->setMoving(false);
 				parent->setRemainingTimeThisTick(0.0);
 				taxiDriverMovement->setCurrentNode(thisNode);

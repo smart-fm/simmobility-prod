@@ -387,8 +387,8 @@ bool OnCallController::isOnParking(const Person *driver) const
     const MobilityServiceDriver *currDriver = driver->exportServiceDriver();
     if (currDriver)
     {
-        //if (currDriver->getDriverStatus() == MobilityServiceDriverStatus::DRIVE_TO_PARK||currDriver->getDriverStatus() == MobilityServiceDriverStatus::QUEUED_AT_PARKING)
-        if (currDriver->getDriverStatus() == MobilityServiceDriverStatus::QUEUED_AT_PARKING)
+        //if (currDriver->getDriverStatus() == MobilityServiceDriverStatus::DRIVE_TO_PARKING||currDriver->getDriverStatus() == MobilityServiceDriverStatus::PARKED)
+        if (currDriver->getDriverStatus() == MobilityServiceDriverStatus::PARKED)
         {
             return true;
         }
@@ -806,7 +806,7 @@ void OnCallController::consistencyChecks(const std::string& label) const
 		const MobilityServiceDriver *mobilityServiceDriver = driver->exportServiceDriver();
 		const MobilityServiceDriverStatus status = driver->exportServiceDriver()->getDriverStatus();
 
-		if (status != CRUISING && status != QUEUED_AT_PARKING)
+		if (status != CRUISING && status != PARKED)
 		{
 			std::stringstream msg;
 			msg << "Driver " << driver->getDatabaseId() << " is among the available drivers but his status is:"

@@ -31,7 +31,7 @@ namespace
 double getSecondFrmTimeString(const std::string& startTime)
 {
 	std::istringstream is(startTime);
-	is.imbue(std::locale(is.getloc(),new bt::time_input_facet("%H:%M")));
+	is.imbue(std::locale(is.getloc(),new bt::time_input_facet("%H:%M:%S")));
 	bt::ptime pt;
 	is >> pt;
 	return (double)pt.time_of_day().ticks() / (double)bt::time_duration::rep_type::ticks_per_second;

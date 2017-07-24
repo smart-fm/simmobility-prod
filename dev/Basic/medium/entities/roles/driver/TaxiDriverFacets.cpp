@@ -50,9 +50,7 @@ void TaxiDriverMovement::frame_init()
 
 	assignFirstNode();
 
-	FleetController::FleetTimePriorityQueue &fleets = parentTaxiDriver->parent->getTaxiFleet();
-	currentFleetItem = fleets.top();
-	fleets.pop();
+	currentFleetItem = parentTaxiDriver->parent->taxiFleetPop();
 
 
 	const std::multimap<MobilityServiceControllerType, MobilityServiceController*>& controllers =
@@ -66,10 +64,9 @@ void TaxiDriverMovement::frame_init()
 	(isSubscribedToOnHail() && CruiseOnlyOrMoveToTaxiStand())?driveToTaxiStand():selectNextLinkWhileCruising();  // for 1 : drive_to_taxiStand or cruise
 
 
-	while (fleets.size() > 0)
+	while (parentTaxiDriver->parent->getTaxiFleet().size() > 0)
 	{
-		FleetController::FleetItem fleet = fleets.top();
-		fleets.pop();
+		FleetController::FleetItem fleet = parentTaxiDriver->parent->taxiFleetPop();
 		taxiFleets.push(fleet);
 	}
 }
@@ -111,8 +108,10 @@ void TaxiDriverMovement::subscribeToOrIgnoreController(
 #ifndef NDEBUG
 			ControllerLog() << "Driver " << parentDriver->getParent()->getDatabaseId()
 			                << " sent a subscription to the controller "
-			                << itController->second->toString() << " at time " << parentDriver->getParent()->currTick
-			                << std::endl;
+			                << itController->second->toString() << " at time " << parentDriver->getParent()->currTick;
+			ControllerLog()<<". parentDriver pointer "<< parentDriver;
+
+			ControllerLog()<< std::endl;
 #endif
 
 			subscribedControllers.push_back(itController->second);
@@ -259,8 +258,8 @@ bool TaxiDriverMovement::moveToNextSegment(DriverUpdateParams &params)
 		}
 		if (pathMover.isEndOfPath())
 		{
-			Conflux *parentConflux = currSegStat->getParentConflux();
-			parentTaxiDriver->pickUpPassngerAtNode(parentConflux);
+			parentTaxiDriver->pickUpPassngerAtNode();
+			// I cruise if there are no passengers
 			if (parentTaxiDriver->getPassenger() == nullptr)
 			{
 				selectNextLinkWhileCruising();
@@ -291,38 +290,8 @@ bool TaxiDriverMovement::moveToNextSegment(DriverUpdateParams &params)
 	}
 	else if (parentTaxiDriver->getDriverStatus() == DRIVE_ON_CALL && pathMover.isEndOfPath())
 	{
-		Conflux *parentConflux = currSegStat->getParentConflux();
-
-		//Store the number of passengers currently in the vehicle
-		unsigned long prevPassengerCount = parentTaxiDriver->getPassengerCount();
-
 		//Pick-up new passenger
-		parentTaxiDriver->pickUpPassngerAtNode(parentConflux, &personIdPickedUp);
-
-		//If the pick-up is successful, the passenger count should have increased
-		if (prevPassengerCount == parentTaxiDriver->getPassengerCount())
-		{
-			ControllerLog() << "Pickup failed for " << personIdPickedUp << " at time "
-			                << parentTaxiDriver->parent->currTick
-			                << "for startNodeId "
-			                << parentConflux->getConfluxNode()->getNodeId() << ", destinationNodeId "
-			                << ", and driverId " << parentTaxiDriver->parent->getDatabaseId() << std::endl;
-
-			//Pick-up failed and we didn't have any passengers on board, so we can cruise
-			if(prevPassengerCount == 0)
-			{
-				setCruisingMode();
-			}
-		}
-		else
-		{
-			ControllerLog() << "Pickup succeeded for " << personIdPickedUp << " at time "
-			                << parentTaxiDriver->parent->currTick
-			                << "with startNodeId "
-			                << parentConflux->getConfluxNode()->getNodeId() << ", destinationNodeId "
-			                << destinationNode->getNodeId()
-			                << ", and driverId " << parentTaxiDriver->parent->getDatabaseId() << std::endl;
-		}
+		parentTaxiDriver->pickUpPassngerAtNode(personIdPickedUp);
 	}
     else if (parentTaxiDriver->getDriverStatus() == DRIVE_TO_PARK && pathMover.isEndOfPath())
     {
@@ -422,6 +391,10 @@ bool TaxiDriverMovement::checkNextFleet()
 					{
 						MessageBus::PostMessage(*it, MSG_DRIVER_UNSUBSCRIBE, MessageBus::MessagePtr(
 								new DriverUnsubscribeMessage(parentTaxiDriver->getParent())));
+#ifndef NDEBUG
+						ControllerLog()<< __FILE__ <<":" <<__LINE__<<":"<< __FUNCTION__ << ": Driver "<<parentTaxiDriver->parent->getDatabaseId()<<
+								" unsubscribed because of checkNextFleet()"<< std::endl;
+#endif
 					}
 				}
 
@@ -799,7 +772,12 @@ void TaxiDriverMovement::setCruisingMode()
 	}
 }
 
-bool TaxiDriverMovement::driveToNodeOnCall(const std::string &personId, const Node *pickupNode)
+const string TaxiDriverMovement::getPersonPickedUp() const
+{
+	return personIdPickedUp;
+}
+
+bool TaxiDriverMovement::driveToNodeOnCall(const TripRequestMessage &tripRequest, const Node *pickupNode)
 {
 	bool res = false;
 	const MobilityServiceDriverStatus mode = parentTaxiDriver->getDriverStatus();
@@ -838,7 +816,6 @@ bool TaxiDriverMovement::driveToNodeOnCall(const std::string &personId, const No
 			}
 		}
 
-
 		if (!currentRouteChoice.empty())
 		{
 			res = true;
@@ -849,24 +826,25 @@ bool TaxiDriverMovement::driveToNodeOnCall(const std::string &personId, const No
 			setDestinationNode(destinationNode);
 			addRouteChoicePath(currentRouteChoice);
 			parentTaxiDriver->setDriverStatus(DRIVE_ON_CALL);
-			personIdPickedUp = personId;
-
+			personIdPickedUp = tripRequest.userId;
 		}
 	}
 
 	if (!res)
 	{
-		if (mode != CRUISING && mode !=QUEUED_AT_PARKING)
+		if (mode != CRUISING && mode != DRIVE_WITH_PASSENGER && mode !=QUEUED_AT_PARKING)
 		{
-			ControllerLog() << "Assignment failed for " << personId << " because taxi driver is not free (neither cruising nor in parking)" << std::endl;
+			ControllerLog() << "Assignment failed for " << tripRequest.userId
+			                << " because mode was not CRUISING/DRIVE_WITH_PASSENGER/QUEUED_AT_PARKING. Mode = " << mode
+			                << std::endl;
 		}
 		else if (!pickupNode)
 		{
-			ControllerLog() << "Assignment failed for " << personId << " because pickup node was null" << std::endl;
+			ControllerLog() << "Assignment failed for " << tripRequest.userId << " because pickup node was null" << std::endl;
 		}
 		else
 		{
-			ControllerLog() << "Assignment failed for " << personId << " because currentRouteChoice was empty"
+			ControllerLog() << "Assignment failed for " << tripRequest.userId << " because currentRouteChoice was empty"
 			                << ". No path from lane " << this->currLane->getLaneId() << " to node "
 			                << pickupNode->getNodeId() << std::endl;
 		}
@@ -888,6 +866,12 @@ void TaxiDriverMovement::cruiseToNode(const Node *destination)
 		subTrip.destination = WayPoint(destination);
 		std::vector<WayPoint> pathToNode = PrivateTrafficRouteChoice::getInstance()->getPath(subTrip, false, currLink,
 		                                                                                     parentTaxiDriver->getParent()->usesInSimulationTravelTime());
+
+		if(pathToNode.empty())
+		{
+			pathToNode = StreetDirectory::Instance().SearchShortestDrivingPath<Link, Node>(*currLink, *destination);
+		}
+
 
 		if (!pathToNode.empty())
 		{
@@ -1017,7 +1001,6 @@ void TaxiDriverMovement::addRouteChoicePath(vector<WayPoint> &routeToDestination
 		pathMover.setPath(path);
 		pathMover.setSegmentStatIterator(currSegStat);
 	}
-    //Print()<<"PATH :" << pathMover.printPath()<<std::endl;
 }
 
 bool TaxiDriverMovement::isToBeRemovedFromTaxiStand()
@@ -1042,6 +1025,7 @@ TaxiDriverBehavior::~TaxiDriverBehavior()
 
 std::string TaxiDriverMovement::frame_tick_output()
 {
+
 	const DriverUpdateParams &params = parentDriver->getParams();
 	if (pathMover.isPathCompleted() || ConfigManager::GetInstance().CMakeConfig().OutputDisabled())
 	{
@@ -1049,6 +1033,7 @@ std::string TaxiDriverMovement::frame_tick_output()
 	}
 
 	std::ostringstream out(" ");
+
 	if (originNode == currentNode && params.now.ms() == (uint32_t) 0)
 	{
 		out << currentFleetItem.vehicleNo << "," << parentTaxiDriver->parent->getDatabaseId() << ","
@@ -1058,15 +1043,24 @@ std::string TaxiDriverMovement::frame_tick_output()
 			<< std::endl;
 	}
 	else
-	{           std::string PassengerDBID="";
+	{
+		const std::string driverId = parentTaxiDriver->parent->getDatabaseId();
+		const unsigned int nodeId = currentNode->getNodeId();
+		const unsigned int roadSegmentId =(parentDriver->getParent()->getCurrSegStats()->getRoadSegment()->getRoadSegmentId() );
+		const Lane* currLane = parentDriver->getParent()->getCurrLane();
+		const unsigned int currLaneId = ( currLane ? parentDriver->getParent()->getCurrLane()->getLaneId() : 0);
+		const std::string driverStatusStr =parentTaxiDriver->getDriverStatusStr();
+		std::string PassengerDBID="";
 		PassengerDBID = parentTaxiDriver->getPassenger()!=NULL?parentTaxiDriver->getPassenger()->getParent()->getDatabaseId():" No Passenger";
-		out << currentFleetItem.vehicleNo << "," << parentTaxiDriver->parent->getDatabaseId() << ","
-			<< currentNode->getNodeId() << ","
-			<< (DailyTime(params.now.ms()) + DailyTime(
-					ConfigManager::GetInstance().FullConfig().simStartTime())).getStrRepr() << ","
-			<< (parentDriver->getParent()->getCurrSegStats()->getRoadSegment()->getRoadSegmentId()) << ","
-			<< ((parentDriver->getParent()->getCurrLane()) ? parentDriver->getParent()->getCurrLane()->getLaneId() : 0)
-			<< "," << parentTaxiDriver->getDriverStatusStr()
+		const string timeStr = (DailyTime(params.now.ms()) + DailyTime(
+				ConfigManager::GetInstance().FullConfig().simStartTime())).getStrRepr();
+
+		out << currentFleetItem.driverId << "," << driverId << ","
+			<< nodeId << ","
+			<< timeStr << ","
+			<< roadSegmentId << ","
+			<< currLaneId
+			<< "," << driverStatusStr
 			<< ","<< PassengerDBID
 			<< std::endl;
 	}

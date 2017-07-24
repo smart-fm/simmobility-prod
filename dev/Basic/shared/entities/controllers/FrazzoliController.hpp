@@ -133,9 +133,9 @@ protected:
 class FrazzoliController: public OnCallController {
 public:
 	FrazzoliController
-		(const MutexStrategy& mtxStrat, unsigned int computationPeriod, unsigned id) :
-		OnCallController(mtxStrat, computationPeriod, MobilityServiceControllerType::SERVICE_CONTROLLER_FRAZZOLI, id),
-		requestGroupsPerOccupancy(std::vector< Group< Group<TripRequestMessage> > >(maxVehicleOccupancy) )
+		(const MutexStrategy& mtxStrat, unsigned int computationPeriod, unsigned id, TT_EstimateType ttEstimateType) :
+		OnCallController(mtxStrat, computationPeriod, MobilityServiceControllerType::SERVICE_CONTROLLER_FRAZZOLI, id, ttEstimateType),
+		requestGroupsPerOccupancy( std::vector< Group< Group<TripRequestMessage> > >(maxVehicleOccupancy)  )
 	{
 	}
 

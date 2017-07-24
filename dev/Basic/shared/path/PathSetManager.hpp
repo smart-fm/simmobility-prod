@@ -530,6 +530,7 @@ public:
 	 * @return in vehicle travel time of shortest path in the pathset for given O and D; -1 if no pathset is available for the OD. In seconds
 	 */
 	double getOD_TravelTime(unsigned int origin, unsigned int destination, const sim_mob::DailyTime& curTime);
+	double getShortestPathTravelTime(const Node* origin, const Node* destination, const sim_mob::DailyTime& curTime);
 };
 
 }//namespace

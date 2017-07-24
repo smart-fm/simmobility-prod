@@ -5,8 +5,8 @@
  *      Author: Akshay Padmanabha, Andrea Araldo
  */
 
-#ifndef MobilityServiceController_HPP_
-#define MobilityServiceController_HPP_
+#ifndef OnCallController_HPP_
+#define OnCallController_HPP_
 #include <vector>
 #include <string>
 
@@ -93,6 +93,14 @@ protected:
 };
 
 
+/**
+ * See how they are used inside the function getTT(..)
+ */
+enum TT_EstimateType{
+	OD_ESTIMATION,
+	SHORTEST_PATH_ESTIMATION,
+	EUCLIDEAN_ESTIMATION // The least computationally expensive one
+};
 
 
 
@@ -104,14 +112,9 @@ protected:
 	// (see https://stackoverflow.com/a/121163/2110769).
 	// The constructor is protected to avoid instantiating an OnCallController directly, since it is conceptually abstract
 	explicit OnCallController(const MutexStrategy& mtxStrat, unsigned int computationPeriod,
-			MobilityServiceControllerType type_, unsigned id)
-		: MobilityServiceController(mtxStrat, type_, id), scheduleComputationPeriod(computationPeriod)
-	{
-		rebalancer = new SimpleRebalancer();
-#ifndef NDEBUG
-		isComputingSchedules = false;
-#endif
-	}
+			MobilityServiceControllerType type_, unsigned id, TT_EstimateType ttEstimateType);
+
+	const std::map<unsigned int, Node*> nodeIdMap;
 
 public:
 
@@ -125,6 +128,26 @@ public:
 
 	virtual const std::string getRequestQueueStr() const;
 
+	virtual void sendCruiseCommand(const Person* driver, const Node* nodeToCruiseTo, const timeslice currTick ) const;
+
+	/**
+	 * Estimates the travel time to go from node1 to node2. In seconds
+	 */
+	double getTT(const Node* node1, const Node* node2, TT_EstimateType typeOD) const;
+
+
+	/**
+	 * Converts from number of clocks to milliseconds
+	 */
+	double toMs(int c) const;
+
+
+	/**
+	 * Checks if the driver is cruising
+	 */
+	virtual bool isCruising(const Person* driver) const;
+	virtual bool isOnParking(const Person* driver) const;
+	virtual const Node* getCurrentNode(const Person* driver) const;
 
 
 protected:
@@ -150,15 +173,15 @@ protected:
 	std::vector<const Person*> availableDrivers;
 
 	/** Store queue of requests */
-	//TODO: It should be vector<const TripRequest>, but it does not compile in that case:
-	// check why
+
+
 	std::list<TripRequestMessage> requestQueue;
 
 	virtual void assignSchedule(const Person* driver, const Schedule& schedule);
-
-	virtual bool isCruising(const Person* driver) const;
-	virtual bool isOnParking(const Person* driver) const;
-	virtual const Node* getCurrentNode(const Person* driver) const;
+	//jo{ made these public
+	//virtual bool isCruising(const Person* driver) const;
+	//virtual const Node* getCurrentNode(const Person* driver) const;
+	//}jo
 	/**
 	 * Performs the controller algorithm to assign vehicles to requests
 	 */
@@ -198,6 +221,7 @@ protected:
 	 * Inherited from base class to update this agent
 	 */
 	Entity::UpdateStatus frame_tick(timeslice now);
+
 
 
 
@@ -245,7 +269,10 @@ protected:
 	const double waitingTimeThreshold = std::numeric_limits<double>::max();
 	const unsigned maxVehicleOccupancy = 2; //number of passengers (the driver is not considered in this number) //TODO: it should be vehicle based
 
+	TT_EstimateType ttEstimateType;
+
 };
+
 }
 
 template <class T> std::ostream& operator<<(std::ostream& strm, const sim_mob::Group<T>& group)

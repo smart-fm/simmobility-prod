@@ -60,8 +60,6 @@ void GreedyTaxiController::computeSchedules()
 				const ScheduleItem pickUpScheduleItem(ScheduleItemType::PICKUP, *request);
 				const ScheduleItem dropOffScheduleItem(ScheduleItemType::DROPOFF, *request);
 
-				ControllerLog() << "Items constructed" << std::endl;
-
 				schedule.push_back(pickUpScheduleItem);
 				schedule.push_back(dropOffScheduleItem);
 

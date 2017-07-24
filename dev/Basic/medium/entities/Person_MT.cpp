@@ -18,11 +18,14 @@
 #include "logging/ControllerLog.hpp"
 #include "util/Utils.hpp"
 #include "util/GeomHelpers.hpp"
+#include <mutex>
 
 
 using namespace std;
 using namespace sim_mob;
 using namespace sim_mob::medium;
+
+std::mutex taxiFleetMutex;
 
 namespace
 {
@@ -1037,6 +1040,9 @@ bool Person_MT::advanceCurrentTripChainItem()
 	//do the increment
 	++currTripChainItem;
 
+	//Update the number of trips completed
+	ConfigManager::GetInstanceRW().FullConfig().numTripsCompleted++;
+
 	if (currTripChainItem == tripChain.end())
 	{
 		//but tripchain items are also over, get out !
@@ -1057,18 +1063,30 @@ Entity::UpdateStatus Person_MT::checkTripChain(unsigned int currentTime)
 {
 	if (tripChain.empty())
 	{
+#ifndef NDEBUG
+		if ( exportServiceDriver() )
+		{
+			Warn()<<__FILE__<<":"<< __LINE__<<": The driver "<<getDatabaseId() << " with pointer "<< this << " is done"<<std::endl;
+		}
+#endif
 		return UpdateStatus::Done;
 	}
 
 
 	//advance the trip, sub-trip or activity....
 	TripChainItem *chainItem=*(tripChain.begin());
-	if(chainItem->itemType!=TripChainItem::IT_TAXITRIP)
+	if(chainItem->itemType != TripChainItem::IT_TAXITRIP)
 	{
 		if (!isFirstTick)
 		{
 			if (!(advanceCurrentTripChainItem()))
 			{
+#ifndef NDEBUG
+				if ( exportServiceDriver() )
+				{
+					Warn()<<__FILE__<<":"<< __LINE__<<": The driver "<<getDatabaseId() << " with pointer "<< this << " is done"<<std::endl;
+				}
+#endif
 				return UpdateStatus::Done;
 			}
 			if(isTripValid())
@@ -1081,6 +1099,12 @@ Entity::UpdateStatus Person_MT::checkTripChain(unsigned int currentTime)
 	{
 		if (!isFirstTick)
 		{
+#ifndef NDEBUG
+			if ( exportServiceDriver() )
+			{
+				Warn()<<__FILE__<<":"<< __LINE__<<": The driver "<<getDatabaseId() << " with pointer "<< this << " is done"<<std::endl;
+			}
+#endif
 			return UpdateStatus::Done;
 		}
 	}
@@ -1132,4 +1156,14 @@ Entity::UpdateStatus Person_MT::checkTripChain(unsigned int currentTime)
 void Person_MT::log(std::string line) const
 {
 	Log() << line;
+}
+
+FleetController::FleetItem Person_MT::taxiFleetPop()
+{
+	FleetController::FleetItem retValue;
+	taxiFleetMutex.lock();
+		retValue = taxiFleets.top();
+		taxiFleets.pop();
+	taxiFleetMutex.unlock();
+	return retValue;
 }

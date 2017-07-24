@@ -18,8 +18,8 @@ namespace sim_mob
 class GreedyTaxiController : public OnCallController {
 public:
 	GreedyTaxiController
-		(const MutexStrategy& mtxStrat, unsigned int computationPeriod, unsigned id) :
-		OnCallController(mtxStrat, computationPeriod, MobilityServiceControllerType::SERVICE_CONTROLLER_GREEDY, id)
+		(const MutexStrategy& mtxStrat, unsigned int computationPeriod, unsigned id, TT_EstimateType ttEstimateType) :
+		OnCallController(mtxStrat, computationPeriod, MobilityServiceControllerType::SERVICE_CONTROLLER_GREEDY, id, ttEstimateType)
 	{
 	}
 

@@ -68,10 +68,10 @@ public:
 
 	/**
 	 * perform pickup at the node
-	 * @param parentConflux is a pointer to the current conflux
-	 * @param personId is a pointer to the person id, default value is zero
+	 * @param personId is the id of the person to be picked up, if it is an empty string,
+	 * on hail drivers pick up a person from the node (without knowing the id)
 	 */
-	void pickUpPassngerAtNode(Conflux *parentConflux, std::string *personId = nullptr);
+	void pickUpPassngerAtNode(const std::string personId = "");
 
 	/**
 	 * get movement facet
@@ -99,8 +99,10 @@ public:
 
 	/**
 	 * Process the next schedule item and updates the currScheduleItem
+	 * @param isMoveToNextScheduleItem Indicates whether we increment the iterator
+	 * pointing to the schedule item
 	 */
-	void processNextScheduleItem();
+	void processNextScheduleItem(bool isMoveToNextScheduleItem = true);
 
 	/**
 	 * get current passenger

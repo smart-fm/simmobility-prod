@@ -120,6 +120,7 @@ void ExpandMidTermConfigFile::processConfig()
         	const MobilityServiceControllerType controllerType = p.second.type;
         	const unsigned scheduleComputationPeriod = p.second.scheduleComputationPeriod;
         	const unsigned controllerId = p.first;
+
 #ifndef NDEBUG
         	sim_mob::consistencyChecks(controllerType);
 #endif

@@ -418,9 +418,12 @@ Trip* MT_PersonLoader::makeTrip(const soci::row& r, unsigned int seqNo)
 	//just a sanity check
 	if(trip->origin == trip->destination)
 	{
+		Warn() << "Person " << trip->getPersonID() << " has trip " << trip->tripID
+			   << " with the same origin and destination. This trip is not loaded.\n";
 		safe_delete_item(trip);
 		return nullptr;
 	}
+
 	makeSubTrip(r, trip);
 	return trip;
 }
@@ -564,23 +567,42 @@ void MT_PersonLoader::loadPersonDemand()
 
 	soci::rowset<soci::row> rs = (sql_.prepare << sql_str);
 	ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
-	unsigned actCtr = 0;
 	map<string, vector<TripChainItem*> > tripchains;
+
+	ConfigParams &configParams = ConfigManager::GetInstanceRW().FullConfig();
 
 	for (soci::rowset<soci::row>::const_iterator it=rs.begin(); it!=rs.end(); ++it)
 	{
-		const soci::row& r = (*it);
+		const soci::row &r = (*it);
 		std::string personId = r.get<string>(0);
-		bool isLastInSchedule = (r.get<double>(9)==LAST_30MIN_WINDOW_OF_DAY) && (r.get<string>(4)==HOME_ACTIVITY_TYPE);
-		std::vector<TripChainItem*>& personTripChain = tripchains[personId];
+		bool isLastInSchedule =
+				(r.get<double>(9) == LAST_30MIN_WINDOW_OF_DAY) && (r.get<string>(4) == HOME_ACTIVITY_TYPE);
+		std::vector<TripChainItem *> &personTripChain = tripchains[personId];
 		//add trip and activity
 		unsigned int seqNo = personTripChain.size(); //seqNo of last trip chain item
-		sim_mob::Trip* constructedTrip = makeTrip(r, ++seqNo);
-		if(constructedTrip) { personTripChain.push_back(constructedTrip); }
-		else { continue; }
-		if(!isLastInSchedule) { personTripChain.push_back(makeActivity(r, ++seqNo)); }
-		actCtr++;
+		sim_mob::Trip *constructedTrip = makeTrip(r, ++seqNo);
+
+		if (constructedTrip)
+		{
+			personTripChain.push_back(constructedTrip);
+
+			//Record the number of trips loaded
+			configParams.numTripsLoaded++;
+		}
+		else
+		{
+			configParams.numTripsNotLoaded++;
+			continue;
+		}
+
+		if (!isLastInSchedule)
+		{
+			personTripChain.push_back(makeActivity(r, ++seqNo));
+		}
 	}
+
+	//Record the total number of persons loaded from the day activity schedule
+	configParams.numPersonsLoaded += tripchains.size();
 
 	if (!freightStoredProcName.empty())
 	{
@@ -607,8 +629,10 @@ void MT_PersonLoader::loadPersonDemand()
 			}
 		}
 	}
+
 	vector<Person_MT*> persons;
 	int personsLoaded = CellLoader::load(tripchains, persons);
+
 	for(vector<Person_MT*>::iterator i=persons.begin(); i!=persons.end(); i++)
 	{
 		addOrStashPerson(*i);

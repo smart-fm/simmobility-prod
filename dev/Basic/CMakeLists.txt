@@ -155,11 +155,11 @@ SET(CPACK_DEBIAN_PACKAGE_DEPENDS
   ${COMMA} "cmake"  #We check the version earlier; leave this line last.
 )
 
-IF (${BUILD_SHORT} MATCHES "ON")
+IF (${BUILD_SHORT} MATCHES "ON" OR ${BUILD_MEDIUM} MATCHES "ON")
 	SET(CPACK_DEBIAN_PACKAGE_DEPENDS
 		"libglpk-dev (>= 4.43-1)"
 	)
-ENDIF (${BUILD_SHORT} MATCHES "ON")
+ENDIF (${BUILD_SHORT} MATCHES "ON" OR ${BUILD_MEDIUM} MATCHES "ON")
 
 #Make sure to flatten the DEPENDS array before using it.
 string(REPLACE ";" "" CPACK_DEBIAN_PACKAGE_DEPENDS ${CPACK_DEBIAN_PACKAGE_DEPENDS})
@@ -410,8 +410,8 @@ ENDIF(${BUILD_STATIC} MATCHES "ON")
 
 LIST(APPEND LibraryList -lcrypto -lssl -lpq -ldl )
 
-IF (${BUILD_SHORT} MATCHES "ON")
-        #Find GLPK
+IF (${BUILD_SHORT} MATCHES "ON" OR ${BUILD_MEDIUM} MATCHES "ON")
+    #Find GLPK
 	FIND_LIBRARY( GLPK_LIB glpk PATHS /usr/lib $ENV{GLPK_DIR}/lib)
 	SET(GLPK_LIBRARIES ${GLPK_LIB} )
 
@@ -421,7 +421,7 @@ IF (${BUILD_SHORT} MATCHES "ON")
 	  DOC "Directory where GLPK header files are stored" )
 	include_directories(${GLPK_INCLUDE_DIR})
 	LIST(APPEND LibraryList -lglpk)
-ENDIF (${BUILD_SHORT} MATCHES "ON")
+ENDIF (${BUILD_SHORT} MATCHES "ON" OR ${BUILD_MEDIUM} MATCHES "ON")
 
 #Find CppUnit and QxCppUnit if we are building unit tests.
 SET(UnitTestLibs "")

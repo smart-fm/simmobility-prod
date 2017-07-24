@@ -344,7 +344,7 @@ Entity::UpdateStatus Person_ST::frame_init(timeslice now)
 		currRole->Movement()->frame_init();
 	}
 
-	ConfigManager::GetInstanceRW().FullConfig().numTripsSimulated++;
+	ConfigManager::GetInstanceRW().FullConfig().numTripsLoaded++;
 	
 	return result;
 }

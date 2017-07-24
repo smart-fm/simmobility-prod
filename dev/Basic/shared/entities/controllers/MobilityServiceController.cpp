@@ -71,7 +71,7 @@ void MobilityServiceController::HandleMessage(messaging::Message::MessageType ty
 
 	case MSG_DRIVER_SHIFT_END:
 	{
-		const DriverShiftCompleted &scheduleCompletedArgs = MSG_CAST(DriverScheduleCompleted, message);
+		const DriverShiftCompleted &scheduleCompletedArgs = MSG_CAST(DriverShiftCompleted, message);
 		onDriverShiftEnd(scheduleCompletedArgs.person);
 		break;
 	}

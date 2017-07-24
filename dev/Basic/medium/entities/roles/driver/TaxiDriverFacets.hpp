@@ -28,7 +28,9 @@ public:
 	virtual void frame_init();
 
 	virtual void frame_tick();
-    virtual std::string frame_tick_output();
+
+	virtual std::string frame_tick_output();
+
 	/**
 	 * internal structure for breaking
 	 */
@@ -100,7 +102,7 @@ public:
 	 */
 	void cruiseToNode(const Node *destination);
 
-	virtual const std::vector<MobilityServiceController*>& getSubscribedControllers() const;
+	virtual const std::vector<MobilityServiceController *> &getSubscribedControllers() const;
 
 	bool isSubscribedToOnHail() const;
 
@@ -127,6 +129,11 @@ public:
 
 	const std::string getPersonPickedUp() const;
 
+	const FleetController::FleetItem &getCurrentFleetItem() const
+	{
+		return currentFleetItem;
+	}
+
 protected:
 	/**List of subscribed controllers*/
 	std::vector<MobilityServiceController *> subscribedControllers;
@@ -134,31 +141,45 @@ protected:
 private:
 	/**record next destination node*/
 	const Node *destinationNode = nullptr;
+
 	/**record current start node*/
 	const Node *currentNode = nullptr;
+
 	/**record parent taxi driver*/
 	TaxiDriver *parentTaxiDriver = nullptr;
+
 	/**record original start node*/
 	Node *originNode = nullptr;
+
 	/**indicate whether the path already initialized or not*/
 	bool isPathInitialized = false;
+
 	/**record next destination stand*/
 	const TaxiStand *destinationTaxiStand = nullptr;
+
 	/**record previous taxi stand when leaving from stand*/
 	const TaxiStand *previousTaxiStand = nullptr;
+
 	/**indicate whether taxi will be left from current stand*/
 	bool toBeRemovedFromTaxiStand = false;
+
 	std::map<const Link *, int> mapOfLinksAndVisitedCounts;
+
 	/**record total cruising time*/
 	double cruisingTooLongTime = 0.0;
+
 	/**record total queuing time at the stand*/
 	double queuingTooLongTime = 0.0;
+
 	/**record next selected link when cruising*/
 	Link *selectedNextLinkInCrusing = nullptr;
+
 	/**the vector to record second or third drivers*/
 	std::queue<FleetController::FleetItem> taxiFleets;
+
 	/**record breaking information*/
 	std::shared_ptr<BrokenInfo> nextBroken;
+
 	/**record person id to be picked up*/
 	std::string personIdPickedUp;
 

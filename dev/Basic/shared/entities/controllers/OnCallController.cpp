@@ -51,12 +51,13 @@ void OnCallController::subscribeDriver(Person *driver)
 
 	MobilityServiceController::subscribeDriver(driver);
 	availableDrivers.push_back(driver);
+
 #ifndef NDEBUG
 	if (driverSchedules.find(driver) != driverSchedules.end() )
 		throw std::runtime_error("Trying to subscribe a driver already subscribed");
 #endif
-	driverSchedules.emplace(driver, Schedule());
 
+	driverSchedules.emplace(driver, Schedule());
 
 #ifndef NDEBUG
 	ControllerLog()<<"After the subscription, subscribedDrivers.size()="<< subscribedDrivers.size()<<", availableDrivers.size()="<< availableDrivers.size() <<
@@ -70,29 +71,24 @@ void OnCallController::unsubscribeDriver(Person *driver)
 	MobilityServiceController::unsubscribeDriver(driver);
 
 #ifndef NDEBUG
-	if (driverSchedules.find(driver) == driverSchedules.end() )
+	if (driverSchedules.find(driver) == driverSchedules.end())
 	{
-		std::stringstream msg; msg<<"Driver "<< driver->getDatabaseId()<<" has been subscribed but had no "<<
-			"schedule associated. This is impossible. It should have had at least an empty schedule";
+		std::stringstream msg;
+		msg << "Driver " << driver->getDatabaseId() << " has been subscribed but had no "
+		    << "schedule associated. This is impossible. It should have had at least an empty schedule";
 		throw std::runtime_error(msg.str());
 	}
 
 	unsigned scheduleSize = driverSchedules.at(driver).size();
-	if ( scheduleSize>0 )
-	{
-		std::stringstream msg; msg<<"Driver "<< driver->getDatabaseId()<<", pointer "<< driver << " has a non empty schedule and she sent a message "
-		<<"to unsubscribe. This is not admissible";
-		throw std::runtime_error(msg.str());
-	}
 
-	if (availableDrivers.size()!= driverSchedules.size() )
+	if (scheduleSize > 0)
 	{
-		std::stringstream msg; msg<<"availableDrivers.size()="<<availableDrivers.size()<<
-		", driverSchedules.size()="<<driverSchedules.size()<<". They should be equal";
+		std::stringstream msg;
+		msg << "Driver with pointer " << driver << " has a non empty schedule and she sent a message "
+		    << "to unsubscribe. This is not admissible";
 		throw std::runtime_error(msg.str());
 	}
 #endif
-
 
 	driverSchedules.erase(driver);
 
@@ -145,6 +141,16 @@ void OnCallController::driverUnavailable(Person *person)
 #endif
 }
 
+void OnCallController::onDriverShiftEnd(Person *driver)
+{
+	ControllerLog() << "Shift end msg received from driver " << driver << endl;
+
+	driverAvailable(driver);
+	unsubscribeDriver(driver);
+
+	MessageBus::PostMessage((MessageHandler *) driver, MSG_UNSUBSCRIBE_SUCCESSFUL, MessageBus::MessagePtr(
+			new DriverUnsubscribeMessage(driver)));
+}
 
 Entity::UpdateStatus OnCallController::frame_tick(timeslice now)
 {
@@ -733,24 +739,24 @@ bool OnCallController::canBeShared(const TripRequestMessage &r1, const TripReque
 	return false;
 }
 
-
 #ifndef NDEBUG
 void OnCallController::consistencyChecks(const std::string& label) const
 {
-	if (subscribedDrivers.size()!=driverSchedules.size() )
+	if (subscribedDrivers.size() != driverSchedules.size())
 	{
-		std::stringstream msg; msg<< label << " subscribedDrivers.size()="<<subscribedDrivers.size()<<
-			" and driverSchedules.size()="<<driverSchedules.size() <<". They should be equal. ";
+		std::stringstream msg;
+		msg << label << " subscribedDrivers.size()=" << subscribedDrivers.size()
+		    << " and driverSchedules.size()=" << driverSchedules.size() << ". They should be equal. ";
 
-		for (const Person* driver : subscribedDrivers)
+		for (const Person *driver : subscribedDrivers)
 		{
-			if (driverSchedules.find(driver) == driverSchedules.end() )
-				msg<<"Driver "<< driver->getDatabaseId()<<" is in subscribedDrivers but not in driverSchedules";
+			if (driverSchedules.find(driver) == driverSchedules.end())
+			{
+				msg << "Driver " << driver->getDatabaseId() << " is in subscribedDrivers but not in driverSchedules";
+			}
 		}
 
-
 		throw std::runtime_error(msg.str());
-
 	}
 
 	unsigned emptyDrivers = 0;
@@ -765,47 +771,55 @@ void OnCallController::consistencyChecks(const std::string& label) const
 		throw std::runtime_error(msg.str() );
 	}
 
-	for (const Person* driver : availableDrivers)
+	for (const Person *driver : availableDrivers)
 	{
-		if (!isMobilityServiceDriver(driver) )
+		if (!isMobilityServiceDriver(driver))
 		{
-			std::stringstream msg; msg<<"Driver "<<driver->getDatabaseId()<<
-			" is not a MobilityServiceDriver"<< std::endl;
-			throw std::runtime_error(msg.str() );
+			std::stringstream msg;
+			msg << "Driver " << driver->getDatabaseId()
+			    << " is not a MobilityServiceDriver" << std::endl;
+			throw std::runtime_error(msg.str());
 		}
 
-		const MobilityServiceDriver* mobilityServiceDriver = driver->exportServiceDriver();
+		const MobilityServiceDriver *mobilityServiceDriver = driver->exportServiceDriver();
 		const MobilityServiceDriverStatus status = driver->exportServiceDriver()->getDriverStatus();
+
 		if (status != CRUISING)
 		{
-					std::stringstream msg; msg<<"Driver "<<driver->getDatabaseId()<<" is among the available drivers but his status is:"
-						<< driver->exportServiceDriver()->getDriverStatusStr() << ". This is not admitted at the moment";
-					throw std::runtime_error(msg.str( ));
+			std::stringstream msg;
+			msg << "Driver " << driver->getDatabaseId() << " is among the available drivers but his status is:"
+			    << driver->exportServiceDriver()->getDriverStatusStr() << ". This is not admitted at the moment";
+			throw std::runtime_error(msg.str());
 		}
 
-		if ( !driverSchedules.at(driver).empty() )
+		if (!driverSchedules.at(driver).empty())
 		{
-			std::stringstream msg; msg<<"Driver "<<driver->getDatabaseId()<<" is among the available drivers but her schedule is not empty:"
-			<<driverSchedules.at(driver);
-			throw std::runtime_error(msg.str( ));
+			std::stringstream msg;
+			msg << "Driver " << driver->getDatabaseId()
+			    << " is among the available drivers but her schedule is not empty:"
+			    << driverSchedules.at(driver);
+			throw std::runtime_error(msg.str());
 		}
 	}
 
 	// Check if the same request is present more than once
-	std::vector<TripRequestMessage> requestQueueCopy{ std::begin(requestQueue), std::end(requestQueue) };
+	std::vector<TripRequestMessage> requestQueueCopy{std::begin(requestQueue), std::end(requestQueue)};
 	std::sort(requestQueueCopy.begin(), requestQueueCopy.end());
-	for(int i = 0; i < requestQueueCopy.size() ; i++)
+	for (int i = 0; i < requestQueueCopy.size(); i++)
 	{
-		for (int j = i+1 ; j<requestQueueCopy.size() ; j++ )
-		if (requestQueueCopy[i].userId == requestQueueCopy[j].userId)
+		for (int j = i + 1; j < requestQueueCopy.size(); j++)
 		{
-			std::stringstream msg; msg<<"There are two requests from the same users currently in the requestQueue. They are "<<
-				requestQueueCopy[i] <<" and "<<requestQueueCopy[j]<< std::endl;
-			throw std::runtime_error(msg.str() );
+			if (requestQueueCopy[i].userId == requestQueueCopy[j].userId)
+			{
+				std::stringstream msg;
+				msg << "There are two requests from the same users currently in the requestQueue. They are " <<
+				    requestQueueCopy[i] << " and " << requestQueueCopy[j] << std::endl;
+				throw std::runtime_error(msg.str());
+			}
 		}
 	}
-
 }
+
 #endif
 
 const std::string OnCallController::getRequestQueueStr() const

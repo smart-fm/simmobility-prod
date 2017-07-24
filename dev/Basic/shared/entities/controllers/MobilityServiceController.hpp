@@ -76,6 +76,13 @@ protected:
 	 */
 	virtual void unsubscribeDriver(Person *person);
 
+	/**
+	 * Marks the schedule assigned to the driver as complete and
+	 * unsubscribes the driver
+	 * @param person the driver who has completed the scheule
+	 */
+	virtual void onDriverShiftEnd(Person *person){}
+
 	const MobilityServiceControllerType controllerServiceType;
 
 	const unsigned controllerId;

@@ -159,6 +159,11 @@ void TaxiDriver::HandleParentMessage(messaging::Message::MessageType type, const
 		processNextScheduleItem(false);
 		break;
 	}
+	case MSG_UNSUBSCRIBE_SUCCESSFUL:
+	{
+		parent->setToBeRemoved();
+		break;
+	}
 	default:
 	{
 		break;
@@ -296,7 +301,23 @@ void TaxiDriver::processNextScheduleItem(bool isMoveToNextScheduleItem)
 	//If entire schedule is complete, cruise around
 	if(currScheduleItem == assignedSchedule.end())
 	{
-		taxiDriverMovement->setCruisingMode();
+		//Remove the taxi driver from the simulation if the shift has ended
+		if((parent->currTick.ms() / 1000) >= taxiDriverMovement->getCurrentFleetItem().endTime)
+		{
+			ControllerLog() << "Driver " << parent->getDatabaseId() << " has completed the schedule and "
+			                << "is at the end of its shift. Time = " << parent->currTick << std::endl;
+
+			MessageBus::PostMessage(controller, MSG_DRIVER_SHIFT_END,
+			                        MessageBus::MessagePtr(new DriverShiftCompleted(parent)));
+
+			driverStatus = CRUISING;
+			taxiDriverMovement->selectNextLinkWhileCruising();
+		}
+		else
+		{
+			taxiDriverMovement->setCruisingMode();
+		}
+
 		return;
 	}
 
@@ -460,7 +481,8 @@ const std::vector<MobilityServiceController*>& TaxiDriver::getSubscribedControll
 
 TaxiDriver::~TaxiDriver()
 {
-	if (MobilityServiceControllerManager::HasMobilityServiceControllerManager())
+	if (MobilityServiceControllerManager::HasMobilityServiceControllerManager() &&
+		(parent->currTick.ms() / 1000) < taxiDriverMovement->getCurrentFleetItem().endTime)
 	{
 		for(auto it = taxiDriverMovement->getSubscribedControllers().begin();
 			it != taxiDriverMovement->getSubscribedControllers().end(); ++it)

@@ -249,6 +249,12 @@ protected:
 	 */
 	virtual void driverAvailable(const Person* person);
 
+	/**
+	 * Marks the schedule assigned to the driver as complete
+	 * (by simply replacing it with an empty schedule)
+	 * @param person the driver who has completed the scheule
+	 */
+	virtual void onDriverShiftEnd(Person *person);
 
 	/** Keeps track of current local tick */
 	unsigned int localTick = 0;

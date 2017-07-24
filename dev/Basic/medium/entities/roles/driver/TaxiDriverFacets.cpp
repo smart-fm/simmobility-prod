@@ -369,8 +369,15 @@ void TaxiDriverMovement::frame_tick()
 {
 	DriverUpdateParams &params = parentTaxiDriver->getParams();
 	const MobilityServiceDriverStatus mode = parentTaxiDriver->getDriverStatus();
+
 	if (parentTaxiDriver->taxiPassenger != nullptr)
 	{
+		//Check the shift time has ended. If so, remove it from the simulation
+		if((parentTaxiDriver->getParent()->currTick.ms() / 1000) >= currentFleetItem.endTime && isSubscribedToOnHail())
+		{
+			parentTaxiDriver->getParent()->setToBeRemoved();
+		}
+
 		parentTaxiDriver->taxiPassenger->Movement()->frame_tick();
 	}
 

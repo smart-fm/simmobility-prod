@@ -16,10 +16,10 @@ enum MobilityServiceControllerMessage
 	MSG_DRIVER_AVAILABLE,
 	MSG_TRIP_REQUEST,
 	MSG_SCHEDULE_PROPOSITION,
-	MSG_SCHEDULE_PROPOSITION_REPLY
+	MSG_SCHEDULE_PROPOSITION_REPLY,
+	MSG_DRIVER_SHIFT_END,
+	MSG_UNSUBSCRIBE_SUCCESSFUL
 };
-
-
 
 /*
 struct TripRequest
@@ -94,10 +94,25 @@ public:
 };
 
 /**
+ * Message indicating that a driver has completed its shift
+ */
+class DriverShiftCompleted : public messaging::Message
+{
+public:
+	DriverShiftCompleted(Person *p) : person(p)
+	{
+	}
+
+	virtual ~DriverShiftCompleted()
+	{
+	}
+
+	Person *person;
+};
+
+/**
  * Message to request a trip
  */
-
-
 class TripRequestMessage : public messaging::Message
 {
 public:

@@ -63,8 +63,9 @@ void FleetController_MT::initialise(std::set<sim_mob::Entity *> &agentList)
 			person->setPersonCharacteristics();
 
 			vector<TripChainItem*> tripChain;
-			TaxiTrip *taxiTrip = new TaxiTrip("0", "TaxiTrip", 0, -1, DailyTime(taxi.startTime * 1000.0), DailyTime(),
-											  0, const_cast<Node*>(taxi.startNode), "node", nullptr, "node");
+			TaxiTrip *taxiTrip = new TaxiTrip("0", "TaxiTrip", 0, -1, DailyTime(taxi.startTime * 1000.0),
+			                                  DailyTime(taxi.endTime * 1000), 0, const_cast<Node *>(taxi.startNode),
+			                                  "node", nullptr, "node");
 			tripChain.push_back((TripChainItem *)taxiTrip);
 			person->setTripChain(tripChain);
 

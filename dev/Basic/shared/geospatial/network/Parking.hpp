@@ -20,9 +20,7 @@ class Parking
 {
 
 private:
-    //unsigned int parking_id;
-    std::vector<const ParkingDetail *> parkingDetails;
-    //std::map<const unsigned int parking_id, const ParkingDetail *> MapparkingDetails;
+    static std::map<unsigned int, ParkingDetail *>parkingDetails;
 public:
 public:
     Parking();
@@ -32,7 +30,7 @@ public:
     /*
 	 * function return Vector of complete set of Parking
 	 */
-    const std::vector<const ParkingDetail *> &getParkingDetails() const;
+    const static std::map<unsigned int, ParkingDetail *> &getParkingDetails();
 
     /**
 	* Returns the parking detail for the passed parking id
@@ -41,6 +39,6 @@ public:
 	*/
     const ParkingDetail *getParkingDetail(unsigned int pkID) const;
 
-    void addParkingDetail(const ParkingDetail *);
+    void addParkingDetail( ParkingDetail *);
 };
 }

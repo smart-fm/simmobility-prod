@@ -718,7 +718,11 @@ double OnCallController::computeSchedule(const Node *initialNode, const Schedule
 	if (isFeasible)
 	{
 		return travelTime;
-	else return -1;
+	}
+	else
+	{
+		return -1;
+	}
 }
 
 bool OnCallController::canBeShared(const TripRequestMessage& r1, const TripRequestMessage& r2,

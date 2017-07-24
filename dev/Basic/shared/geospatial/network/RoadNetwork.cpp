@@ -13,7 +13,7 @@
 #include "Node.hpp"
 #include "ParkingArea.hpp"
 #include "ParkingSlot.hpp"
-#include "ParkingDetail.hpp"
+#include "SMSVehicleParking.hpp"
 #include "Point.hpp"
 #include "PolyLine.hpp"
 #include "RoadItem.hpp"
@@ -45,7 +45,7 @@ RoadNetwork::~RoadNetwork()
 	mapOfIdvsTurningPaths.clear();
 	mapOfIdvsBusStops.clear();
 	mapOfIdVsParkingSlots.clear();
-	mapOfIdVsParkingDetails.clear();
+	mapOfIdVsSMSVehiclesParking.clear();
 
 	roadNetwork = NULL;
 }
@@ -105,9 +105,9 @@ const std::map<unsigned int, ParkingArea *>& RoadNetwork::getMapOfIdVsParkingAre
 	return mapOfIdVsParkingAreas;
 }
 
-const std::map<unsigned int, ParkingDetail *>& RoadNetwork::getMapOfIdVsParkingDetails() const
+const std::map<unsigned int, SMSVehicleParking *>& RoadNetwork::getMapOfIdvsSMSVehicleParking() const
 {
-	return mapOfIdVsParkingDetails;
+	return mapOfIdVsSMSVehiclesParking;
 }
 
 void RoadNetwork::addLane(Lane* lane)
@@ -669,35 +669,38 @@ void RoadNetwork::addBusStop(BusStop* stop)
 	}
 }
 
-void RoadNetwork::addParkingDetail(ParkingDetail* parking_detail)
+void RoadNetwork::addSMSVehicleParking(SMSVehicleParking *smsVehicleParking)
 {
 	//Check if the parking  has already been added to the map
-	std::map<unsigned int, ParkingDetail *>::iterator itPark = mapOfIdVsParkingDetails.find(parking_detail->getParkingID());
+	map<unsigned int, SMSVehicleParking *>::iterator itPark = mapOfIdVsSMSVehiclesParking.find(smsVehicleParking->getParkingId());
 
-	if (itPark != mapOfIdVsParkingDetails.end())
+	if (itPark != mapOfIdVsSMSVehiclesParking.end())
 	{
-		std::stringstream msg;
-		msg << "Parking " << parking_detail->getParkingID() << " (parkingID) has already been added!";
-		safe_delete_item(parking_detail);
-		throw std::runtime_error(msg.str());
+		stringstream msg;
+		msg << "Parking " << smsVehicleParking->getParkingId() << " has already been added!";
+		safe_delete_item(smsVehicleParking);
+		throw runtime_error(msg.str());
 	}
 	else
 	{
-		//Get the Node to which the Parking belongs
-		std::map<unsigned int, Node *>::iterator itAccNode = mapOfIdvsNodes.find(parking_detail->getAccessNodeID());
-		std::map<unsigned int, Node *>::iterator itEgrNode = mapOfIdvsNodes.find(parking_detail->getEgressNodeID());
+		//Set the road segment
+		auto itSegment = mapOfIdVsRoadSegments.find(smsVehicleParking->getSegmentId());
 
-		if ((itAccNode != mapOfIdvsNodes.end()) && (itEgrNode != mapOfIdvsNodes.end()) )
+		if(itSegment != mapOfIdVsRoadSegments.end())
 		{
-			//Insert the parking_detail into the map
-			mapOfIdVsParkingDetails.insert(std::make_pair(parking_detail->getParkingID(), parking_detail));
+			smsVehicleParking->setParkingSegment(itSegment->second);
+
+			//Insert the smsVehicleParking into the map
+			mapOfIdVsSMSVehiclesParking.insert(make_pair(smsVehicleParking->getParkingId(), smsVehicleParking));
 		}
 		else
 		{
-			std::stringstream msg;
-			msg << "Parking refers to  invalid Access Or Egress Node "<<std::endl;
-			safe_delete_item(parking_detail);
-			throw std::runtime_error(msg.str());
+			stringstream msg;
+			msg << "Parking " << smsVehicleParking->getParkingId() << " refers to invalid segment "
+			    << smsVehicleParking->getSegmentId();
+
+			safe_delete_item(smsVehicleParking);
+			throw runtime_error(msg.str());
 		}
 	}
 }

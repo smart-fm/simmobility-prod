@@ -60,6 +60,9 @@ void GreedyTaxiController::computeSchedules()
 				const ScheduleItem pickUpScheduleItem(ScheduleItemType::PICKUP, *request);
 				const ScheduleItem dropOffScheduleItem(ScheduleItemType::DROPOFF, *request);
 
+				const Node *endNode = itDestination->second;
+
+
 				schedule.push_back(pickUpScheduleItem);
 				schedule.push_back(dropOffScheduleItem);
 

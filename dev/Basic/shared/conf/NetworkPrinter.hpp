@@ -91,7 +91,7 @@ private:
  	* Prints the parking Info (For Oncall & MRT)
  	* @param parkingDetails map of id vs the parking Detail (Info)
  	*/
-	void printParkingDetails(const std::map<unsigned int, ParkingDetail *> &parkingDetails) const;
+	void printParkingDetails(const std::map<unsigned int, SMSVehicleParking *> &parkingDetails) const;
 
 	/**
 	 * This method prints the stream to the output file.

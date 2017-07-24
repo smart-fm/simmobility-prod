@@ -10,7 +10,7 @@
 #include "NetworkLoader.hpp"
 #include "SurveillanceStation.hpp"
 #include "TaxiStand.hpp"
-#include "ParkingDetail.hpp"
+#include "SMSVehicleParking.hpp"
 
 namespace sim_mob
 {
@@ -20,7 +20,7 @@ class NetworkLoader;
 class Node;
 class ParkingArea;
 class ParkingSlot;
-class ParkingDetail;
+class SMSVehicleParking;
 class Point;
 class PolyPoint;
 class PolyLine;
@@ -74,7 +74,7 @@ private:
 	std::map<unsigned int, ParkingArea *> mapOfIdVsParkingAreas;
 
 	/**This map stores all the parking details in the network with the  parking id as the key*/
-	std::map<unsigned int, ParkingDetail *> mapOfIdVsParkingDetails;
+	std::map<unsigned int, SMSVehicleParking *> mapOfIdVsSMSVehiclesParking;
 
 	std::map<const Lane*,std::map<const Lane*,const TurningPath *>> turningPathFromLanes;
 
@@ -119,7 +119,7 @@ public:
 	
 	const std::map<const Lane*,std::map<const Lane*,const TurningPath *>> &getTurningPathsFromLanes() const;
 
-	const std::map<unsigned int, ParkingDetail *>& getMapOfIdVsParkingDetails() const;
+	const std::map<unsigned int, SMSVehicleParking *>& getMapOfIdvsSMSVehicleParking() const;
 
 	Node* getFirstNode() const;
 
@@ -209,10 +209,10 @@ public:
 
 
 	/**
-	 * Adds a parking Detail
+	 * Adds a SMS parking location to the road network
 	 * @param parkingDetail - the pointer to the parking Detail
 	 */
-	void addParkingDetail(ParkingDetail *parking_detail);
+	void addSMSVehicleParking(SMSVehicleParking *smsVehicleParking);
 	 
 	 /**
 	 * Adds a surveillance stn to the network

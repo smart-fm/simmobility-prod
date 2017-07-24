@@ -717,7 +717,7 @@ void NetworkLoader::loadParkingSlots(const std::string& storedProc)
 #endif
 }
 
-void NetworkLoader::loadAllParking(const std::string& storedProc)
+void NetworkLoader::loadSMSVehicleParking(const std::string &storedProc)
 {
 	sim_mob::ConfigParams& config = sim_mob::ConfigManager::GetInstanceRW().FullConfig();
 
@@ -730,16 +730,16 @@ void NetworkLoader::loadAllParking(const std::string& storedProc)
     }
 
     //SQL statement
-    soci::rowset<sim_mob::ParkingDetail> pkDetail = (sql.prepare << "select * from " + storedProc);
+    soci::rowset<sim_mob::SMSVehicleParking> parking = (sql.prepare << "select * from " + storedProc);
 
-    for (soci::rowset<ParkingDetail>::const_iterator itPkDet = pkDetail.begin(); itPkDet != pkDetail.end(); ++itPkDet)
+    for (soci::rowset<SMSVehicleParking>::const_iterator itParking = parking.begin(); itParking != parking.end(); ++itParking)
     {
         //Create new parking detail  and add it to the netowrk
-        ParkingDetail *parking_detail = new ParkingDetail(*itPkDet);
+        SMSVehicleParking *smsVehicleParking = new SMSVehicleParking(*itParking);
 
         try
         {
-            roadNetwork->addParkingDetail(parking_detail);
+	        roadNetwork->addSMSVehicleParking(smsVehicleParking);
         }
         catch(runtime_error &ex)
         {
@@ -750,7 +750,7 @@ void NetworkLoader::loadAllParking(const std::string& storedProc)
     }
 
     //Sanity check
-    unsigned long parkingLoaded = roadNetwork->getMapOfIdVsParkingDetails().size();
+    unsigned long parkingLoaded = roadNetwork->getMapOfIdvsSMSVehicleParking().size();
 
     if(parkingLoaded == 0)
     {
@@ -809,7 +809,7 @@ void NetworkLoader::loadNetwork(const string& connectionStr, const map<string, s
 
 		loadTaxiStands(getStoredProcedure(storedProcs, "taxi_stands", false));
 
-		loadAllParking(getStoredProcedure(storedProcs, "all_parking_Info", false));
+		loadSMSVehicleParking(getStoredProcedure(storedProcs, "all_parking_Info", false));
 
 		//Close the connection
 		sql.close();

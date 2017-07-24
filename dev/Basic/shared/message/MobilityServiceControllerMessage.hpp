@@ -200,6 +200,7 @@ struct ScheduleItem
 			throw std::runtime_error("Only PARK is admitted here");
 #endif
 	};
+
 	bool operator<(const ScheduleItem &other) const;
 
 	ScheduleItemType scheduleItemType;

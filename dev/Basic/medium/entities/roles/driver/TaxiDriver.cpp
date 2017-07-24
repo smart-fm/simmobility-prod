@@ -13,8 +13,6 @@
 #include "message/MessageBus.hpp"
 #include "message/MobilityServiceControllerMessage.hpp"
 #include "path/PathSetManager.hpp"
-#include "geospatial/network/Parking.hpp"
-
 
 using namespace sim_mob;
 using namespace medium;
@@ -473,7 +471,8 @@ void TaxiDriver::processNextScheduleItem(bool isMoveToNextScheduleItem)
 			ControllerLog() << "Taxi driver " << getParent()->getDatabaseId()
 			                << " received a Park command with Parking ID " << ParkingId << std::endl;
 
-			const ParkingDetail *destinationParking = Parking::getParkingDetails().at(ParkingId);
+			const RoadNetwork *rdNetwork = RoadNetwork::getInstance();
+			const SMSVehicleParking *destinationParking = rdNetwork->getById(rdNetwork->getMapOfIdvsSMSVehicleParking(), ParkingId);
 			const Node *destination = destinationParking->getAccessNode();
 			const SegmentStats *currSegStat = taxiDriverMovement->getParentDriver()->getParent()->getCurrSegStats();
 			const Link *link = currSegStat->getRoadSegment()->getParentLink();

@@ -1,5 +1,5 @@
 /*
- * OnCallController.hpp
+ * MobilityServiceController.hpp
  *
  *  Created on: Feb 20, 2017
  *      Author: Akshay Padmanabha, Andrea Araldo
@@ -146,7 +146,7 @@ public:
 	 * Checks if the driver is cruising
 	 */
 	virtual bool isCruising(const Person* driver) const;
-
+	virtual bool isOnParking(const Person* driver) const;
 	virtual const Node* getCurrentNode(const Person* driver) const;
 
 

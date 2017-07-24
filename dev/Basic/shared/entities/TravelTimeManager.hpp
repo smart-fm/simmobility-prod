@@ -184,6 +184,7 @@ struct LinkTravelStats
 		travelTime = lnkExitTime - entryTime;
 		downstreamLink = nextLink;
 		finalized = true;
+		started = false;
 	}
 
 	/**Reset the member variables to their un-initialized values*/

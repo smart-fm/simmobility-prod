@@ -24,7 +24,7 @@ using namespace messaging;
 const double timeoutForLongWaiting = 15 * 60;
 
 /* taxy Trajectory file*/
-sim_mob::BasicLogger& taxitrajectoryLogger  = sim_mob::Logger::log("Taxi_trajectory.csv");
+sim_mob::BasicLogger& taxitrajectoryLogger  = sim_mob::Logger::log("taxi_trajectory.csv");
 
 
 TaxiDriverMovement::TaxiDriverMovement()
@@ -207,7 +207,9 @@ const Node *TaxiDriverMovement::getDestinationNode()
 
 bool TaxiDriverMovement::moveToNextSegment(DriverUpdateParams &params)
 {
-	const SegmentStats *currSegStat = pathMover.getCurrSegStats();
+    const SegmentStats *currSegStat = pathMover.getCurrSegStats();
+    const Link *link = currSegStat->getRoadSegment()->getParentLink();
+    setCurrentNode(link->getToNode());
 	const SegmentStats *nxtSegStat = pathMover.getNextSegStats(false);
 	bool res = false;
 
@@ -291,6 +293,43 @@ bool TaxiDriverMovement::moveToNextSegment(DriverUpdateParams &params)
 		//Pick-up new passenger
 		parentTaxiDriver->pickUpPassngerAtNode(personIdPickedUp);
 	}
+    else if (parentTaxiDriver->getDriverStatus() == DRIVE_TO_PARK && pathMover.isEndOfPath())
+    {
+        parentTaxiDriver->setDriverStatus(QUEUED_AT_PARKING);
+        setCurrentNode(link->getToNode());
+
+        ControllerLog() << "Taxi driver " << parentTaxiDriver->getParent()->getDatabaseId() << " parked Taxi at time "
+                        << parentTaxiDriver->getParent()->currTick
+                        << " and at Node "
+                        << destinationNode->getNodeId()
+                        << std::endl;
+		//parentTaxiDriver->assignedSchedule = Schedule();
+		if (MobilityServiceControllerManager::HasMobilityServiceControllerManager())
+		{
+			for (auto it = subscribedControllers.begin(); it != subscribedControllers.end(); ++it)
+			{
+				MessageBus::PostMessage(*it, MSG_DRIVER_AVAILABLE,
+										MessageBus::MessagePtr(new DriverAvailableMessage(parentTaxiDriver->parent)));
+			}
+		}
+
+	    double actualT = params.elapsedSeconds + params.now.ms() / 1000;
+	    const Link *nextLink = link->getToNode()->getDownStreamLinks().begin()->second;
+	    parentTaxiDriver->getParent()->currLinkTravelStats.finalize(link, actualT, nextLink);
+	    TravelTimeManager::getInstance()->addTravelTime(parentTaxiDriver->getParent()->currLinkTravelStats); //in seconds
+	    currSegStat->getParentConflux()->setLinkTravelTimes(actualT, link);
+	    parentTaxiDriver->getParent()->currLinkTravelStats.reset();
+
+	    parentTaxiDriver->getResource()->setMoving(false);
+	    params.elapsedSeconds = params.secondsInTick;
+	    parentTaxiDriver->getParent()->setRemainingTimeThisTick(0.0);
+
+	    //As the subsequent trip will begin from a node (not from current link/segment), we set this as the origin
+	    originNode = link->getToNode();
+
+	    currSegStat->getParentConflux()->getLinkStats(link).removeEntitiy(parentTaxiDriver->getParent());
+		return res;
+    }
 
 	res = DriverMovement::moveToNextSegment(params);
 
@@ -368,6 +407,9 @@ bool TaxiDriverMovement::checkNextFleet()
 void TaxiDriverMovement::frame_tick()
 {
 	DriverUpdateParams &params = parentTaxiDriver->getParams();
+    const SegmentStats *currSegStat = pathMover.getCurrSegStats();
+    const Link *link = currSegStat->getRoadSegment()->getParentLink();
+    setCurrentNode(link->getFromNode());
 	const MobilityServiceDriverStatus mode = parentTaxiDriver->getDriverStatus();
 
 	if (parentTaxiDriver->taxiPassenger != nullptr)
@@ -500,10 +542,10 @@ void TaxiDriverMovement::frame_tick()
 		parentTaxiDriver->parent->setRemainingTimeThisTick(0.0);
 	}
 
-	if (mode != QUEUING_AT_TAXISTAND && mode != DRIVER_IN_BREAK)
-	{
-		DriverMovement::frame_tick();
-	}
+    if (mode != QUEUING_AT_TAXISTAND && mode != DRIVER_IN_BREAK && mode != QUEUED_AT_PARKING)
+    {
+        DriverMovement::frame_tick();
+    }
 }
 
 bool TaxiDriverMovement::setBreakMode()
@@ -540,6 +582,7 @@ bool TaxiDriverMovement::setBreakInfo(const Node *next, const unsigned int durat
 	}
 	const SegmentStats *currSegStat = pathMover.getCurrSegStats();
 	const Link *link = currSegStat->getRoadSegment()->getParentLink();
+    setCurrentNode(link->getFromNode());
 	SubTrip currSubTrip;
 	currSubTrip.origin = WayPoint(link->getFromNode());
 	currSubTrip.destination = WayPoint(next);
@@ -745,23 +788,45 @@ bool TaxiDriverMovement::driveToNodeOnCall(const TripRequestMessage &tripRequest
 {
 	bool res = false;
 	const MobilityServiceDriverStatus mode = parentTaxiDriver->getDriverStatus();
-	if ((mode == CRUISING || mode == DRIVE_WITH_PASSENGER) && pickupNode)
+	if ((mode == CRUISING || mode == DRIVE_WITH_PASSENGER || mode == QUEUED_AT_PARKING) && pickupNode)
 	{
 		const Link *link = this->currLane->getParentSegment()->getParentLink();
 		SubTrip currSubTrip;
 		currSubTrip.origin = WayPoint(link->getToNode());
 		currSubTrip.destination = WayPoint(pickupNode);
-		std::vector<WayPoint> currentRouteChoice = PrivateTrafficRouteChoice::getInstance()->getPath(currSubTrip, false,
-		                                                                                             link, true);
+		std::vector<WayPoint> currentRouteChoice;
+
+		if(mode == QUEUED_AT_PARKING)
+		{
+			//If we are leaving to pick a passenger up from parking itself, we do not need to consider our previous link
+			//as we are at a node
+			currentRouteChoice = PrivateTrafficRouteChoice::getInstance()->getPath(currSubTrip, false, nullptr, true);
+		}
+		else
+		{
+			//We are on the link, so we need to consider a path with this link as the approach
+			currentRouteChoice = PrivateTrafficRouteChoice::getInstance()->getPath(currSubTrip, false, link, true);
+		}
+
 
 		if(currentRouteChoice.empty())
 		{
-			currentRouteChoice = StreetDirectory::Instance().SearchShortestDrivingPath<Link, Node>(*link, *pickupNode);
+			if(mode == QUEUED_AT_PARKING)
+			{
+				currentRouteChoice = StreetDirectory::Instance().SearchShortestDrivingPath<Node, Node>(*currentNode,
+				                                                                                       *pickupNode);
+			}
+			else
+			{
+				currentRouteChoice = StreetDirectory::Instance().SearchShortestDrivingPath<Link, Node>(*link,
+				                                                                                       *pickupNode);
+			}
 		}
 
 		if (!currentRouteChoice.empty())
 		{
 			res = true;
+			link = currentRouteChoice.front().link;
 			currentNode = link->getFromNode();
 			destinationNode = pickupNode;
 			setCurrentNode(currentNode);
@@ -774,10 +839,10 @@ bool TaxiDriverMovement::driveToNodeOnCall(const TripRequestMessage &tripRequest
 
 	if (!res)
 	{
-		if (mode != CRUISING && mode != DRIVE_WITH_PASSENGER)
+		if (mode != CRUISING && mode != DRIVE_WITH_PASSENGER && mode !=QUEUED_AT_PARKING)
 		{
 			ControllerLog() << "Assignment failed for " << tripRequest.userId
-			                << " because mode was not CRUISING/DRIVE_WITH_PASSENGER. Mode = " << mode
+			                << " because mode was not CRUISING/DRIVE_WITH_PASSENGER/QUEUED_AT_PARKING. Mode = " << mode
 			                << std::endl;
 		}
 		else if (!pickupNode)
@@ -1006,9 +1071,9 @@ std::string TaxiDriverMovement::frame_tick_output()
 			<< ","<< PassengerDBID
 			<< std::endl;
 	}
-	// for Debug Purpose Only : to print details in Console
-    //	Print() << out.str();
-    //
+	/* for Debug Purpose Only : to print details in Console
+    	Print() << out.str();
+    */
 	taxitrajectoryLogger << out.str();
 return out.str();
 }
@@ -1017,4 +1082,38 @@ return out.str();
 bool TaxiDriverMovement::CruiseOnlyOrMoveToTaxiStand()
 {
     return (random()%2);
+}
+
+bool TaxiDriverMovement::driveToParkingNode(const Node *destination) {
+    bool res = false;
+
+    if ( destination) {
+        const Link *link = this->currLane->getParentSegment()->getParentLink();
+        std::vector<WayPoint> currentRouteChoice = StreetDirectory::Instance().SearchShortestDrivingPath<Link, Node>(
+                *link, *destination);
+
+        if (currentRouteChoice.size() > 0) {
+            res = true;
+            currentNode = link->getToNode();
+            destinationNode = destination;
+            setCurrentNode(currentNode);
+            setDestinationNode(destinationNode);
+            addRouteChoicePath(currentRouteChoice);
+            parentTaxiDriver->setDriverStatus(DRIVE_TO_PARK);
+        }
+    }
+
+    if (!res) {
+
+        if (!destination) {
+            ControllerLog() << "Taxi Driver " << parentTaxiDriver->getParent()->getDatabaseId()
+                            << "can not go for parking because parking ID is not valid. " << std::endl;
+        } else {
+            ControllerLog() << "Parking Assignment failed for Taxi Driver "
+                            << parentTaxiDriver->getParent()->getDatabaseId() << " because currentRouteChoice was empty"
+                            << ". No path from lane " << this->currLane->getLaneId() << " to node "
+                            << destination->getNodeId() << std::endl;
+        }
+    }
+	return res;
 }

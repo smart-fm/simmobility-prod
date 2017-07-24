@@ -193,9 +193,13 @@ struct ScheduleItem
 	};
 
 	ScheduleItem(const ScheduleItemType scheduleItemType_, const unsigned int parkingId_)
-			: scheduleItemType(scheduleItemType_), nodeToCruiseTo(NULL), tripRequest(), parkingId(parkingId_)
-	{};
-
+			:scheduleItemType(scheduleItemType_),nodeToCruiseTo(NULL),tripRequest(), parkingId(parkingId_)
+	{
+#ifndef NDEBUG
+		if (scheduleItemType!= ScheduleItemType::PARK)
+			throw std::runtime_error("Only PARK is admitted here");
+#endif
+	};
 	bool operator<(const ScheduleItem &other) const;
 
 	ScheduleItemType scheduleItemType;

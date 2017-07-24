@@ -95,6 +95,13 @@ public:
 	 * @return true if calling request is successful
 	 */
 	bool driveToNodeOnCall(const TripRequestMessage &tripRequest, const Node *pickupNode);
+	/**
+	 * driving taxi for parking request
+	 * @param desination
+	 * @return true if calling request is successful
+	 */
+	bool driveToParkingNode(const Node *destination);
+
 
 	/**
 	 * Sets the driver to cruise to a given node. This functionality is specific to on call drivers

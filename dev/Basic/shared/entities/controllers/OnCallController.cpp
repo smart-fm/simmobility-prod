@@ -17,6 +17,8 @@
 #include "path/PathSetManager.hpp" // for PrivateTrafficRouteChoice
 #include "entities/mobilityServiceDriver/MobilityServiceDriver.hpp"
 #include "message/MobilityServiceControllerMessage.hpp"
+#include "geospatial/network/Parking.hpp"
+
 #include <iterator> // for std::begin
 #include "Rebalancer.hpp"
 #include <cmath> // For pow
@@ -277,6 +279,7 @@ void OnCallController::HandleMessage(messaging::Message::MessageType type, const
 	default:
 		// If it is not a message specific to this controller, let the generic controller handle it
 		MobilityServiceController::HandleMessage(type, message);
+		break;
 	};
 
 }
@@ -380,6 +383,24 @@ bool OnCallController::isCruising(const Person *driver) const
 	return false;
 }
 
+bool OnCallController::isOnParking(const Person *driver) const
+{
+    const MobilityServiceDriver *currDriver = driver->exportServiceDriver();
+    if (currDriver)
+    {
+        //if (currDriver->getDriverStatus() == MobilityServiceDriverStatus::DRIVE_TO_PARK||currDriver->getDriverStatus() == MobilityServiceDriverStatus::QUEUED_AT_PARKING)
+        if (currDriver->getDriverStatus() == MobilityServiceDriverStatus::QUEUED_AT_PARKING)
+        {
+            return true;
+        }
+    }
+#ifndef NDEBUG
+    else throw std::runtime_error("Error in getting the MobilityServiceDriver");
+#endif
+
+    return false;
+}
+
 
 const Node *OnCallController::getCurrentNode(const Person *driver) const
 {
@@ -416,7 +437,7 @@ const Person *OnCallController::findClosestDriver(const Node *node) const
 			throw std::runtime_error(msg.str());
 		}
 #endif
-		if (isCruising(*driver))
+		if (isCruising(*driver) || isOnParking(*driver))
 		{
 			const Node *driverNode = getCurrentNode(*driver);
 			double currDistance = dist(node->getLocation(), driverNode->getLocation());
@@ -705,11 +726,13 @@ double OnCallController::computeSchedule(const Node *initialNode, const Schedule
 		return travelTime;
 	}
 	else
-	{ return -1; }
+	{
+		return -1;
+	}
 }
 
-bool OnCallController::canBeShared(const TripRequestMessage &r1, const TripRequestMessage &r2,
-                                   double additionalDelayThreshold, double waitingTimeThreshold) const
+bool OnCallController::canBeShared(const TripRequestMessage& r1, const TripRequestMessage& r2,
+			double additionalDelayThreshold, double waitingTimeThreshold ) const
 {
 #ifndef NDEBUG
 	if (r1==r2)
@@ -784,7 +807,7 @@ void OnCallController::consistencyChecks(const std::string& label) const
 		const MobilityServiceDriver *mobilityServiceDriver = driver->exportServiceDriver();
 		const MobilityServiceDriverStatus status = driver->exportServiceDriver()->getDriverStatus();
 
-		if (status != CRUISING)
+		if (status != CRUISING && status != QUEUED_AT_PARKING)
 		{
 			std::stringstream msg;
 			msg << "Driver " << driver->getDatabaseId() << " is among the available drivers but his status is:"
@@ -819,7 +842,6 @@ void OnCallController::consistencyChecks(const std::string& label) const
 		}
 	}
 }
-
 #endif
 
 const std::string OnCallController::getRequestQueueStr() const

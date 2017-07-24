@@ -17,45 +17,45 @@ class Node;
 class ParkingDetail
 {
 private:
-    int parking_id;
-    int segment_id;
-    int accessNodeID;
-    int egressNodeID;
-
-    /**The access Node*/
+    unsigned int parking_id;
+    unsigned int segment_id;
+    unsigned int accessNodeID;
+    unsigned int egressNodeID;
+/*
+    /**The access Node
     const Node *accessNode;
 
-    /**The egress Node*/
+    /**The egress Node
     const Node *egressNode;
-
+*/
 public:
     ParkingDetail();
 
     virtual ~ParkingDetail();
 
-    const int getParkingID() const;
+    const unsigned int getParkingID() const;
 
-    void setParkingID(const int pkID);
+    void setParkingID(const unsigned int pkID);
 
-    const int getSegmentID() const;
+    const unsigned int getSegmentID() const;
 
-    void setSegmentID(const int segmentID);
+    void setSegmentID(const unsigned int segmentID);
 
-    const int getAccessNodeID() const;
+    const unsigned int getAccessNodeID() const;
 
-    void setAccessNodeID(const int NodeID);
+    void setAccessNodeID(const unsigned int NodeID);
 
-    const int getEgressNodeID() const;
+    const unsigned int getEgressNodeID() const;
 
-    void setEgressNodeID(const int NodeID);
+    void setEgressNodeID(const unsigned int NodeID);
 
     const Node *getAccessNode() const;
 
-    void setAccessNode(const Node *node);
+//    void setAccessNode(const Node *node);
 
     const Node *getEgressNode() const;
 
-    void setEgressNode(const Node *node);
+//    void setEgressNode(const Node *node);
 
 };
 

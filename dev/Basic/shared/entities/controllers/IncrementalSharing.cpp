@@ -144,7 +144,19 @@ void IncrementalSharing::computeSchedules()
 	for (const std::pair<const Person *, Schedule> &p : schedulesComputedSoFar)
 	{
 		const Person *driver = p.first;
-		const Schedule schedule = p.second;
+		Schedule schedule = p.second;
+
+		//Find where to park after the final drop off
+		unsigned int finalDropOff = schedule.back().tripRequest.destinationNodeId;
+		const RoadNetwork *rdNetowrk = RoadNetwork::getInstance();
+		const Node *finalDropOffNode = rdNetowrk->getById(rdNetowrk->getMapOfIdvsNodes(), finalDropOff);
+		const SMSVehicleParking *parking =
+				SMSVehicleParking::smsParkingRTree.searchNearestObject(finalDropOffNode->getPosX(), finalDropOffNode->getPosY());
+
+		//Append the parking schedule item to the end
+		const ScheduleItem parkingSchedule(ScheduleItemType::PARK, parking);
+		schedule.push_back(parkingSchedule);
+
 		assignSchedule(driver, schedule);
 	}
 }

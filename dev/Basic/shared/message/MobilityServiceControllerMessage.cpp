@@ -118,7 +118,7 @@ std::ostream& operator<<(std::ostream& strm, const sim_mob::ScheduleItem& item)
 		}
 		case (sim_mob::ScheduleItemType::PARK):
 		{
-			strm<<"Parking to "<<item.parkingId;
+			strm<<"Parking to "<<item.parking->getParkingId();
 			break;
 		}
 		default:{throw std::runtime_error("unrecognized schedule item type");}

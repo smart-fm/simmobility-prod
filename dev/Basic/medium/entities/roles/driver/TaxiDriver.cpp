@@ -302,7 +302,7 @@ void TaxiDriver::processNextScheduleItem(bool isMoveToNextScheduleItem)
 		++currScheduleItem;
 	}
 
-	//If entire schedule is complete, cruise around
+	//If entire schedule is complete, cruise around unless we're in a parking
 	if(currScheduleItem == assignedSchedule.end())
 	{
 		//Remove the taxi driver from the simulation if the shift has ended
@@ -314,8 +314,10 @@ void TaxiDriver::processNextScheduleItem(bool isMoveToNextScheduleItem)
 			MessageBus::PostMessage(controller, MSG_DRIVER_SHIFT_END,
 			                        MessageBus::MessagePtr(new DriverShiftCompleted(parent)));
 
-			driverStatus = CRUISING;
-			taxiDriverMovement->selectNextLinkWhileCruising();
+			//Assuming that the controller always sends a schedulw with a park item at the end.
+			//So, we would have parked the vehicle at this point and now the shift has ended
+			//No need to do anything, as we set the vehicle to be removed after the controller
+			//responds to the above message
 		}
 		else
 		{
@@ -467,12 +469,11 @@ void TaxiDriver::processNextScheduleItem(bool isMoveToNextScheduleItem)
 	{
 		if (!getPassengerCount())
 		{
-			const int ParkingId = currScheduleItem->parkingId;
+			const SMSVehicleParking *destinationParking = currScheduleItem->parking;
 			ControllerLog() << "Taxi driver " << getParent()->getDatabaseId()
-			                << " received a Park command with Parking ID " << ParkingId << std::endl;
+			                << " received a Park command with Parking ID " << destinationParking->getParkingId()
+			                << std::endl;
 
-			const RoadNetwork *rdNetwork = RoadNetwork::getInstance();
-			const SMSVehicleParking *destinationParking = rdNetwork->getById(rdNetwork->getMapOfIdvsSMSVehicleParking(), ParkingId);
 			const Node *destination = destinationParking->getAccessNode();
 			const SegmentStats *currSegStat = taxiDriverMovement->getParentDriver()->getParent()->getCurrSegStats();
 			const Link *link = currSegStat->getRoadSegment()->getParentLink();
@@ -503,14 +504,14 @@ void TaxiDriver::processNextScheduleItem(bool isMoveToNextScheduleItem)
 				std::stringstream msg;
 				msg << __FILE__ << ":" << __LINE__ << ": taxiDriverMovement->driveToParkingNode("
 				    << destination->getNodeId() << ");" << std::endl;
-				msg << "Taxi with Driver " << parent->getDatabaseId() << " can not be parked at " << ParkingId
-				    << std::endl;
+				msg << "Taxi with Driver " << parent->getDatabaseId() << " can not be parked at "
+				    << destinationParking->getParkingId() << std::endl;
 				WarnOut(msg.str());
 			}
 #endif
 
-			ControllerLog() << "Assignment response sent for Parking command for Parking ID " << ParkingId
-			                << ". This response is sent by driver "
+			ControllerLog() << "Assignment response sent for Parking command for Parking ID "
+			                << destinationParking->getParkingId() << ". This response is sent by driver "
 			                << parent->getDatabaseId() << " at time " << parent->currTick << std::endl;
 			break;
 

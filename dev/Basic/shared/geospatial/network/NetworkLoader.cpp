@@ -731,6 +731,7 @@ void NetworkLoader::loadSMSVehicleParking(const std::string &storedProc)
 
     //SQL statement
     soci::rowset<sim_mob::SMSVehicleParking> parking = (sql.prepare << "select * from " + storedProc);
+	std::set<SMSVehicleParking*> allParkingLocations;
 
     for (soci::rowset<SMSVehicleParking>::const_iterator itParking = parking.begin(); itParking != parking.end(); ++itParking)
     {
@@ -740,6 +741,7 @@ void NetworkLoader::loadSMSVehicleParking(const std::string &storedProc)
         try
         {
 	        roadNetwork->addSMSVehicleParking(smsVehicleParking);
+	        allParkingLocations.insert(smsVehicleParking);
         }
         catch(runtime_error &ex)
         {
@@ -758,6 +760,9 @@ void NetworkLoader::loadSMSVehicleParking(const std::string &storedProc)
         msg << storedProc << " returned 0 parking!";
         throw runtime_error(msg.str());
     }
+
+	//Update the R-tree with the parking locations
+	SMSVehicleParking::smsParkingRTree.update(allParkingLocations);
 
 #ifndef NDEBUG
     Print() << "Parking Details\t\t\t|\t" << parkingLoaded << "\t\t| " << storedProc << endl;
@@ -809,7 +814,7 @@ void NetworkLoader::loadNetwork(const string& connectionStr, const map<string, s
 
 		loadTaxiStands(getStoredProcedure(storedProcs, "taxi_stands", false));
 
-		loadSMSVehicleParking(getStoredProcedure(storedProcs, "all_parking_Info", false));
+		loadSMSVehicleParking(getStoredProcedure(storedProcs, "sms_parking", false));
 
 		//Close the connection
 		sql.close();

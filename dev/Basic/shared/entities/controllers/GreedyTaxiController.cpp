@@ -56,19 +56,21 @@ void GreedyTaxiController::computeSchedules()
 
 			if (bestDriver)
 			{
+				//Retrieve the parking closest to the destination node
+				const Node *endNode = itDestination->second;
+				const SMSVehicleParking *parking =
+						SMSVehicleParking::smsParkingRTree.searchNearestObject(endNode->getPosX(), endNode->getPosY());
+
 				Schedule schedule;
 				const ScheduleItem pickUpScheduleItem(ScheduleItemType::PICKUP, *request);
 				const ScheduleItem dropOffScheduleItem(ScheduleItemType::DROPOFF, *request);
-
-				const Node *endNode = itDestination->second;
-
+				const ScheduleItem parkScheduleItem(ScheduleItemType::PARK, parking);
 
 				schedule.push_back(pickUpScheduleItem);
 				schedule.push_back(dropOffScheduleItem);
+				schedule.push_back(parkScheduleItem);
 
 				assignSchedule(bestDriver, schedule);
-
-
 
 #ifndef NDEBUG
 				if (currTick < request->timeOfRequest)
@@ -76,9 +78,6 @@ void GreedyTaxiController::computeSchedules()
 #endif
 
 				request = requestQueue.erase(request);
-
-
-
 			}
 			else
 			{

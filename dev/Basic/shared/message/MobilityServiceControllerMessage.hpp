@@ -4,6 +4,7 @@
 #include <boost/ptr_container/ptr_vector.hpp>
 #include "entities/Person.hpp"
 #include <stdexcept>
+#include <geospatial/network/SMSVehicleParking.hpp>
 
 
 namespace sim_mob
@@ -170,7 +171,7 @@ enum ScheduleItemType
 struct ScheduleItem
 {
 	ScheduleItem(const ScheduleItemType scheduleItemType_, const TripRequestMessage tripRequest_)
-			: scheduleItemType(scheduleItemType_), tripRequest(tripRequest_), nodeToCruiseTo(NULL), parkingId(0)
+			: scheduleItemType(scheduleItemType_), tripRequest(tripRequest_), nodeToCruiseTo(NULL), parking(nullptr)
 	{
 #ifndef NDEBUG
 		if (scheduleItemType != ScheduleItemType::PICKUP && scheduleItemType != ScheduleItemType::DROPOFF)
@@ -182,7 +183,7 @@ struct ScheduleItem
 	};
 
 	ScheduleItem(const ScheduleItemType scheduleItemType_, const Node *nodeToCruiseTo_)
-			: scheduleItemType(scheduleItemType_), nodeToCruiseTo(nodeToCruiseTo_), tripRequest(), parkingId(0)
+			: scheduleItemType(scheduleItemType_), nodeToCruiseTo(nodeToCruiseTo_), tripRequest(), parking(nullptr)
 	{
 #ifndef NDEBUG
 		if (scheduleItemType != ScheduleItemType::CRUISE)
@@ -192,8 +193,8 @@ struct ScheduleItem
 #endif
 	};
 
-	ScheduleItem(const ScheduleItemType scheduleItemType_, const unsigned int parkingId_)
-			:scheduleItemType(scheduleItemType_),nodeToCruiseTo(NULL),tripRequest(), parkingId(parkingId_)
+	ScheduleItem(const ScheduleItemType scheduleItemType_, const SMSVehicleParking *parkingLocation)
+			:scheduleItemType(scheduleItemType_),nodeToCruiseTo(NULL),tripRequest(), parking(parkingLocation)
 	{
 #ifndef NDEBUG
 		if (scheduleItemType!= ScheduleItemType::PARK)
@@ -209,9 +210,7 @@ struct ScheduleItem
 
 	const Node *nodeToCruiseTo;
 
-	unsigned int parkingId;
-
-
+	const SMSVehicleParking *parking;
 };
 
 //TODO: It would be more elegant using std::variant, available from c++17

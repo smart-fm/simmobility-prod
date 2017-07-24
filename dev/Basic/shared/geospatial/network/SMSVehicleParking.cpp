@@ -4,10 +4,11 @@
 
 
 #include "geospatial/network/SMSVehicleParking.hpp"
-#include "geospatial/network/Node.hpp"
 #include "RoadNetwork.hpp"
 
 using namespace sim_mob;
+
+GeneralR_TreeManager<SMSVehicleParking> SMSVehicleParking::smsParkingRTree;
 
 SMSVehicleParking::SMSVehicleParking() : parkingId(0), segmentId(0)
 {
@@ -57,3 +58,12 @@ const Node *SMSVehicleParking::getEgressNode() const
 	return parkingSegment->getParentLink()->getToNode();
 }
 
+double SMSVehicleParking::getPosX() const
+{
+	return getAccessNode()->getPosX();
+}
+
+double SMSVehicleParking::getPosY() const
+{
+	return getAccessNode()->getPosY();
+}

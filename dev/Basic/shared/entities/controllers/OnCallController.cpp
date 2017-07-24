@@ -16,6 +16,7 @@
 #include "path/PathSetManager.hpp" // for PrivateTrafficRouteChoice
 #include "entities/mobilityServiceDriver/MobilityServiceDriver.hpp"
 #include "message/MobilityServiceControllerMessage.hpp"
+#include "geospatial/network/Parking.hpp"
 
 
 using namespace sim_mob;
@@ -251,6 +252,7 @@ void OnCallController::HandleMessage(messaging::Message::MessageType type, const
 	default:
 		// If it is not a message specific to this controller, let the generic controller handle it
 		MobilityServiceController::HandleMessage(type, message);
+            break;
 	};
 
 }
@@ -267,8 +269,9 @@ void OnCallController::assignSchedule(const Person *driver, const Schedule &sche
 	}
 #endif
 
-	MessageBus::PostMessage((MessageHandler *) driver, MSG_SCHEDULE_PROPOSITION, MessageBus::MessagePtr(
-			new SchedulePropositionMessage(currTick, schedule)));
+	SchedulePropositionMessage *spMsg = new SchedulePropositionMessage(currTick, schedule);
+	spMsg->SetSender(this);
+	MessageBus::PostMessage((MessageHandler *) driver, MSG_SCHEDULE_PROPOSITION, MessageBus::MessagePtr(spMsg));
 
 #ifndef NDEBUG
 
@@ -341,6 +344,24 @@ bool OnCallController::isCruising(const Person *driver) const
 	return false;
 }
 
+bool OnCallController::isOnParking(const Person *driver) const
+{
+    const MobilityServiceDriver *currDriver = driver->exportServiceDriver();
+    if (currDriver)
+    {
+        //if (currDriver->getDriverStatus() == MobilityServiceDriverStatus::DRIVE_TO_PARK||currDriver->getDriverStatus() == MobilityServiceDriverStatus::QUEUED_AT_PARKING)
+        if (currDriver->getDriverStatus() == MobilityServiceDriverStatus::QUEUED_AT_PARKING)
+        {
+            return true;
+        }
+    }
+#ifndef NDEBUG
+    else throw std::runtime_error("Error in getting the MobilityServiceDriver");
+#endif
+
+    return false;
+}
+
 const Node *OnCallController::getCurrentNode(const Person *driver) const
 {
 	const MobilityServiceDriver *currDriver = driver->exportServiceDriver();
@@ -366,7 +387,7 @@ const Person *OnCallController::findClosestDriver(const Node *node) const
 
 	while (driver != availableDrivers.end())
 	{
-		if (isCruising(*driver))
+		if (isCruising(*driver)||isOnParking(*driver))
 		{
 			const Node *driverNode = getCurrentNode(*driver);
 			double currDistance = dist(node->getLocation(), driverNode->getLocation());
@@ -651,7 +672,7 @@ void OnCallController::consistencyChecks(const std::string& label) const
 
 		const MobilityServiceDriver* mobilityServiceDriver = driver->exportServiceDriver();
 		const MobilityServiceDriverStatus status = driver->exportServiceDriver()->getDriverStatus();
-		if (status != CRUISING)
+		if (status != CRUISING && status != QUEUED_AT_PARKING)
 		{
 					std::stringstream msg; msg<<"Driver "<<driver->getDatabaseId()<<" is among the available drivers but his status is:"
 						<< driver->exportServiceDriver()->getDriverStatusStr() << ". This is not admitted at the moment";

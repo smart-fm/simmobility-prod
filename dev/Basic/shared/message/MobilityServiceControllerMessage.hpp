@@ -151,10 +151,10 @@ struct ScheduleItem
 	ScheduleItem(const ScheduleItemType scheduleItemType_, const TripRequestMessage tripRequest_)
 		: scheduleItemType(scheduleItemType_),tripRequest(tripRequest_),nodeToCruiseTo(NULL),parkingId(0)
 	{
-#ifndef NDEBUG
+/*#ifndef NDEBUG
 		if (scheduleItemType!= ScheduleItemType::PICKUP && scheduleItemType!= ScheduleItemType::DROPOFF)
 			throw std::runtime_error("Only PICKUP or DROPOFF is admitted here");
-#endif
+#endif*/
 
 	};
 
@@ -178,9 +178,7 @@ struct ScheduleItem
 
 	const Node* nodeToCruiseTo;
 
-	unsigned int parkingId;
-
-
+    unsigned int parkingId;
 };
 
 //TODO: It would be more elegant using std::variant, available from c++17

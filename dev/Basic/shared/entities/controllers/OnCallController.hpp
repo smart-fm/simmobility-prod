@@ -157,6 +157,7 @@ protected:
 	virtual void assignSchedule(const Person* driver, const Schedule& schedule);
 
 	virtual bool isCruising(const Person* driver) const;
+	virtual bool isOnParking(const Person* driver) const;
 	virtual const Node* getCurrentNode(const Person* driver) const;
 	/**
 	 * Performs the controller algorithm to assign vehicles to requests

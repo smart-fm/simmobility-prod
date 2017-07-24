@@ -28,6 +28,8 @@ const std::string MobilityServiceDriver::getDriverStatusStr() const
 	case DRIVE_FOR_BREAK: {return "DRIVE_FOR_BREAK";}
 	case DRIVER_IN_BREAK: {return "DRIVER_IN_BREAK";}
 	case DRIVE_ON_CALL:{return "DRIVE_ON_CALL";}
+	case DRIVE_TO_PARK:{return "DRIVE_TO_PARK";}
+	case QUEUED_AT_PARKING:{return "QUEUED_AT_PARKING";}
 	default: throw std::runtime_error("drive mode not recognized");
 	}
 }

@@ -92,7 +92,13 @@ public:
 	 * @param pickupNode is a node where calling person is waiting there
 	 * @return true if calling request is successful
 	 */
-	bool driveToNodeOnCall(const std::string &personId, const Node *pickupNode);
+	bool driveToNodeOnCall(const std::string &personId, const Node *destination);
+	/**
+	 * driving taxi for parking request
+	 * @param desination
+	 * @return true if calling request is successful
+	 */
+	bool driveToParkingNode(const Node *destination);
 
 	/**
 	 * Sets the driver to cruise to a given node. This functionality is specific to on call drivers

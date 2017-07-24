@@ -298,10 +298,10 @@ template<> struct type_conversion<sim_mob::ParkingDetail>
 
 	static void from_base(const soci::values &vals, soci::indicator &ind, sim_mob::ParkingDetail &res)
 	{
-		res.setParkingID(vals.get<int>("parking_id", 0));
-		res.setAccessNodeID(vals.get<int>("access_node", 0));
-		res.setEgressNodeID(vals.get<int>("egress_node", 0));
-		res.setSegmentID(vals.get<int>("segment_id", 0));
+		res.setParkingID(vals.get<unsigned int>("parking_id", 0));
+		res.setAccessNodeID(vals.get<unsigned int>("access_node", 0));
+		res.setEgressNodeID(vals.get<unsigned int>("egress_node", 0));
+		res.setSegmentID(vals.get<unsigned int>("segment_id", 0));
 	}
 };
 

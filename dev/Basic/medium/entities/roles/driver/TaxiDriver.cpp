@@ -13,15 +13,21 @@
 #include "message/MessageBus.hpp"
 #include "message/MobilityServiceControllerMessage.hpp"
 #include "path/PathSetManager.hpp"
+#include "geospatial/network/Parking.hpp"
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
+#include "entities/roles/driver/DriverUpdateParams.hpp"
 
 using namespace sim_mob;
 using namespace medium;
 using namespace messaging;
+class UpdateParams;
 
 TaxiDriver::TaxiDriver(Person_MT* parent, const MutexStrategy& mtxStrat, TaxiDriverBehavior* behavior,
                        TaxiDriverMovement* movement, std::string roleName, Role<Person_MT>::Type roleType) :
 		Driver(parent, behavior, movement, roleName, roleType)
 {
+	taxiPassenger = nullptr;
 	taxiDriverMovement = movement;
 	taxiDriverBehaviour = behavior;
 }
@@ -34,6 +40,8 @@ TaxiDriver::TaxiDriver(Person_MT* parent, const MutexStrategy& mtx) :
 
 bool TaxiDriver::addPassenger(Passenger *passenger)
 {
+	if(!taxiPassenger)
+    taxiPassenger = passenger;
 	const string &personId = passenger->getParent()->getDatabaseId();
 
 	if(taxiPassengers.find(personId) == taxiPassengers.end())
@@ -92,14 +100,15 @@ void TaxiDriver::alightPassenger()
 
 			if(!taxiDriverMovement->isSubscribedToOnHail())
 			{
-				//Drop-off schedule complete, process next item
-				processNextScheduleItem();
+
 
 				ControllerLog() << "Drop-off of user" << parentPerson->getDatabaseId() << " at time "
 				                << parentPerson->currTick
 				                << ". Message was sent at ??? with startNodeId ???, destinationNodeId "
 				                << parentConflux->getConfluxNode()->getNodeId()
 				                << ", and driverId " << getParent()->getDatabaseId() << std::endl;
+				//Drop-off schedule complete, process next item
+				processNextScheduleItem();
 			}
 			else
 			{
@@ -149,6 +158,8 @@ void TaxiDriver::HandleParentMessage(messaging::Message::MessageType type, const
 		controller = msg.GetSender();
 		currScheduleItem = assignedSchedule.begin();
 		processNextScheduleItem();
+
+		break;
 	}
 	default:
 	{
@@ -245,14 +256,31 @@ void TaxiDriver::processNextScheduleItem()
 	//If entire schedule is complete, cruise around
 	if(currScheduleItem == assignedSchedule.end())
 	{
-		taxiDriverMovement->setCruisingMode();
+		if((currScheduleItem - 1)->scheduleItemType != PARK)
+        {
+            taxiDriverMovement->setCruisingMode();
+        }
 		return;
 	}
+
+	ControllerLog()<< "Processing next schedule reuest for Taxi Driver "<<parent->getDatabaseId()
+				   <<" of schedule " <<currScheduleItem->scheduleItemType<<std::endl;
 
 	switch (currScheduleItem->scheduleItemType)
 	{
 	case PICKUP:
 	{
+		if (taxiDriverMovement->getParentDriver()->getDriverStatus() == MobilityServiceDriverStatus::QUEUED_AT_PARKING)
+		{
+			taxiDriverMovement->getParentDriver()->getResource()->setMoving(true);
+
+			Conflux *conflux = Conflux::getConfluxFromNode(taxiDriverMovement->getCurrentNode());
+			MessageBus::PostMessage(conflux, MSG_PERSON_LOAD, MessageBus::MessagePtr(new PersonMessage(parent)));
+
+			//Clear previous path
+			taxiDriverMovement->getMesoPathMover().eraseFullPath();
+		}
+
 		const TripRequestMessage &tripRequest = currScheduleItem->tripRequest;
 		const std::map<unsigned int, Node *> &nodeIdMap = RoadNetwork::getInstance()->getMapOfIdvsNodes();
 		std::map<unsigned int, Node *>::const_iterator it = nodeIdMap.find(tripRequest.startNodeId);
@@ -362,6 +390,67 @@ void TaxiDriver::processNextScheduleItem()
 
 		break;
 	}
+
+	case PARK:
+	{
+		if (!getPassengerCount())
+		{
+			const int ParkingId = currScheduleItem->parkingId;
+			ControllerLog() << "Taxi driver " << getParent()->getDatabaseId()
+			                << " received a Park command with Parking ID " << ParkingId << std::endl;
+
+			const ParkingDetail *destinationParking = Parking::getParkingDetails().at(ParkingId);
+			const Node *destination = destinationParking->getAccessNode();
+			const SegmentStats *currSegStat = taxiDriverMovement->getParentDriver()->getParent()->getCurrSegStats();
+			const Link *link = currSegStat->getRoadSegment()->getParentLink();
+			taxiDriverMovement->setCurrentNode(link->getToNode());
+			const Node *thisNode = taxiDriverMovement->getCurrentNode();
+
+			if (thisNode == destination)
+			{
+				ControllerLog() << "Taxi driver " << getParent()->getDatabaseId()
+				                << "already in requested parking location" << std::endl;
+				setDriverStatus(QUEUED_AT_PARKING);
+				taxiDriverMovement->getParentDriver()->getResource()->setMoving(false);
+				taxiDriverMovement->getParentDriver()->parent->setRemainingTimeThisTick(0.0);
+				taxiDriverMovement->setCurrentNode(thisNode);
+				taxiDriverMovement->getParentDriver()->assignedSchedule = Schedule();
+
+				MessageBus::PostMessage(controller, MSG_DRIVER_AVAILABLE,
+				                        MessageBus::MessagePtr(new DriverAvailableMessage(
+						                        taxiDriverMovement->getParentDriver()->parent)));
+				return;
+			}
+
+			const bool success = taxiDriverMovement->driveToParkingNode(destination);
+
+#ifndef NDEBUG
+			if (!success)
+			{
+				std::stringstream msg;
+				msg << __FILE__ << ":" << __LINE__ << ": taxiDriverMovement->driveToParkingNode("
+				    << destination->getNodeId() << ");" << std::endl;
+				msg << "Taxi with Driver " << parent->getDatabaseId() << " can not be parked at " << ParkingId
+				    << std::endl;
+				WarnOut(msg.str());
+			}
+#endif
+
+			ControllerLog() << "Assignment response sent for Parking command for Parking ID " << ParkingId
+			                << ". This response is sent by driver "
+			                << parent->getDatabaseId() << " at time " << parent->currTick << std::endl;
+			break;
+
+		}
+		else
+		{
+			ControllerLog() << "Taxi driver " << getParent()->getDatabaseId()
+			                << " can not go for parking as some passenger left to drop off." << std::endl;
+			throw runtime_error("All Passengers should be Dropped Off before Parking");
+		}
+
+	}
+
 	default:
 		throw runtime_error("Invalid Schedule item type");
 	}

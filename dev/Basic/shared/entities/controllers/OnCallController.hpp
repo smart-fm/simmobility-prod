@@ -92,7 +92,6 @@ protected:
 	std::list<T> elements;
 };
 
-
 /**
  * See how they are used inside the function getTT(..)
  */
@@ -101,9 +100,6 @@ enum TT_EstimateType{
 	SHORTEST_PATH_ESTIMATION,
 	EUCLIDEAN_ESTIMATION // The least computationally expensive one
 };
-
-
-
 
 class OnCallController : public MobilityServiceController
 {
@@ -120,7 +116,6 @@ public:
 
 	virtual ~OnCallController();
 
-
 	/*
 	 * It returns the pointer to the driver closest to the node
 	 */
@@ -135,23 +130,19 @@ public:
 	 */
 	double getTT(const Node* node1, const Node* node2, TT_EstimateType typeOD) const;
 
-
 	/**
 	 * Converts from number of clocks to milliseconds
 	 */
 	double toMs(int c) const;
 
-
 	/**
 	 * Checks if the driver is cruising
 	 */
 	virtual bool isCruising(const Person* driver) const;
-	virtual bool isOnParking(const Person* driver) const;
+	virtual bool isParked(const Person *driver) const;
 	virtual const Node* getCurrentNode(const Person* driver) const;
 
-
 protected:
-
 
 	/**
 	 * Inherited from base class to output result
@@ -221,10 +212,6 @@ protected:
 	 * Inherited from base class to update this agent
 	 */
 	Entity::UpdateStatus frame_tick(timeslice now);
-
-
-
-
 
 #ifndef NDEBUG
 	bool isComputingSchedules; //true during computing schedules. Used for debug purposes

@@ -387,12 +387,11 @@ bool OnCallController::isCruising(const Person *driver) const
 	return false;
 }
 
-bool OnCallController::isOnParking(const Person *driver) const
+bool OnCallController::isParked(const Person *driver) const
 {
     const MobilityServiceDriver *currDriver = driver->exportServiceDriver();
     if (currDriver)
     {
-        //if (currDriver->getDriverStatus() == MobilityServiceDriverStatus::DRIVE_TO_PARKING||currDriver->getDriverStatus() == MobilityServiceDriverStatus::PARKED)
         if (currDriver->getDriverStatus() == MobilityServiceDriverStatus::PARKED)
         {
             return true;
@@ -441,7 +440,7 @@ const Person *OnCallController::findClosestDriver(const Node *node) const
 			throw std::runtime_error(msg.str());
 		}
 #endif
-		if (isCruising(*driver) || isOnParking(*driver))
+		if (isCruising(*driver) || isParked(*driver))
 		{
 			const Node *driverNode = getCurrentNode(*driver);
 			double currDistance = dist(node->getLocation(), driverNode->getLocation());

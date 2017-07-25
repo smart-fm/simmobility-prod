@@ -99,7 +99,7 @@ void TaxiDriver::alightPassenger()
 
 			if(!taxiDriverMovement->isSubscribedToOnHail())
 			{
-				ControllerLog() << "Drop-off of user" << parentPerson->getDatabaseId() << " at time "
+				ControllerLog() << "Drop-off of user " << parentPerson->getDatabaseId() << " at time "
 				                << parentPerson->currTick
 				                << ". Message was sent at ??? with startNodeId ???, destinationNodeId "
 				                << parentConflux->getConfluxNode()->getNodeId()
@@ -482,17 +482,22 @@ void TaxiDriver::processNextScheduleItem(bool isMoveToNextScheduleItem)
 
 			if (thisNode == destination)
 			{
-				ControllerLog() << "Taxi driver " << getParent()->getDatabaseId()
-				                << "already in requested parking location" << std::endl;
+				ControllerLog() << "driver " << getParent()->getDatabaseId()
+				                << " is already at requested parking location" << std::endl;
 				setDriverStatus(PARKED);
 				getResource()->setMoving(false);
 				parent->setRemainingTimeThisTick(0.0);
 				taxiDriverMovement->setCurrentNode(thisNode);
 				assignedSchedule = Schedule();
 
-				MessageBus::PostMessage(controller, MSG_DRIVER_AVAILABLE,
-				                        MessageBus::MessagePtr(new DriverAvailableMessage(
-						                        taxiDriverMovement->getParentDriver()->parent)));
+				//Inform the driver availability if the shift has not ended
+				if((parent->currTick.ms() / 1000) < taxiDriverMovement->getCurrentFleetItem().endTime)
+				{
+					MessageBus::PostMessage(controller, MSG_DRIVER_AVAILABLE,
+					                        MessageBus::MessagePtr(new DriverAvailableMessage(
+							                        taxiDriverMovement->getParentDriver()->parent)));
+				}
+
 				return;
 			}
 

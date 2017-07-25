@@ -7,13 +7,13 @@
         <!-- Note that credentials (login details) are stored in a separate construct. -->
         <databases>
             <database id="fm_remote" dbtype="postgres">
-                <host value="172.25.184.48"/>
+                <host value="18.58.5.170"/>
                 <port value="5432"/>
                 <dbname value="simmobcity"/>
             </database>
 
             <database id="fm_hpc" dbtype="postgres">
-                <host value="172.25.184.156"/>
+                <host value="18.58.5.170"/>
                 <port value="5432"/>
                 <dbname value="simmobility_virtualcity_sms_casestudy2017"/>
             </database>
@@ -47,12 +47,12 @@
         <!--    2) Don't put any passwords to databases on the FM server. -->
         <plaintext-credential id="fm_remote">
             <username value="postgres"/>
-            <password value="5M_S1mM0bility"/>
+            <password value="ITSLab2016!"/>
         </plaintext-credential>
 
         <plaintext-credential id="fm_hpc">
             <username value="postgres"/>
-            <password value="d84dmiN"/>
+            <password value="ITSLab2016!"/>
         </plaintext-credential>
     </credentials>
 </constructs>

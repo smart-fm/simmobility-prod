@@ -68,12 +68,14 @@ namespace sim_mob
 
 	bool ScheduleItem::operator <(const ScheduleItem& other) const
 	{
+		/*
 #ifndef NDEBUG
 		if (	(scheduleItemType!=DROPOFF && scheduleItemType!=PICKUP)
 			||	(other.scheduleItemType!=DROPOFF && other.scheduleItemType!=PICKUP)
 			)
 			throw std::runtime_error("You can only compare pickups and dropoofs. If you are comparing other types of schedule items, it may be an error ");
 #endif
+		 */
 		if ( tripRequest < other.tripRequest ) return true;
 		if ( tripRequest == other.tripRequest && scheduleItemType==PICKUP && other.scheduleItemType==DROPOFF) return true;
 		return false;
@@ -112,6 +114,11 @@ std::ostream& operator<<(std::ostream& strm, const sim_mob::ScheduleItem& item)
 				throw std::runtime_error("Invalid CRUISE ScheduleItem: the nodeToCruiseTo is NULL");
 #endif
 			strm<<"CRUISE to node "<<item.nodeToCruiseTo->getNodeId();
+			break;
+		}
+		case (sim_mob::ScheduleItemType::PARK):
+		{
+			strm<<"Parking to "<<item.parking->getParkingId();
 			break;
 		}
 		default:{throw std::runtime_error("unrecognized schedule item type");}

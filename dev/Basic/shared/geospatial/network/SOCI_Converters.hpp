@@ -22,7 +22,7 @@
 #include "TaxiStand.hpp"
 #include "TurningGroup.hpp"
 #include "TurningPath.hpp"
-#include "ParkingDetail.hpp"
+#include "SMSVehicleParking.hpp"
 
 using namespace sim_mob;
 
@@ -292,16 +292,14 @@ template<> struct type_conversion<sim_mob::ParkingSlot>
 	}
 };
 
-template<> struct type_conversion<sim_mob::ParkingDetail>
+template<> struct type_conversion<sim_mob::SMSVehicleParking>
 {
 	typedef values base_type;
 
-	static void from_base(const soci::values &vals, soci::indicator &ind, sim_mob::ParkingDetail &res)
+	static void from_base(const soci::values &vals, soci::indicator &ind, sim_mob::SMSVehicleParking &res)
 	{
-		res.setParkingID(vals.get<int>("parking_id", 0));
-		res.setAccessNodeID(vals.get<int>("access_node", 0));
-		res.setEgressNodeID(vals.get<int>("egress_node", 0));
-		res.setSegmentID(vals.get<int>("segment_id", 0));
+		res.setParkingId(vals.get<unsigned int>("parking_id", 0));
+		res.setSegmentId(vals.get<unsigned int>("segment_id", 0));
 	}
 };
 

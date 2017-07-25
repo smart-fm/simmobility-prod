@@ -17,6 +17,7 @@
 #include "path/PathSetManager.hpp" // for PrivateTrafficRouteChoice
 #include "entities/mobilityServiceDriver/MobilityServiceDriver.hpp"
 #include "message/MobilityServiceControllerMessage.hpp"
+
 #include <iterator> // for std::begin
 #include "Rebalancer.hpp"
 #include <cmath> // For pow
@@ -32,7 +33,7 @@ OnCallController::OnCallController(const MutexStrategy &mtxStrat, unsigned int c
 		: MobilityServiceController(mtxStrat, type_, id), scheduleComputationPeriod(computationPeriod),
 		  ttEstimateType(ttEstimateType_), nodeIdMap(RoadNetwork::getInstance()->getMapOfIdvsNodes())
 {
-	rebalancer = new KasiaRebalancer(this); //jo SimpleRebalancer(this);
+	rebalancer = new LazyRebalancer(this); //jo SimpleRebalancer(this);
 #ifndef NDEBUG
 	isComputingSchedules = false;
 #endif
@@ -53,12 +54,13 @@ void OnCallController::subscribeDriver(Person *driver)
 
 	MobilityServiceController::subscribeDriver(driver);
 	availableDrivers.push_back(driver);
+
 #ifndef NDEBUG
 	if (driverSchedules.find(driver) != driverSchedules.end() )
 		throw std::runtime_error("Trying to subscribe a driver already subscribed");
 #endif
-	driverSchedules.emplace(driver, Schedule());
 
+	driverSchedules.emplace(driver, Schedule());
 
 #ifndef NDEBUG
 	ControllerLog()<<"After the subscription, subscribedDrivers.size()="<< subscribedDrivers.size()<<", availableDrivers.size()="<< availableDrivers.size() <<
@@ -72,29 +74,24 @@ void OnCallController::unsubscribeDriver(Person *driver)
 	MobilityServiceController::unsubscribeDriver(driver);
 
 #ifndef NDEBUG
-	if (driverSchedules.find(driver) == driverSchedules.end() )
+	if (driverSchedules.find(driver) == driverSchedules.end())
 	{
-		std::stringstream msg; msg<<"Driver "<< driver->getDatabaseId()<<" has been subscribed but had no "<<
-			"schedule associated. This is impossible. It should have had at least an empty schedule";
+		std::stringstream msg;
+		msg << "Driver " << driver->getDatabaseId() << " has been subscribed but had no "
+		    << "schedule associated. This is impossible. It should have had at least an empty schedule";
 		throw std::runtime_error(msg.str());
 	}
 
 	unsigned scheduleSize = driverSchedules.at(driver).size();
-	if ( scheduleSize>0 )
-	{
-		std::stringstream msg; msg<<"Driver "<< driver->getDatabaseId()<<", pointer "<< driver << " has a non empty schedule and she sent a message "
-		<<"to unsubscribe. This is not admissible";
-		throw std::runtime_error(msg.str());
-	}
 
-	if (availableDrivers.size()!= driverSchedules.size() )
+	if (scheduleSize > 0)
 	{
-		std::stringstream msg; msg<<"availableDrivers.size()="<<availableDrivers.size()<<
-		", driverSchedules.size()="<<driverSchedules.size()<<". They should be equal";
+		std::stringstream msg;
+		msg << "Driver with pointer " << driver << " has a non empty schedule and she sent a message "
+		    << "to unsubscribe. This is not admissible";
 		throw std::runtime_error(msg.str());
 	}
 #endif
-
 
 	driverSchedules.erase(driver);
 
@@ -147,6 +144,16 @@ void OnCallController::driverUnavailable(Person *person)
 #endif
 }
 
+void OnCallController::onDriverShiftEnd(Person *driver)
+{
+	ControllerLog() << "Shift end msg received from driver " << driver << endl;
+
+	driverAvailable(driver);
+	unsubscribeDriver(driver);
+
+	MessageBus::PostMessage((MessageHandler *) driver, MSG_UNSUBSCRIBE_SUCCESSFUL, MessageBus::MessagePtr(
+			new DriverUnsubscribeMessage(driver)));
+}
 
 Entity::UpdateStatus OnCallController::frame_tick(timeslice now)
 {
@@ -276,6 +283,7 @@ void OnCallController::HandleMessage(messaging::Message::MessageType type, const
 	default:
 		// If it is not a message specific to this controller, let the generic controller handle it
 		MobilityServiceController::HandleMessage(type, message);
+		break;
 	};
 
 }
@@ -379,6 +387,24 @@ bool OnCallController::isCruising(const Person *driver) const
 	return false;
 }
 
+bool OnCallController::isOnParking(const Person *driver) const
+{
+    const MobilityServiceDriver *currDriver = driver->exportServiceDriver();
+    if (currDriver)
+    {
+        //if (currDriver->getDriverStatus() == MobilityServiceDriverStatus::DRIVE_TO_PARKING||currDriver->getDriverStatus() == MobilityServiceDriverStatus::PARKED)
+        if (currDriver->getDriverStatus() == MobilityServiceDriverStatus::PARKED)
+        {
+            return true;
+        }
+    }
+#ifndef NDEBUG
+    else throw std::runtime_error("Error in getting the MobilityServiceDriver");
+#endif
+
+    return false;
+}
+
 
 const Node *OnCallController::getCurrentNode(const Person *driver) const
 {
@@ -415,7 +441,7 @@ const Person *OnCallController::findClosestDriver(const Node *node) const
 			throw std::runtime_error(msg.str());
 		}
 #endif
-		if (isCruising(*driver))
+		if (isCruising(*driver) || isOnParking(*driver))
 		{
 			const Node *driverNode = getCurrentNode(*driver);
 			double currDistance = dist(node->getLocation(), driverNode->getLocation());
@@ -496,7 +522,7 @@ double OnCallController::evaluateSchedule(const Node *initialPosition, const Sch
 			// I verify if the waiting time is ok
 			const Node *nextNode = nodeIdMap.find(scheduleItem.tripRequest.startNodeId)->second;
 			scheduleTimeStamp += getTT(latestNode, nextNode, ttEstimateType);
-			if ((scheduleTimeStamp - request.timeOfRequest.ms()) / 1000.0 > waitingTimeThreshold)
+			if (scheduleTimeStamp - request.timeOfRequest.ms() / 1000.0 > waitingTimeThreshold)
 			{
 				return -1;
 			}
@@ -514,7 +540,9 @@ double OnCallController::evaluateSchedule(const Node *initialPosition, const Sch
 			const Node *nextNode = nodeIdMap.find(scheduleItem.tripRequest.destinationNodeId)->second;
 			scheduleTimeStamp += getTT(latestNode, nextNode, ttEstimateType);
 			double timeIfHeWereAlone = waitingTimeThreshold + getTT(startNode, nextNode, ttEstimateType);
-			if (scheduleTimeStamp - request.timeOfRequest.getSeconds() > timeIfHeWereAlone)
+			const double sharedTravelDelay = 600; //seconds
+			double rideTimeThreshold = schedule.size() > 2 ? timeIfHeWereAlone + sharedTravelDelay : timeIfHeWereAlone;
+			if (scheduleTimeStamp - request.timeOfRequest.getSeconds() > rideTimeThreshold)
 			{
 				return -1;
 			}
@@ -702,11 +730,13 @@ double OnCallController::computeSchedule(const Node *initialNode, const Schedule
 		return travelTime;
 	}
 	else
-	{ return -1; }
+	{
+		return -1;
+	}
 }
 
-bool OnCallController::canBeShared(const TripRequestMessage &r1, const TripRequestMessage &r2,
-                                   double additionalDelayThreshold, double waitingTimeThreshold) const
+bool OnCallController::canBeShared(const TripRequestMessage& r1, const TripRequestMessage& r2,
+			double additionalDelayThreshold, double waitingTimeThreshold ) const
 {
 #ifndef NDEBUG
 	if (r1==r2)
@@ -736,24 +766,24 @@ bool OnCallController::canBeShared(const TripRequestMessage &r1, const TripReque
 	return false;
 }
 
-
 #ifndef NDEBUG
 void OnCallController::consistencyChecks(const std::string& label) const
 {
-	if (subscribedDrivers.size()!=driverSchedules.size() )
+	if (subscribedDrivers.size() != driverSchedules.size())
 	{
-		std::stringstream msg; msg<< label << " subscribedDrivers.size()="<<subscribedDrivers.size()<<
-			" and driverSchedules.size()="<<driverSchedules.size() <<". They should be equal. ";
+		std::stringstream msg;
+		msg << label << " subscribedDrivers.size()=" << subscribedDrivers.size()
+		    << " and driverSchedules.size()=" << driverSchedules.size() << ". They should be equal. ";
 
-		for (const Person* driver : subscribedDrivers)
+		for (const Person *driver : subscribedDrivers)
 		{
-			if (driverSchedules.find(driver) == driverSchedules.end() )
-				msg<<"Driver "<< driver->getDatabaseId()<<" is in subscribedDrivers but not in driverSchedules";
+			if (driverSchedules.find(driver) == driverSchedules.end())
+			{
+				msg << "Driver " << driver->getDatabaseId() << " is in subscribedDrivers but not in driverSchedules";
+			}
 		}
 
-
 		throw std::runtime_error(msg.str());
-
 	}
 
 	unsigned emptyDrivers = 0;
@@ -768,46 +798,53 @@ void OnCallController::consistencyChecks(const std::string& label) const
 		throw std::runtime_error(msg.str() );
 	}
 
-	for (const Person* driver : availableDrivers)
+	for (const Person *driver : availableDrivers)
 	{
-		if (!isMobilityServiceDriver(driver) )
+		if (!isMobilityServiceDriver(driver))
 		{
-			std::stringstream msg; msg<<"Driver "<<driver->getDatabaseId()<<
-			" is not a MobilityServiceDriver"<< std::endl;
-			throw std::runtime_error(msg.str() );
+			std::stringstream msg;
+			msg << "Driver " << driver->getDatabaseId()
+			    << " is not a MobilityServiceDriver" << std::endl;
+			throw std::runtime_error(msg.str());
 		}
 
-		const MobilityServiceDriver* mobilityServiceDriver = driver->exportServiceDriver();
+		const MobilityServiceDriver *mobilityServiceDriver = driver->exportServiceDriver();
 		const MobilityServiceDriverStatus status = driver->exportServiceDriver()->getDriverStatus();
-		if (status != CRUISING)
+
+		if (status != CRUISING && status != PARKED)
 		{
-					std::stringstream msg; msg<<"Driver "<<driver->getDatabaseId()<<" is among the available drivers but his status is:"
-						<< driver->exportServiceDriver()->getDriverStatusStr() << ". This is not admitted at the moment";
-					throw std::runtime_error(msg.str( ));
+			std::stringstream msg;
+			msg << "Driver " << driver->getDatabaseId() << " is among the available drivers but his status is:"
+			    << driver->exportServiceDriver()->getDriverStatusStr() << ". This is not admitted at the moment";
+			throw std::runtime_error(msg.str());
 		}
 
-		if ( !driverSchedules.at(driver).empty() )
+		if (!driverSchedules.at(driver).empty())
 		{
-			std::stringstream msg; msg<<"Driver "<<driver->getDatabaseId()<<" is among the available drivers but her schedule is not empty:"
-			<<driverSchedules.at(driver);
-			throw std::runtime_error(msg.str( ));
+			std::stringstream msg;
+			msg << "Driver " << driver->getDatabaseId()
+			    << " is among the available drivers but her schedule is not empty:"
+			    << driverSchedules.at(driver);
+			throw std::runtime_error(msg.str());
 		}
 	}
 
 	// Check if the same request is present more than once
-	std::vector<TripRequestMessage> requestQueueCopy{ std::begin(requestQueue), std::end(requestQueue) };
+	std::vector<TripRequestMessage> requestQueueCopy{std::begin(requestQueue), std::end(requestQueue)};
 	std::sort(requestQueueCopy.begin(), requestQueueCopy.end());
-	for(int i = 0; i < requestQueueCopy.size() ; i++)
+	for (int i = 0; i < requestQueueCopy.size(); i++)
 	{
-		for (int j = i+1 ; j<requestQueueCopy.size() ; j++ )
-		if (requestQueueCopy[i].userId == requestQueueCopy[j].userId)
+		for (int j = i + 1; j < requestQueueCopy.size(); j++)
 		{
-			std::stringstream msg; msg<<"There are two requests from the same users currently in the requestQueue. They are "<<
-				requestQueueCopy[i] <<" and "<<requestQueueCopy[j]<< std::endl;
-			throw std::runtime_error(msg.str() );
+			if (requestQueueCopy[i].userId == requestQueueCopy[j].userId)
+			{
+				std::stringstream msg;
+				msg << "There are two requests from the same users currently in the requestQueue. They are " <<
+				    requestQueueCopy[i] << " and " << requestQueueCopy[j] << std::endl;
+				throw std::runtime_error(msg.str());
+			}
 		}
 	}
-
 }
 #endif
 
@@ -896,12 +933,12 @@ double OnCallController::getTT(const Node *node1, const Node *node2, TT_Estimate
 		{
 			double squareDistance = pow(node1->getPosX() - node2->getPosX(), 2) + pow(
 					node1->getPosY() - node2->getPosY(), 2);
-			// We assume that the distance between node1 and node2 is a hypothenus of a right triangle and
+			// We assume that the distance between node1 and node2 is a hypotenus of a right triangle and
 			// that we go from a node to the other by crossing the two catheti
 			double cathetus = sqrt(squareDistance) / sqrt(2.0);
-			double distanceToCover = 2.0 * cathetus; // meters
-			double speedAssumed = 40.0 * 1000 / 3600; //40Kmph converted in mps
-			retValue = distanceToCover * speedAssumed;
+			double distanceToCover = 2.0 * cathetus; // metersd
+			double speedAssumed = 30.0 * 1000 / 3600; //30Kmph converted in mps
+			retValue = distanceToCover / speedAssumed;
 			break;
 		}
 		default:

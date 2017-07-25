@@ -24,7 +24,8 @@ namespace
 		COLUMN_START_LOCATION_X = 2,
 		COLUMN_START_LOCATION_Y = 3,
 		COLUMN_SHIFT_START_TIME = 4,
-		COLUMN_CONTROLLER_SUBSCRIPTIONS = 5
+		COLUMN_CONTROLLER_SUBSCRIPTIONS = 5,
+		COLUMN_SHIFT_DURATION = 6
 	};
 }
 
@@ -53,9 +54,7 @@ void FleetController::LoadTaxiFleetFromDB()
 	std::stringstream query;
 
 	const SimulationParams &simParams = ConfigManager::GetInstance().FullConfig().simulation;
-    /* for Debug Only : to print details in Console
-     * Print()<<"\n\nTaxi Details at start:"<<std::endl;
-     */
+
 	query << "select * from " << spIt->second << "('" << simParams.simStartTime.getStrRepr().substr(0, 5)
 	      << "','" << (DailyTime(simParams.totalRuntimeMS) + simParams.simStartTime).getStrRepr().substr(0, 5) << "')";
 	soci::rowset<soci::row> rs = (sql_.prepare << query.str());
@@ -70,17 +69,12 @@ void FleetController::LoadTaxiFleetFromDB()
 		double y = r.get<double>(COLUMN_START_LOCATION_Y);
 		Utils::convertWGS84_ToUTM(x, y);
 		fleetItem.startNode = Node::allNodesMap.searchNearestObject(x, y);
-		std::string startTime = r.get<std::string>(COLUMN_SHIFT_START_TIME);
+		const std::string &startTime = r.get<std::string>(COLUMN_SHIFT_START_TIME);
 		fleetItem.startTime = getSecondFrmTimeString(startTime);
+		int shiftDuration = 3600 * r.get<int>(COLUMN_SHIFT_DURATION);
+		fleetItem.endTime = fleetItem.startTime + shiftDuration;
 		fleetItem.controllerSubscription = r.get<unsigned int>(COLUMN_CONTROLLER_SUBSCRIPTIONS);
 		taxiFleet.push_back(fleetItem);
-	/* for Debug Purpose Only : to print details in Console
-
-       Print()<<" VehicleNo:"<<fleetItem.vehicleNo<<" Driver ID:"
-              <<fleetItem.driverId<<" X_Position:"<<x<<" Y_Position:"<<y
-              <<" Start_Node ID:"<<fleetItem.startNode->getNodeId()
-              <<" Start_time:"<<startTime<<std::endl;
-     */
    }
 }
 

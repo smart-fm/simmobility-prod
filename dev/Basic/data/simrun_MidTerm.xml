@@ -90,6 +90,8 @@
             <mapping name="pt_mrt_platform" procedure="get_pt_mrt_platform_test()"/>
             <mapping name="pt_mrt_block_polyline" procedure="get_pt_block_polylines_test()"/>
 
+            <mapping name="sms_parking" procedure="get_all_parking()"/>
+
             <mapping name="pt_bus_routes" procedure="get_pt_bus_routes_17feb()"/>
             <mapping name="pt_bus_stops" procedure="get_pt_bus_stops_17feb()"/>
             <mapping name="pt_stop_stats" procedure="get_pt_stop_stats()"/>

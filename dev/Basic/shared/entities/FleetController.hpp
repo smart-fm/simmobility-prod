@@ -41,7 +41,7 @@ public:
 		std::string vehicleNo;
 		std::string driverId;
 		double startTime = 0;
-		double endTime= 0;
+		double endTime = 0;
 		const Node* startNode = nullptr;
 		unsigned int controllerSubscription = 0;
 	};

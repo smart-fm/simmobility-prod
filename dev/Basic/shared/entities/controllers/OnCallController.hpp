@@ -1,5 +1,5 @@
 /*
- * OnCallController.hpp
+ * MobilityServiceController.hpp
  *
  *  Created on: Feb 20, 2017
  *      Author: Akshay Padmanabha, Andrea Araldo
@@ -146,7 +146,7 @@ public:
 	 * Checks if the driver is cruising
 	 */
 	virtual bool isCruising(const Person* driver) const;
-
+	virtual bool isOnParking(const Person* driver) const;
 	virtual const Node* getCurrentNode(const Person* driver) const;
 
 
@@ -249,6 +249,12 @@ protected:
 	 */
 	virtual void driverAvailable(const Person* person);
 
+	/**
+	 * Marks the schedule assigned to the driver as complete
+	 * (by simply replacing it with an empty schedule)
+	 * @param person the driver who has completed the scheule
+	 */
+	virtual void onDriverShiftEnd(Person *person);
 
 	/** Keeps track of current local tick */
 	unsigned int localTick = 0;

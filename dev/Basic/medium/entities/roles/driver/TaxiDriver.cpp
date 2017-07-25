@@ -22,6 +22,7 @@ TaxiDriver::TaxiDriver(Person_MT* parent, const MutexStrategy& mtxStrat, TaxiDri
                        TaxiDriverMovement* movement, std::string roleName, Role<Person_MT>::Type roleType) :
 		Driver(parent, behavior, movement, roleName, roleType)
 {
+	taxiPassenger = nullptr;
 	taxiDriverMovement = movement;
 	taxiDriverBehaviour = behavior;
 }
@@ -35,7 +36,10 @@ TaxiDriver::TaxiDriver(Person_MT* parent, const MutexStrategy& mtx) :
 bool TaxiDriver::addPassenger(Passenger *passenger)
 {
 	//Assign the taxiPassenger, this will be used by on hail drivers to alight the passenger
-	taxiPassenger = passenger;
+	if (!taxiPassenger)
+	{
+		taxiPassenger = passenger;
+	}
 
 	const string &personId = passenger->getParent()->getDatabaseId();
 
@@ -157,6 +161,11 @@ void TaxiDriver::HandleParentMessage(messaging::Message::MessageType type, const
 		controller = msg.GetSender();
 		currScheduleItem = assignedSchedule.begin();
 		processNextScheduleItem(false);
+		break;
+	}
+	case MSG_UNSUBSCRIBE_SUCCESSFUL:
+	{
+		parent->setToBeRemoved();
 		break;
 	}
 	default:
@@ -293,10 +302,31 @@ void TaxiDriver::processNextScheduleItem(bool isMoveToNextScheduleItem)
 		++currScheduleItem;
 	}
 
-	//If entire schedule is complete, cruise around
+	//If entire schedule is complete, cruise around unless we're in a parking
 	if(currScheduleItem == assignedSchedule.end())
 	{
-		taxiDriverMovement->setCruisingMode();
+		//Remove the taxi driver from the simulation if the shift has ended
+		if((parent->currTick.ms() / 1000) >= taxiDriverMovement->getCurrentFleetItem().endTime)
+		{
+			ControllerLog() << "Driver " << parent->getDatabaseId() << " has completed the schedule and "
+			                << "is at the end of its shift. Time = " << parent->currTick << std::endl;
+
+			MessageBus::PostMessage(controller, MSG_DRIVER_SHIFT_END,
+			                        MessageBus::MessagePtr(new DriverShiftCompleted(parent)));
+
+			//Assuming that the controller always sends a schedulw with a park item at the end.
+			//So, we would have parked the vehicle at this point and now the shift has ended
+			//No need to do anything, as we set the vehicle to be removed after the controller
+			//responds to the above message
+		}
+		else
+		{
+			if((currScheduleItem - 1)->scheduleItemType != PARK)
+			{
+				taxiDriverMovement->setCruisingMode();
+			}
+		}
+
 		return;
 	}
 
@@ -304,6 +334,17 @@ void TaxiDriver::processNextScheduleItem(bool isMoveToNextScheduleItem)
 	{
 	case PICKUP:
 	{
+		if (driverStatus == MobilityServiceDriverStatus::PARKED)
+		{
+			getResource()->setMoving(true);
+
+			Conflux *conflux = Conflux::getConfluxFromNode(taxiDriverMovement->getCurrentNode());
+			MessageBus::PostMessage(conflux, MSG_PERSON_LOAD, MessageBus::MessagePtr(new PersonMessage(parent)));
+
+			//Clear previous path
+			taxiDriverMovement->getMesoPathMover().eraseFullPath();
+		}
+
 		const TripRequestMessage &tripRequest = currScheduleItem->tripRequest;
 		const std::map<unsigned int, Node *> &nodeIdMap = RoadNetwork::getInstance()->getMapOfIdvsNodes();
 		std::map<unsigned int, Node *>::const_iterator it = nodeIdMap.find(tripRequest.startNodeId);
@@ -423,6 +464,67 @@ void TaxiDriver::processNextScheduleItem(bool isMoveToNextScheduleItem)
 
 		break;
 	}
+
+	case PARK:
+	{
+		if (!getPassengerCount())
+		{
+			const SMSVehicleParking *destinationParking = currScheduleItem->parking;
+			ControllerLog() << "Taxi driver " << getParent()->getDatabaseId()
+			                << " received a Park command with Parking ID " << destinationParking->getParkingId()
+			                << std::endl;
+
+			const Node *destination = destinationParking->getAccessNode();
+			const SegmentStats *currSegStat = taxiDriverMovement->getParentDriver()->getParent()->getCurrSegStats();
+			const Link *link = currSegStat->getRoadSegment()->getParentLink();
+			taxiDriverMovement->setCurrentNode(link->getToNode());
+			const Node *thisNode = taxiDriverMovement->getCurrentNode();
+
+			if (thisNode == destination)
+			{
+				ControllerLog() << "Taxi driver " << getParent()->getDatabaseId()
+				                << "already in requested parking location" << std::endl;
+				setDriverStatus(PARKED);
+				getResource()->setMoving(false);
+				parent->setRemainingTimeThisTick(0.0);
+				taxiDriverMovement->setCurrentNode(thisNode);
+				assignedSchedule = Schedule();
+
+				MessageBus::PostMessage(controller, MSG_DRIVER_AVAILABLE,
+				                        MessageBus::MessagePtr(new DriverAvailableMessage(
+						                        taxiDriverMovement->getParentDriver()->parent)));
+				return;
+			}
+
+			const bool success = taxiDriverMovement->driveToParkingNode(destination);
+
+#ifndef NDEBUG
+			if (!success)
+			{
+				std::stringstream msg;
+				msg << __FILE__ << ":" << __LINE__ << ": taxiDriverMovement->driveToParkingNode("
+				    << destination->getNodeId() << ");" << std::endl;
+				msg << "Taxi with Driver " << parent->getDatabaseId() << " can not be parked at "
+				    << destinationParking->getParkingId() << std::endl;
+				WarnOut(msg.str());
+			}
+#endif
+
+			ControllerLog() << "Assignment response sent for Parking command for Parking ID "
+			                << destinationParking->getParkingId() << ". This response is sent by driver "
+			                << parent->getDatabaseId() << " at time " << parent->currTick << std::endl;
+			break;
+
+		}
+		else
+		{
+			ControllerLog() << "Taxi driver " << getParent()->getDatabaseId()
+			                << " can not go for parking as some passenger left to drop off." << std::endl;
+			throw runtime_error("All Passengers should be Dropped Off before Parking");
+		}
+
+	}
+
 	default:
 		throw runtime_error("Invalid Schedule item type");
 	}
@@ -460,7 +562,8 @@ const std::vector<MobilityServiceController*>& TaxiDriver::getSubscribedControll
 
 TaxiDriver::~TaxiDriver()
 {
-	if (MobilityServiceControllerManager::HasMobilityServiceControllerManager())
+	if (MobilityServiceControllerManager::HasMobilityServiceControllerManager() &&
+		(parent->currTick.ms() / 1000) < taxiDriverMovement->getCurrentFleetItem().endTime)
 	{
 		for(auto it = taxiDriverMovement->getSubscribedControllers().begin();
 			it != taxiDriverMovement->getSubscribedControllers().end(); ++it)

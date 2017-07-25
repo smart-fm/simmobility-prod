@@ -4,6 +4,7 @@
 #include <boost/ptr_container/ptr_vector.hpp>
 #include "entities/Person.hpp"
 #include <stdexcept>
+#include <geospatial/network/SMSVehicleParking.hpp>
 
 
 namespace sim_mob
@@ -16,10 +17,10 @@ enum MobilityServiceControllerMessage
 	MSG_DRIVER_AVAILABLE,
 	MSG_TRIP_REQUEST,
 	MSG_SCHEDULE_PROPOSITION,
-	MSG_SCHEDULE_PROPOSITION_REPLY
+	MSG_SCHEDULE_PROPOSITION_REPLY,
+	MSG_DRIVER_SHIFT_END,
+	MSG_UNSUBSCRIBE_SUCCESSFUL
 };
-
-
 
 /*
 struct TripRequest
@@ -94,10 +95,25 @@ public:
 };
 
 /**
+ * Message indicating that a driver has completed its shift
+ */
+class DriverShiftCompleted : public messaging::Message
+{
+public:
+	DriverShiftCompleted(Person *p) : person(p)
+	{
+	}
+
+	virtual ~DriverShiftCompleted()
+	{
+	}
+
+	Person *person;
+};
+
+/**
  * Message to request a trip
  */
-
-
 class TripRequestMessage : public messaging::Message
 {
 public:
@@ -155,7 +171,7 @@ enum ScheduleItemType
 struct ScheduleItem
 {
 	ScheduleItem(const ScheduleItemType scheduleItemType_, const TripRequestMessage tripRequest_)
-			: scheduleItemType(scheduleItemType_), tripRequest(tripRequest_), nodeToCruiseTo(NULL), parkingId(0)
+			: scheduleItemType(scheduleItemType_), tripRequest(tripRequest_), nodeToCruiseTo(NULL), parking(nullptr)
 	{
 #ifndef NDEBUG
 		if (scheduleItemType != ScheduleItemType::PICKUP && scheduleItemType != ScheduleItemType::DROPOFF)
@@ -167,7 +183,7 @@ struct ScheduleItem
 	};
 
 	ScheduleItem(const ScheduleItemType scheduleItemType_, const Node *nodeToCruiseTo_)
-			: scheduleItemType(scheduleItemType_), nodeToCruiseTo(nodeToCruiseTo_), tripRequest(), parkingId(0)
+			: scheduleItemType(scheduleItemType_), nodeToCruiseTo(nodeToCruiseTo_), tripRequest(), parking(nullptr)
 	{
 #ifndef NDEBUG
 		if (scheduleItemType != ScheduleItemType::CRUISE)
@@ -177,9 +193,14 @@ struct ScheduleItem
 #endif
 	};
 
-	ScheduleItem(const ScheduleItemType scheduleItemType_, const unsigned int parkingId_)
-			: scheduleItemType(scheduleItemType_), nodeToCruiseTo(NULL), tripRequest(), parkingId(parkingId_)
-	{};
+	ScheduleItem(const ScheduleItemType scheduleItemType_, const SMSVehicleParking *parkingLocation)
+			:scheduleItemType(scheduleItemType_),nodeToCruiseTo(NULL),tripRequest(), parking(parkingLocation)
+	{
+#ifndef NDEBUG
+		if (scheduleItemType!= ScheduleItemType::PARK)
+			throw std::runtime_error("Only PARK is admitted here");
+#endif
+	};
 
 	bool operator<(const ScheduleItem &other) const;
 
@@ -189,9 +210,7 @@ struct ScheduleItem
 
 	const Node *nodeToCruiseTo;
 
-	unsigned int parkingId;
-
-
+	const SMSVehicleParking *parking;
 };
 
 //TODO: It would be more elegant using std::variant, available from c++17

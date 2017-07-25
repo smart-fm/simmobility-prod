@@ -20,7 +20,7 @@ void IncrementalSharing::computeSchedules()
 	}
 
 	const std::map<unsigned int, Node *> &nodeIdMap = RoadNetwork::getInstance()->getMapOfIdvsNodes();
-	unsigned maxAggregatedRequests = 3; // Maximum number of requests that can be assigned to a driver
+	unsigned maxAggregatedRequests = 2; // Maximum number of requests that can be assigned to a driver
 	double maxWaitingTime = 300; //seconds
 	std::map<const Person *, Schedule> schedulesComputedSoFar; // We will put here the schedule that we will have constructed per each driver
 
@@ -144,7 +144,19 @@ void IncrementalSharing::computeSchedules()
 	for (const std::pair<const Person *, Schedule> &p : schedulesComputedSoFar)
 	{
 		const Person *driver = p.first;
-		const Schedule schedule = p.second;
+		Schedule schedule = p.second;
+
+		//Find where to park after the final drop off
+		unsigned int finalDropOff = schedule.back().tripRequest.destinationNodeId;
+		const RoadNetwork *rdNetowrk = RoadNetwork::getInstance();
+		const Node *finalDropOffNode = rdNetowrk->getById(rdNetowrk->getMapOfIdvsNodes(), finalDropOff);
+		const SMSVehicleParking *parking =
+				SMSVehicleParking::smsParkingRTree.searchNearestObject(finalDropOffNode->getPosX(), finalDropOffNode->getPosY());
+
+		//Append the parking schedule item to the end
+		const ScheduleItem parkingSchedule(ScheduleItemType::PARK, parking);
+		schedule.push_back(parkingSchedule);
+
 		assignSchedule(driver, schedule);
 	}
 }

@@ -11,7 +11,7 @@
 #include "geospatial/network/NetworkLoader.hpp"
 #include "geospatial/network/Node.hpp"
 #include "geospatial/network/ParkingSlot.hpp"
-#include "geospatial/network/ParkingDetail.hpp"
+#include "geospatial/network/SMSVehicleParking.hpp"
 #include "geospatial/network/Point.hpp"
 #include "geospatial/network/PT_Stop.hpp"
 #include "geospatial/network/RoadNetwork.hpp"
@@ -69,7 +69,7 @@ void NetworkPrinter::printNetwork(const RoadNetwork *network) const
 
 	printParkingSlots(network->getMapOfIdVsParkingSlots());
 
-    printParkingDetails(network->getMapOfIdVsParkingDetails());
+    printParkingDetails(network->getMapOfIdvsSMSVehicleParking());
 
 
 
@@ -317,19 +317,16 @@ void NetworkPrinter::printParkingSlots(const std::map<unsigned int, ParkingSlot 
 	printToFile(out);
 }
 
-void NetworkPrinter::printParkingDetails(const std::map<unsigned int, ParkingDetail *> &parkingDetails) const
+void NetworkPrinter::printParkingDetails(const std::map<unsigned int, SMSVehicleParking *> &parkingDetails) const
 {
     std::stringstream out;
     out << std::setprecision(8);
 
-    for(std::map<unsigned int, ParkingDetail *>::const_iterator it = parkingDetails.begin(); it != parkingDetails.end(); ++it)
+    for(std::map<unsigned int, SMSVehicleParking *>::const_iterator it = parkingDetails.begin(); it != parkingDetails.end(); ++it)
     {
-        const ParkingDetail *pkDet = it->second;
-        out << "(\"parking_id\" " << pkDet->getParkingID() << ", {";
-        out << "\"access_node_id\":\"" << pkDet->getAccessNodeID() << "\",";
-        out << "\"egress_node_id\":\"" << pkDet->getEgressNodeID() << "\",";
-        out << "\"access_node\":\"" << pkDet->getAccessNode() << "\",";
-        out << "\"egress_node\":\"" << pkDet->getEgressNode() << "\",";
+        const SMSVehicleParking *pkDet = it->second;
+        out << "(\"parking_id\" " << pkDet->getParkingId() << ", {";
+        out << "\"segment\":\"" << pkDet->getSegmentId() << "\",";
         out << "})\n";
     }
 

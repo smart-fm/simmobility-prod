@@ -65,9 +65,14 @@ void MobilityServiceController::HandleMessage(messaging::Message::MessageType ty
 	{
 		const DriverUnsubscribeMessage &unsubscribeArgs = MSG_CAST(DriverUnsubscribeMessage, message);
 		const Person *person = unsubscribeArgs.person;
-		const std::string personId = person->getDatabaseId();
-		ControllerLog() << "Driver " << personId << " unsubscribed " << std::endl;
 		unsubscribeDriver(unsubscribeArgs.person);
+		break;
+	}
+
+	case MSG_DRIVER_SHIFT_END:
+	{
+		const DriverShiftCompleted &scheduleCompletedArgs = MSG_CAST(DriverShiftCompleted, message);
+		onDriverShiftEnd(scheduleCompletedArgs.person);
 		break;
 	}
 
@@ -83,14 +88,15 @@ void MobilityServiceController::subscribeDriver(Person *driver)
 
 #ifndef NDEBUG
 	consistencyChecks();
-				if (!isMobilityServiceDriver(driver) )
-				{
-						std::stringstream msg; msg<<"Driver "<<driver->getDatabaseId()<<
-						" is not a MobilityServiceDriver"<< std::endl;
-						throw std::runtime_error(msg.str() );
-				}
-
+	if (!isMobilityServiceDriver(driver))
+	{
+		std::stringstream msg;
+		msg << "Driver " << driver->getDatabaseId() <<
+		    " is not a MobilityServiceDriver" << std::endl;
+		throw std::runtime_error(msg.str());
+	}
 #endif
+
 	subscribedDrivers.push_back(driver);
 
 	ControllerLog() << "Subscription received by the controller of type " << sim_mob::toString(controllerServiceType)
@@ -109,12 +115,11 @@ void MobilityServiceController::unsubscribeDriver(Person *driver)
 		throw std::runtime_error(msg.str() );
 	}
 #endif
-	ControllerLog() << "Unsubscription of driver " << driver->getDatabaseId() << ", pointer " << driver << " at time "
+	ControllerLog() << "Unsubscription of driver with pointer " << driver << " at time "
 	                << currTick << std::endl;
 	subscribedDrivers.erase(std::remove(subscribedDrivers.begin(),
 	                                    subscribedDrivers.end(), driver), subscribedDrivers.end());
 }
-
 
 bool MobilityServiceController::isNonspatial()
 {

@@ -110,6 +110,10 @@ void KasiaRebalancer::rebalance(const std::vector<const Person*>& availableDrive
 	// { jo: We need to get the entire TAZ list for the network; for now using latestStartNodes will do
 	std::vector<int> stations ;
 	std::vector<Node*>:: iterator inode;
+	if (latestStartNodes.size()==0){
+		Print() << "no latest start nodes/no demand" << std::endl;
+		return;
+	}
 	for (auto inode = latestStartNodes.begin(); inode!= latestStartNodes.end(); ++inode) {
 		//Node& ii = *i;
 		int taz;
@@ -140,6 +144,15 @@ void KasiaRebalancer::rebalance(const std::vector<const Person*>& availableDrive
 
     int nvehs = availableDrivers.size();
     int nstations = stations.size();
+    if (nvehs==0){
+    	Print() << "No vehicles to rebalance" << std::endl;
+    	return;
+    }
+    if (nstations==0){
+    	Print() << "No stations loaded" << std::endl ;
+    	return;
+    }
+    else {
     int nstationsServed = 0;
     int nvars = nstations*nstations; // how many to send from one station to another
 
@@ -147,6 +160,7 @@ void KasiaRebalancer::rebalance(const std::vector<const Person*>& availableDrive
     int cexTotal = 0; // total excess customers
     std::map<int, int> cex;
     std::map<int, std::set<std::string>> vi; // free vehicles at this station
+
 
     // set up the problem
     glp_prob *lp; // initialize linear program
@@ -557,7 +571,7 @@ void KasiaRebalancer::rebalance(const std::vector<const Person*>& availableDrive
     ia.clear();
     ja.clear();
     ar.clear();
-
+}
 }
 
 

@@ -1068,7 +1068,7 @@ std::string TaxiDriverMovement::frame_tick_output()
 		const string timeStr = (DailyTime(params.now.ms()) + DailyTime(
 				ConfigManager::GetInstance().FullConfig().simStartTime())).getStrRepr();
 
-		out << currentFleetItem.driverId << "," << driverId << ","
+		out << currentFleetItem.vehicleNo << "," << driverId << ","
 			<< nodeId << ","
 			<< timeStr << ","
 			<< roadSegmentId << ","

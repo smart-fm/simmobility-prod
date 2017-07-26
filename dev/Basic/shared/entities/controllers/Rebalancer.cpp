@@ -95,29 +95,13 @@ int Rebalancer::getNumVehicles(const std::vector<const Person*>& availableDriver
 
 
 void KasiaRebalancer::rebalance(const std::vector<const Person*>& availableDrivers, const timeslice currTick) {
+	Print() << "available drivers: " << availableDrivers.size() << "; latest start nodes: " << latestStartNodes.size() << std::endl;
+	if(!availableDrivers.empty() && !latestStartNodes.empty()){
 
-	//jo add rebal interval
-//	int currentFrame;
-//	currentFrame = currTick.frame() ;
-//	if(currentFrame % 720 >= 0 && currentFrame % 720 <= 10){
-//		Print() << "Time to rebalance" << std::endl ;
-//	}
-//	else{
-//		Print() << "Too early to rebalance. Wait till next specified interval" << std::endl ;
-//		return;
-//	}
-
-    if (availableDrivers.size()==0){
-    	Print() << "No vehicles to rebalance" << std::endl;
-    	return;
-    }
-	if (latestStartNodes.size()==0){
-		Print() << "no latest start nodes/no demand" << std::endl;
-		return;
-	}
     // create variables for solving lp
 
 	// { jo: We need to get the entire TAZ list for the network; for now using latestStartNodes will do
+	Print() << "Starting rebalancer..." << std::endl;
 	std::vector<int> stations ;
 	std::vector<Node*>:: iterator inode;
 	for (auto inode = latestStartNodes.begin(); inode!= latestStartNodes.end(); ++inode) {
@@ -131,7 +115,6 @@ void KasiaRebalancer::rebalance(const std::vector<const Person*>& availableDrive
 	it = unique(stations.begin(), stations.end()) ; // get unique TAZ's represented
 	stations.resize(distance(stations.begin(),it)); // resize stations vector
 	Print() << "Number of zones in which requests available: " << stations.size() << std::endl;
-	// } jo
 
 
 //	//// =====================================================================================
@@ -241,31 +224,6 @@ void KasiaRebalancer::rebalance(const std::vector<const Person*>& availableDrive
 
         // use current demand
         int cexi = getNumCustomers(sitrIndex) - getNumVehicles(availableDrivers, sitrIndex); // excess customers in zone `sitr`
-
-        // jo { not using predicted demand
-        // use predicted demand
-//        int stid =  sitr->second.getId();
-//        auto curr_time = worldState->getCurrentTime();
-//        auto pred = demandEstimator->predict(stid, *worldState, curr_time);
-//
-//
-//        int meanPred;
-//
-//        if (useCurrentQueue) {
-//            meanPred = sitr->second.getNumCustomers();
-//        } else {
-//            meanPred = ceil(pred.first);
-//        }
-//        /*int mean_pred = ceil(std::max(
-//                (double) dem_est_->predict(sitr->second.getId(), *world_state, world_state->getCurrentTime()).first,
-//                (double) sitr->second.getNumCustomers()));
-//        */
-//        if (verbose) Print() << "Mean prediction: " << meanPred;
-//
-//        int cexi = meanPred - sitr->second.getNumVehicles();
-//        if (verbose) Print() << "cexi: " << cexi;
-//        if (verbose) Print() << "vehs: " << sitr->second.getNumVehicles();
-        // } jo
 
         cex[sitrIndex] = cexi; // excess customers at this station
         cexTotal += cexi; // total number of excess customers
@@ -576,6 +534,7 @@ void KasiaRebalancer::rebalance(const std::vector<const Person*>& availableDrive
     ja.clear();
     ar.clear();
     Print() << "Rebalancing success" << std::endl;
+    }
 }
 }
 

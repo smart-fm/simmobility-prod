@@ -30,7 +30,7 @@ OnCallController::OnCallController(const MutexStrategy &mtxStrat, unsigned int c
 		: MobilityServiceController(mtxStrat, type_, id), scheduleComputationPeriod(computationPeriod),
 		  ttEstimateType(ttEstimateType_), nodeIdMap(RoadNetwork::getInstance()->getMapOfIdvsNodes())
 {
-	rebalancer = new KasiaRebalancer(this); //jo SimpleRebalancer(this);
+	rebalancer = new SimpleRebalancer(this); //jo SimpleRebalancer(this);
 #ifndef NDEBUG
 	isComputingSchedules = false;
 #endif
@@ -172,7 +172,10 @@ Entity::UpdateStatus OnCallController::frame_tick(timeslice now)
 #ifndef NDEBUG
 		isComputingSchedules = false;
 #endif
-		rebalancer->rebalance(availableDrivers, currTick);
+		if( currTick.frame() >= rebalancingInterval && currTick.frame() >= nextRebalancingFrame ){
+			nextRebalancingFrame = currTick.frame() + rebalancingInterval ;
+			rebalancer->rebalance(availableDrivers, currTick);
+		}
 	}
 	else
 	{

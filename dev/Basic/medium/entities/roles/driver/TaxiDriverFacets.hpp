@@ -102,7 +102,6 @@ public:
 	 */
 	bool driveToParkingNode(const Node *destination);
 
-
 	/**
 	 * Sets the driver to cruise to a given node. This functionality is specific to on call drivers
 	 * @param destination the destination node to cruise to
@@ -141,6 +140,11 @@ public:
 		return currentFleetItem;
 	}
 
+	void setOriginNode(const Node *node)
+	{
+		originNode = node;
+	}
+
 protected:
 	/**List of subscribed controllers*/
 	std::vector<MobilityServiceController *> subscribedControllers;
@@ -156,7 +160,7 @@ private:
 	TaxiDriver *parentTaxiDriver = nullptr;
 
 	/**record original start node*/
-	Node *originNode = nullptr;
+	const Node *originNode = nullptr;
 
 	/**indicate whether the path already initialized or not*/
 	bool isPathInitialized = false;

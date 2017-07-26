@@ -314,7 +314,7 @@ void TaxiDriver::processNextScheduleItem(bool isMoveToNextScheduleItem)
 			MessageBus::PostMessage(controller, MSG_DRIVER_SHIFT_END,
 			                        MessageBus::MessagePtr(new DriverShiftCompleted(parent)));
 
-			//Assuming that the controller always sends a schedulw with a park item at the end.
+			//Assuming that the controller always sends a schedule with a park item at the end.
 			//So, we would have parked the vehicle at this point and now the shift has ended
 			//No need to do anything, as we set the vehicle to be removed after the controller
 			//responds to the above message
@@ -488,7 +488,9 @@ void TaxiDriver::processNextScheduleItem(bool isMoveToNextScheduleItem)
 				getResource()->setMoving(false);
 				parent->setRemainingTimeThisTick(0.0);
 				taxiDriverMovement->setCurrentNode(thisNode);
-				assignedSchedule = Schedule();
+				DriverUpdateParams &params = getParams();
+				params.elapsedSeconds = params.secondsInTick;
+				taxiDriverMovement->setOriginNode(thisNode);
 
 				//Inform the driver availability if the shift has not ended
 				if((parent->currTick.ms() / 1000) < taxiDriverMovement->getCurrentFleetItem().endTime)
@@ -497,6 +499,15 @@ void TaxiDriver::processNextScheduleItem(bool isMoveToNextScheduleItem)
 					                        MessageBus::MessagePtr(new DriverAvailableMessage(
 							                        taxiDriverMovement->getParentDriver()->parent)));
 				}
+
+				double actualT = params.elapsedSeconds + params.now.ms() / 1000;
+				const Link *nextLink = thisNode->getDownStreamLinks().begin()->second;
+				parent->currLinkTravelStats.finalize(link, actualT, nextLink);
+				TravelTimeManager::getInstance()->addTravelTime(parent->currLinkTravelStats); //in seconds
+				currSegStat->getParentConflux()->setLinkTravelTimes(actualT, link);
+				parent->currLinkTravelStats.reset();
+
+				processNextScheduleItem();
 
 				return;
 			}

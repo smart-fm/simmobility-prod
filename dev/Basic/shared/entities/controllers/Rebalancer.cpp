@@ -96,24 +96,30 @@ int Rebalancer::getNumVehicles(const std::vector<const Person*>& availableDriver
 
 void KasiaRebalancer::rebalance(const std::vector<const Person*>& availableDrivers, const timeslice currTick) {
 
-//    if (availableDrivers.size() == 0) {
-//        if (verbose) Print() << "No available vehicles to rebalance." << std::endl;
-////        return amod::SUCCESS; // no vehicles to rebalance
-//    }
-//    if (stations.size() == 0) {
-//        if (verbose) Print() << "No stations loaded." << std::endl;
-////        return amod::SUCCESS; // nothing to rebalance
-//    }
+	//jo add rebal interval
+//	int currentFrame;
+//	currentFrame = currTick.frame() ;
+//	if(currentFrame % 720 >= 0 && currentFrame % 720 <= 10){
+//		Print() << "Time to rebalance" << std::endl ;
+//	}
+//	else{
+//		Print() << "Too early to rebalance. Wait till next specified interval" << std::endl ;
+//		return;
+//	}
 
+    if (availableDrivers.size()==0){
+    	Print() << "No vehicles to rebalance" << std::endl;
+    	return;
+    }
+	if (latestStartNodes.size()==0){
+		Print() << "no latest start nodes/no demand" << std::endl;
+		return;
+	}
     // create variables for solving lp
 
 	// { jo: We need to get the entire TAZ list for the network; for now using latestStartNodes will do
 	std::vector<int> stations ;
 	std::vector<Node*>:: iterator inode;
-	if (latestStartNodes.size()==0){
-		Print() << "no latest start nodes/no demand" << std::endl;
-		return;
-	}
 	for (auto inode = latestStartNodes.begin(); inode!= latestStartNodes.end(); ++inode) {
 		//Node& ii = *i;
 		int taz;
@@ -124,6 +130,7 @@ void KasiaRebalancer::rebalance(const std::vector<const Person*>& availableDrive
 	std::vector<int>:: iterator it;
 	it = unique(stations.begin(), stations.end()) ; // get unique TAZ's represented
 	stations.resize(distance(stations.begin(),it)); // resize stations vector
+	Print() << "Number of zones in which requests available: " << stations.size() << std::endl;
 	// } jo
 
 
@@ -144,10 +151,7 @@ void KasiaRebalancer::rebalance(const std::vector<const Person*>& availableDrive
 
     int nvehs = availableDrivers.size();
     int nstations = stations.size();
-    if (nvehs==0){
-    	Print() << "No vehicles to rebalance" << std::endl;
-    	return;
-    }
+
     if (nstations==0){
     	Print() << "No stations loaded" << std::endl ;
     	return;
@@ -571,6 +575,7 @@ void KasiaRebalancer::rebalance(const std::vector<const Person*>& availableDrive
     ia.clear();
     ja.clear();
     ar.clear();
+    Print() << "Rebalancing success" << std::endl;
 }
 }
 

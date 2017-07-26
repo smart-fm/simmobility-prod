@@ -304,7 +304,8 @@ bool TaxiDriverMovement::moveToNextSegment(DriverUpdateParams &params)
                         << destinationNode->getNodeId()
                         << std::endl;
 
-		if (MobilityServiceControllerManager::HasMobilityServiceControllerManager())
+		if (MobilityServiceControllerManager::HasMobilityServiceControllerManager() &&
+				(parentTaxiDriver->getParent()->currTick.ms() / 1000) < currentFleetItem.endTime)
 		{
 			for (auto it = subscribedControllers.begin(); it != subscribedControllers.end(); ++it)
 			{

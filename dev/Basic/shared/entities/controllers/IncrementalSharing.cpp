@@ -153,9 +153,12 @@ void IncrementalSharing::computeSchedules()
 		const SMSVehicleParking *parking =
 				SMSVehicleParking::smsParkingRTree.searchNearestObject(finalDropOffNode->getPosX(), finalDropOffNode->getPosY());
 
-		//Append the parking schedule item to the end
-		const ScheduleItem parkingSchedule(ScheduleItemType::PARK, parking);
-		schedule.push_back(parkingSchedule);
+		if(parking)
+		{
+			//Append the parking schedule item to the end
+			const ScheduleItem parkingSchedule(ScheduleItemType::PARK, parking);
+			schedule.push_back(parkingSchedule);
+		}
 
 		assignSchedule(driver, schedule);
 	}

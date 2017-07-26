@@ -314,10 +314,10 @@ void TaxiDriver::processNextScheduleItem(bool isMoveToNextScheduleItem)
 			MessageBus::PostMessage(controller, MSG_DRIVER_SHIFT_END,
 			                        MessageBus::MessagePtr(new DriverShiftCompleted(parent)));
 
-			//Assuming that the controller always sends a schedule with a park item at the end.
-			//So, we would have parked the vehicle at this point and now the shift has ended
-			//No need to do anything, as we set the vehicle to be removed after the controller
-			//responds to the above message
+			if((currScheduleItem - 1)->scheduleItemType != PARK)
+			{
+				taxiDriverMovement->setCruisingMode();
+			}
 		}
 		else
 		{

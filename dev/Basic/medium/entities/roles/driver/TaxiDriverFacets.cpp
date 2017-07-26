@@ -304,7 +304,8 @@ bool TaxiDriverMovement::moveToNextSegment(DriverUpdateParams &params)
                         << destinationNode->getNodeId()
                         << std::endl;
 
-		if (MobilityServiceControllerManager::HasMobilityServiceControllerManager())
+		if (MobilityServiceControllerManager::HasMobilityServiceControllerManager() &&
+				(parentTaxiDriver->getParent()->currTick.ms() / 1000) < currentFleetItem.endTime)
 		{
 			for (auto it = subscribedControllers.begin(); it != subscribedControllers.end(); ++it)
 			{
@@ -1068,7 +1069,7 @@ std::string TaxiDriverMovement::frame_tick_output()
 		const string timeStr = (DailyTime(params.now.ms()) + DailyTime(
 				ConfigManager::GetInstance().FullConfig().simStartTime())).getStrRepr();
 
-		out << currentFleetItem.driverId << "," << driverId << ","
+		out << currentFleetItem.vehicleNo << "," << driverId << ","
 			<< nodeId << ","
 			<< timeStr << ","
 			<< roadSegmentId << ","

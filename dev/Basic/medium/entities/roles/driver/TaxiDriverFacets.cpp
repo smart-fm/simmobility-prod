@@ -293,7 +293,7 @@ bool TaxiDriverMovement::moveToNextSegment(DriverUpdateParams &params)
 		//Pick-up new passenger
 		parentTaxiDriver->pickUpPassngerAtNode(personIdPickedUp);
 	}
-    else if (parentTaxiDriver->getDriverStatus() == DRIVE_TO_PARKING && pathMover.isEndOfPath())
+	else if (parentTaxiDriver->getDriverStatus() == DRIVE_TO_PARKING && pathMover.isEndOfPath())
     {
         parentTaxiDriver->setDriverStatus(PARKED);
         setCurrentNode(link->getToNode());
@@ -303,7 +303,7 @@ bool TaxiDriverMovement::moveToNextSegment(DriverUpdateParams &params)
                         << " and at Node "
                         << destinationNode->getNodeId()
                         << std::endl;
-		//parentTaxiDriver->assignedSchedule = Schedule();
+
 		if (MobilityServiceControllerManager::HasMobilityServiceControllerManager())
 		{
 			for (auto it = subscribedControllers.begin(); it != subscribedControllers.end(); ++it)
@@ -328,10 +328,16 @@ bool TaxiDriverMovement::moveToNextSegment(DriverUpdateParams &params)
 	    originNode = link->getToNode();
 
 	    currSegStat->getParentConflux()->getLinkStats(link).removeEntitiy(parentTaxiDriver->getParent());
+
+	    parentTaxiDriver->processNextScheduleItem();
+
 		return res;
     }
 
-	res = DriverMovement::moveToNextSegment(params);
+	if(parentTaxiDriver->getDriverStatus() != PARKED)
+	{
+		res = DriverMovement::moveToNextSegment(params);
+	}
 
 	return res;
 }
@@ -1084,36 +1090,43 @@ bool TaxiDriverMovement::CruiseOnlyOrMoveToTaxiStand()
     return (random()%2);
 }
 
-bool TaxiDriverMovement::driveToParkingNode(const Node *destination) {
-    bool res = false;
+bool TaxiDriverMovement::driveToParkingNode(const Node *destination)
+{
+	bool res = false;
 
-    if ( destination) {
-        const Link *link = this->currLane->getParentSegment()->getParentLink();
-        std::vector<WayPoint> currentRouteChoice = StreetDirectory::Instance().SearchShortestDrivingPath<Link, Node>(
-                *link, *destination);
+	if (destination)
+	{
+		const Link *link = this->currLane->getParentSegment()->getParentLink();
+		std::vector<WayPoint> currentRouteChoice = StreetDirectory::Instance().SearchShortestDrivingPath<Link, Node>(
+				*link, *destination);
 
-        if (currentRouteChoice.size() > 0) {
-            res = true;
-            currentNode = link->getToNode();
-            destinationNode = destination;
-            setCurrentNode(currentNode);
-            setDestinationNode(destinationNode);
-            addRouteChoicePath(currentRouteChoice);
-            parentTaxiDriver->setDriverStatus(DRIVE_TO_PARKING);
-        }
-    }
+		if (currentRouteChoice.size() > 0)
+		{
+			res = true;
+			currentNode = link->getToNode();
+			destinationNode = destination;
+			setCurrentNode(currentNode);
+			setDestinationNode(destinationNode);
+			addRouteChoicePath(currentRouteChoice);
+			parentTaxiDriver->setDriverStatus(DRIVE_TO_PARKING);
+		}
+	}
 
-    if (!res) {
+	if (!res)
+	{
+		if (!destination)
+		{
+			ControllerLog() << "Taxi Driver " << parentTaxiDriver->getParent()->getDatabaseId()
+			                << "can not go for parking because parking ID is not valid. " << std::endl;
+		}
+		else
+		{
+			ControllerLog() << "Parking Assignment failed for Taxi Driver "
+			                << parentTaxiDriver->getParent()->getDatabaseId() << " because currentRouteChoice was empty"
+			                << ". No path from lane " << this->currLane->getLaneId() << " to node "
+			                << destination->getNodeId() << std::endl;
+		}
+	}
 
-        if (!destination) {
-            ControllerLog() << "Taxi Driver " << parentTaxiDriver->getParent()->getDatabaseId()
-                            << "can not go for parking because parking ID is not valid. " << std::endl;
-        } else {
-            ControllerLog() << "Parking Assignment failed for Taxi Driver "
-                            << parentTaxiDriver->getParent()->getDatabaseId() << " because currentRouteChoice was empty"
-                            << ". No path from lane " << this->currLane->getLaneId() << " to node "
-                            << destination->getNodeId() << std::endl;
-        }
-    }
 	return res;
 }

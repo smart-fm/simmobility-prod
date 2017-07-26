@@ -220,9 +220,7 @@ void KasiaRebalancer::rebalance(const std::vector<const Person*>& availableDrive
         }
 
         // compute variables for the lp
-		  // jo { WE are going to use current demand for now } jo
-
-        // use current demand
+		// jo { WE are going to use current demand for now } jo
         int cexi = getNumCustomers(sitrIndex) - getNumVehicles(availableDrivers, sitrIndex); // excess customers in zone `sitr`
 
         cex[sitrIndex] = cexi; // excess customers at this station
@@ -239,7 +237,6 @@ void KasiaRebalancer::rebalance(const std::vector<const Person*>& availableDrive
     // set up available vehicles at each station
     // jo{ this is different now, since stations is the list of zone (TAZ) IDs, so we just call
        for (auto vitr = availableDrivers.begin(); vitr != availableDrivers.end(); ++vitr) {
-    // for (auto vitr = stations.begin(); vitr != stations.end(); ++vitr) {
     	   // get which station this vehicle belongs
     	   const Node *driverNode = parentController->getCurrentNode(*vitr); //current node of driver
     	   int taz;

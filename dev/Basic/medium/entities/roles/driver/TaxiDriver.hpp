@@ -152,6 +152,9 @@ private:
 	/**The mobility service controller that sent the current schedule*/
 	messaging::MessageHandler *controller = nullptr;
 
+	/**The parking location of the vehicle*/
+	const SMSVehicleParking *parkingLocation = nullptr;
+
 public:
 	friend class TaxiDriverBehavior;
 

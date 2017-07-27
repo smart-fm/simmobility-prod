@@ -95,25 +95,15 @@ int Rebalancer::getNumVehicles(const std::vector<const Person*>& availableDriver
 
 
 void KasiaRebalancer::rebalance(const std::vector<const Person*>& availableDrivers, const timeslice currTick) {
-
-//    if (availableDrivers.size() == 0) {
-//        if (verbose) Print() << "No available vehicles to rebalance." << std::endl;
-////        return amod::SUCCESS; // no vehicles to rebalance
-//    }
-//    if (stations.size() == 0) {
-//        if (verbose) Print() << "No stations loaded." << std::endl;
-////        return amod::SUCCESS; // nothing to rebalance
-//    }
+	Print() << "available drivers: " << availableDrivers.size() << "; latest start nodes: " << latestStartNodes.size() << std::endl;
+	if(!availableDrivers.empty() && !latestStartNodes.empty()){
 
     // create variables for solving lp
 
 	// { jo: We need to get the entire TAZ list for the network; for now using latestStartNodes will do
+	Print() << "Starting rebalancer..." << std::endl;
 	std::vector<int> stations ;
 	std::vector<Node*>:: iterator inode;
-	if (latestStartNodes.size()==0){
-		Print() << "no latest start nodes/no demand" << std::endl;
-		return;
-	}
 	for (auto inode = latestStartNodes.begin(); inode!= latestStartNodes.end(); ++inode) {
 		//Node& ii = *i;
 		int taz;
@@ -124,7 +114,7 @@ void KasiaRebalancer::rebalance(const std::vector<const Person*>& availableDrive
 	std::vector<int>:: iterator it;
 	it = unique(stations.begin(), stations.end()) ; // get unique TAZ's represented
 	stations.resize(distance(stations.begin(),it)); // resize stations vector
-	// } jo
+	Print() << "Number of zones in which requests available: " << stations.size() << std::endl;
 
 
 //	//// =====================================================================================
@@ -144,10 +134,7 @@ void KasiaRebalancer::rebalance(const std::vector<const Person*>& availableDrive
 
     int nvehs = availableDrivers.size();
     int nstations = stations.size();
-    if (nvehs==0){
-    	Print() << "No vehicles to rebalance" << std::endl;
-    	return;
-    }
+
     if (nstations==0){
     	Print() << "No stations loaded" << std::endl ;
     	return;
@@ -233,35 +220,8 @@ void KasiaRebalancer::rebalance(const std::vector<const Person*>& availableDrive
         }
 
         // compute variables for the lp
-		  // jo { WE are going to use current demand for now } jo
-
-        // use current demand
+		// jo { WE are going to use current demand for now } jo
         int cexi = getNumCustomers(sitrIndex) - getNumVehicles(availableDrivers, sitrIndex); // excess customers in zone `sitr`
-
-        // jo { not using predicted demand
-        // use predicted demand
-//        int stid =  sitr->second.getId();
-//        auto curr_time = worldState->getCurrentTime();
-//        auto pred = demandEstimator->predict(stid, *worldState, curr_time);
-//
-//
-//        int meanPred;
-//
-//        if (useCurrentQueue) {
-//            meanPred = sitr->second.getNumCustomers();
-//        } else {
-//            meanPred = ceil(pred.first);
-//        }
-//        /*int mean_pred = ceil(std::max(
-//                (double) dem_est_->predict(sitr->second.getId(), *world_state, world_state->getCurrentTime()).first,
-//                (double) sitr->second.getNumCustomers()));
-//        */
-//        if (verbose) Print() << "Mean prediction: " << meanPred;
-//
-//        int cexi = meanPred - sitr->second.getNumVehicles();
-//        if (verbose) Print() << "cexi: " << cexi;
-//        if (verbose) Print() << "vehs: " << sitr->second.getNumVehicles();
-        // } jo
 
         cex[sitrIndex] = cexi; // excess customers at this station
         cexTotal += cexi; // total number of excess customers
@@ -277,7 +237,6 @@ void KasiaRebalancer::rebalance(const std::vector<const Person*>& availableDrive
     // set up available vehicles at each station
     // jo{ this is different now, since stations is the list of zone (TAZ) IDs, so we just call
        for (auto vitr = availableDrivers.begin(); vitr != availableDrivers.end(); ++vitr) {
-    // for (auto vitr = stations.begin(); vitr != stations.end(); ++vitr) {
     	   // get which station this vehicle belongs
     	   const Node *driverNode = parentController->getCurrentNode(*vitr); //current node of driver
     	   int taz;
@@ -571,6 +530,8 @@ void KasiaRebalancer::rebalance(const std::vector<const Person*>& availableDrive
     ia.clear();
     ja.clear();
     ar.clear();
+    Print() << "Rebalancing success" << std::endl;
+    }
 }
 }
 

@@ -249,6 +249,10 @@ protected:
 	/** Keeps track of how often to process messages */
 	unsigned int scheduleComputationPeriod;
 
+	//jo
+	/** Keeps track of when to rebalance */
+	unsigned int nextRebalancingFrame = 0;
+	unsigned int rebalancingInterval = 720;
 	Rebalancer* rebalancer;
 
 	/**

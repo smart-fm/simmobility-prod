@@ -20,7 +20,7 @@ using namespace messaging;
 
 TaxiDriver::TaxiDriver(Person_MT* parent, const MutexStrategy& mtxStrat, TaxiDriverBehavior* behavior,
                        TaxiDriverMovement* movement, std::string roleName, Role<Person_MT>::Type roleType) :
-		Driver(parent, behavior, movement, roleName, roleType)
+		Driver(parent, behavior, movement, roleName, roleType), isScheduleAckSent(false)
 {
 	taxiPassenger = nullptr;
 	taxiDriverMovement = movement;
@@ -30,7 +30,6 @@ TaxiDriver::TaxiDriver(Person_MT* parent, const MutexStrategy& mtxStrat, TaxiDri
 TaxiDriver::TaxiDriver(Person_MT* parent, const MutexStrategy& mtx) :
 		Driver(parent, nullptr, nullptr, "", RL_TAXIDRIVER)
 {
-
 }
 
 bool TaxiDriver::addPassenger(Passenger *passenger)
@@ -110,7 +109,7 @@ void TaxiDriver::alightPassenger()
 			}
 			else
 			{
-				if (taxiDriverMovement->CruiseOnlyOrMoveToTaxiStand())      //Decision point.Logic Would be Replaced as per Bathen's Input
+				if (taxiDriverMovement->cruiseOrDriveToTaxiStand())      //Decision point.Logic Would be Replaced as per Bathen's Input
 				{
 					setDriverStatus(CRUISING);
 					taxiDriverMovement->selectNextLinkWhileCruising();
@@ -160,7 +159,42 @@ void TaxiDriver::HandleParentMessage(messaging::Message::MessageType type, const
 		assignedSchedule = msg.getSchedule();
 		controller = msg.GetSender();
 		currScheduleItem = assignedSchedule.begin();
+		isScheduleAckSent = false;
 		processNextScheduleItem(false);
+
+		break;
+	}
+	case MSG_SCHEDULE_UPDATE:
+	{
+		ControllerLog() << "Updated schedule received by driver " << parent->getDatabaseId() << endl;
+		const SchedulePropositionMessage &msg = MSG_CAST(SchedulePropositionMessage, message);
+		controller = msg.GetSender();
+		ScheduleItem itemInProgress = *currScheduleItem;
+		const Schedule &updatedSchedule = msg.getSchedule();
+
+		// Check whether the item in progress in contained in the updated schedule - this would only happen when
+		// the driver's schedule status message and the controller's update schedule message are sent at the same time
+		if(!isInProgressItemInSchedule(itemInProgress, updatedSchedule))
+		{
+			// This is easy to handle. Replace the assigned schedule with the updated one and insert the
+			// item in progress at the start.
+			assignedSchedule = updatedSchedule;
+			assignedSchedule.insert(assignedSchedule.begin(), itemInProgress);
+
+			// Update the currScheduleItem iterator to point to the item in progress
+			currScheduleItem = assignedSchedule.begin();
+		}
+		else
+		{
+			// The item in progress in in the updated schedule and possibly to be performed later
+			// Update the currScheduleItem iterator to point to the first item
+			assignedSchedule = updatedSchedule;
+			currScheduleItem = assignedSchedule.begin();
+
+			//Process the schedule item (hopefully, we stop what we were doing and do the new schedule item)
+			processNextScheduleItem(false);
+		}
+
 		break;
 	}
 	case MSG_UNSUBSCRIBE_SUCCESSFUL:
@@ -309,13 +343,20 @@ void TaxiDriver::processNextScheduleItem(bool isMoveToNextScheduleItem)
 	{
 		//Move to next schedule item
 		++currScheduleItem;
+
+		if(!hasDriverShiftEnded())
+		{
+			//Inform the controller that one schedule item has been completed
+			MessageBus::PostMessage(controller, MSG_DRIVER_SCHEDULE_STATUS,
+			                        MessageBus::MessagePtr(new DriverScheduleStatusMsg(parent)));
+		}
 	}
 
 	//If entire schedule is complete, cruise around unless we're in a parking
 	if(currScheduleItem == assignedSchedule.end())
 	{
 		//Remove the taxi driver from the simulation if the shift has ended
-		if((parent->currTick.ms() / 1000) >= taxiDriverMovement->getCurrentFleetItem().endTime)
+		if(hasDriverShiftEnded())
 		{
 			ControllerLog() << "Driver " << parent->getDatabaseId() << " has completed the schedule and "
 			                << "is at the end of its shift. Time = " << parent->currTick << std::endl;
@@ -349,7 +390,7 @@ void TaxiDriver::processNextScheduleItem(bool isMoveToNextScheduleItem)
 			taxiDriverMovement->getMesoPathMover().eraseFullPath();
 
 			//As the subsequent trip will begin from a node (not from current link/segment), we set this as the origin
-			const Node *currNode = parkingLocation->getEgressNode();
+			const Node *currNode = parkingLocation->getAccessNode();
 			taxiDriverMovement->setCurrentNode(currNode);
 			taxiDriverMovement->setDestinationNode(currNode);
 			taxiDriverMovement->setOriginNode(currNode);
@@ -384,7 +425,9 @@ void TaxiDriver::processNextScheduleItem(bool isMoveToNextScheduleItem)
 
 		const Node *node = it->second;
 
-		if(taxiDriverMovement->getDestinationNode() == node)
+		if ((driverStatus == PARKED && parkingLocation->getAccessNode() == node) ||
+		    (driverStatus != PARKED &&
+		     taxiDriverMovement->getMesoPathMover().getCurrSegStats()->getParentConflux()->getConfluxNode() == node))
 		{
 			pickUpPassngerAtNode(tripRequest.userId);
 			return;
@@ -401,6 +444,21 @@ void TaxiDriver::processNextScheduleItem(bool isMoveToNextScheduleItem)
 			WarnOut(msg.str());
 		}
 #endif
+		
+		if(!isScheduleAckSent)
+		{
+			//Acknowledge the acceptance of the schedule
+			SchedulePropositionReplyMessage *message = new SchedulePropositionReplyMessage(parent->currTick,
+			                                                                               tripRequest.userId,
+			                                                                               parent,
+			                                                                               tripRequest.startNodeId,
+			                                                                               tripRequest.destinationNodeId,
+			                                                                               tripRequest.extraTripTimeThreshold,
+			                                                                               success);
+
+			MessageBus::PostMessage(controller, MSG_SCHEDULE_PROPOSITION_REPLY, MessageBus::MessagePtr(message));
+			isScheduleAckSent = true;
+		}
 
 		break;
 	}
@@ -505,7 +563,7 @@ void TaxiDriver::processNextScheduleItem(bool isMoveToNextScheduleItem)
 				taxiDriverMovement->setOriginNode(thisNode);
 
 				//Inform the driver availability if the shift has not ended
-				if((parent->currTick.ms() / 1000) < taxiDriverMovement->getCurrentFleetItem().endTime)
+				if(!hasDriverShiftEnded())
 				{
 					MessageBus::PostMessage(controller, MSG_DRIVER_AVAILABLE,
 					                        MessageBus::MessagePtr(new DriverAvailableMessage(
@@ -560,6 +618,11 @@ void TaxiDriver::processNextScheduleItem(bool isMoveToNextScheduleItem)
 	}
 }
 
+bool TaxiDriver::hasDriverShiftEnded() const
+{
+	return (parent->currTick.ms() / 1000) >= taxiDriverMovement->getCurrentFleetItem().endTime;
+}
+
 Role<Person_MT>* TaxiDriver::clone(Person_MT *parent) const
 {
 	if (parent)
@@ -592,8 +655,7 @@ const std::vector<MobilityServiceController*>& TaxiDriver::getSubscribedControll
 
 TaxiDriver::~TaxiDriver()
 {
-	if (MobilityServiceControllerManager::HasMobilityServiceControllerManager() &&
-		(parent->currTick.ms() / 1000) < taxiDriverMovement->getCurrentFleetItem().endTime)
+	if (MobilityServiceControllerManager::HasMobilityServiceControllerManager() && !hasDriverShiftEnded())
 	{
 		for(auto it = taxiDriverMovement->getSubscribedControllers().begin();
 			it != taxiDriverMovement->getSubscribedControllers().end(); ++it)
@@ -606,4 +668,20 @@ TaxiDriver::~TaxiDriver()
 #endif
 		}
 	}
+}
+
+bool TaxiDriver::isInProgressItemInSchedule(const ScheduleItem &itemInProgress, const Schedule &updatedSchedule)
+{
+	bool result = false;
+
+	for(auto it = updatedSchedule.begin(); it != updatedSchedule.end(); ++it)
+	{
+		if(itemInProgress == (*it))
+		{
+			result = true;
+			break;
+		}
+	}
+
+	return result;
 }

@@ -122,8 +122,15 @@ void OnCallController::driverAvailable(const Person *driver)
 		throw runtime_error(msg.str());
 	}
 #endif
+
 	availableDrivers.push_back(driver);
-	driverSchedules[driver] = Schedule(); // The driver has an empty schedule now
+
+	// The driver has an empty schedule now
+	driverSchedules[driver] = Schedule();
+
+	//Remove from the partially available drivers
+	partiallyAvailableDrivers.erase(driver);
+
 #ifndef NDEBUG
 	consistencyChecks("driverAvailable: end");
 #endif
@@ -136,6 +143,16 @@ void OnCallController::driverUnavailable(Person *person)
 #endif
 	availableDrivers.erase(std::remove(availableDrivers.begin(),
 	                                   availableDrivers.end(), person), availableDrivers.end());
+
+	const Schedule &schedule = driverSchedules[person];
+
+	//If this schedule only caters to 1 person, the add the driver to the list of partially available drivers
+	//Schedule size 3 indicates a schedule for 1 person: pick-up, drop-off and park
+	if(schedule.size() <= 3)
+	{
+		partiallyAvailableDrivers.insert(person);
+	}
+
 #ifndef NDEBUG
 	consistencyChecks("driverUnavailable: end");
 #endif
@@ -150,6 +167,24 @@ void OnCallController::onDriverShiftEnd(Person *driver)
 
 	MessageBus::PostMessage((MessageHandler *) driver, MSG_UNSUBSCRIBE_SUCCESSFUL, MessageBus::MessagePtr(
 			new DriverUnsubscribeMessage(driver)));
+}
+
+void OnCallController::onDriverScheduleStatus(Person *driver)
+{
+#ifndef NDEBUG
+	ControllerLog() << "onDriverScheduleStatus(): driverSchedules.size() = " << driverSchedules.size() << endl;
+#endif
+
+	Schedule &schedule = driverSchedules[driver];
+
+	if(!schedule.empty())
+	{
+		schedule.erase(schedule.begin());
+	}
+
+#ifndef NDEBUG
+	ControllerLog() << "onDriverScheduleStatus(): driverSchedules.size() = " << driverSchedules.size() << endl;
+#endif
 }
 
 Entity::UpdateStatus OnCallController::frame_tick(timeslice now)
@@ -285,7 +320,7 @@ void OnCallController::HandleMessage(messaging::Message::MessageType type, const
 }
 
 
-void OnCallController::assignSchedule(const Person *driver, const Schedule &schedule)
+void OnCallController::assignSchedule(const Person *driver, const Schedule &schedule, bool isUpdatedSchedule)
 {
 #ifndef NDEBUG
 	if (!driver)
@@ -306,35 +341,46 @@ void OnCallController::assignSchedule(const Person *driver, const Schedule &sche
 	}
 #endif
 
-	MessageBus::PostMessage((MessageHandler *) driver, MSG_SCHEDULE_PROPOSITION, MessageBus::MessagePtr(
-			new SchedulePropositionMessage(currTick, schedule, (MessageHandler *) this)));
-
-#ifndef NDEBUG
-
-	if (
-			driverSchedules.find(driver) == driverSchedules.end() ||
-			std::find(availableDrivers.begin(), availableDrivers.end(), driver ) == availableDrivers.end()
-	){
-		std::string answer1 = (driverSchedules.find(driver) != driverSchedules.end()?"yes":"no");
-		std::string answer2 = (std::find(availableDrivers.begin(), availableDrivers.end(), driver ) != availableDrivers.end()?"yes":"no");
-		std::string driverId;
-		try{
-		driverId = driver->getDatabaseId();
-		}catch(const std::exception& e)
-		{
-			std::stringstream msg; msg<<__FILE__<<":"<<__LINE__<< ":Exception in retrieving the ID of the driver with pointer "<<
-				driver<<". Check in warn if the driver has been removed. The exception is "<< e.what();
-			throw std::runtime_error(msg.str() );
-		}
-
-		std::stringstream msg; msg <<"Assigning a schedule to driver "<< driverId <<
-			". She should be present both in availableDrivers and driverSchedules but is she present in driverSchedules? "<<
-			answer1 <<" and is she present in availableDrivers? "<< answer2
-			 ;
-		throw std::runtime_error(msg.str() );
+	if(!isUpdatedSchedule)
+	{
+		MessageBus::PostMessage((MessageHandler *) driver, MSG_SCHEDULE_PROPOSITION, MessageBus::MessagePtr(
+				new SchedulePropositionMessage(currTick, schedule, (MessageHandler *) this)));
+	}
+	else
+	{
+		MessageBus::PostMessage((MessageHandler *) driver, MSG_SCHEDULE_UPDATE, MessageBus::MessagePtr(
+				new SchedulePropositionMessage(currTick, schedule, (MessageHandler *) this)));
 	}
 
-	if ( ! driverSchedules[driver].empty()  )
+#ifndef NDEBUG
+	if (driverSchedules.find(driver) == driverSchedules.end() ||
+	    (std::find(availableDrivers.begin(), availableDrivers.end(), driver) == availableDrivers.end() &&
+	     (!partiallyAvailableDrivers.empty() && partiallyAvailableDrivers.find(driver) == partiallyAvailableDrivers.end())))
+	{
+		std::string answer1 = (driverSchedules.find(driver) != driverSchedules.end() ? "yes" : "no");
+		std::string answer2 = (std::find(availableDrivers.begin(), availableDrivers.end(),
+		                                 driver) != availableDrivers.end() ? "yes" : "no");
+		std::string driverId;
+		try
+		{
+			driverId = driver->getDatabaseId();
+		}
+		catch (const std::exception &e)
+		{
+			std::stringstream msg;
+			msg << __FILE__ << ":" << __LINE__ << ":Exception in retrieving the ID of the driver with pointer "
+				<< driver << ". Check in warn if the driver has been removed. The exception is " << e.what();
+			throw std::runtime_error(msg.str());
+		}
+
+		std::stringstream msg;
+		msg << "Assigning a schedule to driver " << driverId
+			<< ". She should be present both in availableDrivers and driverSchedules but is she present in driverSchedules? "
+		    << answer1 << " and is she present in availableDrivers? " << answer2;
+		throw std::runtime_error(msg.str());
+	}
+
+	if (!isUpdatedSchedule && !driverSchedules[driver].empty())
 	{
 		std::stringstream msg; msg<<"Trying to assign a schedule to driver "<< driver->getDatabaseId() << " who already has one."<<
 		" If you are using the greedy controller, this is not possible. Otherwise, please disable this error";
@@ -343,13 +389,39 @@ void OnCallController::assignSchedule(const Person *driver, const Schedule &sche
 	unsigned availableDriversBeforeTheRemoval = availableDrivers.size();
 #endif
 
-	driverSchedules[driver] = schedule;
+	// We have just assigned a new schedule to the driver.
+	// We remove the first item of the schedule from the controller's copy, so that the controller
+	// know what part of the schedule is remaining
+	Schedule controllersCopy = schedule;
+	controllersCopy.erase(controllersCopy.begin());
+
+#ifndef NDEBUG
+	ControllerLog() << "assignSchedule(): driverSchedules.size() = " << driverSchedules.size() << endl;
+#endif
+
+	driverSchedules[driver] = controllersCopy;
+
+#ifndef NDEBUG
+	ControllerLog() << "assignSchedule(): driverSchedules.size() = " << driverSchedules.size() << endl;
+#endif
+
 	// The driver is not available anymore
 	availableDrivers.erase(std::remove(availableDrivers.begin(),
 	                                   availableDrivers.end(), driver), availableDrivers.end());
 
+	//If this schedule only caters to 1 person, the add the driver to the list of partially available drivers
+	//Schedule size 3 indicates a schedule for 1 person: pick-up, drop-off and park
+	if(schedule.size() <= 3 && partiallyAvailableDrivers.count(driver) == 0)
+	{
+		partiallyAvailableDrivers.insert(driver);
+	}
+	else
+	{
+		partiallyAvailableDrivers.erase(driver);
+	}
+
 #ifndef NDEBUG
-	if (availableDrivers.size() != availableDriversBeforeTheRemoval-1)
+	if (!isUpdatedSchedule && availableDrivers.size() != availableDriversBeforeTheRemoval-1)
 	{
 		std::stringstream msg; msg<<"The removal of driver "<<driver->getDatabaseId()<<" from the availableDrivers "
 		<<"was not successful. In fact availableDriversBeforeTheRemoval="<<availableDriversBeforeTheRemoval<<" and "<<
@@ -399,7 +471,6 @@ bool OnCallController::isParked(const Person *driver) const
 
     return false;
 }
-
 
 const Node *OnCallController::getCurrentNode(const Person *driver) const
 {
@@ -781,18 +852,6 @@ void OnCallController::consistencyChecks(const std::string& label) const
 		throw std::runtime_error(msg.str());
 	}
 
-	unsigned emptyDrivers = 0;
-	for (const std::pair<const Person*, Schedule>& p : driverSchedules)
-	{
-		if (p.second.empty()) emptyDrivers++;
-	}
-	if (emptyDrivers!= availableDrivers.size())
-	{
-		std::stringstream msg; msg<< label << " emptyDrivers="<<emptyDrivers<<", availableDrivers.size()="<<
-			availableDrivers.size()<<" while they should be equal";
-		throw std::runtime_error(msg.str() );
-	}
-
 	for (const Person *driver : availableDrivers)
 	{
 		if (!isMobilityServiceDriver(driver))
@@ -853,8 +912,7 @@ const std::string OnCallController::getRequestQueueStr() const
 	return msg.str();
 }
 
-void
-OnCallController::sendCruiseCommand(const Person *driver, const Node *nodeToCruiseTo, const timeslice currTick) const
+void OnCallController::sendCruiseCommand(const Person *driver, const Node *nodeToCruiseTo, const timeslice currTick) const
 {
 #ifndef NDEBUG
 	bool found = false;

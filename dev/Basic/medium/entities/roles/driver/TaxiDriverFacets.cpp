@@ -52,16 +52,16 @@ void TaxiDriverMovement::frame_init()
 
 	currentFleetItem = parentTaxiDriver->parent->taxiFleetPop();
 
-
 	const std::multimap<MobilityServiceControllerType, MobilityServiceController*>& controllers =
 			MobilityServiceControllerManager::GetInstance()->getControllers();
-	for (const std::pair<MobilityServiceControllerType, MobilityServiceController*>& p: controllers)
+
+	for (auto &p: controllers)
 	{
 		const MobilityServiceControllerType type = p.first;
 		subscribeToOrIgnoreController(controllers, type);
 	}
 
-	(isSubscribedToOnHail() && CruiseOnlyOrMoveToTaxiStand())?driveToTaxiStand():selectNextLinkWhileCruising();  // for 1 : drive_to_taxiStand or cruise
+	(isSubscribedToOnHail() && cruiseOrDriveToTaxiStand())?driveToTaxiStand():selectNextLinkWhileCruising();  // for 1 : drive_to_taxiStand or cruise
 
 
 	while (parentTaxiDriver->parent->getTaxiFleet().size() > 0)
@@ -75,20 +75,20 @@ void TaxiDriverMovement::subscribeToOrIgnoreController(
 		const multimap<MobilityServiceControllerType, MobilityServiceController *> &controllers,
 		MobilityServiceControllerType controllerType)
 {
-
 	if (currentFleetItem.controllerSubscription & controllerType)
 	{
 		auto range = controllers.equal_range(controllerType);
 
-
 #ifndef NDEBUG
-		if (range.first ==  range.second)
+		if (range.first == range.second)
 		{
-			std::stringstream msg; msg<<"Driver "<<parentDriver->getParent()->getDatabaseId()<<" wants to subscribe to type "<<
-				toString(controllerType)<<", but no controller of that type is registered";
-			throw std::runtime_error(msg.str() );
+			std::stringstream msg;
+			msg << "Driver " << parentDriver->getParent()->getDatabaseId() << " wants to subscribe to type "
+			    << toString(controllerType) << ", but no controller of that type is registered";
+			throw std::runtime_error(msg.str());
 		}
 #endif
+
 		for (auto itController = range.first; itController != range.second; ++itController)
 		{
 
@@ -105,13 +105,14 @@ void TaxiDriverMovement::subscribeToOrIgnoreController(
 
 			MessageBus::PostMessage(itController->second, MSG_DRIVER_SUBSCRIBE,
 			                        MessageBus::MessagePtr(new DriverSubscribeMessage(parentTaxiDriver->getParent())));
+
 #ifndef NDEBUG
 			ControllerLog() << "Driver " << parentDriver->getParent()->getDatabaseId()
 			                << " sent a subscription to the controller "
 			                << itController->second->toString() << " at time " << parentDriver->getParent()->currTick;
-			ControllerLog()<<". parentDriver pointer "<< parentDriver;
+			ControllerLog() << ". parentDriver pointer " << parentDriver->getParent();
 
-			ControllerLog()<< std::endl;
+			ControllerLog() << std::endl;
 #endif
 
 			subscribedControllers.push_back(itController->second);
@@ -128,7 +129,6 @@ void TaxiDriverMovement::assignFirstNode()
 {
 	const sim_mob::RoadNetwork *roadNetwork = sim_mob::RoadNetwork::getInstance();
 	const std::map<unsigned int, Node *> &mapOfIdsVsNode = roadNetwork->getMapOfIdvsNodes();
-	Node *firstNode = roadNetwork->getFirstNode();
 	const std::vector<TripChainItem *> &tripChain = parentDriver->getParent()->getTripChain();
 	const TaxiTrip *taxiTrip = dynamic_cast<const TaxiTrip *>(tripChain[0]);
 	originNode = const_cast<Node *>(taxiTrip->origin.node);
@@ -304,12 +304,12 @@ bool TaxiDriverMovement::moveToNextSegment(DriverUpdateParams &params)
                         << std::endl;
 
 		if (MobilityServiceControllerManager::HasMobilityServiceControllerManager() &&
-				(parentTaxiDriver->getParent()->currTick.ms() / 1000) < currentFleetItem.endTime)
+				!parentTaxiDriver->hasDriverShiftEnded())
 		{
 			for (auto it = subscribedControllers.begin(); it != subscribedControllers.end(); ++it)
 			{
 				MessageBus::PostMessage(*it, MSG_DRIVER_AVAILABLE,
-										MessageBus::MessagePtr(new DriverAvailableMessage(parentTaxiDriver->parent)));
+										MessageBus::MessagePtr(new DriverAvailableMessage(parentTaxiDriver->getParent())));
 			}
 		}
 
@@ -323,6 +323,7 @@ bool TaxiDriverMovement::moveToNextSegment(DriverUpdateParams &params)
 	    parentTaxiDriver->getResource()->setMoving(false);
 	    params.elapsedSeconds = params.secondsInTick;
 	    parentTaxiDriver->getParent()->setRemainingTimeThisTick(0.0);
+	    currentNode = destinationNode;
 
 	    currSegStat->getParentConflux()->getLinkStats(link).removeEntitiy(parentTaxiDriver->getParent());
 
@@ -416,7 +417,7 @@ void TaxiDriverMovement::frame_tick()
 	if (parentTaxiDriver->taxiPassenger != nullptr)
 	{
 		//Check the shift time has ended. If so, remove it from the simulation
-		if((parentTaxiDriver->getParent()->currTick.ms() / 1000) >= currentFleetItem.endTime && isSubscribedToOnHail())
+		if(parentTaxiDriver->hasDriverShiftEnded() && isSubscribedToOnHail())
 		{
 			parentTaxiDriver->getParent()->setToBeRemoved();
 		}
@@ -432,7 +433,7 @@ void TaxiDriverMovement::frame_tick()
             Conflux *nodeConflux = Conflux::getConfluxFromNode(nextBroken->parkingNode);
             nodeConflux->removeBrokenDriver(parentTaxiDriver->parent);
             nextBroken.reset();
-			(isSubscribedToOnHail() && CruiseOnlyOrMoveToTaxiStand())?driveToTaxiStand():setCruisingMode();  // for 1 : drive_to_taxiStand or cruise
+			(isSubscribedToOnHail() && cruiseOrDriveToTaxiStand())?driveToTaxiStand():setCruisingMode();  // for 1 : drive_to_taxiStand or cruise
 		}
 		else
 		{
@@ -795,7 +796,7 @@ bool TaxiDriverMovement::driveToNodeOnCall(const TripRequestMessage &tripRequest
 		currSubTrip.destination = WayPoint(pickupNode);
 		std::vector<WayPoint> currentRouteChoice;
 
-		if(mode == PARKED)
+		if(mode == PARKED || (currentNode == destinationNode && currentNode == originNode))
 		{
 			//If we are leaving to pick a passenger up from parking itself, we do not need to consider our previous link
 			//as we are at a node
@@ -1031,7 +1032,6 @@ TaxiDriverBehavior::~TaxiDriverBehavior()
 
 std::string TaxiDriverMovement::frame_tick_output()
 {
-
 	const DriverUpdateParams &params = parentDriver->getParams();
 	if (pathMover.isPathCompleted() || ConfigManager::GetInstance().CMakeConfig().OutputDisabled())
 	{
@@ -1052,12 +1052,12 @@ std::string TaxiDriverMovement::frame_tick_output()
 	{
 		const std::string driverId = parentTaxiDriver->parent->getDatabaseId();
 		const unsigned int nodeId = currentNode->getNodeId();
-		const unsigned int roadSegmentId =(parentDriver->getParent()->getCurrSegStats()->getRoadSegment()->getRoadSegmentId() );
-		const Lane* currLane = parentDriver->getParent()->getCurrLane();
-		const unsigned int currLaneId = ( currLane ? parentDriver->getParent()->getCurrLane()->getLaneId() : 0);
-		const std::string driverStatusStr =parentTaxiDriver->getDriverStatusStr();
-		std::string PassengerDBID="";
-		PassengerDBID = parentTaxiDriver->getPassenger()!=NULL?parentTaxiDriver->getPassenger()->getParent()->getDatabaseId():" No Passenger";
+		const unsigned int roadSegmentId = (parentDriver->getParent()->getCurrSegStats()->getRoadSegment()->getRoadSegmentId());
+		const Lane *currLane = parentDriver->getParent()->getCurrLane();
+		const unsigned int currLaneId = (currLane ? parentDriver->getParent()->getCurrLane()->getLaneId() : 0);
+		const std::string driverStatusStr = parentTaxiDriver->getDriverStatusStr();
+		std::string PassengerDBID = "";
+		PassengerDBID = parentTaxiDriver->getPassenger() != NULL ? parentTaxiDriver->getPassenger()->getParent()->getDatabaseId() : " No Passenger";
 		const string timeStr = (DailyTime(params.now.ms()) + DailyTime(
 				ConfigManager::GetInstance().FullConfig().simStartTime())).getStrRepr();
 
@@ -1074,11 +1074,10 @@ std::string TaxiDriverMovement::frame_tick_output()
     	Print() << out.str();
     */
 	taxitrajectoryLogger << out.str();
-return out.str();
+	return out.str();
 }
 
-
-bool TaxiDriverMovement::CruiseOnlyOrMoveToTaxiStand()
+bool TaxiDriverMovement::cruiseOrDriveToTaxiStand()
 {
     return (random()%2);
 }

@@ -76,6 +76,13 @@ void MobilityServiceController::HandleMessage(messaging::Message::MessageType ty
 		break;
 	}
 
+	case MSG_DRIVER_SCHEDULE_STATUS:
+	{
+		const DriverScheduleStatusMsg &statusMsgArgs = MSG_CAST(DriverScheduleStatusMsg, message);
+		onDriverScheduleStatus(statusMsgArgs.person);
+		break;
+	}
+
 	default:
 		throw std::runtime_error("Unrecognized message");
 	};
@@ -164,7 +171,6 @@ MobilityServiceControllerType MobilityServiceController::getServiceType() const
 	return controllerServiceType;
 }
 
-
 const std::string MobilityServiceController::toString() const
 {
 	std::string str;
@@ -177,6 +183,13 @@ void MobilityServiceController::setToBeRemoved()
 	Agent::setToBeRemoved();
 }
 
+void MobilityServiceController::onDriverShiftEnd(Person *person)
+{
+}
+
+void MobilityServiceController::onDriverScheduleStatus(Person *person)
+{
+}
 
 const std::string toString(const MobilityServiceControllerType type)
 {

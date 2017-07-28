@@ -46,6 +46,17 @@ protected:
 	 * Performs the controller algorithm to assign vehicles to requests
 	 */
 	virtual void computeSchedules();
+
+	/**
+	 * This method attempts to match drivers who are ferrying a single passenger to other requests
+	 * If a match is found, the driver's schedule is updated, and is removed from the partially avaliable list
+	 */
+	void matchPartiallyAvailableDrivers();
+
+	void assignSchedules(const std::map<const Person *, Schedule> &schedulesComputedSoFar, bool isUpdatedSchedule = false);
+
+	Schedule buildSchedule(unsigned int maxAggregatedRequests, double maxWaitingTime, const Node *driverNode,
+	                       Schedule schedule, unsigned int *aggregatedRequests);
 };
 }
 

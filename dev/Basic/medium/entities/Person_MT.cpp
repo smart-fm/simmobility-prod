@@ -1162,8 +1162,8 @@ FleetController::FleetItem Person_MT::taxiFleetPop()
 {
 	FleetController::FleetItem retValue;
 	taxiFleetMutex.lock();
-		retValue = taxiFleets.top();
-		taxiFleets.pop();
+	retValue = taxiFleets.top();
+	taxiFleets.pop();
 	taxiFleetMutex.unlock();
 	return retValue;
 }

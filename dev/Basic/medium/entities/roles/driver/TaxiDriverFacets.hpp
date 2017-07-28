@@ -112,11 +112,12 @@ public:
 
 	bool isSubscribedToOnHail() const;
 
-	/** Return boolean Decision whether taxi is supposed to cruise or to move taxi stand
+	/**
+	 * Return boolean Decision whether taxi is supposed to cruise or to move taxi stand
 	 * Currently this decision is set as random, but this would be replaced by the Bathen's logic
 	 * after decision model fixed.
 	 */
-	bool CruiseOnlyOrMoveToTaxiStand();
+	bool cruiseOrDriveToTaxiStand();
 
 	/**
 	 * select next link when cruising
@@ -201,12 +202,6 @@ private:
 	 * assign taxi at original node
 	 */
 	void assignFirstNode();
-
-	/**
-	 * set destination node
-	 * @param destinationNode is a pointer to destination node
-	 */
-	void setDestinationNode(Node *destinationNode);
 
 	/**
 	 * get best lane when enter a new road segment

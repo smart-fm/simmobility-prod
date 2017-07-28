@@ -19,6 +19,8 @@
 namespace sim_mob
 {
 
+class RoadSegment;
+
 /**
  * This class is a sort of smart implementation of set. Indeed, in debug mode, it assures unicity of its members.
  * In release mode this check is not operated and the insertion is faster. Use this when you know that your code
@@ -27,65 +29,78 @@ namespace sim_mob
 template <class T> class Group
 {
 public:
-	Group():elements( std::list<T>() ){};
-	~Group(){};
+	Group() : elements(std::list<T>())
+	{};
 
+	~Group()
+	{};
 
-	bool operator==(const Group<T>& other) const
+	bool operator==(const Group<T> &other) const
 	{
-		return (elements == other.getElements() );
+		return (elements == other.getElements());
 	}
 
-	bool operator<(const Group<T>& other) const
+	bool operator<(const Group<T> &other) const
 	{
-		if (size() < other.size() ) return true;
-		if (size() > other.size() ) return false;
+		if (size() < other.size())
+		{ return true; }
+		if (size() > other.size())
+		{ return false; }
 
 		auto itMe = elements.begin();
 		auto itOther = other.getElements().begin();
 
-		while (itMe != elements.end() )
+		while (itMe != elements.end())
 		{
 #ifndef NDEBUG
-			if (itOther == other.getElements().end() )
-				throw std::runtime_error("this group and the other have the same size. If itMe is not at the end, the other should not be at the end as well");
+			if (itOther == other.getElements().end())
+			{
+				throw std::runtime_error(
+						"this group and the other have the same size. If itMe is not at the end, the other should not be at the end as well");
+			}
 #endif
-			if (*itMe < *itOther) return true;
-			if (*itMe > *itOther) return false;
+			if (*itMe < *itOther)
+			{ return true; }
+			if (*itMe > *itOther)
+			{ return false; }
 
-			itMe++; itOther++;
+			itMe++;
+			itOther++;
 		}
 
 		return false;
 	}
 
-	void insert(const T& r)
+	void insert(const T &r)
 	{
-		#ifndef NDEBUG
-		if ( std::find(elements.begin(), elements.end(), r) != elements.end() )
+#ifndef NDEBUG
+		if (std::find(elements.begin(), elements.end(), r) != elements.end())
 		{
-			std::stringstream msg; msg<<"Trying to insert "<<r<<" to a group that already contains it. The group is ";
-			for (const T& element : elements)
-				msg<< element <<", ";
-			msg<<". This denotes there is a bug somewhere";
-			throw std::runtime_error(msg.str() );
+			std::stringstream msg;
+			msg << "Trying to insert " << r << " to a group that already contains it. The group is ";
+			for (const T &element : elements)
+			{
+				msg << element << ", ";
+			}
+			msg << ". This denotes there is a bug somewhere";
+			throw std::runtime_error(msg.str());
 		}
-		#endif
+#endif
 		elements.push_back(r);
 	}
 
-	const std::list<T>& getElements() const
-	{		return elements; }
+	const std::list<T> &getElements() const
+	{ return elements; }
 
 	size_t size() const
 	{ return elements.size(); }
 
 	const T front() const
-	{ return elements.front();}
+	{ return elements.front(); }
 
-	bool contains(const T& r) const
+	bool contains(const T &r) const
 	{
-		return ( std::find(elements.begin(), elements.end(), r) != elements.end() );
+		return (std::find(elements.begin(), elements.end(), r) != elements.end());
 	}
 
 protected:
@@ -95,7 +110,8 @@ protected:
 /**
  * See how they are used inside the function getTT(..)
  */
-enum TT_EstimateType{
+enum TT_EstimateType
+{
 	OD_ESTIMATION,
 	SHORTEST_PATH_ESTIMATION,
 	EUCLIDEAN_ESTIMATION // The least computationally expensive one
@@ -143,7 +159,6 @@ public:
 	virtual const Node* getCurrentNode(const Person* driver) const;
 
 protected:
-
 	/**
 	 * Inherited from base class to output result
 	 */
@@ -161,23 +176,21 @@ protected:
 	virtual void driverUnavailable(Person* person);
 
 	/** Store list of available drivers */
-	std::vector<const Person*> availableDrivers;
+	std::vector<const Person *> availableDrivers;
 
 	/** Store queue of requests */
-
-
 	std::list<TripRequestMessage> requestQueue;
 
-	virtual void assignSchedule(const Person* driver, const Schedule& schedule);
-	//jo{ made these public
-	//virtual bool isCruising(const Person* driver) const;
-	//virtual const Node* getCurrentNode(const Person* driver) const;
-	//}jo
+	/**List of drivers who have been assigned a schedule, but are carrying only 1 passenger,
+	 * so they can potentially serve 1 more request (used by incremental controller)*/
+	std::set<const Person *> partiallyAvailableDrivers;
+
+	virtual void assignSchedule(const Person* driver, const Schedule& schedule, bool isUpdatedSchedule = false);
+
 	/**
 	 * Performs the controller algorithm to assign vehicles to requests
 	 */
 	virtual void computeSchedules() = 0;
-
 
 	/**
 	 * Computes a hypothetical schedule such that a driver located at a certain position can serve her current schedule
@@ -243,6 +256,12 @@ protected:
 	 */
 	virtual void onDriverShiftEnd(Person *person);
 
+	/**
+	 * Updates the controller's copy of the driver schedule
+	 * @param person the driver
+	 */
+	virtual void onDriverScheduleStatus(Person *driver);
+
 	/** Keeps track of current local tick */
 	unsigned int localTick = 0;
 
@@ -267,7 +286,6 @@ protected:
 	const unsigned maxVehicleOccupancy = 2; //number of passengers (the driver is not considered in this number) //TODO: it should be vehicle based
 
 	TT_EstimateType ttEstimateType;
-
 };
 
 }

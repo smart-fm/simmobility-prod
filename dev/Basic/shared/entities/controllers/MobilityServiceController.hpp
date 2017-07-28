@@ -81,7 +81,13 @@ protected:
 	 * unsubscribes the driver
 	 * @param person the driver who has completed the scheule
 	 */
-	virtual void onDriverShiftEnd(Person *person){}
+	virtual void onDriverShiftEnd(Person *person);
+
+	/**
+	 * Updates the controller's copy of the driver schedule
+	 * @param person the driver
+	 */
+	virtual void onDriverScheduleStatus(Person *person);
 
 	const MobilityServiceControllerType controllerServiceType;
 

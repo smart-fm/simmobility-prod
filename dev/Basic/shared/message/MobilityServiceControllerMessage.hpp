@@ -14,12 +14,14 @@ enum MobilityServiceControllerMessage
 {
 	MSG_DRIVER_SUBSCRIBE = 7100000,
 	MSG_DRIVER_UNSUBSCRIBE,
+	MSG_UNSUBSCRIBE_SUCCESSFUL,
 	MSG_DRIVER_AVAILABLE,
+	MSG_DRIVER_SHIFT_END,
+	MSG_DRIVER_SCHEDULE_STATUS,
 	MSG_TRIP_REQUEST,
 	MSG_SCHEDULE_PROPOSITION,
 	MSG_SCHEDULE_PROPOSITION_REPLY,
-	MSG_DRIVER_SHIFT_END,
-	MSG_UNSUBSCRIBE_SUCCESSFUL
+	MSG_SCHEDULE_UPDATE
 };
 
 /*
@@ -105,6 +107,23 @@ public:
 	}
 
 	virtual ~DriverShiftCompleted()
+	{
+	}
+
+	Person *person;
+};
+
+/**
+ * Message to indicate that the driver has completed one item in the schedule
+ */
+class DriverScheduleStatusMsg : public messaging::Message
+{
+public:
+	DriverScheduleStatusMsg(Person *p) : person(p)
+	{
+	}
+
+	virtual ~DriverScheduleStatusMsg()
 	{
 	}
 
@@ -203,6 +222,8 @@ struct ScheduleItem
 	};
 
 	bool operator<(const ScheduleItem &other) const;
+
+	bool operator==(const ScheduleItem &rhs) const;
 
 	ScheduleItemType scheduleItemType;
 

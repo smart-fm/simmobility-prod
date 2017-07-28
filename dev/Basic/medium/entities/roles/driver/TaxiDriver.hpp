@@ -130,6 +130,8 @@ public:
 
 	virtual const std::vector<MobilityServiceController*>& getSubscribedControllers() const;
 
+	bool hasDriverShiftEnded() const;
+
 private:
 	/**Holds all the passengers on board, the key to the map is the person db id*/
 	std::map<const std::string, Passenger *> taxiPassengers;
@@ -154,6 +156,17 @@ private:
 
 	/**The parking location of the vehicle*/
 	const SMSVehicleParking *parkingLocation = nullptr;
+
+	/**Indicates whether we have sent the reply for the schedule proposition sent by the controller*/
+	bool isScheduleAckSent;
+
+	/**
+	 * Checks if the item in progress is present in the updated schedule
+	 * @param itemInProgress the item in progress
+	 * @param updatedSchedule the updated schedule
+	 * @return true if the item in progress is present in the schedule
+	 */
+	bool isInProgressItemInSchedule(const ScheduleItem &itemInProgress, const Schedule &updatedSchedule);
 
 public:
 	friend class TaxiDriverBehavior;

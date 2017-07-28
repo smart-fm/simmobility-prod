@@ -9,79 +9,145 @@
 
 namespace sim_mob
 {
-	const Schedule& SchedulePropositionMessage::getSchedule() const
-	{
-		return schedule;
-	};
 
-	bool TripRequestMessage::operator==(const TripRequestMessage& other) const
-	{
-		if (
-			timeOfRequest == other.timeOfRequest &&
+const Schedule &SchedulePropositionMessage::getSchedule() const
+{
+	return schedule;
+};
+
+bool TripRequestMessage::operator==(const TripRequestMessage &other) const
+{
+	if ( timeOfRequest == other.timeOfRequest &&
 			userId == other.userId &&
 			startNodeId == other.startNodeId &&
 			destinationNodeId == other.destinationNodeId &&
-			extraTripTimeThreshold == other.extraTripTimeThreshold
-		) {return true; }
-		else  {return false;}
-	};
-
-
-	bool TripRequestMessage::operator!=(const TripRequestMessage& other) const
+			extraTripTimeThreshold == other.extraTripTimeThreshold)
 	{
-		if (
-			timeOfRequest != other.timeOfRequest ||
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+};
+
+
+bool TripRequestMessage::operator!=(const TripRequestMessage &other) const
+{
+	if (timeOfRequest != other.timeOfRequest ||
 			userId != other.userId ||
 			startNodeId != other.startNodeId ||
 			destinationNodeId != other.destinationNodeId ||
-			extraTripTimeThreshold != other.extraTripTimeThreshold
-		) {return true; }
-		else  {return false;}
-	};
-
-	bool TripRequestMessage::operator>(const TripRequestMessage& other) const
+			extraTripTimeThreshold != other.extraTripTimeThreshold)
 	{
-		if ( operator==(other) || operator<(other) )
-			return false;
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+};
+
+bool TripRequestMessage::operator>(const TripRequestMessage &other) const
+{
+	if (operator==(other) || operator<(other))
+	{
+		return false;
+	}
+	return true;
+}
+
+bool TripRequestMessage::operator<(const TripRequestMessage &other) const
+{
+	if (timeOfRequest < other.timeOfRequest)
+	{
 		return true;
 	}
 
-	bool TripRequestMessage::operator<(const TripRequestMessage& other) const
+	if (timeOfRequest == other.timeOfRequest)
 	{
-		if (timeOfRequest < other.timeOfRequest ) return true;
-		if (timeOfRequest == other.timeOfRequest)
+		// The order here is arbitrary
+		if (userId < other.userId)
 		{
-			// The order here is arbitrary
-			if (userId < other.userId) return true;
-
-#ifndef NDEBUG
-			if (userId == other.userId && !operator==(other) )
-			{
-				std::stringstream msg; msg <<"There exist two requests from the same user "<< userId<<
-					" issued in the same frame "<< timeOfRequest.frame() << ". Is this an error?";
-				throw std::runtime_error(msg.str() );
-			}
-#endif
+			return true;
 		}
-		return false;
-	}
 
-	bool ScheduleItem::operator <(const ScheduleItem& other) const
-	{
-		/*
 #ifndef NDEBUG
-		if (	(scheduleItemType!=DROPOFF && scheduleItemType!=PICKUP)
-			||	(other.scheduleItemType!=DROPOFF && other.scheduleItemType!=PICKUP)
-			)
-			throw std::runtime_error("You can only compare pickups and dropoofs. If you are comparing other types of schedule items, it may be an error ");
+		if (userId == other.userId && !operator==(other) )
+		{
+			std::stringstream msg; msg <<"There exist two requests from the same user "<< userId<<
+				" issued in the same frame "<< timeOfRequest.frame() << ". Is this an error?";
+			throw std::runtime_error(msg.str() );
+		}
 #endif
-		 */
-		if ( tripRequest < other.tripRequest ) return true;
-		if ( tripRequest == other.tripRequest && scheduleItemType==PICKUP && other.scheduleItemType==DROPOFF) return true;
-		return false;
 	}
+	return false;
 }
 
+bool ScheduleItem::operator<(const ScheduleItem &other) const
+{
+/*
+#ifndef NDEBUG
+	if ((scheduleItemType != DROPOFF && scheduleItemType != PICKUP) ||
+			(other.scheduleItemType != DROPOFF && other.scheduleItemType != PICKUP))
+	{
+		throw std::runtime_error("You can only compare pickups and drop-offs. If you are comparing other types of schedule items, it may be an error ");
+	}
+#endif
+*/
+
+	if (tripRequest < other.tripRequest)
+	{
+		return true;
+	}
+	if (tripRequest == other.tripRequest && scheduleItemType == PICKUP && other.scheduleItemType == DROPOFF)
+	{
+		return true;
+	}
+
+	return false;
+}
+
+bool ScheduleItem::operator==(const ScheduleItem &rhs) const
+{
+	bool result = false;
+
+	switch (scheduleItemType)
+	{
+	case PICKUP:
+	case DROPOFF:
+	{
+		//If they are the same type, compare the related data
+		if (scheduleItemType == rhs.scheduleItemType)
+		{
+			result = (tripRequest == rhs.tripRequest);
+		}
+
+		break;
+	}
+	case CRUISE:
+	{
+		if(rhs.scheduleItemType == CRUISE)
+		{
+			result = (nodeToCruiseTo == rhs.nodeToCruiseTo);
+		}
+
+		break;
+	}
+	case PARK:
+	{
+		if(rhs.scheduleItemType == PARK)
+		{
+			result = (parking == parking);
+		}
+
+		break;
+	}
+	}
+
+	return result;
+}
+}
 
 
 std::ostream& operator<<(std::ostream& strm, const sim_mob::TripRequestMessage& request)

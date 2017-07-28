@@ -15,7 +15,7 @@
             <database id="fm_hpc" dbtype="postgres">
                 <host value="18.58.5.170"/>
                 <port value="5432"/>
-                <dbname value="simmobility_virtualcity_sms_casestudy2017"/>
+                <dbname value="virtualcity_HPC_26_07_2017"/>
             </database>
         </databases>
 

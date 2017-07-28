@@ -18,6 +18,7 @@
 
 #include "entities/mobilityServiceDriver/MobilityServiceDriver.hpp"
 //#include "MobilityServiceController.hpp"
+#include "conf/ConfigManager.hpp"
 // } jo
 
 
@@ -96,6 +97,14 @@ int Rebalancer::getNumVehicles(const std::vector<const Person*>& availableDriver
 
 void KasiaRebalancer::rebalance(const std::vector<const Person*>& availableDrivers, const timeslice currTick) {
 	Print() << "available drivers: " << availableDrivers.size() << "; latest start nodes: " << latestStartNodes.size() << std::endl;
+
+	const SimulationParams &simParams = ConfigManager::GetInstance().FullConfig().simulation;
+
+	int startTimeSeconds = simParams.simStartTime.getValue() ;
+	int currentTimeSeconds = currTick.ms() / 1000 ;
+	int totalTimeSeconds = startTimeSeconds + currentTimeSeconds ;
+	int thirtyMinuteIndex = 1 + ((totalTimeSeconds - 1) / 1800) ; // totalTimeSeconds != 0
+
 	if(!availableDrivers.empty() && !latestStartNodes.empty()){
 
     // create variables for solving lp
@@ -173,25 +182,25 @@ void KasiaRebalancer::rebalance(const std::vector<const Person*>& availableDrive
             indexToIds[k] = std::make_pair(sitrIndex, sitr2Index);
             idsToIndex[std::make_pair(sitrIndex, sitr2Index)] = k;
 
-            // get cost
-            // { jo use traveltimemode function (zone-based travel time)
+            // get cost{jo} use zone-based travel time
 
-            int origin = sitrIndex ;
-            int destination = sitr2Index ;
+            int origin = *sitr ;
+            int destination = *sitr2 ;
             double *costPtr ;
             double cost ;
 
 
-//            if(origin==destination){
-//            	cost = 0.0 ;
-//            }
-//            else {
-            TimeDependentTT_SqlDao& tcostDao = tcostDao;
+            if(origin==destination){
+            	cost = -1 ;
+            }
+            else
+            {
+            TimeDependentTT_SqlDao& tcostDao = tcostDao ;
             TimeDependentTT_Params todBasedTT;
             tcostDao.getTT_ByOD(TravelTimeMode::TT_PRIVATE, origin, destination, todBasedTT);
-            *costPtr = *(todBasedTT.getArrivalBasedTT()) ; // also .arrivalBasedTT_at(i) for time_based
-            cost = *costPtr ;
-//            }
+            cost = todBasedTT.getArrivalBasedTT_at(thirtyMinuteIndex) ; // also .arrivalBasedTT_at(i) for time_based
+            //cost = *costPtr ;
+            }
             // The below is for node-based traveltime
             // PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(
             //          request->startNodeId, request->destinationNodeId, DailyTime(currTick.ms()));

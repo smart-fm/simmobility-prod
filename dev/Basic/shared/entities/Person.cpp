@@ -50,7 +50,7 @@ const int DEFAULT_LOWEST_AGE = 20;
 // default highest age
 const int DEFAULT_HIGHEST_AGE = 60;
 } //End unnamed namespace
-
+sim_mob::BasicLogger& CarTravelTimeLogger  = sim_mob::Logger::log("Car_Trave_time.csv");
 sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, int id, std::string databaseID)
 : Agent(mtxStrat, id), personDbId(databaseID), agentSrc(src), age(0), resetParamsRequired(false), isFirstTick(true), useInSimulationTravelTime(false),
 nextPathPlanned(false), originNode(), destNode(), currLinkTravelStats(nullptr)
@@ -613,6 +613,25 @@ void sim_mob::Person::serializeSubTripChainItemTravelTimeMetrics(const TravelMet
 			restrictedRegion.str() << "\n"; /* MIXED CBD Information */
 
 	csv << res.str();
+
+
+	if (st.travelMode == "\"Car\"")                //Collecting Data for travel_time (Car_Travel_time.csv)for
+	{                                              //passenger travelling in own "CAR" (RL_DRIVER)
+		std::stringstream result_car("");
+		result_car << trip->getPersonID() << ","   //person_id
+		           << trip->startLocationId << "," //trip_origin_id
+		           << trip->endLocationId << ","   //trip_dest_id
+		           << trip->startLocationId << ","    //subtrip_origin_id
+		           << trip->endLocationId << ","      //subtrip_dest_id
+		           << "NODE" << ","                //subtrip_origin_type
+		           << "NODE" << ","                //subtrip_dest_type
+		           << "ON_CAR" << ","              //travel_mode
+		           << subtripMetrics.startTime.getStrRepr() << ","    //arrival_time
+		           << subtripMetrics.travelTime * 3600 << ","  //travel_time = arrival_time-end_time
+		<<(st.ptLineId.empty() ? "\"\"" : st.ptLineId)<<std::endl;  //pt_line
+		CarTravelTimeLogger << result_car.str();
+
+	}
 	int cbdStartNode = 0, cbdEndNode = 0;
 	if (subtripMetrics.cbdOrigin.type == WayPoint::NODE)
 	{

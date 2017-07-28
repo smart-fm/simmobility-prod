@@ -188,9 +188,18 @@ TaxiDriverMovement *TaxiDriver::getMovementFacet()
 
 void TaxiDriver::pickUpPassngerAtNode(const std::string personId)
 {
+	Conflux *parentConflux = nullptr;
 	MesoPathMover &pathMover = taxiDriverMovement->getMesoPathMover();
 	const SegmentStats *segStats = pathMover.getCurrSegStats();
-	Conflux *parentConflux = segStats->getParentConflux();
+
+	if(taxiDriverMovement->getCurrentNode() != taxiDriverMovement->getDestinationNode())
+	{
+		parentConflux = segStats->getParentConflux();
+	}
+	else
+	{
+		parentConflux = Conflux::getConfluxFromNode(taxiDriverMovement->getCurrentNode());
+	}
 
 	//Store the number of passengers currently in the vehicle
 	unsigned long prevPassengerCount = getPassengerCount();
@@ -336,13 +345,19 @@ void TaxiDriver::processNextScheduleItem(bool isMoveToNextScheduleItem)
 	{
 		if (driverStatus == MobilityServiceDriverStatus::PARKED)
 		{
-			getResource()->setMoving(true);
+			//Clear previous path
+			taxiDriverMovement->getMesoPathMover().eraseFullPath();
+
+			//As the subsequent trip will begin from a node (not from current link/segment), we set this as the origin
+			const Node *currNode = parkingLocation->getEgressNode();
+			taxiDriverMovement->setCurrentNode(currNode);
+			taxiDriverMovement->setDestinationNode(currNode);
+			taxiDriverMovement->setOriginNode(currNode);
 
 			Conflux *conflux = Conflux::getConfluxFromNode(taxiDriverMovement->getCurrentNode());
 			MessageBus::PostMessage(conflux, MSG_PERSON_LOAD, MessageBus::MessagePtr(new PersonMessage(parent)));
 
-			//Clear previous path
-			taxiDriverMovement->getMesoPathMover().eraseFullPath();
+			getResource()->setMoving(true);
 		}
 
 		const TripRequestMessage &tripRequest = currScheduleItem->tripRequest;
@@ -369,7 +384,7 @@ void TaxiDriver::processNextScheduleItem(bool isMoveToNextScheduleItem)
 
 		const Node *node = it->second;
 
-		if(taxiDriverMovement->getMesoPathMover().getCurrSegStats()->getParentConflux()->getConfluxNode() == node)
+		if(taxiDriverMovement->getDestinationNode() == node)
 		{
 			pickUpPassngerAtNode(tripRequest.userId);
 			return;
@@ -469,16 +484,14 @@ void TaxiDriver::processNextScheduleItem(bool isMoveToNextScheduleItem)
 	{
 		if (!getPassengerCount())
 		{
-			const SMSVehicleParking *destinationParking = currScheduleItem->parking;
+			parkingLocation = currScheduleItem->parking;
 			ControllerLog() << "Taxi driver " << getParent()->getDatabaseId()
-			                << " received a Park command with Parking ID " << destinationParking->getParkingId()
+			                << " received a Park command with Parking ID " << parkingLocation->getParkingId()
 			                << std::endl;
 
-			const Node *destination = destinationParking->getAccessNode();
-			const SegmentStats *currSegStat = taxiDriverMovement->getParentDriver()->getParent()->getCurrSegStats();
-			const Link *link = currSegStat->getRoadSegment()->getParentLink();
-			taxiDriverMovement->setCurrentNode(link->getToNode());
-			const Node *thisNode = taxiDriverMovement->getCurrentNode();
+			const Node *destination = parkingLocation->getAccessNode();
+			const Node *thisNode = taxiDriverMovement->getDestinationNode();
+			taxiDriverMovement->setCurrentNode(thisNode);
 
 			if (thisNode == destination)
 			{
@@ -487,7 +500,6 @@ void TaxiDriver::processNextScheduleItem(bool isMoveToNextScheduleItem)
 				setDriverStatus(PARKED);
 				getResource()->setMoving(false);
 				parent->setRemainingTimeThisTick(0.0);
-				taxiDriverMovement->setCurrentNode(thisNode);
 				DriverUpdateParams &params = getParams();
 				params.elapsedSeconds = params.secondsInTick;
 				taxiDriverMovement->setOriginNode(thisNode);
@@ -500,6 +512,8 @@ void TaxiDriver::processNextScheduleItem(bool isMoveToNextScheduleItem)
 							                        taxiDriverMovement->getParentDriver()->parent)));
 				}
 
+				const SegmentStats *currSegStat = taxiDriverMovement->getParentDriver()->getParent()->getCurrSegStats();
+				const Link *link = currSegStat->getRoadSegment()->getParentLink();
 				double actualT = params.elapsedSeconds + params.now.ms() / 1000;
 				const Link *nextLink = thisNode->getDownStreamLinks().begin()->second;
 				parent->currLinkTravelStats.finalize(link, actualT, nextLink);
@@ -521,13 +535,13 @@ void TaxiDriver::processNextScheduleItem(bool isMoveToNextScheduleItem)
 				msg << __FILE__ << ":" << __LINE__ << ": taxiDriverMovement->driveToParkingNode("
 				    << destination->getNodeId() << ");" << std::endl;
 				msg << "Taxi with Driver " << parent->getDatabaseId() << " can not be parked at "
-				    << destinationParking->getParkingId() << std::endl;
+				    << parkingLocation->getParkingId() << std::endl;
 				WarnOut(msg.str());
 			}
 #endif
 
 			ControllerLog() << "Assignment response sent for Parking command for Parking ID "
-			                << destinationParking->getParkingId() << ". This response is sent by driver "
+			                << parkingLocation->getParkingId() << ". This response is sent by driver "
 			                << parent->getDatabaseId() << " at time " << parent->currTick << std::endl;
 			break;
 

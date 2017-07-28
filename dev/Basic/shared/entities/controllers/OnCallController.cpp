@@ -25,9 +25,6 @@
 using namespace sim_mob;
 using namespace messaging;
 
-//jo
-int nextRebalancingInterval(720);
-
 OnCallController::OnCallController(const MutexStrategy &mtxStrat, unsigned int computationPeriod,
                                    MobilityServiceControllerType type_, unsigned id, TT_EstimateType ttEstimateType_)
 		: MobilityServiceController(mtxStrat, type_, id), scheduleComputationPeriod(computationPeriod),
@@ -175,10 +172,9 @@ Entity::UpdateStatus OnCallController::frame_tick(timeslice now)
 #ifndef NDEBUG
 		isComputingSchedules = false;
 #endif
-		//jo add rebal interval
-		if(currTick.frame()==nextRebalancingInterval){
+		if( currTick.frame() >= rebalancingInterval && currTick.frame() >= nextRebalancingFrame ){
+			nextRebalancingFrame = currTick.frame() + rebalancingInterval ;
 			rebalancer->rebalance(availableDrivers, currTick);
-			nextRebalancingInterval = nextRebalancingInterval + 720;
 		}
 	}
 	else

@@ -15,7 +15,7 @@
             <database id="fm_hpc" dbtype="postgres">
                 <host value="18.58.5.170"/>
                 <port value="5432"/>
-                <dbname value="simmobility_virtualcity_sms_casestudy2017"/>
+                <dbname value="virtualcity_HPC_26_07_2017"/>
             </database>
         </databases>
 
@@ -64,7 +64,7 @@
     <!-- Reasonable values for MidTerm -->
     <base_granularity   value="5"   units="seconds"/>
 
-    <total_runtime      value="1439"      units="minutes" />
+    <total_runtime      value="600"      units="minutes" />
     <total_warmup       value="1"    units="minutes" />
     <start_time         value="00:00:00"/>
 

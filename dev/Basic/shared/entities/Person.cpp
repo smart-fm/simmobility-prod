@@ -615,7 +615,7 @@ void sim_mob::Person::serializeSubTripChainItemTravelTimeMetrics(const TravelMet
 	csv << res.str();
 
 
-	if (st.travelMode == "\"Car\"")                //Collecting Data for travel_time (Car_Travel_time.csv)for
+	if (st.travelMode == "\"Car\"" || st.travelMode == "Car" )                //Collecting Data for travel_time (Car_Travel_time.csv)for
 	{                                              //passenger travelling in own "CAR" (RL_DRIVER)
 		std::stringstream result_car("");
 		result_car << trip->getPersonID() << ","   //person_id

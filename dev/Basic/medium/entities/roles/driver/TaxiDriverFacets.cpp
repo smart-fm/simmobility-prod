@@ -796,7 +796,8 @@ bool TaxiDriverMovement::driveToNodeOnCall(const TripRequestMessage &tripRequest
 		currSubTrip.destination = WayPoint(pickupNode);
 		std::vector<WayPoint> currentRouteChoice;
 
-		if(mode == PARKED || (currentNode == destinationNode && currentNode == originNode))
+		if(mode == PARKED ||
+				(mode == DRIVE_WITH_PASSENGER && (currentNode == destinationNode && currentNode == originNode)))
 		{
 			//If we are leaving to pick a passenger up from parking itself, we do not need to consider our previous link
 			//as we are at a node

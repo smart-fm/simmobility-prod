@@ -101,6 +101,11 @@ namespace sim_mob
 
 		void AwakeningSubModel::InitialAwakenings(HM_Model *model, Household *household, HouseholdAgent *agent, int day)
 		{
+			ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+			if (config.ltParams.resume)
+			{
+				return;
+			}
 			boost::mutex::scoped_lock lock( mtx );
 
 			if( agent->getId() >= model->FAKE_IDS_START )
@@ -115,7 +120,7 @@ namespace sim_mob
 				return;
 			}
 
-			ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+
 
 			if(household == nullptr)
 			{

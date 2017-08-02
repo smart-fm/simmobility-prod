@@ -23,6 +23,7 @@
 #include "database/entity/HedonicLogsums.hpp"
 #include "database/entity/TAOByUnitType.hpp"
 #include "database/entity/StudyArea.hpp"
+#include "database/entity/JobsBySectorByTaz.hpp"
 
 using namespace sim_mob;
 using namespace long_term;
@@ -233,6 +234,58 @@ struct type_conversion<sim_mob::long_term::StudyArea>
     }
 };
 
+template<>
+struct type_conversion<sim_mob::long_term::JobAssignmentCoeffs>
+{
+    typedef values base_type;
+
+    static void
+    from_base(soci::values const & values, soci::indicator & indicator, sim_mob::long_term::JobAssignmentCoeffs& jobAssignmentCoeff)
+    {
+    	jobAssignmentCoeff.setId(values.get<int>("id",0));
+    	jobAssignmentCoeff.setBetaInc1(values.get<double>("beta_inc1",0));
+    	jobAssignmentCoeff.setBetaInc2(values.get<double>("beta_inc2",0));
+    	jobAssignmentCoeff.setBetaInc3(values.get<double>("beta_inc3",0));
+    	jobAssignmentCoeff.setBetaLgs(values.get<double>("beta_lgs",0));
+    	jobAssignmentCoeff.setBetaS1(values.get<double>("beta_s1",0));
+    	jobAssignmentCoeff.setBetaS2(values.get<double>("beta_s2",0));
+    	jobAssignmentCoeff.setBetaS3(values.get<double>("beta_s3",0));
+    	jobAssignmentCoeff.setBetaS4(values.get<double>("beta_s4",0));
+    	jobAssignmentCoeff.setBetaS5(values.get<double>("beta_s5",0));
+    	jobAssignmentCoeff.setBetaS6(values.get<double>("beta_s6",0));
+    	jobAssignmentCoeff.setBetaS7(values.get<double>("beta_s7",0));
+    	jobAssignmentCoeff.setBetaS8(values.get<double>("beta_s8",0));
+    	jobAssignmentCoeff.setBetaS9(values.get<double>("beta_s9",0));
+    	jobAssignmentCoeff.setBetaS10(values.get<double>("beta_s10",0));
+    	jobAssignmentCoeff.setBetaS11(values.get<double>("beta_s11",0));
+    	jobAssignmentCoeff.setBetaS98(values.get<double>("beta_s98",0));
+    	jobAssignmentCoeff.setBetaLnJob(values.get<double>("beta_lnjob",0));
+    }
+};
+
+template<>
+struct type_conversion<sim_mob::long_term::JobsBySectorByTaz>
+{
+    typedef values base_type;
+
+    static void
+    from_base(soci::values const & values, soci::indicator & indicator, sim_mob::long_term::JobsBySectorByTaz& jobsBySectorByTaz)
+    {
+    	jobsBySectorByTaz.setTazId(values.get<BigSerial>("taz_id",0));
+    	jobsBySectorByTaz.setSector1(values.get<int>("sector1",0));
+    	jobsBySectorByTaz.setSector2(values.get<int>("sector2",0));
+    	jobsBySectorByTaz.setSector3(values.get<int>("sector3",0));
+    	jobsBySectorByTaz.setSector4(values.get<int>("sector4",0));
+    	jobsBySectorByTaz.setSector5(values.get<int>("sector5",0));
+    	jobsBySectorByTaz.setSector6(values.get<int>("sector6",0));
+    	jobsBySectorByTaz.setSector7(values.get<int>("sector7",0));
+    	jobsBySectorByTaz.setSector8(values.get<int>("sector8",0));
+    	jobsBySectorByTaz.setSector9(values.get<int>("sector9",0));
+    	jobsBySectorByTaz.setSector10(values.get<int>("sector10",0));
+    	jobsBySectorByTaz.setSector11(values.get<int>("sector11",0));
+    	jobsBySectorByTaz.setSector98(values.get<int>("sector98",0));
+    }
+};
 
 } //namespace soci
 

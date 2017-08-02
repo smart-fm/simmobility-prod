@@ -39,11 +39,6 @@ void IncrementalSharing::computeSchedules()
 
 	for (const Person *driver : availableDrivers)
 	{
-		if(!driver->GetContext())
-		{
-			continue;
-		}
-
 		const Node *driverNode = driver->exportServiceDriver()->getCurrentNode(); // the node in which the driver is currently located
 		Schedule schedule;
 		unsigned aggregatedRequests = 0; // Number of requests that we have aggregated so far
@@ -205,11 +200,6 @@ void IncrementalSharing::matchPartiallyAvailableDrivers()
 
 	for (const Person *driver : partiallyAvailableDrivers)
 	{
-		if(!driver->GetContext())
-		{
-			continue;
-		}
-
 		const Node *driverNode = driver->exportServiceDriver()->getCurrentNode(); // the node in which the driver is currently located
 
 #ifndef NDEBUG

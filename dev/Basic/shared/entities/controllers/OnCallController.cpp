@@ -141,17 +141,9 @@ void OnCallController::driverUnavailable(Person *person)
 #ifndef NDEBUG
 	consistencyChecks("driverUnavailable: start");
 #endif
+
 	availableDrivers.erase(std::remove(availableDrivers.begin(),
 	                                   availableDrivers.end(), person), availableDrivers.end());
-
-	const Schedule &schedule = driverSchedules[person];
-
-	//If this schedule only caters to 1 person, the add the driver to the list of partially available drivers
-	//Schedule size 3 indicates a schedule for 1 person: pick-up, drop-off and park
-	if(schedule.size() <= 3)
-	{
-		partiallyAvailableDrivers.insert(person);
-	}
 
 #ifndef NDEBUG
 	consistencyChecks("driverUnavailable: end");

@@ -2250,8 +2250,15 @@ Conflux* Conflux::findStartingConflux(Person_MT* person, unsigned int now)
 							+ ((*person->currTripChainItem)->endTime.getValue() - (*person->currTripChainItem)->startTime.getValue())));
 	}
 
+	//register the person as a message handler if required
+	if (!person->GetContext())
+	{
+		messaging::MessageBus::RegisterHandler(person);
+	}
+
 	//Now that the Role<Person_MT> has been fully constructed, initialize it.
 	personRole->Movement()->frame_init();
+
 	if (person->isToBeRemoved())
 	{
 		return nullptr;

@@ -665,8 +665,9 @@ void MessageBus::ThreadDispatchMessages()
 					std::stringstream msg;
 					msg << "Thread contexts inconsistency. Message recevied by the wrong thread!"
 					    << "\nIntended recepient thread id: " << destinationContext->threadId
-					    << ", Actual recepient thread id: " << context->threadId;
-					throw runtime_error(msg.str());
+					    << ", Actual recepient thread id: " << context->threadId << endl;
+					Warn() << msg.str();
+					SendMessage(entry.destination, entry.type, entry.message, entry.processOnMainThread);
 				}
 				entry.destination->HandleMessage(entry.type, *(entry.message.get()));
 			}

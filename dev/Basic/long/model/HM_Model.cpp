@@ -1785,7 +1785,7 @@ void HM_Model::startImpl()
 		{
 			if (resumptionHH != nullptr)
 			{
-				if(resumptionHH->getUnitPending())//household has done an advanced purchase
+				if(resumptionHH->getUnitPending() == 1)//household has done an advanced purchase
 				{
 					HouseholdUnit *hhUnit = getHouseholdUnitByHHId(resumptionHH->getId());
 					unitIdToBeOwned = hhUnit->getUnitId();

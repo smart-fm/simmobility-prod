@@ -669,7 +669,10 @@ void MessageBus::ThreadDispatchMessages()
 					Warn() << msg.str();
 					SendMessage(entry.destination, entry.type, entry.message, entry.processOnMainThread);
 				}
-				entry.destination->HandleMessage(entry.type, *(entry.message.get()));
+				else
+				{
+					entry.destination->HandleMessage(entry.type, *(entry.message.get()));
+				}
 			}
 			context->input.pop();
 		}

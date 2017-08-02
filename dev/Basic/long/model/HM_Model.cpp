@@ -1469,10 +1469,12 @@ void HM_Model::startImpl()
 	std::tm currentSimYear = getDateBySimDay(simYear,1);
 	initialLoading = config.ltParams.initialLoading;
 
-	if (conn.isConnected())
+	if (conn.isConnected() && conn_calibration.isConnected())
 	{
 		loadLTVersion(conn);
 		loadStudyAreas(conn);
+		loadJobsBySectorByTaz(conn_calibration);
+		loadJobAssignments(conn);
 
 		{
 			soci::session sql;
@@ -3393,6 +3395,71 @@ void  HM_Model::loadStudyAreas(DB_Connection &conn)
 	}
 
 	PrintOutV("Number of Study Area rows: " << studyAreas.size() << std::endl );
+}
+
+void HM_Model::loadJobAssignments(DB_Connection &conn)
+{
+	soci::session sql;
+	sql.open(soci::postgresql, conn.getConnectionStr());
+
+	std::string tableName = "job_assignment_coefficients";
+
+	//SQL statement
+	soci::rowset<JobAssignmentCoeffs> jobAssignmentCoeffsObj = (sql.prepare << "select * from calibration2012."  + tableName);
+
+	for (soci::rowset<JobAssignmentCoeffs>::const_iterator itJobAssignmentCoeffs = jobAssignmentCoeffsObj.begin(); itJobAssignmentCoeffs != jobAssignmentCoeffsObj.end(); ++itJobAssignmentCoeffs)
+	{
+		JobAssignmentCoeffs* jobAssignCoeff = new JobAssignmentCoeffs(*itJobAssignmentCoeffs);
+		jobAssignmentCoeffs.push_back(jobAssignCoeff);
+	}
+
+	PrintOutV("Number of Job Assignment Coeffs rows: " << jobAssignmentCoeffs.size() << std::endl );
+}
+
+HM_Model::JobAssignmentCoeffsList& HM_Model::getJobAssignmentCoeffs()
+{
+	return jobAssignmentCoeffs;
+}
+
+void HM_Model::loadJobsBySectorByTaz(DB_Connection &conn)
+{
+	soci::session sql;
+	sql.open(soci::postgresql, conn.getConnectionStr());
+	std::string tableName = "jobs_by_sector_by_taz";
+	//SQL statement
+	soci::rowset<JobsBySectorByTaz> jobsBySectorByTazObj = (sql.prepare << "select * from "  + conn.getSchema() + tableName);
+
+	for (soci::rowset<JobsBySectorByTaz>::const_iterator itJobsBySecByTaz = jobsBySectorByTazObj.begin(); itJobsBySecByTaz != jobsBySectorByTazObj.end(); ++itJobsBySecByTaz)
+	{
+		JobsBySectorByTaz* jobsBySectorByTaz = new JobsBySectorByTaz(*itJobsBySecByTaz);
+		jobsBySectorByTazsList.push_back(jobsBySectorByTaz);
+	}
+
+	PrintOutV("Number of Jobs by Sector by Taz rows: " << jobsBySectorByTazsList.size() << std::endl );
+
+}
+
+HM_Model::JobsBySectorByTazList& HM_Model::getJobsBySectorByTazs()
+{
+	return jobsBySectorByTazsList;
+}
+
+JobsBySectorByTaz* HM_Model::getJobsBySectorByTazId(BigSerial tazId) const
+{
+	JobsBySectorByTazMap::const_iterator itr = jobsBySectorByTazMap.find(tazId);
+
+		if (itr != jobsBySectorByTazMap.end())
+		{
+			return (*itr).second;
+		}
+
+		return nullptr;
+
+}
+
+HM_Model::TazList&  HM_Model::getTazList()
+{
+	return tazs;
 }
 
 void HM_Model::stopImpl()

@@ -55,6 +55,8 @@
 #include "database/entity/BuildingMatch.hpp"
 #include "database/entity/SlaBuilding.hpp"
 #include "database/entity/StudyArea.hpp"
+#include "database/entity/JobAssignmentCoeffs.hpp"
+#include "database/entity/JobsBySectorByTaz.hpp"
 #include "core/HousingMarket.hpp"
 #include "boost/unordered_map.hpp"
 #include "DeveloperModel.hpp"
@@ -208,6 +210,11 @@ namespace sim_mob
 
             typedef std::vector<StudyArea*> StudyAreaList;
             typedef std::multimap<string, StudyArea*>StudyAreaMultiMap;
+
+            typedef std::vector<JobAssignmentCoeffs*> JobAssignmentCoeffsList;
+
+            typedef std::vector<JobsBySectorByTaz*> JobsBySectorByTazList;
+            typedef boost::unordered_map<BigSerial, JobsBySectorByTaz*>JobsBySectorByTazMap;
 
             /**
              * Taz statistics
@@ -467,7 +474,14 @@ namespace sim_mob
             StudyAreaList& getStudyAreas();
             StudyAreaMultiMap& getStudyAreaByScenarioName();
 
+            void loadJobAssignments(DB_Connection &conn);
+            JobAssignmentCoeffsList& getJobAssignmentCoeffs();
 
+            void loadJobsBySectorByTaz(DB_Connection &conn);
+            JobsBySectorByTazList& getJobsBySectorByTazs();
+            JobsBySectorByTaz* getJobsBySectorByTazId(BigSerial tazId) const;
+
+            TazList& getTazList();
 
         protected:
             /**
@@ -664,6 +678,11 @@ namespace sim_mob
 
 			StudyAreaList studyAreas;
 			StudyAreaMultiMap  studyAreaByScenario;
+
+			JobAssignmentCoeffsList jobAssignmentCoeffs;
+
+			JobsBySectorByTazList jobsBySectorByTazsList;
+			JobsBySectorByTazMap jobsBySectorByTazMap;
         };
     }
 }

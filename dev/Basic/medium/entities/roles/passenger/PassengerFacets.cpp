@@ -9,6 +9,13 @@
 #include "config/MT_Config.hpp"
 #include "geospatial/network/Node.hpp"
 #include "Passenger.hpp"
+#include "entities/roles/driver/Driver.hpp"
+#include "entities/roles/driver/TaxiDriver.hpp"
+#include "entities/roles/driver/TaxiDriverFacets.hpp"
+#include "entities/roles/driver/DriverFacets.hpp"
+
+
+
 
 using namespace sim_mob;
 using namespace medium;
@@ -70,7 +77,15 @@ TravelMetric & PassengerMovement::finalizeTravelTimeMetric()
 	travelMetric.destination = parentPassenger->getEndPoint();
 	travelMetric.endTime = DailyTime(parentPassenger->getArrivalTime() + parentPassenger->totalTravelTimeMS);
 	travelMetric.travelTime = TravelMetric::getTimeDiffHours(travelMetric.endTime , travelMetric.startTime); // = totalTimeToCompleteMS in hours
-	travelMetric.finalized = true;
+	if(parentPassenger->getDriver())
+	{
+		if (parentPassenger->getDriver()->roleType == Role<Person_MT>::RL_TAXIDRIVER)
+		{
+			travelMetric.distance = parentPassenger->getFinalPointDriverDistance() - parentPassenger->getStartPointDriverDistance();
+			parentPassenger->setDriver(NULL);
+		}
+	}
+		travelMetric.finalized = true;
 	return travelMetric;
 }
 

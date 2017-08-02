@@ -141,6 +141,27 @@ public:
 		this->service = sst.str();
 	}
 
+
+	double getStartPointDriverDistance() const
+	{
+		return startPointDriverDistance;
+	}
+
+	void setStartPointDriverDistance(double DriverDistance)
+	{
+		startPointDriverDistance = DriverDistance;
+	}
+
+	double getFinalPointDriverDistance() const
+	{
+		return finalPointDriverDistance;
+	}
+
+	void setFinalPointDriverDistance(double DriverDistance)
+	{
+		finalPointDriverDistance = DriverDistance;
+	}
+
 private:
 	friend class PassengerBehavior;
 	friend class PassengerMovement;
@@ -165,6 +186,12 @@ private:
 
 	/**original walk time*/
 	double originalWalkTime = 0.0;
+
+    /**To get Passenger Travel distance in Taxi, Here it is Driver offset distance . Taxi Passenger Travel Distance
+     * Taxi Passenger Travel Distance = finalPointDriverDistance - startPointDriverDistance
+     */
+	double startPointDriverDistance =0.0;
+	double finalPointDriverDistance=0.0;
 };
 
 }

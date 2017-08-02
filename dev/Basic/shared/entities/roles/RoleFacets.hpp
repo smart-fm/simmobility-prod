@@ -168,13 +168,23 @@ public:
 	 */
 	static bool isConnectedToNextSeg(const sim_mob::RoadSegment *srcRdSeg, const sim_mob::RoadSegment *nxtRdSeg);
 
+	virtual TravelMetric& getTravelMetric()
+	{
+		return travelMetric;
+	}
+
+
+
 public:
 	friend class sim_mob::PartitionManager;
 protected:
 
-	///	placeholder for various movement measurements
+
+    ///	placeholder for various movement measurements
 	TravelMetric travelMetric;
 	/// rerouting member in charge
+
+
 	boost::shared_ptr<sim_mob::Reroute> rerouter;
 
 	///	list of segments this role has traversed

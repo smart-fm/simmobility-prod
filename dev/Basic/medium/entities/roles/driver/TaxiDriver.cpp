@@ -94,6 +94,7 @@ void TaxiDriver::alightPassenger()
 			MesoPathMover &pathMover = taxiDriverMovement->getMesoPathMover();
 			const SegmentStats *segStats = pathMover.getCurrSegStats();
 			Conflux *parentConflux = segStats->getParentConflux();
+			passenger->setFinalPointDriverDistance(this->Movement()->getTravelMetric().distance);
 			parentConflux->dropOffTaxiTraveler(parentPerson);
 
 			if(!taxiDriverMovement->isSubscribedToOnHail())
@@ -311,9 +312,11 @@ void TaxiDriver::pickUpPassngerAtNode(const std::string personId)
 			taxiDriverMovement->setDestinationNode(personDestinationNode);
 			taxiDriverMovement->setCurrentNode(currentNode);;
 			taxiDriverMovement->addRouteChoicePath(currentRouteChoice);
-			passenger->setStartPoint(WayPoint(taxiDriverMovement->getCurrentNode()));
-			passenger->setEndPoint(WayPoint(taxiDriverMovement->getDestinationNode()));
+			passenger->setStartPoint(personToPickUp->currSubTrip->origin);
+			passenger->setEndPoint(personToPickUp->currSubTrip->destination);
 			setDriverStatus(DRIVE_WITH_PASSENGER);
+			passenger->setDriver(this);
+			passenger->setStartPointDriverDistance(taxiDriverMovement->getTravelMetric().distance);
 			passenger->Movement()->startTravelTimeMetric();
 		}
 		else
@@ -321,8 +324,11 @@ void TaxiDriver::pickUpPassngerAtNode(const std::string personId)
 			//On call passenger
 			addPassenger(passenger);
 			setDriverStatus(DRIVE_WITH_PASSENGER);
+			passenger->setDriver(this);
+			passenger->setStartPoint(personToPickUp->currSubTrip->origin);
+			passenger->setStartPointDriverDistance(taxiDriverMovement->getTravelMetric().distance);
+			passenger->setEndPoint(personToPickUp->currSubTrip->destination);
 			passenger->Movement()->startTravelTimeMetric();
-			passenger->setStartPoint(WayPoint(taxiDriverMovement->getCurrentNode()));
 
 			ControllerLog() << "Pickup succeeded for " << personId << " at time "
 			                << parent->currTick
@@ -504,7 +510,7 @@ void TaxiDriver::processNextScheduleItem(bool isMoveToNextScheduleItem)
 			taxiDriverMovement->setDestinationNode(personDestinationNode);
 			taxiDriverMovement->setCurrentNode(currentNode);;
 			taxiDriverMovement->addRouteChoicePath(currentRouteChoice);
-			passengerToDrop->setEndPoint(WayPoint(taxiDriverMovement->getDestinationNode()));
+			//passengerToDrop->setEndPoint(WayPoint(taxiDriverMovement->getDestinationNode()));
 			setDriverStatus(DRIVE_WITH_PASSENGER);
 
 			ControllerLog() << "Processing drop-off for " << tripRequest

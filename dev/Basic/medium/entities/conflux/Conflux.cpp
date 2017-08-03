@@ -361,9 +361,10 @@ Entity::UpdateStatus Conflux::frame_init(timeslice now)
 		}
 	}
 
-	for(std::vector<Agent*>::iterator it=stationAgents.begin(); it!=stationAgents.end(); it++){
-			messaging::MessageBus::RegisterHandler((*it));
-		}
+	for (std::vector<Agent *>::iterator it = stationAgents.begin(); it != stationAgents.end(); it++)
+	{
+		messaging::MessageBus::RegisterHandler((*it));
+	}
 
 	/**************test code insert incident *********************/
 

@@ -10,21 +10,11 @@
  */
 #include "MessageBus.hpp"
 
-#include <algorithm>
-#include <boost/format.hpp>
-#include <boost/function.hpp>
-#include <boost/thread/thread.hpp>
-#include <boost/thread/tss.hpp>
 #include <boost/unordered/unordered_map.hpp>
-#include <iostream>
-#include <list>
 #include <queue>
 #include "event/EventPublisher.hpp"
-#include "util/LangHelpers.hpp"
-#include "logging/Log.hpp"
 #include "logging/ControllerLog.hpp"
 #include "entities/controllers/MobilityServiceController.hpp"
-#include "message/MobilityServiceControllerMessage.hpp"
 
 using namespace sim_mob::messaging;
 using namespace sim_mob::event;
@@ -65,7 +55,7 @@ enum InternalMessages
 	MSGI_REMOVE_THREAD,
 	MSGI_EVENT_MSG,
 	//events
-			MSGI_PUBLISH_EVENT,
+	MSGI_PUBLISH_EVENT,
 	MSGI_UNSUBSCRIBE_ALL,
 };
 
@@ -124,7 +114,6 @@ typedef struct MessageEntry
 
 struct ComparePriority
 {
-
 	bool operator()(const MessageEntry &t1, const MessageEntry &t2) const
 	{
 		return (t1.priority > t2.priority);
@@ -469,11 +458,6 @@ void MessageBus::RegisterHandler(MessageHandler *handler)
 	CheckThreadContext();
 	ThreadContext *context = GetThreadContext();
 
-	if (dynamic_cast<sim_mob::MobilityServiceController *> (handler))
-	{
-		sim_mob::ControllerLog() << "Registering the controller" << std::endl;
-	}
-
 #ifndef NDEBUG
 	if (!handler)
 	{
@@ -578,34 +562,16 @@ void dispatch(const MessageEntry &entry, ThreadContext *&context, ThreadContext 
 			ThreadContext *destinationContext = static_cast<ThreadContext *> (entry.destination->GetContext());
 			if (destinationContext)
 			{
-				if (entry.type == sim_mob::MobilityServiceControllerMessage::MSG_SCHEDULE_PROPOSITION)
-				{
-					const sim_mob::SchedulePropositionMessage &msg = MSG_CAST(sim_mob::SchedulePropositionMessage,
-					                                                          *(entry.message));
-					const sim_mob::Schedule &assignedSchedule = msg.getSchedule();
-				}
 				destinationContext->input.push(entry);
 			}
-				//<aa>
 			else
 			{
 				std::stringstream msg;
 				msg << "Destination context is invalid, as static_cast to ThreadContext* failed. entry.destination=" <<
 				    entry.destination << ", entry.destination->GetContext()=" << entry.destination->GetContext()
 				    << ", entry.type=" << entry.type;
-				if (entry.type == sim_mob::MobilityServiceControllerMessage::MSG_SCHEDULE_PROPOSITION)
-				{
-					const sim_mob::SchedulePropositionMessage &message = MSG_CAST(sim_mob::SchedulePropositionMessage,
-					                                                              *(entry.message));
-					const sim_mob::Schedule &assignedSchedule = message.getSchedule();
-
-					msg << ". The message was sent by " << entry.message->GetSender() << ", schedule "
-					    << assignedSchedule << std::endl;
-				}
-
 				throw std::runtime_error(msg.str());
 			}
-			//</aa>
 		}
 	}
 };
@@ -691,12 +657,6 @@ void MessageBus::PostMessage(MessageHandler *destination, Message::MessageType t
 	if (!context)
 	{
 		throw std::runtime_error("The context is invalid");
-	}
-
-	if ( type == MobilityServiceControllerMessage::MSG_SCHEDULE_PROPOSITION )
-	{
-		const sim_mob::SchedulePropositionMessage &messageCasted = MSG_CAST(sim_mob::SchedulePropositionMessage, *message );
-		const sim_mob::Schedule& assignedSchedule = messageCasted.getSchedule();
 	}
 #endif
 

@@ -508,6 +508,7 @@ bool DriverMovement::moveToNextSegment(DriverUpdateParams& params)
 		}
 
 		setOutputCounter(currLane, (getOutputCounter(currLane, currSegStat) - 1), currSegStat); // decrement from the currLane before updating it
+		const Lane *prevLane = currLane;
 		currLane = laneInNextSegment;
 		pathMover.advanceInPath();
 		pathMover.setPositionInSegment(nxtSegStat->getLength());
@@ -524,6 +525,44 @@ bool DriverMovement::moveToNextSegment(DriverUpdateParams& params)
 
 		res = true;
 		advance(params);
+
+		//Check if the current and next lanes belong to different links
+		unsigned int prevLinkId = prevLane->getParentSegment()->getLinkId();
+		unsigned int currLinkId = currLane->getParentSegment()->getLinkId();
+
+		if(prevLinkId != currLinkId)
+		{
+			//Link has changed, add the length of the turning path to the distance covered
+			const Node *node = currLane->getParentSegment()->getParentLink()->getFromNode();
+			const TurningGroup *tGroup = node->getTurningGroup(prevLinkId, currLinkId);
+			const map<unsigned int, TurningPath*> *tPaths = tGroup->getTurningPaths(prevLane->getLaneId());
+
+			if(tPaths)
+			{
+				auto itTurning = tPaths->find(currLane->getLaneId());
+
+				if (itTurning != tPaths->end())
+				{
+					travelMetric.distance += itTurning->second->getLength();
+				}
+				else
+				{
+					stringstream msg;
+					msg << "Vehicle is trying to move from link " << prevLinkId << " to " << currLinkId
+					    << ". Current lane is " << currLane->getLaneId()
+					    << ", but it is not connected to the selected next lane " << currLane->getLaneId();
+					throw runtime_error(msg.str());
+				}
+			}
+			else
+			{
+				stringstream msg;
+				msg << "Vehicle is trying to move from link " << prevLinkId << " to " << currLinkId
+				    << ". Current lane is " << currLane->getLaneId()
+				    << ", but it is not connected to the next link!";
+				throw runtime_error(msg.str());
+			}
+		}
 	}
 	else
 	{

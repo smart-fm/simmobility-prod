@@ -201,7 +201,6 @@ void HouseholdSellerRole::update(timeslice now)
 			if ( (*bidsItr)->getSellerId() == getParent()->getId())
 			{
 				handleReceivedBid(*(*bidsItr), (*bidsItr)->getNewUnitId());
-				PrintOutV("Processing the bids from previous run for bid id" << (*bidsItr)->getBidId()<<std::endl);
 			}
 		}
 	}

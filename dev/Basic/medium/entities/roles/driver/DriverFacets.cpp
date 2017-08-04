@@ -862,9 +862,10 @@ bool DriverMovement::advanceMovingVehicle(DriverUpdateParams& params)
 	}
 
 	const SegmentStats* currSegStats = pathMover.getCurrSegStats();
+	const LaneStats *laneStats = currSegStats->getLaneStats().find(currLane)->second;
 	//We can infer that the path is not completed if this function is called.
 	//Therefore currSegStats cannot be NULL. It is safe to use it in this function.
-	double velocity = currSegStats->getSegSpeed(true);
+	double velocity = laneStats->getLaneVehSpeed(true);
 	double output = getOutputCounter(currLane, currSegStats);
 
 	// add driver to queue if required
@@ -940,7 +941,9 @@ bool DriverMovement::advanceMovingVehicleWithInitialQ(DriverUpdateParams& params
 	double finalTimeSpent = 0.0;
 	double finalDistToSegEnd = 0.0;
 
-	double velocity = pathMover.getCurrSegStats()->getSegSpeed(true);
+	const LaneStats *laneStats = pathMover.getCurrSegStats()->getLaneStats().find(currLane)->second;
+	double velocity = laneStats->getLaneVehSpeed(true);
+
 	double output = getOutputCounter(currLane, pathMover.getCurrSegStats());
 	double outRate = getOutputFlowRate(currLane);
 
@@ -1053,6 +1056,7 @@ void DriverMovement::setOrigin(DriverUpdateParams& params)
 	}
 
 	const Lane* laneInNextSegment = getBestTargetLane(currSegStats, nextSegStats);
+	const LaneStats *laneInNextSegStats = currSegStats->getLaneStats().find(laneInNextSegment)->second;
 
 	//this will space out the drivers on the same lane, by separating them by the time taken for the previous car to move a car's length
 	double departTime = getLastAccept(laneInNextSegment, currSegStats);
@@ -1064,7 +1068,7 @@ void DriverMovement::setOrigin(DriverUpdateParams& params)
 		}
 		else
 		{
-			departTime += (PASSENGER_CAR_UNIT / (currSegStats->getNumVehicleLanes() * currSegStats->getSegSpeed(true)));
+			departTime += (PASSENGER_CAR_UNIT / laneInNextSegStats->getLaneVehSpeed(true));
 		}
 	}
 

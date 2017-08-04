@@ -196,6 +196,9 @@ private:
 	/** set of downstream links connected to this lanestats */
 	std::set<const Link*> connectedDownstreamLinks;
 
+	/** speed of vehicles in the lane for each frame in m/s */
+	double laneVehSpeed;
+
 	/**
 	 * pointer to parent segment stats owning this lane stats
 	 */
@@ -310,6 +313,13 @@ public:
 	 */
 	void verifyOrdering() const;
 
+	/**
+	 * computes the density of the moving part of the lane
+	 * the density value computed here is meant to be used in speed density function
+	 * @return density in PCU/lane-m
+	 */
+	double getDensity();
+
 	double getTotalVehicleLength() const
 	{
 		return totalLength;
@@ -370,6 +380,20 @@ public:
 	void setParentStats(const SegmentStats* parentStats)
 	{
 		this->parentStats = parentStats;
+	}
+
+	void setLaneVehSpeed(double speed)
+	{
+		laneVehSpeed = speed;
+	}
+
+	const double getLaneVehSpeed(bool hasVehicle) const
+	{
+		if(hasVehicle)
+		{
+			return laneVehSpeed;
+		}
+		return 0.0;
 	}
 
 	/** parameters for this lane */

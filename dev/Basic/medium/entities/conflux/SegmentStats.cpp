@@ -542,6 +542,25 @@ double SegmentStats::getDensity(bool hasVehicle)
 	return density;
 }
 
+//density will be computed in vehicles/meter-lane for the moving part of the lane
+double LaneStats::getDensity()
+{
+	double density = 0.0;
+	double queueLength = getQueueLength();
+	double movingPartLength = length - queueLength;
+	double movingPCUs = getMovingLength() / PASSENGER_CAR_UNIT;
+
+	if (movingPartLength > PASSENGER_CAR_UNIT)
+	{
+		density = movingPCUs / movingPartLength;
+	}
+	else
+	{
+		density = 1 / PASSENGER_CAR_UNIT;
+	}
+	return density;
+}
+
 //density will be computed in vehicles/lane-km for the full segment
 double SegmentStats::getTotalDensity(bool hasVehicle)
 {
@@ -879,9 +898,11 @@ void SegmentStats::updateLaneParams(timeslice frameNumber)
 		//filtering out the pedestrian lanes for now
 		if (!(it->first)->isPedestrianLane())
 		{
-			(it->second)->updateOutputCounter();
-			(it->second)->updateAcceptRate(segVehicleSpeed, numVehicleLanes);
-			(it->second)->setInitialQueueLength(it->second->getQueueLength());
+			LaneStats *laneStats = it->second;
+			laneStats->setLaneVehSpeed(speedDensityFunction(laneStats->getDensity()));
+			laneStats->updateOutputCounter();
+			laneStats->updateAcceptRate(segVehicleSpeed, numVehicleLanes);
+			laneStats->setInitialQueueLength(laneStats->getQueueLength());
 		}
 	}
 }
@@ -975,6 +996,11 @@ void SegmentStats::setPositionOfLastUpdatedAgentInLane(double positionOfLastUpda
 		throw std::runtime_error("SegmentStats::setPositionOfLastUpdatedAgentInLane lane not found in segment stats");
 	}
 	laneIt->second->setPositionOfLastUpdatedAgent(positionOfLastUpdatedAgentInLane);
+}
+
+std::map<const Lane*, LaneStats*> SegmentStats::getLaneStats() const
+{
+	return laneStatsMap;
 }
 
 double SegmentStats::getInitialQueueLength(const Lane* lane) const
@@ -1179,7 +1205,7 @@ void LaneStats::printAgents() const
 	debugMsgs << "Lane: " << lane->getLaneId();
 	for (PersonList::const_iterator i = laneAgents.begin(); i != laneAgents.end(); i++)
 	{
-		debugMsgs << "|" << (*i)->getId() ;
+		debugMsgs << "|" << (*i)->getDatabaseId() ;
 		if((*i)->getPrevRole()){
 			debugMsgs << "(" << (*i)->getPrevRole()->getRoleName() << ")";
 		}
@@ -1243,7 +1269,7 @@ Person_MT* SegmentStats::dequeue(const Person_MT* person, const Lane* lane, bool
 	{
 		printAgents();
 		std::stringstream debugMsgs;
-		debugMsgs << "Error: Person " << person->getId() << "|" << person->getDatabaseId() << " (" << person->getRole()->getRoleName() << ")"
+		debugMsgs << "Error: Person " << person->getDatabaseId() << " (" << person->getRole()->getRoleName() << ")"
 				<< " was not found in lane " << lane->getLaneId() << std::endl;
 		throw std::runtime_error(debugMsgs.str());
 	}
@@ -1255,7 +1281,8 @@ Person_MT* LaneStats::dequeue(const Person_MT* person, bool isQueuingBfrUpdate, 
 	if (laneAgents.size() == 0)
 	{
 		std::stringstream debugMsgs;
-		debugMsgs << "Trying to dequeue Person " << person->getId() << " from empty lane." << std::endl;
+		debugMsgs << "Trying to dequeue Person " << person->getDatabaseId() << " from empty lane." << std::endl;
+		Print() << debugMsgs.str();
 		return nullptr;
 	}
 	Person_MT* dequeuedPerson = nullptr;

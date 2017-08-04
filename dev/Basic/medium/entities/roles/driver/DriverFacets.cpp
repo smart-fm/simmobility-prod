@@ -1175,20 +1175,35 @@ const Lane* DriverMovement::getBestTargetLane(const SegmentStats* nextSegStats, 
 			{
 				continue;
 			}
+
 			totalLength = nextSegStats->getLaneTotalVehicleLength(lane);
 			queueLength = nextSegStats->getLaneQueueLength(lane);
-			if (minLength > totalLength)
-			{ //if total length of vehicles is less than current minLength
+
+			if(queueLength == 0)
+			{
+				//If lane has 0 queue length, we select it
 				minLength = totalLength;
 				minQueueLength = queueLength;
 				minLane = lane;
 			}
-			else if (minLength == totalLength)
-			{ //if total length of vehicles is equal to current minLength
-				if (minQueueLength > queueLength)
-				{ //and if the queue length is less than current minQueueLength
+			else
+			{
+				if(minQueueLength > queueLength)
+				{
+					//Choose lane with lower queue length
+					minLength = totalLength;
 					minQueueLength = queueLength;
 					minLane = lane;
+				}
+				else if(minQueueLength == queueLength)
+				{
+					//In case of a tie, use the one with smaller total length
+					if(minLength > totalLength)
+					{
+						minLength = totalLength;
+						minQueueLength = queueLength;
+						minLane = lane;
+					}
 				}
 			}
 		}

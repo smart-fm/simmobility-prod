@@ -106,6 +106,7 @@ namespace sim_mob
             void saveData(std::vector<Household*> &households);
             std::vector<Household*> loadSerializedData();
 
+            Household( const Household &source);
             Household& operator=(const Household& source);
             void setAgeOfHead(int ageOfHead);
             int getAgeOfHead() const;

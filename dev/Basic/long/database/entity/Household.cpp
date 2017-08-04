@@ -127,6 +127,51 @@ void Household::serialize(Archive & ar,const unsigned int version)
 
 }
 
+Household::Household( const Household &source)
+{
+	this->id = source.id;
+	this->lifestyleId = source.lifestyleId;
+	this->unitId = source.unitId;
+	this->ethnicityId = source.ethnicityId;
+	this->vehicleCategoryId = source.vehicleCategoryId;
+	this->income = source.income;
+	this->size = source.size;
+	this->childUnder4 = source.childUnder15;
+	this->childUnder15 = source.childUnder15;
+	this->adult = source.adult;
+	this->housingDuration = source.housingDuration;
+	this->workers = source.workers;
+	this->ageOfHead = source.ageOfHead;
+	this->pendingStatusId = source.pendingStatusId;
+	this->pendingFromDate = source.pendingFromDate;
+	this->unitPending = source.unitPending;
+	this->taxiAvailability = source.taxiAvailability;
+	this->vehicleOwnershipOptionId = source.vehicleOwnershipOptionId;
+	this->logsum = source.logsum;
+	this->currentUnitPrice = source.currentUnitPrice;
+	this->householdAffordabilityAmount = source.householdAffordabilityAmount;
+	this->timeOnMarket = source.timeOnMarket;
+	this->timeOffMarket = source.timeOffMarket;
+	this->isBidder = source.isBidder;
+	this->isSeller = source.isSeller;
+	this->buySellInterval = source.buySellInterval;
+	this->moveInDate = source.moveInDate;
+	this->tenureStatus = source.tenureStatus;
+	this->awakenedDay = source.awakenedDay;
+	this->randomNum = source.randomNum;
+	this->liveInToaPayoh = source.liveInToaPayoh;
+	this->workInToaPayoh = source.workInToaPayoh;
+	this->numWhiteCollars = source.numWhiteCollars;
+	this->numWorkers = source.numWorkers;
+	this->numElderly = source.numElderly;
+	this->individuals = source.individuals;
+	for(size_t i = 0; i < individuals.size(); i++)
+	{
+		this->individuals[i] = source.individuals[i];
+	}
+
+
+}
 
 Household& Household::operator=(const Household& source)
 {
@@ -165,6 +210,11 @@ Household& Household::operator=(const Household& source)
     this->numWhiteCollars = source.numWhiteCollars;
     this->numWorkers = source.numWorkers;
     this->numElderly = source.numElderly;
+    this->individuals = source.individuals;
+    for(size_t i = 0; i < individuals.size(); i++)
+    	{
+    		this->individuals[i] = source.individuals[i];
+    	}
 
     return *this;
 }

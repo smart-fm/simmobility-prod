@@ -1792,7 +1792,7 @@ void HM_Model::startImpl()
 					household->setTimeOnMarket(resumptionHH->getTimeOnMarket());
 				}
 
-				household->setUnitId(getResumptionHouseholdById(household->getId())->getUnitId());//update the unit id of the households moved to new units.
+				household->setUnitId(resumptionHH->getUnitId());//update the unit id of the households moved to new units.
 			}
 
 			if(getVehicleOwnershipChangesByHHId(household->getId()) != nullptr) //update the vehicle ownership option of the households that change vehicles.
@@ -1827,6 +1827,7 @@ void HM_Model::startImpl()
 				hhAgent->getSeller()->setActive(true);
 			}
 		}
+
 		const Unit* unit = getUnitById(household->getUnitId());
 
 		if (unit)
@@ -1870,7 +1871,8 @@ void HM_Model::startImpl()
 
 				if (tempHH != nullptr)
 				{
-					tempHH->setIndividual(individuals[n]->getId());
+					int id = individuals[n]->getId();
+					tempHH->setIndividual(id);
 				}
 			}
 }
@@ -3400,6 +3402,8 @@ void HM_Model::stopImpl()
 	deleteAll(stats);
 	clear_delete_vector(households);
 	clear_delete_vector(units);
+	clear_delete_vector(resumptionHouseholds);
 	householdsById.clear();
 	unitsById.clear();
+	resumptionHHById.clear();
 }

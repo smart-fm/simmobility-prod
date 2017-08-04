@@ -829,7 +829,7 @@ bool HouseholdBidderRole::pickEntryToBid()
 
                 printHouseholdBiddingList( day, household->getId(), unit->getId(), oldPCStr, newPCStr, wp, entry->getAskingPrice(), maxAffordability, currentBid, currentSurplus);
 
-            	if( currentSurplus > maxSurplus && maxAffordability > currentBid )
+            	if( currentSurplus > maxSurplus && maxAffordability > currentBid  && currentSurplus > 0)
             	{
             		maxSurplus = currentSurplus;
             		finalBid = currentBid;

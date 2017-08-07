@@ -1953,12 +1953,20 @@ void HM_Model::startImpl()
 
 				if( awakeningProbability < config.ltParams.housingModel.vacantUnitActivationProbability )
 				{
+					/*if awakened, time on the market was set to randomized number above,
+					and subsequent time off the market is fixed via setTimeOffMarket.
+					*/
 					(*it)->setbiddingMarketEntryDay( unitStartDay );
+					(*it)->setTimeOffMarket( config.ltParams.housingModel.timeOffMarket);
 					onMarket++;
 				}
 				else
 				{
-					(*it)->setbiddingMarketEntryDay( unitStartDay + (float)rand() / RAND_MAX * config.ltParams.housingModel.timeOnMarket);
+					/*If not awakened, time off the market was set to randomized number above,
+					and subsequent time on market is fixed via setTimeOnMarket.
+					*/
+					(*it)->setbiddingMarketEntryDay( unitStartDay + (*it)->getTimeOffMarket());
+					(*it)->setTimeOnMarket( config.ltParams.housingModel.timeOnMarket);
 					offMarket++;
 				}
 

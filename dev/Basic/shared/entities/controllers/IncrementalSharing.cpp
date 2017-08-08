@@ -84,7 +84,7 @@ void IncrementalSharing::computeSchedules()
 }
 
 Schedule IncrementalSharing::buildSchedule(unsigned int maxAggregatedRequests, double maxWaitingTime,
-                                           const Node *driverNode, const Schedule preExistentSchedule, unsigned int *aggregatedRequests)
+                                           const Node *driverNode, Schedule schedule, unsigned int *aggregatedRequests)
 {
 	for (std::list<TripRequestMessage>::iterator itReq = requestQueue.begin();
 	     itReq != requestQueue.end() && *aggregatedRequests < maxAggregatedRequests;)
@@ -98,7 +98,7 @@ Schedule IncrementalSharing::buildSchedule(unsigned int maxAggregatedRequests, d
 
 		do
 		{
-			Schedule scheduleHypothesis = preExistentSchedule;
+			Schedule scheduleHypothesis = schedule;
 			// To check if we can assign this request to this driver, we create tentative schedules (like this
 			// scheduleHypothesis).
 			// We will try to modify this tentative schedule. If we succeed, they will become the real schedule.
@@ -127,7 +127,7 @@ Schedule IncrementalSharing::buildSchedule(unsigned int maxAggregatedRequests, d
 					{
 						// I can also insert the dropoff. Perfect, I will make this successful scheduleHypothesis my schedule
 						isMatchingSuccessful = true;
-						preExistentSchedule = scheduleHypothesis2;
+						schedule = scheduleHypothesis2;
 						(*aggregatedRequests)++;
 						itReq = requestQueue.erase(itReq);
 						// The request is matched now. I can eliminate it, so that I will not assign
@@ -138,7 +138,7 @@ Schedule IncrementalSharing::buildSchedule(unsigned int maxAggregatedRequests, d
 						dropoffIdx++;
 					} // I will try with the subsequent position
 				}
-				while (dropoffIdx <= preExistentSchedule.size() && !isMatchingSuccessful);
+				while (dropoffIdx <= schedule.size() && !isMatchingSuccessful);
 				// Note: I am using <= and not < in the while condition, since it is possible to insert the dropoff at the end of the schedule
 			}
 
@@ -148,7 +148,7 @@ Schedule IncrementalSharing::buildSchedule(unsigned int maxAggregatedRequests, d
 			// the pickup. If we find another feasible position for the pickup, it is possible that we will also find a feasible position
 			// for a dropoff, given the new pickup position
 		}
-		while (pickupIdx < preExistentSchedule.size() && !isMatchingSuccessful);
+		while (pickupIdx < schedule.size() && !isMatchingSuccessful);
 		// Note: I am using < and not <= in the while condition, since, if I insert the pickup at the end, it is like I am not really sharing this request with
 
 		if (!isMatchingSuccessful)
@@ -161,7 +161,7 @@ Schedule IncrementalSharing::buildSchedule(unsigned int maxAggregatedRequests, d
 
 	// Now we are done with this driver.
 
-	return preExistentSchedule;
+	return schedule;
 }
 
 void IncrementalSharing::assignSchedules(const map<const Person *, Schedule> &schedulesComputedSoFar, bool isUpdatedSchedule)

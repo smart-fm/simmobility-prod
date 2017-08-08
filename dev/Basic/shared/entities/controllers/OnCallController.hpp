@@ -183,6 +183,7 @@ protected:
 
 	/**List of drivers who have been assigned a schedule, but are carrying only 1 passenger,
 	 * so they can potentially serve 1 more request (used by incremental controller)*/
+	//aa!!: If it is used only by the IncrementalSharing, can we move it there?
 	std::set<const Person *> partiallyAvailableDrivers;
 
 	virtual void assignSchedule(const Person* driver, const Schedule& schedule, bool isUpdatedSchedule = false);
@@ -278,6 +279,13 @@ protected:
 	 * Associates to each driver her current schedule. If a driver has nothing to do,
 	 * an empty schedule is associated to her
 	 */
+	//aa!!: Maintaing and continuously updating these copies of the schedule on the controller is
+	//			1) computationally expensive and 2) prone to errors as we "try" to make them correspond
+	//			to the actual schedule on the driver, but nothing assures that this is the case and, more importantly,
+	//			nothing assure that it will be the case with further development, possibly done by other people.
+	//			I think we should keep just the copy on the driver, as a buffered variable
+	//			(see https://github.com/smart-fm/simmobility/wiki/Parallel-Framework#buffered-variables)
+	//			and remove this driverSchedules in the controller
 	std::map<const Person*, Schedule> driverSchedules;
 
 	//TODO: These should not be hardcoded

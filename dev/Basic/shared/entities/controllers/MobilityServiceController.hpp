@@ -87,6 +87,7 @@ protected:
 	 * Updates the controller's copy of the driver schedule
 	 * @param person the driver
 	 */
+	//aa!!: This only concerns the OnCall controller and should be removed from here
 	virtual void onDriverScheduleStatus(Person *person);
 
 	const MobilityServiceControllerType controllerServiceType;

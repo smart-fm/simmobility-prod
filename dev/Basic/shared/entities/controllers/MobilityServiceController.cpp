@@ -76,6 +76,7 @@ void MobilityServiceController::HandleMessage(messaging::Message::MessageType ty
 		break;
 	}
 
+	//aa!!: This only concerns the OnCall controller and should be moved in the handleMessage there.
 	case MSG_DRIVER_SCHEDULE_STATUS:
 	{
 		const DriverScheduleStatusMsg &statusMsgArgs = MSG_CAST(DriverScheduleStatusMsg, message);

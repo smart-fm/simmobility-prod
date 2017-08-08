@@ -116,6 +116,12 @@ public:
 	const unsigned long getPassengerCount() const;
 
 	/**
+	 * @return the barycenter of the drop off locations of the passenger that
+	 * this driver has to drop off yet
+	 */
+	const Point getDropOffBarycenter() const;
+
+	/**
 	 * message handler which provide a chance to handle message transfered from parent agent.
 	 * @param type of the message.
 	 * @param message data received.
@@ -159,6 +165,9 @@ private:
 
 	/**Indicates whether we have sent the reply for the schedule proposition sent by the controller*/
 	bool isScheduleAckSent;
+
+	/** The barycenter of the dropOff locations of the passenger that still have to be dropped off  **/
+	Point dropOffBarycenter;
 
 	/**
 	 * Checks if the item in progress is present in the updated schedule

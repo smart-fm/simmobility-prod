@@ -35,13 +35,15 @@ TaxiDriver::TaxiDriver(Person_MT* parent, const MutexStrategy& mtx) :
 bool TaxiDriver::addPassenger(Passenger *passenger)
 {
 	//Assign the taxiPassenger, this will be used by on hail drivers to alight the passenger
+	//aa!!:  If taxiPassenger is not NULL, the passenger will not be added but still the
+	//			function will return SUCCESS.
 	if (!taxiPassenger)
 	{
 		taxiPassenger = passenger;
 	}
 
 	const string &personId = passenger->getParent()->getDatabaseId();
-
+/*
 	if(taxiPassengers.find(personId) == taxiPassengers.end())
 	{
 		taxiPassengers[personId] = passenger;
@@ -50,10 +52,28 @@ bool TaxiDriver::addPassenger(Passenger *passenger)
 	{
 		stringstream msg;
 		msg << "Driver " << parent->getDatabaseId()
-		    << " is trying to add passenger " << personId << "that has already been picked-up.";
+		    		<< " is trying to add passenger " << personId << "that has already been picked-up.";
 		throw runtime_error(msg.str());
 	}
+*/
 
+	//aa!!: The code that follows replaces the one that I commented out above. Notice that the
+	//			performance is better now, in the Release version, since we directly add the passenger
+	//			without needing any additional check
+#ifndef NDEBUG
+	if(taxiPassengers.find(personId) != taxiPassengers.end() )
+	{
+		stringstream msg;
+		msg << "Driver " << parent->getDatabaseId()
+		    		<< " is trying to add passenger " << personId << "that has already been picked-up.";
+		throw runtime_error(msg.str() );
+	}
+#endif
+
+	taxiPassengers[personId] = passenger;
+
+
+	//aa!!: This function always returns true. Is is really the intended behavior?
 	return true;
 }
 
@@ -354,7 +374,15 @@ void TaxiDriver::processNextScheduleItem(bool isMoveToNextScheduleItem)
 		{
 			//Inform the controller that one schedule item has been completed
 			MessageBus::PostMessage(controller, MSG_DRIVER_SCHEDULE_STATUS,
-			                        MessageBus::MessagePtr(new DriverScheduleStatusMsg(parent)));
+			                        MessageBus::MessagePtr(new DriverScheduleStatusMsg(parent)) );
+
+			//aa!!: This message is sent with 1-slot delay. It means that, for one time slot, the controller
+			//			copy of the schedule and the actual schedule on the driver are different. It means that
+			//			any computation that the controller does is wrong. We can solve this error by removing
+			//			completely the copy on the controller (see my discussion in the OnCallController.hpp close to
+			//			where driverSchedules is defined). By doing that, we also save a lot of computation consisting in
+			//			sending the MSG_DRIVER_SCHEDULE_STATUS message, searching the map on the server for the
+			//			appropriate entry and updating the entry accordingly.
 		}
 	}
 
@@ -475,6 +503,7 @@ void TaxiDriver::processNextScheduleItem(bool isMoveToNextScheduleItem)
 		//Check which passenger is to be dropped-off
 		Passenger *passengerToDrop = taxiPassenger = taxiPassengers[tripRequest.userId];
 
+#ifndef NDEBUG
 		if(!passengerToDrop)
 		{
 			std::stringstream msg;
@@ -482,7 +511,19 @@ void TaxiDriver::processNextScheduleItem(bool isMoveToNextScheduleItem)
 					parent->getDatabaseId();
 			throw std::runtime_error(msg.str());
 		}
+#endif
 
+		//aa!!: Keeping and continuously updating the taxiPassengers[] map is an overhead that we can avoid in Release mode.
+		//			Indeed, I checked that taxiPassengers[] is only used to check if we are inserting the same passengers twice
+		//			and other checks of this kind, that, if they failed, raise exception. Therefore, taxiPassengers[] is still useful in
+		//			Debug mode, but we should only define and use it inside #ifndef NDEBUG #endif.
+		//			For the rest, in release mode, it is only used for the following reasons: 1. understanding which user we are dropping off
+		//			to print out her id, 2. retrieving the passenger route choice, 3. understanding how many passengers are currently
+		//			in the car.
+		//			Now, as for 1, we can retrieve the passenger id from the dropOff schedule item directly. As for 2, we can obtain it by
+		//			modifying the TripRequestMessage structure: instead of (or in addition to) storing the passenger id, we can store the
+		//			pointer of that person. As for 3, we can just keep a counter currentOccupancy, that we just increase and decrease at any
+		//			pickup and dropoff, which is much faster that having to query a map.
 		const Person_MT *personToDrop = passengerToDrop->getParent();
 		std::vector<SubTrip>::iterator subTripItr = personToDrop->currSubTrip;
 		WayPoint personTravelDestination = (*subTripItr).destination;
@@ -505,19 +546,13 @@ void TaxiDriver::processNextScheduleItem(bool isMoveToNextScheduleItem)
 			                                                                                       *personDestinationNode);
 		}
 
-		if(!currentRouteChoice.empty())
-		{
-			taxiDriverMovement->setDestinationNode(personDestinationNode);
-			taxiDriverMovement->setCurrentNode(currentNode);;
-			taxiDriverMovement->addRouteChoicePath(currentRouteChoice);
-			//passengerToDrop->setEndPoint(WayPoint(taxiDriverMovement->getDestinationNode()));
-			setDriverStatus(DRIVE_WITH_PASSENGER);
 
-			ControllerLog() << "Processing drop-off for " << tripRequest
-			                << ". This assignment is started by driver " <<
-			                this->getParent()->getDatabaseId() << " at time " << parent->currTick << std::endl;
-		}
-		else
+		//aa!!: Before my refactoring, the lines below, i.e., taxiDriverMovement->setDestinationNode(personDestinationNode) etc.
+		//			were inside a condition if( !currentRouteChoice.empty() ). Now, you can observe that I inverted the condition and
+		//			I put the handling of the erroneous case inside the inverted condition and NDEBUG tag. In Release mode, we will
+		//			not need anymore to check for the if( !currentRouteChoice.empty() ) to hold and we will save time.
+#ifndef NDEBUG
+		if( currentRouteChoice.empty() )
 		{
 			stringstream msg;
 			msg << "Processing drop-off for " << tripRequest
@@ -525,6 +560,18 @@ void TaxiDriver::processNextScheduleItem(bool isMoveToNextScheduleItem)
 			    this->getParent()->getDatabaseId() << " at time " << parent->currTick << std::endl;
 			throw runtime_error(msg.str());
 		}
+#endif
+
+
+		taxiDriverMovement->setDestinationNode(personDestinationNode);
+		taxiDriverMovement->setCurrentNode(currentNode);;
+		taxiDriverMovement->addRouteChoicePath(currentRouteChoice);
+		//passengerToDrop->setEndPoint(WayPoint(taxiDriverMovement->getDestinationNode()));
+		setDriverStatus(DRIVE_WITH_PASSENGER);
+
+		ControllerLog() << "Processing drop-off for " << tripRequest
+				<< ". This assignment is started by driver " <<
+				this->getParent()->getDatabaseId() << " at time " << parent->currTick << std::endl;
 
 		break;
 	}

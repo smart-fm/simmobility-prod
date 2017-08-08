@@ -43,6 +43,7 @@ void IncrementalSharing::computeSchedules()
 		Schedule schedule;
 		unsigned aggregatedRequests = 0; // Number of requests that we have aggregated so far
 
+
 		schedule = buildSchedule(maxAggregatedRequests, maxWaitingTime, driverNode, schedule, &aggregatedRequests);
 
 #ifndef NDEBUG
@@ -83,7 +84,7 @@ void IncrementalSharing::computeSchedules()
 }
 
 Schedule IncrementalSharing::buildSchedule(unsigned int maxAggregatedRequests, double maxWaitingTime,
-                                           const Node *driverNode, Schedule schedule, unsigned int *aggregatedRequests)
+                                           const Node *driverNode, const Schedule preExistentSchedule, unsigned int *aggregatedRequests)
 {
 	for (std::list<TripRequestMessage>::iterator itReq = requestQueue.begin();
 	     itReq != requestQueue.end() && *aggregatedRequests < maxAggregatedRequests;)
@@ -97,7 +98,7 @@ Schedule IncrementalSharing::buildSchedule(unsigned int maxAggregatedRequests, d
 
 		do
 		{
-			Schedule scheduleHypothesis = schedule;
+			Schedule scheduleHypothesis = preExistentSchedule;
 			// To check if we can assign this request to this driver, we create tentative schedules (like this
 			// scheduleHypothesis).
 			// We will try to modify this tentative schedule. If we succeed, they will become the real schedule.
@@ -126,7 +127,7 @@ Schedule IncrementalSharing::buildSchedule(unsigned int maxAggregatedRequests, d
 					{
 						// I can also insert the dropoff. Perfect, I will make this successful scheduleHypothesis my schedule
 						isMatchingSuccessful = true;
-						schedule = scheduleHypothesis2;
+						preExistentSchedule = scheduleHypothesis2;
 						(*aggregatedRequests)++;
 						itReq = requestQueue.erase(itReq);
 						// The request is matched now. I can eliminate it, so that I will not assign
@@ -137,7 +138,7 @@ Schedule IncrementalSharing::buildSchedule(unsigned int maxAggregatedRequests, d
 						dropoffIdx++;
 					} // I will try with the subsequent position
 				}
-				while (dropoffIdx <= schedule.size() && !isMatchingSuccessful);
+				while (dropoffIdx <= preExistentSchedule.size() && !isMatchingSuccessful);
 				// Note: I am using <= and not < in the while condition, since it is possible to insert the dropoff at the end of the schedule
 			}
 
@@ -147,7 +148,7 @@ Schedule IncrementalSharing::buildSchedule(unsigned int maxAggregatedRequests, d
 			// the pickup. If we find another feasible position for the pickup, it is possible that we will also find a feasible position
 			// for a dropoff, given the new pickup position
 		}
-		while (pickupIdx < schedule.size() && !isMatchingSuccessful);
+		while (pickupIdx < preExistentSchedule.size() && !isMatchingSuccessful);
 		// Note: I am using < and not <= in the while condition, since, if I insert the pickup at the end, it is like I am not really sharing this request with
 
 		if (!isMatchingSuccessful)
@@ -160,7 +161,7 @@ Schedule IncrementalSharing::buildSchedule(unsigned int maxAggregatedRequests, d
 
 	// Now we are done with this driver.
 
-	return schedule;
+	return preExistentSchedule;
 }
 
 void IncrementalSharing::assignSchedules(const map<const Person *, Schedule> &schedulesComputedSoFar, bool isUpdatedSchedule)
@@ -173,6 +174,11 @@ void IncrementalSharing::assignSchedules(const map<const Person *, Schedule> &sc
 
 		//Find where to park after the final drop off
 		unsigned int finalDropOff = schedule.back().tripRequest.destinationNodeId;
+
+		//aa!!: This fact that we retrieve the node itself from the node id querying a big map happens too much
+		//			and everywhere in the code.
+		//			I think it would be better to modify the TripRequestMessage, having the const Node* instead of
+		//			(or in addition to) nodeId, both for the pickUp and dropOff location.
 		const RoadNetwork *rdNetowrk = RoadNetwork::getInstance();
 		const Node *finalDropOffNode = rdNetowrk->getById(rdNetowrk->getMapOfIdvsNodes(), finalDropOff);
 		const SMSVehicleParking *parking =
@@ -191,6 +197,10 @@ void IncrementalSharing::assignSchedules(const map<const Person *, Schedule> &sc
 
 void IncrementalSharing::matchPartiallyAvailableDrivers()
 {
+	//aa!!: This fact that we retrieve the node itself from the node id querying a big map happens too much
+	//			and everywhere in the code.
+	//			I think it would be better to modify the TripRequestMessage, having the const Node* instead of
+	//			(or in addition to) nodeId, both for the pickUp and dropOff location.
 	const std::map<unsigned int, Node *> &nodeIdMap = RoadNetwork::getInstance()->getMapOfIdvsNodes();
 	double maxWaitingTime = 600; //seconds
 	unsigned maxAggregatedRequests = 1;

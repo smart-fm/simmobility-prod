@@ -169,6 +169,8 @@ void OnCallController::onDriverScheduleStatus(Person *driver)
 
 	Schedule &schedule = driverSchedules[driver];
 
+	//aa!!: If schedule is empty, this would be an error, right? Why would a driver update an empty schedule.
+	//			We should rise an appropriate NDEBUG exception here.
 	if(!schedule.empty())
 	{
 		schedule.erase(schedule.begin());
@@ -384,6 +386,7 @@ void OnCallController::assignSchedule(const Person *driver, const Schedule &sche
 	// We have just assigned a new schedule to the driver.
 	// We remove the first item of the schedule from the controller's copy, so that the controller
 	// know what part of the schedule is remaining
+	//aa!!: Why do we remove just the first item?
 	Schedule controllersCopy = schedule;
 	controllersCopy.erase(controllersCopy.begin());
 

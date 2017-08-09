@@ -164,37 +164,6 @@ Schedule IncrementalSharing::buildSchedule(unsigned int maxAggregatedRequests, d
 	return schedule;
 }
 
-void IncrementalSharing::assignSchedules(const map<const Person *, Schedule> &schedulesComputedSoFar, bool isUpdatedSchedule)
-{
-	// After we decided all the schedules for all the drivers, we can send  them
-	for (const pair<const Person *, Schedule> &p : schedulesComputedSoFar)
-	{
-		const Person *driver = p.first;
-		Schedule schedule = p.second;
-
-		//Find where to park after the final drop off
-		unsigned int finalDropOff = schedule.back().tripRequest.destinationNodeId;
-
-		//aa!!: This fact that we retrieve the node itself from the node id querying a big map happens too much
-		//			and everywhere in the code.
-		//			I think it would be better to modify the TripRequestMessage, having the const Node* instead of
-		//			(or in addition to) nodeId, both for the pickUp and dropOff location.
-		const RoadNetwork *rdNetowrk = RoadNetwork::getInstance();
-		const Node *finalDropOffNode = rdNetowrk->getById(rdNetowrk->getMapOfIdvsNodes(), finalDropOff);
-		const SMSVehicleParking *parking =
-				SMSVehicleParking::smsParkingRTree.searchNearestObject(finalDropOffNode->getPosX(), finalDropOffNode->getPosY());
-
-		if(parking)
-		{
-			//Append the parking schedule item to the end
-			const ScheduleItem parkingSchedule(PARK, parking);
-			schedule.push_back(parkingSchedule);
-		}
-
-		assignSchedule(driver, schedule, isUpdatedSchedule);
-	}
-}
-
 void IncrementalSharing::matchPartiallyAvailableDrivers()
 {
 	//aa!!: This fact that we retrieve the node itself from the node id querying a big map happens too much
@@ -202,10 +171,13 @@ void IncrementalSharing::matchPartiallyAvailableDrivers()
 	//			I think it would be better to modify the TripRequestMessage, having the const Node* instead of
 	//			(or in addition to) nodeId, both for the pickUp and dropOff location.
 	const std::map<unsigned int, Node *> &nodeIdMap = RoadNetwork::getInstance()->getMapOfIdvsNodes();
-	double maxWaitingTime = 600; //seconds
-	unsigned maxAggregatedRequests = 1;
+
+	unsigned maxAggregatedRequests = maxAggregatedRequests-1;
 
 	// We will put here the schedule that we will have constructed per each driver
+	//aa!!: An unordered map instead of a map should be more efficient. As we are not performing any
+	//			search, we can add in an unordered way, saving the time for an ordered insertion
+	//			(see http://john-ahlgren.blogspot.com/2013/10/stl-container-performance.html)
 	std::map<const Person *, Schedule> schedulesComputedSoFar;
 
 	for (const Person *driver : partiallyAvailableDrivers)

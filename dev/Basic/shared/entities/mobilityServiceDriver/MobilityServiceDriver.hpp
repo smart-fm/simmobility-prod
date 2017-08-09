@@ -9,7 +9,7 @@
 #define MOBILITYSERVICEDRIVER_HPP_
 
 #include <iostream>
-#include "entities/controllers/MobilityServiceController.hpp"
+#include "message/MobilityServiceControllerMessage.hpp"
 
 namespace sim_mob {
 class Node;
@@ -30,8 +30,6 @@ enum MobilityServiceDriverStatus
 	DRIVE_TO_PARKING,
 	PARKED
 };
-
-
 
 class MobilityServiceDriver {
 public:
@@ -55,6 +53,9 @@ public:
 	virtual const std::string getSubscribedControllerTypesStr() const;
 	virtual bool hasMultipleSubscriptions() const;
 
+
+	virtual unsigned long getPassengerCount() const = 0;
+	virtual sim_mob::Schedule getAssignedSchedule() const = 0;
 protected:
 	MobilityServiceDriverStatus driverStatus;
 };

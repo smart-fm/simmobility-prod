@@ -144,8 +144,11 @@ void TaxiDriver::alightPassenger()
 	}
 }
 
-const unsigned long TaxiDriver::getPassengerCount() const
+unsigned long TaxiDriver::getPassengerCount() const
 {
+	//aa!!: If we remove this taxiPassengers data structure, as I suggest in some other comments,
+	//			to get the count we can just use
+	//					assignedSchedule->getPassengerCount()
 	return taxiPassengers.size();
 }
 
@@ -738,3 +741,6 @@ bool TaxiDriver::isInProgressItemInSchedule(const ScheduleItem &itemInProgress, 
 
 	return result;
 }
+
+
+Schedule TaxiDriver::getAssignedSchedule()const{return assignedSchedule;};

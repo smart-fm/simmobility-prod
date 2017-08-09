@@ -14,6 +14,7 @@
 #include "entities/controllers/Rebalancer.hpp"
 #include "message/MessageBus.hpp"
 #include "logging/ControllerLog.hpp"
+#include "entities/mobilityServiceDriver/MobilityServiceDriver.hpp"
 
 
 namespace sim_mob
@@ -27,7 +28,8 @@ enum MobilityServiceControllerType : unsigned int
 	SERVICE_CONTROLLER_SHARED = 0b0010,
 	SERVICE_CONTROLLER_ON_HAIL = 0b0100,
 	SERVICE_CONTROLLER_FRAZZOLI = 0b1000,
-	SERVICE_CONTROLLER_INCREMENTAL = 0b10000
+	SERVICE_CONTROLLER_INCREMENTAL = 0b10000,
+	SERVICE_CONTROLLER_PROXIMITY = 0b100000
 };
 
 const std::string toString(const MobilityServiceControllerType type);
@@ -97,8 +99,18 @@ protected:
 
 public:
 
-	//TODO: Should not be hardocded
 	static const unsigned toleratedExtraTime; //seconds
+
+	/**
+	 * The maximum that a user is willing to wait before being picked up
+	 */
+	static const double maxWaitingTime; // seconds
+
+	/**
+	 * Maximum number of people we can put together in a single vehicle
+	 */
+	static const unsigned maxAggregatedRequests;
+
 
 	virtual ~MobilityServiceController();
 

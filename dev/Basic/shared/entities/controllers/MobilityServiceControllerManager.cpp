@@ -10,6 +10,7 @@
 #include "entities/controllers/OnHailTaxiController.hpp"
 #include "entities/controllers/SharedController.hpp"
 #include "entities/controllers/IncrementalSharing.hpp"
+#include "entities/controllers/ProximityBased.hpp"
 
 using namespace sim_mob;
 
@@ -93,6 +94,12 @@ bool MobilityServiceControllerManager::addMobilityServiceController(MobilityServ
 	case SERVICE_CONTROLLER_INCREMENTAL:
 	{
 		controller = new IncrementalSharing(getMutexStrategy(), scheduleComputationPeriod, controllerId,
+		                                    ttEstimateType);
+		break;
+	}
+	case SERVICE_CONTROLLER_PROXIMITY:
+	{
+		controller = new ProximityBased(getMutexStrategy(), scheduleComputationPeriod, controllerId,
 		                                    ttEstimateType);
 		break;
 	}

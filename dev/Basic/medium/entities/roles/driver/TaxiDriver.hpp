@@ -113,13 +113,7 @@ public:
 	/**
 	 * @return the count of passengers on board
 	 */
-	const unsigned long getPassengerCount() const;
-
-	/**
-	 * @return the barycenter of the drop off locations of the passenger that
-	 * this driver has to drop off yet
-	 */
-	const Point getDropOffBarycenter() const;
+	unsigned long getPassengerCount() const;
 
 	/**
 	 * message handler which provide a chance to handle message transfered from parent agent.
@@ -138,6 +132,13 @@ public:
 
 	bool hasDriverShiftEnded() const;
 
+
+	/**
+	 * Overrides the parent function
+	 */
+	virtual Schedule getAssignedSchedule() const;
+
+
 private:
 	/**Holds all the passengers on board, the key to the map is the person db id*/
 	std::map<const std::string, Passenger *> taxiPassengers;
@@ -152,6 +153,7 @@ private:
 	TaxiDriverBehavior *taxiDriverBehaviour;
 
 	/**Holds the schedule assigned by the controller*/
+	//aa!!: We should move it into the MobilityServiceDriver class, as this member is valid for both Mid and Short Term.
 	Schedule assignedSchedule;
 
 	/**Points to the current schedule item*/

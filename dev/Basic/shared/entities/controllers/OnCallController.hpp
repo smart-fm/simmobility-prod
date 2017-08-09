@@ -15,6 +15,8 @@
 #include "message/MobilityServiceControllerMessage.hpp"
 #include "MobilityServiceController.hpp"
 #include "entities/controllers/Rebalancer.hpp"
+#include <unordered_map>
+
 
 namespace sim_mob
 {
@@ -147,6 +149,11 @@ public:
 	double getTT(const Node* node1, const Node* node2, TT_EstimateType typeOD) const;
 
 	/**
+	 * Estimates the travel time to go from point1 to point2. In seconds
+	 */
+	double getTT(const Point& point1, const Point& point2) const;
+
+	/**
 	 * Converts from number of clocks to milliseconds
 	 */
 	double toMs(int c) const;
@@ -262,6 +269,13 @@ protected:
 	 * @param person the driver
 	 */
 	virtual void onDriverScheduleStatus(Person *driver);
+
+	//aa!!: Please, write a comment on what this function does
+	void assignSchedules(const std::unordered_map<const Person*, Schedule>& schedulesToAssign,
+			bool isUpdatedSchedule = false);
+
+	void assignSchedules(const std::map<const Person*, Schedule>& schedulesToAssign,
+				bool isUpdatedSchedule = false);
 
 	/** Keeps track of current local tick */
 	unsigned int localTick = 0;

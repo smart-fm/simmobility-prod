@@ -13,7 +13,10 @@
 namespace sim_mob
 {
 
+//aa!!: The fololoShould come from the xml
 const unsigned MobilityServiceController::toleratedExtraTime = 150; //seconds
+const double MobilityServiceController::maxWaitingTime = 600; // seconds
+const unsigned MobilityServiceController::maxAggregatedRequests = 2;
 
 
 MobilityServiceController::~MobilityServiceController()
@@ -217,6 +220,10 @@ const std::string toString(const MobilityServiceControllerType type)
 	{
 		return "SERVICE_CONTROLLER_INCREMENTAL";
 	}
+	case SERVICE_CONTROLLER_PROXIMITY:
+	{
+		return "SERVICE_CONTROLLER_PROXIMITY";
+	}
 	default:
 	{
 		std::stringstream msg;
@@ -235,6 +242,7 @@ void consistencyChecks(const MobilityServiceControllerType type)
 	case SERVICE_CONTROLLER_FRAZZOLI:
 	case SERVICE_CONTROLLER_ON_HAIL:
 	case SERVICE_CONTROLLER_INCREMENTAL:
+	case SERVICE_CONTROLLER_PROXIMITY:
 	{
 		break;
 	}

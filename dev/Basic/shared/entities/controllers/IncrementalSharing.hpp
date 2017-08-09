@@ -36,6 +36,7 @@ public:
 
 #ifndef NDEBUG
 	// Overrides the parent method
+	//aa!!: Why is it disabled?
 	//virtual void consistencyChecks(const std::string& label) const;
 #endif
 
@@ -53,8 +54,10 @@ protected:
 	 */
 	void matchPartiallyAvailableDrivers();
 
-	void assignSchedules(const std::map<const Person *, Schedule> &schedulesComputedSoFar, bool isUpdatedSchedule = false);
-
+	/**
+	 * Iterates over all the un-assigned requests and check if they can be added to schedule. If yes it
+	 * returns the new schedule, with the added requests
+	 */
 	Schedule buildSchedule(unsigned int maxAggregatedRequests, double maxWaitingTime, const Node *driverNode,
 	                       Schedule schedule, unsigned int *aggregatedRequests);
 };

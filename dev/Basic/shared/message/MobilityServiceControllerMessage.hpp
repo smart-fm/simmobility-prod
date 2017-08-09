@@ -10,6 +10,10 @@
 namespace sim_mob
 {
 
+// Set to false if the barycenter is not needed. If false, the compiler will avoid all the barycenter update
+// overhead
+const bool doWeComputeBarycenter = true;
+
 enum MobilityServiceControllerMessage
 {
 	MSG_DRIVER_SUBSCRIBE = 7100000,
@@ -234,8 +238,56 @@ struct ScheduleItem
 	const SMSVehicleParking *parking;
 };
 
-//TODO: It would be more elegant using std::variant, available from c++17
-typedef std::vector<ScheduleItem> Schedule;
+class Schedule{
+	private:
+		//TODO: It would be more elegant using std::variant, available from c++17
+		//aa!!: Given that we are inserting many elements now, it may be better to use a list instead of a vector
+		//			(see http://john-ahlgren.blogspot.com/2013/10/stl-container-performance.html)
+		std::vector<ScheduleItem> items;
+
+		/**
+		 * The barycenter of all the dropOff locations.
+		 * Only needed for the ProximityBased controller
+		 */
+		Point dropOffBarycenter;
+
+		short passengerCount;
+
+	public:
+		Schedule(): passengerCount(0), dropOffBarycenter(Point()){};
+
+		//{ EMULATE STANDARD CONTAINER FUNCTIONS
+		typedef std::vector<ScheduleItem>::const_iterator const_iterator;
+		typedef std::vector<ScheduleItem>::iterator iterator;
+
+		const std::vector<ScheduleItem>& getItems() const;
+		const size_t size() const;
+		const bool empty() const;
+		Schedule::iterator begin() ;
+		Schedule::const_iterator begin()  const;
+		const_iterator end()  const;
+		iterator end() ;
+		void insert(iterator position, const ScheduleItem scheduleItem);
+		void insert(iterator position, iterator first, iterator last);
+		const ScheduleItem& back() const;
+		ScheduleItem& front();
+		const ScheduleItem& front() const;
+		void pop_back();
+		void push_back(ScheduleItem item);
+		iterator erase(iterator position);
+		ScheduleItem& at(size_t n);
+		const ScheduleItem& at(size_t n) const;
+		//} EMULATE STANDARD CONTAINER FUNCTIONS
+
+		/**
+		 * Performs the appropriate internal data update when a pick up is added
+		 */
+		void onAddingScheduleItem(const ScheduleItem& item);
+		void onRemovingScheduleItem(const ScheduleItem& item);
+		const Point& getDropOffBarycenter() const;
+		short getPassengerCount() const;
+};
+
 
 /**
  * Message to propose a trip to a driver

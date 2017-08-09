@@ -24,6 +24,7 @@
 
 using namespace sim_mob;
 using namespace messaging;
+using namespace std;
 
 OnCallController::OnCallController(const MutexStrategy &mtxStrat, unsigned int computationPeriod,
                                    MobilityServiceControllerType type_, unsigned id, TT_EstimateType ttEstimateType_)
@@ -979,14 +980,7 @@ double OnCallController::getTT(const Node *node1, const Node *node2, TT_Estimate
 		}
 		case (EUCLIDEAN_ESTIMATION):
 		{
-			double squareDistance = pow(node1->getPosX() - node2->getPosX(), 2) + pow(
-					node1->getPosY() - node2->getPosY(), 2);
-			// We assume that the distance between node1 and node2 is a hypotenus of a right triangle and
-			// that we go from a node to the other by crossing the two catheti
-			double cathetus = sqrt(squareDistance) / sqrt(2.0);
-			double distanceToCover = 2.0 * cathetus; // metersd
-			double speedAssumed = 30.0 * 1000 / 3600; //30Kmph converted in mps
-			retValue = distanceToCover / speedAssumed;
+			return getTT(node1->getLocation(), node2->getLocation() ) ;
 			break;
 		}
 		default:
@@ -1002,13 +996,69 @@ double OnCallController::getTT(const Node *node1, const Node *node2, TT_Estimate
 	return retValue;
 }
 
+double OnCallController::getTT(const Point& point1, const Point& point2) const
+{
+	double squareDistance = pow(point1.getX() - point2.getX(), 2) + pow(
+			point1.getY() - point2.getY(), 2);
+	// We assume that the distance between node1 and node2 is a hypotenus of a right triangle and
+	// that we go from a node to the other by crossing the two catheti
+	double cathetus = sqrt(squareDistance) / sqrt(2.0);
+	double distanceToCover = 2.0 * cathetus; // meters
+	double speedAssumed = 30.0 * 1000 / 3600; //30Kmph converted in mps
+	return distanceToCover / speedAssumed;
+}
+
 double OnCallController::toMs(int c) const
 {
 	return c / (CLOCKS_PER_SEC / 1000);
 }
 
+void OnCallController::assignSchedules(const unordered_map<const Person*, Schedule>& schedulesToAssign,
+		bool isUpdatedSchedule)
+{
+	// After we decided all the schedules for all the drivers, we can send  them
+	for (const pair<const Person *, Schedule> &p : schedulesToAssign)
+	{
+		const Person *driver = p.first;
+		Schedule schedule = p.second;
 
+		//Find where to park after the final drop off
+		unsigned int finalDropOff = schedule.back().tripRequest.destinationNodeId;
 
+		//aa!!: This fact that we retrieve the node itself from the node id querying a big map happens too much
+		//			and everywhere in the code.
+		//			I think it would be better to modify the TripRequestMessage, having the const Node* instead of
+		//			(or in addition to) nodeId, both for the pickUp and dropOff location.
+		const RoadNetwork *rdNetowrk = RoadNetwork::getInstance();
+		const Node *finalDropOffNode = rdNetowrk->getById(rdNetowrk->getMapOfIdvsNodes(), finalDropOff);
+
+		//aa!!: Is the parking logic really only related to the IncrementalSharing. It seems to me that the parking
+		//			logic is generally related to OnCallController. We should move that logic there, otherwise we will
+		//			have to write always the same code for any controller.
+		const SMSVehicleParking *parking =
+				SMSVehicleParking::smsParkingRTree.searchNearestObject(finalDropOffNode->getPosX(), finalDropOffNode->getPosY());
+
+		if(parking)
+		{
+			//Append the parking schedule item to the end
+			const ScheduleItem parkingSchedule(PARK, parking);
+			schedule.push_back(parkingSchedule);
+		}
+
+		assignSchedule(driver, schedule, isUpdatedSchedule);
+	}
+}
+
+//aa!!: This function I did here is very bad! Ideally, we should have a single function assignSchedules that
+//			is able to handle both map and unordered_map, but I was not able to do it. I asked help on:
+//					https://stackoverflow.com/q/45601144/2110769
+//			Once we get a good suggestion from there, we should immediately get rid of this.
+void OnCallController::assignSchedules(const map<const Person*, Schedule>& schedulesToAssign,
+		bool isUpdatedSchedule)
+{
+	assignSchedules (unordered_map<const Person*, Schedule>(schedulesToAssign.begin(), schedulesToAssign.end() ),
+			isUpdatedSchedule) ;
+}
 
 
 

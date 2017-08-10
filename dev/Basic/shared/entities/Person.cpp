@@ -535,6 +535,12 @@ void sim_mob::Person::serializeSubTripChainItemTravelTimeMetrics(const TravelMet
 		origin = subtripMetrics.origin.busStop->getStopCode();
 		break;
 	}
+
+	case WayPoint::TAXI_STAND:
+	{
+		origin = std::to_string(subtripMetrics.origin.taxiStand->getStandId());
+		break;
+	}
 	case WayPoint::TRAIN_STOP:
 	{
 		const char* const delimiter = "/";
@@ -614,24 +620,6 @@ void sim_mob::Person::serializeSubTripChainItemTravelTimeMetrics(const TravelMet
 
 	csv << res.str();
 
-
-	if (st.travelMode == "\"Car\"" || st.travelMode == "Car" )                //Collecting Data for travel_time (Car_Travel_time.csv)for
-	{                                              //passenger travelling in own "CAR" (RL_DRIVER)
-		std::stringstream result_car("");
-		result_car << trip->getPersonID() << ","   //person_id
-		           << trip->startLocationId << "," //trip_origin_id
-		           << trip->endLocationId << ","   //trip_dest_id
-		           << trip->startLocationId << ","    //subtrip_origin_id
-		           << trip->endLocationId << ","      //subtrip_dest_id
-		           << "NODE" << ","                //subtrip_origin_type
-		           << "NODE" << ","                //subtrip_dest_type
-		           << "ON_CAR" << ","              //travel_mode
-		           << subtripMetrics.startTime.getStrRepr() << ","    //arrival_time
-		           << subtripMetrics.travelTime * 3600 << ","  //travel_time = arrival_time-end_time
-		<<(st.ptLineId.empty() ? "\"\"" : st.ptLineId)<<std::endl;  //pt_line
-		CarTravelTimeLogger << result_car.str();
-
-	}
 	int cbdStartNode = 0, cbdEndNode = 0;
 	if (subtripMetrics.cbdOrigin.type == WayPoint::NODE)
 	{

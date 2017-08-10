@@ -548,15 +548,17 @@ bool DriverMovement::moveToNextSegment(DriverUpdateParams& params)
  */
 void DriverMovement::onSegmentCompleted(const RoadSegment* completedRS, const RoadSegment* nextRS)
 {
-	//1.record
-	traversed.push_back(completedRS);
+	if(traversed.empty()||traversed.back()!=completedRS)
+	{//1.record
+		traversed.push_back(completedRS);
 
-	//2. update travel distance
-	travelMetric.distance += completedRS->getPolyLine()->getLength();
+		//2. update travel distance
+		travelMetric.distance += completedRS->getPolyLine()->getLength();
 
-	//3. update the next surveillance station
-	nextSurveillanceStn = nextRS ? nextRS->getSurveillanceStations().begin() :
-	                      completedRS->getSurveillanceStations().end();
+		//3. update the next surveillance station
+		nextSurveillanceStn = nextRS ? nextRS->getSurveillanceStations().begin() :
+		                      completedRS->getSurveillanceStations().end();
+	}
 }
 
 void DriverMovement::onLinkCompleted(const Link * completedLink, const Link * nextLink)

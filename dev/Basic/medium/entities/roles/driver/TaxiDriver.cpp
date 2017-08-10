@@ -691,3 +691,30 @@ bool TaxiDriver::isInProgressItemInSchedule(const ScheduleItem &itemInProgress, 
 
 	return result;
 }
+
+
+
+std::string TaxiDriver::getAllTaxiPassengersId()
+{
+    std:: string PrintPassengerID = "";
+	if (taxiPassengers.empty())
+	{
+		PrintPassengerID = "No Passenger";
+	}
+	else
+	{
+		for (std::map<const std::string, Passenger *> ::const_iterator it = taxiPassengers.begin(); it != taxiPassengers.end(); ++it)
+		{
+			if(it!=taxiPassengers.begin())
+			{
+				PrintPassengerID.append("|");
+			}
+
+			PrintPassengerID.append(it->first);
+		}
+
+	}
+
+	return PrintPassengerID;
+
+}

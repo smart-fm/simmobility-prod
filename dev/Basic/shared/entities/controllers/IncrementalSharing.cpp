@@ -33,8 +33,6 @@ void IncrementalSharing::computeSchedules()
 	}
 
 	const std::map<unsigned int, Node *> &nodeIdMap = RoadNetwork::getInstance()->getMapOfIdvsNodes();
-	unsigned maxAggregatedRequests = 2; // Maximum number of requests that can be assigned to a driver
-	double maxWaitingTime = 600; //seconds
 	std::map<const Person *, Schedule> schedulesComputedSoFar; // We will put here the schedule that we will have constructed per each driver
 
 	for (const Person *driver : availableDrivers)
@@ -172,7 +170,7 @@ void IncrementalSharing::matchPartiallyAvailableDrivers()
 	//			(or in addition to) nodeId, both for the pickUp and dropOff location.
 	const std::map<unsigned int, Node *> &nodeIdMap = RoadNetwork::getInstance()->getMapOfIdvsNodes();
 
-	unsigned maxAggregatedRequests = maxAggregatedRequests-1;
+	unsigned maxAggRequests = maxAggregatedRequests - 1;
 
 	// We will put here the schedule that we will have constructed per each driver
 	//aa!!: An unordered map instead of a map should be more efficient. As we are not performing any
@@ -208,7 +206,7 @@ void IncrementalSharing::matchPartiallyAvailableDrivers()
 		unsigned aggregatedRequests = 0;
 
 		Schedule schedule;
-		schedule = buildSchedule(maxAggregatedRequests, maxWaitingTime, driverNode, orgSchedule, &aggregatedRequests);
+		schedule = buildSchedule(maxAggRequests, maxWaitingTime, driverNode, orgSchedule, &aggregatedRequests);
 
 #ifndef NDEBUG
 		if (aggregatedRequests > (maxAggregatedRequests + 1))

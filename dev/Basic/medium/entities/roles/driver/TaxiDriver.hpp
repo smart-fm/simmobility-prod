@@ -113,7 +113,7 @@ public:
 	/**
 	 * @return the count of passengers on board
 	 */
-	const unsigned long getPassengerCount() const;
+	unsigned long getPassengerCount() const;
 
 	/**
 	 * message handler which provide a chance to handle message transfered from parent agent.
@@ -136,6 +136,13 @@ public:
      */
 	std::string  getAllTaxiPassengersId();
 
+
+	/**
+	 * Overrides the parent function
+	 */
+	virtual Schedule getAssignedSchedule() const;
+
+
 private:
 	/**Holds all the passengers on board, the key to the map is the person db id*/
 	std::map<const std::string, Passenger *> taxiPassengers;
@@ -150,6 +157,7 @@ private:
 	TaxiDriverBehavior *taxiDriverBehaviour;
 
 	/**Holds the schedule assigned by the controller*/
+	//aa!!: We should move it into the MobilityServiceDriver class, as this member is valid for both Mid and Short Term.
 	Schedule assignedSchedule;
 
 	/**Points to the current schedule item*/
@@ -163,6 +171,9 @@ private:
 
 	/**Indicates whether we have sent the reply for the schedule proposition sent by the controller*/
 	bool isScheduleAckSent;
+
+	/** The barycenter of the dropOff locations of the passenger that still have to be dropped off  **/
+	Point dropOffBarycenter;
 
 	/**
 	 * Checks if the item in progress is present in the updated schedule

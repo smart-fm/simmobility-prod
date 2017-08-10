@@ -14,7 +14,6 @@
 #include "entities/misc/TripChain.hpp"
 #include "entities/TravelTimeManager.hpp"
 #include "entities/vehicle/VehicleBase.hpp"
-#include "entities/mobilityServiceDriver/MobilityServiceDriver.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "util/LangHelpers.hpp"
 #include "util/Profiler.hpp"

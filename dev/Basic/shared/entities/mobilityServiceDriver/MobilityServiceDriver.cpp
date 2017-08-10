@@ -6,6 +6,7 @@
  */
 
 #include "MobilityServiceDriver.hpp"
+#include "entities/controllers/MobilityServiceController.hpp"
 
 
 using namespace sim_mob;

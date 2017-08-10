@@ -533,10 +533,26 @@ double SegmentStats::getDensity(bool hasVehicle)
 	double queueLength = getQueueLength();
 	double movingPartLength = length * numVehicleLanes - queueLength;
 	double movingPCUs = getMovingLength() / PASSENGER_CAR_UNIT;
-	if(movingPCUs>0&&getRoadSegment()->getRoadSegmentId()==5414)
+
+	if (movingPartLength > PASSENGER_CAR_UNIT)
 	{
-		int debug =1 ;
+		density = movingPCUs / movingPartLength;
 	}
+	else
+	{
+		density = 1 / PASSENGER_CAR_UNIT;
+	}
+	return density;
+}
+
+//density will be computed in vehicles/meter-lane for the moving part of the lane
+double LaneStats::getDensity()
+{
+	double density = 0.0;
+	double queueLength = getQueueLength();
+	double movingPartLength = length - queueLength;
+	double movingPCUs = getMovingLength() / PASSENGER_CAR_UNIT;
+
 	if (movingPartLength > PASSENGER_CAR_UNIT)
 	{
 		density = movingPCUs / movingPartLength;
@@ -885,9 +901,11 @@ void SegmentStats::updateLaneParams(timeslice frameNumber)
 		//filtering out the pedestrian lanes for now
 		if (!(it->first)->isPedestrianLane())
 		{
-			(it->second)->updateOutputCounter();
-			(it->second)->updateAcceptRate(segVehicleSpeed, numVehicleLanes);
-			(it->second)->setInitialQueueLength(it->second->getQueueLength());
+			LaneStats *laneStats = it->second;
+			laneStats->setLaneVehSpeed(speedDensityFunction(laneStats->getDensity()));
+			laneStats->updateOutputCounter();
+			laneStats->updateAcceptRate(segVehicleSpeed, numVehicleLanes);
+			laneStats->setInitialQueueLength(laneStats->getQueueLength());
 		}
 	}
 }

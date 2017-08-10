@@ -508,6 +508,7 @@ bool DriverMovement::moveToNextSegment(DriverUpdateParams& params)
 		}
 
 		setOutputCounter(currLane, (getOutputCounter(currLane, currSegStat) - 1), currSegStat); // decrement from the currLane before updating it
+		const Lane *prevLane = currLane;
 		currLane = laneInNextSegment;
 		pathMover.advanceInPath();
 		pathMover.setPositionInSegment(nxtSegStat->getLength());
@@ -520,6 +521,44 @@ bool DriverMovement::moveToNextSegment(DriverUpdateParams& params)
 		{
 			// update road segment travel times
 			updateScreenlineCounts(prevSegStats, segExitTimeSec);
+
+			//Check if the current and next lanes belong to different links
+			unsigned int prevLinkId = prevSegStats->getRoadSegment()->getLinkId();
+			unsigned int currLinkId = pathMover.getCurrSegStats()->getRoadSegment()->getLinkId();
+
+			if(prevLinkId != currLinkId)
+			{
+				//Link has changed, add the length of the turning path to the distance covered
+				const Node *node = currLane->getParentSegment()->getParentLink()->getFromNode();
+				const TurningGroup *tGroup = node->getTurningGroup(prevLinkId, currLinkId);
+				const map<unsigned int, TurningPath*> *tPaths = tGroup->getTurningPaths(prevLane->getLaneId());
+
+				if(tPaths)
+				{
+					auto itTurning = tPaths->find(currLane->getLaneId());
+
+					if (itTurning != tPaths->end())
+					{
+						travelMetric.distance += itTurning->second->getLength();
+					}
+					else
+					{
+						stringstream msg;
+						msg << "Vehicle is trying to move from link " << prevLinkId << " to " << currLinkId
+						    << ". Current lane is " << currLane->getLaneId()
+						    << ", but it is not connected to the selected next lane " << currLane->getLaneId();
+						throw runtime_error(msg.str());
+					}
+				}
+				else
+				{
+					stringstream msg;
+					msg << "Vehicle is trying to move from link " << prevLinkId << " to " << currLinkId
+					    << ". Current lane is " << currLane->getLaneId()
+					    << ", but it is not connected to the next link!";
+					throw runtime_error(msg.str());
+				}
+			}
 		}
 
 		res = true;
@@ -548,8 +587,9 @@ bool DriverMovement::moveToNextSegment(DriverUpdateParams& params)
  */
 void DriverMovement::onSegmentCompleted(const RoadSegment* completedRS, const RoadSegment* nextRS)
 {
-	if(traversed.empty()||traversed.back()!=completedRS)
-	{//1.record
+	if(traversed.empty() || traversed.back() != completedRS)
+	{
+		//1.record
 		traversed.push_back(completedRS);
 
 		//2. update travel distance
@@ -610,12 +650,7 @@ void DriverMovement::flowIntoNextLinkIfPossible(DriverUpdateParams& params)
 		}
 
 		currLane = laneInNextSegment;
-		const SegmentStats * lastSegSt = parentDriver->parent->lastReqSegStats;
-		parentDriver->parent->lastReqSegStats = nullptr;
-		std::string dbId=parentDriver->parent->getDatabaseId();
 		pathMover.advanceInPath();
-		//sim_mob::BasicLogger& ptTaxiMoveLogger = sim_mob::Logger::log("TaxiSegmentsPath.csv");
-		//ptTaxiMoveLogger<<parentDriver->parent->getDatabaseId()<<","<<nextSegStats->getRoadSegment()->getRoadSegmentId()<<","<<nextSegStats->getRoadSegment()->getLinkId()<<std::endl;
 		pathMover.setPositionInSegment(nextSegStats->getLength());
 
 		//todo: consider supplying milliseconds to be consistent with short-term
@@ -711,22 +746,24 @@ bool DriverMovement::canGoToNextRdSeg(DriverUpdateParams& params, const SegmentS
 	{
 		return true;
 	}
-	
 
 	bool hasSpaceInNextStats = ((maxAllowed - total) >= enteringVehicleLength);
 
-	if (( hasSpaceInNextStats && nextLink) || ( hasSpaceInNextStats && parentDriver->canSheMove() ) )
+	if (hasSpaceInNextStats && nextLink)
 	{
 		//additionally check if the length of vehicles in the lanegroup is not too long to accommodate this driver
-		try{
+		try
+		{
 			double maxAllowedInLG = nextSegStats->getAllowedVehicleLengthForLaneGroup(nextLink);
 			double totalInLG = nextSegStats->getVehicleLengthForLaneGroup(nextLink);
 			return (totalInLG < maxAllowedInLG);
-		} catch(...){
-			const SegmentStats* curStats = pathMover.getCurrSegStats();
+		}
+		catch (...)
+		{
+			const SegmentStats *curStats = pathMover.getCurrSegStats();
 			std::string path = pathMover.printPath();
-			std::cout<<"curr stats:"<<curStats->getRoadSegment()->getRoadSegmentId()
-					<<"-"<<curStats->getStatsNumberInSegment()<<" path:"<< path <<std::endl;
+			std::cout << "curr stats:" << curStats->getRoadSegment()->getRoadSegmentId()
+			          << "-" << curStats->getStatsNumberInSegment() << " path:" << path << std::endl;
 			throw;
 		}
 	}
@@ -822,9 +859,10 @@ bool DriverMovement::advanceMovingVehicle(DriverUpdateParams& params)
 	}
 
 	const SegmentStats* currSegStats = pathMover.getCurrSegStats();
+	const LaneStats *laneStats = currSegStats->getLaneStats().find(currLane)->second;
 	//We can infer that the path is not completed if this function is called.
 	//Therefore currSegStats cannot be NULL. It is safe to use it in this function.
-	double velocity = currSegStats->getSegSpeed(true);
+	double velocity = laneStats->getLaneVehSpeed(true);
 	double output = getOutputCounter(currLane, currSegStats);
 
 	// add driver to queue if required
@@ -900,7 +938,9 @@ bool DriverMovement::advanceMovingVehicleWithInitialQ(DriverUpdateParams& params
 	double finalTimeSpent = 0.0;
 	double finalDistToSegEnd = 0.0;
 
-	double velocity = pathMover.getCurrSegStats()->getSegSpeed(true);
+	const LaneStats *laneStats = pathMover.getCurrSegStats()->getLaneStats().find(currLane)->second;
+	double velocity = laneStats->getLaneVehSpeed(true);
+
 	double output = getOutputCounter(currLane, pathMover.getCurrSegStats());
 	double outRate = getOutputFlowRate(currLane);
 
@@ -1013,6 +1053,7 @@ void DriverMovement::setOrigin(DriverUpdateParams& params)
 	}
 
 	const Lane* laneInNextSegment = getBestTargetLane(currSegStats, nextSegStats);
+	const LaneStats *laneInNextSegStats = currSegStats->getLaneStats().find(laneInNextSegment)->second;
 
 	//this will space out the drivers on the same lane, by separating them by the time taken for the previous car to move a car's length
 	double departTime = getLastAccept(laneInNextSegment, currSegStats);
@@ -1024,12 +1065,12 @@ void DriverMovement::setOrigin(DriverUpdateParams& params)
 		}
 		else
 		{
-			departTime += (PASSENGER_CAR_UNIT / (currSegStats->getNumVehicleLanes() * currSegStats->getSegSpeed(true)));
+			departTime += (PASSENGER_CAR_UNIT / laneInNextSegStats->getLaneVehSpeed(true));
 		}
 	}
 
 	params.elapsedSeconds = std::max(params.elapsedSeconds, departTime - (convertToSeconds(params.now.ms()))); //in seconds
-	const std::string id = parentDriver->getParent()->getDatabaseId();
+
 	const Link* nextLink = getNextLinkForLaneChoice(currSegStats);
 	if (canGoToNextRdSeg(params, currSegStats, nextLink))
 	{
@@ -1047,8 +1088,7 @@ void DriverMovement::setOrigin(DriverUpdateParams& params)
 		setParentData(params);
 		parentDriver->parent->canMoveToNextSegment = Person_MT::NONE;
 		const Role<Person_MT>::Type  rType = getParentDriver()->roleType;
-		std::string dbId=parentDriver->getParent()->getDatabaseId();
-		if (getParentDriver()->roleType != Role<Person_MT>::RL_BUSDRIVER&&getParentDriver()->roleType != Role<Person_MT>::RL_TAXIDRIVER)
+		if (rType != Role<Person_MT>::RL_BUSDRIVER && rType != Role<Person_MT>::RL_TAXIDRIVER)
 		{
 			//initialize some travel metrics for this subTrip
 			startTravelTimeMetric(); //not for bus drivers or any other role
@@ -1131,20 +1171,35 @@ const Lane* DriverMovement::getBestTargetLane(const SegmentStats* nextSegStats, 
 			{
 				continue;
 			}
+
 			totalLength = nextSegStats->getLaneTotalVehicleLength(lane);
 			queueLength = nextSegStats->getLaneQueueLength(lane);
-			if (minLength > totalLength)
-			{ //if total length of vehicles is less than current minLength
+
+			if(queueLength == 0)
+			{
+				//If lane has 0 queue length, we select it
 				minLength = totalLength;
 				minQueueLength = queueLength;
 				minLane = lane;
 			}
-			else if (minLength == totalLength)
-			{ //if total length of vehicles is equal to current minLength
-				if (minQueueLength > queueLength)
-				{ //and if the queue length is less than current minQueueLength
+			else
+			{
+				if(minQueueLength > queueLength)
+				{
+					//Choose lane with lower queue length
+					minLength = totalLength;
 					minQueueLength = queueLength;
 					minLane = lane;
+				}
+				else if(minQueueLength == queueLength)
+				{
+					//In case of a tie, use the one with smaller total length
+					if(minLength > totalLength)
+					{
+						minLength = totalLength;
+						minQueueLength = queueLength;
+						minLane = lane;
+					}
 				}
 			}
 		}

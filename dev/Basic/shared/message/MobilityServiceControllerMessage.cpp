@@ -6,6 +6,7 @@
  */
 
 #include "MobilityServiceControllerMessage.hpp"
+#include "geospatial/network/RoadNetwork.hpp"
 
 namespace sim_mob
 {
@@ -147,7 +148,120 @@ bool ScheduleItem::operator==(const ScheduleItem &rhs) const
 
 	return result;
 }
+
+//{ SCHEDULE FUNCTIONS
+const std::vector<ScheduleItem>& Schedule::getItems() const
+{	return items; }
+
+const size_t Schedule::size() const{ return items.size(); }
+
+const bool Schedule::empty() const{ return items.empty(); }
+
+Schedule::iterator Schedule::begin() {return items.begin(); };
+Schedule::const_iterator Schedule::begin() const {return items.begin(); };
+Schedule::const_iterator Schedule::end() const {return items.end(); };
+Schedule::iterator Schedule::end(){return items.end(); };
+
+void Schedule::insert(std::vector<ScheduleItem>::iterator position, const ScheduleItem scheduleItem)
+{
+	items.insert(position, scheduleItem);
+	onAddingScheduleItem(scheduleItem);
+};
+
+void Schedule::insert(Schedule::iterator position, Schedule::iterator first, Schedule::iterator last)
+{
+	items.insert(position, first, last);
+	for (const_iterator it = first ; it != last; ++it)
+		onAddingScheduleItem(*it);
+};
+
+
+const ScheduleItem& Schedule::back() const
+{	return items.back(); }
+
+const ScheduleItem& Schedule::front() const
+{	return items.front(); }
+
+ScheduleItem& Schedule::front()
+{	return items.front(); }
+
+void Schedule::pop_back()
+{
+	onRemovingScheduleItem(back() );
+	items.pop_back();
 }
+void Schedule::push_back(ScheduleItem item)
+{
+	onAddingScheduleItem(item);
+	items.push_back(item);
+};
+
+Schedule::iterator Schedule::erase(Schedule::iterator position)
+{
+	onRemovingScheduleItem(*position);
+	return items.erase(position);
+}
+
+const ScheduleItem& Schedule::at(size_t n) const
+{	return items.at(n); }
+
+ScheduleItem& Schedule::at(size_t n)
+{	return items.at(n); }
+
+void Schedule::onAddingScheduleItem(const ScheduleItem& item)
+{
+	switch (item.scheduleItemType)
+	{
+		case DROPOFF:
+		{
+			//aa!!: Once the destinationNode pointer, instead of the destinationNodeId, will be available, I will not need this overhead
+			const RoadNetwork *rdNetowrk = RoadNetwork::getInstance();
+			const Node *dropOffNode = rdNetowrk->getById(rdNetowrk->getMapOfIdvsNodes(), item.tripRequest.destinationNodeId );
+			if (doWeComputeBarycenter)
+			{
+				dropOffBarycenter.setX( ( dropOffBarycenter.getX() * passengerCount + dropOffNode->getLocation().getX() ) / (passengerCount+1) );
+				dropOffBarycenter.setY( ( dropOffBarycenter.getY() * passengerCount + dropOffNode->getLocation().getY() ) / (passengerCount+1) );
+			}
+			passengerCount++;
+			break;
+		}
+		// otherwise, do nothing
+	}
+}
+
+void Schedule::onRemovingScheduleItem(const ScheduleItem& item)
+{
+	switch (item.scheduleItemType)
+	{
+		case DROPOFF:
+		{
+			//aa!!: Once the destinationNode pointer, instead of the destinationNodeId, will be available, I will not need this overhead
+			const RoadNetwork *rdNetowrk = RoadNetwork::getInstance();
+			const Node *dropOffNode = rdNetowrk->getById(rdNetowrk->getMapOfIdvsNodes(), item.tripRequest.destinationNodeId );
+			if (doWeComputeBarycenter)
+			{
+				dropOffBarycenter.setX( ( dropOffBarycenter.getX() * passengerCount - dropOffNode->getLocation().getX() ) / (passengerCount+1) );
+				dropOffBarycenter.setY( ( dropOffBarycenter.getY() * passengerCount - dropOffNode->getLocation().getY() ) / (passengerCount+1) );
+			}
+			passengerCount--;
+			break;
+		}
+		// otherwise, do nothing
+	}
+}
+
+const Point& Schedule::getDropOffBarycenter() const
+{ return dropOffBarycenter;}
+
+short Schedule::getPassengerCount() const {	return passengerCount; }
+
+//} SCHEDULE FUNCTIONS
+
+
+
+
+
+} // End of namespace
 
 
 std::ostream& operator<<(std::ostream& strm, const sim_mob::TripRequestMessage& request)

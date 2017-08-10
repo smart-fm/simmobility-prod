@@ -361,9 +361,10 @@ Entity::UpdateStatus Conflux::frame_init(timeslice now)
 		}
 	}
 
-	for(std::vector<Agent*>::iterator it=stationAgents.begin(); it!=stationAgents.end(); it++){
-			messaging::MessageBus::RegisterHandler((*it));
-		}
+	for (std::vector<Agent *>::iterator it = stationAgents.begin(); it != stationAgents.end(); it++)
+	{
+		messaging::MessageBus::RegisterHandler((*it));
+	}
 
 	/**************test code insert incident *********************/
 
@@ -1073,12 +1074,11 @@ void Conflux::updateAndReportSupplyStats(timeslice frameNumber)
 			{
 				segStatsOutput.append(segStats->reportSegmentStats(frameNumber.frame() / updateInterval));
 				lnkTotalVehicleLength = lnkTotalVehicleLength + segStats->getTotalVehicleLength();
-				if(segStats->getTotalVehicleLength()>0)
-				{
-					int debug = 1;
-				}
 			}
-			segStats->updateLaneParams(frameNumber);
+			if(updateThisTick)
+			{
+				segStats->updateLaneParams(frameNumber);
+			}
 		}
 		if(updateThisTick && outputEnabled)
 		{

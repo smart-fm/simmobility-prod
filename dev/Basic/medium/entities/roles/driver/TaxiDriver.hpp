@@ -131,17 +131,21 @@ public:
 	virtual const std::vector<MobilityServiceController*>& getSubscribedControllers() const;
 
 	bool hasDriverShiftEnded() const;
-    /*
+
+	/*
      * Get all Taxi Passengers ID (in one string seprated by '|') for taxi_trajectory.csv
      */
 	std::string  getAllTaxiPassengersId();
-
 
 	/**
 	 * Overrides the parent function
 	 */
 	virtual Schedule getAssignedSchedule() const;
 
+	/**
+	 * collect travel time for current role
+	 */
+	virtual void collectTravelTime();
 
 private:
 	/**Holds all the passengers on board, the key to the map is the person db id*/

@@ -117,10 +117,8 @@ bool sim_mob::medium::Driver::canSheMove() const{ return true;}
 /**
  * collect travel time for current role
  */
-
 void sim_mob::medium::Driver::collectTravelTime()
 {
-		//parent->currSubTrip =  (dynamic_cast<sim_mob::Trip*>(*(parent->currTripChainItem))->getSubTripsRW()).begin();
 	PersonTravelTime personTravelTime;
 	personTravelTime.personId = parent->getDatabaseId();
 	personTravelTime.tripStartPoint = (*(parent->currTripChainItem))->startLocationId;
@@ -129,18 +127,21 @@ void sim_mob::medium::Driver::collectTravelTime()
 	personTravelTime.subEndPoint = personTravelTime.tripEndPoint;
 	personTravelTime.subStartType = "NODE";
 	personTravelTime.subEndType = "NODE";
-	personTravelTime.mode = parent->currSubTrip->getMode();
-	personTravelTime.service = parent->currSubTrip->serviceLine;
-	DailyTime TravelTime = DailyTime(this->getParams().now.ms())+ ConfigManager::GetInstance().FullConfig().simStartTime()
+	personTravelTime.mode = (*(parent->currTripChainItem))->getMode();
+	personTravelTime.service = "";
+	DailyTime TravelTime = DailyTime(
+			this->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime()
 	                       - DailyTime(parent->getRole()->getArrivalTime());
-	personTravelTime.travelTime = (double)TravelTime.getValue()/1000;
+	personTravelTime.travelTime = (double) TravelTime.getValue() / 1000;
 	personTravelTime.arrivalTime = DailyTime(parent->getRole()->getArrivalTime()).getStrRepr();
+
 	if (roleType == Role<Person_MT>::RL_DRIVER)
 	{
 		personTravelTime.mode = "ON_CAR";
 	}
 
-
 	messaging::MessageBus::PostMessage(PT_Statistics::getInstance(),
-	                                   STORE_PERSON_TRAVEL_TIME, messaging::MessageBus::MessagePtr(new PersonTravelTimeMessage(personTravelTime)), true);
+	                                   STORE_PERSON_TRAVEL_TIME,
+	                                   messaging::MessageBus::MessagePtr(new PersonTravelTimeMessage(personTravelTime)),
+	                                   true);
 }

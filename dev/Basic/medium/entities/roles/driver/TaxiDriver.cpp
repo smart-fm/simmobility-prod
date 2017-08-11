@@ -742,17 +742,17 @@ bool TaxiDriver::isInProgressItemInSchedule(const ScheduleItem &itemInProgress, 
 	return result;
 }
 
-
-Schedule TaxiDriver::getAssignedSchedule()const{return assignedSchedule;};
-
-
+Schedule TaxiDriver::getAssignedSchedule() const
+{
+	return assignedSchedule;
+};
 
 std::string TaxiDriver::getAllTaxiPassengersId()
 {
-    std:: string PrintPassengerID = "";
+    std:: string passengerID = "";
 	if (taxiPassengers.empty())
 	{
-		PrintPassengerID = "No Passenger";
+		passengerID = "No Passenger";
 	}
 	else
 	{
@@ -760,14 +760,18 @@ std::string TaxiDriver::getAllTaxiPassengersId()
 		{
 			if(it!=taxiPassengers.begin())
 			{
-				PrintPassengerID.append("|");
+				passengerID.append("|");
 			}
 
-			PrintPassengerID.append(it->first);
+			passengerID.append(it->first);
 		}
 
 	}
 
-	return PrintPassengerID;
+	return passengerID;
+}
 
+void TaxiDriver::collectTravelTime()
+{
+	//Do nothing
 }

@@ -34,6 +34,7 @@
 #include "partitions/UnPackageUtils.hpp"
 #include "partitions/ParitionDebugOutput.hpp"
 #include "entities/Person_MT.hpp"
+#include "entities/PT_Statistics.hpp"
 
 using namespace sim_mob;
 using namespace sim_mob::medium;
@@ -113,3 +114,33 @@ void sim_mob::medium::Driver::HandleParentMessage(messaging::Message::MessageTyp
 
 bool sim_mob::medium::Driver::canSheMove() const{ return true;}
 
+/**
+ * collect travel time for current role
+ */
+
+void sim_mob::medium::Driver::collectTravelTime()
+{
+		//parent->currSubTrip =  (dynamic_cast<sim_mob::Trip*>(*(parent->currTripChainItem))->getSubTripsRW()).begin();
+	PersonTravelTime personTravelTime;
+	personTravelTime.personId = parent->getDatabaseId();
+	personTravelTime.tripStartPoint = (*(parent->currTripChainItem))->startLocationId;
+	personTravelTime.tripEndPoint = (*(parent->currTripChainItem))->endLocationId;
+	personTravelTime.subStartPoint = personTravelTime.tripStartPoint;
+	personTravelTime.subEndPoint = personTravelTime.tripEndPoint;
+	personTravelTime.subStartType = "NODE";
+	personTravelTime.subEndType = "NODE";
+	personTravelTime.mode = parent->currSubTrip->getMode();
+	personTravelTime.service = parent->currSubTrip->serviceLine;
+	DailyTime TravelTime = DailyTime(this->getParams().now.ms())+ ConfigManager::GetInstance().FullConfig().simStartTime()
+	                       - DailyTime(parent->getRole()->getArrivalTime());
+	personTravelTime.travelTime = (double)TravelTime.getValue()/1000;
+	personTravelTime.arrivalTime = DailyTime(parent->getRole()->getArrivalTime()).getStrRepr();
+	if (roleType == Role<Person_MT>::RL_DRIVER)
+	{
+		personTravelTime.mode = "ON_CAR";
+	}
+
+
+	messaging::MessageBus::PostMessage(PT_Statistics::getInstance(),
+	                                   STORE_PERSON_TRAVEL_TIME, messaging::MessageBus::MessagePtr(new PersonTravelTimeMessage(personTravelTime)), true);
+}

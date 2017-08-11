@@ -73,6 +73,11 @@ public:
 	//to be moved to a DriverUpdateParam later
 	const Lane* currLane;
 
+	/**
+	 * collect travel time for current role
+	 */
+	virtual void collectTravelTime();
+
 protected:
 	WayPoint origin;
 	WayPoint goal;

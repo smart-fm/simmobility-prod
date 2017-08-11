@@ -1059,8 +1059,6 @@ std::string TaxiDriverMovement::frame_tick_output()
 		const Lane *currLane = parentDriver->getParent()->getCurrLane();
 		const unsigned int currLaneId = (currLane ? parentDriver->getParent()->getCurrLane()->getLaneId() : 0);
 		const std::string driverStatusStr = parentTaxiDriver->getDriverStatusStr();
-		std::string PassengerDBID = "";
-		PassengerDBID = parentTaxiDriver->getPassenger() != NULL ? parentTaxiDriver->getPassenger()->getParent()->getDatabaseId() : " No Passenger";
 		const string timeStr = (DailyTime(params.now.ms()) + DailyTime(
 				ConfigManager::GetInstance().FullConfig().simStartTime())).getStrRepr();
 
@@ -1070,7 +1068,7 @@ std::string TaxiDriverMovement::frame_tick_output()
 			<< roadSegmentId << ","
 			<< currLaneId
 			<< "," << driverStatusStr
-			<< ","<< PassengerDBID
+			<< ","<< parentTaxiDriver->getAllTaxiPassengersId()
 			<< std::endl;
 	}
 	/* for Debug Purpose Only : to print details in Console

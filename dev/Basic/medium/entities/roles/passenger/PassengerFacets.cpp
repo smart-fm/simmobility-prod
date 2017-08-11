@@ -68,6 +68,14 @@ TravelMetric & PassengerMovement::startTravelTimeMetric()
 {
 	travelMetric.startTime = DailyTime(parentPassenger->getArrivalTime());
 	travelMetric.origin = parentPassenger->getStartPoint();
+	if(parentPassenger->getDriver())
+	{
+		if (parentPassenger->getDriver()->roleType == Role<Person_MT>::RL_TAXIDRIVER)
+		{
+			travelMetric.startTime = DailyTime(const_cast<Driver*>(parentPassenger->getDriver())->getParams().now.ms())
+										+ DailyTime(ConfigManager::GetInstance().FullConfig().simStartTime());
+		}
+	}
 	travelMetric.started = true;
 	return travelMetric;
 }
@@ -82,6 +90,9 @@ TravelMetric & PassengerMovement::finalizeTravelTimeMetric()
 		if (parentPassenger->getDriver()->roleType == Role<Person_MT>::RL_TAXIDRIVER)
 		{
 			travelMetric.distance = parentPassenger->getFinalPointDriverDistance() - parentPassenger->getStartPointDriverDistance();
+			travelMetric.endTime =DailyTime(const_cast<Driver*>(parentPassenger->getDriver())->getParams().now.ms())
+			                      + DailyTime(ConfigManager::GetInstance().FullConfig().simStartTime());
+			travelMetric.travelTime = TravelMetric::getTimeDiffHours(travelMetric.endTime , travelMetric.startTime);
 			parentPassenger->setDriver(NULL);
 		}
 	}

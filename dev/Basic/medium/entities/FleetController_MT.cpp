@@ -50,7 +50,7 @@ void FleetController_MT::initialise(std::set<sim_mob::Entity *> &agentList)
 	ControllerLog() << "Total number of service vehicles loaded from database: " << fleetMap.size() << std::endl;
 	ControllerLog() << "Max. fleet size configured: " << maxFleetSize << std::endl;
 
-	while(currTaxi < vehToBeLoaded)
+	while(currTaxi < vehToBeLoaded && serviceVehicle != fleetMap.end())
 	{
 		const FleetController::FleetTimePriorityQueue& fleetItems = serviceVehicle->second;
 		const FleetController::FleetItem& taxi = fleetItems.top();

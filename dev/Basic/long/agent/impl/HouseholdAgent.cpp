@@ -59,10 +59,10 @@ HouseholdAgent::HouseholdAgent(BigSerial _id, HM_Model* _model, Household* _hous
     buySellInterval = config.ltParams.housingModel.offsetBetweenUnitBuyingAndSelling;
 
     if(resume && household != nullptr)
-    	householdBiddingWindow = householdBiddingWindow - household->getTimeOnMarket();
+    	householdBiddingWindow =  household->getTimeOnMarket();
     else
     {
-    	householdBiddingWindow = ( config.ltParams.housingModel.housingMoveInDaysInterval + config.ltParams.housingModel.householdBiddingWindow ) * (double)rand() / RAND_MAX + 1;
+    	householdBiddingWindow = ( config.ltParams.housingModel.householdBiddingWindow ) * (double)rand() / RAND_MAX + 1;
     }
 
     futureTransitionOwn = false;
@@ -70,8 +70,6 @@ HouseholdAgent::HouseholdAgent(BigSerial _id, HM_Model* _model, Household* _hous
     if( household )
     {
     	(const_cast<Household*>(household))->setTimeOnMarket(householdBiddingWindow);
-
-
 		double householdIncome = 0;
 		vector<BigSerial> individuals = household->getIndividuals();
 		for(int n = 0; n < individuals.size(); n++)
@@ -233,6 +231,11 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
     if(config.ltParams.resume)
     {
     	startDay = model->getLastStoppedDay();
+    }
+
+    if (bidder && bidder->isActive() && household->getTimeOffMarket() > 0)
+    {
+    	household->updateTimeOffMarket();
     }
 
     if(config.ltParams.schoolAssignmentModel.enabled)

@@ -47,6 +47,7 @@ void HouseholdDao::fromRow(Row& result, Household& outObj)
     outObj.buySellInterval = result.get<int>("buy_sell_interval", 0);
     outObj.tenureStatus = result.get<int>("tenure_status", 0);
     outObj.awakenedDay= result.get<int>("awakened_day", 0);
+    outObj.lastBidStatus = result.get<int>("last_bid_status", 0);
 }
 
 void HouseholdDao::toRow(Household& data, Parameters& outParams, bool update)
@@ -81,6 +82,7 @@ void HouseholdDao::toRow(Household& data, Parameters& outParams, bool update)
 	outParams.push_back(data.getBuySellInterval());
 	outParams.push_back(data.getTenureStatus());
 	outParams.push_back(data.getAwaknedDay());
+	outParams.push_back(data.getLastBidStatus());
 }
 
 void HouseholdDao::insertHousehold(Household& houseHold,std::string schema)
@@ -114,6 +116,7 @@ void HouseholdDao::insertHousehold(Household& houseHold,std::string schema)
 		params.push_back(houseHold.getBuySellInterval());
 		params.push_back(houseHold.getTenureStatus());
 		params.push_back(houseHold.getAwaknedDay());
+		params.push_back(houseHold.getLastBidStatus());
 		params.push_back(houseHold.getId());
 
 		const std::string DB_UPDATE_HOUSEHOLD = "UPDATE "	+ schema + ".household" + " SET "
@@ -140,9 +143,10 @@ void HouseholdDao::insertHousehold(Household& houseHold,std::string schema)
 				+ "is_seller" + "= :v21, "
 				+ "buy_sell_interval" + "= :v22, "
 				+ "tenure_status" + "= :v23, "
-				+ "awakened_day"
-				+ "= :v24 WHERE "
-				+ "hh_id" + "=:v25";
+				+ "awakened_day" + "= :v24, "
+				+ "last_bid_status"
+				+ "= :v25 WHERE "
+				+ "hh_id" + "=:v26";
 		executeQueryWithParams(houseHold,DB_UPDATE_HOUSEHOLD,params);
 	}
 
@@ -153,7 +157,7 @@ void HouseholdDao::insertHousehold(Household& houseHold,std::string schema)
 							DB_FIELD_CHILDUNDER4 + ", "+ DB_FIELD_CHILDUNDER15 + ", " + "num_adults" + ", "+ DB_FIELD_INCOME + ", "+ DB_FIELD_HOUSING_DURATION + ", " + "workers"+ ", "+
 							"age_of_head" + ", "+ "pending_status_id" + ", " + "pending_from_date" + ", "+ "unit_pending" + ", "+ "taxi_availability" + ", " + "vehicle_ownership_option_id"+ ", "+
 							+ "time_on_market" + ", " + "time_off_market"+ ", "+ "is_bidder" + ", " + "is_seller"+ ", "+ "buy_sell_interval" + ", "+
-							+ "tenure_status"  ", " + "awakened_day" + ") VALUES (:v1, :v2, :v3, :v4, :v5, :v6, :v7 ,:v8, :v9, :v10, :v11, :v12, :v13, :v14, :v15, :v16, :v17, :v18, :v19, :v20, :v21, :v22, :v23, :v24, :V25)";
+							+ "tenure_status"  + ", " + "awakened_day" + ", " +"last_bid_status"") VALUES (:v1, :v2, :v3, :v4, :v5, :v6, :v7 ,:v8, :v9, :v10, :v11, :v12, :v13, :v14, :v15, :v16, :v17, :v18, :v19, :v20, :v21, :v22, :v23, :v24, :V25, :v26)";
 		insertViaQuery(houseHold,DB_INSERT_HOUSEHOLD_OP);
 	}
 

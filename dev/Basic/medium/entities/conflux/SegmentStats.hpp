@@ -532,6 +532,10 @@ public:
 		return numVehicleLanes;
 	}
 
+	const std::map<const Link*, std::vector<LaneStats*> >& getLaneGroup() const
+	{
+		return laneGroup;
+	}
 	double getLength() const
 	{
 		return length;
@@ -955,6 +959,8 @@ public:
 	 * to put the persons from laneInfinity on moving/queuing vehicle lists on appropriate real lane.
 	 */
 	Lane* laneInfinity;
+
+	std::map<const Lane*, LaneStats*> getLaneStats() const ;
 };
 } // namespace medium
 } // namespace sim_mob

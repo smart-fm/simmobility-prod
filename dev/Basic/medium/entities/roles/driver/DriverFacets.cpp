@@ -6,6 +6,8 @@
 
 #include <algorithm>
 #include <boost/foreach.hpp>
+#include <boost/algorithm/string/erase.hpp>
+#include <boost/algorithm/string.hpp>
 #include <cmath>
 #include <cstdio>
 #include <ostream>
@@ -38,6 +40,7 @@
 #include "path/PathSetManager.hpp"
 #include "util/DebugFlags.hpp"
 #include "util/Utils.hpp"
+#include "geospatial/network/RoadNetwork.hpp"
 
 using namespace sim_mob;
 using namespace sim_mob::medium;
@@ -531,20 +534,20 @@ bool DriverMovement::moveToNextSegment(DriverUpdateParams& params)
 				}
 				else
 				{
-					stringstream msg;
+					std::stringstream msg;
 					msg << "Vehicle is trying to move from link " << prevLinkId << " to " << currLinkId
 					    << ". Current lane is " << currLane->getLaneId()
 					    << ", but it is not connected to the selected next lane " << currLane->getLaneId();
-					throw runtime_error(msg.str());
+					throw std::runtime_error(msg.str());
 				}
 			}
 			else
 			{
-				stringstream msg;
+				std::stringstream msg;
 				msg << "Vehicle is trying to move from link " << prevLinkId << " to " << currLinkId
 				    << ". Current lane is " << currLane->getLaneId()
 				    << ", but it is not connected to the next link!";
-				throw runtime_error(msg.str());
+				throw std::runtime_error(msg.str());
 			}
 		}
 	}

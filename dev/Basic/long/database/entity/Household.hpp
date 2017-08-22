@@ -198,6 +198,11 @@ namespace sim_mob
 			void setExistInDB(bool exist);
 
 			int getLastBidStatus() const;
+			/* last bid status is set to -1 as default.
+			 * last bid status = 0 : household is on the market.
+			 * last bid status = 1 : household has done a successful bid
+			 * last bid status = 2 : household has done an unsuccessful bid
+			*/
 			void setLastBidStatus(int lastBidStatus);
 
 			void setHouseholdStats(HouseholdStatistics stats);
@@ -220,6 +225,9 @@ namespace sim_mob
 
 			bool isWorkInToaPayoh() const;
 			void setWorkInToaPayoh(bool workInToaPayoh);
+
+			void updateTimeOffMarket();
+			void updateTimeOnMarket();
 
 			enum FAMILY_TYPE
 			{

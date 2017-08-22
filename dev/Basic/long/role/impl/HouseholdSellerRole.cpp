@@ -74,14 +74,14 @@ namespace
         	boost::shared_ptr<Bid> newBid = boost::make_shared<Bid>(bid);
         	HM_Model* model = agent.getModel();
         	Unit* unit  = model->getUnitById(bid.getNewUnitId());
-        	boost::shared_ptr<Unit> updatedUnit = boost::make_shared<Unit>((*unit));
+        	//boost::shared_ptr<Unit> updatedUnit = boost::make_shared<Unit>((*unit));
         	//set the sale status to "Launched and sold".
-        	updatedUnit->setSaleStatus(3);
+        	unit->setSaleStatus(3);
         	//set the occupancy status to "Ready for occupancy and occupied"
-        	updatedUnit->setOccupancyStatus(3);
-        	updatedUnit->setOccupancyFromDate(getDateBySimDay(config.ltParams.year,(bid.getSimulationDay())));
+        	unit->setOccupancyStatus(3);
+        	unit->setOccupancyFromDate(getDateBySimDay(config.ltParams.year,(bid.getSimulationDay())));
         	 //save accepted bids to a vector, to be saved in op schema later.
-        	model->addUpdatedUnits(updatedUnit);
+        	//model->addUpdatedUnits(updatedUnit);
 
         	int UnitslaId = model->getUnitSlaAddressId( unit->getId() );
         	Household *thisBidder = model->getHouseholdById(bid.getBidderId());
@@ -108,7 +108,7 @@ namespace
         	newBid->setSellerId(agent.getId());
         	newBid->setAccepted(ACCEPTED);
         	model->addNewBids(newBid);
-        	boost::shared_ptr<UnitSale> unitSale(new UnitSale(model->getUnitSaleId(),bid.getNewUnitId(),bid.getBidderId(),agent.getId(),bid.getBidValue(),getDateBySimDay(config.ltParams.year,bid.getSimulationDay()),(unit->getbiddingMarketEntryDay()-bid.getSimulationDay()),(agent.getAwakeningDay()-bid.getSimulationDay())));
+        	boost::shared_ptr<UnitSale> unitSale(new UnitSale(model->getUnitSaleId(),bid.getNewUnitId(),bid.getBidderId(),agent.getId(),bid.getBidValue(),getDateBySimDay(config.ltParams.year,bid.getSimulationDay()),(bid.getSimulationDay() - unit->getbiddingMarketEntryDay()),(bid.getSimulationDay()-agent.getAwakeningDay())));
         	model->addUnitSales(unitSale);
         	boost::shared_ptr<HouseholdUnit> hhUnit(new HouseholdUnit(thisBidder->getId(),bid.getNewUnitId(),getDateBySimDay(config.ltParams.year,bid.getSimulationDay()+moveInWaitingTimeInDays)));
         	model->addHouseholdUnits(hhUnit);
@@ -234,7 +234,7 @@ void HouseholdSellerRole::update(timeslice now)
         const vector<BigSerial>& unitIds = getParent()->getUnitIds();
 
         //get values from parent.
-        const Unit* unit = nullptr;
+        Unit* unit = nullptr;
 
         for (vector<BigSerial>::const_iterator itr = unitIds.begin(); itr != unitIds.end(); itr++)
         {
@@ -260,6 +260,7 @@ void HouseholdSellerRole::update(timeslice now)
 
             bool buySellInvtervalCompleted = false;
 
+            //entry day is applied only to the vacant units assigned with freelance agents. Units assigned with households are put on the market when the household bidding window is completed.
             bool entryDay = true;
             //freelance agents will only awaken their units based on the unit market entry day
             if( getParent()->getId() >= model->FAKE_IDS_START )
@@ -294,6 +295,7 @@ void HouseholdSellerRole::update(timeslice now)
             	if( firstExpectation.hedonicPrice  < 0.05 )
             		continue;
 
+            	unit->setAskingPrice(firstExpectation.askingPrice);
                 market->addEntry( HousingMarket::Entry( getParent(), unit->getId(), model->getUnitSlaAddressId( unit->getId() ), tazId, firstExpectation.askingPrice, firstExpectation.hedonicPrice, unit->isBto(), buySellInvtervalCompleted, unit->getZoneHousingType() ));
 				#ifdef VERBOSE
                 PrintOutV("[day " << currentTime.ms() << "] Household Seller " << getParent()->getId() << ". Adding entry to Housing market for unit " << unit->getId() << " with ap: " << firstExpectation.askingPrice << " hp: " << firstExpectation.hedonicPrice << " rp: " << firstExpectation.targetPrice << std::endl);

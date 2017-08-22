@@ -508,48 +508,48 @@ bool DriverMovement::moveToNextSegment(DriverUpdateParams& params)
 		{
 			// update road segment travel times
 			updateScreenlineCounts(prevSegStats, segExitTimeSec);
-		}
+			
+			//Check if the current and next lanes belong to different links
+			unsigned int prevLinkId = prevLane->getParentSegment()->getLinkId();
+			unsigned int currLinkId = currLane->getParentSegment()->getLinkId();
 
-		res = true;
-		advance(params);
-
-		//Check if the current and next lanes belong to different links
-		unsigned int prevLinkId = prevLane->getParentSegment()->getLinkId();
-		unsigned int currLinkId = currLane->getParentSegment()->getLinkId();
-
-		if(prevLinkId != currLinkId)
-		{
-			//Link has changed, add the length of the turning path to the distance covered
-			const Node *node = currLane->getParentSegment()->getParentLink()->getFromNode();
-			const TurningGroup *tGroup = node->getTurningGroup(prevLinkId, currLinkId);
-			const map<unsigned int, TurningPath*> *tPaths = tGroup->getTurningPaths(prevLane->getLaneId());
-
-			if(tPaths)
+			if(prevLinkId != currLinkId)
 			{
-				auto itTurning = tPaths->find(currLane->getLaneId());
+				//Link has changed, add the length of the turning path to the distance covered
+				const Node *node = currLane->getParentSegment()->getParentLink()->getFromNode();
+				const TurningGroup *tGroup = node->getTurningGroup(prevLinkId, currLinkId);
+				const map<unsigned int, TurningPath*> *tPaths = tGroup->getTurningPaths(prevLane->getLaneId());
 
-				if (itTurning != tPaths->end())
+				if(tPaths)
 				{
-					travelMetric.distance += itTurning->second->getLength();
+					auto itTurning = tPaths->find(currLane->getLaneId());
+
+					if (itTurning != tPaths->end())
+					{
+						travelMetric.distance += itTurning->second->getLength();
+					}
+					else
+					{
+						std::stringstream msg;
+						msg << "Vehicle is trying to move from link " << prevLinkId << " to " << currLinkId
+						    << ". Current lane is " << currLane->getLaneId()
+						    << ", but it is not connected to the selected next lane " << currLane->getLaneId();
+						throw std::runtime_error(msg.str());
+					}
 				}
 				else
 				{
 					std::stringstream msg;
 					msg << "Vehicle is trying to move from link " << prevLinkId << " to " << currLinkId
 					    << ". Current lane is " << currLane->getLaneId()
-					    << ", but it is not connected to the selected next lane " << currLane->getLaneId();
+					    << ", but it is not connected to the next link!";
 					throw std::runtime_error(msg.str());
 				}
 			}
-			else
-			{
-				std::stringstream msg;
-				msg << "Vehicle is trying to move from link " << prevLinkId << " to " << currLinkId
-				    << ". Current lane is " << currLane->getLaneId()
-				    << ", but it is not connected to the next link!";
-				throw std::runtime_error(msg.str());
-			}
 		}
+
+		res = true;
+		advance(params);		
 	}
 	else
 	{

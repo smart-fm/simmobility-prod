@@ -287,5 +287,20 @@ struct type_conversion<sim_mob::long_term::JobsBySectorByTaz>
     }
 };
 
+template<>
+struct type_conversion<sim_mob::long_term::IndLogsumJobAssignment>
+{
+    typedef values base_type;
+
+    static void
+    from_base(soci::values const & values, soci::indicator & indicator, sim_mob::long_term::IndLogsumJobAssignment& indLogsumJobAssignment)
+    {
+    	indLogsumJobAssignment.setIndividualId(values.get<BigSerial>("individual_id",0));
+    	indLogsumJobAssignment.setTazId(values.get<std::string>("taz_id",0));
+    	indLogsumJobAssignment.setLogsum(values.get<float>("logsum",.0));
+
+    }
+};
+
 } //namespace soci
 

@@ -394,15 +394,6 @@ void HouseholdBidderRole::TakeUnitOwnership()
 	#endif
 	getParent()->addUnitId( unitIdToBeOwned );
 
-	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
-//	boost::shared_ptr<Household> houseHold = boost::make_shared<Household>( *getParent()->getHousehold());
-//	houseHold->setUnitId(unitIdToBeOwned);
-//	houseHold->setHasMoved(1);
-//	houseHold->setUnitPending(0);
-//	houseHold->setMoveInDate(getDateBySimDay(year,day));
-//	HM_Model* model = getParent()->getModel();
-//	model->addHouseholdsTo_OPSchema(houseHold);
-
 	getParent()->getHousehold()->setUnitId(unitIdToBeOwned);
 	getParent()->getHousehold()->setHasMoved(1);
 	getParent()->getHousehold()->setUnitPending(0);

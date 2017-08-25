@@ -39,39 +39,22 @@ using std::endl;
 
 HouseholdAgent::HouseholdAgent(BigSerial _id, HM_Model* _model, Household* _household, HousingMarket* _market, bool _marketSeller, int _day, int _householdBiddingWindow, int awakeningDay, bool acceptedBid)
 							 : Agent_LT(ConfigManager::GetInstance().FullConfig().mutexStategy(), _id), model(_model), market(_market), household(_household), marketSeller(_marketSeller), bidder (nullptr), seller(nullptr), day(_day),
-							   vehicleOwnershipOption(NO_VEHICLE), householdBiddingWindow(_householdBiddingWindow),awakeningDay(awakeningDay),acceptedBid(acceptedBid)
+							   vehicleOwnershipOption(NO_VEHICLE), householdBiddingWindow(_householdBiddingWindow),awakeningDay(awakeningDay),acceptedBid(acceptedBid), buySellInterval(buySellInterval)
 							{
 
     seller = new HouseholdSellerRole(this);
     if( marketSeller == true )
     	seller->setActive(true);
 
-
-    ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
-    bool resume = config.ltParams.resume;
-
     if ( marketSeller == false )
     {
         bidder = new HouseholdBidderRole(this);
-    }
-
-
-    buySellInterval = config.ltParams.housingModel.offsetBetweenUnitBuyingAndSelling;
-
-    if(resume && household != nullptr)
-    	householdBiddingWindow = householdBiddingWindow - household->getTimeOnMarket();
-    else
-    {
-    	householdBiddingWindow = ( config.ltParams.housingModel.housingMoveInDaysInterval + config.ltParams.housingModel.householdBiddingWindow ) * (double)rand() / RAND_MAX + 1;
     }
 
     futureTransitionOwn = false;
 
     if( household )
     {
-    	(const_cast<Household*>(household))->setTimeOnMarket(householdBiddingWindow);
-
-
 		double householdIncome = 0;
 		vector<BigSerial> individuals = household->getIndividuals();
 		for(int n = 0; n < individuals.size(); n++)
@@ -216,6 +199,7 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
         bidder->update(now);
         householdBiddingWindow--;
        	buySellInterval--;
+       	household->updateTimeOnMarket();
     }
 
 	//If 1) the bidder is active and 2) it is not waiting to move into a unit and 3) it has exceeded it's bidding time frame,
@@ -233,6 +217,12 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
     if(config.ltParams.resume)
     {
     	startDay = model->getLastStoppedDay();
+    }
+
+    //if a bid is accepted, time off the market is set to 210 + 30 days. if not it is set to 210 days. Then this value is decremented each day.
+    if (bidder && household->getTimeOffMarket() > 0)
+    {
+    	household->updateTimeOffMarket();
     }
 
     if(config.ltParams.schoolAssignmentModel.enabled)

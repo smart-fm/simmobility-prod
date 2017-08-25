@@ -394,13 +394,9 @@ void HouseholdBidderRole::TakeUnitOwnership()
 	#endif
 	getParent()->addUnitId( unitIdToBeOwned );
 
-	boost::shared_ptr<Household> houseHold = boost::make_shared<Household>( *getParent()->getHousehold());
-	houseHold->setUnitId(unitIdToBeOwned);
-	houseHold->setHasMoved(1);
-	houseHold->setUnitPending(0);
-	houseHold->setMoveInDate(getDateBySimDay(year,day));
-	HM_Model* model = getParent()->getModel();
-	model->addHouseholdsTo_OPSchema(houseHold);
+	getParent()->getHousehold()->setUnitId(unitIdToBeOwned);
+	getParent()->getHousehold()->setHasMoved(1);
+	getParent()->getHousehold()->setUnitPending(0);
 
     biddingEntry.invalidate();
     Statistics::increment(Statistics::N_ACCEPTED_BIDS);
@@ -409,6 +405,7 @@ void HouseholdBidderRole::TakeUnitOwnership()
 
 void HouseholdBidderRole::HandleMessage(Message::MessageType type, const Message& message)
 {
+	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
     switch (type)
     {
         case LTMID_BID_RSP:// Bid response received 
@@ -418,7 +415,7 @@ void HouseholdBidderRole::HandleMessage(Message::MessageType type, const Message
             {
                 case ACCEPTED:// Bid accepted 
                 {
-                	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+
 
                 	unitIdToBeOwned = msg.getBid().getNewUnitId();
                 	const Unit *newUnit = getParent()->getModel()->getUnitById(unitIdToBeOwned);
@@ -437,21 +434,26 @@ void HouseholdBidderRole::HandleMessage(Message::MessageType type, const Message
                 	int simulationEndDay = config.ltParams.days;
                 	year = config.ltParams.year;
                 	getParent()->getHousehold()->setLastBidStatus(1);
+                	getParent()->getHousehold()->setTimeOffMarket(moveInWaitingTimeInDays + config.ltParams.housingModel.awakeningModel.awakeningOffMarketSuccessfulBid);
             		getParent()->setAcceptedBid(true);
             		//getParent()->setBTOUnit(newUnit->isBto());
 
                 	if(simulationEndDay < (moveInWaitingTimeInDays))
 
                 	{
-                		boost::shared_ptr<Household> houseHold = boost::make_shared<Household>( *getParent()->getHousehold());
-                		houseHold->setUnitId(unitIdToBeOwned);
-                		houseHold->setHasMoved(0);
-                		houseHold->setUnitPending(1);
-                		int awakenDay = getParent()->getAwakeningDay();
-                		houseHold->setAwakenedDay(awakenDay);
-                		houseHold->setMoveInDate(getDateBySimDay(year,moveInWaitingTimeInDays));
-                		HM_Model* model = getParent()->getModel();
-                		model->addHouseholdsTo_OPSchema(houseHold);
+//                		boost::shared_ptr<Household> houseHold = boost::make_shared<Household>( *getParent()->getHousehold());
+//                		houseHold->setUnitId(unitIdToBeOwned);
+//                		houseHold->setHasMoved(0);
+//                		houseHold->setUnitPending(1);
+//                		int awakenDay = getParent()->getAwakeningDay();
+//                		houseHold->setAwakenedDay(awakenDay);
+//                		houseHold->setPendingFromDate(getDateBySimDay(year,moveInWaitingTimeInDays));
+//                		HM_Model* model = getParent()->getModel();
+//                		model->addHouseholdsTo_OPSchema(houseHold);
+                		getParent()->getHousehold()->setUnitId(unitIdToBeOwned);
+                		getParent()->getHousehold()->setHasMoved(0);
+                		getParent()->getHousehold()->setUnitPending(1);
+                		getParent()->getHousehold()->setPendingFromDate(getDateBySimDay(year,moveInWaitingTimeInDays));
                 	}
 
                     break;
@@ -460,6 +462,7 @@ void HouseholdBidderRole::HandleMessage(Message::MessageType type, const Message
                 {
                     biddingEntry.incrementTries();
                     getParent()->getHousehold()->setLastBidStatus(2);
+                    getParent()->getHousehold()->setTimeOffMarket(config.ltParams.housingModel.awakeningModel.awakeningOffMarketUnsuccessfulBid);
                     break;
                 }
                 case BETTER_OFFER:

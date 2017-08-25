@@ -42,6 +42,8 @@ HouseholdAgent::HouseholdAgent(BigSerial _id, HM_Model* _model, Household* _hous
 							   vehicleOwnershipOption(NO_VEHICLE), householdBiddingWindow(_householdBiddingWindow),awakeningDay(awakeningDay),acceptedBid(acceptedBid)
 							{
 
+	//Freelance agents are active by default.
+	//Household agents are inactive by default.
     seller = new HouseholdSellerRole(this);
     if( marketSeller == true )
     	seller->setActive(true);
@@ -50,23 +52,33 @@ HouseholdAgent::HouseholdAgent(BigSerial _id, HM_Model* _model, Household* _hous
     ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
     bool resume = config.ltParams.resume;
 
+    //Freelance agents do not bid on any units. They'll only sell their list of unoccupied units
     if ( marketSeller == false )
     {
         bidder = new HouseholdBidderRole(this);
     }
 
 
+    //We do not want the seller role to be activated at the same time as the bidder role.
+    //The bidder role will be active first. And then after x number of days, the seller role will be activated.
     buySellInterval = config.ltParams.housingModel.offsetBetweenUnitBuyingAndSelling;
+
+
 
     if(resume && household != nullptr)
     	householdBiddingWindow = householdBiddingWindow - household->getTimeOnMarket();
     else
     {
+    	//We do not want the bidder role to be active indefinitely.
+    	//The householdBiddingWindow will specify for how many days a household will bid before giving up
     	householdBiddingWindow = ( config.ltParams.housingModel.housingMoveInDaysInterval + config.ltParams.housingModel.householdBiddingWindow ) * (double)rand() / RAND_MAX + 1;
     }
 
     futureTransitionOwn = false;
 
+
+    //The code below sets the household income to be the sum of all individual incomes
+    //That is because the database household income is inconsistent with the sum of the individual incomes
     if( household )
     {
     	(const_cast<Household*>(household))->setTimeOnMarket(householdBiddingWindow);
@@ -165,6 +177,12 @@ HouseholdSellerRole* HouseholdAgent::getSeller()
 
 Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 {
+	//The household agent class manages two other classes: The householdBidderRole and the HouseholdSellerRole.
+	//The HouseholdBidderRole will, when active, bid on units for sale in the housing market.
+	//The HouseholdSellerRole will, when active, sell the unit (or units for freelance agents) on the housing market
+	//
+
+
 	day = now.frame();
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 
@@ -177,6 +195,9 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 			BigSerial unitId = *itr;
 			Unit* unit = const_cast<Unit*>(model->getUnitById(unitId));
 
+			//If we are not dealing with a freelance agent,
+			//then the unit market entry day should be the awakening day of that household.
+			//That's because we want that unit to be available for sale as soon as the bidder role is active
 			if( id < model->FAKE_IDS_START )
 			{
 				unit->setbiddingMarketEntryDay(day + 1);
@@ -184,8 +205,15 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 			}
 		}
 
+		//As soon as the bidder becomes active, the seller also becomes active
 		seller->setActive(true);
 	}
+
+	//The if statement below will effectively put a unit on the market when the buySellInterval variable drops to zero.
+	//That boolean makes sure that a unit is only sold after the bidder role has been bidding on the market for x (usually 7) number of days
+	//However the buySellIntervalComplete boolean can also be set to true if the bidder has successfully bid on a unit.
+	//There is a final contraint on BTOs. If the bidder successfully bid on a BTO, it will not sell its unit until
+	//the waiting time to move in is less than offsetBetweenUnitBuyingAndSellingAdvancedPurchase
 
 	//has 7 days elapsed since the bidder was activted OR the bid has been accepted AND the waiting time is less than the BTO BuySell interval, we can activate the sellers
 	if(buySellInterval == 0 || (acceptedBid  && ( bidder->getMoveInWaitingTimeInDays() <= config.ltParams.housingModel.offsetBetweenUnitBuyingAndSellingAdvancedPurchase)))
@@ -211,6 +239,7 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
     }
 
 
+    //
     if (bidder && bidder->isActive() && householdBiddingWindow > 0 && awakeningDay < day)
     {
         bidder->update(now);
@@ -224,6 +253,10 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 	{
 		PrintExit( day, household, 0);
 		bidder->setActive(false);
+
+	    //The seller becomes inactive when the bidder is inactive. This is alright
+		//because the bidder has a move in waiting time of 30 days
+	    //This is ample time for a seller role to sell the unit.
 		seller->removeAllEntries();
 		seller->setActive(false);
 		model->incrementExits();
@@ -304,10 +337,6 @@ void HouseholdAgent::processEvent(EventId eventId, Context ctxId, const EventArg
         	std::mt19937 gen(rd());
         	std::uniform_real_distribution<> dis(0.0, 1.0);
         	const double montecarlo = dis(gen);
-
-        	static int counter = 0;
-        	counter++;
-
 
         	if( montecarlo < config.ltParams.housingModel.householdAwakeningPercentageByBTO )
         	{

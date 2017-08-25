@@ -352,11 +352,15 @@ namespace sim_mob
 			if( config.ltParams.scenario.enabled )
 			{
 				std::multimap<string, StudyArea*> scenario = model->getStudyAreaByScenarioName();
+				//We will search for every instance of our scenario name in the scenario multimap
+				//eg: If we are doing a Toa Payoh schenario, itr_range will contain all instances
+				//of that scenario.
 				auto itr_range = scenario.equal_range( config.ltParams.scenario.scenarioName );
 
 				bool bWorkTaz = false;
 				bool bHomeTaz = false;
 
+				//dist will contain the total number of occurances of our scenario in the multimap 'scenario'
 				int dist = distance(itr_range.first, itr_range.second);
 
 				int tazId = model->getUnitTazId( unit->getId() );

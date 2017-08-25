@@ -1974,12 +1974,18 @@ void HM_Model::startImpl()
 
 					if( awakeningProbability < config.ltParams.housingModel.vacantUnitActivationProbability )
 					{
+						/*if awakened, time on the market was set to randomized number above,
+											and subsequent time off the market is fixed via setTimeOffMarket.
+											*/
 						(*it)->setbiddingMarketEntryDay( unitStartDay );
 						(*it)->setTimeOffMarket( config.ltParams.housingModel.timeOffMarket);
 						onMarket++;
 					}
 					else
 					{
+						/*If not awakened, time off the market was set to randomized number above,
+											and subsequent time on market is fixed via setTimeOnMarket.
+											*/
 						(*it)->setbiddingMarketEntryDay( unitStartDay + (float)rand() / RAND_MAX * config.ltParams.housingModel.timeOnMarket);
 						(*it)->setTimeOnMarket( config.ltParams.housingModel.timeOnMarket);
 						offMarket++;
@@ -2001,10 +2007,6 @@ void HM_Model::startImpl()
 
 					freelanceAgents[vacancies % numWorkers]->addUnitId((*it)->getId());
 					vacancies++;
-				}
-				else
-				{
-					(*it)->setbiddingMarketEntryDay( 999999 );
 				}
 			}
 

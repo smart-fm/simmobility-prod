@@ -8,6 +8,7 @@
 #include "model/JobAssignmentModel.hpp"
 #include "util/SharedFunctions.hpp"
 #include "util/PrintLog.hpp"
+#include "database/entity/IndLogsumJobAssignment.hpp"
 
 using namespace sim_mob;
 using namespace sim_mob::long_term;
@@ -20,6 +21,7 @@ JobAssignmentModel::~JobAssignmentModel() {}
 void JobAssignmentModel::computeJobAssignmentProbability(BigSerial individualId)
 {
 	vector<Taz*> tazs = model->getTazList();
+	model->loadIndLogsumJobAssignmentList(individualId);
 	double totalExp = 0;
 	map<BigSerial,double> expValMap;
 	for(Taz *taz : tazs)
@@ -44,7 +46,10 @@ void JobAssignmentModel::computeJobAssignmentProbability(BigSerial individualId)
 		{
 			incomeCat3 = 1;
 		}
-		double logsum = 0;
+
+
+		IndLogsumJobAssignment *logsumObj = 	model->getIndLogsumJobAssignmentByTaz(tazId);
+		double logsum = logsumObj->getLogsum();
 		IndvidualEmpSec* empSecofIndividual = model->getIndvidualEmpSecByIndId(individualId);
 		int sectorId = 0;
 		if(empSecofIndividual != nullptr)
@@ -130,13 +135,23 @@ void JobAssignmentModel::computeJobAssignmentProbability(BigSerial individualId)
 
 		}
 
-		double expCurrent = exp ((jobAssignmentCoeffsObj->getBetaInc1() * incomecat1) + (jobAssignmentCoeffsObj->getBetaInc2() * incomeCat2) + (jobAssignmentCoeffsObj->getBetaInc3() * incomeCat3) +
-				(jobAssignmentCoeffsObj->getBetaLgs()* logsum) + (jobAssignmentCoeffsObj->getBetaS1() * jobsBySecByTaz->getSector1()) + (jobAssignmentCoeffsObj->getBetaS1() * jobsBySecByTaz->getSector1())+
-				(jobAssignmentCoeffsObj->getBetaS1() * sector1) + (jobAssignmentCoeffsObj->getBetaS2() * sector2)+ (jobAssignmentCoeffsObj->getBetaS3() * sector3)+
-				(jobAssignmentCoeffsObj->getBetaS4() * sector4)+ (jobAssignmentCoeffsObj->getBetaS5() * sector5)+ (jobAssignmentCoeffsObj->getBetaS6() * sector6)+
+		double lgNumJobsInSector = 0;
+		if(numJobsInSector == 0)
+		{
+			lgNumJobsInSector = 1;
+		}
+		else
+		{
+			lgNumJobsInSector = log(numJobsInSector);// natural log
+		}
+
+		double expCurrent = exp ((jobAssignmentCoeffsObj->getBetaInc1() * incomecat1 * logsum) + (jobAssignmentCoeffsObj->getBetaInc2() * incomeCat2 * logsum) + (jobAssignmentCoeffsObj->getBetaInc3() * incomeCat3 * logsum) +
+				(jobAssignmentCoeffsObj->getBetaLgs()* logsum) + (jobAssignmentCoeffsObj->getBetaS1() * jobsBySecByTaz->getSector1()  * logsum) + (jobAssignmentCoeffsObj->getBetaS1() * jobsBySecByTaz->getSector1() * logsum)+
+				(jobAssignmentCoeffsObj->getBetaS1() * sector1 * logsum) + (jobAssignmentCoeffsObj->getBetaS2() * sector2 * logsum)+ (jobAssignmentCoeffsObj->getBetaS3() * sector3 * logsum)+
+				(jobAssignmentCoeffsObj->getBetaS4() * sector4 * logsum)+ (jobAssignmentCoeffsObj->getBetaS5() * sector5  * logsum)+ (jobAssignmentCoeffsObj->getBetaS6() * sector6 * logsum)+
 				(jobAssignmentCoeffsObj->getBetaS7() * sector7)+ (jobAssignmentCoeffsObj->getBetaS8() * jobsBySecByTaz->getSector8() * sector8)+ (jobAssignmentCoeffsObj->getBetaS9() * sector9)+
-				(jobAssignmentCoeffsObj->getBetaS10() * sector10) + (jobAssignmentCoeffsObj->getBetaS11() * sector11) + (jobAssignmentCoeffsObj->getBetaS98() * sector98) +
-				(jobAssignmentCoeffsObj->getBetaLnJob() * log(numJobsInSector))); // natural log;
+				(jobAssignmentCoeffsObj->getBetaS10() * sector10 * logsum) + (jobAssignmentCoeffsObj->getBetaS11() * sector11 * logsum) + (jobAssignmentCoeffsObj->getBetaS98() * sector98 * logsum) +
+				(jobAssignmentCoeffsObj->getBetaLnJob() * lgNumJobsInSector));
 		expValMap.insert(std::pair<BigSerial, double>( tazId, expCurrent));
 		totalExp = totalExp + expCurrent;
 	}
@@ -148,6 +163,29 @@ void JobAssignmentModel::computeJobAssignmentProbability(BigSerial individualId)
 			{
 				double probVal = (expVal.second / totalExp);
 				probValMap.insert(std::pair<BigSerial, double>( expVal.first, probVal));
+			}
+		}
+
+		//generate a random number with uniform real distribution.
+		std::random_device rd;
+		std::mt19937 gen(rd());
+		std::uniform_real_distribution<> dis(0.0, 1.0);
+
+		double randomNum =  dis(gen);
+		double pTemp = 0;
+
+		BigSerial selectedTazId = 0;
+
+		for(auto probVal : probValMap)
+		{
+			if ((pTemp < randomNum) && (randomNum < (pTemp + probVal.second)))
+			{
+				selectedTazId = probVal.first;
+				break;
+			}
+			else
+			{
+				pTemp = pTemp + probVal.second;
 			}
 		}
 

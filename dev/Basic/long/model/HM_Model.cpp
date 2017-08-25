@@ -3433,6 +3433,7 @@ void HM_Model::loadJobsBySectorByTaz(DB_Connection &conn)
 	{
 		JobsBySectorByTaz* jobsBySectorByTaz = new JobsBySectorByTaz(*itJobsBySecByTaz);
 		jobsBySectorByTazsList.push_back(jobsBySectorByTaz);
+		jobsBySectorByTazMap.insert(std::make_pair(jobsBySectorByTaz->getTazId(), jobsBySectorByTaz));
 	}
 
 	PrintOutV("Number of Jobs by Sector by Taz rows: " << jobsBySectorByTazsList.size() << std::endl );
@@ -3460,6 +3461,58 @@ JobsBySectorByTaz* HM_Model::getJobsBySectorByTazId(BigSerial tazId) const
 HM_Model::TazList&  HM_Model::getTazList()
 {
 	return tazs;
+}
+
+void HM_Model::loadIndLogsumJobAssignmentList(BigSerial individualId)
+{
+	{
+		boost::mutex::scoped_lock lock( mtx );
+		// Loads necessary data from database.
+		DB_Config dbConfig(LT_DB_CONFIG_FILE);
+		dbConfig.load();
+		DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
+		conn.connect();
+
+		ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+		conn.setSchema(config.schemas.calibration_schema);
+
+		soci::session sql;
+		sql.open(soci::postgresql, conn.getConnectionStr());
+		std::string tableName = "ind_logsums_job_assignment";
+		//SQL statement
+		std::string individualIdStr = std::to_string(individualId);
+		soci::rowset<IndLogsumJobAssignment> logsumObj = (sql.prepare << "select * from "  + conn.getSchema() + tableName + "where individual_id = " + individualIdStr);
+
+		for (soci::rowset<IndLogsumJobAssignment>::const_iterator itLogsums = logsumObj.begin(); itLogsums != logsumObj.end(); ++itLogsums)
+		{
+			IndLogsumJobAssignment* logsum = new IndLogsumJobAssignment(*itLogsums);
+			indLogsumJobAssignmentList.push_back(logsum);
+			indLogsumJobAssignmentByTaz.insert(std::make_pair(logsum->getTazId(), logsum));
+		}
+
+	}
+}
+
+HM_Model::IndLogsumJobAssignmentList& HM_Model::getIndLogsumJobAssignment()
+{
+	return indLogsumJobAssignmentList;
+}
+
+IndLogsumJobAssignment* HM_Model::getIndLogsumJobAssignmentByTaz(BigSerial tazId)
+{
+	{
+		boost::mutex::scoped_lock lock( mtx3 );
+		string tazIdStr = 'X' + std::to_string(tazId);
+		IndLogsumJobAssignmentByTaz::const_iterator itr = indLogsumJobAssignmentByTaz.find(tazIdStr);
+
+		if (itr != indLogsumJobAssignmentByTaz.end())
+		{
+			return (*itr).second;
+		}
+
+		return nullptr;
+	}
+
 }
 
 void HM_Model::stopImpl()

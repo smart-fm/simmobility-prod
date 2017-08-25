@@ -16,6 +16,7 @@ namespace sim_mob
 {
 	namespace long_term
 	{
+
 		class JobAssignmentModel
 		{
 		public:
@@ -33,6 +34,7 @@ namespace sim_mob
 
 		private:
 			HM_Model* model;
+
 		};
 
 	}

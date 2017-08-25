@@ -57,6 +57,7 @@
 #include "database/entity/StudyArea.hpp"
 #include "database/entity/JobAssignmentCoeffs.hpp"
 #include "database/entity/JobsBySectorByTaz.hpp"
+#include "database/entity/IndLogsumJobAssignment.hpp"
 #include "core/HousingMarket.hpp"
 #include "boost/unordered_map.hpp"
 #include "DeveloperModel.hpp"
@@ -215,6 +216,9 @@ namespace sim_mob
 
             typedef std::vector<JobsBySectorByTaz*> JobsBySectorByTazList;
             typedef boost::unordered_map<BigSerial, JobsBySectorByTaz*>JobsBySectorByTazMap;
+
+            typedef std::vector<IndLogsumJobAssignment*> IndLogsumJobAssignmentList;
+            typedef boost::unordered_map<string, IndLogsumJobAssignment*>IndLogsumJobAssignmentByTaz;
 
             /**
              * Taz statistics
@@ -483,6 +487,10 @@ namespace sim_mob
 
             TazList& getTazList();
 
+            void loadIndLogsumJobAssignmentList(BigSerial individualId);
+            IndLogsumJobAssignmentList& getIndLogsumJobAssignment();
+            IndLogsumJobAssignment* getIndLogsumJobAssignmentByTaz(BigSerial tazId);
+
         protected:
             /**
              * Inherited from Model.
@@ -683,6 +691,10 @@ namespace sim_mob
 
 			JobsBySectorByTazList jobsBySectorByTazsList;
 			JobsBySectorByTazMap jobsBySectorByTazMap;
+
+			IndLogsumJobAssignmentList indLogsumJobAssignmentList;
+			IndLogsumJobAssignmentByTaz indLogsumJobAssignmentByTaz;
+
         };
     }
 }

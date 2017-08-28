@@ -276,14 +276,14 @@ ENDIF(${BUILD_STATIC} MATCHES "ON")
 #Cflags for C++0x support via gcc
 IF (SIMMOB_LATEST_STANDARD)
   IF(CMAKE_COMPILER_IS_GNUCXX)
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11 -static-libstdc++ -static-libgcc -O3")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11 -static-libstdc++ -static-libgcc ")
   ELSE() 
     #Just hope for the best
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -static-libstdc++ -static-libgcc  -O3")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -static-libstdc++ -static-libgcc  ")
   ENDIF()
 ELSE (SIMMOB_LATEST_STANDARD)
   #Avoid "C++0x compatibility" warnings.
-  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-c++11-compat -static-libstdc++ -static-libgcc  -O3")
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-c++11-compat -static-libstdc++ -static-libgcc  ")
 
   #Needed for profiling Agent updates (timing)
   #IF (${SIMMOB_AGENT_UPDATE_PROFILE} MATCHES "ON")

@@ -21,12 +21,12 @@ using namespace sim_mob::long_term;
 Unit::Unit( BigSerial id, BigSerial building_id, int unit_type, int storey_range, int constructionStatus, double floor_area, int storey,
 			double monthlyRent, std::tm sale_from_date, std::tm occupancyFromDate, int sale_status, int occupancyStatus, std::tm lastChangedDate,
 			double totalPrice,std::tm valueDate,int tenureStatus,int biddingMarketEntryDay, int timeOnMarket, int timeOffMarket, double lagCoefficient, int zoneHousingType,
-			int dwellingType, bool isBTO, double _btoPrice)
+			int dwellingType, bool isBTO, double _btoPrice, bool reentry)
 		   : id(id), building_id(building_id), unit_type(unit_type), storey_range(storey_range), constructionStatus(constructionStatus),
 		     floor_area(floor_area), storey(storey), monthlyRent(monthlyRent), sale_from_date(sale_from_date), occupancyFromDate(occupancyFromDate),
 			 sale_status(sale_status), occupancyStatus(occupancyStatus), lastChangedDate(lastChangedDate),totalPrice(totalPrice),valueDate(valueDate),tenureStatus(tenureStatus),
 			 biddingMarketEntryDay(biddingMarketEntryDay),timeOnMarket(timeOnMarket), timeOffMarket(timeOffMarket), lagCoefficient(lagCoefficient),
-			 zoneHousingType(zoneHousingType), dwellingType(dwellingType),isBTO(isBTO),existInDB(0),btoPrice(_btoPrice){}
+			 zoneHousingType(zoneHousingType), dwellingType(dwellingType),isBTO(isBTO),existInDB(0),btoPrice(_btoPrice), reentry(reentry){}
 
 
 Unit::Unit(const Unit& source)
@@ -56,6 +56,7 @@ Unit::Unit(const Unit& source)
     this->existInDB = source.existInDB;
     this->isBTO = source.isBTO;
     this->btoPrice = source.btoPrice;
+    this->reentry = source.reentry;
 }
 
 Unit::~Unit() {}
@@ -87,6 +88,7 @@ Unit& Unit::operator=(const Unit& source)
     this->existInDB = source.existInDB;
     this->isBTO = source.isBTO;
     this->btoPrice = source.btoPrice;
+    this->reentry = source.reentry;
 
     return *this;
 }
@@ -355,6 +357,17 @@ void Unit::setTimeOnMarket(int day )
 {
 	timeOnMarket = day;
 }
+
+void Unit::setReentry(bool val)
+{
+	reentry = val;
+}
+
+bool Unit::getReentry() const
+{
+	return reentry;
+}
+
 
 int  Unit::getTimeOffMarket() const
 {

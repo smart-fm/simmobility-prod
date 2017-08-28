@@ -1863,16 +1863,16 @@ void HM_Model::startImpl()
 	}
 
 	for (size_t n = 0; n < individuals.size(); n++)
-			{
-				BigSerial householdId = individuals[n]->getHouseholdId();
+	{
+		BigSerial householdId = individuals[n]->getHouseholdId();
 
-				Household *tempHH = getHouseholdById(householdId);
+		Household *tempHH = getHouseholdById(householdId);
 
-				if (tempHH != nullptr)
-				{
-					tempHH->setIndividual(individuals[n]->getId());
-				}
-			}
+		if (tempHH != nullptr)
+		{
+			tempHH->setIndividual(individuals[n]->getId());
+		}
+	}
 }
 
 
@@ -1971,6 +1971,8 @@ void HM_Model::startImpl()
 				}
 
 				freelanceAgents[vacancies % numWorkers]->addUnitId((*it)->getId());
+
+				Unitag.insert(pair<BigSerial, BigSerial>((*it)->getId(), freelanceAgents[vacancies % numWorkers]->getId()));
 				vacancies++;
 			}
 			else
@@ -2835,14 +2837,16 @@ void HM_Model::update(int day)
 	for(UnitList::const_iterator it = units.begin(); it != units.end(); it++)
 	{
 		//this unit is a vacancy
-		if (assignedUnits.find((*it)->getId()) == assignedUnits.end())
+		if (assignedUnits.find((*it)->getId()) == assignedUnits.end() && (*it)->getTenureStatus() != 3)
 		{
 			//If a unit is off the market and unoccupied, we should put it back on the market after its timeOffMarket value is exceeded.
 			if( day > (*it)->getbiddingMarketEntryDay() + (*it)->getTimeOnMarket() + (*it)->getTimeOffMarket()  )
 			{
-				//PrintOutV("A unit is being re-awakened" << std::endl);
-				(*it)->setbiddingMarketEntryDay(day + 1);
-				(*it)->setTimeOnMarket( 1 + config.ltParams.housingModel.timeOnMarket * (float)rand() / RAND_MAX );
+
+				PrintOutV( "ag: " << Unitag.find((*it)->getId())->second <<  " unit "  << (*it)->getId() << " is being re-awakened on day " << day << std::endl);
+				(*it)->setbiddingMarketEntryDay(day);
+				(*it)->setReentry(true);
+				//(*it)->setTimeOnMarket( 1 + config.ltParams.housingModel.timeOnMarket * (float)rand() / RAND_MAX );
 			}
 		}
 	}

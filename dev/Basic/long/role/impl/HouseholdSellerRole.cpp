@@ -246,27 +246,20 @@ void HouseholdSellerRole::update(timeslice now)
         	//this only applies to empty units. These units are given a random dayOnMarket value
         	//so that not all empty units flood the market on day 1. There's a timeOnMarket and timeOffMarket
         	//variable that is fed to simmobility through the long term XML file.
-
-
-            UnitsInfoMap::iterator it = sellingUnitsMap.find(unitId);
-            if(it != sellingUnitsMap.end())
-            {
-            	continue;
-            }
-
-
-
-            BigSerial tazId = model->getUnitTazId(unitId);
-
-
             bool buySellInvtervalCompleted = false;
-
             bool entryDay = true;
             //freelance agents will only awaken their units based on the unit market entry day
             if( getParent()->getId() >= model->FAKE_IDS_START )
             {
                	if( unit->getbiddingMarketEntryDay() == now.ms() )
+               	{
                		entryDay = true;
+
+               		if( unit->getReentry() == true )
+               		{
+               			PrintOutV("Reenter " << unit->getId());
+               		}
+               	}
                	else
                	{
                		entryDay = false;
@@ -274,6 +267,13 @@ void HouseholdSellerRole::update(timeslice now)
                	}
 
                	buySellInvtervalCompleted = true;
+            }
+
+
+            UnitsInfoMap::iterator it = sellingUnitsMap.find(unitId);
+            if(it != sellingUnitsMap.end())
+            {
+            	continue;
             }
 
 
@@ -295,10 +295,17 @@ void HouseholdSellerRole::update(timeslice now)
             	if( firstExpectation.hedonicPrice  < 0.05 )
             		continue;
 
+            	BigSerial tazId = model->getUnitTazId(unitId);
+
                 market->addEntry( HousingMarket::Entry( getParent(), unit->getId(), model->getUnitSlaAddressId( unit->getId() ), tazId, firstExpectation.askingPrice, firstExpectation.hedonicPrice, unit->isBto(), buySellInvtervalCompleted, unit->getZoneHousingType() ));
-				#ifdef VERBOSE
-                PrintOutV("[day " << currentTime.ms() << "] Household Seller " << getParent()->getId() << ". Adding entry to Housing market for unit " << unit->getId() << " with ap: " << firstExpectation.askingPrice << " hp: " << firstExpectation.hedonicPrice << " rp: " << firstExpectation.targetPrice << std::endl);
-				#endif
+				//#ifdef VERBOSE
+                if( unit->getReentry() == true )
+                	PrintOutV("[day " << currentTime.ms() << "] Household Seller " << getParent()->getId() << ". Adding entry to Housing market for unit " << unit->getId() << " with ap: " << firstExpectation.askingPrice << " hp: " << firstExpectation.hedonicPrice << " rp: " << firstExpectation.targetPrice << std::endl);
+				//#endif
+            }
+            else
+            {
+
             }
 
             selling = true;
@@ -451,12 +458,11 @@ void HouseholdSellerRole::adjustNotSoldUnits()
 
 				 if((int)currentTime.ms() > unit->getbiddingMarketEntryDay() + unit->getTimeOnMarket() )
 				 {
-					#ifdef VERBOSE
-					PrintOutV("[day " << currentTime.ms() << "] Removing unit " << unitId << " from the market. start:" << info.startedDay << " currentDay: " << currentTime.ms() << " daysOnMarket: " << info.daysOnMarket << std::endl );
-					#endif
+					//#ifdef VERBOSE
+					//PrintOutV( "agent: " << getParent()->getId() << "[day " << currentTime.ms() << "] Removing unit " << unitId << " from the market. start:" << info.startedDay << " currentDay: " << currentTime.ms() << " daysOnMarket: " << info.daysOnMarket << std::endl );
+					//#endif
 
 					sellingUnitsMap.erase(unitId);
-
 					market->removeEntry(unitId);
 					continue;
 				 }
@@ -566,6 +572,9 @@ bool HouseholdSellerRole::getCurrentExpectation(const BigSerial& unitId, Expecta
             }
         }
     }
+
+    //cout << "unit " << unitId << " not preosent in sellingmap " << endl;
+
     return false;
 }
 

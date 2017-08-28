@@ -566,6 +566,8 @@ namespace sim_mob
             vector<double> logSqrtFloorAreahdb;
             vector<double> logSqrtFloorAreacondo;
 
+            map<BigSerial, BigSerial> Unitag;
+
             boost::unordered_map<BigSerial, BigSerial> assignedUnits;
             VehicleOwnershipCoeffList vehicleOwnershipCoeffs;
             VehicleOwnershipCoeffMap vehicleOwnershipCoeffsById;

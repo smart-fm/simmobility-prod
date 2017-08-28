@@ -62,7 +62,8 @@ namespace sim_mob
 				LOG_HOUSEHOLD_STATISTICS,
 				LOG_NON_ELIGIBLE_PARCELS,
 				LOG_ELIGIBLE_PARCELS,
-				LOG_GPR
+				LOG_GPR,
+				LOG_JOB_ASIGN
             };
 
             LoggerAgent();

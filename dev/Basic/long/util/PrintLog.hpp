@@ -634,5 +634,15 @@ namespace sim_mob
 
 	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, error );
 	    }
+
+	    inline void writeJobAssignmentProbsToFile(BigSerial individualId,BigSerial tazId, float probability)
+	    	    {
+	    			ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+	    			//if(!config.ltParams.outputFiles.log_vehicle_ownership)
+	    			//	return;
+
+	    	    	boost::format fmtr = boost::format("%1%, %2%, %3%") % individualId % tazId % probability;
+	    	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_JOB_ASIGN,fmtr.str());
+	    	    }
 	}
 }

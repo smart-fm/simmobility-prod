@@ -49,7 +49,12 @@ void JobAssignmentModel::computeJobAssignmentProbability(BigSerial individualId)
 
 
 		IndLogsumJobAssignment *logsumObj = 	model->getIndLogsumJobAssignmentByTaz(tazId);
-		double logsum = logsumObj->getLogsum();
+		double logsum = 0;
+		if(logsumObj != nullptr)
+		{
+			logsum = logsumObj->getLogsum();
+		}
+
 		IndvidualEmpSec* empSecofIndividual = model->getIndvidualEmpSecByIndId(individualId);
 		int sectorId = 0;
 		if(empSecofIndividual != nullptr)
@@ -99,8 +104,6 @@ void JobAssignmentModel::computeJobAssignmentProbability(BigSerial individualId)
 
 		}
 
-
-		//TODO::read the logsum from the table
 		std::vector<JobAssignmentCoeffs*> jobAssignmentCoeffs = model->getJobAssignmentCoeffs();
 		JobAssignmentCoeffs *jobAssignmentCoeffsObj = jobAssignmentCoeffs[1];
 
@@ -163,6 +166,7 @@ void JobAssignmentModel::computeJobAssignmentProbability(BigSerial individualId)
 			{
 				double probVal = (expVal.second / totalExp);
 				probValMap.insert(std::pair<BigSerial, double>( expVal.first, probVal));
+				writeJobAssignmentProbsToFile(individaulId, expVal.first, probVal);
 			}
 		}
 

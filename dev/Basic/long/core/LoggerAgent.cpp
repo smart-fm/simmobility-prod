@@ -326,8 +326,12 @@ LoggerAgent::LoggerAgent() : Entity(-1)
 	 //gpr
 	 std::ofstream* gprInfoFile = new std::ofstream("gprInfo.csv");
 	 streams.insert(std::make_pair(LOG_GPR, gprInfoFile));
-
 	 *gprInfoFile << "parcelId, parcelGPR, actualGPR, gap" << std::endl;
+
+	 std::ofstream* jobAsignFile = new std::ofstream("jobAssign.csv");
+	 streams.insert(std::make_pair(LOG_JOB_ASIGN, jobAsignFile));
+	 *gprInfoFile << "individualId, tazId, probability" << std::endl;
+
 
 
 }

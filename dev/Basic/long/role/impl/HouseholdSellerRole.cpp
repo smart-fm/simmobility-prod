@@ -475,7 +475,7 @@ void HouseholdSellerRole::adjustNotSoldUnits()
 				 {
 					//#ifdef VERBOSE
 					//PrintOutV( "agent: " << getParent()->getId() << "[day " << currentTime.ms() << "] Removing unit " << unitId << " from the market. start:" << info.startedDay << " currentDay: " << currentTime.ms() << " daysOnMarket: " << info.daysOnMarket << <<  " MarEntry " << unit->getbiddingMarketEntryDay() << " OffMar " << unit->getTimeOffMarket() << " OnMar " << << std::endl );
-					PrintOutV( "agent: " << getParent()->getId() << "[day " << currentTime.ms() << "] Removing unit " << unitId <<  " MarEntry " << unit->getbiddingMarketEntryDay() << " OffMar " << unit->getTimeOffMarket() << " OnMar " << endl );
+					PrintOutV( "agent: " << getParent()->getId() << "[day " << currentTime.ms() << "] Removing unit " << unitId <<  " MarEntry " << unit->getbiddingMarketEntryDay() << " OffMar " << unit->getTimeOffMarket() << " OnMar " << unit->getTimeOnMarket() << endl );
 					//#endif
 
 					sellingUnitsMap.erase(unitId);

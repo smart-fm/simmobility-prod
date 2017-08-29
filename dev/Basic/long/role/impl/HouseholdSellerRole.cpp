@@ -313,6 +313,7 @@ void HouseholdSellerRole::update(timeslice now)
 				//#ifdef VERBOSE
                 //if( unit->getReentry() == true )
 //               	PrintOutV("[day " << currentTime.ms() << "] Household Seller " << getParent()->getId() << ". Adding entry to Housing market for unit " << unit->getId() <<  " MarEntry " << unit->getbiddingMarketEntryDay() << " OffMar " << unit->getTimeOffMarket() << " OnMar " << unit->getTimeOnMarket() << std::endl);
+               PrintOutV( "agent: " << getParent()->getId() << "[day " << currentTime.ms() << "] Adding unit " << unitId <<  " Entry " << unit->getbiddingMarketEntryDay() << " Off " << unit->getTimeOffMarket() << " On " << unit->getTimeOnMarket() << " ReEntry " << unit->getbiddingMarketEntryDay() + unit->getTimeOffMarket() + unit->getTimeOnMarket() << endl );
 				//#endif
             }
             else
@@ -475,7 +476,8 @@ void HouseholdSellerRole::adjustNotSoldUnits()
 				 {
 					//#ifdef VERBOSE
 					//PrintOutV( "agent: " << getParent()->getId() << "[day " << currentTime.ms() << "] Removing unit " << unitId << " from the market. start:" << info.startedDay << " currentDay: " << currentTime.ms() << " daysOnMarket: " << info.daysOnMarket << <<  " MarEntry " << unit->getbiddingMarketEntryDay() << " OffMar " << unit->getTimeOffMarket() << " OnMar " << << std::endl );
-//					PrintOutV( "agent: " << getParent()->getId() << "[day " << currentTime.ms() << "] Removing unit " << unitId <<  " MarEntry " << unit->getbiddingMarketEntryDay() << " OffMar " << unit->getTimeOffMarket() << " OnMar " << unit->getTimeOnMarket() << endl );
+					//PrintOutV( "agent: " << getParent()->getId() << "[day " << currentTime.ms() << "] Removing unit " << unitId <<  " MarEntry " << unit->getbiddingMarketEntryDay() << " OffMar " << unit->getTimeOffMarket() << " OnMar " << unit->getTimeOnMarket() << endl );
+					PrintOutV( "agent: " << getParent()->getId() << "[day " << currentTime.ms() << "] Remving unit " << unitId <<  " Entry " << unit->getbiddingMarketEntryDay() << " Off " << unit->getTimeOffMarket() << " On " << unit->getTimeOnMarket() << " ReEntry " << unit->getbiddingMarketEntryDay() + unit->getTimeOffMarket() + unit->getTimeOnMarket() << endl );
 					//#endif
 
 					sellingUnitsMap.erase(unitId);

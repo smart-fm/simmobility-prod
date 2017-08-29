@@ -1957,7 +1957,7 @@ void HM_Model::startImpl()
 					and subsequent time off the market is fixed via setTimeOffMarket.
 					*/
 					(*it)->setbiddingMarketEntryDay( unitStartDay );
-					(*it)->setTimeOffMarket( config.ltParams.housingModel.timeOffMarket);
+					//(*it)->setTimeOffMarket( config.ltParams.housingModel.timeOffMarket);
 					onMarket++;
 				}
 				else
@@ -1966,7 +1966,7 @@ void HM_Model::startImpl()
 					and subsequent time on market is fixed via setTimeOnMarket.
 					*/
 					(*it)->setbiddingMarketEntryDay( unitStartDay + (*it)->getTimeOffMarket());
-					(*it)->setTimeOnMarket( config.ltParams.housingModel.timeOnMarket);
+					//(*it)->setTimeOnMarket( config.ltParams.housingModel.timeOnMarket);
 					offMarket++;
 				}
 

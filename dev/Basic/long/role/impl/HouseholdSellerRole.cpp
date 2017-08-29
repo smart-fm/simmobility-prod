@@ -235,7 +235,7 @@ void HouseholdSellerRole::update(timeslice now)
         const vector<BigSerial>& unitIds = getParent()->getUnitIds();
 
         //get values from parent.
-        const Unit* unit = nullptr;
+        Unit* unit = nullptr;
 
         for (vector<BigSerial>::const_iterator itr = unitIds.begin(); itr != unitIds.end(); itr++)
         {
@@ -257,7 +257,7 @@ void HouseholdSellerRole::update(timeslice now)
 
                		if( unit->getReentry() == true )
                		{
-               			PrintOutV("Reenter " << unit->getId() << endl);
+               			//PrintOutV("Reenter " << unit->getId() << endl);
 
 						// UnitsInfoMap::iterator it = sellingUnitsMap.find(unitId);
 						// if(it != sellingUnitsMap.end())
@@ -282,7 +282,7 @@ void HouseholdSellerRole::update(timeslice now)
             {
            		if( unit->getReentry() == true )
            		{
-           			PrintOutV("unit " << unit->getId() << " stumbles at sellingmap"  << std::endl);
+           			//PrintOutV("unit " << unit->getId() << " stumbles at sellingmap"  << std::endl);
            		}
 
             	continue;
@@ -313,7 +313,7 @@ void HouseholdSellerRole::update(timeslice now)
 				//#ifdef VERBOSE
                 //if( unit->getReentry() == true )
 //               	PrintOutV("[day " << currentTime.ms() << "] Household Seller " << getParent()->getId() << ". Adding entry to Housing market for unit " << unit->getId() <<  " MarEntry " << unit->getbiddingMarketEntryDay() << " OffMar " << unit->getTimeOffMarket() << " OnMar " << unit->getTimeOnMarket() << std::endl);
-               PrintOutV( "agent: " << getParent()->getId() << "[day " << currentTime.ms() << "] Adding unit " << unitId <<  " Entry " << unit->getbiddingMarketEntryDay() << " Off " << unit->getTimeOffMarket() << " On " << unit->getTimeOnMarket() << " ReEntry " << unit->getbiddingMarketEntryDay() + unit->getTimeOffMarket() + unit->getTimeOnMarket() << endl );
+//               PrintOutV( "agent: " << getParent()->getId() << "[day " << currentTime.ms() << "] Adding unit " << unitId <<  " Entry " << unit->getbiddingMarketEntryDay() << " Off " << unit->getTimeOffMarket() << " On " << unit->getTimeOnMarket() << " ReEntry " << unit->getbiddingMarketEntryDay() + unit->getTimeOffMarket() + unit->getTimeOnMarket() << endl );
 				//#endif
             }
             else
@@ -477,10 +477,15 @@ void HouseholdSellerRole::adjustNotSoldUnits()
 					//#ifdef VERBOSE
 					//PrintOutV( "agent: " << getParent()->getId() << "[day " << currentTime.ms() << "] Removing unit " << unitId << " from the market. start:" << info.startedDay << " currentDay: " << currentTime.ms() << " daysOnMarket: " << info.daysOnMarket << <<  " MarEntry " << unit->getbiddingMarketEntryDay() << " OffMar " << unit->getTimeOffMarket() << " OnMar " << << std::endl );
 					//PrintOutV( "agent: " << getParent()->getId() << "[day " << currentTime.ms() << "] Removing unit " << unitId <<  " MarEntry " << unit->getbiddingMarketEntryDay() << " OffMar " << unit->getTimeOffMarket() << " OnMar " << unit->getTimeOnMarket() << endl );
-					PrintOutV( "agent: " << getParent()->getId() << "[day " << currentTime.ms() << "] Remving unit " << unitId <<  " Entry " << unit->getbiddingMarketEntryDay() << " Off " << unit->getTimeOffMarket() << " On " << unit->getTimeOnMarket() << " ReEntry " << unit->getbiddingMarketEntryDay() + unit->getTimeOffMarket() + unit->getTimeOnMarket() << endl );
+//					PrintOutV( "agent: " << getParent()->getId() << "[day " << currentTime.ms() << "] Remving unit " << unitId <<  " Entry " << unit->getbiddingMarketEntryDay() << " Off " << unit->getTimeOffMarket() << " On " << unit->getTimeOnMarket() << " ReEntry " << unit->getbiddingMarketEntryDay() + unit->getTimeOffMarket() + unit->getTimeOnMarket() << endl );
 					//#endif
 
+					int size1 = sellingUnitsMap.size();
 					sellingUnitsMap.erase(unitId);
+					int size2 = sellingUnitsMap.size() - size1;
+
+//					PrintOutV( "agent: " << getParent()->getId() << "[day " << currentTime.ms() << "] Remving unit " << unitId <<  " Entry " << unit->getbiddingMarketEntryDay() << " Off " << unit->getTimeOffMarket() << " On " << unit->getTimeOnMarket() << " ReEntry " << unit->getbiddingMarketEntryDay() + unit->getTimeOffMarket() + unit->getTimeOnMarket() << " dec " << size2 << endl );
+
 					market->removeEntry(unitId);
 
 					unit->setbiddingMarketEntryDay((int)currentTime.ms() + unit->getTimeOffMarket() + 1 );

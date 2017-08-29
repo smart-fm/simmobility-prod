@@ -259,11 +259,11 @@ void HouseholdSellerRole::update(timeslice now)
                		{
                			//PrintOutV("Reenter " << unit->getId() << endl);
 
-		       		// UnitsInfoMap::iterator it = sellingUnitsMap.find(unitId);
-		       		// if(it != sellingUnitsMap.end())
-		       		// {
-		       		//	 cout << "this is the problem" << endl;
-		       		// }
+						// UnitsInfoMap::iterator it = sellingUnitsMap.find(unitId);
+						// if(it != sellingUnitsMap.end())
+						// {
+						//	 cout << "this is the problem" << endl;
+						// }
 
                		}
                	}
@@ -280,6 +280,11 @@ void HouseholdSellerRole::update(timeslice now)
             UnitsInfoMap::iterator it = sellingUnitsMap.find(unitId);
             if(it != sellingUnitsMap.end())
             {
+           		if( unit->getReentry() == true )
+           		{
+           			PrintOutV("unit " << unit->getId() << " stumbles at sellingmap"  << std::endl);
+           		}
+
             	continue;
             }
 
@@ -312,7 +317,10 @@ void HouseholdSellerRole::update(timeslice now)
             }
             else
             {
-
+           		if( unit->getReentry() == true )
+           		{
+           			PrintOutV("unit " << unit->getId() << " stumbles at getExpectation"  << std::endl);
+           		}
             }
 
             selling = true;

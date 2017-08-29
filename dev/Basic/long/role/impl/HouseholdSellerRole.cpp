@@ -246,27 +246,23 @@ void HouseholdSellerRole::update(timeslice now)
         	//this only applies to empty units. These units are given a random dayOnMarket value
         	//so that not all empty units flood the market on day 1. There's a timeOnMarket and timeOffMarket
         	//variable that is fed to simmobility through the long term XML file.
+
+
+            UnitsInfoMap::iterator it = sellingUnitsMap.find(unitId);
+            if(it != sellingUnitsMap.end())
+            {
+            	continue;
+            }
+
+
+
             bool buySellInvtervalCompleted = false;
             bool entryDay = true;
             //freelance agents will only awaken their units based on the unit market entry day
             if( getParent()->getId() >= model->FAKE_IDS_START )
             {
                	if( unit->getbiddingMarketEntryDay() == now.ms() )
-               	{
                		entryDay = true;
-
-               		if( unit->getReentry() == true )
-               		{
-               			//PrintOutV("Reenter " << unit->getId() << endl);
-
-						// UnitsInfoMap::iterator it = sellingUnitsMap.find(unitId);
-						// if(it != sellingUnitsMap.end())
-						// {
-						//	 cout << "this is the problem" << endl;
-						// }
-
-               		}
-               	}
                	else
                	{
                		entryDay = false;
@@ -277,16 +273,6 @@ void HouseholdSellerRole::update(timeslice now)
             }
 
 
-            UnitsInfoMap::iterator it = sellingUnitsMap.find(unitId);
-            if(it != sellingUnitsMap.end())
-            {
-           		if( unit->getReentry() == true )
-           		{
-           			//PrintOutV("unit " << unit->getId() << " stumbles at sellingmap"  << std::endl);
-           		}
-
-            	continue;
-            }
 
 
             TimeCheck hedonicPriceTiming;
@@ -310,18 +296,9 @@ void HouseholdSellerRole::update(timeslice now)
             	BigSerial tazId = model->getUnitTazId(unitId);
 
                 market->addEntry( HousingMarket::Entry( getParent(), unit->getId(), model->getUnitSlaAddressId( unit->getId() ), tazId, firstExpectation.askingPrice, firstExpectation.hedonicPrice, unit->isBto(), buySellInvtervalCompleted, unit->getZoneHousingType() ));
-				//#ifdef VERBOSE
-                //if( unit->getReentry() == true )
-//               	PrintOutV("[day " << currentTime.ms() << "] Household Seller " << getParent()->getId() << ". Adding entry to Housing market for unit " << unit->getId() <<  " MarEntry " << unit->getbiddingMarketEntryDay() << " OffMar " << unit->getTimeOffMarket() << " OnMar " << unit->getTimeOnMarket() << std::endl);
-//               PrintOutV( "agent: " << getParent()->getId() << "[day " << currentTime.ms() << "] Adding unit " << unitId <<  " Entry " << unit->getbiddingMarketEntryDay() << " Off " << unit->getTimeOffMarket() << " On " << unit->getTimeOnMarket() << " ReEntry " << unit->getbiddingMarketEntryDay() + unit->getTimeOffMarket() + unit->getTimeOnMarket() << endl );
-				//#endif
-            }
-            else
-            {
-           		if( unit->getReentry() == true )
-           		{
-           			PrintOutV("unit " << unit->getId() << " stumbles at getExpectation"  << std::endl);
-           		}
+				#ifdef VERBOSE
+                PrintOutV("[day " << currentTime.ms() << "] Household Seller " << getParent()->getId() << ". Adding entry to Housing market for unit " << unit->getId() <<  " MarEntry " << unit->getbiddingMarketEntryDay() << " OffMar " << unit->getTimeOffMarket() << " OnMar " << unit->getTimeOnMarket() << std::endl);
+				#endif
             }
 
             selling = true;
@@ -474,22 +451,15 @@ void HouseholdSellerRole::adjustNotSoldUnits()
 
 				 if((int)currentTime.ms() > unit->getbiddingMarketEntryDay() + unit->getTimeOnMarket() )
 				 {
-					//#ifdef VERBOSE
-					//PrintOutV( "agent: " << getParent()->getId() << "[day " << currentTime.ms() << "] Removing unit " << unitId << " from the market. start:" << info.startedDay << " currentDay: " << currentTime.ms() << " daysOnMarket: " << info.daysOnMarket << <<  " MarEntry " << unit->getbiddingMarketEntryDay() << " OffMar " << unit->getTimeOffMarket() << " OnMar " << << std::endl );
-					//PrintOutV( "agent: " << getParent()->getId() << "[day " << currentTime.ms() << "] Removing unit " << unitId <<  " MarEntry " << unit->getbiddingMarketEntryDay() << " OffMar " << unit->getTimeOffMarket() << " OnMar " << unit->getTimeOnMarket() << endl );
-//					PrintOutV( "agent: " << getParent()->getId() << "[day " << currentTime.ms() << "] Remving unit " << unitId <<  " Entry " << unit->getbiddingMarketEntryDay() << " Off " << unit->getTimeOffMarket() << " On " << unit->getTimeOnMarket() << " ReEntry " << unit->getbiddingMarketEntryDay() + unit->getTimeOffMarket() + unit->getTimeOnMarket() << endl );
-					//#endif
+					#ifdef VERBOSE
+					PrintOutV( "agent: " << getParent()->getId() << "[day " << currentTime.ms() << "] Removing unit " << unitId << " from the market. start:" << info.startedDay << " currentDay: " << currentTime.ms() << " daysOnMarket: " << info.daysOnMarket << <<  " MarEntry " << unit->getbiddingMarketEntryDay() << " OffMar " << unit->getTimeOffMarket() << " OnMar " << << std::endl );
+					#endif
 
-					int size1 = sellingUnitsMap.size();
 					sellingUnitsMap.erase(unitId);
-					int size2 = sellingUnitsMap.size() - size1;
-
-//					PrintOutV( "agent: " << getParent()->getId() << "[day " << currentTime.ms() << "] Remving unit " << unitId <<  " Entry " << unit->getbiddingMarketEntryDay() << " Off " << unit->getTimeOffMarket() << " On " << unit->getTimeOnMarket() << " ReEntry " << unit->getbiddingMarketEntryDay() + unit->getTimeOffMarket() + unit->getTimeOnMarket() << " dec " << size2 << endl );
 
 					market->removeEntry(unitId);
 
 					unit->setbiddingMarketEntryDay((int)currentTime.ms() + unit->getTimeOffMarket() + 1 );
-					unit->setReentry(true);
 
 					continue;
 				 }
@@ -600,7 +570,6 @@ bool HouseholdSellerRole::getCurrentExpectation(const BigSerial& unitId, Expecta
         }
     }
 
-    //cout << "unit " << unitId << " not preosent in sellingmap " << endl;
 
     return false;
 }

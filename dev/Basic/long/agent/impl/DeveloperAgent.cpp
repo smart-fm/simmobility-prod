@@ -730,7 +730,7 @@ Entity::UpdateStatus DeveloperAgent::onFrameTick(timeslice now) {
     	}
     	else if(hasBTO)
     	{
-    		//launchBTOUnits(currentDate);
+    		launchBTOUnits(currentDate);
     	}
 
     }

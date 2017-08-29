@@ -39,7 +39,6 @@ void UnitDao::fromRow(Row& result, Unit& outObj)
     outObj.tenureStatus = result.get<int>("tenure_status", 0);
     outObj.isBTO = false;
     outObj.btoPrice = result.get<double>("bto_price", 0);
-    outObj.reentry = false;
 }
 
 void UnitDao::toRow(Unit& data, Parameters& outParams, bool update)

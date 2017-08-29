@@ -282,7 +282,7 @@ void HouseholdSellerRole::update(timeslice now)
             {
            		if( unit->getReentry() == true )
            		{
-           			PrintOutV("unit " << unit->getId() << " stumbles at sellingmap"  << std::endl);
+           			//PrintOutV("unit " << unit->getId() << " stumbles at sellingmap"  << std::endl);
            		}
 
             	continue;
@@ -319,7 +319,7 @@ void HouseholdSellerRole::update(timeslice now)
             {
            		if( unit->getReentry() == true )
            		{
-           			PrintOutV("unit " << unit->getId() << " stumbles at getExpectation"  << std::endl);
+           			//PrintOutV("unit " << unit->getId() << " stumbles at getExpectation"  << std::endl);
            		}
             }
 

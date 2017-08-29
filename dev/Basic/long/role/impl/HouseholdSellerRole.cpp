@@ -312,7 +312,7 @@ void HouseholdSellerRole::update(timeslice now)
                 market->addEntry( HousingMarket::Entry( getParent(), unit->getId(), model->getUnitSlaAddressId( unit->getId() ), tazId, firstExpectation.askingPrice, firstExpectation.hedonicPrice, unit->isBto(), buySellInvtervalCompleted, unit->getZoneHousingType() ));
 				//#ifdef VERBOSE
                 //if( unit->getReentry() == true )
-                //	PrintOutV("[day " << currentTime.ms() << "] Household Seller " << getParent()->getId() << ". Adding entry to Housing market for unit " << unit->getId() << " with ap: " << firstExpectation.askingPrice << " hp: " << firstExpectation.hedonicPrice << " rp: " << firstExpectation.targetPrice << std::endl);
+               	PrintOutV("[day " << currentTime.ms() << "] Household Seller " << getParent()->getId() << ". Adding entry to Housing market for unit " << unit->getId() <<  " MarEntry " << unit->getbiddingMarketEntryDay() << " OffMar " << unit->getTimeOffMarket() << " OnMar " << unit->getTimeOnMarket() << std::endl);
 				//#endif
             }
             else
@@ -474,7 +474,8 @@ void HouseholdSellerRole::adjustNotSoldUnits()
 				 if((int)currentTime.ms() > unit->getbiddingMarketEntryDay() + unit->getTimeOnMarket() )
 				 {
 					//#ifdef VERBOSE
-					//PrintOutV( "agent: " << getParent()->getId() << "[day " << currentTime.ms() << "] Removing unit " << unitId << " from the market. start:" << info.startedDay << " currentDay: " << currentTime.ms() << " daysOnMarket: " << info.daysOnMarket << std::endl );
+					//PrintOutV( "agent: " << getParent()->getId() << "[day " << currentTime.ms() << "] Removing unit " << unitId << " from the market. start:" << info.startedDay << " currentDay: " << currentTime.ms() << " daysOnMarket: " << info.daysOnMarket << <<  " MarEntry " << unit->getbiddingMarketEntryDay() << " OffMar " << unit->getTimeOffMarket() << " OnMar " << << std::endl );
+					PrintOutV( "agent: " << getParent()->getId() << "[day " << currentTime.ms() << "] Removing unit " << unitId <<  " MarEntry " << unit->getbiddingMarketEntryDay() << " OffMar " << unit->getTimeOffMarket() << " OnMar " << endl );
 					//#endif
 
 					sellingUnitsMap.erase(unitId);

@@ -257,7 +257,14 @@ void HouseholdSellerRole::update(timeslice now)
 
                		if( unit->getReentry() == true )
                		{
-               			PrintOutV("Reenter " << unit->getId());
+               			//PrintOutV("Reenter " << unit->getId() << endl);
+
+		       		// UnitsInfoMap::iterator it = sellingUnitsMap.find(unitId);
+		       		// if(it != sellingUnitsMap.end())
+		       		// {
+		       		//	 cout << "this is the problem" << endl;
+		       		// }
+
                		}
                	}
                	else
@@ -299,8 +306,8 @@ void HouseholdSellerRole::update(timeslice now)
 
                 market->addEntry( HousingMarket::Entry( getParent(), unit->getId(), model->getUnitSlaAddressId( unit->getId() ), tazId, firstExpectation.askingPrice, firstExpectation.hedonicPrice, unit->isBto(), buySellInvtervalCompleted, unit->getZoneHousingType() ));
 				//#ifdef VERBOSE
-                if( unit->getReentry() == true )
-                	PrintOutV("[day " << currentTime.ms() << "] Household Seller " << getParent()->getId() << ". Adding entry to Housing market for unit " << unit->getId() << " with ap: " << firstExpectation.askingPrice << " hp: " << firstExpectation.hedonicPrice << " rp: " << firstExpectation.targetPrice << std::endl);
+                //if( unit->getReentry() == true )
+                //	PrintOutV("[day " << currentTime.ms() << "] Household Seller " << getParent()->getId() << ". Adding entry to Housing market for unit " << unit->getId() << " with ap: " << firstExpectation.askingPrice << " hp: " << firstExpectation.hedonicPrice << " rp: " << firstExpectation.targetPrice << std::endl);
 				//#endif
             }
             else

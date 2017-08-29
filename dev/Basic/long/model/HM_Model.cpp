@@ -2832,8 +2832,7 @@ void HM_Model::unitsFiltering()
 
 void HM_Model::update(int day)
 {
-	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
-
+	/*
 	for(UnitList::const_iterator it = units.begin(); it != units.end(); it++)
 	{
 		//this unit is a vacancy
@@ -2844,12 +2843,13 @@ void HM_Model::update(int day)
 			{
 
 				//PrintOutV( "ag: " << Unitag.find((*it)->getId())->second <<  " unit "  << (*it)->getId() << " is being re-awakened on day " << day << std::endl);
-				(*it)->setbiddingMarketEntryDay(day);
+				(*it)->setbiddingMarketEntryDay(day + 2 );
 				(*it)->setReentry(true);
 				//(*it)->setTimeOnMarket( 1 + config.ltParams.housingModel.timeOnMarket * (float)rand() / RAND_MAX );
 			}
 		}
 	}
+	*/
 }
 
 

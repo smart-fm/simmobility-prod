@@ -455,7 +455,7 @@ void HouseholdSellerRole::adjustNotSoldUnits()
     const HM_Model* model = getParent()->getModel();
     HousingMarket* market = getParent()->getMarket();
     const IdVector& unitIds = getParent()->getUnitIds();
-    const Unit* unit = nullptr;
+    Unit* unit = nullptr;
     const HousingMarket::Entry* unitEntry = nullptr;
 
     for (IdVector::const_iterator itr = unitIds.begin(); itr != unitIds.end(); itr++)
@@ -482,6 +482,10 @@ void HouseholdSellerRole::adjustNotSoldUnits()
 
 					sellingUnitsMap.erase(unitId);
 					market->removeEntry(unitId);
+
+					unit->setbiddingMarketEntryDay((int)currentTime.ms() + unit->getTimeOffMarket() + unit->getTimeOnMarket() + 1 );
+					unit->setReentry(true);
+
 					continue;
 				 }
 			 }

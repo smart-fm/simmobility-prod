@@ -2843,7 +2843,7 @@ void HM_Model::update(int day)
 			if( day > (*it)->getbiddingMarketEntryDay() + (*it)->getTimeOnMarket() + (*it)->getTimeOffMarket()  )
 			{
 
-				PrintOutV( "ag: " << Unitag.find((*it)->getId())->second <<  " unit "  << (*it)->getId() << " is being re-awakened on day " << day << std::endl);
+				//PrintOutV( "ag: " << Unitag.find((*it)->getId())->second <<  " unit "  << (*it)->getId() << " is being re-awakened on day " << day << std::endl);
 				(*it)->setbiddingMarketEntryDay(day);
 				(*it)->setReentry(true);
 				//(*it)->setTimeOnMarket( 1 + config.ltParams.housingModel.timeOnMarket * (float)rand() / RAND_MAX );

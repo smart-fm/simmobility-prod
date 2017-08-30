@@ -31,7 +31,7 @@ HedonicPrice_SubModel::~HedonicPrice_SubModel() {}
 double HedonicPrice_SubModel::ComputeLagCoefficient()
 {
 	//Current Quarter
-	double currentQuarter = int((day / 365 * 4) + 1);
+	double currentQuarter = int((day / 365.0 * 4.0));
 
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 	std::string quarterStr = boost::lexical_cast<std::string>(config.ltParams.year)+"Q"+boost::lexical_cast<std::string>(currentQuarter);

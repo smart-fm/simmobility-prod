@@ -397,6 +397,7 @@ void HouseholdBidderRole::TakeUnitOwnership()
 	getParent()->getHousehold()->setUnitId(unitIdToBeOwned);
 	getParent()->getHousehold()->setHasMoved(1);
 	getParent()->getHousehold()->setUnitPending(0);
+	getParent()->getHousehold()->setTenureStatus(1);
 	Unit *unit = getParent()->getModel()->getUnitById(unitIdToBeOwned);
 	//update the unit tenure status to "owner occupied" when a household moved to a new unit.
 	unit->setTenureStatus(1);
